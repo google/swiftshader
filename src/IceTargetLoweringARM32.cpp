@@ -454,12 +454,9 @@ void TargetARM32::genTargetHelperCallFor(Inst *Instr) {
       switch (Op) {
       default:
         break;
-      case InstArithmetic::Ashr:
       case InstArithmetic::Fdiv:
       case InstArithmetic::Frem:
-      case InstArithmetic::Lshr:
       case InstArithmetic::Sdiv:
-      case InstArithmetic::Shl:
       case InstArithmetic::Srem:
       case InstArithmetic::Udiv:
       case InstArithmetic::Urem:
@@ -1960,7 +1957,8 @@ void TargetARM32::PostLoweringLegalizer::legalizeMov(InstARM32Mov *MovInstr) {
 // For now, we don't handle address modes with Relocatables.
 namespace {
 // MemTraits contains per-type valid address mode information.
-#define X(tag, elementty, int_width, vec_width, sbits, ubits, rraddr, shaddr)  \
+#define X(tag, elementty, int_width, fp_width, uvec_width, svec_width, sbits,  \
+          ubits, rraddr, shaddr)                                               \
   static_assert(!(shaddr) || rraddr, "Check ICETYPEARM32_TABLE::" #tag);
 ICETYPEARM32_TABLE
 #undef X
@@ -1971,7 +1969,8 @@ static const struct {
   bool CanHaveIndex;
   bool CanHaveShiftedIndex;
 } MemTraits[] = {
-#define X(tag, elementty, int_width, vec_width, sbits, ubits, rraddr, shaddr)  \
+#define X(tag, elementty, int_width, fp_width, uvec_width, svec_width, sbits,  \
+          ubits, rraddr, shaddr)                                               \
   { (1 << ubits) - 1, (ubits) > 0, rraddr, shaddr, }                           \
   ,
     ICETYPEARM32_TABLE
@@ -3120,15 +3119,18 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Instr) {
       UnimplementedLoweringError(this, Instr);
       return;
     // Explicitly whitelist vector instructions we have implemented/enabled.
-    case InstArithmetic::Fadd:
     case InstArithmetic::Add:
-    case InstArithmetic::Fsub:
-    case InstArithmetic::Sub:
     case InstArithmetic::And:
-    case InstArithmetic::Or:
-    case InstArithmetic::Xor:
+    case InstArithmetic::Ashr:
+    case InstArithmetic::Fadd:
     case InstArithmetic::Fmul:
+    case InstArithmetic::Fsub:
+    case InstArithmetic::Lshr:
     case InstArithmetic::Mul:
+    case InstArithmetic::Or:
+    case InstArithmetic::Shl:
+    case InstArithmetic::Sub:
+    case InstArithmetic::Xor:
       break;
     }
   }
@@ -3448,26 +3450,46 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Instr) {
   }
   case InstArithmetic::Shl: {
     Variable *Src0R = Srcs.unswappedSrc0R(this);
-    Operand *Src1R = Srcs.unswappedSrc1RShAmtImm(this);
-    _lsl(T, Src0R, Src1R);
+    if (!isVectorType(T->getType())) {
+      Operand *Src1R = Srcs.unswappedSrc1RShAmtImm(this);
+      _lsl(T, Src0R, Src1R);
+    } else {
+      auto *Src1R = Srcs.unswappedSrc1R(this);
+      _vshl(T, Src0R, Src1R)->setSignType(InstARM32::FS_Unsigned);
+    }
     _mov(Dest, T);
     return;
   }
   case InstArithmetic::Lshr: {
     Variable *Src0R = Srcs.unswappedSrc0R(this);
-    if (DestTy != IceType_i32) {
-      _uxt(Src0R, Src0R);
+    if (!isVectorType(T->getType())) {
+      Operand *Src1R = Srcs.unswappedSrc1RShAmtImm(this);
+      if (DestTy != IceType_i32) {
+        _uxt(Src0R, Src0R);
+      }
+      _lsr(T, Src0R, Src1R);
+    } else {
+      auto *Src1R = Srcs.unswappedSrc1R(this);
+      auto *Src1RNeg = makeReg(Src1R->getType());
+      _vneg(Src1RNeg, Src1R);
+      _vshl(T, Src0R, Src1RNeg)->setSignType(InstARM32::FS_Unsigned);
     }
-    _lsr(T, Src0R, Srcs.unswappedSrc1RShAmtImm(this));
     _mov(Dest, T);
     return;
   }
   case InstArithmetic::Ashr: {
     Variable *Src0R = Srcs.unswappedSrc0R(this);
-    if (DestTy != IceType_i32) {
-      _sxt(Src0R, Src0R);
+    if (!isVectorType(T->getType())) {
+      if (DestTy != IceType_i32) {
+        _sxt(Src0R, Src0R);
+      }
+      _asr(T, Src0R, Srcs.unswappedSrc1RShAmtImm(this));
+    } else {
+      auto *Src1R = Srcs.unswappedSrc1R(this);
+      auto *Src1RNeg = makeReg(Src1R->getType());
+      _vneg(Src1RNeg, Src1R);
+      _vshl(T, Src0R, Src1RNeg)->setSignType(InstARM32::FS_Signed);
     }
-    _asr(T, Src0R, Srcs.unswappedSrc1RShAmtImm(this));
     _mov(Dest, T);
     return;
   }

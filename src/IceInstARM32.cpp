@@ -33,13 +33,16 @@ using Register = RegARM32::AllRegisters;
 static constexpr SizeT VpushVpopMaxConsecRegs = 16;
 
 const struct TypeARM32Attributes_ {
-  const char *WidthString;    // b, h, <blank>, or d
-  const char *VecWidthString; // i8, i16, i32, f32, f64
+  const char *WidthString;     // b, h, <blank>, or d
+  const char *FpWidthString;   // i8, i16, i32, f32, f64
+  const char *SVecWidthString; // s8, s16, s32, f32
+  const char *UVecWidthString; // u8, u16, u32, f32
   int8_t SExtAddrOffsetBits;
   int8_t ZExtAddrOffsetBits;
 } TypeARM32Attributes[] = {
-#define X(tag, elementty, int_width, vec_width, sbits, ubits, rraddr, shaddr)  \
-  { int_width, vec_width, sbits, ubits }                                       \
+#define X(tag, elementty, int_width, fp_width, uvec_width, svec_width, sbits,  \
+          ubits, rraddr, shaddr)                                               \
+  { int_width, fp_width, svec_width, uvec_width, sbits, ubits }                \
   ,
     ICETYPEARM32_TABLE
 #undef X
@@ -70,15 +73,36 @@ size_t getVecElmtBitsize(Type Ty) {
   return typeWidthInBytes(typeElementType(Ty)) * CHAR_BIT;
 }
 
-} // end of anonymous namespace
-
-const char *InstARM32::getWidthString(Type Ty) {
+const char *getWidthString(Type Ty) {
   return TypeARM32Attributes[Ty].WidthString;
 }
 
-const char *InstARM32::getVecWidthString(Type Ty) {
-  return TypeARM32Attributes[Ty].VecWidthString;
+const char *getFpWidthString(Type Ty) {
+  return TypeARM32Attributes[Ty].FpWidthString;
 }
+
+const char *getSVecWidthString(Type Ty) {
+  return TypeARM32Attributes[Ty].SVecWidthString;
+}
+
+const char *getUVecWidthString(Type Ty) {
+  return TypeARM32Attributes[Ty].UVecWidthString;
+}
+
+const char *getVWidthString(Type Ty, InstARM32::FPSign SignType) {
+  switch (SignType) {
+  case InstARM32::FS_None:
+    return getFpWidthString(Ty);
+  case InstARM32::FS_Signed:
+    return getSVecWidthString(Ty);
+  case InstARM32::FS_Unsigned:
+    return getUVecWidthString(Ty);
+  }
+  llvm_unreachable("Invalid Sign Type.");
+  return getFpWidthString(Ty);
+}
+
+} // end of anonymous namespace
 
 const char *InstARM32Pred::predString(CondARM32::Cond Pred) {
   return InstARM32CondAttributes[Pred].EmitString;
@@ -150,13 +174,24 @@ void InstARM32Pred::emitUnaryopGPR(const char *Opcode,
   Instr->getSrc(0)->emit(Func);
 }
 
-void InstARM32Pred::emitUnaryopFP(const char *Opcode,
+void InstARM32Pred::emitUnaryopFP(const char *Opcode, FPSign Sign,
                                   const InstARM32Pred *Instr, const Cfg *Func) {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(Instr->getSrcSize() == 1);
   Type SrcTy = Instr->getSrc(0)->getType();
-  Str << "\t" << Opcode << Instr->getPredicate() << getVecWidthString(SrcTy)
-      << "\t";
+  Str << "\t" << Opcode << Instr->getPredicate();
+  switch (Sign) {
+  case FS_None:
+    Str << getFpWidthString(SrcTy);
+    break;
+  case FS_Signed:
+    Str << getSVecWidthString(SrcTy);
+    break;
+  case FS_Unsigned:
+    Str << getUVecWidthString(SrcTy);
+    break;
+  }
+  Str << "\t";
   Instr->getDest()->emit(Func);
   Str << ", ";
   Instr->getSrc(0)->emit(Func);
@@ -192,14 +227,14 @@ void InstARM32Pred::emitThreeAddr(const char *Opcode,
   Instr->getSrc(1)->emit(Func);
 }
 
-void InstARM32::emitThreeAddrFP(const char *Opcode, const InstARM32 *Instr,
-                                const Cfg *Func) {
+void InstARM32::emitThreeAddrFP(const char *Opcode, FPSign SignType,
+                                const InstARM32 *Instr, const Cfg *Func) {
   if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(Instr->getSrcSize() == 2);
-  Str << "\t" << Opcode << getVecWidthString(Instr->getDest()->getType())
-      << "\t";
+  Str << "\t" << Opcode
+      << getVWidthString(Instr->getDest()->getType(), SignType) << "\t";
   Instr->getDest()->emit(Func);
   Str << ", ";
   Instr->getSrc(0)->emit(Func);
@@ -207,15 +242,15 @@ void InstARM32::emitThreeAddrFP(const char *Opcode, const InstARM32 *Instr,
   Instr->getSrc(1)->emit(Func);
 }
 
-void InstARM32::emitFourAddrFP(const char *Opcode, const InstARM32 *Instr,
-                               const Cfg *Func) {
+void InstARM32::emitFourAddrFP(const char *Opcode, FPSign SignType,
+                               const InstARM32 *Instr, const Cfg *Func) {
   if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(Instr->getSrcSize() == 3);
   assert(Instr->getSrc(0) == Instr->getDest());
-  Str << "\t" << Opcode << getVecWidthString(Instr->getDest()->getType())
-      << "\t";
+  Str << "\t" << Opcode
+      << getVWidthString(Instr->getDest()->getType(), SignType) << "\t";
   Instr->getDest()->emit(Func);
   Str << ", ";
   Instr->getSrc(1)->emit(Func);
@@ -252,6 +287,11 @@ void InstARM32FourAddrFP<K>::emitIAS(const Cfg *Func) const {
 template <InstARM32::InstKindARM32 K>
 void InstARM32ThreeAddrFP<K>::emitIAS(const Cfg *Func) const {
   emitUsingTextFixup(Func);
+}
+
+template <InstARM32::InstKindARM32 K>
+void InstARM32ThreeAddrSignAwareFP<K>::emitIAS(const Cfg *Func) const {
+  InstARM32::emitUsingTextFixup(Func);
 }
 
 template <> void InstARM32Mla::emitIAS(const Cfg *Func) const {
@@ -737,6 +777,27 @@ template <> void InstARM32Vmls::emitIAS(const Cfg *Func) const {
   }
 }
 
+template <> void InstARM32Vneg::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  const Variable *Dest = getDest();
+  const Type DestTy = Dest->getType();
+  switch (Dest->getType()) {
+  default:
+    llvm::report_fatal_error("Vneg not defined on type " +
+                             typeStdString(Dest->getType()));
+  case IceType_v4i1:
+  case IceType_v8i1:
+  case IceType_v16i1:
+  case IceType_v16i8:
+  case IceType_v8i16:
+  case IceType_v4i32:
+  case IceType_v4f32: {
+    const Type ElmtTy = typeElementType(DestTy);
+    Asm->vnegqs(ElmtTy, Dest, getSrc(0));
+  } break;
+  }
+}
+
 template <> void InstARM32Vorr::emitIAS(const Cfg *Func) const {
   auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   const Variable *Dest = getDest();
@@ -753,6 +814,35 @@ template <> void InstARM32Vorr::emitIAS(const Cfg *Func) const {
     Asm->vorrq(Dest, getSrc(0), getSrc(1));
   }
   assert(!Asm->needsTextFixup());
+}
+
+template <> void InstARM32Vshl::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  const Variable *Dest = getDest();
+  const Type DestTy = Dest->getType();
+  switch (DestTy) {
+  default:
+    llvm::report_fatal_error("Vshl not defined on type " +
+                             typeStdString(Dest->getType()));
+  case IceType_v4i1:
+  case IceType_v8i1:
+  case IceType_v16i1:
+  case IceType_v16i8:
+  case IceType_v8i16:
+  case IceType_v4i32: {
+    const Type ElmtTy = typeElementType(DestTy);
+    assert(Sign != InstARM32::FS_None);
+    switch (Sign) {
+    case InstARM32::FS_None: // defaults to unsigned.
+    case InstARM32::FS_Unsigned:
+      Asm->vshlqu(ElmtTy, Dest, getSrc(0), getSrc(1));
+      break;
+    case InstARM32::FS_Signed:
+      Asm->vshlqi(ElmtTy, Dest, getSrc(0), getSrc(1));
+      break;
+    }
+  } break;
+  }
 }
 
 template <> void InstARM32Vsub::emitIAS(const Cfg *Func) const {
@@ -1374,6 +1464,8 @@ template <> const char *InstARM32Vmla::Opcode = "vmla";
 template <> const char *InstARM32Vmls::Opcode = "vmls";
 template <> const char *InstARM32Vmul::Opcode = "vmul";
 template <> const char *InstARM32Vorr::Opcode = "vorr";
+template <> const char *InstARM32UnaryopFP<InstARM32::Vneg>::Opcode = "vneg";
+template <> const char *InstARM32ThreeAddrFP<InstARM32::Vshl>::Opcode = "vshl";
 template <> const char *InstARM32Vsub::Opcode = "vsub";
 // Four-addr ops
 template <> const char *InstARM32Mla::Opcode = "mla";
@@ -1479,7 +1571,7 @@ void InstARM32Mov::emitSingleDestSingleSource(const Cfg *Func) const {
   // when vmov{c}'ing, we need to emit a width string. Otherwise, the
   // assembler might be tempted to assume we want a vector vmov{c}, and that
   // is disallowed because ARM.
-  const char *WidthString = !CoreVFPMove ? getVecWidthString(Ty) : "";
+  const char *WidthString = !CoreVFPMove ? getFpWidthString(Ty) : "";
   CondARM32::Cond Cond = getPredicate();
   if (IsVector)
     assert(CondARM32::isUnconditional(Cond) &&
@@ -2015,6 +2107,11 @@ void InstARM32UnaryopFP<K>::emitIAS(const Cfg *Func) const {
   emitUsingTextFixup(Func);
 }
 
+template <InstARM32::InstKindARM32 K>
+void InstARM32UnaryopSignAwareFP<K>::emitIAS(const Cfg *Func) const {
+  InstARM32::emitUsingTextFixup(Func);
+}
+
 template <> void InstARM32Vsqrt::emitIAS(const Cfg *Func) const {
   assert(getSrcSize() == 1);
   auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
@@ -2426,7 +2523,7 @@ void InstARM32Vcmp::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 2);
   Str << "\t"
-         "vcmp" << getPredicate() << getVecWidthString(getSrc(0)->getType())
+         "vcmp" << getPredicate() << getFpWidthString(getSrc(0)->getType())
       << "\t";
   getSrc(0)->emit(Func);
   Str << ", ";
@@ -2470,7 +2567,7 @@ void InstARM32Vcmp::dump(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrDump();
-  Str << "vcmp" << getPredicate() << getVecWidthString(getSrc(0)->getType());
+  Str << "vcmp" << getPredicate() << getFpWidthString(getSrc(0)->getType());
   dumpSources(Func);
 }
 
@@ -2506,7 +2603,7 @@ void InstARM32Vabs::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(getSrcSize() == 1);
   Str << "\t"
-         "vabs" << getPredicate() << getVecWidthString(getSrc(0)->getType())
+         "vabs" << getPredicate() << getFpWidthString(getSrc(0)->getType())
       << "\t";
   getDest()->emit(Func);
   Str << ", ";
@@ -2540,7 +2637,7 @@ void InstARM32Vabs::dump(const Cfg *Func) const {
     return;
   Ostream &Str = Func->getContext()->getStrDump();
   dumpDest(Func);
-  Str << " = vabs" << getPredicate() << getVecWidthString(getSrc(0)->getType());
+  Str << " = vabs" << getPredicate() << getFpWidthString(getSrc(0)->getType());
 }
 
 void InstARM32Dmb::emit(const Cfg *Func) const {
@@ -2740,8 +2837,7 @@ void OperandARM32FlexFpImm::emit(const Cfg *Func) const {
 void OperandARM32FlexFpImm::dump(const Cfg * /*Func*/, Ostream &Str) const {
   if (!BuildDefs::dump())
     return;
-  Str << "#" << materializeFloatImmediate(ModifiedImm)
-      << InstARM32::getVecWidthString(Ty);
+  Str << "#" << materializeFloatImmediate(ModifiedImm) << getFpWidthString(Ty);
 }
 
 void OperandARM32FlexFpZero::emit(const Cfg *Func) const {
@@ -2760,7 +2856,7 @@ void OperandARM32FlexFpZero::emit(const Cfg *Func) const {
 void OperandARM32FlexFpZero::dump(const Cfg * /*Func*/, Ostream &Str) const {
   if (!BuildDefs::dump())
     return;
-  Str << "#0.0" << InstARM32::getVecWidthString(Ty);
+  Str << "#0.0" << getFpWidthString(Ty);
 }
 
 void OperandARM32FlexReg::emit(const Cfg *Func) const {
@@ -2815,6 +2911,8 @@ template class InstARM32ThreeAddrFP<InstARM32::Veor>;
 template class InstARM32FourAddrFP<InstARM32::Vmla>;
 template class InstARM32FourAddrFP<InstARM32::Vmls>;
 template class InstARM32ThreeAddrFP<InstARM32::Vmul>;
+template class InstARM32UnaryopSignAwareFP<InstARM32::Vneg>;
+template class InstARM32ThreeAddrSignAwareFP<InstARM32::Vshl>;
 template class InstARM32ThreeAddrFP<InstARM32::Vsub>;
 
 template class InstARM32LoadBase<InstARM32::Ldr>;

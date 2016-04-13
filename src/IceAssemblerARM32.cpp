@@ -3056,6 +3056,30 @@ void AssemblerARM32::vmulqf(const Operand *OpQd, const Operand *OpQn,
   emitSIMDqqqBase(VmulqfOpcode, OpQd, OpQn, OpQm, IsFloatTy, Vmulqf);
 }
 
+void AssemblerARM32::vnegqs(Type ElmtTy, const Operand *OpQd,
+                            const Operand *OpQm) {
+  // VNEG - ARM section A8.8.355, encoding A1:
+  //   vneg.<dt> <Qd>, <Qm>
+  //
+  // 111111111D11ss01dddd0F111QM0mmmm where Dddd=Qd, and Mmmm=Qm, and:
+  //     * dt=s8  -> 00=ss, 0=F
+  //     * dt=s16 -> 01=ss, 0=F
+  //     * dt=s32 -> 10=ss, 0=F
+  //     * dt=s32 -> 10=ss, 1=F
+  constexpr const char *Vneg = "vneg";
+  constexpr IValueT VnegOpcode = B24 | B23 | B21 | B20 | B16 | B9 | B8 | B7;
+  const IValueT Qd = encodeQRegister(OpQd, "Qd", Vneg);
+  constexpr IValueT Qn = 0;
+  const IValueT Qm = encodeQRegister(OpQm, "Qm", Vneg);
+  constexpr bool UseQRegs = true;
+  constexpr IValueT ElmtShift = 18;
+  const IValueT ElmtSize = encodeElmtType(ElmtTy);
+  assert(Utils::IsUint(2, ElmtSize));
+  emitSIMDBase(VnegOpcode | (ElmtSize << ElmtShift), mapQRegToDReg(Qd),
+               mapQRegToDReg(Qn), mapQRegToDReg(Qm), UseQRegs,
+               isFloatingType(ElmtTy));
+}
+
 void AssemblerARM32::vorrq(const Operand *OpQd, const Operand *OpQm,
                            const Operand *OpQn) {
   // VORR (register) - ARM section A8.8.360, encoding A1:
@@ -3227,6 +3251,34 @@ void AssemblerARM32::vpush(const Variable *OpBaseReg, SizeT NumConsecRegs,
   constexpr IValueT VpushOpcode =
       B27 | B26 | B24 | B21 | B19 | B18 | B16 | B11 | B9;
   emitVStackOp(Cond, VpushOpcode, OpBaseReg, NumConsecRegs);
+}
+
+void AssemblerARM32::vshlqi(Type ElmtTy, const Operand *OpQd,
+                            const Operand *OpQm, const Operand *OpQn) {
+  // VSHL - ARM section A8.8.396, encoding A1:
+  //   vshl Qd, Qm, Qn
+  //
+  // 1111001U0Dssnnnndddd0100NQM0mmmm where Ddddd=Qd, Mmmmm=Qm, Nnnnn=Qn, 0=U,
+  // 1=Q
+  assert(isScalarIntegerType(ElmtTy) &&
+         "vshl expects vector with integer element type");
+  constexpr const char *Vshl = "vshl";
+  constexpr IValueT VshlOpcode = B10 | B6;
+  emitSIMDqqq(VshlOpcode, ElmtTy, OpQd, OpQn, OpQm, Vshl);
+}
+
+void AssemblerARM32::vshlqu(Type ElmtTy, const Operand *OpQd,
+                            const Operand *OpQm, const Operand *OpQn) {
+  // VSHL - ARM section A8.8.396, encoding A1:
+  //   vshl Qd, Qm, Qn
+  //
+  // 1111001U0Dssnnnndddd0100NQM0mmmm where Ddddd=Qd, Mmmmm=Qm, Nnnnn=Qn, 1=U,
+  // 1=Q
+  assert(isScalarIntegerType(ElmtTy) &&
+         "vshl expects vector with integer element type");
+  constexpr const char *Vshl = "vshl";
+  constexpr IValueT VshlOpcode = B24 | B10 | B6;
+  emitSIMDqqq(VshlOpcode, ElmtTy, OpQd, OpQn, OpQm, Vshl);
 }
 
 void AssemblerARM32::vsqrtd(const Operand *OpDd, const Operand *OpDm,

@@ -33,10 +33,7 @@ entry:
 
 ; ASM-NEXT:     lsl     r0, r0, #23
 ; DIS-NEXT:   0:        e1a00b80
-; IASM-NEXT:    .byte 0x80
-; IASM-NEXT:    .byte 0xb
-; IASM-NEXT:    .byte 0xa0
-; IASM-NEXT:    .byte 0xe1
+; IASM-NOT:     lsl
 
   ret i32 %shl
 }
@@ -54,10 +51,7 @@ entry:
 
 ; ASM-NEXT:     lsl     r0, r0, r1
 ; DIS-NEXT:  10:        e1a00110
-; IASM-NEXT:    .byte 0x10
-; IASM-NEXT:    .byte 0x1
-; IASM-NEXT:    .byte 0xa0
-; IASM-NEXT:    .byte 0xe1
+; IASM-NOT:     lsl
 
   ret i32 %shl
 }
@@ -73,11 +67,9 @@ entry:
 
   %shl = shl <4 x i32> %a, %b
 
-; ASM:     lsl     r0, r0, r1
-; ASM:     lsl     r0, r0, r1
-; ASM:     lsl     r0, r0, r1
-; ASM:     lsl     r0, r0, r1
-; DIS:  28:        e1a00110
+; ASM:      vshl.u32     q0, q0, q1
+; DIS:  20: f3220440
+; IASM-NOT: vshl
 
   ret <4 x i32> %shl
 }
@@ -89,14 +81,9 @@ entry:
 
   %v = shl <8 x i16> %a, %b
 
-; ASM:     lsl     r0, r0, r1
-; ASM:     lsl     r0, r0, r1
-; ASM:     lsl     r0, r0, r1
-; ASM:     lsl     r0, r0, r1
-; ASM:     lsl     r0, r0, r1
-; ASM:     lsl     r0, r0, r1
-; ASM:     lsl     r0, r0, r1
-; ASM:     lsl     r0, r0, r1
+; ASM:      vshl.u16     q0, q0, q1
+; DIS:  30: f3120440
+; IASM-NOT: vshl
 
   ret <8 x i16> %v
 }
@@ -108,22 +95,9 @@ entry:
 
   %v = shl <16 x i8> %a, %b
 
-; ASM:     lsl     r0, r0, r1
-; ASM:     lsl     r0, r0, r1
-; ASM:     lsl     r0, r0, r1
-; ASM:     lsl     r0, r0, r1
-; ASM:     lsl     r0, r0, r1
-; ASM:     lsl     r0, r0, r1
-; ASM:     lsl     r0, r0, r1
-; ASM:     lsl     r0, r0, r1
-; ASM:     lsl     r0, r0, r1
-; ASM:     lsl     r0, r0, r1
-; ASM:     lsl     r0, r0, r1
-; ASM:     lsl     r0, r0, r1
-; ASM:     lsl     r0, r0, r1
-; ASM:     lsl     r0, r0, r1
-; ASM:     lsl     r0, r0, r1
-; ASM:     lsl     r0, r0, r1
+; ASM:      vshl.u8     q0, q0, q1
+; DIS:  40: f3020440
+; IASM-NOT: vshl
 
   ret <16 x i8> %v
 }

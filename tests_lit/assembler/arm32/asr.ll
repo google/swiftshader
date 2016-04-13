@@ -33,6 +33,7 @@ entry:
 
 ; ASM-NEXT:     asr     r0, r0, #23
 ; DIS-NEXT:   0:	e1a00bc0
+; IASM-NOT:     asr
 ; IASM-NEXT:	.byte 0xc0
 ; IASM-NEXT:	.byte 0xb
 ; IASM-NEXT:	.byte 0xa0
@@ -54,6 +55,7 @@ entry:
 
 ; ASM-NEXT:     asr     r0, r0, r1
 ; DIS-NEXT:  10:	e1a00150
+; IASM-NOT:     asr
 ; IASM-NEXT:	.byte 0x50
 ; IASM-NEXT:	.byte 0x1
 ; IASM-NEXT:	.byte 0xa0
@@ -71,14 +73,12 @@ entry:
 
   %v = ashr <4 x i32> %a, %b
 
-; ASM:     asr     r0, r0, r1
-; ASM:     asr     r0, r0, r1
-; ASM:     asr     r0, r0, r1
-; ASM:     asr     r0, r0, r1
-; DIS:  28: e1a00150
-; DIS:  38: e1a00150
-; DIS:  48: e1a00150
-; DIS:  58: e1a00150
+; ASM:          vneg.s32  q1, q1
+; ASM-NEXT:     vshl.s32 q0, q0, q1
+; DIS:      20:          f3b923c2
+; DIS:      24:          f2220440
+; IASM-NOT:     vneg
+; IASM-NOT:     vshl
 
   ret <4 x i32> %v
 }
@@ -90,14 +90,12 @@ entry:
 
   %v = ashr <8 x i16> %a, %b
 
-; ASM:     asr     r0, r0, r1
-; ASM:     asr     r0, r0, r1
-; ASM:     asr     r0, r0, r1
-; ASM:     asr     r0, r0, r1
-; ASM:     asr     r0, r0, r1
-; ASM:     asr     r0, r0, r1
-; ASM:     asr     r0, r0, r1
-; ASM:     asr     r0, r0, r1
+; ASM:          vneg.s16  q1, q1
+; ASM-NEXT:     vshl.s16 q0, q0, q1
+; DIS:      30:          f3b523c2
+; DIS:      34:          f2120440
+; IASM-NOT:     vneg
+; IASM-NOT:     vshl
 
   ret <8 x i16> %v
 }
@@ -109,22 +107,12 @@ entry:
 
   %v = ashr <16 x i8> %a, %b
 
-; ASM:     asr     r0, r0, r1
-; ASM:     asr     r0, r0, r1
-; ASM:     asr     r0, r0, r1
-; ASM:     asr     r0, r0, r1
-; ASM:     asr     r0, r0, r1
-; ASM:     asr     r0, r0, r1
-; ASM:     asr     r0, r0, r1
-; ASM:     asr     r0, r0, r1
-; ASM:     asr     r0, r0, r1
-; ASM:     asr     r0, r0, r1
-; ASM:     asr     r0, r0, r1
-; ASM:     asr     r0, r0, r1
-; ASM:     asr     r0, r0, r1
-; ASM:     asr     r0, r0, r1
-; ASM:     asr     r0, r0, r1
-; ASM:     asr     r0, r0, r1
+; ASM:          vneg.s8  q1, q1
+; ASM-NEXT:     vshl.s8 q0, q0, q1
+; DIS:      40:         f3b123c2
+; DIS:      44:         f2020440
+; IASM-NOT:     vneg
+; IASM-NOT:     vshl
 
   ret <16 x i8> %v
 }

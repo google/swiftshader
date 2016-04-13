@@ -693,10 +693,10 @@ class Assembler : public ValueObject {
   void vmulqi(OperandSize sz, QRegister qd, QRegister qn, QRegister qm);
   // Moved to ARM32::AssemblerARM32::vmulqf().
   void vmulqs(QRegister qd, QRegister qn, QRegister qm);
-#endif
+  // Moved to ARM32::AssemblerARM32::vshlqi().
   void vshlqi(OperandSize sz, QRegister qd, QRegister qm, QRegister qn);
+  // Moved to ARM32::AssemblerARM32::vshlqu().
   void vshlqu(OperandSize sz, QRegister qd, QRegister qm, QRegister qn);
-#if 0
   // Moved to Arm32::AssemblerARM32::vmlas()
   void vmlas(SRegister sd, SRegister sn, SRegister sm, Condition cond = AL);
   // Moved to Arm32::AssemblerARM32::vmlad()
@@ -749,8 +749,9 @@ class Assembler : public ValueObject {
 #endif
   void vnegs(SRegister sd, SRegister sm, Condition cond = AL);
   void vnegd(DRegister dd, DRegister dm, Condition cond = AL);
-  void vnegqs(QRegister qd, QRegister qm);
 #if 0
+  // Moved to ARM32::AssemblerARM32::vnegqs().
+  void vnegqs(QRegister qd, QRegister qm);
   // Moved to ARM32::AssemblerARM32::vsqrts().
   void vsqrts(SRegister sd, SRegister sm, Condition cond = AL);
   // Moved to ARM32::AssemblerARM32::vsqrts().

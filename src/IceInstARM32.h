@@ -435,15 +435,15 @@ public:
     Vmls,
     Vmrs,
     Vmul,
+    Vneg,
     Vorr,
+    Vshl,
     Vsqrt,
     Vsub
   };
 
   static constexpr size_t InstSize = sizeof(uint32_t);
 
-  static const char *getWidthString(Type Ty);
-  static const char *getVecWidthString(Type Ty);
   static CondARM32::Cond getOppositeCondition(CondARM32::Cond Cond);
 
   /// Called inside derived methods emit() to communicate that multiple
@@ -452,11 +452,20 @@ public:
   /// implemented.
   void startNextInst(const Cfg *Func) const;
 
+  /// FPSign is used for certain vector instructions (particularly, right
+  /// shifts) that require an operand sign specification.
+  enum FPSign {
+    FS_None,
+    FS_Signed,
+    FS_Unsigned,
+  };
   /// Shared emit routines for common forms of instructions.
-  static void emitThreeAddrFP(const char *Opcode, const InstARM32 *Instr,
-                              const Cfg *Func);
-  static void emitFourAddrFP(const char *Opcode, const InstARM32 *Instr,
-                             const Cfg *Func);
+  /// @{
+  static void emitThreeAddrFP(const char *Opcode, FPSign Sign,
+                              const InstARM32 *Instr, const Cfg *Func);
+  static void emitFourAddrFP(const char *Opcode, FPSign Sign,
+                             const InstARM32 *Instr, const Cfg *Func);
+  /// @}
 
   void dump(const Cfg *Func) const override;
 
@@ -495,8 +504,8 @@ public:
   /// Shared emit routines for common forms of instructions.
   static void emitUnaryopGPR(const char *Opcode, const InstARM32Pred *Instr,
                              const Cfg *Func, bool NeedsWidthSuffix);
-  static void emitUnaryopFP(const char *Opcode, const InstARM32Pred *Instr,
-                            const Cfg *Func);
+  static void emitUnaryopFP(const char *Opcode, FPSign Sign,
+                            const InstARM32Pred *Instr, const Cfg *Func);
   static void emitTwoAddr(const char *Opcode, const InstARM32Pred *Instr,
                           const Cfg *Func);
   static void emitThreeAddr(const char *Opcode, const InstARM32Pred *Instr,
@@ -573,7 +582,7 @@ public:
   void emit(const Cfg *Func) const override {
     if (!BuildDefs::dump())
       return;
-    emitUnaryopFP(Opcode, this, Func);
+    emitUnaryopFP(Opcode, Sign, this, Func);
   }
   void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override {
@@ -588,14 +597,37 @@ public:
   }
   static bool classof(const Inst *Instr) { return isClassof(Instr, K); }
 
-private:
+protected:
   InstARM32UnaryopFP(Cfg *Func, Variable *Dest, Operand *Src,
                      CondARM32::Cond Predicate)
       : InstARM32Pred(Func, K, 1, Dest, Predicate) {
     addSource(Src);
   }
 
+  FPSign Sign = FS_None;
   static const char *Opcode;
+};
+
+template <InstARM32::InstKindARM32 K>
+class InstARM32UnaryopSignAwareFP : public InstARM32UnaryopFP<K> {
+  InstARM32UnaryopSignAwareFP() = delete;
+  InstARM32UnaryopSignAwareFP(const InstARM32UnaryopSignAwareFP &) = delete;
+  InstARM32UnaryopSignAwareFP &
+  operator=(const InstARM32UnaryopSignAwareFP &) = delete;
+
+public:
+  static InstARM32UnaryopSignAwareFP *
+  create(Cfg *Func, Variable *Dest, Variable *Src, CondARM32::Cond Predicate) {
+    return new (Func->allocate<InstARM32UnaryopSignAwareFP>())
+        InstARM32UnaryopSignAwareFP(Func, Dest, Src, Predicate);
+  }
+  void emitIAS(const Cfg *Func) const override;
+  void setSignType(InstARM32::FPSign SignType) { this->Sign = SignType; }
+
+private:
+  InstARM32UnaryopSignAwareFP(Cfg *Func, Variable *Dest, Operand *Src,
+                              CondARM32::Cond Predicate)
+      : InstARM32UnaryopFP<K>(Func, Dest, Src, Predicate) {}
 };
 
 /// Instructions of the form x := x op y.
@@ -748,7 +780,7 @@ public:
   void emit(const Cfg *Func) const override {
     if (!BuildDefs::dump())
       return;
-    emitThreeAddrFP(Opcode, this, Func);
+    emitThreeAddrFP(Opcode, Sign, this, Func);
   }
   void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override {
@@ -762,15 +794,41 @@ public:
   }
   static bool classof(const Inst *Instr) { return isClassof(Instr, K); }
 
-private:
-  InstARM32ThreeAddrFP(Cfg *Func, Variable *Dest, Variable *Src0,
-                       Variable *Src1)
+protected:
+  FPSign Sign = FS_None;
+
+  InstARM32ThreeAddrFP(Cfg *Func, Variable *Dest, Variable *Src0, Operand *Src1)
       : InstARM32(Func, K, 2, Dest) {
     addSource(Src0);
     addSource(Src1);
   }
 
   static const char *Opcode;
+};
+
+template <InstARM32::InstKindARM32 K>
+class InstARM32ThreeAddrSignAwareFP : public InstARM32ThreeAddrFP<K> {
+  InstARM32ThreeAddrSignAwareFP() = delete;
+  InstARM32ThreeAddrSignAwareFP(const InstARM32ThreeAddrSignAwareFP &) = delete;
+  InstARM32ThreeAddrSignAwareFP &
+  operator=(const InstARM32ThreeAddrSignAwareFP &) = delete;
+
+public:
+  /// Create a vector/FP binary-op instruction like vadd, and vsub. Everything
+  /// must be a register.
+  static InstARM32ThreeAddrSignAwareFP *create(Cfg *Func, Variable *Dest,
+                                               Variable *Src0, Variable *Src1) {
+    return new (Func->allocate<InstARM32ThreeAddrSignAwareFP>())
+        InstARM32ThreeAddrSignAwareFP(Func, Dest, Src0, Src1);
+  }
+
+  void emitIAS(const Cfg *Func) const override;
+  void setSignType(InstARM32::FPSign SignType) { this->Sign = SignType; }
+
+private:
+  InstARM32ThreeAddrSignAwareFP(Cfg *Func, Variable *Dest, Variable *Src0,
+                                Variable *Src1)
+      : InstARM32ThreeAddrFP<K>(Func, Dest, Src0, Src1) {}
 };
 
 /// Instructions of the form x := a op1 (y op2 z). E.g., multiply accumulate.
@@ -840,7 +898,7 @@ public:
   void emit(const Cfg *Func) const override {
     if (!BuildDefs::dump())
       return;
-    emitFourAddrFP(Opcode, this, Func);
+    emitFourAddrFP(Opcode, Sign, this, Func);
   }
   void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override {
@@ -864,6 +922,7 @@ private:
     addSource(Src1);
   }
 
+  FPSign Sign = FS_None;
   static const char *Opcode;
 };
 
@@ -931,7 +990,9 @@ using InstARM32Veor = InstARM32ThreeAddrFP<InstARM32::Veor>;
 using InstARM32Vmla = InstARM32FourAddrFP<InstARM32::Vmla>;
 using InstARM32Vmls = InstARM32FourAddrFP<InstARM32::Vmls>;
 using InstARM32Vmul = InstARM32ThreeAddrFP<InstARM32::Vmul>;
+using InstARM32Vneg = InstARM32UnaryopSignAwareFP<InstARM32::Vneg>;
 using InstARM32Vorr = InstARM32ThreeAddrFP<InstARM32::Vorr>;
+using InstARM32Vshl = InstARM32ThreeAddrSignAwareFP<InstARM32::Vshl>;
 using InstARM32Vsub = InstARM32ThreeAddrFP<InstARM32::Vsub>;
 using InstARM32Ldr = InstARM32LoadBase<InstARM32::Ldr>;
 using InstARM32Ldrex = InstARM32LoadBase<InstARM32::Ldrex>;

@@ -1289,20 +1289,20 @@ void Assembler::vmulqi(OperandSize sz,
 void Assembler::vmulqs(QRegister qd, QRegister qn, QRegister qm) {
   EmitSIMDqqq(B24 | B11 | B10 | B8 | B4, kSWord, qd, qn, qm);
 }
-#endif
 
+// Moved to ARM32::AssemblerARM32::vshlqi().
 void Assembler::vshlqi(OperandSize sz,
                        QRegister qd, QRegister qm, QRegister qn) {
   EmitSIMDqqq(B25 | B10, sz, qd, qn, qm);
 }
 
 
+// Moved to ARM32::AssemblerARM32::vshlqu().
 void Assembler::vshlqu(OperandSize sz,
                        QRegister qd, QRegister qm, QRegister qn) {
   EmitSIMDqqq(B25 | B24 | B10, sz, qd, qn, qm);
 }
 
-#if 0
 // Moved to ARM32::AssemblerARM32::veorq()
 void Assembler::veorq(QRegister qd, QRegister qn, QRegister qm) {
   EmitSIMDqqq(B24 | B8 | B4, kByte, qd, qn, qm);
@@ -1345,12 +1345,13 @@ void Assembler::vabsqs(QRegister qd, QRegister qm) {
   EmitSIMDqqq(B24 | B23 | B21 | B20 | B19 | B16 | B10 | B9 | B8, kSWord,
               qd, Q0, qm);
 }
-#endif
 
+// Moved to Arm32::AssemblerARM32::vnegqs().
 void Assembler::vnegqs(QRegister qd, QRegister qm) {
   EmitSIMDqqq(B24 | B23 | B21 | B20 | B19 | B16 | B10 | B9 | B8 | B7, kSWord,
               qd, Q0, qm);
 }
+#endif
 
 
 void Assembler::vrecpeqs(QRegister qd, QRegister qm) {

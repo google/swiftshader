@@ -33,10 +33,7 @@ entry:
 
 ; ASM-NEXT:     lsr     r0, r0, #23
 ; DIS-NEXT:   0:        e1a00ba0
-; IASM-NEXT:    .byte 0xa0
-; IASM-NEXT:    .byte 0xb
-; IASM-NEXT:    .byte 0xa0
-; IASM-NEXT:    .byte 0xe1
+; IASM-NOT:     lsr
 
   ret i32 %v
 }
@@ -54,10 +51,7 @@ entry:
 
 ; ASM-NEXT:     lsr     r0, r0, r1
 ; DIS-NEXT:  10:        e1a00130
-; IASM-NEXT:    .byte 0x30
-; IASM-NEXT:    .byte 0x1
-; IASM-NEXT:    .byte 0xa0
-; IASM-NEXT:    .byte 0xe1
+; IASM-NOT:     lsr
 
   ret i32 %v
 }
@@ -73,11 +67,12 @@ entry:
 
   %v = lshr <4 x i32> %a, %b
 
-; ASM:     lsr     r0, r0, r1
-; ASM:     lsr     r0, r0, r1
-; ASM:     lsr     r0, r0, r1
-; ASM:     lsr     r0, r0, r1
-; DIS:  28:        e1a00130
+; ASM:          vneg.s32  q1, q1
+; ASM-NEXT:     vshl.u32 q0, q0, q1
+; DIS:      20:          f3b923c2
+; DIS:      24:          f3220440
+; IASM-NOT:     vneg
+; IASM-NOT:     vshl
 
   ret <4 x i32> %v
 }
@@ -89,14 +84,12 @@ entry:
 
   %v = lshr <8 x i16> %a, %b
 
-; ASM:     lsr     r0, r0, r1
-; ASM:     lsr     r0, r0, r1
-; ASM:     lsr     r0, r0, r1
-; ASM:     lsr     r0, r0, r1
-; ASM:     lsr     r0, r0, r1
-; ASM:     lsr     r0, r0, r1
-; ASM:     lsr     r0, r0, r1
-; ASM:     lsr     r0, r0, r1
+; ASM:          vneg.s16  q1, q1
+; ASM-NEXT:     vshl.u16 q0, q0, q1
+; DIS:      30:          f3b523c2
+; DIS:      34:          f3120440
+; IASM-NOT:     vneg
+; IASM-NOT:     vshl
 
   ret <8 x i16> %v
 }
@@ -108,22 +101,12 @@ entry:
 
   %v = lshr <16 x i8> %a, %b
 
-; ASM:     lsr     r0, r0, r1
-; ASM:     lsr     r0, r0, r1
-; ASM:     lsr     r0, r0, r1
-; ASM:     lsr     r0, r0, r1
-; ASM:     lsr     r0, r0, r1
-; ASM:     lsr     r0, r0, r1
-; ASM:     lsr     r0, r0, r1
-; ASM:     lsr     r0, r0, r1
-; ASM:     lsr     r0, r0, r1
-; ASM:     lsr     r0, r0, r1
-; ASM:     lsr     r0, r0, r1
-; ASM:     lsr     r0, r0, r1
-; ASM:     lsr     r0, r0, r1
-; ASM:     lsr     r0, r0, r1
-; ASM:     lsr     r0, r0, r1
-; ASM:     lsr     r0, r0, r1
+; ASM:          vneg.s8  q1, q1
+; ASM-NEXT:     vshl.u8 q0, q0, q1
+; DIS:      40:         f3b123c2
+; DIS:      44:         f3020440
+; IASM-NOT:     vneg
+; IASM-NOT:     vshl
 
   ret <16 x i8> %v
 }
