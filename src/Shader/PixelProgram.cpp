@@ -615,6 +615,7 @@ namespace sw
 				break;
 			case FORMAT_R32F:
 			case FORMAT_G32R32F:
+			case FORMAT_X32B32G32R32F:
 			case FORMAT_A32B32G32R32F:
 			case FORMAT_R32I:
 			case FORMAT_G32R32I:
@@ -727,6 +728,7 @@ namespace sw
 				break;
 			case FORMAT_R32F:
 			case FORMAT_G32R32F:
+			case FORMAT_X32B32G32R32F:
 			case FORMAT_A32B32G32R32F:
 			case FORMAT_R32I:
 			case FORMAT_G32R32I:

@@ -271,6 +271,9 @@ namespace sw
 		case FORMAT_A32B32G32R32F:
 			c = *Pointer<Float4>(element);
 			break;
+		case FORMAT_X32B32G32R32F:
+		case FORMAT_B32G32R32F:
+			c.z = *Pointer<Float>(element + 8);
 		case FORMAT_G32R32F:
 			c.x = *Pointer<Float>(element + 0);
 			c.y = *Pointer<Float>(element + 4);
@@ -394,6 +397,13 @@ namespace sw
 				if(writeB) { *Pointer<Float>(element + 8) = c.z; }
 				if(writeA) { *Pointer<Float>(element + 12) = c.w; }
 			}
+			break;
+		case FORMAT_X32B32G32R32F:
+			if(writeA) { *Pointer<Float>(element + 12) = 1.0f; }
+		case FORMAT_B32G32R32F:
+			if(writeR) { *Pointer<Float>(element) = c.x; }
+			if(writeG) { *Pointer<Float>(element + 4) = c.y; }
+			if(writeB) { *Pointer<Float>(element + 8) = c.z; }
 			break;
 		case FORMAT_G32R32F:
 			if(writeR && writeG)
@@ -903,6 +913,8 @@ namespace sw
 		case FORMAT_A32B32G32R32I:
 		case FORMAT_A32B32G32R32UI:
 		case FORMAT_A32B32G32R32F:
+		case FORMAT_X32B32G32R32F:
+		case FORMAT_B32G32R32F:
 		case FORMAT_G32R32F:
 		case FORMAT_R32F:
 			scale = vector(1.0f, 1.0f, 1.0f, 1.0f);
