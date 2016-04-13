@@ -2006,6 +2006,7 @@ namespace sw
 			pixel.y = pixel.z;
 			pixel.z = pixel.w = one;
 			break;
+		case FORMAT_X32B32G32R32F:
 		case FORMAT_A32B32G32R32F:
 		case FORMAT_A32B32G32R32I:
 		case FORMAT_A32B32G32R32UI:
@@ -2016,6 +2017,10 @@ namespace sw
 			pixel.z = *Pointer<Float4>(buffer + 16 * x, 16);
 			pixel.w = *Pointer<Float4>(buffer + 16 * x + 16, 16);
 			transpose4x4(pixel.x, pixel.y, pixel.z, pixel.w);
+			if(state.targetFormat[index] == FORMAT_X32B32G32R32F)
+			{
+				pixel.w = Float4(1.0f);
+			}
 			break;
 		default:
 			ASSERT(false);
@@ -2154,6 +2159,7 @@ namespace sw
 			oC.z = UnpackHigh(oC.z, oC.y);
 			oC.y = oC.z;
 			break;
+		case FORMAT_X32B32G32R32F:
 		case FORMAT_A32B32G32R32F:
 		case FORMAT_A32B32G32R32I:
 		case FORMAT_A32B32G32R32UI:
@@ -2257,6 +2263,7 @@ namespace sw
 			oC.y = As<Float4>(As<Int4>(oC.y) | As<Int4>(value));
 			*Pointer<Float4>(buffer) = oC.y;
 			break;
+		case FORMAT_X32B32G32R32F:
 		case FORMAT_A32B32G32R32F:
 		case FORMAT_A32B32G32R32I:
 		case FORMAT_A32B32G32R32UI:
@@ -2316,7 +2323,7 @@ namespace sw
 			}
 
 			{
-				value = *Pointer<Float4>(buffer + 16, 16);
+				value = (state.targetFormat[index] == FORMAT_X32B32G32R32F) ? Float4(1.0f) : *Pointer<Float4>(buffer + 16, 16);
 
 				if(rgbaWriteMask != 0x0000000F)
 				{

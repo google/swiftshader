@@ -261,6 +261,7 @@ namespace sw
 					c.y = Short4(0x1000, 0x1000, 0x1000, 0x1000);
 				case FORMAT_G32R32F:
 					c.z = Short4(0x1000, 0x1000, 0x1000, 0x1000);
+				case FORMAT_X32B32G32R32F:
 					c.w = Short4(0x1000, 0x1000, 0x1000, 0x1000);
 				case FORMAT_A32B32G32R32F:
 					break;
@@ -520,6 +521,7 @@ namespace sw
 					c.y = Float4(1.0f);
 				case FORMAT_G32R32F:
 					c.z = Float4(1.0f);
+				case FORMAT_X32B32G32R32F:
 					c.w = Float4(1.0f);
 				case FORMAT_A32B32G32R32F:
 					break;
@@ -2183,6 +2185,7 @@ namespace sw
 		case FORMAT_X8L8V8U8:
 		case FORMAT_R32F:
 		case FORMAT_G32R32F:
+		case FORMAT_X32B32G32R32F:
 		case FORMAT_A32B32G32R32F:
 		case FORMAT_A8:
 		case FORMAT_R8:
@@ -2249,6 +2252,7 @@ namespace sw
 		case FORMAT_R5G6B5:
 		case FORMAT_R32F:
 		case FORMAT_G32R32F:
+		case FORMAT_X32B32G32R32F:
 		case FORMAT_A32B32G32R32F:
 		case FORMAT_D32F:
 		case FORMAT_D32F_LOCKABLE:
@@ -2322,6 +2326,7 @@ namespace sw
 		case FORMAT_X8L8V8U8:
 		case FORMAT_R32F:
 		case FORMAT_G32R32F:
+		case FORMAT_X32B32G32R32F:
 		case FORMAT_A32B32G32R32F:
 		case FORMAT_A8:
 		case FORMAT_R8:
@@ -2396,6 +2401,7 @@ namespace sw
 		case FORMAT_X8L8V8U8:
 		case FORMAT_R32F:
 		case FORMAT_G32R32F:
+		case FORMAT_X32B32G32R32F:
 		case FORMAT_A32B32G32R32F:
 		case FORMAT_A8:
 		case FORMAT_R8:
@@ -2462,6 +2468,7 @@ namespace sw
 		case FORMAT_X8L8V8U8:       return false;
 		case FORMAT_R32F:           return component < 1;
 		case FORMAT_G32R32F:        return component < 2;
+		case FORMAT_X32B32G32R32F:  return component < 3;
 		case FORMAT_A32B32G32R32F:  return component < 3;
 		case FORMAT_A8:             return false;
 		case FORMAT_R8:             return component < 1;

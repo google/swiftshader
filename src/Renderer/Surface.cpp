@@ -305,6 +305,8 @@ namespace sw
 			((float*)element)[0] = color.r;
 			((float*)element)[1] = color.g;
 			break;
+		case FORMAT_X32B32G32R32F:
+			((float*)element)[3] = 1.0f;
 		case FORMAT_B32G32R32F:
 			((float*)element)[0] = color.r;
 			((float*)element)[1] = color.g;
@@ -946,6 +948,7 @@ namespace sw
 			r = ((float*)element)[0];
 			g = ((float*)element)[1];
 			break;
+		case FORMAT_X32B32G32R32F:
 		case FORMAT_B32G32R32F:
 			r = ((float*)element)[0];
 			g = ((float*)element)[1];
@@ -1569,6 +1572,7 @@ namespace sw
 		case FORMAT_R32F:				return 4;
 		case FORMAT_G32R32F:			return 8;
 		case FORMAT_B32G32R32F:			return 12;
+		case FORMAT_X32B32G32R32F:		return 16;
 		case FORMAT_A32B32G32R32F:		return 16;
 		// Depth/stencil formats
 		case FORMAT_D16:				return 2;
@@ -2690,6 +2694,7 @@ namespace sw
 			return false;
 		case FORMAT_R32F:
 		case FORMAT_G32R32F:
+		case FORMAT_X32B32G32R32F:
 		case FORMAT_A32B32G32R32F:
 		case FORMAT_D32F:
 		case FORMAT_D32F_COMPLEMENTARY:
@@ -2774,6 +2779,7 @@ namespace sw
 		case FORMAT_G8R8I_SNORM:
 			return component >= 2;
 		case FORMAT_A16W16V16U16:
+		case FORMAT_X32B32G32R32F:
 		case FORMAT_X8B8G8R8I:
 		case FORMAT_X16B16G16R16I:
 		case FORMAT_X32B32G32R32I:
@@ -2968,6 +2974,7 @@ namespace sw
 		case FORMAT_Q16W16V16U16:   return 4;
 		case FORMAT_R32F:           return 1;
 		case FORMAT_G32R32F:        return 2;
+		case FORMAT_X32B32G32R32F:  return 3;
 		case FORMAT_A32B32G32R32F:  return 4;
 		case FORMAT_D32F:           return 1;
 		case FORMAT_D32F_LOCKABLE:  return 1;
@@ -3591,21 +3598,22 @@ namespace sw
 		case FORMAT_A16F:			return FORMAT_A32B32G32R32F;
 		case FORMAT_R16F:			return FORMAT_R32F;
 		case FORMAT_G16R16F:		return FORMAT_G32R32F;
-		case FORMAT_B16G16R16F:     return FORMAT_A32B32G32R32F;
+		case FORMAT_B16G16R16F:     return FORMAT_X32B32G32R32F;
 		case FORMAT_A16B16G16R16F:	return FORMAT_A32B32G32R32F;
 		case FORMAT_A32F:			return FORMAT_A32B32G32R32F;
 		case FORMAT_R32F:			return FORMAT_R32F;
 		case FORMAT_G32R32F:		return FORMAT_G32R32F;
-		case FORMAT_B32G32R32F:     return FORMAT_A32B32G32R32F;
+		case FORMAT_B32G32R32F:     return FORMAT_X32B32G32R32F;
+		case FORMAT_X32B32G32R32F:  return FORMAT_X32B32G32R32F;
 		case FORMAT_A32B32G32R32F:	return FORMAT_A32B32G32R32F;
 		// Luminance formats
 		case FORMAT_L8:				return FORMAT_L8;
 		case FORMAT_A4L4:			return FORMAT_A8L8;
 		case FORMAT_L16:			return FORMAT_L16;
 		case FORMAT_A8L8:			return FORMAT_A8L8;
-		case FORMAT_L16F:           return FORMAT_A32B32G32R32F;
+		case FORMAT_L16F:           return FORMAT_X32B32G32R32F;
 		case FORMAT_A16L16F:        return FORMAT_A32B32G32R32F;
-		case FORMAT_L32F:           return FORMAT_A32B32G32R32F;
+		case FORMAT_L32F:           return FORMAT_X32B32G32R32F;
 		case FORMAT_A32L32F:        return FORMAT_A32B32G32R32F;
 		// Depth/stencil formats
 		case FORMAT_D16:
@@ -5142,7 +5150,7 @@ namespace sw
 				else ASSERT(false);
 			}
 		}
-		else if(internal.format == FORMAT_A32B32G32R32F)
+		else if(internal.format == FORMAT_A32B32G32R32F || internal.format == FORMAT_X32B32G32R32F)
 		{
 			if(CPUID::supportsSSE())
 			{

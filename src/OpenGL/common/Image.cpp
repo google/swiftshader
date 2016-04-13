@@ -650,6 +650,7 @@ namespace egl
 				return sw::FORMAT_G32R32F;
 			case GL_RGB:
 			case GL_RGB32F:
+				return sw::FORMAT_X32B32G32R32F;
 			case GL_RGBA:
 			case GL_RGBA32F:
 				return sw::FORMAT_A32B32G32R32F;
