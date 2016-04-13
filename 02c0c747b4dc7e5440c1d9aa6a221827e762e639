@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "4bcb66e2_6f742108",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-13T21:41:37Z",
+      "side": 1,
+      "message": "Are you implementing the MAX_COLOR_ATTACHMENTS query just to avoid the assert, or because Ion really uses the return value? The assert is a bug. It should simply return GL_INVALID_ENUM if the GL version is less than 3.0, by returning false from Context::getIntegerv(). There are some other queries in that function which already do that.",
+      "parentUuid": "ebbdfaca_b3dd585c",
+      "range": {
+        "startLine": 7,
+        "startChar": 37,
+        "endLine": 7,
+        "endChar": 64
+      },
+      "revId": "02c0c747b4dc7e5440c1d9aa6a221827e762e639",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8b3abef4_bac8a174",
         "filename": "src/OpenGL/libGLESv2/Context.cpp",
         "patchSetId": 2
@@ -89,6 +113,29 @@
         "startChar": 1,
         "endLine": 3218,
         "endChar": 35
+      },
+      "revId": "02c0c747b4dc7e5440c1d9aa6a221827e762e639",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4bcb66e2_1a2dedd7",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 3229,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-13T21:41:37Z",
+      "side": 1,
+      "message": "If I\u0027m reading the extension spec correctly, then it actually doesn\u0027t have an implementation-chosen format and type for depth. It only applies to the color buffer.",
+      "range": {
+        "startLine": 3217,
+        "startChar": 1,
+        "endLine": 3229,
+        "endChar": 2
       },
       "revId": "02c0c747b4dc7e5440c1d9aa6a221827e762e639",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
@@ -143,6 +190,29 @@
     },
     {
       "key": {
+        "uuid": "4bcb66e2_3a626911",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 4280,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-13T21:41:37Z",
+      "side": 1,
+      "message": "I couldn\u0027t find any extension by that name in the registry: https://www.khronos.org/registry/gles/ There\u0027s only GL_NV_read_depth_stencil",
+      "range": {
+        "startLine": 4280,
+        "startChar": 19,
+        "endLine": 4280,
+        "endChar": 35
+      },
+      "revId": "02c0c747b4dc7e5440c1d9aa6a221827e762e639",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8b3abef4_5a007527",
         "filename": "src/OpenGL/libGLESv2/Framebuffer.cpp",
         "patchSetId": 2
@@ -183,6 +253,29 @@
         "startChar": 1,
         "endLine": 623,
         "endChar": 24
+      },
+      "revId": "02c0c747b4dc7e5440c1d9aa6a221827e762e639",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4bcb66e2_ba63f9e7",
+        "filename": "src/OpenGL/libGLESv2/utilities.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 671,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-13T21:41:37Z",
+      "side": 1,
+      "message": "Should validate that \"If the \u003ctype\u003e is FLOAT and the depth buffer is not a float buffer, an INVALID_OPERATION error occurs. If the \u003ctype\u003e is UNSIGNED_SHORT or UNSIGNED_INT_24_8_OES and the depth buffer is a float buffer, an INVALID_OPERATION error occurs.\"",
+      "range": {
+        "startLine": 655,
+        "startChar": 3,
+        "endLine": 671,
+        "endChar": 9
       },
       "revId": "02c0c747b4dc7e5440c1d9aa6a221827e762e639",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
@@ -249,6 +342,30 @@
       "side": 1,
       "message": "It\u0027s all right, it was just a nit, I can simplify the blitter code later.",
       "parentUuid": "ebbdfaca_33a4e8de",
+      "range": {
+        "startLine": 296,
+        "startChar": 15,
+        "endLine": 296,
+        "endChar": 45
+      },
+      "revId": "02c0c747b4dc7e5440c1d9aa6a221827e762e639",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4bcb66e2_3a78a98e",
+        "filename": "src/Renderer/Blitter.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 296,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-13T21:41:37Z",
+      "side": 1,
+      "message": "Alexis, please file a cleanup bug.",
+      "parentUuid": "eb617a20_b6a446cd",
       "range": {
         "startLine": 296,
         "startChar": 15,
