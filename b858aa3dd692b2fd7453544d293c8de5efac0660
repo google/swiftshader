@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4bcb66e2_063f4f0a",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 6206,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-04-14T16:41:00Z",
+      "side": 1,
+      "message": "An invalid texture format does not return a GL error?",
+      "range": {
+        "startLine": 6206,
+        "startChar": 2,
+        "endLine": 6206,
+        "endChar": 9
+      },
+      "revId": "b858aa3dd692b2fd7453544d293c8de5efac0660",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
