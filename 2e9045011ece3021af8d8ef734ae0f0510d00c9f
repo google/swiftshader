@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4bcb66e2_d759630c",
+        "filename": "src/OpenGL/libGLES_CM/Framebuffer.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 268,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-14T20:29:13Z",
+      "side": 0,
+      "message": "This is basically a way to let the driver reject any framebuffer config it doesn\u0027t like. But these formats aren\u0027t even renderable to begin with, so we should use the generic GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT.",
+      "range": {
+        "startLine": 268,
+        "startChar": 11,
+        "endLine": 268,
+        "endChar": 41
+      },
+      "revId": "2e9045011ece3021af8d8ef734ae0f0510d00c9f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
