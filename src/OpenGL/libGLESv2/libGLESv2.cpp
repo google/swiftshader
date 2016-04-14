@@ -2730,30 +2730,33 @@ void GetFramebufferAttachmentParameteriv(GLenum target, GLenum attachment, GLenu
 
 	if(context)
 	{
-		if(target != GL_FRAMEBUFFER && target != GL_DRAW_FRAMEBUFFER_ANGLE && target != GL_READ_FRAMEBUFFER_ANGLE)
+		if(target != GL_FRAMEBUFFER && target != GL_DRAW_FRAMEBUFFER && target != GL_READ_FRAMEBUFFER)
 		{
 			return error(GL_INVALID_ENUM);
 		}
 
 		GLint clientVersion = context->getClientVersion();
 
-		es2::Framebuffer *framebuffer = NULL;
-		if(target == GL_READ_FRAMEBUFFER_ANGLE)
+		es2::Framebuffer *framebuffer = nullptr;
+		if(target == GL_READ_FRAMEBUFFER)
 		{
 			if(context->getReadFramebufferName() == 0)
 			{
-				switch(attachment)
+				if(clientVersion < 3)
 				{
-				case GL_BACK:
-				case GL_DEPTH:
-				case GL_STENCIL:
-					if(clientVersion >= 3)
+					return error(GL_INVALID_OPERATION);
+				}
+				else
+				{
+					switch(attachment)
 					{
+					case GL_BACK:
+					case GL_DEPTH:
+					case GL_STENCIL:
 						break;
+					default:
+						return error(GL_INVALID_ENUM);
 					}
-					// fall through
-				default:
-					return error(GL_INVALID_ENUM);
 				}
 			}
 
@@ -2763,18 +2766,21 @@ void GetFramebufferAttachmentParameteriv(GLenum target, GLenum attachment, GLenu
 		{
 			if(context->getDrawFramebufferName() == 0)
 			{
-				switch(attachment)
+				if(clientVersion < 3)
 				{
-				case GL_BACK:
-				case GL_DEPTH:
-				case GL_STENCIL:
-					if(clientVersion >= 3)
+					return error(GL_INVALID_OPERATION);
+				}
+				else
+				{
+					switch(attachment)
 					{
+					case GL_BACK:
+					case GL_DEPTH:
+					case GL_STENCIL:
 						break;
+					default:
+						return error(GL_INVALID_ENUM);
 					}
-					// fall through
-				default:
-					return error(GL_INVALID_ENUM);
 				}
 			}
 
