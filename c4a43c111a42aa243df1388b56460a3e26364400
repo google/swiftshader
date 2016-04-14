@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "4bcb66e2_86a33f22",
+        "filename": "src/OpenGL/libGLESv2/utilities.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 770,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-14T17:27:37Z",
+      "side": 1,
+      "message": "Whoops. Fixed.",
+      "range": {
+        "startLine": 770,
+        "startChar": 10,
+        "endLine": 770,
+        "endChar": 16
+      },
+      "revId": "c4a43c111a42aa243df1388b56460a3e26364400",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4bcb66e2_e39305d6",
         "filename": "src/OpenGL/libGLESv2/utilities.cpp",
         "patchSetId": 3
@@ -25,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "4bcb66e2_a6891bae",
+        "filename": "src/OpenGL/libGLESv2/utilities.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 827,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-14T17:27:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4bcb66e2_e39305d6",
+      "range": {
+        "startLine": 822,
+        "startChar": 3,
+        "endLine": 827,
+        "endChar": 18
+      },
+      "revId": "c4a43c111a42aa243df1388b56460a3e26364400",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4bcb66e2_23afddf1",
         "filename": "src/OpenGL/libGLESv2/utilities.cpp",
         "patchSetId": 3
@@ -36,6 +83,30 @@
       "writtenOn": "2016-04-14T15:33:43Z",
       "side": 1,
       "message": "Not super pretty. I understand not wanting to do 4 versions of the macro. You could use a C++11 variadic template to OR all the arguments and use it inside a variadic macro, I think. But it\u0027s complicated. I don\u0027t know if there\u0027s an elegant solution to this, short of making 4 macros, which might be mildly better.",
+      "range": {
+        "startLine": 845,
+        "startChar": 64,
+        "endLine": 845,
+        "endChar": 126
+      },
+      "revId": "c4a43c111a42aa243df1388b56460a3e26364400",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4bcb66e2_c66b7780",
+        "filename": "src/OpenGL/libGLESv2/utilities.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 845,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-14T17:27:37Z",
+      "side": 1,
+      "message": "Fixed using variadic macro. Thanks for the idea.",
+      "parentUuid": "4bcb66e2_23afddf1",
       "range": {
         "startLine": 845,
         "startChar": 64,
