@@ -998,6 +998,7 @@ namespace es2
 		case GL_RG16F:
 		case GL_RGB16F:
 		case GL_RGBA16F:
+		case GL_BGRA8_EXT:
 			return true;
 		case GL_R8:
 		case GL_R8UI:
