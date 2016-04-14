@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4bcb66e2_06faaf59",
+        "filename": "src/OpenGL/compiler/Compiler.h",
+        "patchSetId": 3
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5655
+      },
+      "writtenOn": "2016-04-14T17:08:27Z",
+      "side": 1,
+      "message": "Work fixing the indentation here?  (also for OES_fragment_precision_high)",
+      "range": {
+        "startLine": 52,
+        "startChar": 5,
+        "endLine": 52,
+        "endChar": 21
+      },
+      "revId": "4b1215a79ebe45beb772896d0ce609f6a084d5c7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4bcb66e2_06874fd7",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 7555,
+      "author": {
+        "id": 5655
+      },
+      "writtenOn": "2016-04-14T17:08:27Z",
+      "side": 1,
+      "message": "Spec says that n \u003d\u003d 0 is equivalent to setting all buffers to NONE.",
+      "range": {
+        "startLine": 7555,
+        "startChar": 8,
+        "endLine": 7555,
+        "endChar": 9
+      },
+      "revId": "4b1215a79ebe45beb772896d0ce609f6a084d5c7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4bcb66e2_66bd6383",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 7569,
+      "author": {
+        "id": 5655
+      },
+      "writtenOn": "2016-04-14T17:08:27Z",
+      "side": 1,
+      "message": "Declare \u0027i\u0027 just as \u0027GLsizei\u0027 ?",
+      "range": {
+        "startLine": 7569,
+        "startChar": 30,
+        "endLine": 7569,
+        "endChar": 31
+      },
+      "revId": "4b1215a79ebe45beb772896d0ce609f6a084d5c7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4bcb66e2_268ecbf0",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 7601,
+      "author": {
+        "id": 5655
+      },
+      "writtenOn": "2016-04-14T17:08:27Z",
+      "side": 1,
+      "message": "This generates GL_INVALID_OPERATION",
+      "revId": "4b1215a79ebe45beb772896d0ce609f6a084d5c7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
