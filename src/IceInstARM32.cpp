@@ -835,10 +835,48 @@ template <> void InstARM32Vshl::emitIAS(const Cfg *Func) const {
     switch (Sign) {
     case InstARM32::FS_None: // defaults to unsigned.
     case InstARM32::FS_Unsigned:
-      Asm->vshlqu(ElmtTy, Dest, getSrc(0), getSrc(1));
+      if (const auto *Imm6 = llvm::dyn_cast<ConstantInteger32>(getSrc(1))) {
+        Asm->vshlqc(ElmtTy, Dest, getSrc(0), Imm6);
+      } else {
+        Asm->vshlqu(ElmtTy, Dest, getSrc(0), getSrc(1));
+      }
       break;
     case InstARM32::FS_Signed:
-      Asm->vshlqi(ElmtTy, Dest, getSrc(0), getSrc(1));
+      if (const auto *Imm6 = llvm::dyn_cast<ConstantInteger32>(getSrc(1))) {
+        Asm->vshlqc(ElmtTy, Dest, getSrc(0), Imm6);
+      } else {
+        Asm->vshlqi(ElmtTy, Dest, getSrc(0), getSrc(1));
+      }
+      break;
+    }
+  } break;
+  }
+}
+
+template <> void InstARM32Vshr::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  const Variable *Dest = getDest();
+  const Type DestTy = Dest->getType();
+  switch (DestTy) {
+  default:
+    llvm::report_fatal_error("Vshr not defined on type " +
+                             typeStdString(Dest->getType()));
+  case IceType_v4i1:
+  case IceType_v8i1:
+  case IceType_v16i1:
+  case IceType_v16i8:
+  case IceType_v8i16:
+  case IceType_v4i32: {
+    const Type ElmtTy = typeElementType(DestTy);
+    const auto *Imm6 = llvm::cast<ConstantInteger32>(getSrc(1));
+    assert(Sign != InstARM32::FS_None);
+    switch (Sign) {
+    case InstARM32::FS_None: // defaults to unsigned.
+    case InstARM32::FS_Unsigned:
+      Asm->vshrquc(ElmtTy, Dest, getSrc(0), Imm6);
+      break;
+    case InstARM32::FS_Signed:
+      Asm->vshrqic(ElmtTy, Dest, getSrc(0), Imm6);
       break;
     }
   } break;
@@ -1466,6 +1504,7 @@ template <> const char *InstARM32Vmul::Opcode = "vmul";
 template <> const char *InstARM32Vorr::Opcode = "vorr";
 template <> const char *InstARM32UnaryopFP<InstARM32::Vneg>::Opcode = "vneg";
 template <> const char *InstARM32ThreeAddrFP<InstARM32::Vshl>::Opcode = "vshl";
+template <> const char *InstARM32ThreeAddrFP<InstARM32::Vshr>::Opcode = "vshr";
 template <> const char *InstARM32Vsub::Opcode = "vsub";
 // Four-addr ops
 template <> const char *InstARM32Mla::Opcode = "mla";
@@ -2452,6 +2491,14 @@ const char *vcvtVariantSuffix(const InstARM32Vcvt::VcvtVariant Variant) {
     return ".f64.f32";
   case InstARM32Vcvt::D2s:
     return ".f32.f64";
+  case InstARM32Vcvt::Vs2si:
+    return ".s32.f32";
+  case InstARM32Vcvt::Vs2ui:
+    return ".u32.f32";
+  case InstARM32Vcvt::Vsi2s:
+    return ".f32.s32";
+  case InstARM32Vcvt::Vui2s:
+    return ".f32.u32";
   }
   llvm::report_fatal_error("Invalid VcvtVariant enum.");
 }
@@ -2502,6 +2549,18 @@ void InstARM32Vcvt::emitIAS(const Cfg *Func) const {
     break;
   case D2s:
     Asm->vcvtsd(getDest(), getSrc(0), getPredicate());
+    break;
+  case Vs2si:
+    Asm->vcvtqsi(getDest(), getSrc(0));
+    break;
+  case Vs2ui:
+    Asm->vcvtqsu(getDest(), getSrc(0));
+    break;
+  case Vsi2s:
+    Asm->vcvtqis(getDest(), getSrc(0));
+    break;
+  case Vui2s:
+    Asm->vcvtqus(getDest(), getSrc(0));
     break;
   }
   assert(!Asm->needsTextFixup());
@@ -2913,6 +2972,7 @@ template class InstARM32FourAddrFP<InstARM32::Vmls>;
 template class InstARM32ThreeAddrFP<InstARM32::Vmul>;
 template class InstARM32UnaryopSignAwareFP<InstARM32::Vneg>;
 template class InstARM32ThreeAddrSignAwareFP<InstARM32::Vshl>;
+template class InstARM32ThreeAddrSignAwareFP<InstARM32::Vshr>;
 template class InstARM32ThreeAddrFP<InstARM32::Vsub>;
 
 template class InstARM32LoadBase<InstARM32::Ldr>;

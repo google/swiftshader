@@ -381,6 +381,14 @@ public:
   // vcvt<c>.u32.f32
   void vcvtus(const Operand *OpSd, const Operand *OpSm, CondARM32::Cond Cond);
 
+  void vcvtqsi(const Operand *OpQd, const Operand *OpQm);
+
+  void vcvtqsu(const Operand *OpQd, const Operand *OpQm);
+
+  void vcvtqis(const Operand *OpQd, const Operand *OpQm);
+
+  void vcvtqus(const Operand *OpQd, const Operand *OpQm);
+
   void vdivd(const Operand *OpDd, const Operand *OpDn, const Operand *OpDm,
              CondARM32::Cond Cond);
 
@@ -510,6 +518,15 @@ public:
 
   void vshlqu(Type ElmtTy, const Operand *OpQd, const Operand *OpQm,
               const Operand *OpQn);
+
+  void vshlqc(Type ElmtTy, const Operand *OpQd, const Operand *OpQm,
+              const ConstantInteger32 *OpQn);
+
+  void vshrqic(Type ElmtTy, const Operand *OpQd, const Operand *OpQm,
+               const ConstantInteger32 *OpQn);
+
+  void vshrquc(Type ElmtTy, const Operand *OpQd, const Operand *OpQm,
+               const ConstantInteger32 *OpQn);
 
   void vsqrtd(const Operand *OpDd, const Operand *OpDm, CondARM32::Cond Cond);
 
@@ -738,6 +755,20 @@ private:
   void emitSIMDqqq(IValueT Opcode, Type ElmtTy, const Operand *OpQd,
                    const Operand *OpQn, const Operand *OpQm,
                    const char *OpcodeName);
+
+  // Implements various forms of vector (SIMD) shifts using Q registers.
+  // Implements pattern 111100101Diiiiiidddd010101M1mmmm where Dddd=Qd, Mmmm=Qm,
+  // iiiiii=Imm6, and Opcode is unioned into the pattern.
+  void emitSIMDShiftqqc(IValueT Opcode, const Operand *OpQd,
+                        const Operand *OpQm, const IValueT Imm6,
+                        const char *OpcodeName);
+
+  // Implements various forms of vector (SIMD) casts between (signed and
+  // unsigned) integer and floating point types (f32). Implements pattern
+  // 111100111D11ss11dddd011ooQM0mmmm where Dddd=Qd, Mmmm=Qm, 10=ss, op=00, 1=Q,
+  // and Opcode is unioned into the pattern.
+  void emitSIMDCvtqq(IValueT Opcode, const Operand *OpQd, const Operand *OpQm,
+                     const char *CvtName);
 
   // Pattern cccctttxxxxnnnn0000iiiiiiiiiiii where cccc=Cond, nnnn=Rn,
   // ttt=Instruction type (derived from OpSrc1), iiiiiiiiiiii is derived from

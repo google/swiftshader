@@ -599,17 +599,6 @@ void TargetARM32::genTargetHelperCallFor(Inst *Instr) {
     auto *CastInstr = llvm::cast<InstCast>(Instr);
     const InstCast::OpKind CastKind = CastInstr->getCastKind();
 
-    if (isVectorType(DestTy) && CastKind != InstCast::Bitcast) {
-      // Bitcasting is done with function calls (e.g., v8i1 -> i8), or regular
-      // vmov (e.g., v4i32 -> v4f32)
-      scalarizeInstruction(
-          Dest, [this, CastKind](Variable *Dest, Variable *Src) {
-            return Context.insert<InstCast>(CastKind, Dest, Src);
-          }, Src0);
-      CastInstr->setDeleted();
-      return;
-    }
-
     switch (CastKind) {
     default:
       return;
@@ -696,6 +685,31 @@ void TargetARM32::genTargetHelperCallFor(Inst *Instr) {
       if (CallDest->getType() != Dest->getType())
         Context.insert<InstCast>(InstCast::Trunc, Dest, CallDest);
       Instr->setDeleted();
+      return;
+    }
+    case InstCast::Trunc: {
+      if (DestTy == SrcTy) {
+        return;
+      }
+      if (!isVectorType(SrcTy)) {
+        return;
+      }
+      assert(typeNumElements(DestTy) == typeNumElements(SrcTy));
+      assert(typeElementType(DestTy) == IceType_i1);
+      assert(isVectorIntegerType(SrcTy));
+      return;
+    }
+    case InstCast::Sext:
+    case InstCast::Zext: {
+      if (DestTy == SrcTy) {
+        return;
+      }
+      if (!isVectorType(DestTy)) {
+        return;
+      }
+      assert(typeNumElements(DestTy) == typeNumElements(SrcTy));
+      assert(typeElementType(SrcTy) == IceType_i1);
+      assert(isVectorIntegerType(DestTy));
       return;
     }
     }
@@ -3887,15 +3901,35 @@ void configureBitcastTemporary(Variable64On32 *Var) {
 void TargetARM32::lowerCast(const InstCast *Instr) {
   InstCast::OpKind CastKind = Instr->getCastKind();
   Variable *Dest = Instr->getDest();
+  const Type DestTy = Dest->getType();
   Operand *Src0 = legalizeUndef(Instr->getSrc(0));
   switch (CastKind) {
   default:
     Func->setError("Cast type not supported");
     return;
   case InstCast::Sext: {
-    if (isVectorType(Dest->getType())) {
-      UnimplementedLoweringError(this, Instr);
-    } else if (Dest->getType() == IceType_i64) {
+    if (isVectorType(DestTy)) {
+      Variable *T0 = makeReg(DestTy);
+      Variable *T1 = makeReg(DestTy);
+      ConstantInteger32 *ShAmt = nullptr;
+      switch (DestTy) {
+      default:
+        llvm::report_fatal_error("Unexpected type in vector sext.");
+      case IceType_v16i8:
+        ShAmt = llvm::cast<ConstantInteger32>(Ctx->getConstantInt32(7));
+        break;
+      case IceType_v8i16:
+        ShAmt = llvm::cast<ConstantInteger32>(Ctx->getConstantInt32(15));
+        break;
+      case IceType_v4i32:
+        ShAmt = llvm::cast<ConstantInteger32>(Ctx->getConstantInt32(31));
+        break;
+      }
+      auto *Src0R = legalizeToReg(Src0);
+      _vshl(T0, Src0R, ShAmt);
+      _vshr(T1, T0, ShAmt)->setSignType(InstARM32::FS_Signed);
+      _mov(Dest, T1);
+    } else if (DestTy == IceType_i64) {
       // t1=sxtb src; t2= mov t1 asr #31; dst.lo=t1; dst.hi=t2
       Constant *ShiftAmt = Ctx->getConstantInt32(31);
       auto *DestLo = llvm::cast<Variable>(loOperand(Dest));
@@ -3925,22 +3959,28 @@ void TargetARM32::lowerCast(const InstCast *Instr) {
     } else if (Src0->getType() != IceType_i1) {
       // t1 = sxt src; dst = t1
       Variable *Src0R = legalizeToReg(Src0);
-      Variable *T = makeReg(Dest->getType());
+      Variable *T = makeReg(DestTy);
       _sxt(T, Src0R);
       _mov(Dest, T);
     } else {
       Constant *_0 = Ctx->getConstantZero(IceType_i32);
-      Operand *_m1 = Ctx->getConstantInt(Dest->getType(), -1);
-      Variable *T = makeReg(Dest->getType());
+      Operand *_m1 = Ctx->getConstantInt(DestTy, -1);
+      Variable *T = makeReg(DestTy);
       lowerInt1ForSelect(T, Src0, _m1, _0);
       _mov(Dest, T);
     }
     break;
   }
   case InstCast::Zext: {
-    if (isVectorType(Dest->getType())) {
-      UnimplementedLoweringError(this, Instr);
-    } else if (Dest->getType() == IceType_i64) {
+    if (isVectorType(DestTy)) {
+      auto *Mask = makeReg(DestTy);
+      auto *_1 = Ctx->getConstantInt32(1);
+      auto *T = makeReg(DestTy);
+      auto *Src0R = legalizeToReg(Src0);
+      _mov(Mask, _1);
+      _vand(T, Src0R, Mask);
+      _mov(Dest, T);
+    } else if (DestTy == IceType_i64) {
       // t1=uxtb src; dst.lo=t1; dst.hi=0
       Operand *_0 =
           legalize(Ctx->getConstantZero(IceType_i32), Legal_Reg | Legal_Flex);
@@ -3972,7 +4012,7 @@ void TargetARM32::lowerCast(const InstCast *Instr) {
       _mov(T_Hi, _0);
       _mov(DestHi, T_Hi);
     } else if (Src0->getType() == IceType_i1) {
-      Variable *T = makeReg(Dest->getType());
+      Variable *T = makeReg(DestTy);
 
       SafeBoolChain Safe = lowerInt1(T, Src0);
       if (Safe == SBC_No) {
@@ -3984,23 +4024,26 @@ void TargetARM32::lowerCast(const InstCast *Instr) {
     } else {
       // t1 = uxt src; dst = t1
       Variable *Src0R = legalizeToReg(Src0);
-      Variable *T = makeReg(Dest->getType());
+      Variable *T = makeReg(DestTy);
       _uxt(T, Src0R);
       _mov(Dest, T);
     }
     break;
   }
   case InstCast::Trunc: {
-    if (isVectorType(Dest->getType())) {
-      UnimplementedLoweringError(this, Instr);
+    if (isVectorType(DestTy)) {
+      auto *T = makeReg(DestTy);
+      auto *Src0R = legalizeToReg(Src0);
+      _mov(T, Src0R);
+      _mov(Dest, T);
     } else {
       if (Src0->getType() == IceType_i64)
         Src0 = loOperand(Src0);
       Operand *Src0RF = legalize(Src0, Legal_Reg | Legal_Flex);
       // t1 = trunc Src0RF; Dest = t1
-      Variable *T = makeReg(Dest->getType());
+      Variable *T = makeReg(DestTy);
       _mov(T, Src0RF);
-      if (Dest->getType() == IceType_i1)
+      if (DestTy == IceType_i1)
         _and(T, T, Ctx->getConstantInt1(1));
       _mov(Dest, T);
     }
@@ -4011,26 +4054,29 @@ void TargetARM32::lowerCast(const InstCast *Instr) {
     // fptrunc: dest.f32 = fptrunc src0.fp64
     // fpext: dest.f64 = fptrunc src0.fp32
     const bool IsTrunc = CastKind == InstCast::Fptrunc;
-    if (isVectorType(Dest->getType())) {
-      UnimplementedLoweringError(this, Instr);
-      break;
-    }
-    assert(Dest->getType() == (IsTrunc ? IceType_f32 : IceType_f64));
+    assert(!isVectorType(DestTy));
+    assert(DestTy == (IsTrunc ? IceType_f32 : IceType_f64));
     assert(Src0->getType() == (IsTrunc ? IceType_f64 : IceType_f32));
     Variable *Src0R = legalizeToReg(Src0);
-    Variable *T = makeReg(Dest->getType());
+    Variable *T = makeReg(DestTy);
     _vcvt(T, Src0R, IsTrunc ? InstARM32Vcvt::D2s : InstARM32Vcvt::S2d);
     _mov(Dest, T);
     break;
   }
   case InstCast::Fptosi:
   case InstCast::Fptoui: {
-    if (isVectorType(Dest->getType())) {
-      UnimplementedLoweringError(this, Instr);
+    const bool DestIsSigned = CastKind == InstCast::Fptosi;
+    Variable *Src0R = legalizeToReg(Src0);
+
+    if (isVectorType(DestTy)) {
+      assert(typeElementType(Src0->getType()) == IceType_f32);
+      auto *T = makeReg(DestTy);
+      _vcvt(T, Src0R,
+            DestIsSigned ? InstARM32Vcvt::Vs2si : InstARM32Vcvt::Vs2ui);
+      _mov(Dest, T);
       break;
     }
 
-    const bool DestIsSigned = CastKind == InstCast::Fptosi;
     const bool Src0IsF32 = isFloat32Asserting32Or64(Src0->getType());
     if (llvm::isa<Variable64On32>(Dest)) {
       llvm::report_fatal_error("fp-to-i64 should have been pre-lowered.");
@@ -4043,7 +4089,6 @@ void TargetARM32::lowerCast(const InstCast *Instr) {
     //     t1.fp = vcvt src0.fp
     //     t2.u32 = vmov t1.fp
     //     dest.uint = conv t2.u32    @ Truncates the result if needed.
-    Variable *Src0R = legalizeToReg(Src0);
     Variable *T_fp = makeReg(IceType_f32);
     const InstARM32Vcvt::VcvtVariant Conversion =
         Src0IsF32 ? (DestIsSigned ? InstARM32Vcvt::S2si : InstARM32Vcvt::S2ui)
@@ -4051,8 +4096,8 @@ void TargetARM32::lowerCast(const InstCast *Instr) {
     _vcvt(T_fp, Src0R, Conversion);
     Variable *T = makeReg(IceType_i32);
     _mov(T, T_fp);
-    if (Dest->getType() != IceType_i32) {
-      Variable *T_1 = makeReg(Dest->getType());
+    if (DestTy != IceType_i32) {
+      Variable *T_1 = makeReg(DestTy);
       lowerCast(InstCast::create(Func, InstCast::Trunc, T_1, T));
       T = T_1;
     }
@@ -4061,12 +4106,19 @@ void TargetARM32::lowerCast(const InstCast *Instr) {
   }
   case InstCast::Sitofp:
   case InstCast::Uitofp: {
-    if (isVectorType(Dest->getType())) {
-      UnimplementedLoweringError(this, Instr);
+    const bool SourceIsSigned = CastKind == InstCast::Sitofp;
+
+    if (isVectorType(DestTy)) {
+      assert(typeElementType(DestTy) == IceType_f32);
+      auto *T = makeReg(DestTy);
+      Variable *Src0R = legalizeToReg(Src0);
+      _vcvt(T, Src0R,
+            SourceIsSigned ? InstARM32Vcvt::Vsi2s : InstARM32Vcvt::Vui2s);
+      _mov(Dest, T);
       break;
     }
-    const bool SourceIsSigned = CastKind == InstCast::Sitofp;
-    const bool DestIsF32 = isFloat32Asserting32Or64(Dest->getType());
+
+    const bool DestIsF32 = isFloat32Asserting32Or64(DestTy);
     if (Src0->getType() == IceType_i64) {
       llvm::report_fatal_error("i64-to-fp should have been pre-lowered.");
     }
@@ -4089,7 +4141,7 @@ void TargetARM32::lowerCast(const InstCast *Instr) {
     Variable *Src0R_f32 = makeReg(IceType_f32);
     _mov(Src0R_f32, Src0R);
     Src0R = Src0R_f32;
-    Variable *T = makeReg(Dest->getType());
+    Variable *T = makeReg(DestTy);
     const InstARM32Vcvt::VcvtVariant Conversion =
         DestIsF32
             ? (SourceIsSigned ? InstARM32Vcvt::Si2s : InstARM32Vcvt::Ui2s)
@@ -4100,13 +4152,12 @@ void TargetARM32::lowerCast(const InstCast *Instr) {
   }
   case InstCast::Bitcast: {
     Operand *Src0 = Instr->getSrc(0);
-    if (Dest->getType() == Src0->getType()) {
+    if (DestTy == Src0->getType()) {
       auto *Assign = InstAssign::create(Func, Dest, Src0);
       lowerAssign(Assign);
       return;
     }
-    Type DestType = Dest->getType();
-    switch (DestType) {
+    switch (DestTy) {
     case IceType_NUM:
     case IceType_void:
       llvm::report_fatal_error("Unexpected bitcast.");
@@ -4126,7 +4177,7 @@ void TargetARM32::lowerCast(const InstCast *Instr) {
     case IceType_i32:
     case IceType_f32: {
       Variable *Src0R = legalizeToReg(Src0);
-      Variable *T = makeReg(DestType);
+      Variable *T = makeReg(DestTy);
       _mov(T, Src0R);
       lowerAssign(InstAssign::create(Func, Dest, T));
       break;
@@ -4152,7 +4203,7 @@ void TargetARM32::lowerCast(const InstCast *Instr) {
       // vmov T2, T0, T1
       // Dest <- T2
       assert(Src0->getType() == IceType_i64);
-      Variable *T = makeReg(DestType);
+      Variable *T = makeReg(DestTy);
       auto *Src64 = llvm::cast<Variable64On32>(Func->makeVariable(IceType_i64));
       Src64->initHiLo(Func);
       configureBitcastTemporary(Src64);
@@ -4176,9 +4227,9 @@ void TargetARM32::lowerCast(const InstCast *Instr) {
     case IceType_v16i8:
     case IceType_v4f32:
     case IceType_v4i32: {
-      assert(typeWidthInBytes(DestType) == typeWidthInBytes(Src0->getType()));
-      assert(isVectorType(DestType) == isVectorType(Src0->getType()));
-      Variable *T = makeReg(DestType);
+      assert(typeWidthInBytes(DestTy) == typeWidthInBytes(Src0->getType()));
+      assert(isVectorType(DestTy) == isVectorType(Src0->getType()));
+      Variable *T = makeReg(DestTy);
       _mov(T, Src0);
       _mov(Dest, T);
       break;

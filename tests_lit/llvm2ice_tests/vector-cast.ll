@@ -1,8 +1,15 @@
 ; This file tests casting / conversion operations that apply to vector types.
 ; bitcast operations are in vector-bitcast.ll.
 
-; RUN: %p2i -i %s --filetype=obj --disassemble --args -O2 | FileCheck %s
-; RUN: %p2i -i %s --filetype=obj --disassemble --args -Om1 | FileCheck %s
+; RUN: %p2i -i %s --target=x8632 --filetype=obj --disassemble --args -O2 \
+; RUN:     | FileCheck %s --check-prefix=X8632 --check-prefix=CHECK
+; RUN: %p2i -i %s --target=x8632 --filetype=obj --disassemble --args -Om1 \
+; RUN:     | FileCheck %s --check-prefix=X8632 --check-prefix=CHECK
+
+; RUN: %p2i -i %s --target=arm32 --filetype=obj --disassemble --args -O2 \
+; RUN:     | FileCheck %s --check-prefix=ARM32 --check-prefix=CHECK
+; RUN: %p2i -i %s --target=arm32 --filetype=obj --disassemble --args -Om1 \
+; RUN:     | FileCheck %s --check-prefix=ARM32 --check-prefix=CHECK
 
 ; sext operations
 
@@ -12,12 +19,14 @@ entry:
   ret <16 x i8> %res
 
 ; CHECK-LABEL: test_sext_v16i1_to_v16i8
-; CHECK: pxor
-; CHECK: pcmpeqb
-; CHECK: psubb
-; CHECK: pand
-; CHECK: pxor
-; CHECK: pcmpgtb
+; X8632: pxor
+; X8632: pcmpeqb
+; X8632: psubb
+; X8632: pand
+; X8632: pxor
+; X8632: pcmpgtb
+; ARM32: vshl.s8
+; ARM32-NEXT: vshr.s8
 }
 
 define internal <8 x i16> @test_sext_v8i1_to_v8i16(<8 x i1> %arg) {
@@ -26,8 +35,10 @@ entry:
   ret <8 x i16> %res
 
 ; CHECK-LABEL: test_sext_v8i1_to_v8i16
-; CHECK: psllw {{.*}},0xf
-; CHECK: psraw {{.*}},0xf
+; X8632: psllw {{.*}},0xf
+; X8632: psraw {{.*}},0xf
+; ARM32: vshl.s16
+; ARM32-NEXT: vshr.s16
 }
 
 define internal <4 x i32> @test_sext_v4i1_to_v4i32(<4 x i1> %arg) {
@@ -36,8 +47,10 @@ entry:
   ret <4 x i32> %res
 
 ; CHECK-LABEL: test_sext_v4i1_to_v4i32
-; CHECK: pslld {{.*}},0x1f
-; CHECK: psrad {{.*}},0x1f
+; X8632: pslld {{.*}},0x1f
+; X8632: psrad {{.*}},0x1f
+; ARM32: vshl.s32
+; ARM32-NEXT: vshr.s32
 }
 
 ; zext operations
@@ -48,10 +61,12 @@ entry:
   ret <16 x i8> %res
 
 ; CHECK-LABEL: test_zext_v16i1_to_v16i8
-; CHECK: pxor
-; CHECK: pcmpeqb
-; CHECK: psubb
-; CHECK: pand
+; X8632: pxor
+; X8632: pcmpeqb
+; X8632: psubb
+; X8632: pand
+; ARM32: vmov.i8 [[S:.*]], #1
+; ARM32-NEXT: vand {{.*}}, [[S]]
 }
 
 define internal <8 x i16> @test_zext_v8i1_to_v8i16(<8 x i1> %arg) {
@@ -60,10 +75,12 @@ entry:
   ret <8 x i16> %res
 
 ; CHECK-LABEL: test_zext_v8i1_to_v8i16
-; CHECK: pxor
-; CHECK: pcmpeqw
-; CHECK: psubw
-; CHECK: pand
+; X8632: pxor
+; X8632: pcmpeqw
+; X8632: psubw
+; X8632: pand
+; ARM32: vmov.i16 [[S:.*]], #1
+; ARM32-NEXT: vand {{.*}}, [[S]]
 }
 
 define internal <4 x i32> @test_zext_v4i1_to_v4i32(<4 x i1> %arg) {
@@ -72,10 +89,12 @@ entry:
   ret <4 x i32> %res
 
 ; CHECK-LABEL: test_zext_v4i1_to_v4i32
-; CHECK: pxor
-; CHECK: pcmpeqd
-; CHECK: psubd
-; CHECK: pand
+; X8632: pxor
+; X8632: pcmpeqd
+; X8632: psubd
+; X8632: pand
+; ARM32: vmov.i32 [[S:.*]], #1
+; ARM32-NEXT: vand {{.*}}, [[S]]
 }
 
 ; trunc operations
@@ -86,10 +105,10 @@ entry:
   ret <16 x i1> %res
 
 ; CHECK-LABEL: test_trunc_v16i8_to_v16i1
-; CHECK: pxor
-; CHECK: pcmpeqb
-; CHECK: psubb
-; CHECK: pand
+; X8632: pxor
+; X8632: pcmpeqb
+; X8632: psubb
+; X8632: pand
 }
 
 define internal <8 x i1> @test_trunc_v8i16_to_v8i1(<8 x i16> %arg) {
@@ -98,10 +117,10 @@ entry:
   ret <8 x i1> %res
 
 ; CHECK-LABEL: test_trunc_v8i16_to_v8i1
-; CHECK: pxor
-; CHECK: pcmpeqw
-; CHECK: psubw
-; CHECK: pand
+; X8632: pxor
+; X8632: pcmpeqw
+; X8632: psubw
+; X8632: pand
 }
 
 define internal <4 x i1> @test_trunc_v4i32_to_v4i1(<4 x i32> %arg) {
@@ -110,10 +129,10 @@ entry:
   ret <4 x i1> %res
 
 ; CHECK-LABEL: test_trunc_v4i32_to_v4i1
-; CHECK: pxor
-; CHECK: pcmpeqd
-; CHECK: psubd
-; CHECK: pand
+; X8632: pxor
+; X8632: pcmpeqd
+; X8632: psubd
+; X8632: pand
 }
 
 ; fpto[us]i operations
@@ -124,7 +143,8 @@ entry:
   ret <4 x i32> %res
 
 ; CHECK-LABEL: test_fptosi_v4f32_to_v4i32
-; CHECK: cvttps2dq
+; X8632: cvttps2dq
+; ARM32: vcvt.s32.f32
 }
 
 define internal <4 x i32> @test_fptoui_v4f32_to_v4i32(<4 x float> %arg) {
@@ -133,7 +153,8 @@ entry:
   ret <4 x i32> %res
 
 ; CHECK-LABEL: test_fptoui_v4f32_to_v4i32
-; CHECK: call {{.*}} R_{{.*}} __Sz_fptoui_4xi32_f32
+; X8632: call {{.*}} R_{{.*}} __Sz_fptoui_4xi32_f32
+; ARM32: vcvt.u32.f32
 }
 
 ; [su]itofp operations
@@ -144,7 +165,8 @@ entry:
   ret <4 x float> %res
 
 ; CHECK-LABEL: test_sitofp_v4i32_to_v4f32
-; CHECK: cvtdq2ps
+; X8632: cvtdq2ps
+; ARM32: vcvt.f32.s32
 }
 
 define internal <4 x float> @test_uitofp_v4i32_to_v4f32(<4 x i32> %arg) {
@@ -153,5 +175,6 @@ entry:
   ret <4 x float> %res
 
 ; CHECK-LABEL: test_uitofp_v4i32_to_v4f32
-; CHECK: call {{.*}} R_{{.*}} __Sz_uitofp_4xi32_4xf32
+; X8632: call {{.*}} R_{{.*}} __Sz_uitofp_4xi32_4xf32
+; ARM32: vcvt.f32.u32
 }

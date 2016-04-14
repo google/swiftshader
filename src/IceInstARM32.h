@@ -438,6 +438,7 @@ public:
     Vneg,
     Vorr,
     Vshl,
+    Vshr,
     Vsqrt,
     Vsub
   };
@@ -822,12 +823,18 @@ public:
         InstARM32ThreeAddrSignAwareFP(Func, Dest, Src0, Src1);
   }
 
+  static InstARM32ThreeAddrSignAwareFP *
+  create(Cfg *Func, Variable *Dest, Variable *Src0, ConstantInteger32 *Src1) {
+    return new (Func->allocate<InstARM32ThreeAddrSignAwareFP>())
+        InstARM32ThreeAddrSignAwareFP(Func, Dest, Src0, Src1);
+  }
+
   void emitIAS(const Cfg *Func) const override;
   void setSignType(InstARM32::FPSign SignType) { this->Sign = SignType; }
 
 private:
   InstARM32ThreeAddrSignAwareFP(Cfg *Func, Variable *Dest, Variable *Src0,
-                                Variable *Src1)
+                                Operand *Src1)
       : InstARM32ThreeAddrFP<K>(Func, Dest, Src0, Src1) {}
 };
 
@@ -993,6 +1000,7 @@ using InstARM32Vmul = InstARM32ThreeAddrFP<InstARM32::Vmul>;
 using InstARM32Vneg = InstARM32UnaryopSignAwareFP<InstARM32::Vneg>;
 using InstARM32Vorr = InstARM32ThreeAddrFP<InstARM32::Vorr>;
 using InstARM32Vshl = InstARM32ThreeAddrSignAwareFP<InstARM32::Vshl>;
+using InstARM32Vshr = InstARM32ThreeAddrSignAwareFP<InstARM32::Vshr>;
 using InstARM32Vsub = InstARM32ThreeAddrFP<InstARM32::Vsub>;
 using InstARM32Ldr = InstARM32LoadBase<InstARM32::Ldr>;
 using InstARM32Ldrex = InstARM32LoadBase<InstARM32::Ldrex>;
@@ -1358,7 +1366,22 @@ class InstARM32Vcvt final : public InstARM32Pred {
   InstARM32Vcvt &operator=(const InstARM32Vcvt &) = delete;
 
 public:
-  enum VcvtVariant { S2si, S2ui, Si2s, Ui2s, D2si, D2ui, Si2d, Ui2d, S2d, D2s };
+  enum VcvtVariant {
+    S2si,
+    S2ui,
+    Si2s,
+    Ui2s,
+    D2si,
+    D2ui,
+    Si2d,
+    Ui2d,
+    S2d,
+    D2s,
+    Vs2si,
+    Vs2ui,
+    Vsi2s,
+    Vui2s,
+  };
   static InstARM32Vcvt *create(Cfg *Func, Variable *Dest, Variable *Src,
                                VcvtVariant Variant, CondARM32::Cond Predicate) {
     return new (Func->allocate<InstARM32Vcvt>())

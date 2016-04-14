@@ -23,17 +23,19 @@
 ; RUN:   | FileCheck %s --check-prefix=DIS
 
 
-define internal <4 x float> @testMoveVector(<4 x i32> %a) {
+define internal <4 x float> @testMoveVector(<4 x i32> %a, <4 x i32> %b) {
 ; ASM-LABEL: testMoveVector:
 ; DIS-LABEL:{{.+}} <testMoveVector>:
 ; IASM-LABEL: testMoveVector:
 
 entry:
-  %0 = sitofp <4 x i32> %a to <4 x float>
+  %0 = bitcast <4 x i32> %b to <4 x float>
   ret <4 x float> %0
 
 ; ASM:  vmov.f32        q0, q1
-; DIS:  3c:     eef03a40
+; The integrated assembler emits a vorr instead of a vmov.
+; DIS:  0:     f2220152
 ; IASM-NOT: vmov.f32    q0, q1
+; IASM-NOT: vorr        q0, q1, q1
 
 }

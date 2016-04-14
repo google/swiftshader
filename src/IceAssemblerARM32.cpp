@@ -224,13 +224,17 @@ bool encodeAdvSIMDExpandImm(IValueT Value, Type ElmtTy, IValueT &Op,
     return false;
   Imm8 = Value;
   switch (ElmtTy) {
+  case IceType_i8:
+    Op = 0;
+    Cmode = 14; // 0b1110
+    return true;
   case IceType_i16:
     Op = 0;
-    Cmode = 8; // 100:0
+    Cmode = 8; // 0b1000
     return true;
   case IceType_i32:
     Op = 0;
-    Cmode = 0; // 000:0
+    Cmode = 0; // 0b0000
     return true;
   default:
     return false;
@@ -1213,6 +1217,33 @@ void AssemblerARM32::emitSIMDqqq(IValueT Opcode, Type ElmtTy,
   assert(Utils::IsUint(2, ElmtSize));
   emitSIMDqqqBase(Opcode | (ElmtSize << ElmtShift), OpQd, OpQn, OpQm,
                   isFloatingType(ElmtTy), OpcodeName);
+}
+
+void AssemblerARM32::emitSIMDShiftqqc(IValueT Opcode, const Operand *OpQd,
+                                      const Operand *OpQm, const IValueT Imm6,
+                                      const char *OpcodeName) {
+  const IValueT Qd = encodeQRegister(OpQd, "Qd", OpcodeName);
+  const IValueT Qn = 0;
+  const IValueT Qm = encodeQRegister(OpQm, "Qm", OpcodeName);
+  constexpr bool UseQRegs = true;
+  constexpr bool IsFloatTy = false;
+  constexpr IValueT ElmtShift = 16;
+  emitSIMDBase(Opcode | (Imm6 << ElmtShift), mapQRegToDReg(Qd),
+               mapQRegToDReg(Qn), mapQRegToDReg(Qm), UseQRegs, IsFloatTy);
+}
+
+void AssemblerARM32::emitSIMDCvtqq(IValueT Opcode, const Operand *OpQd,
+                                   const Operand *OpQm,
+                                   const char *OpcodeName) {
+  const IValueT SIMDOpcode =
+      B24 | B23 | B21 | B20 | B19 | B17 | B16 | B10 | B9 | Opcode;
+  constexpr bool UseQRegs = true;
+  constexpr bool IsFloatTy = false;
+  const IValueT Qd = encodeQRegister(OpQd, "Qd", OpcodeName);
+  constexpr IValueT Qn = 0;
+  const IValueT Qm = encodeQRegister(OpQm, "Qm", OpcodeName);
+  emitSIMDBase(SIMDOpcode, mapQRegToDReg(Qd), mapQRegToDReg(Qn),
+               mapQRegToDReg(Qm), UseQRegs, IsFloatTy);
 }
 
 void AssemblerARM32::emitVFPddd(CondARM32::Cond Cond, IValueT Opcode,
@@ -2557,6 +2588,50 @@ void AssemblerARM32::vcvtus(const Operand *OpSd, const Operand *OpSm,
   emitVFPsss(Cond, VcvtsiOpcode, Sd, S0, Sm);
 }
 
+void AssemblerARM32::vcvtqsi(const Operand *OpQd, const Operand *OpQm) {
+  // VCVT (between floating-point and integer, Advanced SIMD)
+  //      - ARM Section A8.8.305, encoding A1:
+  //   vcvt<c>.f32.s32 <Qd>, <Qm>
+  //
+  // 111100111D11ss11dddd011ooQM0mmmm where Ddddd=Qd, Mmmmm=Qm, and 10=op.
+  constexpr const char *Vcvtqsi = "vcvt.s32.f32";
+  constexpr IValueT VcvtqsiOpcode = B8;
+  emitSIMDCvtqq(VcvtqsiOpcode, OpQd, OpQm, Vcvtqsi);
+}
+
+void AssemblerARM32::vcvtqsu(const Operand *OpQd, const Operand *OpQm) {
+  // VCVT (between floating-point and integer, Advanced SIMD)
+  //      - ARM Section A8.8.305, encoding A1:
+  //   vcvt<c>.f32.u32 <Qd>, <Qm>
+  //
+  // 111100111D11ss11dddd011ooQM0mmmm where Ddddd=Qd, Mmmmm=Qm, and 11=op.
+  constexpr const char *Vcvtqsu = "vcvt.u32.f32";
+  constexpr IValueT VcvtqsuOpcode = B8 | B7;
+  emitSIMDCvtqq(VcvtqsuOpcode, OpQd, OpQm, Vcvtqsu);
+}
+
+void AssemblerARM32::vcvtqis(const Operand *OpQd, const Operand *OpQm) {
+  // VCVT (between floating-point and integer, Advanced SIMD)
+  //      - ARM Section A8.8.305, encoding A1:
+  //   vcvt<c>.f32.s32 <Qd>, <Qm>
+  //
+  // 111100111D11ss11dddd011ooQM0mmmm where Ddddd=Qd, Mmmmm=Qm, and 01=op.
+  constexpr const char *Vcvtqis = "vcvt.f32.s32";
+  constexpr IValueT VcvtqisOpcode = 0;
+  emitSIMDCvtqq(VcvtqisOpcode, OpQd, OpQm, Vcvtqis);
+}
+
+void AssemblerARM32::vcvtqus(const Operand *OpQd, const Operand *OpQm) {
+  // VCVT (between floating-point and integer, Advanced SIMD)
+  //      - ARM Section A8.8.305, encoding A1:
+  //   vcvt<c>.f32.u32 <Qd>, <Qm>
+  //
+  // 111100111D11ss11dddd011ooQM0mmmm where Ddddd=Qd, Mmmmm=Qm, and 01=op.
+  constexpr const char *Vcvtqus = "vcvt.f32.u32";
+  constexpr IValueT VcvtqusOpcode = B7;
+  emitSIMDCvtqq(VcvtqusOpcode, OpQd, OpQm, Vcvtqus);
+}
+
 void AssemblerARM32::emitVFPds(CondARM32::Cond Cond, IValueT Opcode, IValueT Dd,
                                IValueT Sm) {
   assert(Dd < RegARM32::getNumDRegs());
@@ -3265,6 +3340,70 @@ void AssemblerARM32::vshlqi(Type ElmtTy, const Operand *OpQd,
   constexpr const char *Vshl = "vshl";
   constexpr IValueT VshlOpcode = B10 | B6;
   emitSIMDqqq(VshlOpcode, ElmtTy, OpQd, OpQn, OpQm, Vshl);
+}
+
+namespace {
+enum SIMDShiftType { ST_Vshl, ST_Vshr };
+IValueT encodeSIMDShiftImm6(SIMDShiftType Shift, Type ElmtTy,
+                            const ConstantInteger32 *Imm6) {
+  const IValueT Imm = Imm6->getValue();
+  assert(Imm > 0);
+  const SizeT MaxShift = getScalarIntBitWidth(ElmtTy);
+  assert(Imm < MaxShift);
+  assert(ElmtTy == IceType_i8 || ElmtTy == IceType_i16 ||
+         ElmtTy == IceType_i32);
+  const IValueT VshlImm = Imm - MaxShift;
+  const IValueT VshrImm = 2 * MaxShift - Imm;
+  return ((Shift == ST_Vshl) ? VshlImm : VshrImm) & (2 * MaxShift - 1);
+}
+} // end of anonymous namespace
+
+void AssemblerARM32::vshlqc(Type ElmtTy, const Operand *OpQd,
+                            const Operand *OpQm,
+                            const ConstantInteger32 *Imm6) {
+  // VSHL - ARM section A8.8.395, encoding A1:
+  //   vshl Qd, Qm, #Imm
+  //
+  // 1111001U1Diiiiiidddd0101LQM1mmmm where Ddddd=Qd, Mmmmm=Qm, iiiiii=Imm6,
+  // 0=U, 1=Q, 0=L.
+  assert(isScalarIntegerType(ElmtTy) &&
+         "vshl expects vector with integer element type");
+  constexpr const char *Vshl = "vshl";
+  constexpr IValueT VshlOpcode = B23 | B10 | B8 | B4;
+  emitSIMDShiftqqc(VshlOpcode, OpQd, OpQm,
+                   encodeSIMDShiftImm6(ST_Vshl, ElmtTy, Imm6), Vshl);
+}
+
+void AssemblerARM32::vshrqic(Type ElmtTy, const Operand *OpQd,
+                             const Operand *OpQm,
+                             const ConstantInteger32 *Imm6) {
+  // VSHR - ARM section A8.8.398, encoding A1:
+  //   vshr Qd, Qm, #Imm
+  //
+  // 1111001U1Diiiiiidddd0101LQM1mmmm where Ddddd=Qd, Mmmmm=Qm, iiiiii=Imm6,
+  // 0=U, 1=Q, 0=L.
+  assert(isScalarIntegerType(ElmtTy) &&
+         "vshr expects vector with integer element type");
+  constexpr const char *Vshr = "vshr";
+  constexpr IValueT VshrOpcode = B23 | B4;
+  emitSIMDShiftqqc(VshrOpcode, OpQd, OpQm,
+                   encodeSIMDShiftImm6(ST_Vshr, ElmtTy, Imm6), Vshr);
+}
+
+void AssemblerARM32::vshrquc(Type ElmtTy, const Operand *OpQd,
+                             const Operand *OpQm,
+                             const ConstantInteger32 *Imm6) {
+  // VSHR - ARM section A8.8.398, encoding A1:
+  //   vshr Qd, Qm, #Imm
+  //
+  // 1111001U1Diiiiiidddd0101LQM1mmmm where Ddddd=Qd, Mmmmm=Qm, iiiiii=Imm6,
+  // 0=U, 1=Q, 0=L.
+  assert(isScalarIntegerType(ElmtTy) &&
+         "vshr expects vector with integer element type");
+  constexpr const char *Vshr = "vshr";
+  constexpr IValueT VshrOpcode = B23 | B4;
+  emitSIMDShiftqqc(VshrOpcode, OpQd, OpQm,
+                   encodeSIMDShiftImm6(ST_Vshr, ElmtTy, Imm6), Vshr);
 }
 
 void AssemblerARM32::vshlqu(Type ElmtTy, const Operand *OpQd,

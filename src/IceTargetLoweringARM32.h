@@ -894,6 +894,14 @@ protected:
   InstARM32Vshl *_vshl(Variable *Dest, Variable *Src0, Variable *Src1) {
     return Context.insert<InstARM32Vshl>(Dest, Src0, Src1);
   }
+  void _vshl(Variable *Dest, Variable *Src0, ConstantInteger32 *Src1) {
+    Context.insert<InstARM32Vshl>(Dest, Src0, Src1)
+        ->setSignType(InstARM32::FS_Unsigned);
+  }
+  InstARM32Vshr *_vshr(Variable *Dest, Variable *Src0,
+                       ConstantInteger32 *Src1) {
+    return Context.insert<InstARM32Vshr>(Dest, Src0, Src1);
+  }
   void _vsqrt(Variable *Dest, Variable *Src,
               CondARM32::Cond Pred = CondARM32::AL) {
     Context.insert<InstARM32Vsqrt>(Dest, Src, Pred);

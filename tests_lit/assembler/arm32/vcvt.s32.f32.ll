@@ -36,3 +36,17 @@ entry:
 
   ret i32 %v
 }
+
+define internal <4 x i32> @FloatVecToIntVec(<4 x float> %a) {
+; ASM-LABEL: FloatVecToIntVec:
+; DIS-LABEL: 00000030 <FloatVecToIntVec>:
+; IASM-LABEL: FloatVecToIntVec:
+
+  %v = fptosi <4 x float> %a to <4 x i32>
+
+; ASM:         vcvt.s32.f32    q0, q0
+; DIS:     40: f3bb0740
+; IASM-NOT:    vcvt.s32.f32
+
+  ret <4 x i32> %v
+}
