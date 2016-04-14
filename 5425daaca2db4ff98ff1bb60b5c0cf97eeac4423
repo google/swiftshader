@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "4bcb66e2_b795c75e",
+        "filename": "src/Renderer/Surface.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 309,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-04-14T20:31:06Z",
+      "side": 1,
+      "message": "I have to write into it, otherwise the alpha will stay uninitialized.",
+      "parentUuid": "4bcb66e2_bcdbee99",
+      "range": {
+        "startLine": 309,
+        "startChar": 3,
+        "endLine": 309,
+        "endChar": 31
+      },
+      "revId": "5425daaca2db4ff98ff1bb60b5c0cf97eeac4423",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4bcb66e2_3cc89ecb",
         "filename": "src/Renderer/Surface.cpp",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2016-04-14T19:42:33Z",
       "side": 1,
       "message": "same",
+      "range": {
+        "startLine": 952,
+        "startChar": 3,
+        "endLine": 952,
+        "endChar": 12
+      },
+      "revId": "5425daaca2db4ff98ff1bb60b5c0cf97eeac4423",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4bcb66e2_3c77fe0e",
+        "filename": "src/Renderer/Surface.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 952,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-04-14T20:31:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4bcb66e2_3cc89ecb",
       "range": {
         "startLine": 952,
         "startChar": 3,
