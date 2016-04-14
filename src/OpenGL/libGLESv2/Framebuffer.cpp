@@ -330,7 +330,7 @@ GLenum Framebuffer::completeness(int &width, int &height, int &samples)
 
 			if(IsRenderbuffer(mColorbufferType[i]))
 			{
-				if(!es2::IsColorRenderable(colorbuffer->getFormat(), egl::getClientVersion()))
+				if(!IsColorRenderable(colorbuffer->getFormat(), egl::getClientVersion()))
 				{
 					return GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
 				}
@@ -339,15 +339,12 @@ GLenum Framebuffer::completeness(int &width, int &height, int &samples)
 			{
 				GLenum format = colorbuffer->getFormat();
 
-				if(IsCompressed(format, egl::getClientVersion()) ||
-					format == GL_ALPHA ||
-					format == GL_LUMINANCE ||
-					format == GL_LUMINANCE_ALPHA)
+				if(!IsColorRenderable(format, egl::getClientVersion()))
 				{
-					return GL_FRAMEBUFFER_UNSUPPORTED;
+					return GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
 				}
 
-				if(es2::IsDepthTexture(format) || es2::IsStencilTexture(format))
+				if(IsDepthTexture(format) || IsStencilTexture(format))
 				{
 					return GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
 				}
@@ -369,7 +366,6 @@ GLenum Framebuffer::completeness(int &width, int &height, int &samples)
 			{
 				return GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE_ANGLE;
 			}
-
 		}
 	}
 
