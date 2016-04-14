@@ -989,6 +989,16 @@ namespace es2
 	{
 		switch(internalformat)
 		{
+		case GL_RGBA4:
+		case GL_RGB5_A1:
+		case GL_RGB565:
+		case GL_RGB8_OES:
+		case GL_RGBA8_OES:
+		case GL_R16F:
+		case GL_RG16F:
+		case GL_RGB16F:
+		case GL_RGBA16F:
+			return true;
 		case GL_R8:
 		case GL_R8UI:
 		case GL_R8I:
@@ -1012,19 +1022,7 @@ namespace es2
 		case GL_RGBA16I:
 		case GL_RGBA32I:
 		case GL_RGBA32UI:
-		case GL_RGBA4:
-		case GL_RGB5_A1:
-		case GL_RGB565:
-		case GL_RGB8_OES:
-		case GL_RGBA8_OES:
-		case GL_RGB:
-		case GL_RGBA:
-			return true;
-		case GL_R16F:
-		case GL_RG16F:
 		case GL_R11F_G11F_B10F:
-		case GL_RGB16F:
-		case GL_RGBA16F:
 		case GL_R32F:
 		case GL_RG32F:
 		case GL_RGB32F:
