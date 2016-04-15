@@ -1406,9 +1406,13 @@ class Assembler : public ValueObject {
   // ARM32::AssemblerARM32::uxt() (uxtb and uxth)
   // ARM32::AssemblerARM32::vpop()
   // ARM32::AssemblerARM32::vpush()
-  // ARM32::AssemblerARM32:rbit()
+  // ARM32::AssemblerARM32::rbit()
+  // ARM32::AssemblerARM32::vbslq()
   // ARM32::AssemblerARM32::veord()
   // ARM32::AssemblerARM32::vld1qr()
+  // ARM32::AssemblerARM32::vshlqc
+  // ARM32::AssemblerARM32::vshrqic
+  // ARM32::AssemblerARM32::vshrquc
   // ARM32::AssemblerARM32::vst1qr()
   // ARM32::AssemblerARM32::vmorqi()
   // ARM32::AssemblerARM32::vmovqc()

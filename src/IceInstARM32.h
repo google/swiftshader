@@ -427,6 +427,7 @@ public:
     Vabs,
     Vadd,
     Vand,
+    Vbsl,
     Vcmp,
     Vcvt,
     Vdiv,
@@ -992,6 +993,7 @@ using InstARM32Sub = InstARM32ThreeAddrGPR<InstARM32::Sub>;
 using InstARM32Udiv = InstARM32ThreeAddrGPR<InstARM32::Udiv>;
 using InstARM32Vadd = InstARM32ThreeAddrFP<InstARM32::Vadd>;
 using InstARM32Vand = InstARM32ThreeAddrFP<InstARM32::Vand>;
+using InstARM32Vbsl = InstARM32ThreeAddrFP<InstARM32::Vbsl>;
 using InstARM32Vdiv = InstARM32ThreeAddrFP<InstARM32::Vdiv>;
 using InstARM32Veor = InstARM32ThreeAddrFP<InstARM32::Veor>;
 using InstARM32Vmla = InstARM32FourAddrFP<InstARM32::Vmla>;

@@ -704,6 +704,24 @@ template <> void InstARM32Vand::emitIAS(const Cfg *Func) const {
   assert(!Asm->needsTextFixup());
 }
 
+template <> void InstARM32Vbsl::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  const Variable *Dest = getDest();
+  switch (Dest->getType()) {
+  default:
+    llvm::report_fatal_error("Vbsl not defined on type " +
+                             typeStdString(Dest->getType()));
+  case IceType_v4i1:
+  case IceType_v8i1:
+  case IceType_v16i1:
+  case IceType_v16i8:
+  case IceType_v8i16:
+  case IceType_v4i32:
+    Asm->vbslq(Dest, getSrc(0), getSrc(1));
+  }
+  assert(!Asm->needsTextFixup());
+}
+
 template <> void InstARM32Vdiv::emitIAS(const Cfg *Func) const {
   auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   const Variable *Dest = getDest();
@@ -1496,6 +1514,7 @@ template <> const char *InstARM32Udiv::Opcode = "udiv";
 // FP
 template <> const char *InstARM32Vadd::Opcode = "vadd";
 template <> const char *InstARM32Vand::Opcode = "vand";
+template <> const char *InstARM32Vbsl::Opcode = "vbsl";
 template <> const char *InstARM32Vdiv::Opcode = "vdiv";
 template <> const char *InstARM32Veor::Opcode = "veor";
 template <> const char *InstARM32Vmla::Opcode = "vmla";

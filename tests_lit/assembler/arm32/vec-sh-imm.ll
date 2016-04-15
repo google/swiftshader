@@ -34,8 +34,8 @@ define internal <4 x i32> @SextV4I1(<4 x i32> %a) {
 ; ASM-NEXT:    vshr.s32 {{.*}}, #31
 ; DIS:      0: f2bf0550
 ; DIS-NEXT: 4: f2a10050
-; IASM-NOT:    vshl.u32 {{.*}}, #31
-; IASM-NOT:    vshr.s32 {{.*}}, #31
+; IASM-NOT:    vshl
+; IASM-NOT:    vshr
 }
 
 define internal <8 x i16> @SextV8I1(<8 x i16> %a) {
@@ -46,12 +46,12 @@ define internal <8 x i16> @SextV8I1(<8 x i16> %a) {
   %trunc = trunc <8 x i16> %a to <8 x i1>
   %sext = sext <8 x i1> %trunc to <8 x i16>
   ret <8 x i16> %sext
-; ASM:      vshl.u16 {{.*}}, #15
-; ASM-NEXT: vshr.s16 {{.*}}, #15
+; ASM:          vshl.u16 {{.*}}, #15
+; ASM-NEXT:     vshr.s16 {{.*}}, #15
 ; DIS:      10: f29f0550
 ; DIS-NEXT: 14: f2910050
-; IASM-NOT: vshl.u16 {{.*}}, #15
-; IASM-NOT: vshr.s16 {{.*}}, #15
+; IASM-NOT:     vshl
+; IASM-NOT:     vshr
 }
 
 define internal <16 x i8> @SextV16I1(<16 x i8> %a) {
@@ -62,10 +62,10 @@ define internal <16 x i8> @SextV16I1(<16 x i8> %a) {
   %trunc = trunc <16 x i8> %a to <16 x i1>
   %sext = sext <16 x i1> %trunc to <16 x i8>
   ret <16 x i8> %sext
-; ASM:      vshl.u8 {{.*}}, #7
-; ASM-NEXT: vshr.s8 {{.*}}, #7
+; ASM:          vshl.u8 {{.*}}, #7
+; ASM-NEXT:     vshr.s8 {{.*}}, #7
 ; DIS:      20: f28f0550
 ; DIS-NEXT: 24: f2890050
-; IASM-NOT: vshl.u8 {{.*}}, #7
-; IASM-NOT: vshr.s8 {{.*}}, #7
+; IASM-NOT:     vshl
+; IASM-NOT:     vshr
 }

@@ -861,24 +861,6 @@ void TargetARM32::genTargetHelperCallFor(Inst *Instr) {
     }
     return;
   }
-  case Inst::Select: {
-    Variable *Dest = Instr->getDest();
-    const auto DestTy = Dest->getType();
-    if (isVectorType(DestTy)) {
-      auto *SelectInstr = llvm::cast<InstSelect>(Instr);
-      scalarizeInstruction(Dest,
-                           [this](Variable *Dest, Variable *Src0,
-                                  Variable *Src1, Variable *Src2) {
-                             return Context.insert<InstSelect>(Dest, Src0, Src1,
-                                                               Src2);
-                           },
-                           llvm::cast<Variable>(SelectInstr->getSrc(0)),
-                           llvm::cast<Variable>(SelectInstr->getSrc(1)),
-                           llvm::cast<Variable>(SelectInstr->getSrc(2)));
-      SelectInstr->setDeleted();
-    }
-    return;
-  }
   }
 }
 
@@ -5727,12 +5709,39 @@ void TargetARM32::lowerSelect(const InstSelect *Instr) {
   Operand *SrcF = Instr->getFalseOperand();
   Operand *Condition = Instr->getCondition();
 
-  if (isVectorType(DestTy)) {
-    UnimplementedLoweringError(this, Instr);
+  if (!isVectorType(DestTy)) {
+    lowerInt1ForSelect(Dest, Condition, legalizeUndef(SrcT),
+                       legalizeUndef(SrcF));
     return;
   }
 
-  lowerInt1ForSelect(Dest, Condition, legalizeUndef(SrcT), legalizeUndef(SrcF));
+  Type TType = DestTy;
+  switch (DestTy) {
+  default:
+    llvm::report_fatal_error("Unexpected type for vector select.");
+  case IceType_v4i1:
+    TType = IceType_v4i32;
+    break;
+  case IceType_v8i1:
+    TType = IceType_v8i16;
+    break;
+  case IceType_v16i1:
+    TType = IceType_v16i8;
+    break;
+  case IceType_v4f32:
+    TType = IceType_v4i32;
+    break;
+  case IceType_v4i32:
+  case IceType_v8i16:
+  case IceType_v16i8:
+    break;
+  }
+  auto *T = makeReg(TType);
+  lowerCast(InstCast::create(Func, InstCast::Sext, T, Condition));
+  auto *SrcTR = legalizeToReg(SrcT);
+  auto *SrcFR = legalizeToReg(SrcF);
+  _vbsl(T, SrcTR, SrcFR)->setDestRedefined();
+  _mov(Dest, T);
 }
 
 void TargetARM32::lowerStore(const InstStore *Instr) {

@@ -2410,6 +2410,18 @@ void AssemblerARM32::vandq(const Operand *OpQd, const Operand *OpQm,
   emitSIMDqqq(VandqOpcode, ElmtTy, OpQd, OpQm, OpQn, Vandq);
 }
 
+void AssemblerARM32::vbslq(const Operand *OpQd, const Operand *OpQm,
+                           const Operand *OpQn) {
+  // VBSL (register) - ARM section A8.8.290, encoding A1:
+  //   vbsl <Qd>, <Qn>, <Qm>
+  //
+  // 111100110D01nnn0ddd00001N1M1mmm0 where Dddd=OpQd, Nnnn=OpQm, and Mmmm=OpQm.
+  constexpr const char *Vbslq = "vbslq";
+  constexpr IValueT VbslqOpcode = B24 | B20 | B8 | B4;
+  constexpr Type ElmtTy = IceType_i8; // emits sz=0
+  emitSIMDqqq(VbslqOpcode, ElmtTy, OpQd, OpQm, OpQn, Vbslq);
+}
+
 void AssemblerARM32::vcmpd(const Operand *OpDd, const Operand *OpDm,
                            CondARM32::Cond Cond) {
   constexpr const char *Vcmpd = "vcmpd";

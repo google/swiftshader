@@ -46,7 +46,7 @@ define internal <4 x float> @UIntVecToFloatVec(<4 x i32> %a) {
 
 ; ASM:         vcvt.f32.u32    q0, q0
 ; DIS:     40: f3bb06c0
-; IASM-NOT:    vcvt.f32.u32
+; IASM-NOT:    vcvt
 
   ret <4 x float> %v
 }
