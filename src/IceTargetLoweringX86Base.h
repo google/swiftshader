@@ -247,6 +247,7 @@ protected:
   void lowerArithmetic(const InstArithmetic *Instr) override;
   void lowerAssign(const InstAssign *Instr) override;
   void lowerBr(const InstBr *Instr) override;
+  void lowerBreakpoint(const InstBreakpoint *Instr) override;
   void lowerCall(const InstCall *Instr) override;
   void lowerCast(const InstCast *Instr) override;
   void lowerExtractElement(const InstExtractElement *Instr) override;
@@ -656,6 +657,7 @@ protected:
     AutoMemorySandboxer<> _(this, &Dest, &Src0, &Src1);
     Context.insert<typename Traits::Insts::Insertps>(Dest, Src0, Src1);
   }
+  void _int3() { Context.insert<typename Traits::Insts::Int3>(); }
   void _jmp(Operand *Target) {
     AutoMemorySandboxer<> _(this, &Target);
     Context.insert<typename Traits::Insts::Jmp>(Target);

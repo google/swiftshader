@@ -599,6 +599,7 @@ void Cfg::processAllocas(bool SortAndCombine) {
   TimerMarker _(TimerStack::TT_alloca, this);
   const uint32_t StackAlignment = getTarget()->getStackAlignment();
   CfgNode *EntryNode = getEntryNode();
+  assert(EntryNode);
   // LLVM enforces power of 2 alignment.
   assert(llvm::isPowerOf2_32(StackAlignment));
   // Determine if there are large alignment allocations in the entry block or

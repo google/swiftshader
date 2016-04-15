@@ -105,6 +105,7 @@ const char *Inst::getInstName() const {
     X(Store, "store");
     X(Switch, "switch");
     X(Assign, "assign");
+    X(Breakpoint, "break");
     X(BundleLock, "bundlelock");
     X(BundleUnlock, "bundleunlock");
     X(FakeDef, "fakedef");
@@ -516,8 +517,10 @@ void InstSwitch::addBranch(SizeT CaseIndex, uint64_t Value, CfgNode *Label) {
 NodeList InstSwitch::getTerminatorEdges() const {
   NodeList OutEdges;
   OutEdges.reserve(NumCases + 1);
+  assert(LabelDefault);
   OutEdges.push_back(LabelDefault);
   for (SizeT I = 0; I < NumCases; ++I) {
+    assert(Labels[I]);
     OutEdges.push_back(Labels[I]);
   }
   std::sort(OutEdges.begin(), OutEdges.end(),
@@ -1046,6 +1049,9 @@ void InstTarget::dump(const Cfg *Func) const {
   Str << "[TARGET] ";
   Inst::dump(Func);
 }
+
+InstBreakpoint::InstBreakpoint(Cfg *Func)
+    : InstHighLevel(Func, Inst::Breakpoint, 0, nullptr) {}
 
 bool checkForRedundantAssign(const Variable *Dest, const Operand *Source) {
   const auto *SrcVar = llvm::dyn_cast<const Variable>(Source);

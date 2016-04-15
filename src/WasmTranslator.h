@@ -20,11 +20,22 @@
 #include "IceGlobalContext.h"
 #include "IceTranslator.h"
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-parameter"
+#endif // __clang__
+
+#include "llvm/Support/StreamingMemoryObject.h"
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif // __clang__
+
 namespace v8 {
 namespace internal {
 class Zone;
 namespace wasm {
-class FunctionEnv;
+struct FunctionBody;
 } // end of namespace wasm
 } // end of namespace internal
 } // end of namespace v8
@@ -53,15 +64,10 @@ public:
   ///
   /// Parameters:
   ///   Zone - an arena for the V8 code to allocate from.
-  ///   Env - information about the function (signature, variable count, etc.).
-  ///   Base - a pointer to the start of the Wasm module.
-  ///   Start - a pointer to the start of the function within the module.
-  ///   End - a pointer to the end of the function.
-  std::unique_ptr<Cfg> translateFunction(v8::internal::Zone *Zone,
-                                         v8::internal::wasm::FunctionEnv *Env,
-                                         const uint8_t *Base,
-                                         const uint8_t *Start,
-                                         const uint8_t *End);
+  ///   Body - information about the function to translate
+  std::unique_ptr<Cfg>
+  translateFunction(v8::internal::Zone *Zone,
+                    v8::internal::wasm::FunctionBody &Body);
 
 private:
   std::unique_ptr<uint8_t[]> Buffer;

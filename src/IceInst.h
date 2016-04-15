@@ -62,6 +62,7 @@ public:
     Store,
     Switch,
     Assign,       // not part of LLVM/PNaCl bitcode
+    Breakpoint,   // not part of LLVM/PNaCl bitcode
     BundleLock,   // not part of LLVM/PNaCl bitcode
     BundleUnlock, // not part of LLVM/PNaCl bitcode
     FakeDef,      // not part of LLVM/PNaCl bitcode
@@ -974,6 +975,29 @@ private:
   CfgNode **Targets;
   GlobalString Name; // This JumpTable's name in the output.
   GlobalString FuncName;
+};
+
+/// This instruction inserts an unconditional breakpoint.
+///
+/// On x86, this assembles into an INT 3 instruction.
+///
+/// This instruction is primarily meant for debugging the code generator.
+class InstBreakpoint : public InstHighLevel {
+public:
+  InstBreakpoint() = delete;
+  InstBreakpoint(const InstBreakpoint &) = delete;
+  InstBreakpoint &operator=(const InstBreakpoint &) = delete;
+
+  InstBreakpoint(Cfg *Func);
+
+public:
+  static InstBreakpoint *create(Cfg *Func) {
+    return new (Func->allocate<InstBreakpoint>()) InstBreakpoint(Func);
+  }
+
+  static bool classof(const Inst *Instr) {
+    return Instr->getKind() == Breakpoint;
+  }
 };
 
 /// The Target instruction is the base class for all target-specific

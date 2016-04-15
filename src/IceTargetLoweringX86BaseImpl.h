@@ -6096,6 +6096,12 @@ void TargetX86Base<TraitsType>::lowerUnreachable(
 }
 
 template <typename TraitsType>
+void TargetX86Base<TraitsType>::lowerBreakpoint(
+    const InstBreakpoint * /*Instr*/) {
+  _int3();
+}
+
+template <typename TraitsType>
 void TargetX86Base<TraitsType>::lowerRMW(const InstX86FakeRMW *RMW) {
   // If the beacon variable's live range does not end in this instruction, then
   // it must end in the modified Store instruction that follows. This means

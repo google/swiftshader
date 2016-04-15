@@ -263,6 +263,10 @@ InstImpl<TraitsType>::InstX86UD2::InstX86UD2(Cfg *Func)
     : InstX86Base(Func, InstX86Base::UD2, 0, nullptr) {}
 
 template <typename TraitsType>
+InstImpl<TraitsType>::InstX86Int3::InstX86Int3(Cfg *Func)
+    : InstX86Base(Func, InstX86Base::Int3, 0, nullptr) {}
+
+template <typename TraitsType>
 InstImpl<TraitsType>::InstX86Test::InstX86Test(Cfg *Func, Operand *Src1,
                                                Operand *Src2)
     : InstX86Base(Func, InstX86Base::Test, 2, nullptr) {
@@ -1777,6 +1781,30 @@ void InstImpl<TraitsType>::InstX86UD2::dump(const Cfg *Func) const {
     return;
   Ostream &Str = Func->getContext()->getStrDump();
   Str << "ud2";
+}
+
+template <typename TraitsType>
+void InstImpl<TraitsType>::InstX86Int3::emit(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+  Ostream &Str = Func->getContext()->getStrEmit();
+  assert(this->getSrcSize() == 0);
+  Str << "\t"
+         "int 3";
+}
+
+template <typename TraitsType>
+void InstImpl<TraitsType>::InstX86Int3::emitIAS(const Cfg *Func) const {
+  Assembler *Asm = Func->getAssembler<Assembler>();
+  Asm->int3();
+}
+
+template <typename TraitsType>
+void InstImpl<TraitsType>::InstX86Int3::dump(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+  Ostream &Str = Func->getContext()->getStrDump();
+  Str << "int 3";
 }
 
 template <typename TraitsType>

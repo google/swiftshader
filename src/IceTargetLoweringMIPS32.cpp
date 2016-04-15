@@ -1155,6 +1155,10 @@ void TargetMIPS32::lowerSwitch(const InstSwitch *Instr) {
   UnimplementedLoweringError(this, Instr);
 }
 
+void TargetMIPS32::lowerBreakpoint(const InstBreakpoint *Instr) {
+  UnimplementedLoweringError(this, Instr);
+}
+
 void TargetMIPS32::lowerUnreachable(const InstUnreachable *Instr) {
   UnimplementedLoweringError(this, Instr);
 }

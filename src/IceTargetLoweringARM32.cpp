@@ -5818,6 +5818,10 @@ void TargetARM32::lowerSwitch(const InstSwitch *Instr) {
   _br(Instr->getLabelDefault());
 }
 
+void TargetARM32::lowerBreakpoint(const InstBreakpoint *Instr) {
+  UnimplementedLoweringError(this, Instr);
+}
+
 void TargetARM32::lowerUnreachable(const InstUnreachable * /*Instr*/) {
   _trap();
 }

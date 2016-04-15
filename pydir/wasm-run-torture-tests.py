@@ -22,13 +22,13 @@ def run_test(test_file, verbose=False):
   global fail_count
 
   cmd = """LD_LIBRARY_PATH=../../../../v8/out/native/lib.target ./pnacl-sz \
-               -filetype=asm -target=arm32 {} -threads=0 -O2 \
+               -filetype=asm -target=x8632 {} -threads=0 -O2 \
                -verbose=wasm""".format(test_file)
 
   if not verbose:
     cmd += " &> /dev/null"
 
-  sys.stdout.write(test_file + "...");
+  sys.stdout.write(test_file + " ...");
   status = os.system(cmd);
   if status != 0:
     fail_count += 1
@@ -45,7 +45,7 @@ if len(sys.argv) > 1:
   test_files = sys.argv[1:]
   verbose = True
 else:
-  test_files = glob.glob("./torture-s2wasm-sexpr-wasm.old/*.wasm")
+  test_files = glob.glob("./torture-s2wasm-sexpr-wasm/*.wasm")
 
 for test_file in test_files:
   run_test(test_file, verbose)

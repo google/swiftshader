@@ -375,6 +375,7 @@ protected:
   virtual void lowerArithmetic(const InstArithmetic *Instr) = 0;
   virtual void lowerAssign(const InstAssign *Instr) = 0;
   virtual void lowerBr(const InstBr *Instr) = 0;
+  virtual void lowerBreakpoint(const InstBreakpoint *Instr) = 0;
   virtual void lowerCall(const InstCall *Instr) = 0;
   virtual void lowerCast(const InstCast *Instr) = 0;
   virtual void lowerFcmp(const InstFcmp *Instr) = 0;

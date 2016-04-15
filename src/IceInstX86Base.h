@@ -107,6 +107,7 @@ template <typename TraitsType> struct InstImpl {
       Imul,
       ImulImm,
       Insertps,
+      Int3,
       Jmp,
       Label,
       Lea,
@@ -2442,6 +2443,27 @@ template <typename TraitsType> struct InstImpl {
     explicit InstX86UD2(Cfg *Func);
   };
 
+  /// Int3 instruction.
+  class InstX86Int3 final : public InstX86Base {
+    InstX86Int3() = delete;
+    InstX86Int3(const InstX86Int3 &) = delete;
+    InstX86Int3 &operator=(const InstX86Int3 &) = delete;
+
+  public:
+    static InstX86Int3 *create(Cfg *Func) {
+      return new (Func->allocate<InstX86Int3>()) InstX86Int3(Func);
+    }
+    void emit(const Cfg *Func) const override;
+    void emitIAS(const Cfg *Func) const override;
+    void dump(const Cfg *Func) const override;
+    static bool classof(const Inst *Instr) {
+      return InstX86Base::isClassof(Instr, InstX86Base::Int3);
+    }
+
+  private:
+    explicit InstX86Int3(Cfg *Func);
+  };
+
   /// Test instruction.
   class InstX86Test final : public InstX86Base {
     InstX86Test() = delete;
@@ -2914,6 +2936,7 @@ template <typename TraitsType> struct Insts {
   using Icmp = typename InstImpl<TraitsType>::InstX86Icmp;
   using Ucomiss = typename InstImpl<TraitsType>::InstX86Ucomiss;
   using UD2 = typename InstImpl<TraitsType>::InstX86UD2;
+  using Int3 = typename InstImpl<TraitsType>::InstX86Int3;
   using Test = typename InstImpl<TraitsType>::InstX86Test;
   using Mfence = typename InstImpl<TraitsType>::InstX86Mfence;
   using Store = typename InstImpl<TraitsType>::InstX86Store;

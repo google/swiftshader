@@ -400,6 +400,9 @@ void TargetLowering::lower() {
     case Inst::Br:
       lowerBr(llvm::cast<InstBr>(Instr));
       break;
+    case Inst::Breakpoint:
+      lowerBreakpoint(llvm::cast<InstBreakpoint>(Instr));
+      break;
     case Inst::Call:
       lowerCall(llvm::cast<InstCall>(Instr));
       break;

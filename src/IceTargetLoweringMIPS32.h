@@ -287,6 +287,7 @@ protected:
                             Operand *Src0, Operand *Src1);
   void lowerAssign(const InstAssign *Instr) override;
   void lowerBr(const InstBr *Instr) override;
+  void lowerBreakpoint(const InstBreakpoint *Instr) override;
   void lowerCall(const InstCall *Instr) override;
   void lowerCast(const InstCast *Instr) override;
   void lowerExtractElement(const InstExtractElement *Instr) override;

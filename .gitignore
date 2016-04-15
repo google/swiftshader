@@ -11,3 +11,7 @@
 /pnacl-sz
 /build/
 /crosstest/Output/
+
+# Ignore WASM torture tests
+/torture-s/
+/torture-s2wasm-sexpr-wasm/
