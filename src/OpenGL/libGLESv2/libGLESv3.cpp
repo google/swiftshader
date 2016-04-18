@@ -1137,11 +1137,6 @@ GL_APICALL void GL_APIENTRY glDrawBuffers(GLsizei n, const GLenum *bufs)
 		return error(GL_INVALID_VALUE);
 	}
 
-	if(n == 0)
-	{
-		return;
-	}
-
 	es2::Context *context = es2::getContext();
 
 	if(context)
@@ -1197,21 +1192,24 @@ GL_APICALL void GL_APIENTRY glDrawBuffers(GLsizei n, const GLenum *bufs)
 			case GL_COLOR_ATTACHMENT29:
 			case GL_COLOR_ATTACHMENT30:
 			case GL_COLOR_ATTACHMENT31:
-			{
-				GLuint index = (bufs[i] - GL_COLOR_ATTACHMENT0);
-				if(index >= MAX_COLOR_ATTACHMENTS)
 				{
-					return error(GL_INVALID_ENUM);
+					GLuint index = (bufs[i] - GL_COLOR_ATTACHMENT0);
+
+					if(index >= MAX_COLOR_ATTACHMENTS)
+					{
+						return error(GL_INVALID_OPERATION);
+					}
+
+					if(index != i)
+					{
+						return error(GL_INVALID_OPERATION);
+					}
+
+					if(drawFramebufferName == 0)
+					{
+						return error(GL_INVALID_OPERATION);
+					}
 				}
-				if(index != i)
-				{
-					return error(GL_INVALID_OPERATION);
-				}
-				if(drawFramebufferName == 0)
-				{
-					return error(GL_INVALID_OPERATION);
-				}
-			}
 				break;
 			default:
 				return error(GL_INVALID_ENUM);
