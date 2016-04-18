@@ -1950,6 +1950,15 @@ namespace sw
 			c.w = *Pointer<Float4>(buffer[f3] + index[3] * 16, 16);
 			transpose4x4(c.x, c.y, c.z, c.w);
 			break;
+		case 3:
+			ASSERT(state.textureFormat == FORMAT_X32B32G32R32F);
+			c.x = *Pointer<Float4>(buffer[f0] + index[0] * 16, 16);
+			c.y = *Pointer<Float4>(buffer[f1] + index[1] * 16, 16);
+			c.z = *Pointer<Float4>(buffer[f2] + index[2] * 16, 16);
+			c.w = *Pointer<Float4>(buffer[f3] + index[3] * 16, 16);
+			transpose4x3(c.x, c.y, c.z, c.w);
+			c.w = Float4(1.0f);
+			break;
 		case 2:
 			// FIXME: Optimal shuffling?
 			c.x.xy = *Pointer<Float4>(buffer[f0] + index[0] * 8);
