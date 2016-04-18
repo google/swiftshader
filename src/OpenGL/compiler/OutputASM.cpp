@@ -1841,7 +1841,9 @@ namespace glsl
 			break;
 		}
 
-		ASSERT(src->getBasicType() == dst->getBasicType());
+		ASSERT((src->getBasicType() == dst->getBasicType()) ||
+		      ((src->getBasicType() == EbtInt) && (dst->getBasicType() == EbtUInt)) ||
+		      ((src->getBasicType() == EbtUInt) && (dst->getBasicType() == EbtInt)));
 
 		return emit(sw::Shader::OPCODE_MOV, dst, dstIndex, src, srcIndex);
 	}
