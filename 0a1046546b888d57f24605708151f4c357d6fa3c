@@ -34,6 +34,24 @@
       "revId": "0a1046546b888d57f24605708151f4c357d6fa3c",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4898cc33_988cad64",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 6827,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-18T21:20:31Z",
+      "side": 1,
+      "message": "Ah, sorry, a previous patch to fix OpenGL ES 3.0 draw buffers support took care of it: https://swiftshader-review.googlesource.com/#/c/5146/2/src/OpenGL/libGLESv2/Context.cpp I hadn\u0027t added you as a reviewer there.",
+      "parentUuid": "4898cc33_1862dd80",
+      "revId": "0a1046546b888d57f24605708151f4c357d6fa3c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
