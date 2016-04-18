@@ -72,7 +72,6 @@ namespace es2
 		setPointSize(1.0f);
 		setPointSizeMin(0.125f);
         setPointSizeMax(8192.0f);
-		setColorWriteMask(0, 0x0000000F);
 		setBlendOperation(BLENDOP_ADD);
 		scissorEnable = false;
 		setSlopeDepthBias(0.0f);
@@ -81,9 +80,6 @@ namespace es2
 		setStencilZFailOperationCCW(OPERATION_KEEP);
 		setStencilPassOperationCCW(OPERATION_KEEP);
 		setStencilCompareCCW(STENCIL_ALWAYS);
-		setColorWriteMask(1, 0x0000000F);
-		setColorWriteMask(2, 0x0000000F);
-		setColorWriteMask(3, 0x0000000F);
 		setBlendConstant(0xFFFFFFFF);
 		setWriteSRGB(false);
 		setDepthBias(0.0f);

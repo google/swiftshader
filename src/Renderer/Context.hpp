@@ -518,7 +518,7 @@ namespace sw
 		bool pointScaleEnable;
 		float lineWidth;
 
-		int colorWriteMask[4];   // RGBA
+		int colorWriteMask[RENDERTARGETS];   // RGBA
 		bool writeSRGB;
 		unsigned int sampleMask;
 		unsigned int multiSampleMask;

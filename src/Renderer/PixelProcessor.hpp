@@ -71,8 +71,8 @@ namespace sw
 			BlendFactor sourceBlendFactorAlpha        : BITS(BLEND_LAST);
 			BlendFactor destBlendFactorAlpha          : BITS(BLEND_LAST);
 			BlendOperation blendOperationAlpha        : BITS(BLENDOP_LAST);
-			
-			unsigned int colorWriteMask                       : 16;   // (four times four component bit mask)
+
+			unsigned int colorWriteMask                       : RENDERTARGETS * 4;   // Four component bit masks
 			Format targetFormat[RENDERTARGETS];
 			bool writeSRGB                                    : 1;
 			unsigned int multiSample                          : 3;
