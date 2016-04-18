@@ -15,6 +15,7 @@
 #define LIBGLESV2_TRANSFORM_FEEDBACK_H_
 
 #include "Buffer.h"
+#include "Context.h"
 #include "common/Object.hpp"
 #include "Renderer/Renderer.hpp"
 

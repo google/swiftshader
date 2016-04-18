@@ -2112,7 +2112,7 @@ void Context::applyTexture(sw::SamplerType type, int index, Texture *baseTexture
 		{
 			Texture2D *texture = static_cast<Texture2D*>(baseTexture);
 
-			for(int mipmapLevel = 0; mipmapLevel < MIPMAP_LEVELS; mipmapLevel++)
+			for(int mipmapLevel = 0; mipmapLevel < sw::MIPMAP_LEVELS; mipmapLevel++)
 			{
 				int surfaceLevel = mipmapLevel;
 
@@ -2135,7 +2135,7 @@ void Context::applyTexture(sw::SamplerType type, int index, Texture *baseTexture
 			{
 				TextureCubeMap *cubeTexture = static_cast<TextureCubeMap*>(baseTexture);
 
-				for(int mipmapLevel = 0; mipmapLevel < MIPMAP_LEVELS; mipmapLevel++)
+				for(int mipmapLevel = 0; mipmapLevel < sw::MIPMAP_LEVELS; mipmapLevel++)
 				{
 					int surfaceLevel = mipmapLevel;
 

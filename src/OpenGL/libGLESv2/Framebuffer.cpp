@@ -29,7 +29,7 @@ bool Framebuffer::IsRenderbuffer(GLenum type)
 
 Framebuffer::Framebuffer()
 {
-	for(int i = 0; i < IMPLEMENTATION_MAX_COLOR_ATTACHMENTS; ++i)
+	for(int i = 0; i < MAX_COLOR_ATTACHMENTS; i++)
 	{
 		mColorbufferType[i] = GL_NONE;
 	}
@@ -46,7 +46,7 @@ Framebuffer::Framebuffer()
 
 Framebuffer::~Framebuffer()
 {
-	for(int i = 0; i < IMPLEMENTATION_MAX_COLOR_ATTACHMENTS; ++i)
+	for(int i = 0; i < MAX_COLOR_ATTACHMENTS; i++)
 	{
 		mColorbufferPointer[i] = nullptr;
 	}
@@ -121,7 +121,7 @@ GLenum Framebuffer::getDrawBuffer(GLuint index) const
 
 void Framebuffer::detachTexture(GLuint texture)
 {
-	for(int i = 0; i < IMPLEMENTATION_MAX_COLOR_ATTACHMENTS; ++i)
+	for(int i = 0; i < MAX_COLOR_ATTACHMENTS; i++)
 	{
 		if(mColorbufferPointer[i].name() == texture && IsTextureTarget(mColorbufferType[i]))
 		{
@@ -145,7 +145,7 @@ void Framebuffer::detachTexture(GLuint texture)
 
 void Framebuffer::detachRenderbuffer(GLuint renderbuffer)
 {
-	for(int i = 0; i < IMPLEMENTATION_MAX_COLOR_ATTACHMENTS; ++i)
+	for(int i = 0; i < MAX_COLOR_ATTACHMENTS; i++)
 	{
 		if(mColorbufferPointer[i].name() == renderbuffer && IsRenderbuffer(mColorbufferType[i]))
 		{
@@ -312,7 +312,7 @@ GLenum Framebuffer::completeness(int &width, int &height, int &samples)
 	height = -1;
 	samples = -1;
 
-	for(int i = 0; i < IMPLEMENTATION_MAX_COLOR_ATTACHMENTS; ++i)
+	for(int i = 0; i < MAX_COLOR_ATTACHMENTS; i++)
 	{
 		if(mColorbufferType[i] != GL_NONE)
 		{
@@ -613,7 +613,7 @@ DefaultFramebuffer::DefaultFramebuffer(Colorbuffer *colorbuffer, DepthStencilbuf
 	mColorbufferPointer[0] = new Renderbuffer(0, colorbuffer);
 	mColorbufferType[0] = defaultRenderbufferType;
 
-	for(int i = 1; i < IMPLEMENTATION_MAX_COLOR_ATTACHMENTS; ++i)
+	for(int i = 1; i < MAX_COLOR_ATTACHMENTS; i++)
 	{
 		mColorbufferPointer[i] = nullptr;
 		mColorbufferType[i] = GL_NONE;

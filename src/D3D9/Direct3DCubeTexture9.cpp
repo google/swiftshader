@@ -32,10 +32,10 @@ namespace D3D9
 			int width = edgeLength;
 			int height = edgeLength;
 
-			for(unsigned int level = 0; level < MIPMAP_LEVELS; level++)
+			for(unsigned int level = 0; level < sw::MIPMAP_LEVELS; level++)
 			{
 				if(level < this->levels)
-				{					
+				{
 					surfaceLevel[face][level] = new Direct3DSurface9(device, this, width, height, format, pool, D3DMULTISAMPLE_NONE, 0, false, usage);
 					surfaceLevel[face][level]->bind();
 				}
@@ -56,7 +56,7 @@ namespace D3D9
 
 		for(unsigned int face = 0; face < 6; face++)
 		{
-			for(int level = 0; level < MIPMAP_LEVELS; level++)
+			for(int level = 0; level < sw::MIPMAP_LEVELS; level++)
 			{
 				if(surfaceLevel[face][level])
 				{

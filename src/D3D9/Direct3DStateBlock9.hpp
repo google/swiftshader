@@ -12,7 +12,7 @@
 #ifndef D3D9_Direct3DStateBlock9_hpp
 #define D3D9_Direct3DStateBlock9_hpp
 
-#include "Config.hpp"
+#include "Direct3DDevice9.hpp"
 #include "Unknown.hpp"
 
 #include <vector>
@@ -172,11 +172,11 @@ namespace D3D9
 		bool viewportCaptured;
 		D3DVIEWPORT9 viewport;
 
-		float pixelShaderConstantF[FRAGMENT_UNIFORM_VECTORS][4];
+		float pixelShaderConstantF[MAX_PIXEL_SHADER_CONST][4];
 		int pixelShaderConstantI[16][4];
 		int pixelShaderConstantB[16];
 
-		float vertexShaderConstantF[VERTEX_UNIFORM_VECTORS][4];
+		float vertexShaderConstantF[MAX_VERTEX_SHADER_CONST][4];
 		int vertexShaderConstantI[16][4];
 		int vertexShaderConstantB[16];
 

@@ -30,74 +30,69 @@
 #define DEFAULT_THREAD_COUNT 0
 #endif
 
-enum
+namespace sw
 {
-	PERF_PIXEL,
-	PERF_PIPE,
-	PERF_INTERP,
-	PERF_SHADER,
-	PERF_TEX,
-	PERF_ROP,
+	enum
+	{
+		PERF_PIXEL,
+		PERF_PIPE,
+		PERF_INTERP,
+		PERF_SHADER,
+		PERF_TEX,
+		PERF_ROP,
 
-	PERF_TIMERS
-};
+		PERF_TIMERS
+	};
 
-struct Profiler
-{
-	Profiler();
+	struct Profiler
+	{
+		Profiler();
 
-	void reset();
-	void nextFrame();
+		void reset();
+		void nextFrame();
 
-	int framesSec;
-	int framesTotal;
-	double FPS;
+		int framesSec;
+		int framesTotal;
+		double FPS;
 
-	#if PERF_PROFILE
-	double cycles[PERF_TIMERS];
+		#if PERF_PROFILE
+		double cycles[PERF_TIMERS];
 
-	int64_t ropOperations;
-	int64_t ropOperationsTotal;
-	int64_t ropOperationsFrame;
+		int64_t ropOperations;
+		int64_t ropOperationsTotal;
+		int64_t ropOperationsFrame;
 
-	int64_t texOperations;
-	int64_t texOperationsTotal;
-	int64_t texOperationsFrame;
+		int64_t texOperations;
+		int64_t texOperationsTotal;
+		int64_t texOperationsFrame;
 
-	int64_t compressedTex;
-	int64_t compressedTexTotal;
-	int64_t compressedTexFrame;
-	#endif
-};
+		int64_t compressedTex;
+		int64_t compressedTexTotal;
+		int64_t compressedTexFrame;
+		#endif
+	};
 
-extern Profiler profiler;
+	extern Profiler profiler;
 
-enum
-{
-	OUTLINE_RESOLUTION = 4096,   // Maximum vertical resolution of the render target
-	MIPMAP_LEVELS = 14,
-	MAX_COLOR_ATTACHMENTS = 8,
-	VERTEX_ATTRIBUTES = 16,
-	TEXTURE_IMAGE_UNITS = 16,
-	VERTEX_TEXTURE_IMAGE_UNITS = 16,
-	TOTAL_IMAGE_UNITS = TEXTURE_IMAGE_UNITS + VERTEX_TEXTURE_IMAGE_UNITS,
-	FRAGMENT_UNIFORM_VECTORS = 224,
-	VERTEX_UNIFORM_VECTORS = 256,
-	MAX_FRAGMENT_UNIFORM_COMPONENTS = FRAGMENT_UNIFORM_VECTORS * 4,
-	MAX_VERTEX_UNIFORM_COMPONENTS = VERTEX_UNIFORM_VECTORS * 4,
-	MAX_FRAGMENT_UNIFORM_BLOCKS = 12,
-	MAX_VERTEX_UNIFORM_BLOCKS = 12,
-	MAX_UNIFORM_BLOCK_SIZE = 16384,
-	MAX_FRAGMENT_UNIFORM_BLOCKS_COMPONENTS = MAX_FRAGMENT_UNIFORM_BLOCKS * MAX_UNIFORM_BLOCK_SIZE / 4,
-	MAX_VERTEX_UNIFORM_BLOCKS_COMPONENTS = MAX_VERTEX_UNIFORM_BLOCKS * MAX_UNIFORM_BLOCK_SIZE / 4,
-	MAX_COMBINED_FRAGMENT_UNIFORM_COMPONENTS = MAX_FRAGMENT_UNIFORM_BLOCKS_COMPONENTS + MAX_FRAGMENT_UNIFORM_COMPONENTS,
-	MAX_COMBINED_VERTEX_UNIFORM_COMPONENTS = MAX_VERTEX_UNIFORM_BLOCKS_COMPONENTS + MAX_VERTEX_UNIFORM_COMPONENTS,
-	MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS = 4,
-	MAX_UNIFORM_BUFFER_BINDINGS = MAX_FRAGMENT_UNIFORM_BLOCKS + MAX_VERTEX_UNIFORM_BLOCKS, // Limited to 127 by SourceParameter.bufferIndex in Shader.hpp
-	MAX_CLIP_PLANES = 6,
-	MAX_TRANSFORM_FEEDBACK_SEPARATE_COMPONENTS = 64,
-	MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS = 64,
-	RENDERTARGETS = 4,
-};
+	enum
+	{
+		OUTLINE_RESOLUTION = 4096,   // Maximum vertical resolution of the render target
+		MIPMAP_LEVELS = 14,
+		VERTEX_ATTRIBUTES = 16,
+		TEXTURE_IMAGE_UNITS = 16,
+		VERTEX_TEXTURE_IMAGE_UNITS = 16,
+		TOTAL_IMAGE_UNITS = TEXTURE_IMAGE_UNITS + VERTEX_TEXTURE_IMAGE_UNITS,
+		FRAGMENT_UNIFORM_VECTORS = 224,
+		VERTEX_UNIFORM_VECTORS = 256,
+		MAX_FRAGMENT_UNIFORM_BLOCKS = 12,
+		MAX_VERTEX_UNIFORM_BLOCKS = 12,
+		MAX_UNIFORM_BUFFER_BINDINGS = MAX_FRAGMENT_UNIFORM_BLOCKS + MAX_VERTEX_UNIFORM_BLOCKS,   // Limited to 127 by SourceParameter.bufferIndex in Shader.hpp
+		MAX_UNIFORM_BLOCK_SIZE = 16384,
+		MAX_CLIP_PLANES = 6,
+		MAX_TRANSFORM_FEEDBACK_SEPARATE_COMPONENTS = 64,
+		MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS = 64,
+		RENDERTARGETS = 4,
+	};
+}
 
 #endif   // sw_Config_hpp

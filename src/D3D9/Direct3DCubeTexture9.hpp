@@ -66,7 +66,7 @@ namespace D3D9
 		// Creation parameters
 		const unsigned int edgeLength;
 
-		Direct3DSurface9 *surfaceLevel[6][MIPMAP_LEVELS];
+		Direct3DSurface9 *surfaceLevel[6][sw::MIPMAP_LEVELS];
 	};
 }
 

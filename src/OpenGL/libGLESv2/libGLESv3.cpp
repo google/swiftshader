@@ -19,6 +19,7 @@
 #include "Sampler.h"
 #include "Texture.h"
 #include "mathutil.h"
+#include "TransformFeedback.h"
 #include "common/debug.h"
 
 #include <GLES3/gl3.h>
@@ -553,7 +554,7 @@ GL_APICALL void GL_APIENTRY glReadBuffer(GLenum src)
 		case GL_COLOR_ATTACHMENT31:
 		{
 			GLuint index = (src - GL_COLOR_ATTACHMENT0);
-			if(index >= es2::IMPLEMENTATION_MAX_COLOR_ATTACHMENTS)
+			if(index >= MAX_COLOR_ATTACHMENTS)
 			{
 				return error(GL_INVALID_ENUM);
 			}
@@ -1131,7 +1132,7 @@ GL_APICALL void GL_APIENTRY glDrawBuffers(GLsizei n, const GLenum *bufs)
 {
 	TRACE("(GLsizei n = %d, const GLenum *bufs = %p)", n, bufs);
 
-	if(n < 0 || n > es2::IMPLEMENTATION_MAX_DRAW_BUFFERS)
+	if(n < 0 || n > MAX_DRAW_BUFFERS)
 	{
 		return error(GL_INVALID_VALUE);
 	}
@@ -1198,7 +1199,7 @@ GL_APICALL void GL_APIENTRY glDrawBuffers(GLsizei n, const GLenum *bufs)
 			case GL_COLOR_ATTACHMENT31:
 			{
 				GLuint index = (bufs[i] - GL_COLOR_ATTACHMENT0);
-				if(index >= es2::IMPLEMENTATION_MAX_COLOR_ATTACHMENTS)
+				if(index >= MAX_COLOR_ATTACHMENTS)
 				{
 					return error(GL_INVALID_ENUM);
 				}
@@ -1960,7 +1961,7 @@ GL_APICALL void GL_APIENTRY glBindBufferRange(GLenum target, GLuint index, GLuin
 		switch(target)
 		{
 		case GL_TRANSFORM_FEEDBACK_BUFFER:
-			if(index >= es2::IMPLEMENTATION_MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS)
+			if(index >= MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS)
 			{
 				return error(GL_INVALID_VALUE);
 			}
@@ -1972,11 +1973,11 @@ GL_APICALL void GL_APIENTRY glBindBufferRange(GLenum target, GLuint index, GLuin
 			context->bindGenericTransformFeedbackBuffer(buffer);
 			break;
 		case GL_UNIFORM_BUFFER:
-			if(index >= es2::IMPLEMENTATION_MAX_UNIFORM_BUFFER_BINDINGS)
+			if(index >= MAX_UNIFORM_BUFFER_BINDINGS)
 			{
 				return error(GL_INVALID_VALUE);
 			}
-			if(offset % es2::IMPLEMENTATION_UNIFORM_BUFFER_OFFSET_ALIGNMENT != 0)
+			if(offset % UNIFORM_BUFFER_OFFSET_ALIGNMENT != 0)
 			{
 				return error(GL_INVALID_VALUE);
 			}
@@ -2001,7 +2002,7 @@ GL_APICALL void GL_APIENTRY glBindBufferBase(GLenum target, GLuint index, GLuint
 		switch(target)
 		{
 		case GL_TRANSFORM_FEEDBACK_BUFFER:
-			if(index >= es2::IMPLEMENTATION_MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS)
+			if(index >= MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS)
 			{
 				return error(GL_INVALID_VALUE);
 			}
@@ -2009,7 +2010,7 @@ GL_APICALL void GL_APIENTRY glBindBufferBase(GLenum target, GLuint index, GLuint
 			context->bindGenericTransformFeedbackBuffer(buffer);
 			break;
 		case GL_UNIFORM_BUFFER:
-			if(index >= es2::IMPLEMENTATION_MAX_UNIFORM_BUFFER_BINDINGS)
+			if(index >= MAX_UNIFORM_BUFFER_BINDINGS)
 			{
 				return error(GL_INVALID_VALUE);
 			}
@@ -2030,7 +2031,7 @@ GL_APICALL void GL_APIENTRY glTransformFeedbackVaryings(GLuint program, GLsizei 
 	switch(bufferMode)
 	{
 	case GL_SEPARATE_ATTRIBS:
-		if(count > es2::IMPLEMENTATION_MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS)
+		if(count > MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS)
 		{
 			return error(GL_INVALID_VALUE);
 		}
@@ -2575,7 +2576,7 @@ GL_APICALL void GL_APIENTRY glClearBufferiv(GLenum buffer, GLint drawbuffer, con
 		switch(buffer)
 		{
 		case GL_COLOR:
-			if(drawbuffer < 0 || drawbuffer >= es2::IMPLEMENTATION_MAX_DRAW_BUFFERS)
+			if(drawbuffer < 0 || drawbuffer >= MAX_DRAW_BUFFERS)
 			{
 				return error(GL_INVALID_VALUE);
 			}
@@ -2612,7 +2613,7 @@ GL_APICALL void GL_APIENTRY glClearBufferuiv(GLenum buffer, GLint drawbuffer, co
 		switch(buffer)
 		{
 		case GL_COLOR:
-			if(drawbuffer < 0 || drawbuffer >= es2::IMPLEMENTATION_MAX_DRAW_BUFFERS)
+			if(drawbuffer < 0 || drawbuffer >= MAX_DRAW_BUFFERS)
 			{
 				return error(GL_INVALID_VALUE);
 			}
@@ -2639,7 +2640,7 @@ GL_APICALL void GL_APIENTRY glClearBufferfv(GLenum buffer, GLint drawbuffer, con
 		switch(buffer)
 		{
 		case GL_COLOR:
-			if(drawbuffer < 0 || drawbuffer >= es2::IMPLEMENTATION_MAX_DRAW_BUFFERS)
+			if(drawbuffer < 0 || drawbuffer >= MAX_DRAW_BUFFERS)
 			{
 				return error(GL_INVALID_VALUE);
 			}
@@ -2941,7 +2942,7 @@ GL_APICALL void GL_APIENTRY glUniformBlockBinding(GLuint program, GLuint uniform
 	TRACE("(GLuint program = %d, GLuint uniformBlockIndex = %d, GLuint uniformBlockBinding = %d)",
 	      program, uniformBlockIndex, uniformBlockBinding);
 
-	if(uniformBlockBinding >= es2::IMPLEMENTATION_MAX_UNIFORM_BUFFER_BINDINGS)
+	if(uniformBlockBinding >= MAX_UNIFORM_BUFFER_BINDINGS)
 	{
 		return error(GL_INVALID_VALUE);
 	}
