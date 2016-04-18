@@ -65,6 +65,7 @@ static bool validateColorBufferFormat(GLenum textureFormat, GLenum colorbufferFo
 		   colorbufferFormat != GL_RGBA4 &&
 		   colorbufferFormat != GL_RGB5_A1 &&
 		   colorbufferFormat != GL_RGBA8_OES &&
+		   colorbufferFormat != GL_BGRA8_EXT &&
 		   colorbufferFormat != GL_RGBA16F_EXT &&
 		   colorbufferFormat != GL_RGBA32F_EXT)
 		{
@@ -82,6 +83,7 @@ static bool validateColorBufferFormat(GLenum textureFormat, GLenum colorbufferFo
 		   colorbufferFormat != GL_RGBA8_OES &&
 		   colorbufferFormat != GL_RGB16F_EXT &&
 		   colorbufferFormat != GL_RGB32F_EXT &&
+		   colorbufferFormat != GL_BGRA8_EXT &&
 		   colorbufferFormat != GL_RGBA16F_EXT &&
 		   colorbufferFormat != GL_RGBA32F_EXT)
 		{
@@ -94,6 +96,7 @@ static bool validateColorBufferFormat(GLenum textureFormat, GLenum colorbufferFo
 		   colorbufferFormat != GL_RGBA4 &&
 		   colorbufferFormat != GL_RGB5_A1 &&
 		   colorbufferFormat != GL_RGBA8_OES &&
+		   colorbufferFormat != GL_BGRA8_EXT &&
 		   colorbufferFormat != GL_RGBA16F_EXT &&
 		   colorbufferFormat != GL_RGBA32F_EXT)
 		{
