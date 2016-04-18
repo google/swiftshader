@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "4898cc33_d8f55595",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 7555,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-18T20:17:22Z",
+      "side": 1,
+      "message": "Fixed it. Thanks!",
+      "parentUuid": "4bcb66e2_06874fd7",
+      "range": {
+        "startLine": 7555,
+        "startChar": 8,
+        "endLine": 7555,
+        "endChar": 9
+      },
+      "revId": "4b1215a79ebe45beb772896d0ce609f6a084d5c7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4bcb66e2_66bd6383",
         "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
         "patchSetId": 3
@@ -71,6 +95,30 @@
     },
     {
       "key": {
+        "uuid": "4898cc33_1845fd93",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 7569,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-18T20:17:22Z",
+      "side": 1,
+      "message": "Then the comparison below is between a signed and an unsigned integer, which some compilers complain about. So I have to do a cast somewhere and this one is particularly safe because of the n \u003c 0 test above.",
+      "parentUuid": "4bcb66e2_66bd6383",
+      "range": {
+        "startLine": 7569,
+        "startChar": 30,
+        "endLine": 7569,
+        "endChar": 31
+      },
+      "revId": "4b1215a79ebe45beb772896d0ce609f6a084d5c7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4bcb66e2_268ecbf0",
         "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
         "patchSetId": 3
@@ -82,6 +130,24 @@
       "writtenOn": "2016-04-14T17:08:27Z",
       "side": 1,
       "message": "This generates GL_INVALID_OPERATION",
+      "revId": "4b1215a79ebe45beb772896d0ce609f6a084d5c7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4898cc33_182e5dd4",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 7601,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-18T20:17:22Z",
+      "side": 1,
+      "message": "Fixed. Thanks.",
+      "parentUuid": "4bcb66e2_268ecbf0",
       "revId": "4b1215a79ebe45beb772896d0ce609f6a084d5c7",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
