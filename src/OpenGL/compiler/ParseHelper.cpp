@@ -1128,7 +1128,7 @@ const TVariable *TParseContext::getNamedVariable(const TSourceLoc &location,
 
 		// This validation is not quite correct - it's only an error to write to
 		// both FragData and FragColor. For simplicity, and because users shouldn't
-		// be rewarded for reading from undefined varaibles, return an error
+		// be rewarded for reading from undefined variables, return an error
 		// if they are both referenced, rather than assigned.
 		if(mUsesFragData && mUsesFragColor)
 		{

@@ -91,6 +91,8 @@ namespace sw
 			}
 		}
 
+		bool broadcastColor0 = true;
+
 		for(size_t i = 0; i < shader->getLength(); i++)
 		{
 			const Shader::Instruction *instruction = shader->getInstruction(i);
@@ -475,6 +477,8 @@ namespace sw
 				case Shader::PARAMETER_COLOROUT:
 					if(dst.rel.type == Shader::PARAMETER_VOID)
 					{
+						broadcastColor0 = (dst.index == 0) && broadcastColor0;
+
 						if(dst.x) { oC[dst.index].x = d.x; }
 						if(dst.y) { oC[dst.index].y = d.y; }
 						if(dst.z) { oC[dst.index].z = d.z; }
@@ -482,6 +486,7 @@ namespace sw
 					}
 					else
 					{
+						broadcastColor0 = false;
 						Int a = relativeAddress(dst) + dst.index;
 
 						if(dst.x) { oC[a].x = d.x; }
@@ -510,9 +515,19 @@ namespace sw
 			Nucleus::setInsertBlock(returnBlock);
 		}
 
-		for(int i = 0; i < RENDERTARGETS; i++)
+		if(broadcastColor0)
 		{
-			c[i] = oC[i];
+			for(int i = 0; i < RENDERTARGETS; i++)
+			{
+				c[i] = oC[0];
+			}
+		}
+		else
+		{
+			for(int i = 0; i < RENDERTARGETS; i++)
+			{
+				c[i] = oC[i];
+			}
 		}
 	}
 
