@@ -224,6 +224,7 @@ public:
 	void (*glFramebufferTexture2DOES)(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level);
 	void (*glGetFramebufferAttachmentParameterivOES)(GLenum target, GLenum attachment, GLenum pname, GLint* params);
 	void (*glGenerateMipmapOES)(GLenum target);
+	void (*glDrawBuffersEXT)(GLsizei n, const GLenum *bufs);
 
 	egl::Context *(*es2CreateContext)(const egl::Config *config, const egl::Context *shareContext, int clientVersion);
 	__eglMustCastToProperFunctionPointerType (*es2GetProcAddress)(const char *procname);

@@ -1987,6 +1987,7 @@ void FramebufferRenderbuffer(GLenum target, GLenum attachment, GLenum renderbuff
 
 		switch(attachment)
 		{
+		case GL_COLOR_ATTACHMENT0:
 		case GL_COLOR_ATTACHMENT1:
 		case GL_COLOR_ATTACHMENT2:
 		case GL_COLOR_ATTACHMENT3:
@@ -2018,12 +2019,6 @@ void FramebufferRenderbuffer(GLenum target, GLenum attachment, GLenum renderbuff
 		case GL_COLOR_ATTACHMENT29:
 		case GL_COLOR_ATTACHMENT30:
 		case GL_COLOR_ATTACHMENT31:
-			if(clientVersion < 3)
-			{
-				return error(GL_INVALID_ENUM);
-			}
-			// fall through
-		case GL_COLOR_ATTACHMENT0:
 			if((attachment - GL_COLOR_ATTACHMENT0) >= MAX_COLOR_ATTACHMENTS)
 			{
 				return error(GL_INVALID_ENUM);
@@ -2134,10 +2129,9 @@ void FramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, GL
 			return error(GL_INVALID_OPERATION);
 		}
 
-		GLint clientVersion = context->getClientVersion();
-
 		switch(attachment)
 		{
+		case GL_COLOR_ATTACHMENT0:
 		case GL_COLOR_ATTACHMENT1:
 		case GL_COLOR_ATTACHMENT2:
 		case GL_COLOR_ATTACHMENT3:
@@ -2169,12 +2163,6 @@ void FramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, GL
 		case GL_COLOR_ATTACHMENT29:
 		case GL_COLOR_ATTACHMENT30:
 		case GL_COLOR_ATTACHMENT31:
-			if(clientVersion < 3)
-			{
-				return error(GL_INVALID_ENUM);
-			}
-			// fall through
-		case GL_COLOR_ATTACHMENT0:
 			if((attachment - GL_COLOR_ATTACHMENT0) >= MAX_COLOR_ATTACHMENTS)
 			{
 				return error(GL_INVALID_ENUM);
@@ -2807,6 +2795,7 @@ void GetFramebufferAttachmentParameteriv(GLenum target, GLenum attachment, GLenu
 			}
 			else return error(GL_INVALID_ENUM);
 			break;
+		case GL_COLOR_ATTACHMENT0:
 		case GL_COLOR_ATTACHMENT1:
 		case GL_COLOR_ATTACHMENT2:
 		case GL_COLOR_ATTACHMENT3:
@@ -2838,12 +2827,6 @@ void GetFramebufferAttachmentParameteriv(GLenum target, GLenum attachment, GLenu
 		case GL_COLOR_ATTACHMENT29:
 		case GL_COLOR_ATTACHMENT30:
 		case GL_COLOR_ATTACHMENT31:
-			if(clientVersion < 3)
-			{
-				return error(GL_INVALID_ENUM);
-			}
-			// fall through
-		case GL_COLOR_ATTACHMENT0:
 			if((attachment - GL_COLOR_ATTACHMENT0) >= MAX_COLOR_ATTACHMENTS)
 			{
 				return error(GL_INVALID_ENUM);
@@ -6772,6 +6755,82 @@ void GenerateMipmapOES(GLenum target)
 	GenerateMipmap(target);
 }
 
+void DrawBuffersEXT(GLsizei n, const GLenum *bufs)
+{
+	TRACE("(GLsizei n = %d, const GLenum *bufs = %p)", n, bufs);
+
+	if(n < 0 || n > MAX_DRAW_BUFFERS)
+	{
+		return error(GL_INVALID_VALUE);
+	}
+
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		GLuint drawFramebufferName = context->getDrawFramebufferName();
+
+		if((drawFramebufferName == 0) && (n != 1))
+		{
+			return error(GL_INVALID_OPERATION);
+		}
+
+		for(unsigned int i = 0; i < (unsigned)n; i++)
+		{
+			switch(bufs[i])
+			{
+			case GL_BACK:
+				if(drawFramebufferName != 0)
+				{
+					return error(GL_INVALID_OPERATION);
+				}
+				break;
+			case GL_NONE:
+				break;
+			case GL_COLOR_ATTACHMENT0_EXT:
+			case GL_COLOR_ATTACHMENT1_EXT:
+			case GL_COLOR_ATTACHMENT2_EXT:
+			case GL_COLOR_ATTACHMENT3_EXT:
+			case GL_COLOR_ATTACHMENT4_EXT:
+			case GL_COLOR_ATTACHMENT5_EXT:
+			case GL_COLOR_ATTACHMENT6_EXT:
+			case GL_COLOR_ATTACHMENT7_EXT:
+			case GL_COLOR_ATTACHMENT8_EXT:
+			case GL_COLOR_ATTACHMENT9_EXT:
+			case GL_COLOR_ATTACHMENT10_EXT:
+			case GL_COLOR_ATTACHMENT11_EXT:
+			case GL_COLOR_ATTACHMENT12_EXT:
+			case GL_COLOR_ATTACHMENT13_EXT:
+			case GL_COLOR_ATTACHMENT14_EXT:
+			case GL_COLOR_ATTACHMENT15_EXT:
+				{
+					GLuint index = (bufs[i] - GL_COLOR_ATTACHMENT0_EXT);
+
+					if(index >= MAX_COLOR_ATTACHMENTS)
+					{
+						return error(GL_INVALID_OPERATION);
+					}
+
+					if(index != i)
+					{
+						return error(GL_INVALID_OPERATION);
+					}
+
+					if(drawFramebufferName == 0)
+					{
+						return error(GL_INVALID_OPERATION);
+					}
+				}
+				break;
+			default:
+				return error(GL_INVALID_ENUM);
+			}
+		}
+
+		context->setFramebufferDrawBuffers(n, bufs);
+	}
+}
+
 }
 
 extern "C" __eglMustCastToProperFunctionPointerType es2GetProcAddress(const char *procname)
@@ -6831,6 +6890,7 @@ extern "C" __eglMustCastToProperFunctionPointerType es2GetProcAddress(const char
 		EXTENSION(glFramebufferTexture2DOES),
 		EXTENSION(glGetFramebufferAttachmentParameterivOES),
 		EXTENSION(glGenerateMipmapOES),
+		EXTENSION(glDrawBuffersEXT),
 
 		#undef EXTENSION
 	};
