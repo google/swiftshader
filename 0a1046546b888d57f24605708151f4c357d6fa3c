@@ -16,6 +16,24 @@
       "revId": "0a1046546b888d57f24605708151f4c357d6fa3c",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4898cc33_1862dd80",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 6827,
+      "author": {
+        "id": 5655
+      },
+      "writtenOn": "2016-04-18T21:06:03Z",
+      "side": 1,
+      "message": "Also:\n\n\u003cspec\u003e\nIn both cases, the draw buffers being defined correspond in order tothe respective fragment colors. The draw buffer for fragmentcolors beyond \u003cn\u003e is set to NONE.\n\u003c/spec\u003e\n\nIt would probably be best to allocate an array of MAX_DRAW_BUFFERS size initialized to NONE, then fill in with the appropriate entries from |buf| passed in, and setFramebufferDrawBuffers() on that",
+      "parentUuid": "4898cc33_18397d80",
+      "revId": "0a1046546b888d57f24605708151f4c357d6fa3c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
