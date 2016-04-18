@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4898cc33_b81089e1",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1953,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-18T21:09:05Z",
+      "side": 1,
+      "message": "bpp with small letter typically stands for \"bits per pixel\". Bpp would be bytes per pixel but looks kind of ugly in my opinion. Spelling it out would be best here.\n\nThat said, we should really verify that this is using XRGB. So just add an ASSERT(state.textureFormat \u003d\u003d FORMAT_X32B32G32R32F); and remove the comment since the assert makes it very clear.",
+      "range": {
+        "startLine": 1953,
+        "startChar": 52,
+        "endLine": 1953,
+        "endChar": 55
+      },
+      "revId": "4259d194073d2867361a60a7cdbd8cae818ab021",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
