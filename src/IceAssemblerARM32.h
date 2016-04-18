@@ -345,6 +345,27 @@ public:
 
   void vbslq(const Operand *OpQd, const Operand *OpQm, const Operand *OpQn);
 
+  void vceqqi(const Type ElmtTy, const Operand *OpQd, const Operand *OpQm,
+              const Operand *OpQn);
+
+  void vceqqs(const Operand *OpQd, const Operand *OpQm, const Operand *OpQn);
+
+  void vcgeqi(const Type ElmtTy, const Operand *OpQd, const Operand *OpQm,
+              const Operand *OpQn);
+
+  void vcugeqi(const Type ElmtTy, const Operand *OpQd, const Operand *OpQm,
+               const Operand *OpQn);
+
+  void vcgeqs(const Operand *OpQd, const Operand *OpQm, const Operand *OpQn);
+
+  void vcgtqi(const Type ElmtTy, const Operand *OpQd, const Operand *OpQm,
+              const Operand *OpQn);
+
+  void vcugtqi(const Type ElmtTy, const Operand *OpQd, const Operand *OpQm,
+               const Operand *OpQn);
+
+  void vcgtqs(const Operand *OpQd, const Operand *OpQm, const Operand *OpQn);
+
   void vcmpd(const Operand *OpDd, const Operand *OpDm, CondARM32::Cond cond);
 
   // Second argument of compare is zero (+0.0).
@@ -504,6 +525,10 @@ public:
 
   void vmuls(const Operand *OpSd, const Operand *OpSn, const Operand *OpSm,
              CondARM32::Cond Cond);
+
+  void vmvnq(const Operand *OpQd, const Operand *OpQm);
+
+  void vnegqs(const Operand *OpQd, const Operand *OpQm);
 
   void vnegqs(Type ElmtTy, const Operand *OpQd, const Operand *OpQm);
 

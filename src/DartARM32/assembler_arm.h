@@ -727,19 +727,26 @@ class Assembler : public ValueObject {
 #if 0
   // Moved to Arm32::AssemblerARM32::vandq().
   void vandq(QRegister qd, QRegister qn, QRegister qm);
-#endif
+  // Moved to Arm32::AssemblerARM32::vandq().
   void vmvnq(QRegister qd, QRegister qm);
 
+  // Moved to Arm32::AssemblerARM32::vceqqi().
   void vceqqi(OperandSize sz, QRegister qd, QRegister qn, QRegister qm);
+  // Moved to Arm32::AssemblerARM32::vceqqs().
   void vceqqs(QRegister qd, QRegister qn, QRegister qm);
+  // Moved to Arm32::AssemblerARM32::vcgeqi().
   void vcgeqi(OperandSize sz, QRegister qd, QRegister qn, QRegister qm);
+  // Moved to Arm32::AssemblerARM32::vcugeqi().
   void vcugeqi(OperandSize sz, QRegister qd, QRegister qn, QRegister qm);
+  // Moved to Arm32::AssemblerARM32::vcgeqs().
   void vcgeqs(QRegister qd, QRegister qn, QRegister qm);
+  // Moved to Arm32::AssemblerARM32::vcgtqi().
   void vcgtqi(OperandSize sz, QRegister qd, QRegister qn, QRegister qm);
+  // Moved to Arm32::AssemblerARM32::vcugtqi().
   void vcugtqi(OperandSize sz, QRegister qd, QRegister qn, QRegister qm);
+  // Moved to Arm32::AssemblerARM32::vcgtqs().
   void vcgtqs(QRegister qd, QRegister qn, QRegister qm);
 
-#if 0
   // Moved to Arm32::AssemblerARM32::vabss().
   void vabss(SRegister sd, SRegister sm, Condition cond = AL);
   // Moved to Arm32::AssemblerARM32::vabsd().

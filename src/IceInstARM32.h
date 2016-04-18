@@ -428,6 +428,9 @@ public:
     Vadd,
     Vand,
     Vbsl,
+    Vceq,
+    Vcge,
+    Vcgt,
     Vcmp,
     Vcvt,
     Vdiv,
@@ -436,6 +439,7 @@ public:
     Vmls,
     Vmrs,
     Vmul,
+    Vmvn,
     Vneg,
     Vorr,
     Vshl,
@@ -464,7 +468,8 @@ public:
   /// Shared emit routines for common forms of instructions.
   /// @{
   static void emitThreeAddrFP(const char *Opcode, FPSign Sign,
-                              const InstARM32 *Instr, const Cfg *Func);
+                              const InstARM32 *Instr, const Cfg *Func,
+                              Type OpType);
   static void emitFourAddrFP(const char *Opcode, FPSign Sign,
                              const InstARM32 *Instr, const Cfg *Func);
   /// @}
@@ -782,7 +787,8 @@ public:
   void emit(const Cfg *Func) const override {
     if (!BuildDefs::dump())
       return;
-    emitThreeAddrFP(Opcode, Sign, this, Func);
+    const Type OpType = (isVectorCompare() ? getSrc(0) : getDest())->getType();
+    emitThreeAddrFP(Opcode, Sign, this, Func, OpType);
   }
   void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override {
@@ -790,8 +796,8 @@ public:
       return;
     Ostream &Str = Func->getContext()->getStrDump();
     dumpDest(Func);
-    Str << " = ";
-    Str << Opcode << "." << getDest()->getType() << " ";
+    const Type OpType = (isVectorCompare() ? getSrc(0) : getDest())->getType();
+    Str << " = " << Opcode << "." << OpType << " ";
     dumpSources(Func);
   }
   static bool classof(const Inst *Instr) { return isClassof(Instr, K); }
@@ -806,6 +812,11 @@ protected:
   }
 
   static const char *Opcode;
+
+private:
+  static constexpr bool isVectorCompare() {
+    return K == InstARM32::Vceq || K == InstARM32::Vcgt || K == InstARM32::Vcge;
+  }
 };
 
 template <InstARM32::InstKindARM32 K>
@@ -994,11 +1005,15 @@ using InstARM32Udiv = InstARM32ThreeAddrGPR<InstARM32::Udiv>;
 using InstARM32Vadd = InstARM32ThreeAddrFP<InstARM32::Vadd>;
 using InstARM32Vand = InstARM32ThreeAddrFP<InstARM32::Vand>;
 using InstARM32Vbsl = InstARM32ThreeAddrFP<InstARM32::Vbsl>;
+using InstARM32Vceq = InstARM32ThreeAddrFP<InstARM32::Vceq>;
+using InstARM32Vcge = InstARM32ThreeAddrSignAwareFP<InstARM32::Vcge>;
+using InstARM32Vcgt = InstARM32ThreeAddrSignAwareFP<InstARM32::Vcgt>;
 using InstARM32Vdiv = InstARM32ThreeAddrFP<InstARM32::Vdiv>;
 using InstARM32Veor = InstARM32ThreeAddrFP<InstARM32::Veor>;
 using InstARM32Vmla = InstARM32FourAddrFP<InstARM32::Vmla>;
 using InstARM32Vmls = InstARM32FourAddrFP<InstARM32::Vmls>;
 using InstARM32Vmul = InstARM32ThreeAddrFP<InstARM32::Vmul>;
+using InstARM32Vmvn = InstARM32UnaryopFP<InstARM32::Vmvn>;
 using InstARM32Vneg = InstARM32UnaryopSignAwareFP<InstARM32::Vneg>;
 using InstARM32Vorr = InstARM32ThreeAddrFP<InstARM32::Vorr>;
 using InstARM32Vshl = InstARM32ThreeAddrSignAwareFP<InstARM32::Vshl>;

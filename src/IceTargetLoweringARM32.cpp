@@ -124,7 +124,7 @@ namespace {
 const struct TableIcmp32_ {
   CondARM32::Cond Mapping;
 } TableIcmp32[] = {
-#define X(val, is_signed, swapped64, C_32, C1_64, C2_64)                       \
+#define X(val, is_signed, swapped64, C_32, C1_64, C2_64, C_V, INV_V, NEG_V)    \
   { CondARM32::C_32 }                                                          \
   ,
     ICMPARM32_TABLE
@@ -140,7 +140,7 @@ const struct TableIcmp64_ {
   bool Swapped;
   CondARM32::Cond C1, C2;
 } TableIcmp64[] = {
-#define X(val, is_signed, swapped64, C_32, C1_64, C2_64)                       \
+#define X(val, is_signed, swapped64, C_32, C1_64, C2_64, C_V, INV_V, NEG_V)    \
   { is_signed, swapped64, CondARM32::C1_64, CondARM32::C2_64 }                 \
   ,
     ICMPARM32_TABLE
@@ -163,7 +163,8 @@ CondARM32::Cond getIcmp32Mapping(InstIcmp::ICond Cond) {
 namespace {
 // Define a temporary set of enum values based on low-level table entries.
 enum _icmp_ll_enum {
-#define X(val, signed, swapped64, C_32, C1_64, C2_64) _icmp_ll_##val,
+#define X(val, is_signed, swapped64, C_32, C1_64, C2_64, C_V, INV_V, NEG_V)    \
+  _icmp_ll_##val,
   ICMPARM32_TABLE
 #undef X
       _num
@@ -174,7 +175,7 @@ ICEINSTICMP_TABLE
 #undef X
 // Define a set of constants based on low-level table entries, and ensure the
 // table entry keys are consistent.
-#define X(val, signed, swapped64, C_32, C1_64, C2_64)                          \
+#define X(val, is_signed, swapped64, C_32, C1_64, C2_64, C_V, INV_V, NEG_V)    \
   static_assert(                                                               \
       _icmp_ll_##val == _icmp_hl_##val,                                        \
       "Inconsistency between ICMPARM32_TABLE and ICEINSTICMP_TABLE: " #val);
@@ -828,38 +829,6 @@ void TargetARM32::genTargetHelperCallFor(Inst *Instr) {
     }
     }
     llvm::report_fatal_error("Control flow should never have reached here.");
-  }
-  case Inst::Icmp: {
-    Variable *Dest = Instr->getDest();
-    const Type DestTy = Dest->getType();
-    if (isVectorType(DestTy)) {
-      auto *CmpInstr = llvm::cast<InstIcmp>(Instr);
-      const auto Condition = CmpInstr->getCondition();
-      scalarizeInstruction(
-          Dest,
-          [this, Condition](Variable *Dest, Variable *Src0, Variable *Src1) {
-            return Context.insert<InstIcmp>(Condition, Dest, Src0, Src1);
-          },
-          CmpInstr->getSrc(0), CmpInstr->getSrc(1));
-      CmpInstr->setDeleted();
-    }
-    return;
-  }
-  case Inst::Fcmp: {
-    Variable *Dest = Instr->getDest();
-    const Type DestTy = Dest->getType();
-    if (isVectorType(DestTy)) {
-      auto *CmpInstr = llvm::cast<InstFcmp>(Instr);
-      const auto Condition = CmpInstr->getCondition();
-      scalarizeInstruction(
-          Dest,
-          [this, Condition](Variable *Dest, Variable *Src0, Variable *Src1) {
-            return Context.insert<InstFcmp>(Condition, Dest, Src0, Src1);
-          },
-          CmpInstr->getSrc(0), CmpInstr->getSrc(1));
-      CmpInstr->setDeleted();
-    }
-    return;
   }
   }
 }
@@ -4251,7 +4220,7 @@ namespace {
 // Validates FCMPARM32_TABLE's declaration w.r.t. InstFcmp::FCondition ordering
 // (and naming).
 enum {
-#define X(val, CC0, CC1) _fcmp_ll_##val,
+#define X(val, CC0, CC1, CC0_V, CC1_V, INV_V, NEG_V) _fcmp_ll_##val,
   FCMPARM32_TABLE
 #undef X
       _fcmp_ll_NUM
@@ -4277,7 +4246,7 @@ struct {
   CondARM32::Cond CC0;
   CondARM32::Cond CC1;
 } TableFcmp[] = {
-#define X(val, CC0, CC1)                                                       \
+#define X(val, CC0, CC1, CC0_V, CC1_V, INV_V, NEG_V)                           \
   { CondARM32::CC0, CondARM32::CC1 }                                           \
   ,
     FCMPARM32_TABLE
@@ -4322,8 +4291,80 @@ TargetARM32::CondWhenTrue TargetARM32::lowerFcmpCond(const InstFcmp *Instr) {
 
 void TargetARM32::lowerFcmp(const InstFcmp *Instr) {
   Variable *Dest = Instr->getDest();
-  if (isVectorType(Dest->getType())) {
-    UnimplementedLoweringError(this, Instr);
+  const Type DestTy = Dest->getType();
+
+  if (isVectorType(DestTy)) {
+    if (Instr->getCondition() == InstFcmp::False) {
+      constexpr Type SafeTypeForMovingConstant = IceType_v4i32;
+      auto *T = makeReg(SafeTypeForMovingConstant);
+      _mov(T, llvm::cast<ConstantInteger32>(Ctx->getConstantInt32(0)));
+      _mov(Dest, T);
+      return;
+    }
+
+    if (Instr->getCondition() == InstFcmp::True) {
+      constexpr Type SafeTypeForMovingConstant = IceType_v4i32;
+      auto *T = makeReg(SafeTypeForMovingConstant);
+      _mov(T, llvm::cast<ConstantInteger32>(Ctx->getConstantInt32(1)));
+      _mov(Dest, T);
+      return;
+    }
+
+    Variable *T0;
+    Variable *T1;
+    bool Negate = false;
+    auto *Src0 = legalizeToReg(Instr->getSrc(0));
+    auto *Src1 = legalizeToReg(Instr->getSrc(1));
+
+    switch (Instr->getCondition()) {
+    default:
+      llvm::report_fatal_error("Unhandled fp comparison.");
+#define _Vcnone(Tptr, S0, S1)                                                  \
+  do {                                                                         \
+    *(Tptr) = nullptr;                                                         \
+  } while (0)
+#define _Vceq(Tptr, S0, S1)                                                    \
+  do {                                                                         \
+    *(Tptr) = makeReg(DestTy);                                                 \
+    _vceq(*(Tptr), S0, S1);                                                    \
+  } while (0)
+#define _Vcge(Tptr, S0, S1)                                                    \
+  do {                                                                         \
+    *(Tptr) = makeReg(DestTy);                                                 \
+    _vcge(*(Tptr), S0, S1)->setSignType(InstARM32::FS_Signed);                 \
+  } while (0)
+#define _Vcgt(Tptr, S0, S1)                                                    \
+  do {                                                                         \
+    *(Tptr) = makeReg(DestTy);                                                 \
+    _vcgt(*(Tptr), S0, S1)->setSignType(InstARM32::FS_Signed);                 \
+  } while (0)
+#define X(val, CC0, CC1, CC0_V, CC1_V, INV_V, NEG_V)                           \
+  case InstFcmp::val: {                                                        \
+    _Vc##CC0_V(&T0, (INV_V) ? Src1 : Src0, (INV_V) ? Src0 : Src1);             \
+    _Vc##CC1_V(&T1, (INV_V) ? Src0 : Src1, (INV_V) ? Src1 : Src0);             \
+    Negate = NEG_V;                                                            \
+  } break;
+      FCMPARM32_TABLE
+#undef X
+#undef _Vcgt
+#undef _Vcge
+#undef _Vceq
+#undef _Vcnone
+    }
+    assert(T0 != nullptr);
+    Variable *T = T0;
+    if (T1 != nullptr) {
+      T = makeReg(DestTy);
+      _vorr(T, T0, T1);
+    }
+
+    if (Negate) {
+      auto *TNeg = makeReg(DestTy);
+      _vmvn(TNeg, T);
+      T = TNeg;
+    }
+
+    _mov(Dest, T);
     return;
   }
 
@@ -4621,9 +4662,78 @@ TargetARM32::CondWhenTrue TargetARM32::lowerIcmpCond(InstIcmp::ICond Condition,
 
 void TargetARM32::lowerIcmp(const InstIcmp *Instr) {
   Variable *Dest = Instr->getDest();
+  const Type DestTy = Dest->getType();
 
-  if (isVectorType(Dest->getType())) {
-    UnimplementedLoweringError(this, Instr);
+  if (isVectorType(DestTy)) {
+    auto *T = makeReg(DestTy);
+    auto *Src0 = legalizeToReg(Instr->getSrc(0));
+    auto *Src1 = legalizeToReg(Instr->getSrc(1));
+    const Type SrcTy = Src0->getType();
+
+    bool NeedsShl = false;
+    Type NewTypeAfterShl;
+    SizeT ShAmt;
+    switch (SrcTy) {
+    default:
+      break;
+    case IceType_v16i1:
+      NeedsShl = true;
+      NewTypeAfterShl = IceType_v16i8;
+      ShAmt = 7;
+      break;
+    case IceType_v8i1:
+      NeedsShl = true;
+      NewTypeAfterShl = IceType_v8i16;
+      ShAmt = 15;
+      break;
+    case IceType_v4i1:
+      NeedsShl = true;
+      NewTypeAfterShl = IceType_v4i32;
+      ShAmt = 31;
+      break;
+    }
+
+    if (NeedsShl) {
+      auto *Imm = llvm::cast<ConstantInteger32>(Ctx->getConstantInt32(ShAmt));
+      auto *Src0T = makeReg(NewTypeAfterShl);
+      auto *Src0Shl = makeReg(NewTypeAfterShl);
+      _mov(Src0T, Src0);
+      _vshl(Src0Shl, Src0T, Imm);
+      Src0 = Src0Shl;
+
+      auto *Src1T = makeReg(NewTypeAfterShl);
+      auto *Src1Shl = makeReg(NewTypeAfterShl);
+      _mov(Src1T, Src1);
+      _vshl(Src1Shl, Src1T, Imm);
+      Src1 = Src1Shl;
+    }
+
+    switch (Instr->getCondition()) {
+    default:
+      llvm::report_fatal_error("Unhandled integer comparison.");
+#define _Vceq(T, S0, S1, Signed) _vceq(T, S0, S1)
+#define _Vcge(T, S0, S1, Signed)                                               \
+  _vcge(T, S0, S1)                                                             \
+      ->setSignType(Signed ? InstARM32::FS_Signed : InstARM32::FS_Unsigned)
+#define _Vcgt(T, S0, S1, Signed)                                               \
+  _vcgt(T, S0, S1)                                                             \
+      ->setSignType(Signed ? InstARM32::FS_Signed : InstARM32::FS_Unsigned)
+#define X(val, is_signed, swapped64, C_32, C1_64, C2_64, C_V, INV_V, NEG_V)    \
+  case InstIcmp::val: {                                                        \
+    _Vc##C_V(T, (INV_V) ? Src1 : Src0, (INV_V) ? Src0 : Src1, is_signed);      \
+    if (NEG_V) {                                                               \
+      auto *TInv = makeReg(DestTy);                                            \
+      _vmvn(TInv, T);                                                          \
+      T = TInv;                                                                \
+    }                                                                          \
+  } break;
+      ICMPARM32_TABLE
+#undef X
+#undef _Vcgt
+#undef _Vcge
+#undef _Vceq
+    }
+    _mov(Dest, T);
     return;
   }
 

@@ -2422,6 +2422,102 @@ void AssemblerARM32::vbslq(const Operand *OpQd, const Operand *OpQm,
   emitSIMDqqq(VbslqOpcode, ElmtTy, OpQd, OpQm, OpQn, Vbslq);
 }
 
+void AssemblerARM32::vceqqi(const Type ElmtTy, const Operand *OpQd,
+                            const Operand *OpQm, const Operand *OpQn) {
+  // vceq (register) - ARM section A8.8.291, encoding A1:
+  //   vceq.<st> <Qd>, <Qn>, <Qm>
+  //
+  // 111100110Dssnnnndddd1000NQM1mmmm where Dddd=OpQd, Nnnn=OpQm, Mmmm=OpQm, and
+  // st in [i8, i16, i32] where ss is the index.
+  constexpr const char *Vceq = "vceq";
+  constexpr IValueT VceqOpcode = B24 | B11 | B4;
+  emitSIMDqqq(VceqOpcode, ElmtTy, OpQd, OpQm, OpQn, Vceq);
+}
+
+void AssemblerARM32::vceqqs(const Operand *OpQd, const Operand *OpQm,
+                            const Operand *OpQn) {
+  // vceq (register) - ARM section A8.8.291, encoding A2:
+  //   vceq.f32 <Qd>, <Qn>, <Qm>
+  //
+  // 111100100D00nnnndddd1110NQM0mmmm where Dddd=OpQd, Nnnn=OpQm, and Mmmm=OpQm.
+  constexpr const char *Vceq = "vceq";
+  constexpr IValueT VceqOpcode = B11 | B10 | B9;
+  constexpr Type ElmtTy = IceType_i8; // encoded as 0b00
+  emitSIMDqqq(VceqOpcode, ElmtTy, OpQd, OpQm, OpQn, Vceq);
+}
+
+void AssemblerARM32::vcgeqi(const Type ElmtTy, const Operand *OpQd,
+                            const Operand *OpQm, const Operand *OpQn) {
+  // vcge (register) - ARM section A8.8.293, encoding A1:
+  //   vcge.<st> <Qd>, <Qn>, <Qm>
+  //
+  // 1111001U0Dssnnnndddd0011NQM1mmmm where Dddd=OpQd, Nnnn=OpQm, Mmmm=OpQm,
+  // 0=U, and st in [s8, s16, s32] where ss is the index.
+  constexpr const char *Vcge = "vcge";
+  constexpr IValueT VcgeOpcode = B9 | B8 | B4;
+  emitSIMDqqq(VcgeOpcode, ElmtTy, OpQd, OpQm, OpQn, Vcge);
+}
+
+void AssemblerARM32::vcugeqi(const Type ElmtTy, const Operand *OpQd,
+                             const Operand *OpQm, const Operand *OpQn) {
+  // vcge (register) - ARM section A8.8.293, encoding A1:
+  //   vcge.<st> <Qd>, <Qn>, <Qm>
+  //
+  // 1111001U0Dssnnnndddd0011NQM1mmmm where Dddd=OpQd, Nnnn=OpQm, Mmmm=OpQm,
+  // 1=U, and st in [u8, u16, u32] where ss is the index.
+  constexpr const char *Vcge = "vcge";
+  constexpr IValueT VcgeOpcode = B24 | B9 | B8 | B4;
+  emitSIMDqqq(VcgeOpcode, ElmtTy, OpQd, OpQm, OpQn, Vcge);
+}
+
+void AssemblerARM32::vcgeqs(const Operand *OpQd, const Operand *OpQm,
+                            const Operand *OpQn) {
+  // vcge (register) - ARM section A8.8.293, encoding A2:
+  //   vcge.f32 <Qd>, <Qn>, <Qm>
+  //
+  // 111100110D00nnnndddd1110NQM0mmmm where Dddd=OpQd, Nnnn=OpQm, and Mmmm=OpQm.
+  constexpr const char *Vcge = "vcge";
+  constexpr IValueT VcgeOpcode = B24 | B11 | B10 | B9;
+  constexpr Type ElmtTy = IceType_i8; // encoded as 0b00.
+  emitSIMDqqq(VcgeOpcode, ElmtTy, OpQd, OpQm, OpQn, Vcge);
+}
+
+void AssemblerARM32::vcgtqi(const Type ElmtTy, const Operand *OpQd,
+                            const Operand *OpQm, const Operand *OpQn) {
+  // vcgt (register) - ARM section A8.8.295, encoding A1:
+  //   vcgt.<st> <Qd>, <Qn>, <Qm>
+  //
+  // 1111001U0Dssnnnndddd0011NQM0mmmm where Dddd=OpQd, Nnnn=OpQm, Mmmm=OpQm,
+  // 0=U, and st in [s8, s16, s32] where ss is the index.
+  constexpr const char *Vcge = "vcgt";
+  constexpr IValueT VcgeOpcode = B9 | B8;
+  emitSIMDqqq(VcgeOpcode, ElmtTy, OpQd, OpQm, OpQn, Vcge);
+}
+
+void AssemblerARM32::vcugtqi(const Type ElmtTy, const Operand *OpQd,
+                             const Operand *OpQm, const Operand *OpQn) {
+  // vcgt (register) - ARM section A8.8.295, encoding A1:
+  //   vcgt.<st> <Qd>, <Qn>, <Qm>
+  //
+  // 111100110Dssnnnndddd0011NQM0mmmm where Dddd=OpQd, Nnnn=OpQm, Mmmm=OpQm,
+  // 1=U, and st in [u8, u16, u32] where ss is the index.
+  constexpr const char *Vcge = "vcgt";
+  constexpr IValueT VcgeOpcode = B24 | B9 | B8;
+  emitSIMDqqq(VcgeOpcode, ElmtTy, OpQd, OpQm, OpQn, Vcge);
+}
+
+void AssemblerARM32::vcgtqs(const Operand *OpQd, const Operand *OpQm,
+                            const Operand *OpQn) {
+  // vcgt (register) - ARM section A8.8.295, encoding A2:
+  //   vcgt.f32 <Qd>, <Qn>, <Qm>
+  //
+  // 111100110D10nnnndddd1110NQM0mmmm where Dddd=OpQd, Nnnn=OpQm, and Mmmm=OpQm.
+  constexpr const char *Vcge = "vcgt";
+  constexpr IValueT VcgeOpcode = B24 | B21 | B11 | B10 | B9;
+  constexpr Type ElmtTy = IceType_i8; // encoded as 0b00.
+  emitSIMDqqq(VcgeOpcode, ElmtTy, OpQd, OpQm, OpQn, Vcge);
+}
+
 void AssemblerARM32::vcmpd(const Operand *OpDd, const Operand *OpDm,
                            CondARM32::Cond Cond) {
   constexpr const char *Vcmpd = "vcmpd";
@@ -3141,6 +3237,23 @@ void AssemblerARM32::vmulqf(const Operand *OpQd, const Operand *OpQn,
   constexpr IValueT VmulqfOpcode = B24 | B11 | B8 | B4;
   constexpr bool IsFloatTy = true;
   emitSIMDqqqBase(VmulqfOpcode, OpQd, OpQn, OpQm, IsFloatTy, Vmulqf);
+}
+
+void AssemblerARM32::vmvnq(const Operand *OpQd, const Operand *OpQm) {
+  // VMVN (integer) - ARM section A8.8.354, encoding A1:
+  //   vmvn <Qd>, <Qm>
+  //
+  // 111100111D110000dddd01011QM0mmmm where Dddd=Qd, Mmmm=Qm, and 1=Q.
+  // TODO(jpp) xxx: unify
+  constexpr const char *Vmvn = "vmvn";
+  constexpr IValueT VmvnOpcode = B24 | B23 | B21 | B20 | B10 | B8 | B7;
+  const IValueT Qd = encodeQRegister(OpQd, "Qd", Vmvn);
+  constexpr IValueT Qn = 0;
+  const IValueT Qm = encodeQRegister(OpQm, "Qm", Vmvn);
+  constexpr bool UseQRegs = true;
+  constexpr bool IsFloat = false;
+  emitSIMDBase(VmvnOpcode, mapQRegToDReg(Qd), mapQRegToDReg(Qn),
+               mapQRegToDReg(Qm), UseQRegs, IsFloat);
 }
 
 void AssemblerARM32::vnegqs(Type ElmtTy, const Operand *OpQd,

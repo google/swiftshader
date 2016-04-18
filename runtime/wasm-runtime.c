@@ -30,9 +30,7 @@ void env$$abort() {
 
 void env$$_abort() { env$$abort(); }
 
-void env$$exit(int Status) {
-  exit(Status);
-}
+void env$$exit(int Status) { exit(Status); }
 void env$$_exit(int Status) { env$$exit(Status); }
 
 #define UNIMPLEMENTED(f)                                                       \

@@ -1323,11 +1323,11 @@ void Assembler::vornq(QRegister qd, QRegister qn, QRegister qm) {
 void Assembler::vandq(QRegister qd, QRegister qn, QRegister qm) {
   EmitSIMDqqq(B8 | B4, kByte, qd, qn, qm);
 }
-#endif
 
 void Assembler::vmvnq(QRegister qd, QRegister qm) {
   EmitSIMDqqq(B25 | B24 | B23 | B10 | B8 | B7, kWordPair, qd, Q0, qm);
 }
+#endif
 
 
 void Assembler::vminqs(QRegister qd, QRegister qn, QRegister qm) {
@@ -1422,52 +1422,52 @@ void Assembler::vzipqw(QRegister qd, QRegister qm) {
 }
 
 
+#if 0
+// Moved to Arm32::AssemblerARM32::vceqqi().
 void Assembler::vceqqi(OperandSize sz,
                       QRegister qd, QRegister qn, QRegister qm) {
   EmitSIMDqqq(B24 | B11 | B4, sz, qd, qn, qm);
 }
 
-
+// Moved to Arm32::AssemblerARM32::vceqqi().
 void Assembler::vceqqs(QRegister qd, QRegister qn, QRegister qm) {
   EmitSIMDqqq(B11 | B10 | B9, kSWord, qd, qn, qm);
 }
 
-
+// Moved to Arm32::AssemblerARM32::vcgeqi().
 void Assembler::vcgeqi(OperandSize sz,
                       QRegister qd, QRegister qn, QRegister qm) {
   EmitSIMDqqq(B9 | B8 | B4, sz, qd, qn, qm);
 }
 
-
+// Moved to Arm32::AssemblerARM32::vcugeqi().
 void Assembler::vcugeqi(OperandSize sz,
                       QRegister qd, QRegister qn, QRegister qm) {
   EmitSIMDqqq(B24 | B9 | B8 | B4, sz, qd, qn, qm);
 }
 
-
+// Moved to Arm32::AssemblerARM32::vcgeqs().
 void Assembler::vcgeqs(QRegister qd, QRegister qn, QRegister qm) {
   EmitSIMDqqq(B24 | B11 | B10 | B9, kSWord, qd, qn, qm);
 }
 
-
+// Moved to Arm32::AssemblerARM32::vcgtqi().
 void Assembler::vcgtqi(OperandSize sz,
                       QRegister qd, QRegister qn, QRegister qm) {
   EmitSIMDqqq(B9 | B8, sz, qd, qn, qm);
 }
 
-
+// Moved to Arm32::AssemblerARM32::vcugtqi().
 void Assembler::vcugtqi(OperandSize sz,
                       QRegister qd, QRegister qn, QRegister qm) {
   EmitSIMDqqq(B24 | B9 | B8, sz, qd, qn, qm);
 }
 
-
+// Moved to Arm32::AssemblerARM32::vcgtqs().
 void Assembler::vcgtqs(QRegister qd, QRegister qn, QRegister qm) {
   EmitSIMDqqq(B24 | B21 | B11 | B10 | B9, kSWord, qd, qn, qm);
 }
 
-
-#if 0
 // Moved to ARM32::AssemblerARM32::bkpt()
 void Assembler::bkpt(uint16_t imm16) {
   Emit(BkptEncoding(imm16));

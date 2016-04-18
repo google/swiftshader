@@ -228,13 +228,13 @@ void InstARM32Pred::emitThreeAddr(const char *Opcode,
 }
 
 void InstARM32::emitThreeAddrFP(const char *Opcode, FPSign SignType,
-                                const InstARM32 *Instr, const Cfg *Func) {
+                                const InstARM32 *Instr, const Cfg *Func,
+                                Type OpType) {
   if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(Instr->getSrcSize() == 2);
-  Str << "\t" << Opcode
-      << getVWidthString(Instr->getDest()->getType(), SignType) << "\t";
+  Str << "\t" << Opcode << getVWidthString(OpType, SignType) << "\t";
   Instr->getDest()->emit(Func);
   Str << ", ";
   Instr->getSrc(0)->emit(Func);
@@ -704,6 +704,95 @@ template <> void InstARM32Vand::emitIAS(const Cfg *Func) const {
   assert(!Asm->needsTextFixup());
 }
 
+template <> void InstARM32Vceq::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  const Variable *Dest = getDest();
+  const Type SrcTy = getSrc(0)->getType();
+  switch (SrcTy) {
+  default:
+    llvm::report_fatal_error("Vceq not defined on type " +
+                             typeStdString(SrcTy));
+  case IceType_v4i1:
+  case IceType_v8i1:
+  case IceType_v16i1:
+  case IceType_v16i8:
+  case IceType_v8i16:
+  case IceType_v4i32:
+    Asm->vceqqi(typeElementType(SrcTy), Dest, getSrc(0), getSrc(1));
+    break;
+  case IceType_v4f32:
+    Asm->vceqqs(Dest, getSrc(0), getSrc(1));
+    break;
+  }
+  assert(!Asm->needsTextFixup());
+}
+
+template <> void InstARM32Vcge::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  const Variable *Dest = getDest();
+  const Type SrcTy = getSrc(0)->getType();
+  switch (SrcTy) {
+  default:
+    llvm::report_fatal_error("Vcge not defined on type " +
+                             typeStdString(Dest->getType()));
+  case IceType_v4i1:
+  case IceType_v8i1:
+  case IceType_v16i1:
+  case IceType_v16i8:
+  case IceType_v8i16:
+  case IceType_v4i32: {
+    const Type ElmtTy = typeElementType(SrcTy);
+    assert(Sign != InstARM32::FS_None);
+    switch (Sign) {
+    case InstARM32::FS_None: // defaults to unsigned.
+      llvm_unreachable("Sign should not be FS_None.");
+    case InstARM32::FS_Unsigned:
+      Asm->vcugeqi(ElmtTy, Dest, getSrc(0), getSrc(1));
+      break;
+    case InstARM32::FS_Signed:
+      Asm->vcgeqi(ElmtTy, Dest, getSrc(0), getSrc(1));
+      break;
+    }
+  } break;
+  case IceType_v4f32:
+    Asm->vcgeqs(Dest, getSrc(0), getSrc(1));
+    break;
+  }
+}
+
+template <> void InstARM32Vcgt::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  const Variable *Dest = getDest();
+  const Type SrcTy = getSrc(0)->getType();
+  switch (SrcTy) {
+  default:
+    llvm::report_fatal_error("Vcgt not defined on type " +
+                             typeStdString(Dest->getType()));
+  case IceType_v4i1:
+  case IceType_v8i1:
+  case IceType_v16i1:
+  case IceType_v16i8:
+  case IceType_v8i16:
+  case IceType_v4i32: {
+    const Type ElmtTy = typeElementType(SrcTy);
+    assert(Sign != InstARM32::FS_None);
+    switch (Sign) {
+    case InstARM32::FS_None: // defaults to unsigned.
+      llvm_unreachable("Sign should not be FS_None.");
+    case InstARM32::FS_Unsigned:
+      Asm->vcugtqi(ElmtTy, Dest, getSrc(0), getSrc(1));
+      break;
+    case InstARM32::FS_Signed:
+      Asm->vcgtqi(ElmtTy, Dest, getSrc(0), getSrc(1));
+      break;
+    }
+  } break;
+  case IceType_v4f32:
+    Asm->vcgtqs(Dest, getSrc(0), getSrc(1));
+    break;
+  }
+}
+
 template <> void InstARM32Vbsl::emitIAS(const Cfg *Func) const {
   auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   const Variable *Dest = getDest();
@@ -795,6 +884,25 @@ template <> void InstARM32Vmls::emitIAS(const Cfg *Func) const {
   }
 }
 
+template <> void InstARM32Vmvn::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  const Variable *Dest = getDest();
+  switch (Dest->getType()) {
+  default:
+    llvm::report_fatal_error("Vmvn not defined on type " +
+                             typeStdString(Dest->getType()));
+  case IceType_v4i1:
+  case IceType_v8i1:
+  case IceType_v16i1:
+  case IceType_v16i8:
+  case IceType_v8i16:
+  case IceType_v4i32:
+  case IceType_v4f32: {
+    Asm->vmvnq(Dest, getSrc(0));
+  } break;
+  }
+}
+
 template <> void InstARM32Vneg::emitIAS(const Cfg *Func) const {
   auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   const Variable *Dest = getDest();
@@ -842,6 +950,8 @@ template <> void InstARM32Vshl::emitIAS(const Cfg *Func) const {
   default:
     llvm::report_fatal_error("Vshl not defined on type " +
                              typeStdString(Dest->getType()));
+  // TODO(jpp): handle i1 vectors in terms of element count instead of element
+  // type.
   case IceType_v4i1:
   case IceType_v8i1:
   case IceType_v16i1:
@@ -879,6 +989,8 @@ template <> void InstARM32Vshr::emitIAS(const Cfg *Func) const {
   default:
     llvm::report_fatal_error("Vshr not defined on type " +
                              typeStdString(Dest->getType()));
+  // TODO(jpp): handle i1 vectors in terms of element count instead of element
+  // type.
   case IceType_v4i1:
   case IceType_v8i1:
   case IceType_v16i1:
@@ -1515,11 +1627,15 @@ template <> const char *InstARM32Udiv::Opcode = "udiv";
 template <> const char *InstARM32Vadd::Opcode = "vadd";
 template <> const char *InstARM32Vand::Opcode = "vand";
 template <> const char *InstARM32Vbsl::Opcode = "vbsl";
+template <> const char *InstARM32Vceq::Opcode = "vceq";
+template <> const char *InstARM32ThreeAddrFP<InstARM32::Vcge>::Opcode = "vcge";
+template <> const char *InstARM32ThreeAddrFP<InstARM32::Vcgt>::Opcode = "vcgt";
 template <> const char *InstARM32Vdiv::Opcode = "vdiv";
 template <> const char *InstARM32Veor::Opcode = "veor";
 template <> const char *InstARM32Vmla::Opcode = "vmla";
 template <> const char *InstARM32Vmls::Opcode = "vmls";
 template <> const char *InstARM32Vmul::Opcode = "vmul";
+template <> const char *InstARM32Vmvn::Opcode = "vmvn";
 template <> const char *InstARM32Vorr::Opcode = "vorr";
 template <> const char *InstARM32UnaryopFP<InstARM32::Vneg>::Opcode = "vneg";
 template <> const char *InstARM32ThreeAddrFP<InstARM32::Vshl>::Opcode = "vshl";
@@ -1758,6 +1874,7 @@ void InstARM32Mov::emitIAS(const Cfg *Func) const {
       }
     }
     break; // Error
+  // TODO(jpp): Remove vectors of i1.
   case IceType_v4i1:
   case IceType_v8i1:
   case IceType_v16i1:
@@ -2984,6 +3101,8 @@ template class InstARM32ThreeAddrGPR<InstARM32::Sub>;
 template class InstARM32ThreeAddrGPR<InstARM32::Udiv>;
 
 template class InstARM32ThreeAddrFP<InstARM32::Vadd>;
+template class InstARM32ThreeAddrSignAwareFP<InstARM32::Vcge>;
+template class InstARM32ThreeAddrSignAwareFP<InstARM32::Vcgt>;
 template class InstARM32ThreeAddrFP<InstARM32::Vdiv>;
 template class InstARM32ThreeAddrFP<InstARM32::Veor>;
 template class InstARM32FourAddrFP<InstARM32::Vmla>;

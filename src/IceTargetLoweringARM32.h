@@ -858,6 +858,15 @@ protected:
   InstARM32Vbsl *_vbsl(Variable *Dest, Variable *Src0, Variable *Src1) {
     return Context.insert<InstARM32Vbsl>(Dest, Src0, Src1);
   }
+  void _vceq(Variable *Dest, Variable *Src0, Variable *Src1) {
+    Context.insert<InstARM32Vceq>(Dest, Src0, Src1);
+  }
+  InstARM32Vcge *_vcge(Variable *Dest, Variable *Src0, Variable *Src1) {
+    return Context.insert<InstARM32Vcge>(Dest, Src0, Src1);
+  }
+  InstARM32Vcgt *_vcgt(Variable *Dest, Variable *Src0, Variable *Src1) {
+    return Context.insert<InstARM32Vcgt>(Dest, Src0, Src1);
+  }
   void _vcvt(Variable *Dest, Variable *Src, InstARM32Vcvt::VcvtVariant Variant,
              CondARM32::Cond Pred = CondARM32::AL) {
     Context.insert<InstARM32Vcvt>(Dest, Src, Variant, Pred);
@@ -887,6 +896,9 @@ protected:
   }
   void _vmul(Variable *Dest, Variable *Src0, Variable *Src1) {
     Context.insert<InstARM32Vmul>(Dest, Src0, Src1);
+  }
+  void _vmvn(Variable *Dest, Variable *Src0) {
+    Context.insert<InstARM32Vmvn>(Dest, Src0, CondARM32::AL);
   }
   void _vneg(Variable *Dest, Variable *Src0) {
     Context.insert<InstARM32Vneg>(Dest, Src0, CondARM32::AL)

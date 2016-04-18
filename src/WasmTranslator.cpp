@@ -941,8 +941,8 @@ public:
     auto MemBase = Ctx->getConstantSym(0, Ctx->getGlobalString("WASM_MEMORY"));
     if (!ConstZeroBase) {
       auto RealAddrV = Func->makeVariable(Ice::getPointerType());
-      Control()->appendInst(InstArithmetic::create(
-          Func, InstArithmetic::Add, RealAddrV, Base, MemBase));
+      Control()->appendInst(InstArithmetic::create(Func, InstArithmetic::Add,
+                                                   RealAddrV, Base, MemBase));
 
       RealAddr = RealAddrV;
     } else {
