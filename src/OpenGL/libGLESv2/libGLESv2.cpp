@@ -22,6 +22,7 @@
 #include "Shader.h"
 #include "Texture.h"
 #include "Query.h"
+#include "TransformFeedback.h"
 #include "common/debug.h"
 #include "Common/Version.h"
 
@@ -2023,7 +2024,7 @@ void FramebufferRenderbuffer(GLenum target, GLenum attachment, GLenum renderbuff
 			}
 			// fall through
 		case GL_COLOR_ATTACHMENT0:
-			if((attachment - GL_COLOR_ATTACHMENT0) >= es2::IMPLEMENTATION_MAX_COLOR_ATTACHMENTS)
+			if((attachment - GL_COLOR_ATTACHMENT0) >= MAX_COLOR_ATTACHMENTS)
 			{
 				return error(GL_INVALID_ENUM);
 			}
@@ -2174,7 +2175,7 @@ void FramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, GL
 			}
 			// fall through
 		case GL_COLOR_ATTACHMENT0:
-			if((attachment - GL_COLOR_ATTACHMENT0) >= es2::IMPLEMENTATION_MAX_COLOR_ATTACHMENTS)
+			if((attachment - GL_COLOR_ATTACHMENT0) >= MAX_COLOR_ATTACHMENTS)
 			{
 				return error(GL_INVALID_ENUM);
 			}
@@ -2843,7 +2844,7 @@ void GetFramebufferAttachmentParameteriv(GLenum target, GLenum attachment, GLenu
 			}
 			// fall through
 		case GL_COLOR_ATTACHMENT0:
-			if((attachment - GL_COLOR_ATTACHMENT0) >= es2::IMPLEMENTATION_MAX_COLOR_ATTACHMENTS)
+			if((attachment - GL_COLOR_ATTACHMENT0) >= MAX_COLOR_ATTACHMENTS)
 			{
 				return error(GL_INVALID_ENUM);
 			}
@@ -6628,7 +6629,7 @@ void FramebufferTexture3DOES(GLenum target, GLenum attachment, GLenum textarget,
 			}
 			// fall through
 		case GL_COLOR_ATTACHMENT0:
-			if((attachment - GL_COLOR_ATTACHMENT0) >= es2::IMPLEMENTATION_MAX_COLOR_ATTACHMENTS)
+			if((attachment - GL_COLOR_ATTACHMENT0) >= MAX_COLOR_ATTACHMENTS)
 			{
 				return error(GL_INVALID_ENUM);
 			}

@@ -2117,8 +2117,7 @@ template<typename T> bool Context::getIntegerv(GLenum pname, T *params) const
 		*params = IMPLEMENTATION_MAX_TEXTURE_SIZE;
 		break;
 	case GL_MAX_COLOR_ATTACHMENTS: // integer, at least 8
-		UNIMPLEMENTED();
-		*params = IMPLEMENTATION_MAX_COLOR_ATTACHMENTS;
+		*params = MAX_COLOR_ATTACHMENTS;
 		break;
 	case GL_MAX_COMBINED_FRAGMENT_UNIFORM_COMPONENTS: // integer, at least 50048
 		*params = MAX_COMBINED_FRAGMENT_UNIFORM_COMPONENTS;
@@ -2132,7 +2131,7 @@ template<typename T> bool Context::getIntegerv(GLenum pname, T *params) const
 		break;
 	case GL_MAX_DRAW_BUFFERS: // integer, at least 8
 		UNIMPLEMENTED();
-		*params = IMPLEMENTATION_MAX_DRAW_BUFFERS;
+		*params = MAX_DRAW_BUFFERS;
 		break;
 	case GL_MAX_ELEMENT_INDEX:
 		*params = MAX_ELEMENT_INDEX;
@@ -2171,7 +2170,7 @@ template<typename T> bool Context::getIntegerv(GLenum pname, T *params) const
 		break;
 	case GL_MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS: // integer, at least 4
 		UNIMPLEMENTED();
-		*params = IMPLEMENTATION_MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS;
+		*params = MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS;
 		break;
 	case GL_MAX_TRANSFORM_FEEDBACK_SEPARATE_COMPONENTS: // integer, at least 4
 		UNIMPLEMENTED();
@@ -2181,7 +2180,7 @@ template<typename T> bool Context::getIntegerv(GLenum pname, T *params) const
 		*params = MAX_UNIFORM_BLOCK_SIZE;
 		break;
 	case GL_MAX_UNIFORM_BUFFER_BINDINGS: // integer, at least 24
-		*params = IMPLEMENTATION_MAX_UNIFORM_BUFFER_BINDINGS;
+		*params = MAX_UNIFORM_BUFFER_BINDINGS;
 		break;
 	case GL_MAX_VARYING_COMPONENTS: // integer, at least 60
 		UNIMPLEMENTED();
@@ -2264,7 +2263,7 @@ template<typename T> bool Context::getIntegerv(GLenum pname, T *params) const
 		}
 		break;
 	case GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT: // integer, defaults to 1
-		*params = IMPLEMENTATION_UNIFORM_BUFFER_OFFSET_ALIGNMENT;
+		*params = UNIFORM_BUFFER_OFFSET_ALIGNMENT;
 		break;
 	case GL_UNIFORM_BUFFER_SIZE: // indexed[n] 64-bit integer, initially 0
 		if(clientVersion >= 3)
@@ -3109,7 +3108,7 @@ void Context::applyTexture(sw::SamplerType type, int index, Texture *baseTexture
 		{
 			Texture2D *texture = static_cast<Texture2D*>(baseTexture);
 
-			for(int mipmapLevel = 0; mipmapLevel < MIPMAP_LEVELS; mipmapLevel++)
+			for(int mipmapLevel = 0; mipmapLevel < sw::MIPMAP_LEVELS; mipmapLevel++)
 			{
 				int surfaceLevel = mipmapLevel;
 
@@ -3130,7 +3129,7 @@ void Context::applyTexture(sw::SamplerType type, int index, Texture *baseTexture
 		{
 			Texture3D *texture = static_cast<Texture3D*>(baseTexture);
 
-			for(int mipmapLevel = 0; mipmapLevel < MIPMAP_LEVELS; mipmapLevel++)
+			for(int mipmapLevel = 0; mipmapLevel < sw::MIPMAP_LEVELS; mipmapLevel++)
 			{
 				int surfaceLevel = mipmapLevel;
 
@@ -3151,7 +3150,7 @@ void Context::applyTexture(sw::SamplerType type, int index, Texture *baseTexture
 		{
 			Texture2DArray *texture = static_cast<Texture2DArray*>(baseTexture);
 
-			for(int mipmapLevel = 0; mipmapLevel < MIPMAP_LEVELS; mipmapLevel++)
+			for(int mipmapLevel = 0; mipmapLevel < sw::MIPMAP_LEVELS; mipmapLevel++)
 			{
 				int surfaceLevel = mipmapLevel;
 
@@ -3174,7 +3173,7 @@ void Context::applyTexture(sw::SamplerType type, int index, Texture *baseTexture
 			{
 				TextureCubeMap *cubeTexture = static_cast<TextureCubeMap*>(baseTexture);
 
-				for(int mipmapLevel = 0; mipmapLevel < MIPMAP_LEVELS; mipmapLevel++)
+				for(int mipmapLevel = 0; mipmapLevel < sw::MIPMAP_LEVELS; mipmapLevel++)
 				{
 					int surfaceLevel = mipmapLevel;
 

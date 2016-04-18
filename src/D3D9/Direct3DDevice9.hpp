@@ -42,6 +42,12 @@ namespace D3D9
 	class Direct3DIndexBuffer9;
 	class CriticalSection;
 
+	enum
+	{
+		MAX_VERTEX_SHADER_CONST = MIN(256, sw::VERTEX_UNIFORM_VECTORS),
+		MAX_PIXEL_SHADER_CONST = MIN(224, sw::FRAGMENT_UNIFORM_VECTORS),
+	};
+
 	class Direct3DDevice9 : public IDirect3DDevice9, public Unknown
 	{
 		friend CriticalSection;
@@ -264,11 +270,11 @@ namespace D3D9
 		unsigned int vertexShaderConstantsFDirty;
 		unsigned int vertexShaderConstantsIDirty;
 
-		float pixelShaderConstantF[FRAGMENT_UNIFORM_VECTORS][4];
+		float pixelShaderConstantF[MAX_PIXEL_SHADER_CONST][4];
 		int pixelShaderConstantI[16][4];
 		int pixelShaderConstantB[16];
 
-		float vertexShaderConstantF[VERTEX_UNIFORM_VECTORS][4];
+		float vertexShaderConstantF[MAX_VERTEX_SHADER_CONST][4];
 		int vertexShaderConstantI[16][4];
 		int vertexShaderConstantB[16];
 

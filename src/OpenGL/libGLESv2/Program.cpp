@@ -1134,15 +1134,15 @@ namespace es2
 
 	void Program::applyUniformBuffers(BufferBinding* uniformBuffers)
 	{
-		GLint vertexUniformBuffers[IMPLEMENTATION_MAX_UNIFORM_BUFFER_BINDINGS];
-		GLint fragmentUniformBuffers[IMPLEMENTATION_MAX_UNIFORM_BUFFER_BINDINGS];
+		GLint vertexUniformBuffers[MAX_UNIFORM_BUFFER_BINDINGS];
+		GLint fragmentUniformBuffers[MAX_UNIFORM_BUFFER_BINDINGS];
 
-		for(unsigned int bufferBindingIndex = 0; bufferBindingIndex < IMPLEMENTATION_MAX_UNIFORM_BUFFER_BINDINGS; ++bufferBindingIndex)
+		for(unsigned int bufferBindingIndex = 0; bufferBindingIndex < MAX_UNIFORM_BUFFER_BINDINGS; bufferBindingIndex++)
 		{
 			vertexUniformBuffers[bufferBindingIndex] = -1;
 		}
 
-		for(unsigned int bufferBindingIndex = 0; bufferBindingIndex < IMPLEMENTATION_MAX_UNIFORM_BUFFER_BINDINGS; ++bufferBindingIndex)
+		for(unsigned int bufferBindingIndex = 0; bufferBindingIndex < MAX_UNIFORM_BUFFER_BINDINGS; bufferBindingIndex++)
 		{
 			fragmentUniformBuffers[bufferBindingIndex] = -1;
 		}
@@ -1172,7 +1172,7 @@ namespace es2
 			}
 		}
 
-		for(unsigned int bufferBindingIndex = 0; bufferBindingIndex < IMPLEMENTATION_MAX_UNIFORM_BUFFER_BINDINGS; ++bufferBindingIndex)
+		for(unsigned int bufferBindingIndex = 0; bufferBindingIndex < MAX_UNIFORM_BUFFER_BINDINGS; bufferBindingIndex++)
 		{
 			int index = vertexUniformBuffers[bufferBindingIndex];
 			device->VertexProcessor::setUniformBuffer(bufferBindingIndex, (index != -1) ? uniformBuffers[index].get()->getResource() : nullptr, (index != -1) ? uniformBuffers[index].getOffset() : 0);
@@ -1384,7 +1384,7 @@ namespace es2
 						}
 					}
 				}
-				
+
 				for(int i = 0; i < rows; i++)
 				{
 					linkedAttribute[location + i] = *attribute;

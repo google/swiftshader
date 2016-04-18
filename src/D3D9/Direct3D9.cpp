@@ -1446,11 +1446,11 @@ namespace D3D9
 							D3DLINECAPS_TEXTURE |	// Supports texture-mapping. 
 							D3DLINECAPS_ZTEST;		// Supports z-buffer comparisons.
 		
-		caps.MaxTextureWidth = 1 << (MIPMAP_LEVELS - 1);
-		caps.MaxTextureHeight = 1 << (MIPMAP_LEVELS - 1);
-		caps.MaxVolumeExtent = 1 << (MIPMAP_LEVELS - 1);
+		caps.MaxTextureWidth = 1 << (sw::MIPMAP_LEVELS - 1);
+		caps.MaxTextureHeight = 1 << (sw::MIPMAP_LEVELS - 1);
+		caps.MaxVolumeExtent = 1 << (sw::MIPMAP_LEVELS - 1);
 		caps.MaxTextureRepeat = 8192;
-		caps.MaxTextureAspectRatio = 1 << (MIPMAP_LEVELS - 1);
+		caps.MaxTextureAspectRatio = 1 << (sw::MIPMAP_LEVELS - 1);
 		caps.MaxAnisotropy = maxAnisotropy;
 		caps.MaxVertexW = 1e+010;
 

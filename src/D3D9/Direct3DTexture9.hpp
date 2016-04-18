@@ -67,7 +67,7 @@ namespace D3D9
 		const unsigned int width;
 		const unsigned int height;
 
-		Direct3DSurface9 *surfaceLevel[MIPMAP_LEVELS];
+		Direct3DSurface9 *surfaceLevel[sw::MIPMAP_LEVELS];
 	};
 }
 

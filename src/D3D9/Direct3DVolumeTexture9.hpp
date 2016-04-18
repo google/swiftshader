@@ -68,7 +68,7 @@ namespace D3D9
 		const unsigned int height;
 		const unsigned int depth;
 
-		Direct3DVolume9 *volumeLevel[MIPMAP_LEVELS];
+		Direct3DVolume9 *volumeLevel[sw::MIPMAP_LEVELS];
 	};
 }
 

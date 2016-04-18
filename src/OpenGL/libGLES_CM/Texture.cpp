@@ -331,7 +331,7 @@ bool Texture::isMipmapFiltered() const
 
 Texture2D::Texture2D(GLuint name) : Texture(name)
 {
-	for(int i = 0; i < MIPMAP_LEVELS; i++)
+	for(int i = 0; i < IMPLEMENTATION_MAX_TEXTURE_LEVELS; i++)
 	{
 		image[i] = nullptr;
 	}
@@ -346,7 +346,7 @@ Texture2D::~Texture2D()
 {
 	resource->lock(sw::DESTRUCT);
 
-	for(int i = 0; i < MIPMAP_LEVELS; i++)
+	for(int i = 0; i < IMPLEMENTATION_MAX_TEXTURE_LEVELS; i++)
 	{
 		if(image[i])
 		{
@@ -391,7 +391,7 @@ void Texture2D::sweep()
 {
 	int imageCount = 0;
 
-	for(int i = 0; i < MIPMAP_LEVELS; i++)
+	for(int i = 0; i < IMPLEMENTATION_MAX_TEXTURE_LEVELS; i++)
 	{
 		if(image[i] && image[i]->isChildOf(this))
 		{
@@ -450,7 +450,7 @@ int Texture2D::getLevelCount() const
 	ASSERT(isSamplerComplete());
 	int levels = 0;
 
-	while(levels < MIPMAP_LEVELS && image[levels])
+	while(levels < IMPLEMENTATION_MAX_TEXTURE_LEVELS && image[levels])
 	{
 		levels++;
 	}
@@ -496,7 +496,7 @@ void Texture2D::bindTexImage(egl::Surface *surface)
         return;
     }
 
-	for(int level = 0; level < MIPMAP_LEVELS; level++)
+	for(int level = 0; level < IMPLEMENTATION_MAX_TEXTURE_LEVELS; level++)
 	{
 		if(image[level])
 		{
@@ -513,7 +513,7 @@ void Texture2D::bindTexImage(egl::Surface *surface)
 
 void Texture2D::releaseTexImage()
 {
-    for(int level = 0; level < MIPMAP_LEVELS; level++)
+    for(int level = 0; level < IMPLEMENTATION_MAX_TEXTURE_LEVELS; level++)
 	{
 		if(image[level])
 		{
@@ -817,7 +817,7 @@ egl::Image *createBackBuffer(int width, int height, const egl::Config *config)
 
 egl::Image *createDepthStencil(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool discard)
 {
-	if(height > OUTLINE_RESOLUTION)
+	if(height > sw::OUTLINE_RESOLUTION)
 	{
 		ERR("Invalid parameters: %dx%d", width, height);
 		return 0;

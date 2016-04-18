@@ -27,7 +27,7 @@ namespace D3D9
 			this->levels = sw::log2(sw::max((int)width, (int)height, 1)) + 1;
 		}
 
-		for(unsigned int level = 0; level < MIPMAP_LEVELS; level++)
+		for(unsigned int level = 0; level < sw::MIPMAP_LEVELS; level++)
 		{
 			if(level < this->levels)
 			{
@@ -48,7 +48,7 @@ namespace D3D9
 	{
 		resource->lock(sw::DESTRUCT);
 
-		for(int level = 0; level < MIPMAP_LEVELS; level++)
+		for(int level = 0; level < sw::MIPMAP_LEVELS; level++)
 		{
 			if(surfaceLevel[level])
 			{

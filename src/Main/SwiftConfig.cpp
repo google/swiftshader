@@ -22,10 +22,10 @@
 #include <sys/stat.h>
 #include <string.h>
 
-extern Profiler profiler;
-
 namespace sw
 {
+	extern Profiler profiler;
+
 	std::string itoa(int number)
 	{
 		std::stringstream ss;

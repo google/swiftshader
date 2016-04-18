@@ -507,7 +507,7 @@ bool Texture::isMipmapFiltered() const
 
 Texture2D::Texture2D(GLuint name) : Texture(name)
 {
-	for(int i = 0; i < MIPMAP_LEVELS; i++)
+	for(int i = 0; i < IMPLEMENTATION_MAX_TEXTURE_LEVELS; i++)
 	{
 		image[i] = nullptr;
 	}
@@ -522,7 +522,7 @@ Texture2D::~Texture2D()
 {
 	resource->lock(sw::DESTRUCT);
 
-	for(int i = 0; i < MIPMAP_LEVELS; i++)
+	for(int i = 0; i < IMPLEMENTATION_MAX_TEXTURE_LEVELS; i++)
 	{
 		if(image[i])
 		{
@@ -567,7 +567,7 @@ void Texture2D::sweep()
 {
 	int imageCount = 0;
 
-	for(int i = 0; i < MIPMAP_LEVELS; i++)
+	for(int i = 0; i < IMPLEMENTATION_MAX_TEXTURE_LEVELS; i++)
 	{
 		if(image[i] && image[i]->isChildOf(this))
 		{
@@ -626,7 +626,7 @@ int Texture2D::getLevelCount() const
 	ASSERT(isSamplerComplete());
 	int levels = 0;
 
-	while(levels < MIPMAP_LEVELS && image[levels])
+	while(levels < IMPLEMENTATION_MAX_TEXTURE_LEVELS && image[levels])
 	{
 		levels++;
 	}
@@ -672,7 +672,7 @@ void Texture2D::bindTexImage(egl::Surface *surface)
         return;
     }
 
-	for(int level = 0; level < MIPMAP_LEVELS; level++)
+	for(int level = 0; level < IMPLEMENTATION_MAX_TEXTURE_LEVELS; level++)
 	{
 		if(image[level])
 		{
@@ -689,7 +689,7 @@ void Texture2D::bindTexImage(egl::Surface *surface)
 
 void Texture2D::releaseTexImage()
 {
-    for(int level = 0; level < MIPMAP_LEVELS; level++)
+    for(int level = 0; level < IMPLEMENTATION_MAX_TEXTURE_LEVELS; level++)
 	{
 		if(image[level])
 		{
@@ -984,7 +984,7 @@ TextureCubeMap::TextureCubeMap(GLuint name) : Texture(name)
 {
 	for(int f = 0; f < 6; f++)
 	{
-		for(int i = 0; i < MIPMAP_LEVELS; i++)
+		for(int i = 0; i < IMPLEMENTATION_MAX_TEXTURE_LEVELS; i++)
 		{
 			image[f][i] = nullptr;
 		}
@@ -1003,7 +1003,7 @@ TextureCubeMap::~TextureCubeMap()
 
 	for(int f = 0; f < 6; f++)
 	{
-		for(int i = 0; i < MIPMAP_LEVELS; i++)
+		for(int i = 0; i < IMPLEMENTATION_MAX_TEXTURE_LEVELS; i++)
 		{
 			if(image[f][i])
 			{
@@ -1062,7 +1062,7 @@ void TextureCubeMap::sweep()
 
 	for(int f = 0; f < 6; f++)
 	{
-		for(int i = 0; i < MIPMAP_LEVELS; i++)
+		for(int i = 0; i < IMPLEMENTATION_MAX_TEXTURE_LEVELS; i++)
 		{
 			if(image[f][i] && image[f][i]->isChildOf(this))
 			{
@@ -1122,7 +1122,7 @@ int TextureCubeMap::getLevelCount() const
 	ASSERT(isSamplerComplete());
 	int levels = 0;
 
-	while(levels < MIPMAP_LEVELS && image[0][levels])
+	while(levels < IMPLEMENTATION_MAX_TEXTURE_LEVELS && image[0][levels])
 	{
 		levels++;
 	}
@@ -1468,7 +1468,7 @@ bool TextureCubeMap::isShared(GLenum target, unsigned int level) const
 
 Texture3D::Texture3D(GLuint name) : Texture(name)
 {
-	for(int i = 0; i < MIPMAP_LEVELS; i++)
+	for(int i = 0; i < IMPLEMENTATION_MAX_TEXTURE_LEVELS; i++)
 	{
 		image[i] = nullptr;
 	}
@@ -1483,7 +1483,7 @@ Texture3D::~Texture3D()
 {
 	resource->lock(sw::DESTRUCT);
 
-	for(int i = 0; i < MIPMAP_LEVELS; i++)
+	for(int i = 0; i < IMPLEMENTATION_MAX_TEXTURE_LEVELS; i++)
 	{
 		if(image[i])
 		{
@@ -1528,7 +1528,7 @@ void Texture3D::sweep()
 {
 	int imageCount = 0;
 
-	for(int i = 0; i < MIPMAP_LEVELS; i++)
+	for(int i = 0; i < IMPLEMENTATION_MAX_TEXTURE_LEVELS; i++)
 	{
 		if(image[i] && image[i]->isChildOf(this))
 		{
@@ -1593,7 +1593,7 @@ int Texture3D::getLevelCount() const
 	ASSERT(isSamplerComplete());
 	int levels = 0;
 
-	while(levels < MIPMAP_LEVELS && image[levels])
+	while(levels < IMPLEMENTATION_MAX_TEXTURE_LEVELS && image[levels])
 	{
 		levels++;
 	}
@@ -1635,7 +1635,7 @@ void Texture3D::bindTexImage(egl::Surface *surface)
 		return;
 	}
 
-	for(int level = 0; level < MIPMAP_LEVELS; level++)
+	for(int level = 0; level < IMPLEMENTATION_MAX_TEXTURE_LEVELS; level++)
 	{
 		if(image[level])
 		{
@@ -1652,7 +1652,7 @@ void Texture3D::bindTexImage(egl::Surface *surface)
 
 void Texture3D::releaseTexImage()
 {
-	for(int level = 0; level < MIPMAP_LEVELS; level++)
+	for(int level = 0; level < IMPLEMENTATION_MAX_TEXTURE_LEVELS; level++)
 	{
 		if(image[level])
 		{
@@ -2033,10 +2033,10 @@ egl::Image *createBackBuffer(int width, int height, const egl::Config *config)
 
 egl::Image *createDepthStencil(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool discard)
 {
-	if(width == 0 || height == 0 || height > OUTLINE_RESOLUTION)
+	if(width == 0 || height == 0 || height > sw::OUTLINE_RESOLUTION)
 	{
 		ERR("Invalid parameters: %dx%d", width, height);
-		return 0;
+		return nullptr;
 	}
 
 	bool lockable = true;

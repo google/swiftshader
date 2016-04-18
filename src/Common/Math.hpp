@@ -92,38 +92,41 @@ namespace sw
 	}
 
 	#define BITS(x)    ( \
-	!!(x & 0x80000000) + \
-	!!(x & 0xC0000000) + \
-	!!(x & 0xE0000000) + \
-	!!(x & 0xF0000000) + \
-	!!(x & 0xF8000000) + \
-	!!(x & 0xFC000000) + \
-	!!(x & 0xFE000000) + \
-	!!(x & 0xFF000000) + \
-	!!(x & 0xFF800000) + \
-	!!(x & 0xFFC00000) + \
-	!!(x & 0xFFE00000) + \
-	!!(x & 0xFFF00000) + \
-	!!(x & 0xFFF80000) + \
-	!!(x & 0xFFFC0000) + \
-	!!(x & 0xFFFE0000) + \
-	!!(x & 0xFFFF0000) + \
-	!!(x & 0xFFFF8000) + \
-	!!(x & 0xFFFFC000) + \
-	!!(x & 0xFFFFE000) + \
-	!!(x & 0xFFFFF000) + \
-	!!(x & 0xFFFFF800) + \
-	!!(x & 0xFFFFFC00) + \
-	!!(x & 0xFFFFFE00) + \
-	!!(x & 0xFFFFFF00) + \
-	!!(x & 0xFFFFFF80) + \
-	!!(x & 0xFFFFFFC0) + \
-	!!(x & 0xFFFFFFE0) + \
-	!!(x & 0xFFFFFFF0) + \
-	!!(x & 0xFFFFFFF8) + \
-	!!(x & 0xFFFFFFFC) + \
-	!!(x & 0xFFFFFFFE) + \
-	!!(x & 0xFFFFFFFF))
+	!!((x) & 0x80000000) + \
+	!!((x) & 0xC0000000) + \
+	!!((x) & 0xE0000000) + \
+	!!((x) & 0xF0000000) + \
+	!!((x) & 0xF8000000) + \
+	!!((x) & 0xFC000000) + \
+	!!((x) & 0xFE000000) + \
+	!!((x) & 0xFF000000) + \
+	!!((x) & 0xFF800000) + \
+	!!((x) & 0xFFC00000) + \
+	!!((x) & 0xFFE00000) + \
+	!!((x) & 0xFFF00000) + \
+	!!((x) & 0xFFF80000) + \
+	!!((x) & 0xFFFC0000) + \
+	!!((x) & 0xFFFE0000) + \
+	!!((x) & 0xFFFF0000) + \
+	!!((x) & 0xFFFF8000) + \
+	!!((x) & 0xFFFFC000) + \
+	!!((x) & 0xFFFFE000) + \
+	!!((x) & 0xFFFFF000) + \
+	!!((x) & 0xFFFFF800) + \
+	!!((x) & 0xFFFFFC00) + \
+	!!((x) & 0xFFFFFE00) + \
+	!!((x) & 0xFFFFFF00) + \
+	!!((x) & 0xFFFFFF80) + \
+	!!((x) & 0xFFFFFFC0) + \
+	!!((x) & 0xFFFFFFE0) + \
+	!!((x) & 0xFFFFFFF0) + \
+	!!((x) & 0xFFFFFFF8) + \
+	!!((x) & 0xFFFFFFFC) + \
+	!!((x) & 0xFFFFFFFE) + \
+	!!((x) & 0xFFFFFFFF))
+
+	#define MAX(x, y) ((x) > (y) ? (x) : (y))
+	#define MIN(x, y) ((x) < (y) ? (x) : (y))
 
 	inline float exp2(float x)
 	{

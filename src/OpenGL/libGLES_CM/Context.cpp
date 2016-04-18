@@ -2342,7 +2342,7 @@ void Context::applyTexture(int index, Texture *baseTexture)
 		{
 			Texture2D *texture = static_cast<Texture2D*>(baseTexture);
 
-			for(int mipmapLevel = 0; mipmapLevel < MIPMAP_LEVELS; mipmapLevel++)
+			for(int mipmapLevel = 0; mipmapLevel < sw::MIPMAP_LEVELS; mipmapLevel++)
 			{
 				int surfaceLevel = mipmapLevel;
 

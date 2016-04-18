@@ -52,7 +52,7 @@ namespace D3D9
 			capturePixelSamplerStates();
 			capturePixelShaderStates();
 		}
-		
+
 		if(type == D3DSBT_VERTEXSTATE || type == D3DSBT_ALL)
 		{
 			captureVertexRenderStates();
@@ -112,7 +112,7 @@ namespace D3D9
 
 		return Unknown::AddRef();
 	}
-	
+
 	unsigned long Direct3DStateBlock9::Release()
 	{
 		TRACE("");
@@ -130,7 +130,7 @@ namespace D3D9
 		{
 			return INVALIDCALL();
 		}
-		
+
 		if(fvfCaptured)
 		{
 			device->SetFVF(FVF);
@@ -248,7 +248,7 @@ namespace D3D9
 			device->SetViewport(&viewport);
 		}
 
-		for(int i = 0; i < FRAGMENT_UNIFORM_VECTORS; i++)
+		for(int i = 0; i < MAX_PIXEL_SHADER_CONST; i++)
 		{
 			if(*(int*)pixelShaderConstantF[i] != 0x80000000)
 			{
@@ -272,7 +272,7 @@ namespace D3D9
 			}
 		}
 
-		for(int i = 0; i < VERTEX_UNIFORM_VECTORS; i++)
+		for(int i = 0; i < MAX_VERTEX_SHADER_CONST; i++)
 		{
 			if(*(int*)vertexShaderConstantF[i] != 0x80000000)
 			{
@@ -322,7 +322,7 @@ namespace D3D9
 		CriticalSection cs(device);
 
 		TRACE("");
-		
+
 		if(fvfCaptured)
 		{
 			device->GetFVF(&FVF);
@@ -332,7 +332,7 @@ namespace D3D9
 		{
 			Direct3DVertexDeclaration9 *vertexDeclaration;
 			device->GetVertexDeclaration(reinterpret_cast<IDirect3DVertexDeclaration9**>(&vertexDeclaration));
-			
+
 			if(vertexDeclaration)
 			{
 				vertexDeclaration->bind();
@@ -351,7 +351,7 @@ namespace D3D9
 		{
 			Direct3DIndexBuffer9 *indexBuffer;
 			device->GetIndices(reinterpret_cast<IDirect3DIndexBuffer9**>(&indexBuffer));
-			
+
 			if(indexBuffer)
 			{
 				indexBuffer->bind();
@@ -525,7 +525,7 @@ namespace D3D9
 			device->GetViewport(&viewport);
 		}
 
-		for(int i = 0; i < FRAGMENT_UNIFORM_VECTORS; i++)
+		for(int i = 0; i < MAX_PIXEL_SHADER_CONST; i++)
 		{
 			if(*(int*)pixelShaderConstantF[i] != 0x80000000)
 			{
@@ -549,7 +549,7 @@ namespace D3D9
 			}
 		}
 
-		for(int i = 0; i < VERTEX_UNIFORM_VECTORS; i++)
+		for(int i = 0; i < MAX_VERTEX_SHADER_CONST; i++)
 		{
 			if(*(int*)vertexShaderConstantF[i] != 0x80000000)
 			{
@@ -872,7 +872,7 @@ namespace D3D9
 
 		viewportCaptured = false;
 
-		for(int i = 0; i < FRAGMENT_UNIFORM_VECTORS; i++)
+		for(int i = 0; i < MAX_PIXEL_SHADER_CONST; i++)
 		{
 			(int&)pixelShaderConstantF[i][0] = 0x80000000;
 			(int&)pixelShaderConstantF[i][1] = 0x80000000;
@@ -880,7 +880,7 @@ namespace D3D9
 			(int&)pixelShaderConstantF[i][3] = 0x80000000;
 		}
 
-		for(int i = 0; i < VERTEX_UNIFORM_VECTORS; i++)
+		for(int i = 0; i < MAX_VERTEX_SHADER_CONST; i++)
 		{
 			(int&)vertexShaderConstantF[i][0] = 0x80000000;
 			(int&)vertexShaderConstantF[i][1] = 0x80000000;
@@ -1085,7 +1085,7 @@ namespace D3D9
 		{
 			captureSamplerState(sampler, D3DSAMP_ADDRESSU);
 			captureSamplerState(sampler, D3DSAMP_ADDRESSV);
-			captureSamplerState(sampler, D3DSAMP_ADDRESSW); 
+			captureSamplerState(sampler, D3DSAMP_ADDRESSW);
 			captureSamplerState(sampler, D3DSAMP_BORDERCOLOR);
 			captureSamplerState(sampler, D3DSAMP_MAGFILTER);
 			captureSamplerState(sampler, D3DSAMP_MINFILTER);
@@ -1102,7 +1102,7 @@ namespace D3D9
 	{
 		pixelShaderCaptured = true;
 		device->GetPixelShader(reinterpret_cast<IDirect3DPixelShader9**>(&pixelShader));
-		
+
 		if(pixelShader)
 		{
 			pixelShader->bind();
@@ -1111,7 +1111,7 @@ namespace D3D9
 
 		device->GetPixelShaderConstantF(0, pixelShaderConstantF[0], 32);
 		device->GetPixelShaderConstantI(0, pixelShaderConstantI[0], 16);
-		device->GetPixelShaderConstantB(0, pixelShaderConstantB, 16);	
+		device->GetPixelShaderConstantB(0, pixelShaderConstantB, 16);
 	}
 
 	void Direct3DStateBlock9::captureVertexRenderStates()
@@ -1206,16 +1206,16 @@ namespace D3D9
 	{
 		vertexShaderCaptured = true;
 		device->GetVertexShader(reinterpret_cast<IDirect3DVertexShader9**>(&vertexShader));
-		
+
 		if(vertexShader)
 		{
 			vertexShader->bind();
 			vertexShader->Release();
 		}
 
-		device->GetVertexShaderConstantF(0, vertexShaderConstantF[0], VERTEX_UNIFORM_VECTORS);
+		device->GetVertexShaderConstantF(0, vertexShaderConstantF[0], MAX_VERTEX_SHADER_CONST);
 		device->GetVertexShaderConstantI(0, vertexShaderConstantI[0], 16);
-		device->GetVertexShaderConstantB(0, vertexShaderConstantB, 16);		
+		device->GetVertexShaderConstantB(0, vertexShaderConstantB, 16);
 	}
 
 	void Direct3DStateBlock9::captureStreamSourceFrequencies()
@@ -1232,7 +1232,7 @@ namespace D3D9
 		device->GetFVF(&FVF);
 		fvfCaptured = true;
 	}
-	
+
 	void Direct3DStateBlock9::captureVertexDeclaration()
 	{
 		vertexDeclarationCaptured = true;
@@ -1273,7 +1273,7 @@ namespace D3D9
 		{
 			streamSourceCaptured[stream] = true;
 			device->GetStreamSource(stream, reinterpret_cast<IDirect3DVertexBuffer9**>(&streamSource[stream].vertexBuffer), &streamSource[stream].offset, &streamSource[stream].stride);
-			
+
 			if(streamSource[stream].vertexBuffer)
 			{
 				streamSource[stream].vertexBuffer->bind();

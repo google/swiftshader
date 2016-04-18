@@ -145,14 +145,14 @@ namespace D3D9
 			SetTransform(D3DTS_WORLDMATRIX(i), &identity);
 		}
 
-		for(int i = 0; i < FRAGMENT_UNIFORM_VECTORS; i++)
+		for(int i = 0; i < MAX_PIXEL_SHADER_CONST; i++)
 		{
 			float zero[4] = {0, 0, 0, 0};
 
 			SetPixelShaderConstantF(i, zero, 1);
 		}
 
-		for(int i = 0; i < VERTEX_UNIFORM_VECTORS; i++)
+		for(int i = 0; i < MAX_VERTEX_SHADER_CONST; i++)
 		{
 			float zero[4] = {0, 0, 0, 0};
 
@@ -565,7 +565,7 @@ namespace D3D9
 
 		*surface = 0;
 
-		if(width == 0 || height == 0 || d3d9->CheckDeviceFormat(adapter, deviceType, D3DFMT_X8R8G8B8, D3DUSAGE_DEPTHSTENCIL, D3DRTYPE_SURFACE, format) != D3D_OK || height > OUTLINE_RESOLUTION)
+		if(width == 0 || height == 0 || d3d9->CheckDeviceFormat(adapter, deviceType, D3DFMT_X8R8G8B8, D3DUSAGE_DEPTHSTENCIL, D3DRTYPE_SURFACE, format) != D3D_OK || height > sw::OUTLINE_RESOLUTION)
 		{
 			return INVALIDCALL();
 		}
@@ -779,7 +779,7 @@ namespace D3D9
 
 		*surface = 0;
 
-		if(width == 0 || height == 0 || d3d9->CheckDeviceFormat(adapter, deviceType, D3DFMT_X8R8G8B8, D3DUSAGE_RENDERTARGET, D3DRTYPE_SURFACE, format) != D3D_OK || height > OUTLINE_RESOLUTION)
+		if(width == 0 || height == 0 || d3d9->CheckDeviceFormat(adapter, deviceType, D3DFMT_X8R8G8B8, D3DUSAGE_RENDERTARGET, D3DRTYPE_SURFACE, format) != D3D_OK || height > sw::OUTLINE_RESOLUTION)
 		{
 			return INVALIDCALL();
 		}
@@ -2969,7 +2969,7 @@ namespace D3D9
 
 		if(!stateRecorder)
 		{
-			for(unsigned int i = 0; i < count && startRegister + i < FRAGMENT_UNIFORM_VECTORS; i++)
+			for(unsigned int i = 0; i < count && startRegister + i < MAX_PIXEL_SHADER_CONST; i++)
 			{
 				pixelShaderConstantF[startRegister + i][0] = constantData[i * 4 + 0];
 				pixelShaderConstantF[startRegister + i][1] = constantData[i * 4 + 1];
@@ -5245,7 +5245,7 @@ namespace D3D9
 
 		if(!stateRecorder)
 		{
-			for(unsigned int i = 0; i < count && startRegister + i < VERTEX_UNIFORM_VECTORS; i++)
+			for(unsigned int i = 0; i < count && startRegister + i < MAX_VERTEX_SHADER_CONST; i++)
 			{
 				vertexShaderConstantF[startRegister + i][0] = constantData[i * 4 + 0];
 				vertexShaderConstantF[startRegister + i][1] = constantData[i * 4 + 1];
@@ -6087,7 +6087,7 @@ namespace D3D9
 						Direct3DTexture9 *texture = dynamic_cast<Direct3DTexture9*>(baseTexture);
 						Direct3DSurface9 *surface;
 
-						for(int mipmapLevel = 0; mipmapLevel < MIPMAP_LEVELS; mipmapLevel++)
+						for(int mipmapLevel = 0; mipmapLevel < sw::MIPMAP_LEVELS; mipmapLevel++)
 						{
 							int surfaceLevel = mipmapLevel;
 
@@ -6116,7 +6116,7 @@ namespace D3D9
 						Direct3DCubeTexture9 *cubeTexture = dynamic_cast<Direct3DCubeTexture9*>(baseTexture);
 						Direct3DSurface9 *surface;
 
-						for(int mipmapLevel = 0; mipmapLevel < MIPMAP_LEVELS; mipmapLevel++)
+						for(int mipmapLevel = 0; mipmapLevel < sw::MIPMAP_LEVELS; mipmapLevel++)
 						{
 							int surfaceLevel = mipmapLevel;
 
@@ -6144,7 +6144,7 @@ namespace D3D9
 						Direct3DVolumeTexture9 *volumeTexture = dynamic_cast<Direct3DVolumeTexture9*>(baseTexture);
 						Direct3DVolume9 *volume;
 
-						for(int mipmapLevel = 0; mipmapLevel < MIPMAP_LEVELS; mipmapLevel++)
+						for(int mipmapLevel = 0; mipmapLevel < sw::MIPMAP_LEVELS; mipmapLevel++)
 						{
 							int surfaceLevel = mipmapLevel;
 

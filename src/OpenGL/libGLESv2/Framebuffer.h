@@ -15,6 +15,7 @@
 #ifndef LIBGLESV2_FRAMEBUFFER_H_
 #define LIBGLESV2_FRAMEBUFFER_H_
 
+#include "Context.h"
 #include "common/Object.hpp"
 #include "common/Image.hpp"
 

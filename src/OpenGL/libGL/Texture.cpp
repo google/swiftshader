@@ -271,7 +271,7 @@ bool Texture::isMipmapFiltered() const
 
 Texture2D::Texture2D(GLuint name) : Texture(name)
 {
-	for(int i = 0; i < MIPMAP_LEVELS; i++)
+	for(int i = 0; i < IMPLEMENTATION_MAX_TEXTURE_LEVELS; i++)
 	{
 		image[i] = 0;
 	}
@@ -284,7 +284,7 @@ Texture2D::~Texture2D()
 {
 	resource->lock(sw::DESTRUCT);
 
-	for(int i = 0; i < MIPMAP_LEVELS; i++)
+	for(int i = 0; i < IMPLEMENTATION_MAX_TEXTURE_LEVELS; i++)
 	{
 		if(image[i])
 		{
@@ -359,7 +359,7 @@ int Texture2D::getLevelCount() const
 	ASSERT(isSamplerComplete());
 	int levels = 0;
 
-	while(levels < MIPMAP_LEVELS && image[levels])
+	while(levels < IMPLEMENTATION_MAX_TEXTURE_LEVELS && image[levels])
 	{
 		levels++;
 	}
@@ -624,7 +624,7 @@ TextureCubeMap::TextureCubeMap(GLuint name) : Texture(name)
 {
 	for(int f = 0; f < 6; f++)
 	{
-		for(int i = 0; i < MIPMAP_LEVELS; i++)
+		for(int i = 0; i < IMPLEMENTATION_MAX_TEXTURE_LEVELS; i++)
 		{
 			image[f][i] = 0;
 		}
@@ -643,7 +643,7 @@ TextureCubeMap::~TextureCubeMap()
 
 	for(int f = 0; f < 6; f++)
 	{
-		for(int i = 0; i < MIPMAP_LEVELS; i++)
+		for(int i = 0; i < IMPLEMENTATION_MAX_TEXTURE_LEVELS; i++)
 		{
 			if(image[f][i])
 			{
@@ -736,7 +736,7 @@ int TextureCubeMap::getLevelCount() const
 	ASSERT(isSamplerComplete());
 	int levels = 0;
 
-	while(levels < MIPMAP_LEVELS && image[0][levels])
+	while(levels < IMPLEMENTATION_MAX_TEXTURE_LEVELS && image[0][levels])
 	{
 		levels++;
 	}

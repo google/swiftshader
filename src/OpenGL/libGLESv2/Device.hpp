@@ -85,10 +85,10 @@ namespace es2
 		bool vertexShaderDirty;
 		unsigned int vertexShaderConstantsFDirty;
 
-		float pixelShaderConstantF[FRAGMENT_UNIFORM_VECTORS][4];
-		float vertexShaderConstantF[VERTEX_UNIFORM_VECTORS][4];
+		float pixelShaderConstantF[sw::FRAGMENT_UNIFORM_VECTORS][4];
+		float vertexShaderConstantF[sw::VERTEX_UNIFORM_VECTORS][4];
 
-		egl::Image *renderTarget[RENDERTARGETS];
+		egl::Image *renderTarget[sw::RENDERTARGETS];
 		egl::Image *depthBuffer;
 		egl::Image *stencilBuffer;
 	};

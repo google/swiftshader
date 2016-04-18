@@ -36,10 +36,10 @@ class Framebuffer;
 
 enum
 {
-	IMPLEMENTATION_MAX_TEXTURE_LEVELS = MIPMAP_LEVELS,
-    IMPLEMENTATION_MAX_TEXTURE_SIZE = 1 << (MIPMAP_LEVELS - 1),
-    IMPLEMENTATION_MAX_CUBE_MAP_TEXTURE_SIZE = 1 << (MIPMAP_LEVELS - 1),
-	IMPLEMENTATION_MAX_RENDERBUFFER_SIZE = OUTLINE_RESOLUTION,
+	IMPLEMENTATION_MAX_TEXTURE_LEVELS = sw::MIPMAP_LEVELS,
+    IMPLEMENTATION_MAX_TEXTURE_SIZE = 1 << (IMPLEMENTATION_MAX_TEXTURE_LEVELS - 1),
+    IMPLEMENTATION_MAX_CUBE_MAP_TEXTURE_SIZE = 1 << (IMPLEMENTATION_MAX_TEXTURE_LEVELS - 1),
+	IMPLEMENTATION_MAX_RENDERBUFFER_SIZE = sw::OUTLINE_RESOLUTION,
 };
 
 class Texture : public NamedObject
@@ -149,7 +149,7 @@ protected:
 	bool isMipmapComplete() const;
 
 	Image *image[IMPLEMENTATION_MAX_TEXTURE_LEVELS];
-    
+
 	// A specific internal reference count is kept for colorbuffer proxy references,
     // because, as the renderbuffer acting as proxy will maintain a binding pointer
     // back to this texture, there would be a circular reference if we used a binding
@@ -170,7 +170,7 @@ public:
     void releaseProxy(const Renderbuffer *proxy);
 
     virtual GLenum getTarget() const;
-    
+
     virtual GLsizei getWidth(GLenum target, GLint level) const;
     virtual GLsizei getHeight(GLenum target, GLint level) const;
     virtual GLenum getFormat(GLenum target, GLint level) const;
@@ -189,7 +189,7 @@ public:
     virtual bool isSamplerComplete() const;
     virtual bool isCompressed(GLenum target, GLint level) const;
 	virtual bool isDepth(GLenum target, GLint level) const;
-	
+
     virtual void generateMipmaps();
 
     virtual Renderbuffer *getRenderbuffer(GLenum target);
@@ -205,7 +205,7 @@ private:
     Image *getImage(GLenum face, unsigned int level);
 
     Image *image[6][IMPLEMENTATION_MAX_TEXTURE_LEVELS];
-	
+
 	// A specific internal reference count is kept for colorbuffer proxy references,
     // because, as the renderbuffer acting as proxy will maintain a binding pointer
     // back to this texture, there would be a circular reference if we used a binding
