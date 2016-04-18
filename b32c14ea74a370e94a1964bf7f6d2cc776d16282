@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4898cc33_33b33a0f",
+        "filename": "src/OpenGL/libGLESv2/Framebuffer.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-04-18T21:26:00Z",
+      "side": 0,
+      "message": "Just curious: this doesn\u0027t break the getDrawBuffer() and getReadBuffer() functions used in state queries?",
+      "range": {
+        "startLine": 83,
+        "startChar": 1,
+        "endLine": 87,
+        "endChar": 2
+      },
+      "revId": "b32c14ea74a370e94a1964bf7f6d2cc776d16282",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
