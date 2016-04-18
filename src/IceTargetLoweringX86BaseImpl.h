@@ -1399,7 +1399,7 @@ void TargetX86Base<TraitsType>::lowerAlloca(const InstAlloca *Instr) {
   const uint32_t Alignment =
       std::max(AlignmentParam, Traits::X86_STACK_ALIGNMENT_BYTES);
   const bool OverAligned = Alignment > Traits::X86_STACK_ALIGNMENT_BYTES;
-  const bool OptM1 = getFlags().getOptLevel() == Opt_m1;
+  const bool OptM1 = Func->getOptLevel() == Opt_m1;
   const bool AllocaWithKnownOffset = Instr->getKnownFrameOffset();
   const bool UseFramePointer =
       hasFramePointer() || OverAligned || !AllocaWithKnownOffset || OptM1;
@@ -1529,7 +1529,7 @@ bool TargetX86Base<TraitsType>::optimizeScalarMul(Variable *Dest, Operand *Src0,
                                                   int32_t Src1) {
   // Disable this optimization for Om1 and O0, just to keep things simple
   // there.
-  if (getFlags().getOptLevel() < Opt_1)
+  if (Func->getOptLevel() < Opt_1)
     return false;
   Type Ty = Dest->getType();
   if (Src1 == -1) {
@@ -2223,7 +2223,7 @@ void TargetX86Base<TraitsType>::lowerArithmetic(const InstArithmetic *Instr) {
   case InstArithmetic::Sdiv:
     // TODO(stichnot): Enable this after doing better performance and cross
     // testing.
-    if (false && getFlags().getOptLevel() >= Opt_1) {
+    if (false && Func->getOptLevel() >= Opt_1) {
       // Optimize division by constant power of 2, but not for Om1 or O0, just
       // to keep things simple there.
       if (auto *C = llvm::dyn_cast<ConstantInteger32>(Src1)) {
@@ -2313,7 +2313,7 @@ void TargetX86Base<TraitsType>::lowerArithmetic(const InstArithmetic *Instr) {
   case InstArithmetic::Srem: {
     // TODO(stichnot): Enable this after doing better performance and cross
     // testing.
-    if (false && getFlags().getOptLevel() >= Opt_1) {
+    if (false && Func->getOptLevel() >= Opt_1) {
       // Optimize mod by constant power of 2, but not for Om1 or O0, just to
       // keep things simple there.
       if (auto *C = llvm::dyn_cast<ConstantInteger32>(Src1)) {
@@ -4306,7 +4306,7 @@ bool TargetX86Base<TraitsType>::tryOptimizedCmpxchgCmpBr(Variable *Dest,
                                                          Operand *PtrToMem,
                                                          Operand *Expected,
                                                          Operand *Desired) {
-  if (getFlags().getOptLevel() == Opt_m1)
+  if (Func->getOptLevel() == Opt_m1)
     return false;
   // Peek ahead a few instructions and see how Dest is used.
   // It's very common to have:
@@ -7016,7 +7016,7 @@ Type TargetX86Base<TraitsType>::firstTypeThatFitsSize(uint32_t Size,
 }
 
 template <typename TraitsType> void TargetX86Base<TraitsType>::postLower() {
-  if (getFlags().getOptLevel() == Opt_m1)
+  if (Func->getOptLevel() == Opt_m1)
     return;
   markRedefinitions();
   Context.availabilityUpdate();
@@ -7417,10 +7417,9 @@ void TargetDataX86<TraitsType>::lowerGlobals(
   } break;
   case FT_Asm:
   case FT_Iasm: {
-    const std::string TranslateOnly = getFlags().getTranslateOnly();
     OstreamLocker L(Ctx);
     for (const VariableDeclaration *Var : Vars) {
-      if (GlobalContext::matchSymbolName(Var->getName(), TranslateOnly)) {
+      if (getFlags().matchTranslateOnly(Var->getName(), 0)) {
         emitGlobal(*Var, SectionSuffix);
       }
     }

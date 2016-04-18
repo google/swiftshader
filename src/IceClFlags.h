@@ -18,6 +18,7 @@
 #include "IceDefs.h"
 #include "IceBuildDefs.h"
 #include "IceClFlags.def"
+#include "IceRangeSpec.h"
 #include "IceTypes.h"
 
 #ifdef __clang__
@@ -150,12 +151,36 @@ public:
   void setGenerateUnitTestMessages(bool NewValue) {
     GenerateUnitTestMessages = NewValue;
   }
+  bool matchForceO2(GlobalString Name, uint32_t Number) const {
+    return ForceO2.match(Name, Number);
+  }
+  bool matchTestStatus(GlobalString Name, uint32_t Number) const {
+    return TestStatus.match(Name, Number);
+  }
+  bool matchTimingFocus(GlobalString Name, uint32_t Number) const {
+    return TimingFocus.match(Name, Number);
+  }
+  bool matchTranslateOnly(GlobalString Name, uint32_t Number) const {
+    return TranslateOnly.match(Name, Number);
+  }
+  bool matchVerboseFocusOn(GlobalString Name, uint32_t Number) const {
+    return VerboseFocus.match(Name, Number);
+  }
+  bool matchVerboseFocusOn(const std::string &Name, uint32_t Number) const {
+    return VerboseFocus.match(Name, Number);
+  }
 
 private:
   std::string AppName;
 
   /// Initialized to false; not set by the command line.
   bool GenerateUnitTestMessages;
+
+  RangeSpec ForceO2;
+  RangeSpec TestStatus;
+  RangeSpec TimingFocus;
+  RangeSpec TranslateOnly;
+  RangeSpec VerboseFocus;
 };
 
 inline const ClFlags &getFlags() { return ClFlags::Flags; }

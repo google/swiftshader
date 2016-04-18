@@ -193,6 +193,11 @@ void ClFlags::getParsedClFlags(ClFlags &OutFlags) {
                                         DisableInternalObj);
   OutFlags.setDisableHybridAssembly(DisableHybridAssemblyObj ||
                                     (OutFileTypeObj != Ice::FT_Iasm));
+  OutFlags.ForceO2.init(OutFlags.getForceO2String());
+  OutFlags.TestStatus.init(OutFlags.getTestStatusString());
+  OutFlags.TimingFocus.init(OutFlags.getTimingFocusOnString());
+  OutFlags.TranslateOnly.init(OutFlags.getTranslateOnlyString());
+  OutFlags.VerboseFocus.init(OutFlags.getVerboseFocusOnString());
 }
 
 } // end of namespace Ice

@@ -149,6 +149,9 @@ struct dev_list_flag {};
   X(ForceMemIntrinOpt, bool, dev_opt_flag, "fmem-intrin-opt",                  \
     cl::desc("Force optimization of memory intrinsics."))                      \
                                                                                \
+  X(ForceO2String, std::string, dev_opt_flag, "force-O2",                      \
+    cl::desc("Force -O2 for certain functions (assumes -Om1)"), cl::init(""))  \
+                                                                               \
   X(FunctionSections, bool, dev_opt_flag, "ffunction-sections",                \
     cl::desc("Emit functions into separate sections"))                         \
                                                                                \
@@ -282,15 +285,18 @@ struct dev_list_flag {};
              "frame in bytes (for testing)."),                                 \
     cl::init(0))                                                               \
                                                                                \
+  X(TestStatusString, std::string, dev_opt_flag, "test-status",                \
+    cl::desc("Testing flag for -verbose=status"), cl::init(":"))               \
+                                                                               \
   X(TimeEachFunction, bool, dev_opt_flag, "timing-funcs",                      \
     cl::desc("Print total translation time for each function"))                \
                                                                                \
-  X(TimingFocusOn, std::string, dev_opt_flag, "timing-focus",                  \
-    cl::desc("Break down timing for a specific function (use '*' for all)"),   \
+  X(TimingFocusOnString, std::string, dev_opt_flag, "timing-focus",            \
+    cl::desc("Break down timing for specific functions (use ':' for all)"),    \
     cl::init(""))                                                              \
                                                                                \
-  X(TranslateOnly, std::string, dev_opt_flag, "translate-only",                \
-    cl::desc("Translate only the given function"), cl::init(""))               \
+  X(TranslateOnlyString, std::string, dev_opt_flag, "translate-only",          \
+    cl::desc("Translate only the given functions"), cl::init(":"))             \
                                                                                \
   X(UseNonsfi, bool, dev_opt_flag, "nonsfi", cl::desc("Enable Non-SFI mode"))  \
                                                                                \
@@ -335,9 +341,9 @@ struct dev_list_flag {};
                    "Use all verbose options except 'regalloc,global_init'"),   \
         clEnumValN(Ice::IceV_None, "none", "No verbosity"), clEnumValEnd))     \
                                                                                \
-  X(VerboseFocusOn, std::string, dev_opt_flag, "verbose-focus",                \
-    cl::desc("Override with -verbose=none except for the specified function"), \
-    cl::init(""))
+  X(VerboseFocusOnString, std::string, dev_opt_flag, "verbose-focus",          \
+    cl::desc("Override with -verbose=none except for specified functions"),    \
+    cl::init(":"))
 //#define X(Name, Type, ClType, ...)
 
 } // end of namespace Ice

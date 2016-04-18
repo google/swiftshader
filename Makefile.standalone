@@ -308,6 +308,7 @@ SRCS = \
   IceMangling.cpp \
   IceMemory.cpp \
   IceOperand.cpp \
+  IceRangeSpec.cpp \
   IceRegAlloc.cpp \
   IceRNG.cpp \
   IceSwitchLowering.cpp \

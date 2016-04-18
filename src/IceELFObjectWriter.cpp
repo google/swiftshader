@@ -288,10 +288,9 @@ classifyGlobalSection(const VariableDeclaration *Var) {
 // Partition the Vars list by SectionType into VarsBySection. If TranslateOnly
 // is non-empty, then only the TranslateOnly variable is kept for emission.
 void partitionGlobalsBySection(const VariableDeclarationList &Vars,
-                               VariableDeclarationPartition VarsBySection[],
-                               const std::string &TranslateOnly) {
+                               VariableDeclarationPartition VarsBySection[]) {
   for (VariableDeclaration *Var : Vars) {
-    if (GlobalContext::matchSymbolName(Var->getName(), TranslateOnly)) {
+    if (getFlags().matchTranslateOnly(Var->getName(), 0)) {
       size_t Section = classifyGlobalSection(Var);
       assert(Section < ELFObjectWriter::NumSectionTypes);
       VarsBySection[Section].push_back(Var);
@@ -310,7 +309,7 @@ void ELFObjectWriter::writeDataSection(const VariableDeclarationList &Vars,
   VariableDeclarationPartition VarsBySection[ELFObjectWriter::NumSectionTypes];
   for (auto &SectionList : VarsBySection)
     SectionList.reserve(Vars.size());
-  partitionGlobalsBySection(Vars, VarsBySection, getFlags().getTranslateOnly());
+  partitionGlobalsBySection(Vars, VarsBySection);
   size_t I = 0;
   for (auto &SectionList : VarsBySection) {
     writeDataOfType(static_cast<SectionType>(I++), SectionList, RelocationKind,

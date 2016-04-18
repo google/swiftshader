@@ -17,6 +17,8 @@
 #ifndef SUBZERO_SRC_ICESTRINGPOOL_H
 #define SUBZERO_SRC_ICESTRINGPOOL_H
 
+#include "IceDefs.h" // Ostream
+
 #include <cstdint> // uintptr_t
 #include <string>
 

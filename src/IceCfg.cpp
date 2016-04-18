@@ -197,20 +197,25 @@ void Cfg::addCallToProfileSummary() {
 void Cfg::translate() {
   if (hasError())
     return;
+  // Cache the possibly-overridden optimization level once translation begins.
+  // It would be nicer to do this in the constructor, but we need to wait until
+  // after setFunctionName() has a chance to be called.
+  OptimizationLevel =
+      getFlags().matchForceO2(getFunctionName(), getSequenceNumber())
+          ? Opt_2
+          : getFlags().getOptLevel();
   if (BuildDefs::timers()) {
-    const std::string TimingFocusOn = getFlags().getTimingFocusOn();
-    if (!TimingFocusOn.empty()) {
-      const std::string Name = getFunctionName().toString();
-      if (TimingFocusOn == "*" || TimingFocusOn == Name) {
-        setFocusedTiming();
-        getContext()->resetTimer(GlobalContext::TSK_Default);
-      }
+    if (getFlags().matchTimingFocus(getFunctionName(), getSequenceNumber())) {
+      setFocusedTiming();
+      getContext()->resetTimer(GlobalContext::TSK_Default);
     }
   }
   if (BuildDefs::dump()) {
-    if (isVerbose(IceV_Status)) {
+    if (isVerbose(IceV_Status) &&
+        getFlags().matchTestStatus(getFunctionName(), getSequenceNumber())) {
       getContext()->getStrDump() << ">>>Translating "
-                                 << getFunctionNameAndSize() << "\n";
+                                 << getFunctionNameAndSize()
+                                 << " seq=" << getSequenceNumber() << "\n";
     }
   }
   TimerMarker T_func(getContext(), getFunctionName().toStringOrEmpty());
@@ -222,7 +227,7 @@ void Cfg::translate() {
     profileBlocks();
     // TODO(jpp): this is fragile, at best. Figure out a better way of
     // detecting exit functions.
-    if (GlobalContext::matchSymbolName(getFunctionName(), "exit")) {
+    if (getFunctionName().toStringOrEmpty() == "exit") {
       addCallToProfileSummary();
     }
     dump("Profiled CFG");

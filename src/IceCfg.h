@@ -40,6 +40,7 @@ public:
 
   GlobalContext *getContext() const { return Ctx; }
   uint32_t getSequenceNumber() const { return SequenceNumber; }
+  OptLevel getOptLevel() const { return OptimizationLevel; }
 
   static constexpr VerboseMask defaultVerboseMask() {
     return (IceV_NO_PER_PASS_DUMP_BEYOND << 1) - 1;
@@ -296,7 +297,8 @@ private:
   void findRematerializable();
 
   GlobalContext *Ctx;
-  uint32_t SequenceNumber;             /// output order for emission
+  uint32_t SequenceNumber; /// output order for emission
+  OptLevel OptimizationLevel = Opt_m1;
   uint32_t ConstantBlindingCookie = 0; /// cookie for constant blinding
   VerboseMask VMask;
   GlobalString FunctionName;

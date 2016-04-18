@@ -6817,10 +6817,9 @@ void TargetDataARM32::lowerGlobals(const VariableDeclarationList &Vars,
   } break;
   case FT_Asm:
   case FT_Iasm: {
-    const std::string TranslateOnly = getFlags().getTranslateOnly();
     OstreamLocker _(Ctx);
     for (const VariableDeclaration *Var : Vars) {
-      if (GlobalContext::matchSymbolName(Var->getName(), TranslateOnly)) {
+      if (getFlags().matchTranslateOnly(Var->getName(), 0)) {
         emitGlobal(*Var, SectionSuffix);
       }
     }

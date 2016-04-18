@@ -367,18 +367,17 @@ void GlobalContext::translateFunctions() {
     CfgLocalAllocatorScope _(Func.get());
     // Reset per-function stats being accumulated in TLS.
     resetStats();
-    // Set verbose level to none if the current function does NOT
-    // match the -verbose-focus command-line option.
-    if (!matchSymbolName(Func->getFunctionName(),
-                         getFlags().getVerboseFocusOn()))
+    // Set verbose level to none if the current function does NOT match the
+    // -verbose-focus command-line option.
+    if (!getFlags().matchVerboseFocusOn(Func->getFunctionName(),
+                                        Func->getSequenceNumber()))
       Func->setVerbose(IceV_None);
-    // Disable translation if -notranslate is specified, or if the
-    // current function matches the -translate-only option.  If
-    // translation is disabled, just dump the high-level IR and
-    // continue.
+    // Disable translation if -notranslate is specified, or if the current
+    // function matches the -translate-only option.  If translation is disabled,
+    // just dump the high-level IR and continue.
     if (getFlags().getDisableTranslation() ||
-        !matchSymbolName(Func->getFunctionName(),
-                         getFlags().getTranslateOnly())) {
+        !getFlags().matchTranslateOnly(Func->getFunctionName(),
+                                       Func->getSequenceNumber())) {
       Func->dump();
       continue; // Func goes out of scope and gets deleted
     }
@@ -467,7 +466,7 @@ void GlobalContext::lowerGlobals(const std::string &SectionSuffix) {
   TimerMarker T(TimerStack::TT_emitGlobalInitializers, this);
   const bool DumpGlobalVariables =
       BuildDefs::dump() && (getFlags().getVerbose() & IceV_GlobalInit) &&
-      getFlags().getVerboseFocusOn().empty();
+      getFlags().matchVerboseFocusOn("", 0);
   if (DumpGlobalVariables) {
     OstreamLocker L(this);
     Ostream &Stream = getStrDump();
@@ -530,11 +529,6 @@ void GlobalContext::lowerProfileData() {
   Globals.push_back(ProfileBlockInfoVarDecl);
   constexpr char ProfileDataSection[] = "$sz_profiler$";
   lowerGlobals(ProfileDataSection);
-}
-
-bool GlobalContext::matchSymbolName(const GlobalString &SymbolName,
-                                    const std::string &Match) {
-  return Match.empty() || Match == SymbolName.toString();
 }
 
 void GlobalContext::emitItems() {
@@ -690,7 +684,7 @@ void GlobalContext::dumpConstantLookupCounts() {
   if (!BuildDefs::dump())
     return;
   const bool DumpCounts = (getFlags().getVerbose() & IceV_ConstPoolStats) &&
-                          getFlags().getVerboseFocusOn().empty();
+                          getFlags().matchVerboseFocusOn("", 0);
   if (!DumpCounts)
     return;
 
@@ -1024,7 +1018,7 @@ void TimerMarker::push() {
   switch (StackID) {
   case GlobalContext::TSK_Default:
     Active = getFlags().getSubzeroTimingEnabled() ||
-             !getFlags().getTimingFocusOn().empty();
+             !getFlags().getTimingFocusOnString().empty();
     break;
   case GlobalContext::TSK_Funcs:
     Active = getFlags().getTimeEachFunction();

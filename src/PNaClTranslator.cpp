@@ -22,6 +22,7 @@
 #include "IceGlobalInits.h"
 #include "IceInst.h"
 #include "IceOperand.h"
+#include "IceRangeSpec.h"
 
 #ifdef __clang__
 #pragma clang diagnostic push
@@ -481,10 +482,9 @@ private:
       // - DUMP is enabled
       // - The symbol is external
       // - The -timing-funcs flag is enabled
-      // - The -timing-focus flag is enabled
+      // - Some RangeSpec is initialized with actual names
       if (Ice::BuildDefs::dump() || !Decl->isInternal() ||
-          Ice::getFlags().getTimeEachFunction() ||
-          !Ice::getFlags().getTimingFocusOn().empty()) {
+          Ice::RangeSpec::hasNames() || Ice::getFlags().getTimeEachFunction()) {
         Decl->setName(Ctx, Translator.createUnnamedName(Prefix, NameIndex));
       } else {
         Decl->setName(Ctx);

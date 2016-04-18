@@ -181,7 +181,7 @@ public:
   virtual std::unique_ptr<Assembler> createAssembler() const = 0;
 
   void translate() {
-    switch (getFlags().getOptLevel()) {
+    switch (Func->getOptLevel()) {
     case Opt_m1:
       translateOm1();
       break;
