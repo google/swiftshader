@@ -347,6 +347,7 @@ GL_APICALL void FramebufferRenderbufferOES(GLenum target, GLenum attachment, GLe
 GL_APICALL void FramebufferTexture2DOES(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level);
 GL_APICALL void GetFramebufferAttachmentParameterivOES(GLenum target, GLenum attachment, GLenum pname, GLint* params);
 GL_APICALL void GenerateMipmapOES(GLenum target);
+GL_APICALL void DrawBuffersEXT(GLsizei n, const GLenum *bufs);
 }
 
 extern "C"
@@ -1318,6 +1319,11 @@ GL_APICALL void GL_APIENTRY glEGLImageTargetRenderbufferStorageOES(GLenum target
 	return es2::EGLImageTargetRenderbufferStorageOES(target, image);
 }
 
+GL_APICALL void GL_APIENTRY glDrawBuffersEXT(GLsizei n, const GLenum *bufs)
+{
+	return es2::DrawBuffersEXT(n, bufs);
+}
+
 void GL_APIENTRY Register(const char *licenseKey)
 {
 	RegisterLicenseKey(licenseKey);
@@ -1524,6 +1530,7 @@ LibGLESv2exports::LibGLESv2exports()
 	this->glFramebufferTexture2DOES = es2::FramebufferTexture2DOES;
 	this->glGetFramebufferAttachmentParameterivOES = es2::GetFramebufferAttachmentParameterivOES;
 	this->glGenerateMipmapOES = es2::GenerateMipmapOES;
+	this->glDrawBuffersEXT = es2::DrawBuffersEXT;
 
 	this->es2CreateContext = ::es2CreateContext;
 	this->es2GetProcAddress = ::es2GetProcAddress;

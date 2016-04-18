@@ -6,7 +6,7 @@
 
 //
 // Create strings that declare built-in definitions, add built-ins that
-// cannot be expressed in the files, and establish mappings between 
+// cannot be expressed in the files, and establish mappings between
 // built-in functions and operators.
 //
 
@@ -436,7 +436,7 @@ void IdentifyBuiltIns(GLenum shaderType,
                       TSymbolTable &symbolTable)
 {
     //
-    // First, insert some special built-in variables that are not in 
+    // First, insert some special built-in variables that are not in
     // the built-in header files.
     //
     switch(shaderType)
@@ -481,4 +481,6 @@ void InitExtensionBehavior(const ShBuiltInResources& resources,
         extBehavior["GL_FRAGMENT_PRECISION_HIGH"] = EBhUndefined;
     if(resources.OES_EGL_image_external)
         extBehavior["GL_OES_EGL_image_external"] = EBhUndefined;
+	if(resources.EXT_draw_buffers)
+        extBehavior["GL_EXT_draw_buffers"] = EBhUndefined;
 }

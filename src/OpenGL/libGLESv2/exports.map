@@ -182,6 +182,7 @@ global:
 	glFramebufferTexture2DOES;
 	glGetFramebufferAttachmentParameterivOES;
 	glGenerateMipmapOES;
+	glDrawBuffersEXT;
 
     # GLES 3.0 Functions
     glReadBuffer;
