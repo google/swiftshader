@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4898cc33_9856eda9",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 2853,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-04-18T21:07:01Z",
+      "side": 1,
+      "message": "Why the loop?",
+      "range": {
+        "startLine": 2850,
+        "startChar": 2,
+        "endLine": 2853,
+        "endChar": 3
+      },
+      "revId": "223fa8088319661cc32d3e077acd7798ff3f480b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
