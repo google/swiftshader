@@ -58,6 +58,8 @@ using v8::internal::wasm::DecodeWasmModule;
 #define LOG(Expr) log([&](Ostream & out) { Expr; })
 
 namespace {
+// 64KB
+const uint32_t WASM_PAGE_SIZE = 64 << 10;
 
 std::string toStdString(WasmName Name) {
   return std::string(Name.name, Name.length);
@@ -466,7 +468,7 @@ public:
       Control()->appendInst(
           InstIcmp::create(Func, InstIcmp::Ne, TmpDest, Left, Right));
       Control()->appendInst(
-          InstCast::create(Func, InstCast::Sext, Dest, TmpDest));
+          InstCast::create(Func, InstCast::Zext, Dest, TmpDest));
       break;
     }
     case kExprI32Eq:
@@ -475,7 +477,7 @@ public:
       Control()->appendInst(
           InstIcmp::create(Func, InstIcmp::Eq, TmpDest, Left, Right));
       Control()->appendInst(
-          InstCast::create(Func, InstCast::Sext, Dest, TmpDest));
+          InstCast::create(Func, InstCast::Zext, Dest, TmpDest));
       break;
     }
     case kExprI32LtS:
@@ -484,7 +486,7 @@ public:
       Control()->appendInst(
           InstIcmp::create(Func, InstIcmp::Slt, TmpDest, Left, Right));
       Control()->appendInst(
-          InstCast::create(Func, InstCast::Sext, Dest, TmpDest));
+          InstCast::create(Func, InstCast::Zext, Dest, TmpDest));
       break;
     }
     case kExprI32LeS:
@@ -493,7 +495,7 @@ public:
       Control()->appendInst(
           InstIcmp::create(Func, InstIcmp::Sle, TmpDest, Left, Right));
       Control()->appendInst(
-          InstCast::create(Func, InstCast::Sext, Dest, TmpDest));
+          InstCast::create(Func, InstCast::Zext, Dest, TmpDest));
       break;
     }
     case kExprI32GeU:
@@ -502,7 +504,7 @@ public:
       Control()->appendInst(
           InstIcmp::create(Func, InstIcmp::Uge, TmpDest, Left, Right));
       Control()->appendInst(
-          InstCast::create(Func, InstCast::Sext, Dest, TmpDest));
+          InstCast::create(Func, InstCast::Zext, Dest, TmpDest));
       break;
     }
     case kExprI32LeU:
@@ -511,7 +513,7 @@ public:
       Control()->appendInst(
           InstIcmp::create(Func, InstIcmp::Ule, TmpDest, Left, Right));
       Control()->appendInst(
-          InstCast::create(Func, InstCast::Sext, Dest, TmpDest));
+          InstCast::create(Func, InstCast::Zext, Dest, TmpDest));
       break;
     }
     case kExprI32LtU:
@@ -520,7 +522,7 @@ public:
       Control()->appendInst(
           InstIcmp::create(Func, InstIcmp::Ult, TmpDest, Left, Right));
       Control()->appendInst(
-          InstCast::create(Func, InstCast::Sext, Dest, TmpDest));
+          InstCast::create(Func, InstCast::Zext, Dest, TmpDest));
       break;
     }
     case kExprI32GeS:
@@ -529,7 +531,7 @@ public:
       Control()->appendInst(
           InstIcmp::create(Func, InstIcmp::Sge, TmpDest, Left, Right));
       Control()->appendInst(
-          InstCast::create(Func, InstCast::Sext, Dest, TmpDest));
+          InstCast::create(Func, InstCast::Zext, Dest, TmpDest));
     }
     case kExprI32GtS:
     case kExprI64GtS: {
@@ -537,7 +539,7 @@ public:
       Control()->appendInst(
           InstIcmp::create(Func, InstIcmp::Sgt, TmpDest, Left, Right));
       Control()->appendInst(
-          InstCast::create(Func, InstCast::Sext, Dest, TmpDest));
+          InstCast::create(Func, InstCast::Zext, Dest, TmpDest));
       break;
     }
     case kExprI32GtU:
@@ -546,7 +548,7 @@ public:
       Control()->appendInst(
           InstIcmp::create(Func, InstIcmp::Ugt, TmpDest, Left, Right));
       Control()->appendInst(
-          InstCast::create(Func, InstCast::Sext, Dest, TmpDest));
+          InstCast::create(Func, InstCast::Zext, Dest, TmpDest));
       break;
     }
     case kExprF32Ne:
@@ -555,7 +557,7 @@ public:
       Control()->appendInst(
           InstFcmp::create(Func, InstFcmp::Une, TmpDest, Left, Right));
       Control()->appendInst(
-          InstCast::create(Func, InstCast::Sext, Dest, TmpDest));
+          InstCast::create(Func, InstCast::Zext, Dest, TmpDest));
       break;
     }
     case kExprF32Le:
@@ -564,7 +566,7 @@ public:
       Control()->appendInst(
           InstFcmp::create(Func, InstFcmp::Ule, TmpDest, Left, Right));
       Control()->appendInst(
-          InstCast::create(Func, InstCast::Sext, Dest, TmpDest));
+          InstCast::create(Func, InstCast::Zext, Dest, TmpDest));
       break;
     }
     default:
@@ -585,7 +587,15 @@ public:
       auto *Tmp = makeVariable(IceType_i1);
       Control()->appendInst(InstIcmp::create(Func, InstIcmp::Eq, Tmp, Input,
                                              Ctx->getConstantInt32(0)));
-      Control()->appendInst(InstCast::create(Func, InstCast::Sext, Dest, Tmp));
+      Control()->appendInst(InstCast::create(Func, InstCast::Zext, Dest, Tmp));
+      break;
+    }
+    case kExprI64Eqz: {
+      Dest = makeVariable(IceType_i32);
+      auto *Tmp = makeVariable(IceType_i1);
+      Control()->appendInst(InstIcmp::create(Func, InstIcmp::Eq, Tmp, Input,
+                                             Ctx->getConstantInt64(0)));
+      Control()->appendInst(InstCast::create(Func, InstCast::Zext, Dest, Tmp));
       break;
     }
     case kExprF32Neg: {
@@ -673,7 +683,8 @@ public:
             << "\n");
 
     auto *CondBool = makeVariable(IceType_i1);
-    Ctrl->appendInst(InstCast::create(Func, InstCast::Trunc, CondBool, Cond));
+    Ctrl->appendInst(InstIcmp::create(Func, InstIcmp::Ne, CondBool, Cond,
+                                      Ctx->getConstantInt32(0)));
 
     Ctrl->appendInst(InstBr::create(Func, CondBool, *TrueNode, *FalseNode));
     return OperandNode(nullptr);
@@ -898,30 +909,45 @@ public:
   }
 
   Operand *sanitizeAddress(Operand *Base, uint32_t Offset) {
+    SizeT MemSize = Module->module->min_mem_pages * WASM_PAGE_SIZE;
+    SizeT MemMask = MemSize - 1;
+
+    bool ConstZeroBase = false;
+
     // first, add the index and the offset together.
-    if (0 != Offset) {
-      auto *Addr = makeVariable(IceType_i32);
+    if (auto *ConstBase = llvm::dyn_cast<ConstantInteger32>(Base)) {
+      uint32_t RealOffset = Offset + ConstBase->getValue();
+      RealOffset &= MemMask;
+      Base = Ctx->getConstantInt32(RealOffset);
+      ConstZeroBase = (0 == RealOffset);
+    } else if (0 != Offset) {
+      auto *Addr = makeVariable(Ice::getPointerType());
       auto *OffsetConstant = Ctx->getConstantInt32(Offset);
       Control()->appendInst(InstArithmetic::create(Func, InstArithmetic::Add,
                                                    Addr, Base, OffsetConstant));
+
       Base = Addr;
     }
 
-    SizeT MemSize = Module->module->min_mem_pages * (16 << 10);
-    auto *WrappedAddr = makeVariable(IceType_i32);
-    Control()->appendInst(
-        InstArithmetic::create(Func, InstArithmetic::Add, WrappedAddr, Base,
-                               Ctx->getConstantInt32(MemSize)));
+    if (!llvm::dyn_cast<ConstantInteger32>(Base)) {
+      auto *ClampedAddr = makeVariable(Ice::getPointerType());
+      Control()->appendInst(
+          InstArithmetic::create(Func, InstArithmetic::And, ClampedAddr, Base,
+                                 Ctx->getConstantInt32(MemSize - 1)));
+      Base = ClampedAddr;
+    }
 
-    auto ClampedAddr = makeVariable(IceType_i32);
-    Control()->appendInst(
-        InstArithmetic::create(Func, InstArithmetic::And, ClampedAddr, Base,
-                               Ctx->getConstantInt32(MemSize - 1)));
-
-    auto RealAddr = Func->makeVariable(IceType_i32);
+    Ice::Operand *RealAddr = nullptr;
     auto MemBase = Ctx->getConstantSym(0, Ctx->getGlobalString("WASM_MEMORY"));
-    Control()->appendInst(InstArithmetic::create(
-        Func, InstArithmetic::Add, RealAddr, ClampedAddr, MemBase));
+    if (!ConstZeroBase) {
+      auto RealAddrV = Func->makeVariable(Ice::getPointerType());
+      Control()->appendInst(InstArithmetic::create(
+          Func, InstArithmetic::Add, RealAddrV, Base, MemBase));
+
+      RealAddr = RealAddrV;
+    } else {
+      RealAddr = MemBase;
+    }
     return RealAddr;
   }
 
@@ -1213,14 +1239,11 @@ void WasmTranslator::translate(
     }
 
     // Pad the rest with zeros
-    SizeT DataSize = Module->min_mem_pages * (64 << 10);
+    SizeT DataSize = Module->min_mem_pages * WASM_PAGE_SIZE;
     if (WritePtr < DataSize) {
       WasmMemory->addInitializer(VariableDeclaration::ZeroInitializer::create(
           Globals.get(), DataSize - WritePtr));
     }
-
-    WasmMemory->addInitializer(VariableDeclaration::ZeroInitializer::create(
-        Globals.get(), Module->min_mem_pages * (64 << 10)));
 
     Globals->push_back(WasmMemory);
 

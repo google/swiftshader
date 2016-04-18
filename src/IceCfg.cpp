@@ -266,8 +266,9 @@ void Cfg::fixPhiNodes() {
 
 void Cfg::computeInOutEdges() {
   // Compute the out-edges.
-  for (CfgNode *Node : Nodes)
+  for (CfgNode *Node : Nodes) {
     Node->computeSuccessors();
+  }
 
   // Prune any unreachable nodes before computing in-edges.
   SizeT NumNodes = getNumNodes();

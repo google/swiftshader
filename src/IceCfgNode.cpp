@@ -28,7 +28,7 @@ namespace Ice {
 
 // Adds an instruction to either the Phi list or the regular instruction list.
 // Validates that all Phis are added before all regular instructions.
-void CfgNode::appendInst(Inst *Instr, bool AllowPhisAnywhere) {
+void CfgNode::appendInst(Inst *Instr) {
   ++InstCountEstimate;
 
   if (BuildDefs::wasm()) {
@@ -41,7 +41,7 @@ void CfgNode::appendInst(Inst *Instr, bool AllowPhisAnywhere) {
   }
 
   if (auto *Phi = llvm::dyn_cast<InstPhi>(Instr)) {
-    if (!AllowPhisAnywhere && !Insts.empty()) {
+    if (!Insts.empty()) {
       Func->setError("Phi instruction added to the middle of a block");
       return;
     }
@@ -84,6 +84,7 @@ void CfgNode::computePredecessors() {
 void CfgNode::computeSuccessors() {
   OutEdges.clear();
   InEdges.clear();
+  assert(!Insts.empty());
   OutEdges = Insts.rbegin()->getTerminatorEdges();
 }
 
