@@ -959,13 +959,9 @@ namespace sw
 
 		state.logicalOperation = context->colorLogicOp();
 
-		state.colorWriteMask = (context->colorWriteActive(0) << 0) |
-		                       (context->colorWriteActive(1) << 4) |
-		                       (context->colorWriteActive(2) << 8) |
-		                       (context->colorWriteActive(3) << 12);
-
 		for(int i = 0; i < RENDERTARGETS; i++)
 		{
+			state.colorWriteMask |= context->colorWriteActive(i) << (4 * i);
 			state.targetFormat[i] = context->renderTargetInternalFormat(i);
 		}
 

@@ -272,10 +272,11 @@ namespace sw
 
 		cullMode = CULL_CLOCKWISE;
 		alphaReference = 0.0f;
-		colorWriteMask[0] = 0x0000000F;
-		colorWriteMask[1] = 0x0000000F;
-		colorWriteMask[2] = 0x0000000F;
-		colorWriteMask[3] = 0x0000000F;
+
+		for(int i = 0; i < RENDERTARGETS; i++)
+		{
+			colorWriteMask[i] = 0x0000000F;
+		}
 
 		ambientMaterialSource = MATERIAL_MATERIAL;
 		diffuseMaterialSource = MATERIAL_COLOR1;
