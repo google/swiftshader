@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4898cc33_18397d80",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 6827,
+      "author": {
+        "id": 5655
+      },
+      "writtenOn": "2016-04-18T21:02:31Z",
+      "side": 1,
+      "message": "This still doesn\u0027t clear the unset buffers to NONE.",
+      "revId": "0a1046546b888d57f24605708151f4c357d6fa3c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
