@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "08b6d404_85eca8ac",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-19T21:13:11Z",
+      "side": 0,
+      "message": "Moved into cubeFace()",
+      "range": {
+        "startLine": 121,
+        "startChar": 3,
+        "endLine": 125,
+        "endChar": 4
+      },
+      "revId": "094f2bf1d01dd21f23e0d32848233508c2513627",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "08b6d404_65e99c9a",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 1455,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-19T21:13:11Z",
+      "side": 0,
+      "message": "Eliminated",
+      "range": {
+        "startLine": 1455,
+        "startChar": 13,
+        "endLine": 1455,
+        "endChar": 17
+      },
+      "revId": "094f2bf1d01dd21f23e0d32848233508c2513627",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}

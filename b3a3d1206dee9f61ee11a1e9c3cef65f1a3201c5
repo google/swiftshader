@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "08b6d404_e505ac38",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 1476,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-19T21:13:11Z",
+      "side": 1,
+      "message": "This part is identical to the 3D texture LOD determination. Using the Manhattan distance works because you can always trace axis-aligned connected lines from one point on the cube to another while remaining on the cube surface.",
+      "range": {
+        "startLine": 1460,
+        "startChar": 4,
+        "endLine": 1476,
+        "endChar": 81
+      },
+      "revId": "b3a3d1206dee9f61ee11a1e9c3cef65f1a3201c5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "08b6d404_c5fab058",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 1619,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-19T21:13:11Z",
+      "side": 1,
+      "message": "This used to be the signed largest component, now it\u0027s unsigned, so simply the maximum of the absolute values. This required adjusting the U and V determination as well. This code uses the Direct3D coordinate convention, so the drawing at https://msdn.microsoft.com/en-us/library/windows/desktop/bb204881(v\u003dvs.85).aspx can be used as reference.",
+      "range": {
+        "startLine": 1619,
+        "startChar": 2,
+        "endLine": 1619,
+        "endChar": 40
+      },
+      "revId": "b3a3d1206dee9f61ee11a1e9c3cef65f1a3201c5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "08b6d404_8515c864",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 1633,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-19T21:13:11Z",
+      "side": 1,
+      "message": "Simply divides the rays by their largest component, to obtain the intersections with the cube.",
+      "range": {
+        "startLine": 1631,
+        "startChar": 2,
+        "endLine": 1633,
+        "endChar": 15
+      },
+      "revId": "b3a3d1206dee9f61ee11a1e9c3cef65f1a3201c5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
