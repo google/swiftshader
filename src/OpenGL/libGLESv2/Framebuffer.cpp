@@ -602,6 +602,45 @@ GLenum Framebuffer::getImplementationColorReadType()
 	return GL_UNSIGNED_BYTE;
 }
 
+GLenum Framebuffer::getDepthReadFormat()
+{
+	Renderbuffer *depthbuffer = getDepthbuffer();
+
+	if (depthbuffer)
+	{
+		// There is only one depth read format.
+		return GL_DEPTH_COMPONENT;
+	}
+
+	// If there is no depth buffer, GL_INVALID_OPERATION occurs.
+	return GL_NONE;
+}
+
+GLenum Framebuffer::getDepthReadType()
+{
+	Renderbuffer *depthbuffer = getDepthbuffer();
+
+	if (depthbuffer)
+	{
+		switch (depthbuffer->getInternalFormat())
+		{
+		case sw::FORMAT_D16:                return GL_UNSIGNED_SHORT;
+		case sw::FORMAT_D24S8:              return GL_UNSIGNED_INT_24_8_OES;
+		case sw::FORMAT_D32:                return GL_UNSIGNED_INT;
+		case sw::FORMAT_D32F:
+		case sw::FORMAT_D32F_COMPLEMENTARY:
+		case sw::FORMAT_D32F_LOCKABLE:
+		case sw::FORMAT_D32FS8_TEXTURE:
+		case sw::FORMAT_D32FS8_SHADOW:      return GL_FLOAT;
+		default:
+			UNREACHABLE(depthbuffer->getInternalFormat());
+		}
+	}
+
+	// If there is no depth buffer, GL_INVALID_OPERATION occurs.
+	return GL_NONE;
+}
+
 DefaultFramebuffer::DefaultFramebuffer(Colorbuffer *colorbuffer, DepthStencilbuffer *depthStencil)
 {
 	GLenum defaultRenderbufferType = egl::getClientVersion() < 3 ? GL_RENDERBUFFER : GL_FRAMEBUFFER_DEFAULT;
