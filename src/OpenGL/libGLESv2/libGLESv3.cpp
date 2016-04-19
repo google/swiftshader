@@ -3392,9 +3392,7 @@ GL_APICALL GLboolean GL_APIENTRY glIsSampler(GLuint sampler)
 
 	if(context)
 	{
-		es2::Sampler *samplerObject = context->getSampler(sampler);
-
-		if(samplerObject)
+		if(context->isSampler(sampler))
 		{
 			return GL_TRUE;
 		}
