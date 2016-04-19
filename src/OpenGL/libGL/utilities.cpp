@@ -257,13 +257,14 @@ namespace gl
 			return sizeof(unsigned short);
 		case GL_UNSIGNED_INT:
 		case GL_UNSIGNED_INT_24_8_EXT:
-        case GL_UNSIGNED_INT_8_8_8_8_REV:
+		case GL_UNSIGNED_INT_8_8_8_8_REV:
 			return sizeof(unsigned int);
 		case GL_FLOAT:
 			switch(format)
 			{
 			case GL_ALPHA:           return sizeof(float);
 			case GL_LUMINANCE:       return sizeof(float);
+			case GL_DEPTH_COMPONENT: return sizeof(float);
 			case GL_LUMINANCE_ALPHA: return sizeof(float) * 2;
 			case GL_RGB:             return sizeof(float) * 3;
 			case GL_RGBA:            return sizeof(float) * 4;

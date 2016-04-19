@@ -632,12 +632,6 @@ bool DepthStencilbuffer::isShared() const
 
 Depthbuffer::Depthbuffer(egl::Image *depthStencil) : DepthStencilbuffer(depthStencil)
 {
-	if(depthStencil)
-	{
-		format = GL_DEPTH_COMPONENT16;   // If the renderbuffer parameters are queried, the calling function
-		                                 // will expect one of the valid renderbuffer formats for use in 
-		                                 // glRenderbufferStorage
-	}
 }
 
 Depthbuffer::Depthbuffer(int width, int height, GLenum format, GLsizei samples) : DepthStencilbuffer(width, height, format, samples)
@@ -650,12 +644,6 @@ Depthbuffer::~Depthbuffer()
 
 Stencilbuffer::Stencilbuffer(egl::Image *depthStencil) : DepthStencilbuffer(depthStencil)
 {
-	if(depthStencil)
-	{
-		format = GL_STENCIL_INDEX8;   // If the renderbuffer parameters are queried, the calling function
-		                              // will expect one of the valid renderbuffer formats for use in 
-		                              // glRenderbufferStorage
-	}
 }
 
 Stencilbuffer::Stencilbuffer(int width, int height, GLsizei samples) : DepthStencilbuffer(width, height, GL_STENCIL_INDEX8, samples)

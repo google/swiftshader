@@ -292,6 +292,30 @@ namespace sw
 			c.z = Float(Int((*Pointer<UInt>(element) & UInt(0x3FF00000)) >> 20));
 			c.w = Float(Int((*Pointer<UInt>(element) & UInt(0xC0000000)) >> 30));
 			break;
+		case FORMAT_D16:
+			c.x = Float(Int((*Pointer<UShort>(element))));
+			break;
+		case FORMAT_D24S8:
+			c.x = Float(Int((*Pointer<UInt>(element))));
+			break;
+		case FORMAT_D32:
+			c.x = Float(Int((*Pointer<UInt>(element))));
+			break;
+		case FORMAT_D32F:
+			c.x = *Pointer<Float>(element);
+			break;
+		case FORMAT_D32F_COMPLEMENTARY:
+			c.x = 1.0f - *Pointer<Float>(element);
+			break;
+		case FORMAT_D32F_LOCKABLE:
+			c.x = *Pointer<Float>(element);
+			break;
+		case FORMAT_D32FS8_TEXTURE:
+			c.x = *Pointer<Float>(element);
+			break;
+		case FORMAT_D32FS8_SHADOW:
+			c.x = *Pointer<Float>(element);
+			break;
 		default:
 			return false;
 		}
@@ -634,6 +658,30 @@ namespace sw
 				                                  (RoundInt(Float(c.w)) << 30)) & UInt(mask));
 			}
 			break;
+		case FORMAT_D16:
+			*Pointer<UShort>(element) = UShort(RoundInt(Float(c.x)));
+			break;
+		case FORMAT_D24S8:
+			*Pointer<UInt>(element) = UInt(RoundInt(Float(c.x)));
+			break;
+		case FORMAT_D32:
+			*Pointer<UInt>(element) = UInt(RoundInt(Float(c.x)));
+			break;
+		case FORMAT_D32F:
+			*Pointer<Float>(element) = c.x;
+			break;
+		case FORMAT_D32F_COMPLEMENTARY:
+			*Pointer<Float>(element) = 1.0f - c.x;
+			break;
+		case FORMAT_D32F_LOCKABLE:
+			*Pointer<Float>(element) = c.x;
+			break;
+		case FORMAT_D32FS8_TEXTURE:
+			*Pointer<Float>(element) = c.x;
+			break;
+		case FORMAT_D32FS8_SHADOW:
+			*Pointer<Float>(element) = c.x;
+			break;
 		default:
 			return false;
 		}
@@ -924,6 +972,22 @@ namespace sw
 			break;
 		case FORMAT_A2B10G10R10:
 			scale = vector(0x3FF, 0x3FF, 0x3FF, 0x03);
+			break;
+		case FORMAT_D16:
+			scale = vector(0xFFFF, 0.0f, 0.0f, 0.0f);
+			break;
+		case FORMAT_D24S8:
+			scale = vector(0xFFFFFF, 0.0f, 0.0f, 0.0f);
+			break;
+		case FORMAT_D32:
+			scale = vector(0xFFFFFFFF, 0.0f, 0.0f, 0.0f);
+			break;
+		case FORMAT_D32F:
+		case FORMAT_D32F_COMPLEMENTARY:
+		case FORMAT_D32F_LOCKABLE:
+		case FORMAT_D32FS8_TEXTURE:
+		case FORMAT_D32FS8_SHADOW:
+			scale = vector(1.0f, 0.0f, 0.0f, 0.0f);
 			break;
 		default:
 			return false;

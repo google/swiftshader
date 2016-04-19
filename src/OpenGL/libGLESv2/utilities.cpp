@@ -652,6 +652,24 @@ namespace es2
 		case GL_RG_EXT:
 		case GL_RED_EXT:
 			return (clientVersion >= 3) && (type == GL_UNSIGNED_BYTE);
+		case GL_DEPTH_COMPONENT:
+			if (internalFormat != format)
+			{
+				return false;
+			}
+			switch(type)
+			{
+			case GL_UNSIGNED_SHORT:
+			case GL_FLOAT:
+				if (internalType != type)
+				{
+					return false;
+				}
+				break;
+			default:
+				return false;
+			}
+			break;
 		default:
 			return false;
 		}

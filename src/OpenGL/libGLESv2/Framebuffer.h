@@ -32,76 +32,78 @@ class DepthStencilbuffer;
 class Framebuffer
 {
 public:
-    Framebuffer();
+	Framebuffer();
 
-    virtual ~Framebuffer();
+	virtual ~Framebuffer();
 
-    void setColorbuffer(GLenum type, GLuint colorbuffer, GLuint index, GLint level = 0, GLint layer = 0);
-    void setDepthbuffer(GLenum type, GLuint depthbuffer, GLint level = 0, GLint layer = 0);
-    void setStencilbuffer(GLenum type, GLuint stencilbuffer, GLint level = 0, GLint layer = 0);
+	void setColorbuffer(GLenum type, GLuint colorbuffer, GLuint index, GLint level = 0, GLint layer = 0);
+	void setDepthbuffer(GLenum type, GLuint depthbuffer, GLint level = 0, GLint layer = 0);
+	void setStencilbuffer(GLenum type, GLuint stencilbuffer, GLint level = 0, GLint layer = 0);
 
 	void setReadBuffer(GLenum buf);
 	void setDrawBuffer(GLuint index, GLenum buf);
 	GLenum getReadBuffer() const;
 	GLenum getDrawBuffer(GLuint index) const;
 
-    void detachTexture(GLuint texture);
-    void detachRenderbuffer(GLuint renderbuffer);
+	void detachTexture(GLuint texture);
+	void detachRenderbuffer(GLuint renderbuffer);
 
-    egl::Image *getRenderTarget(GLuint index);
-    egl::Image *getReadRenderTarget();
+	egl::Image *getRenderTarget(GLuint index);
+	egl::Image *getReadRenderTarget();
 	egl::Image *getDepthBuffer();
 	egl::Image *getStencilBuffer();
 
-    Renderbuffer *getColorbuffer(GLuint index);
-    Renderbuffer *getReadColorbuffer();
-    Renderbuffer *getDepthbuffer();
-    Renderbuffer *getStencilbuffer();
+	Renderbuffer *getColorbuffer(GLuint index);
+	Renderbuffer *getReadColorbuffer();
+	Renderbuffer *getDepthbuffer();
+	Renderbuffer *getStencilbuffer();
 
-    GLenum getColorbufferType(GLuint index);
-    GLenum getDepthbufferType();
-    GLenum getStencilbufferType();
+	GLenum getColorbufferType(GLuint index);
+	GLenum getDepthbufferType();
+	GLenum getStencilbufferType();
 
-    GLuint getColorbufferName(GLuint index);
-    GLuint getDepthbufferName();
-    GLuint getStencilbufferName();
+	GLuint getColorbufferName(GLuint index);
+	GLuint getDepthbufferName();
+	GLuint getStencilbufferName();
 
 	GLint getColorbufferLayer(GLuint index);
 	GLint getDepthbufferLayer();
 	GLint getStencilbufferLayer();
 
-    bool hasStencil();
+	bool hasStencil();
 
 	GLenum completeness();
 	GLenum completeness(int &width, int &height, int &samples);
 
 	GLenum getImplementationColorReadFormat();
 	GLenum getImplementationColorReadType();
+	GLenum getDepthReadFormat();
+	GLenum getDepthReadType();
 
 	virtual bool isDefaultFramebuffer() const { return false; }
 
 	static bool IsRenderbuffer(GLenum type);
 
 protected:
-    GLenum mColorbufferType[MAX_COLOR_ATTACHMENTS];
-    gl::BindingPointer<Renderbuffer> mColorbufferPointer[MAX_COLOR_ATTACHMENTS];
+	GLenum mColorbufferType[MAX_COLOR_ATTACHMENTS];
+	gl::BindingPointer<Renderbuffer> mColorbufferPointer[MAX_COLOR_ATTACHMENTS];
 	GLenum readBuffer;
 	GLenum drawBuffer[MAX_COLOR_ATTACHMENTS];
 
-    GLenum mDepthbufferType;
-    gl::BindingPointer<Renderbuffer> mDepthbufferPointer;
+	GLenum mDepthbufferType;
+	gl::BindingPointer<Renderbuffer> mDepthbufferPointer;
 
-    GLenum mStencilbufferType;
-    gl::BindingPointer<Renderbuffer> mStencilbufferPointer;
+	GLenum mStencilbufferType;
+	gl::BindingPointer<Renderbuffer> mStencilbufferPointer;
 
 private:
-    Renderbuffer *lookupRenderbuffer(GLenum type, GLuint handle, GLint level, GLint layer) const;
+	Renderbuffer *lookupRenderbuffer(GLenum type, GLuint handle, GLint level, GLint layer) const;
 };
 
 class DefaultFramebuffer : public Framebuffer
 {
 public:
-    DefaultFramebuffer(Colorbuffer *colorbuffer, DepthStencilbuffer *depthStencil);
+	DefaultFramebuffer(Colorbuffer *colorbuffer, DepthStencilbuffer *depthStencil);
 
 	bool isDefaultFramebuffer() const override { return true; }
 };

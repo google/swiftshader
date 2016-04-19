@@ -526,6 +526,16 @@ namespace egl
 			default: UNREACHABLE(type);
 			}
 			break;
+		case GL_DEPTH_COMPONENT:
+			switch(type)
+			{
+			case GL_UNSIGNED_SHORT:        return sw::FORMAT_D16;
+			case GL_UNSIGNED_INT_24_8_OES: return sw::FORMAT_D24S8;
+			case GL_UNSIGNED_INT:          return sw::FORMAT_D32;
+			case GL_FLOAT:                 return sw::FORMAT_D32F;
+			default: UNREACHABLE(type);
+			}
+			break;
 		default:
 			UNREACHABLE(format);
 		}
