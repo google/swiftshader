@@ -987,7 +987,10 @@ void Context::deleteTexture(GLuint texture)
 
 void Context::deleteRenderbuffer(GLuint renderbuffer)
 {
-	detachRenderbuffer(renderbuffer);
+	if(mResourceManager->getRenderbuffer(renderbuffer))
+	{
+		detachRenderbuffer(renderbuffer);
+	}
 
     mResourceManager->deleteRenderbuffer(renderbuffer);
 }

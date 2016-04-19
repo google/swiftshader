@@ -341,7 +341,7 @@ void ResourceManager::checkSamplerAllocation(GLuint sampler)
 
 bool ResourceManager::isSampler(GLuint sampler)
 {
-	return mSamplerNameSpace.find(sampler) != nullptr;
+	return mSamplerNameSpace.isReserved(sampler);
 }
 
 }
