@@ -63,7 +63,7 @@ namespace sw
 		void computeClipFlags();
 		void postTransform();
 		void writeCache(Pointer<Byte> &cacheLine);
-		void writeVertex(const Pointer<Byte> &vertex, Pointer<Byte> &cacheLine);
+		void writeVertex(const Pointer<Byte> &vertex, Pointer<Byte> &cacheLine, const UInt &primitiveNumber, const UInt &indexInPrimitive);
 	};
 }
 
