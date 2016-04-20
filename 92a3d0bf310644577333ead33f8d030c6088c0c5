@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "085974e9_58a46dcc",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 487,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-04-20T18:46:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "085974e9_6d95edb8",
+      "range": {
+        "startLine": 487,
+        "startChar": 2,
+        "endLine": 487,
+        "endChar": 60
+      },
+      "revId": "92a3d0bf310644577333ead33f8d030c6088c0c5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "085974e9_2d9ff5d8",
         "filename": "src/OpenGL/compiler/OutputASM.cpp",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2016-04-20T18:14:08Z",
       "side": 1,
       "message": "I don\u0027t think this is necessary. Just return false immediately for unhandled cases.",
+      "range": {
+        "startLine": 488,
+        "startChar": 2,
+        "endLine": 488,
+        "endChar": 37
+      },
+      "revId": "92a3d0bf310644577333ead33f8d030c6088c0c5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "085974e9_78a129bb",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 488,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-04-20T18:46:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "085974e9_2d9ff5d8",
       "range": {
         "startLine": 488,
         "startChar": 2,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "085974e9_18aef5aa",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 518,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-04-20T18:46:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "085974e9_8d6629b6",
+      "range": {
+        "startLine": 518,
+        "startChar": 5,
+        "endLine": 518,
+        "endChar": 6
+      },
+      "revId": "92a3d0bf310644577333ead33f8d030c6088c0c5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "085974e9_6d7e4d3b",
         "filename": "src/OpenGL/compiler/OutputASM.cpp",
         "patchSetId": 1
@@ -82,6 +154,30 @@
       "writtenOn": "2016-04-20T18:14:08Z",
       "side": 1,
       "message": "return false",
+      "range": {
+        "startLine": 538,
+        "startChar": 4,
+        "endLine": 538,
+        "endChar": 10
+      },
+      "revId": "92a3d0bf310644577333ead33f8d030c6088c0c5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "085974e9_38abb19b",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 538,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-04-20T18:46:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "085974e9_6d7e4d3b",
       "range": {
         "startLine": 538,
         "startChar": 4,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "085974e9_58cd4d82",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 631,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-04-20T18:46:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "085974e9_ad368592",
+      "range": {
+        "startLine": 631,
+        "startChar": 6,
+        "endLine": 631,
+        "endChar": 45
+      },
+      "revId": "92a3d0bf310644577333ead33f8d030c6088c0c5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "085974e9_2de7f527",
         "filename": "src/OpenGL/compiler/OutputASM.cpp",
         "patchSetId": 1
@@ -128,6 +248,30 @@
       "writtenOn": "2016-04-20T18:14:08Z",
       "side": 1,
       "message": "Would be nice to have a more descriptive name.",
+      "range": {
+        "startLine": 634,
+        "startChar": 18,
+        "endLine": 634,
+        "endChar": 25
+      },
+      "revId": "92a3d0bf310644577333ead33f8d030c6088c0c5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "085974e9_382891c4",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 634,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-04-20T18:46:15Z",
+      "side": 1,
+      "message": "Maybe leftRootNode, since it\u0027s left\u0027s left\u0027s left... until we hit a symbol.",
+      "parentUuid": "085974e9_2de7f527",
       "range": {
         "startLine": 634,
         "startChar": 18,
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "085974e9_98ebc5c6",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 685,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-04-20T18:46:15Z",
+      "side": 1,
+      "message": "??? Not if visit is PostVisit. I could change it to a PreVisit check if you prefer.",
+      "parentUuid": "085974e9_4deef115",
+      "range": {
+        "startLine": 681,
+        "startChar": 4,
+        "endLine": 685,
+        "endChar": 5
+      },
+      "revId": "92a3d0bf310644577333ead33f8d030c6088c0c5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "085974e9_6d140dd6",
         "filename": "src/OpenGL/compiler/OutputASM.cpp",
         "patchSetId": 1
@@ -174,6 +342,30 @@
       "writtenOn": "2016-04-20T18:14:08Z",
       "side": 1,
       "message": "reverse",
+      "range": {
+        "startLine": 719,
+        "startChar": 6,
+        "endLine": 719,
+        "endChar": 45
+      },
+      "revId": "92a3d0bf310644577333ead33f8d030c6088c0c5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "085974e9_b8f001b1",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 719,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-04-20T18:46:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "085974e9_6d140dd6",
       "range": {
         "startLine": 719,
         "startChar": 6,
@@ -209,6 +401,30 @@
     },
     {
       "key": {
+        "uuid": "085974e9_f82199e8",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 753,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-04-20T18:46:15Z",
+      "side": 1,
+      "message": "Not in PostVisit",
+      "parentUuid": "085974e9_0d11d9e4",
+      "range": {
+        "startLine": 749,
+        "startChar": 4,
+        "endLine": 753,
+        "endChar": 5
+      },
+      "revId": "92a3d0bf310644577333ead33f8d030c6088c0c5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "085974e9_ade44556",
         "filename": "src/OpenGL/compiler/OutputASM.h",
         "patchSetId": 1
@@ -220,6 +436,30 @@
       "writtenOn": "2016-04-20T18:14:08Z",
       "side": 1,
       "message": "Can be made a reference since it\u0027s never null",
+      "range": {
+        "startLine": 273,
+        "startChar": 58,
+        "endLine": 273,
+        "endChar": 62
+      },
+      "revId": "92a3d0bf310644577333ead33f8d030c6088c0c5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "085974e9_8da709e3",
+        "filename": "src/OpenGL/compiler/OutputASM.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 273,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-04-20T18:46:15Z",
+      "side": 1,
+      "message": "Sure, I thought you\u0027d prefer pointers to make it clear that it\u0027s an output.",
+      "parentUuid": "085974e9_ade44556",
       "range": {
         "startLine": 273,
         "startChar": 58,
