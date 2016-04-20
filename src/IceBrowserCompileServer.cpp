@@ -15,6 +15,7 @@
 // Can only compile this with the NaCl compiler (needs irt.h, and the
 // unsandboxed LLVM build using the trusted compiler does not have irt.h).
 #include "IceBrowserCompileServer.h"
+#include "IceRangeSpec.h"
 
 #if PNACL_BROWSER_TRANSLATOR
 
@@ -27,6 +28,7 @@
 #include "llvm/Support/QueueStreamer.h"
 
 #include <cstring>
+#include <fstream>
 #include <irt.h>
 #include <irt_dev.h>
 #include <pthread.h>
@@ -48,6 +50,60 @@ void getIRTInterfaces() {
     llvm::report_fatal_error("Failed to get translator compile IRT interface");
 }
 
+// Allow pnacl-sz arguments to be supplied externally, instead of coming from
+// the browser.  This is meant to be used for debugging.
+//
+// If the SZARGFILE environment variable is set to a file name, arguments are
+// read from that file, one argument per line.  This requires setting 3
+// environment variables before starting the browser:
+//
+// NACL_ENV_PASSTHROUGH=NACL_DANGEROUS_ENABLE_FILE_ACCESS,NACLENV_SZARGFILE
+// NACL_DANGEROUS_ENABLE_FILE_ACCESS=1
+// NACLENV_SZARGFILE=/path/to/myargs.txt
+//
+// In addition, Chrome needs to be launched with the "--no-sandbox" argument.
+//
+// If the SZARGLIST environment variable is set, arguments are extracted from
+// that variable's value, separated by the '|' character (being careful to
+// escape/quote special shell characters).  This requires setting 2 environment
+// variables before starting the browser:
+//
+// NACL_ENV_PASSTHROUGH=NACLENV_SZARGLIST
+// NACLENV_SZARGLIST=arg
+//
+// This does not require the "--no-sandbox" argument, and is therefore much
+// safer, but does require restarting the browser to change the arguments.
+//
+// If external arguments are supplied, the browser's NumThreads specification is
+// ignored, to allow -threads to be specified as an external argument.  Note
+// that the browser normally supplies the "-O2" argument, so externally supplied
+// arguments might want to provide an explicit -O argument.
+std::vector<std::string> getExternalArgs() {
+  std::vector<std::string> ExternalArgs;
+  if (BuildDefs::minimal())
+    return ExternalArgs;
+  char ArgsFileVar[] = "SZARGFILE";
+  char ArgsListVar[] = "SZARGLIST";
+  if (const char *ArgsFilename = getenv(ArgsFileVar)) {
+    std::ifstream ArgsStream(ArgsFilename);
+    std::string Arg;
+    while (ArgsStream >> std::ws, std::getline(ArgsStream, Arg)) {
+      if (!Arg.empty() && Arg[0] == '#')
+        continue;
+      ExternalArgs.emplace_back(Arg);
+    }
+    if (ExternalArgs.empty()) {
+      llvm::report_fatal_error("Failed to read arguments from file '" +
+                               std::string(ArgsFilename) + "'");
+    }
+  } else if (const char *ArgsList = getenv(ArgsListVar)) {
+    // Leverage the RangeSpec tokenizer.
+    auto Args = RangeSpec::tokenize(ArgsList, '|');
+    ExternalArgs.insert(ExternalArgs.end(), Args.begin(), Args.end());
+  }
+  return ExternalArgs;
+}
+
 char *onInitCallback(uint32_t NumThreads, int *ObjFileFDs,
                      size_t ObjFileFDCount, char **CLArgs, size_t CLArgsLen) {
   if (ObjFileFDCount < 1) {
@@ -65,16 +121,27 @@ char *onInitCallback(uint32_t NumThreads, int *ObjFileFDs,
     return strdup(StrBuf.str().c_str());
   }
   // CLArgs is almost an "argv", but is missing the argv[0] program name.
-  std::vector<char *> Argv;
-  char ProgramName[] = "pnacl-sz.nexe";
+  std::vector<const char *> Argv;
+  constexpr static char ProgramName[] = "pnacl-sz.nexe";
   Argv.reserve(CLArgsLen + 1);
   Argv.push_back(ProgramName);
-  for (size_t i = 0; i < CLArgsLen; ++i) {
-    Argv.push_back(CLArgs[i]);
+
+  bool UseNumThreadsFromBrowser = true;
+  auto ExternalArgs = getExternalArgs();
+  if (ExternalArgs.empty()) {
+    for (size_t i = 0; i < CLArgsLen; ++i) {
+      Argv.push_back(CLArgs[i]);
+    }
+  } else {
+    for (auto &Arg : ExternalArgs) {
+      Argv.emplace_back(Arg.c_str());
+    }
+    UseNumThreadsFromBrowser = false;
   }
   // NOTE: strings pointed to by argv are owned by the caller, but we parse
   // here before returning and don't store them.
-  gCompileServer->getParsedFlags(NumThreads, Argv.size(), Argv.data());
+  gCompileServer->getParsedFlags(UseNumThreadsFromBrowser, NumThreads,
+                                 Argv.size(), Argv.data());
   gCompileServer->startCompileThread(ObjFileFD);
   return nullptr;
 }
@@ -162,12 +229,14 @@ void BrowserCompileServer::run() {
   gIRTFuncs.serve_translate_request(&SubzeroCallbacks);
 }
 
-void BrowserCompileServer::getParsedFlags(uint32_t NumThreads, int argc,
-                                          char **argv) {
+void BrowserCompileServer::getParsedFlags(bool UseNumThreadsFromBrowser,
+                                          uint32_t NumThreads, int argc,
+                                          const char *const *argv) {
   ClFlags::parseFlags(argc, argv);
   ClFlags::getParsedClFlags(ClFlags::Flags);
   // Set some defaults which aren't specified via the argv string.
-  ClFlags::Flags.setNumTranslationThreads(NumThreads);
+  if (UseNumThreadsFromBrowser)
+    ClFlags::Flags.setNumTranslationThreads(NumThreads);
   ClFlags::Flags.setUseSandboxing(true);
   ClFlags::Flags.setOutFileType(FT_Elf);
   ClFlags::Flags.setTargetArch(getTargetArch());
@@ -206,8 +275,19 @@ void BrowserCompileServer::endInputStream() { InputStream->SetDone(); }
 
 void BrowserCompileServer::startCompileThread(int ObjFD) {
   InputStream = new llvm::QueueStreamer();
-  LogStream = getOutputStream(STDOUT_FILENO);
+  bool LogStreamFailure = false;
+  int LogFD = STDOUT_FILENO;
+  if (getFlags().getLogFilename() == "/dev/stderr") {
+    LogFD = STDERR_FILENO;
+  } else {
+    LogStreamFailure = true;
+  }
+  LogStream = getOutputStream(LogFD);
   LogStream->SetUnbuffered();
+  if (LogStreamFailure) {
+    *LogStream
+        << "Warning: Log file name must be either '-' or '/dev/stderr'\n";
+  }
   EmitStream = getOutputStream(ObjFD);
   EmitStream->SetBufferSize(1 << 14);
   std::unique_ptr<StringStream> ErrStrm(new StringStream());

@@ -89,6 +89,8 @@ std::unique_ptr<Ostream> makeStream(const std::string &Filename,
                                     std::error_code &EC) {
   if (Filename == "-") {
     return std::unique_ptr<Ostream>(new llvm::raw_os_ostream(std::cout));
+  } else if (Filename == "/dev/stderr") {
+    return std::unique_ptr<Ostream>(new llvm::raw_os_ostream(std::cerr));
   } else {
     return std::unique_ptr<Ostream>(
         new llvm::raw_fd_ostream(Filename, EC, llvm::sys::fs::F_None));

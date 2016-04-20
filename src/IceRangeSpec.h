@@ -59,6 +59,12 @@ public:
   // matching on function name works correctly.  Note that this is not
   // thread-safe, so we count on all this being handled by the startup thread.
   static bool hasNames() { return HasNames; }
+  // Helper function to tokenize a string into a vector of string tokens, given
+  // a single delimiter character.  An empty string produces an empty token
+  // vector.  Zero-length tokens are allowed, e.g. ",a,,,b," may tokenize to
+  // {"","a","","","b",""}.
+  static std::vector<std::string> tokenize(const std::string &Spec,
+                                           char Delimiter);
 
 private:
   void include(const std::string &Token);

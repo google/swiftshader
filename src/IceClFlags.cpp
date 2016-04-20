@@ -106,7 +106,7 @@ namespace Ice {
 
 ClFlags ClFlags::Flags;
 
-void ClFlags::parseFlags(int argc, char **argv) {
+void ClFlags::parseFlags(int argc, const char *const *argv) {
   cl::ParseCommandLineOptions(argc, argv);
   AppNameObj = argv[0];
 }

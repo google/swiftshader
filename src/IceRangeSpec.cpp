@@ -36,24 +36,6 @@ bool RangeSpec::HasNames = false;
 
 namespace {
 
-/// Helper function to tokenize a string into a vector of string tokens, given a
-/// single delimiter character.  An empty string produces an empty token vector.
-/// Zero-length tokens are allowed, e.g. ",a,,,b," may tokenize to
-/// {"","a","","","b",""}.
-std::vector<std::string> tokenize(const std::string &Spec, char Delimiter) {
-  std::vector<std::string> Tokens;
-  if (!Spec.empty()) {
-    std::string::size_type StartPos = 0;
-    std::string::size_type DelimPos = 0;
-    while (DelimPos != std::string::npos) {
-      DelimPos = Spec.find(Delimiter, StartPos);
-      Tokens.emplace_back(Spec.substr(StartPos, DelimPos - StartPos));
-      StartPos = DelimPos + 1;
-    }
-  }
-  return Tokens;
-}
-
 /// Helper function to parse "X" or "X:Y" into First and Last.
 /// - "X" is treated as "X:X+1".
 /// - ":Y" is treated as "0:Y".
@@ -66,7 +48,7 @@ std::vector<std::string> tokenize(const std::string &Spec, char Delimiter) {
 /// report_fatal_error is called.
 void getRange(const std::string &Token, uint32_t *First, uint32_t *Last) {
   bool Error = false;
-  auto Tokens = tokenize(Token, RangeSpec::DELIM_RANGE);
+  auto Tokens = RangeSpec::tokenize(Token, RangeSpec::DELIM_RANGE);
   if (Tokens.size() == 1) {
     *First = std::stoul(Tokens[0]);
     *Last = *First + 1;
@@ -111,6 +93,21 @@ void record(const std::string &Token, RangeSpec::Desc *D) {
 }
 
 } // end of anonymous namespace
+
+std::vector<std::string> RangeSpec::tokenize(const std::string &Spec,
+                                             char Delimiter) {
+  std::vector<std::string> Tokens;
+  if (!Spec.empty()) {
+    std::string::size_type StartPos = 0;
+    std::string::size_type DelimPos = 0;
+    while (DelimPos != std::string::npos) {
+      DelimPos = Spec.find(Delimiter, StartPos);
+      Tokens.emplace_back(Spec.substr(StartPos, DelimPos - StartPos));
+      StartPos = DelimPos + 1;
+    }
+  }
+  return Tokens;
+}
 
 /// Initialize the RangeSpec with the given string.  Calling init multiple times
 /// (e.g. init("A");init("B");) is equivalent to init("A,B"); .

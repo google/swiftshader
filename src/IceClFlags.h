@@ -82,7 +82,7 @@ public:
   ///
   /// This is done use cl::ParseCommandLineOptions() and the static variables of
   /// type cl::opt defined in IceClFlags.cpp
-  static void parseFlags(int argc, char *argv[]);
+  static void parseFlags(int argc, const char *const *argv);
 
   /// Reset all configuration options to their nominal values.
   void resetClFlags();

@@ -50,7 +50,8 @@ public:
   ErrorCode &getErrorCode() final;
 
   /// Parse and set up the flags for compile jobs.
-  void getParsedFlags(uint32_t NumThreads, int argc, char **argv);
+  void getParsedFlags(bool UseNumThreadsFromBrowser, uint32_t NumThreads,
+                      int argc, const char *const *argv);
 
   /// Creates the streams + context and starts the compile thread, handing off
   /// the streams + context.
