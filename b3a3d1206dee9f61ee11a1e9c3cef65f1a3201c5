@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "085974e9_07ea18ef",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 1476,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-20T14:37:14Z",
+      "side": 1,
+      "message": "Actually this isn\u0027t the Manhattan distance. It\u0027s just the 3D distance. I\u0027ll check if the results are even better when using true Manhattan.",
+      "parentUuid": "08b6d404_e505ac38",
+      "range": {
+        "startLine": 1460,
+        "startChar": 4,
+        "endLine": 1476,
+        "endChar": 81
+      },
+      "revId": "b3a3d1206dee9f61ee11a1e9c3cef65f1a3201c5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "08b6d404_c5fab058",
         "filename": "src/Shader/SamplerCore.cpp",
         "patchSetId": 6
