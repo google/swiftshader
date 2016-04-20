@@ -1,0 +1,234 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "085974e9_6d95edb8",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 487,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-20T18:14:08Z",
+      "side": 1,
+      "message": "Just move this into the if(binary) block below so you don\u0027t test it twice.",
+      "range": {
+        "startLine": 487,
+        "startChar": 2,
+        "endLine": 487,
+        "endChar": 60
+      },
+      "revId": "92a3d0bf310644577333ead33f8d030c6088c0c5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "085974e9_2d9ff5d8",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 488,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-20T18:14:08Z",
+      "side": 1,
+      "message": "I don\u0027t think this is necessary. Just return false immediately for unhandled cases.",
+      "range": {
+        "startLine": 488,
+        "startChar": 2,
+        "endLine": 488,
+        "endChar": 37
+      },
+      "revId": "92a3d0bf310644577333ead33f8d030c6088c0c5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "085974e9_8d6629b6",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 518,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-20T18:14:08Z",
+      "side": 1,
+      "message": "else return false",
+      "range": {
+        "startLine": 518,
+        "startChar": 5,
+        "endLine": 518,
+        "endChar": 6
+      },
+      "revId": "92a3d0bf310644577333ead33f8d030c6088c0c5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "085974e9_6d7e4d3b",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 538,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-20T18:14:08Z",
+      "side": 1,
+      "message": "return false",
+      "range": {
+        "startLine": 538,
+        "startChar": 4,
+        "endLine": 538,
+        "endChar": 10
+      },
+      "revId": "92a3d0bf310644577333ead33f8d030c6088c0c5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "085974e9_ad368592",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 631,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-20T18:14:08Z",
+      "side": 1,
+      "message": "reverse order",
+      "range": {
+        "startLine": 631,
+        "startChar": 6,
+        "endLine": 631,
+        "endChar": 45
+      },
+      "revId": "92a3d0bf310644577333ead33f8d030c6088c0c5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "085974e9_2de7f527",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 634,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-20T18:14:08Z",
+      "side": 1,
+      "message": "Would be nice to have a more descriptive name.",
+      "range": {
+        "startLine": 634,
+        "startChar": 18,
+        "endLine": 634,
+        "endChar": 25
+      },
+      "revId": "92a3d0bf310644577333ead33f8d030c6088c0c5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "085974e9_4deef115",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 685,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-20T18:14:08Z",
+      "side": 1,
+      "message": "If this is reached we\u0027re done either way, so can just return false unconditionally",
+      "range": {
+        "startLine": 681,
+        "startChar": 4,
+        "endLine": 685,
+        "endChar": 5
+      },
+      "revId": "92a3d0bf310644577333ead33f8d030c6088c0c5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "085974e9_6d140dd6",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 719,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-20T18:14:08Z",
+      "side": 1,
+      "message": "reverse",
+      "range": {
+        "startLine": 719,
+        "startChar": 6,
+        "endLine": 719,
+        "endChar": 45
+      },
+      "revId": "92a3d0bf310644577333ead33f8d030c6088c0c5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "085974e9_0d11d9e4",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 753,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-20T18:14:08Z",
+      "side": 1,
+      "message": "return false",
+      "range": {
+        "startLine": 749,
+        "startChar": 4,
+        "endLine": 753,
+        "endChar": 5
+      },
+      "revId": "92a3d0bf310644577333ead33f8d030c6088c0c5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "085974e9_ade44556",
+        "filename": "src/OpenGL/compiler/OutputASM.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 273,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-20T18:14:08Z",
+      "side": 1,
+      "message": "Can be made a reference since it\u0027s never null",
+      "range": {
+        "startLine": 273,
+        "startChar": 58,
+        "endLine": 273,
+        "endChar": 62
+      },
+      "revId": "92a3d0bf310644577333ead33f8d030c6088c0c5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
