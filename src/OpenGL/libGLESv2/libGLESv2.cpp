@@ -3144,7 +3144,14 @@ void GetProgramiv(GLuint program, GLenum pname, GLint* params)
 
 		if(!programObject)
 		{
-			return error(GL_INVALID_VALUE);
+			if(context->getShader(program))
+			{
+				return error(GL_INVALID_OPERATION);
+			}
+			else
+			{
+				return error(GL_INVALID_VALUE);
+			}
 		}
 
 		GLint clientVersion = egl::getClientVersion();
@@ -3251,7 +3258,14 @@ void GetProgramInfoLog(GLuint program, GLsizei bufsize, GLsizei* length, GLchar*
 
 		if(!programObject)
 		{
-			return error(GL_INVALID_VALUE);
+			if(context->getShader(program))
+			{
+				return error(GL_INVALID_OPERATION);
+			}
+			else
+			{
+				return error(GL_INVALID_VALUE);
+			}
 		}
 
 		programObject->getInfoLog(bufsize, length, infolog);
@@ -3371,7 +3385,14 @@ void GetShaderiv(GLuint shader, GLenum pname, GLint* params)
 
 		if(!shaderObject)
 		{
-			return error(GL_INVALID_VALUE);
+			if(context->getProgram(shader))
+			{
+				return error(GL_INVALID_OPERATION);
+			}
+			else
+			{
+				return error(GL_INVALID_VALUE);
+			}
 		}
 
 		switch(pname)
@@ -3415,7 +3436,14 @@ void GetShaderInfoLog(GLuint shader, GLsizei bufsize, GLsizei* length, GLchar* i
 
 		if(!shaderObject)
 		{
-			return error(GL_INVALID_VALUE);
+			if(context->getProgram(shader))
+			{
+				return error(GL_INVALID_OPERATION);
+			}
+			else
+			{
+				return error(GL_INVALID_VALUE);
+			}
 		}
 
 		shaderObject->getInfoLog(bufsize, length, infolog);
@@ -3477,7 +3505,14 @@ void GetShaderSource(GLuint shader, GLsizei bufsize, GLsizei* length, GLchar* so
 
 		if(!shaderObject)
 		{
-			return error(GL_INVALID_OPERATION);
+			if(context->getProgram(shader))
+			{
+				return error(GL_INVALID_OPERATION);
+			}
+			else
+			{
+				return error(GL_INVALID_VALUE);
+			}
 		}
 
 		shaderObject->getSource(bufsize, length, source);
