@@ -277,7 +277,9 @@ void BrowserCompileServer::startCompileThread(int ObjFD) {
   InputStream = new llvm::QueueStreamer();
   bool LogStreamFailure = false;
   int LogFD = STDOUT_FILENO;
-  if (getFlags().getLogFilename() == "/dev/stderr") {
+  if (getFlags().getLogFilename() == "-") {
+    // Common case, do nothing.
+  } else if (getFlags().getLogFilename() == "/dev/stderr") {
     LogFD = STDERR_FILENO;
   } else {
     LogStreamFailure = true;
