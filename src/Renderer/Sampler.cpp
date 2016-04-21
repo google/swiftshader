@@ -178,9 +178,9 @@ namespace sw
 					mipmap.fDepth[3] = (float)depth / 65536.0f;
 				}
 
-				short halfTexelU = isPow2(width)  ? 0x8000 >> logWidth  : 0x8000 / width;
-				short halfTexelV = isPow2(height) ? 0x8000 >> logHeight : 0x8000 / height;
-				short halfTexelW = isPow2(depth)  ? 0x8000 >> logDepth  : 0x8000 / depth;
+				short halfTexelU = 0x8000 / width;
+				short halfTexelV = 0x8000 / height;
+				short halfTexelW = 0x8000 / depth;
 
 				mipmap.uHalf[0] = halfTexelU;
 				mipmap.uHalf[1] = halfTexelU;
@@ -400,9 +400,12 @@ namespace sw
 			return false;
 		}
 
-		if(texture.mipmap[0].width[0] != texture.mipmap[0].onePitchP[1])
+		for(int i = 0; i < MIPMAP_LEVELS; i++)
 		{
-			return true;   // Shifting of the texture coordinates doesn't yield the correct address, so using multiply by pitch
+			if(texture.mipmap[i].width[0] != texture.mipmap[i].onePitchP[1])
+			{
+				return true;   // Shifting of the texture coordinates doesn't yield the correct address, so using multiply by pitch
+			}
 		}
 
 		return !isPow2(texture.mipmap[0].width[0]) || !isPow2(texture.mipmap[0].height[0]) || !isPow2(texture.mipmap[0].depth[0]);
