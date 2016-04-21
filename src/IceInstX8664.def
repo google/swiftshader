@@ -81,13 +81,13 @@
   X(Reg_r15l, 15, "r15b", Reg_r15, 0,1,0,0,1, 1,0,0,0,1, 0, 0,0,0,1,0,         \
     REGLIST3(RegX8664, r15, r15d, r15w))                                       \
   /* High 8-bit registers.  None are allowed for register allocation. */       \
-  X(Reg_ah, 4, "ah", Reg_rax, 1,0,0,0,0, 1,0,0,0,0, 0, 0,0,0,0,1,              \
+  X(Reg_ah, 4, "ah", Reg_rax, 1,0,0,0,0, 1,0,0,0,0, 0, 0,0,0,0,0,              \
     REGLIST3(RegX8664, rax, eax, ax))                                          \
-  X(Reg_ch, 5, "ch", Reg_rcx, 1,0,0,0,0, 1,0,0,0,0, 0, 0,0,0,0,1,              \
+  X(Reg_ch, 5, "ch", Reg_rcx, 1,0,0,0,0, 1,0,0,0,0, 0, 0,0,0,0,0,              \
     REGLIST3(RegX8664, rcx, ecx, cx))                                          \
-  X(Reg_dh, 6, "dh", Reg_rdx, 1,0,0,0,0, 1,0,0,0,0, 0, 0,0,0,0,1,              \
+  X(Reg_dh, 6, "dh", Reg_rdx, 1,0,0,0,0, 1,0,0,0,0, 0, 0,0,0,0,0,              \
     REGLIST3(RegX8664, rdx, edx, dx))                                          \
-  X(Reg_bh, 7, "bh", Reg_rbx, 0,1,0,0,0, 1,0,0,0,0, 0, 0,0,0,0,1,              \
+  X(Reg_bh, 7, "bh", Reg_rbx, 0,1,0,0,0, 1,0,0,0,0, 0, 0,0,0,0,0,              \
     REGLIST3(RegX8664, rbx, ebx, bx))                                          \
   /* End of 8-bit register set */
 //#define X(val, encode, name, base, scratch, preserved, stackptr, frameptr,

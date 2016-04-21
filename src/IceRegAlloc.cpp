@@ -91,7 +91,7 @@ int32_t findMinWeightIndex(
     if (MinWeightIndex < 0 || Weights[i] < Weights[MinWeightIndex])
       MinWeightIndex = i;
   }
-  assert(MinWeightIndex >= 0);
+  assert(getFlags().getRegAllocReserve() || MinWeightIndex >= 0);
   return MinWeightIndex;
 }
 
@@ -686,7 +686,8 @@ void LinearScan::handleNoFreeRegisters(IterationState &Iter) {
   // All the weights are now calculated. Find the register with smallest weight.
   int32_t MinWeightIndex = findMinWeightIndex(Iter.RegMask, Iter.Weights);
 
-  if (Iter.Cur->getWeight(Func) <= Iter.Weights[MinWeightIndex]) {
+  if (MinWeightIndex < 0 ||
+      Iter.Cur->getWeight(Func) <= Iter.Weights[MinWeightIndex]) {
     if (!Iter.Cur->mustHaveReg()) {
       // Iter.Cur doesn't have priority over any other live ranges, so don't
       // allocate any register to it, and move it to the Handled state.
@@ -870,7 +871,10 @@ void LinearScan::scan(const SmallBitVector &RegMaskFull, bool Randomized) {
     Iter.Cur = Unhandled.back();
     Unhandled.pop_back();
     dumpLiveRangeTrace("\nConsidering  ", Iter.Cur);
-    assert(Target->getRegistersForVariable(Iter.Cur).any());
+    if (UseReserve)
+      assert(Target->getAllRegistersForVariable(Iter.Cur).any());
+    else
+      assert(Target->getRegistersForVariable(Iter.Cur).any());
     Iter.RegMask = RegMaskFull & Target->getRegistersForVariable(Iter.Cur);
     Iter.RegMaskUnfiltered =
         RegMaskFull & Target->getAllRegistersForVariable(Iter.Cur);

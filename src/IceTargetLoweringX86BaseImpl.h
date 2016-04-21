@@ -2308,6 +2308,14 @@ void TargetX86Base<TraitsType>::lowerArithmetic(const InstArithmetic *Instr) {
     _mov(T_edx, Ctx->getConstantZero(Ty));
     _mov(T, Src0, Eax);
     _div(T_edx, Src1, T);
+    if (Ty == IceType_i8) {
+      // Register ah must be moved into one of {al,bl,cl,dl} before it can be
+      // moved into a general 8-bit register.
+      auto *T_AhRcvr = makeReg(Ty);
+      T_AhRcvr->setRegClass(RCX86_IsAhRcvr);
+      _mov(T_AhRcvr, T_edx);
+      T_edx = T_AhRcvr;
+    }
     _mov(Dest, T_edx);
   } break;
   case InstArithmetic::Srem: {
@@ -2377,6 +2385,14 @@ void TargetX86Base<TraitsType>::lowerArithmetic(const InstArithmetic *Instr) {
     _mov(T, Src0, Eax);
     _cbwdq(T_edx, T);
     _idiv(T_edx, Src1, T);
+    if (Ty == IceType_i8) {
+      // Register ah must be moved into one of {al,bl,cl,dl} before it can be
+      // moved into a general 8-bit register.
+      auto *T_AhRcvr = makeReg(Ty);
+      T_AhRcvr->setRegClass(RCX86_IsAhRcvr);
+      _mov(T_AhRcvr, T_edx);
+      T_edx = T_AhRcvr;
+    }
     _mov(Dest, T_edx);
   } break;
   case InstArithmetic::Fadd:

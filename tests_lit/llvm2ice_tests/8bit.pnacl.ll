@@ -5,6 +5,15 @@
 ; RUN: %p2i --filetype=obj --disassemble -i %s --args -Om1 \
 ; RUN:   -allow-externally-defined-symbols | FileCheck %s
 
+; The following tests i8 srem/urem lowering on x86-64, specifically that the %ah
+; result gets copied into %al/%bl/%cl/%dl before moved into its final register.
+; This extra copy is forced by excluding al/bl/cl/dl by default (-reg-exclude),
+; but allowing them to be used if absolutely necessary (-reg-reserve).
+
+; RUN: %p2i --target=x8664 --filetype=obj --disassemble -i %s --args -O2 \
+; RUN:   -reg-exclude=al,bl,cl,dl -reg-reserve \
+; RUN:   -allow-externally-defined-symbols | FileCheck %s --check-prefix=REM
+
 declare void @useInt(i32 %x)
 
 define internal i32 @add8Bit(i32 %a, i32 %b) {
@@ -103,6 +112,9 @@ entry:
 }
 ; CHECK-LABEL: urem8Bit
 ; CHECK: div {{[abcd]l|BYTE PTR}}
+; REM-LABEL: urem8Bit
+; REM: div
+; REM-NEXT: mov {{[abcd]}}l,ah
 
 define internal i32 @urem8BitConst(i32 %a) {
 entry:
@@ -113,6 +125,7 @@ entry:
 }
 ; CHECK-LABEL: urem8BitConst
 ; CHECK: div {{[abcd]l|BYTE PTR}}
+; REM-LABEL: urem8BitConst
 
 
 define internal i32 @sdiv8Bit(i32 %a, i32 %b) {
@@ -146,6 +159,9 @@ entry:
 }
 ; CHECK-LABEL: srem8Bit
 ; CHECK: idiv {{[abcd]l|BYTE PTR}}
+; REM-LABEL: srem8Bit
+; REM: idiv
+; REM-NEXT: mov {{[abcd]}}l,ah
 
 define internal i32 @srem8BitConst(i32 %a) {
 entry:
@@ -156,6 +172,7 @@ entry:
 }
 ; CHECK-LABEL: srem8BitConst
 ; CHECK: idiv {{[abcd]l|BYTE PTR}}
+; REM-LABEL: srem8BitConst
 
 define internal i32 @shl8Bit(i32 %a, i32 %b) {
 entry:
