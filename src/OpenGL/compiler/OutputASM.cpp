@@ -165,8 +165,8 @@ namespace glsl
 		}
 		else
 		{
-			const int numComponents = type.getElementSize();
-			baseAlignment = (numComponents == 3 ? 4u : static_cast<size_t>(numComponents));
+			const size_t numComponents = type.getElementSize();
+			baseAlignment = (numComponents == 3 ? 4u : numComponents);
 		}
 
 		mCurrentOffset = sw::align(mCurrentOffset, baseAlignment);
@@ -1114,7 +1114,7 @@ namespace glsl
 		TIntermTyped *result = node;
 		const TType &resultType = node->getType();
 		TIntermSequence &arg = node->getSequence();
-		int argumentCount = arg.size();
+		size_t argumentCount = arg.size();
 
 		switch(node->getOp())
 		{
@@ -1187,7 +1187,7 @@ namespace glsl
 
 					TIntermSequence &arguments = *function->arg;
 
-					for(int i = 0; i < argumentCount; i++)
+					for(size_t i = 0; i < argumentCount; i++)
 					{
 						TIntermTyped *in = arguments[i]->getAsTyped();
 
@@ -1208,7 +1208,7 @@ namespace glsl
 						copy(result, function->ret);
 					}
 
-					for(int i = 0; i < argumentCount; i++)
+					for(size_t i = 0; i < argumentCount; i++)
 					{
 						TIntermTyped *argument = arguments[i]->getAsTyped();
 						TIntermTyped *out = arg[i]->getAsTyped();
@@ -1328,7 +1328,7 @@ namespace glsl
 			{
 				int component = 0;
 
-				for(int i = 0; i < argumentCount; i++)
+				for(size_t i = 0; i < argumentCount; i++)
 				{
 					TIntermTyped *argi = arg[i]->getAsTyped();
 					int size = argi->getNominalSize();
@@ -1409,7 +1409,7 @@ namespace glsl
 					int column = 0;
 					int row = 0;
 
-					for(int i = 0; i < argumentCount; i++)
+					for(size_t i = 0; i < argumentCount; i++)
 					{
 						TIntermTyped *argi = arg[i]->getAsTyped();
 						int size = argi->getNominalSize();
@@ -1434,7 +1434,7 @@ namespace glsl
 			if(visit == PostVisit)
 			{
 				int offset = 0;
-				for(int i = 0; i < argumentCount; i++)
+				for(size_t i = 0; i < argumentCount; i++)
 				{
 					TIntermTyped *argi = arg[i]->getAsTyped();
 					int size = argi->totalRegisterCount();
@@ -2030,8 +2030,8 @@ namespace glsl
 			if(type.isInterfaceBlock())
 			{
 				// Offset index to the beginning of the selected instance
-				size_t blockRegisters = type.elementRegisterCount();
-				size_t bufferOffset = argumentInfo.clampedIndex / blockRegisters;
+				int blockRegisters = type.elementRegisterCount();
+				int bufferOffset = argumentInfo.clampedIndex / blockRegisters;
 				argumentInfo.bufferIndex += bufferOffset;
 				argumentInfo.clampedIndex -= bufferOffset * blockRegisters;
 			}

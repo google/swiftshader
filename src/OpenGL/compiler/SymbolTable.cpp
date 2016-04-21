@@ -87,7 +87,7 @@ void TType::buildMangledName(TString& mangledName)
     }
 }
 
-int TType::getStructSize() const
+size_t TType::getStructSize() const
 {
     if (!getStruct()) {
         assert(false && "Not a struct");

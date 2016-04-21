@@ -64,7 +64,7 @@ namespace es2
 	{
 		if(blockInfo.index == -1)
 		{
-			int bytes = UniformTypeSize(type) * size();
+			size_t bytes = UniformTypeSize(type) * size();
 			data = new unsigned char[bytes];
 			memset(data, 0, bytes);
 		}
@@ -347,8 +347,8 @@ namespace es2
 		size_t subscript = GL_INVALID_INDEX;
 		std::string baseName = es2::ParseUniformName(name, &subscript);
 
-		unsigned int numUniforms = uniformIndex.size();
-		for(unsigned int location = 0; location < numUniforms; location++)
+		size_t numUniforms = uniformIndex.size();
+		for(size_t location = 0; location < numUniforms; location++)
 		{
 			const int index = uniformIndex[location].index;
 			const bool isArray = uniforms[index]->isArray();
@@ -357,7 +357,7 @@ namespace es2
 			   ((isArray && uniformIndex[location].element == subscript) ||
 			    (subscript == GL_INVALID_INDEX)))
 			{
-				return location;
+				return (GLint)location;
 			}
 		}
 
@@ -375,8 +375,8 @@ namespace es2
 			return GL_INVALID_INDEX;
 		}
 
-		unsigned int numUniforms = uniforms.size();
-		for(unsigned int index = 0; index < numUniforms; index++)
+		size_t numUniforms = uniforms.size();
+		for(GLuint index = 0; index < numUniforms; index++)
 		{
 			if(uniforms[index]->name == baseName)
 			{
@@ -430,8 +430,8 @@ namespace es2
 		size_t subscript = GL_INVALID_INDEX;
 		std::string baseName = es2::ParseUniformName(name, &subscript);
 
-		unsigned int numUniformBlocks = getActiveUniformBlockCount();
-		for(unsigned int blockIndex = 0; blockIndex < numUniformBlocks; blockIndex++)
+		size_t numUniformBlocks = getActiveUniformBlockCount();
+		for(GLuint blockIndex = 0; blockIndex < numUniformBlocks; blockIndex++)
 		{
 			const UniformBlock &uniformBlock = *uniformBlocks[blockIndex];
 			if(uniformBlock.name == baseName)
@@ -1053,8 +1053,8 @@ namespace es2
 
 	void Program::dirtyAllUniforms()
 	{
-		unsigned int numUniforms = uniforms.size();
-		for(unsigned int index = 0; index < numUniforms; index++)
+		size_t numUniforms = uniforms.size();
+		for(size_t index = 0; index < numUniforms; index++)
 		{
 			uniforms[index]->dirty = true;
 		}
@@ -1063,8 +1063,8 @@ namespace es2
 	// Applies all the uniforms set for this program object to the device
 	void Program::applyUniforms()
 	{
-		unsigned int numUniforms = uniformIndex.size();
-		for(unsigned int location = 0; location < numUniforms; location++)
+		GLint numUniforms = uniformIndex.size();
+		for(GLint location = 0; location < numUniforms; location++)
 		{
 			if(uniformIndex[location].element != 0)
 			{
@@ -1075,7 +1075,7 @@ namespace es2
 
 			if(targetUniform->dirty && (targetUniform->blockInfo.index == -1))
 			{
-				int size = targetUniform->size();
+				GLsizei size = targetUniform->size();
 				GLfloat *f = (GLfloat*)targetUniform->data;
 				GLint *i = (GLint*)targetUniform->data;
 				GLuint *ui = (GLuint*)targetUniform->data;
@@ -1664,7 +1664,7 @@ namespace es2
 		if(location == -1)   // Not previously defined
 		{
 			uniforms.push_back(uniform);
-			unsigned int index = uniforms.size() - 1;
+			size_t index = uniforms.size() - 1;
 
 			for(int i = 0; i < uniform->size(); i++)
 			{
@@ -1708,8 +1708,8 @@ namespace es2
 		{
 			return false;
 		}
-		const unsigned int numBlockMembers = block1.fields.size();
-		for(unsigned int blockMemberIndex = 0; blockMemberIndex < numBlockMembers; blockMemberIndex++)
+		const size_t numBlockMembers = block1.fields.size();
+		for(size_t blockMemberIndex = 0; blockMemberIndex < numBlockMembers; blockMemberIndex++)
 		{
 			const glsl::Uniform& member1 = shader1->activeUniforms[block1.fields[blockMemberIndex]];
 			const glsl::Uniform& member2 = shader2->activeUniforms[block2.fields[blockMemberIndex]];
@@ -2423,7 +2423,7 @@ namespace es2
 		return currentSerial++;
 	}
 
-	int Program::getInfoLogLength() const
+	size_t Program::getInfoLogLength() const
 	{
 		if(!infoLog)
 		{
@@ -2578,8 +2578,8 @@ namespace es2
 	{
 		int maxLength = 0;
 
-		unsigned int numUniforms = uniforms.size();
-		for(unsigned int uniformIndex = 0; uniformIndex < numUniforms; uniformIndex++)
+		size_t numUniforms = uniforms.size();
+		for(size_t uniformIndex = 0; uniformIndex < numUniforms; uniformIndex++)
 		{
 			if(!uniforms[uniformIndex]->name.empty())
 			{
@@ -2649,17 +2649,17 @@ namespace es2
 
 	GLint Program::getActiveUniformBlockMaxLength() const
 	{
-		int maxLength = 0;
+		size_t maxLength = 0;
 
 		if(isLinked())
 		{
-			unsigned int numUniformBlocks = getActiveUniformBlockCount();
-			for(unsigned int uniformBlockIndex = 0; uniformBlockIndex < numUniformBlocks; uniformBlockIndex++)
+			size_t numUniformBlocks = getActiveUniformBlockCount();
+			for(size_t uniformBlockIndex = 0; uniformBlockIndex < numUniformBlocks; uniformBlockIndex++)
 			{
 				const UniformBlock &uniformBlock = *uniformBlocks[uniformBlockIndex];
 				if(!uniformBlock.name.empty())
 				{
-					const int length = uniformBlock.name.length() + 1;
+					size_t length = uniformBlock.name.length() + 1;
 
 					// Counting in "[0]".
 					const int arrayLength = (uniformBlock.isArrayElement() ? 3 : 0);

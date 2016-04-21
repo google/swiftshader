@@ -174,7 +174,7 @@ namespace es2
 
 		void link();
 		bool isLinked() const;
-		int getInfoLogLength() const;
+		size_t getInfoLogLength() const;
 		void getInfoLog(GLsizei bufSize, GLsizei *length, char *infoLog);
 		void getAttachedShaders(GLsizei maxCount, GLsizei *count, GLuint *shaders);
 

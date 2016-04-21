@@ -481,7 +481,7 @@ bool TParseContext::constructorErrorCheck(const TSourceLoc &line, TIntermNode* n
     // again, there is an extra argument, so 'overfull' will become true.
     //
 
-    int size = 0;
+    size_t size = 0;
     bool full = false;
     bool overFull = false;
     bool matrixInMatrix = false;
@@ -2221,7 +2221,7 @@ TIntermTyped* TParseContext::addConstArrayNode(int index, TIntermTyped* node, co
         index = 0;
     }
 
-    int arrayElementSize = arrayElementType.getObjectSize();
+    size_t arrayElementSize = arrayElementType.getObjectSize();
 
     if (tempConstantNode) {
          ConstantUnion* unionArray = tempConstantNode->getUnionArrayPointer();
@@ -2246,11 +2246,10 @@ TIntermTyped* TParseContext::addConstStruct(const TString& identifier, TIntermTy
 {
     const TFieldList &fields = node->getType().getStruct()->fields();
     TIntermTyped *typedNode;
-    int instanceSize = 0;
-    unsigned int index = 0;
+    size_t instanceSize = 0;
     TIntermConstantUnion *tempConstantNode = node->getAsConstantUnion();
 
-    for ( index = 0; index < fields.size(); ++index) {
+    for(size_t index = 0; index < fields.size(); ++index) {
         if (fields[index]->name() == identifier) {
             break;
         } else {

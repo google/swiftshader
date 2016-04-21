@@ -84,7 +84,7 @@ void Shader::setSource(GLsizei count, const char *const *string, const GLint *le
     mSource[totalLength] = '\0';
 }
 
-int Shader::getInfoLogLength() const
+size_t Shader::getInfoLogLength() const
 {
     if(infoLog.empty())
     {
@@ -117,7 +117,7 @@ void Shader::getInfoLog(GLsizei bufSize, GLsizei *length, char *infoLogOut)
     }
 }
 
-int Shader::getSourceLength() const
+size_t Shader::getSourceLength() const
 {
     if(!mSource)
     {

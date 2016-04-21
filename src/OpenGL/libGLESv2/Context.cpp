@@ -4308,7 +4308,7 @@ const GLubyte* Context::getExtensions(GLuint index, GLuint* numExt) const
 		static GLubyte* extensionsCat = nullptr;
 		if(!extensionsCat && (numExtensions > 0))
 		{
-			int totalLength = numExtensions; // 1 space between each extension name + terminating null
+			size_t totalLength = numExtensions; // 1 space between each extension name + terminating null
 			for(unsigned int i = 0; i < numExtensions; i++)
 			{
 				totalLength += strlen(reinterpret_cast<const char*>(extensions[i]));
