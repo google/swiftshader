@@ -428,6 +428,7 @@ template <typename TraitsType> void TargetX86Base<TraitsType>::translateO2() {
   // Address mode optimization.
   Func->getVMetadata()->init(VMK_SingleDefs);
   Func->doAddressOpt();
+  Func->materializeVectorShuffles();
 
   // Find read-modify-write opportunities. Do this after address mode
   // optimization so that doAddressOpt() doesn't need to be applied to RMW
@@ -5567,6 +5568,46 @@ void TargetX86Base<TraitsType>::lowerRet(const InstRet *Instr) {
   // Add a fake use of esp to make sure esp stays alive for the entire
   // function. Otherwise post-call esp adjustments get dead-code eliminated.
   keepEspLiveAtExit();
+}
+
+template <typename TraitsType>
+void TargetX86Base<TraitsType>::lowerShuffleVector(
+    const InstShuffleVector *Instr) {
+  auto *Dest = Instr->getDest();
+  const Type DestTy = Dest->getType();
+
+  auto *T = makeReg(DestTy);
+
+  switch (DestTy) {
+  default:
+    break;
+    // TODO(jpp): figure out how to properly lower this without scalarization.
+  }
+
+  // Unoptimized shuffle. Perform a series of inserts and extracts.
+  Context.insert<InstFakeDef>(T);
+  auto *Src0 = llvm::cast<Variable>(Instr->getSrc(0));
+  auto *Src1 = llvm::cast<Variable>(Instr->getSrc(1));
+  const SizeT NumElements = typeNumElements(DestTy);
+  const Type ElementType = typeElementType(DestTy);
+  for (SizeT I = 0; I < Instr->getNumIndexes(); ++I) {
+    auto *Index = Instr->getIndex(I);
+    const SizeT Elem = Index->getValue();
+    auto *ExtElmt = makeReg(ElementType);
+    if (Elem < NumElements) {
+      lowerExtractElement(
+          InstExtractElement::create(Func, ExtElmt, Src0, Index));
+    } else {
+      lowerExtractElement(InstExtractElement::create(
+          Func, ExtElmt, Src1,
+          Ctx->getConstantInt32(Index->getValue() - NumElements)));
+    }
+    auto *NewT = makeReg(DestTy);
+    lowerInsertElement(InstInsertElement::create(Func, NewT, T, ExtElmt,
+                                                 Ctx->getConstantInt32(I)));
+    T = NewT;
+  }
+  _movp(Dest, T);
 }
 
 template <typename TraitsType>

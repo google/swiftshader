@@ -802,6 +802,312 @@ void Cfg::doAddressOpt() {
     Node->doAddressOpt();
 }
 
+namespace {
+// ShuffleVectorUtils implements helper functions for rematerializing
+// shufflevector instructions from a sequence of extractelement/insertelement
+// instructions. It looks for the following pattern:
+//
+// %t0 = extractelement A, %n0
+// %t1 = extractelement B, %n1
+// %t2 = extractelement C, %n2
+// ...
+// %tN = extractelement N, %nN
+// %d0 = insertelement undef, %t0, 0
+// %d1 = insertelement %d0, %t1, 1
+// %d2 = insertelement %d1, %t2, 2
+// ...
+// %dest = insertelement %d_N-1, %tN, N
+//
+// where N is num_element(typeof(%dest)), and A, B, C, ... N are at most two
+// distinct variables.
+namespace ShuffleVectorUtils {
+// findAllInserts is used when searching for all the insertelements that are
+// used in a shufflevector operation. This function works recursively, when
+// invoked with I = i, the function assumes Insts[i] is the last found
+// insertelement in the chain. The next insertelement insertruction is saved in
+// Insts[i+1].
+bool findAllInserts(Cfg *Func, GlobalContext *Ctx, VariablesMetadata *VM,
+                    CfgVector<const Inst *> *Insts, SizeT I = 0) {
+  const bool Verbose = BuildDefs::dump() && Func->isVerbose(IceV_ShufMat);
+
+  if (I > Insts->size()) {
+    if (Verbose) {
+      Ctx->getStrDump() << "\tToo many inserts.\n";
+    }
+    return false;
+  }
+
+  const auto *LastInsert = Insts->at(I);
+  assert(llvm::isa<InstInsertElement>(LastInsert));
+
+  if (I == Insts->size() - 1) {
+    // Matching against undef is not really needed because the value in Src(0)
+    // will be totally overwritten. We still enforce it anyways because the
+    // PNaCl toolchain generates the bitcode with it.
+    if (!llvm::isa<ConstantUndef>(LastInsert->getSrc(0))) {
+      if (Verbose) {
+        Ctx->getStrDump() << "\tSrc0 is not undef: " << I << " "
+                          << Insts->size();
+        LastInsert->dump(Func);
+        Ctx->getStrDump() << "\n";
+      }
+      return false;
+    }
+
+    // The following loop ensures that the insertelements are sorted. In theory,
+    // we could relax this restriction and allow any order. As long as each
+    // index appears exactly once, this chain is still a candidate for becoming
+    // a shufflevector. The Insts vector is traversed backwards because the
+    // instructions are "enqueued" in reverse order.
+    int32_t ExpectedElement = 0;
+    for (const auto *I : reverse_range(*Insts)) {
+      if (llvm::cast<ConstantInteger32>(I->getSrc(2))->getValue() !=
+          ExpectedElement) {
+        return false;
+      }
+      ++ExpectedElement;
+    }
+    return true;
+  }
+
+  const auto *Src0V = llvm::cast<Variable>(LastInsert->getSrc(0));
+  const auto *Def = VM->getSingleDefinition(Src0V);
+
+  // Only optimize if the first operand in
+  //
+  //   Dest = insertelement A, B, 10
+  //
+  // is singly-def'ed.
+  if (Def == nullptr) {
+    if (Verbose) {
+      Ctx->getStrDump() << "\tmulti-def: ";
+      (*Insts)[I]->dump(Func);
+      Ctx->getStrDump() << "\n";
+    }
+    return false;
+  }
+
+  // We also require the (single) definition to come from an insertelement
+  // instruction.
+  if (!llvm::isa<InstInsertElement>(Def)) {
+    if (Verbose) {
+      Ctx->getStrDump() << "\tnot insert element: ";
+      Def->dump(Func);
+      Ctx->getStrDump() << "\n";
+    }
+    return false;
+  }
+
+  // Everything seems fine, so we save Def in Insts, and delegate the decision
+  // to findAllInserts.
+  (*Insts)[I + 1] = Def;
+
+  return findAllInserts(Func, Ctx, VM, Insts, I + 1);
+}
+
+// insertsLastElement returns true if Insert is inserting an element in the last
+// position of a vector.
+bool insertsLastElement(const Inst &Insert) {
+  const Type DestTy = Insert.getDest()->getType();
+  assert(isVectorType(DestTy));
+  const SizeT Elem =
+      llvm::cast<ConstantInteger32>(Insert.getSrc(2))->getValue();
+  return Elem == typeNumElements(DestTy) - 1;
+}
+
+// findAllExtracts goes over all the insertelement instructions that are
+// candidates to be replaced by a shufflevector, and searches for all the
+// definitions of the elements being inserted. If all of the elements are the
+// result of an extractelement instruction, and all of the extractelements
+// operate on at most two different sources, than the instructions can be
+// replaced by a shufflevector.
+bool findAllExtracts(Cfg *Func, GlobalContext *Ctx, VariablesMetadata *VM,
+                     const CfgVector<const Inst *> &Insts, Variable **Src0,
+                     Variable **Src1, CfgVector<const Inst *> *Extracts) {
+  const bool Verbose = BuildDefs::dump() && Func->isVerbose(IceV_ShufMat);
+
+  *Src0 = nullptr;
+  *Src1 = nullptr;
+  assert(Insts.size() > 0);
+  for (SizeT I = 0; I < Insts.size(); ++I) {
+    const auto *Insert = Insts.at(I);
+    const auto *Src1V = llvm::dyn_cast<Variable>(Insert->getSrc(1));
+    if (Src1V == nullptr) {
+      if (Verbose) {
+        Ctx->getStrDump() << "src(1) is not a variable: ";
+        Insert->dump(Func);
+        Ctx->getStrDump() << "\n";
+      }
+      return false;
+    }
+
+    const auto *Def = VM->getSingleDefinition(Src1V);
+    if (Def == nullptr) {
+      if (Verbose) {
+        Ctx->getStrDump() << "multi-def src(1): ";
+        Insert->dump(Func);
+        Ctx->getStrDump() << "\n";
+      }
+      return false;
+    }
+
+    if (!llvm::isa<InstExtractElement>(Def)) {
+      if (Verbose) {
+        Ctx->getStrDump() << "not extractelement: ";
+        Def->dump(Func);
+        Ctx->getStrDump() << "\n";
+      }
+      return false;
+    }
+
+    auto *Src = llvm::cast<Variable>(Def->getSrc(0));
+    if (*Src0 == nullptr) {
+      // No sources yet. Save Src to Src0.
+      *Src0 = Src;
+    } else if (*Src1 == nullptr) {
+      // We already have a source, so we might save Src in Src1 -- but only if
+      // Src0 is not Src.
+      if (*Src0 != Src) {
+        *Src1 = Src;
+      }
+    } else if (Src != *Src0 && Src != *Src1) {
+      // More than two sources, so we can't rematerialize the shufflevector
+      // instruction.
+      if (Verbose) {
+        Ctx->getStrDump() << "Can't shuffle more than two sources.\n";
+      }
+      return false;
+    }
+
+    (*Extracts)[I] = Def;
+  }
+
+  // We should have seen at least one source operand.
+  assert(*Src0 != nullptr);
+
+  // If a second source was not seen, then we just make Src1 = Src0 to simplify
+  // things down stream. This should not matter, as all of the indexes in the
+  // shufflevector instruction will point to Src0.
+  if (*Src1 == nullptr) {
+    *Src1 = *Src0;
+  }
+
+  return true;
+}
+
+} // end of namespace ShuffleVectorUtils
+} // end of anonymous namespace
+
+void Cfg::materializeVectorShuffles() {
+  const bool Verbose = BuildDefs::dump() && isVerbose(IceV_ShufMat);
+
+  std::unique_ptr<OstreamLocker> L;
+  if (Verbose) {
+    L.reset(new OstreamLocker(getContext()));
+    getContext()->getStrDump() << "\nShuffle materialization:\n";
+  }
+
+  // MaxVectorElements is the maximum number of elements in the vector types
+  // handled by Subzero. We use it to create the Inserts and Extracts vectors
+  // with the appropriate size, thus avoiding resize() calls.
+  const SizeT MaxVectorElements = typeNumElements(IceType_v16i8);
+  CfgVector<const Inst *> Inserts(MaxVectorElements);
+  CfgVector<const Inst *> Extracts(MaxVectorElements);
+
+  TimerMarker T(TimerStack::TT_materializeVectorShuffles, this);
+  for (CfgNode *Node : Nodes) {
+    for (auto &Instr : Node->getInsts()) {
+      if (!llvm::isa<InstInsertElement>(Instr)) {
+        continue;
+      }
+      if (!ShuffleVectorUtils::insertsLastElement(Instr)) {
+        // To avoid wasting time, we only start the pattern match at the last
+        // insertelement instruction -- and go backwards from there.
+        continue;
+      }
+      if (Verbose) {
+        getContext()->getStrDump() << "\tCandidate: ";
+        Instr.dump(this);
+        getContext()->getStrDump() << "\n";
+      }
+      Inserts.resize(typeNumElements(Instr.getDest()->getType()));
+      Inserts[0] = &Instr;
+      if (!ShuffleVectorUtils::findAllInserts(this, getContext(),
+                                              VMetadata.get(), &Inserts)) {
+        // If we fail to find a sequence of insertelements, we stop the
+        // optimization.
+        if (Verbose) {
+          getContext()->getStrDump() << "\tFalse alarm.\n";
+        }
+        continue;
+      }
+      if (Verbose) {
+        getContext()->getStrDump() << "\tFound the following insertelement: \n";
+        for (auto *I : reverse_range(Inserts)) {
+          getContext()->getStrDump() << "\t\t";
+          I->dump(this);
+          getContext()->getStrDump() << "\n";
+        }
+      }
+      Extracts.resize(Inserts.size());
+      Variable *Src0;
+      Variable *Src1;
+      if (!ShuffleVectorUtils::findAllExtracts(this, getContext(),
+                                               VMetadata.get(), Inserts, &Src0,
+                                               &Src1, &Extracts)) {
+        // If we fail to match the definitions of the insertelements' sources
+        // with extractelement instructions -- or if those instructions operate
+        // on more than two different variables -- we stop the optimization.
+        if (Verbose) {
+          getContext()->getStrDump() << "\tFailed to match extractelements.\n";
+        }
+        continue;
+      }
+      if (Verbose) {
+        getContext()->getStrDump()
+            << "\tFound the following insert/extract element pairs: \n";
+        for (SizeT I = 0; I < Inserts.size(); ++I) {
+          const SizeT Pos = Inserts.size() - I - 1;
+          getContext()->getStrDump() << "\t\tInsert : ";
+          Inserts[Pos]->dump(this);
+          getContext()->getStrDump() << "\n\t\tExtract: ";
+          Extracts[Pos]->dump(this);
+          getContext()->getStrDump() << "\n";
+        }
+      }
+
+      assert(Src0 != nullptr);
+      assert(Src1 != nullptr);
+
+      auto *ShuffleVector =
+          InstShuffleVector::create(this, Instr.getDest(), Src0, Src1);
+      assert(ShuffleVector->getSrc(0) == Src0);
+      assert(ShuffleVector->getSrc(1) == Src1);
+      for (SizeT I = 0; I < Extracts.size(); ++I) {
+        const SizeT Pos = Extracts.size() - I - 1;
+        auto *Index = llvm::cast<ConstantInteger32>(Extracts[Pos]->getSrc(1));
+        if (Src0 == Extracts[Pos]->getSrc(0)) {
+          ShuffleVector->addIndex(Index);
+        } else {
+          ShuffleVector->addIndex(llvm::cast<ConstantInteger32>(
+              Ctx->getConstantInt32(Index->getValue() + Extracts.size())));
+        }
+      }
+
+      if (Verbose) {
+        getContext()->getStrDump() << "Created: ";
+        ShuffleVector->dump(this);
+        getContext()->getStrDump() << "\n";
+      }
+
+      Instr.setDeleted();
+      auto &LoweringContext = getTarget()->getContext();
+      LoweringContext.setInsertPoint(Instr);
+      LoweringContext.insert(ShuffleVector);
+    }
+  }
+}
+
 void Cfg::doNopInsertion() {
   if (!getFlags().getShouldDoNopInsertion())
     return;

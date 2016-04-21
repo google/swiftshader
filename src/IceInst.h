@@ -22,6 +22,7 @@
 #include "IceDefs.h"
 #include "IceInst.def"
 #include "IceIntrinsics.h"
+#include "IceOperand.h"
 #include "IceSwitchLowering.h"
 #include "IceTypes.h"
 
@@ -61,14 +62,15 @@ public:
     Select,
     Store,
     Switch,
-    Assign,       // not part of LLVM/PNaCl bitcode
-    Breakpoint,   // not part of LLVM/PNaCl bitcode
-    BundleLock,   // not part of LLVM/PNaCl bitcode
-    BundleUnlock, // not part of LLVM/PNaCl bitcode
-    FakeDef,      // not part of LLVM/PNaCl bitcode
-    FakeUse,      // not part of LLVM/PNaCl bitcode
-    FakeKill,     // not part of LLVM/PNaCl bitcode
-    JumpTable,    // not part of LLVM/PNaCl bitcode
+    Assign,        // not part of LLVM/PNaCl bitcode
+    Breakpoint,    // not part of LLVM/PNaCl bitcode
+    BundleLock,    // not part of LLVM/PNaCl bitcode
+    BundleUnlock,  // not part of LLVM/PNaCl bitcode
+    FakeDef,       // not part of LLVM/PNaCl bitcode
+    FakeUse,       // not part of LLVM/PNaCl bitcode
+    FakeKill,      // not part of LLVM/PNaCl bitcode
+    JumpTable,     // not part of LLVM/PNaCl bitcode
+    ShuffleVector, // not part of LLVM/PNaCl bitcode
     // Anything >= Target is an InstTarget subclass. Note that the value-spaces
     // are shared across targets. To avoid confusion over the definition of
     // shared values, an object specific to one target should never be passed
@@ -915,6 +917,52 @@ private:
 
   /// This instruction is ignored if Linked->isDeleted() is true.
   const Inst *Linked;
+};
+
+/// ShuffleVector instruction. This represents a shuffle operation on vector
+/// types. This instruction is not part of the PNaCl bitcode: it is generated
+/// by Subzero when it matches the pattern used by pnacl-clang when compiling
+/// to bitcode.
+class InstShuffleVector : public InstHighLevel {
+  InstShuffleVector() = delete;
+  InstShuffleVector(const InstShuffleVector &) = delete;
+  InstShuffleVector &operator=(const InstShuffleVector &) = delete;
+
+public:
+  static InstShuffleVector *create(Cfg *Func, Variable *Dest, Variable *Src0,
+                                   Variable *Src1) {
+    return new (Func->allocate<InstShuffleVector>())
+        InstShuffleVector(Func, Dest, Src0, Src1);
+  }
+
+  SizeT getNumIndexes() const { return NumIndexes; }
+
+  void addIndex(ConstantInteger32 *Index) {
+    assert(CurrentIndex < NumIndexes);
+    Indexes[CurrentIndex++] = Index;
+  }
+
+  ConstantInteger32 *getIndex(SizeT Pos) const {
+    assert(Pos < NumIndexes);
+    return Indexes[Pos];
+  }
+
+  void dump(const Cfg *Func) const override;
+  static bool classof(const Inst *Instr) {
+    return Instr->getKind() == ShuffleVector;
+  }
+
+private:
+  InstShuffleVector(Cfg *Func, Variable *Dest, Variable *Src0, Variable *Src1);
+
+  void destroy(Cfg *Func) override {
+    Func->deallocateArrayOf<ConstantInteger32 *>(Indexes);
+    Inst::destroy(Func);
+  }
+
+  ConstantInteger32 **Indexes;
+  SizeT CurrentIndex = 0;
+  const SizeT NumIndexes;
 };
 
 /// JumpTable instruction. This represents a jump table that will be stored in

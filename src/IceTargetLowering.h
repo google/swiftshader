@@ -387,6 +387,7 @@ protected:
   virtual void lowerPhi(const InstPhi *Instr) = 0;
   virtual void lowerRet(const InstRet *Instr) = 0;
   virtual void lowerSelect(const InstSelect *Instr) = 0;
+  virtual void lowerShuffleVector(const InstShuffleVector *Instr) = 0;
   virtual void lowerStore(const InstStore *Instr) = 0;
   virtual void lowerSwitch(const InstSwitch *Instr) = 0;
   virtual void lowerUnreachable(const InstUnreachable *Instr) = 0;

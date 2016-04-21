@@ -1145,6 +1145,10 @@ void TargetMIPS32::lowerSelect(const InstSelect *Instr) {
   UnimplementedLoweringError(this, Instr);
 }
 
+void TargetMIPS32::lowerShuffleVector(const InstShuffleVector *Instr) {
+  UnimplementedLoweringError(this, Instr);
+}
+
 void TargetMIPS32::lowerStore(const InstStore *Instr) {
   UnimplementedLoweringError(this, Instr);
 }

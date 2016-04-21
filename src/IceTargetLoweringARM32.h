@@ -285,6 +285,7 @@ protected:
   void lowerPhi(const InstPhi *Instr) override;
   void lowerRet(const InstRet *Instr) override;
   void lowerSelect(const InstSelect *Instr) override;
+  void lowerShuffleVector(const InstShuffleVector *Instr) override;
   void lowerStore(const InstStore *Instr) override;
   void lowerSwitch(const InstSwitch *Instr) override;
   void lowerUnreachable(const InstUnreachable *Instr) override;

@@ -112,6 +112,7 @@ const char *Inst::getInstName() const {
     X(FakeUse, "fakeuse");
     X(FakeKill, "fakekill");
     X(JumpTable, "jumptable");
+    X(ShuffleVector, "shufflevector");
 #undef X
   default:
     assert(Kind >= Target);
@@ -574,6 +575,15 @@ InstFakeUse::InstFakeUse(Cfg *Func, Variable *Src, uint32_t Weight)
 InstFakeKill::InstFakeKill(Cfg *Func, const Inst *Linked)
     : InstHighLevel(Func, Inst::FakeKill, 0, nullptr), Linked(Linked) {}
 
+InstShuffleVector::InstShuffleVector(Cfg *Func, Variable *Dest, Variable *Src0,
+                                     Variable *Src1)
+    : InstHighLevel(Func, Inst::ShuffleVector, 2, Dest),
+      NumIndexes(typeNumElements(Dest->getType())) {
+  addSource(Src0);
+  addSource(Src1);
+  Indexes = Func->allocateArrayOf<ConstantInteger32 *>(NumIndexes);
+}
+
 namespace {
 GlobalString makeName(Cfg *Func, const SizeT Id) {
   const auto FuncName = Func->getFunctionName();
@@ -1030,6 +1040,21 @@ void InstFakeKill::dump(const Cfg *Func) const {
   if (Linked->isDeleted())
     Str << "// ";
   Str << "kill.pseudo scratch_regs";
+}
+
+void InstShuffleVector::dump(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+  Ostream &Str = Func->getContext()->getStrDump();
+  Str << "shufflevector ";
+  dumpDest(Func);
+  Str << " = ";
+  dumpSources(Func);
+  for (SizeT I = 0; I < NumIndexes; ++I) {
+    Str << ", ";
+    Indexes[I]->dump(Func);
+  }
+  Str << "\n";
 }
 
 void InstJumpTable::dump(const Cfg *Func) const {

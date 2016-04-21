@@ -1020,6 +1020,7 @@ void TargetARM32::translateO2() {
   // Address mode optimization.
   Func->getVMetadata()->init(VMK_SingleDefs);
   Func->doAddressOpt();
+  Func->materializeVectorShuffles();
 
   // Argument lowering
   Func->doArgLowering();
@@ -5810,6 +5811,44 @@ void TargetARM32::lowerRet(const InstRet *Instr) {
   // "void f(int n){while(1) g(n);}" may not have a ret instruction.
   Variable *SP = getPhysicalRegister(RegARM32::Reg_sp);
   Context.insert<InstFakeUse>(SP);
+}
+
+void TargetARM32::lowerShuffleVector(const InstShuffleVector *Instr) {
+  auto *Dest = Instr->getDest();
+  const Type DestTy = Dest->getType();
+
+  auto *T = makeReg(DestTy);
+
+  switch (DestTy) {
+  default:
+    break;
+    // TODO(jpp): figure out how to properly lower this without scalarization.
+  }
+
+  // Unoptimized shuffle. Perform a series of inserts and extracts.
+  Context.insert<InstFakeDef>(T);
+  auto *Src0 = llvm::cast<Variable>(Instr->getSrc(0));
+  auto *Src1 = llvm::cast<Variable>(Instr->getSrc(1));
+  const SizeT NumElements = typeNumElements(DestTy);
+  const Type ElementType = typeElementType(DestTy);
+  for (SizeT I = 0; I < Instr->getNumIndexes(); ++I) {
+    auto *Index = Instr->getIndex(I);
+    const SizeT Elem = Index->getValue();
+    auto *ExtElmt = makeReg(ElementType);
+    if (Elem < NumElements) {
+      lowerExtractElement(
+          InstExtractElement::create(Func, ExtElmt, Src0, Index));
+    } else {
+      lowerExtractElement(InstExtractElement::create(
+          Func, ExtElmt, Src1,
+          Ctx->getConstantInt32(Index->getValue() - NumElements)));
+    }
+    auto *NewT = makeReg(DestTy);
+    lowerInsertElement(InstInsertElement::create(Func, NewT, T, ExtElmt,
+                                                 Ctx->getConstantInt32(I)));
+    T = NewT;
+  }
+  _mov(Dest, T);
 }
 
 void TargetARM32::lowerSelect(const InstSelect *Instr) {

@@ -440,6 +440,9 @@ void TargetLowering::lower() {
     case Inst::Select:
       lowerSelect(llvm::cast<InstSelect>(Instr));
       break;
+    case Inst::ShuffleVector:
+      lowerShuffleVector(llvm::cast<InstShuffleVector>(Instr));
+      break;
     case Inst::Store:
       lowerStore(llvm::cast<InstStore>(Instr));
       break;

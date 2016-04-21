@@ -206,6 +206,9 @@ public:
   /// entry block and emit stack or frame pointer-relative addressing.
   void processAllocas(bool SortAndCombine);
   void doAddressOpt();
+  /// Find clusters of insertelement/extractelement instructions that can be
+  /// replaced by a shufflevector instruction.
+  void materializeVectorShuffles();
   void doArgLowering();
   void doNopInsertion();
   void genCode();

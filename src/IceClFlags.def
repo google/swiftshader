@@ -327,6 +327,8 @@ struct dev_list_flag {};
         clEnumValN(Ice::IceV_RMW, "rmw", "ReadModifyWrite optimization"),      \
         clEnumValN(Ice::IceV_Loop, "loop", "Loop nest depth analysis"),        \
         clEnumValN(Ice::IceV_Mem, "mem", "Memory usage details"),              \
+        clEnumValN(Ice::IceV_ShufMat, "shufvec",                               \
+	           "Shufflevector rematerialization"),                         \
         clEnumValN(Ice::IceV_Status, "status",                                 \
                    "Print the name of the function being translated"),         \
         clEnumValN(Ice::IceV_AvailableRegs, "registers",                       \
