@@ -16,7 +16,7 @@
 namespace es2
 {
 
-TransformFeedback::TransformFeedback(GLuint name) : NamedObject(name), mActive(false), mPaused(false)
+TransformFeedback::TransformFeedback(GLuint name) : NamedObject(name), mActive(false), mPaused(false), mVertexOffset(0)
 {
 	mGenericBuffer = NULL;
 }
@@ -60,6 +60,19 @@ int TransformFeedback::getSize(GLuint index) const
 	return mBuffer[index].getSize();
 }
 
+void TransformFeedback::addVertexOffset(int count)
+{
+	if(isActive() && !isPaused())
+	{
+		mVertexOffset += count;
+	}
+}
+
+int TransformFeedback::vertexOffset() const
+{
+	return mVertexOffset;
+}
+
 bool TransformFeedback::isActive() const
 {
 	return mActive;
@@ -84,6 +97,7 @@ void TransformFeedback::end()
 {
 	mActive = false;
 	mPaused = false;
+	mVertexOffset = 0;
 }
 
 void TransformFeedback::setPaused(bool paused)

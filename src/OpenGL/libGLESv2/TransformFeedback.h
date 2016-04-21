@@ -27,9 +27,10 @@ namespace es2
 class TransformFeedback : public gl::NamedObject
 {
 public:
-	// FIXME: Change this when implementing transform feedback
 	TransformFeedback(GLuint name);
 	~TransformFeedback();
+
+	BufferBinding* getBuffers() { return mBuffer; }
 
 	Buffer* getGenericBuffer() const;
 	Buffer* getBuffer(GLuint index) const;
@@ -40,6 +41,7 @@ public:
 	bool isActive() const;
 	bool isPaused() const;
 	GLenum primitiveMode() const;
+	int vertexOffset() const;
 
 	void setGenericBuffer(Buffer* buffer);
 	void setBuffer(GLuint index, Buffer* buffer);
@@ -48,6 +50,7 @@ public:
 	void begin(GLenum primitiveMode);
 	void end();
 	void setPaused(bool paused);
+	void addVertexOffset(int count);
 
 private:
 	gl::BindingPointer<Buffer> mGenericBuffer;
@@ -56,6 +59,7 @@ private:
 	bool mActive;
 	bool mPaused;
 	GLenum mPrimitiveMode;
+	int mVertexOffset;
 };
 
 }
