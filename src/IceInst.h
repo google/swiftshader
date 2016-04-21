@@ -137,6 +137,13 @@ public:
   /// "var_dest=var_src" assignment where the dest and src are both variables.
   virtual bool isVarAssign() const { return false; }
 
+  /// Returns true if the instruction has a possible side effect of changing
+  /// memory, in which case a memory load should not be reordered with respect
+  /// to this instruction.  It should really be pure virtual, but we can't
+  /// because of g++ and llvm::ilist<>, so we implement it as
+  /// report_fatal_error().
+  virtual bool isMemoryWrite() const;
+
   void livenessLightweight(Cfg *Func, LivenessBV &Live);
   /// Calculates liveness for this instruction. Returns true if this instruction
   /// is (tentatively) still live and should be retained, and false if this
@@ -261,6 +268,7 @@ public:
   Operand *getSizeInBytes() const { return getSrc(0); }
   bool getKnownFrameOffset() const { return KnownFrameOffset; }
   void setKnownFrameOffset() { KnownFrameOffset = true; }
+  bool isMemoryWrite() const override { return false; }
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Instr) { return Instr->getKind() == Alloca; }
 
@@ -298,6 +306,7 @@ public:
 
   static const char *getOpName(OpKind Op);
   bool isCommutative() const;
+  bool isMemoryWrite() const override { return false; }
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Instr) {
     return Instr->getKind() == Arithmetic;
@@ -325,6 +334,7 @@ public:
     return new (Func->allocate<InstAssign>()) InstAssign(Func, Dest, Source);
   }
   bool isVarAssign() const override;
+  bool isMemoryWrite() const override { return false; }
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Instr) { return Instr->getKind() == Assign; }
 
@@ -365,6 +375,7 @@ public:
   NodeList getTerminatorEdges() const override;
   bool isUnconditionalBranch() const override { return isUnconditional(); }
   bool repointEdges(CfgNode *OldNode, CfgNode *NewNode) override;
+  bool isMemoryWrite() const override { return false; }
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Instr) { return Instr->getKind() == Br; }
 
@@ -404,6 +415,7 @@ public:
   SizeT getNumArgs() const { return getSrcSize() - 1; }
   bool isTailcall() const { return HasTailCall; }
   bool isTargetHelperCall() const { return IsTargetHelperCall; }
+  bool isMemoryWrite() const override { return true; }
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Instr) { return Instr->getKind() == Call; }
   Type getReturnType() const;
@@ -445,6 +457,7 @@ public:
         InstCast(Func, CastKind, Dest, Source);
   }
   OpKind getCastKind() const { return CastKind; }
+  bool isMemoryWrite() const override { return false; }
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Instr) { return Instr->getKind() == Cast; }
 
@@ -467,6 +480,7 @@ public:
         InstExtractElement(Func, Dest, Source1, Source2);
   }
 
+  bool isMemoryWrite() const override { return false; }
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Instr) {
     return Instr->getKind() == ExtractElement;
@@ -498,6 +512,7 @@ public:
         InstFcmp(Func, Condition, Dest, Source1, Source2);
   }
   FCond getCondition() const { return Condition; }
+  bool isMemoryWrite() const override { return false; }
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Instr) { return Instr->getKind() == Fcmp; }
 
@@ -529,6 +544,7 @@ public:
         InstIcmp(Func, Condition, Dest, Source1, Source2);
   }
   ICond getCondition() const { return Condition; }
+  bool isMemoryWrite() const override { return false; }
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Instr) { return Instr->getKind() == Icmp; }
 
@@ -552,6 +568,7 @@ public:
         InstInsertElement(Func, Dest, Source1, Source2, Source3);
   }
 
+  bool isMemoryWrite() const override { return false; }
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Instr) {
     return Instr->getKind() == InsertElement;
@@ -581,6 +598,9 @@ public:
   }
 
   Intrinsics::IntrinsicInfo getIntrinsicInfo() const { return Info; }
+  bool isMemoryWrite() const override {
+    return getIntrinsicInfo().IsMemoryWrite;
+  }
 
 private:
   InstIntrinsicCall(Cfg *Func, SizeT NumArgs, Variable *Dest,
@@ -606,6 +626,7 @@ public:
     return new (Func->allocate<InstLoad>()) InstLoad(Func, Dest, SourceAddr);
   }
   Operand *getSourceAddress() const { return getSrc(0); }
+  bool isMemoryWrite() const override { return false; }
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Instr) { return Instr->getKind() == Load; }
 
@@ -632,6 +653,7 @@ public:
   void livenessPhiOperand(LivenessBV &Live, CfgNode *Target,
                           Liveness *Liveness);
   Inst *lower(Cfg *Func);
+  bool isMemoryWrite() const override { return false; }
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Instr) { return Instr->getKind() == Phi; }
 
@@ -666,6 +688,7 @@ public:
     return getSrc(0);
   }
   NodeList getTerminatorEdges() const override { return NodeList(); }
+  bool isMemoryWrite() const override { return false; }
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Instr) { return Instr->getKind() == Ret; }
 
@@ -688,6 +711,7 @@ public:
   Operand *getCondition() const { return getSrc(0); }
   Operand *getTrueOperand() const { return getSrc(1); }
   Operand *getFalseOperand() const { return getSrc(2); }
+  bool isMemoryWrite() const override { return false; }
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Instr) { return Instr->getKind() == Select; }
 
@@ -714,6 +738,7 @@ public:
   Operand *getData() const { return getSrc(0); }
   Variable *getRmwBeacon() const;
   void setRmwBeacon(Variable *Beacon);
+  bool isMemoryWrite() const override { return true; }
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Instr) { return Instr->getKind() == Store; }
 
@@ -747,6 +772,7 @@ public:
   void addBranch(SizeT CaseIndex, uint64_t Value, CfgNode *Label);
   NodeList getTerminatorEdges() const override;
   bool repointEdges(CfgNode *OldNode, CfgNode *NewNode) override;
+  bool isMemoryWrite() const override { return false; }
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Instr) { return Instr->getKind() == Switch; }
 
@@ -775,6 +801,7 @@ public:
     return new (Func->allocate<InstUnreachable>()) InstUnreachable(Func);
   }
   NodeList getTerminatorEdges() const override { return NodeList(); }
+  bool isMemoryWrite() const override { return false; }
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Instr) {
     return Instr->getKind() == Unreachable;
@@ -799,6 +826,7 @@ public:
   }
   void emit(const Cfg *Func) const override;
   void emitIAS(const Cfg * /* Func */) const override {}
+  bool isMemoryWrite() const override { return false; }
   void dump(const Cfg *Func) const override;
   Option getOption() const { return BundleOption; }
   static bool classof(const Inst *Instr) {
@@ -822,6 +850,7 @@ public:
   }
   void emit(const Cfg *Func) const override;
   void emitIAS(const Cfg * /* Func */) const override {}
+  bool isMemoryWrite() const override { return false; }
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Instr) {
     return Instr->getKind() == BundleUnlock;
@@ -854,6 +883,7 @@ public:
   }
   void emit(const Cfg *Func) const override;
   void emitIAS(const Cfg * /* Func */) const override {}
+  bool isMemoryWrite() const override { return false; }
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Instr) { return Instr->getKind() == FakeDef; }
 
@@ -879,6 +909,7 @@ public:
   }
   void emit(const Cfg *Func) const override;
   void emitIAS(const Cfg * /* Func */) const override {}
+  bool isMemoryWrite() const override { return false; }
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Instr) { return Instr->getKind() == FakeUse; }
 
@@ -907,6 +938,7 @@ public:
   const Inst *getLinked() const { return Linked; }
   void emit(const Cfg *Func) const override;
   void emitIAS(const Cfg * /* Func */) const override {}
+  bool isMemoryWrite() const override { return false; }
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Instr) {
     return Instr->getKind() == FakeKill;
@@ -989,6 +1021,7 @@ public:
     assert(I < NumTargets);
     return Targets[I];
   }
+  bool isMemoryWrite() const override { return false; }
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Instr) {
     return Instr->getKind() == JumpTable;
@@ -1036,7 +1069,8 @@ public:
   InstBreakpoint(const InstBreakpoint &) = delete;
   InstBreakpoint &operator=(const InstBreakpoint &) = delete;
 
-  InstBreakpoint(Cfg *Func);
+  explicit InstBreakpoint(Cfg *Func);
+  bool isMemoryWrite() const override { return false; }
 
 public:
   static InstBreakpoint *create(Cfg *Func) {
@@ -1057,6 +1091,9 @@ class InstTarget : public Inst {
 
 public:
   uint32_t getEmitInstCount() const override { return 1; }
+  bool isMemoryWrite() const override {
+    return true; // conservative answer
+  }
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Instr) { return Instr->getKind() >= Target; }
 

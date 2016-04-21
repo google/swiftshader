@@ -269,6 +269,58 @@ next:
 ; ARM32: movne
 ; ARM32: bx lr
 
+; Cmp/branch non-folding due to load folding and intervening store.
+define internal i32 @no_fold_cmp_br_store(i32 %arg2, i32 %argaddr) {
+entry:
+  %addr = inttoptr i32 %argaddr to i32*
+  %arg1 = load i32, i32* %addr, align 1
+  %cmp1 = icmp slt i32 %arg1, %arg2
+  store i32 1, i32* %addr, align 1
+  br i1 %cmp1, label %branch1, label %branch2
+branch1:
+  ret i32 1
+branch2:
+  ret i32 2
+}
+
+; CHECK-LABEL: no_fold_cmp_br_store
+; CHECK: cmp
+; CHECK: set
+; CHECK: cmp
+
+; Cmp/select non-folding due to load folding and intervening store.
+define internal i32 @no_fold_cmp_select_store(i32 %arg1, i32 %argaddr) {
+entry:
+  %addr = inttoptr i32 %argaddr to i32*
+  %arg2 = load i32, i32* %addr, align 1
+  %cmp1 = icmp slt i32 %arg1, %arg2
+  store i32 1, i32* %addr, align 1
+  %result = select i1 %cmp1, i32 %arg1, i32 %argaddr
+  ret i32 %result
+}
+
+; CHECK-LABEL: no_fold_cmp_select_store
+; CHECK: cmp
+; CHECK: setl
+; CHECK: mov DWORD PTR
+; CHECK: cmp
+; CHECK: cmovne
+
+; Cmp/select folding due to load folding and non-intervening store.
+define internal i32 @fold_cmp_select_store(i32 %arg1, i32 %argaddr) {
+entry:
+  %addr = inttoptr i32 %argaddr to i32*
+  %arg2 = load i32, i32* %addr, align 1
+  %cmp1 = icmp slt i32 %arg1, %arg2
+  %result = select i1 %cmp1, i32 %arg1, i32 %argaddr
+  store i32 1, i32* %addr, align 1
+  ret i32 %result
+}
+
+; CHECK-LABEL: fold_cmp_select_store
+; CHECK: cmp {{.*}},DWORD PTR
+; CHECK: cmovl
+
 ; Cmp/multi-select non-folding because of extra non-whitelisted uses.
 define internal i32 @no_fold_cmp_select_multi_non_whitelist(i32 %arg1,
                                                             i32 %arg2) {

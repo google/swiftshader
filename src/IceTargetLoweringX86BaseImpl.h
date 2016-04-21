@@ -151,6 +151,7 @@ private:
     return Element != Producers.end() && Element->second.Instr != nullptr;
   }
   void setInvalid(SizeT VarNum) { Producers[VarNum].Instr = nullptr; }
+  void invalidateProducersOnStore(const Inst *Instr);
   /// Producers maps Variable::Number to a BoolFoldingEntry.
   CfgUnorderedMap<SizeT, BoolFoldingEntry<Traits>> Producers;
 };
@@ -252,10 +253,12 @@ bool BoolFolding<Traits>::isValidFolding(
 template <typename Traits> void BoolFolding<Traits>::init(CfgNode *Node) {
   Producers.clear();
   for (Inst &Instr : Node->getInsts()) {
+    if (Instr.isDeleted())
+      continue;
+    invalidateProducersOnStore(&Instr);
     // Check whether Instr is a valid producer.
     Variable *Var = Instr.getDest();
-    if (!Instr.isDeleted() // only consider non-deleted instructions
-        && Var             // only instructions with an actual dest var
+    if (Var // only consider instructions with an actual dest var
         && Var->getType() == IceType_i1          // only bool-type dest vars
         && getProducerKind(&Instr) != PK_None) { // white-listed instructions
       Producers[Var->getIndex()] = BoolFoldingEntry<Traits>(&Instr);
@@ -335,6 +338,43 @@ void BoolFolding<Traits>::dump(const Cfg *Func) const {
     Str << "Found foldable producer:\n  ";
     I.second.Instr->dump(Func);
     Str << "\n";
+  }
+}
+
+/// If the given instruction has potential memory side effects (e.g. store, rmw,
+/// or a call instruction with potential memory side effects), then we must not
+/// allow a pre-store Producer instruction with memory operands to be folded
+/// into a post-store Consumer instruction.  If this is detected, the Producer
+/// is invalidated.
+///
+/// We use the Producer's IsLiveOut field to determine whether any potential
+/// Consumers come after this store instruction.  The IsLiveOut field is
+/// initialized to true, and BoolFolding::init() sets IsLiveOut to false when it
+/// sees the variable's definitive last use (indicating the variable is not in
+/// the node's live-out set).  Thus if we see here that IsLiveOut is false, we
+/// know that there can be no consumers after the store, and therefore we know
+/// the folding is safe despite the store instruction.
+template <typename Traits>
+void BoolFolding<Traits>::invalidateProducersOnStore(const Inst *Instr) {
+  if (!Instr->isMemoryWrite())
+    return;
+  for (auto &ProducerPair : Producers) {
+    if (!ProducerPair.second.IsLiveOut)
+      continue;
+    Inst *PInst = ProducerPair.second.Instr;
+    if (PInst == nullptr)
+      continue;
+    bool HasMemOperand = false;
+    const SizeT SrcSize = PInst->getSrcSize();
+    for (SizeT I = 0; I < SrcSize; ++I) {
+      if (llvm::isa<typename Traits::X86OperandMem>(PInst->getSrc(I))) {
+        HasMemOperand = true;
+        break;
+      }
+    }
+    if (!HasMemOperand)
+      continue;
+    setInvalid(ProducerPair.first);
   }
 }
 

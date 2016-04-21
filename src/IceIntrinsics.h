@@ -106,15 +106,19 @@ public:
 
   enum ReturnsTwice { ReturnsTwice_F = 0, ReturnsTwice_T = 1 };
 
+  enum MemoryWrite { MemoryWrite_F = 0, MemoryWrite_T = 1 };
+
   /// Basic attributes related to each intrinsic, that are relevant to code
   /// generation. Perhaps the attributes representation can be shared with
   /// general function calls, but PNaCl currently strips all attributes from
   /// functions.
   struct IntrinsicInfo {
-    enum IntrinsicID ID : 30;
+    enum IntrinsicID ID : 29;
     enum SideEffects HasSideEffects : 1;
     enum ReturnsTwice ReturnsTwice : 1;
+    enum MemoryWrite IsMemoryWrite : 1;
   };
+  static_assert(sizeof(IntrinsicInfo) == 4, "IntrinsicInfo should be 32 bits");
 
   /// The types of validation values for FullIntrinsicInfo.validateCall.
   enum ValidateCallValue {

@@ -189,6 +189,10 @@ void Inst::spliceLivenessInfo(Inst *OrigInst, Inst *SpliceAssn) {
   llvm::report_fatal_error("Failed to find splice operand");
 }
 
+bool Inst::isMemoryWrite() const {
+  llvm::report_fatal_error("Attempt to call base Inst::isMemoryWrite() method");
+}
+
 void Inst::livenessLightweight(Cfg *Func, LivenessBV &Live) {
   assert(!isDeleted());
   resetLastUses();
