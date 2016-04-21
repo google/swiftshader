@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "085974e9_56499234",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 4277,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-21T21:05:50Z",
+      "side": 1,
+      "message": "I wonder if we can advertise ES3 extensions on an ES2 context.",
+      "range": {
+        "startLine": 4277,
+        "startChar": 19,
+        "endLine": 4277,
+        "endChar": 44
+      },
+      "revId": "88b29789cc9e4e65984106af1a80f648681cefae",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
