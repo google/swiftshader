@@ -1683,7 +1683,7 @@ GL_APICALL void *GL_APIENTRY glMapBufferRange(GLenum target, GLintptr offset, GL
 			return error(GL_INVALID_OPERATION, nullptr);
 		}
 
-		GLint bufferSize = buffer->size();
+		GLsizeiptr bufferSize = buffer->size();
 		if((offset < 0) || (length < 0) || ((offset + length) > bufferSize))
 		{
 			error(GL_INVALID_VALUE);
@@ -1726,7 +1726,7 @@ GL_APICALL void GL_APIENTRY glFlushMappedBufferRange(GLenum target, GLintptr off
 			return error(GL_INVALID_OPERATION);
 		}
 
-		GLint bufferSize = buffer->size();
+		GLsizeiptr bufferSize = buffer->size();
 		if((offset < 0) || (length < 0) || ((offset + length) > bufferSize))
 		{
 			error(GL_INVALID_VALUE);

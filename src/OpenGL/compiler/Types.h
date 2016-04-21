@@ -277,7 +277,7 @@ public:
 	int getNominalSize() const { return primarySize; }
 	void setNominalSize(int s) { primarySize = s; }
     // Full size of single instance of type
-	int getObjectSize() const
+	size_t getObjectSize() const
 	{
 		if(isArray())
 		{
@@ -289,7 +289,7 @@ public:
 		}
 	}
 
-	int getElementSize() const
+	size_t getElementSize() const
 	{
 		if(getBasicType() == EbtStruct)
 		{
@@ -467,7 +467,7 @@ public:
 
 protected:
     void buildMangledName(TString&);
-    int getStructSize() const;
+    size_t getStructSize() const;
     void computeDeepestStructNesting();
 
     TBasicType type;

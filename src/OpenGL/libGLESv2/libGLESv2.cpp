@@ -2591,7 +2591,7 @@ void GetBufferParameteriv(GLenum target, GLenum pname, GLint* params)
 			*params = buffer->usage();
 			break;
 		case GL_BUFFER_SIZE:
-			*params = buffer->size();
+			*params = (GLint)buffer->size();
 			break;
 		case GL_BUFFER_ACCESS_FLAGS:
 			if(clientVersion >= 3)
@@ -2610,14 +2610,14 @@ void GetBufferParameteriv(GLenum target, GLenum pname, GLint* params)
 		case GL_BUFFER_MAP_LENGTH:
 			if(clientVersion >= 3)
 			{
-				*params = buffer->length();
+				*params = (GLint)buffer->length();
 				break;
 			}
 			else return error(GL_INVALID_ENUM);
 		case GL_BUFFER_MAP_OFFSET:
 			if(clientVersion >= 3)
 			{
-				*params = buffer->offset();
+				*params = (GLint)buffer->offset();
 				break;
 			}
 			else return error(GL_INVALID_ENUM);
@@ -3168,19 +3168,19 @@ void GetProgramiv(GLuint program, GLenum pname, GLint* params)
 			*params = programObject->isValidated();
 			return;
 		case GL_INFO_LOG_LENGTH:
-			*params = programObject->getInfoLogLength();
+			*params = (GLint)programObject->getInfoLogLength();
 			return;
 		case GL_ATTACHED_SHADERS:
 			*params = programObject->getAttachedShadersCount();
 			return;
 		case GL_ACTIVE_ATTRIBUTES:
-			*params = programObject->getActiveAttributeCount();
+			*params = (GLint)programObject->getActiveAttributeCount();
 			return;
 		case GL_ACTIVE_ATTRIBUTE_MAX_LENGTH:
 			*params = programObject->getActiveAttributeMaxLength();
 			return;
 		case GL_ACTIVE_UNIFORMS:
-			*params = programObject->getActiveUniformCount();
+			*params = (GLint)programObject->getActiveUniformCount();
 			return;
 		case GL_ACTIVE_UNIFORM_MAX_LENGTH:
 			*params = programObject->getActiveUniformMaxLength();
@@ -3188,7 +3188,7 @@ void GetProgramiv(GLuint program, GLenum pname, GLint* params)
 		case GL_ACTIVE_UNIFORM_BLOCKS:
 			if(clientVersion >= 3)
 			{
-				*params = programObject->getActiveUniformBlockCount();
+				*params = (GLint)programObject->getActiveUniformBlockCount();
 				return;
 			}
 			else return error(GL_INVALID_ENUM);
@@ -3407,10 +3407,10 @@ void GetShaderiv(GLuint shader, GLenum pname, GLint* params)
 			*params = shaderObject->isCompiled() ? GL_TRUE : GL_FALSE;
 			return;
 		case GL_INFO_LOG_LENGTH:
-			*params = shaderObject->getInfoLogLength();
+			*params = (GLint)shaderObject->getInfoLogLength();
 			return;
 		case GL_SHADER_SOURCE_LENGTH:
-			*params = shaderObject->getSourceLength();
+			*params = (GLint)shaderObject->getSourceLength();
 			return;
 		default:
 			return error(GL_INVALID_ENUM);

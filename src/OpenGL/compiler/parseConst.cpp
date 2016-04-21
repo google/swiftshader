@@ -37,13 +37,13 @@ protected:
     bool visitLoop(Visit visit, TIntermLoop*);
     bool visitBranch(Visit visit, TIntermBranch*);
 
-    int index;
+    size_t index;
     ConstantUnion *unionArray;
     TType type;
     TOperator constructorType;
     bool singleConstantParam;
     TInfoSink& infoSink;
-    int size; // size of the constructor ( 4 for vec4)
+    size_t size; // size of the constructor ( 4 for vec4)
     bool isMatrix;
     int matrixSize; // dimension of the matrix (nominal size and not the instance size)
 };
@@ -156,17 +156,17 @@ void TConstTraverser::visitConstantUnion(TIntermConstantUnion* node)
     }
 
     ConstantUnion* leftUnionArray = unionArray;
-    int instanceSize = type.getObjectSize();
+    size_t instanceSize = type.getObjectSize();
     TBasicType basicType = type.getBasicType();
 
     if (index >= instanceSize)
         return;
 
     if (!singleConstantParam) {
-        int size = node->getType().getObjectSize();
+        size_t size = node->getType().getObjectSize();
 
         ConstantUnion *rightUnionArray = node->getUnionArrayPointer();
-        for (int i=0; i < size; i++) {
+        for(size_t i = 0; i < size; i++) {
             if (index >= instanceSize)
                 return;
             leftUnionArray[index].cast(basicType, rightUnionArray[i]);
@@ -174,11 +174,11 @@ void TConstTraverser::visitConstantUnion(TIntermConstantUnion* node)
             (index)++;
         }
     } else {
-        int totalSize = index + size;
+        size_t totalSize = index + size;
         ConstantUnion *rightUnionArray = node->getUnionArrayPointer();
         if (!isMatrix) {
             int count = 0;
-            for (int i = index; i < totalSize; i++) {
+            for(size_t i = index; i < totalSize; i++) {
                 if (i >= instanceSize)
                     return;
 
@@ -192,7 +192,7 @@ void TConstTraverser::visitConstantUnion(TIntermConstantUnion* node)
         } else {  // for matrix constructors
             int count = 0;
             int element = index;
-            for (int i = index; i < totalSize; i++) {
+            for(size_t i = index; i < totalSize; i++) {
                 if (i >= instanceSize)
                     return;
                 if (element - i == 0 || (i - element) % (matrixSize + 1) == 0 )

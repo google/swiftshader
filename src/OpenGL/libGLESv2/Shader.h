@@ -49,9 +49,9 @@ public:
 
     void deleteSource();
     void setSource(GLsizei count, const char *const *string, const GLint *length);
-    int getInfoLogLength() const;
+    size_t getInfoLogLength() const;
     void getInfoLog(GLsizei bufSize, GLsizei *length, char *infoLog);
-    int getSourceLength() const;
+    size_t getSourceLength() const;
     void getSource(GLsizei bufSize, GLsizei *length, char *source);
 
     void compile();

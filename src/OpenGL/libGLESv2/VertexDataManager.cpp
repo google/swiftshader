@@ -78,9 +78,7 @@ unsigned int VertexDataManager::writeAttributeData(StreamingVertexBuffer *vertex
 
     if(buffer)
     {
-        int offset = attribute.mOffset;
-
-        input = static_cast<const char*>(buffer->data()) + offset;
+        input = static_cast<const char*>(buffer->data()) + attribute.mOffset;
     }
     else
     {
