@@ -171,6 +171,7 @@ namespace es2
 		void dirtyAllUniforms();
 		void applyUniforms();
 		void applyUniformBuffers(BufferBinding* uniformBuffers);
+		void applyTransformFeedback(TransformFeedback* transformFeedback);
 
 		void link();
 		bool isLinked() const;
