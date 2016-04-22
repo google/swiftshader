@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "085974e9_8b2b5f74",
+        "filename": "src/OpenGL/libGLESv2/Query.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-22T14:18:08Z",
+      "side": 1,
+      "message": "Instead of creating a sw::Query with an uninitialized \u0027type\u0027, just return and leave mQuery null, which is safe since that\u0027s the state when glBeginQuery() is never called.",
+      "range": {
+        "startLine": 54,
+        "startChar": 3,
+        "endLine": 54,
+        "endChar": 10
+      },
+      "revId": "99fa64ec88ce4ba4ad2ead235d71485f32700905",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
