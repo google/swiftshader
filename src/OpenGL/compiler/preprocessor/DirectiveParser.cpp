@@ -490,7 +490,7 @@ void DirectiveParser::parseElse(Token* token)
     block.skipGroup = block.foundValidGroup;
     block.foundValidGroup = true;
 
-    // Warn if there are extra tokens after #else.
+    // Check if there are extra tokens after #else.
     mTokenizer->lex(token);
     if (!isEOD(token))
     {
@@ -554,7 +554,7 @@ void DirectiveParser::parseEndif(Token* token)
 
     mConditionalStack.pop_back();
 
-    // Warn if there are tokens after #endif.
+    // Check if there are tokens after #endif.
     mTokenizer->lex(token);
     if (!isEOD(token))
     {
@@ -915,7 +915,7 @@ int DirectiveParser::parseExpressionIf(Token* token)
     macroExpander.lex(token);
     expressionParser.parse(token, &expression);
 
-    // Warn if there are tokens after #if expression.
+    // Check if there are tokens after #if expression.
     if (!isEOD(token))
     {
         mDiagnostics->report(Diagnostics::CONDITIONAL_UNEXPECTED_TOKEN,
@@ -943,7 +943,7 @@ int DirectiveParser::parseExpressionIfdef(Token* token)
     MacroSet::const_iterator iter = mMacroSet->find(token->text);
     int expression = iter != mMacroSet->end() ? 1 : 0;
 
-    // Warn if there are tokens after #ifdef expression.
+    // Check if there are tokens after #ifdef expression.
     mTokenizer->lex(token);
     if (!isEOD(token))
     {
