@@ -78,6 +78,8 @@ std::string Diagnostics::message(ID id)
           return "Not enough arguments for macro";
       case MACRO_TOO_MANY_ARGS:
           return "Too many arguments for macro";
+      case MACRO_DUPLICATE_PARAMETER_NAMES:
+          return "duplicate macro parameter name";
       case CONDITIONAL_ENDIF_WITHOUT_IF:
           return "unexpected #endif found without a matching #if";
       case CONDITIONAL_ELSE_WITHOUT_IF:
