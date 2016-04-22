@@ -229,10 +229,18 @@ bool isComparison(wasm::WasmOpcode Opcode) {
   case kExprI64GtS:
   case kExprI32GtU:
   case kExprI64GtU:
+  case kExprF32Eq:
+  case kExprF64Eq:
   case kExprF32Ne:
   case kExprF64Ne:
   case kExprF32Le:
   case kExprF64Le:
+  case kExprF32Lt:
+  case kExprF64Lt:
+  case kExprF32Ge:
+  case kExprF64Ge:
+  case kExprF32Gt:
+  case kExprF64Gt:
   case kExprI32LeS:
   case kExprI64LeS:
   case kExprI32GeU:
@@ -320,11 +328,11 @@ public:
 
     auto *Dest = makeVariable(Vals[0].toOperand()->getType(), Control);
 
-    // Multiply by 10 in case more things get added later.
+    // Multiply by 200 in case more things get added later.
 
     // TODO(eholk): find a better way besides multiplying by some arbitrary
     // constant.
-    auto *Phi = InstPhi::create(Func, Count * 10, Dest);
+    auto *Phi = InstPhi::create(Func, Count * 200, Dest);
     for (uint32_t i = 0; i < Count; ++i) {
       auto *Op = Vals[i].toOperand();
       assert(Op);
@@ -393,14 +401,34 @@ public:
       Control()->appendInst(
           InstArithmetic::create(Func, InstArithmetic::Sub, Dest, Left, Right));
       break;
+    case kExprF32Sub:
+    case kExprF64Sub:
+      Control()->appendInst(InstArithmetic::create(Func, InstArithmetic::Fsub,
+                                                   Dest, Left, Right));
+      break;
     case kExprI32Mul:
     case kExprI64Mul:
       Control()->appendInst(
           InstArithmetic::create(Func, InstArithmetic::Mul, Dest, Left, Right));
       break;
+    case kExprF32Mul:
+    case kExprF64Mul:
+      Control()->appendInst(InstArithmetic::create(Func, InstArithmetic::Fmul,
+                                                   Dest, Left, Right));
+      break;
+    case kExprI32DivS:
+    case kExprI64DivS:
+      Control()->appendInst(InstArithmetic::create(Func, InstArithmetic::Sdiv,
+                                                   Dest, Left, Right));
+      break;
     case kExprI32DivU:
     case kExprI64DivU:
       Control()->appendInst(InstArithmetic::create(Func, InstArithmetic::Udiv,
+                                                   Dest, Left, Right));
+      break;
+    case kExprF32Div:
+    case kExprF64Div:
+      Control()->appendInst(InstArithmetic::create(Func, InstArithmetic::Fdiv,
                                                    Dest, Left, Right));
       break;
     case kExprI32RemU:
@@ -428,30 +456,63 @@ public:
       Control()->appendInst(
           InstArithmetic::create(Func, InstArithmetic::Shl, Dest, Left, Right));
       break;
-    case kExprI32Rol: {
+    case kExprI32Rol:
+    case kExprI64Rol: {
       // TODO(eholk): add rotate as an ICE instruction to make it easier to take
       // advantage of hardware support.
 
-      // TODO(eholk): don't hardcode so many numbers.
-      auto *Masked = makeVariable(IceType_i32);
-      auto *Bottom = makeVariable(IceType_i32);
-      auto *Top = makeVariable(IceType_i32);
-      Control()->appendInst(InstArithmetic::create(
-          Func, InstArithmetic::And, Masked, Right, Ctx->getConstantInt32(31)));
+      const auto DestTy = Left.toOperand()->getType();
+      const SizeT BitCount = typeWidthInBytes(DestTy) * CHAR_BIT;
+
+      auto *Masked = makeVariable(DestTy);
+      auto *Bottom = makeVariable(DestTy);
+      auto *Top = makeVariable(DestTy);
+      Control()->appendInst(
+          InstArithmetic::create(Func, InstArithmetic::And, Masked, Right,
+                                 Ctx->getConstantInt(DestTy, BitCount - 1)));
       Control()->appendInst(
           InstArithmetic::create(Func, InstArithmetic::Shl, Top, Left, Masked));
-      auto *RotShift = makeVariable(IceType_i32);
-      Control()->appendInst(
-          InstArithmetic::create(Func, InstArithmetic::Sub, RotShift,
-                                 Ctx->getConstantInt32(32), Masked));
+      auto *RotShift = makeVariable(DestTy);
+      Control()->appendInst(InstArithmetic::create(
+          Func, InstArithmetic::Sub, RotShift,
+          Ctx->getConstantInt(DestTy, BitCount), Masked));
       Control()->appendInst(InstArithmetic::create(Func, InstArithmetic::Lshr,
-                                                   Bottom, Left, Masked));
+                                                   Bottom, Left, RotShift));
+      Control()->appendInst(
+          InstArithmetic::create(Func, InstArithmetic::Or, Dest, Top, Bottom));
+      break;
+    }
+    case kExprI32Ror:
+    case kExprI64Ror: {
+      // TODO(eholk): add rotate as an ICE instruction to make it easier to take
+      // advantage of hardware support.
+
+      const auto DestTy = Left.toOperand()->getType();
+      const SizeT BitCount = typeWidthInBytes(DestTy) * CHAR_BIT;
+
+      auto *Masked = makeVariable(DestTy);
+      auto *Bottom = makeVariable(DestTy);
+      auto *Top = makeVariable(DestTy);
+      Control()->appendInst(
+          InstArithmetic::create(Func, InstArithmetic::And, Masked, Right,
+                                 Ctx->getConstantInt(DestTy, BitCount - 1)));
+      Control()->appendInst(InstArithmetic::create(Func, InstArithmetic::Lshr,
+                                                   Top, Left, Masked));
+      auto *RotShift = makeVariable(DestTy);
+      Control()->appendInst(InstArithmetic::create(
+          Func, InstArithmetic::Sub, RotShift,
+          Ctx->getConstantInt(DestTy, BitCount), Masked));
+      Control()->appendInst(InstArithmetic::create(Func, InstArithmetic::Shl,
+                                                   Bottom, Left, RotShift));
       Control()->appendInst(
           InstArithmetic::create(Func, InstArithmetic::Or, Dest, Top, Bottom));
       break;
     }
     case kExprI32ShrU:
     case kExprI64ShrU:
+      Control()->appendInst(InstArithmetic::create(Func, InstArithmetic::Lshr,
+                                                   Dest, Left, Right));
+      break;
     case kExprI32ShrS:
     case kExprI64ShrS:
       Control()->appendInst(InstArithmetic::create(Func, InstArithmetic::Ashr,
@@ -532,6 +593,7 @@ public:
           InstIcmp::create(Func, InstIcmp::Sge, TmpDest, Left, Right));
       Control()->appendInst(
           InstCast::create(Func, InstCast::Zext, Dest, TmpDest));
+      break;
     }
     case kExprI32GtS:
     case kExprI64GtS: {
@@ -551,6 +613,15 @@ public:
           InstCast::create(Func, InstCast::Zext, Dest, TmpDest));
       break;
     }
+    case kExprF32Eq:
+    case kExprF64Eq: {
+      auto *TmpDest = makeVariable(IceType_i1);
+      Control()->appendInst(
+          InstFcmp::create(Func, InstFcmp::Ueq, TmpDest, Left, Right));
+      Control()->appendInst(
+          InstCast::create(Func, InstCast::Zext, Dest, TmpDest));
+      break;
+    }
     case kExprF32Ne:
     case kExprF64Ne: {
       auto *TmpDest = makeVariable(IceType_i1);
@@ -565,6 +636,33 @@ public:
       auto *TmpDest = makeVariable(IceType_i1);
       Control()->appendInst(
           InstFcmp::create(Func, InstFcmp::Ule, TmpDest, Left, Right));
+      Control()->appendInst(
+          InstCast::create(Func, InstCast::Zext, Dest, TmpDest));
+      break;
+    }
+    case kExprF32Lt:
+    case kExprF64Lt: {
+      auto *TmpDest = makeVariable(IceType_i1);
+      Control()->appendInst(
+          InstFcmp::create(Func, InstFcmp::Ult, TmpDest, Left, Right));
+      Control()->appendInst(
+          InstCast::create(Func, InstCast::Zext, Dest, TmpDest));
+      break;
+    }
+    case kExprF32Ge:
+    case kExprF64Ge: {
+      auto *TmpDest = makeVariable(IceType_i1);
+      Control()->appendInst(
+          InstFcmp::create(Func, InstFcmp::Uge, TmpDest, Left, Right));
+      Control()->appendInst(
+          InstCast::create(Func, InstCast::Zext, Dest, TmpDest));
+      break;
+    }
+    case kExprF32Gt:
+    case kExprF64Gt: {
+      auto *TmpDest = makeVariable(IceType_i1);
+      Control()->appendInst(
+          InstFcmp::create(Func, InstFcmp::Ugt, TmpDest, Left, Right));
       Control()->appendInst(
           InstCast::create(Func, InstCast::Zext, Dest, TmpDest));
       break;
@@ -598,6 +696,20 @@ public:
       Control()->appendInst(InstCast::create(Func, InstCast::Zext, Dest, Tmp));
       break;
     }
+    case kExprI32Ctz: {
+      Dest = makeVariable(IceType_i32);
+      const auto FnName = Ctx->getGlobalString("llvm.cttz.i32");
+      bool BadInstrinsic = false;
+      const auto *Info = Ctx->getIntrinsicsInfo().find(FnName, BadInstrinsic);
+      assert(!BadInstrinsic);
+      assert(Info);
+
+      auto *Call = InstIntrinsicCall::create(
+          Func, 1, Dest, Ctx->getConstantExternSym(FnName), Info->Info);
+      Call->addArg(Input);
+      Control()->appendInst(Call);
+      break;
+    }
     case kExprF32Neg: {
       Dest = makeVariable(IceType_f32);
       Control()->appendInst(InstArithmetic::create(
@@ -610,6 +722,56 @@ public:
           Func, InstArithmetic::Fsub, Dest, Ctx->getConstantDouble(0), Input));
       break;
     }
+    case kExprF32Abs: {
+      Dest = makeVariable(IceType_f32);
+      const auto FnName = Ctx->getGlobalString("llvm.fabs.f32");
+      bool BadInstrinsic = false;
+      const auto *Info = Ctx->getIntrinsicsInfo().find(FnName, BadInstrinsic);
+      assert(!BadInstrinsic);
+      assert(Info);
+
+      auto *Call = InstIntrinsicCall::create(
+          Func, 1, Dest, Ctx->getConstantExternSym(FnName), Info->Info);
+      Call->addArg(Input);
+      Control()->appendInst(Call);
+      break;
+    }
+    case kExprF64Abs: {
+      Dest = makeVariable(IceType_f64);
+      const auto FnName = Ctx->getGlobalString("llvm.fabs.f64");
+      bool BadInstrinsic = false;
+      const auto *Info = Ctx->getIntrinsicsInfo().find(FnName, BadInstrinsic);
+      assert(!BadInstrinsic);
+      assert(Info);
+
+      auto *Call = InstIntrinsicCall::create(
+          Func, 1, Dest, Ctx->getConstantExternSym(FnName), Info->Info);
+      Call->addArg(Input);
+      Control()->appendInst(Call);
+      break;
+    }
+    case kExprF32Floor: {
+      Dest = makeVariable(IceType_f64);
+      const auto FnName = Ctx->getGlobalString("env$$floor_f");
+      constexpr bool HasTailCall = false;
+
+      auto *Call = InstCall::create(
+          Func, 1, Dest, Ctx->getConstantExternSym(FnName), HasTailCall);
+      Call->addArg(Input);
+      Control()->appendInst(Call);
+      break;
+    }
+    case kExprF64Floor: {
+      Dest = makeVariable(IceType_f64);
+      const auto FnName = Ctx->getGlobalString("env$$floor_d");
+      constexpr bool HasTailCall = false;
+
+      auto *Call = InstCall::create(
+          Func, 1, Dest, Ctx->getConstantExternSym(FnName), HasTailCall);
+      Call->addArg(Input);
+      Control()->appendInst(Call);
+      break;
+    }
     case kExprI64UConvertI32:
       Dest = makeVariable(IceType_i64);
       Control()->appendInst(
@@ -620,6 +782,41 @@ public:
       Control()->appendInst(
           InstCast::create(Func, InstCast::Sext, Dest, Input));
       break;
+    case kExprI32SConvertF32:
+      Dest = makeVariable(IceType_i32);
+      Control()->appendInst(
+          InstCast::create(Func, InstCast::Fptosi, Dest, Input));
+      break;
+    case kExprI32UConvertF32:
+      Dest = makeVariable(IceType_i32);
+      Control()->appendInst(
+          InstCast::create(Func, InstCast::Fptoui, Dest, Input));
+      break;
+    case kExprI32SConvertF64:
+      Dest = makeVariable(IceType_i32);
+      Control()->appendInst(
+          InstCast::create(Func, InstCast::Fptosi, Dest, Input));
+      break;
+    case kExprI32UConvertF64:
+      Dest = makeVariable(IceType_i32);
+      Control()->appendInst(
+          InstCast::create(Func, InstCast::Fptoui, Dest, Input));
+      break;
+    case kExprI32ReinterpretF32:
+      Dest = makeVariable(IceType_i32);
+      Control()->appendInst(
+          InstCast::create(Func, InstCast::Bitcast, Dest, Input));
+      break;
+    case kExprI64ReinterpretF64:
+      Dest = makeVariable(IceType_i64);
+      Control()->appendInst(
+          InstCast::create(Func, InstCast::Bitcast, Dest, Input));
+      break;
+    case kExprF64ReinterpretI64:
+      Dest = makeVariable(IceType_f64);
+      Control()->appendInst(
+          InstCast::create(Func, InstCast::Bitcast, Dest, Input));
+      break;
     case kExprI32ConvertI64:
       Dest = makeVariable(IceType_i32);
       Control()->appendInst(
@@ -629,6 +826,36 @@ public:
       Dest = makeVariable(IceType_f64);
       Control()->appendInst(
           InstCast::create(Func, InstCast::Sitofp, Dest, Input));
+      break;
+    case kExprF64UConvertI32:
+      Dest = makeVariable(IceType_f64);
+      Control()->appendInst(
+          InstCast::create(Func, InstCast::Uitofp, Dest, Input));
+      break;
+    case kExprF64ConvertF32:
+      Dest = makeVariable(IceType_f64);
+      Control()->appendInst(
+          InstCast::create(Func, InstCast::Fpext, Dest, Input));
+      break;
+    case kExprF32SConvertI32:
+      Dest = makeVariable(IceType_f32);
+      Control()->appendInst(
+          InstCast::create(Func, InstCast::Sitofp, Dest, Input));
+      break;
+    case kExprF32UConvertI32:
+      Dest = makeVariable(IceType_f32);
+      Control()->appendInst(
+          InstCast::create(Func, InstCast::Uitofp, Dest, Input));
+      break;
+    case kExprF32ReinterpretI32:
+      Dest = makeVariable(IceType_f32);
+      Control()->appendInst(
+          InstCast::create(Func, InstCast::Bitcast, Dest, Input));
+      break;
+    case kExprF32ConvertF64:
+      Dest = makeVariable(IceType_f32);
+      Control()->appendInst(
+          InstCast::create(Func, InstCast::Fptrunc, Dest, Input));
       break;
     default:
       LOG(out << "Unknown unop: " << WasmOpcodes::OpcodeName(Opcode) << "\n");
@@ -953,7 +1180,8 @@ public:
 
   Node LoadMem(wasm::LocalType Type, MachineType MemType, Node Index,
                uint32_t Offset) {
-    LOG(out << "LoadMem(" << Index << "[" << Offset << "]) = ");
+    LOG(out << "LoadMem." << toIceType(MemType) << "(" << Index << "[" << Offset
+            << "]) = ");
 
     auto *RealAddr = sanitizeAddress(Index, Offset);
 
@@ -988,7 +1216,8 @@ public:
     return OperandNode(Result);
   }
   void StoreMem(MachineType Type, Node Index, uint32_t Offset, Node Val) {
-    LOG(out << "StoreMem(" << Index << "[" << Offset << "] = " << Val << ")"
+    LOG(out << "StoreMem." << toIceType(Type) << "(" << Index << "[" << Offset
+            << "] = " << Val << ")"
             << "\n");
 
     auto *RealAddr = sanitizeAddress(Index, Offset);
@@ -1101,11 +1330,13 @@ std::unique_ptr<Cfg> WasmTranslator::translateFunction(Zone *Zone,
   return Func;
 }
 
+// TODO(eholk): compute the correct buffer size. This uses 256k by default,
+// which has been big enough for testing but is not a general solution.
+constexpr SizeT BufferSize = 256 << 10;
+
 WasmTranslator::WasmTranslator(GlobalContext *Ctx)
-    : Translator(Ctx), Buffer(new uint8_t[24 << 10]), BufferSize(24 << 10) {
-  // TODO(eholk): compute the correct buffer size. This uses 24k by default,
-  // which has been big enough for testing but is not a general solution.
-}
+    : Translator(Ctx), Buffer(new uint8_t[ ::BufferSize]),
+      BufferSize(::BufferSize) {}
 
 void WasmTranslator::translate(
     const std::string &IRFilename,
@@ -1118,6 +1349,7 @@ void WasmTranslator::translate(
   SizeT BytesRead = InputStream->GetBytes(Buffer.get(), BufferSize);
   LOG(out << "Read " << BytesRead << " bytes"
           << "\n");
+  assert(BytesRead < BufferSize);
 
   LOG(out << "Decoding module " << IRFilename << "\n");
 

@@ -1,4 +1,4 @@
-//===- subzero/runtime/wasm-runtime.c - Subzero WASM runtime source -------===//
+//===- subzero/runtime/wasm-runtime.cpp - Subzero WASM runtime source -----===//
 //
 //                        The Subzero Code Generator
 //
@@ -12,8 +12,19 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include <cmath>
+
+namespace env {
+double floor(double X) { return std::floor(X); }
+
+float floor(float X) { return std::floor(X); }
+}
+
+// TODO (eholk): move the C parts outside and use C++ name mangling.
+extern "C" {
 #include <errno.h>
 #include <fcntl.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -30,6 +41,9 @@ void env$$abort() {
 
 void env$$_abort() { env$$abort(); }
 
+double env$$floor_f(float X) { return env::floor(X); }
+double env$$floor_d(double X) { return env::floor(X); }
+
 void env$$exit(int Status) { exit(Status); }
 void env$$_exit(int Status) { env$$exit(Status); }
 
@@ -44,12 +58,13 @@ UNIMPLEMENTED(setjmp)
 UNIMPLEMENTED(longjmp)
 UNIMPLEMENTED(__assert_fail)
 UNIMPLEMENTED(__builtin_malloc)
+UNIMPLEMENTED(__builtin_isinff)
+UNIMPLEMENTED(__builtin_isinfl)
 UNIMPLEMENTED(__builtin_apply)
 UNIMPLEMENTED(__builtin_apply_args)
 UNIMPLEMENTED(pthread_cleanup_push)
 UNIMPLEMENTED(pthread_cleanup_pop)
 UNIMPLEMENTED(pthread_self)
-UNIMPLEMENTED(abs)
 UNIMPLEMENTED(__floatditf)
 UNIMPLEMENTED(__floatsitf)
 UNIMPLEMENTED(__fixtfdi)
@@ -66,14 +81,17 @@ UNIMPLEMENTED(__multf3)
 UNIMPLEMENTED(__multi3)
 UNIMPLEMENTED(__lock)
 UNIMPLEMENTED(__unlock)
-UNIMPLEMENTED(__syscall6)
-UNIMPLEMENTED(__syscall20)
-UNIMPLEMENTED(__syscall140)
-UNIMPLEMENTED(__syscall192)
+UNIMPLEMENTED(__syscall6)   // sys_close
+UNIMPLEMENTED(__syscall140) // sys_llseek
+UNIMPLEMENTED(__syscall192) // sys_mmap?
+UNIMPLEMENTED(__unordtf2)
+UNIMPLEMENTED(__fixunstfsi)
+UNIMPLEMENTED(__floatunsitf)
+UNIMPLEMENTED(__extenddftf2)
 
 void *wasmPtr(int Index) {
   // TODO (eholk): get the mask from the WASM file.
-  const int MASK = 0x3fffff;
+  const int MASK = 0xffffff;
   Index &= MASK;
 
   return WASM_MEMORY + Index;
@@ -85,6 +103,10 @@ extern int __szwasm_main(int, const char **);
 #define WASM_DEREF(Type, Index) (*WASM_REF(Type, Index))
 
 int main(int argc, const char **argv) { return __szwasm_main(argc, argv); }
+
+int env$$abs(int a) { return abs(a); }
+
+double env$$pow(double x, double y) { return pow(x, y); }
 
 /// sys_write
 int env$$__syscall4(int Which, int VarArgs) {
@@ -107,6 +129,14 @@ int env$$__syscall5(int Which, int VarArgs) {
   return open(Path, Flags, Mode);
 }
 
+/// sys_getpid
+int env$$__syscall20(int Which, int VarArgs) {
+  (void)Which;
+  (void)VarArgs;
+
+  return getpid();
+}
+
 /// sys_ioctl
 int env$$__syscall54(int A, int B) {
   int Fd = WASM_DEREF(int, B + 0 * sizeof(int));
@@ -116,15 +146,12 @@ int env$$__syscall54(int A, int B) {
   return -ENOTTY;
 }
 
+/// sys_write
 int env$$__syscall146(int Which, int VarArgs) {
-  fprintf(stderr, "syscall146\n");
 
   int Fd = WASM_DEREF(int, VarArgs);
   int Iov = WASM_DEREF(int, VarArgs + sizeof(int));
   int Iovcnt = WASM_DEREF(int, VarArgs + 2 * sizeof(int));
-
-  fprintf(stderr, "  Fd=%d, Iov=%d (%p), Iovcnt=%d\n", Fd, Iov, wasmPtr(Iov),
-          Iovcnt);
 
   int Count = 0;
 
@@ -132,16 +159,13 @@ int env$$__syscall146(int Which, int VarArgs) {
     void *Ptr = WASM_REF(void, WASM_DEREF(int, Iov + I * 8));
     int Length = WASM_DEREF(int, Iov + I * 8 + 4);
 
-    fprintf(stderr, "  [%d] write(%d, %p, %d) = ", I, Fd, Ptr, Length);
     int Curr = write(Fd, Ptr, Length);
-
-    fprintf(stderr, "%d\n", Curr);
 
     if (Curr < 0) {
       return -1;
     }
     Count += Curr;
   }
-  fprintf(stderr, "  Count = %d\n", Count);
   return Count;
 }
+} // end of extern "C"
