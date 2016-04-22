@@ -20,8 +20,8 @@ namespace es2
 {
 
 Query::Query(GLuint name, GLenum type) : NamedObject(name)
-{ 
-    mQuery = NULL;
+{
+    mQuery = nullptr;
     mStatus = GL_FALSE;
     mResult = GL_FALSE;
     mType = type;
@@ -29,7 +29,7 @@ Query::Query(GLuint name, GLenum type) : NamedObject(name)
 
 Query::~Query()
 {
-    if(mQuery != NULL)
+    if(mQuery)
     {
         delete mQuery;
     }
@@ -37,7 +37,7 @@ Query::~Query()
 
 void Query::begin()
 {
-    if(mQuery == NULL)
+    if(!mQuery)
     {
 		sw::Query::Type type;
 		switch(mType)
@@ -50,7 +50,8 @@ void Query::begin()
 			type = sw::Query::TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN;
 			break;
 		default:
-			ASSERT(false);
+			UNREACHABLE(mType);
+			return;
 		}
 
 		mQuery = new sw::Query(type);
@@ -81,7 +82,7 @@ void Query::begin()
 
 void Query::end()
 {
-    if(mQuery == NULL)
+    if(!mQuery)
     {
         return error(GL_INVALID_OPERATION);
 	}
@@ -109,7 +110,7 @@ void Query::end()
 
 GLuint Query::getResult()
 {
-    if(mQuery != NULL)
+    if(mQuery)
     {
         while(!testQuery())
         {
@@ -122,11 +123,11 @@ GLuint Query::getResult()
 
 GLboolean Query::isResultAvailable()
 {
-    if(mQuery != NULL)
+    if(mQuery)
     {
         testQuery();
     }
-    
+
     return mStatus;
 }
 
@@ -137,7 +138,7 @@ GLenum Query::getType() const
 
 GLboolean Query::testQuery()
 {
-    if(mQuery != NULL && mStatus != GL_TRUE)
+    if(mQuery != nullptr && mStatus != GL_TRUE)
     {
         if(!mQuery->building && mQuery->reference == 0)
         {
@@ -157,10 +158,10 @@ GLboolean Query::testQuery()
                 ASSERT(false);
             }
         }
-        
+
         return mStatus;
     }
 
-    return GL_TRUE;   // Prevent blocking when query is null
+    return GL_TRUE;   // Prevent blocking when query is nullptr
 }
 }
