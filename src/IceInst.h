@@ -979,6 +979,7 @@ public:
     return Indexes[Pos];
   }
 
+  bool isMemoryWrite() const override { return false; }
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Instr) {
     return Instr->getKind() == ShuffleVector;
