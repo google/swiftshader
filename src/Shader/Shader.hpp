@@ -495,8 +495,8 @@ namespace sw
 			bool isBranch() const;
 			bool isCall() const;
 			bool isBreak() const;
-			bool isLoopOrSwitch() const;
-			bool isEndLoopOrSwitch() const;
+			bool isLoop() const;
+			bool isEndLoop() const;
 
 			bool isPredicated() const;
 
