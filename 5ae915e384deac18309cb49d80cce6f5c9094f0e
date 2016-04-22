@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "085974e9_53c439b3",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 3548,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-22T20:27:10Z",
+      "side": 1,
+      "message": "This is the only intended functional change. Return statements shouldn\u0027t affect the unrollability of loops. The rest of the patch is a refactoring for readability.",
+      "range": {
+        "startLine": 3548,
+        "startChar": 2,
+        "endLine": 3548,
+        "endChar": 17
+      },
+      "revId": "5ae915e384deac18309cb49d80cce6f5c9094f0e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
