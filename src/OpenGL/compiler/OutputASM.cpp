@@ -1624,8 +1624,8 @@ namespace glsl
 
 		if(unroll)
 		{
-			DetectLoopDiscontinuity detectLoopDiscontinuity;
-			unroll = !detectLoopDiscontinuity.traverse(node);
+			LoopUnrollable loopUnrollable;
+			unroll = loopUnrollable.traverse(node);
 		}
 
 		TIntermNode *init = node->getInit();
@@ -3506,17 +3506,17 @@ namespace glsl
 		return ~0u;
 	}
 
-	bool DetectLoopDiscontinuity::traverse(TIntermNode *node)
+	bool LoopUnrollable::traverse(TIntermNode *node)
 	{
 		loopDepth = 0;
-		loopDiscontinuity = false;
+		loopUnrollable = true;
 
 		node->traverse(this);
 
-		return loopDiscontinuity;
+		return loopUnrollable;
 	}
 
-	bool DetectLoopDiscontinuity::visitLoop(Visit visit, TIntermLoop *loop)
+	bool LoopUnrollable::visitLoop(Visit visit, TIntermLoop *loop)
 	{
 		if(visit == PreVisit)
 		{
@@ -3530,9 +3530,9 @@ namespace glsl
 		return true;
 	}
 
-	bool DetectLoopDiscontinuity::visitBranch(Visit visit, TIntermBranch *node)
+	bool LoopUnrollable::visitBranch(Visit visit, TIntermBranch *node)
 	{
-		if(loopDiscontinuity)
+		if(!loopUnrollable)
 		{
 			return false;
 		}
@@ -3545,20 +3545,20 @@ namespace glsl
 		switch(node->getFlowOp())
 		{
 		case EOpKill:
+		case EOpReturn:
 			break;
 		case EOpBreak:
 		case EOpContinue:
-		case EOpReturn:
-			loopDiscontinuity = true;
+			loopUnrollable = false;
 			break;
 		default: UNREACHABLE(node->getFlowOp());
 		}
 
-		return !loopDiscontinuity;
+		return loopUnrollable;
 	}
 
-	bool DetectLoopDiscontinuity::visitAggregate(Visit visit, TIntermAggregate *node)
+	bool LoopUnrollable::visitAggregate(Visit visit, TIntermAggregate *node)
 	{
-		return !loopDiscontinuity;
+		return loopUnrollable;
 	}
 }
