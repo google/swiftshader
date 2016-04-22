@@ -23,7 +23,7 @@ class Diagnostics;
 class MacroExpander : public Lexer
 {
   public:
-    MacroExpander(Lexer* lexer, MacroSet* macroSet, Diagnostics* diagnostics);
+    MacroExpander(Lexer* lexer, MacroSet* macroSet, Diagnostics* diagnostics, bool parseDefined);
     virtual ~MacroExpander();
 
     virtual void lex(Token* token);
@@ -65,6 +65,7 @@ class MacroExpander : public Lexer
     Lexer* mLexer;
     MacroSet* mMacroSet;
     Diagnostics* mDiagnostics;
+	const bool mParseDefined;
 
     std::auto_ptr<Token> mReserveToken;
     std::vector<MacroContext*> mContextStack;
