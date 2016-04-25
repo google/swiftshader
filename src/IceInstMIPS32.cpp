@@ -65,10 +65,14 @@ template <> const char *InstMIPS32Mult::Opcode = "mult";
 template <> const char *InstMIPS32Multu::Opcode = "multu";
 template <> const char *InstMIPS32Or::Opcode = "or";
 template <> const char *InstMIPS32Ori::Opcode = "ori";
+template <> const char *InstMIPS32Slt::Opcode = "slt";
+template <> const char *InstMIPS32Slti::Opcode = "slti";
+template <> const char *InstMIPS32Sltiu::Opcode = "sltiu";
 template <> const char *InstMIPS32Sltu::Opcode = "sltu";
 template <> const char *InstMIPS32Sub::Opcode = "sub";
 template <> const char *InstMIPS32Subu::Opcode = "subu";
 template <> const char *InstMIPS32Xor::Opcode = "xor";
+template <> const char *InstMIPS32Xori::Opcode = "xori";
 
 template <> void InstMIPS32Mflo::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())

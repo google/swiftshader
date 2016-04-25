@@ -216,12 +216,24 @@ public:
     Context.insert<InstMIPS32Ori>(Dest, Src, Imm);
   }
 
-  void _sub(Variable *Dest, Variable *Src0, Variable *Src1) {
-    Context.insert<InstMIPS32Sub>(Dest, Src0, Src1);
+  void _slt(Variable *Dest, Variable *Src0, Variable *Src1) {
+    Context.insert<InstMIPS32Slt>(Dest, Src0, Src1);
+  }
+
+  void _slti(Variable *Dest, Variable *Src, uint32_t Imm) {
+    Context.insert<InstMIPS32Slti>(Dest, Src, Imm);
+  }
+
+  void _sltiu(Variable *Dest, Variable *Src, uint32_t Imm) {
+    Context.insert<InstMIPS32Sltiu>(Dest, Src, Imm);
   }
 
   void _sltu(Variable *Dest, Variable *Src0, Variable *Src1) {
     Context.insert<InstMIPS32Sltu>(Dest, Src0, Src1);
+  }
+
+  void _sub(Variable *Dest, Variable *Src0, Variable *Src1) {
+    Context.insert<InstMIPS32Sub>(Dest, Src0, Src1);
   }
 
   void _subu(Variable *Dest, Variable *Src0, Variable *Src1) {
@@ -230,6 +242,10 @@ public:
 
   void _xor(Variable *Dest, Variable *Src0, Variable *Src1) {
     Context.insert<InstMIPS32Xor>(Dest, Src0, Src1);
+  }
+
+  void _xori(Variable *Dest, Variable *Src, uint32_t Imm) {
+    Context.insert<InstMIPS32Xori>(Dest, Src, Imm);
   }
 
   void lowerArguments() override;
@@ -256,6 +272,10 @@ public:
   Variable *legalizeToReg(Operand *From, RegNumT RegNum = RegNumT());
 
   Variable *makeReg(Type Ty, RegNumT RegNum = RegNumT());
+
+  Variable *getZero() {
+    return getPhysicalRegister(RegMIPS32::Reg_ZERO, IceType_i32);
+  }
 
   Variable *I32Reg(RegNumT RegNum = RegNumT()) {
     return makeReg(IceType_i32, RegNum);
@@ -293,6 +313,7 @@ protected:
   void lowerExtractElement(const InstExtractElement *Instr) override;
   void lowerFcmp(const InstFcmp *Instr) override;
   void lowerIcmp(const InstIcmp *Instr) override;
+  void lower64Icmp(const InstIcmp *Instr);
   void lowerIntrinsicCall(const InstIntrinsicCall *Instr) override;
   void lowerInsertElement(const InstInsertElement *Instr) override;
   void lowerLoad(const InstLoad *Instr) override;

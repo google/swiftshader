@@ -118,9 +118,9 @@ public:
   enum InstKindMIPS32 {
     k__Start = Inst::Target,
     Add,
+    Addiu,
     Addu,
     And,
-    Addiu,
     Br,
     Call,
     La,
@@ -137,10 +137,14 @@ public:
     Or,
     Ori,
     Ret,
+    Slt,
+    Slti,
+    Sltiu,
+    Sltu,
     Sub,
     Subu,
-    Sltu,
-    Xor
+    Xor,
+    Xori
   };
 
   static const char *getWidthString(Type Ty);
@@ -469,11 +473,15 @@ using InstMIPS32Mult = InstMIPS32ThreeAddrGPR<InstMIPS32::Mult>;
 using InstMIPS32Multu = InstMIPS32ThreeAddrGPR<InstMIPS32::Multu>;
 using InstMIPS32Or = InstMIPS32ThreeAddrGPR<InstMIPS32::Or>;
 using InstMIPS32Ori = InstMIPS32Imm16<InstMIPS32::Ori>;
+using InstMIPS32Slt = InstMIPS32ThreeAddrGPR<InstMIPS32::Slt>;
+using InstMIPS32Slti = InstMIPS32Imm16<InstMIPS32::Slti>;
+using InstMIPS32Sltiu = InstMIPS32Imm16<InstMIPS32::Sltiu>;
 using InstMIPS32Sltu = InstMIPS32ThreeAddrGPR<InstMIPS32::Sltu>;
 using InstMIPS32Sub = InstMIPS32ThreeAddrGPR<InstMIPS32::Sub>;
 using InstMIPS32Subu = InstMIPS32ThreeAddrGPR<InstMIPS32::Subu>;
 using InstMIPS32Ori = InstMIPS32Imm16<InstMIPS32::Ori>;
 using InstMIPS32Xor = InstMIPS32ThreeAddrGPR<InstMIPS32::Xor>;
+using InstMIPS32Xori = InstMIPS32Imm16<InstMIPS32::Xori>;
 
 /// Handles (some of) vmov's various formats.
 class InstMIPS32Mov final : public InstMIPS32 {
