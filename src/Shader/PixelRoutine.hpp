@@ -58,6 +58,7 @@ namespace sw
 		void alphaBlend(int index, Pointer<Byte> &cBuffer, Vector4f &oC, Int &x);
 		void writeColor(int index, Pointer<Byte> &cBuffer, Int &i, Vector4f &oC, Int &sMask, Int &zMask, Int &cMask);
 
+		bool isSRGB(int index) const;
 		UShort4 convertFixed16(Float4 &cf, bool saturate = true);
 		void linearToSRGB12_16(Vector4s &c);
 

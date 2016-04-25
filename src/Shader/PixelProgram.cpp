@@ -578,7 +578,7 @@ namespace sw
 				continue;
 			}
 
-			if(!postBlendSRGB && state.writeSRGB)
+			if(!postBlendSRGB && state.writeSRGB && !isSRGB(index))
 			{
 				c[index].x = linearToSRGB(c[index].x);
 				c[index].y = linearToSRGB(c[index].y);
@@ -597,6 +597,8 @@ namespace sw
 			case FORMAT_X8B8G8R8:
 			case FORMAT_A8R8G8B8:
 			case FORMAT_A8B8G8R8:
+			case FORMAT_SRGB8_X8:
+			case FORMAT_SRGB8_A8:
 			case FORMAT_A8:
 			case FORMAT_G16R16:
 			case FORMAT_A16B16G16R16:
@@ -733,6 +735,8 @@ namespace sw
 			case FORMAT_A8B8G8R8:
 			case FORMAT_X8R8G8B8:
 			case FORMAT_X8B8G8R8:
+			case FORMAT_SRGB8_X8:
+			case FORMAT_SRGB8_A8:
 			case FORMAT_A8:
 			case FORMAT_G16R16:
 			case FORMAT_A16B16G16R16:

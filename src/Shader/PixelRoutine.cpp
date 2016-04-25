@@ -996,6 +996,11 @@ namespace sw
 		}
 	}
 
+	bool PixelRoutine::isSRGB(int index) const
+	{
+		return state.targetFormat[index] == FORMAT_SRGB8_A8 || state.targetFormat[index] == FORMAT_SRGB8_X8;
+	}
+
 	void PixelRoutine::readPixel(int index, Pointer<Byte> &cBuffer, Int &x, Vector4s &pixel)
 	{
 		Short4 c01;
@@ -1035,6 +1040,7 @@ namespace sw
 			pixel.w = UnpackHigh(As<Byte8>(pixel.w), As<Byte8>(pixel.w));
 			break;
 		case FORMAT_A8B8G8R8:
+		case FORMAT_SRGB8_A8:
 			buffer = cBuffer + 4 * x;
 			c01 = *Pointer<Short4>(buffer);
 			buffer += *Pointer<Int>(data + OFFSET(DrawData, colorPitchB[index]));
@@ -1082,6 +1088,7 @@ namespace sw
 			pixel.w = Short4(0xFFFFu);
 			break;
 		case FORMAT_X8B8G8R8:
+		case FORMAT_SRGB8_X8:
 			buffer = cBuffer + 4 * x;
 			c01 = *Pointer<Short4>(buffer);
 			buffer += *Pointer<Int>(data + OFFSET(DrawData, colorPitchB[index]));
@@ -1141,7 +1148,7 @@ namespace sw
 			ASSERT(false);
 		}
 
-		if(postBlendSRGB && state.writeSRGB)
+		if((postBlendSRGB && state.writeSRGB) || isSRGB(index))
 		{
 			sRGBtoLinear16_12_16(pixel);
 		}
@@ -1363,7 +1370,7 @@ namespace sw
 
 	void PixelRoutine::writeColor(int index, Pointer<Byte> &cBuffer, Int &x, Vector4s &current, Int &sMask, Int &zMask, Int &cMask)
 	{
-		if(postBlendSRGB && state.writeSRGB)
+		if((postBlendSRGB && state.writeSRGB) || isSRGB(index))
 		{
 			linearToSRGB16_12_16(current);
 		}
@@ -1383,6 +1390,8 @@ namespace sw
 			case FORMAT_X8B8G8R8:
 			case FORMAT_A8R8G8B8:
 			case FORMAT_A8B8G8R8:
+			case FORMAT_SRGB8_X8:
+			case FORMAT_SRGB8_A8:
 				current.x = current.x - As<Short4>(As<UShort4>(current.x) >> 8) + Short4(0x0080, 0x0080, 0x0080, 0x0080);
 				current.y = current.y - As<Short4>(As<UShort4>(current.y) >> 8) + Short4(0x0080, 0x0080, 0x0080, 0x0080);
 				current.z = current.z - As<Short4>(As<UShort4>(current.z) >> 8) + Short4(0x0080, 0x0080, 0x0080, 0x0080);
@@ -1465,7 +1474,9 @@ namespace sw
 			break;
 		case FORMAT_X8B8G8R8:
 		case FORMAT_A8B8G8R8:
-			if(state.targetFormat[index] == FORMAT_X8B8G8R8 || rgbaWriteMask == 0x7)
+		case FORMAT_SRGB8_X8:
+		case FORMAT_SRGB8_A8:
+			if(state.targetFormat[index] == FORMAT_X8B8G8R8 || state.targetFormat[index] == FORMAT_SRGB8_X8 || rgbaWriteMask == 0x7)
 			{
 				current.x = As<Short4>(As<UShort4>(current.x) >> 8);
 				current.y = As<Short4>(As<UShort4>(current.y) >> 8);
@@ -1655,13 +1666,17 @@ namespace sw
 			break;
 		case FORMAT_A8B8G8R8:
 		case FORMAT_X8B8G8R8:   // FIXME: Don't touch alpha?
+		case FORMAT_SRGB8_X8:
+		case FORMAT_SRGB8_A8:
 			{
 				Pointer<Byte> buffer = cBuffer + x * 4;
 				Short4 value = *Pointer<Short4>(buffer);
 
-				if((state.targetFormat[index] == FORMAT_A8B8G8R8 && rgbaWriteMask != 0x0000000F) ||
-				   ((state.targetFormat[index] == FORMAT_X8B8G8R8 && rgbaWriteMask != 0x00000007) &&
-					(state.targetFormat[index] == FORMAT_X8B8G8R8 && rgbaWriteMask != 0x0000000F)))   // FIXME: Need for masking when XBGR && Fh?
+				bool masked = (((state.targetFormat[index] == FORMAT_A8B8G8R8 || state.targetFormat[index] == FORMAT_SRGB8_A8) && rgbaWriteMask != 0x0000000F) ||
+				              (((state.targetFormat[index] == FORMAT_X8B8G8R8 || state.targetFormat[index] == FORMAT_SRGB8_X8) && rgbaWriteMask != 0x00000007) &&
+				               ((state.targetFormat[index] == FORMAT_X8B8G8R8 || state.targetFormat[index] == FORMAT_SRGB8_X8) && rgbaWriteMask != 0x0000000F))); // FIXME: Need for masking when XBGR && Fh?
+
+				if(masked)
 				{
 					Short4 masked = value;
 					c01 &= *Pointer<Short4>(constants + OFFSET(Constants,maskB4Q[rgbaWriteMask][0]));
@@ -1677,9 +1692,7 @@ namespace sw
 				buffer += *Pointer<Int>(data + OFFSET(DrawData,colorPitchB[index]));
 				value = *Pointer<Short4>(buffer);
 
-				if((state.targetFormat[index] == FORMAT_A8B8G8R8 && rgbaWriteMask != 0x0000000F) ||
-				   ((state.targetFormat[index] == FORMAT_X8B8G8R8 && rgbaWriteMask != 0x00000007) &&
-					(state.targetFormat[index] == FORMAT_X8B8G8R8 && rgbaWriteMask != 0x0000000F)))   // FIXME: Need for masking when XBGR && Fh?
+				if(masked)
 				{
 					Short4 masked = value;
 					c23 &= *Pointer<Short4>(constants + OFFSET(Constants,maskB4Q[rgbaWriteMask][0]));
@@ -2026,7 +2039,7 @@ namespace sw
 			ASSERT(false);
 		}
 
-		if(postBlendSRGB && state.writeSRGB)
+		if((postBlendSRGB && state.writeSRGB) || isSRGB(index))
 		{
 			sRGBtoLinear(pixel.x);
 			sRGBtoLinear(pixel.y);

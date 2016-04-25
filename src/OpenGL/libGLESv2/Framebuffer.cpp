@@ -499,6 +499,7 @@ GLenum Framebuffer::getImplementationColorReadFormat()
 		case sw::FORMAT_A32B32G32R32F:
 		case sw::FORMAT_A8R8G8B8:
 		case sw::FORMAT_A8B8G8R8:
+		case sw::FORMAT_SRGB8_A8:
 		case sw::FORMAT_A1R5G5B5:      return GL_BGRA_EXT;
 		case sw::FORMAT_X8B8G8R8I:
 		case sw::FORMAT_X8B8G8R8UI:
@@ -509,6 +510,7 @@ GLenum Framebuffer::getImplementationColorReadFormat()
 		case sw::FORMAT_X32B32G32R32F:
 		case sw::FORMAT_B16G16R16F:
 		case sw::FORMAT_X8B8G8R8I_SNORM:
+		case sw::FORMAT_SRGB8_X8:
 		case sw::FORMAT_X8B8G8R8:      return GL_RGB;
 		case sw::FORMAT_X8R8G8B8:      return 0x80E0;   // GL_BGR_EXT
 		case sw::FORMAT_R5G6B5:        return GL_RGB;
@@ -563,6 +565,8 @@ GLenum Framebuffer::getImplementationColorReadType()
 		case sw::FORMAT_A8B8G8R8I_SNORM:return GL_BYTE;
 		case sw::FORMAT_R8:
 		case sw::FORMAT_G8R8:
+		case sw::FORMAT_SRGB8_X8:
+		case sw::FORMAT_SRGB8_A8:
 		case sw::FORMAT_A8R8G8B8:
 		case sw::FORMAT_A8B8G8R8:
 		case sw::FORMAT_X8R8G8B8:
