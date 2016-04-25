@@ -509,9 +509,9 @@ GLenum Framebuffer::getImplementationColorReadFormat()
 		case sw::FORMAT_X32B32G32R32F:
 		case sw::FORMAT_B16G16R16F:
 		case sw::FORMAT_X8B8G8R8I_SNORM:
-		case sw::FORMAT_X8B8G8R8:
-		case sw::FORMAT_X8R8G8B8:
-		case sw::FORMAT_R5G6B5:        return 0x80E0;   // GL_BGR_EXT
+		case sw::FORMAT_X8B8G8R8:      return GL_RGB;
+		case sw::FORMAT_X8R8G8B8:      return 0x80E0;   // GL_BGR_EXT
+		case sw::FORMAT_R5G6B5:        return GL_RGB;
 		case sw::FORMAT_G8R8I:
 		case sw::FORMAT_G8R8UI:
 		case sw::FORMAT_G16R16I:
