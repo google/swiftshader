@@ -222,6 +222,8 @@ namespace sw
 				case FORMAT_X8B8G8R8:
 				case FORMAT_A8R8G8B8:
 				case FORMAT_A8B8G8R8:
+				case FORMAT_SRGB8_X8:
+				case FORMAT_SRGB8_A8:
 				case FORMAT_V8U8:
 				case FORMAT_Q8W8V8U8:
 				case FORMAT_X8L8V8U8:
@@ -480,6 +482,8 @@ namespace sw
 				case FORMAT_X8B8G8R8:
 				case FORMAT_A8R8G8B8:
 				case FORMAT_A8B8G8R8:
+				case FORMAT_SRGB8_X8:
+				case FORMAT_SRGB8_A8:
 				case FORMAT_V8U8:
 				case FORMAT_Q8W8V8U8:
 				case FORMAT_X8L8V8U8:
@@ -1738,6 +1742,7 @@ namespace sw
 					case FORMAT_A8B8G8R8UI:
 					case FORMAT_A8B8G8R8I_SNORM:
 					case FORMAT_Q8W8V8U8:
+					case FORMAT_SRGB8_A8:
 						c.z = c.x;
 						c.x = As<Short4>(UnpackLow(c.x, c.y));
 						c.z = As<Short4>(UnpackHigh(c.z, c.y));
@@ -1778,6 +1783,7 @@ namespace sw
 					case FORMAT_X8B8G8R8I:
 					case FORMAT_X8B8G8R8:
 					case FORMAT_X8L8V8U8:
+					case FORMAT_SRGB8_X8:
 						c.z = c.x;
 						c.x = As<Short4>(UnpackLow(c.x, c.y));
 						c.z = As<Short4>(UnpackHigh(c.z, c.y));
@@ -2213,6 +2219,8 @@ namespace sw
 		case FORMAT_X8B8G8R8:
 		case FORMAT_A8R8G8B8:
 		case FORMAT_A8B8G8R8:
+		case FORMAT_SRGB8_X8:
+		case FORMAT_SRGB8_A8:
 		case FORMAT_V8U8:
 		case FORMAT_Q8W8V8U8:
 		case FORMAT_X8L8V8U8:
@@ -2262,6 +2270,8 @@ namespace sw
 		case FORMAT_X8B8G8R8:
 		case FORMAT_A8R8G8B8:
 		case FORMAT_A8B8G8R8:
+		case FORMAT_SRGB8_X8:
+		case FORMAT_SRGB8_A8:
 		case FORMAT_V8U8:
 		case FORMAT_Q8W8V8U8:
 		case FORMAT_X8L8V8U8:
@@ -2354,6 +2364,8 @@ namespace sw
 		case FORMAT_X8B8G8R8:
 		case FORMAT_A8R8G8B8:
 		case FORMAT_A8B8G8R8:
+		case FORMAT_SRGB8_X8:
+		case FORMAT_SRGB8_A8:
 		case FORMAT_V8U8:
 		case FORMAT_Q8W8V8U8:
 		case FORMAT_X8L8V8U8:
@@ -2429,6 +2441,8 @@ namespace sw
 		case FORMAT_X8B8G8R8:
 		case FORMAT_A8R8G8B8:
 		case FORMAT_A8B8G8R8:
+		case FORMAT_SRGB8_X8:
+		case FORMAT_SRGB8_A8:
 		case FORMAT_V8U8:
 		case FORMAT_Q8W8V8U8:
 		case FORMAT_X8L8V8U8:
@@ -2496,6 +2510,8 @@ namespace sw
 		case FORMAT_X8B8G8R8:       return component < 3;
 		case FORMAT_A8R8G8B8:       return component < 3;
 		case FORMAT_A8B8G8R8:       return component < 3;
+		case FORMAT_SRGB8_X8:       return component < 3;
+		case FORMAT_SRGB8_A8:       return component < 3;
 		case FORMAT_V8U8:           return false;
 		case FORMAT_Q8W8V8U8:       return false;
 		case FORMAT_X8L8V8U8:       return false;

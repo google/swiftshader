@@ -130,6 +130,7 @@ namespace sw
 			                          (static_cast<unsigned int>(snorm<8>(color.r)) << 0);
 			break;
 		case FORMAT_A8B8G8R8:
+		case FORMAT_SRGB8_A8:
 			*(unsigned int*)element = (unorm<8>(color.a) << 24) | (unorm<8>(color.b) << 16) | (unorm<8>(color.g) << 8) | (unorm<8>(color.r) << 0);
 			break;
 		case FORMAT_A8B8G8R8I:
@@ -148,6 +149,7 @@ namespace sw
 			                          (static_cast<unsigned int>(snorm<8>(color.r)) << 0);
 			break;
 		case FORMAT_X8B8G8R8:
+		case FORMAT_SRGB8_X8:
 			*(unsigned int*)element = 0xFF000000 | (unorm<8>(color.b) << 16) | (unorm<8>(color.g) << 8) | (unorm<8>(color.r) << 0);
 			break;
 		case FORMAT_X8B8G8R8I:
@@ -542,6 +544,7 @@ namespace sw
 			}
 			break;
 		case FORMAT_A8B8G8R8:
+		case FORMAT_SRGB8_A8:
 			{
 				unsigned int abgr = *(unsigned int*)element;
 
@@ -581,6 +584,7 @@ namespace sw
 			}
 			break;
 		case FORMAT_X8B8G8R8:
+		case FORMAT_SRGB8_X8:
 			{
 				unsigned int xbgr = *(unsigned int*)element;
 
@@ -1469,6 +1473,8 @@ namespace sw
 	//	case FORMAT_A8G8R8B8Q:			return 4;
 		case FORMAT_X8B8G8R8I:			return 4;
 		case FORMAT_X8B8G8R8:			return 4;
+		case FORMAT_SRGB8_X8:			return 4;
+		case FORMAT_SRGB8_A8:			return 4;
 		case FORMAT_A8B8G8R8I:			return 4;
 		case FORMAT_R8UI:				return 1;
 		case FORMAT_G8R8UI:				return 2;
@@ -2645,6 +2651,8 @@ namespace sw
 		case FORMAT_X8B8G8R8I:
 		case FORMAT_X8B8G8R8:
 		case FORMAT_A8R8G8B8:
+		case FORMAT_SRGB8_X8:
+		case FORMAT_SRGB8_A8:
 		case FORMAT_A8B8G8R8I:
 		case FORMAT_R8UI:
 		case FORMAT_G8R8UI:
@@ -2725,6 +2733,8 @@ namespace sw
 		case FORMAT_X8B8G8R8:
 		case FORMAT_A8R8G8B8:
 		case FORMAT_A8B8G8R8:
+		case FORMAT_SRGB8_X8:
+		case FORMAT_SRGB8_A8:
 		case FORMAT_G8R8:
 		case FORMAT_A2B10G10R10:
 		case FORMAT_R16UI:
@@ -2804,6 +2814,8 @@ namespace sw
 		case FORMAT_X8R8G8B8:
 		case FORMAT_A8B8G8R8:
 		case FORMAT_X8B8G8R8:
+		case FORMAT_SRGB8_X8:
+		case FORMAT_SRGB8_A8:
 		case FORMAT_R5G6B5:
 		case FORMAT_X1R5G5B5:
 		case FORMAT_A1R5G5B5:
@@ -2833,6 +2845,8 @@ namespace sw
 		case FORMAT_X8R8G8B8:
 		case FORMAT_A8B8G8R8:
 		case FORMAT_X8B8G8R8:
+		case FORMAT_SRGB8_X8:
+		case FORMAT_SRGB8_A8:
 		case FORMAT_R5G6B5:
 			return true;
 		default:
@@ -2939,6 +2953,8 @@ namespace sw
 		case FORMAT_X8B8G8R8I:      return 3;
 		case FORMAT_X8B8G8R8:       return 3;
 		case FORMAT_A8R8G8B8:       return 4;
+		case FORMAT_SRGB8_X8:       return 3;
+		case FORMAT_SRGB8_A8:       return 4;
 		case FORMAT_A8B8G8R8I:      return 4;
 		case FORMAT_A8B8G8R8:       return 4;
 		case FORMAT_G8R8I:          return 2;
@@ -3531,6 +3547,10 @@ namespace sw
 		case FORMAT_B8G8R8:
 		case FORMAT_X8B8G8R8:
 			return FORMAT_X8B8G8R8;
+		case FORMAT_SRGB8_X8:
+			return FORMAT_SRGB8_X8;
+		case FORMAT_SRGB8_A8:
+			return FORMAT_SRGB8_A8;
 		// Compressed formats
 		#if S3TC_SUPPORT
 		case FORMAT_DXT1:
@@ -3687,7 +3707,9 @@ namespace sw
 		unsigned char *sourceE = sourceD + slice;
 		unsigned char *sourceF = sourceE + slice;
 
-		if(internal.format == FORMAT_X8R8G8B8 || internal.format == FORMAT_A8R8G8B8 || internal.format == FORMAT_X8B8G8R8 || internal.format == FORMAT_A8B8G8R8)
+		if(internal.format == FORMAT_X8R8G8B8 || internal.format == FORMAT_A8R8G8B8 ||
+		   internal.format == FORMAT_X8B8G8R8 || internal.format == FORMAT_A8B8G8R8 ||
+		   internal.format == FORMAT_SRGB8_X8 || internal.format == FORMAT_SRGB8_A8)
 		{
 			if(CPUID::supportsSSE2() && (width % 4) == 0)
 			{

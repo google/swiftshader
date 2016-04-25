@@ -178,6 +178,7 @@ namespace sw
 			break;
 		case FORMAT_A8B8G8R8:
 		case FORMAT_A8B8G8R8UI:
+		case FORMAT_SRGB8_A8:
 			c = Float4(*Pointer<Byte4>(element));
 			break;
 		case FORMAT_X8R8G8B8:
@@ -203,6 +204,7 @@ namespace sw
 			break;
 		case FORMAT_X8B8G8R8:
 		case FORMAT_X8B8G8R8UI:
+		case FORMAT_SRGB8_X8:
 			c = Float4(*Pointer<Byte4>(element));
 			c.w = float(0xFF);
 			break;
@@ -355,6 +357,7 @@ namespace sw
 			}
 			break;
 		case FORMAT_A8B8G8R8:
+		case FORMAT_SRGB8_A8:
 			if(writeRGBA)
 			{
 				UShort4 c0 = As<UShort4>(RoundShort4(c));
@@ -385,6 +388,7 @@ namespace sw
 			}
 			break;
 		case FORMAT_X8B8G8R8:
+		case FORMAT_SRGB8_X8:
 			if(writeRGBA)
 			{
 				UShort4 c0 = As<UShort4>(RoundShort4(c));
@@ -924,6 +928,8 @@ namespace sw
 		case FORMAT_B8G8R8:
 		case FORMAT_X8B8G8R8:
 		case FORMAT_A8B8G8R8:
+		case FORMAT_SRGB8_X8:
+		case FORMAT_SRGB8_A8:
 			scale = vector(0xFF, 0xFF, 0xFF, 0xFF);
 			break;
 		case FORMAT_R8I_SNORM:

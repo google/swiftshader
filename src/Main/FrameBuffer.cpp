@@ -369,6 +369,8 @@ namespace sw
 					break;
 				case FORMAT_X8B8G8R8:
 				case FORMAT_A8B8G8R8:
+				case FORMAT_SRGB8_X8:
+				case FORMAT_SRGB8_A8:
 					{
 						Int x = x0;
 
@@ -689,6 +691,8 @@ namespace sw
 			break;
 		case FORMAT_X8B8G8R8:
 		case FORMAT_A8B8G8R8:
+		case FORMAT_SRGB8_X8:
+		case FORMAT_SRGB8_A8:
 			{
 				c1 = Swizzle(c1, 0xC6);
 

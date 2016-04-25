@@ -1520,7 +1520,8 @@ namespace es2sw
 		case GL_RGB32F:               return sw::FORMAT_B32G32R32F;
 		case GL_RGBA32F:              return sw::FORMAT_A32B32G32R32F;
 		case GL_RGB10_A2:             return sw::FORMAT_A2B10G10R10;
-		case GL_SRGB8_ALPHA8:         // FIXME: Implement SRGB
+		case GL_SRGB8:                return sw::FORMAT_SRGB8_X8;
+		case GL_SRGB8_ALPHA8:         return sw::FORMAT_SRGB8_A8;
 		default: UNREACHABLE(format); return sw::FORMAT_NULL;
 		}
 	}
@@ -1571,6 +1572,7 @@ namespace sw2es
 			return 2;
 		case sw::FORMAT_A8R8G8B8:
 		case sw::FORMAT_A8B8G8R8:
+		case sw::FORMAT_SRGB8_A8:
 		case sw::FORMAT_A8B8G8R8I:
 		case sw::FORMAT_A8B8G8R8UI:
 		case sw::FORMAT_A8B8G8R8I_SNORM:
@@ -1581,6 +1583,7 @@ namespace sw2es
 			return 1;
 		case sw::FORMAT_X8R8G8B8:
 		case sw::FORMAT_X8B8G8R8:
+		case sw::FORMAT_SRGB8_X8:
 		case sw::FORMAT_R5G6B5:
 			return 0;
 		default:
@@ -1626,6 +1629,8 @@ namespace sw2es
 		case sw::FORMAT_A8B8G8R8:
 		case sw::FORMAT_X8R8G8B8:
 		case sw::FORMAT_X8B8G8R8:
+		case sw::FORMAT_SRGB8_A8:
+		case sw::FORMAT_SRGB8_X8:
 		case sw::FORMAT_R8:
 		case sw::FORMAT_G8R8:
 		case sw::FORMAT_R8I:
@@ -1681,6 +1686,8 @@ namespace sw2es
 		case sw::FORMAT_A8B8G8R8:
 		case sw::FORMAT_X8R8G8B8:
 		case sw::FORMAT_X8B8G8R8:
+		case sw::FORMAT_SRGB8_A8:
+		case sw::FORMAT_SRGB8_X8:
 		case sw::FORMAT_G8R8:
 		case sw::FORMAT_G8R8I:
 		case sw::FORMAT_X8B8G8R8I:
@@ -1727,6 +1734,8 @@ namespace sw2es
 		case sw::FORMAT_A8B8G8R8:
 		case sw::FORMAT_X8R8G8B8:
 		case sw::FORMAT_X8B8G8R8:
+		case sw::FORMAT_SRGB8_A8:
+		case sw::FORMAT_SRGB8_X8:
 		case sw::FORMAT_X8B8G8R8I:
 		case sw::FORMAT_A8B8G8R8I:
 		case sw::FORMAT_X8B8G8R8UI:
@@ -1850,6 +1859,8 @@ namespace sw2es
 			case sw::FORMAT_A8B8G8R8:
 			case sw::FORMAT_X8R8G8B8:
 			case sw::FORMAT_X8B8G8R8:
+			case sw::FORMAT_SRGB8_A8:
+			case sw::FORMAT_SRGB8_X8:
 			case sw::FORMAT_A1R5G5B5:
 			case sw::FORMAT_R5G6B5:
 				return GL_UNSIGNED_NORMALIZED;
@@ -1883,6 +1894,8 @@ namespace sw2es
 		case sw::FORMAT_R5G6B5:   return GL_RGB565;
 		case sw::FORMAT_X8R8G8B8: return GL_RGB8_OES;
 		case sw::FORMAT_X8B8G8R8: return GL_RGB8_OES;
+		case sw::FORMAT_SRGB8_A8: return GL_RGBA8_OES;
+		case sw::FORMAT_SRGB8_X8: return GL_RGB8_OES;
 		default:
 			UNREACHABLE(format);
 		}

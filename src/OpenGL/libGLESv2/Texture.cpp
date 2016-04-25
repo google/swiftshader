@@ -658,6 +658,7 @@ void Texture2D::bindTexImage(egl::Surface *surface)
     switch(surface->getInternalFormat())
     {
     case sw::FORMAT_A8R8G8B8:
+	case sw::FORMAT_SRGB8_A8:
 		format = GL_BGRA_EXT;
         break;
 	case sw::FORMAT_A8B8G8R8:
@@ -665,7 +666,8 @@ void Texture2D::bindTexImage(egl::Surface *surface)
         break;
     case sw::FORMAT_X8B8G8R8:
 	case sw::FORMAT_X8R8G8B8:
-        format = GL_RGB;
+	case sw::FORMAT_SRGB8_X8:
+		format = GL_RGB;
         break;
     default:
         UNIMPLEMENTED();
