@@ -17,10 +17,10 @@
 #define IMAGE_DLLCHARACTERISTICS_DYNAMIC_BASE 0x0040
 #endif
 
-#ifndef IMAGE_DLLCHARACTERISTICS_NX_COMPAT 
+#ifndef IMAGE_DLLCHARACTERISTICS_NX_COMPAT
 #define IMAGE_DLLCHARACTERISTICS_NX_COMPAT 0x0100
 #endif
- 
+
 namespace sw
 {
 	#ifdef _M_AMD64
@@ -72,7 +72,7 @@ namespace sw
 			const unsigned char *function = (const unsigned char*)i->first;
 			const std::vector<Relocation> &functionRelocations = i->second;
 			unsigned int location = functionList[function]->location;
-			
+
 			for(unsigned int j = 0; j < functionRelocations.size(); j++)
 			{
 				unsigned int address = location + functionRelocations[j].offset;
@@ -108,7 +108,7 @@ namespace sw
 		DOSheader.e_lfanew = sizeof(DOSheader);
 
 		int base = 0x10000000;
-		int codePage = pageAlign(sizeof(DOSheader) + AMD64 ? sizeof(COFFheader64) : sizeof(COFFheader32));
+		int codePage = pageAlign(sizeof(DOSheader) + (AMD64 ? sizeof(COFFheader64) : sizeof(COFFheader32)));
 		int exportsPage = codePage + pageAlign(codeSize);
 		int exportsSize = (int)(sizeof(IMAGE_EXPORT_DIRECTORY) + functionList.size() * sizeof(void*) + (strlen(dllName) + 1));
 		int relocPage = exportsPage + pageAlign(exportsSize);
@@ -227,7 +227,7 @@ namespace sw
 		textSection.Misc.VirtualSize = pageAlign(codeSize);
 		textSection.VirtualAddress = codePage;
 		textSection.SizeOfRawData = fileAlign(codeSize);
-		textSection.PointerToRawData = fileAlign(sizeof(DOSheader) + AMD64 ? sizeof(COFFheader64) : sizeof(COFFheader32));
+		textSection.PointerToRawData = fileAlign(sizeof(DOSheader) + (AMD64 ? sizeof(COFFheader64) : sizeof(COFFheader32)));
 		textSection.PointerToRelocations = 0;
 		textSection.PointerToLinenumbers = 0;
 		textSection.NumberOfRelocations = 0;
@@ -294,7 +294,7 @@ namespace sw
 		if(file)
 		{
 			fwrite(&DOSheader, 1, sizeof(DOSheader), file);
-			
+
 			if(AMD64)
 			{
 				fwrite(&COFFheader64, 1, sizeof(COFFheader64), file);
@@ -308,7 +308,7 @@ namespace sw
 			fwrite(&exportsSection, 1, sizeof(textSection), file);
 			fwrite(&relocSection, 1, sizeof(relocSection), file);
 			fwrite(&constSection, 1, sizeof(constSection), file);
-			
+
 			for(FunctionList::iterator i = functionList.begin(); i != functionList.end(); i++)
 			{
 				const void *function = i->first;
@@ -349,7 +349,7 @@ namespace sw
 			fwrite(dllName, 1, strlen(dllName) + 1, file);
 
 			fseek(file, relocSection.PointerToRawData, SEEK_SET);
-			
+
 			for(PageRelocations::iterator i = pageRelocations.begin(); i != pageRelocations.end(); i++)
 			{
 				IMAGE_BASE_RELOCATION relocationBlock;
