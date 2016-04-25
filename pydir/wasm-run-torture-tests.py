@@ -21,25 +21,8 @@ import sys
 import threading
 
 IGNORED_TESTS = set([
-  'loop-2f.c.wasm',       # mmap not in MVP
-  'loop-2g.c.wasm',       # mmap not in MVP
+  # The remaining tests are known waterfall failures
 
-  '960521-1.c.wasm',      # sbrk
-  'ipa-sra-2.c.wasm',     # sbrk
-  'pr41463.c.wasm',       # sbrk
-  '20051113-1.c.wasm',    # sbrk
-  '990628-1.c.wasm',      # sbrk
-  'pr41395-2.c.wasm',     # sbrk
-  'pr42614.c.wasm',       # sbrk
-  'pr41395-1.c.wasm',     # sbrk
-  '920810-1.c.wasm',      # sbrk
-  '20000914-1.c.wasm',    # sbrk
-  'pr15262-1.c.wasm',     # sbrk
-  '941014-2.c.wasm',      # sbrk
-  'va-arg-21.c.wasm',     # sbrk
-  '20020406-1.c.wasm',    # sbrk
-
-  # waterfall known failures
   '20010122-1.c.wasm',
   '20031003-1.c.wasm',
   '20071018-1.c.wasm',

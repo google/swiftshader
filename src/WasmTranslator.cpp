@@ -1065,9 +1065,7 @@ public:
     assert(Module);
     const auto &IndirectTable = Module->function_table;
 
-    // TODO(eholk): This should probably actually call abort instead.
-    auto *Abort = Func->makeNode();
-    Abort->appendInst(InstUnreachable::create(Func));
+    auto *Abort = getAbortTarget();
 
     assert(Args[0].toOperand());
 
@@ -1137,14 +1135,23 @@ public:
 
   Operand *sanitizeAddress(Operand *Base, uint32_t Offset) {
     SizeT MemSize = Module->module->min_mem_pages * WASM_PAGE_SIZE;
-    SizeT MemMask = MemSize - 1;
 
     bool ConstZeroBase = false;
 
     // first, add the index and the offset together.
     if (auto *ConstBase = llvm::dyn_cast<ConstantInteger32>(Base)) {
       uint32_t RealOffset = Offset + ConstBase->getValue();
-      RealOffset &= MemMask;
+      if (RealOffset >= MemSize) {
+        // We've proven this will always be an out of bounds access, so insert
+        // an unconditional trap.
+        Control()->appendInst(InstUnreachable::create(Func));
+        // It doesn't matter what we return here, so return something that will
+        // allow the rest of code generation to happen.
+        //
+        // We might be tempted to just abort translation here, but out of bounds
+        // memory access is a runtime trap, not a compile error.
+        return Ctx->getConstantZero(getPointerType());
+      }
       Base = Ctx->getConstantInt32(RealOffset);
       ConstZeroBase = (0 == RealOffset);
     } else if (0 != Offset) {
@@ -1156,12 +1163,25 @@ public:
       Base = Addr;
     }
 
+    // Do the bounds check.
+    //
+    // TODO (eholk): Add a command line argument to control whether bounds
+    // checks are inserted, and maybe add a way to duplicate bounds checks to
+    // get a better sense of the overhead.
     if (!llvm::dyn_cast<ConstantInteger32>(Base)) {
-      auto *ClampedAddr = makeVariable(Ice::getPointerType());
+      // TODO (eholk): creating a new basic block on every memory access is
+      // terrible (see https://goo.gl/Zj7DTr). Try adding a new instruction that
+      // encapsulates this "abort if false" pattern.
+      auto *CheckPassed = Func->makeNode();
+      auto *CheckFailed = getAbortTarget();
+
+      auto *Check = makeVariable(IceType_i1);
+      Control()->appendInst(InstIcmp::create(Func, InstIcmp::Ult, Check, Base,
+                                             Ctx->getConstantInt32(MemSize)));
       Control()->appendInst(
-          InstArithmetic::create(Func, InstArithmetic::And, ClampedAddr, Base,
-                                 Ctx->getConstantInt32(MemSize - 1)));
-      Base = ClampedAddr;
+          InstBr::create(Func, Check, CheckPassed, CheckFailed));
+
+      *ControlPtr = OperandNode(CheckPassed);
     }
 
     Ice::Operand *RealAddr = nullptr;
@@ -1261,6 +1281,8 @@ private:
   class Cfg *Func;
   GlobalContext *Ctx;
 
+  CfgNode *AbortTarget = nullptr;
+
   SizeT NextArg = 0;
 
   CfgUnorderedMap<Operand *, InstPhi *> PhiMap;
@@ -1295,6 +1317,18 @@ private:
       return nullptr;
     }
     return Iter->second;
+  }
+
+  CfgNode *getAbortTarget() {
+    if (!AbortTarget) {
+      // TODO (eholk): Move this node to the end of the CFG, or even better,
+      // have only one abort block for the whole module.
+      AbortTarget = Func->makeNode();
+      // TODO (eholk): This should probably actually call abort instead.
+      AbortTarget->appendInst(InstUnreachable::create(Func));
+    }
+
+    return AbortTarget;
   }
 
   template <typename F = std::function<void(Ostream &)>> void log(F Fn) const {
@@ -1470,6 +1504,14 @@ void WasmTranslator::translate(
       WritePtr += Seg.source_size;
     }
 
+    // Save the size of the initialized data in a global variable so the runtime
+    // can use it to determine the initial heap break.
+    auto *GlobalDataSize = VariableDeclaration::createExternal(Globals.get());
+    GlobalDataSize->setName(Ctx->getGlobalString("WASM_DATA_SIZE"));
+    GlobalDataSize->addInitializer(VariableDeclaration::DataInitializer::create(
+        Globals.get(), reinterpret_cast<const char *>(&WritePtr),
+        sizeof(WritePtr)));
+
     // Pad the rest with zeros
     SizeT DataSize = Module->min_mem_pages * WASM_PAGE_SIZE;
     if (WritePtr < DataSize) {
@@ -1477,7 +1519,16 @@ void WasmTranslator::translate(
           Globals.get(), DataSize - WritePtr));
     }
 
+    // Save the number of pages for the runtime
+    auto *GlobalNumPages = VariableDeclaration::createExternal(Globals.get());
+    GlobalNumPages->setName(Ctx->getGlobalString("WASM_NUM_PAGES"));
+    GlobalNumPages->addInitializer(VariableDeclaration::DataInitializer::create(
+        Globals.get(), reinterpret_cast<const char *>(&Module->min_mem_pages),
+        sizeof(Module->min_mem_pages)));
+
     Globals->push_back(WasmMemory);
+    Globals->push_back(GlobalDataSize);
+    Globals->push_back(GlobalNumPages);
 
     lowerGlobals(std::move(Globals));
   }

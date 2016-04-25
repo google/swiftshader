@@ -12,13 +12,27 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include <cassert>
 #include <cmath>
+// TODO (eholk): change to cstdint
+#include <stdint.h>
+
+namespace {
+uint32_t HeapBreak;
+
+// TODO (eholk): make all of these constexpr.
+const uint32_t PageSizeLog2 = 16;
+const uint32_t PageSize = 1 << PageSizeLog2; // 64KB
+const uint32_t StackPtrLoc = 1024;           // defined by emscripten
+
+uint32_t pageNum(uint32_t Index) { return Index >> PageSizeLog2; }
+} // end of anonymous namespace
 
 namespace env {
 double floor(double X) { return std::floor(X); }
 
 float floor(float X) { return std::floor(X); }
-}
+} // end of namespace env
 
 // TODO (eholk): move the C parts outside and use C++ name mangling.
 extern "C" {
@@ -33,6 +47,8 @@ extern "C" {
 #include <unistd.h>
 
 extern char WASM_MEMORY[];
+extern uint32_t WASM_DATA_SIZE;
+extern uint32_t WASM_NUM_PAGES;
 
 void env$$abort() {
   fprintf(stderr, "Aborting...\n");
@@ -53,7 +69,11 @@ void env$$_exit(int Status) { env$$exit(Status); }
     abort();                                                                   \
   }
 
-UNIMPLEMENTED(sbrk)
+int32_t env$$sbrk(int32_t Increment) {
+  HeapBreak += Increment;
+  return HeapBreak;
+}
+
 UNIMPLEMENTED(setjmp)
 UNIMPLEMENTED(longjmp)
 UNIMPLEMENTED(__assert_fail)
@@ -83,18 +103,16 @@ UNIMPLEMENTED(__lock)
 UNIMPLEMENTED(__unlock)
 UNIMPLEMENTED(__syscall6)   // sys_close
 UNIMPLEMENTED(__syscall140) // sys_llseek
-UNIMPLEMENTED(__syscall192) // sys_mmap?
 UNIMPLEMENTED(__unordtf2)
 UNIMPLEMENTED(__fixunstfsi)
 UNIMPLEMENTED(__floatunsitf)
 UNIMPLEMENTED(__extenddftf2)
 
-void *wasmPtr(int Index) {
-  // TODO (eholk): get the mask from the WASM file.
-  const int MASK = 0xffffff;
-  Index &= MASK;
-
-  return WASM_MEMORY + Index;
+void *wasmPtr(uint32_t Index) {
+  if (pageNum(Index) < WASM_NUM_PAGES) {
+    return WASM_MEMORY + Index;
+  }
+  abort();
 }
 
 extern int __szwasm_main(int, const char **);
@@ -102,7 +120,15 @@ extern int __szwasm_main(int, const char **);
 #define WASM_REF(Type, Index) ((Type *)wasmPtr(Index))
 #define WASM_DEREF(Type, Index) (*WASM_REF(Type, Index))
 
-int main(int argc, const char **argv) { return __szwasm_main(argc, argv); }
+int main(int argc, const char **argv) {
+  // Initialize the break to the nearest page boundary after the data segment
+  HeapBreak = (WASM_DATA_SIZE + PageSize - 1) & ~(PageSize - 1);
+
+  // Initialize the stack pointer.
+  WASM_DEREF(int32_t, StackPtrLoc) = WASM_NUM_PAGES << PageSizeLog2;
+
+  return __szwasm_main(argc, argv);
+}
 
 int env$$abs(int a) { return abs(a); }
 
@@ -167,5 +193,15 @@ int env$$__syscall146(int Which, int VarArgs) {
     Count += Curr;
   }
   return Count;
+}
+
+/// sys_mmap_pgoff
+int env$$__syscall192(int Which, int VarArgs) {
+  (void)Which;
+  (void)VarArgs;
+
+  // TODO (eholk): figure out how to implement this.
+
+  return -ENOMEM;
 }
 } // end of extern "C"
