@@ -4831,7 +4831,6 @@ yyreduce:
 
     {
         context->parseFunctionPrototype((yylsp[0]), (yyvsp[0].interm).function, &(yyvsp[0].interm).intermAggregate);
-        if (context->getShaderVersion() == 100) context->symbolTable.push();
     }
 
     break;
@@ -4840,7 +4839,6 @@ yyreduce:
 
     {
         (yyval.interm.intermNode) = context->addFunctionDefinition(*((yyvsp[-2].interm).function), (yyvsp[-2].interm).intermAggregate, (yyvsp[0].interm.intermAggregate), (yylsp[-2]));
-        if (context->getShaderVersion() == 100) context->symbolTable.pop();
     }
 
     break;
