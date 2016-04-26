@@ -1565,6 +1565,29 @@ void AssemblerX86Base<TraitsType>::pshufd(Type /* Ty */, XmmRegister dst,
 }
 
 template <typename TraitsType>
+void AssemblerX86Base<TraitsType>::punpckldq(Type, XmmRegister Dst,
+                                             XmmRegister Src) {
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitUint8(0x66);
+  emitRexRB(RexTypeIrrelevant, Dst, Src);
+  emitUint8(0x0F);
+  emitUint8(0x62);
+  emitXmmRegisterOperand(Dst, Src);
+}
+
+template <typename TraitsType>
+void AssemblerX86Base<TraitsType>::punpckldq(Type, XmmRegister Dst,
+                                             const Address &Src) {
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitUint8(0x66);
+  emitAddrSizeOverridePrefix();
+  emitRex(RexTypeIrrelevant, Src, Dst);
+  emitUint8(0x0F);
+  emitUint8(0x62);
+  emitOperand(gprEncoding(Dst), Src);
+}
+
+template <typename TraitsType>
 void AssemblerX86Base<TraitsType>::shufps(Type /* Ty */, XmmRegister dst,
                                           XmmRegister src,
                                           const Immediate &imm) {

@@ -51,8 +51,8 @@ const TargetX8664Traits::InstCmppsAttributesType
 
 const TargetX8664Traits::TypeAttributesType
     TargetX8664Traits::TypeAttributes[] = {
-#define X(tag, elementty, cvt, sdss, pdps, spsd, pack, width, fld)             \
-  { cvt, sdss, pdps, spsd, pack, width, fld }                                  \
+#define X(tag, elementty, cvt, sdss, pdps, spsd, pack, unpack, width, fld)     \
+  { cvt, sdss, pdps, spsd, pack, unpack, width, fld }                          \
   ,
         ICETYPEX8664_TABLE
 #undef X

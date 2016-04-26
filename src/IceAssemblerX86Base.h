@@ -432,6 +432,8 @@ public:
   void pshufd(Type Ty, XmmRegister dst, XmmRegister src, const Immediate &mask);
   void pshufd(Type Ty, XmmRegister dst, const Address &src,
               const Immediate &mask);
+  void punpckldq(Type, XmmRegister Dst, XmmRegister Src);
+  void punpckldq(Type, XmmRegister Dst, const Address &Src);
   void shufps(Type Ty, XmmRegister dst, XmmRegister src, const Immediate &mask);
   void shufps(Type Ty, XmmRegister dst, const Address &src,
               const Immediate &mask);

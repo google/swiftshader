@@ -293,22 +293,22 @@
 //#define X(val, emit)
 
 #define ICETYPEX8664_TABLE                                                     \
-  /* tag,  element type, cvt , sdss, pdps, spsd, pack, width, fld */           \
-  X(void,  void,         "?",  "",   "",   "",   "",   "",    "")              \
-  X(i1,    void,         "si", "",   "",   "",   "",   "b",   "")              \
-  X(i8,    void,         "si", "",   "",   "",   "",   "b",   "")              \
-  X(i16,   void,         "si", "",   "",   "",   "",   "w",   "")              \
-  X(i32,   void,         "si", "",   "",   "",   "",   "l",   "")              \
-  X(i64,   void,         "si", "",   "",   "",   "",   "q",   "")              \
-  X(f32,   void,         "ss", "ss", "ps", "ss", "d",  "",    "s")             \
-  X(f64,   void,         "sd", "sd", "pd", "sd", "q",  "",    "l")             \
-  X(v4i1,  i32,          "?",  "",   "",   "",   "d",  "",    "")              \
-  X(v8i1,  i16,          "?",  "",   "",   "",   "w",  "",    "")              \
-  X(v16i1, i8,           "?",  "",   "",   "",   "b",  "",    "")              \
-  X(v16i8, i8,           "?",  "",   "",   "",   "b",  "",    "")              \
-  X(v8i16, i16,          "?",  "",   "",   "",   "w",  "",    "")              \
-  X(v4i32, i32,          "dq", "",   "",   "",   "d",  "",    "")              \
-  X(v4f32, f32,          "ps", "",   "ps", "ps", "d",  "",    "")
-//#define X(tag, elementty, cvt, sdss, pdps, pack, width, fld)
+  /* tag,  element type, cvt , sdss, pdps, spsd, pack, unpack, width, fld */   \
+  X(void,  void,         "?",  "",   "",   "",   "",   "",     "",    "")      \
+  X(i1,    void,         "si", "",   "",   "",   "",   "",     "b",   "")      \
+  X(i8,    void,         "si", "",   "",   "",   "",   "",     "b",   "")      \
+  X(i16,   void,         "si", "",   "",   "",   "",   "",     "w",   "")      \
+  X(i32,   void,         "si", "",   "",   "",   "",   "",     "l",   "")      \
+  X(i64,   void,         "si", "",   "",   "",   "",   "",     "q",   "")      \
+  X(f32,   void,         "ss", "ss", "ps", "ss", "d",  "",     "",    "s")     \
+  X(f64,   void,         "sd", "sd", "pd", "sd", "q",  "",     "",    "l")     \
+  X(v4i1,  i32,          "?",  "",   "",   "",   "d",  "dq",   "",    "")      \
+  X(v8i1,  i16,          "?",  "",   "",   "",   "w",  "wd",   "",    "")      \
+  X(v16i1, i8,           "?",  "",   "",   "",   "b",  "bw",   "",    "")      \
+  X(v16i8, i8,           "?",  "",   "",   "",   "b",  "bw",   "",    "")      \
+  X(v8i16, i16,          "?",  "",   "",   "",   "w",  "wd",   "",    "")      \
+  X(v4i32, i32,          "dq", "",   "",   "",   "d",  "dq",   "",    "")      \
+  X(v4f32, f32,          "ps", "",   "ps", "ps", "d",  "dq",   "",    "")
+//#define X(tag, elementty, cvt, sdss, pdps, pack, unpack, width, fld)
 
 #endif // SUBZERO_SRC_ICEINSTX8664_DEF

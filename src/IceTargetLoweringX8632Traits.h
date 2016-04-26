@@ -976,13 +976,14 @@ public:
   } InstCmppsAttributes[];
 
   static const struct TypeAttributesType {
-    const char *CvtString;   // i (integer), s (single FP), d (double FP)
-    const char *SdSsString;  // ss, sd, or <blank>
-    const char *PdPsString;  // ps, pd, or <blank>
-    const char *SpsdString;  // ss, sd, ps, pd, or <blank>
-    const char *PackString;  // b, w, d, or <blank>
-    const char *WidthString; // b, w, l, q, or <blank>
-    const char *FldString;   // s, l, or <blank>
+    const char *CvtString;    // i (integer), s (single FP), d (double FP)
+    const char *SdSsString;   // ss, sd, or <blank>
+    const char *PdPsString;   // ps, pd, or <blank>
+    const char *SpsdString;   // ss, sd, ps, pd, or <blank>
+    const char *PackString;   // b, w, d, or <blank>
+    const char *UnpackString; // bw, wd, dq, or <blank>
+    const char *WidthString;  // b, w, l, q, or <blank>
+    const char *FldString;    // s, l, or <blank>
   } TypeAttributes[];
 
   static const char *InstSegmentRegNames[];

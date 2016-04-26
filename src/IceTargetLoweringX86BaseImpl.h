@@ -5610,25 +5610,295 @@ void TargetX86Base<TraitsType>::lowerRet(const InstRet *Instr) {
   keepEspLiveAtExit();
 }
 
+inline uint32_t makePshufdMask(SizeT Index0, SizeT Index1, SizeT Index2,
+                               SizeT Index3) {
+  const SizeT Mask = (Index0 & 0x3) | ((Index1 & 0x3) << 2) |
+                     ((Index2 & 0x3) << 4) | ((Index3 & 0x3) << 6);
+  assert(Mask < 256);
+  return Mask;
+}
+
+template <typename TraitsType>
+Variable *TargetX86Base<TraitsType>::lowerShuffleVector_AllFromSameSrc(
+    Variable *Src, SizeT Index0, SizeT Index1, SizeT Index2, SizeT Index3) {
+  constexpr SizeT SrcBit = 1 << 2;
+  assert((Index0 & SrcBit) == (Index1 & SrcBit));
+  assert((Index0 & SrcBit) == (Index2 & SrcBit));
+  assert((Index0 & SrcBit) == (Index3 & SrcBit));
+  (void)SrcBit;
+
+  const Type SrcTy = Src->getType();
+  auto *T = makeReg(SrcTy);
+  auto *SrcRM = legalize(Src, Legal_Reg | Legal_Mem);
+  auto *Mask =
+      Ctx->getConstantInt32(makePshufdMask(Index0, Index1, Index2, Index3));
+  _pshufd(T, SrcRM, Mask);
+  return T;
+}
+
+template <typename TraitsType>
+Variable *TargetX86Base<TraitsType>::lowerShuffleVector_TwoFromSameSrc(
+    Variable *Src0, SizeT Index0, SizeT Index1, Variable *Src1, SizeT Index2,
+    SizeT Index3) {
+  constexpr SizeT SrcBit = 1 << 2;
+  assert((Index0 & SrcBit) == (Index1 & SrcBit) || (Index1 == IGNORE_INDEX));
+  assert((Index2 & SrcBit) == (Index3 & SrcBit) || (Index3 == IGNORE_INDEX));
+  (void)SrcBit;
+
+  const Type SrcTy = Src0->getType();
+  assert(Src1->getType() == SrcTy);
+  auto *T = makeReg(SrcTy);
+  auto *Src0R = legalizeToReg(Src0);
+  auto *Src1RM = legalize(Src1, Legal_Reg | Legal_Mem);
+  auto *Mask =
+      Ctx->getConstantInt32(makePshufdMask(Index0, Index1, Index2, Index3));
+  _movp(T, Src0R);
+  _shufps(T, Src1RM, Mask);
+  return T;
+}
+
+template <typename TraitsType>
+Variable *TargetX86Base<TraitsType>::lowerShuffleVector_UnifyFromDifferentSrcs(
+    Variable *Src0, SizeT Index0, Variable *Src1, SizeT Index1) {
+  return lowerShuffleVector_TwoFromSameSrc(Src0, Index0, IGNORE_INDEX, Src1,
+                                           Index1, IGNORE_INDEX);
+}
+
+inline SizeT makeSrcSwitchMask(SizeT Index0, SizeT Index1, SizeT Index2,
+                               SizeT Index3) {
+  constexpr SizeT SrcBit = 1 << 2;
+  const SizeT Index0Bits = ((Index0 & SrcBit) == 0) ? 0 : (1 << 0);
+  const SizeT Index1Bits = ((Index1 & SrcBit) == 0) ? 0 : (1 << 1);
+  const SizeT Index2Bits = ((Index2 & SrcBit) == 0) ? 0 : (1 << 2);
+  const SizeT Index3Bits = ((Index3 & SrcBit) == 0) ? 0 : (1 << 3);
+  return Index0Bits | Index1Bits | Index2Bits | Index3Bits;
+}
+
 template <typename TraitsType>
 void TargetX86Base<TraitsType>::lowerShuffleVector(
     const InstShuffleVector *Instr) {
   auto *Dest = Instr->getDest();
   const Type DestTy = Dest->getType();
+  auto *Src0 = llvm::cast<Variable>(Instr->getSrc(0));
+  auto *Src1 = llvm::cast<Variable>(Instr->getSrc(1));
+  const SizeT NumElements = typeNumElements(DestTy);
 
   auto *T = makeReg(DestTy);
 
   switch (DestTy) {
   default:
     break;
-    // TODO(jpp): figure out how to properly lower this without scalarization.
+  // TODO(jpp): figure out how to properly lower the remaining cases without
+  // scalarization.
+  case IceType_v4i1:
+  case IceType_v4i32:
+  case IceType_v4f32: {
+    static constexpr SizeT ExpectedNumElements = 4;
+    assert(ExpectedNumElements == Instr->getNumIndexes());
+    const SizeT Index0 = Instr->getIndex(0)->getValue();
+    const SizeT Index1 = Instr->getIndex(1)->getValue();
+    const SizeT Index2 = Instr->getIndex(2)->getValue();
+    const SizeT Index3 = Instr->getIndex(3)->getValue();
+    Variable *T = nullptr;
+    switch (makeSrcSwitchMask(Index0, Index1, Index2, Index3)) {
+#define CASE_SRCS_IN(S0, S1, S2, S3)                                           \
+  case (((S0) << 0) | ((S1) << 1) | ((S2) << 2) | ((S3) << 3))
+      CASE_SRCS_IN(0, 0, 0, 0) : {
+        T = lowerShuffleVector_AllFromSameSrc(Src0, Index0, Index1, Index2,
+                                              Index3);
+      }
+      break;
+      CASE_SRCS_IN(0, 0, 0, 1) : {
+        assert(false && "Following code is untested but likely correct; test "
+                        "and remove assert.");
+        auto *Unified = lowerShuffleVector_UnifyFromDifferentSrcs(Src0, Index2,
+                                                                  Src1, Index3);
+        T = lowerShuffleVector_TwoFromSameSrc(Src0, Index0, Index1, Unified,
+                                              UNIFIED_INDEX_0, UNIFIED_INDEX_1);
+      }
+      break;
+      CASE_SRCS_IN(0, 0, 1, 0) : {
+        auto *Unified = lowerShuffleVector_UnifyFromDifferentSrcs(Src1, Index2,
+                                                                  Src0, Index3);
+        T = lowerShuffleVector_TwoFromSameSrc(Src0, Index0, Index1, Unified,
+                                              UNIFIED_INDEX_0, UNIFIED_INDEX_1);
+      }
+      break;
+      CASE_SRCS_IN(0, 0, 1, 1) : {
+        assert(false && "Following code is untested but likely correct; test "
+                        "and remove assert.");
+        T = lowerShuffleVector_TwoFromSameSrc(Src0, Index0, Index1, Src1,
+                                              Index2, Index3);
+      }
+      break;
+      CASE_SRCS_IN(0, 1, 0, 0) : {
+        auto *Unified = lowerShuffleVector_UnifyFromDifferentSrcs(Src0, Index0,
+                                                                  Src1, Index1);
+        T = lowerShuffleVector_TwoFromSameSrc(
+            Unified, UNIFIED_INDEX_0, UNIFIED_INDEX_1, Src0, Index2, Index3);
+      }
+      break;
+      CASE_SRCS_IN(0, 1, 0, 1) : {
+        if (Index0 == 0 && (Index1 - ExpectedNumElements) == 0 && Index2 == 1 &&
+            (Index3 - ExpectedNumElements) == 1) {
+          assert(false && "Following code is untested but likely correct; test "
+                          "and remove assert.");
+          auto *Src1RM = legalize(Src1, Legal_Reg | Legal_Mem);
+          auto *Src0R = legalizeToReg(Src0);
+          T = makeReg(DestTy);
+          _movp(T, Src0R);
+          _punpckl(T, Src1RM);
+        } else if (Index0 == Index2 && Index1 == Index3) {
+          assert(false && "Following code is untested but likely correct; test "
+                          "and remove assert.");
+          auto *Unified = lowerShuffleVector_UnifyFromDifferentSrcs(
+              Src0, Index0, Src1, Index1);
+          T = lowerShuffleVector_AllFromSameSrc(
+              Unified, UNIFIED_INDEX_0, UNIFIED_INDEX_1, UNIFIED_INDEX_0,
+              UNIFIED_INDEX_1);
+        } else {
+          assert(false && "Following code is untested but likely correct; test "
+                          "and remove assert.");
+          auto *Unified0 = lowerShuffleVector_UnifyFromDifferentSrcs(
+              Src0, Index0, Src1, Index1);
+          auto *Unified1 = lowerShuffleVector_UnifyFromDifferentSrcs(
+              Src0, Index2, Src1, Index3);
+          T = lowerShuffleVector_TwoFromSameSrc(
+              Unified0, UNIFIED_INDEX_0, UNIFIED_INDEX_1, Unified1,
+              UNIFIED_INDEX_0, UNIFIED_INDEX_1);
+        }
+      }
+      break;
+      CASE_SRCS_IN(0, 1, 1, 0) : {
+        if (Index0 == Index3 && Index1 == Index2) {
+          auto *Unified = lowerShuffleVector_UnifyFromDifferentSrcs(
+              Src0, Index0, Src1, Index1);
+          T = lowerShuffleVector_AllFromSameSrc(
+              Unified, UNIFIED_INDEX_0, UNIFIED_INDEX_1, UNIFIED_INDEX_1,
+              UNIFIED_INDEX_0);
+        } else {
+          auto *Unified0 = lowerShuffleVector_UnifyFromDifferentSrcs(
+              Src0, Index0, Src1, Index1);
+          auto *Unified1 = lowerShuffleVector_UnifyFromDifferentSrcs(
+              Src1, Index2, Src0, Index3);
+          T = lowerShuffleVector_TwoFromSameSrc(
+              Unified0, UNIFIED_INDEX_0, UNIFIED_INDEX_1, Unified1,
+              UNIFIED_INDEX_0, UNIFIED_INDEX_1);
+        }
+      }
+      break;
+      CASE_SRCS_IN(0, 1, 1, 1) : {
+        assert(false && "Following code is untested but likely correct; test "
+                        "and remove assert.");
+        auto *Unified = lowerShuffleVector_UnifyFromDifferentSrcs(Src0, Index0,
+                                                                  Src1, Index1);
+        T = lowerShuffleVector_TwoFromSameSrc(
+            Unified, UNIFIED_INDEX_0, UNIFIED_INDEX_1, Src1, Index2, Index3);
+      }
+      break;
+      CASE_SRCS_IN(1, 0, 0, 0) : {
+        auto *Unified = lowerShuffleVector_UnifyFromDifferentSrcs(Src1, Index0,
+                                                                  Src0, Index1);
+        T = lowerShuffleVector_TwoFromSameSrc(
+            Unified, UNIFIED_INDEX_0, UNIFIED_INDEX_1, Src0, Index2, Index3);
+      }
+      break;
+      CASE_SRCS_IN(1, 0, 0, 1) : {
+        if (Index0 == Index3 && Index1 == Index2) {
+          assert(false && "Following code is untested but likely correct; test "
+                          "and remove assert.");
+          auto *Unified = lowerShuffleVector_UnifyFromDifferentSrcs(
+              Src1, Index0, Src0, Index1);
+          T = lowerShuffleVector_AllFromSameSrc(
+              Unified, UNIFIED_INDEX_0, UNIFIED_INDEX_1, UNIFIED_INDEX_1,
+              UNIFIED_INDEX_0);
+        } else {
+          assert(false && "Following code is untested but likely correct; test "
+                          "and remove assert.");
+          auto *Unified0 = lowerShuffleVector_UnifyFromDifferentSrcs(
+              Src1, Index0, Src0, Index1);
+          auto *Unified1 = lowerShuffleVector_UnifyFromDifferentSrcs(
+              Src0, Index2, Src1, Index3);
+          T = lowerShuffleVector_TwoFromSameSrc(
+              Unified0, UNIFIED_INDEX_0, UNIFIED_INDEX_1, Unified1,
+              UNIFIED_INDEX_0, UNIFIED_INDEX_1);
+        }
+      }
+      break;
+      CASE_SRCS_IN(1, 0, 1, 0) : {
+        if ((Index0 - ExpectedNumElements) == 0 && Index1 == 0 &&
+            (Index2 - ExpectedNumElements) == 1 && Index3 == 1) {
+          auto *Src1RM = legalize(Src0, Legal_Reg | Legal_Mem);
+          auto *Src0R = legalizeToReg(Src1);
+          T = makeReg(DestTy);
+          _movp(T, Src0R);
+          _punpckl(T, Src1RM);
+        } else if (Index0 == Index2 && Index1 == Index3) {
+          auto *Unified = lowerShuffleVector_UnifyFromDifferentSrcs(
+              Src1, Index0, Src0, Index1);
+          T = lowerShuffleVector_AllFromSameSrc(
+              Unified, UNIFIED_INDEX_0, UNIFIED_INDEX_1, UNIFIED_INDEX_0,
+              UNIFIED_INDEX_1);
+        } else {
+          auto *Unified0 = lowerShuffleVector_UnifyFromDifferentSrcs(
+              Src1, Index0, Src0, Index1);
+          auto *Unified1 = lowerShuffleVector_UnifyFromDifferentSrcs(
+              Src1, Index2, Src0, Index3);
+          T = lowerShuffleVector_TwoFromSameSrc(
+              Unified0, UNIFIED_INDEX_0, UNIFIED_INDEX_1, Unified1,
+              UNIFIED_INDEX_0, UNIFIED_INDEX_1);
+        }
+      }
+      break;
+      CASE_SRCS_IN(1, 0, 1, 1) : {
+        assert(false && "Following code is untested but likely correct; test "
+                        "and remove assert.");
+        auto *Unified = lowerShuffleVector_UnifyFromDifferentSrcs(Src1, Index0,
+                                                                  Src0, Index1);
+        T = lowerShuffleVector_TwoFromSameSrc(
+            Unified, UNIFIED_INDEX_0, UNIFIED_INDEX_1, Src1, Index2, Index3);
+      }
+      break;
+      CASE_SRCS_IN(1, 1, 0, 0) : {
+        T = lowerShuffleVector_TwoFromSameSrc(Src1, Index0, Index1, Src0,
+                                              Index2, Index3);
+      }
+      break;
+      CASE_SRCS_IN(1, 1, 0, 1) : {
+        assert(false && "Following code is untested but likely correct; test "
+                        "and remove assert.");
+        auto *Unified = lowerShuffleVector_UnifyFromDifferentSrcs(Src0, Index2,
+                                                                  Src1, Index3);
+        T = lowerShuffleVector_TwoFromSameSrc(Src1, Index0, Index1, Unified,
+                                              UNIFIED_INDEX_0, UNIFIED_INDEX_1);
+      }
+      break;
+      CASE_SRCS_IN(1, 1, 1, 0) : {
+        auto *Unified = lowerShuffleVector_UnifyFromDifferentSrcs(Src1, Index2,
+                                                                  Src0, Index3);
+        T = lowerShuffleVector_TwoFromSameSrc(Src1, Index0, Index1, Unified,
+                                              UNIFIED_INDEX_0, UNIFIED_INDEX_1);
+      }
+      break;
+      CASE_SRCS_IN(1, 1, 1, 1) : {
+        assert(false && "Following code is untested but likely correct; test "
+                        "and remove assert.");
+        T = lowerShuffleVector_AllFromSameSrc(Src1, Index0, Index1, Index2,
+                                              Index3);
+      }
+      break;
+#undef CASE_SRCS_IN
+    }
+
+    assert(T != nullptr);
+    assert(T->getType() == DestTy);
+    _movp(Dest, T);
+    return;
+  } break;
   }
 
   // Unoptimized shuffle. Perform a series of inserts and extracts.
   Context.insert<InstFakeDef>(T);
-  auto *Src0 = llvm::cast<Variable>(Instr->getSrc(0));
-  auto *Src1 = llvm::cast<Variable>(Instr->getSrc(1));
-  const SizeT NumElements = typeNumElements(DestTy);
   const Type ElementType = typeElementType(DestTy);
   for (SizeT I = 0; I < Instr->getNumIndexes(); ++I) {
     auto *Index = Instr->getIndex(I);

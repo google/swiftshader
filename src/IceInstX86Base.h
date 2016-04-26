@@ -143,6 +143,7 @@ template <typename TraitsType> struct InstImpl {
       Pop,
       Por,
       Pshufd,
+      Punpckl,
       Psll,
       Psra,
       Psrl,
@@ -183,7 +184,7 @@ template <typename TraitsType> struct InstImpl {
       IacaEnd
     };
 
-    enum SseSuffix { None, Packed, Scalar, Integral };
+    enum SseSuffix { None, Packed, Unpack, Scalar, Integral };
 
     static const char *getWidthString(Type Ty);
     static const char *getFldString(Type Ty);
@@ -840,6 +841,9 @@ template <typename TraitsType> struct InstImpl {
         break;
       case InstX86Base::SseSuffix::Packed:
         SuffixString = Traits::TypeAttributes[DestTy].PdPsString;
+        break;
+      case InstX86Base::SseSuffix::Unpack:
+        SuffixString = Traits::TypeAttributes[DestTy].UnpackString;
         break;
       case InstX86Base::SseSuffix::Scalar:
         SuffixString = Traits::TypeAttributes[DestTy].SdSsString;
@@ -2839,6 +2843,23 @@ template <typename TraitsType> struct InstImpl {
   private:
     InstX86IacaEnd(Cfg *Func);
   };
+
+  class InstX86Punpckl
+      : public InstX86BaseBinopXmm<InstX86Base::Punpckl, false,
+                                   InstX86Base::SseSuffix::Unpack> {
+  public:
+    static InstX86Punpckl *create(Cfg *Func, Variable *Dest, Operand *Source) {
+      return new (Func->allocate<InstX86Punpckl>())
+          InstX86Punpckl(Func, Dest, Source);
+    }
+
+  private:
+    InstX86Punpckl(Cfg *Func, Variable *Dest, Operand *Source)
+        : InstX86BaseBinopXmm<InstX86Base::Punpckl, false,
+                              InstX86Base::SseSuffix::Unpack>(Func, Dest,
+                                                              Source) {}
+  };
+
 }; // struct InstImpl
 
 /// struct Insts is a template that can be used to instantiate all the X86
@@ -2960,6 +2981,8 @@ template <typename TraitsType> struct Insts {
 
   using IacaStart = typename InstImpl<TraitsType>::InstX86IacaStart;
   using IacaEnd = typename InstImpl<TraitsType>::InstX86IacaEnd;
+
+  using Punpckl = typename InstImpl<TraitsType>::InstX86Punpckl;
 };
 
 /// X86 Instructions have static data (particularly, opcodes and instruction
@@ -3189,6 +3212,9 @@ template <typename TraitsType> struct Insts {
   template <>                                                                  \
   template <>                                                                  \
   const char *InstImpl<TraitsType>::InstX86Pshufd::Base::Opcode = "pshufd";    \
+  template <>                                                                  \
+  template <>                                                                  \
+  const char *InstImpl<TraitsType>::InstX86Punpckl::Base::Opcode = "punpckl";  \
   /* Inplace GPR ops */                                                        \
   template <>                                                                  \
   template <>                                                                  \
@@ -3550,6 +3576,12 @@ template <typename TraitsType> struct Insts {
           &InstImpl<TraitsType>::Assembler::psrl,                              \
           &InstImpl<TraitsType>::Assembler::psrl,                              \
           &InstImpl<TraitsType>::Assembler::psrl};                             \
+  template <>                                                                  \
+  template <>                                                                  \
+  const InstImpl<TraitsType>::Assembler::XmmEmitterRegOp                       \
+      InstImpl<TraitsType>::InstX86Punpckl::Base::Emitter = {                  \
+          &InstImpl<TraitsType>::Assembler::punpckldq,                         \
+          &InstImpl<TraitsType>::Assembler::punpckldq};                        \
   }                                                                            \
   }
 

@@ -130,6 +130,41 @@ void testExtractElement(size_t &TotalTests, size_t &Passes, size_t &Failures) {
   free(TestVectors);
 }
 
+template <typename T>
+void testShuffleVector(size_t &TotalTests, size_t &Passes, size_t &Failures) {
+  typedef typename VectorOps<T>::Ty Ty;
+  typedef typename VectorOps<T>::ElementTy ElementTy;
+
+  size_t NumTestVectors;
+  Ty *TestVectors = getTestVectors<T>(NumTestVectors);
+
+  for (size_t VI = 0; VI < NumTestVectors; ++VI) {
+    Ty Vect0 = TestVectors[VI];
+    for (size_t VJ = 0; VJ < NumTestVectors; ++VJ) {
+      Ty Vect1 = TestVectors[VJ];
+      for (uint32_t Which = 0; Which < VectorOps<T>::shufflevector_count();
+           ++Which) {
+        Ty ResultLlc = VectorOps<T>::shufflevector(Vect0, Vect1, Which);
+        Ty ResultSz = VectorOps<T>::Subzero_shufflevector(Vect0, Vect1, Which);
+        ++TotalTests;
+        if (!memcmp(&ResultLlc, &ResultSz, sizeof(ResultLlc))) {
+          ++Passes;
+        } else {
+          ++Failures;
+          std::cout << "shufflevector<" << VectorOps<T>::TypeName << ">(Vect0=";
+          std::cout << vectAsString<T>(Vect0)
+                    << ", Vect1=" << vectAsString<T>(Vect1) << ", Which=" << VJ
+                    << ")\n";
+          std::cout << "llc=" << vectAsString<T>(ResultLlc) << "\n";
+          std::cout << "sz =" << vectAsString<T>(ResultSz) << "\n";
+        }
+      }
+    }
+  }
+
+  free(TestVectors);
+}
+
 int main(int argc, char *argv[]) {
   size_t TotalTests = 0;
   size_t Passes = 0;
@@ -156,6 +191,17 @@ int main(int argc, char *argv[]) {
   testExtractElement<v4si32>(TotalTests, Passes, Failures);
   testExtractElement<v4ui32>(TotalTests, Passes, Failures);
   testExtractElement<v4f32>(TotalTests, Passes, Failures);
+
+  testShuffleVector<v4i1>(TotalTests, Passes, Failures);
+  testShuffleVector<v8i1>(TotalTests, Passes, Failures);
+  testShuffleVector<v16i1>(TotalTests, Passes, Failures);
+  testShuffleVector<v16si8>(TotalTests, Passes, Failures);
+  testShuffleVector<v16ui8>(TotalTests, Passes, Failures);
+  testShuffleVector<v8si16>(TotalTests, Passes, Failures);
+  testShuffleVector<v8ui16>(TotalTests, Passes, Failures);
+  testShuffleVector<v4si32>(TotalTests, Passes, Failures);
+  testShuffleVector<v4ui32>(TotalTests, Passes, Failures);
+  testShuffleVector<v4f32>(TotalTests, Passes, Failures);
 
   std::cout << "TotalTests=" << TotalTests << " Passes=" << Passes
             << " Failures=" << Failures << "\n";
