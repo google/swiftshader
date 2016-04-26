@@ -1666,7 +1666,167 @@ TIntermTyped* TIntermConstantUnion::fold(TOperator op, TIntermTyped* constantNod
                             return 0;
                     }
                     break;
-                default:
+				case EOpRadians:
+					switch(getType().getBasicType()) {
+					case EbtFloat: tempConstArray[i].setFConst(unionArray[i].getFConst() * 1.74532925e-2f); break;
+					default:
+						infoSink.info.message(EPrefixInternalError, "Unary operation not folded into constant", getLine());
+						return 0;
+					}
+					break;
+				case EOpDegrees:
+					switch(getType().getBasicType()) {
+					case EbtFloat: tempConstArray[i].setFConst(unionArray[i].getFConst() * 5.72957795e+1f); break;
+					default:
+						infoSink.info.message(EPrefixInternalError, "Unary operation not folded into constant", getLine());
+						return 0;
+					}
+					break;
+				case EOpSin:
+					switch(getType().getBasicType()) {
+					case EbtFloat: tempConstArray[i].setFConst(sinf(unionArray[i].getFConst())); break;
+					default:
+						infoSink.info.message(EPrefixInternalError, "Unary operation not folded into constant", getLine());
+						return 0;
+					}
+					break;
+				case EOpCos:
+					switch(getType().getBasicType()) {
+					case EbtFloat: tempConstArray[i].setFConst(cosf(unionArray[i].getFConst())); break;
+					default:
+						infoSink.info.message(EPrefixInternalError, "Unary operation not folded into constant", getLine());
+						return 0;
+					}
+					break;
+				case EOpTan:
+					switch(getType().getBasicType()) {
+					case EbtFloat: tempConstArray[i].setFConst(tanf(unionArray[i].getFConst())); break;
+					default:
+						infoSink.info.message(EPrefixInternalError, "Unary operation not folded into constant", getLine());
+						return 0;
+					}
+					break;
+				case EOpAsin:
+					switch(getType().getBasicType()) {
+					case EbtFloat: tempConstArray[i].setFConst(asinf(unionArray[i].getFConst())); break;
+					default:
+						infoSink.info.message(EPrefixInternalError, "Unary operation not folded into constant", getLine());
+						return 0;
+					}
+					break;
+				case EOpAcos:
+					switch(getType().getBasicType()) {
+					case EbtFloat: tempConstArray[i].setFConst(acosf(unionArray[i].getFConst())); break;
+					default:
+						infoSink.info.message(EPrefixInternalError, "Unary operation not folded into constant", getLine());
+						return 0;
+					}
+					break;
+				case EOpAtan:
+					switch(getType().getBasicType()) {
+					case EbtFloat: tempConstArray[i].setFConst(atanf(unionArray[i].getFConst())); break;
+					default:
+						infoSink.info.message(EPrefixInternalError, "Unary operation not folded into constant", getLine());
+						return 0;
+					}
+					break;
+				case EOpSinh:
+					switch(getType().getBasicType()) {
+					case EbtFloat: tempConstArray[i].setFConst(sinhf(unionArray[i].getFConst())); break;
+					default:
+						infoSink.info.message(EPrefixInternalError, "Unary operation not folded into constant", getLine());
+						return 0;
+					}
+					break;
+				case EOpCosh:
+					switch(getType().getBasicType()) {
+					case EbtFloat: tempConstArray[i].setFConst(coshf(unionArray[i].getFConst())); break;
+					default:
+						infoSink.info.message(EPrefixInternalError, "Unary operation not folded into constant", getLine());
+						return 0;
+					}
+					break;
+				case EOpTanh:
+					switch(getType().getBasicType()) {
+					case EbtFloat: tempConstArray[i].setFConst(tanhf(unionArray[i].getFConst())); break;
+					default:
+						infoSink.info.message(EPrefixInternalError, "Unary operation not folded into constant", getLine());
+						return 0;
+					}
+					break;
+				case EOpAsinh:
+					switch(getType().getBasicType()) {
+					case EbtFloat: tempConstArray[i].setFConst(asinhf(unionArray[i].getFConst())); break;
+					default:
+						infoSink.info.message(EPrefixInternalError, "Unary operation not folded into constant", getLine());
+						return 0;
+					}
+					break;
+				case EOpAcosh:
+					switch(getType().getBasicType()) {
+					case EbtFloat: tempConstArray[i].setFConst(acoshf(unionArray[i].getFConst())); break;
+					default:
+						infoSink.info.message(EPrefixInternalError, "Unary operation not folded into constant", getLine());
+						return 0;
+					}
+					break;
+				case EOpAtanh:
+					switch(getType().getBasicType()) {
+					case EbtFloat: tempConstArray[i].setFConst(atanhf(unionArray[i].getFConst())); break;
+					default:
+						infoSink.info.message(EPrefixInternalError, "Unary operation not folded into constant", getLine());
+						return 0;
+					}
+					break;
+				case EOpLog:
+					switch(getType().getBasicType()) {
+					case EbtFloat: tempConstArray[i].setFConst(logf(unionArray[i].getFConst())); break;
+					default:
+						infoSink.info.message(EPrefixInternalError, "Unary operation not folded into constant", getLine());
+						return 0;
+					}
+					break;
+				case EOpLog2:
+					switch(getType().getBasicType()) {
+					case EbtFloat: tempConstArray[i].setFConst(log2f(unionArray[i].getFConst())); break;
+					default:
+						infoSink.info.message(EPrefixInternalError, "Unary operation not folded into constant", getLine());
+						return 0;
+					}
+					break;
+				case EOpExp:
+					switch(getType().getBasicType()) {
+					case EbtFloat: tempConstArray[i].setFConst(expf(unionArray[i].getFConst())); break;
+					default:
+						infoSink.info.message(EPrefixInternalError, "Unary operation not folded into constant", getLine());
+						return 0;
+					}
+					break;
+				case EOpExp2:
+					switch(getType().getBasicType()) {
+					case EbtFloat: tempConstArray[i].setFConst(exp2f(unionArray[i].getFConst())); break;
+					default:
+						infoSink.info.message(EPrefixInternalError, "Unary operation not folded into constant", getLine());
+						return 0;
+					}
+					break;
+				case EOpSqrt:
+					switch(getType().getBasicType()) {
+					case EbtFloat: tempConstArray[i].setFConst(sqrtf(unionArray[i].getFConst())); break;
+					default:
+						infoSink.info.message(EPrefixInternalError, "Unary operation not folded into constant", getLine());
+						return 0;
+					}
+					break;
+				case EOpInverseSqrt:
+					switch(getType().getBasicType()) {
+					case EbtFloat: tempConstArray[i].setFConst(1.0f / sqrtf(unionArray[i].getFConst())); break;
+					default:
+						infoSink.info.message(EPrefixInternalError, "Unary operation not folded into constant", getLine());
+						return 0;
+					}
+					break;
+				default:
                     return 0;
             }
         }
