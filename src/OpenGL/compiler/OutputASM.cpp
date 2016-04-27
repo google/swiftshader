@@ -1229,12 +1229,25 @@ namespace glsl
 
 					if(textureFunction.proj)
 					{
-						Instruction *rcp = emit(sw::Shader::OPCODE_RCPX, &coord, arg[1]);
-						rcp->src[0].swizzle = 0x55 * (t->getNominalSize() - 1);
-						rcp->dst.mask = 0x7;
+						TIntermConstantUnion* constant = arg[1]->getAsConstantUnion();
+						if(constant)
+						{
+							float projFactor = 1.0f / constant->getFConst(t->getNominalSize() - 1);
+							Constant projCoord(constant->getFConst(0) * projFactor,
+							                   constant->getFConst(1) * projFactor, 
+							                   constant->getFConst(2) * projFactor,
+							                   0.0f);
+							emit(sw::Shader::OPCODE_MOV, &coord, &projCoord);
+						}
+						else
+						{
+							Instruction *rcp = emit(sw::Shader::OPCODE_RCPX, &coord, arg[1]);
+							rcp->src[0].swizzle = 0x55 * (t->getNominalSize() - 1);
+							rcp->dst.mask = 0x7;
 
-						Instruction *mul = emit(sw::Shader::OPCODE_MUL, &coord, arg[1], &coord);
-						mul->dst.mask = 0x7;
+							Instruction *mul = emit(sw::Shader::OPCODE_MUL, &coord, arg[1], &coord);
+							mul->dst.mask = 0x7;
+						}
 					}
 					else
 					{
