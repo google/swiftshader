@@ -429,6 +429,8 @@ public:
 
   void sqrtpd(XmmRegister dst);
 
+  void pshufb(Type Ty, XmmRegister dst, XmmRegister src);
+  void pshufb(Type Ty, XmmRegister dst, const Address &src);
   void pshufd(Type Ty, XmmRegister dst, XmmRegister src, const Immediate &mask);
   void pshufd(Type Ty, XmmRegister dst, const Address &src,
               const Immediate &mask);

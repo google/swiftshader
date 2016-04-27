@@ -5675,6 +5675,99 @@ inline SizeT makeSrcSwitchMask(SizeT Index0, SizeT Index1, SizeT Index2,
 }
 
 template <typename TraitsType>
+GlobalString TargetX86Base<TraitsType>::lowerShuffleVector_NewMaskName() {
+  GlobalString FuncName = Func->getFunctionName();
+  const SizeT Id = PshufbMaskCount++;
+  if (!BuildDefs::dump() || !FuncName.hasStdString()) {
+    return GlobalString::createWithString(
+        Ctx,
+        "$PS" + std::to_string(FuncName.getID()) + "_" + std::to_string(Id));
+  }
+  return GlobalString::createWithString(
+      Ctx, "Pshufb$" + Func->getFunctionName() + "$" + std::to_string(Id));
+}
+
+template <typename TraitsType>
+ConstantRelocatable *
+TargetX86Base<TraitsType>::lowerShuffleVector_CreatePshufbMask(
+    int8_t Idx0, int8_t Idx1, int8_t Idx2, int8_t Idx3, int8_t Idx4,
+    int8_t Idx5, int8_t Idx6, int8_t Idx7, int8_t Idx8, int8_t Idx9,
+    int8_t Idx10, int8_t Idx11, int8_t Idx12, int8_t Idx13, int8_t Idx14,
+    int8_t Idx15) {
+  static constexpr uint8_t NumElements = 16;
+  const char Initializer[NumElements] = {
+      Idx0, Idx1, Idx2,  Idx3,  Idx4,  Idx5,  Idx6,  Idx7,
+      Idx8, Idx9, Idx10, Idx11, Idx12, Idx13, Idx14, Idx15,
+  };
+
+  static constexpr Type V4VectorType = IceType_v4i32;
+  const uint32_t MaskAlignment = typeWidthInBytesOnStack(V4VectorType);
+  auto *Mask = VariableDeclaration::create(Func->getGlobalPool());
+  GlobalString MaskName = lowerShuffleVector_NewMaskName();
+  Mask->setIsConstant(true);
+  Mask->addInitializer(VariableDeclaration::DataInitializer::create(
+      Func->getGlobalPool(), Initializer, NumElements));
+  Mask->setName(MaskName);
+  // Mask needs to be 16-byte aligned, or pshufb will seg fault.
+  Mask->setAlignment(MaskAlignment);
+  Func->addGlobal(Mask);
+
+  constexpr RelocOffsetT Offset = 0;
+  return llvm::cast<ConstantRelocatable>(Ctx->getConstantSym(Offset, MaskName));
+}
+
+template <typename TraitsType>
+void TargetX86Base<TraitsType>::lowerShuffleVector_UsingPshufb(
+    Variable *Dest, Operand *Src0, Operand *Src1, int8_t Idx0, int8_t Idx1,
+    int8_t Idx2, int8_t Idx3, int8_t Idx4, int8_t Idx5, int8_t Idx6,
+    int8_t Idx7, int8_t Idx8, int8_t Idx9, int8_t Idx10, int8_t Idx11,
+    int8_t Idx12, int8_t Idx13, int8_t Idx14, int8_t Idx15) {
+  const Type DestTy = Dest->getType();
+  static constexpr bool NotRebased = false;
+  static constexpr Variable *NoBase = nullptr;
+  // We use void for the memory operand instead of DestTy because using the
+  // latter causes a validation failure: the X86 Inst layer complains that
+  // vector mem operands could be under aligned. Thus, using void we avoid the
+  // validation error. Note that the mask global declaration is aligned, so it
+  // can be used as an XMM mem operand.
+  static constexpr Type MaskType = IceType_void;
+#define IDX_IN_SRC(N, S)                                                       \
+  ((((N) & (1 << 4)) == (S << 4)) ? ((N)&0xf) : CLEAR_ALL_BITS)
+  auto *Mask0M = X86OperandMem::create(
+      Func, MaskType, NoBase,
+      lowerShuffleVector_CreatePshufbMask(
+          IDX_IN_SRC(Idx0, 0), IDX_IN_SRC(Idx1, 0), IDX_IN_SRC(Idx2, 0),
+          IDX_IN_SRC(Idx3, 0), IDX_IN_SRC(Idx4, 0), IDX_IN_SRC(Idx5, 0),
+          IDX_IN_SRC(Idx6, 0), IDX_IN_SRC(Idx7, 0), IDX_IN_SRC(Idx8, 0),
+          IDX_IN_SRC(Idx9, 0), IDX_IN_SRC(Idx10, 0), IDX_IN_SRC(Idx11, 0),
+          IDX_IN_SRC(Idx12, 0), IDX_IN_SRC(Idx13, 0), IDX_IN_SRC(Idx14, 0),
+          IDX_IN_SRC(Idx15, 0)),
+      NotRebased);
+  auto *Mask1M = X86OperandMem::create(
+      Func, MaskType, NoBase,
+      lowerShuffleVector_CreatePshufbMask(
+          IDX_IN_SRC(Idx0, 1), IDX_IN_SRC(Idx1, 1), IDX_IN_SRC(Idx2, 1),
+          IDX_IN_SRC(Idx3, 1), IDX_IN_SRC(Idx4, 1), IDX_IN_SRC(Idx5, 1),
+          IDX_IN_SRC(Idx6, 1), IDX_IN_SRC(Idx7, 1), IDX_IN_SRC(Idx8, 1),
+          IDX_IN_SRC(Idx9, 1), IDX_IN_SRC(Idx10, 1), IDX_IN_SRC(Idx11, 1),
+          IDX_IN_SRC(Idx12, 1), IDX_IN_SRC(Idx13, 1), IDX_IN_SRC(Idx14, 1),
+          IDX_IN_SRC(Idx15, 1)),
+      NotRebased);
+#undef IDX_IN_SRC
+  auto *T0 = makeReg(DestTy);
+  auto *T1 = makeReg(DestTy);
+  auto *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
+  _movp(T0, Src0RM);
+  auto *Src1RM = legalize(Src1, Legal_Reg | Legal_Mem);
+  _movp(T1, Src1RM);
+
+  _pshufb(T1, Mask1M);
+  _pshufb(T0, Mask0M);
+  _por(T1, T0);
+  _movp(Dest, T1);
+}
+
+template <typename TraitsType>
 void TargetX86Base<TraitsType>::lowerShuffleVector(
     const InstShuffleVector *Instr) {
   auto *Dest = Instr->getDest();
@@ -5687,9 +5780,68 @@ void TargetX86Base<TraitsType>::lowerShuffleVector(
 
   switch (DestTy) {
   default:
-    break;
-  // TODO(jpp): figure out how to properly lower the remaining cases without
-  // scalarization.
+    llvm::report_fatal_error("Unexpected vector type.");
+  case IceType_v16i1:
+  case IceType_v16i8: {
+    if (InstructionSet < Traits::SSE4_1) {
+      // TODO(jpp): figure out how to lower with sse2.
+      break;
+    }
+    static constexpr SizeT ExpectedNumElements = 16;
+    assert(ExpectedNumElements == Instr->getNumIndexes());
+    (void)ExpectedNumElements;
+    const SizeT Index0 = Instr->getIndex(0)->getValue();
+    const SizeT Index1 = Instr->getIndex(1)->getValue();
+    const SizeT Index2 = Instr->getIndex(2)->getValue();
+    const SizeT Index3 = Instr->getIndex(3)->getValue();
+    const SizeT Index4 = Instr->getIndex(4)->getValue();
+    const SizeT Index5 = Instr->getIndex(5)->getValue();
+    const SizeT Index6 = Instr->getIndex(6)->getValue();
+    const SizeT Index7 = Instr->getIndex(7)->getValue();
+    const SizeT Index8 = Instr->getIndex(8)->getValue();
+    const SizeT Index9 = Instr->getIndex(9)->getValue();
+    const SizeT Index10 = Instr->getIndex(10)->getValue();
+    const SizeT Index11 = Instr->getIndex(11)->getValue();
+    const SizeT Index12 = Instr->getIndex(12)->getValue();
+    const SizeT Index13 = Instr->getIndex(13)->getValue();
+    const SizeT Index14 = Instr->getIndex(14)->getValue();
+    const SizeT Index15 = Instr->getIndex(15)->getValue();
+    lowerShuffleVector_UsingPshufb(Dest, Src0, Src1, Index0, Index1, Index2,
+                                   Index3, Index4, Index5, Index6, Index7,
+                                   Index8, Index9, Index10, Index11, Index12,
+                                   Index13, Index14, Index15);
+    return;
+  }
+  case IceType_v8i1:
+  case IceType_v8i16: {
+    if (InstructionSet < Traits::SSE4_1) {
+      // TODO(jpp): figure out how to lower with sse2.
+      break;
+    }
+    static constexpr SizeT ExpectedNumElements = 8;
+    assert(ExpectedNumElements == Instr->getNumIndexes());
+    (void)ExpectedNumElements;
+    const SizeT Index0 = Instr->getIndex(0)->getValue();
+    const SizeT Index1 = Instr->getIndex(1)->getValue();
+    const SizeT Index2 = Instr->getIndex(2)->getValue();
+    const SizeT Index3 = Instr->getIndex(3)->getValue();
+    const SizeT Index4 = Instr->getIndex(4)->getValue();
+    const SizeT Index5 = Instr->getIndex(5)->getValue();
+    const SizeT Index6 = Instr->getIndex(6)->getValue();
+    const SizeT Index7 = Instr->getIndex(7)->getValue();
+#define TO_BYTE_INDEX(I) ((I) << 1)
+    lowerShuffleVector_UsingPshufb(
+        Dest, Src0, Src1, TO_BYTE_INDEX(Index0), TO_BYTE_INDEX(Index0) + 1,
+        TO_BYTE_INDEX(Index1), TO_BYTE_INDEX(Index1) + 1, TO_BYTE_INDEX(Index2),
+        TO_BYTE_INDEX(Index2) + 1, TO_BYTE_INDEX(Index3),
+        TO_BYTE_INDEX(Index3) + 1, TO_BYTE_INDEX(Index4),
+        TO_BYTE_INDEX(Index4) + 1, TO_BYTE_INDEX(Index5),
+        TO_BYTE_INDEX(Index5) + 1, TO_BYTE_INDEX(Index6),
+        TO_BYTE_INDEX(Index6) + 1, TO_BYTE_INDEX(Index7),
+        TO_BYTE_INDEX(Index7) + 1);
+#undef TO_BYTE_INDEX
+    return;
+  }
   case IceType_v4i1:
   case IceType_v4i32:
   case IceType_v4f32: {

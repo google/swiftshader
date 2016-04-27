@@ -1535,6 +1535,31 @@ void AssemblerX86Base<TraitsType>::set1ps(XmmRegister dst, GPRRegister tmp1,
 }
 
 template <typename TraitsType>
+void AssemblerX86Base<TraitsType>::pshufb(Type /* Ty */, XmmRegister dst,
+                                          XmmRegister src) {
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitUint8(0x66);
+  emitRexRB(RexTypeIrrelevant, dst, src);
+  emitUint8(0x0F);
+  emitUint8(0x38);
+  emitUint8(0x00);
+  emitXmmRegisterOperand(dst, src);
+}
+
+template <typename TraitsType>
+void AssemblerX86Base<TraitsType>::pshufb(Type /* Ty */, XmmRegister dst,
+                                          const Address &src) {
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitUint8(0x66);
+  emitAddrSizeOverridePrefix();
+  emitRex(RexTypeIrrelevant, src, dst);
+  emitUint8(0x0F);
+  emitUint8(0x38);
+  emitUint8(0x00);
+  emitOperand(gprEncoding(dst), src);
+}
+
+template <typename TraitsType>
 void AssemblerX86Base<TraitsType>::pshufd(Type /* Ty */, XmmRegister dst,
                                           XmmRegister src,
                                           const Immediate &imm) {

@@ -805,6 +805,10 @@ protected:
     AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Punpckl>(Dest, Src0);
   }
+  void _pshufb(Variable *Dest, Operand *Src0) {
+    AutoMemorySandboxer<> _(this, &Dest, &Src0);
+    Context.insert<typename Traits::Insts::Pshufb>(Dest, Src0);
+  }
   void _pshufd(Variable *Dest, Operand *Src0, Operand *Src1) {
     AutoMemorySandboxer<> _(this, &Dest, &Src0, &Src1);
     Context.insert<typename Traits::Insts::Pshufd>(Dest, Src0, Src1);
@@ -1101,6 +1105,21 @@ private:
                                                       SizeT Index0,
                                                       Variable *Src1,
                                                       SizeT Index1);
+  static constexpr SizeT CLEAR_ALL_BITS = 0x80;
+  SizeT PshufbMaskCount = 0;
+  GlobalString lowerShuffleVector_NewMaskName();
+  ConstantRelocatable *lowerShuffleVector_CreatePshufbMask(
+      int8_t Idx0, int8_t Idx1, int8_t Idx2, int8_t Idx3, int8_t Idx4,
+      int8_t Idx5, int8_t Idx6, int8_t Idx7, int8_t Idx8, int8_t Idx9,
+      int8_t Idx10, int8_t Idx11, int8_t Idx12, int8_t Idx13, int8_t Idx14,
+      int8_t Idx15);
+  void lowerShuffleVector_UsingPshufb(Variable *Dest, Operand *Src0,
+                                      Operand *Src1, int8_t Idx0, int8_t Idx1,
+                                      int8_t Idx2, int8_t Idx3, int8_t Idx4,
+                                      int8_t Idx5, int8_t Idx6, int8_t Idx7,
+                                      int8_t Idx8, int8_t Idx9, int8_t Idx10,
+                                      int8_t Idx11, int8_t Idx12, int8_t Idx13,
+                                      int8_t Idx14, int8_t Idx15);
   /// @}
 
   static FixupKind PcRelFixup;

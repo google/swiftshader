@@ -1084,6 +1084,73 @@ TEST_F(AssemblerX8632Test, Punpckldq) {
 #undef TestImplXmmXmm
 }
 
+TEST_F(AssemblerX8632Test, Pshufb) {
+  const Dqword V0(uint64_t(0x1122334455667788ull),
+                  uint64_t(0x99aabbccddeeff32ull));
+  const Dqword V1(uint64_t(0x0204050380060708ull),
+                  uint64_t(0x010306080a8b0c0dull));
+
+  const Dqword Expected(uint64_t(0x6644335500221132ull),
+                        uint64_t(0x77552232ee00ccbbull));
+
+#define TestImplXmmXmm(Dst, Src, Inst)                                         \
+  do {                                                                         \
+    static constexpr char TestString[] = "(" #Dst ", " #Src ", " #Inst ")";    \
+    const uint32_t T0 = allocateDqword();                                      \
+    const uint32_t T1 = allocateDqword();                                      \
+                                                                               \
+    __ movups(XmmRegister::Encoded_Reg_##Dst, dwordAddress(T0));               \
+    __ movups(XmmRegister::Encoded_Reg_##Src, dwordAddress(T1));               \
+    __ Inst(IceType_void, XmmRegister::Encoded_Reg_##Dst,                      \
+            XmmRegister::Encoded_Reg_##Src);                                   \
+                                                                               \
+    AssembledTest test = assemble();                                           \
+    test.setDqwordTo(T0, V0);                                                  \
+    test.setDqwordTo(T1, V1);                                                  \
+    test.run();                                                                \
+                                                                               \
+    ASSERT_EQ(Expected, test.Dst<Dqword>()) << TestString;                     \
+    reset();                                                                   \
+  } while (0)
+
+#define TestImplXmmAddr(Dst, Inst)                                             \
+  do {                                                                         \
+    static constexpr char TestString[] = "(" #Dst ", Addr, " #Inst ")";        \
+    const uint32_t T0 = allocateDqword();                                      \
+    const uint32_t T1 = allocateDqword();                                      \
+                                                                               \
+    __ movups(XmmRegister::Encoded_Reg_##Dst, dwordAddress(T0));               \
+    __ Inst(IceType_void, XmmRegister::Encoded_Reg_##Dst, dwordAddress(T1));   \
+                                                                               \
+    AssembledTest test = assemble();                                           \
+    test.setDqwordTo(T0, V0);                                                  \
+    test.setDqwordTo(T1, V1);                                                  \
+    test.run();                                                                \
+                                                                               \
+    ASSERT_EQ(Expected, test.Dst<Dqword>()) << TestString;                     \
+    reset();                                                                   \
+  } while (0)
+
+#define TestImpl(Dst, Src)                                                     \
+  do {                                                                         \
+    TestImplXmmXmm(Dst, Src, pshufb);                                          \
+    TestImplXmmAddr(Dst, pshufb);                                              \
+  } while (0)
+
+  TestImpl(xmm0, xmm1);
+  TestImpl(xmm1, xmm2);
+  TestImpl(xmm2, xmm3);
+  TestImpl(xmm3, xmm4);
+  TestImpl(xmm4, xmm5);
+  TestImpl(xmm5, xmm6);
+  TestImpl(xmm6, xmm7);
+  TestImpl(xmm7, xmm0);
+
+#undef TestImpl
+#undef TestImplXmmAddr
+#undef TestImplXmmXmm
+}
+
 TEST_F(AssemblerX8632Test, Cvt) {
   const Dqword dq2ps32DstValue(-1.0f, -1.0f, -1.0f, -1.0f);
   const Dqword dq2ps32SrcValue(-5, 3, 100, 200);

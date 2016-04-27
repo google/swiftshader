@@ -142,6 +142,7 @@ template <typename TraitsType> struct InstImpl {
       Pmuludq,
       Pop,
       Por,
+      Pshufb,
       Pshufd,
       Punpckl,
       Psll,
@@ -2844,6 +2845,22 @@ template <typename TraitsType> struct InstImpl {
     InstX86IacaEnd(Cfg *Func);
   };
 
+  class InstX86Pshufb
+      : public InstX86BaseBinopXmm<InstX86Base::Pshufb, false,
+                                   InstX86Base::SseSuffix::None> {
+  public:
+    static InstX86Pshufb *create(Cfg *Func, Variable *Dest, Operand *Source) {
+      return new (Func->allocate<InstX86Pshufb>())
+          InstX86Pshufb(Func, Dest, Source);
+    }
+
+  private:
+    InstX86Pshufb(Cfg *Func, Variable *Dest, Operand *Source)
+        : InstX86BaseBinopXmm<InstX86Base::Pshufb, false,
+                              InstX86Base::SseSuffix::None>(Func, Dest,
+                                                            Source) {}
+  };
+
   class InstX86Punpckl
       : public InstX86BaseBinopXmm<InstX86Base::Punpckl, false,
                                    InstX86Base::SseSuffix::Unpack> {
@@ -2982,6 +2999,7 @@ template <typename TraitsType> struct Insts {
   using IacaStart = typename InstImpl<TraitsType>::InstX86IacaStart;
   using IacaEnd = typename InstImpl<TraitsType>::InstX86IacaEnd;
 
+  using Pshufb = typename InstImpl<TraitsType>::InstX86Pshufb;
   using Punpckl = typename InstImpl<TraitsType>::InstX86Punpckl;
 };
 
@@ -3212,6 +3230,9 @@ template <typename TraitsType> struct Insts {
   template <>                                                                  \
   template <>                                                                  \
   const char *InstImpl<TraitsType>::InstX86Pshufd::Base::Opcode = "pshufd";    \
+  template <>                                                                  \
+  template <>                                                                  \
+  const char *InstImpl<TraitsType>::InstX86Pshufb::Base::Opcode = "pshufb";    \
   template <>                                                                  \
   template <>                                                                  \
   const char *InstImpl<TraitsType>::InstX86Punpckl::Base::Opcode = "punpckl";  \
@@ -3576,6 +3597,12 @@ template <typename TraitsType> struct Insts {
           &InstImpl<TraitsType>::Assembler::psrl,                              \
           &InstImpl<TraitsType>::Assembler::psrl,                              \
           &InstImpl<TraitsType>::Assembler::psrl};                             \
+  template <>                                                                  \
+  template <>                                                                  \
+  const InstImpl<TraitsType>::Assembler::XmmEmitterRegOp                       \
+      InstImpl<TraitsType>::InstX86Pshufb::Base::Emitter = {                   \
+          &InstImpl<TraitsType>::Assembler::pshufb,                            \
+          &InstImpl<TraitsType>::Assembler::pshufb};                           \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::XmmEmitterRegOp                       \
