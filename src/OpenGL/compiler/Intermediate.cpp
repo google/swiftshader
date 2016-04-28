@@ -1278,7 +1278,6 @@ TIntermTyped* TIntermConstantUnion::fold(TOperator op, TIntermTyped* constantNod
         ConstantUnion* tempConstArray = 0;
         TIntermConstantUnion *tempNode;
 
-        bool boolNodeFlag = false;
         switch(op) {
             case EOpAdd:
                 tempConstArray = new ConstantUnion[objectSize];
@@ -1561,24 +1560,19 @@ TIntermTyped* TIntermConstantUnion::fold(TOperator op, TIntermTyped* constantNod
                 returnType = TType(EbtBool, EbpUndefined, EvqConstExpr, objectSize);
                 break;
             case EOpEqual:
-                if (getType().getBasicType() == EbtStruct) {
-                    if (!CompareStructure(node->getType(), node->getUnionArrayPointer(), unionArray))
-                        boolNodeFlag = true;
+				tempConstArray = new ConstantUnion[1];
+
+				if(getType().getBasicType() == EbtStruct) {
+					tempConstArray->setBConst(CompareStructure(node->getType(), node->getUnionArrayPointer(), unionArray));
                 } else {
+					bool boolNodeFlag = true;
                     for (size_t i = 0; i < objectSize; i++) {
                         if (unionArray[i] != rightUnionArray[i]) {
-                            boolNodeFlag = true;
+                            boolNodeFlag = false;
                             break;  // break out of for loop
                         }
                     }
-                }
-
-                tempConstArray = new ConstantUnion[1];
-                if (!boolNodeFlag) {
-                    tempConstArray->setBConst(true);
-                }
-                else {
-                    tempConstArray->setBConst(false);
+					tempConstArray->setBConst(boolNodeFlag);
                 }
 
                 tempNode = new TIntermConstantUnion(tempConstArray, TType(EbtBool, EbpUndefined, EvqConstExpr));
@@ -1587,24 +1581,19 @@ TIntermTyped* TIntermConstantUnion::fold(TOperator op, TIntermTyped* constantNod
                 return tempNode;
 
             case EOpNotEqual:
-                if (getType().getBasicType() == EbtStruct) {
-                    if (CompareStructure(node->getType(), node->getUnionArrayPointer(), unionArray))
-                        boolNodeFlag = true;
+				tempConstArray = new ConstantUnion[1];
+
+				if(getType().getBasicType() == EbtStruct) {
+					tempConstArray->setBConst(!CompareStructure(node->getType(), node->getUnionArrayPointer(), unionArray));
                 } else {
+					bool boolNodeFlag = false;
                     for (size_t i = 0; i < objectSize; i++) {
-                        if (unionArray[i] == rightUnionArray[i]) {
+                        if (unionArray[i] != rightUnionArray[i]) {
                             boolNodeFlag = true;
                             break;  // break out of for loop
                         }
                     }
-                }
-
-                tempConstArray = new ConstantUnion[1];
-                if (!boolNodeFlag) {
-                    tempConstArray->setBConst(true);
-                }
-                else {
-                    tempConstArray->setBConst(false);
+					tempConstArray->setBConst(boolNodeFlag);
                 }
 
                 tempNode = new TIntermConstantUnion(tempConstArray, TType(EbtBool, EbpUndefined, EvqConstExpr));
