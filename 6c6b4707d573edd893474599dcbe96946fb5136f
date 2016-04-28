@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e8fb4184_b3c6f757",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 9
+      },
+      "lineNbr": 1774,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-28T03:47:08Z",
+      "side": 0,
+      "message": "Was able to eliminate this by not traversing sampler register expressions at all. For example \"s[1]\" would have previously generated a MOV to a sampler register. Now we statically evaluate it as the register index of s + 1, where it\u0027s used.",
+      "range": {
+        "startLine": 1771,
+        "startChar": 2,
+        "endLine": 1774,
+        "endChar": 3
+      },
+      "revId": "6c6b4707d573edd893474599dcbe96946fb5136f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e8fb4184_b3cd5770",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 9
+      },
+      "lineNbr": 2162,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-28T03:47:08Z",
+      "side": 0,
+      "message": "Now handled by samplerRegister(), called by registerIndex().",
+      "range": {
+        "startLine": 2162,
+        "startChar": 4,
+        "endLine": 2162,
+        "endChar": 30
+      },
+      "revId": "6c6b4707d573edd893474599dcbe96946fb5136f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e8fb4184_13db8b2c",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 9
+      },
+      "lineNbr": 2887,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-28T03:47:08Z",
+      "side": 0,
+      "message": "Index added now",
+      "range": {
+        "startLine": 2887,
+        "startChar": 51,
+        "endLine": 2887,
+        "endChar": 68
+      },
+      "revId": "6c6b4707d573edd893474599dcbe96946fb5136f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}

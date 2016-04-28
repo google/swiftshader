@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e8fb4184_5304f36d",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 9
+      },
+      "lineNbr": 2848,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-28T03:47:08Z",
+      "side": 1,
+      "message": "Made it recursive to handle nested structs, arrays in structs, and structs of arrays.",
+      "range": {
+        "startLine": 2848,
+        "startChar": 11,
+        "endLine": 2848,
+        "endChar": 26
+      },
+      "revId": "5c1d4f0d586c1855a6adce84e88b746bab33bf62",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
