@@ -586,15 +586,8 @@ file(GLOB_RECURSE SWIFTSHADER_LIST
 list(APPEND SWIFTSHADER_LIST
     ${SOURCE_DIR}/Main/Config.cpp
     ${SOURCE_DIR}/Main/Config.hpp
-    ${SOURCE_DIR}/Main/crc.cpp
-    ${SOURCE_DIR}/Main/crc.h
     ${SOURCE_DIR}/Main/FrameBuffer.cpp
     ${SOURCE_DIR}/Main/FrameBuffer.hpp
-    ${SOURCE_DIR}/Main/Logo.cpp
-    ${SOURCE_DIR}/Main/Register.cpp
-    ${SOURCE_DIR}/Main/Register.hpp
-    ${SOURCE_DIR}/Main/serialvalid.cpp
-    ${SOURCE_DIR}/Main/serialvalid.h
     ${SOURCE_DIR}/Main/SwiftConfig.cpp
     ${SOURCE_DIR}/Main/SwiftConfig.hpp
 )

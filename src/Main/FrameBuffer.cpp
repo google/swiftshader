@@ -13,8 +13,6 @@
 
 #include "Timer.hpp"
 #include "CPUID.hpp"
-#include "serialvalid.h"
-#include "Register.hpp"
 #include "Renderer/Surface.hpp"
 #include "Reactor/Reactor.hpp"
 #include "Common/Debug.hpp"
@@ -27,22 +25,12 @@
 #include <cutils/properties.h>
 #endif
 
-#ifndef DISPLAY_LOGO
-#define DISPLAY_LOGO ((NDEBUG | __ANDROID__) & 1)
-#endif
-
 #define ASYNCHRONOUS_BLIT 0   // FIXME: Currently leads to rare race conditions
-
-extern const int logoWidth;
-extern const int logoHeight;
-extern const unsigned int logoData[];
 
 namespace sw
 {
 	extern bool forceWindowed;
 
-	Surface *FrameBuffer::logo;
-	unsigned int *FrameBuffer::logoImage;
 	void *FrameBuffer::cursor;
 	int FrameBuffer::cursorWidth = 0;
 	int FrameBuffer::cursorHeight = 0;
@@ -58,7 +46,7 @@ namespace sw
 	{
 		this->topLeftOrigin = topLeftOrigin;
 
-		locked = 0;
+		locked = nullptr;
 
 		this->width = width;
 		this->height = height;
@@ -73,8 +61,8 @@ namespace sw
 
 		windowed = !fullscreen;
 
-		blitFunction = 0;
-		blitRoutine = 0;
+		blitFunction = nullptr;
+		blitRoutine = nullptr;
 
 		blitState.width = 0;
 		blitState.height = 0;
@@ -82,8 +70,6 @@ namespace sw
 		blitState.sourceFormat = FORMAT_X8R8G8B8;
 		blitState.cursorWidth = 0;
 		blitState.cursorHeight = 0;
-
-		logo = 0;
 
 		if(ASYNCHRONOUS_BLIT)
 		{
@@ -216,8 +202,6 @@ namespace sw
 
 	Routine *FrameBuffer::copyRoutine(const BlitState &state)
 	{
-		initializeLogo();
-
 		const int width = state.width;
 		const int height = state.height;
 		const int width2 = (state.width + 1) & ~1;
@@ -225,14 +209,6 @@ namespace sw
 		const int dStride = state.stride;
 		const int sBytes = Surface::bytes(state.sourceFormat);
 		const int sStride = topLeftOrigin ? (sBytes * width2) : -(sBytes * width2);
-
-		#ifdef __ANDROID__
-			char ro_product_model[PROPERTY_VALUE_MAX] = "";
-    		property_get("ro.product.model", ro_product_model, nullptr);
-			bool validKey = strstr(ro_product_model, "Android") != nullptr;
-		#else
-			bool validKey = ValidateSerialNumber(validationKey, CHECKSUM_KEY, SERIAL_PREFIX);
-		#endif
 
 		Function<Void(Pointer<Byte>, Pointer<Byte>)> function;
 		{
@@ -245,18 +221,6 @@ namespace sw
 				Pointer<Byte> s = src + y * sStride;
 
 				Int x0 = 0;
-
-				#if DISPLAY_LOGO
-					If(!Bool(validKey)/* || !Bool(validApp)*/)
-					{
-						If(y > height - logoHeight)
-						{
-							x0 = logoWidth;
-							s += logoWidth * sBytes;
-							d += logoWidth * dBytes;
-						}
-					}
-				#endif
 
 				switch(state.destFormat)
 				{
@@ -572,39 +536,6 @@ namespace sw
 				}
 			}
 
-			#if DISPLAY_LOGO
-				If(!Bool(validKey)/* || !Bool(validApp)*/)
-				{
-					UInt hash = UInt(0x0B020C04) + UInt(0xC0F090E0);   // Initial value
-					UInt imageHash = S3TC_SUPPORT ? UInt(0x0F0D0700) + UInt(0xA0C0A090) : UInt(0x0207040B) + UInt(0xD0406010);
-
-					While(hash != imageHash)
-					{
-						For(y = (height - 1), height - 1 - y < logoHeight, y--)
-						{
-							Pointer<Byte> logo = *Pointer<Pointer<Byte> >(&logoImage) + 4 * (logoHeight - height + y) * logoWidth;
-							Pointer<Byte> s = src + y * sStride;
-							Pointer<Byte> d = dst + y * dStride;
-
-							For(Int x = 0, x < logoWidth, x++)
-							{
-								hash *= 16777619;
-								hash ^= *Pointer<UInt>(logo);
-
-								If(y >= 0 && x < width)
-								{
-									blend(state, d, s, logo);
-								}
-
-								logo += 4;
-								s += sBytes;
-								d += dBytes;
-							}
-						}
-					}
-				}
-			#endif
-
 			Int x0 = *Pointer<Int>(&cursorX);
 			Int y0 = *Pointer<Int>(&cursorY);
 
@@ -738,28 +669,5 @@ namespace sw
 				frameBuffer->syncEvent.signal();
 			}
 		}
-	}
-
-	void FrameBuffer::initializeLogo()
-	{
-		#if DISPLAY_LOGO
-			if(!logo)
-			{
-				#if S3TC_SUPPORT
-					logo = new Surface(0, logoWidth, logoHeight, 1, FORMAT_DXT5, true, false);
-					void *data = logo->lockExternal(0, 0, 0, LOCK_WRITEONLY, sw::PUBLIC);
-					memcpy(data, logoData, logoWidth * logoHeight);
-					logo->unlockExternal();
-				#else
-					logo = new Surface(0, logoWidth, logoHeight, 1, FORMAT_A8R8G8B8, true, false);
-					void *data = logo->lockExternal(0, 0, 0, LOCK_WRITEONLY, sw::PUBLIC);
-					memcpy(data, logoData, logoWidth * logoHeight * 4);
-					logo->unlockExternal();
-				#endif
-
-				logoImage = (unsigned int*)logo->lockInternal(0, 0, 0, LOCK_READONLY, sw::PUBLIC);
-				logo->unlockInternal();
-			}
-		#endif
 	}
 }

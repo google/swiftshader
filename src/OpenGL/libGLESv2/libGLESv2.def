@@ -291,5 +291,3 @@ EXPORTS
     glGetInternalformativ           @308
 
     libGLESv2_swiftshader
-
-	Register
