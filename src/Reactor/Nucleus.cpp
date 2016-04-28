@@ -5522,7 +5522,7 @@ namespace sw
 
 	RValue<Int4> CmpEQ(RValue<Int4> x, RValue<Int4> y)
 	{
-		// FIXME: An LLVM bug prevents us from using createICmpEQ currently.
+		// FIXME: An LLVM bug causes SExt(ICmpCC()) to produce 0 or 1 instead of 0 or ~0
 		//        Restore the following line when LLVM is updated to a version where this issue is fixed.
 		// return RValue<Int4>(Nucleus::createSExt(Nucleus::createICmpEQ(x.value, y.value), Int4::getType()));
 		return RValue<Int4>(Nucleus::createSExt(Nucleus::createICmpNE(x.value, y.value), Int4::getType())) ^ Int4(0xFFFFFFFF);
@@ -5535,7 +5535,10 @@ namespace sw
 
 	RValue<Int4> CmpLE(RValue<Int4> x, RValue<Int4> y)
 	{
-		return RValue<Int4>(Nucleus::createSExt(Nucleus::createICmpSLE(x.value, y.value), Int4::getType()));
+		// FIXME: An LLVM bug causes SExt(ICmpCC()) to produce 0 or 1 instead of 0 or ~0
+		//        Restore the following line when LLVM is updated to a version where this issue is fixed.
+		// return RValue<Int4>(Nucleus::createSExt(Nucleus::createICmpSLE(x.value, y.value), Int4::getType()));
+		return RValue<Int4>(Nucleus::createSExt(Nucleus::createICmpSGT(x.value, y.value), Int4::getType())) ^ Int4(0xFFFFFFFF);
 	}
 
 	RValue<Int4> CmpNEQ(RValue<Int4> x, RValue<Int4> y)
@@ -5545,7 +5548,10 @@ namespace sw
 
 	RValue<Int4> CmpNLT(RValue<Int4> x, RValue<Int4> y)
 	{
-		return RValue<Int4>(Nucleus::createSExt(Nucleus::createICmpSGE(x.value, y.value), Int4::getType()));
+		// FIXME: An LLVM bug causes SExt(ICmpCC()) to produce 0 or 1 instead of 0 or ~0
+		//        Restore the following line when LLVM is updated to a version where this issue is fixed.
+		// return RValue<Int4>(Nucleus::createSExt(Nucleus::createICmpSGE(x.value, y.value), Int4::getType()));
+		return RValue<Int4>(Nucleus::createSExt(Nucleus::createICmpSLT(x.value, y.value), Int4::getType())) ^ Int4(0xFFFFFFFF);
 	}
 
 	RValue<Int4> CmpNLE(RValue<Int4> x, RValue<Int4> y)
@@ -5870,7 +5876,7 @@ namespace sw
 
 	RValue<UInt4> CmpEQ(RValue<UInt4> x, RValue<UInt4> y)
 	{
-		// FIXME: An LLVM bug prevents us from using createICmpEQ currently.
+		// FIXME: An LLVM bug causes SExt(ICmpCC()) to produce 0 or 1 instead of 0 or ~0
 		//        Restore the following line when LLVM is updated to a version where this issue is fixed.
 		// return RValue<UInt4>(Nucleus::createSExt(Nucleus::createICmpEQ(x.value, y.value), Int4::getType()));
 		return RValue<UInt4>(Nucleus::createSExt(Nucleus::createICmpNE(x.value, y.value), Int4::getType())) ^ UInt4(0xFFFFFFFF);
@@ -5883,7 +5889,10 @@ namespace sw
 
 	RValue<UInt4> CmpLE(RValue<UInt4> x, RValue<UInt4> y)
 	{
-		return RValue<UInt4>(Nucleus::createSExt(Nucleus::createICmpULE(x.value, y.value), Int4::getType()));
+		// FIXME: An LLVM bug causes SExt(ICmpCC()) to produce 0 or 1 instead of 0 or ~0
+		//        Restore the following line when LLVM is updated to a version where this issue is fixed.
+		// return RValue<UInt4>(Nucleus::createSExt(Nucleus::createICmpULE(x.value, y.value), Int4::getType()));
+		return RValue<UInt4>(Nucleus::createSExt(Nucleus::createICmpUGT(x.value, y.value), Int4::getType())) ^ UInt4(0xFFFFFFFF);
 	}
 
 	RValue<UInt4> CmpNEQ(RValue<UInt4> x, RValue<UInt4> y)
@@ -5893,7 +5902,10 @@ namespace sw
 
 	RValue<UInt4> CmpNLT(RValue<UInt4> x, RValue<UInt4> y)
 	{
-		return RValue<UInt4>(Nucleus::createSExt(Nucleus::createICmpUGE(x.value, y.value), Int4::getType()));
+		// FIXME: An LLVM bug causes SExt(ICmpCC()) to produce 0 or 1 instead of 0 or ~0
+		//        Restore the following line when LLVM is updated to a version where this issue is fixed.
+		// return RValue<UInt4>(Nucleus::createSExt(Nucleus::createICmpUGE(x.value, y.value), Int4::getType()));
+		return RValue<UInt4>(Nucleus::createSExt(Nucleus::createICmpULT(x.value, y.value), Int4::getType())) ^ UInt4(0xFFFFFFFF);
 	}
 
 	RValue<UInt4> CmpNLE(RValue<UInt4> x, RValue<UInt4> y)
