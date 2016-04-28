@@ -1656,6 +1656,7 @@ namespace sw
 		const Vector4f &src = fetchRegister(temporaryRegister);
 		Int4 condition = As<Int4>(src.x);
 		condition &= enableStack[enableIndex - 1];
+		if(shader->containsLeaveInstruction()) condition &= enableLeave;
 		enableStack[enableIndex] = condition;
 
 		Bool notAllFalse = SignMask(condition) != 0;
