@@ -387,7 +387,6 @@
     <ClCompile Include="Direct3DVertexShader9.cpp" />
     <ClCompile Include="Direct3DVolume9.cpp" />
     <ClCompile Include="Direct3DVolumeTexture9.cpp" />
-    <ClCompile Include="SwiftShader.cpp" />
     <ClCompile Include="Unknown.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -413,8 +412,6 @@
     <ClInclude Include="Direct3DVolume9.hpp" />
     <ClInclude Include="Direct3DVolumeTexture9.hpp" />
     <ClInclude Include="resource.h" />
-    <ClInclude Include="SwiftShader.h" />
-    <ClInclude Include="SwiftShader.hpp" />
     <ClInclude Include="Unknown.hpp" />
   </ItemGroup>
   <ItemGroup>

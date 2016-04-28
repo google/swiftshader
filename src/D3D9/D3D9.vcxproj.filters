@@ -81,9 +81,6 @@
     <ClCompile Include="Direct3DVolumeTexture9.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SwiftShader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Unknown.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -153,12 +150,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="resource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SwiftShader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SwiftShader.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Unknown.hpp">

@@ -12,7 +12,6 @@
 #include "Direct3D9Ex.hpp"
 
 #include "Direct3DDevice9Ex.hpp"
-#include "SwiftShader.hpp"
 #include "Debug.hpp"
 
 namespace sw
@@ -41,14 +40,6 @@ namespace D3D9
 		{
 			AddRef();
 			*object = this;
-
-			return S_OK;
-		}
-		else if(iid == IID_SwiftShaderPrivateV1)
-		{
-			SwiftShader *swiftShader = new SwiftShader(this);
-
-			*object = swiftShader;
 
 			return S_OK;
 		}
@@ -236,7 +227,7 @@ namespace D3D9
 
 		if(sw::postBlendSRGB)
 		{
-			capabilities->PrimitiveMiscCaps |= D3DPMISCCAPS_POSTBLENDSRGBCONVERT;   // Indicates device can perform conversion to sRGB after blending.	
+			capabilities->PrimitiveMiscCaps |= D3DPMISCCAPS_POSTBLENDSRGBCONVERT;   // Indicates device can perform conversion to sRGB after blending.
 		}
 
 		return result;
@@ -277,7 +268,7 @@ namespace D3D9
 
 		return Direct3D9::GetAdapterModeCount(adapter, filter->Format);   // FIXME
 	}
-	
+
 	long __stdcall Direct3D9Ex::EnumAdapterModesEx(unsigned int adapter, const D3DDISPLAYMODEFILTER *filter, unsigned int index, D3DDISPLAYMODEEX *modeEx)
 	{
 		TRACE("unsigned int adapter = %d, const D3DDISPLAYMODEFILTER *filter = 0x%0.8p, unsigned int index = %d, D3DDISPLAYMODEEX *modeEx = 0x%0.8p", adapter, filter, index, modeEx);

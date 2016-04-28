@@ -210,5 +210,3 @@ EXPORTS
     eglGetSyncAttribKHR
 
 	libGLES_CM_swiftshader
-
-	Register

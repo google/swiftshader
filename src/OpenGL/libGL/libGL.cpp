@@ -24,7 +24,6 @@
 #include "Query.h"
 #include "common/debug.h"
 #include "Common/Version.h"
-#include "Main/Register.hpp"
 
 #define _GDI32_
 #include <windows.h>
@@ -299,7 +298,7 @@ void APIENTRY glBindFramebuffer(GLenum target, GLuint framebuffer)
 		{
 			context->bindReadFramebuffer(framebuffer);
 		}
-			
+
 		if(target == GL_DRAW_FRAMEBUFFER_EXT || target == GL_FRAMEBUFFER)
 		{
 			context->bindDrawFramebuffer(framebuffer);
@@ -3864,7 +3863,7 @@ void APIENTRY glRenderbufferStorageMultisampleANGLE(GLenum target, GLsizei sampl
 			UNIMPLEMENTED();
 		}
 
-		if(width > gl::IMPLEMENTATION_MAX_RENDERBUFFER_SIZE || 
+		if(width > gl::IMPLEMENTATION_MAX_RENDERBUFFER_SIZE ||
 		   height > gl::IMPLEMENTATION_MAX_RENDERBUFFER_SIZE ||
 		   samples > gl::IMPLEMENTATION_MAX_SAMPLES)
 		{
@@ -5521,7 +5520,7 @@ void APIENTRY glAccum(GLenum op, GLfloat value)
 void APIENTRY glAlphaFunc(GLenum func, GLclampf ref)
 {
 	TRACE("(GLenum func = 0x%X, GLclampf ref = %f)", func, ref);
-	
+
 	gl::Context *context = gl::getContext();
 
 	if(context)
@@ -5549,7 +5548,7 @@ void APIENTRY glArrayElement(GLint i)
 void APIENTRY glBegin(GLenum mode)
 {
 	TRACE("(GLenum mode = 0x%X)", mode);
-	
+
 	switch(mode)
 	{
 	case GL_POINTS:
@@ -5641,7 +5640,7 @@ void APIENTRY glClearAccum(GLfloat red, GLfloat green, GLfloat blue, GLfloat alp
 void APIENTRY glClearDepth(GLclampd depth)
 {
 	TRACE("(GLclampd depth = %d)", depth);
-	
+
 	glClearDepthf((float)depth);   // FIXME
 }
 
@@ -5678,7 +5677,7 @@ void APIENTRY glColor3dv(const GLdouble *v)
 void APIENTRY glColor3f(GLfloat red, GLfloat green, GLfloat blue)
 {
 	TRACE("(GLfloat red = %f, GLfloat green = %f, GLfloat blue = %f)", red, green, blue);
-	
+
 	gl::Context *context = gl::getContext();
 
 	if(context)
@@ -5772,7 +5771,7 @@ void APIENTRY glColor4dv(const GLdouble *v)
 void APIENTRY glColor4f(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
 {
 	TRACE("(GLfloat red = %f, GLfloat green = %f, GLfloat blue = %f, GLfloat alpha = %f)", red, green, blue, alpha);
-	
+
 	gl::Context *context = gl::getContext();
 
 	if(context)
@@ -5928,7 +5927,7 @@ void APIENTRY glDepthRange(GLclampd zNear, GLclampd zFar)
 void APIENTRY glDisableClientState(GLenum array)
 {
 	TRACE("(GLenum array = 0x%X)", array);
-	
+
 	gl::Context *context = gl::getContext();
 
 	if(context)
@@ -5974,7 +5973,7 @@ void APIENTRY glEdgeFlagv(const GLboolean *flag)
 void APIENTRY glEnableClientState(GLenum array)
 {
 	TRACE("(GLenum array = 0x%X)", array);
-	
+
 	gl::Context *context = gl::getContext();
 
 	if(context)
@@ -5995,7 +5994,7 @@ void APIENTRY glEnableClientState(GLenum array)
 void APIENTRY glEnd()
 {
 	TRACE("()");
-	
+
 	gl::Context *context = gl::getContext();
 
 	if(context)
@@ -6012,7 +6011,7 @@ void APIENTRY glEnd()
 void APIENTRY glEndList()
 {
 	TRACE("()");
-	
+
 	gl::Context *context = gl::getContext();
 
 	if(context)
@@ -6340,7 +6339,7 @@ void APIENTRY glGetTexImage(GLenum target, GLint level, GLenum format, GLenum ty
 			memcpy(pixels, source, image->getPitch() * image->getHeight());
 			image->unlock();
 		}
-		else 
+		else
 		{
 			UNIMPLEMENTED();
 		}
@@ -6355,7 +6354,7 @@ void APIENTRY glGetTexLevelParameterfv(GLenum target, GLint level, GLenum pname,
 void APIENTRY glGetTexLevelParameteriv(GLenum target, GLint level, GLenum pname, GLint *params)
 {
 	TRACE("(GLenum target = 0x%X, GLint level = %d, GLenum pname = 0x%X, GLint *params = %p)", target, level, pname, params);
- 
+
 	gl::Context *context = gl::getContext();
 
 	if(context)
@@ -6498,7 +6497,7 @@ void APIENTRY glLightModelf(GLenum pname, GLfloat param)
 void APIENTRY glLightModelfv(GLenum pname, const GLfloat *params)
 {
 	TRACE("(GLenum pname = 0x%X, const GLint *params)", pname);
-	
+
 	gl::Context *context = gl::getContext();
 
 	if(context)
@@ -6541,7 +6540,7 @@ void APIENTRY glLightf(GLenum light, GLenum pname, GLfloat param)
 void APIENTRY glLightfv(GLenum light, GLenum pname, const GLfloat *params)
 {
 	TRACE("(GLenum light = 0x%X, GLenum pname = 0x%X, const GLint *params)", light, pname);
-	
+
 	gl::Context *context = gl::getContext();
 
 	if(context)
@@ -6844,7 +6843,7 @@ void APIENTRY glNormal3dv(const GLdouble *v)
 void APIENTRY glNormal3f(GLfloat nx, GLfloat ny, GLfloat nz)
 {
 	TRACE("(GLfloat nx = %f, GLfloat ny = %f, GLfloat nz = %f)", nx, ny, nz);
-	
+
 	gl::Context *context = gl::getContext();
 
 	if(context)
@@ -6976,7 +6975,7 @@ void APIENTRY glPopClientAttrib(void)
 void APIENTRY glPopMatrix(void)
 {
 	TRACE("()");
-	
+
 	gl::Context *context = gl::getContext();
 
 	if(context)
@@ -7013,7 +7012,7 @@ void APIENTRY glPushClientAttrib(GLbitfield mask)
 void APIENTRY glPushMatrix(void)
 {
 	TRACE("()");
-	
+
 	gl::Context *context = gl::getContext();
 
 	if(context)
@@ -7211,7 +7210,7 @@ void APIENTRY glRotated(GLdouble angle, GLdouble x, GLdouble y, GLdouble z)
 void APIENTRY glRotatef(GLfloat angle, GLfloat x, GLfloat y, GLfloat z)
 {
 	TRACE("(*)");
-	
+
 	gl::Context *context = gl::getContext();
 
 	if(context)
@@ -7233,7 +7232,7 @@ void APIENTRY glScaled(GLdouble x, GLdouble y, GLdouble z)
 void APIENTRY glScalef(GLfloat x, GLfloat y, GLfloat z)
 {
 	TRACE("(GLfloat x = %f, GLfloat y = %f, GLfloat z = %f)", x, y, z);
-	
+
 	gl::Context *context = gl::getContext();
 
 	if(context)
@@ -7255,7 +7254,7 @@ void APIENTRY glSelectBuffer(GLsizei size, GLuint *buffer)
 void APIENTRY glShadeModel(GLenum mode)
 {
 	TRACE("(*)");
-	
+
 	gl::Context *context = gl::getContext();
 
 	if(context)
@@ -7322,7 +7321,7 @@ void APIENTRY glTexCoord2dv(const GLdouble *v)
 void APIENTRY glTexCoord2f(GLfloat s, GLfloat t)
 {
 	TRACE("(GLfloat s = %f, GLfloat t = %f)", s, t);
-	
+
 	gl::Context *context = gl::getContext();
 
 	if(context)
@@ -7520,7 +7519,7 @@ void APIENTRY glTexSubImage1D(GLenum target, GLint level, GLint xoffset, GLsizei
 void APIENTRY glTranslated(GLdouble x, GLdouble y, GLdouble z)
 {
 	TRACE("(*)");
-	
+
 	gl::Context *context = gl::getContext();
 
 	if(context)
@@ -7537,7 +7536,7 @@ void APIENTRY glTranslated(GLdouble x, GLdouble y, GLdouble z)
 void APIENTRY glTranslatef(GLfloat x, GLfloat y, GLfloat z)
 {
 	TRACE("(GLfloat x = %f, GLfloat y = %f, GLfloat z = %f)", x, y, z);
-	
+
 	gl::Context *context = gl::getContext();
 
 	if(context)
@@ -7604,7 +7603,7 @@ void APIENTRY glVertex3dv(const GLdouble *v)
 void APIENTRY glVertex3f(GLfloat x, GLfloat y, GLfloat z)
 {
 	TRACE("(GLfloat x = %f, GLfloat y = %f, GLfloat z = %f)", x, y, z);
-	
+
 	gl::Context *context = gl::getContext();
 
 	if(context)
@@ -7698,7 +7697,7 @@ void APIENTRY glCopyTexSubImage3D(GLenum target, GLint level, GLint xoffset, GLi
 void APIENTRY glClientActiveTexture(GLenum texture)
 {
 	TRACE("(GLenum texture = 0x%X)", texture);
-	
+
 	switch(texture)
 	{
 	case GL_TEXTURE0:
@@ -7728,7 +7727,7 @@ void APIENTRY glMultiTexCoord1d(GLenum target, GLdouble s) {UNIMPLEMENTED();}
 void APIENTRY glMultiTexCoord2f(GLenum texture, GLfloat s, GLfloat t)
 {
 	TRACE("(GLenum texture = 0x%X, GLfloat s = %f, GLfloat t = %f)", texture, s, t);
-	
+
 	gl::Context *context = gl::getContext();
 
 	if(context)
@@ -7814,7 +7813,7 @@ BOOL WINAPI wglSwapIntervalEXT(int interval)
 		drawSurface->setSwapInterval(interval);
 		return TRUE;
 	}
-	
+
 	SetLastError(ERROR_DC_NOT_FOUND);
 	return FALSE;
 }
@@ -7963,7 +7962,7 @@ PROC WINAPI wglGetProcAddress(LPCSTR lpszProc)
 	static const Extension glExtensions[] =
 	{
 		#define EXT(function) {#function, (PROC)function}
-		
+
 		// Core 2.1
 		EXT(glDrawRangeElements),
 		EXT(glTexImage3D),
@@ -8115,7 +8114,7 @@ PROC WINAPI wglGetProcAddress(LPCSTR lpszProc)
 		EXT(glFinishFenceNV),
 		EXT(glIsFenceNV),
 		EXT(glGetFenceivNV),
-	
+
 		EXT(glIsRenderbuffer),
 		EXT(glBindRenderbuffer),
 		EXT(glDeleteRenderbuffers),
@@ -8236,9 +8235,9 @@ BOOL WINAPI wglShareLists(HGLRC, HGLRC)
 BOOL WINAPI wglSwapBuffers(HDC hdc)
 {
 	TRACE("(*)");
-	
+
 	gl::Display *display = gl::getDisplay();
-	
+
 	if(display)
 	{
 		display->getPrimarySurface()->swap();
@@ -8282,11 +8281,6 @@ BOOL WINAPI wglUseFontOutlinesW(HDC, DWORD, DWORD, DWORD, FLOAT, FLOAT, int, LPG
 {
 	UNIMPLEMENTED();
 	return FALSE;
-}
-
-void APIENTRY Register(const char *licenseKey)
-{
-	RegisterLicenseKey(licenseKey);
 }
 
 }

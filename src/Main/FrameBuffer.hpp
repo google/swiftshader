@@ -77,10 +77,6 @@ namespace sw
 		BlitState blitState;
 
 		static void blend(const BlitState &state, const Pointer<Byte> &d, const Pointer<Byte> &s, const Pointer<Byte> &c);
-		static void initializeLogo();
-
-		static Surface *logo;
-		static unsigned int *logoImage;
 
 		static void *cursor;
 		static int cursorWidth;

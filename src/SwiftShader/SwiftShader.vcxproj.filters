@@ -125,12 +125,6 @@
     <ClCompile Include="..\Main\FrameBufferGDI.cpp">
       <Filter>Source Files\Main</Filter>
     </ClCompile>
-    <ClCompile Include="..\Main\Logo.cpp">
-      <Filter>Source Files\Main</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Main\serialvalid.cpp">
-      <Filter>Source Files\Main</Filter>
-    </ClCompile>
     <ClCompile Include="..\Main\SwiftConfig.cpp">
       <Filter>Source Files\Main</Filter>
     </ClCompile>
@@ -164,16 +158,10 @@
     <ClCompile Include="..\Main\Config.cpp">
       <Filter>Source Files\Main</Filter>
     </ClCompile>
-    <ClCompile Include="..\Main\Register.cpp">
-      <Filter>Source Files\Main</Filter>
-    </ClCompile>
     <ClCompile Include="..\Common\Socket.cpp">
       <Filter>Source Files\Common</Filter>
     </ClCompile>
     <ClCompile Include="..\Main\FrameBufferWin.cpp">
-      <Filter>Source Files\Main</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Main\crc.cpp">
       <Filter>Source Files\Main</Filter>
     </ClCompile>
     <ClCompile Include="..\Shader\PixelPipeline.cpp">
@@ -289,9 +277,6 @@
     <ClInclude Include="..\Main\Config.hpp">
       <Filter>Header Files\Main</Filter>
     </ClInclude>
-    <ClInclude Include="..\Main\crc.h">
-      <Filter>Header Files\Main</Filter>
-    </ClInclude>
     <ClInclude Include="..\Main\FrameBuffer.hpp">
       <Filter>Header Files\Main</Filter>
     </ClInclude>
@@ -299,12 +284,6 @@
       <Filter>Header Files\Main</Filter>
     </ClInclude>
     <ClInclude Include="..\Main\FrameBufferGDI.hpp">
-      <Filter>Header Files\Main</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Main\serialcommon.h">
-      <Filter>Header Files\Main</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Main\serialvalid.h">
       <Filter>Header Files\Main</Filter>
     </ClInclude>
     <ClInclude Include="..\Main\SwiftConfig.hpp">
@@ -347,9 +326,6 @@
       <Filter>Header Files\Common</Filter>
     </ClInclude>
     <ClInclude Include="..\Common\Version.h" />
-    <ClInclude Include="..\Main\Register.hpp">
-      <Filter>Header Files\Main</Filter>
-    </ClInclude>
     <ClInclude Include="..\Common\Socket.hpp">
       <Filter>Header Files\Common</Filter>
     </ClInclude>

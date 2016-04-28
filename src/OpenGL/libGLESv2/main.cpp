@@ -20,7 +20,6 @@
 #include "Common/Thread.hpp"
 #include "Common/SharedLibrary.hpp"
 #include "common/debug.h"
-#include "Main/Register.hpp"
 
 #if !defined(_MSC_VER)
 #define CONSTRUCTOR __attribute__((constructor))
@@ -1322,11 +1321,6 @@ GL_APICALL void GL_APIENTRY glEGLImageTargetRenderbufferStorageOES(GLenum target
 GL_APICALL void GL_APIENTRY glDrawBuffersEXT(GLsizei n, const GLenum *bufs)
 {
 	return es2::DrawBuffersEXT(n, bufs);
-}
-
-void GL_APIENTRY Register(const char *licenseKey)
-{
-	RegisterLicenseKey(licenseKey);
 }
 }
 

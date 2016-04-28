@@ -212,8 +212,6 @@ global:
 
     libGLES_CM_swiftshader;
 
-    Register;
-
 local:
     *;
 };

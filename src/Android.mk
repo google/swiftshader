@@ -33,11 +33,7 @@ COMMON_SRC_FILES += \
 	Main/Config.cpp \
 	Main/FrameBuffer.cpp \
 	Main/FrameBufferAndroid.cpp \
-	Main/Logo.cpp \
-	Main/Register.cpp \
-	Main/SwiftConfig.cpp \
-	Main/crc.cpp \
-	Main/serialvalid.cpp \
+	Main/SwiftConfig.cpp
 
 COMMON_SRC_FILES += \
 	Reactor/Nucleus.cpp \
@@ -94,10 +90,6 @@ COMMON_CFLAGS := \
 	-D__STDC_LIMIT_MACROS \
 	-DANDROID_PLATFORM_SDK_VERSION=$(PLATFORM_SDK_VERSION) \
 	-std=c++11
-
-ifneq ($(filter gce gce% calypso, $(TARGET_DEVICE)),)
-COMMON_CFLAGS += -DDISPLAY_LOGO=0
-endif
 
 ifneq (16,${PLATFORM_SDK_VERSION})
 COMMON_CFLAGS += -Xclang -fuse-init-array

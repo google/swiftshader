@@ -14,5 +14,3 @@ EXPORTS
 	DebugSetMute					@12
 	Direct3DCreate9					@13
 	Direct3DCreate9Ex				@14
-
-	Register
