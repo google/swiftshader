@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "48f36dea_84f8148e",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 4280,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-29T14:29:40Z",
+      "side": 1,
+      "message": "This desktop extension makes no mention of OpenGL ES. Also, it specifies that glGetInteger accepts RGBA_SIGNED_COMPONENTS_EXT, which isn\u0027t defined in any GLES header (also without _EXT).\n\nAny specific reason for wanting to add this?",
+      "range": {
+        "startLine": 4280,
+        "startChar": 19,
+        "endLine": 4280,
+        "endChar": 38
+      },
+      "revId": "457b248d4f3188dfb0554f78023f68bae6ae2b24",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "48f36dea_843ff414",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 4288,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-29T14:29:40Z",
+      "side": 1,
+      "message": "Seems ok, but please double-check all the extension requirements.",
+      "range": {
+        "startLine": 4287,
+        "startChar": 19,
+        "endLine": 4288,
+        "endChar": 53
+      },
+      "revId": "457b248d4f3188dfb0554f78023f68bae6ae2b24",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
