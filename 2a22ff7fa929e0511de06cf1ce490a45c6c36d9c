@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4841add6_02174c94",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 2877,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-04-29T18:57:35Z",
+      "side": 1,
+      "message": "Shouldn\u0027t interface blocks still be unreachable here? Not sure about indirect indexing.",
+      "range": {
+        "startLine": 2877,
+        "startChar": 4,
+        "endLine": 2877,
+        "endChar": 14
+      },
+      "revId": "2a22ff7fa929e0511de06cf1ce490a45c6c36d9c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
