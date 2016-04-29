@@ -22,6 +22,99 @@
       "revId": "2a22ff7fa929e0511de06cf1ce490a45c6c36d9c",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4841add6_224e10b2",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 2877,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-29T19:01:38Z",
+      "side": 1,
+      "message": "Indeed samplers in interface blocks should not be reachable here. It should have been validated earlier at the parser level. Moved the case in #4.",
+      "parentUuid": "4841add6_02174c94",
+      "range": {
+        "startLine": 2877,
+        "startChar": 4,
+        "endLine": 2877,
+        "endChar": 14
+      },
+      "revId": "2a22ff7fa929e0511de06cf1ce490a45c6c36d9c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4841add6_bf86b721",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 2879,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-29T19:01:38Z",
+      "side": 1,
+      "message": "This was reached for EOpIndexDirectInterfaceBlock and EOpIndexIndirect, which is valid, it just doesn\u0027t result in a sampler register, so indicate that with -1 as intended and keep the UNREACHABLE in the default case only.",
+      "range": {
+        "startLine": 2879,
+        "startChar": 4,
+        "endLine": 2879,
+        "endChar": 33
+      },
+      "revId": "2a22ff7fa929e0511de06cf1ce490a45c6c36d9c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4841add6_bfb8f7f6",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 2888,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-29T19:01:38Z",
+      "side": 1,
+      "message": "Must bail out if the recursive call returned -1.",
+      "range": {
+        "startLine": 2885,
+        "startChar": 3,
+        "endLine": 2888,
+        "endChar": 4
+      },
+      "revId": "2a22ff7fa929e0511de06cf1ce490a45c6c36d9c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4841add6_dfa05bb8",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 2920,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-04-29T19:01:38Z",
+      "side": 1,
+      "message": "This was always returning true since 0 was returned for expressions that don\u0027t result in a sampler register.",
+      "range": {
+        "startLine": 2920,
+        "startChar": 58,
+        "endLine": 2920,
+        "endChar": 87
+      },
+      "revId": "2a22ff7fa929e0511de06cf1ce490a45c6c36d9c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
