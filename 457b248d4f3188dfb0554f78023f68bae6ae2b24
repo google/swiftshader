@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "48f36dea_646ad00c",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 4280,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-04-29T14:44:20Z",
+      "side": 1,
+      "message": "dEQP expects the GL_NV_packed_float extension OR the GL_EXT_packed_float extension in order to render to GL_UNSIGNED_INT_10F_11F_11F_REV, but GL_NV_packed_float, which is an ES extension, is nowhere to be found in our header files. I\u0027ll look into simply updating our header files first.\n\nThe extension description:\nhttps://www.khronos.org/registry/gles/extensions/NV/NV_packed_float.txt\nmentions that FRAMEBUFFER_ATTACHMENT_RGBA_SIGNED_COMPONENTS_NV has been removed from the extension, so it shouldn\u0027t be a problem.",
+      "parentUuid": "48f36dea_84f8148e",
+      "range": {
+        "startLine": 4280,
+        "startChar": 19,
+        "endLine": 4280,
+        "endChar": 38
+      },
+      "revId": "457b248d4f3188dfb0554f78023f68bae6ae2b24",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "48f36dea_843ff414",
         "filename": "src/OpenGL/libGLESv2/Context.cpp",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2016-04-29T14:29:40Z",
       "side": 1,
       "message": "Seems ok, but please double-check all the extension requirements.",
+      "range": {
+        "startLine": 4287,
+        "startChar": 19,
+        "endLine": 4288,
+        "endChar": 53
+      },
+      "revId": "457b248d4f3188dfb0554f78023f68bae6ae2b24",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "48f36dea_e464803a",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 4288,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-04-29T14:44:20Z",
+      "side": 1,
+      "message": "Yes, I need to double check synergies between these extensions and the other ones.",
+      "parentUuid": "48f36dea_843ff414",
       "range": {
         "startLine": 4287,
         "startChar": 19,
