@@ -70,8 +70,7 @@ public:
                     v8::internal::wasm::FunctionBody &Body);
 
 private:
-  std::unique_ptr<uint8_t[]> Buffer;
-  SizeT BufferSize;
+  std::vector<uint8_t> Buffer;
 };
 }
 

@@ -56,7 +56,7 @@ bool llvmIRInput(const std::string &Filename) {
 }
 
 bool wasmInput(const std::string &Filename) {
-  return BuildDefs::llvmIrAsInput() &&
+  return BuildDefs::wasm() &&
          std::regex_match(Filename, std::regex(".*\\.wasm"));
 }
 

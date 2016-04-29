@@ -163,7 +163,7 @@ def run_test(test_file, verbose=False):
 
     # Try to link and run the program.
     cmd = "clang -g -m32 {} -o {} " + \
-          "./runtime/szrt.c ./runtime/wasm-runtime.cpp -lm"
+          "./runtime/szrt.c ./runtime/wasm-runtime.cpp -lm -lstdc++"
     cmd = cmd.format(obj_file, exe_file)
 
     if not run_test or os.system(cmd) == 0:

@@ -680,6 +680,7 @@ public:
             << ") = ");
     Ice::Variable *Dest = nullptr;
     switch (Opcode) {
+    // TODO (eholk): merge these next two cases using getConstantInteger
     case kExprI32Eqz: {
       Dest = makeVariable(IceType_i32);
       auto *Tmp = makeVariable(IceType_i1);
@@ -768,6 +769,34 @@ public:
 
       auto *Call = InstCall::create(
           Func, 1, Dest, Ctx->getConstantExternSym(FnName), HasTailCall);
+      Call->addArg(Input);
+      Control()->appendInst(Call);
+      break;
+    }
+    case kExprF32Sqrt: {
+      Dest = makeVariable(IceType_f32);
+      const auto FnName = Ctx->getGlobalString("llvm.sqrt.f32");
+      bool BadInstrinsic = false;
+      const auto *Info = Ctx->getIntrinsicsInfo().find(FnName, BadInstrinsic);
+      assert(!BadInstrinsic);
+      assert(Info);
+
+      auto *Call = InstIntrinsicCall::create(
+          Func, 1, Dest, Ctx->getConstantExternSym(FnName), Info->Info);
+      Call->addArg(Input);
+      Control()->appendInst(Call);
+      break;
+    }
+    case kExprF64Sqrt: {
+      Dest = makeVariable(IceType_f64);
+      const auto FnName = Ctx->getGlobalString("llvm.sqrt.f64");
+      bool BadInstrinsic = false;
+      const auto *Info = Ctx->getIntrinsicsInfo().find(FnName, BadInstrinsic);
+      assert(!BadInstrinsic);
+      assert(Info);
+
+      auto *Call = InstIntrinsicCall::create(
+          Func, 1, Dest, Ctx->getConstantExternSym(FnName), Info->Info);
       Call->addArg(Input);
       Control()->appendInst(Call);
       break;
@@ -1065,7 +1094,7 @@ public:
     assert(Module);
     const auto &IndirectTable = Module->function_table;
 
-    auto *Abort = getAbortTarget();
+    auto *Abort = getIndirectFailTarget();
 
     assert(Args[0].toOperand());
 
@@ -1173,7 +1202,7 @@ public:
       // terrible (see https://goo.gl/Zj7DTr). Try adding a new instruction that
       // encapsulates this "abort if false" pattern.
       auto *CheckPassed = Func->makeNode();
-      auto *CheckFailed = getAbortTarget();
+      auto *CheckFailed = getBoundsFailTarget();
 
       auto *Check = makeVariable(IceType_i1);
       Control()->appendInst(InstIcmp::create(Func, InstIcmp::Ult, Check, Base,
@@ -1281,7 +1310,8 @@ private:
   class Cfg *Func;
   GlobalContext *Ctx;
 
-  CfgNode *AbortTarget = nullptr;
+  CfgNode *BoundsFailTarget = nullptr;
+  CfgNode *IndirectFailTarget = nullptr;
 
   SizeT NextArg = 0;
 
@@ -1319,16 +1349,33 @@ private:
     return Iter->second;
   }
 
-  CfgNode *getAbortTarget() {
-    if (!AbortTarget) {
+  CfgNode *getBoundsFailTarget() {
+    if (!BoundsFailTarget) {
       // TODO (eholk): Move this node to the end of the CFG, or even better,
       // have only one abort block for the whole module.
-      AbortTarget = Func->makeNode();
-      // TODO (eholk): This should probably actually call abort instead.
-      AbortTarget->appendInst(InstUnreachable::create(Func));
+      BoundsFailTarget = Func->makeNode();
+      BoundsFailTarget->appendInst(InstCall::create(
+          Func, 0, nullptr,
+          Ctx->getConstantExternSym(Ctx->getGlobalString("__Sz_bounds_fail")),
+          false));
+      BoundsFailTarget->appendInst(InstUnreachable::create(Func));
     }
 
-    return AbortTarget;
+    return BoundsFailTarget;
+  }
+  CfgNode *getIndirectFailTarget() {
+    if (!IndirectFailTarget) {
+      // TODO (eholk): Move this node to the end of the CFG, or even better,
+      // have only one abort block for the whole module.
+      IndirectFailTarget = Func->makeNode();
+      IndirectFailTarget->appendInst(InstCall::create(
+          Func, 0, nullptr,
+          Ctx->getConstantExternSym(Ctx->getGlobalString("__Sz_indirect_fail")),
+          false));
+      IndirectFailTarget->appendInst(InstUnreachable::create(Func));
+    }
+
+    return IndirectFailTarget;
   }
 
   template <typename F = std::function<void(Ostream &)>> void log(F Fn) const {
@@ -1364,13 +1411,10 @@ std::unique_ptr<Cfg> WasmTranslator::translateFunction(Zone *Zone,
   return Func;
 }
 
-// TODO(eholk): compute the correct buffer size. This uses 256k by default,
-// which has been big enough for testing but is not a general solution.
-constexpr SizeT BufferSize = 256 << 10;
+constexpr SizeT InitialBufferSize = 16 << 10; // 16KB
 
 WasmTranslator::WasmTranslator(GlobalContext *Ctx)
-    : Translator(Ctx), Buffer(new uint8_t[ ::BufferSize]),
-      BufferSize(::BufferSize) {}
+    : Translator(Ctx), Buffer(InitialBufferSize) {}
 
 void WasmTranslator::translate(
     const std::string &IRFilename,
@@ -1380,16 +1424,22 @@ void WasmTranslator::translate(
   Zone Zone;
   ZoneScope _(&Zone);
 
-  SizeT BytesRead = InputStream->GetBytes(Buffer.get(), BufferSize);
-  LOG(out << "Read " << BytesRead << " bytes"
-          << "\n");
-  assert(BytesRead < BufferSize);
+  SizeT BytesRead = 0;
+  while (true) {
+    BytesRead +=
+        InputStream->GetBytes(&Buffer[BytesRead], Buffer.size() - BytesRead);
+    LOG(out << "Read " << BytesRead << " bytes"
+            << "\n");
+    if (BytesRead < Buffer.size())
+      break;
+    Buffer.resize(Buffer.size() * 2);
+  }
 
   LOG(out << "Decoding module " << IRFilename << "\n");
 
   constexpr v8::internal::Isolate *NoIsolate = nullptr;
-  auto Result = DecodeWasmModule(NoIsolate, &Zone, Buffer.get(),
-                                 Buffer.get() + BytesRead, false, kWasmOrigin);
+  auto Result = DecodeWasmModule(NoIsolate, &Zone, Buffer.data(),
+                                 Buffer.data() + BytesRead, false, kWasmOrigin);
 
   auto Module = Result.val;
 
@@ -1540,9 +1590,9 @@ void WasmTranslator::translate(
     LOG(out << "  " << Fn.func_index << ": " << FnName << "...");
 
     Body.sig = Fn.sig;
-    Body.base = Buffer.get();
-    Body.start = Buffer.get() + Fn.code_start_offset;
-    Body.end = Buffer.get() + Fn.code_end_offset;
+    Body.base = Buffer.data();
+    Body.start = Buffer.data() + Fn.code_start_offset;
+    Body.end = Buffer.data() + Fn.code_end_offset;
 
     auto Func = translateFunction(&Zone, Body);
     Func->setFunctionName(Ctx->getGlobalString(FnName));
