@@ -1239,7 +1239,7 @@ namespace glsl
 						{
 							float projFactor = 1.0f / constant->getFConst(t->getNominalSize() - 1);
 							Constant projCoord(constant->getFConst(0) * projFactor,
-							                   constant->getFConst(1) * projFactor, 
+							                   constant->getFConst(1) * projFactor,
 							                   constant->getFConst(2) * projFactor,
 							                   0.0f);
 							emit(sw::Shader::OPCODE_MOV, &coord, &projCoord);
@@ -2853,35 +2853,45 @@ namespace glsl
 			TIntermTyped *right = binary->getRight();
 			const TType &leftType = left->getType();
 			int index = right->getAsConstantUnion() ? right->getAsConstantUnion()->getIConst(0) : 0;
+			int offset = 0;
 
 			switch(binary->getOp())
 			{
 			case EOpIndexDirect:
 				ASSERT(left->isArray());
-				return samplerRegister(left) + index * leftType.elementRegisterCount();
+				offset = index * leftType.elementRegisterCount();
+				break;
 			case EOpIndexDirectStruct:
+				ASSERT(leftType.isStruct());
 				{
-					ASSERT(leftType.isStruct());
 					const TFieldList &fields = leftType.getStruct()->fields();
-					int fieldOffset = 0;
 
 					for(int i = 0; i < index; i++)
 					{
-						fieldOffset += fields[i]->type()->totalRegisterCount();
+						offset += fields[i]->type()->totalRegisterCount();
 					}
-
-					return samplerRegister(left) + fieldOffset;
 				}
-			case EOpIndexDirectInterfaceBlock:   // Interface blocks can't contain samplers
+				break;
 			case EOpIndexIndirect:               // Indirect indexing produces a temporary, not a sampler register
+				return -1;
+			case EOpIndexDirectInterfaceBlock:   // Interface blocks can't contain samplers
 			default:
 				UNREACHABLE(binary->getOp());
-				return 0;
+				return -1;
 			}
+
+			int base = samplerRegister(left);
+
+			if(base < 0)
+			{
+				return -1;
+			}
+
+			return base + offset;
 		}
 
 		UNREACHABLE(0);
-		return 0;   // Not a sampler register
+		return -1;   // Not a sampler register
 	}
 
 	int OutputASM::samplerRegister(TIntermSymbol *sampler)
