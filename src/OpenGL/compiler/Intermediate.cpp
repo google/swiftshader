@@ -14,6 +14,7 @@
 
 #include "localintermediate.h"
 #include "SymbolTable.h"
+#include "Common/Math.hpp"
 
 bool CompareStructure(const TType& leftNodeType, ConstantUnion* rightUnionArray, ConstantUnion* leftUnionArray);
 
@@ -1777,7 +1778,7 @@ TIntermTyped* TIntermConstantUnion::fold(TOperator op, TIntermTyped* constantNod
 					break;
 				case EOpLog2:
 					switch(getType().getBasicType()) {
-					case EbtFloat: tempConstArray[i].setFConst(log2f(unionArray[i].getFConst())); break;
+					case EbtFloat: tempConstArray[i].setFConst(sw::log2(unionArray[i].getFConst())); break;
 					default:
 						infoSink.info.message(EPrefixInternalError, "Unary operation not folded into constant", getLine());
 						return 0;
