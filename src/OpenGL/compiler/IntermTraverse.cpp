@@ -232,23 +232,8 @@ void TIntermSwitch::traverse(TIntermTraverser *it)
 	if(visit)
 	{
 		it->incrementDepth(this);
-		if(it->rightToLeft)
-		{
-			if(mStatementList)
-				mStatementList->traverse(it);
-			if(it->inVisit)
-				visit = it->visitSwitch(InVisit, this);
-			if(visit)
-				mInit->traverse(it);
-		}
-		else
-		{
-			mInit->traverse(it);
-			if(it->inVisit)
-				visit = it->visitSwitch(InVisit, this);
-			if(visit && mStatementList)
-				mStatementList->traverse(it);
-		}
+		if(it->inVisit)
+			visit = it->visitSwitch(InVisit, this);
 		it->decrementDepth();
 	}
 

@@ -244,6 +244,8 @@ namespace sw
 			OPCODE_LEAVE,   // Return before the end of the function
 			OPCODE_CONTINUE,
 			OPCODE_TEST,   // Marks the end of the code that can be skipped by 'continue'
+			OPCODE_SWITCH,
+			OPCODE_ENDSWITCH,
 
 			// Integer opcodes
 			OPCODE_INEG,
@@ -493,8 +495,8 @@ namespace sw
 			bool isBranch() const;
 			bool isCall() const;
 			bool isBreak() const;
-			bool isLoop() const;
-			bool isEndLoop() const;
+			bool isLoopOrSwitch() const;
+			bool isEndLoopOrSwitch() const;
 
 			bool isPredicated() const;
 
