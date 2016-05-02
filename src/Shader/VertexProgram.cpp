@@ -296,12 +296,14 @@ namespace sw
 			case Shader::OPCODE_ENDLOOP:    ENDLOOP();                      break;
 			case Shader::OPCODE_ENDREP:     ENDREP();                       break;
 			case Shader::OPCODE_ENDWHILE:   ENDWHILE();                     break;
+			case Shader::OPCODE_ENDSWITCH:  ENDSWITCH();                    break;
 			case Shader::OPCODE_IF:         IF(src0);                       break;
 			case Shader::OPCODE_IFC:        IFC(s0, s1, control);           break;
 			case Shader::OPCODE_LABEL:      LABEL(dst.index);               break;
 			case Shader::OPCODE_LOOP:       LOOP(src1);                     break;
 			case Shader::OPCODE_REP:        REP(src0);                      break;
 			case Shader::OPCODE_WHILE:      WHILE(src0);                    break;
+			case Shader::OPCODE_SWITCH:     SWITCH();                       break;
 			case Shader::OPCODE_RET:        RET();                          break;
 			case Shader::OPCODE_LEAVE:      LEAVE();                        break;
 			case Shader::OPCODE_CMP:        cmp(d, s0, s1, control);        break;
@@ -1256,6 +1258,19 @@ namespace sw
 		whileTest = false;
 	}
 
+	void VertexProgram::ENDSWITCH()
+	{
+		loopRepDepth--;
+
+		llvm::BasicBlock *endBlock = loopRepEndBlock[loopRepDepth];
+		
+		Nucleus::createBr(loopRepEndBlock[loopRepDepth]);
+		Nucleus::setInsertBlock(endBlock);
+
+		enableIndex--;
+		enableBreak = Int4(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF);
+	}
+
 	void VertexProgram::IF(const Src &src)
 	{
 		if(src.type == Shader::PARAMETER_CONSTBOOL)
@@ -1451,6 +1466,20 @@ namespace sw
 		enableBreak = restoreBreak;
 
 		Nucleus::setInsertBlock(loopBlock);
+
+		loopRepDepth++;
+		breakDepth = 0;
+	}
+
+	void VertexProgram::SWITCH()
+	{
+		enableIndex++;
+		enableStack[enableIndex] = Int4(0xFFFFFFFF);
+
+		llvm::BasicBlock *endBlock = Nucleus::createBasicBlock();
+
+		loopRepTestBlock[loopRepDepth] = nullptr;
+		loopRepEndBlock[loopRepDepth] = endBlock;
 
 		loopRepDepth++;
 		breakDepth = 0;

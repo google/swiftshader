@@ -136,6 +136,7 @@ namespace sw
 		void ENDLOOP();
 		void ENDREP();
 		void ENDWHILE();
+		void ENDSWITCH();
 		void IF(const Src &src);
 		void IFb(const Src &boolRegister);
 		void IFp(const Src &predicateRegister);
@@ -145,6 +146,7 @@ namespace sw
 		void LOOP(const Src &integerRegister);
 		void REP(const Src &integerRegister);
 		void WHILE(const Src &temporaryRegister);
+		void SWITCH();
 		void RET();
 		void LEAVE();
 

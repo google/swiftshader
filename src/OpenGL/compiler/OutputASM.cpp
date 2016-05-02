@@ -1775,6 +1775,90 @@ namespace glsl
 		return true;
 	}
 
+	bool OutputASM::visitSwitch(Visit visit, TIntermSwitch *node)
+	{
+		if(currentScope != emitScope)
+		{
+			return false;
+		}
+
+		TIntermTyped* switchValue = node->getInit();
+		TIntermAggregate* opList = node->getStatementList();
+
+		if(!switchValue || !opList)
+		{
+			return false;
+		}
+
+		switchValue->traverse(this);
+
+		emit(sw::Shader::OPCODE_SWITCH);
+
+		TIntermSequence& sequence = opList->getSequence();
+		TIntermSequence::iterator it = sequence.begin();
+		TIntermSequence::iterator defaultIt = sequence.end();
+		int nbCases = 0;
+		for(; it != sequence.end(); ++it)
+		{
+			TIntermCase* currentCase = (*it)->getAsCaseNode();
+			if(currentCase)
+			{
+				TIntermSequence::iterator caseIt = it;
+
+				TIntermTyped* condition = currentCase->getCondition();
+				if(condition) // non default case
+				{
+					if(nbCases != 0)
+					{
+						emit(sw::Shader::OPCODE_ELSE);
+					}
+
+					condition->traverse(this);
+					Temporary result(this);
+					emitBinary(sw::Shader::OPCODE_EQ, &result, switchValue, condition);
+					emit(sw::Shader::OPCODE_IF, 0, &result);
+					nbCases++;
+
+					for(++caseIt; caseIt != sequence.end(); ++caseIt)
+					{
+						(*caseIt)->traverse(this);
+						if((*caseIt)->getAsBranchNode()) // Kill, Break, Continue or Return
+						{
+							break;
+						}
+					}
+				}
+				else
+				{
+					defaultIt = it; // The default case might not be the last case, keep it for last
+				}
+			}
+		}
+
+		// If there's a default case, traverse it here
+		if(defaultIt != sequence.end())
+		{
+			emit(sw::Shader::OPCODE_ELSE);
+			for(++defaultIt; defaultIt != sequence.end(); ++defaultIt)
+			{
+				(*defaultIt)->traverse(this);
+				if((*defaultIt)->getAsBranchNode()) // Kill, Break, Continue or Return
+				{
+					break;
+				}
+			}
+		}
+
+		for(int i = 0; i < nbCases; ++i)
+		{
+			emit(sw::Shader::OPCODE_ENDIF);
+		}
+
+		emit(sw::Shader::OPCODE_ENDSWITCH);
+
+		return false;
+	}
+
 	Instruction *OutputASM::emit(sw::Shader::Opcode op, TIntermTyped *dst, TIntermNode *src0, TIntermNode *src1, TIntermNode *src2, TIntermNode *src3, TIntermNode *src4)
 	{
 		return emit(op, dst, 0, src0, 0, src1, 0, src2, 0, src3, 0, src4, 0);

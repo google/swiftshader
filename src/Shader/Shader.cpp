@@ -971,6 +971,8 @@ namespace sw
 		case OPCODE_LEAVE:          return "leave";
 		case OPCODE_CONTINUE:       return "continue";
 		case OPCODE_TEST:           return "test";
+		case OPCODE_SWITCH:         return "switch";
+		case OPCODE_ENDSWITCH:      return "endswitch";
 		default:
 			ASSERT(false);
 		}
@@ -1088,14 +1090,14 @@ namespace sw
 		return opcode == OPCODE_BREAK || opcode == OPCODE_BREAKC || opcode == OPCODE_BREAKP;
 	}
 
-	bool Shader::Instruction::isLoop() const
+	bool Shader::Instruction::isLoopOrSwitch() const
 	{
-		return opcode == OPCODE_LOOP || opcode == OPCODE_REP || opcode == OPCODE_WHILE;
+		return opcode == OPCODE_LOOP || opcode == OPCODE_REP || opcode == OPCODE_WHILE || opcode == OPCODE_SWITCH;
 	}
 
-	bool Shader::Instruction::isEndLoop() const
+	bool Shader::Instruction::isEndLoopOrSwitch() const
 	{
-		return opcode == OPCODE_ENDLOOP || opcode == OPCODE_ENDREP || opcode == OPCODE_ENDWHILE;
+		return opcode == OPCODE_ENDLOOP || opcode == OPCODE_ENDREP || opcode == OPCODE_ENDWHILE || opcode == OPCODE_ENDSWITCH;;
 	}
 
 	bool Shader::Instruction::isPredicated() const
@@ -1686,11 +1688,11 @@ namespace sw
 
 			if(breakDepth > 0)
 			{
-				if(instruction[i]->isLoop())   // Nested loop, don't make the end of it disable the break execution mask
+				if(instruction[i]->isLoopOrSwitch())   // Nested loop or switch, don't make the end of it disable the break execution mask
 				{
 					breakDepth++;
 				}
-				else if(instruction[i]->isEndLoop())
+				else if(instruction[i]->isEndLoopOrSwitch())
 				{
 					breakDepth--;
 				}
@@ -1711,11 +1713,11 @@ namespace sw
 
 			if(continueDepth > 0)
 			{
-				if(instruction[i]->isLoop())   // Nested loop, don't make the end of it disable the break execution mask
+				if(instruction[i]->isLoopOrSwitch())   // Nested loop or switch, don't make the end of it disable the break execution mask
 				{
 					continueDepth++;
 				}
-				else if(instruction[i]->isEndLoop())
+				else if(instruction[i]->isEndLoopOrSwitch())
 				{
 					continueDepth--;
 				}
