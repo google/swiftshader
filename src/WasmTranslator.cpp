@@ -276,6 +276,16 @@ public:
     auto *Entry = Func->getEntryNode();
     assert(Entry);
     LOG(out << Node(Entry) << "\n");
+
+    // Load the WasmMemory address to make it available everywhere else in the
+    // function.
+    auto *WasmMemoryPtr =
+        Ctx->getConstantExternSym(Ctx->getGlobalString("WASM_MEMORY"));
+    assert(WasmMemory == nullptr);
+    auto *WasmMemoryV = makeVariable(getPointerType());
+    Entry->appendInst(InstLoad::create(Func, WasmMemoryV, WasmMemoryPtr));
+    WasmMemory = WasmMemoryV;
+
     return OperandNode(Entry);
   }
   Node Param(uint32_t Index, wasm::LocalType Type) {
@@ -1162,71 +1172,6 @@ public:
     llvm::report_fatal_error("StoreGlobal");
   }
 
-  Operand *sanitizeAddress(Operand *Base, uint32_t Offset) {
-    SizeT MemSize = Module->module->min_mem_pages * WASM_PAGE_SIZE;
-
-    bool ConstZeroBase = false;
-
-    // first, add the index and the offset together.
-    if (auto *ConstBase = llvm::dyn_cast<ConstantInteger32>(Base)) {
-      uint32_t RealOffset = Offset + ConstBase->getValue();
-      if (RealOffset >= MemSize) {
-        // We've proven this will always be an out of bounds access, so insert
-        // an unconditional trap.
-        Control()->appendInst(InstUnreachable::create(Func));
-        // It doesn't matter what we return here, so return something that will
-        // allow the rest of code generation to happen.
-        //
-        // We might be tempted to just abort translation here, but out of bounds
-        // memory access is a runtime trap, not a compile error.
-        return Ctx->getConstantZero(getPointerType());
-      }
-      Base = Ctx->getConstantInt32(RealOffset);
-      ConstZeroBase = (0 == RealOffset);
-    } else if (0 != Offset) {
-      auto *Addr = makeVariable(Ice::getPointerType());
-      auto *OffsetConstant = Ctx->getConstantInt32(Offset);
-      Control()->appendInst(InstArithmetic::create(Func, InstArithmetic::Add,
-                                                   Addr, Base, OffsetConstant));
-
-      Base = Addr;
-    }
-
-    // Do the bounds check.
-    //
-    // TODO (eholk): Add a command line argument to control whether bounds
-    // checks are inserted, and maybe add a way to duplicate bounds checks to
-    // get a better sense of the overhead.
-    if (!llvm::dyn_cast<ConstantInteger32>(Base)) {
-      // TODO (eholk): creating a new basic block on every memory access is
-      // terrible (see https://goo.gl/Zj7DTr). Try adding a new instruction that
-      // encapsulates this "abort if false" pattern.
-      auto *CheckPassed = Func->makeNode();
-      auto *CheckFailed = getBoundsFailTarget();
-
-      auto *Check = makeVariable(IceType_i1);
-      Control()->appendInst(InstIcmp::create(Func, InstIcmp::Ult, Check, Base,
-                                             Ctx->getConstantInt32(MemSize)));
-      Control()->appendInst(
-          InstBr::create(Func, Check, CheckPassed, CheckFailed));
-
-      *ControlPtr = OperandNode(CheckPassed);
-    }
-
-    Ice::Operand *RealAddr = nullptr;
-    auto MemBase = Ctx->getConstantSym(0, Ctx->getGlobalString("WASM_MEMORY"));
-    if (!ConstZeroBase) {
-      auto RealAddrV = Func->makeVariable(Ice::getPointerType());
-      Control()->appendInst(InstArithmetic::create(Func, InstArithmetic::Add,
-                                                   RealAddrV, Base, MemBase));
-
-      RealAddr = RealAddrV;
-    } else {
-      RealAddr = MemBase;
-    }
-    return RealAddr;
-  }
-
   Node LoadMem(wasm::LocalType Type, MachineType MemType, Node Index,
                uint32_t Offset) {
     LOG(out << "LoadMem." << toIceType(MemType) << "(" << Index << "[" << Offset
@@ -1318,6 +1263,8 @@ private:
   CfgUnorderedMap<Operand *, InstPhi *> PhiMap;
   CfgUnorderedMap<Operand *, CfgNode *> DefNodeMap;
 
+  Operand *WasmMemory = nullptr;
+
   InstPhi *getDefiningInst(Operand *Op) const {
     const auto &Iter = PhiMap.find(Op);
     if (Iter == PhiMap.end()) {
@@ -1378,6 +1325,76 @@ private:
     return IndirectFailTarget;
   }
 
+  Operand *getWasmMemory() {
+    assert(WasmMemory != nullptr);
+    return WasmMemory;
+  }
+
+  Operand *sanitizeAddress(Operand *Base, uint32_t Offset) {
+    SizeT MemSize = Module->module->min_mem_pages * WASM_PAGE_SIZE;
+
+    bool ConstZeroBase = false;
+
+    // first, add the index and the offset together.
+    if (auto *ConstBase = llvm::dyn_cast<ConstantInteger32>(Base)) {
+      uint32_t RealOffset = Offset + ConstBase->getValue();
+      if (RealOffset >= MemSize) {
+        // We've proven this will always be an out of bounds access, so insert
+        // an unconditional trap.
+        Control()->appendInst(InstUnreachable::create(Func));
+        // It doesn't matter what we return here, so return something that will
+        // allow the rest of code generation to happen.
+        //
+        // We might be tempted to just abort translation here, but out of bounds
+        // memory access is a runtime trap, not a compile error.
+        return Ctx->getConstantZero(getPointerType());
+      }
+      Base = Ctx->getConstantInt32(RealOffset);
+      ConstZeroBase = (0 == RealOffset);
+    } else if (0 != Offset) {
+      auto *Addr = makeVariable(Ice::getPointerType());
+      auto *OffsetConstant = Ctx->getConstantInt32(Offset);
+      Control()->appendInst(InstArithmetic::create(Func, InstArithmetic::Add,
+                                                   Addr, Base, OffsetConstant));
+
+      Base = Addr;
+    }
+
+    // Do the bounds check.
+    //
+    // TODO (eholk): Add a command line argument to control whether bounds
+    // checks are inserted, and maybe add a way to duplicate bounds checks to
+    // get a better sense of the overhead.
+    if (!llvm::dyn_cast<ConstantInteger32>(Base)) {
+      // TODO (eholk): creating a new basic block on every memory access is
+      // terrible (see https://goo.gl/Zj7DTr). Try adding a new instruction that
+      // encapsulates this "abort if false" pattern.
+      auto *CheckPassed = Func->makeNode();
+      auto *CheckFailed = getBoundsFailTarget();
+
+      auto *Check = makeVariable(IceType_i1);
+      Control()->appendInst(InstIcmp::create(Func, InstIcmp::Ult, Check, Base,
+                                             Ctx->getConstantInt32(MemSize)));
+      Control()->appendInst(
+          InstBr::create(Func, Check, CheckPassed, CheckFailed));
+
+      *ControlPtr = OperandNode(CheckPassed);
+    }
+
+    Ice::Operand *RealAddr = nullptr;
+    auto MemBase = getWasmMemory();
+    if (!ConstZeroBase) {
+      auto RealAddrV = Func->makeVariable(Ice::getPointerType());
+      Control()->appendInst(InstArithmetic::create(Func, InstArithmetic::Add,
+                                                   RealAddrV, Base, MemBase));
+
+      RealAddr = RealAddrV;
+    } else {
+      RealAddr = MemBase;
+    }
+    return RealAddr;
+  }
+
   template <typename F = std::function<void(Ostream &)>> void log(F Fn) const {
     if (BuildDefs::dump() && (getFlags().getVerbose() & IceV_Wasm)) {
       Fn(Ctx->getStrDump());
@@ -1390,6 +1407,7 @@ std::unique_ptr<Cfg> WasmTranslator::translateFunction(Zone *Zone,
                                                        FunctionBody &Body) {
   OstreamLocker L1(Ctx);
   auto Func = Cfg::create(Ctx, getNextSequenceNumber());
+  TimerMarker T(TimerStack::TT_wasmGenIce, Func.get());
   Ice::CfgLocalAllocatorScope L2(Func.get());
 
   // TODO(eholk): parse the function signature...
@@ -1419,6 +1437,8 @@ WasmTranslator::WasmTranslator(GlobalContext *Ctx)
 void WasmTranslator::translate(
     const std::string &IRFilename,
     std::unique_ptr<llvm::DataStreamer> InputStream) {
+  TimerMarker T(TimerStack::TT_wasm, Ctx);
+
   LOG(out << "Initializing v8/wasm stuff..."
           << "\n");
   Zone Zone;
@@ -1533,7 +1553,7 @@ void WasmTranslator::translate(
 
     // Global variables, etc go here.
     auto *WasmMemory = VariableDeclaration::createExternal(Globals.get());
-    WasmMemory->setName(Ctx->getGlobalString("WASM_MEMORY"));
+    WasmMemory->setName(Ctx->getGlobalString("WASM_DATA_INIT"));
 
     // Fill in the segments
     SizeT WritePtr = 0;
@@ -1562,13 +1582,6 @@ void WasmTranslator::translate(
         Globals.get(), reinterpret_cast<const char *>(&WritePtr),
         sizeof(WritePtr)));
 
-    // Pad the rest with zeros
-    SizeT DataSize = Module->min_mem_pages * WASM_PAGE_SIZE;
-    if (WritePtr < DataSize) {
-      WasmMemory->addInitializer(VariableDeclaration::ZeroInitializer::create(
-          Globals.get(), DataSize - WritePtr));
-    }
-
     // Save the number of pages for the runtime
     auto *GlobalNumPages = VariableDeclaration::createExternal(Globals.get());
     GlobalNumPages->setName(Ctx->getGlobalString("WASM_NUM_PAGES"));
@@ -1594,9 +1607,12 @@ void WasmTranslator::translate(
     Body.start = Buffer.data() + Fn.code_start_offset;
     Body.end = Buffer.data() + Fn.code_end_offset;
 
-    auto Func = translateFunction(&Zone, Body);
-    Func->setFunctionName(Ctx->getGlobalString(FnName));
-
+    std::unique_ptr<Cfg> Func = nullptr;
+    {
+      TimerMarker T_func(getContext(), FnName);
+      Func = translateFunction(&Zone, Body);
+      Func->setFunctionName(Ctx->getGlobalString(FnName));
+    }
     Ctx->optQueueBlockingPush(makeUnique<CfgOptWorkItem>(std::move(Func)));
     LOG(out << "done.\n");
   }

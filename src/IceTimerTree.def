@@ -65,6 +65,8 @@
   X(translateFunctions)                                                        \
   X(validateLiveness)                                                          \
   X(vmetadata)                                                                 \
+  X(wasm)                                                                      \
+  X(wasmGenIce)                                                                \
   X(writeELF)
 //#define X(tag)
 

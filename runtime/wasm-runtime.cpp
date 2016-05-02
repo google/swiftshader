@@ -12,11 +12,14 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include <algorithm>
 #include <cassert>
 #include <cmath>
+#include <iostream>
+#include <vector>
+
 #include <errno.h>
 #include <fcntl.h>
-#include <iostream>
 #include <math.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -44,7 +47,7 @@ void trace() {}
 #endif // WASM_TRACE_RUNTIME
 
 extern "C" {
-extern char WASM_MEMORY[];
+char *WASM_MEMORY;
 extern uint32_t WASM_DATA_SIZE;
 extern uint32_t WASM_NUM_PAGES;
 } // end of extern "C"
@@ -137,6 +140,8 @@ void __Sz_indirect_fail() {
   abort();
 }
 
+extern char WASM_DATA_INIT[];
+
 void env$$abort() {
   fprintf(stderr, "Aborting...\n");
   abort();
@@ -217,6 +222,11 @@ extern int __szwasm_main(int, WasmPtr<WasmCharPtr>);
 #define WASM_DEREF(Type, Index) (*WASM_REF(Type, Index))
 
 int main(int argc, const char **argv) {
+  // Create the heap.
+  std::vector<char> WasmHeap(WASM_NUM_PAGES << PageSizeLog2);
+  WASM_MEMORY = WasmHeap.data();
+  std::copy(WASM_DATA_INIT, WASM_DATA_INIT + WASM_DATA_SIZE, WasmHeap.begin());
+
   // TODO (eholk): align these allocations correctly.
 
   // Allocate space for the global data.
