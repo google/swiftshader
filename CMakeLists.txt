@@ -32,6 +32,7 @@ else()
   -DALLOW_WASM=0
   -DPNACL_BROWSER_TRANSLATOR=0
   )
+  add_compile_options(-Wno-undefined-var-template)
 endif()
 
 target_link_libraries(pnacl-sz pthread)

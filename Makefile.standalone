@@ -265,8 +265,10 @@ else
   BASE_CXXFLAGS := $(BASE_CXXFLAGS) -DALLOW_WASM=0
 endif
 
+# TODO(stichnot,jpp): Restructure static fields in template classes to avoid
+# needing -Wno-undefined-var-template .
 CXXFLAGS := $(LLVM_CXXFLAGS) $(BASE_CXXFLAGS) $(CXX_DEFINES) $(HOST_FLAGS) \
-  $(STDLIB_FLAGS)
+  $(STDLIB_FLAGS) -Wno-undefined-var-template
 SB_CXXFLAGS := $(SB_LLVM_CXXFLAGS) $(BASE_CXXFLAGS) $(BASE_CXX_DEFINES) \
                -Wno-unknown-pragmas -I$(NACL_ROOT) -I$(NACL_ROOT)/..
 
@@ -614,7 +616,7 @@ SPEC_SAMPLE_PEXE = $(NACL_ROOT)/tests/spec2k/176.gcc/gcc.opt.stripped.pexe
 exists-nonsfi-x8632:
 	@if [ ! -f $(NONSFI_LOADER_X8632) ] ; then \
           echo "Missing file $(NONSFI_LOADER_X8632)"; \
-          echo "Consider running 'scons nonsfi_loader'" \
+          echo "Consider running './scons nonsfi_loader'" \
                "in the native_client directory."; \
           exit 1 ; \
         fi
@@ -622,7 +624,7 @@ exists-nonsfi-x8632:
 exists-nonsfi-arm32:
 	@if [ ! -f $(NONSFI_LOADER_ARM32) ] ; then \
           echo "Missing file $(NONSFI_LOADER_ARM32)"; \
-          echo "Consider running 'scons platform=arm32 nonsfi_loader'" \
+          echo "Consider running './scons platform=arm nonsfi_loader'" \
                "in the native_client directory."; \
           exit 1 ; \
         fi
@@ -638,7 +640,7 @@ exists-spec:
 	@if [ ! -f $(SPEC_SAMPLE_PEXE) ] ; then \
           echo "Missing file $(SPEC_SAMPLE_PEXE)"; \
           echo "Consider running" \
-               "'run_all.sh BuildBenchmarks 0 SetupPnaclX8632Opt'" \
+               "'./run_all.sh BuildBenchmarks 0 SetupPnaclX8632Opt'" \
                "in the native_client/tests/spec2k directory."; \
           exit 1 ; \
         fi
