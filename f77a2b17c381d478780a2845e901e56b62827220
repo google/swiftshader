@@ -93,6 +93,30 @@
       "revId": "f77a2b17c381d478780a2845e901e56b62827220",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "cd004ff2_2f609122",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1480,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-05-03T17:28:37Z",
+      "side": 1,
+      "message": "I meant an lvalue at the shader level, so something like v.x or v[0].\n\narg[1] is the rvalue. So I think you need to use a Temporary instead, and then assignLvalue(arg[1], out);\n\nUnless the spec forbids swizzle or indexing on out parameters.",
+      "parentUuid": "cd004ff2_4f987d79",
+      "range": {
+        "startLine": 1480,
+        "startChar": 35,
+        "endLine": 1480,
+        "endChar": 55
+      },
+      "revId": "f77a2b17c381d478780a2845e901e56b62827220",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
