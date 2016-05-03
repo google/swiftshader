@@ -117,6 +117,30 @@
       "revId": "f77a2b17c381d478780a2845e901e56b62827220",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "cd004ff2_2f741189",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1480,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-05-03T17:51:34Z",
+      "side": 1,
+      "message": "Ok, fixed. The spec says: \"Evaluation of an out parameter results in an l-value that is used to copy out a value when the function returns.\"",
+      "parentUuid": "cd004ff2_2f609122",
+      "range": {
+        "startLine": 1480,
+        "startChar": 35,
+        "endLine": 1480,
+        "endChar": 55
+      },
+      "revId": "f77a2b17c381d478780a2845e901e56b62827220",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
