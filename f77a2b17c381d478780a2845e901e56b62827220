@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cd004ff2_447d045d",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1480,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-05-03T16:53:11Z",
+      "side": 1,
+      "message": "I think it\u0027s valid to use any lvalue here.",
+      "range": {
+        "startLine": 1480,
+        "startChar": 35,
+        "endLine": 1480,
+        "endChar": 55
+      },
+      "revId": "f77a2b17c381d478780a2845e901e56b62827220",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "cd004ff2_c46234c9",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1480,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-05-03T16:53:11Z",
+      "side": 1,
+      "message": "The spec states that \"Both the return value and the output parameter will have the same sign as x.\" So you want to use a round toward zero operation.",
+      "range": {
+        "startLine": 1480,
+        "startChar": 21,
+        "endLine": 1480,
+        "endChar": 33
+      },
+      "revId": "f77a2b17c381d478780a2845e901e56b62827220",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
