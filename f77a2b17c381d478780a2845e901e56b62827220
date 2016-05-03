@@ -45,6 +45,54 @@
       "revId": "f77a2b17c381d478780a2845e901e56b62827220",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "cd004ff2_ef9e2963",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1480,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-05-03T17:16:06Z",
+      "side": 1,
+      "message": "Replaced FLOOR by TRUNC. Still passes all related dEQP tests.",
+      "parentUuid": "cd004ff2_c46234c9",
+      "range": {
+        "startLine": 1480,
+        "startChar": 21,
+        "endLine": 1480,
+        "endChar": 33
+      },
+      "revId": "f77a2b17c381d478780a2845e901e56b62827220",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "cd004ff2_4f987d79",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1480,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-05-03T17:16:06Z",
+      "side": 1,
+      "message": "The 2nd argument of emit is a TIntermTyped*, so I have to use getAsTyped().",
+      "parentUuid": "cd004ff2_447d045d",
+      "range": {
+        "startLine": 1480,
+        "startChar": 35,
+        "endLine": 1480,
+        "endChar": 55
+      },
+      "revId": "f77a2b17c381d478780a2845e901e56b62827220",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
