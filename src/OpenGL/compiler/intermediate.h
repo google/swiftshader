@@ -130,6 +130,7 @@ enum TOperator {
     EOpCeil,
     EOpFract,
     EOpMod,
+    EOpModf,
     EOpMin,
     EOpMax,
     EOpClamp,

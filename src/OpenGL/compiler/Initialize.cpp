@@ -100,6 +100,16 @@ void InsertBuiltInFunctions(GLenum type, const ShBuiltInResources &resources, TS
     symbolTable.insertBuiltIn(COMMON_BUILTINS, EOpSmoothStep, genType, "smoothstep", genType, genType, genType);
     symbolTable.insertBuiltIn(COMMON_BUILTINS, EOpSmoothStep, genType, "smoothstep", float1, float1, genType);
 
+	TType *outFloat1 = new TType(EbtFloat, EbpUndefined, EvqOut);
+	TType *outFloat2 = new TType(EbtFloat, EbpUndefined, EvqOut, 2);
+	TType *outFloat3 = new TType(EbtFloat, EbpUndefined, EvqOut, 3);
+	TType *outFloat4 = new TType(EbtFloat, EbpUndefined, EvqOut, 4);
+
+	symbolTable.insertBuiltIn(ESSL3_BUILTINS, EOpModf, float1, "modf", float1, outFloat1);
+	symbolTable.insertBuiltIn(ESSL3_BUILTINS, EOpModf, float2, "modf", float2, outFloat2);
+	symbolTable.insertBuiltIn(ESSL3_BUILTINS, EOpModf, float3, "modf", float3, outFloat3);
+	symbolTable.insertBuiltIn(ESSL3_BUILTINS, EOpModf, float4, "modf", float4, outFloat4);
+
     symbolTable.insertBuiltIn(ESSL3_BUILTINS, EOpIsNan, genBType, "isnan", genType);
     symbolTable.insertBuiltIn(ESSL3_BUILTINS, EOpIsInf, genBType, "isinf", genType);
     symbolTable.insertBuiltIn(ESSL3_BUILTINS, EOpFloatBitsToInt, genIType, "floatBitsToInt", genType);
