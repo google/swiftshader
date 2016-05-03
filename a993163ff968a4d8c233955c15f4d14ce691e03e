@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cd484fa3_3e61252b",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 1480,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-05-03T21:35:26Z",
+      "side": 1,
+      "message": "Actually, we can just use arg[1] as the temporary, and then do assignLvalue(arg1, arg1). cf. EOpPostIncrement.\n\nThen you don\u0027t need any changes to Temporary either.\n\nSorry for putting you on a less than ideal track before.",
+      "range": {
+        "startLine": 1480,
+        "startChar": 4,
+        "endLine": 1480,
+        "endChar": 13
+      },
+      "revId": "a993163ff968a4d8c233955c15f4d14ce691e03e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "cd484fa3_de72c101",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 2212,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-05-03T21:35:26Z",
+      "side": 1,
+      "message": "Ideally this should move up into the parser layer, but we can leave that for a later patch.",
+      "range": {
+        "startLine": 2207,
+        "startChar": 2,
+        "endLine": 2212,
+        "endChar": 3
+      },
+      "revId": "a993163ff968a4d8c233955c15f4d14ce691e03e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
