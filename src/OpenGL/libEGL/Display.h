@@ -17,6 +17,7 @@
 #define INCLUDE_DISPLAY_H_
 
 #include "Config.h"
+#include "Sync.hpp"
 
 #include <set>
 
@@ -42,9 +43,11 @@ namespace egl
 		EGLSurface createWindowSurface(EGLNativeWindowType window, EGLConfig config, const EGLint *attribList);
 		EGLSurface createPBufferSurface(EGLConfig config, const EGLint *attribList);
 		EGLContext createContext(EGLConfig configHandle, const Context *shareContext, EGLint clientVersion);
+		EGLSyncKHR createSync(Context *context);
 
 		void destroySurface(Surface *surface);
 		void destroyContext(Context *context);
+		void destroySync(FenceSync *sync);
 
 		bool isInitialized() const;
 		bool isValidConfig(EGLConfig config);
@@ -52,6 +55,7 @@ namespace egl
 		bool isValidSurface(Surface *surface);
 		bool isValidWindow(EGLNativeWindowType window);
 		bool hasExistingWindowSurface(EGLNativeWindowType window);
+		bool isValidSync(FenceSync *sync);
 
 		EGLint getMinSwapInterval() const;
 		EGLint getMaxSwapInterval() const;
@@ -77,6 +81,9 @@ namespace egl
 
 		typedef std::set<Context*> ContextSet;
 		ContextSet mContextSet;
+
+		typedef std::set<FenceSync*> SyncSet;
+		SyncSet mSyncSet;
 	};
 }
 
