@@ -1395,6 +1395,7 @@ namespace sw
 			case FORMAT_A8B8G8R8:
 			case FORMAT_SRGB8_X8:
 			case FORMAT_SRGB8_A8:
+			case FORMAT_R8:
 				current.x = current.x - As<Short4>(As<UShort4>(current.x) >> 8) + Short4(0x0080, 0x0080, 0x0080, 0x0080);
 				current.y = current.y - As<Short4>(As<UShort4>(current.y) >> 8) + Short4(0x0080, 0x0080, 0x0080, 0x0080);
 				current.z = current.z - As<Short4>(As<UShort4>(current.z) >> 8) + Short4(0x0080, 0x0080, 0x0080, 0x0080);
@@ -1511,6 +1512,10 @@ namespace sw
 				current.z = As<Short4>(UnpackLow(current.z, current.x));
 				current.y = As<Short4>(UnpackHigh(current.y, current.x));
 			}
+			break;
+		case FORMAT_R8:
+			current.x = As<Short4>(As<UShort4>(current.x) >> 8);
+			current.x = As<Short4>(Pack(As<UShort4>(current.x), As<UShort4>(current.x)));
 			break;
 		case FORMAT_A8:
 			current.w = As<Short4>(As<UShort4>(current.w) >> 8);
@@ -1706,6 +1711,24 @@ namespace sw
 				value &= *Pointer<Short4>(constants + OFFSET(Constants,invMaskD23Q) + xMask * 8);
 				c23 |= value;
 				*Pointer<Short4>(buffer) = c23;
+			}
+			break;
+		case FORMAT_R8:
+			if(rgbaWriteMask & 0x00000001)
+			{
+				Pointer<Byte> buffer = cBuffer + 1 * x;
+				Short4 value;
+				Insert(value, *Pointer<Short>(buffer), 0);
+				Int pitch = *Pointer<Int>(data + OFFSET(DrawData, colorPitchB[index]));
+				Insert(value, *Pointer<Short>(buffer + pitch), 1);
+				value = UnpackLow(As<Byte8>(value), As<Byte8>(value));
+
+				current.x &= *Pointer<Short4>(constants + OFFSET(Constants, maskB4Q) + 8 * xMask);
+				value &= *Pointer<Short4>(constants + OFFSET(Constants, invMaskB4Q) + 8 * xMask);
+				current.x |= value;
+
+				*Pointer<Short>(buffer) = Extract(current.x, 0);
+				*Pointer<Short>(buffer + pitch) = Extract(current.x, 1);
 			}
 			break;
 		case FORMAT_A8:
