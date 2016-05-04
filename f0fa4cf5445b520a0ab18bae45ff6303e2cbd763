@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6da203c1_06d1be68",
+        "filename": "src/Shader/PixelRoutine.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1726,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-05-04T20:25:42Z",
+      "side": 1,
+      "message": "Removing this section makes the tests pass, but would clearly be wrong. I\u0027m not entirely certain what is wrong with this code.",
+      "range": {
+        "startLine": 1724,
+        "startChar": 0,
+        "endLine": 1726,
+        "endChar": 23
+      },
+      "revId": "f0fa4cf5445b520a0ab18bae45ff6303e2cbd763",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
