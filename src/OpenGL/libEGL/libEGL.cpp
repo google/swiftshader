@@ -1017,30 +1017,6 @@ EGLSurface CreatePlatformPixmapSurfaceEXT(EGLDisplay dpy, EGLConfig config, void
 	return CreatePixmapSurface(dpy, config, (EGLNativePixmapType)native_pixmap, attrib_list);
 }
 
-class FenceSync
-{
-public:
-	explicit FenceSync(Context *context) : context(context)
-	{
-		status = EGL_UNSIGNALED_KHR;
-		context->addRef();
-	}
-
-	~FenceSync()
-	{
-		context->release();
-		context = nullptr;
-	}
-
-	void wait() { context->finish(); signal(); }
-	void signal() { status = EGL_SIGNALED_KHR; }
-	bool isSignaled() const { return status == EGL_SIGNALED_KHR; }
-
-private:
-	EGLint status;
-	Context *context;
-};
-
 EGLSyncKHR CreateSyncKHR(EGLDisplay dpy, EGLenum type, const EGLint *attrib_list)
 {
 	TRACE("(EGLDisplay dpy = %p, EGLunum type = %x, EGLint *attrib_list=%p)", dpy, type, attrib_list);
@@ -1069,7 +1045,9 @@ EGLSyncKHR CreateSyncKHR(EGLDisplay dpy, EGLenum type, const EGLint *attrib_list
 		return error(EGL_BAD_MATCH, EGL_NO_SYNC_KHR);
 	}
 
-	return success(new FenceSync(context));
+	EGLSyncKHR sync = display->createSync(context);
+
+	return success(sync);
 }
 
 EGLBoolean DestroySyncKHR(EGLDisplay dpy, EGLSyncKHR sync)
@@ -1084,7 +1062,12 @@ EGLBoolean DestroySyncKHR(EGLDisplay dpy, EGLSyncKHR sync)
 		return error(EGL_BAD_DISPLAY, EGL_FALSE);
 	}
 
-	delete eglSync;
+	if(!display->isValidSync(eglSync))
+	{
+		return error(EGL_BAD_PARAMETER, EGL_FALSE);
+	}
+
+	display->destroySync(eglSync);
 
 	return success(EGL_TRUE);
 }
@@ -1099,6 +1082,11 @@ EGLint ClientWaitSyncKHR(EGLDisplay dpy, EGLSyncKHR sync, EGLint flags, EGLTimeK
 	if(!validateDisplay(display))
 	{
 		return error(EGL_BAD_DISPLAY, EGL_FALSE);
+	}
+
+	if(!display->isValidSync(eglSync))
+	{
+		return error(EGL_BAD_PARAMETER, EGL_FALSE);
 	}
 
 	(void)flags;
@@ -1117,13 +1105,17 @@ EGLBoolean GetSyncAttribKHR(EGLDisplay dpy, EGLSyncKHR sync, EGLint attribute, E
 	TRACE("(EGLDisplay dpy = %p, EGLSyncKHR sync = %p, EGLint attribute = %x, EGLint *value = %p)", dpy, sync, attribute, value);
 
 	egl::Display *display = egl::Display::get(dpy);
+	FenceSync *eglSync = static_cast<FenceSync*>(sync);
 
 	if(!validateDisplay(display))
 	{
 		return error(EGL_BAD_DISPLAY, EGL_FALSE);
 	}
 
-	FenceSync *eglSync = static_cast<FenceSync*>(sync);
+	if(!display->isValidSync(eglSync))
+	{
+		return error(EGL_BAD_PARAMETER, EGL_FALSE);
+	}
 
 	switch(attribute)
 	{

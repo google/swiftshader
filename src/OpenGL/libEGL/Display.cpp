@@ -444,6 +444,15 @@ EGLContext Display::createContext(EGLConfig configHandle, const egl::Context *sh
     return success(context);
 }
 
+EGLSyncKHR Display::createSync(Context *context)
+{
+	FenceSync *fenceSync = new egl::FenceSync(context);
+
+	mSyncSet.insert(fenceSync);
+
+	return fenceSync;
+}
+
 void Display::destroySurface(egl::Surface *surface)
 {
 	surface->release();
@@ -473,6 +482,13 @@ void Display::destroyContext(egl::Context *context)
 	}
 }
 
+void Display::destroySync(FenceSync *sync)
+{
+	mSyncSet.erase(sync);
+
+	delete sync;
+}
+
 bool Display::isInitialized() const
 {
     return mConfigSet.size() > 0;
@@ -480,7 +496,7 @@ bool Display::isInitialized() const
 
 bool Display::isValidConfig(EGLConfig config)
 {
-    return mConfigSet.get(config) != NULL;
+    return mConfigSet.get(config) != nullptr;
 }
 
 bool Display::isValidContext(egl::Context *context)
@@ -540,6 +556,11 @@ bool Display::hasExistingWindowSurface(EGLNativeWindowType window)
     }
 
     return false;
+}
+
+bool Display::isValidSync(FenceSync *sync)
+{
+	return mSyncSet.find(sync) != mSyncSet.end();
 }
 
 EGLint Display::getMinSwapInterval() const
