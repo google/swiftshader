@@ -565,7 +565,7 @@ EGLBoolean BindTexImage(EGLDisplay dpy, EGLSurface surface, EGLint buffer)
 		return error(EGL_BAD_MATCH, EGL_FALSE);
 	}
 
-	egl::Context *context = static_cast<egl::Context*>(egl::getCurrentContext());
+	egl::Context *context = egl::getCurrentContext();
 
 	if(context)
 	{
@@ -617,15 +617,16 @@ EGLBoolean SwapInterval(EGLDisplay dpy, EGLint interval)
 	TRACE("(EGLDisplay dpy = %p, EGLint interval = %d)", dpy, interval);
 
 	egl::Display *display = egl::Display::get(dpy);
+	egl::Context *context = egl::getCurrentContext();
 
-	if(!validateDisplay(display))
+	if(!validateContext(display, context))
 	{
 		return EGL_FALSE;
 	}
 
 	egl::Surface *draw_surface = static_cast<egl::Surface*>(egl::getCurrentDrawSurface());
 
-	if(draw_surface == NULL)
+	if(!draw_surface)
 	{
 		return error(EGL_BAD_SURFACE, EGL_FALSE);
 	}
@@ -1038,7 +1039,7 @@ EGLSyncKHR CreateSyncKHR(EGLDisplay dpy, EGLenum type, const EGLint *attrib_list
 		return error(EGL_BAD_ATTRIBUTE, EGL_NO_SYNC_KHR);
 	}
 
-	egl::Context *context = static_cast<egl::Context*>(egl::getCurrentContext());
+	egl::Context *context = egl::getCurrentContext();
 
 	if(!validateContext(display, context))
 	{
