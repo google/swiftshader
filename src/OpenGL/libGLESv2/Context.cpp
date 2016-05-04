@@ -2171,16 +2171,14 @@ template<typename T> bool Context::getIntegerv(GLenum pname, T *params) const
 		*params = 2;
 		break;
 	case GL_MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS: // integer, at least 64
-		UNIMPLEMENTED();
-		*params = 64;
+		*params = sw::MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS;
 		break;
 	case GL_MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS: // integer, at least 4
 		UNIMPLEMENTED();
 		*params = MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS;
 		break;
 	case GL_MAX_TRANSFORM_FEEDBACK_SEPARATE_COMPONENTS: // integer, at least 4
-		UNIMPLEMENTED();
-		*params = 4;
+		*params = sw::MAX_TRANSFORM_FEEDBACK_SEPARATE_COMPONENTS;
 		break;
 	case GL_MAX_UNIFORM_BLOCK_SIZE: // integer, at least 16384
 		*params = MAX_UNIFORM_BLOCK_SIZE;
@@ -3012,6 +3010,7 @@ void Context::applyShaders()
 		mAppliedProgramSerial = programObject->getSerial();
 	}
 
+	programObject->applyTransformFeedback(getTransformFeedback());
 	programObject->applyUniformBuffers(mState.uniformBuffers);
 	programObject->applyUniforms();
 }
@@ -3438,8 +3437,9 @@ void Context::drawArrays(GLenum mode, GLint first, GLsizei count, GLsizei instan
 
 	sw::DrawType primitiveType;
 	int primitiveCount;
+	int verticesPerPrimitive;
 
-	if(!es2sw::ConvertPrimitiveType(mode, count, GL_NONE, primitiveType, primitiveCount))
+	if(!es2sw::ConvertPrimitiveType(mode, count, GL_NONE, primitiveType, primitiveCount, verticesPerPrimitive))
 		return error(GL_INVALID_ENUM);
 
 	if(primitiveCount <= 0)
@@ -3472,9 +3472,14 @@ void Context::drawArrays(GLenum mode, GLint first, GLsizei count, GLsizei instan
 			return error(GL_INVALID_OPERATION);
 		}
 
-		if(!cullSkipsDraw(mode))
+		TransformFeedback* transformFeedback = getTransformFeedback();
+		if(!cullSkipsDraw(mode) || (transformFeedback->isActive() && !transformFeedback->isPaused()))
 		{
 			device->drawPrimitive(primitiveType, primitiveCount);
+		}
+		if(transformFeedback)
+		{
+			transformFeedback->addVertexOffset(primitiveCount * verticesPerPrimitive);
 		}
 	}
 }
@@ -3493,8 +3498,9 @@ void Context::drawElements(GLenum mode, GLuint start, GLuint end, GLsizei count,
 
 	sw::DrawType primitiveType;
 	int primitiveCount;
+	int verticesPerPrimitive;
 
-	if(!es2sw::ConvertPrimitiveType(mode, count, type, primitiveType, primitiveCount))
+	if(!es2sw::ConvertPrimitiveType(mode, count, type, primitiveType, primitiveCount, verticesPerPrimitive))
 		return error(GL_INVALID_ENUM);
 
 	if(primitiveCount <= 0)
@@ -3535,9 +3541,14 @@ void Context::drawElements(GLenum mode, GLuint start, GLuint end, GLsizei count,
 			return error(GL_INVALID_OPERATION);
 		}
 
-		if(!cullSkipsDraw(mode))
+		TransformFeedback* transformFeedback = getTransformFeedback();
+		if(!cullSkipsDraw(mode) || (transformFeedback->isActive() && !transformFeedback->isPaused()))
 		{
 			device->drawIndexedPrimitive(primitiveType, indexInfo.indexOffset, primitiveCount);
+		}
+		if(transformFeedback)
+		{
+			transformFeedback->addVertexOffset(primitiveCount * verticesPerPrimitive);
 		}
 	}
 }
