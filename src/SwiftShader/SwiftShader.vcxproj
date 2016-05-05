@@ -117,7 +117,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
       <OmitFramePointers>false</OmitFramePointers>
-      <AdditionalIncludeDirectories>..\;..\Main;..\Renderer;..\Shader;..\Common;..\SwiftAsm;..\libjpeg;..\SwiftShader;..\D3D9;..\Reactor;..\LLVM\include;..\LLVM\win32;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\;..\Main;..\Renderer;..\Shader;..\Common;..\SwiftAsm;..\libjpeg;..\SwiftShader;..\D3D9;..\Reactor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DISPLAY_LOGO=0;WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <ExceptionHandling>
@@ -152,7 +152,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
       <OmitFramePointers>false</OmitFramePointers>
-      <AdditionalIncludeDirectories>..\;..\Main;..\Renderer;..\Shader;..\Common;..\SwiftAsm;..\libjpeg;..\SwiftShader;..\D3D9;..\Reactor;..\LLVM\include;..\LLVM\win32;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\;..\Main;..\Renderer;..\Shader;..\Common;..\SwiftAsm;..\libjpeg;..\SwiftShader;..\D3D9;..\Reactor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DISPLAY_LOGO=0;WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <ExceptionHandling>
@@ -185,7 +185,7 @@
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
       <WholeProgramOptimization>true</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>..\;..\Main;..\Renderer;..\Shader;..\Common;..\SwiftAsm;..\libjpeg;..\SwiftShader;..\D3D9;..\Reactor;..\LLVM\include;..\LLVM\win32;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\;..\Main;..\Renderer;..\Shader;..\Common;..\SwiftAsm;..\libjpeg;..\SwiftShader;..\D3D9;..\Reactor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DISPLAY_LOGO=1;WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ExceptionHandling>false</ExceptionHandling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -218,7 +218,7 @@
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
       <OmitFramePointers>false</OmitFramePointers>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>..\;..\Main;..\Renderer;..\Shader;..\Common;..\SwiftAsm;..\libjpeg;..\SwiftShader;..\D3D9;..\Reactor;..\LLVM\include;..\LLVM\win32;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\;..\Main;..\Renderer;..\Shader;..\Common;..\SwiftAsm;..\libjpeg;..\SwiftShader;..\D3D9;..\Reactor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DISPLAY_LOGO=0;WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ExceptionHandling>false</ExceptionHandling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -253,7 +253,7 @@
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
       <WholeProgramOptimization>true</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>..\;..\Main;..\Renderer;..\Shader;..\Common;..\SwiftAsm;..\libjpeg;..\SwiftShader;..\D3D9;..\Reactor;..\LLVM\include;..\LLVM\win32;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\;..\Main;..\Renderer;..\Shader;..\Common;..\SwiftAsm;..\libjpeg;..\SwiftShader;..\D3D9;..\Reactor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DISPLAY_LOGO=1;WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ExceptionHandling>false</ExceptionHandling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -289,7 +289,7 @@
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
       <OmitFramePointers>false</OmitFramePointers>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>..\;..\Main;..\Renderer;..\Shader;..\Common;..\SwiftAsm;..\libjpeg;..\SwiftShader;..\D3D9;..\Reactor;..\LLVM\include;..\LLVM\win32;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\;..\Main;..\Renderer;..\Shader;..\Common;..\SwiftAsm;..\libjpeg;..\SwiftShader;..\D3D9;..\Reactor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DISPLAY_LOGO=0;WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0;_HAS_EXCEPTIONS=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ExceptionHandling>false</ExceptionHandling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
