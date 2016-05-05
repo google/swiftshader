@@ -19,7 +19,7 @@
 				</Compiler>
 				<Linker>
 					<Add option="-m32" />
-					<Add library="./../../LLVM/bin/x86/Debug/libLLVM.a" />
+					<Add library="./../../../third_party/LLVM/bin/x86/Debug/libLLVM.a" />
 				</Linker>
 				<ExtraCommands>
 					<Add after="ln -s -f ./libGLESv2.so.2 ./../../../lib/Debug_x86/libGLESv2.so" />
@@ -48,7 +48,7 @@
 					<Add option="-s" />
 					<Add option="-m32" />
 					<Add option="-Wl,--gc-sections" />
-					<Add library="./../../LLVM/bin/x86/Release/libLLVM.a" />
+					<Add library="./../../../third_party/LLVM/bin/x86/Release/libLLVM.a" />
 				</Linker>
 				<ExtraCommands>
 					<Add after="ln -s -f ./libGLESv2.so.2 ./../../../lib/Release_x86/libGLESv2.so" />
@@ -70,7 +70,7 @@
 				</Compiler>
 				<Linker>
 					<Add option="-m64" />
-					<Add library="./../../LLVM/bin/x64/Debug/libLLVM.a" />
+					<Add library="./../../../third_party/LLVM/bin/x64/Debug/libLLVM.a" />
 				</Linker>
 				<ExtraCommands>
 					<Add after="ln -s -f ./libGLESv2.so.2 ./../../../lib/Debug_x64/libGLESv2.so" />
@@ -100,7 +100,7 @@
 					<Add option="-s" />
 					<Add option="-m64" />
 					<Add option="-Wl,--gc-sections" />
-					<Add library="./../../LLVM/bin/x64/Release/libLLVM.a" />
+					<Add library="./../../../third_party/LLVM/bin/x64/Release/libLLVM.a" />
 				</Linker>
 				<ExtraCommands>
 					<Add after="ln -s -f ./libGLESv2.so.2 ./../../../lib/Release_x64/libGLESv2.so" />
@@ -124,9 +124,9 @@
 			<Add directory="./../" />
 			<Add directory="./../include/" />
 			<Add directory="./../../" />
-			<Add directory="./../../LLVM/include-linux/" />
-			<Add directory="./../../LLVM/include/" />
-			<Add directory="./../../LLVM/lib/Target/X86" />
+			<Add directory="./../../../third_party/LLVM/include-linux/" />
+			<Add directory="./../../../third_party/LLVM/include/" />
+			<Add directory="./../../../third_party/LLVM/lib/Target/X86" />
 			<Add directory="./../../Renderer/" />
 			<Add directory="./../../Common/" />
 			<Add directory="./../../Shader/" />

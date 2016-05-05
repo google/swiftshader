@@ -8,7 +8,7 @@ COMMON_C_INCLUDES += \
 	$(LOCAL_PATH)/Renderer/ \
 	$(LOCAL_PATH)/Common/ \
 	$(LOCAL_PATH)/Shader/ \
-	$(LOCAL_PATH)/LLVM/include \
+	$(LOCAL_PATH)/../third_party/LLVM/include \
 	$(LOCAL_PATH)/Main/
 
 # Marshmallow does not have stlport, but comes with libc++ by default

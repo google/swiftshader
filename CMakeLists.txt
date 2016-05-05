@@ -96,7 +96,7 @@ endif()
 set(SOURCE_DIR ${CMAKE_SOURCE_DIR}/src)
 set(OPENGL_DIR ${SOURCE_DIR}/OpenGL)
 set(OPENGL_COMPILER_DIR ${OPENGL_DIR}/compiler)
-set(LLVM_DIR ${SOURCE_DIR}/LLVM)
+set(LLVM_DIR ${CMAKE_SOURCE_DIR}/third_party/LLVM)
 set(TESTS_DIR ${CMAKE_SOURCE_DIR}/tests)
 set(HELLO2_DIR ${CMAKE_SOURCE_DIR}/third_party/PowerVR_SDK/Examples/Beginner/01_HelloAPI/OGLES2)
 
