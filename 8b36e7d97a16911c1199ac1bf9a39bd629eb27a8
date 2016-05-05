@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6da203c1_67f3e1b0",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-05-05T03:23:32Z",
+      "side": 1,
+      "message": "I don\u0027t see this in the spec or any extensions. GL_FRAMEBUFFER_UNSUPPORTED is intended for driver-specific limitations, so we should avoid it as much as reasonably possible.\n\nIs this to fix a dEQP test? Then I suspect it\u0027s not part of the mustpass set, and might be a test bug.",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 10,
+        "endChar": 68
+      },
+      "revId": "8b36e7d97a16911c1199ac1bf9a39bd629eb27a8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
