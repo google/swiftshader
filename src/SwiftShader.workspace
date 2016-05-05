@@ -9,11 +9,11 @@
 			<Depends filename="LLVM/LLVM.cbp" />
 		</Project>
 		<Project filename="LLVM/LLVM.cbp" />
-		<Project filename="../tests/third_party/PowerVR/Examples/Beginner/01_HelloAPI/OGLES2/Build/OGLES2HelloAPI.cbp">
+		<Project filename="../third_party/PowerVR_SDK/Examples/Beginner/01_HelloAPI/OGLES2/Build/OGLES2HelloAPI.cbp">
 			<Depends filename="OpenGL/libEGL/libEGL.cbp" />
 			<Depends filename="OpenGL/libGLESv2/libGLESv2.cbp" />
 		</Project>
-		<Project filename="../tests/third_party/PowerVR/Examples/Beginner/04_BasicTnL/OGLES/Build/OGLESBasicTnL.cbp">
+		<Project filename="../third_party/PowerVR_SDK/Examples/Beginner/04_BasicTnL/OGLES/Build/OGLESBasicTnL.cbp">
 			<Depends filename="OpenGL/libEGL/libEGL.cbp" />
 			<Depends filename="OpenGL/libGLES_CM/libGLES_CM.cbp" />
 		</Project>

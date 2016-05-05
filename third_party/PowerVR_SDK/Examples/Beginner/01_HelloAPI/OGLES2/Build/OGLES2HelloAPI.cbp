@@ -17,7 +17,7 @@
 				</Compiler>
 				<Linker>
 					<Add option="-m32" />
-					<Add directory="../../../../../../../../lib/Debug_x86" />
+					<Add directory="../../../../../../../lib/Debug_x86" />
 				</Linker>
 			</Target>
 			<Target title="Release x86">
@@ -32,7 +32,7 @@
 				<Linker>
 					<Add option="-s" />
 					<Add option="-m32" />
-					<Add directory="../../../../../../../../lib/Release_x86" />
+					<Add directory="../../../../../../../lib/Release_x86" />
 				</Linker>
 			</Target>
 			<Target title="Debug x64">
@@ -44,7 +44,7 @@
 					<Add option="-g" />
 				</Compiler>
 				<Linker>
-					<Add directory="../../../../../../../../lib/Debug_x64" />
+					<Add directory="../../../../../../../lib/Debug_x64" />
 				</Linker>
 			</Target>
 			<Target title="Release x64">
@@ -57,7 +57,7 @@
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
-					<Add directory="../../../../../../../../lib/Release_x64" />
+					<Add directory="../../../../../../../lib/Release_x64" />
 				</Linker>
 			</Target>
 		</Build>
