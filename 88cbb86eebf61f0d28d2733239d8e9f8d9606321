@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6d5f63fa_61ac4c9c",
+        "filename": "src/Shader/VertexRoutine.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 643,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-05-06T19:45:22Z",
+      "side": 1,
+      "message": "This actually seems like a semi-constant, so it can be a state variable instead.",
+      "range": {
+        "startLine": 643,
+        "startChar": 72,
+        "endLine": 643,
+        "endChar": 92
+      },
+      "revId": "88cbb86eebf61f0d28d2733239d8e9f8d9606321",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6d5f63fa_a1dbc42f",
+        "filename": "src/Shader/VertexRoutine.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 644,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-05-06T19:45:22Z",
+      "side": 1,
+      "message": "Division is quite expensive. We could instead have a counter and output whenever it\u0027s 0, and increment it after every vertex and reset it back to 0 when it reaches verticesPerPrimitive.",
+      "range": {
+        "startLine": 644,
+        "startChar": 26,
+        "endLine": 644,
+        "endChar": 35
+      },
+      "revId": "88cbb86eebf61f0d28d2733239d8e9f8d9606321",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
