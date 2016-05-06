@@ -49,7 +49,6 @@
 
 using namespace std;
 using namespace Ice;
-using namespace v8;
 using namespace v8::internal;
 using namespace v8::internal::wasm;
 using v8::internal::wasm::DecodeWasmModule;
@@ -255,6 +254,7 @@ bool isComparison(wasm::WasmOpcode Opcode) {
 
 class IceBuilder {
   using Node = OperandNode;
+  using Variable = Ice::Variable;
 
   IceBuilder() = delete;
   IceBuilder(const IceBuilder &) = delete;
@@ -393,8 +393,14 @@ public:
   Node Binop(wasm::WasmOpcode Opcode, Node Left, Node Right) {
     LOG(out << "Binop(" << WasmOpcodes::OpcodeName(Opcode) << ", " << Left
             << ", " << Right << ") = ");
-    auto *Dest = makeVariable(
-        isComparison(Opcode) ? IceType_i32 : Left.toOperand()->getType());
+    BooleanVariable *BoolDest = nullptr;
+    Variable *Dest = nullptr;
+    if (isComparison(Opcode)) {
+      BoolDest = makeVariable<BooleanVariable>(IceType_i32);
+      Dest = BoolDest;
+    } else {
+      Dest = makeVariable(Left.toOperand()->getType());
+    }
     switch (Opcode) {
     case kExprI32Add:
     case kExprI64Add:
@@ -538,6 +544,7 @@ public:
       auto *TmpDest = makeVariable(IceType_i1);
       Control()->appendInst(
           InstIcmp::create(Func, InstIcmp::Ne, TmpDest, Left, Right));
+      BoolDest->setBoolSource(TmpDest);
       Control()->appendInst(
           InstCast::create(Func, InstCast::Zext, Dest, TmpDest));
       break;
@@ -547,6 +554,7 @@ public:
       auto *TmpDest = makeVariable(IceType_i1);
       Control()->appendInst(
           InstIcmp::create(Func, InstIcmp::Eq, TmpDest, Left, Right));
+      BoolDest->setBoolSource(TmpDest);
       Control()->appendInst(
           InstCast::create(Func, InstCast::Zext, Dest, TmpDest));
       break;
@@ -556,6 +564,7 @@ public:
       auto *TmpDest = makeVariable(IceType_i1);
       Control()->appendInst(
           InstIcmp::create(Func, InstIcmp::Slt, TmpDest, Left, Right));
+      BoolDest->setBoolSource(TmpDest);
       Control()->appendInst(
           InstCast::create(Func, InstCast::Zext, Dest, TmpDest));
       break;
@@ -565,6 +574,7 @@ public:
       auto *TmpDest = makeVariable(IceType_i1);
       Control()->appendInst(
           InstIcmp::create(Func, InstIcmp::Sle, TmpDest, Left, Right));
+      BoolDest->setBoolSource(TmpDest);
       Control()->appendInst(
           InstCast::create(Func, InstCast::Zext, Dest, TmpDest));
       break;
@@ -574,6 +584,7 @@ public:
       auto *TmpDest = makeVariable(IceType_i1);
       Control()->appendInst(
           InstIcmp::create(Func, InstIcmp::Uge, TmpDest, Left, Right));
+      BoolDest->setBoolSource(TmpDest);
       Control()->appendInst(
           InstCast::create(Func, InstCast::Zext, Dest, TmpDest));
       break;
@@ -583,6 +594,7 @@ public:
       auto *TmpDest = makeVariable(IceType_i1);
       Control()->appendInst(
           InstIcmp::create(Func, InstIcmp::Ule, TmpDest, Left, Right));
+      BoolDest->setBoolSource(TmpDest);
       Control()->appendInst(
           InstCast::create(Func, InstCast::Zext, Dest, TmpDest));
       break;
@@ -592,6 +604,7 @@ public:
       auto *TmpDest = makeVariable(IceType_i1);
       Control()->appendInst(
           InstIcmp::create(Func, InstIcmp::Ult, TmpDest, Left, Right));
+      BoolDest->setBoolSource(TmpDest);
       Control()->appendInst(
           InstCast::create(Func, InstCast::Zext, Dest, TmpDest));
       break;
@@ -601,6 +614,7 @@ public:
       auto *TmpDest = makeVariable(IceType_i1);
       Control()->appendInst(
           InstIcmp::create(Func, InstIcmp::Sge, TmpDest, Left, Right));
+      BoolDest->setBoolSource(TmpDest);
       Control()->appendInst(
           InstCast::create(Func, InstCast::Zext, Dest, TmpDest));
       break;
@@ -610,6 +624,7 @@ public:
       auto *TmpDest = makeVariable(IceType_i1);
       Control()->appendInst(
           InstIcmp::create(Func, InstIcmp::Sgt, TmpDest, Left, Right));
+      BoolDest->setBoolSource(TmpDest);
       Control()->appendInst(
           InstCast::create(Func, InstCast::Zext, Dest, TmpDest));
       break;
@@ -619,6 +634,7 @@ public:
       auto *TmpDest = makeVariable(IceType_i1);
       Control()->appendInst(
           InstIcmp::create(Func, InstIcmp::Ugt, TmpDest, Left, Right));
+      BoolDest->setBoolSource(TmpDest);
       Control()->appendInst(
           InstCast::create(Func, InstCast::Zext, Dest, TmpDest));
       break;
@@ -628,6 +644,7 @@ public:
       auto *TmpDest = makeVariable(IceType_i1);
       Control()->appendInst(
           InstFcmp::create(Func, InstFcmp::Ueq, TmpDest, Left, Right));
+      BoolDest->setBoolSource(TmpDest);
       Control()->appendInst(
           InstCast::create(Func, InstCast::Zext, Dest, TmpDest));
       break;
@@ -637,6 +654,7 @@ public:
       auto *TmpDest = makeVariable(IceType_i1);
       Control()->appendInst(
           InstFcmp::create(Func, InstFcmp::Une, TmpDest, Left, Right));
+      BoolDest->setBoolSource(TmpDest);
       Control()->appendInst(
           InstCast::create(Func, InstCast::Zext, Dest, TmpDest));
       break;
@@ -646,6 +664,7 @@ public:
       auto *TmpDest = makeVariable(IceType_i1);
       Control()->appendInst(
           InstFcmp::create(Func, InstFcmp::Ule, TmpDest, Left, Right));
+      BoolDest->setBoolSource(TmpDest);
       Control()->appendInst(
           InstCast::create(Func, InstCast::Zext, Dest, TmpDest));
       break;
@@ -655,6 +674,7 @@ public:
       auto *TmpDest = makeVariable(IceType_i1);
       Control()->appendInst(
           InstFcmp::create(Func, InstFcmp::Ult, TmpDest, Left, Right));
+      BoolDest->setBoolSource(TmpDest);
       Control()->appendInst(
           InstCast::create(Func, InstCast::Zext, Dest, TmpDest));
       break;
@@ -664,6 +684,7 @@ public:
       auto *TmpDest = makeVariable(IceType_i1);
       Control()->appendInst(
           InstFcmp::create(Func, InstFcmp::Uge, TmpDest, Left, Right));
+      BoolDest->setBoolSource(TmpDest);
       Control()->appendInst(
           InstCast::create(Func, InstCast::Zext, Dest, TmpDest));
       break;
@@ -673,6 +694,7 @@ public:
       auto *TmpDest = makeVariable(IceType_i1);
       Control()->appendInst(
           InstFcmp::create(Func, InstFcmp::Ugt, TmpDest, Left, Right));
+      BoolDest->setBoolSource(TmpDest);
       Control()->appendInst(
           InstCast::create(Func, InstCast::Zext, Dest, TmpDest));
       break;
@@ -688,22 +710,26 @@ public:
   Node Unop(wasm::WasmOpcode Opcode, Node Input) {
     LOG(out << "Unop(" << WasmOpcodes::OpcodeName(Opcode) << ", " << Input
             << ") = ");
-    Ice::Variable *Dest = nullptr;
+    Variable *Dest = nullptr;
     switch (Opcode) {
     // TODO (eholk): merge these next two cases using getConstantInteger
     case kExprI32Eqz: {
-      Dest = makeVariable(IceType_i32);
+      auto *BoolDest = makeVariable<BooleanVariable>(IceType_i32);
+      Dest = BoolDest;
       auto *Tmp = makeVariable(IceType_i1);
       Control()->appendInst(InstIcmp::create(Func, InstIcmp::Eq, Tmp, Input,
                                              Ctx->getConstantInt32(0)));
+      BoolDest->setBoolSource(Tmp);
       Control()->appendInst(InstCast::create(Func, InstCast::Zext, Dest, Tmp));
       break;
     }
     case kExprI64Eqz: {
-      Dest = makeVariable(IceType_i32);
+      auto *BoolDest = makeVariable<BooleanVariable>(IceType_i32);
+      Dest = BoolDest;
       auto *Tmp = makeVariable(IceType_i1);
       Control()->appendInst(InstIcmp::create(Func, InstIcmp::Eq, Tmp, Input,
                                              Ctx->getConstantInt64(0)));
+      BoolDest->setBoolSource(Tmp);
       Control()->appendInst(InstCast::create(Func, InstCast::Zext, Dest, Tmp));
       break;
     }
@@ -948,9 +974,12 @@ public:
     LOG(out << *TrueNode << ", " << *FalseNode << ")"
             << "\n");
 
-    auto *CondBool = makeVariable(IceType_i1);
-    Ctrl->appendInst(InstIcmp::create(Func, InstIcmp::Ne, CondBool, Cond,
-                                      Ctx->getConstantInt32(0)));
+    auto *CondBool = Cond.toOperand()->asBoolean();
+    if (CondBool == nullptr) {
+      CondBool = makeVariable(IceType_i1);
+      Ctrl->appendInst(InstIcmp::create(Func, InstIcmp::Ne, CondBool, Cond,
+                                        Ctx->getConstantInt32(0)));
+    }
 
     Ctrl->appendInst(InstBr::create(Func, CondBool, *TrueNode, *FalseNode));
     return OperandNode(nullptr);
@@ -1183,7 +1212,7 @@ public:
     Control()->appendInst(InstLoad::create(Func, LoadResult, RealAddr));
 
     // and cast, if needed
-    Ice::Variable *Result = nullptr;
+    Variable *Result = nullptr;
     if (toIceType(Type) != toIceType(MemType)) {
       auto DestType = toIceType(Type);
       Result = makeVariable(DestType);
@@ -1278,12 +1307,13 @@ private:
     PhiMap.emplace(Op, Phi);
   }
 
-  Ice::Variable *makeVariable(Ice::Type Type) {
-    return makeVariable(Type, Control());
+  template <typename T = Variable> T *makeVariable(Ice::Type Type) {
+    return makeVariable<T>(Type, Control());
   }
 
-  Ice::Variable *makeVariable(Ice::Type Type, CfgNode *DefNode) {
-    auto *Var = Func->makeVariable(Type);
+  template <typename T = Variable>
+  T *makeVariable(Ice::Type Type, CfgNode *DefNode) {
+    auto *Var = Func->makeVariable<T>(Type);
     DefNodeMap.emplace(Var, DefNode);
     return Var;
   }
@@ -1360,12 +1390,9 @@ private:
       Base = Addr;
     }
 
-    // Do the bounds check.
-    //
-    // TODO (eholk): Add a command line argument to control whether bounds
-    // checks are inserted, and maybe add a way to duplicate bounds checks to
-    // get a better sense of the overhead.
-    if (!llvm::dyn_cast<ConstantInteger32>(Base)) {
+    // Do the bounds check if enabled
+    if (getFlags().getWasmBoundsCheck() &&
+        !llvm::isa<ConstantInteger32>(Base)) {
       // TODO (eholk): creating a new basic block on every memory access is
       // terrible (see https://goo.gl/Zj7DTr). Try adding a new instruction that
       // encapsulates this "abort if false" pattern.

@@ -345,7 +345,11 @@ struct dev_list_flag {};
                                                                                \
   X(VerboseFocusOnString, std::string, dev_opt_flag, "verbose-focus",          \
     cl::desc("Override with -verbose=none except for specified functions"),    \
-    cl::init(":"))
+    cl::init(":"))                                                             \
+                                                                               \
+  X(WasmBoundsCheck, bool, dev_opt_flag, "wasm-bounds-check",                  \
+    cl::desc("Add bounds checking code in WASM frontend"),                     \
+    cl::init(true))
 //#define X(Name, Type, ClType, ...)
 
 } // end of namespace Ice

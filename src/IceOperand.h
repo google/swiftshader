@@ -51,6 +51,7 @@ public:
     kConst_Max = kConst_Target + MaxTargetKinds,
     kVariable,
     kVariable64On32,
+    kVariableBoolean,
     kVariable_Target, // leave space for target-specific variable kinds
     kVariable_Max = kVariable_Target + MaxTargetKinds,
     // Target-specific operand classes use kTarget as the starting point for
@@ -94,6 +95,8 @@ public:
   /// @}
 
   virtual ~Operand() = default;
+
+  virtual Variable *asBoolean() { return nullptr; }
 
 protected:
   Operand(OperandKind Kind, Type Ty) : Ty(Ty), Kind(Kind) {
@@ -982,6 +985,35 @@ private:
   MetadataKind Kind;
   CfgVector<VariableTracking> Metadata;
   const static InstDefList NoDefinitions;
+};
+
+/// BooleanVariable represents a variable that was the zero-extended result of a
+/// comparison. It maintains a pointer to its original i1 source so that the
+/// WASM frontend can avoid adding needless comparisons.
+class BooleanVariable : public Variable {
+  BooleanVariable() = delete;
+  BooleanVariable(const BooleanVariable &) = delete;
+  BooleanVariable &operator=(const BooleanVariable &) = delete;
+
+  BooleanVariable(const Cfg *Func, OperandKind K, Type Ty, SizeT Index)
+      : Variable(Func, K, Ty, Index) {}
+
+public:
+  static BooleanVariable *create(Cfg *Func, Type Ty, SizeT Index) {
+    return new (Func->allocate<BooleanVariable>())
+        BooleanVariable(Func, kVariable, Ty, Index);
+  }
+
+  virtual Variable *asBoolean() { return BoolSource; }
+
+  void setBoolSource(Variable *Src) { BoolSource = Src; }
+
+  static bool classof(const Operand *Operand) {
+    return Operand->getKind() == kVariableBoolean;
+  }
+
+private:
+  Variable *BoolSource = nullptr;
 };
 
 } // end of namespace Ice
