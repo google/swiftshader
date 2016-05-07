@@ -1,13 +1,16 @@
-// SwiftShader Software Renderer
+// Copyright 2016 The SwiftShader Authors. All Rights Reserved.
 //
-// Copyright(c) 2005-2012 TransGaming Inc.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
-// All rights reserved. No part of this software may be copied, distributed, transmitted,
-// transcribed, stored in a retrieval system, translated into any human or computer
-// language by any means, or disclosed to third parties without the explicit written
-// agreement of TransGaming Inc. Without such an agreement, no rights or licenses, express
-// or implied, including but not limited to any patent rights, are granted to you.
+//    http://www.apache.org/licenses/LICENSE-2.0
 //
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 // debug.h: Debugging utilities.
 
@@ -26,8 +29,8 @@
 
 namespace es
 {
-    // Outputs text to the debugging log
-    void trace(const char *format, ...);
+	// Outputs text to the debugging log
+	void trace(const char *format, ...);
 }
 
 // A macro to output a trace of a function call and its arguments to the debugging log
@@ -55,10 +58,10 @@ namespace es
 #undef ASSERT
 #if !defined(NDEBUG)
 #define ASSERT(expression) do { \
-    if(!(expression)) \
-        ERR("\t! Assert failed in %s(%d): "#expression"\n", __FUNCTION__, __LINE__); \
-        assert(expression); \
-    } while(0)
+	if(!(expression)) \
+		ERR("\t! Assert failed in %s(%d): "#expression"\n", __FUNCTION__, __LINE__); \
+		assert(expression); \
+	} while(0)
 #else
 #define ASSERT(expression) (void(0))
 #endif
@@ -67,22 +70,22 @@ namespace es
 #undef UNIMPLEMENTED
 #if !defined(NDEBUG)
 #define UNIMPLEMENTED() do { \
-    FIXME("\t! Unimplemented: %s(%d)\n", __FUNCTION__, __LINE__); \
-    assert(false); \
-    } while(0)
+	FIXME("\t! Unimplemented: %s(%d)\n", __FUNCTION__, __LINE__); \
+	assert(false); \
+	} while(0)
 #else
-    #define UNIMPLEMENTED() FIXME("\t! Unimplemented: %s(%d)\n", __FUNCTION__, __LINE__)
+	#define UNIMPLEMENTED() FIXME("\t! Unimplemented: %s(%d)\n", __FUNCTION__, __LINE__)
 #endif
 
 // A macro for code which is not expected to be reached under valid assumptions
 #undef UNREACHABLE
 #if !defined(NDEBUG)
 #define UNREACHABLE(value) do { \
-    ERR("\t! Unreachable case reached: %s(%d). %s: %d\n", __FUNCTION__, __LINE__, #value, value); \
-    assert(false); \
-    } while(0)
+	ERR("\t! Unreachable case reached: %s(%d). %s: %d\n", __FUNCTION__, __LINE__, #value, value); \
+	assert(false); \
+	} while(0)
 #else
-    #define UNREACHABLE(value) ERR("\t! Unreachable reached: %s(%d). %s: %d\n", __FUNCTION__, __LINE__, #value, value)
+	#define UNREACHABLE(value) ERR("\t! Unreachable reached: %s(%d). %s: %d\n", __FUNCTION__, __LINE__, #value, value)
 #endif
 
 #endif   // __ANDROID__

@@ -1,13 +1,16 @@
-// SwiftShader Software Renderer
+// Copyright 2016 The SwiftShader Authors. All Rights Reserved.
 //
-// Copyright(c) 2005-2013 TransGaming Inc.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
-// All rights reserved. No part of this software may be copied, distributed, transmitted,
-// transcribed, stored in a retrieval system, translated into any human or computer
-// language by any means, or disclosed to third parties without the explicit written
-// agreement of TransGaming Inc. Without such an agreement, no rights or licenses, express
-// or implied, including but not limited to any patent rights, are granted to you.
+//    http://www.apache.org/licenses/LICENSE-2.0
 //
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 // Config.cpp: Implements the egl::Config class, describing the format, type
 // and size for an egl::Surface. Implements EGLConfig and related functionality.
@@ -31,96 +34,96 @@ using namespace std;
 namespace egl
 {
 Config::Config(sw::Format displayFormat, EGLint minInterval, EGLint maxInterval, sw::Format renderTargetFormat, sw::Format depthStencilFormat, EGLint multiSample)
-    : mDisplayFormat(displayFormat), mRenderTargetFormat(renderTargetFormat), mDepthStencilFormat(depthStencilFormat), mMultiSample(multiSample)
+	: mDisplayFormat(displayFormat), mRenderTargetFormat(renderTargetFormat), mDepthStencilFormat(depthStencilFormat), mMultiSample(multiSample)
 {
-    mBindToTextureRGB = EGL_FALSE;
-    mBindToTextureRGBA = EGL_FALSE;
+	mBindToTextureRGB = EGL_FALSE;
+	mBindToTextureRGBA = EGL_FALSE;
 
 	// Initialize to a high value to lower the preference of formats for which there's no native support
-    mNativeVisualID = 0x7FFFFFFF;
+	mNativeVisualID = 0x7FFFFFFF;
 
-    switch(renderTargetFormat)
-    {
-    case sw::FORMAT_A1R5G5B5:
-        mRedSize = 5;
-        mGreenSize = 5;
-        mBlueSize = 5;
-        mAlphaSize = 1;
-        break;
-    case sw::FORMAT_A2R10G10B10:
-        mRedSize = 10;
-        mGreenSize = 10;
-        mBlueSize = 10;
-        mAlphaSize = 2;
-        break;
-    case sw::FORMAT_A8R8G8B8:
-        mRedSize = 8;
-        mGreenSize = 8;
-        mBlueSize = 8;
-        mAlphaSize = 8;
-        mBindToTextureRGBA = EGL_TRUE;
-        #ifdef __ANDROID__
+	switch(renderTargetFormat)
+	{
+	case sw::FORMAT_A1R5G5B5:
+		mRedSize = 5;
+		mGreenSize = 5;
+		mBlueSize = 5;
+		mAlphaSize = 1;
+		break;
+	case sw::FORMAT_A2R10G10B10:
+		mRedSize = 10;
+		mGreenSize = 10;
+		mBlueSize = 10;
+		mAlphaSize = 2;
+		break;
+	case sw::FORMAT_A8R8G8B8:
+		mRedSize = 8;
+		mGreenSize = 8;
+		mBlueSize = 8;
+		mAlphaSize = 8;
+		mBindToTextureRGBA = EGL_TRUE;
+		#ifdef __ANDROID__
 			mNativeVisualID = HAL_PIXEL_FORMAT_BGRA_8888;
 		#else
 			mNativeVisualID = 2;   // Arbitrary; prefer over ABGR
 		#endif
-        break;
+		break;
 	case sw::FORMAT_A8B8G8R8:
-        mRedSize = 8;
-        mGreenSize = 8;
-        mBlueSize = 8;
-        mAlphaSize = 8;
-        mBindToTextureRGBA = EGL_TRUE;
+		mRedSize = 8;
+		mGreenSize = 8;
+		mBlueSize = 8;
+		mAlphaSize = 8;
+		mBindToTextureRGBA = EGL_TRUE;
 		#ifdef __ANDROID__
 			mNativeVisualID = HAL_PIXEL_FORMAT_RGBA_8888;
 		#endif
-        break;
-    case sw::FORMAT_R5G6B5:
-        mRedSize = 5;
-        mGreenSize = 6;
-        mBlueSize = 5;
-        mAlphaSize = 0;
-        #ifdef __ANDROID__
+		break;
+	case sw::FORMAT_R5G6B5:
+		mRedSize = 5;
+		mGreenSize = 6;
+		mBlueSize = 5;
+		mAlphaSize = 0;
+		#ifdef __ANDROID__
 			mNativeVisualID = HAL_PIXEL_FORMAT_RGB_565;
 		#endif
-        break;
-    case sw::FORMAT_X8R8G8B8:
-        mRedSize = 8;
-        mGreenSize = 8;
-        mBlueSize = 8;
-        mAlphaSize = 0;
-        mBindToTextureRGB = EGL_TRUE;
+		break;
+	case sw::FORMAT_X8R8G8B8:
+		mRedSize = 8;
+		mGreenSize = 8;
+		mBlueSize = 8;
+		mAlphaSize = 0;
+		mBindToTextureRGB = EGL_TRUE;
 		#ifdef __ANDROID__
 			mNativeVisualID = 0x1FF;   // HAL_PIXEL_FORMAT_BGRX_8888
 		#else
 			mNativeVisualID = 1;   // Arbitrary; prefer over XBGR
 		#endif
-        break;
+		break;
 	case sw::FORMAT_X8B8G8R8:
-        mRedSize = 8;
-        mGreenSize = 8;
-        mBlueSize = 8;
-        mAlphaSize = 0;
-        mBindToTextureRGB = EGL_TRUE;
+		mRedSize = 8;
+		mGreenSize = 8;
+		mBlueSize = 8;
+		mAlphaSize = 0;
+		mBindToTextureRGB = EGL_TRUE;
 		#ifdef __ANDROID__
 			mNativeVisualID = HAL_PIXEL_FORMAT_RGBX_8888;
 		#endif
-        break;
-    default:
-        UNREACHABLE(renderTargetFormat);
-    }
+		break;
+	default:
+		UNREACHABLE(renderTargetFormat);
+	}
 
-    mLuminanceSize = 0;
-    mBufferSize = mRedSize + mGreenSize + mBlueSize + mLuminanceSize + mAlphaSize;
-    mAlphaMaskSize = 0;
-    mColorBufferType = EGL_RGB_BUFFER;
-    mConfigCaveat = EGL_NONE;
-    mConfigID = 0;
-    mConformant = EGL_OPENGL_ES_BIT | EGL_OPENGL_ES2_BIT
+	mLuminanceSize = 0;
+	mBufferSize = mRedSize + mGreenSize + mBlueSize + mLuminanceSize + mAlphaSize;
+	mAlphaMaskSize = 0;
+	mColorBufferType = EGL_RGB_BUFFER;
+	mConfigCaveat = EGL_NONE;
+	mConfigID = 0;
+	mConformant = EGL_OPENGL_ES_BIT | EGL_OPENGL_ES2_BIT
 #ifndef __ANDROID__ // Do not allow GLES 3.0 on Android
-        | EGL_OPENGL_ES3_BIT
+		| EGL_OPENGL_ES3_BIT
 #endif
-        ;
+		;
 
 	switch(depthStencilFormat)
 	{
@@ -128,10 +131,10 @@ Config::Config(sw::Format displayFormat, EGLint minInterval, EGLint maxInterval,
 		mDepthSize = 0;
 		mStencilSize = 0;
 		break;
-//  case sw::FORMAT_D16_LOCKABLE:
-//      mDepthSize = 16;
-//      mStencilSize = 0;
-//      break;
+//	case sw::FORMAT_D16_LOCKABLE:
+//		mDepthSize = 16;
+//		mStencilSize = 0;
+//		break;
 	case sw::FORMAT_D32:
 		mDepthSize = 32;
 		mStencilSize = 0;
@@ -156,39 +159,39 @@ Config::Config(sw::Format displayFormat, EGLint minInterval, EGLint maxInterval,
 		mDepthSize = 16;
 		mStencilSize = 0;
 		break;
-//  case sw::FORMAT_D32F_LOCKABLE:
-//      mDepthSize = 32;
-//      mStencilSize = 0;
-//      break;
-//  case sw::FORMAT_D24FS8:
-//      mDepthSize = 24;
-//      mStencilSize = 8;
-//      break;
+//	case sw::FORMAT_D32F_LOCKABLE:
+//		mDepthSize = 32;
+//		mStencilSize = 0;
+//		break;
+//	case sw::FORMAT_D24FS8:
+//		mDepthSize = 24;
+//		mStencilSize = 8;
+//		break;
 	default:
 		UNREACHABLE(depthStencilFormat);
 	}
 
-    mLevel = 0;
-    mMatchNativePixmap = EGL_NONE;
-    mMaxPBufferWidth = 4096;
-    mMaxPBufferHeight = 4096;
-    mMaxPBufferPixels = mMaxPBufferWidth * mMaxPBufferHeight;
-    mMaxSwapInterval = maxInterval;
-    mMinSwapInterval = minInterval;
-    mNativeRenderable = EGL_FALSE;
-    mNativeVisualType = 0;
-    mRenderableType = EGL_OPENGL_ES_BIT | EGL_OPENGL_ES2_BIT
+	mLevel = 0;
+	mMatchNativePixmap = EGL_NONE;
+	mMaxPBufferWidth = 4096;
+	mMaxPBufferHeight = 4096;
+	mMaxPBufferPixels = mMaxPBufferWidth * mMaxPBufferHeight;
+	mMaxSwapInterval = maxInterval;
+	mMinSwapInterval = minInterval;
+	mNativeRenderable = EGL_FALSE;
+	mNativeVisualType = 0;
+	mRenderableType = EGL_OPENGL_ES_BIT | EGL_OPENGL_ES2_BIT
 #ifndef __ANDROID__ // Do not allow GLES 3.0 on Android
-        | EGL_OPENGL_ES3_BIT
+		| EGL_OPENGL_ES3_BIT
 #endif
-        ;
-    mSampleBuffers = (multiSample > 0) ? 1 : 0;
-    mSamples = multiSample;
-    mSurfaceType = EGL_PBUFFER_BIT | EGL_WINDOW_BIT | EGL_SWAP_BEHAVIOR_PRESERVED_BIT;
-    mTransparentType = EGL_NONE;
-    mTransparentRedValue = 0;
-    mTransparentGreenValue = 0;
-    mTransparentBlueValue = 0;
+		;
+	mSampleBuffers = (multiSample > 0) ? 1 : 0;
+	mSamples = multiSample;
+	mSurfaceType = EGL_PBUFFER_BIT | EGL_WINDOW_BIT | EGL_SWAP_BEHAVIOR_PRESERVED_BIT;
+	mTransparentType = EGL_NONE;
+	mTransparentRedValue = 0;
+	mTransparentGreenValue = 0;
+	mTransparentBlueValue = 0;
 
 	mRecordableAndroid = EGL_TRUE;
 	mFramebufferTargetAndroid = (displayFormat == renderTargetFormat) ? EGL_TRUE : EGL_FALSE;
@@ -196,112 +199,112 @@ Config::Config(sw::Format displayFormat, EGLint minInterval, EGLint maxInterval,
 
 EGLConfig Config::getHandle() const
 {
-    return (EGLConfig)(size_t)mConfigID;
+	return (EGLConfig)(size_t)mConfigID;
 }
 
 // This ordering determines the config ID
 bool CompareConfig::operator()(const Config &x, const Config &y) const
 {
-    #define SORT_SMALLER(attribute)                \
-        if(x.attribute != y.attribute)             \
-        {                                          \
-            return x.attribute < y.attribute;      \
-        }
+	#define SORT_SMALLER(attribute)                \
+		if(x.attribute != y.attribute)             \
+		{                                          \
+			return x.attribute < y.attribute;      \
+		}
 
-    META_ASSERT(EGL_NONE < EGL_SLOW_CONFIG && EGL_SLOW_CONFIG < EGL_NON_CONFORMANT_CONFIG);
-    SORT_SMALLER(mConfigCaveat);
+	META_ASSERT(EGL_NONE < EGL_SLOW_CONFIG && EGL_SLOW_CONFIG < EGL_NON_CONFORMANT_CONFIG);
+	SORT_SMALLER(mConfigCaveat);
 
-    META_ASSERT(EGL_RGB_BUFFER < EGL_LUMINANCE_BUFFER);
-    SORT_SMALLER(mColorBufferType);
+	META_ASSERT(EGL_RGB_BUFFER < EGL_LUMINANCE_BUFFER);
+	SORT_SMALLER(mColorBufferType);
 
 	SORT_SMALLER(mRedSize);
 	SORT_SMALLER(mGreenSize);
 	SORT_SMALLER(mBlueSize);
 	SORT_SMALLER(mAlphaSize);
-    
+
 	SORT_SMALLER(mBufferSize);
-    SORT_SMALLER(mSampleBuffers);
-    SORT_SMALLER(mSamples);
-    SORT_SMALLER(mDepthSize);
-    SORT_SMALLER(mStencilSize);
-    SORT_SMALLER(mAlphaMaskSize);
-    SORT_SMALLER(mNativeVisualType);
+	SORT_SMALLER(mSampleBuffers);
+	SORT_SMALLER(mSamples);
+	SORT_SMALLER(mDepthSize);
+	SORT_SMALLER(mStencilSize);
+	SORT_SMALLER(mAlphaMaskSize);
+	SORT_SMALLER(mNativeVisualType);
 	SORT_SMALLER(mNativeVisualID);
 
-    #undef SORT_SMALLER
+	#undef SORT_SMALLER
 
 	// Strict ordering requires sorting all non-equal fields above
 	assert(memcmp(&x, &y, sizeof(Config)) == 0);
 
-    return false;
+	return false;
 }
 
 // Function object used by STL sorting routines for ordering Configs according to [EGL] section 3.4.1 page 24.
 class SortConfig
 {
 public:
-    explicit SortConfig(const EGLint *attribList);
+	explicit SortConfig(const EGLint *attribList);
 
-    bool operator()(const Config *x, const Config *y) const;
+	bool operator()(const Config *x, const Config *y) const;
 
 private:
-    EGLint wantedComponentsSize(const Config *config) const;
+	EGLint wantedComponentsSize(const Config *config) const;
 
-    bool mWantRed;
-    bool mWantGreen;
-    bool mWantBlue;
-    bool mWantAlpha;
-    bool mWantLuminance;
+	bool mWantRed;
+	bool mWantGreen;
+	bool mWantBlue;
+	bool mWantAlpha;
+	bool mWantLuminance;
 };
 
 SortConfig::SortConfig(const EGLint *attribList)
-    : mWantRed(false), mWantGreen(false), mWantBlue(false), mWantAlpha(false), mWantLuminance(false)
+	: mWantRed(false), mWantGreen(false), mWantBlue(false), mWantAlpha(false), mWantLuminance(false)
 {
 	// [EGL] section 3.4.1 page 24
-    // Sorting rule #3: by larger total number of color bits,
+	// Sorting rule #3: by larger total number of color bits,
 	// not considering components that are 0 or don't-care.
-    for(const EGLint *attr = attribList; attr[0] != EGL_NONE; attr += 2)
-    {
-        if(attr[1] != 0 && attr[1] != EGL_DONT_CARE)
-        {
-            switch (attr[0])
-            {
-            case EGL_RED_SIZE:       mWantRed = true;       break;
-            case EGL_GREEN_SIZE:     mWantGreen = true;     break;
-            case EGL_BLUE_SIZE:      mWantBlue = true;      break;
-            case EGL_ALPHA_SIZE:     mWantAlpha = true;     break;
-            case EGL_LUMINANCE_SIZE: mWantLuminance = true; break;
-            }
-        }
-    }
+	for(const EGLint *attr = attribList; attr[0] != EGL_NONE; attr += 2)
+	{
+		if(attr[1] != 0 && attr[1] != EGL_DONT_CARE)
+		{
+			switch(attr[0])
+			{
+			case EGL_RED_SIZE:       mWantRed = true;       break;
+			case EGL_GREEN_SIZE:     mWantGreen = true;     break;
+			case EGL_BLUE_SIZE:      mWantBlue = true;      break;
+			case EGL_ALPHA_SIZE:     mWantAlpha = true;     break;
+			case EGL_LUMINANCE_SIZE: mWantLuminance = true; break;
+			}
+		}
+	}
 }
 
 EGLint SortConfig::wantedComponentsSize(const Config *config) const
 {
-    EGLint total = 0;
+	EGLint total = 0;
 
-    if(mWantRed)       total += config->mRedSize;
-    if(mWantGreen)     total += config->mGreenSize;
-    if(mWantBlue)      total += config->mBlueSize;
-    if(mWantAlpha)     total += config->mAlphaSize;
-    if(mWantLuminance) total += config->mLuminanceSize;
+	if(mWantRed)       total += config->mRedSize;
+	if(mWantGreen)     total += config->mGreenSize;
+	if(mWantBlue)      total += config->mBlueSize;
+	if(mWantAlpha)     total += config->mAlphaSize;
+	if(mWantLuminance) total += config->mLuminanceSize;
 
-    return total;
+	return total;
 }
 
 bool SortConfig::operator()(const Config *x, const Config *y) const
 {
-    #define SORT_SMALLER(attribute)                \
-        if(x->attribute != y->attribute)           \
-        {                                          \
-            return x->attribute < y->attribute;    \
-        }
+	#define SORT_SMALLER(attribute)                \
+		if(x->attribute != y->attribute)           \
+		{                                          \
+			return x->attribute < y->attribute;    \
+		}
 
-    META_ASSERT(EGL_NONE < EGL_SLOW_CONFIG && EGL_SLOW_CONFIG < EGL_NON_CONFORMANT_CONFIG);
-    SORT_SMALLER(mConfigCaveat);
+	META_ASSERT(EGL_NONE < EGL_SLOW_CONFIG && EGL_SLOW_CONFIG < EGL_NON_CONFORMANT_CONFIG);
+	SORT_SMALLER(mConfigCaveat);
 
-    META_ASSERT(EGL_RGB_BUFFER < EGL_LUMINANCE_BUFFER);
-    SORT_SMALLER(mColorBufferType);
+	META_ASSERT(EGL_RGB_BUFFER < EGL_LUMINANCE_BUFFER);
+	SORT_SMALLER(mColorBufferType);
 
 	// By larger total number of color bits, only considering those that are requested to be > 0.
 	EGLint xComponentsSize = wantedComponentsSize(x);
@@ -311,18 +314,18 @@ bool SortConfig::operator()(const Config *x, const Config *y) const
 		return xComponentsSize > yComponentsSize;
 	}
 
-    SORT_SMALLER(mBufferSize);
-    SORT_SMALLER(mSampleBuffers);
-    SORT_SMALLER(mSamples);
-    SORT_SMALLER(mDepthSize);
-    SORT_SMALLER(mStencilSize);
-    SORT_SMALLER(mAlphaMaskSize);
-    SORT_SMALLER(mNativeVisualType);
-    SORT_SMALLER(mConfigID);
+	SORT_SMALLER(mBufferSize);
+	SORT_SMALLER(mSampleBuffers);
+	SORT_SMALLER(mSamples);
+	SORT_SMALLER(mDepthSize);
+	SORT_SMALLER(mStencilSize);
+	SORT_SMALLER(mAlphaMaskSize);
+	SORT_SMALLER(mNativeVisualType);
+	SORT_SMALLER(mConfigID);
 
-    #undef SORT_SMALLER
+	#undef SORT_SMALLER
 
-    return false;
+	return false;
 }
 
 ConfigSet::ConfigSet()
@@ -331,28 +334,28 @@ ConfigSet::ConfigSet()
 
 void ConfigSet::add(sw::Format displayFormat, EGLint minSwapInterval, EGLint maxSwapInterval, sw::Format renderTargetFormat, sw::Format depthStencilFormat, EGLint multiSample)
 {
-    Config config(displayFormat, minSwapInterval, maxSwapInterval, renderTargetFormat, depthStencilFormat, multiSample);
+	Config config(displayFormat, minSwapInterval, maxSwapInterval, renderTargetFormat, depthStencilFormat, multiSample);
 
-    mSet.insert(config);
+	mSet.insert(config);
 }
 
 size_t ConfigSet::size() const
 {
-    return mSet.size();
+	return mSet.size();
 }
 
 bool ConfigSet::getConfigs(EGLConfig *configs, const EGLint *attribList, EGLint configSize, EGLint *numConfig)
 {
-    vector<const Config*> passed;
-    passed.reserve(mSet.size());
+	vector<const Config*> passed;
+	passed.reserve(mSet.size());
 
-    for(Iterator config = mSet.begin(); config != mSet.end(); config++)
-    {
-        bool match = true;
-        const EGLint *attribute = attribList;
+	for(Iterator config = mSet.begin(); config != mSet.end(); config++)
+	{
+		bool match = true;
+		const EGLint *attribute = attribList;
 
-        while(attribute[0] != EGL_NONE)
-        {
+		while(attribute[0] != EGL_NONE)
+		{
 			if(attribute[1] != EGL_DONT_CARE)
 			{
 				switch(attribute[0])
@@ -403,45 +406,45 @@ bool ConfigSet::getConfigs(EGLConfig *configs, const EGLint *attribList, EGLint 
 				}
 			}
 
-            attribute += 2;
-        }
+			attribute += 2;
+		}
 
-        if(match)
-        {
-            passed.push_back(&*config);
-        }
-    }
+		if(match)
+		{
+			passed.push_back(&*config);
+		}
+	}
 
-    if(configs)
-    {
-        sort(passed.begin(), passed.end(), SortConfig(attribList));
+	if(configs)
+	{
+		sort(passed.begin(), passed.end(), SortConfig(attribList));
 
-        EGLint index;
-        for(index = 0; index < configSize && index < static_cast<EGLint>(passed.size()); index++)
-        {
-            configs[index] = passed[index]->getHandle();
-        }
+		EGLint index;
+		for(index = 0; index < configSize && index < static_cast<EGLint>(passed.size()); index++)
+		{
+			configs[index] = passed[index]->getHandle();
+		}
 
-        *numConfig = index;
-    }
-    else
-    {
-        *numConfig = static_cast<EGLint>(passed.size());
-    }
+		*numConfig = index;
+	}
+	else
+	{
+		*numConfig = static_cast<EGLint>(passed.size());
+	}
 
-    return true;
+	return true;
 }
 
 const egl::Config *ConfigSet::get(EGLConfig configHandle)
 {
-    for(Iterator config = mSet.begin(); config != mSet.end(); config++)
-    {
-        if(config->getHandle() == configHandle)
-        {
-            return &(*config);
-        }
-    }
+	for(Iterator config = mSet.begin(); config != mSet.end(); config++)
+	{
+		if(config->getHandle() == configHandle)
+		{
+			return &(*config);
+		}
+	}
 
-    return NULL;
+	return nullptr;
 }
 }

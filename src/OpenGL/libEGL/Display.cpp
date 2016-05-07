@@ -1,13 +1,16 @@
-// SwiftShader Software Renderer
+// Copyright 2016 The SwiftShader Authors. All Rights Reserved.
 //
-// Copyright(c) 2005-2013 TransGaming Inc.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
-// All rights reserved. No part of this software may be copied, distributed, transmitted,
-// transcribed, stored in a retrieval system, translated into any human or computer
-// language by any means, or disclosed to third parties without the explicit written
-// agreement of TransGaming Inc. Without such an agreement, no rights or licenses, express
-// or implied, including but not limited to any patent rights, are granted to you.
+//    http://www.apache.org/licenses/LICENSE-2.0
 //
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 // Display.cpp: Implements the egl::Display class, representing the abstract
 // display on which graphics are drawn. Implements EGLDisplay.
@@ -63,13 +66,13 @@ Display *Display::get(EGLDisplay dpy)
 
 Display::Display(void *nativeDisplay) : nativeDisplay(nativeDisplay)
 {
-    mMinSwapInterval = 1;
-    mMaxSwapInterval = 1;
+	mMinSwapInterval = 1;
+	mMaxSwapInterval = 1;
 }
 
 Display::~Display()
 {
-    terminate();
+	terminate();
 
 	#if defined(__linux__) && !defined(__ANDROID__)
 		if(nativeDisplay && libX11->XCloseDisplay)
@@ -82,10 +85,10 @@ Display::~Display()
 static void cpuid(int registers[4], int info)
 {
 	#if defined(_WIN32)
-        __cpuid(registers, info);
-    #else
-        __asm volatile("cpuid": "=a" (registers[0]), "=b" (registers[1]), "=c" (registers[2]), "=d" (registers[3]): "a" (info));
-    #endif
+		__cpuid(registers, info);
+	#else
+		__asm volatile("cpuid": "=a" (registers[0]), "=b" (registers[1]), "=c" (registers[2]), "=d" (registers[3]): "a" (info));
+	#endif
 }
 
 static bool detectSSE()
@@ -97,18 +100,18 @@ static bool detectSSE()
 
 bool Display::initialize()
 {
-    if(isInitialized())
-    {
-        return true;
-    }
+	if(isInitialized())
+	{
+		return true;
+	}
 
 	if(!detectSSE())
 	{
-        return false;
+		return false;
 	}
 
-    mMinSwapInterval = 0;
-    mMaxSwapInterval = 4;
+	mMinSwapInterval = 0;
+	mMaxSwapInterval = 4;
 
 	const int samples[] =
 	{
@@ -117,37 +120,37 @@ bool Display::initialize()
 		4
 	};
 
-    const sw::Format renderTargetFormats[] =
-    {
+	const sw::Format renderTargetFormats[] =
+	{
 	//	sw::FORMAT_A1R5G5B5,
-    //  sw::FORMAT_A2R10G10B10,   // The color_ramp conformance test uses ReadPixels with UNSIGNED_BYTE causing it to think that rendering skipped a colour value.
-        sw::FORMAT_A8R8G8B8,
-        sw::FORMAT_A8B8G8R8,
-        sw::FORMAT_R5G6B5,
-    //  sw::FORMAT_X1R5G5B5,      // Has no compatible OpenGL ES renderbuffer format
-        sw::FORMAT_X8R8G8B8,
-        sw::FORMAT_X8B8G8R8
-    };
+	//  sw::FORMAT_A2R10G10B10,   // The color_ramp conformance test uses ReadPixels with UNSIGNED_BYTE causing it to think that rendering skipped a colour value.
+		sw::FORMAT_A8R8G8B8,
+		sw::FORMAT_A8B8G8R8,
+		sw::FORMAT_R5G6B5,
+	//  sw::FORMAT_X1R5G5B5,      // Has no compatible OpenGL ES renderbuffer format
+		sw::FORMAT_X8R8G8B8,
+		sw::FORMAT_X8B8G8R8
+	};
 
-    const sw::Format depthStencilFormats[] =
-    {
-        sw::FORMAT_NULL,
-    //  sw::FORMAT_D16_LOCKABLE,
-        sw::FORMAT_D32,
-    //  sw::FORMAT_D15S1,
-        sw::FORMAT_D24S8,
-        sw::FORMAT_D24X8,
-    //  sw::FORMAT_D24X4S4,
-        sw::FORMAT_D16,
-    //  sw::FORMAT_D32F_LOCKABLE,
-    //  sw::FORMAT_D24FS8
-    };
+	const sw::Format depthStencilFormats[] =
+	{
+		sw::FORMAT_NULL,
+	//  sw::FORMAT_D16_LOCKABLE,
+		sw::FORMAT_D32,
+	//  sw::FORMAT_D15S1,
+		sw::FORMAT_D24S8,
+		sw::FORMAT_D24X8,
+	//  sw::FORMAT_D24X4S4,
+		sw::FORMAT_D16,
+	//  sw::FORMAT_D32F_LOCKABLE,
+	//  sw::FORMAT_D24FS8
+	};
 
 	sw::Format currentDisplayFormat = getDisplayFormat();
-    ConfigSet configSet;
+	ConfigSet configSet;
 
 	for(unsigned int samplesIndex = 0; samplesIndex < sizeof(samples) / sizeof(int); samplesIndex++)
-    {
+	{
 		for(unsigned int formatIndex = 0; formatIndex < sizeof(renderTargetFormats) / sizeof(sw::Format); formatIndex++)
 		{
 			sw::Format renderTargetFormat = renderTargetFormats[formatIndex];
@@ -161,253 +164,253 @@ bool Display::initialize()
 		}
 	}
 
-    // Give the sorted configs a unique ID and store them internally
-    EGLint index = 1;
-    for(ConfigSet::Iterator config = configSet.mSet.begin(); config != configSet.mSet.end(); config++)
-    {
-        Config configuration = *config;
-        configuration.mConfigID = index;
-        index++;
+	// Give the sorted configs a unique ID and store them internally
+	EGLint index = 1;
+	for(ConfigSet::Iterator config = configSet.mSet.begin(); config != configSet.mSet.end(); config++)
+	{
+		Config configuration = *config;
+		configuration.mConfigID = index;
+		index++;
 
-        mConfigSet.mSet.insert(configuration);
-    }
+		mConfigSet.mSet.insert(configuration);
+	}
 
-    if(!isInitialized())
-    {
-        terminate();
+	if(!isInitialized())
+	{
+		terminate();
 
-        return false;
-    }
+		return false;
+	}
 
-    return true;
+	return true;
 }
 
 void Display::terminate()
 {
-    while(!mSurfaceSet.empty())
-    {
-        destroySurface(*mSurfaceSet.begin());
-    }
+	while(!mSurfaceSet.empty())
+	{
+		destroySurface(*mSurfaceSet.begin());
+	}
 
-    while(!mContextSet.empty())
-    {
-        destroyContext(*mContextSet.begin());
-    }
+	while(!mContextSet.empty())
+	{
+		destroyContext(*mContextSet.begin());
+	}
 }
 
 bool Display::getConfigs(EGLConfig *configs, const EGLint *attribList, EGLint configSize, EGLint *numConfig)
 {
-    return mConfigSet.getConfigs(configs, attribList, configSize, numConfig);
+	return mConfigSet.getConfigs(configs, attribList, configSize, numConfig);
 }
 
 bool Display::getConfigAttrib(EGLConfig config, EGLint attribute, EGLint *value)
 {
-    const egl::Config *configuration = mConfigSet.get(config);
+	const egl::Config *configuration = mConfigSet.get(config);
 
-    switch(attribute)
-    {
-    case EGL_BUFFER_SIZE:                *value = configuration->mBufferSize;               break;
-    case EGL_ALPHA_SIZE:                 *value = configuration->mAlphaSize;                break;
-    case EGL_BLUE_SIZE:                  *value = configuration->mBlueSize;                 break;
-    case EGL_GREEN_SIZE:                 *value = configuration->mGreenSize;                break;
-    case EGL_RED_SIZE:                   *value = configuration->mRedSize;                  break;
-    case EGL_DEPTH_SIZE:                 *value = configuration->mDepthSize;                break;
-    case EGL_STENCIL_SIZE:               *value = configuration->mStencilSize;              break;
-    case EGL_CONFIG_CAVEAT:              *value = configuration->mConfigCaveat;             break;
-    case EGL_CONFIG_ID:                  *value = configuration->mConfigID;                 break;
-    case EGL_LEVEL:                      *value = configuration->mLevel;                    break;
-    case EGL_NATIVE_RENDERABLE:          *value = configuration->mNativeRenderable;         break;
-    case EGL_NATIVE_VISUAL_ID:           *value = configuration->mNativeVisualID;           break;
-    case EGL_NATIVE_VISUAL_TYPE:         *value = configuration->mNativeVisualType;         break;
-    case EGL_SAMPLES:                    *value = configuration->mSamples;                  break;
-    case EGL_SAMPLE_BUFFERS:             *value = configuration->mSampleBuffers;            break;
-    case EGL_SURFACE_TYPE:               *value = configuration->mSurfaceType;              break;
-    case EGL_TRANSPARENT_TYPE:           *value = configuration->mTransparentType;          break;
-    case EGL_TRANSPARENT_BLUE_VALUE:     *value = configuration->mTransparentBlueValue;     break;
-    case EGL_TRANSPARENT_GREEN_VALUE:    *value = configuration->mTransparentGreenValue;    break;
-    case EGL_TRANSPARENT_RED_VALUE:      *value = configuration->mTransparentRedValue;      break;
-    case EGL_BIND_TO_TEXTURE_RGB:        *value = configuration->mBindToTextureRGB;         break;
-    case EGL_BIND_TO_TEXTURE_RGBA:       *value = configuration->mBindToTextureRGBA;        break;
-    case EGL_MIN_SWAP_INTERVAL:          *value = configuration->mMinSwapInterval;          break;
-    case EGL_MAX_SWAP_INTERVAL:          *value = configuration->mMaxSwapInterval;          break;
-    case EGL_LUMINANCE_SIZE:             *value = configuration->mLuminanceSize;            break;
-    case EGL_ALPHA_MASK_SIZE:            *value = configuration->mAlphaMaskSize;            break;
-    case EGL_COLOR_BUFFER_TYPE:          *value = configuration->mColorBufferType;          break;
-    case EGL_RENDERABLE_TYPE:            *value = configuration->mRenderableType;           break;
-    case EGL_MATCH_NATIVE_PIXMAP:        *value = EGL_FALSE; UNIMPLEMENTED();               break;
-    case EGL_CONFORMANT:                 *value = configuration->mConformant;               break;
-    case EGL_MAX_PBUFFER_WIDTH:          *value = configuration->mMaxPBufferWidth;          break;
-    case EGL_MAX_PBUFFER_HEIGHT:         *value = configuration->mMaxPBufferHeight;         break;
-    case EGL_MAX_PBUFFER_PIXELS:         *value = configuration->mMaxPBufferPixels;         break;
+	switch(attribute)
+	{
+	case EGL_BUFFER_SIZE:                *value = configuration->mBufferSize;               break;
+	case EGL_ALPHA_SIZE:                 *value = configuration->mAlphaSize;                break;
+	case EGL_BLUE_SIZE:                  *value = configuration->mBlueSize;                 break;
+	case EGL_GREEN_SIZE:                 *value = configuration->mGreenSize;                break;
+	case EGL_RED_SIZE:                   *value = configuration->mRedSize;                  break;
+	case EGL_DEPTH_SIZE:                 *value = configuration->mDepthSize;                break;
+	case EGL_STENCIL_SIZE:               *value = configuration->mStencilSize;              break;
+	case EGL_CONFIG_CAVEAT:              *value = configuration->mConfigCaveat;             break;
+	case EGL_CONFIG_ID:                  *value = configuration->mConfigID;                 break;
+	case EGL_LEVEL:                      *value = configuration->mLevel;                    break;
+	case EGL_NATIVE_RENDERABLE:          *value = configuration->mNativeRenderable;         break;
+	case EGL_NATIVE_VISUAL_ID:           *value = configuration->mNativeVisualID;           break;
+	case EGL_NATIVE_VISUAL_TYPE:         *value = configuration->mNativeVisualType;         break;
+	case EGL_SAMPLES:                    *value = configuration->mSamples;                  break;
+	case EGL_SAMPLE_BUFFERS:             *value = configuration->mSampleBuffers;            break;
+	case EGL_SURFACE_TYPE:               *value = configuration->mSurfaceType;              break;
+	case EGL_TRANSPARENT_TYPE:           *value = configuration->mTransparentType;          break;
+	case EGL_TRANSPARENT_BLUE_VALUE:     *value = configuration->mTransparentBlueValue;     break;
+	case EGL_TRANSPARENT_GREEN_VALUE:    *value = configuration->mTransparentGreenValue;    break;
+	case EGL_TRANSPARENT_RED_VALUE:      *value = configuration->mTransparentRedValue;      break;
+	case EGL_BIND_TO_TEXTURE_RGB:        *value = configuration->mBindToTextureRGB;         break;
+	case EGL_BIND_TO_TEXTURE_RGBA:       *value = configuration->mBindToTextureRGBA;        break;
+	case EGL_MIN_SWAP_INTERVAL:          *value = configuration->mMinSwapInterval;          break;
+	case EGL_MAX_SWAP_INTERVAL:          *value = configuration->mMaxSwapInterval;          break;
+	case EGL_LUMINANCE_SIZE:             *value = configuration->mLuminanceSize;            break;
+	case EGL_ALPHA_MASK_SIZE:            *value = configuration->mAlphaMaskSize;            break;
+	case EGL_COLOR_BUFFER_TYPE:          *value = configuration->mColorBufferType;          break;
+	case EGL_RENDERABLE_TYPE:            *value = configuration->mRenderableType;           break;
+	case EGL_MATCH_NATIVE_PIXMAP:        *value = EGL_FALSE; UNIMPLEMENTED();               break;
+	case EGL_CONFORMANT:                 *value = configuration->mConformant;               break;
+	case EGL_MAX_PBUFFER_WIDTH:          *value = configuration->mMaxPBufferWidth;          break;
+	case EGL_MAX_PBUFFER_HEIGHT:         *value = configuration->mMaxPBufferHeight;         break;
+	case EGL_MAX_PBUFFER_PIXELS:         *value = configuration->mMaxPBufferPixels;         break;
 	case EGL_RECORDABLE_ANDROID:         *value = configuration->mRecordableAndroid;        break;
 	case EGL_FRAMEBUFFER_TARGET_ANDROID: *value = configuration->mFramebufferTargetAndroid; break;
-    default:
-        return false;
-    }
+	default:
+		return false;
+	}
 
-    return true;
+	return true;
 }
 
 EGLSurface Display::createWindowSurface(EGLNativeWindowType window, EGLConfig config, const EGLint *attribList)
 {
-    const Config *configuration = mConfigSet.get(config);
+	const Config *configuration = mConfigSet.get(config);
 
-    if(attribList)
-    {
-        while(*attribList != EGL_NONE)
-        {
-            switch (attribList[0])
-            {
-            case EGL_RENDER_BUFFER:
-                switch (attribList[1])
-                {
-                case EGL_BACK_BUFFER:
-                    break;
-                case EGL_SINGLE_BUFFER:
-                    return error(EGL_BAD_MATCH, EGL_NO_SURFACE);   // Rendering directly to front buffer not supported
-                default:
-                    return error(EGL_BAD_ATTRIBUTE, EGL_NO_SURFACE);
-                }
-                break;
-            case EGL_VG_COLORSPACE:
-                return error(EGL_BAD_MATCH, EGL_NO_SURFACE);
-            case EGL_VG_ALPHA_FORMAT:
-                return error(EGL_BAD_MATCH, EGL_NO_SURFACE);
-            default:
-                return error(EGL_BAD_ATTRIBUTE, EGL_NO_SURFACE);
-            }
+	if(attribList)
+	{
+		while(*attribList != EGL_NONE)
+		{
+			switch(attribList[0])
+			{
+			case EGL_RENDER_BUFFER:
+				switch(attribList[1])
+				{
+				case EGL_BACK_BUFFER:
+					break;
+				case EGL_SINGLE_BUFFER:
+					return error(EGL_BAD_MATCH, EGL_NO_SURFACE);   // Rendering directly to front buffer not supported
+				default:
+					return error(EGL_BAD_ATTRIBUTE, EGL_NO_SURFACE);
+				}
+				break;
+			case EGL_VG_COLORSPACE:
+				return error(EGL_BAD_MATCH, EGL_NO_SURFACE);
+			case EGL_VG_ALPHA_FORMAT:
+				return error(EGL_BAD_MATCH, EGL_NO_SURFACE);
+			default:
+				return error(EGL_BAD_ATTRIBUTE, EGL_NO_SURFACE);
+			}
 
-            attribList += 2;
-        }
-    }
+			attribList += 2;
+		}
+	}
 
-    if(hasExistingWindowSurface(window))
-    {
-        return error(EGL_BAD_ALLOC, EGL_NO_SURFACE);
-    }
+	if(hasExistingWindowSurface(window))
+	{
+		return error(EGL_BAD_ALLOC, EGL_NO_SURFACE);
+	}
 
-    Surface *surface = new WindowSurface(this, configuration, window);
+	Surface *surface = new WindowSurface(this, configuration, window);
 
-    if(!surface->initialize())
-    {
-        surface->release();
-        return EGL_NO_SURFACE;
-    }
+	if(!surface->initialize())
+	{
+		surface->release();
+		return EGL_NO_SURFACE;
+	}
 
 	surface->addRef();
-    mSurfaceSet.insert(surface);
+	mSurfaceSet.insert(surface);
 
-    return success(surface);
+	return success(surface);
 }
 
 EGLSurface Display::createPBufferSurface(EGLConfig config, const EGLint *attribList)
 {
-    EGLint width = 0, height = 0;
-    EGLenum textureFormat = EGL_NO_TEXTURE;
-    EGLenum textureTarget = EGL_NO_TEXTURE;
+	EGLint width = 0, height = 0;
+	EGLenum textureFormat = EGL_NO_TEXTURE;
+	EGLenum textureTarget = EGL_NO_TEXTURE;
 	EGLBoolean largestPBuffer = EGL_FALSE;
-    const Config *configuration = mConfigSet.get(config);
+	const Config *configuration = mConfigSet.get(config);
 
-    if(attribList)
-    {
-        while(*attribList != EGL_NONE)
-        {
-            switch(attribList[0])
-            {
-            case EGL_WIDTH:
-                width = attribList[1];
-                break;
-            case EGL_HEIGHT:
-                height = attribList[1];
-                break;
-            case EGL_LARGEST_PBUFFER:
-                largestPBuffer = attribList[1];
-                break;
-            case EGL_TEXTURE_FORMAT:
-                switch(attribList[1])
-                {
-                case EGL_NO_TEXTURE:
-                case EGL_TEXTURE_RGB:
-                case EGL_TEXTURE_RGBA:
-                    textureFormat = attribList[1];
-                    break;
-                default:
-                    return error(EGL_BAD_ATTRIBUTE, EGL_NO_SURFACE);
-                }
-                break;
-            case EGL_TEXTURE_TARGET:
-                switch(attribList[1])
-                {
-                case EGL_NO_TEXTURE:
-                case EGL_TEXTURE_2D:
-                    textureTarget = attribList[1];
-                    break;
-                default:
-                    return error(EGL_BAD_ATTRIBUTE, EGL_NO_SURFACE);
-                }
-                break;
-            case EGL_MIPMAP_TEXTURE:
-                if(attribList[1] != EGL_FALSE)
+	if(attribList)
+	{
+		while(*attribList != EGL_NONE)
+		{
+			switch(attribList[0])
+			{
+			case EGL_WIDTH:
+				width = attribList[1];
+				break;
+			case EGL_HEIGHT:
+				height = attribList[1];
+				break;
+			case EGL_LARGEST_PBUFFER:
+				largestPBuffer = attribList[1];
+				break;
+			case EGL_TEXTURE_FORMAT:
+				switch(attribList[1])
+				{
+				case EGL_NO_TEXTURE:
+				case EGL_TEXTURE_RGB:
+				case EGL_TEXTURE_RGBA:
+					textureFormat = attribList[1];
+					break;
+				default:
+					return error(EGL_BAD_ATTRIBUTE, EGL_NO_SURFACE);
+				}
+				break;
+			case EGL_TEXTURE_TARGET:
+				switch(attribList[1])
+				{
+				case EGL_NO_TEXTURE:
+				case EGL_TEXTURE_2D:
+					textureTarget = attribList[1];
+					break;
+				default:
+					return error(EGL_BAD_ATTRIBUTE, EGL_NO_SURFACE);
+				}
+				break;
+			case EGL_MIPMAP_TEXTURE:
+				if(attribList[1] != EGL_FALSE)
 				{
 					return error(EGL_BAD_ATTRIBUTE, EGL_NO_SURFACE);
 				}
-                break;
-            case EGL_VG_COLORSPACE:
-                return error(EGL_BAD_MATCH, EGL_NO_SURFACE);
-            case EGL_VG_ALPHA_FORMAT:
-                return error(EGL_BAD_MATCH, EGL_NO_SURFACE);
-            default:
-                return error(EGL_BAD_ATTRIBUTE, EGL_NO_SURFACE);
-            }
+				break;
+			case EGL_VG_COLORSPACE:
+				return error(EGL_BAD_MATCH, EGL_NO_SURFACE);
+			case EGL_VG_ALPHA_FORMAT:
+				return error(EGL_BAD_MATCH, EGL_NO_SURFACE);
+			default:
+				return error(EGL_BAD_ATTRIBUTE, EGL_NO_SURFACE);
+			}
 
-            attribList += 2;
-        }
-    }
+			attribList += 2;
+		}
+	}
 
-    if(width < 0 || height < 0)
-    {
-        return error(EGL_BAD_PARAMETER, EGL_NO_SURFACE);
-    }
+	if(width < 0 || height < 0)
+	{
+		return error(EGL_BAD_PARAMETER, EGL_NO_SURFACE);
+	}
 
-    if(width == 0 || height == 0)
-    {
-        return error(EGL_BAD_ATTRIBUTE, EGL_NO_SURFACE);
-    }
+	if(width == 0 || height == 0)
+	{
+		return error(EGL_BAD_ATTRIBUTE, EGL_NO_SURFACE);
+	}
 
-    if((textureFormat != EGL_NO_TEXTURE && textureTarget == EGL_NO_TEXTURE) ||
-       (textureFormat == EGL_NO_TEXTURE && textureTarget != EGL_NO_TEXTURE))
-    {
-        return error(EGL_BAD_MATCH, EGL_NO_SURFACE);
-    }
+	if((textureFormat != EGL_NO_TEXTURE && textureTarget == EGL_NO_TEXTURE) ||
+	   (textureFormat == EGL_NO_TEXTURE && textureTarget != EGL_NO_TEXTURE))
+	{
+		return error(EGL_BAD_MATCH, EGL_NO_SURFACE);
+	}
 
-    if(!(configuration->mSurfaceType & EGL_PBUFFER_BIT))
-    {
-        return error(EGL_BAD_MATCH, EGL_NO_SURFACE);
-    }
+	if(!(configuration->mSurfaceType & EGL_PBUFFER_BIT))
+	{
+		return error(EGL_BAD_MATCH, EGL_NO_SURFACE);
+	}
 
-    if((textureFormat == EGL_TEXTURE_RGB && configuration->mBindToTextureRGB != EGL_TRUE) ||
-       (textureFormat == EGL_TEXTURE_RGBA && configuration->mBindToTextureRGBA != EGL_TRUE))
-    {
-        return error(EGL_BAD_ATTRIBUTE, EGL_NO_SURFACE);
-    }
+	if((textureFormat == EGL_TEXTURE_RGB && configuration->mBindToTextureRGB != EGL_TRUE) ||
+	   (textureFormat == EGL_TEXTURE_RGBA && configuration->mBindToTextureRGBA != EGL_TRUE))
+	{
+		return error(EGL_BAD_ATTRIBUTE, EGL_NO_SURFACE);
+	}
 
-    Surface *surface = new PBufferSurface(this, configuration, width, height, textureFormat, textureTarget, largestPBuffer);
+	Surface *surface = new PBufferSurface(this, configuration, width, height, textureFormat, textureTarget, largestPBuffer);
 
-    if(!surface->initialize())
-    {
-        surface->release();
-        return EGL_NO_SURFACE;
-    }
+	if(!surface->initialize())
+	{
+		surface->release();
+		return EGL_NO_SURFACE;
+	}
 
 	surface->addRef();
-    mSurfaceSet.insert(surface);
+	mSurfaceSet.insert(surface);
 
-    return success(surface);
+	return success(surface);
 }
 
 EGLContext Display::createContext(EGLConfig configHandle, const egl::Context *shareContext, EGLint clientVersion)
 {
-    const egl::Config *config = mConfigSet.get(configHandle);
+	const egl::Config *config = mConfigSet.get(configHandle);
 	egl::Context *context = 0;
 
 	if(clientVersion == 1 && config->mRenderableType & EGL_OPENGL_ES_BIT)
@@ -419,9 +422,9 @@ EGLContext Display::createContext(EGLConfig configHandle, const egl::Context *sh
 	}
 	else if((clientVersion == 2 && config->mRenderableType & EGL_OPENGL_ES2_BIT)
 #ifndef __ANDROID__ // Do not allow GLES 3.0 on Android
-	     || (clientVersion == 3 && config->mRenderableType & EGL_OPENGL_ES3_BIT)
+		 || (clientVersion == 3 && config->mRenderableType & EGL_OPENGL_ES3_BIT)
 #endif
-	        )
+			)
 	{
 		if(libGLESv2)
 		{
@@ -441,7 +444,7 @@ EGLContext Display::createContext(EGLConfig configHandle, const egl::Context *sh
 	context->addRef();
 	mContextSet.insert(context);
 
-    return success(context);
+	return success(context);
 }
 
 EGLSyncKHR Display::createSync(Context *context)
@@ -456,7 +459,7 @@ EGLSyncKHR Display::createSync(Context *context)
 void Display::destroySurface(egl::Surface *surface)
 {
 	surface->release();
-    mSurfaceSet.erase(surface);
+	mSurfaceSet.erase(surface);
 
 	if(surface == getCurrentDrawSurface())
 	{
@@ -472,7 +475,7 @@ void Display::destroySurface(egl::Surface *surface)
 void Display::destroyContext(egl::Context *context)
 {
 	context->release();
-    mContextSet.erase(context);
+	mContextSet.erase(context);
 
 	if(context == getCurrentContext())
 	{
@@ -491,29 +494,29 @@ void Display::destroySync(FenceSync *sync)
 
 bool Display::isInitialized() const
 {
-    return mConfigSet.size() > 0;
+	return mConfigSet.size() > 0;
 }
 
 bool Display::isValidConfig(EGLConfig config)
 {
-    return mConfigSet.get(config) != nullptr;
+	return mConfigSet.get(config) != nullptr;
 }
 
 bool Display::isValidContext(egl::Context *context)
 {
-    return mContextSet.find(context) != mContextSet.end();
+	return mContextSet.find(context) != mContextSet.end();
 }
 
 bool Display::isValidSurface(egl::Surface *surface)
 {
-    return mSurfaceSet.find(surface) != mSurfaceSet.end();
+	return mSurfaceSet.find(surface) != mSurfaceSet.end();
 }
 
 bool Display::isValidWindow(EGLNativeWindowType window)
 {
-    #if defined(_WIN32)
-        return IsWindow(window) == TRUE;
-    #elif defined(__ANDROID__)
+	#if defined(_WIN32)
+		return IsWindow(window) == TRUE;
+	#elif defined(__ANDROID__)
 		if(!window)
 		{
 			ALOGE("%s called with window==NULL %s:%d", __FUNCTION__, __FILE__, __LINE__);
@@ -525,27 +528,27 @@ bool Display::isValidWindow(EGLNativeWindowType window)
 			return false;
 		}
 		return true;
-    #elif defined(__linux__)
-        if(nativeDisplay)
-        {
-            XWindowAttributes windowAttributes;
-            Status status = libX11->XGetWindowAttributes((::Display*)nativeDisplay, window, &windowAttributes);
+	#elif defined(__linux__)
+		if(nativeDisplay)
+		{
+			XWindowAttributes windowAttributes;
+			Status status = libX11->XGetWindowAttributes((::Display*)nativeDisplay, window, &windowAttributes);
 
-            return status == True;
-        }
-    #elif defined(__APPLE__)
-        return sw::OSX::IsValidWindow(window);
-    #else
-        #error "Display::isValidWindow unimplemented for this platform"
-    #endif
+			return status == True;
+		}
+	#elif defined(__APPLE__)
+		return sw::OSX::IsValidWindow(window);
+	#else
+		#error "Display::isValidWindow unimplemented for this platform"
+	#endif
 
-    return false;
+	return false;
 }
 
 bool Display::hasExistingWindowSurface(EGLNativeWindowType window)
 {
-    for(SurfaceSet::iterator surface = mSurfaceSet.begin(); surface != mSurfaceSet.end(); surface++)
-    {
+	for(SurfaceSet::iterator surface = mSurfaceSet.begin(); surface != mSurfaceSet.end(); surface++)
+	{
 		if((*surface)->isWindowSurface())
 		{
 			if((*surface)->getWindowHandle() == window)
@@ -553,9 +556,9 @@ bool Display::hasExistingWindowSurface(EGLNativeWindowType window)
 				return true;
 			}
 		}
-    }
+	}
 
-    return false;
+	return false;
 }
 
 bool Display::isValidSync(FenceSync *sync)
@@ -565,12 +568,12 @@ bool Display::isValidSync(FenceSync *sync)
 
 EGLint Display::getMinSwapInterval() const
 {
-    return mMinSwapInterval;
+	return mMinSwapInterval;
 }
 
 EGLint Display::getMaxSwapInterval() const
 {
-    return mMaxSwapInterval;
+	return mMaxSwapInterval;
 }
 
 void *Display::getNativeDisplay() const
@@ -654,28 +657,28 @@ sw::Format Display::getDisplayFormat() const
 
 		// No framebuffer device found, or we're in user space
 		return sw::FORMAT_X8B8G8R8;
-    #elif defined(__linux__)
-        if(nativeDisplay)
-        {
-            Screen *screen = libX11->XDefaultScreenOfDisplay((::Display*)nativeDisplay);
-            unsigned int bpp = libX11->XPlanesOfScreen(screen);
+	#elif defined(__linux__)
+		if(nativeDisplay)
+		{
+			Screen *screen = libX11->XDefaultScreenOfDisplay((::Display*)nativeDisplay);
+			unsigned int bpp = libX11->XPlanesOfScreen(screen);
 
-            switch(bpp)
-            {
-            case 32: return sw::FORMAT_X8R8G8B8;
-            case 24: return sw::FORMAT_R8G8B8;
-            case 16: return sw::FORMAT_R5G6B5;
-            default: UNREACHABLE(bpp);   // Unexpected display mode color depth
-            }
-        }
-        else
-        {
-            return sw::FORMAT_X8R8G8B8;
-        }
-    #elif defined(__APPLE__)
-        return sw::FORMAT_A8B8G8R8;
-    #else
-        #error "Display::isValidWindow unimplemented for this platform"
+			switch(bpp)
+			{
+			case 32: return sw::FORMAT_X8R8G8B8;
+			case 24: return sw::FORMAT_R8G8B8;
+			case 16: return sw::FORMAT_R5G6B5;
+			default: UNREACHABLE(bpp);   // Unexpected display mode color depth
+			}
+		}
+		else
+		{
+			return sw::FORMAT_X8R8G8B8;
+		}
+	#elif defined(__APPLE__)
+		return sw::FORMAT_A8B8G8R8;
+	#else
+		#error "Display::isValidWindow unimplemented for this platform"
 	#endif
 
 	return sw::FORMAT_X8R8G8B8;

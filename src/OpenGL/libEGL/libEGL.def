@@ -39,8 +39,8 @@ EXPORTS
 	eglCreateImageKHR
 	eglDestroyImageKHR
 	eglGetPlatformDisplayEXT
-    eglCreatePlatformWindowSurfaceEXT
-    eglCreatePlatformPixmapSurfaceEXT
+	eglCreatePlatformWindowSurfaceEXT
+	eglCreatePlatformPixmapSurfaceEXT
 	eglCreateSyncKHR
 	eglDestroySyncKHR
 	eglClientWaitSyncKHR

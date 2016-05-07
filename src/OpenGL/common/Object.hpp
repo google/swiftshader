@@ -1,13 +1,16 @@
-// SwiftShader Software Renderer
+// Copyright 2016 The SwiftShader Authors. All Rights Reserved.
 //
-// Copyright(c) 2005-2012 TransGaming Inc.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
-// All rights reserved. No part of this software may be copied, distributed, transmitted,
-// transcribed, stored in a retrieval system, translated into any human or computer
-// language by any means, or disclosed to third parties without the explicit written
-// agreement of TransGaming Inc. Without such an agreement, no rights or licenses, express
-// or implied, including but not limited to any patent rights, are granted to you.
+//    http://www.apache.org/licenses/LICENSE-2.0
 //
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 // Object.hpp: Defines the Object base class that provides
 // lifecycle support for GL objects using the traditional BindObject scheme, but
@@ -28,9 +31,9 @@ namespace gl
 class Object
 {
 public:
-    Object();
+	Object();
 
-    virtual void addRef();
+	virtual void addRef();
 	virtual void release();
 
 	inline bool hasSingleReference() const
@@ -39,12 +42,12 @@ public:
 	}
 
 protected:
-    virtual ~Object();
+	virtual ~Object();
 
 	int dereference();
 	void destroy();
 
-    volatile int referenceCount;
+	volatile int referenceCount;
 
 #ifndef NDEBUG
 public:
@@ -55,10 +58,10 @@ public:
 class NamedObject : public Object
 {
 public:
-    explicit NamedObject(GLuint name);
-    virtual ~NamedObject();
+	explicit NamedObject(GLuint name);
+	virtual ~NamedObject();
 
-    const GLuint name;
+	const GLuint name;
 };
 
 template<class ObjectType>
@@ -68,16 +71,16 @@ public:
 	BindingPointer() : object(nullptr) { }
 
 	BindingPointer(const BindingPointer<ObjectType> &other) : object(nullptr)
-    {
-        operator=(other.object);
-    }
+	{
+		operator=(other.object);
+	}
 
 	~BindingPointer()
 	{
 		ASSERT(!object);   // Objects have to be released before the resource manager is destroyed, so they must be explicitly cleaned up. Assign null to all binding pointers to make the reference count go to zero.
 	}
 
-    ObjectType *operator=(ObjectType *newObject)
+	ObjectType *operator=(ObjectType *newObject)
 	{
 		if(newObject) newObject->addRef();
 		if(object) object->release();
@@ -92,13 +95,13 @@ public:
 		return operator=(other.object);
 	}
 
-    operator ObjectType*() const { return object; }
-    ObjectType *operator->() const { return object; }
+	operator ObjectType*() const { return object; }
+	ObjectType *operator->() const { return object; }
 	GLuint name() const { return object ? object->name : 0; }
-    bool operator!() const { return !object; }
+	bool operator!() const { return !object; }
 
 private:
-    ObjectType *object;
+	ObjectType *object;
 };
 
 }

@@ -1,8 +1,16 @@
+// Copyright 2016 The SwiftShader Authors. All Rights Reserved.
 //
-// Copyright (c) 2012 The ANGLE Project Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #ifndef COMPILER_PREPROCESSOR_TOKENIZER_H_
 #define COMPILER_PREPROCESSOR_TOKENIZER_H_
@@ -20,39 +28,39 @@ class Diagnostics;
 
 class Tokenizer : public Lexer
 {
-  public:
-    struct Context
-    {
-        Diagnostics* diagnostics;
+public:
+	struct Context
+	{
+		Diagnostics* diagnostics;
 
-        Input input;
-        // The location where yytext points to. Token location should track
-        // scanLoc instead of Input::mReadLoc because they may not be the same
-        // if text is buffered up in the scanner input buffer.
-        Input::Location scanLoc;
+		Input input;
+		// The location where yytext points to. Token location should track
+		// scanLoc instead of Input::mReadLoc because they may not be the same
+		// if text is buffered up in the scanner input buffer.
+		Input::Location scanLoc;
 
-        bool leadingSpace;
-        bool lineStart;
-    };
-    static const size_t kMaxTokenLength;
+		bool leadingSpace;
+		bool lineStart;
+	};
+	static const size_t kMaxTokenLength;
 
-    Tokenizer(Diagnostics* diagnostics);
-    ~Tokenizer();
+	Tokenizer(Diagnostics* diagnostics);
+	~Tokenizer();
 
-    bool init(int count, const char* const string[], const int length[]);
+	bool init(int count, const char* const string[], const int length[]);
 
-    void setFileNumber(int file);
-    void setLineNumber(int line);
+	void setFileNumber(int file);
+	void setLineNumber(int line);
 
-    virtual void lex(Token* token);
+	virtual void lex(Token* token);
 
-  private:
-    PP_DISALLOW_COPY_AND_ASSIGN(Tokenizer);
-    bool initScanner();
-    void destroyScanner();
+private:
+	PP_DISALLOW_COPY_AND_ASSIGN(Tokenizer);
+	bool initScanner();
+	void destroyScanner();
 
-    void* mHandle;  // Scanner handle.
-    Context mContext;  // Scanner extra.
+	void* mHandle;  // Scanner handle.
+	Context mContext;  // Scanner extra.
 };
 
 }  // namespace pp

@@ -19,7 +19,7 @@ public:
 	virtual EGLenum validateSharedImage(EGLenum target, GLuint name, GLuint textureLevel) = 0;
 	virtual Image *createSharedImage(EGLenum target, GLuint name, GLuint textureLevel) = 0;
 	virtual int getClientVersion() const = 0;
-    virtual void finish() = 0;
+	virtual void finish() = 0;
 
 protected:
 	virtual ~Context() {};

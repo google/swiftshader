@@ -1,13 +1,16 @@
-// SwiftShader Software Renderer
+// Copyright 2016 The SwiftShader Authors. All Rights Reserved.
 //
-// Copyright(c) 2005-2013 TransGaming Inc.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
-// All rights reserved. No part of this software may be copied, distributed, transmitted,
-// transcribed, stored in a retrieval system, translated into any human or computer
-// language by any means, or disclosed to third parties without the explicit written
-// agreement of TransGaming Inc. Without such an agreement, no rights or licenses, express
-// or implied, including but not limited to any patent rights, are granted to you.
+//    http://www.apache.org/licenses/LICENSE-2.0
 //
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 // libGLESv2.cpp: Implements the exported OpenGL ES 2.0 functions.
 
 #include "main.h"
@@ -668,7 +671,7 @@ GLenum CheckFramebufferStatus(GLenum target)
 
 	if(context)
 	{
-		es2::Framebuffer *framebuffer = NULL;
+		es2::Framebuffer *framebuffer = nullptr;
 		if(target == GL_READ_FRAMEBUFFER_ANGLE)
 		{
 			framebuffer = context->getReadFramebuffer();
@@ -1903,9 +1906,9 @@ void FinishFenceNV(GLuint fence)
 
 	if(context)
 	{
-		es2::Fence* fenceObject = context->getFence(fence);
+		es2::Fence *fenceObject = context->getFence(fence);
 
-		if(fenceObject == NULL)
+		if(!fenceObject)
 		{
 			return error(GL_INVALID_OPERATION);
 		}
@@ -1953,7 +1956,7 @@ void FramebufferRenderbuffer(GLenum target, GLenum attachment, GLenum renderbuff
 
 	if(context)
 	{
-		es2::Framebuffer *framebuffer = NULL;
+		es2::Framebuffer *framebuffer = nullptr;
 		GLuint framebufferName = 0;
 		if(target == GL_READ_FRAMEBUFFER_ANGLE)
 		{
@@ -2067,7 +2070,7 @@ void FramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, GL
 		{
 			es2::Texture *tex = context->getTexture(texture);
 
-			if(tex == NULL)
+			if(!tex)
 			{
 				return error(GL_INVALID_OPERATION);
 			}
@@ -2111,7 +2114,7 @@ void FramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, GL
 			}
 		}
 
-		es2::Framebuffer *framebuffer = NULL;
+		es2::Framebuffer *framebuffer = nullptr;
 		GLuint framebufferName = 0;
 		if(target == GL_READ_FRAMEBUFFER_ANGLE)
 		{
@@ -2527,7 +2530,7 @@ void GetBooleanv(GLenum pname, GLboolean* params)
 
 			if(nativeType == GL_FLOAT)
 			{
-				GLfloat *floatParams = NULL;
+				GLfloat *floatParams = nullptr;
 				floatParams = new GLfloat[numParams];
 
 				context->getFloatv(pname, floatParams);
@@ -2544,7 +2547,7 @@ void GetBooleanv(GLenum pname, GLboolean* params)
 			}
 			else if(nativeType == GL_INT)
 			{
-				GLint *intParams = NULL;
+				GLint *intParams = nullptr;
 				intParams = new GLint[numParams];
 
 				context->getIntegerv(pname, intParams);
@@ -2651,7 +2654,7 @@ void GetFenceivNV(GLuint fence, GLenum pname, GLint *params)
 	{
 		es2::Fence *fenceObject = context->getFence(fence);
 
-		if(fenceObject == NULL)
+		if(!fenceObject)
 		{
 			return error(GL_INVALID_OPERATION);
 		}
@@ -2680,7 +2683,7 @@ void GetFloatv(GLenum pname, GLfloat* params)
 
 			if(nativeType == GL_BOOL)
 			{
-				GLboolean *boolParams = NULL;
+				GLboolean *boolParams = nullptr;
 				boolParams = new GLboolean[numParams];
 
 				context->getBooleanv(pname, boolParams);
@@ -2697,7 +2700,7 @@ void GetFloatv(GLenum pname, GLfloat* params)
 			}
 			else if(nativeType == GL_INT)
 			{
-				GLint *intParams = NULL;
+				GLint *intParams = nullptr;
 				intParams = new GLint[numParams];
 
 				context->getIntegerv(pname, intParams);
@@ -3095,7 +3098,7 @@ void GetIntegerv(GLenum pname, GLint* params)
 
 			if(nativeType == GL_BOOL)
 			{
-				GLboolean *boolParams = NULL;
+				GLboolean *boolParams = nullptr;
 				boolParams = new GLboolean[numParams];
 
 				context->getBooleanv(pname, boolParams);
@@ -3109,7 +3112,7 @@ void GetIntegerv(GLenum pname, GLint* params)
 			}
 			else if(nativeType == GL_FLOAT)
 			{
-				GLfloat *floatParams = NULL;
+				GLfloat *floatParams = nullptr;
 				floatParams = new GLfloat[numParams];
 
 				context->getFloatv(pname, floatParams);
@@ -3546,10 +3549,10 @@ const GLubyte* GetString(GLenum name)
 	case GL_EXTENSIONS:
 	{
 		es2::Context *context = es2::getContext();
-		return context ? context->getExtensions(GL_INVALID_INDEX) : (GLubyte*)NULL;
+		return context ? context->getExtensions(GL_INVALID_INDEX) : (GLubyte*)nullptr;
 	}
 	default:
-		return error(GL_INVALID_ENUM, (GLubyte*)NULL);
+		return error(GL_INVALID_ENUM, (GLubyte*)nullptr);
 	}
 }
 
@@ -3912,7 +3915,7 @@ void GetUniformfv(GLuint program, GLint location, GLfloat* params)
 			return error(GL_INVALID_OPERATION);
 		}
 
-		if(!programObject->getUniformfv(location, NULL, params))
+		if(!programObject->getUniformfv(location, nullptr, params))
 		{
 			return error(GL_INVALID_OPERATION);
 		}
@@ -3982,7 +3985,7 @@ void GetUniformiv(GLuint program, GLint location, GLint* params)
 			return error(GL_INVALID_OPERATION);
 		}
 
-		if(!programObject->getUniformiv(location, NULL, params))
+		if(!programObject->getUniformiv(location, nullptr, params))
 		{
 			return error(GL_INVALID_OPERATION);
 		}
@@ -4294,7 +4297,7 @@ GLboolean IsFenceNV(GLuint fence)
 	{
 		es2::Fence *fenceObject = context->getFence(fence);
 
-		if(fenceObject == NULL)
+		if(!fenceObject)
 		{
 			return GL_FALSE;
 		}
@@ -4633,7 +4636,7 @@ void ReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, 
 
 	if(context)
 	{
-		context->readPixels(x, y, width, height, format, type, NULL, pixels);
+		context->readPixels(x, y, width, height, format, type, nullptr, pixels);
 	}
 }
 
@@ -4787,7 +4790,7 @@ void SetFenceNV(GLuint fence, GLenum condition)
 	{
 		es2::Fence *fenceObject = context->getFence(fence);
 
-		if(fenceObject == NULL)
+		if(!fenceObject)
 		{
 			return error(GL_INVALID_OPERATION);
 		}
@@ -5031,7 +5034,7 @@ GLboolean TestFenceNV(GLuint fence)
 	{
 		es2::Fence *fenceObject = context->getFence(fence);
 
-		if(fenceObject == NULL)
+		if(!fenceObject)
 		{
 			return error(GL_INVALID_OPERATION, GL_TRUE);
 		}
@@ -6560,7 +6563,7 @@ void FramebufferTexture3DOES(GLenum target, GLenum attachment, GLenum textarget,
 		{
 			es2::Texture *tex = context->getTexture(texture);
 
-			if(tex == NULL)
+			if(!tex)
 			{
 				return error(GL_INVALID_OPERATION);
 			}
@@ -6588,7 +6591,7 @@ void FramebufferTexture3DOES(GLenum target, GLenum attachment, GLenum textarget,
 			}
 		}
 
-		es2::Framebuffer *framebuffer = NULL;
+		es2::Framebuffer *framebuffer = nullptr;
 		GLuint framebufferName = 0;
 		if(target == GL_READ_FRAMEBUFFER_ANGLE)
 		{
@@ -6938,5 +6941,5 @@ extern "C" __eglMustCastToProperFunctionPointerType es2GetProcAddress(const char
 		}
 	}
 
-	return NULL;
+	return nullptr;
 }

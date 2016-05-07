@@ -1,13 +1,16 @@
-// SwiftShader Software Renderer
+// Copyright 2016 The SwiftShader Authors. All Rights Reserved.
 //
-// Copyright(c) 2005-2013 TransGaming Inc.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
-// All rights reserved. No part of this software may be copied, distributed, transmitted,
-// transcribed, stored in a retrieval system, translated into any human or computer
-// language by any means, or disclosed to third parties without the explicit written
-// agreement of TransGaming Inc. Without such an agreement, no rights or licenses, express
-// or implied, including but not limited to any patent rights, are granted to you.
+//    http://www.apache.org/licenses/LICENSE-2.0
 //
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 // Shader.cpp: Implements the Shader class and its  derived classes
 // VertexShader and FragmentShader. Implements GL shader objects and related
@@ -26,79 +29,79 @@ bool Shader::compilerInitialized = false;
 
 Shader::Shader(ResourceManager *manager, GLuint handle) : mHandle(handle), mResourceManager(manager)
 {
-    mSource = NULL;
+	mSource = nullptr;
 
 	clear();
 
-    mRefCount = 0;
-    mDeleteStatus = false;
+	mRefCount = 0;
+	mDeleteStatus = false;
 }
 
 Shader::~Shader()
 {
-    delete[] mSource;
+	delete[] mSource;
 }
 
 GLuint Shader::getName() const
 {
-    return mHandle;
+	return mHandle;
 }
 
 void Shader::setSource(GLsizei count, const char *const *string, const GLint *length)
 {
-    delete[] mSource;
-    int totalLength = 0;
+	delete[] mSource;
+	int totalLength = 0;
 
-    for(int i = 0; i < count; i++)
-    {
-        if(length && length[i] >= 0)
-        {
-            totalLength += length[i];
-        }
-        else
-        {
-            totalLength += (int)strlen(string[i]);
-        }
-    }
+	for(int i = 0; i < count; i++)
+	{
+		if(length && length[i] >= 0)
+		{
+			totalLength += length[i];
+		}
+		else
+		{
+			totalLength += (int)strlen(string[i]);
+		}
+	}
 
-    mSource = new char[totalLength + 1];
-    char *code = mSource;
+	mSource = new char[totalLength + 1];
+	char *code = mSource;
 
-    for(int i = 0; i < count; i++)
-    {
-        int stringLength;
+	for(int i = 0; i < count; i++)
+	{
+		int stringLength;
 
-        if(length && length[i] >= 0)
-        {
-            stringLength = length[i];
-        }
-        else
-        {
-            stringLength = (int)strlen(string[i]);
-        }
+		if(length && length[i] >= 0)
+		{
+			stringLength = length[i];
+		}
+		else
+		{
+			stringLength = (int)strlen(string[i]);
+		}
 
-        strncpy(code, string[i], stringLength);
-        code += stringLength;
-    }
+		strncpy(code, string[i], stringLength);
+		code += stringLength;
+	}
 
-    mSource[totalLength] = '\0';
+	mSource[totalLength] = '\0';
 }
 
 int Shader::getInfoLogLength() const
 {
-    if(infoLog.empty())
-    {
-        return 0;
-    }
-    else
-    {
-       return infoLog.size() + 1;
-    }
+	if(infoLog.empty())
+	{
+		return 0;
+	}
+	else
+	{
+	   return infoLog.size() + 1;
+	}
 }
 
 void Shader::getInfoLog(GLsizei bufSize, GLsizei *length, char *infoLogOut)
 {
-    int index = 0;
+	int index = 0;
 
 	if(bufSize > 0)
 	{
@@ -108,30 +111,30 @@ void Shader::getInfoLog(GLsizei bufSize, GLsizei *length, char *infoLogOut)
 			memcpy(infoLogOut, infoLog.c_str(), index);
 		}
 
-        infoLogOut[index] = '\0';
-    }
+		infoLogOut[index] = '\0';
+	}
 
-    if(length)
-    {
-        *length = index;
-    }
+	if(length)
+	{
+		*length = index;
+	}
 }
 
 int Shader::getSourceLength() const
 {
-    if(!mSource)
-    {
-        return 0;
-    }
-    else
-    {
-       return strlen(mSource) + 1;
-    }
+	if(!mSource)
+	{
+		return 0;
+	}
+	else
+	{
+	   return strlen(mSource) + 1;
+	}
 }
 
 void Shader::getSource(GLsizei bufSize, GLsizei *length, char *source)
 {
-    int index = 0;
+	int index = 0;
 
 	if(bufSize > 0)
 	{
@@ -141,13 +144,13 @@ void Shader::getSource(GLsizei bufSize, GLsizei *length, char *source)
 			memcpy(source, mSource, index);
 		}
 
-        source[index] = '\0';
-    }
+		source[index] = '\0';
+	}
 
-    if(length)
-    {
-        *length = index;
-    }
+	if(length)
+	{
+		*length = index;
+	}
 }
 
 TranslatorASM *Shader::createCompiler(GLenum shaderType)
@@ -193,12 +196,12 @@ void Shader::compile()
 	createShader();
 	TranslatorASM *compiler = createCompiler(getType());
 
-	// Ensure we don't pass a NULL source to the compiler
-    char *source = "\0";
+	// Ensure we don't pass a nullptr source to the compiler
+	char *source = "\0";
 	if(mSource)
-    {
-        source = mSource;
-    }
+	{
+		source = mSource;
+	}
 
 	bool success = compiler->compile(&source, 1, SH_OBJECT_CODE);
 
@@ -219,7 +222,7 @@ void Shader::compile()
 		deleteShader();
 
 		infoLog = compiler->getInfoSink().info.c_str();
-        TRACE("\n%s", infoLog.c_str());
+		TRACE("\n%s", infoLog.c_str());
 	}
 
 	delete compiler;
@@ -227,126 +230,126 @@ void Shader::compile()
 
 bool Shader::isCompiled()
 {
-    return getShader() != 0;
+	return getShader() != 0;
 }
 
 void Shader::addRef()
 {
-    mRefCount++;
+	mRefCount++;
 }
 
 void Shader::release()
 {
-    mRefCount--;
+	mRefCount--;
 
-    if(mRefCount == 0 && mDeleteStatus)
-    {
-        mResourceManager->deleteShader(mHandle);
-    }
+	if(mRefCount == 0 && mDeleteStatus)
+	{
+		mResourceManager->deleteShader(mHandle);
+	}
 }
 
 unsigned int Shader::getRefCount() const
 {
-    return mRefCount;
+	return mRefCount;
 }
 
 bool Shader::isFlaggedForDeletion() const
 {
-    return mDeleteStatus;
+	return mDeleteStatus;
 }
 
 void Shader::flagForDeletion()
 {
-    mDeleteStatus = true;
+	mDeleteStatus = true;
 }
 
 void Shader::releaseCompiler()
 {
-    FreeCompilerGlobals();
+	FreeCompilerGlobals();
 	compilerInitialized = false;
 }
 
 // true if varying x has a higher priority in packing than y
 bool Shader::compareVarying(const glsl::Varying &x, const glsl::Varying &y)
 {
-    if(x.type == y.type)
-    {
-        return x.size() > y.size();
-    }
+	if(x.type == y.type)
+	{
+		return x.size() > y.size();
+	}
 
-    switch (x.type)
-    {
-      case GL_FLOAT_MAT4: return true;
-      case GL_FLOAT_MAT2:
-        switch(y.type)
-        {
-          case GL_FLOAT_MAT4: return false;
-          case GL_FLOAT_MAT2: return true;
-          case GL_FLOAT_VEC4: return true;
-          case GL_FLOAT_MAT3: return true;
-          case GL_FLOAT_VEC3: return true;
-          case GL_FLOAT_VEC2: return true;
-          case GL_FLOAT:      return true;
-          default: UNREACHABLE(y.type);
-        }
-        break;
-      case GL_FLOAT_VEC4:
-        switch(y.type)
-        {
-          case GL_FLOAT_MAT4: return false;
-          case GL_FLOAT_MAT2: return false;
-          case GL_FLOAT_VEC4: return true;
-          case GL_FLOAT_MAT3: return true;
-          case GL_FLOAT_VEC3: return true;
-          case GL_FLOAT_VEC2: return true;
-          case GL_FLOAT:      return true;
-          default: UNREACHABLE(y.type);
-        }
-        break;
-      case GL_FLOAT_MAT3:
-        switch(y.type)
-        {
-          case GL_FLOAT_MAT4: return false;
-          case GL_FLOAT_MAT2: return false;
-          case GL_FLOAT_VEC4: return false;
-          case GL_FLOAT_MAT3: return true;
-          case GL_FLOAT_VEC3: return true;
-          case GL_FLOAT_VEC2: return true;
-          case GL_FLOAT:      return true;
-          default: UNREACHABLE(y.type);
-        }
-        break;
-      case GL_FLOAT_VEC3:
-        switch(y.type)
-        {
-          case GL_FLOAT_MAT4: return false;
-          case GL_FLOAT_MAT2: return false;
-          case GL_FLOAT_VEC4: return false;
-          case GL_FLOAT_MAT3: return false;
-          case GL_FLOAT_VEC3: return true;
-          case GL_FLOAT_VEC2: return true;
-          case GL_FLOAT:      return true;
-          default: UNREACHABLE(y.type);
-        }
-        break;
-      case GL_FLOAT_VEC2:
-        switch(y.type)
-        {
-          case GL_FLOAT_MAT4: return false;
-          case GL_FLOAT_MAT2: return false;
-          case GL_FLOAT_VEC4: return false;
-          case GL_FLOAT_MAT3: return false;
-          case GL_FLOAT_VEC3: return false;
-          case GL_FLOAT_VEC2: return true;
-          case GL_FLOAT:      return true;
-          default: UNREACHABLE(y.type);
-        }
-        break;
-      case GL_FLOAT: return false;
-      default: UNREACHABLE(x.type);
-    }
+	switch(x.type)
+	{
+	case GL_FLOAT_MAT4: return true;
+	case GL_FLOAT_MAT2:
+		switch(y.type)
+		{
+		case GL_FLOAT_MAT4: return false;
+		case GL_FLOAT_MAT2: return true;
+		case GL_FLOAT_VEC4: return true;
+		case GL_FLOAT_MAT3: return true;
+		case GL_FLOAT_VEC3: return true;
+		case GL_FLOAT_VEC2: return true;
+		case GL_FLOAT:      return true;
+		default: UNREACHABLE(y.type);
+		}
+		break;
+	case GL_FLOAT_VEC4:
+		switch(y.type)
+		{
+		case GL_FLOAT_MAT4: return false;
+		case GL_FLOAT_MAT2: return false;
+		case GL_FLOAT_VEC4: return true;
+		case GL_FLOAT_MAT3: return true;
+		case GL_FLOAT_VEC3: return true;
+		case GL_FLOAT_VEC2: return true;
+		case GL_FLOAT:      return true;
+		default: UNREACHABLE(y.type);
+		}
+		break;
+	case GL_FLOAT_MAT3:
+		switch(y.type)
+		{
+		case GL_FLOAT_MAT4: return false;
+		case GL_FLOAT_MAT2: return false;
+		case GL_FLOAT_VEC4: return false;
+		case GL_FLOAT_MAT3: return true;
+		case GL_FLOAT_VEC3: return true;
+		case GL_FLOAT_VEC2: return true;
+		case GL_FLOAT:      return true;
+		default: UNREACHABLE(y.type);
+		}
+		break;
+	case GL_FLOAT_VEC3:
+		switch(y.type)
+		{
+		case GL_FLOAT_MAT4: return false;
+		case GL_FLOAT_MAT2: return false;
+		case GL_FLOAT_VEC4: return false;
+		case GL_FLOAT_MAT3: return false;
+		case GL_FLOAT_VEC3: return true;
+		case GL_FLOAT_VEC2: return true;
+		case GL_FLOAT:      return true;
+		default: UNREACHABLE(y.type);
+		}
+		break;
+	case GL_FLOAT_VEC2:
+		switch(y.type)
+		{
+		case GL_FLOAT_MAT4: return false;
+		case GL_FLOAT_MAT2: return false;
+		case GL_FLOAT_VEC4: return false;
+		case GL_FLOAT_MAT3: return false;
+		case GL_FLOAT_VEC3: return false;
+		case GL_FLOAT_VEC2: return true;
+		case GL_FLOAT:      return true;
+		default: UNREACHABLE(y.type);
+		}
+		break;
+	case GL_FLOAT: return false;
+	default: UNREACHABLE(x.type);
+	}
 
-    return false;
+	return false;
 }
 
 VertexShader::VertexShader(ResourceManager *manager, GLuint handle) : Shader(manager, handle)
@@ -361,23 +364,23 @@ VertexShader::~VertexShader()
 
 GLenum VertexShader::getType()
 {
-    return GL_VERTEX_SHADER;
+	return GL_VERTEX_SHADER;
 }
 
 int VertexShader::getSemanticIndex(const std::string &attributeName)
 {
-    if(!attributeName.empty())
-    {
+	if(!attributeName.empty())
+	{
 		for(glsl::ActiveAttributes::iterator attribute = activeAttributes.begin(); attribute != activeAttributes.end(); attribute++)
-        {
-            if(attribute->name == attributeName)
-            {
+		{
+			if(attribute->name == attributeName)
+			{
 				return attribute->registerIndex;
-            }
-        }
-    }
+			}
+		}
+	}
 
-    return -1;
+	return -1;
 }
 
 sw::Shader *VertexShader::getShader() const
@@ -414,7 +417,7 @@ FragmentShader::~FragmentShader()
 
 GLenum FragmentShader::getType()
 {
-    return GL_FRAGMENT_SHADER;
+	return GL_FRAGMENT_SHADER;
 }
 
 sw::Shader *FragmentShader::getShader() const

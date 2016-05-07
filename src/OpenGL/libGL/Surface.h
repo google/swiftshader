@@ -1,13 +1,16 @@
-// SwiftShader Software Renderer
+// Copyright 2016 The SwiftShader Authors. All Rights Reserved.
 //
-// Copyright(c) 2005-2012 TransGaming Inc.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
-// All rights reserved. No part of this software may be copied, distributed, transmitted,
-// transcribed, stored in a retrieval system, translated into any human or computer
-// language by any means, or disclosed to third parties without the explicit written
-// agreement of TransGaming Inc. Without such an agreement, no rights or licenses, express
-// or implied, including but not limited to any patent rights, are granted to you.
+//    http://www.apache.org/licenses/LICENSE-2.0
 //
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 // Surface.h: Defines the Surface class, representing a drawing surface
 // such as the client area of a window, including any back buffers.
@@ -38,44 +41,44 @@ class Display;
 class Surface
 {
 public:
-    Surface(Display *display, NativeWindowType window);
-    Surface(Display *display, GLint width, GLint height, GLenum textureFormat, GLenum textureTarget);
+	Surface(Display *display, NativeWindowType window);
+	Surface(Display *display, GLint width, GLint height, GLenum textureFormat, GLenum textureTarget);
 
-    virtual ~Surface();
+	virtual ~Surface();
 
 	bool initialize();
-    void swap();
-    
-    virtual Image *getRenderTarget();
-    virtual Image *getDepthStencil();
+	void swap();
 
-    void setSwapInterval(GLint interval);
+	virtual Image *getRenderTarget();
+	virtual Image *getDepthStencil();
 
-    virtual GLint getWidth() const;
-    virtual GLint getHeight() const;
-    virtual GLenum getTextureFormat() const;
-    virtual GLenum getTextureTarget() const;
+	void setSwapInterval(GLint interval);
+
+	virtual GLint getWidth() const;
+	virtual GLint getHeight() const;
+	virtual GLenum getTextureFormat() const;
+	virtual GLenum getTextureTarget() const;
 
 	bool checkForResize();   // Returns true if surface changed due to resize
 
 private:
-    void release();
-    bool reset();
+	void release();
+	bool reset();
 
-    Display *const mDisplay;
-    Image *mDepthStencil;
+	Display *const mDisplay;
+	Image *mDepthStencil;
 	sw::FrameBuffer *frameBuffer;
 	Image *backBuffer;
 
 	bool reset(int backbufferWidth, int backbufferHeight);
-    
-    const NativeWindowType mWindow;   // Window that the surface is created for.
-    bool mWindowSubclassed;           // Indicates whether we successfully subclassed mWindow for WM_RESIZE hooking
-    GLint mHeight;                    // Height of surface
-    GLint mWidth;                     // Width of surface
-    GLenum mTextureFormat;            // Format of texture: RGB, RGBA, or no texture
-    GLenum mTextureTarget;            // Type of texture: 2D or no texture
-    GLint mSwapInterval;
+
+	const NativeWindowType mWindow;   // Window that the surface is created for.
+	bool mWindowSubclassed;           // Indicates whether we successfully subclassed mWindow for WM_RESIZE hooking
+	GLint mHeight;                    // Height of surface
+	GLint mWidth;                     // Width of surface
+	GLenum mTextureFormat;            // Format of texture: RGB, RGBA, or no texture
+	GLenum mTextureTarget;            // Type of texture: 2D or no texture
+	GLint mSwapInterval;
 };
 }
 

@@ -1,13 +1,16 @@
-// SwiftShader Software Renderer
+// Copyright 2016 The SwiftShader Authors. All Rights Reserved.
 //
-// Copyright(c) 2005-2013 TransGaming Inc.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
-// All rights reserved. No part of this software may be copied, distributed, transmitted,
-// transcribed, stored in a retrieval system, translated into any human or computer
-// language by any means, or disclosed to third parties without the explicit written
-// agreement of TransGaming Inc. Without such an agreement, no rights or licenses, express
-// or implied, including but not limited to any patent rights, are granted to you.
+//    http://www.apache.org/licenses/LICENSE-2.0
 //
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 // main.cpp: DLL entry point and management of thread-local data.
 
@@ -31,67 +34,67 @@ static sw::Thread::LocalStorageKey currentTLS = TLS_OUT_OF_INDEXES;
 
 static void glAttachThread()
 {
-    TRACE("()");
+	TRACE("()");
 
 	gl::Current *current = new gl::Current;
 
-    if(current)
-    {
+	if(current)
+	{
 		sw::Thread::setLocalStorage(currentTLS, current);
 
-        current->context = 0;
-        current->display = 0;
-        current->drawSurface = 0;
-        current->readSurface = 0;
-    }
+		current->context = 0;
+		current->display = 0;
+		current->drawSurface = 0;
+		current->readSurface = 0;
+	}
 }
 
 static void glDetachThread()
 {
-    TRACE("()");
+	TRACE("()");
 
 	gl::Current *current = (gl::Current*)sw::Thread::getLocalStorage(currentTLS);
 
-    if(current)
-    {
-        delete current;
-    }
+	if(current)
+	{
+		delete current;
+	}
 }
 
 CONSTRUCTOR static bool glAttachProcess()
 {
-    TRACE("()");
+	TRACE("()");
 
 	#if !(ANGLE_DISABLE_TRACE)
-        FILE *debug = fopen(TRACE_OUTPUT_FILE, "rt");
+		FILE *debug = fopen(TRACE_OUTPUT_FILE, "rt");
 
-        if(debug)
-        {
-            fclose(debug);
-            debug = fopen(TRACE_OUTPUT_FILE, "wt");   // Erase
-            fclose(debug);
-        }
+		if(debug)
+		{
+			fclose(debug);
+			debug = fopen(TRACE_OUTPUT_FILE, "wt");   // Erase
+			fclose(debug);
+		}
 	#endif
 
 	currentTLS = sw::Thread::allocateLocalStorageKey();
 
-    if(currentTLS == TLS_OUT_OF_INDEXES)
-    {
-        return false;
-    }
+	if(currentTLS == TLS_OUT_OF_INDEXES)
+	{
+		return false;
+	}
 
-    glAttachThread();
+	glAttachThread();
 
-    return true;
+	return true;
 }
 
 DESTRUCTOR static void glDetachProcess()
 {
-    TRACE("()");
+	TRACE("()");
 
 	glDetachThread();
 
-    sw::Thread::freeLocalStorageKey(currentTLS);
+	sw::Thread::freeLocalStorageKey(currentTLS);
 }
 
 #if defined(_WIN32)
@@ -99,63 +102,63 @@ static INT_PTR CALLBACK DebuggerWaitDialogProc(HWND hwnd, UINT uMsg, WPARAM wPar
 {
 	RECT rect;
 
-    switch(uMsg)
-    {
-    case WM_INITDIALOG:
+	switch(uMsg)
+	{
+	case WM_INITDIALOG:
 		GetWindowRect(GetDesktopWindow(), &rect);
 		SetWindowPos(hwnd, HWND_TOP, rect.right / 2, rect.bottom / 2, 0, 0, SWP_NOSIZE);
 		SetTimer(hwnd, 1, 100, NULL);
 		return TRUE;
-    case WM_COMMAND:
-        if(LOWORD(wParam) == IDCANCEL)
+	case WM_COMMAND:
+		if(LOWORD(wParam) == IDCANCEL)
 		{
 			EndDialog(hwnd, 0);
 		}
-        break;
-    case WM_TIMER:
+		break;
+	case WM_TIMER:
 		if(IsDebuggerPresent())
 		{
 			EndDialog(hwnd, 0);
 		}
-    }
+	}
 
-    return FALSE;
+	return FALSE;
 }
 
 static void WaitForDebugger(HINSTANCE instance)
 {
-    if(!IsDebuggerPresent())
-    {
-        HRSRC dialog = FindResource(instance, MAKEINTRESOURCE(IDD_DIALOG1), RT_DIALOG);
+	if(!IsDebuggerPresent())
+	{
+		HRSRC dialog = FindResource(instance, MAKEINTRESOURCE(IDD_DIALOG1), RT_DIALOG);
 		DLGTEMPLATE *dialogTemplate = (DLGTEMPLATE*)LoadResource(instance, dialog);
 		DialogBoxIndirect(instance, dialogTemplate, NULL, DebuggerWaitDialogProc);
-    }
+	}
 }
 
 extern "C" BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved)
 {
-    switch(reason)
-    {
-    case DLL_PROCESS_ATTACH:
+	switch(reason)
+	{
+	case DLL_PROCESS_ATTACH:
 		#ifndef NDEBUG
 			WaitForDebugger(instance);
 		#endif
-        return glAttachProcess();
-        break;
-    case DLL_THREAD_ATTACH:
-        glAttachThread();
-        break;
-    case DLL_THREAD_DETACH:
-        glDetachThread();
-        break;
-    case DLL_PROCESS_DETACH:
-        glDetachProcess();
-        break;
-    default:
-        break;
-    }
+		return glAttachProcess();
+		break;
+	case DLL_THREAD_ATTACH:
+		glAttachThread();
+		break;
+	case DLL_THREAD_DETACH:
+		glDetachThread();
+		break;
+	case DLL_PROCESS_DETACH:
+		glDetachProcess();
+		break;
+	default:
+		break;
+	}
 
-    return TRUE;
+	return TRUE;
 }
 #endif
 
@@ -175,43 +178,43 @@ static gl::Current *getCurrent(void)
 
 void makeCurrent(Context *context, Display *display, Surface *surface)
 {
-    Current *current = getCurrent();
+	Current *current = getCurrent();
 
-    current->context = context;
-    current->display = display;
+	current->context = context;
+	current->display = display;
 
-    if(context && display && surface)
-    {
-        context->makeCurrent(surface);
-    }
+	if(context && display && surface)
+	{
+		context->makeCurrent(surface);
+	}
 }
 
 Context *getContext()
 {
-    Current *current = getCurrent();
+	Current *current = getCurrent();
 
-    return current->context;
+	return current->context;
 }
 
 Display *getDisplay()
 {
-    Current *current = getCurrent();
+	Current *current = getCurrent();
 
-    return current->display;
+	return current->display;
 }
 
 Device *getDevice()
 {
-    Context *context = getContext();
+	Context *context = getContext();
 
-    return context ? context->getDevice() : 0;
+	return context ? context->getDevice() : 0;
 }
 
 void setCurrentDisplay(Display *dpy)
 {
-    Current *current = getCurrent();
+	Current *current = getCurrent();
 
-    current->display = dpy;
+	current->display = dpy;
 }
 
 void setCurrentContext(gl::Context *ctx)
@@ -223,63 +226,63 @@ void setCurrentContext(gl::Context *ctx)
 
 void setCurrentDrawSurface(Surface *surface)
 {
-    Current *current = getCurrent();
+	Current *current = getCurrent();
 
-    current->drawSurface = surface;
+	current->drawSurface = surface;
 }
 
 Surface *getCurrentDrawSurface()
 {
-    Current *current = getCurrent();
+	Current *current = getCurrent();
 
-    return current->drawSurface;
+	return current->drawSurface;
 }
 
 void setCurrentReadSurface(Surface *surface)
 {
-    Current *current = getCurrent();
+	Current *current = getCurrent();
 
-    current->readSurface = surface;
+	current->readSurface = surface;
 }
 
 Surface *getCurrentReadSurface()
 {
-    Current *current = getCurrent();
+	Current *current = getCurrent();
 
-    return current->readSurface;
+	return current->readSurface;
 }
 }
 
 // Records an error code
 void error(GLenum errorCode)
 {
-    gl::Context *context = gl::getContext();
+	gl::Context *context = gl::getContext();
 
-    if(context)
-    {
-        switch(errorCode)
-        {
-        case GL_INVALID_ENUM:
-            context->recordInvalidEnum();
-            TRACE("\t! Error generated: invalid enum\n");
-            break;
-        case GL_INVALID_VALUE:
-            context->recordInvalidValue();
-            TRACE("\t! Error generated: invalid value\n");
-            break;
-        case GL_INVALID_OPERATION:
-            context->recordInvalidOperation();
-            TRACE("\t! Error generated: invalid operation\n");
-            break;
-        case GL_OUT_OF_MEMORY:
-            context->recordOutOfMemory();
-            TRACE("\t! Error generated: out of memory\n");
-            break;
-        case GL_INVALID_FRAMEBUFFER_OPERATION:
-            context->recordInvalidFramebufferOperation();
-            TRACE("\t! Error generated: invalid framebuffer operation\n");
-            break;
-        default: UNREACHABLE(errorCode);
-        }
-    }
+	if(context)
+	{
+		switch(errorCode)
+		{
+		case GL_INVALID_ENUM:
+			context->recordInvalidEnum();
+			TRACE("\t! Error generated: invalid enum\n");
+			break;
+		case GL_INVALID_VALUE:
+			context->recordInvalidValue();
+			TRACE("\t! Error generated: invalid value\n");
+			break;
+		case GL_INVALID_OPERATION:
+			context->recordInvalidOperation();
+			TRACE("\t! Error generated: invalid operation\n");
+			break;
+		case GL_OUT_OF_MEMORY:
+			context->recordOutOfMemory();
+			TRACE("\t! Error generated: out of memory\n");
+			break;
+		case GL_INVALID_FRAMEBUFFER_OPERATION:
+			context->recordInvalidFramebufferOperation();
+			TRACE("\t! Error generated: invalid framebuffer operation\n");
+			break;
+		default: UNREACHABLE(errorCode);
+		}
+	}
 }

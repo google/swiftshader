@@ -1,13 +1,16 @@
-// SwiftShader Software Renderer
+// Copyright 2016 The SwiftShader Authors. All Rights Reserved.
 //
-// Copyright(c) 2005-2012 TransGaming Inc.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
-// All rights reserved. No part of this software may be copied, distributed, transmitted,
-// transcribed, stored in a retrieval system, translated into any human or computer
-// language by any means, or disclosed to third parties without the explicit written
-// agreement of TransGaming Inc. Without such an agreement, no rights or licenses, express
-// or implied, including but not limited to any patent rights, are granted to you.
+//    http://www.apache.org/licenses/LICENSE-2.0
 //
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #include "Renderer.hpp"
 
@@ -834,7 +837,7 @@ namespace sw
 		case Task::PRIMITIVES:
 			{
 				int unit = task[threadIndex].primitiveUnit;
-				
+			
 				int input = primitiveProgress[unit].firstPrimitive;
 				int count = primitiveProgress[unit].primitiveCount;
 				DrawCall *draw = drawList[primitiveProgress[unit].drawCall % DRAW_COUNT];
@@ -1434,7 +1437,7 @@ namespace sw
 				}
 			}
 			break;
-        case DRAW_QUADLIST:
+		case DRAW_QUADLIST:
 			{
 				unsigned int index = 4 * start / 2;
 
@@ -1444,7 +1447,7 @@ namespace sw
 					batch[i+0][1] = index + 1;
 					batch[i+0][2] = index + 2;
 
-                    batch[i+1][0] = index + 0;
+					batch[i+1][0] = index + 0;
 					batch[i+1][1] = index + 2;
 					batch[i+1][2] = index + 3;
 
@@ -1944,12 +1947,12 @@ namespace sw
 	unsigned int Renderer::computeClipFlags(const float4 &v, const DrawData &data)
 	{
 		return ((v.x > v.w)  << 0) |
-			   ((v.y > v.w)  << 1) |
-			   ((v.z > v.w)  << 2) |
-			   ((v.x < -v.w) << 3) |
+		       ((v.y > v.w)  << 1) |
+		       ((v.z > v.w)  << 2) |
+		       ((v.x < -v.w) << 3) |
 		       ((v.y < -v.w) << 4) |
-			   ((v.z < 0)    << 5) |
-			   Clipper::CLIP_FINITE;   // FIXME: xyz finite
+		       ((v.z < 0)    << 5) |
+		       Clipper::CLIP_FINITE;   // FIXME: xyz finite
 	}
 
 	void Renderer::initializeThreads()

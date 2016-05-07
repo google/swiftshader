@@ -1,13 +1,16 @@
-// SwiftShader Software Renderer
+// Copyright 2016 The SwiftShader Authors. All Rights Reserved.
 //
-// Copyright(c) 2005-2011 TransGaming Inc.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
-// All rights reserved. No part of this software may be copied, distributed, transmitted,
-// transcribed, stored in a retrieval system, translated into any human or computer
-// language by any means, or disclosed to third parties without the explicit written
-// agreement of TransGaming Inc. Without such an agreement, no rights or licenses, express
-// or implied, including but not limited to any patent rights, are granted to you.
+//    http://www.apache.org/licenses/LICENSE-2.0
 //
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #include "Direct3D9.hpp"
 #include "Direct3D9Ex.hpp"
@@ -103,37 +106,37 @@ static INT_PTR CALLBACK DebuggerWaitDialogProc(HWND hwnd, UINT uMsg, WPARAM wPar
 {
 	RECT rect;
 
-    switch(uMsg)
-    {
-    case WM_INITDIALOG:
+	switch(uMsg)
+	{
+	case WM_INITDIALOG:
 		GetWindowRect(GetDesktopWindow(), &rect);
 		SetWindowPos(hwnd, HWND_TOP, rect.right / 2, rect.bottom / 2, 0, 0, SWP_NOSIZE);
 		SetTimer(hwnd, 1, 100, NULL);
 		return TRUE;
-    case WM_COMMAND:
-        if(LOWORD(wParam) == IDCANCEL)
+	case WM_COMMAND:
+		if(LOWORD(wParam) == IDCANCEL)
 		{
 			EndDialog(hwnd, 0);
 		}
-        break;
-    case WM_TIMER:
+		break;
+	case WM_TIMER:
 		if(IsDebuggerPresent())
 		{
 			EndDialog(hwnd, 0);
 		}
-    }
+	}
 
-    return FALSE;
+	return FALSE;
 }
 
 static void WaitForDebugger(HINSTANCE instance)
 {
-    if(!IsDebuggerPresent())
-    {
-        HRSRC dialog = FindResource(instance, MAKEINTRESOURCE(IDD_DIALOG1), RT_DIALOG);
+	if(!IsDebuggerPresent())
+	{
+		HRSRC dialog = FindResource(instance, MAKEINTRESOURCE(IDD_DIALOG1), RT_DIALOG);
 		DLGTEMPLATE *dialogTemplate = (DLGTEMPLATE*)LoadResource(instance, dialog);
 		DialogBoxIndirect(instance, dialogTemplate, NULL, DebuggerWaitDialogProc);
-    }
+	}
 }
 
 using namespace D3D9;
@@ -288,7 +291,7 @@ extern "C"
 	void __stdcall D3DPERF_SetRegion(D3DCOLOR color, const wchar_t *name)
 	{
 		GTRACE("");
-	
+
 	//	UNIMPLEMENTED();   // PIX unsupported
 	}
 
@@ -305,7 +308,7 @@ extern "C"
 
 	//	UNIMPLEMENTED();   // Debug output unsupported
 	}
-	
+
 	void *__stdcall Direct3DShaderValidatorCreate9()
 	{
 		GTRACE("");

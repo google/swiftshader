@@ -1,13 +1,16 @@
-// SwiftShader Software Renderer
+// Copyright 2016 The SwiftShader Authors. All Rights Reserved.
 //
-// Copyright(c) 2005-2013 TransGaming Inc.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
-// All rights reserved. No part of this software may be copied, distributed, transmitted,
-// transcribed, stored in a retrieval system, translated into any human or computer
-// language by any means, or disclosed to third parties without the explicit written
-// agreement of TransGaming Inc. Without such an agreement, no rights or licenses, express
-// or implied, including but not limited to any patent rights, are granted to you.
+//    http://www.apache.org/licenses/LICENSE-2.0
 //
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 // Renderbuffer.cpp: the Renderbuffer class and its derived classes
 // Colorbuffer, Depthbuffer and Stencilbuffer. Implements GL renderbuffer
@@ -27,7 +30,7 @@ RenderbufferInterface::RenderbufferInterface()
 
 // The default case for classes inherited from RenderbufferInterface is not to
 // need to do anything upon the reference count to the parent Renderbuffer incrementing
-// or decrementing. 
+// or decrementing.
 void RenderbufferInterface::addProxyRef(const Renderbuffer *proxy)
 {
 }
@@ -75,19 +78,19 @@ RenderbufferTexture2D::RenderbufferTexture2D(Texture2D *texture)
 
 RenderbufferTexture2D::~RenderbufferTexture2D()
 {
-	mTexture2D = NULL;
+	mTexture2D = nullptr;
 }
 
 // Textures need to maintain their own reference count for references via
 // Renderbuffers acting as proxies. Here, we notify the texture of a reference.
 void RenderbufferTexture2D::addProxyRef(const Renderbuffer *proxy)
 {
-    mTexture2D->addProxyRef(proxy);
+	mTexture2D->addProxyRef(proxy);
 }
 
 void RenderbufferTexture2D::releaseProxy(const Renderbuffer *proxy)
 {
-    mTexture2D->releaseProxy(proxy);
+	mTexture2D->releaseProxy(proxy);
 }
 
 // Increments refcount on image.
@@ -101,12 +104,12 @@ egl::Image *RenderbufferTexture2D::getRenderTarget()
 // caller must release() the returned image
 egl::Image *RenderbufferTexture2D::createSharedImage()
 {
-    return mTexture2D->createSharedImage(GL_TEXTURE_2D, 0);
+	return mTexture2D->createSharedImage(GL_TEXTURE_2D, 0);
 }
 
 bool RenderbufferTexture2D::isShared() const
 {
-    return mTexture2D->isShared(GL_TEXTURE_2D, 0);
+	return mTexture2D->isShared(GL_TEXTURE_2D, 0);
 }
 
 GLsizei RenderbufferTexture2D::getWidth() const
@@ -138,7 +141,7 @@ GLsizei RenderbufferTexture2D::getSamples() const
 
 Renderbuffer::Renderbuffer(GLuint name, RenderbufferInterface *instance) : NamedObject(name)
 {
-	ASSERT(instance != NULL);
+	ASSERT(instance);
 	mInstance = instance;
 }
 
@@ -151,16 +154,16 @@ Renderbuffer::~Renderbuffer()
 // its own reference count, so we pass it on here.
 void Renderbuffer::addRef()
 {
-    mInstance->addProxyRef(this);
+	mInstance->addProxyRef(this);
 
-    Object::addRef();
+	Object::addRef();
 }
 
 void Renderbuffer::release()
 {
-    mInstance->releaseProxy(this);
+	mInstance->releaseProxy(this);
 
-    Object::release();
+	Object::release();
 }
 
 // Increments refcount on image.
@@ -174,12 +177,12 @@ egl::Image *Renderbuffer::getRenderTarget()
 // caller must Release() the returned image
 egl::Image *Renderbuffer::createSharedImage()
 {
-    return mInstance->createSharedImage();
+	return mInstance->createSharedImage();
 }
 
 bool Renderbuffer::isShared() const
 {
-    return mInstance->isShared();
+	return mInstance->isShared();
 }
 
 GLsizei Renderbuffer::getWidth() const
@@ -239,7 +242,7 @@ GLsizei Renderbuffer::getSamples() const
 
 void Renderbuffer::setStorage(RenderbufferStorage *newStorage)
 {
-	ASSERT(newStorage != NULL);
+	ASSERT(newStorage);
 
 	delete mInstance;
 	mInstance = newStorage;
@@ -288,7 +291,7 @@ Colorbuffer::Colorbuffer(egl::Image *renderTarget) : mRenderTarget(renderTarget)
 	if(renderTarget)
 	{
 		renderTarget->addRef();
-		
+
 		mWidth = renderTarget->getWidth();
 		mHeight = renderTarget->getHeight();
 		internalFormat = renderTarget->getInternalFormat();
@@ -346,18 +349,18 @@ egl::Image *Colorbuffer::getRenderTarget()
 // caller must release() the returned image
 egl::Image *Colorbuffer::createSharedImage()
 {
-    if(mRenderTarget)
-    {
-        mRenderTarget->addRef();
-        mRenderTarget->markShared();
-    }
+	if(mRenderTarget)
+	{
+		mRenderTarget->addRef();
+		mRenderTarget->markShared();
+	}
 
-    return mRenderTarget;
+	return mRenderTarget;
 }
 
 bool Colorbuffer::isShared() const
 {
-    return mRenderTarget->isShared();
+	return mRenderTarget->isShared();
 }
 
 DepthStencilbuffer::DepthStencilbuffer(egl::Image *depthStencil) : mDepthStencil(depthStencil)
@@ -377,7 +380,7 @@ DepthStencilbuffer::DepthStencilbuffer(egl::Image *depthStencil) : mDepthStencil
 DepthStencilbuffer::DepthStencilbuffer(int width, int height, GLsizei samples) : mDepthStencil(nullptr)
 {
 	Device *device = getDevice();
-	
+
 	int supportedSamples = Context::getSupportedMultisampleCount(samples);
 
 	if(width > 0 && height > 0)
@@ -422,18 +425,18 @@ egl::Image *DepthStencilbuffer::getRenderTarget()
 // caller must release() the returned image
 egl::Image *DepthStencilbuffer::createSharedImage()
 {
-    if(mDepthStencil)
-    {
-        mDepthStencil->addRef();
-        mDepthStencil->markShared();
-    }
+	if(mDepthStencil)
+	{
+		mDepthStencil->addRef();
+		mDepthStencil->markShared();
+	}
 
-    return mDepthStencil;
+	return mDepthStencil;
 }
 
 bool DepthStencilbuffer::isShared() const
 {
-    return mDepthStencil->isShared();
+	return mDepthStencil->isShared();
 }
 
 Depthbuffer::Depthbuffer(egl::Image *depthStencil) : DepthStencilbuffer(depthStencil)
@@ -441,7 +444,7 @@ Depthbuffer::Depthbuffer(egl::Image *depthStencil) : DepthStencilbuffer(depthSte
 	if(depthStencil)
 	{
 		format = GL_DEPTH_COMPONENT16_OES;   // If the renderbuffer parameters are queried, the calling function
-		                                     // will expect one of the valid renderbuffer formats for use in 
+		                                     // will expect one of the valid renderbuffer formats for use in
 		                                     // glRenderbufferStorage
 	}
 }
@@ -451,7 +454,7 @@ Depthbuffer::Depthbuffer(int width, int height, GLsizei samples) : DepthStencilb
 	if(mDepthStencil)
 	{
 		format = GL_DEPTH_COMPONENT16_OES;   // If the renderbuffer parameters are queried, the calling function
-		                                     // will expect one of the valid renderbuffer formats for use in 
+		                                     // will expect one of the valid renderbuffer formats for use in
 		                                     // glRenderbufferStorage
 	}
 }
@@ -465,7 +468,7 @@ Stencilbuffer::Stencilbuffer(egl::Image *depthStencil) : DepthStencilbuffer(dept
 	if(depthStencil)
 	{
 		format = GL_STENCIL_INDEX8_OES;   // If the renderbuffer parameters are queried, the calling function
-		                                  // will expect one of the valid renderbuffer formats for use in 
+		                                  // will expect one of the valid renderbuffer formats for use in
 		                                  // glRenderbufferStorage
 	}
 }
@@ -475,7 +478,7 @@ Stencilbuffer::Stencilbuffer(int width, int height, GLsizei samples) : DepthSten
 	if(mDepthStencil)
 	{
 		format = GL_STENCIL_INDEX8_OES;   // If the renderbuffer parameters are queried, the calling function
-		                                  // will expect one of the valid renderbuffer formats for use in 
+		                                  // will expect one of the valid renderbuffer formats for use in
 		                                  // glRenderbufferStorage
 	}
 }

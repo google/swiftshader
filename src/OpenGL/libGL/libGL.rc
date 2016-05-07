@@ -75,7 +75,7 @@ BEGIN
 			#endif
             VALUE "FileVersion", VERSION_STRING
             VALUE "InternalName", "libGL"
-            VALUE "LegalCopyright", "Copyright (C) 2012 TransGaming Inc."
+            VALUE "LegalCopyright", "Copyright (C) 2016 Google Inc."
             VALUE "OriginalFilename", "opengl32.dll"
             VALUE "PrivateBuild", VERSION_STRING
             VALUE "ProductName", "SwiftShader openGL Dynamic Link Library"

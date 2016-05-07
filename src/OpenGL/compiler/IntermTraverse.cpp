@@ -1,8 +1,16 @@
+// Copyright 2016 The SwiftShader Authors. All Rights Reserved.
 //
-// Copyright (c) 2002-2010 The ANGLE Project Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #include "intermediate.h"
 
@@ -47,7 +55,7 @@ void TIntermBinary::traverse(TIntermTraverser* it)
 	{
 		visit = it->visitBinary(PreVisit, this);
 	}
-	
+
 	//
 	// Visit the children, in the right order.
 	//
@@ -55,13 +63,13 @@ void TIntermBinary::traverse(TIntermTraverser* it)
 	{
 		it->incrementDepth(this);
 
-		if(it->rightToLeft) 
+		if(it->rightToLeft)
 		{
 			if(right)
 			{
 				right->traverse(it);
 			}
-			
+
 			if(it->inVisit)
 			{
 				visit = it->visitBinary(InVisit, this);
@@ -78,7 +86,7 @@ void TIntermBinary::traverse(TIntermTraverser* it)
 			{
 				left->traverse(it);
 			}
-			
+
 			if(it->inVisit)
 			{
 				visit = it->visitBinary(InVisit, this);
@@ -118,7 +126,7 @@ void TIntermUnary::traverse(TIntermTraverser* it)
 		operand->traverse(it);
 		it->decrementDepth();
 	}
-	
+
 	if (visit && it->postVisit)
 		it->visitUnary(PostVisit, this);
 }
@@ -129,12 +137,12 @@ void TIntermUnary::traverse(TIntermTraverser* it)
 void TIntermAggregate::traverse(TIntermTraverser* it)
 {
 	bool visit = true;
-	
+
 	if(it->preVisit)
 	{
 		visit = it->visitAggregate(PreVisit, this);
 	}
-	
+
 	if(visit)
 	{
 		it->incrementDepth(this);
@@ -169,7 +177,7 @@ void TIntermAggregate::traverse(TIntermTraverser* it)
 				}
 			}
 		}
-		
+
 		it->decrementDepth();
 	}
 
@@ -188,7 +196,7 @@ void TIntermSelection::traverse(TIntermTraverser* it)
 
 	if (it->preVisit)
 		visit = it->visitSelection(PreVisit, this);
-	
+
 	if (visit) {
 		it->incrementDepth(this);
 		if (it->rightToLeft) {
@@ -276,7 +284,7 @@ void TIntermLoop::traverse(TIntermTraverser* it)
 	{
 		visit = it->visitLoop(PreVisit, this);
 	}
-	
+
 	if(visit)
 	{
 		it->incrementDepth(this);
@@ -334,7 +342,7 @@ void TIntermBranch::traverse(TIntermTraverser* it)
 
 	if (it->preVisit)
 		visit = it->visitBranch(PreVisit, this);
-	
+
 	if (visit && expression) {
 		it->incrementDepth(this);
 		expression->traverse(it);

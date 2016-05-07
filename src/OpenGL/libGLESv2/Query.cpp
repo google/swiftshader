@@ -1,13 +1,16 @@
-// SwiftShader Software Renderer
+// Copyright 2016 The SwiftShader Authors. All Rights Reserved.
 //
-// Copyright(c) 2005-2012 TransGaming Inc.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
-// All rights reserved. No part of this software may be copied, distributed, transmitted,
-// transcribed, stored in a retrieval system, translated into any human or computer
-// language by any means, or disclosed to third parties without the explicit written
-// agreement of TransGaming Inc. Without such an agreement, no rights or licenses, express
-// or implied, including but not limited to any patent rights, are granted to you.
+//    http://www.apache.org/licenses/LICENSE-2.0
 //
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 // Query.cpp: Implements the es2::Query class
 
@@ -21,24 +24,21 @@ namespace es2
 
 Query::Query(GLuint name, GLenum type) : NamedObject(name)
 {
-    mQuery = nullptr;
-    mStatus = GL_FALSE;
-    mResult = GL_FALSE;
-    mType = type;
+	mQuery = nullptr;
+	mStatus = GL_FALSE;
+	mResult = GL_FALSE;
+	mType = type;
 }
 
 Query::~Query()
 {
-    if(mQuery)
-    {
-        delete mQuery;
-    }
+	delete mQuery;
 }
 
 void Query::begin()
 {
-    if(!mQuery)
-    {
+	if(!mQuery)
+	{
 		sw::Query::Type type;
 		switch(mType)
 		{
@@ -57,10 +57,10 @@ void Query::begin()
 		mQuery = new sw::Query(type);
 
 		if(!mQuery)
-        {
-            return error(GL_OUT_OF_MEMORY);
-        }
-    }
+		{
+			return error(GL_OUT_OF_MEMORY);
+		}
+	}
 
 	Device *device = getDevice();
 
@@ -82,14 +82,14 @@ void Query::begin()
 
 void Query::end()
 {
-    if(!mQuery)
-    {
-        return error(GL_INVALID_OPERATION);
+	if(!mQuery)
+	{
+		return error(GL_INVALID_OPERATION);
 	}
 
 	Device *device = getDevice();
 
-    mQuery->end();
+	mQuery->end();
 	device->removeQuery(mQuery);
 	switch(mType)
 	{
@@ -104,64 +104,64 @@ void Query::end()
 		ASSERT(false);
 	}
 
-    mStatus = GL_FALSE;
-    mResult = GL_FALSE;
+	mStatus = GL_FALSE;
+	mResult = GL_FALSE;
 }
 
 GLuint Query::getResult()
 {
-    if(mQuery)
-    {
-        while(!testQuery())
-        {
-            sw::Thread::yield();
-        }
-    }
+	if(mQuery)
+	{
+		while(!testQuery())
+		{
+			sw::Thread::yield();
+		}
+	}
 
-    return (GLuint)mResult;
+	return (GLuint)mResult;
 }
 
 GLboolean Query::isResultAvailable()
 {
-    if(mQuery)
-    {
-        testQuery();
-    }
+	if(mQuery)
+	{
+		testQuery();
+	}
 
-    return mStatus;
+	return mStatus;
 }
 
 GLenum Query::getType() const
 {
-    return mType;
+	return mType;
 }
 
 GLboolean Query::testQuery()
 {
-    if(mQuery != nullptr && mStatus != GL_TRUE)
-    {
-        if(!mQuery->building && mQuery->reference == 0)
-        {
+	if(mQuery != nullptr && mStatus != GL_TRUE)
+	{
+		if(!mQuery->building && mQuery->reference == 0)
+		{
 			unsigned int resultSum = mQuery->data;
-            mStatus = GL_TRUE;
+			mStatus = GL_TRUE;
 
-            switch(mType)
-            {
-            case GL_ANY_SAMPLES_PASSED_EXT:
-            case GL_ANY_SAMPLES_PASSED_CONSERVATIVE_EXT:
+			switch(mType)
+			{
+			case GL_ANY_SAMPLES_PASSED_EXT:
+			case GL_ANY_SAMPLES_PASSED_CONSERVATIVE_EXT:
 				mResult = (resultSum > 0) ? GL_TRUE : GL_FALSE;
-                break;
-            case GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN:
+				break;
+			case GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN:
 				mResult = resultSum;
-                break;
-            default:
-                ASSERT(false);
-            }
-        }
+				break;
+			default:
+				ASSERT(false);
+			}
+		}
 
-        return mStatus;
-    }
+		return mStatus;
+	}
 
-    return GL_TRUE;   // Prevent blocking when query is nullptr
+	return GL_TRUE;   // Prevent blocking when query is nullptr
 }
 }

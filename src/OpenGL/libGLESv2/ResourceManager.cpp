@@ -1,13 +1,16 @@
-// SwiftShader Software Renderer
+// Copyright 2016 The SwiftShader Authors. All Rights Reserved.
 //
-// Copyright(c) 2005-2012 TransGaming Inc.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
-// All rights reserved. No part of this software may be copied, distributed, transmitted,
-// transcribed, stored in a retrieval system, translated into any human or computer
-// language by any means, or disclosed to third parties without the explicit written
-// agreement of TransGaming Inc. Without such an agreement, no rights or licenses, express
-// or implied, including but not limited to any patent rights, are granted to you.
+//    http://www.apache.org/licenses/LICENSE-2.0
 //
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 // ResourceManager.cpp: Implements the ResourceManager class, which tracks and
 // retrieves objects which may be shared by multiple Contexts.
@@ -26,35 +29,35 @@ namespace es2
 {
 ResourceManager::ResourceManager()
 {
-    mRefCount = 1;
+	mRefCount = 1;
 }
 
 ResourceManager::~ResourceManager()
 {
-    while(!mBufferNameSpace.empty())
-    {
-        deleteBuffer(mBufferNameSpace.firstName());
-    }
+	while(!mBufferNameSpace.empty())
+	{
+		deleteBuffer(mBufferNameSpace.firstName());
+	}
 
 	while(!mProgramNameSpace.empty())
-    {
+	{
 		deleteProgram(mProgramNameSpace.firstName());
-    }
+	}
 
 	while(!mShaderNameSpace.empty())
-    {
+	{
 		deleteShader(mShaderNameSpace.firstName());
-    }
+	}
 
-    while(!mRenderbufferNameSpace.empty())
-    {
-        deleteRenderbuffer(mRenderbufferNameSpace.firstName());
-    }
+	while(!mRenderbufferNameSpace.empty())
+	{
+		deleteRenderbuffer(mRenderbufferNameSpace.firstName());
+	}
 
-    while(!mTextureNameSpace.empty())
-    {
-        deleteTexture(mTextureNameSpace.firstName());
-    }
+	while(!mTextureNameSpace.empty())
+	{
+		deleteTexture(mTextureNameSpace.firstName());
+	}
 
 	while(!mSamplerNameSpace.empty())
 	{
@@ -69,21 +72,21 @@ ResourceManager::~ResourceManager()
 
 void ResourceManager::addRef()
 {
-    mRefCount++;
+	mRefCount++;
 }
 
 void ResourceManager::release()
 {
-    if(--mRefCount == 0)
-    {
-        delete this;
-    }
+	if(--mRefCount == 0)
+	{
+		delete this;
+	}
 }
 
 // Returns an unused buffer name
 GLuint ResourceManager::createBuffer()
 {
-    return mBufferNameSpace.allocate();
+	return mBufferNameSpace.allocate();
 }
 
 // Returns an unused shader name
@@ -91,15 +94,15 @@ GLuint ResourceManager::createShader(GLenum type)
 {
 	GLuint name = mProgramShaderNameSpace.allocate();
 
-    if(type == GL_VERTEX_SHADER)
-    {
+	if(type == GL_VERTEX_SHADER)
+	{
 		mShaderNameSpace.insert(name, new VertexShader(this, name));
-    }
-    else if(type == GL_FRAGMENT_SHADER)
-    {
+	}
+	else if(type == GL_FRAGMENT_SHADER)
+	{
 		mShaderNameSpace.insert(name, new FragmentShader(this, name));
-    }
-    else UNREACHABLE(type);
+	}
+	else UNREACHABLE(type);
 
 	return name;
 }
@@ -149,68 +152,68 @@ void ResourceManager::deleteBuffer(GLuint buffer)
 {
 	Buffer *bufferObject = mBufferNameSpace.remove(buffer);
 
-    if(bufferObject)
-    {
+	if(bufferObject)
+	{
 		bufferObject->release();
-    }
+	}
 }
 
 void ResourceManager::deleteShader(GLuint shader)
 {
-    Shader *shaderObject = mShaderNameSpace.find(shader);
+	Shader *shaderObject = mShaderNameSpace.find(shader);
 
-    if(shaderObject)
-    {
-        if(shaderObject->getRefCount() == 0)
-        {
+	if(shaderObject)
+	{
+		if(shaderObject->getRefCount() == 0)
+		{
 			delete shaderObject;
 			mShaderNameSpace.remove(shader);
 			mProgramShaderNameSpace.remove(shader);
-        }
-        else
-        {
-            shaderObject->flagForDeletion();
-        }
-    }
+		}
+		else
+		{
+			shaderObject->flagForDeletion();
+		}
+	}
 }
 
 void ResourceManager::deleteProgram(GLuint program)
 {
-    Program *programObject = mProgramNameSpace.find(program);
+	Program *programObject = mProgramNameSpace.find(program);
 
-    if(programObject)
-    {
-        if(programObject->getRefCount() == 0)
-        {
+	if(programObject)
+	{
+		if(programObject->getRefCount() == 0)
+		{
 			delete programObject;
 			mProgramNameSpace.remove(program);
 			mProgramShaderNameSpace.remove(program);
-        }
-        else
-        {
-            programObject->flagForDeletion();
-        }
-    }
+		}
+		else
+		{
+			programObject->flagForDeletion();
+		}
+	}
 }
 
 void ResourceManager::deleteTexture(GLuint texture)
 {
-    Texture *textureObject = mTextureNameSpace.remove(texture);
+	Texture *textureObject = mTextureNameSpace.remove(texture);
 
-    if(textureObject)
-    {
+	if(textureObject)
+	{
 		textureObject->release();
-    }
+	}
 }
 
 void ResourceManager::deleteRenderbuffer(GLuint renderbuffer)
 {
-    Renderbuffer *renderbufferObject = mRenderbufferNameSpace.remove(renderbuffer);
+	Renderbuffer *renderbufferObject = mRenderbufferNameSpace.remove(renderbuffer);
 
-    if(renderbufferObject)
-    {
+	if(renderbufferObject)
+	{
 		renderbufferObject->release();
-    }
+	}
 }
 
 void ResourceManager::deleteSampler(GLuint sampler)
@@ -235,27 +238,27 @@ void ResourceManager::deleteFenceSync(GLuint fenceSync)
 
 Buffer *ResourceManager::getBuffer(unsigned int handle)
 {
-    return mBufferNameSpace.find(handle);
+	return mBufferNameSpace.find(handle);
 }
 
 Shader *ResourceManager::getShader(unsigned int handle)
 {
-    return mShaderNameSpace.find(handle);
+	return mShaderNameSpace.find(handle);
 }
 
 Texture *ResourceManager::getTexture(unsigned int handle)
 {
-    return mTextureNameSpace.find(handle);
+	return mTextureNameSpace.find(handle);
 }
 
 Program *ResourceManager::getProgram(unsigned int handle)
 {
-    return mProgramNameSpace.find(handle);
+	return mProgramNameSpace.find(handle);
 }
 
 Renderbuffer *ResourceManager::getRenderbuffer(unsigned int handle)
 {
-    return mRenderbufferNameSpace.find(handle);
+	return mRenderbufferNameSpace.find(handle);
 }
 
 Sampler *ResourceManager::getSampler(unsigned int handle)
@@ -270,29 +273,29 @@ FenceSync *ResourceManager::getFenceSync(unsigned int handle)
 
 void ResourceManager::checkBufferAllocation(unsigned int buffer)
 {
-    if(buffer != 0 && !getBuffer(buffer))
-    {
-        Buffer *bufferObject = new Buffer(buffer);
+	if(buffer != 0 && !getBuffer(buffer))
+	{
+		Buffer *bufferObject = new Buffer(buffer);
 		bufferObject->addRef();
 
 		mBufferNameSpace.insert(buffer, bufferObject);
-    }
+	}
 }
 
 void ResourceManager::checkTextureAllocation(GLuint texture, TextureType type)
 {
-    if(!getTexture(texture) && texture != 0)
-    {
-        Texture *textureObject;
+	if(!getTexture(texture) && texture != 0)
+	{
+		Texture *textureObject;
 
-        if(type == TEXTURE_2D)
-        {
-            textureObject = new Texture2D(texture);
-        }
-        else if(type == TEXTURE_CUBE)
-        {
-            textureObject = new TextureCubeMap(texture);
-        }
+		if(type == TEXTURE_2D)
+		{
+			textureObject = new Texture2D(texture);
+		}
+		else if(type == TEXTURE_CUBE)
+		{
+			textureObject = new TextureCubeMap(texture);
+		}
 		else if(type == TEXTURE_EXTERNAL)
 		{
 			textureObject = new TextureExternal(texture);
@@ -306,15 +309,15 @@ void ResourceManager::checkTextureAllocation(GLuint texture, TextureType type)
 			textureObject = new Texture2DArray(texture);
 		}
 		else
-        {
-            UNREACHABLE(type);
-            return;
-        }
+		{
+			UNREACHABLE(type);
+			return;
+		}
 
 		textureObject->addRef();
 
 		mTextureNameSpace.insert(texture, textureObject);
-    }
+	}
 }
 
 void ResourceManager::checkRenderbufferAllocation(GLuint handle)

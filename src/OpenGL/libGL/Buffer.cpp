@@ -1,13 +1,16 @@
-// SwiftShader Software Renderer
+// Copyright 2016 The SwiftShader Authors. All Rights Reserved.
 //
-// Copyright(c) 2005-2013 TransGaming Inc.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
-// All rights reserved. No part of this software may be copied, distributed, transmitted,
-// transcribed, stored in a retrieval system, translated into any human or computer
-// language by any means, or disclosed to third parties without the explicit written
-// agreement of TransGaming Inc. Without such an agreement, no rights or licenses, express
-// or implied, including but not limited to any patent rights, are granted to you.
+//    http://www.apache.org/licenses/LICENSE-2.0
 //
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 // Buffer.cpp: Implements the Buffer class, representing storage of vertex and/or
 // index data. Implements GL buffer objects and related functionality.
@@ -23,14 +26,14 @@ namespace gl
 
 Buffer::Buffer(GLuint name) : NamedObject(name)
 {
-    mContents = 0;
-    mSize = 0;
-    mUsage = GL_DYNAMIC_DRAW;
+	mContents = 0;
+	mSize = 0;
+	mUsage = GL_DYNAMIC_DRAW;
 }
 
 Buffer::~Buffer()
 {
-    if(mContents)
+	if(mContents)
 	{
 		mContents->destruct();
 	}

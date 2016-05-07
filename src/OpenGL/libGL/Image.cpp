@@ -1,13 +1,16 @@
-// SwiftShader Software Renderer
+// Copyright 2016 The SwiftShader Authors. All Rights Reserved.
 //
-// Copyright(c) 2005-2013 TransGaming Inc.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
-// All rights reserved. No part of this software may be copied, distributed, transmitted,
-// transcribed, stored in a retrieval system, translated into any human or computer
-// language by any means, or disclosed to third parties without the explicit written
-// agreement of TransGaming Inc. Without such an agreement, no rights or licenses, express
-// or implied, including but not limited to any patent rights, are granted to you.
+//    http://www.apache.org/licenses/LICENSE-2.0
 //
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #include "Image.hpp"
 
@@ -72,7 +75,7 @@ namespace gl
 	{
 		return width;
 	}
-	
+
 	int Image::getHeight()
 	{
 		return height;
@@ -82,17 +85,17 @@ namespace gl
 	{
 		return format;
 	}
-	
+
 	GLenum Image::getType()
 	{
 		return type;
 	}
-	
+
 	sw::Format Image::getInternalFormat()
 	{
 		return internalFormat;
 	}
-	
+
 	int Image::getMultiSampleDepth()
 	{
 		return multiSampleDepth;
@@ -135,11 +138,11 @@ namespace gl
 
 	sw::Format Image::selectInternalFormat(GLenum format, GLenum type)
 	{
-        if(type == GL_NONE && format == GL_NONE)
-        {
-            return sw::FORMAT_NULL;
-        }
-        else
+		if(type == GL_NONE && format == GL_NONE)
+		{
+			return sw::FORMAT_NULL;
+		}
+		else
 		#if S3TC_SUPPORT
 		if(format == GL_COMPRESSED_RGB_S3TC_DXT1_EXT ||
 		   format == GL_COMPRESSED_RGBA_S3TC_DXT1_EXT)
@@ -216,10 +219,10 @@ namespace gl
 		{
 			return sw::FORMAT_R5G6B5;
 		}
-        else if(type == GL_UNSIGNED_INT_8_8_8_8_REV)
-        {
-            return sw::FORMAT_A8R8G8B8;
-        }
+		else if(type == GL_UNSIGNED_INT_8_8_8_8_REV)
+		{
+			return sw::FORMAT_A8R8G8B8;
+		}
 
 		else UNREACHABLE(type);
 
@@ -230,13 +233,13 @@ namespace gl
 	{
 		GLsizei inputPitch = ComputePitch(width, format, type, unpackAlignment);
 		void *buffer = lock(0, 0, sw::LOCK_WRITEONLY);
-		
+
 		if(buffer)
 		{
 			switch(type)
 			{
 			case GL_UNSIGNED_BYTE:
-            case GL_UNSIGNED_INT_8_8_8_8_REV:
+			case GL_UNSIGNED_INT_8_8_8_8_REV:
 				switch(format)
 				{
 				case GL_ALPHA:
@@ -364,7 +367,7 @@ namespace gl
 		{
 			const float *source = reinterpret_cast<const float*>(static_cast<const unsigned char*>(input) + y * inputPitch);
 			float *dest = reinterpret_cast<float*>(static_cast<unsigned char*>(buffer) + (y + yoffset) * getPitch() + xoffset * 16);
-			
+
 			for(int x = 0; x < width; x++)
 			{
 				dest[4 * x + 0] = 0;
@@ -381,7 +384,7 @@ namespace gl
 		{
 			const unsigned short *source = reinterpret_cast<const unsigned short*>(static_cast<const unsigned char*>(input) + y * inputPitch);
 			unsigned short *dest = reinterpret_cast<unsigned short*>(static_cast<unsigned char*>(buffer) + (y + yoffset) * getPitch() + xoffset * 8);
-			
+
 			for(int x = 0; x < width; x++)
 			{
 				dest[4 * x + 0] = 0;
@@ -409,7 +412,7 @@ namespace gl
 		{
 			const float *source = reinterpret_cast<const float*>(static_cast<const unsigned char*>(input) + y * inputPitch);
 			float *dest = reinterpret_cast<float*>(static_cast<unsigned char*>(buffer) + (y + yoffset) * getPitch() + xoffset * 16);
-			
+
 			for(int x = 0; x < width; x++)
 			{
 				dest[4 * x + 0] = source[x];
@@ -426,7 +429,7 @@ namespace gl
 		{
 			const unsigned short *source = reinterpret_cast<const unsigned short*>(static_cast<const unsigned char*>(input) + y * inputPitch);
 			unsigned short *dest = reinterpret_cast<unsigned short*>(static_cast<unsigned char*>(buffer) + (y + yoffset) * getPitch() + xoffset * 8);
-			
+
 			for(int x = 0; x < width; x++)
 			{
 				dest[4 * x + 0] = source[x];
@@ -443,7 +446,7 @@ namespace gl
 		{
 			const unsigned char *source = static_cast<const unsigned char*>(input) + y * inputPitch;
 			unsigned char *dest = static_cast<unsigned char*>(buffer) + (y + yoffset) * getPitch() + xoffset * 2;
-        
+
 			memcpy(dest, source, width * 2);
 		}
 	}
@@ -454,7 +457,7 @@ namespace gl
 		{
 			const float *source = reinterpret_cast<const float*>(static_cast<const unsigned char*>(input) + y * inputPitch);
 			float *dest = reinterpret_cast<float*>(static_cast<unsigned char*>(buffer) + (y + yoffset) * getPitch() + xoffset * 16);
-			
+
 			for(int x = 0; x < width; x++)
 			{
 				dest[4 * x + 0] = source[2*x+0];
@@ -471,7 +474,7 @@ namespace gl
 		{
 			const unsigned short *source = reinterpret_cast<const unsigned short*>(static_cast<const unsigned char*>(input) + y * inputPitch);
 			unsigned short *dest = reinterpret_cast<unsigned short*>(static_cast<unsigned char*>(buffer) + (y + yoffset) * getPitch() + xoffset * 8);
-			
+
 			for(int x = 0; x < width; x++)
 			{
 				dest[4 * x + 0] = source[2*x+0];
@@ -488,7 +491,7 @@ namespace gl
 		{
 			const unsigned char *source = static_cast<const unsigned char*>(input) + y * inputPitch;
 			unsigned char *dest = static_cast<unsigned char*>(buffer) + (y + yoffset) * getPitch() + xoffset * 4;
-			
+
 			for(int x = 0; x < width; x++)
 			{
 				dest[4 * x + 0] = source[x * 3 + 2];
@@ -505,7 +508,7 @@ namespace gl
 		{
 			const unsigned short *source = reinterpret_cast<const unsigned short*>(static_cast<const unsigned char*>(input) + y * inputPitch);
 			unsigned char *dest = static_cast<unsigned char*>(buffer) + (y + yoffset) * getPitch() + xoffset * 2;
-			
+
 			memcpy(dest, source, width * 2);
 		}
 	}
@@ -516,7 +519,7 @@ namespace gl
 		{
 			const float *source = reinterpret_cast<const float*>(static_cast<const unsigned char*>(input) + y * inputPitch);
 			float *dest = reinterpret_cast<float*>(static_cast<unsigned char*>(buffer) + (y + yoffset) * getPitch() + xoffset * 16);
-			
+
 			for(int x = 0; x < width; x++)
 			{
 				dest[4 * x + 0] = source[x * 3 + 0];
@@ -533,7 +536,7 @@ namespace gl
 		{
 			const unsigned short *source = reinterpret_cast<const unsigned short*>(static_cast<const unsigned char*>(input) + y * inputPitch);
 			unsigned short *dest = reinterpret_cast<unsigned short*>(static_cast<unsigned char*>(buffer) + (y + yoffset) * getPitch() + xoffset * 8);
-			
+
 			for(int x = 0; x < width; x++)
 			{
 				dest[4 * x + 0] = source[x * 3 + 0];
@@ -565,7 +568,7 @@ namespace gl
 		{
 			const unsigned short *source = reinterpret_cast<const unsigned short*>(static_cast<const unsigned char*>(input) + y * inputPitch);
 			unsigned char *dest = static_cast<unsigned char*>(buffer) + (y + yoffset) * getPitch() + xoffset * 4;
-			
+
 			for(int x = 0; x < width; x++)
 			{
 				unsigned short rgba = source[x];
@@ -583,7 +586,7 @@ namespace gl
 		{
 			const unsigned short *source = reinterpret_cast<const unsigned short*>(static_cast<const unsigned char*>(input) + y * inputPitch);
 			unsigned char *dest = static_cast<unsigned char*>(buffer) + (y + yoffset) * getPitch() + xoffset * 4;
-			
+
 			for(int x = 0; x < width; x++)
 			{
 				unsigned short rgba = source[x];
@@ -601,7 +604,7 @@ namespace gl
 		{
 			const float *source = reinterpret_cast<const float*>(static_cast<const unsigned char*>(input) + y * inputPitch);
 			float *dest = reinterpret_cast<float*>(static_cast<unsigned char*>(buffer) + (y + yoffset) * getPitch() + xoffset * 16);
-			
+
 			memcpy(dest, source, width * 16);
 		}
 	}
@@ -612,7 +615,7 @@ namespace gl
 		{
 			const unsigned char *source = static_cast<const unsigned char*>(input) + y * inputPitch;
 			unsigned char *dest = static_cast<unsigned char*>(buffer) + (y + yoffset) * getPitch() + xoffset * 8;
-			
+
 			memcpy(dest, source, width * 8);
 		}
 	}
@@ -623,7 +626,7 @@ namespace gl
 		{
 			const unsigned char *source = static_cast<const unsigned char*>(input) + y * inputPitch;
 			unsigned char *dest = static_cast<unsigned char*>(buffer) + (y + yoffset) * getPitch() + xoffset * 4;
-			
+
 			memcpy(dest, source, width*4);
 		}
 	}
@@ -694,13 +697,13 @@ namespace gl
 		int rows = imageSize / inputPitch;
 		void *buffer = lock(xoffset, yoffset, sw::LOCK_WRITEONLY);
 
-        if(buffer)
-        {
+		if(buffer)
+		{
 			for(int i = 0; i < rows; i++)
 			{
 				memcpy((void*)((GLbyte*)buffer + i * getPitch()), (void*)((GLbyte*)pixels + i * inputPitch), inputPitch);
 			}
-        }
+		}
 
 		unlock();
 	}

@@ -1,13 +1,16 @@
-// SwiftShader Software Renderer
+// Copyright 2016 The SwiftShader Authors. All Rights Reserved.
 //
-// Copyright(c) 2005-2013 TransGaming Inc.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
-// All rights reserved. No part of this software may be copied, distributed, transmitted,
-// transcribed, stored in a retrieval system, translated into any human or computer
-// language by any means, or disclosed to third parties without the explicit written
-// agreement of TransGaming Inc. Without such an agreement, no rights or licenses, express
-// or implied, including but not limited to any patent rights, are granted to you.
+//    http://www.apache.org/licenses/LICENSE-2.0
 //
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 // main.cpp: DLL entry point and management of thread-local data.
 
@@ -31,24 +34,24 @@
 
 static void glAttachThread()
 {
-    TRACE("()");
+	TRACE("()");
 }
 
 static void glDetachThread()
 {
-    TRACE("()");
+	TRACE("()");
 }
 
 CONSTRUCTOR static void glAttachProcess()
 {
-    TRACE("()");
+	TRACE("()");
 
-    glAttachThread();
+	glAttachThread();
 }
 
 DESTRUCTOR static void glDetachProcess()
 {
-    TRACE("()");
+	TRACE("()");
 
 	glDetachThread();
 }
@@ -56,25 +59,25 @@ DESTRUCTOR static void glDetachProcess()
 #if defined(_WIN32)
 extern "C" BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved)
 {
-    switch(reason)
-    {
-    case DLL_PROCESS_ATTACH:
-        glAttachProcess();
-        break;
-    case DLL_THREAD_ATTACH:
-        glAttachThread();
-        break;
-    case DLL_THREAD_DETACH:
-        glDetachThread();
-        break;
-    case DLL_PROCESS_DETACH:
-        glDetachProcess();
-        break;
-    default:
-        break;
-    }
+	switch(reason)
+	{
+	case DLL_PROCESS_ATTACH:
+		glAttachProcess();
+		break;
+	case DLL_THREAD_ATTACH:
+		glAttachThread();
+		break;
+	case DLL_THREAD_DETACH:
+		glDetachThread();
+		break;
+	case DLL_PROCESS_DETACH:
+		glDetachProcess();
+		break;
+	default:
+		break;
+	}
 
-    return TRUE;
+	return TRUE;
 }
 #endif
 
@@ -95,43 +98,43 @@ es2::Context *getContext()
 
 Device *getDevice()
 {
-    Context *context = getContext();
+	Context *context = getContext();
 
-    return context ? context->getDevice() : 0;
+	return context ? context->getDevice() : 0;
 }
 
 // Records an error code
 void error(GLenum errorCode)
 {
-    es2::Context *context = es2::getContext();
+	es2::Context *context = es2::getContext();
 
-    if(context)
-    {
-        switch(errorCode)
-        {
-        case GL_INVALID_ENUM:
-            context->recordInvalidEnum();
-            TRACE("\t! Error generated: invalid enum\n");
-            break;
-        case GL_INVALID_VALUE:
-            context->recordInvalidValue();
-            TRACE("\t! Error generated: invalid value\n");
-            break;
-        case GL_INVALID_OPERATION:
-            context->recordInvalidOperation();
-            TRACE("\t! Error generated: invalid operation\n");
-            break;
-        case GL_OUT_OF_MEMORY:
-            context->recordOutOfMemory();
-            TRACE("\t! Error generated: out of memory\n");
-            break;
-        case GL_INVALID_FRAMEBUFFER_OPERATION:
-            context->recordInvalidFramebufferOperation();
-            TRACE("\t! Error generated: invalid framebuffer operation\n");
-            break;
-        default: UNREACHABLE(errorCode);
-        }
-    }
+	if(context)
+	{
+		switch(errorCode)
+		{
+		case GL_INVALID_ENUM:
+			context->recordInvalidEnum();
+			TRACE("\t! Error generated: invalid enum\n");
+			break;
+		case GL_INVALID_VALUE:
+			context->recordInvalidValue();
+			TRACE("\t! Error generated: invalid value\n");
+			break;
+		case GL_INVALID_OPERATION:
+			context->recordInvalidOperation();
+			TRACE("\t! Error generated: invalid operation\n");
+			break;
+		case GL_OUT_OF_MEMORY:
+			context->recordOutOfMemory();
+			TRACE("\t! Error generated: out of memory\n");
+			break;
+		case GL_INVALID_FRAMEBUFFER_OPERATION:
+			context->recordInvalidFramebufferOperation();
+			TRACE("\t! Error generated: invalid framebuffer operation\n");
+			break;
+		default: UNREACHABLE(errorCode);
+		}
+	}
 }
 }
 
@@ -141,7 +144,7 @@ GLint getClientVersion()
 {
 	Context *context = libEGL->clientGetCurrentContext();
 
-    return context ? context->getClientVersion() : 0;
+	return context ? context->getClientVersion() : 0;
 }
 }
 
@@ -281,7 +284,7 @@ void StencilOp(GLenum fail, GLenum zfail, GLenum zpass);
 void StencilOpSeparate(GLenum face, GLenum fail, GLenum zfail, GLenum zpass);
 GLboolean TestFenceNV(GLuint fence);
 void TexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height,
-                 GLint border, GLenum format, GLenum type, const GLvoid* pixels);
+                GLint border, GLenum format, GLenum type, const GLvoid* pixels);
 void TexParameterf(GLenum target, GLenum pname, GLfloat param);
 void TexParameterfv(GLenum target, GLenum pname, const GLfloat* params);
 void TexParameteri(GLenum target, GLenum pname, GLint param);
