@@ -1,8 +1,16 @@
+// Copyright 2016 The SwiftShader Authors. All Rights Reserved.
 //
-// Copyright (c) 2002-2013 The ANGLE Project Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #include "AnalyzeCallDepth.h"
 
@@ -19,49 +27,49 @@ const TString &AnalyzeCallDepth::FunctionNode::getName() const
 
 void AnalyzeCallDepth::FunctionNode::addCallee(AnalyzeCallDepth::FunctionNode *callee)
 {
-    for(size_t i = 0; i < callees.size(); i++)
+	for(size_t i = 0; i < callees.size(); i++)
 	{
-        if(callees[i] == callee)
+		if(callees[i] == callee)
 		{
-            return;
+			return;
 		}
-    }
+	}
 
-    callees.push_back(callee);
+	callees.push_back(callee);
 }
 
 unsigned int AnalyzeCallDepth::FunctionNode::analyzeCallDepth(AnalyzeCallDepth *analyzeCallDepth)
 {
-    ASSERT(visit == PreVisit);
-    ASSERT(analyzeCallDepth);
+	ASSERT(visit == PreVisit);
+	ASSERT(analyzeCallDepth);
 
-    callDepth = 0;
-    visit = InVisit;
+	callDepth = 0;
+	visit = InVisit;
 
-    for(size_t i = 0; i < callees.size(); i++)
+	for(size_t i = 0; i < callees.size(); i++)
 	{
 		unsigned int calleeDepth = 0;
-        switch(callees[i]->visit)
+		switch(callees[i]->visit)
 		{
-        case InVisit:
-            // Cycle detected (recursion)
-            return UINT_MAX;
-        case PostVisit:
+		case InVisit:
+			// Cycle detected (recursion)
+			return UINT_MAX;
+		case PostVisit:
 			calleeDepth = callees[i]->getLastDepth();
-            break;
-        case PreVisit:
+			break;
+		case PreVisit:
 			calleeDepth = callees[i]->analyzeCallDepth(analyzeCallDepth);
 			break;
-        default:
-            UNREACHABLE(callees[i]->visit);
-            break;
-        }
+		default:
+			UNREACHABLE(callees[i]->visit);
+			break;
+		}
 		if(calleeDepth != UINT_MAX) ++calleeDepth;
 		callDepth = std::max(callDepth, calleeDepth);
-    }
+	}
 
-    visit = PostVisit;
-    return callDepth;
+	visit = PostVisit;
+	return callDepth;
 }
 
 unsigned int AnalyzeCallDepth::FunctionNode::getLastDepth() const
@@ -79,25 +87,25 @@ void AnalyzeCallDepth::FunctionNode::removeIfUnreachable()
 }
 
 AnalyzeCallDepth::AnalyzeCallDepth(TIntermNode *root)
-    : TIntermTraverser(true, false, true, false),
-      currentFunction(0)
+	: TIntermTraverser(true, false, true, false),
+	  currentFunction(0)
 {
 	root->traverse(this);
 }
 
 AnalyzeCallDepth::~AnalyzeCallDepth()
 {
-    for(size_t i = 0; i < functions.size(); i++)
+	for(size_t i = 0; i < functions.size(); i++)
 	{
-        delete functions[i];
+		delete functions[i];
 	}
 }
 
 bool AnalyzeCallDepth::visitAggregate(Visit visit, TIntermAggregate *node)
 {
-    switch(node->getOp())
-    {
-    case EOpFunction:   // Function definition
+	switch(node->getOp())
+	{
+	case EOpFunction:   // Function definition
 		{
 			if(visit == PreVisit)
 			{
@@ -114,8 +122,8 @@ bool AnalyzeCallDepth::visitAggregate(Visit visit, TIntermAggregate *node)
 				currentFunction = 0;
 			}
 		}
-        break;
-    case EOpFunctionCall:
+		break;
+	case EOpFunctionCall:
 		{
 			if(!node->isUserDefined())
 			{
@@ -131,7 +139,7 @@ bool AnalyzeCallDepth::visitAggregate(Visit visit, TIntermAggregate *node)
 					function = new FunctionNode(node);
 					functions.push_back(function);
 				}
-				
+
 				if(currentFunction)
 				{
 					currentFunction->addCallee(function);
@@ -142,24 +150,24 @@ bool AnalyzeCallDepth::visitAggregate(Visit visit, TIntermAggregate *node)
 				}
 			}
 		}
-        break;
-    default:
-        break;
-    }
+		break;
+	default:
+		break;
+	}
 
-    return true;
+	return true;
 }
 
 unsigned int AnalyzeCallDepth::analyzeCallDepth()
 {
-    FunctionNode *main = findFunctionByName("main(");
-    
+	FunctionNode *main = findFunctionByName("main(");
+
 	if(!main)
 	{
 		return 0;
 	}
 
-    unsigned int depth = main->analyzeCallDepth(this);
+	unsigned int depth = main->analyzeCallDepth(this);
 	if(depth != UINT_MAX) ++depth;
 
 	for(FunctionSet::iterator globalCall = globalFunctionCalls.begin(); globalCall != globalFunctionCalls.end(); globalCall++)
@@ -176,21 +184,21 @@ unsigned int AnalyzeCallDepth::analyzeCallDepth()
 	for(size_t i = 0; i < functions.size(); i++)
 	{
 		functions[i]->removeIfUnreachable();
-    }
+	}
 
-    return depth;
+	return depth;
 }
 
 AnalyzeCallDepth::FunctionNode *AnalyzeCallDepth::findFunctionByName(const TString &name)
 {
-    for(size_t i = 0; i < functions.size(); i++)
+	for(size_t i = 0; i < functions.size(); i++)
 	{
-        if(functions[i]->getName() == name)
+		if(functions[i]->getName() == name)
 		{
-            return functions[i];
+			return functions[i];
 		}
-    }
+	}
 
-    return 0;
+	return 0;
 }
 

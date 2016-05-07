@@ -1,13 +1,16 @@
-// SwiftShader Software Renderer
+// Copyright 2016 The SwiftShader Authors. All Rights Reserved.
 //
-// Copyright(c) 2005-2012 TransGaming Inc.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
-// All rights reserved. No part of this software may be copied, distributed, transmitted,
-// transcribed, stored in a retrieval system, translated into any human or computer
-// language by any means, or disclosed to third parties without the explicit written
-// agreement of TransGaming Inc. Without such an agreement, no rights or licenses, express
-// or implied, including but not limited to any patent rights, are granted to you.
+//    http://www.apache.org/licenses/LICENSE-2.0
 //
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 // Query.cpp: Implements the gl::Query class
 
@@ -20,25 +23,22 @@ namespace gl
 {
 
 Query::Query(GLuint name, GLenum type) : NamedObject(name)
-{ 
-    mQuery = NULL;
-    mStatus = GL_FALSE;
-    mResult = GL_FALSE;
-    mType = type;
+{
+	mQuery = nullptr;
+	mStatus = GL_FALSE;
+	mResult = GL_FALSE;
+	mType = type;
 }
 
 Query::~Query()
 {
-    if(mQuery != NULL)
-    {
-        delete mQuery;
-    }
+	delete mQuery;
 }
 
 void Query::begin()
 {
-    if(mQuery == NULL)
-    {
+	if(!mQuery)
+	{
 		sw::Query::Type type;
 		switch(mType)
 		{
@@ -53,10 +53,10 @@ void Query::begin()
 		mQuery = new sw::Query(type);
 
 		if(!mQuery)
-        {
-            return error(GL_OUT_OF_MEMORY);
-        }
-    }
+		{
+			return error(GL_OUT_OF_MEMORY);
+		}
+	}
 
 	Device *device = getDevice();
 
@@ -67,72 +67,72 @@ void Query::begin()
 
 void Query::end()
 {
-    if(mQuery == NULL)
-    {
-        return error(GL_INVALID_OPERATION);
+	if(!mQuery)
+	{
+		return error(GL_INVALID_OPERATION);
 	}
 
 	Device *device = getDevice();
 
-    mQuery->end();
+	mQuery->end();
 	device->removeQuery(mQuery);
 	device->setOcclusionEnabled(false);
-    
-    mStatus = GL_FALSE;
-    mResult = GL_FALSE;
+
+	mStatus = GL_FALSE;
+	mResult = GL_FALSE;
 }
 
 GLuint Query::getResult()
 {
-    if(mQuery != NULL)
-    {
-        while(!testQuery())
-        {
-            sw::Thread::yield();
-        }
-    }
+	if(mQuery)
+	{
+		while(!testQuery())
+		{
+			sw::Thread::yield();
+		}
+	}
 
-    return (GLuint)mResult;
+	return (GLuint)mResult;
 }
 
 GLboolean Query::isResultAvailable()
 {
-    if(mQuery != NULL)
-    {
-        testQuery();
-    }
-    
-    return mStatus;
+	if(mQuery)
+	{
+		testQuery();
+	}
+
+	return mStatus;
 }
 
 GLenum Query::getType() const
 {
-    return mType;
+	return mType;
 }
 
 GLboolean Query::testQuery()
 {
-    if(mQuery != NULL && mStatus != GL_TRUE)
-    {
-        if(!mQuery->building && mQuery->reference == 0)
-        {
+	if(mQuery && mStatus != GL_TRUE)
+	{
+		if(!mQuery->building && mQuery->reference == 0)
+		{
 			unsigned int numPixels = mQuery->data;
-            mStatus = GL_TRUE;
+			mStatus = GL_TRUE;
 
-            switch(mType)
-            {
-            case GL_ANY_SAMPLES_PASSED:
-            case GL_ANY_SAMPLES_PASSED_CONSERVATIVE:
-                mResult = (numPixels > 0) ? GL_TRUE : GL_FALSE;
-                break;
-            default:
-                ASSERT(false);
-            }
-        }
-        
-        return mStatus;
-    }
+			switch(mType)
+			{
+			case GL_ANY_SAMPLES_PASSED:
+			case GL_ANY_SAMPLES_PASSED_CONSERVATIVE:
+				mResult = (numPixels > 0) ? GL_TRUE : GL_FALSE;
+				break;
+			default:
+				ASSERT(false);
+			}
+		}
 
-    return GL_TRUE;   // Prevent blocking when query is null
+		return mStatus;
+	}
+
+	return GL_TRUE;   // Prevent blocking when query is null
 }
 }

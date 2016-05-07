@@ -1,13 +1,16 @@
-// SwiftShader Software Renderer
+// Copyright 2016 The SwiftShader Authors. All Rights Reserved.
 //
-// Copyright(c) 2005-2013 TransGaming Inc.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
-// All rights reserved. No part of this software may be copied, distributed, transmitted,
-// transcribed, stored in a retrieval system, translated into any human or computer
-// language by any means, or disclosed to third parties without the explicit written
-// agreement of TransGaming Inc. Without such an agreement, no rights or licenses, express
-// or implied, including but not limited to any patent rights, are granted to you.
+//    http://www.apache.org/licenses/LICENSE-2.0
 //
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 // libGLES_CM.cpp: Implements the exported OpenGL ES 1.1 functions.
 
 #include "main.h"
@@ -432,7 +435,7 @@ void BufferSubData(GLenum target, GLintptr offset, GLsizeiptr size, const GLvoid
 		return error(GL_INVALID_VALUE);
 	}
 
-	if(data == NULL)
+	if(!data)
 	{
 		return;
 	}
@@ -1011,7 +1014,7 @@ void CopyTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset,
 			return error(GL_INVALID_OPERATION);
 		}
 
-		es1::Texture *texture = NULL;
+		es1::Texture *texture = nullptr;
 
 		if(target == GL_TEXTURE_2D)
 		{
@@ -1517,7 +1520,7 @@ void FramebufferTexture2DOES(GLenum target, GLenum attachment, GLenum textarget,
 		{
 			es1::Texture *tex = context->getTexture(texture);
 
-			if(tex == NULL)
+			if(!tex)
 			{
 				return error(GL_INVALID_OPERATION);
 			}
@@ -1910,7 +1913,7 @@ void GetBooleanv(GLenum pname, GLboolean* params)
 
 			if(context->isQueryParameterFloat(pname))
 			{
-				GLfloat *floatParams = NULL;
+				GLfloat *floatParams = nullptr;
 				floatParams = new GLfloat[numParams];
 
 				context->getFloatv(pname, floatParams);
@@ -1927,7 +1930,7 @@ void GetBooleanv(GLenum pname, GLboolean* params)
 			}
 			else if(context->isQueryParameterInt(pname))
 			{
-				GLint *intParams = NULL;
+				GLint *intParams = nullptr;
 				intParams = new GLint[numParams];
 
 				context->getIntegerv(pname, intParams);
@@ -2042,7 +2045,7 @@ void GetFloatv(GLenum pname, GLfloat* params)
 
 			if(context->isQueryParameterBool(pname))
 			{
-				GLboolean *boolParams = NULL;
+				GLboolean *boolParams = nullptr;
 				boolParams = new GLboolean[numParams];
 
 				context->getBooleanv(pname, boolParams);
@@ -2059,7 +2062,7 @@ void GetFloatv(GLenum pname, GLfloat* params)
 			}
 			else if(context->isQueryParameterInt(pname))
 			{
-				GLint *intParams = NULL;
+				GLint *intParams = nullptr;
 				intParams = new GLint[numParams];
 
 				context->getIntegerv(pname, intParams);
@@ -2183,7 +2186,7 @@ void GetIntegerv(GLenum pname, GLint* params)
 
 			if(context->isQueryParameterBool(pname))
 			{
-				GLboolean *boolParams = NULL;
+				GLboolean *boolParams = nullptr;
 				boolParams = new GLboolean[numParams];
 
 				context->getBooleanv(pname, boolParams);
@@ -2200,7 +2203,7 @@ void GetIntegerv(GLenum pname, GLint* params)
 			}
 			else if(context->isQueryParameterFloat(pname))
 			{
-				GLfloat *floatParams = NULL;
+				GLfloat *floatParams = nullptr;
 				floatParams = new GLfloat[numParams];
 
 				context->getFloatv(pname, floatParams);
@@ -2266,7 +2269,7 @@ const GLubyte* GetString(GLenum name)
 	switch(name)
 	{
 	case GL_VENDOR:
-		return (GLubyte*)"TransGaming Inc.";
+		return (GLubyte*)"Google Inc.";
 	case GL_RENDERER:
 		return (GLubyte*)"Google SwiftShader";
 	case GL_VERSION:
@@ -2304,7 +2307,7 @@ const GLubyte* GetString(GLenum name)
 			"GL_EXT_texture_filter_anisotropic "
 			"GL_EXT_texture_format_BGRA8888";
 	default:
-		return error(GL_INVALID_ENUM, (GLubyte*)NULL);
+		return error(GL_INVALID_ENUM, (GLubyte*)nullptr);
 	}
 }
 
@@ -3395,7 +3398,7 @@ void ReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, 
 
 	if(context)
 	{
-		context->readPixels(x, y, width, height, format, type, NULL, pixels);
+		context->readPixels(x, y, width, height, format, type, nullptr, pixels);
 	}
 }
 
@@ -4766,5 +4769,5 @@ extern "C" __eglMustCastToProperFunctionPointerType es1GetProcAddress(const char
 		}
 	}
 
-	return NULL;
+	return nullptr;
 }

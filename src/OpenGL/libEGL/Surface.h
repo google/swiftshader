@@ -1,13 +1,16 @@
-// SwiftShader Software Renderer
+// Copyright 2016 The SwiftShader Authors. All Rights Reserved.
 //
-// Copyright(c) 2005-2012 TransGaming Inc.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
-// All rights reserved. No part of this software may be copied, distributed, transmitted,
-// transcribed, stored in a retrieval system, translated into any human or computer
-// language by any means, or disclosed to third parties without the explicit written
-// agreement of TransGaming Inc. Without such an agreement, no rights or licenses, express
-// or implied, including but not limited to any patent rights, are granted to you.
+//    http://www.apache.org/licenses/LICENSE-2.0
 //
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 // Surface.h: Defines the egl::Surface class, representing a drawing surface
 // such as the client area of a window, including any back buffers.
@@ -32,30 +35,30 @@ class Surface : public gl::Object
 {
 public:
 	virtual bool initialize();
-    virtual void swap() = 0;
+	virtual void swap() = 0;
 
-    virtual egl::Image *getRenderTarget();
-    virtual egl::Image *getDepthStencil();
+	virtual egl::Image *getRenderTarget();
+	virtual egl::Image *getDepthStencil();
 
 	void setSwapBehavior(EGLenum swapBehavior);
-    void setSwapInterval(EGLint interval);
+	void setSwapInterval(EGLint interval);
 
-    virtual EGLint getConfigID() const;
+	virtual EGLint getConfigID() const;
 	virtual EGLenum getSurfaceType() const;
 	virtual sw::Format getInternalFormat() const;
 
-    virtual EGLint getWidth() const;
-    virtual EGLint getHeight() const;
-    virtual EGLint getPixelAspectRatio() const;
-    virtual EGLenum getRenderBuffer() const;
-    virtual EGLenum getSwapBehavior() const;
-    virtual EGLenum getTextureFormat() const;
-    virtual EGLenum getTextureTarget() const;
+	virtual EGLint getWidth() const;
+	virtual EGLint getHeight() const;
+	virtual EGLint getPixelAspectRatio() const;
+	virtual EGLenum getRenderBuffer() const;
+	virtual EGLenum getSwapBehavior() const;
+	virtual EGLenum getTextureFormat() const;
+	virtual EGLenum getTextureTarget() const;
 	virtual EGLBoolean getLargestPBuffer() const;
 	virtual EGLNativeWindowType getWindowHandle() const = 0;
 
-    virtual void setBoundTexture(egl::Texture *texture);
-    virtual egl::Texture *getBoundTexture() const;
+	virtual void setBoundTexture(egl::Texture *texture);
+	virtual egl::Texture *getBoundTexture() const;
 
 	virtual bool isWindowSurface() const { return false; }
 	virtual bool isPBufferSurface() const { return false; }
@@ -65,10 +68,10 @@ protected:
 
 	virtual ~Surface();
 
-    virtual void deleteResources();
+	virtual void deleteResources();
 
-    const Display *const display;
-    Image *depthStencil;
+	const Display *const display;
+	Image *depthStencil;
 	Image *backBuffer;
 	Texture *texture;
 

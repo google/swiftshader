@@ -1,13 +1,16 @@
-// SwiftShader Software Renderer
+// Copyright 2016 The SwiftShader Authors. All Rights Reserved.
 //
-// Copyright(c) 2005-2013 TransGaming Inc.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
-// All rights reserved. No part of this software may be copied, distributed, transmitted,
-// transcribed, stored in a retrieval system, translated into any human or computer
-// language by any means, or disclosed to third parties without the explicit written
-// agreement of TransGaming Inc. Without such an agreement, no rights or licenses, express
-// or implied, including but not limited to any patent rights, are granted to you.
+//    http://www.apache.org/licenses/LICENSE-2.0
 //
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 // utilities.cpp: Conversion functions and other utility routines.
 
@@ -353,8 +356,8 @@ namespace gl
 			return (format == GL_DEPTH_COMPONENT);
 		case GL_UNSIGNED_INT_24_8_EXT:
 			return (format == GL_DEPTH_STENCIL_EXT);
-        case GL_UNSIGNED_INT_8_8_8_8_REV:
-            return (format == GL_BGRA);
+		case GL_UNSIGNED_INT_8_8_8_8_REV:
+			return (format == GL_BGRA);
 		default:
 			return false;
 		}
@@ -371,7 +374,7 @@ namespace gl
 		case GL_RGBA8_EXT:
 			return true;
 		case GL_DEPTH_COMPONENT16:
-        case GL_DEPTH_COMPONENT24:
+		case GL_DEPTH_COMPONENT24:
 		case GL_STENCIL_INDEX8:
 		case GL_DEPTH24_STENCIL8_EXT:
 			return false;
@@ -387,7 +390,7 @@ namespace gl
 		switch(internalformat)
 		{
 		case GL_DEPTH_COMPONENT16:
-        case GL_DEPTH_COMPONENT24:
+		case GL_DEPTH_COMPONENT24:
 		case GL_DEPTH24_STENCIL8_EXT:
 			return true;
 		case GL_STENCIL_INDEX8:
@@ -417,7 +420,7 @@ namespace gl
 		case GL_RGB8_EXT:
 		case GL_RGBA8_EXT:
 		case GL_DEPTH_COMPONENT16:
-        case GL_DEPTH_COMPONENT24:
+		case GL_DEPTH_COMPONENT24:
 			return false;
 		default:
 			UNIMPLEMENTED();
@@ -558,7 +561,7 @@ namespace es2sw
 	{
 		switch(wrap)
 		{
-        case GL_CLAMP:             return sw::ADDRESSING_CLAMP;
+		case GL_CLAMP:             return sw::ADDRESSING_CLAMP;
 		case GL_REPEAT:            return sw::ADDRESSING_WRAP;
 		case GL_CLAMP_TO_EDGE:     return sw::ADDRESSING_CLAMP;
 		case GL_MIRRORED_REPEAT:   return sw::ADDRESSING_MIRROR;
@@ -669,8 +672,8 @@ namespace es2sw
 			swPrimitiveType = gl::DRAW_TRIANGLEFAN;
 			primitiveCount = elementCount - 2;
 			break;
-        case GL_QUADS:
-            swPrimitiveType = gl::DRAW_QUADLIST;
+		case GL_QUADS:
+			swPrimitiveType = gl::DRAW_QUADLIST;
 			primitiveCount = (elementCount / 4) * 2;
 			break;
 		default:
@@ -690,7 +693,7 @@ namespace es2sw
 		case GL_RGB565:               return sw::FORMAT_R5G6B5;
 		case GL_RGB8_EXT:             return sw::FORMAT_X8R8G8B8;
 		case GL_DEPTH_COMPONENT16:
-        case GL_DEPTH_COMPONENT24:
+		case GL_DEPTH_COMPONENT24:
 		case GL_STENCIL_INDEX8:
 		case GL_DEPTH24_STENCIL8_EXT: return sw::FORMAT_D24S8;
 		default: UNREACHABLE(format); return sw::FORMAT_A8R8G8B8;
@@ -855,8 +858,8 @@ namespace sw2es
 			return GL_DEPTH_COMPONENT16;
 		case sw::FORMAT_D32:
 			return GL_DEPTH_COMPONENT32;
-        case sw::FORMAT_D24X8:
-            return GL_DEPTH_COMPONENT24;
+		case sw::FORMAT_D24X8:
+			return GL_DEPTH_COMPONENT24;
 		case sw::FORMAT_D24S8:
 			return GL_DEPTH24_STENCIL8_EXT;
 		default:

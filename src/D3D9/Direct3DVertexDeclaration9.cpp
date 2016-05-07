@@ -1,13 +1,16 @@
-// SwiftShader Software Renderer
+// Copyright 2016 The SwiftShader Authors. All Rights Reserved.
 //
-// Copyright(c) 2005-2011 TransGaming Inc.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
-// All rights reserved. No part of this software may be copied, distributed, transmitted,
-// transcribed, stored in a retrieval system, translated into any human or computer
-// language by any means, or disclosed to third parties without the explicit written
-// agreement of TransGaming Inc. Without such an agreement, no rights or licenses, express
-// or implied, including but not limited to any patent rights, are granted to you.
+//    http://www.apache.org/licenses/LICENSE-2.0
 //
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #include "Direct3DVertexDeclaration9.hpp"
 
@@ -215,7 +218,7 @@ namespace D3D9
 
 		if(FVF & D3DFVF_DIFFUSE)
 		{
-			vertexElement[numElements].Stream = 0;			
+			vertexElement[numElements].Stream = 0;
 			vertexElement[numElements].Offset = offset;
 			vertexElement[numElements].Type = D3DDECLTYPE_D3DCOLOR;
 			vertexElement[numElements].Method = D3DDECLMETHOD_DEFAULT;
@@ -239,7 +242,7 @@ namespace D3D9
 
 		int numTexCoord = (FVF & D3DFVF_TEXCOUNT_MASK) >> D3DFVF_TEXCOUNT_SHIFT;
 		int textureFormats = (FVF >> 16) & 0xFFFF;
-		
+
 		static const int textureSize[4] =
 		{
 			2 * 4,   // D3DFVF_TEXTUREFORMAT2
@@ -247,7 +250,7 @@ namespace D3D9
 			4 * 4,   // D3DFVF_TEXTUREFORMAT4
 			1 * 4    // D3DFVF_TEXTUREFORMAT1
 		};
-		
+
 		static const D3DDECLTYPE textureType[4] =
 		{
 			D3DDECLTYPE_FLOAT2,   // D3DFVF_TEXTUREFORMAT2
@@ -311,7 +314,7 @@ namespace D3D9
 
 		return Unknown::AddRef();
 	}
-	
+
 	unsigned long Direct3DVertexDeclaration9::Release()
 	{
 		TRACE("");
@@ -373,7 +376,7 @@ namespace D3D9
 
 		int textureBits = 0;
 		int numBlendWeights = 0;
-	    
+
 		for(int i = 0; i < numElements - 1; i++)
 		{
 			D3DVERTEXELEMENT9 &element = vertexElement[i];
@@ -460,16 +463,16 @@ namespace D3D9
 				{
 					return 0;
 				}
-				
+
 				int bit = 1 << element.UsageIndex;
-				
+
 				if(textureBits & bit)
 				{
 					return 0;
 				}
 
 				textureBits |= bit;
-				
+
 				switch(element.Type)
 				{
 				case D3DDECLTYPE_FLOAT1:
@@ -501,14 +504,14 @@ namespace D3D9
 		{
 			return 0;
 		}
-	        
+
 		int positionMask = isTransformed ? 0x2 : 0x1;
 
 		if(numBlendWeights)
 		{
 			positionMask += numBlendWeights + 1;
 		}
-	        
+
 		int numTexCoord = 0;
 
 		while(textureBits & 1)

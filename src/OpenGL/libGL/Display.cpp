@@ -1,13 +1,16 @@
-// SwiftShader Software Renderer
+// Copyright 2016 The SwiftShader Authors. All Rights Reserved.
 //
-// Copyright(c) 2005-2013 TransGaming Inc.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
-// All rights reserved. No part of this software may be copied, distributed, transmitted,
-// transcribed, stored in a retrieval system, translated into any human or computer
-// language by any means, or disclosed to third parties without the explicit written
-// agreement of TransGaming Inc. Without such an agreement, no rights or licenses, express
-// or implied, including but not limited to any patent rights, are granted to you.
+//    http://www.apache.org/licenses/LICENSE-2.0
 //
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 // Display.cpp: Implements the Display class, representing the abstract
 // display on which graphics are drawn.
@@ -25,32 +28,32 @@
 
 namespace gl
 {
-typedef std::map<NativeDisplayType, Display*> DisplayMap; 
+typedef std::map<NativeDisplayType, Display*> DisplayMap;
 DisplayMap displays;
 
 Display *Display::getDisplay(NativeDisplayType displayId)
 {
-    if(displays.find(displayId) != displays.end())
-    {
-        return displays[displayId];
-    }
+	if(displays.find(displayId) != displays.end())
+	{
+		return displays[displayId];
+	}
 
-    // FIXME: Check if displayId is a valid display device context
-    Display *display = new Display(displayId);
+	// FIXME: Check if displayId is a valid display device context
+	Display *display = new Display(displayId);
 
-    displays[displayId] = display;
-    return display;
+	displays[displayId] = display;
+	return display;
 }
 
 Display::Display(NativeDisplayType displayId) : displayId(displayId)
 {
-    mMinSwapInterval = 1;
-    mMaxSwapInterval = 0;
+	mMinSwapInterval = 1;
+	mMaxSwapInterval = 0;
 }
 
 Display::~Display()
 {
-    terminate();
+	terminate();
 
 	displays.erase(displayId);
 }
@@ -58,10 +61,10 @@ Display::~Display()
 static void cpuid(int registers[4], int info)
 {
 	#if defined(_WIN32)
-        __cpuid(registers, info);
-    #else
-        __asm volatile("cpuid": "=a" (registers[0]), "=b" (registers[1]), "=c" (registers[2]), "=d" (registers[3]): "a" (info));
-    #endif
+		__cpuid(registers, info);
+	#else
+		__asm volatile("cpuid": "=a" (registers[0]), "=b" (registers[1]), "=c" (registers[2]), "=d" (registers[3]): "a" (info));
+	#endif
 }
 
 static bool detectSSE()
@@ -80,81 +83,81 @@ static bool detectSSE()
 
 bool Display::initialize()
 {
-    if(isInitialized())
-    {
-        return true;
-    }
+	if(isInitialized())
+	{
+		return true;
+	}
 
 	if(!detectSSE())
 	{
 		 return false;
 	}
-		
-    mMinSwapInterval = 0;
-    mMaxSwapInterval = 4;
 
-    if(!isInitialized())
-    {
-        terminate();
+	mMinSwapInterval = 0;
+	mMaxSwapInterval = 4;
 
-        return false;
-    }
+	if(!isInitialized())
+	{
+		terminate();
 
-    return true;
+		return false;
+	}
+
+	return true;
 }
 
 void Display::terminate()
 {
-    while(!mSurfaceSet.empty())
-    {
-        destroySurface(*mSurfaceSet.begin());
-    }
+	while(!mSurfaceSet.empty())
+	{
+		destroySurface(*mSurfaceSet.begin());
+	}
 
-    while(!mContextSet.empty())
-    {
-        destroyContext(*mContextSet.begin());
-    }
+	while(!mContextSet.empty())
+	{
+		destroyContext(*mContextSet.begin());
+	}
 }
 
 gl::Context *Display::createContext(const gl::Context *shareContext)
 {
-    gl::Context *context = new gl::Context(shareContext);
-    mContextSet.insert(context);
+	gl::Context *context = new gl::Context(shareContext);
+	mContextSet.insert(context);
 
-    return context;
+	return context;
 }
 
 void Display::destroySurface(Surface *surface)
 {
-    delete surface;
-    mSurfaceSet.erase(surface);
+	delete surface;
+	mSurfaceSet.erase(surface);
 }
 
 void Display::destroyContext(gl::Context *context)
 {
-    delete context;
+	delete context;
 
 	if(context == gl::getContext())
 	{
-		gl::makeCurrent(NULL, NULL, NULL);
+		gl::makeCurrent(nullptr, nullptr, nullptr);
 	}
 
-    mContextSet.erase(context);
+	mContextSet.erase(context);
 }
 
 bool Display::isInitialized() const
 {
-    return mMinSwapInterval <= mMaxSwapInterval;
+	return mMinSwapInterval <= mMaxSwapInterval;
 }
 
 bool Display::isValidContext(gl::Context *context)
 {
-    return mContextSet.find(context) != mContextSet.end();
+	return mContextSet.find(context) != mContextSet.end();
 }
 
 bool Display::isValidSurface(Surface *surface)
 {
-    return mSurfaceSet.find(surface) != mSurfaceSet.end();
+	return mSurfaceSet.find(surface) != mSurfaceSet.end();
 }
 
 bool Display::isValidWindow(NativeWindowType window)
@@ -164,24 +167,24 @@ bool Display::isValidWindow(NativeWindowType window)
 	#else
 		XWindowAttributes windowAttributes;
 		Status status = XGetWindowAttributes(displayId, window, &windowAttributes);
-			
+
 		return status == True;
 	#endif
 }
 
 GLint Display::getMinSwapInterval()
 {
-    return mMinSwapInterval;
+	return mMinSwapInterval;
 }
 
 GLint Display::getMaxSwapInterval()
 {
-    return mMaxSwapInterval;
+	return mMaxSwapInterval;
 }
 
 Surface *Display::getPrimarySurface()
 {
-    if(mSurfaceSet.size() == 0)
+	if(mSurfaceSet.size() == 0)
 	{
 		Surface *surface = new Surface(this, WindowFromDC(displayId));
 
@@ -196,7 +199,7 @@ Surface *Display::getPrimarySurface()
 		gl::setCurrentDrawSurface(surface);
 	}
 
-    return *mSurfaceSet.begin();
+	return *mSurfaceSet.begin();
 }
 
 NativeDisplayType Display::getNativeDisplay() const
@@ -210,11 +213,11 @@ DisplayMode Display::getDisplayMode() const
 
 	#if defined(_WIN32)
 		HDC deviceContext = GetDC(0);
-	
+
 		displayMode.width = ::GetDeviceCaps(deviceContext, HORZRES);
 		displayMode.height = ::GetDeviceCaps(deviceContext, VERTRES);
 		unsigned int bpp = ::GetDeviceCaps(deviceContext, BITSPIXEL);
-	
+
 		switch(bpp)
 		{
 		case 32: displayMode.format = sw::FORMAT_X8R8G8B8; break;
@@ -223,7 +226,7 @@ DisplayMode Display::getDisplayMode() const
 		default:
 			ASSERT(false);   // Unexpected display mode color depth
 		}
-	
+
 		ReleaseDC(0, deviceContext);
 	#else
 		Screen *screen = XDefaultScreenOfDisplay(displayId);

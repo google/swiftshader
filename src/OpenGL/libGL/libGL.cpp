@@ -1,13 +1,16 @@
-// SwiftShader Software Renderer
+// Copyright 2016 The SwiftShader Authors. All Rights Reserved.
 //
-// Copyright(c) 2005-2013 TransGaming Inc.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
-// All rights reserved. No part of this software may be copied, distributed, transmitted,
-// transcribed, stored in a retrieval system, translated into any human or computer
-// language by any means, or disclosed to third parties without the explicit written
-// agreement of TransGaming Inc. Without such an agreement, no rights or licenses, express
-// or implied, including but not limited to any patent rights, are granted to you.
+//    http://www.apache.org/licenses/LICENSE-2.0
 //
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 // libGL.cpp: Implements the exported OpenGL functions.
 
 #include "main.h"
@@ -365,7 +368,7 @@ void APIENTRY glBindTexture(GLenum target, GLuint texture)
 void APIENTRY glBlendColor(GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha)
 {
 	TRACE("(GLclampf red = %f, GLclampf green = %f, GLclampf blue = %f, GLclampf alpha = %f)",
-		  red, green, blue, alpha);
+	      red, green, blue, alpha);
 
 	gl::Context* context = gl::getContext();
 
@@ -592,7 +595,7 @@ void APIENTRY glBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size, c
 		return error(GL_INVALID_VALUE);
 	}
 
-	if(data == NULL)
+	if(!data)
 	{
 		return;
 	}
@@ -647,7 +650,7 @@ GLenum APIENTRY glCheckFramebufferStatus(GLenum target)
 			UNIMPLEMENTED();
 		}
 
-		gl::Framebuffer *framebuffer = NULL;
+		gl::Framebuffer *framebuffer = nullptr;
 		if(target == GL_READ_FRAMEBUFFER_EXT)
 		{
 			framebuffer = context->getReadFramebuffer();
@@ -782,7 +785,7 @@ void APIENTRY glCompileShader(GLuint shader)
 }
 
 void APIENTRY glCompressedTexImage2D(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height,
-                                        GLint border, GLsizei imageSize, const GLvoid* data)
+                                     GLint border, GLsizei imageSize, const GLvoid* data)
 {
 	TRACE("(GLenum target = 0x%X, GLint level = %d, GLenum internalformat = 0x%X, GLsizei width = %d, "
 	      "GLsizei height = %d, GLint border = %d, GLsizei imageSize = %d, const GLvoid* data = %p)",
@@ -905,7 +908,7 @@ void APIENTRY glCompressedTexImage2D(GLenum target, GLint level, GLenum internal
 }
 
 void APIENTRY glCompressedTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height,
-                                           GLenum format, GLsizei imageSize, const GLvoid* data)
+                                        GLenum format, GLsizei imageSize, const GLvoid* data)
 {
 	TRACE("(GLenum target = 0x%X, GLint level = %d, GLint xoffset = %d, GLint yoffset = %d, "
 	      "GLsizei width = %d, GLsizei height = %d, GLenum format = 0x%X, "
@@ -937,7 +940,7 @@ void APIENTRY glCompressedTexSubImage2D(GLenum target, GLint level, GLint xoffse
 		return error(GL_INVALID_ENUM);
 	}
 
-	if(width == 0 || height == 0 || data == NULL)
+	if(width == 0 || height == 0 || !data)
 	{
 		return;
 	}
@@ -1188,7 +1191,7 @@ void APIENTRY glCopyTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLi
 			return error(GL_INVALID_OPERATION);
 		}
 
-		gl::Texture *texture = NULL;
+		gl::Texture *texture = nullptr;
 
 		if(target == GL_TEXTURE_2D)
 		{
@@ -1830,7 +1833,7 @@ void APIENTRY glFinishFenceNV(GLuint fence)
 
 		gl::Fence* fenceObject = context->getFence(fence);
 
-		if(fenceObject == NULL)
+		if(!fenceObject)
 		{
 			return error(GL_INVALID_OPERATION);
 		}
@@ -1883,7 +1886,7 @@ void APIENTRY glFramebufferRenderbuffer(GLenum target, GLenum attachment, GLenum
 			UNIMPLEMENTED();
 		}
 
-		gl::Framebuffer *framebuffer = NULL;
+		gl::Framebuffer *framebuffer = nullptr;
 		GLuint framebufferName = 0;
 		if(target == GL_READ_FRAMEBUFFER_EXT)
 		{
@@ -1960,7 +1963,7 @@ void APIENTRY glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum te
 		{
 			gl::Texture *tex = context->getTexture(texture);
 
-			if(tex == NULL)
+			if(!tex)
 			{
 				return error(GL_INVALID_OPERATION);
 			}
@@ -1999,7 +2002,7 @@ void APIENTRY glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum te
 			}
 		}
 
-		gl::Framebuffer *framebuffer = NULL;
+		gl::Framebuffer *framebuffer = nullptr;
 		GLuint framebufferName = 0;
 		if(target == GL_READ_FRAMEBUFFER_EXT)
 		{
@@ -2385,7 +2388,7 @@ void APIENTRY glGetBooleanv(GLenum pname, GLboolean* params)
 
 			if(nativeType == GL_FLOAT)
 			{
-				GLfloat *floatParams = NULL;
+				GLfloat *floatParams = nullptr;
 				floatParams = new GLfloat[numParams];
 
 				context->getFloatv(pname, floatParams);
@@ -2402,7 +2405,7 @@ void APIENTRY glGetBooleanv(GLenum pname, GLboolean* params)
 			}
 			else if(nativeType == GL_INT)
 			{
-				GLint *intParams = NULL;
+				GLint *intParams = nullptr;
 				intParams = new GLint[numParams];
 
 				context->getIntegerv(pname, intParams);
@@ -2487,7 +2490,7 @@ void APIENTRY glGetFenceivNV(GLuint fence, GLenum pname, GLint *params)
 	{
 		gl::Fence *fenceObject = context->getFence(fence);
 
-		if(fenceObject == NULL)
+		if(!fenceObject)
 		{
 			return error(GL_INVALID_OPERATION);
 		}
@@ -2516,7 +2519,7 @@ void APIENTRY glGetFloatv(GLenum pname, GLfloat* params)
 
 			if(nativeType == GL_BOOL)
 			{
-				GLboolean *boolParams = NULL;
+				GLboolean *boolParams = nullptr;
 				boolParams = new GLboolean[numParams];
 
 				context->getBooleanv(pname, boolParams);
@@ -2533,7 +2536,7 @@ void APIENTRY glGetFloatv(GLenum pname, GLfloat* params)
 			}
 			else if(nativeType == GL_INT)
 			{
-				GLint *intParams = NULL;
+				GLint *intParams = nullptr;
 				intParams = new GLint[numParams];
 
 				context->getIntegerv(pname, intParams);
@@ -2563,7 +2566,7 @@ void APIENTRY glGetFramebufferAttachmentParameteriv(GLenum target, GLenum attach
 			return error(GL_INVALID_ENUM);
 		}
 
-		gl::Framebuffer *framebuffer = NULL;
+		gl::Framebuffer *framebuffer = nullptr;
 		if(target == GL_READ_FRAMEBUFFER_EXT)
 		{
 			if(context->getReadFramebufferName() == 0)
@@ -2689,7 +2692,7 @@ void APIENTRY glGetIntegerv(GLenum pname, GLint* params)
 
 			if(nativeType == GL_BOOL)
 			{
-				GLboolean *boolParams = NULL;
+				GLboolean *boolParams = nullptr;
 				boolParams = new GLboolean[numParams];
 
 				context->getBooleanv(pname, boolParams);
@@ -2706,7 +2709,7 @@ void APIENTRY glGetIntegerv(GLenum pname, GLint* params)
 			}
 			else if(nativeType == GL_FLOAT)
 			{
-				GLfloat *floatParams = NULL;
+				GLfloat *floatParams = nullptr;
 				floatParams = new GLfloat[numParams];
 
 				context->getFloatv(pname, floatParams);
@@ -3037,7 +3040,7 @@ const GLubyte* APIENTRY glGetString(GLenum name)
 	switch(name)
 	{
 	case GL_VENDOR:
-		return (GLubyte*)"TransGaming Inc.";
+		return (GLubyte*)"Google Inc.";
 	case GL_RENDERER:
 		return (GLubyte*)"SwiftShader";
 	case GL_VERSION:
@@ -3080,10 +3083,10 @@ const GLubyte* APIENTRY glGetString(GLenum name)
 			#endif
 			"GL_NV_fence";
 	default:
-		return error(GL_INVALID_ENUM, (GLubyte*)NULL);
+		return error(GL_INVALID_ENUM, (GLubyte*)nullptr);
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 void APIENTRY glGetTexParameterfv(GLenum target, GLenum pname, GLfloat* params)
@@ -3229,7 +3232,7 @@ void APIENTRY glGetUniformfv(GLuint program, GLint location, GLfloat* params)
 			return error(GL_INVALID_OPERATION);
 		}
 
-		if(!programObject->getUniformfv(location, NULL, params))
+		if(!programObject->getUniformfv(location, nullptr, params))
 		{
 			return error(GL_INVALID_OPERATION);
 		}
@@ -3299,7 +3302,7 @@ void APIENTRY glGetUniformiv(GLuint program, GLint location, GLint* params)
 			return error(GL_INVALID_OPERATION);
 		}
 
-		if(!programObject->getUniformiv(location, NULL, params))
+		if(!programObject->getUniformiv(location, nullptr, params))
 		{
 			return error(GL_INVALID_OPERATION);
 		}
@@ -3545,7 +3548,7 @@ GLboolean APIENTRY glIsFenceNV(GLuint fence)
 	{
 		gl::Fence *fenceObject = context->getFence(fence);
 
-		if(fenceObject == NULL)
+		if(!fenceObject)
 		{
 			return GL_FALSE;
 		}
@@ -3771,11 +3774,11 @@ void APIENTRY glPolygonOffset(GLfloat factor, GLfloat units)
 }
 
 void APIENTRY glReadnPixelsEXT(GLint x, GLint y, GLsizei width, GLsizei height,
-                                  GLenum format, GLenum type, GLsizei bufSize, GLvoid *data)
+							   GLenum format, GLenum type, GLsizei bufSize, GLvoid *data)
 {
 	TRACE("(GLint x = %d, GLint y = %d, GLsizei width = %d, GLsizei height = %d, "
-	      "GLenum format = 0x%X, GLenum type = 0x%X, GLsizei bufSize = 0x%d, GLvoid *data = %p)",
-	      x, y, width, height, format, type, bufSize, data);
+		  "GLenum format = 0x%X, GLenum type = 0x%X, GLsizei bufSize = 0x%d, GLvoid *data = %p)",
+		  x, y, width, height, format, type, bufSize, data);
 
 	if(width < 0 || height < 0 || bufSize < 0)
 	{
@@ -3820,7 +3823,7 @@ void APIENTRY glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLen
 
 	if(context)
 	{
-		context->readPixels(x, y, width, height, format, type, NULL, pixels);
+		context->readPixels(x, y, width, height, format, type, nullptr, pixels);
 	}
 }
 
@@ -3943,7 +3946,7 @@ void APIENTRY glSetFenceNV(GLuint fence, GLenum condition)
 
 		gl::Fence *fenceObject = context->getFence(fence);
 
-		if(fenceObject == NULL)
+		if(!fenceObject)
 		{
 			return error(GL_INVALID_OPERATION);
 		}
@@ -4217,7 +4220,7 @@ GLboolean APIENTRY glTestFenceNV(GLuint fence)
 
 		gl::Fence *fenceObject = context->getFence(fence);
 
-		if(fenceObject == NULL)
+		if(!fenceObject)
 		{
 			return error(GL_INVALID_OPERATION, GL_TRUE);
 		}
@@ -4229,7 +4232,7 @@ GLboolean APIENTRY glTestFenceNV(GLuint fence)
 }
 
 void APIENTRY glTexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height,
-                              GLint border, GLenum format, GLenum type, const GLvoid* pixels)
+                           GLint border, GLenum format, GLenum type, const GLvoid* pixels)
 {
 	TRACE("(GLenum target = 0x%X, GLint level = %d, GLint internalformat = %d, GLsizei width = %d, GLsizei height = %d, "
 	      "GLint border = %d, GLenum format = 0x%X, GLenum type = 0x%X, const GLvoid* pixels =  %p)",
@@ -4613,7 +4616,7 @@ void APIENTRY glTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint y
 		return error(GL_INVALID_ENUM);
 	}
 
-	if(width == 0 || height == 0 || pixels == NULL)
+	if(width == 0 || height == 0 || !pixels)
 	{
 		return;
 	}
@@ -5426,7 +5429,7 @@ void APIENTRY glViewport(GLint x, GLint y, GLsizei width, GLsizei height)
 }
 
 void APIENTRY glBlitFramebufferANGLE(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1,
-                                        GLbitfield mask, GLenum filter)
+                                     GLbitfield mask, GLenum filter)
 {
 	TRACE("(GLint srcX0 = %d, GLint srcY0 = %d, GLint srcX1 = %d, GLint srcY1 = %d, "
 	      "GLint dstX0 = %d, GLint dstY0 = %d, GLint dstX1 = %d, GLint dstY1 = %d, "
@@ -5472,7 +5475,7 @@ void APIENTRY glBlitFramebufferANGLE(GLint srcX0, GLint srcY0, GLint srcX1, GLin
 }
 
 void APIENTRY glTexImage3DOES(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth,
-                                 GLint border, GLenum format, GLenum type, const GLvoid* pixels)
+                              GLint border, GLenum format, GLenum type, const GLvoid* pixels)
 {
 	TRACE("(GLenum target = 0x%X, GLint level = %d, GLenum internalformat = 0x%X, "
 	      "GLsizei width = %d, GLsizei height = %d, GLsizei depth = %d, GLint border = %d, "
@@ -7939,8 +7942,8 @@ const char *WINAPI wglGetExtensionsStringARB(HDC hdc)
 	TRACE("(*)");
 
 	return "GL_ARB_framebuffer_object "
-		   "WGL_EXT_extensions_string "
-		   "WGL_EXT_swap_control";
+	       "WGL_EXT_extensions_string "
+	       "WGL_EXT_swap_control";
 }
 
 const char *WINAPI wglGetExtensionsStringEXT()

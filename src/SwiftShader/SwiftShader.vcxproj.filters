@@ -347,6 +347,9 @@
     <ClInclude Include="..\Renderer\ETC_Decoder.hpp">
       <Filter>Header Files\Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="..\Renderer\Polygon.hpp">
+      <Filter>Header Files\Renderer</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="SwiftShader.ini" />

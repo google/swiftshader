@@ -1,13 +1,16 @@
-// SwiftShader Software Renderer
+// Copyright 2016 The SwiftShader Authors. All Rights Reserved.
 //
-// Copyright(c) 2005-2013 TransGaming Inc.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
-// All rights reserved. No part of this software may be copied, distributed, transmitted,
-// transcribed, stored in a retrieval system, translated into any human or computer
-// language by any means, or disclosed to third parties without the explicit written
-// agreement of TransGaming Inc. Without such an agreement, no rights or licenses, express
-// or implied, including but not limited to any patent rights, are granted to you.
+//    http://www.apache.org/licenses/LICENSE-2.0
 //
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 // Context.h: Defines the Context class, managing all GL state and performing
 // rendering operations. It is the GLES2 specific implementation of EGLContext.
@@ -60,10 +63,10 @@ class IndexDataManager;
 
 enum
 {
-    MAX_VERTEX_ATTRIBS = sw::VERTEX_ATTRIBUTES,
-    MAX_VARYING_VECTORS = 10,
-    MAX_TEXTURE_UNITS = 2,
-    MAX_DRAW_BUFFERS = 1,
+	MAX_VERTEX_ATTRIBS = sw::VERTEX_ATTRIBUTES,
+	MAX_VARYING_VECTORS = 10,
+	MAX_TEXTURE_UNITS = 2,
+	MAX_DRAW_BUFFERS = 1,
 	MAX_LIGHTS = 8,
 	MAX_CLIP_PLANES = sw::MAX_CLIP_PLANES,
 
@@ -99,10 +102,10 @@ const float MAX_TEXTURE_MAX_ANISOTROPY = 16.0f;
 
 struct Color
 {
-    float red;
-    float green;
-    float blue;
-    float alpha;
+	float red;
+	float green;
+	float blue;
+	float alpha;
 };
 
 struct Point
@@ -144,49 +147,49 @@ struct Light
 class VertexAttribute
 {
 public:
-    VertexAttribute() : mType(GL_FLOAT), mSize(4), mNormalized(false), mStride(0), mPointer(NULL), mArrayEnabled(false)
-    {
-        mCurrentValue[0] = 0.0f;
-        mCurrentValue[1] = 0.0f;
-        mCurrentValue[2] = 0.0f;
-        mCurrentValue[3] = 1.0f;
-    }
+	VertexAttribute() : mType(GL_FLOAT), mSize(4), mNormalized(false), mStride(0), mPointer(nullptr), mArrayEnabled(false)
+	{
+		mCurrentValue[0] = 0.0f;
+		mCurrentValue[1] = 0.0f;
+		mCurrentValue[2] = 0.0f;
+		mCurrentValue[3] = 1.0f;
+	}
 
-    int typeSize() const
-    {
-        switch(mType)
-        {
-        case GL_BYTE:           return mSize * sizeof(GLbyte);
-        case GL_UNSIGNED_BYTE:  return mSize * sizeof(GLubyte);
-        case GL_SHORT:          return mSize * sizeof(GLshort);
-        case GL_UNSIGNED_SHORT: return mSize * sizeof(GLushort);
-        case GL_FIXED:          return mSize * sizeof(GLfixed);
-        case GL_FLOAT:          return mSize * sizeof(GLfloat);
-        default: UNREACHABLE(mType); return mSize * sizeof(GLfloat);
-        }
-    }
+	int typeSize() const
+	{
+		switch(mType)
+		{
+		case GL_BYTE:           return mSize * sizeof(GLbyte);
+		case GL_UNSIGNED_BYTE:  return mSize * sizeof(GLubyte);
+		case GL_SHORT:          return mSize * sizeof(GLshort);
+		case GL_UNSIGNED_SHORT: return mSize * sizeof(GLushort);
+		case GL_FIXED:          return mSize * sizeof(GLfixed);
+		case GL_FLOAT:          return mSize * sizeof(GLfloat);
+		default: UNREACHABLE(mType); return mSize * sizeof(GLfloat);
+		}
+	}
 
-    GLsizei stride() const
-    {
-        return mStride ? mStride : typeSize();
-    }
+	GLsizei stride() const
+	{
+		return mStride ? mStride : typeSize();
+	}
 
-    // From glVertexAttribPointer
-    GLenum mType;
-    GLint mSize;
-    bool mNormalized;
-    GLsizei mStride;   // 0 means natural stride
+	// From glVertexAttribPointer
+	GLenum mType;
+	GLint mSize;
+	bool mNormalized;
+	GLsizei mStride;   // 0 means natural stride
 
-    union
-    {
-        const void *mPointer;
-        intptr_t mOffset;
-    };
+	union
+	{
+		const void *mPointer;
+		intptr_t mOffset;
+	};
 
-    gl::BindingPointer<Buffer> mBoundBuffer;   // Captured when glVertexAttribPointer is called.
+	gl::BindingPointer<Buffer> mBoundBuffer;   // Captured when glVertexAttribPointer is called.
 
-    bool mArrayEnabled;   // From glEnable/DisableVertexAttribArray
-    float mCurrentValue[4];   // From glVertexAttrib
+	bool mArrayEnabled;   // From glEnable/DisableVertexAttribArray
+	float mCurrentValue[4];   // From glVertexAttrib
 };
 
 typedef VertexAttribute VertexAttributeArray[MAX_VERTEX_ATTRIBS];
@@ -214,76 +217,76 @@ struct TextureUnit
 // Helper structure to store all raw state
 struct State
 {
-    Color colorClearValue;
-    GLclampf depthClearValue;
-    int stencilClearValue;
+	Color colorClearValue;
+	GLclampf depthClearValue;
+	int stencilClearValue;
 
-    bool cullFaceEnabled;
-    GLenum cullMode;
-    GLenum frontFace;
-    bool depthTestEnabled;
-    GLenum depthFunc;
-    bool blendEnabled;
-    GLenum sourceBlendRGB;
-    GLenum destBlendRGB;
-    GLenum sourceBlendAlpha;
-    GLenum destBlendAlpha;
-    GLenum blendEquationRGB;
-    GLenum blendEquationAlpha;
-    bool stencilTestEnabled;
-    GLenum stencilFunc;
-    GLint stencilRef;
-    GLuint stencilMask;
-    GLenum stencilFail;
-    GLenum stencilPassDepthFail;
-    GLenum stencilPassDepthPass;
-    GLuint stencilWritemask;
-    bool polygonOffsetFillEnabled;
-    GLfloat polygonOffsetFactor;
-    GLfloat polygonOffsetUnits;
-    bool sampleAlphaToCoverageEnabled;
-    bool sampleCoverageEnabled;
-    GLclampf sampleCoverageValue;
-    bool sampleCoverageInvert;
-    bool scissorTestEnabled;
-    bool ditherEnabled;
+	bool cullFaceEnabled;
+	GLenum cullMode;
+	GLenum frontFace;
+	bool depthTestEnabled;
+	GLenum depthFunc;
+	bool blendEnabled;
+	GLenum sourceBlendRGB;
+	GLenum destBlendRGB;
+	GLenum sourceBlendAlpha;
+	GLenum destBlendAlpha;
+	GLenum blendEquationRGB;
+	GLenum blendEquationAlpha;
+	bool stencilTestEnabled;
+	GLenum stencilFunc;
+	GLint stencilRef;
+	GLuint stencilMask;
+	GLenum stencilFail;
+	GLenum stencilPassDepthFail;
+	GLenum stencilPassDepthPass;
+	GLuint stencilWritemask;
+	bool polygonOffsetFillEnabled;
+	GLfloat polygonOffsetFactor;
+	GLfloat polygonOffsetUnits;
+	bool sampleAlphaToCoverageEnabled;
+	bool sampleCoverageEnabled;
+	GLclampf sampleCoverageValue;
+	bool sampleCoverageInvert;
+	bool scissorTestEnabled;
+	bool ditherEnabled;
 	GLenum shadeModel;
 
-    GLfloat lineWidth;
+	GLfloat lineWidth;
 
-    GLenum generateMipmapHint;
+	GLenum generateMipmapHint;
 	GLenum perspectiveCorrectionHint;
 	GLenum fogHint;
 
-    GLint viewportX;
-    GLint viewportY;
-    GLsizei viewportWidth;
-    GLsizei viewportHeight;
-    float zNear;
-    float zFar;
+	GLint viewportX;
+	GLint viewportY;
+	GLsizei viewportWidth;
+	GLsizei viewportHeight;
+	float zNear;
+	float zFar;
 
-    GLint scissorX;
-    GLint scissorY;
-    GLsizei scissorWidth;
-    GLsizei scissorHeight;
+	GLint scissorX;
+	GLint scissorY;
+	GLsizei scissorWidth;
+	GLsizei scissorHeight;
 
-    bool colorMaskRed;
-    bool colorMaskGreen;
-    bool colorMaskBlue;
-    bool colorMaskAlpha;
-    bool depthMask;
+	bool colorMaskRed;
+	bool colorMaskGreen;
+	bool colorMaskBlue;
+	bool colorMaskAlpha;
+	bool depthMask;
 
-    unsigned int activeSampler;   // Active texture unit selector - GL_TEXTURE0
-    gl::BindingPointer<Buffer> arrayBuffer;
-    gl::BindingPointer<Buffer> elementArrayBuffer;
-    GLuint framebuffer;
-    gl::BindingPointer<Renderbuffer> renderbuffer;
+	unsigned int activeSampler;   // Active texture unit selector - GL_TEXTURE0
+	gl::BindingPointer<Buffer> arrayBuffer;
+	gl::BindingPointer<Buffer> elementArrayBuffer;
+	GLuint framebuffer;
+	gl::BindingPointer<Renderbuffer> renderbuffer;
 
-    VertexAttribute vertexAttribute[MAX_VERTEX_ATTRIBS];
-    gl::BindingPointer<Texture> samplerTexture[TEXTURE_TYPE_COUNT][MAX_TEXTURE_UNITS];
+	VertexAttribute vertexAttribute[MAX_VERTEX_ATTRIBS];
+	gl::BindingPointer<Texture> samplerTexture[TEXTURE_TYPE_COUNT][MAX_TEXTURE_UNITS];
 
-    GLint unpackAlignment;
-    GLint packAlignment;
+	GLint unpackAlignment;
+	GLint packAlignment;
 
 	TextureUnit textureUnit[MAX_TEXTURE_UNITS];
 };
@@ -291,57 +294,57 @@ struct State
 class Context : public egl::Context
 {
 public:
-    Context(const egl::Config *config, const Context *shareContext);
+	Context(const egl::Config *config, const Context *shareContext);
 
 	virtual void makeCurrent(egl::Surface *surface);
 	virtual int getClientVersion() const;
-    virtual void finish();
+	virtual void finish();
 
-    void markAllStateDirty();
+	void markAllStateDirty();
 
-    // State manipulation
-    void setClearColor(float red, float green, float blue, float alpha);
-    void setClearDepth(float depth);
-    void setClearStencil(int stencil);
+	// State manipulation
+	void setClearColor(float red, float green, float blue, float alpha);
+	void setClearDepth(float depth);
+	void setClearStencil(int stencil);
 
-    void setCullFaceEnabled(bool enabled);
-    bool isCullFaceEnabled() const;
-    void setCullMode(GLenum mode);
-    void setFrontFace(GLenum front);
+	void setCullFaceEnabled(bool enabled);
+	bool isCullFaceEnabled() const;
+	void setCullMode(GLenum mode);
+	void setFrontFace(GLenum front);
 
-    void setDepthTestEnabled(bool enabled);
-    bool isDepthTestEnabled() const;
-    void setDepthFunc(GLenum depthFunc);
-    void setDepthRange(float zNear, float zFar);
+	void setDepthTestEnabled(bool enabled);
+	bool isDepthTestEnabled() const;
+	void setDepthFunc(GLenum depthFunc);
+	void setDepthRange(float zNear, float zFar);
 
 	void setAlphaTestEnabled(bool enabled);
-    bool isAlphaTestEnabled() const;
-    void setAlphaFunc(GLenum alphaFunc, GLclampf reference);
+	bool isAlphaTestEnabled() const;
+	void setAlphaFunc(GLenum alphaFunc, GLclampf reference);
 
-    void setBlendEnabled(bool enabled);
-    bool isBlendEnabled() const;
-    void setBlendFactors(GLenum sourceRGB, GLenum destRGB, GLenum sourceAlpha, GLenum destAlpha);
-    void setBlendEquation(GLenum rgbEquation, GLenum alphaEquation);
+	void setBlendEnabled(bool enabled);
+	bool isBlendEnabled() const;
+	void setBlendFactors(GLenum sourceRGB, GLenum destRGB, GLenum sourceAlpha, GLenum destAlpha);
+	void setBlendEquation(GLenum rgbEquation, GLenum alphaEquation);
 
-    void setStencilTestEnabled(bool enabled);
-    bool isStencilTestEnabled() const;
-    void setStencilParams(GLenum stencilFunc, GLint stencilRef, GLuint stencilMask);
-    void setStencilWritemask(GLuint stencilWritemask);
-    void setStencilOperations(GLenum stencilFail, GLenum stencilPassDepthFail, GLenum stencilPassDepthPass);
+	void setStencilTestEnabled(bool enabled);
+	bool isStencilTestEnabled() const;
+	void setStencilParams(GLenum stencilFunc, GLint stencilRef, GLuint stencilMask);
+	void setStencilWritemask(GLuint stencilWritemask);
+	void setStencilOperations(GLenum stencilFail, GLenum stencilPassDepthFail, GLenum stencilPassDepthPass);
 
-    void setPolygonOffsetFillEnabled(bool enabled);
-    bool isPolygonOffsetFillEnabled() const;
-    void setPolygonOffsetParams(GLfloat factor, GLfloat units);
+	void setPolygonOffsetFillEnabled(bool enabled);
+	bool isPolygonOffsetFillEnabled() const;
+	void setPolygonOffsetParams(GLfloat factor, GLfloat units);
 
-    void setSampleAlphaToCoverageEnabled(bool enabled);
-    bool isSampleAlphaToCoverageEnabled() const;
-    void setSampleCoverageEnabled(bool enabled);
-    bool isSampleCoverageEnabled() const;
-    void setSampleCoverageParams(GLclampf value, bool invert);
+	void setSampleAlphaToCoverageEnabled(bool enabled);
+	bool isSampleAlphaToCoverageEnabled() const;
+	void setSampleCoverageEnabled(bool enabled);
+	bool isSampleCoverageEnabled() const;
+	void setSampleCoverageParams(GLclampf value, bool invert);
 
 	void setShadeModel(GLenum mode);
-    void setDitherEnabled(bool enabled);
-    bool isDitherEnabled() const;
+	void setDitherEnabled(bool enabled);
+	bool isDitherEnabled() const;
 	void setLightingEnabled(bool enabled);
 	bool isLightingEnabled() const;
 	void setLightEnabled(int index, bool enable);
@@ -373,11 +376,11 @@ public:
 	void setFogEnd(float fogEnd);
 	void setFogColor(float r, float g, float b, float a);
 
-    void setTexture2Denabled(bool enabled);
+	void setTexture2Denabled(bool enabled);
 	bool isTexture2Denabled() const;
 	void setTextureExternalEnabled(bool enabled);
 	bool isTextureExternalEnabled() const;
-    void clientActiveTexture(GLenum texture);
+	void clientActiveTexture(GLenum texture);
 	GLenum getClientActiveTexture() const;
 	unsigned int getActiveTexture() const;
 
@@ -398,110 +401,110 @@ public:
 	void setSrc1Alpha(GLenum src);
 	void setSrc2Alpha(GLenum src);
 
-    void setLineWidth(GLfloat width);
+	void setLineWidth(GLfloat width);
 
-    void setGenerateMipmapHint(GLenum hint);
+	void setGenerateMipmapHint(GLenum hint);
 	void setPerspectiveCorrectionHint(GLenum hint);
 	void setFogHint(GLenum hint);
 
-    void setViewportParams(GLint x, GLint y, GLsizei width, GLsizei height);
+	void setViewportParams(GLint x, GLint y, GLsizei width, GLsizei height);
 
 	void setScissorTestEnabled(bool enabled);
-    bool isScissorTestEnabled() const;
-    void setScissorParams(GLint x, GLint y, GLsizei width, GLsizei height);
+	bool isScissorTestEnabled() const;
+	void setScissorParams(GLint x, GLint y, GLsizei width, GLsizei height);
 
-    void setColorMask(bool red, bool green, bool blue, bool alpha);
-    void setDepthMask(bool mask);
+	void setColorMask(bool red, bool green, bool blue, bool alpha);
+	void setDepthMask(bool mask);
 
-    void setActiveSampler(unsigned int active);
+	void setActiveSampler(unsigned int active);
 
-    GLuint getFramebufferName() const;
-    GLuint getRenderbufferName() const;
+	GLuint getFramebufferName() const;
+	GLuint getRenderbufferName() const;
 
-    GLuint getArrayBufferName() const;
+	GLuint getArrayBufferName() const;
 
-    void setVertexAttribArrayEnabled(unsigned int attribNum, bool enabled);
-    const VertexAttribute &getVertexAttribState(unsigned int attribNum);
-    void setVertexAttribState(unsigned int attribNum, Buffer *boundBuffer, GLint size, GLenum type,
-                              bool normalized, GLsizei stride, const void *pointer);
-    const void *getVertexAttribPointer(unsigned int attribNum) const;
+	void setVertexAttribArrayEnabled(unsigned int attribNum, bool enabled);
+	const VertexAttribute &getVertexAttribState(unsigned int attribNum);
+	void setVertexAttribState(unsigned int attribNum, Buffer *boundBuffer, GLint size, GLenum type,
+	                          bool normalized, GLsizei stride, const void *pointer);
+	const void *getVertexAttribPointer(unsigned int attribNum) const;
 
-    const VertexAttributeArray &getVertexAttributes();
+	const VertexAttributeArray &getVertexAttributes();
 
-    void setUnpackAlignment(GLint alignment);
-    GLint getUnpackAlignment() const;
+	void setUnpackAlignment(GLint alignment);
+	GLint getUnpackAlignment() const;
 
-    void setPackAlignment(GLint alignment);
-    GLint getPackAlignment() const;
+	void setPackAlignment(GLint alignment);
+	GLint getPackAlignment() const;
 
-    // These create and destroy methods are merely pass-throughs to
-    // ResourceManager, which owns these object types
-    GLuint createBuffer();
-    GLuint createTexture();
-    GLuint createRenderbuffer();
+	// These create and destroy methods are merely pass-throughs to
+	// ResourceManager, which owns these object types
+	GLuint createBuffer();
+	GLuint createTexture();
+	GLuint createRenderbuffer();
 
-    void deleteBuffer(GLuint buffer);
-    void deleteTexture(GLuint texture);
-    void deleteRenderbuffer(GLuint renderbuffer);
+	void deleteBuffer(GLuint buffer);
+	void deleteTexture(GLuint texture);
+	void deleteRenderbuffer(GLuint renderbuffer);
 
-    // Framebuffers are owned by the Context, so these methods do not pass through
-    GLuint createFramebuffer();
-    void deleteFramebuffer(GLuint framebuffer);
+	// Framebuffers are owned by the Context, so these methods do not pass through
+	GLuint createFramebuffer();
+	void deleteFramebuffer(GLuint framebuffer);
 
-    void bindArrayBuffer(GLuint buffer);
-    void bindElementArrayBuffer(GLuint buffer);
-    void bindTexture2D(GLuint texture);
-    void bindTextureExternal(GLuint texture);
-    void bindFramebuffer(GLuint framebuffer);
-    void bindRenderbuffer(GLuint renderbuffer);
+	void bindArrayBuffer(GLuint buffer);
+	void bindElementArrayBuffer(GLuint buffer);
+	void bindTexture2D(GLuint texture);
+	void bindTextureExternal(GLuint texture);
+	void bindFramebuffer(GLuint framebuffer);
+	void bindRenderbuffer(GLuint renderbuffer);
 
-    void setFramebufferZero(Framebuffer *framebuffer);
+	void setFramebufferZero(Framebuffer *framebuffer);
 
-    void setRenderbufferStorage(RenderbufferStorage *renderbuffer);
+	void setRenderbufferStorage(RenderbufferStorage *renderbuffer);
 
-    void setVertexAttrib(GLuint index, GLfloat x, GLfloat y, GLfloat z, GLfloat w);
+	void setVertexAttrib(GLuint index, GLfloat x, GLfloat y, GLfloat z, GLfloat w);
 
-    Buffer *getBuffer(GLuint handle);
-    virtual Texture *getTexture(GLuint handle);
-    Framebuffer *getFramebuffer(GLuint handle);
-    virtual Renderbuffer *getRenderbuffer(GLuint handle);
+	Buffer *getBuffer(GLuint handle);
+	virtual Texture *getTexture(GLuint handle);
+	Framebuffer *getFramebuffer(GLuint handle);
+	virtual Renderbuffer *getRenderbuffer(GLuint handle);
 
-    Buffer *getArrayBuffer();
-    Buffer *getElementArrayBuffer();
-    Texture2D *getTexture2D();
-    TextureExternal *getTextureExternal();
-    Texture *getSamplerTexture(unsigned int sampler, TextureType type);
-    Framebuffer *getFramebuffer();
+	Buffer *getArrayBuffer();
+	Buffer *getElementArrayBuffer();
+	Texture2D *getTexture2D();
+	TextureExternal *getTextureExternal();
+	Texture *getSamplerTexture(unsigned int sampler, TextureType type);
+	Framebuffer *getFramebuffer();
 
-    bool getFloatv(GLenum pname, GLfloat *params);
-    bool getIntegerv(GLenum pname, GLint *params);
-    bool getBooleanv(GLenum pname, GLboolean *params);
-    bool getPointerv(GLenum pname, const GLvoid **params);
+	bool getFloatv(GLenum pname, GLfloat *params);
+	bool getIntegerv(GLenum pname, GLint *params);
+	bool getBooleanv(GLenum pname, GLboolean *params);
+	bool getPointerv(GLenum pname, const GLvoid **params);
 
-    int getQueryParameterNum(GLenum pname);
+	int getQueryParameterNum(GLenum pname);
 	bool isQueryParameterInt(GLenum pname);
 	bool isQueryParameterFloat(GLenum pname);
 	bool isQueryParameterBool(GLenum pname);
 	bool isQueryParameterPointer(GLenum pname);
 
-    void readPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLsizei *bufSize, void* pixels);
-    void clear(GLbitfield mask);
-    void drawArrays(GLenum mode, GLint first, GLsizei count);
-    void drawElements(GLenum mode, GLsizei count, GLenum type, const void *indices);
-    void drawTexture(GLfloat x, GLfloat y, GLfloat z, GLfloat width, GLfloat height);
-    void flush();
+	void readPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLsizei *bufSize, void* pixels);
+	void clear(GLbitfield mask);
+	void drawArrays(GLenum mode, GLint first, GLsizei count);
+	void drawElements(GLenum mode, GLsizei count, GLenum type, const void *indices);
+	void drawTexture(GLfloat x, GLfloat y, GLfloat z, GLfloat width, GLfloat height);
+	void flush();
 
-    void recordInvalidEnum();
-    void recordInvalidValue();
-    void recordInvalidOperation();
-    void recordOutOfMemory();
-    void recordInvalidFramebufferOperation();
+	void recordInvalidEnum();
+	void recordInvalidValue();
+	void recordInvalidOperation();
+	void recordOutOfMemory();
+	void recordInvalidFramebufferOperation();
 	void recordMatrixStackOverflow();
 	void recordMatrixStackUnderflow();
 
-    GLenum getError();
+	GLenum getError();
 
-    static int getSupportedMultisampleCount(int requested);
+	static int getSupportedMultisampleCount(int requested);
 
 	virtual void bindTexImage(egl::Surface *surface);
 	virtual EGLenum validateSharedImage(EGLenum target, GLuint name, GLuint textureLevel);
@@ -509,17 +512,17 @@ public:
 
 	Device *getDevice();
 
-    void setMatrixMode(GLenum mode);
-    void loadIdentity();
+	void setMatrixMode(GLenum mode);
+	void loadIdentity();
 	void load(const GLfloat *m);
-    void pushMatrix();
-    void popMatrix();
-    void rotate(GLfloat angle, GLfloat x, GLfloat y, GLfloat z);
-    void translate(GLfloat x, GLfloat y, GLfloat z);
+	void pushMatrix();
+	void popMatrix();
+	void rotate(GLfloat angle, GLfloat x, GLfloat y, GLfloat z);
+	void translate(GLfloat x, GLfloat y, GLfloat z);
 	void scale(GLfloat x, GLfloat y, GLfloat z);
-    void multiply(const GLfloat *m);
+	void multiply(const GLfloat *m);
 	void frustum(GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat zNear, GLfloat zFar);
-    void ortho(GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat zNear, GLfloat zFar);
+	void ortho(GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat zNear, GLfloat zFar);
 
 	void setClipPlane(int index, const float plane[4]);
 	void setClipPlaneEnabled(int index, bool enable);
@@ -575,30 +578,30 @@ public:
 private:
 	virtual ~Context();
 
-    bool applyRenderTarget();
-    void applyState(GLenum drawMode);
-    GLenum applyVertexBuffer(GLint base, GLint first, GLsizei count);
-    GLenum applyIndexBuffer(const void *indices, GLsizei count, GLenum mode, GLenum type, TranslatedIndexData *indexInfo);
-    void applyTextures();
+	bool applyRenderTarget();
+	void applyState(GLenum drawMode);
+	GLenum applyVertexBuffer(GLint base, GLint first, GLsizei count);
+	GLenum applyIndexBuffer(const void *indices, GLsizei count, GLenum mode, GLenum type, TranslatedIndexData *indexInfo);
+	void applyTextures();
 	void applyTexture(int sampler, Texture *texture);
 
-    void detachBuffer(GLuint buffer);
-    void detachTexture(GLuint texture);
-    void detachFramebuffer(GLuint framebuffer);
-    void detachRenderbuffer(GLuint renderbuffer);
+	void detachBuffer(GLuint buffer);
+	void detachTexture(GLuint texture);
+	void detachFramebuffer(GLuint framebuffer);
+	void detachRenderbuffer(GLuint renderbuffer);
 
-    bool cullSkipsDraw(GLenum drawMode);
-    bool isTriangleMode(GLenum drawMode);
+	bool cullSkipsDraw(GLenum drawMode);
+	bool isTriangleMode(GLenum drawMode);
 
-    State mState;
+	State mState;
 
-    gl::BindingPointer<Texture2D> mTexture2DZero;
-    gl::BindingPointer<TextureExternal> mTextureExternalZero;
+	gl::BindingPointer<Texture2D> mTexture2DZero;
+	gl::BindingPointer<TextureExternal> mTextureExternalZero;
 
 	gl::NameSpace<Framebuffer> mFramebufferNameSpace;
 
-    VertexDataManager *mVertexDataManager;
-    IndexDataManager *mIndexDataManager;
+	VertexDataManager *mVertexDataManager;
+	IndexDataManager *mIndexDataManager;
 
 	bool lightingEnabled;
 	Light light[MAX_LIGHTS];
@@ -610,30 +613,30 @@ private:
 	GLfloat materialShininess;
 	bool lightModelTwoSide;
 
-    // Recorded errors
-    bool mInvalidEnum;
-    bool mInvalidValue;
-    bool mInvalidOperation;
-    bool mOutOfMemory;
-    bool mInvalidFramebufferOperation;
+	// Recorded errors
+	bool mInvalidEnum;
+	bool mInvalidValue;
+	bool mInvalidOperation;
+	bool mOutOfMemory;
+	bool mInvalidFramebufferOperation;
 	bool mMatrixStackOverflow;
 	bool mMatrixStackUnderflow;
 
-    bool mHasBeenCurrent;
+	bool mHasBeenCurrent;
 
-    // state caching flags
-    bool mDepthStateDirty;
-    bool mMaskStateDirty;
-    bool mBlendStateDirty;
-    bool mStencilStateDirty;
-    bool mPolygonOffsetStateDirty;
-    bool mSampleStateDirty;
-    bool mFrontFaceDirty;
-    bool mDitherStateDirty;
+	// state caching flags
+	bool mDepthStateDirty;
+	bool mMaskStateDirty;
+	bool mBlendStateDirty;
+	bool mStencilStateDirty;
+	bool mPolygonOffsetStateDirty;
+	bool mSampleStateDirty;
+	bool mFrontFaceDirty;
+	bool mDitherStateDirty;
 
 	sw::MatrixStack &currentMatrixStack();
 	GLenum matrixMode;
-    sw::MatrixStack modelViewStack;
+	sw::MatrixStack modelViewStack;
 	sw::MatrixStack projectionStack;
 	sw::MatrixStack textureStack0;
 	sw::MatrixStack textureStack1;
@@ -673,7 +676,7 @@ private:
 	GLenum logicalOperation;
 
 	Device *device;
-    ResourceManager *mResourceManager;
+	ResourceManager *mResourceManager;
 };
 }
 

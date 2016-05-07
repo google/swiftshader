@@ -1,13 +1,17 @@
-// SwiftShader Software Renderer
+// Copyright 2016 The SwiftShader Authors. All Rights Reserved.
 //
-// Copyright(c) 2015 Google Inc.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
-// All rights reserved. No part of this software may be copied, distributed, transmitted,
-// transcribed, stored in a retrieval system, translated into any human or computer
-// language by any means, or disclosed to third parties without the explicit written
-// agreement of Google Inc. Without such an agreement, no rights or licenses, express
-// or implied, including but not limited to any patent rights, are granted to you.
+//    http://www.apache.org/licenses/LICENSE-2.0
 //
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 // libGLESv3.cpp: Implements the exported OpenGL ES 3.0 functions.
 
 #include "main.h"
@@ -1845,7 +1849,7 @@ GL_APICALL void GL_APIENTRY glGetIntegeri_v(GLenum target, GLuint index, GLint *
 
 			if(nativeType == GL_BOOL)
 			{
-				GLboolean *boolParams = NULL;
+				GLboolean *boolParams = nullptr;
 				boolParams = new GLboolean[numParams];
 
 				context->getBooleanv(target, boolParams);
@@ -1859,7 +1863,7 @@ GL_APICALL void GL_APIENTRY glGetIntegeri_v(GLenum target, GLuint index, GLint *
 			}
 			else if(nativeType == GL_FLOAT)
 			{
-				GLfloat *floatParams = NULL;
+				GLfloat *floatParams = nullptr;
 				floatParams = new GLfloat[numParams];
 
 				context->getFloatv(target, floatParams);
@@ -2360,7 +2364,7 @@ GL_APICALL void GL_APIENTRY glGetUniformuiv(GLuint program, GLint location, GLui
 			return error(GL_INVALID_OPERATION);
 		}
 
-		if(!programObject->getUniformuiv(location, NULL, params))
+		if(!programObject->getUniformuiv(location, nullptr, params))
 		{
 			return error(GL_INVALID_OPERATION);
 		}
@@ -2703,7 +2707,7 @@ GL_APICALL const GLubyte *GL_APIENTRY glGetStringi(GLenum name, GLuint index)
 
 		if(index >= numExtensions)
 		{
-			return error(GL_INVALID_VALUE, (GLubyte*)NULL);
+			return error(GL_INVALID_VALUE, (GLubyte*)nullptr);
 		}
 
 		switch(name)
@@ -2711,11 +2715,11 @@ GL_APICALL const GLubyte *GL_APIENTRY glGetStringi(GLenum name, GLuint index)
 		case GL_EXTENSIONS:
 			return context->getExtensions(index);
 		default:
-			return error(GL_INVALID_ENUM, (GLubyte*)NULL);
+			return error(GL_INVALID_ENUM, (GLubyte*)nullptr);
 		}
 	}
 
-	return (GLubyte*)NULL;
+	return (GLubyte*)nullptr;
 }
 
 GL_APICALL void GL_APIENTRY glCopyBufferSubData(GLenum readTarget, GLenum writeTarget, GLintptr readOffset, GLintptr writeOffset, GLsizeiptr size)
@@ -2766,7 +2770,7 @@ GL_APICALL void GL_APIENTRY glGetUniformIndices(GLuint program, GLsizei uniformC
 	TRACE("(GLuint program = %d, GLsizei uniformCount = %d, const GLchar *const*uniformNames = %p, GLuint *uniformIndices = %p)",
 	      program, uniformCount, uniformNames, uniformIndices);
 
-	if (uniformCount < 0)
+	if(uniformCount < 0)
 	{
 		return error(GL_INVALID_VALUE);
 	}
@@ -3183,7 +3187,7 @@ GL_APICALL void GL_APIENTRY glGetInteger64v(GLenum pname, GLint64 *data)
 
 			if(nativeType == GL_BOOL)
 			{
-				GLboolean *boolParams = NULL;
+				GLboolean *boolParams = nullptr;
 				boolParams = new GLboolean[numParams];
 
 				context->getBooleanv(pname, boolParams);
@@ -3197,7 +3201,7 @@ GL_APICALL void GL_APIENTRY glGetInteger64v(GLenum pname, GLint64 *data)
 			}
 			else if(nativeType == GL_FLOAT)
 			{
-				GLfloat *floatParams = NULL;
+				GLfloat *floatParams = nullptr;
 				floatParams = new GLfloat[numParams];
 
 				context->getFloatv(pname, floatParams);
@@ -3255,7 +3259,7 @@ GL_APICALL void GL_APIENTRY glGetInteger64i_v(GLenum target, GLuint index, GLint
 
 			if(nativeType == GL_BOOL)
 			{
-				GLboolean *boolParams = NULL;
+				GLboolean *boolParams = nullptr;
 				boolParams = new GLboolean[numParams];
 
 				context->getBooleanv(target, boolParams);
@@ -3269,7 +3273,7 @@ GL_APICALL void GL_APIENTRY glGetInteger64i_v(GLenum target, GLuint index, GLint
 			}
 			else if(nativeType == GL_FLOAT)
 			{
-				GLfloat *floatParams = NULL;
+				GLfloat *floatParams = nullptr;
 				floatParams = new GLfloat[numParams];
 
 				context->getFloatv(target, floatParams);
@@ -3597,7 +3601,7 @@ GL_APICALL void GL_APIENTRY glDeleteTransformFeedbacks(GLsizei n, const GLuint *
 	{
 		for(int i = 0; i < n; i++)
 		{
-			if (ids[i] != 0)
+			if(ids[i] != 0)
 			{
 				context->deleteTransformFeedback(ids[i]);
 			}
@@ -3856,7 +3860,7 @@ GL_APICALL void GL_APIENTRY glTexStorage2D(GLenum target, GLsizei levels, GLenum
 
 			for(int level = 0; level < levels; ++level)
 			{
-				texture->setImage(level, width, height, GetSizedInternalFormat(internalformat, type), type, context->getUnpackInfo(), NULL);
+				texture->setImage(level, width, height, GetSizedInternalFormat(internalformat, type), type, context->getUnpackInfo(), nullptr);
 				width = std::max(1, (width / 2));
 				height = std::max(1, (height / 2));
 			}
@@ -3875,7 +3879,7 @@ GL_APICALL void GL_APIENTRY glTexStorage2D(GLenum target, GLsizei levels, GLenum
 			{
 				for(int face = GL_TEXTURE_CUBE_MAP_POSITIVE_X; face <= GL_TEXTURE_CUBE_MAP_NEGATIVE_Z; ++face)
 				{
-					texture->setImage(face, level, width, height, GetSizedInternalFormat(internalformat, type), type, context->getUnpackInfo(), NULL);
+					texture->setImage(face, level, width, height, GetSizedInternalFormat(internalformat, type), type, context->getUnpackInfo(), nullptr);
 				}
 				width = std::max(1, (width / 2));
 				height = std::max(1, (height / 2));
@@ -3926,7 +3930,7 @@ GL_APICALL void GL_APIENTRY glTexStorage3D(GLenum target, GLsizei levels, GLenum
 
 			for(int level = 0; level < levels; ++level)
 			{
-				texture->setImage(level, width, height, depth, GetSizedInternalFormat(internalformat, type), type, context->getUnpackInfo(), NULL);
+				texture->setImage(level, width, height, depth, GetSizedInternalFormat(internalformat, type), type, context->getUnpackInfo(), nullptr);
 				width = std::max(1, (width / 2));
 				height = std::max(1, (height / 2));
 				depth = std::max(1, (depth / 2));
@@ -3951,7 +3955,7 @@ GL_APICALL void GL_APIENTRY glTexStorage3D(GLenum target, GLsizei levels, GLenum
 			{
 				for(int face = GL_TEXTURE_CUBE_MAP_POSITIVE_X; face <= GL_TEXTURE_CUBE_MAP_NEGATIVE_Z; ++face)
 				{
-					texture->setImage(level, width, height, depth, GetSizedInternalFormat(internalformat, type), type, context->getUnpackInfo(), NULL);
+					texture->setImage(level, width, height, depth, GetSizedInternalFormat(internalformat, type), type, context->getUnpackInfo(), nullptr);
 				}
 				width = std::max(1, (width / 2));
 				height = std::max(1, (height / 2));

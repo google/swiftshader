@@ -1,13 +1,16 @@
-// SwiftShader Software Renderer
+// Copyright 2016 The SwiftShader Authors. All Rights Reserved.
 //
-// Copyright(c) 2005-2013 TransGaming Inc.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
-// All rights reserved. No part of this software may be copied, distributed, transmitted,
-// transcribed, stored in a retrieval system, translated into any human or computer
-// language by any means, or disclosed to third parties without the explicit written
-// agreement of TransGaming Inc. Without such an agreement, no rights or licenses, express
-// or implied, including but not limited to any patent rights, are granted to you.
+//    http://www.apache.org/licenses/LICENSE-2.0
 //
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #include "VertexProgram.hpp"
 
@@ -674,7 +677,7 @@ namespace sw
 			reg = readConstant(src, offset);
 			break;
 		case Shader::PARAMETER_INPUT:
-            if(src.rel.type == Shader::PARAMETER_VOID)
+			if(src.rel.type == Shader::PARAMETER_VOID)
 			{
 				reg = v[i];
 			}
@@ -682,7 +685,7 @@ namespace sw
 			{
 				reg = v[i + relativeAddress(src, src.bufferIndex)];
 			}
-            break;
+			break;
 		case Shader::PARAMETER_VOID: return r[0];   // Dummy
 		case Shader::PARAMETER_FLOAT4LITERAL:
 			reg.x = Float4(src.value[0]);
@@ -706,7 +709,7 @@ namespace sw
 			}
 			return reg;
 		case Shader::PARAMETER_OUTPUT:
-            if(src.rel.type == Shader::PARAMETER_VOID)
+			if(src.rel.type == Shader::PARAMETER_VOID)
 			{
 				reg = o[i];
 			}

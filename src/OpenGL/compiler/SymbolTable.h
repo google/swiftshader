@@ -1,8 +1,16 @@
+// Copyright 2016 The SwiftShader Authors. All Rights Reserved.
 //
-// Copyright (c) 2002-2013 The ANGLE Project Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #ifndef _SYMBOL_TABLE_INCLUDED_
 #define _SYMBOL_TABLE_INCLUDED_
@@ -46,21 +54,21 @@
 class TSymbol
 {
 public:
-    POOL_ALLOCATOR_NEW_DELETE();
-    TSymbol(const TString *n) :  name(n) { }
-    virtual ~TSymbol() { /* don't delete name, it's from the pool */ }
+	POOL_ALLOCATOR_NEW_DELETE();
+	TSymbol(const TString *n) :  name(n) { }
+	virtual ~TSymbol() { /* don't delete name, it's from the pool */ }
 
-    const TString& getName() const { return *name; }
-    virtual const TString& getMangledName() const { return getName(); }
-    virtual bool isFunction() const { return false; }
-    virtual bool isVariable() const { return false; }
-    void setUniqueId(int id) { uniqueId = id; }
-    int getUniqueId() const { return uniqueId; }
-    TSymbol(const TSymbol&);
+	const TString& getName() const { return *name; }
+	virtual const TString& getMangledName() const { return getName(); }
+	virtual bool isFunction() const { return false; }
+	virtual bool isVariable() const { return false; }
+	void setUniqueId(int id) { uniqueId = id; }
+	int getUniqueId() const { return uniqueId; }
+	TSymbol(const TSymbol&);
 
 protected:
-    const TString *name;
-    unsigned int uniqueId;      // For real comparing during code generation
+	const TString *name;
+	unsigned int uniqueId;      // For real comparing during code generation
 };
 
 //
@@ -76,43 +84,43 @@ protected:
 class TVariable : public TSymbol
 {
 public:
-    TVariable(const TString *name, const TType& t, bool uT = false ) : TSymbol(name), type(t), userType(uT), unionArray(0), arrayInformationType(0) { }
-    virtual ~TVariable() { }
-    virtual bool isVariable() const { return true; }
-    TType& getType() { return type; }
-    const TType& getType() const { return type; }
-    bool isUserType() const { return userType; }
-    void setQualifier(TQualifier qualifier) { type.setQualifier(qualifier); }
-    void updateArrayInformationType(TType *t) { arrayInformationType = t; }
-    TType* getArrayInformationType() { return arrayInformationType; }
+	TVariable(const TString *name, const TType& t, bool uT = false ) : TSymbol(name), type(t), userType(uT), unionArray(0), arrayInformationType(0) { }
+	virtual ~TVariable() { }
+	virtual bool isVariable() const { return true; }
+	TType& getType() { return type; }
+	const TType& getType() const { return type; }
+	bool isUserType() const { return userType; }
+	void setQualifier(TQualifier qualifier) { type.setQualifier(qualifier); }
+	void updateArrayInformationType(TType *t) { arrayInformationType = t; }
+	TType* getArrayInformationType() { return arrayInformationType; }
 
-    ConstantUnion* getConstPointer()
-    {
-        if (!unionArray)
-            unionArray = new ConstantUnion[type.getObjectSize()];
+	ConstantUnion* getConstPointer()
+	{
+		if (!unionArray)
+			unionArray = new ConstantUnion[type.getObjectSize()];
 
-        return unionArray;
-    }
+		return unionArray;
+	}
 
-    ConstantUnion* getConstPointer() const { return unionArray; }
+	ConstantUnion* getConstPointer() const { return unionArray; }
 	bool isConstant() const { return unionArray != nullptr; }
 
-    void shareConstPointer( ConstantUnion *constArray)
-    {
-        if (unionArray == constArray)
-            return;
+	void shareConstPointer( ConstantUnion *constArray)
+	{
+		if (unionArray == constArray)
+			return;
 
-        delete[] unionArray;
-        unionArray = constArray;
-    }
+		delete[] unionArray;
+		unionArray = constArray;
+	}
 
 protected:
-    TType type;
-    bool userType;
-    // we are assuming that Pool Allocator will free the memory allocated to unionArray
-    // when this object is destroyed
-    ConstantUnion *unionArray;
-    TType *arrayInformationType;  // this is used for updating maxArraySize in all the references to a given symbol
+	TType type;
+	bool userType;
+	// we are assuming that Pool Allocator will free the memory allocated to unionArray
+	// when this object is destroyed
+	ConstantUnion *unionArray;
+	TType *arrayInformationType;  // this is used for updating maxArraySize in all the references to a given symbol
 };
 
 //
@@ -121,8 +129,8 @@ protected:
 //
 struct TParameter
 {
-    TString *name;
-    TType *type;
+	TString *name;
+	TType *type;
 };
 
 //
@@ -131,57 +139,57 @@ struct TParameter
 class TFunction : public TSymbol
 {
 public:
-    TFunction(TOperator o) :
-        TSymbol(0),
-        returnType(TType(EbtVoid, EbpUndefined)),
-        op(o),
-        defined(false),
-		prototypeDeclaration(false) { }
-    TFunction(const TString *name, const TType& retType, TOperator tOp = EOpNull, const char *ext = "") :
-        TSymbol(name),
-        returnType(retType),
-        mangledName(TFunction::mangleName(*name)),
-        op(tOp),
-        extension(ext),
+	TFunction(TOperator o) :
+		TSymbol(0),
+		returnType(TType(EbtVoid, EbpUndefined)),
+		op(o),
 		defined(false),
 		prototypeDeclaration(false) { }
-    virtual ~TFunction();
-    virtual bool isFunction() const { return true; }
+	TFunction(const TString *name, const TType& retType, TOperator tOp = EOpNull, const char *ext = "") :
+		TSymbol(name),
+		returnType(retType),
+		mangledName(TFunction::mangleName(*name)),
+		op(tOp),
+		extension(ext),
+		defined(false),
+		prototypeDeclaration(false) { }
+	virtual ~TFunction();
+	virtual bool isFunction() const { return true; }
 
-    static TString mangleName(const TString& name) { return name + '('; }
-    static TString unmangleName(const TString& mangledName)
-    {
-        return TString(mangledName.c_str(), mangledName.find_first_of('('));
-    }
+	static TString mangleName(const TString& name) { return name + '('; }
+	static TString unmangleName(const TString& mangledName)
+	{
+		return TString(mangledName.c_str(), mangledName.find_first_of('('));
+	}
 
-    void addParameter(TParameter& p)
-    {
-        parameters.push_back(p);
-        mangledName = mangledName + p.type->getMangledName();
-    }
+	void addParameter(TParameter& p)
+	{
+		parameters.push_back(p);
+		mangledName = mangledName + p.type->getMangledName();
+	}
 
-    const TString& getMangledName() const { return mangledName; }
-    const TType& getReturnType() const { return returnType; }
+	const TString& getMangledName() const { return mangledName; }
+	const TType& getReturnType() const { return returnType; }
 
-    TOperator getBuiltInOp() const { return op; }
-    const TString& getExtension() const { return extension; }
+	TOperator getBuiltInOp() const { return op; }
+	const TString& getExtension() const { return extension; }
 
-    void setDefined() { defined = true; }
-    bool isDefined() { return defined; }
+	void setDefined() { defined = true; }
+	bool isDefined() { return defined; }
 	void setHasPrototypeDeclaration() { prototypeDeclaration = true; }
 	bool hasPrototypeDeclaration() const { return prototypeDeclaration; }
 
-    size_t getParamCount() const { return parameters.size(); }
-    const TParameter& getParam(int i) const { return parameters[i]; }
+	size_t getParamCount() const { return parameters.size(); }
+	const TParameter& getParam(int i) const { return parameters[i]; }
 
 protected:
-    typedef TVector<TParameter> TParamList;
-    TParamList parameters;
-    TType returnType;
-    TString mangledName;
-    TOperator op;
-    TString extension;
-    bool defined;
+	typedef TVector<TParameter> TParamList;
+	TParamList parameters;
+	TType returnType;
+	TString mangledName;
+	TOperator op;
+	TString extension;
+	bool defined;
 	bool prototypeDeclaration;
 };
 
@@ -189,36 +197,36 @@ protected:
 class TSymbolTableLevel
 {
 public:
-    typedef TMap<TString, TSymbol*> tLevel;
-    typedef tLevel::const_iterator const_iterator;
-    typedef const tLevel::value_type tLevelPair;
-    typedef std::pair<tLevel::iterator, bool> tInsertResult;
+	typedef TMap<TString, TSymbol*> tLevel;
+	typedef tLevel::const_iterator const_iterator;
+	typedef const tLevel::value_type tLevelPair;
+	typedef std::pair<tLevel::iterator, bool> tInsertResult;
 
-    POOL_ALLOCATOR_NEW_DELETE();
-    TSymbolTableLevel() { }
-    ~TSymbolTableLevel();
+	POOL_ALLOCATOR_NEW_DELETE();
+	TSymbolTableLevel() { }
+	~TSymbolTableLevel();
 
-    bool insert(TSymbol &symbol)
-    {
+	bool insert(TSymbol &symbol)
+	{
 		symbol.setUniqueId(nextUniqueId());
 
-        //
-        // returning true means symbol was added to the table
-        //
-        tInsertResult result;
-        result = level.insert(tLevelPair(symbol.getMangledName(), &symbol));
+		//
+		// returning true means symbol was added to the table
+		//
+		tInsertResult result;
+		result = level.insert(tLevelPair(symbol.getMangledName(), &symbol));
 
-        return result.second;
-    }
+		return result.second;
+	}
 
-    TSymbol* find(const TString& name) const
-    {
-        tLevel::const_iterator it = level.find(name);
-        if (it == level.end())
-            return 0;
-        else
-            return (*it).second;
-    }
+	TSymbol* find(const TString& name) const
+	{
+		tLevel::const_iterator it = level.find(name);
+		if (it == level.end())
+			return 0;
+		else
+			return (*it).second;
+	}
 
 	static int nextUniqueId()
 	{
@@ -226,17 +234,17 @@ public:
 	}
 
 protected:
-    tLevel level;
+	tLevel level;
 	static int uniqueId;     // for unique identification in code generation
 };
 
 enum ESymbolLevel
 {
-    COMMON_BUILTINS,
-    ESSL1_BUILTINS,
-    ESSL3_BUILTINS,
-    LAST_BUILTIN_LEVEL = ESSL3_BUILTINS,
-    GLOBAL_LEVEL
+	COMMON_BUILTINS,
+	ESSL1_BUILTINS,
+	ESSL3_BUILTINS,
+	LAST_BUILTIN_LEVEL = ESSL3_BUILTINS,
+	GLOBAL_LEVEL
 };
 
 inline bool IsGenType(const TType *type)
@@ -306,49 +314,49 @@ inline TType *VecType(TType *type, int size)
 class TSymbolTable
 {
 public:
-    TSymbolTable()
-        : mGlobalInvariant(false)
-    {
-        //
-        // The symbol table cannot be used until push() is called, but
-        // the lack of an initial call to push() can be used to detect
-        // that the symbol table has not been preloaded with built-ins.
-        //
-    }
+	TSymbolTable()
+		: mGlobalInvariant(false)
+	{
+		//
+		// The symbol table cannot be used until push() is called, but
+		// the lack of an initial call to push() can be used to detect
+		// that the symbol table has not been preloaded with built-ins.
+		//
+	}
 
-    ~TSymbolTable()
-    {
+	~TSymbolTable()
+	{
 		while(currentLevel() > LAST_BUILTIN_LEVEL)
 		{
 			pop();
 		}
-    }
+	}
 
-    bool isEmpty() { return table.empty(); }
-    bool atBuiltInLevel() { return currentLevel() <= LAST_BUILTIN_LEVEL; }
-    bool atGlobalLevel() { return currentLevel() <= GLOBAL_LEVEL; }
-    void push()
-    {
-        table.push_back(new TSymbolTableLevel);
-        precisionStack.push_back( PrecisionStackLevel() );
-    }
+	bool isEmpty() { return table.empty(); }
+	bool atBuiltInLevel() { return currentLevel() <= LAST_BUILTIN_LEVEL; }
+	bool atGlobalLevel() { return currentLevel() <= GLOBAL_LEVEL; }
+	void push()
+	{
+		table.push_back(new TSymbolTableLevel);
+		precisionStack.push_back( PrecisionStackLevel() );
+	}
 
-    void pop()
-    {
-        delete table[currentLevel()];
-        table.pop_back();
-        precisionStack.pop_back();
-    }
+	void pop()
+	{
+		delete table[currentLevel()];
+		table.pop_back();
+		precisionStack.pop_back();
+	}
 
-    bool declare(TSymbol &symbol)
-    {
-        return insert(currentLevel(), symbol);
-    }
+	bool declare(TSymbol &symbol)
+	{
+		return insert(currentLevel(), symbol);
+	}
 
-    bool insert(ESymbolLevel level, TSymbol &symbol)
-    {
-        return table[level]->insert(symbol);
-    }
+	bool insert(ESymbolLevel level, TSymbol &symbol)
+	{
+		return table[level]->insert(symbol);
+	}
 
 	bool insertConstInt(ESymbolLevel level, const char *name, int value)
 	{
@@ -435,61 +443,61 @@ public:
 
 			insert(level, *function);
 		}
-    }
+	}
 
 	void insertBuiltIn(ESymbolLevel level, TOperator op, TType *rvalue, const char *name, TType *ptype1, TType *ptype2 = 0, TType *ptype3 = 0, TType *ptype4 = 0, TType *ptype5 = 0)
 	{
 		insertBuiltIn(level, op, "", rvalue, name, ptype1, ptype2, ptype3, ptype4, ptype5);
-    }
+	}
 
 	void insertBuiltIn(ESymbolLevel level, TType *rvalue, const char *name, TType *ptype1, TType *ptype2 = 0, TType *ptype3 = 0, TType *ptype4 = 0, TType *ptype5 = 0)
 	{
 		insertBuiltIn(level, EOpNull, rvalue, name, ptype1, ptype2, ptype3, ptype4, ptype5);
-    }
+	}
 
-    TSymbol *find(const TString &name, int shaderVersion, bool *builtIn = nullptr, bool *sameScope = nullptr) const;
-    TSymbol *findBuiltIn(const TString &name, int shaderVersion) const;
+	TSymbol *find(const TString &name, int shaderVersion, bool *builtIn = nullptr, bool *sameScope = nullptr) const;
+	TSymbol *findBuiltIn(const TString &name, int shaderVersion) const;
 
-    TSymbolTableLevel *getOuterLevel() const
-    {
-        assert(currentLevel() >= 1);
-        return table[currentLevel() - 1];
-    }
+	TSymbolTableLevel *getOuterLevel() const
+	{
+		assert(currentLevel() >= 1);
+		return table[currentLevel() - 1];
+	}
 
-    bool setDefaultPrecision(const TPublicType &type, TPrecision prec)
-    {
-        if (IsSampler(type.type))
-            return true;  // Skip sampler types for the time being
-        if (type.type != EbtFloat && type.type != EbtInt)
-            return false; // Only set default precision for int/float
-        if (type.primarySize > 1 || type.secondarySize > 1 || type.array)
-            return false; // Not allowed to set for aggregate types
-        int indexOfLastElement = static_cast<int>(precisionStack.size()) - 1;
-        precisionStack[indexOfLastElement][type.type] = prec; // Uses map operator [], overwrites the current value
-        return true;
-    }
+	bool setDefaultPrecision(const TPublicType &type, TPrecision prec)
+	{
+		if (IsSampler(type.type))
+			return true;  // Skip sampler types for the time being
+		if (type.type != EbtFloat && type.type != EbtInt)
+			return false; // Only set default precision for int/float
+		if (type.primarySize > 1 || type.secondarySize > 1 || type.array)
+			return false; // Not allowed to set for aggregate types
+		int indexOfLastElement = static_cast<int>(precisionStack.size()) - 1;
+		precisionStack[indexOfLastElement][type.type] = prec; // Uses map operator [], overwrites the current value
+		return true;
+	}
 
-    // Searches down the precisionStack for a precision qualifier for the specified TBasicType
-    TPrecision getDefaultPrecision( TBasicType type)
-    {
-        // unsigned integers use the same precision as signed
-        if (type == EbtUInt) type = EbtInt;
+	// Searches down the precisionStack for a precision qualifier for the specified TBasicType
+	TPrecision getDefaultPrecision( TBasicType type)
+	{
+		// unsigned integers use the same precision as signed
+		if (type == EbtUInt) type = EbtInt;
 
-        if( type != EbtFloat && type != EbtInt ) return EbpUndefined;
-        int level = static_cast<int>(precisionStack.size()) - 1;
-        assert( level >= 0); // Just to be safe. Should not happen.
-        PrecisionStackLevel::iterator it;
-        TPrecision prec = EbpUndefined; // If we dont find anything we return this. Should we error check this?
-        while( level >= 0 ){
-            it = precisionStack[level].find( type );
-            if( it != precisionStack[level].end() ){
-                prec = (*it).second;
-                break;
-            }
-            level--;
-        }
-        return prec;
-    }
+		if( type != EbtFloat && type != EbtInt ) return EbpUndefined;
+		int level = static_cast<int>(precisionStack.size()) - 1;
+		assert( level >= 0); // Just to be safe. Should not happen.
+		PrecisionStackLevel::iterator it;
+		TPrecision prec = EbpUndefined; // If we dont find anything we return this. Should we error check this?
+		while( level >= 0 ){
+			it = precisionStack[level].find( type );
+			if( it != precisionStack[level].end() ){
+				prec = (*it).second;
+				break;
+			}
+			level--;
+		}
+		return prec;
+	}
 
 	// This records invariant varyings declared through
 	// "invariant varying_name;".
@@ -511,11 +519,11 @@ public:
 	bool getGlobalInvariant() const { return mGlobalInvariant; }
 
 protected:
-    ESymbolLevel currentLevel() const { return static_cast<ESymbolLevel>(table.size() - 1); }
+	ESymbolLevel currentLevel() const { return static_cast<ESymbolLevel>(table.size() - 1); }
 
-    std::vector<TSymbolTableLevel*> table;
-    typedef std::map< TBasicType, TPrecision > PrecisionStackLevel;
-    std::vector< PrecisionStackLevel > precisionStack;
+	std::vector<TSymbolTableLevel*> table;
+	typedef std::map< TBasicType, TPrecision > PrecisionStackLevel;
+	std::vector< PrecisionStackLevel > precisionStack;
 
 	std::set<std::string> mInvariantVaryings;
 	bool mGlobalInvariant;

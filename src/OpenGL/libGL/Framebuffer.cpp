@@ -1,13 +1,16 @@
-// SwiftShader Software Renderer
+// Copyright 2016 The SwiftShader Authors. All Rights Reserved.
 //
-// Copyright(c) 2005-2013 TransGaming Inc.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
-// All rights reserved. No part of this software may be copied, distributed, transmitted,
-// transcribed, stored in a retrieval system, translated into any human or computer
-// language by any means, or disclosed to third parties without the explicit written
-// agreement of TransGaming Inc. Without such an agreement, no rights or licenses, express
-// or implied, including but not limited to any patent rights, are granted to you.
+//    http://www.apache.org/licenses/LICENSE-2.0
 //
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 // Framebuffer.cpp: Implements the Framebuffer class. Implements GL framebuffer
 // objects and related functionality.
@@ -31,19 +34,19 @@ Framebuffer::Framebuffer()
 
 Framebuffer::~Framebuffer()
 {
-	mColorbufferPointer = NULL;
-	mDepthbufferPointer = NULL;
-	mStencilbufferPointer = NULL;
+	mColorbufferPointer = nullptr;
+	mDepthbufferPointer = nullptr;
+	mStencilbufferPointer = nullptr;
 }
 
 Renderbuffer *Framebuffer::lookupRenderbuffer(GLenum type, GLuint handle) const
 {
 	Context *context = getContext();
-	Renderbuffer *buffer = NULL;
+	Renderbuffer *buffer = nullptr;
 
 	if(type == GL_NONE)
 	{
-		buffer = NULL;
+		buffer = nullptr;
 	}
 	else if(type == GL_RENDERBUFFER)
 	{
@@ -81,19 +84,19 @@ void Framebuffer::detachTexture(GLuint texture)
 	if(mColorbufferPointer.name() == texture && IsTextureTarget(mColorbufferType))
 	{
 		mColorbufferType = GL_NONE;
-		mColorbufferPointer = NULL;
+		mColorbufferPointer = nullptr;
 	}
 
 	if(mDepthbufferPointer.name() == texture && IsTextureTarget(mDepthbufferType))
 	{
 		mDepthbufferType = GL_NONE;
-		mDepthbufferPointer = NULL;
+		mDepthbufferPointer = nullptr;
 	}
 
 	if(mStencilbufferPointer.name() == texture && IsTextureTarget(mStencilbufferType))
 	{
 		mStencilbufferType = GL_NONE;
-		mStencilbufferPointer = NULL;
+		mStencilbufferPointer = nullptr;
 	}
 }
 
@@ -102,19 +105,19 @@ void Framebuffer::detachRenderbuffer(GLuint renderbuffer)
 	if(mColorbufferPointer.name() == renderbuffer && mColorbufferType == GL_RENDERBUFFER)
 	{
 		mColorbufferType = GL_NONE;
-		mColorbufferPointer = NULL;
+		mColorbufferPointer = nullptr;
 	}
 
 	if(mDepthbufferPointer.name() == renderbuffer && mDepthbufferType == GL_RENDERBUFFER)
 	{
 		mDepthbufferType = GL_NONE;
-		mDepthbufferPointer = NULL;
+		mDepthbufferPointer = nullptr;
 	}
 
 	if(mStencilbufferPointer.name() == renderbuffer && mStencilbufferType == GL_RENDERBUFFER)
 	{
 		mStencilbufferType = GL_NONE;
-		mStencilbufferPointer = NULL;
+		mStencilbufferPointer = nullptr;
 	}
 }
 
@@ -129,7 +132,7 @@ Image *Framebuffer::getRenderTarget()
 		return colorbuffer->getRenderTarget();
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 // Increments refcount on surface.
@@ -137,7 +140,7 @@ Image *Framebuffer::getRenderTarget()
 Image *Framebuffer::getDepthStencil()
 {
 	Renderbuffer *depthstencilbuffer = mDepthbufferPointer;
-	
+
 	if(!depthstencilbuffer)
 	{
 		depthstencilbuffer = mStencilbufferPointer;
@@ -148,7 +151,7 @@ Image *Framebuffer::getDepthStencil()
 		return depthstencilbuffer->getRenderTarget();
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 Renderbuffer *Framebuffer::getColorbuffer()
@@ -275,8 +278,8 @@ GLenum Framebuffer::completeness(int &width, int &height, int &samples)
 		samples = colorbuffer->getSamples();
 	}
 
-	Renderbuffer *depthbuffer = NULL;
-	Renderbuffer *stencilbuffer = NULL;
+	Renderbuffer *depthbuffer = nullptr;
+	Renderbuffer *stencilbuffer = nullptr;
 
 	if(mDepthbufferType != GL_NONE)
 	{

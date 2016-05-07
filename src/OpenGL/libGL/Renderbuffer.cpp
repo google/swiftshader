@@ -1,13 +1,16 @@
-// SwiftShader Software Renderer
+// Copyright 2016 The SwiftShader Authors. All Rights Reserved.
 //
-// Copyright(c) 2005-2013 TransGaming Inc.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
-// All rights reserved. No part of this software may be copied, distributed, transmitted,
-// transcribed, stored in a retrieval system, translated into any human or computer
-// language by any means, or disclosed to third parties without the explicit written
-// agreement of TransGaming Inc. Without such an agreement, no rights or licenses, express
-// or implied, including but not limited to any patent rights, are granted to you.
+//    http://www.apache.org/licenses/LICENSE-2.0
 //
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 // Renderbuffer.cpp: the Renderbuffer class and its derived classes
 // Colorbuffer, Depthbuffer and Stencilbuffer. Implements GL renderbuffer
@@ -27,7 +30,7 @@ RenderbufferInterface::RenderbufferInterface()
 
 // The default case for classes inherited from RenderbufferInterface is not to
 // need to do anything upon the reference count to the parent Renderbuffer incrementing
-// or decrementing. 
+// or decrementing.
 void RenderbufferInterface::addProxyRef(const Renderbuffer *proxy)
 {
 }
@@ -75,19 +78,19 @@ RenderbufferTexture2D::RenderbufferTexture2D(Texture2D *texture)
 
 RenderbufferTexture2D::~RenderbufferTexture2D()
 {
-	mTexture2D = NULL;
+	mTexture2D = nullptr;
 }
 
 // Textures need to maintain their own reference count for references via
 // Renderbuffers acting as proxies. Here, we notify the texture of a reference.
 void RenderbufferTexture2D::addProxyRef(const Renderbuffer *proxy)
 {
-    mTexture2D->addProxyRef(proxy);
+	mTexture2D->addProxyRef(proxy);
 }
 
 void RenderbufferTexture2D::releaseProxy(const Renderbuffer *proxy)
 {
-    mTexture2D->releaseProxy(proxy);
+	mTexture2D->releaseProxy(proxy);
 }
 
 // Increments refcount on surface.
@@ -131,19 +134,19 @@ RenderbufferTextureCubeMap::RenderbufferTextureCubeMap(TextureCubeMap *texture, 
 
 RenderbufferTextureCubeMap::~RenderbufferTextureCubeMap()
 {
-	mTextureCubeMap = NULL;
+	mTextureCubeMap = nullptr;
 }
 
 // Textures need to maintain their own reference count for references via
 // Renderbuffers acting as proxies. Here, we notify the texture of a reference.
 void RenderbufferTextureCubeMap::addProxyRef(const Renderbuffer *proxy)
 {
-    mTextureCubeMap->addProxyRef(proxy);
+	mTextureCubeMap->addProxyRef(proxy);
 }
 
 void RenderbufferTextureCubeMap::releaseProxy(const Renderbuffer *proxy)
 {
-    mTextureCubeMap->releaseProxy(proxy);
+	mTextureCubeMap->releaseProxy(proxy);
 }
 
 // Increments refcount on surface.
@@ -182,7 +185,7 @@ GLsizei RenderbufferTextureCubeMap::getSamples() const
 
 Renderbuffer::Renderbuffer(GLuint name, RenderbufferInterface *instance) : NamedObject(name)
 {
-	ASSERT(instance != NULL);
+	ASSERT(instance);
 	mInstance = instance;
 }
 
@@ -195,16 +198,16 @@ Renderbuffer::~Renderbuffer()
 // its own reference count, so we pass it on here.
 void Renderbuffer::addRef()
 {
-    mInstance->addProxyRef(this);
+	mInstance->addProxyRef(this);
 
-    Object::addRef();
+	Object::addRef();
 }
 
 void Renderbuffer::release()
 {
-    mInstance->releaseProxy(this);
+	mInstance->releaseProxy(this);
 
-    Object::release();
+	Object::release();
 }
 
 // Increments refcount on surface.
@@ -271,7 +274,7 @@ GLsizei Renderbuffer::getSamples() const
 
 void Renderbuffer::setStorage(RenderbufferStorage *newStorage)
 {
-	ASSERT(newStorage != NULL);
+	ASSERT(newStorage);
 
 	delete mInstance;
 	mInstance = newStorage;
@@ -294,7 +297,7 @@ RenderbufferStorage::~RenderbufferStorage()
 // caller must Release() the returned surface
 Image *RenderbufferStorage::getRenderTarget()
 {
-	return NULL;
+	return nullptr;
 }
 
 GLsizei RenderbufferStorage::getWidth() const
@@ -327,7 +330,7 @@ Colorbuffer::Colorbuffer(Image *renderTarget) : mRenderTarget(renderTarget)
 	if(renderTarget)
 	{
 		renderTarget->addRef();
-		
+
 		mWidth = renderTarget->getWidth();
 		mHeight = renderTarget->getHeight();
 		internalFormat = renderTarget->getInternalFormat();
@@ -444,7 +447,7 @@ Depthbuffer::Depthbuffer(Image *depthStencil) : DepthStencilbuffer(depthStencil)
 	if(depthStencil)
 	{
 		format = GL_DEPTH_COMPONENT16;   // If the renderbuffer parameters are queried, the calling function
-		                                 // will expect one of the valid renderbuffer formats for use in 
+		                                 // will expect one of the valid renderbuffer formats for use in
 		                                 // glRenderbufferStorage
 	}
 }
@@ -454,7 +457,7 @@ Depthbuffer::Depthbuffer(int width, int height, GLsizei samples) : DepthStencilb
 	if(mDepthStencil)
 	{
 		format = GL_DEPTH_COMPONENT16;   // If the renderbuffer parameters are queried, the calling function
-		                                 // will expect one of the valid renderbuffer formats for use in 
+		                                 // will expect one of the valid renderbuffer formats for use in
 		                                 // glRenderbufferStorage
 	}
 }
@@ -468,7 +471,7 @@ Stencilbuffer::Stencilbuffer(Image *depthStencil) : DepthStencilbuffer(depthSten
 	if(depthStencil)
 	{
 		format = GL_STENCIL_INDEX8;   // If the renderbuffer parameters are queried, the calling function
-		                              // will expect one of the valid renderbuffer formats for use in 
+		                              // will expect one of the valid renderbuffer formats for use in
 		                              // glRenderbufferStorage
 	}
 }
@@ -478,7 +481,7 @@ Stencilbuffer::Stencilbuffer(int width, int height, GLsizei samples) : DepthSten
 	if(mDepthStencil)
 	{
 		format = GL_STENCIL_INDEX8;   // If the renderbuffer parameters are queried, the calling function
-		                              // will expect one of the valid renderbuffer formats for use in 
+		                              // will expect one of the valid renderbuffer formats for use in
 		                              // glRenderbufferStorage
 	}
 }

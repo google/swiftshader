@@ -110,14 +110,14 @@ public:
 	}
 
 	bool isShared() const
-    {
-        return shared;
-    }
+	{
+		return shared;
+	}
 
-    void markShared()
-    {
-        shared = true;
-    }
+	void markShared()
+	{
+		shared = true;
+	}
 
 	virtual void *lock(unsigned int left, unsigned int top, sw::Lock lock)
 	{

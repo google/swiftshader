@@ -1,13 +1,16 @@
-// SwiftShader Software Renderer
+// Copyright 2016 The SwiftShader Authors. All Rights Reserved.
 //
-// Copyright(c) 2005-2013 TransGaming Inc.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
-// All rights reserved. No part of this software may be copied, distributed, transmitted,
-// transcribed, stored in a retrieval system, translated into any human or computer
-// language by any means, or disclosed to third parties without the explicit written
-// agreement of TransGaming Inc. Without such an agreement, no rights or licenses, express
-// or implied, including but not limited to any patent rights, are granted to you.
+//    http://www.apache.org/licenses/LICENSE-2.0
 //
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 // Surface.cpp: Implements the Surface class, representing a drawing surface
 // such as the client area of a window, including any back buffers.
@@ -31,53 +34,53 @@ namespace gl
 {
 
 Surface::Surface(Display *display, NativeWindowType window)
-    : mDisplay(display), mWindow(window)
-{
-    frameBuffer = 0;
-	backBuffer = 0;
-
-    mDepthStencil = NULL;
-    mTextureFormat = GL_NONE;
-    mTextureTarget = GL_NONE;
-
-    mSwapInterval = -1;
-    setSwapInterval(1);
-}
-
-Surface::Surface(Display *display, GLint width, GLint height, GLenum textureFormat, GLenum textureType)
-    : mDisplay(display), mWindow(NULL), mWidth(width), mHeight(height)
+	: mDisplay(display), mWindow(window)
 {
 	frameBuffer = 0;
 	backBuffer = 0;
 
-    mDepthStencil = NULL;
-    mWindowSubclassed = false;
-    mTextureFormat = textureFormat;
-    mTextureTarget = textureType;
+	mDepthStencil = nullptr;
+	mTextureFormat = GL_NONE;
+	mTextureTarget = GL_NONE;
 
-    mSwapInterval = -1;
-    setSwapInterval(1);
+	mSwapInterval = -1;
+	setSwapInterval(1);
+}
+
+Surface::Surface(Display *display, GLint width, GLint height, GLenum textureFormat, GLenum textureType)
+	: mDisplay(display), mWindow(nullptr), mWidth(width), mHeight(height)
+{
+	frameBuffer = 0;
+	backBuffer = 0;
+
+	mDepthStencil = nullptr;
+	mWindowSubclassed = false;
+	mTextureFormat = textureFormat;
+	mTextureTarget = textureType;
+
+	mSwapInterval = -1;
+	setSwapInterval(1);
 }
 
 Surface::~Surface()
 {
-    release();
+	release();
 }
 
 bool Surface::initialize()
 {
-    ASSERT(!frameBuffer && !backBuffer && !mDepthStencil);
+	ASSERT(!frameBuffer && !backBuffer && !mDepthStencil);
 
-    return reset();
+	return reset();
 }
 
 void Surface::release()
-{	
-    if(mDepthStencil)
-    {
-        mDepthStencil->release();
-        mDepthStencil = NULL;
-    }
+{
+	if(mDepthStencil)
+	{
+		mDepthStencil->release();
+		mDepthStencil = nullptr;
+	}
 
 	if(backBuffer)
 	{
@@ -91,10 +94,10 @@ void Surface::release()
 
 bool Surface::reset()
 {
-    if(!mWindow)
-    {
-        return reset(mWidth, mHeight);
-    }
+	if(!mWindow)
+	{
+		return reset(mWidth, mHeight);
+	}
 
 	// FIXME: Wrap into an abstract Window class
 	#if defined(_WIN32)
@@ -105,17 +108,17 @@ bool Surface::reset()
 	#else
 		XWindowAttributes windowAttributes;
 		XGetWindowAttributes(mDisplay->getNativeDisplay(), mWindow, &windowAttributes);
-		
+
 		return reset(windowAttributes.width, windowAttributes.height);
 	#endif
 }
 
 bool Surface::reset(int backBufferWidth, int backBufferHeight)
 {
-    release();
+	release();
 
-    if(mWindow)
-    {
+	if(mWindow)
+	{
 		frameBuffer = ::createFrameBuffer(mDisplay->getNativeDisplay(), mWindow, backBufferWidth, backBufferHeight);
 
 		if(!frameBuffer)
@@ -124,20 +127,20 @@ bool Surface::reset(int backBufferWidth, int backBufferHeight)
 			release();
 			return error(GL_OUT_OF_MEMORY, false);
 		}
-    }
+	}
 
 	backBuffer = new Image(0, backBufferWidth, backBufferHeight, GL_RGB, GL_UNSIGNED_BYTE);
 
-    if(!backBuffer)
-    {
-        ERR("Could not create back buffer");
-        release();
-        return error(GL_OUT_OF_MEMORY, false);
-    }
+	if(!backBuffer)
+	{
+		ERR("Could not create back buffer");
+		release();
+		return error(GL_OUT_OF_MEMORY, false);
+	}
 
-    if(true)   // Always provide a depth/stencil buffer
-    {
-        mDepthStencil = new Image(0, backBufferWidth, backBufferHeight, sw::FORMAT_D24S8, 1, false, true);
+	if(true)   // Always provide a depth/stencil buffer
+	{
+		mDepthStencil = new Image(0, backBufferWidth, backBufferHeight, sw::FORMAT_D24S8, 1, false, true);
 
 		if(!mDepthStencil)
 		{
@@ -145,81 +148,81 @@ bool Surface::reset(int backBufferWidth, int backBufferHeight)
 			release();
 			return error(GL_OUT_OF_MEMORY, false);
 		}
-    }
+	}
 
-    mWidth = backBufferWidth;
-    mHeight = backBufferHeight;
+	mWidth = backBufferWidth;
+	mHeight = backBufferHeight;
 
-    return true;
+	return true;
 }
 
 void Surface::swap()
 {
 	if(backBuffer)
-    {
+	{
 		void *source = backBuffer->lockInternal(0, 0, 0, sw::LOCK_READONLY, sw::PUBLIC);
 		frameBuffer->flip(source, backBuffer->Surface::getInternalFormat(), backBuffer->getInternalPitchB());
 		backBuffer->unlockInternal();
 
-        checkForResize();
+		checkForResize();
 	}
 }
 
 Image *Surface::getRenderTarget()
 {
-    if(backBuffer)
-    {
-        backBuffer->addRef();
-    }
+	if(backBuffer)
+	{
+		backBuffer->addRef();
+	}
 
-    return backBuffer;
+	return backBuffer;
 }
 
 Image *Surface::getDepthStencil()
 {
-    if(mDepthStencil)
-    {
-        mDepthStencil->addRef();
-    }
+	if(mDepthStencil)
+	{
+		mDepthStencil->addRef();
+	}
 
-    return mDepthStencil;
+	return mDepthStencil;
 }
 
 void Surface::setSwapInterval(GLint interval)
 {
-    if(mSwapInterval == interval)
-    {
-        return;
-    }
-    
-    mSwapInterval = interval;
-    mSwapInterval = std::max(mSwapInterval, mDisplay->getMinSwapInterval());
-    mSwapInterval = std::min(mSwapInterval, mDisplay->getMaxSwapInterval());
+	if(mSwapInterval == interval)
+	{
+		return;
+	}
+
+	mSwapInterval = interval;
+	mSwapInterval = std::max(mSwapInterval, mDisplay->getMinSwapInterval());
+	mSwapInterval = std::min(mSwapInterval, mDisplay->getMaxSwapInterval());
 }
 
 GLint Surface::getWidth() const
 {
-    return mWidth;
+	return mWidth;
 }
 
 GLint Surface::getHeight() const
 {
-    return mHeight;
+	return mHeight;
 }
 
 GLenum Surface::getTextureFormat() const
 {
-    return mTextureFormat;
+	return mTextureFormat;
 }
 
 GLenum Surface::getTextureTarget() const
 {
-    return mTextureTarget;
+	return mTextureTarget;
 }
 
 bool Surface::checkForResize()
 {
-    #if defined(_WIN32)
+	#if defined(_WIN32)
 		RECT client;
 		if(!GetClientRect(mWindow, &client))
 		{
@@ -239,18 +242,18 @@ bool Surface::checkForResize()
 
 	bool sizeDirty = clientWidth != getWidth() || clientHeight != getHeight();
 
-    if(sizeDirty)
-    {
-        reset(clientWidth, clientHeight);
+	if(sizeDirty)
+	{
+		reset(clientWidth, clientHeight);
 
-        if(getCurrentDrawSurface() == this)
-        {
+		if(getCurrentDrawSurface() == this)
+		{
 			getContext()->makeCurrent(this);
-        }
+		}
 
-        return true;
-    }
+		return true;
+	}
 
-    return false;
+	return false;
 }
 }

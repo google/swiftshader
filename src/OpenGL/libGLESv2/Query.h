@@ -1,13 +1,16 @@
-// SwiftShader Software Renderer
+// Copyright 2016 The SwiftShader Authors. All Rights Reserved.
 //
-// Copyright(c) 2005-2012 TransGaming Inc.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
-// All rights reserved. No part of this software may be copied, distributed, transmitted,
-// transcribed, stored in a retrieval system, translated into any human or computer
-// language by any means, or disclosed to third parties without the explicit written
-// agreement of TransGaming Inc. Without such an agreement, no rights or licenses, express
-// or implied, including but not limited to any patent rights, are granted to you.
+//    http://www.apache.org/licenses/LICENSE-2.0
 //
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 // Query.h: Defines the es2::Query class
 
@@ -24,24 +27,24 @@ namespace es2
 
 class Query : public gl::NamedObject
 {
-  public:
-    Query(GLuint name, GLenum type);
-    virtual ~Query();
+public:
+	Query(GLuint name, GLenum type);
+	virtual ~Query();
 
-    void begin();
-    void end();
-    GLuint getResult();
-    GLboolean isResultAvailable();
+	void begin();
+	void end();
+	GLuint getResult();
+	GLboolean isResultAvailable();
 
-    GLenum getType() const;
+	GLenum getType() const;
 
-  private:
-    GLboolean testQuery();
+private:
+	GLboolean testQuery();
 
-    sw::Query* mQuery;
-    GLenum mType;
-    GLboolean mStatus;
-    GLint mResult;
+	sw::Query* mQuery;
+	GLenum mType;
+	GLboolean mStatus;
+	GLint mResult;
 };
 
 }

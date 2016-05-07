@@ -1,13 +1,16 @@
-// SwiftShader Software Renderer
+// Copyright 2016 The SwiftShader Authors. All Rights Reserved.
 //
-// Copyright(c) 2005-2013 TransGaming Inc.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
-// All rights reserved. No part of this software may be copied, distributed, transmitted,
-// transcribed, stored in a retrieval system, translated into any human or computer
-// language by any means, or disclosed to third parties without the explicit written
-// agreement of TransGaming Inc. Without such an agreement, no rights or licenses, express
-// or implied, including but not limited to any patent rights, are granted to you.
+//    http://www.apache.org/licenses/LICENSE-2.0
 //
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #include "Device.hpp"
 
@@ -66,7 +69,7 @@ namespace gl
 		setClipFlags(0);
 		setPointSize(1.0f);
 		setPointSizeMin(0.125f);
-        setPointSizeMax(8192.0f);
+		setPointSizeMax(8192.0f);
 		setColorWriteMask(0, 0x0000000F);
 		setBlendOperation(BLENDOP_ADD);
 		scissorEnable = false;
@@ -155,10 +158,10 @@ namespace gl
 			setLightAttenuation(i, 1.0f, 0.0f, 0.0f);
 		}
 
-        setDiffuseMaterialSource(sw::MATERIAL_COLOR1);
-        setSpecularMaterialSource(sw::MATERIAL_MATERIAL);
-        setAmbientMaterialSource(sw::MATERIAL_COLOR1);
-        setEmissiveMaterialSource(sw::MATERIAL_MATERIAL);
+		setDiffuseMaterialSource(sw::MATERIAL_COLOR1);
+		setSpecularMaterialSource(sw::MATERIAL_MATERIAL);
+		setAmbientMaterialSource(sw::MATERIAL_COLOR1);
+		setEmissiveMaterialSource(sw::MATERIAL_MATERIAL);
 	}
 
 	Device::~Device()
@@ -375,7 +378,7 @@ namespace gl
 		case DRAW_TRIANGLELIST:  drawType = sw::DRAW_TRIANGLELIST;  break;
 		case DRAW_TRIANGLESTRIP: drawType = sw::DRAW_TRIANGLESTRIP; break;
 		case DRAW_TRIANGLEFAN:   drawType = sw::DRAW_TRIANGLEFAN;   break;
-        case DRAW_QUADLIST:      drawType = sw::DRAW_QUADLIST;      break;
+		case DRAW_QUADLIST:      drawType = sw::DRAW_QUADLIST;      break;
 		default: UNREACHABLE(primitiveType);
 		}
 

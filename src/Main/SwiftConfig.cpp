@@ -1,13 +1,16 @@
-// SwiftShader Software Renderer
+// Copyright 2016 The SwiftShader Authors. All Rights Reserved.
 //
-// Copyright(c) 2005-2012 TransGaming Inc.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
-// All rights reserved. No part of this software may be copied, distributed, transmitted,
-// transcribed, stored in a retrieval system, translated into any human or computer
-// language by any means, or disclosed to third parties without the explicit written
-// agreement of TransGaming Inc. Without such an agreement, no rights or licenses, express
-// or implied, including but not limited to any patent rights, are granted to you.
+//    http://www.apache.org/licenses/LICENSE-2.0
 //
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #include "SwiftConfig.hpp"
 
@@ -32,7 +35,7 @@ namespace sw
 		ss << number;
 		return ss.str();
 	}
-	
+
 	std::string ftoa(double number)
 	{
 		std::stringstream ss;
@@ -139,7 +142,7 @@ namespace sw
 						if(bytesReceived > 0)
 						{
 							receiveBuffer[bytesReceived] = 0;
-							
+
 							respond(clientSocket, receiveBuffer);
 						}
 					}
@@ -194,7 +197,7 @@ namespace sw
 					else   // POST data in next packet
 					{
 						int bytesReceived = clientSocket->receive(receiveBuffer, bufferLength);
-						
+
 						if(bytesReceived > 0)
 						{
 							receiveBuffer[bytesReceived] = 0;
@@ -291,7 +294,7 @@ namespace sw
 		html += "<option value='2048'" + (config.textureMemory == 2048 ? selected : empty) + ">2048 MB</option>\n";
 		html += "</select></td></tr>\n";
 		html += "<tr><td>Device identifier:</td><td><select name='identifier' title='The information used by some applications to determine device capabilities.'>\n";
-		html += "<option value='0'" + (config.identifier == 0 ? selected : empty) + ">TransGaming SwiftShader (default)</option>\n";
+		html += "<option value='0'" + (config.identifier == 0 ? selected : empty) + ">Google SwiftShader (default)</option>\n";
 		html += "<option value='1'" + (config.identifier == 1 ? selected : empty) + ">NVIDIA GeForce 7900 GS</option>\n";
 		html += "<option value='2'" + (config.identifier == 2 ? selected : empty) + ">ATI Mobility Radeon X1600</option>\n";
 		html += "<option value='3'" + (config.identifier == 3 ? selected : empty) + ">Intel GMA X3100</option>\n";
@@ -686,7 +689,7 @@ namespace sw
 			{
 				config.forceClearRegisters = true;
 			}
-		#ifndef NDEBUG		
+		#ifndef NDEBUG
 			else if(sscanf(post, "minPrimitives=%d", &integer))
 			{
 				config.minPrimitives = integer;
@@ -770,7 +773,7 @@ namespace sw
 	void SwiftConfig::writeConfiguration()
 	{
 		Configurator ini("SwiftShader.ini");
-		
+
 		ini.addValue("Capabilities", "PixelShaderVersion", itoa(config.pixelShaderVersion));
 		ini.addValue("Capabilities", "VertexShaderVersion", itoa(config.vertexShaderVersion));
 		ini.addValue("Capabilities", "TextureMemory", itoa(config.textureMemory));

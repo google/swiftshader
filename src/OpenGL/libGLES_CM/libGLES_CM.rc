@@ -28,18 +28,18 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 // TEXTINCLUDE
 //
 
-1 TEXTINCLUDE 
+1 TEXTINCLUDE
 BEGIN
     "resource.h\0"
 END
 
-2 TEXTINCLUDE 
+2 TEXTINCLUDE
 BEGIN
     "#include ""afxres.h""\r\n"
     "#include ""../common/version.h""\0"
 END
 
-3 TEXTINCLUDE 
+3 TEXTINCLUDE
 BEGIN
     "\r\n"
     "\0"
@@ -77,7 +77,7 @@ BEGIN
 			#endif
             VALUE "FileVersion", VERSION_STRING
             VALUE "InternalName", "libGLES_CM"
-            VALUE "LegalCopyright", "Copyright (C) 2012 TransGaming Inc."
+            VALUE "LegalCopyright", "Copyright (C) 2016 Google Inc."
             VALUE "OriginalFilename", "libGLES_CM.dll"
             VALUE "PrivateBuild", VERSION_STRING
             VALUE "ProductName", "SwiftShader libGLES_CM Dynamic Link Library"

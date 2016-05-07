@@ -1,13 +1,16 @@
-// SwiftShader Software Renderer
+// Copyright 2016 The SwiftShader Authors. All Rights Reserved.
 //
-// Copyright(c) 2005-2012 TransGaming Inc.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
-// All rights reserved. No part of this software may be copied, distributed, transmitted,
-// transcribed, stored in a retrieval system, translated into any human or computer
-// language by any means, or disclosed to third parties without the explicit written
-// agreement of TransGaming Inc. Without such an agreement, no rights or licenses, express
-// or implied, including but not limited to any patent rights, are granted to you.
+//    http://www.apache.org/licenses/LICENSE-2.0
 //
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 // libEGL.cpp: Implements the exported EGL functions.
 
@@ -182,7 +185,7 @@ const char *QueryString(EGLDisplay dpy, EGLint name)
 
 	if(!validateDisplay(display))
 	{
-		return NULL;
+		return nullptr;
 	}
 
 	switch(name)
@@ -198,19 +201,19 @@ const char *QueryString(EGLDisplay dpy, EGLint name)
 		               "EGL_ANDROID_framebuffer_target "
 		               "EGL_ANDROID_recordable");
 	case EGL_VENDOR:
-		return success("TransGaming Inc.");
+		return success("Google Inc.");
 	case EGL_VERSION:
 		return success("1.4 SwiftShader " VERSION_STRING);
 	}
 
-	return error(EGL_BAD_PARAMETER, (const char*)NULL);
+	return error(EGL_BAD_PARAMETER, (const char*)nullptr);
 }
 
 EGLBoolean GetConfigs(EGLDisplay dpy, EGLConfig *configs, EGLint config_size, EGLint *num_config)
 {
 	TRACE("(EGLDisplay dpy = %p, EGLConfig *configs = %p, "
-		  "EGLint config_size = %d, EGLint *num_config = %p)",
-		  dpy, configs, config_size, num_config);
+	      "EGLint config_size = %d, EGLint *num_config = %p)",
+	      dpy, configs, config_size, num_config);
 
 	egl::Display *display = egl::Display::get(dpy);
 
@@ -237,8 +240,8 @@ EGLBoolean GetConfigs(EGLDisplay dpy, EGLConfig *configs, EGLint config_size, EG
 EGLBoolean ChooseConfig(EGLDisplay dpy, const EGLint *attrib_list, EGLConfig *configs, EGLint config_size, EGLint *num_config)
 {
 	TRACE("(EGLDisplay dpy = %p, const EGLint *attrib_list = %p, "
-		  "EGLConfig *configs = %p, EGLint config_size = %d, EGLint *num_config = %p)",
-		  dpy, attrib_list, configs, config_size, num_config);
+	      "EGLConfig *configs = %p, EGLint config_size = %d, EGLint *num_config = %p)",
+	      dpy, attrib_list, configs, config_size, num_config);
 
 	egl::Display *display = egl::Display::get(dpy);
 
@@ -270,7 +273,7 @@ EGLBoolean ChooseConfig(EGLDisplay dpy, const EGLint *attrib_list, EGLConfig *co
 EGLBoolean GetConfigAttrib(EGLDisplay dpy, EGLConfig config, EGLint attribute, EGLint *value)
 {
 	TRACE("(EGLDisplay dpy = %p, EGLConfig config = %p, EGLint attribute = %d, EGLint *value = %p)",
-		  dpy, config, attribute, value);
+	      dpy, config, attribute, value);
 
 	egl::Display *display = egl::Display::get(dpy);
 
@@ -290,7 +293,7 @@ EGLBoolean GetConfigAttrib(EGLDisplay dpy, EGLConfig config, EGLint attribute, E
 EGLSurface CreateWindowSurface(EGLDisplay dpy, EGLConfig config, EGLNativeWindowType window, const EGLint *attrib_list)
 {
 	TRACE("(EGLDisplay dpy = %p, EGLConfig config = %p, EGLNativeWindowType win = %p, "
-		  "const EGLint *attrib_list = %p)", dpy, config, window, attrib_list);
+	      "const EGLint *attrib_list = %p)", dpy, config, window, attrib_list);
 
 	egl::Display *display = egl::Display::get(dpy);
 
@@ -310,7 +313,7 @@ EGLSurface CreateWindowSurface(EGLDisplay dpy, EGLConfig config, EGLNativeWindow
 EGLSurface CreatePbufferSurface(EGLDisplay dpy, EGLConfig config, const EGLint *attrib_list)
 {
 	TRACE("(EGLDisplay dpy = %p, EGLConfig config = %p, const EGLint *attrib_list = %p)",
-		  dpy, config, attrib_list);
+	      dpy, config, attrib_list);
 
 	egl::Display *display = egl::Display::get(dpy);
 
@@ -325,7 +328,7 @@ EGLSurface CreatePbufferSurface(EGLDisplay dpy, EGLConfig config, const EGLint *
 EGLSurface CreatePixmapSurface(EGLDisplay dpy, EGLConfig config, EGLNativePixmapType pixmap, const EGLint *attrib_list)
 {
 	TRACE("(EGLDisplay dpy = %p, EGLConfig config = %p, EGLNativePixmapType pixmap = %p, "
-		  "const EGLint *attrib_list = %p)", dpy, config, pixmap, attrib_list);
+	      "const EGLint *attrib_list = %p)", dpy, config, pixmap, attrib_list);
 
 	egl::Display *display = egl::Display::get(dpy);
 
@@ -364,7 +367,7 @@ EGLBoolean DestroySurface(EGLDisplay dpy, EGLSurface surface)
 EGLBoolean QuerySurface(EGLDisplay dpy, EGLSurface surface, EGLint attribute, EGLint *value)
 {
 	TRACE("(EGLDisplay dpy = %p, EGLSurface surface = %p, EGLint attribute = %d, EGLint *value = %p)",
-		  dpy, surface, attribute, value);
+	      dpy, surface, attribute, value);
 
 	egl::Display *display = egl::Display::get(dpy);
 	egl::Surface *eglSurface = (egl::Surface*)surface;
@@ -489,8 +492,8 @@ EGLBoolean ReleaseThread(void)
 EGLSurface CreatePbufferFromClientBuffer(EGLDisplay dpy, EGLenum buftype, EGLClientBuffer buffer, EGLConfig config, const EGLint *attrib_list)
 {
 	TRACE("(EGLDisplay dpy = %p, EGLenum buftype = 0x%X, EGLClientBuffer buffer = %p, "
-		  "EGLConfig config = %p, const EGLint *attrib_list = %p)",
-		  dpy, buftype, buffer, config, attrib_list);
+	      "EGLConfig config = %p, const EGLint *attrib_list = %p)",
+	      dpy, buftype, buffer, config, attrib_list);
 
 	UNIMPLEMENTED();
 
@@ -500,7 +503,7 @@ EGLSurface CreatePbufferFromClientBuffer(EGLDisplay dpy, EGLenum buftype, EGLCli
 EGLBoolean SurfaceAttrib(EGLDisplay dpy, EGLSurface surface, EGLint attribute, EGLint value)
 {
 	TRACE("(EGLDisplay dpy = %p, EGLSurface surface = %p, EGLint attribute = %d, EGLint value = %d)",
-		  dpy, surface, attribute, value);
+	      dpy, surface, attribute, value);
 
 	egl::Display *display = egl::Display::get(dpy);
 	egl::Surface *eglSurface = static_cast<egl::Surface*>(surface);
@@ -639,7 +642,7 @@ EGLBoolean SwapInterval(EGLDisplay dpy, EGLint interval)
 EGLContext CreateContext(EGLDisplay dpy, EGLConfig config, EGLContext share_context, const EGLint *attrib_list)
 {
 	TRACE("(EGLDisplay dpy = %p, EGLConfig config = %p, EGLContext share_context = %p, "
-		  "const EGLint *attrib_list = %p)", dpy, config, share_context, attrib_list);
+	      "const EGLint *attrib_list = %p)", dpy, config, share_context, attrib_list);
 
 	EGLint clientVersion = 1;
 	if(attrib_list)
@@ -698,7 +701,7 @@ EGLBoolean DestroyContext(EGLDisplay dpy, EGLContext ctx)
 EGLBoolean MakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLContext ctx)
 {
 	TRACE("(EGLDisplay dpy = %p, EGLSurface draw = %p, EGLSurface read = %p, EGLContext ctx = %p)",
-		  dpy, draw, read, ctx);
+	      dpy, draw, read, ctx);
 
 	egl::Display *display = egl::Display::get(dpy);
 	egl::Context *context = static_cast<egl::Context*>(ctx);
@@ -791,7 +794,7 @@ EGLDisplay GetCurrentDisplay(void)
 EGLBoolean QueryContext(EGLDisplay dpy, EGLContext ctx, EGLint attribute, EGLint *value)
 {
 	TRACE("(EGLDisplay dpy = %p, EGLContext ctx = %p, EGLint attribute = %d, EGLint *value = %p)",
-		  dpy, ctx, attribute, value);
+	      dpy, ctx, attribute, value);
 
 	egl::Display *display = egl::Display::get(dpy);
 	egl::Context *context = static_cast<egl::Context*>(ctx);

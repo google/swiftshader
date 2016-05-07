@@ -1,8 +1,16 @@
+// Copyright 2016 The SwiftShader Authors. All Rights Reserved.
 //
-// Copyright (c) 2002-2013 The ANGLE Project Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 //
 // Symbol table for parsing.  Most functionaliy and main ideas
@@ -26,15 +34,15 @@
 int TSymbolTableLevel::uniqueId = 0;
 
 TType::TType(const TPublicType &p) :
-    type(p.type), precision(p.precision), qualifier(p.qualifier), invariant(false), layoutQualifier(TLayoutQualifier::create()),
-    primarySize(p.primarySize), secondarySize(p.secondarySize), array(p.array), arraySize(p.arraySize), maxArraySize(0),
-    arrayInformationType(0), interfaceBlock(0), structure(0), deepestStructNesting(0), mangled(0)
+	type(p.type), precision(p.precision), qualifier(p.qualifier), invariant(false), layoutQualifier(TLayoutQualifier::create()),
+	primarySize(p.primarySize), secondarySize(p.secondarySize), array(p.array), arraySize(p.arraySize), maxArraySize(0),
+	arrayInformationType(0), interfaceBlock(0), structure(0), deepestStructNesting(0), mangled(0)
 {
-    if (p.userDef)
-    {
-        structure = p.userDef->getStruct();
-        computeDeepestStructNesting();
-    }
+	if (p.userDef)
+	{
+		structure = p.userDef->getStruct();
+		computeDeepestStructNesting();
+	}
 }
 
 //
@@ -42,17 +50,17 @@ TType::TType(const TPublicType &p) :
 //
 void TType::buildMangledName(TString& mangledName)
 {
-    if (isMatrix())
-        mangledName += 'm';
-    else if (isVector())
-        mangledName += 'v';
+	if (isMatrix())
+		mangledName += 'm';
+	else if (isVector())
+		mangledName += 'v';
 
-    switch (type) {
-    case EbtFloat:              mangledName += 'f';      break;
-    case EbtInt:                mangledName += 'i';      break;
-    case EbtUInt:               mangledName += 'u';      break;
-    case EbtBool:               mangledName += 'b';      break;
-    case EbtSampler2D:          mangledName += "s2";     break;
+	switch (type) {
+	case EbtFloat:              mangledName += 'f';      break;
+	case EbtInt:                mangledName += 'i';      break;
+	case EbtUInt:               mangledName += 'u';      break;
+	case EbtBool:               mangledName += 'b';      break;
+	case EbtSampler2D:          mangledName += "s2";     break;
 	case EbtSampler3D:          mangledName += "s3";     break;
 	case EbtSamplerCube:        mangledName += "sC";     break;
 	case EbtSampler2DArray:		mangledName += "s2a";    break;
@@ -70,31 +78,31 @@ void TType::buildMangledName(TString& mangledName)
 	case EbtSampler2DArrayShadow: mangledName += "s2as"; break;
 	case EbtStruct:             mangledName += structure->mangledName(); break;
 	case EbtInterfaceBlock:	    mangledName += interfaceBlock->mangledName(); break;
-    default:
-        break;
-    }
+	default:
+		break;
+	}
 
-    mangledName += static_cast<char>('0' + getNominalSize());
-    if(isMatrix()) {
-        mangledName += static_cast<char>('0' + getSecondarySize());
-    }
-    if (isArray()) {
-        char buf[20];
-        snprintf(buf, sizeof(buf), "%d", arraySize);
-        mangledName += '[';
-        mangledName += buf;
-        mangledName += ']';
-    }
+	mangledName += static_cast<char>('0' + getNominalSize());
+	if(isMatrix()) {
+		mangledName += static_cast<char>('0' + getSecondarySize());
+	}
+	if (isArray()) {
+		char buf[20];
+		snprintf(buf, sizeof(buf), "%d", arraySize);
+		mangledName += '[';
+		mangledName += buf;
+		mangledName += ']';
+	}
 }
 
 size_t TType::getStructSize() const
 {
-    if (!getStruct()) {
-        assert(false && "Not a struct");
-        return 0;
-    }
+	if (!getStruct()) {
+		assert(false && "Not a struct");
+		return 0;
+	}
 
-    return getStruct()->objectSize();
+	return getStruct()->objectSize();
 }
 
 void TType::computeDeepestStructNesting()
@@ -163,8 +171,8 @@ int TStructure::calculateDeepestNesting() const
 //
 TFunction::~TFunction()
 {
-    for (TParamList::iterator i = parameters.begin(); i != parameters.end(); ++i)
-        delete (*i).type;
+	for (TParamList::iterator i = parameters.begin(); i != parameters.end(); ++i)
+		delete (*i).type;
 }
 
 //
@@ -172,62 +180,62 @@ TFunction::~TFunction()
 //
 TSymbolTableLevel::~TSymbolTableLevel()
 {
-    for (tLevel::iterator it = level.begin(); it != level.end(); ++it)
-        delete (*it).second;
+	for (tLevel::iterator it = level.begin(); it != level.end(); ++it)
+		delete (*it).second;
 }
 
 TSymbol *TSymbolTable::find(const TString &name, int shaderVersion, bool *builtIn, bool *sameScope) const
 {
-    int level = currentLevel();
-    TSymbol *symbol = nullptr;
+	int level = currentLevel();
+	TSymbol *symbol = nullptr;
 
-    do
-    {
-        while((level == ESSL3_BUILTINS && shaderVersion != 300) ||
-              (level == ESSL1_BUILTINS && shaderVersion != 100))   // Skip version specific levels
-        {
-            --level;
-        }
+	do
+	{
+		while((level == ESSL3_BUILTINS && shaderVersion != 300) ||
+		      (level == ESSL1_BUILTINS && shaderVersion != 100))   // Skip version specific levels
+		{
+			--level;
+		}
 
-        symbol = table[level]->find(name);
-    }
-    while(!symbol && --level >= 0);   // Doesn't decrement level when a symbol was found
+		symbol = table[level]->find(name);
+	}
+	while(!symbol && --level >= 0);   // Doesn't decrement level when a symbol was found
 
-    if(builtIn)
-    {
-        *builtIn = (level <= LAST_BUILTIN_LEVEL);
-    }
+	if(builtIn)
+	{
+		*builtIn = (level <= LAST_BUILTIN_LEVEL);
+	}
 
-    if(sameScope)
-    {
-        *sameScope = (level == currentLevel());
-    }
+	if(sameScope)
+	{
+		*sameScope = (level == currentLevel());
+	}
 
-    return symbol;
+	return symbol;
 }
 
 TSymbol *TSymbolTable::findBuiltIn(const TString &name, int shaderVersion) const
 {
-    for(int level = LAST_BUILTIN_LEVEL; level >= 0; --level)
-    {
-        while((level == ESSL3_BUILTINS && shaderVersion != 300) ||
-              (level == ESSL1_BUILTINS && shaderVersion != 100))   // Skip version specific levels
-        {
-            --level;
-        }
+	for(int level = LAST_BUILTIN_LEVEL; level >= 0; --level)
+	{
+		while((level == ESSL3_BUILTINS && shaderVersion != 300) ||
+		      (level == ESSL1_BUILTINS && shaderVersion != 100))   // Skip version specific levels
+		{
+			--level;
+		}
 
-        TSymbol *symbol = table[level]->find(name);
+		TSymbol *symbol = table[level]->find(name);
 
-        if(symbol)
-        {
-            return symbol;
-        }
-    }
+		if(symbol)
+		{
+			return symbol;
+		}
+	}
 
-    return 0;
+	return 0;
 }
 
 TSymbol::TSymbol(const TSymbol& copyOf)
 {
-    name = NewPoolTString(copyOf.name->c_str());
+	name = NewPoolTString(copyOf.name->c_str());
 }

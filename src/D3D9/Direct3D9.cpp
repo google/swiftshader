@@ -1,13 +1,16 @@
-// SwiftShader Software Renderer
+// Copyright 2016 The SwiftShader Authors. All Rights Reserved.
 //
-// Copyright(c) 2005-2011 TransGaming Inc.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
-// All rights reserved. No part of this software may be copied, distributed, transmitted,
-// transcribed, stored in a retrieval system, translated into any human or computer
-// language by any means, or disclosed to third parties without the explicit written
-// agreement of TransGaming Inc. Without such an agreement, no rights or licenses, express
-// or implied, including but not limited to any patent rights, are granted to you.
+//    http://www.apache.org/licenses/LICENSE-2.0
 //
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #include "Direct3D9.hpp"
 
@@ -69,7 +72,7 @@ namespace D3D9
 		else if(ps <= 21) pixelShaderVersionX = D3DPS_VERSION(2, 1);
 		else              pixelShaderVersionX = D3DPS_VERSION(3, 0);
 
-             if(vs ==  0) vertexShaderVersionX = D3DVS_VERSION(0, 0);
+		     if(vs ==  0) vertexShaderVersionX = D3DVS_VERSION(0, 0);
 		else if(vs <= 11) vertexShaderVersionX = D3DVS_VERSION(1, 1);
 		else if(vs <= 20) vertexShaderVersionX = D3DVS_VERSION(2, 0);
 		else if(vs <= 21) vertexShaderVersionX = D3DVS_VERSION(2, 1);
@@ -224,7 +227,7 @@ namespace D3D9
 				return CheckDeviceFormat(adapter, D3DDEVTYPE_HAL, adapterFormat, usage, resourceType, checkFormat);
 			}
 		}
-		
+
 		if(usage & D3DUSAGE_QUERY_SRGBREAD)
 		{
 			if(!Capabilities::isSRGBreadable(checkFormat))
@@ -989,7 +992,7 @@ namespace D3D9
 		}
 
 		HDC deviceContext = GetDC(0);
-			
+
 		mode->Width = ::GetDeviceCaps(deviceContext, HORZRES);
 		mode->Height = ::GetDeviceCaps(deviceContext, VERTRES);
 		mode->RefreshRate = ::GetDeviceCaps(deviceContext, VREFRESH);
@@ -1108,7 +1111,7 @@ namespace D3D9
 		identifier->DriverVersion.HighPart = product << 16 | version;
 		identifier->DriverVersion.LowPart = subVersion << 16 | revision;
 		strcpy(identifier->Driver, "SwiftShader");
-		strcpy(identifier->Description, "TransGaming SwiftShader Software 3D Renderer");
+		strcpy(identifier->Description, "Google SwiftShader 3D Renderer");
 		strcpy(identifier->DeviceName, "\\\\.\\DISPLAY1");
 		identifier->VendorId = 0;
 		identifier->DeviceId = 0;
@@ -1228,10 +1231,10 @@ namespace D3D9
 		// Caps from DX7
 		caps.Caps =	D3DCAPS_READ_SCANLINE;
 
-		caps.Caps2 =		D3DCAPS2_CANAUTOGENMIPMAP |		// The driver is capable of automatically generating mipmaps. For more information, see Automatic Generation of Mipmaps. 
-						//	D3DCAPS2_CANCALIBRATEGAMMA |	// The system has a calibrator installed that can automatically adjust the gamma ramp so that the result is identical on all systems that have a calibrator. To invoke the calibrator when setting new gamma levels, use the D3DSGR_CALIBRATE flag when calling IDirect3DDevice9::SetGammaRamp. Calibrating gamma ramps incurs some processing overhead and should not be used frequently.  
-						//	D3DCAPS2_CANMANAGERESOURCE |	// The driver is capable of managing resources. On such drivers, D3DPOOL_MANAGED resources will be managed by the driver. To have Microsoft® Direct3D® override the driver so that Direct3D manages resources, use the D3DCREATE_DISABLE_DRIVER_MANAGEMENT flag when calling IDirect3D9::CreateDevice. 
-							D3DCAPS2_DYNAMICTEXTURES | 		// The driver supports dynamic textures. 
+		caps.Caps2 =		D3DCAPS2_CANAUTOGENMIPMAP |		// The driver is capable of automatically generating mipmaps. For more information, see Automatic Generation of Mipmaps.
+						//	D3DCAPS2_CANCALIBRATEGAMMA |	// The system has a calibrator installed that can automatically adjust the gamma ramp so that the result is identical on all systems that have a calibrator. To invoke the calibrator when setting new gamma levels, use the D3DSGR_CALIBRATE flag when calling IDirect3DDevice9::SetGammaRamp. Calibrating gamma ramps incurs some processing overhead and should not be used frequently.
+						//	D3DCAPS2_CANMANAGERESOURCE |	// The driver is capable of managing resources. On such drivers, D3DPOOL_MANAGED resources will be managed by the driver. To have Microsoft® Direct3D® override the driver so that Direct3D manages resources, use the D3DCREATE_DISABLE_DRIVER_MANAGEMENT flag when calling IDirect3D9::CreateDevice.
+							D3DCAPS2_DYNAMICTEXTURES | 		// The driver supports dynamic textures.
 							D3DCAPS2_FULLSCREENGAMMA;		// The driver supports dynamic gamma ramp adjustment in full-screen mode.
 						//	D3DCAPS2_CANSHARERESOURCE;
 
@@ -1242,201 +1245,201 @@ namespace D3D9
 
 		caps.PresentationIntervals =		D3DPRESENT_INTERVAL_IMMEDIATE |
 											D3DPRESENT_INTERVAL_ONE;
-									 	//	D3DPRESENT_INTERVAL_TWO;
-									 	//	D3DPRESENT_INTERVAL_THREE;
-									 	//	D3DPRESENT_INTERVAL_FOUR;
+										//	D3DPRESENT_INTERVAL_TWO;
+										//	D3DPRESENT_INTERVAL_THREE;
+										//	D3DPRESENT_INTERVAL_FOUR;
 
 		// Cursor caps
-		caps.CursorCaps =	D3DCURSORCAPS_COLOR	|	// A full-color cursor is supported in hardware. Specifically, this flag indicates that the driver supports at least a hardware color cursor in high-resolution modes (with scan lines greater than or equal to 400). 
-							D3DCURSORCAPS_LOWRES;	// A full-color cursor is supported in hardware. Specifically, this flag indicates that the driver supports a hardware color cursor in both high-resolution and low-resolution modes (with scan lines less than 400). 
+		caps.CursorCaps =	D3DCURSORCAPS_COLOR	|	// A full-color cursor is supported in hardware. Specifically, this flag indicates that the driver supports at least a hardware color cursor in high-resolution modes (with scan lines greater than or equal to 400).
+							D3DCURSORCAPS_LOWRES;	// A full-color cursor is supported in hardware. Specifically, this flag indicates that the driver supports a hardware color cursor in both high-resolution and low-resolution modes (with scan lines less than 400).
 
 		// 3D Device caps
-		caps.DevCaps =		D3DDEVCAPS_CANBLTSYSTONONLOCAL |		// Device supports blits from system-memory textures to nonlocal video-memory textures. 
-							D3DDEVCAPS_CANRENDERAFTERFLIP |			// Device can queue rendering commands after a page flip. Applications do not change their behavior if this flag is set; this capability means that the device is relatively fast. 
+		caps.DevCaps =		D3DDEVCAPS_CANBLTSYSTONONLOCAL |		// Device supports blits from system-memory textures to nonlocal video-memory textures.
+							D3DDEVCAPS_CANRENDERAFTERFLIP |			// Device can queue rendering commands after a page flip. Applications do not change their behavior if this flag is set; this capability means that the device is relatively fast.
 							D3DDEVCAPS_DRAWPRIMITIVES2 |			// Device can support DrawPrimitives2.
 							D3DDEVCAPS_DRAWPRIMITIVES2EX |			// Device can support extended DrawPrimitives2; that is, this is a DirectX 7.0-compliant driver.
-							D3DDEVCAPS_DRAWPRIMTLVERTEX |			// Device exports an IDirect3DDevice9::DrawPrimitive-aware hardware abstraction layer (HAL). 
+							D3DDEVCAPS_DRAWPRIMTLVERTEX |			// Device exports an IDirect3DDevice9::DrawPrimitive-aware hardware abstraction layer (HAL).
 							D3DDEVCAPS_EXECUTESYSTEMMEMORY |		// Device can use execute buffers from system memory.
-							D3DDEVCAPS_EXECUTEVIDEOMEMORY |			// Device can use execute buffers from video memory. 
-							D3DDEVCAPS_HWRASTERIZATION |			// Device has hardware acceleration for scene rasterization. 
-							D3DDEVCAPS_HWTRANSFORMANDLIGHT |		// Device can support transformation and lighting in hardware. 
-						//	D3DDEVCAPS_NPATCHES |					// Device supports N patches. 
-							D3DDEVCAPS_PUREDEVICE |					// Device can support rasterization, transform, lighting, and shading in hardware. 
-						//	D3DDEVCAPS_QUINTICRTPATCHES |			// Device supports quintic Bézier curves and B-splines. 
-						//	D3DDEVCAPS_RTPATCHES |					// Device supports rectangular and triangular patches. 
-							D3DDEVCAPS_RTPATCHHANDLEZERO |			// When this device capability is set, the hardware architecture does not require caching of any information and uncached patches (handle zero) will be drawn as efficiently as cached ones. Note that setting D3DDEVCAPS_RTPATCHHANDLEZERO does not mean that a patch with handle zero can be drawn. A handle-zero patch can always be drawn whether this cap is set or not. 
-						//	D3DDEVCAPS_SEPARATETEXTUREMEMORIES |	// Device is texturing from separate memory pools. 
-							D3DDEVCAPS_TEXTURENONLOCALVIDMEM |		// Device can retrieve textures from non-local video memory. 
-							D3DDEVCAPS_TEXTURESYSTEMMEMORY |		// Device can retrieve textures from system memory. 
-							D3DDEVCAPS_TEXTUREVIDEOMEMORY |			// Device can retrieve textures from device memory. 
-							D3DDEVCAPS_TLVERTEXSYSTEMMEMORY |		// Device can use buffers from system memory for transformed and lit vertices. 
+							D3DDEVCAPS_EXECUTEVIDEOMEMORY |			// Device can use execute buffers from video memory.
+							D3DDEVCAPS_HWRASTERIZATION |			// Device has hardware acceleration for scene rasterization.
+							D3DDEVCAPS_HWTRANSFORMANDLIGHT |		// Device can support transformation and lighting in hardware.
+						//	D3DDEVCAPS_NPATCHES |					// Device supports N patches.
+							D3DDEVCAPS_PUREDEVICE |					// Device can support rasterization, transform, lighting, and shading in hardware.
+						//	D3DDEVCAPS_QUINTICRTPATCHES |			// Device supports quintic Bézier curves and B-splines.
+						//	D3DDEVCAPS_RTPATCHES |					// Device supports rectangular and triangular patches.
+							D3DDEVCAPS_RTPATCHHANDLEZERO |			// When this device capability is set, the hardware architecture does not require caching of any information and uncached patches (handle zero) will be drawn as efficiently as cached ones. Note that setting D3DDEVCAPS_RTPATCHHANDLEZERO does not mean that a patch with handle zero can be drawn. A handle-zero patch can always be drawn whether this cap is set or not.
+						//	D3DDEVCAPS_SEPARATETEXTUREMEMORIES |	// Device is texturing from separate memory pools.
+							D3DDEVCAPS_TEXTURENONLOCALVIDMEM |		// Device can retrieve textures from non-local video memory.
+							D3DDEVCAPS_TEXTURESYSTEMMEMORY |		// Device can retrieve textures from system memory.
+							D3DDEVCAPS_TEXTUREVIDEOMEMORY |			// Device can retrieve textures from device memory.
+							D3DDEVCAPS_TLVERTEXSYSTEMMEMORY |		// Device can use buffers from system memory for transformed and lit vertices.
 							D3DDEVCAPS_TLVERTEXVIDEOMEMORY;			// Device can use buffers from video memory for transformed and lit vertices.
 
-		caps.PrimitiveMiscCaps = 		D3DPMISCCAPS_MASKZ |						// Device can enable and disable modification of the depth buffer on pixel operations. 
-										D3DPMISCCAPS_CULLNONE |						// The driver does not perform triangle culling. This corresponds to the D3DCULL_NONE member of the D3DCULL enumerated type. 
-										D3DPMISCCAPS_CULLCW |						// The driver supports clockwise triangle culling through the D3DRS_CULLMODE state. (This applies only to triangle primitives.) This flag corresponds to the D3DCULL_CW member of the D3DCULL enumerated type. 
-										D3DPMISCCAPS_CULLCCW |						// The driver supports counterclockwise culling through the D3DRS_CULLMODE state. (This applies only to triangle primitives.) This flag corresponds to the D3DCULL_CCW member of the D3DCULL enumerated type. 
-										D3DPMISCCAPS_COLORWRITEENABLE |				// Device supports per-channel writes for the render-target color buffer through the D3DRS_COLORWRITEENABLE state. 
-										D3DPMISCCAPS_CLIPPLANESCALEDPOINTS |		// Device correctly clips scaled points of size greater than 1.0 to user-defined clipping planes. 
-										D3DPMISCCAPS_CLIPTLVERTS |					// Device clips post-transformed vertex primitives. Specify D3DUSAGE_DONOTCLIP when the pipeline should not do any clipping. For this case, additional software clipping may need to be performed at draw time, requiring the vertex buffer to be in system memory. 
-										D3DPMISCCAPS_TSSARGTEMP |					// Device supports D3DTA for temporary register. 
-										D3DPMISCCAPS_BLENDOP |						// Device supports alpha-blending operations other than D3DBLENDOP_ADD. 
-									//	D3DPMISCCAPS_NULLREFERENCE |				// A reference device that does not render. 
-										D3DPMISCCAPS_INDEPENDENTWRITEMASKS |		// Device supports independent write masks for multiple element textures or multiple render targets. 
-										D3DPMISCCAPS_PERSTAGECONSTANT |				// Device supports per-stage constants. See D3DTSS_CONSTANT in D3DTEXTURESTAGESTATETYPE. 
-										D3DPMISCCAPS_FOGANDSPECULARALPHA |			// Device supports separate fog and specular alpha. Many devices use the specular alpha channel to store the fog factor. 
-										D3DPMISCCAPS_SEPARATEALPHABLEND |			// Device supports separate blend settings for the alpha channel. 
-										D3DPMISCCAPS_MRTINDEPENDENTBITDEPTHS |		// Device supports different bit depths for multiple render targets. 
-										D3DPMISCCAPS_MRTPOSTPIXELSHADERBLENDING |	// Device supports post-pixel shader operations for multiple render targets. 
+		caps.PrimitiveMiscCaps = 		D3DPMISCCAPS_MASKZ |						// Device can enable and disable modification of the depth buffer on pixel operations.
+										D3DPMISCCAPS_CULLNONE |						// The driver does not perform triangle culling. This corresponds to the D3DCULL_NONE member of the D3DCULL enumerated type.
+										D3DPMISCCAPS_CULLCW |						// The driver supports clockwise triangle culling through the D3DRS_CULLMODE state. (This applies only to triangle primitives.) This flag corresponds to the D3DCULL_CW member of the D3DCULL enumerated type.
+										D3DPMISCCAPS_CULLCCW |						// The driver supports counterclockwise culling through the D3DRS_CULLMODE state. (This applies only to triangle primitives.) This flag corresponds to the D3DCULL_CCW member of the D3DCULL enumerated type.
+										D3DPMISCCAPS_COLORWRITEENABLE |				// Device supports per-channel writes for the render-target color buffer through the D3DRS_COLORWRITEENABLE state.
+										D3DPMISCCAPS_CLIPPLANESCALEDPOINTS |		// Device correctly clips scaled points of size greater than 1.0 to user-defined clipping planes.
+										D3DPMISCCAPS_CLIPTLVERTS |					// Device clips post-transformed vertex primitives. Specify D3DUSAGE_DONOTCLIP when the pipeline should not do any clipping. For this case, additional software clipping may need to be performed at draw time, requiring the vertex buffer to be in system memory.
+										D3DPMISCCAPS_TSSARGTEMP |					// Device supports D3DTA for temporary register.
+										D3DPMISCCAPS_BLENDOP |						// Device supports alpha-blending operations other than D3DBLENDOP_ADD.
+									//	D3DPMISCCAPS_NULLREFERENCE |				// A reference device that does not render.
+										D3DPMISCCAPS_INDEPENDENTWRITEMASKS |		// Device supports independent write masks for multiple element textures or multiple render targets.
+										D3DPMISCCAPS_PERSTAGECONSTANT |				// Device supports per-stage constants. See D3DTSS_CONSTANT in D3DTEXTURESTAGESTATETYPE.
+										D3DPMISCCAPS_FOGANDSPECULARALPHA |			// Device supports separate fog and specular alpha. Many devices use the specular alpha channel to store the fog factor.
+										D3DPMISCCAPS_SEPARATEALPHABLEND |			// Device supports separate blend settings for the alpha channel.
+										D3DPMISCCAPS_MRTINDEPENDENTBITDEPTHS |		// Device supports different bit depths for multiple render targets.
+										D3DPMISCCAPS_MRTPOSTPIXELSHADERBLENDING |	// Device supports post-pixel shader operations for multiple render targets.
 										D3DPMISCCAPS_FOGVERTEXCLAMPED;				// Device clamps fog blend factor per vertex.
 
-		caps.RasterCaps =		D3DPRASTERCAPS_ANISOTROPY |				// Device supports anisotropic filtering. 
-								D3DPRASTERCAPS_COLORPERSPECTIVE |		// Device iterates colors perspective correctly. 
-							//	D3DPRASTERCAPS_DITHER |					// Device can dither to improve color resolution. 
+		caps.RasterCaps =		D3DPRASTERCAPS_ANISOTROPY |				// Device supports anisotropic filtering.
+								D3DPRASTERCAPS_COLORPERSPECTIVE |		// Device iterates colors perspective correctly.
+							//	D3DPRASTERCAPS_DITHER |					// Device can dither to improve color resolution.
 								D3DPRASTERCAPS_DEPTHBIAS |				// Device supports legacy depth bias. For true depth bias, see D3DPRASTERCAPS_SLOPESCALEDEPTHBIAS.
-								D3DPRASTERCAPS_FOGRANGE |				// Device supports range-based fog. In range-based fog, the distance of an object from the viewer is used to compute fog effects, not the depth of the object (that is, the z-coordinate) in the scene. 
-								D3DPRASTERCAPS_FOGTABLE |				// Device calculates the fog value by referring to a lookup table containing fog values that are indexed to the depth of a given pixel. 
-								D3DPRASTERCAPS_FOGVERTEX |				// Device calculates the fog value during the lighting operation and interpolates the fog value during rasterization. 
+								D3DPRASTERCAPS_FOGRANGE |				// Device supports range-based fog. In range-based fog, the distance of an object from the viewer is used to compute fog effects, not the depth of the object (that is, the z-coordinate) in the scene.
+								D3DPRASTERCAPS_FOGTABLE |				// Device calculates the fog value by referring to a lookup table containing fog values that are indexed to the depth of a given pixel.
+								D3DPRASTERCAPS_FOGVERTEX |				// Device calculates the fog value during the lighting operation and interpolates the fog value during rasterization.
 								D3DPRASTERCAPS_MIPMAPLODBIAS |			// Device supports level of detail (LOD) bias adjustments. These bias adjustments enable an application to make a mipmap appear crisper or less sharp than it normally would. For more information about LOD bias in mipmaps, see D3DSAMP_MIPMAPLODBIAS.
-							//	D3DPRASTERCAPS_MULTISAMPLE_TOGGLE |		// Device supports toggling multisampling on and off between IDirect3DDevice9::BeginScene and IDirect3DDevice9::EndScene (using D3DRS_MULTISAMPLEANTIALIAS). 
+							//	D3DPRASTERCAPS_MULTISAMPLE_TOGGLE |		// Device supports toggling multisampling on and off between IDirect3DDevice9::BeginScene and IDirect3DDevice9::EndScene (using D3DRS_MULTISAMPLEANTIALIAS).
 								D3DPRASTERCAPS_SCISSORTEST |			// Device supports scissor test. See Scissor Test.
 								D3DPRASTERCAPS_SLOPESCALEDEPTHBIAS |	// Device performs true slope-scale based depth bias. This is in contrast to the legacy style D3DPRASTERCAPS_DEPTHBIAS.
-							//	D3DPRASTERCAPS_WBUFFER |				// Device supports depth buffering using w. 
-								D3DPRASTERCAPS_WFOG |					// Device supports w-based fog. W-based fog is used when a perspective projection matrix is specified, but affine projections still use z-based fog. The system considers a projection matrix that contains a nonzero value in the [3][4] element to be a perspective projection matrix. 
+							//	D3DPRASTERCAPS_WBUFFER |				// Device supports depth buffering using w.
+								D3DPRASTERCAPS_WFOG |					// Device supports w-based fog. W-based fog is used when a perspective projection matrix is specified, but affine projections still use z-based fog. The system considers a projection matrix that contains a nonzero value in the [3][4] element to be a perspective projection matrix.
 							//	D3DPRASTERCAPS_ZBUFFERLESSHSR |			// Device can perform hidden-surface removal (HSR) without requiring the application to sort polygons and without requiring the allocation of a depth-buffer. This leaves more video memory for textures. The method used to perform HSR is hardware-dependent and is transparent to the application. Z-bufferless HSR is performed if no depth-buffer surface is associated with the rendering-target surface and the depth-buffer comparison test is enabled (that is, when the state value associated with the D3DRS_ZENABLE enumeration constant is set to TRUE).
-								D3DPRASTERCAPS_ZFOG |					// Device supports z-based fog. 
+								D3DPRASTERCAPS_ZFOG |					// Device supports z-based fog.
 								D3DPRASTERCAPS_ZTEST;					// Device can perform z-test operations. This effectively renders a primitive and indicates whether any z pixels have been rendered.
 
-		caps.ZCmpCaps =		D3DPCMPCAPS_ALWAYS |		// Always pass the z-test. 
-							D3DPCMPCAPS_EQUAL |			// Pass the z-test if the new z equals the current z. 
-							D3DPCMPCAPS_GREATER |		// Pass the z-test if the new z is greater than the current z. 
-							D3DPCMPCAPS_GREATEREQUAL |	// Pass the z-test if the new z is greater than or equal to the current z. 
-							D3DPCMPCAPS_LESS |			// Pass the z-test if the new z is less than the current z. 
-							D3DPCMPCAPS_LESSEQUAL |		// Pass the z-test if the new z is less than or equal to the current z. 
-							D3DPCMPCAPS_NEVER |			// Always fail the z-test. 
+		caps.ZCmpCaps =		D3DPCMPCAPS_ALWAYS |		// Always pass the z-test.
+							D3DPCMPCAPS_EQUAL |			// Pass the z-test if the new z equals the current z.
+							D3DPCMPCAPS_GREATER |		// Pass the z-test if the new z is greater than the current z.
+							D3DPCMPCAPS_GREATEREQUAL |	// Pass the z-test if the new z is greater than or equal to the current z.
+							D3DPCMPCAPS_LESS |			// Pass the z-test if the new z is less than the current z.
+							D3DPCMPCAPS_LESSEQUAL |		// Pass the z-test if the new z is less than or equal to the current z.
+							D3DPCMPCAPS_NEVER |			// Always fail the z-test.
 							D3DPCMPCAPS_NOTEQUAL;		// Pass the z-test if the new z does not equal the current z.
 
 		caps.SrcBlendCaps =		D3DPBLENDCAPS_BLENDFACTOR |		// The driver supports both D3DBLEND_BLENDFACTOR and D3DBLEND_INVBLENDFACTOR. See D3DBLEND.
-								D3DPBLENDCAPS_BOTHINVSRCALPHA |	// Source blend factor is (1-As,1-As,1-As,1-As) and destination blend factor is (As,As,As,As); the destination blend selection is overridden. 
-								D3DPBLENDCAPS_BOTHSRCALPHA |	// The driver supports the D3DBLEND_BOTHSRCALPHA blend mode. (This blend mode is obsolete. For more information, see D3DBLEND.) 
-								D3DPBLENDCAPS_DESTALPHA |		// Blend factor is (Ad, Ad, Ad, Ad). 
-								D3DPBLENDCAPS_DESTCOLOR |		// Blend factor is (Rd, Gd, Bd, Ad). 
-								D3DPBLENDCAPS_INVDESTALPHA |	// Blend factor is (1-Ad, 1-Ad, 1-Ad, 1-Ad). 
-								D3DPBLENDCAPS_INVDESTCOLOR |	// Blend factor is (1-Rd, 1-Gd, 1-Bd, 1-Ad). 
-								D3DPBLENDCAPS_INVSRCALPHA |		// Blend factor is (1-As, 1-As, 1-As, 1-As). 
-								D3DPBLENDCAPS_INVSRCCOLOR |		// Blend factor is (1-Rs, 1-Gs, 1-Bs, 1-As). 
-								D3DPBLENDCAPS_ONE |				// Blend factor is (1, 1, 1, 1). 
-								D3DPBLENDCAPS_SRCALPHA |		// Blend factor is (As, As, As, As). 
-								D3DPBLENDCAPS_SRCALPHASAT |		// Blend factor is (f, f, f, 1); f = min(As, 1-Ad). 
-								D3DPBLENDCAPS_SRCCOLOR |		// Blend factor is (Rs, Gs, Bs, As). 
+								D3DPBLENDCAPS_BOTHINVSRCALPHA |	// Source blend factor is (1-As,1-As,1-As,1-As) and destination blend factor is (As,As,As,As); the destination blend selection is overridden.
+								D3DPBLENDCAPS_BOTHSRCALPHA |	// The driver supports the D3DBLEND_BOTHSRCALPHA blend mode. (This blend mode is obsolete. For more information, see D3DBLEND.)
+								D3DPBLENDCAPS_DESTALPHA |		// Blend factor is (Ad, Ad, Ad, Ad).
+								D3DPBLENDCAPS_DESTCOLOR |		// Blend factor is (Rd, Gd, Bd, Ad).
+								D3DPBLENDCAPS_INVDESTALPHA |	// Blend factor is (1-Ad, 1-Ad, 1-Ad, 1-Ad).
+								D3DPBLENDCAPS_INVDESTCOLOR |	// Blend factor is (1-Rd, 1-Gd, 1-Bd, 1-Ad).
+								D3DPBLENDCAPS_INVSRCALPHA |		// Blend factor is (1-As, 1-As, 1-As, 1-As).
+								D3DPBLENDCAPS_INVSRCCOLOR |		// Blend factor is (1-Rs, 1-Gs, 1-Bs, 1-As).
+								D3DPBLENDCAPS_ONE |				// Blend factor is (1, 1, 1, 1).
+								D3DPBLENDCAPS_SRCALPHA |		// Blend factor is (As, As, As, As).
+								D3DPBLENDCAPS_SRCALPHASAT |		// Blend factor is (f, f, f, 1); f = min(As, 1-Ad).
+								D3DPBLENDCAPS_SRCCOLOR |		// Blend factor is (Rs, Gs, Bs, As).
 								D3DPBLENDCAPS_ZERO;				// Blend factor is (0, 0, 0, 0).
 
 		caps.DestBlendCaps = 	D3DPBLENDCAPS_BLENDFACTOR |		// The driver supports both D3DBLEND_BLENDFACTOR and D3DBLEND_INVBLENDFACTOR. See D3DBLEND.
-								D3DPBLENDCAPS_BOTHINVSRCALPHA |	// Source blend factor is (1-As,1-As,1-As,1-As) and destination blend factor is (As,As,As,As); the destination blend selection is overridden. 
-								D3DPBLENDCAPS_BOTHSRCALPHA |	// The driver supports the D3DBLEND_BOTHSRCALPHA blend mode. (This blend mode is obsolete. For more information, see D3DBLEND.) 
-								D3DPBLENDCAPS_DESTALPHA |		// Blend factor is (Ad, Ad, Ad, Ad). 
-								D3DPBLENDCAPS_DESTCOLOR |		// Blend factor is (Rd, Gd, Bd, Ad). 
-								D3DPBLENDCAPS_INVDESTALPHA |	// Blend factor is (1-Ad, 1-Ad, 1-Ad, 1-Ad). 
-								D3DPBLENDCAPS_INVDESTCOLOR |	// Blend factor is (1-Rd, 1-Gd, 1-Bd, 1-Ad). 
-								D3DPBLENDCAPS_INVSRCALPHA |		// Blend factor is (1-As, 1-As, 1-As, 1-As). 
-								D3DPBLENDCAPS_INVSRCCOLOR |		// Blend factor is (1-Rs, 1-Gs, 1-Bs, 1-As). 
-								D3DPBLENDCAPS_ONE |				// Blend factor is (1, 1, 1, 1). 
-								D3DPBLENDCAPS_SRCALPHA |		// Blend factor is (As, As, As, As). 
-								D3DPBLENDCAPS_SRCALPHASAT |		// Blend factor is (f, f, f, 1); f = min(As, 1-Ad). 
-								D3DPBLENDCAPS_SRCCOLOR |		// Blend factor is (Rs, Gs, Bs, As). 
+								D3DPBLENDCAPS_BOTHINVSRCALPHA |	// Source blend factor is (1-As,1-As,1-As,1-As) and destination blend factor is (As,As,As,As); the destination blend selection is overridden.
+								D3DPBLENDCAPS_BOTHSRCALPHA |	// The driver supports the D3DBLEND_BOTHSRCALPHA blend mode. (This blend mode is obsolete. For more information, see D3DBLEND.)
+								D3DPBLENDCAPS_DESTALPHA |		// Blend factor is (Ad, Ad, Ad, Ad).
+								D3DPBLENDCAPS_DESTCOLOR |		// Blend factor is (Rd, Gd, Bd, Ad).
+								D3DPBLENDCAPS_INVDESTALPHA |	// Blend factor is (1-Ad, 1-Ad, 1-Ad, 1-Ad).
+								D3DPBLENDCAPS_INVDESTCOLOR |	// Blend factor is (1-Rd, 1-Gd, 1-Bd, 1-Ad).
+								D3DPBLENDCAPS_INVSRCALPHA |		// Blend factor is (1-As, 1-As, 1-As, 1-As).
+								D3DPBLENDCAPS_INVSRCCOLOR |		// Blend factor is (1-Rs, 1-Gs, 1-Bs, 1-As).
+								D3DPBLENDCAPS_ONE |				// Blend factor is (1, 1, 1, 1).
+								D3DPBLENDCAPS_SRCALPHA |		// Blend factor is (As, As, As, As).
+								D3DPBLENDCAPS_SRCALPHASAT |		// Blend factor is (f, f, f, 1); f = min(As, 1-Ad).
+								D3DPBLENDCAPS_SRCCOLOR |		// Blend factor is (Rs, Gs, Bs, As).
 								D3DPBLENDCAPS_ZERO;				// Blend factor is (0, 0, 0, 0).
 
-		caps.AlphaCmpCaps = D3DPCMPCAPS_ALWAYS |		// Always pass the apha-test. 
-							D3DPCMPCAPS_EQUAL |			// Pass the apha-test if the new apha equals the current apha. 
-							D3DPCMPCAPS_GREATER |		// Pass the apha-test if the new apha is greater than the current apha. 
-							D3DPCMPCAPS_GREATEREQUAL |	// Pass the apha-test if the new apha is greater than or equal to the current apha. 
-							D3DPCMPCAPS_LESS |			// Pass the apha-test if the new apha is less than the current apha. 
-							D3DPCMPCAPS_LESSEQUAL |		// Pass the apha-test if the new apha is less than or equal to the current apha. 
-							D3DPCMPCAPS_NEVER |			// Always fail the apha-test. 
+		caps.AlphaCmpCaps = D3DPCMPCAPS_ALWAYS |		// Always pass the apha-test.
+							D3DPCMPCAPS_EQUAL |			// Pass the apha-test if the new apha equals the current apha.
+							D3DPCMPCAPS_GREATER |		// Pass the apha-test if the new apha is greater than the current apha.
+							D3DPCMPCAPS_GREATEREQUAL |	// Pass the apha-test if the new apha is greater than or equal to the current apha.
+							D3DPCMPCAPS_LESS |			// Pass the apha-test if the new apha is less than the current apha.
+							D3DPCMPCAPS_LESSEQUAL |		// Pass the apha-test if the new apha is less than or equal to the current apha.
+							D3DPCMPCAPS_NEVER |			// Always fail the apha-test.
 							D3DPCMPCAPS_NOTEQUAL;		// Pass the apha-test if the new apha does not equal the current apha.
 
-		caps.ShadeCaps =	D3DPSHADECAPS_ALPHAGOURAUDBLEND |	// Device can support an alpha component for Gouraud-blended transparency (the D3DSHADE_GOURAUD state for the D3DSHADEMODE enumerated type). In this mode, the alpha color component of a primitive is provided at vertices and interpolated across a face along with the other color components. 
-							D3DPSHADECAPS_COLORGOURAUDRGB |		// Device can support colored Gouraud shading in the RGB color model. In this mode, the color component for a primitive is provided at vertices and interpolated across a face along with the other color components. In the RGB lighting model, the red, green, and blue components are interpolated. 
-							D3DPSHADECAPS_FOGGOURAUD |			// Device can support fog in the Gouraud shading mode. 
+		caps.ShadeCaps =	D3DPSHADECAPS_ALPHAGOURAUDBLEND |	// Device can support an alpha component for Gouraud-blended transparency (the D3DSHADE_GOURAUD state for the D3DSHADEMODE enumerated type). In this mode, the alpha color component of a primitive is provided at vertices and interpolated across a face along with the other color components.
+							D3DPSHADECAPS_COLORGOURAUDRGB |		// Device can support colored Gouraud shading in the RGB color model. In this mode, the color component for a primitive is provided at vertices and interpolated across a face along with the other color components. In the RGB lighting model, the red, green, and blue components are interpolated.
+							D3DPSHADECAPS_FOGGOURAUD |			// Device can support fog in the Gouraud shading mode.
 							D3DPSHADECAPS_SPECULARGOURAUDRGB;	// Device supports Gouraud shading of specular highlights.
 
-		caps.TextureCaps =		D3DPTEXTURECAPS_ALPHA |						// Alpha in texture pixels is supported. 
-								D3DPTEXTURECAPS_ALPHAPALETTE |				// Device can draw alpha from texture palettes. 
+		caps.TextureCaps =		D3DPTEXTURECAPS_ALPHA |						// Alpha in texture pixels is supported.
+								D3DPTEXTURECAPS_ALPHAPALETTE |				// Device can draw alpha from texture palettes.
 								D3DPTEXTURECAPS_CUBEMAP |					// Supports cube textures.
-							//	D3DPTEXTURECAPS_CUBEMAP_POW2 |				// Device requires that cube texture maps have dimensions specified as powers of two. 
-								D3DPTEXTURECAPS_MIPCUBEMAP |				// Device supports mipmapped cube textures. 
-								D3DPTEXTURECAPS_MIPMAP |					// Device supports mipmapped textures. 
-								D3DPTEXTURECAPS_MIPVOLUMEMAP |				// Device supports mipmapped volume textures. 
+							//	D3DPTEXTURECAPS_CUBEMAP_POW2 |				// Device requires that cube texture maps have dimensions specified as powers of two.
+								D3DPTEXTURECAPS_MIPCUBEMAP |				// Device supports mipmapped cube textures.
+								D3DPTEXTURECAPS_MIPMAP |					// Device supports mipmapped textures.
+								D3DPTEXTURECAPS_MIPVOLUMEMAP |				// Device supports mipmapped volume textures.
 							//	D3DPTEXTURECAPS_NONPOW2CONDITIONAL |		// Conditionally supports the use of 2-D textures with dimensions that are not powers of two. A device that exposes this capability can use such a texture if all of the following requirements are met...
-							//	D3DPTEXTURECAPS_NOPROJECTEDBUMPENV |		// Device does not support a projected bump-environment loopkup operation in programmable and fixed function shaders. 
+							//	D3DPTEXTURECAPS_NOPROJECTEDBUMPENV |		// Device does not support a projected bump-environment loopkup operation in programmable and fixed function shaders.
 								D3DPTEXTURECAPS_PERSPECTIVE |				// Perspective correction texturing is supported.
 							//	D3DPTEXTURECAPS_POW2 |						// All textures must have widths and heights specified as powers of two. This requirement does not apply to either cube textures or volume textures.
-								D3DPTEXTURECAPS_PROJECTED |					// Supports the D3DTTFF_PROJECTED texture transformation flag. When applied, the device divides transformed texture coordinates by the last texture coordinate. If this capability is present, then the projective divide occurs per pixel. If this capability is not present, but the projective divide needs to occur anyway, then it is performed on a per-vertex basis by the Direct3D runtime. 
-							//	D3DPTEXTURECAPS_SQUAREONLY |				// All textures must be square. 
+								D3DPTEXTURECAPS_PROJECTED |					// Supports the D3DTTFF_PROJECTED texture transformation flag. When applied, the device divides transformed texture coordinates by the last texture coordinate. If this capability is present, then the projective divide occurs per pixel. If this capability is not present, but the projective divide needs to occur anyway, then it is performed on a per-vertex basis by the Direct3D runtime.
+							//	D3DPTEXTURECAPS_SQUAREONLY |				// All textures must be square.
 								D3DPTEXTURECAPS_TEXREPEATNOTSCALEDBYSIZE |	// Texture indices are not scaled by the texture size prior to interpolation.
 								D3DPTEXTURECAPS_VOLUMEMAP;					// Device supports volume textures.
-							//	D3DPTEXTURECAPS_VOLUMEMAP_POW2;				// Device requires that volume texture maps have dimensions specified as powers of two. 
+							//	D3DPTEXTURECAPS_VOLUMEMAP_POW2;				// Device requires that volume texture maps have dimensions specified as powers of two.
 
-		caps.TextureFilterCaps =		D3DPTFILTERCAPS_MAGFPOINT |			// Device supports per-stage point-sample filtering for magnifying textures. The point-sample magnification filter is represented by the D3DTEXF_POINT member of the D3DTEXTUREFILTERTYPE enumerated type. 
-										D3DPTFILTERCAPS_MAGFLINEAR |		// Device supports per-stage bilinear interpolation filtering for magnifying mipmaps. The bilinear interpolation mipmapping filter is represented by the D3DTEXF_LINEAR member of the D3DTEXTUREFILTERTYPE enumerated type. 
-									//	D3DPTFILTERCAPS_MAGFANISOTROPIC |	// Device supports per-stage anisotropic filtering for magnifying textures. The anisotropic magnification filter is represented by the D3DTEXF_ANISOTROPIC member of the D3DTEXTUREFILTERTYPE enumerated type. 
-									//	D3DPTFILTERCAPS_MAGFPYRAMIDALQUAD |	// Device supports per-stage pyramidal sample filtering for magnifying textures. The pyramidal magnifying filter is represented by the D3DTEXF_PYRAMIDALQUAD member of the D3DTEXTUREFILTERTYPE enumerated type. 
-									//	D3DPTFILTERCAPS_MAGFGAUSSIANQUAD |	// Device supports per-stage Gaussian quad filtering for magnifying textures. 
-										D3DPTFILTERCAPS_MINFPOINT |			// Device supports per-stage point-sample filtering for minifying textures. The point-sample minification filter is represented by the D3DTEXF_POINT member of the D3DTEXTUREFILTERTYPE enumerated type. 
-										D3DPTFILTERCAPS_MINFLINEAR |		// Device supports per-stage linear filtering for minifying textures. The linear minification filter is represented by the D3DTEXF_LINEAR member of the D3DTEXTUREFILTERTYPE enumerated type. 
-										D3DPTFILTERCAPS_MINFANISOTROPIC |	// Device supports per-stage anisotropic filtering for minifying textures. The anisotropic minification filter is represented by the D3DTEXF_ANISOTROPIC member of the D3DTEXTUREFILTERTYPE enumerated type. 
-									//	D3DPTFILTERCAPS_MINFPYRAMIDALQUAD |	// Device supports per-stage pyramidal sample filtering for minifying textures. 
-									//	D3DPTFILTERCAPS_MINFGAUSSIANQUAD |	// Device supports per-stage Gaussian quad filtering for minifying textures. 
-										D3DPTFILTERCAPS_MIPFPOINT |			// Device supports per-stage point-sample filtering for mipmaps. The point-sample mipmapping filter is represented by the D3DTEXF_POINT member of the D3DTEXTUREFILTERTYPE enumerated type. 
-										D3DPTFILTERCAPS_MIPFLINEAR;			// Device supports per-stage bilinear interpolation filtering for mipmaps. The bilinear interpolation mipmapping filter is represented by the D3DTEXF_LINEAR member of the D3DTEXTUREFILTERTYPE enumerated type. 
+		caps.TextureFilterCaps =		D3DPTFILTERCAPS_MAGFPOINT |			// Device supports per-stage point-sample filtering for magnifying textures. The point-sample magnification filter is represented by the D3DTEXF_POINT member of the D3DTEXTUREFILTERTYPE enumerated type.
+										D3DPTFILTERCAPS_MAGFLINEAR |		// Device supports per-stage bilinear interpolation filtering for magnifying mipmaps. The bilinear interpolation mipmapping filter is represented by the D3DTEXF_LINEAR member of the D3DTEXTUREFILTERTYPE enumerated type.
+									//	D3DPTFILTERCAPS_MAGFANISOTROPIC |	// Device supports per-stage anisotropic filtering for magnifying textures. The anisotropic magnification filter is represented by the D3DTEXF_ANISOTROPIC member of the D3DTEXTUREFILTERTYPE enumerated type.
+									//	D3DPTFILTERCAPS_MAGFPYRAMIDALQUAD |	// Device supports per-stage pyramidal sample filtering for magnifying textures. The pyramidal magnifying filter is represented by the D3DTEXF_PYRAMIDALQUAD member of the D3DTEXTUREFILTERTYPE enumerated type.
+									//	D3DPTFILTERCAPS_MAGFGAUSSIANQUAD |	// Device supports per-stage Gaussian quad filtering for magnifying textures.
+										D3DPTFILTERCAPS_MINFPOINT |			// Device supports per-stage point-sample filtering for minifying textures. The point-sample minification filter is represented by the D3DTEXF_POINT member of the D3DTEXTUREFILTERTYPE enumerated type.
+										D3DPTFILTERCAPS_MINFLINEAR |		// Device supports per-stage linear filtering for minifying textures. The linear minification filter is represented by the D3DTEXF_LINEAR member of the D3DTEXTUREFILTERTYPE enumerated type.
+										D3DPTFILTERCAPS_MINFANISOTROPIC |	// Device supports per-stage anisotropic filtering for minifying textures. The anisotropic minification filter is represented by the D3DTEXF_ANISOTROPIC member of the D3DTEXTUREFILTERTYPE enumerated type.
+									//	D3DPTFILTERCAPS_MINFPYRAMIDALQUAD |	// Device supports per-stage pyramidal sample filtering for minifying textures.
+									//	D3DPTFILTERCAPS_MINFGAUSSIANQUAD |	// Device supports per-stage Gaussian quad filtering for minifying textures.
+										D3DPTFILTERCAPS_MIPFPOINT |			// Device supports per-stage point-sample filtering for mipmaps. The point-sample mipmapping filter is represented by the D3DTEXF_POINT member of the D3DTEXTUREFILTERTYPE enumerated type.
+										D3DPTFILTERCAPS_MIPFLINEAR;			// Device supports per-stage bilinear interpolation filtering for mipmaps. The bilinear interpolation mipmapping filter is represented by the D3DTEXF_LINEAR member of the D3DTEXTUREFILTERTYPE enumerated type.
 
-		caps.CubeTextureFilterCaps =		D3DPTFILTERCAPS_MAGFPOINT |			// Device supports per-stage point-sample filtering for magnifying textures. The point-sample magnification filter is represented by the D3DTEXF_POINT member of the D3DTEXTUREFILTERTYPE enumerated type. 
-											D3DPTFILTERCAPS_MAGFLINEAR |		// Device supports per-stage bilinear interpolation filtering for magnifying mipmaps. The bilinear interpolation mipmapping filter is represented by the D3DTEXF_LINEAR member of the D3DTEXTUREFILTERTYPE enumerated type. 
-										//	D3DPTFILTERCAPS_MAGFANISOTROPIC |	// Device supports per-stage anisotropic filtering for magnifying textures. The anisotropic magnification filter is represented by the D3DTEXF_ANISOTROPIC member of the D3DTEXTUREFILTERTYPE enumerated type. 
-										//	D3DPTFILTERCAPS_MAGFPYRAMIDALQUAD |	// Device supports per-stage pyramidal sample filtering for magnifying textures. The pyramidal magnifying filter is represented by the D3DTEXF_PYRAMIDALQUAD member of the D3DTEXTUREFILTERTYPE enumerated type. 
-										//	D3DPTFILTERCAPS_MAGFGAUSSIANQUAD |	// Device supports per-stage Gaussian quad filtering for magnifying textures. 
-											D3DPTFILTERCAPS_MINFPOINT |			// Device supports per-stage point-sample filtering for minifying textures. The point-sample minification filter is represented by the D3DTEXF_POINT member of the D3DTEXTUREFILTERTYPE enumerated type. 
-											D3DPTFILTERCAPS_MINFLINEAR |		// Device supports per-stage linear filtering for minifying textures. The linear minification filter is represented by the D3DTEXF_LINEAR member of the D3DTEXTUREFILTERTYPE enumerated type. 
-										//	D3DPTFILTERCAPS_MINFANISOTROPIC |	// Device supports per-stage anisotropic filtering for minifying textures. The anisotropic minification filter is represented by the D3DTEXF_ANISOTROPIC member of the D3DTEXTUREFILTERTYPE enumerated type. 
-										//	D3DPTFILTERCAPS_MINFPYRAMIDALQUAD |	// Device supports per-stage pyramidal sample filtering for minifying textures. 
-										//	D3DPTFILTERCAPS_MINFGAUSSIANQUAD |	// Device supports per-stage Gaussian quad filtering for minifying textures. 
-											D3DPTFILTERCAPS_MIPFPOINT |			// Device supports per-stage point-sample filtering for mipmaps. The point-sample mipmapping filter is represented by the D3DTEXF_POINT member of the D3DTEXTUREFILTERTYPE enumerated type. 
-											D3DPTFILTERCAPS_MIPFLINEAR;			// Device supports per-stage bilinear interpolation filtering for mipmaps. The bilinear interpolation mipmapping filter is represented by the D3DTEXF_LINEAR member of the D3DTEXTUREFILTERTYPE enumerated type. 
+		caps.CubeTextureFilterCaps =		D3DPTFILTERCAPS_MAGFPOINT |			// Device supports per-stage point-sample filtering for magnifying textures. The point-sample magnification filter is represented by the D3DTEXF_POINT member of the D3DTEXTUREFILTERTYPE enumerated type.
+											D3DPTFILTERCAPS_MAGFLINEAR |		// Device supports per-stage bilinear interpolation filtering for magnifying mipmaps. The bilinear interpolation mipmapping filter is represented by the D3DTEXF_LINEAR member of the D3DTEXTUREFILTERTYPE enumerated type.
+										//	D3DPTFILTERCAPS_MAGFANISOTROPIC |	// Device supports per-stage anisotropic filtering for magnifying textures. The anisotropic magnification filter is represented by the D3DTEXF_ANISOTROPIC member of the D3DTEXTUREFILTERTYPE enumerated type.
+										//	D3DPTFILTERCAPS_MAGFPYRAMIDALQUAD |	// Device supports per-stage pyramidal sample filtering for magnifying textures. The pyramidal magnifying filter is represented by the D3DTEXF_PYRAMIDALQUAD member of the D3DTEXTUREFILTERTYPE enumerated type.
+										//	D3DPTFILTERCAPS_MAGFGAUSSIANQUAD |	// Device supports per-stage Gaussian quad filtering for magnifying textures.
+											D3DPTFILTERCAPS_MINFPOINT |			// Device supports per-stage point-sample filtering for minifying textures. The point-sample minification filter is represented by the D3DTEXF_POINT member of the D3DTEXTUREFILTERTYPE enumerated type.
+											D3DPTFILTERCAPS_MINFLINEAR |		// Device supports per-stage linear filtering for minifying textures. The linear minification filter is represented by the D3DTEXF_LINEAR member of the D3DTEXTUREFILTERTYPE enumerated type.
+										//	D3DPTFILTERCAPS_MINFANISOTROPIC |	// Device supports per-stage anisotropic filtering for minifying textures. The anisotropic minification filter is represented by the D3DTEXF_ANISOTROPIC member of the D3DTEXTUREFILTERTYPE enumerated type.
+										//	D3DPTFILTERCAPS_MINFPYRAMIDALQUAD |	// Device supports per-stage pyramidal sample filtering for minifying textures.
+										//	D3DPTFILTERCAPS_MINFGAUSSIANQUAD |	// Device supports per-stage Gaussian quad filtering for minifying textures.
+											D3DPTFILTERCAPS_MIPFPOINT |			// Device supports per-stage point-sample filtering for mipmaps. The point-sample mipmapping filter is represented by the D3DTEXF_POINT member of the D3DTEXTUREFILTERTYPE enumerated type.
+											D3DPTFILTERCAPS_MIPFLINEAR;			// Device supports per-stage bilinear interpolation filtering for mipmaps. The bilinear interpolation mipmapping filter is represented by the D3DTEXF_LINEAR member of the D3DTEXTUREFILTERTYPE enumerated type.
 
-		caps.VolumeTextureFilterCaps = 		D3DPTFILTERCAPS_MAGFPOINT |			// Device supports per-stage point-sample filtering for magnifying textures. The point-sample magnification filter is represented by the D3DTEXF_POINT member of the D3DTEXTUREFILTERTYPE enumerated type. 
-											D3DPTFILTERCAPS_MAGFLINEAR |		// Device supports per-stage bilinear interpolation filtering for magnifying mipmaps. The bilinear interpolation mipmapping filter is represented by the D3DTEXF_LINEAR member of the D3DTEXTUREFILTERTYPE enumerated type. 
-										//	D3DPTFILTERCAPS_MAGFANISOTROPIC |	// Device supports per-stage anisotropic filtering for magnifying textures. The anisotropic magnification filter is represented by the D3DTEXF_ANISOTROPIC member of the D3DTEXTUREFILTERTYPE enumerated type. 
-										//	D3DPTFILTERCAPS_MAGFPYRAMIDALQUAD |	// Device supports per-stage pyramidal sample filtering for magnifying textures. The pyramidal magnifying filter is represented by the D3DTEXF_PYRAMIDALQUAD member of the D3DTEXTUREFILTERTYPE enumerated type. 
-										//	D3DPTFILTERCAPS_MAGFGAUSSIANQUAD |	// Device supports per-stage Gaussian quad filtering for magnifying textures. 
-											D3DPTFILTERCAPS_MINFPOINT |			// Device supports per-stage point-sample filtering for minifying textures. The point-sample minification filter is represented by the D3DTEXF_POINT member of the D3DTEXTUREFILTERTYPE enumerated type. 
-											D3DPTFILTERCAPS_MINFLINEAR |		// Device supports per-stage linear filtering for minifying textures. The linear minification filter is represented by the D3DTEXF_LINEAR member of the D3DTEXTUREFILTERTYPE enumerated type. 
-										//	D3DPTFILTERCAPS_MINFANISOTROPIC |	// Device supports per-stage anisotropic filtering for minifying textures. The anisotropic minification filter is represented by the D3DTEXF_ANISOTROPIC member of the D3DTEXTUREFILTERTYPE enumerated type. 
-										//	D3DPTFILTERCAPS_MINFPYRAMIDALQUAD |	// Device supports per-stage pyramidal sample filtering for minifying textures. 
-										//	D3DPTFILTERCAPS_MINFGAUSSIANQUAD |	// Device supports per-stage Gaussian quad filtering for minifying textures. 
-											D3DPTFILTERCAPS_MIPFPOINT |			// Device supports per-stage point-sample filtering for mipmaps. The point-sample mipmapping filter is represented by the D3DTEXF_POINT member of the D3DTEXTUREFILTERTYPE enumerated type. 
-											D3DPTFILTERCAPS_MIPFLINEAR;			// Device supports per-stage bilinear interpolation filtering for mipmaps. The bilinear interpolation mipmapping filter is represented by the D3DTEXF_LINEAR member of the D3DTEXTUREFILTERTYPE enumerated type. 
+		caps.VolumeTextureFilterCaps = 		D3DPTFILTERCAPS_MAGFPOINT |			// Device supports per-stage point-sample filtering for magnifying textures. The point-sample magnification filter is represented by the D3DTEXF_POINT member of the D3DTEXTUREFILTERTYPE enumerated type.
+											D3DPTFILTERCAPS_MAGFLINEAR |		// Device supports per-stage bilinear interpolation filtering for magnifying mipmaps. The bilinear interpolation mipmapping filter is represented by the D3DTEXF_LINEAR member of the D3DTEXTUREFILTERTYPE enumerated type.
+										//	D3DPTFILTERCAPS_MAGFANISOTROPIC |	// Device supports per-stage anisotropic filtering for magnifying textures. The anisotropic magnification filter is represented by the D3DTEXF_ANISOTROPIC member of the D3DTEXTUREFILTERTYPE enumerated type.
+										//	D3DPTFILTERCAPS_MAGFPYRAMIDALQUAD |	// Device supports per-stage pyramidal sample filtering for magnifying textures. The pyramidal magnifying filter is represented by the D3DTEXF_PYRAMIDALQUAD member of the D3DTEXTUREFILTERTYPE enumerated type.
+										//	D3DPTFILTERCAPS_MAGFGAUSSIANQUAD |	// Device supports per-stage Gaussian quad filtering for magnifying textures.
+											D3DPTFILTERCAPS_MINFPOINT |			// Device supports per-stage point-sample filtering for minifying textures. The point-sample minification filter is represented by the D3DTEXF_POINT member of the D3DTEXTUREFILTERTYPE enumerated type.
+											D3DPTFILTERCAPS_MINFLINEAR |		// Device supports per-stage linear filtering for minifying textures. The linear minification filter is represented by the D3DTEXF_LINEAR member of the D3DTEXTUREFILTERTYPE enumerated type.
+										//	D3DPTFILTERCAPS_MINFANISOTROPIC |	// Device supports per-stage anisotropic filtering for minifying textures. The anisotropic minification filter is represented by the D3DTEXF_ANISOTROPIC member of the D3DTEXTUREFILTERTYPE enumerated type.
+										//	D3DPTFILTERCAPS_MINFPYRAMIDALQUAD |	// Device supports per-stage pyramidal sample filtering for minifying textures.
+										//	D3DPTFILTERCAPS_MINFGAUSSIANQUAD |	// Device supports per-stage Gaussian quad filtering for minifying textures.
+											D3DPTFILTERCAPS_MIPFPOINT |			// Device supports per-stage point-sample filtering for mipmaps. The point-sample mipmapping filter is represented by the D3DTEXF_POINT member of the D3DTEXTUREFILTERTYPE enumerated type.
+											D3DPTFILTERCAPS_MIPFLINEAR;			// Device supports per-stage bilinear interpolation filtering for mipmaps. The bilinear interpolation mipmapping filter is represented by the D3DTEXF_LINEAR member of the D3DTEXTUREFILTERTYPE enumerated type.
 
-		caps.TextureAddressCaps =	D3DPTADDRESSCAPS_BORDER |			// Device supports setting coordinates outside the range [0.0, 1.0] to the border color, as specified by the D3DSAMP_BORDERCOLOR texture-stage state. 
-									D3DPTADDRESSCAPS_CLAMP |			// Device can clamp textures to addresses. 
-									D3DPTADDRESSCAPS_INDEPENDENTUV |	// Device can separate the texture-addressing modes of the u and v coordinates of the texture. This ability corresponds to the D3DSAMP_ADDRESSU and D3DSAMP_ADDRESSV render-state values. 
-									D3DPTADDRESSCAPS_MIRROR |			// Device can mirror textures to addresses. 
-									D3DPTADDRESSCAPS_MIRRORONCE |		// Device can take the absolute value of the texture coordinate (thus, mirroring around 0) and then clamp to the maximum value. 
+		caps.TextureAddressCaps =	D3DPTADDRESSCAPS_BORDER |			// Device supports setting coordinates outside the range [0.0, 1.0] to the border color, as specified by the D3DSAMP_BORDERCOLOR texture-stage state.
+									D3DPTADDRESSCAPS_CLAMP |			// Device can clamp textures to addresses.
+									D3DPTADDRESSCAPS_INDEPENDENTUV |	// Device can separate the texture-addressing modes of the u and v coordinates of the texture. This ability corresponds to the D3DSAMP_ADDRESSU and D3DSAMP_ADDRESSV render-state values.
+									D3DPTADDRESSCAPS_MIRROR |			// Device can mirror textures to addresses.
+									D3DPTADDRESSCAPS_MIRRORONCE |		// Device can take the absolute value of the texture coordinate (thus, mirroring around 0) and then clamp to the maximum value.
 									D3DPTADDRESSCAPS_WRAP;				// Device can wrap textures to addresses.
 
-		caps.VolumeTextureAddressCaps =	D3DPTADDRESSCAPS_BORDER |			// Device supports setting coordinates outside the range [0.0, 1.0] to the border color, as specified by the D3DSAMP_BORDERCOLOR texture-stage state. 
-										D3DPTADDRESSCAPS_CLAMP |			// Device can clamp textures to addresses. 
-										D3DPTADDRESSCAPS_INDEPENDENTUV |	// Device can separate the texture-addressing modes of the u and v coordinates of the texture. This ability corresponds to the D3DSAMP_ADDRESSU and D3DSAMP_ADDRESSV render-state values. 
-										D3DPTADDRESSCAPS_MIRROR |			// Device can mirror textures to addresses. 
-										D3DPTADDRESSCAPS_MIRRORONCE |		// Device can take the absolute value of the texture coordinate (thus, mirroring around 0) and then clamp to the maximum value. 
+		caps.VolumeTextureAddressCaps =	D3DPTADDRESSCAPS_BORDER |			// Device supports setting coordinates outside the range [0.0, 1.0] to the border color, as specified by the D3DSAMP_BORDERCOLOR texture-stage state.
+										D3DPTADDRESSCAPS_CLAMP |			// Device can clamp textures to addresses.
+										D3DPTADDRESSCAPS_INDEPENDENTUV |	// Device can separate the texture-addressing modes of the u and v coordinates of the texture. This ability corresponds to the D3DSAMP_ADDRESSU and D3DSAMP_ADDRESSV render-state values.
+										D3DPTADDRESSCAPS_MIRROR |			// Device can mirror textures to addresses.
+										D3DPTADDRESSCAPS_MIRRORONCE |		// Device can take the absolute value of the texture coordinate (thus, mirroring around 0) and then clamp to the maximum value.
 										D3DPTADDRESSCAPS_WRAP;				// Device can wrap textures to addresses.
 
-		caps.LineCaps =		D3DLINECAPS_ALPHACMP |	// Supports alpha-test comparisons. 
+		caps.LineCaps =		D3DLINECAPS_ALPHACMP |	// Supports alpha-test comparisons.
 						//	D3DLINECAPS_ANTIALIAS | // Antialiased lines are supported.
-							D3DLINECAPS_BLEND |		// Supports source-blending. 
-							D3DLINECAPS_FOG |		// Supports fog. 
-							D3DLINECAPS_TEXTURE |	// Supports texture-mapping. 
+							D3DLINECAPS_BLEND |		// Supports source-blending.
+							D3DLINECAPS_FOG |		// Supports fog.
+							D3DLINECAPS_TEXTURE |	// Supports texture-mapping.
 							D3DLINECAPS_ZTEST;		// Supports z-buffer comparisons.
-		
+
 		caps.MaxTextureWidth = 1 << (sw::MIPMAP_LEVELS - 1);
 		caps.MaxTextureHeight = 1 << (sw::MIPMAP_LEVELS - 1);
 		caps.MaxVolumeExtent = 1 << (sw::MIPMAP_LEVELS - 1);
@@ -1452,63 +1455,63 @@ namespace D3D9
 
 		caps.ExtentsAdjust = 0;
 
-		caps.StencilCaps =		D3DSTENCILCAPS_KEEP |		// Do not update the entry in the stencil buffer. This is the default value. 
-								D3DSTENCILCAPS_ZERO |		// Set the stencil-buffer entry to 0. 
-								D3DSTENCILCAPS_REPLACE |	// Replace the stencil-buffer entry with reference value. 
-								D3DSTENCILCAPS_INCRSAT |	// Increment the stencil-buffer entry, clamping to the maximum value.  
-								D3DSTENCILCAPS_DECRSAT |	// Decrement the stencil-buffer entry, clamping to zero. 
-								D3DSTENCILCAPS_INVERT |		// Invert the bits in the stencil-buffer entry. 
-								D3DSTENCILCAPS_INCR |		// Increment the stencil-buffer entry, wrapping to zero if the new value exceeds the maximum value.  
-								D3DSTENCILCAPS_DECR |		// Decrement the stencil-buffer entry, wrapping to the maximum value if the new value is less than zero. 
-								D3DSTENCILCAPS_TWOSIDED;	// The device supports two-sided stencil. 
+		caps.StencilCaps =		D3DSTENCILCAPS_KEEP |		// Do not update the entry in the stencil buffer. This is the default value.
+								D3DSTENCILCAPS_ZERO |		// Set the stencil-buffer entry to 0.
+								D3DSTENCILCAPS_REPLACE |	// Replace the stencil-buffer entry with reference value.
+								D3DSTENCILCAPS_INCRSAT |	// Increment the stencil-buffer entry, clamping to the maximum value.
+								D3DSTENCILCAPS_DECRSAT |	// Decrement the stencil-buffer entry, clamping to zero.
+								D3DSTENCILCAPS_INVERT |		// Invert the bits in the stencil-buffer entry.
+								D3DSTENCILCAPS_INCR |		// Increment the stencil-buffer entry, wrapping to zero if the new value exceeds the maximum value.
+								D3DSTENCILCAPS_DECR |		// Decrement the stencil-buffer entry, wrapping to the maximum value if the new value is less than zero.
+								D3DSTENCILCAPS_TWOSIDED;	// The device supports two-sided stencil.
 
-		caps.FVFCaps =		D3DFVFCAPS_DONOTSTRIPELEMENTS |		// It is preferable that vertex elements not be stripped. That is, if the vertex format contains elements that are not used with the current render states, there is no need to regenerate the vertices. If this capability flag is not present, stripping extraneous elements from the vertex format provides better performance. 
+		caps.FVFCaps =		D3DFVFCAPS_DONOTSTRIPELEMENTS |		// It is preferable that vertex elements not be stripped. That is, if the vertex format contains elements that are not used with the current render states, there is no need to regenerate the vertices. If this capability flag is not present, stripping extraneous elements from the vertex format provides better performance.
 							D3DFVFCAPS_PSIZE |					// Point size is determined by either the render state or the vertex data.
-						//	D3DFVFCAPS_TEXCOORDCOUNTMASK |		// Masks the low WORD of FVFCaps. These bits, cast to the WORD data type, describe the total number of texture coordinate sets that the device can simultaneously use for multiple texture blending. (You can use up to eight texture coordinate sets for any vertex, but the device can blend using only the specified number of texture coordinate sets.) 
+						//	D3DFVFCAPS_TEXCOORDCOUNTMASK |		// Masks the low WORD of FVFCaps. These bits, cast to the WORD data type, describe the total number of texture coordinate sets that the device can simultaneously use for multiple texture blending. (You can use up to eight texture coordinate sets for any vertex, but the device can blend using only the specified number of texture coordinate sets.)
 							8;
 
-		caps.TextureOpCaps =	D3DTEXOPCAPS_ADD |							// The D3DTOP_ADD texture-blending operation is supported. 
-								D3DTEXOPCAPS_ADDSIGNED |					// The D3DTOP_ADDSIGNED texture-blending operation is supported. 
-								D3DTEXOPCAPS_ADDSIGNED2X |					// The D3DTOP_ADDSIGNED2X texture-blending operation is supported. 
-								D3DTEXOPCAPS_ADDSMOOTH |					// The D3DTOP_ADDSMOOTH texture-blending operation is supported. 
-								D3DTEXOPCAPS_BLENDCURRENTALPHA |			// The D3DTOP_BLENDCURRENTALPHA texture-blending operation is supported. 
-								D3DTEXOPCAPS_BLENDDIFFUSEALPHA |			// The D3DTOP_BLENDDIFFUSEALPHA texture-blending operation is supported. 
-								D3DTEXOPCAPS_BLENDFACTORALPHA |				// The D3DTOP_BLENDFACTORALPHA texture-blending operation is supported. 
-								D3DTEXOPCAPS_BLENDTEXTUREALPHA |			// The D3DTOP_BLENDTEXTUREALPHA texture-blending operation is supported. 
-								D3DTEXOPCAPS_BLENDTEXTUREALPHAPM |			// The D3DTOP_BLENDTEXTUREALPHAPM texture-blending operation is supported. 
-								D3DTEXOPCAPS_BUMPENVMAP |					// The D3DTOP_BUMPENVMAP texture-blending operation is supported. 
-								D3DTEXOPCAPS_BUMPENVMAPLUMINANCE |			// The D3DTOP_BUMPENVMAPLUMINANCE texture-blending operation is supported. 
-								D3DTEXOPCAPS_DISABLE |						// The D3DTOP_DISABLE texture-blending operation is supported. 
-								D3DTEXOPCAPS_DOTPRODUCT3 |					// The D3DTOP_DOTPRODUCT3 texture-blending operation is supported. 
-								D3DTEXOPCAPS_LERP |							// The D3DTOP_LERP texture-blending operation is supported. 
-								D3DTEXOPCAPS_MODULATE |						// The D3DTOP_MODULATE texture-blending operation is supported. 
-								D3DTEXOPCAPS_MODULATE2X |					// The D3DTOP_MODULATE2X texture-blending operation is supported. 
-								D3DTEXOPCAPS_MODULATE4X |					// The D3DTOP_MODULATE4X texture-blending operation is supported. 
-								D3DTEXOPCAPS_MODULATEALPHA_ADDCOLOR |		// The D3DTOP_MODULATEALPHA_ADDCOLOR texture-blending operation is supported. 
-								D3DTEXOPCAPS_MODULATECOLOR_ADDALPHA |		// The D3DTOP_MODULATECOLOR_ADDALPHA texture-blending operation is supported. 
-								D3DTEXOPCAPS_MODULATEINVALPHA_ADDCOLOR |	// The D3DTOP_MODULATEINVALPHA_ADDCOLOR texture-blending operation is supported. 
-								D3DTEXOPCAPS_MODULATEINVCOLOR_ADDALPHA |	// The D3DTOP_MODULATEINVCOLOR_ADDALPHA texture-blending operation is supported. 
-								D3DTEXOPCAPS_MULTIPLYADD |					// The D3DTOP_MULTIPLYADD texture-blending operation is supported. 
-								D3DTEXOPCAPS_PREMODULATE |					// The D3DTOP_PREMODULATE texture-blending operation is supported. 
-								D3DTEXOPCAPS_SELECTARG1 |					// The D3DTOP_SELECTARG1 texture-blending operation is supported. 
-								D3DTEXOPCAPS_SELECTARG2 |					// The D3DTOP_SELECTARG2 texture-blending operation is supported. 
-								D3DTEXOPCAPS_SUBTRACT;						// The D3DTOP_SUBTRACT texture-blending operation is supported. 
+		caps.TextureOpCaps =	D3DTEXOPCAPS_ADD |							// The D3DTOP_ADD texture-blending operation is supported.
+								D3DTEXOPCAPS_ADDSIGNED |					// The D3DTOP_ADDSIGNED texture-blending operation is supported.
+								D3DTEXOPCAPS_ADDSIGNED2X |					// The D3DTOP_ADDSIGNED2X texture-blending operation is supported.
+								D3DTEXOPCAPS_ADDSMOOTH |					// The D3DTOP_ADDSMOOTH texture-blending operation is supported.
+								D3DTEXOPCAPS_BLENDCURRENTALPHA |			// The D3DTOP_BLENDCURRENTALPHA texture-blending operation is supported.
+								D3DTEXOPCAPS_BLENDDIFFUSEALPHA |			// The D3DTOP_BLENDDIFFUSEALPHA texture-blending operation is supported.
+								D3DTEXOPCAPS_BLENDFACTORALPHA |				// The D3DTOP_BLENDFACTORALPHA texture-blending operation is supported.
+								D3DTEXOPCAPS_BLENDTEXTUREALPHA |			// The D3DTOP_BLENDTEXTUREALPHA texture-blending operation is supported.
+								D3DTEXOPCAPS_BLENDTEXTUREALPHAPM |			// The D3DTOP_BLENDTEXTUREALPHAPM texture-blending operation is supported.
+								D3DTEXOPCAPS_BUMPENVMAP |					// The D3DTOP_BUMPENVMAP texture-blending operation is supported.
+								D3DTEXOPCAPS_BUMPENVMAPLUMINANCE |			// The D3DTOP_BUMPENVMAPLUMINANCE texture-blending operation is supported.
+								D3DTEXOPCAPS_DISABLE |						// The D3DTOP_DISABLE texture-blending operation is supported.
+								D3DTEXOPCAPS_DOTPRODUCT3 |					// The D3DTOP_DOTPRODUCT3 texture-blending operation is supported.
+								D3DTEXOPCAPS_LERP |							// The D3DTOP_LERP texture-blending operation is supported.
+								D3DTEXOPCAPS_MODULATE |						// The D3DTOP_MODULATE texture-blending operation is supported.
+								D3DTEXOPCAPS_MODULATE2X |					// The D3DTOP_MODULATE2X texture-blending operation is supported.
+								D3DTEXOPCAPS_MODULATE4X |					// The D3DTOP_MODULATE4X texture-blending operation is supported.
+								D3DTEXOPCAPS_MODULATEALPHA_ADDCOLOR |		// The D3DTOP_MODULATEALPHA_ADDCOLOR texture-blending operation is supported.
+								D3DTEXOPCAPS_MODULATECOLOR_ADDALPHA |		// The D3DTOP_MODULATECOLOR_ADDALPHA texture-blending operation is supported.
+								D3DTEXOPCAPS_MODULATEINVALPHA_ADDCOLOR |	// The D3DTOP_MODULATEINVALPHA_ADDCOLOR texture-blending operation is supported.
+								D3DTEXOPCAPS_MODULATEINVCOLOR_ADDALPHA |	// The D3DTOP_MODULATEINVCOLOR_ADDALPHA texture-blending operation is supported.
+								D3DTEXOPCAPS_MULTIPLYADD |					// The D3DTOP_MULTIPLYADD texture-blending operation is supported.
+								D3DTEXOPCAPS_PREMODULATE |					// The D3DTOP_PREMODULATE texture-blending operation is supported.
+								D3DTEXOPCAPS_SELECTARG1 |					// The D3DTOP_SELECTARG1 texture-blending operation is supported.
+								D3DTEXOPCAPS_SELECTARG2 |					// The D3DTOP_SELECTARG2 texture-blending operation is supported.
+								D3DTEXOPCAPS_SUBTRACT;						// The D3DTOP_SUBTRACT texture-blending operation is supported.
 
 		caps.MaxTextureBlendStages = 8;
 		caps.MaxSimultaneousTextures = 8;
 
-		caps.VertexProcessingCaps =		D3DVTXPCAPS_DIRECTIONALLIGHTS |			// Device can do directional lights. 
-										D3DVTXPCAPS_LOCALVIEWER |				// Device can do local viewer. 
-										D3DVTXPCAPS_MATERIALSOURCE7	|			// Device can do Microsoft® DirectX® 7.0 colormaterialsource operations. 
-									//	D3DVTXPCAPS_NO_TEXGEN_NONLOCALVIEWER |	// Device does not support texture generation in non-local viewer mode. 
-										D3DVTXPCAPS_POSITIONALLIGHTS |			// Device can do positional lights (includes point and spot). 
-										D3DVTXPCAPS_TEXGEN |					// Device can do texgen. 
-										D3DVTXPCAPS_TEXGEN_SPHEREMAP;			// Device supports D3DTSS_TCI_SPHEREMAP. 
-									//	D3DVTXPCAPS_TWEENING;					// Device can do vertex tweening. 
+		caps.VertexProcessingCaps =		D3DVTXPCAPS_DIRECTIONALLIGHTS |			// Device can do directional lights.
+										D3DVTXPCAPS_LOCALVIEWER |				// Device can do local viewer.
+										D3DVTXPCAPS_MATERIALSOURCE7	|			// Device can do Microsoft® DirectX® 7.0 colormaterialsource operations.
+									//	D3DVTXPCAPS_NO_TEXGEN_NONLOCALVIEWER |	// Device does not support texture generation in non-local viewer mode.
+										D3DVTXPCAPS_POSITIONALLIGHTS |			// Device can do positional lights (includes point and spot).
+										D3DVTXPCAPS_TEXGEN |					// Device can do texgen.
+										D3DVTXPCAPS_TEXGEN_SPHEREMAP;			// Device supports D3DTSS_TCI_SPHEREMAP.
+									//	D3DVTXPCAPS_TWEENING;					// Device can do vertex tweening.
 
 		caps.MaxActiveLights = 8;						// Maximum number of lights that can be active simultaneously. For a given physical device, this capability might vary across Direct3DDevice objects depending on the parameters supplied to IDirect3D9::CreateDevice.
-		caps.MaxUserClipPlanes = 6;						// Maximum number of user-defined clipping planes supported. This member can range from 0 through D3DMAXUSERCLIPPLANES. For a given physical device, this capability may vary across Direct3DDevice objects depending on the parameters supplied to IDirect3D9::CreateDevice. 
-		caps.MaxVertexBlendMatrices = 4;				// Maximum number of matrices that this device can apply when performing multimatrix vertex blending. For a given physical device, this capability may vary across Direct3DDevice objects depending on the parameters supplied to IDirect3D9::CreateDevice. 
+		caps.MaxUserClipPlanes = 6;						// Maximum number of user-defined clipping planes supported. This member can range from 0 through D3DMAXUSERCLIPPLANES. For a given physical device, this capability may vary across Direct3DDevice objects depending on the parameters supplied to IDirect3D9::CreateDevice.
+		caps.MaxVertexBlendMatrices = 4;				// Maximum number of matrices that this device can apply when performing multimatrix vertex blending. For a given physical device, this capability may vary across Direct3DDevice objects depending on the parameters supplied to IDirect3D9::CreateDevice.
 		caps.MaxVertexBlendMatrixIndex = 11;			// DWORD value that specifies the maximum matrix index that can be indexed into using the per-vertex indices. The number of matrices is MaxVertexBlendMatrixIndex + 1, which is the size of the matrix palette. If normals are present in the vertex data that needs to be blended for lighting, then the number of matrices is half the number specified by this capability flag. If MaxVertexBlendMatrixIndex is set to zero, the driver does not support indexed vertex blending. If this value is not zero then the valid range of indices is zero through MaxVertexBlendMatrixIndex.
 		caps.MaxPointSize = 8192.0f;					// Maximum size of a point primitive. If set to 1.0f then device does not support point size control. The range is greater than or equal to 1.0f.
 		caps.MaxPrimitiveCount = 1 << 21;				// Maximum number of primitives for each IDirect3DDevice9::DrawPrimitive call. Note that when Direct3D is working with a DirectX 6.0 or DirectX 7.0 driver, this field is set to 0xFFFF. This means that not only the number of primitives but also the number of vertices is limited by this value.
@@ -1519,66 +1522,66 @@ namespace D3D9
 		caps.MaxVertexShaderConst = 256;				// The number of vertex shader Registers that are reserved for constants.
 		caps.PixelShaderVersion = pixelShaderVersion;	// Two numbers that represent the pixel shader main and sub versions. For more information about the instructions supported for each pixel shader version, see Version 1_x, Version 2_0, Version 2_0 Extended, or Version 3_0.
 		caps.PixelShader1xMaxValue = 8.0;				// Maximum value of pixel shader arithmetic component. This value indicates the internal range of values supported for pixel color blending operations. Within the range that they report to, implementations must allow data to pass through pixel processing unmodified (unclamped). Normally, the value of this member is an absolute value. For example, a 1.0 indicates that the range is -1.0 to 1, and an 8.0 indicates that the range is -8.0 to 8.0. The value must be >= 1.0 for any hardware that supports pixel shaders.
-		
-		caps.DevCaps2 = //	D3DDEVCAPS2_ADAPTIVETESSRTPATCH |				// Device supports adaptive tessellation of RT-patches 
-						//	D3DDEVCAPS2_ADAPTIVETESSNPATCH |				// Device supports adaptive tessellation of N-patches. 
-							D3DDEVCAPS2_CAN_STRETCHRECT_FROM_TEXTURES |		// Device supports IDirect3DDevice9::StretchRect using a texture as the source. 
-						//	D3DDEVCAPS2_DMAPNPATCH |						// Device supports displacement maps for N-patches. 
-						//	D3DDEVCAPS2_PRESAMPLEDDMAPNPATCH |				// Device supports presampled displacement maps for N-patches. For more information about displacement mapping, see Displacement Mapping. 
-							D3DDEVCAPS2_STREAMOFFSET |						// Device supports stream offsets. 
-							D3DDEVCAPS2_VERTEXELEMENTSCANSHARESTREAMOFFSET;	// Multiple vertex elements can share the same offset in a stream if D3DDEVCAPS2_VERTEXELEMENTSCANSHARESTREAMOFFSET is set by the device and the vertex declaration does not have an element with D3DDECLUSAGE_POSITIONT0. 
+
+		caps.DevCaps2 = //	D3DDEVCAPS2_ADAPTIVETESSRTPATCH |				// Device supports adaptive tessellation of RT-patches
+						//	D3DDEVCAPS2_ADAPTIVETESSNPATCH |				// Device supports adaptive tessellation of N-patches.
+							D3DDEVCAPS2_CAN_STRETCHRECT_FROM_TEXTURES |		// Device supports IDirect3DDevice9::StretchRect using a texture as the source.
+						//	D3DDEVCAPS2_DMAPNPATCH |						// Device supports displacement maps for N-patches.
+						//	D3DDEVCAPS2_PRESAMPLEDDMAPNPATCH |				// Device supports presampled displacement maps for N-patches. For more information about displacement mapping, see Displacement Mapping.
+							D3DDEVCAPS2_STREAMOFFSET |						// Device supports stream offsets.
+							D3DDEVCAPS2_VERTEXELEMENTSCANSHARESTREAMOFFSET;	// Multiple vertex elements can share the same offset in a stream if D3DDEVCAPS2_VERTEXELEMENTSCANSHARESTREAMOFFSET is set by the device and the vertex declaration does not have an element with D3DDECLUSAGE_POSITIONT0.
 
 		caps.MaxNpatchTessellationLevel = 0;	// Maximum number of N-patch subdivision levels. The driver will clamp applications to this value, if they are using presampled displacement mapping. See Tessellation and Displacement Mapping.
 		caps.MasterAdapterOrdinal = 0;			// This number indicates which device is the master for this subordinate. This number is taken from the same space as the adapter values passed to the IDirect3D9 methods.
 		caps.AdapterOrdinalInGroup = 0;			// This number indicates the order in which heads are referenced by the application programming interface (API). The master adapter always has AdapterOrdinalInGroup = 0. These values do not correspond to the adapter ordinals passed to the IDirect3D9 methods. They apply only to heads within a group.
 		caps.NumberOfAdaptersInGroup = 1;		// Number of adapters in this adapter group (only if master). This will be 1 for conventional adapters. The value will be greater than 1 for the master adapter of a multihead card. The value will be 0 for a subordinate adapter of a multihead card. Each card can have at most one master, but may have many subordinates.
 
-		caps.DeclTypes =	D3DDTCAPS_UBYTE4 |		// 4-D unsigned byte. 
-							D3DDTCAPS_UBYTE4N |		// Normalized, 4-D unsigned byte. Each of the four bytes is normalized by dividing to 255.0. 
-							D3DDTCAPS_SHORT2N |		// Normalized, 2-D signed short, expanded to (first byte/32767.0, second byte/32767.0, 0, 1). 
-							D3DDTCAPS_SHORT4N |		// Normalized, 4-D signed short, expanded to (first byte/32767.0, second byte/32767.0, third byte/32767.0, fourth byte/32767.0). 
-							D3DDTCAPS_USHORT2N |	// Normalized, 2-D unsigned short, expanded to (first byte/65535.0, second byte/65535.0, 0, 1).  
-							D3DDTCAPS_USHORT4N |	// Normalized 4-D unsigned short, expanded to (first byte/65535.0, second byte/65535.0, third byte/65535.0, fourth byte/65535.0).  
-							D3DDTCAPS_UDEC3 |		// 3-D unsigned 10 10 10 format expanded to (value, value, value, 1). 
-							D3DDTCAPS_DEC3N |		// 3-D signed 10 10 10 format normalized and expanded to (v[0]/511.0, v[1]/511.0, v[2]/511.0, 1). 
-							D3DDTCAPS_FLOAT16_2 |	// 2-D 16-bit floating point numbers. 
-							D3DDTCAPS_FLOAT16_4;	// 4-D 16-bit floating point numbers. 
+		caps.DeclTypes =	D3DDTCAPS_UBYTE4 |		// 4-D unsigned byte.
+							D3DDTCAPS_UBYTE4N |		// Normalized, 4-D unsigned byte. Each of the four bytes is normalized by dividing to 255.0.
+							D3DDTCAPS_SHORT2N |		// Normalized, 2-D signed short, expanded to (first byte/32767.0, second byte/32767.0, 0, 1).
+							D3DDTCAPS_SHORT4N |		// Normalized, 4-D signed short, expanded to (first byte/32767.0, second byte/32767.0, third byte/32767.0, fourth byte/32767.0).
+							D3DDTCAPS_USHORT2N |	// Normalized, 2-D unsigned short, expanded to (first byte/65535.0, second byte/65535.0, 0, 1).
+							D3DDTCAPS_USHORT4N |	// Normalized 4-D unsigned short, expanded to (first byte/65535.0, second byte/65535.0, third byte/65535.0, fourth byte/65535.0).
+							D3DDTCAPS_UDEC3 |		// 3-D unsigned 10 10 10 format expanded to (value, value, value, 1).
+							D3DDTCAPS_DEC3N |		// 3-D signed 10 10 10 format normalized and expanded to (v[0]/511.0, v[1]/511.0, v[2]/511.0, 1).
+							D3DDTCAPS_FLOAT16_2 |	// 2-D 16-bit floating point numbers.
+							D3DDTCAPS_FLOAT16_4;	// 4-D 16-bit floating point numbers.
 
 		caps.NumSimultaneousRTs = 4;	// Number of simultaneous render targets. This number must be at least one.
 
-		caps.StretchRectFilterCaps = 	D3DPTFILTERCAPS_MINFPOINT |		// Device supports point-sample filtering for minifying rectangles. This filter type is requested by calling IDirect3DDevice9::StretchRect using D3DTEXF_POINT. 
-										D3DPTFILTERCAPS_MAGFPOINT |		// Device supports point-sample filtering for magnifying rectangles. This filter type is requested by calling IDirect3DDevice9::StretchRect using D3DTEXF_POINT. 
-										D3DPTFILTERCAPS_MINFLINEAR |	// Device supports bilinear interpolation filtering for minifying rectangles. This filter type is requested by calling IDirect3DDevice9::StretchRect using D3DTEXF_LINEAR. 
-										D3DPTFILTERCAPS_MAGFLINEAR;		// Device supports bilinear interpolation filtering for magnifying rectangles. This filter type is requested by calling IDirect3DDevice9::StretchRect using D3DTEXF_LINEAR. 
+		caps.StretchRectFilterCaps = 	D3DPTFILTERCAPS_MINFPOINT |		// Device supports point-sample filtering for minifying rectangles. This filter type is requested by calling IDirect3DDevice9::StretchRect using D3DTEXF_POINT.
+										D3DPTFILTERCAPS_MAGFPOINT |		// Device supports point-sample filtering for magnifying rectangles. This filter type is requested by calling IDirect3DDevice9::StretchRect using D3DTEXF_POINT.
+										D3DPTFILTERCAPS_MINFLINEAR |	// Device supports bilinear interpolation filtering for minifying rectangles. This filter type is requested by calling IDirect3DDevice9::StretchRect using D3DTEXF_LINEAR.
+										D3DPTFILTERCAPS_MAGFLINEAR;		// Device supports bilinear interpolation filtering for magnifying rectangles. This filter type is requested by calling IDirect3DDevice9::StretchRect using D3DTEXF_LINEAR.
 
-		caps.VS20Caps.Caps = vertexShaderPredication;									// Instruction predication is supported. See setp_comp. 
+		caps.VS20Caps.Caps = vertexShaderPredication;									// Instruction predication is supported. See setp_comp.
 		caps.VS20Caps.DynamicFlowControlDepth = vertexShaderDynamicFlowControlDepth;	// The maximum level of nesting of dynamic flow control instructions (break, breakc, ifc).
 		caps.VS20Caps.NumTemps = D3DVS20_MAX_NUMTEMPS;									// The maximum number of temporary registers supported.
 		caps.VS20Caps.StaticFlowControlDepth = D3DVS20_MAX_STATICFLOWCONTROLDEPTH;		// The maximum depth of nesting of the loop/rep and call/callnz bool instructions.
 
-		caps.PS20Caps.Caps =	pixelShaderArbitrarySwizzle |						// Arbitrary swizzling is supported. 
-								pixelShaderGradientInstructions |					// Gradient instructions are supported. 
-								pixelShaderPredication |							// Instruction predication is supported. See setp_comp - ps. 
-								pixelShaderNoDependentReadLimit |					// There is no limit on the number of dependent reads per instruction. 
-								pixelShaderNoTexInstructionLimit;					// There is no limit on the number of tex instructions. 
+		caps.PS20Caps.Caps =	pixelShaderArbitrarySwizzle |						// Arbitrary swizzling is supported.
+								pixelShaderGradientInstructions |					// Gradient instructions are supported.
+								pixelShaderPredication |							// Instruction predication is supported. See setp_comp - ps.
+								pixelShaderNoDependentReadLimit |					// There is no limit on the number of dependent reads per instruction.
+								pixelShaderNoTexInstructionLimit;					// There is no limit on the number of tex instructions.
 
 		caps.PS20Caps.DynamicFlowControlDepth = pixelShaderDynamicFlowControlDepth;		// The maximum level of nesting of dynamic flow control instructions (break, breakc, ifc).
 		caps.PS20Caps.NumInstructionSlots = D3DPS20_MAX_NUMINSTRUCTIONSLOTS;			// The driver will support at most this many instructions.
 		caps.PS20Caps.NumTemps = D3DPS20_MAX_NUMTEMPS;									// The driver will support at most this many temporary register.
 		caps.PS20Caps.StaticFlowControlDepth = pixelShaderStaticFlowControlDepth;		// The maximum depth of nesting of the loop/rep and call/callnz bool instructions.
 
-		caps.VertexTextureFilterCaps =		D3DPTFILTERCAPS_MAGFPOINT |			// Device supports per-stage point-sample filtering for magnifying textures. The point-sample magnification filter is represented by the D3DTEXF_POINT member of the D3DTEXTUREFILTERTYPE enumerated type. 
-										//	D3DPTFILTERCAPS_MAGFLINEAR |		// Device supports per-stage bilinear interpolation filtering for magnifying mipmaps. The bilinear interpolation mipmapping filter is represented by the D3DTEXF_LINEAR member of the D3DTEXTUREFILTERTYPE enumerated type. 
-										//	D3DPTFILTERCAPS_MAGFANISOTROPIC |	// Device supports per-stage anisotropic filtering for magnifying textures. The anisotropic magnification filter is represented by the D3DTEXF_ANISOTROPIC member of the D3DTEXTUREFILTERTYPE enumerated type. 
-										//	D3DPTFILTERCAPS_MAGFPYRAMIDALQUAD |	// Device supports per-stage pyramidal sample filtering for magnifying textures. The pyramidal magnifying filter is represented by the D3DTEXF_PYRAMIDALQUAD member of the D3DTEXTUREFILTERTYPE enumerated type. 
-										//	D3DPTFILTERCAPS_MAGFGAUSSIANQUAD |	// Device supports per-stage Gaussian quad filtering for magnifying textures. 
-											D3DPTFILTERCAPS_MINFPOINT |			// Device supports per-stage point-sample filtering for minifying textures. The point-sample minification filter is represented by the D3DTEXF_POINT member of the D3DTEXTUREFILTERTYPE enumerated type. 
-										//	D3DPTFILTERCAPS_MINFLINEAR |		// Device supports per-stage linear filtering for minifying textures. The linear minification filter is represented by the D3DTEXF_LINEAR member of the D3DTEXTUREFILTERTYPE enumerated type. 
-										//	D3DPTFILTERCAPS_MINFANISOTROPIC |	// Device supports per-stage anisotropic filtering for minifying textures. The anisotropic minification filter is represented by the D3DTEXF_ANISOTROPIC member of the D3DTEXTUREFILTERTYPE enumerated type. 
-										//	D3DPTFILTERCAPS_MINFPYRAMIDALQUAD |	// Device supports per-stage pyramidal sample filtering for minifying textures. 
-										//	D3DPTFILTERCAPS_MINFGAUSSIANQUAD |	// Device supports per-stage Gaussian quad filtering for minifying textures. 
-											D3DPTFILTERCAPS_MIPFPOINT;			// Device supports per-stage point-sample filtering for mipmaps. The point-sample mipmapping filter is represented by the D3DTEXF_POINT member of the D3DTEXTUREFILTERTYPE enumerated type. 
-										//	D3DPTFILTERCAPS_MIPFLINEAR;			// Device supports per-stage bilinear interpolation filtering for mipmaps. The bilinear interpolation mipmapping filter is represented by the D3DTEXF_LINEAR member of the D3DTEXTUREFILTERTYPE enumerated type. 
+		caps.VertexTextureFilterCaps =		D3DPTFILTERCAPS_MAGFPOINT |			// Device supports per-stage point-sample filtering for magnifying textures. The point-sample magnification filter is represented by the D3DTEXF_POINT member of the D3DTEXTUREFILTERTYPE enumerated type.
+										//	D3DPTFILTERCAPS_MAGFLINEAR |		// Device supports per-stage bilinear interpolation filtering for magnifying mipmaps. The bilinear interpolation mipmapping filter is represented by the D3DTEXF_LINEAR member of the D3DTEXTUREFILTERTYPE enumerated type.
+										//	D3DPTFILTERCAPS_MAGFANISOTROPIC |	// Device supports per-stage anisotropic filtering for magnifying textures. The anisotropic magnification filter is represented by the D3DTEXF_ANISOTROPIC member of the D3DTEXTUREFILTERTYPE enumerated type.
+										//	D3DPTFILTERCAPS_MAGFPYRAMIDALQUAD |	// Device supports per-stage pyramidal sample filtering for magnifying textures. The pyramidal magnifying filter is represented by the D3DTEXF_PYRAMIDALQUAD member of the D3DTEXTUREFILTERTYPE enumerated type.
+										//	D3DPTFILTERCAPS_MAGFGAUSSIANQUAD |	// Device supports per-stage Gaussian quad filtering for magnifying textures.
+											D3DPTFILTERCAPS_MINFPOINT |			// Device supports per-stage point-sample filtering for minifying textures. The point-sample minification filter is represented by the D3DTEXF_POINT member of the D3DTEXTUREFILTERTYPE enumerated type.
+										//	D3DPTFILTERCAPS_MINFLINEAR |		// Device supports per-stage linear filtering for minifying textures. The linear minification filter is represented by the D3DTEXF_LINEAR member of the D3DTEXTUREFILTERTYPE enumerated type.
+										//	D3DPTFILTERCAPS_MINFANISOTROPIC |	// Device supports per-stage anisotropic filtering for minifying textures. The anisotropic minification filter is represented by the D3DTEXF_ANISOTROPIC member of the D3DTEXTUREFILTERTYPE enumerated type.
+										//	D3DPTFILTERCAPS_MINFPYRAMIDALQUAD |	// Device supports per-stage pyramidal sample filtering for minifying textures.
+										//	D3DPTFILTERCAPS_MINFGAUSSIANQUAD |	// Device supports per-stage Gaussian quad filtering for minifying textures.
+											D3DPTFILTERCAPS_MIPFPOINT;			// Device supports per-stage point-sample filtering for mipmaps. The point-sample mipmapping filter is represented by the D3DTEXF_POINT member of the D3DTEXTUREFILTERTYPE enumerated type.
+										//	D3DPTFILTERCAPS_MIPFLINEAR;			// Device supports per-stage bilinear interpolation filtering for mipmaps. The bilinear interpolation mipmapping filter is represented by the D3DTEXF_LINEAR member of the D3DTEXTUREFILTERTYPE enumerated type.
 
 		caps.MaxVShaderInstructionsExecuted = maximumVertexShaderInstructionsExecuted;	// Maximum number of vertex shader instructions that can be run.
 		caps.MaxPShaderInstructionsExecuted = maximumPixelShaderInstructionsExecuted;	// Maximum number of pixel shader instructions that can be run.

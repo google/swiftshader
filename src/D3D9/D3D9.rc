@@ -25,18 +25,18 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 // TEXTINCLUDE
 //
 
-1 TEXTINCLUDE 
+1 TEXTINCLUDE
 BEGIN
     "resource.h\0"
 END
 
-2 TEXTINCLUDE 
+2 TEXTINCLUDE
 BEGIN
     "#include ""afxres.h""\r\n"
     "#include ""../Common/Version.h""\0"
 END
 
-3 TEXTINCLUDE 
+3 TEXTINCLUDE
 BEGIN
     "\r\n"
     "\0"
@@ -67,14 +67,14 @@ BEGIN
     BEGIN
         BLOCK "040904b0"
         BEGIN
-            VALUE "CompanyName", "TransGaming"
-            VALUE "FileDescription", "SwiftShader Direct3D 9 Software Renderer"
+            VALUE "CompanyName", "Google Inc."
+            VALUE "FileDescription", "SwiftShader Direct3D 9 Renderer"
             VALUE "FileVersion", VERSION_STRING
             VALUE "InternalName", "D3D9"
-            VALUE "LegalCopyright", "Copyright (C) 2011 TransGaming Inc."
+            VALUE "LegalCopyright", "Copyright (C) 2016 Google Inc."
             VALUE "OriginalFilename", "d3d9.dll"
             VALUE "PrivateBuild", REVISION_STRING
-            VALUE "ProductName", "SwiftShader Direct3D 9 Software Renderer"
+            VALUE "ProductName", "SwiftShader Direct3D 9 Renderer"
             VALUE "ProductVersion", VERSION_STRING
         END
     END
