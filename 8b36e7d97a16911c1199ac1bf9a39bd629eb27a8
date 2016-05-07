@@ -46,6 +46,75 @@
       "revId": "8b36e7d97a16911c1199ac1bf9a39bd629eb27a8",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f24c148d_87d9c831",
+        "filename": "src/OpenGL/libGLESv2/Framebuffer.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 436,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-05-07T00:30:34Z",
+      "side": 1,
+      "message": "Where does this restriction come from?",
+      "range": {
+        "startLine": 436,
+        "startChar": 23,
+        "endLine": 436,
+        "endChar": 55
+      },
+      "revId": "8b36e7d97a16911c1199ac1bf9a39bd629eb27a8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f24c148d_e7f99c8f",
+        "filename": "src/OpenGL/libGLESv2/Framebuffer.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 438,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-05-07T00:30:34Z",
+      "side": 1,
+      "message": "Considering the Khronos discussion and the fact that desktop OpenGL supports different depth and stencil (but interestingly not Direct3D or Vulkan), I agree with Shannon that this would best only be returned for an ES 3.X context.",
+      "range": {
+        "startLine": 438,
+        "startChar": 11,
+        "endLine": 438,
+        "endChar": 37
+      },
+      "revId": "8b36e7d97a16911c1199ac1bf9a39bd629eb27a8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f24c148d_a74604b1",
+        "filename": "src/OpenGL/libGLESv2/Framebuffer.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 451,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-05-07T00:30:34Z",
+      "side": 1,
+      "message": "Same remarks as above, but I think we can also avoid having two sites where this is tested, and just do it once at the bottom of the function?",
+      "range": {
+        "startLine": 448,
+        "startChar": 3,
+        "endLine": 451,
+        "endChar": 4
+      },
+      "revId": "8b36e7d97a16911c1199ac1bf9a39bd629eb27a8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
