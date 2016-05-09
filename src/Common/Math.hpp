@@ -158,9 +158,7 @@ namespace sw
 
 	inline float log2(float x)
 	{
-		unsigned int y = (*(unsigned int*)&x);
-
-		return (float)((y & 0x7F800000) >> 23) - 127 + (float)((*(unsigned int*)&x) & 0x007FFFFF) / 16777216.0f;
+		return logf(x) * 1.44269504f;   // 1.0 / log[e](2)
 	}
 
 	inline bool isPow2(int x)
