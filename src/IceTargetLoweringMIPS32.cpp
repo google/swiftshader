@@ -1,4 +1,3 @@
-//===- subzero/src/IceTargetLoweringMIPS32.cpp - MIPS32 lowering ----------===//
 //
 //                        The Subzero Code Generator
 //
@@ -905,20 +904,80 @@ void TargetMIPS32::lowerCall(const InstCall *Instr) {
 
 void TargetMIPS32::lowerCast(const InstCast *Instr) {
   InstCast::OpKind CastKind = Instr->getCastKind();
+  Variable *Dest = Instr->getDest();
+  Operand *Src0 = legalizeUndef(Instr->getSrc(0));
+  const Type DestTy = Dest->getType();
+  const Type Src0Ty = Src0->getType();
+  const uint32_t ShiftAmount =
+      INT32_BITS - (CHAR_BITS * typeWidthInBytes(Src0Ty));
+  const uint32_t Mask = (1 << (CHAR_BITS * typeWidthInBytes(Src0Ty))) - 1;
+
+  if (isVectorType(DestTy) || Src0->getType() == IceType_i1) {
+    UnimplementedLoweringError(this, Instr);
+    return;
+  }
   switch (CastKind) {
   default:
     Func->setError("Cast type not supported");
     return;
   case InstCast::Sext: {
-    UnimplementedLoweringError(this, Instr);
+    if (DestTy == IceType_i64) {
+      auto *DestLo = llvm::cast<Variable>(loOperand(Dest));
+      auto *DestHi = llvm::cast<Variable>(hiOperand(Dest));
+      Variable *Src0R = legalizeToReg(Src0);
+      Variable *T_Lo = I32Reg();
+      if (Src0Ty == IceType_i32) {
+        _mov(DestLo, Src0R);
+      } else if (Src0Ty == IceType_i8 || Src0Ty == IceType_i16) {
+        _sll(T_Lo, Src0R, ShiftAmount);
+        _sra(DestLo, T_Lo, ShiftAmount);
+      }
+      _sra(DestHi, DestLo, INT32_BITS - 1);
+    } else {
+      Variable *Src0R = legalizeToReg(Src0);
+      Variable *T = makeReg(DestTy);
+      if (Src0Ty == IceType_i8 || Src0Ty == IceType_i16) {
+        _sll(T, Src0R, ShiftAmount);
+        _sra(Dest, T, ShiftAmount);
+      }
+    }
     break;
   }
   case InstCast::Zext: {
-    UnimplementedLoweringError(this, Instr);
+    if (DestTy == IceType_i64) {
+      auto *DestLo = llvm::cast<Variable>(loOperand(Dest));
+      auto *DestHi = llvm::cast<Variable>(hiOperand(Dest));
+      Variable *Src0R = legalizeToReg(Src0);
+
+      switch (Src0Ty) {
+      default: { assert(Src0Ty != IceType_i64); } break;
+      case IceType_i32:
+        _mov(DestLo, Src0R);
+        break;
+      case IceType_i8:
+      case IceType_i16:
+        _andi(DestLo, Src0R, Mask);
+        break;
+      }
+
+      auto *Zero = getZero();
+      _addiu(DestHi, Zero, 0);
+    } else {
+      Variable *Src0R = legalizeToReg(Src0);
+      Variable *T = makeReg(DestTy);
+      if (Src0Ty == IceType_i8 || Src0Ty == IceType_i16)
+        _andi(T, Src0R, Mask);
+      _mov(Dest, T);
+    }
     break;
   }
   case InstCast::Trunc: {
-    UnimplementedLoweringError(this, Instr);
+    if (Src0Ty == IceType_i64)
+      Src0 = loOperand(Src0);
+    Variable *Src0R = legalizeToReg(Src0);
+    Variable *T = makeReg(DestTy);
+    _mov(T, Src0R);
+    _mov(Dest, T);
     break;
   }
   case InstCast::Fptrunc:

@@ -121,6 +121,7 @@ public:
     Addiu,
     Addu,
     And,
+    Andi,
     Br,
     Call,
     La,
@@ -137,10 +138,12 @@ public:
     Or,
     Ori,
     Ret,
+    Sll,
     Slt,
     Slti,
     Sltiu,
     Sltu,
+    Sra,
     Sub,
     Subu,
     Xor,
@@ -462,6 +465,7 @@ using InstMIPS32Add = InstMIPS32ThreeAddrGPR<InstMIPS32::Add>;
 using InstMIPS32Addu = InstMIPS32ThreeAddrGPR<InstMIPS32::Addu>;
 using InstMIPS32Addiu = InstMIPS32Imm16<InstMIPS32::Addiu, true>;
 using InstMIPS32And = InstMIPS32ThreeAddrGPR<InstMIPS32::And>;
+using InstMIPS32Andi = InstMIPS32Imm16<InstMIPS32::Andi>;
 using InstMIPS32Lui = InstMIPS32Imm16<InstMIPS32::Lui>;
 using InstMIPS32La = InstMIPS32UnaryopGPR<InstMIPS32::La>;
 using InstMIPS32Mfhi = InstMIPS32UnaryopGPR<InstMIPS32::Mfhi>;
@@ -473,10 +477,12 @@ using InstMIPS32Mult = InstMIPS32ThreeAddrGPR<InstMIPS32::Mult>;
 using InstMIPS32Multu = InstMIPS32ThreeAddrGPR<InstMIPS32::Multu>;
 using InstMIPS32Or = InstMIPS32ThreeAddrGPR<InstMIPS32::Or>;
 using InstMIPS32Ori = InstMIPS32Imm16<InstMIPS32::Ori>;
+using InstMIPS32Sll = InstMIPS32Imm16<InstMIPS32::Sll>;
 using InstMIPS32Slt = InstMIPS32ThreeAddrGPR<InstMIPS32::Slt>;
 using InstMIPS32Slti = InstMIPS32Imm16<InstMIPS32::Slti>;
 using InstMIPS32Sltiu = InstMIPS32Imm16<InstMIPS32::Sltiu>;
 using InstMIPS32Sltu = InstMIPS32ThreeAddrGPR<InstMIPS32::Sltu>;
+using InstMIPS32Sra = InstMIPS32Imm16<InstMIPS32::Sra>;
 using InstMIPS32Sub = InstMIPS32ThreeAddrGPR<InstMIPS32::Sub>;
 using InstMIPS32Subu = InstMIPS32ThreeAddrGPR<InstMIPS32::Subu>;
 using InstMIPS32Ori = InstMIPS32Imm16<InstMIPS32::Ori>;

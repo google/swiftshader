@@ -150,6 +150,10 @@ public:
     Context.insert<InstMIPS32And>(Dest, Src0, Src1);
   }
 
+  void _andi(Variable *Dest, Variable *Src, uint32_t Imm) {
+    Context.insert<InstMIPS32Andi>(Dest, Src, Imm);
+  }
+
   void _br(CfgNode *Target) { Context.insert<InstMIPS32Br>(Target); }
 
   void _ret(Variable *RA, Variable *Src0 = nullptr) {
@@ -216,6 +220,10 @@ public:
     Context.insert<InstMIPS32Ori>(Dest, Src, Imm);
   }
 
+  void _sll(Variable *Dest, Variable *Src, uint32_t Imm) {
+    Context.insert<InstMIPS32Sll>(Dest, Src, Imm);
+  }
+
   void _slt(Variable *Dest, Variable *Src0, Variable *Src1) {
     Context.insert<InstMIPS32Slt>(Dest, Src0, Src1);
   }
@@ -230,6 +238,10 @@ public:
 
   void _sltu(Variable *Dest, Variable *Src0, Variable *Src1) {
     Context.insert<InstMIPS32Sltu>(Dest, Src0, Src1);
+  }
+
+  void _sra(Variable *Dest, Variable *Src, uint32_t Imm) {
+    Context.insert<InstMIPS32Sra>(Dest, Src, Imm);
   }
 
   void _sub(Variable *Dest, Variable *Src0, Variable *Src1) {
@@ -346,6 +358,8 @@ protected:
   static SmallBitVector RegisterAliases[RegMIPS32::Reg_NUM];
   SmallBitVector RegsUsed;
   VarList PhysicalRegisters[IceType_NUM];
+  static constexpr uint32_t CHAR_BITS = 8;
+  static constexpr uint32_t INT32_BITS = 32;
 
 private:
   ENABLE_MAKE_UNIQUE;
