@@ -260,6 +260,14 @@ template <template <typename> class AT> class BitVectorTmpl {
   unsigned Capacity; // Size of allocated memory in BitWord.
   Allocator Alloc;
 
+  uint64_t alignTo(uint64_t Value, uint64_t Align) {
+#ifdef PNACL_LLVM
+    return llvm::RoundUpToAlignment(Value, Align);
+#else // !PNACL_LLVM
+    return llvm::alignTo(Value, Align);
+#endif // !PNACL_LLVM
+  }
+
 public:
   typedef unsigned size_type;
   // Encapsulation of a single bit.
@@ -469,7 +477,7 @@ public:
 
     BitWord PrefixMask = ~0UL << (I % BITWORD_SIZE);
     Bits[I / BITWORD_SIZE] |= PrefixMask;
-    I = llvm::RoundUpToAlignment(I, BITWORD_SIZE);
+    I = alignTo(I, BITWORD_SIZE);
 
     for (; I + BITWORD_SIZE <= E; I += BITWORD_SIZE)
       Bits[I / BITWORD_SIZE] = ~0UL;
@@ -509,7 +517,7 @@ public:
 
     BitWord PrefixMask = ~0UL << (I % BITWORD_SIZE);
     Bits[I / BITWORD_SIZE] &= ~PrefixMask;
-    I = llvm::RoundUpToAlignment(I, BITWORD_SIZE);
+    I = alignTo(I, BITWORD_SIZE);
 
     for (; I + BITWORD_SIZE <= E; I += BITWORD_SIZE)
       Bits[I / BITWORD_SIZE] = 0UL;

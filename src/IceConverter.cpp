@@ -111,7 +111,7 @@ public:
       // The initial definition/use of each arg is the entry node.
       for (auto ArgI = F->arg_begin(), ArgE = F->arg_end(); ArgI != ArgE;
            ++ArgI) {
-        Func->addArg(mapValueToIceVar(ArgI));
+        Func->addArg(mapValueToIceVar(&*ArgI));
       }
 
       // Make an initial pass through the block list just to resolve the blocks
@@ -708,7 +708,7 @@ void LLVM2ICEGlobalsConverter::convertGlobalsToIce(Module *Mod) {
                                      E = Mod->global_end();
        I != E; ++I) {
 
-    const GlobalVariable *GV = I;
+    const GlobalVariable *GV = &*I;
 
     Ice::GlobalDeclaration *Var = getConverter().getGlobalDeclaration(GV);
     auto *VarDecl = cast<Ice::VariableDeclaration>(Var);
@@ -888,7 +888,7 @@ void Converter::installGlobalDeclarations(Module *Mod) {
   for (Module::const_global_iterator I = Mod->global_begin(),
                                      E = Mod->global_end();
        I != E; ++I) {
-    const GlobalVariable *GV = I;
+    const GlobalVariable *GV = &*I;
     constexpr bool NoSuppressMangling = false;
     auto *Var = VariableDeclaration::create(
         GlobalDeclarationsPool.get(), NoSuppressMangling, GV->getLinkage());

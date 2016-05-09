@@ -1131,4 +1131,24 @@ private:
 
 } // end of namespace llvm
 
+namespace Ice {
+
+inline InstList::iterator instToIterator(Inst *Instr) {
+#ifdef PNACL_LLVM
+  return Instr;
+#else // !PNACL_LLVM
+  return Instr->getIterator();
+#endif // !PNACL_LLVM
+}
+
+inline Inst *iteratorToInst(InstList::iterator Iter) {
+  return &*Iter;
+}
+
+inline const Inst *iteratorToInst(InstList::const_iterator Iter) {
+  return &*Iter;
+}
+
+} // end of namespace Ice
+
 #endif // SUBZERO_SRC_ICEINST_H

@@ -163,6 +163,10 @@ template <> struct ToSetterParam<cl::list<Ice::VerboseItem>> {
   using ReturnType = Ice::VerboseMask;
 };
 
+template <> struct ToSetterParam<cl::list<std::string>> {
+  using ReturnType = std::vector<std::string>;
+};
+
 template <typename T>
 typename ToSetterParam<T>::ReturnType toSetterParam(const T &Param) {
   return Param;
@@ -179,6 +183,12 @@ toSetterParam(const cl::list<Ice::VerboseItem> &Param) {
       VMask |= Param[i];
   }
   return VMask;
+}
+
+template <>
+ToSetterParam<cl::list<std::string>>::ReturnType
+toSetterParam(const cl::list<std::string> &Param) {
+  return *&Param;
 }
 
 } // end of anonymous namespace

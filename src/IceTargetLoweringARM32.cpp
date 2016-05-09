@@ -842,7 +842,7 @@ void TargetARM32::findMaxStackOutArgsSize() {
     Context.init(Node);
     while (!Context.atEnd()) {
       PostIncrLoweringContext PostIncrement(Context);
-      Inst *CurInstr = Context.getCur();
+      Inst *CurInstr = iteratorToInst(Context.getCur());
       if (auto *Call = llvm::dyn_cast<InstCall>(CurInstr)) {
         SizeT OutArgsSizeBytes = getCallStackArgumentsSizeBytes(Call);
         MaxOutArgsSizeBytes = std::max(MaxOutArgsSizeBytes, OutArgsSizeBytes);
@@ -933,7 +933,7 @@ void TargetARM32::materializeGotAddr(CfgNode *Node) {
 
   // The got addr needs to be materialized at the same point where DefGotPtr
   // lives.
-  Context.setInsertPoint(DefGotPtr);
+  Context.setInsertPoint(instToIterator(DefGotPtr));
   assert(DefGotPtr->getSrcSize() == 1);
   auto *T = llvm::cast<Variable>(DefGotPtr->getSrc(0));
   loadNamedConstantRelocatablePIC(Ctx->getGlobalString(GlobalOffsetTable), T,
@@ -2039,7 +2039,7 @@ void TargetARM32::postLowerLegalization() {
     PostLoweringLegalizer Legalizer(this);
     while (!Context.atEnd()) {
       PostIncrLoweringContext PostIncrement(Context);
-      Inst *CurInstr = Context.getCur();
+      Inst *CurInstr = iteratorToInst(Context.getCur());
 
       // Check if the previous TempBaseReg is clobbered, and reset if needed.
       Legalizer.resetTempBaseIfClobberedBy(CurInstr);
@@ -5750,7 +5750,7 @@ OperandARM32Mem *TargetARM32::formAddressingMode(Type Ty, Cfg *Func,
 }
 
 void TargetARM32::doAddressOptLoad() {
-  Inst *Instr = Context.getCur();
+  Inst *Instr = iteratorToInst(Context.getCur());
   assert(llvm::isa<InstLoad>(Instr));
   Variable *Dest = Instr->getDest();
   Operand *Addr = Instr->getSrc(0);
@@ -5912,7 +5912,7 @@ void TargetARM32::lowerStore(const InstStore *Instr) {
 }
 
 void TargetARM32::doAddressOptStore() {
-  Inst *Instr = Context.getCur();
+  Inst *Instr = iteratorToInst(Context.getCur());
   assert(llvm::isa<InstStore>(Instr));
   Operand *Src = Instr->getSrc(0);
   Operand *Addr = Instr->getSrc(1);

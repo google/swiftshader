@@ -35,4 +35,11 @@ else()
   add_compile_options(-Wno-undefined-var-template)
 endif()
 
+# Define PNACL_LLVM for LLVM_VERSION <= 3.7
+if((NOT LLVM_VERSION_MAJOR GREATER 3) AND (NOT LLVM_VERSION_MINOR GREATER 7))
+  add_definitions(
+    -DPNACL_LLVM
+    )
+endif()
+
 target_link_libraries(pnacl-sz pthread)

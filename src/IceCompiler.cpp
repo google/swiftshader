@@ -86,8 +86,11 @@ void Compiler::run(const Ice::ClFlags &Flags, GlobalContext &Ctx,
   const bool WasmBuildOnRead = Flags.getBuildOnRead() && wasmInput(IRFilename);
   if (BuildOnRead) {
     std::unique_ptr<PNaClTranslator> PTranslator(new PNaClTranslator(&Ctx));
-    std::unique_ptr<llvm::StreamingMemoryObject> MemObj(
-        new llvm::StreamingMemoryObjectImpl(InputStream.release()));
+#ifdef PNACL_LLVM
+    std::unique_ptr<llvm::StreamingMemoryObject> MemObj(new llvm::StreamingMemoryObjectImpl(InputStream.release()));
+#else // !PNACL_LLVM
+    std::unique_ptr<llvm::StreamingMemoryObject> MemObj(new llvm::StreamingMemoryObject(std::move(InputStream)));
+#endif // !PNACL_LLVM
     PTranslator->translate(IRFilename, std::move(MemObj));
     Translator.reset(PTranslator.release());
   } else if (WasmBuildOnRead) {
@@ -120,6 +123,7 @@ void Compiler::run(const Ice::ClFlags &Flags, GlobalContext &Ctx,
     // Parse the input LLVM IR file into a module.
     llvm::SMDiagnostic Err;
     TimerMarker T1(Ice::TimerStack::TT_parse, &Ctx);
+#ifdef PNACL_LLVM
     llvm::DiagnosticHandlerFunction DiagnosticHandler =
         Flags.getLLVMVerboseErrors()
             ? redirectNaClDiagnosticToStream(llvm::errs())
@@ -127,6 +131,12 @@ void Compiler::run(const Ice::ClFlags &Flags, GlobalContext &Ctx,
     std::unique_ptr<llvm::Module> Mod =
         NaClParseIRFile(IRFilename, Flags.getInputFileFormat(), Err,
                         llvm::getGlobalContext(), DiagnosticHandler);
+#else // !PNACL_LLVM
+    llvm::DiagnosticHandlerFunction DiagnosticHandler = nullptr;
+    llvm::LLVMContext Context;
+    std::unique_ptr<llvm::Module> Mod =
+        parseIRFile(IRFilename, Err, Context);
+#endif // !PNACL_LLVM
     if (!Mod) {
       Err.print(Flags.getAppName().c_str(), llvm::errs());
       Ctx.getErrorStatus()->assign(EC_Bitcode);

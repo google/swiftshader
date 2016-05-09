@@ -36,6 +36,20 @@
 #include <utility>
 #include <vector>
 
+#ifndef PNACL_LLVM
+namespace llvm {
+// \brief Define the expected format of the file.
+enum NaClFileFormat {
+  // LLVM IR source or bitcode file (as appropriate).
+  LLVMFormat,
+  // PNaCl bitcode file.
+  PNaClFormat,
+  // Autodetect if PNaCl or LLVM format.
+  AutodetectFileFormat
+};
+} // end of namespace llvm
+#endif // !PNACL_LLVM
+
 namespace Ice {
 // detail defines the type cl_type_traits, which is used to define the
 // getters/setters for the ClFlags class. It converts the cl_detail::*_flag

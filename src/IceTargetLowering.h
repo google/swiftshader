@@ -79,13 +79,13 @@ public:
   Inst *getNextInst() const {
     if (Next == End)
       return nullptr;
-    return Next;
+    return iteratorToInst(Next);
   }
   Inst *getNextInst(InstList::iterator &Iter) const {
     advanceForward(Iter);
     if (Iter == End)
       return nullptr;
-    return Iter;
+    return iteratorToInst(Iter);
   }
   CfgNode *getNode() const { return Node; }
   bool atEnd() const { return Cur == End; }

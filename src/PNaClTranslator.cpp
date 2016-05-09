@@ -2970,6 +2970,9 @@ void FunctionValuesymtabParser::setBbName(NaClBcIndexSize_t Index,
 }
 
 bool FunctionParser::ParseBlock(unsigned BlockID) {
+#ifndef PNACL_LLVM
+  constexpr bool PNaClAllowLocalSymbolTables = true;
+#endif // !PNACL_LLVM
   switch (BlockID) {
   case naclbitc::CONSTANTS_BLOCK_ID: {
     ConstantsParser Parser(BlockID, this);

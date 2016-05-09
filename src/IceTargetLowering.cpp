@@ -338,7 +338,7 @@ void TargetLowering::genTargetHelperCalls() {
     Context.init(Node);
     while (!Context.atEnd()) {
       PostIncrLoweringContext _(Context);
-      genTargetHelperCallFor(Context.getCur());
+      genTargetHelperCallFor(iteratorToInst(Context.getCur()));
     }
   }
 }
@@ -353,7 +353,7 @@ void TargetLowering::doAddressOpt() {
 }
 
 void TargetLowering::doNopInsertion(RandomNumberGenerator &RNG) {
-  Inst *I = Context.getCur();
+  Inst *I = iteratorToInst(Context.getCur());
   bool ShouldSkip = llvm::isa<InstFakeUse>(I) || llvm::isa<InstFakeDef>(I) ||
                     llvm::isa<InstFakeKill>(I) || I->isRedundantAssign() ||
                     I->isDeleted();
@@ -378,7 +378,7 @@ void TargetLowering::doNopInsertion(RandomNumberGenerator &RNG) {
 // should delete any additional instructions it consumes.
 void TargetLowering::lower() {
   assert(!Context.atEnd());
-  Inst *Instr = Context.getCur();
+  Inst *Instr = iteratorToInst(Context.getCur());
   Instr->deleteIfDead();
   if (!Instr->isDeleted() && !llvm::isa<InstFakeDef>(Instr) &&
       !llvm::isa<InstFakeUse>(Instr)) {
@@ -473,7 +473,7 @@ void TargetLowering::lowerInst(CfgNode *Node, InstList::iterator Next,
   Context.setNext(Next);
   Context.insert(Instr);
   --Next;
-  assert(&*Next == Instr);
+  assert(iteratorToInst(Next) == Instr);
   Context.setCur(Next);
   lower();
 }

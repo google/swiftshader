@@ -1342,7 +1342,7 @@ void CfgNode::emitIAS(Cfg *Func) const {
       I->emitIAS(Func);
       // Only update stats during the final pass.
       if (Retrying)
-        updateStats(Func, I);
+        updateStats(Func, iteratorToInst(I));
     } else {
       // Treat it as though there were an implicit bundle_lock and
       // bundle_unlock wrapping the instruction.
@@ -1352,7 +1352,7 @@ void CfgNode::emitIAS(Cfg *Func) const {
       Helper.rollback();
       Helper.padToNextBundle();
       I->emitIAS(Func);
-      updateStats(Func, I);
+      updateStats(Func, iteratorToInst(I));
       Helper.leaveBundleLockRegion();
     }
   }

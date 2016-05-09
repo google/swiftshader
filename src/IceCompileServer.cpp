@@ -50,7 +50,12 @@ class TextDataStreamer : public llvm::DataStreamer {
 public:
   TextDataStreamer() = default;
   ~TextDataStreamer() final = default;
-  static TextDataStreamer *create(const std::string &Filename,
+#ifdef PNACL_LLVM
+  using CreateType = TextDataStreamer *;
+#else // !PNACL_LLVM
+  using CreateType = std::unique_ptr<TextDataStreamer>;
+#endif // !PNACL_LLVM
+  static CreateType create(const std::string &Filename,
                                   std::string *Err);
   size_t GetBytes(unsigned char *Buf, size_t Len) final;
 
@@ -59,8 +64,9 @@ private:
   size_t Cursor = 0;
 };
 
-TextDataStreamer *TextDataStreamer::create(const std::string &Filename,
+TextDataStreamer::CreateType TextDataStreamer::create(const std::string &Filename,
                                            std::string *Err) {
+#ifdef PNACL_LLVM
   TextDataStreamer *Streamer = new TextDataStreamer();
   llvm::raw_string_ostream ErrStrm(*Err);
   if (std::error_code EC = llvm::readNaClRecordTextAndBuildBitcode(
@@ -72,6 +78,9 @@ TextDataStreamer *TextDataStreamer::create(const std::string &Filename,
   }
   ErrStrm.flush();
   return Streamer;
+#else // !PNACL_LLVM
+  return CreateType();
+#endif // !PNACL_LLVM
 }
 
 size_t TextDataStreamer::GetBytes(unsigned char *Buf, size_t Len) {

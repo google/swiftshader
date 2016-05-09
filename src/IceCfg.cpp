@@ -1102,7 +1102,7 @@ void Cfg::materializeVectorShuffles() {
 
       Instr.setDeleted();
       auto &LoweringContext = getTarget()->getContext();
-      LoweringContext.setInsertPoint(Instr);
+      LoweringContext.setInsertPoint(instToIterator(&Instr));
       LoweringContext.insert(ShuffleVector);
     }
   }

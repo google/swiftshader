@@ -29,3 +29,5 @@ else
     -DALLOW_WASM=0 -DPNACL_BROWSER_TRANSLATOR=0
   CXX.Flags += -Wno-undefined-var-template
 endif
+
+CPP.Defines += -DPNACL_LLVM
