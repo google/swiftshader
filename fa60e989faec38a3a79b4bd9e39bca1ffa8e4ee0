@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d26b902f_e91a71b3",
+        "filename": "src/OpenGL/libGLESv2/Framebuffer.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 476,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-05-09T19:31:46Z",
+      "side": 1,
+      "message": "space instead of tab\n\nI\u0027m going to be strict about formatting from this point on. You may want to re-enable Gerrit\u0027s whitespace comparison to spot these.",
+      "range": {
+        "startLine": 476,
+        "startChar": 5,
+        "endLine": 476,
+        "endChar": 6
+      },
+      "revId": "fa60e989faec38a3a79b4bd9e39bca1ffa8e4ee0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
