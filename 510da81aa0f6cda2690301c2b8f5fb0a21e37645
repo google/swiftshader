@@ -25,6 +25,54 @@
     },
     {
       "key": {
+        "uuid": "d26b902f_03bece73",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 3015,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-05-09T17:33:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6d5f63fa_81e160ae",
+      "range": {
+        "startLine": 3012,
+        "startChar": 1,
+        "endLine": 3015,
+        "endChar": 2
+      },
+      "revId": "510da81aa0f6cda2690301c2b8f5fb0a21e37645",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d26b902f_e391b2ff",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 3015,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-05-09T17:33:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6d5f63fa_81e160ae",
+      "range": {
+        "startLine": 3012,
+        "startChar": 1,
+        "endLine": 3015,
+        "endChar": 2
+      },
+      "revId": "510da81aa0f6cda2690301c2b8f5fb0a21e37645",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0d22678a_e5ea16bb",
         "filename": "src/OpenGL/libGLESv2/Context.cpp",
         "patchSetId": 1
@@ -36,6 +84,30 @@
       "writtenOn": "2016-05-06T20:08:16Z",
       "side": 1,
       "message": "This seems like it\u0027s the same as \u0027count\u0027, except for when the number of vertices isn\u0027t a multiple of the vertices per primitive. Does the spec state that we shouldn\u0027t process the vertices for incomplete primitives? Just checking.",
+      "range": {
+        "startLine": 3470,
+        "startChar": 15,
+        "endLine": 3470,
+        "endChar": 52
+      },
+      "revId": "510da81aa0f6cda2690301c2b8f5fb0a21e37645",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "326dcc11_d91ad7b3",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 3470,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-05-09T17:33:44Z",
+      "side": 1,
+      "message": "Yes, transform feedback only writes entire primitives. In fact, the new query related to transform feedback is for \"primitives written\", so only whole primitives are processed. Also, since transform feedback is the output of the vertex shader, I\u0027m not even sure the vertex shader could process partial primitives.",
+      "parentUuid": "0d22678a_e5ea16bb",
       "range": {
         "startLine": 3470,
         "startChar": 15,
