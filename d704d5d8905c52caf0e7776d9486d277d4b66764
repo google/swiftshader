@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d25390c8_438b26d6",
+        "filename": "LICENSE-2.0.txt",
+        "patchSetId": 7
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5190
+      },
+      "writtenOn": "2016-05-10T16:32:37Z",
+      "side": 1,
+      "message": "This file should just be named \"LICENSE\"",
+      "revId": "d704d5d8905c52caf0e7776d9486d277d4b66764",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
