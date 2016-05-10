@@ -24,7 +24,9 @@
 #pragma clang diagnostic ignored "-Wunused-parameter"
 #endif // __clang__
 
+#ifdef PNACL_LLVM
 #include "llvm/Bitcode/NaCl/NaClBitcodeMungeUtils.h"
+#endif // PNACL_LLVM
 #include "llvm/Support/FileSystem.h"
 #include "llvm/Support/raw_os_ostream.h"
 #include "llvm/Support/Signals.h"
@@ -52,11 +54,10 @@ public:
   ~TextDataStreamer() final = default;
 #ifdef PNACL_LLVM
   using CreateType = TextDataStreamer *;
-#else // !PNACL_LLVM
+#else  // !PNACL_LLVM
   using CreateType = std::unique_ptr<TextDataStreamer>;
 #endif // !PNACL_LLVM
-  static CreateType create(const std::string &Filename,
-                                  std::string *Err);
+  static CreateType create(const std::string &Filename, std::string *Err);
   size_t GetBytes(unsigned char *Buf, size_t Len) final;
 
 private:
@@ -64,8 +65,8 @@ private:
   size_t Cursor = 0;
 };
 
-TextDataStreamer::CreateType TextDataStreamer::create(const std::string &Filename,
-                                           std::string *Err) {
+TextDataStreamer::CreateType
+TextDataStreamer::create(const std::string &Filename, std::string *Err) {
 #ifdef PNACL_LLVM
   TextDataStreamer *Streamer = new TextDataStreamer();
   llvm::raw_string_ostream ErrStrm(*Err);
@@ -78,7 +79,7 @@ TextDataStreamer::CreateType TextDataStreamer::create(const std::string &Filenam
   }
   ErrStrm.flush();
   return Streamer;
-#else // !PNACL_LLVM
+#else  // !PNACL_LLVM
   return CreateType();
 #endif // !PNACL_LLVM
 }

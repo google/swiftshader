@@ -1,14 +1,29 @@
+unset(PNACL_LLVM)
+# Define PNACL_LLVM for LLVM_VERSION <= 3.7
+if((NOT LLVM_VERSION_MAJOR GREATER 3) AND (NOT LLVM_VERSION_MINOR GREATER 7))
+  set(PNACL_LLVM 1)
+endif()
+
+if(PNACL_LLVM)
+  add_definitions(
+    -DPNACL_LLVM
+    )
+  set(PNACL_EXTRA_COMPONENTS NaClBitReader NaClBitTestUtils)
+else()
+  include_directories(pnacl-llvm/include)
+  file(GLOB pnacl_llvm_SRCS "pnacl-llvm/*.cpp")
+endif()
+
 set(LLVM_LINK_COMPONENTS
   ${LLVM_TARGETS_TO_BUILD}
   Core
   IRReader
-  NaClBitReader
-  NaClBitTestUtils
   Support
+  ${PNACL_EXTRA_COMPONENTS}
   )
 
 file(GLOB pnacl_sz_SRCS "src/*.cpp")
-add_llvm_tool(pnacl-sz ${pnacl_sz_SRCS})
+add_llvm_tool(pnacl-sz ${pnacl_sz_SRCS} ${pnacl_llvm_SRCS})
 
 if(PNACL_BROWSER_TRANSLATOR)
   add_definitions(
@@ -33,13 +48,6 @@ else()
   -DPNACL_BROWSER_TRANSLATOR=0
   )
   add_compile_options(-Wno-undefined-var-template)
-endif()
-
-# Define PNACL_LLVM for LLVM_VERSION <= 3.7
-if((NOT LLVM_VERSION_MAJOR GREATER 3) AND (NOT LLVM_VERSION_MINOR GREATER 7))
-  add_definitions(
-    -DPNACL_LLVM
-    )
 endif()
 
 target_link_libraries(pnacl-sz pthread)

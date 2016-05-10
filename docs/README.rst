@@ -44,6 +44,27 @@ minimize the size of the translator by compiling out everything unnecessary.
 The result of the ``make`` command is the target ``pnacl-sz`` in the current
 directory.
 
+Building within LLVM trunk
+--------------------------
+
+Subzero can also be built from within a standard LLVM trunk checkout.  Here is
+an example of how it can be checked out and built::
+
+    mkdir llvm-git
+    cd llvm-git
+    git clone http://llvm.org/git/llvm.git
+    cd llvm/projects/
+    git clone https://chromium.googlesource.com/native_client/pnacl-subzero
+    cd ../..
+    mkdir build
+    cd build
+    cmake -G Ninja ../llvm/
+    ninja
+    ./bin/pnacl-sz -version
+
+This creates a default build of ``pnacl-sz``; currently any options such as
+``DEBUG=1`` or ``MINIMAL=1`` have to be added manually.
+
 ``pnacl-sz``
 ------------
 

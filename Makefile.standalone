@@ -743,6 +743,7 @@ FORMAT_BLACKLIST += ! -name IceParseTypesTest.cpp
 FORMAT_BLACKLIST += ! -name assembler_arm.h
 FORMAT_BLACKLIST += ! -name assembler_arm.cc
 FORMAT_BLACKLIST += ! -path "./wasm-install/*"
+FORMAT_BLACKLIST += ! -path "./pnacl-llvm/*"
 format:
 	$(CLANG_FORMAT_PATH)/clang-format -style=LLVM -i \
           `find . -regex '.*\.\(c\|h\|cpp\)' $(FORMAT_BLACKLIST)`

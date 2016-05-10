@@ -263,7 +263,7 @@ template <template <typename> class AT> class BitVectorTmpl {
   uint64_t alignTo(uint64_t Value, uint64_t Align) {
 #ifdef PNACL_LLVM
     return llvm::RoundUpToAlignment(Value, Align);
-#else // !PNACL_LLVM
+#else  // !PNACL_LLVM
     return llvm::alignTo(Value, Align);
 #endif // !PNACL_LLVM
   }
