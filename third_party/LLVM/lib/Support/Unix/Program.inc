@@ -308,6 +308,7 @@ Program::Wait(const sys::Path &path,
     return -1;
   }
 
+#ifdef ENABLE_SIGNAL_OVERRIDES
   // Install a timeout handler.  The handler itself does nothing, but the simple
   // fact of having a handler at all causes the wait below to return with EINTR,
   // unlike if we used SIG_IGN.
@@ -318,12 +319,14 @@ Program::Wait(const sys::Path &path,
     sigaction(SIGALRM, &Act, &Old);
     alarm(secondsToWait);
   }
+#endif
 
   // Parent process: Wait for the child process to terminate.
   int status;
   uint64_t pid = reinterpret_cast<uint64_t>(Data_);
   pid_t child = static_cast<pid_t>(pid);
-  while (waitpid(pid, &status, 0) != child)
+  while (waitpid(pid, &status, 0) != child) {
+#ifdef ENABLE_SIGNAL_OVERRIDES
     if (secondsToWait && errno == EINTR) {
       // Kill the child.
       kill(child, SIGKILL);
@@ -339,16 +342,21 @@ Program::Wait(const sys::Path &path,
         MakeErrMsg(ErrMsg, "Child timed out", 0);
 
       return -2;   // Timeout detected
-    } else if (errno != EINTR) {
+    } else
+#endif
+    if (errno != EINTR) {
       MakeErrMsg(ErrMsg, "Error waiting for child process");
       return -1;
     }
+  }
 
+#ifdef ENABLE_SIGNAL_OVERRIDES
   // We exited normally without timeout, so turn off the timer.
   if (secondsToWait) {
     alarm(0);
     sigaction(SIGALRM, &Old, 0);
   }
+#endif
 
   // Return the proper exit status. Detect error conditions
   // so we can return -1 for them and set ErrMsg informatively.

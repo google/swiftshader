@@ -268,6 +268,7 @@ void CrashRecoveryContext::Enable() {
 
   gCrashRecoveryEnabled = true;
 
+#ifdef ENABLE_SIGNAL_OVERRIDES
   // Setup the signal handler.
   struct sigaction Handler;
   Handler.sa_handler = CrashRecoverySignalHandler;
@@ -277,6 +278,7 @@ void CrashRecoveryContext::Enable() {
   for (unsigned i = 0; i != NumSignals; ++i) {
     sigaction(Signals[i], &Handler, &PrevActions[i]);
   }
+#endif
 }
 
 void CrashRecoveryContext::Disable() {
@@ -287,9 +289,11 @@ void CrashRecoveryContext::Disable() {
 
   gCrashRecoveryEnabled = false;
 
+#ifdef ENABLE_SIGNAL_OVERRIDES
   // Restore the previous signal handlers.
   for (unsigned i = 0; i != NumSignals; ++i)
     sigaction(Signals[i], &PrevActions[i], 0);
+#endif
 }
 
 #endif

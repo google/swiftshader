@@ -57,7 +57,7 @@ static const int KillSigs[] = {
   , SIGSYS
 #endif
 #ifdef SIGXCPU
-  //, SIGXCPU
+  , SIGXCPU
 #endif
 #ifdef SIGXFSZ
   , SIGXFSZ
@@ -95,11 +95,13 @@ static void RegisterHandler(int Signal) {
 }
 
 static void RegisterHandlers() {
+#ifdef ENABLE_SIGNAL_OVERRIDES
   // If the handlers are already registered, we're done.
   if (NumRegisteredSignals != 0) return;
 
   std::for_each(IntSigs, IntSigsEnd, RegisterHandler);
   std::for_each(KillSigs, KillSigsEnd, RegisterHandler);
+#endif
 }
 
 static void UnregisterHandlers() {
