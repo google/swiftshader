@@ -132,7 +132,6 @@
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <DisableSpecificWarnings>4530;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <ForcedIncludeFiles>MemoryManager.hpp;%(ForcedIncludeFiles)</ForcedIncludeFiles>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
     <Lib>
@@ -167,7 +166,6 @@
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <DisableSpecificWarnings>4530;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <ForcedIncludeFiles>MemoryManager.hpp;%(ForcedIncludeFiles)</ForcedIncludeFiles>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
     <Lib>
@@ -391,7 +389,6 @@
     <ClInclude Include="..\Renderer\RoutineCache.hpp" />
     <ClInclude Include="..\Shader\PixelPipeline.hpp" />
     <ClInclude Include="..\Shader\PixelProgram.hpp" />
-    <ClInclude Include="MemoryManager.hpp" />
     <ClInclude Include="..\Shader\Constants.hpp" />
     <ClInclude Include="..\Shader\PixelRoutine.hpp" />
     <ClInclude Include="..\Shader\PixelShader.hpp" />
