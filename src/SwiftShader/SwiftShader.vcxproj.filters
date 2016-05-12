@@ -175,9 +175,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="MemoryManager.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\Shader\Constants.hpp">
       <Filter>Header Files\Shader</Filter>
     </ClInclude>
