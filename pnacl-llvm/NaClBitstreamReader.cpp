@@ -188,6 +188,7 @@ uint64_t NaClBitstreamCursor::readArrayAbbreviatedField(
   case NaClBitCodeAbbrevOp::Char6:
     return NaClBitCodeAbbrevOp::DecodeChar6(Read(6));
   }
+  llvm_unreachable("Illegal abbreviation encoding for field!");
 }
 
 void NaClBitstreamCursor::readArrayAbbrev(
