@@ -1231,12 +1231,12 @@ namespace D3D9
 		// Caps from DX7
 		caps.Caps =	D3DCAPS_READ_SCANLINE;
 
-		caps.Caps2 =		D3DCAPS2_CANAUTOGENMIPMAP |		// The driver is capable of automatically generating mipmaps. For more information, see Automatic Generation of Mipmaps.
-						//	D3DCAPS2_CANCALIBRATEGAMMA |	// The system has a calibrator installed that can automatically adjust the gamma ramp so that the result is identical on all systems that have a calibrator. To invoke the calibrator when setting new gamma levels, use the D3DSGR_CALIBRATE flag when calling IDirect3DDevice9::SetGammaRamp. Calibrating gamma ramps incurs some processing overhead and should not be used frequently.
-						//	D3DCAPS2_CANMANAGERESOURCE |	// The driver is capable of managing resources. On such drivers, D3DPOOL_MANAGED resources will be managed by the driver. To have Microsoft® Direct3D® override the driver so that Direct3D manages resources, use the D3DCREATE_DISABLE_DRIVER_MANAGEMENT flag when calling IDirect3D9::CreateDevice.
+		caps.Caps2 =		D3DCAPS2_CANAUTOGENMIPMAP |		// The driver is capable of automatically generating mipmaps. For more information, see Automatic Generation of Mipmaps (Direct3D 9).
+						//	D3DCAPS2_CANCALIBRATEGAMMA |	// The system has a calibrator installed that can automatically adjust the gamma ramp so that the result is identical on all systems that have a calibrator. To invoke the calibrator when setting new gamma levels, use the D3DSGR_CALIBRATE flag when calling SetGammaRamp. Calibrating gamma ramps incurs some processing overhead and should not be used frequently.
+						//	D3DCAPS2_CANSHARERESOURCE |		// The device can create sharable resources. Methods that create resources can set non-NULL values for their pSharedHandle parameters. Differences between Direct3D 9 and Direct3D 9Ex:This flag is available in Direct3D 9Ex only.
+						//	D3DCAPS2_CANMANAGERESOURCE |	// The driver is capable of managing resources. On such drivers, D3DPOOL_MANAGED resources will be managed by the driver. To have Direct3D override the driver so that Direct3D manages resources, use the D3DCREATE_DISABLE_DRIVER_MANAGEMENT flag when calling CreateDevice.
 							D3DCAPS2_DYNAMICTEXTURES | 		// The driver supports dynamic textures.
 							D3DCAPS2_FULLSCREENGAMMA;		// The driver supports dynamic gamma ramp adjustment in full-screen mode.
-						//	D3DCAPS2_CANSHARERESOURCE;
 
 		caps.Caps3 =		D3DCAPS3_ALPHA_FULLSCREEN_FLIP_OR_DISCARD |	// Indicates that the device can respect the D3DRS_ALPHABLENDENABLE render state in full-screen mode while using the FLIP or DISCARD swap effect.
 							D3DCAPS3_COPY_TO_VIDMEM |					// Device can accelerate a memory copy from system memory to local video memory.
