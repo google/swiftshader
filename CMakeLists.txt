@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 2.8)
 
 project(SwiftShader C CXX)
 
@@ -822,7 +822,7 @@ endif()
 ###########################################################
 
 if(LINUX)
-    add_executable(OGLES2HelloAPI HELLO2_DIR/OGLES2HelloAPI_LinuxX11.cpp)
+    add_executable(OGLES2HelloAPI ${HELLO2_DIR}/OGLES2HelloAPI_LinuxX11.cpp)
     target_link_libraries(OGLES2HelloAPI dl X11 EGL GLESv2)
 elseif(APPLE)
     add_executable(OGLES2HelloAPI MACOSX_BUNDLE
