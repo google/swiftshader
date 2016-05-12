@@ -97,22 +97,22 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
     <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Platform)\$(Configuration)\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Platform)\$(Configuration)\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)bin\$(MSBuildProjectName)\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)obj\$(MSBuildProjectName)\$(Platform)\$(Configuration)\</IntDir>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(Platform)\$(Configuration)\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(Platform)\$(Configuration)\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)bin\$(MSBuildProjectName)\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)obj\$(MSBuildProjectName)\$(Platform)\$(Configuration)\</IntDir>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Platform)\$(Configuration)\</OutDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(Platform)\$(Configuration)\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Platform)\$(Configuration)\</IntDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(Platform)\$(Configuration)\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)bin\$(MSBuildProjectName)\$(Platform)\$(Configuration)\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(SolutionDir)bin\$(MSBuildProjectName)\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)obj\$(MSBuildProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(SolutionDir)obj\$(MSBuildProjectName)\$(Platform)\$(Configuration)\</IntDir>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">false</LinkIncremental>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(Platform)\$(Configuration)\</OutDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(Platform)\$(Configuration)\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(Platform)\$(Configuration)\</IntDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(Platform)\$(Configuration)\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)bin\$(MSBuildProjectName)\$(Platform)\$(Configuration)\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(SolutionDir)bin\$(MSBuildProjectName)\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)obj\$(MSBuildProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(SolutionDir)obj\$(MSBuildProjectName)\$(Platform)\$(Configuration)\</IntDir>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">false</LinkIncremental>
     <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(DXSDK_DIR)Lib\x86;$(LibraryPath)</LibraryPath>
@@ -160,8 +160,8 @@
       <OutputFile>$(OutDir)d3d9.dll</OutputFile>
     </Link>
     <PostBuildEvent>
-      <Command>mkdir "$(ProjectDir)..\..\lib\$(Configuration)_$(Platform)\"
-copy "$(OutDir)d3d9.dll" "$(ProjectDir)..\..\lib\$(Configuration)_$(Platform)\"</Command>
+      <Command>mkdir "$(SolutionDir)lib\$(Configuration)_$(Platform)\"
+copy "$(OutDir)d3d9.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -198,8 +198,8 @@ copy "$(OutDir)d3d9.dll" "$(ProjectDir)..\..\lib\$(Configuration)_$(Platform)\"<
       <OutputFile>$(OutDir)d3d9.dll</OutputFile>
     </Link>
     <PostBuildEvent>
-      <Command>mkdir "$(ProjectDir)..\..\lib\$(Configuration)_$(Platform)\"
-copy "$(OutDir)d3d9.dll" "$(ProjectDir)..\..\lib\$(Configuration)_$(Platform)\"</Command>
+      <Command>mkdir "$(SolutionDir)lib\$(Configuration)_$(Platform)\"
+copy "$(OutDir)d3d9.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -243,8 +243,8 @@ copy "$(OutDir)d3d9.dll" "$(ProjectDir)..\..\lib\$(Configuration)_$(Platform)\"<
       <OutputFile>$(OutDir)d3d9.dll</OutputFile>
     </Link>
     <PostBuildEvent>
-      <Command>mkdir "$(ProjectDir)..\..\lib\$(Configuration)_$(Platform)\"
-copy "$(OutDir)d3d9.dll" "$(ProjectDir)..\..\lib\$(Configuration)_$(Platform)\"</Command>
+      <Command>mkdir "$(SolutionDir)lib\$(Configuration)_$(Platform)\"
+copy "$(OutDir)d3d9.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">
@@ -287,8 +287,8 @@ copy "$(OutDir)d3d9.dll" "$(ProjectDir)..\..\lib\$(Configuration)_$(Platform)\"<
       <OutputFile>$(OutDir)d3d9.dll</OutputFile>
     </Link>
     <PostBuildEvent>
-      <Command>mkdir "$(ProjectDir)..\..\lib\$(Configuration)_$(Platform)\"
-copy "$(OutDir)d3d9.dll" "$(ProjectDir)..\..\lib\$(Configuration)_$(Platform)\"</Command>
+      <Command>mkdir "$(SolutionDir)lib\$(Configuration)_$(Platform)\"
+copy "$(OutDir)d3d9.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -336,8 +336,8 @@ copy "$(OutDir)d3d9.dll" "$(ProjectDir)..\..\lib\$(Configuration)_$(Platform)\"<
       <OutputFile>$(OutDir)d3d9.dll</OutputFile>
     </Link>
     <PostBuildEvent>
-      <Command>mkdir "$(ProjectDir)..\..\lib\$(Configuration)_$(Platform)\"
-copy "$(OutDir)d3d9.dll" "$(ProjectDir)..\..\lib\$(Configuration)_$(Platform)\"</Command>
+      <Command>mkdir "$(SolutionDir)lib\$(Configuration)_$(Platform)\"
+copy "$(OutDir)d3d9.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">
@@ -384,8 +384,8 @@ copy "$(OutDir)d3d9.dll" "$(ProjectDir)..\..\lib\$(Configuration)_$(Platform)\"<
       <OutputFile>$(OutDir)d3d9.dll</OutputFile>
     </Link>
     <PostBuildEvent>
-      <Command>mkdir "$(ProjectDir)..\..\lib\$(Configuration)_$(Platform)\"
-copy "$(OutDir)d3d9.dll" "$(ProjectDir)..\..\lib\$(Configuration)_$(Platform)\"</Command>
+      <Command>mkdir "$(SolutionDir)lib\$(Configuration)_$(Platform)\"
+copy "$(OutDir)d3d9.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

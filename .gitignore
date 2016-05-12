@@ -1,28 +1,7 @@
-# Ignored folders by git #
+# Ignored folders #
 /lib/
-/src/Debug/
-/src/Release/
-/src/x64/
-/third_party/LLVM/bin/
-/third_party/LLVM/lib/Debug/
-/third_party/LLVM/include/llvm/Win32/
-/third_party/LLVM/include/llvm/x64/
-/third_party/LLVM/lib/Release/
-/third_party/LLVM/lib/Target/Win32/
-/third_party/LLVM/lib/Target/x64/
-/third_party/LLVM/lib/Target/X86/Win32/
-/third_party/LLVM/lib/Target/X86/x64/
-/src/OpenGL/libEGL/Win32/
-/src/OpenGL/libEGL/x64/
-/src/OpenGL/libGLES_CM/Win32/
-/src/OpenGL/libGLES_CM/x64/
-/src/OpenGL/libGLESv2/Win32/
-/src/OpenGL/libGLESv2/x64/
-/src/OpenGL/compiler/Win32/
-/src/OpenGL/compiler/x64/
-/src/OpenGL/compiler/preprocessor/Debug/
-/src/OpenGL/compiler/preprocessor/Release/
-/src/OpenGL/compiler/preprocessor/x64/
+/obj/
+/bin/
 
 # Ignored files #
 *.obj
