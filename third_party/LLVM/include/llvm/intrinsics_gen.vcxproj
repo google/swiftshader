@@ -78,18 +78,18 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
     <_ProjectFileVersion>10.0.20506.1</_ProjectFileVersion>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Platform)\$(Configuration)\</IntDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(Platform)\$(Configuration)\</IntDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Platform)\$(Configuration)\</IntDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(Platform)\$(Configuration)\</IntDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(Platform)\$(Configuration)\</IntDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(Platform)\$(Configuration)\</IntDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Platform)\$(Configuration)\</OutDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Platform)\$(Configuration)\</OutDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(Platform)\$(Configuration)\</OutDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(Platform)\$(Configuration)\</OutDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(Platform)\$(Configuration)\</OutDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(Platform)\$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)obj\$(MSBuildProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)obj\$(MSBuildProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)obj\$(MSBuildProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(SolutionDir)obj\$(MSBuildProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)obj\$(MSBuildProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(SolutionDir)obj\$(MSBuildProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)bin\$(MSBuildProjectName)\$(Platform)\$(Configuration)\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)bin\$(MSBuildProjectName)\$(Platform)\$(Configuration)\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(SolutionDir)bin\$(MSBuildProjectName)\$(Platform)\$(Configuration)\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)bin\$(MSBuildProjectName)\$(Platform)\$(Configuration)\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)bin\$(MSBuildProjectName)\$(Platform)\$(Configuration)\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(SolutionDir)bin\$(MSBuildProjectName)\$(Platform)\$(Configuration)\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Midl>
@@ -155,30 +155,30 @@
     <CustomBuild Include="Intrinsics.gen">
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Building Intrinsics.gen...</Message>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Building Intrinsics.gen...</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\utils\TableGen\$(Platform)\$(Configuration)\llvm-tblgen.exe -gen-intrinsic -I ..\llvm -I ..\..\lib/Target -I ..\..\include Intrinsics.td -o Intrinsics.gen
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)bin\llvm-tblgen\$(Platform)\$(Configuration)\llvm-tblgen.exe -gen-intrinsic -I ..\llvm -I ..\..\lib/Target -I ..\..\include Intrinsics.td -o Intrinsics.gen
 </Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\utils\TableGen\$(Platform)\$(Configuration)\llvm-tblgen.exe -gen-intrinsic -I ..\llvm -I ..\..\lib/Target -I ..\..\include Intrinsics.td -o Intrinsics.gen
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)bin\llvm-tblgen\$(Platform)\$(Configuration)\llvm-tblgen.exe -gen-intrinsic -I ..\llvm -I ..\..\lib/Target -I ..\..\include Intrinsics.td -o Intrinsics.gen
 </Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\utils\TableGen\$(Platform)\$(Configuration)\llvm-tblgen.exe;Intrinsics.td;IntrinsicsAlpha.td;IntrinsicsARM.td;IntrinsicsCellSPU.td;IntrinsicsPowerPC.td;IntrinsicsPTX.td;IntrinsicsX86.td;IntrinsicsXCore.td;CodeGen\ValueTypes.td;Target\Target.td;Target\TargetCallingConv.td;Target\TargetSchedule.td;Target\TargetSelectionDAG.td;%(AdditionalInputs)</AdditionalInputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\..\utils\TableGen\$(Platform)\$(Configuration)\llvm-tblgen.exe;Intrinsics.td;IntrinsicsAlpha.td;IntrinsicsARM.td;IntrinsicsCellSPU.td;IntrinsicsPowerPC.td;IntrinsicsPTX.td;IntrinsicsX86.td;IntrinsicsXCore.td;CodeGen\ValueTypes.td;Intrinsics.td;IntrinsicsAlpha.td;IntrinsicsARM.td;IntrinsicsCellSPU.td;IntrinsicsPowerPC.td;IntrinsicsPTX.td;IntrinsicsX86.td;IntrinsicsXCore.td;Target\Target.td;Target\TargetCallingConv.td;Target\TargetSchedule.td;Target\TargetSelectionDAG.td;Intrinsics.td;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)bin\llvm-tblgen\$(Platform)\$(Configuration)\llvm-tblgen.exe;Intrinsics.td;IntrinsicsAlpha.td;IntrinsicsARM.td;IntrinsicsCellSPU.td;IntrinsicsPowerPC.td;IntrinsicsPTX.td;IntrinsicsX86.td;IntrinsicsXCore.td;CodeGen\ValueTypes.td;Target\Target.td;Target\TargetCallingConv.td;Target\TargetSchedule.td;Target\TargetSelectionDAG.td;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)bin\llvm-tblgen\$(Platform)\$(Configuration)\llvm-tblgen.exe;Intrinsics.td;IntrinsicsAlpha.td;IntrinsicsARM.td;IntrinsicsCellSPU.td;IntrinsicsPowerPC.td;IntrinsicsPTX.td;IntrinsicsX86.td;IntrinsicsXCore.td;CodeGen\ValueTypes.td;Intrinsics.td;IntrinsicsAlpha.td;IntrinsicsARM.td;IntrinsicsCellSPU.td;IntrinsicsPowerPC.td;IntrinsicsPTX.td;IntrinsicsX86.td;IntrinsicsXCore.td;Target\Target.td;Target\TargetCallingConv.td;Target\TargetSchedule.td;Target\TargetSelectionDAG.td;Intrinsics.td;%(AdditionalInputs)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Intrinsics.gen</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Intrinsics.gen</Outputs>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Building Intrinsics.gen...</Message>
       <Message Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">Building Intrinsics.gen...</Message>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Building Intrinsics.gen...</Message>
       <Message Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">Building Intrinsics.gen...</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\utils\TableGen\$(Platform)\$(Configuration)\llvm-tblgen.exe -gen-intrinsic -I ..\llvm -I ..\..\lib/Target -I ..\..\include Intrinsics.td -o Intrinsics.gen
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)bin\llvm-tblgen\$(Platform)\$(Configuration)\llvm-tblgen.exe -gen-intrinsic -I ..\llvm -I ..\..\lib/Target -I ..\..\include Intrinsics.td -o Intrinsics.gen
 </Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">..\..\utils\TableGen\$(Platform)\$(Configuration)\llvm-tblgen.exe -gen-intrinsic -I ..\llvm -I ..\..\lib/Target -I ..\..\include Intrinsics.td -o Intrinsics.gen
+      <Command Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(SolutionDir)bin\llvm-tblgen\$(Platform)\$(Configuration)\llvm-tblgen.exe -gen-intrinsic -I ..\llvm -I ..\..\lib/Target -I ..\..\include Intrinsics.td -o Intrinsics.gen
 </Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\utils\TableGen\$(Platform)\$(Configuration)\llvm-tblgen.exe -gen-intrinsic -I ..\llvm -I ..\..\lib/Target -I ..\..\include Intrinsics.td -o Intrinsics.gen
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)bin\llvm-tblgen\$(Platform)\$(Configuration)\llvm-tblgen.exe -gen-intrinsic -I ..\llvm -I ..\..\lib/Target -I ..\..\include Intrinsics.td -o Intrinsics.gen
 </Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">..\..\utils\TableGen\$(Platform)\$(Configuration)\llvm-tblgen.exe -gen-intrinsic -I ..\llvm -I ..\..\lib/Target -I ..\..\include Intrinsics.td -o Intrinsics.gen
+      <Command Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(SolutionDir)bin\llvm-tblgen\$(Platform)\$(Configuration)\llvm-tblgen.exe -gen-intrinsic -I ..\llvm -I ..\..\lib/Target -I ..\..\include Intrinsics.td -o Intrinsics.gen
 </Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\utils\TableGen\$(Platform)\$(Configuration)\llvm-tblgen.exe;Intrinsics.td;IntrinsicsAlpha.td;IntrinsicsARM.td;IntrinsicsCellSPU.td;IntrinsicsPowerPC.td;IntrinsicsPTX.td;IntrinsicsX86.td;IntrinsicsXCore.td;CodeGen\ValueTypes.td;Intrinsics.td;IntrinsicsAlpha.td;IntrinsicsARM.td;IntrinsicsCellSPU.td;IntrinsicsPowerPC.td;IntrinsicsPTX.td;IntrinsicsX86.td;IntrinsicsXCore.td;Target\Target.td;Target\TargetCallingConv.td;Target\TargetSchedule.td;Target\TargetSelectionDAG.td;Intrinsics.td;%(AdditionalInputs)</AdditionalInputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">..\..\utils\TableGen\$(Platform)\$(Configuration)\llvm-tblgen.exe;Intrinsics.td;IntrinsicsAlpha.td;IntrinsicsARM.td;IntrinsicsCellSPU.td;IntrinsicsPowerPC.td;IntrinsicsPTX.td;IntrinsicsX86.td;IntrinsicsXCore.td;CodeGen\ValueTypes.td;Intrinsics.td;IntrinsicsAlpha.td;IntrinsicsARM.td;IntrinsicsCellSPU.td;IntrinsicsPowerPC.td;IntrinsicsPTX.td;IntrinsicsX86.td;IntrinsicsXCore.td;Target\Target.td;Target\TargetCallingConv.td;Target\TargetSchedule.td;Target\TargetSelectionDAG.td;Intrinsics.td;%(AdditionalInputs)</AdditionalInputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\utils\TableGen\$(Platform)\$(Configuration)\llvm-tblgen.exe;Intrinsics.td;IntrinsicsAlpha.td;IntrinsicsARM.td;IntrinsicsCellSPU.td;IntrinsicsPowerPC.td;IntrinsicsPTX.td;IntrinsicsX86.td;IntrinsicsXCore.td;CodeGen\ValueTypes.td;Intrinsics.td;IntrinsicsAlpha.td;IntrinsicsARM.td;IntrinsicsCellSPU.td;IntrinsicsPowerPC.td;IntrinsicsPTX.td;IntrinsicsX86.td;IntrinsicsXCore.td;Target\Target.td;Target\TargetCallingConv.td;Target\TargetSchedule.td;Target\TargetSelectionDAG.td;Intrinsics.td;%(AdditionalInputs)</AdditionalInputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">..\..\utils\TableGen\$(Platform)\$(Configuration)\llvm-tblgen.exe;Intrinsics.td;IntrinsicsAlpha.td;IntrinsicsARM.td;IntrinsicsCellSPU.td;IntrinsicsPowerPC.td;IntrinsicsPTX.td;IntrinsicsX86.td;IntrinsicsXCore.td;CodeGen\ValueTypes.td;Intrinsics.td;IntrinsicsAlpha.td;IntrinsicsARM.td;IntrinsicsCellSPU.td;IntrinsicsPowerPC.td;IntrinsicsPTX.td;IntrinsicsX86.td;IntrinsicsXCore.td;Target\Target.td;Target\TargetCallingConv.td;Target\TargetSchedule.td;Target\TargetSelectionDAG.td;Intrinsics.td;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)bin\llvm-tblgen\$(Platform)\$(Configuration)\llvm-tblgen.exe;Intrinsics.td;IntrinsicsAlpha.td;IntrinsicsARM.td;IntrinsicsCellSPU.td;IntrinsicsPowerPC.td;IntrinsicsPTX.td;IntrinsicsX86.td;IntrinsicsXCore.td;CodeGen\ValueTypes.td;Intrinsics.td;IntrinsicsAlpha.td;IntrinsicsARM.td;IntrinsicsCellSPU.td;IntrinsicsPowerPC.td;IntrinsicsPTX.td;IntrinsicsX86.td;IntrinsicsXCore.td;Target\Target.td;Target\TargetCallingConv.td;Target\TargetSchedule.td;Target\TargetSelectionDAG.td;Intrinsics.td;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">$(SolutionDir)bin\llvm-tblgen\$(Platform)\$(Configuration)\llvm-tblgen.exe;Intrinsics.td;IntrinsicsAlpha.td;IntrinsicsARM.td;IntrinsicsCellSPU.td;IntrinsicsPowerPC.td;IntrinsicsPTX.td;IntrinsicsX86.td;IntrinsicsXCore.td;CodeGen\ValueTypes.td;Intrinsics.td;IntrinsicsAlpha.td;IntrinsicsARM.td;IntrinsicsCellSPU.td;IntrinsicsPowerPC.td;IntrinsicsPTX.td;IntrinsicsX86.td;IntrinsicsXCore.td;Target\Target.td;Target\TargetCallingConv.td;Target\TargetSchedule.td;Target\TargetSelectionDAG.td;Intrinsics.td;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)bin\llvm-tblgen\$(Platform)\$(Configuration)\llvm-tblgen.exe;Intrinsics.td;IntrinsicsAlpha.td;IntrinsicsARM.td;IntrinsicsCellSPU.td;IntrinsicsPowerPC.td;IntrinsicsPTX.td;IntrinsicsX86.td;IntrinsicsXCore.td;CodeGen\ValueTypes.td;Intrinsics.td;IntrinsicsAlpha.td;IntrinsicsARM.td;IntrinsicsCellSPU.td;IntrinsicsPowerPC.td;IntrinsicsPTX.td;IntrinsicsX86.td;IntrinsicsXCore.td;Target\Target.td;Target\TargetCallingConv.td;Target\TargetSchedule.td;Target\TargetSelectionDAG.td;Intrinsics.td;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">$(SolutionDir)bin\llvm-tblgen\$(Platform)\$(Configuration)\llvm-tblgen.exe;Intrinsics.td;IntrinsicsAlpha.td;IntrinsicsARM.td;IntrinsicsCellSPU.td;IntrinsicsPowerPC.td;IntrinsicsPTX.td;IntrinsicsX86.td;IntrinsicsXCore.td;CodeGen\ValueTypes.td;Intrinsics.td;IntrinsicsAlpha.td;IntrinsicsARM.td;IntrinsicsCellSPU.td;IntrinsicsPowerPC.td;IntrinsicsPTX.td;IntrinsicsX86.td;IntrinsicsXCore.td;Target\Target.td;Target\TargetCallingConv.td;Target\TargetSchedule.td;Target\TargetSelectionDAG.td;Intrinsics.td;%(AdditionalInputs)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Intrinsics.gen</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">Intrinsics.gen</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Intrinsics.gen</Outputs>
