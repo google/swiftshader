@@ -68,19 +68,21 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(SolutionDir)$(Configuration)\$(Platform)\</OutDir>
+    <OutDir>$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(SolutionDir)$(Configuration)\$(Platform)\</OutDir>
+    <OutDir>$(Platform)\$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)$(Configuration)\$(Platform)\</OutDir>
+    <OutDir>$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)$(Configuration)\$(Platform)\</OutDir>
+    <OutDir>$(Platform)\$(Configuration)\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -97,7 +99,7 @@
       <AdditionalDependencies>%(AdditionalDependencies);opengl32.lib</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>XCOPY /Y "$(SolutionDir)..\lib\$(Configuration)_$(Platform)\opengl32.dll" "$(SolutionDir)$(Configuration)\$(Platform)" /Q /E /I</Command>
+      <Command>XCOPY /Y "$(SolutionDir)lib\$(Configuration)_$(Platform)\opengl32.dll" "$(SolutionDir)src\$(Configuration)\$(Platform)\" /Q /E /I</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -115,7 +117,7 @@
       <AdditionalDependencies>%(AdditionalDependencies);opengl32.lib</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>XCOPY /Y "$(SolutionDir)..\lib\$(Configuration)_$(Platform)\opengl32.dll" "$(SolutionDir)$(Configuration)\$(Platform)" /Q /E /I</Command>
+      <Command>XCOPY /Y "$(SolutionDir)lib\$(Configuration)_$(Platform)\opengl32.dll" "$(SolutionDir)src\$(Configuration)\$(Platform)\" /Q /E /I</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -137,7 +139,7 @@
       <AdditionalDependencies>%(AdditionalDependencies);opengl32.lib</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>XCOPY /Y "$(SolutionDir)..\lib\$(Configuration)_$(Platform)\opengl32.dll" "$(SolutionDir)$(Configuration)\$(Platform)" /Q /E /I</Command>
+      <Command>XCOPY /Y "$(SolutionDir)lib\$(Configuration)_$(Platform)\opengl32.dll" "$(SolutionDir)src\$(Configuration)\$(Platform)\" /Q /E /I</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -159,7 +161,7 @@
       <AdditionalDependencies>%(AdditionalDependencies);opengl32.lib</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>XCOPY /Y "$(SolutionDir)..\lib\$(Configuration)_$(Platform)\opengl32.dll" "$(SolutionDir)$(Configuration)\$(Platform)" /Q /E /I</Command>
+      <Command>XCOPY /Y "$(SolutionDir)lib\$(Configuration)_$(Platform)\opengl32.dll" "$(SolutionDir)src\$(Configuration)\$(Platform)\" /Q /E /I</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
