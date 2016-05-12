@@ -159,6 +159,10 @@
       <TargetMachine>MachineX86</TargetMachine>
       <OutputFile>$(OutDir)d3d9.dll</OutputFile>
     </Link>
+    <PostBuildEvent>
+      <Command>mkdir "$(ProjectDir)..\..\lib\$(Configuration)_$(Platform)\"
+copy "$(OutDir)d3d9.dll" "$(ProjectDir)..\..\lib\$(Configuration)_$(Platform)\"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Midl>
@@ -193,6 +197,10 @@
       <TargetMachine>MachineX64</TargetMachine>
       <OutputFile>$(OutDir)d3d9.dll</OutputFile>
     </Link>
+    <PostBuildEvent>
+      <Command>mkdir "$(ProjectDir)..\..\lib\$(Configuration)_$(Platform)\"
+copy "$(OutDir)d3d9.dll" "$(ProjectDir)..\..\lib\$(Configuration)_$(Platform)\"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -234,6 +242,10 @@
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <OutputFile>$(OutDir)d3d9.dll</OutputFile>
     </Link>
+    <PostBuildEvent>
+      <Command>mkdir "$(ProjectDir)..\..\lib\$(Configuration)_$(Platform)\"
+copy "$(OutDir)d3d9.dll" "$(ProjectDir)..\..\lib\$(Configuration)_$(Platform)\"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">
     <ClCompile>
@@ -274,6 +286,10 @@
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
       <OutputFile>$(OutDir)d3d9.dll</OutputFile>
     </Link>
+    <PostBuildEvent>
+      <Command>mkdir "$(ProjectDir)..\..\lib\$(Configuration)_$(Platform)\"
+copy "$(OutDir)d3d9.dll" "$(ProjectDir)..\..\lib\$(Configuration)_$(Platform)\"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Midl>
@@ -319,6 +335,10 @@
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <OutputFile>$(OutDir)d3d9.dll</OutputFile>
     </Link>
+    <PostBuildEvent>
+      <Command>mkdir "$(ProjectDir)..\..\lib\$(Configuration)_$(Platform)\"
+copy "$(OutDir)d3d9.dll" "$(ProjectDir)..\..\lib\$(Configuration)_$(Platform)\"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">
     <Midl>
@@ -363,6 +383,10 @@
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
       <OutputFile>$(OutDir)d3d9.dll</OutputFile>
     </Link>
+    <PostBuildEvent>
+      <Command>mkdir "$(ProjectDir)..\..\lib\$(Configuration)_$(Platform)\"
+copy "$(OutDir)d3d9.dll" "$(ProjectDir)..\..\lib\$(Configuration)_$(Platform)\"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Capabilities.cpp" />
