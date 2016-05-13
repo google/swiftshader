@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1239a8b4_5ecc939c",
+        "filename": "README.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-05-13T13:38:29Z",
+      "side": 1,
+      "message": "Is this OK-ish? It might cause confusion about replacing the GPU drivers wholesale.",
+      "range": {
+        "startLine": 12,
+        "startChar": 33,
+        "endLine": 12,
+        "endChar": 74
+      },
+      "revId": "7afbaceb2053dae6a3b38c15bde1982b7400a680",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1239a8b4_7ec94f8b",
+        "filename": "README.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-05-13T13:38:29Z",
+      "side": 1,
+      "message": "Best word to use here?",
+      "range": {
+        "startLine": 21,
+        "startChar": 4,
+        "endLine": 21,
+        "endChar": 13
+      },
+      "revId": "7afbaceb2053dae6a3b38c15bde1982b7400a680",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1239a8b4_bec3b768",
+        "filename": "README.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-05-13T13:38:29Z",
+      "side": 1,
+      "message": "I\u0027m considering replacing this with:\n\nThe SwiftShader project is licensed under the Apache License Version 2.0. You can find a copy of it in LICENSE.txt.",
+      "range": {
+        "startLine": 44,
+        "startChar": 0,
+        "endLine": 44,
+        "endChar": 15
+      },
+      "revId": "7afbaceb2053dae6a3b38c15bde1982b7400a680",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
