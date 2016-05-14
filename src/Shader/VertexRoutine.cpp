@@ -482,6 +482,50 @@ namespace sw
 				v.x.w = *Pointer<Float>(source3);
 			}
 			break;
+		case STREAMTYPE_2_10_10_10_INT:
+			{
+				Int4 src;
+				src = Insert(src, *Pointer<Int>(source0), 0);
+				src = Insert(src, *Pointer<Int>(source1), 1);
+				src = Insert(src, *Pointer<Int>(source2), 2);
+				src = Insert(src, *Pointer<Int>(source3), 3);
+
+				v.x = Float4((src << 22) >> 22);
+				v.y = Float4((src << 12) >> 22);
+				v.z = Float4((src << 02) >> 22);
+				v.w = Float4(src >> 30);
+
+				if(stream.normalized)
+				{
+					v.x = Max(v.x * Float4(1.0f / 0x1FF), Float4(-1.0f));
+					v.y = Max(v.y * Float4(1.0f / 0x1FF), Float4(-1.0f));
+					v.z = Max(v.z * Float4(1.0f / 0x1FF), Float4(-1.0f));
+					v.w = Max(v.w, Float4(-1.0f));
+				}
+			}
+			break;
+		case STREAMTYPE_2_10_10_10_UINT:
+			{
+				Int4 src;
+				src = Insert(src, *Pointer<Int>(source0), 0);
+				src = Insert(src, *Pointer<Int>(source1), 1);
+				src = Insert(src, *Pointer<Int>(source2), 2);
+				src = Insert(src, *Pointer<Int>(source3), 3);
+
+				v.x = Float4(src & Int4(0x3FF));
+				v.y = Float4((src >> 10) & Int4(0x3FF));
+				v.z = Float4((src >> 20) & Int4(0x3FF));
+				v.w = Float4((src >> 30) & Int4(0x3));
+
+				if(stream.normalized)
+				{
+					v.x *= Float4(1.0f / 0x3FF);
+					v.y *= Float4(1.0f / 0x3FF);
+					v.z *= Float4(1.0f / 0x3FF);
+					v.w *= Float4(1.0f / 0x3);
+				}
+			}
+			break;
 		default:
 			ASSERT(false);
 		}
