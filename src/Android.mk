@@ -2,7 +2,7 @@ LOCAL_PATH:= $(call my-dir)
 
 COMMON_C_INCLUDES += \
 	bionic \
-	$(LOCAL_PATH)/OpenGL/include \
+	$(LOCAL_PATH)/../include \
 	$(LOCAL_PATH)/OpenGL/ \
 	$(LOCAL_PATH) \
 	$(LOCAL_PATH)/Renderer/ \

@@ -122,7 +122,7 @@
 			<Add option="-DGL_APICALL=" />
 			<Add option="-DGL_GLEXT_PROTOTYPES" />
 			<Add directory="./../" />
-			<Add directory="./../include/" />
+			<Add directory="./../../../include/" />
 			<Add directory="./../../" />
 			<Add directory="./../../../third_party/LLVM/include-linux/" />
 			<Add directory="./../../../third_party/LLVM/include/" />
