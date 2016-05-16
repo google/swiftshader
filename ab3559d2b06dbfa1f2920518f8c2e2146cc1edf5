@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1239a8b4_1a0ccede",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-05-16T15:31:20Z",
+      "side": 1,
+      "message": "Will do as soon as it lands.",
+      "parentUuid": "1239a8b4_7a495224",
+      "range": {
+        "startLine": 29,
+        "startChar": 0,
+        "endLine": 32,
+        "endChar": 49
+      },
+      "revId": "ab3559d2b06dbfa1f2920518f8c2e2146cc1edf5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1239a8b4_3a56eabc",
         "filename": "src/Shader/Shader.cpp",
         "patchSetId": 4
@@ -36,6 +60,30 @@
       "writtenOn": "2016-05-16T15:15:36Z",
       "side": 1,
       "message": "Could use a little comment why we\u0027re treating switch as a loop.",
+      "range": {
+        "startLine": 1095,
+        "startChar": 94,
+        "endLine": 1095,
+        "endChar": 108
+      },
+      "revId": "ab3559d2b06dbfa1f2920518f8c2e2146cc1edf5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1239a8b4_5a1656ec",
+        "filename": "src/Shader/Shader.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 1095,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-05-16T15:31:20Z",
+      "side": 1,
+      "message": "Renamed to isLoopOrSwitch for now.",
+      "parentUuid": "1239a8b4_3a56eabc",
       "range": {
         "startLine": 1095,
         "startChar": 94,
