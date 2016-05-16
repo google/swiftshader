@@ -2,7 +2,7 @@ LOCAL_PATH:= $(call my-dir)
 
 COMMON_C_INCLUDES := \
 	bionic \
-	$(LOCAL_PATH)/../include \
+	$(LOCAL_PATH)/../../../include \
 	$(LOCAL_PATH)/../ \
 	$(LOCAL_PATH)/../../ \
 	$(LOCAL_PATH)/../../../third_party/LLVM/include-android \

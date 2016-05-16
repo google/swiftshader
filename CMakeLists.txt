@@ -560,7 +560,7 @@ set(COMMON_INCLUDE_DIR
     ${SOURCE_DIR}/Reactor
     ${SOURCE_DIR}/Renderer
     ${SOURCE_DIR}/Shader
-    ${OPENGL_DIR}/include
+    ${CMAKE_SOURCE_DIR}/include
     ${LLVM_INCLUDE_DIR}
 )
 set(OPENGL_INCLUDE_DIR
@@ -615,14 +615,14 @@ file(GLOB_RECURSE EGL_LIST
     ${OPENGL_DIR}/common/Object.hpp
     ${OPENGL_DIR}/common/debug.cpp
     ${OPENGL_DIR}/common/debug.h
-    ${OPENGL_DIR}/include/*.h
+    ${CMAKE_SOURCE_DIR}/include/*.h
 )
 
 file(GLOB_RECURSE OPENGL_COMMON_LIST
     ${OPENGL_DIR}/common/*.cpp
     ${OPENGL_DIR}/common/*.h
     ${OPENGL_DIR}/common/*.hpp
-    ${OPENGL_DIR}/include/*.h
+    ${CMAKE_SOURCE_DIR}/include/*.h
 )
 
 file(GLOB_RECURSE GL32_LIST
@@ -830,7 +830,7 @@ elseif(APPLE)
         ${HELLO2_DIR}/Build/OSX/en.lproj/MainMenu.xib
     )
     set_target_properties(OGLES2HelloAPI PROPERTIES
-        INCLUDE_DIRECTORIES "${OPENGL_DIR}/include"
+        INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/include"
         COMPILE_DEFINITIONS "GL_GLEXT_PROTOTYPES"
         MACOSX_BUNDLE_INFO_PLIST "${HELLO2_DIR}/Build/OSX/Info.plist"
     )

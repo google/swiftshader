@@ -103,7 +103,7 @@
 			<Add option="-fvisibility=protected" />
 			<Add option="-DEGLAPI=" />
 			<Add option="-DEGL_EGLEXT_PROTOTYPES" />
-			<Add directory="./../include/" />
+			<Add directory="./../../../include/" />
 			<Add directory="./../" />
 			<Add directory="./../../" />
 		</Compiler>

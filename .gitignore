@@ -21,4 +21,4 @@
 *.o
 *.depend
 *.layout
-
+*.opensdf
