@@ -81,7 +81,7 @@ macro(set_target_export_map TARGET DIR)
         # hides all the others. Gc sections is used in combination
         # with each functions being in its section, to reduce the
         # binary size.
-        set_target_properties(${TARGET} PROPERTIES LINK_FLAGS "${LINKFLAGS} -Wl,--hash-style=both,--version-script=${DIR}/exports.map,--gc-sections")
+        set_target_properties(${TARGET} PROPERTIES LINK_FLAGS "${LINKFLAGS} -Wl,--hash-style=both,--version-script=${DIR}/exports.map,--gc-sections,--no-undefined")
     endif()
 endmacro()
 
@@ -618,29 +618,37 @@ file(GLOB_RECURSE EGL_LIST
     ${CMAKE_SOURCE_DIR}/include/*.h
 )
 
-file(GLOB_RECURSE OPENGL_COMMON_LIST
-    ${OPENGL_DIR}/common/*.cpp
-    ${OPENGL_DIR}/common/*.h
-    ${OPENGL_DIR}/common/*.hpp
-    ${CMAKE_SOURCE_DIR}/include/*.h
-)
-
 file(GLOB_RECURSE GL32_LIST
     ${OPENGL_DIR}/libGL/*.cpp
     ${OPENGL_DIR}/libGL/*.h
     ${OPENGL_DIR}/libGL/*.hpp
+    ${OPENGL_DIR}/common/*.cpp
+    ${OPENGL_DIR}/common/*.h
+    ${OPENGL_DIR}/common/*.hpp
+    ${CMAKE_SOURCE_DIR}/include/GL/*.h
 )
 
 file(GLOB_RECURSE GLES2_LIST
     ${OPENGL_DIR}/libGLESv2/*.cpp
     ${OPENGL_DIR}/libGLESv2/*.h
     ${OPENGL_DIR}/libGLESv2/*.hpp
+    ${OPENGL_DIR}/common/*.cpp
+    ${OPENGL_DIR}/common/*.h
+    ${OPENGL_DIR}/common/*.hpp
+    ${CMAKE_SOURCE_DIR}/include/KHR/*.h
+    ${CMAKE_SOURCE_DIR}/include/GLES2/*.h
+    ${CMAKE_SOURCE_DIR}/include/GLES3/*.h
 )
 
 file(GLOB_RECURSE GLES_CM_LIST
     ${OPENGL_DIR}/libGLES_CM/*.cpp
     ${OPENGL_DIR}/libGLES_CM/*.h
     ${OPENGL_DIR}/libGLES_CM/*.hpp
+    ${OPENGL_DIR}/common/*.cpp
+    ${OPENGL_DIR}/common/*.h
+    ${OPENGL_DIR}/common/*.hpp
+    ${CMAKE_SOURCE_DIR}/include/KHR/*.h
+    ${CMAKE_SOURCE_DIR}/include/GLES/*.h
 )
 
 file(GLOB_RECURSE OPENGL_COMPILER_LIST
@@ -679,6 +687,12 @@ elseif(LINUX)
     list(APPEND SWIFTSHADER_LIST
         ${SOURCE_DIR}/Main/FrameBufferX11.cpp
         ${SOURCE_DIR}/Main/FrameBufferX11.hpp
+        ${SOURCE_DIR}/Common/SharedLibrary.hpp
+        ${SOURCE_DIR}/Main/libX11.cpp
+        ${SOURCE_DIR}/Main/libX11.hpp
+    )
+    list(APPEND EGL_LIST
+        ${SOURCE_DIR}/Common/SharedLibrary.hpp
         ${SOURCE_DIR}/Main/libX11.cpp
         ${SOURCE_DIR}/Main/libX11.hpp
     )
@@ -702,7 +716,7 @@ endif()
 if(WIN32)
     set(OS_LIBS odbc32 odbccp32 WS2_32 dxguid)
 elseif(LINUX)
-    set(OS_LIBS dl X11 Xext pthread)
+    set(OS_LIBS dl pthread)
 elseif(APPLE)
     find_library(COCOA_FRAMEWORK Cocoa)
     find_library(QUARTZ_FRAMEWORK Quartz)
@@ -728,14 +742,6 @@ set_target_properties(Reactor PROPERTIES
     FOLDER "Core"
 )
 target_link_libraries(Reactor llvm ${OS_LIBS})
-
-add_library(GLCommon STATIC ${OPENGL_COMMON_LIST})
-set_target_properties(GLCommon PROPERTIES
-    INCLUDE_DIRECTORIES "${OPENGL_INCLUDE_DIR}"
-    POSITION_INDEPENDENT_CODE 1
-    FOLDER "OpenGL"
-)
-target_link_libraries(GLCommon ${OS_LIBS})
 
 add_library(GLCompiler STATIC ${OPENGL_COMPILER_LIST})
 set_target_properties(GLCompiler PROPERTIES
@@ -778,7 +784,7 @@ if(BUILD_GL32)
         PREFIX ""
     )
     set_target_export_map(libGL ${SOURCE_DIR}/OpenGL/libGL)
-    target_link_libraries(libGL SwiftShader Reactor GLCommon GLCompiler ${OS_LIBS})
+    target_link_libraries(libGL SwiftShader Reactor GLCompiler ${OS_LIBS})
 endif()
 
 if(BUILD_GLESv2)
@@ -790,7 +796,7 @@ if(BUILD_GLESv2)
         PREFIX ""
     )
     set_target_export_map(libGLESv2 ${SOURCE_DIR}/OpenGL/libGLESv2)
-    target_link_libraries(libGLESv2 SwiftShader Reactor GLCommon GLCompiler ${OS_LIBS})
+    target_link_libraries(libGLESv2 SwiftShader Reactor GLCompiler ${OS_LIBS})
     add_custom_command(
         TARGET libGLESv2
         POST_BUILD
@@ -808,7 +814,7 @@ if(BUILD_GLES_CM)
         PREFIX ""
     )
     set_target_export_map(libGLES_CM ${SOURCE_DIR}/OpenGL/libGLES_CM)
-    target_link_libraries(libGLES_CM SwiftShader Reactor GLCommon GLCompiler ${OS_LIBS})
+    target_link_libraries(libGLES_CM SwiftShader Reactor GLCompiler ${OS_LIBS})
     add_custom_command(
         TARGET libGLES_CM
         POST_BUILD
