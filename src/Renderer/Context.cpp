@@ -1260,7 +1260,7 @@ namespace sw
 
 		if(vertexShader)
 		{
-			vertexDiffuse = vertexShader->output[D0][component].active();
+			vertexDiffuse = vertexShader->output[C0][component].active();
 		}
 		else if(!preTransformed)
 		{
@@ -1327,7 +1327,7 @@ namespace sw
 		}
 		else
 		{
-			vertexSpecular = vertexShader->output[D1][component].active();
+			vertexSpecular = vertexShader->output[C1][component].active();
 		}
 
 		// Pixel processor requires specular component

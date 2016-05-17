@@ -24,8 +24,8 @@ namespace sw
 	enum Out   // Default vertex output semantic
 	{
 		Pos = 0,
-		D0 = 1,   // Diffuse
-		D1 = 2,   // Specular
+		C0 = 1,   // Diffuse
+		C1 = 2,   // Specular
 		T0 = 3,
 		T1 = 4,
 		T2 = 5,

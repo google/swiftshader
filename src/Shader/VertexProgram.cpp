@@ -410,10 +410,10 @@ namespace sw
 						}
 						break;
 					case Shader::PARAMETER_ATTROUT:
-						if(dst.x) pDst.x = o[D0 + dst.index].x;
-						if(dst.y) pDst.y = o[D0 + dst.index].y;
-						if(dst.z) pDst.z = o[D0 + dst.index].z;
-						if(dst.w) pDst.w = o[D0 + dst.index].w;
+						if(dst.x) pDst.x = o[C0 + dst.index].x;
+						if(dst.y) pDst.y = o[C0 + dst.index].y;
+						if(dst.z) pDst.z = o[C0 + dst.index].z;
+						if(dst.w) pDst.w = o[C0 + dst.index].w;
 						break;
 					case Shader::PARAMETER_TEXCRDOUT:
 				//	case Shader::PARAMETER_OUTPUT:
@@ -541,10 +541,10 @@ namespace sw
 					}
 					break;
 				case Shader::PARAMETER_ATTROUT:
-					if(dst.x) o[D0 + dst.index].x = d.x;
-					if(dst.y) o[D0 + dst.index].y = d.y;
-					if(dst.z) o[D0 + dst.index].z = d.z;
-					if(dst.w) o[D0 + dst.index].w = d.w;
+					if(dst.x) o[C0 + dst.index].x = d.x;
+					if(dst.y) o[C0 + dst.index].y = d.y;
+					if(dst.z) o[C0 + dst.index].z = d.z;
+					if(dst.w) o[C0 + dst.index].w = d.w;
 					break;
 				case Shader::PARAMETER_TEXCRDOUT:
 			//	case Shader::PARAMETER_OUTPUT:
@@ -640,10 +640,10 @@ namespace sw
 
 			for(int i = 0; i < 2; i++)
 			{
-				o[D0 + i].x = v[Color0 + i].x;
-				o[D0 + i].y = v[Color0 + i].y;
-				o[D0 + i].z = v[Color0 + i].z;
-				o[D0 + i].w = v[Color0 + i].w;
+				o[C0 + i].x = v[Color0 + i].x;
+				o[C0 + i].y = v[Color0 + i].y;
+				o[C0 + i].z = v[Color0 + i].z;
+				o[C0 + i].w = v[Color0 + i].w;
 			}
 
 			for(int i = 0; i < 8; i++)
