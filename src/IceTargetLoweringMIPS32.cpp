@@ -692,9 +692,6 @@ void TargetMIPS32::lowerArithmetic(const InstArithmetic *Instr) {
   switch (Instr->getOp()) {
   default:
     break;
-  case InstArithmetic::Shl:
-  case InstArithmetic::Lshr:
-  case InstArithmetic::Ashr:
   case InstArithmetic::Udiv:
   case InstArithmetic::Sdiv:
   case InstArithmetic::Urem:
@@ -742,12 +739,21 @@ void TargetMIPS32::lowerArithmetic(const InstArithmetic *Instr) {
     _mov(Dest, T);
     return;
   }
-  case InstArithmetic::Shl:
-    break;
-  case InstArithmetic::Lshr:
-    break;
-  case InstArithmetic::Ashr:
-    break;
+  case InstArithmetic::Shl: {
+    _sllv(T, Src0R, Src1R);
+    _mov(Dest, T);
+    return;
+  }
+  case InstArithmetic::Lshr: {
+    _srlv(T, Src0R, Src1R);
+    _mov(Dest, T);
+    return;
+  }
+  case InstArithmetic::Ashr: {
+    _srav(T, Src0R, Src1R);
+    _mov(Dest, T);
+    return;
+  }
   case InstArithmetic::Udiv:
     break;
   case InstArithmetic::Sdiv:

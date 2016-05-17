@@ -224,6 +224,10 @@ public:
     Context.insert<InstMIPS32Sll>(Dest, Src, Imm);
   }
 
+  void _sllv(Variable *Dest, Variable *Src0, Variable *Src1) {
+    Context.insert<InstMIPS32Sllv>(Dest, Src0, Src1);
+  }
+
   void _slt(Variable *Dest, Variable *Src0, Variable *Src1) {
     Context.insert<InstMIPS32Slt>(Dest, Src0, Src1);
   }
@@ -242,6 +246,18 @@ public:
 
   void _sra(Variable *Dest, Variable *Src, uint32_t Imm) {
     Context.insert<InstMIPS32Sra>(Dest, Src, Imm);
+  }
+
+  void _srav(Variable *Dest, Variable *Src0, Variable *Src1) {
+    Context.insert<InstMIPS32Srav>(Dest, Src0, Src1);
+  }
+
+  void _srl(Variable *Dest, Variable *Src, uint32_t Imm) {
+    Context.insert<InstMIPS32Srl>(Dest, Src, Imm);
+  }
+
+  void _srlv(Variable *Dest, Variable *Src0, Variable *Src1) {
+    Context.insert<InstMIPS32Srlv>(Dest, Src0, Src1);
   }
 
   void _sub(Variable *Dest, Variable *Src0, Variable *Src1) {

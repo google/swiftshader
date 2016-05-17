@@ -24,6 +24,17 @@
 ; RUN:   | %if --need=target_ARM32 --need=allow_dump \
 ; RUN:   --command FileCheck --check-prefix ARM32 %s
 
+; RUN: %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command %p2i --filetype=asm --assemble \
+; RUN:   --disassemble --target mips32 -i %s --args -O2 --skip-unimplemented \
+; RUN:   | %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command FileCheck --check-prefix MIPS32 %s
+
+; RUN: %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command %p2i --filetype=asm --assemble \
+; RUN:   --disassemble --target mips32 -i %s --args -Om1 --skip-unimplemented \
+; RUN:   | %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command FileCheck --check-prefix MIPS32 %s
 
 @i1 = internal global [4 x i8] zeroinitializer, align 4
 @i2 = internal global [4 x i8] zeroinitializer, align 4
@@ -73,6 +84,9 @@ entry:
 ; CHECK-LABEL: shlImmLarge
 ; CHECK: shl {{.*}},0x1
 
+; MIPS32-LABEL: shlImmLarge
+; MIPS32: sllv
+
 define internal i32 @shlImmNeg(i32 %val) {
 entry:
   %result = shl i32 %val, -1
@@ -80,6 +94,9 @@ entry:
 }
 ; CHECK-LABEL: shlImmNeg
 ; CHECK: shl {{.*}},0xff
+
+; MIPS32-LABEL: shlImmNeg
+; MIPS32: sllv
 
 define internal i32 @lshrImmLarge(i32 %val) {
 entry:
@@ -89,6 +106,9 @@ entry:
 ; CHECK-LABEL: lshrImmLarge
 ; CHECK: shr {{.*}},0x1
 
+; MIPS32-LABEL: lshrImmLarge
+; MIPS32: srlv
+
 define internal i32 @lshrImmNeg(i32 %val) {
 entry:
   %result = lshr i32 %val, -1
@@ -96,6 +116,9 @@ entry:
 }
 ; CHECK-LABEL: lshrImmNeg
 ; CHECK: shr {{.*}},0xff
+
+; MIPS32-LABEL: lshrImmNeg
+; MIPS32: srlv
 
 define internal i32 @ashrImmLarge(i32 %val) {
 entry:
@@ -105,6 +128,9 @@ entry:
 ; CHECK-LABEL: ashrImmLarge
 ; CHECK: sar {{.*}},0x1
 
+; MIPS32-LABEL: ashrImmLarge
+; MIPS32: srav
+
 define internal i32 @ashrImmNeg(i32 %val) {
 entry:
   %result = ashr i32 %val, -1
@@ -112,6 +138,9 @@ entry:
 }
 ; CHECK-LABEL: ashrImmNeg
 ; CHECK: sar {{.*}},0xff
+
+; MIPS32-LABEL: ashrImmNeg
+; MIPS32: srav
 
 define internal i64 @shlImm64One(i64 %val) {
 entry:
