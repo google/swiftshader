@@ -173,7 +173,7 @@ namespace sw
 						state.gradient[interpolant][component].flat = point && !sprite;
 						break;
 					case Shader::USAGE_COLOR:
-						state.gradient[interpolant][component].attribute = D0 + index;
+						state.gradient[interpolant][component].attribute = C0 + index;
 						state.gradient[interpolant][component].flat = flatShading;
 						break;
 					default:
@@ -203,7 +203,7 @@ namespace sw
 				{
 					if(context->colorActive(color, component))
 					{
-						state.color[color][component].attribute = D0 + color;
+						state.color[color][component].attribute = C0 + color;
 						state.color[color][component].flat = flatShading;
 					}
 				}

@@ -209,17 +209,17 @@ namespace sw
 				case Shader::PARAMETER_ATTROUT:
 					if(dst.index == 0)
 					{
-						if(dst.x) output[D0][0] = Semantic(Shader::USAGE_COLOR, 0);
-						if(dst.y) output[D0][1] = Semantic(Shader::USAGE_COLOR, 0);
-						if(dst.z) output[D0][2] = Semantic(Shader::USAGE_COLOR, 0);
-						if(dst.w) output[D0][3] = Semantic(Shader::USAGE_COLOR, 0);
+						if(dst.x) output[C0][0] = Semantic(Shader::USAGE_COLOR, 0);
+						if(dst.y) output[C0][1] = Semantic(Shader::USAGE_COLOR, 0);
+						if(dst.z) output[C0][2] = Semantic(Shader::USAGE_COLOR, 0);
+						if(dst.w) output[C0][3] = Semantic(Shader::USAGE_COLOR, 0);
 					}
 					else if(dst.index == 1)
 					{
-						if(dst.x) output[D1][0] = Semantic(Shader::USAGE_COLOR, 1);
-						if(dst.y) output[D1][1] = Semantic(Shader::USAGE_COLOR, 1);
-						if(dst.z) output[D1][2] = Semantic(Shader::USAGE_COLOR, 1);
-						if(dst.w) output[D1][3] = Semantic(Shader::USAGE_COLOR, 1);
+						if(dst.x) output[C1][0] = Semantic(Shader::USAGE_COLOR, 1);
+						if(dst.y) output[C1][1] = Semantic(Shader::USAGE_COLOR, 1);
+						if(dst.z) output[C1][2] = Semantic(Shader::USAGE_COLOR, 1);
+						if(dst.w) output[C1][3] = Semantic(Shader::USAGE_COLOR, 1);
 					}
 					else ASSERT(false);
 					break;

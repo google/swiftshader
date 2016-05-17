@@ -956,12 +956,12 @@ namespace sw
 
 			if(context->diffuseActive() && (context->lightingEnable || context->input[Color0]))
 			{
-				state.output[D0].write = 0xF;
+				state.output[C0].write = 0xF;
 			}
 
 			if(context->specularActive())
 			{
-				state.output[D1].write = 0xF;
+				state.output[C1].write = 0xF;
 			}
 
 			for(int stage = 0; stage < 8; stage++)
@@ -990,7 +990,7 @@ namespace sw
 			{
 				if(context->input[Color0 + i])
 				{
-					state.output[D0 + i].write = 0xF;
+					state.output[C0 + i].write = 0xF;
 				}
 			}
 
@@ -1010,8 +1010,8 @@ namespace sw
 
 		if(context->vertexShaderVersion() < 0x0300)
 		{
-			state.output[D0].clamp = 0xF;
-			state.output[D1].clamp = 0xF;
+			state.output[C0].clamp = 0xF;
+			state.output[C1].clamp = 0xF;
 			state.output[Fog].xClamp = true;
 		}
 
