@@ -58,21 +58,11 @@ namespace sw
 		{
 			struct   // Fixed semantics
 			{
-				union   // Position
-				{
-					struct
-					{
-						float x;
-						float y;
-						float z;
-						float w;
-					};
-
-					struct
-					{
-						float4 P;
-					};
-				};
+				// Position
+				float x;
+				float y;
+				float z;
+				float w;
 
 				float4 C[2];   // Diffuse and specular color
 
@@ -80,21 +70,19 @@ namespace sw
 
 				float f;             // Fog
 				float pSize;         // Point size
-				unsigned char padding0[4];
-				unsigned char clipFlags;
-				unsigned char padding1[3];
 			};
 
 			float4 v[12];   // Generic components using semantic declaration
 		};
 
-		struct   // Projected coordinates
-		{
-			int X;
-			int Y;
-			float Z;
-			float W;
-		};
+		// Projected coordinates
+		int X;
+		int Y;
+		float Z;
+		float W;
+
+		int clipFlags;
+		int padding[3];
 	});
 
 	META_ASSERT((sizeof(Vertex) & 0x0000000F) == 0);

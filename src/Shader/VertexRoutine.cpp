@@ -639,7 +639,7 @@ namespace sw
 			}
 		}
 
-		*Pointer<Int>(cacheLine + OFFSET(Vertex,clipFlags) + sizeof(Vertex) * 0) = (clipFlags >> 0)  & 0x0000000FF;   // FIXME: unsigned char Vertex::clipFlags
+		*Pointer<Int>(cacheLine + OFFSET(Vertex,clipFlags) + sizeof(Vertex) * 0) = (clipFlags >> 0)  & 0x0000000FF;
 		*Pointer<Int>(cacheLine + OFFSET(Vertex,clipFlags) + sizeof(Vertex) * 1) = (clipFlags >> 8)  & 0x0000000FF;
 		*Pointer<Int>(cacheLine + OFFSET(Vertex,clipFlags) + sizeof(Vertex) * 2) = (clipFlags >> 16) & 0x0000000FF;
 		*Pointer<Int>(cacheLine + OFFSET(Vertex,clipFlags) + sizeof(Vertex) * 3) = (clipFlags >> 24) & 0x0000000FF;
@@ -673,11 +673,11 @@ namespace sw
 		{
 			if(state.output[i].write)
 			{
-				*Pointer<Float4>(vertex + OFFSET(Vertex,v[i])) = *Pointer<Float4>(cache + OFFSET(Vertex,v[i]));
+				*Pointer<Int4>(vertex + OFFSET(Vertex,v[i]), 16) = *Pointer<Int4>(cache + OFFSET(Vertex,v[i]), 16);
 			}
 		}
 
+		*Pointer<Int4>(vertex + OFFSET(Vertex,X)) = *Pointer<Int4>(cache + OFFSET(Vertex,X));
 		*Pointer<Int>(vertex + OFFSET(Vertex,clipFlags)) = *Pointer<Int>(cache + OFFSET(Vertex,clipFlags));
-		*Pointer<Float4>(vertex + OFFSET(Vertex,X)) = *Pointer<Float4>(cache + OFFSET(Vertex,X));
 	}
 }
