@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "97ebca62_d6a9c28e",
+        "filename": "CMakeLists.txt",
+        "patchSetId": 1
+      },
+      "lineNbr": 625,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-05-17T20:11:28Z",
+      "side": 0,
+      "message": "OpenGL/common shouldn\u0027t really be a separate target.",
+      "range": {
+        "startLine": 621,
+        "startChar": 0,
+        "endLine": 625,
+        "endChar": 35
+      },
+      "revId": "027372a6419cbee60ffba814d20d3fb0663a872b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "97ebca62_f6c5e650",
+        "filename": "CMakeLists.txt",
+        "patchSetId": 1
+      },
+      "lineNbr": 705,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-05-17T20:11:28Z",
+      "side": 0,
+      "message": "Avoid linking in X11. We load it dynamically, if available (not the case on a headless server).",
+      "range": {
+        "startLine": 705,
+        "startChar": 19,
+        "endLine": 705,
+        "endChar": 28
+      },
+      "revId": "027372a6419cbee60ffba814d20d3fb0663a872b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}

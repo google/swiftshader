@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "97ebca62_16a04aa3",
+        "filename": "CMakeLists.txt",
+        "patchSetId": 1
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-05-17T20:11:28Z",
+      "side": 1,
+      "message": "Prevents building shared library with undefined symbols.",
+      "range": {
+        "startLine": 84,
+        "startChar": 148,
+        "endLine": 84,
+        "endChar": 162
+      },
+      "revId": "3538af4e5313aa6f11de8ea6f3efcca4860a55c7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "97ebca62_96b57ae1",
+        "filename": "CMakeLists.txt",
+        "patchSetId": 1
+      },
+      "lineNbr": 698,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-05-17T20:11:28Z",
+      "side": 1,
+      "message": "Fix undefined libX11 reference for EGL.",
+      "range": {
+        "startLine": 694,
+        "startChar": 4,
+        "endLine": 698,
+        "endChar": 5
+      },
+      "revId": "3538af4e5313aa6f11de8ea6f3efcca4860a55c7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
