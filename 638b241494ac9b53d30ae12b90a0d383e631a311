@@ -1,0 +1,188 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7721f6e1_bd709363",
+        "filename": "src/OpenGL/libEGL/libEGL.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 201,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-05-18T20:20:42Z",
+      "side": 1,
+      "message": "nit: Keep in alphabetical order, within each vendor group. So this one should be first.",
+      "range": {
+        "startLine": 201,
+        "startChar": 17,
+        "endLine": 201,
+        "endChar": 42
+      },
+      "revId": "638b241494ac9b53d30ae12b90a0d383e631a311",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7721f6e1_1dbeffe1",
+        "filename": "src/OpenGL/libEGL/libEGL.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 649,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-05-18T20:20:42Z",
+      "side": 1,
+      "message": "\"The default values for EGL_CONTEXT_MAJOR_VERSION_KHR and\n    EGL_CONTEXT_MINOR_VERSION_KHR are 1 and 0 respectively.\"",
+      "range": {
+        "startLine": 648,
+        "startChar": 1,
+        "endLine": 649,
+        "endChar": 31
+      },
+      "revId": "638b241494ac9b53d30ae12b90a0d383e631a311",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7721f6e1_7db3bb19",
+        "filename": "src/OpenGL/libEGL/libEGL.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 651,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-05-18T20:20:42Z",
+      "side": 1,
+      "message": "I don\u0027t think we need these.",
+      "range": {
+        "startLine": 650,
+        "startChar": 0,
+        "endLine": 651,
+        "endChar": 34
+      },
+      "revId": "638b241494ac9b53d30ae12b90a0d383e631a311",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7721f6e1_fd9fab6a",
+        "filename": "src/OpenGL/libEGL/libEGL.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 719,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-05-18T20:20:42Z",
+      "side": 1,
+      "message": "supported",
+      "range": {
+        "startLine": 719,
+        "startChar": 51,
+        "endLine": 719,
+        "endChar": 58
+      },
+      "revId": "638b241494ac9b53d30ae12b90a0d383e631a311",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7721f6e1_bd953351",
+        "filename": "src/OpenGL/libEGL/libEGL.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 720,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-05-18T20:20:42Z",
+      "side": 1,
+      "message": "\"If an OpenGL ES context is requested and the values for\n        attributes EGL_CONTEXT_MAJOR_VERSION_KHR and\n        EGL_CONTEXT_MINOR_VERSION_KHR specify an OpenGL ES version that\n        is not defined, than an EGL_BAD_MATCH error is generated.\"",
+      "range": {
+        "startLine": 720,
+        "startChar": 17,
+        "endLine": 720,
+        "endChar": 34
+      },
+      "revId": "638b241494ac9b53d30ae12b90a0d383e631a311",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7721f6e1_dd9c6779",
+        "filename": "src/OpenGL/libEGL/libEGL.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 727,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-05-18T20:20:42Z",
+      "side": 1,
+      "message": "supported",
+      "range": {
+        "startLine": 727,
+        "startChar": 59,
+        "endLine": 727,
+        "endChar": 66
+      },
+      "revId": "638b241494ac9b53d30ae12b90a0d383e631a311",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7721f6e1_1d90bf58",
+        "filename": "src/OpenGL/libEGL/libEGL.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 728,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-05-18T20:20:42Z",
+      "side": 1,
+      "message": "EGL_BAD_MATCH",
+      "range": {
+        "startLine": 728,
+        "startChar": 17,
+        "endLine": 728,
+        "endChar": 34
+      },
+      "revId": "638b241494ac9b53d30ae12b90a0d383e631a311",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7721f6e1_5d8a372a",
+        "filename": "src/OpenGL/libEGL/libEGL.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 732,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-05-18T20:20:42Z",
+      "side": 1,
+      "message": "EGL_BAD_MATCH",
+      "range": {
+        "startLine": 732,
+        "startChar": 16,
+        "endLine": 732,
+        "endChar": 33
+      },
+      "revId": "638b241494ac9b53d30ae12b90a0d383e631a311",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
