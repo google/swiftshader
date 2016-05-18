@@ -171,6 +171,8 @@ entry:
 ; ARM32HWDIV: sdiv
 
 ; MIPS32-LABEL: Sdiv
+; MIPS32: div
+; MIPS32: mflo
 
 define internal i32 @SdivConst(i32 %a) {
 entry:
@@ -189,6 +191,8 @@ entry:
 ; ARM32HWDIV: sdiv
 
 ; MIPS32-LABEL: SdivConst
+; MIPS32: div
+; MIPS32: mflo
 
 define internal i32 @Srem(i32 %a, i32 %b) {
 entry:
@@ -210,6 +214,8 @@ entry:
 ; ARM32HWDIV: mls
 
 ; MIPS32-LABEL: Srem
+; MIPS32: div
+; MIPS32: mfhi
 
 define internal i32 @Udiv(i32 %a, i32 %b) {
 entry:
@@ -229,6 +235,8 @@ entry:
 ; ARM32HWDIV: udiv
 
 ; MIPS32-LABEL: Udiv
+; MIPS32: divu
+; MIPS32: mflo
 
 define internal i32 @Urem(i32 %a, i32 %b) {
 entry:
@@ -249,6 +257,8 @@ entry:
 ; ARM32HWDIV: mls
 
 ; MIPS32-LABEL: Urem
+; MIPS32: divu
+; MIPS32: mfhi
 
 ; The following tests check that shift instructions don't try to use a
 ; ConstantRelocatable as an immediate operand.

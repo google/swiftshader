@@ -124,6 +124,8 @@ public:
     Andi,
     Br,
     Call,
+    Div,
+    Divu,
     La,
     Label,
     Lui,
@@ -470,6 +472,8 @@ using InstMIPS32Addu = InstMIPS32ThreeAddrGPR<InstMIPS32::Addu>;
 using InstMIPS32Addiu = InstMIPS32Imm16<InstMIPS32::Addiu, true>;
 using InstMIPS32And = InstMIPS32ThreeAddrGPR<InstMIPS32::And>;
 using InstMIPS32Andi = InstMIPS32Imm16<InstMIPS32::Andi>;
+using InstMIPS32Div = InstMIPS32ThreeAddrGPR<InstMIPS32::Div>;
+using InstMIPS32Divu = InstMIPS32ThreeAddrGPR<InstMIPS32::Divu>;
 using InstMIPS32Lui = InstMIPS32Imm16<InstMIPS32::Lui>;
 using InstMIPS32La = InstMIPS32UnaryopGPR<InstMIPS32::La>;
 using InstMIPS32Mfhi = InstMIPS32UnaryopGPR<InstMIPS32::Mfhi>;

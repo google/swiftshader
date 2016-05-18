@@ -164,6 +164,14 @@ public:
     Context.insert<InstMIPS32Addiu>(Dest, Src, Imm);
   }
 
+  void _div(Variable *Dest, Variable *Src0, Variable *Src1) {
+    Context.insert<InstMIPS32Div>(Dest, Src0, Src1);
+  }
+
+  void _divu(Variable *Dest, Variable *Src0, Variable *Src1) {
+    Context.insert<InstMIPS32Divu>(Dest, Src0, Src1);
+  }
+
   void _lui(Variable *Dest, uint32_t Imm) {
     Context.insert<InstMIPS32Lui>(Dest, Imm);
   }

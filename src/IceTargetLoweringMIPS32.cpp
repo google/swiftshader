@@ -692,10 +692,6 @@ void TargetMIPS32::lowerArithmetic(const InstArithmetic *Instr) {
   switch (Instr->getOp()) {
   default:
     break;
-  case InstArithmetic::Udiv:
-  case InstArithmetic::Sdiv:
-  case InstArithmetic::Urem:
-  case InstArithmetic::Srem:
   case InstArithmetic::Fadd:
   case InstArithmetic::Fsub:
   case InstArithmetic::Fmul:
@@ -754,14 +750,34 @@ void TargetMIPS32::lowerArithmetic(const InstArithmetic *Instr) {
     _mov(Dest, T);
     return;
   }
-  case InstArithmetic::Udiv:
-    break;
-  case InstArithmetic::Sdiv:
-    break;
-  case InstArithmetic::Urem:
-    break;
-  case InstArithmetic::Srem:
-    break;
+  case InstArithmetic::Udiv: {
+    auto *T_Zero = I32Reg(RegMIPS32::Reg_ZERO);
+    _divu(T_Zero, Src0R, Src1R);
+    _mflo(T, T_Zero);
+    _mov(Dest, T);
+    return;
+  }
+  case InstArithmetic::Sdiv: {
+    auto *T_Zero = I32Reg(RegMIPS32::Reg_ZERO);
+    _div(T_Zero, Src0R, Src1R);
+    _mflo(T, T_Zero);
+    _mov(Dest, T);
+    return;
+  }
+  case InstArithmetic::Urem: {
+    auto *T_Zero = I32Reg(RegMIPS32::Reg_ZERO);
+    _divu(T_Zero, Src0R, Src1R);
+    _mfhi(T, T_Zero);
+    _mov(Dest, T);
+    return;
+  }
+  case InstArithmetic::Srem: {
+    auto *T_Zero = I32Reg(RegMIPS32::Reg_ZERO);
+    _div(T_Zero, Src0R, Src1R);
+    _mfhi(T, T_Zero);
+    _mov(Dest, T);
+    return;
+  }
   case InstArithmetic::Fadd:
     break;
   case InstArithmetic::Fsub:
