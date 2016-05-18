@@ -1072,7 +1072,7 @@ namespace sw
 		}
 		else
 		{
-			for(int interpolant = 0; interpolant < 10; interpolant++)
+			for(int interpolant = 0; interpolant < MAX_FRAGMENT_INPUTS; interpolant++)
 			{
 				for(int component = 0; component < 4; component++)
 				{
@@ -1082,8 +1082,8 @@ namespace sw
 
 						switch(context->pixelShader->semantic[interpolant][component].usage)
 						{
-						case Shader::USAGE_TEXCOORD:	flat = point && !sprite;	break;
-						case Shader::USAGE_COLOR:		flat = flatShading;			break;
+						case Shader::USAGE_TEXCOORD: flat = point && !sprite; break;
+						case Shader::USAGE_COLOR:    flat = flatShading;      break;
 						}
 
 						state.interpolant[interpolant].component |= 1 << component;
@@ -1099,7 +1099,7 @@ namespace sw
 
 		if(state.centroid)
 		{
-			for(int interpolant = 0; interpolant < 10; interpolant++)
+			for(int interpolant = 0; interpolant < MAX_FRAGMENT_INPUTS; interpolant++)
 			{
 				for(int component = 0; component < 4; component++)
 				{

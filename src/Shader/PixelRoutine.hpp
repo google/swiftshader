@@ -34,7 +34,7 @@ namespace sw
 		Float4 w;    // Used as is
 		Float4 rhw;  // Reciprocal w
 
-		RegisterArray<10> v;   // Varying registers
+		RegisterArray<MAX_FRAGMENT_INPUTS> v;   // Varying registers
 
 		// Depth output
 		Float4 oDepth;

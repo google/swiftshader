@@ -16,6 +16,7 @@
 #define sw_PixelShader_hpp
 
 #include "Shader.hpp"
+#include "Main/Config.hpp"
 
 namespace sw
 {
@@ -37,8 +38,7 @@ namespace sw
 
 		virtual void analyze();
 
-		enum {MAX_INPUT_VARYINGS = 10};
-		Semantic semantic[MAX_INPUT_VARYINGS][4];   // FIXME: Private
+		Semantic semantic[MAX_FRAGMENT_INPUTS][4];   // FIXME: Private
 
 		bool vPosDeclared;
 		bool vFaceDeclared;

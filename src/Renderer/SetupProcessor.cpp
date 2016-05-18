@@ -104,7 +104,7 @@ namespace sw
 			state.pointSizeRegister = Pts;
 		}
 
-		for(int interpolant = 0; interpolant < 10; interpolant++)
+		for(int interpolant = 0; interpolant < MAX_FRAGMENT_INPUTS; interpolant++)
 		{
 			for(int component = 0; component < 4; component++)
 			{
@@ -124,7 +124,7 @@ namespace sw
 
 		if(context->vertexShader && context->pixelShader)
 		{
-			for(int interpolant = 0; interpolant < 10; interpolant++)
+			for(int interpolant = 0; interpolant < MAX_FRAGMENT_INPUTS; interpolant++)
 			{
 				for(int component = 0; component < 4; component++)
 				{
@@ -158,7 +158,7 @@ namespace sw
 		}
 		else if(context->preTransformed && context->pixelShader)
 		{
-			for(int interpolant = 0; interpolant < 10; interpolant++)
+			for(int interpolant = 0; interpolant < MAX_FRAGMENT_INPUTS; interpolant++)
 			{
 				for(int component = 0; component < 4; component++)
 				{

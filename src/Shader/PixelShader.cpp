@@ -223,7 +223,7 @@ namespace sw
 				}
 			}
 
-			bool interpolant[MAX_INPUT_VARYINGS][4] = {{false}};   // Interpolants in use
+			bool interpolant[MAX_FRAGMENT_INPUTS][4] = {{false}};   // Interpolants in use
 
 			for(unsigned int i = 0; i < instruction.size(); i++)
 			{
@@ -655,7 +655,7 @@ namespace sw
 				}
 			}
 
-			for(int index = 0; index < MAX_INPUT_VARYINGS; index++)
+			for(int index = 0; index < MAX_FRAGMENT_INPUTS; index++)
 			{
 				for(int component = 0; component < 4; component++)
 				{
