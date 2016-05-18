@@ -51,7 +51,7 @@ namespace D3D9
 	{
 		this->FVF = FVF;
 
-		vertexElement = new D3DVERTEXELEMENT9[16];
+		vertexElement = new D3DVERTEXELEMENT9[MAX_VERTEX_INPUTS];
 
 		numElements = 0;
 		int offset = 0;

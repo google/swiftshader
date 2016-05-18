@@ -442,7 +442,7 @@ namespace sw
 		bool colorUsed();
 
 		Resource *texture[TOTAL_IMAGE_UNITS];
-		Stream input[VERTEX_ATTRIBUTES];
+		Stream input[MAX_VERTEX_INPUTS];
 		Resource *indexBuffer;
 
 		bool preTransformed;   // FIXME: Private

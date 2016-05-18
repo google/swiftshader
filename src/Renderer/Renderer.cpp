@@ -335,7 +335,7 @@ namespace sw
 			draw->setupPrimitives = setupPrimitives;
 			draw->setupState = setupState;
 
-			for(int i = 0; i < VERTEX_ATTRIBUTES; i++)
+			for(int i = 0; i < MAX_VERTEX_INPUTS; i++)
 			{
 				draw->vertexStream[i] = context->input[i].resource;
 				data->input[i] = context->input[i].buffer;
@@ -990,7 +990,7 @@ namespace sw
 					}
 				}
 
-				for(int i = 0; i < VERTEX_ATTRIBUTES; i++)
+				for(int i = 0; i < MAX_VERTEX_INPUTS; i++)
 				{
 					if(draw.vertexStream[i])
 					{

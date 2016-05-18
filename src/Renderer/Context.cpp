@@ -204,7 +204,7 @@ namespace sw
 		}
 
 		// Set vertex streams to null stream
-		for(int i = 0; i < VERTEX_ATTRIBUTES; i++)
+		for(int i = 0; i < MAX_VERTEX_INPUTS; i++)
 		{
 			input[i].defaults();
 		}

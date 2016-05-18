@@ -38,9 +38,7 @@ namespace sw
 
 		bool instanceIdDeclared;
 
-		enum {MAX_INPUT_ATTRIBUTES = 16};
-		Semantic input[MAX_INPUT_ATTRIBUTES];       // FIXME: Private
-
+		Semantic input[MAX_VERTEX_INPUTS];        // FIXME: Private
 		Semantic output[MAX_VERTEX_OUTPUTS][4];   // FIXME: Private
 
 	private:
