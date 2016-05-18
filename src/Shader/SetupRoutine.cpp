@@ -144,7 +144,7 @@ namespace sw
 			If(m != 0 || Bool(!solidTriangle))   // Clipped triangle; reproject
 			{
 				Pointer<Byte> V = polygon + OFFSET(Polygon,P) + m * sizeof(void*) * 16;
-		
+
 				Int i = 0;
 
 				Do
@@ -166,9 +166,9 @@ namespace sw
 			// Vertical range
 			Int yMin = Y[0];
 			Int yMax = Y[0];
-		
+
 			Int i = 1;
-			
+
 			Do
 			{
 				yMin = Min(Y[i], yMin);
@@ -196,7 +196,7 @@ namespace sw
 
 			yMin = Max(yMin, *Pointer<Int>(data + OFFSET(DrawData,scissorY0)));
 			yMax = Min(yMax, *Pointer<Int>(data + OFFSET(DrawData,scissorY1)));
-		
+
 			For(Int q = 0, q < state.multiSample, q++)
 			{
 				Array<Int> Xq(16);
@@ -510,7 +510,7 @@ namespace sw
 				if(component == 1) i.z = 1.0f;
 				if(component == 2) i.z = 0.0f;
 				if(component == 3) i.z = 1.0f;
-				
+
 				i.w = 0;
 			}
 
@@ -597,7 +597,7 @@ namespace sw
 				Int ceil = -d >> 31;   // Ceiling division: remainder <= 0
 				x -= ceil;
 				d -= ceil & FDY12;
-				
+
 				Int Q = FDX12 / FDY12;   // Edge-step
 				Int R = FDX12 % FDY12;   // Error-step
 				Int floor = R >> 31;     // Flooring division: remainder >= 0
@@ -615,7 +615,7 @@ namespace sw
 					d += R;
 
 					Int overflow = -d >> 31;
-			
+
 					d -= D & overflow;
 					x -= overflow;
 
@@ -632,7 +632,7 @@ namespace sw
 			If(condition)
 			{
 				Pointer<Byte> vX;
-			
+
 				vX = v0;
 				v0 = v1;
 				v1 = v2;
@@ -652,7 +652,7 @@ namespace sw
 			If(condition)
 			{
 				Pointer<Byte> vX;
-			
+
 				vX = v2;
 				v2 = v1;
 				v1 = v0;

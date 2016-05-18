@@ -942,7 +942,7 @@ namespace sw
 
 		if(context->vertexShader)   // FIXME: Also when pre-transformed?
 		{
-			for(int i = 0; i < 12; i++)
+			for(int i = 0; i < MAX_VERTEX_OUTPUTS; i++)
 			{
 				state.output[i].xWrite = context->vertexShader->output[i][0].active();
 				state.output[i].yWrite = context->vertexShader->output[i][1].active();

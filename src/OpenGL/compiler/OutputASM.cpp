@@ -2787,7 +2787,7 @@ namespace glsl
 			}
 			else if(vertexShader)
 			{
-				if((var + registerCount) > sw::VertexShader::MAX_OUTPUT_VARYINGS)
+				if((var + registerCount) > sw::MAX_VERTEX_OUTPUTS)
 				{
 					mContext.error(varying->getLine(), "Varyings packing failed: Too many varyings", "vertex shader");
 					return 0;
