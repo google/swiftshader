@@ -5800,7 +5800,7 @@ namespace D3D9
 				}
 				else   // Bind directly to the output
 				{
-					for(int i = 0; i < 12; i++)
+					for(int i = 0; i < MAX_VERTEX_OUTPUTS; i++)
 					{
 						if((usage == shader->output[i][0].usage || (usage == D3DDECLUSAGE_POSITIONT && shader->output[i][0].usage == D3DDECLUSAGE_POSITION)) &&
 						    index == shader->output[i][0].index)

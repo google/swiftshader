@@ -18,11 +18,13 @@
 #include "Color.hpp"
 #include "Common/MetaMacro.hpp"
 #include "Common/Types.hpp"
+#include "Main/Config.hpp"
 
 namespace sw
 {
-	enum Out   // Default vertex output semantic
+	enum Out
 	{
+		// Default vertex output semantics
 		Pos = 0,
 		C0 = 1,   // Diffuse
 		C1 = 2,   // Specular
@@ -36,7 +38,13 @@ namespace sw
 		T7 = 10,
 		Fog = 11,    // x component
 		Pts = Fog,   // y component
-		Unused
+
+		// Variable semantics
+		V0 = 0,
+		Vn_1 = MAX_VERTEX_OUTPUTS - 1,
+
+		Unused,
+		VERTEX_OUTPUT_LAST = Unused,
 	};
 
 	struct UVWQ
@@ -72,7 +80,7 @@ namespace sw
 				float pSize;         // Point size
 			};
 
-			float4 v[12];   // Generic components using semantic declaration
+			float4 v[MAX_VERTEX_OUTPUTS];   // Generic components using semantic declaration
 		};
 
 		// Projected coordinates

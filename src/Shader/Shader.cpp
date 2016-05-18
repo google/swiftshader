@@ -119,7 +119,7 @@ namespace sw
 		predicate = false;
 		predicateNot = false;
 		predicateSwizzle = 0xE4;
-		
+
 		coissue = false;
 		samplerType = SAMPLER_UNKNOWN;
 		usage = USAGE_POSITION;
@@ -162,7 +162,7 @@ namespace sw
 					token++;
 					size--;
 				}
-				
+
 				token++;
 				size--;
 			}
@@ -173,7 +173,7 @@ namespace sw
 
 				predicateNot = (Modifier)((*token & 0x0F000000) >> 24) == MODIFIER_NOT;
 				predicateSwizzle = (unsigned char)((*token & 0x00FF0000) >> 16);
-				
+
 				token++;
 				size--;
 			}
@@ -201,11 +201,11 @@ namespace sw
 	std::string Shader::Instruction::string(ShaderType shaderType, unsigned short version) const
 	{
 		std::string instructionString;
-		
+
 		if(opcode != OPCODE_DCL)
 		{
 			instructionString += coissue ? "+ " : "";
-			
+
 			if(predicate)
 			{
 				instructionString += predicateNot ? "(!p0" : "(p0";
@@ -219,7 +219,7 @@ namespace sw
 			{
 				instructionString += " " + dst.string(shaderType, version) +
 				                           dst.relativeString() +
-				                           dst.maskString(); 
+				                           dst.maskString();
 			}
 
 			for(int i = 0; i < 4; i++)
@@ -229,8 +229,8 @@ namespace sw
 					instructionString += (dst.type != PARAMETER_VOID || i > 0) ? ", " : " ";
 					instructionString += src[i].preModifierString() +
 										 src[i].string(shaderType, version) +
-										 src[i].relativeString() + 
-										 src[i].postModifierString() + 
+										 src[i].relativeString() +
+										 src[i].postModifierString() +
 										 src[i].swizzleString();
 				}
 			}
@@ -351,10 +351,10 @@ namespace sw
 		{
 		case 0:		return "";
 		case 1:		return "_x2";
-		case 2:		return "_x4"; 
+		case 2:		return "_x4";
 		case 3:		return "_x8";
 		case -1:	return "_d2";
-		case -2:	return "_d4"; 
+		case -2:	return "_d4";
 		case -3:	return "_d8";
 		default:
 			return "";
@@ -630,7 +630,7 @@ namespace sw
 		src[i].rel.type = PARAMETER_VOID;
 		src[i].rel.swizzle = 0x00;
 		src[i].rel.scale = 1;
-		
+
 		switch(opcode)
 		{
 		case OPCODE_DEF:
@@ -1018,7 +1018,7 @@ namespace sw
 		else if(type != PARAMETER_RASTOUT && !(type == PARAMETER_ADDR && shaderType == SHADER_VERTEX) && type != PARAMETER_LOOP && type != PARAMETER_PREDICATE && type != PARAMETER_MISCTYPE)
 		{
 			buffer << index;
-			
+
 			return typeString(shaderType, version) + buffer.str();
 		}
 		else
@@ -1079,7 +1079,7 @@ namespace sw
 	{
 		return opcode == OPCODE_IF || opcode == OPCODE_IFC;
 	}
-	
+
 	bool Shader::Instruction::isCall() const
 	{
 		return opcode == OPCODE_CALL || opcode == OPCODE_CALLNZ;
@@ -1160,7 +1160,7 @@ namespace sw
 			token += 1 + tokenCount;
 		}
 	}
-	
+
 	int Shader::size(unsigned long opcode) const
 	{
 		return size(opcode, version);
@@ -1633,7 +1633,7 @@ namespace sw
 				{
 					containsLeave = true;
 				}
-				
+
 				if(instruction[i]->isBreak())
 				{
 					containsBreak = true;

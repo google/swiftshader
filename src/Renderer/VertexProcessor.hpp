@@ -52,8 +52,8 @@ namespace sw
 
 			bool fixedFunction             : 1;
 			bool textureSampling           : 1;
-			unsigned int positionRegister  : 4;
-			unsigned int pointSizeRegister : 4;   // 0xF signifies no vertex point size
+			unsigned int positionRegister  : BITS(MAX_VERTEX_OUTPUTS);
+			unsigned int pointSizeRegister : BITS(MAX_VERTEX_OUTPUTS);
 
 			unsigned int vertexBlendMatrixCount               : 3;
 			bool indexedVertexBlendEnable                     : 1;
@@ -134,7 +134,7 @@ namespace sw
 			};
 
 			Input input[VERTEX_ATTRIBUTES];
-			Output output[12];
+			Output output[MAX_VERTEX_OUTPUTS];
 		};
 
 		struct State : States

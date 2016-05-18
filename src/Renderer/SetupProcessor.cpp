@@ -89,7 +89,7 @@ namespace sw
 		state.vFace = context->pixelShader && context->pixelShader->vFaceDeclared;
 
 		state.positionRegister = Pos;
-		state.pointSizeRegister = 0xF;   // No vertex point size
+		state.pointSizeRegister = Unused;
 
 		state.multiSample = context->getMultiSampleCount();
 		state.rasterizerDiscard = context->rasterizerDiscard;
@@ -133,7 +133,7 @@ namespace sw
 					if(context->pixelShader->semantic[interpolant][component - project].active())
 					{
 						int input = interpolant;
-						for(int i = 0; i < 12; i++)
+						for(int i = 0; i < MAX_VERTEX_OUTPUTS; i++)
 						{
 							if(context->pixelShader->semantic[interpolant][component - project] == context->vertexShader->output[i][component - project])
 							{

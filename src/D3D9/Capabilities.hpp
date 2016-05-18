@@ -15,6 +15,9 @@
 #ifndef D3D9_Capabilities_hpp
 #define D3D9_Capabilities_hpp
 
+#include "Config.hpp"
+#include "MetaMacro.hpp"
+
 #include <d3d9.h>
 
 namespace D3D9
@@ -465,6 +468,23 @@ namespace D3D9
 
 	extern unsigned int textureMemory;
 	extern unsigned int maxAnisotropy;
+
+	enum
+	{
+		MAX_VERTEX_SHADER_CONST = 256,
+		MAX_PIXEL_SHADER_CONST = 224,
+		MAX_VERTEX_OUTPUTS = 12,
+	};
+
+	// Shader Model 3.0 requirements
+	META_ASSERT(MAX_VERTEX_SHADER_CONST >= 256);
+	META_ASSERT(MAX_PIXEL_SHADER_CONST == 224);
+	META_ASSERT(MAX_VERTEX_OUTPUTS == 12);
+
+	// Back-end minimum requirements
+	META_ASSERT(sw::VERTEX_UNIFORM_VECTORS >= MAX_VERTEX_SHADER_CONST);
+	META_ASSERT(sw::FRAGMENT_UNIFORM_VECTORS >= MAX_PIXEL_SHADER_CONST);
+	META_ASSERT(sw::MAX_VERTEX_OUTPUTS >= MAX_VERTEX_OUTPUTS);
 }
 
 #endif   // D3D9_Capabilities_hpp

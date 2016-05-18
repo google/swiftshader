@@ -45,8 +45,8 @@ namespace sw
 			bool interpolateW              : 1;
 			bool perspective               : 1;
 			bool pointSprite               : 1;
-			unsigned int positionRegister  : 4;
-			unsigned int pointSizeRegister : 4;
+			unsigned int positionRegister  : BITS(VERTEX_OUTPUT_LAST);
+			unsigned int pointSizeRegister : BITS(VERTEX_OUTPUT_LAST);
 			CullMode cullMode              : BITS(CULL_LAST);
 			bool twoSidedStencil           : 1;
 			bool slopeDepthBias            : 1;
@@ -56,7 +56,7 @@ namespace sw
 
 			struct Gradient
 			{
-				unsigned char attribute : BITS(Unused);
+				unsigned char attribute : BITS(VERTEX_OUTPUT_LAST);
 				bool flat               : 1;
 				bool wrap               : 1;
 			};

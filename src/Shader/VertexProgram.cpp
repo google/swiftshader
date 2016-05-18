@@ -594,7 +594,7 @@ namespace sw
 	{
 		if(shader)
 		{
-			for(int i = 0; i < 12; i++)
+			for(int i = 0; i < MAX_VERTEX_OUTPUTS; i++)
 			{
 				unsigned char usage = shader->output[i][0].usage;
 
@@ -1263,7 +1263,7 @@ namespace sw
 		loopRepDepth--;
 
 		llvm::BasicBlock *endBlock = loopRepEndBlock[loopRepDepth];
-		
+
 		Nucleus::createBr(loopRepEndBlock[loopRepDepth]);
 		Nucleus::setInsertBlock(endBlock);
 

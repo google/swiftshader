@@ -19,6 +19,7 @@
 
 #include "Direct3D9.hpp"
 #include "Direct3DSwapChain9.hpp"
+#include "Capabilities.hpp"
 
 #include "Stream.hpp"
 
@@ -44,12 +45,6 @@ namespace D3D9
 	class Direct3DVertexBuffer9;
 	class Direct3DIndexBuffer9;
 	class CriticalSection;
-
-	enum
-	{
-		MAX_VERTEX_SHADER_CONST = MIN(256, sw::VERTEX_UNIFORM_VECTORS),
-		MAX_PIXEL_SHADER_CONST = MIN(224, sw::FRAGMENT_UNIFORM_VECTORS),
-	};
 
 	class Direct3DDevice9 : public IDirect3DDevice9, public Unknown
 	{
