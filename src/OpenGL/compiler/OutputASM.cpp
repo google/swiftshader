@@ -2908,7 +2908,7 @@ namespace glsl
 				const TType &type = attribute->getType();
 				int registerCount = attribute->totalRegisterCount();
 
-				if(vertexShader && (index + registerCount) <= sw::VertexShader::MAX_INPUT_ATTRIBUTES)
+				if(vertexShader && (index + registerCount) <= sw::MAX_VERTEX_INPUTS)
 				{
 					for(int i = 0; i < registerCount; i++)
 					{

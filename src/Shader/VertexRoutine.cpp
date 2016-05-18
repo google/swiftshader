@@ -83,7 +83,7 @@ namespace sw
 
 	void VertexRoutine::readInput(UInt &index)
 	{
-		for(int i = 0; i < VERTEX_ATTRIBUTES; i++)
+		for(int i = 0; i < MAX_VERTEX_INPUTS; i++)
 		{
 			Pointer<Byte> input = *Pointer<Pointer<Byte>>(data + OFFSET(DrawData,input) + sizeof(void*) * i);
 			UInt stride = *Pointer<UInt>(data + OFFSET(DrawData,stride) + sizeof(unsigned int) * i);

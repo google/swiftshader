@@ -33,7 +33,7 @@ namespace D3D9
 
 		indexBuffer = 0;
 
-		for(int stream = 0; stream < 16; stream++)
+		for(int stream = 0; stream < MAX_VERTEX_INPUTS; stream++)
 		{
 			streamSource[stream].vertexBuffer = 0;
 		}
@@ -185,7 +185,7 @@ namespace D3D9
 			}
 		}
 
-		for(int stream = 0; stream < 16; stream++)
+		for(int stream = 0; stream < MAX_VERTEX_INPUTS; stream++)
 		{
 			if(streamSourceCaptured[stream])
 			{
@@ -405,7 +405,7 @@ namespace D3D9
 			}
 		}
 
-		for(int stream = 0; stream < 16; stream++)
+		for(int stream = 0; stream < MAX_VERTEX_INPUTS; stream++)
 		{
 			if(streamSourceCaptured[stream])
 			{
@@ -840,7 +840,7 @@ namespace D3D9
 			}
 		}
 
-		for(int stream = 0; stream < 16; stream++)
+		for(int stream = 0; stream < MAX_VERTEX_INPUTS; stream++)
 		{
 			streamSourceCaptured[stream] = false;
 			streamSourceFrequencyCaptured[stream] = false;
@@ -928,7 +928,7 @@ namespace D3D9
 			indexBuffer = 0;
 		}
 
-		for(int stream = 0; stream < 16; stream++)
+		for(int stream = 0; stream < MAX_VERTEX_INPUTS; stream++)
 		{
 			if(streamSource[stream].vertexBuffer)
 			{
@@ -1223,7 +1223,7 @@ namespace D3D9
 
 	void Direct3DStateBlock9::captureStreamSourceFrequencies()
 	{
-		for(int stream = 0; stream < 16; stream++)
+		for(int stream = 0; stream < MAX_VERTEX_INPUTS; stream++)
 		{
 			streamSourceFrequencyCaptured[stream] = true;
 			device->GetStreamSourceFreq(stream, &streamSourceFrequency[stream]);
@@ -1272,7 +1272,7 @@ namespace D3D9
 
 	void Direct3DStateBlock9::captureVertexStreams()
 	{
-		for(int stream = 0; stream < 16; stream++)
+		for(int stream = 0; stream < MAX_VERTEX_INPUTS; stream++)
 		{
 			streamSourceCaptured[stream] = true;
 			device->GetStreamSource(stream, reinterpret_cast<IDirect3DVertexBuffer9**>(&streamSource[stream].vertexBuffer), &streamSource[stream].offset, &streamSource[stream].stride);

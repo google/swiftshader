@@ -135,7 +135,7 @@ namespace sw
 
 	void VertexProcessor::resetInputStreams(bool preTransformed)
 	{
-		for(int i = 0; i < VERTEX_ATTRIBUTES; i++)
+		for(int i = 0; i < MAX_VERTEX_INPUTS; i++)
 		{
 			context->input[i].defaults();
 		}
@@ -912,7 +912,7 @@ namespace sw
 		state.transformFeedbackQueryEnabled = context->transformFeedbackQueryEnabled;
 		state.transformFeedbackEnabled = context->transformFeedbackEnabled;
 
-		for(int i = 0; i < VERTEX_ATTRIBUTES; i++)
+		for(int i = 0; i < MAX_VERTEX_INPUTS; i++)
 		{
 			state.input[i].type = context->input[i].type;
 			state.input[i].count = context->input[i].count;

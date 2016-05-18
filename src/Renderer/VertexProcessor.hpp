@@ -133,7 +133,7 @@ namespace sw
 				};
 			};
 
-			Input input[VERTEX_ATTRIBUTES];
+			Input input[MAX_VERTEX_INPUTS];
 			Output output[MAX_VERTEX_OUTPUTS];
 		};
 

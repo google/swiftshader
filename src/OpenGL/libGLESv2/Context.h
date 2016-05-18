@@ -74,7 +74,7 @@ class TransformFeedback;
 
 enum
 {
-	MAX_VERTEX_ATTRIBS = sw::VERTEX_ATTRIBUTES,
+	MAX_VERTEX_ATTRIBS = sw::MAX_VERTEX_INPUTS,
 	MAX_UNIFORM_VECTORS = 256,   // Device limit
 	MAX_VERTEX_UNIFORM_VECTORS = sw::VERTEX_UNIFORM_VECTORS - 3,   // Reserve space for gl_DepthRange
 	MAX_VARYING_VECTORS = 10,

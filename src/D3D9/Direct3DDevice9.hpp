@@ -277,10 +277,10 @@ namespace D3D9
 		int vertexShaderConstantB[16];
 
 		Direct3DVertexDeclaration9 *vertexDeclaration;
-		Direct3DVertexBuffer9 *dataStream[16];
-		int streamStride[16];
-		int streamOffset[16];
-		unsigned int streamSourceFreq[16];
+		Direct3DVertexBuffer9 *dataStream[MAX_VERTEX_INPUTS];
+		int streamStride[MAX_VERTEX_INPUTS];
+		int streamOffset[MAX_VERTEX_INPUTS];
+		unsigned int streamSourceFreq[MAX_VERTEX_INPUTS];
 		Direct3DIndexBuffer9 *indexData;
 
 		Direct3DSwapChain9 *swapChain;

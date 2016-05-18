@@ -93,7 +93,7 @@ namespace D3D9
 		vertexShaderConstantsFDirty = 0;
 		vertexShaderConstantsIDirty = 0;
 
-		for(int i = 0; i < 16; i++)
+		for(int i = 0; i < MAX_VERTEX_INPUTS; i++)
 		{
 			dataStream[i] = 0;
 			streamStride[i] = 0;
@@ -231,7 +231,7 @@ namespace D3D9
 			}
 		}
 
-		for(int i = 0; i < 16; i++)
+		for(int i = 0; i < MAX_VERTEX_INPUTS; i++)
 		{
 			if(dataStream[i])
 			{
@@ -5787,7 +5787,7 @@ namespace D3D9
 
 				if(!vertexDeclaration->isPreTransformed())
 				{
-					for(int i = 0; i < 16; i++)
+					for(int i = 0; i < MAX_VERTEX_INPUTS; i++)
 					{
 						if(usage == shader->input[i].usage &&
 						   index == shader->input[i].index)

@@ -139,17 +139,17 @@ namespace D3D9
 		bool samplerStateCaptured[16 + 4][D3DSAMP_DMAPOFFSET + 1];
 		unsigned long samplerState[16 + 4][D3DSAMP_DMAPOFFSET + 1];
 
-		bool streamSourceCaptured[16];
+		bool streamSourceCaptured[MAX_VERTEX_INPUTS];
 		struct StreamSource
 		{
 			Direct3DVertexBuffer9 *vertexBuffer;
 			unsigned int offset;
 			unsigned int stride;
 		};
-		StreamSource streamSource[16];
+		StreamSource streamSource[MAX_VERTEX_INPUTS];
 
-		bool streamSourceFrequencyCaptured[16];
-		unsigned int streamSourceFrequency[16];
+		bool streamSourceFrequencyCaptured[MAX_VERTEX_INPUTS];
+		unsigned int streamSourceFrequency[MAX_VERTEX_INPUTS];
 
 		bool textureCaptured[16 + 4];
 		Direct3DBaseTexture9 *texture[16 + 4];
