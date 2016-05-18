@@ -51,12 +51,11 @@ namespace sw
 			{
 				PlaneEquation C[2][4];
 				PlaneEquation T[8][4];
+				PlaneEquation f;
 			};
 
-			PlaneEquation V[10][4];
+			PlaneEquation V[MAX_FRAGMENT_INPUTS][4];
 		};
-
-		PlaneEquation f;
 
 		float area;
 

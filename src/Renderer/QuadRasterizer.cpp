@@ -237,7 +237,7 @@ namespace sw
 					Dw = *Pointer<Float4>(primitive + OFFSET(Primitive,w.C), 16) + yyyy * *Pointer<Float4>(primitive + OFFSET(Primitive,w.B), 16);
 				}
 
-				for(int interpolant = 0; interpolant < 10; interpolant++)
+				for(int interpolant = 0; interpolant < MAX_FRAGMENT_INPUTS; interpolant++)
 				{
 					for(int component = 0; component < 4; component++)
 					{

@@ -102,12 +102,11 @@ namespace sw
 				{
 					Interpolant color[2];
 					Interpolant texture[8];
+					Interpolant fog;
 				};
 
-				Interpolant interpolant[10];
+				Interpolant interpolant[MAX_FRAGMENT_INPUTS];
 			};
-
-			Interpolant fog;
 		};
 
 		struct State : States
@@ -271,7 +270,7 @@ namespace sw
 
 		virtual void setFillMode(FillMode fillMode);
 		virtual void setShadingMode(ShadingMode shadingMode);
-	
+
 		virtual void setAlphaBlendEnable(bool alphaBlendEnable);
 		virtual void setSourceBlendFactor(BlendFactor sourceBlendFactor);
 		virtual void setDestBlendFactor(BlendFactor destBlendFactor);

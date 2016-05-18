@@ -2760,7 +2760,7 @@ namespace glsl
 
 			if(pixelShader)
 			{
-				if((var + registerCount) > sw::PixelShader::MAX_INPUT_VARYINGS)
+				if((var + registerCount) > sw::MAX_FRAGMENT_INPUTS)
 				{
 					mContext.error(varying->getLine(), "Varyings packing failed: Too many varyings", "fragment shader");
 					return 0;
