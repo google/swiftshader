@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b7344e67_e2eca6a5",
+        "filename": "third_party/ASTC/Source/softfloat.cpp",
+        "patchSetId": 7
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-05-19T15:36:12Z",
+      "side": 1,
+      "message": "To my surprise, this still causes the same compile errors on Android. I\u0027ll try something else...",
+      "range": {
+        "startLine": 134,
+        "startChar": 20,
+        "endLine": 134,
+        "endChar": 21
+      },
+      "revId": "c60bbebc0f41cde1ef968650b3ada2194eeb197b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
