@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7721f6e1_88010c61",
+        "filename": "src/Renderer/Vertex.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-05-19T01:35:25Z",
+      "side": 1,
+      "message": "The previous names were derived from https://msdn.microsoft.com/en-us/library/windows/desktop/bb172941(v\u003dvs.85).aspx. But even then it only made sense for the Diffuse color.",
+      "range": {
+        "startLine": 27,
+        "startChar": 2,
+        "endLine": 28,
+        "endChar": 23
+      },
+      "revId": "4791bcdb705b4782d34fb8c76a560c8eb2997beb",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
