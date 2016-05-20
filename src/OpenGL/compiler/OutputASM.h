@@ -275,6 +275,7 @@ namespace glsl
 		void assignLvalue(TIntermTyped *dst, TIntermTyped *src);
 		int lvalue(sw::Shader::DestinationParameter &dst, Temporary &address, TIntermTyped *node);
 		sw::Shader::ParameterType registerType(TIntermTyped *operand);
+		bool hasFlatQualifier(TIntermTyped *operand);
 		unsigned int registerIndex(TIntermTyped *operand);
 		int writeMask(TIntermTyped *destination, int index = 0);
 		int readSwizzle(TIntermTyped *argument, int size);

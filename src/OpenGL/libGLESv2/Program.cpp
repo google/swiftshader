@@ -1332,10 +1332,12 @@ namespace es2
 
 						for(int i = 0; i < registers; i++)
 						{
-							if(components >= 1) vertexBinary->output[out + i][0] = sw::Shader::Semantic(sw::Shader::USAGE_COLOR, in + i);
-							if(components >= 2) vertexBinary->output[out + i][1] = sw::Shader::Semantic(sw::Shader::USAGE_COLOR, in + i);
-							if(components >= 3) vertexBinary->output[out + i][2] = sw::Shader::Semantic(sw::Shader::USAGE_COLOR, in + i);
-							if(components >= 4) vertexBinary->output[out + i][3] = sw::Shader::Semantic(sw::Shader::USAGE_COLOR, in + i);
+							bool flat = pixelBinary->semantic[in + i][0].flat;
+
+							if(components >= 1) vertexBinary->output[out + i][0] = sw::Shader::Semantic(sw::Shader::USAGE_COLOR, in + i, flat);
+							if(components >= 2) vertexBinary->output[out + i][1] = sw::Shader::Semantic(sw::Shader::USAGE_COLOR, in + i, flat);
+							if(components >= 3) vertexBinary->output[out + i][2] = sw::Shader::Semantic(sw::Shader::USAGE_COLOR, in + i, flat);
+							if(components >= 4) vertexBinary->output[out + i][3] = sw::Shader::Semantic(sw::Shader::USAGE_COLOR, in + i, flat);
 						}
 					}
 					else   // Vertex varying is declared but not written to

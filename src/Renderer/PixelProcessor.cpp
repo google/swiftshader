@@ -1075,14 +1075,16 @@ namespace sw
 			{
 				for(int component = 0; component < 4; component++)
 				{
-					if(context->pixelShader->semantic[interpolant][component].active())
+					const Shader::Semantic &semantic = context->pixelShader->semantic[interpolant][component];
+
+					if(semantic.active())
 					{
 						bool flat = point;
 
-						switch(context->pixelShader->semantic[interpolant][component].usage)
+						switch(semantic.usage)
 						{
-						case Shader::USAGE_TEXCOORD: flat = point && !sprite; break;
-						case Shader::USAGE_COLOR:    flat = flatShading;      break;
+						case Shader::USAGE_TEXCOORD: flat = point && !sprite;             break;
+						case Shader::USAGE_COLOR:    flat = semantic.flat || flatShading; break;
 						}
 
 						state.interpolant[interpolant].component |= 1 << component;

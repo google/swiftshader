@@ -2568,6 +2568,12 @@ namespace glsl
 		return sw::Shader::PARAMETER_VOID;
 	}
 
+	bool OutputASM::hasFlatQualifier(TIntermTyped *operand)
+	{
+		const TQualifier qualifier = operand->getQualifier();
+		return qualifier == EvqFlat || qualifier == EvqFlatOut || qualifier == EvqFlatIn;
+	}
+
 	unsigned int OutputASM::registerIndex(TIntermTyped *operand)
 	{
 		if(isSamplerRegister(operand))
@@ -2778,10 +2784,12 @@ namespace glsl
 				{
 					for(int i = 0; i < varying->totalRegisterCount(); i++)
 					{
-						if(componentCount >= 1) pixelShader->semantic[var + i][0] = sw::Shader::Semantic(sw::Shader::USAGE_COLOR, var + i);
-						if(componentCount >= 2) pixelShader->semantic[var + i][1] = sw::Shader::Semantic(sw::Shader::USAGE_COLOR, var + i);
-						if(componentCount >= 3) pixelShader->semantic[var + i][2] = sw::Shader::Semantic(sw::Shader::USAGE_COLOR, var + i);
-						if(componentCount >= 4) pixelShader->semantic[var + i][3] = sw::Shader::Semantic(sw::Shader::USAGE_COLOR, var + i);
+						bool flat = hasFlatQualifier(varying);
+
+						if(componentCount >= 1) pixelShader->semantic[var + i][0] = sw::Shader::Semantic(sw::Shader::USAGE_COLOR, var + i, flat);
+						if(componentCount >= 2) pixelShader->semantic[var + i][1] = sw::Shader::Semantic(sw::Shader::USAGE_COLOR, var + i, flat);
+						if(componentCount >= 3) pixelShader->semantic[var + i][2] = sw::Shader::Semantic(sw::Shader::USAGE_COLOR, var + i, flat);
+						if(componentCount >= 4) pixelShader->semantic[var + i][3] = sw::Shader::Semantic(sw::Shader::USAGE_COLOR, var + i, flat);
 					}
 				}
 			}
