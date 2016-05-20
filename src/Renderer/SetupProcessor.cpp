@@ -129,13 +129,14 @@ namespace sw
 				for(int component = 0; component < 4; component++)
 				{
 					int project = context->isProjectionComponent(interpolant - 2, component) ? 1 : 0;
+					const Shader::Semantic& semantic = context->pixelShader->semantic[interpolant][component - project];
 
-					if(context->pixelShader->semantic[interpolant][component - project].active())
+					if(semantic.active())
 					{
 						int input = interpolant;
 						for(int i = 0; i < MAX_VERTEX_OUTPUTS; i++)
 						{
-							if(context->pixelShader->semantic[interpolant][component - project] == context->vertexShader->output[i][component - project])
+							if(semantic == context->vertexShader->output[i][component - project])
 							{
 								input = i;
 								break;
@@ -144,10 +145,10 @@ namespace sw
 
 						bool flat = point;
 
-						switch(context->pixelShader->semantic[interpolant][component - project].usage)
+						switch(semantic.usage)
 						{
-						case Shader::USAGE_TEXCOORD: flat = point && !sprite; break;
-						case Shader::USAGE_COLOR:    flat = flatShading;      break;
+						case Shader::USAGE_TEXCOORD: flat = point && !sprite;             break;
+						case Shader::USAGE_COLOR:    flat = semantic.flat || flatShading; break;
 						}
 
 						state.gradient[interpolant][component].attribute = input;
@@ -162,19 +163,19 @@ namespace sw
 			{
 				for(int component = 0; component < 4; component++)
 				{
-					int index = context->pixelShader->semantic[interpolant][component].index;
+					const Shader::Semantic& semantic = context->pixelShader->semantic[interpolant][component];
 
-					switch(context->pixelShader->semantic[interpolant][component].usage)
+					switch(semantic.usage)
 					{
 					case 0xFF:
 						break;
 					case Shader::USAGE_TEXCOORD:
-						state.gradient[interpolant][component].attribute = T0 + index;
-						state.gradient[interpolant][component].flat = point && !sprite;
+						state.gradient[interpolant][component].attribute = T0 + semantic.index;
+						state.gradient[interpolant][component].flat = semantic.flat || (point && !sprite);
 						break;
 					case Shader::USAGE_COLOR:
-						state.gradient[interpolant][component].attribute = C0 + index;
-						state.gradient[interpolant][component].flat = flatShading;
+						state.gradient[interpolant][component].attribute = C0 + semantic.index;
+						state.gradient[interpolant][component].flat = semantic.flat || flatShading;
 						break;
 					default:
 						ASSERT(false);

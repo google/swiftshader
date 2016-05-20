@@ -572,7 +572,7 @@ namespace sw
 
 		struct Semantic
 		{
-			Semantic(unsigned char usage = 0xFF, unsigned char index = 0xFF) : usage(usage), index(index), centroid(false)
+			Semantic(unsigned char usage = 0xFF, unsigned char index = 0xFF, bool flat = false) : usage(usage), index(index), centroid(false), flat(flat)
 			{
 			}
 
@@ -589,6 +589,7 @@ namespace sw
 			unsigned char usage;
 			unsigned char index;
 			bool centroid;
+			bool flat;
 		};
 
 		void optimize();
