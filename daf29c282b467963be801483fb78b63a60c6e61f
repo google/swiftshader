@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7721f6e1_a82170f1",
+        "filename": "src/Renderer/Vertex.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-05-20T16:54:28Z",
+      "side": 1,
+      "message": "This is 12 wasted bytes. I checked if perhaps Z or W could be eliminated to make room for clipFlags, but it doesn\u0027t seem feasible without requiring extra computation during setup.\n\nUltimately I think we should move away from this AoS layout and use a SoA layout, which would also improve data locality. b/17670459",
+      "range": {
+        "startLine": 85,
+        "startChar": 2,
+        "endLine": 85,
+        "endChar": 17
+      },
+      "revId": "daf29c282b467963be801483fb78b63a60c6e61f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
