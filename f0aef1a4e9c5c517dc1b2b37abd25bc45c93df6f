@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d7a62227_1f92f3ae",
+        "filename": "src/Shader/VertexRoutine.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 680,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-05-20T19:08:23Z",
+      "side": 0,
+      "message": "Was this inadvertently removed?",
+      "range": {
+        "startLine": 680,
+        "startChar": 2,
+        "endLine": 680,
+        "endChar": 87
+      },
+      "revId": "f0aef1a4e9c5c517dc1b2b37abd25bc45c93df6f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
