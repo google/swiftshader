@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d7a62227_944d2a8d",
+        "filename": "src/OpenGL/libEGL/libEGL.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 711,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-05-20T17:19:42Z",
+      "side": 1,
+      "message": "This was preventing any OpenGL ES 1.X context from being created.",
+      "range": {
+        "startLine": 711,
+        "startChar": 29,
+        "endLine": 711,
+        "endChar": 31
+      },
+      "revId": "12bce50aafdf88d16f854d74876e6d2c81ff86ac",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
