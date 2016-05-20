@@ -22,6 +22,30 @@
       "revId": "7a63446aec4d553433ebc6d6d5e18a174b7db84b",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d7a62227_5f4f5b25",
+        "filename": "src/Shader/VertexRoutine.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 737,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-05-20T19:20:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d7a62227_3f952f97",
+      "range": {
+        "startLine": 737,
+        "startChar": 2,
+        "endLine": 737,
+        "endChar": 101
+      },
+      "revId": "7a63446aec4d553433ebc6d6d5e18a174b7db84b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
