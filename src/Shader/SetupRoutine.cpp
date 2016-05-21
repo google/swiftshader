@@ -302,13 +302,9 @@ namespace sw
 				conditionalRotate2(wMax == w2, v0, v1, v2);
 			}
 
-			Float4 p0 = *Pointer<Float4>(v0 + pos * 16, 16);
-			Float4 p1 = *Pointer<Float4>(v1 + pos * 16, 16);
-			Float4 p2 = *Pointer<Float4>(v2 + pos * 16, 16);
-
-			Float w0 = p0.w;
-			Float w1 = p1.w;
-			Float w2 = p2.w;
+			Float w0 = *Pointer<Float>(v0 + pos * 16 + 12);
+			Float w1 = *Pointer<Float>(v1 + pos * 16 + 12);
+			Float w2 = *Pointer<Float>(v2 + pos * 16 + 12);
 
 			Float4 w012;
 

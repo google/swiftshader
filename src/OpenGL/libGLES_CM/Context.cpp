@@ -1959,12 +1959,7 @@ void Context::applyState(GLenum drawMode)
 	device->setAmbientMaterialSource(sw::MATERIAL_MATERIAL);
 	device->setEmissiveMaterialSource(sw::MATERIAL_MATERIAL);
 
-	const sw::Matrix Z(1, 0, 0, 0,
-	                   0, 1, 0, 0,
-	                   0, 0, 0.5, 0.5,
-	                   0, 0, 0, 1);   // Map depth range from [-1, 1] to [0, 1]
-
-	device->setProjectionMatrix(Z * projectionStack.current());
+	device->setProjectionMatrix(projectionStack.current());
 	device->setModelMatrix(modelViewStack.current());
 	device->setTextureMatrix(0, textureStack0.current());
 	device->setTextureMatrix(1, textureStack1.current());
