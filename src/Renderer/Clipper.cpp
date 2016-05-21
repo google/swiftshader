@@ -20,8 +20,9 @@
 
 namespace sw
 {
-	Clipper::Clipper()
+	Clipper::Clipper(bool symmetricNormalizedDepth)
 	{
+		n = symmetricNormalizedDepth ? -1.0f : 0.0f;
 	}
 
 	Clipper::~Clipper()
@@ -30,12 +31,12 @@ namespace sw
 
 	unsigned int Clipper::computeClipFlags(const float4 &v)
 	{
-		return ((v.x > v.w)  ? CLIP_RIGHT  : 0) |
-		       ((v.y > v.w)  ? CLIP_TOP    : 0) |
-		       ((v.z > v.w)  ? CLIP_FAR    : 0) |
-		       ((v.x < -v.w) ? CLIP_LEFT   : 0) |
-		       ((v.y < -v.w) ? CLIP_BOTTOM : 0) |
-		       ((v.z < 0)    ? CLIP_NEAR   : 0) |
+		return ((v.x > v.w)     ? CLIP_RIGHT  : 0) |
+		       ((v.y > v.w)     ? CLIP_TOP    : 0) |
+		       ((v.z > v.w)     ? CLIP_FAR    : 0) |
+		       ((v.x < -v.w)    ? CLIP_LEFT   : 0) |
+		       ((v.y < -v.w)    ? CLIP_BOTTOM : 0) |
+		       ((v.z < n * v.w) ? CLIP_NEAR   : 0) |
 		       Clipper::CLIP_FINITE;   // FIXME: xyz finite
 	}
 
@@ -90,8 +91,8 @@ namespace sw
 		{
 			int j = i == polygon.n - 1 ? 0 : i + 1;
 
-			float di = V[i]->z;
-			float dj = V[j]->z;
+			float di = V[i]->z - n * V[i]->w;
+			float dj = V[j]->z - n * V[j]->w;
 
 			if(di >= 0)
 			{
@@ -100,7 +101,7 @@ namespace sw
 				if(dj < 0)
 				{
 					clipEdge(polygon.B[polygon.b], *V[i], *V[j], di, dj);
-					polygon.B[polygon.b].z = 0;
+					polygon.B[polygon.b].z = n * polygon.B[polygon.b].w;
 					T[t++] = &polygon.B[polygon.b++];
 				}
 			}
@@ -109,7 +110,7 @@ namespace sw
 				if(dj > 0)
 				{
 					clipEdge(polygon.B[polygon.b], *V[j], *V[i], dj, di);
-					polygon.B[polygon.b].z = 0;
+					polygon.B[polygon.b].z = n * polygon.B[polygon.b].w;
 					T[t++] = &polygon.B[polygon.b++];
 				}
 			}

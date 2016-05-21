@@ -113,7 +113,7 @@ namespace sw
 		sw::exactColorRounding = exactColorRounding;
 
 		setRenderTarget(0, 0);
-		clipper = new Clipper();
+		clipper = new Clipper(symmetricNormalizedDepth);
 
 		updateViewMatrix = true;
 		updateBaseMatrix = true;

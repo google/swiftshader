@@ -52,7 +52,7 @@ namespace sw
 			CLIP_USER = 0x3F00
 		};
 
-		Clipper();
+		Clipper(bool symmetricNormalizedDepth);
 
 		~Clipper();
 
@@ -69,6 +69,8 @@ namespace sw
 		void clipPlane(Polygon &polygon, const Plane &plane);
 
 		void clipEdge(float4 &Vo, const float4 &Vi, const float4 &Vj, float di, float dj) const;
+
+		float n;   // Near clip plane distance
 	};
 }
 
