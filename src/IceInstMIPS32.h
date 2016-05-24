@@ -19,6 +19,7 @@
 #ifndef SUBZERO_SRC_ICEINSTMIPS32_H
 #define SUBZERO_SRC_ICEINSTMIPS32_H
 
+#include "IceConditionCodesMIPS32.h"
 #include "IceDefs.h"
 #include "IceInst.h"
 #include "IceInstMIPS32.def"
@@ -349,12 +350,32 @@ public:
     constexpr CfgNode *NoCondTarget = nullptr;
     constexpr InstMIPS32Label *NoLabel = nullptr;
     return new (Func->allocate<InstMIPS32Br>())
-        InstMIPS32Br(Func, NoCondTarget, Target, NoLabel);
+        InstMIPS32Br(Func, NoCondTarget, Target, NoLabel, CondMIPS32::AL);
   }
+
+  /// Create a conditional branch to the false node.
+  static InstMIPS32Br *create(Cfg *Func, CfgNode *TargetTrue,
+                              CfgNode *TargetFalse, Operand *Src0,
+                              Operand *Src1, CondMIPS32::Cond Cond) {
+    constexpr InstMIPS32Label *NoLabel = nullptr;
+    return new (Func->allocate<InstMIPS32Br>())
+        InstMIPS32Br(Func, TargetTrue, TargetFalse, Src0, Src1, NoLabel, Cond);
+  }
+
+  static InstMIPS32Br *create(Cfg *Func, CfgNode *TargetTrue,
+                              CfgNode *TargetFalse, Operand *Src0,
+                              CondMIPS32::Cond Cond) {
+    constexpr InstMIPS32Label *NoLabel = nullptr;
+    return new (Func->allocate<InstMIPS32Br>())
+        InstMIPS32Br(Func, TargetTrue, TargetFalse, Src0, NoLabel, Cond);
+  }
+
   const CfgNode *getTargetTrue() const { return TargetTrue; }
   const CfgNode *getTargetFalse() const { return TargetFalse; }
 
-  bool isUnconditionalBranch() const override { return true; }
+  bool isUnconditionalBranch() const override {
+    return Predicate == CondMIPS32::AL;
+  }
   bool repointEdges(CfgNode *OldNode, CfgNode *NewNode) override {
     (void)OldNode;
     (void)NewNode;
@@ -362,16 +383,25 @@ public:
   };
   void emit(const Cfg *Func) const override;
   void emitIAS(const Cfg *Func) const override { (void)Func; };
-  void dump(const Cfg *Func) const override { (void)Func; };
+  void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Instr) { return isClassof(Instr, Br); }
 
 private:
   InstMIPS32Br(Cfg *Func, const CfgNode *TargetTrue, const CfgNode *TargetFalse,
-               const InstMIPS32Label *Label);
+               const InstMIPS32Label *Label, const CondMIPS32::Cond Cond);
+
+  InstMIPS32Br(Cfg *Func, const CfgNode *TargetTrue, const CfgNode *TargetFalse,
+               Operand *Src0, const InstMIPS32Label *Label,
+               const CondMIPS32::Cond Cond);
+
+  InstMIPS32Br(Cfg *Func, const CfgNode *TargetTrue, const CfgNode *TargetFalse,
+               Operand *Src0, Operand *Src1, const InstMIPS32Label *Label,
+               const CondMIPS32::Cond Cond);
 
   const CfgNode *TargetTrue;
   const CfgNode *TargetFalse;
   const InstMIPS32Label *Label; // Intra-block branch target
+  const CondMIPS32::Cond Predicate;
 };
 
 class InstMIPS32Call : public InstMIPS32 {

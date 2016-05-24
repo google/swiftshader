@@ -21,6 +21,7 @@
 #include "IceELFObjectWriter.h"
 #include "IceGlobalInits.h"
 #include "IceInstMIPS32.h"
+#include "IceInstVarIter.h"
 #include "IceLiveness.h"
 #include "IceOperand.h"
 #include "IcePhiLoweringImpl.h"
@@ -834,7 +835,84 @@ void TargetMIPS32::lowerBr(const InstBr *Instr) {
     _br(Instr->getTargetUnconditional());
     return;
   }
-  UnimplementedLoweringError(this, Instr);
+  CfgNode *TargetTrue = Instr->getTargetTrue();
+  CfgNode *TargetFalse = Instr->getTargetFalse();
+  Operand *Boolean = Instr->getCondition();
+  const Inst *Producer = Computations.getProducerOf(Boolean);
+  if (Producer == nullptr) {
+    // Since we don't know the producer of this boolean we will assume its
+    // producer will keep it in positive logic and just emit beqz with this
+    // Boolean as an operand.
+    auto *BooleanR = legalizeToReg(Boolean);
+    _br(TargetTrue, TargetFalse, BooleanR, CondMIPS32::Cond::EQZ);
+    return;
+  }
+  if (Producer->getKind() == Inst::Icmp) {
+    const InstIcmp *CompareInst = llvm::cast<InstIcmp>(Producer);
+    Operand *Src0 = CompareInst->getSrc(0);
+    Operand *Src1 = CompareInst->getSrc(1);
+    const Type Src0Ty = Src0->getType();
+    assert(Src0Ty == Src1->getType());
+    if (Src0Ty == IceType_i64) {
+      UnimplementedLoweringError(this, Instr);
+      return;
+    }
+    auto *Src0R = legalizeToReg(Src0);
+    auto *Src1R = legalizeToReg(Src1);
+    auto *DestT = makeReg(Src0Ty);
+    switch (CompareInst->getCondition()) {
+    default:
+      break;
+    case InstIcmp::Eq: {
+      _br(TargetTrue, TargetFalse, Src0R, Src1R, CondMIPS32::Cond::NE);
+      break;
+    }
+    case InstIcmp::Ne: {
+      _br(TargetTrue, TargetFalse, Src0R, Src1R, CondMIPS32::Cond::EQ);
+      break;
+    }
+    case InstIcmp::Ugt: {
+      _sltu(DestT, Src1R, Src0R);
+      _br(TargetTrue, TargetFalse, DestT, CondMIPS32::Cond::EQZ);
+      break;
+    }
+    case InstIcmp::Uge: {
+      _sltu(DestT, Src0R, Src1R);
+      _br(TargetTrue, TargetFalse, DestT, CondMIPS32::Cond::NEZ);
+      break;
+    }
+    case InstIcmp::Ult: {
+      _sltu(DestT, Src0R, Src1R);
+      _br(TargetTrue, TargetFalse, DestT, CondMIPS32::Cond::EQZ);
+      break;
+    }
+    case InstIcmp::Ule: {
+      _sltu(DestT, Src1R, Src0R);
+      _br(TargetTrue, TargetFalse, DestT, CondMIPS32::Cond::NEZ);
+      break;
+    }
+    case InstIcmp::Sgt: {
+      _slt(DestT, Src1R, Src0R);
+      _br(TargetTrue, TargetFalse, DestT, CondMIPS32::Cond::EQZ);
+      break;
+    }
+    case InstIcmp::Sge: {
+      _slt(DestT, Src0R, Src1R);
+      _br(TargetTrue, TargetFalse, DestT, CondMIPS32::Cond::NEZ);
+      break;
+    }
+    case InstIcmp::Slt: {
+      _slt(DestT, Src0R, Src1R);
+      _br(TargetTrue, TargetFalse, DestT, CondMIPS32::Cond::EQZ);
+      break;
+    }
+    case InstIcmp::Sle: {
+      _slt(DestT, Src1R, Src0R);
+      _br(TargetTrue, TargetFalse, DestT, CondMIPS32::Cond::NEZ);
+      break;
+    }
+    }
+  }
 }
 
 void TargetMIPS32::lowerCall(const InstCall *Instr) {
@@ -1112,7 +1190,7 @@ void TargetMIPS32::lowerIcmp(const InstIcmp *Instr) {
   case InstIcmp::Sge: {
     auto *DestT = I32Reg();
     auto *T = I32Reg();
-    _slt(T, Src1R, Src0R);
+    _slt(T, Src0R, Src1R);
     _xori(DestT, T, 1);
     _mov(Dest, DestT);
     return;
@@ -1489,6 +1567,72 @@ Operand *TargetMIPS32::legalize(Operand *From, LegalMask Allowed,
     return From;
   }
   return From;
+}
+
+namespace BoolFolding {
+// TODO(sagar.thakur): Add remaining instruction kinds to shouldTrackProducer()
+// and isValidConsumer()
+bool shouldTrackProducer(const Inst &Instr) {
+  return Instr.getKind() == Inst::Icmp;
+}
+
+bool isValidConsumer(const Inst &Instr) { return Instr.getKind() == Inst::Br; }
+} // end of namespace BoolFolding
+
+void TargetMIPS32::ComputationTracker::recordProducers(CfgNode *Node) {
+  for (Inst &Instr : Node->getInsts()) {
+    if (Instr.isDeleted())
+      continue;
+    // Check whether Instr is a valid producer.
+    Variable *Dest = Instr.getDest();
+    if (Dest // only consider instructions with an actual dest var; and
+        && Dest->getType() == IceType_i1 // only bool-type dest vars; and
+        && BoolFolding::shouldTrackProducer(Instr)) { // white-listed instr.
+      KnownComputations.emplace(Dest->getIndex(),
+                                ComputationEntry(&Instr, IceType_i1));
+    }
+    // Check each src variable against the map.
+    FOREACH_VAR_IN_INST(Var, Instr) {
+      SizeT VarNum = Var->getIndex();
+      auto ComputationIter = KnownComputations.find(VarNum);
+      if (ComputationIter == KnownComputations.end()) {
+        continue;
+      }
+
+      ++ComputationIter->second.NumUses;
+      switch (ComputationIter->second.ComputationType) {
+      default:
+        KnownComputations.erase(VarNum);
+        continue;
+      case IceType_i1:
+        if (!BoolFolding::isValidConsumer(Instr)) {
+          KnownComputations.erase(VarNum);
+          continue;
+        }
+        break;
+      }
+
+      if (Instr.isLastUse(Var)) {
+        ComputationIter->second.IsLiveOut = false;
+      }
+    }
+  }
+
+  for (auto Iter = KnownComputations.begin(), End = KnownComputations.end();
+       Iter != End;) {
+    // Disable the folding if its dest may be live beyond this block.
+    if (Iter->second.IsLiveOut || Iter->second.NumUses > 1) {
+      Iter = KnownComputations.erase(Iter);
+      continue;
+    }
+
+    // Mark as "dead" rather than outright deleting. This is so that other
+    // peephole style optimizations during or before lowering have access to
+    // this instruction in undeleted form. See for example
+    // tryOptimizedCmpxchgCmpBr().
+    Iter->second.Instr->setDead();
+    ++Iter;
+  }
 }
 
 TargetHeaderMIPS32::TargetHeaderMIPS32(GlobalContext *Ctx)

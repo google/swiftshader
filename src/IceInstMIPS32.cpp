@@ -25,6 +25,17 @@
 namespace Ice {
 namespace MIPS32 {
 
+const struct InstMIPS32CondAttributes_ {
+  CondMIPS32::Cond Opposite;
+  const char *EmitString;
+} InstMIPS32CondAttributes[] = {
+#define X(tag, opp, emit)                                                      \
+  { CondMIPS32::opp, emit }                                                    \
+  ,
+    ICEINSTMIPS32COND_TABLE
+#undef X
+};
+
 bool OperandMIPS32Mem::canHoldOffset(Type Ty, bool SignExt, int32_t Offset) {
   (void)SignExt;
   (void)Ty;
@@ -121,9 +132,27 @@ template <> void InstMIPS32Multu::emit(const Cfg *Func) const {
 
 InstMIPS32Br::InstMIPS32Br(Cfg *Func, const CfgNode *TargetTrue,
                            const CfgNode *TargetFalse,
-                           const InstMIPS32Label *Label)
+                           const InstMIPS32Label *Label, CondMIPS32::Cond Cond)
     : InstMIPS32(Func, InstMIPS32::Br, 0, nullptr), TargetTrue(TargetTrue),
-      TargetFalse(TargetFalse), Label(Label) {}
+      TargetFalse(TargetFalse), Label(Label), Predicate(Cond) {}
+
+InstMIPS32Br::InstMIPS32Br(Cfg *Func, const CfgNode *TargetTrue,
+                           const CfgNode *TargetFalse, Operand *Src0,
+                           const InstMIPS32Label *Label, CondMIPS32::Cond Cond)
+    : InstMIPS32(Func, InstMIPS32::Br, 1, nullptr), TargetTrue(TargetTrue),
+      TargetFalse(TargetFalse), Label(Label), Predicate(Cond) {
+  addSource(Src0);
+}
+
+InstMIPS32Br::InstMIPS32Br(Cfg *Func, const CfgNode *TargetTrue,
+                           const CfgNode *TargetFalse, Operand *Src0,
+                           Operand *Src1, const InstMIPS32Label *Label,
+                           CondMIPS32::Cond Cond)
+    : InstMIPS32(Func, InstMIPS32::Br, 2, nullptr), TargetTrue(TargetTrue),
+      TargetFalse(TargetFalse), Label(Label), Predicate(Cond) {
+  addSource(Src0);
+  addSource(Src1);
+}
 
 InstMIPS32Label::InstMIPS32Label(Cfg *Func, TargetMIPS32 *Target)
     : InstMIPS32(Func, InstMIPS32::Label, 0, nullptr),
@@ -280,15 +309,56 @@ void InstMIPS32Br::emit(const Cfg *Func) const {
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
   Str << "\t"
-         "b"
-      << "\t";
+         "b" << InstMIPS32CondAttributes[Predicate].EmitString << "\t";
   if (Label) {
     Str << Label->getLabelName();
   } else {
     if (isUnconditionalBranch()) {
       Str << getTargetFalse()->getAsmName();
     } else {
-      // TODO(reed kotler): Finish implementing conditional branch.
+      switch (Predicate) {
+      default:
+        break;
+      case CondMIPS32::EQ:
+      case CondMIPS32::NE: {
+        getSrc(0)->emit(Func);
+        Str << ", ";
+        getSrc(1)->emit(Func);
+        Str << ", ";
+        break;
+      }
+      case CondMIPS32::EQZ:
+      case CondMIPS32::NEZ:
+      case CondMIPS32::LEZ:
+      case CondMIPS32::LTZ:
+      case CondMIPS32::GEZ:
+      case CondMIPS32::GTZ: {
+        getSrc(0)->emit(Func);
+        Str << ", ";
+        break;
+      }
+      }
+      Str << getTargetFalse()->getAsmName();
+    }
+  }
+}
+
+void InstMIPS32Br::dump(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+  Ostream &Str = Func->getContext()->getStrDump();
+  Str << "\t"
+         "b" << InstMIPS32CondAttributes[Predicate].EmitString << "\t";
+
+  if (Label) {
+    Str << Label->getLabelName();
+  } else {
+    if (isUnconditionalBranch()) {
+      Str << getTargetFalse()->getAsmName();
+    } else {
+      dumpSources(Func);
+      Str << ", ";
+      Str << getTargetFalse()->getAsmName();
     }
   }
 }

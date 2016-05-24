@@ -46,6 +46,12 @@ public:
     return makeUnique<MIPS32::AssemblerMIPS32>();
   }
 
+  void initNodeForLowering(CfgNode *Node) override {
+    Computations.forgetProducers();
+    Computations.recordProducers(Node);
+    Computations.dump(Func);
+  }
+
   void translateOm1() override;
   void translateO2() override;
   bool doBranchOpt(Inst *Instr, const CfgNode *NextNode) override;
@@ -155,6 +161,17 @@ public:
   }
 
   void _br(CfgNode *Target) { Context.insert<InstMIPS32Br>(Target); }
+
+  void _br(CfgNode *TargetTrue, CfgNode *TargetFalse, Operand *Src0,
+           Operand *Src1, CondMIPS32::Cond Condition) {
+    Context.insert<InstMIPS32Br>(TargetTrue, TargetFalse, Src0, Src1,
+                                 Condition);
+  }
+
+  void _br(CfgNode *TargetTrue, CfgNode *TargetFalse, Operand *Src0,
+           CondMIPS32::Cond Condition) {
+    Context.insert<InstMIPS32Br>(TargetTrue, TargetFalse, Src0, Condition);
+  }
 
   void _ret(Variable *RA, Variable *Src0 = nullptr) {
     Context.insert<InstMIPS32Ret>(RA, Src0);
@@ -387,6 +404,66 @@ protected:
 
 private:
   ENABLE_MAKE_UNIQUE;
+
+  class ComputationTracker {
+  public:
+    ComputationTracker() = default;
+    ~ComputationTracker() = default;
+
+    void forgetProducers() { KnownComputations.clear(); }
+    void recordProducers(CfgNode *Node);
+
+    const Inst *getProducerOf(const Operand *Opnd) const {
+      auto *Var = llvm::dyn_cast<Variable>(Opnd);
+      if (Var == nullptr) {
+        return nullptr;
+      }
+
+      auto Iter = KnownComputations.find(Var->getIndex());
+      if (Iter == KnownComputations.end()) {
+        return nullptr;
+      }
+
+      return Iter->second.Instr;
+    }
+
+    void dump(const Cfg *Func) const {
+      if (!BuildDefs::dump() || !Func->isVerbose(IceV_Folding))
+        return;
+      OstreamLocker L(Func->getContext());
+      Ostream &Str = Func->getContext()->getStrDump();
+      Str << "foldable producer:\n";
+      for (const auto &Computation : KnownComputations) {
+        Str << "    ";
+        Computation.second.Instr->dump(Func);
+        Str << "\n";
+      }
+      Str << "\n";
+    }
+
+  private:
+    class ComputationEntry {
+    public:
+      ComputationEntry(Inst *I, Type Ty) : Instr(I), ComputationType(Ty) {}
+      Inst *const Instr;
+      // Boolean folding is disabled for variables whose live range is multi
+      // block. We conservatively initialize IsLiveOut to true, and set it to
+      // false once we find the end of the live range for the variable defined
+      // by this instruction. If liveness analysis is not performed (e.g., in
+      // Om1 mode) IsLiveOut will never be set to false, and folding will be
+      // disabled.
+      bool IsLiveOut = true;
+      int32_t NumUses = 0;
+      Type ComputationType;
+    };
+
+    // ComputationMap maps a Variable number to a payload identifying which
+    // instruction defined it.
+    using ComputationMap = CfgUnorderedMap<SizeT, ComputationEntry>;
+    ComputationMap KnownComputations;
+  };
+
+  ComputationTracker Computations;
 };
 
 class TargetDataMIPS32 final : public TargetDataLowering {

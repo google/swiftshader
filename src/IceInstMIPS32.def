@@ -1,4 +1,4 @@
-//===- subzero/src/IceInstMIPS32.def - X-Macros for MIPS32 insts --*- C++ -*-===//
+//===- subzero/src/IceInstMIPS32.def - X-Macros for MIPS insts --*- C++ -*-===//
 //
 //                        The Subzero Code Generator
 //
@@ -171,7 +171,18 @@
   X(Reg_I64PAIR_Last, = Reg_LOHI)                                              \
 //define X(val, init)
 
-// TODO(reed kotler): add condition code tables, etc.
-
+#define ICEINSTMIPS32COND_TABLE                                                \
+  /* enum value, opposite, emit */                                             \
+  X(EQ,    NE,    "eq")  /* equal */                                           \
+  X(NE,    EQ,    "ne")  /* not equal */                                       \
+  X(EQZ,   NEZ,   "eqz") /* signed equal to zero */                            \
+  X(NEZ,   EQZ,   "nez") /* signed not equal to zero */                        \
+  X(GEZ,   LTZ,   "gez") /* signed greater than or equal to zero */            \
+  X(LTZ,   GEZ,   "ltz") /* signed less than to zero */                        \
+  X(GTZ,   LEZ,   "gtz") /* signed greater than to zero */                     \
+  X(LEZ,   GTZ,   "lez") /* signed less than or equal to zero */               \
+  X(AL,    kNone, "")    /* always (unconditional) */                          \
+  X(kNone, kNone, "??")  /* special condition / none */
+//#define X(tag, opp, emit)
 
 #endif // SUBZERO_SRC_ICEINSTMIPS32_DEF
