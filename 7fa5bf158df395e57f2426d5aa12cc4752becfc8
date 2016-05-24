@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1c98df32_a5f29d11",
+        "filename": "third_party/ASTC/Source/softfloat.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-05-24T12:15:20Z",
+      "side": 1,
+      "message": "I think we need the sign for this to work, could we use:\nint32_t res \u003d static_cast\u003cint32_t\u003e(tbl[inpx \u003e\u003e 10]);",
+      "range": {
+        "startLine": 144,
+        "startChar": 1,
+        "endLine": 144,
+        "endChar": 32
+      },
+      "revId": "7fa5bf158df395e57f2426d5aa12cc4752becfc8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
