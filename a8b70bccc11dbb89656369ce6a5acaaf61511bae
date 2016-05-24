@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "dc14878a_87c90868",
+        "filename": "third_party/ASTC/Source/softfloat.cpp",
+        "patchSetId": 9
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-05-24T18:35:18Z",
+      "side": 1,
+      "message": "This should do the trick, without having to make res signed. It even matches the comment description more closely.",
+      "range": {
+        "startLine": 148,
+        "startChar": 1,
+        "endLine": 148,
+        "endChar": 39
+      },
+      "revId": "a8b70bccc11dbb89656369ce6a5acaaf61511bae",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
