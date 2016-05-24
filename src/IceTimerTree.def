@@ -41,6 +41,7 @@
   X(livenessLightweight)                                                       \
   X(llvmConvert)                                                               \
   X(loadOpt)                                                                   \
+  X(localCse)                                                                  \
   X(lowerPhiAssignments)                                                       \
   X(materializeVectorShuffles)                                                 \
   X(parse)                                                                     \

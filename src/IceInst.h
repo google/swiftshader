@@ -108,6 +108,13 @@ public:
     assert(I < getSrcSize());
     return Srcs[I];
   }
+  void replaceSource(SizeT Index, Operand *Replacement) {
+    assert(Index < NumSrcs);
+    assert(!isDeleted());
+    assert(LiveRangesEnded == 0);
+    //Invalidates liveness info because the use Srcs[Index] is removed.
+    Srcs[Index] = Replacement;
+  }
 
   bool isLastUse(const Operand *Src) const;
   void spliceLivenessInfo(Inst *OrigInst, Inst *SpliceAssn);

@@ -443,6 +443,11 @@ template <typename TraitsType> void TargetX86Base<TraitsType>::translateO2() {
   Func->processAllocas(SortAndCombineAllocas);
   Func->dump("After Alloca processing");
 
+  if (getFlags().getEnableExperimental()) {
+    Func->localCSE();
+    Func->dump("After Local CSE");
+  }
+
   if (!getFlags().getEnablePhiEdgeSplit()) {
     // Lower Phi instructions.
     Func->placePhiLoads();

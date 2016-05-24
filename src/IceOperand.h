@@ -98,6 +98,12 @@ public:
 
   virtual Variable *asBoolean() { return nullptr; }
 
+  virtual SizeT hashValue() const {
+    llvm::report_fatal_error("Tried to hash unsupported operand type : " +
+                             std::to_string(Kind));
+    return 0;
+  }
+
 protected:
   Operand(OperandKind Kind, Type Ty) : Ty(Ty), Kind(Kind) {
     // It is undefined behavior to have a larger value in the enum
@@ -153,6 +159,7 @@ public:
     ++LookupCount;
   }
   CounterType getLookupCount() const { return LookupCount; }
+  SizeT hashValue() const override { return 0; }
 
 protected:
   Constant(OperandKind Kind, Type Ty) : Operand(Kind, Ty) {
@@ -202,6 +209,10 @@ public:
 
   static bool classof(const Operand *Operand) {
     return Operand->getKind() == K;
+  }
+
+  SizeT hashValue() const override {
+    return std::hash<PrimType>()(Value);
   }
 
   virtual bool shouldBeRandomizedOrPooled() const override { return false; }
@@ -767,6 +778,10 @@ public:
   static bool classof(const Operand *Operand) {
     OperandKind Kind = Operand->getKind();
     return Kind >= kVariable && Kind <= kVariable_Max;
+  }
+
+  SizeT hashValue() const override {
+    return std::hash<SizeT>()(getIndex());
   }
 
 protected:

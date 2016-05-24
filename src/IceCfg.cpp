@@ -507,6 +507,132 @@ void Cfg::shuffleNodes() {
   dump("After basic block shuffling");
 }
 
+void Cfg::localCSE() {
+  // Performs basic-block local common-subexpression elimination
+  // If we have
+  // t1 = op b c
+  // t2 = op b c
+  // This pass will replace future references to t2 in a basic block by t1
+  // Points to note:
+  // 1. Does not assume SSA, but not tested on non-SSA input yet as it is run
+  //    at the beginning.
+  // 2. Leaves removal of instructions to DCE.
+  // 3. Only enabled on arithmetic instructions. pnacl-clang (-O2) is expected
+  //    to take care of cases not arising from GEP simplification.
+  // 4. By default, two passes are made over each basic block. Control this
+  //    with -lcse-max-iters=N
+
+  TimerMarker T(TimerStack::TT_localCse, this);
+  struct VariableHash {
+    size_t operator()(const Variable *Var) const { return Var->hashValue(); }
+  };
+
+  struct InstHash {
+    size_t operator()(const Inst *Instr) const {
+      auto Kind = Instr->getKind();
+      auto Result =
+          std::hash<typename std::underlying_type<Inst::InstKind>::type>()(
+              Kind);
+      for (SizeT i = 0; i < Instr->getSrcSize(); ++i) {
+        Result ^= Instr->getSrc(i)->hashValue();
+      }
+      return Result;
+    }
+  };
+  struct InstEq {
+    bool srcEq(const Operand *A, const Operand *B) const {
+      if (llvm::isa<Variable>(A) || llvm::isa<Constant>(A))
+        return (A == B);
+      return false;
+    }
+    bool operator()(const Inst *InstrA, const Inst *InstrB) const {
+      if ((InstrA->getKind() != InstrB->getKind()) ||
+          (InstrA->getSrcSize() != InstrB->getSrcSize()))
+        return false;
+
+      if (auto *A = llvm::dyn_cast<InstArithmetic>(InstrA)) {
+        auto *B = llvm::cast<InstArithmetic>(InstrB);
+        // A, B are guaranteed to be of the same 'kind' at this point
+        // So, dyn_cast is not needed
+        if (A->getOp() != B->getOp())
+          return false;
+      }
+      // Does not enter loop if different kind or number of operands
+      for (SizeT i = 0; i < InstrA->getSrcSize(); ++i) {
+        if (!srcEq(InstrA->getSrc(i), InstrB->getSrc(i)))
+          return false;
+      }
+      return true;
+    }
+  };
+
+  for (CfgNode *Node : getNodes()) {
+    CfgUnorderedSet<Inst *, InstHash, InstEq> Seen;
+
+    CfgUnorderedMap<Variable *, Variable *, VariableHash> Replacements;
+    // Combining the above two into a single data structure might consume less
+    // memory but will be slower i.e map of Instruction -> Set of Variables
+
+    CfgUnorderedMap<Variable *, std::vector<Inst *>, VariableHash> Dependency;
+    // Not necessary for SSA, still keeping it in case this pass is not run at
+    // the beginning. Remove to improve performace.
+
+    int IterCount = getFlags().getLocalCseMaxIterations();
+
+    while (IterCount--) {
+      // TODO : Stats on IterCount -> performance
+      for (Inst &Instr : Node->getInsts()) {
+        if (Instr.isDeleted() || !llvm::isa<InstArithmetic>(&Instr))
+          continue;
+
+        // Invalidate replacements
+        auto Iter = Replacements.find(Instr.getDest());
+        if (Iter != Replacements.end()) {
+          Replacements.erase(Iter);
+        }
+
+        // Invalidate 'seen' instructions whose operands were just updated.
+        auto DepIter = Dependency.find(Instr.getDest());
+        if (DepIter != Dependency.end()) {
+          for (auto DepInst : DepIter->second) {
+            Seen.erase(DepInst);
+          }
+        }
+        // The above two can be removed if SSA is assumed.
+
+        // Replace - doing this before checking for repetitions might enable
+        // more
+        // optimizations
+        for (SizeT i = 0; i < Instr.getSrcSize(); ++i) {
+          auto *Opnd = Instr.getSrc(i);
+          if (auto *Var = llvm::dyn_cast<Variable>(Opnd)) {
+            if (Replacements.find(Var) != Replacements.end()) {
+              Instr.replaceSource(i, Replacements[Var]);
+            }
+          }
+        }
+
+        // Check for repetitions
+        auto SeenIter = Seen.find(&Instr);
+        if (SeenIter != Seen.end()) { // seen before
+          const Inst *Found = *SeenIter;
+          Replacements[Instr.getDest()] = Found->getDest();
+        } else { // new
+          Seen.insert(&Instr);
+
+          // Update dependencies
+          for (SizeT i = 0; i < Instr.getSrcSize(); ++i) {
+            auto *Opnd = Instr.getSrc(i);
+            if (auto *Var = llvm::dyn_cast<Variable>(Opnd)) {
+              Dependency[Var].push_back(&Instr);
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
 void Cfg::doArgLowering() {
   TimerMarker T(TimerStack::TT_doArgLowering, this);
   getTarget()->lowerArguments();

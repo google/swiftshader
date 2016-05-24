@@ -140,6 +140,10 @@ struct dev_list_flag {};
              "information to stdout at the end of program execution."),        \
     cl::init(false))                                                           \
                                                                                \
+  X(EnableExperimental, bool, dev_opt_flag, "enable-experimental",   \
+    cl::desc("Enable Optimizations not yet part of O2"),                       \
+    cl::init(false))                                                           \
+                                                                               \
   X(EnablePhiEdgeSplit, bool, dev_opt_flag, "phi-edge-split",                  \
     cl::desc("Enable edge splitting for Phi lowering"), cl::init(true))        \
                                                                                \
@@ -175,6 +179,9 @@ struct dev_list_flag {};
     cl::desc("Print out more descriptive PNaCl bitcode parse errors when "     \
              "building LLVM IR first"),                                        \
     cl::init(false))                                                           \
+                                                                               \
+   X(LocalCseMaxIterations, int, dev_opt_flag, "lcse-max-iters",               \
+    cl::desc("Number of times local-cse is run on a block"), cl::init(2))      \
                                                                                \
   X(LogFilename, std::string, dev_opt_flag, "log",                             \
     cl::desc("Set log filename"), cl::init("-"), cl::value_desc("filename"))   \
