@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "bcf7d3e0_8975ddba",
+        "filename": "src/Renderer/Clipper.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-05-25T16:45:33Z",
+      "side": 0,
+      "message": "Only used for user clip planes, so I moved this lower.",
+      "range": {
+        "startLine": 33,
+        "startChar": 2,
+        "endLine": 33,
+        "endChar": 30
+      },
+      "revId": "7b2403b10229b4e66b2441cbd863c59de32c5814",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bcf7d3e0_2985c9af",
+        "filename": "src/Renderer/Clipper.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-05-25T16:45:33Z",
+      "side": 0,
+      "message": "Initialized in Polygon now.",
+      "range": {
+        "startLine": 35,
+        "startChar": 2,
+        "endLine": 35,
+        "endChar": 16
+      },
+      "revId": "7b2403b10229b4e66b2441cbd863c59de32c5814",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bcf7d3e0_6929818a",
+        "filename": "src/Renderer/Clipper.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-05-25T16:45:33Z",
+      "side": 0,
+      "message": "Not needed because we already test the number of vertices \u003e\u003d 3 in clip(), and the loop below is also for the number of vertices. Incrementing polygon.i is safe since there are no vertices to be referenced.",
+      "range": {
+        "startLine": 75,
+        "startChar": 2,
+        "endLine": 75,
+        "endChar": 28
+      },
+      "revId": "7b2403b10229b4e66b2441cbd863c59de32c5814",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bcf7d3e0_891a7d6d",
+        "filename": "src/Renderer/Clipper.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-05-25T16:45:33Z",
+      "side": 0,
+      "message": "Unused parameter. A while ago the clipper was used to implement scissoring so it needed to know the extents. Now scissoring is done in the rasterizer on integer coordinates.",
+      "range": {
+        "startLine": 157,
+        "startChar": 40,
+        "endLine": 157,
+        "endChar": 62
+      },
+      "revId": "7b2403b10229b4e66b2441cbd863c59de32c5814",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}

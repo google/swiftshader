@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "bcf7d3e0_09a32d51",
+        "filename": "src/OpenGL/libGL/Context.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 2428,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-05-25T16:45:33Z",
+      "side": 1,
+      "message": "We\u0027re now clipping in OpenGL\u0027s clip space, so no need to alter the projection matrix.",
+      "range": {
+        "startLine": 2428,
+        "startChar": 2,
+        "endLine": 2428,
+        "endChar": 52
+      },
+      "revId": "451ff6c26fdf8f5eef2759eb867747fdeb7ae997",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bcf7d3e0_c96bd5dd",
+        "filename": "src/Renderer/Clipper.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-05-25T16:45:33Z",
+      "side": 1,
+      "message": "Not exactly our coding style but I wanted to keep this compact.",
+      "range": {
+        "startLine": 35,
+        "startChar": 3,
+        "endLine": 37,
+        "endChar": 52
+      },
+      "revId": "451ff6c26fdf8f5eef2759eb867747fdeb7ae997",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
