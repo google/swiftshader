@@ -45,6 +45,30 @@
       "revId": "451ff6c26fdf8f5eef2759eb867747fdeb7ae997",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bcf7d3e0_691ce108",
+        "filename": "src/Renderer/Clipper.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-05-25T17:05:27Z",
+      "side": 1,
+      "message": "If you want it on a single line, I think you can legally write:\nsymmetricNormalizedDepth ? clipNear0(polygon) : clipNear1(polygon);",
+      "parentUuid": "bcf7d3e0_c96bd5dd",
+      "range": {
+        "startLine": 35,
+        "startChar": 3,
+        "endLine": 37,
+        "endChar": 52
+      },
+      "revId": "451ff6c26fdf8f5eef2759eb867747fdeb7ae997",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
