@@ -1120,7 +1120,7 @@ namespace sw
 
 	void PixelProgram::TEXGRAD(Vector4f &dst, Vector4f &src0, const Src& src1, Vector4f &src2, Vector4f &src3)
 	{
-		UNIMPLEMENTED();
+		sampleTexture(dst, src1, src0.x, src0.y, src0.z, src0.w, src2, src3, false, Grad);
 	}
 
 	void PixelProgram::TEXGRAD(Vector4f &dst, Vector4f &src0, const Src& src1, Vector4f &src2, Vector4f &src3, Vector4f &offset)
