@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "bcf7d3e0_66477013",
+        "filename": "src/Shader/VertexRoutine.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-05-25T14:50:50Z",
+      "side": 1,
+      "message": "Maybe this if statement could be moved up to the transformFeedback() call and then move the transformFeedback call within it.",
+      "range": {
+        "startLine": 82,
+        "startChar": 3,
+        "endLine": 90,
+        "endChar": 4
+      },
+      "revId": "d910f60222b1eb554ba1b1b0229cf2980715be98",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
