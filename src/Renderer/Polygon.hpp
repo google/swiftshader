@@ -29,6 +29,7 @@ namespace sw
 
 			n = 3;
 			i = 0;
+			b = 0;
 		}
 
 		Polygon(const float4 *P, int n)
@@ -40,14 +41,15 @@ namespace sw
 
 			this->n = n;
 			this->i = 0;
+			this->b = 0;
 		}
 
 		float4 B[16];              // Buffer for clipped vertices
 		const float4 *P[16][16];   // Pointers to clipped polygon's vertices
 
-		int i;
-		int b;
-		int n;
+		int n;   // Number of vertices
+		int i;   // Level of P to use
+		int b;   // Next available new vertex
 	};
 }
 

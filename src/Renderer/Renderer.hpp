@@ -345,7 +345,7 @@ namespace sw
 		virtual void setSwizzleG(SamplerType type, int sampler, SwizzleType swizzleG);
 		virtual void setSwizzleB(SamplerType type, int sampler, SwizzleType swizzleB);
 		virtual void setSwizzleA(SamplerType type, int sampler, SwizzleType swizzleA);
-		
+
 		virtual void setPointSpriteEnable(bool pointSpriteEnable);
 		virtual void setPointScaleEnable(bool pointScaleEnable);
 		virtual void setLineWidth(float width);
@@ -416,7 +416,6 @@ namespace sw
 		bool isReadWriteTexture(int sampler);
 		void updateClipper();
 		void updateConfiguration(bool initialUpdate = false);
-		static unsigned int computeClipFlags(const float4 &v, const DrawData &data);
 		void initializeThreads();
 		void terminateThreads();
 

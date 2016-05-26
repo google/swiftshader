@@ -1726,19 +1726,19 @@ namespace sw
 
 			P[0].x += -dy0w + -dx0w;
 			P[0].y += -dx0h + +dy0h;
-			C[0] = computeClipFlags(P[0], data);
+			C[0] = clipper->computeClipFlags(P[0]);
 
 			P[1].x += -dy1w + +dx1w;
 			P[1].y += -dx1h + +dy1h;
-			C[1] = computeClipFlags(P[1], data);
+			C[1] = clipper->computeClipFlags(P[1]);
 
 			P[2].x += +dy1w + +dx1w;
 			P[2].y += +dx1h + -dy1h;
-			C[2] = computeClipFlags(P[2], data);
+			C[2] = clipper->computeClipFlags(P[2]);
 
 			P[3].x += +dy0w + -dx0w;
 			P[3].y += +dx0h + +dy0h;
-			C[3] = computeClipFlags(P[3], data);
+			C[3] = clipper->computeClipFlags(P[3]);
 
 			if((C[0] & C[1] & C[2] & C[3]) == Clipper::CLIP_FINITE)
 			{
@@ -1778,28 +1778,28 @@ namespace sw
 			float dy1 = lineWidth * 0.5f * P1.w / H;
 
 			P[0].x += -dx0;
-			C[0] = computeClipFlags(P[0], data);
+			C[0] = clipper->computeClipFlags(P[0]);
 
 			P[1].y += +dy0;
-			C[1] = computeClipFlags(P[1], data);
+			C[1] = clipper->computeClipFlags(P[1]);
 
 			P[2].x += +dx0;
-			C[2] = computeClipFlags(P[2], data);
+			C[2] = clipper->computeClipFlags(P[2]);
 
 			P[3].y += -dy0;
-			C[3] = computeClipFlags(P[3], data);
+			C[3] = clipper->computeClipFlags(P[3]);
 
 			P[4].x += -dx1;
-			C[4] = computeClipFlags(P[4], data);
+			C[4] = clipper->computeClipFlags(P[4]);
 
 			P[5].y += +dy1;
-			C[5] = computeClipFlags(P[5], data);
+			C[5] = clipper->computeClipFlags(P[5]);
 
 			P[6].x += +dx1;
-			C[6] = computeClipFlags(P[6], data);
+			C[6] = clipper->computeClipFlags(P[6]);
 
 			P[7].y += -dy1;
-			C[7] = computeClipFlags(P[7], data);
+			C[7] = clipper->computeClipFlags(P[7]);
 
 			if((C[0] & C[1] & C[2] & C[3] & C[4] & C[5] & C[6] & C[7]) == Clipper::CLIP_FINITE)
 			{
@@ -1905,19 +1905,19 @@ namespace sw
 
 		P[0].x -= X;
 		P[0].y += Y;
-		C[0] = computeClipFlags(P[0], data);
+		C[0] = clipper->computeClipFlags(P[0]);
 
 		P[1].x += X;
 		P[1].y += Y;
-		C[1] = computeClipFlags(P[1], data);
+		C[1] = clipper->computeClipFlags(P[1]);
 
 		P[2].x += X;
 		P[2].y -= Y;
-		C[2] = computeClipFlags(P[2], data);
+		C[2] = clipper->computeClipFlags(P[2]);
 
 		P[3].x -= X;
 		P[3].y -= Y;
-		C[3] = computeClipFlags(P[3], data);
+		C[3] = clipper->computeClipFlags(P[3]);
 
 		triangle.v1 = triangle.v0;
 		triangle.v2 = triangle.v0;
@@ -1943,17 +1943,6 @@ namespace sw
 		}
 
 		return false;
-	}
-
-	unsigned int Renderer::computeClipFlags(const float4 &v, const DrawData &data)
-	{
-		return ((v.x > v.w)  << 0) |
-		       ((v.y > v.w)  << 1) |
-		       ((v.z > v.w)  << 2) |
-		       ((v.x < -v.w) << 3) |
-		       ((v.y < -v.w) << 4) |
-		       ((v.z < 0)    << 5) |
-		       Clipper::CLIP_FINITE;   // FIXME: xyz finite
 	}
 
 	void Renderer::initializeThreads()
