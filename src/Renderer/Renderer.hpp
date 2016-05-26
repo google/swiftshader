@@ -221,7 +221,7 @@ namespace sw
 		SetupProcessor::RoutinePointer setupPointer;
 		PixelProcessor::RoutinePointer pixelPointer;
 
-		int (*setupPrimitives)(Renderer *renderer, int batch, int count);
+		int (Renderer::*setupPrimitives)(int batch, int count);
 		SetupProcessor::State setupState;
 
 		Resource *vertexStream[MAX_VERTEX_INPUTS];
@@ -404,14 +404,14 @@ namespace sw
 
 		void processPrimitiveVertices(int unit, unsigned int start, unsigned int count, unsigned int loop, int thread);
 
-		static int setupSolidTriangles(Renderer *renderer, int batch, int count);
-		static int setupWireframeTriangle(Renderer *renderer, int batch, int count);
-		static int setupVertexTriangle(Renderer *renderer, int batch, int count);
-		static int setupLines(Renderer *renderer, int batch, int count);
-		static int setupPoints(Renderer *renderer, int batch, int count);
+		int setupSolidTriangles(int batch, int count);
+		int setupWireframeTriangle(int batch, int count);
+		int setupVertexTriangle(int batch, int count);
+		int setupLines(int batch, int count);
+		int setupPoints(int batch, int count);
 
-		static bool setupLine(Renderer *renderer, Primitive &primitive, Triangle &triangle, const DrawCall &draw);
-		static bool setupPoint(Renderer *renderer, Primitive &primitive, Triangle &triangle, const DrawCall &draw);
+		bool setupLine(Primitive &primitive, Triangle &triangle, const DrawCall &draw);
+		bool setupPoint(Primitive &primitive, Triangle &triangle, const DrawCall &draw);
 
 		bool isReadWriteTexture(int sampler);
 		void updateClipper();
