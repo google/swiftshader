@@ -251,21 +251,21 @@ namespace sw
 
 			int batch = batchSize / ms;
 
-			int (*setupPrimitives)(Renderer *renderer, int batch, int count);
+			int (Renderer::*setupPrimitives)(int batch, int count);
 
 			if(context->isDrawTriangle())
 			{
 				switch(context->fillMode)
 				{
 				case FILL_SOLID:
-					setupPrimitives = setupSolidTriangles;
+					setupPrimitives = &Renderer::setupSolidTriangles;
 					break;
 				case FILL_WIREFRAME:
-					setupPrimitives = setupWireframeTriangle;
+					setupPrimitives = &Renderer::setupWireframeTriangle;
 					batch = 1;
 					break;
 				case FILL_VERTEX:
-					setupPrimitives = setupVertexTriangle;
+					setupPrimitives = &Renderer::setupVertexTriangle;
 					batch = 1;
 					break;
 				default: ASSERT(false);
@@ -273,11 +273,11 @@ namespace sw
 			}
 			else if(context->isDrawLine())
 			{
-				setupPrimitives = setupLines;
+				setupPrimitives = &Renderer::setupLines;
 			}
 			else   // Point draw
 			{
-				setupPrimitives = setupPoints;
+				setupPrimitives = &Renderer::setupPoints;
 			}
 
 			DrawCall *draw = 0;
@@ -841,7 +841,7 @@ namespace sw
 				int input = primitiveProgress[unit].firstPrimitive;
 				int count = primitiveProgress[unit].primitiveCount;
 				DrawCall *draw = drawList[primitiveProgress[unit].drawCall % DRAW_COUNT];
-				int (*setupPrimitives)(Renderer *renderer, int batch, int count) = draw->setupPrimitives;
+				int (Renderer::*setupPrimitives)(int batch, int count) = draw->setupPrimitives;
 
 				processPrimitiveVertices(unit, input, count, draw->count, threadIndex);
 
@@ -851,7 +851,12 @@ namespace sw
 					startTick = time;
 				#endif
 
-				int visible = draw->setupState.rasterizerDiscard ? 0 : setupPrimitives(this, unit, count);
+				int visible = 0;
+
+				if(!draw->setupState.rasterizerDiscard)
+				{
+					visible = (this->*setupPrimitives)(unit, count);
+				}
 
 				primitiveProgress[unit].visible = visible;
 				primitiveProgress[unit].references = clusterCount;
@@ -1465,12 +1470,12 @@ namespace sw
 		vertexRoutine(&triangle->v0, (unsigned int*)&batch, task, data);
 	}
 
-	int Renderer::setupSolidTriangles(Renderer *renderer, int unit, int count)
+	int Renderer::setupSolidTriangles(int unit, int count)
 	{
-		Triangle *triangle = renderer->triangleBatch[unit];
-		Primitive *primitive = renderer->primitiveBatch[unit];
+		Triangle *triangle = triangleBatch[unit];
+		Primitive *primitive = primitiveBatch[unit];
 
-		DrawCall &draw = *renderer->drawList[renderer->primitiveProgress[unit].drawCall % DRAW_COUNT];
+		DrawCall &draw = *drawList[primitiveProgress[unit].drawCall % DRAW_COUNT];
 		SetupProcessor::State &state = draw.setupState;
 		const SetupProcessor::RoutinePointer &setupRoutine = draw.setupPointer;
 
@@ -1493,7 +1498,7 @@ namespace sw
 
 				if(clipFlagsOr != Clipper::CLIP_FINITE)
 				{
-					if(!renderer->clipper->clip(polygon, clipFlagsOr, draw))
+					if(!clipper->clip(polygon, clipFlagsOr, draw))
 					{
 						continue;
 					}
@@ -1510,13 +1515,13 @@ namespace sw
 		return visible;
 	}
 
-	int Renderer::setupWireframeTriangle(Renderer *renderer, int unit, int count)
+	int Renderer::setupWireframeTriangle(int unit, int count)
 	{
-		Triangle *triangle = renderer->triangleBatch[unit];
-		Primitive *primitive = renderer->primitiveBatch[unit];
+		Triangle *triangle = triangleBatch[unit];
+		Primitive *primitive = primitiveBatch[unit];
 		int visible = 0;
 
-		DrawCall &draw = *renderer->drawList[renderer->primitiveProgress[unit].drawCall % DRAW_COUNT];
+		DrawCall &draw = *drawList[primitiveProgress[unit].drawCall % DRAW_COUNT];
 		SetupProcessor::State &state = draw.setupState;
 		SetupProcessor::RoutinePointer setupRoutine = draw.setupPointer;
 
@@ -1554,7 +1559,7 @@ namespace sw
 
 		for(int i = 0; i < 3; i++)
 		{
-			if(setupLine(renderer, *primitive, *triangle, draw))
+			if(setupLine(*primitive, *triangle, draw))
 			{
 				primitive->area = 0.5f * d;
 
@@ -1568,13 +1573,13 @@ namespace sw
 		return visible;
 	}
 
-	int Renderer::setupVertexTriangle(Renderer *renderer, int unit, int count)
+	int Renderer::setupVertexTriangle(int unit, int count)
 	{
-		Triangle *triangle = renderer->triangleBatch[unit];
-		Primitive *primitive = renderer->primitiveBatch[unit];
+		Triangle *triangle = triangleBatch[unit];
+		Primitive *primitive = primitiveBatch[unit];
 		int visible = 0;
 
-		DrawCall &draw = *renderer->drawList[renderer->primitiveProgress[unit].drawCall % DRAW_COUNT];
+		DrawCall &draw = *drawList[primitiveProgress[unit].drawCall % DRAW_COUNT];
 		SetupProcessor::State &state = draw.setupState;
 
 		const Vertex &v0 = triangle[0].v0;
@@ -1598,7 +1603,7 @@ namespace sw
 
 		for(int i = 0; i < 3; i++)
 		{
-			if(setupPoint(renderer, *primitive, *triangle, draw))
+			if(setupPoint(*primitive, *triangle, draw))
 			{
 				primitive->area = 0.5f * d;
 
@@ -1612,20 +1617,20 @@ namespace sw
 		return visible;
 	}
 
-	int Renderer::setupLines(Renderer *renderer, int unit, int count)
+	int Renderer::setupLines(int unit, int count)
 	{
-		Triangle *triangle = renderer->triangleBatch[unit];
-		Primitive *primitive = renderer->primitiveBatch[unit];
+		Triangle *triangle = triangleBatch[unit];
+		Primitive *primitive = primitiveBatch[unit];
 		int visible = 0;
 
-		DrawCall &draw = *renderer->drawList[renderer->primitiveProgress[unit].drawCall % DRAW_COUNT];
+		DrawCall &draw = *drawList[primitiveProgress[unit].drawCall % DRAW_COUNT];
 		SetupProcessor::State &state = draw.setupState;
 
 		int ms = state.multiSample;
 
 		for(int i = 0; i < count; i++)
 		{
-			if(setupLine(renderer, *primitive, *triangle, draw))
+			if(setupLine(*primitive, *triangle, draw))
 			{
 				primitive += ms;
 				visible++;
@@ -1637,20 +1642,20 @@ namespace sw
 		return visible;
 	}
 
-	int Renderer::setupPoints(Renderer *renderer, int unit, int count)
+	int Renderer::setupPoints(int unit, int count)
 	{
-		Triangle *triangle = renderer->triangleBatch[unit];
-		Primitive *primitive = renderer->primitiveBatch[unit];
+		Triangle *triangle = triangleBatch[unit];
+		Primitive *primitive = primitiveBatch[unit];
 		int visible = 0;
 
-		DrawCall &draw = *renderer->drawList[renderer->primitiveProgress[unit].drawCall % DRAW_COUNT];
+		DrawCall &draw = *drawList[primitiveProgress[unit].drawCall % DRAW_COUNT];
 		SetupProcessor::State &state = draw.setupState;
 
 		int ms = state.multiSample;
 
 		for(int i = 0; i < count; i++)
 		{
-			if(setupPoint(renderer, *primitive, *triangle, draw))
+			if(setupPoint(*primitive, *triangle, draw))
 			{
 				primitive += ms;
 				visible++;
@@ -1662,7 +1667,7 @@ namespace sw
 		return visible;
 	}
 
-	bool Renderer::setupLine(Renderer *renderer, Primitive &primitive, Triangle &triangle, const DrawCall &draw)
+	bool Renderer::setupLine(Primitive &primitive, Triangle &triangle, const DrawCall &draw)
 	{
 		const SetupProcessor::RoutinePointer &setupRoutine = draw.setupPointer;
 		const SetupProcessor::State &state = draw.setupState;
@@ -1743,7 +1748,7 @@ namespace sw
 
 				if(clipFlagsOr != Clipper::CLIP_FINITE)
 				{
-					if(!renderer->clipper->clip(polygon, clipFlagsOr, draw))
+					if(!clipper->clip(polygon, clipFlagsOr, draw))
 					{
 						return false;
 					}
@@ -1849,7 +1854,7 @@ namespace sw
 
 				if(clipFlagsOr != Clipper::CLIP_FINITE)
 				{
-					if(!renderer->clipper->clip(polygon, clipFlagsOr, draw))
+					if(!clipper->clip(polygon, clipFlagsOr, draw))
 					{
 						return false;
 					}
@@ -1862,7 +1867,7 @@ namespace sw
 		return false;
 	}
 
-	bool Renderer::setupPoint(Renderer *renderer, Primitive &primitive, Triangle &triangle, const DrawCall &draw)
+	bool Renderer::setupPoint(Primitive &primitive, Triangle &triangle, const DrawCall &draw)
 	{
 		const SetupProcessor::RoutinePointer &setupRoutine = draw.setupPointer;
 		const SetupProcessor::State &state = draw.setupState;
@@ -1928,7 +1933,7 @@ namespace sw
 
 			if(clipFlagsOr != Clipper::CLIP_FINITE)
 			{
-				if(!renderer->clipper->clip(polygon, clipFlagsOr, draw))
+				if(!clipper->clip(polygon, clipFlagsOr, draw))
 				{
 					return false;
 				}
