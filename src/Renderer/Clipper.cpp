@@ -101,7 +101,6 @@ namespace sw
 				if(dj < 0)
 				{
 					clipEdge(polygon.B[polygon.b], *V[i], *V[j], di, dj);
-					polygon.B[polygon.b].z = n * polygon.B[polygon.b].w;
 					T[t++] = &polygon.B[polygon.b++];
 				}
 			}
@@ -110,7 +109,6 @@ namespace sw
 				if(dj > 0)
 				{
 					clipEdge(polygon.B[polygon.b], *V[j], *V[i], dj, di);
-					polygon.B[polygon.b].z = n * polygon.B[polygon.b].w;
 					T[t++] = &polygon.B[polygon.b++];
 				}
 			}
@@ -141,7 +139,6 @@ namespace sw
 				if(dj < 0)
 				{
 					clipEdge(polygon.B[polygon.b], *V[i], *V[j], di, dj);
-					polygon.B[polygon.b].z = polygon.B[polygon.b].w;
 					T[t++] = &polygon.B[polygon.b++];
 				}
 			}
@@ -150,7 +147,6 @@ namespace sw
 				if(dj > 0)
 				{
 					clipEdge(polygon.B[polygon.b], *V[j], *V[i], dj, di);
-					polygon.B[polygon.b].z = polygon.B[polygon.b].w;
 					T[t++] = &polygon.B[polygon.b++];
 				}
 			}
@@ -181,7 +177,6 @@ namespace sw
 				if(dj < 0)
 				{
 					clipEdge(polygon.B[polygon.b], *V[i], *V[j], di, dj);
-				//	polygon.B[polygon.b].x = -polygon.B[polygon.b].w;
 					T[t++] = &polygon.B[polygon.b++];
 				}
 			}
@@ -190,7 +185,6 @@ namespace sw
 				if(dj > 0)
 				{
 					clipEdge(polygon.B[polygon.b], *V[j], *V[i], dj, di);
-				//	polygon.B[polygon.b].x = -polygon.B[polygon.b].w;
 					T[t++] = &polygon.B[polygon.b++];
 				}
 			}
@@ -221,7 +215,6 @@ namespace sw
 				if(dj < 0)
 				{
 					clipEdge(polygon.B[polygon.b], *V[i], *V[j], di, dj);
-				//	polygon.B[polygon.b].x = polygon.B[polygon.b].w;
 					T[t++] = &polygon.B[polygon.b++];
 				}
 			}
@@ -230,7 +223,6 @@ namespace sw
 				if(dj > 0)
 				{
 					clipEdge(polygon.B[polygon.b], *V[j], *V[i], dj, di);
-				//	polygon.B[polygon.b].x = polygon.B[polygon.b].w;
 					T[t++] = &polygon.B[polygon.b++];
 				}
 			}
@@ -261,7 +253,6 @@ namespace sw
 				if(dj < 0)
 				{
 					clipEdge(polygon.B[polygon.b], *V[i], *V[j], di, dj);
-				//	polygon.B[polygon.b].y = polygon.B[polygon.b].w;
 					T[t++] = &polygon.B[polygon.b++];
 				}
 			}
@@ -270,7 +261,6 @@ namespace sw
 				if(dj > 0)
 				{
 					clipEdge(polygon.B[polygon.b], *V[j], *V[i], dj, di);
-				//	polygon.B[polygon.b].y = polygon.B[polygon.b].w;
 					T[t++] = &polygon.B[polygon.b++];
 				}
 			}
@@ -301,7 +291,6 @@ namespace sw
 				if(dj < 0)
 				{
 					clipEdge(polygon.B[polygon.b], *V[i], *V[j], di, dj);
-				//	polygon.B[polygon.b].y = -polygon.B[polygon.b].w;
 					T[t++] = &polygon.B[polygon.b++];
 				}
 			}
@@ -310,7 +299,6 @@ namespace sw
 				if(dj > 0)
 				{
 					clipEdge(polygon.B[polygon.b], *V[j], *V[i], dj, di);
-				//	polygon.B[polygon.b].y = -polygon.B[polygon.b].w;
 					T[t++] = &polygon.B[polygon.b++];
 				}
 			}
