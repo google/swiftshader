@@ -28,30 +28,39 @@ namespace sw
 	{
 	}
 
+	unsigned int Clipper::computeClipFlags(const float4 &v)
+	{
+		return ((v.x > v.w)  ? CLIP_RIGHT  : 0) |
+		       ((v.y > v.w)  ? CLIP_TOP    : 0) |
+		       ((v.z > v.w)  ? CLIP_FAR    : 0) |
+		       ((v.x < -v.w) ? CLIP_LEFT   : 0) |
+		       ((v.y < -v.w) ? CLIP_BOTTOM : 0) |
+		       ((v.z < 0)    ? CLIP_NEAR   : 0) |
+		       Clipper::CLIP_FINITE;   // FIXME: xyz finite
+	}
+
 	bool Clipper::clip(Polygon &polygon, int clipFlagsOr, const DrawCall &draw)
 	{
-		DrawData &data = *draw.data;
-
-		polygon.b = 0;
-
-		if(clipFlagsOr & 0x0000003F)
+		if(clipFlagsOr & CLIP_FRUSTUM)
 		{
 			if(clipFlagsOr & CLIP_NEAR)   clipNear(polygon);
 			if(polygon.n >= 3) {
 			if(clipFlagsOr & CLIP_FAR)    clipFar(polygon);
 			if(polygon.n >= 3) {
-			if(clipFlagsOr & CLIP_LEFT)   clipLeft(polygon, data);
+			if(clipFlagsOr & CLIP_LEFT)   clipLeft(polygon);
 			if(polygon.n >= 3) {
-			if(clipFlagsOr & CLIP_RIGHT)  clipRight(polygon, data);
+			if(clipFlagsOr & CLIP_RIGHT)  clipRight(polygon);
 			if(polygon.n >= 3) {
-			if(clipFlagsOr & CLIP_TOP)    clipTop(polygon, data);
+			if(clipFlagsOr & CLIP_TOP)    clipTop(polygon);
 			if(polygon.n >= 3) {
-			if(clipFlagsOr & CLIP_BOTTOM) clipBottom(polygon, data);
+			if(clipFlagsOr & CLIP_BOTTOM) clipBottom(polygon);
 			}}}}}
 		}
 
-		if(clipFlagsOr & 0x00003F00)
+		if(clipFlagsOr & CLIP_USER)
 		{
+			DrawData &data = *draw.data;
+
 			if(polygon.n >= 3) {
 			if(draw.clipFlags & CLIP_PLANE0) clipPlane(polygon, data.clipPlane[0]);
 			if(polygon.n >= 3) {
@@ -72,8 +81,6 @@ namespace sw
 
 	void Clipper::clipNear(Polygon &polygon)
 	{
-		if(polygon.n == 0) return;
-
 		const float4 **V = polygon.P[polygon.i];
 		const float4 **T = polygon.P[polygon.i + 1];
 
@@ -114,8 +121,6 @@ namespace sw
 
 	void Clipper::clipFar(Polygon &polygon)
 	{
-		if(polygon.n == 0) return;
-
 		const float4 **V = polygon.P[polygon.i];
 		const float4 **T = polygon.P[polygon.i + 1];
 
@@ -154,10 +159,8 @@ namespace sw
 		polygon.i += 1;
 	}
 
-	void Clipper::clipLeft(Polygon &polygon, const DrawData &data)
+	void Clipper::clipLeft(Polygon &polygon)
 	{
-		if(polygon.n == 0) return;
-
 		const float4 **V = polygon.P[polygon.i];
 		const float4 **T = polygon.P[polygon.i + 1];
 
@@ -196,10 +199,8 @@ namespace sw
 		polygon.i += 1;
 	}
 
-	void Clipper::clipRight(Polygon &polygon, const DrawData &data)
+	void Clipper::clipRight(Polygon &polygon)
 	{
-		if(polygon.n == 0) return;
-
 		const float4 **V = polygon.P[polygon.i];
 		const float4 **T = polygon.P[polygon.i + 1];
 
@@ -238,10 +239,8 @@ namespace sw
 		polygon.i += 1;
 	}
 
-	void Clipper::clipTop(Polygon &polygon, const DrawData &data)
+	void Clipper::clipTop(Polygon &polygon)
 	{
-		if(polygon.n == 0) return;
-
 		const float4 **V = polygon.P[polygon.i];
 		const float4 **T = polygon.P[polygon.i + 1];
 
@@ -280,10 +279,8 @@ namespace sw
 		polygon.i += 1;
 	}
 
-	void Clipper::clipBottom(Polygon &polygon, const DrawData &data)
+	void Clipper::clipBottom(Polygon &polygon)
 	{
-		if(polygon.n == 0) return;
-
 		const float4 **V = polygon.P[polygon.i];
 		const float4 **T = polygon.P[polygon.i + 1];
 
@@ -324,8 +321,6 @@ namespace sw
 
 	void Clipper::clipPlane(Polygon &polygon, const Plane &p)
 	{
-		if(polygon.n == 0) return;
-
 		const float4 **V = polygon.P[polygon.i];
 		const float4 **T = polygon.P[polygon.i + 1];
 
