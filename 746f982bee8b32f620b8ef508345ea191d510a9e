@@ -45,6 +45,30 @@
       "revId": "746f982bee8b32f620b8ef508345ea191d510a9e",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bcf7d3e0_cfe50318",
+        "filename": "src/OpenGL/libGLESv2/mathutil.h",
+        "patchSetId": 3
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-05-27T20:27:56Z",
+      "side": 1,
+      "message": "Indeed 0x80000000 can be represented as well. I just tried to keep it symmetrical, which works also but might be more confusing. So done.",
+      "parentUuid": "bcf7d3e0_e4e0e609",
+      "range": {
+        "startLine": 85,
+        "startChar": 8,
+        "endLine": 85,
+        "endChar": 19
+      },
+      "revId": "746f982bee8b32f620b8ef508345ea191d510a9e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
