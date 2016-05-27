@@ -90,7 +90,4 @@ namespace es
 
 #endif   // __ANDROID__
 
-// A macro functioning as a compile-time assert to validate constant conditions
-#define META_ASSERT(condition) typedef int COMPILE_TIME_ASSERT_##__LINE__[static_cast<bool>(condition) ? 1 : -1]
-
 #endif   // COMMON_DEBUG_H_

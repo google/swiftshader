@@ -152,7 +152,6 @@
 		<Unit filename="../../Common/Math.hpp" />
 		<Unit filename="../../Common/Memory.cpp" />
 		<Unit filename="../../Common/Memory.hpp" />
-		<Unit filename="../../Common/MetaMacro.hpp" />
 		<Unit filename="../../Common/MutexLock.hpp" />
 		<Unit filename="../../Common/Resource.cpp" />
 		<Unit filename="../../Common/Resource.hpp" />

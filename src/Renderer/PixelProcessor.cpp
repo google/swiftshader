@@ -17,7 +17,6 @@
 #include "PixelPipeline.hpp"
 #include "PixelProgram.hpp"
 #include "PixelShader.hpp"
-#include "MetaMacro.hpp"
 #include "Surface.hpp"
 #include "Primitive.hpp"
 #include "Constants.hpp"

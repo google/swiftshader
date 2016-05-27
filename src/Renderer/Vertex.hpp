@@ -16,7 +16,6 @@
 #define Vertex_hpp
 
 #include "Color.hpp"
-#include "Common/MetaMacro.hpp"
 #include "Common/Types.hpp"
 #include "Main/Config.hpp"
 
@@ -93,7 +92,7 @@ namespace sw
 		int padding[3];
 	});
 
-	META_ASSERT((sizeof(Vertex) & 0x0000000F) == 0);
+	static_assert((sizeof(Vertex) & 0x0000000F) == 0, "Vertex size not a multiple of 16 bytes (alignment requirement)");
 }
 
 #endif   // Vertex_hpp

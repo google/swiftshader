@@ -432,7 +432,6 @@
     <ClInclude Include="..\Common\Half.hpp" />
     <ClInclude Include="..\Common\Math.hpp" />
     <ClInclude Include="..\Common\Memory.hpp" />
-    <ClInclude Include="..\Common\MetaMacro.hpp" />
     <ClInclude Include="..\Common\MutexLock.hpp" />
     <ClInclude Include="..\Common\Resource.hpp" />
     <ClInclude Include="..\Common\Timer.hpp" />
