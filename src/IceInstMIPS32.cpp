@@ -65,16 +65,26 @@ template <> const char *InstMIPS32Lui::Opcode = "lui";
 template <> const char *InstMIPS32La::Opcode = "la";
 // Three-addr ops
 template <> const char *InstMIPS32Add::Opcode = "add";
+template <> const char *InstMIPS32Add_d::Opcode = "add.d";
+template <> const char *InstMIPS32Add_s::Opcode = "add.s";
 template <> const char *InstMIPS32Addu::Opcode = "addu";
 template <> const char *InstMIPS32And::Opcode = "and";
 template <> const char *InstMIPS32Andi::Opcode = "andi";
 template <> const char *InstMIPS32Div::Opcode = "div";
+template <> const char *InstMIPS32Div_d::Opcode = "div.d";
+template <> const char *InstMIPS32Div_s::Opcode = "div.s";
 template <> const char *InstMIPS32Divu::Opcode = "divu";
+template <> const char *InstMIPS32Mfc1::Opcode = "mfc1";
 template <> const char *InstMIPS32Mfhi::Opcode = "mfhi";
 template <> const char *InstMIPS32Mflo::Opcode = "mflo";
+template <> const char *InstMIPS32Mov_d::Opcode = "mov.d";
+template <> const char *InstMIPS32Mov_s::Opcode = "mov.s";
+template <> const char *InstMIPS32Mtc1::Opcode = "mtc1";
 template <> const char *InstMIPS32Mthi::Opcode = "mthi";
 template <> const char *InstMIPS32Mtlo::Opcode = "mtlo";
 template <> const char *InstMIPS32Mul::Opcode = "mul";
+template <> const char *InstMIPS32Mul_d::Opcode = "mul.d";
+template <> const char *InstMIPS32Mul_s::Opcode = "mul.s";
 template <> const char *InstMIPS32Mult::Opcode = "mult";
 template <> const char *InstMIPS32Multu::Opcode = "multu";
 template <> const char *InstMIPS32Or::Opcode = "or";
@@ -90,6 +100,8 @@ template <> const char *InstMIPS32Srav::Opcode = "srav";
 template <> const char *InstMIPS32Srl::Opcode = "srl";
 template <> const char *InstMIPS32Srlv::Opcode = "srlv";
 template <> const char *InstMIPS32Sub::Opcode = "sub";
+template <> const char *InstMIPS32Sub_d::Opcode = "sub.d";
+template <> const char *InstMIPS32Sub_s::Opcode = "sub.s";
 template <> const char *InstMIPS32Subu::Opcode = "subu";
 template <> const char *InstMIPS32Xor::Opcode = "xor";
 template <> const char *InstMIPS32Xori::Opcode = "xori";
@@ -276,6 +288,18 @@ void InstMIPS32::emitThreeAddr(const char *Opcode, const InstMIPS32 *Inst,
   Inst->getSrc(0)->emit(Func);
   Str << ", ";
   Inst->getSrc(1)->emit(Func);
+}
+
+void InstMIPS32::emitTwoAddr(const char *Opcode, const InstMIPS32 *Inst,
+                             const Cfg *Func) {
+  if (!BuildDefs::dump())
+    return;
+  Ostream &Str = Func->getContext()->getStrEmit();
+  assert(Inst->getSrcSize() == 1);
+  Str << "\t" << Opcode << "\t";
+  Inst->getDest()->emit(Func);
+  Str << ", ";
+  Inst->getSrc(0)->emit(Func);
 }
 
 void InstMIPS32::emitThreeAddrLoHi(const char *Opcode, const InstMIPS32 *Inst,

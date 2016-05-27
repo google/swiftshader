@@ -119,6 +119,8 @@ public:
   enum InstKindMIPS32 {
     k__Start = Inst::Target,
     Add,
+    Add_d,
+    Add_s,
     Addiu,
     Addu,
     And,
@@ -126,16 +128,24 @@ public:
     Br,
     Call,
     Div,
+    Div_d,
+    Div_s,
     Divu,
     La,
     Label,
     Lui,
+    Mfc1,
     Mfhi,
     Mflo,
     Mov, // actually a pseudo op for addi rd, rs, 0
+    Mov_d,
+    Mov_s,
+    Mtc1,
     Mthi,
     Mtlo,
     Mul,
+    Mul_d,
+    Mul_s,
     Mult,
     Multu,
     Or,
@@ -152,6 +162,8 @@ public:
     Srl,
     Srlv,
     Sub,
+    Sub_d,
+    Sub_s,
     Subu,
     Xor,
     Xori
@@ -175,6 +187,8 @@ public:
                                   const Cfg *Func);
   static void emitUnaryopGPRTLoHi(const char *Opcode, const InstMIPS32 *Inst,
                                   const Cfg *Func);
+  static void emitTwoAddr(const char *Opcode, const InstMIPS32 *Inst,
+                          const Cfg *Func);
   static void emitThreeAddr(const char *Opcode, const InstMIPS32 *Inst,
                             const Cfg *Func);
   static void emitThreeAddrLoHi(const char *Opcode, const InstMIPS32 *Inst,
@@ -256,6 +270,143 @@ protected:
   }
 
 private:
+  static const char *Opcode;
+};
+
+/// Instructions of the form opcode reg, reg.
+template <InstMIPS32::InstKindMIPS32 K>
+class InstMIPS32TwoAddrFPR : public InstMIPS32 {
+  InstMIPS32TwoAddrFPR() = delete;
+  InstMIPS32TwoAddrFPR(const InstMIPS32TwoAddrFPR &) = delete;
+  InstMIPS32TwoAddrFPR &operator=(const InstMIPS32TwoAddrFPR &) = delete;
+
+public:
+  static InstMIPS32TwoAddrFPR *create(Cfg *Func, Variable *Dest,
+                                      Variable *Src0) {
+    return new (Func->allocate<InstMIPS32TwoAddrFPR>())
+        InstMIPS32TwoAddrFPR(Func, Dest, Src0);
+  }
+  void emit(const Cfg *Func) const override {
+    if (!BuildDefs::dump())
+      return;
+    emitTwoAddr(Opcode, this, Func);
+  }
+  void emitIAS(const Cfg *Func) const override {
+    (void)Func;
+    llvm_unreachable("Not yet implemented");
+  }
+
+  void dump(const Cfg *Func) const override {
+    if (!BuildDefs::dump())
+      return;
+    Ostream &Str = Func->getContext()->getStrDump();
+    dumpDest(Func);
+    Str << " = ";
+    dumpOpcode(Str, Opcode, getDest()->getType());
+    Str << " ";
+    dumpSources(Func);
+  }
+  static bool classof(const Inst *Inst) { return isClassof(Inst, K); }
+
+private:
+  InstMIPS32TwoAddrFPR(Cfg *Func, Variable *Dest, Variable *Src0)
+      : InstMIPS32(Func, K, 1, Dest) {
+    addSource(Src0);
+  }
+
+  static const char *Opcode;
+};
+
+/// Instructions of the form opcode reg, reg.
+template <InstMIPS32::InstKindMIPS32 K>
+class InstMIPS32TwoAddrGPR : public InstMIPS32 {
+  InstMIPS32TwoAddrGPR() = delete;
+  InstMIPS32TwoAddrGPR(const InstMIPS32TwoAddrGPR &) = delete;
+  InstMIPS32TwoAddrGPR &operator=(const InstMIPS32TwoAddrGPR &) = delete;
+
+public:
+  static InstMIPS32TwoAddrGPR *create(Cfg *Func, Variable *Dest,
+                                      Variable *Src0) {
+    return new (Func->allocate<InstMIPS32TwoAddrGPR>())
+        InstMIPS32TwoAddrGPR(Func, Dest, Src0);
+  }
+  void emit(const Cfg *Func) const override {
+    if (!BuildDefs::dump())
+      return;
+    emitTwoAddr(Opcode, this, Func);
+  }
+  void emitIAS(const Cfg *Func) const override {
+    (void)Func;
+    llvm_unreachable("Not yet implemented");
+  }
+
+  void dump(const Cfg *Func) const override {
+    if (!BuildDefs::dump())
+      return;
+    Ostream &Str = Func->getContext()->getStrDump();
+    dumpDest(Func);
+    Str << " = ";
+    dumpOpcode(Str, Opcode, getDest()->getType());
+    Str << " ";
+    dumpSources(Func);
+  }
+  static bool classof(const Inst *Inst) { return isClassof(Inst, K); }
+
+private:
+  InstMIPS32TwoAddrGPR(Cfg *Func, Variable *Dest, Variable *Src0)
+      : InstMIPS32(Func, K, 1, Dest) {
+    addSource(Src0);
+  }
+
+  static const char *Opcode;
+};
+
+/// Instructions of the form x := y op z. May have the side-effect of setting
+/// status flags.
+template <InstMIPS32::InstKindMIPS32 K>
+class InstMIPS32ThreeAddrFPR : public InstMIPS32 {
+  InstMIPS32ThreeAddrFPR() = delete;
+  InstMIPS32ThreeAddrFPR(const InstMIPS32ThreeAddrFPR &) = delete;
+  InstMIPS32ThreeAddrFPR &operator=(const InstMIPS32ThreeAddrFPR &) = delete;
+
+public:
+  /// Create an ordinary binary-op instruction like add, and sub. Dest and Src1
+  /// must be registers.
+  static InstMIPS32ThreeAddrFPR *create(Cfg *Func, Variable *Dest,
+                                        Variable *Src0, Variable *Src1) {
+    return new (Func->allocate<InstMIPS32ThreeAddrFPR>())
+        InstMIPS32ThreeAddrFPR(Func, Dest, Src0, Src1);
+  }
+  void emit(const Cfg *Func) const override {
+    if (!BuildDefs::dump())
+      return;
+    emitThreeAddr(Opcode, this, Func);
+  }
+  void emitIAS(const Cfg *Func) const override {
+    (void)Func;
+    llvm_unreachable("Not yet implemented");
+  }
+
+  void dump(const Cfg *Func) const override {
+    if (!BuildDefs::dump())
+      return;
+    Ostream &Str = Func->getContext()->getStrDump();
+    dumpDest(Func);
+    Str << " = ";
+    dumpOpcode(Str, Opcode, getDest()->getType());
+    Str << " ";
+    dumpSources(Func);
+  }
+  static bool classof(const Inst *Inst) { return isClassof(Inst, K); }
+
+private:
+  InstMIPS32ThreeAddrFPR(Cfg *Func, Variable *Dest, Variable *Src0,
+                         Variable *Src1)
+      : InstMIPS32(Func, K, 2, Dest) {
+    addSource(Src0);
+    addSource(Src1);
+  }
+
   static const char *Opcode;
 };
 
@@ -498,19 +649,29 @@ private:
 };
 
 using InstMIPS32Add = InstMIPS32ThreeAddrGPR<InstMIPS32::Add>;
+using InstMIPS32Add_d = InstMIPS32ThreeAddrFPR<InstMIPS32::Add_d>;
+using InstMIPS32Add_s = InstMIPS32ThreeAddrFPR<InstMIPS32::Add_s>;
 using InstMIPS32Addu = InstMIPS32ThreeAddrGPR<InstMIPS32::Addu>;
 using InstMIPS32Addiu = InstMIPS32Imm16<InstMIPS32::Addiu, true>;
 using InstMIPS32And = InstMIPS32ThreeAddrGPR<InstMIPS32::And>;
 using InstMIPS32Andi = InstMIPS32Imm16<InstMIPS32::Andi>;
 using InstMIPS32Div = InstMIPS32ThreeAddrGPR<InstMIPS32::Div>;
+using InstMIPS32Div_d = InstMIPS32ThreeAddrFPR<InstMIPS32::Div_d>;
+using InstMIPS32Div_s = InstMIPS32ThreeAddrFPR<InstMIPS32::Div_s>;
 using InstMIPS32Divu = InstMIPS32ThreeAddrGPR<InstMIPS32::Divu>;
 using InstMIPS32Lui = InstMIPS32Imm16<InstMIPS32::Lui>;
 using InstMIPS32La = InstMIPS32UnaryopGPR<InstMIPS32::La>;
+using InstMIPS32Mfc1 = InstMIPS32TwoAddrGPR<InstMIPS32::Mfc1>;
 using InstMIPS32Mfhi = InstMIPS32UnaryopGPR<InstMIPS32::Mfhi>;
 using InstMIPS32Mflo = InstMIPS32UnaryopGPR<InstMIPS32::Mflo>;
+using InstMIPS32Mov_d = InstMIPS32TwoAddrFPR<InstMIPS32::Mov_d>;
+using InstMIPS32Mov_s = InstMIPS32TwoAddrFPR<InstMIPS32::Mov_s>;
+using InstMIPS32Mtc1 = InstMIPS32TwoAddrGPR<InstMIPS32::Mtc1>;
 using InstMIPS32Mthi = InstMIPS32UnaryopGPR<InstMIPS32::Mthi>;
 using InstMIPS32Mtlo = InstMIPS32UnaryopGPR<InstMIPS32::Mtlo>;
 using InstMIPS32Mul = InstMIPS32ThreeAddrGPR<InstMIPS32::Mul>;
+using InstMIPS32Mul_d = InstMIPS32ThreeAddrFPR<InstMIPS32::Mul_d>;
+using InstMIPS32Mul_s = InstMIPS32ThreeAddrFPR<InstMIPS32::Mul_s>;
 using InstMIPS32Mult = InstMIPS32ThreeAddrGPR<InstMIPS32::Mult>;
 using InstMIPS32Multu = InstMIPS32ThreeAddrGPR<InstMIPS32::Multu>;
 using InstMIPS32Or = InstMIPS32ThreeAddrGPR<InstMIPS32::Or>;
@@ -526,6 +687,8 @@ using InstMIPS32Srav = InstMIPS32ThreeAddrGPR<InstMIPS32::Srav>;
 using InstMIPS32Srl = InstMIPS32Imm16<InstMIPS32::Srl>;
 using InstMIPS32Srlv = InstMIPS32ThreeAddrGPR<InstMIPS32::Srlv>;
 using InstMIPS32Sub = InstMIPS32ThreeAddrGPR<InstMIPS32::Sub>;
+using InstMIPS32Sub_d = InstMIPS32ThreeAddrFPR<InstMIPS32::Sub_d>;
+using InstMIPS32Sub_s = InstMIPS32ThreeAddrFPR<InstMIPS32::Sub_s>;
 using InstMIPS32Subu = InstMIPS32ThreeAddrGPR<InstMIPS32::Subu>;
 using InstMIPS32Ori = InstMIPS32Imm16<InstMIPS32::Ori>;
 using InstMIPS32Xor = InstMIPS32ThreeAddrGPR<InstMIPS32::Xor>;

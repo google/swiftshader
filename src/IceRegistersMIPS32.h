@@ -24,8 +24,8 @@ namespace Ice {
 namespace MIPS32 {
 namespace RegMIPS32 {
 
-/// An enum of every register. The enum value may not match the encoding
-/// used to binary encode register operands in instructions.
+/// An enum of every register. The enum value may not match the encoding used to
+/// binary encode register operands in instructions.
 enum AllRegisters {
 #define X(val, encode, name, scratch, preserved, stackptr, frameptr, isInt,    \
           isI64Pair, isFP32, isFP64, isVec128, alias_init)                     \
@@ -38,8 +38,8 @@ enum AllRegisters {
 #undef X
 };
 
-/// An enum of GPR Registers. The enum value does match the encoding used
-/// to binary encode register operands in instructions.
+/// An enum of GPR Registers. The enum value does match the encoding used to
+/// binary encode register operands in instructions.
 enum GPRRegister {
 #define X(val, encode, name, scratch, preserved, stackptr, frameptr, isInt,    \
           isI64Pair, isFP32, isFP64, isVec128, alias_init)                     \
@@ -50,6 +50,18 @@ enum GPRRegister {
       Encoded_Not_GPR = -1
 };
 
+/// An enum of FPR Registers. The enum value does match the encoding used to
+/// binary encode register operands in instructions.
+enum FPRRegister {
+#define X(val, encode, name, scratch, preserved, stackptr, frameptr, isInt,    \
+          isI64Pair, isFP32, isFP64, isVec128, alias_init)                     \
+                                                                               \
+  Encoded_##val = encode,
+  REGMIPS32_FPR_TABLE
+#undef X
+      Encoded_Not_FPR = -1
+};
+
 // TODO(jvoung): Floating point and vector registers...
 // Need to model overlap and difference in encoding too.
 
@@ -57,6 +69,22 @@ static inline GPRRegister getEncodedGPR(RegNumT RegNum) {
   assert(int(Reg_GPR_First) <= int(RegNum));
   assert(unsigned(RegNum) <= Reg_GPR_Last);
   return GPRRegister(RegNum - Reg_GPR_First);
+}
+
+static inline bool isGPRReg(RegNumT RegNum) {
+  return (int(Reg_GPR_First) <= int(RegNum)) &&
+         (unsigned(RegNum) <= Reg_GPR_Last);
+}
+
+static inline FPRRegister getEncodedFPR(RegNumT RegNum) {
+  assert(int(Reg_FPR_First) <= int(RegNum));
+  assert(unsigned(RegNum) <= Reg_FPR_Last);
+  return FPRRegister(RegNum - Reg_FPR_First);
+}
+
+static inline bool isFPRReg(RegNumT RegNum) {
+  return (int(Reg_FPR_First) <= int(RegNum)) &&
+         (unsigned(RegNum) <= Reg_FPR_Last);
 }
 
 const char *getRegName(RegNumT RegNum);

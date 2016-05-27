@@ -177,12 +177,28 @@ public:
     Context.insert<InstMIPS32Ret>(RA, Src0);
   }
 
+  void _add_d(Variable *Dest, Variable *Src0, Variable *Src1) {
+    Context.insert<InstMIPS32Add_d>(Dest, Src0, Src1);
+  }
+
+  void _add_s(Variable *Dest, Variable *Src0, Variable *Src1) {
+    Context.insert<InstMIPS32Add_s>(Dest, Src0, Src1);
+  }
+
   void _addiu(Variable *Dest, Variable *Src, uint32_t Imm) {
     Context.insert<InstMIPS32Addiu>(Dest, Src, Imm);
   }
 
   void _div(Variable *Dest, Variable *Src0, Variable *Src1) {
     Context.insert<InstMIPS32Div>(Dest, Src0, Src1);
+  }
+
+  void _div_d(Variable *Dest, Variable *Src0, Variable *Src1) {
+    Context.insert<InstMIPS32Div_d>(Dest, Src0, Src1);
+  }
+
+  void _div_s(Variable *Dest, Variable *Src0, Variable *Src1) {
+    Context.insert<InstMIPS32Div_s>(Dest, Src0, Src1);
   }
 
   void _divu(Variable *Dest, Variable *Src0, Variable *Src1) {
@@ -209,12 +225,28 @@ public:
     }
   }
 
+  void _mov_d(Variable *Dest, Variable *Src) {
+    Context.insert<InstMIPS32Mov_d>(Dest, Src);
+  }
+
+  void _mov_s(Variable *Dest, Variable *Src) {
+    Context.insert<InstMIPS32Mov_s>(Dest, Src);
+  }
+
+  void _mfc1(Variable *Dest, Variable *Src) {
+    Context.insert<InstMIPS32Mfc1>(Dest, Src);
+  }
+
   void _mfhi(Variable *Dest, Operand *Src) {
     Context.insert<InstMIPS32Mfhi>(Dest, Src);
   }
 
   void _mflo(Variable *Dest, Operand *Src) {
     Context.insert<InstMIPS32Mflo>(Dest, Src);
+  }
+
+  void _mtc1(Variable *Dest, Variable *Src) {
+    Context.insert<InstMIPS32Mtc1>(Dest, Src);
   }
 
   void _mthi(Variable *Dest, Operand *Src) {
@@ -227,6 +259,14 @@ public:
 
   void _mul(Variable *Dest, Variable *Src0, Variable *Src1) {
     Context.insert<InstMIPS32Mul>(Dest, Src0, Src1);
+  }
+
+  void _mul_d(Variable *Dest, Variable *Src0, Variable *Src1) {
+    Context.insert<InstMIPS32Mul_d>(Dest, Src0, Src1);
+  }
+
+  void _mul_s(Variable *Dest, Variable *Src0, Variable *Src1) {
+    Context.insert<InstMIPS32Mul_s>(Dest, Src0, Src1);
   }
 
   void _mult(Variable *Dest, Variable *Src0, Variable *Src1) {
@@ -287,6 +327,14 @@ public:
 
   void _sub(Variable *Dest, Variable *Src0, Variable *Src1) {
     Context.insert<InstMIPS32Sub>(Dest, Src0, Src1);
+  }
+
+  void _sub_d(Variable *Dest, Variable *Src0, Variable *Src1) {
+    Context.insert<InstMIPS32Sub_d>(Dest, Src0, Src1);
+  }
+
+  void _sub_s(Variable *Dest, Variable *Src0, Variable *Src1) {
+    Context.insert<InstMIPS32Sub_s>(Dest, Src0, Src1);
   }
 
   void _subu(Variable *Dest, Variable *Src0, Variable *Src1) {
