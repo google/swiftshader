@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "dcaba7ee_af90d508",
+        "filename": "src/Renderer/Clipper.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-05-27T20:59:37Z",
+      "side": 0,
+      "message": "This wasn\u0027t helping anything because we reproject these vertices during primitive setup by dividing by w, not z. The snapping of x and y was already commented out below. Also, w * (1.0 / w) does not always exactly produce 1.0. So a bit of numeric imprecision is unavoidable. Which is totally fine because we perform scissoring in integer coordinates now so we never risk exceeding the viewport.",
+      "range": {
+        "startLine": 104,
+        "startChar": 5,
+        "endLine": 104,
+        "endChar": 57
+      },
+      "revId": "0f8f23ac7c4f6b24d09a82550e8b2268f0e9d6bc",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
