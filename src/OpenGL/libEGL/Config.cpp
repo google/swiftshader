@@ -211,10 +211,10 @@ bool CompareConfig::operator()(const Config &x, const Config &y) const
 			return x.attribute < y.attribute;      \
 		}
 
-	META_ASSERT(EGL_NONE < EGL_SLOW_CONFIG && EGL_SLOW_CONFIG < EGL_NON_CONFORMANT_CONFIG);
+	static_assert(EGL_NONE < EGL_SLOW_CONFIG && EGL_SLOW_CONFIG < EGL_NON_CONFORMANT_CONFIG, "");
 	SORT_SMALLER(mConfigCaveat);
 
-	META_ASSERT(EGL_RGB_BUFFER < EGL_LUMINANCE_BUFFER);
+	static_assert(EGL_RGB_BUFFER < EGL_LUMINANCE_BUFFER, "");
 	SORT_SMALLER(mColorBufferType);
 
 	SORT_SMALLER(mRedSize);
@@ -300,10 +300,10 @@ bool SortConfig::operator()(const Config *x, const Config *y) const
 			return x->attribute < y->attribute;    \
 		}
 
-	META_ASSERT(EGL_NONE < EGL_SLOW_CONFIG && EGL_SLOW_CONFIG < EGL_NON_CONFORMANT_CONFIG);
+	static_assert(EGL_NONE < EGL_SLOW_CONFIG && EGL_SLOW_CONFIG < EGL_NON_CONFORMANT_CONFIG, "");
 	SORT_SMALLER(mConfigCaveat);
 
-	META_ASSERT(EGL_RGB_BUFFER < EGL_LUMINANCE_BUFFER);
+	static_assert(EGL_RGB_BUFFER < EGL_LUMINANCE_BUFFER, "");
 	SORT_SMALLER(mColorBufferType);
 
 	// By larger total number of color bits, only considering those that are requested to be > 0.

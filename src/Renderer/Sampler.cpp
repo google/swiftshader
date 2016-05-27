@@ -14,7 +14,6 @@
 
 #include "Sampler.hpp"
 
-#include "MetaMacro.hpp"
 #include "Context.hpp"
 #include "Surface.hpp"
 #include "CPUID.hpp"

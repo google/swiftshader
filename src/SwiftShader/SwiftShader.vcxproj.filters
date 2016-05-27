@@ -304,9 +304,6 @@
     <ClInclude Include="..\Common\Memory.hpp">
       <Filter>Header Files\Common</Filter>
     </ClInclude>
-    <ClInclude Include="..\Common\MetaMacro.hpp">
-      <Filter>Header Files\Common</Filter>
-    </ClInclude>
     <ClInclude Include="..\Common\MutexLock.hpp">
       <Filter>Header Files\Common</Filter>
     </ClInclude>

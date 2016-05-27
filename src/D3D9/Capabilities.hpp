@@ -16,7 +16,6 @@
 #define D3D9_Capabilities_hpp
 
 #include "Config.hpp"
-#include "MetaMacro.hpp"
 
 #include <d3d9.h>
 
@@ -479,18 +478,18 @@ namespace D3D9
 	};
 
 	// Shader Model 3.0 requirements
-	META_ASSERT(MAX_VERTEX_SHADER_CONST >= 256);
-	META_ASSERT(MAX_PIXEL_SHADER_CONST == 224);
-	META_ASSERT(MAX_VERTEX_INPUTS == 16);
-	META_ASSERT(MAX_VERTEX_OUTPUTS == 12);
-	META_ASSERT(MAX_PIXEL_INPUTS == 10);
+	static_assert(MAX_VERTEX_SHADER_CONST >= 256, "");
+	static_assert(MAX_PIXEL_SHADER_CONST == 224, "");
+	static_assert(MAX_VERTEX_INPUTS == 16, "");
+	static_assert(MAX_VERTEX_OUTPUTS == 12, "");
+	static_assert(MAX_PIXEL_INPUTS == 10, "");
 
 	// Back-end minimum requirements
-	META_ASSERT(sw::VERTEX_UNIFORM_VECTORS >= MAX_VERTEX_SHADER_CONST);
-	META_ASSERT(sw::FRAGMENT_UNIFORM_VECTORS >= MAX_PIXEL_SHADER_CONST);
-	META_ASSERT(sw::MAX_VERTEX_INPUTS >= MAX_VERTEX_INPUTS);
-	META_ASSERT(sw::MAX_VERTEX_OUTPUTS >= MAX_VERTEX_OUTPUTS);
-	META_ASSERT(sw::MAX_FRAGMENT_INPUTS >= MAX_PIXEL_INPUTS);
+	static_assert(sw::VERTEX_UNIFORM_VECTORS >= MAX_VERTEX_SHADER_CONST, "");
+	static_assert(sw::FRAGMENT_UNIFORM_VECTORS >= MAX_PIXEL_SHADER_CONST, "");
+	static_assert(sw::MAX_VERTEX_INPUTS >= MAX_VERTEX_INPUTS, "");
+	static_assert(sw::MAX_VERTEX_OUTPUTS >= MAX_VERTEX_OUTPUTS, "");
+	static_assert(sw::MAX_FRAGMENT_INPUTS >= MAX_PIXEL_INPUTS, "");
 }
 
 #endif   // D3D9_Capabilities_hpp
