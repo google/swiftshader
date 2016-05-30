@@ -36,7 +36,7 @@ Changes are uploaded to Gerrit by performing
 Documentation
 -------------
 
-See (docs/Index.md)[docs/Index.md].
+See [docs/Index.md](docs/Index.md).
 
 Contact
 -----------
