@@ -1009,10 +1009,15 @@ void TargetMIPS32::lowerCast(const InstCast *Instr) {
   const Type DestTy = Dest->getType();
   const Type Src0Ty = Src0->getType();
   const uint32_t ShiftAmount =
-      INT32_BITS - (CHAR_BITS * typeWidthInBytes(Src0Ty));
-  const uint32_t Mask = (1 << (CHAR_BITS * typeWidthInBytes(Src0Ty))) - 1;
+      (Src0Ty == IceType_i1
+           ? INT32_BITS - 1
+           : INT32_BITS - (CHAR_BITS * typeWidthInBytes(Src0Ty)));
+  const uint32_t Mask =
+      (Src0Ty == IceType_i1
+           ? 1
+           : (1 << (CHAR_BITS * typeWidthInBytes(Src0Ty))) - 1);
 
-  if (isVectorType(DestTy) || Src0->getType() == IceType_i1) {
+  if (isVectorType(DestTy)) {
     UnimplementedLoweringError(this, Instr);
     return;
   }
@@ -1025,20 +1030,35 @@ void TargetMIPS32::lowerCast(const InstCast *Instr) {
       auto *DestLo = llvm::cast<Variable>(loOperand(Dest));
       auto *DestHi = llvm::cast<Variable>(hiOperand(Dest));
       Variable *Src0R = legalizeToReg(Src0);
-      Variable *T_Lo = I32Reg();
-      if (Src0Ty == IceType_i32) {
-        _mov(DestLo, Src0R);
+      Variable *T1_Lo = I32Reg();
+      Variable *T2_Lo = I32Reg();
+      Variable *T_Hi = I32Reg();
+      if (Src0Ty == IceType_i1) {
+        _sll(T1_Lo, Src0R, INT32_BITS - 1);
+        _sra(T2_Lo, T1_Lo, INT32_BITS - 1);
+        _mov(DestHi, T2_Lo);
+        _mov(DestLo, T2_Lo);
       } else if (Src0Ty == IceType_i8 || Src0Ty == IceType_i16) {
-        _sll(T_Lo, Src0R, ShiftAmount);
-        _sra(DestLo, T_Lo, ShiftAmount);
+        _sll(T1_Lo, Src0R, ShiftAmount);
+        _sra(T2_Lo, T1_Lo, ShiftAmount);
+        _sra(T_Hi, T2_Lo, INT32_BITS - 1);
+        _mov(DestHi, T_Hi);
+        _mov(DestLo, T2_Lo);
+      } else if (Src0Ty == IceType_i32) {
+        _mov(T1_Lo, Src0R);
+        _sra(T_Hi, T1_Lo, INT32_BITS - 1);
+        _mov(DestHi, T_Hi);
+        _mov(DestLo, T1_Lo);
       }
-      _sra(DestHi, DestLo, INT32_BITS - 1);
     } else {
       Variable *Src0R = legalizeToReg(Src0);
-      Variable *T = makeReg(DestTy);
-      if (Src0Ty == IceType_i8 || Src0Ty == IceType_i16) {
-        _sll(T, Src0R, ShiftAmount);
-        _sra(Dest, T, ShiftAmount);
+      Variable *T1 = makeReg(DestTy);
+      Variable *T2 = makeReg(DestTy);
+      if (Src0Ty == IceType_i1 || Src0Ty == IceType_i8 ||
+          Src0Ty == IceType_i16) {
+        _sll(T1, Src0R, ShiftAmount);
+        _sra(T2, T1, ShiftAmount);
+        _mov(Dest, T2);
       }
     }
     break;
@@ -1048,26 +1068,28 @@ void TargetMIPS32::lowerCast(const InstCast *Instr) {
       auto *DestLo = llvm::cast<Variable>(loOperand(Dest));
       auto *DestHi = llvm::cast<Variable>(hiOperand(Dest));
       Variable *Src0R = legalizeToReg(Src0);
+      Variable *T_Lo = I32Reg();
+      Variable *T_Hi = I32Reg();
 
-      switch (Src0Ty) {
-      default: { assert(Src0Ty != IceType_i64); } break;
-      case IceType_i32:
-        _mov(DestLo, Src0R);
-        break;
-      case IceType_i8:
-      case IceType_i16:
-        _andi(DestLo, Src0R, Mask);
-        break;
-      }
+      if (Src0Ty == IceType_i1 || Src0Ty == IceType_i8 || Src0Ty == IceType_i16)
+        _andi(T_Lo, Src0R, Mask);
+      else if (Src0Ty == IceType_i32)
+        _mov(T_Lo, Src0R);
+      else
+        assert(Src0Ty != IceType_i64);
+      _mov(DestLo, T_Lo);
 
       auto *Zero = getZero();
-      _addiu(DestHi, Zero, 0);
+      _addiu(T_Hi, Zero, 0);
+      _mov(DestHi, T_Hi);
     } else {
       Variable *Src0R = legalizeToReg(Src0);
       Variable *T = makeReg(DestTy);
-      if (Src0Ty == IceType_i8 || Src0Ty == IceType_i16)
+      if (Src0Ty == IceType_i1 || Src0Ty == IceType_i8 ||
+          Src0Ty == IceType_i16) {
         _andi(T, Src0R, Mask);
-      _mov(Dest, T);
+        _mov(Dest, T);
+      }
     }
     break;
   }

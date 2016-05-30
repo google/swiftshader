@@ -112,7 +112,7 @@ public:
     assert(Index < NumSrcs);
     assert(!isDeleted());
     assert(LiveRangesEnded == 0);
-    //Invalidates liveness info because the use Srcs[Index] is removed.
+    // Invalidates liveness info because the use Srcs[Index] is removed.
     Srcs[Index] = Replacement;
   }
 

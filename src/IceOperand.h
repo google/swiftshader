@@ -211,9 +211,7 @@ public:
     return Operand->getKind() == K;
   }
 
-  SizeT hashValue() const override {
-    return std::hash<PrimType>()(Value);
-  }
+  SizeT hashValue() const override { return std::hash<PrimType>()(Value); }
 
   virtual bool shouldBeRandomizedOrPooled() const override { return false; }
 
@@ -780,9 +778,7 @@ public:
     return Kind >= kVariable && Kind <= kVariable_Max;
   }
 
-  SizeT hashValue() const override {
-    return std::hash<SizeT>()(getIndex());
-  }
+  SizeT hashValue() const override { return std::hash<SizeT>()(getIndex()); }
 
 protected:
   Variable(const Cfg *Func, OperandKind K, Type Ty, SizeT Index)

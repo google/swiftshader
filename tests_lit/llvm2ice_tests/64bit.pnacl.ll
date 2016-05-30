@@ -970,6 +970,10 @@ entry:
 ; ARM32-OM1: and r0, r0, #1
 ; ARM32-O2: and r0, r0, #1
 
+; MIPS32-LABEL: trunc64To1
+; MIPS32: andi {{.*}},a0,0x1
+; MIPS32: move v0,{{.*}}
+
 define internal i64 @sext32To64(i32 %a) {
 entry:
   %conv = sext i32 %a to i64
@@ -987,8 +991,9 @@ entry:
 ; ARM32: asr {{.*}}, #31
 
 ; MIPS32-LABEL: sext32To64
-; MIPS32-LABEL: sra v1,a0,0x1f
-; MIPS32-LABEL: move v0,a0
+; MIPS32-LABEL: sra {{.*}},a0,0x1f
+; MIPS32-LABEL: move v1,{{.*}}
+; MIPS32-LABEL: move v0,{{.*}}
 
 define internal i64 @sext16To64(i32 %a) {
 entry:
@@ -1009,10 +1014,11 @@ entry:
 ; ARM32: asr {{.*}}, #31
 
 ; MIPS32-LABEL: sext16To64
-; MIPS32: sll a0,a0,0x10
-; MIPS32: sra a0,a0,0x10
-; MIPS32: sra v1,a0,0x1f
-; MIPS32: move v0,a0
+; MIPS32: sll {{.*}},{{.*}},0x10
+; MIPS32: sra {{.*}},{{.*}},0x10
+; MIPS32: sra {{.*}},{{.*}},0x1f
+; MIPS32: move v1,{{.*}}
+; MIPS32: move v0,{{.*}}
 
 define internal i64 @sext8To64(i32 %a) {
 entry:
@@ -1033,10 +1039,11 @@ entry:
 ; ARM32: asr {{.*}}, #31
 
 ; MIPS32-LABEL: sext8To64
-; MIPS32: sll a0,a0,0x18
-; MIPS32: sra a0,a0,0x18
-; MIPS32: sra v1,a0,0x1f
-; MIPS32: move v0,a0
+; MIPS32: sll {{.*}},a0,0x18
+; MIPS32: sra {{.*}},{{.*}},0x18
+; MIPS32: sra {{.*}},{{.*}},0x1f
+; MIPS32: move v1,{{.*}}
+; MIPS32: move v0,{{.*}}
 
 define internal i64 @sext1To64(i32 %a) {
 entry:
@@ -1060,6 +1067,12 @@ entry:
 ; ARM32: mvn {{.*}}, #0
 ; ARM32: movne
 
+; MIPS32-LABEL: sext1To64
+; MIPS32: sll {{.*}},a0,0x1f
+; MIPS32: sra {{.*}},{{.*}},0x1f
+; MIPS32: move v1,{{.*}}
+; MIPS32: move v0,{{.*}}
+
 define internal i64 @zext32To64(i32 %a) {
 entry:
   %conv = zext i32 %a to i64
@@ -1077,8 +1090,9 @@ entry:
 ; ARM32: mov {{.*}}, #0
 
 ; MIPS32-LABEL: zext32To64
-; MIPS32: li v1,0
-; MIPS32: move v0,a0
+; MIPS32: li {{.*}},0
+; MIPS32: move v1,{{.*}}
+; MIPS32: move v0,{{.*}}
 
 define internal i64 @zext16To64(i32 %a) {
 entry:
@@ -1099,9 +1113,10 @@ entry:
 ; ARM32: mov {{.*}}, #0
 
 ; MIPS32-LABEL: zext16To64
-; MIPS32: andi a0,a0,0xffff
-; MIPS32: li v1,0
-; MIPS32: move v0,a0
+; MIPS32: andi {{.*}},a0,0xffff
+; MIPS32: li {{.*}},0
+; MIPS32: move v1,{{.*}}
+; MIPS32: move v0,{{.*}}
 
 define internal i64 @zext8To64(i32 %a) {
 entry:
@@ -1122,9 +1137,10 @@ entry:
 ; ARM32: mov {{.*}}, #0
 
 ; MIPS32-LABEL: zext8To64
-; MIPS32: andi a0,a0,0xff
-; MIPS32: li v1,0
-; MIPS32: move v0,a0
+; MIPS32: andi {{.*}},a0,0xff
+; MIPS32: li {{.*}},0
+; MIPS32: move v1,{{.*}}
+; MIPS32: move v0,{{.*}}
 
 define internal i64 @zext1To64(i32 %a) {
 entry:
@@ -1144,6 +1160,12 @@ entry:
 ; ARM32: and {{.*}}, #1
 ; ARM32: mov {{.*}}, #0
 ; ARM32: bx
+
+; MIPS32-LABEL: zext1To64
+; MIPS32: andi {{.*}},a0,0x1
+; MIPS32: li {{.*}},0
+; MIPS32: move v1,{{.*}}
+; MIPS32: move v0,{{.*}}
 
 define internal void @icmpEq64(i64 %a, i64 %b, i64 %c, i64 %d) {
 entry:
