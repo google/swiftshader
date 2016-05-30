@@ -33,6 +33,11 @@ Changes are uploaded to Gerrit by performing
 
     git push origin HEAD:refs/for/master
 
+Documentation
+-------------
+
+See (docs/Index.md)[docs/Index.md].
+
 Contact
 -----------
 
