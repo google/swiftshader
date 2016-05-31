@@ -19,6 +19,10 @@
 #include "test_arith.h"
 #include "xdefs.h"
 
+#if 0
+// The following is commented out, and instead, a python script auto-generates a
+// .ll file with the equivalent functionality.
+
 #define X(inst, op, isdiv, isshift)                                            \
   bool test##inst(bool a, bool b) { return a op b; }                           \
   uint8_t test##inst(uint8_t a, uint8_t b) { return a op b; }                  \
@@ -49,6 +53,8 @@ SINTOP_TABLE
   v4f32 test##inst(v4f32 a, v4f32 b) { return func(a op b); }
 FPOP_TABLE
 #undef X
+
+#endif // 0
 
 #define X(mult_by)                                                             \
   bool testMultiplyBy##mult_by(bool a, bool /*unused*/) {                      \

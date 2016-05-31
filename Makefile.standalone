@@ -527,7 +527,7 @@ check-xtest check-xtest-lite: $(OBJDIR)/pnacl-sz make_symlink runtime
 	@echo "Crosstests disabled, minimal build"
 else
 check-xtest: $(OBJDIR)/pnacl-sz make_symlink runtime \
-  exists-nonsfi-x8632 exists-nonsfi-arm32
+  exists-nonsfi-x8632 exists-nonsfi-arm32 crosstest/test_arith_ll.ll
        # Do all native/sse2 tests, but only test_vector_ops for native/sse4.1.
        # For (slow) sandboxed tests, limit to Om1/sse4.1.
        # run.py (used to run the sandboxed xtests) does not support
@@ -549,7 +549,7 @@ check-xtest: $(OBJDIR)/pnacl-sz make_symlink runtime \
 	PNACL_BIN_PATH=$(PNACL_BIN_PATH) \
 	$(LLVM_SRC_PATH)/utils/lit/lit.py -sv $(CHECK_XTEST_TESTS)
 check-xtest-lite: $(OBJDIR)/pnacl-sz make_symlink runtime \
-  exists-nonsfi-x8632 exists-nonsfi-arm32
+  exists-nonsfi-x8632 exists-nonsfi-arm32 crosstest/test_arith_ll.ll
        # Do all native/sse2/neon tests, which are relatively fast.
        # Limit to test_global+mem_intrin for sandbox+nonsfi because sandbox and
        # nonsfi builds are slow, and test_global and mem_intrin are the most
@@ -570,6 +570,8 @@ check-xtest-lite: $(OBJDIR)/pnacl-sz make_symlink runtime \
           -e x8664,nonsfi
 	PNACL_BIN_PATH=$(PNACL_BIN_PATH) \
 	$(LLVM_SRC_PATH)/utils/lit/lit.py -sv $(CHECK_XTEST_TESTS)
+crosstest/test_arith_ll.ll: pydir/gen_test_arith_ll.py
+	python $< > $@
 endif
 
 check-unit: $(OBJDIR)/run_unittests
