@@ -372,6 +372,23 @@ Variable *TargetMIPS32::makeReg(Type Type, RegNumT RegNum) {
   return Reg;
 }
 
+OperandMIPS32Mem *TargetMIPS32::formMemoryOperand(Operand *Operand, Type Ty) {
+  // It may be the case that address mode optimization already creates an
+  // OperandMIPS32Mem, so in that case it wouldn't need another level of
+  // transformation.
+  if (auto *Mem = llvm::dyn_cast<OperandMIPS32Mem>(Operand)) {
+    return Mem;
+  }
+
+  // If we didn't do address mode optimization, then we only have a base/offset
+  // to work with. MIPS always requires a base register, so just use that to
+  // hold the operand.
+  auto *Base = llvm::cast<Variable>(legalize(Operand, Legal_Reg));
+  return OperandMIPS32Mem::create(
+      Func, Ty, Base,
+      llvm::cast<ConstantInteger32>(Ctx->getConstantZero(IceType_i32)));
+}
+
 void TargetMIPS32::emitVariable(const Variable *Var) const {
   if (!BuildDefs::dump())
     return;
@@ -1427,7 +1444,21 @@ void TargetMIPS32::lowerShuffleVector(const InstShuffleVector *Instr) {
 }
 
 void TargetMIPS32::lowerStore(const InstStore *Instr) {
-  UnimplementedLoweringError(this, Instr);
+  Operand *Value = Instr->getData();
+  Operand *Addr = Instr->getAddr();
+  OperandMIPS32Mem *NewAddr = formMemoryOperand(Addr, Value->getType());
+  Type Ty = NewAddr->getType();
+
+  if (Ty == IceType_i64) {
+    Value = legalizeUndef(Value);
+    Variable *ValueHi = legalizeToReg(hiOperand(Value));
+    Variable *ValueLo = legalizeToReg(loOperand(Value));
+    _sw(ValueHi, llvm::cast<OperandMIPS32Mem>(hiOperand(NewAddr)));
+    _sw(ValueLo, llvm::cast<OperandMIPS32Mem>(loOperand(NewAddr)));
+  } else {
+    Variable *ValueR = legalizeToReg(Value);
+    _sw(ValueR, NewAddr);
+  }
 }
 
 void TargetMIPS32::doAddressOptStore() { UnimplementedError(getFlags()); }

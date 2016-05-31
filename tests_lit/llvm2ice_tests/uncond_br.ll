@@ -23,8 +23,8 @@ target:
 }
 
 ; MIPS32-LABEL: uncond1
-; MIPS32:   b  8 <.Luncond1$target>
+; MIPS32:   b  {{[0-9]+}} <.Luncond1$target>
 ; MIPS32: <.Luncond1$target>:
 ; MIPS32: li
 ; MIPS32: addu
-; MIPS32: b 8 <.Luncond1$target>
+; MIPS32: b {{[0-9]+}} <.Luncond1$target>

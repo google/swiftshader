@@ -103,6 +103,7 @@ template <> const char *InstMIPS32Sub::Opcode = "sub";
 template <> const char *InstMIPS32Sub_d::Opcode = "sub.d";
 template <> const char *InstMIPS32Sub_s::Opcode = "sub.s";
 template <> const char *InstMIPS32Subu::Opcode = "subu";
+template <> const char *InstMIPS32Sw::Opcode = "sw";
 template <> const char *InstMIPS32Xor::Opcode = "xor";
 template <> const char *InstMIPS32Xori::Opcode = "xori";
 
@@ -244,8 +245,12 @@ void InstMIPS32::dump(const Cfg *Func) const {
 void OperandMIPS32Mem::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
-  llvm_unreachable("Not yet implemented");
-  (void)Func;
+  Ostream &Str = Func->getContext()->getStrEmit();
+  ConstantInteger32 *Offset = getOffset();
+  Offset->emit(Func);
+  Str << "(";
+  getBase()->emit(Func);
+  Str << ")";
 }
 
 void InstMIPS32::emitUnaryopGPR(const char *Opcode, const InstMIPS32 *Inst,

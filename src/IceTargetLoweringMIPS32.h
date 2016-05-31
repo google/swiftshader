@@ -117,8 +117,10 @@ public:
   void emitVariable(const Variable *Var) const override;
 
   void emit(const ConstantInteger32 *C) const final {
-    (void)C;
-    llvm::report_fatal_error("Not yet implemented");
+    if (!BuildDefs::dump())
+      return;
+    Ostream &Str = Ctx->getStrEmit();
+    Str << C->getValue();
   }
   void emit(const ConstantInteger64 *C) const final {
     (void)C;
@@ -341,6 +343,10 @@ public:
     Context.insert<InstMIPS32Subu>(Dest, Src0, Src1);
   }
 
+  void _sw(Variable *Value, OperandMIPS32Mem *Mem) {
+    Context.insert<InstMIPS32Sw>(Value, Mem);
+  }
+
   void _xor(Variable *Dest, Variable *Src0, Variable *Src1) {
     Context.insert<InstMIPS32Xor>(Dest, Src0, Src1);
   }
@@ -439,6 +445,8 @@ protected:
   makeRandomRegisterPermutation(llvm::SmallVectorImpl<RegNumT> &Permutation,
                                 const SmallBitVector &ExcludeRegisters,
                                 uint64_t Salt) const override;
+
+  OperandMIPS32Mem *formMemoryOperand(Operand *Ptr, Type Ty);
 
   bool UsesFramePointer = false;
   bool NeedsStackAlignment = false;

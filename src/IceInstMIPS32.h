@@ -165,6 +165,7 @@ public:
     Sub_d,
     Sub_s,
     Subu,
+    Sw,
     Xor,
     Xori
   };
@@ -459,6 +460,58 @@ private:
   static const char *Opcode;
 };
 
+// InstMIPS32Memory represents instructions which loads/stores data on memory
+// Its format is "OPCODE GPR, OFFSET(BASE GPR)"
+template <InstMIPS32::InstKindMIPS32 K>
+class InstMIPS32Memory : public InstMIPS32 {
+  InstMIPS32Memory() = delete;
+  InstMIPS32Memory(const InstMIPS32Memory &) = delete;
+  InstMIPS32Memory &operator=(const InstMIPS32Memory &) = delete;
+
+public:
+  static InstMIPS32Memory *create(Cfg *Func, Variable *Value,
+                                  OperandMIPS32Mem *Mem) {
+    return new (Func->allocate<InstMIPS32Memory>())
+        InstMIPS32Memory(Func, Value, Mem);
+  }
+
+  void emit(const Cfg *Func) const override {
+    if (!BuildDefs::dump())
+      return;
+    Ostream &Str = Func->getContext()->getStrEmit();
+    assert(getSrcSize() == 2);
+    Str << "\t" << Opcode << "\t";
+    getSrc(0)->emit(Func);
+    Str << ", ";
+    getSrc(1)->emit(Func);
+  }
+
+  void emitIAS(const Cfg *Func) const override {
+    (void)Func;
+    llvm_unreachable("Not yet implemented");
+  }
+
+  void dump(const Cfg *Func) const override {
+    if (!BuildDefs::dump())
+      return;
+    Ostream &Str = Func->getContext()->getStrDump();
+    Str << "\t" << Opcode << "\t";
+    Str << " ";
+    getSrc(1)->dump(Func);
+    Str << ", ";
+    getSrc(0)->dump(Func);
+  }
+  static bool classof(const Inst *Inst) { return isClassof(Inst, K); }
+
+private:
+  InstMIPS32Memory(Cfg *Func, Variable *Value, OperandMIPS32Mem *Mem)
+      : InstMIPS32(Func, K, 2, nullptr) {
+    addSource(Value);
+    addSource(Mem);
+  }
+  static const char *Opcode;
+};
+
 // InstMIPS32Label represents an intra-block label that is the target of an
 // intra-block branch. The offset between the label and the branch must be fit
 // in the instruction immediate (considered "near").
@@ -690,6 +743,7 @@ using InstMIPS32Sub = InstMIPS32ThreeAddrGPR<InstMIPS32::Sub>;
 using InstMIPS32Sub_d = InstMIPS32ThreeAddrFPR<InstMIPS32::Sub_d>;
 using InstMIPS32Sub_s = InstMIPS32ThreeAddrFPR<InstMIPS32::Sub_s>;
 using InstMIPS32Subu = InstMIPS32ThreeAddrGPR<InstMIPS32::Subu>;
+using InstMIPS32Sw = InstMIPS32Memory<InstMIPS32::Sw>;
 using InstMIPS32Ori = InstMIPS32Imm16<InstMIPS32::Ori>;
 using InstMIPS32Xor = InstMIPS32ThreeAddrGPR<InstMIPS32::Xor>;
 using InstMIPS32Xori = InstMIPS32Imm16<InstMIPS32::Xori>;
