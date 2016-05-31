@@ -12,7 +12,7 @@ To achieve exceptional performance, SwiftShader is built around two major optimi
 
 Structurally there are four major layers:
 
-![API, Renderer, Reactor, JIT](./ArchitectureLayers.png "Architecture Layers")
+![API, Renderer, Reactor, JIT](/docs/ArchitectureLayers.png "Architecture Layers")
 
 The API layer is an implementation of a graphics API, such as OpenGL (ES) or Direct3D, on top of the Renderer interface. It is responsible for managing API-level resources and rendering state, as well as compiling high-level shaders to bytecode form. 
 
