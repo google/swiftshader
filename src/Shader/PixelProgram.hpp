@@ -82,8 +82,8 @@ namespace sw
 		Int4 enableContinue;
 		Int4 enableLeave;
 
-		void sampleTexture(Vector4f &c, const Src &sampler, Float4 &u, Float4 &v, Float4 &w, Float4 &q, Vector4f &dsx, Vector4f &dsy, bool project, SamplerMethod method);
-		void sampleTexture(Vector4f &c, int sampler, Float4 &u, Float4 &v, Float4 &w, Float4 &q, Vector4f &dsx, Vector4f &dsy, bool project, SamplerMethod method);
+		void sampleTexture(Vector4f &c, const Src &sampler, Float4 &u, Float4 &v, Float4 &w, Float4 &q, Vector4f &dsx, Vector4f &dsy, Vector4f &offset, bool project, SamplerMethod method, bool hasOffset);
+		void sampleTexture(Vector4f &c, int samplerIndex, Float4 &u, Float4 &v, Float4 &w, Float4 &q, Vector4f &dsx, Vector4f &dsy, Vector4f &offset, bool project, SamplerMethod method, bool hasOffset);
 
 		// Raster operations
 		void clampColor(Vector4f oC[RENDERTARGETS]);
@@ -111,7 +111,7 @@ namespace sw
 		void TEXLDL(Vector4f &dst, Vector4f &src0, const Src &src1, bool project);
 		void TEXSIZE(Vector4f &dst, Float4 &lod, const Src &src1);
 		void TEXKILL(Int cMask[4], Vector4f &src, unsigned char mask);
-		void TEXOFFSET(Vector4f &dst, Vector4f &src, const Src&, Vector4f &src2, Vector4f &src3, bool project, bool bias);
+		void TEXOFFSET(Vector4f &dst, Vector4f &src0, const Src &src1, Vector4f &src2, bool project, bool bias);
 		void TEXLDL(Vector4f &dst, Vector4f &src0, const Src &src1, Vector4f &src2, bool project, bool bias);
 		void TEXELFETCH(Vector4f &dst, Vector4f &src, const Src&, Vector4f &src2);
 		void TEXELFETCH(Vector4f &dst, Vector4f &src, const Src&, Vector4f &src2, Vector4f &src3);

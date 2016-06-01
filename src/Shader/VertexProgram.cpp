@@ -322,7 +322,7 @@ namespace sw
 			case Shader::OPCODE_NE:         notEqual(d, s0, s1);            break;
 			case Shader::OPCODE_TEXLDL:     TEXLDL(d, s0, src1);            break;
 			case Shader::OPCODE_TEX:        TEX(d, s0, src1);               break;
-			case Shader::OPCODE_TEXOFFSET:  TEXOFFSET(d, s0, src1, s2, s3); break;
+			case Shader::OPCODE_TEXOFFSET:  TEXOFFSET(d, s0, src1, s2);     break;
 			case Shader::OPCODE_TEXLDLOFFSET: TEXLDL(d, s0, src1, s2);      break;
 			case Shader::OPCODE_TEXELFETCH: TEXELFETCH(d, s0, src1, s2);    break;
 			case Shader::OPCODE_TEXELFETCHOFFSET: TEXELFETCH(d, s0, src1, s2, s3); break;
@@ -1533,23 +1533,24 @@ namespace sw
 
 	void VertexProgram::TEXLDL(Vector4f &dst, Vector4f &src0, const Src &src1)
 	{
-		sampleTexture(dst, src1, src0.x, src0.y, src0.z, src0.w, a0, a0, Lod);
+		sampleTexture(dst, src1, src0.x, src0.y, src0.z, src0.w, a0, a0, src0, Lod, false);
 	}
 
 	void VertexProgram::TEX(Vector4f &dst, Vector4f &src0, const Src &src1)
 	{
 		Float4 lod0 = Float4(0.0f);
-		sampleTexture(dst, src1, src0.x, src0.y, src0.z, lod0, a0, a0, Lod);
+		sampleTexture(dst, src1, src0.x, src0.y, src0.z, lod0, a0, a0, src0, Lod, false);
 	}
 
-	void VertexProgram::TEXOFFSET(Vector4f &dst, Vector4f &src0, const Src& src1, Vector4f &src2, Vector4f &src3)
+	void VertexProgram::TEXOFFSET(Vector4f &dst, Vector4f &src0, const Src& src1, Vector4f &src2)
 	{
-		UNIMPLEMENTED();
+		Float4 lod0 = Float4(0.0f);
+		sampleTexture(dst, src1, src0.x, src0.y, src0.z, lod0, a0, a0, src2, Lod, true);
 	}
 
-	void VertexProgram::TEXLDL(Vector4f &dst, Vector4f &src, const Src&, Vector4f &offset)
+	void VertexProgram::TEXLDL(Vector4f &dst, Vector4f &src, const Src& src1, Vector4f &offset)
 	{
-		UNIMPLEMENTED();
+		sampleTexture(dst, src1, src.x, src.y, src.z, src.w, a0, a0, offset, Lod, true);
 	}
 
 	void VertexProgram::TEXELFETCH(Vector4f &dst, Vector4f &src0, const Src& src1, Vector4f &src2)
@@ -1565,12 +1566,13 @@ namespace sw
 	void VertexProgram::TEXGRAD(Vector4f &dst, Vector4f &src0, const Src& src1, Vector4f &src2, Vector4f &src3)
 	{
 		Float4 lod0 = Float4(0.0f);
-		sampleTexture(dst, src1, src0.x, src0.y, src0.z, lod0, src2, src3, Grad);
+		sampleTexture(dst, src1, src0.x, src0.y, src0.z, lod0, src2, src3, src0, Grad, false);
 	}
 
 	void VertexProgram::TEXGRAD(Vector4f &dst, Vector4f &src0, const Src& src1, Vector4f &src2, Vector4f &src3, Vector4f &offset)
 	{
-		UNIMPLEMENTED();
+		Float4 lod0 = Float4(0.0f);
+		sampleTexture(dst, src1, src0.x, src0.y, src0.z, lod0, src2, src3, offset, Grad, true);
 	}
 
 	void VertexProgram::TEXSIZE(Vector4f &dst, Float4 &lod, const Src &src1)
@@ -1585,14 +1587,14 @@ namespace sw
 		}
 	}
 
-	void VertexProgram::sampleTexture(Vector4f &c, const Src &s, Float4 &u, Float4 &v, Float4 &w, Float4 &q, Vector4f &dsx, Vector4f &dsy, SamplerMethod method)
+	void VertexProgram::sampleTexture(Vector4f &c, const Src &s, Float4 &u, Float4 &v, Float4 &w, Float4 &q, Vector4f &dsx, Vector4f &dsy, Vector4f &offset, SamplerMethod method, bool hasOffset)
 	{
 		Vector4f tmp;
 
 		if(s.type == Shader::PARAMETER_SAMPLER && s.rel.type == Shader::PARAMETER_VOID)
 		{
 			Pointer<Byte> texture = data + OFFSET(DrawData, mipmap[TEXTURE_IMAGE_UNITS]) + s.index * sizeof(Texture);
-			sampler[s.index]->sampleTexture(texture, tmp, u, v, w, q, dsx, dsy, method);
+			sampler[s.index]->sampleTexture(texture, tmp, u, v, w, q, dsx, dsy, offset, method, hasOffset);
 		}
 		else
 		{
@@ -1605,7 +1607,7 @@ namespace sw
 					If(index == i)
 					{
 						Pointer<Byte> texture = data + OFFSET(DrawData, mipmap[TEXTURE_IMAGE_UNITS]) + i * sizeof(Texture);
-						sampler[i]->sampleTexture(texture, tmp, u, v, w, q, dsx, dsy, method);
+						sampler[i]->sampleTexture(texture, tmp, u, v, w, q, dsx, dsy, offset, method, hasOffset);
 						// FIXME: When the sampler states are the same, we could use one sampler and just index the texture
 					}
 				}
