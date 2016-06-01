@@ -285,7 +285,7 @@ namespace sw
 			case Shader::OPCODE_TEXLDL:     TEXLDL(d, s0, src1, project);                  break;
 			case Shader::OPCODE_TEXSIZE:    TEXSIZE(d, s0.x, src1);                        break;
 			case Shader::OPCODE_TEXKILL:    TEXKILL(cMask, d, dst.mask);                   break;
-			case Shader::OPCODE_TEXOFFSET:  TEXOFFSET(d, s0, src1, s2, s3, project, bias); break;
+			case Shader::OPCODE_TEXOFFSET:  TEXOFFSET(d, s0, src1, s2, project, bias);     break;
 			case Shader::OPCODE_TEXLDLOFFSET: TEXLDL(d, s0, src1, s2, project, bias);      break;
 			case Shader::OPCODE_TEXELFETCH: TEXELFETCH(d, s0, src1, s2);                   break;
 			case Shader::OPCODE_TEXELFETCHOFFSET: TEXELFETCH(d, s0, src1, s2, s3);         break;
@@ -675,13 +675,13 @@ namespace sw
 		}
 	}
 
-	void PixelProgram::sampleTexture(Vector4f &c, const Src &sampler, Float4 &u, Float4 &v, Float4 &w, Float4 &q, Vector4f &dsx, Vector4f &dsy, bool project, SamplerMethod method)
+	void PixelProgram::sampleTexture(Vector4f &c, const Src &sampler, Float4 &u, Float4 &v, Float4 &w, Float4 &q, Vector4f &dsx, Vector4f &dsy, Vector4f &offset, bool project, SamplerMethod method, bool hasOffset)
 	{
 		Vector4f tmp;
 
 		if(sampler.type == Shader::PARAMETER_SAMPLER && sampler.rel.type == Shader::PARAMETER_VOID)
 		{
-			sampleTexture(tmp, sampler.index, u, v, w, q, dsx, dsy, project, method);
+			sampleTexture(tmp, sampler.index, u, v, w, q, dsx, dsy, offset, project, method, hasOffset);
 		}
 		else
 		{
@@ -693,7 +693,7 @@ namespace sw
 				{
 					If(index == i)
 					{
-						sampleTexture(tmp, i, u, v, w, q, dsx, dsy, project, method);
+						sampleTexture(tmp, i, u, v, w, q, dsx, dsy, offset, project, method, hasOffset);
 						// FIXME: When the sampler states are the same, we could use one sampler and just index the texture
 					}
 				}
@@ -706,17 +706,17 @@ namespace sw
 		c.w = tmp[(sampler.swizzle >> 6) & 0x3];
 	}
 
-	void PixelProgram::sampleTexture(Vector4f &c, int stage, Float4 &u, Float4 &v, Float4 &w, Float4 &q, Vector4f &dsx, Vector4f &dsy, bool project, SamplerMethod method)
+	void PixelProgram::sampleTexture(Vector4f &c, int samplerIndex, Float4 &u, Float4 &v, Float4 &w, Float4 &q, Vector4f &dsx, Vector4f &dsy, Vector4f &offset, bool project, SamplerMethod method, bool hasOffset)
 	{
 		#if PERF_PROFILE
 			Long texTime = Ticks();
 		#endif
 
-		Pointer<Byte> texture = data + OFFSET(DrawData, mipmap) + stage * sizeof(Texture);
+		Pointer<Byte> texture = data + OFFSET(DrawData, mipmap) + samplerIndex * sizeof(Texture);
 
 		if(!project)
 		{
-			sampler[stage]->sampleTexture(texture, c, u, v, w, q, dsx, dsy, method);
+			sampler[samplerIndex]->sampleTexture(texture, c, u, v, w, q, dsx, dsy, offset, method, hasOffset);
 		}
 		else
 		{
@@ -726,7 +726,7 @@ namespace sw
 			Float4 v_q = v * rq;
 			Float4 w_q = w * rq;
 
-			sampler[stage]->sampleTexture(texture, c, u_q, v_q, w_q, q, dsx, dsy, method);
+			sampler[samplerIndex]->sampleTexture(texture, c, u_q, v_q, w_q, q, dsx, dsy, offset, method, hasOffset);
 		}
 
 		#if PERF_PROFILE
@@ -1107,17 +1107,17 @@ namespace sw
 
 	void PixelProgram::TEXLD(Vector4f &dst, Vector4f &src0, const Src &src1, bool project, bool bias)
 	{
-		sampleTexture(dst, src1, src0.x, src0.y, src0.z, src0.w, src0, src0, project, bias ? Bias : Implicit);
+		sampleTexture(dst, src1, src0.x, src0.y, src0.z, src0.w, src0, src0, src0, project, bias ? Bias : Implicit, false);
 	}
 
-	void PixelProgram::TEXOFFSET(Vector4f &dst, Vector4f &src0, const Src& src1, Vector4f &src2, Vector4f &src3, bool project, bool bias)
+	void PixelProgram::TEXOFFSET(Vector4f &dst, Vector4f &src0, const Src &src1, Vector4f &src2, bool project, bool bias)
 	{
-		UNIMPLEMENTED();
+		sampleTexture(dst, src1, src0.x, src0.y, src0.z, src0.w, src0, src0, src2, project, bias ? Bias : Implicit, true);
 	}
 
 	void PixelProgram::TEXLDL(Vector4f &dst, Vector4f &src0, const Src &src1, Vector4f &offset, bool project, bool bias)
 	{
-		UNIMPLEMENTED();
+		sampleTexture(dst, src1, src0.x, src0.y, src0.z, src0.w, src0, src0, offset, project, Lod, true);
 	}
 
 	void PixelProgram::TEXELFETCH(Vector4f &dst, Vector4f &src0, const Src& src1, Vector4f &src2)
@@ -1132,22 +1132,22 @@ namespace sw
 
 	void PixelProgram::TEXGRAD(Vector4f &dst, Vector4f &src0, const Src& src1, Vector4f &src2, Vector4f &src3)
 	{
-		sampleTexture(dst, src1, src0.x, src0.y, src0.z, src0.w, src2, src3, false, Grad);
+		sampleTexture(dst, src1, src0.x, src0.y, src0.z, src0.w, src2, src3, src0, false, Grad, false);
 	}
 
 	void PixelProgram::TEXGRAD(Vector4f &dst, Vector4f &src0, const Src& src1, Vector4f &src2, Vector4f &src3, Vector4f &offset)
 	{
-		UNIMPLEMENTED();
+		sampleTexture(dst, src1, src0.x, src0.y, src0.z, src0.w, src2, src3, offset, false, Grad, true);
 	}
 
 	void PixelProgram::TEXLDD(Vector4f &dst, Vector4f &src0, const Src &src1, Vector4f &src2, Vector4f &src3, bool project)
 	{
-		sampleTexture(dst, src1, src0.x, src0.y, src0.z, src0.w, src2, src3, project, Grad);
+		sampleTexture(dst, src1, src0.x, src0.y, src0.z, src0.w, src2, src3, src0, project, Grad, false);
 	}
 
 	void PixelProgram::TEXLDL(Vector4f &dst, Vector4f &src0, const Src &src1, bool project)
 	{
-		sampleTexture(dst, src1, src0.x, src0.y, src0.z, src0.w, src0, src0, project, Lod);
+		sampleTexture(dst, src1, src0.x, src0.y, src0.z, src0.w, src0, src0, src0, project, Lod, false);
 	}
 
 	void PixelProgram::TEXSIZE(Vector4f &dst, Float4 &lod, const Src &src1)
