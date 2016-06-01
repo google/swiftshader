@@ -1174,11 +1174,24 @@ void TargetMIPS32::lowerIcmp(const InstIcmp *Instr) {
   InstIcmp::ICond Cond = Instr->getCondition();
   auto *Src0R = legalizeToReg(Src0);
   auto *Src1R = legalizeToReg(Src1);
+  const Type Src0Ty = Src0R->getType();
+  const uint32_t ShAmt = INT32_BITS - getScalarIntBitWidth(Src0->getType());
+  Variable *Src0RT = I32Reg();
+  Variable *Src1RT = I32Reg();
+
+  if (Src0Ty != IceType_i32) {
+    _sll(Src0RT, Src0R, ShAmt);
+    _sll(Src1RT, Src1R, ShAmt);
+  } else {
+    _mov(Src0RT, Src0R);
+    _mov(Src1RT, Src1R);
+  }
+
   switch (Cond) {
   case InstIcmp::Eq: {
     auto *DestT = I32Reg();
     auto *T = I32Reg();
-    _xor(T, Src0R, Src1R);
+    _xor(T, Src0RT, Src1RT);
     _sltiu(DestT, T, 1);
     _mov(Dest, DestT);
     return;
@@ -1187,63 +1200,63 @@ void TargetMIPS32::lowerIcmp(const InstIcmp *Instr) {
     auto *DestT = I32Reg();
     auto *T = I32Reg();
     auto *Zero = getZero();
-    _xor(T, Src0R, Src1R);
+    _xor(T, Src0RT, Src1RT);
     _sltu(DestT, Zero, T);
     _mov(Dest, DestT);
     return;
   }
   case InstIcmp::Ugt: {
     auto *DestT = I32Reg();
-    _sltu(DestT, Src1R, Src0R);
+    _sltu(DestT, Src1RT, Src0RT);
     _mov(Dest, DestT);
     return;
   }
   case InstIcmp::Uge: {
     auto *DestT = I32Reg();
     auto *T = I32Reg();
-    _sltu(T, Src0R, Src1R);
+    _sltu(T, Src0RT, Src1RT);
     _xori(DestT, T, 1);
     _mov(Dest, DestT);
     return;
   }
   case InstIcmp::Ult: {
     auto *DestT = I32Reg();
-    _sltu(DestT, Src0R, Src1R);
+    _sltu(DestT, Src0RT, Src1RT);
     _mov(Dest, DestT);
     return;
   }
   case InstIcmp::Ule: {
     auto *DestT = I32Reg();
     auto *T = I32Reg();
-    _sltu(T, Src1R, Src0R);
+    _sltu(T, Src1RT, Src0RT);
     _xori(DestT, T, 1);
     _mov(Dest, DestT);
     return;
   }
   case InstIcmp::Sgt: {
     auto *DestT = I32Reg();
-    _slt(DestT, Src1R, Src0R);
+    _slt(DestT, Src1RT, Src0RT);
     _mov(Dest, DestT);
     return;
   }
   case InstIcmp::Sge: {
     auto *DestT = I32Reg();
     auto *T = I32Reg();
-    _slt(T, Src0R, Src1R);
+    _slt(T, Src0RT, Src1RT);
     _xori(DestT, T, 1);
     _mov(Dest, DestT);
     return;
   }
   case InstIcmp::Slt: {
     auto *DestT = I32Reg();
-    _slt(DestT, Src0R, Src1R);
+    _slt(DestT, Src0RT, Src1RT);
     _mov(Dest, DestT);
     return;
   }
   case InstIcmp::Sle: {
     auto *DestT = I32Reg();
     auto *T = I32Reg();
-    _slt(T, Src1R, Src0R);
+    _slt(T, Src1RT, Src0RT);
     _xori(DestT, T, 1);
     _mov(Dest, DestT);
     return;
