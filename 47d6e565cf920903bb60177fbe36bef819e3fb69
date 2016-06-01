@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f91f9d52_fe7935b4",
+        "filename": "src/Main/Config.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-06-01T19:13:02Z",
+      "side": 1,
+      "message": "These should probably be removed from libGLESv2\\Context.h",
+      "range": {
+        "startLine": 99,
+        "startChar": 0,
+        "endLine": 100,
+        "endChar": 31
+      },
+      "revId": "47d6e565cf920903bb60177fbe36bef819e3fb69",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
