@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "79be4d92_b8140537",
+        "filename": "src/Shader/PixelProgram.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 666,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-06-01T18:12:13Z",
+      "side": 1,
+      "message": "isOffset sounds a bit weird. Maybe \"useOffset\" or \"hasOffset\"",
+      "range": {
+        "startLine": 666,
+        "startChar": 178,
+        "endLine": 666,
+        "endChar": 186
+      },
+      "revId": "3e3983bc4ed300235379b4cf0d4995951842c606",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "79be4d92_d83699d5",
+        "filename": "src/Shader/PixelProgram.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1098,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-06-01T18:12:13Z",
+      "side": 1,
+      "message": "You can reuse src0 if it\u0027s going to be unused anyway instead of constructing a new object.",
+      "range": {
+        "startLine": 1098,
+        "startChar": 71,
+        "endLine": 1098,
+        "endChar": 81
+      },
+      "revId": "3e3983bc4ed300235379b4cf0d4995951842c606",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "79be4d92_d86459d5",
+        "filename": "src/Shader/PixelProgram.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1123,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-06-01T18:12:13Z",
+      "side": 1,
+      "message": "same",
+      "range": {
+        "startLine": 1123,
+        "startChar": 71,
+        "endLine": 1123,
+        "endChar": 81
+      },
+      "revId": "3e3983bc4ed300235379b4cf0d4995951842c606",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "79be4d92_f8611dc2",
+        "filename": "src/Shader/PixelProgram.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1133,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-06-01T18:12:13Z",
+      "side": 1,
+      "message": "same",
+      "range": {
+        "startLine": 1133,
+        "startChar": 71,
+        "endLine": 1133,
+        "endChar": 81
+      },
+      "revId": "3e3983bc4ed300235379b4cf0d4995951842c606",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "79be4d92_b85ba514",
+        "filename": "src/Shader/PixelProgram.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1138,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-06-01T18:12:13Z",
+      "side": 1,
+      "message": "same",
+      "range": {
+        "startLine": 1138,
+        "startChar": 71,
+        "endLine": 1138,
+        "endChar": 81
+      },
+      "revId": "3e3983bc4ed300235379b4cf0d4995951842c606",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f91f9d52_d85fb132",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1645,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-06-01T18:12:13Z",
+      "side": 1,
+      "message": "You can fix this by moving these values from libGLESv2\\Context.h to Main\\Config.hpp",
+      "range": {
+        "startLine": 1645,
+        "startChar": 67,
+        "endLine": 1645,
+        "endChar": 148
+      },
+      "revId": "3e3983bc4ed300235379b4cf0d4995951842c606",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
