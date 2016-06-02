@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b96b6530_0cd51b59",
+        "filename": "src/OpenGL/libGLESv2/Context.h",
+        "patchSetId": 3
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-06-02T16:46:27Z",
+      "side": 0,
+      "message": "Please keep these, and assign the constants from the sw:: namespace (similar to e.g. MAX_FRAGMENT_UNIFORM_BLOCKS below). It decouples the front-end and back-end and allows to easily make them independent if we have to.",
+      "range": {
+        "startLine": 90,
+        "startChar": 1,
+        "endLine": 91,
+        "endChar": 30
+      },
+      "revId": "e3c87461368a866c819193be299f3a9ddba77946",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
