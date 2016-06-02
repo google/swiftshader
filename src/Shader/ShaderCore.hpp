@@ -37,38 +37,6 @@ namespace sw
 		Short4 w;
 	};
 
-	class Vector4i
-	{
-	public:
-		Vector4i();
-		Vector4i(int x, int y, int z, int w);
-		Vector4i(const Vector4i &rhs);
-
-		Int4 &operator[](int i);
-		Vector4i &operator=(const Vector4i &rhs);
-
-		Int4 x;
-		Int4 y;
-		Int4 z;
-		Int4 w;
-	};
-
-	class Vector4u
-	{
-	public:
-		Vector4u();
-		Vector4u(unsigned int x, unsigned int y, unsigned int z, unsigned int w);
-		Vector4u(const Vector4u &rhs);
-
-		UInt4 &operator[](int i);
-		Vector4u &operator=(const Vector4u &rhs);
-
-		UInt4 x;
-		UInt4 y;
-		UInt4 z;
-		UInt4 w;
-	};
-
 	class Vector4f
 	{
 	public:
