@@ -1523,7 +1523,6 @@ namespace sw
 
 		DrawCall &draw = *drawList[primitiveProgress[unit].drawCall % DRAW_COUNT];
 		SetupProcessor::State &state = draw.setupState;
-		SetupProcessor::RoutinePointer setupRoutine = draw.setupPointer;
 
 		const Vertex &v0 = triangle[0].v0;
 		const Vertex &v1 = triangle[0].v1;

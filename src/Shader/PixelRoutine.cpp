@@ -1407,7 +1407,6 @@ namespace sw
 
 		int rgbaWriteMask = state.colorWriteActive(index);
 		int bgraWriteMask = (rgbaWriteMask & 0x0000000A) | (rgbaWriteMask & 0x00000001) << 2 | (rgbaWriteMask & 0x00000004) >> 2;
-		int brgaWriteMask = (rgbaWriteMask & 0x00000008) | (rgbaWriteMask & 0x00000001) << 1 | (rgbaWriteMask & 0x00000002) << 1 | (rgbaWriteMask & 0x00000004) >> 2;
 
 		switch(state.targetFormat[index])
 		{
@@ -1978,20 +1977,13 @@ namespace sw
 		Short4 c23;
 
 		Float4 one;
-		switch(state.targetFormat[index])
+		if(Surface::isFloatFormat(state.targetFormat[index]))
 		{
-		case FORMAT_R32I:
-		case FORMAT_G32R32I:
-			one = As<Float4>(Int4(0x7FFFFFFF));
-			break;
-		case FORMAT_R32UI:
-		case FORMAT_G32R32UI:
-			one = As<Float4>(Int4(0xFFFFFFFF));
-			break;
-		case FORMAT_R32F:
-		case FORMAT_G32R32F:
 			one = Float4(1.0f);
-			break;
+		}
+		else if(Surface::isNonNormalizedInteger(state.targetFormat[index]))
+		{
+			one = As<Float4>(Surface::isUnsignedComponent(state.targetFormat[index], 0) ? Int4(0xFFFFFFFF) : Int4(0x7FFFFFFF));
 		}
 
 		switch(state.targetFormat[index])

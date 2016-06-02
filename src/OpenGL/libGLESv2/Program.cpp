@@ -42,8 +42,6 @@ namespace es2
 
 	Uniform::BlockInfo::BlockInfo(const glsl::Uniform& uniform, int blockIndex)
 	{
-		static unsigned int registerSizeStd140 = 4; // std140 packing requires dword alignment
-
 		if(blockIndex >= 0)
 		{
 			index = blockIndex;

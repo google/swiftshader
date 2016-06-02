@@ -3687,7 +3687,6 @@ namespace sw
 
 		void *source = internal.lockRect(0, 0, 0, LOCK_READWRITE);
 
-		int quality = internal.depth;
 		int width = internal.width;
 		int height = internal.height;
 		int pitch = internal.pitchB;
