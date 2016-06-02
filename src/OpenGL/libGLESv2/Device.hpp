@@ -43,27 +43,27 @@ namespace es2
 
 		virtual ~Device();
 
-		virtual void clearColor(float red, float green, float blue, float alpha, unsigned int rgbaMask);
-		virtual void clearDepth(float z);
-		virtual void clearStencil(unsigned int stencil, unsigned int mask);
-		virtual egl::Image *createDepthStencilSurface(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool discard);
-		virtual egl::Image *createRenderTarget(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool lockable);
-		virtual void drawIndexedPrimitive(sw::DrawType type, unsigned int indexOffset, unsigned int primitiveCount);
-		virtual void drawPrimitive(sw::DrawType type, unsigned int primiveCount);
-		virtual void setPixelShader(sw::PixelShader *shader);
-		virtual void setPixelShaderConstantF(unsigned int startRegister, const float *constantData, unsigned int count);
-		virtual void setScissorEnable(bool enable);
-		virtual void setRenderTarget(int index, egl::Image *renderTarget);
-		virtual void setDepthBuffer(egl::Image *depthBuffer);
-		virtual void setStencilBuffer(egl::Image *stencilBuffer);
-		virtual void setScissorRect(const sw::Rect &rect);
-		virtual void setVertexShader(sw::VertexShader *shader);
-		virtual void setVertexShaderConstantF(unsigned int startRegister, const float *constantData, unsigned int count);
-		virtual void setViewport(const Viewport &viewport);
+		void clearColor(float red, float green, float blue, float alpha, unsigned int rgbaMask);
+		void clearDepth(float z);
+		void clearStencil(unsigned int stencil, unsigned int mask);
+		egl::Image *createDepthStencilSurface(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool discard);
+		egl::Image *createRenderTarget(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool lockable);
+		void drawIndexedPrimitive(sw::DrawType type, unsigned int indexOffset, unsigned int primitiveCount);
+		void drawPrimitive(sw::DrawType type, unsigned int primiveCount);
+		void setPixelShader(sw::PixelShader *shader);
+		void setPixelShaderConstantF(unsigned int startRegister, const float *constantData, unsigned int count);
+		void setScissorEnable(bool enable);
+		void setRenderTarget(int index, egl::Image *renderTarget);
+		void setDepthBuffer(egl::Image *depthBuffer);
+		void setStencilBuffer(egl::Image *stencilBuffer);
+		void setScissorRect(const sw::Rect &rect);
+		void setVertexShader(sw::VertexShader *shader);
+		void setVertexShaderConstantF(unsigned int startRegister, const float *constantData, unsigned int count);
+		void setViewport(const Viewport &viewport);
 
-		virtual bool stretchRect(sw::Surface *sourceSurface, const sw::SliceRect *sourceRect, sw::Surface *destSurface, const sw::SliceRect *destRect, bool filter);
-		virtual bool stretchCube(sw::Surface *sourceSurface, sw::Surface *destSurface);
-		virtual void finish();
+		bool stretchRect(sw::Surface *sourceSurface, const sw::SliceRect *sourceRect, sw::Surface *destSurface, const sw::SliceRect *destRect, bool filter);
+		bool stretchCube(sw::Surface *sourceSurface, sw::Surface *destSurface);
+		void finish();
 
 	private:
 		sw::Context *const context;
