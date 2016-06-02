@@ -185,95 +185,95 @@ namespace sw
 
 		virtual ~VertexProcessor();
 
-		virtual void setInputStream(int index, const Stream &stream);
-		virtual void resetInputStreams(bool preTransformed);
+		void setInputStream(int index, const Stream &stream);
+		void resetInputStreams(bool preTransformed);
 
-		virtual void setFloatConstant(unsigned int index, const float value[4]);
-		virtual void setIntegerConstant(unsigned int index, const int integer[4]);
-		virtual void setBooleanConstant(unsigned int index, int boolean);
+		void setFloatConstant(unsigned int index, const float value[4]);
+		void setIntegerConstant(unsigned int index, const int integer[4]);
+		void setBooleanConstant(unsigned int index, int boolean);
 
-		virtual void setUniformBuffer(int index, sw::Resource* uniformBuffer, int offset);
-		virtual void lockUniformBuffers(byte** u, sw::Resource* uniformBuffers[]);
+		void setUniformBuffer(int index, sw::Resource* uniformBuffer, int offset);
+		void lockUniformBuffers(byte** u, sw::Resource* uniformBuffers[]);
 
-		virtual void setTransformFeedbackBuffer(int index, sw::Resource* transformFeedbackBuffer, int offset, unsigned int reg, unsigned int row, unsigned int col, size_t stride);
-		virtual void lockTransformFeedbackBuffers(byte** t, unsigned int* v, unsigned int* r, unsigned int* c, unsigned int* s, sw::Resource* transformFeedbackBuffers[]);
+		void setTransformFeedbackBuffer(int index, sw::Resource* transformFeedbackBuffer, int offset, unsigned int reg, unsigned int row, unsigned int col, size_t stride);
+		void lockTransformFeedbackBuffers(byte** t, unsigned int* v, unsigned int* r, unsigned int* c, unsigned int* s, sw::Resource* transformFeedbackBuffers[]);
 
 		// Transformations
-		virtual void setModelMatrix(const Matrix &M, int i = 0);
-		virtual void setViewMatrix(const Matrix &V);
-		virtual void setBaseMatrix(const Matrix &B);
-		virtual void setProjectionMatrix(const Matrix &P);
+		void setModelMatrix(const Matrix &M, int i = 0);
+		void setViewMatrix(const Matrix &V);
+		void setBaseMatrix(const Matrix &B);
+		void setProjectionMatrix(const Matrix &P);
 
 		// Lighting
-		virtual void setLightingEnable(bool lightingEnable);
-		virtual void setLightEnable(unsigned int light, bool lightEnable);
-		virtual void setSpecularEnable(bool specularEnable);
+		void setLightingEnable(bool lightingEnable);
+		void setLightEnable(unsigned int light, bool lightEnable);
+		void setSpecularEnable(bool specularEnable);
 
-		virtual void setGlobalAmbient(const Color<float> &globalAmbient);
-		virtual void setLightPosition(unsigned int light, const Point &lightPosition);
-		virtual void setLightViewPosition(unsigned int light, const Point &lightPosition);
-		virtual void setLightDiffuse(unsigned int light, const Color<float> &lightDiffuse);
-		virtual void setLightSpecular(unsigned int light, const Color<float> &lightSpecular);
-		virtual void setLightAmbient(unsigned int light, const Color<float> &lightAmbient);
-		virtual void setLightAttenuation(unsigned int light, float constant, float linear, float quadratic);
-		virtual void setLightRange(unsigned int light, float lightRange);
+		void setGlobalAmbient(const Color<float> &globalAmbient);
+		void setLightPosition(unsigned int light, const Point &lightPosition);
+		void setLightViewPosition(unsigned int light, const Point &lightPosition);
+		void setLightDiffuse(unsigned int light, const Color<float> &lightDiffuse);
+		void setLightSpecular(unsigned int light, const Color<float> &lightSpecular);
+		void setLightAmbient(unsigned int light, const Color<float> &lightAmbient);
+		void setLightAttenuation(unsigned int light, float constant, float linear, float quadratic);
+		void setLightRange(unsigned int light, float lightRange);
 
-		virtual void setInstanceID(int instanceID);
+		void setInstanceID(int instanceID);
 
-		virtual void setFogEnable(bool fogEnable);
-		virtual void setVertexFogMode(FogMode fogMode);
-		virtual void setRangeFogEnable(bool enable);
+		void setFogEnable(bool fogEnable);
+		void setVertexFogMode(FogMode fogMode);
+		void setRangeFogEnable(bool enable);
 
-		virtual void setColorVertexEnable(bool colorVertexEnable);
-		virtual void setDiffuseMaterialSource(MaterialSource diffuseMaterialSource);
-		virtual void setSpecularMaterialSource(MaterialSource specularMaterialSource);
-		virtual void setAmbientMaterialSource(MaterialSource ambientMaterialSource);
-		virtual void setEmissiveMaterialSource(MaterialSource emissiveMaterialSource);
+		void setColorVertexEnable(bool colorVertexEnable);
+		void setDiffuseMaterialSource(MaterialSource diffuseMaterialSource);
+		void setSpecularMaterialSource(MaterialSource specularMaterialSource);
+		void setAmbientMaterialSource(MaterialSource ambientMaterialSource);
+		void setEmissiveMaterialSource(MaterialSource emissiveMaterialSource);
 
-		virtual void setMaterialEmission(const Color<float> &emission);
-		virtual void setMaterialAmbient(const Color<float> &materialAmbient);
-		virtual void setMaterialDiffuse(const Color<float> &diffuseColor);
-		virtual void setMaterialSpecular(const Color<float> &specularColor);
-		virtual void setMaterialShininess(float specularPower);
+		void setMaterialEmission(const Color<float> &emission);
+		void setMaterialAmbient(const Color<float> &materialAmbient);
+		void setMaterialDiffuse(const Color<float> &diffuseColor);
+		void setMaterialSpecular(const Color<float> &specularColor);
+		void setMaterialShininess(float specularPower);
 
-		virtual void setIndexedVertexBlendEnable(bool indexedVertexBlendEnable);
-		virtual void setVertexBlendMatrixCount(unsigned int vertexBlendMatrixCount);
+		void setIndexedVertexBlendEnable(bool indexedVertexBlendEnable);
+		void setVertexBlendMatrixCount(unsigned int vertexBlendMatrixCount);
 
-		virtual void setTextureWrap(unsigned int stage, int mask);
-		virtual void setTexGen(unsigned int stage, TexGen texGen);
-		virtual void setLocalViewer(bool localViewer);
-		virtual void setNormalizeNormals(bool normalizeNormals);
-		virtual void setTextureMatrix(int stage, const Matrix &T);
-		virtual void setTextureTransform(int stage, int count, bool project);
+		void setTextureWrap(unsigned int stage, int mask);
+		void setTexGen(unsigned int stage, TexGen texGen);
+		void setLocalViewer(bool localViewer);
+		void setNormalizeNormals(bool normalizeNormals);
+		void setTextureMatrix(int stage, const Matrix &T);
+		void setTextureTransform(int stage, int count, bool project);
 
-		virtual void setTextureFilter(unsigned int sampler, FilterType textureFilter);
-		virtual void setMipmapFilter(unsigned int sampler, MipmapType mipmapFilter);
-		virtual void setGatherEnable(unsigned int sampler, bool enable);
-		virtual void setAddressingModeU(unsigned int sampler, AddressingMode addressingMode);
-		virtual void setAddressingModeV(unsigned int sampler, AddressingMode addressingMode);
-		virtual void setAddressingModeW(unsigned int sampler, AddressingMode addressingMode);
-		virtual void setReadSRGB(unsigned int sampler, bool sRGB);
-		virtual void setMipmapLOD(unsigned int sampler, float bias);
-		virtual void setBorderColor(unsigned int sampler, const Color<float> &borderColor);
-		virtual void setMaxAnisotropy(unsigned int stage, float maxAnisotropy);
-		virtual void setSwizzleR(unsigned int sampler, SwizzleType swizzleR);
-		virtual void setSwizzleG(unsigned int sampler, SwizzleType swizzleG);
-		virtual void setSwizzleB(unsigned int sampler, SwizzleType swizzleB);
-		virtual void setSwizzleA(unsigned int sampler, SwizzleType swizzleA);
-		virtual void setBaseLevel(unsigned int sampler, int baseLevel);
-		virtual void setMaxLevel(unsigned int sampler, int maxLevel);
-		virtual void setMinLod(unsigned int sampler, float minLod);
-		virtual void setMaxLod(unsigned int sampler, float maxLod);
+		void setTextureFilter(unsigned int sampler, FilterType textureFilter);
+		void setMipmapFilter(unsigned int sampler, MipmapType mipmapFilter);
+		void setGatherEnable(unsigned int sampler, bool enable);
+		void setAddressingModeU(unsigned int sampler, AddressingMode addressingMode);
+		void setAddressingModeV(unsigned int sampler, AddressingMode addressingMode);
+		void setAddressingModeW(unsigned int sampler, AddressingMode addressingMode);
+		void setReadSRGB(unsigned int sampler, bool sRGB);
+		void setMipmapLOD(unsigned int sampler, float bias);
+		void setBorderColor(unsigned int sampler, const Color<float> &borderColor);
+		void setMaxAnisotropy(unsigned int stage, float maxAnisotropy);
+		void setSwizzleR(unsigned int sampler, SwizzleType swizzleR);
+		void setSwizzleG(unsigned int sampler, SwizzleType swizzleG);
+		void setSwizzleB(unsigned int sampler, SwizzleType swizzleB);
+		void setSwizzleA(unsigned int sampler, SwizzleType swizzleA);
+		void setBaseLevel(unsigned int sampler, int baseLevel);
+		void setMaxLevel(unsigned int sampler, int maxLevel);
+		void setMinLod(unsigned int sampler, float minLod);
+		void setMaxLod(unsigned int sampler, float maxLod);
 
-		virtual void setPointSize(float pointSize);
-		virtual void setPointSizeMin(float pointSizeMin);
-		virtual void setPointSizeMax(float pointSizeMax);
-		virtual void setPointScaleA(float pointScaleA);
-		virtual void setPointScaleB(float pointScaleB);
-		virtual void setPointScaleC(float pointScaleC);
+		void setPointSize(float pointSize);
+		void setPointSizeMin(float pointSizeMin);
+		void setPointSizeMax(float pointSizeMax);
+		void setPointScaleA(float pointScaleA);
+		void setPointScaleB(float pointScaleB);
+		void setPointScaleC(float pointScaleC);
 
-		virtual void setTransformFeedbackQueryEnabled(bool enable);
-		virtual void enableTransformFeedback(uint64_t enable);
+		void setTransformFeedbackQueryEnabled(bool enable);
+		void enableTransformFeedback(uint64_t enable);
 
 	protected:
 		const Matrix &getModelTransform(int i);

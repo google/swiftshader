@@ -43,22 +43,22 @@ namespace es1
 
 		virtual ~Device();
 
-		virtual void clearColor(float red, float green, float blue, float alpha, unsigned int rgbaMask);
-		virtual void clearDepth(float z);
-		virtual void clearStencil(unsigned int stencil, unsigned int mask);
-		virtual egl::Image *createDepthStencilSurface(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool discard);
-		virtual egl::Image *createRenderTarget(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool lockable);
-		virtual void drawIndexedPrimitive(sw::DrawType type, unsigned int indexOffset, unsigned int primitiveCount);
-		virtual void drawPrimitive(sw::DrawType type, unsigned int primiveCount);
-		virtual void setScissorEnable(bool enable);
-		virtual void setRenderTarget(int index, egl::Image *renderTarget);
-		virtual void setDepthBuffer(egl::Image *depthBuffer);
-		virtual void setStencilBuffer(egl::Image *stencilBuffer);
-		virtual void setScissorRect(const sw::Rect &rect);
-		virtual void setViewport(const Viewport &viewport);
+		void clearColor(float red, float green, float blue, float alpha, unsigned int rgbaMask);
+		void clearDepth(float z);
+		void clearStencil(unsigned int stencil, unsigned int mask);
+		egl::Image *createDepthStencilSurface(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool discard);
+		egl::Image *createRenderTarget(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool lockable);
+		void drawIndexedPrimitive(sw::DrawType type, unsigned int indexOffset, unsigned int primitiveCount);
+		void drawPrimitive(sw::DrawType type, unsigned int primiveCount);
+		void setScissorEnable(bool enable);
+		void setRenderTarget(int index, egl::Image *renderTarget);
+		void setDepthBuffer(egl::Image *depthBuffer);
+		void setStencilBuffer(egl::Image *stencilBuffer);
+		void setScissorRect(const sw::Rect &rect);
+		void setViewport(const Viewport &viewport);
 
-		virtual bool stretchRect(sw::Surface *sourceSurface, const sw::SliceRect *sourceRect, sw::Surface *destSurface, const sw::SliceRect *destRect, bool filter);
-		virtual void finish();
+		bool stretchRect(sw::Surface *sourceSurface, const sw::SliceRect *sourceRect, sw::Surface *destSurface, const sw::SliceRect *destRect, bool filter);
+		void finish();
 
 	private:
 		sw::Context *const context;

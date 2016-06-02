@@ -189,115 +189,115 @@ namespace sw
 
 		virtual ~PixelProcessor();
 
-		virtual void setFloatConstant(unsigned int index, const float value[4]);
-		virtual void setIntegerConstant(unsigned int index, const int value[4]);
-		virtual void setBooleanConstant(unsigned int index, int boolean);
+		void setFloatConstant(unsigned int index, const float value[4]);
+		void setIntegerConstant(unsigned int index, const int value[4]);
+		void setBooleanConstant(unsigned int index, int boolean);
 
-		virtual void setUniformBuffer(int index, sw::Resource* buffer, int offset);
-		virtual void lockUniformBuffers(byte** u, sw::Resource* uniformBuffers[]);
+		void setUniformBuffer(int index, sw::Resource* buffer, int offset);
+		void lockUniformBuffers(byte** u, sw::Resource* uniformBuffers[]);
 
-		virtual void setRenderTarget(int index, Surface *renderTarget);
-		virtual void setDepthBuffer(Surface *depthBuffer);
-		virtual void setStencilBuffer(Surface *stencilBuffer);
+		void setRenderTarget(int index, Surface *renderTarget);
+		void setDepthBuffer(Surface *depthBuffer);
+		void setStencilBuffer(Surface *stencilBuffer);
 
-		virtual void setTexCoordIndex(unsigned int stage, int texCoordIndex);
-		virtual void setStageOperation(unsigned int stage, TextureStage::StageOperation stageOperation);
-		virtual void setFirstArgument(unsigned int stage, TextureStage::SourceArgument firstArgument);
-		virtual void setSecondArgument(unsigned int stage, TextureStage::SourceArgument secondArgument);
-		virtual void setThirdArgument(unsigned int stage, TextureStage::SourceArgument thirdArgument);
-		virtual void setStageOperationAlpha(unsigned int stage, TextureStage::StageOperation stageOperationAlpha);
-		virtual void setFirstArgumentAlpha(unsigned int stage, TextureStage::SourceArgument firstArgumentAlpha);
-		virtual void setSecondArgumentAlpha(unsigned int stage, TextureStage::SourceArgument secondArgumentAlpha);
-		virtual void setThirdArgumentAlpha(unsigned int stage, TextureStage::SourceArgument thirdArgumentAlpha);
-		virtual void setFirstModifier(unsigned int stage, TextureStage::ArgumentModifier firstModifier);
-		virtual void setSecondModifier(unsigned int stage, TextureStage::ArgumentModifier secondModifier);
-		virtual void setThirdModifier(unsigned int stage, TextureStage::ArgumentModifier thirdModifier);
-		virtual void setFirstModifierAlpha(unsigned int stage, TextureStage::ArgumentModifier firstModifierAlpha);
-		virtual void setSecondModifierAlpha(unsigned int stage, TextureStage::ArgumentModifier secondModifierAlpha);
-		virtual void setThirdModifierAlpha(unsigned int stage, TextureStage::ArgumentModifier thirdModifierAlpha);
-		virtual void setDestinationArgument(unsigned int stage, TextureStage::DestinationArgument destinationArgument);
-		virtual void setConstantColor(unsigned int stage, const Color<float> &constantColor);
-		virtual void setBumpmapMatrix(unsigned int stage, int element, float value);
-		virtual void setLuminanceScale(unsigned int stage, float value);
-		virtual void setLuminanceOffset(unsigned int stage, float value);
+		void setTexCoordIndex(unsigned int stage, int texCoordIndex);
+		void setStageOperation(unsigned int stage, TextureStage::StageOperation stageOperation);
+		void setFirstArgument(unsigned int stage, TextureStage::SourceArgument firstArgument);
+		void setSecondArgument(unsigned int stage, TextureStage::SourceArgument secondArgument);
+		void setThirdArgument(unsigned int stage, TextureStage::SourceArgument thirdArgument);
+		void setStageOperationAlpha(unsigned int stage, TextureStage::StageOperation stageOperationAlpha);
+		void setFirstArgumentAlpha(unsigned int stage, TextureStage::SourceArgument firstArgumentAlpha);
+		void setSecondArgumentAlpha(unsigned int stage, TextureStage::SourceArgument secondArgumentAlpha);
+		void setThirdArgumentAlpha(unsigned int stage, TextureStage::SourceArgument thirdArgumentAlpha);
+		void setFirstModifier(unsigned int stage, TextureStage::ArgumentModifier firstModifier);
+		void setSecondModifier(unsigned int stage, TextureStage::ArgumentModifier secondModifier);
+		void setThirdModifier(unsigned int stage, TextureStage::ArgumentModifier thirdModifier);
+		void setFirstModifierAlpha(unsigned int stage, TextureStage::ArgumentModifier firstModifierAlpha);
+		void setSecondModifierAlpha(unsigned int stage, TextureStage::ArgumentModifier secondModifierAlpha);
+		void setThirdModifierAlpha(unsigned int stage, TextureStage::ArgumentModifier thirdModifierAlpha);
+		void setDestinationArgument(unsigned int stage, TextureStage::DestinationArgument destinationArgument);
+		void setConstantColor(unsigned int stage, const Color<float> &constantColor);
+		void setBumpmapMatrix(unsigned int stage, int element, float value);
+		void setLuminanceScale(unsigned int stage, float value);
+		void setLuminanceOffset(unsigned int stage, float value);
 
-		virtual void setTextureFilter(unsigned int sampler, FilterType textureFilter);
-		virtual void setMipmapFilter(unsigned int sampler, MipmapType mipmapFilter);
-		virtual void setGatherEnable(unsigned int sampler, bool enable);
-		virtual void setAddressingModeU(unsigned int sampler, AddressingMode addressingMode);
-		virtual void setAddressingModeV(unsigned int sampler, AddressingMode addressingMode);
-		virtual void setAddressingModeW(unsigned int sampler, AddressingMode addressingMode);
-		virtual void setReadSRGB(unsigned int sampler, bool sRGB);
-		virtual void setMipmapLOD(unsigned int sampler, float bias);
-		virtual void setBorderColor(unsigned int sampler, const Color<float> &borderColor);
-		virtual void setMaxAnisotropy(unsigned int sampler, float maxAnisotropy);
-		virtual void setSwizzleR(unsigned int sampler, SwizzleType swizzleR);
-		virtual void setSwizzleG(unsigned int sampler, SwizzleType swizzleG);
-		virtual void setSwizzleB(unsigned int sampler, SwizzleType swizzleB);
-		virtual void setSwizzleA(unsigned int sampler, SwizzleType swizzleA);
-		virtual void setBaseLevel(unsigned int sampler, int baseLevel);
-		virtual void setMaxLevel(unsigned int sampler, int maxLevel);
-		virtual void setMinLod(unsigned int sampler, float minLod);
-		virtual void setMaxLod(unsigned int sampler, float maxLod);
+		void setTextureFilter(unsigned int sampler, FilterType textureFilter);
+		void setMipmapFilter(unsigned int sampler, MipmapType mipmapFilter);
+		void setGatherEnable(unsigned int sampler, bool enable);
+		void setAddressingModeU(unsigned int sampler, AddressingMode addressingMode);
+		void setAddressingModeV(unsigned int sampler, AddressingMode addressingMode);
+		void setAddressingModeW(unsigned int sampler, AddressingMode addressingMode);
+		void setReadSRGB(unsigned int sampler, bool sRGB);
+		void setMipmapLOD(unsigned int sampler, float bias);
+		void setBorderColor(unsigned int sampler, const Color<float> &borderColor);
+		void setMaxAnisotropy(unsigned int sampler, float maxAnisotropy);
+		void setSwizzleR(unsigned int sampler, SwizzleType swizzleR);
+		void setSwizzleG(unsigned int sampler, SwizzleType swizzleG);
+		void setSwizzleB(unsigned int sampler, SwizzleType swizzleB);
+		void setSwizzleA(unsigned int sampler, SwizzleType swizzleA);
+		void setBaseLevel(unsigned int sampler, int baseLevel);
+		void setMaxLevel(unsigned int sampler, int maxLevel);
+		void setMinLod(unsigned int sampler, float minLod);
+		void setMaxLod(unsigned int sampler, float maxLod);
 
-		virtual void setWriteSRGB(bool sRGB);
-		virtual void setDepthBufferEnable(bool depthBufferEnable);
-		virtual void setDepthCompare(DepthCompareMode depthCompareMode);
-		virtual void setAlphaCompare(AlphaCompareMode alphaCompareMode);
-		virtual void setDepthWriteEnable(bool depthWriteEnable);
-		virtual void setAlphaTestEnable(bool alphaTestEnable);
-		virtual void setCullMode(CullMode cullMode);
-		virtual void setColorWriteMask(int index, int rgbaMask);
+		void setWriteSRGB(bool sRGB);
+		void setDepthBufferEnable(bool depthBufferEnable);
+		void setDepthCompare(DepthCompareMode depthCompareMode);
+		void setAlphaCompare(AlphaCompareMode alphaCompareMode);
+		void setDepthWriteEnable(bool depthWriteEnable);
+		void setAlphaTestEnable(bool alphaTestEnable);
+		void setCullMode(CullMode cullMode);
+		void setColorWriteMask(int index, int rgbaMask);
 
-		virtual void setColorLogicOpEnabled(bool colorLogicOpEnabled);
-		virtual void setLogicalOperation(LogicalOperation logicalOperation);
+		void setColorLogicOpEnabled(bool colorLogicOpEnabled);
+		void setLogicalOperation(LogicalOperation logicalOperation);
 
-		virtual void setStencilEnable(bool stencilEnable);
-		virtual void setStencilCompare(StencilCompareMode stencilCompareMode);
-		virtual void setStencilReference(int stencilReference);
-		virtual void setStencilMask(int stencilMask);
-		virtual void setStencilFailOperation(StencilOperation stencilFailOperation);
-		virtual void setStencilPassOperation(StencilOperation stencilPassOperation);
-		virtual void setStencilZFailOperation(StencilOperation stencilZFailOperation);
-		virtual void setStencilWriteMask(int stencilWriteMask);
-		virtual void setTwoSidedStencil(bool enable);
-		virtual void setStencilCompareCCW(StencilCompareMode stencilCompareMode);
-		virtual void setStencilReferenceCCW(int stencilReference);
-		virtual void setStencilMaskCCW(int stencilMask);
-		virtual void setStencilFailOperationCCW(StencilOperation stencilFailOperation);
-		virtual void setStencilPassOperationCCW(StencilOperation stencilPassOperation);
-		virtual void setStencilZFailOperationCCW(StencilOperation stencilZFailOperation);
-		virtual void setStencilWriteMaskCCW(int stencilWriteMask);
+		void setStencilEnable(bool stencilEnable);
+		void setStencilCompare(StencilCompareMode stencilCompareMode);
+		void setStencilReference(int stencilReference);
+		void setStencilMask(int stencilMask);
+		void setStencilFailOperation(StencilOperation stencilFailOperation);
+		void setStencilPassOperation(StencilOperation stencilPassOperation);
+		void setStencilZFailOperation(StencilOperation stencilZFailOperation);
+		void setStencilWriteMask(int stencilWriteMask);
+		void setTwoSidedStencil(bool enable);
+		void setStencilCompareCCW(StencilCompareMode stencilCompareMode);
+		void setStencilReferenceCCW(int stencilReference);
+		void setStencilMaskCCW(int stencilMask);
+		void setStencilFailOperationCCW(StencilOperation stencilFailOperation);
+		void setStencilPassOperationCCW(StencilOperation stencilPassOperation);
+		void setStencilZFailOperationCCW(StencilOperation stencilZFailOperation);
+		void setStencilWriteMaskCCW(int stencilWriteMask);
 
-		virtual void setTextureFactor(const Color<float> &textureFactor);
-		virtual void setBlendConstant(const Color<float> &blendConstant);
+		void setTextureFactor(const Color<float> &textureFactor);
+		void setBlendConstant(const Color<float> &blendConstant);
 
-		virtual void setFillMode(FillMode fillMode);
-		virtual void setShadingMode(ShadingMode shadingMode);
+		void setFillMode(FillMode fillMode);
+		void setShadingMode(ShadingMode shadingMode);
 
-		virtual void setAlphaBlendEnable(bool alphaBlendEnable);
-		virtual void setSourceBlendFactor(BlendFactor sourceBlendFactor);
-		virtual void setDestBlendFactor(BlendFactor destBlendFactor);
-		virtual void setBlendOperation(BlendOperation blendOperation);
+		void setAlphaBlendEnable(bool alphaBlendEnable);
+		void setSourceBlendFactor(BlendFactor sourceBlendFactor);
+		void setDestBlendFactor(BlendFactor destBlendFactor);
+		void setBlendOperation(BlendOperation blendOperation);
 
-		virtual void setSeparateAlphaBlendEnable(bool separateAlphaBlendEnable);
-		virtual void setSourceBlendFactorAlpha(BlendFactor sourceBlendFactorAlpha);
-		virtual void setDestBlendFactorAlpha(BlendFactor destBlendFactorAlpha);
-		virtual void setBlendOperationAlpha(BlendOperation blendOperationAlpha);
+		void setSeparateAlphaBlendEnable(bool separateAlphaBlendEnable);
+		void setSourceBlendFactorAlpha(BlendFactor sourceBlendFactorAlpha);
+		void setDestBlendFactorAlpha(BlendFactor destBlendFactorAlpha);
+		void setBlendOperationAlpha(BlendOperation blendOperationAlpha);
 
-		virtual void setAlphaReference(float alphaReference);
+		void setAlphaReference(float alphaReference);
 
-		virtual void setGlobalMipmapBias(float bias);
+		void setGlobalMipmapBias(float bias);
 
-		virtual void setFogStart(float start);
-		virtual void setFogEnd(float end);
-		virtual void setFogColor(Color<float> fogColor);
-		virtual void setFogDensity(float fogDensity);
-		virtual void setPixelFogMode(FogMode fogMode);
+		void setFogStart(float start);
+		void setFogEnd(float end);
+		void setFogColor(Color<float> fogColor);
+		void setFogDensity(float fogDensity);
+		void setPixelFogMode(FogMode fogMode);
 
-		virtual void setPerspectiveCorrection(bool perspectiveCorrection);
+		void setPerspectiveCorrection(bool perspectiveCorrection);
 
-		virtual void setOcclusionEnabled(bool enable);
+		void setOcclusionEnabled(bool enable);
 
 	protected:
 		const State update() const;

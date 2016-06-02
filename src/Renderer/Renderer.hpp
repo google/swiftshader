@@ -318,73 +318,73 @@ namespace sw
 
 		virtual ~Renderer();
 
-		virtual void clear(void* pixel, Format format, Surface *dest, const SliceRect &dRect, unsigned int rgbaMask);
-		virtual void blit(Surface *source, const SliceRect &sRect, Surface *dest, const SliceRect &dRect, bool filter);
-		virtual void blit3D(Surface *source, Surface *dest);
-		virtual void draw(DrawType drawType, unsigned int indexOffset, unsigned int count, bool update = true);
+		void clear(void* pixel, Format format, Surface *dest, const SliceRect &dRect, unsigned int rgbaMask);
+		void blit(Surface *source, const SliceRect &sRect, Surface *dest, const SliceRect &dRect, bool filter);
+		void blit3D(Surface *source, Surface *dest);
+		void draw(DrawType drawType, unsigned int indexOffset, unsigned int count, bool update = true);
 
-		virtual void setIndexBuffer(Resource *indexBuffer);
+		void setIndexBuffer(Resource *indexBuffer);
 
-		virtual void setMultiSampleMask(unsigned int mask);
-		virtual void setTransparencyAntialiasing(TransparencyAntialiasing transparencyAntialiasing);
+		void setMultiSampleMask(unsigned int mask);
+		void setTransparencyAntialiasing(TransparencyAntialiasing transparencyAntialiasing);
 
-		virtual void setTextureResource(unsigned int sampler, Resource *resource);
-		virtual void setTextureLevel(unsigned int sampler, unsigned int face, unsigned int level, Surface *surface, TextureType type);
+		void setTextureResource(unsigned int sampler, Resource *resource);
+		void setTextureLevel(unsigned int sampler, unsigned int face, unsigned int level, Surface *surface, TextureType type);
 
-		virtual void setTextureFilter(SamplerType type, int sampler, FilterType textureFilter);
-		virtual void setMipmapFilter(SamplerType type, int sampler, MipmapType mipmapFilter);
-		virtual void setGatherEnable(SamplerType type, int sampler, bool enable);
-		virtual void setAddressingModeU(SamplerType type, int sampler, AddressingMode addressingMode);
-		virtual void setAddressingModeV(SamplerType type, int sampler, AddressingMode addressingMode);
-		virtual void setAddressingModeW(SamplerType type, int sampler, AddressingMode addressingMode);
-		virtual void setReadSRGB(SamplerType type, int sampler, bool sRGB);
-		virtual void setMipmapLOD(SamplerType type, int sampler, float bias);
-		virtual void setBorderColor(SamplerType type, int sampler, const Color<float> &borderColor);
-		virtual void setMaxAnisotropy(SamplerType type, int sampler, float maxAnisotropy);
-		virtual void setSwizzleR(SamplerType type, int sampler, SwizzleType swizzleR);
-		virtual void setSwizzleG(SamplerType type, int sampler, SwizzleType swizzleG);
-		virtual void setSwizzleB(SamplerType type, int sampler, SwizzleType swizzleB);
-		virtual void setSwizzleA(SamplerType type, int sampler, SwizzleType swizzleA);
-		virtual void setBaseLevel(SamplerType type, int sampler, int baseLevel);
-		virtual void setMaxLevel(SamplerType type, int sampler, int maxLevel);
-		virtual void setMinLod(SamplerType type, int sampler, float minLod);
-		virtual void setMaxLod(SamplerType type, int sampler, float maxLod);
+		void setTextureFilter(SamplerType type, int sampler, FilterType textureFilter);
+		void setMipmapFilter(SamplerType type, int sampler, MipmapType mipmapFilter);
+		void setGatherEnable(SamplerType type, int sampler, bool enable);
+		void setAddressingModeU(SamplerType type, int sampler, AddressingMode addressingMode);
+		void setAddressingModeV(SamplerType type, int sampler, AddressingMode addressingMode);
+		void setAddressingModeW(SamplerType type, int sampler, AddressingMode addressingMode);
+		void setReadSRGB(SamplerType type, int sampler, bool sRGB);
+		void setMipmapLOD(SamplerType type, int sampler, float bias);
+		void setBorderColor(SamplerType type, int sampler, const Color<float> &borderColor);
+		void setMaxAnisotropy(SamplerType type, int sampler, float maxAnisotropy);
+		void setSwizzleR(SamplerType type, int sampler, SwizzleType swizzleR);
+		void setSwizzleG(SamplerType type, int sampler, SwizzleType swizzleG);
+		void setSwizzleB(SamplerType type, int sampler, SwizzleType swizzleB);
+		void setSwizzleA(SamplerType type, int sampler, SwizzleType swizzleA);
+		void setBaseLevel(SamplerType type, int sampler, int baseLevel);
+		void setMaxLevel(SamplerType type, int sampler, int maxLevel);
+		void setMinLod(SamplerType type, int sampler, float minLod);
+		void setMaxLod(SamplerType type, int sampler, float maxLod);
 
-		virtual void setPointSpriteEnable(bool pointSpriteEnable);
-		virtual void setPointScaleEnable(bool pointScaleEnable);
-		virtual void setLineWidth(float width);
+		void setPointSpriteEnable(bool pointSpriteEnable);
+		void setPointScaleEnable(bool pointScaleEnable);
+		void setLineWidth(float width);
 
-		virtual void setDepthBias(float bias);
-		virtual void setSlopeDepthBias(float slopeBias);
+		void setDepthBias(float bias);
+		void setSlopeDepthBias(float slopeBias);
 
-		virtual void setRasterizerDiscard(bool rasterizerDiscard);
+		void setRasterizerDiscard(bool rasterizerDiscard);
 
 		// Programmable pipelines
-		virtual void setPixelShader(const PixelShader *shader);
-		virtual void setVertexShader(const VertexShader *shader);
+		void setPixelShader(const PixelShader *shader);
+		void setVertexShader(const VertexShader *shader);
 
-		virtual void setPixelShaderConstantF(int index, const float value[4], int count = 1);
-		virtual void setPixelShaderConstantI(int index, const int value[4], int count = 1);
-		virtual void setPixelShaderConstantB(int index, const int *boolean, int count = 1);
+		void setPixelShaderConstantF(int index, const float value[4], int count = 1);
+		void setPixelShaderConstantI(int index, const int value[4], int count = 1);
+		void setPixelShaderConstantB(int index, const int *boolean, int count = 1);
 
-		virtual void setVertexShaderConstantF(int index, const float value[4], int count = 1);
-		virtual void setVertexShaderConstantI(int index, const int value[4], int count = 1);
-		virtual void setVertexShaderConstantB(int index, const int *boolean, int count = 1);
+		void setVertexShaderConstantF(int index, const float value[4], int count = 1);
+		void setVertexShaderConstantI(int index, const int value[4], int count = 1);
+		void setVertexShaderConstantB(int index, const int *boolean, int count = 1);
 
 		// Viewport & Clipper
-		virtual void setViewport(const Viewport &viewport);
-		virtual void setScissor(const Rect &scissor);
-		virtual void setClipFlags(int flags);
-		virtual void setClipPlane(unsigned int index, const float plane[4]);
+		void setViewport(const Viewport &viewport);
+		void setScissor(const Rect &scissor);
+		void setClipFlags(int flags);
+		void setClipPlane(unsigned int index, const float plane[4]);
 
 		// Partial transform
-		virtual void setModelMatrix(const Matrix &M, int i = 0);
-		virtual void setViewMatrix(const Matrix &V);
-		virtual void setBaseMatrix(const Matrix &B);
-		virtual void setProjectionMatrix(const Matrix &P);
+		void setModelMatrix(const Matrix &M, int i = 0);
+		void setViewMatrix(const Matrix &V);
+		void setBaseMatrix(const Matrix &B);
+		void setProjectionMatrix(const Matrix &P);
 
-		virtual void addQuery(Query *query);
-		virtual void removeQuery(Query *query);
+		void addQuery(Query *query);
+		void removeQuery(Query *query);
 
 		void synchronize();
 

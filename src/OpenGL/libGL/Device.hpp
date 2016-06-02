@@ -51,22 +51,22 @@ namespace gl
 
 		virtual ~Device();
 
-		virtual void clearColor(float red, float green, float blue, float alpha, unsigned int rgbaMask);
-		virtual void clearDepth(float z);
-		virtual void clearStencil(unsigned int stencil, unsigned int mask);
-		virtual Image *createDepthStencilSurface(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool discard);
-		virtual Image *createRenderTarget(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool lockable);
-		virtual void drawIndexedPrimitive(PrimitiveType type, unsigned int indexOffset, unsigned int primitiveCount, int indexSize);
-		virtual void drawPrimitive(PrimitiveType primitiveType, unsigned int primiveCount);
-		virtual void setDepthStencilSurface(Image *newDepthStencil);
-		virtual void setPixelShader(sw::PixelShader *shader);
-		virtual void setPixelShaderConstantF(unsigned int startRegister, const float *constantData, unsigned int count);
-		virtual void setScissorEnable(bool enable);
-		virtual void setRenderTarget(int index, Image *renderTarget);
-		virtual void setScissorRect(const sw::Rect &rect);
-		virtual void setVertexShader(sw::VertexShader *shader);
-		virtual void setVertexShaderConstantF(unsigned int startRegister, const float *constantData, unsigned int count);
-		virtual void setViewport(const Viewport &viewport);
+		void clearColor(float red, float green, float blue, float alpha, unsigned int rgbaMask);
+		void clearDepth(float z);
+		void clearStencil(unsigned int stencil, unsigned int mask);
+		Image *createDepthStencilSurface(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool discard);
+		Image *createRenderTarget(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool lockable);
+		void drawIndexedPrimitive(PrimitiveType type, unsigned int indexOffset, unsigned int primitiveCount, int indexSize);
+		void drawPrimitive(PrimitiveType primitiveType, unsigned int primiveCount);
+		void setDepthStencilSurface(Image *newDepthStencil);
+		void setPixelShader(sw::PixelShader *shader);
+		void setPixelShaderConstantF(unsigned int startRegister, const float *constantData, unsigned int count);
+		void setScissorEnable(bool enable);
+		void setRenderTarget(int index, Image *renderTarget);
+		void setScissorRect(const sw::Rect &rect);
+		void setVertexShader(sw::VertexShader *shader);
+		void setVertexShaderConstantF(unsigned int startRegister, const float *constantData, unsigned int count);
+		void setViewport(const Viewport &viewport);
 
 		virtual bool stretchRect(Image *sourceSurface, const sw::SliceRect *sourceRect, Image *destSurface, const sw::SliceRect *destRect, bool filter);
 		virtual void finish();
