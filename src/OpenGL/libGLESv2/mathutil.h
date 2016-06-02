@@ -19,6 +19,7 @@
 
 #include "common/debug.h"
 #include "Common/Math.hpp"
+#include <limits>
 
 namespace es2
 {
