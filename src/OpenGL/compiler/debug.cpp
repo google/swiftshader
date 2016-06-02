@@ -22,8 +22,6 @@
 #include "InitializeParseContext.h"
 #include "ParseHelper.h"
 
-static const int kTraceBufferLen = 1024;
-
 #ifdef TRACE_ENABLED
 extern "C" {
 void Trace(const char *format, ...) {
@@ -31,6 +29,7 @@ void Trace(const char *format, ...) {
 
 	TParseContext* parseContext = GetGlobalParseContext();
 	if (parseContext) {
+		const int kTraceBufferLen = 1024;
 		char buf[kTraceBufferLen];
 		va_list args;
 		va_start(args, format);

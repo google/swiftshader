@@ -251,12 +251,12 @@ namespace sw
 
 				if(state.multiSample == 1)
 				{
-					For(yMin, yMin < yMax && *Pointer<Short>(leftEdge + yMin * sizeof(Primitive::Span)) == *Pointer<Short>(rightEdge + yMin * sizeof(Primitive::Span)), yMin++)
+					For(, yMin < yMax && *Pointer<Short>(leftEdge + yMin * sizeof(Primitive::Span)) == *Pointer<Short>(rightEdge + yMin * sizeof(Primitive::Span)), yMin++)
 					{
 						// Increments yMin
 					}
 
-					For(yMax, yMax > yMin && *Pointer<Short>(leftEdge + (yMax - 1) * sizeof(Primitive::Span)) == *Pointer<Short>(rightEdge + (yMax - 1) * sizeof(Primitive::Span)), yMax--)
+					For(, yMax > yMin && *Pointer<Short>(leftEdge + (yMax - 1) * sizeof(Primitive::Span)) == *Pointer<Short>(rightEdge + (yMax - 1) * sizeof(Primitive::Span)), yMax--)
 					{
 						// Decrements yMax
 					}

@@ -184,7 +184,6 @@ namespace sw
 	void Configurator::addValue(string const keyName, string const valueName, string const value)
 	{
 		int keyID = findKey(keyName);
-		bool create = true;
 
 		if(keyID == -1)
 		{

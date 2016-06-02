@@ -655,8 +655,6 @@ bool TParseContext::structQualifierErrorCheck(const TSourceLoc &line, const TPub
 		return true;
 
 	// check for layout qualifier issues
-	const TLayoutQualifier layoutQualifier = pType.layoutQualifier;
-
 	if (pType.qualifier != EvqVertexIn && pType.qualifier != EvqFragmentOut &&
 		layoutLocationErrorCheck(line, pType.layoutQualifier))
 	{

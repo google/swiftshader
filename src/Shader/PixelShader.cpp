@@ -68,7 +68,7 @@ namespace sw
 		}
 
 		unsigned short version = (unsigned short)(token[0] & 0x0000FFFF);
-		unsigned char minorVersion = (unsigned char)(token[0] & 0x000000FF);
+		// unsigned char minorVersion = (unsigned char)(token[0] & 0x000000FF);
 		unsigned char majorVersion = (unsigned char)((token[0] & 0x0000FF00) >> 8);
 		ShaderType shaderType = (ShaderType)((token[0] & 0xFFFF0000) >> 16);
 
@@ -230,7 +230,6 @@ namespace sw
 				if(instruction[i]->dst.type == Shader::PARAMETER_TEXTURE)
 				{
 					int index = instruction[i]->dst.index + 2;
-					int mask = instruction[i]->dst.mask;
 
 					switch(instruction[i]->opcode)
 					{

@@ -522,7 +522,7 @@ namespace sw
 		}
 
 		sprintf(header, "Content-Type: text/html; charset=UTF-8\r\n"
-						"Content-Length: %d\r\n"
+						"Content-Length: %zd\r\n"
 						"Host: localhost\r\n"
 						"\r\n", body.size());
 
