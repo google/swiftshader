@@ -1120,9 +1120,11 @@ void TargetMIPS32::lowerCast(const InstCast *Instr) {
     break;
   }
   case InstCast::Fptrunc:
+    // Use _cvt_d_s
     UnimplementedLoweringError(this, Instr);
     break;
   case InstCast::Fpext: {
+    // Use _cvt_s_d
     UnimplementedLoweringError(this, Instr);
     break;
   }

@@ -191,6 +191,30 @@ public:
     Context.insert<InstMIPS32Addiu>(Dest, Src, Imm);
   }
 
+  void _cvt_d_l(Variable *Dest, Variable *Src) {
+    Context.insert<InstMIPS32Cvt_d_l>(Dest, Src);
+  }
+
+  void _cvt_d_s(Variable *Dest, Variable *Src) {
+    Context.insert<InstMIPS32Cvt_d_s>(Dest, Src);
+  }
+
+  void _cvt_d_w(Variable *Dest, Variable *Src) {
+    Context.insert<InstMIPS32Cvt_d_w>(Dest, Src);
+  }
+
+  void _cvt_s_d(Variable *Dest, Variable *Src) {
+    Context.insert<InstMIPS32Cvt_s_d>(Dest, Src);
+  }
+
+  void _cvt_s_l(Variable *Dest, Variable *Src) {
+    Context.insert<InstMIPS32Cvt_s_l>(Dest, Src);
+  }
+
+  void _cvt_s_w(Variable *Dest, Variable *Src) {
+    Context.insert<InstMIPS32Cvt_s_w>(Dest, Src);
+  }
+
   void _div(Variable *Dest, Variable *Src0, Variable *Src1) {
     Context.insert<InstMIPS32Div>(Dest, Src0, Src1);
   }
@@ -205,6 +229,14 @@ public:
 
   void _divu(Variable *Dest, Variable *Src0, Variable *Src1) {
     Context.insert<InstMIPS32Divu>(Dest, Src0, Src1);
+  }
+
+  void _ldc1(Variable *Value, OperandMIPS32Mem *Mem) {
+    Context.insert<InstMIPS32Ldc1>(Value, Mem);
+  }
+
+  void _lwc1(Variable *Value, OperandMIPS32Mem *Mem) {
+    Context.insert<InstMIPS32Lwc1>(Value, Mem);
   }
 
   void _lui(Variable *Dest, uint32_t Imm) {
@@ -287,6 +319,10 @@ public:
     Context.insert<InstMIPS32Ori>(Dest, Src, Imm);
   }
 
+  void _sdc1(Variable *Value, OperandMIPS32Mem *Mem) {
+    Context.insert<InstMIPS32Sdc1>(Value, Mem);
+  }
+
   void _sll(Variable *Dest, Variable *Src, uint32_t Imm) {
     Context.insert<InstMIPS32Sll>(Dest, Src, Imm);
   }
@@ -345,6 +381,26 @@ public:
 
   void _sw(Variable *Value, OperandMIPS32Mem *Mem) {
     Context.insert<InstMIPS32Sw>(Value, Mem);
+  }
+
+  void _swc1(Variable *Value, OperandMIPS32Mem *Mem) {
+    Context.insert<InstMIPS32Swc1>(Value, Mem);
+  }
+
+  void _trunc_l_d(Variable *Dest, Variable *Src) {
+    Context.insert<InstMIPS32Trunc_l_d>(Dest, Src);
+  }
+
+  void _trunc_l_s(Variable *Dest, Variable *Src) {
+    Context.insert<InstMIPS32Trunc_l_s>(Dest, Src);
+  }
+
+  void _trunc_w_d(Variable *Dest, Variable *Src) {
+    Context.insert<InstMIPS32Trunc_w_d>(Dest, Src);
+  }
+
+  void _trunc_w_s(Variable *Dest, Variable *Src) {
+    Context.insert<InstMIPS32Trunc_w_s>(Dest, Src);
   }
 
   void _xor(Variable *Dest, Variable *Src0, Variable *Src1) {

@@ -60,20 +60,27 @@ const char *InstMIPS32::getWidthString(Type Ty) {
   return "TBD";
 }
 
-template <> const char *InstMIPS32Addiu::Opcode = "addiu";
-template <> const char *InstMIPS32Lui::Opcode = "lui";
-template <> const char *InstMIPS32La::Opcode = "la";
-// Three-addr ops
 template <> const char *InstMIPS32Add::Opcode = "add";
 template <> const char *InstMIPS32Add_d::Opcode = "add.d";
 template <> const char *InstMIPS32Add_s::Opcode = "add.s";
+template <> const char *InstMIPS32Addiu::Opcode = "addiu";
 template <> const char *InstMIPS32Addu::Opcode = "addu";
 template <> const char *InstMIPS32And::Opcode = "and";
 template <> const char *InstMIPS32Andi::Opcode = "andi";
+template <> const char *InstMIPS32Cvt_d_l::Opcode = "cvt.d.l";
+template <> const char *InstMIPS32Cvt_d_s::Opcode = "cvt.d.s";
+template <> const char *InstMIPS32Cvt_d_w::Opcode = "cvt.d.w";
+template <> const char *InstMIPS32Cvt_s_d::Opcode = "cvt.s.d";
+template <> const char *InstMIPS32Cvt_s_l::Opcode = "cvt.s.l";
+template <> const char *InstMIPS32Cvt_s_w::Opcode = "cvt.s.w";
 template <> const char *InstMIPS32Div::Opcode = "div";
 template <> const char *InstMIPS32Div_d::Opcode = "div.d";
 template <> const char *InstMIPS32Div_s::Opcode = "div.s";
 template <> const char *InstMIPS32Divu::Opcode = "divu";
+template <> const char *InstMIPS32La::Opcode = "la";
+template <> const char *InstMIPS32Ldc1::Opcode = "ldc1";
+template <> const char *InstMIPS32Lui::Opcode = "lui";
+template <> const char *InstMIPS32Lwc1::Opcode = "lwc1";
 template <> const char *InstMIPS32Mfc1::Opcode = "mfc1";
 template <> const char *InstMIPS32Mfhi::Opcode = "mfhi";
 template <> const char *InstMIPS32Mflo::Opcode = "mflo";
@@ -89,6 +96,7 @@ template <> const char *InstMIPS32Mult::Opcode = "mult";
 template <> const char *InstMIPS32Multu::Opcode = "multu";
 template <> const char *InstMIPS32Or::Opcode = "or";
 template <> const char *InstMIPS32Ori::Opcode = "ori";
+template <> const char *InstMIPS32Sdc1::Opcode = "sdc1";
 template <> const char *InstMIPS32Sll::Opcode = "sll";
 template <> const char *InstMIPS32Sllv::Opcode = "sllv";
 template <> const char *InstMIPS32Slt::Opcode = "slt";
@@ -104,6 +112,11 @@ template <> const char *InstMIPS32Sub_d::Opcode = "sub.d";
 template <> const char *InstMIPS32Sub_s::Opcode = "sub.s";
 template <> const char *InstMIPS32Subu::Opcode = "subu";
 template <> const char *InstMIPS32Sw::Opcode = "sw";
+template <> const char *InstMIPS32Swc1::Opcode = "swc1";
+template <> const char *InstMIPS32Trunc_l_d::Opcode = "trunc.l.d";
+template <> const char *InstMIPS32Trunc_l_s::Opcode = "trunc.l.s";
+template <> const char *InstMIPS32Trunc_w_d::Opcode = "trunc.w.d";
+template <> const char *InstMIPS32Trunc_w_s::Opcode = "trunc.w.s";
 template <> const char *InstMIPS32Xor::Opcode = "xor";
 template <> const char *InstMIPS32Xori::Opcode = "xori";
 

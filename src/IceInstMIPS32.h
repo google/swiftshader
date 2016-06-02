@@ -127,13 +127,22 @@ public:
     Andi,
     Br,
     Call,
+    Cvt_d_l,
+    Cvt_d_s,
+    Cvt_d_w,
+    Cvt_s_d,
+    Cvt_s_l,
+    Cvt_s_w,
     Div,
     Div_d,
     Div_s,
     Divu,
     La,
     Label,
+    Ldc1,
     Lui,
+    Lw,
+    Lwc1,
     Mfc1,
     Mfhi,
     Mflo,
@@ -151,6 +160,7 @@ public:
     Or,
     Ori,
     Ret,
+    Sdc1,
     Sll,
     Sllv,
     Slt,
@@ -166,6 +176,11 @@ public:
     Sub_s,
     Subu,
     Sw,
+    Swc1,
+    Trunc_l_d,
+    Trunc_l_s,
+    Trunc_w_d,
+    Trunc_w_s,
     Xor,
     Xori
   };
@@ -708,12 +723,21 @@ using InstMIPS32Addu = InstMIPS32ThreeAddrGPR<InstMIPS32::Addu>;
 using InstMIPS32Addiu = InstMIPS32Imm16<InstMIPS32::Addiu, true>;
 using InstMIPS32And = InstMIPS32ThreeAddrGPR<InstMIPS32::And>;
 using InstMIPS32Andi = InstMIPS32Imm16<InstMIPS32::Andi>;
+using InstMIPS32Cvt_d_s = InstMIPS32TwoAddrFPR<InstMIPS32::Cvt_d_s>;
+using InstMIPS32Cvt_d_l = InstMIPS32TwoAddrFPR<InstMIPS32::Cvt_d_l>;
+using InstMIPS32Cvt_d_w = InstMIPS32TwoAddrFPR<InstMIPS32::Cvt_d_w>;
+using InstMIPS32Cvt_s_d = InstMIPS32TwoAddrFPR<InstMIPS32::Cvt_s_d>;
+using InstMIPS32Cvt_s_l = InstMIPS32TwoAddrFPR<InstMIPS32::Cvt_s_l>;
+using InstMIPS32Cvt_s_w = InstMIPS32TwoAddrFPR<InstMIPS32::Cvt_s_w>;
 using InstMIPS32Div = InstMIPS32ThreeAddrGPR<InstMIPS32::Div>;
 using InstMIPS32Div_d = InstMIPS32ThreeAddrFPR<InstMIPS32::Div_d>;
 using InstMIPS32Div_s = InstMIPS32ThreeAddrFPR<InstMIPS32::Div_s>;
 using InstMIPS32Divu = InstMIPS32ThreeAddrGPR<InstMIPS32::Divu>;
-using InstMIPS32Lui = InstMIPS32Imm16<InstMIPS32::Lui>;
 using InstMIPS32La = InstMIPS32UnaryopGPR<InstMIPS32::La>;
+using InstMIPS32Ldc1 = InstMIPS32Memory<InstMIPS32::Ldc1>;
+using InstMIPS32Lui = InstMIPS32Imm16<InstMIPS32::Lui>;
+using InstMIPS32Lw = InstMIPS32Memory<InstMIPS32::Lwc1>;
+using InstMIPS32Lwc1 = InstMIPS32Memory<InstMIPS32::Lwc1>;
 using InstMIPS32Mfc1 = InstMIPS32TwoAddrGPR<InstMIPS32::Mfc1>;
 using InstMIPS32Mfhi = InstMIPS32UnaryopGPR<InstMIPS32::Mfhi>;
 using InstMIPS32Mflo = InstMIPS32UnaryopGPR<InstMIPS32::Mflo>;
@@ -729,6 +753,7 @@ using InstMIPS32Mult = InstMIPS32ThreeAddrGPR<InstMIPS32::Mult>;
 using InstMIPS32Multu = InstMIPS32ThreeAddrGPR<InstMIPS32::Multu>;
 using InstMIPS32Or = InstMIPS32ThreeAddrGPR<InstMIPS32::Or>;
 using InstMIPS32Ori = InstMIPS32Imm16<InstMIPS32::Ori>;
+using InstMIPS32Sdc1 = InstMIPS32Memory<InstMIPS32::Sdc1>;
 using InstMIPS32Sll = InstMIPS32Imm16<InstMIPS32::Sll>;
 using InstMIPS32Sllv = InstMIPS32ThreeAddrGPR<InstMIPS32::Sllv>;
 using InstMIPS32Slt = InstMIPS32ThreeAddrGPR<InstMIPS32::Slt>;
@@ -744,6 +769,11 @@ using InstMIPS32Sub_d = InstMIPS32ThreeAddrFPR<InstMIPS32::Sub_d>;
 using InstMIPS32Sub_s = InstMIPS32ThreeAddrFPR<InstMIPS32::Sub_s>;
 using InstMIPS32Subu = InstMIPS32ThreeAddrGPR<InstMIPS32::Subu>;
 using InstMIPS32Sw = InstMIPS32Memory<InstMIPS32::Sw>;
+using InstMIPS32Swc1 = InstMIPS32Memory<InstMIPS32::Swc1>;
+using InstMIPS32Trunc_l_d = InstMIPS32TwoAddrFPR<InstMIPS32::Trunc_l_d>;
+using InstMIPS32Trunc_l_s = InstMIPS32TwoAddrFPR<InstMIPS32::Trunc_l_s>;
+using InstMIPS32Trunc_w_d = InstMIPS32TwoAddrFPR<InstMIPS32::Trunc_w_d>;
+using InstMIPS32Trunc_w_s = InstMIPS32TwoAddrFPR<InstMIPS32::Trunc_w_s>;
 using InstMIPS32Ori = InstMIPS32Imm16<InstMIPS32::Ori>;
 using InstMIPS32Xor = InstMIPS32ThreeAddrGPR<InstMIPS32::Xor>;
 using InstMIPS32Xori = InstMIPS32Imm16<InstMIPS32::Xori>;
