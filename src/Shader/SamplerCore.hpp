@@ -35,6 +35,7 @@ namespace sw
 
 		void sampleTexture(Pointer<Byte> &texture, Vector4s &c, Float4 &u, Float4 &v, Float4 &w, Float4 &q, Vector4f &dsx, Vector4f &dsy, SamplerMethod method = Implicit);
 		void sampleTexture(Pointer<Byte> &texture, Vector4f &c, Float4 &u, Float4 &v, Float4 &w, Float4 &q, Vector4f &dsx, Vector4f &dsy, Vector4f &offset, SamplerMethod method = Implicit, bool hasOffset = false);
+		void textureSize(Pointer<Byte> &mipmap, Vector4f &size, Float4 &lod);
 
 	private:
 		void sampleTexture(Pointer<Byte> &texture, Vector4s &c, Float4 &u, Float4 &v, Float4 &w, Float4 &q, Vector4f &dsx, Vector4f &dsy, Vector4f &offset, bool hasOffset, SamplerMethod method, bool fixed12);

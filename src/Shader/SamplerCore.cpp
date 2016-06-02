@@ -549,6 +549,17 @@ namespace sw
 		}
 	}
 
+	void SamplerCore::textureSize(Pointer<Byte> &textureMipmap, Vector4f &size, Float4 &lod)
+	{
+		for(int i = 0; i < 4; ++i)
+		{
+			Pointer<Byte> mipmap = textureMipmap + (As<Int>(Extract(lod, i)) + Int(state.baseLevel)) * sizeof(Mipmap);
+			size.x = Insert(size.x, As<Float>(Int(*Pointer<Short>(mipmap + OFFSET(Mipmap, width)))), i);
+			size.y = Insert(size.y, As<Float>(Int(*Pointer<Short>(mipmap + OFFSET(Mipmap, height)))), i);
+			size.z = Insert(size.z, As<Float>(Int(*Pointer<Short>(mipmap + OFFSET(Mipmap, depth)))), i);
+		}
+	}
+
 	void SamplerCore::border(Short4 &mask, Float4 &coordinates)
 	{
 		Int4 border = As<Int4>(CmpLT(Abs(coordinates - Float4(0.5f)), Float4(0.5f)));

@@ -145,12 +145,14 @@ namespace sw
 			AddressingMode addressingModeV : BITS(ADDRESSING_LAST);
 			AddressingMode addressingModeW : BITS(ADDRESSING_LAST);
 			MipmapType mipmapFilter        : BITS(FILTER_LAST);
-			bool hasNPOTTexture	           : 1;
+			bool hasNPOTTexture            : 1;
 			bool sRGB                      : 1;
 			SwizzleType swizzleR           : BITS(SWIZZLE_LAST);
 			SwizzleType swizzleG           : BITS(SWIZZLE_LAST);
 			SwizzleType swizzleB           : BITS(SWIZZLE_LAST);
 			SwizzleType swizzleA           : BITS(SWIZZLE_LAST);
+
+			int baseLevel;
 
 			#if PERF_PROFILE
 			bool compressedFormat          : 1;
