@@ -237,13 +237,13 @@ namespace sw
 		Resource* vUniformBuffers[MAX_UNIFORM_BUFFER_BINDINGS];
 		Resource* transformFeedbackBuffers[MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS];
 
-		int vsDirtyConstF;
-		int vsDirtyConstI;
-		int vsDirtyConstB;
+		unsigned int vsDirtyConstF;
+		unsigned int vsDirtyConstI;
+		unsigned int vsDirtyConstB;
 
-		int psDirtyConstF;
-		int psDirtyConstI;
-		int psDirtyConstB;
+		unsigned int psDirtyConstF;
+		unsigned int psDirtyConstI;
+		unsigned int psDirtyConstB;
 
 		std::list<Query*> *queries;
 
@@ -371,13 +371,13 @@ namespace sw
 		void setPixelShader(const PixelShader *shader);
 		void setVertexShader(const VertexShader *shader);
 
-		void setPixelShaderConstantF(int index, const float value[4], int count = 1);
-		void setPixelShaderConstantI(int index, const int value[4], int count = 1);
-		void setPixelShaderConstantB(int index, const int *boolean, int count = 1);
+		void setPixelShaderConstantF(unsigned int index, const float value[4], unsigned int count = 1);
+		void setPixelShaderConstantI(unsigned int index, const int value[4], unsigned int count = 1);
+		void setPixelShaderConstantB(unsigned int index, const int *boolean, unsigned int count = 1);
 
-		void setVertexShaderConstantF(int index, const float value[4], int count = 1);
-		void setVertexShaderConstantI(int index, const int value[4], int count = 1);
-		void setVertexShaderConstantB(int index, const int *boolean, int count = 1);
+		void setVertexShaderConstantF(unsigned int index, const float value[4], unsigned int count = 1);
+		void setVertexShaderConstantI(unsigned int index, const int value[4], unsigned int count = 1);
+		void setVertexShaderConstantB(unsigned int index, const int *boolean, unsigned int count = 1);
 
 		// Viewport & Clipper
 		void setViewport(const Viewport &viewport);

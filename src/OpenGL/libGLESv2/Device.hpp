@@ -62,14 +62,14 @@ namespace es2
 		egl::Image *createRenderTarget(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool lockable);
 		void drawIndexedPrimitive(sw::DrawType type, unsigned int indexOffset, unsigned int primitiveCount);
 		void drawPrimitive(sw::DrawType type, unsigned int primiveCount);
-		void setPixelShader(sw::PixelShader *shader);
+		void setPixelShader(const sw::PixelShader *shader);
 		void setPixelShaderConstantF(unsigned int startRegister, const float *constantData, unsigned int count);
 		void setScissorEnable(bool enable);
 		void setRenderTarget(int index, egl::Image *renderTarget);
 		void setDepthBuffer(egl::Image *depthBuffer);
 		void setStencilBuffer(egl::Image *stencilBuffer);
 		void setScissorRect(const sw::Rect &rect);
-		void setVertexShader(sw::VertexShader *shader);
+		void setVertexShader(const sw::VertexShader *shader);
 		void setVertexShaderConstantF(unsigned int startRegister, const float *constantData, unsigned int count);
 		void setViewport(const Viewport &viewport);
 
@@ -92,8 +92,8 @@ namespace es2
 		sw::Rect scissorRect;
 		bool scissorEnable;
 
-		sw::PixelShader *pixelShader;
-		sw::VertexShader *vertexShader;
+		const sw::PixelShader *pixelShader;
+		const sw::VertexShader *vertexShader;
 
 		bool pixelShaderDirty;
 		unsigned int pixelShaderConstantsFDirty;
