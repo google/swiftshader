@@ -645,6 +645,18 @@ namespace sw
 			case FORMAT_R32UI:
 			case FORMAT_G32R32UI:
 			case FORMAT_A32B32G32R32UI:
+			case FORMAT_R16I:
+			case FORMAT_G16R16I:
+			case FORMAT_A16B16G16R16I:
+			case FORMAT_R16UI:
+			case FORMAT_G16R16UI:
+			case FORMAT_A16B16G16R16UI:
+			case FORMAT_R8I:
+			case FORMAT_G8R8I:
+			case FORMAT_A8B8G8R8I:
+			case FORMAT_R8UI:
+			case FORMAT_G8R8UI:
+			case FORMAT_A8B8G8R8UI:
 				for(unsigned int q = 0; q < state.multiSample; q++)
 				{
 					Pointer<Byte> buffer = cBuffer[index] + q * *Pointer<Int>(data + OFFSET(DrawData, colorSliceB[index]));

@@ -2166,10 +2166,18 @@ namespace sw
 		case FORMAT_R32F:
 		case FORMAT_R32I:
 		case FORMAT_R32UI:
+		case FORMAT_R16I:
+		case FORMAT_R16UI:
+		case FORMAT_R8I:
+		case FORMAT_R8UI:
 			break;
 		case FORMAT_G32R32F:
 		case FORMAT_G32R32I:
 		case FORMAT_G32R32UI:
+		case FORMAT_G16R16I:
+		case FORMAT_G16R16UI:
+		case FORMAT_G8R8I:
+		case FORMAT_G8R8UI:
 			oC.z = oC.x;
 			oC.x = UnpackLow(oC.x, oC.y);
 			oC.z = UnpackHigh(oC.z, oC.y);
@@ -2179,6 +2187,10 @@ namespace sw
 		case FORMAT_A32B32G32R32F:
 		case FORMAT_A32B32G32R32I:
 		case FORMAT_A32B32G32R32UI:
+		case FORMAT_A16B16G16R16I:
+		case FORMAT_A16B16G16R16UI:
+		case FORMAT_A8B8G8R8I:
+		case FORMAT_A8B8G8R8UI:
 			transpose4x4(oC.x, oC.y, oC.z, oC.w);
 			break;
 		default:
@@ -2240,6 +2252,58 @@ namespace sw
 				*Pointer<Float>(buffer + 4) = oC.x.y;
 			}
 			break;
+		case FORMAT_R16I:
+		case FORMAT_R16UI:
+			if(rgbaWriteMask & 0x00000001)
+			{
+				buffer = cBuffer + 2 * x;
+
+				UShort4 xyzw;
+				xyzw = As<UShort4>(Insert(As<Int2>(xyzw), *Pointer<Int>(buffer), 0));
+
+				buffer += *Pointer<Int>(data + OFFSET(DrawData, colorPitchB[index]));
+
+				xyzw = As<UShort4>(Insert(As<Int2>(xyzw), *Pointer<Int>(buffer), 1));
+				value = As<Float4>(Int4(xyzw));
+
+				oC.x = As<Float4>(As<Int4>(oC.x) & *Pointer<Int4>(constants + OFFSET(Constants, maskD4X) + xMask * 16, 16));
+				value = As<Float4>(As<Int4>(value) & *Pointer<Int4>(constants + OFFSET(Constants, invMaskD4X) + xMask * 16, 16));
+				oC.x = As<Float4>(As<Int4>(oC.x) | As<Int4>(value));
+
+				if(state.targetFormat[index] == FORMAT_R16I)
+				{
+					Float component = oC.x.z;
+					*Pointer<Short>(buffer + 0) = Short(As<Int>(component));
+					component = oC.x.w;
+					*Pointer<Short>(buffer + 2) = Short(As<Int>(component));
+
+					buffer -= *Pointer<Int>(data + OFFSET(DrawData, colorPitchB[index]));
+
+					component = oC.x.x;
+					*Pointer<Short>(buffer + 0) = Short(As<Int>(component));
+					component = oC.x.y;
+					*Pointer<Short>(buffer + 2) = Short(As<Int>(component));
+				}
+				else // FORMAT_R16UI
+				{
+					Float component = oC.x.z;
+					*Pointer<UShort>(buffer + 0) = UShort(As<Int>(component));
+					component = oC.x.w;
+					*Pointer<UShort>(buffer + 2) = UShort(As<Int>(component));
+
+					buffer -= *Pointer<Int>(data + OFFSET(DrawData, colorPitchB[index]));
+
+					component = oC.x.x;
+					*Pointer<UShort>(buffer + 0) = UShort(As<Int>(component));
+					component = oC.x.y;
+					*Pointer<UShort>(buffer + 2) = UShort(As<Int>(component));
+				}
+			}
+			break;
+		case FORMAT_R8I:
+		case FORMAT_R8UI:
+			ASSERT(false);
+			break;
 		case FORMAT_G32R32F:
 		case FORMAT_G32R32I:
 		case FORMAT_G32R32UI:
@@ -2278,6 +2342,14 @@ namespace sw
 			value = As<Float4>(As<Int4>(value) & *Pointer<Int4>(constants + OFFSET(Constants,invMaskQ23X) + xMask * 16, 16));
 			oC.y = As<Float4>(As<Int4>(oC.y) | As<Int4>(value));
 			*Pointer<Float4>(buffer) = oC.y;
+			break;
+		case FORMAT_G16R16I:
+		case FORMAT_G16R16UI:
+			ASSERT(false);
+			break;
+		case FORMAT_G8R8I:
+		case FORMAT_G8R8UI:
+			ASSERT(false);
 			break;
 		case FORMAT_X32B32G32R32F:
 		case FORMAT_A32B32G32R32F:
@@ -2354,6 +2426,14 @@ namespace sw
 				oC.w = As<Float4>(As<Int4>(oC.w) | As<Int4>(value));
 				*Pointer<Float4>(buffer + 16, 16) = oC.w;
 			}
+			break;
+		case FORMAT_A16B16G16R16I:
+		case FORMAT_A16B16G16R16UI:
+			ASSERT(false);
+			break;
+		case FORMAT_A8B8G8R8I:
+		case FORMAT_A8B8G8R8UI:
+			ASSERT(false);
 			break;
 		default:
 			ASSERT(false);
