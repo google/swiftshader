@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "062c0e2d_1566b4aa",
+        "filename": "src/OpenGL/libGLES_CM/libGLES_CM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2275,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-06-03T20:34:49Z",
+      "side": 1,
+      "message": "This string is implementation dependent so I added the renderer version here.",
+      "range": {
+        "startLine": 2275,
+        "startChar": 19,
+        "endLine": 2275,
+        "endChar": 55
+      },
+      "revId": "ba459b9d14ce96c8c8e667fba9b220b8fd225347",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
