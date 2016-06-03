@@ -537,7 +537,7 @@ typedef TVector<int> TQualifierList;
 class TIntermAggregate : public TIntermOperator {
 public:
 	TIntermAggregate() : TIntermOperator(EOpNull), userDefined(false) { endLine = { 0, 0, 0, 0 }; }
-	TIntermAggregate(TOperator o) : TIntermOperator(o) { }
+	TIntermAggregate(TOperator o) : TIntermOperator(o), userDefined(false) { endLine = { 0, 0, 0, 0 }; }
 	~TIntermAggregate() { }
 
 	virtual TIntermAggregate* getAsAggregate() { return this; }
