@@ -2272,9 +2272,9 @@ const GLubyte* GetString(GLenum name)
 	case GL_VENDOR:
 		return (GLubyte*)"Google Inc.";
 	case GL_RENDERER:
-		return (GLubyte*)"Google SwiftShader";
+		return (GLubyte*)"Google SwiftShader " VERSION_STRING;
 	case GL_VERSION:
-		return (GLubyte*)"OpenGL ES 1.1 SwiftShader " VERSION_STRING;
+		return (GLubyte*)"OpenGL ES-CM 1.1";
 	case GL_EXTENSIONS:
 		// Keep list sorted in following order:
 		// OES extensions
