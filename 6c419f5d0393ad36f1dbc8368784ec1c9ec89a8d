@@ -46,6 +46,29 @@
       "revId": "6c419f5d0393ad36f1dbc8368784ec1c9ec89a8d",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c6a3d67e_176c04be",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 1685,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-06-03T19:21:34Z",
+      "side": 1,
+      "message": "Doesn\u0027t compile on Android (clang) because an rvalue is assigned to a non-const reference. Just making them const works.",
+      "range": {
+        "startLine": 1685,
+        "startChar": 38,
+        "endLine": 1685,
+        "endChar": 95
+      },
+      "revId": "6c419f5d0393ad36f1dbc8368784ec1c9ec89a8d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
