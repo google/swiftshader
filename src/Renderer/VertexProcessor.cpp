@@ -638,6 +638,24 @@ namespace sw
 		else ASSERT(false);
 	}
 
+	void VertexProcessor::setBaseLevel(unsigned int sampler, int baseLevel)
+	{
+		if(sampler < VERTEX_TEXTURE_IMAGE_UNITS)
+		{
+			context->sampler[TEXTURE_IMAGE_UNITS + sampler].setBaseLevel(baseLevel);
+		}
+		else ASSERT(false);
+	}
+
+	void VertexProcessor::setMaxLevel(unsigned int sampler, int maxLevel)
+	{
+		if(sampler < VERTEX_TEXTURE_IMAGE_UNITS)
+		{
+			context->sampler[TEXTURE_IMAGE_UNITS + sampler].setMaxLevel(maxLevel);
+		}
+		else ASSERT(false);
+	}
+
 	void VertexProcessor::setPointSize(float pointSize)
 	{
 		point.pointSize = replicate(pointSize);

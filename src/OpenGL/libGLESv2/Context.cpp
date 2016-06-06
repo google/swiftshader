@@ -3060,6 +3060,8 @@ void Context::applyTextures(sw::SamplerType samplerType)
 				}
 				GLfloat maxAnisotropy = texture->getMaxAnisotropy();
 
+				GLint baseLevel = texture->getBaseLevel();
+				GLint maxLevel = texture->getMaxLevel();
 				GLenum swizzleR = texture->getSwizzleR();
 				GLenum swizzleG = texture->getSwizzleG();
 				GLenum swizzleB = texture->getSwizzleB();
@@ -3072,6 +3074,8 @@ void Context::applyTextures(sw::SamplerType samplerType)
 				device->setSwizzleG(samplerType, samplerIndex, es2sw::ConvertSwizzleType(swizzleG));
 				device->setSwizzleB(samplerType, samplerIndex, es2sw::ConvertSwizzleType(swizzleB));
 				device->setSwizzleA(samplerType, samplerIndex, es2sw::ConvertSwizzleType(swizzleA));
+				device->setBaseLevel(samplerType, samplerIndex, baseLevel);
+				device->setMaxLevel(samplerType, samplerIndex, maxLevel);
 
 				device->setTextureFilter(samplerType, samplerIndex, es2sw::ConvertTextureFilter(minFilter, magFilter, maxAnisotropy));
 				device->setMipmapFilter(samplerType, samplerIndex, es2sw::ConvertMipMapFilter(minFilter));

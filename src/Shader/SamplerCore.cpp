@@ -549,11 +549,12 @@ namespace sw
 		}
 	}
 
-	void SamplerCore::textureSize(Pointer<Byte> &textureMipmap, Vector4f &size, Float4 &lod)
+	void SamplerCore::textureSize(Pointer<Byte> &texture, Vector4f &size, Float4 &lod)
 	{
 		for(int i = 0; i < 4; ++i)
 		{
-			Pointer<Byte> mipmap = textureMipmap + (As<Int>(Extract(lod, i)) + Int(state.baseLevel)) * sizeof(Mipmap);
+			Int baseLevel = *Pointer<Int>(texture + OFFSET(Texture, baseLevel));
+			Pointer<Byte> mipmap = texture + OFFSET(Texture, mipmap) + (As<Int>(Extract(lod, i)) + baseLevel) * sizeof(Mipmap);
 			size.x = Insert(size.x, As<Float>(Int(*Pointer<Short>(mipmap + OFFSET(Mipmap, width)))), i);
 			size.y = Insert(size.y, As<Float>(Int(*Pointer<Short>(mipmap + OFFSET(Mipmap, height)))), i);
 			size.z = Insert(size.z, As<Float>(Int(*Pointer<Short>(mipmap + OFFSET(Mipmap, depth)))), i);

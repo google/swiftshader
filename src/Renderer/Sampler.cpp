@@ -334,6 +334,16 @@ namespace sw
 		this->swizzleA = swizzleA;
 	}
 
+	void Sampler::setBaseLevel(int baseLevel)
+	{
+		texture.baseLevel = baseLevel;
+	}
+
+	void Sampler::setMaxLevel(int maxLevel)
+	{
+		texture.maxLevel = maxLevel;
+	}
+
 	void Sampler::setFilterQuality(FilterType maximumFilterQuality)
 	{
 		Sampler::maximumTextureFilterQuality = maximumFilterQuality;
