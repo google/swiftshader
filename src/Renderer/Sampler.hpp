@@ -67,6 +67,8 @@ namespace sw
 		word4 borderColor4[4];
 		float4 borderColorF[4];
 		float maxAnisotropy;
+		int baseLevel;
+		int maxLevel;
 	};
 
 	enum SamplerType
@@ -152,8 +154,6 @@ namespace sw
 			SwizzleType swizzleB           : BITS(SWIZZLE_LAST);
 			SwizzleType swizzleA           : BITS(SWIZZLE_LAST);
 
-			int baseLevel;
-
 			#if PERF_PROFILE
 			bool compressedFormat          : 1;
 			#endif
@@ -180,6 +180,8 @@ namespace sw
 		void setSwizzleG(SwizzleType swizzleG);
 		void setSwizzleB(SwizzleType swizzleB);
 		void setSwizzleA(SwizzleType swizzleA);
+		void setBaseLevel(int baseLevel);
+		void setMaxLevel(int maxLevel);
 
 		static void setFilterQuality(FilterType maximumFilterQuality);
 		static void setMipmapQuality(MipmapType maximumFilterQuality);

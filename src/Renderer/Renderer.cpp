@@ -2347,6 +2347,30 @@ namespace sw
 		}
 	}
 
+	void Renderer::setBaseLevel(SamplerType type, int sampler, int baseLevel)
+	{
+		if(type == SAMPLER_PIXEL)
+		{
+			PixelProcessor::setBaseLevel(sampler, baseLevel);
+		}
+		else
+		{
+			VertexProcessor::setBaseLevel(sampler, baseLevel);
+		}
+	}
+
+	void Renderer::setMaxLevel(SamplerType type, int sampler, int maxLevel)
+	{
+		if(type == SAMPLER_PIXEL)
+		{
+			PixelProcessor::setMaxLevel(sampler, maxLevel);
+		}
+		else
+		{
+			VertexProcessor::setMaxLevel(sampler, maxLevel);
+		}
+	}
+
 	void Renderer::setPointSpriteEnable(bool pointSpriteEnable)
 	{
 		context->setPointSpriteEnable(pointSpriteEnable);

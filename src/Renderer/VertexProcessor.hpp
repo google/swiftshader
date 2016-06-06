@@ -260,6 +260,8 @@ namespace sw
 		virtual void setSwizzleG(unsigned int sampler, SwizzleType swizzleG);
 		virtual void setSwizzleB(unsigned int sampler, SwizzleType swizzleB);
 		virtual void setSwizzleA(unsigned int sampler, SwizzleType swizzleA);
+		virtual void setBaseLevel(unsigned int sampler, int baseLevel);
+		virtual void setMaxLevel(unsigned int sampler, int maxLevel);
 
 		virtual void setPointSize(float pointSize);
 		virtual void setPointSizeMin(float pointSizeMin);

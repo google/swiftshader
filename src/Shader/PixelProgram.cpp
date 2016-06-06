@@ -1152,8 +1152,8 @@ namespace sw
 
 	void PixelProgram::TEXSIZE(Vector4f &dst, Float4 &lod, const Src &src1)
 	{
-		Pointer<Byte> textureMipmap = data + OFFSET(DrawData, mipmap) + src1.index * sizeof(Texture) + OFFSET(Texture, mipmap);
-		sampler[src1.index]->textureSize(textureMipmap, dst, lod);
+		Pointer<Byte> texture = data + OFFSET(DrawData, mipmap) + src1.index * sizeof(Texture);
+		sampler[src1.index]->textureSize(texture, dst, lod);
 	}
 
 	void PixelProgram::TEXKILL(Int cMask[4], Vector4f &src, unsigned char mask)

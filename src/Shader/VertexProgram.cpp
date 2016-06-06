@@ -1577,8 +1577,8 @@ namespace sw
 
 	void VertexProgram::TEXSIZE(Vector4f &dst, Float4 &lod, const Src &src1)
 	{
-		Pointer<Byte> textureMipmap = data + OFFSET(DrawData, mipmap[16]) + src1.index * sizeof(Texture) + OFFSET(Texture, mipmap);
-		sampler[src1.index]->textureSize(textureMipmap, dst, lod);
+		Pointer<Byte> texture = data + OFFSET(DrawData, mipmap[16]) + src1.index * sizeof(Texture);
+		sampler[src1.index]->textureSize(texture, dst, lod);
 	}
 
 	void VertexProgram::sampleTexture(Vector4f &c, const Src &s, Float4 &u, Float4 &v, Float4 &w, Float4 &q, Vector4f &dsx, Vector4f &dsy, Vector4f &offset, SamplerMethod method, bool hasOffset)

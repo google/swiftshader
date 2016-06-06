@@ -480,6 +480,24 @@ namespace sw
 		else ASSERT(false);
 	}
 
+	void PixelProcessor::setBaseLevel(unsigned int sampler, int baseLevel)
+	{
+		if(sampler < TEXTURE_IMAGE_UNITS)
+		{
+			context->sampler[sampler].setBaseLevel(baseLevel);
+		}
+		else ASSERT(false);
+	}
+
+	void PixelProcessor::setMaxLevel(unsigned int sampler, int maxLevel)
+	{
+		if(sampler < TEXTURE_IMAGE_UNITS)
+		{
+			context->sampler[sampler].setMaxLevel(maxLevel);
+		}
+		else ASSERT(false);
+	}
+
 	void PixelProcessor::setWriteSRGB(bool sRGB)
 	{
 		context->setWriteSRGB(sRGB);
