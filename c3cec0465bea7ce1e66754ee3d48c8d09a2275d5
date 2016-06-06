@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e6fd3aea_260eb783",
+        "filename": "src/Renderer/Sampler.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-06-06T15:34:38Z",
+      "side": 1,
+      "message": "nit: There\u0027s a tab here that didn\u0027t get replaced with spaces already. Can fix that in this CL.",
+      "range": {
+        "startLine": 148,
+        "startChar": 22,
+        "endLine": 148,
+        "endChar": 23
+      },
+      "revId": "c3cec0465bea7ce1e66754ee3d48c8d09a2275d5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
