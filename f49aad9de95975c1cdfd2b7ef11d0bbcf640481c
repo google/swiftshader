@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e6fd3aea_5912c453",
+        "filename": "src/Renderer/Sampler.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-06-06T17:56:26Z",
+      "side": 1,
+      "message": "If we make them state variables then any change causes a pixel routine recompile. I think base level is mainly used to support texture streaming (small mipmaps first), so it gets changed every few frames. I\u0027m not sure about the use cases of max level but I suspect it might also be changed frequently. So it seems best to make them data members of sw::Texture instead.",
+      "range": {
+        "startLine": 155,
+        "startChar": 3,
+        "endLine": 156,
+        "endChar": 16
+      },
+      "revId": "f49aad9de95975c1cdfd2b7ef11d0bbcf640481c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
