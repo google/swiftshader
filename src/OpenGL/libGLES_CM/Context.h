@@ -294,7 +294,7 @@ struct State
 class Context : public egl::Context
 {
 public:
-	Context(const egl::Config *config, const Context *shareContext);
+	Context(egl::Display *display, const egl::Config *config, const Context *shareContext);
 
 	virtual void makeCurrent(egl::Surface *surface);
 	virtual int getClientVersion() const;
