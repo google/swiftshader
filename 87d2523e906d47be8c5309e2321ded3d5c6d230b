@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "03ede0c9_2dd46d32",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1512,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-06-07T16:57:53Z",
+      "side": 1,
+      "message": "I think we should try to solve this by changing ASSERT to evaluate the expression to void in a release build. That way we also ensure the expression compiles, and if it has side effects they also occur in a release build.",
+      "range": {
+        "startLine": 1512,
+        "startChar": 4,
+        "endLine": 1512,
+        "endChar": 10
+      },
+      "revId": "87d2523e906d47be8c5309e2321ded3d5c6d230b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "03688001_04c500a3",
+        "filename": "src/OpenGL/compiler/debug.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-06-07T16:57:53Z",
+      "side": 1,
+      "message": "nit: Move it a bit lower, right before its first use in the \"buf\" definition. Also, it shouldn\u0027t be a static.",
+      "range": {
+        "startLine": 28,
+        "startChar": 1,
+        "endLine": 28,
+        "endChar": 41
+      },
+      "revId": "87d2523e906d47be8c5309e2321ded3d5c6d230b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "03688001_245e3cda",
+        "filename": "src/Shader/PixelRoutine.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1995,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-06-07T16:57:53Z",
+      "side": 1,
+      "message": "This seems somewhat bug-prone, if we add more formats. So the warning is justified. Can we instead do something based on whether the format is unnormalized signed/unsigned integer or floating-point?",
+      "range": {
+        "startLine": 1994,
+        "startChar": 2,
+        "endLine": 1995,
+        "endChar": 9
+      },
+      "revId": "87d2523e906d47be8c5309e2321ded3d5c6d230b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
