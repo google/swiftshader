@@ -137,6 +137,30 @@
       "revId": "21d9a97c34de08c48041e061eb1d4a10bf85d9b3",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "23aca4b4_e4f24e12",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1775,
+      "author": {
+        "id": 5685
+      },
+      "writtenOn": "2016-06-07T21:07:03Z",
+      "side": 1,
+      "message": "Behavior of texelFetch using coordinates outside the texture is undefined. The clamping here is just a simple way to avoid access violation. Should we clamp individually to width/height/depth instead?",
+      "parentUuid": "a3c1746e_9aa08d53",
+      "range": {
+        "startLine": 1764,
+        "startChar": 3,
+        "endLine": 1775,
+        "endChar": 4
+      },
+      "revId": "21d9a97c34de08c48041e061eb1d4a10bf85d9b3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
