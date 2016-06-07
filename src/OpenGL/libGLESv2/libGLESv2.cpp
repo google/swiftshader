@@ -35,7 +35,7 @@
 
 #include <limits>
 
-#ifdef ANDROID
+#ifdef __ANDROID__
 #include <cutils/log.h>
 #endif
 
@@ -6682,16 +6682,11 @@ void EGLImageTargetTexture2DOES(GLenum target, GLeglImageOES image)
 		return error(GL_INVALID_ENUM);
 	}
 
-	if(!image)
-	{
-		return error(GL_INVALID_OPERATION);
-	}
-
 	es2::Context *context = es2::getContext();
 
 	if(context)
 	{
-		es2::Texture2D *texture = 0;
+		es2::Texture2D *texture = nullptr;
 
 		switch(target)
 		{
@@ -6705,9 +6700,14 @@ void EGLImageTargetTexture2DOES(GLenum target, GLeglImageOES image)
 			return error(GL_INVALID_OPERATION);
 		}
 
-		egl::Image *glImage = static_cast<egl::Image*>(image);
+		egl::Image *eglImage = context->getSharedImage(image);
 
-		texture->setImage(glImage);
+		if(!eglImage)
+		{
+			return error(GL_INVALID_OPERATION);
+		}
+
+		texture->setSharedImage(eglImage);
 	}
 }
 

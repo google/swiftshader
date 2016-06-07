@@ -117,6 +117,7 @@
 		<Unit filename="../../Common/SharedLibrary.hpp" />
 		<Unit filename="../../Main/libX11.cpp" />
 		<Unit filename="../../Main/libX11.hpp" />
+		<Unit filename="../common/NameSpace.hpp" />
 		<Unit filename="../common/Object.cpp" />
 		<Unit filename="../common/Object.hpp" />
 		<Unit filename="../common/debug.cpp" />

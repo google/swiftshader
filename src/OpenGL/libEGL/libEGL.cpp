@@ -982,7 +982,10 @@ EGLImageKHR CreateImageKHR(EGLDisplay dpy, EGLContext ctx, EGLenum target, EGLCl
 				return error(EGL_BAD_ATTRIBUTE, EGL_NO_IMAGE_KHR);
 			}
 
-			return success(new AndroidNativeImage(nativeBuffer));
+			Image *image = new AndroidNativeImage(nativeBuffer);
+			EGLImageKHR eglImage = display->createSharedImage(image);
+
+			return success(eglImage);
 		}
 	#endif
 
@@ -1000,7 +1003,7 @@ EGLImageKHR CreateImageKHR(EGLDisplay dpy, EGLContext ctx, EGLenum target, EGLCl
 		return error(validationResult, EGL_NO_IMAGE_KHR);
 	}
 
-	egl::Image *image = context->createSharedImage(target, name, textureLevel);
+	Image *image = context->createSharedImage(target, name, textureLevel);
 
 	if(!image)
 	{
@@ -1012,7 +1015,9 @@ EGLImageKHR CreateImageKHR(EGLDisplay dpy, EGLContext ctx, EGLenum target, EGLCl
 		return error(EGL_BAD_PARAMETER, EGL_NO_IMAGE_KHR);
 	}
 
-	return success((EGLImageKHR)image);
+	EGLImageKHR eglImage = display->createSharedImage(image);
+
+	return success(eglImage);
 }
 
 EGLBoolean DestroyImageKHR(EGLDisplay dpy, EGLImageKHR image)
@@ -1026,13 +1031,10 @@ EGLBoolean DestroyImageKHR(EGLDisplay dpy, EGLImageKHR image)
 		return error(EGL_BAD_DISPLAY, EGL_FALSE);
 	}
 
-	if(!image)
+	if(!display->destroySharedImage(image))
 	{
 		return error(EGL_BAD_PARAMETER, EGL_FALSE);
 	}
-
-	egl::Image *glImage = static_cast<egl::Image*>(image);
-	glImage->destroyShared();
 
 	return success(EGL_TRUE);
 }

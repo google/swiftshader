@@ -3158,7 +3158,12 @@ egl::Image *Context::createSharedImage(EGLenum target, GLuint name, GLuint textu
 	}
 	else UNREACHABLE(target);
 
-	return 0;
+	return nullptr;
+}
+
+egl::Image *Context::getSharedImage(GLeglImageOES image)
+{
+	return display->getSharedImage(image);
 }
 
 Device *Context::getDevice()
