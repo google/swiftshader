@@ -161,6 +161,30 @@
       "revId": "21d9a97c34de08c48041e061eb1d4a10bf85d9b3",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a3c1746e_ba6d91f3",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1775,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-06-07T21:34:00Z",
+      "side": 1,
+      "message": "I understand that the behavior is undefined, but yes, I would prefer if there wasn\u0027t a way for the user to access bytes of uninitialized data, so clamping in each separate dimension is preferred.",
+      "parentUuid": "23aca4b4_e4f24e12",
+      "range": {
+        "startLine": 1764,
+        "startChar": 3,
+        "endLine": 1775,
+        "endChar": 4
+      },
+      "revId": "21d9a97c34de08c48041e061eb1d4a10bf85d9b3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
