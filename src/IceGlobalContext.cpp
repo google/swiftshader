@@ -486,6 +486,10 @@ void GlobalContext::lowerGlobals(const std::string &SectionSuffix) {
     RandomShuffle(Globals.begin(), Globals.end(),
                   [&RNG](int N) { return (uint32_t)RNG.next(N); });
   }
+
+  if (!BuildDefs::minimal() && Instrumentor)
+    Instrumentor->instrumentGlobals();
+
   DataLowering->lowerGlobals(Globals, SectionSuffix);
   if (ProfileBlockInfos.empty() && DisposeGlobalVariablesAfterLowering) {
     Globals.clearAndPurge();

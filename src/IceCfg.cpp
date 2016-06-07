@@ -22,6 +22,7 @@
 #include "IceELFObjectWriter.h"
 #include "IceGlobalInits.h"
 #include "IceInst.h"
+#include "IceInstrumentation.h"
 #include "IceInstVarIter.h"
 #include "IceLiveness.h"
 #include "IceLoopAnalyzer.h"
@@ -237,6 +238,12 @@ void Cfg::translate() {
   for (Variable *Var : Variables)
     if (auto *Var64On32 = llvm::dyn_cast<Variable64On32>(Var))
       Var64On32->initHiLo(this);
+
+  // Instrument the Cfg, e.g. with AddressSanitizer
+  if (!BuildDefs::minimal() && getFlags().getSanitizeAddresses()) {
+    getContext()->instrumentFunc(this);
+    dump("Instrumented CFG");
+  }
 
   // The set of translation passes and their order are determined by the
   // target.

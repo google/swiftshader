@@ -18,6 +18,7 @@
 
 #include "IceDefs.h"
 #include "IceClFlags.h"
+#include "IceInstrumentation.h"
 #include "IceIntrinsics.h"
 #include "IceRNG.h"
 #include "IceStringPool.h"
@@ -44,6 +45,7 @@ namespace Ice {
 class ConstantPool;
 class EmitterWorkItem;
 class FuncSigType;
+class Instrumentation;
 
 // Runtime helper function IDs
 
@@ -426,6 +428,17 @@ public:
 
   void waitForWorkerThreads();
 
+  /// sets the instrumentation object to use.
+  void setInstrumentation(std::unique_ptr<Instrumentation> Instr) {
+    if (!BuildDefs::minimal())
+      Instrumentor = std::move(Instr);
+  }
+
+  void instrumentFunc(Cfg *Func) {
+    if (!BuildDefs::minimal() && Instrumentor)
+      Instrumentor->instrumentFunc(Func);
+  }
+
   /// Translation thread startup routine.
   void translateFunctionsWrapper(ThreadContext *MyTLS) {
     ICE_TLS_SET_FIELD(TLS, MyTLS);
@@ -552,6 +565,9 @@ private:
   /// program global variables) until the first code WorkItem is seen.
   // TODO(jpp): move to EmitterContext.
   bool HasSeenCode = false;
+  // If Instrumentor is not empty then it will be used to instrument globals and
+  // CFGs.
+  std::unique_ptr<Instrumentation> Instrumentor = nullptr;
   // TODO(jpp): move to EmitterContext.
   VariableDeclaration *ProfileBlockInfoVarDecl = nullptr;
   std::vector<VariableDeclaration *> ProfileBlockInfos;

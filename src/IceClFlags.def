@@ -257,6 +257,11 @@ struct dev_list_flag {};
   X(RepeatRegAlloc, bool, dev_opt_flag, "regalloc-repeat",                     \
     cl::desc("Repeat register allocation until convergence"), cl::init(true))  \
                                                                                \
+  /* TODO(tlively): Generalize this to handle more sanitizers */               \
+  X(SanitizeAddresses, bool, dev_opt_flag, "fsanitize-address",                \
+    cl::desc("Instrument compiled code with Address Sanitizer"),               \
+    cl::init(false))                                                           \
+                                                                               \
   X(ShouldDoNopInsertion, bool, dev_opt_flag, "nop-insertion",                 \
     cl::desc("Randomly insert NOPs"), cl::init(false))                         \
                                                                                \
@@ -357,6 +362,7 @@ struct dev_list_flag {};
   X(WasmBoundsCheck, bool, dev_opt_flag, "wasm-bounds-check",                  \
     cl::desc("Add bounds checking code in WASM frontend"),                     \
     cl::init(true))
+
 //#define X(Name, Type, ClType, ...)
 
 } // end of namespace Ice

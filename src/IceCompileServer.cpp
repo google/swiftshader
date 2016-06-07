@@ -241,6 +241,13 @@ void CLCompileServer::run() {
   }
 
   Ctx.reset(new GlobalContext(Ls.get(), Os.get(), Ls.get(), ELFStr.get()));
+
+  // TODO(tlively): Make this instantiate an instrumentation subclass
+  if (!BuildDefs::minimal() && getFlags().getSanitizeAddresses()) {
+    std::unique_ptr<Instrumentation> Instr(new Instrumentation(Ctx.get()));
+    Ctx->setInstrumentation(std::move(Instr));
+  }
+
   if (getFlags().getNumTranslationThreads() != 0) {
     std::thread CompileThread([this, &Flags, &InputStream]() {
       Ctx->initParserThread();
