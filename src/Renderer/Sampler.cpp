@@ -76,8 +76,8 @@ namespace sw
 
 		texture.baseLevel = 0;
 		texture.maxLevel = 1000;
-		texture.maxLod = 1000;
-		texture.minLod = -1000;
+		texture.maxLod = MIPMAP_LEVELS - 2;	// Trilinear accesses lod+1
+		texture.minLod = 0;
 	}
 
 	Sampler::~Sampler()
@@ -351,12 +351,12 @@ namespace sw
 
 	void Sampler::setMinLod(float minLod)
 	{
-		texture.minLod = minLod;
+		texture.minLod = clamp(minLod, 0.0f, (float)(MIPMAP_LEVELS - 2));
 	}
 
 	void Sampler::setMaxLod(float maxLod)
 	{
-		texture.maxLod = maxLod;
+		texture.maxLod = clamp(maxLod, 0.0f, (float)(MIPMAP_LEVELS - 2));
 	}
 
 	void Sampler::setFilterQuality(FilterType maximumFilterQuality)
