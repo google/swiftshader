@@ -22,12 +22,15 @@
 
 namespace egl
 {
+class Display;
 class Surface;
 class Image;
 
 class Context : public gl::Object
 {
 public:
+	Context(egl::Display *display) : display(display) {}
+
 	virtual void makeCurrent(Surface *surface) = 0;
 	virtual void bindTexImage(Surface *surface) = 0;
 	virtual EGLenum validateSharedImage(EGLenum target, GLuint name, GLuint textureLevel) = 0;
@@ -37,6 +40,8 @@ public:
 
 protected:
 	virtual ~Context() {};
+
+	egl::Display *const display;
 };
 }
 

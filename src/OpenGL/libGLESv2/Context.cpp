@@ -42,8 +42,8 @@
 
 namespace es2
 {
-Context::Context(const egl::Config *config, const Context *shareContext, EGLint clientVersion)
-	: clientVersion(clientVersion), mConfig(config)
+Context::Context(egl::Display *display, const egl::Config *config, const Context *shareContext, EGLint clientVersion)
+	: egl::Context(display), clientVersion(clientVersion), mConfig(config)
 {
 	sw::Context *context = new sw::Context();
 	device = new es2::Device(context);
@@ -4361,8 +4361,8 @@ const GLubyte* Context::getExtensions(GLuint index, GLuint* numExt) const
 
 }
 
-egl::Context *es2CreateContext(const egl::Config *config, const egl::Context *shareContext, int clientVersion)
+egl::Context *es2CreateContext(egl::Display *display, const egl::Config *config, const egl::Context *shareContext, int clientVersion)
 {
 	ASSERT(!shareContext || shareContext->getClientVersion() == clientVersion);   // Should be checked by eglCreateContext
-	return new es2::Context(config, static_cast<const es2::Context*>(shareContext), clientVersion);
+	return new es2::Context(display, config, static_cast<const es2::Context*>(shareContext), clientVersion);
 }
