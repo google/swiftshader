@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a3c1746e_fae8a98d",
+        "filename": "src/Shader/PixelProgram.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1125,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-06-07T20:49:26Z",
+      "side": 1,
+      "message": "Those booleans are hard to read and error prone. They will need to be changed to flags. Something like (in Sampler):\nenum {\n  NONE \u003d 0x00,\n  PROJECT \u003d 0x01,\n  OFFSET \u003d 0x02,\n  TEXELFETCH \u003d 0x04,\n};\nAnd then you OR (using \"|\") the flags that are used by the function. That would be a lot more readable.\n\nSince you\u0027re already changing all function signatures in this cl, might as well do it now so that\u0027ll reduce the number of arguments right away.",
+      "range": {
+        "startLine": 1125,
+        "startChar": 95,
+        "endLine": 1125,
+        "endChar": 118
+      },
+      "revId": "21d9a97c34de08c48041e061eb1d4a10bf85d9b3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a3c1746e_7afdb944",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1476,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-06-07T20:49:26Z",
+      "side": 1,
+      "message": "you should be able to do this right away by adding:\n+ Float(*Pointer\u003cInt\u003e(texture + OFFSET(Texture,baseLevel)))",
+      "range": {
+        "startLine": 1476,
+        "startChar": 67,
+        "endLine": 1476,
+        "endChar": 89
+      },
+      "revId": "21d9a97c34de08c48041e061eb1d4a10bf85d9b3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a3c1746e_5afaf54e",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1537,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-06-07T20:49:26Z",
+      "side": 1,
+      "message": "Same as above",
+      "range": {
+        "startLine": 1537,
+        "startChar": 67,
+        "endLine": 1537,
+        "endChar": 89
+      },
+      "revId": "21d9a97c34de08c48041e061eb1d4a10bf85d9b3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a3c1746e_3af74167",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1606,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-06-07T20:49:26Z",
+      "side": 1,
+      "message": "Same as above",
+      "range": {
+        "startLine": 1606,
+        "startChar": 68,
+        "endLine": 1606,
+        "endChar": 90
+      },
+      "revId": "21d9a97c34de08c48041e061eb1d4a10bf85d9b3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a3c1746e_fa91c90b",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1676,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-06-07T20:49:26Z",
+      "side": 1,
+      "message": "Maybe adding an AddressingMode like ADDRESSING_TEXELFETCH would be simpler. You could just add:\n\ncase ADDRESSING_TEXELFETCH:\n  break;\n\ninstead of adding an argument and putting an if around the switch statement.",
+      "range": {
+        "startLine": 1676,
+        "startChar": 5,
+        "endLine": 1676,
+        "endChar": 9
+      },
+      "revId": "21d9a97c34de08c48041e061eb1d4a10bf85d9b3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a3c1746e_9aa08d53",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1775,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-06-07T20:49:26Z",
+      "side": 1,
+      "message": "There should be a way to clamp the index individually in each dimension rather than once overall. We should never be able to read the extra packing bytes (if there are any) of the texture.\n\nAlso, sliceP can be larger that width*height, if the texture is using extra packing bytes, so this clamping seems wrong.",
+      "range": {
+        "startLine": 1764,
+        "startChar": 3,
+        "endLine": 1775,
+        "endChar": 4
+      },
+      "revId": "21d9a97c34de08c48041e061eb1d4a10bf85d9b3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
