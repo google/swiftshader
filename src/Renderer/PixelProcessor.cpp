@@ -498,6 +498,24 @@ namespace sw
 		else ASSERT(false);
 	}
 
+	void PixelProcessor::setMinLod(unsigned int sampler, float minLod)
+	{
+		if(sampler < TEXTURE_IMAGE_UNITS)
+		{
+			context->sampler[sampler].setMinLod(minLod);
+		}
+		else ASSERT(false);
+	}
+
+	void PixelProcessor::setMaxLod(unsigned int sampler, float maxLod)
+	{
+		if(sampler < TEXTURE_IMAGE_UNITS)
+		{
+			context->sampler[sampler].setMaxLod(maxLod);
+		}
+		else ASSERT(false);
+	}
+
 	void PixelProcessor::setWriteSRGB(bool sRGB)
 	{
 		context->setWriteSRGB(sRGB);
