@@ -69,6 +69,8 @@ namespace sw
 		float maxAnisotropy;
 		int baseLevel;
 		int maxLevel;
+		float minLod;
+		float maxLod;
 	};
 
 	enum SamplerType
@@ -182,6 +184,8 @@ namespace sw
 		void setSwizzleA(SwizzleType swizzleA);
 		void setBaseLevel(int baseLevel);
 		void setMaxLevel(int maxLevel);
+		void setMinLod(float minLod);
+		void setMaxLod(float maxLod);
 
 		static void setFilterQuality(FilterType maximumFilterQuality);
 		static void setMipmapQuality(MipmapType maximumFilterQuality);

@@ -656,6 +656,24 @@ namespace sw
 		else ASSERT(false);
 	}
 
+	void VertexProcessor::setMinLod(unsigned int sampler, float minLod)
+	{
+		if(sampler < VERTEX_TEXTURE_IMAGE_UNITS)
+		{
+			context->sampler[TEXTURE_IMAGE_UNITS + sampler].setMinLod(minLod);
+		}
+		else ASSERT(false);
+	}
+
+	void VertexProcessor::setMaxLod(unsigned int sampler, float maxLod)
+	{
+		if(sampler < VERTEX_TEXTURE_IMAGE_UNITS)
+		{
+			context->sampler[TEXTURE_IMAGE_UNITS + sampler].setMaxLod(maxLod);
+		}
+		else ASSERT(false);
+	}
+
 	void VertexProcessor::setPointSize(float pointSize)
 	{
 		point.pointSize = replicate(pointSize);

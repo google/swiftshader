@@ -3040,6 +3040,7 @@ void Context::applyTextures(sw::SamplerType samplerType)
 			if(texture->isSamplerComplete())
 			{
 				GLenum wrapS, wrapT, wrapR, minFilter, magFilter;
+				GLfloat minLOD, maxLOD;
 
 				Sampler *samplerObject = mState.sampler[textureUnit];
 				if(samplerObject)
@@ -3049,6 +3050,8 @@ void Context::applyTextures(sw::SamplerType samplerType)
 					wrapR = samplerObject->getWrapR();
 					minFilter = samplerObject->getMinFilter();
 					magFilter = samplerObject->getMagFilter();
+					minLOD = samplerObject->getMinLod();
+					maxLOD = samplerObject->getMaxLod();
 				}
 				else
 				{
@@ -3057,6 +3060,8 @@ void Context::applyTextures(sw::SamplerType samplerType)
 					wrapR = texture->getWrapR();
 					minFilter = texture->getMinFilter();
 					magFilter = texture->getMagFilter();
+					minLOD = texture->getMinLOD();
+					maxLOD = texture->getMaxLOD();
 				}
 				GLfloat maxAnisotropy = texture->getMaxAnisotropy();
 
@@ -3074,6 +3079,8 @@ void Context::applyTextures(sw::SamplerType samplerType)
 				device->setSwizzleG(samplerType, samplerIndex, es2sw::ConvertSwizzleType(swizzleG));
 				device->setSwizzleB(samplerType, samplerIndex, es2sw::ConvertSwizzleType(swizzleB));
 				device->setSwizzleA(samplerType, samplerIndex, es2sw::ConvertSwizzleType(swizzleA));
+				device->setMinLod(samplerType, samplerIndex, minLOD);
+				device->setMaxLod(samplerType, samplerIndex, maxLOD);
 				device->setBaseLevel(samplerType, samplerIndex, baseLevel);
 				device->setMaxLevel(samplerType, samplerIndex, maxLevel);
 
