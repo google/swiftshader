@@ -1327,7 +1327,7 @@ GL_APICALL void GL_APIENTRY glDrawBuffersEXT(GLsizei n, const GLenum *bufs)
 }
 }
 
-egl::Context *es2CreateContext(egl::Display *display, const egl::Config *config, const egl::Context *shareContext, int clientVersion);
+egl::Context *es2CreateContext(egl::Display *display, const egl::Context *shareContext, int clientVersion);
 extern "C" __eglMustCastToProperFunctionPointerType es2GetProcAddress(const char *procname);
 egl::Image *createBackBuffer(int width, int height, const egl::Config *config);
 egl::Image *createDepthStencil(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool discard);

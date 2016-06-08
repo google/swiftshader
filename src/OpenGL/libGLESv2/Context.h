@@ -425,7 +425,7 @@ struct State
 class Context : public egl::Context
 {
 public:
-	Context(egl::Display *display, const egl::Config *config, const Context *shareContext, EGLint clientVersion);
+	Context(egl::Display *display, const Context *shareContext, EGLint clientVersion);
 
 	virtual void makeCurrent(egl::Surface *surface);
 	virtual EGLint getClientVersion() const;
@@ -720,7 +720,6 @@ private:
 	Query *createQuery(GLuint handle, GLenum type);
 
 	const EGLint clientVersion;
-	const egl::Config *const mConfig;
 
 	State mState;
 
