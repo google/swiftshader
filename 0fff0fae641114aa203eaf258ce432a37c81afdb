@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "a3d7b47d_4a2033e6",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1513,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-06-08T17:43:16Z",
+      "side": 1,
+      "message": "Oops, fixed.",
+      "parentUuid": "a382544f_9b6c17bf",
+      "range": {
+        "startLine": 1512,
+        "startChar": 4,
+        "endLine": 1513,
+        "endChar": 121
+      },
+      "revId": "0fff0fae641114aa203eaf258ce432a37c81afdb",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a382544f_3b5e4b04",
         "filename": "src/OpenGL/compiler/OutputASM.cpp",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2016-06-08T15:16:53Z",
       "side": 1,
       "message": "Was easier to read before, and wouldn\u0027t have to change if we evaluate the expression (to void) in release builds in the next CL.",
+      "range": {
+        "startLine": 2173,
+        "startChar": 5,
+        "endLine": 2173,
+        "endChar": 96
+      },
+      "revId": "0fff0fae641114aa203eaf258ce432a37c81afdb",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a3d7b47d_ca8c2313",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 2173,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-06-08T17:43:16Z",
+      "side": 1,
+      "message": "Ok, change reverted.",
+      "parentUuid": "a382544f_3b5e4b04",
       "range": {
         "startLine": 2173,
         "startChar": 5,
