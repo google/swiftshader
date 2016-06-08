@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "438998a7_6267f8a7",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-06-08T20:09:45Z",
+      "side": 1,
+      "message": "I\u0027ve changed my mind on wanting to keep this member variable. The config is passed into eglCreateContext, but only to validate that a compatible context can be created. This happens entirely within EGL. The context itself, once created, does not require any knowledge of the config.\n\nFor debugging the only piece of interesting information is the framebuffer format, which we can get from the GL framebuffer object itself instead of the EGL config or the EGL window surface.\n\nSo please remove mConfig from both es2::Context and es1::Context. Thanks.",
+      "range": {
+        "startLine": 48,
+        "startChar": 1,
+        "endLine": 48,
+        "endChar": 56
+      },
+      "revId": "7b210284ba9019618a8b352694a5dfeb9607087a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
