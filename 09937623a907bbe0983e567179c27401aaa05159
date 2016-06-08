@@ -1,0 +1,165 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "438998a7_45991e7c",
+        "filename": "src/Shader/PixelProgram.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 717,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-06-08T20:44:00Z",
+      "side": 1,
+      "message": "nit:\n!(function \u0026 Project)",
+      "range": {
+        "startLine": 717,
+        "startChar": 5,
+        "endLine": 717,
+        "endChar": 30
+      },
+      "revId": "09937623a907bbe0983e567179c27401aaa05159",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "438998a7_25c5fa54",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 618,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-06-08T20:44:00Z",
+      "side": 1,
+      "message": "nit:\nif(function \u0026 Fetch)",
+      "range": {
+        "startLine": 616,
+        "startChar": 2,
+        "endLine": 618,
+        "endChar": 16
+      },
+      "revId": "09937623a907bbe0983e567179c27401aaa05159",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "438998a7_05e9d6c4",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1129,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-06-08T20:44:00Z",
+      "side": 1,
+      "message": "same",
+      "range": {
+        "startLine": 1127,
+        "startChar": 2,
+        "endLine": 1129,
+        "endChar": 16
+      },
+      "revId": "09937623a907bbe0983e567179c27401aaa05159",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "438998a7_0514768e",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1494,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-06-08T20:44:00Z",
+      "side": 1,
+      "message": "This should be fixable now, using:\n*Pointer\u003cFloat\u003e(texture + OFFSET(Texture,minLod))\n*Pointer\u003cFloat\u003e(texture + OFFSET(Texture,maxLod))\n\nYou may want to initialize minLod and maxLod to 0.0f and MIPMAP_LEVELS - 2 in Sampler.cpp",
+      "range": {
+        "startLine": 1494,
+        "startChar": 2,
+        "endLine": 1494,
+        "endChar": 46
+      },
+      "revId": "09937623a907bbe0983e567179c27401aaa05159",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "438998a7_25297ad4",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1555,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-06-08T20:44:00Z",
+      "side": 1,
+      "message": "same",
+      "range": {
+        "startLine": 1555,
+        "startChar": 2,
+        "endLine": 1555,
+        "endChar": 46
+      },
+      "revId": "09937623a907bbe0983e567179c27401aaa05159",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "438998a7_45267e05",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1624,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-06-08T20:44:00Z",
+      "side": 1,
+      "message": "same",
+      "range": {
+        "startLine": 1624,
+        "startChar": 3,
+        "endLine": 1624,
+        "endChar": 47
+      },
+      "revId": "09937623a907bbe0983e567179c27401aaa05159",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "438998a7_a5666a3f",
+        "filename": "src/Shader/VertexProgram.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1584,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-06-08T20:44:00Z",
+      "side": 1,
+      "message": "\"function\" is an odd name. How about just \"options\"?",
+      "range": {
+        "startLine": 1584,
+        "startChar": 189,
+        "endLine": 1584,
+        "endChar": 197
+      },
+      "revId": "09937623a907bbe0983e567179c27401aaa05159",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
