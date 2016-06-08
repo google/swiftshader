@@ -219,7 +219,7 @@ public:
 	void (*glDrawTexfOES)(GLfloat x, GLfloat y, GLfloat z, GLfloat width, GLfloat height);
 	void (*glDrawTexfvOES)(const GLfloat *coords);
 
-	egl::Context *(*es1CreateContext)(egl::Display *display, const egl::Config *config, const egl::Context *shareContext);
+	egl::Context *(*es1CreateContext)(egl::Display *display, const egl::Context *shareContext);
 	__eglMustCastToProperFunctionPointerType (*es1GetProcAddress)(const char *procname);
 	egl::Image *(*createBackBuffer)(int width, int height, const egl::Config *config);
 	egl::Image *(*createDepthStencil)(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool discard);

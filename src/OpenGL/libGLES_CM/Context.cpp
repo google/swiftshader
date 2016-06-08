@@ -37,7 +37,7 @@ using std::abs;
 
 namespace es1
 {
-Context::Context(egl::Display *const display, const egl::Config *config, const Context *shareContext)
+Context::Context(egl::Display *const display, const Context *shareContext)
 	: egl::Context(display),
 	  modelViewStack(MAX_MODELVIEW_STACK_DEPTH),
 	  projectionStack(MAX_PROJECTION_STACK_DEPTH),
@@ -3452,8 +3452,8 @@ unsigned int Context::getActiveTexture() const
 
 }
 
-egl::Context *es1CreateContext(egl::Display *display, const egl::Config *config, const egl::Context *shareContext)
+egl::Context *es1CreateContext(egl::Display *display, const egl::Context *shareContext)
 {
 	ASSERT(!shareContext || shareContext->getClientVersion() == 1);   // Should be checked by eglCreateContext
-	return new es1::Context(display, config, static_cast<const es1::Context*>(shareContext));
+	return new es1::Context(display, static_cast<const es1::Context*>(shareContext));
 }
