@@ -1526,11 +1526,6 @@ void FramebufferTexture2DOES(GLenum target, GLenum attachment, GLenum textarget,
 				return error(GL_INVALID_OPERATION);
 			}
 
-			if(tex->isCompressed(textarget, level))
-			{
-				return error(GL_INVALID_OPERATION);
-			}
-
 			switch(textarget)
 			{
 			case GL_TEXTURE_2D:
@@ -1546,6 +1541,11 @@ void FramebufferTexture2DOES(GLenum target, GLenum attachment, GLenum textarget,
 			if(level != 0)
 			{
 				return error(GL_INVALID_VALUE);
+			}
+
+			if(tex->isCompressed(textarget, level))
+			{
+				return error(GL_INVALID_OPERATION);
 			}
 		}
 

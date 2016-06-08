@@ -2098,11 +2098,6 @@ void FramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, GL
 				return error(GL_INVALID_ENUM);
 			}
 
-			if(tex->isCompressed(textarget, level))
-			{
-				return error(GL_INVALID_OPERATION);
-			}
-
 			if((level != 0) && (context->getClientVersion() < 3))
 			{
 				return error(GL_INVALID_VALUE);
@@ -2111,6 +2106,11 @@ void FramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, GL
 			if((level < 0) || (level >= es2::IMPLEMENTATION_MAX_TEXTURE_LEVELS))
 			{
 				return error(GL_INVALID_VALUE);
+			}
+
+			if(tex->isCompressed(textarget, level))
+			{
+				return error(GL_INVALID_OPERATION);
 			}
 		}
 
