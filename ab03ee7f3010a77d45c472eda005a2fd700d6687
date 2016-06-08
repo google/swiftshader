@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "438998a7_dff7bbff",
+        "filename": "src/Renderer/Renderer.hpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 384,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-06-08T18:40:40Z",
+      "side": 1,
+      "message": "These can also be non-virtual?",
+      "range": {
+        "startLine": 363,
+        "startChar": 2,
+        "endLine": 384,
+        "endChar": 9
+      },
+      "revId": "ab03ee7f3010a77d45c472eda005a2fd700d6687",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "438998a7_bff2f710",
+        "filename": "src/Renderer/VertexProcessor.hpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 205,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-06-08T18:40:40Z",
+      "side": 1,
+      "message": "These can also be non-virtual?",
+      "range": {
+        "startLine": 202,
+        "startChar": 2,
+        "endLine": 205,
+        "endChar": 9
+      },
+      "revId": "ab03ee7f3010a77d45c472eda005a2fd700d6687",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
