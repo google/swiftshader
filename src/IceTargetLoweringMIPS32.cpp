@@ -1565,8 +1565,11 @@ void TargetDataMIPS32::lowerJumpTables() {
 Variable *TargetMIPS32::copyToReg(Operand *Src, RegNumT RegNum) {
   Type Ty = Src->getType();
   Variable *Reg = makeReg(Ty, RegNum);
-  if (isVectorType(Ty) || isFloatingType(Ty)) {
+  if (isVectorType(Ty)) {
     UnimplementedError(getFlags());
+  } else if (isFloatingType(Ty)) {
+    (Ty == IceType_f32) ? _mov_s(Reg, llvm::dyn_cast<Variable>(Src))
+                        : _mov_d(Reg, llvm::dyn_cast<Variable>(Src));
   } else {
     // Mov's Src operand can really only be the flexible second operand type
     // or a register. Users should guarantee that.
