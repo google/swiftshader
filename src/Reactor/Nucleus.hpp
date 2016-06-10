@@ -1639,6 +1639,8 @@ namespace sw
 	class Int4 : public Variable<Int4>
 	{
 	public:
+		explicit Int4(RValue<Byte4> cast);
+		explicit Int4(RValue<SByte4> cast);
 		explicit Int4(RValue<Float4> cast);
 		explicit Int4(RValue<Short4> cast);
 		explicit Int4(RValue<UShort4> cast);

@@ -5231,6 +5231,113 @@ namespace sw
 		}
 	}
 
+	Int4::Int4(RValue<Byte4> cast)
+	{
+		Value *x = Nucleus::createBitCast(cast.value, Int::getType());
+		Value *a = Nucleus::createInsertElement(UndefValue::get(Int4::getType()), x, 0);
+
+		Value *e;
+
+		if (CPUID::supportsSSE4_1())
+		{
+			e = x86::pmovzxbd(RValue<Int4>(a)).value;
+		}
+		else
+		{
+			Constant *swizzle[16];
+			swizzle[0] = Nucleus::createConstantInt(0);
+			swizzle[1] = Nucleus::createConstantInt(16);
+			swizzle[2] = Nucleus::createConstantInt(1);
+			swizzle[3] = Nucleus::createConstantInt(17);
+			swizzle[4] = Nucleus::createConstantInt(2);
+			swizzle[5] = Nucleus::createConstantInt(18);
+			swizzle[6] = Nucleus::createConstantInt(3);
+			swizzle[7] = Nucleus::createConstantInt(19);
+			swizzle[8] = Nucleus::createConstantInt(4);
+			swizzle[9] = Nucleus::createConstantInt(20);
+			swizzle[10] = Nucleus::createConstantInt(5);
+			swizzle[11] = Nucleus::createConstantInt(21);
+			swizzle[12] = Nucleus::createConstantInt(6);
+			swizzle[13] = Nucleus::createConstantInt(22);
+			swizzle[14] = Nucleus::createConstantInt(7);
+			swizzle[15] = Nucleus::createConstantInt(23);
+
+			Value *b = Nucleus::createBitCast(a, Byte16::getType());
+			Value *c = Nucleus::createShuffleVector(b, Nucleus::createNullValue(Byte16::getType()), Nucleus::createConstantVector(swizzle, 16));
+
+			Constant *swizzle2[8];
+			swizzle2[0] = Nucleus::createConstantInt(0);
+			swizzle2[1] = Nucleus::createConstantInt(8);
+			swizzle2[2] = Nucleus::createConstantInt(1);
+			swizzle2[3] = Nucleus::createConstantInt(9);
+			swizzle2[4] = Nucleus::createConstantInt(2);
+			swizzle2[5] = Nucleus::createConstantInt(10);
+			swizzle2[6] = Nucleus::createConstantInt(3);
+			swizzle2[7] = Nucleus::createConstantInt(11);
+
+			Value *d = Nucleus::createBitCast(c, Short8::getType());
+			e = Nucleus::createShuffleVector(d, Nucleus::createNullValue(Short8::getType()), Nucleus::createConstantVector(swizzle2, 8));
+		}
+
+		Value *f = Nucleus::createBitCast(e, Int4::getType());
+		storeValue(f);
+	}
+
+	Int4::Int4(RValue<SByte4> cast)
+	{
+		Value *x = Nucleus::createBitCast(cast.value, Int::getType());
+		Value *a = Nucleus::createInsertElement(UndefValue::get(Int4::getType()), x, 0);
+
+		Value *g;
+
+		if (CPUID::supportsSSE4_1())
+		{
+			g = x86::pmovsxbd(RValue<Int4>(a)).value;
+		}
+		else
+		{
+			Constant *swizzle[16];
+			swizzle[0] = Nucleus::createConstantInt(0);
+			swizzle[1] = Nucleus::createConstantInt(0);
+			swizzle[2] = Nucleus::createConstantInt(1);
+			swizzle[3] = Nucleus::createConstantInt(1);
+			swizzle[4] = Nucleus::createConstantInt(2);
+			swizzle[5] = Nucleus::createConstantInt(2);
+			swizzle[6] = Nucleus::createConstantInt(3);
+			swizzle[7] = Nucleus::createConstantInt(3);
+			swizzle[8] = Nucleus::createConstantInt(4);
+			swizzle[9] = Nucleus::createConstantInt(4);
+			swizzle[10] = Nucleus::createConstantInt(5);
+			swizzle[11] = Nucleus::createConstantInt(5);
+			swizzle[12] = Nucleus::createConstantInt(6);
+			swizzle[13] = Nucleus::createConstantInt(6);
+			swizzle[14] = Nucleus::createConstantInt(7);
+			swizzle[15] = Nucleus::createConstantInt(7);
+
+			Value *b = Nucleus::createBitCast(a, Byte16::getType());
+			Value *c = Nucleus::createShuffleVector(b, b, Nucleus::createConstantVector(swizzle, 16));
+
+			Constant *swizzle2[8];
+			swizzle2[0] = Nucleus::createConstantInt(0);
+			swizzle2[1] = Nucleus::createConstantInt(0);
+			swizzle2[2] = Nucleus::createConstantInt(1);
+			swizzle2[3] = Nucleus::createConstantInt(1);
+			swizzle2[4] = Nucleus::createConstantInt(2);
+			swizzle2[5] = Nucleus::createConstantInt(2);
+			swizzle2[6] = Nucleus::createConstantInt(3);
+			swizzle2[7] = Nucleus::createConstantInt(3);
+
+			Value *d = Nucleus::createBitCast(c, Short8::getType());
+			Value *e = Nucleus::createShuffleVector(d, d, Nucleus::createConstantVector(swizzle2, 8));
+
+			Value *f = Nucleus::createBitCast(e, Int4::getType());
+			//	g = Nucleus::createAShr(f, Nucleus::createConstantInt(24));
+			g = x86::psrad(RValue<Int4>(f), 24).value;
+		}
+
+		storeValue(g);
+	}
+
 	Int4::Int4(RValue<Float4> cast)
 	{
 	//	xyzw.parent = this;
@@ -6298,55 +6405,8 @@ namespace sw
 			Value *f32w = Nucleus::createUIToFP(i8w, Float::getType());
 			Value *xyzw = Nucleus::createInsertElement(xyz, f32w, Nucleus::createConstantInt(3));
 		#else
-			Value *x = Nucleus::createBitCast(cast.value, Int::getType());
-			Value *a = Nucleus::createInsertElement(UndefValue::get(Int4::getType()), x, 0);
-
-			Value *e;
-
-			if(CPUID::supportsSSE4_1())
-			{
-				e = x86::pmovzxbd(RValue<Int4>(a)).value;
-			}
-			else
-			{
-				Constant *swizzle[16];
-				swizzle[0] = Nucleus::createConstantInt(0);
-				swizzle[1] = Nucleus::createConstantInt(16);
-				swizzle[2] = Nucleus::createConstantInt(1);
-				swizzle[3] = Nucleus::createConstantInt(17);
-				swizzle[4] = Nucleus::createConstantInt(2);
-				swizzle[5] = Nucleus::createConstantInt(18);
-				swizzle[6] = Nucleus::createConstantInt(3);
-				swizzle[7] = Nucleus::createConstantInt(19);
-				swizzle[8] = Nucleus::createConstantInt(4);
-				swizzle[9] = Nucleus::createConstantInt(20);
-				swizzle[10] = Nucleus::createConstantInt(5);
-				swizzle[11] = Nucleus::createConstantInt(21);
-				swizzle[12] = Nucleus::createConstantInt(6);
-				swizzle[13] = Nucleus::createConstantInt(22);
-				swizzle[14] = Nucleus::createConstantInt(7);
-				swizzle[15] = Nucleus::createConstantInt(23);
-
-				Value *b = Nucleus::createBitCast(a, Byte16::getType());
-				Value *c = Nucleus::createShuffleVector(b, Nucleus::createNullValue(Byte16::getType()), Nucleus::createConstantVector(swizzle, 16));
-
-				Constant *swizzle2[8];
-				swizzle2[0] = Nucleus::createConstantInt(0);
-				swizzle2[1] = Nucleus::createConstantInt(8);
-				swizzle2[2] = Nucleus::createConstantInt(1);
-				swizzle2[3] = Nucleus::createConstantInt(9);
-				swizzle2[4] = Nucleus::createConstantInt(2);
-				swizzle2[5] = Nucleus::createConstantInt(10);
-				swizzle2[6] = Nucleus::createConstantInt(3);
-				swizzle2[7] = Nucleus::createConstantInt(11);
-
-				Value *d = Nucleus::createBitCast(c, Short8::getType());
-				e = Nucleus::createShuffleVector(d, Nucleus::createNullValue(Short8::getType()), Nucleus::createConstantVector(swizzle2, 8));
-			}
-
-			Value *f = Nucleus::createBitCast(e, Int4::getType());
-			Value *g = Nucleus::createSIToFP(f, Float4::getType());
-			Value *xyzw = g;
+			Value *a = Int4(cast).loadValue();
+			Value *xyzw = Nucleus::createSIToFP(a, Float4::getType());
 		#endif
 
 		storeValue(xyzw);
@@ -6377,57 +6437,8 @@ namespace sw
 			Value *f32w = Nucleus::createSIToFP(i8w, Float::getType());
 			Value *xyzw = Nucleus::createInsertElement(xyz, f32w, Nucleus::createConstantInt(3));
 		#else
-			Value *x = Nucleus::createBitCast(cast.value, Int::getType());
-			Value *a = Nucleus::createInsertElement(UndefValue::get(Int4::getType()), x, 0);
-
-			Value *g;
-
-			if(CPUID::supportsSSE4_1())
-			{
-				g = x86::pmovsxbd(RValue<Int4>(a)).value;
-			}
-			else
-			{
-				Constant *swizzle[16];
-				swizzle[0] = Nucleus::createConstantInt(0);
-				swizzle[1] = Nucleus::createConstantInt(0);
-				swizzle[2] = Nucleus::createConstantInt(1);
-				swizzle[3] = Nucleus::createConstantInt(1);
-				swizzle[4] = Nucleus::createConstantInt(2);
-				swizzle[5] = Nucleus::createConstantInt(2);
-				swizzle[6] = Nucleus::createConstantInt(3);
-				swizzle[7] = Nucleus::createConstantInt(3);
-				swizzle[8] = Nucleus::createConstantInt(4);
-				swizzle[9] = Nucleus::createConstantInt(4);
-				swizzle[10] = Nucleus::createConstantInt(5);
-				swizzle[11] = Nucleus::createConstantInt(5);
-				swizzle[12] = Nucleus::createConstantInt(6);
-				swizzle[13] = Nucleus::createConstantInt(6);
-				swizzle[14] = Nucleus::createConstantInt(7);
-				swizzle[15] = Nucleus::createConstantInt(7);
-
-				Value *b = Nucleus::createBitCast(a, Byte16::getType());
-				Value *c = Nucleus::createShuffleVector(b, b, Nucleus::createConstantVector(swizzle, 16));
-
-				Constant *swizzle2[8];
-				swizzle2[0] = Nucleus::createConstantInt(0);
-				swizzle2[1] = Nucleus::createConstantInt(0);
-				swizzle2[2] = Nucleus::createConstantInt(1);
-				swizzle2[3] = Nucleus::createConstantInt(1);
-				swizzle2[4] = Nucleus::createConstantInt(2);
-				swizzle2[5] = Nucleus::createConstantInt(2);
-				swizzle2[6] = Nucleus::createConstantInt(3);
-				swizzle2[7] = Nucleus::createConstantInt(3);
-
-				Value *d = Nucleus::createBitCast(c, Short8::getType());
-				Value *e = Nucleus::createShuffleVector(d, d, Nucleus::createConstantVector(swizzle2, 8));
-
-				Value *f = Nucleus::createBitCast(e, Int4::getType());
-			//	g = Nucleus::createAShr(f, Nucleus::createConstantInt(24));
-				g = x86::psrad(RValue<Int4>(f), 24).value;
-			}
-
-			Value *xyzw = Nucleus::createSIToFP(g, Float4::getType());
+			Value *a = Int4(cast).loadValue();
+			Value *xyzw = Nucleus::createSIToFP(a, Float4::getType());
 		#endif
 
 		storeValue(xyzw);
