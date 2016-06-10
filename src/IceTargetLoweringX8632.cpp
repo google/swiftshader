@@ -195,6 +195,9 @@ Traits::X86OperandMem *TargetX8632::_sandbox_mem_reference(X86OperandMem *Mem) {
 void TargetX8632::_sub_sp(Operand *Adjustment) {
   Variable *esp = getPhysicalRegister(Traits::RegisterSet::Reg_esp);
   _sub(esp, Adjustment);
+  // Add a fake use of the stack pointer, to prevent the stack pointer adustment
+  // from being dead-code eliminated in a function that doesn't return.
+  Context.insert<InstFakeUse>(esp);
 }
 
 void TargetX8632::_link_bp() {

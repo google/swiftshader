@@ -485,25 +485,29 @@ Traits::X86OperandMem *TargetX8664::_sandbox_mem_reference(X86OperandMem *Mem) {
 void TargetX8664::_sub_sp(Operand *Adjustment) {
   Variable *rsp =
       getPhysicalRegister(Traits::RegisterSet::Reg_rsp, Traits::WordType);
-  if (!NeedSandboxing) {
+
+  if (NeedSandboxing) {
+    Variable *esp =
+        getPhysicalRegister(Traits::RegisterSet::Reg_esp, IceType_i32);
+    Variable *r15 =
+        getPhysicalRegister(Traits::RegisterSet::Reg_r15, IceType_i64);
+
+    // .bundle_start
+    // sub Adjustment, %esp
+    // add %r15, %rsp
+    // .bundle_end
+    AutoBundle _(this);
+    _redefined(Context.insert<InstFakeDef>(esp, rsp));
+    _sub(esp, Adjustment);
+    _redefined(Context.insert<InstFakeDef>(rsp, esp));
+    _add(rsp, r15);
+  } else {
     _sub(rsp, Adjustment);
-    return;
   }
 
-  Variable *esp =
-      getPhysicalRegister(Traits::RegisterSet::Reg_esp, IceType_i32);
-  Variable *r15 =
-      getPhysicalRegister(Traits::RegisterSet::Reg_r15, IceType_i64);
-
-  // .bundle_start
-  // sub Adjustment, %esp
-  // add %r15, %rsp
-  // .bundle_end
-  AutoBundle _(this);
-  _redefined(Context.insert<InstFakeDef>(esp, rsp));
-  _sub(esp, Adjustment);
-  _redefined(Context.insert<InstFakeDef>(rsp, esp));
-  _add(rsp, r15);
+  // Add a fake use of the stack pointer, to prevent the stack pointer adustment
+  // from being dead-code eliminated in a function that doesn't return.
+  Context.insert<InstFakeUse>(rsp);
 }
 
 void TargetX8664::initRebasePtr() {

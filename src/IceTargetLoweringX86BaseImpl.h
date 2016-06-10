@@ -1506,6 +1506,7 @@ void TargetX86Base<TraitsType>::lowerAlloca(const InstAlloca *Instr) {
 
 template <typename TraitsType>
 void TargetX86Base<TraitsType>::lowerArguments() {
+  const bool OptM1 = Func->getOptLevel() == Opt_m1;
   VarList &Args = Func->getArgs();
   unsigned NumXmmArgs = 0;
   bool XmmSlotsRemain = true;
@@ -1561,8 +1562,20 @@ void TargetX86Base<TraitsType>::lowerArguments() {
     Arg->setIsArg(false);
 
     Args[i] = RegisterArg;
-    Context.insert<InstAssign>(Arg, RegisterArg);
+    // When not Om1, do the assignment through a temporary, instead of directly
+    // from the pre-colored variable, so that a subsequent availabilityGet()
+    // call has a chance to work.  (In Om1, don't bother creating extra
+    // instructions with extra variables to register-allocate.)
+    if (OptM1) {
+      Context.insert<InstAssign>(Arg, RegisterArg);
+    } else {
+      Variable *Tmp = makeReg(RegisterArg->getType());
+      Context.insert<InstAssign>(Tmp, RegisterArg);
+      Context.insert<InstAssign>(Arg, Tmp);
+    }
   }
+  if (!OptM1)
+    Context.availabilityUpdate();
 }
 
 /// Strength-reduce scalar integer multiplication by a constant (for i32 or
@@ -2588,29 +2601,35 @@ void TargetX86Base<TraitsType>::lowerCall(const InstCall *Instr) {
   ParameterAreaSizeBytes = Traits::applyStackAlignment(ParameterAreaSizeBytes);
   assert(ParameterAreaSizeBytes <= maxOutArgsSizeBytes());
   // Copy arguments that are passed on the stack to the appropriate stack
-  // locations.
+  // locations.  We make sure legalize() is called on each argument at this
+  // point, to allow availabilityGet() to work.
   for (SizeT i = 0, NumStackArgs = StackArgs.size(); i < NumStackArgs; ++i) {
-    lowerStore(InstStore::create(Func, StackArgs[i], StackArgLocations[i]));
+    lowerStore(
+        InstStore::create(Func, legalize(StackArgs[i]), StackArgLocations[i]));
   }
   // Copy arguments to be passed in registers to the appropriate registers.
   for (SizeT i = 0, NumXmmArgs = XmmArgs.size(); i < NumXmmArgs; ++i) {
-    Variable *Reg =
-        legalizeToReg(XmmArgs[i], Traits::getRegisterForXmmArgNum(i));
-    // Generate a FakeUse of register arguments so that they do not get dead
-    // code eliminated as a result of the FakeKill of scratch registers after
-    // the call.
-    Context.insert<InstFakeUse>(Reg);
+    XmmArgs[i] =
+        legalizeToReg(legalize(XmmArgs[i]), Traits::getRegisterForXmmArgNum(i));
   }
   // Materialize moves for arguments passed in GPRs.
   for (SizeT i = 0, NumGprArgs = GprArgs.size(); i < NumGprArgs; ++i) {
     const Type SignatureTy = GprArgs[i].first;
-    Operand *Arg = GprArgs[i].second;
-    Variable *Reg =
+    Operand *Arg = legalize(GprArgs[i].second);
+    GprArgs[i].second =
         legalizeToReg(Arg, Traits::getRegisterForGprArgNum(Arg->getType(), i));
     assert(SignatureTy == IceType_i64 || SignatureTy == IceType_i32);
     assert(SignatureTy == Arg->getType());
     (void)SignatureTy;
-    Context.insert<InstFakeUse>(Reg);
+  }
+  // Generate a FakeUse of register arguments so that they do not get dead code
+  // eliminated as a result of the FakeKill of scratch registers after the call.
+  // These need to be right before the call instruction.
+  for (auto *Arg : XmmArgs) {
+    Context.insert<InstFakeUse>(llvm::cast<Variable>(Arg));
+  }
+  for (auto &ArgPair : GprArgs) {
+    Context.insert<InstFakeUse>(llvm::cast<Variable>(ArgPair.second));
   }
   // Generate the call instruction. Assign its result to a temporary with high
   // register allocation weight.
