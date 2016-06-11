@@ -1223,7 +1223,7 @@ namespace glsl
 						if(argument->getQualifier() == EvqOut ||
 						   argument->getQualifier() == EvqInOut)
 						{
-							copy(out, argument);
+							assignLvalue(out, argument);
 						}
 					}
 				}
