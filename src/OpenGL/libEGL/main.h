@@ -39,6 +39,8 @@ namespace egl
 		Surface *readSurface;
 	};
 
+	void detachThread();
+
 	void setCurrentError(EGLint error);
 	EGLint getCurrentError();
 
