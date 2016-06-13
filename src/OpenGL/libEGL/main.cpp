@@ -62,7 +62,10 @@ void detachThread()
 {
 	TRACE("()");
 
+	eglMakeCurrent(EGL_NO_DISPLAY, EGL_NO_CONTEXT, EGL_NO_SURFACE, EGL_NO_SURFACE);
+
 	delete (Current*)sw::Thread::getLocalStorage(currentTLS);
+	sw::Thread::setLocalStorage(currentTLS, nullptr);
 }
 
 CONSTRUCTOR void attachProcess()

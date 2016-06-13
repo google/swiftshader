@@ -485,7 +485,7 @@ EGLBoolean ReleaseThread(void)
 {
 	TRACE("()");
 
-	eglMakeCurrent(EGL_NO_DISPLAY, EGL_NO_CONTEXT, EGL_NO_SURFACE, EGL_NO_SURFACE);
+	detachThread();
 
 	return success(EGL_TRUE);
 }
