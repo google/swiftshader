@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "efeef035_83dfc26e",
+        "filename": "src/OpenGL/libEGL/main.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-06-13T16:40:10Z",
+      "side": 1,
+      "message": "These could be forward declared in the cpp file rather than exposing them here, unless there\u0027s some reason to do so.",
+      "range": {
+        "startLine": 42,
+        "startChar": 0,
+        "endLine": 45,
+        "endChar": 21
+      },
+      "revId": "a3e44e6dc67a76f56a9c90dc893456e32e0e4ee4",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
