@@ -171,74 +171,74 @@ namespace sw
 			maskB4Q[i][6] = -(i >> 2 & 1);
 			maskB4Q[i][7] = -(i >> 3 & 1);
 
-			invMaskB4Q[i][0] = ~-(i >> 0 & 1);
-			invMaskB4Q[i][1] = ~-(i >> 1 & 1);
-			invMaskB4Q[i][2] = ~-(i >> 2 & 1);
-			invMaskB4Q[i][3] = ~-(i >> 3 & 1);
-			invMaskB4Q[i][4] = ~-(i >> 0 & 1);
-			invMaskB4Q[i][5] = ~-(i >> 1 & 1);
-			invMaskB4Q[i][6] = ~-(i >> 2 & 1);
-			invMaskB4Q[i][7] = ~-(i >> 3 & 1);
+			invMaskB4Q[i][0] = ~maskB4Q[i][0];
+			invMaskB4Q[i][1] = ~maskB4Q[i][1];
+			invMaskB4Q[i][2] = ~maskB4Q[i][2];
+			invMaskB4Q[i][3] = ~maskB4Q[i][3];
+			invMaskB4Q[i][4] = ~maskB4Q[i][4];
+			invMaskB4Q[i][5] = ~maskB4Q[i][5];
+			invMaskB4Q[i][6] = ~maskB4Q[i][6];
+			invMaskB4Q[i][7] = ~maskB4Q[i][7];
 
 			maskW4Q[i][0] = -(i >> 0 & 1);
 			maskW4Q[i][1] = -(i >> 1 & 1);
 			maskW4Q[i][2] = -(i >> 2 & 1);
 			maskW4Q[i][3] = -(i >> 3 & 1);
 
-			invMaskW4Q[i][0] = ~-(i >> 0 & 1);
-			invMaskW4Q[i][1] = ~-(i >> 1 & 1);
-			invMaskW4Q[i][2] = ~-(i >> 2 & 1);
-			invMaskW4Q[i][3] = ~-(i >> 3 & 1);
+			invMaskW4Q[i][0] = ~maskW4Q[i][0];
+			invMaskW4Q[i][1] = ~maskW4Q[i][1];
+			invMaskW4Q[i][2] = ~maskW4Q[i][2];
+			invMaskW4Q[i][3] = ~maskW4Q[i][3];
 
 			maskD4X[i][0] = -(i >> 0 & 1);
 			maskD4X[i][1] = -(i >> 1 & 1);
 			maskD4X[i][2] = -(i >> 2 & 1);
 			maskD4X[i][3] = -(i >> 3 & 1);
 
-			invMaskD4X[i][0] = ~-(i >> 0 & 1);
-			invMaskD4X[i][1] = ~-(i >> 1 & 1);
-			invMaskD4X[i][2] = ~-(i >> 2 & 1);
-			invMaskD4X[i][3] = ~-(i >> 3 & 1);
+			invMaskD4X[i][0] = ~maskD4X[i][0];
+			invMaskD4X[i][1] = ~maskD4X[i][1];
+			invMaskD4X[i][2] = ~maskD4X[i][2];
+			invMaskD4X[i][3] = ~maskD4X[i][3];
 
 			maskQ0Q[i] = -(i >> 0 & 1);
 			maskQ1Q[i] = -(i >> 1 & 1);
 			maskQ2Q[i] = -(i >> 2 & 1);
 			maskQ3Q[i] = -(i >> 3 & 1);
 
-			invMaskQ0Q[i] = ~-(i >> 0 & 1);
-			invMaskQ1Q[i] = ~-(i >> 1 & 1);
-			invMaskQ2Q[i] = ~-(i >> 2 & 1);
-			invMaskQ3Q[i] = ~-(i >> 3 & 1);
+			invMaskQ0Q[i] = ~maskQ0Q[i];
+			invMaskQ1Q[i] = ~maskQ1Q[i];
+			invMaskQ2Q[i] = ~maskQ2Q[i];
+			invMaskQ3Q[i] = ~maskQ3Q[i];
 
 			maskX0X[i][0] = maskX0X[i][1] = maskX0X[i][2] = maskX0X[i][3] = -(i >> 0 & 1);
 			maskX1X[i][0] = maskX1X[i][1] = maskX1X[i][2] = maskX1X[i][3] = -(i >> 1 & 1);
 			maskX2X[i][0] = maskX2X[i][1] = maskX2X[i][2] = maskX2X[i][3] = -(i >> 2 & 1);
 			maskX3X[i][0] = maskX3X[i][1] = maskX3X[i][2] = maskX3X[i][3] = -(i >> 3 & 1);
 
-			invMaskX0X[i][0] = invMaskX0X[i][1] = invMaskX0X[i][2] = invMaskX0X[i][3] = ~-(i >> 0 & 1);
-			invMaskX1X[i][0] = invMaskX1X[i][1] = invMaskX1X[i][2] = invMaskX1X[i][3] = ~-(i >> 1 & 1);
-			invMaskX2X[i][0] = invMaskX2X[i][1] = invMaskX2X[i][2] = invMaskX2X[i][3] = ~-(i >> 2 & 1);
-			invMaskX3X[i][0] = invMaskX3X[i][1] = invMaskX3X[i][2] = invMaskX3X[i][3] = ~-(i >> 3 & 1);
+			invMaskX0X[i][0] = invMaskX0X[i][1] = invMaskX0X[i][2] = invMaskX0X[i][3] = ~maskX0X[i][0];
+			invMaskX1X[i][0] = invMaskX1X[i][1] = invMaskX1X[i][2] = invMaskX1X[i][3] = ~maskX1X[i][0];
+			invMaskX2X[i][0] = invMaskX2X[i][1] = invMaskX2X[i][2] = invMaskX2X[i][3] = ~maskX2X[i][0];
+			invMaskX3X[i][0] = invMaskX3X[i][1] = invMaskX3X[i][2] = invMaskX3X[i][3] = ~maskX3X[i][0];
 
 			maskD01Q[i][0] = -(i >> 0 & 1);
 			maskD01Q[i][1] = -(i >> 1 & 1);
 			maskD23Q[i][0] = -(i >> 2 & 1);
 			maskD23Q[i][1] = -(i >> 3 & 1);
 
-			invMaskD01Q[i][0] = ~-(i >> 0 & 1);
-			invMaskD01Q[i][1] = ~-(i >> 1 & 1);
-			invMaskD23Q[i][0] = ~-(i >> 2 & 1);
-			invMaskD23Q[i][1] = ~-(i >> 3 & 1);
+			invMaskD01Q[i][0] = ~maskD01Q[i][0];
+			invMaskD01Q[i][1] = ~maskD01Q[i][1];
+			invMaskD23Q[i][0] = ~maskD23Q[i][0];
+			invMaskD23Q[i][1] = ~maskD23Q[i][1];
 
 			maskQ01X[i][0] = -(i >> 0 & 1);
 			maskQ01X[i][1] = -(i >> 1 & 1);
 			maskQ23X[i][0] = -(i >> 2 & 1);
 			maskQ23X[i][1] = -(i >> 3 & 1);
 
-			invMaskQ01X[i][0] = ~-(i >> 0 & 1);
-			invMaskQ01X[i][1] = ~-(i >> 1 & 1);
-			invMaskQ23X[i][0] = ~-(i >> 2 & 1);
-			invMaskQ23X[i][1] = ~-(i >> 3 & 1);
+			invMaskQ01X[i][0] = ~maskQ01X[i][0];
+			invMaskQ01X[i][1] = ~maskQ01X[i][1];
+			invMaskQ23X[i][0] = ~maskQ23X[i][0];
+			invMaskQ23X[i][1] = ~maskQ23X[i][1];
 		}
 
 		for(int i = 0; i < 8; i++)
@@ -261,20 +261,20 @@ namespace sw
 			maskW01Q[i][2] =  -(i >> 0 & 1);
 			maskW01Q[i][3] =  -(i >> 1 & 1);
 
-			invMaskW01Q[i][0] =  ~-(i >> 0 & 1);
-			invMaskW01Q[i][1] =  ~-(i >> 1 & 1);
-			invMaskW01Q[i][2] =  ~-(i >> 0 & 1);
-			invMaskW01Q[i][3] =  ~-(i >> 1 & 1);
+			invMaskW01Q[i][0] = ~maskW01Q[i][0];
+			invMaskW01Q[i][1] = ~maskW01Q[i][1];
+			invMaskW01Q[i][2] = ~maskW01Q[i][2];
+			invMaskW01Q[i][3] = ~maskW01Q[i][3];
 
 			maskD01X[i][0] =  -(i >> 0 & 1);
 			maskD01X[i][1] =  -(i >> 1 & 1);
 			maskD01X[i][2] =  -(i >> 0 & 1);
 			maskD01X[i][3] =  -(i >> 1 & 1);
 
-			invMaskD01X[i][0] =  ~-(i >> 0 & 1);
-			invMaskD01X[i][1] =  ~-(i >> 1 & 1);
-			invMaskD01X[i][2] =  ~-(i >> 0 & 1);
-			invMaskD01X[i][3] =  ~-(i >> 1 & 1);
+			invMaskD01X[i][0] = ~maskD01X[i][0];
+			invMaskD01X[i][1] = ~maskD01X[i][1];
+			invMaskD01X[i][2] = ~maskD01X[i][2];
+			invMaskD01X[i][3] = ~maskD01X[i][3];
 		}
 
 		for(int i = 0; i < 256; i++)
