@@ -177,7 +177,7 @@ public:
   }
 
   // This do nothing method is invoked when a global variable is created, but it
-  // will not be emitted. If we ever need to track the created variabled, having
+  // will not be emitted. If we ever need to track the created variable, having
   // this hook is handy.
   void willNotBeEmitted(VariableDeclaration *) {}
 

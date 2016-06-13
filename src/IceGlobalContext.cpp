@@ -488,7 +488,7 @@ void GlobalContext::lowerGlobals(const std::string &SectionSuffix) {
   }
 
   if (!BuildDefs::minimal() && Instrumentor)
-    Instrumentor->instrumentGlobals();
+    Instrumentor->instrumentGlobals(Globals);
 
   DataLowering->lowerGlobals(Globals, SectionSuffix);
   if (ProfileBlockInfos.empty() && DisposeGlobalVariablesAfterLowering) {

@@ -47,61 +47,61 @@ void Instrumentation::instrumentInst(LoweringContext &Context) {
   assert(!Context.atEnd());
   Inst *Instr = iteratorToInst(Context.getCur());
   switch (Instr->getKind()) {
-    case Inst::Alloca:
-      instrumentAlloca(Context, llvm::cast<InstAlloca>(Instr));
-      break;
-    case Inst::Arithmetic:
-      instrumentArithmetic(Context, llvm::cast<InstArithmetic>(Instr));
-      break;
-    case Inst::Br:
-      instrumentBr(Context, llvm::cast<InstBr>(Instr));
-      break;
-    case Inst::Call:
-      instrumentCall(Context, llvm::cast<InstCall>(Instr));
-      break;
-    case Inst::Cast:
-      instrumentCast(Context, llvm::cast<InstCast>(Instr));
-      break;
-    case Inst::ExtractElement:
-      instrumentExtractElement(Context, llvm::cast<InstExtractElement>(Instr));
-      break;
-    case Inst::Fcmp:
-      instrumentFcmp(Context, llvm::cast<InstFcmp>(Instr));
-      break;
-    case Inst::Icmp:
-      instrumentIcmp(Context, llvm::cast<InstIcmp>(Instr));
-      break;
-    case Inst::InsertElement:
-      instrumentInsertElement(Context, llvm::cast<InstInsertElement>(Instr));
-      break;
-    case Inst::IntrinsicCall:
-      instrumentIntrinsicCall(Context, llvm::cast<InstIntrinsicCall>(Instr));
-      break;
-    case Inst::Load:
-      instrumentLoad(Context, llvm::cast<InstLoad>(Instr));
-      break;
-    case Inst::Phi:
-      instrumentPhi(Context, llvm::cast<InstPhi>(Instr));
-      break;
-    case Inst::Ret:
-      instrumentRet(Context, llvm::cast<InstRet>(Instr));
-      break;
-    case Inst::Select:
-      instrumentSelect(Context, llvm::cast<InstSelect>(Instr));
-      break;
-    case Inst::Store:
-      instrumentStore(Context, llvm::cast<InstStore>(Instr));
-      break;
-    case Inst::Switch:
-      instrumentSwitch(Context, llvm::cast<InstSwitch>(Instr));
-      break;
-    case Inst::Unreachable:
-      instrumentUnreachable(Context, llvm::cast<InstUnreachable>(Instr));
-      break;
-    default:
-      // Only instrument high-level ICE instructions
-      assert(false && "Instrumentation encountered an unexpected instruction");
-      break;
+  case Inst::Alloca:
+    instrumentAlloca(Context, llvm::cast<InstAlloca>(Instr));
+    break;
+  case Inst::Arithmetic:
+    instrumentArithmetic(Context, llvm::cast<InstArithmetic>(Instr));
+    break;
+  case Inst::Br:
+    instrumentBr(Context, llvm::cast<InstBr>(Instr));
+    break;
+  case Inst::Call:
+    instrumentCall(Context, llvm::cast<InstCall>(Instr));
+    break;
+  case Inst::Cast:
+    instrumentCast(Context, llvm::cast<InstCast>(Instr));
+    break;
+  case Inst::ExtractElement:
+    instrumentExtractElement(Context, llvm::cast<InstExtractElement>(Instr));
+    break;
+  case Inst::Fcmp:
+    instrumentFcmp(Context, llvm::cast<InstFcmp>(Instr));
+    break;
+  case Inst::Icmp:
+    instrumentIcmp(Context, llvm::cast<InstIcmp>(Instr));
+    break;
+  case Inst::InsertElement:
+    instrumentInsertElement(Context, llvm::cast<InstInsertElement>(Instr));
+    break;
+  case Inst::IntrinsicCall:
+    instrumentIntrinsicCall(Context, llvm::cast<InstIntrinsicCall>(Instr));
+    break;
+  case Inst::Load:
+    instrumentLoad(Context, llvm::cast<InstLoad>(Instr));
+    break;
+  case Inst::Phi:
+    instrumentPhi(Context, llvm::cast<InstPhi>(Instr));
+    break;
+  case Inst::Ret:
+    instrumentRet(Context, llvm::cast<InstRet>(Instr));
+    break;
+  case Inst::Select:
+    instrumentSelect(Context, llvm::cast<InstSelect>(Instr));
+    break;
+  case Inst::Store:
+    instrumentStore(Context, llvm::cast<InstStore>(Instr));
+    break;
+  case Inst::Switch:
+    instrumentSwitch(Context, llvm::cast<InstSwitch>(Instr));
+    break;
+  case Inst::Unreachable:
+    instrumentUnreachable(Context, llvm::cast<InstUnreachable>(Instr));
+    break;
+  default:
+    // Only instrument high-level ICE instructions
+    assert(false && "Instrumentation encountered an unexpected instruction");
+    break;
   }
 }
 

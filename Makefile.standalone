@@ -282,6 +282,7 @@ SB_LDFLAGS := $(LINKOPTLEVEL) $(LD_EXTRA)
 # List the target-specific source files first, which generally take longer to
 # compile, in the hope of improving parallel build time.
 SRCS = \
+  IceASanInstrumentation.cpp \
   IceAssemblerARM32.cpp \
   IceInstrumentation.cpp \
   IceInstARM32.cpp \

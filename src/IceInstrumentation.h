@@ -41,102 +41,35 @@ class Instrumentation {
 
 public:
   Instrumentation(GlobalContext *Ctx) : Ctx(Ctx) {}
-  virtual void instrumentGlobals() {};
+  virtual void instrumentGlobals(VariableDeclarationList &) {}
   void instrumentFunc(Cfg *Func);
 
 private:
   void instrumentInst(LoweringContext &Context);
-  virtual void instrumentFuncStart(LoweringContext &Context) {
-    (void) Context;
-  }
-  virtual void instrumentAlloca(LoweringContext &Context,
-                                const class InstAlloca *Instr) {
-    (void) Context;
-    (void) Instr;
-  }
-  virtual void instrumentArithmetic(LoweringContext &Context,
-                                    const class InstArithmetic *Instr) {
-    (void) Context;
-    (void) Instr;
-  }
-  virtual void instrumentBr(LoweringContext &Context,
-                            const class InstBr *Instr) {
-    (void) Context;
-    (void) Instr;
-  }
-  virtual void instrumentCall(LoweringContext &Context,
-                              const class InstCall *Instr) {
-    (void) Context;
-    (void) Instr;
-  }
-  virtual void instrumentCast(LoweringContext &Context,
-                              const class InstCast *Instr) {
-    (void) Context;
-    (void) Instr;
-  }
-  virtual void instrumentExtractElement(LoweringContext &Context,
-                                        const class InstExtractElement *Instr) {
-    (void) Context;
-    (void) Instr;
-  }
-  virtual void instrumentFcmp(LoweringContext &Context,
-                              const class InstFcmp *Instr) {
-    (void) Context;
-    (void) Instr;
-  }
-  virtual void instrumentIcmp(LoweringContext &Context,
-                              const class InstIcmp *Instr) {
-    (void) Context;
-    (void) Instr;
-  }
-  virtual void instrumentInsertElement(LoweringContext &Context,
-                                       const class InstInsertElement *Instr) {
-    (void) Context;
-    (void) Instr;
-  }
-  virtual void instrumentIntrinsicCall(LoweringContext &Context,
-                                       const class InstIntrinsicCall *Instr) {
-    (void) Context;
-    (void) Instr;
-  }
-  virtual void instrumentLoad(LoweringContext &Context,
-                              const class InstLoad *Instr) {
-    (void) Context;
-    (void) Instr;
-  }
-  virtual void instrumentPhi(LoweringContext &Context,
-                             const class InstPhi *Instr) {
-    (void) Context;
-    (void) Instr;
-  }
-  virtual void instrumentRet(LoweringContext &Context,
-                             const class InstRet *Instr) {
-    (void) Context;
-    (void) Instr;
-  }
-  virtual void instrumentSelect(LoweringContext &Context,
-                                const class InstSelect *Instr) {
-    (void) Context;
-    (void) Instr;
-  }
-  virtual void instrumentStore(LoweringContext &Context,
-                               const class InstStore *Instr) {
-    (void) Context;
-    (void) Instr;
-  }
-  virtual void instrumentSwitch(LoweringContext &Context,
-                                const class InstSwitch *Instr) {
-    (void) Context;
-    (void) Instr;
-  }
-  virtual void instrumentUnreachable(LoweringContext &Context,
-                                     const class InstUnreachable *Instr) {
-    (void) Context;
-    (void) Instr;
-  }
-  virtual void instrumentLocalVars(Cfg *Func) {
-    (void) Func;
-  }
+  virtual void instrumentFuncStart(LoweringContext &) {}
+  virtual void instrumentAlloca(LoweringContext &, const class InstAlloca *) {}
+  virtual void instrumentArithmetic(LoweringContext &,
+                                    const class InstArithmetic *) {}
+  virtual void instrumentBr(LoweringContext &, const class InstBr *) {}
+  virtual void instrumentCall(LoweringContext &, const class InstCall *) {}
+  virtual void instrumentCast(LoweringContext &, const class InstCast *) {}
+  virtual void instrumentExtractElement(LoweringContext &,
+                                        const class InstExtractElement *) {}
+  virtual void instrumentFcmp(LoweringContext &, const class InstFcmp *) {}
+  virtual void instrumentIcmp(LoweringContext &, const class InstIcmp *) {}
+  virtual void instrumentInsertElement(LoweringContext &,
+                                       const class InstInsertElement *) {}
+  virtual void instrumentIntrinsicCall(LoweringContext &,
+                                       const class InstIntrinsicCall *) {}
+  virtual void instrumentLoad(LoweringContext &, const class InstLoad *) {}
+  virtual void instrumentPhi(LoweringContext &, const class InstPhi *) {}
+  virtual void instrumentRet(LoweringContext &, const class InstRet *) {}
+  virtual void instrumentSelect(LoweringContext &, const class InstSelect *) {}
+  virtual void instrumentStore(LoweringContext &, const class InstStore *) {}
+  virtual void instrumentSwitch(LoweringContext &, const class InstSwitch *) {}
+  virtual void instrumentUnreachable(LoweringContext &,
+                                     const class InstUnreachable *) {}
+  virtual void instrumentLocalVars(Cfg *) {}
 
 protected:
   GlobalContext *Ctx;

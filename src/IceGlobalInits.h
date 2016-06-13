@@ -279,7 +279,7 @@ public:
         : Initializer(DataInitializerKind), ContentsSize(Values.size()),
           // ugh, we should actually do new char[], but this may involve
           // implementation-specific details. Given that Contents is arena
-          // allocated, and never detele[]d, just use char --
+          // allocated, and never delete[]d, just use char --
           // AllocOwner->allocate_array will allocate a buffer with the right
           // size.
           Contents(new (VDL->allocate_initializer<char>(ContentsSize)) char) {

@@ -14,6 +14,7 @@
 
 #include "IceCompileServer.h"
 
+#include "IceASanInstrumentation.h"
 #include "IceClFlags.h"
 #include "IceELFStreamer.h"
 #include "IceGlobalContext.h"
@@ -244,7 +245,7 @@ void CLCompileServer::run() {
 
   // TODO(tlively): Make this instantiate an instrumentation subclass
   if (!BuildDefs::minimal() && getFlags().getSanitizeAddresses()) {
-    std::unique_ptr<Instrumentation> Instr(new Instrumentation(Ctx.get()));
+    std::unique_ptr<Instrumentation> Instr(new ASanInstrumentation(Ctx.get()));
     Ctx->setInstrumentation(std::move(Instr));
   }
 
