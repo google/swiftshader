@@ -593,74 +593,40 @@ void TargetMIPS32::CallingConv::discardUnavailableVFPRegsAndTheirAliases(
 
 void TargetMIPS32::lowerArguments() {
   VarList &Args = Func->getArgs();
-  // We are only handling integer registers for now. The Mips o32 ABI is
-  // somewhat complex but will be implemented in its totality through follow
-  // on patches.
-  //
-  unsigned NumGPRRegsUsed = 0;
-  // For each register argument, replace Arg in the argument list with the
-  // home register.  Then generate an instruction in the prolog to copy the
-  // home register to the assigned location of Arg.
+  TargetMIPS32::CallingConv CC;
+
+  // For each register argument, replace Arg in the argument list with the home
+  // register. Then generate an instruction in the prolog to copy the home
+  // register to the assigned location of Arg.
   Context.init(Func->getEntryNode());
   Context.setInsertPoint(Context.getCur());
+
   for (SizeT I = 0, E = Args.size(); I < E; ++I) {
     Variable *Arg = Args[I];
     Type Ty = Arg->getType();
-    // TODO(rkotler): handle float/vector types.
-    if (isVectorType(Ty)) {
-      UnimplementedError(getFlags());
+    RegNumT RegNum;
+    if (!CC.argInReg(Ty, I, &RegNum)) {
       continue;
     }
-    if (isFloatingType(Ty)) {
-      UnimplementedError(getFlags());
-      continue;
+    Variable *RegisterArg = Func->makeVariable(Ty);
+    if (BuildDefs::dump()) {
+      RegisterArg->setName(Func, "home_reg:" + Arg->getName());
     }
-    if (Ty == IceType_i64) {
-      if (NumGPRRegsUsed >= MIPS32_MAX_GPR_ARG)
-        continue;
-      auto RegLo = RegNumT::fixme(RegMIPS32::Reg_A0 + NumGPRRegsUsed);
-      auto RegHi = RegNumT::fixme(RegLo + 1);
-      ++NumGPRRegsUsed;
-      // Always start i64 registers at an even register, so this may end
-      // up padding away a register.
-      if (RegLo % 2 != 0) {
-        RegLo = RegNumT::fixme(RegLo + 1);
-        ++NumGPRRegsUsed;
-      }
-      // If this leaves us without room to consume another register,
-      // leave any previously speculatively consumed registers as consumed.
-      if (NumGPRRegsUsed >= MIPS32_MAX_GPR_ARG)
-        continue;
-      // RegHi = RegNumT::fixme(RegMIPS32::Reg_A0 + NumGPRRegsUsed);
-      ++NumGPRRegsUsed;
-      Variable *RegisterArg = Func->makeVariable(Ty);
-      auto *RegisterArg64On32 = llvm::cast<Variable64On32>(RegisterArg);
-      if (BuildDefs::dump())
-        RegisterArg64On32->setName(Func, "home_reg:" + Arg->getName());
-      RegisterArg64On32->initHiLo(Func);
-      RegisterArg64On32->setIsArg();
-      RegisterArg64On32->getLo()->setRegNum(RegLo);
-      RegisterArg64On32->getHi()->setRegNum(RegHi);
-      Arg->setIsArg(false);
-      Args[I] = RegisterArg64On32;
-      Context.insert<InstAssign>(Arg, RegisterArg);
-      continue;
-    } else {
-      assert(Ty == IceType_i32);
-      if (NumGPRRegsUsed >= MIPS32_MAX_GPR_ARG)
-        continue;
-      const auto RegNum = RegNumT::fixme(RegMIPS32::Reg_A0 + NumGPRRegsUsed);
-      ++NumGPRRegsUsed;
-      Variable *RegisterArg = Func->makeVariable(Ty);
-      if (BuildDefs::dump()) {
-        RegisterArg->setName(Func, "home_reg:" + Arg->getName());
-      }
-      RegisterArg->setRegNum(RegNum);
-      RegisterArg->setIsArg();
-      Arg->setIsArg(false);
-      Args[I] = RegisterArg;
-      Context.insert<InstAssign>(Arg, RegisterArg);
+    RegisterArg->setIsArg();
+    Arg->setIsArg(false);
+    Args[I] = RegisterArg;
+    switch (Ty) {
+    default: { RegisterArg->setRegNum(RegNum); } break;
+    case IceType_i64: {
+      auto *RegisterArg64 = llvm::cast<Variable64On32>(RegisterArg);
+      RegisterArg64->initHiLo(Func);
+      RegisterArg64->getLo()->setRegNum(
+          RegNumT::fixme(RegMIPS32::getI64PairFirstGPRNum(RegNum)));
+      RegisterArg64->getHi()->setRegNum(
+          RegNumT::fixme(RegMIPS32::getI64PairSecondGPRNum(RegNum)));
+    } break;
     }
+    Context.insert<InstAssign>(Arg, RegisterArg);
   }
 }
 
