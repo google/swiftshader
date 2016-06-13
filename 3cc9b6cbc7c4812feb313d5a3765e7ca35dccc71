@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "efeef035_d1223406",
+        "filename": "src/OpenGL/libEGL/main.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-06-13T18:38:25Z",
+      "side": 1,
+      "message": "I verified that this still works for functions in a namespace.",
+      "range": {
+        "startLine": 68,
+        "startChar": 0,
+        "endLine": 68,
+        "endChar": 11
+      },
+      "revId": "3cc9b6cbc7c4812feb313d5a3765e7ca35dccc71",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
