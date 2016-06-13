@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "efeef035_b1ade8b7",
+        "filename": "src/Renderer/Sampler.hpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-06-13T20:15:20Z",
+      "side": 1,
+      "message": "applyOffset still applies the offset. It just skips the clamping part of applyOffset.",
+      "parentUuid": "efeef035_31255851",
+      "range": {
+        "startLine": 122,
+        "startChar": 2,
+        "endLine": 122,
+        "endChar": 23
+      },
+      "revId": "de7ad39bc0a36202b3f1795ce87df5b3e2c63516",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "efeef035_710880cc",
         "filename": "src/Shader/SamplerCore.cpp",
         "patchSetId": 3
