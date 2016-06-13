@@ -447,6 +447,11 @@ public:
   static Type stackSlotType();
   Variable *copyToReg(Operand *Src, RegNumT RegNum = RegNumT());
 
+  // Iterates over the CFG and determines the maximum outgoing stack arguments
+  // bytes. This information is later used during addProlog() to pre-allocate
+  // the outargs area
+  void findMaxStackOutArgsSize();
+
   void addProlog(CfgNode *Node) override;
   void addEpilog(CfgNode *Node) override;
 
@@ -456,6 +461,9 @@ public:
   void split64(Variable *Var);
   Operand *loOperand(Operand *Operand);
   Operand *hiOperand(Operand *Operand);
+
+  void finishArgumentLowering(Variable *Arg, Variable *FramePtr,
+                              size_t BasicFrameOffset, size_t *InArgsSizeBytes);
 
   Operand *legalizeUndef(Operand *From, RegNumT RegNum = RegNumT());
 
@@ -543,13 +551,18 @@ protected:
 
   bool UsesFramePointer = false;
   bool NeedsStackAlignment = false;
+  bool MaybeLeafFunc = true;
+  bool PrologEmitsFixedAllocas = false;
+  uint32_t MaxOutArgsSizeBytes = 0;
   static SmallBitVector TypeToRegisterSet[RCMIPS32_NUM];
   static SmallBitVector TypeToRegisterSetUnfiltered[RCMIPS32_NUM];
   static SmallBitVector RegisterAliases[RegMIPS32::Reg_NUM];
   SmallBitVector RegsUsed;
   VarList PhysicalRegisters[IceType_NUM];
+  VarList PreservedGPRs;
   static constexpr uint32_t CHAR_BITS = 8;
   static constexpr uint32_t INT32_BITS = 32;
+  size_t SpillAreaSizeBytes = 0;
 
 private:
   ENABLE_MAKE_UNIQUE;

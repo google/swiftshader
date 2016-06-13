@@ -83,6 +83,18 @@ const char *getRegClassName(RegClass C) {
   }
 }
 
+// Stack alignment
+constexpr uint32_t MIPS32_STACK_ALIGNMENT_BYTES = 8;
+
+// Value is in bytes. Return Value adjusted to the next highest multiple of the
+// stack alignment required for the given type.
+uint32_t applyStackAlignmentTy(uint32_t Value, Type Ty) {
+  size_t typeAlignInBytes = typeWidthInBytes(Ty);
+  if (isVectorType(Ty))
+    UnimplementedError(getFlags());
+  return Utils::applyAlignment(Value, typeAlignInBytes);
+}
+
 } // end of anonymous namespace
 
 TargetMIPS32::TargetMIPS32(Cfg *Func) : TargetLowering(Func) {}
@@ -151,12 +163,32 @@ void TargetMIPS32::staticInit(GlobalContext *Ctx) {
                           RegMIPS32::getRegName, getRegClassName);
 }
 
+void TargetMIPS32::findMaxStackOutArgsSize() {
+  // MinNeededOutArgsBytes should be updated if the Target ever creates a
+  // high-level InstCall that requires more stack bytes.
+  constexpr size_t MinNeededOutArgsBytes = 16;
+  MaxOutArgsSizeBytes = MinNeededOutArgsBytes;
+  for (CfgNode *Node : Func->getNodes()) {
+    Context.init(Node);
+    while (!Context.atEnd()) {
+      PostIncrLoweringContext PostIncrement(Context);
+      Inst *CurInstr = iteratorToInst(Context.getCur());
+      if (auto *Call = llvm::dyn_cast<InstCall>(CurInstr)) {
+        SizeT OutArgsSizeBytes = getCallStackArgumentsSizeBytes(Call);
+        MaxOutArgsSizeBytes = std::max(MaxOutArgsSizeBytes, OutArgsSizeBytes);
+      }
+    }
+  }
+}
+
 void TargetMIPS32::translateO2() {
   TimerMarker T(TimerStack::TT_O2, Func);
 
   // TODO(stichnot): share passes with X86?
   // https://code.google.com/p/nativeclient/issues/detail?id=4094
   genTargetHelperCalls();
+
+  findMaxStackOutArgsSize();
 
   // Merge Alloca instructions, and lay out the stack.
   static constexpr bool SortAndCombineAllocas = false;
@@ -258,6 +290,8 @@ void TargetMIPS32::translateOm1() {
 
   // TODO: share passes with X86?
   genTargetHelperCalls();
+
+  findMaxStackOutArgsSize();
 
   // Do not merge Alloca instructions, and lay out the stack.
   static constexpr bool SortAndCombineAllocas = false;
@@ -632,10 +666,277 @@ void TargetMIPS32::lowerArguments() {
 
 Type TargetMIPS32::stackSlotType() { return IceType_i32; }
 
+// Helper function for addProlog().
+//
+// This assumes Arg is an argument passed on the stack. This sets the frame
+// offset for Arg and updates InArgsSizeBytes according to Arg's width. For an
+// I64 arg that has been split into Lo and Hi components, it calls itself
+// recursively on the components, taking care to handle Lo first because of the
+// little-endian architecture. Lastly, this function generates an instruction
+// to copy Arg into its assigned register if applicable.
+void TargetMIPS32::finishArgumentLowering(Variable *Arg, Variable *FramePtr,
+                                          size_t BasicFrameOffset,
+                                          size_t *InArgsSizeBytes) {
+  const Type Ty = Arg->getType();
+  *InArgsSizeBytes = applyStackAlignmentTy(*InArgsSizeBytes, Ty);
+
+  if (auto *Arg64On32 = llvm::dyn_cast<Variable64On32>(Arg)) {
+    Variable *const Lo = Arg64On32->getLo();
+    Variable *const Hi = Arg64On32->getHi();
+    finishArgumentLowering(Lo, FramePtr, BasicFrameOffset, InArgsSizeBytes);
+    finishArgumentLowering(Hi, FramePtr, BasicFrameOffset, InArgsSizeBytes);
+    return;
+  }
+  assert(Ty != IceType_i64);
+
+  const int32_t ArgStackOffset = BasicFrameOffset + *InArgsSizeBytes;
+  *InArgsSizeBytes += typeWidthInBytesOnStack(Ty);
+
+  if (!Arg->hasReg()) {
+    Arg->setStackOffset(ArgStackOffset);
+    return;
+  }
+
+  // If the argument variable has been assigned a register, we need to copy the
+  // value from the stack slot.
+  Variable *Parameter = Func->makeVariable(Ty);
+  Parameter->setMustNotHaveReg();
+  Parameter->setStackOffset(ArgStackOffset);
+  _mov(Arg, Parameter);
+}
+
 void TargetMIPS32::addProlog(CfgNode *Node) {
-  (void)Node;
+  // Stack frame layout:
+  //
+  // +------------------------+
+  // | 1. preserved registers |
+  // +------------------------+
+  // | 2. padding             |
+  // +------------------------+
+  // | 3. global spill area   |
+  // +------------------------+
+  // | 4. padding             |
+  // +------------------------+
+  // | 5. local spill area    |
+  // +------------------------+
+  // | 6. padding             |
+  // +------------------------+
+  // | 7. allocas             |
+  // +------------------------+
+  // | 8. padding             |
+  // +------------------------+
+  // | 9. out args           |
+  // +------------------------+ <--- StackPointer
+  //
+  // The following variables record the size in bytes of the given areas:
+  //  * PreservedRegsSizeBytes: area 1
+  //  * SpillAreaPaddingBytes:  area 2
+  //  * GlobalsSize:            area 3
+  //  * GlobalsAndSubsequentPaddingSize: areas 3 - 4
+  //  * LocalsSpillAreaSize:    area 5
+  //  * SpillAreaSizeBytes:     areas 2 - 9
+  //  * maxOutArgsSizeBytes():  area 9
+
+  Context.init(Node);
+  Context.setInsertPoint(Context.getCur());
+
+  SmallBitVector CalleeSaves = getRegisterSet(RegSet_CalleeSave, RegSet_None);
+  RegsUsed = SmallBitVector(CalleeSaves.size());
+
+  VarList SortedSpilledVariables;
+
+  size_t GlobalsSize = 0;
+  // If there is a separate locals area, this represents that area. Otherwise
+  // it counts any variable not counted by GlobalsSize.
+  SpillAreaSizeBytes = 0;
+  // If there is a separate locals area, this specifies the alignment for it.
+  uint32_t LocalsSlotsAlignmentBytes = 0;
+  // The entire spill locations area gets aligned to largest natural alignment
+  // of the variables that have a spill slot.
+  uint32_t SpillAreaAlignmentBytes = 0;
+  // For now, we don't have target-specific variables that need special
+  // treatment (no stack-slot-linked SpillVariable type).
+  std::function<bool(Variable *)> TargetVarHook = [](Variable *Var) {
+    static constexpr bool AssignStackSlot = false;
+    static constexpr bool DontAssignStackSlot = !AssignStackSlot;
+    if (llvm::isa<Variable64On32>(Var)) {
+      return DontAssignStackSlot;
+    }
+    return AssignStackSlot;
+  };
+
+  // Compute the list of spilled variables and bounds for GlobalsSize, etc.
+  getVarStackSlotParams(SortedSpilledVariables, RegsUsed, &GlobalsSize,
+                        &SpillAreaSizeBytes, &SpillAreaAlignmentBytes,
+                        &LocalsSlotsAlignmentBytes, TargetVarHook);
+  uint32_t LocalsSpillAreaSize = SpillAreaSizeBytes;
+  SpillAreaSizeBytes += GlobalsSize;
+
+  PreservedGPRs.reserve(CalleeSaves.size());
+
+  // Consider FP and RA as callee-save / used as needed.
+  if (UsesFramePointer) {
+    if (RegsUsed[RegMIPS32::Reg_FP]) {
+      llvm::report_fatal_error("Frame pointer has been used.");
+    }
+    CalleeSaves[RegMIPS32::Reg_FP] = true;
+    RegsUsed[RegMIPS32::Reg_FP] = true;
+  }
+  if (!MaybeLeafFunc) {
+    CalleeSaves[RegMIPS32::Reg_RA] = true;
+    RegsUsed[RegMIPS32::Reg_RA] = true;
+  }
+
+  // Make two passes over the used registers. The first pass records all the
+  // used registers -- and their aliases. Then, we figure out which GPR
+  // registers should be saved.
+  SmallBitVector ToPreserve(RegMIPS32::Reg_NUM);
+  for (SizeT i = 0; i < CalleeSaves.size(); ++i) {
+    if (CalleeSaves[i] && RegsUsed[i]) {
+      ToPreserve |= RegisterAliases[i];
+    }
+  }
+
+  uint32_t NumCallee = 0;
+  size_t PreservedRegsSizeBytes = 0;
+
+  // RegClasses is a tuple of
+  //
+  // <First Register in Class, Last Register in Class, Vector of Save Registers>
+  //
+  // We use this tuple to figure out which register we should save/restore
+  // during
+  // prolog/epilog.
+  using RegClassType = std::tuple<uint32_t, uint32_t, VarList *>;
+  const RegClassType RegClass = RegClassType(
+      RegMIPS32::Reg_GPR_First, RegMIPS32::Reg_GPR_Last, &PreservedGPRs);
+  const uint32_t FirstRegInClass = std::get<0>(RegClass);
+  const uint32_t LastRegInClass = std::get<1>(RegClass);
+  VarList *const PreservedRegsInClass = std::get<2>(RegClass);
+  for (uint32_t Reg = LastRegInClass; Reg > FirstRegInClass; Reg--) {
+    if (!ToPreserve[Reg]) {
+      continue;
+    }
+    ++NumCallee;
+    Variable *PhysicalRegister = getPhysicalRegister(RegNumT::fromInt(Reg));
+    PreservedRegsSizeBytes +=
+        typeWidthInBytesOnStack(PhysicalRegister->getType());
+    PreservedRegsInClass->push_back(PhysicalRegister);
+  }
+
+  Ctx->statsUpdateRegistersSaved(NumCallee);
+
+  // Align the variables area. SpillAreaPaddingBytes is the size of the region
+  // after the preserved registers and before the spill areas.
+  // LocalsSlotsPaddingBytes is the amount of padding between the globals and
+  // locals area if they are separate.
+  assert(SpillAreaAlignmentBytes <= MIPS32_STACK_ALIGNMENT_BYTES);
+  (void)MIPS32_STACK_ALIGNMENT_BYTES;
+  assert(LocalsSlotsAlignmentBytes <= SpillAreaAlignmentBytes);
+  uint32_t SpillAreaPaddingBytes = 0;
+  uint32_t LocalsSlotsPaddingBytes = 0;
+  alignStackSpillAreas(PreservedRegsSizeBytes, SpillAreaAlignmentBytes,
+                       GlobalsSize, LocalsSlotsAlignmentBytes,
+                       &SpillAreaPaddingBytes, &LocalsSlotsPaddingBytes);
+  SpillAreaSizeBytes += SpillAreaPaddingBytes + LocalsSlotsPaddingBytes;
+  uint32_t GlobalsAndSubsequentPaddingSize =
+      GlobalsSize + LocalsSlotsPaddingBytes;
+
+  if (MaybeLeafFunc)
+    MaxOutArgsSizeBytes = 0;
+
+  // Adds the out args space to the stack, and align SP if necessary.
+  uint32_t TotalStackSizeBytes = PreservedRegsSizeBytes + SpillAreaSizeBytes;
+
+  // TODO(sagar.thakur): Combine fixed alloca and maximum out argument size with
+  // TotalStackSizeBytes once lowerAlloca is implemented and leaf function
+  // information is generated by lowerCall.
+
+  // Generate "addiu sp, sp, -TotalStackSizeBytes"
+  if (TotalStackSizeBytes) {
+    // Use the scratch register if needed to legalize the immediate.
+    Variable *SP = getPhysicalRegister(RegMIPS32::Reg_SP);
+    _addiu(SP, SP, -(TotalStackSizeBytes));
+  }
+
+  Ctx->statsUpdateFrameBytes(TotalStackSizeBytes);
+
+  if (!PreservedGPRs.empty()) {
+    uint32_t StackOffset = TotalStackSizeBytes;
+    for (Variable *Var : *PreservedRegsInClass) {
+      Variable *PhysicalRegister = getPhysicalRegister(Var->getRegNum());
+      StackOffset -= typeWidthInBytesOnStack(PhysicalRegister->getType());
+      Variable *SP = getPhysicalRegister(RegMIPS32::Reg_SP);
+      OperandMIPS32Mem *MemoryLocation = OperandMIPS32Mem::create(
+          Func, IceType_i32, SP,
+          llvm::cast<ConstantInteger32>(Ctx->getConstantInt32(StackOffset)));
+      _sw(PhysicalRegister, MemoryLocation);
+    }
+  }
+
+  Variable *FP = getPhysicalRegister(RegMIPS32::Reg_FP);
+
+  // Generate "mov FP, SP" if needed.
+  if (UsesFramePointer) {
+    Variable *SP = getPhysicalRegister(RegMIPS32::Reg_SP);
+    _mov(FP, SP);
+    // Keep FP live for late-stage liveness analysis (e.g. asm-verbose mode).
+    Context.insert<InstFakeUse>(FP);
+  }
+
+  // Fill in stack offsets for stack args, and copy args into registers for
+  // those that were register-allocated. Args are pushed right to left, so
+  // Arg[0] is closest to the stack/frame pointer.
+  const VarList &Args = Func->getArgs();
+  size_t InArgsSizeBytes = 0;
+  TargetMIPS32::CallingConv CC;
+  uint32_t ArgNo = 0;
+
+  for (Variable *Arg : Args) {
+    RegNumT DummyReg;
+    const Type Ty = Arg->getType();
+    // Skip arguments passed in registers.
+    if (CC.argInReg(Ty, ArgNo, &DummyReg)) {
+      ArgNo++;
+      continue;
+    } else {
+      finishArgumentLowering(Arg, FP, TotalStackSizeBytes, &InArgsSizeBytes);
+    }
+  }
+
+  // Fill in stack offsets for locals.
+  assignVarStackSlots(SortedSpilledVariables, SpillAreaPaddingBytes,
+                      SpillAreaSizeBytes, GlobalsAndSubsequentPaddingSize,
+                      UsesFramePointer);
+  this->HasComputedFrame = true;
+
+  if (BuildDefs::dump() && Func->isVerbose(IceV_Frame)) {
+    OstreamLocker _(Func->getContext());
+    Ostream &Str = Func->getContext()->getStrDump();
+
+    Str << "Stack layout:\n";
+    uint32_t SPAdjustmentPaddingSize =
+        SpillAreaSizeBytes - LocalsSpillAreaSize -
+        GlobalsAndSubsequentPaddingSize - SpillAreaPaddingBytes -
+        MaxOutArgsSizeBytes;
+    Str << " in-args = " << InArgsSizeBytes << " bytes\n"
+        << " preserved registers = " << PreservedRegsSizeBytes << " bytes\n"
+        << " spill area padding = " << SpillAreaPaddingBytes << " bytes\n"
+        << " globals spill area = " << GlobalsSize << " bytes\n"
+        << " globals-locals spill areas intermediate padding = "
+        << GlobalsAndSubsequentPaddingSize - GlobalsSize << " bytes\n"
+        << " locals spill area = " << LocalsSpillAreaSize << " bytes\n"
+        << " SP alignment padding = " << SPAdjustmentPaddingSize << " bytes\n";
+
+    Str << "Stack details:\n"
+        << " SP adjustment = " << SpillAreaSizeBytes << " bytes\n"
+        << " spill area alignment = " << SpillAreaAlignmentBytes << " bytes\n"
+        << " outgoing args size = " << MaxOutArgsSizeBytes << " bytes\n"
+        << " locals spill area alignment = " << LocalsSlotsAlignmentBytes
+        << " bytes\n"
+        << " is FP based = " << 1 << "\n";
+  }
   return;
-  UnimplementedError(getFlags());
 }
 
 void TargetMIPS32::addEpilog(CfgNode *Node) {

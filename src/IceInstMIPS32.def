@@ -101,7 +101,7 @@
     ALIASES1(Reg_SP))                                                          \
   X(Reg_FP,       30,  "fp",    0, 0, 0, 1, 0, 0, 0, 0, 0,                     \
     ALIASES1(Reg_FP))                                                          \
-  X(Reg_RA,       31,  "ra",    0, 1, 0, 0, 0, 0, 0, 0, 0,                     \
+  X(Reg_RA,       31,  "ra",    0, 0, 0, 0, 0, 0, 0, 0, 0,                     \
     ALIASES1(Reg_RA))                                                          \
   X(Reg_LO,       0,   "lo",    0, 0, 0, 0, 0, 0, 0, 0, 0,                     \
     ALIASES2(Reg_LO, Reg_LOHI))                                                \
