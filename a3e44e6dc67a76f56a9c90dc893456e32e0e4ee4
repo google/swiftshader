@@ -46,6 +46,30 @@
       "revId": "a3e44e6dc67a76f56a9c90dc893456e32e0e4ee4",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "efeef035_11f65c9a",
+        "filename": "src/OpenGL/libEGL/main.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-06-13T18:38:25Z",
+      "side": 1,
+      "message": "I shuffled things around a little to not require any unnecessary forward declarations.",
+      "parentUuid": "efeef035_c33eea84",
+      "range": {
+        "startLine": 42,
+        "startChar": 0,
+        "endLine": 45,
+        "endChar": 21
+      },
+      "revId": "a3e44e6dc67a76f56a9c90dc893456e32e0e4ee4",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
