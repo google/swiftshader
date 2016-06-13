@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "efeef035_31255851",
+        "filename": "src/Renderer/Sampler.hpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-06-13T20:07:34Z",
+      "side": 1,
+      "message": "This appears to only be used to make applyOffset() not do anything, so just skip applyOffset() for texelFetch and remove this addressing mode.",
+      "range": {
+        "startLine": 122,
+        "startChar": 2,
+        "endLine": 122,
+        "endChar": 23
+      },
+      "revId": "de7ad39bc0a36202b3f1795ce87df5b3e2c63516",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "efeef035_710880cc",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 715,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-06-13T20:07:34Z",
+      "side": 1,
+      "message": "Texel fetch should never perform anisotropic filtering.",
+      "range": {
+        "startLine": 715,
+        "startChar": 5,
+        "endLine": 715,
+        "endChar": 63
+      },
+      "revId": "de7ad39bc0a36202b3f1795ce87df5b3e2c63516",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "efeef035_d13354a3",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 1203,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-06-13T20:07:34Z",
+      "side": 1,
+      "message": "same as above",
+      "range": {
+        "startLine": 1203,
+        "startChar": 5,
+        "endLine": 1203,
+        "endChar": 63
+      },
+      "revId": "de7ad39bc0a36202b3f1795ce87df5b3e2c63516",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "efeef035_711fe0fe",
+        "filename": "src/Shader/SamplerCore.hpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-06-13T20:07:34Z",
+      "side": 1,
+      "message": "nit: Opening brace on new line.",
+      "range": {
+        "startLine": 31,
+        "startChar": 21,
+        "endLine": 31,
+        "endChar": 23
+      },
+      "revId": "de7ad39bc0a36202b3f1795ce87df5b3e2c63516",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
