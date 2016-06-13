@@ -89,6 +89,24 @@ static inline bool isFPRReg(RegNumT RegNum) {
 
 const char *getRegName(RegNumT RegNum);
 
+static inline RegNumT getI64PairFirstGPRNum(RegNumT RegNum) {
+  // For now it works only for argument register pairs
+  // TODO(mohit.bhakkad): Change this to support all the register pairs once we
+  // have table-driven approach ready
+  assert(RegNum == Reg_A0A1 || RegNum == Reg_A2A3);
+  return (RegNum == RegMIPS32::Reg_A0A1) ? RegMIPS32::Reg_A0
+                                         : RegMIPS32::Reg_A2;
+}
+
+static inline RegNumT getI64PairSecondGPRNum(RegNumT RegNum) {
+  // For now it works only for argument register pairs
+  // TODO(mohit.bhakkad): Change this to support all the register pairs once we
+  // have table-driven approach ready
+  assert(RegNum == Reg_A0A1 || RegNum == Reg_A2A3);
+  return (RegNum == RegMIPS32::Reg_A0A1) ? RegMIPS32::Reg_A1
+                                         : RegMIPS32::Reg_A3;
+}
+
 } // end of namespace RegMIPS32
 
 // Extend enum RegClass with MIPS32-specific register classes (if any).

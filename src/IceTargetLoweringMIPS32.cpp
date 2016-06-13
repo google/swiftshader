@@ -64,6 +64,14 @@ namespace {
 // The maximum number of arguments to pass in GPR registers.
 constexpr uint32_t MIPS32_MAX_GPR_ARG = 4;
 
+std::array<RegNumT, MIPS32_MAX_GPR_ARG> GPRArgInitializer;
+std::array<RegNumT, MIPS32_MAX_GPR_ARG / 2> I64ArgInitializer;
+
+constexpr uint32_t MIPS32_MAX_FP_ARG = 2;
+
+std::array<RegNumT, MIPS32_MAX_FP_ARG> FP32ArgInitializer;
+std::array<RegNumT, MIPS32_MAX_FP_ARG> FP64ArgInitializer;
+
 const char *getRegClassName(RegClass C) {
   auto ClassNum = static_cast<RegClassMIPS32>(C);
   assert(ClassNum < RCMIPS32_NUM);
@@ -105,6 +113,20 @@ void TargetMIPS32::staticInit(GlobalContext *Ctx) {
   assert(RegisterAliases[RegMIPS32::val][RegMIPS32::val]);
   REGMIPS32_TABLE;
 #undef X
+
+  // TODO(mohit.bhakkad): Change these inits once we provide argument related
+  // field in register tables
+  for (size_t i = 0; i < MIPS32_MAX_GPR_ARG; i++)
+    GPRArgInitializer[i] = RegNumT::fixme(RegMIPS32::Reg_A0 + i);
+
+  for (size_t i = 0; i < MIPS32_MAX_GPR_ARG / 2; i++)
+    I64ArgInitializer[i] = RegNumT::fixme(RegMIPS32::Reg_A0A1 + i);
+
+  for (size_t i = 0; i < MIPS32_MAX_FP_ARG; i++) {
+    FP32ArgInitializer[i] = RegNumT::fixme(RegMIPS32::Reg_F12 + i * 2);
+    FP64ArgInitializer[i] = RegNumT::fixme(RegMIPS32::Reg_F12F13 + i);
+  }
+
   TypeToRegisterSet[IceType_void] = InvalidRegisters;
   TypeToRegisterSet[IceType_i1] = IntegerRegisters;
   TypeToRegisterSet[IceType_i8] = IntegerRegisters;
@@ -404,6 +426,135 @@ void TargetMIPS32::emitVariable(const Variable *Var) const {
     Str << ")";
   }
   UnimplementedError(getFlags());
+}
+
+TargetMIPS32::CallingConv::CallingConv()
+    : GPRegsUsed(RegMIPS32::Reg_NUM),
+      GPRArgs(GPRArgInitializer.rbegin(), GPRArgInitializer.rend()),
+      I64Args(I64ArgInitializer.rbegin(), I64ArgInitializer.rend()),
+      VFPRegsUsed(RegMIPS32::Reg_NUM),
+      FP32Args(FP32ArgInitializer.rbegin(), FP32ArgInitializer.rend()),
+      FP64Args(FP64ArgInitializer.rbegin(), FP64ArgInitializer.rend()) {}
+
+// In MIPS O32 abi FP argument registers can be used only if first argument is
+// of type float/double. UseFPRegs flag is used to care of that. Also FP arg
+// registers can be used only for first 2 arguments, so we require argument
+// number to make register allocation decisions.
+bool TargetMIPS32::CallingConv::argInReg(Type Ty, uint32_t ArgNo,
+                                         RegNumT *Reg) {
+  if (isScalarIntegerType(Ty))
+    return argInGPR(Ty, Reg);
+  if (isScalarFloatingType(Ty)) {
+    if (ArgNo == 0) {
+      UseFPRegs = true;
+      return argInVFP(Ty, Reg);
+    }
+    if (UseFPRegs && ArgNo == 1) {
+      UseFPRegs = false;
+      return argInVFP(Ty, Reg);
+    }
+    return argInGPR(Ty, Reg);
+  }
+  UnimplementedError(getFlags());
+  return false;
+}
+
+bool TargetMIPS32::CallingConv::argInGPR(Type Ty, RegNumT *Reg) {
+  CfgVector<RegNumT> *Source;
+
+  switch (Ty) {
+  default: {
+    UnimplementedError(getFlags());
+    return false;
+  } break;
+  case IceType_i32:
+  case IceType_f32: {
+    Source = &GPRArgs;
+  } break;
+  case IceType_i64:
+  case IceType_f64: {
+    Source = &I64Args;
+  } break;
+  }
+
+  discardUnavailableGPRsAndTheirAliases(Source);
+
+  if (Source->empty()) {
+    GPRegsUsed.set();
+    return false;
+  }
+
+  *Reg = Source->back();
+  // Note that we don't Source->pop_back() here. This is intentional. Notice how
+  // we mark all of Reg's aliases as Used. So, for the next argument,
+  // Source->back() is marked as unavailable, and it is thus implicitly popped
+  // from the stack.
+  GPRegsUsed |= RegisterAliases[*Reg];
+  return true;
+}
+
+inline void TargetMIPS32::CallingConv::discardNextGPRAndItsAliases(
+    CfgVector<RegNumT> *Regs) {
+  GPRegsUsed |= RegisterAliases[Regs->back()];
+  Regs->pop_back();
+}
+
+// GPR are not packed when passing parameters. Thus, a function foo(i32, i64,
+// i32) will have the first argument in a0, the second in a2-a3, and the third
+// on the stack. To model this behavior, whenever we pop a register from Regs,
+// we remove all of its aliases from the pool of available GPRs. This has the
+// effect of computing the "closure" on the GPR registers.
+void TargetMIPS32::CallingConv::discardUnavailableGPRsAndTheirAliases(
+    CfgVector<RegNumT> *Regs) {
+  while (!Regs->empty() && GPRegsUsed[Regs->back()]) {
+    discardNextGPRAndItsAliases(Regs);
+  }
+}
+
+bool TargetMIPS32::CallingConv::argInVFP(Type Ty, RegNumT *Reg) {
+  CfgVector<RegNumT> *Source;
+
+  switch (Ty) {
+  default: {
+    UnimplementedError(getFlags());
+    return false;
+  } break;
+  case IceType_f32: {
+    Source = &FP32Args;
+  } break;
+  case IceType_f64: {
+    Source = &FP64Args;
+  } break;
+  }
+
+  discardUnavailableVFPRegsAndTheirAliases(Source);
+
+  if (Source->empty()) {
+    VFPRegsUsed.set();
+    return false;
+  }
+
+  *Reg = Source->back();
+  VFPRegsUsed |= RegisterAliases[*Reg];
+
+  // In MIPS O32 abi if fun arguments are (f32, i32) then one can not use reg_a0
+  // for second argument even though it's free. f32 arg goes in reg_f12, i32 arg
+  // goes in reg_a1. Similarly if arguments are (f64, i32) second argument goes
+  // in reg_a3 and a0, a1 are not used.
+  Source = &GPRArgs;
+  // Discard one GPR reg for f32(4 bytes), two for f64(4 + 4 bytes)
+  discardNextGPRAndItsAliases(Source);
+  if (Ty == IceType_f64)
+    discardNextGPRAndItsAliases(Source);
+
+  return true;
+}
+
+void TargetMIPS32::CallingConv::discardUnavailableVFPRegsAndTheirAliases(
+    CfgVector<RegNumT> *Regs) {
+  while (!Regs->empty() && VFPRegsUsed[Regs->back()]) {
+    Regs->pop_back();
+  }
 }
 
 void TargetMIPS32::lowerArguments() {

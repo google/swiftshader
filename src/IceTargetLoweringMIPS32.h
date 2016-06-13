@@ -459,6 +459,43 @@ public:
 
   Operand *legalizeUndef(Operand *From, RegNumT RegNum = RegNumT());
 
+  /// Helper class that understands the Calling Convention and register
+  /// assignments as per MIPS O32 abi.
+  class CallingConv {
+    CallingConv(const CallingConv &) = delete;
+    CallingConv &operator=(const CallingConv &) = delete;
+
+  public:
+    CallingConv();
+    ~CallingConv() = default;
+
+    /// argInReg returns true if there is a Register available for the requested
+    /// type, and false otherwise. If it returns true, Reg is set to the
+    /// appropriate register number. Note that, when Ty == IceType_i64, Reg will
+    /// be an I64 register pair.
+    bool argInReg(Type Ty, uint32_t ArgNo, RegNumT *Reg);
+
+  private:
+    // argInGPR is used to find if any GPR register is available for argument of
+    // type Ty
+    bool argInGPR(Type Ty, RegNumT *Reg);
+    /// argInVFP is to floating-point/vector types what argInGPR is for integer
+    /// types.
+    bool argInVFP(Type Ty, RegNumT *Reg);
+    inline void discardNextGPRAndItsAliases(CfgVector<RegNumT> *Regs);
+    void discardUnavailableGPRsAndTheirAliases(CfgVector<RegNumT> *Regs);
+    SmallBitVector GPRegsUsed;
+    CfgVector<RegNumT> GPRArgs;
+    CfgVector<RegNumT> I64Args;
+
+    void discardUnavailableVFPRegsAndTheirAliases(CfgVector<RegNumT> *Regs);
+    SmallBitVector VFPRegsUsed;
+    CfgVector<RegNumT> FP32Args;
+    CfgVector<RegNumT> FP64Args;
+    // UseFPRegs is a flag indicating if FP registers can be used
+    bool UseFPRegs = false;
+  };
+
 protected:
   explicit TargetMIPS32(Cfg *Func);
 
