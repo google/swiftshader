@@ -22,6 +22,30 @@
       "revId": "a3e44e6dc67a76f56a9c90dc893456e32e0e4ee4",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "efeef035_c33eea84",
+        "filename": "src/OpenGL/libEGL/main.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-06-13T16:44:14Z",
+      "side": 1,
+      "message": "I see detachThread() is used in this cl:\nhttps://swiftshader-review.googlesource.com/#/c/5581\n\nSo, does it makes sense to expose all other functions here or are these unlikely to be used outside of main.cpp?",
+      "parentUuid": "efeef035_83dfc26e",
+      "range": {
+        "startLine": 42,
+        "startChar": 0,
+        "endLine": 45,
+        "endChar": 21
+      },
+      "revId": "a3e44e6dc67a76f56a9c90dc893456e32e0e4ee4",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
