@@ -1124,12 +1124,14 @@ namespace sw
 
 	void PixelProgram::TEXELFETCH(Vector4f &dst, Vector4f &src0, const Src& src1, Vector4f &src2)
 	{
-		sampleTexture(dst, src1, src0.x, src0.y, src0.z, Float4(As<Int4>(src2.x)), src0, src0, src0, Lod, Fetch);
+		Float4 lod(As<Int4>(src2.x));
+		sampleTexture(dst, src1, src0.x, src0.y, src0.z, lod, src0, src0, src0, Lod, Fetch);
 	}
 
 	void PixelProgram::TEXELFETCH(Vector4f &dst, Vector4f &src0, const Src& src1, Vector4f &src2, Vector4f &offset)
 	{
-		sampleTexture(dst, src1, src0.x, src0.y, src0.z, Float4(As<Int4>(src2.x)), src0, src0, offset, Lod, Fetch | Offset);
+		Float4 lod(As<Int4>(src2.x));
+		sampleTexture(dst, src1, src0.x, src0.y, src0.z, lod, src0, src0, offset, Lod, Fetch | Offset);
 	}
 
 	void PixelProgram::TEXGRAD(Vector4f &dst, Vector4f &src0, const Src& src1, Vector4f &src2, Vector4f &src3)
