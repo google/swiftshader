@@ -46,6 +46,53 @@
       "revId": "8c9239cfff6e5df1bf3c09788f8c280e7674fc51",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "94982d91_625e36fd",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-06-14T20:28:50Z",
+      "side": 1,
+      "message": "Ok, then to avoid having extra data copies from the creation of Vector4f vectors, maybe it would be better to only change the signature of the PixelProgram/VertexProgram functions and not the SamplerCore ones.",
+      "parentUuid": "94982d91_0222ca07",
+      "range": {
+        "startLine": 57,
+        "startChar": 70,
+        "endLine": 57,
+        "endChar": 112
+      },
+      "revId": "8c9239cfff6e5df1bf3c09788f8c280e7674fc51",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "94982d91_e296c6b7",
+        "filename": "src/Shader/VertexProgram.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1571,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-06-14T20:28:50Z",
+      "side": 1,
+      "message": "I *think* just writing \"src0.w \u003d Float4(0.0f)\" would be enough (if LOD is used at all here, otherwise no code is required).",
+      "range": {
+        "startLine": 1570,
+        "startChar": 2,
+        "endLine": 1571,
+        "endChar": 25
+      },
+      "revId": "8c9239cfff6e5df1bf3c09788f8c280e7674fc51",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
