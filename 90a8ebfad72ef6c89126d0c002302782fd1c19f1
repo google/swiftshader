@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f44de986_9f0b4b1f",
+        "filename": "src/Shader/PixelProgram.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1127,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-06-14T17:45:37Z",
+      "side": 1,
+      "message": "I think this change makes it possible to reduce the number of arguments  to the sampleTexture function by replacing the \"src0.x, src0.y, src0.z, src0.w\" arguments by just \"src0\".\nThe \"Float4(As\u003cInt4\u003e(src0.w))\" conversion could be performed within ShaderCode when the \"Fetch\" flag is present.",
+      "range": {
+        "startLine": 1127,
+        "startChar": 51,
+        "endLine": 1127,
+        "endChar": 75
+      },
+      "revId": "90a8ebfad72ef6c89126d0c002302782fd1c19f1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
