@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f44de986_3916b7f8",
+        "filename": "src/Shader/SamplerCore.hpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-06-14T04:52:52Z",
+      "side": 0,
+      "message": "This patch mainly eliminates Project, because it isn\u0027t used inside of SamplerCore.",
+      "range": {
+        "startLine": 34,
+        "startChar": 2,
+        "endLine": 34,
+        "endChar": 9
+      },
+      "revId": "265fd864a5a1eb31095f5315a3e8498de69d7135",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
