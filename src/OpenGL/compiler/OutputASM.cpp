@@ -1297,10 +1297,13 @@ namespace glsl
 						{
 							if(argumentCount == 3 || (textureFunction.offset && argumentCount == 4))
 							{
+								Instruction *lod = emit(sw::Shader::OPCODE_MOV, &coord, arg[2]);
+								lod->dst.mask = 0x8;
+
 								TIntermNode *offset = textureFunction.offset ? arg[3] : nullptr;
 
 								emit(textureFunction.offset ? sw::Shader::OPCODE_TEXELFETCHOFFSET : sw::Shader::OPCODE_TEXELFETCH,
-								     result, arg[1], arg[0], arg[2], offset);
+								     result, &coord, arg[0], offset);
 							}
 							else UNREACHABLE(argumentCount);
 						}
