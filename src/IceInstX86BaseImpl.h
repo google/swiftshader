@@ -738,6 +738,10 @@ void InstImpl<TraitsType>::emitIASRegOpTyGPR(const Cfg *Func, bool IsLea,
                               Mem->toAsmAddress(Asm, Target, IsLea));
   } else if (const auto *Imm = llvm::dyn_cast<ConstantInteger32>(Src)) {
     (Asm->*(Emitter.GPRImm))(Ty, VarReg, AssemblerImmediate(Imm->getValue()));
+  } else if (const auto *Imm = llvm::dyn_cast<ConstantInteger64>(Src)) {
+    assert(Traits::Is64Bit);
+    assert(Utils::IsInt(32, Imm->getValue()));
+    (Asm->*(Emitter.GPRImm))(Ty, VarReg, AssemblerImmediate(Imm->getValue()));
   } else if (const auto *Reloc = llvm::dyn_cast<ConstantRelocatable>(Src)) {
     const auto FixupKind = (Reloc->getName().hasStdString() &&
                             Reloc->getName().toString() == GlobalOffsetTable)
@@ -764,6 +768,10 @@ void InstImpl<TraitsType>::emitIASAddrOpTyGPR(const Cfg *Func, Type Ty,
     GPRRegister SrcReg = Traits::getEncodedGPR(SrcVar->getRegNum());
     (Asm->*(Emitter.AddrGPR))(Ty, Addr, SrcReg);
   } else if (const auto *Imm = llvm::dyn_cast<ConstantInteger32>(Src)) {
+    (Asm->*(Emitter.AddrImm))(Ty, Addr, AssemblerImmediate(Imm->getValue()));
+  } else if (const auto *Imm = llvm::dyn_cast<ConstantInteger64>(Src)) {
+    assert(Traits::Is64Bit);
+    assert(Utils::IsInt(32, Imm->getValue()));
     (Asm->*(Emitter.AddrImm))(Ty, Addr, AssemblerImmediate(Imm->getValue()));
   } else if (const auto *Reloc = llvm::dyn_cast<ConstantRelocatable>(Src)) {
     const auto FixupKind = (Reloc->getName().hasStdString() &&
@@ -815,6 +823,10 @@ void InstImpl<TraitsType>::emitIASGPRShift(const Cfg *Func, Type Ty,
     GPRRegister SrcReg = Traits::getEncodedGPR(SrcVar->getRegNum());
     (Asm->*(Emitter.GPRGPR))(Ty, VarReg, SrcReg);
   } else if (const auto *Imm = llvm::dyn_cast<ConstantInteger32>(Src)) {
+    (Asm->*(Emitter.GPRImm))(Ty, VarReg, AssemblerImmediate(Imm->getValue()));
+  } else if (const auto *Imm = llvm::dyn_cast<ConstantInteger64>(Src)) {
+    assert(Traits::Is64Bit);
+    assert(Utils::IsInt(32, Imm->getValue()));
     (Asm->*(Emitter.GPRImm))(Ty, VarReg, AssemblerImmediate(Imm->getValue()));
   } else {
     llvm_unreachable("Unexpected operand type");
@@ -2042,7 +2054,8 @@ void InstImpl<TraitsType>::InstX86Mov::emit(const Cfg *Func) const {
   Type SrcTy = Src->getType();
   Type DestTy = this->getDest()->getType();
   if (Traits::Is64Bit && DestTy == IceType_i64 &&
-      llvm::isa<ConstantInteger64>(Src)) {
+      llvm::isa<ConstantInteger64>(Src) &&
+      !Utils::IsInt(32, llvm::cast<ConstantInteger64>(Src)->getValue())) {
     Str << "\t"
            "movabs"
            "\t";

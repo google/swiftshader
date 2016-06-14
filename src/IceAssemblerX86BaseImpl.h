@@ -295,7 +295,6 @@ void AssemblerX86Base<TraitsType>::mov(Type Ty, const Address &dst,
 template <typename TraitsType>
 void AssemblerX86Base<TraitsType>::mov(Type Ty, const Address &dst,
                                        const Immediate &imm) {
-  assert(Ty != IceType_i64 && "i64 not supported yet.");
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
@@ -2641,7 +2640,7 @@ template <typename TraitsType>
 void AssemblerX86Base<TraitsType>::imul(Type Ty, GPRRegister reg,
                                         const Immediate &imm) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  assert(Ty == IceType_i16 || Ty == IceType_i32);
+  assert(Ty == IceType_i16 || Ty == IceType_i32 || Ty == IceType_i64);
   if (Ty == IceType_i16)
     emitOperandSizeOverride();
   emitRexRB(Ty, reg, reg);

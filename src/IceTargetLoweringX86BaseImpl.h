@@ -2228,21 +2228,24 @@ void TargetX86Base<TraitsType>::lowerArithmetic(const InstArithmetic *Instr) {
     break;
   case InstArithmetic::Shl:
     _mov(T, Src0);
-    if (!llvm::isa<ConstantInteger32>(Src1))
+    if (!llvm::isa<ConstantInteger32>(Src1) &&
+        !llvm::isa<ConstantInteger64>(Src1))
       Src1 = copyToReg8(Src1, Traits::RegisterSet::Reg_cl);
     _shl(T, Src1);
     _mov(Dest, T);
     break;
   case InstArithmetic::Lshr:
     _mov(T, Src0);
-    if (!llvm::isa<ConstantInteger32>(Src1))
+    if (!llvm::isa<ConstantInteger32>(Src1) &&
+        !llvm::isa<ConstantInteger64>(Src1))
       Src1 = copyToReg8(Src1, Traits::RegisterSet::Reg_cl);
     _shr(T, Src1);
     _mov(Dest, T);
     break;
   case InstArithmetic::Ashr:
     _mov(T, Src0);
-    if (!llvm::isa<ConstantInteger32>(Src1))
+    if (!llvm::isa<ConstantInteger32>(Src1) &&
+        !llvm::isa<ConstantInteger64>(Src1))
       Src1 = copyToReg8(Src1, Traits::RegisterSet::Reg_cl);
     _sar(T, Src1);
     _mov(Dest, T);
@@ -7339,11 +7342,13 @@ Operand *TargetX86Base<TraitsType>::legalize(Operand *From, LegalMask Allowed,
     // If the operand is a 64 bit constant integer we need to legalize it to a
     // register in x86-64.
     if (Traits::Is64Bit) {
-      if (llvm::isa<ConstantInteger64>(Const)) {
-        if (RegNum.hasValue()) {
-          assert(Traits::getGprForType(IceType_i64, RegNum) == RegNum);
+      if (auto *C64 = llvm::dyn_cast<ConstantInteger64>(Const)) {
+        if (!Utils::IsInt(32, C64->getValue())) {
+          if (RegNum.hasValue()) {
+            assert(Traits::getGprForType(IceType_i64, RegNum) == RegNum);
+          }
+          return copyToReg(Const, RegNum);
         }
-        return copyToReg(Const, RegNum);
       }
     }
 
