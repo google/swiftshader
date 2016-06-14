@@ -105,21 +105,22 @@ namespace sw
 			Float anisotropy;
 			Float4 uDelta;
 			Float4 vDelta;
+			Float lodBias = (options & Fetch) ? Float4(As<Int4>(q)).x : q.x;
 
 			if(state.textureType != TEXTURE_3D)
 			{
 				if(state.textureType != TEXTURE_CUBE)
 				{
-					computeLod(texture, lod, anisotropy, uDelta, vDelta, uuuu, vvvv, q.x, dsx, dsy, method);
+					computeLod(texture, lod, anisotropy, uDelta, vDelta, uuuu, vvvv, lodBias, dsx, dsy, method);
 				}
 				else
 				{
-					computeLodCube(texture, lod, lodX, lodY, lodZ, q.x, dsx, dsy, method);
+					computeLodCube(texture, lod, lodX, lodY, lodZ, lodBias, dsx, dsy, method);
 				}
 			}
 			else
 			{
-				computeLod3D(texture, lod, uuuu, vvvv, wwww, q.x, dsx, dsy, method);
+				computeLod3D(texture, lod, uuuu, vvvv, wwww, lodBias, dsx, dsy, method);
 			}
 
 			if(!hasFloatTexture())
@@ -333,21 +334,22 @@ namespace sw
 				Float anisotropy;
 				Float4 uDelta;
 				Float4 vDelta;
+				Float lodBias = (options & Fetch) ? Float4(As<Int4>(q)).x : q.x;
 
 				if(state.textureType != TEXTURE_3D)
 				{
 					if(state.textureType != TEXTURE_CUBE)
 					{
-						computeLod(texture, lod, anisotropy, uDelta, vDelta, uuuu, vvvv, q.x, dsx, dsy, method);
+						computeLod(texture, lod, anisotropy, uDelta, vDelta, uuuu, vvvv, lodBias, dsx, dsy, method);
 					}
 					else
 					{
-						computeLodCube(texture, lod, lodX, lodY, lodZ, q.x, dsx, dsy, method);
+						computeLodCube(texture, lod, lodX, lodY, lodZ, lodBias, dsx, dsy, method);
 					}
 				}
 				else
 				{
-					computeLod3D(texture, lod, uuuu, vvvv, wwww, q.x, dsx, dsy, method);
+					computeLod3D(texture, lod, uuuu, vvvv, wwww, lodBias, dsx, dsy, method);
 				}
 
 				sampleFloatFilter(texture, c, uuuu, vvvv, wwww, offset, lod, anisotropy, uDelta, vDelta, face, options, method);
