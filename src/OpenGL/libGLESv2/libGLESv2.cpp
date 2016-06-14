@@ -2987,16 +2987,13 @@ void GetFramebufferAttachmentParameteriv(GLenum target, GLenum attachment, GLenu
 				else return error(GL_INVALID_ENUM);
 				break;
 			case GL_FRAMEBUFFER_ATTACHMENT_COMPONENT_TYPE:
-				if(clientVersion >= 3)
+		//	case GL_FRAMEBUFFER_ATTACHMENT_COMPONENT_TYPE_EXT:   // GL_EXT_color_buffer_half_float
+				if(attachment == GL_DEPTH_STENCIL_ATTACHMENT)
 				{
-					if(attachment == GL_DEPTH_STENCIL_ATTACHMENT)
-					{
-						return error(GL_INVALID_OPERATION);
-					}
-
-					*params = sw2es::GetComponentType(renderbuffer->getInternalFormat(), attachment);
+					return error(GL_INVALID_OPERATION);
 				}
-				else return error(GL_INVALID_ENUM);
+
+				*params = sw2es::GetComponentType(renderbuffer->getInternalFormat(), attachment);
 				break;
 			case GL_FRAMEBUFFER_ATTACHMENT_COLOR_ENCODING:
 				if(clientVersion >= 3)
