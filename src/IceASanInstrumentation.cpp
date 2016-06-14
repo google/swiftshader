@@ -28,11 +28,11 @@ const llvm::NaClBitcodeRecord::RecordVector RzContents =
     llvm::NaClBitcodeRecord::RecordVector(RzSize, 'R');
 } // end of anonymous namespace
 
-// Create redzones between all global variables, ensuring that the initializer
+// Create redzones around all global variables, ensuring that the initializer
 // types of the redzones and their associated globals match so that they are
 // laid out together in memory.
 void ASanInstrumentation::instrumentGlobals(VariableDeclarationList &Globals) {
-  if (BuildDefs::minimal() || DidInsertRedZones)
+  if (DidInsertRedZones)
     return;
 
   VariableDeclarationList NewGlobals;
@@ -50,8 +50,10 @@ void ASanInstrumentation::instrumentGlobals(VariableDeclarationList &Globals) {
   NewGlobals.push_back(RzArraySizeVar);
 
   for (VariableDeclaration *Global : Globals) {
-    VariableDeclaration *RzLeft = createRz(&NewGlobals, RzArray, RzArraySize, Global);
-    VariableDeclaration *RzRight = createRz(&NewGlobals, RzArray, RzArraySize, Global);
+    VariableDeclaration *RzLeft =
+        createRz(&NewGlobals, RzArray, RzArraySize, Global);
+    VariableDeclaration *RzRight =
+        createRz(&NewGlobals, RzArray, RzArraySize, Global);
     NewGlobals.push_back(RzLeft);
     NewGlobals.push_back(Global);
     NewGlobals.push_back(RzRight);
@@ -82,8 +84,6 @@ void ASanInstrumentation::instrumentGlobals(VariableDeclarationList &Globals) {
 }
 
 std::string ASanInstrumentation::nextRzName() {
-  if (BuildDefs::minimal())
-    return "";
   std::stringstream Name;
   Name << RzPrefix << RzNum++;
   return Name.str();
@@ -93,8 +93,6 @@ VariableDeclaration *
 ASanInstrumentation::createRz(VariableDeclarationList *List,
                               VariableDeclaration *RzArray, SizeT &RzArraySize,
                               VariableDeclaration *Global) {
-  if (BuildDefs::minimal())
-    return nullptr;
   auto *Rz = VariableDeclaration::create(List);
   Rz->setName(Ctx, nextRzName());
   if (Global->hasNonzeroInitializer()) {

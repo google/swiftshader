@@ -282,9 +282,7 @@ SB_LDFLAGS := $(LINKOPTLEVEL) $(LD_EXTRA)
 # List the target-specific source files first, which generally take longer to
 # compile, in the hope of improving parallel build time.
 SRCS = \
-  IceASanInstrumentation.cpp \
   IceAssemblerARM32.cpp \
-  IceInstrumentation.cpp \
   IceInstARM32.cpp \
   IceInstMIPS32.cpp \
   IceInstX8632.cpp \
@@ -328,7 +326,9 @@ SRCS = \
 
 ifndef MINIMAL
   SRCS += \
+    IceASanInstrumentation.cpp \
     IceConverter.cpp \
+    IceInstrumentation.cpp \
     IceTypeConverter.cpp
 endif
 
