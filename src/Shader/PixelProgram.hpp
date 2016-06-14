@@ -107,12 +107,12 @@ namespace sw
 		void M4X3(Vector4f &dst, Vector4f &src0, const Src &src1);
 		void M4X4(Vector4f &dst, Vector4f &src0, const Src &src1);
 		void TEXLD(Vector4f &dst, Vector4f &src0, const Src &src1, bool project, bool bias);
-		void TEXLDD(Vector4f &dst, Vector4f &src0, const Src &src1, Vector4f &src2, Vector4f &src3, bool project);
-		void TEXLDL(Vector4f &dst, Vector4f &src0, const Src &src1, bool project);
+		void TEXLDD(Vector4f &dst, Vector4f &src0, const Src &src1, Vector4f &src2, Vector4f &src3);
+		void TEXLDL(Vector4f &dst, Vector4f &src0, const Src &src1);
 		void TEXSIZE(Vector4f &dst, Float4 &lod, const Src &src1);
 		void TEXKILL(Int cMask[4], Vector4f &src, unsigned char mask);
-		void TEXOFFSET(Vector4f &dst, Vector4f &src0, const Src &src1, Vector4f &src2, bool project, bool bias);
-		void TEXLDL(Vector4f &dst, Vector4f &src0, const Src &src1, Vector4f &src2, bool project, bool bias);
+		void TEXOFFSET(Vector4f &dst, Vector4f &src0, const Src &src1, Vector4f &src2, bool bias);
+		void TEXLDL(Vector4f &dst, Vector4f &src0, const Src &src1, Vector4f &src2, bool bias);
 		void TEXELFETCH(Vector4f &dst, Vector4f &src, const Src&);
 		void TEXELFETCH(Vector4f &dst, Vector4f &src, const Src&, Vector4f &src2);
 		void TEXGRAD(Vector4f &dst, Vector4f &src, const Src&, Vector4f &src2, Vector4f &src3);

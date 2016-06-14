@@ -31,9 +31,8 @@ namespace sw
 	enum TextureFunction
 	{
 		None = 0x00,
-		Project = 0x01,
-		Offset = 0x02,
-		Fetch = 0x04
+		Offset = 0x01,
+		Fetch = 0x02
 	};
 
 	class SamplerCore
