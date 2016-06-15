@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "94e02d3e_88199bcc",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-06-15T14:54:36Z",
+      "side": 1,
+      "message": "Please don\u0027t let your description lines go over 70 chars.",
+      "range": {
+        "startLine": 11,
+        "startChar": 0,
+        "endLine": 11,
+        "endChar": 120
+      },
+      "revId": "92db01949dfbe0bf6bce854fe5d2fb4cd2401dea",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "94e02d3e_08d8ebf8",
+        "filename": "src/Shader/VertexProgram.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 1542,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-06-15T14:54:36Z",
+      "side": 1,
+      "message": "Is it necessary to create coord instead of just doing:\nsrc0.w \u003d Float4(0.0f)\nAlso, is it necessary to set LOD to 0? (Is it going to be used?)",
+      "range": {
+        "startLine": 1541,
+        "startChar": 2,
+        "endLine": 1542,
+        "endChar": 25
+      },
+      "revId": "92db01949dfbe0bf6bce854fe5d2fb4cd2401dea",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
