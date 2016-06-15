@@ -1718,9 +1718,9 @@ namespace sw
 			{
 				Pointer<Byte> buffer = cBuffer + 1 * x;
 				Short4 value;
-				Insert(value, *Pointer<Short>(buffer), 0);
+				value = Insert(value, *Pointer<Short>(buffer), 0);
 				Int pitch = *Pointer<Int>(data + OFFSET(DrawData, colorPitchB[index]));
-				Insert(value, *Pointer<Short>(buffer + pitch), 1);
+				value = Insert(value, *Pointer<Short>(buffer + pitch), 1);
 				value = UnpackLow(As<Byte8>(value), As<Byte8>(value));
 
 				current.x &= *Pointer<Short4>(constants + OFFSET(Constants, maskB4Q) + 8 * xMask);
@@ -1736,9 +1736,9 @@ namespace sw
 			{
 				Pointer<Byte> buffer = cBuffer + 1 * x;
 				Short4 value;
-				Insert(value, *Pointer<Short>(buffer), 0);
+				value = Insert(value, *Pointer<Short>(buffer), 0);
 				Int pitch = *Pointer<Int>(data + OFFSET(DrawData,colorPitchB[index]));
-				Insert(value, *Pointer<Short>(buffer + pitch), 1);
+				value = Insert(value, *Pointer<Short>(buffer + pitch), 1);
 				value = UnpackLow(As<Byte8>(value), As<Byte8>(value));
 
 				current.w &= *Pointer<Short4>(constants + OFFSET(Constants,maskB4Q) + 8 * xMask);
