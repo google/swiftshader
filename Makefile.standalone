@@ -501,13 +501,15 @@ $(OBJDIR)/unittest/AssemblerX8664: $(OBJDIR)/unittest
 
 RT_SRC := runtime/szrt.c runtime/szrt_ll.ll runtime/szrt_profiler.c \
           runtime/szrt_asm_x8632.s runtime/szrt_asm_x8664.s \
-          runtime/szrt_asm_arm32.s
+          runtime/szrt_asm_arm32.s runtime/szrt_asan.c
 RT_OBJ := build/runtime/szrt_native_x8632.o build/runtime/szrt_sb_x8632.o \
           build/runtime/szrt_nonsfi_x8632.o \
           build/runtime/szrt_native_x8664.o build/runtime/szrt_sb_x8664.o \
           build/runtime/szrt_nonsfi_x8664.o \
           build/runtime/szrt_native_arm32.o build/runtime/szrt_sb_arm32.o \
-          build/runtime/szrt_nonsfi_arm32.o
+          build/runtime/szrt_nonsfi_arm32.o \
+          build/runtime/szrt_asan_x8632.o build/runtime/szrt_asan_x8664.o \
+          build/runtime/szrt_asan_arm32.o
 
 runtime: $(RT_OBJ)
 

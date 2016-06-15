@@ -103,6 +103,9 @@ def AddOptionalArgs(argparser):
                            default=[], help='Extra arguments for llc')
     argparser.add_argument('--no-sz', dest='nosz', action='store_true',
                            help='Run only post-Subzero build steps')
+    argparser.add_argument('--fsanitize-address', dest='asan',
+                           action='store_true',
+                           help='Instrument with AddressSanitizer')
 
 def LinkSandbox(objs, exe, target, verbose=True):
     assert target in ('x8632', 'x8664', 'arm32'), \
@@ -263,6 +266,11 @@ def main():
     args = argparser.parse_args()
     pexe = args.pexe
     exe = args.output
+    if args.asan:
+        if args.sandbox or args.nonsfi:
+            print 'Can only use AddressSanitizer with a native build'
+            exit(1)
+        args.sz_args.append('-fsanitize-address')
     ProcessPexe(args, pexe, exe)
 
 def ProcessPexe(args, pexe, exe):
@@ -446,7 +454,13 @@ def ProcessPexe(args, pexe, exe):
     elif args.nonsfi:
         LinkNonsfi([obj_partial], exe, args.target, args.verbose)
     else:
-        LinkNative([obj_partial], exe, args.target, args.verbose)
+        objs = [obj_partial]
+        if args.asan:
+            objs.append(
+                ('{root}/toolchain_build/src/subzero/build/runtime/' +
+                 'szrt_asan_{target}.o').format(root=nacl_root,
+                                                target=args.target))
+        LinkNative(objs, exe, args.target, args.verbose)
 
     # Put the extra verbose printing at the end.
     if args.verbose and hybrid:

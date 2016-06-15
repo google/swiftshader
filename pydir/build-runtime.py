@@ -84,6 +84,14 @@ def MakeRuntimesForTarget(target_info, ll_files,
     shellcmd([GetObjcopyCmd(),
               '--strip-symbol=NATIVE',
               OutFile('{rtdir}/szrt_native_{target}.o')])
+    # Compile srcdir/szrt_asan.c to szrt_asan_{target}.o
+    shellcmd(['clang',
+              '-O2',
+              '-target=' + target_info.triple,
+              '-c',
+              '{srcdir}/szrt_asan.c'.format(srcdir=srcdir),
+              '-o', OutFile('{rtdir}/szrt_asan_{target}.o')
+      ], echo=verbose)
 
   # Helper function for building the sandboxed runtime.
   def MakeSandboxedRuntime():

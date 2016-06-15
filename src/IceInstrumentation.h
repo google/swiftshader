@@ -69,6 +69,7 @@ private:
   virtual void instrumentSwitch(LoweringContext &, const class InstSwitch *) {}
   virtual void instrumentUnreachable(LoweringContext &,
                                      const class InstUnreachable *) {}
+  virtual void instrumentStart(Cfg *) {}
   virtual void instrumentLocalVars(Cfg *) {}
 
 protected:

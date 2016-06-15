@@ -15,7 +15,9 @@
 #include "IceASanInstrumentation.h"
 
 #include "IceBuildDefs.h"
+#include "IceCfgNode.h"
 #include "IceGlobalInits.h"
+#include "IceInst.h"
 
 #include <sstream>
 
@@ -107,6 +109,17 @@ ASanInstrumentation::createRz(VariableDeclarationList *List,
       List, Rz, RelocOffsetArray(0)));
   ++RzArraySize;
   return Rz;
+}
+
+void ASanInstrumentation::instrumentStart(Cfg *Func) {
+  Constant *ShadowMemInit =
+      Ctx->getConstantExternSym(Ctx->getGlobalString("__asan_init"));
+  constexpr SizeT NumArgs = 0;
+  constexpr Variable *Void = nullptr;
+  constexpr bool NoTailCall = false;
+
+  auto *Call = InstCall::create(Func, NumArgs, Void, ShadowMemInit, NoTailCall);
+  Func->getEntryNode()->getInsts().push_front(Call);
 }
 
 } // end of namespace Ice

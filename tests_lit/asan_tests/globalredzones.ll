@@ -3,9 +3,9 @@
 ; REQUIRES: allow_dump
 
 ; RUN: %p2i -i %s --args -threads=0 -fsanitize-address \
-; RUN:     | %iflc FileCheck %s
+; RUN:     | FileCheck %s
 ; RUN: %p2i -i %s --args -verbose=global_init,inst -threads=0 \
-; RUN:     -fsanitize-address | %iflc FileCheck --check-prefix=DUMP %s
+; RUN:     -fsanitize-address | FileCheck --check-prefix=DUMP %s
 
 ; The array of redzones
 

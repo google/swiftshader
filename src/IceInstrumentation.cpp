@@ -41,6 +41,9 @@ void Instrumentation::instrumentFunc(Cfg *Func) {
       Context.advanceNext();
     }
   }
+
+  if (Func->getFunctionName().toStringOrEmpty() == "_start")
+    instrumentStart(Func);
 }
 
 void Instrumentation::instrumentInst(LoweringContext &Context) {

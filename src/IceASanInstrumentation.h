@@ -40,6 +40,7 @@ private:
                                 VariableDeclaration *RzArray,
                                 SizeT &RzArraySize,
                                 VariableDeclaration *Global);
+  void instrumentStart(Cfg *Func) override;
   bool DidInsertRedZones = false;
   uint32_t RzNum = 0;
 };
