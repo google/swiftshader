@@ -116,7 +116,7 @@ namespace sw
 		void TEXGRAD(Vector4f &dst, Vector4f &src, const Src&, Vector4f &src2, Vector4f &src3, Vector4f &src4);
 		void TEXSIZE(Vector4f &dst, Float4 &lod, const Src&);
 
-		void sampleTexture(Vector4f &c, const Src &s, Vector4f &uvwq, Vector4f &dsx, Vector4f &dsy, Vector4f &offset, SamplerMethod method, unsigned int options);
+		void sampleTexture(Vector4f &c, const Src &s, Vector4f &uvwq, Vector4f &dsx, Vector4f &dsy, Vector4f &offset, SamplerFunction function);
 
 		SamplerCore *sampler[VERTEX_TEXTURE_IMAGE_UNITS];
 
