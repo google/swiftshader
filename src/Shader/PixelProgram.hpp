@@ -82,8 +82,8 @@ namespace sw
 		Int4 enableContinue;
 		Int4 enableLeave;
 
-		void sampleTexture(Vector4f &c, const Src &sampler, Vector4f &uvwq, Vector4f &dsx, Vector4f &dsy, Vector4f &offset, SamplerMethod method, unsigned int options);
-		void sampleTexture(Vector4f &c, int samplerIndex, Vector4f &uvwq, Vector4f &dsx, Vector4f &dsy, Vector4f &offset, SamplerMethod method, unsigned int options);
+		void sampleTexture(Vector4f &c, const Src &sampler, Vector4f &uvwq, Vector4f &dsx, Vector4f &dsy, Vector4f &offset, SamplerFunction function);
+		void sampleTexture(Vector4f &c, int samplerIndex, Vector4f &uvwq, Vector4f &dsx, Vector4f &dsy, Vector4f &offset, SamplerFunction function);
 
 		// Raster operations
 		void clampColor(Vector4f oC[RENDERTARGETS]);
