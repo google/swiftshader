@@ -2688,7 +2688,7 @@ void TargetX86Base<TraitsType>::lowerCall(const InstCall *Instr) {
   // Mark the call as killing all the caller-save registers.
   Context.insert<InstFakeKill>(NewCall);
   // Handle x86-32 floating point returns.
-  if (Dest != nullptr && isScalarFloatingType(Dest->getType()) &&
+  if (Dest != nullptr && isScalarFloatingType(DestTy) &&
       !Traits::X86_PASS_SCALAR_FP_IN_XMM) {
     // Special treatment for an FP function which returns its result in st(0).
     // If Dest ends up being a physical xmm register, the fstp emit code will
@@ -2706,14 +2706,19 @@ void TargetX86Base<TraitsType>::lowerCall(const InstCall *Instr) {
   // Process the return value, if any.
   if (Dest == nullptr)
     return;
-  // Assign the result of the call to Dest.
+  // Assign the result of the call to Dest.  Route it through a temporary so
+  // that the local register availability peephole can be subsequently used.
+  Variable *Tmp = nullptr;
   if (isVectorType(DestTy)) {
     assert(ReturnReg && "Vector type requires a return register");
-    _movp(Dest, ReturnReg);
+    Tmp = makeReg(DestTy);
+    _movp(Tmp, ReturnReg);
+    _movp(Dest, Tmp);
   } else if (isScalarFloatingType(DestTy)) {
     if (Traits::X86_PASS_SCALAR_FP_IN_XMM) {
       assert(ReturnReg && "FP type requires a return register");
-      _mov(Dest, ReturnReg);
+      _mov(Tmp, ReturnReg);
+      _mov(Dest, Tmp);
     }
   } else {
     assert(isScalarIntegerType(DestTy));
@@ -2723,10 +2728,14 @@ void TargetX86Base<TraitsType>::lowerCall(const InstCall *Instr) {
       auto *Dest64On32 = llvm::cast<Variable64On32>(Dest);
       Variable *DestLo = Dest64On32->getLo();
       Variable *DestHi = Dest64On32->getHi();
-      _mov(DestLo, ReturnReg);
-      _mov(DestHi, ReturnRegHi);
+      _mov(Tmp, ReturnReg);
+      _mov(DestLo, Tmp);
+      Variable *TmpHi = nullptr;
+      _mov(TmpHi, ReturnRegHi);
+      _mov(DestHi, TmpHi);
     } else {
-      _mov(Dest, ReturnReg);
+      _mov(Tmp, ReturnReg);
+      _mov(Dest, Tmp);
     }
   }
 }
