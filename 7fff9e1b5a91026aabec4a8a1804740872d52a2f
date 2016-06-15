@@ -22,6 +22,30 @@
       "revId": "7fff9e1b5a91026aabec4a8a1804740872d52a2f",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "94e02d3e_05b29417",
+        "filename": "src/Shader/PixelProgram.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 1098,
+      "author": {
+        "id": 5685
+      },
+      "writtenOn": "2016-06-15T14:17:59Z",
+      "side": 1,
+      "message": "What about other GLSL sampling functions like textureProjOffset, textureProjLod, textureProjGrad?",
+      "parentUuid": "94e02d3e_25c5183e",
+      "range": {
+        "startLine": 1098,
+        "startChar": 2,
+        "endLine": 1098,
+        "endChar": 13
+      },
+      "revId": "7fff9e1b5a91026aabec4a8a1804740872d52a2f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
