@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "94e02d3e_25c5183e",
+        "filename": "src/Shader/PixelProgram.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 1098,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-06-15T07:25:47Z",
+      "side": 1,
+      "message": "Only TEXLD needs to support projection (which makes it become TEXLDP). See D3DSI_TEXLD_PROJECT in d3d9types.h",
+      "range": {
+        "startLine": 1098,
+        "startChar": 2,
+        "endLine": 1098,
+        "endChar": 13
+      },
+      "revId": "7fff9e1b5a91026aabec4a8a1804740872d52a2f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
