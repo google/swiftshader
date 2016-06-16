@@ -2317,7 +2317,34 @@ namespace sw
 			break;
 		case FORMAT_R8I:
 		case FORMAT_R8UI:
-			ASSERT(false);
+			if(rgbaWriteMask & 0x00000001)
+			{
+				buffer = cBuffer + x;
+
+				UInt xyzw, packedCol;
+
+				xyzw = UInt(*Pointer<UShort>(buffer)) << 16;
+				buffer += *Pointer<Int>(data + OFFSET(DrawData, colorPitchB[index]));
+				xyzw |= UInt(*Pointer<UShort>(buffer));
+
+				Short4 tmpCol = Short4(As<Int4>(oC.x));
+				if(state.targetFormat[index] == FORMAT_R8I)
+				{
+					tmpCol = As<Short4>(Pack(tmpCol, tmpCol));
+				}
+				else
+				{
+					tmpCol = As<Short4>(Pack(As<UShort4>(tmpCol), As<UShort4>(tmpCol)));
+				}
+				packedCol = Extract(As<Int2>(tmpCol), 0);
+
+				packedCol = (packedCol & *Pointer<UInt>(constants + OFFSET(Constants, maskB4Q) + 8 * xMask)) |
+				            (xyzw & *Pointer<UInt>(constants + OFFSET(Constants, invMaskB4Q) + 8 * xMask));
+
+				*Pointer<UShort>(buffer) = UShort(packedCol >> 16);
+				buffer -= *Pointer<Int>(data + OFFSET(DrawData, colorPitchB[index]));
+				*Pointer<UShort>(buffer) = UShort(packedCol);
+			}
 			break;
 		case FORMAT_G32R32F:
 		case FORMAT_G32R32I:
@@ -2364,7 +2391,39 @@ namespace sw
 			break;
 		case FORMAT_G8R8I:
 		case FORMAT_G8R8UI:
-			ASSERT(false);
+			if((rgbaWriteMask & 0x00000003) != 0x0)
+			{
+				buffer = cBuffer + 2 * x;
+
+				Int2 xyzw, packedCol;
+
+				xyzw = Insert(xyzw, *Pointer<Int>(buffer), 0);
+				buffer += *Pointer<Int>(data + OFFSET(DrawData, colorPitchB[index]));
+				xyzw = Insert(xyzw, *Pointer<Int>(buffer), 1);
+
+				if(state.targetFormat[index] == FORMAT_G8R8I)
+				{
+					packedCol = As<Int2>(Pack(Short4(As<Int4>(oC.x)), Short4(As<Int4>(oC.y))));
+				}
+				else
+				{
+					packedCol = As<Int2>(Pack(UShort4(As<Int4>(oC.x)), UShort4(As<Int4>(oC.y))));
+				}
+
+				UInt2 mergedMask = *Pointer<UInt2>(constants + OFFSET(Constants, maskW4Q) + xMask * 8);
+				if((rgbaWriteMask & 0x3) != 0x3)
+				{
+					Int tmpMask = *Pointer<Int>(constants + OFFSET(Constants, maskB4Q[5 * (rgbaWriteMask & 0x3)][0]));
+					UInt2 rgbaMask = As<UInt2>(Int2(tmpMask, tmpMask));
+					mergedMask &= rgbaMask;
+				}
+
+				packedCol = As<Int2>((As<UInt2>(packedCol) & mergedMask) | (As<UInt2>(xyzw) & ~mergedMask));
+
+				*Pointer<UInt>(buffer) = As<UInt>(Extract(packedCol, 1));
+				buffer -= *Pointer<Int>(data + OFFSET(DrawData, colorPitchB[index]));
+				*Pointer<UInt>(buffer) = As<UInt>(Extract(packedCol, 0));
+			}
 			break;
 		case FORMAT_X32B32G32R32F:
 		case FORMAT_A32B32G32R32F:
@@ -2448,7 +2507,46 @@ namespace sw
 			break;
 		case FORMAT_A8B8G8R8I:
 		case FORMAT_A8B8G8R8UI:
-			ASSERT(false);
+			if((rgbaWriteMask & 0x0000000F) != 0x0)
+			{
+				UInt2 value, packedCol, mergedMask;
+
+				buffer = cBuffer + 4 * x;
+
+				if(state.targetFormat[index] == FORMAT_A8B8G8R8I)
+				{
+					packedCol = As<UInt2>(Pack(Short4(As<Int4>(oC.x)), Short4(As<Int4>(oC.y))));
+				}
+				else
+				{
+					packedCol = As<UInt2>(Pack(UShort4(As<Int4>(oC.x)), UShort4(As<Int4>(oC.y))));
+				}
+				value = *Pointer<UInt2>(buffer, 16);
+				mergedMask = *Pointer<UInt2>(constants + OFFSET(Constants, maskD01Q) + xMask * 8);
+				if(rgbaWriteMask != 0xF)
+				{
+					mergedMask &= *Pointer<UInt2>(constants + OFFSET(Constants, maskB4Q[rgbaWriteMask][0]));
+				}
+				*Pointer<UInt2>(buffer) = (packedCol & mergedMask) | (value & ~mergedMask);
+
+				buffer += *Pointer<Int>(data + OFFSET(DrawData, colorPitchB[index]));
+
+				if(state.targetFormat[index] == FORMAT_A8B8G8R8I)
+				{
+					packedCol = As<UInt2>(Pack(Short4(As<Int4>(oC.z)), Short4(As<Int4>(oC.w))));
+				}
+				else
+				{
+					packedCol = As<UInt2>(Pack(UShort4(As<Int4>(oC.z)), UShort4(As<Int4>(oC.w))));
+				}
+				value = *Pointer<UInt2>(buffer, 16);
+				mergedMask = *Pointer<UInt2>(constants + OFFSET(Constants, maskD23Q) + xMask * 8);
+				if(rgbaWriteMask != 0xF)
+				{
+					mergedMask &= *Pointer<UInt2>(constants + OFFSET(Constants, maskB4Q[rgbaWriteMask][0]));
+				}
+				*Pointer<UInt2>(buffer) = (packedCol & mergedMask) | (value & ~mergedMask);
+			}
 			break;
 		default:
 			ASSERT(false);
