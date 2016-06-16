@@ -26,6 +26,20 @@
 ; RUN:   | %if --need=target_ARM32 --need=allow_dump \
 ; RUN:   --command FileCheck --check-prefix ARM32 --check-prefix=ARM-OPTM1 %s
 
+; RUN: %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command %p2i --filetype=asm --assemble \
+; RUN:   --disassemble --target mips32 -i %s --args -O2 --skip-unimplemented \
+; RUN:   -allow-externally-defined-symbols \
+; RUN:   | %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command FileCheck --check-prefix MIPS32 --check-prefix=MIPS32-OPT2 %s
+
+; RUN: %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command %p2i --filetype=asm --assemble \
+; RUN:   --disassemble --target mips32 -i %s --args -Om1 --skip-unimplemented \
+; RUN:   -allow-externally-defined-symbols \
+; RUN:   | %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command FileCheck --check-prefix MIPS32 --check-prefix=MIPS32-OPTM1 %s
+
 define internal void @fixed_416_align_16(i32 %n) {
 entry:
   %array = alloca i8, i32 416, align 16
@@ -50,6 +64,10 @@ entry:
 ; ARM32-OPTM1: sub sp, sp, #416
 ; ARM32:       bl {{.*}} R_{{.*}}    f1
 
+; MIPS32-LABEL: fixed_416_align_16
+; MIPS32-OPT2: addiu sp,sp,-440
+; MIPS32-OPTM1: addiu sp,sp,-448
+
 define internal void @fixed_416_align_32(i32 %n) {
 entry:
   %array = alloca i8, i32 400, align 32
@@ -71,6 +89,10 @@ entry:
 ; ARM32-OPTM1: sub sp, sp, #416
 ; ARM32:       bic sp, sp, #31
 ; ARM32:       bl {{.*}} R_{{.*}}    f1
+
+; MIPS32-LABEL: fixed_416_align_32
+; MIPS32-OPT2: addiu sp,sp,-440
+; MIPS32-OPTM1: addiu sp,sp,-448
 
 ; Show that the amount to allocate will be rounded up.
 define internal void @fixed_351_align_16(i32 %n) {
@@ -97,6 +119,10 @@ entry:
 ; ARM32-OPTM1: sub sp, sp, #352
 ; ARM32:       bl {{.*}} R_{{.*}}    f1
 
+; MIPS32-LABEL: fixed_351_align_16
+; MIPS32-OPT2: addiu sp,sp,-376
+; MIPS32-OPTM1: addiu sp,sp,-384
+
 define internal void @fixed_351_align_32(i32 %n) {
 entry:
   %array = alloca i8, i32 351, align 32
@@ -118,6 +144,10 @@ entry:
 ; ARM32-OPTM1: sub sp, sp, #352
 ; ARM32:       bic sp, sp, #31
 ; ARM32:       bl {{.*}} R_{{.*}}    f1
+
+; MIPS32-LABEL: fixed_351_align_32
+; MIPS32-OPT2: addiu sp,sp,-376
+; MIPS32-OPTM1: addiu sp,sp,-384
 
 declare void @f1(i32 %ignored)
 

@@ -89,21 +89,20 @@ public:
     // are rounded up to 4 bytes.
     return (typeWidthInBytes(Ty) + 3) & ~3;
   }
-  uint32_t getStackAlignment() const override {
-    // TODO(sehr): what is the stack alignment?
-    return 1;
-  }
+  uint32_t getStackAlignment() const override;
   void reserveFixedAllocaArea(size_t Size, size_t Align) override {
-    // TODO(sehr): Implement fixed stack layout.
-    (void)Size;
-    (void)Align;
-    llvm::report_fatal_error("Not yet implemented");
+    FixedAllocaSizeBytes = Size;
+    assert(llvm::isPowerOf2_32(Align));
+    FixedAllocaAlignBytes = Align;
+    PrologEmitsFixedAllocas = true;
   }
   int32_t getFrameFixedAllocaOffset() const override {
     // TODO(sehr): Implement fixed stack layout.
     llvm::report_fatal_error("Not yet implemented");
     return 0;
   }
+
+  uint32_t maxOutArgsSizeBytes() const override { return MaxOutArgsSizeBytes; }
 
   bool shouldSplitToVariable64On32(Type Ty) const override {
     return Ty == IceType_i64;
@@ -447,6 +446,8 @@ public:
   static Type stackSlotType();
   Variable *copyToReg(Operand *Src, RegNumT RegNum = RegNumT());
 
+  void unsetIfNonLeafFunc();
+
   // Iterates over the CFG and determines the maximum outgoing stack arguments
   // bytes. This information is later used during addProlog() to pre-allocate
   // the outargs area
@@ -563,6 +564,8 @@ protected:
   static constexpr uint32_t CHAR_BITS = 8;
   static constexpr uint32_t INT32_BITS = 32;
   size_t SpillAreaSizeBytes = 0;
+  size_t FixedAllocaSizeBytes = 0;
+  size_t FixedAllocaAlignBytes = 0;
 
 private:
   ENABLE_MAKE_UNIQUE;
