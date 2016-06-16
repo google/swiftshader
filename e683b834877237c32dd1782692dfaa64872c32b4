@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d4fd45ea_e66faf14",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 1205,
+      "author": {
+        "id": 5685
+      },
+      "writtenOn": "2016-06-16T14:37:15Z",
+      "side": 1,
+      "message": "nit: extra space",
+      "range": {
+        "startLine": 1205,
+        "startChar": 4,
+        "endLine": 1205,
+        "endChar": 5
+      },
+      "revId": "e683b834877237c32dd1782692dfaa64872c32b4",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d4fd45ea_267a37d7",
+        "filename": "src/Shader/SamplerCore.hpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5685
+      },
+      "writtenOn": "2016-06-16T14:37:15Z",
+      "side": 1,
+      "message": "nit: extra comma",
+      "range": {
+        "startLine": 29,
+        "startChar": 7,
+        "endLine": 29,
+        "endChar": 8
+      },
+      "revId": "e683b834877237c32dd1782692dfaa64872c32b4",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
