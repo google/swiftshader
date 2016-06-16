@@ -40,6 +40,10 @@ private:
                                 VariableDeclaration *RzArray,
                                 SizeT &RzArraySize,
                                 VariableDeclaration *Global);
+  void instrumentLoad(LoweringContext &Context, const InstLoad *Inst) override;
+  void instrumentStore(LoweringContext &Context,
+                       const InstStore *Inst) override;
+  void instrumentAccess(LoweringContext &Context, Operand *Op, SizeT Size);
   void instrumentStart(Cfg *Func) override;
   bool DidInsertRedZones = false;
   uint32_t RzNum = 0;

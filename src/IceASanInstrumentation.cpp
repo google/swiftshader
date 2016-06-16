@@ -18,6 +18,8 @@
 #include "IceCfgNode.h"
 #include "IceGlobalInits.h"
 #include "IceInst.h"
+#include "IceTargetLowering.h"
+#include "IceTypes.h"
 
 #include <sstream>
 
@@ -111,13 +113,43 @@ ASanInstrumentation::createRz(VariableDeclarationList *List,
   return Rz;
 }
 
+void ASanInstrumentation::instrumentLoad(LoweringContext &Context,
+                                         const InstLoad *Inst) {
+  instrumentAccess(Context, Inst->getSourceAddress(),
+                   typeWidthInBytes(Inst->getDest()->getType()));
+}
+
+void ASanInstrumentation::instrumentStore(LoweringContext &Context,
+                                          const InstStore *Inst) {
+  instrumentAccess(Context, Inst->getAddr(),
+                   typeWidthInBytes(Inst->getData()->getType()));
+}
+
+// TODO(tlively): Take size of access into account as well
+void ASanInstrumentation::instrumentAccess(LoweringContext &Context,
+                                           Operand *Op, SizeT Size) {
+  Constant *AccessCheck =
+      Ctx->getConstantExternSym(Ctx->getGlobalString("__asan_check"));
+  constexpr SizeT NumArgs = 2;
+  constexpr Variable *Void = nullptr;
+  constexpr bool NoTailCall = false;
+  auto *Call = InstCall::create(Context.getNode()->getCfg(), NumArgs, Void,
+                                AccessCheck, NoTailCall);
+  Call->addArg(Op);
+  Call->addArg(ConstantInteger32::create(Ctx, IceType_i32, Size));
+  // play games to insert the call before the access instruction
+  InstList::iterator Next = Context.getNext();
+  Context.setInsertPoint(Context.getCur());
+  Context.insert(Call);
+  Context.setNext(Next);
+}
+
 void ASanInstrumentation::instrumentStart(Cfg *Func) {
   Constant *ShadowMemInit =
       Ctx->getConstantExternSym(Ctx->getGlobalString("__asan_init"));
   constexpr SizeT NumArgs = 0;
   constexpr Variable *Void = nullptr;
   constexpr bool NoTailCall = false;
-
   auto *Call = InstCall::create(Func, NumArgs, Void, ShadowMemInit, NoTailCall);
   Func->getEntryNode()->getInsts().push_front(Call);
 }

@@ -22,3 +22,8 @@ void __asan_init(void) {
   printf("Set up shadow memory here\n");
   return;
 }
+
+void __asan_check(void *addr, int size) {
+  printf("Check access of %p of size %d\n", addr, size);
+  return;
+}

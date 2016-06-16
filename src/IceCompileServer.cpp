@@ -243,7 +243,6 @@ void CLCompileServer::run() {
 
   Ctx.reset(new GlobalContext(Ls.get(), Os.get(), Ls.get(), ELFStr.get()));
 
-  // TODO(tlively): Make this instantiate an instrumentation subclass
   if (!BuildDefs::minimal() && getFlags().getSanitizeAddresses()) {
     std::unique_ptr<Instrumentation> Instr(new ASanInstrumentation(Ctx.get()));
     Ctx->setInstrumentation(std::move(Instr));

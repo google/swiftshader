@@ -10,7 +10,8 @@ define internal void @notStart() {
   ret void
 }
 
-; DUMP-LABEL: define internal void @notStart() { # notStart(i=1:b=1)
+; DUMP-LABEL: ================ Instrumented CFG ================
+; DUMP-NEXT: define internal void @notStart() {
 ; DUMP-NEXT: __0:
 ; DUMP-NOT: __asan_init()
 ; DUMP: ret void
@@ -21,7 +22,8 @@ define void @_start() {
   ret void
 }
 
-; DUMP-LABEL: define void @_start() { # _start(i=2:b=1)
+; DUMP-LABEL: ================ Instrumented CFG ================
+; DUMP-NEXT: define void @_start() {
 ; DUMP-NEXT: __0:
 ; DUMP-NEXT: call void @__asan_init()
 ; DUMP-NEXT: ret void
