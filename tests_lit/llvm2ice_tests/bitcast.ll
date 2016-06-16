@@ -19,7 +19,7 @@ entry:
   ret i32 %v0
 }
 ; CHECK-LABEL: cast_f2i
-; CHECK: mov eax
+; CHECK: movd eax
 ; ARM32-LABEL: cast_f2i
 ; ARM32: vmov r{{[0-9]+}}, s{{[0-9]+}}
 

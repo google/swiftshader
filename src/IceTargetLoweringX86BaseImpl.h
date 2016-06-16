@@ -3059,24 +3059,10 @@ void TargetX86Base<TraitsType>::lowerCast(const InstCast *Instr) {
     } break;
     case IceType_i32:
     case IceType_f32: {
-      Operand *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
-      Type SrcType = Src0RM->getType();
-      assert((DestTy == IceType_i32 && SrcType == IceType_f32) ||
-             (DestTy == IceType_f32 && SrcType == IceType_i32));
-      // a.i32 = bitcast b.f32 ==>
-      //   t.f32 = b.f32
-      //   s.f32 = spill t.f32
-      //   a.i32 = s.f32
-      Variable *T = nullptr;
-      // TODO: Should be able to force a spill setup by calling legalize() with
-      // Legal_Mem and not Legal_Reg or Legal_Imm.
-      SpillVariable *SpillVar = Func->makeVariable<SpillVariable>(SrcType);
-      SpillVar->setLinkedTo(Dest);
-      Variable *Spill = SpillVar;
-      Spill->setMustNotHaveReg();
-      _mov(T, Src0RM);
-      _mov(Spill, T);
-      _mov(Dest, Spill);
+      Variable *Src0R = legalizeToReg(Src0);
+      Variable *T = makeReg(DestTy);
+      _movd(T, Src0R);
+      _mov(Dest, T);
     } break;
     case IceType_i64: {
       assert(Src0->getType() == IceType_f64);
