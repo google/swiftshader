@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "696200f0_c918f1c7",
+        "filename": "src/Shader/PixelRoutine.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2314,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-06-16T21:30:28Z",
+      "side": 1,
+      "message": "Hmmm... so we read 4 bytes, convert them to int, compare them to the input int values and then bring them back to the byte size.\nMaybe we could simply convert oC.x to byte4 and do everything in bytes?",
+      "range": {
+        "startLine": 2307,
+        "startChar": 0,
+        "endLine": 2314,
+        "endChar": 58
+      },
+      "revId": "0b62ed5f89228130b61c66427fae24f57c429d11",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "696200f0_896d591c",
+        "filename": "src/Shader/PixelRoutine.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2382,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-06-16T21:30:28Z",
+      "side": 1,
+      "message": "Nicolas, is there an instruction that will pack the first byte of 4 integers vector into 4 contiguous bytes?",
+      "range": {
+        "startLine": 2382,
+        "startChar": 55,
+        "endLine": 2382,
+        "endChar": 147
+      },
+      "revId": "0b62ed5f89228130b61c66427fae24f57c429d11",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "696200f0_29542d3b",
+        "filename": "src/Shader/PixelRoutine.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2389,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-06-16T21:30:28Z",
+      "side": 1,
+      "message": "This could be moved lower and we could use a single rgrg variable. We never need rg2rg3 at the same time as rg0rg1.",
+      "range": {
+        "startLine": 2389,
+        "startChar": 4,
+        "endLine": 2389,
+        "endChar": 49
+      },
+      "revId": "0b62ed5f89228130b61c66427fae24f57c429d11",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "696200f0_a99c9d21",
+        "filename": "src/Shader/PixelRoutine.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2400,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-06-16T21:30:28Z",
+      "side": 1,
+      "message": "If the rgbaWriteMask was combined with xMask the same way you did for the RGBA8 case, all these lines would become:\n*Pointer\u003cInt\u003e(buffer) \u003d Extract(As\u003cInt2\u003e(packedCol), 1);",
+      "range": {
+        "startLine": 2391,
+        "startChar": 4,
+        "endLine": 2400,
+        "endChar": 5
+      },
+      "revId": "0b62ed5f89228130b61c66427fae24f57c429d11",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "696200f0_890c393b",
+        "filename": "src/Shader/PixelRoutine.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2539,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-06-16T21:30:28Z",
+      "side": 1,
+      "message": "You\u0027re computing this mask at runtime, using the dynamic UInt type. Please compute it at \"compile time\" using a regular unsigned int and then assign the result to a UInt. \n\nAlso, I think this is equivalent to:\nUInt byteMask \u003d UInt(*reinterpret_cast\u003cunsigned int*\u003e(\u0026Constants::maskB4Q[rgbaWriteMask][0]));",
+      "range": {
+        "startLine": 2531,
+        "startChar": 4,
+        "endLine": 2539,
+        "endChar": 34
+      },
+      "revId": "0b62ed5f89228130b61c66427fae24f57c429d11",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "696200f0_69c6a50a",
+        "filename": "src/Shader/PixelRoutine.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2546,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-06-16T21:30:28Z",
+      "side": 1,
+      "message": "nit : extra tabs",
+      "range": {
+        "startLine": 2546,
+        "startChar": 0,
+        "endLine": 2546,
+        "endChar": 4
+      },
+      "revId": "0b62ed5f89228130b61c66427fae24f57c429d11",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
