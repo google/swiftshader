@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "d4fd45ea_d9c25463",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 1205,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-06-16T18:12:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d4fd45ea_e66faf14",
+      "range": {
+        "startLine": 1205,
+        "startChar": 4,
+        "endLine": 1205,
+        "endChar": 5
+      },
+      "revId": "e683b834877237c32dd1782692dfaa64872c32b4",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d4fd45ea_267a37d7",
         "filename": "src/Shader/SamplerCore.hpp",
         "patchSetId": 5
@@ -41,6 +65,53 @@
         "startChar": 7,
         "endLine": 29,
         "endChar": 8
+      },
+      "revId": "e683b834877237c32dd1782692dfaa64872c32b4",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d4fd45ea_79f500c1",
+        "filename": "src/Shader/SamplerCore.hpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-06-16T18:12:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d4fd45ea_267a37d7",
+      "range": {
+        "startLine": 29,
+        "startChar": 7,
+        "endLine": 29,
+        "endChar": 8
+      },
+      "revId": "e683b834877237c32dd1782692dfaa64872c32b4",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d4fd45ea_99d1ec2d",
+        "filename": "src/Shader/VertexProgram.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 1548,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-06-16T18:12:48Z",
+      "side": 1,
+      "message": "Was missing Offset here.",
+      "range": {
+        "startLine": 1548,
+        "startChar": 47,
+        "endLine": 1548,
+        "endChar": 50
       },
       "revId": "e683b834877237c32dd1782692dfaa64872c32b4",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
