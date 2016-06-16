@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d4fd45ea_e60a0f72",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 1240,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-06-16T13:40:59Z",
+      "side": 0,
+      "message": "I removed the constant case because it would produce different results than the non-constant case, which could be unexpected. Also, this path is only used when all the texture coordinate components are constant, which seems extremely unlikely to occur anywhere other than a test. We want to test the typical path, not the exception.",
+      "range": {
+        "startLine": 1240,
+        "startChar": 6,
+        "endLine": 1240,
+        "endChar": 18
+      },
+      "revId": "9d62c486034d107ed778e061760be668ba47e026",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
