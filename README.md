@@ -43,6 +43,8 @@ Contact
 
 Public mailing list: swiftshader@googlegroups.com
 
+Bug tracker: bugs.chromium.org/p/swiftshader
+
 License
 ----------
 
