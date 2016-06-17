@@ -1533,6 +1533,13 @@ Buffer *Context::getGenericUniformBuffer() const
 	return mState.genericUniformBuffer;
 }
 
+const GLvoid* Context::getPixels(const GLvoid* data) const
+{
+	es2::Buffer* unpackBuffer = getPixelUnpackBuffer();
+	const unsigned char* unpackBufferData = unpackBuffer ? static_cast<const unsigned char*>(unpackBuffer->data()) : nullptr;
+	return unpackBufferData ? unpackBufferData + (ptrdiff_t)(data) : data;
+}
+
 bool Context::getBuffer(GLenum target, es2::Buffer **buffer) const
 {
 	switch(target)

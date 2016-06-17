@@ -955,7 +955,7 @@ void CompressedTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yo
 
 			if(validationError == GL_NONE)
 			{
-				texture->subImageCompressed(level, xoffset, yoffset, width, height, sizedInternalFormat, imageSize, data);
+				texture->subImageCompressed(level, xoffset, yoffset, width, height, sizedInternalFormat, imageSize, context->getPixels(data));
 			}
 			else
 			{
@@ -970,7 +970,7 @@ void CompressedTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yo
 
 			if(validationError == GL_NONE)
 			{
-				texture->subImageCompressed(target, level, xoffset, yoffset, width, height, sizedInternalFormat, imageSize, data);
+				texture->subImageCompressed(target, level, xoffset, yoffset, width, height, sizedInternalFormat, imageSize, context->getPixels(data));
 			}
 			else
 			{
@@ -5061,11 +5061,11 @@ GLboolean TestFenceNV(GLuint fence)
 }
 
 void TexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height,
-                GLint border, GLenum format, GLenum type, const GLvoid* pixels)
+                GLint border, GLenum format, GLenum type, const GLvoid* data)
 {
 	TRACE("(GLenum target = 0x%X, GLint level = %d, GLint internalformat = %d, GLsizei width = %d, GLsizei height = %d, "
-	      "GLint border = %d, GLenum format = 0x%X, GLenum type = 0x%X, const GLvoid* pixels =  %p)",
-	      target, level, internalformat, width, height, border, format, type, pixels);
+	      "GLint border = %d, GLenum format = 0x%X, GLenum type = 0x%X, const GLvoid* data =  %p)",
+	      target, level, internalformat, width, height, border, format, type, data);
 
 	if(!validImageSize(level, width, height))
 	{
@@ -5142,7 +5142,7 @@ void TexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width,
 				return error(GL_INVALID_OPERATION);
 			}
 
-			texture->setImage(level, width, height, sizedInternalFormat, type, context->getUnpackInfo(), pixels);
+			texture->setImage(level, width, height, sizedInternalFormat, type, context->getUnpackInfo(), context->getPixels(data));
 		}
 		else
 		{
@@ -5153,7 +5153,7 @@ void TexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width,
 				return error(GL_INVALID_OPERATION);
 			}
 
-			texture->setImage(target, level, width, height, sizedInternalFormat, type, context->getUnpackInfo(), pixels);
+			texture->setImage(target, level, width, height, sizedInternalFormat, type, context->getUnpackInfo(), context->getPixels(data));
 		}
 	}
 }
@@ -5457,12 +5457,12 @@ void TexParameteriv(GLenum target, GLenum pname, const GLint* params)
 }
 
 void TexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height,
-                   GLenum format, GLenum type, const GLvoid* pixels)
+                   GLenum format, GLenum type, const GLvoid* data)
 {
 	TRACE("(GLenum target = 0x%X, GLint level = %d, GLint xoffset = %d, GLint yoffset = %d, "
 	      "GLsizei width = %d, GLsizei height = %d, GLenum format = 0x%X, GLenum type = 0x%X, "
-	      "const GLvoid* pixels = %p)",
-	      target, level, xoffset, yoffset, width, height, format, type, pixels);
+	      "const GLvoid* data = %p)",
+	      target, level, xoffset, yoffset, width, height, format, type, data);
 
 	if(!es2::IsTextureTarget(target))
 	{
@@ -5489,7 +5489,7 @@ void TexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLs
 		return;
 	}
 
-	if(width == 0 || height == 0 || !pixels)
+	if(width == 0 || height == 0)
 	{
 		return;
 	}
@@ -5508,7 +5508,7 @@ void TexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLs
 
 			if(validationError == GL_NONE)
 			{
-				texture->subImage(level, xoffset, yoffset, width, height, sizedInternalFormat, type, context->getUnpackInfo(), pixels);
+				texture->subImage(level, xoffset, yoffset, width, height, sizedInternalFormat, type, context->getUnpackInfo(), context->getPixels(data));
 			}
 			else
 			{
@@ -5523,7 +5523,7 @@ void TexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLs
 
 			if(validationError == GL_NONE)
 			{
-				texture->subImage(target, level, xoffset, yoffset, width, height, sizedInternalFormat, type, context->getUnpackInfo(), pixels);
+				texture->subImage(target, level, xoffset, yoffset, width, height, sizedInternalFormat, type, context->getUnpackInfo(), context->getPixels(data));
 			}
 			else
 			{
@@ -6283,12 +6283,12 @@ void BlitFramebufferANGLE(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GL
 }
 
 void TexImage3DOES(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth,
-                   GLint border, GLenum format, GLenum type, const GLvoid* pixels)
+                   GLint border, GLenum format, GLenum type, const GLvoid* data)
 {
 	TRACE("(GLenum target = 0x%X, GLint level = %d, GLenum internalformat = 0x%X, "
 	      "GLsizei width = %d, GLsizei height = %d, GLsizei depth = %d, GLint border = %d, "
-	      "GLenum format = 0x%X, GLenum type = 0x%x, const GLvoid* pixels = %p)",
-	      target, level, internalformat, width, height, depth, border, format, type, pixels);
+	      "GLenum format = 0x%X, GLenum type = 0x%x, const GLvoid* data = %p)",
+	      target, level, internalformat, width, height, depth, border, format, type, data);
 
 	switch(target)
 	{
@@ -6338,16 +6338,16 @@ void TexImage3DOES(GLenum target, GLint level, GLenum internalformat, GLsizei wi
 			return error(GL_INVALID_OPERATION);
 		}
 
-		texture->setImage(level, width, height, depth, GetSizedInternalFormat(internalformat, type), type, context->getUnpackInfo(), pixels);
+		texture->setImage(level, width, height, depth, GetSizedInternalFormat(internalformat, type), type, context->getUnpackInfo(), context->getPixels(data));
 	}
 }
 
-void TexSubImage3DOES(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *pixels)
+void TexSubImage3DOES(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void *data)
 {
 	TRACE("(GLenum target = 0x%X, GLint level = %d, GLint xoffset = %d, GLint yoffset = %d, "
 	      "GLint zoffset = %d, GLsizei width = %d, GLsizei height = %d, GLsizei depth = %d, "
-	      "GLenum format = 0x%X, GLenum type = 0x%x, const GLvoid* pixels = %p)",
-	      target, level, xoffset, yoffset, zoffset, width, height, depth, format, type, pixels);
+	      "GLenum format = 0x%X, GLenum type = 0x%x, const GLvoid* data = %p)",
+	      target, level, xoffset, yoffset, zoffset, width, height, depth, format, type, data);
 
 	switch(target)
 	{
@@ -6383,7 +6383,7 @@ void TexSubImage3DOES(GLenum target, GLint level, GLint xoffset, GLint yoffset, 
 		GLenum validationError = ValidateSubImageParams(false, width, height, depth, xoffset, yoffset, zoffset, target, level, sizedInternalFormat, texture);
 		if(validationError == GL_NONE)
 		{
-			texture->subImage(level, xoffset, yoffset, zoffset, width, height, depth, sizedInternalFormat, type, context->getUnpackInfo(), pixels);
+			texture->subImage(level, xoffset, yoffset, zoffset, width, height, depth, sizedInternalFormat, type, context->getUnpackInfo(), context->getPixels(data));
 		}
 		else
 		{
@@ -6552,7 +6552,7 @@ void CompressedTexSubImage3DOES(GLenum target, GLint level, GLint xoffset, GLint
 			return error(GL_INVALID_OPERATION);
 		}
 
-		texture->subImageCompressed(level, xoffset, yoffset, zoffset, width, height, depth, format, imageSize, data);
+		texture->subImageCompressed(level, xoffset, yoffset, zoffset, width, height, depth, format, imageSize, context->getPixels(data));
 	}
 }
 
