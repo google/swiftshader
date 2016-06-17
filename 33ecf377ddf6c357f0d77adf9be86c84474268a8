@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e9c35058_d8ae71ff",
+        "filename": "src/Shader/PixelRoutine.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 2313,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-06-17T19:54:19Z",
+      "side": 1,
+      "message": "nit: use spaces instead of tabs to offset from current indentation",
+      "range": {
+        "startLine": 2313,
+        "startChar": 4,
+        "endLine": 2313,
+        "endChar": 7
+      },
+      "revId": "33ecf377ddf6c357f0d77adf9be86c84474268a8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e9c35058_f8ab2dec",
+        "filename": "src/Shader/PixelRoutine.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 2381,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-06-17T19:54:19Z",
+      "side": 1,
+      "message": "nit: spaces",
+      "range": {
+        "startLine": 2381,
+        "startChar": 4,
+        "endLine": 2381,
+        "endChar": 5
+      },
+      "revId": "33ecf377ddf6c357f0d77adf9be86c84474268a8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e9c35058_387da556",
+        "filename": "src/Shader/PixelRoutine.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 2496,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-06-17T19:54:19Z",
+      "side": 1,
+      "message": "nit: spaces",
+      "range": {
+        "startLine": 2496,
+        "startChar": 4,
+        "endLine": 2496,
+        "endChar": 5
+      },
+      "revId": "33ecf377ddf6c357f0d77adf9be86c84474268a8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e9c35058_b888d588",
+        "filename": "src/Shader/PixelRoutine.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 2497,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-06-17T19:54:19Z",
+      "side": 1,
+      "message": "nit: remove tabs",
+      "range": {
+        "startLine": 2497,
+        "startChar": 0,
+        "endLine": 2497,
+        "endChar": 4
+      },
+      "revId": "33ecf377ddf6c357f0d77adf9be86c84474268a8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e9c35058_f8824d64",
+        "filename": "src/Shader/PixelRoutine.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 2499,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-06-17T19:54:19Z",
+      "side": 1,
+      "message": "nit: remove tabs",
+      "range": {
+        "startLine": 2499,
+        "startChar": 0,
+        "endLine": 2499,
+        "endChar": 4
+      },
+      "revId": "33ecf377ddf6c357f0d77adf9be86c84474268a8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e9c35058_78771d74",
+        "filename": "src/Shader/PixelRoutine.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 2512,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-06-17T19:54:19Z",
+      "side": 1,
+      "message": "nit: spaces",
+      "range": {
+        "startLine": 2512,
+        "startChar": 4,
+        "endLine": 2512,
+        "endChar": 5
+      },
+      "revId": "33ecf377ddf6c357f0d77adf9be86c84474268a8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
