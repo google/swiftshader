@@ -48,27 +48,27 @@ private:
   void instrumentInst(LoweringContext &Context);
   virtual void instrumentFuncStart(LoweringContext &) {}
   virtual void instrumentAlloca(LoweringContext &, const class InstAlloca *) {}
-  virtual void instrumentArithmetic(LoweringContext &,
-                                    const class InstArithmetic *) {}
-  virtual void instrumentBr(LoweringContext &, const class InstBr *) {}
-  virtual void instrumentCall(LoweringContext &, const class InstCall *) {}
-  virtual void instrumentCast(LoweringContext &, const class InstCast *) {}
+  virtual void instrumentArithmetic(LoweringContext &, class InstArithmetic *) {
+  }
+  virtual void instrumentBr(LoweringContext &, class InstBr *) {}
+  virtual void instrumentCall(LoweringContext &, class InstCall *) {}
+  virtual void instrumentCast(LoweringContext &, class InstCast *) {}
   virtual void instrumentExtractElement(LoweringContext &,
-                                        const class InstExtractElement *) {}
-  virtual void instrumentFcmp(LoweringContext &, const class InstFcmp *) {}
-  virtual void instrumentIcmp(LoweringContext &, const class InstIcmp *) {}
+                                        class InstExtractElement *) {}
+  virtual void instrumentFcmp(LoweringContext &, class InstFcmp *) {}
+  virtual void instrumentIcmp(LoweringContext &, class InstIcmp *) {}
   virtual void instrumentInsertElement(LoweringContext &,
-                                       const class InstInsertElement *) {}
+                                       class InstInsertElement *) {}
   virtual void instrumentIntrinsicCall(LoweringContext &,
-                                       const class InstIntrinsicCall *) {}
-  virtual void instrumentLoad(LoweringContext &, const class InstLoad *) {}
-  virtual void instrumentPhi(LoweringContext &, const class InstPhi *) {}
-  virtual void instrumentRet(LoweringContext &, const class InstRet *) {}
-  virtual void instrumentSelect(LoweringContext &, const class InstSelect *) {}
-  virtual void instrumentStore(LoweringContext &, const class InstStore *) {}
-  virtual void instrumentSwitch(LoweringContext &, const class InstSwitch *) {}
+                                       class InstIntrinsicCall *) {}
+  virtual void instrumentLoad(LoweringContext &, class InstLoad *) {}
+  virtual void instrumentPhi(LoweringContext &, class InstPhi *) {}
+  virtual void instrumentRet(LoweringContext &, class InstRet *) {}
+  virtual void instrumentSelect(LoweringContext &, class InstSelect *) {}
+  virtual void instrumentStore(LoweringContext &, class InstStore *) {}
+  virtual void instrumentSwitch(LoweringContext &, class InstSwitch *) {}
   virtual void instrumentUnreachable(LoweringContext &,
-                                     const class InstUnreachable *) {}
+                                     class InstUnreachable *) {}
   virtual void instrumentStart(Cfg *) {}
   virtual void instrumentLocalVars(Cfg *) {}
 

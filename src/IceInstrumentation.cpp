@@ -29,6 +29,8 @@ void Instrumentation::instrumentFunc(Cfg *Func) {
   assert(Func);
   assert(!Func->getNodes().empty());
 
+  // TODO(tlively): More selectively instrument functions so that shadow memory
+  // represents user accessibility more and library accessibility less.
   LoweringContext Context;
   Context.init(Func->getNodes().front());
   instrumentFuncStart(Context);
@@ -42,7 +44,8 @@ void Instrumentation::instrumentFunc(Cfg *Func) {
     }
   }
 
-  if (Func->getFunctionName().toStringOrEmpty() == "_start")
+  std::string FuncName = Func->getFunctionName().toStringOrEmpty();
+  if (FuncName == "_start")
     instrumentStart(Func);
 }
 

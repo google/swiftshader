@@ -15,7 +15,8 @@
 ///
 //===----------------------------------------------------------------------===//
 
-#include <stdio.h>
+#include <stddef.h>
+#include <stdlib.h>
 
 // TODO(tlively): Define and implement this library
 void __asan_init(void) {
@@ -24,6 +25,16 @@ void __asan_init(void) {
 }
 
 void __asan_check(void *addr, int size) {
-  printf("Check access of %p of size %d\n", addr, size);
+  printf("Check %d bytes at %p\n", size, addr);
   return;
+}
+
+void *__asan_malloc(size_t size) {
+  printf("malloc() called with size %d\n", size);
+  return malloc(size);
+}
+
+void __asan_free(void *ptr) {
+  printf("free() called on %p\n", ptr);
+  free(ptr);
 }

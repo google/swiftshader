@@ -22,6 +22,7 @@
 #include "IceTypes.h"
 
 #include <sstream>
+#include <unordered_map>
 
 namespace Ice {
 
@@ -30,6 +31,14 @@ constexpr SizeT RzSize = 32;
 const std::string RzPrefix = "__$rz";
 const llvm::NaClBitcodeRecord::RecordVector RzContents =
     llvm::NaClBitcodeRecord::RecordVector(RzSize, 'R');
+
+// TODO(tlively): Handle all allocation functions
+// In order to instrument the code correctly, the .pexe must not have had its
+// symbols stripped.
+using string_map = std::unordered_map<std::string, std::string>;
+const string_map FuncSubstitutions = {{"malloc", "__asan_malloc"},
+                                      {"free", "__asan_free"}};
+
 } // end of anonymous namespace
 
 // Create redzones around all global variables, ensuring that the initializer
@@ -113,16 +122,39 @@ ASanInstrumentation::createRz(VariableDeclarationList *List,
   return Rz;
 }
 
+void ASanInstrumentation::instrumentCall(LoweringContext &Context,
+                                         InstCall *Instr) {
+  auto *CallTarget =
+      llvm::dyn_cast<ConstantRelocatable>(Instr->getCallTarget());
+  if (CallTarget == nullptr)
+    return;
+
+  std::string TargetName = CallTarget->getName().toStringOrEmpty();
+  auto Subst = FuncSubstitutions.find(TargetName);
+  if (Subst == FuncSubstitutions.end())
+    return;
+
+  std::string SubName = Subst->second;
+  Constant *NewFunc = Ctx->getConstantExternSym(Ctx->getGlobalString(SubName));
+  auto *NewCall =
+      InstCall::create(Context.getNode()->getCfg(), Instr->getNumArgs(),
+                       Instr->getDest(), NewFunc, Instr->isTailcall());
+  for (SizeT I = 0, Args = Instr->getNumArgs(); I < Args; ++I)
+    NewCall->addArg(Instr->getArg(I));
+  Context.insert(NewCall);
+  Instr->setDeleted();
+}
+
 void ASanInstrumentation::instrumentLoad(LoweringContext &Context,
-                                         const InstLoad *Inst) {
-  instrumentAccess(Context, Inst->getSourceAddress(),
-                   typeWidthInBytes(Inst->getDest()->getType()));
+                                         InstLoad *Instr) {
+  instrumentAccess(Context, Instr->getSourceAddress(),
+                   typeWidthInBytes(Instr->getDest()->getType()));
 }
 
 void ASanInstrumentation::instrumentStore(LoweringContext &Context,
-                                          const InstStore *Inst) {
-  instrumentAccess(Context, Inst->getAddr(),
-                   typeWidthInBytes(Inst->getData()->getType()));
+                                          InstStore *Instr) {
+  instrumentAccess(Context, Instr->getAddr(),
+                   typeWidthInBytes(Instr->getData()->getType()));
 }
 
 // TODO(tlively): Take size of access into account as well
