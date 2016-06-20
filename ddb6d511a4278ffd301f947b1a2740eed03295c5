@@ -1,0 +1,165 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "696e807c_385bb53a",
+        "filename": "src/Shader/PixelRoutine.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2363,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-06-20T19:57:59Z",
+      "side": 1,
+      "message": "You can probably replace most UInt2 here by UShort4, which more closely represents this type.",
+      "range": {
+        "startLine": 2363,
+        "startChar": 4,
+        "endLine": 2363,
+        "endChar": 9
+      },
+      "revId": "ddb6d511a4278ffd301f947b1a2740eed03295c5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "696e807c_f8f8bd57",
+        "filename": "src/Shader/PixelRoutine.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2372,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-06-20T19:57:59Z",
+      "side": 1,
+      "message": "Could these lines be replaced with the following:\nUShort4 packedCol(As\u003cInt4\u003e(oC.x));",
+      "range": {
+        "startLine": 2371,
+        "startChar": 4,
+        "endLine": 2372,
+        "endChar": 118
+      },
+      "revId": "ddb6d511a4278ffd301f947b1a2740eed03295c5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "696e807c_58ba2985",
+        "filename": "src/Shader/PixelRoutine.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2378,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-06-20T19:57:59Z",
+      "side": 1,
+      "message": "These 2 masking operations could probably be merged into 1.",
+      "range": {
+        "startLine": 2375,
+        "startChar": 4,
+        "endLine": 2378,
+        "endChar": 75
+      },
+      "revId": "ddb6d511a4278ffd301f947b1a2740eed03295c5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "696e807c_38ff353a",
+        "filename": "src/Shader/PixelRoutine.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2383,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-06-20T19:57:59Z",
+      "side": 1,
+      "message": "Same",
+      "range": {
+        "startLine": 2382,
+        "startChar": 4,
+        "endLine": 2383,
+        "endChar": 118
+      },
+      "revId": "ddb6d511a4278ffd301f947b1a2740eed03295c5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "696e807c_78b7ed99",
+        "filename": "src/Shader/PixelRoutine.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2389,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-06-20T19:57:59Z",
+      "side": 1,
+      "message": "Same",
+      "range": {
+        "startLine": 2386,
+        "startChar": 4,
+        "endLine": 2389,
+        "endChar": 75
+      },
+      "revId": "ddb6d511a4278ffd301f947b1a2740eed03295c5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "696e807c_1887d1bf",
+        "filename": "src/Shader/PixelRoutine.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2516,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-06-20T19:57:59Z",
+      "side": 1,
+      "message": "These 2 masking operations could probably be merged into 1.",
+      "range": {
+        "startLine": 2513,
+        "startChar": 4,
+        "endLine": 2516,
+        "endChar": 75
+      },
+      "revId": "ddb6d511a4278ffd301f947b1a2740eed03295c5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "696e807c_388415b8",
+        "filename": "src/Shader/PixelRoutine.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2526,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-06-20T19:57:59Z",
+      "side": 1,
+      "message": "Same",
+      "range": {
+        "startLine": 2523,
+        "startChar": 4,
+        "endLine": 2526,
+        "endChar": 75
+      },
+      "revId": "ddb6d511a4278ffd301f947b1a2740eed03295c5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
