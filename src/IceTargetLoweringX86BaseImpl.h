@@ -2618,7 +2618,8 @@ void TargetX86Base<TraitsType>::lowerCall(const InstCall *Instr) {
   // Materialize moves for arguments passed in GPRs.
   for (SizeT i = 0, NumGprArgs = GprArgs.size(); i < NumGprArgs; ++i) {
     const Type SignatureTy = GprArgs[i].first;
-    Operand *Arg = legalize(GprArgs[i].second);
+    Operand *Arg =
+        legalize(GprArgs[i].second, Legal_Default | Legal_Rematerializable);
     GprArgs[i].second =
         legalizeToReg(Arg, Traits::getRegisterForGprArgNum(Arg->getType(), i));
     assert(SignatureTy == IceType_i64 || SignatureTy == IceType_i32);
