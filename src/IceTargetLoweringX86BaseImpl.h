@@ -7020,6 +7020,9 @@ uint32_t TargetX86Base<TraitsType>::getCallStackArgumentsSizeBytes(
     assert(typeWidthInBytes(Ty) >= 4);
     if (isVectorType(Ty) && XmmArgCount < Traits::X86_MAX_XMM_ARGS) {
       ++XmmArgCount;
+    } else if (isScalarFloatingType(Ty) && Traits::X86_PASS_SCALAR_FP_IN_XMM &&
+               XmmArgCount < Traits::X86_MAX_XMM_ARGS) {
+      ++XmmArgCount;
     } else if (isScalarIntegerType(Ty) &&
                GprArgCount < Traits::X86_MAX_GPR_ARGS) {
       // The 64 bit ABI allows some integers to be passed in GPRs.
