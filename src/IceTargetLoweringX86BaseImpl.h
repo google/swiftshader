@@ -5070,9 +5070,10 @@ public:
 
   inline const Inst *matchShiftedIndex(Variable **Index, uint16_t *Shift);
 
-  inline const Inst *matchOffsetBase(Variable **Base,
-                                     ConstantRelocatable **Relocatable,
-                                     int32_t *Offset);
+  inline const Inst *matchOffsetIndexOrBase(Variable **IndexOrBase,
+                                            const uint16_t Shift,
+                                            ConstantRelocatable **Relocatable,
+                                            int32_t *Offset);
 
 private:
   const Cfg *const Func;
@@ -5256,22 +5257,29 @@ const Inst *AddressOptimizer::matchShiftedIndex(Variable **Index,
   return nullptr;
 }
 
-const Inst *AddressOptimizer::matchOffsetBase(Variable **Base,
-                                              ConstantRelocatable **Relocatable,
-                                              int32_t *Offset) {
+const Inst *AddressOptimizer::matchOffsetIndexOrBase(
+    Variable **IndexOrBase, const uint16_t Shift,
+    ConstantRelocatable **Relocatable, int32_t *Offset) {
   // Base is Base=Var+Const || Base is Base=Const+Var ==>
   //   set Base=Var, Offset+=Const
   // Base is Base=Var-Const ==>
   //   set Base=Var, Offset-=Const
-  if (*Base == nullptr) {
+  // Index is Index=Var+Const ==>
+  //   set Index=Var, Offset+=(Const<<Shift)
+  // Index is Index=Const+Var ==>
+  //   set Index=Var, Offset+=(Const<<Shift)
+  // Index is Index=Var-Const ==>
+  //   set Index=Var, Offset-=(Const<<Shift)
+
+  if (*IndexOrBase == nullptr) {
     return nullptr;
   }
-  const Inst *BaseInst = VMetadata->getSingleDefinition(*Base);
-  if (BaseInst == nullptr) {
+  const Inst *Definition = VMetadata->getSingleDefinition(*IndexOrBase);
+  if (Definition == nullptr) {
     return nullptr;
   }
-  assert(!VMetadata->isMultiDef(*Base));
-  if (auto *ArithInst = llvm::dyn_cast<const InstArithmetic>(BaseInst)) {
+  assert(!VMetadata->isMultiDef(*IndexOrBase));
+  if (auto *ArithInst = llvm::dyn_cast<const InstArithmetic>(Definition)) {
     if (ArithInst->getOp() != InstArithmetic::Add &&
         ArithInst->getOp() != InstArithmetic::Sub)
       return nullptr;
@@ -5284,8 +5292,8 @@ const Inst *AddressOptimizer::matchOffsetBase(Variable **Base,
     auto *Const1 = llvm::dyn_cast<ConstantInteger32>(Src1);
     auto *Reloc0 = llvm::dyn_cast<ConstantRelocatable>(Src0);
     auto *Reloc1 = llvm::dyn_cast<ConstantRelocatable>(Src1);
-    Variable *NewBase = nullptr;
-    int32_t NewOffset = *Offset;
+    Variable *NewIndexOrBase = nullptr;
+    int32_t NewOffset = 0;
     ConstantRelocatable *NewRelocatable = *Relocatable;
     if (Var0 && Var1)
       // TODO(sehr): merge base/index splitting into here.
@@ -5293,9 +5301,9 @@ const Inst *AddressOptimizer::matchOffsetBase(Variable **Base,
     if (!IsAdd && Var1)
       return nullptr;
     if (Var0)
-      NewBase = Var0;
+      NewIndexOrBase = Var0;
     else if (Var1)
-      NewBase = Var1;
+      NewIndexOrBase = Var1;
     // Don't know how to add/subtract two relocatables.
     if ((*Relocatable && (Reloc0 || Reloc1)) || (Reloc0 && Reloc1))
       return nullptr;
@@ -5311,21 +5319,24 @@ const Inst *AddressOptimizer::matchOffsetBase(Variable **Base,
     if (Const0) {
       const int32_t MoreOffset =
           IsAdd ? Const0->getValue() : -Const0->getValue();
-      if (Utils::WouldOverflowAdd(NewOffset, MoreOffset))
+      if (Utils::WouldOverflowAdd(*Offset + NewOffset, MoreOffset))
         return nullptr;
       NewOffset += MoreOffset;
     }
     if (Const1) {
       const int32_t MoreOffset =
           IsAdd ? Const1->getValue() : -Const1->getValue();
-      if (Utils::WouldOverflowAdd(NewOffset, MoreOffset))
+      if (Utils::WouldOverflowAdd(*Offset + NewOffset, MoreOffset))
         return nullptr;
       NewOffset += MoreOffset;
     }
-    *Base = NewBase;
-    *Offset = NewOffset;
+    if (Utils::WouldOverflowAdd(*Offset, NewOffset << Shift))
+        return nullptr;
+    *IndexOrBase = NewIndexOrBase;
+    *Offset += (NewOffset << Shift);
+    // Shift is always zero if this is called with the base
     *Relocatable = NewRelocatable;
-    return BaseInst;
+    return Definition;
   }
   return nullptr;
 }
@@ -5460,26 +5471,19 @@ TargetX86Base<TypeTraits>::computeAddressOpt(const Inst *Instr, Type MemType,
     // Update Offset to reflect additions/subtractions with constants and
     // relocatables.
     // TODO: consider overflow issues with respect to Offset.
-    if (!Skip.OffsetFromBase &&
-        (Reason = AddrOpt.matchOffsetBase(&NewAddr.Base, &NewAddr.Relocatable,
-                                          &NewAddr.Offset))) {
+    if (!Skip.OffsetFromBase && (Reason = AddrOpt.matchOffsetIndexOrBase(
+                                     &NewAddr.Base, /*Shift =*/0,
+                                     &NewAddr.Relocatable, &NewAddr.Offset))) {
       SkipLastFolding = &Skip.OffsetFromBase;
       continue;
     }
-    if (NewAddr.Shift == 0 && !Skip.OffsetFromIndex &&
-        (Reason = AddrOpt.matchOffsetBase(&NewAddr.Index, &NewAddr.Relocatable,
-                                          &NewAddr.Offset))) {
+    if (!Skip.OffsetFromIndex && (Reason = AddrOpt.matchOffsetIndexOrBase(
+                                      &NewAddr.Index, NewAddr.Shift,
+                                      &NewAddr.Relocatable, &NewAddr.Offset))) {
       SkipLastFolding = &Skip.OffsetFromIndex;
       continue;
     }
 
-    // TODO(sehr, stichnot): Handle updates of Index with Shift != 0.
-    // Index is Index=Var+Const ==>
-    //   set Index=Var, Offset+=(Const<<Shift)
-    // Index is Index=Const+Var ==>
-    //   set Index=Var, Offset+=(Const<<Shift)
-    // Index is Index=Var-Const ==>
-    //   set Index=Var, Offset-=(Const<<Shift)
     break;
   } while (Reason);
 
