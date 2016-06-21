@@ -47,7 +47,7 @@ public:
 private:
   void instrumentInst(LoweringContext &Context);
   virtual void instrumentFuncStart(LoweringContext &) {}
-  virtual void instrumentAlloca(LoweringContext &, const class InstAlloca *) {}
+  virtual void instrumentAlloca(LoweringContext &, class InstAlloca *) {}
   virtual void instrumentArithmetic(LoweringContext &, class InstArithmetic *) {
   }
   virtual void instrumentBr(LoweringContext &, class InstBr *) {}

@@ -50,12 +50,7 @@ define internal void @doStores(<4 x i32> %vecSrc) {
 ; DUMP-LABEL: ================ Instrumented CFG ================
 ; DUMP-NEXT: define internal void @doStores(<4 x i32> %vecSrc) {
 ; DUMP-NEXT: __0:
-; DUMP-NEXT: %destLocal8 = alloca i8, i32 1, align 4
-; DUMP-NEXT: %destLocal16 = alloca i8, i32 2, align 4
-; DUMP-NEXT: %destLocal32 = alloca i8, i32 4, align 4
-; DUMP-NEXT: %destLocal64 = alloca i8, i32 8, align 4
-; DUMP-NEXT: %destLocal128 = alloca i8, i32 16, align 4
-; DUMP-NEXT: call void @__asan_check(i32 @destGlobal8, i32 1)
+; DUMP:      call void @__asan_check(i32 @destGlobal8, i32 1)
 ; DUMP-NEXT: store i8 42, i8* @destGlobal8, align 1
 ; DUMP-NEXT: call void @__asan_check(i32 @destGlobal16, i32 2)
 ; DUMP-NEXT: store i16 42, i16* @destGlobal16, align 1

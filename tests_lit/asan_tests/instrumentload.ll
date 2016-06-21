@@ -69,12 +69,7 @@ define internal void @doLoads() {
 ; DUMP-LABEL: ================ Instrumented CFG ================
 ; DUMP-NEXT: define internal void @doLoads() {
 ; DUMP-NEXT: __0:
-; DUMP-NEXT: %srcLocal8 = alloca i8, i32 1, align 4
-; DUMP-NEXT: %srcLocal16 = alloca i8, i32 2, align 4
-; DUMP-NEXT: %srcLocal32 = alloca i8, i32 4, align 4
-; DUMP-NEXT: %srcLocal64 = alloca i8, i32 8, align 4
-; DUMP-NEXT: %srcLocal128 = alloca i8, i32 16, align 4
-; DUMP-NEXT: call void @__asan_check(i32 @srcConst8, i32 1)
+; DUMP: call void @__asan_check(i32 @srcConst8, i32 1)
 ; DUMP-NEXT: %dest1 = load i8, i8* @srcConst8, align 1
 ; DUMP-NEXT: call void @__asan_check(i32 @srcConst16, i32 2)
 ; DUMP-NEXT: %dest2 = load i16, i16* @srcConst16, align 1

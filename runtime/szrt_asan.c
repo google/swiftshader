@@ -15,26 +15,49 @@
 ///
 //===----------------------------------------------------------------------===//
 
+#include <assert.h>
 #include <stddef.h>
+#include <stdio.h>
 #include <stdlib.h>
+
+static __thread int behind_malloc = 0;
 
 // TODO(tlively): Define and implement this library
 void __asan_init(void) {
-  printf("Set up shadow memory here\n");
-  return;
+  if (behind_malloc == 0)
+    printf("set up shadow memory here\n");
 }
 
 void __asan_check(void *addr, int size) {
-  printf("Check %d bytes at %p\n", size, addr);
-  return;
+  if (behind_malloc == 0)
+    printf("check %d bytes at %p\n", size, addr);
 }
 
 void *__asan_malloc(size_t size) {
-  printf("malloc() called with size %d\n", size);
-  return malloc(size);
+  if (behind_malloc == 0)
+    printf("malloc() called with size %d\n", size);
+  ++behind_malloc;
+  void *ret = malloc(size);
+  --behind_malloc;
+  assert(behind_malloc >= 0);
+  return ret;
 }
 
 void __asan_free(void *ptr) {
-  printf("free() called on %p\n", ptr);
+  if (behind_malloc == 0)
+    printf("free() called on %p\n", ptr);
+  ++behind_malloc;
   free(ptr);
+  --behind_malloc;
+  assert(behind_malloc >= 0);
+}
+
+void __asan_alloca(void *ptr, int size) {
+  if (behind_malloc == 0)
+    printf("alloca of %d bytes at %p\n", size, ptr);
+}
+
+void __asan_unalloca(void *ptr, int size) {
+  if (behind_malloc == 0)
+    printf("unalloca of %d bytes as %p\n", size, ptr);
 }

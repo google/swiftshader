@@ -27,7 +27,3 @@ AddressSanitizer and properly linked into a final executable using
 subzero/pydir/szbuild.py with the --fsanitize-address flag, i.e.::
 
     pydir/szbuild.py --fsanitize-address hello.pexe
-
-
-
-

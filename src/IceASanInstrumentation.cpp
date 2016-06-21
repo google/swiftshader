@@ -15,6 +15,7 @@
 #include "IceASanInstrumentation.h"
 
 #include "IceBuildDefs.h"
+#include "IceCfg.h"
 #include "IceCfgNode.h"
 #include "IceGlobalInits.h"
 #include "IceInst.h"
@@ -120,6 +121,43 @@ ASanInstrumentation::createRz(VariableDeclarationList *List,
       List, Rz, RelocOffsetArray(0)));
   ++RzArraySize;
   return Rz;
+}
+
+// Check for an alloca signaling the presence of local variables and add a
+// redzone if it is found
+void ASanInstrumentation::instrumentFuncStart(LoweringContext &Context) {
+  auto *FirstAlloca = llvm::dyn_cast<InstAlloca>(Context.getCur());
+  if (FirstAlloca == nullptr)
+    return;
+
+  constexpr SizeT Alignment = 4;
+  InstAlloca *RzAlloca = createLocalRz(Context, RzSize, Alignment);
+
+  // insert before the current instruction
+  InstList::iterator Next = Context.getNext();
+  Context.setInsertPoint(Context.getCur());
+  Context.insert(RzAlloca);
+  Context.setNext(Next);
+}
+
+void ASanInstrumentation::instrumentAlloca(LoweringContext &Context,
+                                           InstAlloca *Instr) {
+  auto *VarSizeOp = llvm::dyn_cast<ConstantInteger32>(Instr->getSizeInBytes());
+  SizeT VarSize = (VarSizeOp == nullptr) ? RzSize : VarSizeOp->getValue();
+  SizeT Padding = Utils::OffsetToAlignment(VarSize, RzSize);
+  constexpr SizeT Alignment = 1;
+  InstAlloca *Rz = createLocalRz(Context, RzSize + Padding, Alignment);
+  Context.insert(Rz);
+}
+
+InstAlloca *ASanInstrumentation::createLocalRz(LoweringContext &Context,
+                                               SizeT Size, SizeT Alignment) {
+  Cfg *Func = Context.getNode()->getCfg();
+  Variable *Rz = Func->makeVariable(IceType_i32);
+  Rz->setName(Func, nextRzName());
+  auto *ByteCount = ConstantInteger32::create(Ctx, IceType_i32, Size);
+  auto *RzAlloca = InstAlloca::create(Func, Rz, ByteCount, Alignment);
+  return RzAlloca;
 }
 
 void ASanInstrumentation::instrumentCall(LoweringContext &Context,
