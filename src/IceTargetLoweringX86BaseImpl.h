@@ -523,12 +523,12 @@ template <typename TraitsType> void TargetX86Base<TraitsType>::translateO2() {
   Func->liveness(Liveness_Intervals);
   if (Func->hasError())
     return;
-  // Validate the live range computations. The expensive validation call is
-  // deliberately only made when assertions are enabled.
-  assert(Func->validateLiveness());
   // The post-codegen dump is done here, after liveness analysis and associated
   // cleanup, to make the dump cleaner and more useful.
   Func->dump("After initial x8632 codegen");
+  // Validate the live range computations. The expensive validation call is
+  // deliberately only made when assertions are enabled.
+  assert(Func->validateLiveness());
   Func->getVMetadata()->init(VMK_All);
   regAlloc(RAK_Global);
   if (Func->hasError())
