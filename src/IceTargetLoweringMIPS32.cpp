@@ -480,14 +480,12 @@ void TargetMIPS32::emitVariable(const Variable *Var) const {
   const Type FrameSPTy = IceType_i32;
   if (Var->hasReg()) {
     Str << '$' << getRegName(Var->getRegNum(), Var->getType());
-    return;
   } else {
     int32_t Offset = Var->getStackOffset();
     Str << Offset;
     Str << "($" << getRegName(getFrameOrStackReg(), FrameSPTy);
     Str << ")";
   }
-  UnimplementedError(getFlags());
 }
 
 TargetMIPS32::CallingConv::CallingConv()
@@ -2123,13 +2121,11 @@ void TargetDataMIPS32::lowerGlobals(const VariableDeclarationList &Vars,
 void TargetDataMIPS32::lowerConstants() {
   if (getFlags().getDisableTranslation())
     return;
-  UnimplementedError(getFlags());
 }
 
 void TargetDataMIPS32::lowerJumpTables() {
   if (getFlags().getDisableTranslation())
     return;
-  UnimplementedError(getFlags());
 }
 
 // Helper for legalize() to emit the right code to lower an operand to a
