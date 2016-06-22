@@ -219,7 +219,13 @@ else
   # LLVM autoconf build
   LLVM_LIBS := -lLLVM-3.7svn
   GTEST_LIB_PATH ?= -L../../out/llvm_x86_64_linux_work/Release+Asserts/lib
-  CLANG_FORMAT_PATH ?= ../../out/llvm_x86_64_linux_work/Release+Asserts/bin
+  ifneq ($(wildcard \
+           ../../out/llvm_x86_64_linux_work/Release+Asserts/bin/clang-format),)
+    CLANG_FORMAT_PATH ?= ../../out/llvm_x86_64_linux_work/Release+Asserts/bin
+  else
+    CLANG_FORMAT_PATH ?= \
+                     ../../out/llvm_x86_64_linux_debug_work/Debug+Asserts/bin
+  endif
 endif
 
 LLVM_LDFLAGS := $(LLVM_LIBS) \
