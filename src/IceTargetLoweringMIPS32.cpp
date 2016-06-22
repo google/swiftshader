@@ -95,6 +95,12 @@ uint32_t applyStackAlignmentTy(uint32_t Value, Type Ty) {
   return Utils::applyAlignment(Value, typeAlignInBytes);
 }
 
+// Value is in bytes. Return Value adjusted to the next highest multiple of the
+// stack alignment.
+uint32_t applyStackAlignment(uint32_t Value) {
+  return Utils::applyAlignment(Value, MIPS32_STACK_ALIGNMENT_BYTES);
+}
+
 } // end of anonymous namespace
 
 TargetMIPS32::TargetMIPS32(Cfg *Func) : TargetLowering(Func) {}
@@ -1417,11 +1423,75 @@ void TargetMIPS32::lowerBr(const InstBr *Instr) {
 }
 
 void TargetMIPS32::lowerCall(const InstCall *Instr) {
-  // TODO(rkotler): assign arguments to registers and stack. Also reserve stack.
-  if (Instr->getNumArgs()) {
-    UnimplementedLoweringError(this, Instr);
-    return;
+  NeedsStackAlignment = true;
+
+  //  Assign arguments to registers and stack. Also reserve stack.
+  TargetMIPS32::CallingConv CC;
+
+  // Pair of Arg Operand -> GPR number assignments.
+  llvm::SmallVector<std::pair<Operand *, RegNumT>, MIPS32_MAX_GPR_ARG> GPRArgs;
+  llvm::SmallVector<std::pair<Operand *, RegNumT>, MIPS32_MAX_FP_ARG> FPArgs;
+  // Pair of Arg Operand -> stack offset.
+  llvm::SmallVector<std::pair<Operand *, int32_t>, 8> StackArgs;
+  size_t ParameterAreaSizeBytes = 16;
+
+  // Classify each argument operand according to the location where the
+  // argument is passed.
+
+  for (SizeT i = 0, NumArgs = Instr->getNumArgs(); i < NumArgs; ++i) {
+    Operand *Arg = legalizeUndef(Instr->getArg(i));
+    const Type Ty = Arg->getType();
+    bool InReg = false;
+    RegNumT Reg;
+
+    InReg = CC.argInReg(Ty, i, &Reg);
+
+    if (!InReg) {
+      ParameterAreaSizeBytes =
+          applyStackAlignmentTy(ParameterAreaSizeBytes, Ty);
+      StackArgs.push_back(std::make_pair(Arg, ParameterAreaSizeBytes));
+      ParameterAreaSizeBytes += typeWidthInBytesOnStack(Ty);
+      continue;
+    }
+
+    if (Ty == IceType_i64) {
+      Operand *Lo = loOperand(Arg);
+      Operand *Hi = hiOperand(Arg);
+      GPRArgs.push_back(
+          std::make_pair(Lo, RegMIPS32::getI64PairFirstGPRNum(Reg)));
+      GPRArgs.push_back(
+          std::make_pair(Hi, RegMIPS32::getI64PairSecondGPRNum(Reg)));
+    } else if (isScalarIntegerType(Ty)) {
+      GPRArgs.push_back(std::make_pair(Arg, Reg));
+    } else {
+      FPArgs.push_back(std::make_pair(Arg, Reg));
+    }
   }
+
+  // Adjust the parameter area so that the stack is aligned. It is assumed that
+  // the stack is already aligned at the start of the calling sequence.
+  ParameterAreaSizeBytes = applyStackAlignment(ParameterAreaSizeBytes);
+
+  // Copy arguments that are passed on the stack to the appropriate stack
+  // locations.
+  Variable *SP = getPhysicalRegister(RegMIPS32::Reg_SP);
+  for (auto &StackArg : StackArgs) {
+    ConstantInteger32 *Loc =
+        llvm::cast<ConstantInteger32>(Ctx->getConstantInt32(StackArg.second));
+    Type Ty = StackArg.first->getType();
+    OperandMIPS32Mem *Addr;
+    constexpr bool SignExt = false;
+    if (OperandMIPS32Mem::canHoldOffset(Ty, SignExt, StackArg.second)) {
+      Addr = OperandMIPS32Mem::create(Func, Ty, SP, Loc);
+    } else {
+      Variable *NewBase = Func->makeVariable(SP->getType());
+      lowerArithmetic(
+          InstArithmetic::create(Func, InstArithmetic::Add, NewBase, SP, Loc));
+      Addr = formMemoryOperand(NewBase, Ty);
+    }
+    lowerStore(InstStore::create(Func, StackArg.first, Addr));
+  }
+
   // Generate the call instruction.  Assign its result to a temporary with high
   // register allocation weight.
   Variable *Dest = Instr->getDest();
@@ -1467,6 +1537,24 @@ void TargetMIPS32::lowerCall(const InstCall *Instr) {
   if (!llvm::isa<ConstantRelocatable>(CallTarget)) {
     CallTarget = legalize(CallTarget, Legal_Reg);
   }
+
+  // Copy arguments to be passed in registers to the appropriate registers.
+  CfgVector<Variable *> RegArgs;
+  for (auto &FPArg : FPArgs) {
+    RegArgs.emplace_back(legalizeToReg(FPArg.first, FPArg.second));
+  }
+  for (auto &GPRArg : GPRArgs) {
+    RegArgs.emplace_back(legalizeToReg(GPRArg.first, GPRArg.second));
+  }
+
+  // Generate a FakeUse of register arguments so that they do not get dead code
+  // eliminated as a result of the FakeKill of scratch registers after the call.
+  // These fake-uses need to be placed here to avoid argument registers from
+  // being used during the legalizeToReg() calls above.
+  for (auto *RegArg : RegArgs) {
+    Context.insert<InstFakeUse>(RegArg);
+  }
+
   Inst *NewCall = InstMIPS32Call::create(Func, ReturnReg, CallTarget);
   Context.insert(NewCall);
   if (ReturnRegHi)
@@ -1475,7 +1563,7 @@ void TargetMIPS32::lowerCall(const InstCall *Instr) {
   Context.insert(InstFakeKill::create(Func, NewCall));
   // Generate a FakeUse to keep the call live if necessary.
   if (Instr->hasSideEffects() && ReturnReg) {
-    Context.insert<InstFakeDef>(ReturnReg);
+    Context.insert<InstFakeUse>(ReturnReg);
   }
   if (Dest == nullptr)
     return;
