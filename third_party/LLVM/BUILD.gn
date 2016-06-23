@@ -28,6 +28,26 @@ config("swiftshader_llvm_private_config") {
       "-Wno-deprecated-declarations",
       "-Wno-unused-variable",
     ]
+  } else {
+    if (host_os == "win") {
+      cflags = [
+        "/wd4005",
+        "/wd4065",
+        "/wd4146",
+        "/wd4245",
+        "/wd4267",
+        "/wd4310",
+        "/wd4319",
+        "/wd4334",
+        "/wd4389",
+        "/wd4624",
+        "/wd4701",
+        "/wd4702",
+        "/wd4703",
+        "/wd4706",
+        "/wd4800",
+      ]
+    }
   }
 }
 
@@ -407,13 +427,23 @@ source_set("swiftshader_llvm") {
     "lib/VMCore/Verifier.cpp",
   ]
 
+  if (host_os == "win") {
+    configs -= [
+      "//build/config/win:unicode"
+    ]
+  }
   configs += [
     ":swiftshader_llvm_private_config",
   ]
 
   include_dirs = [
-    "include-linux",
     "include",
     "lib/Target/X86",
   ]
+
+  if (host_os == "linux") {
+    include_dirs += [
+      "include-linux",
+    ]
+  }
 }
