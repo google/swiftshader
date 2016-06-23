@@ -42,10 +42,10 @@ static void glAttachThread()
 	{
 		sw::Thread::setLocalStorage(currentTLS, current);
 
-		current->context = 0;
-		current->display = 0;
-		current->drawSurface = 0;
-		current->readSurface = 0;
+		current->context = nullptr;
+		current->display = nullptr;
+		current->drawSurface = nullptr;
+		current->readSurface = nullptr;
 	}
 }
 
@@ -53,12 +53,10 @@ static void glDetachThread()
 {
 	TRACE("()");
 
-	gl::Current *current = (gl::Current*)sw::Thread::getLocalStorage(currentTLS);
+	wglMakeCurrent(NULL, NULL);
 
-	if(current)
-	{
-		delete current;
-	}
+	delete (gl::Current*)sw::Thread::getLocalStorage(currentTLS);
+	sw::Thread::setLocalStorage(currentTLS, nullptr);
 }
 
 CONSTRUCTOR static bool glAttachProcess()
@@ -207,7 +205,7 @@ Device *getDevice()
 {
 	Context *context = getContext();
 
-	return context ? context->getDevice() : 0;
+	return context ? context->getDevice() : nullptr;
 }
 
 void setCurrentDisplay(Display *dpy)
