@@ -989,7 +989,7 @@ namespace sw
 			scale = vector(0xFFFFFF, 0.0f, 0.0f, 0.0f);
 			break;
 		case FORMAT_D32:
-			scale = vector(0xFFFFFFFF, 0.0f, 0.0f, 0.0f);
+			scale = vector(static_cast<float>(0xFFFFFFFF), 0.0f, 0.0f, 0.0f);
 			break;
 		case FORMAT_D32F:
 		case FORMAT_D32F_COMPLEMENTARY:
@@ -1017,10 +1017,10 @@ namespace sw
 			switch(state.sourceFormat)
 			{
 			case FORMAT_A32B32G32R32I:
-				unscale = vector(0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF);
+				unscale = replicate(static_cast<float>(0x7FFFFFFF));
 				break;
 			case FORMAT_A32B32G32R32UI:
-				unscale = vector(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF);
+				unscale = replicate(static_cast<float>(0xFFFFFFFF));
 				break;
 			default:
 				return false;

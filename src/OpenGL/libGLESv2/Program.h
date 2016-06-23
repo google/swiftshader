@@ -132,7 +132,7 @@ namespace es2
 		sw::VertexShader *getVertexShader();
 
 		void bindAttributeLocation(GLuint index, const char *name);
-		GLuint getAttributeLocation(const char *name);
+		GLint getAttributeLocation(const char *name);
 		int getAttributeStream(int attributeIndex);
 
 		GLint getSamplerMapping(sw::SamplerType type, unsigned int samplerIndex);

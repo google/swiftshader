@@ -264,7 +264,9 @@ namespace sw
 					setupPrimitives = &Renderer::setupVertexTriangle;
 					batch = 1;
 					break;
-				default: ASSERT(false);
+				default:
+					ASSERT(false);
+					return;
 				}
 			}
 			else if(context->isDrawLine())
