@@ -37,19 +37,19 @@ struct TranslatedIndexData
 class StreamingIndexBuffer
 {
 public:
-	StreamingIndexBuffer(unsigned int initialSize);
+	StreamingIndexBuffer(size_t initialSize);
 	virtual ~StreamingIndexBuffer();
 
-	void *map(unsigned int requiredSpace, unsigned int *offset);
+	void *map(size_t requiredSpace, size_t *offset);
 	void unmap();
-	void reserveSpace(unsigned int requiredSpace, GLenum type);
+	void reserveSpace(size_t requiredSpace, GLenum type);
 
 	sw::Resource *getResource() const;
 
 private:
 	sw::Resource *mIndexBuffer;
-	unsigned int mBufferSize;
-	unsigned int mWritePosition;
+	size_t mBufferSize;
+	size_t mWritePosition;
 };
 
 class IndexDataManager

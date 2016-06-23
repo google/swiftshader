@@ -2577,8 +2577,6 @@ namespace sw
 		default:
 			return bytes(format) * width * height * depth;
 		}
-
-		return 0;
 	}
 
 	bool Surface::isStencil(Format format)
@@ -2834,8 +2832,6 @@ namespace sw
 		default:
 			return false;
 		}
-
-		return false;
 	}
 
 	bool Surface::isSRGBwritable(Format format)

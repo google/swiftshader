@@ -191,7 +191,7 @@ namespace sw
 		}
 	}
 
-	void VertexProcessor::setTransformFeedbackBuffer(int index, sw::Resource* buffer, int offset, unsigned int reg, unsigned int row, unsigned int col, size_t stride)
+	void VertexProcessor::setTransformFeedbackBuffer(int index, sw::Resource* buffer, int offset, unsigned int reg, unsigned int row, unsigned int col, unsigned int stride)
 	{
 		transformFeedbackInfo[index].buffer = buffer;
 		transformFeedbackInfo[index].offset = offset;

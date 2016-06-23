@@ -1043,17 +1043,15 @@ EGLDisplay GetPlatformDisplayEXT(EGLenum platform, void *native_display, const E
 {
 	TRACE("(EGLenum platform = 0x%X, void *native_display = %p, const EGLint *attrib_list = %p)", platform, native_display, attrib_list);
 
-	switch(platform)
-	{
 	#if defined(__linux__) && !defined(__ANDROID__)
-	case EGL_PLATFORM_X11_EXT: break;
-	case EGL_PLATFORM_GBM_KHR: break;
-	#endif
-	default:
-		return error(EGL_BAD_PARAMETER, EGL_NO_DISPLAY);
-	}
+		switch(platform)
+		{
+		case EGL_PLATFORM_X11_EXT: break;
+		case EGL_PLATFORM_GBM_KHR: break;
+		default:
+			return error(EGL_BAD_PARAMETER, EGL_NO_DISPLAY);
+		}
 
-	#if defined(__linux__) && !defined(__ANDROID__)
 		if(platform == EGL_PLATFORM_X11_EXT)
 		{
 			if(!libX11)
@@ -1075,9 +1073,11 @@ EGLDisplay GetPlatformDisplayEXT(EGLenum platform, void *native_display, const E
 
 			return success(HEADLESS_DISPLAY);
 		}
-	#endif
 
-	return success(PRIMARY_DISPLAY);   // We only support the default display
+		return success(PRIMARY_DISPLAY);   // We only support the default display
+	#else
+		return error(EGL_BAD_PARAMETER, EGL_NO_DISPLAY);
+	#endif
 }
 
 EGLSurface CreatePlatformWindowSurfaceEXT(EGLDisplay dpy, EGLConfig config, void *native_window, const EGLint *attrib_list)
