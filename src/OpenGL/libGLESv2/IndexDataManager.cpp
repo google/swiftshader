@@ -125,7 +125,7 @@ GLenum IndexDataManager::prepareIndexData(GLenum type, GLuint start, GLuint end,
 	}
 	else
 	{
-		unsigned int streamOffset = 0;
+		size_t streamOffset = 0;
 		int convertCount = count;
 
 		streamingBuffer->reserveSpace(convertCount * typeSize(type), type);
@@ -143,7 +143,7 @@ GLenum IndexDataManager::prepareIndexData(GLenum type, GLuint start, GLuint end,
 		computeRange(type, indices, count, &translated->minIndex, &translated->maxIndex);
 
 		translated->indexBuffer = streamingBuffer->getResource();
-		translated->indexOffset = streamOffset;
+		translated->indexOffset = static_cast<unsigned int>(streamOffset);
 	}
 
 	if(translated->minIndex < start || translated->maxIndex > end)
@@ -165,7 +165,7 @@ std::size_t IndexDataManager::typeSize(GLenum type)
 	}
 }
 
-StreamingIndexBuffer::StreamingIndexBuffer(unsigned int initialSize) : mIndexBuffer(NULL), mBufferSize(initialSize)
+StreamingIndexBuffer::StreamingIndexBuffer(size_t initialSize) : mIndexBuffer(NULL), mBufferSize(initialSize)
 {
 	if(initialSize > 0)
 	{
@@ -188,7 +188,7 @@ StreamingIndexBuffer::~StreamingIndexBuffer()
 	}
 }
 
-void *StreamingIndexBuffer::map(unsigned int requiredSpace, unsigned int *offset)
+void *StreamingIndexBuffer::map(size_t requiredSpace, size_t *offset)
 {
 	void *mapPtr = NULL;
 
@@ -217,7 +217,7 @@ void StreamingIndexBuffer::unmap()
 	}
 }
 
-void StreamingIndexBuffer::reserveSpace(unsigned int requiredSpace, GLenum type)
+void StreamingIndexBuffer::reserveSpace(size_t requiredSpace, GLenum type)
 {
 	if(requiredSpace > mBufferSize)
 	{

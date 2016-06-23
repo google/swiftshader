@@ -30,7 +30,7 @@ namespace sw
 
 		for(int i = 0; i < MAX_VERTEX_INPUTS; i++)
 		{
-			input[i] = Semantic(-1, -1);
+			input[i] = Semantic();
 		}
 
 		if(vs)   // Make a copy
@@ -62,7 +62,7 @@ namespace sw
 
 		for(int i = 0; i < MAX_VERTEX_INPUTS; i++)
 		{
-			input[i] = Semantic(-1, -1);
+			input[i] = Semantic();
 		}
 
 		optimize();

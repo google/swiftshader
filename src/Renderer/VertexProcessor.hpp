@@ -195,7 +195,7 @@ namespace sw
 		void setUniformBuffer(int index, sw::Resource* uniformBuffer, int offset);
 		void lockUniformBuffers(byte** u, sw::Resource* uniformBuffers[]);
 
-		void setTransformFeedbackBuffer(int index, sw::Resource* transformFeedbackBuffer, int offset, unsigned int reg, unsigned int row, unsigned int col, size_t stride);
+		void setTransformFeedbackBuffer(int index, sw::Resource* transformFeedbackBuffer, int offset, unsigned int reg, unsigned int row, unsigned int col, unsigned int stride);
 		void lockTransformFeedbackBuffers(byte** t, unsigned int* v, unsigned int* r, unsigned int* c, unsigned int* s, sw::Resource* transformFeedbackBuffers[]);
 
 		// Transformations
@@ -308,11 +308,11 @@ namespace sw
 			TransformFeedbackInfo();
 
 			Resource* buffer;
-			int offset;
-			int reg;
-			int row;
-			int col;
-			size_t stride;
+			unsigned int offset;
+			unsigned int reg;
+			unsigned int row;
+			unsigned int col;
+			unsigned int stride;
 		};
 		TransformFeedbackInfo transformFeedbackInfo[MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS];
 

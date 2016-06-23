@@ -776,7 +776,7 @@ namespace es2
 			return error(GL_INVALID_ENUM, false);
 		}
 
-		if(internalformat != format)
+		if((GLenum)internalformat != format)
 		{
 			if(clientVersion < 3)
 			{
@@ -993,7 +993,7 @@ namespace es2
 
 		#undef VALIDATE_INTERNALFORMAT
 
-		if(internalformat != format && !validSizedInternalformat)
+		if((GLenum)internalformat != format && !validSizedInternalformat)
 		{
 			return error(GL_INVALID_OPERATION, false);
 		}

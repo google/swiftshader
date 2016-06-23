@@ -378,9 +378,9 @@ namespace sw
 
 	void PixelPipeline::blendTexture(Vector4s &temp, Vector4s &texture, int stage)
 	{
-		Vector4s *arg1;
-		Vector4s *arg2;
-		Vector4s *arg3;
+		Vector4s *arg1 = nullptr;
+		Vector4s *arg2 = nullptr;
+		Vector4s *arg3 = nullptr;
 		Vector4s res;
 
 		Vector4s constant;

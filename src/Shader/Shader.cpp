@@ -1457,7 +1457,7 @@ namespace sw
 		usedSamplers |= 1 << i;
 	}
 
-	const Shader::Instruction *Shader::getInstruction(unsigned int i) const
+	const Shader::Instruction *Shader::getInstruction(size_t i) const
 	{
 		ASSERT(i < instruction.size());
 

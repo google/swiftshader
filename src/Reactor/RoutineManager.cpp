@@ -51,7 +51,7 @@ namespace sw
 	{
 		if(actualSize == 0)   // Estimate size
 		{
-			int instructionCount = 0;
+			size_t instructionCount = 0;
 			for(llvm::Function::const_iterator basicBlock = function->begin(); basicBlock != function->end(); basicBlock++)
 			{
 				instructionCount += basicBlock->size();

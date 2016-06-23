@@ -82,7 +82,7 @@ namespace sw
 			surfaceDescription.dwFlags = DDSD_CAPS | DDSD_BACKBUFFERCOUNT;
 			surfaceDescription.ddsCaps.dwCaps = DDSCAPS_PRIMARYSURFACE | DDSCAPS_FLIP | DDSCAPS_COMPLEX;
 			surfaceDescription.dwBackBufferCount = 1;
-			long result = directDraw->CreateSurface(&surfaceDescription, &frontBuffer, 0);
+			directDraw->CreateSurface(&surfaceDescription, &frontBuffer, 0);
 
 			if(frontBuffer)
 			{
@@ -352,7 +352,6 @@ namespace sw
 		{
 			int width = DDSD.dwWidth;
 			int height = DDSD.dwHeight;
-			int bitDepth = DDSD.ddpfPixelFormat.dwRGBBitCount;
 			int stride = DDSD.lPitch;
 
 			void *sourceBuffer = DDSD.lpSurface;
@@ -424,7 +423,6 @@ namespace sw
 		{
 			width = DDSD.dwWidth;
 			height = DDSD.dwHeight;
-			int bitDepth = DDSD.ddpfPixelFormat.dwRGBBitCount;
 			stride = DDSD.lPitch;
 
 			locked = DDSD.lpSurface;

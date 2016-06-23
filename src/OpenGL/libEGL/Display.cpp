@@ -542,13 +542,13 @@ bool Display::isValidWindow(EGLNativeWindowType window)
 
 			return status == True;
 		}
+		return false;
 	#elif defined(__APPLE__)
 		return sw::OSX::IsValidWindow(window);
 	#else
 		#error "Display::isValidWindow unimplemented for this platform"
+		return false;
 	#endif
-
-	return false;
 }
 
 bool Display::hasExistingWindowSurface(EGLNativeWindowType window)
