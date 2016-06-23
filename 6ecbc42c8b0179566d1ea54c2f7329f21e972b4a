@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "839ab576_7255980c",
+        "filename": "src/Reactor/Nucleus.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 5215,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-06-23T20:48:16Z",
+      "side": 1,
+      "message": "Please check whether the fallback path also produces a pmovzxbd instruction. One way to do that is to use this constructor in FrameBuffer::copyRoutine, and put a breakpoint at the blitFunction call and look at the disassembly.",
+      "range": {
+        "startLine": 5215,
+        "startChar": 2,
+        "endLine": 5215,
+        "endChar": 6
+      },
+      "revId": "6ecbc42c8b0179566d1ea54c2f7329f21e972b4a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
