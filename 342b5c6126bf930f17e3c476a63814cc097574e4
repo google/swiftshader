@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "839ab576_d2e2c433",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1355,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-06-23T21:14:53Z",
+      "side": 0,
+      "message": "Done",
+      "parentUuid": "031b25b9_464c3280",
+      "range": {
+        "startLine": 1355,
+        "startChar": 2,
+        "endLine": 1355,
+        "endChar": 16
+      },
+      "revId": "342b5c6126bf930f17e3c476a63814cc097574e4",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "839ab576_92211cf4",
         "filename": "src/Renderer/Renderer.cpp",
         "patchSetId": 1
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "839ab576_12cc4cca",
+        "filename": "src/Renderer/Renderer.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 239,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-06-23T21:14:53Z",
+      "side": 0,
+      "message": "Removed",
+      "parentUuid": "839ab576_92211cf4",
+      "range": {
+        "startLine": 237,
+        "startChar": 3,
+        "endLine": 239,
+        "endChar": 25
+      },
+      "revId": "342b5c6126bf930f17e3c476a63814cc097574e4",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "839ab576_b21e20b7",
         "filename": "src/Renderer/Renderer.cpp",
         "patchSetId": 1
@@ -59,6 +107,30 @@
       "writtenOn": "2016-06-23T20:44:47Z",
       "side": 0,
       "message": "assert and return",
+      "range": {
+        "startLine": 271,
+        "startChar": 4,
+        "endLine": 271,
+        "endChar": 27
+      },
+      "revId": "342b5c6126bf930f17e3c476a63814cc097574e4",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "839ab576_32d15063",
+        "filename": "src/Renderer/Renderer.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 271,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-06-23T21:14:53Z",
+      "side": 0,
+      "message": "Done",
+      "parentUuid": "839ab576_b21e20b7",
       "range": {
         "startLine": 271,
         "startChar": 4,
