@@ -22,8 +22,13 @@ config("swiftshader_common_private_config") {
 
     if (!is_debug) {
       cflags += [
-        "-DNDEBUG",
         "-DANGLE_DISABLE_TRACE",
+      ]
+    }
+  } else {
+    if (host_os == "win") {
+      cflags = [
+        "/wd4201", # nameless struct/union
       ]
     }
   }

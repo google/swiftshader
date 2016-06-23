@@ -22,13 +22,19 @@ config("swiftshader_reactor_private_config") {
       "-D__STDC_CONSTANT_MACROS",
       "-D__STDC_LIMIT_MACROS",
     ]
-
-    if (!is_debug) {
-      cflags += [
-        "-DNDEBUG",
-        "-DANGLE_DISABLE_TRACE",
+  } else {
+    if (host_os == "win") {
+      cflags = [
+        "/wd4201", # nameless struct/union
+        "/wd4245", # conversion from int to unsigned int (llvm)
       ]
     }
+  }
+
+  if (!is_debug) {
+    cflags += [
+      "-DANGLE_DISABLE_TRACE",
+    ]
   }
 }
 
@@ -47,6 +53,9 @@ source_set("swiftshader_reactor") {
   if (host_os == "win") {
     sources += [
       "DLL.cpp",
+    ]
+    configs -= [
+      "//build/config/win:unicode"
     ]
   }
 

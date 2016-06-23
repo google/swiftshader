@@ -21,13 +21,21 @@ config("swiftshader_libEGL_private_config") {
       "-DEGL_EGLEXT_PROTOTYPES",
       "-Wno-sign-compare",
     ]
-
-    if (!is_debug) {
-      cflags += [
-        "-DNDEBUG",
-        "-DANGLE_DISABLE_TRACE",
+  } else {
+    if (host_os == "win") {
+      cflags = [
+        "/DEGLAPI=",
+        "/DEGL_EGLEXT_PROTOTYPES",
+        "/wd4201", # nameless struct/union
+        "/wd4065", # switch statement contains 'default' but no 'case' labels
       ]
     }
+  }
+
+  if (!is_debug) {
+    cflags += [
+      "-DANGLE_DISABLE_TRACE",
+    ]
   }
 }
 
@@ -54,6 +62,10 @@ shared_library("swiftshader_libEGL") {
   if (host_os == "mac") {
     sources += [
       "OSXUtils.mm",
+    ]
+  } else if (host_os == "win") {
+    configs -= [
+      "//build/config/win:unicode"
     ]
   }
 
