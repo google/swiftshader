@@ -1180,7 +1180,7 @@ namespace es2
 		return false;
 	}
 
-	std::string ParseUniformName(const std::string &name, size_t *outSubscript)
+	std::string ParseUniformName(const std::string &name, int *outSubscript)
 	{
 		// Strip any trailing array operator and retrieve the subscript
 		size_t open = name.find_last_of('[');
