@@ -480,6 +480,10 @@ namespace sw
 		VertexProcessor::State vertexState;
 		SetupProcessor::State setupState;
 		PixelProcessor::State pixelState;
+
+		Routine *vertexRoutine;
+		Routine *setupRoutine;
+		Routine *pixelRoutine;
 	};
 }
 

@@ -234,10 +234,6 @@ namespace sw
 
 			sync->lock(sw::PRIVATE);
 
-			Routine *vertexRoutine;
-			Routine *setupRoutine;
-			Routine *pixelRoutine;
-
 			if(update || oldMultiSampleMask != context->multiSampleMask)
 			{
 				vertexState = VertexProcessor::update(drawType);
