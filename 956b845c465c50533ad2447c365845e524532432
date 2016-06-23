@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "038165c8_767450b7",
+        "filename": "src/OpenGL/libGLESv2/utilities.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 722,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-06-23T15:49:51Z",
+      "side": 1,
+      "message": "The glTexImage2D internalformat parameter is a GLint, so I think we should keep that.",
+      "range": {
+        "startLine": 722,
+        "startChar": 60,
+        "endLine": 722,
+        "endChar": 66
+      },
+      "revId": "956b845c465c50533ad2447c365845e524532432",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
