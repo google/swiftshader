@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "031b25b9_061fda59",
+        "filename": "src/OpenGL/libGLESv2/Program.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 284,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-06-23T20:44:47Z",
+      "side": 1,
+      "message": "glGetAttribLocation returns a signed integer, and is specified to return -1 if the attribute doesn\u0027t exist. So let\u0027s just change this method\u0027s return type to GLint instead.",
+      "range": {
+        "startLine": 284,
+        "startChar": 9,
+        "endLine": 284,
+        "endChar": 20
+      },
+      "revId": "a36ad5ddf4e3fc4b4d1cc4753fb03028a0c4ffab",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "43afdd8f_b81e19b7",
+        "filename": "src/OpenGL/libGLESv2/Program.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1372,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-06-23T20:44:47Z",
+      "side": 1,
+      "message": "I would just make ParseUniformName return an int. Note that GL_INVALID_INDEX is defined as 0xFFFFFFFFu, so if 64-bit subscripts were allowed we\u0027d have one value that isn\u0027t valid. So only 32-bit makes sense.",
+      "range": {
+        "startLine": 1369,
+        "startChar": 3,
+        "endLine": 1372,
+        "endChar": 48
+      },
+      "revId": "a36ad5ddf4e3fc4b4d1cc4753fb03028a0c4ffab",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "839ab576_32c5d0fd",
+        "filename": "src/Shader/PixelRoutine.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 551,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-06-23T20:44:47Z",
+      "side": 1,
+      "message": "What\u0027s the warning you\u0027re getting here? Perhaps we should have a Short4 constructor which accepts an (unsigned) int.",
+      "range": {
+        "startLine": 551,
+        "startChar": 97,
+        "endLine": 551,
+        "endChar": 110
+      },
+      "revId": "a36ad5ddf4e3fc4b4d1cc4753fb03028a0c4ffab",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "839ab576_d2ad6446",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2196,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-06-23T20:44:47Z",
+      "side": 1,
+      "message": "Also probably best handled by a Short4 constructor which doesn\u0027t have a problem taking 0x8000",
+      "range": {
+        "startLine": 2196,
+        "startChar": 38,
+        "endLine": 2196,
+        "endChar": 63
+      },
+      "revId": "a36ad5ddf4e3fc4b4d1cc4753fb03028a0c4ffab",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
