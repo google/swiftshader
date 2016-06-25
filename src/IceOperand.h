@@ -703,7 +703,7 @@ public:
   std::string getSymbolicStackOffset() const {
     if (!BuildDefs::dump())
       return "";
-    return "lv$" + getName();
+    return ".L$lv$" + getName();
   }
 
   bool hasReg() const { return getRegNum().hasValue(); }
