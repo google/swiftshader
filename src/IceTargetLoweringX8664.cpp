@@ -408,17 +408,27 @@ Traits::X86OperandMem *TargetX8664::_sandbox_mem_reference(X86OperandMem *Mem) {
 
   // NeedsLea is a flag indicating whether Mem needs to be materialized to a GPR
   // prior to being used. A LEA is needed if Mem.Offset is a constant
-  // relocatable, or if Mem.Offset is negative. In both these cases, the LEA is
-  // needed to ensure the sandboxed memory operand will only use the lower
-  // 32-bits of T+Offset.
+  // relocatable with a nonzero offset, or if Mem.Offset is a nonzero immediate;
+  // but only when the address mode contains a "user" register other than the
+  // rsp/rbp/r15 base. In both these cases, the LEA is needed to ensure the
+  // sandboxed memory operand will only use the lower 32-bits of T+Offset.
   bool NeedsLea = false;
-  if (Offset != nullptr) {
-    if (llvm::isa<ConstantRelocatable>(Offset)) {
-      NeedsLea = true;
+  if (!Mem->getIsRebased()) {
+    bool IsOffsetZero = false;
+    if (Offset == nullptr) {
+      IsOffsetZero = true;
+    } else if (const auto *CR = llvm::dyn_cast<ConstantRelocatable>(Offset)) {
+      IsOffsetZero = (CR->getOffset() == 0);
     } else if (const auto *Imm = llvm::dyn_cast<ConstantInteger32>(Offset)) {
-      NeedsLea = Imm->getValue() < 0;
+      IsOffsetZero = (Imm->getValue() == 0);
     } else {
       llvm::report_fatal_error("Unexpected Offset type.");
+    }
+    if (!IsOffsetZero) {
+      if (Base != nullptr && Base != ZeroReg)
+        NeedsLea = true;
+      if (Index != nullptr && Index != ZeroReg)
+        NeedsLea = true;
     }
   }
 
