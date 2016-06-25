@@ -234,6 +234,10 @@ public:
     Context.insert<InstMIPS32Ldc1>(Value, Mem);
   }
 
+  void _lw(Variable *Value, OperandMIPS32Mem *Mem) {
+    Context.insert<InstMIPS32Lw>(Value, Mem);
+  }
+
   void _lwc1(Variable *Value, OperandMIPS32Mem *Mem) {
     Context.insert<InstMIPS32Lwc1>(Value, Mem);
   }
@@ -555,6 +559,7 @@ protected:
   bool MaybeLeafFunc = true;
   bool PrologEmitsFixedAllocas = false;
   uint32_t MaxOutArgsSizeBytes = 0;
+  uint32_t TotalStackSizeBytes = 0;
   static SmallBitVector TypeToRegisterSet[RCMIPS32_NUM];
   static SmallBitVector TypeToRegisterSetUnfiltered[RCMIPS32_NUM];
   static SmallBitVector RegisterAliases[RegMIPS32::Reg_NUM];
@@ -566,6 +571,7 @@ protected:
   size_t SpillAreaSizeBytes = 0;
   size_t FixedAllocaSizeBytes = 0;
   size_t FixedAllocaAlignBytes = 0;
+  size_t PreservedRegsSizeBytes = 0;
 
 private:
   ENABLE_MAKE_UNIQUE;

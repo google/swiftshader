@@ -790,7 +790,6 @@ void TargetMIPS32::addProlog(CfgNode *Node) {
   }
 
   uint32_t NumCallee = 0;
-  size_t PreservedRegsSizeBytes = 0;
 
   // RegClasses is a tuple of
   //
@@ -835,8 +834,8 @@ void TargetMIPS32::addProlog(CfgNode *Node) {
       GlobalsSize + LocalsSlotsPaddingBytes;
 
   // Adds the out args space to the stack, and align SP if necessary.
-  uint32_t TotalStackSizeBytes = PreservedRegsSizeBytes + SpillAreaSizeBytes +
-                                 FixedAllocaSizeBytes + MaxOutArgsSizeBytes;
+  TotalStackSizeBytes = PreservedRegsSizeBytes + SpillAreaSizeBytes +
+                        FixedAllocaSizeBytes + MaxOutArgsSizeBytes;
 
   // Generate "addiu sp, sp, -TotalStackSizeBytes"
   if (TotalStackSizeBytes) {
@@ -926,9 +925,53 @@ void TargetMIPS32::addProlog(CfgNode *Node) {
 }
 
 void TargetMIPS32::addEpilog(CfgNode *Node) {
-  (void)Node;
+  InstList &Insts = Node->getInsts();
+  InstList::reverse_iterator RI, E;
+  for (RI = Insts.rbegin(), E = Insts.rend(); RI != E; ++RI) {
+    if (llvm::isa<InstMIPS32Ret>(*RI))
+      break;
+  }
+  if (RI == E)
+    return;
+
+  // Convert the reverse_iterator position into its corresponding (forward)
+  // iterator position.
+  InstList::iterator InsertPoint = RI.base();
+  --InsertPoint;
+  Context.init(Node);
+  Context.setInsertPoint(InsertPoint);
+
+  Variable *SP = getPhysicalRegister(RegMIPS32::Reg_SP);
+  if (UsesFramePointer) {
+    Variable *FP = getPhysicalRegister(RegMIPS32::Reg_FP);
+    // For late-stage liveness analysis (e.g. asm-verbose mode), adding a fake
+    // use of SP before the assignment of SP=FP keeps previous SP adjustments
+    // from being dead-code eliminated.
+    Context.insert<InstFakeUse>(SP);
+    _mov(SP, FP);
+  }
+
+  VarList::reverse_iterator RIter, END;
+
+  if (!PreservedGPRs.empty()) {
+    uint32_t StackOffset = TotalStackSizeBytes - PreservedRegsSizeBytes;
+    for (RIter = PreservedGPRs.rbegin(), END = PreservedGPRs.rend();
+         RIter != END; ++RIter) {
+      Variable *PhysicalRegister = getPhysicalRegister((*RIter)->getRegNum());
+      Variable *SP = getPhysicalRegister(RegMIPS32::Reg_SP);
+      OperandMIPS32Mem *MemoryLocation = OperandMIPS32Mem::create(
+          Func, IceType_i32, SP,
+          llvm::cast<ConstantInteger32>(Ctx->getConstantInt32(StackOffset)));
+      _lw(PhysicalRegister, MemoryLocation);
+      StackOffset += typeWidthInBytesOnStack(PhysicalRegister->getType());
+    }
+  }
+
+  if (TotalStackSizeBytes) {
+    _addiu(SP, SP, TotalStackSizeBytes);
+  }
+
   return;
-  UnimplementedError(getFlags());
 }
 
 Operand *TargetMIPS32::loOperand(Operand *Operand) {

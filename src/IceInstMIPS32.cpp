@@ -80,6 +80,7 @@ template <> const char *InstMIPS32Divu::Opcode = "divu";
 template <> const char *InstMIPS32La::Opcode = "la";
 template <> const char *InstMIPS32Ldc1::Opcode = "ldc1";
 template <> const char *InstMIPS32Lui::Opcode = "lui";
+template <> const char *InstMIPS32Lw::Opcode = "lw";
 template <> const char *InstMIPS32Lwc1::Opcode = "lwc1";
 template <> const char *InstMIPS32Mfc1::Opcode = "mfc1";
 template <> const char *InstMIPS32Mfhi::Opcode = "mfhi";
