@@ -216,9 +216,7 @@ Function<Int(Pointer<Int>, Int)> function;
 
     For(Int i = 0, i < n, i++)
     {
-        total += *p;
-
-        p = Pointer<Int>(Pointer<Byte>(p) + sizeof(int));
+        total += p[i];
     }
 
     Return(total);
@@ -245,22 +243,20 @@ Function<Int(Pointer<Int>, Int)> function;
     {
         if(state.operation == ADD)
         {
-            total += *p;
+            total += p[i];
         }
         else if(state.operation == SUBTRACT)
         {
-            total -= *p;
+            total -= p[i];
         }
         else if(state.operation == AND)
         {
-            total &= *p;
+            total &= p[i];
         }
         else if(...)
         {
             ...
         }
-
-        p = Pointer<Int>(Pointer<Byte>(p) + sizeof(int));
     }
 
     Return(total);

@@ -2436,6 +2436,8 @@ namespace sw
 		RValue<Pointer<T>> operator=(const Reference<Pointer<T>> &rhs) const;
 
 		Reference<T> operator*();
+		Reference<T> operator[](int index);
+		Reference<T> operator[](RValue<Int> index);
 
 		static llvm::Type *getType();
 
@@ -2465,7 +2467,6 @@ namespace sw
 
 		Reference<T> operator[](int index);
 		Reference<T> operator[](RValue<Int> index);
-		Reference<T> operator[](RValue<UInt> index);
 	};
 
 //	RValue<Array<T>> operator++(const Array<T> &val, int);   // Post-increment
@@ -2857,6 +2858,22 @@ namespace sw
 	}
 
 	template<class T>
+	Reference<T> Pointer<T>::operator[](int index)
+	{
+		llvm::Value *element = Nucleus::createGEP(LValue::loadValue(), (llvm::Value*)Nucleus::createConstantInt(index));
+
+		return Reference<T>(element, alignment);
+	}
+
+	template<class T>
+	Reference<T> Pointer<T>::operator[](RValue<Int> index)
+	{
+		llvm::Value *element = Nucleus::createGEP(LValue::loadValue(), index.value);
+
+		return Reference<T>(element, alignment);
+	}
+
+	template<class T>
 	llvm::Type *Pointer<T>::getType()
 	{
 		return Nucleus::getPointerType(T::getType());
@@ -2877,14 +2894,6 @@ namespace sw
 
 	template<class T, int S>
 	Reference<T> Array<T, S>::operator[](RValue<Int> index)
-	{
-		llvm::Value *element = LValue::getAddress(index.value);
-
-		return Reference<T>(element);
-	}
-
-	template<class T, int S>
-	Reference<T> Array<T, S>::operator[](RValue<UInt> index)
 	{
 		llvm::Value *element = LValue::getAddress(index.value);
 
