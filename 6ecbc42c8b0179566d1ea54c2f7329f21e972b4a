@@ -22,6 +22,30 @@
       "revId": "6ecbc42c8b0179566d1ea54c2f7329f21e972b4a",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a3bfb931_6fcc1c6c",
+        "filename": "src/Reactor/Nucleus.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 5215,
+      "author": {
+        "id": 5685
+      },
+      "writtenOn": "2016-06-27T17:23:47Z",
+      "side": 1,
+      "message": "The fallback path does not produce pmovzxbd. It produces punpcklbw then punpcklwd.",
+      "parentUuid": "839ab576_7255980c",
+      "range": {
+        "startLine": 5215,
+        "startChar": 2,
+        "endLine": 5215,
+        "endChar": 6
+      },
+      "revId": "6ecbc42c8b0179566d1ea54c2f7329f21e972b4a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
