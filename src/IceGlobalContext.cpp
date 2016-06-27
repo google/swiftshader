@@ -362,6 +362,7 @@ GlobalContext::GlobalContext(Ostream *OsDump, Ostream *OsEmit, Ostream *OsError,
 void GlobalContext::translateFunctions() {
   TimerMarker Timer(TimerStack::TT_translateFunctions, this);
   while (std::unique_ptr<OptWorkItem> OptItem = optQueueBlockingPop()) {
+    std::unique_ptr<EmitterWorkItem> Item;
     auto Func = OptItem->getParsedCfg();
     // Install Func in TLS for Cfg-specific container allocators.
     CfgLocalAllocatorScope _(Func.get());
@@ -379,11 +380,14 @@ void GlobalContext::translateFunctions() {
         !getFlags().matchTranslateOnly(Func->getFunctionName(),
                                        Func->getSequenceNumber())) {
       Func->dump();
+      // Add a dummy work item as a placeholder.  This maintains sequence
+      // numbers so that the emitter thread will emit subsequent functions.
+      Item = makeUnique<EmitterWorkItem>(Func->getSequenceNumber());
+      emitQueueBlockingPush(std::move(Item));
       continue; // Func goes out of scope and gets deleted
     }
 
     Func->translate();
-    std::unique_ptr<EmitterWorkItem> Item;
     if (Func->hasError()) {
       getErrorStatus()->assign(EC_Translation);
       OstreamLocker L(this);
