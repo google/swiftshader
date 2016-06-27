@@ -27,8 +27,8 @@ namespace
 		case sw::SWIZZLE_GREEN: s = c.y; break;
 		case sw::SWIZZLE_BLUE:  s = c.z; break;
 		case sw::SWIZZLE_ALPHA: s = c.w; break;
-		case sw::SWIZZLE_ZERO:  s = sw::Short4(0x0000, 0x0000, 0x0000, 0x0000); break;
-		case sw::SWIZZLE_ONE:   s = sw::Short4(0x1000, 0x1000, 0x1000, 0x1000); break;
+		case sw::SWIZZLE_ZERO:  s = sw::Short4(0x0000); break;
+		case sw::SWIZZLE_ONE:   s = sw::Short4(0x1000); break;
 		default: ASSERT(false);
 		}
 	}
@@ -76,17 +76,17 @@ namespace sw
 
 		if(state.textureType == TEXTURE_NULL)
 		{
-			c.x = Short4(0x0000, 0x0000, 0x0000, 0x0000);
-			c.y = Short4(0x0000, 0x0000, 0x0000, 0x0000);
-			c.z = Short4(0x0000, 0x0000, 0x0000, 0x0000);
+			c.x = Short4(0x0000);
+			c.y = Short4(0x0000);
+			c.z = Short4(0x0000);
 
 			if(fixed12)   // FIXME: Convert to fixed12 at higher level, when required
 			{
-				c.w = Short4(0x1000, 0x1000, 0x1000, 0x1000);
+				c.w = Short4(0x1000);
 			}
 			else
 			{
-				c.w = Short4((short)0xFFFF, (short)0xFFFF, (short)0xFFFF, (short)0xFFFF);   // FIXME
+				c.w = Short4(0xFFFFu);   // FIXME
 			}
 		}
 		else
@@ -237,21 +237,21 @@ namespace sw
 				case FORMAT_YV12_BT601:
 				case FORMAT_YV12_BT709:
 				case FORMAT_YV12_JFIF:
-					if(componentCount < 2) c.y = Short4(0x1000, 0x1000, 0x1000, 0x1000);
-					if(componentCount < 3) c.z = Short4(0x1000, 0x1000, 0x1000, 0x1000);
-					if(componentCount < 4) c.w = Short4(0x1000, 0x1000, 0x1000, 0x1000);
+					if(componentCount < 2) c.y = Short4(0x1000);
+					if(componentCount < 3) c.z = Short4(0x1000);
+					if(componentCount < 4) c.w = Short4(0x1000);
 					break;
 				case FORMAT_A8:
 					c.w = c.x;
-					c.x = Short4(0x0000, 0x0000, 0x0000, 0x0000);
-					c.y = Short4(0x0000, 0x0000, 0x0000, 0x0000);
-					c.z = Short4(0x0000, 0x0000, 0x0000, 0x0000);
+					c.x = Short4(0x0000);
+					c.y = Short4(0x0000);
+					c.z = Short4(0x0000);
 					break;
 				case FORMAT_L8:
 				case FORMAT_L16:
 					c.y = c.x;
 					c.z = c.x;
-					c.w = Short4(0x1000, 0x1000, 0x1000, 0x1000);
+					c.w = Short4(0x1000);
 					break;
 				case FORMAT_A8L8:
 					c.w = c.y;
@@ -259,11 +259,11 @@ namespace sw
 					c.z = c.x;
 					break;
 				case FORMAT_R32F:
-					c.y = Short4(0x1000, 0x1000, 0x1000, 0x1000);
+					c.y = Short4(0x1000);
 				case FORMAT_G32R32F:
-					c.z = Short4(0x1000, 0x1000, 0x1000, 0x1000);
+					c.z = Short4(0x1000);
 				case FORMAT_X32B32G32R32F:
-					c.w = Short4(0x1000, 0x1000, 0x1000, 0x1000);
+					c.w = Short4(0x1000);
 				case FORMAT_A32B32G32R32F:
 					break;
 				case FORMAT_D32F:
@@ -637,7 +637,7 @@ namespace sw
 			if(hasUnsignedTextureComponent(3)) cc.w = MulHigh(As<UShort4>(cc.w), utri); else cc.w = MulHigh(cc.w, stri);
 
 			utri = ~utri;
-			stri = Short4(0x7FFF, 0x7FFF, 0x7FFF, 0x7FFF) - stri;
+			stri = Short4(0x7FFF) - stri;
 
 			if(hasUnsignedTextureComponent(0)) c.x = MulHigh(As<UShort4>(c.x), utri); else c.x = MulHigh(c.x, stri);
 			if(hasUnsignedTextureComponent(1)) c.y = MulHigh(As<UShort4>(c.y), utri); else c.y = MulHigh(c.y, stri);
@@ -724,10 +724,10 @@ namespace sw
 
 			Vector4s cSum;
 
-			cSum.x = Short4(0, 0, 0, 0);
-			cSum.y = Short4(0, 0, 0, 0);
-			cSum.z = Short4(0, 0, 0, 0);
-			cSum.w = Short4(0, 0, 0, 0);
+			cSum.x = Short4(0);
+			cSum.y = Short4(0);
+			cSum.z = Short4(0);
+			cSum.w = Short4(0);
 
 			Float4 A = *Pointer<Float4>(constants + OFFSET(Constants,uvWeight) + 16 * a);
 			Float4 B = *Pointer<Float4>(constants + OFFSET(Constants,uvStart) + 16 * a);
@@ -1752,8 +1752,8 @@ namespace sw
 				}
 			}
 			Short4 www2 = wwww;
-			wwww = As<Short4>(UnpackLow(wwww, Short4(0x0000, 0x0000, 0x0000, 0x0000)));
-			www2 = As<Short4>(UnpackHigh(www2, Short4(0x0000, 0x0000, 0x0000, 0x0000)));
+			wwww = As<Short4>(UnpackLow(wwww, Short4(0x0000)));
+			www2 = As<Short4>(UnpackHigh(www2, Short4(0x0000)));
 			wwww = As<Short4>(MulAdd(wwww, *Pointer<Short4>(mipmap + OFFSET(Mipmap,sliceP))));
 			www2 = As<Short4>(MulAdd(www2, *Pointer<Short4>(mipmap + OFFSET(Mipmap,sliceP))));
 			uuuu = As<Short4>(As<Int2>(uuuu) + As<Int2>(wwww));
@@ -1911,8 +1911,8 @@ namespace sw
 				case FORMAT_G8R8I_SNORM:
 				case FORMAT_V8U8:
 				case FORMAT_A8L8:
-					c.y = (c.x & Short4(0xFF00u, 0xFF00u, 0xFF00u, 0xFF00u)) | As<Short4>(As<UShort4>(c.x) >> 8);
-					c.x = (c.x & Short4(0x00FFu, 0x00FFu, 0x00FFu, 0x00FFu)) | (c.x << 8);
+					c.y = (c.x & Short4(0xFF00u)) | As<Short4>(As<UShort4>(c.x) >> 8);
+					c.x = (c.x & Short4(0x00FFu)) | (c.x << 8);
 					break;
 				default:
 					ASSERT(false);
@@ -2193,7 +2193,7 @@ namespace sw
 			convert -= Int4(0x00008000, 0x00008000, 0x00008000, 0x00008000);
 			convert = As<Int4>(Pack(convert, convert));
 
-			return As<Short4>(Int2(convert)) + Short4((short)0x8000, (short)0x8000, (short)0x8000, (short)0x8000);
+			return As<Short4>(Int2(convert)) + Short4(0x8000u);
 		}
 		else   // Wrap (or border)
 		{

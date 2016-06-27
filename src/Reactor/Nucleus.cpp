@@ -3270,6 +3270,20 @@ namespace sw
 	//	xyzw.parent = this;
 	}
 
+	UShort4::UShort4(unsigned short xyzw)
+	{
+		//	xyzw.parent = this;
+
+		Constant *constantVector[4];
+		constantVector[0] = Nucleus::createConstantShort(xyzw);
+		constantVector[1] = Nucleus::createConstantShort(xyzw);
+		constantVector[2] = Nucleus::createConstantShort(xyzw);
+		constantVector[3] = Nucleus::createConstantShort(xyzw);
+		Value *vector = Nucleus::createConstantVector(constantVector, 4);
+
+		storeValue(Nucleus::createBitCast(vector, getType()));
+	}
+
 	UShort4::UShort4(unsigned short x, unsigned short y, unsigned short z, unsigned short w)
 	{
 	//	xyzw.parent = this;
