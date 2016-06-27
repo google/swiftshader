@@ -148,3 +148,42 @@ entry:
 ; CHECK-LABEL: address_mode_opt_sub_min_int
 ; CHECK: movss xmm0,DWORD PTR [{{.*}}-0x80000000]
 }
+
+define internal float @load_1_or__2_shl_arg(float* %arg) {
+entry:
+  %arg.int = ptrtoint float* %arg to i32
+  %shl1 = shl i32 %arg.int, 2
+  %addr.int = or i32 1, %shl1
+  %addr.ptr = inttoptr i32 %addr.int to float*
+  %addr.load = load float, float* %addr.ptr, align 4
+  ret float %addr.load
+; CHECK-LABEL: load_1_or__2_shl_arg
+; CHECK-NOT: or
+; CHECK: movss xmm{{[0-9]+}},DWORD PTR [{{e..}}*4+0x1]
+}
+
+define internal float @or_add_boundary_check_1(float* %arg) {
+entry:
+  %arg.int = ptrtoint float* %arg to i32
+  %shl1 = shl i32 %arg.int, 2
+  %addr.int = or i32 5, %shl1
+  %addr.ptr = inttoptr i32 %addr.int to float*
+  %addr.load = load float, float* %addr.ptr, align 4
+  ret float %addr.load
+; CHECK-LABEL: or_add_boundary_check_1
+; CHECK: or
+; CHECK-NOT: movss xmm{{[0-9]+}},DWORD PTR [{{e..}}*4+0x5]
+}
+
+define internal float @or_add_boundary_check_2(float* %arg) {
+entry:
+  %arg.int = ptrtoint float* %arg to i32
+  %shl1 = shl i32 %arg.int, 2
+  %addr.int = or i32 -1, %shl1
+  %addr.ptr = inttoptr i32 %addr.int to float*
+  %addr.load = load float, float* %addr.ptr, align 4
+  ret float %addr.load
+; CHECK-LABEL: or_add_boundary_check_2
+; CHECK: or
+; CHECK-NOT: movss xmm{{[0-9]+}},DWORD PTR [{{e..}}*4+0xFFFF]
+}

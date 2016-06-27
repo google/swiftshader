@@ -5270,6 +5270,9 @@ const Inst *AddressOptimizer::matchOffsetIndexOrBase(
   //   set Index=Var, Offset+=(Const<<Shift)
   // Index is Index=Var-Const ==>
   //   set Index=Var, Offset-=(Const<<Shift)
+  // Treat Index=Var Or Const as Index=Var + Const
+  //    when Var = Var' << N and log2(Const) <= N
+  // or when Var = (2^M) * (2^N) and log2(Const) <= (M+N)
 
   if (*IndexOrBase == nullptr) {
     return nullptr;
@@ -5280,10 +5283,15 @@ const Inst *AddressOptimizer::matchOffsetIndexOrBase(
   }
   assert(!VMetadata->isMultiDef(*IndexOrBase));
   if (auto *ArithInst = llvm::dyn_cast<const InstArithmetic>(Definition)) {
-    if (ArithInst->getOp() != InstArithmetic::Add &&
-        ArithInst->getOp() != InstArithmetic::Sub)
+    switch (ArithInst->getOp()) {
+    case InstArithmetic::Add:
+    case InstArithmetic::Sub:
+    case InstArithmetic::Or:
+      break;
+    default:
       return nullptr;
-    bool IsAdd = ArithInst->getOp() == InstArithmetic::Add;
+    }
+
     Operand *Src0 = ArithInst->getSrc(0);
     Operand *Src1 = ArithInst->getSrc(1);
     auto *Var0 = llvm::dyn_cast<Variable>(Src0);
@@ -5292,6 +5300,52 @@ const Inst *AddressOptimizer::matchOffsetIndexOrBase(
     auto *Const1 = llvm::dyn_cast<ConstantInteger32>(Src1);
     auto *Reloc0 = llvm::dyn_cast<ConstantRelocatable>(Src0);
     auto *Reloc1 = llvm::dyn_cast<ConstantRelocatable>(Src1);
+
+    bool IsAdd = false;
+    if (ArithInst->getOp() == InstArithmetic::Or) {
+      Variable *Var = nullptr;
+      ConstantInteger32 *Const = nullptr;
+      if (Var0 && Const1) {
+        Var = Var0;
+        Const = Const1;
+      } else if (Const0 && Var1) {
+        Var = Var1;
+        Const = Const0;
+      } else {
+        return nullptr;
+      }
+      auto *VarDef =
+          llvm::dyn_cast<InstArithmetic>(VMetadata->getSingleDefinition(Var));
+      if (VarDef == nullptr)
+        return nullptr;
+
+      SizeT ZeroesAvailable = 0;
+      if (VarDef->getOp() == InstArithmetic::Shl) {
+        if (auto *ConstInt =
+                llvm::dyn_cast<ConstantInteger32>(VarDef->getSrc(1))) {
+          ZeroesAvailable = ConstInt->getValue();
+        }
+      } else if (VarDef->getOp() == InstArithmetic::Mul) {
+        SizeT PowerOfTwo = 0;
+        ConstantInteger32 *MultConst =
+            llvm::dyn_cast<ConstantInteger32>(VarDef->getSrc(0));
+        if (llvm::isPowerOf2_32(MultConst->getValue())) {
+          PowerOfTwo += MultConst->getValue();
+        }
+        MultConst = llvm::dyn_cast<ConstantInteger32>(VarDef->getSrc(1));
+        if (llvm::isPowerOf2_32(MultConst->getValue())) {
+          PowerOfTwo += MultConst->getValue();
+        }
+        ZeroesAvailable = llvm::Log2_32(PowerOfTwo) + 1;
+      }
+      SizeT ZeroesNeeded = llvm::Log2_32(Const->getValue()) + 1;
+      if (ZeroesNeeded == 0 || ZeroesNeeded > ZeroesAvailable)
+        return nullptr;
+      IsAdd = true; // treat it as an add if the above conditions hold
+    } else {
+      IsAdd = ArithInst->getOp() == InstArithmetic::Add;
+    }
+
     Variable *NewIndexOrBase = nullptr;
     int32_t NewOffset = 0;
     ConstantRelocatable *NewRelocatable = *Relocatable;
@@ -5331,7 +5385,7 @@ const Inst *AddressOptimizer::matchOffsetIndexOrBase(
       NewOffset += MoreOffset;
     }
     if (Utils::WouldOverflowAdd(*Offset, NewOffset << Shift))
-        return nullptr;
+      return nullptr;
     *IndexOrBase = NewIndexOrBase;
     *Offset += (NewOffset << Shift);
     // Shift is always zero if this is called with the base
