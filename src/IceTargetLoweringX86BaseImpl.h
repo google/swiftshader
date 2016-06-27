@@ -5327,14 +5327,17 @@ const Inst *AddressOptimizer::matchOffsetIndexOrBase(
         }
       } else if (VarDef->getOp() == InstArithmetic::Mul) {
         SizeT PowerOfTwo = 0;
-        ConstantInteger32 *MultConst =
-            llvm::dyn_cast<ConstantInteger32>(VarDef->getSrc(0));
-        if (llvm::isPowerOf2_32(MultConst->getValue())) {
-          PowerOfTwo += MultConst->getValue();
+        if (auto *MultConst =
+                llvm::dyn_cast<ConstantInteger32>(VarDef->getSrc(0))) {
+          if (llvm::isPowerOf2_32(MultConst->getValue())) {
+            PowerOfTwo += MultConst->getValue();
+          }
         }
-        MultConst = llvm::dyn_cast<ConstantInteger32>(VarDef->getSrc(1));
-        if (llvm::isPowerOf2_32(MultConst->getValue())) {
-          PowerOfTwo += MultConst->getValue();
+        if (auto *MultConst =
+                llvm::dyn_cast<ConstantInteger32>(VarDef->getSrc(1))) {
+          if (llvm::isPowerOf2_32(MultConst->getValue())) {
+            PowerOfTwo += MultConst->getValue();
+          }
         }
         ZeroesAvailable = llvm::Log2_32(PowerOfTwo) + 1;
       }
