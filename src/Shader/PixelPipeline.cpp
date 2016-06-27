@@ -27,10 +27,10 @@ namespace sw
 		if(state.color[0].component & 0x4) diffuse.z = convertFixed12(v[0].z); else diffuse.z = Short4(0x1000);
 		if(state.color[0].component & 0x8) diffuse.w = convertFixed12(v[0].w); else diffuse.w = Short4(0x1000);
 
-		if(state.color[1].component & 0x1) specular.x = convertFixed12(v[1].x); else specular.x = Short4(0x0000, 0x0000, 0x0000, 0x0000);
-		if(state.color[1].component & 0x2) specular.y = convertFixed12(v[1].y); else specular.y = Short4(0x0000, 0x0000, 0x0000, 0x0000);
-		if(state.color[1].component & 0x4) specular.z = convertFixed12(v[1].z); else specular.z = Short4(0x0000, 0x0000, 0x0000, 0x0000);
-		if(state.color[1].component & 0x8) specular.w = convertFixed12(v[1].w); else specular.w = Short4(0x0000, 0x0000, 0x0000, 0x0000);
+		if(state.color[1].component & 0x1) specular.x = convertFixed12(v[1].x); else specular.x = Short4(0x0000);
+		if(state.color[1].component & 0x2) specular.y = convertFixed12(v[1].y); else specular.y = Short4(0x0000);
+		if(state.color[1].component & 0x4) specular.z = convertFixed12(v[1].z); else specular.z = Short4(0x0000);
+		if(state.color[1].component & 0x8) specular.w = convertFixed12(v[1].w); else specular.w = Short4(0x0000);
 	}
 
 	void PixelPipeline::fixedFunction()
@@ -229,10 +229,10 @@ namespace sw
 
 				if(dst.saturate)
 				{
-					if(dst.mask & 0x1) { d.x = Min(d.x, Short4(0x1000)); d.x = Max(d.x, Short4(0x0000, 0x0000, 0x0000, 0x0000)); }
-					if(dst.mask & 0x2) { d.y = Min(d.y, Short4(0x1000)); d.y = Max(d.y, Short4(0x0000, 0x0000, 0x0000, 0x0000)); }
-					if(dst.mask & 0x4) { d.z = Min(d.z, Short4(0x1000)); d.z = Max(d.z, Short4(0x0000, 0x0000, 0x0000, 0x0000)); }
-					if(dst.mask & 0x8) { d.w = Min(d.w, Short4(0x1000)); d.w = Max(d.w, Short4(0x0000, 0x0000, 0x0000, 0x0000)); }
+					if(dst.mask & 0x1) { d.x = Min(d.x, Short4(0x1000)); d.x = Max(d.x, Short4(0x0000)); }
+					if(dst.mask & 0x2) { d.y = Min(d.y, Short4(0x1000)); d.y = Max(d.y, Short4(0x0000)); }
+					if(dst.mask & 0x4) { d.z = Min(d.z, Short4(0x1000)); d.z = Max(d.z, Short4(0x0000)); }
+					if(dst.mask & 0x8) { d.w = Min(d.w, Short4(0x1000)); d.w = Max(d.w, Short4(0x0000)); }
 				}
 
 				if(pairing)
@@ -260,10 +260,10 @@ namespace sw
 
 	Bool PixelPipeline::alphaTest(Int cMask[4])
 	{
-		current.x = Min(current.x, Short4(0x0FFF, 0x0FFF, 0x0FFF, 0x0FFF)); current.x = Max(current.x, Short4(0x0000, 0x0000, 0x0000, 0x0000));
-		current.y = Min(current.y, Short4(0x0FFF, 0x0FFF, 0x0FFF, 0x0FFF)); current.y = Max(current.y, Short4(0x0000, 0x0000, 0x0000, 0x0000));
-		current.z = Min(current.z, Short4(0x0FFF, 0x0FFF, 0x0FFF, 0x0FFF)); current.z = Max(current.z, Short4(0x0000, 0x0000, 0x0000, 0x0000));
-		current.w = Min(current.w, Short4(0x0FFF, 0x0FFF, 0x0FFF, 0x0FFF)); current.w = Max(current.w, Short4(0x0000, 0x0000, 0x0000, 0x0000));
+		current.x = Min(current.x, Short4(0x0FFF)); current.x = Max(current.x, Short4(0x0000));
+		current.y = Min(current.y, Short4(0x0FFF)); current.y = Max(current.y, Short4(0x0000));
+		current.z = Min(current.z, Short4(0x0FFF)); current.z = Max(current.z, Short4(0x0000));
+		current.w = Min(current.w, Short4(0x0FFF)); current.w = Max(current.w, Short4(0x0000));
 
 		if(!state.alphaTestActive())
 		{
@@ -622,18 +622,18 @@ namespace sw
 			res.y = AddSat(arg1->y, arg2->y);
 			res.z = AddSat(arg1->z, arg2->z);
 
-			res.x = SubSat(res.x, Short4(0x0800, 0x0800, 0x0800, 0x0800));
-			res.y = SubSat(res.y, Short4(0x0800, 0x0800, 0x0800, 0x0800));
-			res.z = SubSat(res.z, Short4(0x0800, 0x0800, 0x0800, 0x0800));
+			res.x = SubSat(res.x, Short4(0x0800));
+			res.y = SubSat(res.y, Short4(0x0800));
+			res.z = SubSat(res.z, Short4(0x0800));
 			break;
 		case TextureStage::STAGE_ADDSIGNED2X: // (Arg1 + Arg2 - 0.5) << 1
 			res.x = AddSat(arg1->x, arg2->x);
 			res.y = AddSat(arg1->y, arg2->y);
 			res.z = AddSat(arg1->z, arg2->z);
 
-			res.x = SubSat(res.x, Short4(0x0800, 0x0800, 0x0800, 0x0800));
-			res.y = SubSat(res.y, Short4(0x0800, 0x0800, 0x0800, 0x0800));
-			res.z = SubSat(res.z, Short4(0x0800, 0x0800, 0x0800, 0x0800));
+			res.x = SubSat(res.x, Short4(0x0800));
+			res.y = SubSat(res.y, Short4(0x0800));
+			res.z = SubSat(res.z, Short4(0x0800));
 
 			res.x = AddSat(res.x, res.x);
 			res.y = AddSat(res.y, res.y);
@@ -667,9 +667,9 @@ namespace sw
 			{
 				Short4 tmp;
 
-				res.x = SubSat(arg1->x, Short4(0x0800, 0x0800, 0x0800, 0x0800)); tmp = SubSat(arg2->x, Short4(0x0800, 0x0800, 0x0800, 0x0800)); res.x = MulHigh(res.x, tmp);
-				res.y = SubSat(arg1->y, Short4(0x0800, 0x0800, 0x0800, 0x0800)); tmp = SubSat(arg2->y, Short4(0x0800, 0x0800, 0x0800, 0x0800)); res.y = MulHigh(res.y, tmp);
-				res.z = SubSat(arg1->z, Short4(0x0800, 0x0800, 0x0800, 0x0800)); tmp = SubSat(arg2->z, Short4(0x0800, 0x0800, 0x0800, 0x0800)); res.z = MulHigh(res.z, tmp);
+				res.x = SubSat(arg1->x, Short4(0x0800)); tmp = SubSat(arg2->x, Short4(0x0800)); res.x = MulHigh(res.x, tmp);
+				res.y = SubSat(arg1->y, Short4(0x0800)); tmp = SubSat(arg2->y, Short4(0x0800)); res.y = MulHigh(res.y, tmp);
+				res.z = SubSat(arg1->z, Short4(0x0800)); tmp = SubSat(arg2->z, Short4(0x0800)); res.z = MulHigh(res.z, tmp);
 
 				res.x = res.x << 6;
 				res.y = res.y << 6;
@@ -679,7 +679,7 @@ namespace sw
 				res.x = AddSat(res.x, res.z);
 
 				// Clamp to [0, 1]
-				res.x = Max(res.x, Short4(0x0000, 0x0000, 0x0000, 0x0000));
+				res.x = Max(res.x, Short4(0x0000));
 				res.x = Min(res.x, Short4(0x1000));
 
 				res.y = res.x;
@@ -794,7 +794,7 @@ namespace sw
 				L = MulHigh(L, *Pointer<Short4>(data + OFFSET(DrawData, textureStage[stage].luminanceScale4)));
 				L = L << 4;
 				L = AddSat(L, *Pointer<Short4>(data + OFFSET(DrawData, textureStage[stage].luminanceOffset4)));
-				L = Max(L, Short4(0x0000, 0x0000, 0x0000, 0x0000));
+				L = Max(L, Short4(0x0000));
 				L = Min(L, Short4(0x1000));
 
 				luminance = true;
@@ -940,11 +940,11 @@ namespace sw
 				break;
 			case TextureStage::STAGE_ADDSIGNED: // Arg1 + Arg2 - 0.5
 				res.w = AddSat(arg1->w, arg2->w);
-				res.w = SubSat(res.w, Short4(0x0800, 0x0800, 0x0800, 0x0800));
+				res.w = SubSat(res.w, Short4(0x0800));
 				break;
 			case TextureStage::STAGE_ADDSIGNED2X: // (Arg1 + Arg2 - 0.5) << 1
 				res.w = AddSat(arg1->w, arg2->w);
-				res.w = SubSat(res.w, Short4(0x0800, 0x0800, 0x0800, 0x0800));
+				res.w = SubSat(res.w, Short4(0x0800));
 				res.w = AddSat(res.w, res.w);
 				break;
 			case TextureStage::STAGE_SUBTRACT: // Arg1 - Arg2
@@ -1030,9 +1030,9 @@ namespace sw
 		case TextureStage::STAGE_ADDSIGNED2X:
 		case TextureStage::STAGE_SUBTRACT:
 		case TextureStage::STAGE_ADDSMOOTH:
-			res.x = Max(res.x, Short4(0x0000, 0x0000, 0x0000, 0x0000));
-			res.y = Max(res.y, Short4(0x0000, 0x0000, 0x0000, 0x0000));
-			res.z = Max(res.z, Short4(0x0000, 0x0000, 0x0000, 0x0000));
+			res.x = Max(res.x, Short4(0x0000));
+			res.y = Max(res.y, Short4(0x0000));
+			res.z = Max(res.z, Short4(0x0000));
 			break;
 		default:
 			ASSERT(false);
@@ -1071,7 +1071,7 @@ namespace sw
 		case TextureStage::STAGE_ADDSIGNED2X:
 		case TextureStage::STAGE_SUBTRACT:
 		case TextureStage::STAGE_ADDSMOOTH:
-			res.w = Max(res.w, Short4(0x0000, 0x0000, 0x0000, 0x0000));
+			res.w = Max(res.w, Short4(0x0000));
 			break;
 		default:
 			ASSERT(false);
@@ -1358,16 +1358,16 @@ namespace sw
 			mod.w = w;
 			break;
 		case Shader::MODIFIER_BIAS:
-			mod.x = SubSat(x, Short4(0x0800, 0x0800, 0x0800, 0x0800));
-			mod.y = SubSat(y, Short4(0x0800, 0x0800, 0x0800, 0x0800));
-			mod.z = SubSat(z, Short4(0x0800, 0x0800, 0x0800, 0x0800));
-			mod.w = SubSat(w, Short4(0x0800, 0x0800, 0x0800, 0x0800));
+			mod.x = SubSat(x, Short4(0x0800));
+			mod.y = SubSat(y, Short4(0x0800));
+			mod.z = SubSat(z, Short4(0x0800));
+			mod.w = SubSat(w, Short4(0x0800));
 			break;
 		case Shader::MODIFIER_BIAS_NEGATE:
-			mod.x = SubSat(Short4(0x0800, 0x0800, 0x0800, 0x0800), x);
-			mod.y = SubSat(Short4(0x0800, 0x0800, 0x0800, 0x0800), y);
-			mod.z = SubSat(Short4(0x0800, 0x0800, 0x0800, 0x0800), z);
-			mod.w = SubSat(Short4(0x0800, 0x0800, 0x0800, 0x0800), w);
+			mod.x = SubSat(Short4(0x0800), x);
+			mod.y = SubSat(Short4(0x0800), y);
+			mod.z = SubSat(Short4(0x0800), z);
+			mod.w = SubSat(Short4(0x0800), w);
 			break;
 		case Shader::MODIFIER_COMPLEMENT:
 			mod.x = SubSat(Short4(0x1000), x);
@@ -1394,20 +1394,20 @@ namespace sw
 			mod.w = -AddSat(w, w);
 			break;
 		case Shader::MODIFIER_SIGN:
-			mod.x = SubSat(x, Short4(0x0800, 0x0800, 0x0800, 0x0800));
-			mod.y = SubSat(y, Short4(0x0800, 0x0800, 0x0800, 0x0800));
-			mod.z = SubSat(z, Short4(0x0800, 0x0800, 0x0800, 0x0800));
-			mod.w = SubSat(w, Short4(0x0800, 0x0800, 0x0800, 0x0800));
+			mod.x = SubSat(x, Short4(0x0800));
+			mod.y = SubSat(y, Short4(0x0800));
+			mod.z = SubSat(z, Short4(0x0800));
+			mod.w = SubSat(w, Short4(0x0800));
 			mod.x = AddSat(mod.x, mod.x);
 			mod.y = AddSat(mod.y, mod.y);
 			mod.z = AddSat(mod.z, mod.z);
 			mod.w = AddSat(mod.w, mod.w);
 			break;
 		case Shader::MODIFIER_SIGN_NEGATE:
-			mod.x = SubSat(Short4(0x0800, 0x0800, 0x0800, 0x0800), x);
-			mod.y = SubSat(Short4(0x0800, 0x0800, 0x0800, 0x0800), y);
-			mod.z = SubSat(Short4(0x0800, 0x0800, 0x0800, 0x0800), z);
-			mod.w = SubSat(Short4(0x0800, 0x0800, 0x0800, 0x0800), w);
+			mod.x = SubSat(Short4(0x0800), x);
+			mod.y = SubSat(Short4(0x0800), y);
+			mod.z = SubSat(Short4(0x0800), z);
+			mod.w = SubSat(Short4(0x0800), w);
 			mod.x = AddSat(mod.x, mod.x);
 			mod.y = AddSat(mod.y, mod.y);
 			mod.z = AddSat(mod.z, mod.z);
@@ -1433,10 +1433,10 @@ namespace sw
 
 		if(src.type == Shader::PARAMETER_CONST && (src.modifier == Shader::MODIFIER_X2 || src.modifier == Shader::MODIFIER_X2_NEGATE))
 		{
-			mod.x = Min(mod.x, Short4(0x1000)); mod.x = Max(mod.x, Short4(-0x1000, -0x1000, -0x1000, -0x1000));
-			mod.y = Min(mod.y, Short4(0x1000)); mod.y = Max(mod.y, Short4(-0x1000, -0x1000, -0x1000, -0x1000));
-			mod.z = Min(mod.z, Short4(0x1000)); mod.z = Max(mod.z, Short4(-0x1000, -0x1000, -0x1000, -0x1000));
-			mod.w = Min(mod.w, Short4(0x1000)); mod.w = Max(mod.w, Short4(-0x1000, -0x1000, -0x1000, -0x1000));
+			mod.x = Min(mod.x, Short4(0x1000)); mod.x = Max(mod.x, Short4(-0x1000));
+			mod.y = Min(mod.y, Short4(0x1000)); mod.y = Max(mod.y, Short4(-0x1000));
+			mod.z = Min(mod.z, Short4(0x1000)); mod.z = Max(mod.z, Short4(-0x1000));
+			mod.w = Min(mod.w, Short4(0x1000)); mod.w = Max(mod.w, Short4(-0x1000));
 		}
 
 		return mod;
@@ -1551,7 +1551,7 @@ namespace sw
 		}
 		else
 		{
-			dst.x = Short4(0x0000, 0x0000, 0x0000, 0x0000);
+			dst.x = Short4(0x0000);
 		}
 
 		if(state.interpolant[2 + coordinate].component & 0x02)
@@ -1562,7 +1562,7 @@ namespace sw
 		}
 		else
 		{
-			dst.y = Short4(0x0000, 0x0000, 0x0000, 0x0000);
+			dst.y = Short4(0x0000);
 		}
 
 		if(state.interpolant[2 + coordinate].component & 0x04)
@@ -1573,7 +1573,7 @@ namespace sw
 		}
 		else
 		{
-			dst.z = Short4(0x0000, 0x0000, 0x0000, 0x0000);
+			dst.z = Short4(0x0000);
 		}
 
 		dst.w = Short4(0x1000);
@@ -1612,7 +1612,7 @@ namespace sw
 		}
 		else
 		{
-			dst.y = Short4(0x0000, 0x0000, 0x0000, 0x0000);
+			dst.y = Short4(0x0000);
 		}
 
 		if(state.interpolant[2 + coordinate].component & 0x04)
@@ -1624,7 +1624,7 @@ namespace sw
 		}
 		else
 		{
-			dst.z = Short4(0x0000, 0x0000, 0x0000, 0x0000);
+			dst.z = Short4(0x0000);
 		}
 	}
 
@@ -1734,7 +1734,7 @@ namespace sw
 		L = MulHigh(L, *Pointer<Short4>(data + OFFSET(DrawData, textureStage[stage].luminanceScale4)));
 		L = L << 4;
 		L = AddSat(L, *Pointer<Short4>(data + OFFSET(DrawData, textureStage[stage].luminanceOffset4)));
-		L = Max(L, Short4(0x0000, 0x0000, 0x0000, 0x0000));
+		L = Max(L, Short4(0x0000));
 		L = Min(L, Short4(0x1000));
 
 		dst.x = MulHigh(dst.x, L); dst.x = dst.x << 4;
@@ -1921,18 +1921,18 @@ namespace sw
 
 	void PixelPipeline::CND(Vector4s &dst, Vector4s &src0, Vector4s &src1, Vector4s &src2)
 	{
-		{ Short4 t0; t0 = src0.x; t0 = CmpGT(t0, Short4(0x0800, 0x0800, 0x0800, 0x0800)); Short4 t1; t1 = src1.x; t1 = t1 & t0; t0 = ~t0 & src2.x; t0 = t0 | t1; dst.x = t0; };
-		{Short4 t0; t0 = src0.y; t0 = CmpGT(t0, Short4(0x0800, 0x0800, 0x0800, 0x0800)); Short4 t1; t1 = src1.y; t1 = t1 & t0; t0 = ~t0 & src2.y; t0 = t0 | t1; dst.y = t0; };
-		{Short4 t0; t0 = src0.z; t0 = CmpGT(t0, Short4(0x0800, 0x0800, 0x0800, 0x0800)); Short4 t1; t1 = src1.z; t1 = t1 & t0; t0 = ~t0 & src2.z; t0 = t0 | t1; dst.z = t0; };
-		{Short4 t0; t0 = src0.w; t0 = CmpGT(t0, Short4(0x0800, 0x0800, 0x0800, 0x0800)); Short4 t1; t1 = src1.w; t1 = t1 & t0; t0 = ~t0 & src2.w; t0 = t0 | t1; dst.w = t0; };
+		{Short4 t0; t0 = src0.x; t0 = CmpGT(t0, Short4(0x0800)); Short4 t1; t1 = src1.x; t1 = t1 & t0; t0 = ~t0 & src2.x; t0 = t0 | t1; dst.x = t0; };
+		{Short4 t0; t0 = src0.y; t0 = CmpGT(t0, Short4(0x0800)); Short4 t1; t1 = src1.y; t1 = t1 & t0; t0 = ~t0 & src2.y; t0 = t0 | t1; dst.y = t0; };
+		{Short4 t0; t0 = src0.z; t0 = CmpGT(t0, Short4(0x0800)); Short4 t1; t1 = src1.z; t1 = t1 & t0; t0 = ~t0 & src2.z; t0 = t0 | t1; dst.z = t0; };
+		{Short4 t0; t0 = src0.w; t0 = CmpGT(t0, Short4(0x0800)); Short4 t1; t1 = src1.w; t1 = t1 & t0; t0 = ~t0 & src2.w; t0 = t0 | t1; dst.w = t0; };
 	}
 
 	void PixelPipeline::CMP(Vector4s &dst, Vector4s &src0, Vector4s &src1, Vector4s &src2)
 	{
-		{ Short4 t0 = CmpGT(Short4(0x0000, 0x0000, 0x0000, 0x0000), src0.x); Short4 t1; t1 = src2.x; t1 &= t0; t0 = ~t0 & src1.x; t0 |= t1; dst.x = t0; };
-		{Short4 t0 = CmpGT(Short4(0x0000, 0x0000, 0x0000, 0x0000), src0.y); Short4 t1; t1 = src2.y; t1 &= t0; t0 = ~t0 & src1.y; t0 |= t1; dst.y = t0; };
-		{Short4 t0 = CmpGT(Short4(0x0000, 0x0000, 0x0000, 0x0000), src0.z); Short4 t1; t1 = src2.z; t1 &= t0; t0 = ~t0 & src1.z; t0 |= t1; dst.z = t0; };
-		{Short4 t0 = CmpGT(Short4(0x0000, 0x0000, 0x0000, 0x0000), src0.w); Short4 t1; t1 = src2.w; t1 &= t0; t0 = ~t0 & src1.w; t0 |= t1; dst.w = t0; };
+		{Short4 t0 = CmpGT(Short4(0x0000), src0.x); Short4 t1; t1 = src2.x; t1 &= t0; t0 = ~t0 & src1.x; t0 |= t1; dst.x = t0; };
+		{Short4 t0 = CmpGT(Short4(0x0000), src0.y); Short4 t1; t1 = src2.y; t1 &= t0; t0 = ~t0 & src1.y; t0 |= t1; dst.y = t0; };
+		{Short4 t0 = CmpGT(Short4(0x0000), src0.z); Short4 t1; t1 = src2.z; t1 &= t0; t0 = ~t0 & src1.z; t0 |= t1; dst.z = t0; };
+		{Short4 t0 = CmpGT(Short4(0x0000), src0.w); Short4 t1; t1 = src2.w; t1 &= t0; t0 = ~t0 & src1.w; t0 |= t1; dst.w = t0; };
 	}
 
 	void PixelPipeline::BEM(Vector4s &dst, Vector4s &src0, Vector4s &src1, int stage)

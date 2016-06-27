@@ -1005,6 +1005,7 @@ namespace sw
 		explicit UShort4(RValue<Float4> cast, bool saturate = false);
 
 		UShort4();
+		UShort4(unsigned short xyzw);
 		UShort4(unsigned short x, unsigned short y, unsigned short z, unsigned short w);
 		UShort4(RValue<UShort4> rhs);
 		UShort4(const UShort4 &rhs);
