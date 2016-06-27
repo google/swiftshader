@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a3bfb931_258a45db",
+        "filename": "src/Reactor/Nucleus.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 928,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-06-27T20:18:49Z",
+      "side": 1,
+      "message": "What happens when writing, say, Short4(-100)? Does that generate another warning? In that case I think we need constructors for both signed and unsigned short, or, perhaps we can just use int and truncate it explicitly within the constructor?",
+      "range": {
+        "startLine": 928,
+        "startChar": 9,
+        "endLine": 928,
+        "endChar": 28
+      },
+      "revId": "f8cca103ce5faff3c081d290868ae626c5c7c2e0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
