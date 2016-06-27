@@ -346,7 +346,7 @@ namespace es2
 
 	GLint Program::getUniformLocation(const std::string &name) const
 	{
-		int subscript = GL_INVALID_INDEX;
+		unsigned int subscript = GL_INVALID_INDEX;
 		std::string baseName = es2::ParseUniformName(name, &subscript);
 
 		size_t numUniforms = uniformIndex.size();
@@ -368,7 +368,7 @@ namespace es2
 
 	GLuint Program::getUniformIndex(const std::string &name) const
 	{
-		int subscript = GL_INVALID_INDEX;
+		unsigned int subscript = GL_INVALID_INDEX;
 		std::string baseName = es2::ParseUniformName(name, &subscript);
 
 		// The app is not allowed to specify array indices other than 0 for arrays of basic types
@@ -429,7 +429,7 @@ namespace es2
 
 	GLuint Program::getUniformBlockIndex(const std::string &name) const
 	{
-		int subscript = GL_INVALID_INDEX;
+		unsigned int subscript = GL_INVALID_INDEX;
 		std::string baseName = es2::ParseUniformName(name, &subscript);
 
 		size_t numUniformBlocks = getActiveUniformBlockCount();
@@ -1366,7 +1366,7 @@ namespace es2
 
 		for(const std::string &indexedTfVaryingName : transformFeedbackVaryings)
 		{
-			int subscript = GL_INVALID_INDEX;
+			unsigned int subscript = GL_INVALID_INDEX;
 			std::string tfVaryingName = es2::ParseUniformName(indexedTfVaryingName, &subscript);
 			bool hasSubscript = (subscript != GL_INVALID_INDEX);
 
