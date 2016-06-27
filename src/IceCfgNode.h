@@ -116,10 +116,14 @@ public:
 
   void addOutEdge(CfgNode *Out) { OutEdges.push_back(Out); }
   void addInEdge(CfgNode *In) { InEdges.push_back(In); }
+  void replaceInEdge(CfgNode *Old, CfgNode *New);
+  void removeAllOutEdges() { OutEdges.clear(); }
+  void removeInEdge(CfgNode *In);
 
   bool hasSingleOutEdge() const {
     return (getOutEdges().size() == 1 || getOutEdges()[0] == getOutEdges()[1]);
   }
+  CfgNode *shortCircuit();
 
 private:
   CfgNode(Cfg *Func, SizeT Number)

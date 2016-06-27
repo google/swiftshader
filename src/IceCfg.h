@@ -201,6 +201,7 @@ public:
   void reorderNodes();
   void shuffleNodes();
   void localCSE();
+  void shortCircuitJumps();
 
   /// Scan allocas to determine whether we need to use a frame pointer.
   /// If SortAndCombine == true, merge all the fixed-size allocas in the

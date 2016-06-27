@@ -640,6 +640,69 @@ void Cfg::localCSE() {
   }
 }
 
+void Cfg::shortCircuitJumps() {
+  // Split Nodes whenever an early jump is possible.
+  // __N :
+  //   a = <something>
+  //   Instruction 1 without side effect
+  //   ... b = <something> ...
+  //   Instruction N without side effect
+  //   t1 = or a b
+  //   br t1 __X __Y
+  //
+  // is transformed into:
+  // __N :
+  //   a = <something>
+  //   br a __X __N_ext
+  //
+  // __N_ext :
+  //   Instruction 1 without side effect
+  //   ... b = <something> ...
+  //   Instruction N without side effect
+  //   br b __X __Y
+  // (Similar logic for AND, jump to false instead of true target.)
+
+  TimerMarker T(TimerStack::TT_shortCircuit, this);
+  getVMetadata()->init(VMK_Uses);
+  auto NodeStack = this->getNodes();
+  CfgUnorderedMap<SizeT, CfgVector<CfgNode *>> Splits;
+  while (!NodeStack.empty()) {
+    auto *Node = NodeStack.back();
+    NodeStack.pop_back();
+    auto NewNode = Node->shortCircuit();
+    if (NewNode) {
+      NodeStack.push_back(NewNode);
+      NodeStack.push_back(Node);
+      Splits[Node->getIndex()].push_back(NewNode);
+    }
+  }
+
+  // Insert nodes in the right place
+  NodeList NewList;
+  NewList.reserve(Nodes.size());
+  CfgUnorderedSet<SizeT> Inserted;
+  for (auto *Node : Nodes) {
+    if (Inserted.find(Node->getIndex()) != Inserted.end())
+      continue; // already inserted
+    NodeList Stack{Node};
+    while (!Stack.empty()) {
+      auto *Current = Stack.back();
+      Stack.pop_back();
+      Inserted.insert(Current->getIndex());
+      NewList.push_back(Current);
+      for (auto *Next : Splits[Current->getIndex()]) {
+        Stack.push_back(Next);
+      }
+    }
+  }
+
+  SizeT NodeIndex = 0;
+  for (auto *Node : NewList) {
+    Node->resetIndex(NodeIndex++);
+  }
+  Nodes = NewList;
+}
+
 void Cfg::doArgLowering() {
   TimerMarker T(TimerStack::TT_doArgLowering, this);
   getTarget()->lowerArguments();

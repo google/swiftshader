@@ -103,13 +103,13 @@ public:
 
   Variable *getDest() const { return Dest; }
 
-  SizeT getSrcSize() const { return NumSrcs; }
+  SizeT getSrcSize() const { return Srcs.size(); }
   Operand *getSrc(SizeT I) const {
     assert(I < getSrcSize());
     return Srcs[I];
   }
   void replaceSource(SizeT Index, Operand *Replacement) {
-    assert(Index < NumSrcs);
+    assert(Index < getSrcSize());
     assert(!isDeleted());
     assert(LiveRangesEnded == 0);
     // Invalidates liveness info because the use Srcs[Index] is removed.
@@ -189,8 +189,7 @@ protected:
   Inst(Cfg *Func, InstKind Kind, SizeT MaxSrcs, Variable *Dest);
   void addSource(Operand *Src) {
     assert(Src);
-    assert(NumSrcs < MaxSrcs);
-    Srcs[NumSrcs++] = Src;
+    Srcs.push_back(Src);
   }
   void setLastUse(SizeT VarIndex) {
     if (VarIndex < CHAR_BIT * sizeof(LiveRangesEnded))
@@ -199,7 +198,7 @@ protected:
   void resetLastUses() { LiveRangesEnded = 0; }
   /// The destroy() method lets the instruction cleanly release any memory that
   /// was allocated via the Cfg's allocator.
-  virtual void destroy(Cfg *Func) { Func->deallocateArrayOf<Operand *>(Srcs); }
+  virtual void destroy(Cfg *) {}
 
   const InstKind Kind;
   /// Number is the instruction number for describing live ranges.
@@ -226,8 +225,8 @@ protected:
 
   Variable *Dest;
   const SizeT MaxSrcs; // only used for assert
-  SizeT NumSrcs = 0;
-  Operand **Srcs;
+
+  CfgVector<Operand *> Srcs;
 
   /// LiveRangesEnded marks which Variables' live ranges end in this
   /// instruction. An instruction can have an arbitrary number of source
@@ -666,15 +665,12 @@ public:
 
 private:
   InstPhi(Cfg *Func, SizeT MaxSrcs, Variable *Dest);
-  void destroy(Cfg *Func) override {
-    Func->deallocateArrayOf<CfgNode *>(Labels);
-    Inst::destroy(Func);
-  }
+  void destroy(Cfg *Func) override { Inst::destroy(Func); }
 
   /// Labels[] duplicates the InEdges[] information in the enclosing CfgNode,
   /// but the Phi instruction is created before InEdges[] is available, so it's
   /// more complicated to share the list.
-  CfgNode **Labels;
+  CfgVector<CfgNode *> Labels;
 };
 
 /// Ret instruction. The return value is captured in getSrc(0), but if there is

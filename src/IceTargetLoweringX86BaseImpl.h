@@ -447,6 +447,10 @@ template <typename TraitsType> void TargetX86Base<TraitsType>::translateO2() {
     Func->localCSE();
     Func->dump("After Local CSE");
   }
+  if (getFlags().getEnableShortCircuit()) {
+    Func->shortCircuitJumps();
+    Func->dump("After Short Circuiting");
+  }
 
   if (!getFlags().getEnablePhiEdgeSplit()) {
     // Lower Phi instructions.

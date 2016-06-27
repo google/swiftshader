@@ -140,12 +140,15 @@ struct dev_list_flag {};
              "information to stdout at the end of program execution."),        \
     cl::init(false))                                                           \
                                                                                \
-  X(EnableExperimental, bool, dev_opt_flag, "enable-experimental",   \
+  X(EnableExperimental, bool, dev_opt_flag, "enable-experimental",             \
     cl::desc("Enable Optimizations not yet part of O2"),                       \
     cl::init(false))                                                           \
                                                                                \
   X(EnablePhiEdgeSplit, bool, dev_opt_flag, "phi-edge-split",                  \
     cl::desc("Enable edge splitting for Phi lowering"), cl::init(true))        \
+                                                                               \
+  X(EnableShortCircuit, bool, dev_opt_flag, "enable-sc",                       \
+    cl::desc("Split Nodes for short circuit evaluation"), cl::init(false))     \
                                                                                \
   X(ExcludedRegisters, std::string, dev_list_flag, "reg-exclude",              \
     cl::CommaSeparated, cl::desc("Don't use specified registers"))             \

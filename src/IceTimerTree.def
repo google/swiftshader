@@ -61,6 +61,7 @@
   X(qTransPush)                                                                \
   X(regAlloc)                                                                  \
   X(renumberInstructions)                                                      \
+  X(shortCircuit)                                                              \
   X(szmain)                                                                    \
   X(translate)                                                                 \
   X(translateFunctions)                                                        \

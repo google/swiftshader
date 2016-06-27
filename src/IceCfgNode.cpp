@@ -51,6 +51,22 @@ void CfgNode::appendInst(Inst *Instr) {
   }
 }
 
+void CfgNode::replaceInEdge(CfgNode *Old, CfgNode *New) {
+  for (SizeT i = 0; i < InEdges.size(); ++i) {
+    if (InEdges[i] == Old) {
+      InEdges[i] = New;
+    }
+  }
+  for (auto &Inst : getPhis()) {
+    auto &Phi = llvm::cast<InstPhi>(Inst);
+    for (SizeT i = 0; i < Phi.getSrcSize(); ++i) {
+      if (Phi.getLabel(i) == Old) {
+        Phi.setLabel(i, New);
+      }
+    }
+  }
+}
+
 namespace {
 template <typename List> void removeDeletedAndRenumber(List *L, Cfg *Func) {
   const bool DoDelete =
@@ -1470,6 +1486,158 @@ void CfgNode::profileExecutionCount(VariableDeclaration *Var) {
   Instr->addArg(One);
   Instr->addArg(OrderAcquireRelease);
   Insts.push_front(Instr);
+}
+
+void CfgNode::removeInEdge(CfgNode *In) {
+  InEdges.erase(std::find(InEdges.begin(), InEdges.end(), In));
+}
+
+CfgNode *CfgNode::shortCircuit() {
+  auto *Func = getCfg();
+  auto *Last = &getInsts().back();
+  Variable *Condition = nullptr;
+  InstBr *Br = nullptr;
+  if ((Br = llvm::dyn_cast<InstBr>(Last))) {
+    if (!Br->isUnconditional()) {
+      Condition = llvm::dyn_cast<Variable>(Br->getCondition());
+    }
+  }
+  if (Condition == nullptr)
+    return nullptr;
+
+  auto *JumpOnTrue = Br->getTargetTrue();
+  auto *JumpOnFalse = Br->getTargetFalse();
+
+  bool FoundOr = false;
+  bool FoundAnd = false;
+
+  InstArithmetic *TopLevelBoolOp = nullptr;
+
+  for (auto &Inst : reverse_range(getInsts())) {
+    if (Inst.isDeleted())
+      continue;
+    if (Inst.getDest() == Condition) {
+      if (auto *Arith = llvm::dyn_cast<InstArithmetic>(&Inst)) {
+
+        FoundOr = (Arith->getOp() == InstArithmetic::OpKind::Or);
+        FoundAnd = (Arith->getOp() == InstArithmetic::OpKind::And);
+
+        if (FoundOr || FoundAnd) {
+          TopLevelBoolOp = Arith;
+          break;
+        }
+      }
+    }
+  }
+
+  if (!TopLevelBoolOp)
+    return nullptr;
+
+  auto IsOperand = [](Inst *Instr, Operand *Opr) -> bool {
+    for (SizeT i = 0; i < Instr->getSrcSize(); ++i) {
+      if (Instr->getSrc(i) == Opr)
+        return true;
+    }
+    return false;
+  };
+  Inst *FirstOperandDef = nullptr;
+  for (auto &Inst : getInsts()) {
+    if (IsOperand(TopLevelBoolOp, Inst.getDest())) {
+      FirstOperandDef = &Inst;
+      break;
+    }
+  }
+
+  if (FirstOperandDef == nullptr) {
+    return nullptr;
+  }
+
+  // Check for side effects
+  auto It = Ice::instToIterator(FirstOperandDef);
+  while (It != getInsts().end()) {
+    if (It->isDeleted()) {
+      ++It;
+      continue;
+    }
+    if (llvm::isa<InstBr>(It) || llvm::isa<InstRet>(It)) {
+      break;
+    }
+    auto *Dest = It->getDest();
+    if (It->getDest() == nullptr || It->hasSideEffects() ||
+        !Func->getVMetadata()->isSingleBlock(Dest)) {
+      // Relying on short cicuit eval here.
+      // getVMetadata()->isSingleBlock(Dest)
+      // will segfault if It->getDest() == nullptr
+      return nullptr;
+    }
+    It++;
+  }
+
+  auto *NewNode = Func->makeNode();
+  NewNode->setLoopNestDepth(getLoopNestDepth());
+  It = Ice::instToIterator(FirstOperandDef);
+  It++; // Have to split after the def
+
+  NewNode->getInsts().splice(NewNode->getInsts().begin(), getInsts(), It,
+                             getInsts().end());
+
+  if (BuildDefs::dump()) {
+    NewNode->setName(getName().append("_2"));
+    setName(getName().append("_1"));
+  }
+
+  // Point edges properly
+  NewNode->addInEdge(this);
+  for (auto *Out : getOutEdges()) {
+    NewNode->addOutEdge(Out);
+    Out->addInEdge(NewNode);
+  }
+  removeAllOutEdges();
+  addOutEdge(NewNode);
+
+  // Manage Phi instructions of successors
+  for (auto *Succ : NewNode->getOutEdges()) {
+    for (auto &Inst : Succ->getPhis()) {
+      auto *Phi = llvm::cast<InstPhi>(&Inst);
+      for (SizeT i = 0; i < Phi->getSrcSize(); ++i) {
+        if (Phi->getLabel(i) == this) {
+          Phi->addArgument(Phi->getSrc(i), NewNode);
+        }
+      }
+    }
+  }
+
+  // Create new Br instruction
+  InstBr *NewInst = nullptr;
+  if (FoundOr) {
+    addOutEdge(JumpOnTrue);
+    JumpOnFalse->removeInEdge(this);
+    NewInst =
+        InstBr::create(Func, FirstOperandDef->getDest(), JumpOnTrue, NewNode);
+  } else if (FoundAnd) {
+    addOutEdge(JumpOnFalse);
+    JumpOnTrue->removeInEdge(this);
+    NewInst =
+        InstBr::create(Func, FirstOperandDef->getDest(), NewNode, JumpOnFalse);
+  } else {
+    return nullptr;
+  }
+
+  assert(NewInst != nullptr);
+  appendInst(NewInst);
+
+  Operand *UnusedOperand = nullptr;
+  assert(TopLevelBoolOp->getSrcSize() == 2);
+  if (TopLevelBoolOp->getSrc(0) == FirstOperandDef->getDest())
+    UnusedOperand = TopLevelBoolOp->getSrc(1);
+  else if (TopLevelBoolOp->getSrc(1) == FirstOperandDef->getDest())
+    UnusedOperand = TopLevelBoolOp->getSrc(0);
+  assert(UnusedOperand);
+
+  Br->replaceSource(0, UnusedOperand); // Index 0 has the condition of the Br
+
+  TopLevelBoolOp->setDeleted();
+  return NewNode;
 }
 
 } // end of namespace Ice

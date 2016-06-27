@@ -77,7 +77,9 @@ const struct InstIcmpAttributes_ {
 
 Inst::Inst(Cfg *Func, InstKind Kind, SizeT MaxSrcs, Variable *Dest)
     : Kind(Kind), Number(Func->newInstNumber()), Dest(Dest), MaxSrcs(MaxSrcs),
-      Srcs(Func->allocateArrayOf<Operand *>(MaxSrcs)), LiveRangesEnded(0) {}
+      LiveRangesEnded(0) {
+  Srcs.reserve(MaxSrcs);
+}
 
 const char *Inst::getInstName() const {
   if (!BuildDefs::dump())
@@ -393,7 +395,7 @@ InstLoad::InstLoad(Cfg *Func, Variable *Dest, Operand *SourceAddr)
 
 InstPhi::InstPhi(Cfg *Func, SizeT MaxSrcs, Variable *Dest)
     : InstHighLevel(Func, Phi, MaxSrcs, Dest) {
-  Labels = Func->allocateArrayOf<CfgNode *>(MaxSrcs);
+  Labels.reserve(MaxSrcs);
 }
 
 // TODO: A Switch instruction (and maybe others) can add duplicate edges. We
@@ -401,7 +403,8 @@ InstPhi::InstPhi(Cfg *Func, SizeT MaxSrcs, Variable *Dest)
 // are the same for duplicate edges), though it seems the current lowering code
 // is OK with this situation.
 void InstPhi::addArgument(Operand *Source, CfgNode *Label) {
-  Labels[getSrcSize()] = Label;
+  assert(Label);
+  Labels.push_back(Label);
   addSource(Source);
 }
 
