@@ -70,5 +70,5 @@ define internal void @doStores(<4 x i32> %vecSrc) {
 ; DUMP-NEXT: store i64 42, i64* %destLocal64, align 1
 ; DUMP-NEXT: call void @__asan_check(i32 %destLocal128, i32 16)
 ; DUMP-NEXT: store <4 x i32> %vecSrc, <4 x i32>* %destLocal128, align 4
-; DUMP-NEXT: ret void
+; DUMP:      ret void
 ; DUMP-NEXT: }

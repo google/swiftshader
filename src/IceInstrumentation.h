@@ -44,8 +44,10 @@ public:
   virtual void instrumentGlobals(VariableDeclarationList &) {}
   void instrumentFunc(Cfg *Func);
 
+protected:
+  virtual void instrumentInst(LoweringContext &Context);
+
 private:
-  void instrumentInst(LoweringContext &Context);
   virtual void instrumentFuncStart(LoweringContext &) {}
   virtual void instrumentAlloca(LoweringContext &, class InstAlloca *) {}
   virtual void instrumentArithmetic(LoweringContext &, class InstArithmetic *) {
@@ -71,6 +73,7 @@ private:
                                      class InstUnreachable *) {}
   virtual void instrumentStart(Cfg *) {}
   virtual void instrumentLocalVars(Cfg *) {}
+  virtual void finishFunc(Cfg *) {}
 
 protected:
   GlobalContext *Ctx;

@@ -645,16 +645,19 @@ void Cfg::doArgLowering() {
   getTarget()->lowerArguments();
 }
 
-void Cfg::sortAndCombineAllocas(CfgVector<Inst *> &Allocas,
+void Cfg::sortAndCombineAllocas(CfgVector<InstAlloca *> &Allocas,
                                 uint32_t CombinedAlignment, InstList &Insts,
                                 AllocaBaseVariableType BaseVariableType) {
   if (Allocas.empty())
     return;
   // Sort by decreasing alignment.
-  std::sort(Allocas.begin(), Allocas.end(), [](Inst *I1, Inst *I2) {
-    auto *A1 = llvm::dyn_cast<InstAlloca>(I1);
-    auto *A2 = llvm::dyn_cast<InstAlloca>(I2);
-    return A1->getAlignInBytes() > A2->getAlignInBytes();
+  std::sort(Allocas.begin(), Allocas.end(), [](InstAlloca *A1, InstAlloca *A2) {
+    uint32_t Align1 = A1->getAlignInBytes();
+    uint32_t Align2 = A2->getAlignInBytes();
+    if (Align1 == Align2)
+      return A1->getNumber() > A2->getNumber();
+    else
+      return Align1 > Align2;
   });
   // Process the allocas in order of decreasing stack alignment.  This allows
   // us to pack less-aligned pieces after more-aligned ones, resulting in less
@@ -746,6 +749,8 @@ void Cfg::processAllocas(bool SortAndCombine) {
   bool HasLargeAlignment = false;
   bool HasDynamicAllocation = false;
   for (Inst &Instr : EntryNode->getInsts()) {
+    if (Instr.isDeleted())
+      continue;
     if (auto *Alloca = llvm::dyn_cast<InstAlloca>(&Instr)) {
       uint32_t AlignmentParam = Alloca->getAlignInBytes();
       if (AlignmentParam > StackAlignment)
@@ -769,6 +774,8 @@ void Cfg::processAllocas(bool SortAndCombine) {
     if (Node == EntryNode)
       continue;
     for (Inst &Instr : Node->getInsts()) {
+      if (Instr.isDeleted())
+        continue;
       if (llvm::isa<InstAlloca>(&Instr)) {
         // Allocations outside the entry block require a frame pointer.
         HasDynamicAllocation = true;
@@ -784,13 +791,15 @@ void Cfg::processAllocas(bool SortAndCombine) {
   // Collect the Allocas into the two vectors.
   // Allocas in the entry block that have constant size and alignment less
   // than or equal to the function's stack alignment.
-  CfgVector<Inst *> FixedAllocas;
+  CfgVector<InstAlloca *> FixedAllocas;
   // Allocas in the entry block that have constant size and alignment greater
   // than the function's stack alignment.
-  CfgVector<Inst *> AlignedAllocas;
+  CfgVector<InstAlloca *> AlignedAllocas;
   // Maximum alignment used by any alloca.
   uint32_t MaxAlignment = StackAlignment;
   for (Inst &Instr : EntryNode->getInsts()) {
+    if (Instr.isDeleted())
+      continue;
     if (auto *Alloca = llvm::dyn_cast<InstAlloca>(&Instr)) {
       if (!llvm::isa<Constant>(Alloca->getSizeInBytes()))
         continue;

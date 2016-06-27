@@ -69,7 +69,7 @@ define internal void @doLoads() {
 ; DUMP-LABEL: ================ Instrumented CFG ================
 ; DUMP-NEXT: define internal void @doLoads() {
 ; DUMP-NEXT: __0:
-; DUMP: call void @__asan_check(i32 @srcConst8, i32 1)
+; DUMP:      call void @__asan_check(i32 @srcConst8, i32 1)
 ; DUMP-NEXT: %dest1 = load i8, i8* @srcConst8, align 1
 ; DUMP-NEXT: call void @__asan_check(i32 @srcConst16, i32 2)
 ; DUMP-NEXT: %dest2 = load i16, i16* @srcConst16, align 1
@@ -99,5 +99,5 @@ define internal void @doLoads() {
 ; DUMP-NEXT: %dest14 = load i64, i64* %srcLocal64, align 1
 ; DUMP-NEXT: call void @__asan_check(i32 %srcLocal128, i32 16)
 ; DUMP-NEXT: %dest15 = load <4 x i32>, <4 x i32>* %srcLocal128, align 4
-; DUMP-NEXT: ret void
-; DUMP-NEXT }
+; DUMP:      ret void
+; DUMP-NEXT: }

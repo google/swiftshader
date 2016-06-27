@@ -24,10 +24,12 @@
 
 #include <sstream>
 #include <unordered_map>
+#include <vector>
 
 namespace Ice {
 
 namespace {
+
 constexpr SizeT RzSize = 32;
 const std::string RzPrefix = "__$rz";
 const llvm::NaClBitcodeRecord::RecordVector RzContents =
@@ -41,6 +43,9 @@ const string_map FuncSubstitutions = {{"malloc", "__asan_malloc"},
                                       {"free", "__asan_free"}};
 
 } // end of anonymous namespace
+
+ICE_TLS_DEFINE_FIELD(std::vector<InstCall *> *, ASanInstrumentation,
+                     LocalDtors);
 
 // Create redzones around all global variables, ensuring that the initializer
 // types of the redzones and their associated globals match so that they are
@@ -126,38 +131,95 @@ ASanInstrumentation::createRz(VariableDeclarationList *List,
 // Check for an alloca signaling the presence of local variables and add a
 // redzone if it is found
 void ASanInstrumentation::instrumentFuncStart(LoweringContext &Context) {
-  auto *FirstAlloca = llvm::dyn_cast<InstAlloca>(Context.getCur());
-  if (FirstAlloca == nullptr)
-    return;
+  if (ICE_TLS_GET_FIELD(LocalDtors) == nullptr)
+    ICE_TLS_SET_FIELD(LocalDtors, new std::vector<InstCall *>());
 
-  constexpr SizeT Alignment = 4;
-  InstAlloca *RzAlloca = createLocalRz(Context, RzSize, Alignment);
-
-  // insert before the current instruction
-  InstList::iterator Next = Context.getNext();
-  Context.setInsertPoint(Context.getCur());
-  Context.insert(RzAlloca);
-  Context.setNext(Next);
-}
-
-void ASanInstrumentation::instrumentAlloca(LoweringContext &Context,
-                                           InstAlloca *Instr) {
-  auto *VarSizeOp = llvm::dyn_cast<ConstantInteger32>(Instr->getSizeInBytes());
-  SizeT VarSize = (VarSizeOp == nullptr) ? RzSize : VarSizeOp->getValue();
-  SizeT Padding = Utils::OffsetToAlignment(VarSize, RzSize);
-  constexpr SizeT Alignment = 1;
-  InstAlloca *Rz = createLocalRz(Context, RzSize + Padding, Alignment);
-  Context.insert(Rz);
-}
-
-InstAlloca *ASanInstrumentation::createLocalRz(LoweringContext &Context,
-                                               SizeT Size, SizeT Alignment) {
   Cfg *Func = Context.getNode()->getCfg();
-  Variable *Rz = Func->makeVariable(IceType_i32);
-  Rz->setName(Func, nextRzName());
-  auto *ByteCount = ConstantInteger32::create(Ctx, IceType_i32, Size);
-  auto *RzAlloca = InstAlloca::create(Func, Rz, ByteCount, Alignment);
-  return RzAlloca;
+  bool HasLocals = false;
+  LoweringContext C;
+  C.init(Context.getNode());
+  std::vector<Inst *> Initializations;
+  Constant *InitFunc =
+      Ctx->getConstantExternSym(Ctx->getGlobalString("__asan_poison"));
+  Constant *DestroyFunc =
+      Ctx->getConstantExternSym(Ctx->getGlobalString("__asan_unpoison"));
+
+  InstAlloca *Cur;
+  ConstantInteger32 *VarSizeOp;
+  while (
+      (Cur = llvm::dyn_cast<InstAlloca>(iteratorToInst(C.getCur()))) &&
+      (VarSizeOp = llvm::dyn_cast<ConstantInteger32>(Cur->getSizeInBytes()))) {
+    HasLocals = true;
+
+    // create the new alloca that includes a redzone
+    SizeT VarSize = VarSizeOp->getValue();
+    Variable *Dest = Cur->getDest();
+    SizeT RzPadding = RzSize + Utils::OffsetToAlignment(VarSize, RzSize);
+    auto *ByteCount =
+        ConstantInteger32::create(Ctx, IceType_i32, VarSize + RzPadding);
+    constexpr SizeT Alignment = 8;
+    auto *NewVar = InstAlloca::create(Func, Dest, ByteCount, Alignment);
+
+    // calculate the redzone offset
+    Variable *RzLocVar = Func->makeVariable(IceType_i32);
+    RzLocVar->setName(Func, nextRzName());
+    auto *Offset = ConstantInteger32::create(Ctx, IceType_i32, VarSize);
+    auto *RzLoc = InstArithmetic::create(Func, InstArithmetic::Add, RzLocVar,
+                                         Dest, Offset);
+
+    // instructions to poison and unpoison the redzone
+    constexpr SizeT NumArgs = 2;
+    constexpr Variable *Void = nullptr;
+    constexpr bool NoTailcall = false;
+    auto *Init = InstCall::create(Func, NumArgs, Void, InitFunc, NoTailcall);
+    auto *Destroy =
+        InstCall::create(Func, NumArgs, Void, DestroyFunc, NoTailcall);
+    Init->addArg(RzLocVar);
+    Destroy->addArg(RzLocVar);
+    auto *RzSizeConst = ConstantInteger32::create(Ctx, IceType_i32, RzPadding);
+    Init->addArg(RzSizeConst);
+    Destroy->addArg(RzSizeConst);
+
+    Cur->setDeleted();
+    C.insert(NewVar);
+    ICE_TLS_GET_FIELD(LocalDtors)->emplace_back(Destroy);
+    Initializations.emplace_back(RzLoc);
+    Initializations.emplace_back(Init);
+
+    C.advanceCur();
+    C.advanceNext();
+  }
+
+  C.setInsertPoint(C.getCur());
+
+  // add the leftmost redzone
+  if (HasLocals) {
+    Variable *LastRz = Func->makeVariable(IceType_i32);
+    LastRz->setName(Func, nextRzName());
+    auto *ByteCount = ConstantInteger32::create(Ctx, IceType_i32, RzSize);
+    constexpr SizeT Alignment = 8;
+    auto *RzAlloca = InstAlloca::create(Func, LastRz, ByteCount, Alignment);
+
+    constexpr SizeT NumArgs = 2;
+    constexpr Variable *Void = nullptr;
+    constexpr bool NoTailcall = false;
+    auto *Init = InstCall::create(Func, NumArgs, Void, InitFunc, NoTailcall);
+    auto *Destroy =
+        InstCall::create(Func, NumArgs, Void, DestroyFunc, NoTailcall);
+    Init->addArg(LastRz);
+    Destroy->addArg(LastRz);
+    Init->addArg(RzAlloca->getSizeInBytes());
+    Destroy->addArg(RzAlloca->getSizeInBytes());
+
+    ICE_TLS_GET_FIELD(LocalDtors)->emplace_back(Destroy);
+    C.insert(RzAlloca);
+    C.insert(Init);
+  }
+
+  // insert initializers for the redzones
+  for (Inst *Init : Initializations) {
+    C.insert(Init);
+  }
 }
 
 void ASanInstrumentation::instrumentCall(LoweringContext &Context,
@@ -214,6 +276,15 @@ void ASanInstrumentation::instrumentAccess(LoweringContext &Context,
   Context.setNext(Next);
 }
 
+void ASanInstrumentation::instrumentRet(LoweringContext &Context, InstRet *) {
+  InstList::iterator Next = Context.getNext();
+  Context.setInsertPoint(Context.getCur());
+  for (InstCall *RzUnpoison : *ICE_TLS_GET_FIELD(LocalDtors)) {
+    Context.insert(RzUnpoison);
+  }
+  Context.setNext(Next);
+}
+
 void ASanInstrumentation::instrumentStart(Cfg *Func) {
   Constant *ShadowMemInit =
       Ctx->getConstantExternSym(Ctx->getGlobalString("__asan_init"));
@@ -222,6 +293,12 @@ void ASanInstrumentation::instrumentStart(Cfg *Func) {
   constexpr bool NoTailCall = false;
   auto *Call = InstCall::create(Func, NumArgs, Void, ShadowMemInit, NoTailCall);
   Func->getEntryNode()->getInsts().push_front(Call);
+}
+
+// TODO(tlively): make this more efficient with swap idiom
+void ASanInstrumentation::finishFunc(Cfg *Func) {
+  (void)Func;
+  ICE_TLS_GET_FIELD(LocalDtors)->clear();
 }
 
 } // end of namespace Ice

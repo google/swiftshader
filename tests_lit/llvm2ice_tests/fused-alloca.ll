@@ -21,8 +21,8 @@ entry:
 ; CHECK-LABEL: fused_small_align
 ; CHECK-NEXT: sub    esp,0x30
 ; CHECK-NEXT: mov    eax,DWORD PTR [esp+0x34]
+; CHECK-NEXT: mov    DWORD PTR [esp+0x1c],eax
 ; CHECK-NEXT: mov    DWORD PTR [esp+0x10],eax
-; CHECK-NEXT: mov    DWORD PTR [esp+0x18],eax
 ; CHECK-NEXT: mov    DWORD PTR [esp],eax
 ; CHECK-NEXT: add    esp,0x30
 
@@ -46,9 +46,9 @@ entry:
 ; CHECK-NEXT: sub    esp,0x80
 ; CHECK-NEXT: and    esp,0xffffffc0
 ; CHECK-NEXT: mov    eax,DWORD PTR [ebp+0x8]
-; CHECK-NEXT: mov    DWORD PTR [esp+0x40],eax
-; CHECK-NEXT: mov    DWORD PTR [esp],eax
 ; CHECK-NEXT: mov    DWORD PTR [esp+0x60],eax
+; CHECK-NEXT: mov    DWORD PTR [esp],eax
+; CHECK-NEXT: mov    DWORD PTR [esp+0x40],eax
 ; CHECK-NEXT: mov    esp,ebp
 ; CHECK-NEXT: pop    ebp
 
@@ -154,10 +154,10 @@ next:
 ; CHECK-NEXT: add    ecx,0x0
 ; CHECK-NEXT: sub    esp,0x10
 ; CHECK-NEXT: mov    ebx,esp
-; CHECK-NEXT: mov    DWORD PTR [ecx],eax
 ; CHECK-NEXT: mov    DWORD PTR [edx],eax
-; CHECK-NEXT: mov    DWORD PTR [ebp-0x14],eax
+; CHECK-NEXT: mov    DWORD PTR [ecx],eax
 ; CHECK-NEXT: mov    DWORD PTR [ebp-0x24],eax
+; CHECK-NEXT: mov    DWORD PTR [ebp-0x14],eax
 ; CHECK-NEXT: mov    DWORD PTR [ebx],eax
 ; CHECK-NEXT: mov    esp,ebp
 ; CHECK-NEXT: pop    ebp

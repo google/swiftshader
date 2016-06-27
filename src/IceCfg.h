@@ -295,7 +295,7 @@ private:
     BVT_FramePointer,
     BVT_UserPointer
   };
-  void sortAndCombineAllocas(CfgVector<Inst *> &Allocas,
+  void sortAndCombineAllocas(CfgVector<InstAlloca *> &Allocas,
                              uint32_t CombinedAlignment, InstList &Insts,
                              AllocaBaseVariableType BaseVariableType);
   void findRematerializable();

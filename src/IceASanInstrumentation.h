@@ -31,7 +31,9 @@ class ASanInstrumentation : public Instrumentation {
   ASanInstrumentation &operator=(const ASanInstrumentation &) = delete;
 
 public:
-  ASanInstrumentation(GlobalContext *Ctx) : Instrumentation(Ctx), RzNum(0) {}
+  ASanInstrumentation(GlobalContext *Ctx) : Instrumentation(Ctx), RzNum(0) {
+    ICE_TLS_INIT_FIELD(LocalDtors);
+  }
   void instrumentGlobals(VariableDeclarationList &Globals) override;
 
 private:
@@ -40,15 +42,15 @@ private:
                                 VariableDeclaration *RzArray,
                                 SizeT &RzArraySize,
                                 VariableDeclaration *Global);
-  InstAlloca *createLocalRz(LoweringContext &Context, SizeT Size,
-                            SizeT Alignment);
   void instrumentFuncStart(LoweringContext &Context) override;
-  void instrumentAlloca(LoweringContext &Context, InstAlloca *Instr) override;
   void instrumentCall(LoweringContext &Context, InstCall *Instr) override;
+  void instrumentRet(LoweringContext &Context, InstRet *Instr) override;
   void instrumentLoad(LoweringContext &Context, InstLoad *Instr) override;
   void instrumentStore(LoweringContext &Context, InstStore *Instr) override;
   void instrumentAccess(LoweringContext &Context, Operand *Op, SizeT Size);
   void instrumentStart(Cfg *Func) override;
+  void finishFunc(Cfg *Func) override;
+  ICE_TLS_DECLARE_FIELD(std::vector<InstCall *> *, LocalDtors);
   bool DidInsertRedZones = false;
   std::atomic<uint32_t> RzNum;
 };

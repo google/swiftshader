@@ -1,4 +1,4 @@
-; Test for insertion of redzones around global variables
+; Test for insertion of redzones around local variables
 
 ; REQUIRES: allow_dump
 
@@ -7,42 +7,39 @@
 
 ; Function with local variables to be instrumented
 define internal void @func() {
-  %local0 = alloca i8, i32 4, align 4
-  %local1 = alloca i8, i32 32, align 4
-  %local2 = alloca i8, i32 13, align 4
-  %local3 = alloca i8, i32 75, align 4
-  %local4 = alloca i8, i32 64, align 4
-  %local5 = alloca i8, i32 4, align 1
-  %local6 = alloca i8, i32 32, align 1
-  %local7 = alloca i8, i32 13, align 1
-  %local8 = alloca i8, i32 75, align 1
-  %local9 = alloca i8, i32 64, align 1
+  %local1 = alloca i8, i32 4, align 4
+  %local2 = alloca i8, i32 32, align 1
+  %local3 = alloca i8, i32 13, align 2
+  %local4 = alloca i8, i32 75, align 4
+  %local5 = alloca i8, i32 64, align 8
   ret void
 }
 
 ; DUMP-LABEL: ================ Instrumented CFG ================
 ; DUMP-NEXT: define internal void @func() {
 ; DUMP-NEXT: __0:
-; DUMP-NEXT: %__$rz{{[0-9]+}} = alloca i8, i32 32, align 4
-; DUMP-NEXT: %local0 = alloca i8, i32 4, align 4
-; DUMP-NEXT: %__$rz{{[0-9]+}} = alloca i8, i32 60, align 1
-; DUMP-NEXT: %local1 = alloca i8, i32 32, align 4
-; DUMP-NEXT: %__$rz{{[0-9]+}} = alloca i8, i32 32, align 1
-; DUMP-NEXT: %local2 = alloca i8, i32 13, align 4
-; DUMP-NEXT: %__$rz{{[0-9]+}} = alloca i8, i32 51, align 1
-; DUMP-NEXT: %local3 = alloca i8, i32 75, align 4
-; DUMP-NEXT: %__$rz{{[0-9]+}} = alloca i8, i32 53, align 1
-; DUMP-NEXT: %local4 = alloca i8, i32 64, align 4
-; DUMP-NEXT: %__$rz{{[0-9]+}} = alloca i8, i32 32, align 1
-; DUMP-NEXT: %local5 = alloca i8, i32 4, align 1
-; DUMP-NEXT: %__$rz{{[0-9]+}} = alloca i8, i32 60, align 1
-; DUMP-NEXT: %local6 = alloca i8, i32 32, align 1
-; DUMP-NEXT: %__$rz{{[0-9]+}} = alloca i8, i32 32, align 1
-; DUMP-NEXT: %local7 = alloca i8, i32 13, align 1
-; DUMP-NEXT: %__$rz{{[0-9]+}} = alloca i8, i32 51, align 1
-; DUMP-NEXT: %local8 = alloca i8, i32 75, align 1
-; DUMP-NEXT: %__$rz{{[0-9]+}} = alloca i8, i32 53, align 1
-; DUMP-NEXT: %local9 = alloca i8, i32 64, align 
-; DUMP-NEXT: %__$rz{{[0-9]+}} = alloca i8, i32 32, align 1
+; DUMP-NEXT: %local1 = alloca i8, i32 64, align 8
+; DUMP-NEXT: %local2 = alloca i8, i32 64, align 8
+; DUMP-NEXT: %local3 = alloca i8, i32 64, align 8
+; DUMP-NEXT: %local4 = alloca i8, i32 128, align 8
+; DUMP-NEXT: %local5 = alloca i8, i32 96, align 8
+; DUMP-NEXT: %__$rz[[RZ0:[0-9]+]] = alloca i8, i32 32, align 8
+; DUMP-NEXT: call void @__asan_poison(i32 %__$rz[[RZ0]], i32 32)
+; DUMP-NEXT: %__$rz[[RZ1:[0-9]+]] = add i32 %local1, 4
+; DUMP-NEXT: call void @__asan_poison(i32 %__$rz[[RZ1]], i32 60)
+; DUMP-NEXT: %__$rz[[RZ2:[0-9]+]] = add i32 %local2, 32
+; DUMP-NEXT: call void @__asan_poison(i32 %__$rz[[RZ2]], i32 32)
+; DUMP-NEXT: %__$rz[[RZ3:[0-9]+]] = add i32 %local3, 13
+; DUMP-NEXT: call void @__asan_poison(i32 %__$rz[[RZ3]], i32 51)
+; DUMP-NEXT: %__$rz[[RZ4:[0-9]+]] = add i32 %local4, 75
+; DUMP-NEXT: call void @__asan_poison(i32 %__$rz[[RZ4]], i32 53)
+; DUMP-NEXT: %__$rz[[RZ5:[0-9]+]] = add i32 %local5, 64
+; DUMP-NEXT: call void @__asan_poison(i32 %__$rz[[RZ5]], i32 32)
+; DUMP-NEXT: call void @__asan_unpoison(i32 %__$rz[[RZ1]], i32 60)
+; DUMP-NEXT: call void @__asan_unpoison(i32 %__$rz[[RZ2]], i32 32)
+; DUMP-NEXT: call void @__asan_unpoison(i32 %__$rz[[RZ3]], i32 51)
+; DUMP-NEXT: call void @__asan_unpoison(i32 %__$rz[[RZ4]], i32 53)
+; DUMP-NEXT: call void @__asan_unpoison(i32 %__$rz[[RZ5]], i32 32)
+; DUMP-NEXT: call void @__asan_unpoison(i32 %__$rz[[RZ0]], i32 32)
 ; DUMP-NEXT: ret void
 ; DUMP-NEXT: }

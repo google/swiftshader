@@ -51,6 +51,8 @@ void Instrumentation::instrumentFunc(Cfg *Func) {
   std::string FuncName = Func->getFunctionName().toStringOrEmpty();
   if (FuncName == "_start")
     instrumentStart(Func);
+
+  finishFunc(Func);
 }
 
 void Instrumentation::instrumentInst(LoweringContext &Context) {
