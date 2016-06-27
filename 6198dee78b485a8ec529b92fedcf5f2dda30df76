@@ -1,0 +1,165 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "839ab576_32995094",
+        "filename": "src/Shader/PixelRoutine.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 2305,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-06-27T14:19:09Z",
+      "side": 1,
+      "message": "This isn\u0027t very efficient (10 scalar operations), and would become even slower when taking the same approach for wider vectors.\n\nInstead it could be done with two Pack() operations. One to pack 32-bit elements to 16-bit, and the next to pack them to 8-bit. The latter does not have a Reactor function yet but should be easy to add.",
+      "range": {
+        "startLine": 2302,
+        "startChar": 4,
+        "endLine": 2305,
+        "endChar": 56
+      },
+      "revId": "6198dee78b485a8ec529b92fedcf5f2dda30df76",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a3bfb931_d8c4f970",
+        "filename": "src/Shader/PixelRoutine.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 2378,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-06-27T14:19:09Z",
+      "side": 1,
+      "message": "Could also be optimized using Pack() operations instead of scalar ones.",
+      "range": {
+        "startLine": 2374,
+        "startChar": 4,
+        "endLine": 2378,
+        "endChar": 131
+      },
+      "revId": "6198dee78b485a8ec529b92fedcf5f2dda30df76",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a3bfb931_98b1e111",
+        "filename": "src/Shader/PixelRoutine.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 2388,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-06-27T14:19:09Z",
+      "side": 1,
+      "message": "You can use maskB4Q[5 * rgbaWriteMask] for this.\n\nAlso, we only need to perform any operations if (rgbaWriteMask \u0026 0x3) !\u003d 0x3",
+      "range": {
+        "startLine": 2383,
+        "startChar": 4,
+        "endLine": 2388,
+        "endChar": 27
+      },
+      "revId": "6198dee78b485a8ec529b92fedcf5f2dda30df76",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a3bfb931_d8bb59ed",
+        "filename": "src/Shader/PixelRoutine.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 2492,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-06-27T14:19:09Z",
+      "side": 1,
+      "message": "Same as above: use Pack() operations.",
+      "range": {
+        "startLine": 2486,
+        "startChar": 4,
+        "endLine": 2492,
+        "endChar": 73
+      },
+      "revId": "6198dee78b485a8ec529b92fedcf5f2dda30df76",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a3bfb931_189e9180",
+        "filename": "src/Shader/PixelRoutine.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 2498,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-06-27T14:19:09Z",
+      "side": 1,
+      "message": "Don\u0027t mask if rgbaWriteMask \u003d\u003d 0xF",
+      "range": {
+        "startLine": 2498,
+        "startChar": 4,
+        "endLine": 2498,
+        "endChar": 93
+      },
+      "revId": "6198dee78b485a8ec529b92fedcf5f2dda30df76",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a3bfb931_38a1cdba",
+        "filename": "src/Shader/PixelRoutine.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 2508,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-06-27T14:19:09Z",
+      "side": 1,
+      "message": "same",
+      "range": {
+        "startLine": 2502,
+        "startChar": 4,
+        "endLine": 2508,
+        "endChar": 73
+      },
+      "revId": "6198dee78b485a8ec529b92fedcf5f2dda30df76",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a3bfb931_58a8099c",
+        "filename": "src/Shader/PixelRoutine.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 2514,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-06-27T14:19:09Z",
+      "side": 1,
+      "message": "same",
+      "range": {
+        "startLine": 2514,
+        "startChar": 4,
+        "endLine": 2514,
+        "endChar": 93
+      },
+      "revId": "6198dee78b485a8ec529b92fedcf5f2dda30df76",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
