@@ -22,6 +22,30 @@
       "revId": "f8cca103ce5faff3c081d290868ae626c5c7c2e0",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a3bfb931_85117950",
+        "filename": "src/Reactor/Nucleus.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 928,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-06-27T20:31:30Z",
+      "side": 1,
+      "message": "I\u0027m on the fence about this. On one hand, it would make sense to have a signed value as a constructor parameter to a Short, but on the other hand, Short values are generally initialized with hexadecimal values.\n\nMaybe I could fix the warnings by using the UShort constructor.\nEvery solution feels somewhat hacky to me...",
+      "parentUuid": "a3bfb931_258a45db",
+      "range": {
+        "startLine": 928,
+        "startChar": 9,
+        "endLine": 928,
+        "endChar": 28
+      },
+      "revId": "f8cca103ce5faff3c081d290868ae626c5c7c2e0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
