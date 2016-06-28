@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "a3bfb931_1b5b2174",
+        "filename": "src/Shader/PixelRoutine.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 551,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-06-28T15:22:45Z",
+      "side": 1,
+      "message": "See also http://stackoverflow.com/a/15486664",
+      "parentUuid": "a3bfb931_9b19d1d0",
+      "range": {
+        "startLine": 551,
+        "startChar": 90,
+        "endLine": 551,
+        "endChar": 117
+      },
+      "revId": "1aae2cc8f2bb938a26b07df3440a3f0b8ae2d882",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a3bfb931_fb7445e9",
         "filename": "src/Shader/PixelRoutine.cpp",
         "patchSetId": 2
