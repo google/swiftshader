@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a3bfb931_dbaea995",
+        "filename": "src/Shader/PixelRoutine.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1299,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-06-28T14:36:30Z",
+      "side": 1,
+      "message": "Adding the new UShort4 constructor made the operator\u003d ambiguous, so I had to make it unambiguous.",
+      "range": {
+        "startLine": 1292,
+        "startChar": 0,
+        "endLine": 1299,
+        "endChar": 32
+      },
+      "revId": "1aae2cc8f2bb938a26b07df3440a3f0b8ae2d882",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
