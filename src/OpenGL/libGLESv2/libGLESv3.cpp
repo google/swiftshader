@@ -3481,7 +3481,7 @@ GL_APICALL void GL_APIENTRY glSamplerParameterfv(GLuint sampler, GLenum pname, c
 		return error(GL_INVALID_ENUM);
 	}
 
-	if(!ValidateTexParamParameters(pname, *param))
+	if(!ValidateTexParamParameters(pname, static_cast<GLint>(roundf(*param))))
 	{
 		return;
 	}

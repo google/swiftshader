@@ -2153,8 +2153,9 @@ TIntermTyped* TParseContext::addConstVectorNode(TVectorFields& fields, TIntermTy
 
 	ConstantUnion* constArray = new ConstantUnion[fields.num];
 
+	int objSize = static_cast<int>(node->getType().getObjectSize());
 	for (int i = 0; i < fields.num; i++) {
-		if (fields.offsets[i] >= node->getType().getObjectSize()) {
+		if (fields.offsets[i] >= objSize) {
 			std::stringstream extraInfoStream;
 			extraInfoStream << "vector field selection out of range '" << fields.offsets[i] << "'";
 			std::string extraInfo = extraInfoStream.str();
