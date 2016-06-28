@@ -2,6 +2,75 @@
   "comments": [
     {
       "key": {
+        "uuid": "a3bfb931_1b0de18b",
+        "filename": "src/Shader/PixelRoutine.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 550,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-06-28T15:21:02Z",
+      "side": 1,
+      "message": "nit: While we\u0027re here, these could be replaced by spaces. Four more below.",
+      "range": {
+        "startLine": 550,
+        "startChar": 22,
+        "endLine": 550,
+        "endChar": 24
+      },
+      "revId": "1aae2cc8f2bb938a26b07df3440a3f0b8ae2d882",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a3bfb931_9b19d1d0",
+        "filename": "src/Shader/PixelRoutine.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 551,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-06-28T15:21:02Z",
+      "side": 1,
+      "message": "Short(0xFFFFu) also seems to work?",
+      "range": {
+        "startLine": 551,
+        "startChar": 90,
+        "endLine": 551,
+        "endChar": 117
+      },
+      "revId": "1aae2cc8f2bb938a26b07df3440a3f0b8ae2d882",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a3bfb931_fb7445e9",
+        "filename": "src/Shader/PixelRoutine.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 565,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-06-28T15:21:02Z",
+      "side": 1,
+      "message": "same",
+      "range": {
+        "startLine": 565,
+        "startChar": 90,
+        "endLine": 565,
+        "endChar": 117
+      },
+      "revId": "1aae2cc8f2bb938a26b07df3440a3f0b8ae2d882",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a3bfb931_dbaea995",
         "filename": "src/Shader/PixelRoutine.cpp",
         "patchSetId": 2
@@ -18,6 +87,76 @@
         "startChar": 0,
         "endLine": 1299,
         "endChar": 32
+      },
+      "revId": "1aae2cc8f2bb938a26b07df3440a3f0b8ae2d882",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a3bfb931_bb45ada1",
+        "filename": "src/Shader/PixelRoutine.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1299,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-06-28T15:21:02Z",
+      "side": 1,
+      "message": "It\u0027s because we\u0027re missing operator\u003d which takes an (unsigned) short. Could be added later but this looks fine for now (we do it in many other places).",
+      "parentUuid": "a3bfb931_dbaea995",
+      "range": {
+        "startLine": 1292,
+        "startChar": 0,
+        "endLine": 1299,
+        "endChar": 32
+      },
+      "revId": "1aae2cc8f2bb938a26b07df3440a3f0b8ae2d882",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a3bfb931_db1229af",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1914,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-06-28T15:21:02Z",
+      "side": 1,
+      "message": "Is this not causing a warning, because of the \"u\" suffix?",
+      "range": {
+        "startLine": 1914,
+        "startChar": 18,
+        "endLine": 1914,
+        "endChar": 33
+      },
+      "revId": "1aae2cc8f2bb938a26b07df3440a3f0b8ae2d882",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a3bfb931_9b427196",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 2196,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-06-28T15:21:02Z",
+      "side": 1,
+      "message": "Can also be written more compactly as \"return As\u003cUShort4\u003e(Int2(convert)) + UShort4(0x8000);\"",
+      "range": {
+        "startLine": 2196,
+        "startChar": 3,
+        "endLine": 2196,
+        "endChar": 66
       },
       "revId": "1aae2cc8f2bb938a26b07df3440a3f0b8ae2d882",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
