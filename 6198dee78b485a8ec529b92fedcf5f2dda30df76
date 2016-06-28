@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "e0c0c717_30bb46ef",
+        "filename": "src/Shader/PixelRoutine.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 2305,
+      "author": {
+        "id": 5685
+      },
+      "writtenOn": "2016-06-28T20:13:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "839ab576_32995094",
+      "range": {
+        "startLine": 2302,
+        "startChar": 4,
+        "endLine": 2305,
+        "endChar": 56
+      },
+      "revId": "6198dee78b485a8ec529b92fedcf5f2dda30df76",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a3bfb931_d8c4f970",
         "filename": "src/Shader/PixelRoutine.cpp",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2016-06-27T14:19:09Z",
       "side": 1,
       "message": "Could also be optimized using Pack() operations instead of scalar ones.",
+      "range": {
+        "startLine": 2374,
+        "startChar": 4,
+        "endLine": 2378,
+        "endChar": 131
+      },
+      "revId": "6198dee78b485a8ec529b92fedcf5f2dda30df76",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a3bfb931_98a8b79d",
+        "filename": "src/Shader/PixelRoutine.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 2378,
+      "author": {
+        "id": 5685
+      },
+      "writtenOn": "2016-06-28T20:13:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a3bfb931_d8c4f970",
       "range": {
         "startLine": 2374,
         "startChar": 4,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "a3bfb931_806167e9",
+        "filename": "src/Shader/PixelRoutine.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 2388,
+      "author": {
+        "id": 5685
+      },
+      "writtenOn": "2016-06-28T20:13:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a3bfb931_98b1e111",
+      "range": {
+        "startLine": 2383,
+        "startChar": 4,
+        "endLine": 2388,
+        "endChar": 27
+      },
+      "revId": "6198dee78b485a8ec529b92fedcf5f2dda30df76",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a3bfb931_d8bb59ed",
         "filename": "src/Shader/PixelRoutine.cpp",
         "patchSetId": 3
@@ -82,6 +154,30 @@
       "writtenOn": "2016-06-27T14:19:09Z",
       "side": 1,
       "message": "Same as above: use Pack() operations.",
+      "range": {
+        "startLine": 2486,
+        "startChar": 4,
+        "endLine": 2492,
+        "endChar": 73
+      },
+      "revId": "6198dee78b485a8ec529b92fedcf5f2dda30df76",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e0c0c717_8d4a2197",
+        "filename": "src/Shader/PixelRoutine.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 2492,
+      "author": {
+        "id": 5685
+      },
+      "writtenOn": "2016-06-28T20:13:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a3bfb931_d8bb59ed",
       "range": {
         "startLine": 2486,
         "startChar": 4,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "a3bfb931_a06463f8",
+        "filename": "src/Shader/PixelRoutine.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 2498,
+      "author": {
+        "id": 5685
+      },
+      "writtenOn": "2016-06-28T20:13:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a3bfb931_189e9180",
+      "range": {
+        "startLine": 2498,
+        "startChar": 4,
+        "endLine": 2498,
+        "endChar": 93
+      },
+      "revId": "6198dee78b485a8ec529b92fedcf5f2dda30df76",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a3bfb931_38a1cdba",
         "filename": "src/Shader/PixelRoutine.cpp",
         "patchSetId": 3
@@ -140,6 +260,30 @@
     },
     {
       "key": {
+        "uuid": "e0c0c717_ed4de5b1",
+        "filename": "src/Shader/PixelRoutine.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 2508,
+      "author": {
+        "id": 5685
+      },
+      "writtenOn": "2016-06-28T20:13:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a3bfb931_38a1cdba",
+      "range": {
+        "startLine": 2502,
+        "startChar": 4,
+        "endLine": 2508,
+        "endChar": 73
+      },
+      "revId": "6198dee78b485a8ec529b92fedcf5f2dda30df76",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a3bfb931_58a8099c",
         "filename": "src/Shader/PixelRoutine.cpp",
         "patchSetId": 3
@@ -151,6 +295,30 @@
       "writtenOn": "2016-06-27T14:19:09Z",
       "side": 1,
       "message": "same",
+      "range": {
+        "startLine": 2514,
+        "startChar": 4,
+        "endLine": 2514,
+        "endChar": 93
+      },
+      "revId": "6198dee78b485a8ec529b92fedcf5f2dda30df76",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a3bfb931_78a17bb9",
+        "filename": "src/Shader/PixelRoutine.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 2514,
+      "author": {
+        "id": 5685
+      },
+      "writtenOn": "2016-06-28T20:13:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a3bfb931_58a8099c",
       "range": {
         "startLine": 2514,
         "startChar": 4,
