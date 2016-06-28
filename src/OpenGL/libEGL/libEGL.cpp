@@ -989,7 +989,7 @@ EGLImageKHR CreateImageKHR(EGLDisplay dpy, EGLContext ctx, EGLenum target, EGLCl
 		}
 	#endif
 
-	GLuint name = reinterpret_cast<intptr_t>(buffer);
+	GLuint name = reinterpret_cast<GLuint>(buffer);
 
 	if(name == 0)
 	{
