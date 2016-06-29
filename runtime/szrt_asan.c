@@ -79,7 +79,10 @@ void __asan_check(char *ptr, int size) {
   for (; ptr < end; ++ptr) {
     char shadow = *(char *)MEM2SHADOW(ptr);
     printf("checking %p with shadow %d\n", ptr, shadow);
-    assert(shadow == 0 || (shadow > 0 && SHADOW_OFFSET(ptr) <= shadow));
+    if (shadow != 0 && (shadow < 0 || SHADOW_OFFSET(ptr) > shadow)) {
+      fprintf(stderr, "Illegal access of %d bytes at %p\n", size, ptr);
+      abort();
+    }
   }
 }
 
