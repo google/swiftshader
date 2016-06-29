@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e0c0c717_53cdbcc4",
+        "filename": "src/Shader/PixelRoutine.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 2321,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-06-29T18:26:54Z",
+      "side": 1,
+      "message": "nit: spaces around operator",
+      "range": {
+        "startLine": 2321,
+        "startChar": 47,
+        "endLine": 2321,
+        "endChar": 49
+      },
+      "revId": "b8f102c99da107724db00f37d12a12cd6bca7443",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
