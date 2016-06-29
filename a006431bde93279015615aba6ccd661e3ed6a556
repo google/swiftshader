@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e0da8734_862490b5",
+        "filename": "src/Shader/PixelRoutine.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 2370,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-06-29T18:29:35Z",
+      "side": 1,
+      "message": "Like https://swiftshader-review.googlesource.com/5630, this can also can be optimized not to apply the mask if it has the lower two bits set.",
+      "range": {
+        "startLine": 2370,
+        "startChar": 23,
+        "endLine": 2370,
+        "endChar": 31
+      },
+      "revId": "a006431bde93279015615aba6ccd661e3ed6a556",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e0da8734_a618ac7c",
+        "filename": "src/Shader/PixelRoutine.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 2500,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-06-29T18:29:35Z",
+      "side": 1,
+      "message": "Likewise",
+      "range": {
+        "startLine": 2500,
+        "startChar": 23,
+        "endLine": 2500,
+        "endChar": 31
+      },
+      "revId": "a006431bde93279015615aba6ccd661e3ed6a556",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
