@@ -198,11 +198,12 @@ const Variable *Variable::asType(const Cfg *Func, Type Ty,
   if (!BuildDefs::dump() || getType() == Ty)
     return this;
   static constexpr SizeT One = 1;
-  Variable *V = new (CfgLocalAllocator<Variable>().allocate(One))
+  auto *V = new (CfgLocalAllocator<Variable>().allocate(One))
       Variable(Func, kVariable, Ty, Number);
   V->Name = Name;
   V->RegNum = NewRegNum.hasValue() ? NewRegNum : RegNum;
   V->StackOffset = StackOffset;
+  V->LinkedTo = LinkedTo;
   return V;
 }
 
@@ -537,8 +538,11 @@ void Variable::dump(const Cfg *Func, Ostream &Str) const {
     return;
   }
   if (Func->isVerbose(IceV_RegOrigins) ||
-      (!hasReg() && !Func->getTarget()->hasComputedFrame()))
+      (!hasReg() && !Func->getTarget()->hasComputedFrame())) {
     Str << "%" << getName();
+    if (getLinkedTo() != nullptr)
+      Str << ":%" << getLinkedTo()->getName();
+  }
   if (hasReg()) {
     if (Func->isVerbose(IceV_RegOrigins))
       Str << ":";

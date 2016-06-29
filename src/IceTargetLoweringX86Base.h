@@ -70,7 +70,6 @@ public:
   using X86Operand = typename Traits::X86Operand;
   using X86OperandMem = typename Traits::X86OperandMem;
   using SegmentRegisters = typename Traits::X86OperandMem::SegmentRegisters;
-  using SpillVariable = typename Traits::SpillVariable;
 
   using InstX86Br = typename Traits::Insts::Br;
   using InstX86FakeRMW = typename Traits::Insts::FakeRMW;

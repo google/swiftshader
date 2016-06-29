@@ -1043,10 +1043,11 @@ void TargetX86Base<TraitsType>::addProlog(CfgNode *Node) {
   // stack slot.
   std::function<bool(Variable *)> TargetVarHook =
       [&VariablesLinkedToSpillSlots](Variable *Var) {
-        if (auto *SpillVar =
-                llvm::dyn_cast<typename Traits::SpillVariable>(Var)) {
+        if (Var->getLinkedTo() != nullptr) {
+          // TODO(stichnot): This assert won't necessarily be true in the
+          // future.
           assert(Var->mustNotHaveReg());
-          if (SpillVar->getLinkedTo() && !SpillVar->getLinkedTo()->hasReg()) {
+          if (!Var->getLinkedTo()->hasReg()) {
             VariablesLinkedToSpillSlots.push_back(Var);
             return true;
           }
@@ -1210,8 +1211,8 @@ void TargetX86Base<TraitsType>::addProlog(CfgNode *Node) {
   // Assign stack offsets to variables that have been linked to spilled
   // variables.
   for (Variable *Var : VariablesLinkedToSpillSlots) {
-    Variable *Linked =
-        (llvm::cast<typename Traits::SpillVariable>(Var))->getLinkedTo();
+    const Variable *Linked = Var->getLinkedTo();
+    assert(Linked != nullptr);
     Var->setStackOffset(Linked->getStackOffset());
   }
   this->HasComputedFrame = true;
@@ -3086,10 +3087,8 @@ void TargetX86Base<TraitsType>::lowerCast(const InstCast *Instr) {
         //   a_hi.i32 = t_hi.i32
         Operand *SpillLo, *SpillHi;
         if (auto *Src0Var = llvm::dyn_cast<Variable>(Src0RM)) {
-          SpillVariable *SpillVar =
-              Func->makeVariable<SpillVariable>(IceType_f64);
-          SpillVar->setLinkedTo(Src0Var);
-          Variable *Spill = SpillVar;
+          Variable *Spill = Func->makeVariable(IceType_f64);
+          Spill->setLinkedTo(Src0Var);
           Spill->setMustNotHaveReg();
           _movq(Spill, Src0RM);
           SpillLo = Traits::VariableSplit::create(Func, Spill,
@@ -3134,10 +3133,8 @@ void TargetX86Base<TraitsType>::lowerCast(const InstCast *Instr) {
         //   t_hi.i32 = b_hi.i32
         //   hi(s.f64) = t_hi.i32
         //   a.f64 = s.f64
-        SpillVariable *SpillVar =
-            Func->makeVariable<SpillVariable>(IceType_f64);
-        SpillVar->setLinkedTo(Dest);
-        Variable *Spill = SpillVar;
+        Variable *Spill = Func->makeVariable(IceType_f64);
+        Spill->setLinkedTo(Dest);
         Spill->setMustNotHaveReg();
 
         Variable *T_Lo = nullptr, *T_Hi = nullptr;

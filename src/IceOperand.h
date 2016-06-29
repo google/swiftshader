@@ -656,7 +656,7 @@ Ostream &operator<<(Ostream &Str, const LiveRange &L);
 
 /// Variable represents an operand that is register-allocated or
 /// stack-allocated. If it is register-allocated, it will ultimately have a
-/// non-negative RegNum field.
+/// valid RegNum field.
 class Variable : public Operand {
   Variable() = delete;
   Variable(const Variable &) = delete;
@@ -773,6 +773,23 @@ public:
   /// Return reg num of base register, if different from stack/frame register.
   virtual RegNumT getBaseRegNum() const { return RegNumT(); }
 
+  void setLinkedTo(const Variable *Var) {
+    // If B is linked to A, and we now want to link C to B, we instead link C to
+    // A so that we have one root (A) and all leaves (B, C) link directly to the
+    // root.
+    if (Var->getLinkedTo() != nullptr) {
+      Var = Var->LinkedTo;
+      assert(Var->LinkedTo == nullptr);
+    }
+    LinkedTo = Var;
+  }
+  const Variable *getLinkedTo() const {
+    // Make sure a leaf links directly to the root.
+    if (LinkedTo != nullptr)
+      assert(LinkedTo->LinkedTo == nullptr);
+    return LinkedTo;
+  }
+
   static bool classof(const Operand *Operand) {
     OperandKind Kind = Operand->getKind();
     return Kind >= kVariable && Kind <= kVariable_Max;
@@ -814,6 +831,9 @@ protected:
   LiveRange Live;
   /// VarsReal (and Operand::Vars) are set up such that Vars[0] == this.
   Variable *VarsReal[1];
+  /// This Variable may be "linked" to another Variable, such that if neither
+  /// Variable gets a register, they are guaranteed to share a stack location.
+  const Variable *LinkedTo = nullptr;
 };
 
 // Variable64On32 represents a 64-bit variable on a 32-bit architecture. In

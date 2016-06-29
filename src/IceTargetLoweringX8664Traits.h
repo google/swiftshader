@@ -978,36 +978,6 @@ public:
     Portion Part;
   };
 
-  /// SpillVariable decorates a Variable by linking it to another Variable. When
-  /// stack frame offsets are computed, the SpillVariable is given a distinct
-  /// stack slot only if its linked Variable has a register. If the linked
-  /// Variable has a stack slot, then the Variable and SpillVariable share that
-  /// slot.
-  class SpillVariable : public Variable {
-    SpillVariable() = delete;
-    SpillVariable(const SpillVariable &) = delete;
-    SpillVariable &operator=(const SpillVariable &) = delete;
-
-  public:
-    static SpillVariable *create(Cfg *Func, Type Ty, SizeT Index) {
-      return new (Func->allocate<SpillVariable>())
-          SpillVariable(Func, Ty, Index);
-    }
-    constexpr static auto SpillVariableKind =
-        static_cast<OperandKind>(kVariable_Target);
-    static bool classof(const Operand *Operand) {
-      return Operand->getKind() == SpillVariableKind;
-    }
-    void setLinkedTo(Variable *Var) { LinkedTo = Var; }
-    Variable *getLinkedTo() const { return LinkedTo; }
-    // Inherit dump() and emit() from Variable.
-
-  private:
-    SpillVariable(const Cfg *Func, Type Ty, SizeT Index)
-        : Variable(Func, SpillVariableKind, Ty, Index), LinkedTo(nullptr) {}
-    Variable *LinkedTo;
-  };
-
   // Note: The following data structures are defined in IceInstX8664.cpp.
 
   static const struct InstBrAttributesType {
