@@ -559,6 +559,11 @@ inline void TargetMIPS32::CallingConv::discardNextGPRAndItsAliases(
   Regs->pop_back();
 }
 
+inline void TargetMIPS32::CallingConv::alignGPR(CfgVector<RegNumT> *Regs) {
+  if (Regs->back() == RegMIPS32::Reg_A1 || Regs->back() == RegMIPS32::Reg_A3)
+    discardNextGPRAndItsAliases(Regs);
+}
+
 // GPR are not packed when passing parameters. Thus, a function foo(i32, i64,
 // i32) will have the first argument in a0, the second in a2-a3, and the third
 // on the stack. To model this behavior, whenever we pop a register from Regs,
@@ -603,10 +608,18 @@ bool TargetMIPS32::CallingConv::argInVFP(Type Ty, RegNumT *Reg) {
   // in reg_a3 and a0, a1 are not used.
   Source = &GPRArgs;
   // Discard one GPR reg for f32(4 bytes), two for f64(4 + 4 bytes)
-  discardNextGPRAndItsAliases(Source);
-  if (Ty == IceType_f64)
+  if (Ty == IceType_f64) {
+    // In MIPS o32 abi, when we use GPR argument pairs to store F64 values, pair
+    // must be aligned at even register. Similarly when we discard GPR registers
+    // when some arguments from starting 16 bytes goes in FPR, we must take care
+    // of alignment. For example if fun args are (f32, f64, f32), for first f32
+    // we discard a0, now for f64 argument, which will go in F14F15, we must
+    // first align GPR vector to even register by discarding a1, then discard
+    // two GPRs a2 and a3. Now last f32 argument will go on stack.
+    alignGPR(Source);
     discardNextGPRAndItsAliases(Source);
-
+  }
+  discardNextGPRAndItsAliases(Source);
   return true;
 }
 

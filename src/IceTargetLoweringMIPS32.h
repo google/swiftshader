@@ -496,6 +496,7 @@ public:
     /// types.
     bool argInVFP(Type Ty, RegNumT *Reg);
     inline void discardNextGPRAndItsAliases(CfgVector<RegNumT> *Regs);
+    inline void alignGPR(CfgVector<RegNumT> *Regs);
     void discardUnavailableGPRsAndTheirAliases(CfgVector<RegNumT> *Regs);
     SmallBitVector GPRegsUsed;
     CfgVector<RegNumT> GPRArgs;
