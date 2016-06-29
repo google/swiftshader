@@ -3044,9 +3044,9 @@ const GLubyte* APIENTRY glGetString(GLenum name)
 	case GL_RENDERER:
 		return (GLubyte*)"SwiftShader";
 	case GL_VERSION:
-		return (GLubyte*)"2.1 SwiftShader "VERSION_STRING;
+		return (GLubyte*)"2.1 SwiftShader " VERSION_STRING;
 	case GL_SHADING_LANGUAGE_VERSION:
-		return (GLubyte*)"3.30 SwiftShader "VERSION_STRING;
+		return (GLubyte*)"3.30 SwiftShader " VERSION_STRING;
 	case GL_EXTENSIONS:
 		// Keep list sorted in following order:
 		// OES extensions
