@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fdc5d224_2e90c759",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-06-30T02:57:04Z",
+      "side": 1,
+      "message": "Let\u0027s make this slightly more descriptive. For example:\n\nFix libGL compilation.\n\nFix invalid string literal suffix errors due to missing spaces.",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 38
+      },
+      "revId": "b785a2a3c8b35d70a9e0e6001d21ecf861cdfeaf",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
