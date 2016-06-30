@@ -3558,6 +3558,14 @@ namespace sw
 		storeValue(rhs.value);
 	}
 
+	Short8::Short8(const Reference<Short8> &rhs)
+	{
+	//	xyzw.parent = this;
+
+		Value *value = rhs.loadValue();
+		storeValue(value);
+	}
+
 	Short8::Short8(RValue<Short4> lo, RValue<Short4> hi)
 	{
 		Value *loLong = Nucleus::createBitCast(lo.value, Long::getType());
@@ -3641,6 +3649,14 @@ namespace sw
 	//	xyzw.parent = this;
 
 		storeValue(rhs.value);
+	}
+
+	UShort8::UShort8(const Reference<UShort8> &rhs)
+	{
+	//	xyzw.parent = this;
+
+		Value *value = rhs.loadValue();
+		storeValue(value);
 	}
 
 	UShort8::UShort8(RValue<UShort4> lo, RValue<UShort4> hi)
