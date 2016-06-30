@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1db8e6a5_2a5d1f64",
+        "filename": "src/Shader/PixelRoutine.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 2393,
+      "author": {
+        "id": 5685
+      },
+      "writtenOn": "2016-06-30T14:37:32Z",
+      "side": 1,
+      "message": "Masked rgbaWriteMask so B and A channels can be set without breaking rgbaMask.",
+      "range": {
+        "startLine": 2393,
+        "startChar": 75,
+        "endLine": 2393,
+        "endChar": 96
+      },
+      "revId": "3b67d439ab49b6193fb8945e16e4d33bc7cba4d4",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
