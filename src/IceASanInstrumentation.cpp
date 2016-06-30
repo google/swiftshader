@@ -31,7 +31,9 @@ namespace Ice {
 namespace {
 
 constexpr SizeT RzSize = 32;
-const std::string RzPrefix = "__$rz";
+constexpr const char *RzPrefix = "__$rz";
+constexpr const char *RzArrayName = "__$rz_array";
+constexpr const char *RzSizesName = "__$rz_sizes";
 const llvm::NaClBitcodeRecord::RecordVector RzContents =
     llvm::NaClBitcodeRecord::RecordVector(RzSize, 'R');
 
@@ -42,6 +44,15 @@ using string_map = std::unordered_map<std::string, std::string>;
 const string_map FuncSubstitutions = {{"malloc", "__asan_malloc"},
                                       {"free", "__asan_free"}};
 
+llvm::NaClBitcodeRecord::RecordVector sizeToByteVec(SizeT Size) {
+  llvm::NaClBitcodeRecord::RecordVector SizeContents;
+  for (unsigned i = 0; i < sizeof(Size); ++i) {
+    SizeContents.emplace_back(Size % (1 << CHAR_BIT));
+    Size >>= CHAR_BIT;
+  }
+  return SizeContents;
+}
+
 } // end of anonymous namespace
 
 ICE_TLS_DEFINE_FIELD(std::vector<InstCall *> *, ASanInstrumentation,
@@ -51,46 +62,69 @@ ICE_TLS_DEFINE_FIELD(std::vector<InstCall *> *, ASanInstrumentation,
 // types of the redzones and their associated globals match so that they are
 // laid out together in memory.
 void ASanInstrumentation::instrumentGlobals(VariableDeclarationList &Globals) {
-  if (DidInsertRedZones)
+  if (DidProcessGlobals)
     return;
 
   VariableDeclarationList NewGlobals;
   // Global holding pointers to all redzones
   auto *RzArray = VariableDeclaration::create(&NewGlobals);
-  // Global holding the size of RzArray
-  auto *RzArraySizeVar = VariableDeclaration::create(&NewGlobals);
-  SizeT RzArraySize = 0;
+  // Global holding sizes of all redzones
+  auto *RzSizes = VariableDeclaration::create(&NewGlobals);
 
-  RzArray->setName(Ctx, nextRzName());
-  RzArraySizeVar->setName(Ctx, nextRzName());
+  RzArray->setName(Ctx, RzArrayName);
+  RzSizes->setName(Ctx, RzSizesName);
   RzArray->setIsConstant(true);
-  RzArraySizeVar->setIsConstant(true);
+  RzSizes->setIsConstant(true);
   NewGlobals.push_back(RzArray);
-  NewGlobals.push_back(RzArraySizeVar);
+  NewGlobals.push_back(RzSizes);
 
   for (VariableDeclaration *Global : Globals) {
-    VariableDeclaration *RzLeft =
-        createRz(&NewGlobals, RzArray, RzArraySize, Global);
-    VariableDeclaration *RzRight =
-        createRz(&NewGlobals, RzArray, RzArraySize, Global);
+    assert(Global->getAlignment() <= RzSize);
+    VariableDeclaration *RzLeft = VariableDeclaration::create(&NewGlobals);
+    VariableDeclaration *RzRight = VariableDeclaration::create(&NewGlobals);
+    RzLeft->setName(Ctx, nextRzName());
+    RzRight->setName(Ctx, nextRzName());
+    SizeT Alignment = std::max(RzSize, Global->getAlignment());
+    SizeT RzLeftSize = Alignment;
+    SizeT RzRightSize =
+        RzSize + Utils::OffsetToAlignment(Global->getNumBytes(), Alignment);
+    if (Global->hasNonzeroInitializer()) {
+      RzLeft->addInitializer(VariableDeclaration::DataInitializer::create(
+          &NewGlobals, llvm::NaClBitcodeRecord::RecordVector(RzLeftSize, 'R')));
+      RzRight->addInitializer(VariableDeclaration::DataInitializer::create(
+          &NewGlobals,
+          llvm::NaClBitcodeRecord::RecordVector(RzRightSize, 'R')));
+    } else {
+      RzLeft->addInitializer(VariableDeclaration::ZeroInitializer::create(
+          &NewGlobals, RzLeftSize));
+      RzRight->addInitializer(VariableDeclaration::ZeroInitializer::create(
+          &NewGlobals, RzRightSize));
+    }
+    RzLeft->setIsConstant(Global->getIsConstant());
+    RzRight->setIsConstant(Global->getIsConstant());
+    RzLeft->setAlignment(Alignment);
+    Global->setAlignment(Alignment);
+    RzRight->setAlignment(1);
+    RzArray->addInitializer(VariableDeclaration::RelocInitializer::create(
+        &NewGlobals, RzLeft, RelocOffsetArray(0)));
+    RzArray->addInitializer(VariableDeclaration::RelocInitializer::create(
+        &NewGlobals, RzRight, RelocOffsetArray(0)));
+    RzSizes->addInitializer(VariableDeclaration::DataInitializer::create(
+        &NewGlobals, sizeToByteVec(RzLeftSize)));
+    RzSizes->addInitializer(VariableDeclaration::DataInitializer::create(
+        &NewGlobals, sizeToByteVec(RzRightSize)));
+
     NewGlobals.push_back(RzLeft);
     NewGlobals.push_back(Global);
     NewGlobals.push_back(RzRight);
+    RzGlobalsNum += 2;
   }
-
-  // update the contents of the RzArraySize global
-  llvm::NaClBitcodeRecord::RecordVector SizeContents;
-  for (unsigned i = 0; i < sizeof(RzArraySize); i++) {
-    SizeContents.emplace_back(RzArraySize % (1 << CHAR_BIT));
-    RzArraySize >>= CHAR_BIT;
-  }
-  RzArraySizeVar->addInitializer(
-      VariableDeclaration::DataInitializer::create(&NewGlobals, SizeContents));
 
   // Replace old list of globals, without messing up arena allocators
   Globals.clear();
   Globals.merge(&NewGlobals);
-  DidInsertRedZones = true;
+  DidProcessGlobals = true;
+  GlobalsDoneCV.notify_all();
 
   // Log the new set of globals
   if (BuildDefs::dump() && (getFlags().getVerbose() & IceV_GlobalInit)) {
@@ -106,26 +140,6 @@ std::string ASanInstrumentation::nextRzName() {
   std::stringstream Name;
   Name << RzPrefix << RzNum++;
   return Name.str();
-}
-
-VariableDeclaration *
-ASanInstrumentation::createRz(VariableDeclarationList *List,
-                              VariableDeclaration *RzArray, SizeT &RzArraySize,
-                              VariableDeclaration *Global) {
-  auto *Rz = VariableDeclaration::create(List);
-  Rz->setName(Ctx, nextRzName());
-  if (Global->hasNonzeroInitializer()) {
-    Rz->addInitializer(
-        VariableDeclaration::DataInitializer::create(List, RzContents));
-  } else {
-    Rz->addInitializer(
-        VariableDeclaration::ZeroInitializer::create(List, RzSize));
-  }
-  Rz->setIsConstant(Global->getIsConstant());
-  RzArray->addInitializer(VariableDeclaration::RelocInitializer::create(
-      List, Rz, RelocOffsetArray(0)));
-  ++RzArraySize;
-  return Rz;
 }
 
 // Check for an alloca signaling the presence of local variables and add a
@@ -288,11 +302,22 @@ void ASanInstrumentation::instrumentRet(LoweringContext &Context, InstRet *) {
 void ASanInstrumentation::instrumentStart(Cfg *Func) {
   Constant *ShadowMemInit =
       Ctx->getConstantExternSym(Ctx->getGlobalString("__asan_init"));
-  constexpr SizeT NumArgs = 0;
+  constexpr SizeT NumArgs = 3;
   constexpr Variable *Void = nullptr;
   constexpr bool NoTailCall = false;
   auto *Call = InstCall::create(Func, NumArgs, Void, ShadowMemInit, NoTailCall);
   Func->getEntryNode()->getInsts().push_front(Call);
+
+  // wait to get the final count of global redzones
+  if (!DidProcessGlobals) {
+    GlobalsLock.lock();
+    while (!DidProcessGlobals)
+      GlobalsDoneCV.wait(GlobalsLock);
+    GlobalsLock.release();
+  }
+  Call->addArg(ConstantInteger32::create(Ctx, IceType_i32, RzGlobalsNum));
+  Call->addArg(Ctx->getConstantSym(0, Ctx->getGlobalString(RzArrayName)));
+  Call->addArg(Ctx->getConstantSym(0, Ctx->getGlobalString(RzSizesName)));
 }
 
 // TODO(tlively): make this more efficient with swap idiom

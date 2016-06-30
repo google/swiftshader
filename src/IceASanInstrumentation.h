@@ -23,6 +23,8 @@
 #include "IceGlobalInits.h"
 #include "IceInstrumentation.h"
 
+#include <condition_variable>
+
 namespace Ice {
 
 class ASanInstrumentation : public Instrumentation {
@@ -31,17 +33,15 @@ class ASanInstrumentation : public Instrumentation {
   ASanInstrumentation &operator=(const ASanInstrumentation &) = delete;
 
 public:
-  ASanInstrumentation(GlobalContext *Ctx) : Instrumentation(Ctx), RzNum(0) {
+  ASanInstrumentation(GlobalContext *Ctx)
+      : Instrumentation(Ctx), RzNum(0),
+        GlobalsLock(GlobalsMutex, std::defer_lock) {
     ICE_TLS_INIT_FIELD(LocalDtors);
   }
   void instrumentGlobals(VariableDeclarationList &Globals) override;
 
 private:
   std::string nextRzName();
-  VariableDeclaration *createRz(VariableDeclarationList *List,
-                                VariableDeclaration *RzArray,
-                                SizeT &RzArraySize,
-                                VariableDeclaration *Global);
   void instrumentFuncStart(LoweringContext &Context) override;
   void instrumentCall(LoweringContext &Context, InstCall *Instr) override;
   void instrumentRet(LoweringContext &Context, InstRet *Instr) override;
@@ -51,8 +51,12 @@ private:
   void instrumentStart(Cfg *Func) override;
   void finishFunc(Cfg *Func) override;
   ICE_TLS_DECLARE_FIELD(std::vector<InstCall *> *, LocalDtors);
-  bool DidInsertRedZones = false;
   std::atomic<uint32_t> RzNum;
+  bool DidProcessGlobals = false;
+  SizeT RzGlobalsNum = 0;
+  std::mutex GlobalsMutex;
+  std::unique_lock<std::mutex> GlobalsLock;
+  std::condition_variable GlobalsDoneCV;
 };
 } // end of namespace Ice
 

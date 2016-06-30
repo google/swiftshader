@@ -45,14 +45,14 @@
 
 static char *shadow_offset = NULL;
 
-void __asan_init(void);
+void __asan_init(int, void **, int *);
 void __asan_check(char *, int);
 void *__asan_malloc(size_t);
 void __asan_free(char *);
 void __asan_poison(char *, int);
 void __asan_unpoison(char *, int);
 
-void __asan_init(void) {
+void __asan_init(int n_rzs, void **rzs, int *rz_sizes) {
   // ensure the redzones are large enough to hold metadata
   assert(RZ_SIZE >= sizeof(void *) && RZ_SIZE >= sizeof(size_t));
   assert(shadow_offset == NULL);
@@ -71,6 +71,13 @@ void __asan_init(void) {
     fprintf(stderr, "could not protect bad region\n");
   else
     printf("protected bad region\n");
+
+  // poison global redzones
+  printf("poisioning %d global redzones\n", n_rzs);
+  for (int i = 0; i < n_rzs; i++) {
+    printf("(%d) poisoning redzone of size %d at %p\n", i, rz_sizes[i], rzs[i]);
+    __asan_poison(rzs[i], rz_sizes[i]);
+  }
 }
 
 void __asan_check(char *ptr, int size) {

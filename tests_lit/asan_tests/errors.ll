@@ -18,19 +18,19 @@
 ; RUN:     %t.pexe -o %t && %t 1 2 2>&1 | FileCheck %s
 
 ; check with a one off the end global access
-; RUIN: llvm-as %s -o - | pnacl-freeze > %t.pexe && %S/../../pydir/szbuild.py \
-; RUIN:     --fsanitize-address --sz="-allow-externally-defined-symbols" \
-; RUIN:     %t.pexe -o %t && %t 1 2 3 2>&1 | FileCheck %s
+; RUN: llvm-as %s -o - | pnacl-freeze > %t.pexe && %S/../../pydir/szbuild.py \
+; RUN:     --fsanitize-address --sz="-allow-externally-defined-symbols" \
+; RUN:     %t.pexe -o %t && %t 1 2 3 2>&1 | FileCheck %s
 
 ; check with a many off the end global access
-; RUIN: llvm-as %s -o - | pnacl-freeze > %t.pexe && %S/../../pydir/szbuild.py \
-; RUIN:     --fsanitize-address --sz="-allow-externally-defined-symbols" \
-; RUIN:     %t.pexe -o %t && %t 1 2 3 4 2>&1 | FileCheck %s
+; RUN: llvm-as %s -o - | pnacl-freeze > %t.pexe && %S/../../pydir/szbuild.py \
+; RUN:     --fsanitize-address --sz="-allow-externally-defined-symbols" \
+; RUN:     %t.pexe -o %t && %t 1 2 3 4 2>&1 | FileCheck %s
 
 ; check with a one before the front global access
-; RUIN: llvm-as %s -o - | pnacl-freeze > %t.pexe && %S/../../pydir/szbuild.py \
-; RUIN:     --fsanitize-address --sz="-allow-externally-defined-symbols" \
-; RUIN:     %t.pexe -o %t && %t 1 2 3 4 5 2>&1 | FileCheck %s
+; RUN: llvm-as %s -o - | pnacl-freeze > %t.pexe && %S/../../pydir/szbuild.py \
+; RUN:     --fsanitize-address --sz="-allow-externally-defined-symbols" \
+; RUN:     %t.pexe -o %t && %t 1 2 3 4 5 2>&1 | FileCheck %s
 
 
 declare external void @exit(i32)
@@ -68,18 +68,33 @@ define void @_start(i32 %arg) {
   %argc = load i32, i32* %argcptr, align 1
   switch i32 %argc, label %error [i32 1, label %one_local
                                   i32 2, label %many_local
-                                  i32 3, label %neg_local]
+                                  i32 3, label %neg_local
+                                  i32 4, label %one_global
+                                  i32 5, label %many_global
+                                  i32 6, label %neg_global]
 one_local:
-  ; Access one past the end
-  %__0 = call i32 @access(i32 1, i32 0)
+  ; Access one past the end of a local
+  call i32 @access(i32 1, i32 0)
   br label %error
 many_local:
-  ; Access five past the end
-  %__1 = call i32 @access(i32 1, i32 4)
+  ; Access five past the end of a local
+  call i32 @access(i32 1, i32 4)
   br label %error
 neg_local:
-  ; Access one before the beginning
-  %__2 = call i32 @access(i32 1, i32 -1)
+  ; Access one before the beginning of a local
+  call i32 @access(i32 1, i32 -1)
+  br label %error
+one_global:
+  ; Access one past the end of a global
+  call i32 @access(i32 0, i32 0)
+  br label %error
+many_global:
+  ; Access five past the end of a global
+  call i32 @access(i32 0, i32 4)
+  br label %error
+neg_global:
+  ; Access one before the beginning of a global
+  call i32 @access(i32 0, i32 -1)
   br label %error
 error:
   call void @exit(i32 1)

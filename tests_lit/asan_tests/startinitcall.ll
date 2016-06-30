@@ -25,6 +25,6 @@ define void @_start() {
 ; DUMP-LABEL: ================ Instrumented CFG ================
 ; DUMP-NEXT: define void @_start() {
 ; DUMP-NEXT: __0:
-; DUMP-NEXT: call void @__asan_init()
+; DUMP-NEXT: call void @__asan_init(i32 0, i32 @__$rz_array, i32 @__$rz_sizes)
 ; DUMP-NEXT: ret void
 ; DUMP-NEXT: }
