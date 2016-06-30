@@ -1071,7 +1071,7 @@ namespace sw
 		Short8(short c0, short c1, short c2, short c3, short c4, short c5, short c6, short c7);
 		Short8(RValue<Short8> rhs);
 	//	Short8(const Short8 &rhs);
-	//	Short8(const Reference<Short8> &rhs);
+		Short8(const Reference<Short8> &rhs);
 		Short8(RValue<Short4> lo, RValue<Short4> hi);
 
 	//	RValue<Short8> operator=(RValue<Short8> rhs) const;
@@ -1128,7 +1128,7 @@ namespace sw
 		UShort8(unsigned short c0, unsigned short c1, unsigned short c2, unsigned short c3, unsigned short c4, unsigned short c5, unsigned short c6, unsigned short c7);
 		UShort8(RValue<UShort8> rhs);
 	//	UShort8(const UShort8 &rhs);
-	//	UShort8(const Reference<UShort8> &rhs);
+		UShort8(const Reference<UShort8> &rhs);
 		UShort8(RValue<UShort4> lo, RValue<UShort4> hi);
 
 		RValue<UShort8> operator=(RValue<UShort8> rhs) const;
