@@ -49,7 +49,9 @@ namespace D3D9
 		Direct3DDevice9 *const device;
 		const D3DQUERYTYPE type;
 
-		sw::Query *query;
+		// TODO: create a union, or subclasses for each type.
+		sw::Query *query;   // D3DQUERYTYPE_OCCLUSION
+		UINT64 timestamp;   // D3DQUERYTYPE_TIMESTAMP
 	};
 }
 

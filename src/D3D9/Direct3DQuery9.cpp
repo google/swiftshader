@@ -169,7 +169,13 @@ namespace D3D9
 				device->setOcclusionEnabled(false);
 			}
 			break;
-		case D3DQUERYTYPE_TIMESTAMP:			if(flags != D3DISSUE_END) return INVALIDCALL(); break;
+		case D3DQUERYTYPE_TIMESTAMP:
+			if(flags == D3DISSUE_END)
+			{
+				timestamp = sw::Timer::counter();
+			}
+			else return INVALIDCALL();
+			break;
 		case D3DQUERYTYPE_TIMESTAMPDISJOINT:	if(flags != D3DISSUE_BEGIN && flags != D3DISSUE_END) return INVALIDCALL(); break;
 		case D3DQUERYTYPE_TIMESTAMPFREQ:		if(flags != D3DISSUE_END) return INVALIDCALL(); break;
 		case D3DQUERYTYPE_PIPELINETIMINGS:		if(flags != D3DISSUE_BEGIN && flags != D3DISSUE_END) return INVALIDCALL(); break;
@@ -227,7 +233,7 @@ namespace D3D9
 			case D3DQUERYTYPE_OCCLUSION:
 				*(DWORD*)data = query->data;
 				break;
-			case D3DQUERYTYPE_TIMESTAMP:			*(UINT64*)data = sw::Timer::counter(); break;     // FIXME: Verify behaviour
+			case D3DQUERYTYPE_TIMESTAMP:			*(UINT64*)data = timestamp; break;                // FIXME: Verify behaviour
 			case D3DQUERYTYPE_TIMESTAMPDISJOINT:	*(BOOL*)data = FALSE; break;                      // FIXME: Verify behaviour
 			case D3DQUERYTYPE_TIMESTAMPFREQ:		*(UINT64*)data = sw::Timer::frequency(); break;   // FIXME: Verify behaviour
 			case D3DQUERYTYPE_PIPELINETIMINGS:		UNIMPLEMENTED(); break;
