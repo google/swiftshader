@@ -61,7 +61,7 @@ namespace sw
 			Function(unsigned int location, const void *function, const void *entry, int size) : location(location), entry(entry), size(size)
 			{
 				buffer = new unsigned char[size];
-		
+
 				memcpy(buffer, function, size);
 			}
 

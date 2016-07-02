@@ -56,7 +56,7 @@ namespace sw
 
 				precacheDLL = LoadLibrary(dllName);
 				FILE *dir = fopen(dirName, "rb");
-				int ordinal = 1;
+				uintptr_t ordinal = 1;
 
 				while(precacheDLL && dir)
 				{
