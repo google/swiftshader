@@ -31,8 +31,8 @@ namespace egl
 	class Context;
 	class Image;
 
-	const EGLDisplay PRIMARY_DISPLAY = (EGLDisplay)1;
-	const EGLDisplay HEADLESS_DISPLAY = (EGLDisplay)0xFACE1E55;
+	const EGLDisplay PRIMARY_DISPLAY  = reinterpret_cast<EGLDisplay>((intptr_t)1);
+	const EGLDisplay HEADLESS_DISPLAY = reinterpret_cast<EGLDisplay>((intptr_t)0xFACE1E55);
 
 	class Display
 	{

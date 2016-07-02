@@ -1985,7 +1985,7 @@ void GetBufferParameteriv(GLenum target, GLenum pname, GLint* params)
 			*params = buffer->usage();
 			break;
 		case GL_BUFFER_SIZE:
-			*params = buffer->size();
+			*params = (GLint)buffer->size();
 			break;
 		default:
 			return error(GL_INVALID_ENUM);
