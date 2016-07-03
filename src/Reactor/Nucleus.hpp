@@ -2526,10 +2526,15 @@ namespace sw
 
 		Routine *operator()(const wchar_t *name, ...);
 
-	private:
+	protected:
 		Nucleus *core;
 		llvm::Function *function;
 		std::vector<llvm::Type*> arguments;
+	};
+
+	template<typename Return>
+	class Function<Return()> : public Function<Return(Void)>
+	{
 	};
 
 	template<int index, typename Return, typename... Arguments>
@@ -2978,7 +2983,10 @@ namespace sw
 		llvm::Type *types[] = {Arguments::getType()...};
 		for(llvm::Type *type : types)
 		{
-			arguments.push_back(type);
+			if(type != Void::getType())
+			{
+				arguments.push_back(type);
+			}
 		}
 
 		function = Nucleus::createFunction(Return::getType(), arguments);
