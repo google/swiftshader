@@ -19,6 +19,8 @@ frustration later on.
 ### Code reviews
 All submissions, including submissions by project members, require review.
 
+Information on how to sumbit changes for review is provided in README.md.
+
 ### The small print
 Contributions made by corporations are covered by a different agreement than
 the one above, the
