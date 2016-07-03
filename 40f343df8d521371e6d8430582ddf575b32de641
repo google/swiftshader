@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7db562d9_e30e202f",
+        "filename": "src/D3D9/Direct3DQuery9.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-07-03T04:36:22Z",
+      "side": 1,
+      "message": "This returns before setting the timestamp value.",
+      "range": {
+        "startLine": 172,
+        "startChar": 59,
+        "endLine": 172,
+        "endChar": 114
+      },
+      "revId": "40f343df8d521371e6d8430582ddf575b32de641",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7db562d9_030cf434",
+        "filename": "src/D3D9/Direct3DQuery9.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 230,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-07-03T04:36:22Z",
+      "side": 1,
+      "message": "Do you happen to have some documentation or a test app which confirms that this is the correct implementation? All I could find is this vague description: https://msdn.microsoft.com/en-us/library/windows/desktop/bb172594(v\u003dvs.85).aspx",
+      "range": {
+        "startLine": 230,
+        "startChar": 34,
+        "endLine": 230,
+        "endChar": 61
+      },
+      "revId": "40f343df8d521371e6d8430582ddf575b32de641",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
