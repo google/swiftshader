@@ -266,11 +266,6 @@ def main():
     args = argparser.parse_args()
     pexe = args.pexe
     exe = args.output
-    if args.asan:
-        if args.sandbox or args.nonsfi:
-            print 'Can only use AddressSanitizer with a native build'
-            exit(1)
-        args.sz_args.append('-fsanitize-address')
     ProcessPexe(args, pexe, exe)
 
 def ProcessPexe(args, pexe, exe):
@@ -307,6 +302,12 @@ def ProcessPexe(args, pexe, exe):
     opt_level_map = { 'm1':'0', '-1':'0', '0':'0', '1':'1', '2':'2' }
     hybrid = args.include or args.exclude
     native = not args.sandbox and not args.nonsfi
+    if args.asan:
+        if args.sandbox or args.nonsfi:
+            print 'Can only use AddressSanitizer with a native build'
+            exit(1)
+        if '-fsanitize-address' not in args.sz_args:
+          args.sz_args.append('-fsanitize-address')
 
     if hybrid and (args.force or
                    NewerThanOrNotThere(pexe, obj_llc) or

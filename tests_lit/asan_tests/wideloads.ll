@@ -5,7 +5,7 @@
 ; check for wide load exception
 ; RUN: llvm-as %s -o - | pnacl-freeze > %t.pexe && %S/../../pydir/szbuild.py \
 ; RUN:     --fsanitize-address --sz="-allow-externally-defined-symbols" \
-; RUN:     %t.pexe -o %t && %t | FileCheck %s --check-prefix=WIDE
+; RUN:     %t.pexe -o %t && %t | FileCheck %s --check-prefix=WIDE --allow-empty
 
 ; check for error reporting
 ; RUN: llvm-as %s -o - | pnacl-freeze > %t.pexe && %S/../../pydir/szbuild.py \

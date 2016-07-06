@@ -64,7 +64,6 @@ ICE_TLS_DEFINE_FIELD(std::vector<InstCall *> *, ASanInstrumentation,
 void ASanInstrumentation::instrumentGlobals(VariableDeclarationList &Globals) {
   if (DidProcessGlobals)
     return;
-
   VariableDeclarationList NewGlobals;
   // Global holding pointers to all redzones
   auto *RzArray = VariableDeclaration::create(&NewGlobals);
@@ -147,7 +146,6 @@ std::string ASanInstrumentation::nextRzName() {
 void ASanInstrumentation::instrumentFuncStart(LoweringContext &Context) {
   if (ICE_TLS_GET_FIELD(LocalDtors) == nullptr)
     ICE_TLS_SET_FIELD(LocalDtors, new std::vector<InstCall *>());
-
   Cfg *Func = Context.getNode()->getCfg();
   bool HasLocals = false;
   LoweringContext C;
@@ -294,10 +292,21 @@ void ASanInstrumentation::instrumentAccess(LoweringContext &Context,
 }
 
 void ASanInstrumentation::instrumentRet(LoweringContext &Context, InstRet *) {
+  Cfg *Func = Context.getNode()->getCfg();
   InstList::iterator Next = Context.getNext();
   Context.setInsertPoint(Context.getCur());
   for (InstCall *RzUnpoison : *ICE_TLS_GET_FIELD(LocalDtors)) {
-    Context.insert(RzUnpoison);
+    SizeT NumArgs = RzUnpoison->getNumArgs();
+    Variable *Dest = RzUnpoison->getDest();
+    Operand *CallTarget = RzUnpoison->getCallTarget();
+    bool HasTailCall = RzUnpoison->isTailcall();
+    bool IsTargetHelperCall = RzUnpoison->isTargetHelperCall();
+    auto *RzUnpoisonCpy = InstCall::create(Func, NumArgs, Dest, CallTarget,
+                                           HasTailCall, IsTargetHelperCall);
+    for (int I = 0, Args = RzUnpoison->getNumArgs(); I < Args; ++I) {
+      RzUnpoisonCpy->addArg(RzUnpoison->getArg(I));
+    }
+    Context.insert(RzUnpoisonCpy);
   }
   Context.setNext(Next);
 }
