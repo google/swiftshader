@@ -27,17 +27,10 @@ config("swiftshader_shader_private_config") {
       ]
     }
   }
-
-  if (!is_debug) {
-    cflags += [
-      "-DANGLE_DISABLE_TRACE",
-    ]
-  }
 }
 
 source_set("swiftshader_shader") {
   deps = [
-    "../Common:swiftshader_common",
     "../Main:swiftshader_main",
   ]
 

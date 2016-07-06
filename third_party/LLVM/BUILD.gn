@@ -47,6 +47,12 @@ config("swiftshader_llvm_private_config") {
         "/wd4706",
         "/wd4800",
       ]
+
+      if (!is_debug) {
+        cflags += [
+          "/wd4324",
+        ]
+      }
     }
   }
 }
@@ -437,13 +443,24 @@ source_set("swiftshader_llvm") {
   ]
 
   include_dirs = [
-    "include",
     "lib/Target/X86",
   ]
 
+  # The "include" directory includes common files and the Windows specific config file.
+  # The "include-<platform>" directory includes the <platform> specific config file.
+  # Non-Windows platforms must add their platform specific include directory before the "include" directory
+  # is added, otherwise, the Windows specific config file will be used and compilation will fail.
   if (host_os == "linux") {
     include_dirs += [
       "include-linux",
     ]
+  } else if (host_os == "mac") {
+    include_dirs += [
+      "include-mac",
+    ]
   }
+
+  include_dirs += [
+    "include",
+  ]
 }
