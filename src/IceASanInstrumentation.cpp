@@ -261,26 +261,29 @@ void ASanInstrumentation::instrumentCall(LoweringContext &Context,
 
 void ASanInstrumentation::instrumentLoad(LoweringContext &Context,
                                          InstLoad *Instr) {
+  Constant *Func =
+      Ctx->getConstantExternSym(Ctx->getGlobalString("__asan_check_load"));
   instrumentAccess(Context, Instr->getSourceAddress(),
-                   typeWidthInBytes(Instr->getDest()->getType()));
+                   typeWidthInBytes(Instr->getDest()->getType()), Func);
 }
 
 void ASanInstrumentation::instrumentStore(LoweringContext &Context,
                                           InstStore *Instr) {
+  Constant *Func =
+      Ctx->getConstantExternSym(Ctx->getGlobalString("__asan_check_store"));
   instrumentAccess(Context, Instr->getAddr(),
-                   typeWidthInBytes(Instr->getData()->getType()));
+                   typeWidthInBytes(Instr->getData()->getType()), Func);
 }
 
 // TODO(tlively): Take size of access into account as well
 void ASanInstrumentation::instrumentAccess(LoweringContext &Context,
-                                           Operand *Op, SizeT Size) {
-  Constant *AccessCheck =
-      Ctx->getConstantExternSym(Ctx->getGlobalString("__asan_check"));
+                                           Operand *Op, SizeT Size,
+                                           Constant *CheckFunc) {
   constexpr SizeT NumArgs = 2;
   constexpr Variable *Void = nullptr;
   constexpr bool NoTailCall = false;
   auto *Call = InstCall::create(Context.getNode()->getCfg(), NumArgs, Void,
-                                AccessCheck, NoTailCall);
+                                CheckFunc, NoTailCall);
   Call->addArg(Op);
   Call->addArg(ConstantInteger32::create(Ctx, IceType_i32, Size));
   // play games to insert the call before the access instruction

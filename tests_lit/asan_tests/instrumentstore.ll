@@ -50,25 +50,25 @@ define internal void @doStores(<4 x i32> %vecSrc) {
 ; DUMP-LABEL: ================ Instrumented CFG ================
 ; DUMP-NEXT: define internal void @doStores(<4 x i32> %vecSrc) {
 ; DUMP-NEXT: __0:
-; DUMP:      call void @__asan_check(i32 @destGlobal8, i32 1)
+; DUMP:      call void @__asan_check_store(i32 @destGlobal8, i32 1)
 ; DUMP-NEXT: store i8 42, i8* @destGlobal8, align 1
-; DUMP-NEXT: call void @__asan_check(i32 @destGlobal16, i32 2)
+; DUMP-NEXT: call void @__asan_check_store(i32 @destGlobal16, i32 2)
 ; DUMP-NEXT: store i16 42, i16* @destGlobal16, align 1
-; DUMP-NEXT: call void @__asan_check(i32 @destGlobal32, i32 4)
+; DUMP-NEXT: call void @__asan_check_store(i32 @destGlobal32, i32 4)
 ; DUMP-NEXT: store i32 42, i32* @destGlobal32, align 1
-; DUMP-NEXT: call void @__asan_check(i32 @destGlobal64, i32 8)
+; DUMP-NEXT: call void @__asan_check_store(i32 @destGlobal64, i32 8)
 ; DUMP-NEXT: store i64 42, i64* @destGlobal64, align 1
-; DUMP-NEXT: call void @__asan_check(i32 @destGlobal128, i32 16)
+; DUMP-NEXT: call void @__asan_check_store(i32 @destGlobal128, i32 16)
 ; DUMP-NEXT: store <4 x i32> %vecSrc, <4 x i32>* @destGlobal128, align 4
-; DUMP-NEXT: call void @__asan_check(i32 %destLocal8, i32 1)
+; DUMP-NEXT: call void @__asan_check_store(i32 %destLocal8, i32 1)
 ; DUMP-NEXT: store i8 42, i8* %destLocal8, align 1
-; DUMP-NEXT: call void @__asan_check(i32 %destLocal16, i32 2)
+; DUMP-NEXT: call void @__asan_check_store(i32 %destLocal16, i32 2)
 ; DUMP-NEXT: store i16 42, i16* %destLocal16, align 1
-; DUMP-NEXT: call void @__asan_check(i32 %destLocal32, i32 4)
+; DUMP-NEXT: call void @__asan_check_store(i32 %destLocal32, i32 4)
 ; DUMP-NEXT: store i32 42, i32* %destLocal32, align 1
-; DUMP-NEXT: call void @__asan_check(i32 %destLocal64, i32 8)
+; DUMP-NEXT: call void @__asan_check_store(i32 %destLocal64, i32 8)
 ; DUMP-NEXT: store i64 42, i64* %destLocal64, align 1
-; DUMP-NEXT: call void @__asan_check(i32 %destLocal128, i32 16)
+; DUMP-NEXT: call void @__asan_check_store(i32 %destLocal128, i32 16)
 ; DUMP-NEXT: store <4 x i32> %vecSrc, <4 x i32>* %destLocal128, align 4
 ; DUMP:      ret void
 ; DUMP-NEXT: }

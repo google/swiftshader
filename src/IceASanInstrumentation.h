@@ -47,7 +47,8 @@ private:
   void instrumentRet(LoweringContext &Context, InstRet *Instr) override;
   void instrumentLoad(LoweringContext &Context, InstLoad *Instr) override;
   void instrumentStore(LoweringContext &Context, InstStore *Instr) override;
-  void instrumentAccess(LoweringContext &Context, Operand *Op, SizeT Size);
+  void instrumentAccess(LoweringContext &Context, Operand *Op, SizeT Size,
+                        Constant *AccessFunc);
   void instrumentStart(Cfg *Func) override;
   void finishFunc(Cfg *Func) override;
   ICE_TLS_DECLARE_FIELD(std::vector<InstCall *> *, LocalDtors);

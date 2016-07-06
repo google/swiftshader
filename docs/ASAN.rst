@@ -27,3 +27,12 @@ AddressSanitizer and properly linked into a final executable using
 subzero/pydir/szbuild.py with the --fsanitize-address flag, i.e.::
 
     pydir/szbuild.py --fsanitize-address hello.pexe
+
+Handling Wide Loads
+===================
+
+Since AddressSanitizer is implemented only in Subzero, the target .pexe may
+contain widened loads that would cause false positives. To avoid reporting such
+loads as errors, we treat any word-aligned, four byte load as a potentially
+widened load and only check the first byte of the loaded word against shadow
+memory.

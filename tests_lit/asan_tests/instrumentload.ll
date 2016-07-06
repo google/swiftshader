@@ -69,35 +69,35 @@ define internal void @doLoads() {
 ; DUMP-LABEL: ================ Instrumented CFG ================
 ; DUMP-NEXT: define internal void @doLoads() {
 ; DUMP-NEXT: __0:
-; DUMP:      call void @__asan_check(i32 @srcConst8, i32 1)
+; DUMP:      call void @__asan_check_load(i32 @srcConst8, i32 1)
 ; DUMP-NEXT: %dest1 = load i8, i8* @srcConst8, align 1
-; DUMP-NEXT: call void @__asan_check(i32 @srcConst16, i32 2)
+; DUMP-NEXT: call void @__asan_check_load(i32 @srcConst16, i32 2)
 ; DUMP-NEXT: %dest2 = load i16, i16* @srcConst16, align 1
-; DUMP-NEXT: call void @__asan_check(i32 @srcConst32, i32 4)
+; DUMP-NEXT: call void @__asan_check_load(i32 @srcConst32, i32 4)
 ; DUMP-NEXT: %dest3 = load i32, i32* @srcConst32, align 1
-; DUMP-NEXT: call void @__asan_check(i32 @srcConst64, i32 8)
+; DUMP-NEXT: call void @__asan_check_load(i32 @srcConst64, i32 8)
 ; DUMP-NEXT: %dest4 = load i64, i64* @srcConst64, align 1
-; DUMP-NEXT: call void @__asan_check(i32 @srcConst128, i32 16)
+; DUMP-NEXT: call void @__asan_check_load(i32 @srcConst128, i32 16)
 ; DUMP-NEXT: %dest5 = load <4 x i32>, <4 x i32>* @srcConst128, align 4
-; DUMP-NEXT: call void @__asan_check(i32 @srcGlobal8, i32 1)
+; DUMP-NEXT: call void @__asan_check_load(i32 @srcGlobal8, i32 1)
 ; DUMP-NEXT: %dest6 = load i8, i8* @srcGlobal8, align 1
-; DUMP-NEXT: call void @__asan_check(i32 @srcGlobal16, i32 2)
+; DUMP-NEXT: call void @__asan_check_load(i32 @srcGlobal16, i32 2)
 ; DUMP-NEXT: %dest7 = load i16, i16* @srcGlobal16, align 1
-; DUMP-NEXT: call void @__asan_check(i32 @srcGlobal32, i32 4)
+; DUMP-NEXT: call void @__asan_check_load(i32 @srcGlobal32, i32 4)
 ; DUMP-NEXT: %dest8 = load i32, i32* @srcGlobal32, align 1
-; DUMP-NEXT: call void @__asan_check(i32 @srcGlobal64, i32 8)
+; DUMP-NEXT: call void @__asan_check_load(i32 @srcGlobal64, i32 8)
 ; DUMP-NEXT: %dest9 = load i64, i64* @srcGlobal64, align 1
-; DUMP-NEXT: call void @__asan_check(i32 @srcGlobal128, i32 16)
+; DUMP-NEXT: call void @__asan_check_load(i32 @srcGlobal128, i32 16)
 ; DUMP-NEXT: %dest10 = load <4 x i32>, <4 x i32>* @srcGlobal128, align 4
-; DUMP-NEXT: call void @__asan_check(i32 %srcLocal8, i32 1)
+; DUMP-NEXT: call void @__asan_check_load(i32 %srcLocal8, i32 1)
 ; DUMP-NEXT: %dest11 = load i8, i8* %srcLocal8, align 1
-; DUMP-NEXT: call void @__asan_check(i32 %srcLocal16, i32 2)
+; DUMP-NEXT: call void @__asan_check_load(i32 %srcLocal16, i32 2)
 ; DUMP-NEXT: %dest12 = load i16, i16* %srcLocal16, align 1
-; DUMP-NEXT: call void @__asan_check(i32 %srcLocal32, i32 4)
+; DUMP-NEXT: call void @__asan_check_load(i32 %srcLocal32, i32 4)
 ; DUMP-NEXT: %dest13 = load i32, i32* %srcLocal32, align 1
-; DUMP-NEXT: call void @__asan_check(i32 %srcLocal64, i32 8)
+; DUMP-NEXT: call void @__asan_check_load(i32 %srcLocal64, i32 8)
 ; DUMP-NEXT: %dest14 = load i64, i64* %srcLocal64, align 1
-; DUMP-NEXT: call void @__asan_check(i32 %srcLocal128, i32 16)
+; DUMP-NEXT: call void @__asan_check_load(i32 %srcLocal128, i32 16)
 ; DUMP-NEXT: %dest15 = load <4 x i32>, <4 x i32>* %srcLocal128, align 4
 ; DUMP:      ret void
 ; DUMP-NEXT: }

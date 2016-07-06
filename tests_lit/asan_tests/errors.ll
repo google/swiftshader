@@ -38,7 +38,7 @@ declare external void @exit(i32)
 ; A global array
 @array = internal constant [12 x i8] zeroinitializer
 
-define i32 @access(i32 %is_local_i, i32 %err) {
+define void @access(i32 %is_local_i, i32 %err) {
   ; get the base pointer to either the local or global array
   %local = alloca i8, i32 12, align 1
   %global = bitcast [12 x i8]* @array to i8*
@@ -54,11 +54,11 @@ define i32 @access(i32 %is_local_i, i32 %err) {
   ; calculate the address to access
   %arraddr = ptrtoint i8* %arr to i32
   %badaddr = add i32 %arraddr, %offset
-  %badptr = inttoptr i32 %badaddr to i32*
+  %badptr = inttoptr i32 %badaddr to i8*
 
   ; perform the bad access
-  %result = load i32, i32* %badptr, align 1
-  ret i32 %result
+  %result = load i8, i8* %badptr, align 1
+  ret void
 }
 
 ; use argc to determine which test routine to run
@@ -74,31 +74,31 @@ define void @_start(i32 %arg) {
                                   i32 6, label %neg_global]
 one_local:
   ; Access one past the end of a local
-  call i32 @access(i32 1, i32 0)
+  call void @access(i32 1, i32 0)
   br label %error
 many_local:
   ; Access five past the end of a local
-  call i32 @access(i32 1, i32 4)
+  call void @access(i32 1, i32 4)
   br label %error
 neg_local:
   ; Access one before the beginning of a local
-  call i32 @access(i32 1, i32 -1)
+  call void @access(i32 1, i32 -1)
   br label %error
 one_global:
   ; Access one past the end of a global
-  call i32 @access(i32 0, i32 0)
+  call void @access(i32 0, i32 0)
   br label %error
 many_global:
   ; Access five past the end of a global
-  call i32 @access(i32 0, i32 4)
+  call void @access(i32 0, i32 4)
   br label %error
 neg_global:
   ; Access one before the beginning of a global
-  call i32 @access(i32 0, i32 -1)
+  call void @access(i32 0, i32 -1)
   br label %error
 error:
   call void @exit(i32 1)
   unreachable
 }
 
-; CHECK: Illegal access of 4 bytes at
+; CHECK: Illegal access of 1 bytes at
