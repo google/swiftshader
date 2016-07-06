@@ -30,17 +30,11 @@ config("swiftshader_reactor_private_config") {
       ]
     }
   }
-
-  if (!is_debug) {
-    cflags += [
-      "-DANGLE_DISABLE_TRACE",
-    ]
-  }
 }
 
 source_set("swiftshader_reactor") {
   deps = [
-    "../Common:swiftshader_common",
+    "../OpenGL/common:swiftshader_opengl_common",
     "../../third_party/LLVM:swiftshader_llvm",
   ]
 

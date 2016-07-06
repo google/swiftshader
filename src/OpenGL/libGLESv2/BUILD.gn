@@ -37,24 +37,13 @@ config("swiftshader_libGLESv2_private_config") {
       ]
     }
   }
-
-  if (!is_debug) {
-    cflags += [
-      "-DANGLE_DISABLE_TRACE",
-    ]
-  }
 }
 
 shared_library("swiftshader_libGLESv2") {
   deps = [
-    "../../Common:swiftshader_common",
+    "../../OpenGL/compiler:swiftshader_opengl_compiler",
     "../../Reactor:swiftshader_reactor",
     "../../Renderer:swiftshader_renderer",
-    "../../OpenGL/common:swiftshader_opengl_common",
-    "../../OpenGL/compiler:swiftshader_opengl_compiler",
-    "../../Shader:swiftshader_shader",
-    "../../Main:swiftshader_main",
-    "../../../third_party/LLVM:swiftshader_llvm",
   ]
 
   sources = [
@@ -85,7 +74,10 @@ shared_library("swiftshader_libGLESv2") {
     ]
   }
 
+  configs -= [ "//build/config/compiler:chromium_code" ]
   configs += [
+    "//build/config/compiler:no_chromium_code",
+    "//third_party/swiftshader:swiftshader_config",
     ":swiftshader_libGLESv2_private_config",
   ]
 

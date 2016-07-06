@@ -26,12 +26,6 @@ config("swiftshader_opengl_common_private_config") {
       ]
     }
   }
-
-  if (!is_debug) {
-    cflags += [
-      "-DANGLE_DISABLE_TRACE",
-    ]
-  }
 }
 
 source_set("swiftshader_opengl_common") {

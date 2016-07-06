@@ -26,38 +26,30 @@ config("swiftshader_libEGL_private_config") {
       cflags = [
         "/DEGLAPI=",
         "/DEGL_EGLEXT_PROTOTYPES",
+        "/DLIBEGL_EXPORTS",
         "/wd4201", # nameless struct/union
         "/wd4065", # switch statement contains 'default' but no 'case' labels
       ]
     }
   }
-
-  if (!is_debug) {
-    cflags += [
-      "-DANGLE_DISABLE_TRACE",
-    ]
-  }
 }
 
 shared_library("swiftshader_libEGL") {
-  deps = [
-    "../../Common:swiftshader_common",
-    "../../Reactor:swiftshader_reactor",
-    "../../Renderer:swiftshader_renderer",
-    "../../OpenGL/common:swiftshader_opengl_common",
-    "../../OpenGL/compiler:swiftshader_opengl_compiler",
-    "../../Shader:swiftshader_shader",
-    "../../Main:swiftshader_main",
-    "../../../third_party/LLVM:swiftshader_llvm",
-  ]
-
   sources = [
     "Config.cpp",
     "Display.cpp",
     "Surface.cpp",
     "libEGL.cpp",
     "main.cpp",
+    "../common/Object.cpp",
   ]
+
+  if(is_debug)
+  {
+    sources += [
+      "../common/debug.cpp",
+    ]
+  }
 
   if (host_os == "mac") {
     sources += [
@@ -67,9 +59,16 @@ shared_library("swiftshader_libEGL") {
     configs -= [
       "//build/config/win:unicode"
     ]
+  } else if (host_os == "linux") {
+    sources += [
+      "../../Main/libX11.cpp",
+    ]
   }
 
+  configs -= [ "//build/config/compiler:chromium_code" ]
   configs += [
+    "//build/config/compiler:no_chromium_code",
+    "//third_party/swiftshader:swiftshader_config",
     ":swiftshader_libEGL_private_config",
   ]
 

@@ -19,12 +19,6 @@ config("swiftshader_common_private_config") {
       "-DLOG_TAG=\"swiftshader_common\"",
       "-msse2",
     ]
-
-    if (!is_debug) {
-      cflags += [
-        "-DANGLE_DISABLE_TRACE",
-      ]
-    }
   } else {
     if (host_os == "win") {
       cflags = [

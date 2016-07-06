@@ -27,12 +27,6 @@ config("swiftshader_opengl_preprocessor_private_config") {
       ]
     }
   }
-
-  if (!is_debug) {
-    cflags += [
-      "-DANGLE_DISABLE_TRACE",
-    ]
-  }
 }
 
 source_set("swiftshader_opengl_preprocessor") {

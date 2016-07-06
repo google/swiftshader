@@ -19,7 +19,7 @@ config("swiftshader_config") {
     ]
 
     if (is_debug) {
-        cflags += [
+      cflags += [
         "-g",
       ]
     } else { # Release
@@ -27,10 +27,8 @@ config("swiftshader_config") {
       cflags += [
         "-ffunction-sections",
         "-fdata-sections",
-        "-Wl",
-        "--gc-sections",
-        "-s",
         "-fomit-frame-pointer",
+        "-DANGLE_DISABLE_TRACE",
       ]
 
       # Choose the right Release architecture
@@ -55,18 +53,35 @@ config("swiftshader_config") {
         "-m32",
       ]
     }
+  } else {
+    if (host_os == "win") {
+      cflags = [
+        "/GS", # Detects some buffer overruns
+        "/Zc:wchar_t",
+        "/D_CRT_SECURE_NO_DEPRECATE",
+        "/DNOMINMAX",
+        "/D_WINDLL",
+        "/EHsc",
+        "/nologo",
+        "/Gd", # Default calling convention
+      ]
+
+      if (is_debug) {
+        cflags += [
+          "/RTC1", # Run-Time Error Checks
+        ]
+      } else {
+        cflags += [
+          "/DANGLE_DISABLE_TRACE",
+        ]
+      }
+    }
   }
 }
 
-component("swiftshader") {
-  configs -= [ "//build/config/compiler:chromium_code" ]
-  configs += [
-    "//build/config/compiler:no_chromium_code",
-    ":swiftshader_config",
-  ]
-
+group("swiftshader") {
   deps = [
-    "src/OpenGL/libEGL:swiftshader_libEGL",
     "src/OpenGL/libGLESv2:swiftshader_libGLESv2",
+    "src/OpenGL/libEGL:swiftshader_libEGL",
   ]
 }
