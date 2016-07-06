@@ -553,29 +553,107 @@ void InstMIPS32Mov::emitSingleDestSingleSource(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   Variable *Dest = getDest();
   Operand *Src = getSrc(0);
-  auto *S = llvm::dyn_cast<Variable>(Src);
-  Str << "\t";
-  if (Dest->hasReg()) {
-    if (S && S->hasReg())
-      Str << "move";
-    else
-      Str << "lw";
-  } else {
-    if (S && S->hasReg()) {
-      Str << "sw"
+  auto *SrcV = llvm::dyn_cast<Variable>(Src);
+
+  assert(!llvm::isa<Constant>(Src));
+
+  const char *ActualOpcode = nullptr;
+  const bool DestIsReg = Dest->hasReg();
+  const bool DestIsMem = !Dest->hasReg();
+  const bool SrcIsReg = (SrcV && SrcV->hasReg());
+  const bool SrcIsMem = !(SrcV && SrcV->hasReg());
+
+  // reg to reg
+  if (DestIsReg && SrcIsReg) {
+    switch (Dest->getType()) {
+    case IceType_f32:
+      ActualOpcode = "mov.s";
+      break;
+    case IceType_f64:
+      ActualOpcode = "mov.d";
+      break;
+    case IceType_i1:
+    case IceType_i8:
+    case IceType_i16:
+    case IceType_i32:
+      Str << "\t"
+             "add"
              "\t";
-      getSrc(0)->emit(Func);
-      Str << ", ";
       getDest()->emit(Func);
+      Str << ", $zero, ";
+      getSrc(0)->emit(Func);
       return;
-    } else
-      Str << "move";
+    default:
+      UnimplementedError(getFlags());
+      return;
+    }
+
+    assert(ActualOpcode);
+    Str << "\t" << ActualOpcode << "\t";
+    getDest()->emit(Func);
+    Str << ", ";
+    getSrc(0)->emit(Func);
+    return;
   }
 
-  Str << "\t";
-  getDest()->emit(Func);
-  Str << ", ";
-  getSrc(0)->emit(Func);
+  // reg to stack
+  if (DestIsMem && SrcIsReg) {
+    switch (Dest->getType()) {
+    case IceType_f32:
+      ActualOpcode = "swc1";
+      break;
+    case IceType_f64:
+      ActualOpcode = "sdc1";
+      break;
+    case IceType_i1:
+    case IceType_i8:
+    case IceType_i16:
+    case IceType_i32:
+      ActualOpcode = "sw";
+      break;
+    default:
+      UnimplementedError(getFlags());
+      return;
+    }
+
+    assert(ActualOpcode);
+    Str << "\t" << ActualOpcode << "\t";
+    getSrc(0)->emit(Func);
+    Str << ", ";
+    getDest()->emit(Func);
+    return;
+  }
+
+  // stack to reg
+  if (DestIsReg && SrcIsMem) {
+    switch (Dest->getType()) {
+    case IceType_f32:
+      ActualOpcode = "lwc1";
+      break;
+    case IceType_f64:
+      ActualOpcode = "ldc1";
+      break;
+    case IceType_i1:
+    case IceType_i8:
+    case IceType_i16:
+    case IceType_i32:
+      ActualOpcode = "lw";
+      break;
+    default:
+      UnimplementedError(getFlags());
+      return;
+    }
+
+    assert(ActualOpcode);
+    Str << "\t" << ActualOpcode << "\t";
+    getDest()->emit(Func);
+    Str << ", ";
+    getSrc(0)->emit(Func);
+    return;
+  }
+
+  // stack to stack
+  llvm::report_fatal_error("mov cant copy stack to stack.");
 }
 
 } // end of namespace MIPS32
