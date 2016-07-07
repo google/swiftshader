@@ -1,0 +1,89 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7d7c8257_c571acc6",
+        "filename": "BUILD.gn",
+        "patchSetId": 1
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2016-07-07T16:51:27Z",
+      "side": 1,
+      "message": "How about using defines \u003d [\"ANGLE_DISABLE_TRACE\"] so you don\u0027t have to duplicate the flag for Linux and Windows?",
+      "revId": "1b46a167f81d5d84c08ad97bdc252523271d9acc",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7d7c8257_457e7c93",
+        "filename": "BUILD.gn",
+        "patchSetId": 1
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2016-07-07T16:51:27Z",
+      "side": 1,
+      "message": "Nice!",
+      "revId": "1b46a167f81d5d84c08ad97bdc252523271d9acc",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7d7c8257_85ade447",
+        "filename": "src/OpenGL/compiler/BUILD.gn",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2016-07-07T16:51:27Z",
+      "side": 1,
+      "message": "Note that ANGLE has a macro to tag such variables, using it in Swiftshader would remove the need for the warning suppression.",
+      "revId": "1b46a167f81d5d84c08ad97bdc252523271d9acc",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7d7c8257_a5c108f6",
+        "filename": "third_party/LLVM/BUILD.gn",
+        "patchSetId": 1
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2016-07-07T16:51:27Z",
+      "side": 1,
+      "message": "Given that is is a warning for \u0027structname\u0027: structure was padded due to __declspec(align())\n\nWhy disable it only in Debug?",
+      "revId": "1b46a167f81d5d84c08ad97bdc252523271d9acc",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7d7c8257_05c1d4f0",
+        "filename": "third_party/LLVM/BUILD.gn",
+        "patchSetId": 1
+      },
+      "lineNbr": 455,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2016-07-07T16:51:27Z",
+      "side": 1,
+      "message": "Can you comment as to why this was needed? Which directory should have precedence?",
+      "revId": "1b46a167f81d5d84c08ad97bdc252523271d9acc",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
