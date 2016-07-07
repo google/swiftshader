@@ -1021,7 +1021,7 @@ Operand *TargetMIPS32::hiOperand(Operand *Operand) {
     assert(Mem->getAddrMode() == OperandMIPS32Mem::Offset);
     const Type SplitType = IceType_i32;
     Variable *Base = Mem->getBase();
-    ConstantInteger32 *Offset = Mem->getOffset();
+    auto *Offset = llvm::cast<ConstantInteger32>(Mem->getOffset());
     assert(!Utils::WouldOverflowAdd(Offset->getValue(), 4));
     int32_t NextOffsetVal = Offset->getValue() + 4;
     constexpr bool SignExt = false;
@@ -2214,38 +2214,57 @@ Operand *TargetMIPS32::legalize(Operand *From, LegalMask Allowed,
   // Given the above assertion, if type of operand is not legal
   // (e.g., OperandMIPS32Mem and !Legal_Mem), we can always copy
   // to a register.
-  if (auto *C = llvm::dyn_cast<ConstantRelocatable>(From)) {
-    (void)C;
-    // TODO(reed kotler): complete this case for proper implementation
-    Variable *Reg = makeReg(Ty, RegNum);
-    Context.insert<InstFakeDef>(Reg);
-    return Reg;
-  } else if (auto *C32 = llvm::dyn_cast<ConstantInteger32>(From)) {
-    const uint32_t Value = C32->getValue();
-    // Check if the immediate will fit in a Flexible second operand,
-    // if a Flexible second operand is allowed. We need to know the exact
-    // value, so that rules out relocatable constants.
-    // Also try the inverse and use MVN if possible.
-    // Do a movw/movt to a register.
-    Variable *Reg;
-    if (RegNum.hasValue())
-      Reg = getPhysicalRegister(RegNum);
-    else
-      Reg = makeReg(Ty, RegNum);
-    if (isInt<16>(int32_t(Value))) {
-      Variable *Zero = getPhysicalRegister(RegMIPS32::Reg_ZERO, Ty);
-      Context.insert<InstFakeDef>(Zero);
-      _addiu(Reg, Zero, Value);
-    } else {
-      uint32_t UpperBits = (Value >> 16) & 0xFFFF;
-      (void)UpperBits;
-      uint32_t LowerBits = Value & 0xFFFF;
-      Variable *TReg = makeReg(Ty, RegNum);
-      _lui(TReg, UpperBits);
-      _ori(Reg, TReg, LowerBits);
+  if (llvm::isa<Constant>(From)) {
+    if (auto *C = llvm::dyn_cast<ConstantRelocatable>(From)) {
+      (void)C;
+      // TODO(reed kotler): complete this case for proper implementation
+      Variable *Reg = makeReg(Ty, RegNum);
+      Context.insert<InstFakeDef>(Reg);
+      return Reg;
+    } else if (auto *C32 = llvm::dyn_cast<ConstantInteger32>(From)) {
+      const uint32_t Value = C32->getValue();
+      // Check if the immediate will fit in a Flexible second operand,
+      // if a Flexible second operand is allowed. We need to know the exact
+      // value, so that rules out relocatable constants.
+      // Also try the inverse and use MVN if possible.
+      // Do a movw/movt to a register.
+      Variable *Reg;
+      if (RegNum.hasValue())
+        Reg = getPhysicalRegister(RegNum);
+      else
+        Reg = makeReg(Ty, RegNum);
+      if (isInt<16>(int32_t(Value))) {
+        Variable *Zero = getPhysicalRegister(RegMIPS32::Reg_ZERO, Ty);
+        Context.insert<InstFakeDef>(Zero);
+        _addiu(Reg, Zero, Value);
+      } else {
+        uint32_t UpperBits = (Value >> 16) & 0xFFFF;
+        (void)UpperBits;
+        uint32_t LowerBits = Value & 0xFFFF;
+        Variable *TReg = makeReg(Ty, RegNum);
+        _lui(TReg, Ctx->getConstantInt32(UpperBits));
+        _ori(Reg, TReg, LowerBits);
+      }
+      return Reg;
+    } else if (isScalarFloatingType(Ty)) {
+      // Load floats/doubles from literal pool.
+      auto *CFrom = llvm::cast<Constant>(From);
+      assert(CFrom->getShouldBePooled());
+      Constant *Offset = Ctx->getConstantSym(0, CFrom->getLabelName());
+      Variable *TReg1 = makeReg(getPointerType());
+      Variable *TReg2 = makeReg(Ty);
+      Context.insert<InstFakeDef>(TReg2);
+      _lui(TReg1, Offset, RO_Hi);
+      OperandMIPS32Mem *Addr =
+          OperandMIPS32Mem::create(Func, Ty, TReg1, Offset);
+      if (Ty == IceType_f32)
+        _lwc1(TReg2, Addr, RO_Lo);
+      else
+        _ldc1(TReg2, Addr, RO_Lo);
+      return copyToReg(TReg2, RegNum);
     }
-    return Reg;
   }
+
   if (auto *Var = llvm::dyn_cast<Variable>(From)) {
     // Check if the variable is guaranteed a physical register.  This
     // can happen either when the variable is pre-colored or when it is

@@ -28,6 +28,21 @@
 namespace Ice {
 namespace MIPS32 {
 
+enum RelocOp { RO_No, RO_Hi, RO_Lo };
+
+inline void emitRelocOp(Ostream &Str, RelocOp Reloc) {
+  switch (Reloc) {
+  case RO_No:
+    break;
+  case RO_Hi:
+    Str << "%hi";
+    break;
+  case RO_Lo:
+    Str << "%lo";
+    break;
+  }
+}
+
 class TargetMIPS32;
 
 /// OperandMips32 extends the Operand hierarchy.
@@ -72,14 +87,13 @@ public:
   /// general Constant operands like ConstantRelocatable, since a relocatable
   /// can potentially take up too many bits.
   static OperandMIPS32Mem *create(Cfg *Func, Type Ty, Variable *Base,
-                                  ConstantInteger32 *ImmOffset,
-                                  AddrMode Mode = Offset) {
+                                  Operand *ImmOffset, AddrMode Mode = Offset) {
     return new (Func->allocate<OperandMIPS32Mem>())
         OperandMIPS32Mem(Func, Ty, Base, ImmOffset, Mode);
   }
 
   Variable *getBase() const { return Base; }
-  ConstantInteger32 *getOffset() const { return ImmOffset; }
+  Operand *getOffset() const { return ImmOffset; }
   AddrMode getAddrMode() const { return Mode; }
 
   void emit(const Cfg *Func) const override;
@@ -101,12 +115,12 @@ public:
   }
 
 private:
-  OperandMIPS32Mem(Cfg *Func, Type Ty, Variable *Base,
-                   ConstantInteger32 *ImmOffset, AddrMode Mode);
+  OperandMIPS32Mem(Cfg *Func, Type Ty, Variable *Base, Operand *ImmOffset,
+                   AddrMode Mode);
 
   Variable *Base;
-  ConstantInteger32 *ImmOffset;
-  AddrMode Mode;
+  Operand *const ImmOffset;
+  const AddrMode Mode;
 };
 
 /// Base class for Mips instructions.
@@ -254,9 +268,10 @@ class InstMIPS32UnaryopGPR : public InstMIPS32 {
   InstMIPS32UnaryopGPR &operator=(const InstMIPS32UnaryopGPR &) = delete;
 
 public:
-  static InstMIPS32UnaryopGPR *create(Cfg *Func, Variable *Dest, Operand *Src) {
+  static InstMIPS32UnaryopGPR *create(Cfg *Func, Variable *Dest, Operand *Src,
+                                      RelocOp Reloc = RO_No) {
     return new (Func->allocate<InstMIPS32UnaryopGPR>())
-        InstMIPS32UnaryopGPR(Func, Dest, Src);
+        InstMIPS32UnaryopGPR(Func, Dest, Src, Reloc);
   }
   void emit(const Cfg *Func) const override {
     if (!BuildDefs::dump())
@@ -280,13 +295,15 @@ public:
   static bool classof(const Inst *Inst) { return isClassof(Inst, K); }
 
 protected:
-  InstMIPS32UnaryopGPR(Cfg *Func, Variable *Dest, Operand *Src)
-      : InstMIPS32(Func, K, 1, Dest) {
+  InstMIPS32UnaryopGPR(Cfg *Func, Variable *Dest, Operand *Src,
+                       RelocOp Reloc = RO_No)
+      : InstMIPS32(Func, K, 1, Dest), Reloc(Reloc) {
     addSource(Src);
   }
 
 private:
   static const char *Opcode;
+  const RelocOp Reloc;
 };
 
 /// Instructions of the form opcode reg, reg.
@@ -485,9 +502,10 @@ class InstMIPS32Memory : public InstMIPS32 {
 
 public:
   static InstMIPS32Memory *create(Cfg *Func, Variable *Value,
-                                  OperandMIPS32Mem *Mem) {
+                                  OperandMIPS32Mem *Mem,
+                                  RelocOp Reloc = RO_No) {
     return new (Func->allocate<InstMIPS32Memory>())
-        InstMIPS32Memory(Func, Value, Mem);
+        InstMIPS32Memory(Func, Value, Mem, Reloc);
   }
 
   void emit(const Cfg *Func) const override {
@@ -498,7 +516,10 @@ public:
     Str << "\t" << Opcode << "\t";
     getSrc(0)->emit(Func);
     Str << ", ";
+    emitRelocOp(Str, Reloc);
+    Str << (Reloc ? "(" : "");
     getSrc(1)->emit(Func);
+    Str << (Reloc ? ")" : "");
   }
 
   void emitIAS(const Cfg *Func) const override {
@@ -511,20 +532,24 @@ public:
       return;
     Ostream &Str = Func->getContext()->getStrDump();
     Str << "\t" << Opcode << "\t";
-    Str << " ";
-    getSrc(1)->dump(Func);
-    Str << ", ";
     getSrc(0)->dump(Func);
+    Str << ", ";
+    emitRelocOp(Str, Reloc);
+    Str << (Reloc ? "(" : "");
+    getSrc(1)->dump(Func);
+    Str << (Reloc ? ")" : "");
   }
   static bool classof(const Inst *Inst) { return isClassof(Inst, K); }
 
 private:
-  InstMIPS32Memory(Cfg *Func, Variable *Value, OperandMIPS32Mem *Mem)
-      : InstMIPS32(Func, K, 2, nullptr) {
+  InstMIPS32Memory(Cfg *Func, Variable *Value, OperandMIPS32Mem *Mem,
+                   RelocOp Reloc = RO_No)
+      : InstMIPS32(Func, K, 2, nullptr), Reloc(Reloc) {
     addSource(Value);
     addSource(Mem);
   }
   static const char *Opcode;
+  const RelocOp Reloc;
 };
 
 // InstMIPS32Label represents an intra-block label that is the target of an
@@ -735,7 +760,7 @@ using InstMIPS32Div_s = InstMIPS32ThreeAddrFPR<InstMIPS32::Div_s>;
 using InstMIPS32Divu = InstMIPS32ThreeAddrGPR<InstMIPS32::Divu>;
 using InstMIPS32La = InstMIPS32UnaryopGPR<InstMIPS32::La>;
 using InstMIPS32Ldc1 = InstMIPS32Memory<InstMIPS32::Ldc1>;
-using InstMIPS32Lui = InstMIPS32Imm16<InstMIPS32::Lui>;
+using InstMIPS32Lui = InstMIPS32UnaryopGPR<InstMIPS32::Lui>;
 using InstMIPS32Lw = InstMIPS32Memory<InstMIPS32::Lw>;
 using InstMIPS32Lwc1 = InstMIPS32Memory<InstMIPS32::Lwc1>;
 using InstMIPS32Mfc1 = InstMIPS32TwoAddrGPR<InstMIPS32::Mfc1>;
@@ -827,6 +852,7 @@ template <> void InstMIPS32Mtlo::emit(const Cfg *Func) const;
 template <> void InstMIPS32Mthi::emit(const Cfg *Func) const;
 template <> void InstMIPS32Mult::emit(const Cfg *Func) const;
 template <> void InstMIPS32Multu::emit(const Cfg *Func) const;
+template <> void InstMIPS32Lui::emit(const Cfg *Func) const;
 
 } // end of namespace MIPS32
 } // end of namespace Ice

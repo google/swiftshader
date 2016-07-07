@@ -46,7 +46,7 @@ bool OperandMIPS32Mem::canHoldOffset(Type Ty, bool SignExt, int32_t Offset) {
 }
 
 OperandMIPS32Mem::OperandMIPS32Mem(Cfg *Func, Type Ty, Variable *Base,
-                                   ConstantInteger32 *ImmOffset, AddrMode Mode)
+                                   Operand *ImmOffset, AddrMode Mode)
     : OperandMIPS32(kMem, Ty), Base(Base), ImmOffset(ImmOffset), Mode(Mode) {
   // The Neg modes are only needed for Reg +/- Reg.
   (void)Func;
@@ -120,6 +120,25 @@ template <> const char *InstMIPS32Trunc_w_d::Opcode = "trunc.w.d";
 template <> const char *InstMIPS32Trunc_w_s::Opcode = "trunc.w.s";
 template <> const char *InstMIPS32Xor::Opcode = "xor";
 template <> const char *InstMIPS32Xori::Opcode = "xori";
+
+template <> void InstMIPS32Lui::emit(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+  Ostream &Str = Func->getContext()->getStrEmit();
+  assert(getSrcSize() == 1);
+  Str << "\t" << Opcode << "\t";
+  getDest()->emit(Func);
+  Str << ", ";
+  auto *Src0 = llvm::cast<Constant>(getSrc(0));
+  if (auto *CR = llvm::dyn_cast<ConstantRelocatable>(Src0)) {
+    emitRelocOp(Str, Reloc);
+    Str << "(";
+    CR->emitWithoutPrefix(Func->getTarget());
+    Str << ")";
+  } else {
+    Src0->emit(Func);
+  }
+}
 
 template <> void InstMIPS32Mflo::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
@@ -260,8 +279,11 @@ void OperandMIPS32Mem::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
-  ConstantInteger32 *Offset = getOffset();
-  Offset->emit(Func);
+  Operand *Offset = getOffset();
+  if (auto *CR = llvm::dyn_cast<ConstantRelocatable>(Offset)) {
+    CR->emitWithoutPrefix(Func->getTarget());
+  } else
+    Offset->emit(Func);
   Str << "(";
   getBase()->emit(Func);
   Str << ")";

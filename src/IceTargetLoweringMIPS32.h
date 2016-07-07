@@ -35,7 +35,11 @@ public:
 
   static void staticInit(GlobalContext *Ctx);
   static bool shouldBePooled(const Constant *C) {
-    (void)C;
+    if (auto *ConstDouble = llvm::dyn_cast<ConstantDouble>(C)) {
+      return !Utils::isPositiveZero(ConstDouble->getValue());
+    }
+    if (llvm::isa<ConstantFloat>(C))
+      return true;
     return false;
   }
   static std::unique_ptr<::Ice::TargetLowering> create(Cfg *Func) {
@@ -230,20 +234,20 @@ public:
     Context.insert<InstMIPS32Divu>(Dest, Src0, Src1);
   }
 
-  void _ldc1(Variable *Value, OperandMIPS32Mem *Mem) {
-    Context.insert<InstMIPS32Ldc1>(Value, Mem);
+  void _ldc1(Variable *Value, OperandMIPS32Mem *Mem, RelocOp Reloc = RO_No) {
+    Context.insert<InstMIPS32Ldc1>(Value, Mem, Reloc);
   }
 
   void _lw(Variable *Value, OperandMIPS32Mem *Mem) {
     Context.insert<InstMIPS32Lw>(Value, Mem);
   }
 
-  void _lwc1(Variable *Value, OperandMIPS32Mem *Mem) {
-    Context.insert<InstMIPS32Lwc1>(Value, Mem);
+  void _lwc1(Variable *Value, OperandMIPS32Mem *Mem, RelocOp Reloc = RO_No) {
+    Context.insert<InstMIPS32Lwc1>(Value, Mem, Reloc);
   }
 
-  void _lui(Variable *Dest, uint32_t Imm) {
-    Context.insert<InstMIPS32Lui>(Dest, Imm);
+  void _lui(Variable *Dest, Operand *Src, RelocOp Reloc = RO_No) {
+    Context.insert<InstMIPS32Lui>(Dest, Src, Reloc);
   }
 
   void _mov(Variable *Dest, Operand *Src0) {
