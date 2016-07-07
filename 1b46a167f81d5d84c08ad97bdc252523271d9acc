@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "7d7c8257_85e24434",
+        "filename": "BUILD.gn",
+        "patchSetId": 1
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2016-07-07T17:26:35Z",
+      "side": 1,
+      "message": "Sounds good",
+      "parentUuid": "7d7c8257_45175c49",
+      "revId": "1b46a167f81d5d84c08ad97bdc252523271d9acc",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7d7c8257_457e7c93",
         "filename": "BUILD.gn",
         "patchSetId": 1
@@ -124,6 +142,24 @@
     },
     {
       "key": {
+        "uuid": "7d7c8257_c5d28c65",
+        "filename": "third_party/LLVM/BUILD.gn",
+        "patchSetId": 1
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2016-07-07T17:26:35Z",
+      "side": 1,
+      "message": "Weird that this would be different in debug and release. LGTM",
+      "parentUuid": "7d7c8257_259098b1",
+      "revId": "1b46a167f81d5d84c08ad97bdc252523271d9acc",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7d7c8257_05c1d4f0",
         "filename": "third_party/LLVM/BUILD.gn",
         "patchSetId": 1
@@ -153,6 +189,24 @@
       "side": 1,
       "message": "The \"include\" directory includes common files and the Windows specific config file. \"include-linux\" includes the linux specific config file.\nNon-Windows platforms must add their platform specific include directory before the \"include\" directory is added, otherwise, the Windows specific config file will be used and compilation will fail.",
       "parentUuid": "7d7c8257_05c1d4f0",
+      "revId": "1b46a167f81d5d84c08ad97bdc252523271d9acc",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7d7c8257_45bf5c0e",
+        "filename": "third_party/LLVM/BUILD.gn",
+        "patchSetId": 1
+      },
+      "lineNbr": 455,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2016-07-07T17:26:35Z",
+      "side": 1,
+      "message": "Can you add a comment in the BUILD.gn file mentioning this?",
+      "parentUuid": "7d7c8257_05f634fb",
       "revId": "1b46a167f81d5d84c08ad97bdc252523271d9acc",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
