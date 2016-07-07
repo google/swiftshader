@@ -48,6 +48,7 @@ protected:
   virtual void instrumentInst(LoweringContext &Context);
 
 private:
+  virtual bool isInstrumentable(Cfg *) { return true; }
   virtual void instrumentFuncStart(LoweringContext &) {}
   virtual void instrumentAlloca(LoweringContext &, class InstAlloca *) {}
   virtual void instrumentArithmetic(LoweringContext &, class InstArithmetic *) {

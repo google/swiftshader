@@ -29,17 +29,18 @@ void Instrumentation::instrumentFunc(Cfg *Func) {
   assert(Func);
   assert(!Func->getNodes().empty());
 
-  // TODO(tlively): More selectively instrument functions so that shadow memory
-  // represents user accessibility more and library accessibility less.
-  bool DidInstrumentStart = false;
+  if (!isInstrumentable(Func))
+    return;
+
+  bool DidInstrumentEntry = false;
   LoweringContext Context;
   Context.init(Func->getNodes().front());
   for (CfgNode *Node : Func->getNodes()) {
     Context.init(Node);
     while (!Context.atEnd()) {
-      if (!DidInstrumentStart) {
+      if (!DidInstrumentEntry) {
         instrumentFuncStart(Context);
-        DidInstrumentStart = true;
+        DidInstrumentEntry = true;
       }
       instrumentInst(Context);
       // go to next undeleted instruction

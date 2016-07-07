@@ -24,6 +24,7 @@
 
 #include <sstream>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 namespace Ice {
@@ -37,12 +38,14 @@ constexpr const char *RzSizesName = "__$rz_sizes";
 const llvm::NaClBitcodeRecord::RecordVector RzContents =
     llvm::NaClBitcodeRecord::RecordVector(RzSize, 'R');
 
-// TODO(tlively): Handle all allocation functions
 // In order to instrument the code correctly, the .pexe must not have had its
 // symbols stripped.
 using string_map = std::unordered_map<std::string, std::string>;
+using string_set = std::unordered_set<std::string>;
+// TODO(tlively): Handle all allocation functions
 const string_map FuncSubstitutions = {{"malloc", "__asan_malloc"},
                                       {"free", "__asan_free"}};
+const string_set FuncBlackList = {"_Balloc"};
 
 llvm::NaClBitcodeRecord::RecordVector sizeToByteVec(SizeT Size) {
   llvm::NaClBitcodeRecord::RecordVector SizeContents;
@@ -57,6 +60,11 @@ llvm::NaClBitcodeRecord::RecordVector sizeToByteVec(SizeT Size) {
 
 ICE_TLS_DEFINE_FIELD(std::vector<InstCall *> *, ASanInstrumentation,
                      LocalDtors);
+
+bool ASanInstrumentation::isInstrumentable(Cfg *Func) {
+  std::string FuncName = Func->getFunctionName().toStringOrEmpty();
+  return FuncName == "" || FuncBlackList.count(FuncName) == 0;
+}
 
 // Create redzones around all global variables, ensuring that the initializer
 // types of the redzones and their associated globals match so that they are
@@ -333,8 +341,7 @@ void ASanInstrumentation::instrumentStart(Cfg *Func) {
 }
 
 // TODO(tlively): make this more efficient with swap idiom
-void ASanInstrumentation::finishFunc(Cfg *Func) {
-  (void)Func;
+void ASanInstrumentation::finishFunc(Cfg *) {
   ICE_TLS_GET_FIELD(LocalDtors)->clear();
 }
 

@@ -527,7 +527,7 @@ runtime.is.built: $(RT_SRC) pydir/build-runtime.py
 	@echo ================ Building Subzero runtime ================
 	./pydir/build-runtime.py -v --pnacl-root $(PNACL_TOOLCHAIN_ROOT)
 
-check-lit: $(OBJDIR)/pnacl-sz make_symlink
+check-lit: $(OBJDIR)/pnacl-sz make_symlink runtime
 	PNACL_BIN_PATH=$(PNACL_BIN_PATH) \
 	$(LLVM_SRC_PATH)/utils/lit/lit.py -sv $(CHECK_LIT_TESTS) \
             $(FORCEASM_LIT_TEST_EXCLUDES) $(FORCEASM_LIT_PARAM)

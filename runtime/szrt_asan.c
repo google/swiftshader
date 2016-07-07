@@ -28,6 +28,7 @@
 #define RZ_SIZE (32)
 #define SHADOW_SCALE_LOG2 (3)
 #define SHADOW_SCALE ((size_t)1 << SHADOW_SCALE_LOG2)
+#define DEBUG (0)
 
 // Assuming 48 bit address space on 64 bit systems
 #define SHADOW_LENGTH_64 (1u << (48 - SHADOW_SCALE_LOG2))
@@ -43,6 +44,15 @@
   ((uintptr_t)((char *)(p)-shadow_offset) << SHADOW_SCALE_LOG2)
 
 #define POISON_VAL (-1)
+
+#if DEBUG
+#define DUMP(args...)                                                          \
+  do {                                                                         \
+    printf(args);                                                              \
+  } while (false);
+#else // !DEBUG
+#define DUMP(args...)
+#endif // DEBUG
 
 static char *shadow_offset = NULL;
 
@@ -65,13 +75,13 @@ static void __asan_error(char *ptr, int size) {
 // check only the first byte of each word unless strict
 static void __asan_check(char *ptr, int size, bool strict) {
   assert(strict || (uintptr_t)ptr % WORD_SIZE == 0);
-  printf("%s check %d bytes at %p\n", (strict) ? "strict" : "loose", size, ptr);
+  DUMP("%s check %d bytes at %p\n", (strict) ? "strict" : "loose", size, ptr);
   char *end = ptr + size;
   int step = (strict) ? 1 : WORD_SIZE;
   for (char *cur = ptr; cur < end; cur += step) {
     char shadow = *(char *)MEM2SHADOW(cur);
-    printf("checking %p against %p with shadow %d\n", cur, MEM2SHADOW(cur),
-           shadow);
+    DUMP("checking %p against %p with shadow %d\n", cur, MEM2SHADOW(cur),
+         shadow);
     if (shadow != 0 && (shadow < 0 || SHADOW_OFFSET(cur) >= shadow)) {
       __asan_error(ptr, size);
     }
@@ -104,23 +114,23 @@ void __asan_init(int n_rzs, void **rzs, int *rz_sizes) {
   if (shadow_offset == NULL)
     fprintf(stderr, "unable to allocate shadow memory\n");
   else
-    printf("set up shadow memory at %p\n", shadow_offset);
+    DUMP("set up shadow memory at %p\n", shadow_offset);
   if (mprotect(MEM2SHADOW(shadow_offset), length >> SHADOW_SCALE_LOG2,
                PROT_NONE))
     fprintf(stderr, "could not protect bad region\n");
   else
-    printf("protected bad region\n");
+    DUMP("protected bad region\n");
 
   // poison global redzones
-  printf("poisioning %d global redzones\n", n_rzs);
+  DUMP("poisioning %d global redzones\n", n_rzs);
   for (int i = 0; i < n_rzs; i++) {
-    printf("(%d) poisoning redzone of size %d at %p\n", i, rz_sizes[i], rzs[i]);
+    DUMP("(%d) poisoning redzone of size %d at %p\n", i, rz_sizes[i], rzs[i]);
     __asan_poison(rzs[i], rz_sizes[i]);
   }
 }
 
 void *__asan_malloc(size_t size) {
-  printf("malloc() called with size %d\n", size);
+  DUMP("malloc() called with size %d\n", size);
   size_t padding =
       (IS_SHADOW_ALIGNED(size)) ? 0 : SHADOW_SCALE - SHADOW_OFFSET(size);
   size_t rz_left_size = RZ_SIZE;
@@ -144,7 +154,7 @@ void *__asan_malloc(size_t size) {
 }
 
 void __asan_free(char *ptr) {
-  printf("free() called on %p\n", ptr);
+  DUMP("free() called on %p\n", ptr);
   void *rz_left = ptr - RZ_SIZE;
   void *rz_right = *(void **)rz_left;
   size_t rz_right_size = *(size_t *)rz_right;
@@ -158,8 +168,8 @@ void __asan_poison(char *ptr, int size) {
   assert(IS_SHADOW_ALIGNED(end));
   // redzones should be no greater than RZ_SIZE + RZ_SIZE-1 for alignment
   assert(size < 2 * RZ_SIZE);
-  printf("poison %d bytes at %p: %p - %p\n", size, ptr, MEM2SHADOW(ptr),
-         MEM2SHADOW(end));
+  DUMP("poison %d bytes at %p: %p - %p\n", size, ptr, MEM2SHADOW(ptr),
+       MEM2SHADOW(end));
   size_t offset = SHADOW_OFFSET(ptr);
   *(char *)MEM2SHADOW(ptr) = (offset == 0) ? POISON_VAL : offset;
   ptr += SHADOW_OFFSET(size);
@@ -173,8 +183,8 @@ void __asan_unpoison(char *ptr, int size) {
   char *end = ptr + size;
   assert(IS_SHADOW_ALIGNED(end));
   assert(size < 2 * RZ_SIZE);
-  printf("unpoison %d bytes at %p: %p - %p\n", size, ptr, MEM2SHADOW(ptr),
-         MEM2SHADOW(end));
+  DUMP("unpoison %d bytes at %p: %p - %p\n", size, ptr, MEM2SHADOW(ptr),
+       MEM2SHADOW(end));
   *(char *)MEM2SHADOW(ptr) = 0;
   ptr += SHADOW_OFFSET(size);
   assert(IS_SHADOW_ALIGNED(ptr));

@@ -42,6 +42,7 @@ public:
 
 private:
   std::string nextRzName();
+  bool isInstrumentable(Cfg *Func) override;
   void instrumentFuncStart(LoweringContext &Context) override;
   void instrumentCall(LoweringContext &Context, InstCall *Instr) override;
   void instrumentRet(LoweringContext &Context, InstRet *Instr) override;
