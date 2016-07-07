@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "7d7c8257_45175c49",
+        "filename": "BUILD.gn",
+        "patchSetId": 1
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-07-07T17:23:33Z",
+      "side": 1,
+      "message": "I tried it and the issue I had was that using \"defines\" instead of \"cflags\" makes the define invisible when using \u0027gn desc ... cflags\u0027 which, although very logical, I find annoying. I\u0027ll do a final cleanup once this actually works properly.",
+      "parentUuid": "7d7c8257_c571acc6",
+      "revId": "1b46a167f81d5d84c08ad97bdc252523271d9acc",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7d7c8257_457e7c93",
         "filename": "BUILD.gn",
         "patchSetId": 1
@@ -53,6 +71,24 @@
     },
     {
       "key": {
+        "uuid": "7d7c8257_a57bc85e",
+        "filename": "src/OpenGL/compiler/BUILD.gn",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-07-07T17:23:33Z",
+      "side": 1,
+      "message": "Noted, but I\u0027d like to avoid touching any code in the master branch while Nicolas is away, so this will have to do for now.",
+      "parentUuid": "7d7c8257_85ade447",
+      "revId": "1b46a167f81d5d84c08ad97bdc252523271d9acc",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7d7c8257_a5c108f6",
         "filename": "third_party/LLVM/BUILD.gn",
         "patchSetId": 1
@@ -70,6 +106,24 @@
     },
     {
       "key": {
+        "uuid": "7d7c8257_259098b1",
+        "filename": "third_party/LLVM/BUILD.gn",
+        "patchSetId": 1
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-07-07T17:23:33Z",
+      "side": 1,
+      "message": "Only in Release. It doesn\u0027t happen in Debug.",
+      "parentUuid": "7d7c8257_a5c108f6",
+      "revId": "1b46a167f81d5d84c08ad97bdc252523271d9acc",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7d7c8257_05c1d4f0",
         "filename": "third_party/LLVM/BUILD.gn",
         "patchSetId": 1
@@ -81,6 +135,24 @@
       "writtenOn": "2016-07-07T16:51:27Z",
       "side": 1,
       "message": "Can you comment as to why this was needed? Which directory should have precedence?",
+      "revId": "1b46a167f81d5d84c08ad97bdc252523271d9acc",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7d7c8257_05f634fb",
+        "filename": "third_party/LLVM/BUILD.gn",
+        "patchSetId": 1
+      },
+      "lineNbr": 455,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-07-07T17:23:33Z",
+      "side": 1,
+      "message": "The \"include\" directory includes common files and the Windows specific config file. \"include-linux\" includes the linux specific config file.\nNon-Windows platforms must add their platform specific include directory before the \"include\" directory is added, otherwise, the Windows specific config file will be used and compilation will fail.",
+      "parentUuid": "7d7c8257_05c1d4f0",
       "revId": "1b46a167f81d5d84c08ad97bdc252523271d9acc",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
