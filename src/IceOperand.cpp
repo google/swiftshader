@@ -554,11 +554,13 @@ void Variable::dump(const Cfg *Func, Ostream &Str) const {
         hasReg() ? getBaseRegNum() : Func->getTarget()->getFrameOrStackReg();
     Str << "["
         << Func->getTarget()->getRegName(BaseRegisterNumber, IceType_i32);
-    int32_t Offset = getStackOffset();
-    if (Offset) {
-      if (Offset > 0)
-        Str << "+";
-      Str << Offset;
+    if (hasStackOffset()) {
+      int32_t Offset = getStackOffset();
+      if (Offset) {
+        if (Offset > 0)
+          Str << "+";
+        Str << Offset;
+      }
     }
     Str << "]";
   }

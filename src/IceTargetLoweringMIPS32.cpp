@@ -468,9 +468,10 @@ OperandMIPS32Mem *TargetMIPS32::formMemoryOperand(Operand *Operand, Type Ty) {
   // to work with. MIPS always requires a base register, so just use that to
   // hold the operand.
   auto *Base = llvm::cast<Variable>(legalize(Operand, Legal_Reg));
+  const int32_t Offset = Base->hasStackOffset() ? Base->getStackOffset() : 0;
   return OperandMIPS32Mem::create(
-      Func, Ty, Base, llvm::cast<ConstantInteger32>(
-                          Ctx->getConstantInt32(Base->getStackOffset())));
+      Func, Ty, Base,
+      llvm::cast<ConstantInteger32>(Ctx->getConstantInt32(Offset)));
 }
 
 void TargetMIPS32::emitVariable(const Variable *Var) const {

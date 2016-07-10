@@ -696,7 +696,11 @@ public:
     return IgnoreLiveness || IsRematerializable;
   }
 
-  int32_t getStackOffset() const { return StackOffset; }
+  bool hasStackOffset() const { return StackOffset != InvalidStackOffset; }
+  int32_t getStackOffset() const {
+    assert(hasStackOffset());
+    return StackOffset;
+  }
   void setStackOffset(int32_t Offset) { StackOffset = Offset; }
   /// Returns the variable's stack offset in symbolic form, to improve
   /// readability in DecorateAsm mode.
@@ -773,21 +777,17 @@ public:
   /// Return reg num of base register, if different from stack/frame register.
   virtual RegNumT getBaseRegNum() const { return RegNumT(); }
 
-  void setLinkedTo(const Variable *Var) {
-    // If B is linked to A, and we now want to link C to B, we instead link C to
-    // A so that we have one root (A) and all leaves (B, C) link directly to the
-    // root.
-    if (Var->getLinkedTo() != nullptr) {
-      Var = Var->LinkedTo;
-      assert(Var->LinkedTo == nullptr);
-    }
-    LinkedTo = Var;
-  }
-  const Variable *getLinkedTo() const {
-    // Make sure a leaf links directly to the root.
-    if (LinkedTo != nullptr)
-      assert(LinkedTo->LinkedTo == nullptr);
-    return LinkedTo;
+  /// Access the LinkedTo field.
+  void setLinkedTo(Variable *Var) { LinkedTo = Var; }
+  Variable *getLinkedTo() const { return LinkedTo; }
+  /// Follow the LinkedTo chain up to the furthest ancestor.
+  Variable *getLinkedToRoot() const {
+    Variable *Root = LinkedTo;
+    if (Root == nullptr)
+      return nullptr;
+    while (Root->LinkedTo != nullptr)
+      Root = Root->LinkedTo;
+    return Root;
   }
 
   static bool classof(const Operand *Operand) {
@@ -825,15 +825,16 @@ protected:
   RegNumT RegNum;
   /// RegNumTmp is the tentative assignment during register allocation.
   RegNumT RegNumTmp;
+  static constexpr int32_t InvalidStackOffset = -1;
   /// StackOffset is the canonical location on stack (only if
   /// RegNum.hasNoValue() || IsArgument).
-  int32_t StackOffset = 0;
+  int32_t StackOffset = InvalidStackOffset;
   LiveRange Live;
   /// VarsReal (and Operand::Vars) are set up such that Vars[0] == this.
   Variable *VarsReal[1];
   /// This Variable may be "linked" to another Variable, such that if neither
   /// Variable gets a register, they are guaranteed to share a stack location.
-  const Variable *LinkedTo = nullptr;
+  Variable *LinkedTo = nullptr;
 };
 
 // Variable64On32 represents a 64-bit variable on a 32-bit architecture. In

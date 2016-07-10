@@ -564,6 +564,16 @@ void TargetLowering::sortVarsByAlignment(VarList &Dest,
             });
 }
 
+namespace {
+bool mightHaveStackSlot(const Variable *Var, const BitVector &IsVarReferenced) {
+  if (!IsVarReferenced[Var->getIndex()])
+    return false;
+  if (Var->hasReg())
+    return false;
+  return true;
+}
+} // end of anonymous namespace
+
 void TargetLowering::getVarStackSlotParams(
     VarList &SortedSpilledVariables, SmallBitVector &RegsUsed,
     size_t *GlobalsSize, size_t *SpillAreaSizeBytes,
@@ -580,6 +590,30 @@ void TargetLowering::getVarStackSlotParams(
       FOREACH_VAR_IN_INST(Var, Instr) {
         IsVarReferenced[Var->getIndex()] = true;
       }
+    }
+  }
+
+  // Find each variable Var where:
+  //  - Var is actively referenced
+  //  - Var does not have a register
+  //  - Var's furthest ancestor through LinkedTo: Root
+  //  - Root has no active references, or has a register
+  //
+  // When any such Var is found, rotate the LinkedTo tree by swapping
+  // Var->LinkedTo and Root->LinkedTo.  This ensures that when Var needs a stack
+  // slot, either its LinkedTo field is nullptr, or Var->getLinkedToRoot()
+  // returns a variable with a stack slot.
+  for (Variable *Var : Func->getVariables()) {
+    if (!mightHaveStackSlot(Var, IsVarReferenced))
+      continue;
+    if (Variable *Root = Var->getLinkedToRoot()) {
+      assert(Root->getLinkedTo() == nullptr);
+      if (mightHaveStackSlot(Root, IsVarReferenced)) {
+        // Found a "safe" root, no need to rotate the tree.
+        continue;
+      }
+      Var->setLinkedTo(nullptr);
+      Root->setLinkedTo(Var);
     }
   }
 

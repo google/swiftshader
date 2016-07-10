@@ -944,17 +944,12 @@ void TargetX86Base<TraitsType>::emitVariable(const Variable *Var) const {
   auto BaseRegNum = Var->getBaseRegNum();
   if (BaseRegNum.hasNoValue())
     BaseRegNum = getFrameOrStackReg();
-  // Print in the form "Offset(%reg)", taking care that:
-  //   - Offset is never printed when it is 0
 
-  const bool DecorateAsm = getFlags().getDecorateAsm();
-  // Only print Offset when it is nonzero, regardless of DecorateAsm.
-  if (Offset) {
-    if (DecorateAsm) {
-      Str << Var->getSymbolicStackOffset();
-    } else {
-      Str << Offset;
-    }
+  // Print in the form "Offset(%reg)", omitting Offset when it is 0.
+  if (getFlags().getDecorateAsm()) {
+    Str << Var->getSymbolicStackOffset();
+  } else if (Offset != 0) {
+    Str << Offset;
   }
   const Type FrameSPTy = Traits::WordType;
   Str << "(%" << getRegName(BaseRegNum, FrameSPTy) << ")";
@@ -1211,9 +1206,9 @@ void TargetX86Base<TraitsType>::addProlog(CfgNode *Node) {
   // Assign stack offsets to variables that have been linked to spilled
   // variables.
   for (Variable *Var : VariablesLinkedToSpillSlots) {
-    const Variable *Linked = Var->getLinkedTo();
-    assert(Linked != nullptr);
-    Var->setStackOffset(Linked->getStackOffset());
+    const Variable *Root = Var->getLinkedToRoot();
+    assert(Root != nullptr);
+    Var->setStackOffset(Root->getStackOffset());
   }
   this->HasComputedFrame = true;
 

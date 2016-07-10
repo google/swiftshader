@@ -1094,9 +1094,15 @@ bool checkForRedundantAssign(const Variable *Dest, const Operand *Source) {
     // upper 32 bits of rax. We need to recognize and preserve these.
     return true;
   }
-  if (!Dest->hasReg() && !SrcVar->hasReg() &&
-      Dest->getStackOffset() == SrcVar->getStackOffset())
+  if (!Dest->hasReg() && !SrcVar->hasReg()) {
+    if (!Dest->hasStackOffset() || !SrcVar->hasStackOffset()) {
+      return false;
+    }
+    if (Dest->getStackOffset() != SrcVar->getStackOffset()) {
+      return false;
+    }
     return true;
+  }
   return false;
 }
 
