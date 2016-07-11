@@ -1,8 +1,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.31101.0
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "LLVM", "src\LLVM", "{B408B98A-E888-4ECF-81E0-7A37A6854B17}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "LLVM", "LLVM", "{B408B98A-E888-4ECF-81E0-7A37A6854B17}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SwiftShader", "src\SwiftShader\SwiftShader.vcxproj", "{7B02CB19-4CDF-4F79-BC9B-7F3F6164A003}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -11,9 +11,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SwiftShader", "src\SwiftSha
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Reactor", "src\Reactor\Reactor.vcxproj", "{28FD076D-10B5-4BD8-A4CF-F44C7002A803}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "OpenGL", "src\OpenGL", "{D33114D7-E582-4D61-B27D-FAB0297C43FF}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "OpenGL", "OpenGL", "{D33114D7-E582-4D61-B27D-FAB0297C43FF}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "src\Tests", "{ED25C308-5BDB-43A7-BED6-C2C059FC2D7D}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{ED25C308-5BDB-43A7-BED6-C2C059FC2D7D}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libGLESv2", "src\OpenGL\libGLESv2\libGLESv2.vcxproj", "{B5871A7A-968C-42E3-A33B-981E6F448E78}"
 	ProjectSection(ProjectDependencies) = postProject
