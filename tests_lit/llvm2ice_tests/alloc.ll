@@ -176,6 +176,17 @@ entry:
 ; ARM32:      sub sp, sp, r0
 ; ARM32:      bl {{.*}} R_{{.*}}    f2
 
+; MIPS32-LABEL: variable_n_align_16
+; MIPS32: addiu	[[REG:.*]],{{.*}},7
+; MIPS32: li	[[REG1:.*]],-8
+; MIPS32: and	[[REG2:.*]],[[REG]],[[REG1]]
+; MIPS32: subu	[[REG3:.*]],sp,[[REG2:.*]]
+; MIPS32: li	[[REG4:.*]],-16
+; MIPS32: and	{{.*}},[[REG3]],[[REG4]]
+; MIPS32: addiu	sp,sp,-16
+; MIPS32: jal	{{.*}} R_{{.*}} f2
+; MIPS32: addiu	sp,sp,16
+
 define internal void @variable_n_align_32(i32 %n) {
 entry:
   %array = alloca i8, i32 %n, align 32
@@ -210,6 +221,17 @@ entry:
 ; ARM32:      mov sp, fp
 ; ARM32:      pop {fp, lr}
 
+; MIPS32-LABEL: variable_n_align_32
+; MIPS32: addiu	[[REG:.*]],{{.*}},7
+; MIPS32: li 	[[REG1:.*]],-8
+; MIPS32: and 	[[REG2:.*]],[[REG]],[[REG1]]
+; MIPS32: subu 	[[REG3:.*]],sp,[[REG2]]
+; MIPS32: li 	[[REG4:.*]],-32
+; MIPS32: and 	{{.*}},[[REG3]],[[REG4]]
+; MIPS32: addiu	sp,sp,-16
+; MIPS32: jal 	{{.*}} R_{{.*}} f2
+; MIPS32: addiu	sp,sp,16
+
 ; Test alloca with default (0) alignment.
 define internal void @align0(i32 %n) {
 entry:
@@ -227,6 +249,15 @@ entry:
 ; ARM32: add r0, r0, #15
 ; ARM32: bic r0, r0, #15
 ; ARM32: sub sp, sp, r0
+
+; MIPS32-LABEL: align0
+; MIPS32: addiu	[[REG:.*]],{{.*}},7
+; MIPS32: li	[[REG1:.*]],-8
+; MIPS32: and	[[REG2:.*]],[[REG]],[[REG1]]
+; MIPS32: subu	{{.*}},sp,[[REG2]]
+; MIPS32: addiu	sp,sp,-16
+; MIPS32: jal	{{.*}} R_{{.*}} f2
+; MIPS32: addiu	sp,sp,16
 
 ; Test a large alignment where a mask might not fit in an immediate
 ; field of an instruction for some architectures.
@@ -257,6 +288,17 @@ entry:
 ; ARM32: and r0, r0, [[REG3]]
 ; ARM32: sub sp, sp, r0
 
+; MIPS32-LABEL: align1MB
+; MIPS32: addiu	[[REG:.*]],{{.*}},7
+; MIPS32: li	[[REG1:.*]],-8
+; MIPS32: and	[[REG2:.*]],[[REG]],[[REG1]]
+; MIPS32: subu	[[REG3:.*]],sp,[[REG2]]
+; MIPS32: lui	[[REG4:.*]],0xfff0
+; MIPS32: and	{{.*}},[[REG3]],[[REG4]]
+; MIPS32: addiu	sp,sp,-16
+; MIPS32: jal   {{.*}} R_{{.*}} f2
+; MIPS32: addiu	sp,sp,16
+
 ; Test a large alignment where a mask might still fit in an immediate
 ; field of an instruction for some architectures.
 define internal void @align512MB(i32 %n) {
@@ -280,6 +322,17 @@ entry:
 ; ARM32: add r0, r0, [[REG]]
 ; ARM32: and r0, r0, #-536870912 ; 0xe0000000
 ; ARM32: sub sp, sp, r0
+
+; MIPS32-LABEL: align512MB
+; MIPS32: addiu	[[REG:.*]],{{.*}},7
+; MIPS32: li	[[REG2:.*]],-8
+; MIPS32: and	[[REG3:.*]],[[REG]],[[REG2]]
+; MIPS32: subu	[[REG4:.*]],sp,[[REG3]]
+; MIPS32: lui	[[REG5:.*]],0xe000
+; MIPS32: and	{{.*}},[[REG4]],[[REG5]]
+; MIPS32: addiu	sp,sp,-16
+; MIPS32: jal	{{.*}} R_{{.*}} f2
+; MIPS32: addiu	sp,sp,16
 
 ; Test that a simple alloca sequence doesn't trigger a frame pointer.
 define internal void @fixed_no_frameptr(i32 %arg) {

@@ -563,6 +563,7 @@ protected:
   bool NeedsStackAlignment = false;
   bool MaybeLeafFunc = true;
   bool PrologEmitsFixedAllocas = false;
+  bool VariableAllocaUsed = false;
   uint32_t MaxOutArgsSizeBytes = 0;
   uint32_t TotalStackSizeBytes = 0;
   static SmallBitVector TypeToRegisterSet[RCMIPS32_NUM];

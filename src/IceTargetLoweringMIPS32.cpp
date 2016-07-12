@@ -849,7 +849,8 @@ void TargetMIPS32::addProlog(CfgNode *Node) {
 
   // Adds the out args space to the stack, and align SP if necessary.
   TotalStackSizeBytes = PreservedRegsSizeBytes + SpillAreaSizeBytes +
-                        FixedAllocaSizeBytes + MaxOutArgsSizeBytes;
+                        FixedAllocaSizeBytes +
+                        (MaxOutArgsSizeBytes * (VariableAllocaUsed ? 0 : 1));
 
   // Generate "addiu sp, sp, -TotalStackSizeBytes"
   if (TotalStackSizeBytes) {
@@ -1125,7 +1126,29 @@ void TargetMIPS32::lowerAlloca(const InstAlloca *Instr) {
       return;
     }
   } else {
-    UnimplementedLoweringError(this, Instr);
+    // Non-constant sizes need to be adjusted to the next highest multiple of
+    // the required alignment at runtime.
+    VariableAllocaUsed = true;
+    Variable *AlignAmount;
+    auto *TotalSizeR = legalizeToReg(TotalSize, Legal_Reg);
+    auto *T1 = I32Reg();
+    auto *T2 = I32Reg();
+    auto *T3 = I32Reg();
+    auto *T4 = I32Reg();
+    auto *T5 = I32Reg();
+    _addiu(T1, TotalSizeR, MIPS32_STACK_ALIGNMENT_BYTES - 1);
+    _addiu(T2, getZero(), -MIPS32_STACK_ALIGNMENT_BYTES);
+    _and(T3, T1, T2);
+    _subu(T4, SP, T3);
+    if (Instr->getAlignInBytes()) {
+      AlignAmount =
+          legalizeToReg(Ctx->getConstantInt32(-AlignmentParam), Legal_Reg);
+      _and(T5, T4, AlignAmount);
+      _mov(Dest, T5);
+    } else {
+      _mov(Dest, T4);
+    }
+    _mov(SP, Dest);
     return;
   }
 
@@ -1647,8 +1670,21 @@ void TargetMIPS32::lowerCall(const InstCall *Instr) {
     Context.insert<InstFakeUse>(RegArg);
   }
 
+  // If variable alloca is used the extra 16 bytes for argument build area
+  // will be allocated on stack before a call.
+  if (VariableAllocaUsed)
+    _addiu(SP, SP, -MaxOutArgsSizeBytes);
+
   Inst *NewCall = InstMIPS32Call::create(Func, ReturnReg, CallTarget);
   Context.insert(NewCall);
+
+  if (VariableAllocaUsed)
+    _addiu(SP, SP, MaxOutArgsSizeBytes);
+
+  // Insert a fake use of stack pointer to avoid dead code elimination of addiu
+  // instruction.
+  Context.insert<InstFakeUse>(SP);
+
   if (ReturnRegHi)
     Context.insert(InstFakeDef::create(Func, ReturnRegHi));
   // Insert a register-kill pseudo instruction.
@@ -2276,8 +2312,12 @@ Operand *TargetMIPS32::legalize(Operand *From, LegalMask Allowed,
         (void)UpperBits;
         uint32_t LowerBits = Value & 0xFFFF;
         Variable *TReg = makeReg(Ty, RegNum);
-        _lui(TReg, Ctx->getConstantInt32(UpperBits));
-        _ori(Reg, TReg, LowerBits);
+        if (LowerBits) {
+          _lui(TReg, Ctx->getConstantInt32(UpperBits));
+          _ori(Reg, TReg, LowerBits);
+        } else {
+          _lui(Reg, Ctx->getConstantInt32(UpperBits));
+        }
       }
       return Reg;
     } else if (isScalarFloatingType(Ty)) {

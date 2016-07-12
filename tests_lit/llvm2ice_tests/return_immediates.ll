@@ -102,7 +102,6 @@ define internal i32 @ret_8bits_shift_left24() {
 ; ARM32-NEXT: bx lr
 ; MIPS32-LABEL: ret_8bits_shift_left24
 ; MIPS32-NEXT: lui	v0,0xff00
-; MIPS32-NEXT: ori	v0,v0,0x0
 
 ; The next few cases wrap around and actually demonstrate the rotation.
 
@@ -229,7 +228,6 @@ define internal i32 @ret_16bits_upper() {
 ; ARM32-NEXT: movt r0, #65535
 ; MIPS32-LABEL: ret_16bits_upper
 ; MIPS32-NEXT: lui	v0,0xffff
-; MIPS32-NEXT: ori	v0,v0,0x0
 
 
 ; Some 32-bit immediates can be inverted, and moved in a single instruction.
