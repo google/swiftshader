@@ -21,6 +21,17 @@
 ; RUN:   | %if --need=target_ARM32 --need=allow_dump \
 ; RUN:   --command FileCheck --check-prefix ARM32 %s
 
+; RUN: %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command %p2i --filetype=asm --assemble --disassemble --target \
+; RUN:   mips32 -i %s --args -O2 --skip-unimplemented \
+; RUN:   | %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command FileCheck --check-prefix MIPS32 %s
+; RUN: %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command %p2i --filetype=asm --assemble --disassemble --target \
+; RUN:   mips32 -i %s --args -Om1 --skip-unimplemented \
+; RUN:   | %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command FileCheck --check-prefix MIPS32 %s
+
 define internal float @addFloat(float %a, float %b) {
 entry:
   %add = fadd float %a, %b
@@ -31,6 +42,8 @@ entry:
 ; CHECK: fld
 ; ARM32-LABEL: addFloat
 ; ARM32: vadd.f32 s{{[0-9]+}}, s
+; MIPS32-LABEL: addFloat
+; MIPS32: add.s
 
 define internal double @addDouble(double %a, double %b) {
 entry:
@@ -42,6 +55,8 @@ entry:
 ; CHECK: fld
 ; ARM32-LABEL: addDouble
 ; ARM32: vadd.f64 d{{[0-9]+}}, d
+; MIPS32-LABEL: addDouble
+; MIPS32: add.d
 
 define internal float @subFloat(float %a, float %b) {
 entry:
@@ -53,6 +68,8 @@ entry:
 ; CHECK: fld
 ; ARM32-LABEL: subFloat
 ; ARM32: vsub.f32 s{{[0-9]+}}, s
+; MIPS32-LABEL: subFloat
+; MIPS32: sub.s
 
 define internal double @subDouble(double %a, double %b) {
 entry:
@@ -64,6 +81,8 @@ entry:
 ; CHECK: fld
 ; ARM32-LABEL: subDouble
 ; ARM32: vsub.f64 d{{[0-9]+}}, d
+; MIPS32-LABEL: subDouble
+; MIPS32: sub.d
 
 define internal float @mulFloat(float %a, float %b) {
 entry:
@@ -75,6 +94,8 @@ entry:
 ; CHECK: fld
 ; ARM32-LABEL: mulFloat
 ; ARM32: vmul.f32 s{{[0-9]+}}, s
+; MIPS32-LABEL: mulFloat
+; MIPS32: mul.s
 
 define internal double @mulDouble(double %a, double %b) {
 entry:
@@ -86,6 +107,8 @@ entry:
 ; CHECK: fld
 ; ARM32-LABEL: mulDouble
 ; ARM32: vmul.f64 d{{[0-9]+}}, d
+; MIPS32-LABEL: mulDouble
+; MIPS32: mul.d
 
 define internal float @divFloat(float %a, float %b) {
 entry:
@@ -97,6 +120,8 @@ entry:
 ; CHECK: fld
 ; ARM32-LABEL: divFloat
 ; ARM32: vdiv.f32 s{{[0-9]+}}, s
+; MIPS32-LABEL: divFloat
+; MIPS32: div.s
 
 define internal double @divDouble(double %a, double %b) {
 entry:
@@ -108,6 +133,8 @@ entry:
 ; CHECK: fld
 ; ARM32-LABEL: divDouble
 ; ARM32: vdiv.f64 d{{[0-9]+}}, d
+; MIPS32-LABEL: divDouble
+; MIPS32: div.d
 
 define internal float @remFloat(float %a, float %b) {
 entry:

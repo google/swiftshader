@@ -1255,10 +1255,6 @@ void TargetMIPS32::lowerArithmetic(const InstArithmetic *Instr) {
   switch (Instr->getOp()) {
   default:
     break;
-  case InstArithmetic::Fadd:
-  case InstArithmetic::Fsub:
-  case InstArithmetic::Fmul:
-  case InstArithmetic::Fdiv:
   case InstArithmetic::Frem:
     UnimplementedLoweringError(this, Instr);
     return;
@@ -1341,13 +1337,54 @@ void TargetMIPS32::lowerArithmetic(const InstArithmetic *Instr) {
     _mov(Dest, T);
     return;
   }
-  case InstArithmetic::Fadd:
+  case InstArithmetic::Fadd: {
+    if (DestTy == IceType_f32) {
+      _add_s(T, Src0R, Src1R);
+      _mov(Dest, T);
+      return;
+    }
+    if (DestTy == IceType_f64) {
+      _add_d(T, Src0R, Src1R);
+      _mov(Dest, T);
+      return;
+    }
     break;
+  }
   case InstArithmetic::Fsub:
+    if (DestTy == IceType_f32) {
+      _sub_s(T, Src0R, Src1R);
+      _mov(Dest, T);
+      return;
+    }
+    if (DestTy == IceType_f64) {
+      _sub_d(T, Src0R, Src1R);
+      _mov(Dest, T);
+      return;
+    }
     break;
   case InstArithmetic::Fmul:
+    if (DestTy == IceType_f32) {
+      _mul_s(T, Src0R, Src1R);
+      _mov(Dest, T);
+      return;
+    }
+    if (DestTy == IceType_f64) {
+      _mul_d(T, Src0R, Src1R);
+      _mov(Dest, T);
+      return;
+    }
     break;
   case InstArithmetic::Fdiv:
+    if (DestTy == IceType_f32) {
+      _div_s(T, Src0R, Src1R);
+      _mov(Dest, T);
+      return;
+    }
+    if (DestTy == IceType_f64) {
+      _div_d(T, Src0R, Src1R);
+      _mov(Dest, T);
+      return;
+    }
     break;
   case InstArithmetic::Frem:
     break;
@@ -2069,7 +2106,6 @@ void TargetMIPS32::lowerRet(const InstRet *Instr) {
       Context.insert<InstFakeUse>(R1);
       break;
     }
-
     default:
       UnimplementedLoweringError(this, Instr);
     }
@@ -2192,9 +2228,6 @@ Variable *TargetMIPS32::copyToReg(Operand *Src, RegNumT RegNum) {
   Variable *Reg = makeReg(Ty, RegNum);
   if (isVectorType(Ty)) {
     UnimplementedError(getFlags());
-  } else if (isFloatingType(Ty)) {
-    (Ty == IceType_f32) ? _mov_s(Reg, llvm::dyn_cast<Variable>(Src))
-                        : _mov_d(Reg, llvm::dyn_cast<Variable>(Src));
   } else {
     // Mov's Src operand can really only be the flexible second operand type
     // or a register. Users should guarantee that.
