@@ -443,6 +443,18 @@ template <typename TraitsType> void TargetX86Base<TraitsType>::translateO2() {
   Func->processAllocas(SortAndCombineAllocas);
   Func->dump("After Alloca processing");
 
+  // Run this early so it can be used to focus optimizations on potentially hot
+  // code.
+  // TODO(stichnot,ascull): currently only used for regalloc not
+  // expensive high level optimizations which could be focused on potentially
+  // hot code.
+  Func->generateLoopInfo();
+  Func->dump("After loop analysis");
+  if (getFlags().getLoopInvariantCodeMotion()) {
+    Func->loopInvariantCodeMotion();
+    Func->dump("After LICM");
+  }
+
   if (getFlags().getEnableExperimental()) {
     Func->localCSE();
     Func->dump("After Local CSE");
@@ -465,14 +477,6 @@ template <typename TraitsType> void TargetX86Base<TraitsType>::translateO2() {
       return;
     Func->dump("After Phi lowering");
   }
-
-  // Run this early so it can be used to focus optimizations on potentially hot
-  // code.
-  // TODO(stichnot,ascull): currently only used for regalloc not
-  // expensive high level optimizations which could be focused on potentially
-  // hot code.
-  Func->computeLoopNestDepth();
-  Func->dump("After loop nest depth analysis");
 
   // Address mode optimization.
   Func->getVMetadata()->init(VMK_SingleDefs);
@@ -5415,10 +5419,13 @@ TargetX86Base<TypeTraits>::computeAddressOpt(const Inst *Instr, Type MemType,
   // don't go further. Alternatively (?), never consider a transformation that
   // would change a variable that is currently *not* live across basic block
   // boundaries into one that *is*.
-  if (Func->getVMetadata()->isMultiBlock(
-          NewAddr.Base) /* || Base->getUseCount() > 1*/)
-    return nullptr;
-
+  if (!getFlags().getLoopInvariantCodeMotion()) {
+    // Need multi block address opt when licm is enabled.
+    // Might make sense to restrict to current node and loop header.
+    if (Func->getVMetadata()->isMultiBlock(
+            NewAddr.Base) /* || Base->getUseCount() > 1*/)
+      return nullptr;
+  }
   AddressOptimizer AddrOpt(Func);
   const bool MockBounds = getFlags().getMockBoundsCheck();
   const Inst *Reason = nullptr;

@@ -202,6 +202,7 @@ public:
   void shuffleNodes();
   void localCSE();
   void shortCircuitJumps();
+  void loopInvariantCodeMotion();
 
   /// Scan allocas to determine whether we need to use a frame pointer.
   /// If SortAndCombine == true, merge all the fixed-size allocas in the
@@ -215,7 +216,7 @@ public:
   void doNopInsertion();
   void genCode();
   void genFrame();
-  void computeLoopNestDepth();
+  void generateLoopInfo();
   void livenessLightweight();
   void liveness(LivenessMode Mode);
   bool validateLiveness() const;
@@ -300,6 +301,7 @@ private:
                              uint32_t CombinedAlignment, InstList &Insts,
                              AllocaBaseVariableType BaseVariableType);
   void findRematerializable();
+  CfgVector<Inst *> findLoopInvariantInstructions(SizeT LoopHeaderIndex);
 
   GlobalContext *Ctx;
   uint32_t SequenceNumber; /// output order for emission
@@ -330,7 +332,7 @@ private:
   /// Globals required by this CFG. Mostly used for the profiler's globals.
   std::unique_ptr<VariableDeclarationList> GlobalInits;
   CfgVector<InstJumpTable *> JumpTables;
-
+  CfgUnorderedMap<SizeT, CfgVector<SizeT>> LoopInfo;
   /// CurrentNode is maintained during dumping/emitting just for validating
   /// Variable::DefNode. Normally, a traversal over CfgNodes maintains this, but
   /// before global operations like register allocation, resetCurrentNode()

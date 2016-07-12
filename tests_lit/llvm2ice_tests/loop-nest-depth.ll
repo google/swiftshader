@@ -20,7 +20,7 @@ out:
   ret void
 }
 
-; CHECK-LABEL: After loop nest depth analysis
+; CHECK-LABEL: After loop analysis
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT: LoopNestDepth = 0
 ; CHECK-NEXT: loop0:
@@ -48,7 +48,7 @@ out:
   ret void
 }
 
-; CHECK-LABEL: After loop nest depth analysis
+; CHECK-LABEL: After loop analysis
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT: LoopNestDepth = 0
 ; CHECK-NEXT: loop0:
@@ -78,7 +78,7 @@ out:                                 ; <---+
   ret void
 }
 
-; CHECK-LABEL: After loop nest depth analysis
+; CHECK-LABEL: After loop analysis
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT: LoopNestDepth = 0
 ; CHECK-NEXT: loop0:
@@ -110,7 +110,7 @@ out:
   ret void
 }
 
-; CHECK-LABEL: After loop nest depth analysis
+; CHECK-LABEL: After loop analysis
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT: LoopNestDepth = 0
 ; CHECK-NEXT: loop0_0:
@@ -148,7 +148,7 @@ out:
   ret void
 }
 
-; CHECK-LABEL: After loop nest depth analysis
+; CHECK-LABEL: After loop analysis
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT: LoopNestDepth = 0
 ; CHECK-NEXT: loop0_0:
@@ -190,7 +190,7 @@ out:
   ret void
 }
 
-; CHECK-LABEL: After loop nest depth analysis
+; CHECK-LABEL: After loop analysis
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT: LoopNestDepth = 0
 ; CHECK-NEXT: loop0_0:
@@ -235,7 +235,7 @@ out:
   ret void
 }
 
-; CHECK-LABEL: After loop nest depth analysis
+; CHECK-LABEL: After loop analysis
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT: LoopNestDepth = 0
 ; CHECK-NEXT: loop0_0:
@@ -269,7 +269,7 @@ out:
   ret void
 }
 
-; CHECK-LABEL: After loop nest depth analysis
+; CHECK-LABEL: After loop analysis
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT: LoopNestDepth = 0
 ; CHECK-NEXT: left:
@@ -296,7 +296,7 @@ exit:
   ret void
 }
 
-; CHECK-LABEL: After loop nest depth analysis
+; CHECK-LABEL: After loop analysis
 ; CHECK-NEXT: entry:
 ; CHECK-NEXT: LoopNestDepth = 0
 ; CHECK-NEXT: body:

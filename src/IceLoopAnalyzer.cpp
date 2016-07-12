@@ -54,6 +54,7 @@ LoopAnalyzer::LoopAnalyzer(Cfg *Fn) : Func(Fn) {
   // Create the LoopNodes from the function's CFG
   for (CfgNode *Node : Nodes)
     AllNodes.emplace_back(Node);
+  computeLoopNestDepth();
 }
 
 void LoopAnalyzer::computeLoopNestDepth() {
@@ -141,6 +142,12 @@ LoopAnalyzer::processNode(LoopAnalyzer::LoopNode &Node) {
     if (*It == &Node) {
       (*It)->setDeleted();
       ++NumDeletedNodes;
+      CfgVector<SizeT> LoopNodes;
+      for (auto LoopIter = It.base() - 1; LoopIter != LoopStack.end();
+           ++LoopIter) {
+        LoopNodes.push_back((*LoopIter)->getNode()->getIndex());
+      }
+      Loops[(*It)->getNode()->getIndex()] = LoopNodes;
       LoopStack.erase(It.base() - 1, LoopStack.end());
       break;
     }

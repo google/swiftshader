@@ -186,6 +186,9 @@ struct dev_list_flag {};
    X(LocalCseMaxIterations, int, dev_opt_flag, "lcse-max-iters",               \
     cl::desc("Number of times local-cse is run on a block"), cl::init(2))      \
                                                                                \
+  X(LoopInvariantCodeMotion, bool, dev_opt_flag, "licm",                       \
+    cl::desc("Hoist loop invariant arithmetic operations"), cl::init(false))   \
+                                                                               \
   X(LogFilename, std::string, dev_opt_flag, "log",                             \
     cl::desc("Set log filename"), cl::init("-"), cl::value_desc("filename"))   \
                                                                                \

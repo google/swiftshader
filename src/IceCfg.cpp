@@ -640,6 +640,103 @@ void Cfg::localCSE() {
   }
 }
 
+void Cfg::loopInvariantCodeMotion() {
+  TimerMarker T(TimerStack::TT_loopInvariantCodeMotion, this);
+  // Does not introduce new nodes as of now.
+  for (auto &Pair : LoopInfo) {
+    CfgNode *Header = Nodes[Pair.first];
+    assert(Header);
+    if (Header->getLoopNestDepth() < 1)
+      continue;
+    CfgNode *PreHeader = nullptr;
+    for (auto *Pred : Header->getInEdges()) {
+      if (Pred->getLoopNestDepth() == Header->getLoopNestDepth() - 1) {
+        if (PreHeader == nullptr) {
+          PreHeader = Pred;
+        } else {
+          PreHeader = nullptr;
+          break;
+          // Do not consider cases with two incoming edges.
+          // Will require insertion of nodes.
+        }
+      }
+    }
+    if (PreHeader == nullptr || PreHeader->getInsts().size() == 0) {
+      continue; // to next loop
+    }
+
+    auto &Insts = PreHeader->getInsts();
+    auto &LastInst = Insts.back();
+    Insts.pop_back();
+
+    for (auto *Inst : findLoopInvariantInstructions(Pair.first)) {
+      PreHeader->appendInst(Inst);
+    }
+    PreHeader->appendInst(&LastInst);
+  }
+}
+
+Ice::CfgVector<Inst *>
+Cfg::findLoopInvariantInstructions(Ice::SizeT LoopHeaderIndex) {
+  CfgUnorderedSet<Inst *> InvariantInsts;
+  CfgUnorderedSet<Variable *> InvariantVars;
+  for (auto *Var : getArgs()) {
+    InvariantVars.insert(Var);
+  }
+  bool Changed = false;
+  do {
+    Changed = false;
+    for (auto NodeIndex : LoopInfo[LoopHeaderIndex]) {
+      auto *Node = Nodes[NodeIndex];
+      CfgVector<std::reference_wrapper<Inst>> Insts(Node->getInsts().begin(),
+                                                    Node->getInsts().end());
+
+      for (auto &InstRef : Insts) {
+        auto &Inst = InstRef.get();
+        if (Inst.isDeleted() ||
+            InvariantInsts.find(&Inst) != InvariantInsts.end())
+          continue;
+        switch (Inst.getKind()) {
+        case Inst::InstKind::Alloca:
+        case Inst::InstKind::Br:
+        case Inst::InstKind::Ret:
+        case Inst::InstKind::Phi:
+        case Inst::InstKind::Call:
+        case Inst::InstKind::IntrinsicCall:
+        case Inst::InstKind::Load:
+        case Inst::InstKind::Store:
+        case Inst::InstKind::Switch:
+          continue;
+        default:
+          break;
+        }
+
+        bool IsInvariant = true;
+        for (SizeT i = 0; i < Inst.getSrcSize(); ++i) {
+          if (auto *Var = llvm::dyn_cast<Variable>(Inst.getSrc(i))) {
+            if (InvariantVars.find(Var) == InvariantVars.end()) {
+              IsInvariant = false;
+            }
+          }
+        }
+        if (IsInvariant) {
+          Changed = true;
+          InvariantInsts.insert(&Inst);
+          Node->getInsts().remove(Inst);
+          if (Inst.getDest() != nullptr) {
+            InvariantVars.insert(Inst.getDest());
+          }
+        }
+      }
+    }
+  } while (Changed);
+
+  CfgVector<Inst *> InstVector(InvariantInsts.begin(), InvariantInsts.end());
+  std::sort(InstVector.begin(), InstVector.end(),
+            [](Inst *A, Inst *B) { return A->getNumber() < B->getNumber(); });
+  return InstVector;
+}
+
 void Cfg::shortCircuitJumps() {
   // Split Nodes whenever an early jump is possible.
   // __N :
@@ -1338,10 +1435,9 @@ void Cfg::genFrame() {
       getTarget()->addEpilog(Node);
 }
 
-void Cfg::computeLoopNestDepth() {
+void Cfg::generateLoopInfo() {
   TimerMarker T(TimerStack::TT_computeLoopNestDepth, this);
-  LoopAnalyzer LA(this);
-  LA.computeLoopNestDepth();
+  LoopInfo = LoopAnalyzer(this).getLoopInfo();
 }
 
 // This is a lightweight version of live-range-end calculation. Marks the last

@@ -39,9 +39,10 @@ public:
   // is bounded linear. ncbray suggests another algorithm which is linear in
   // practice but not bounded linear. I think it also finds dominators.
   // http://lenx.100871.net/papers/loop-SAS.pdf
-  void computeLoopNestDepth();
+  CfgUnorderedMap<SizeT, CfgVector<SizeT>> getLoopInfo() { return Loops; }
 
 private:
+  void computeLoopNestDepth();
   using IndexT = uint32_t;
   static constexpr IndexT UndefinedIndex = 0;
   static constexpr IndexT FirstDefinedIndex = 1;
@@ -80,6 +81,8 @@ private:
     void incrementLoopNestDepth();
     bool hasSelfEdge() const;
 
+    CfgNode *getNode() { return BB; }
+
   private:
     CfgNode *BB;
     NodeList::const_iterator Succ;
@@ -110,6 +113,8 @@ private:
   /// The number of nodes which have been marked deleted. This is used to track
   /// when the iteration should end.
   LoopNodePtrList::size_type NumDeletedNodes = 0;
+  /// Detailed loop information
+  CfgUnorderedMap<SizeT, CfgVector<SizeT>> Loops;
 };
 
 } // end of namespace Ice

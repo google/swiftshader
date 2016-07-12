@@ -42,6 +42,7 @@
   X(llvmConvert)                                                               \
   X(loadOpt)                                                                   \
   X(localCse)                                                                  \
+  X(loopInvariantCodeMotion)                                                   \
   X(lowerPhiAssignments)                                                       \
   X(materializeVectorShuffles)                                                 \
   X(parse)                                                                     \
