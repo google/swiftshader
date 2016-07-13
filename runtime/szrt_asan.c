@@ -23,6 +23,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/mman.h>
 
 #define RZ_SIZE (32)
@@ -150,6 +151,13 @@ void *__asan_malloc(size_t size) {
   *(void **)rz_left = rz_right;
   *(size_t *)rz_right = rz_right_size;
   assert((uintptr_t)ret % 8 == 0);
+  return ret;
+}
+
+void *__asan_calloc(size_t nmemb, size_t size) {
+  size_t alloc_size = nmemb * size;
+  void *ret = __asan_malloc(alloc_size);
+  memset(ret, 0, alloc_size);
   return ret;
 }
 

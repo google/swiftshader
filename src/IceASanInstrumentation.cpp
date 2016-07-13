@@ -31,6 +31,7 @@ namespace Ice {
 
 namespace {
 
+constexpr const char *ASanPrefix = "__asan";
 constexpr SizeT RzSize = 32;
 constexpr const char *RzPrefix = "__$rz";
 constexpr const char *RzArrayName = "__$rz_array";
@@ -44,7 +45,9 @@ using string_map = std::unordered_map<std::string, std::string>;
 using string_set = std::unordered_set<std::string>;
 // TODO(tlively): Handle all allocation functions
 const string_map FuncSubstitutions = {{"malloc", "__asan_malloc"},
-                                      {"free", "__asan_free"}};
+                                      {"free", "__asan_free"},
+                                      {"calloc", "__asan_calloc"},
+                                      {"__asan_dummy_calloc", "__asan_calloc"}};
 const string_set FuncBlackList = {"_Balloc"};
 
 llvm::NaClBitcodeRecord::RecordVector sizeToByteVec(SizeT Size) {
@@ -63,7 +66,8 @@ ICE_TLS_DEFINE_FIELD(std::vector<InstCall *> *, ASanInstrumentation,
 
 bool ASanInstrumentation::isInstrumentable(Cfg *Func) {
   std::string FuncName = Func->getFunctionName().toStringOrEmpty();
-  return FuncName == "" || FuncBlackList.count(FuncName) == 0;
+  return FuncName == "" ||
+         (FuncBlackList.count(FuncName) == 0 && FuncName.find(ASanPrefix) != 0);
 }
 
 // Create redzones around all global variables, ensuring that the initializer

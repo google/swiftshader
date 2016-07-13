@@ -3,12 +3,12 @@ import subprocess
 import sys
 
 def GetObjcopyCmd():
-  """Return a suitable objcopy command."""
-  return 'arm-nacl-objcopy'
+    """Return a suitable objcopy command."""
+    return 'arm-nacl-objcopy'
 
 def GetObjdumpCmd():
-  """Return a suitable objdump command."""
-  return 'arm-nacl-objdump'
+    """Return a suitable objdump command."""
+    return 'arm-nacl-objdump'
 
 def shellcmd(command, echo=True):
     if not isinstance(command, str):
