@@ -1,0 +1,303 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9a0f7c78_96912d6b",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 3458,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-07-13T14:58:23Z",
+      "side": 1,
+      "message": "nullptr",
+      "range": {
+        "startLine": 3458,
+        "startChar": 55,
+        "endLine": 3458,
+        "endChar": 56
+      },
+      "revId": "915d80088a494c08441fbf5693952362b84054e1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0f7c78_b687092c",
+        "filename": "src/OpenGL/libGLESv2/IndexDataManager.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-07-13T14:58:23Z",
+      "side": 1,
+      "message": "please use full name instead of acronym",
+      "range": {
+        "startLine": 61,
+        "startChar": 166,
+        "endLine": 61,
+        "endChar": 168
+      },
+      "revId": "915d80088a494c08441fbf5693952362b84054e1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0f7c78_3185e320",
+        "filename": "src/OpenGL/libGLESv2/utilities.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1502,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-07-13T14:58:23Z",
+      "side": 1,
+      "message": "You could probably keep an extra bool variable to avoid calling isPrimitiveRestartIndex twice per loop.",
+      "range": {
+        "startLine": 1500,
+        "startChar": 0,
+        "endLine": 1502,
+        "endChar": 59
+      },
+      "revId": "915d80088a494c08441fbf5693952362b84054e1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0f7c78_918ad72c",
+        "filename": "src/OpenGL/libGLESv2/utilities.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1518,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-07-13T14:58:23Z",
+      "side": 1,
+      "message": "same",
+      "range": {
+        "startLine": 1517,
+        "startChar": 5,
+        "endLine": 1518,
+        "endChar": 71
+      },
+      "revId": "915d80088a494c08441fbf5693952362b84054e1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0f7c78_f19a2b76",
+        "filename": "src/OpenGL/libGLESv2/utilities.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1524,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-07-13T14:58:23Z",
+      "side": 1,
+      "message": "Nit: I like parenthesis to make things clearer, like so:\n((i + 1) \u003d\u003d (elementCount - 1))",
+      "range": {
+        "startLine": 1524,
+        "startChar": 8,
+        "endLine": 1524,
+        "endChar": 35
+      },
+      "revId": "915d80088a494c08441fbf5693952362b84054e1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0f7c78_51a97f8e",
+        "filename": "src/OpenGL/libGLESv2/utilities.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1539,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-07-13T14:58:23Z",
+      "side": 1,
+      "message": "same",
+      "range": {
+        "startLine": 1539,
+        "startChar": 9,
+        "endLine": 1539,
+        "endChar": 114
+      },
+      "revId": "915d80088a494c08441fbf5693952362b84054e1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0f7c78_718f5b3e",
+        "filename": "src/OpenGL/libGLESv2/utilities.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1550,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-07-13T14:58:23Z",
+      "side": 1,
+      "message": "same",
+      "range": {
+        "startLine": 1548,
+        "startChar": 5,
+        "endLine": 1550,
+        "endChar": 71
+      },
+      "revId": "915d80088a494c08441fbf5693952362b84054e1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0f7c78_b190b35a",
+        "filename": "src/OpenGL/libGLESv2/utilities.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1575,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-07-13T14:58:23Z",
+      "side": 1,
+      "message": "same",
+      "range": {
+        "startLine": 1571,
+        "startChar": 0,
+        "endLine": 1575,
+        "endChar": 72
+      },
+      "revId": "915d80088a494c08441fbf5693952362b84054e1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0f7c78_b1c2733a",
+        "filename": "src/Renderer/Renderer.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 853,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-07-13T14:58:23Z",
+      "side": 1,
+      "message": "Most of these loops seem too complex. Couldn\u0027t this one be simplified with something similar to:\n\nbool idx0 \u003d !isPrimitiveRestartIndex(indicesArray, index, type);\nbool idx1 \u003d !isPrimitiveRestartIndex(indicesArray, index + 1, type);\nfor(;primitiveCount \u003e 0; index++, idx0 \u003d idx1, idx1 \u003d idx2)\n{\n\tbool idx2 \u003d !isPrimitiveRestartIndex(indicesArray, index + 2, type);\n\n\tif(idx0 \u0026\u0026 idx1 \u0026\u0026 idx2)\n\t{\n\t\tprimitiveCount--;\n\t}\n\telse if(!idx0)\n\t{\n\t\tanchorIndex \u003d index + 1;\n\t}\n}\n\nYou should try to minimize the calls to isPrimitiveRestartIndex per loop iteration.\n\nAlso, how is your code handling the case where multiple primitive restart indices are present within this set of primitives (where multiple anchor indices would be produced)?",
+      "range": {
+        "startLine": 825,
+        "startChar": 3,
+        "endLine": 853,
+        "endChar": 4
+      },
+      "revId": "915d80088a494c08441fbf5693952362b84054e1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0f7c78_f1cceb6e",
+        "filename": "src/Renderer/Renderer.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1322,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-07-13T14:58:23Z",
+      "side": 1,
+      "message": "confusing names, please clarify",
+      "range": {
+        "startLine": 1322,
+        "startChar": 61,
+        "endLine": 1322,
+        "endChar": 81
+      },
+      "revId": "915d80088a494c08441fbf5693952362b84054e1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0f7c78_51fb3f7e",
+        "filename": "src/Renderer/Renderer.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1407,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-07-13T14:58:23Z",
+      "side": 1,
+      "message": "same",
+      "range": {
+        "startLine": 1407,
+        "startChar": 66,
+        "endLine": 1407,
+        "endChar": 86
+      },
+      "revId": "915d80088a494c08441fbf5693952362b84054e1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0f7c78_31004367",
+        "filename": "src/Renderer/Renderer.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1449,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-07-13T14:58:23Z",
+      "side": 1,
+      "message": "same",
+      "range": {
+        "startLine": 1449,
+        "startChar": 64,
+        "endLine": 1449,
+        "endChar": 84
+      },
+      "revId": "915d80088a494c08441fbf5693952362b84054e1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0f7c78_31ae8398",
+        "filename": "src/Renderer/Renderer.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 415,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-07-13T14:58:23Z",
+      "side": 1,
+      "message": "This can be defined in the cpp file, it doesn\u0027t need to be a class member.",
+      "range": {
+        "startLine": 412,
+        "startChar": 0,
+        "endLine": 415,
+        "endChar": 3
+      },
+      "revId": "915d80088a494c08441fbf5693952362b84054e1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
