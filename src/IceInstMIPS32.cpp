@@ -281,7 +281,9 @@ void OperandMIPS32Mem::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   Operand *Offset = getOffset();
   if (auto *CR = llvm::dyn_cast<ConstantRelocatable>(Offset)) {
+    Str << "(";
     CR->emitWithoutPrefix(Func->getTarget());
+    Str << ")";
   } else
     Offset->emit(Func);
   Str << "(";

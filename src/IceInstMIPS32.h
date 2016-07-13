@@ -517,9 +517,7 @@ public:
     getSrc(0)->emit(Func);
     Str << ", ";
     emitRelocOp(Str, Reloc);
-    Str << (Reloc ? "(" : "");
     getSrc(1)->emit(Func);
-    Str << (Reloc ? ")" : "");
   }
 
   void emitIAS(const Cfg *Func) const override {
