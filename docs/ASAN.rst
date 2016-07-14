@@ -10,14 +10,21 @@ used in production.
 
 In Subzero, AddressSanitizer depends on being able to find and instrument calls
 to various functions such as malloc() and free(), and as such the .pexe file
-being translated must not have had those symbols stripped. Subzero will not
-complain if it is told to translate a .pexe file with its symbols stripped, but
-it will not be able to find calls to malloc() and free(), so AddressSanitizer
-will not work correctly in the final executable.
+being translated must not have had those symbols stripped or inlined. Subzero
+will not complain if it is told to translate a .pexe file with its symbols
+stripped, but it will not be able to find calls to malloc(), calloc(), free(),
+etc., so AddressSanitizer will not work correctly in the final executable.
+
+Furthermore, pnacl-clang automatically inlines some calls to calloc(),
+even with inlining turned off, so we provide wrapper scripts,
+sz-clang.py and sz-clang++.py, that normally just pass their arguments
+through to pnacl-clang or pnacl-clang++, but add instrumentation to
+replace calls to calloc() at the source level if they are passed
+-fsanitize-address.
 
 These are the steps to compile hello.c to an instrumented object file::
 
-    pnacl-clang -o hello.nonfinal.pexe hello.c
+    sz-clang.py -fsanitize-address -o hello.nonfinal.pexe hello.c
     pnacl-finalize --no-strip-syms -o hello.pexe hello.nonfinal.pexe
     pnacl-sz -fsanitize-address -filetype=obj -o hello.o hello.pexe
 
