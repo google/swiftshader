@@ -66,7 +66,12 @@ entry:
 
 ; MIPS32-LABEL: fixed_416_align_16
 ; MIPS32-OPT2: addiu sp,sp,-440
+; MIPS32-OPT2: addiu a0,sp,16
 ; MIPS32-OPTM1: addiu sp,sp,-448
+; MIPS32-OPTM1: addiu [[REG:.*]],sp,16
+; MIPS32-OPTM1: sw [[REG]],{{.*}}
+; MIPS32-OPTM1: lw a0,{{.*}}
+; MIPS32: jal {{.*}} R_{{.*}} f1
 
 define internal void @fixed_416_align_32(i32 %n) {
 entry:
@@ -92,7 +97,12 @@ entry:
 
 ; MIPS32-LABEL: fixed_416_align_32
 ; MIPS32-OPT2: addiu sp,sp,-440
+; MIPS32-OPT2: addiu a0,sp,16
 ; MIPS32-OPTM1: addiu sp,sp,-448
+; MIPS32-OPTM1: addiu [[REG:.*]],sp,16
+; MIPS32-OPTM1: sw [[REG]],{{.*}}
+; MIPS32-OPTM1: lw a0,{{.*}}
+; MIPS32: jal {{.*}} R_{{.*}} f1
 
 ; Show that the amount to allocate will be rounded up.
 define internal void @fixed_351_align_16(i32 %n) {
@@ -121,7 +131,12 @@ entry:
 
 ; MIPS32-LABEL: fixed_351_align_16
 ; MIPS32-OPT2: addiu sp,sp,-376
+; MIPS32-OPT2: addiu a0,sp,16
 ; MIPS32-OPTM1: addiu sp,sp,-384
+; MIPS32-OPTM1: addiu [[REG:.*]],sp,16
+; MIPS32-OPTM1: sw [[REG]],{{.*}}
+; MIPS32-OPTM1: lw a0,{{.*}}
+; MIPS32: jal {{.*}} R_{{.*}} f1
 
 define internal void @fixed_351_align_32(i32 %n) {
 entry:
@@ -147,7 +162,12 @@ entry:
 
 ; MIPS32-LABEL: fixed_351_align_32
 ; MIPS32-OPT2: addiu sp,sp,-376
+; MIPS32-OPT2: addiu a0,sp,16
 ; MIPS32-OPTM1: addiu sp,sp,-384
+; MIPS32-OPTM1: addiu [[REG:.*]],sp,16
+; MIPS32-OPTM1: sw [[REG]],{{.*}}
+; MIPS32-OPTM1: lw a0,{{.*}}
+; MIPS32: jal {{.*}} R_{{.*}} f1
 
 declare void @f1(i32 %ignored)
 

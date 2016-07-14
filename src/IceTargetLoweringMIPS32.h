@@ -461,6 +461,8 @@ public:
   // the outargs area
   void findMaxStackOutArgsSize();
 
+  void postLowerLegalization();
+
   void addProlog(CfgNode *Node) override;
   void addEpilog(CfgNode *Node) override;
 
@@ -558,6 +560,32 @@ protected:
                                 uint64_t Salt) const override;
 
   OperandMIPS32Mem *formMemoryOperand(Operand *Ptr, Type Ty);
+
+  class PostLoweringLegalizer {
+    PostLoweringLegalizer() = delete;
+    PostLoweringLegalizer(const PostLoweringLegalizer &) = delete;
+    PostLoweringLegalizer &operator=(const PostLoweringLegalizer &) = delete;
+
+  public:
+    explicit PostLoweringLegalizer(TargetMIPS32 *Target)
+        : Target(Target), StackOrFrameReg(Target->getPhysicalRegister(
+                              Target->getFrameOrStackReg())) {}
+
+    /// Legalizes Mov if its Source (or Destination) is a spilled Variable, or
+    /// if its Source is a Rematerializable variable (this form is used in lieu
+    /// of lea, which is not available in MIPS.)
+    ///
+    /// Moves to memory become store instructions, and moves from memory, loads.
+    void legalizeMov(InstMIPS32Mov *Mov);
+
+  private:
+    /// Creates a new Base register centered around [Base, +/- Offset].
+    Variable *newBaseRegister(Variable *Base, int32_t Offset,
+                              RegNumT ScratchRegNum);
+
+    TargetMIPS32 *const Target;
+    Variable *const StackOrFrameReg;
+  };
 
   bool UsesFramePointer = false;
   bool NeedsStackAlignment = false;

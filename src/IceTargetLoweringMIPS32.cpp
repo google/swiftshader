@@ -295,6 +295,11 @@ void TargetMIPS32::translateO2() {
     return;
   Func->dump("After stack frame mapping");
 
+  postLowerLegalization();
+  if (Func->hasError())
+    return;
+  Func->dump("After postLowerLegalization");
+
   Func->contractEmptyNodes();
   Func->reorderNodes();
 
@@ -989,6 +994,92 @@ void TargetMIPS32::addEpilog(CfgNode *Node) {
   return;
 }
 
+Variable *TargetMIPS32::PostLoweringLegalizer::newBaseRegister(
+    Variable *Base, int32_t Offset, RegNumT ScratchRegNum) {
+  // Legalize will likely need a lui/ori combination, but if the top bits are
+  // all 0 from negating the offset and subtracting, we could use that instead.
+  const bool ShouldSub = Offset != 0 && (-Offset & 0xFFFF0000) == 0;
+  Variable *ScratchReg = Target->makeReg(IceType_i32, ScratchRegNum);
+  if (ShouldSub) {
+    Variable *OffsetVal =
+        Target->legalizeToReg(Target->Ctx->getConstantInt32(-Offset));
+    Target->_sub(ScratchReg, Base, OffsetVal);
+  } else {
+    Target->_addiu(ScratchReg, Base, Offset);
+  }
+
+  return ScratchReg;
+}
+
+void TargetMIPS32::PostLoweringLegalizer::legalizeMov(InstMIPS32Mov *MovInstr) {
+  Variable *Dest = MovInstr->getDest();
+  assert(Dest != nullptr);
+  const Type DestTy = Dest->getType();
+  (void)DestTy;
+  assert(DestTy != IceType_i64);
+
+  Operand *Src = MovInstr->getSrc(0);
+  const Type SrcTy = Src->getType();
+  (void)SrcTy;
+  assert(SrcTy != IceType_i64);
+
+  if (MovInstr->isMultiDest() || MovInstr->isMultiSource())
+    return;
+
+  bool Legalized = false;
+  if (Dest->hasReg()) {
+    if (auto *Var = llvm::dyn_cast<Variable>(Src)) {
+      if (Var->isRematerializable()) {
+        // This is equivalent to an x86 _lea(RematOffset(%esp/%ebp), Variable).
+
+        // ExtraOffset is only needed for frame-pointer based frames as we have
+        // to account for spill storage.
+        const int32_t ExtraOffset = (Var->getRegNum() == Target->getFrameReg())
+                                        ? Target->getFrameFixedAllocaOffset()
+                                        : 0;
+
+        const int32_t Offset = Var->getStackOffset() + ExtraOffset;
+        Variable *Base = Target->getPhysicalRegister(Var->getRegNum());
+        Variable *T = newBaseRegister(Base, Offset, Dest->getRegNum());
+        Target->_mov(Dest, T);
+        Legalized = true;
+      } else if (!Var->hasReg()) {
+        UnimplementedError(getFlags());
+        return;
+      }
+    }
+  } else {
+    UnimplementedError(getFlags());
+    return;
+  }
+
+  if (Legalized) {
+    if (MovInstr->isDestRedefined()) {
+      Target->_set_dest_redefined();
+    }
+    MovInstr->setDeleted();
+  }
+}
+
+void TargetMIPS32::postLowerLegalization() {
+  Func->dump("Before postLowerLegalization");
+  assert(hasComputedFrame());
+  for (CfgNode *Node : Func->getNodes()) {
+    Context.init(Node);
+    PostLoweringLegalizer Legalizer(this);
+    while (!Context.atEnd()) {
+      PostIncrLoweringContext PostIncrement(Context);
+      Inst *CurInstr = iteratorToInst(Context.getCur());
+
+      // TODO(sagar.thakur): Add remaining cases of legalization.
+
+      if (auto *MovInstr = llvm::dyn_cast<InstMIPS32Mov>(CurInstr)) {
+        Legalizer.legalizeMov(MovInstr);
+      }
+    }
+  }
+}
+
 Operand *TargetMIPS32::loOperand(Operand *Operand) {
   assert(Operand->getType() == IceType_i64);
   if (auto *Var64On32 = llvm::dyn_cast<Variable64On32>(Operand))
@@ -1417,6 +1508,12 @@ void TargetMIPS32::lowerArithmetic(const InstArithmetic *Instr) {
 
 void TargetMIPS32::lowerAssign(const InstAssign *Instr) {
   Variable *Dest = Instr->getDest();
+
+  if (Dest->isRematerializable()) {
+    Context.insert<InstFakeDef>(Dest);
+    return;
+  }
+
   Operand *Src0 = Instr->getSrc(0);
   assert(Dest->getType() == Src0->getType());
   if (Dest->getType() == IceType_i64) {
