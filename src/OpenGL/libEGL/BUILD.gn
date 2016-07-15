@@ -42,6 +42,9 @@ shared_library("swiftshader_libEGL") {
     "libEGL.cpp",
     "main.cpp",
     "../common/Object.cpp",
+    "libEGL.def",
+    "libEGL.rc",
+    "resource.h",
   ]
 
   if(is_debug)
@@ -58,6 +61,11 @@ shared_library("swiftshader_libEGL") {
   } else if (host_os == "win") {
     configs -= [
       "//build/config/win:unicode"
+    ]
+
+    ldflags = [
+      "/DEF:" + rebase_path("libGLESv2.def", root_build_dir),
+      "/ignore:4070", # outputting 'swiftshader_libEGL.dll' instead of 'libEGL.dll'
     ]
   } else if (host_os == "linux") {
     sources += [
