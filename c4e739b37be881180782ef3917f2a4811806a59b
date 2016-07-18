@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a89cca8_68b197a0",
+        "filename": "src/OpenGL/libGLESv2/IndexDataManager.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-07-18T17:26:46Z",
+      "side": 1,
+      "message": "I think both cases would work with this code, so it might be simpler to just use this.",
+      "range": {
+        "startLine": 76,
+        "startChar": 0,
+        "endLine": 77,
+        "endChar": 35
+      },
+      "revId": "c4e739b37be881180782ef3917f2a4811806a59b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baab60ef_bdb2c010",
+        "filename": "src/Renderer/Renderer.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 731,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-07-18T17:26:46Z",
+      "side": 1,
+      "message": "nit: extra tab/space",
+      "range": {
+        "startLine": 731,
+        "startChar": 34,
+        "endLine": 731,
+        "endChar": 35
+      },
+      "revId": "c4e739b37be881180782ef3917f2a4811806a59b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baab60ef_7da978a0",
+        "filename": "src/Renderer/Renderer.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 990,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-07-18T17:26:46Z",
+      "side": 1,
+      "message": "fix this comment",
+      "range": {
+        "startLine": 990,
+        "startChar": 110,
+        "endLine": 990,
+        "endChar": 144
+      },
+      "revId": "c4e739b37be881180782ef3917f2a4811806a59b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baab60ef_98d0b202",
+        "filename": "src/Renderer/Renderer.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 1207,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-07-18T17:26:46Z",
+      "side": 1,
+      "message": "isn\u0027t this supposed to use the data collected at the beginning rather than re-checking each index to see if they\u0027re the primitive restart index?",
+      "range": {
+        "startLine": 1207,
+        "startChar": 8,
+        "endLine": 1207,
+        "endChar": 32
+      },
+      "revId": "c4e739b37be881180782ef3917f2a4811806a59b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baab60ef_22c98fba",
+        "filename": "src/Renderer/Renderer.hpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 256,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-07-18T17:26:46Z",
+      "side": 1,
+      "message": "Should be a pointer, to avoid creating a vector when it\u0027s not necessary, like for \u0027queries\u0027. It should follow the same creation/deletion mechanism.",
+      "range": {
+        "startLine": 256,
+        "startChar": 35,
+        "endLine": 256,
+        "endChar": 55
+      },
+      "revId": "c4e739b37be881180782ef3917f2a4811806a59b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
