@@ -643,41 +643,29 @@ void Cfg::localCSE() {
 void Cfg::loopInvariantCodeMotion() {
   TimerMarker T(TimerStack::TT_loopInvariantCodeMotion, this);
   // Does not introduce new nodes as of now.
-  for (auto &Pair : LoopInfo) {
-    CfgNode *Header = Nodes[Pair.first];
+  for (auto &Loop : LoopInfo) {
+    CfgNode *Header = Loop.Header;
     assert(Header);
     if (Header->getLoopNestDepth() < 1)
-      continue;
-    CfgNode *PreHeader = nullptr;
-    for (auto *Pred : Header->getInEdges()) {
-      if (Pred->getLoopNestDepth() == Header->getLoopNestDepth() - 1) {
-        if (PreHeader == nullptr) {
-          PreHeader = Pred;
-        } else {
-          PreHeader = nullptr;
-          break;
-          // Do not consider cases with two incoming edges.
-          // Will require insertion of nodes.
-        }
-      }
-    }
+      return;
+    CfgNode *PreHeader = Loop.PreHeader;
     if (PreHeader == nullptr || PreHeader->getInsts().size() == 0) {
-      continue; // to next loop
+      return; // try next loop
     }
 
     auto &Insts = PreHeader->getInsts();
     auto &LastInst = Insts.back();
     Insts.pop_back();
 
-    for (auto *Inst : findLoopInvariantInstructions(Pair.first)) {
+    for (auto *Inst : findLoopInvariantInstructions(Loop.Body)) {
       PreHeader->appendInst(Inst);
     }
     PreHeader->appendInst(&LastInst);
   }
 }
 
-Ice::CfgVector<Inst *>
-Cfg::findLoopInvariantInstructions(Ice::SizeT LoopHeaderIndex) {
+CfgVector<Inst *>
+Cfg::findLoopInvariantInstructions(const CfgUnorderedSet<SizeT> &Body) {
   CfgUnorderedSet<Inst *> InvariantInsts;
   CfgUnorderedSet<Variable *> InvariantVars;
   for (auto *Var : getArgs()) {
@@ -686,7 +674,7 @@ Cfg::findLoopInvariantInstructions(Ice::SizeT LoopHeaderIndex) {
   bool Changed = false;
   do {
     Changed = false;
-    for (auto NodeIndex : LoopInfo[LoopHeaderIndex]) {
+    for (auto NodeIndex : Body) {
       auto *Node = Nodes[NodeIndex];
       CfgVector<std::reference_wrapper<Inst>> Insts(Node->getInsts().begin(),
                                                     Node->getInsts().end());
@@ -1437,7 +1425,7 @@ void Cfg::genFrame() {
 
 void Cfg::generateLoopInfo() {
   TimerMarker T(TimerStack::TT_computeLoopNestDepth, this);
-  LoopInfo = LoopAnalyzer(this).getLoopInfo();
+  LoopInfo = ComputeLoopInfo(this);
 }
 
 // This is a lightweight version of live-range-end calculation. Marks the last

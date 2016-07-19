@@ -20,6 +20,7 @@
 #include "IceClFlags.h"
 #include "IceDefs.h"
 #include "IceGlobalContext.h"
+#include "IceLoopAnalyzer.h"
 #include "IceStringPool.h"
 #include "IceTypes.h"
 
@@ -301,7 +302,8 @@ private:
                              uint32_t CombinedAlignment, InstList &Insts,
                              AllocaBaseVariableType BaseVariableType);
   void findRematerializable();
-  CfgVector<Inst *> findLoopInvariantInstructions(SizeT LoopHeaderIndex);
+  CfgVector<Inst *>
+  findLoopInvariantInstructions(const CfgUnorderedSet<SizeT> &Body);
 
   GlobalContext *Ctx;
   uint32_t SequenceNumber; /// output order for emission
@@ -332,12 +334,12 @@ private:
   /// Globals required by this CFG. Mostly used for the profiler's globals.
   std::unique_ptr<VariableDeclarationList> GlobalInits;
   CfgVector<InstJumpTable *> JumpTables;
-  CfgUnorderedMap<SizeT, CfgVector<SizeT>> LoopInfo;
   /// CurrentNode is maintained during dumping/emitting just for validating
   /// Variable::DefNode. Normally, a traversal over CfgNodes maintains this, but
   /// before global operations like register allocation, resetCurrentNode()
   /// should be called to avoid spurious validation failures.
   const CfgNode *CurrentNode = nullptr;
+  CfgVector<Loop> LoopInfo;
 
 public:
   static void TlsInit() { CfgAllocatorTraits::init(); }
