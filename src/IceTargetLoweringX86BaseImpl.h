@@ -2283,7 +2283,8 @@ void TargetX86Base<TraitsType>::lowerArithmetic(const InstArithmetic *Instr) {
     T_edx = makeReg(Ty, Edx);
     _mov(T, Src0, Eax);
     _mov(T_edx, Ctx->getConstantZero(Ty));
-    _div(T, Src1, T_edx);
+    _div(T_edx, Src1, T);
+    _redefined(Context.insert<InstFakeDef>(T, T_edx));
     _mov(Dest, T);
   } break;
   case InstArithmetic::Sdiv:
@@ -2343,7 +2344,8 @@ void TargetX86Base<TraitsType>::lowerArithmetic(const InstArithmetic *Instr) {
       break;
     }
     _cbwdq(T_edx, T);
-    _idiv(T, Src1, T_edx);
+    _idiv(T_edx, Src1, T);
+    _redefined(Context.insert<InstFakeDef>(T, T_edx));
     _mov(Dest, T);
     break;
   case InstArithmetic::Urem: {
@@ -2373,7 +2375,8 @@ void TargetX86Base<TraitsType>::lowerArithmetic(const InstArithmetic *Instr) {
     T_edx = makeReg(Ty, Edx);
     _mov(T_edx, Ctx->getConstantZero(Ty));
     _mov(T, Src0, Eax);
-    _div(T_edx, Src1, T);
+    _div(T, Src1, T_edx);
+    _redefined(Context.insert<InstFakeDef>(T_edx, T));
     if (Ty == IceType_i8) {
       // Register ah must be moved into one of {al,bl,cl,dl} before it can be
       // moved into a general 8-bit register.
@@ -2450,7 +2453,8 @@ void TargetX86Base<TraitsType>::lowerArithmetic(const InstArithmetic *Instr) {
     T_edx = makeReg(Ty, Edx);
     _mov(T, Src0, Eax);
     _cbwdq(T_edx, T);
-    _idiv(T_edx, Src1, T);
+    _idiv(T, Src1, T_edx);
+    _redefined(Context.insert<InstFakeDef>(T_edx, T));
     if (Ty == IceType_i8) {
       // Register ah must be moved into one of {al,bl,cl,dl} before it can be
       // moved into a general 8-bit register.
