@@ -482,6 +482,10 @@ public:
     return LockedPtr<StringPool>(Strings.get(), &StringsLock);
   }
 
+  LockedPtr<VariableDeclarationList> getGlobals() {
+    return LockedPtr<VariableDeclarationList>(&Globals, &InitAllocLock);
+  }
+
   /// Number of function blocks that can be queued before waiting for
   /// translation
   /// threads to consume.
@@ -612,6 +616,8 @@ private:
     LockedPtr<VariableDeclarationList> _(&Globals, &InitAllocLock);
     if (Globls != nullptr) {
       Globals.merge(Globls.get());
+      if (!BuildDefs::minimal() && Instrumentor != nullptr)
+        Instrumentor->setHasSeenGlobals();
     }
   }
 

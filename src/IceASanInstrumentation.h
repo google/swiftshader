@@ -23,8 +23,6 @@
 #include "IceGlobalInits.h"
 #include "IceInstrumentation.h"
 
-#include <condition_variable>
-
 namespace Ice {
 
 class ASanInstrumentation : public Instrumentation {
@@ -33,9 +31,7 @@ class ASanInstrumentation : public Instrumentation {
   ASanInstrumentation &operator=(const ASanInstrumentation &) = delete;
 
 public:
-  ASanInstrumentation(GlobalContext *Ctx)
-      : Instrumentation(Ctx), RzNum(0),
-        GlobalsLock(GlobalsMutex, std::defer_lock) {
+  ASanInstrumentation(GlobalContext *Ctx) : Instrumentation(Ctx), RzNum(0) {
     ICE_TLS_INIT_FIELD(LocalDtors);
   }
   void instrumentGlobals(VariableDeclarationList &Globals) override;
@@ -57,8 +53,6 @@ private:
   bool DidProcessGlobals = false;
   SizeT RzGlobalsNum = 0;
   std::mutex GlobalsMutex;
-  std::unique_lock<std::mutex> GlobalsLock;
-  std::condition_variable GlobalsDoneCV;
 };
 } // end of namespace Ice
 

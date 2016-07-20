@@ -30,6 +30,8 @@
 
 #include "IceDefs.h"
 
+#include <condition_variable>
+
 namespace Ice {
 
 class LoweringContext;
@@ -41,11 +43,14 @@ class Instrumentation {
 
 public:
   Instrumentation(GlobalContext *Ctx) : Ctx(Ctx) {}
+  virtual ~Instrumentation() = default;
   virtual void instrumentGlobals(VariableDeclarationList &) {}
   void instrumentFunc(Cfg *Func);
+  void setHasSeenGlobals();
 
 protected:
   virtual void instrumentInst(LoweringContext &Context);
+  LockedPtr<VariableDeclarationList> getGlobals();
 
 private:
   virtual bool isInstrumentable(Cfg *) { return true; }
@@ -78,6 +83,11 @@ private:
 
 protected:
   GlobalContext *Ctx;
+
+private:
+  bool HasSeenGlobals = false;
+  std::mutex GlobalsSeenMutex;
+  std::condition_variable GlobalsSeenCV;
 };
 
 } // end of namespace Ice

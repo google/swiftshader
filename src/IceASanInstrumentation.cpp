@@ -74,6 +74,7 @@ bool ASanInstrumentation::isInstrumentable(Cfg *Func) {
 // types of the redzones and their associated globals match so that they are
 // laid out together in memory.
 void ASanInstrumentation::instrumentGlobals(VariableDeclarationList &Globals) {
+  std::unique_lock<std::mutex> _(GlobalsMutex);
   if (DidProcessGlobals)
     return;
   VariableDeclarationList NewGlobals;
@@ -135,7 +136,6 @@ void ASanInstrumentation::instrumentGlobals(VariableDeclarationList &Globals) {
   Globals.clear();
   Globals.merge(&NewGlobals);
   DidProcessGlobals = true;
-  GlobalsDoneCV.notify_all();
 
   // Log the new set of globals
   if (BuildDefs::dump() && (getFlags().getVerbose() & IceV_GlobalInit)) {
@@ -332,13 +332,8 @@ void ASanInstrumentation::instrumentStart(Cfg *Func) {
   auto *Call = InstCall::create(Func, NumArgs, Void, ShadowMemInit, NoTailCall);
   Func->getEntryNode()->getInsts().push_front(Call);
 
-  // wait to get the final count of global redzones
-  if (!DidProcessGlobals) {
-    GlobalsLock.lock();
-    while (!DidProcessGlobals)
-      GlobalsDoneCV.wait(GlobalsLock);
-    GlobalsLock.release();
-  }
+  instrumentGlobals(*getGlobals());
+
   Call->addArg(ConstantInteger32::create(Ctx, IceType_i32, RzGlobalsNum));
   Call->addArg(Ctx->getConstantSym(0, Ctx->getGlobalString(RzArrayName)));
   Call->addArg(Ctx->getConstantSym(0, Ctx->getGlobalString(RzSizesName)));

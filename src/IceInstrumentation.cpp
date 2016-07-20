@@ -118,4 +118,18 @@ void Instrumentation::instrumentInst(LoweringContext &Context) {
   }
 }
 
+void Instrumentation::setHasSeenGlobals() {
+  {
+    std::unique_lock<std::mutex> _(GlobalsSeenMutex);
+    HasSeenGlobals = true;
+  }
+  GlobalsSeenCV.notify_all();
+}
+
+LockedPtr<VariableDeclarationList> Instrumentation::getGlobals() {
+  std::unique_lock<std::mutex> GlobalsLock(GlobalsSeenMutex);
+  GlobalsSeenCV.wait(GlobalsLock, [this] { return HasSeenGlobals; });
+  return Ctx->getGlobals();
+}
+
 } // end of namespace Ice
