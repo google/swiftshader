@@ -35,6 +35,9 @@ config("swiftshader_libEGL_private_config") {
 }
 
 shared_library("swiftshader_libEGL") {
+  output_name = "libEGL"
+  output_dir = "$root_out_dir/swiftshader"
+
   sources = [
     "Config.cpp",
     "Display.cpp",
@@ -65,7 +68,6 @@ shared_library("swiftshader_libEGL") {
 
     ldflags = [
       "/DEF:" + rebase_path("libGLESv2.def", root_build_dir),
-      "/ignore:4070", # outputting 'swiftshader_libEGL.dll' instead of 'libEGL.dll'
     ]
   } else if (host_os == "linux") {
     sources += [

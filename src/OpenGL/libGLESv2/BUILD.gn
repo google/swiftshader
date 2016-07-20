@@ -40,6 +40,9 @@ config("swiftshader_libGLESv2_private_config") {
 }
 
 shared_library("swiftshader_libGLESv2") {
+  output_name = "libGLESv2"
+  output_dir = "$root_out_dir/swiftshader"
+
   deps = [
     "../../OpenGL/compiler:swiftshader_opengl_compiler",
     "../../Reactor:swiftshader_reactor",
@@ -78,7 +81,6 @@ shared_library("swiftshader_libGLESv2") {
 
     ldflags = [
       "/DEF:" + rebase_path("libGLESv2.def", root_build_dir),
-      "/ignore:4070", # outputting 'swiftshader_libGLESv2.dll' instead of 'libGLESv2.dll'
     ]
   }
 
