@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9a0f7c78_f51a1671",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 3458,
+      "author": {
+        "id": 5685
+      },
+      "writtenOn": "2016-07-21T19:25:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a0f7c78_96912d6b",
+      "range": {
+        "startLine": 3458,
+        "startChar": 55,
+        "endLine": 3458,
+        "endChar": 56
+      },
+      "revId": "915d80088a494c08441fbf5693952362b84054e1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a0f7c78_b687092c",
         "filename": "src/OpenGL/libGLESv2/IndexDataManager.h",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2016-07-13T14:58:23Z",
       "side": 1,
       "message": "please use full name instead of acronym",
+      "range": {
+        "startLine": 61,
+        "startChar": 166,
+        "endLine": 61,
+        "endChar": 168
+      },
+      "revId": "915d80088a494c08441fbf5693952362b84054e1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0f7c78_f5033607",
+        "filename": "src/OpenGL/libGLESv2/IndexDataManager.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5685
+      },
+      "writtenOn": "2016-07-21T19:25:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a0f7c78_b687092c",
       "range": {
         "startLine": 61,
         "startChar": 166,
@@ -105,6 +153,30 @@
       "writtenOn": "2016-07-13T14:58:23Z",
       "side": 1,
       "message": "Nit: I like parenthesis to make things clearer, like so:\n((i + 1) \u003d\u003d (elementCount - 1))",
+      "range": {
+        "startLine": 1524,
+        "startChar": 8,
+        "endLine": 1524,
+        "endChar": 35
+      },
+      "revId": "915d80088a494c08441fbf5693952362b84054e1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0f7c78_35278ea9",
+        "filename": "src/OpenGL/libGLESv2/utilities.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1524,
+      "author": {
+        "id": 5685
+      },
+      "writtenOn": "2016-07-21T19:25:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a0f7c78_f19a2b76",
       "range": {
         "startLine": 1524,
         "startChar": 8,
@@ -232,6 +304,30 @@
     },
     {
       "key": {
+        "uuid": "9a0f7c78_780d7b8f",
+        "filename": "src/Renderer/Renderer.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1322,
+      "author": {
+        "id": 5685
+      },
+      "writtenOn": "2016-07-21T19:25:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a0f7c78_f1cceb6e",
+      "range": {
+        "startLine": 1322,
+        "startChar": 61,
+        "endLine": 1322,
+        "endChar": 81
+      },
+      "revId": "915d80088a494c08441fbf5693952362b84054e1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a0f7c78_51fb3f7e",
         "filename": "src/Renderer/Renderer.cpp",
         "patchSetId": 1
@@ -243,6 +339,30 @@
       "writtenOn": "2016-07-13T14:58:23Z",
       "side": 1,
       "message": "same",
+      "range": {
+        "startLine": 1407,
+        "startChar": 66,
+        "endLine": 1407,
+        "endChar": 86
+      },
+      "revId": "915d80088a494c08441fbf5693952362b84054e1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0f7c78_58123faf",
+        "filename": "src/Renderer/Renderer.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1407,
+      "author": {
+        "id": 5685
+      },
+      "writtenOn": "2016-07-21T19:25:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a0f7c78_51fb3f7e",
       "range": {
         "startLine": 1407,
         "startChar": 66,
@@ -278,6 +398,30 @@
     },
     {
       "key": {
+        "uuid": "9a0f7c78_b807f36e",
+        "filename": "src/Renderer/Renderer.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1449,
+      "author": {
+        "id": 5685
+      },
+      "writtenOn": "2016-07-21T19:25:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a0f7c78_31004367",
+      "range": {
+        "startLine": 1449,
+        "startChar": 64,
+        "endLine": 1449,
+        "endChar": 84
+      },
+      "revId": "915d80088a494c08441fbf5693952362b84054e1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a0f7c78_31ae8398",
         "filename": "src/Renderer/Renderer.hpp",
         "patchSetId": 1
@@ -289,6 +433,30 @@
       "writtenOn": "2016-07-13T14:58:23Z",
       "side": 1,
       "message": "This can be defined in the cpp file, it doesn\u0027t need to be a class member.",
+      "range": {
+        "startLine": 412,
+        "startChar": 0,
+        "endLine": 415,
+        "endChar": 3
+      },
+      "revId": "915d80088a494c08441fbf5693952362b84054e1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0f7c78_b5c9bebb",
+        "filename": "src/Renderer/Renderer.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 415,
+      "author": {
+        "id": 5685
+      },
+      "writtenOn": "2016-07-21T19:25:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a0f7c78_31ae8398",
       "range": {
         "startLine": 412,
         "startChar": 0,
