@@ -420,6 +420,16 @@ public:
 
   void lowerArguments() override;
 
+  /// Make a pass through the SortedSpilledVariables and actually assign stack
+  /// slots. SpillAreaPaddingBytes takes into account stack alignment padding.
+  /// The SpillArea starts after that amount of padding. This matches the scheme
+  /// in getVarStackSlotParams, where there may be a separate multi-block global
+  /// var spill area and a local var spill area.
+  void assignVarStackSlots(VarList &SortedSpilledVariables,
+                           size_t SpillAreaPaddingBytes,
+                           size_t SpillAreaSizeBytes,
+                           size_t GlobalsAndSubsequentPaddingSize);
+
   /// Operand legalization helpers.  To deal with address mode constraints,
   /// the helpers will create a new Operand and emit instructions that
   /// guarantee that the Operand kind is one of those indicated by the

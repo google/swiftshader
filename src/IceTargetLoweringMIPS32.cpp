@@ -105,6 +105,36 @@ uint32_t applyStackAlignment(uint32_t Value) {
 
 TargetMIPS32::TargetMIPS32(Cfg *Func) : TargetLowering(Func) {}
 
+void TargetMIPS32::assignVarStackSlots(VarList &SortedSpilledVariables,
+                                       size_t SpillAreaPaddingBytes,
+                                       size_t SpillAreaSizeBytes,
+                                       size_t GlobalsAndSubsequentPaddingSize) {
+  const VariablesMetadata *VMetadata = Func->getVMetadata();
+  size_t GlobalsSpaceUsed = SpillAreaPaddingBytes;
+  size_t NextStackOffset = SpillAreaPaddingBytes;
+  CfgVector<size_t> LocalsSize(Func->getNumNodes());
+  const bool SimpleCoalescing = !callsReturnsTwice();
+
+  for (Variable *Var : SortedSpilledVariables) {
+    size_t Increment = typeWidthInBytesOnStack(Var->getType());
+    if (SimpleCoalescing && VMetadata->isTracked(Var)) {
+      if (VMetadata->isMultiBlock(Var)) {
+        GlobalsSpaceUsed += Increment;
+        NextStackOffset = GlobalsSpaceUsed;
+      } else {
+        SizeT NodeIndex = VMetadata->getLocalUseNode(Var)->getIndex();
+        LocalsSize[NodeIndex] += Increment;
+        NextStackOffset = SpillAreaPaddingBytes +
+                          GlobalsAndSubsequentPaddingSize +
+                          LocalsSize[NodeIndex];
+      }
+    } else {
+      NextStackOffset += Increment;
+    }
+    Var->setStackOffset(SpillAreaSizeBytes - NextStackOffset);
+  }
+}
+
 void TargetMIPS32::staticInit(GlobalContext *Ctx) {
   (void)Ctx;
   RegNumT::setLimit(RegMIPS32::Reg_NUM);
@@ -853,9 +883,20 @@ void TargetMIPS32::addProlog(CfgNode *Node) {
       GlobalsSize + LocalsSlotsPaddingBytes;
 
   // Adds the out args space to the stack, and align SP if necessary.
-  TotalStackSizeBytes = PreservedRegsSizeBytes + SpillAreaSizeBytes +
-                        FixedAllocaSizeBytes +
-                        (MaxOutArgsSizeBytes * (VariableAllocaUsed ? 0 : 1));
+  if (!NeedsStackAlignment) {
+    SpillAreaSizeBytes += MaxOutArgsSizeBytes * (VariableAllocaUsed ? 0 : 1);
+  } else {
+    uint32_t StackOffset = PreservedRegsSizeBytes;
+    uint32_t StackSize = applyStackAlignment(StackOffset + SpillAreaSizeBytes);
+    if (!VariableAllocaUsed)
+      StackSize = applyStackAlignment(StackSize + MaxOutArgsSizeBytes);
+    SpillAreaSizeBytes = StackSize - StackOffset;
+  }
+
+  // Combine fixed alloca with SpillAreaSize.
+  SpillAreaSizeBytes += FixedAllocaSizeBytes;
+
+  TotalStackSizeBytes = PreservedRegsSizeBytes + SpillAreaSizeBytes;
 
   // Generate "addiu sp, sp, -TotalStackSizeBytes"
   if (TotalStackSizeBytes) {
@@ -911,8 +952,7 @@ void TargetMIPS32::addProlog(CfgNode *Node) {
 
   // Fill in stack offsets for locals.
   assignVarStackSlots(SortedSpilledVariables, SpillAreaPaddingBytes,
-                      SpillAreaSizeBytes, GlobalsAndSubsequentPaddingSize,
-                      UsesFramePointer);
+                      SpillAreaSizeBytes, GlobalsAndSubsequentPaddingSize);
   this->HasComputedFrame = true;
 
   if (BuildDefs::dump() && Func->isVerbose(IceV_Frame)) {
