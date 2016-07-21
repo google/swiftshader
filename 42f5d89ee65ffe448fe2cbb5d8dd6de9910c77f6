@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4a89b33d_985a21f8",
+        "filename": "src/Renderer/Renderer.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-07-21T19:26:26Z",
+      "side": 1,
+      "message": "If the same \u0027primitiveRestartData\u0027 can be used for multiple draw calls, this may be deleted multiple times.",
+      "range": {
+        "startLine": 107,
+        "startChar": 9,
+        "endLine": 107,
+        "endChar": 29
+      },
+      "revId": "42f5d89ee65ffe448fe2cbb5d8dd6de9910c77f6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4a89b33d_58da6974",
+        "filename": "src/Renderer/Renderer.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 226,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-07-21T19:26:26Z",
+      "side": 1,
+      "message": "this can be used uninitialized if the next if statement is false",
+      "range": {
+        "startLine": 226,
+        "startChar": 24,
+        "endLine": 226,
+        "endChar": 44
+      },
+      "revId": "42f5d89ee65ffe448fe2cbb5d8dd6de9910c77f6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4a89b33d_b8e9a517",
+        "filename": "src/Renderer/Renderer.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 345,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-07-21T19:26:26Z",
+      "side": 1,
+      "message": "if \u0027context-\u003eindexBuffer\u0027 is null, there\u0027s no primitive restart data",
+      "range": {
+        "startLine": 345,
+        "startChar": 28,
+        "endLine": 345,
+        "endChar": 44
+      },
+      "revId": "42f5d89ee65ffe448fe2cbb5d8dd6de9910c77f6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4a89b33d_98ece128",
+        "filename": "src/Renderer/Renderer.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 670,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-07-21T19:26:26Z",
+      "side": 1,
+      "message": "if \u0027context-\u003eindexBuffer\u0027 is null, this value is uninitialized",
+      "range": {
+        "startLine": 670,
+        "startChar": 33,
+        "endLine": 670,
+        "endChar": 53
+      },
+      "revId": "42f5d89ee65ffe448fe2cbb5d8dd6de9910c77f6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
