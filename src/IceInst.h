@@ -538,7 +538,7 @@ class InstIcmp : public InstHighLevel {
 
 public:
   enum ICond {
-#define X(tag, str) tag,
+#define X(tag, inverse, str) tag,
     ICEINSTICMP_TABLE
 #undef X
         _num
@@ -550,6 +550,7 @@ public:
         InstIcmp(Func, Condition, Dest, Source1, Source2);
   }
   ICond getCondition() const { return Condition; }
+  void reverseConditionAndOperands();
   bool isMemoryWrite() const override { return false; }
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Instr) { return Instr->getKind() == Icmp; }
@@ -558,7 +559,7 @@ private:
   InstIcmp(Cfg *Func, ICond Condition, Variable *Dest, Operand *Source1,
            Operand *Source2);
 
-  const ICond Condition;
+  ICond Condition;
 };
 
 /// InsertElement instruction.

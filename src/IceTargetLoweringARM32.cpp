@@ -170,7 +170,8 @@ enum _icmp_ll_enum {
       _num
 };
 // Define a set of constants based on high-level table entries.
-#define X(tag, str) static constexpr int _icmp_hl_##tag = InstIcmp::tag;
+#define X(tag, reverse, str)                                                   \
+  static constexpr int _icmp_hl_##tag = InstIcmp::tag;
 ICEINSTICMP_TABLE
 #undef X
 // Define a set of constants based on low-level table entries, and ensure the
@@ -183,7 +184,7 @@ ICMPARM32_TABLE
 #undef X
 // Repeat the static asserts with respect to the high-level table entries in
 // case the high-level table has extra entries.
-#define X(tag, str)                                                            \
+#define X(tag, reverse, str)                                                   \
   static_assert(                                                               \
       _icmp_hl_##tag == _icmp_ll_##tag,                                        \
       "Inconsistency between ICMPARM32_TABLE and ICEINSTICMP_TABLE: " #tag);

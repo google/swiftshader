@@ -289,6 +289,7 @@ protected:
   //   <Relocatable + Offset>(Base, Index, Shift)
   X86OperandMem *computeAddressOpt(const Inst *Instr, Type MemType,
                                    Operand *Addr);
+  void doAddressOptOther() override;
   void doAddressOptLoad() override;
   void doAddressOptStore() override;
   void doMockBoundsCheck(Operand *Opnd) override;

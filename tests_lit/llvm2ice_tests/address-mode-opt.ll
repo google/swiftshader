@@ -187,3 +187,20 @@ entry:
 ; CHECK: or
 ; CHECK-NOT: movss xmm{{[0-9]+}},DWORD PTR [{{e..}}*4+0xFFFF]
 }
+
+define internal void @invert_icmp(i32* %arg1, i32* %arg2) {
+entry:
+  %addr.other = load i32, i32* %arg2, align 1
+  br label %next
+next:
+  %addr.load = load i32, i32* %arg1, align 1
+  %cond = icmp slt i32 %addr.load, %addr.other
+  br i1 %cond, label %if.then, label %if.else
+if.then:
+  ret void
+if.else:
+  ret void
+; CHECK-LABEL: invert_icmp
+; CHECK: cmp {{e..}},DWORD PTR [{{e..}}]
+; CHECK: jle
+}

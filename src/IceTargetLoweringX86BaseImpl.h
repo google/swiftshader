@@ -5658,6 +5658,39 @@ void TargetX86Base<TraitsType>::lowerLoad(const InstLoad *Load) {
 }
 
 template <typename TraitsType>
+void TargetX86Base<TraitsType>::doAddressOptOther() {
+  // Inverts some Icmp instructions which helps doAddressOptLoad later.
+  // TODO(manasijm): Refactor to unify the conditions for Var0 and Var1
+  Inst *Instr = Context.getCur();
+  auto *VMetadata = Func->getVMetadata();
+  if (auto *Icmp = llvm::dyn_cast<InstIcmp>(Instr)) {
+    if (llvm::isa<Constant>(Icmp->getSrc(0)) ||
+        llvm::isa<Constant>(Icmp->getSrc(1)))
+      return;
+    auto *Var0 = llvm::dyn_cast<Variable>(Icmp->getSrc(0));
+    if (Var0 == nullptr)
+      return;
+    if (!VMetadata->isTracked(Var0))
+      return;
+    auto *Op0Def = VMetadata->getFirstDefinitionSingleBlock(Var0);
+    if (Op0Def == nullptr || !llvm::isa<InstLoad>(Op0Def))
+      return;
+    if (VMetadata->getLocalUseNode(Var0) != Context.getNode())
+      return;
+
+    auto *Var1 = llvm::dyn_cast<Variable>(Icmp->getSrc(1));
+    if (Var1 != nullptr && VMetadata->isTracked(Var1)) {
+      auto *Op1Def = VMetadata->getFirstDefinitionSingleBlock(Var1);
+      if (Op1Def != nullptr && !VMetadata->isMultiBlock(Var1) &&
+          llvm::isa<InstLoad>(Op1Def)) {
+        return; // Both are loads
+      }
+    }
+    Icmp->reverseConditionAndOperands();
+  }
+}
+
+template <typename TraitsType>
 void TargetX86Base<TraitsType>::doAddressOptLoad() {
   Inst *Instr = Context.getCur();
   Operand *Addr = Instr->getSrc(0);

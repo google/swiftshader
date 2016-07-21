@@ -396,6 +396,8 @@ protected:
   virtual void genTargetHelperCallFor(Inst *Instr) = 0;
   virtual uint32_t getCallStackArgumentsSizeBytes(const InstCall *Instr) = 0;
 
+  /// Opportunity to modify other instructions to help Address Optimization
+  virtual void doAddressOptOther() {}
   virtual void doAddressOptLoad() {}
   virtual void doAddressOptStore() {}
   virtual void doMockBoundsCheck(Operand *) {}

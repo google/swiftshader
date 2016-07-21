@@ -65,9 +65,10 @@ const struct InstFcmpAttributes_ {
 // Using non-anonymous struct so that array_lengthof works.
 const struct InstIcmpAttributes_ {
   const char *DisplayString;
+  InstIcmp::ICond Reverse;
 } InstIcmpAttributes[] = {
-#define X(tag, str)                                                            \
-  { str }                                                                      \
+#define X(tag, reverse, str)                                                   \
+  { str, InstIcmp::ICond::reverse }                                            \
   ,
     ICEINSTICMP_TABLE
 #undef X
@@ -1085,6 +1086,10 @@ void InstTarget::dump(const Cfg *Func) const {
 InstBreakpoint::InstBreakpoint(Cfg *Func)
     : InstHighLevel(Func, Inst::Breakpoint, 0, nullptr) {}
 
+void InstIcmp::reverseConditionAndOperands() {
+  Condition = InstIcmpAttributes[Condition].Reverse;
+  std::swap(Srcs[0], Srcs[1]);
+}
 bool checkForRedundantAssign(const Variable *Dest, const Operand *Source) {
   const auto *SrcVar = llvm::dyn_cast<const Variable>(Source);
   if (!SrcVar)

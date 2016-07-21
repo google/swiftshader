@@ -344,6 +344,7 @@ void TargetLowering::genTargetHelperCalls() {
 }
 
 void TargetLowering::doAddressOpt() {
+  doAddressOptOther();
   if (llvm::isa<InstLoad>(*Context.getCur()))
     doAddressOptLoad();
   else if (llvm::isa<InstStore>(*Context.getCur()))
