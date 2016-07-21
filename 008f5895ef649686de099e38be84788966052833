@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4a89b33d_5d517bdc",
+        "filename": "src/Renderer/Renderer.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 791,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-07-21T17:31:27Z",
+      "side": 1,
+      "message": "This seems to add unnecessary complexity",
+      "range": {
+        "startLine": 791,
+        "startChar": 14,
+        "endLine": 791,
+        "endChar": 42
+      },
+      "revId": "008f5895ef649686de099e38be84788966052833",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4a89b33d_fd614fab",
+        "filename": "src/Renderer/Renderer.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 909,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-07-21T17:31:27Z",
+      "side": 1,
+      "message": "Please add parenthesis to clarify",
+      "range": {
+        "startLine": 909,
+        "startChar": 21,
+        "endLine": 909,
+        "endChar": 38
+      },
+      "revId": "008f5895ef649686de099e38be84788966052833",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4a89b33d_bd7ef746",
+        "filename": "src/Renderer/Renderer.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 1292,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-07-21T17:31:27Z",
+      "side": 1,
+      "message": "For debugging purposes, it would be nice to add something like:\nASSERT(primitiveRestartDataIndex \u003c draw-\u003eprimitiveRestartData-\u003edata.size());\nin these functions\u0027 loops.",
+      "range": {
+        "startLine": 1292,
+        "startChar": 55,
+        "endLine": 1292,
+        "endChar": 80
+      },
+      "revId": "008f5895ef649686de099e38be84788966052833",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4a89b33d_5d033bdc",
+        "filename": "src/Renderer/Renderer.hpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 317,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-07-21T17:31:27Z",
+      "side": 1,
+      "message": "nit: extra tabs",
+      "range": {
+        "startLine": 317,
+        "startChar": 0,
+        "endLine": 317,
+        "endChar": 3
+      },
+      "revId": "008f5895ef649686de099e38be84788966052833",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4a89b33d_fdf30f03",
+        "filename": "src/Renderer/Renderer.hpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 435,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-07-21T17:31:27Z",
+      "side": 1,
+      "message": "maybe \"primitives\" would be the generic name here instead of \"simple\". Also, please use camel case for your function names.",
+      "range": {
+        "startLine": 435,
+        "startChar": 43,
+        "endLine": 435,
+        "endChar": 49
+      },
+      "revId": "008f5895ef649686de099e38be84788966052833",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
