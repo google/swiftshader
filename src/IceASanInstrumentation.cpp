@@ -47,7 +47,8 @@ using string_set = std::unordered_set<std::string>;
 const string_map FuncSubstitutions = {{"malloc", "__asan_malloc"},
                                       {"free", "__asan_free"},
                                       {"calloc", "__asan_calloc"},
-                                      {"__asan_dummy_calloc", "__asan_calloc"}};
+                                      {"__asan_dummy_calloc", "__asan_calloc"},
+                                      {"realloc", "__asan_realloc"}};
 const string_set FuncBlackList = {"_Balloc"};
 
 llvm::NaClBitcodeRecord::RecordVector sizeToByteVec(SizeT Size) {

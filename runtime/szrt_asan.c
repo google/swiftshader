@@ -59,11 +59,14 @@ static char *shadow_offset = NULL;
 
 static void __asan_error(char *, int);
 static void __asan_check(char *, int, bool);
+static void __asan_get_redzones(char *, char **, char **);
 
 void __asan_init(int, void **, int *);
 void __asan_check_load(char *, int);
 void __asan_check_store(char *, int);
 void *__asan_malloc(size_t);
+void *__asan_calloc(size_t, size_t);
+void *__asan_realloc(char *, size_t);
 void __asan_free(char *);
 void __asan_poison(char *, int);
 void __asan_unpoison(char *, int);
@@ -87,6 +90,15 @@ static void __asan_check(char *ptr, int size, bool strict) {
       __asan_error(ptr, size);
     }
   }
+}
+
+static void __asan_get_redzones(char *ptr, char **left, char **right) {
+  char *rz_left = ptr - RZ_SIZE;
+  char *rz_right = *(char **)rz_left;
+  if (left != NULL)
+    *left = rz_left;
+  if (right != NULL)
+    *right = rz_right;
 }
 
 void __asan_check_load(char *ptr, int size) {
@@ -161,10 +173,31 @@ void *__asan_calloc(size_t nmemb, size_t size) {
   return ret;
 }
 
+void *__asan_realloc(char *ptr, size_t size) {
+  if (ptr == NULL)
+    return __asan_malloc(size);
+  if (size == 0) {
+    __asan_free(ptr);
+    return NULL;
+  }
+  char *rz_right;
+  __asan_get_redzones(ptr, NULL, &rz_right);
+  size_t old_size = rz_right - ptr;
+  if (size == old_size)
+    return ptr;
+  char *new_alloc = __asan_malloc(size);
+  if (new_alloc == NULL)
+    return NULL;
+  size_t copyable = (size < old_size) ? size : old_size;
+  memcpy(new_alloc, ptr, copyable);
+  __asan_free(ptr);
+  return new_alloc;
+}
+
 void __asan_free(char *ptr) {
   DUMP("free() called on %p\n", ptr);
-  void *rz_left = ptr - RZ_SIZE;
-  void *rz_right = *(void **)rz_left;
+  void *rz_left, *rz_right;
+  __asan_get_redzones(ptr, &rz_left, &rz_right);
   size_t rz_right_size = *(size_t *)rz_right;
   __asan_unpoison(rz_left, RZ_SIZE);
   __asan_unpoison(rz_right, rz_right_size);
