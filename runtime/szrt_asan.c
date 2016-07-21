@@ -196,7 +196,7 @@ void *__asan_realloc(char *ptr, size_t size) {
 
 void __asan_free(char *ptr) {
   DUMP("free() called on %p\n", ptr);
-  void *rz_left, *rz_right;
+  char *rz_left, *rz_right;
   __asan_get_redzones(ptr, &rz_left, &rz_right);
   size_t rz_right_size = *(size_t *)rz_right;
   __asan_unpoison(rz_left, RZ_SIZE);

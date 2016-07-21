@@ -4,32 +4,32 @@
 
 ; check with a one off the end local access
 ; RUN: llvm-as %s -o - | pnacl-freeze > %t.pexe && %S/../../pydir/szbuild.py \
-; RUN:     --fsanitize-address --sz="-allow-externally-defined-symbols" \
+; RUN:     --fsanitize-address --sz=-allow-externally-defined-symbols \
 ; RUN:     %t.pexe -o %t && %t 2>&1 | FileCheck %s
 
 ; check with a many off the end local access
 ; RUN: llvm-as %s -o - | pnacl-freeze > %t.pexe && %S/../../pydir/szbuild.py \
-; RUN:     --fsanitize-address --sz="-allow-externally-defined-symbols" \
+; RUN:     --fsanitize-address --sz=-allow-externally-defined-symbols \
 ; RUN:     %t.pexe -o %t && %t 1 2>&1 | FileCheck %s
 
 ; check with a one before the front local access
 ; RUN: llvm-as %s -o - | pnacl-freeze > %t.pexe && %S/../../pydir/szbuild.py \
-; RUN:     --fsanitize-address --sz="-allow-externally-defined-symbols" \
+; RUN:     --fsanitize-address --sz=-allow-externally-defined-symbols \
 ; RUN:     %t.pexe -o %t && %t 1 2 2>&1 | FileCheck %s
 
 ; check with a one off the end global access
 ; RUN: llvm-as %s -o - | pnacl-freeze > %t.pexe && %S/../../pydir/szbuild.py \
-; RUN:     --fsanitize-address --sz="-allow-externally-defined-symbols" \
+; RUN:     --fsanitize-address --sz=-allow-externally-defined-symbols \
 ; RUN:     %t.pexe -o %t && %t 1 2 3 2>&1 | FileCheck %s
 
 ; check with a many off the end global access
 ; RUN: llvm-as %s -o - | pnacl-freeze > %t.pexe && %S/../../pydir/szbuild.py \
-; RUN:     --fsanitize-address --sz="-allow-externally-defined-symbols" \
+; RUN:     --fsanitize-address --sz=-allow-externally-defined-symbols \
 ; RUN:     %t.pexe -o %t && %t 1 2 3 4 2>&1 | FileCheck %s
 
 ; check with a one before the front global access
 ; RUN: llvm-as %s -o - | pnacl-freeze > %t.pexe && %S/../../pydir/szbuild.py \
-; RUN:     --fsanitize-address --sz="-allow-externally-defined-symbols" \
+; RUN:     --fsanitize-address --sz=-allow-externally-defined-symbols \
 ; RUN:     %t.pexe -o %t && %t 1 2 3 4 5 2>&1 | FileCheck %s
 
 

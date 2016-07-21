@@ -3,7 +3,7 @@
 ; REQUIRES: no_minimal_build
 
 ; RUN: llvm-as %s -o - | pnacl-freeze > %t.pexe && %S/../../pydir/szbuild.py \
-; RUN:     --fsanitize-address --sz="-allow-externally-defined-symbols" \
+; RUN:     --fsanitize-address --sz=-allow-externally-defined-symbols \
 ; RUN:     %t.pexe -o %t && %t 2>&1 | FileCheck %s
 
 
