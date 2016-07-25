@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6a1e77f5_44d54fb4",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-07-25T15:45:56Z",
+      "side": 1,
+      "message": "So, isn\u0027t \u0027q\u0027 used for both depth and lodBias here?",
+      "range": {
+        "startLine": 113,
+        "startChar": 65,
+        "endLine": 113,
+        "endChar": 68
+      },
+      "revId": "c200c561565d9bedf16a83a1fd8863ccf1086602",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6a1e77f5_643bb31f",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2134,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-07-25T15:45:56Z",
+      "side": 1,
+      "message": "New line?",
+      "range": {
+        "startLine": 2134,
+        "startChar": 86,
+        "endLine": 2134,
+        "endChar": 87
+      },
+      "revId": "c200c561565d9bedf16a83a1fd8863ccf1086602",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
