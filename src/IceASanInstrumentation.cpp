@@ -41,15 +41,15 @@ const llvm::NaClBitcodeRecord::RecordVector RzContents =
 
 // In order to instrument the code correctly, the .pexe must not have had its
 // symbols stripped.
-using string_map = std::unordered_map<std::string, std::string>;
-using string_set = std::unordered_set<std::string>;
+using StringMap = std::unordered_map<std::string, std::string>;
+using StringSet = std::unordered_set<std::string>;
 // TODO(tlively): Handle all allocation functions
-const string_map FuncSubstitutions = {{"malloc", "__asan_malloc"},
-                                      {"free", "__asan_free"},
-                                      {"calloc", "__asan_calloc"},
-                                      {"__asan_dummy_calloc", "__asan_calloc"},
-                                      {"realloc", "__asan_realloc"}};
-const string_set FuncBlackList = {"_Balloc"};
+const StringMap FuncSubstitutions = {{"malloc", "__asan_malloc"},
+                                     {"free", "__asan_free"},
+                                     {"calloc", "__asan_calloc"},
+                                     {"__asan_dummy_calloc", "__asan_calloc"},
+                                     {"realloc", "__asan_realloc"}};
+const StringSet FuncBlackList = {"_Balloc"};
 
 llvm::NaClBitcodeRecord::RecordVector sizeToByteVec(SizeT Size) {
   llvm::NaClBitcodeRecord::RecordVector SizeContents;
@@ -62,6 +62,7 @@ llvm::NaClBitcodeRecord::RecordVector sizeToByteVec(SizeT Size) {
 
 } // end of anonymous namespace
 
+ICE_TLS_DEFINE_FIELD(VarSizeMap *, ASanInstrumentation, LocalVars);
 ICE_TLS_DEFINE_FIELD(std::vector<InstCall *> *, ASanInstrumentation,
                      LocalDtors);
 
@@ -157,8 +158,10 @@ std::string ASanInstrumentation::nextRzName() {
 // Check for an alloca signaling the presence of local variables and add a
 // redzone if it is found
 void ASanInstrumentation::instrumentFuncStart(LoweringContext &Context) {
-  if (ICE_TLS_GET_FIELD(LocalDtors) == nullptr)
+  if (ICE_TLS_GET_FIELD(LocalDtors) == nullptr) {
     ICE_TLS_SET_FIELD(LocalDtors, new std::vector<InstCall *>());
+    ICE_TLS_SET_FIELD(LocalVars, new VarSizeMap());
+  }
   Cfg *Func = Context.getNode()->getCfg();
   bool HasLocals = false;
   LoweringContext C;
@@ -179,6 +182,7 @@ void ASanInstrumentation::instrumentFuncStart(LoweringContext &Context) {
     // create the new alloca that includes a redzone
     SizeT VarSize = VarSizeOp->getValue();
     Variable *Dest = Cur->getDest();
+    ICE_TLS_GET_FIELD(LocalVars)->insert({Dest, VarSize});
     SizeT RzPadding = RzSize + Utils::OffsetToAlignment(VarSize, RzSize);
     auto *ByteCount =
         ConstantInteger32::create(Ctx, IceType_i32, VarSize + RzPadding);
@@ -286,10 +290,13 @@ void ASanInstrumentation::instrumentStore(LoweringContext &Context,
                    typeWidthInBytes(Instr->getData()->getType()), Func);
 }
 
-// TODO(tlively): Take size of access into account as well
 void ASanInstrumentation::instrumentAccess(LoweringContext &Context,
                                            Operand *Op, SizeT Size,
                                            Constant *CheckFunc) {
+  VarSizeMap::iterator LocalSize = ICE_TLS_GET_FIELD(LocalVars)->find(Op);
+  if (LocalSize != ICE_TLS_GET_FIELD(LocalVars)->end() &&
+      LocalSize->second >= Size)
+    return;
   constexpr SizeT NumArgs = 2;
   constexpr Variable *Void = nullptr;
   constexpr bool NoTailCall = false;
@@ -342,6 +349,7 @@ void ASanInstrumentation::instrumentStart(Cfg *Func) {
 
 // TODO(tlively): make this more efficient with swap idiom
 void ASanInstrumentation::finishFunc(Cfg *) {
+  ICE_TLS_GET_FIELD(LocalVars)->clear();
   ICE_TLS_GET_FIELD(LocalDtors)->clear();
 }
 

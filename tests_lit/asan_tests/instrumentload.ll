@@ -20,12 +20,13 @@
 @srcGlobal128 = internal global [16 x i8] c"DATADATADATADATA"
 
 ; A function with a local variable that does the loads
-define internal void @doLoads() {
-  %srcLocal8 = alloca i8, i32 1, align 4
-  %srcLocal16 = alloca i8, i32 2, align 4
-  %srcLocal32 = alloca i8, i32 4, align 4
-  %srcLocal64 = alloca i8, i32 8, align 4
-  %srcLocal128 = alloca i8, i32 16, align 4
+define internal void @doLoads(i32 %arg8, i32 %arg16, i32 %arg32, i32 %arg64,
+                              i32 %arg128) {
+  %srcLocal8 = inttoptr i32 %arg8 to i8*
+  %srcLocal16 = inttoptr i32 %arg16 to i16*
+  %srcLocal32 = inttoptr i32 %arg32 to i32*
+  %srcLocal64 = inttoptr i32 %arg64 to i64*
+  %srcLocal128 = inttoptr i32 %arg128 to <4 x i32>*
 
   %ptrConst8 = bitcast [1 x i8]* @srcConst8 to i8*
   %ptrConst16 = bitcast [2 x i8]* @srcConst16 to i16*
@@ -39,12 +40,6 @@ define internal void @doLoads() {
   %ptrGlobal64 = bitcast [8 x i8]* @srcGlobal64 to i64*
   %ptrGlobal128 = bitcast [16 x i8]* @srcGlobal128 to <4 x i32>*
 
-  %ptrLocal8 = bitcast i8* %srcLocal8 to i8*
-  %ptrLocal16 = bitcast i8* %srcLocal16 to i16*
-  %ptrLocal32 = bitcast i8* %srcLocal32 to i32*
-  %ptrLocal64 = bitcast i8* %srcLocal64 to i64*
-  %ptrLocal128 = bitcast i8* %srcLocal128 to <4 x i32>*
-
   %dest1 = load i8, i8* %ptrConst8, align 1
   %dest2 = load i16, i16* %ptrConst16, align 1
   %dest3 = load i32, i32* %ptrConst32, align 1
@@ -57,19 +52,19 @@ define internal void @doLoads() {
   %dest9 = load i64, i64* %ptrGlobal64, align 1
   %dest10 = load <4 x i32>, <4 x i32>* %ptrGlobal128, align 4
 
-  %dest11 = load i8, i8* %ptrLocal8, align 1
-  %dest12 = load i16, i16* %ptrLocal16, align 1
-  %dest13 = load i32, i32* %ptrLocal32, align 1
-  %dest14 = load i64, i64* %ptrLocal64, align 1
-  %dest15 = load <4 x i32>, <4 x i32>* %ptrLocal128, align 4
+  %dest11 = load i8, i8* %srcLocal8, align 1
+  %dest12 = load i16, i16* %srcLocal16, align 1
+  %dest13 = load i32, i32* %srcLocal32, align 1
+  %dest14 = load i64, i64* %srcLocal64, align 1
+  %dest15 = load <4 x i32>, <4 x i32>* %srcLocal128, align 4
 
   ret void
 }
 
 ; DUMP-LABEL: ================ Instrumented CFG ================
-; DUMP-NEXT: define internal void @doLoads() {
+; DUMP-NEXT: define internal void @doLoads(
 ; DUMP-NEXT: __0:
-; DUMP:      call void @__asan_check_load(i32 @srcConst8, i32 1)
+; DUMP-NEXT: call void @__asan_check_load(i32 @srcConst8, i32 1)
 ; DUMP-NEXT: %dest1 = load i8, i8* @srcConst8, align 1
 ; DUMP-NEXT: call void @__asan_check_load(i32 @srcConst16, i32 2)
 ; DUMP-NEXT: %dest2 = load i16, i16* @srcConst16, align 1
@@ -89,15 +84,15 @@ define internal void @doLoads() {
 ; DUMP-NEXT: %dest9 = load i64, i64* @srcGlobal64, align 1
 ; DUMP-NEXT: call void @__asan_check_load(i32 @srcGlobal128, i32 16)
 ; DUMP-NEXT: %dest10 = load <4 x i32>, <4 x i32>* @srcGlobal128, align 4
-; DUMP-NEXT: call void @__asan_check_load(i32 %srcLocal8, i32 1)
-; DUMP-NEXT: %dest11 = load i8, i8* %srcLocal8, align 1
-; DUMP-NEXT: call void @__asan_check_load(i32 %srcLocal16, i32 2)
-; DUMP-NEXT: %dest12 = load i16, i16* %srcLocal16, align 1
-; DUMP-NEXT: call void @__asan_check_load(i32 %srcLocal32, i32 4)
-; DUMP-NEXT: %dest13 = load i32, i32* %srcLocal32, align 1
-; DUMP-NEXT: call void @__asan_check_load(i32 %srcLocal64, i32 8)
-; DUMP-NEXT: %dest14 = load i64, i64* %srcLocal64, align 1
-; DUMP-NEXT: call void @__asan_check_load(i32 %srcLocal128, i32 16)
-; DUMP-NEXT: %dest15 = load <4 x i32>, <4 x i32>* %srcLocal128, align 4
+; DUMP-NEXT: call void @__asan_check_load(i32 %arg8, i32 1)
+; DUMP-NEXT: %dest11 = load i8, i8* %arg8, align 1
+; DUMP-NEXT: call void @__asan_check_load(i32 %arg16, i32 2)
+; DUMP-NEXT: %dest12 = load i16, i16* %arg16, align 1
+; DUMP-NEXT: call void @__asan_check_load(i32 %arg32, i32 4)
+; DUMP-NEXT: %dest13 = load i32, i32* %arg32, align 1
+; DUMP-NEXT: call void @__asan_check_load(i32 %arg64, i32 8)
+; DUMP-NEXT: %dest14 = load i64, i64* %arg64, align 1
+; DUMP-NEXT: call void @__asan_check_load(i32 %arg128, i32 16)
+; DUMP-NEXT: %dest15 = load <4 x i32>, <4 x i32>* %arg128, align 4
 ; DUMP:      ret void
 ; DUMP-NEXT: }
