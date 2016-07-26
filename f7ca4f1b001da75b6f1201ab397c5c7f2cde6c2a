@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2f05714a_76c008f9",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1259,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-07-26T20:24:18Z",
+      "side": 1,
+      "message": "TEXBIAS might be a more generic name that simply indicates that the LOD bias is passed as a separate argument",
+      "range": {
+        "startLine": 1259,
+        "startChar": 32,
+        "endLine": 1259,
+        "endChar": 49
+      },
+      "revId": "f7ca4f1b001da75b6f1201ab397c5c7f2cde6c2a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2f05714a_d662943f",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-07-26T20:24:18Z",
+      "side": 1,
+      "message": "I think I\u0027d rather have an extra \u0027lodBias\u0027 parameter for the sampleTexture function instead of the new LodZero type.",
+      "range": {
+        "startLine": 116,
+        "startChar": 3,
+        "endLine": 131,
+        "endChar": 4
+      },
+      "revId": "f7ca4f1b001da75b6f1201ab397c5c7f2cde6c2a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2f05714a_76fda85d",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 390,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-07-26T20:24:18Z",
+      "side": 1,
+      "message": "Doesn\u0027t this parameter have 2 separate usages now?",
+      "range": {
+        "startLine": 390,
+        "startChar": 15,
+        "endLine": 390,
+        "endChar": 23
+      },
+      "revId": "f7ca4f1b001da75b6f1201ab397c5c7f2cde6c2a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2f05714a_f6c99850",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 2181,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-07-26T20:24:18Z",
+      "side": 1,
+      "message": "Maybe add \"FIXME:\", and we usually put comments above a given line.",
+      "revId": "f7ca4f1b001da75b6f1201ab397c5c7f2cde6c2a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
