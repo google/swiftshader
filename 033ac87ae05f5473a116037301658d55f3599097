@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "efda7963_6e786fd4",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 320,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-07-27T20:47:28Z",
+      "side": 1,
+      "message": "I think this name may cause some confusion, since lodBias is going to be stored in in q most of the time, so I think it shouldn\u0027t be described as \"bias\". Maybe \u0027r\u0027 or \u0027q2\u0027 or something like that...",
+      "range": {
+        "startLine": 320,
+        "startChar": 122,
+        "endLine": 320,
+        "endChar": 126
+      },
+      "revId": "033ac87ae05f5473a116037301658d55f3599097",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
