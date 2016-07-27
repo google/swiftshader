@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2f05714a_37e67743",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 397,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-07-27T19:30:33Z",
+      "side": 1,
+      "message": "why is this code not needed in the case above around line 131?\nAlso, isn\u0027t it going to override what the switch statement above just did? (so shouldn\u0027t the switch statement be put in an \u0027else\u0027 statement?)",
+      "range": {
+        "startLine": 388,
+        "startChar": 4,
+        "endLine": 397,
+        "endChar": 5
+      },
+      "revId": "ad7e2fe0ea0c43b073e6fe0e485b4ce20b9588be",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
