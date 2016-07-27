@@ -22,6 +22,30 @@
       "revId": "ad7e2fe0ea0c43b073e6fe0e485b4ce20b9588be",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "efd5192b_b64a48af",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 397,
+      "author": {
+        "id": 5685
+      },
+      "writtenOn": "2016-07-27T20:26:18Z",
+      "side": 1,
+      "message": "hasFloatTexture() returns true for all of depth formats\ndepth_component16,\ndepth_component32f,\ndepth24_stencil8,\nso there is no need to check for these cases related to depth comparison.",
+      "parentUuid": "2f05714a_37e67743",
+      "range": {
+        "startLine": 388,
+        "startChar": 4,
+        "endLine": 397,
+        "endChar": 5
+      },
+      "revId": "ad7e2fe0ea0c43b073e6fe0e485b4ce20b9588be",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
