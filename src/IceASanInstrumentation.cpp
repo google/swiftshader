@@ -132,6 +132,8 @@ void ASanInstrumentation::instrumentGlobals(VariableDeclarationList &Globals) {
     NewGlobals.push_back(Global);
     NewGlobals.push_back(RzRight);
     RzGlobalsNum += 2;
+
+    GlobalSizes.insert({Global->getName(), Global->getNumBytes()});
   }
 
   // Replace old list of globals, without messing up arena allocators
@@ -297,6 +299,8 @@ void ASanInstrumentation::instrumentAccess(LoweringContext &Context,
   if (LocalSize != ICE_TLS_GET_FIELD(LocalVars)->end() &&
       LocalSize->second >= Size)
     return;
+  if (isOkGlobalAccess(Op, Size))
+    return;
   constexpr SizeT NumArgs = 2;
   constexpr Variable *Void = nullptr;
   constexpr bool NoTailCall = false;
@@ -309,6 +313,16 @@ void ASanInstrumentation::instrumentAccess(LoweringContext &Context,
   Context.setInsertPoint(Context.getCur());
   Context.insert(Call);
   Context.setNext(Next);
+}
+
+// TODO(tlively): Trace back load and store addresses to find their real offsets
+bool ASanInstrumentation::isOkGlobalAccess(Operand *Op, SizeT Size) {
+  auto *Reloc = llvm::dyn_cast<ConstantRelocatable>(Op);
+  if (Reloc == nullptr)
+    return false;
+  RelocOffsetT Offset = Reloc->getOffset();
+  GlobalSizeMap::iterator GlobalSize = GlobalSizes.find(Reloc->getName());
+  return GlobalSize != GlobalSizes.end() && GlobalSize->second - Offset >= Size;
 }
 
 void ASanInstrumentation::instrumentRet(LoweringContext &Context, InstRet *) {

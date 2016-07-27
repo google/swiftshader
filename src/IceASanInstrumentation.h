@@ -26,6 +26,7 @@
 namespace Ice {
 
 using VarSizeMap = std::unordered_map<Operand *, SizeT>;
+using GlobalSizeMap = std::unordered_map<GlobalString, SizeT>;
 
 class ASanInstrumentation : public Instrumentation {
   ASanInstrumentation() = delete;
@@ -41,6 +42,7 @@ public:
 
 private:
   std::string nextRzName();
+  bool isOkGlobalAccess(Operand *Op, SizeT Size);
   bool isInstrumentable(Cfg *Func) override;
   void instrumentFuncStart(LoweringContext &Context) override;
   void instrumentCall(LoweringContext &Context, InstCall *Instr) override;
@@ -53,6 +55,7 @@ private:
   void finishFunc(Cfg *Func) override;
   ICE_TLS_DECLARE_FIELD(VarSizeMap *, LocalVars);
   ICE_TLS_DECLARE_FIELD(std::vector<InstCall *> *, LocalDtors);
+  GlobalSizeMap GlobalSizes;
   std::atomic<uint32_t> RzNum;
   bool DidProcessGlobals = false;
   SizeT RzGlobalsNum = 0;

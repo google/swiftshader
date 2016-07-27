@@ -5,13 +5,6 @@
 ; RUN: %p2i -i %s --args -verbose=inst -threads=0 -fsanitize-address \
 ; RUN:     | FileCheck --check-prefix=DUMP %s
 
-; A global to store data to
-@destGlobal8 = internal global [1 x i8] zeroinitializer
-@destGlobal16 = internal global [2 x i8] zeroinitializer
-@destGlobal32 = internal global [4 x i8] zeroinitializer
-@destGlobal64 = internal global [8 x i8] zeroinitializer
-@destGlobal128 = internal global [16 x i8] zeroinitializer
-
 ; A function with a local variable that does the stores
 define internal void @doStores(<4 x i32> %vecSrc, i32 %arg8, i32 %arg16,
                                i32 %arg32, i32 %arg64, i32 %arg128) {
@@ -20,18 +13,6 @@ define internal void @doStores(<4 x i32> %vecSrc, i32 %arg8, i32 %arg16,
   %destLocal32 = inttoptr i32 %arg32 to i32*
   %destLocal64 = inttoptr i32 %arg64 to i64*
   %destLocal128 = inttoptr i32 %arg128 to <4 x i32>*
-
-  %ptrGlobal8 = bitcast [1 x i8]* @destGlobal8 to i8*
-  %ptrGlobal16 = bitcast [2 x i8]* @destGlobal16 to i16*
-  %ptrGlobal32 = bitcast [4 x i8]* @destGlobal32 to i32*
-  %ptrGlobal64 = bitcast [8 x i8]* @destGlobal64 to i64*
-  %ptrGlobal128 = bitcast [16 x i8]* @destGlobal128 to <4 x i32>*
-
-  store i8 42, i8* %ptrGlobal8, align 1
-  store i16 42, i16* %ptrGlobal16, align 1
-  store i32 42, i32* %ptrGlobal32, align 1
-  store i64 42, i64* %ptrGlobal64, align 1
-  store <4 x i32> %vecSrc, <4 x i32>* %ptrGlobal128, align 4
 
   store i8 42, i8* %destLocal8, align 1
   store i16 42, i16* %destLocal16, align 1
@@ -45,16 +26,6 @@ define internal void @doStores(<4 x i32> %vecSrc, i32 %arg8, i32 %arg16,
 ; DUMP-LABEL: ================ Instrumented CFG ================
 ; DUMP-NEXT: define internal void @doStores(
 ; DUMP-NEXT: __0:
-; DUMP-NEXT: call void @__asan_check_store(i32 @destGlobal8, i32 1)
-; DUMP-NEXT: store i8 42, i8* @destGlobal8, align 1
-; DUMP-NEXT: call void @__asan_check_store(i32 @destGlobal16, i32 2)
-; DUMP-NEXT: store i16 42, i16* @destGlobal16, align 1
-; DUMP-NEXT: call void @__asan_check_store(i32 @destGlobal32, i32 4)
-; DUMP-NEXT: store i32 42, i32* @destGlobal32, align 1
-; DUMP-NEXT: call void @__asan_check_store(i32 @destGlobal64, i32 8)
-; DUMP-NEXT: store i64 42, i64* @destGlobal64, align 1
-; DUMP-NEXT: call void @__asan_check_store(i32 @destGlobal128, i32 16)
-; DUMP-NEXT: store <4 x i32> %vecSrc, <4 x i32>* @destGlobal128, align 4
 ; DUMP-NEXT: call void @__asan_check_store(i32 %arg8, i32 1)
 ; DUMP-NEXT: store i8 42, i8* %arg8, align 1
 ; DUMP-NEXT: call void @__asan_check_store(i32 %arg16, i32 2)
