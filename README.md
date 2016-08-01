@@ -44,7 +44,7 @@ See [docs/Index.md](docs/Index.md).
 Contact
 -----------
 
-Public mailing list: swiftshader@googlegroups.com
+Public mailing list: [swiftshader@googlegroups.com](https://groups.google.com/forum/#!forum/swiftshader)
 
 Bug tracker: https://bugs.chromium.org/p/swiftshader
 
