@@ -514,19 +514,23 @@ void Cfg::shuffleNodes() {
   dump("After basic block shuffling");
 }
 
-void Cfg::localCSE() {
+void Cfg::localCSE(bool AssumeSSA) {
   // Performs basic-block local common-subexpression elimination
   // If we have
   // t1 = op b c
   // t2 = op b c
   // This pass will replace future references to t2 in a basic block by t1
   // Points to note:
-  // 1. Does not assume SSA, but not tested on non-SSA input yet as it is run
-  //    at the beginning.
+  // 1. Assumes SSA by default. To change this, use -lcse=no-ssa
+  //      This is needed if this pass is moved to a point later in the pipeline.
+  //      If variables have a single definition (in the node), CSE can work just
+  //      on the basis of an equality compare on instructions (sans Dest). When
+  //      variables can be updated (hence, non-SSA) the result of a previous
+  //      instruction which used that variable as an operand can not be reused.
   // 2. Leaves removal of instructions to DCE.
   // 3. Only enabled on arithmetic instructions. pnacl-clang (-O2) is expected
   //    to take care of cases not arising from GEP simplification.
-  // 4. By default, two passes are made over each basic block. Control this
+  // 4. By default, a single pass is made over each basic block. Control this
   //    with -lcse-max-iters=N
 
   TimerMarker T(TimerStack::TT_localCse, this);
@@ -575,41 +579,45 @@ void Cfg::localCSE() {
 
   for (CfgNode *Node : getNodes()) {
     CfgUnorderedSet<Inst *, InstHash, InstEq> Seen;
+    // Stores currently available instructions.
 
     CfgUnorderedMap<Variable *, Variable *, VariableHash> Replacements;
     // Combining the above two into a single data structure might consume less
     // memory but will be slower i.e map of Instruction -> Set of Variables
 
     CfgUnorderedMap<Variable *, std::vector<Inst *>, VariableHash> Dependency;
-    // Not necessary for SSA, still keeping it in case this pass is not run at
-    // the beginning. Remove to improve performace.
+    // Maps a variable to the Instructions that depend on it.
+    // a = op1 b c
+    // x = op2 c d
+    // Will result in the map : b -> {a}, c -> {a, x}, d -> {x}
+    // Not necessary for SSA as dependencies will never be invalidated, and the
+    // container will use minimal memory when left unused.
 
-    int IterCount = getFlags().getLocalCseMaxIterations();
+    auto IterCount = getFlags().getLocalCseMaxIterations();
 
-    while (IterCount--) {
-      // TODO : Stats on IterCount -> performance
+    for (uint32_t i = 0; i < IterCount; ++i) {
+      // TODO(manasijm): Stats on IterCount -> performance
       for (Inst &Instr : Node->getInsts()) {
         if (Instr.isDeleted() || !llvm::isa<InstArithmetic>(&Instr))
           continue;
+        if (!AssumeSSA) {
+          // Invalidate replacements
+          auto Iter = Replacements.find(Instr.getDest());
+          if (Iter != Replacements.end()) {
+            Replacements.erase(Iter);
+          }
 
-        // Invalidate replacements
-        auto Iter = Replacements.find(Instr.getDest());
-        if (Iter != Replacements.end()) {
-          Replacements.erase(Iter);
-        }
-
-        // Invalidate 'seen' instructions whose operands were just updated.
-        auto DepIter = Dependency.find(Instr.getDest());
-        if (DepIter != Dependency.end()) {
-          for (auto DepInst : DepIter->second) {
-            Seen.erase(DepInst);
+          // Invalidate 'seen' instructions whose operands were just updated.
+          auto DepIter = Dependency.find(Instr.getDest());
+          if (DepIter != Dependency.end()) {
+            for (auto *DepInst : DepIter->second) {
+              Seen.erase(DepInst);
+            }
           }
         }
-        // The above two can be removed if SSA is assumed.
 
         // Replace - doing this before checking for repetitions might enable
-        // more
-        // optimizations
+        // more optimizations
         for (SizeT i = 0; i < Instr.getSrcSize(); ++i) {
           auto *Opnd = Instr.getSrc(i);
           if (auto *Var = llvm::dyn_cast<Variable>(Opnd)) {
@@ -627,11 +635,13 @@ void Cfg::localCSE() {
         } else { // new
           Seen.insert(&Instr);
 
-          // Update dependencies
-          for (SizeT i = 0; i < Instr.getSrcSize(); ++i) {
-            auto *Opnd = Instr.getSrc(i);
-            if (auto *Var = llvm::dyn_cast<Variable>(Opnd)) {
-              Dependency[Var].push_back(&Instr);
+          if (!AssumeSSA) {
+            // Update dependencies
+            for (SizeT i = 0; i < Instr.getSrcSize(); ++i) {
+              auto *Opnd = Instr.getSrc(i);
+              if (auto *Var = llvm::dyn_cast<Variable>(Opnd)) {
+                Dependency[Var].push_back(&Instr);
+              }
             }
           }
         }

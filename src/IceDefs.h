@@ -308,6 +308,12 @@ enum LivenessMode {
   Liveness_Intervals
 };
 
+enum LCSEOptions {
+  LCSE_Disabled,
+  LCSE_EnabledSSA,  // Default Mode, assumes SSA.
+  LCSE_EnabledNoSSA // Does not assume SSA, to be enabled if CSE is done later.
+};
+
 enum RegAllocKind {
   RAK_Unknown,
   RAK_Global,       /// full, global register allocation

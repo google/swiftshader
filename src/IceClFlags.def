@@ -140,9 +140,14 @@ struct dev_list_flag {};
              "information to stdout at the end of program execution."),        \
     cl::init(false))                                                           \
                                                                                \
-  X(EnableExperimental, bool, dev_opt_flag, "enable-experimental",             \
-    cl::desc("Enable Optimizations not yet part of O2"),                       \
-    cl::init(false))                                                           \
+  X(LocalCSE, Ice::LCSEOptions, dev_opt_flag, "lcse",                          \
+    cl::desc("Local common subexpression elimination"),                        \
+    cl::init(Ice::LCSE_EnabledSSA),                                            \
+    cl::values(                                                                \
+      clEnumValN(Ice::LCSE_Disabled, "0", "disabled"),                         \
+      clEnumValN(Ice::LCSE_EnabledSSA, "enabled", "assume-ssa"),               \
+      clEnumValN(Ice::LCSE_EnabledNoSSA, "no-ssa", "no-assume-ssa"),           \
+      clEnumValEnd))                                                           \
                                                                                \
   X(EnablePhiEdgeSplit, bool, dev_opt_flag, "phi-edge-split",                  \
     cl::desc("Enable edge splitting for Phi lowering"), cl::init(true))        \
@@ -186,8 +191,8 @@ struct dev_list_flag {};
              "building LLVM IR first"),                                        \
     cl::init(false))                                                           \
                                                                                \
-   X(LocalCseMaxIterations, int, dev_opt_flag, "lcse-max-iters",               \
-    cl::desc("Number of times local-cse is run on a block"), cl::init(2))      \
+   X(LocalCseMaxIterations, uint32_t, dev_opt_flag, "lcse-max-iters",          \
+    cl::desc("Number of times local-cse is run on a block"), cl::init(1))      \
                                                                                \
   X(LoopInvariantCodeMotion, bool, dev_opt_flag, "licm",                       \
     cl::desc("Hoist loop invariant arithmetic operations"), cl::init(false))   \

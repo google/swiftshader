@@ -201,7 +201,7 @@ public:
   void advancedPhiLowering();
   void reorderNodes();
   void shuffleNodes();
-  void localCSE();
+  void localCSE(bool AssumeSSA);
   void shortCircuitJumps();
   void loopInvariantCodeMotion();
 

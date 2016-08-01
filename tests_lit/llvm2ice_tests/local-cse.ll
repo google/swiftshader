@@ -1,18 +1,18 @@
 ; Tests local-cse on x8632 and x8664
 
 ; RUN: %p2i -i %s --filetype=obj --disassemble --target x8632 --args \
-; RUN: -O2 -enable-experimental | FileCheck --check-prefix=X8632 \
+; RUN: -O2 | FileCheck --check-prefix=X8632 \
 ; RUN: --check-prefix=X8632EXP %s
 
 ; RUN: %p2i -i %s --filetype=obj --disassemble --target x8632 --args \
-; RUN: -O2 | FileCheck --check-prefix=X8632 --check-prefix X8632NOEXP %s
+; RUN: -O2 -lcse=0| FileCheck --check-prefix=X8632 --check-prefix X8632NOEXP %s
 
 ; RUN: %p2i -i %s --filetype=obj --disassemble --target x8664 --args \
-; RUN: -O2 -enable-experimental | FileCheck --check-prefix=X8664 \
+; RUN: -O2 | FileCheck --check-prefix=X8664 \
 ; RUN: --check-prefix=X8664EXP %s
 
 ; RUN: %p2i -i %s --filetype=obj --disassemble --target x8664 --args \
-; RUN: -O2 | FileCheck --check-prefix=X8664 --check-prefix X8664NOEXP %s
+; RUN: -O2 -lcse=0| FileCheck --check-prefix=X8664 --check-prefix X8664NOEXP %s
 
 
 define internal i32 @local_cse_test(i32 %a, i32 %b) {

@@ -457,8 +457,8 @@ template <typename TraitsType> void TargetX86Base<TraitsType>::translateO2() {
     Func->dump("After LICM");
   }
 
-  if (getFlags().getEnableExperimental()) {
-    Func->localCSE();
+  if (getFlags().getLocalCSE() != Ice::LCSE_Disabled) {
+    Func->localCSE(getFlags().getLocalCSE() == Ice::LCSE_EnabledSSA);
     Func->dump("After Local CSE");
   }
   if (getFlags().getEnableShortCircuit()) {
