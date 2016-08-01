@@ -1661,7 +1661,7 @@ void Cfg::emit() {
   emitTextHeader(FunctionName, Ctx, Asm);
   if (getFlags().getDecorateAsm()) {
     for (Variable *Var : getVariables()) {
-      if (Var->hasStackOffset() && !Var->isRematerializable()) {
+      if (Var->hasKnownStackOffset() && !Var->isRematerializable()) {
         Str << "\t" << Var->getSymbolicStackOffset() << " = "
             << Var->getStackOffset() << "\n";
       }

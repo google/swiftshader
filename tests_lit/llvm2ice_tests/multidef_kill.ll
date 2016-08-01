@@ -10,6 +10,7 @@
 ; REQUIRES: allow_dump
 
 ; RUN: %p2i --target x8632 -i %s --filetype=asm --args -O2 -asm-verbose \
+; RUN:   --split-local-vars=0 \
 ; RUN:   --reg-use=eax,edx -reg-reserve | FileCheck --check-prefix=X8632 %s
 ; RUN: %p2i --target arm32 -i %s --filetype=asm --args -O2 -asm-verbose \
 ; RUN:   | FileCheck --check-prefix=ARM32 %s

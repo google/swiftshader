@@ -150,12 +150,12 @@ next:
 ; CHECK-NEXT: sub    esp,0x40
 ; CHECK-NEXT: mov    ecx,esp
 ; CHECK-NEXT: mov    edx,ecx
-; CHECK-NEXT: add    edx,0x20
-; CHECK-NEXT: add    ecx,0x0
+; CHECK-NEXT: add    ecx,0x20
+; CHECK-NEXT: add    edx,0x0
 ; CHECK-NEXT: sub    esp,0x10
 ; CHECK-NEXT: mov    ebx,esp
-; CHECK-NEXT: mov    DWORD PTR [edx],eax
 ; CHECK-NEXT: mov    DWORD PTR [ecx],eax
+; CHECK-NEXT: mov    DWORD PTR [edx],eax
 ; CHECK-NEXT: mov    DWORD PTR [ebp-0x24],eax
 ; CHECK-NEXT: mov    DWORD PTR [ebp-0x14],eax
 ; CHECK-NEXT: mov    DWORD PTR [ebx],eax

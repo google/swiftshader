@@ -3,7 +3,7 @@
 ; follow a usual pattern).
 
 ; RUN: %p2i --filetype=obj --disassemble --sandbox -i %s --args -O2 \
-; RUN:  -mattr=sse4.1 | FileCheck %s
+; RUN:  -mattr=sse4.1 -split-local-vars=0 | FileCheck %s
 
 define internal <8 x i16> @test_mul_v8i16(<8 x i16> %arg0, <8 x i16> %arg1) {
 entry:

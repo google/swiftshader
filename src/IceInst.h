@@ -111,8 +111,6 @@ public:
   void replaceSource(SizeT Index, Operand *Replacement) {
     assert(Index < getSrcSize());
     assert(!isDeleted());
-    assert(LiveRangesEnded == 0);
-    // Invalidates liveness info because the use Srcs[Index] is removed.
     Srcs[Index] = Replacement;
   }
 
@@ -150,6 +148,15 @@ public:
   /// because of g++ and llvm::ilist<>, so we implement it as
   /// report_fatal_error().
   virtual bool isMemoryWrite() const;
+
+  /// Returns true if the (target-specific) instruction represents an
+  /// intra-block label, i.e. branch target.  This is meant primarily for
+  /// Cfg::splitLocalVars().
+  virtual bool isLabel() const { return false; }
+  /// If the (target-specific) instruction represents an intra-block branch to
+  /// some Label instruction, return that Label branch target instruction;
+  /// otherwise return nullptr.
+  virtual const Inst *getIntraBlockBranchTarget() const { return nullptr; }
 
   void livenessLightweight(Cfg *Func, LivenessBV &Live);
   /// Calculates liveness for this instruction. Returns true if this instruction

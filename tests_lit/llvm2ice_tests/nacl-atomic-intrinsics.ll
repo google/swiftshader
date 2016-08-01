@@ -1402,7 +1402,7 @@ done:
 ;;; Some register will be used in the xadd instruction.
 ; O2: lock xadd DWORD PTR {{.*}},[[REG:e..]]
 ;;; Make sure that register isn't used again, e.g. as the induction variable.
-; O2-NOT: [[REG]]
+; O2-NOT: ,[[REG]]
 ; O2: ret
 
 ; Do the same test for the xchg instruction instead of xadd.
@@ -1423,7 +1423,7 @@ done:
 ;;; Some register will be used in the xchg instruction.
 ; O2: xchg DWORD PTR {{.*}},[[REG:e..]]
 ;;; Make sure that register isn't used again, e.g. as the induction variable.
-; O2-NOT: [[REG]]
+; O2-NOT: ,[[REG]]
 ; O2: ret
 
 ; Same test for cmpxchg.
@@ -1444,7 +1444,7 @@ done:
 ;;; eax and some other register will be used in the cmpxchg instruction.
 ; O2: lock cmpxchg DWORD PTR {{.*}},[[REG:e..]]
 ;;; Make sure eax isn't used again, e.g. as the induction variable.
-; O2-NOT: eax
+; O2-NOT: ,eax
 ; O2: ret
 
 ; Same test for cmpxchg8b.
@@ -1466,5 +1466,5 @@ done:
 ;;; eax and some other register will be used in the cmpxchg instruction.
 ; O2: lock cmpxchg8b QWORD PTR
 ;;; Make sure eax/ecx/edx/ebx aren't used again, e.g. as the induction variable.
-; O2-NOT: {{eax|ecx|edx|ebx}}
+; O2-NOT: ,{{eax|ecx|edx|ebx}}
 ; O2: pop ebx

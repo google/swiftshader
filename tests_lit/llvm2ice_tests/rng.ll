@@ -65,6 +65,7 @@
 ; RUN:    -randomize-regalloc \
 ; RUN:    -nop-insertion \
 ; RUN:    -reorder-pooled-constants \
+; RUN:    -split-local-vars=0 \
 ; RUN:    | FileCheck %s --check-prefix=REGALLOC
 
 ; Command for checking nop insertion (Need to turn off randomize-regalloc)

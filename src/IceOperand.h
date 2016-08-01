@@ -696,12 +696,27 @@ public:
     return IgnoreLiveness || IsRematerializable;
   }
 
+  /// Returns true if the variable either has a definite stack offset, or has
+  /// the UndeterminedStackOffset such that it is guaranteed to have a definite
+  /// stack offset at emission time.
   bool hasStackOffset() const { return StackOffset != InvalidStackOffset; }
+  /// Returns true if the variable has a stack offset that is known at this
+  /// time.
+  bool hasKnownStackOffset() const {
+    return StackOffset != InvalidStackOffset &&
+           StackOffset != UndeterminedStackOffset;
+  }
   int32_t getStackOffset() const {
-    assert(hasStackOffset());
+    assert(hasKnownStackOffset());
     return StackOffset;
   }
   void setStackOffset(int32_t Offset) { StackOffset = Offset; }
+  /// Set a "placeholder" stack offset before its actual offset has been
+  /// determined.
+  void setHasStackOffset() {
+    if (!hasStackOffset())
+      StackOffset = UndeterminedStackOffset;
+  }
   /// Returns the variable's stack offset in symbolic form, to improve
   /// readability in DecorateAsm mode.
   std::string getSymbolicStackOffset() const {
@@ -729,6 +744,7 @@ public:
   bool mustNotHaveReg() const {
     return RegRequirement == RR_MustNotHaveRegister;
   }
+  bool mayHaveReg() const { return RegRequirement == RR_MayHaveRegister; }
   void setRematerializable(RegNumT NewRegNum, int32_t NewOffset) {
     IsRematerializable = true;
     setRegNum(NewRegNum);
@@ -789,6 +805,18 @@ public:
       Root = Root->LinkedTo;
     return Root;
   }
+  /// Follow the LinkedTo chain up to the furthest stack-allocated ancestor.
+  /// This is only certain to be accurate after register allocation and stack
+  /// slot assignment have completed.
+  Variable *getLinkedToStackRoot() const {
+    Variable *FurthestStackVar = nullptr;
+    for (Variable *Root = LinkedTo; Root != nullptr; Root = Root->LinkedTo) {
+      if (!Root->hasReg() && Root->hasStackOffset()) {
+        FurthestStackVar = Root;
+      }
+    }
+    return FurthestStackVar;
+  }
 
   static bool classof(const Operand *Operand) {
     OperandKind Kind = Operand->getKind();
@@ -825,7 +853,10 @@ protected:
   RegNumT RegNum;
   /// RegNumTmp is the tentative assignment during register allocation.
   RegNumT RegNumTmp;
-  static constexpr int32_t InvalidStackOffset = -1;
+  static constexpr int32_t InvalidStackOffset =
+      std::numeric_limits<int32_t>::min();
+  static constexpr int32_t UndeterminedStackOffset =
+      1 + std::numeric_limits<int32_t>::min();
   /// StackOffset is the canonical location on stack (only if
   /// RegNum.hasNoValue() || IsArgument).
   int32_t StackOffset = InvalidStackOffset;

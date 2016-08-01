@@ -76,6 +76,8 @@ public:
   /// @{
   InstList &getInsts() { return Insts; }
   PhiList &getPhis() { return Phis; }
+  const InstList &getInsts() const { return Insts; }
+  const PhiList &getPhis() const { return Phis; }
   void appendInst(Inst *Instr);
   void renumberInstructions();
   /// Rough and generally conservative estimate of the number of instructions in

@@ -159,6 +159,9 @@ struct dev_list_flag {};
   X(ForceO2String, std::string, dev_opt_flag, "force-O2",                      \
     cl::desc("Force -O2 for certain functions (assumes -Om1)"), cl::init(""))  \
                                                                                \
+  X(SplitInstString, std::string, dev_opt_flag, "split-inst",                  \
+    cl::desc("Restrict local var splitting to specific insts"), cl::init(":")) \
+                                                                               \
   X(FunctionSections, bool, dev_opt_flag, "ffunction-sections",                \
     cl::desc("Emit functions into separate sections"))                         \
                                                                                \
@@ -232,6 +235,9 @@ struct dev_list_flag {};
                                                                                \
   X(RandomizeRegisterAllocation, bool, dev_opt_flag, "randomize-regalloc",     \
     cl::desc("Randomize register allocation"), cl::init(false))                \
+                                                                               \
+  X(SplitLocalVars, bool, dev_opt_flag, "split-local-vars", cl::init(true),    \
+    cl::desc("Block-local variable splitting (O2 only)"))                      \
                                                                                \
   X(RandomSeed, unsigned long long, dev_opt_flag, "sz-seed",                   \
     cl::desc("Seed the random number generator"), cl::init(1))                 \

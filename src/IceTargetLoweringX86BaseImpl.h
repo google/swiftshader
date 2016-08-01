@@ -23,11 +23,13 @@
 #include "IceELFObjectWriter.h"
 #include "IceGlobalInits.h"
 #include "IceInstVarIter.h"
+#include "IceInstX86Base.h"
 #include "IceLiveness.h"
 #include "IceOperand.h"
 #include "IcePhiLoweringImpl.h"
 #include "IceUtils.h"
-#include "IceInstX86Base.h"
+#include "IceVariableSplitting.h"
+
 #include "llvm/Support/MathExtras.h"
 
 #include <stack>
@@ -521,6 +523,7 @@ template <typename TraitsType> void TargetX86Base<TraitsType>::translateO2() {
     initSandbox();
   }
   Func->dump("After x86 codegen");
+  splitBlockLocalVariables(Func);
 
   // Register allocation. This requires instruction renumbering and full
   // liveness analysis. Loops must be identified before liveness so variable
@@ -1042,11 +1045,11 @@ void TargetX86Base<TraitsType>::addProlog(CfgNode *Node) {
   // stack slot.
   std::function<bool(Variable *)> TargetVarHook =
       [&VariablesLinkedToSpillSlots](Variable *Var) {
-        if (Var->getLinkedTo() != nullptr) {
-          // TODO(stichnot): This assert won't necessarily be true in the
-          // future.
-          assert(Var->mustNotHaveReg());
-          if (!Var->getLinkedTo()->hasReg()) {
+        // TODO(stichnot): Refactor this into the base class.
+        Variable *Root = Var->getLinkedToStackRoot();
+        if (Root != nullptr) {
+          assert(!Root->hasReg());
+          if (!Root->hasReg()) {
             VariablesLinkedToSpillSlots.push_back(Var);
             return true;
           }
@@ -1210,7 +1213,7 @@ void TargetX86Base<TraitsType>::addProlog(CfgNode *Node) {
   // Assign stack offsets to variables that have been linked to spilled
   // variables.
   for (Variable *Var : VariablesLinkedToSpillSlots) {
-    const Variable *Root = Var->getLinkedToRoot();
+    const Variable *Root = Var->getLinkedToStackRoot();
     assert(Root != nullptr);
     Var->setStackOffset(Root->getStackOffset());
   }
@@ -1348,6 +1351,15 @@ void TargetX86Base<TraitsType>::addEpilog(CfgNode *Node) {
     Context.insert<InstFakeUse>(RetValue);
   }
   RI->setDeleted();
+}
+
+template <typename TraitsType>
+Inst *TargetX86Base<TraitsType>::createLoweredMove(Variable *Dest,
+                                                   Variable *SrcVar) {
+  if (isVectorType(Dest->getType())) {
+    return Traits::Insts::Movp::create(Func, Dest, SrcVar);
+  }
+  return Traits::Insts::Mov::create(Func, Dest, SrcVar);
 }
 
 template <typename TraitsType> Type TargetX86Base<TraitsType>::stackSlotType() {
@@ -3124,7 +3136,7 @@ void TargetX86Base<TraitsType>::lowerCast(const InstCast *Instr) {
       } else {
         Src0 = legalize(Src0);
         if (llvm::isa<X86OperandMem>(Src0)) {
-          Variable *T = Func->makeVariable(DestTy);
+          Variable *T = makeReg(DestTy);
           _movq(T, Src0);
           _movq(Dest, T);
           break;

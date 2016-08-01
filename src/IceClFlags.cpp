@@ -204,6 +204,7 @@ void ClFlags::getParsedClFlags(ClFlags &OutFlags) {
   OutFlags.setDisableHybridAssembly(DisableHybridAssemblyObj ||
                                     (OutFileTypeObj != Ice::FT_Iasm));
   OutFlags.ForceO2.init(OutFlags.getForceO2String());
+  OutFlags.SplitInsts.init(OutFlags.getSplitInstString());
   OutFlags.TestStatus.init(OutFlags.getTestStatusString());
   OutFlags.TimingFocus.init(OutFlags.getTimingFocusOnString());
   OutFlags.TranslateOnly.init(OutFlags.getTranslateOnlyString());

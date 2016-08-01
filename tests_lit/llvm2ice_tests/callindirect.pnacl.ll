@@ -51,9 +51,13 @@ entry:
   call void %__1()
   call void %__1()
   call void %__1()
+  call void %__1()
   ret void
 }
 ; CHECK-LABEL: CallIndirect
+; Use the first call as a barrier in case the register allocator decides to use
+; a scratch register for it but a common preserved register for the rest.
+; CHECK: call
 ; CHECK: call [[REGISTER:[a-z]+]]
 ; CHECK: call [[REGISTER]]
 ; CHECK: call [[REGISTER]]

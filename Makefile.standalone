@@ -326,6 +326,7 @@ SRCS = \
   IceTimerTree.cpp \
   IceTranslator.cpp \
   IceTypes.cpp \
+  IceVariableSplitting.cpp \
   LinuxMallocProfiling.cpp \
   main.cpp \
   PNaClTranslator.cpp

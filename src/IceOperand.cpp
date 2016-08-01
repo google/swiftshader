@@ -208,10 +208,11 @@ const Variable *Variable::asType(const Cfg *Func, Type Ty,
 }
 
 RegWeight Variable::getWeight(const Cfg *Func) const {
-  VariablesMetadata *VMetadata = Func->getVMetadata();
-  return mustHaveReg() ? RegWeight(RegWeight::Inf)
-                       : mustNotHaveReg() ? RegWeight(RegWeight::Zero)
-                                          : VMetadata->getUseWeight(this);
+  if (mustHaveReg())
+    return RegWeight(RegWeight::Inf);
+  if (mustNotHaveReg())
+    return RegWeight(RegWeight::Zero);
+  return Func->getVMetadata()->getUseWeight(this);
 }
 
 void VariableTracking::markUse(MetadataKind TrackingKind, const Inst *Instr,
@@ -540,8 +541,10 @@ void Variable::dump(const Cfg *Func, Ostream &Str) const {
   if (Func->isVerbose(IceV_RegOrigins) ||
       (!hasReg() && !Func->getTarget()->hasComputedFrame())) {
     Str << "%" << getName();
-    if (getLinkedTo() != nullptr)
-      Str << ":%" << getLinkedTo()->getName();
+    for (Variable *Link = getLinkedTo(); Link != nullptr;
+         Link = Link->getLinkedTo()) {
+      Str << ":%" << Link->getName();
+    }
   }
   if (hasReg()) {
     if (Func->isVerbose(IceV_RegOrigins))
@@ -554,7 +557,7 @@ void Variable::dump(const Cfg *Func, Ostream &Str) const {
         hasReg() ? getBaseRegNum() : Func->getTarget()->getFrameOrStackReg();
     Str << "["
         << Func->getTarget()->getRegName(BaseRegisterNumber, IceType_i32);
-    if (hasStackOffset()) {
+    if (hasKnownStackOffset()) {
       int32_t Offset = getStackOffset();
       if (Offset) {
         if (Offset > 0)

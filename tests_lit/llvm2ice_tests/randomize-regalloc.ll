@@ -3,7 +3,7 @@
 ; implementation.
 
 ; RUN: %p2i -i %s --filetype=obj --disassemble --args -O2 -sz-seed=1 \
-; RUN:   -randomize-regalloc \
+; RUN:   -randomize-regalloc -split-local-vars=0 \
 ; RUN:   | FileCheck %s --check-prefix=CHECK_1
 ; RUN: %p2i -i %s --filetype=obj --disassemble --args -Om1 -sz-seed=1 \
 ; RUN:   -randomize-regalloc \
@@ -11,7 +11,7 @@
 
 ; Same tests but with a different seed, just to verify randomness.
 ; RUN: %p2i -i %s --filetype=obj --disassemble --args -O2 -sz-seed=123 \
-; RUN:   -randomize-regalloc \
+; RUN:   -randomize-regalloc -split-local-vars=0 \
 ; RUN:   | FileCheck %s --check-prefix=CHECK_123
 ; RUN: %p2i -i %s --filetype=obj --disassemble --args -Om1 -sz-seed=123 \
 ; RUN:   -randomize-regalloc \

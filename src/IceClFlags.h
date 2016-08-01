@@ -168,6 +168,9 @@ public:
   bool matchForceO2(GlobalString Name, uint32_t Number) const {
     return ForceO2.match(Name, Number);
   }
+  bool matchSplitInsts(const std::string &Name, uint32_t Number) const {
+    return SplitInsts.match(Name, Number);
+  }
   bool matchTestStatus(GlobalString Name, uint32_t Number) const {
     return TestStatus.match(Name, Number);
   }
@@ -191,6 +194,7 @@ private:
   bool GenerateUnitTestMessages;
 
   RangeSpec ForceO2;
+  RangeSpec SplitInsts;
   RangeSpec TestStatus;
   RangeSpec TimingFocus;
   RangeSpec TranslateOnly;

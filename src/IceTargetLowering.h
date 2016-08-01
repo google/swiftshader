@@ -321,6 +321,16 @@ public:
   virtual void addProlog(CfgNode *Node) = 0;
   virtual void addEpilog(CfgNode *Node) = 0;
 
+  /// Create a properly-typed "mov" instruction.  This is primarily for local
+  /// variable splitting.
+  virtual Inst *createLoweredMove(Variable *Dest, Variable *SrcVar) {
+    // TODO(stichnot): make pure virtual by implementing for all targets
+    (void)Dest;
+    (void)SrcVar;
+    llvm::report_fatal_error("createLoweredMove() unimplemented");
+    return nullptr;
+  }
+
   virtual ~TargetLowering() = default;
 
 private:

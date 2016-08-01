@@ -337,6 +337,7 @@ template <typename TraitsType> struct InstImpl {
     uint32_t getEmitInstCount() const override { return 0; }
     GlobalString getLabelName() const { return Name; }
     SizeT getLabelNumber() const { return LabelNumber; }
+    bool isLabel() const override { return true; }
     void emit(const Cfg *Func) const override;
     void emitIAS(const Cfg *Func) const override;
     void dump(const Cfg *Func) const override;
@@ -412,6 +413,7 @@ template <typename TraitsType> struct InstImpl {
     bool isUnconditionalBranch() const override {
       return !Label && Condition == Cond::Br_None;
     }
+    const Inst *getIntraBlockBranchTarget() const override { return Label; }
     bool repointEdges(CfgNode *OldNode, CfgNode *NewNode) override;
     void emit(const Cfg *Func) const override;
     void emitIAS(const Cfg *Func) const override;

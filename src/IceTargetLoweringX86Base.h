@@ -220,6 +220,8 @@ public:
   InstructionSetEnum getInstructionSet() const { return InstructionSet; }
   Operand *legalizeUndef(Operand *From, RegNumT RegNum = RegNumT());
 
+  Inst *createLoweredMove(Variable *Dest, Variable *SrcVar) override;
+
 protected:
   const bool NeedSandboxing;
 

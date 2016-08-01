@@ -1090,9 +1090,10 @@ void InstIcmp::reverseConditionAndOperands() {
   Condition = InstIcmpAttributes[Condition].Reverse;
   std::swap(Srcs[0], Srcs[1]);
 }
+
 bool checkForRedundantAssign(const Variable *Dest, const Operand *Source) {
   const auto *SrcVar = llvm::dyn_cast<const Variable>(Source);
-  if (!SrcVar)
+  if (SrcVar == nullptr)
     return false;
   if (Dest->hasReg() && Dest->getRegNum() == SrcVar->getRegNum()) {
     // TODO: On x86-64, instructions like "mov eax, eax" are used to clear the
@@ -1101,11 +1102,22 @@ bool checkForRedundantAssign(const Variable *Dest, const Operand *Source) {
   }
   if (!Dest->hasReg() && !SrcVar->hasReg()) {
     if (!Dest->hasStackOffset() || !SrcVar->hasStackOffset()) {
+      // If called before stack slots have been assigned (i.e. as part of the
+      // dump() routine), conservatively return false.
       return false;
     }
     if (Dest->getStackOffset() != SrcVar->getStackOffset()) {
       return false;
     }
+    return true;
+  }
+  // For a "v=t" assignment where t has a register, v has a stack slot, and v
+  // has a LinkedTo stack root, and v and t share the same LinkedTo root, return
+  // true.  This is because this assignment is effectively reassigning the same
+  // value to the original LinkedTo stack root.
+  if (SrcVar->hasReg() && Dest->hasStackOffset() &&
+      Dest->getLinkedToStackRoot() != nullptr &&
+      Dest->getLinkedToRoot() == SrcVar->getLinkedToRoot()) {
     return true;
   }
   return false;
