@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d4954efc_7d0f573d",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2237,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-08-02T18:48:35Z",
+      "side": 1,
+      "message": "Can\u0027t this overflow?",
+      "range": {
+        "startLine": 2237,
+        "startChar": 48,
+        "endLine": 2237,
+        "endChar": 69
+      },
+      "revId": "66afaac2b50b674b366e6a4843453b4f5525b8a3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6f34c9be_b512f905",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2253,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-08-02T18:48:35Z",
+      "side": 1,
+      "message": "can be 1 line:\nilod \u003d Min(Max(ilod + base, base), MIPMAP_LEVELS - 1);",
+      "range": {
+        "startLine": 2252,
+        "startChar": 3,
+        "endLine": 2253,
+        "endChar": 50
+      },
+      "revId": "66afaac2b50b674b366e6a4843453b4f5525b8a3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
