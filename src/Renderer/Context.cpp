@@ -550,7 +550,7 @@ namespace sw
 		{
 			if(!preTransformed)
 			{
-				if(vertexShader->output[T0 + coordinate][component].usage == Shader::USAGE_TEXCOORD)
+				if(vertexShader->getOutput(T0 + coordinate, component).usage == Shader::USAGE_TEXCOORD)
 				{
 					hasTexture = true;
 				}
@@ -1260,7 +1260,7 @@ namespace sw
 
 		if(vertexShader)
 		{
-			vertexDiffuse = vertexShader->output[C0][component].active();
+			vertexDiffuse = vertexShader->getOutput(C0, component).active();
 		}
 		else if(!preTransformed)
 		{
@@ -1327,7 +1327,7 @@ namespace sw
 		}
 		else
 		{
-			vertexSpecular = vertexShader->output[C1][component].active();
+			vertexSpecular = vertexShader->getOutput(C1, component).active();
 		}
 
 		// Pixel processor requires specular component

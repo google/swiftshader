@@ -27,6 +27,7 @@ namespace sw
 		positionRegister = Pos;
 		pointSizeRegister = Unused;
 		instanceIdDeclared = false;
+		textureSampling = false;
 
 		for(int i = 0; i < MAX_VERTEX_INPUTS; i++)
 		{
@@ -59,6 +60,7 @@ namespace sw
 		positionRegister = Pos;
 		pointSizeRegister = Unused;
 		instanceIdDeclared = false;
+		textureSampling = false;
 
 		for(int i = 0; i < MAX_VERTEX_INPUTS; i++)
 		{
@@ -147,6 +149,41 @@ namespace sw
 	bool VertexShader::containsTextureSampling() const
 	{
 		return textureSampling;
+	}
+
+	void VertexShader::setInput(int inputIdx, const sw::Shader::Semantic& semantic)
+	{
+		input[inputIdx] = semantic;
+	}
+
+	void VertexShader::setOutput(int outputIdx, int nbComponents, const sw::Shader::Semantic& semantic)
+	{
+		for(int i = 0; i < nbComponents; ++i)
+		{
+			output[outputIdx][i] = semantic;
+		}
+	}
+
+	void VertexShader::setPositionRegister(int posReg)
+	{
+		setOutput(posReg, 4, sw::Shader::Semantic(sw::Shader::USAGE_POSITION, 0));
+		positionRegister = posReg;
+	}
+	
+	void VertexShader::setPointSizeRegister(int ptSizeReg)
+	{
+		setOutput(ptSizeReg, 4, sw::Shader::Semantic(sw::Shader::USAGE_PSIZE, 0));
+		pointSizeRegister = ptSizeReg;
+	}
+
+	const sw::Shader::Semantic& VertexShader::getInput(int inputIdx) const
+	{
+		return input[inputIdx];
+	}
+
+	const sw::Shader::Semantic& VertexShader::getOutput(int outputIdx, int component) const
+	{
+		return output[outputIdx][component];
 	}
 
 	void VertexShader::analyze()

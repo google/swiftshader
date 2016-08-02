@@ -31,21 +31,31 @@ namespace sw
 		static int validate(const unsigned long *const token);   // Returns number of instructions if valid
 		bool containsTextureSampling() const;
 
-		virtual void analyze();
+		void setInput(int inputIdx, const Semantic& semantic);
+		void setOutput(int outputIdx, int nbComponents, const Semantic& semantic);
+		void setPositionRegister(int posReg);
+		void setPointSizeRegister(int ptSizeReg);
+		void declareInstanceId() { instanceIdDeclared = true; }
 
-		int positionRegister;     // FIXME: Private
-		int pointSizeRegister;    // FIXME: Private
-
-		bool instanceIdDeclared;
-
-		Semantic input[MAX_VERTEX_INPUTS];        // FIXME: Private
-		Semantic output[MAX_VERTEX_OUTPUTS][4];   // FIXME: Private
+		const Semantic& getInput(int inputIdx) const;
+		const Semantic& getOutput(int outputIdx, int component) const;
+		int getPositionRegister() const { return positionRegister; }
+		int getPointSizeRegister() const { return pointSizeRegister; }
+		bool isInstanceIdDeclared() const { return instanceIdDeclared; }
 
 	private:
+		void analyze();
 		void analyzeInput();
 		void analyzeOutput();
 		void analyzeTextureSampling();
 
+		Semantic input[MAX_VERTEX_INPUTS];
+		Semantic output[MAX_VERTEX_OUTPUTS][4];
+
+		int positionRegister;
+		int pointSizeRegister;
+
+		bool instanceIdDeclared;
 		bool textureSampling;
 	};
 }

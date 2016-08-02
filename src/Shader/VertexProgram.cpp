@@ -50,7 +50,7 @@ namespace sw
 			enableContinue = Int4(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF);
 		}
 
-		if(shader->instanceIdDeclared)
+		if(shader->isInstanceIdDeclared())
 		{
 			instanceID = *Pointer<Int>(data + OFFSET(DrawData,instanceID));
 		}
@@ -596,7 +596,7 @@ namespace sw
 		{
 			for(int i = 0; i < MAX_VERTEX_OUTPUTS; i++)
 			{
-				unsigned char usage = shader->output[i][0].usage;
+				unsigned char usage = shader->getOutput(i, 0).usage;
 
 				switch(usage)
 				{

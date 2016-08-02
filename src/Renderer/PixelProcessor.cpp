@@ -1111,7 +1111,7 @@ namespace sw
 			{
 				for(int component = 0; component < 4; component++)
 				{
-					const Shader::Semantic &semantic = context->pixelShader->semantic[interpolant][component];
+					const Shader::Semantic &semantic = context->pixelShader->getInput(interpolant, component);
 
 					if(semantic.active())
 					{
@@ -1140,7 +1140,7 @@ namespace sw
 			{
 				for(int component = 0; component < 4; component++)
 				{
-					state.interpolant[interpolant].centroid = context->pixelShader->semantic[interpolant][0].centroid;
+					state.interpolant[interpolant].centroid = context->pixelShader->getInput(interpolant, 0).centroid;
 				}
 			}
 		}
