@@ -696,9 +696,9 @@ void TargetMIPS32::lowerArguments() {
       auto *RegisterArg64 = llvm::cast<Variable64On32>(RegisterArg);
       RegisterArg64->initHiLo(Func);
       RegisterArg64->getLo()->setRegNum(
-          RegNumT::fixme(RegMIPS32::getI64PairFirstGPRNum(RegNum)));
+          RegNumT::fixme(RegMIPS32::get64PairFirstRegNum(RegNum)));
       RegisterArg64->getHi()->setRegNum(
-          RegNumT::fixme(RegMIPS32::getI64PairSecondGPRNum(RegNum)));
+          RegNumT::fixme(RegMIPS32::get64PairSecondRegNum(RegNum)));
     } break;
     }
     Context.insert<InstAssign>(Arg, RegisterArg);
@@ -1710,9 +1710,9 @@ void TargetMIPS32::lowerCall(const InstCall *Instr) {
       Operand *Lo = loOperand(Arg);
       Operand *Hi = hiOperand(Arg);
       GPRArgs.push_back(
-          std::make_pair(Lo, RegMIPS32::getI64PairFirstGPRNum(Reg)));
+          std::make_pair(Lo, RegMIPS32::get64PairFirstRegNum(Reg)));
       GPRArgs.push_back(
-          std::make_pair(Hi, RegMIPS32::getI64PairSecondGPRNum(Reg)));
+          std::make_pair(Hi, RegMIPS32::get64PairSecondRegNum(Reg)));
     } else if (isScalarIntegerType(Ty)) {
       GPRArgs.push_back(std::make_pair(Arg, Reg));
     } else {
