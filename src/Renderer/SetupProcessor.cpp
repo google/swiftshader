@@ -73,7 +73,7 @@ namespace sw
 	{
 		State state;
 
-		bool vPosZW = (context->pixelShader && context->pixelShader->vPosDeclared && fullPixelPositionRegister);
+		bool vPosZW = (context->pixelShader && context->pixelShader->isVPosDeclared() && fullPixelPositionRegister);
 
 		state.isDrawPoint = context->isDrawPoint(true);
 		state.isDrawLine = context->isDrawLine(true);
@@ -86,7 +86,7 @@ namespace sw
 		state.cullMode = context->cullMode;
 		state.twoSidedStencil = context->stencilActive() && context->twoSidedStencil;
 		state.slopeDepthBias = slopeDepthBias != 0.0f;
-		state.vFace = context->pixelShader && context->pixelShader->vFaceDeclared;
+		state.vFace = context->pixelShader && context->pixelShader->isVFaceDeclared();
 
 		state.positionRegister = Pos;
 		state.pointSizeRegister = Unused;
@@ -96,8 +96,8 @@ namespace sw
 
 		if(context->vertexShader)
 		{
-			state.positionRegister = context->vertexShader->positionRegister;
-			state.pointSizeRegister = context->vertexShader->pointSizeRegister;
+			state.positionRegister = context->vertexShader->getPositionRegister();
+			state.pointSizeRegister = context->vertexShader->getPointSizeRegister();
 		}
 		else if(context->pointSizeActive())
 		{
@@ -129,14 +129,14 @@ namespace sw
 				for(int component = 0; component < 4; component++)
 				{
 					int project = context->isProjectionComponent(interpolant - 2, component) ? 1 : 0;
-					const Shader::Semantic& semantic = context->pixelShader->semantic[interpolant][component - project];
+					const Shader::Semantic& semantic = context->pixelShader->getInput(interpolant, component - project);
 
 					if(semantic.active())
 					{
 						int input = interpolant;
 						for(int i = 0; i < MAX_VERTEX_OUTPUTS; i++)
 						{
-							if(semantic == context->vertexShader->output[i][component - project])
+							if(semantic == context->vertexShader->getOutput(i, component - project))
 							{
 								input = i;
 								break;
@@ -163,7 +163,7 @@ namespace sw
 			{
 				for(int component = 0; component < 4; component++)
 				{
-					const Shader::Semantic& semantic = context->pixelShader->semantic[interpolant][component];
+					const Shader::Semantic& semantic = context->pixelShader->getInput(interpolant, component);
 
 					switch(semantic.usage)
 					{

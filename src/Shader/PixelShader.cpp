@@ -34,7 +34,7 @@ namespace sw
 				append(new sw::Shader::Instruction(*ps->getInstruction(i)));
 			}
 
-			memcpy(semantic, ps->semantic, sizeof(semantic));
+			memcpy(input, ps->input, sizeof(input));
 			vPosDeclared = ps->vPosDeclared;
 			vFaceDeclared = ps->vFaceDeclared;
 			usedSamplers = ps->usedSamplers;
@@ -125,17 +125,30 @@ namespace sw
 
 	bool PixelShader::usesDiffuse(int component) const
 	{
-		return semantic[0][component].active();
+		return input[0][component].active();
 	}
 
 	bool PixelShader::usesSpecular(int component) const
 	{
-		return semantic[1][component].active();
+		return input[1][component].active();
 	}
 
 	bool PixelShader::usesTexture(int coordinate, int component) const
 	{
-		return semantic[2 + coordinate][component].active();
+		return input[2 + coordinate][component].active();
+	}
+
+	void PixelShader::setInput(int inputIdx, int nbComponents, const sw::Shader::Semantic& semantic)
+	{
+		for(int i = 0; i < nbComponents; ++i)
+		{
+			input[inputIdx][i] = semantic;
+		}
+	}
+
+	const sw::Shader::Semantic& PixelShader::getInput(int inputIdx, int component) const
+	{
+		return input[inputIdx][component];
 	}
 
 	void PixelShader::analyze()
@@ -188,22 +201,22 @@ namespace sw
 		if(version < 0x0300)
 		{
 			// Set default mapping; disable unused interpolants below
-			semantic[0][0] = Semantic(Shader::USAGE_COLOR, 0);
-			semantic[0][1] = Semantic(Shader::USAGE_COLOR, 0);
-			semantic[0][2] = Semantic(Shader::USAGE_COLOR, 0);
-			semantic[0][3] = Semantic(Shader::USAGE_COLOR, 0);
+			input[0][0] = Semantic(Shader::USAGE_COLOR, 0);
+			input[0][1] = Semantic(Shader::USAGE_COLOR, 0);
+			input[0][2] = Semantic(Shader::USAGE_COLOR, 0);
+			input[0][3] = Semantic(Shader::USAGE_COLOR, 0);
 
-			semantic[1][0] = Semantic(Shader::USAGE_COLOR, 1);
-			semantic[1][1] = Semantic(Shader::USAGE_COLOR, 1);
-			semantic[1][2] = Semantic(Shader::USAGE_COLOR, 1);
-			semantic[1][3] = Semantic(Shader::USAGE_COLOR, 1);
+			input[1][0] = Semantic(Shader::USAGE_COLOR, 1);
+			input[1][1] = Semantic(Shader::USAGE_COLOR, 1);
+			input[1][2] = Semantic(Shader::USAGE_COLOR, 1);
+			input[1][3] = Semantic(Shader::USAGE_COLOR, 1);
 
 			for(int i = 0; i < 8; i++)
 			{
-				semantic[2 + i][0] = Semantic(Shader::USAGE_TEXCOORD, i);
-				semantic[2 + i][1] = Semantic(Shader::USAGE_TEXCOORD, i);
-				semantic[2 + i][2] = Semantic(Shader::USAGE_TEXCOORD, i);
-				semantic[2 + i][3] = Semantic(Shader::USAGE_TEXCOORD, i);
+				input[2 + i][0] = Semantic(Shader::USAGE_TEXCOORD, i);
+				input[2 + i][1] = Semantic(Shader::USAGE_TEXCOORD, i);
+				input[2 + i][2] = Semantic(Shader::USAGE_TEXCOORD, i);
+				input[2 + i][3] = Semantic(Shader::USAGE_TEXCOORD, i);
 			}
 
 			Shader::SamplerType samplerType[16];
@@ -660,7 +673,7 @@ namespace sw
 				{
 					if(!interpolant[index][component])
 					{
-						semantic[index][component] = Semantic();
+						input[index][component] = Semantic();
 					}
 				}
 			}
@@ -678,10 +691,10 @@ namespace sw
 						unsigned char mask = instruction[i]->dst.mask;
 						unsigned char reg = instruction[i]->dst.index;
 
-						if(mask & 0x01)	semantic[reg][0] = Semantic(usage, index);
-						if(mask & 0x02) semantic[reg][1] = Semantic(usage, index);
-						if(mask & 0x04) semantic[reg][2] = Semantic(usage, index);
-						if(mask & 0x08)	semantic[reg][3] = Semantic(usage, index);
+						if(mask & 0x01)	input[reg][0] = Semantic(usage, index);
+						if(mask & 0x02) input[reg][1] = Semantic(usage, index);
+						if(mask & 0x04) input[reg][2] = Semantic(usage, index);
+						if(mask & 0x08)	input[reg][3] = Semantic(usage, index);
 					}
 					else if(instruction[i]->dst.type == Shader::PARAMETER_MISCTYPE)
 					{
@@ -713,10 +726,10 @@ namespace sw
 					switch(instruction[i]->dst.type)
 					{
 					case Shader::PARAMETER_INPUT:
-						semantic[reg][0].centroid = centroid;
+						input[reg][0].centroid = centroid;
 						break;
 					case Shader::PARAMETER_TEXTURE:
-						semantic[2 + reg][0].centroid = centroid;
+						input[2 + reg][0].centroid = centroid;
 						break;
 					default:
 						break;

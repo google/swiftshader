@@ -1148,20 +1148,14 @@ namespace gl
 
 						for(int i = 0; i < registers; i++)
 						{
-							if(components >= 1) vertexBinary->output[out + i][0] = sw::Shader::Semantic(sw::Shader::USAGE_COLOR, in + i);
-							if(components >= 2) vertexBinary->output[out + i][1] = sw::Shader::Semantic(sw::Shader::USAGE_COLOR, in + i);
-							if(components >= 3) vertexBinary->output[out + i][2] = sw::Shader::Semantic(sw::Shader::USAGE_COLOR, in + i);
-							if(components >= 4) vertexBinary->output[out + i][3] = sw::Shader::Semantic(sw::Shader::USAGE_COLOR, in + i);
+							vertexBinary->setOutput(out + i, components, sw::Shader::Semantic(sw::Shader::USAGE_COLOR, in + i));
 						}
 					}
 					else   // Vertex varying is declared but not written to
 					{
 						for(int i = 0; i < registers; i++)
 						{
-							if(components >= 1) pixelBinary->semantic[in + i][0] = sw::Shader::Semantic();
-							if(components >= 2) pixelBinary->semantic[in + i][1] = sw::Shader::Semantic();
-							if(components >= 3) pixelBinary->semantic[in + i][2] = sw::Shader::Semantic();
-							if(components >= 4) pixelBinary->semantic[in + i][3] = sw::Shader::Semantic();
+							pixelBinary->setInput(in + i, components, sw::Shader::Semantic());
 						}
 					}
 

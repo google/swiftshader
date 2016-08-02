@@ -36,18 +36,24 @@ namespace sw
 		bool usesSpecular(int component) const;
 		bool usesTexture(int coordinate, int component) const;
 
-		virtual void analyze();
+		void setInput(int inputIdx, int nbComponents, const Semantic& semantic);
+		const Semantic& getInput(int inputIdx, int component) const;
 
-		Semantic semantic[MAX_FRAGMENT_INPUTS][4];   // FIXME: Private
-
-		bool vPosDeclared;
-		bool vFaceDeclared;
+		void declareVPos() { vPosDeclared = true; }
+		void declareVFace() { vFaceDeclared = true; }
+		bool isVPosDeclared() const { return vPosDeclared; }
+		bool isVFaceDeclared() const { return vFaceDeclared; }
 
 	private:
+		void analyze();
 		void analyzeZOverride();
 		void analyzeKill();
 		void analyzeInterpolants();
 
+		Semantic input[MAX_FRAGMENT_INPUTS][4];
+
+		bool vPosDeclared;
+		bool vFaceDeclared;
 		bool zOverride;
 		bool kill;
 		bool centroid;

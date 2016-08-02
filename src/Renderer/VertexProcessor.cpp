@@ -909,8 +909,8 @@ namespace sw
 
 		state.fixedFunction = !context->vertexShader && context->pixelShaderVersion() < 0x0300;
 		state.textureSampling = context->vertexShader ? context->vertexShader->containsTextureSampling() : false;
-		state.positionRegister = context->vertexShader ? context->vertexShader->positionRegister : Pos;
-		state.pointSizeRegister = context->vertexShader ? context->vertexShader->pointSizeRegister : Pts;
+		state.positionRegister = context->vertexShader ? context->vertexShader->getPositionRegister() : Pos;
+		state.pointSizeRegister = context->vertexShader ? context->vertexShader->getPointSizeRegister() : Pts;
 
 		state.vertexBlendMatrixCount = context->vertexBlendMatrixCountActive();
 		state.indexedVertexBlendEnable = context->indexedVertexBlendActive();
@@ -985,10 +985,10 @@ namespace sw
 		{
 			for(int i = 0; i < MAX_VERTEX_OUTPUTS; i++)
 			{
-				state.output[i].xWrite = context->vertexShader->output[i][0].active();
-				state.output[i].yWrite = context->vertexShader->output[i][1].active();
-				state.output[i].zWrite = context->vertexShader->output[i][2].active();
-				state.output[i].wWrite = context->vertexShader->output[i][3].active();
+				state.output[i].xWrite = context->vertexShader->getOutput(i, 0).active();
+				state.output[i].yWrite = context->vertexShader->getOutput(i, 1).active();
+				state.output[i].zWrite = context->vertexShader->getOutput(i, 2).active();
+				state.output[i].wWrite = context->vertexShader->getOutput(i, 3).active();
 			}
 		}
 		else if(!context->preTransformed || context->pixelShaderVersion() < 0x0300)

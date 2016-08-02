@@ -593,7 +593,6 @@ namespace sw
 		};
 
 		void optimize();
-		virtual void analyze() = 0;
 
 		// FIXME: Private
 		unsigned int dirtyConstantsF;

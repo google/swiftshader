@@ -2597,9 +2597,9 @@ namespace glsl
 		case EvqConstReadOnly:       return temporaryRegister(operand);
 		case EvqPosition:            return varyingRegister(operand);
 		case EvqPointSize:           return varyingRegister(operand);
-		case EvqInstanceID:          vertexShader->instanceIdDeclared = true; return 0;
-		case EvqFragCoord:           pixelShader->vPosDeclared = true;  return 0;
-		case EvqFrontFacing:         pixelShader->vFaceDeclared = true; return 1;
+		case EvqInstanceID:          vertexShader->declareInstanceId(); return 0;
+		case EvqFragCoord:           pixelShader->declareVPos();  return 0;
+		case EvqFrontFacing:         pixelShader->declareVFace(); return 1;
 		case EvqPointCoord:          return varyingRegister(operand);
 		case EvqFragColor:           return 0;
 		case EvqFragData:            return fragmentOutputRegister(operand);
@@ -2764,10 +2764,7 @@ namespace glsl
 				if(varying->getQualifier() == EvqPointCoord)
 				{
 					ASSERT(varying->isRegister());
-					if(componentCount >= 1) pixelShader->semantic[var][0] = sw::Shader::Semantic(sw::Shader::USAGE_TEXCOORD, var);
-					if(componentCount >= 2) pixelShader->semantic[var][1] = sw::Shader::Semantic(sw::Shader::USAGE_TEXCOORD, var);
-					if(componentCount >= 3) pixelShader->semantic[var][2] = sw::Shader::Semantic(sw::Shader::USAGE_TEXCOORD, var);
-					if(componentCount >= 4) pixelShader->semantic[var][3] = sw::Shader::Semantic(sw::Shader::USAGE_TEXCOORD, var);
+					pixelShader->setInput(var, componentCount, sw::Shader::Semantic(sw::Shader::USAGE_TEXCOORD, var));
 				}
 				else
 				{
@@ -2775,10 +2772,7 @@ namespace glsl
 					{
 						bool flat = hasFlatQualifier(varying);
 
-						if(componentCount >= 1) pixelShader->semantic[var + i][0] = sw::Shader::Semantic(sw::Shader::USAGE_COLOR, var + i, flat);
-						if(componentCount >= 2) pixelShader->semantic[var + i][1] = sw::Shader::Semantic(sw::Shader::USAGE_COLOR, var + i, flat);
-						if(componentCount >= 3) pixelShader->semantic[var + i][2] = sw::Shader::Semantic(sw::Shader::USAGE_COLOR, var + i, flat);
-						if(componentCount >= 4) pixelShader->semantic[var + i][3] = sw::Shader::Semantic(sw::Shader::USAGE_COLOR, var + i, flat);
+						pixelShader->setInput(var + i, componentCount, sw::Shader::Semantic(sw::Shader::USAGE_COLOR, var + i, flat));
 					}
 				}
 			}
@@ -2793,20 +2787,12 @@ namespace glsl
 				if(varying->getQualifier() == EvqPosition)
 				{
 					ASSERT(varying->isRegister());
-					vertexShader->output[var][0] = sw::Shader::Semantic(sw::Shader::USAGE_POSITION, 0);
-					vertexShader->output[var][1] = sw::Shader::Semantic(sw::Shader::USAGE_POSITION, 0);
-					vertexShader->output[var][2] = sw::Shader::Semantic(sw::Shader::USAGE_POSITION, 0);
-					vertexShader->output[var][3] = sw::Shader::Semantic(sw::Shader::USAGE_POSITION, 0);
-					vertexShader->positionRegister = var;
+					vertexShader->setPositionRegister(var);
 				}
 				else if(varying->getQualifier() == EvqPointSize)
 				{
 					ASSERT(varying->isRegister());
-					vertexShader->output[var][0] = sw::Shader::Semantic(sw::Shader::USAGE_PSIZE, 0);
-					vertexShader->output[var][1] = sw::Shader::Semantic(sw::Shader::USAGE_PSIZE, 0);
-					vertexShader->output[var][2] = sw::Shader::Semantic(sw::Shader::USAGE_PSIZE, 0);
-					vertexShader->output[var][3] = sw::Shader::Semantic(sw::Shader::USAGE_PSIZE, 0);
-					vertexShader->pointSizeRegister = var;
+					vertexShader->setPointSizeRegister(var);
 				}
 				else
 				{
@@ -2909,7 +2895,7 @@ namespace glsl
 				{
 					for(int i = 0; i < registerCount; i++)
 					{
-						vertexShader->input[index + i] = sw::Shader::Semantic(sw::Shader::USAGE_TEXCOORD, index + i);
+						vertexShader->setInput(index + i, sw::Shader::Semantic(sw::Shader::USAGE_TEXCOORD, index + i));
 					}
 				}
 

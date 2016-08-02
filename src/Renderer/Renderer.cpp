@@ -445,7 +445,7 @@ namespace sw
 					draw->vsDirtyConstB = 0;
 				}
 
-				if(context->vertexShader->instanceIdDeclared)
+				if(context->vertexShader->isInstanceIdDeclared())
 				{
 					data->instanceID = context->instanceID;
 				}
