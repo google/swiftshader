@@ -46,6 +46,30 @@
       "revId": "3327e32afbc618a9c6ec31c54a9633dcef80e342",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "14d8c639_6504e21e",
+        "filename": "src/Shader/PixelProgram.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-08-03T20:10:33Z",
+      "side": 0,
+      "message": "I don\u0027t think b) is necessary. AFAIK, interpolants are linked to Instruction arguments, so if \"project\" is not used in the TEX... instruction, but used in the RCPX instruction directly in OutputASM, then that\u0027s already taken care of in the analyzeInterpolants function.",
+      "parentUuid": "14d8c639_c5ecce92",
+      "range": {
+        "startLine": 119,
+        "startChar": 31,
+        "endLine": 119,
+        "endChar": 38
+      },
+      "revId": "3327e32afbc618a9c6ec31c54a9633dcef80e342",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
