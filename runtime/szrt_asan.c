@@ -58,7 +58,7 @@
 static char *shadow_offset = NULL;
 
 static void __asan_error(char *, int);
-static void __asan_check(char *, int, bool);
+static void __asan_check(char *, int);
 static void __asan_get_redzones(char *, char **, char **);
 
 void __asan_init(int, void **, int *);
@@ -77,19 +77,18 @@ static void __asan_error(char *ptr, int size) {
 }
 
 // check only the first byte of each word unless strict
-static void __asan_check(char *ptr, int size, bool strict) {
-  assert(strict || (uintptr_t)ptr % WORD_SIZE == 0);
-  DUMP("%s check %d bytes at %p\n", (strict) ? "strict" : "loose", size, ptr);
-  char *end = ptr + size;
-  int step = (strict) ? 1 : WORD_SIZE;
-  for (char *cur = ptr; cur < end; cur += step) {
-    char shadow = *(char *)MEM2SHADOW(cur);
-    DUMP("checking %p against %p with shadow %d\n", cur, MEM2SHADOW(cur),
-         shadow);
-    if (shadow != 0 && (shadow < 0 || SHADOW_OFFSET(cur) >= shadow)) {
+static void __asan_check(char *ptr, int size) {
+  assert(size == 1 || size == 2 || size == 4 || size == 8);
+  char *shadow_addr = (char *)MEM2SHADOW(ptr);
+  DUMP("check %d bytes at %p: %p + %d (%d)\n", size, ptr, shadow_addr,
+       (uintptr_t)ptr % SHADOW_SCALE, *shadow_addr);
+  if (size == SHADOW_SCALE) {
+    if (*shadow_addr != 0)
       __asan_error(ptr, size);
-    }
+    return;
   }
+  if (*shadow_addr != 0 && (char)SHADOW_OFFSET(ptr) + size > *shadow_addr)
+    __asan_error(ptr, size);
 }
 
 static void __asan_get_redzones(char *ptr, char **left, char **right) {
@@ -104,14 +103,15 @@ static void __asan_get_redzones(char *ptr, char **left, char **right) {
 void __asan_check_load(char *ptr, int size) {
   // aligned single word accesses may be widened single byte accesses, but for
   // all else use strict check
-  bool strict = !((uintptr_t)ptr % WORD_SIZE == 0 && size == WORD_SIZE);
-  __asan_check(ptr, size, strict);
+  if (size == WORD_SIZE && (uintptr_t)ptr % WORD_SIZE == 0)
+    size = 1;
+  __asan_check(ptr, size);
 }
 
 void __asan_check_store(char *ptr, int size) {
   // stores may never be partially out of bounds so use strict check
   bool strict = true;
-  __asan_check(ptr, size, strict);
+  __asan_check(ptr, size);
 }
 
 void __asan_init(int n_rzs, void **rzs, int *rz_sizes) {
