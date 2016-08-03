@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "14d8c639_857ac6ea",
+        "filename": "src/Shader/PixelProgram.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-08-03T19:50:53Z",
+      "side": 0,
+      "message": "Can this member be removed entirely?",
+      "range": {
+        "startLine": 119,
+        "startChar": 31,
+        "endLine": 119,
+        "endChar": 38
+      },
+      "revId": "3327e32afbc618a9c6ec31c54a9633dcef80e342",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
