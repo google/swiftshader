@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3406aa9f_e8db33e6",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2127,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-08-03T21:27:06Z",
+      "side": 1,
+      "message": "Seems inefficient to not skip the rest of the computations.",
+      "range": {
+        "startLine": 2126,
+        "startChar": 0,
+        "endLine": 2127,
+        "endChar": 64
+      },
+      "revId": "2f14f30a3bb622ee84046b893b9a82a19c30ecb3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
