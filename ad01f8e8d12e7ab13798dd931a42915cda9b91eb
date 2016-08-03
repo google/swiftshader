@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3406aa9f_48ed9f8a",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 3062,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-08-03T21:40:39Z",
+      "side": 1,
+      "message": "nit: Not named the same as the texture method.",
+      "range": {
+        "startLine": 3062,
+        "startChar": 31,
+        "endLine": 3062,
+        "endChar": 48
+      },
+      "revId": "ad01f8e8d12e7ab13798dd931a42915cda9b91eb",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3406aa9f_2885cbad",
+        "filename": "src/Renderer/Sampler.hpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-08-03T21:40:39Z",
+      "side": 1,
+      "message": "We can combine these into just one enum since compare mode NONE just causes the comparison to be bypassed so it can be represented by one extra CompareFunc (e.g. called BYPASS).",
+      "range": {
+        "startLine": 127,
+        "startChar": 1,
+        "endLine": 147,
+        "endChar": 3
+      },
+      "revId": "ad01f8e8d12e7ab13798dd931a42915cda9b91eb",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3406aa9f_885f1748",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-08-03T21:40:39Z",
+      "side": 1,
+      "message": "I wouldn\u0027t bother spending lines of code trying to optimize this here. I don\u0027t think any sane person is ever going to use these modes. Even then, LLVM will probably optimize it a fair bit.",
+      "range": {
+        "startLine": 87,
+        "startChar": 2,
+        "endLine": 96,
+        "endChar": 3
+      },
+      "revId": "ad01f8e8d12e7ab13798dd931a42915cda9b91eb",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
