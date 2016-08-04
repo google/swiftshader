@@ -96,8 +96,7 @@ static inline RegNumT get64PairFirstRegNum(RegNumT RegNum) {
       unsigned(RegNum) <= Reg_F64PAIR_Last)
     return RegNumT::fixme(((RegNum - Reg_F64PAIR_First) * 2) +
                           unsigned(Reg_FPR_First));
-  if (unsigned(RegNum) >= Reg_I64PAIR_First &&
-           unsigned(RegNum) <= Reg_T8T9)
+  if (unsigned(RegNum) >= Reg_I64PAIR_First && unsigned(RegNum) <= Reg_T8T9)
     return RegNumT::fixme(((RegNum - Reg_I64PAIR_First) * 2) +
                           unsigned(Reg_V0));
   return RegMIPS32::Reg_LO;
@@ -110,8 +109,7 @@ static inline RegNumT get64PairSecondRegNum(RegNumT RegNum) {
       unsigned(RegNum) <= Reg_F64PAIR_Last)
     return RegNumT::fixme(((RegNum - Reg_F64PAIR_First) * 2) +
                           unsigned(Reg_FPR_First) + 1);
-  if (unsigned(RegNum) >= Reg_I64PAIR_First &&
-           unsigned(RegNum) <= Reg_T8T9)
+  if (unsigned(RegNum) >= Reg_I64PAIR_First && unsigned(RegNum) <= Reg_T8T9)
     return RegNumT::fixme(((RegNum - Reg_I64PAIR_First) * 2) +
                           unsigned(Reg_V1));
   return RegMIPS32::Reg_HI;
