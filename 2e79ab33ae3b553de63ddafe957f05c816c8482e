@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7483c255_e1a3309b",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 1259,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-08-04T17:40:12Z",
+      "side": 1,
+      "message": "TEXBIAS, in this context, means that bias has to be stored in a separate register, rather than packed into a single register, as shown below. This was done to avoid having to do 2 register fetches, unless absolutely necessary.",
+      "parentUuid": "7483c255_6653d613",
+      "range": {
+        "startLine": 1259,
+        "startChar": 25,
+        "endLine": 1259,
+        "endChar": 39
+      },
+      "revId": "2e79ab33ae3b553de63ddafe957f05c816c8482e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7483c255_265dce1c",
         "filename": "src/Shader/PixelProgram.cpp",
         "patchSetId": 6
@@ -36,6 +60,30 @@
       "writtenOn": "2016-08-04T17:07:09Z",
       "side": 1,
       "message": "Could be named \"bias\" for clarity, like in the declaration.",
+      "range": {
+        "startLine": 680,
+        "startChar": 91,
+        "endLine": 680,
+        "endChar": 93
+      },
+      "revId": "2e79ab33ae3b553de63ddafe957f05c816c8482e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7483c255_a186880c",
+        "filename": "src/Shader/PixelProgram.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 680,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-08-04T17:40:12Z",
+      "side": 1,
+      "message": "The problem is that it\u0027s not always bias. Bias would ordinarily be stored as one of the members of uvwq, so naming it bias could cause confusion.",
+      "parentUuid": "7483c255_265dce1c",
       "range": {
         "startLine": 680,
         "startChar": 91,
