@@ -2025,6 +2025,11 @@ template <typename TraitsType>
 void InstImpl<TraitsType>::InstX86Lea::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
+  if (auto *Add = this->deoptLeaToAddOrNull(Func)) {
+    Add->emit(Func);
+    return;
+  }
+
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(this->getSrcSize() == 1);
   assert(this->getDest()->hasReg());

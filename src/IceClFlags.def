@@ -95,6 +95,10 @@ struct dev_list_flag {};
     cl::desc("Exit with success status, even if errors found"),                \
     cl::init(false))                                                           \
                                                                                \
+  X(AggressiveLea, bool, dev_opt_flag, "aggressive-lea",                       \
+    cl::desc("Convert additions to lea when it reduces code size"),            \
+    cl::init(false))                                                           \
+                                                                               \
   X(BitcodeAsText, bool, dev_opt_flag, "bitcode-as-text",                      \
     cl::desc("Accept textual form of PNaCl bitcode "                           \
              "records (i.e. not .ll assembly)"),                               \

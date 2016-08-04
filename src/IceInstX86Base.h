@@ -622,6 +622,13 @@ template <typename TraitsType> struct InstImpl {
       Type Ty = Var->getType();
       const Operand *Src = this->getSrc(0);
       constexpr bool IsLea = K == InstX86Base::Lea;
+
+      if (IsLea) {
+        if (auto *Add = deoptLeaToAddOrNull(Func)) {
+          Add->emitIAS(Func);
+          return;
+        }
+      }
       emitIASRegOpTyGPR(Func, IsLea, Ty, Var, Src, Emitter);
     }
     void dump(const Cfg *Func) const override {
@@ -632,6 +639,7 @@ template <typename TraitsType> struct InstImpl {
       Str << " = " << Opcode << "." << this->getSrc(0)->getType() << " ";
       this->dumpSources(Func);
     }
+
     static bool classof(const Inst *Instr) {
       return InstX86Base::isClassof(Instr, InstX86Base::K);
     }
@@ -640,6 +648,23 @@ template <typename TraitsType> struct InstImpl {
     InstX86BaseUnaryopGPR(Cfg *Func, Variable *Dest, Operand *Src)
         : InstX86Base(Func, K, 1, Dest) {
       this->addSource(Src);
+    }
+
+    Inst *deoptLeaToAddOrNull(const Cfg *Func) const {
+      // Revert back to Add when the Lea is a 2-address instruction.
+      // Caller has to emit, this just produces the add instruction.
+      if (auto *MemOp = llvm::dyn_cast<X86OperandMem>(this->getSrc(0))) {
+        if (getFlags().getAggressiveLea() &&
+            MemOp->getBase()->getRegNum() == this->getDest()->getRegNum() &&
+            MemOp->getIndex() == nullptr && MemOp->getShift() == 0) {
+          auto *Add = InstImpl<TraitsType>::InstX86Add::create(
+              const_cast<Cfg *>(Func), this->getDest(), MemOp->getOffset());
+          // TODO(manasijm): Remove const_cast by emitting code for add
+          // directly.
+          return Add;
+        }
+      }
+      return nullptr;
     }
 
     static const char *Opcode;

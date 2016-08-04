@@ -2187,11 +2187,25 @@ void TargetX86Base<TraitsType>::lowerArithmetic(const InstArithmetic *Instr) {
   case InstArithmetic::_num:
     llvm_unreachable("Unknown arithmetic operator");
     break;
-  case InstArithmetic::Add:
+  case InstArithmetic::Add: {
+    const bool ValidType =
+        Ty == IceType_i32 || (Ty == IceType_i64 && Traits::Is64Bit);
+    auto *Const = llvm::dyn_cast<Constant>(Instr->getSrc(1));
+    const bool ValidKind =
+        Const != nullptr && (llvm::isa<ConstantInteger32>(Const) ||
+                             llvm::isa<ConstantRelocatable>(Const));
+    if (getFlags().getAggressiveLea() && ValidType && ValidKind) {
+      auto *Var = legalizeToReg(Src0);
+      auto *Mem = Traits::X86OperandMem::create(Func, IceType_void, Var, Const);
+      T = makeReg(Ty);
+      _lea(T, _sandbox_mem_reference(Mem));
+      _mov(Dest, T);
+      break;
+    }
     _mov(T, Src0);
     _add(T, Src1);
     _mov(Dest, T);
-    break;
+  } break;
   case InstArithmetic::And:
     _mov(T, Src0);
     _and(T, Src1);
