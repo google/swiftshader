@@ -4980,8 +4980,9 @@ void TargetX86Base<TraitsType>::lowerMemset(Operand *Dest, Operand *Val,
   if (shouldOptimizeMemIntrins() && IsCountConst && IsValConst) {
     Variable *Base = nullptr;
     Variable *VecReg = nullptr;
+    const uint32_t MaskValue = (ValValue & 0xff);
     const uint32_t SpreadValue =
-        (ValValue << 24) | (ValValue << 16) | (ValValue << 8) | ValValue;
+        (MaskValue << 24) | (MaskValue << 16) | (MaskValue << 8) | MaskValue;
 
     auto lowerSet = [this, &Base, SpreadValue, &VecReg](Type Ty,
                                                         uint32_t OffsetAmt) {

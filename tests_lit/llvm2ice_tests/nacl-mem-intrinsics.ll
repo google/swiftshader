@@ -433,6 +433,24 @@ entry:
 ; ARM32: uxtb
 ; ARM32: bl {{.*}} memset
 
+; Same as above, but with a negative value.
+define internal void @test_memset_const_neg_val_len_mid(i32 %iptr_dst) {
+entry:
+  %dst = inttoptr i32 %iptr_dst to i8*
+  call void @llvm.memset.p0i8.i32(i8* %dst, i8 -128, i32 9, i32 1, i1 false)
+  ret void
+}
+; CHECK-LABEL: test_memset_const_neg_val_len_mid
+; CHECK: mov DWORD PTR [{{.*}}+0x4],0x80808080
+; CHECK: mov DWORD PTR [{{.*}}],0x80808080
+; CHECK-NEXT: mov BYTE PTR [{{.*}}+0x8],0x80
+; CHECK-NOT: mov
+; OM1-LABEL: test_memset_const_neg_val_len_mid
+; OM1: call {{.*}} R_{{.*}} memset
+; ARM32-LABEL: test_memset_const_neg_val_len_mid
+; ARM32: uxtb
+; ARM32: bl {{.*}} memset
+
 define internal void @test_memset_zero_const_len_small(i32 %iptr_dst) {
 entry:
   %dst = inttoptr i32 %iptr_dst to i8*
