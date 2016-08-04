@@ -23,11 +23,12 @@
 #ifndef SUBZERO_SRC_ICETARGETLOWERING_H
 #define SUBZERO_SRC_ICETARGETLOWERING_H
 
-#include "IceDefs.h"
 #include "IceBitVector.h"
 #include "IceCfgNode.h"
+#include "IceDefs.h"
 #include "IceInst.h" // for the names of the Inst subtypes
 #include "IceOperand.h"
+#include "IceRegAlloc.h"
 #include "IceTypes.h"
 
 #include <utility>
@@ -290,6 +291,7 @@ public:
   virtual const SmallBitVector &getAliasesForRegister(RegNumT) const = 0;
 
   void regAlloc(RegAllocKind Kind);
+  void postRegallocSplitting(const SmallBitVector &RegMask);
 
   virtual void
   makeRandomRegisterPermutation(llvm::SmallVectorImpl<RegNumT> &Permutation,

@@ -63,6 +63,7 @@
   X(regAlloc)                                                                  \
   X(renumberInstructions)                                                      \
   X(shortCircuit)                                                              \
+  X(splitGlobalVars)                                                           \
   X(splitLocalVars)                                                            \
   X(szmain)                                                                    \
   X(translate)                                                                 \

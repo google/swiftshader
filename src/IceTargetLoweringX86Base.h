@@ -93,6 +93,17 @@ public:
   SizeT getNumRegisters() const override {
     return Traits::RegisterSet::Reg_NUM;
   }
+
+  Inst *createLoweredMove(Variable *Dest, Variable *SrcVar) override {
+    if (isVectorType(Dest->getType())) {
+      return Traits::Insts::Movp::create(Func, Dest, SrcVar);
+    }
+    return Traits::Insts::Mov::create(Func, Dest, SrcVar);
+    (void)Dest;
+    (void)SrcVar;
+    return nullptr;
+  }
+
   Variable *getPhysicalRegister(RegNumT RegNum,
                                 Type Ty = IceType_void) override;
   const char *getRegName(RegNumT RegNum, Type Ty) const override;
@@ -219,8 +230,6 @@ public:
 
   InstructionSetEnum getInstructionSet() const { return InstructionSet; }
   Operand *legalizeUndef(Operand *From, RegNumT RegNum = RegNumT());
-
-  Inst *createLoweredMove(Variable *Dest, Variable *SrcVar) override;
 
 protected:
   const bool NeedSandboxing;

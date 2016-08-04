@@ -24,6 +24,7 @@
 #include "IceGlobalContext.h"
 #include "IceGlobalInits.h"
 #include "IceInstVarIter.h"
+#include "IceLiveness.h"
 #include "IceOperand.h"
 #include "IceRegAlloc.h"
 
@@ -511,6 +512,182 @@ void TargetLowering::regAlloc(RegAllocKind Kind) {
   // set of Variables that have no register and a non-empty live range, and
   // model an infinite number of registers.  Maybe use the register aliasing
   // mechanism to get better packing of narrower slots.
+  if (getFlags().getSplitGlobalVars())
+    postRegallocSplitting(RegMask);
+}
+
+namespace {
+CfgVector<Inst *> getInstructionsInRange(CfgNode *Node, InstNumberT Start,
+                                         InstNumberT End) {
+  CfgVector<Inst *> Result;
+  bool Started = false;
+  auto Process = [&](InstList &Insts) {
+    for (auto &Instr : Insts) {
+      if (Instr.isDeleted()) {
+        continue;
+      }
+      if (Instr.getNumber() == Start) {
+        Started = true;
+      }
+      if (Started) {
+        Result.emplace_back(&Instr);
+      }
+      if (Instr.getNumber() == End) {
+        break;
+      }
+    }
+  };
+  Process(Node->getPhis());
+  Process(Node->getInsts());
+  // TODO(manasijm): Investigate why checking >= End significantly changes
+  // output. Should not happen when renumbering produces monotonically
+  // increasing instruction numbers and live ranges begin and end on non-deleted
+  // instructions.
+  return Result;
+}
+}
+
+void TargetLowering::postRegallocSplitting(const SmallBitVector &RegMask) {
+  // Splits the live ranges of global(/multi block) variables and runs the
+  // register allocator to find registers for as many of the new variables as
+  // possible.
+  // TODO(manasijm): Merge the small liveranges back into multi-block ones when
+  // the variables get the same register. This will reduce the amount of new
+  // instructions inserted. This might involve a full dataflow analysis.
+  // Also, modify the preference mechanism in the register allocator to match.
+
+  TimerMarker _(TimerStack::TT_splitGlobalVars, Func);
+  CfgSet<Variable *> SplitCandidates;
+
+  // Find variables that do not have registers but are allowed to. Also skip
+  // variables with single segment live ranges as they are not split further in
+  // this function.
+  for (Variable *Var : Func->getVariables()) {
+    if (!Var->mustNotHaveReg() && !Var->hasReg()) {
+      if (Var->getLiveRange().getNumSegments() > 1)
+        SplitCandidates.insert(Var);
+    }
+  }
+  if (SplitCandidates.empty())
+    return;
+
+  CfgSet<Variable *> ExtraVars;
+
+  struct UseInfo {
+    Variable *Replacing = nullptr;
+    Inst *FirstUse = nullptr;
+    Inst *LastDef = nullptr;
+    SizeT UseCount = 0;
+  };
+  CfgUnorderedMap<Variable *, UseInfo> VarInfo;
+  // Split the live ranges of the viable variables by node.
+  // Compute metadata (UseInfo) for each of the resulting variables.
+  for (auto *Var : SplitCandidates) {
+    for (auto &Segment : Var->getLiveRange().getSegments()) {
+      UseInfo Info;
+      Info.Replacing = Var;
+      auto *Node = Var->getLiveRange().getNodeForSegment(Segment.first);
+
+      for (auto *Instr :
+           getInstructionsInRange(Node, Segment.first, Segment.second)) {
+        for (SizeT i = 0; i < Instr->getSrcSize(); ++i) {
+          // It's safe to iterate over the top-level src operands rather than
+          // using FOREACH_VAR_IN_INST(), because any variables inside e.g.
+          // mem operands should already have registers.
+          if (auto *Var = llvm::dyn_cast<Variable>(Instr->getSrc(i))) {
+            if (Var == Info.Replacing) {
+              if (Info.FirstUse == nullptr && !llvm::isa<InstPhi>(Instr)) {
+                Info.FirstUse = Instr;
+              }
+              Info.UseCount++;
+            }
+          }
+        }
+        if (Instr->getDest() == Info.Replacing && !llvm::isa<InstPhi>(Instr)) {
+          Info.LastDef = Instr;
+        }
+      }
+
+      static constexpr SizeT MinUseThreshold = 3;
+      // Skip if variable has less than `MinUseThreshold` uses in the segment.
+      if (Info.UseCount < MinUseThreshold)
+        continue;
+
+      if (!Info.FirstUse && !Info.LastDef) {
+        continue;
+      }
+
+      LiveRange LR;
+      LR.addSegment(Segment);
+      Variable *NewVar = Func->makeVariable(Var->getType());
+
+      NewVar->setLiveRange(LR);
+
+      VarInfo[NewVar] = Info;
+
+      ExtraVars.insert(NewVar);
+    }
+  }
+  // Run the register allocator with all these new variables included
+  LinearScan RegAlloc(Func);
+  RegAlloc.init(RAK_Global, SplitCandidates);
+  RegAlloc.scan(RegMask, getFlags().getRandomizeRegisterAllocation());
+
+  // Modify the Cfg to use the new variables that now have registers.
+  for (auto *ExtraVar : ExtraVars) {
+    if (!ExtraVar->hasReg()) {
+      continue;
+    }
+
+    auto &Info = VarInfo[ExtraVar];
+
+    assert(ExtraVar->getLiveRange().getSegments().size() == 1);
+    auto Segment = ExtraVar->getLiveRange().getSegments()[0];
+
+    auto *Node =
+        Info.Replacing->getLiveRange().getNodeForSegment(Segment.first);
+
+    auto RelevantInsts =
+        getInstructionsInRange(Node, Segment.first, Segment.second);
+
+    if (RelevantInsts.empty())
+      continue;
+
+    // Replace old variables
+    for (auto *Instr : RelevantInsts) {
+      if (llvm::isa<InstPhi>(Instr))
+        continue;
+      // TODO(manasijm): Figure out how to safely enable replacing phi dest
+      // variables. The issue is that we can not insert low level mov
+      // instructions into the PhiList.
+      for (SizeT i = 0; i < Instr->getSrcSize(); ++i) {
+        // FOREACH_VAR_IN_INST() not needed. Same logic as above.
+        if (auto *Var = llvm::dyn_cast<Variable>(Instr->getSrc(i))) {
+          if (Var == Info.Replacing) {
+            Instr->replaceSource(i, ExtraVar);
+          }
+        }
+      }
+      if (Instr->getDest() == Info.Replacing) {
+        Instr->replaceDest(ExtraVar);
+      }
+    }
+
+    assert(Info.FirstUse != Info.LastDef);
+    assert(Info.FirstUse || Info.LastDef);
+
+    // Insert spill code
+    if (Info.FirstUse != nullptr) {
+      auto *NewInst =
+          Func->getTarget()->createLoweredMove(ExtraVar, Info.Replacing);
+      Node->getInsts().insert(instToIterator(Info.FirstUse), NewInst);
+    }
+    if (Info.LastDef != nullptr) {
+      auto *NewInst =
+          Func->getTarget()->createLoweredMove(Info.Replacing, ExtraVar);
+      Node->getInsts().insertAfter(instToIterator(Info.LastDef), NewInst);
+    }
+  }
 }
 
 void TargetLowering::markRedefinitions() {

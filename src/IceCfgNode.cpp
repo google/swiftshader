@@ -459,8 +459,11 @@ void CfgNode::advancedPhiLowering() {
       // Undo the effect of the phi instruction on this node's live-in set by
       // marking the phi dest variable as live on entry.
       SizeT VarNum = Func->getLiveness()->getLiveIndex(Dest->getIndex());
-      assert(!Func->getLiveness()->getLiveIn(this)[VarNum]);
-      Func->getLiveness()->getLiveIn(this)[VarNum] = true;
+      auto &LiveIn = Func->getLiveness()->getLiveIn(this);
+      if (VarNum < LiveIn.size()) {
+        assert(!LiveIn[VarNum]);
+        LiveIn[VarNum] = true;
+      }
       Phi->setDeleted();
     }
   }
@@ -867,15 +870,15 @@ void CfgNode::livenessAddIntervals(Liveness *Liveness, InstNumberT FirstInstNum,
 
     Variable *Var = Liveness->getVariable(i, this);
     if (LB > LE) {
-      Var->addLiveRange(FirstInstNum, LE);
-      Var->addLiveRange(LB, LastInstNum + 1);
+      Var->addLiveRange(FirstInstNum, LE, this);
+      Var->addLiveRange(LB, LastInstNum + 1, this);
       // Assert that Var is a global variable by checking that its liveness
       // index is less than the number of globals. This ensures that the
       // LiveInAndOut[] access is valid.
       assert(i < Liveness->getNumGlobalVars());
       LiveInAndOut[i] = false;
     } else {
-      Var->addLiveRange(LB, LE);
+      Var->addLiveRange(LB, LE, this);
     }
     if (i == i1)
       ++IBB;
@@ -887,7 +890,7 @@ void CfgNode::livenessAddIntervals(Liveness *Liveness, InstNumberT FirstInstNum,
        i = LiveInAndOut.find_next(i)) {
     Variable *Var = Liveness->getVariable(i, this);
     if (Liveness->getRangeMask(Var->getIndex()))
-      Var->addLiveRange(FirstInstNum, LastInstNum + 1);
+      Var->addLiveRange(FirstInstNum, LastInstNum + 1, this);
   }
 }
 

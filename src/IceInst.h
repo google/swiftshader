@@ -191,6 +191,7 @@ public:
   virtual bool isRedundantAssign() const { return false; }
 
   virtual ~Inst() = default;
+  void replaceDest(Variable *Var) { Dest = Var; }
 
 protected:
   Inst(Cfg *Func, InstKind Kind, SizeT MaxSrcs, Variable *Dest);

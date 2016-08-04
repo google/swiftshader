@@ -603,6 +603,9 @@ bool operator==(const RegWeight &A, const RegWeight &B);
 /// interval.
 class LiveRange {
 public:
+  using RangeElementType = std::pair<InstNumberT, InstNumberT>;
+  /// RangeType is arena-allocated from the Cfg's allocator.
+  using RangeType = CfgVector<RangeElementType>;
   LiveRange() = default;
   /// Special constructor for building a kill set. The advantage is that we can
   /// reserve the right amount of space in advance.
@@ -618,7 +621,10 @@ public:
     Range.clear();
     untrim();
   }
-  void addSegment(InstNumberT Start, InstNumberT End);
+  void addSegment(InstNumberT Start, InstNumberT End, CfgNode *Node = nullptr);
+  void addSegment(RangeElementType Segment, CfgNode *Node = nullptr) {
+    addSegment(Segment.first, Segment.second, Node);
+  }
 
   bool endsBefore(const LiveRange &Other) const;
   bool overlaps(const LiveRange &Other, bool UseTrimmed = false) const;
@@ -637,11 +643,18 @@ public:
 
   void dump(Ostream &Str) const;
 
+  SizeT getNumSegments() const { return Range.size(); }
+
+  const RangeType &getSegments() const { return Range; }
+  CfgNode *getNodeForSegment(InstNumberT Begin) {
+    auto Iter = NodeMap.find(Begin);
+    assert(Iter != NodeMap.end());
+    return Iter->second;
+  }
+
 private:
-  using RangeElementType = std::pair<InstNumberT, InstNumberT>;
-  /// RangeType is arena-allocated from the Cfg's allocator.
-  using RangeType = CfgVector<RangeElementType>;
   RangeType Range;
+  CfgUnorderedMap<InstNumberT, CfgNode *> NodeMap;
   /// TrimmedBegin is an optimization for the overlaps() computation. Since the
   /// linear-scan algorithm always calls it as overlaps(Cur) and Cur advances
   /// monotonically according to live range start, we can optimize overlaps() by
@@ -760,9 +773,10 @@ public:
   const LiveRange &getLiveRange() const { return Live; }
   void setLiveRange(const LiveRange &Range) { Live = Range; }
   void resetLiveRange() { Live.reset(); }
-  void addLiveRange(InstNumberT Start, InstNumberT End) {
+  void addLiveRange(InstNumberT Start, InstNumberT End,
+                    CfgNode *Node = nullptr) {
     assert(!getIgnoreLiveness());
-    Live.addSegment(Start, End);
+    Live.addSegment(Start, End, Node);
   }
   void trimLiveRange(InstNumberT Start) { Live.trim(Start); }
   void untrimLiveRange() { Live.untrim(); }

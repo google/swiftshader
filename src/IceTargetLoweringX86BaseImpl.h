@@ -1353,15 +1353,6 @@ void TargetX86Base<TraitsType>::addEpilog(CfgNode *Node) {
   RI->setDeleted();
 }
 
-template <typename TraitsType>
-Inst *TargetX86Base<TraitsType>::createLoweredMove(Variable *Dest,
-                                                   Variable *SrcVar) {
-  if (isVectorType(Dest->getType())) {
-    return Traits::Insts::Movp::create(Func, Dest, SrcVar);
-  }
-  return Traits::Insts::Mov::create(Func, Dest, SrcVar);
-}
-
 template <typename TraitsType> Type TargetX86Base<TraitsType>::stackSlotType() {
   return Traits::WordType;
 }

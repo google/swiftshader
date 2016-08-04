@@ -32,7 +32,7 @@ class LinearScan {
 
 public:
   explicit LinearScan(Cfg *Func);
-  void init(RegAllocKind Kind);
+  void init(RegAllocKind Kind, CfgSet<Variable *> ExcludeVars = {});
   void scan(const SmallBitVector &RegMask, bool Randomized);
   // Returns the number of times some variable has been assigned a register but
   // later evicted because of a higher-priority allocation.  The idea is that we
@@ -131,9 +131,9 @@ private:
   llvm::SmallVector<const SmallBitVector *, REGS_SIZE> RegAliases;
   bool FindPreference = false;
   bool FindOverlap = false;
-
   const bool Verbose;
   const bool UseReserve;
+  CfgVector<Variable *> Vars;
 };
 
 } // end of namespace Ice

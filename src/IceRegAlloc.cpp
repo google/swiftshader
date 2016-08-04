@@ -113,7 +113,6 @@ void LinearScan::initForGlobal() {
   // register allocation since no overlap opportunities should be available and
   // it's more expensive to look for opportunities.
   FindOverlap = (Kind != RAK_Phi);
-  const VarList &Vars = Func->getVariables();
   Unhandled.reserve(Vars.size());
   UnhandledPrecolored.reserve(Vars.size());
   // Gather the live ranges of all variables and add them to the Unhandled set.
@@ -168,7 +167,6 @@ bool LinearScan::livenessValidateIntervals(
   if (!BuildDefs::dump())
     return false;
 
-  const VarList &Vars = Func->getVariables();
   OstreamLocker L(Ctx);
   Ostream &Str = Ctx->getStrDump();
   for (SizeT VarNum : DefsWithoutUses) {
@@ -212,7 +210,6 @@ void LinearScan::initForInfOnly() {
   FindPreference = false;
   FindOverlap = false;
   SizeT NumVars = 0;
-  const VarList &Vars = Func->getVariables();
 
   // Iterate across all instructions and record the begin and end of the live
   // range for each variable that is pre-colored or infinite weight.
@@ -325,13 +322,19 @@ void LinearScan::initForSecondChance() {
   }
 }
 
-void LinearScan::init(RegAllocKind Kind) {
+void LinearScan::init(RegAllocKind Kind, CfgSet<Variable *> ExcludeVars) {
   this->Kind = Kind;
   Unhandled.clear();
   UnhandledPrecolored.clear();
   Handled.clear();
   Inactive.clear();
   Active.clear();
+  Vars.clear();
+  Vars.reserve(Func->getVariables().size() - ExcludeVars.size());
+  for (auto *Var : Func->getVariables()) {
+    if (ExcludeVars.find(Var) == ExcludeVars.end())
+      Vars.emplace_back(Var);
+  }
 
   SizeT NumRegs = Target->getNumRegisters();
   RegAliases.resize(NumRegs);

@@ -39,6 +39,7 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <set>
 #include <string>
 #include <system_error>
 #include <unordered_map>
@@ -129,6 +130,8 @@ using AssignList = InstList;
 template <typename T> using CfgList = std::list<T, CfgLocalAllocator<T>>;
 template <typename T, typename H = std::hash<T>, typename Eq = std::equal_to<T>>
 using CfgUnorderedSet = std::unordered_set<T, H, Eq, CfgLocalAllocator<T>>;
+template <typename T, typename Cmp = std::less<T>>
+using CfgSet = std::set<T, Cmp, CfgLocalAllocator<T>>;
 template <typename T, typename U, typename H = std::hash<T>,
           typename Eq = std::equal_to<T>>
 using CfgUnorderedMap =

@@ -175,6 +175,10 @@ struct dev_list_flag {};
              "this executable."),                                              \
     cl::init(false))                                                           \
                                                                                \
+  X(SplitGlobalVars, bool, dev_opt_flag, "split-global-vars",                  \
+    cl::desc("Global live range splitting"),                                   \
+    cl::init(false))                                                           \
+                                                                               \
   X(InputFileFormat, llvm::NaClFileFormat, dev_opt_flag, "bitcode-format",     \
     cl::desc("Define format of input file:"),                                  \
     cl::values(clEnumValN(llvm::LLVMFormat, "llvm", "LLVM file (default)"),    \

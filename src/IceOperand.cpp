@@ -101,14 +101,21 @@ bool operator==(const RegWeight &A, const RegWeight &B) {
   return !(B < A) && !(A < B);
 }
 
-void LiveRange::addSegment(InstNumberT Start, InstNumberT End) {
-  if (!Range.empty()) {
-    // Check for merge opportunity.
-    InstNumberT CurrentEnd = Range.back().second;
-    assert(Start >= CurrentEnd);
-    if (Start == CurrentEnd) {
-      Range.back().second = End;
-      return;
+void LiveRange::addSegment(InstNumberT Start, InstNumberT End, CfgNode *Node) {
+  if (getFlags().getSplitGlobalVars()) {
+    // Disable merging to make sure a live range 'segment' has a single node.
+    // Might be possible to enable when the target segment has the same node.
+    assert(NodeMap.find(Start) == NodeMap.end());
+    NodeMap[Start] = Node;
+  } else {
+    if (!Range.empty()) {
+      // Check for merge opportunity.
+      InstNumberT CurrentEnd = Range.back().second;
+      assert(Start >= CurrentEnd);
+      if (Start == CurrentEnd) {
+        Range.back().second = End;
+        return;
+      }
     }
   }
   Range.push_back(RangeElementType(Start, End));
