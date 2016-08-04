@@ -17,14 +17,17 @@ define internal i32 @func(i32 %arg1, i32 %arg2) {
 ; CHECK-NEXT: lea    eax,[esp+0x10]
 ; CHECK-NEXT: mov    DWORD PTR [esp],eax
 ; CHECK-NEXT: mov    DWORD PTR [esp+0x4],0x20
+; CHECK-NEXT: mov    DWORD PTR [esp+0x8],0xffffffff
 ; CHECK-NEXT: __asan_poison
 ; CHECK-NEXT: lea    eax,[esp+0x74]
 ; CHECK-NEXT: mov    DWORD PTR [esp],eax
 ; CHECK-NEXT: mov    DWORD PTR [esp+0x4],0x3c
+; CHECK-NEXT: mov    DWORD PTR [esp+0x8],0xffffffff
 ; CHECK-NEXT: __asan_poison
 ; CHECK-NEXT: lea    eax,[esp+0x35]
 ; CHECK-NEXT: mov    DWORD PTR [esp],eax
 ; CHECK-NEXT: mov    DWORD PTR [esp+0x4],0x3b
+; CHECK-NEXT: mov    DWORD PTR [esp+0x8],0xffffffff
 ; CHECK-NEXT: __asan_poison
 ; CHECK-NEXT: lea    eax,[esp+0x74]
 ; CHECK-NEXT: mov    DWORD PTR [esp],eax

@@ -36,6 +36,7 @@ constexpr SizeT RzSize = 32;
 constexpr const char *RzPrefix = "__$rz";
 constexpr const char *RzArrayName = "__$rz_array";
 constexpr const char *RzSizesName = "__$rz_sizes";
+constexpr char RzStackPoison = -1;
 const llvm::NaClBitcodeRecord::RecordVector RzContents =
     llvm::NaClBitcodeRecord::RecordVector(RzSize, 'R');
 
@@ -202,15 +203,17 @@ void ASanInstrumentation::instrumentFuncStart(LoweringContext &Context) {
     constexpr SizeT NumArgs = 2;
     constexpr Variable *Void = nullptr;
     constexpr bool NoTailcall = false;
+    auto *RzSizeConst = ConstantInteger32::create(Ctx, IceType_i32, RzPadding);
+    auto *RzPoisonConst =
+        ConstantInteger32::create(Ctx, IceType_i32, RzStackPoison);
     auto *Init = InstCall::create(Func, NumArgs, Void, InitFunc, NoTailcall);
+    Init->addArg(RzLocVar);
+    Init->addArg(RzSizeConst);
+    Init->addArg(RzPoisonConst);
     auto *Destroy =
         InstCall::create(Func, NumArgs, Void, DestroyFunc, NoTailcall);
-    Init->addArg(RzLocVar);
     Destroy->addArg(RzLocVar);
-    auto *RzSizeConst = ConstantInteger32::create(Ctx, IceType_i32, RzPadding);
-    Init->addArg(RzSizeConst);
     Destroy->addArg(RzSizeConst);
-
     Cur->setDeleted();
     C.insert(NewVar);
     ICE_TLS_GET_FIELD(LocalDtors)->emplace_back(Destroy);
@@ -234,14 +237,16 @@ void ASanInstrumentation::instrumentFuncStart(LoweringContext &Context) {
     constexpr SizeT NumArgs = 2;
     constexpr Variable *Void = nullptr;
     constexpr bool NoTailcall = false;
+    auto *RzPoisonConst =
+        ConstantInteger32::create(Ctx, IceType_i32, RzStackPoison);
     auto *Init = InstCall::create(Func, NumArgs, Void, InitFunc, NoTailcall);
+    Init->addArg(LastRz);
+    Init->addArg(RzAlloca->getSizeInBytes());
+    Init->addArg(RzPoisonConst);
     auto *Destroy =
         InstCall::create(Func, NumArgs, Void, DestroyFunc, NoTailcall);
-    Init->addArg(LastRz);
     Destroy->addArg(LastRz);
-    Init->addArg(RzAlloca->getSizeInBytes());
     Destroy->addArg(RzAlloca->getSizeInBytes());
-
     ICE_TLS_GET_FIELD(LocalDtors)->emplace_back(Destroy);
     C.insert(RzAlloca);
     C.insert(Init);

@@ -22,11 +22,11 @@ no:
 ; DUMP-NEXT:   %local1 = alloca i8, i32 64, align 8
 ; DUMP-NEXT:   %local2 = alloca i8, i32 64, align 8
 ; DUMP-NEXT:   %__$rz2 = alloca i8, i32 32, align 8
-; DUMP-NEXT:   call void @__asan_poison(i32 %__$rz2, i32 32)
+; DUMP-NEXT:   call void @__asan_poison(i32 %__$rz2, i32 32, i32 -1)
 ; DUMP-NEXT:   %__$rz0 = add i32 %local1, 4
-; DUMP-NEXT:   call void @__asan_poison(i32 %__$rz0, i32 60)
+; DUMP-NEXT:   call void @__asan_poison(i32 %__$rz0, i32 60, i32 -1)
 ; DUMP-NEXT:   %__$rz1 = add i32 %local2, 4
-; DUMP-NEXT:   call void @__asan_poison(i32 %__$rz1, i32 60)
+; DUMP-NEXT:   call void @__asan_poison(i32 %__$rz1, i32 60, i32 -1)
 ; DUMP-NEXT:   %cond = icmp ne i32 %condarg, 0
 ; DUMP-NEXT:   br i1 %cond, label %yes, label %no
 ; DUMP-NEXT: yes:

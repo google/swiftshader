@@ -38,9 +38,9 @@ define internal void @func() {
 ; DUMP-NEXT: __0:
 ; DUMP-NEXT:   %local = alloca i8, i32 64, align 8
 ; DUMP-NEXT:   %__$rz1 = alloca i8, i32 32, align 8
-; DUMP-NEXT:   call void @__asan_poison(i32 %__$rz1, i32 32)
+; DUMP-NEXT:   call void @__asan_poison(i32 %__$rz1, i32 32, i32 -1)
 ; DUMP-NEXT:   %__$rz0 = add i32 %local, 4
-; DUMP-NEXT:   call void @__asan_poison(i32 %__$rz0, i32 60)
+; DUMP-NEXT:   call void @__asan_poison(i32 %__$rz0, i32 60, i32 -1)
 ; DUMP-NEXT:   %heapvar = call i32 @__asan_malloc(i32 42)
 ; DUMP-NEXT:   call void @__asan_free(i32 %heapvar)
 ; DUMP-NEXT:   call void @__asan_unpoison(i32 %__$rz0, i32 60)

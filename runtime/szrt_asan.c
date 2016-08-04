@@ -44,7 +44,15 @@
 #define SHADOW2MEM(p)                                                          \
   ((uintptr_t)((char *)(p)-shadow_offset) << SHADOW_SCALE_LOG2)
 
-#define POISON_VAL (-1)
+#define STACK_POISON_VAL ((char)-1)
+#define HEAP_POISON_VAL ((char)-2)
+#define GLOBAL_POISON_VAL ((char)-3)
+#define MEMTYPE_INDEX(x) (-1 - (x))
+static const char *memtype_names[] = {"stack", "heap", "global"};
+
+#define ACCESS_LOAD (0)
+#define ACCESS_STORE (1)
+static const char *access_names[] = {"load from", "store to"};
 
 #if DEBUG
 #define DUMP(args...)                                                          \
@@ -57,8 +65,8 @@
 
 static char *shadow_offset = NULL;
 
-static void __asan_error(char *, int);
-static void __asan_check(char *, int);
+static bool __asan_check(char *, int);
+static void __asan_error(char *, int, int);
 static void __asan_get_redzones(char *, char **, char **);
 
 void __asan_init(int, void **, int *);
@@ -68,27 +76,35 @@ void *__asan_malloc(size_t);
 void *__asan_calloc(size_t, size_t);
 void *__asan_realloc(char *, size_t);
 void __asan_free(char *);
-void __asan_poison(char *, int);
+void __asan_poison(char *, int, char);
 void __asan_unpoison(char *, int);
 
-static void __asan_error(char *ptr, int size) {
-  fprintf(stderr, "Illegal access of %d bytes at %p\n", size, ptr);
+static void __asan_error(char *ptr, int size, int access) {
+  char *shadow_addr = MEM2SHADOW(ptr);
+  char shadow_val = *shadow_addr;
+  if (shadow_val > 0)
+    shadow_val = *(shadow_addr + 1);
+  assert(access == ACCESS_LOAD || access == ACCESS_STORE);
+  const char *access_name = access_names[access];
+  assert(shadow_val == STACK_POISON_VAL || shadow_val == HEAP_POISON_VAL ||
+         shadow_val == GLOBAL_POISON_VAL);
+  const char *memtype = memtype_names[MEMTYPE_INDEX(shadow_val)];
+  fprintf(stderr, "Illegal %d byte %s %s object at %p\n", size, access_name,
+          memtype, ptr);
   abort();
 }
 
 // check only the first byte of each word unless strict
-static void __asan_check(char *ptr, int size) {
+static bool __asan_check(char *ptr, int size) {
   assert(size == 1 || size == 2 || size == 4 || size == 8);
   char *shadow_addr = (char *)MEM2SHADOW(ptr);
+  char shadow_val = *shadow_addr;
   DUMP("check %d bytes at %p: %p + %d (%d)\n", size, ptr, shadow_addr,
-       (uintptr_t)ptr % SHADOW_SCALE, *shadow_addr);
+       (uintptr_t)ptr % SHADOW_SCALE, shadow_val);
   if (size == SHADOW_SCALE) {
-    if (*shadow_addr != 0)
-      __asan_error(ptr, size);
-    return;
+    return shadow_val == 0;
   }
-  if (*shadow_addr != 0 && (char)SHADOW_OFFSET(ptr) + size > *shadow_addr)
-    __asan_error(ptr, size);
+  return shadow_val == 0 || (char)SHADOW_OFFSET(ptr) + size <= shadow_val;
 }
 
 static void __asan_get_redzones(char *ptr, char **left, char **right) {
@@ -103,15 +119,16 @@ static void __asan_get_redzones(char *ptr, char **left, char **right) {
 void __asan_check_load(char *ptr, int size) {
   // aligned single word accesses may be widened single byte accesses, but for
   // all else use strict check
-  if (size == WORD_SIZE && (uintptr_t)ptr % WORD_SIZE == 0)
-    size = 1;
-  __asan_check(ptr, size);
+  int check_size =
+      (size == WORD_SIZE && (uintptr_t)ptr % WORD_SIZE == 0) ? 1 : size;
+  if (!__asan_check(ptr, check_size))
+    __asan_error(ptr, size, ACCESS_LOAD);
 }
 
 void __asan_check_store(char *ptr, int size) {
   // stores may never be partially out of bounds so use strict check
-  bool strict = true;
-  __asan_check(ptr, size);
+  if (!__asan_check(ptr, size))
+    __asan_error(ptr, size, ACCESS_STORE);
 }
 
 void __asan_init(int n_rzs, void **rzs, int *rz_sizes) {
@@ -138,7 +155,7 @@ void __asan_init(int n_rzs, void **rzs, int *rz_sizes) {
   DUMP("poisioning %d global redzones\n", n_rzs);
   for (int i = 0; i < n_rzs; i++) {
     DUMP("(%d) poisoning redzone of size %d at %p\n", i, rz_sizes[i], rzs[i]);
-    __asan_poison(rzs[i], rz_sizes[i]);
+    __asan_poison(rzs[i], rz_sizes[i], GLOBAL_POISON_VAL);
   }
 }
 
@@ -157,8 +174,8 @@ void *__asan_malloc(size_t size) {
   }
   void *ret = rz_left + rz_left_size;
   void *rz_right = ret + size;
-  __asan_poison(rz_left, rz_left_size);
-  __asan_poison(rz_right, rz_right_size);
+  __asan_poison(rz_left, rz_left_size, HEAP_POISON_VAL);
+  __asan_poison(rz_right, rz_right_size, HEAP_POISON_VAL);
   // record size and location data so we can find it again
   *(void **)rz_left = rz_right;
   *(size_t *)rz_right = rz_right_size;
@@ -204,7 +221,7 @@ void __asan_free(char *ptr) {
   free(rz_left);
 }
 
-void __asan_poison(char *ptr, int size) {
+void __asan_poison(char *ptr, int size, char poison_val) {
   char *end = ptr + size;
   assert(IS_SHADOW_ALIGNED(end));
   // redzones should be no greater than RZ_SIZE + RZ_SIZE-1 for alignment
@@ -212,12 +229,11 @@ void __asan_poison(char *ptr, int size) {
   DUMP("poison %d bytes at %p: %p - %p\n", size, ptr, MEM2SHADOW(ptr),
        MEM2SHADOW(end));
   size_t offset = SHADOW_OFFSET(ptr);
-  *(char *)MEM2SHADOW(ptr) = (offset == 0) ? POISON_VAL : offset;
+  *(char *)MEM2SHADOW(ptr) = (offset == 0) ? poison_val : offset;
   ptr += SHADOW_OFFSET(size);
   assert(IS_SHADOW_ALIGNED(ptr));
-  for (; ptr != end; ptr += SHADOW_SCALE) {
-    *(char *)MEM2SHADOW(ptr) = POISON_VAL;
-  }
+  int len = (end - ptr) >> SHADOW_SCALE_LOG2;
+  memset(MEM2SHADOW(ptr), poison_val, len);
 }
 
 void __asan_unpoison(char *ptr, int size) {
@@ -229,7 +245,5 @@ void __asan_unpoison(char *ptr, int size) {
   *(char *)MEM2SHADOW(ptr) = 0;
   ptr += SHADOW_OFFSET(size);
   assert(IS_SHADOW_ALIGNED(ptr));
-  for (; ptr != end; ptr += SHADOW_SCALE) {
-    *(char *)MEM2SHADOW(ptr) = 0;
-  }
+  memset(MEM2SHADOW(ptr), 0, (end - ptr) >> SHADOW_SCALE_LOG2);
 }

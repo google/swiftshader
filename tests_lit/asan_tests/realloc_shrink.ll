@@ -23,4 +23,4 @@ define void @_start(i32 %arg) {
   ret void
 }
 
-; CHECK: Illegal access of 1 bytes at
+; CHECK: Illegal 1 byte load from heap object at

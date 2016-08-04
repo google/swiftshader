@@ -33,8 +33,8 @@ define internal void @no_wide_load() {
   unreachable
 }
 
-; WIDE-NOT: Illegal access
-; NOWIDE: Illegal access of 1 bytes at
+; WIDE-NOT: Illegal
+; NOWIDE: Illegal 1 byte load from stack object at
 
 ; use argc to determine which test routine to run
 define void @_start(i32 %arg) {
