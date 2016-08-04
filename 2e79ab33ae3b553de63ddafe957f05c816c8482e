@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7483c255_6653d613",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 1259,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-08-04T17:07:09Z",
+      "side": 1,
+      "message": "While this will do the job, there\u0027s now two very different ways of encoding a texture operation with a bias. The other one uses the legacy \"bias\" flag corresponding with the D3D9 bytecode. I think we should avoid using that here (but keep backwards compatibility, just like \"project\").\n\nSince in GLSL only texture() and textureOffset() can have a bias parameter, we could have TEXBIAS and TEXOFFSETBIAS opcodes which both put the bias in a separate parameter (i.e. do it the OpenGL way instead of the Direct3D way of using a texture coordinate component).",
+      "range": {
+        "startLine": 1259,
+        "startChar": 25,
+        "endLine": 1259,
+        "endChar": 39
+      },
+      "revId": "2e79ab33ae3b553de63ddafe957f05c816c8482e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7483c255_265dce1c",
+        "filename": "src/Shader/PixelProgram.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 680,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-08-04T17:07:09Z",
+      "side": 1,
+      "message": "Could be named \"bias\" for clarity, like in the declaration.",
+      "range": {
+        "startLine": 680,
+        "startChar": 91,
+        "endLine": 680,
+        "endChar": 93
+      },
+      "revId": "2e79ab33ae3b553de63ddafe957f05c816c8482e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7483c255_a67f7e74",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-08-04T17:07:09Z",
+      "side": 1,
+      "message": "We could separate the bias from the texture coordinates for the Direct3D opcodes inside their PixelProgram and VertexProgram implementations. That way we\u0027d simply have one easy bias parameter to deal with here.",
+      "range": {
+        "startLine": 116,
+        "startChar": 3,
+        "endLine": 131,
+        "endChar": 4
+      },
+      "revId": "2e79ab33ae3b553de63ddafe957f05c816c8482e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7483c255_86ba7a21",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 2190,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-08-04T17:07:09Z",
+      "side": 1,
+      "message": "Nice find. Please file a bug for it.",
+      "range": {
+        "startLine": 2188,
+        "startChar": 3,
+        "endLine": 2190,
+        "endChar": 83
+      },
+      "revId": "2e79ab33ae3b553de63ddafe957f05c816c8482e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
