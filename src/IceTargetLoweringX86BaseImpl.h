@@ -460,6 +460,7 @@ template <typename TraitsType> void TargetX86Base<TraitsType>::translateO2() {
   if (getFlags().getLocalCSE() != Ice::LCSE_Disabled) {
     Func->localCSE(getFlags().getLocalCSE() == Ice::LCSE_EnabledSSA);
     Func->dump("After Local CSE");
+    Func->floatConstantCSE();
   }
   if (getFlags().getEnableShortCircuit()) {
     Func->shortCircuitJumps();

@@ -31,6 +31,7 @@
   X(emitAsm)                                                                   \
   X(emitGlobalInitializers)                                                    \
   X(findRMW)                                                                   \
+  X(floatConstantCse)                                                          \
   X(genCode)                                                                   \
   X(genFrame)                                                                  \
   X(genHelpers)                                                                \

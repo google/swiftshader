@@ -202,6 +202,7 @@ public:
   void reorderNodes();
   void shuffleNodes();
   void localCSE(bool AssumeSSA);
+  void floatConstantCSE();
   void shortCircuitJumps();
   void loopInvariantCodeMotion();
 

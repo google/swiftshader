@@ -798,6 +798,90 @@ void Cfg::shortCircuitJumps() {
   Nodes = NewList;
 }
 
+void Cfg::floatConstantCSE() {
+  // Load multiple uses of a floating point constant (between two call
+  // instructions or block start/end) into a variable before its first use.
+  //   t1 = b + 1.0
+  //   t2 = c + 1.0
+  // Gets transformed to:
+  //   t0 = 1.0
+  //   t0_1 = t0
+  //   t1 = b + t0_1
+  //   t2 = c + t0_1
+  // Call instructions reset the procedure, but use the same variable, just in
+  // case it got a register. We are assuming floating point registers are not
+  // callee saved in general. Example, continuing from before:
+  //   result = call <some function>
+  //   t3 = d + 1.0
+  // Gets transformed to:
+  //   result = call <some function>
+  //   t0_2 = t0
+  //   t3 = d + t0_2
+  // TODO(manasijm, stichnot): Figure out how to 'link' t0 to the stack slot of
+  // 1.0. When t0 does not get a register, introducing an extra assignment
+  // statement does not make sense. The relevant portion is marked below.
+
+  TimerMarker _(TimerStack::TT_floatConstantCse, this);
+  for (CfgNode *Node : getNodes()) {
+
+    CfgUnorderedMap<Constant *, Variable *> ConstCache;
+    auto Current = Node->getInsts().begin();
+    auto End = Node->getInsts().end();
+    while (Current != End) {
+      CfgUnorderedMap<Constant *, CfgVector<Inst *>> FloatUses;
+      if (llvm::isa<InstCall>(iteratorToInst(Current))) {
+        ++Current;
+        assert(Current != End);
+        // Block should not end with a call
+      }
+      while (Current != End && !llvm::isa<InstCall>(iteratorToInst(Current))) {
+        for (SizeT i = 0; i < Current->getSrcSize(); ++i) {
+          if (auto *Const = llvm::dyn_cast<Constant>(Current->getSrc(i))) {
+            if (Const->getType() == IceType_f32 ||
+                Const->getType() == IceType_f64) {
+              FloatUses[Const].push_back(Current);
+            }
+          }
+        }
+        Current++;
+      }
+      for (auto &Pair : FloatUses) {
+        static constexpr SizeT MinUseThreshold = 3;
+        if (Pair.second.size() < MinUseThreshold)
+          continue;
+        // Only consider constants with at least `MinUseThreshold` uses
+        auto &Insts = Node->getInsts();
+
+        if (ConstCache.find(Pair.first) == ConstCache.end()) {
+          // Saw a constant (which is used at least twice) for the first time
+          auto *NewVar = makeVariable(Pair.first->getType());
+          // NewVar->setLinkedTo(Pair.first);
+          // TODO(manasijm): Plumbing for linking to an Operand.
+          auto *Assign = InstAssign::create(Node->getCfg(), NewVar, Pair.first);
+          Insts.insert(Pair.second[0], Assign);
+          ConstCache[Pair.first] = NewVar;
+        }
+
+        auto *NewVar = makeVariable(Pair.first->getType());
+        NewVar->setLinkedTo(ConstCache[Pair.first]);
+        auto *Assign =
+            InstAssign::create(Node->getCfg(), NewVar, ConstCache[Pair.first]);
+
+        Insts.insert(Pair.second[0], Assign);
+        for (auto *InstUse : Pair.second) {
+          for (SizeT i = 0; i < InstUse->getSrcSize(); ++i) {
+            if (auto *Const = llvm::dyn_cast<Constant>(InstUse->getSrc(i))) {
+              if (Const == Pair.first) {
+                InstUse->replaceSource(i, NewVar);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
 void Cfg::doArgLowering() {
   TimerMarker T(TimerStack::TT_doArgLowering, this);
   getTarget()->lowerArguments();
