@@ -508,8 +508,8 @@ namespace sw
 
 				struct
 				{
-					unsigned char project : 1;
-					unsigned char bias : 1;
+					unsigned char project : 1;   // D3DSI_TEXLD_PROJECT
+					unsigned char bias : 1;      // D3DSI_TEXLD_BIAS
 				};
 			};
 
