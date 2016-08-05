@@ -915,7 +915,7 @@ InstCall *TargetLowering::makeHelperCall(RuntimeHelper FuncID, Variable *Dest,
 }
 
 bool TargetLowering::shouldOptimizeMemIntrins() {
-  return getFlags().getOptLevel() >= Opt_1 || getFlags().getForceMemIntrinOpt();
+  return Func->getOptLevel() >= Opt_1 || getFlags().getForceMemIntrinOpt();
 }
 
 void TargetLowering::scalarizeArithmetic(InstArithmetic::OpKind Kind,

@@ -2222,7 +2222,7 @@ void TargetARM32::lowerAlloca(const InstAlloca *Instr) {
   const uint32_t Alignment =
       std::max(AlignmentParam, ARM32_STACK_ALIGNMENT_BYTES);
   const bool OverAligned = Alignment > ARM32_STACK_ALIGNMENT_BYTES;
-  const bool OptM1 = getFlags().getOptLevel() == Opt_m1;
+  const bool OptM1 = Func->getOptLevel() == Opt_m1;
   const bool AllocaWithKnownOffset = Instr->getKnownFrameOffset();
   const bool UseFramePointer =
       hasFramePointer() || OverAligned || !AllocaWithKnownOffset || OptM1;
@@ -3326,7 +3326,7 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Instr) {
     return;
   }
   case InstArithmetic::Mul: {
-    const bool OptM1 = getFlags().getOptLevel() == Opt_m1;
+    const bool OptM1 = Func->getOptLevel() == Opt_m1;
     if (!OptM1 && Srcs.hasConstOperand()) {
       constexpr std::size_t MaxShifts = 4;
       std::array<StrengthReduction::AggregationElement, MaxShifts> Shifts;
@@ -6372,7 +6372,7 @@ void TargetARM32::alignRegisterPow2(Variable *Reg, uint32_t Align,
 }
 
 void TargetARM32::postLower() {
-  if (getFlags().getOptLevel() == Opt_m1)
+  if (Func->getOptLevel() == Opt_m1)
     return;
   markRedefinitions();
   Context.availabilityUpdate();

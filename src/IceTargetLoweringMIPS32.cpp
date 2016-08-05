@@ -1229,7 +1229,7 @@ void TargetMIPS32::lowerAlloca(const InstAlloca *Instr) {
   const uint32_t Alignment =
       std::max(AlignmentParam, MIPS32_STACK_ALIGNMENT_BYTES);
   const bool OverAligned = Alignment > MIPS32_STACK_ALIGNMENT_BYTES;
-  const bool OptM1 = getFlags().getOptLevel() == Opt_m1;
+  const bool OptM1 = Func->getOptLevel() == Opt_m1;
   const bool AllocaWithKnownOffset = Instr->getKnownFrameOffset();
   const bool UseFramePointer =
       hasFramePointer() || OverAligned || !AllocaWithKnownOffset || OptM1;
@@ -2334,7 +2334,7 @@ void TargetMIPS32::prelowerPhis() {
 }
 
 void TargetMIPS32::postLower() {
-  if (getFlags().getOptLevel() == Opt_m1)
+  if (Func->getOptLevel() == Opt_m1)
     return;
   // TODO(rkotler): Find two-address non-SSA instructions where Dest==Src0,
   // and set the IsDestRedefined flag to keep liveness analysis consistent.
