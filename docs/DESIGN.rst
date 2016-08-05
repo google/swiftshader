@@ -49,37 +49,39 @@ selection of fast optimization passes.  It has two optimization recipes: full
 optimizations (``O2``) and minimal optimizations (``Om1``).  The recipes are the
 following (described in more detail below):
 
-+-----------------------------------+-----------------------------+
-| O2 recipe                         | Om1 recipe                  |
-+===================================+=============================+
-| Parse .pexe file                  | Parse .pexe file            |
-+-----------------------------------+-----------------------------+
-| Loop nest analysis                |                             |
-+-----------------------------------+-----------------------------+
-| Address mode inference            |                             |
-+-----------------------------------+-----------------------------+
-| Read-modify-write (RMW) transform |                             |
-+-----------------------------------+-----------------------------+
-| Basic liveness analysis           |                             |
-+-----------------------------------+-----------------------------+
-| Load optimization                 |                             |
-+-----------------------------------+-----------------------------+
-|                                   | Phi lowering (simple)       |
-+-----------------------------------+-----------------------------+
-| Target lowering                   | Target lowering             |
-+-----------------------------------+-----------------------------+
-| Full liveness analysis            |                             |
-+-----------------------------------+-----------------------------+
-| Register allocation               | Minimal register allocation |
-+-----------------------------------+-----------------------------+
-| Phi lowering (advanced)           |                             |
-+-----------------------------------+-----------------------------+
-| Post-phi register allocation      |                             |
-+-----------------------------------+-----------------------------+
-| Branch optimization               |                             |
-+-----------------------------------+-----------------------------+
-| Code emission                     | Code emission               |
-+-----------------------------------+-----------------------------+
++----------------------------------------+-----------------------------+
+| O2 recipe                              | Om1 recipe                  |
++========================================+=============================+
+| Parse .pexe file                       | Parse .pexe file            |
++----------------------------------------+-----------------------------+
+| Loop nest analysis                     |                             |
++----------------------------------------+-----------------------------+
+| Local common subexpression elimination |                             |
++----------------------------------------+-----------------------------+
+| Address mode inference                 |                             |
++----------------------------------------+-----------------------------+
+| Read-modify-write (RMW) transform      |                             |
++----------------------------------------+-----------------------------+
+| Basic liveness analysis                |                             |
++----------------------------------------+-----------------------------+
+| Load optimization                      |                             |
++----------------------------------------+-----------------------------+
+|                                        | Phi lowering (simple)       |
++----------------------------------------+-----------------------------+
+| Target lowering                        | Target lowering             |
++----------------------------------------+-----------------------------+
+| Full liveness analysis                 |                             |
++----------------------------------------+-----------------------------+
+| Register allocation                    | Minimal register allocation |
++----------------------------------------+-----------------------------+
+| Phi lowering (advanced)                |                             |
++----------------------------------------+-----------------------------+
+| Post-phi register allocation           |                             |
++----------------------------------------+-----------------------------+
+| Branch optimization                    |                             |
++----------------------------------------+-----------------------------+
+| Code emission                          | Code emission               |
++----------------------------------------+-----------------------------+
 
 Goals
 =====
@@ -518,6 +520,8 @@ Currently, the ``O2`` lowering recipe is the following:
 
 - Loop nest analysis
 
+- Local common subexpression elimination
+
 - Address mode inference
 
 - Read-modify-write (RMW) transformation
@@ -697,6 +701,101 @@ LLVM's experience with its improvement in code quality.  (The blog post claims
 that the Greedy allocator also improved maintainability because a lot of hacks
 could be removed, but Subzero is probably not yet to that level of hacks, and is
 less likely to see that particular benefit.)
+
+Local common subexpression elimination
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The Local CSE implementation goes through each instruction and records a portion
+of each ``Seen`` instruction in a hashset-like container.  That portion consists
+of the entire instruction except for any dest variable. That means ``A = X + Y``
+and ``B = X + Y`` will be considered to be 'equal' for this purpose. This allows
+us to detect common subexpressions.
+
+Whenever a repetition is detected, the redundant variables are stored in a
+container mapping the replacee to the replacement. In the case above, it would
+be ``MAP[B] = A`` assuming ``B = X + Y`` comes after ``A = X + Y``.
+
+At any point if a variable that has an entry in the replacement table is
+encountered, it is replaced with the variable it is mapped to. This ensures that
+the redundant variables will not have any uses in the basic block, allowing
+dead code elimination to clean up the redundant instruction.
+
+With SSA, the information stored is never invalidated. However, non-SSA input is
+supported with the ``-lcse=no-ssa`` option. This has to maintain some extra
+dependency information to ensure proper invalidation on variable assignment.
+This is not rigorously tested because this pass is run at an early stage where
+it is safe to assume variables have a single definition. This is not enabled by
+default because it bumps the compile time overhead from 2% to 6%.
+
+Loop-invariant code motion
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This pass utilizes the loop analysis information to hoist invariant instructions
+to loop pre-headers. A loop must have a single entry node (header) and that node
+must have a single external predecessor for this optimization to work, as it is
+currently implemented.
+
+The pass works by iterating over all instructions in the loop until the set of
+invariant instructions converges. In each iteration, a non-invariant instruction
+involving only constants or a variable known to be invariant is added to the
+result set. The destination variable of that instruction is added to the set of
+variables known to be invariant (which is initialized with the constant args).
+
+Improving the loop-analysis infrastructure is likely to have significant impact
+on this optimization. Inserting an extra node to act as the pre-header when the
+header has multiple incoming edges from outside could also be a good idea.
+Expanding the initial invariant variable set to contain all variables that do
+not have definitions inside the loop does not seem to improve anything.
+
+Short circuit evaluation
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Short circuit evaluation splits nodes and introduces early jumps when the result
+of a logical operation can be determined early and there are no observable side
+effects of skipping the rest of the computation. The instructions considered
+backwards from the end of the basic blocks. When a definition of a variable
+involved in a conditional jump is found, an extra jump can be inserted in that
+location, moving the rest of the instructions in the node to a newly inserted
+node. Consider this example::
+
+  __N :
+    a = <something>
+    Instruction 1 without side effect
+    ... b = <something> ...
+    Instruction N without side effect
+    t1 = or a b
+    br t1 __X __Y
+
+is transformed to::
+
+  __N :
+    a = <something>
+    br a __X __N_ext
+
+  __N_ext :
+    Instruction 1 without side effect
+    ... b = <something> ...
+    Instruction N without side effect
+    br b __X __Y
+
+The logic for AND is analogous, the only difference is that the early jump is
+facilitated by a ``false`` value instead of ``true``.
+
+Global Variable Splitting
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Global variable splitting (``-split-global-vars``) is run after register
+allocation. It works on the variables that did not manage to get registers (but
+are allowed to) and decomposes their live ranges into the individual segments
+(which span a single node at most). New variables are created (but not yet used)
+with these smaller live ranges and the register allocator is run again. This is
+not inefficient as the old variables that already had registers are now
+considered pre-colored.
+
+The new variables that get registers replace their parent variables for their
+portion of its (parent's) live range. A copy from the old variable to the new
+is introduced before the first use and the reverse after the last def in the
+live range.
 
 Basic phi lowering
 ^^^^^^^^^^^^^^^^^^
