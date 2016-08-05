@@ -711,7 +711,7 @@ public:
   /// @{
   static constexpr uint32_t MEMCPY_UNROLL_LIMIT = 8;
   static constexpr uint32_t MEMMOVE_UNROLL_LIMIT = 8;
-  static constexpr uint32_t MEMSET_UNROLL_LIMIT = 16;
+  static constexpr uint32_t MEMSET_UNROLL_LIMIT = 8;
   /// @}
 
   /// Value is in bytes. Return Value adjusted to the next highest multiple of

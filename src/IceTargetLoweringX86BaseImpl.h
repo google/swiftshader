@@ -5015,13 +5015,13 @@ void TargetX86Base<TraitsType>::lowerMemset(Operand *Dest, Operand *Val,
     // memory unit as the access to the same memory are far apart.
     Type Ty;
     if (ValValue == 0 && CountValue >= BytesPerStoreq &&
-        CountValue <= BytesPerStorep * Traits::MEMCPY_UNROLL_LIMIT) {
+        CountValue <= BytesPerStorep * Traits::MEMSET_UNROLL_LIMIT) {
       // When the value is zero it can be loaded into a vector register cheaply
       // using the xor trick.
       Base = legalizeToReg(Dest);
       VecReg = makeVectorOfZeros(IceType_v16i8);
       Ty = largestTypeInSize(CountValue);
-    } else if (CountValue <= BytesPerStorei32 * Traits::MEMCPY_UNROLL_LIMIT) {
+    } else if (CountValue <= BytesPerStorei32 * Traits::MEMSET_UNROLL_LIMIT) {
       // When the value is non-zero or the count is small we can't use vector
       // instructions so are limited to 32-bit stores.
       Base = legalizeToReg(Dest);
