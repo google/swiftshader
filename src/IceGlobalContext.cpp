@@ -23,6 +23,7 @@
 #include "IceGlobalInits.h"
 #include "IceLiveness.h"
 #include "IceOperand.h"
+#include "IceRevision.h"
 #include "IceTargetLowering.h"
 #include "IceTimerTree.h"
 #include "IceTypes.def"
@@ -357,6 +358,18 @@ GlobalContext::GlobalContext(Ostream *OsDump, Ostream *OsEmit, Ostream *OsError,
 #undef X
 
   TargetLowering::staticInit(this);
+
+  if (getFlags().getEmitRevision()) {
+    // Embed the Subzero revision into the compiled binary by creating a special
+    // global variable initialized with the revision string.
+    auto *Revision = VariableDeclaration::create(&Globals, true);
+    Revision->setName(this, "__Sz_revision");
+    Revision->setIsConstant(true);
+    const char *RevisionString = getSubzeroRevision();
+    Revision->addInitializer(VariableDeclaration::DataInitializer::create(
+        &Globals, RevisionString, 1 + strlen(RevisionString)));
+    Globals.push_back(Revision);
+  }
 }
 
 void GlobalContext::translateFunctions() {

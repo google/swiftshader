@@ -153,6 +153,9 @@ struct dev_list_flag {};
       clEnumValN(Ice::LCSE_EnabledNoSSA, "no-ssa", "no-assume-ssa"),           \
       clEnumValEnd))                                                           \
                                                                                \
+  X(EmitRevision, bool, dev_opt_flag, "emit-revision",                         \
+    cl::desc("Emit Subzero revision string into the output"), cl::init(true))  \
+                                                                               \
   X(EnablePhiEdgeSplit, bool, dev_opt_flag, "phi-edge-split",                  \
     cl::desc("Enable edge splitting for Phi lowering"), cl::init(true))        \
                                                                                \

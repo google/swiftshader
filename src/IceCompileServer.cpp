@@ -18,6 +18,7 @@
 #include "IceClFlags.h"
 #include "IceELFStreamer.h"
 #include "IceGlobalContext.h"
+#include "IceRevision.h"
 #include "LinuxMallocProfiling.h"
 
 #ifdef __clang__
@@ -163,6 +164,7 @@ void dumpBuildAttributes(Ostream &Str) {
     const auto &A = ConditionalBuildAttributes[i];
     Str << Prefix[A.FlagValue] << "_" << A.FlagName << "\n";
   }
+  Str << "revision_" << getSubzeroRevision() << "\n";
 }
 
 } // end of anonymous namespace

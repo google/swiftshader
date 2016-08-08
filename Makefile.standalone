@@ -111,6 +111,7 @@ ifdef SZTARGET
 endif
 
 BASE_CXX_DEFINES += -DPNACL_LLVM
+BASE_CXX_DEFINES += -DSUBZERO_REVISION=$(shell git rev-parse HEAD)
 
 CXX_DEFINES := $(BASE_CXX_DEFINES) -DPNACL_BROWSER_TRANSLATOR=0
 
@@ -320,6 +321,7 @@ SRCS = \
   IceOperand.cpp \
   IceRangeSpec.cpp \
   IceRegAlloc.cpp \
+  IceRevision.cpp \
   IceRNG.cpp \
   IceSwitchLowering.cpp \
   IceThreading.cpp \

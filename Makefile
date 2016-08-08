@@ -31,3 +31,4 @@ else
 endif
 
 CPP.Defines += -DPNACL_LLVM
+CPP.Defines += -DSUBZERO_REVISION=$(shell git rev-parse HEAD)

@@ -165,9 +165,11 @@ def main():
         # definitions.)  This approach should be OK because cross tests are
         # currently the only situation where multiple translated files are
         # linked into the executable, but when PNaCl supports shared nexe
-        # libraries, this would need to change.
+        # libraries, this would need to change.  (Note: the same issue applies
+        # to the __Sz_revision symbol.)
         shellcmd(['{bin}/{objcopy}'.format(bin=bindir, objcopy=GetObjcopyCmd()),
                   '--weaken-symbol=__Sz_block_profile_info',
+                  '--weaken-symbol=__Sz_revision',
                   '--strip-symbol=nacl_tp_tdb_offset',
                   '--strip-symbol=nacl_tp_tls_offset',
                   obj_sz])
@@ -181,7 +183,6 @@ def main():
                   '-o=' + obj_llc,
                   bitcode] + llc_flags)
         shellcmd(['{bin}/{objcopy}'.format(bin=bindir, objcopy=GetObjcopyCmd()),
-                  '--weaken-symbol=__Sz_block_profile_info',
                   '--strip-symbol=nacl_tp_tdb_offset',
                   '--strip-symbol=nacl_tp_tls_offset',
                   obj_llc])

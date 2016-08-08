@@ -164,6 +164,7 @@ def main():
     else:
       cmd += ['--build-on-read=1']
     cmd += ['--filetype=' + args.filetype]
+    cmd += ['--emit-revision=0']
     script_name = os.path.basename(sys.argv[0])
     for _, arg in enumerate(args.args):
       # Redirecting the output file needs to be done through the script
