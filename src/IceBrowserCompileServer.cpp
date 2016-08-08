@@ -53,6 +53,9 @@ void getIRTInterfaces() {
 // Allow pnacl-sz arguments to be supplied externally, instead of coming from
 // the browser.  This is meant to be used for debugging.
 //
+// NOTE: This functionality is only enabled in non-MINIMAL Subzero builds, for
+// security/safety reasons.
+//
 // If the SZARGFILE environment variable is set to a file name, arguments are
 // read from that file, one argument per line.  This requires setting 3
 // environment variables before starting the browser:
@@ -78,6 +81,12 @@ void getIRTInterfaces() {
 // ignored, to allow -threads to be specified as an external argument.  Note
 // that the browser normally supplies the "-O2" argument, so externally supplied
 // arguments might want to provide an explicit -O argument.
+//
+// See Chrome's src/components/nacl/zygote/nacl_fork_delegate_linux.cc for the
+// NACL_ENV_PASSTHROUGH mechanism.
+//
+// See NaCl's src/trusted/service_runtime/env_cleanser.c for the NACLENV_
+// mechanism.
 std::vector<std::string> getExternalArgs() {
   std::vector<std::string> ExternalArgs;
   if (BuildDefs::minimal())
