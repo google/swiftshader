@@ -54,7 +54,7 @@ private:
   void instrumentStart(Cfg *Func) override;
   void finishFunc(Cfg *Func) override;
   ICE_TLS_DECLARE_FIELD(VarSizeMap *, LocalVars);
-  ICE_TLS_DECLARE_FIELD(std::vector<InstCall *> *, LocalDtors);
+  ICE_TLS_DECLARE_FIELD(std::vector<InstStore *> *, LocalDtors);
   GlobalSizeMap GlobalSizes;
   std::atomic<uint32_t> RzNum;
   bool DidProcessGlobals = false;

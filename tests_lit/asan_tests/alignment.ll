@@ -13,34 +13,19 @@ define internal i32 @func(i32 %arg1, i32 %arg2) {
 }
 
 ; CHECK: func
-; CHECK-NEXT: sub    esp,0xbc
-; CHECK-NEXT: lea    eax,[esp+0x10]
-; CHECK-NEXT: mov    DWORD PTR [esp],eax
-; CHECK-NEXT: mov    DWORD PTR [esp+0x4],0x20
-; CHECK-NEXT: mov    DWORD PTR [esp+0x8],0xffffffff
-; CHECK-NEXT: __asan_poison
-; CHECK-NEXT: lea    eax,[esp+0x74]
-; CHECK-NEXT: mov    DWORD PTR [esp],eax
-; CHECK-NEXT: mov    DWORD PTR [esp+0x4],0x3c
-; CHECK-NEXT: mov    DWORD PTR [esp+0x8],0xffffffff
-; CHECK-NEXT: __asan_poison
-; CHECK-NEXT: lea    eax,[esp+0x35]
-; CHECK-NEXT: mov    DWORD PTR [esp],eax
-; CHECK-NEXT: mov    DWORD PTR [esp+0x4],0x3b
-; CHECK-NEXT: mov    DWORD PTR [esp+0x8],0xffffffff
-; CHECK-NEXT: __asan_poison
-; CHECK-NEXT: lea    eax,[esp+0x74]
-; CHECK-NEXT: mov    DWORD PTR [esp],eax
-; CHECK-NEXT: mov    DWORD PTR [esp+0x4],0x3c
-; CHECK-NEXT: __asan_unpoison
-; CHECK-NEXT: lea    eax,[esp+0x35]
-; CHECK-NEXT: mov    DWORD PTR [esp],eax
-; CHECK-NEXT: mov    DWORD PTR [esp+0x4],0x3b
-; CHECK-NEXT: __asan_unpoison
-; CHECK-NEXT: lea    eax,[esp+0x10]
-; CHECK-NEXT: mov    DWORD PTR [esp],eax
-; CHECK-NEXT: mov    DWORD PTR [esp+0x4],0x20
-; CHECK-NEXT: __asan_unpoison
+; CHECK-NEXT: sub    esp,0xa0
+; CHECK-NEXT: lea    eax,[esp]
+; CHECK-NEXT: shr    eax,0x3
+; CHECK-NEXT: mov    DWORD PTR [eax+0x20000000],0xffffffff
+; CHECK-NEXT: mov    DWORD PTR [eax+0x20000004],0xffffff04
+; CHECK-NEXT: mov    DWORD PTR [eax+0x20000008],0xffffffff
+; CHECK-NEXT: mov    DWORD PTR [eax+0x2000000c],0xffffff05
+; CHECK-NEXT: mov    DWORD PTR [eax+0x20000010],0xffffffff
+; CHECK-NEXT: mov    DWORD PTR [eax+0x20000000],0x0
+; CHECK-NEXT: mov    DWORD PTR [eax+0x20000004],0x0
+; CHECK-NEXT: mov    DWORD PTR [eax+0x20000008],0x0
+; CHECK-NEXT: mov    DWORD PTR [eax+0x2000000c],0x0
+; CHECK-NEXT: mov    DWORD PTR [eax+0x20000010],0x0
 ; CHECK-NEXT: mov    eax,0x2a
-; CHECK-NEXT: add    esp,0xbc
+; CHECK-NEXT: add    esp,0xa0
 ; CHECK-NEXT: ret

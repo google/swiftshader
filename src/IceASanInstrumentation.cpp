@@ -31,12 +31,16 @@ namespace Ice {
 
 namespace {
 
-constexpr const char *ASanPrefix = "__asan";
+constexpr SizeT BytesPerWord = sizeof(uint32_t);
 constexpr SizeT RzSize = 32;
+constexpr SizeT ShadowScaleLog2 = 3;
+constexpr SizeT ShadowScale = 1 << ShadowScaleLog2;
+constexpr SizeT ShadowLength32 = 1 << (32 - ShadowScaleLog2);
+constexpr int32_t StackPoisonVal = -1;
+constexpr const char *ASanPrefix = "__asan";
 constexpr const char *RzPrefix = "__$rz";
 constexpr const char *RzArrayName = "__$rz_array";
 constexpr const char *RzSizesName = "__$rz_sizes";
-constexpr char RzStackPoison = -1;
 const llvm::NaClBitcodeRecord::RecordVector RzContents =
     llvm::NaClBitcodeRecord::RecordVector(RzSize, 'R');
 
@@ -64,7 +68,7 @@ llvm::NaClBitcodeRecord::RecordVector sizeToByteVec(SizeT Size) {
 } // end of anonymous namespace
 
 ICE_TLS_DEFINE_FIELD(VarSizeMap *, ASanInstrumentation, LocalVars);
-ICE_TLS_DEFINE_FIELD(std::vector<InstCall *> *, ASanInstrumentation,
+ICE_TLS_DEFINE_FIELD(std::vector<InstStore *> *, ASanInstrumentation,
                      LocalDtors);
 
 bool ASanInstrumentation::isInstrumentable(Cfg *Func) {
@@ -162,25 +166,59 @@ std::string ASanInstrumentation::nextRzName() {
 // redzone if it is found
 void ASanInstrumentation::instrumentFuncStart(LoweringContext &Context) {
   if (ICE_TLS_GET_FIELD(LocalDtors) == nullptr) {
-    ICE_TLS_SET_FIELD(LocalDtors, new std::vector<InstCall *>());
+    ICE_TLS_SET_FIELD(LocalDtors, new std::vector<InstStore *>());
     ICE_TLS_SET_FIELD(LocalVars, new VarSizeMap());
   }
   Cfg *Func = Context.getNode()->getCfg();
-  bool HasLocals = false;
-  LoweringContext C;
-  C.init(Context.getNode());
-  std::vector<Inst *> Initializations;
-  Constant *InitFunc =
-      Ctx->getConstantExternSym(Ctx->getGlobalString("__asan_poison"));
-  Constant *DestroyFunc =
-      Ctx->getConstantExternSym(Ctx->getGlobalString("__asan_unpoison"));
-
+  using Entry = std::pair<SizeT, int32_t>;
+  std::vector<InstAlloca *> NewAllocas;
+  std::vector<Entry> PoisonVals;
+  Variable *FirstShadowLocVar;
+  InstArithmetic *ShadowIndexCalc;
+  InstArithmetic *ShadowLocCalc;
   InstAlloca *Cur;
   ConstantInteger32 *VarSizeOp;
-  while (
-      (Cur = llvm::dyn_cast<InstAlloca>(iteratorToInst(C.getCur()))) &&
-      (VarSizeOp = llvm::dyn_cast<ConstantInteger32>(Cur->getSizeInBytes()))) {
-    HasLocals = true;
+  while (!Context.atEnd()) {
+    Cur = llvm::dyn_cast<InstAlloca>(iteratorToInst(Context.getCur()));
+    VarSizeOp = (Cur == nullptr)
+                    ? nullptr
+                    : llvm::dyn_cast<ConstantInteger32>(Cur->getSizeInBytes());
+    if (Cur == nullptr || VarSizeOp == nullptr) {
+      Context.advanceCur();
+      Context.advanceNext();
+      continue;
+    }
+
+    Cur->setDeleted();
+
+    if (PoisonVals.empty()) {
+      // insert leftmost redzone
+      auto *LastRzVar = Func->makeVariable(IceType_i32);
+      LastRzVar->setName(Func, nextRzName());
+      auto *ByteCount = ConstantInteger32::create(Ctx, IceType_i32, RzSize);
+      constexpr SizeT Alignment = 8;
+      NewAllocas.emplace_back(
+          InstAlloca::create(Func, LastRzVar, ByteCount, Alignment));
+      PoisonVals.emplace_back(Entry{RzSize >> ShadowScaleLog2, StackPoisonVal});
+
+      // Calculate starting address for poisoning
+      FirstShadowLocVar = Func->makeVariable(IceType_i32);
+      FirstShadowLocVar->setName(Func, "firstShadowLoc");
+      auto *ShadowIndexVar = Func->makeVariable(IceType_i32);
+      ShadowIndexVar->setName(Func, "shadowIndex");
+
+      auto *ShadowScaleLog2Const =
+          ConstantInteger32::create(Ctx, IceType_i32, ShadowScaleLog2);
+      auto *ShadowMemLocConst =
+          ConstantInteger32::create(Ctx, IceType_i32, ShadowLength32);
+
+      ShadowIndexCalc =
+          InstArithmetic::create(Func, InstArithmetic::Lshr, ShadowIndexVar,
+                                 LastRzVar, ShadowScaleLog2Const);
+      ShadowLocCalc =
+          InstArithmetic::create(Func, InstArithmetic::Add, FirstShadowLocVar,
+                                 ShadowIndexVar, ShadowMemLocConst);
+    }
 
     // create the new alloca that includes a redzone
     SizeT VarSize = VarSizeOp->getValue();
@@ -190,72 +228,63 @@ void ASanInstrumentation::instrumentFuncStart(LoweringContext &Context) {
     auto *ByteCount =
         ConstantInteger32::create(Ctx, IceType_i32, VarSize + RzPadding);
     constexpr SizeT Alignment = 8;
-    auto *NewVar = InstAlloca::create(Func, Dest, ByteCount, Alignment);
+    NewAllocas.emplace_back(
+        InstAlloca::create(Func, Dest, ByteCount, Alignment));
 
-    // calculate the redzone offset
-    Variable *RzLocVar = Func->makeVariable(IceType_i32);
-    RzLocVar->setName(Func, nextRzName());
-    auto *Offset = ConstantInteger32::create(Ctx, IceType_i32, VarSize);
-    auto *RzLoc = InstArithmetic::create(Func, InstArithmetic::Add, RzLocVar,
-                                         Dest, Offset);
-
-    // instructions to poison and unpoison the redzone
-    constexpr SizeT NumArgs = 2;
-    constexpr Variable *Void = nullptr;
-    constexpr bool NoTailcall = false;
-    auto *RzSizeConst = ConstantInteger32::create(Ctx, IceType_i32, RzPadding);
-    auto *RzPoisonConst =
-        ConstantInteger32::create(Ctx, IceType_i32, RzStackPoison);
-    auto *Init = InstCall::create(Func, NumArgs, Void, InitFunc, NoTailcall);
-    Init->addArg(RzLocVar);
-    Init->addArg(RzSizeConst);
-    Init->addArg(RzPoisonConst);
-    auto *Destroy =
-        InstCall::create(Func, NumArgs, Void, DestroyFunc, NoTailcall);
-    Destroy->addArg(RzLocVar);
-    Destroy->addArg(RzSizeConst);
-    Cur->setDeleted();
-    C.insert(NewVar);
-    ICE_TLS_GET_FIELD(LocalDtors)->emplace_back(Destroy);
-    Initializations.emplace_back(RzLoc);
-    Initializations.emplace_back(Init);
-
-    C.advanceCur();
-    C.advanceNext();
+    const SizeT Zeros = VarSize >> ShadowScaleLog2;
+    const SizeT Offset = VarSize % ShadowScale;
+    const SizeT PoisonBytes =
+        ((VarSize + RzPadding) >> ShadowScaleLog2) - Zeros - 1;
+    if (Zeros > 0)
+      PoisonVals.emplace_back(Entry{Zeros, 0});
+    PoisonVals.emplace_back(Entry{1, (Offset == 0) ? StackPoisonVal : Offset});
+    PoisonVals.emplace_back(Entry{PoisonBytes, StackPoisonVal});
+    Context.advanceCur();
+    Context.advanceNext();
   }
 
-  C.setInsertPoint(C.getCur());
-
-  // add the leftmost redzone
-  if (HasLocals) {
-    Variable *LastRz = Func->makeVariable(IceType_i32);
-    LastRz->setName(Func, nextRzName());
-    auto *ByteCount = ConstantInteger32::create(Ctx, IceType_i32, RzSize);
-    constexpr SizeT Alignment = 8;
-    auto *RzAlloca = InstAlloca::create(Func, LastRz, ByteCount, Alignment);
-
-    constexpr SizeT NumArgs = 2;
-    constexpr Variable *Void = nullptr;
-    constexpr bool NoTailcall = false;
-    auto *RzPoisonConst =
-        ConstantInteger32::create(Ctx, IceType_i32, RzStackPoison);
-    auto *Init = InstCall::create(Func, NumArgs, Void, InitFunc, NoTailcall);
-    Init->addArg(LastRz);
-    Init->addArg(RzAlloca->getSizeInBytes());
-    Init->addArg(RzPoisonConst);
-    auto *Destroy =
-        InstCall::create(Func, NumArgs, Void, DestroyFunc, NoTailcall);
-    Destroy->addArg(LastRz);
-    Destroy->addArg(RzAlloca->getSizeInBytes());
-    ICE_TLS_GET_FIELD(LocalDtors)->emplace_back(Destroy);
-    C.insert(RzAlloca);
-    C.insert(Init);
+  Context.rewind();
+  if (PoisonVals.empty()) {
+    Context.advanceNext();
+    return;
   }
-
-  // insert initializers for the redzones
-  for (Inst *Init : Initializations) {
-    C.insert(Init);
+  for (InstAlloca *RzAlloca : NewAllocas) {
+    Context.insert(RzAlloca);
   }
+  Context.insert(ShadowIndexCalc);
+  Context.insert(ShadowLocCalc);
+
+  // Poison redzones
+  std::vector<Entry>::iterator Iter = PoisonVals.begin();
+  for (SizeT Offset = 0; Iter != PoisonVals.end(); Offset += BytesPerWord) {
+    int32_t CurVals[BytesPerWord] = {0};
+    for (uint32_t i = 0; i < BytesPerWord; ++i) {
+      if (Iter == PoisonVals.end())
+        break;
+      Entry Val = *Iter;
+      CurVals[i] = Val.second;
+      --Val.first;
+      if (Val.first > 0)
+        *Iter = Val;
+      else
+        ++Iter;
+    }
+    int32_t Poison = ((CurVals[3] & 0xff) << 24) | ((CurVals[2] & 0xff) << 16) |
+                     ((CurVals[1] & 0xff) << 8) | (CurVals[0] & 0xff);
+    if (Poison == 0)
+      continue;
+    auto *PoisonConst = ConstantInteger32::create(Ctx, IceType_i32, Poison);
+    auto *ZeroConst = ConstantInteger32::create(Ctx, IceType_i32, 0);
+    auto *OffsetConst = ConstantInteger32::create(Ctx, IceType_i32, Offset);
+    auto *PoisonAddrVar = Func->makeVariable(IceType_i32);
+    Context.insert(InstArithmetic::create(Func, InstArithmetic::Add,
+                                          PoisonAddrVar, FirstShadowLocVar,
+                                          OffsetConst));
+    Context.insert(InstStore::create(Func, PoisonConst, PoisonAddrVar));
+    ICE_TLS_GET_FIELD(LocalDtors)
+        ->emplace_back(InstStore::create(Func, ZeroConst, PoisonAddrVar));
+  }
+  Context.advanceNext();
 }
 
 void ASanInstrumentation::instrumentCall(LoweringContext &Context,
@@ -332,22 +361,13 @@ bool ASanInstrumentation::isOkGlobalAccess(Operand *Op, SizeT Size) {
 
 void ASanInstrumentation::instrumentRet(LoweringContext &Context, InstRet *) {
   Cfg *Func = Context.getNode()->getCfg();
-  InstList::iterator Next = Context.getNext();
   Context.setInsertPoint(Context.getCur());
-  for (InstCall *RzUnpoison : *ICE_TLS_GET_FIELD(LocalDtors)) {
-    SizeT NumArgs = RzUnpoison->getNumArgs();
-    Variable *Dest = RzUnpoison->getDest();
-    Operand *CallTarget = RzUnpoison->getCallTarget();
-    bool HasTailCall = RzUnpoison->isTailcall();
-    bool IsTargetHelperCall = RzUnpoison->isTargetHelperCall();
-    auto *RzUnpoisonCpy = InstCall::create(Func, NumArgs, Dest, CallTarget,
-                                           HasTailCall, IsTargetHelperCall);
-    for (int I = 0, Args = RzUnpoison->getNumArgs(); I < Args; ++I) {
-      RzUnpoisonCpy->addArg(RzUnpoison->getArg(I));
-    }
-    Context.insert(RzUnpoisonCpy);
+  for (InstStore *RzUnpoison : *ICE_TLS_GET_FIELD(LocalDtors)) {
+    Context.insert(
+        InstStore::create(Func, RzUnpoison->getData(), RzUnpoison->getAddr()));
   }
-  Context.setNext(Next);
+  Context.advanceCur();
+  Context.advanceNext();
 }
 
 void ASanInstrumentation::instrumentStart(Cfg *Func) {

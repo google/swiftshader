@@ -6,20 +6,33 @@
 ; RUN: llvm-as %s -o - | pnacl-freeze > %t.pexe && %S/../../pydir/szbuild.py \
 ; RUN:     --fsanitize-address --sz=-allow-externally-defined-symbols \
 ; RUN:     %t.pexe -o %t && %t 2>&1 | FileCheck --check-prefix=LOCAL-LOAD %s
+; RUN: llvm-as %s -o - | pnacl-freeze > %t.pexe && %S/../../pydir/szbuild.py \
+; RUN:     --fsanitize-address --sz=-allow-externally-defined-symbols -O2 \
+; RUN:     %t.pexe -o %t && %t 2>&1 | FileCheck --check-prefix=LOCAL-LOAD %s
 
 ; check with a many off the end local load
 ; RUN: llvm-as %s -o - | pnacl-freeze > %t.pexe && %S/../../pydir/szbuild.py \
 ; RUN:     --fsanitize-address --sz=-allow-externally-defined-symbols \
+; RUN:     %t.pexe -o %t && %t 1 2>&1 | FileCheck --check-prefix=LOCAL-LOAD %s
+; RUN: llvm-as %s -o - | pnacl-freeze > %t.pexe && %S/../../pydir/szbuild.py \
+; RUN:     --fsanitize-address --sz=-allow-externally-defined-symbols -O2 \
 ; RUN:     %t.pexe -o %t && %t 1 2>&1 | FileCheck --check-prefix=LOCAL-LOAD %s
 
 ; check with a one before the front local load
 ; RUN: llvm-as %s -o - | pnacl-freeze > %t.pexe && %S/../../pydir/szbuild.py \
 ; RUN:     --fsanitize-address --sz=-allow-externally-defined-symbols \
 ; RUN:     %t.pexe -o %t && %t 1 2 2>&1 | FileCheck --check-prefix=LOCAL-LOAD %s
+; RUN: llvm-as %s -o - | pnacl-freeze > %t.pexe && %S/../../pydir/szbuild.py \
+; RUN:     --fsanitize-address --sz=-allow-externally-defined-symbols -O2\
+; RUN:     %t.pexe -o %t && %t 1 2 2>&1 | FileCheck --check-prefix=LOCAL-LOAD %s
 
 ; check with a one off the end global load
 ; RUN: llvm-as %s -o - | pnacl-freeze > %t.pexe && %S/../../pydir/szbuild.py \
 ; RUN:     --fsanitize-address --sz=-allow-externally-defined-symbols \
+; RUN:     %t.pexe -o %t && %t 1 2 3 2>&1 | FileCheck \
+; RUN:     --check-prefix=GLOBAL-LOAD %s
+; RUN: llvm-as %s -o - | pnacl-freeze > %t.pexe && %S/../../pydir/szbuild.py \
+; RUN:     --fsanitize-address --sz=-allow-externally-defined-symbols -O2 \
 ; RUN:     %t.pexe -o %t && %t 1 2 3 2>&1 | FileCheck \
 ; RUN:     --check-prefix=GLOBAL-LOAD %s
 
@@ -28,10 +41,18 @@
 ; RUN:     --fsanitize-address --sz=-allow-externally-defined-symbols \
 ; RUN:     %t.pexe -o %t && %t 1 2 3 4 2>&1 | FileCheck \
 ; RUN:    --check-prefix=GLOBAL-LOAD %s
+; RUN: llvm-as %s -o - | pnacl-freeze > %t.pexe && %S/../../pydir/szbuild.py \
+; RUN:     --fsanitize-address --sz=-allow-externally-defined-symbols -O2 \
+; RUN:     %t.pexe -o %t && %t 1 2 3 4 2>&1 | FileCheck \
+; RUN:     --check-prefix=GLOBAL-LOAD %s
 
 ; check with a one before the front global load
 ; RUN: llvm-as %s -o - | pnacl-freeze > %t.pexe && %S/../../pydir/szbuild.py \
 ; RUN:     --fsanitize-address --sz=-allow-externally-defined-symbols \
+; RUN:     %t.pexe -o %t && %t 1 2 3 4 5 2>&1 | FileCheck \
+; RUN:     --check-prefix=GLOBAL-LOAD %s
+; RUN: llvm-as %s -o - | pnacl-freeze > %t.pexe && %S/../../pydir/szbuild.py \
+; RUN:     --fsanitize-address --sz=-allow-externally-defined-symbols -O2 \
 ; RUN:     %t.pexe -o %t && %t 1 2 3 4 5 2>&1 | FileCheck \
 ; RUN:     --check-prefix=GLOBAL-LOAD %s
 
@@ -40,10 +61,18 @@
 ; RUN:     --fsanitize-address --sz=-allow-externally-defined-symbols \
 ; RUN:     %t.pexe -o %t && %t 1 2 3 4 5 6 2>&1 | FileCheck \
 ; RUN:     --check-prefix=LOCAL-STORE %s
+; RUN: llvm-as %s -o - | pnacl-freeze > %t.pexe && %S/../../pydir/szbuild.py \
+; RUN:     --fsanitize-address --sz=-allow-externally-defined-symbols -O2 \
+; RUN:     %t.pexe -o %t && %t 1 2 3 4 5 6 2>&1 | FileCheck \
+; RUN:     --check-prefix=LOCAL-STORE %s
 
 ; check with a many off the end local store
 ; RUN: llvm-as %s -o - | pnacl-freeze > %t.pexe && %S/../../pydir/szbuild.py \
 ; RUN:     --fsanitize-address --sz=-allow-externally-defined-symbols \
+; RUN:     %t.pexe -o %t && %t 1 2 3 4 5 6 7 2>&1 | FileCheck \
+; RUN:     --check-prefix=LOCAL-STORE %s
+; RUN: llvm-as %s -o - | pnacl-freeze > %t.pexe && %S/../../pydir/szbuild.py \
+; RUN:     --fsanitize-address --sz=-allow-externally-defined-symbols -O2 \
 ; RUN:     %t.pexe -o %t && %t 1 2 3 4 5 6 7 2>&1 | FileCheck \
 ; RUN:     --check-prefix=LOCAL-STORE %s
 
@@ -52,10 +81,18 @@
 ; RUN:     --fsanitize-address --sz=-allow-externally-defined-symbols \
 ; RUN:     %t.pexe -o %t && %t 1 2 3 4 5 6 7 8 2>&1 | FileCheck \
 ; RUN:     --check-prefix=LOCAL-STORE %s
+; RUN: llvm-as %s -o - | pnacl-freeze > %t.pexe && %S/../../pydir/szbuild.py \
+; RUN:     --fsanitize-address --sz=-allow-externally-defined-symbols -O2 \
+; RUN:     %t.pexe -o %t && %t 1 2 3 4 5 6 7 8 2>&1 | FileCheck \
+; RUN:     --check-prefix=LOCAL-STORE %s
 
 ; check with a one off the end global store
 ; RUN: llvm-as %s -o - | pnacl-freeze > %t.pexe && %S/../../pydir/szbuild.py \
 ; RUN:     --fsanitize-address --sz=-allow-externally-defined-symbols \
+; RUN:     %t.pexe -o %t && %t 1 2 3 4 5 6 7 8 9 2>&1 | FileCheck \
+; RUN:     --check-prefix=GLOBAL-STORE %s
+; RUN: llvm-as %s -o - | pnacl-freeze > %t.pexe && %S/../../pydir/szbuild.py \
+; RUN:     --fsanitize-address --sz=-allow-externally-defined-symbols -O2 \
 ; RUN:     %t.pexe -o %t && %t 1 2 3 4 5 6 7 8 9 2>&1 | FileCheck \
 ; RUN:     --check-prefix=GLOBAL-STORE %s
 
@@ -64,10 +101,18 @@
 ; RUN:     --fsanitize-address --sz=-allow-externally-defined-symbols \
 ; RUN:     %t.pexe -o %t && %t 1 2 3 4 5 6 7 8 9 10 2>&1 | FileCheck \
 ; RUN:    --check-prefix=GLOBAL-STORE %s
+; RUN: llvm-as %s -o - | pnacl-freeze > %t.pexe && %S/../../pydir/szbuild.py \
+; RUN:     --fsanitize-address --sz=-allow-externally-defined-symbols -O2 \
+; RUN:     %t.pexe -o %t && %t 1 2 3 4 5 6 7 8 9 10 2>&1 | FileCheck \
+; RUN:    --check-prefix=GLOBAL-STORE %s
 
 ; check with a one before the front global store
 ; RUN: llvm-as %s -o - | pnacl-freeze > %t.pexe && %S/../../pydir/szbuild.py \
 ; RUN:     --fsanitize-address --sz=-allow-externally-defined-symbols \
+; RUN:     %t.pexe -o %t && %t 1 2 3 4 5 6 7 8 9 10 11 2>&1 | FileCheck \
+; RUN:     --check-prefix=GLOBAL-STORE %s
+; RUN: llvm-as %s -o - | pnacl-freeze > %t.pexe && %S/../../pydir/szbuild.py \
+; RUN:     --fsanitize-address --sz=-allow-externally-defined-symbols -O2 \
 ; RUN:     %t.pexe -o %t && %t 1 2 3 4 5 6 7 8 9 10 11 2>&1 | FileCheck \
 ; RUN:     --check-prefix=GLOBAL-STORE %s
 

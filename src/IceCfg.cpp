@@ -897,7 +897,7 @@ void Cfg::sortAndCombineAllocas(CfgVector<InstAlloca *> &Allocas,
     uint32_t Align1 = A1->getAlignInBytes();
     uint32_t Align2 = A2->getAlignInBytes();
     if (Align1 == Align2)
-      return A1->getNumber() > A2->getNumber();
+      return A1->getNumber() < A2->getNumber();
     else
       return Align1 > Align2;
   });
