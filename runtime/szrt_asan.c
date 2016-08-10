@@ -18,6 +18,7 @@
 #include <assert.h>
 #include <errno.h>
 #include <limits.h>
+#include <sched.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -26,10 +27,30 @@
 #include <string.h>
 #include <sys/mman.h>
 
+#if _POSIX_THREADS
+
+#include <pthread.h>
+typedef pthread_mutex_t mutex_t;
+#define MUTEX_INITIALIZER (PTHREAD_MUTEX_INITIALIZER)
+#define MUTEX_LOCK(mutex) (pthread_mutex_lock(&(mutex)))
+#define MUTEX_UNLOCK(mutex) (pthread_mutex_unlock(&(mutex)))
+
+#else // !_POSIX_THREADS
+
+typedef uint32_t mutex_t;
+#define MUTEX_INITIALIZER (0)
+#define MUTEX_LOCK(mutex)                                                      \
+  while (__sync_swap((mutex), 1) != 0) {                                       \
+    sched_yield();                                                             \
+  }
+#define MUTEX_UNLOCK(mutex) (__sync_swap((mutex), 0))
+
+#endif // _POSIX_THREADS
+
 #define RZ_SIZE (32)
 #define SHADOW_SCALE_LOG2 (3)
 #define SHADOW_SCALE ((size_t)1 << SHADOW_SCALE_LOG2)
-#define DEBUG (0)
+#define DEBUG (1)
 
 // Assuming 48 bit address space on 64 bit systems
 #define SHADOW_LENGTH_64 (1u << (48 - SHADOW_SCALE_LOG2))
@@ -44,11 +65,14 @@
 #define SHADOW2MEM(p)                                                          \
   ((uintptr_t)((char *)(p)-shadow_offset) << SHADOW_SCALE_LOG2)
 
+#define QUARANTINE_MAX_SIZE ((size_t)1 << 28) // 256 MB
+
 #define STACK_POISON_VAL ((char)-1)
 #define HEAP_POISON_VAL ((char)-2)
 #define GLOBAL_POISON_VAL ((char)-3)
+#define FREED_POISON_VAL ((char)-4)
 #define MEMTYPE_INDEX(x) (-1 - (x))
-static const char *memtype_names[] = {"stack", "heap", "global"};
+static const char *memtype_names[] = {"stack", "heap", "global", "freed"};
 
 #define ACCESS_LOAD (0)
 #define ACCESS_STORE (1)
@@ -79,6 +103,16 @@ void __asan_free(char *);
 void __asan_poison(char *, int, char);
 void __asan_unpoison(char *, int);
 
+struct quarantine_entry {
+  struct quarantine_entry *next;
+  size_t size;
+};
+
+mutex_t quarantine_lock = MUTEX_INITIALIZER;
+uint64_t quarantine_size = 0;
+struct quarantine_entry *quarantine_head = NULL;
+struct quarantine_entry *quarantine_tail = NULL;
+
 static void __asan_error(char *ptr, int size, int access) {
   char *shadow_addr = MEM2SHADOW(ptr);
   char shadow_val = *shadow_addr;
@@ -87,7 +121,7 @@ static void __asan_error(char *ptr, int size, int access) {
   assert(access == ACCESS_LOAD || access == ACCESS_STORE);
   const char *access_name = access_names[access];
   assert(shadow_val == STACK_POISON_VAL || shadow_val == HEAP_POISON_VAL ||
-         shadow_val == GLOBAL_POISON_VAL);
+         shadow_val == GLOBAL_POISON_VAL || shadow_val == FREED_POISON_VAL);
   const char *memtype = memtype_names[MEMTYPE_INDEX(shadow_val)];
   fprintf(stderr, "Illegal %d byte %s %s object at %p\n", size, access_name,
           memtype, ptr);
@@ -213,19 +247,51 @@ void *__asan_realloc(char *ptr, size_t size) {
 
 void __asan_free(char *ptr) {
   DUMP("free() called on %p\n", ptr);
+  if (ptr == NULL)
+    return;
+  if (*(char *)MEM2SHADOW(ptr) == FREED_POISON_VAL) {
+    fprintf(stderr, "Double free of object at %p\n", ptr);
+    abort();
+  }
   char *rz_left, *rz_right;
   __asan_get_redzones(ptr, &rz_left, &rz_right);
   size_t rz_right_size = *(size_t *)rz_right;
-  __asan_unpoison(rz_left, RZ_SIZE);
-  __asan_unpoison(rz_right, rz_right_size);
-  free(rz_left);
+  size_t total_size = rz_right_size + (rz_right - rz_left);
+  __asan_poison(rz_left, total_size, FREED_POISON_VAL);
+
+  // place allocation in quarantine
+  struct quarantine_entry *entry = (struct quarantine_entry *)rz_left;
+  assert(entry != NULL);
+  entry->next = NULL;
+  entry->size = total_size;
+
+  DUMP("Placing %d bytes at %p in quarantine\n", entry->size, entry);
+  MUTEX_LOCK(&quarantine_lock);
+  if (quarantine_tail != NULL)
+    quarantine_tail->next = entry;
+  quarantine_tail = entry;
+  if (quarantine_head == NULL)
+    quarantine_head = entry;
+  quarantine_size += total_size;
+  DUMP("Quarantine size is %llu\n", quarantine_size);
+
+  // free old objects as necessary
+  while (quarantine_size > QUARANTINE_MAX_SIZE) {
+    struct quarantine_entry *freed = quarantine_head;
+    assert(freed != NULL);
+    __asan_unpoison((char *)freed, freed->size);
+    quarantine_size -= freed->size;
+    quarantine_head = freed->next;
+    DUMP("Releasing %d bytes at %p from quarantine\n", freed->size, freed);
+    DUMP("Quarantine size is %llu\n", quarantine_size);
+    free(freed);
+  }
+  MUTEX_UNLOCK(&quarantine_lock);
 }
 
 void __asan_poison(char *ptr, int size, char poison_val) {
   char *end = ptr + size;
   assert(IS_SHADOW_ALIGNED(end));
-  // redzones should be no greater than RZ_SIZE + RZ_SIZE-1 for alignment
-  assert(size < 2 * RZ_SIZE);
   DUMP("poison %d bytes at %p: %p - %p\n", size, ptr, MEM2SHADOW(ptr),
        MEM2SHADOW(end));
   size_t offset = SHADOW_OFFSET(ptr);
@@ -239,7 +305,6 @@ void __asan_poison(char *ptr, int size, char poison_val) {
 void __asan_unpoison(char *ptr, int size) {
   char *end = ptr + size;
   assert(IS_SHADOW_ALIGNED(end));
-  assert(size < 2 * RZ_SIZE);
   DUMP("unpoison %d bytes at %p: %p - %p\n", size, ptr, MEM2SHADOW(ptr),
        MEM2SHADOW(end));
   *(char *)MEM2SHADOW(ptr) = 0;
