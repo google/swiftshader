@@ -1,4 +1,5 @@
 ; Test that direct loads and stores of local variables are not checked.
+; Also test that redundant checks of the same variable are elided.
 
 ; REQUIRES: allow_dump
 
@@ -50,17 +51,19 @@ define internal void @foo() {
   %offtarget64 = inttoptr i32 %off64 to i64*
   %offtarget128 = inttoptr i32 %off128 to <4 x i32>*
 
+  ; checked stores
+  store i8 42, i8* %offtarget8, align 1
+  store i16 42, i16* %offtarget16, align 1
+  store i32 42, i32* %offtarget32, align 1
+
   ; checked loads
-  %offloaded8 = load i8, i8* %offtarget8, align 1
-  %offloaded16 = load i16, i16* %offtarget16, align 1
-  %offloaded32 = load i32, i32* %offtarget32, align 1
   %offloaded64 = load i64, i64* %offtarget64, align 1
   %offloaded128 = load <4 x i32>, <4 x i32>* %offtarget128, align 4
 
-  ; checked stores
-  store i8 %offloaded8, i8* %offtarget8, align 1
-  store i16 %offloaded16, i16* %offtarget16, align 1
-  store i32 %offloaded32, i32* %offtarget32, align 1
+  ; loads and stores with elided redundant checks
+  %offloaded8 = load i8, i8* %offtarget8, align 1
+  %offloaded16 = load i16, i16* %offtarget16, align 1
+  %offloaded32 = load i32, i32* %offtarget32, align 1
   store i64 %offloaded64, i64* %offtarget64, align 1
   store <4 x i32> %offloaded128, <4 x i32>* %offtarget128, align 4
 
@@ -70,7 +73,7 @@ define internal void @foo() {
 ; DUMP-LABEL: ================ Instrumented CFG ================
 ; DUMP-NEXT: define internal void @foo() {
 
-; Unchecked loads and stores
+; Direct unchecked loads and stores
 ; DUMP: %loaded8 = load i8, i8* %ptr8, align 1
 ; DUMP-NEXT: %loaded16 = load i16, i16* %ptr16, align 1
 ; DUMP-NEXT: %loaded32 = load i32, i32* %ptr32, align 1
@@ -82,24 +85,23 @@ define internal void @foo() {
 ; DUMP-NEXT: store i64 %loaded64, i64* %ptr64, align 1
 ; DUMP-NEXT: store <4 x i32> %loaded128, <4 x i32>* %ptr128, align 4
 
-; Checked loads and stores
-; DUMP: call void @__asan_check_load(i32 %off8, i32 1)
-; DUMP-NEXT: %offloaded8 = load i8, i8* %off8, align 1
-; DUMP-NEXT: call void @__asan_check_load(i32 %off16, i32 2)
-; DUMP-NEXT: %offloaded16 = load i16, i16* %off16, align 1
-; DUMP-NEXT: call void @__asan_check_load(i32 %off32, i32 4)
-; DUMP-NEXT: %offloaded32 = load i32, i32* %off32, align 1
+; Checked stores
+; DUMP: call void @__asan_check_store(i32 %off8, i32 1)
+; DUMP-NEXT: store i8 42, i8* %off8, align 1
+; DUMP-NEXT: call void @__asan_check_store(i32 %off16, i32 2)
+; DUMP-NEXT: store i16 42, i16* %off16, align 1
+; DUMP-NEXT: call void @__asan_check_store(i32 %off32, i32 4)
+; DUMP-NEXT: store i32 42, i32* %off32, align 1
+
+; Checked loads
 ; DUMP-NEXT: call void @__asan_check_load(i32 %off64, i32 8)
 ; DUMP-NEXT: %offloaded64 = load i64, i64* %off64, align 1
 ; DUMP-NEXT: call void @__asan_check_load(i32 %off128, i32 16)
 ; DUMP-NEXT: %offloaded128 = load <4 x i32>, <4 x i32>* %off128, align 4
-; DUMP-NEXT: call void @__asan_check_store(i32 %off8, i32 1)
-; DUMP-NEXT: store i8 %offloaded8, i8* %off8, align 1
-; DUMP-NEXT: call void @__asan_check_store(i32 %off16, i32 2)
-; DUMP-NEXT: store i16 %offloaded16, i16* %off16, align 1
-; DUMP-NEXT: call void @__asan_check_store(i32 %off32, i32 4)
-; DUMP-NEXT: store i32 %offloaded32, i32* %off32, align 1
-; DUMP-NEXT: call void @__asan_check_store(i32 %off64, i32 8)
-; DUMP-NEXT: store i64 %offloaded64, i64* %off64, align 1
-; DUMP-NEXT: call void @__asan_check_store(i32 %off128, i32 16)
-; DUMP-NEXT: store <4 x i32> %offloaded128, <4 x i32>* %off128, align 4
+
+; Loads and stores with elided redundant checks
+; DUMP-NEXT: %offloaded8 = load i8, i8* %off8, align 1
+; DUMP-NEXT: %offloaded16 = load i16, i16* %off16, align 1
+; DUMP-NEXT: %offloaded32 = load i32, i32* %off32, align 1
+; DUMP-NEXT: store i64 %offloaded64, i64* %off64, align 1, beacon %offloaded64
+; DUMP-NEXT: store <4 x i32> %offloaded128, <4 x i32>* %off128, align 4, beacon %offloaded128

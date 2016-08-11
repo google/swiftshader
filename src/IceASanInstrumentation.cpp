@@ -70,6 +70,8 @@ llvm::NaClBitcodeRecord::RecordVector sizeToByteVec(SizeT Size) {
 ICE_TLS_DEFINE_FIELD(VarSizeMap *, ASanInstrumentation, LocalVars);
 ICE_TLS_DEFINE_FIELD(std::vector<InstStore *> *, ASanInstrumentation,
                      LocalDtors);
+ICE_TLS_DEFINE_FIELD(CfgNode *, ASanInstrumentation, CurNode);
+ICE_TLS_DEFINE_FIELD(VarSizeMap *, ASanInstrumentation, CheckedVars);
 
 bool ASanInstrumentation::isInstrumentable(Cfg *Func) {
   std::string FuncName = Func->getFunctionName().toStringOrEmpty();
@@ -329,6 +331,23 @@ void ASanInstrumentation::instrumentStore(LoweringContext &Context,
 void ASanInstrumentation::instrumentAccess(LoweringContext &Context,
                                            Operand *Op, SizeT Size,
                                            Constant *CheckFunc) {
+  // Skip redundant checks within basic blocks
+  VarSizeMap *Checked = ICE_TLS_GET_FIELD(CheckedVars);
+  if (ICE_TLS_GET_FIELD(CurNode) != Context.getNode()) {
+    ICE_TLS_SET_FIELD(CurNode, Context.getNode());
+    if (Checked == NULL) {
+      Checked = new VarSizeMap();
+      ICE_TLS_SET_FIELD(CheckedVars, Checked);
+    }
+    Checked->clear();
+  }
+  VarSizeMap::iterator PrevCheck = Checked->find(Op);
+  if (PrevCheck != Checked->end() && PrevCheck->second >= Size)
+    return;
+  else
+    Checked->insert({Op, Size});
+
+  // check for known good local access
   VarSizeMap::iterator LocalSize = ICE_TLS_GET_FIELD(LocalVars)->find(Op);
   if (LocalSize != ICE_TLS_GET_FIELD(LocalVars)->end() &&
       LocalSize->second >= Size)

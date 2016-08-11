@@ -50,7 +50,7 @@ typedef uint32_t mutex_t;
 #define RZ_SIZE (32)
 #define SHADOW_SCALE_LOG2 (3)
 #define SHADOW_SCALE ((size_t)1 << SHADOW_SCALE_LOG2)
-#define DEBUG (1)
+#define DEBUG (0)
 
 // Assuming 48 bit address space on 64 bit systems
 #define SHADOW_LENGTH_64 (1u << (48 - SHADOW_SCALE_LOG2))

@@ -37,6 +37,8 @@ public:
   ASanInstrumentation(GlobalContext *Ctx) : Instrumentation(Ctx), RzNum(0) {
     ICE_TLS_INIT_FIELD(LocalVars);
     ICE_TLS_INIT_FIELD(LocalDtors);
+    ICE_TLS_INIT_FIELD(CurNode);
+    ICE_TLS_INIT_FIELD(CheckedVars);
   }
   void instrumentGlobals(VariableDeclarationList &Globals) override;
 
@@ -55,6 +57,8 @@ private:
   void finishFunc(Cfg *Func) override;
   ICE_TLS_DECLARE_FIELD(VarSizeMap *, LocalVars);
   ICE_TLS_DECLARE_FIELD(std::vector<InstStore *> *, LocalDtors);
+  ICE_TLS_DECLARE_FIELD(CfgNode *, CurNode);
+  ICE_TLS_DECLARE_FIELD(VarSizeMap *, CheckedVars);
   GlobalSizeMap GlobalSizes;
   std::atomic<uint32_t> RzNum;
   bool DidProcessGlobals = false;
