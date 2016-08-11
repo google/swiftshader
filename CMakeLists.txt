@@ -13,6 +13,8 @@ option(BUILD_GLES_CM "Build the OpenGL ES 1.1 library" 1)
 
 option(USE_GROUP_SOURCES "Group the source files in a folder tree for visual studio" 1)
 
+option(BUILD_EXTRA_PROGRAMS "Build extra programs" 1)
+
 # LLVM disallows calling cmake . from the main LLVM dir, the reason is that
 # it builds header files that could overwrite the orignal ones. Here we
 # want to include LLVM as a subdirectory and even though it wouldn't cause
@@ -827,21 +829,23 @@ endif()
 # Extra programs
 ###########################################################
 
-if(LINUX)
-    add_executable(OGLES2HelloAPI ${HELLO2_DIR}/OGLES2HelloAPI_LinuxX11.cpp)
-    target_link_libraries(OGLES2HelloAPI dl X11 EGL GLESv2)
-elseif(APPLE)
-    add_executable(OGLES2HelloAPI MACOSX_BUNDLE
-        ${HELLO2_DIR}/OGLES2HelloAPI_OSX.mm
-        ${HELLO2_DIR}/Build/OSX/en.lproj/MainMenu.xib
-    )
-    set_target_properties(OGLES2HelloAPI PROPERTIES
-        INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/include"
-        COMPILE_DEFINITIONS "GL_GLEXT_PROTOTYPES"
-        MACOSX_BUNDLE_INFO_PLIST "${HELLO2_DIR}/Build/OSX/Info.plist"
-    )
-    target_link_libraries(OGLES2HelloAPI libEGL libGLESv2 ${OS_LIBS})
-    set_source_files_properties(${HELLO2_DIR}/Build/OSX/en.lproj/MainMenu.xib PROPERTIES
-        MACOSX_PACKAGE_LOCATION "Resources"
-    )
+if(BUILD_EXTRA_PROGRAMS)
+    if(LINUX)
+        add_executable(OGLES2HelloAPI ${HELLO2_DIR}/OGLES2HelloAPI_LinuxX11.cpp)
+        target_link_libraries(OGLES2HelloAPI dl X11 EGL GLESv2)
+    elseif(APPLE)
+        add_executable(OGLES2HelloAPI MACOSX_BUNDLE
+            ${HELLO2_DIR}/OGLES2HelloAPI_OSX.mm
+            ${HELLO2_DIR}/Build/OSX/en.lproj/MainMenu.xib
+        )
+        set_target_properties(OGLES2HelloAPI PROPERTIES
+            INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/include"
+            COMPILE_DEFINITIONS "GL_GLEXT_PROTOTYPES"
+            MACOSX_BUNDLE_INFO_PLIST "${HELLO2_DIR}/Build/OSX/Info.plist"
+        )
+        target_link_libraries(OGLES2HelloAPI libEGL libGLESv2 ${OS_LIBS})
+        set_source_files_properties(${HELLO2_DIR}/Build/OSX/en.lproj/MainMenu.xib PROPERTIES
+            MACOSX_PACKAGE_LOCATION "Resources"
+        )
+    endif()
 endif()
