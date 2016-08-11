@@ -13,6 +13,8 @@ The SwiftShader libraries act as drop-in replacements for graphics drivers.
 
 On Windows, most applications can be made to use SwiftShader's DLLs by placing them in the same folder as the executable. On Linux, the LD\_LIBRARY\_PATH environment variable or -rpath linker option can be used to direct applications to search for shared libraries in the indicated directory first.
 
+Prebuilt binaries can be found at: https://goo.gl/5MOcdb
+
 Contributing
 -----------------
 
