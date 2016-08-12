@@ -2960,7 +2960,7 @@ GL_APICALL void GL_APIENTRY glUniformBlockBinding(GLuint program, GLuint uniform
 			return error(GL_INVALID_VALUE);
 		}
 
-		programObject->bindUniformBlock(uniformBlockIndex, uniformBlockIndex);
+		programObject->bindUniformBlock(uniformBlockIndex, uniformBlockBinding);
 	}
 }
 
