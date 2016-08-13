@@ -1768,9 +1768,12 @@ void TargetMIPS32::lowerCall(const InstCall *Instr) {
       ReturnRegHi = I32Reg(RegMIPS32::Reg_V1);
       break;
     case IceType_f32:
+      ReturnReg = makeReg(Dest->getType(), RegMIPS32::Reg_F0);
+      break;
     case IceType_f64:
-      UnimplementedLoweringError(this, Instr);
-      return;
+      ReturnReg = makeReg(IceType_f32, RegMIPS32::Reg_F0);
+      ReturnRegHi = makeReg(IceType_f32, RegMIPS32::Reg_F1);
+      break;
     case IceType_v4i1:
     case IceType_v8i1:
     case IceType_v16i1:
