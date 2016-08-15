@@ -856,11 +856,12 @@ namespace sw
 
 				switch(src.rel.type)
 				{
-				case Shader::PARAMETER_ADDR:   a = a0[component]; break;
-				case Shader::PARAMETER_TEMP:   a = r[src.rel.index][component]; break;
-				case Shader::PARAMETER_INPUT:  a = v[src.rel.index][component]; break;
-				case Shader::PARAMETER_OUTPUT: a = o[src.rel.index][component]; break;
-				case Shader::PARAMETER_CONST:  a = *Pointer<Float>(uniformAddress(src.bufferIndex, src.rel.index) + component * sizeof(float)); break;
+				case Shader::PARAMETER_ADDR:     a = a0[component]; break;
+				case Shader::PARAMETER_TEMP:     a = r[src.rel.index][component]; break;
+				case Shader::PARAMETER_INPUT:    a = v[src.rel.index][component]; break;
+				case Shader::PARAMETER_OUTPUT:   a = o[src.rel.index][component]; break;
+				case Shader::PARAMETER_CONST:    a = *Pointer<Float>(uniformAddress(src.bufferIndex, src.rel.index) + component * sizeof(float)); break;
+				case Shader::PARAMETER_MISCTYPE: a = As<Float4>(Int4(instanceID)); break;
 				default: ASSERT(false);
 				}
 
