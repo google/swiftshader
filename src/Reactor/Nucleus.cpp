@@ -5394,6 +5394,8 @@ namespace sw
 
 	Int4::Int4(RValue<Int2> lo, RValue<Int2> hi)
 	{
+	//	xyzw.parent = this;
+
 		Value *loLong = Nucleus::createBitCast(lo.value, Long::getType());
 		Value *hiLong = Nucleus::createBitCast(hi.value, Long::getType());
 
@@ -5403,6 +5405,38 @@ namespace sw
 		Value *int4 = Nucleus::createBitCast(long2, Int4::getType());
 
 		storeValue(int4);
+	}
+
+	Int4::Int4(RValue<Int> rhs)
+	{
+	//	xyzw.parent = this;
+
+		Value *vector = loadValue();
+		Value *insert = Nucleus::createInsertElement(vector, rhs.value, 0);
+
+		Constant *swizzle[4];
+		swizzle[0] = Nucleus::createConstantInt(0);
+		swizzle[1] = Nucleus::createConstantInt(0);
+		swizzle[2] = Nucleus::createConstantInt(0);
+		swizzle[3] = Nucleus::createConstantInt(0);
+
+		Value *replicate = Nucleus::createShuffleVector(insert, UndefValue::get(Int4::getType()), Nucleus::createConstantVector(swizzle, 4));
+
+		storeValue(replicate);
+	}
+
+	Int4::Int4(const Int &rhs)
+	{
+	//	xyzw.parent = this;
+
+		*this = RValue<Int>(rhs.loadValue());
+	}
+
+	Int4::Int4(const Reference<Int> &rhs)
+	{
+	//	xyzw.parent = this;
+
+		*this = RValue<Int>(rhs.loadValue());
 	}
 
 	RValue<Int4> Int4::operator=(RValue<Int4> rhs) const

@@ -1655,6 +1655,9 @@ namespace sw
 		Int4(const UInt4 &rhs);
 		Int4(const Reference<UInt4> &rhs);
 		Int4(RValue<Int2> lo, RValue<Int2> hi);
+		Int4(RValue<Int> rhs);
+		Int4(const Int &rhs);
+		Int4(const Reference<Int> &rhs);
 
 		RValue<Int4> operator=(RValue<Int4> rhs) const;
 		RValue<Int4> operator=(const Int4 &rhs) const;
