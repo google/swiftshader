@@ -99,9 +99,12 @@ void ASanInstrumentation::instrumentGlobals(VariableDeclarationList &Globals) {
   NewGlobals.push_back(RzArray);
   NewGlobals.push_back(RzSizes);
 
+  using PrototypeMap = std::unordered_map<std::string, FunctionDeclaration *>;
+  PrototypeMap ProtoSubstitutions;
   for (VariableDeclaration *Global : Globals) {
     assert(Global->getAlignment() <= RzSize);
     VariableDeclaration *RzLeft = VariableDeclaration::create(&NewGlobals);
+    VariableDeclaration *NewGlobal = Global;
     VariableDeclaration *RzRight = VariableDeclaration::create(&NewGlobals);
     RzLeft->setName(Ctx, nextRzName());
     RzRight->setName(Ctx, nextRzName());
@@ -109,22 +112,68 @@ void ASanInstrumentation::instrumentGlobals(VariableDeclarationList &Globals) {
     SizeT RzLeftSize = Alignment;
     SizeT RzRightSize =
         RzSize + Utils::OffsetToAlignment(Global->getNumBytes(), Alignment);
-    if (Global->hasNonzeroInitializer()) {
+    if (!Global->hasNonzeroInitializer()) {
+      RzLeft->addInitializer(VariableDeclaration::ZeroInitializer::create(
+          &NewGlobals, RzLeftSize));
+      RzRight->addInitializer(VariableDeclaration::ZeroInitializer::create(
+          &NewGlobals, RzRightSize));
+    } else {
       RzLeft->addInitializer(VariableDeclaration::DataInitializer::create(
           &NewGlobals, llvm::NaClBitcodeRecord::RecordVector(RzLeftSize, 'R')));
       RzRight->addInitializer(VariableDeclaration::DataInitializer::create(
           &NewGlobals,
           llvm::NaClBitcodeRecord::RecordVector(RzRightSize, 'R')));
-    } else {
-      RzLeft->addInitializer(VariableDeclaration::ZeroInitializer::create(
-          &NewGlobals, RzLeftSize));
-      RzRight->addInitializer(VariableDeclaration::ZeroInitializer::create(
-          &NewGlobals, RzRightSize));
+
+      // replace any pointers to allocator functions
+      NewGlobal = VariableDeclaration::create(&NewGlobals);
+      NewGlobal->setName(Global->getName());
+      std::vector<VariableDeclaration::Initializer *> GlobalInits =
+          Global->getInitializers();
+      for (VariableDeclaration::Initializer *Init : GlobalInits) {
+        auto *RelocInit =
+            llvm::dyn_cast<VariableDeclaration::RelocInitializer>(Init);
+        if (RelocInit == nullptr) {
+          NewGlobal->addInitializer(Init);
+          continue;
+        }
+        const GlobalDeclaration *TargetDecl = RelocInit->getDeclaration();
+        const auto *TargetFunc =
+            llvm::dyn_cast<FunctionDeclaration>(TargetDecl);
+        if (TargetFunc == nullptr) {
+          NewGlobal->addInitializer(Init);
+          continue;
+        }
+        std::string TargetName = TargetDecl->getName().toStringOrEmpty();
+        StringMap::const_iterator Subst = FuncSubstitutions.find(TargetName);
+        if (Subst == FuncSubstitutions.end()) {
+          NewGlobal->addInitializer(Init);
+          continue;
+        }
+        std::string SubstName = Subst->second;
+        PrototypeMap::iterator SubstProtoEntry =
+            ProtoSubstitutions.find(SubstName);
+        FunctionDeclaration *SubstProto;
+        if (SubstProtoEntry != ProtoSubstitutions.end())
+          SubstProto = SubstProtoEntry->second;
+        else {
+          constexpr bool IsProto = true;
+          SubstProto = FunctionDeclaration::create(
+              Ctx, TargetFunc->getSignature(), TargetFunc->getCallingConv(),
+              llvm::GlobalValue::ExternalLinkage, IsProto);
+          SubstProto->setName(Ctx, SubstName);
+          ProtoSubstitutions.insert({SubstName, SubstProto});
+        }
+
+        NewGlobal->addInitializer(VariableDeclaration::RelocInitializer::create(
+            &NewGlobals, SubstProto, RelocOffsetArray(0)));
+      }
     }
+
     RzLeft->setIsConstant(Global->getIsConstant());
+    NewGlobal->setIsConstant(Global->getIsConstant());
     RzRight->setIsConstant(Global->getIsConstant());
     RzLeft->setAlignment(Alignment);
-    Global->setAlignment(Alignment);
+    NewGlobal->setAlignment(Alignment);
     RzRight->setAlignment(1);
     RzArray->addInitializer(VariableDeclaration::RelocInitializer::create(
         &NewGlobals, RzLeft, RelocOffsetArray(0)));
@@ -136,11 +185,11 @@ void ASanInstrumentation::instrumentGlobals(VariableDeclarationList &Globals) {
         &NewGlobals, sizeToByteVec(RzRightSize)));
 
     NewGlobals.push_back(RzLeft);
-    NewGlobals.push_back(Global);
+    NewGlobals.push_back(NewGlobal);
     NewGlobals.push_back(RzRight);
     RzGlobalsNum += 2;
 
-    GlobalSizes.insert({Global->getName(), Global->getNumBytes()});
+    GlobalSizes.insert({NewGlobal->getName(), NewGlobal->getNumBytes()});
   }
 
   // Replace old list of globals, without messing up arena allocators
