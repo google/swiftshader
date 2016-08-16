@@ -363,6 +363,24 @@ void ASanInstrumentation::instrumentCall(LoweringContext &Context,
 
 void ASanInstrumentation::instrumentLoad(LoweringContext &Context,
                                          InstLoad *Instr) {
+  Operand *Src = Instr->getSourceAddress();
+  if (auto *Reloc = llvm::dyn_cast<ConstantRelocatable>(Src)) {
+    std::string SrcName = Reloc->getName().toStringOrEmpty();
+    assert(!SrcName.empty());
+    StringMap::const_iterator SrcSub = FuncSubstitutions.find(SrcName);
+    if (SrcSub != FuncSubstitutions.end()) {
+      auto *NewSrc = ConstantRelocatable::create(
+          Ctx, Reloc->getType(),
+          RelocatableTuple(Reloc->getOffset(), RelocOffsetArray(0),
+                           Ctx->getGlobalString(SrcSub->second),
+                           Reloc->getEmitString()));
+      auto *NewLoad = InstLoad::create(Context.getNode()->getCfg(),
+                                       Instr->getDest(), NewSrc);
+      Instr->setDeleted();
+      Context.insert(NewLoad);
+      Instr = NewLoad;
+    }
+  }
   Constant *Func =
       Ctx->getConstantExternSym(Ctx->getGlobalString("__asan_check_load"));
   instrumentAccess(Context, Instr->getSourceAddress(),
