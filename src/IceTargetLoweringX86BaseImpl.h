@@ -809,7 +809,7 @@ template <typename TraitsType> void TargetX86Base<TraitsType>::doLoadOpt() {
     while (!Context.atEnd()) {
       Variable *LoadDest = nullptr;
       Operand *LoadSrc = nullptr;
-      Inst *CurInst = Context.getCur();
+      Inst *CurInst = iteratorToInst(Context.getCur());
       Inst *Next = Context.getNextInst();
       // Determine whether the current instruction is a Load instruction or
       // equivalent.
@@ -5680,7 +5680,7 @@ template <typename TraitsType>
 void TargetX86Base<TraitsType>::doAddressOptOther() {
   // Inverts some Icmp instructions which helps doAddressOptLoad later.
   // TODO(manasijm): Refactor to unify the conditions for Var0 and Var1
-  Inst *Instr = Context.getCur();
+  Inst *Instr = iteratorToInst(Context.getCur());
   auto *VMetadata = Func->getVMetadata();
   if (auto *Icmp = llvm::dyn_cast<InstIcmp>(Instr)) {
     if (llvm::isa<Constant>(Icmp->getSrc(0)) ||
@@ -5711,7 +5711,7 @@ void TargetX86Base<TraitsType>::doAddressOptOther() {
 
 template <typename TraitsType>
 void TargetX86Base<TraitsType>::doAddressOptLoad() {
-  Inst *Instr = Context.getCur();
+  Inst *Instr = iteratorToInst(Context.getCur());
   Operand *Addr = Instr->getSrc(0);
   Variable *Dest = Instr->getDest();
   if (auto *OptAddr = computeAddressOpt(Instr, Dest->getType(), Addr)) {

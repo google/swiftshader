@@ -828,7 +828,7 @@ void Cfg::floatConstantCSE() {
     auto Current = Node->getInsts().begin();
     auto End = Node->getInsts().end();
     while (Current != End) {
-      CfgUnorderedMap<Constant *, CfgVector<Inst *>> FloatUses;
+      CfgUnorderedMap<Constant *, CfgVector<InstList::iterator>> FloatUses;
       if (llvm::isa<InstCall>(iteratorToInst(Current))) {
         ++Current;
         assert(Current != End);
@@ -868,7 +868,7 @@ void Cfg::floatConstantCSE() {
             InstAssign::create(Node->getCfg(), NewVar, ConstCache[Pair.first]);
 
         Insts.insert(Pair.second[0], Assign);
-        for (auto *InstUse : Pair.second) {
+        for (auto InstUse : Pair.second) {
           for (SizeT i = 0; i < InstUse->getSrcSize(); ++i) {
             if (auto *Const = llvm::dyn_cast<Constant>(InstUse->getSrc(i))) {
               if (Const == Pair.first) {

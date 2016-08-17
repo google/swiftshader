@@ -50,4 +50,11 @@ else()
   add_compile_options(-Wno-undefined-var-template)
 endif()
 
+execute_process(COMMAND git rev-parse HEAD
+  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+  OUTPUT_VARIABLE SUBZERO_REVISION
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+add_definitions(-DSUBZERO_REVISION=${SUBZERO_REVISION})
+
 target_link_libraries(pnacl-sz pthread)

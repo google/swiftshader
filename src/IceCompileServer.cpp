@@ -171,7 +171,11 @@ void dumpBuildAttributes(Ostream &Str) {
 
 void CLCompileServer::run() {
   if (BuildDefs::dump()) {
+#ifdef PNACL_LLVM
     llvm::sys::PrintStackTraceOnErrorSignal();
+#else  // !PNACL_LLVM
+    llvm::sys::PrintStackTraceOnErrorSignal(argv[0]);
+#endif // !PNACL_LLVM
   }
   ClFlags::parseFlags(argc, argv);
   ClFlags &Flags = ClFlags::Flags;
