@@ -31,4 +31,6 @@ else
 endif
 
 CPP.Defines += -DPNACL_LLVM
-CPP.Defines += -DSUBZERO_REVISION=$(shell git rev-parse HEAD)
+SZ_COMMIT_COUNT := $(shell git rev-list --count HEAD)
+SZ_GIT_HASH := $(shell git rev-parse HEAD)
+CPP.Defines += -DSUBZERO_REVISION=$(SZ_COMMIT_COUNT)_$(SZ_GIT_HASH)
