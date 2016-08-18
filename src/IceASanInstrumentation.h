@@ -45,6 +45,7 @@ public:
 private:
   std::string nextRzName();
   bool isOkGlobalAccess(Operand *Op, SizeT Size);
+  ConstantRelocatable *instrumentReloc(ConstantRelocatable *Reloc);
   bool isInstrumentable(Cfg *Func) override;
   void instrumentFuncStart(LoweringContext &Context) override;
   void instrumentCall(LoweringContext &Context, InstCall *Instr) override;

@@ -365,21 +365,11 @@ void ASanInstrumentation::instrumentLoad(LoweringContext &Context,
                                          InstLoad *Instr) {
   Operand *Src = Instr->getSourceAddress();
   if (auto *Reloc = llvm::dyn_cast<ConstantRelocatable>(Src)) {
-    std::string SrcName = Reloc->getName().toStringOrEmpty();
-    assert(!SrcName.empty());
-    StringMap::const_iterator SrcSub = FuncSubstitutions.find(SrcName);
-    if (SrcSub != FuncSubstitutions.end()) {
-      auto *NewSrc = ConstantRelocatable::create(
-          Ctx, Reloc->getType(),
-          RelocatableTuple(Reloc->getOffset(), RelocOffsetArray(0),
-                           Ctx->getGlobalString(SrcSub->second),
-                           Reloc->getEmitString()));
-      auto *NewLoad = InstLoad::create(Context.getNode()->getCfg(),
-                                       Instr->getDest(), NewSrc);
-      Instr->setDeleted();
-      Context.insert(NewLoad);
-      Instr = NewLoad;
-    }
+    auto *NewLoad = InstLoad::create(Context.getNode()->getCfg(),
+                                     Instr->getDest(), instrumentReloc(Reloc));
+    Instr->setDeleted();
+    Context.insert(NewLoad);
+    Instr = NewLoad;
   }
   Constant *Func =
       Ctx->getConstantExternSym(Ctx->getGlobalString("__asan_check_load"));
@@ -389,10 +379,32 @@ void ASanInstrumentation::instrumentLoad(LoweringContext &Context,
 
 void ASanInstrumentation::instrumentStore(LoweringContext &Context,
                                           InstStore *Instr) {
+  Operand *Data = Instr->getData();
+  if (auto *Reloc = llvm::dyn_cast<ConstantRelocatable>(Data)) {
+    auto *NewStore = InstStore::create(
+        Context.getNode()->getCfg(), instrumentReloc(Reloc), Instr->getAddr());
+    Instr->setDeleted();
+    Context.insert(NewStore);
+    Instr = NewStore;
+  }
   Constant *Func =
       Ctx->getConstantExternSym(Ctx->getGlobalString("__asan_check_store"));
   instrumentAccess(Context, Instr->getAddr(),
                    typeWidthInBytes(Instr->getData()->getType()), Func);
+}
+
+ConstantRelocatable *
+ASanInstrumentation::instrumentReloc(ConstantRelocatable *Reloc) {
+  std::string DataName = Reloc->getName().toString();
+  StringMap::const_iterator DataSub = FuncSubstitutions.find(DataName);
+  if (DataSub != FuncSubstitutions.end()) {
+    return ConstantRelocatable::create(
+        Ctx, Reloc->getType(),
+        RelocatableTuple(Reloc->getOffset(), RelocOffsetArray(0),
+                         Ctx->getGlobalString(DataSub->second),
+                         Reloc->getEmitString()));
+  }
+  return Reloc;
 }
 
 void ASanInstrumentation::instrumentAccess(LoweringContext &Context,
