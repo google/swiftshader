@@ -200,6 +200,19 @@ InstMIPS32Br::InstMIPS32Br(Cfg *Func, const CfgNode *TargetTrue,
   addSource(Src1);
 }
 
+bool InstMIPS32Br::repointEdges(CfgNode *OldNode, CfgNode *NewNode) {
+  bool Found = false;
+  if (TargetFalse == OldNode) {
+    TargetFalse = NewNode;
+    Found = true;
+  }
+  if (TargetTrue == OldNode) {
+    TargetTrue = NewNode;
+    Found = true;
+  }
+  return Found;
+}
+
 InstMIPS32Label::InstMIPS32Label(Cfg *Func, TargetMIPS32 *Target)
     : InstMIPS32(Func, InstMIPS32::Label, 0, nullptr),
       Number(Target->makeNextLabelNumber()) {

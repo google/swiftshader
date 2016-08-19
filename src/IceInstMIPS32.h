@@ -502,8 +502,7 @@ class InstMIPS32Load : public InstMIPS32 {
 
 public:
   static InstMIPS32Load *create(Cfg *Func, Variable *Value,
-                                  OperandMIPS32Mem *Mem,
-                                  RelocOp Reloc = RO_No) {
+                                OperandMIPS32Mem *Mem, RelocOp Reloc = RO_No) {
     return new (Func->allocate<InstMIPS32Load>())
         InstMIPS32Load(Func, Value, Mem, Reloc);
   }
@@ -541,7 +540,7 @@ public:
 
 private:
   InstMIPS32Load(Cfg *Func, Variable *Value, OperandMIPS32Mem *Mem,
-                   RelocOp Reloc = RO_No)
+                 RelocOp Reloc = RO_No)
       : InstMIPS32(Func, K, 2, Value), Reloc(Reloc) {
     addSource(Mem);
   }
@@ -559,8 +558,7 @@ class InstMIPS32Store : public InstMIPS32 {
 
 public:
   static InstMIPS32Store *create(Cfg *Func, Variable *Value,
-                                  OperandMIPS32Mem *Mem,
-                                  RelocOp Reloc = RO_No) {
+                                 OperandMIPS32Mem *Mem, RelocOp Reloc = RO_No) {
     return new (Func->allocate<InstMIPS32Store>())
         InstMIPS32Store(Func, Value, Mem, Reloc);
   }
@@ -598,7 +596,7 @@ public:
 
 private:
   InstMIPS32Store(Cfg *Func, Variable *Value, OperandMIPS32Mem *Mem,
-                   RelocOp Reloc = RO_No)
+                  RelocOp Reloc = RO_No)
       : InstMIPS32(Func, K, 2, nullptr), Reloc(Reloc) {
     addSource(Value);
     addSource(Mem);
@@ -675,11 +673,7 @@ public:
   bool isUnconditionalBranch() const override {
     return Predicate == CondMIPS32::AL;
   }
-  bool repointEdges(CfgNode *OldNode, CfgNode *NewNode) override {
-    (void)OldNode;
-    (void)NewNode;
-    return true;
-  };
+  bool repointEdges(CfgNode *OldNode, CfgNode *NewNode) override;
   void emit(const Cfg *Func) const override;
   void emitIAS(const Cfg *Func) const override { (void)Func; };
   void dump(const Cfg *Func) const override;
