@@ -1,0 +1,11 @@
+URL: https://swiftshader.googlesource.com/SwiftShader/+/cloud-android-current-release
+License: Apache License                            Version 2.0, January 2004
+License File: LICENSE.txt
+
+Description:
+SwiftShader is a high-performance CPU-based implementation of the OpenGL ES and
+Direct3D 9 graphics APIs12. Its goal is to provide hardware independence for
+advanced 3D graphics.
+
+Local Modifications:
+No Modifications
