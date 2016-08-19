@@ -492,20 +492,77 @@ private:
   static const char *Opcode;
 };
 
-// InstMIPS32Memory represents instructions which loads/stores data on memory
+// InstMIPS32Load represents instructions which loads data from memory
 // Its format is "OPCODE GPR, OFFSET(BASE GPR)"
 template <InstMIPS32::InstKindMIPS32 K>
-class InstMIPS32Memory : public InstMIPS32 {
-  InstMIPS32Memory() = delete;
-  InstMIPS32Memory(const InstMIPS32Memory &) = delete;
-  InstMIPS32Memory &operator=(const InstMIPS32Memory &) = delete;
+class InstMIPS32Load : public InstMIPS32 {
+  InstMIPS32Load() = delete;
+  InstMIPS32Load(const InstMIPS32Load &) = delete;
+  InstMIPS32Load &operator=(const InstMIPS32Load &) = delete;
 
 public:
-  static InstMIPS32Memory *create(Cfg *Func, Variable *Value,
+  static InstMIPS32Load *create(Cfg *Func, Variable *Value,
                                   OperandMIPS32Mem *Mem,
                                   RelocOp Reloc = RO_No) {
-    return new (Func->allocate<InstMIPS32Memory>())
-        InstMIPS32Memory(Func, Value, Mem, Reloc);
+    return new (Func->allocate<InstMIPS32Load>())
+        InstMIPS32Load(Func, Value, Mem, Reloc);
+  }
+
+  void emit(const Cfg *Func) const override {
+    if (!BuildDefs::dump())
+      return;
+    Ostream &Str = Func->getContext()->getStrEmit();
+    assert(getSrcSize() == 1);
+    Str << "\t" << Opcode << "\t";
+    getDest()->emit(Func);
+    Str << ", ";
+    emitRelocOp(Str, Reloc);
+    getSrc(0)->emit(Func);
+  }
+
+  void emitIAS(const Cfg *Func) const override {
+    (void)Func;
+    llvm_unreachable("Not yet implemented");
+  }
+
+  void dump(const Cfg *Func) const override {
+    if (!BuildDefs::dump())
+      return;
+    Ostream &Str = Func->getContext()->getStrDump();
+    Str << "\t" << Opcode << "\t";
+    getDest()->dump(Func);
+    Str << ", ";
+    emitRelocOp(Str, Reloc);
+    Str << (Reloc ? "(" : "");
+    getSrc(0)->dump(Func);
+    Str << (Reloc ? ")" : "");
+  }
+  static bool classof(const Inst *Inst) { return isClassof(Inst, K); }
+
+private:
+  InstMIPS32Load(Cfg *Func, Variable *Value, OperandMIPS32Mem *Mem,
+                   RelocOp Reloc = RO_No)
+      : InstMIPS32(Func, K, 2, Value), Reloc(Reloc) {
+    addSource(Mem);
+  }
+  static const char *Opcode;
+  const RelocOp Reloc;
+};
+
+// InstMIPS32Store represents instructions which stores data to memory
+// Its format is "OPCODE GPR, OFFSET(BASE GPR)"
+template <InstMIPS32::InstKindMIPS32 K>
+class InstMIPS32Store : public InstMIPS32 {
+  InstMIPS32Store() = delete;
+  InstMIPS32Store(const InstMIPS32Store &) = delete;
+  InstMIPS32Store &operator=(const InstMIPS32Store &) = delete;
+
+public:
+  static InstMIPS32Store *create(Cfg *Func, Variable *Value,
+                                  OperandMIPS32Mem *Mem,
+                                  RelocOp Reloc = RO_No) {
+    return new (Func->allocate<InstMIPS32Store>())
+        InstMIPS32Store(Func, Value, Mem, Reloc);
   }
 
   void emit(const Cfg *Func) const override {
@@ -540,7 +597,7 @@ public:
   static bool classof(const Inst *Inst) { return isClassof(Inst, K); }
 
 private:
-  InstMIPS32Memory(Cfg *Func, Variable *Value, OperandMIPS32Mem *Mem,
+  InstMIPS32Store(Cfg *Func, Variable *Value, OperandMIPS32Mem *Mem,
                    RelocOp Reloc = RO_No)
       : InstMIPS32(Func, K, 2, nullptr), Reloc(Reloc) {
     addSource(Value);
@@ -757,10 +814,10 @@ using InstMIPS32Div_d = InstMIPS32ThreeAddrFPR<InstMIPS32::Div_d>;
 using InstMIPS32Div_s = InstMIPS32ThreeAddrFPR<InstMIPS32::Div_s>;
 using InstMIPS32Divu = InstMIPS32ThreeAddrGPR<InstMIPS32::Divu>;
 using InstMIPS32La = InstMIPS32UnaryopGPR<InstMIPS32::La>;
-using InstMIPS32Ldc1 = InstMIPS32Memory<InstMIPS32::Ldc1>;
+using InstMIPS32Ldc1 = InstMIPS32Load<InstMIPS32::Ldc1>;
 using InstMIPS32Lui = InstMIPS32UnaryopGPR<InstMIPS32::Lui>;
-using InstMIPS32Lw = InstMIPS32Memory<InstMIPS32::Lw>;
-using InstMIPS32Lwc1 = InstMIPS32Memory<InstMIPS32::Lwc1>;
+using InstMIPS32Lw = InstMIPS32Load<InstMIPS32::Lw>;
+using InstMIPS32Lwc1 = InstMIPS32Load<InstMIPS32::Lwc1>;
 using InstMIPS32Mfc1 = InstMIPS32TwoAddrGPR<InstMIPS32::Mfc1>;
 using InstMIPS32Mfhi = InstMIPS32UnaryopGPR<InstMIPS32::Mfhi>;
 using InstMIPS32Mflo = InstMIPS32UnaryopGPR<InstMIPS32::Mflo>;
@@ -776,7 +833,7 @@ using InstMIPS32Mult = InstMIPS32ThreeAddrGPR<InstMIPS32::Mult>;
 using InstMIPS32Multu = InstMIPS32ThreeAddrGPR<InstMIPS32::Multu>;
 using InstMIPS32Or = InstMIPS32ThreeAddrGPR<InstMIPS32::Or>;
 using InstMIPS32Ori = InstMIPS32Imm16<InstMIPS32::Ori>;
-using InstMIPS32Sdc1 = InstMIPS32Memory<InstMIPS32::Sdc1>;
+using InstMIPS32Sdc1 = InstMIPS32Store<InstMIPS32::Sdc1>;
 using InstMIPS32Sll = InstMIPS32Imm16<InstMIPS32::Sll>;
 using InstMIPS32Sllv = InstMIPS32ThreeAddrGPR<InstMIPS32::Sllv>;
 using InstMIPS32Slt = InstMIPS32ThreeAddrGPR<InstMIPS32::Slt>;
@@ -791,8 +848,8 @@ using InstMIPS32Sub = InstMIPS32ThreeAddrGPR<InstMIPS32::Sub>;
 using InstMIPS32Sub_d = InstMIPS32ThreeAddrFPR<InstMIPS32::Sub_d>;
 using InstMIPS32Sub_s = InstMIPS32ThreeAddrFPR<InstMIPS32::Sub_s>;
 using InstMIPS32Subu = InstMIPS32ThreeAddrGPR<InstMIPS32::Subu>;
-using InstMIPS32Sw = InstMIPS32Memory<InstMIPS32::Sw>;
-using InstMIPS32Swc1 = InstMIPS32Memory<InstMIPS32::Swc1>;
+using InstMIPS32Sw = InstMIPS32Store<InstMIPS32::Sw>;
+using InstMIPS32Swc1 = InstMIPS32Store<InstMIPS32::Swc1>;
 using InstMIPS32Trunc_l_d = InstMIPS32TwoAddrFPR<InstMIPS32::Trunc_l_d>;
 using InstMIPS32Trunc_l_s = InstMIPS32TwoAddrFPR<InstMIPS32::Trunc_l_s>;
 using InstMIPS32Trunc_w_d = InstMIPS32TwoAddrFPR<InstMIPS32::Trunc_w_d>;
