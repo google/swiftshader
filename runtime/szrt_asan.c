@@ -90,7 +90,7 @@ static const char *access_names[] = {"load from", "store to"};
 static char *shadow_offset = NULL;
 
 static bool __asan_check(char *, int);
-static void __asan_error(char *, int, int);
+static void __asan_error(char *, int, int, void *);
 static void __asan_get_redzones(char *, char **, char **);
 
 void __asan_init(int, void **, int *);
@@ -113,7 +113,7 @@ uint64_t quarantine_size = 0;
 struct quarantine_entry *quarantine_head = NULL;
 struct quarantine_entry *quarantine_tail = NULL;
 
-static void __asan_error(char *ptr, int size, int access) {
+static void __asan_error(char *ptr, int size, int access, void *ret_addr) {
   char *shadow_addr = MEM2SHADOW(ptr);
   char shadow_val = *shadow_addr;
   if (shadow_val > 0)
@@ -123,8 +123,9 @@ static void __asan_error(char *ptr, int size, int access) {
   assert(shadow_val == STACK_POISON_VAL || shadow_val == HEAP_POISON_VAL ||
          shadow_val == GLOBAL_POISON_VAL || shadow_val == FREED_POISON_VAL);
   const char *memtype = memtype_names[MEMTYPE_INDEX(shadow_val)];
-  fprintf(stderr, "Illegal %d byte %s %s object at %p\n", size, access_name,
-          memtype, ptr);
+  fprintf(stderr, "%p: Illegal %d byte %s %s object at %p\n", ret_addr, size,
+          access_name, memtype, ptr);
+  fprintf(stderr, "(address of __asan_error symbol is %p)\n", __asan_error);
   abort();
 }
 
@@ -156,13 +157,13 @@ void __asan_check_load(char *ptr, int size) {
   int check_size =
       (size == WORD_SIZE && (uintptr_t)ptr % WORD_SIZE == 0) ? 1 : size;
   if (!__asan_check(ptr, check_size))
-    __asan_error(ptr, size, ACCESS_LOAD);
+    __asan_error(ptr, size, ACCESS_LOAD, __builtin_return_address(0));
 }
 
 void __asan_check_store(char *ptr, int size) {
   // stores may never be partially out of bounds so use strict check
   if (!__asan_check(ptr, size))
-    __asan_error(ptr, size, ACCESS_STORE);
+    __asan_error(ptr, size, ACCESS_STORE, __builtin_return_address(0));
 }
 
 void __asan_init(int n_rzs, void **rzs, int *rz_sizes) {
@@ -250,7 +251,9 @@ void __asan_free(char *ptr) {
   if (ptr == NULL)
     return;
   if (*(char *)MEM2SHADOW(ptr) == FREED_POISON_VAL) {
-    fprintf(stderr, "Double free of object at %p\n", ptr);
+    fprintf(stderr, "%p: Double free of object at %p\n",
+            __builtin_return_address(0), ptr);
+    fprintf(stderr, "(address of __asan_error symbol is %p)\n", __asan_error);
     abort();
   }
   char *rz_left, *rz_right;

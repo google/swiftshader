@@ -22,3 +22,4 @@ define void @_start(i32 %arg) {
 }
 
 ; ERR: Double free of object at
+; ERR-NEXT: address of __asan_error symbol is

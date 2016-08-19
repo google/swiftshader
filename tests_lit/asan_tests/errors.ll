@@ -223,6 +223,10 @@ error:
 }
 
 ; LOCAL-LOAD: Illegal 1 byte load from stack object at
+; LOCAL-LOAD-NEXT: address of __asan_error symbol is
 ; LOCAL-STORE: Illegal 1 byte store to stack object at
+; LOCAL-STORE-NEXT: address of __asan_error symbol is
 ; GLOBAL-LOAD: Illegal 1 byte load from global object at
+; GLOBAL-LOAD-NEXT: address of __asan_error symbol is
 ; GLOBAL-STORE: Illegal 1 byte store to global object at
+; GLOBAL-STORE-NEXT: address of __asan_error symbol is
