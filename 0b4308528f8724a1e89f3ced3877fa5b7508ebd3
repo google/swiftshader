@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c83053eb_863ade79",
+        "filename": "src/Shader/VertexProgram.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 864,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-08-22T14:47:19Z",
+      "side": 1,
+      "message": "Should we have an explicit PARAMETER_INSTANCE_ID? How are we going to handle other potential misc types?",
+      "range": {
+        "startLine": 864,
+        "startChar": 27,
+        "endLine": 864,
+        "endChar": 35
+      },
+      "revId": "0b4308528f8724a1e89f3ced3877fa5b7508ebd3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
