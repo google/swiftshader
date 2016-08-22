@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c83053eb_8641be15",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 2115,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-08-22T14:35:42Z",
+      "side": 1,
+      "message": "Not necessary to do this in this cl, but Meng Lin had added a comment in his cl about how this clamping should not be done when the depth format is a floating point format.",
+      "range": {
+        "startLine": 2115,
+        "startChar": 3,
+        "endLine": 2115,
+        "endChar": 56
+      },
+      "revId": "9075288ff954fb2bf9d5bde32b8484868ae471b4",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
