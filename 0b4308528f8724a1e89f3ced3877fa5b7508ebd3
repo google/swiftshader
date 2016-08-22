@@ -22,6 +22,30 @@
       "revId": "0b4308528f8724a1e89f3ced3877fa5b7508ebd3",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c83053eb_c6b466e2",
+        "filename": "src/Shader/VertexProgram.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 864,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-08-22T14:57:29Z",
+      "side": 1,
+      "message": "Yes, ideally we\u0027d have a separate register type for it. I\u0027ve made a note about it on b/30661278\n\nCurrently we discern between multiple MISCTYPE registers using the register index. The pixel shader uses 0 for vPos and 1 for vFace. But it\u0027s quite fragile.",
+      "parentUuid": "c83053eb_863ade79",
+      "range": {
+        "startLine": 864,
+        "startChar": 27,
+        "endLine": 864,
+        "endChar": 35
+      },
+      "revId": "0b4308528f8724a1e89f3ced3877fa5b7508ebd3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
