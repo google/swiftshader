@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "086eeb0d_b9b39be1",
+        "filename": "src/OpenGL/common/Image.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 324,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-08-22T20:12:47Z",
+      "side": 1,
+      "message": "Add comment and/or assert to clarify that we assume the YCbCr_420_888 format to be YV12. We don\u0027t currently support arbitrary YUV. There appears to be no GLES extension suggesting it is required.",
+      "range": {
+        "startLine": 324,
+        "startChar": 3,
+        "endLine": 324,
+        "endChar": 18
+      },
+      "revId": "e11c01079eedc51d1a16c22432a70e01c986b686",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
