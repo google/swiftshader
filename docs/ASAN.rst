@@ -43,3 +43,25 @@ contain widened loads that would cause false positives. To avoid reporting such
 loads as errors, we treat any word-aligned, four byte load as a potentially
 widened load and only check the first byte of the loaded word against shadow
 memory.
+
+Building SPEC2000 Benchmark Suite
+=================================
+
+Most of the SPEC2000 benchmarks can be built with Subzero and AddressSanitizer,
+however due to the nature of our solution for LLVM's aggressive inlining of
+calloc, 300.twolf and 252.eon will not build. AddressSanitizer correctly finds
+bugs in 197.parser and 253.perlbmk. 176.gcc crashes for unknown reasons. Among
+the benchmarks that do run to completion, the average slowdown introduced is
+4.6x.
+
+To build the benchmarks with AddressSanitizer, some small changes to the
+Makefile are needed. They can be found `here
+<https://codereview.chromium.org/2266553002/>`_.
+
+Once the Makefile has been patched, build and run with these commands::
+
+  cd native_client/tests/spec2k
+  ./run_all.sh BuildBenchmarks 0 SetupPnaclX8632Opt <benchmarks>
+  ../../toolchain_build/src/subzero/pydir/szbuild_spec2k.py -v -O2 \
+      --fsanitize-address <benchmarks>
+  ./run_all.sh RunTimedBenchmarks SetupGccX8632Opt train <benchmarks>
