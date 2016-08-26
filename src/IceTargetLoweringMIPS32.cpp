@@ -396,9 +396,9 @@ void TargetMIPS32::translateOm1() {
 }
 
 bool TargetMIPS32::doBranchOpt(Inst *Instr, const CfgNode *NextNode) {
-  (void)Instr;
-  (void)NextNode;
-  UnimplementedError(getFlags());
+  if (auto *Br = llvm::dyn_cast<InstMIPS32Br>(Instr)) {
+    return Br->optimizeBranch(NextNode);
+  }
   return false;
 }
 

@@ -201,6 +201,8 @@ public:
 
   static const char *getWidthString(Type Ty);
 
+  CondMIPS32::Cond getOppositeCondition(CondMIPS32::Cond Cond);
+
   void dump(const Cfg *Func) const override;
 
   void dumpOpcode(Ostream &Str, const char *Opcode, Type Ty) const {
@@ -669,7 +671,9 @@ public:
 
   const CfgNode *getTargetTrue() const { return TargetTrue; }
   const CfgNode *getTargetFalse() const { return TargetFalse; }
-
+  CondMIPS32::Cond getPredicate() const { return Predicate; }
+  void setPredicate(CondMIPS32::Cond Pred) { Predicate = Pred; }
+  bool optimizeBranch(const CfgNode *NextNode);
   bool isUnconditionalBranch() const override {
     return Predicate == CondMIPS32::AL;
   }
@@ -694,7 +698,7 @@ private:
   const CfgNode *TargetTrue;
   const CfgNode *TargetFalse;
   const InstMIPS32Label *Label; // Intra-block branch target
-  const CondMIPS32::Cond Predicate;
+  CondMIPS32::Cond Predicate;
 };
 
 class InstMIPS32Call : public InstMIPS32 {

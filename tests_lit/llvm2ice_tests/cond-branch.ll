@@ -22,10 +22,12 @@ branch2:
   ret i32 2
 }
 ; COMMON-LABEL: cond_br_eq
-; MIPS32: bne
+; MIPS32: bne {{.*}} .Lcond_br_eq$branch2
+; MIPS32-NEXT: .Lcond_br_eq$branch1
 ; MIPS32-OM1: xor
 ; MIPS32-OM1: sltiu {{.*}}, {{.*}}, 1
-; MIPS32-OM1: beqz
+; MIPS32-OM1: beqz {{.*}} .Lcond_br_eq$branch2
+; MIPS32-OM1-NEXT: b .Lcond_br_eq$branch1
 
 define internal i32 @cond_br_ne(i32 %arg1, i32 %arg2) {
 entry:
@@ -37,10 +39,12 @@ branch2:
   ret i32 2
 }
 ; COMMON-LABEL: cond_br_ne
-; MIPS32: beq
+; MIPS32: beq {{.*}} .Lcond_br_ne$branch2
+; MIPS32-NEXT: .Lcond_br_ne$branch1
 ; MIPS32-OM1: xor
 ; MIPS32-OM1: sltu {{.*}}, $zero, {{.*}}
-; MIPS32-OM1: beqz
+; MIPS32-OM1: beqz {{.*}} .Lcond_br_ne$branch2
+; MIPS32-OM1-NEXT: b .Lcond_br_ne$branch1
 
 define internal i32 @cond_br_slt(i32 %arg1, i32 %arg2) {
 entry:
@@ -53,9 +57,11 @@ branch2:
 }
 ; COMMON-LABEL: cond_br_slt
 ; MIPS32: slt
-; MIPS32: beqz
+; MIPS32: beqz {{.*}} .Lcond_br_slt$branch2
+; MIPS32-NEXT: .Lcond_br_slt$branch1
 ; MIPS32-OM1: slt
-; MIPS32-OM1: beqz
+; MIPS32-OM1: beqz {{.*}} .Lcond_br_slt$branch2
+; MIPS32-OM1-NEXT: b .Lcond_br_slt$branch1
 
 define internal i32 @cond_br_sle(i32 %arg1, i32 %arg2) {
 entry:
@@ -68,10 +74,12 @@ branch2:
 }
 ; COMMON-LABEL: cond_br_sle
 ; MIPS32: slt
-; MIPS32: bnez
+; MIPS32: bnez {{.*}} .Lcond_br_sle$branch2
+; MIPS32-NEXT: .Lcond_br_sle$branch1
 ; MIPS32-OM1: slt
 ; MIPS32-OM1: xori {{.*}}, {{.*}}, 1
-; MIPS32-OM1: beqz
+; MIPS32-OM1: beqz {{.*}} .Lcond_br_sle$branch2
+; MIPS32-OM1-NEXT: b .Lcond_br_sle$branch1
 
 define internal i32 @cond_br_sgt(i32 %arg1, i32 %arg2) {
 entry:
@@ -84,9 +92,11 @@ branch2:
 }
 ; COMMON-LABEL: cond_br_sgt
 ; MIPS32: slt
-; MIPS32: beqz
+; MIPS32-NEXT: beqz {{.*}} .Lcond_br_sgt$branch2
+; MIPS32-NEXT: .Lcond_br_sgt$branch1
 ; MIPS32-OM1: slt
-; MIPS32-OM1: beqz
+; MIPS32-OM1: beqz {{.*}} .Lcond_br_sgt$branch2
+; MIPS32-OM1-NEXT: b .Lcond_br_sgt$branch1
 
 define internal i32 @cond_br_sge(i32 %arg1, i32 %arg2) {
 entry:
@@ -99,10 +109,12 @@ branch2:
 }
 ; COMMON-LABEL: cond_br_sge
 ; MIPS32: slt
-; MIPS32: bnez
+; MIPS32: bnez {{.*}} .Lcond_br_sge$branch2
+; MIPS32-NEXT: .Lcond_br_sge$branch1
 ; MIPS32-OM1: slt
 ; MIPS32-OM1: xori {{.*}}, {{.*}}, 1
-; MIPS32-OM1: beqz
+; MIPS32-OM1: beqz {{.*}} .Lcond_br_sge$branch2
+; MIPS32-OM1-NEXT: b .Lcond_br_sge$branch1
 
 define internal i32 @cond_br_ugt(i32 %arg1, i32 %arg2) {
 entry:
@@ -115,9 +127,11 @@ branch2:
 }
 ; COMMON-LABEL: cond_br_ugt
 ; MIPS32: sltu
-; MIPS32: beqz
+; MIPS32: beqz {{.*}} .Lcond_br_ugt$branch2
+; MIPS32-NEXT: .Lcond_br_ugt$branch1
 ; MIPS32-OM1: sltu
-; MIPS32-OM1: beqz
+; MIPS32-OM1: beqz {{.*}} .Lcond_br_ugt$branch2
+; MIPS32-OM1-NEXT: b .Lcond_br_ugt$branch1
 
 define internal i32 @cond_br_uge(i32 %arg1, i32 %arg2) {
 entry:
@@ -130,10 +144,12 @@ branch2:
 }
 ; COMMON-LABEL: cond_br_uge
 ; MIPS32: sltu
-; MIPS32: bnez
+; MIPS32: bnez {{.*}} .Lcond_br_uge$branch2
+; MIPS32-NEXT: .Lcond_br_uge$branch1
 ; MIPS32-OM1: sltu
 ; MIPS32-OM1: xori {{.*}}, {{.*}}, 1
-; MIPS32-OM1: beqz
+; MIPS32-OM1: beqz {{.*}} .Lcond_br_uge$branch2
+; MIPS32-OM1-NEXT: b .Lcond_br_uge$branch1
 
 define internal i32 @cond_br_ult(i32 %arg1, i32 %arg2) {
 entry:
@@ -146,9 +162,11 @@ branch2:
 }
 ; COMMON-LABEL: cond_br_ult
 ; MIPS32: sltu
-; MIPS32: beqz
+; MIPS32: beqz {{.*}} .Lcond_br_ult$branch2
+; MIPS32-NEXT: .Lcond_br_ult$branch1
 ; MIPS32-OM1: sltu
-; MIPS32-OM1: beqz
+; MIPS32-OM1: beqz {{.*}} .Lcond_br_ult$branch2
+; MIPS32-OM1-NEXT: b .Lcond_br_ult$branch1
 
 define internal i32 @cond_br_ule(i32 %arg1, i32 %arg2) {
 entry:
@@ -161,7 +179,9 @@ branch2:
 }
 ; COMMON-LABEL: cond_br_ule
 ; MIPS32: sltu
-; MIPS32: bnez
+; MIPS32: bnez {{.*}} .Lcond_br_ule$branch2
+; MIPS32-NEXT: .Lcond_br_ule$branch1
 ; MIPS32-OM1: sltu
 ; MIPS32-OM1: xori {{.*}}, {{.*}}, 1
-; MIPS32-OM1: beqz
+; MIPS32-OM1: beqz {{.*}} .Lcond_br_ule$branch2
+; MIPS32-OM1-NEXT: b .Lcond_br_ule$branch1

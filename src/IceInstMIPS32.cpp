@@ -200,6 +200,46 @@ InstMIPS32Br::InstMIPS32Br(Cfg *Func, const CfgNode *TargetTrue,
   addSource(Src1);
 }
 
+CondMIPS32::Cond InstMIPS32::getOppositeCondition(CondMIPS32::Cond Cond) {
+  return InstMIPS32CondAttributes[Cond].Opposite;
+}
+
+bool InstMIPS32Br::optimizeBranch(const CfgNode *NextNode) {
+  // If there is no next block, then there can be no fallthrough to optimize.
+  if (NextNode == nullptr)
+    return false;
+  // Intra-block conditional branches can't be optimized.
+  if (Label != nullptr)
+    return false;
+  // Unconditional branch to the next node can be removed.
+  if (isUnconditionalBranch() && getTargetFalse() == NextNode) {
+    assert(getTargetTrue() == nullptr);
+    setDeleted();
+    return true;
+  }
+  // If there is no fallthrough node, such as a non-default case label for a
+  // switch instruction, then there is no opportunity to optimize.
+  if (getTargetTrue() == nullptr)
+    return false;
+  // If the fallthrough is to the next node, set fallthrough to nullptr to
+  // indicate.
+  if (getTargetTrue() == NextNode) {
+    TargetTrue = nullptr;
+    return true;
+  }
+  // If TargetFalse is the next node, and TargetTrue is not nullptr
+  // then invert the branch condition, swap the targets, and set new
+  // fallthrough to nullptr.
+  if (getTargetFalse() == NextNode) {
+    assert(Predicate != CondMIPS32::AL);
+    setPredicate(getOppositeCondition(getPredicate()));
+    TargetFalse = getTargetTrue();
+    TargetTrue = nullptr;
+    return true;
+  }
+  return false;
+}
+
 bool InstMIPS32Br::repointEdges(CfgNode *OldNode, CfgNode *NewNode) {
   bool Found = false;
   if (TargetFalse == OldNode) {
@@ -419,6 +459,11 @@ void InstMIPS32Br::emit(const Cfg *Func) const {
       }
       }
       Str << getTargetFalse()->getAsmName();
+      if (getTargetTrue()) {
+        Str << "\n\t"
+            << "b"
+            << "\t" << getTargetTrue()->getAsmName();
+      }
     }
   }
 }
@@ -439,6 +484,11 @@ void InstMIPS32Br::dump(const Cfg *Func) const {
       dumpSources(Func);
       Str << ", ";
       Str << getTargetFalse()->getAsmName();
+      if (getTargetTrue()) {
+        Str << "\n\t"
+            << "b"
+            << "\t" << getTargetTrue()->getAsmName();
+      }
     }
   }
 }

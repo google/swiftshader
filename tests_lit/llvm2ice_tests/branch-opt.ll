@@ -27,6 +27,24 @@
 ; RUN:   --command FileCheck \
 ; RUN:   --check-prefix ARM32OM1 %s
 
+; TODO(jaydeep.patil): Using --skip-unimplemented for MIPS32
+; RUN: %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command %p2i --filetype=asm --assemble \
+; RUN:   --disassemble --target mips32 -i %s --args -O2 \
+; RUN:   --skip-unimplemented \
+; RUN:   -allow-externally-defined-symbols \
+; RUN:   | %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command FileCheck --check-prefix MIPS32O2 %s
+
+; RUN: %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command %p2i --filetype=asm --assemble \
+; RUN:   --disassemble --target mips32 -i %s --args -Om1 \
+; RUN:   --skip-unimplemented \
+; RUN:   -allow-externally-defined-symbols \
+; RUN:   | %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command FileCheck \
+; RUN:   --check-prefix MIPS32OM1 %s
+
 declare void @dummy()
 
 ; An unconditional branch to the next block should be removed.
@@ -58,6 +76,22 @@ next:
 ; ARM32OM1: bl {{.*}} dummy
 ; ARM32OM1-NEXT: b
 ; ARM32OM1-NEXT: bl {{.*}} dummy
+
+; MIPS32O2-LABEL: testUncondToNextBlock
+; MIPS32O2: jal {{.*}} dummy
+; MIPS32O2-NEXT: nop
+; MIPS32O2-LABEL: <.LtestUncondToNextBlock$next>:
+; MIPS32O2-NEXT: jal {{.*}} dummy
+; MIPS32O2-NEXT: nop
+
+; MIPS32OM1-LABEL: testUncondToNextBlock
+; MIPS32OM1: jal {{.*}} dummy
+; MIPS32OM1-NEXT: nop
+; MIPS32OM1-NEXT: b {{.*}} <.LtestUncondToNextBlock$next>
+; MIPS32OM1-NEXT: nop
+; MIPS32OM1-LABEL: <.LtestUncondToNextBlock$next>:
+; MIPS32OM1-NEXT: jal {{.*}} dummy
+; MIPS32OM1-NEXT: nop
 
 ; For a conditional branch with a fallthrough to the next block, the
 ; fallthrough branch should be removed.
@@ -111,6 +145,41 @@ target:
 ; ARM32OM1: bx lr
 ; ARM32OM1: bl
 ; ARM32OM1: bx lr
+
+; MIPS32O2-LABEL: testCondFallthroughToNextBlock
+; MIPS32O2: li {{.*}},123
+; MIPS32O2: slt {{.*}},{{.*}},{{.*}}
+; MIPS32O2: beqz
+; MIPS32O2: nop
+; MIPS32O2: .LtestCondFallthroughToNextBlock$fallthrough
+; MIPS32O2: jal {{.*}} dummy
+; MIPS32O2: nop
+; MIPS32O2: jr
+; MIPS32O2: nop
+; MIPS32O2: .LtestCondFallthroughToNextBlock$target
+; MIPS32O2: jal {{.*}} dummy
+; MIPS32O2: nop
+; MIPS32O2: jr
+; MIPS32O2: nop
+
+; MIPS32OM1-LABEL: testCondFallthroughToNextBlock
+; MIPS32OM1: li {{.*}},123
+; MIPS32OM1: slt {{.*}},{{.*}},{{.*}}
+; MIPS32OM1: xori {{.*}},{{.*}},{{.*}}
+; MIPS32OM1: beqz
+; MIPS32OM1: nop
+; MIPS32OM1: b
+; MIPS32OM1: nop
+; MIPS32OM1: .LtestCondFallthroughToNextBlock$fallthrough
+; MIPS32OM1: jal {{.*}} dummy
+; MIPS32OM1: nop
+; MIPS32OM1: jr
+; MIPS32OM1: nop
+; MIPS32OM1: .LtestCondFallthroughToNextBlock$target
+; MIPS32OM1: jal {{.*}} dummy
+; MIPS32OM1: nop
+; MIPS32OM1: jr
+; MIPS32OM1: nop
 
 ; For a conditional branch with the next block as the target and a
 ; different block as the fallthrough, the branch condition should be
@@ -168,6 +237,41 @@ target:
 ; ARM32OM1: bl
 ; ARM32OM1: bx lr
 
+; MIPS32O2-LABEL: testCondTargetNextBlock
+; MIPS32O2: li {{.*}},123
+; MIPS32O2: slt {{.*}},{{.*}},{{.*}}
+; MIPS32O2: bnez
+; MIPS32O2: nop
+; MIPS32O2: .LtestCondTargetNextBlock$fallthrough
+; MIPS32O2: jal {{.*}} dummy
+; MIPS32O2: nop
+; MIPS32O2: jr
+; MIPS32O2: nop
+; MIPS32O2: .LtestCondTargetNextBlock$target
+; MIPS32O2: jal {{.*}} dummy
+; MIPS32O2: nop
+; MIPS32O2: jr
+; MIPS32O2: nop
+
+; MIPS32OM1-LABEL: testCondTargetNextBlock
+; MIPS32OM1: li {{.*}},123
+; MIPS32OM1: slt {{.*}},{{.*}},{{.*}}
+; MIPS32OM1: xori {{.*}},{{.*}},{{.*}}
+; MIPS32OM1: beqz
+; MIPS32OM1: nop
+; MIPS32OM1: b
+; MIPS32OM1: nop
+; MIPS32OM1: .LtestCondTargetNextBlock$fallthrough
+; MIPS32OM1: jal {{.*}} dummy
+; MIPS32OM1: nop
+; MIPS32OM1: jr
+; MIPS32OM1: nop
+; MIPS32OM1: .LtestCondTargetNextBlock$target
+; MIPS32OM1: jal {{.*}} dummy
+; MIPS32OM1: nop
+; MIPS32OM1: jr
+; MIPS32OM1: nop
+
 ; Unconditional branches to the block after a contracted block should be
 ; removed.
 define internal void @testUncondToBlockAfterContract() {
@@ -201,3 +305,12 @@ target:
 ; ARM32OM1: bl {{.*}} dummy
 ; ARM32OM1-NEXT: b
 ; ARM32OM1-NEXT: bl {{.*}} dummy
+
+; MIPS32O2-LABEL: testUncondToBlockAfterContract
+; MIPS32O2: jal {{.*}} dummy
+; MIPS32O2: .LtestUncondToBlockAfterContract$target
+
+; MIPS32OM1-LABEL: testUncondToBlockAfterContract
+; MIPS32OM1: jal {{.*}} dummy
+; MIPS32OM1: b
+; MIPS32OM1: .LtestUncondToBlockAfterContract$target
