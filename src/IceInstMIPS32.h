@@ -1,4 +1,4 @@
-//===- subzero/src/IceInstMIPS32.h - MIPS32 machine instrs --*- C++ -*-===    //
+//===- subzero/src/IceInstMIPS32.h - MIPS32 machine instrs --*- C++ -*-----===//
 //
 //                        The Subzero Code Generator
 //
@@ -198,6 +198,8 @@ public:
     Xor,
     Xori
   };
+
+  static constexpr size_t InstSize = sizeof(uint32_t);
 
   static const char *getWidthString(Type Ty);
 
@@ -679,7 +681,7 @@ public:
   }
   bool repointEdges(CfgNode *OldNode, CfgNode *NewNode) override;
   void emit(const Cfg *Func) const override;
-  void emitIAS(const Cfg *Func) const override { (void)Func; };
+  void emitIAS(const Cfg *Func) const override;
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Instr) { return isClassof(Instr, Br); }
 
@@ -755,7 +757,6 @@ public:
       Str << (int32_t)Imm;
     else
       Str << Imm;
-    Str << "\n";
   }
 
   void emitIAS(const Cfg *Func) const override {
@@ -775,7 +776,6 @@ public:
       Str << (int32_t)Imm;
     else
       Str << Imm;
-    Str << "\n";
   }
 
   static bool classof(const Inst *Inst) { return isClassof(Inst, K); }

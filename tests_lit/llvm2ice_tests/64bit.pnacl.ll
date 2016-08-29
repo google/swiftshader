@@ -47,7 +47,7 @@ entry:
 }
 
 ; MIPS32-LABEL: ignore64BitArg
-; MIPS32: add v0,zero,a2
+; MIPS32: move v0,a2
 
 define internal i32 @pass64BitArg(i64 %a, i64 %b, i64 %c, i64 %d, i64 %e, i64 %f) {
 entry:
@@ -203,8 +203,8 @@ entry:
 ; ARM32: bx lr
 
 ; MIPS32-LABEL; return64BitArg
-; MIPS32: add v0,zero,a2
-; MIPS32: add v1,zero,a3
+; MIPS32: move v0,a2
+; MIPS32: move v1,a3
 ; MIPS32: jr ra
 
 define internal i64 @return64BitConst() {
@@ -800,7 +800,7 @@ entry:
 ; ARM32: mov r0, r2
 
 ; MIPS32-LABEL: trunc64To32Signed
-; MIPS32: add v0,zero,a2
+; MIPS32: move v0,a2
 
 define internal i32 @trunc64To16Signed(i64 %a) {
 entry:
@@ -822,7 +822,7 @@ entry:
 ; MIPS32-LABEL: trunc64To16Signed
 ; MIPS32: sll a0,a0,0x10
 ; MIPS32: sra a0,a0,0x10
-; MIPS32: add v0,zero,a0
+; MIPS32: move v0,a0
 
 define internal i32 @trunc64To8Signed(i64 %a) {
 entry:
@@ -844,7 +844,7 @@ entry:
 ; MIPS32-LABEL: trunc64To8Signed
 ; MIPS32: sll a0,a0,0x18
 ; MIPS32: sra a0,a0,0x18
-; MIPS32: add v0,zero,a0
+; MIPS32: move v0,a0
 
 define internal i32 @trunc64To32SignedConst() {
 entry:
@@ -905,7 +905,7 @@ entry:
 ; ARM32: mov r0, r2
 
 ; MIPS32-LABEL: trunc64To32Unsigned
-; MIPS32: add v0,zero,a2
+; MIPS32: move v0,a2
 
 define internal i32 @trunc64To16Unsigned(i64 %a) {
 entry:
@@ -926,7 +926,7 @@ entry:
 
 ; MIPS32-LABEL: trunc64To16Unsigned
 ; MIPS32: andi a0,a0,0xffff
-; MIPS32: add v0,zero,a0
+; MIPS32: move v0,a0
 
 define internal i32 @trunc64To8Unsigned(i64 %a) {
 entry:
@@ -947,7 +947,7 @@ entry:
 
 ; MIPS32-LABEL: trunc64To8Unsigned
 ; MIPS32: andi a0,a0,0xff
-; MIPS32: add v0,zero,a0
+; MIPS32: move v0,a0
 
 define internal i32 @trunc64To1(i64 %a) {
 entry:
@@ -972,7 +972,7 @@ entry:
 
 ; MIPS32-LABEL: trunc64To1
 ; MIPS32: andi {{.*}},a0,0x1
-; MIPS32: add v0,{{.*}}
+; MIPS32: move v0,a0
 
 define internal i64 @sext32To64(i32 %a) {
 entry:
@@ -992,8 +992,8 @@ entry:
 
 ; MIPS32-LABEL: sext32To64
 ; MIPS32-LABEL: sra {{.*}},a0,0x1f
-; MIPS32-LABEL: add v1,{{.*}}
-; MIPS32-LABEL: add v0,{{.*}}
+; MIPS32-LABEL: move v1,v0
+; MIPS32-LABEL: move v0,a0
 
 define internal i64 @sext16To64(i32 %a) {
 entry:
@@ -1017,8 +1017,8 @@ entry:
 ; MIPS32: sll {{.*}},{{.*}},0x10
 ; MIPS32: sra {{.*}},{{.*}},0x10
 ; MIPS32: sra {{.*}},{{.*}},0x1f
-; MIPS32: add v1,{{.*}}
-; MIPS32: add v0,{{.*}}
+; MIPS32: move v1,v0
+; MIPS32: move v0,a0
 
 define internal i64 @sext8To64(i32 %a) {
 entry:
@@ -1042,8 +1042,8 @@ entry:
 ; MIPS32: sll {{.*}},a0,0x18
 ; MIPS32: sra {{.*}},{{.*}},0x18
 ; MIPS32: sra {{.*}},{{.*}},0x1f
-; MIPS32: add v1,{{.*}}
-; MIPS32: add v0,{{.*}}
+; MIPS32: move v1,v0
+; MIPS32: move v0,a0
 
 define internal i64 @sext1To64(i32 %a) {
 entry:
@@ -1070,8 +1070,8 @@ entry:
 ; MIPS32-LABEL: sext1To64
 ; MIPS32: sll {{.*}},a0,0x1f
 ; MIPS32: sra {{.*}},{{.*}},0x1f
-; MIPS32: add v1,{{.*}}
-; MIPS32: add v0,{{.*}}
+; MIPS32: move v1,a0
+; MIPS32: move v0,a0
 
 define internal i64 @zext32To64(i32 %a) {
 entry:
@@ -1091,8 +1091,8 @@ entry:
 
 ; MIPS32-LABEL: zext32To64
 ; MIPS32: li {{.*}},0
-; MIPS32: add v1,{{.*}}
-; MIPS32: add v0,{{.*}}
+; MIPS32: move v1,v0
+; MIPS32: move v0,a0
 
 define internal i64 @zext16To64(i32 %a) {
 entry:
@@ -1115,8 +1115,8 @@ entry:
 ; MIPS32-LABEL: zext16To64
 ; MIPS32: andi {{.*}},a0,0xffff
 ; MIPS32: li {{.*}},0
-; MIPS32: add v1,{{.*}}
-; MIPS32: add v0,{{.*}}
+; MIPS32: move v1,v0
+; MIPS32: move v0,a0
 
 define internal i64 @zext8To64(i32 %a) {
 entry:
@@ -1139,8 +1139,8 @@ entry:
 ; MIPS32-LABEL: zext8To64
 ; MIPS32: andi {{.*}},a0,0xff
 ; MIPS32: li {{.*}},0
-; MIPS32: add v1,{{.*}}
-; MIPS32: add v0,{{.*}}
+; MIPS32: move v1,v0
+; MIPS32: move v0,a0
 
 define internal i64 @zext1To64(i32 %a) {
 entry:
@@ -1164,8 +1164,8 @@ entry:
 ; MIPS32-LABEL: zext1To64
 ; MIPS32: andi {{.*}},a0,0x1
 ; MIPS32: li {{.*}},0
-; MIPS32: add v1,{{.*}}
-; MIPS32: add v0,{{.*}}
+; MIPS32: move v1,v0
+; MIPS32: move v0,a0
 
 define internal void @icmpEq64(i64 %a, i64 %b, i64 %c, i64 %d) {
 entry:

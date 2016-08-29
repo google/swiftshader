@@ -424,6 +424,32 @@ void InstMIPS32Ret::emit(const Cfg *Func) const {
   RA->emit(Func);
 }
 
+void InstMIPS32Br::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
+  if (isUnconditionalBranch()) {
+    Asm->b(Asm->getOrCreateCfgNodeLabel(getTargetFalse()->getIndex()));
+  } else {
+    switch (Predicate) {
+    default:
+      break;
+    case CondMIPS32::EQ:
+    case CondMIPS32::NE:
+      Asm->bcc(Predicate, getSrc(0), getSrc(1),
+               Asm->getOrCreateCfgNodeLabel(getTargetFalse()->getIndex()));
+      break;
+    case CondMIPS32::EQZ:
+    case CondMIPS32::NEZ:
+    case CondMIPS32::LEZ:
+    case CondMIPS32::LTZ:
+    case CondMIPS32::GEZ:
+    case CondMIPS32::GTZ:
+      Asm->bzc(Predicate, getSrc(0),
+               Asm->getOrCreateCfgNodeLabel(getTargetFalse()->getIndex()));
+      break;
+    }
+  }
+}
+
 void InstMIPS32Br::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
@@ -536,8 +562,12 @@ void InstMIPS32Call::dump(const Cfg *Func) const {
 }
 
 void InstMIPS32Ret::emitIAS(const Cfg *Func) const {
-  (void)Func;
-  llvm_unreachable("Not yet implemented");
+  auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
+  auto *RA = llvm::cast<Variable>(getSrc(0));
+  assert(RA->hasReg());
+  assert(RA->getRegNum() == RegMIPS32::Reg_RA);
+  (void)RA;
+  Asm->ret();
 }
 
 void InstMIPS32Ret::dump(const Cfg *Func) const {
@@ -552,7 +582,7 @@ void InstMIPS32Ret::dump(const Cfg *Func) const {
 void InstMIPS32Mov::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
-  assert(!(isMultiDest() && isMultiSource()) && "Invalid vmov type.");
+  assert(!(isMultiDest() && isMultiSource()) && "Invalid mov type.");
   if (isMultiDest()) {
     emitMultiDestSingleSource(Func);
     return;
@@ -566,9 +596,38 @@ void InstMIPS32Mov::emit(const Cfg *Func) const {
   emitSingleDestSingleSource(Func);
 }
 
+// TODO(jaydeep.patil) Handle all types of operands in mov
 void InstMIPS32Mov::emitIAS(const Cfg *Func) const {
-  assert(getSrcSize() == 1);
-  (void)Func;
+  assert(!(isMultiDest() && isMultiSource()) && "Invalid mov type.");
+
+  if (isMultiDest()) {
+    llvm_unreachable("Not yet implemented");
+  }
+  if (isMultiSource()) {
+    llvm_unreachable("Not yet implemented");
+  }
+
+  Variable *Dest = getDest();
+  Operand *Src = getSrc(0);
+  auto *SrcV = llvm::dyn_cast<Variable>(Src);
+  assert(!llvm::isa<Constant>(Src));
+  const bool DestIsReg = Dest->hasReg();
+  const bool SrcIsReg = (SrcV && SrcV->hasReg());
+
+  // reg to reg
+  if (DestIsReg && SrcIsReg) {
+    switch (Dest->getType()) {
+    default:
+      break;
+    case IceType_i1:
+    case IceType_i8:
+    case IceType_i16:
+    case IceType_i32:
+      auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
+      Asm->move(getDest(), getSrc(0));
+      return;
+    }
+  }
   llvm_unreachable("Not yet implemented");
 }
 
@@ -664,10 +723,10 @@ void InstMIPS32Mov::emitSingleDestSingleSource(const Cfg *Func) const {
     case IceType_i16:
     case IceType_i32:
       Str << "\t"
-             "add"
+             "move"
              "\t";
       getDest()->emit(Func);
-      Str << ", $zero, ";
+      Str << ", ";
       getSrc(0)->emit(Func);
       return;
     default:
@@ -741,6 +800,97 @@ void InstMIPS32Mov::emitSingleDestSingleSource(const Cfg *Func) const {
 
   // stack to stack
   llvm::report_fatal_error("mov cant copy stack to stack.");
+}
+
+template <> void InstMIPS32Addiu::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
+  Asm->addiu(getDest(), getSrc(0), Imm);
+}
+
+template <> void InstMIPS32Slti::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
+  Asm->slti(getDest(), getSrc(0), Imm);
+}
+
+template <> void InstMIPS32Sltiu::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
+  Asm->sltiu(getDest(), getSrc(0), Imm);
+}
+
+template <> void InstMIPS32And::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
+  Asm->and_(getDest(), getSrc(0), getSrc(1));
+}
+
+template <> void InstMIPS32Andi::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
+  Asm->andi(getDest(), getSrc(0), Imm);
+}
+
+template <> void InstMIPS32Or::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
+  Asm->or_(getDest(), getSrc(0), getSrc(1));
+}
+
+template <> void InstMIPS32Ori::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
+  Asm->ori(getDest(), getSrc(0), Imm);
+}
+
+template <> void InstMIPS32Xor::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
+  Asm->xor_(getDest(), getSrc(0), getSrc(1));
+}
+
+template <> void InstMIPS32Xori::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
+  Asm->xori(getDest(), getSrc(0), Imm);
+}
+
+template <> void InstMIPS32Sll::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
+  Asm->sll(getDest(), getSrc(0), Imm);
+}
+
+template <> void InstMIPS32Srl::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
+  Asm->srl(getDest(), getSrc(0), Imm);
+}
+
+template <> void InstMIPS32Sra::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
+  Asm->sra(getDest(), getSrc(0), Imm);
+}
+
+template <> void InstMIPS32Addu::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
+  Asm->addu(getDest(), getSrc(0), getSrc(1));
+}
+
+template <> void InstMIPS32Slt::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
+  Asm->slt(getDest(), getSrc(0), getSrc(1));
+}
+
+template <> void InstMIPS32Sltu::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
+  Asm->sltu(getDest(), getSrc(0), getSrc(1));
+}
+
+template <> void InstMIPS32Sw::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
+  auto *Mem = llvm::dyn_cast<OperandMIPS32Mem>(getSrc(1));
+  ConstantInteger32 *Offset = llvm::cast<ConstantInteger32>(Mem->getOffset());
+  uint32_t Imm = static_cast<uint32_t>(Offset->getValue());
+  Asm->sw(getSrc(0), Mem->getBase(), Imm);
+}
+
+template <> void InstMIPS32Lw::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
+  auto *Mem = llvm::dyn_cast<OperandMIPS32Mem>(getSrc(0));
+  ConstantInteger32 *Offset = llvm::cast<ConstantInteger32>(Mem->getOffset());
+  uint32_t Imm = static_cast<uint32_t>(Offset->getValue());
+  Asm->lw(getDest(), Mem->getBase(), Imm);
 }
 
 } // end of namespace MIPS32

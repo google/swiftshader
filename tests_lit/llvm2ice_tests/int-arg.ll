@@ -42,7 +42,7 @@ entry:
 ; ARM32-LABEL: test_returning32_arg0
 ; ARM32-NEXT: bx lr
 ; MIPS32-LABEL: test_returning32_arg0
-; MIPS32: add v0,zero,a0
+; MIPS32: move v0,a0
 ; MIPS32-NEXT: jr       ra
 
 define internal i32 @test_returning32_arg1(i32 %arg0, i32 %arg1, i32 %arg2, i32 %arg3, i32 %arg4, i32 %arg5, i32 %arg6, i32 %arg7) {
@@ -56,7 +56,7 @@ entry:
 ; ARM32-NEXT: mov r0, r1
 ; ARM32-NEXT: bx lr
 ; MIPS32-LABEL: test_returning32_arg1
-; MIPS32: add v0,zero,a1
+; MIPS32: move v0,a1
 ; MIPS32-NEXT: jr       ra
 
 define internal i32 @test_returning32_arg2(i32 %arg0, i32 %arg1, i32 %arg2, i32 %arg3, i32 %arg4, i32 %arg5, i32 %arg6, i32 %arg7) {
@@ -70,7 +70,7 @@ entry:
 ; ARM32-NEXT: mov r0, r2
 ; ARM32-NEXT: bx lr
 ; MIPS32-LABEL: test_returning32_arg2
-; MIPS32: add v0,zero,a2
+; MIPS32: move v0,a2
 ; MIPS32-NEXT: jr       ra
 
 
@@ -122,8 +122,8 @@ entry:
 ; ARM32-LABEL: test_returning64_arg0
 ; ARM32-NEXT: bx lr
 ; MIPS32-LABEL: test_returning64_arg0
-; MIPS32-NEXT: add v0,zero,a0
-; MIPS32-NEXT: add v1,zero,a1
+; MIPS32-NEXT: move v0,a0
+; MIPS32-NEXT: move v1,a1
 
 
 define internal i64 @test_returning64_arg1(i64 %arg0, i64 %arg1, i64 %arg2, i64 %arg3) {
@@ -139,8 +139,8 @@ entry:
 ; ARM32-NEXT: mov r1, r3
 ; ARM32-NEXT: bx lr
 ; MIPS32-LABEL: test_returning64_arg1
-; MIPS32-NEXT: add v0,zero,a2
-; MIPS32-NEXT: add v1,zero,a3
+; MIPS32-NEXT: move v0,a2
+; MIPS32-NEXT: move v1,a3
 
 define internal i64 @test_returning64_arg2(i64 %arg0, i64 %arg1, i64 %arg2, i64 %arg3) {
 entry:
