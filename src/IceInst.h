@@ -1122,6 +1122,7 @@ bool checkForRedundantAssign(const Variable *Dest, const Operand *Source);
 
 } // end of namespace Ice
 
+#ifdef PNACL_LLVM
 namespace llvm {
 
 /// Override the default ilist traits so that Inst's private ctor and deleted
@@ -1142,6 +1143,7 @@ private:
 };
 
 } // end of namespace llvm
+#endif // PNACL_LLVM
 
 namespace Ice {
 
