@@ -737,8 +737,11 @@ void TargetLowering::sortVarsByAlignment(VarList &Dest,
   // the buckets, if performance is an issue.
   std::sort(Dest.begin(), Dest.end(),
             [this](const Variable *V1, const Variable *V2) {
-              return typeWidthInBytesOnStack(V1->getType()) >
-                     typeWidthInBytesOnStack(V2->getType());
+              const size_t WidthV1 = typeWidthInBytesOnStack(V1->getType());
+              const size_t WidthV2 = typeWidthInBytesOnStack(V2->getType());
+              if (WidthV1 == WidthV2)
+                return V1->getIndex() < V2->getIndex();
+              return WidthV1 > WidthV2;
             });
 }
 
