@@ -1161,6 +1161,15 @@ inline const Inst *iteratorToInst(InstList::const_iterator Iter) {
   return &*Iter;
 }
 
+inline InstList::iterator
+reverseToForwardIterator(InstList::reverse_iterator RI) {
+#ifdef PNACL_LLVM
+  return RI.base();
+#else  // !PNACL_LLVM
+  return ++RI.getReverse();
+#endif // !PNACL_LLVM
+}
+
 } // end of namespace Ice
 
 #endif // SUBZERO_SRC_ICEINST_H

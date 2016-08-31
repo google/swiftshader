@@ -996,7 +996,7 @@ void TargetMIPS32::addEpilog(CfgNode *Node) {
 
   // Convert the reverse_iterator position into its corresponding (forward)
   // iterator position.
-  InstList::iterator InsertPoint = RI.base();
+  InstList::iterator InsertPoint = reverseToForwardIterator(RI);
   --InsertPoint;
   Context.init(Node);
   Context.setInsertPoint(InsertPoint);
