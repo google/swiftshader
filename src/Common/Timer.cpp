@@ -19,6 +19,7 @@
 		#define WIN32_LEAN_AND_MEAN
 	#endif
 	#include <windows.h>
+	#include <intrin.h>
 #else
 	#include <sys/time.h>
 	#include <x86intrin.h>
