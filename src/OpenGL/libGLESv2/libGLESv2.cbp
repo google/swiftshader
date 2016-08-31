@@ -113,7 +113,6 @@
 			<Add option="-Wall" />
 			<Add option="-std=c++11" />
 			<Add option="-fexceptions" />
-			<Add option="-fno-operator-names" />
 			<Add option="-msse2" />
 			<Add option="-fvisibility=protected" />
 			<Add option="-D__STDC_LIMIT_MACROS" />

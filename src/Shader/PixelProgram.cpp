@@ -320,10 +320,10 @@ namespace sw
 			case Shader::OPCODE_CMP:        cmp(d, s0, s1, control);                       break;
 			case Shader::OPCODE_ALL:        all(d.x, s0);                                  break;
 			case Shader::OPCODE_ANY:        any(d.x, s0);                                  break;
-			case Shader::OPCODE_NOT:        not(d, s0);                                    break;
-			case Shader::OPCODE_OR:         or(d, s0, s1);                                 break;
-			case Shader::OPCODE_XOR:        xor(d, s0, s1);                                break;
-			case Shader::OPCODE_AND:        and(d, s0, s1);                                break;
+			case Shader::OPCODE_NOT:        bitwise_not(d, s0);                            break;
+			case Shader::OPCODE_OR:         bitwise_or(d, s0, s1);                         break;
+			case Shader::OPCODE_XOR:        bitwise_xor(d, s0, s1);                        break;
+			case Shader::OPCODE_AND:        bitwise_and(d, s0, s1);                        break;
 			case Shader::OPCODE_EQ:         equal(d, s0, s1);                              break;
 			case Shader::OPCODE_NE:         notEqual(d, s0, s1);                           break;
 			case Shader::OPCODE_END:                                                       break;

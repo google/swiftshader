@@ -343,10 +343,10 @@ namespace sw
 		void insert(Vector4f &dst, const Vector4f &src, const Float4 &element, const Float4 &index);
 		void all(Float4 &dst, const Vector4f &src);
 		void any(Float4 &dst, const Vector4f &src);
-		void not(Vector4f &dst, const Vector4f &src);
-		void or(Vector4f &dst, const Vector4f &src0, const Vector4f &src1);
-		void xor(Vector4f &dst, const Vector4f &src0, const Vector4f &src1);
-		void and(Vector4f &dst, const Vector4f &src0, const Vector4f &src1);
+		void bitwise_not(Vector4f &dst, const Vector4f &src);
+		void bitwise_or(Vector4f &dst, const Vector4f &src0, const Vector4f &src1);
+		void bitwise_xor(Vector4f &dst, const Vector4f &src0, const Vector4f &src1);
+		void bitwise_and(Vector4f &dst, const Vector4f &src0, const Vector4f &src1);
 		void equal(Vector4f &dst, const Vector4f &src0, const Vector4f &src1);
 		void notEqual(Vector4f &dst, const Vector4f &src0, const Vector4f &src1);
 
