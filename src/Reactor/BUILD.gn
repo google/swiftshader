@@ -14,7 +14,18 @@
 
 # Need a separate config to ensure the warnings are added to the end.
 config("swiftshader_reactor_private_config") {
-  if (is_clang) {
+  if (is_win) {
+    cflags = [
+      "/wd4201", # nameless struct/union
+      "/wd4245", # conversion from int to unsigned int (llvm)
+    ]
+
+    if (is_clang) {
+      cflags += [
+        "-Wno-delete-incomplete",
+      ]
+    }
+  } else {
     cflags = [
       "-DLOG_TAG=\"swiftshader_reactor\"",
       "-Wno-unused-local-typedef",
@@ -22,13 +33,6 @@ config("swiftshader_reactor_private_config") {
       "-D__STDC_CONSTANT_MACROS",
       "-D__STDC_LIMIT_MACROS",
     ]
-  } else {
-    if (host_os == "win") {
-      cflags = [
-        "/wd4201", # nameless struct/union
-        "/wd4245", # conversion from int to unsigned int (llvm)
-      ]
-    }
   }
 }
 
