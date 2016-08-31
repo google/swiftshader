@@ -14,18 +14,22 @@
 
 # Need a separate config to ensure the warnings are added to the end.
 config("swiftshader_shader_private_config") {
-  if (is_clang) {
+  if (is_win) {
     cflags = [
-      "-DLOG_TAG=\"swiftshader_shader\"",
-      "-fno-operator-names",
+      "/wd4201", # nameless struct/union
+      "/wd4324", # structure was padded due to alignment specifier
     ]
-  } else {
-    if (host_os == "win") {
-      cflags = [
-        "/wd4201", # nameless struct/union
-        "/wd4324", # structure was padded due to alignment specifier
+
+    if (is_clang) {
+      cflags += [
+        "-Wno-sign-compare",
+        "-Wno-delete-incomplete",
       ]
     }
+  } else {
+    cflags = [
+      "-DLOG_TAG=\"swiftshader_shader\"",
+    ]
   }
 }
 

@@ -14,9 +14,44 @@
 
 # Need a separate config to ensure the warnings are added to the end.
 config("swiftshader_llvm_private_config") {
+  cflags = []
+
+  if (is_win) {
+    cflags += [
+      "/wd4005",
+      "/wd4065",
+      "/wd4146",
+      "/wd4245",
+      "/wd4267",
+      "/wd4310",
+      "/wd4319",
+      "/wd4334",
+      "/wd4389",
+      "/wd4624",
+      "/wd4701",
+      "/wd4702",
+      "/wd4703",
+      "/wd4706",
+      "/wd4800",
+    ]
+
+    if (!is_debug) {
+      cflags += [
+        "/wd4324",
+      ]
+    }
+
+    if (is_clang) {
+      cflags += [
+        "-Wno-format",
+        "-Wno-sign-compare",
+        "-Wno-macro-redefined",
+      ]
+    }
+  }
+
   if (is_clang) {
-    cflags = [
-      "-fno-operator-names",
+    cflags += [
       "-msse2",
       "-D__STDC_CONSTANT_MACROS",
       "-D__STDC_LIMIT_MACROS",
@@ -28,32 +63,6 @@ config("swiftshader_llvm_private_config") {
       "-Wno-deprecated-declarations",
       "-Wno-unused-variable",
     ]
-  } else {
-    if (host_os == "win") {
-      cflags = [
-        "/wd4005",
-        "/wd4065",
-        "/wd4146",
-        "/wd4245",
-        "/wd4267",
-        "/wd4310",
-        "/wd4319",
-        "/wd4334",
-        "/wd4389",
-        "/wd4624",
-        "/wd4701",
-        "/wd4702",
-        "/wd4703",
-        "/wd4706",
-        "/wd4800",
-      ]
-
-      if (!is_debug) {
-        cflags += [
-          "/wd4324",
-        ]
-      }
-    }
   }
 }
 

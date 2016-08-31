@@ -13,7 +13,28 @@
 # limitations under the License.
 
 config("swiftshader_config") {
-  if (is_clang) {
+  if (is_win) {
+    cflags = [
+      "/GS", # Detects some buffer overruns
+      "/Zc:wchar_t",
+      "/D_CRT_SECURE_NO_DEPRECATE",
+      "/DNOMINMAX",
+      "/D_WINDLL",
+      "/EHsc",
+      "/nologo",
+      "/Gd", # Default calling convention
+    ]
+
+    if (is_debug) {
+      cflags += [
+        "/RTC1", # Run-Time Error Checks
+      ]
+    } else {
+      cflags += [
+        "/DANGLE_DISABLE_TRACE",
+      ]
+    }
+  } else {
     cflags = [
       "-std=c++11",
     ]
@@ -52,29 +73,6 @@ config("swiftshader_config") {
       cflags += [
         "-m32",
       ]
-    }
-  } else {
-    if (host_os == "win") {
-      cflags = [
-        "/GS", # Detects some buffer overruns
-        "/Zc:wchar_t",
-        "/D_CRT_SECURE_NO_DEPRECATE",
-        "/DNOMINMAX",
-        "/D_WINDLL",
-        "/EHsc",
-        "/nologo",
-        "/Gd", # Default calling convention
-      ]
-
-      if (is_debug) {
-        cflags += [
-          "/RTC1", # Run-Time Error Checks
-        ]
-      } else {
-        cflags += [
-          "/DANGLE_DISABLE_TRACE",
-        ]
-      }
     }
   }
 }
