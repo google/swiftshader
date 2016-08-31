@@ -456,8 +456,11 @@ void InstMIPS32Br::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   Str << "\t"
          "b" << InstMIPS32CondAttributes[Predicate].EmitString << "\t";
-  if (Label) {
-    Str << Label->getLabelName();
+  if (Label != nullptr) {
+    getSrc(0)->emit(Func);
+    Str << ", ";
+    getSrc(1)->emit(Func);
+    Str << ", " << Label->getLabelName();
   } else {
     if (isUnconditionalBranch()) {
       Str << getTargetFalse()->getAsmName();
@@ -501,8 +504,11 @@ void InstMIPS32Br::dump(const Cfg *Func) const {
   Str << "\t"
          "b" << InstMIPS32CondAttributes[Predicate].EmitString << "\t";
 
-  if (Label) {
-    Str << Label->getLabelName();
+  if (Label != nullptr) {
+    getSrc(0)->dump(Func);
+    Str << ", ";
+    getSrc(1)->dump(Func);
+    Str << ", " << Label->getLabelName();
   } else {
     if (isUnconditionalBranch()) {
       Str << getTargetFalse()->getAsmName();

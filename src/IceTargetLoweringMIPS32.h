@@ -178,6 +178,13 @@ public:
     Context.insert<InstMIPS32Br>(TargetTrue, TargetFalse, Src0, Condition);
   }
 
+  void _br(CfgNode *TargetTrue, CfgNode *TargetFalse, Operand *Src0,
+           Operand *Src1, const InstMIPS32Label *Label,
+           CondMIPS32::Cond Condition) {
+    Context.insert<InstMIPS32Br>(TargetTrue, TargetFalse, Src0, Src1, Label,
+                                 Condition);
+  }
+
   void _ret(Variable *RA, Variable *Src0 = nullptr) {
     Context.insert<InstMIPS32Ret>(RA, Src0);
   }

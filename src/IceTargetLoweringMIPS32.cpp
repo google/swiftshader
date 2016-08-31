@@ -2318,7 +2318,38 @@ void TargetMIPS32::lowerStore(const InstStore *Instr) {
 void TargetMIPS32::doAddressOptStore() { UnimplementedError(getFlags()); }
 
 void TargetMIPS32::lowerSwitch(const InstSwitch *Instr) {
-  UnimplementedLoweringError(this, Instr);
+  Operand *Src = Instr->getComparison();
+  SizeT NumCases = Instr->getNumCases();
+  if (Src->getType() == IceType_i64) {
+    Src = legalizeUndef(Src);
+    Variable *Src0Lo = legalizeToReg(loOperand(Src));
+    Variable *Src0Hi = legalizeToReg(hiOperand(Src));
+    for (SizeT I = 0; I < NumCases; ++I) {
+      Operand *ValueLo = Ctx->getConstantInt32(Instr->getValue(I));
+      Operand *ValueHi = Ctx->getConstantInt32(Instr->getValue(I) >> 32);
+      CfgNode *TargetTrue = Instr->getLabel(I);
+      constexpr CfgNode *NoTarget = nullptr;
+      ValueHi = legalizeToReg(ValueHi);
+      InstMIPS32Label *IntraLabel = InstMIPS32Label::create(Func, this);
+      _br(NoTarget, NoTarget, Src0Hi, ValueHi, IntraLabel,
+          CondMIPS32::Cond::NE);
+      ValueLo = legalizeToReg(ValueLo);
+      _br(NoTarget, TargetTrue, Src0Lo, ValueLo, CondMIPS32::Cond::EQ);
+      Context.insert(IntraLabel);
+    }
+    _br(Instr->getLabelDefault());
+    return;
+  }
+  Variable *SrcVar = legalizeToReg(Src);
+  assert(SrcVar->mustHaveReg());
+  for (SizeT I = 0; I < NumCases; ++I) {
+    Operand *Value = Ctx->getConstantInt32(Instr->getValue(I));
+    CfgNode *TargetTrue = Instr->getLabel(I);
+    constexpr CfgNode *NoTargetFalse = nullptr;
+    Value = legalizeToReg(Value);
+    _br(NoTargetFalse, TargetTrue, SrcVar, Value, CondMIPS32::Cond::EQ);
+  }
+  _br(Instr->getLabelDefault());
 }
 
 void TargetMIPS32::lowerBreakpoint(const InstBreakpoint *Instr) {

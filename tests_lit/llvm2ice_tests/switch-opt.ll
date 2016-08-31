@@ -11,6 +11,14 @@
 ; RUN:   | %if --need=target_ARM32 --need=allow_dump \
 ; RUN:     --command FileCheck --check-prefix ARM32 %s
 
+; TODO(jaydeep.patil): Using --skip-unimplemented for MIPS32
+; RUN: %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command %p2i --filetype=asm --assemble --disassemble \
+; RUN:   --target mips32 -i %s --args -Om1 --skip-unimplemented \
+; RUN:   -allow-externally-defined-symbols \
+; RUN:   | %if --need=target_MIPS32 --need=allow_dump \
+; RUN:     --command FileCheck --check-prefix MIPS32 %s
+
 define internal i32 @testSwitch(i32 %a) {
 entry:
   switch i32 %a, label %sw.default [
@@ -40,6 +48,35 @@ sw.epilog:                                        ; preds = %sw.bb2, %sw.default
   ret i32 %result.1
 }
 
+; MIPS32-LABEL: testSwitch
+; MIPS32: li	{{.*}},1
+; MIPS32: li	{{.*}},17
+; MIPS32: li	{{.*}},1
+; MIPS32: beq	{{.*}},{{.*}},{{.*}} <[[SW_EPILOG:.*]]>
+; MIPS32: li	{{.*}},2
+; MIPS32: beq	{{.*}},{{.*}},{{.*}} <[[SW_EPILOG]]>
+; MIPS32: li	{{.*}},3
+; MIPS32: beq	{{.*}},{{.*}},{{.*}} <[[SW_EPILOG]]>
+; MIPS32: li	{{.*}},7
+; MIPS32: beq	{{.*}},{{.*}},{{.*}} <[[SW_BB1:.*]]>
+; MIPS32: li	{{.*}},8
+; MIPS32: beq	{{.*}},{{.*}},{{.*}} <[[SW_BB1]]>
+; MIPS32: li	{{.*}},15
+; MIPS32: beq	{{.*}},{{.*}},{{.*}} <[[SW_BB2:.*]]>
+; MIPS32: li	{{.*}},14
+; MIPS32: beq	{{.*}},{{.*}},{{.*}} <[[SW_BB2]]>
+; MIPS32: b	{{.*}} <[[SW_DEFAULT:.*]]>
+; MIPS32: <[[SW_DEFAULT]]>
+; MIPS32: li	{{.*}},27
+; MIPS32: b	{{.*}} <[[SW_EPILOG]]>
+; MIPS32: <[[SW_BB1]]>
+; MIPS32: li	{{.*}},21
+; MIPS32: b	{{.*}} <[[SW_BB2]]>
+; MIPS32: <[[SW_BB2]]>
+; MIPS32: b	{{.*}} <[[SW_EPILOG]]>
+; MIPS32: <[[SW_EPILOG]]>
+; MIPS32: jr	ra
+
 ; Check for a valid addressing mode when the switch operand is an
 ; immediate.  It's important that there is exactly one case, because
 ; for two or more cases the source operand is legalized into a
@@ -57,6 +94,14 @@ sw.default:
 ; ARM32: cmp {{r[0-9]+}}, #1
 ; ARM32-NEXT: beq
 ; ARM32-NEXT: b
+
+; MIPS32-LABEL: testSwitchImm
+; MIPS32: li	{{.*}},10
+; MIPS32: li	{{.*}},1
+; MIPS32: beq	{{.*}},{{.*}},{{.*}} <.LtestSwitchImm$sw.default>
+; MIPS32: .LtestSwitchImm$sw.default
+; MIPS32: li	v0,20
+; MIPS32: jr	ra
 
 ; Test for correct 64-bit lowering.
 define internal i32 @testSwitch64(i64 %a) {
@@ -102,6 +147,43 @@ return:                                           ; preds = %sw.default, %sw.bb3
 ; ARM32-NEXT: beq
 ; ARM32-NEXT: b
 
+; MIPS32-LABEL: testSwitch64
+; MIPS32: bne	{{.*}},{{.*}},{{.*}} <.LtestSwitch64$local$__0>
+; MIPS32: li	{{.*}},123
+; MIPS32: beq	{{.*}},{{.*}},{{.*}} <.LtestSwitch64$return>
+; MIPS32: .LtestSwitch64$local$__0
+; MIPS32: li	{{.*}},0
+; MIPS32: bne	{{.*}},{{.*}},{{.*}} <.LtestSwitch64$local$__1>
+; MIPS32: li	{{.*}},234
+; MIPS32: beq	{{.*}},{{.*}},{{.*}} <.LtestSwitch64$sw.bb1>
+; MIPS32: .LtestSwitch64$local$__1
+; MIPS32: li	{{.*}},0
+; MIPS32: bne	{{.*}},{{.*}},{{.*}} <.LtestSwitch64$local$__2>
+; MIPS32: li	{{.*}},345
+; MIPS32: beq	{{.*}},{{.*}},{{.*}} <.LtestSwitch64$sw.bb2>
+; MIPS32: .LtestSwitch64$local$__2
+; MIPS32: li	{{.*}},18
+; MIPS32: bne	{{.*}},{{.*}},{{.*}} <.LtestSwitch64$local$__3>
+; MIPS32: lui	{{.*}},0x3456
+; MIPS32: ori	{{.*}},{{.*}},0x7890
+; MIPS32: beq	{{.*}},{{.*}},{{.*}} <.LtestSwitch64$sw.bb3>
+; MIPS32: .LtestSwitch64$local$__3
+; MIPS32: b	{{.*}} <.LtestSwitch64$sw.default>
+; MIPS32: .LtestSwitch64$sw.bb1
+; MIPS32: li	{{.*}},2
+; MIPS32: b	{{.*}} <.LtestSwitch64$return>
+; MIPS32: .LtestSwitch64$sw.bb2
+; MIPS32: li	{{.*}},3
+; MIPS32: b	{{.*}} <.LtestSwitch64$return>
+; MIPS32: .LtestSwitch64$sw.bb3
+; MIPS32: li	{{.*}},4
+; MIPS32: b	{{.*}} <.LtestSwitch64$return>
+; MIPS32: .LtestSwitch64$sw.default
+; MIPS32: li	{{.*}},5
+; MIPS32: b	{{.*}} <.LtestSwitch64$return>
+; MIPS32: .LtestSwitch64$return
+; MIPS32: jr	ra
+
 ; Similar to testSwitchImm, make sure proper addressing modes are
 ; used.  In reality, this is tested by running the output through the
 ; assembler.
@@ -120,6 +202,19 @@ sw.default:
 ; ARM32-NEXT: beq [[ADDR:[0-9a-f]+]]
 ; ARM32-NEXT: b [[ADDR]]
 
+; MIPS32-LABEL: testSwitchImm64
+; MIPS32: li	{{.*}},10
+; MIPS32: li	{{.*}},0
+; MIPS32: li	{{.*}},0
+; MIPS32: bne	{{.*}},{{.*}},{{.*}} <.LtestSwitchImm64$local$__0>
+; MIPS32: li	{{.*}},1
+; MIPS32: beq	{{.*}},{{.*}},{{.*}} <.LtestSwitchImm64$sw.default>
+; MIPS32: .LtestSwitchImm64$local$__0
+; MIPS32: b	{{.*}} <.LtestSwitchImm64$sw.default>
+; MIPS32: .LtestSwitchImm64$sw.default
+; MIPS32: li	{{.*}},20
+; MIPS32: jr	ra
+
 define internal i32 @testSwitchUndef64() {
 entry:
   switch i64 undef, label %sw.default [
@@ -132,3 +227,16 @@ sw.default:
 ; ARM32-LABEL: testSwitchUndef64
 ; ARM32: mov {{.*}}, #0
 ; ARM32: mov {{.*}}, #0
+
+; MIPS32-LABEL: testSwitchUndef64
+; MIPS32: li	{{.*}},0
+; MIPS32: li	{{.*}},0
+; MIPS32: li	{{.*}},0
+; MIPS32: bne	{{.*}},{{.*}},{{.*}} <.LtestSwitchUndef64$local$__0>
+; MIPS32: li	{{.*}},1
+; MIPS32: beq	{{.*}},{{.*}},{{.*}} <.LtestSwitchUndef64$sw.default>
+; MIPS32: .LtestSwitchUndef64$local$__0
+; MIPS32: b	{{.*}} <.LtestSwitchUndef64$sw.default>
+; MIPS32: .LtestSwitchUndef64$sw.default
+; MIPS32: li	{{.*}},20
+; MIPS32: jr	ra

@@ -671,6 +671,14 @@ public:
         InstMIPS32Br(Func, TargetTrue, TargetFalse, Src0, NoLabel, Cond);
   }
 
+  static InstMIPS32Br *create(Cfg *Func, CfgNode *TargetTrue,
+                              CfgNode *TargetFalse, Operand *Src0,
+                              Operand *Src1, const InstMIPS32Label *Label,
+                              CondMIPS32::Cond Cond) {
+    return new (Func->allocate<InstMIPS32Br>())
+        InstMIPS32Br(Func, TargetTrue, TargetFalse, Src0, Src1, Label, Cond);
+  }
+
   const CfgNode *getTargetTrue() const { return TargetTrue; }
   const CfgNode *getTargetFalse() const { return TargetFalse; }
   CondMIPS32::Cond getPredicate() const { return Predicate; }
