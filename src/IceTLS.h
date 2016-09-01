@@ -52,8 +52,11 @@
 ///
 /// \def ICE_THREAD_LOCAL_HACK
 ///
-#define ICE_THREAD_LOCAL_HACK
-#ifdef ICE_THREAD_LOCAL_HACK
+#ifndef ICE_THREAD_LOCAL_HACK
+#define ICE_THREAD_LOCAL_HACK 1
+#endif
+
+#if ICE_THREAD_LOCAL_HACK
 
 // For a static thread_local field F of a class C, instead of declaring and
 // defining C::F, we create two static fields:

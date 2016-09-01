@@ -16,6 +16,8 @@
 
 #include "IceDefs.h"
 
+#include "llvm/Support/ErrorHandling.h"
+
 #include <climits>
 
 namespace Ice {
