@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "11db7d69_958163ac",
+        "filename": "third_party/LLVM/lib/Support/Atomic.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-09-01T14:19:30Z",
+      "side": 1,
+      "message": "nit: In the latest version of LLVM this looks like:\n\n#if defined(_MSC_VER)\n#include \u003cIntrin.h\u003e\n#include \u003cwindows.h\u003e\n#undef MemoryFence\n#endif",
+      "range": {
+        "startLine": 19,
+        "startChar": 0,
+        "endLine": 23,
+        "endChar": 6
+      },
+      "revId": "819331d5764ed6d3fed9d6cfaef9883e160e2cdf",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
