@@ -14,8 +14,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifdef PNACL_LLVM
-
 #ifdef SZTARGET
 
 #ifndef SUBZERO_TARGET
@@ -28,9 +26,9 @@ SUBZERO_TARGET(SZTARGET)
 
 #else // !SZTARGET
 
-#include "llvm/Config/SZTargets.def"
+#ifdef PNACL_LLVM
 
-#endif // !SZTARGET
+#include "llvm/Config/SZTargets.def"
 
 #else // !PNACL_LLVM
 
@@ -40,3 +38,5 @@ SUBZERO_TARGET(X8632)
 SUBZERO_TARGET(X8664)
 
 #endif // !PNACL_LLVM
+
+#endif // !SZTARGET
