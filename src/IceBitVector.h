@@ -186,19 +186,19 @@ private:
   ElementType Bits[BitsElements];
 
   // MaxBits is defined here because it needs Bits to be defined.
-  static constexpr SizeT MaxBits = sizeof(Bits) * CHAR_BIT;
-  static_assert(sizeof(Bits) == 16, "Bits must be 16 bytes wide.");
+  static constexpr SizeT MaxBits = sizeof(SmallBitVector::Bits) * CHAR_BIT;
+  static_assert(sizeof(SmallBitVector::Bits) == 16,
+                "Bits must be 16 bytes wide.");
   SizeT Size = 0;
 
   template <SizeT Pos>
-  typename std::enable_if<Pos == sizeof(Bits) / sizeof(Bits[0]), int>::type
-  find_first() const {
+  typename std::enable_if<Pos == BitsElements, int>::type find_first() const {
     return -1;
   }
 
   template <SizeT Pos>
       typename std::enable_if <
-      Pos<sizeof(Bits) / sizeof(Bits[0]), int>::type find_first() const {
+      Pos<BitsElements, int>::type find_first() const {
     if (Bits[Pos] != 0) {
       return NumBitsPerPos * Pos + llvm::countTrailingZeros(Bits[Pos]);
     }
@@ -206,14 +206,14 @@ private:
   }
 
   template <SizeT Pos>
-  typename std::enable_if<Pos == sizeof(Bits) / sizeof(Bits[0]), int>::type
+  typename std::enable_if<Pos == BitsElements, int>::type
   find_next(unsigned) const {
     return -1;
   }
 
   template <SizeT Pos>
-      typename std::enable_if < Pos<sizeof(Bits) / sizeof(Bits[0]), int>::type
-                                find_next(unsigned Prev) const {
+      typename std::enable_if <
+      Pos<BitsElements, int>::type find_next(unsigned Prev) const {
     if (Prev + 1 < (Pos + 1) * NumBitsPerPos) {
       const ElementType Mask =
           (ElementType(1) << ((Prev + 1) - Pos * NumBitsPerPos)) - 1;
@@ -227,12 +227,10 @@ private:
   }
 
   template <SizeT Pos>
-  typename std::enable_if<Pos == sizeof(Bits) / sizeof(Bits[0]), void>::type
-  invert() {}
+  typename std::enable_if<Pos == BitsElements, void>::type invert() {}
 
   template <SizeT Pos>
-      typename std::enable_if <
-      Pos<sizeof(Bits) / sizeof(Bits[0]), void>::type invert() {
+      typename std::enable_if < Pos<BitsElements, void>::type invert() {
     if (size() < Pos * NumBitsPerPos) {
       Bits[Pos] = 0;
     } else if ((Pos + 1) * NumBitsPerPos < size()) {
