@@ -44,7 +44,8 @@ class AssemblerX86Base : public ::Ice::Assembler {
   AssemblerX86Base &operator=(const AssemblerX86Base &) = delete;
 
 protected:
-  explicit AssemblerX86Base(bool EmitAddrSizeOverridePrefix = Traits::Is64Bit)
+  explicit AssemblerX86Base(
+      bool EmitAddrSizeOverridePrefix = TraitsType::Is64Bit)
       : Assembler(Traits::AsmKind),
         EmitAddrSizeOverridePrefix(EmitAddrSizeOverridePrefix) {
     assert(Traits::Is64Bit || !EmitAddrSizeOverridePrefix);
