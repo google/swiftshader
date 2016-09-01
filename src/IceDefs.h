@@ -289,10 +289,14 @@ using TimerIdT = uint32_t;
 enum { MaxCacheLineSize = 64 };
 // Use ICE_CACHELINE_BOUNDARY to force the next field in a declaration
 // list to be aligned to the next cache line.
+#if defined(_MSC_VER)
+#define ICE_CACHELINE_BOUNDARY __declspec(align(MaxCacheLineSize)) int : 0;
+#else // !defined(_MSC_VER)
 // Note: zero is added to work around the following GCC 4.8 bug (fixed in 4.9):
 //       https://gcc.gnu.org/bugzilla/show_bug.cgi?id=55382
 #define ICE_CACHELINE_BOUNDARY                                                 \
   __attribute__((aligned(MaxCacheLineSize + 0))) int : 0
+#endif // !defined(_MSC_VER)
 
 /// PNaCl is ILP32, so theoretically we should only need 32-bit offsets.
 using RelocOffsetT = int32_t;
