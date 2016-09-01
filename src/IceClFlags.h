@@ -111,29 +111,24 @@ public:
 
 #define X(Name, Type, ClType, ...)                                             \
 private:                                                                       \
-  typename detail::cl_type_traits<Type, cl_detail::ClType>::storage_type Name; \
+  using Name##StorageType =                                                    \
+      detail::cl_type_traits<Type, cl_detail::ClType>::storage_type;           \
+                                                                               \
+  Name##StorageType Name;                                                      \
                                                                                \
   template <bool E>                                                            \
   typename std::enable_if<E, void>::type set##Name##Impl(                      \
-      typename detail::cl_type_traits<Type, cl_detail::ClType>::storage_type   \
-          Value) {                                                             \
+      Name##StorageType Value) {                                               \
     Name = std::move(Value);                                                   \
   }                                                                            \
                                                                                \
   template <bool E>                                                            \
-  typename std::enable_if<!E, void>::type set##Name##Impl(                     \
-      typename detail::cl_type_traits<Type,                                    \
-                                      cl_detail::ClType>::storage_type) {}     \
-                                                                               \
-public:                                                                        \
-  typename detail::cl_type_traits<Type, cl_detail::ClType>::storage_type       \
-      get##Name() const {                                                      \
-    return Name;                                                               \
+  typename std::enable_if<!E, void>::type set##Name##Impl(Name##StorageType) { \
   }                                                                            \
                                                                                \
-  void set##Name(                                                              \
-      typename detail::cl_type_traits<Type, cl_detail::ClType>::storage_type   \
-          Value) {                                                             \
+public:                                                                        \
+  Name##StorageType get##Name() const { return Name; }                         \
+  void set##Name(Name##StorageType Value) {                                    \
     /* TODO(jpp): figure out which optional flags are used in minimal, and     \
        what are the defaults for them. */                                      \
     static constexpr bool Enable =                                             \
