@@ -2632,7 +2632,7 @@ template <typename TraitsType> struct InstImpl {
     }
 
   private:
-    InstX86Nop(Cfg *Func, SizeT Length);
+    InstX86Nop(Cfg *Func, NopVariant Length);
 
     NopVariant Variant;
   };

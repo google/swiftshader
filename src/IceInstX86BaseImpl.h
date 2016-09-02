@@ -107,7 +107,7 @@ InstImpl<TraitsType>::InstX86Label::InstX86Label(Cfg *Func,
 template <typename TraitsType>
 InstImpl<TraitsType>::InstX86Br::InstX86Br(
     Cfg *Func, const CfgNode *TargetTrue, const CfgNode *TargetFalse,
-    const InstImpl<TraitsType>::InstX86Label *Label, BrCond Condition,
+    const InstX86Label *Label, BrCond Condition,
     Mode Kind)
     : InstX86Base(Func, InstX86Base::Br, 0, nullptr), Condition(Condition),
       TargetTrue(TargetTrue), TargetFalse(TargetFalse), Label(Label),
@@ -306,7 +306,7 @@ InstImpl<TraitsType>::InstX86StoreQ::InstX86StoreQ(Cfg *Func, Variable *Value,
 
 template <typename TraitsType>
 InstImpl<TraitsType>::InstX86Nop::InstX86Nop(Cfg *Func,
-                                             InstX86Nop::NopVariant Variant)
+                                             NopVariant Variant)
     : InstX86Base(Func, InstX86Base::Nop, 0, nullptr), Variant(Variant) {}
 
 template <typename TraitsType>
