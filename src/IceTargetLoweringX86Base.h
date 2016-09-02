@@ -415,7 +415,6 @@ protected:
   static Type stackSlotType();
 
   static constexpr uint32_t NoSizeLimit = 0;
-  static const Type TypeForSize[];
   /// Returns the largest type which is equal to or larger than Size bytes. The
   /// type is suitable for copying memory i.e. a load and store will be a single
   /// instruction (for example x86 will get f64 not i64).

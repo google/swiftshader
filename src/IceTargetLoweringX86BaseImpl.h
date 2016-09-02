@@ -7655,9 +7655,9 @@ Variable *TargetX86Base<TraitsType>::makeReg(Type Type, RegNumT RegNum) {
   return Reg;
 }
 
-template <typename TraitsType>
-const Type TargetX86Base<TraitsType>::TypeForSize[] = {
-    IceType_i8, IceType_i16, IceType_i32, IceType_f64, IceType_v16i8};
+const Type TypeForSize[] = {IceType_i8, IceType_i16, IceType_i32, IceType_f64,
+                            IceType_v16i8};
+
 template <typename TraitsType>
 Type TargetX86Base<TraitsType>::largestTypeInSize(uint32_t Size,
                                                   uint32_t MaxSize) {
