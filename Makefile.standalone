@@ -542,6 +542,20 @@ ifdef MINIMAL
 check-xtest check-xtest-lite: $(OBJDIR)/pnacl-sz make_symlink runtime
 	@echo "Crosstests disabled, minimal build"
 else
+ifdef MIPS
+check-xtest check-xtest-lite: $(OBJDIR)/pnacl-sz make_symlink runtime \
+  crosstest/test_arith_ll.ll
+       # Do all x8664/native/sse2 tests as a smoke test.
+       # Add in mips32 tests as they come online.
+	./pydir/crosstest_generator.py -v --lit \
+          --toolchain-root $(TOOLCHAIN_ROOT) \
+          $(FORCEASM_FLAG) \
+          $(FORCEASM_XTEST_EXCLUDES) \
+          -i x8664,native,sse2 \
+          -i mips32,xxx
+	PNACL_BIN_PATH=$(PNACL_BIN_PATH) \
+	$(LLVM_SRC_PATH)/utils/lit/lit.py -sv $(CHECK_XTEST_TESTS)
+else
 check-xtest: $(OBJDIR)/pnacl-sz make_symlink runtime \
   exists-nonsfi-x8632 exists-nonsfi-arm32 crosstest/test_arith_ll.ll
        # Do all native/sse2 tests, but only test_vector_ops for native/sse4.1.
@@ -589,6 +603,7 @@ check-xtest-lite: $(OBJDIR)/pnacl-sz make_symlink runtime \
 crosstest/test_arith_ll.ll: pydir/gen_test_arith_ll.py
 	python $< > $@
 endif
+endif
 
 check-unit: $(OBJDIR)/run_unittests
 	$(OBJDIR)/run_unittests
@@ -622,7 +637,12 @@ SPECRUN := --run
 	./pydir/szbuild_spec2k.py -v \
           $(SPECFLAGS) --target=$(TARGETFLAG) $(SPEC) $< $(SPECRUN)
 
+ifdef MIPS
+# Don't test spec2k on mips32, at least not yet.
+check-spec:
+else
 check-spec: exists-spec $(ALLSPEC:=.spec2k)
+endif
 
 check: check-lit check-unit check-xtest
 
@@ -665,6 +685,25 @@ exists-spec:
           exit 1 ; \
         fi
 
+ifdef MIPS
+check-presubmit presubmit: exists-sbtc
+# Make sure clang-format gets run.
+	+make -f Makefile.standalone format
+# Verify MINIMAL build, plus proper usage of REQUIRES in lit tests.
+	+make -f Makefile.standalone \
+          MINIMAL=1 check
+# Check that there are no g++ build errors or warnings.
+	+make -f Makefile.standalone \
+	  GPLUSPLUS=1 compile_only
+# Run lit tests, cross tests, and unit tests.
+	+make -f Makefile.standalone \
+          check
+# Check a sandboxed translator build.
+	+make -f Makefile.standalone \
+          DEBUG=1 sb
+# Provide validation of user awesomeness!
+	echo Success
+else
 check-presubmit presubmit: exists-nonsfi-x8632 exists-nonsfi-arm32 \
   exists-sbtc exists-spec
 # Make sure clang-format gets run.
@@ -714,6 +753,7 @@ check-presubmit presubmit: exists-nonsfi-x8632 exists-nonsfi-arm32 \
           TARGET=arm32 ALLSPEC='252.eon 254.gap 176.gcc 181.mcf' check-spec
 # Provide validation of user awesomeness!
 	echo Success
+endif
 
 presubmit-lite: exists-nonsfi-x8632 exists-nonsfi-arm32 \
   exists-sbtc exists-spec
