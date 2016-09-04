@@ -389,6 +389,11 @@ void TargetMIPS32::translateOm1() {
     return;
   Func->dump("After stack frame mapping");
 
+  postLowerLegalization();
+  if (Func->hasError())
+    return;
+  Func->dump("After postLowerLegalization");
+
   // Nop insertion
   if (getFlags().getShouldDoNopInsertion()) {
     Func->doNopInsertion();
@@ -496,13 +501,14 @@ OperandMIPS32Mem *TargetMIPS32::formMemoryOperand(Operand *Operand, Type Ty) {
   // OperandMIPS32Mem, so in that case it wouldn't need another level of
   // transformation.
   if (auto *Mem = llvm::dyn_cast<OperandMIPS32Mem>(Operand)) {
-    return Mem;
+    return llvm::cast<OperandMIPS32Mem>(legalize(Mem));
   }
 
   // If we didn't do address mode optimization, then we only have a base/offset
   // to work with. MIPS always requires a base register, so just use that to
   // hold the operand.
-  auto *Base = llvm::cast<Variable>(legalize(Operand, Legal_Reg));
+  auto *Base = llvm::cast<Variable>(
+      legalize(Operand, Legal_Reg | Legal_Rematerializable));
   const int32_t Offset = Base->hasStackOffset() ? Base->getStackOffset() : 0;
   return OperandMIPS32Mem::create(
       Func, Ty, Base,
@@ -516,12 +522,17 @@ void TargetMIPS32::emitVariable(const Variable *Var) const {
   const Type FrameSPTy = IceType_i32;
   if (Var->hasReg()) {
     Str << '$' << getRegName(Var->getRegNum(), Var->getType());
-  } else {
-    int32_t Offset = Var->getStackOffset();
-    Str << Offset;
-    Str << "($" << getRegName(getFrameOrStackReg(), FrameSPTy);
-    Str << ")";
+    return;
   }
+  if (Var->mustHaveReg()) {
+    llvm::report_fatal_error("Infinite-weight Variable (" + Var->getName() +
+                             ") has no register assigned - function " +
+                             Func->getFunctionName());
+  }
+  const int32_t Offset = Var->getStackOffset();
+  Str << Offset;
+  Str << "($" << getRegName(getFrameOrStackReg(), FrameSPTy);
+  Str << ")";
 }
 
 TargetMIPS32::CallingConv::CallingConv()
@@ -1041,8 +1052,8 @@ Variable *TargetMIPS32::PostLoweringLegalizer::newBaseRegister(
   const bool ShouldSub = Offset != 0 && (-Offset & 0xFFFF0000) == 0;
   Variable *ScratchReg = Target->makeReg(IceType_i32, ScratchRegNum);
   if (ShouldSub) {
-    Variable *OffsetVal =
-        Target->legalizeToReg(Target->Ctx->getConstantInt32(-Offset));
+    Variable *OffsetVal = Target->legalizeToReg(
+        Target->Ctx->getConstantInt32(-Offset), ScratchRegNum);
     Target->_sub(ScratchReg, Base, OffsetVal);
   } else {
     Target->_addiu(ScratchReg, Base, Offset);
@@ -1055,7 +1066,6 @@ void TargetMIPS32::PostLoweringLegalizer::legalizeMov(InstMIPS32Mov *MovInstr) {
   Variable *Dest = MovInstr->getDest();
   assert(Dest != nullptr);
   const Type DestTy = Dest->getType();
-  (void)DestTy;
   assert(DestTy != IceType_i64);
 
   Operand *Src = MovInstr->getSrc(0);
@@ -1067,30 +1077,80 @@ void TargetMIPS32::PostLoweringLegalizer::legalizeMov(InstMIPS32Mov *MovInstr) {
     return;
 
   bool Legalized = false;
-  if (Dest->hasReg()) {
-    if (auto *Var = llvm::dyn_cast<Variable>(Src)) {
-      if (Var->isRematerializable()) {
-        // This is equivalent to an x86 _lea(RematOffset(%esp/%ebp), Variable).
+  if (!Dest->hasReg()) {
+    auto *SrcR = llvm::cast<Variable>(Src);
+    assert(SrcR->hasReg());
+    assert(!SrcR->isRematerializable());
+    const int32_t Offset = Dest->getStackOffset();
 
-        // ExtraOffset is only needed for frame-pointer based frames as we have
-        // to account for spill storage.
-        const int32_t ExtraOffset = (Var->getRegNum() == Target->getFrameReg())
-                                        ? Target->getFrameFixedAllocaOffset()
-                                        : 0;
+    // This is a _mov(Mem(), Variable), i.e., a store.
+    auto *Base = Target->getPhysicalRegister(Target->getFrameOrStackReg());
 
-        const int32_t Offset = Var->getStackOffset() + ExtraOffset;
-        Variable *Base = Target->getPhysicalRegister(Var->getRegNum());
-        Variable *T = newBaseRegister(Base, Offset, Dest->getRegNum());
-        Target->_mov(Dest, T);
+    OperandMIPS32Mem *Addr = OperandMIPS32Mem::create(
+        Target->Func, DestTy, Base,
+        llvm::cast<ConstantInteger32>(Target->Ctx->getConstantInt32(Offset)));
+
+    // FP arguments are passed in GP reg if first argument is in GP. In this
+    // case type of the SrcR is still FP thus we need to explicitly generate sw
+    // instead of swc1.
+    const RegNumT RegNum = SrcR->getRegNum();
+    const bool isSrcGPReg = ((unsigned)RegNum >= RegMIPS32::Reg_A0 &&
+                             (unsigned)RegNum <= RegMIPS32::Reg_A3) ||
+                            ((unsigned)RegNum >= RegMIPS32::Reg_A0A1 &&
+                             (unsigned)RegNum <= RegMIPS32::Reg_A2A3);
+    if (SrcTy == IceType_f32 && isSrcGPReg == true) {
+      Variable *SrcGPR = Target->makeReg(IceType_i32, RegNum);
+      Target->_sw(SrcGPR, Addr);
+    } else if (SrcTy == IceType_f64 && isSrcGPReg == true) {
+      Variable *SrcGPRHi, *SrcGPRLo;
+      if (RegNum == RegMIPS32::Reg_A0A1) {
+        SrcGPRLo = Target->makeReg(IceType_i32, RegMIPS32::Reg_A0);
+        SrcGPRHi = Target->makeReg(IceType_i32, RegMIPS32::Reg_A1);
+      } else {
+        SrcGPRLo = Target->makeReg(IceType_i32, RegMIPS32::Reg_A2);
+        SrcGPRHi = Target->makeReg(IceType_i32, RegMIPS32::Reg_A3);
+      }
+      OperandMIPS32Mem *AddrHi = OperandMIPS32Mem::create(
+          Target->Func, DestTy, Base,
+          llvm::cast<ConstantInteger32>(
+              Target->Ctx->getConstantInt32(Offset + 4)));
+      Target->_sw(SrcGPRLo, Addr);
+      Target->_sw(SrcGPRHi, AddrHi);
+    } else {
+      Target->_sw(SrcR, Addr);
+    }
+
+    Target->Context.insert<InstFakeDef>(Dest);
+    Legalized = true;
+  } else if (auto *Var = llvm::dyn_cast<Variable>(Src)) {
+    if (Var->isRematerializable()) {
+      // This is equivalent to an x86 _lea(RematOffset(%esp/%ebp), Variable).
+
+      // ExtraOffset is only needed for frame-pointer based frames as we have
+      // to account for spill storage.
+      const int32_t ExtraOffset = (Var->getRegNum() == Target->getFrameReg())
+                                      ? Target->getFrameFixedAllocaOffset()
+                                      : 0;
+
+      const int32_t Offset = Var->getStackOffset() + ExtraOffset;
+      Variable *Base = Target->getPhysicalRegister(Var->getRegNum());
+      Variable *T = newBaseRegister(Base, Offset, Dest->getRegNum());
+      Target->_mov(Dest, T);
+      Legalized = true;
+    } else {
+      if (!Var->hasReg()) {
+        // This is a _mov(Variable, Mem()), i.e., a load.
+        const int32_t Offset = Var->getStackOffset();
+        auto *Base = Target->getPhysicalRegister(Target->getFrameOrStackReg());
+        OperandMIPS32Mem *Addr;
+        Addr = OperandMIPS32Mem::create(
+            Target->Func, DestTy, Base,
+            llvm::cast<ConstantInteger32>(
+                Target->Ctx->getConstantInt32(Offset)));
+        Target->_lw(Dest, Addr);
         Legalized = true;
-      } else if (!Var->hasReg()) {
-        UnimplementedError(getFlags());
-        return;
       }
     }
-  } else {
-    UnimplementedError(getFlags());
-    return;
   }
 
   if (Legalized) {
@@ -1562,7 +1622,6 @@ void TargetMIPS32::lowerAssign(const InstAssign *Instr) {
     Operand *Src0Hi = legalize(hiOperand(Src0), Legal_Reg);
     auto *DestLo = llvm::cast<Variable>(loOperand(Dest));
     auto *DestHi = llvm::cast<Variable>(hiOperand(Dest));
-    // Variable *T_Lo = nullptr, *T_Hi = nullptr;
     auto *T_Lo = I32Reg(), *T_Hi = I32Reg();
     _mov(T_Lo, Src0Lo);
     _mov(DestLo, T_Lo);
@@ -2242,7 +2301,13 @@ void TargetMIPS32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
 }
 
 void TargetMIPS32::lowerLoad(const InstLoad *Instr) {
-  UnimplementedLoweringError(this, Instr);
+  // A Load instruction can be treated the same as an Assign instruction, after
+  // the source operand is transformed into an OperandARM32Mem operand.
+  Type Ty = Instr->getDest()->getType();
+  Operand *Src0 = formMemoryOperand(Instr->getSourceAddress(), Ty);
+  Variable *DestLoad = Instr->getDest();
+  auto *Assign = InstAssign::create(Func, DestLoad, Src0);
+  lowerAssign(Assign);
 }
 
 void TargetMIPS32::doAddressOptLoad() { UnimplementedError(getFlags()); }
@@ -2436,9 +2501,11 @@ Variable *TargetMIPS32::copyToReg(Operand *Src, RegNumT RegNum) {
   if (isVectorType(Ty)) {
     UnimplementedError(getFlags());
   } else {
-    // Mov's Src operand can really only be the flexible second operand type
-    // or a register. Users should guarantee that.
-    _mov(Reg, Src);
+    if (auto *Mem = llvm::dyn_cast<OperandMIPS32Mem>(Src)) {
+      _lw(Reg, Mem);
+    } else {
+      _mov(Reg, Src);
+    }
   }
   return Reg;
 }
@@ -2450,11 +2517,59 @@ Operand *TargetMIPS32::legalize(Operand *From, LegalMask Allowed,
   // to legalize() allow a physical register. Legal_Flex converts
   // registers to the right type OperandMIPS32FlexReg as needed.
   assert(Allowed & Legal_Reg);
+
+  if (RegNum.hasNoValue()) {
+    if (Variable *Subst = getContext().availabilityGet(From)) {
+      // At this point we know there is a potential substitution available.
+      if (!Subst->isRematerializable() && Subst->mustHaveReg() &&
+          !Subst->hasReg()) {
+        // At this point we know the substitution will have a register.
+        if (From->getType() == Subst->getType()) {
+          // At this point we know the substitution's register is compatible.
+          return Subst;
+        }
+      }
+    }
+  }
+
   // Go through the various types of operands:
   // OperandMIPS32Mem, Constant, and Variable.
   // Given the above assertion, if type of operand is not legal
   // (e.g., OperandMIPS32Mem and !Legal_Mem), we can always copy
   // to a register.
+  if (auto *Mem = llvm::dyn_cast<OperandMIPS32Mem>(From)) {
+    // Base must be in a physical register.
+    Variable *Base = Mem->getBase();
+    ConstantInteger32 *Offset = llvm::cast<ConstantInteger32>(Mem->getOffset());
+    Variable *RegBase = nullptr;
+    assert(Base);
+
+    RegBase = llvm::cast<Variable>(
+        legalize(Base, Legal_Reg | Legal_Rematerializable));
+
+    if (Offset != nullptr && Offset->getValue() != 0) {
+      static constexpr bool ZeroExt = false;
+      if (!OperandMIPS32Mem::canHoldOffset(Ty, ZeroExt, Offset->getValue())) {
+        llvm::report_fatal_error("Invalid memory offset.");
+      }
+    }
+
+    // Create a new operand if there was a change.
+    if (Base != RegBase) {
+      Mem = OperandMIPS32Mem::create(Func, Ty, RegBase, Offset,
+                                     Mem->getAddrMode());
+    }
+
+    if (Allowed & Legal_Mem) {
+      From = Mem;
+    } else {
+      Variable *Reg = makeReg(Ty, RegNum);
+      _lw(Reg, Mem);
+      From = Reg;
+    }
+    return From;
+  }
+
   if (llvm::isa<Constant>(From)) {
     if (auto *C = llvm::dyn_cast<ConstantRelocatable>(From)) {
       (void)C;
@@ -2511,6 +2626,15 @@ Operand *TargetMIPS32::legalize(Operand *From, LegalMask Allowed,
   }
 
   if (auto *Var = llvm::dyn_cast<Variable>(From)) {
+    if (Var->isRematerializable()) {
+      if (Allowed & Legal_Rematerializable) {
+        return From;
+      }
+
+      Variable *T = makeReg(Var->getType(), RegNum);
+      _mov(T, Var);
+      return T;
+    }
     // Check if the variable is guaranteed a physical register.  This
     // can happen either when the variable is pre-colored or when it is
     // assigned infinite weight.

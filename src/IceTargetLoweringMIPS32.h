@@ -101,9 +101,7 @@ public:
     PrologEmitsFixedAllocas = true;
   }
   int32_t getFrameFixedAllocaOffset() const override {
-    // TODO(sehr): Implement fixed stack layout.
-    llvm::report_fatal_error("Not yet implemented");
-    return 0;
+    return FixedAllocaSizeBytes - (SpillAreaSizeBytes - MaxOutArgsSizeBytes);
   }
 
   uint32_t maxOutArgsSizeBytes() const override { return MaxOutArgsSizeBytes; }
@@ -448,6 +446,7 @@ public:
     Legal_Reg = 1 << 0, // physical register, not stack location
     Legal_Imm = 1 << 1,
     Legal_Mem = 1 << 2,
+    Legal_Rematerializable = 1 << 3,
     Legal_Default = ~Legal_None
   };
   typedef uint32_t LegalMask;

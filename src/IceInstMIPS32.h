@@ -110,8 +110,21 @@ public:
   static bool canHoldOffset(Type Ty, bool SignExt, int32_t Offset);
 
   void dump(const Cfg *Func, Ostream &Str) const override {
-    (void)Func;
-    (void)Str;
+    if (!BuildDefs::dump())
+      return;
+    Str << "[";
+    if (Func)
+      getBase()->dump(Func);
+    else
+      getBase()->dump(Str);
+    Str << ", ";
+    getOffset()->dump(Func, Str);
+    Str << "] AddrMode==";
+    if (getAddrMode() == Offset) {
+      Str << "Offset";
+    } else {
+      Str << "Unknown";
+    }
   }
 
 private:
@@ -515,8 +528,37 @@ public:
     if (!BuildDefs::dump())
       return;
     Ostream &Str = Func->getContext()->getStrEmit();
-    assert(getSrcSize() == 1);
-    Str << "\t" << Opcode << "\t";
+    const Type Ty = getDest()->getType();
+    switch (Ty) {
+    case IceType_i1:
+    case IceType_i8:
+      Str << "\t"
+          << "lb"
+          << "\t";
+      break;
+    case IceType_i16:
+      Str << "\t"
+          << "lh"
+          << "\t";
+      break;
+    case IceType_i32:
+      Str << "\t"
+          << "lw"
+          << "\t";
+      break;
+    case IceType_f32:
+      Str << "\t"
+          << "lwc1"
+          << "\t";
+      break;
+    case IceType_f64:
+      Str << "\t"
+          << "ldc1"
+          << "\t";
+      break;
+    default:
+      llvm_unreachable("InstMIPS32Load unknown type");
+    }
     getDest()->emit(Func);
     Str << ", ";
     emitRelocOp(Str, Reloc);
@@ -532,13 +574,12 @@ public:
     if (!BuildDefs::dump())
       return;
     Ostream &Str = Func->getContext()->getStrDump();
-    Str << "\t" << Opcode << "\t";
+    dumpOpcode(Str, Opcode, getDest()->getType());
+    Str << " ";
     getDest()->dump(Func);
     Str << ", ";
     emitRelocOp(Str, Reloc);
-    Str << (Reloc ? "(" : "");
     getSrc(0)->dump(Func);
-    Str << (Reloc ? ")" : "");
   }
   static bool classof(const Inst *Inst) { return isClassof(Inst, K); }
 
@@ -572,7 +613,37 @@ public:
       return;
     Ostream &Str = Func->getContext()->getStrEmit();
     assert(getSrcSize() == 2);
-    Str << "\t" << Opcode << "\t";
+    const Type Ty = getSrc(0)->getType();
+    switch (Ty) {
+    case IceType_i1:
+    case IceType_i8:
+      Str << "\t"
+          << "sb"
+          << "\t";
+      break;
+    case IceType_i16:
+      Str << "\t"
+          << "sh"
+          << "\t";
+      break;
+    case IceType_i32:
+      Str << "\t"
+          << "sw"
+          << "\t";
+      break;
+    case IceType_f32:
+      Str << "\t"
+          << "swc1"
+          << "\t";
+      break;
+    case IceType_f64:
+      Str << "\t"
+          << "sdc1"
+          << "\t";
+      break;
+    default:
+      llvm_unreachable("InstMIPS32Store unknown type");
+    }
     getSrc(0)->emit(Func);
     Str << ", ";
     emitRelocOp(Str, Reloc);
@@ -581,20 +652,19 @@ public:
 
   void emitIAS(const Cfg *Func) const override {
     (void)Func;
-    llvm_unreachable("Not yet implemented");
+    llvm_unreachable("InstMIPS32Store: Not yet implemented");
   }
 
   void dump(const Cfg *Func) const override {
     if (!BuildDefs::dump())
       return;
     Ostream &Str = Func->getContext()->getStrDump();
-    Str << "\t" << Opcode << "\t";
+    dumpOpcode(Str, Opcode, getSrc(0)->getType());
+    Str << " ";
     getSrc(0)->dump(Func);
     Str << ", ";
     emitRelocOp(Str, Reloc);
-    Str << (Reloc ? "(" : "");
     getSrc(1)->dump(Func);
-    Str << (Reloc ? ")" : "");
   }
   static bool classof(const Inst *Inst) { return isClassof(Inst, K); }
 
@@ -775,11 +845,12 @@ public:
     if (!BuildDefs::dump())
       return;
     Ostream &Str = Func->getContext()->getStrDump();
+    dumpOpcode(Str, Opcode, getDest()->getType());
     Str << " ";
-    Str << "\t" << Opcode << "\t";
     dumpDest(Func);
     Str << ", ";
     dumpSources(Func);
+    Str << ", ";
     if (Signed)
       Str << (int32_t)Imm;
     else

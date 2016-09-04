@@ -649,10 +649,8 @@ void InstMIPS32Mov::dump(const Cfg *Func) const {
     Str << ", ";
     DestHi->dump(Func);
   }
-
   dumpOpcode(Str, " = mov", getDest()->getType());
   Str << " ";
-
   dumpSources(Func);
 }
 
@@ -711,9 +709,7 @@ void InstMIPS32Mov::emitSingleDestSingleSource(const Cfg *Func) const {
 
   const char *ActualOpcode = nullptr;
   const bool DestIsReg = Dest->hasReg();
-  const bool DestIsMem = !Dest->hasReg();
   const bool SrcIsReg = (SrcV && SrcV->hasReg());
-  const bool SrcIsMem = !(SrcV && SrcV->hasReg());
 
   // reg to reg
   if (DestIsReg && SrcIsReg) {
@@ -729,8 +725,8 @@ void InstMIPS32Mov::emitSingleDestSingleSource(const Cfg *Func) const {
     case IceType_i16:
     case IceType_i32:
       Str << "\t"
-             "move"
-             "\t";
+          << "move"
+          << "\t";
       getDest()->emit(Func);
       Str << ", ";
       getSrc(0)->emit(Func);
@@ -748,64 +744,7 @@ void InstMIPS32Mov::emitSingleDestSingleSource(const Cfg *Func) const {
     return;
   }
 
-  // reg to stack
-  if (DestIsMem && SrcIsReg) {
-    switch (Dest->getType()) {
-    case IceType_f32:
-      ActualOpcode = "swc1";
-      break;
-    case IceType_f64:
-      ActualOpcode = "sdc1";
-      break;
-    case IceType_i1:
-    case IceType_i8:
-    case IceType_i16:
-    case IceType_i32:
-      ActualOpcode = "sw";
-      break;
-    default:
-      UnimplementedError(getFlags());
-      return;
-    }
-
-    assert(ActualOpcode);
-    Str << "\t" << ActualOpcode << "\t";
-    getSrc(0)->emit(Func);
-    Str << ", ";
-    getDest()->emit(Func);
-    return;
-  }
-
-  // stack to reg
-  if (DestIsReg && SrcIsMem) {
-    switch (Dest->getType()) {
-    case IceType_f32:
-      ActualOpcode = "lwc1";
-      break;
-    case IceType_f64:
-      ActualOpcode = "ldc1";
-      break;
-    case IceType_i1:
-    case IceType_i8:
-    case IceType_i16:
-    case IceType_i32:
-      ActualOpcode = "lw";
-      break;
-    default:
-      UnimplementedError(getFlags());
-      return;
-    }
-
-    assert(ActualOpcode);
-    Str << "\t" << ActualOpcode << "\t";
-    getDest()->emit(Func);
-    Str << ", ";
-    getSrc(0)->emit(Func);
-    return;
-  }
-
-  // stack to stack
-  llvm::report_fatal_error("mov cant copy stack to stack.");
+  llvm::report_fatal_error("Invalid mov instruction. Dest or Src is memory.");
 }
 
 template <> void InstMIPS32Addiu::emitIAS(const Cfg *Func) const {

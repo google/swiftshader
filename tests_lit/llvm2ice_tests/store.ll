@@ -56,7 +56,7 @@ entry:
 }
 ; MIPS32-LABEL: store_i16
 ; MIPS32: li
-; MIPS32: sw
+; MIPS32: sh
 
 define internal void @store_i8(i32 %addr_arg) {
 entry:
@@ -71,4 +71,34 @@ entry:
 }
 ; MIPS32-LABEL: store_i8
 ; MIPS32: li
-; MIPS32: sw
+; MIPS32: sb
+
+define internal void @store_f32(float* %faddr_arg) {
+entry:
+  store float 1.000000e+00, float* %faddr_arg, align 4
+  ret void
+
+; CHECK:       Initial CFG
+; CHECK:     entry:
+; CHECK-NEXT:  store float 1.000000e+00, float* %faddr_arg, align 4
+; CHECK-NEXT:  ret void
+}
+; MIPS32-LABEL: store_f32
+; MIPS32: lui
+; MIPS32: lwc1
+; MIPS32: swc1
+
+define internal void @store_f64(double* %daddr_arg) {
+entry:
+  store double 1.000000e+00, double* %daddr_arg, align 8
+  ret void
+
+; CHECK:       Initial CFG
+; CHECK:     entry:
+; CHECK-NEXT:  store double 1.000000e+00, double* %daddr_arg, align 8
+; CHECK-NEXT:  ret void
+}
+; MIPS32-LABEL: store_f64
+; MIPS32: lui
+; MIPS32: ldc1
+; MIPS32: sdc1

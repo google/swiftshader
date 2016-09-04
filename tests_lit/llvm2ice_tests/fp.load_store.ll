@@ -6,6 +6,13 @@
 ; RUN: %p2i --filetype=obj --disassemble -i %s --args -O2 | FileCheck %s
 ; RUN: %p2i --filetype=obj --disassemble -i %s --args -Om1 | FileCheck %s
 
+; RUN: %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command %p2i --filetype=asm --assemble \
+; RUN:   --disassemble --target mips32 -i %s --args -Om1 --skip-unimplemented \
+; RUN:   -allow-externally-defined-symbols \
+; RUN:   | %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command FileCheck --check-prefix MIPS32 %s
+
 define internal float @loadFloat(i32 %a) {
 entry:
   %__1 = inttoptr i32 %a to float*
@@ -15,6 +22,9 @@ entry:
 ; CHECK-LABEL: loadFloat
 ; CHECK: movss
 ; CHECK: fld
+
+; MIPS32-LABEL: loadFloat
+; MIPS32: lwc1 $f{{.*}},0{{.*}}
 
 define internal double @loadDouble(i32 %a) {
 entry:
@@ -26,6 +36,9 @@ entry:
 ; CHECK: movsd
 ; CHECK: fld
 
+; MIPS32-LABEL: loadDouble
+; MIPS32: ldc1 $f{{.*}},0{{.*}}
+
 define internal void @storeFloat(i32 %a, float %value) {
 entry:
   %__2 = inttoptr i32 %a to float*
@@ -35,6 +48,9 @@ entry:
 ; CHECK-LABEL: storeFloat
 ; CHECK: movss
 ; CHECK: movss
+
+; MIPS32-LABEL: storeFloat
+; MIPS32: swc1 $f{{.*}},0{{.*}}
 
 define internal void @storeDouble(i32 %a, double %value) {
 entry:
@@ -46,6 +62,10 @@ entry:
 ; CHECK: movsd
 ; CHECK: movsd
 
+; MIPS32-LABEL: storeDouble
+; MIPS32: ldc1 $f{{.*}},4{{.*}}
+; MIPS32: sdc1 $f{{.*}},0{{.*}}
+
 define internal void @storeFloatConst(i32 %a) {
 entry:
   %a.asptr = inttoptr i32 %a to float*
@@ -56,6 +76,11 @@ entry:
 ; CHECK: movss
 ; CHECK: movss
 
+; MIPS32-LABEL: storeFloatConst
+; MIPS32: lui {{.*}},{{.*}}
+; MIPS32: lwc1 $f{{.*}},{{.*}}
+; MIPS32: swc1 $f{{.*}},0{{.*}}
+
 define internal void @storeDoubleConst(i32 %a) {
 entry:
   %a.asptr = inttoptr i32 %a to double*
@@ -65,3 +90,8 @@ entry:
 ; CHECK-LABEL: storeDoubleConst
 ; CHECK: movsd
 ; CHECK: movsd
+
+; MIPS32-LABEL: storeDoubleConst
+; MIPS32: lui {{.*}},{{.*}}
+; MIPS32: ldc1 $f{{.*}},{{.*}}
+; MIPS32: sdc1 $f{{.*}},0{{.*}}
