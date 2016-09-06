@@ -31,7 +31,15 @@ CfgAllocatorTraits::allocator_type CfgAllocatorTraits::current() {
 void CfgAllocatorTraits::set_current(const manager_type *Manager) {
   ArenaAllocator *Allocator =
       Manager == nullptr ? nullptr : Manager->Allocator.get();
+  set_current(Allocator);
+}
+
+void CfgAllocatorTraits::set_current(ArenaAllocator *Allocator) {
   ICE_TLS_SET_FIELD(CfgAllocator, Allocator);
+}
+
+void CfgAllocatorTraits::set_current(nullptr_t) {
+  ICE_TLS_SET_FIELD(CfgAllocator, nullptr);
 }
 
 ICE_TLS_DEFINE_FIELD(ArenaAllocator *, LivenessAllocatorTraits,

@@ -31,6 +31,8 @@ class Cfg {
   Cfg(const Cfg &) = delete;
   Cfg &operator=(const Cfg &) = delete;
 
+  std::unique_ptr<ArenaAllocator> Allocator;
+
 public:
   ~Cfg();
 
@@ -306,6 +308,8 @@ private:
   CfgVector<Inst *>
   findLoopInvariantInstructions(const CfgUnorderedSet<SizeT> &Body);
 
+  static ArenaAllocator *createAllocator();
+
   GlobalContext *Ctx;
   uint32_t SequenceNumber; /// output order for emission
   OptLevel OptimizationLevel = Opt_m1;
@@ -323,7 +327,6 @@ private:
   VarList Variables;
   VarList Args;         /// subset of Variables, in argument order
   VarList ImplicitArgs; /// subset of Variables
-  std::unique_ptr<ArenaAllocator> Allocator;
   // Separate string pools for CfgNode and Variable names, due to a combination
   // of the uniqueness requirement, and assumptions in lit tests.
   std::unique_ptr<StringPool> NodeStrings;

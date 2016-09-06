@@ -22,8 +22,8 @@
 #include "IceELFObjectWriter.h"
 #include "IceGlobalInits.h"
 #include "IceInst.h"
-#include "IceInstrumentation.h"
 #include "IceInstVarIter.h"
+#include "IceInstrumentation.h"
 #include "IceLiveness.h"
 #include "IceLoopAnalyzer.h"
 #include "IceOperand.h"
@@ -35,9 +35,9 @@
 namespace Ice {
 
 Cfg::Cfg(GlobalContext *Ctx, uint32_t SequenceNumber)
-    : Ctx(Ctx), SequenceNumber(SequenceNumber), VMask(getFlags().getVerbose()),
-      FunctionName(), NextInstNumber(Inst::NumberInitial), Live(nullptr) {
-  Allocator.reset(new ArenaAllocator());
+    : Allocator(createAllocator()), Ctx(Ctx), SequenceNumber(SequenceNumber),
+      VMask(getFlags().getVerbose()), FunctionName(),
+      NextInstNumber(Inst::NumberInitial), Live(nullptr) {
   NodeStrings.reset(new StringPool);
   VarStrings.reset(new StringPool);
   CfgLocalAllocatorScope _(this);
@@ -63,6 +63,15 @@ Cfg::~Cfg() {
     getNodeStrings()->dump(Str);
     getVarStrings()->dump(Str);
   }
+}
+
+// Called in the initalizer list of Cfg's constructor to create the Allocator
+// and set it as TLS before any other member fields are constructed, since they
+// may depend on it.
+ArenaAllocator *Cfg::createAllocator() {
+  ArenaAllocator *Allocator = new ArenaAllocator();
+  CfgAllocatorTraits::set_current(Allocator);
+  return Allocator;
 }
 
 /// Create a string like "foo(i=123:b=9)" indicating the function name, number

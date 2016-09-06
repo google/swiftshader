@@ -143,6 +143,8 @@ public:
 
   static allocator_type current();
   static void set_current(const manager_type *Manager);
+  static void set_current(ArenaAllocator *Allocator);
+  static void set_current(nullptr_t);
 
 private:
   ICE_TLS_DECLARE_FIELD(ArenaAllocator *, CfgAllocator);
