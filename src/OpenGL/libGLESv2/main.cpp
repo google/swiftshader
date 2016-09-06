@@ -1325,6 +1325,11 @@ GL_APICALL void GL_APIENTRY glDrawBuffersEXT(GLsizei n, const GLenum *bufs)
 {
 	return es2::DrawBuffersEXT(n, bufs);
 }
+
+void GL_APIENTRY Register(const char *licenseKey)
+{
+	// Nothing to do, SwiftShader is open-source
+}
 }
 
 egl::Context *es2CreateContext(egl::Display *display, const egl::Context *shareContext, int clientVersion);
