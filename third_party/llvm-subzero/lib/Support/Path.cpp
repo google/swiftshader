@@ -11,12 +11,13 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "llvm/Support/Path.h"
 #include "llvm/Support/COFF.h"
+#include "llvm/Support/MachO.h"
 #include "llvm/Support/Endian.h"
 #include "llvm/Support/Errc.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/FileSystem.h"
+#include "llvm/Support/Path.h"
 #include "llvm/Support/Process.h"
 #include <cctype>
 #include <cstring>
@@ -31,115 +32,131 @@ using namespace llvm;
 using namespace llvm::support::endian;
 
 namespace {
-using llvm::StringRef;
-using llvm::sys::path::is_separator;
+  using llvm::StringRef;
+  using llvm::sys::path::is_separator;
 
 #ifdef LLVM_ON_WIN32
-const char *separators = "\\/";
-const char preferred_separator = '\\';
+  const char *separators = "\\/";
+  const char preferred_separator = '\\';
 #else
-const char separators = '/';
-const char preferred_separator = '/';
+  const char  separators = '/';
+  const char preferred_separator = '/';
 #endif
 
-StringRef find_first_component(StringRef path) {
-  // Look for this first component in the following order.
-  // * empty (in this case we return an empty string)
-  // * either C: or {//,\\}net.
-  // * {/,\}
-  // * {file,directory}name
+  StringRef find_first_component(StringRef path) {
+    // Look for this first component in the following order.
+    // * empty (in this case we return an empty string)
+    // * either C: or {//,\\}net.
+    // * {/,\}
+    // * {file,directory}name
 
-  if (path.empty())
-    return path;
+    if (path.empty())
+      return path;
 
 #ifdef LLVM_ON_WIN32
-  // C:
-  if (path.size() >= 2 && std::isalpha(static_cast<unsigned char>(path[0])) &&
-      path[1] == ':')
-    return path.substr(0, 2);
+    // C:
+    if (path.size() >= 2 && std::isalpha(static_cast<unsigned char>(path[0])) &&
+        path[1] == ':')
+      return path.substr(0, 2);
 #endif
 
-  // //net
-  if ((path.size() > 2) && is_separator(path[0]) && path[0] == path[1] &&
-      !is_separator(path[2])) {
-    // Find the next directory separator.
-    size_t end = path.find_first_of(separators, 2);
+    // //net
+    if ((path.size() > 2) &&
+        is_separator(path[0]) &&
+        path[0] == path[1] &&
+        !is_separator(path[2])) {
+      // Find the next directory separator.
+      size_t end = path.find_first_of(separators, 2);
+      return path.substr(0, end);
+    }
+
+    // {/,\}
+    if (is_separator(path[0]))
+      return path.substr(0, 1);
+
+    // * {file,directory}name
+    size_t end = path.find_first_of(separators);
     return path.substr(0, end);
   }
 
-  // {/,\}
-  if (is_separator(path[0]))
-    return path.substr(0, 1);
+  size_t filename_pos(StringRef str) {
+    if (str.size() == 2 &&
+        is_separator(str[0]) &&
+        str[0] == str[1])
+      return 0;
 
-  // * {file,directory}name
-  size_t end = path.find_first_of(separators);
-  return path.substr(0, end);
-}
+    if (str.size() > 0 && is_separator(str[str.size() - 1]))
+      return str.size() - 1;
 
-size_t filename_pos(StringRef str) {
-  if (str.size() == 2 && is_separator(str[0]) && str[0] == str[1])
-    return 0;
-
-  if (str.size() > 0 && is_separator(str[str.size() - 1]))
-    return str.size() - 1;
-
-  size_t pos = str.find_last_of(separators, str.size() - 1);
+    size_t pos = str.find_last_of(separators, str.size() - 1);
 
 #ifdef LLVM_ON_WIN32
-  if (pos == StringRef::npos)
-    pos = str.find_last_of(':', str.size() - 2);
+    if (pos == StringRef::npos)
+      pos = str.find_last_of(':', str.size() - 2);
 #endif
 
-  if (pos == StringRef::npos || (pos == 1 && is_separator(str[0])))
-    return 0;
+    if (pos == StringRef::npos ||
+        (pos == 1 && is_separator(str[0])))
+      return 0;
 
-  return pos + 1;
-}
-
-size_t root_dir_start(StringRef str) {
-// case "c:/"
-#ifdef LLVM_ON_WIN32
-  if (str.size() > 2 && str[1] == ':' && is_separator(str[2]))
-    return 2;
-#endif
-
-  // case "//"
-  if (str.size() == 2 && is_separator(str[0]) && str[0] == str[1])
-    return StringRef::npos;
-
-  // case "//net"
-  if (str.size() > 3 && is_separator(str[0]) && str[0] == str[1] &&
-      !is_separator(str[2])) {
-    return str.find_first_of(separators, 2);
+    return pos + 1;
   }
 
-  // case "/"
-  if (str.size() > 0 && is_separator(str[0]))
-    return 0;
+  size_t root_dir_start(StringRef str) {
+    // case "c:/"
+#ifdef LLVM_ON_WIN32
+    if (str.size() > 2 &&
+        str[1] == ':' &&
+        is_separator(str[2]))
+      return 2;
+#endif
 
-  return StringRef::npos;
-}
+    // case "//"
+    if (str.size() == 2 &&
+        is_separator(str[0]) &&
+        str[0] == str[1])
+      return StringRef::npos;
 
-size_t parent_path_end(StringRef path) {
-  size_t end_pos = filename_pos(path);
+    // case "//net"
+    if (str.size() > 3 &&
+        is_separator(str[0]) &&
+        str[0] == str[1] &&
+        !is_separator(str[2])) {
+      return str.find_first_of(separators, 2);
+    }
 
-  bool filename_was_sep = path.size() > 0 && is_separator(path[end_pos]);
+    // case "/"
+    if (str.size() > 0 && is_separator(str[0]))
+      return 0;
 
-  // Skip separators except for root dir.
-  size_t root_dir_pos = root_dir_start(path.substr(0, end_pos));
-
-  while (end_pos > 0 && (end_pos - 1) != root_dir_pos &&
-         is_separator(path[end_pos - 1]))
-    --end_pos;
-
-  if (end_pos == 1 && root_dir_pos == 0 && filename_was_sep)
     return StringRef::npos;
+  }
 
-  return end_pos;
-}
+  size_t parent_path_end(StringRef path) {
+    size_t end_pos = filename_pos(path);
+
+    bool filename_was_sep = path.size() > 0 && is_separator(path[end_pos]);
+
+    // Skip separators except for root dir.
+    size_t root_dir_pos = root_dir_start(path.substr(0, end_pos));
+
+    while(end_pos > 0 &&
+          (end_pos - 1) != root_dir_pos &&
+          is_separator(path[end_pos - 1]))
+      --end_pos;
+
+    if (end_pos == 1 && root_dir_pos == 0 && filename_was_sep)
+      return StringRef::npos;
+
+    return end_pos;
+  }
 } // end unnamed namespace
 
-enum FSEntity { FS_Dir, FS_File, FS_Name };
+enum FSEntity {
+  FS_Dir,
+  FS_File,
+  FS_Name
+};
 
 static std::error_code createUniqueEntity(const Twine &Model, int &ResultFD,
                                           SmallVectorImpl<char> &ResultPath,
@@ -210,21 +227,21 @@ retry_random_path:
 }
 
 namespace llvm {
-namespace sys {
+namespace sys  {
 namespace path {
 
 const_iterator begin(StringRef path) {
   const_iterator i;
-  i.Path = path;
+  i.Path      = path;
   i.Component = find_first_component(path);
-  i.Position = 0;
+  i.Position  = 0;
   return i;
 }
 
 const_iterator end(StringRef path) {
   const_iterator i;
-  i.Path = path;
-  i.Position = path.size();
+  i.Path      = path;
+  i.Position  = path.size();
   return i;
 }
 
@@ -242,8 +259,10 @@ const_iterator &const_iterator::operator++() {
 
   // Both POSIX and Windows treat paths that begin with exactly two separators
   // specially.
-  bool was_net = Component.size() > 2 && is_separator(Component[0]) &&
-                 Component[1] == Component[0] && !is_separator(Component[2]);
+  bool was_net = Component.size() > 2 &&
+    is_separator(Component[0]) &&
+    Component[1] == Component[0] &&
+    !is_separator(Component[2]);
 
   // Handle separators.
   if (is_separator(Path[Position])) {
@@ -253,13 +272,14 @@ const_iterator &const_iterator::operator++() {
         // c:/
         || Component.endswith(":")
 #endif
-            ) {
+        ) {
       Component = Path.substr(Position, 1);
       return *this;
     }
 
     // Skip extra separators.
-    while (Position != Path.size() && is_separator(Path[Position])) {
+    while (Position != Path.size() &&
+           is_separator(Path[Position])) {
       ++Position;
     }
 
@@ -305,7 +325,8 @@ reverse_iterator &reverse_iterator::operator++() {
   // If we're at the end and the previous char was a '/', return '.' unless
   // we are the root path.
   size_t root_dir_pos = root_dir_start(Path);
-  if (Position == Path.size() && Path.size() > root_dir_pos + 1 &&
+  if (Position == Path.size() &&
+      Path.size() > root_dir_pos + 1 &&
       is_separator(Path[Position - 1])) {
     --Position;
     Component = ".";
@@ -315,8 +336,9 @@ reverse_iterator &reverse_iterator::operator++() {
   // Skip separators unless it's the root directory.
   size_t end_pos = Position;
 
-  while (end_pos > 0 && (end_pos - 1) != root_dir_pos &&
-         is_separator(Path[end_pos - 1]))
+  while(end_pos > 0 &&
+        (end_pos - 1) != root_dir_pos &&
+        is_separator(Path[end_pos - 1]))
     --end_pos;
 
   // Find next separator.
@@ -331,15 +353,21 @@ bool reverse_iterator::operator==(const reverse_iterator &RHS) const {
          Position == RHS.Position;
 }
 
+ptrdiff_t reverse_iterator::operator-(const reverse_iterator &RHS) const {
+  return Position - RHS.Position;
+}
+
 StringRef root_path(StringRef path) {
-  const_iterator b = begin(path), pos = b, e = end(path);
+  const_iterator b = begin(path),
+                 pos = b,
+                 e = end(path);
   if (b != e) {
     bool has_net = b->size() > 2 && is_separator((*b)[0]) && (*b)[1] == (*b)[0];
     bool has_drive =
 #ifdef LLVM_ON_WIN32
-        b->endswith(":");
+      b->endswith(":");
 #else
-        false;
+      false;
 #endif
 
     if (has_net || has_drive) {
@@ -362,14 +390,15 @@ StringRef root_path(StringRef path) {
 }
 
 StringRef root_name(StringRef path) {
-  const_iterator b = begin(path), e = end(path);
+  const_iterator b = begin(path),
+                 e = end(path);
   if (b != e) {
     bool has_net = b->size() > 2 && is_separator((*b)[0]) && (*b)[1] == (*b)[0];
     bool has_drive =
 #ifdef LLVM_ON_WIN32
-        b->endswith(":");
+      b->endswith(":");
 #else
-        false;
+      false;
 #endif
 
     if (has_net || has_drive) {
@@ -383,14 +412,16 @@ StringRef root_name(StringRef path) {
 }
 
 StringRef root_directory(StringRef path) {
-  const_iterator b = begin(path), pos = b, e = end(path);
+  const_iterator b = begin(path),
+                 pos = b,
+                 e = end(path);
   if (b != e) {
     bool has_net = b->size() > 2 && is_separator((*b)[0]) && (*b)[1] == (*b)[0];
     bool has_drive =
 #ifdef LLVM_ON_WIN32
-        b->endswith(":");
+      b->endswith(":");
 #else
-        false;
+      false;
 #endif
 
     if ((has_net || has_drive) &&
@@ -414,22 +445,20 @@ StringRef relative_path(StringRef path) {
   return path.substr(root.size());
 }
 
-void append(SmallVectorImpl<char> &path, const Twine &a, const Twine &b,
-            const Twine &c, const Twine &d) {
+void append(SmallVectorImpl<char> &path, const Twine &a,
+                                         const Twine &b,
+                                         const Twine &c,
+                                         const Twine &d) {
   SmallString<32> a_storage;
   SmallString<32> b_storage;
   SmallString<32> c_storage;
   SmallString<32> d_storage;
 
   SmallVector<StringRef, 4> components;
-  if (!a.isTriviallyEmpty())
-    components.push_back(a.toStringRef(a_storage));
-  if (!b.isTriviallyEmpty())
-    components.push_back(b.toStringRef(b_storage));
-  if (!c.isTriviallyEmpty())
-    components.push_back(c.toStringRef(c_storage));
-  if (!d.isTriviallyEmpty())
-    components.push_back(d.toStringRef(d_storage));
+  if (!a.isTriviallyEmpty()) components.push_back(a.toStringRef(a_storage));
+  if (!b.isTriviallyEmpty()) components.push_back(b.toStringRef(b_storage));
+  if (!c.isTriviallyEmpty()) components.push_back(c.toStringRef(c_storage));
+  if (!d.isTriviallyEmpty()) components.push_back(d.toStringRef(d_storage));
 
   for (auto &component : components) {
     bool path_has_sep = !path.empty() && is_separator(path[path.size() - 1]);
@@ -455,8 +484,8 @@ void append(SmallVectorImpl<char> &path, const Twine &a, const Twine &b,
   }
 }
 
-void append(SmallVectorImpl<char> &path, const_iterator begin,
-            const_iterator end) {
+void append(SmallVectorImpl<char> &path,
+            const_iterator begin, const_iterator end) {
   for (; begin != end; ++begin)
     path::append(path, *begin);
 }
@@ -519,18 +548,21 @@ void native(SmallVectorImpl<char> &Path) {
 #endif
 }
 
-StringRef filename(StringRef path) { return *rbegin(path); }
+StringRef filename(StringRef path) {
+  return *rbegin(path);
+}
 
 StringRef stem(StringRef path) {
   StringRef fname = filename(path);
   size_t pos = fname.find_last_of('.');
   if (pos == StringRef::npos)
     return fname;
-  else if ((fname.size() == 1 && fname == ".") ||
-           (fname.size() == 2 && fname == ".."))
-    return fname;
   else
-    return fname.substr(0, pos);
+    if ((fname.size() == 1 && fname == ".") ||
+        (fname.size() == 2 && fname == ".."))
+      return fname;
+    else
+      return fname.substr(0, pos);
 }
 
 StringRef extension(StringRef path) {
@@ -538,28 +570,29 @@ StringRef extension(StringRef path) {
   size_t pos = fname.find_last_of('.');
   if (pos == StringRef::npos)
     return StringRef();
-  else if ((fname.size() == 1 && fname == ".") ||
-           (fname.size() == 2 && fname == ".."))
-    return StringRef();
   else
-    return fname.substr(pos);
+    if ((fname.size() == 1 && fname == ".") ||
+        (fname.size() == 2 && fname == ".."))
+      return StringRef();
+    else
+      return fname.substr(pos);
 }
 
 bool is_separator(char value) {
-  switch (value) {
+  switch(value) {
 #ifdef LLVM_ON_WIN32
-  case '\\': // fall through
+    case '\\': // fall through
 #endif
-  case '/':
-    return true;
-  default:
-    return false;
+    case '/': return true;
+    default: return false;
   }
 }
 
-static const char preferred_separator_string[] = {preferred_separator, '\0'};
+static const char preferred_separator_string[] = { preferred_separator, '\0' };
 
-StringRef get_separator() { return preferred_separator_string; }
+StringRef get_separator() {
+  return preferred_separator_string;
+}
 
 bool has_root_name(const Twine &path) {
   SmallString<128> path_storage;
@@ -711,8 +744,8 @@ createTemporaryFile(const Twine &Model, int &ResultFD,
   assert(P.find_first_of(separators) == StringRef::npos &&
          "Model must be a simple filename.");
   // Use P.begin() so that createUniqueEntity doesn't need to recreate Storage.
-  return createUniqueEntity(P.begin(), ResultFD, ResultPath, true,
-                            owner_read | owner_write, Type);
+  return createUniqueEntity(P.begin(), ResultFD, ResultPath,
+                            true, owner_read | owner_write, Type);
 }
 
 static std::error_code
@@ -735,13 +768,14 @@ std::error_code createTemporaryFile(const Twine &Prefix, StringRef Suffix,
   return createTemporaryFile(Prefix, Suffix, Dummy, ResultPath, FS_Name);
 }
 
+
 // This is a mkdtemp with a different pattern. We use createUniqueEntity mostly
 // for consistency. We should try using mkdtemp.
 std::error_code createUniqueDirectory(const Twine &Prefix,
                                       SmallVectorImpl<char> &ResultPath) {
   int Dummy;
-  return createUniqueEntity(Prefix + "-%%%%%%", Dummy, ResultPath, true, 0,
-                            FS_Dir);
+  return createUniqueEntity(Prefix + "-%%%%%%", Dummy, ResultPath,
+                            true, 0, FS_Dir);
 }
 
 static std::error_code make_absolute(const Twine &current_directory,
@@ -786,10 +820,10 @@ static std::error_code make_absolute(const Twine &current_directory,
   }
 
   if (rootName && !rootDirectory) {
-    StringRef pRootName = path::root_name(p);
+    StringRef pRootName      = path::root_name(p);
     StringRef bRootDirectory = path::root_directory(current_dir);
-    StringRef bRelativePath = path::relative_path(current_dir);
-    StringRef pRelativePath = path::relative_path(p);
+    StringRef bRelativePath  = path::relative_path(current_dir);
+    StringRef pRelativePath  = path::relative_path(p);
 
     SmallString<128> res;
     path::append(res, pRootName, bRootDirectory, bRelativePath, pRelativePath);
@@ -829,7 +863,7 @@ std::error_code create_directories(const Twine &Path, bool IgnoreExisting,
     return EC;
 
   if ((EC = create_directories(Parent, IgnoreExisting, Perms)))
-    return EC;
+      return EC;
 
   return create_directory(P, IgnoreExisting, Perms);
 }
@@ -872,7 +906,9 @@ bool exists(file_status status) {
   return status_known(status) && status.type() != file_type::file_not_found;
 }
 
-bool status_known(file_status s) { return s.type() != file_type::status_error; }
+bool status_known(file_status s) {
+  return s.type() != file_type::status_error;
+}
 
 bool is_directory(file_status status) {
   return status.type() == file_type::directory_file;
@@ -899,7 +935,9 @@ std::error_code is_regular_file(const Twine &path, bool &result) {
 }
 
 bool is_other(file_status status) {
-  return exists(status) && !is_regular_file(status) && !is_directory(status);
+  return exists(status) &&
+         !is_regular_file(status) &&
+         !is_directory(status);
 }
 
 std::error_code is_other(const Twine &Path, bool &Result) {
@@ -922,167 +960,159 @@ file_magic identify_magic(StringRef Magic) {
   if (Magic.size() < 4)
     return file_magic::unknown;
   switch ((unsigned char)Magic[0]) {
-  case 0x00: {
-    // COFF bigobj or short import library file
-    if (Magic[1] == (char)0x00 && Magic[2] == (char)0xff &&
-        Magic[3] == (char)0xff) {
-      size_t MinSize =
-          offsetof(COFF::BigObjHeader, UUID) + sizeof(COFF::BigObjMagic);
-      if (Magic.size() < MinSize)
-        return file_magic::coff_import_library;
+    case 0x00: {
+      // COFF bigobj or short import library file
+      if (Magic[1] == (char)0x00 && Magic[2] == (char)0xff &&
+          Magic[3] == (char)0xff) {
+        size_t MinSize = offsetof(COFF::BigObjHeader, UUID) + sizeof(COFF::BigObjMagic);
+        if (Magic.size() < MinSize)
+          return file_magic::coff_import_library;
 
-      int BigObjVersion =
-          read16le(Magic.data() + offsetof(COFF::BigObjHeader, Version));
-      if (BigObjVersion < COFF::BigObjHeader::MinBigObjectVersion)
-        return file_magic::coff_import_library;
+        int BigObjVersion = read16le(
+            Magic.data() + offsetof(COFF::BigObjHeader, Version));
+        if (BigObjVersion < COFF::BigObjHeader::MinBigObjectVersion)
+          return file_magic::coff_import_library;
 
-      const char *Start = Magic.data() + offsetof(COFF::BigObjHeader, UUID);
-      if (memcmp(Start, COFF::BigObjMagic, sizeof(COFF::BigObjMagic)) != 0)
-        return file_magic::coff_import_library;
-      return file_magic::coff_object;
+        const char *Start = Magic.data() + offsetof(COFF::BigObjHeader, UUID);
+        if (memcmp(Start, COFF::BigObjMagic, sizeof(COFF::BigObjMagic)) != 0)
+          return file_magic::coff_import_library;
+        return file_magic::coff_object;
+      }
+      // Windows resource file
+      const char Expected[] = { 0, 0, 0, 0, '\x20', 0, 0, 0, '\xff' };
+      if (Magic.size() >= sizeof(Expected) &&
+          memcmp(Magic.data(), Expected, sizeof(Expected)) == 0)
+        return file_magic::windows_resource;
+      // 0x0000 = COFF unknown machine type
+      if (Magic[1] == 0)
+        return file_magic::coff_object;
+      break;
     }
-    // Windows resource file
-    const char Expected[] = {0, 0, 0, 0, '\x20', 0, 0, 0, '\xff'};
-    if (Magic.size() >= sizeof(Expected) &&
-        memcmp(Magic.data(), Expected, sizeof(Expected)) == 0)
-      return file_magic::windows_resource;
-    // 0x0000 = COFF unknown machine type
-    if (Magic[1] == 0)
-      return file_magic::coff_object;
-    break;
-  }
-  case 0xDE: // 0x0B17C0DE = BC wraper
-    if (Magic[1] == (char)0xC0 && Magic[2] == (char)0x17 &&
-        Magic[3] == (char)0x0B)
-      return file_magic::bitcode;
-    break;
-  case 'B':
-    if (Magic[1] == 'C' && Magic[2] == (char)0xC0 && Magic[3] == (char)0xDE)
-      return file_magic::bitcode;
-    break;
-  case '!':
-    if (Magic.size() >= 8)
-      if (memcmp(Magic.data(), "!<arch>\n", 8) == 0 ||
-          memcmp(Magic.data(), "!<thin>\n", 8) == 0)
-        return file_magic::archive;
-    break;
+    case 0xDE:  // 0x0B17C0DE = BC wraper
+      if (Magic[1] == (char)0xC0 && Magic[2] == (char)0x17 &&
+          Magic[3] == (char)0x0B)
+        return file_magic::bitcode;
+      break;
+    case 'B':
+      if (Magic[1] == 'C' && Magic[2] == (char)0xC0 && Magic[3] == (char)0xDE)
+        return file_magic::bitcode;
+      break;
+    case '!':
+      if (Magic.size() >= 8)
+        if (memcmp(Magic.data(), "!<arch>\n", 8) == 0 ||
+            memcmp(Magic.data(), "!<thin>\n", 8) == 0)
+          return file_magic::archive;
+      break;
 
-  case '\177':
-    if (Magic.size() >= 18 && Magic[1] == 'E' && Magic[2] == 'L' &&
-        Magic[3] == 'F') {
-      bool Data2MSB = Magic[5] == 2;
-      unsigned high = Data2MSB ? 16 : 17;
-      unsigned low = Data2MSB ? 17 : 16;
-      if (Magic[high] == 0)
-        switch (Magic[low]) {
-        default:
+    case '\177':
+      if (Magic.size() >= 18 && Magic[1] == 'E' && Magic[2] == 'L' &&
+          Magic[3] == 'F') {
+        bool Data2MSB = Magic[5] == 2;
+        unsigned high = Data2MSB ? 16 : 17;
+        unsigned low  = Data2MSB ? 17 : 16;
+        if (Magic[high] == 0)
+          switch (Magic[low]) {
+            default: return file_magic::elf;
+            case 1: return file_magic::elf_relocatable;
+            case 2: return file_magic::elf_executable;
+            case 3: return file_magic::elf_shared_object;
+            case 4: return file_magic::elf_core;
+          }
+        else
+          // It's still some type of ELF file.
           return file_magic::elf;
-        case 1:
-          return file_magic::elf_relocatable;
-        case 2:
-          return file_magic::elf_executable;
-        case 3:
-          return file_magic::elf_shared_object;
-        case 4:
-          return file_magic::elf_core;
-        }
-      else
-        // It's still some type of ELF file.
-        return file_magic::elf;
-    }
-    break;
+      }
+      break;
 
-  case 0xCA:
-    if (Magic[1] == char(0xFE) && Magic[2] == char(0xBA) &&
-        Magic[3] == char(0xBE)) {
-      // This is complicated by an overlap with Java class files.
-      // See the Mach-O section in /usr/share/file/magic for details.
-      if (Magic.size() >= 8 && Magic[7] < 43)
-        return file_magic::macho_universal_binary;
-    }
-    break;
+    case 0xCA:
+      if (Magic[1] == char(0xFE) && Magic[2] == char(0xBA) &&
+          Magic[3] == char(0xBE)) {
+        // This is complicated by an overlap with Java class files.
+        // See the Mach-O section in /usr/share/file/magic for details.
+        if (Magic.size() >= 8 && Magic[7] < 43)
+          return file_magic::macho_universal_binary;
+      }
+      break;
 
-  // The two magic numbers for mach-o are:
-  // 0xfeedface - 32-bit mach-o
-  // 0xfeedfacf - 64-bit mach-o
-  case 0xFE:
-  case 0xCE:
-  case 0xCF: {
-    uint16_t type = 0;
-    if (Magic[0] == char(0xFE) && Magic[1] == char(0xED) &&
-        Magic[2] == char(0xFA) &&
-        (Magic[3] == char(0xCE) || Magic[3] == char(0xCF))) {
-      /* Native endian */
-      if (Magic.size() >= 16)
-        type = Magic[14] << 8 | Magic[15];
-    } else if ((Magic[0] == char(0xCE) || Magic[0] == char(0xCF)) &&
-               Magic[1] == char(0xFA) && Magic[2] == char(0xED) &&
-               Magic[3] == char(0xFE)) {
-      /* Reverse endian */
-      if (Magic.size() >= 14)
-        type = Magic[13] << 8 | Magic[12];
+      // The two magic numbers for mach-o are:
+      // 0xfeedface - 32-bit mach-o
+      // 0xfeedfacf - 64-bit mach-o
+    case 0xFE:
+    case 0xCE:
+    case 0xCF: {
+      uint16_t type = 0;
+      if (Magic[0] == char(0xFE) && Magic[1] == char(0xED) &&
+          Magic[2] == char(0xFA) &&
+          (Magic[3] == char(0xCE) || Magic[3] == char(0xCF))) {
+        /* Native endian */
+        size_t MinSize;
+        if (Magic[3] == char(0xCE))
+          MinSize = sizeof(MachO::mach_header);
+        else
+          MinSize = sizeof(MachO::mach_header_64);
+        if (Magic.size() >= MinSize)
+          type = Magic[12] << 24 | Magic[13] << 12 | Magic[14] << 8 | Magic[15];
+      } else if ((Magic[0] == char(0xCE) || Magic[0] == char(0xCF)) &&
+                 Magic[1] == char(0xFA) && Magic[2] == char(0xED) &&
+                 Magic[3] == char(0xFE)) {
+        /* Reverse endian */
+        size_t MinSize;
+        if (Magic[0] == char(0xCE))
+          MinSize = sizeof(MachO::mach_header);
+        else
+          MinSize = sizeof(MachO::mach_header_64);
+        if (Magic.size() >= MinSize)
+          type = Magic[15] << 24 | Magic[14] << 12 |Magic[13] << 8 | Magic[12];
+      }
+      switch (type) {
+        default: break;
+        case 1: return file_magic::macho_object;
+        case 2: return file_magic::macho_executable;
+        case 3: return file_magic::macho_fixed_virtual_memory_shared_lib;
+        case 4: return file_magic::macho_core;
+        case 5: return file_magic::macho_preload_executable;
+        case 6: return file_magic::macho_dynamically_linked_shared_lib;
+        case 7: return file_magic::macho_dynamic_linker;
+        case 8: return file_magic::macho_bundle;
+        case 9: return file_magic::macho_dynamically_linked_shared_lib_stub;
+        case 10: return file_magic::macho_dsym_companion;
+        case 11: return file_magic::macho_kext_bundle;
+      }
+      break;
     }
-    switch (type) {
+    case 0xF0: // PowerPC Windows
+    case 0x83: // Alpha 32-bit
+    case 0x84: // Alpha 64-bit
+    case 0x66: // MPS R4000 Windows
+    case 0x50: // mc68K
+    case 0x4c: // 80386 Windows
+    case 0xc4: // ARMNT Windows
+      if (Magic[1] == 0x01)
+        return file_magic::coff_object;
+
+    case 0x90: // PA-RISC Windows
+    case 0x68: // mc68K Windows
+      if (Magic[1] == 0x02)
+        return file_magic::coff_object;
+      break;
+
+    case 'M': // Possible MS-DOS stub on Windows PE file
+      if (Magic[1] == 'Z') {
+        uint32_t off = read32le(Magic.data() + 0x3c);
+        // PE/COFF file, either EXE or DLL.
+        if (off < Magic.size() &&
+            memcmp(Magic.data()+off, COFF::PEMagic, sizeof(COFF::PEMagic)) == 0)
+          return file_magic::pecoff_executable;
+      }
+      break;
+
+    case 0x64: // x86-64 Windows.
+      if (Magic[1] == char(0x86))
+        return file_magic::coff_object;
+      break;
+
     default:
       break;
-    case 1:
-      return file_magic::macho_object;
-    case 2:
-      return file_magic::macho_executable;
-    case 3:
-      return file_magic::macho_fixed_virtual_memory_shared_lib;
-    case 4:
-      return file_magic::macho_core;
-    case 5:
-      return file_magic::macho_preload_executable;
-    case 6:
-      return file_magic::macho_dynamically_linked_shared_lib;
-    case 7:
-      return file_magic::macho_dynamic_linker;
-    case 8:
-      return file_magic::macho_bundle;
-    case 9:
-      return file_magic::macho_dynamically_linked_shared_lib_stub;
-    case 10:
-      return file_magic::macho_dsym_companion;
-    case 11:
-      return file_magic::macho_kext_bundle;
-    }
-    break;
-  }
-  case 0xF0: // PowerPC Windows
-  case 0x83: // Alpha 32-bit
-  case 0x84: // Alpha 64-bit
-  case 0x66: // MPS R4000 Windows
-  case 0x50: // mc68K
-  case 0x4c: // 80386 Windows
-  case 0xc4: // ARMNT Windows
-    if (Magic[1] == 0x01)
-      return file_magic::coff_object;
-
-  case 0x90: // PA-RISC Windows
-  case 0x68: // mc68K Windows
-    if (Magic[1] == 0x02)
-      return file_magic::coff_object;
-    break;
-
-  case 'M': // Possible MS-DOS stub on Windows PE file
-    if (Magic[1] == 'Z') {
-      uint32_t off = read32le(Magic.data() + 0x3c);
-      // PE/COFF file, either EXE or DLL.
-      if (off < Magic.size() &&
-          memcmp(Magic.data() + off, COFF::PEMagic, sizeof(COFF::PEMagic)) == 0)
-        return file_magic::pecoff_executable;
-    }
-    break;
-
-  case 0x64: // x86-64 Windows.
-    if (Magic[1] == char(0x86))
-      return file_magic::coff_object;
-    break;
-
-  default:
-    break;
   }
   return file_magic::unknown;
 }

@@ -60,12 +60,16 @@ private:
   /// this buffer.
   char *OutBufStart, *OutBufEnd, *OutBufCur;
 
-  enum BufferKind { Unbuffered = 0, InternalBuffer, ExternalBuffer } BufferMode;
+  enum BufferKind {
+    Unbuffered = 0,
+    InternalBuffer,
+    ExternalBuffer
+  } BufferMode;
 
 public:
   // color order matches ANSI escape sequence, don't change
   enum Colors {
-    BLACK = 0,
+    BLACK=0,
     RED,
     GREEN,
     YELLOW,
@@ -119,7 +123,9 @@ public:
     SetBufferAndMode(nullptr, 0, Unbuffered);
   }
 
-  size_t GetNumBytesInBuffer() const { return OutBufCur - OutBufStart; }
+  size_t GetNumBytesInBuffer() const {
+    return OutBufCur - OutBufStart;
+  }
 
   //===--------------------------------------------------------------------===//
   // Data Output Interface
@@ -226,7 +232,8 @@ public:
   /// @param Bold bold/brighter text, default false
   /// @param BG if true change the background, default: change foreground
   /// @returns itself so it can be used within << invocations
-  virtual raw_ostream &changeColor(enum Colors Color, bool Bold = false,
+  virtual raw_ostream &changeColor(enum Colors Color,
+                                   bool Bold = false,
                                    bool BG = false) {
     (void)Color;
     (void)Bold;
@@ -377,7 +384,7 @@ public:
 
   /// FD is the file descriptor that this writes to.  If ShouldClose is true,
   /// this closes the file when the stream is destroyed.
-  raw_fd_ostream(int fd, bool shouldClose, bool unbuffered = false);
+  raw_fd_ostream(int fd, bool shouldClose, bool unbuffered=false);
 
   ~raw_fd_ostream() override;
 
@@ -391,8 +398,8 @@ public:
   /// to the offset specified from the beginning of the file.
   uint64_t seek(uint64_t off);
 
-  raw_ostream &changeColor(enum Colors colors, bool bold = false,
-                           bool bg = false) override;
+  raw_ostream &changeColor(enum Colors colors, bool bold=false,
+                           bool bg=false) override;
   raw_ostream &resetColor() override;
 
   raw_ostream &reverseColor() override;
@@ -405,7 +412,9 @@ public:
   /// output error has been encountered.
   /// This doesn't implicitly flush any pending output.  Also, it doesn't
   /// guarantee to detect all errors unless the stream has been closed.
-  bool has_error() const { return Error; }
+  bool has_error() const {
+    return Error;
+  }
 
   /// Set the flag read by has_error() to false. If the error flag is set at the
   /// time when this raw_ostream's destructor is called, report_fatal_error is
@@ -416,7 +425,9 @@ public:
   ///    Unless explicitly silenced."
   ///      - from The Zen of Python, by Tim Peters
   ///
-  void clear_error() { Error = false; }
+  void clear_error() {
+    Error = false;
+  }
 };
 
 /// This returns a reference to a raw_ostream for standard output. Use it like:
@@ -452,7 +463,7 @@ public:
 
   /// Flushes the stream contents to the target string and returns  the string's
   /// reference.
-  std::string &str() {
+  std::string& str() {
     flush();
     return OS;
   }

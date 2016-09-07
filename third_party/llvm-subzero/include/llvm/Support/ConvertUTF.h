@@ -98,10 +98,10 @@
     bit mask & shift operations.
 ------------------------------------------------------------------------ */
 
-typedef unsigned int UTF32;    /* at least 32 bits */
-typedef unsigned short UTF16;  /* at least 16 bits */
-typedef unsigned char UTF8;    /* typically 8 bits */
-typedef unsigned char Boolean; /* 0 or 1 */
+typedef unsigned int    UTF32;  /* at least 32 bits */
+typedef unsigned short  UTF16;  /* at least 16 bits */
+typedef unsigned char   UTF8;   /* typically 8 bits */
+typedef unsigned char   Boolean; /* 0 or 1 */
 
 /* Some fundamental constants */
 #define UNI_REPLACEMENT_CHAR (UTF32)0x0000FFFD
@@ -112,62 +112,61 @@ typedef unsigned char Boolean; /* 0 or 1 */
 
 #define UNI_MAX_UTF8_BYTES_PER_CODE_POINT 4
 
-#define UNI_UTF16_BYTE_ORDER_MARK_NATIVE 0xFEFF
+#define UNI_UTF16_BYTE_ORDER_MARK_NATIVE  0xFEFF
 #define UNI_UTF16_BYTE_ORDER_MARK_SWAPPED 0xFFFE
 
 typedef enum {
-  conversionOK,    /* conversion successful */
-  sourceExhausted, /* partial character in source, but hit end */
-  targetExhausted, /* insuff. room in target for conversion */
-  sourceIllegal    /* source sequence is illegal/malformed */
+  conversionOK,           /* conversion successful */
+  sourceExhausted,        /* partial character in source, but hit end */
+  targetExhausted,        /* insuff. room in target for conversion */
+  sourceIllegal           /* source sequence is illegal/malformed */
 } ConversionResult;
 
-typedef enum { strictConversion = 0, lenientConversion } ConversionFlags;
+typedef enum {
+  strictConversion = 0,
+  lenientConversion
+} ConversionFlags;
 
 /* This is for C++ and does no harm in C */
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-ConversionResult ConvertUTF8toUTF16(const UTF8 **sourceStart,
-                                    const UTF8 *sourceEnd, UTF16 **targetStart,
-                                    UTF16 *targetEnd, ConversionFlags flags);
+ConversionResult ConvertUTF8toUTF16 (
+  const UTF8** sourceStart, const UTF8* sourceEnd,
+  UTF16** targetStart, UTF16* targetEnd, ConversionFlags flags);
 
 /**
  * Convert a partial UTF8 sequence to UTF32.  If the sequence ends in an
  * incomplete code unit sequence, returns \c sourceExhausted.
  */
-ConversionResult ConvertUTF8toUTF32Partial(const UTF8 **sourceStart,
-                                           const UTF8 *sourceEnd,
-                                           UTF32 **targetStart,
-                                           UTF32 *targetEnd,
-                                           ConversionFlags flags);
+ConversionResult ConvertUTF8toUTF32Partial(
+  const UTF8** sourceStart, const UTF8* sourceEnd,
+  UTF32** targetStart, UTF32* targetEnd, ConversionFlags flags);
 
 /**
  * Convert a partial UTF8 sequence to UTF32.  If the sequence ends in an
  * incomplete code unit sequence, returns \c sourceIllegal.
  */
-ConversionResult ConvertUTF8toUTF32(const UTF8 **sourceStart,
-                                    const UTF8 *sourceEnd, UTF32 **targetStart,
-                                    UTF32 *targetEnd, ConversionFlags flags);
+ConversionResult ConvertUTF8toUTF32(
+  const UTF8** sourceStart, const UTF8* sourceEnd,
+  UTF32** targetStart, UTF32* targetEnd, ConversionFlags flags);
 
-ConversionResult ConvertUTF16toUTF8(const UTF16 **sourceStart,
-                                    const UTF16 *sourceEnd, UTF8 **targetStart,
-                                    UTF8 *targetEnd, ConversionFlags flags);
+ConversionResult ConvertUTF16toUTF8 (
+  const UTF16** sourceStart, const UTF16* sourceEnd,
+  UTF8** targetStart, UTF8* targetEnd, ConversionFlags flags);
 
-ConversionResult ConvertUTF32toUTF8(const UTF32 **sourceStart,
-                                    const UTF32 *sourceEnd, UTF8 **targetStart,
-                                    UTF8 *targetEnd, ConversionFlags flags);
+ConversionResult ConvertUTF32toUTF8 (
+  const UTF32** sourceStart, const UTF32* sourceEnd,
+  UTF8** targetStart, UTF8* targetEnd, ConversionFlags flags);
 
-ConversionResult ConvertUTF16toUTF32(const UTF16 **sourceStart,
-                                     const UTF16 *sourceEnd,
-                                     UTF32 **targetStart, UTF32 *targetEnd,
-                                     ConversionFlags flags);
+ConversionResult ConvertUTF16toUTF32 (
+  const UTF16** sourceStart, const UTF16* sourceEnd,
+  UTF32** targetStart, UTF32* targetEnd, ConversionFlags flags);
 
-ConversionResult ConvertUTF32toUTF16(const UTF32 **sourceStart,
-                                     const UTF32 *sourceEnd,
-                                     UTF16 **targetStart, UTF16 *targetEnd,
-                                     ConversionFlags flags);
+ConversionResult ConvertUTF32toUTF16 (
+  const UTF32** sourceStart, const UTF32* sourceEnd,
+  UTF16** targetStart, UTF16* targetEnd, ConversionFlags flags);
 
 Boolean isLegalUTF8Sequence(const UTF8 *source, const UTF8 *sourceEnd);
 
@@ -181,10 +180,13 @@ unsigned getNumBytesForUTF8(UTF8 firstByte);
 /*************************************************************************/
 /* Below are LLVM-specific wrappers of the functions above. */
 
-#include "llvm/ADT/ArrayRef.h"
-#include "llvm/ADT/StringRef.h"
+#include <string>
+#include <cstddef>
 
 namespace llvm {
+template <typename T> class ArrayRef;
+template <typename T> class SmallVectorImpl;
+class StringRef;
 
 /**
  * Convert an UTF8 StringRef to UTF8, UTF16, or UTF32 depending on
@@ -197,6 +199,25 @@ namespace llvm {
  */
 bool ConvertUTF8toWide(unsigned WideCharWidth, llvm::StringRef Source,
                        char *&ResultPtr, const UTF8 *&ErrorPtr);
+
+/**
+* Converts a UTF-8 StringRef to a std::wstring.
+* \return true on success.
+*/
+bool ConvertUTF8toWide(llvm::StringRef Source, std::wstring &Result);
+
+/**
+* Converts a UTF-8 C-string to a std::wstring.
+* \return true on success.
+*/
+bool ConvertUTF8toWide(const char *Source, std::wstring &Result);
+
+/**
+* Converts a std::wstring to a UTF-8 encoded std::string.
+* \return true on success.
+*/
+bool convertWideToUTF8(const std::wstring &Source, std::string &Result);
+
 
 /**
  * Convert an Unicode code point to UTF8 sequence.
@@ -251,6 +272,15 @@ bool hasUTF16ByteOrderMark(ArrayRef<char> SrcBytes);
  * \returns true on success
  */
 bool convertUTF16ToUTF8String(ArrayRef<char> SrcBytes, std::string &Out);
+
+/**
+* Converts a UTF16 string into a UTF8 std::string.
+*
+* \param [in] Src A buffer of UTF-16 encoded text.
+* \param [out] Out Converted UTF-8 is stored here on success.
+* \returns true on success
+*/
+bool convertUTF16ToUTF8String(ArrayRef<UTF16> Src, std::string &Out);
 
 /**
  * Converts a UTF-8 string into a UTF-16 string with native endianness.

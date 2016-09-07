@@ -19,6 +19,7 @@
 #include "llvm/Config/config.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/Errc.h"
+#include "llvm/Support/Error.h"
 #include "llvm/Support/ManagedStatic.h"
 #include "llvm/Support/Mutex.h"
 #include "llvm/Support/MutexGuard.h"
@@ -30,11 +31,11 @@
 #include <cstdlib>
 
 #if defined(HAVE_UNISTD_H)
-#include <unistd.h>
+# include <unistd.h>
 #endif
 #if defined(_MSC_VER)
-#include <fcntl.h>
-#include <io.h>
+# include <io.h>
+# include <fcntl.h>
 #endif
 
 using namespace llvm;
@@ -72,7 +73,7 @@ void llvm::report_fatal_error(StringRef Reason, bool GenCrashDiag) {
 
 void llvm::report_fatal_error(const Twine &Reason, bool GenCrashDiag) {
   llvm::fatal_error_handler_t handler = nullptr;
-  void *handlerData = nullptr;
+  void* handlerData = nullptr;
   {
     // Only acquire the mutex while reading the handler, so as not to invoke a
     // user-supplied callback under a lock.
@@ -122,7 +123,7 @@ void llvm::llvm_unreachable_internal(const char *msg, const char *file,
 #endif
 }
 
-static void bindingsErrorHandler(void *user_data, const std::string &reason,
+static void bindingsErrorHandler(void *user_data, const std::string& reason,
                                  bool gen_crash_diag) {
   LLVMFatalErrorHandler handler =
       LLVM_EXTENSION reinterpret_cast<LLVMFatalErrorHandler>(user_data);
@@ -134,7 +135,9 @@ void LLVMInstallFatalErrorHandler(LLVMFatalErrorHandler Handler) {
                               LLVM_EXTENSION reinterpret_cast<void *>(Handler));
 }
 
-void LLVMResetFatalErrorHandler() { remove_fatal_error_handler(); }
+void LLVMResetFatalErrorHandler() {
+  remove_fatal_error_handler();
+}
 
 #ifdef LLVM_ON_WIN32
 

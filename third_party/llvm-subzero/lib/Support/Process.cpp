@@ -11,11 +11,11 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "llvm/Support/Process.h"
 #include "llvm/ADT/StringExtras.h"
 #include "llvm/Config/config.h"
 #include "llvm/Support/FileSystem.h"
 #include "llvm/Support/Path.h"
+#include "llvm/Support/Process.h"
 #include "llvm/Support/Program.h"
 
 using namespace llvm;
@@ -26,8 +26,9 @@ using namespace sys;
 //===          independent code.
 //===----------------------------------------------------------------------===//
 
-Optional<std::string> Process::FindInEnvPath(const std::string &EnvName,
-                                             const std::string &FileName) {
+Optional<std::string> Process::FindInEnvPath(const std::string& EnvName,
+                                             const std::string& FileName)
+{
   assert(!path::is_absolute(FileName));
   Optional<std::string> FoundPath;
   Optional<std::string> OptPath = Process::GetEnv(EnvName);
@@ -53,19 +54,31 @@ Optional<std::string> Process::FindInEnvPath(const std::string &EnvName,
   return FoundPath;
 }
 
+
 #define COLOR(FGBG, CODE, BOLD) "\033[0;" BOLD FGBG CODE "m"
 
-#define ALLCOLORS(FGBG, BOLD)                                                  \
-  {                                                                            \
-    COLOR(FGBG, "0", BOLD)                                                     \
-    , COLOR(FGBG, "1", BOLD), COLOR(FGBG, "2", BOLD), COLOR(FGBG, "3", BOLD),  \
-        COLOR(FGBG, "4", BOLD), COLOR(FGBG, "5", BOLD),                        \
-        COLOR(FGBG, "6", BOLD), COLOR(FGBG, "7", BOLD)                         \
+#define ALLCOLORS(FGBG,BOLD) {\
+    COLOR(FGBG, "0", BOLD),\
+    COLOR(FGBG, "1", BOLD),\
+    COLOR(FGBG, "2", BOLD),\
+    COLOR(FGBG, "3", BOLD),\
+    COLOR(FGBG, "4", BOLD),\
+    COLOR(FGBG, "5", BOLD),\
+    COLOR(FGBG, "6", BOLD),\
+    COLOR(FGBG, "7", BOLD)\
   }
 
-static const char colorcodes[2][2][8]
-                            [10] = {{ALLCOLORS("3", ""), ALLCOLORS("3", "1;")},
-                                    {ALLCOLORS("4", ""), ALLCOLORS("4", "1;")}};
+static const char colorcodes[2][2][8][10] = {
+ { ALLCOLORS("3",""), ALLCOLORS("3","1;") },
+ { ALLCOLORS("4",""), ALLCOLORS("4","1;") }
+};
+
+// This is set to true when Process::PreventCoreFiles() is called.
+static bool coreFilesPrevented = false;
+
+bool Process::AreCoreFilesPrevented() {
+  return coreFilesPrevented;
+}
 
 // Include the platform-specific parts of this class.
 #ifdef LLVM_ON_UNIX

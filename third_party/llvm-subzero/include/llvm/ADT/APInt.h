@@ -16,7 +16,6 @@
 #ifndef LLVM_ADT_APINT_H
 #define LLVM_ADT_APINT_H
 
-#include "llvm/ADT/ArrayRef.h"
 #include "llvm/Support/Compiler.h"
 #include "llvm/Support/MathExtras.h"
 #include <cassert>
@@ -31,6 +30,7 @@ class hash_code;
 class raw_ostream;
 
 template <typename T> class SmallVectorImpl;
+template <typename T> class ArrayRef;
 
 // An unsigned host type used as a single part of a multi-part
 // bignum.
@@ -365,7 +365,9 @@ public:
   ///
   /// This checks to see if the value of this APInt is the minimum signed
   /// value for the APInt's bit width.
-  bool isMinSignedValue() const { return isNegative() && isPowerOf2(); }
+  bool isMinSignedValue() const {
+    return isNegative() && isPowerOf2();
+  }
 
   /// \brief Check if this APInt has an N-bits unsigned integer value.
   bool isIntN(unsigned N) const {
@@ -960,7 +962,8 @@ public:
   bool operator[](unsigned bitPosition) const {
     assert(bitPosition < getBitWidth() && "Bit position out of bounds!");
     return (maskBit(bitPosition) &
-            (isSingleWord() ? VAL : pVal[whichWord(bitPosition)])) != 0;
+            (isSingleWord() ? VAL : pVal[whichWord(bitPosition)])) !=
+           0;
   }
 
   /// @}
@@ -1448,6 +1451,10 @@ public:
   /// \returns a byte-swapped representation of this APInt Value.
   APInt LLVM_ATTRIBUTE_UNUSED_RESULT byteSwap() const;
 
+  /// \returns the value with the bit representation reversed of this APInt
+  /// Value.
+  APInt LLVM_ATTRIBUTE_UNUSED_RESULT reverseBits() const;
+
   /// \brief Converts this APInt to a double value.
   double roundToDouble(bool isSigned) const;
 
@@ -1741,16 +1748,24 @@ inline raw_ostream &operator<<(raw_ostream &OS, const APInt &I) {
 namespace APIntOps {
 
 /// \brief Determine the smaller of two APInts considered to be signed.
-inline APInt smin(const APInt &A, const APInt &B) { return A.slt(B) ? A : B; }
+inline const APInt &smin(const APInt &A, const APInt &B) {
+  return A.slt(B) ? A : B;
+}
 
 /// \brief Determine the larger of two APInts considered to be signed.
-inline APInt smax(const APInt &A, const APInt &B) { return A.sgt(B) ? A : B; }
+inline const APInt &smax(const APInt &A, const APInt &B) {
+  return A.sgt(B) ? A : B;
+}
 
 /// \brief Determine the smaller of two APInts considered to be signed.
-inline APInt umin(const APInt &A, const APInt &B) { return A.ult(B) ? A : B; }
+inline const APInt &umin(const APInt &A, const APInt &B) {
+  return A.ult(B) ? A : B;
+}
 
 /// \brief Determine the larger of two APInts considered to be unsigned.
-inline APInt umax(const APInt &A, const APInt &B) { return A.ugt(B) ? A : B; }
+inline const APInt &umax(const APInt &A, const APInt &B) {
+  return A.ugt(B) ? A : B;
+}
 
 /// \brief Check if the specified APInt has a N-bits unsigned integer value.
 inline bool isIntN(unsigned N, const APInt &APIVal) { return APIVal.isIntN(N); }
@@ -1765,6 +1780,13 @@ inline bool isSignedIntN(unsigned N, const APInt &APIVal) {
 inline bool isMask(unsigned numBits, const APInt &APIVal) {
   return numBits <= APIVal.getBitWidth() &&
          APIVal == APInt::getLowBitsSet(APIVal.getBitWidth(), numBits);
+}
+
+/// \returns true if the argument is a non-empty sequence of ones starting at
+/// the least significant bit with the remainder zero (32 bit version).
+/// Ex. isMask(0x0000FFFFU) == true.
+inline bool isMask(const APInt &Value) {
+  return (Value != 0) && ((Value + 1) & Value) == 0;
 }
 
 /// \brief Return true if the argument APInt value contains a sequence of ones

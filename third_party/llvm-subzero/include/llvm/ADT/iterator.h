@@ -40,10 +40,10 @@ class iterator_facade_base
                            ReferenceT> {
 protected:
   enum {
-    IsRandomAccess = std::is_base_of<std::random_access_iterator_tag,
-                                     IteratorCategoryT>::value,
-    IsBidirectional = std::is_base_of<std::bidirectional_iterator_tag,
-                                      IteratorCategoryT>::value,
+    IsRandomAccess =
+        std::is_base_of<std::random_access_iterator_tag, IteratorCategoryT>::value,
+    IsBidirectional =
+        std::is_base_of<std::bidirectional_iterator_tag, IteratorCategoryT>::value,
   };
 
 public:
@@ -226,8 +226,8 @@ public:
 ///   typedef pointee_iterator<SmallVectorImpl<T *>::iterator> iterator;
 /// \endcode
 template <typename WrappedIteratorT,
-          typename T = typename std::remove_reference<decltype(
-              **std::declval<WrappedIteratorT>())>::type>
+          typename T = typename std::remove_reference<
+              decltype(**std::declval<WrappedIteratorT>())>::type>
 struct pointee_iterator
     : iterator_adaptor_base<
           pointee_iterator<WrappedIteratorT>, WrappedIteratorT,
@@ -240,6 +240,7 @@ struct pointee_iterator
 
   T &operator*() const { return **this->I; }
 };
+
 }
 
 #endif

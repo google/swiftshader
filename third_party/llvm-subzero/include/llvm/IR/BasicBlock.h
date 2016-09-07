@@ -52,7 +52,6 @@ struct SymbolTableListSentinelTraits<BasicBlock>
 class BasicBlock : public Value, // Basic blocks are data objects also
                    public ilist_node_with_parent<BasicBlock, Function> {
   friend class BlockAddress;
-
 public:
   typedef SymbolTableList<Instruction> InstListType;
 
@@ -74,7 +73,6 @@ private:
   explicit BasicBlock(LLVMContext &C, const Twine &Name = "",
                       Function *Parent = nullptr,
                       BasicBlock *InsertBefore = nullptr);
-
 public:
   /// \brief Get the context in which this basic block lives.
   LLVMContext &getContext() const;
@@ -99,7 +97,7 @@ public:
 
   /// \brief Return the enclosing method, or null if none.
   const Function *getParent() const { return Parent; }
-  Function *getParent() { return Parent; }
+        Function *getParent()       { return Parent; }
 
   /// \brief Return the module owning the function this basic block belongs to,
   /// or nullptr it the function does not have a module.
@@ -112,6 +110,14 @@ public:
   /// null if the block is not well formed.
   TerminatorInst *getTerminator();
   const TerminatorInst *getTerminator() const;
+
+  /// \brief Returns the call instruction calling @llvm.experimental.deoptimize
+  /// prior to the terminating return instruction of this basic block, if such a
+  /// call is present.  Otherwise, returns null.
+  CallInst *getTerminatingDeoptimizeCall();
+  const CallInst *getTerminatingDeoptimizeCall() const {
+    return const_cast<BasicBlock *>(this)->getTerminatingDeoptimizeCall();
+  }
 
   /// \brief Returns the call instruction marked 'musttail' prior to the
   /// terminating return instruction of this basic block, if such a call is
@@ -127,25 +133,23 @@ public:
   /// When adding instructions to the beginning of the basic block, they should
   /// be added before the returned value, not before the first instruction,
   /// which might be PHI. Returns 0 is there's no non-PHI instruction.
-  Instruction *getFirstNonPHI();
-  const Instruction *getFirstNonPHI() const {
-    return const_cast<BasicBlock *>(this)->getFirstNonPHI();
+  Instruction* getFirstNonPHI();
+  const Instruction* getFirstNonPHI() const {
+    return const_cast<BasicBlock*>(this)->getFirstNonPHI();
   }
 
-  /// \brief Returns a pointer to the first instruction in this block that is
-  /// not
+  /// \brief Returns a pointer to the first instruction in this block that is not
   /// a PHINode or a debug intrinsic.
-  Instruction *getFirstNonPHIOrDbg();
-  const Instruction *getFirstNonPHIOrDbg() const {
-    return const_cast<BasicBlock *>(this)->getFirstNonPHIOrDbg();
+  Instruction* getFirstNonPHIOrDbg();
+  const Instruction* getFirstNonPHIOrDbg() const {
+    return const_cast<BasicBlock*>(this)->getFirstNonPHIOrDbg();
   }
 
-  /// \brief Returns a pointer to the first instruction in this block that is
-  /// not
+  /// \brief Returns a pointer to the first instruction in this block that is not
   /// a PHINode, a debug intrinsic, or a lifetime intrinsic.
-  Instruction *getFirstNonPHIOrDbgOrLifetime();
-  const Instruction *getFirstNonPHIOrDbgOrLifetime() const {
-    return const_cast<BasicBlock *>(this)->getFirstNonPHIOrDbgOrLifetime();
+  Instruction* getFirstNonPHIOrDbgOrLifetime();
+  const Instruction* getFirstNonPHIOrDbgOrLifetime() const {
+    return const_cast<BasicBlock*>(this)->getFirstNonPHIOrDbgOrLifetime();
   }
 
   /// \brief Returns an iterator to the first instruction in this block that is
@@ -154,7 +158,7 @@ public:
   /// In particular, it skips all PHIs and LandingPad instructions.
   iterator getFirstInsertionPt();
   const_iterator getFirstInsertionPt() const {
-    return const_cast<BasicBlock *>(this)->getFirstInsertionPt();
+    return const_cast<BasicBlock*>(this)->getFirstInsertionPt();
   }
 
   /// \brief Unlink 'this' from the containing function, but do not delete it.
@@ -185,7 +189,7 @@ public:
   /// block. Otherwise return a null pointer.
   BasicBlock *getSinglePredecessor();
   const BasicBlock *getSinglePredecessor() const {
-    return const_cast<BasicBlock *>(this)->getSinglePredecessor();
+    return const_cast<BasicBlock*>(this)->getSinglePredecessor();
   }
 
   /// \brief Return the predecessor of this block if it has a unique predecessor
@@ -196,7 +200,7 @@ public:
   /// switch statement with multiple cases having the same destination).
   BasicBlock *getUniquePredecessor();
   const BasicBlock *getUniquePredecessor() const {
-    return const_cast<BasicBlock *>(this)->getUniquePredecessor();
+    return const_cast<BasicBlock*>(this)->getUniquePredecessor();
   }
 
   /// \brief Return the successor of this block if it has a single successor.
@@ -205,7 +209,7 @@ public:
   /// This method is analogous to getSinglePredecessor above.
   BasicBlock *getSingleSuccessor();
   const BasicBlock *getSingleSuccessor() const {
-    return const_cast<BasicBlock *>(this)->getSingleSuccessor();
+    return const_cast<BasicBlock*>(this)->getSingleSuccessor();
   }
 
   /// \brief Return the successor of this block if it has a unique successor.
@@ -214,38 +218,38 @@ public:
   /// This method is analogous to getUniquePredecessor above.
   BasicBlock *getUniqueSuccessor();
   const BasicBlock *getUniqueSuccessor() const {
-    return const_cast<BasicBlock *>(this)->getUniqueSuccessor();
+    return const_cast<BasicBlock*>(this)->getUniqueSuccessor();
   }
 
   //===--------------------------------------------------------------------===//
   /// Instruction iterator methods
   ///
-  inline iterator begin() { return InstList.begin(); }
-  inline const_iterator begin() const { return InstList.begin(); }
-  inline iterator end() { return InstList.end(); }
-  inline const_iterator end() const { return InstList.end(); }
+  inline iterator                begin()       { return InstList.begin(); }
+  inline const_iterator          begin() const { return InstList.begin(); }
+  inline iterator                end  ()       { return InstList.end();   }
+  inline const_iterator          end  () const { return InstList.end();   }
 
-  inline reverse_iterator rbegin() { return InstList.rbegin(); }
-  inline const_reverse_iterator rbegin() const { return InstList.rbegin(); }
-  inline reverse_iterator rend() { return InstList.rend(); }
-  inline const_reverse_iterator rend() const { return InstList.rend(); }
+  inline reverse_iterator        rbegin()       { return InstList.rbegin(); }
+  inline const_reverse_iterator  rbegin() const { return InstList.rbegin(); }
+  inline reverse_iterator        rend  ()       { return InstList.rend();   }
+  inline const_reverse_iterator  rend  () const { return InstList.rend();   }
 
-  inline size_t size() const { return InstList.size(); }
-  inline bool empty() const { return InstList.empty(); }
-  inline const Instruction &front() const { return InstList.front(); }
-  inline Instruction &front() { return InstList.front(); }
-  inline const Instruction &back() const { return InstList.back(); }
-  inline Instruction &back() { return InstList.back(); }
+  inline size_t                   size() const { return InstList.size();  }
+  inline bool                    empty() const { return InstList.empty(); }
+  inline const Instruction      &front() const { return InstList.front(); }
+  inline       Instruction      &front()       { return InstList.front(); }
+  inline const Instruction       &back() const { return InstList.back();  }
+  inline       Instruction       &back()       { return InstList.back();  }
 
   /// \brief Return the underlying instruction list container.
   ///
   /// Currently you need to access the underlying instruction list container
   /// directly if you want to modify it.
   const InstListType &getInstList() const { return InstList; }
-  InstListType &getInstList() { return InstList; }
+        InstListType &getInstList()       { return InstList; }
 
   /// \brief Returns a pointer to a member of the instruction list.
-  static InstListType BasicBlock::*getSublistAccess(Instruction *) {
+  static InstListType BasicBlock::*getSublistAccess(Instruction*) {
     return &BasicBlock::InstList;
   }
 
@@ -326,7 +330,7 @@ private:
   /// This is almost always 0, sometimes one possibly, but almost never 2, and
   /// inconceivably 3 or more.
   void AdjustBlockAddressRefCount(int Amt) {
-    setValueSubclassData(getSubclassDataFromValue() + Amt);
+    setValueSubclassData(getSubclassDataFromValue()+Amt);
     assert((int)(signed char)getSubclassDataFromValue() >= 0 &&
            "Refcount wrap-around");
   }

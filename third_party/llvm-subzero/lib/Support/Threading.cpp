@@ -36,14 +36,14 @@ struct ThreadInfo {
   void *UserData;
 };
 static void *ExecuteOnThread_Dispatch(void *Arg) {
-  ThreadInfo *TI = reinterpret_cast<ThreadInfo *>(Arg);
+  ThreadInfo *TI = reinterpret_cast<ThreadInfo*>(Arg);
   TI->UserFn(TI->UserData);
   return nullptr;
 }
 
-void llvm::llvm_execute_on_thread(void (*Fn)(void *), void *UserData,
+void llvm::llvm_execute_on_thread(void (*Fn)(void*), void *UserData,
                                   unsigned RequestedStackSize) {
-  ThreadInfo Info = {Fn, UserData};
+  ThreadInfo Info = { Fn, UserData };
   pthread_attr_t Attr;
   pthread_t Thread;
 
@@ -64,15 +64,15 @@ void llvm::llvm_execute_on_thread(void (*Fn)(void *), void *UserData,
   // Wait for the thread and clean up.
   ::pthread_join(Thread, nullptr);
 
-error:
+ error:
   ::pthread_attr_destroy(&Attr);
 }
-#elif LLVM_ENABLE_THREADS != 0 && defined(LLVM_ON_WIN32)
+#elif LLVM_ENABLE_THREADS!=0 && defined(LLVM_ON_WIN32)
 #include "Windows/WindowsSupport.h"
 #include <process.h>
 
 struct ThreadInfo {
-  void (*func)(void *);
+  void (*func)(void*);
   void *param;
 };
 
@@ -83,12 +83,13 @@ static unsigned __stdcall ThreadCallback(void *param) {
   return 0;
 }
 
-void llvm::llvm_execute_on_thread(void (*Fn)(void *), void *UserData,
+void llvm::llvm_execute_on_thread(void (*Fn)(void*), void *UserData,
                                   unsigned RequestedStackSize) {
-  struct ThreadInfo param = {Fn, UserData};
+  struct ThreadInfo param = { Fn, UserData };
 
-  HANDLE hThread = (HANDLE)::_beginthreadex(NULL, RequestedStackSize,
-                                            ThreadCallback, &param, 0, NULL);
+  HANDLE hThread = (HANDLE)::_beginthreadex(NULL,
+                                            RequestedStackSize, ThreadCallback,
+                                            &param, 0, NULL);
 
   if (hThread) {
     // We actually don't care whether the wait succeeds or fails, in
@@ -102,9 +103,9 @@ void llvm::llvm_execute_on_thread(void (*Fn)(void *), void *UserData,
 }
 #else
 // Support for non-Win32, non-pthread implementation.
-void llvm::llvm_execute_on_thread(void (*Fn)(void *), void *UserData,
+void llvm::llvm_execute_on_thread(void (*Fn)(void*), void *UserData,
                                   unsigned RequestedStackSize) {
-  (void)RequestedStackSize;
+  (void) RequestedStackSize;
   Fn(UserData);
 }
 

@@ -27,7 +27,7 @@
 #define LLVM_ADT_STATISTIC_H
 
 #include "llvm/Support/Atomic.h"
-#include "llvm/Support/Valgrind.h"
+#include "llvm/Support/Compiler.h"
 #include <memory>
 
 namespace llvm {
@@ -47,17 +47,15 @@ public:
 
   /// construct - This should only be called for non-global statistics.
   void construct(const char *name, const char *desc) {
-    Name = name;
-    Desc = desc;
-    Value = 0;
-    Initialized = false;
+    Name = name; Desc = desc;
+    Value = 0; Initialized = false;
   }
 
   // Allow use of this class as the value itself.
   operator unsigned() const { return Value; }
 
 #if !defined(NDEBUG) || defined(LLVM_ENABLE_STATS)
-  const Statistic &operator=(unsigned Val) {
+   const Statistic &operator=(unsigned Val) {
     Value = Val;
     return init();
   }
@@ -91,15 +89,13 @@ public:
   }
 
   const Statistic &operator+=(const unsigned &V) {
-    if (!V)
-      return *this;
+    if (!V) return *this;
     sys::AtomicAdd(&Value, V);
     return init();
   }
 
   const Statistic &operator-=(const unsigned &V) {
-    if (!V)
-      return *this;
+    if (!V) return *this;
     sys::AtomicAdd(&Value, -V);
     return init();
   }
@@ -114,34 +110,51 @@ public:
     return init();
   }
 
-#else // Statistics are disabled in release builds.
+#else  // Statistics are disabled in release builds.
 
-  const Statistic &operator=(unsigned Val) { return *this; }
+  const Statistic &operator=(unsigned Val) {
+    return *this;
+  }
 
-  const Statistic &operator++() { return *this; }
+  const Statistic &operator++() {
+    return *this;
+  }
 
-  unsigned operator++(int) { return 0; }
+  unsigned operator++(int) {
+    return 0;
+  }
 
-  const Statistic &operator--() { return *this; }
+  const Statistic &operator--() {
+    return *this;
+  }
 
-  unsigned operator--(int) { return 0; }
+  unsigned operator--(int) {
+    return 0;
+  }
 
-  const Statistic &operator+=(const unsigned &V) { return *this; }
+  const Statistic &operator+=(const unsigned &V) {
+    return *this;
+  }
 
-  const Statistic &operator-=(const unsigned &V) { return *this; }
+  const Statistic &operator-=(const unsigned &V) {
+    return *this;
+  }
 
-  const Statistic &operator*=(const unsigned &V) { return *this; }
+  const Statistic &operator*=(const unsigned &V) {
+    return *this;
+  }
 
-  const Statistic &operator/=(const unsigned &V) { return *this; }
+  const Statistic &operator/=(const unsigned &V) {
+    return *this;
+  }
 
-#endif // !defined(NDEBUG) || defined(LLVM_ENABLE_STATS)
+#endif  // !defined(NDEBUG) || defined(LLVM_ENABLE_STATS)
 
 protected:
   Statistic &init() {
     bool tmp = Initialized;
     sys::MemoryFence();
-    if (!tmp)
-      RegisterStatistic();
+    if (!tmp) RegisterStatistic();
     TsanHappensAfter(this);
     return *this;
   }
@@ -150,8 +163,8 @@ protected:
 
 // STATISTIC - A macro to make definition of statistics really simple.  This
 // automatically passes the DEBUG_TYPE of the file into the statistic.
-#define STATISTIC(VARNAME, DESC)                                               \
-  static llvm::Statistic VARNAME = {DEBUG_TYPE, DESC, 0, 0}
+#define STATISTIC(VARNAME, DESC) \
+  static llvm::Statistic VARNAME = { DEBUG_TYPE, DESC, 0, 0 }
 
 /// \brief Enable the collection and printing of statistics.
 void EnableStatistics();
@@ -168,6 +181,6 @@ void PrintStatistics();
 /// \brief Print statistics to the given output stream.
 void PrintStatistics(raw_ostream &OS);
 
-} // End llvm namespace
+} // end llvm namespace
 
-#endif
+#endif // LLVM_ADT_STATISTIC_H

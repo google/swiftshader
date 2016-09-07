@@ -1,5 +1,4 @@
-//===- llvm/Support/Errno.h - Portable+convenient errno handling -*- C++
-//-*-===//
+//===- llvm/Support/Errno.h - Portable+convenient errno handling -*- C++ -*-===//
 //
 //                     The LLVM Compiler Infrastructure
 //
@@ -29,7 +28,7 @@ std::string StrError();
 /// Like the no-argument version above, but uses \p errnum instead of errno.
 std::string StrError(int errnum);
 
-} // namespace sys
-} // namespace llvm
+}  // namespace sys
+}  // namespace llvm
 
-#endif // LLVM_SYSTEM_ERRNO_H
+#endif  // LLVM_SYSTEM_ERRNO_H

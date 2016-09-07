@@ -32,7 +32,9 @@ static char ascii_toupper(char x) {
   return x;
 }
 
-static bool ascii_isdigit(char x) { return x >= '0' && x <= '9'; }
+static bool ascii_isdigit(char x) {
+  return x >= '0' && x <= '9';
+}
 
 // strncasecmp() is not available on non-POSIX systems, so define an
 // alternative function here.
@@ -58,14 +60,13 @@ int StringRef::compare_lower(StringRef RHS) const {
 /// Check if this string starts with the given \p Prefix, ignoring case.
 bool StringRef::startswith_lower(StringRef Prefix) const {
   return Length >= Prefix.Length &&
-         ascii_strncasecmp(Data, Prefix.Data, Prefix.Length) == 0;
+      ascii_strncasecmp(Data, Prefix.Data, Prefix.Length) == 0;
 }
 
 /// Check if this string ends with the given \p Suffix, ignoring case.
 bool StringRef::endswith_lower(StringRef Suffix) const {
   return Length >= Suffix.Length &&
-         ascii_strncasecmp(end() - Suffix.Length, Suffix.Data, Suffix.Length) ==
-             0;
+      ascii_strncasecmp(end() - Suffix.Length, Suffix.Data, Suffix.Length) == 0;
 }
 
 /// compare_numeric - Compare strings, handle embedded numbers.
@@ -100,11 +101,13 @@ int StringRef::compare_numeric(StringRef RHS) const {
 }
 
 // Compute the edit distance between the two given strings.
-unsigned StringRef::edit_distance(llvm::StringRef Other, bool AllowReplacements,
+unsigned StringRef::edit_distance(llvm::StringRef Other,
+                                  bool AllowReplacements,
                                   unsigned MaxEditDistance) const {
-  return llvm::ComputeEditDistance(makeArrayRef(data(), size()),
-                                   makeArrayRef(Other.data(), Other.size()),
-                                   AllowReplacements, MaxEditDistance);
+  return llvm::ComputeEditDistance(
+      makeArrayRef(data(), size()),
+      makeArrayRef(Other.data(), Other.size()),
+      AllowReplacements, MaxEditDistance);
 }
 
 //===----------------------------------------------------------------------===//
@@ -130,6 +133,7 @@ std::string StringRef::upper() const {
 //===----------------------------------------------------------------------===//
 // String Searching
 //===----------------------------------------------------------------------===//
+
 
 /// find - Search for the first string \arg Str in the string.
 ///
@@ -164,15 +168,15 @@ size_t StringRef::find(StringRef Str, size_t From) const {
   // Build the bad char heuristic table, with uint8_t to reduce cache thrashing.
   uint8_t BadCharSkip[256];
   std::memset(BadCharSkip, N, 256);
-  for (unsigned i = 0; i != N - 1; ++i)
-    BadCharSkip[(uint8_t)Str[i]] = N - 1 - i;
+  for (unsigned i = 0; i != N-1; ++i)
+    BadCharSkip[(uint8_t)Str[i]] = N-1-i;
 
   do {
     if (std::memcmp(Start, Needle, N) == 0)
       return Start - Data;
 
     // Otherwise skip the appropriate number of bytes.
-    Start += BadCharSkip[(uint8_t)Start[N - 1]];
+    Start += BadCharSkip[(uint8_t)Start[N-1]];
   } while (Start < Stop);
 
   return npos;
@@ -276,8 +280,9 @@ StringRef::size_type StringRef::find_last_not_of(StringRef Chars,
   return npos;
 }
 
-void StringRef::split(SmallVectorImpl<StringRef> &A, StringRef Separator,
-                      int MaxSplit, bool KeepEmpty) const {
+void StringRef::split(SmallVectorImpl<StringRef> &A,
+                      StringRef Separator, int MaxSplit,
+                      bool KeepEmpty) const {
   StringRef S = *this;
 
   // Count down from MaxSplit. When MaxSplit is -1, this will just split
@@ -346,12 +351,12 @@ size_t StringRef::count(StringRef Str) const {
 }
 
 static unsigned GetAutoSenseRadix(StringRef &Str) {
-  if (Str.startswith("0x")) {
+  if (Str.startswith("0x") || Str.startswith("0X")) {
     Str = Str.substr(2);
     return 16;
   }
-
-  if (Str.startswith("0b")) {
+  
+  if (Str.startswith("0b") || Str.startswith("0B")) {
     Str = Str.substr(2);
     return 2;
   }
@@ -363,9 +368,10 @@ static unsigned GetAutoSenseRadix(StringRef &Str) {
 
   if (Str.startswith("0"))
     return 8;
-
+  
   return 10;
 }
+
 
 /// GetAsUnsignedInteger - Workhorse method that converts a integer character
 /// sequence of radix up to 36 to an unsigned long long value.
@@ -376,19 +382,18 @@ bool llvm::getAsUnsignedInteger(StringRef Str, unsigned Radix,
     Radix = GetAutoSenseRadix(Str);
 
   // Empty strings (after the radix autosense) are invalid.
-  if (Str.empty())
-    return true;
+  if (Str.empty()) return true;
 
   // Parse all the bytes of the string given this radix.  Watch for overflow.
   Result = 0;
   while (!Str.empty()) {
     unsigned CharVal;
     if (Str[0] >= '0' && Str[0] <= '9')
-      CharVal = Str[0] - '0';
+      CharVal = Str[0]-'0';
     else if (Str[0] >= 'a' && Str[0] <= 'z')
-      CharVal = Str[0] - 'a' + 10;
+      CharVal = Str[0]-'a'+10;
     else if (Str[0] >= 'A' && Str[0] <= 'Z')
-      CharVal = Str[0] - 'A' + 10;
+      CharVal = Str[0]-'A'+10;
     else
       return true;
 
@@ -399,10 +404,10 @@ bool llvm::getAsUnsignedInteger(StringRef Str, unsigned Radix,
 
     // Add in this character.
     unsigned long long PrevResult = Result;
-    Result = Result * Radix + CharVal;
+    Result = Result*Radix+CharVal;
 
     // Check for overflow by shifting back and seeing if bits were lost.
-    if (Result / Radix < PrevResult)
+    if (Result/Radix < PrevResult)
       return true;
 
     Str = Str.substr(1);
@@ -447,8 +452,7 @@ bool StringRef::getAsInteger(unsigned Radix, APInt &Result) const {
   assert(Radix > 1 && Radix <= 36);
 
   // Empty strings (after the radix autosense) are invalid.
-  if (Str.empty())
-    return true;
+  if (Str.empty()) return true;
 
   // Skip leading zeroes.  This can be a significant improvement if
   // it means we don't need > 64 bits.
@@ -463,8 +467,7 @@ bool StringRef::getAsInteger(unsigned Radix, APInt &Result) const {
 
   // (Over-)estimate the required number of bits.
   unsigned Log2Radix = 0;
-  while ((1U << Log2Radix) < Radix)
-    Log2Radix++;
+  while ((1U << Log2Radix) < Radix) Log2Radix++;
   bool IsPowerOf2Radix = ((1U << Log2Radix) == Radix);
 
   unsigned BitWidth = Log2Radix * Str.size();
@@ -485,11 +488,11 @@ bool StringRef::getAsInteger(unsigned Radix, APInt &Result) const {
   while (!Str.empty()) {
     unsigned CharVal;
     if (Str[0] >= '0' && Str[0] <= '9')
-      CharVal = Str[0] - '0';
+      CharVal = Str[0]-'0';
     else if (Str[0] >= 'a' && Str[0] <= 'z')
-      CharVal = Str[0] - 'a' + 10;
+      CharVal = Str[0]-'a'+10;
     else if (Str[0] >= 'A' && Str[0] <= 'Z')
-      CharVal = Str[0] - 'A' + 10;
+      CharVal = Str[0]-'A'+10;
     else
       return true;
 
@@ -513,6 +516,7 @@ bool StringRef::getAsInteger(unsigned Radix, APInt &Result) const {
 
   return false;
 }
+
 
 // Implementation of StringRef hashing.
 hash_code llvm::hash_value(StringRef S) {

@@ -14,13 +14,13 @@
 #ifndef LLVM_ADT_BITVECTOR_H
 #define LLVM_ADT_BITVECTOR_H
 
-#include "llvm/Support/Compiler.h"
-#include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/MathExtras.h"
 #include <algorithm>
 #include <cassert>
 #include <climits>
+#include <cstdint>
 #include <cstdlib>
+#include <cstring>
 
 namespace llvm {
 
@@ -32,9 +32,9 @@ class BitVector {
   static_assert(BITWORD_SIZE == 64 || BITWORD_SIZE == 32,
                 "Unsupported word size");
 
-  BitWord *Bits;     // Actual bits.
-  unsigned Size;     // Size of bitvector in bits.
-  unsigned Capacity; // Number of BitWords allocated in the Bits array.
+  BitWord  *Bits;        // Actual bits.
+  unsigned Size;         // Size of bitvector in bits.
+  unsigned Capacity;     // Number of BitWords allocated in the Bits array.
 
 public:
   typedef unsigned size_type;
@@ -45,7 +45,7 @@ public:
     BitWord *WordRef;
     unsigned BitPos;
 
-    reference(); // Undefined
+    reference();  // Undefined
 
   public:
     reference(BitVector &b, unsigned Idx) {
@@ -53,14 +53,14 @@ public:
       BitPos = Idx % BITWORD_SIZE;
     }
 
-    reference(const reference &) = default;
+    reference(const reference&) = default;
 
     reference &operator=(reference t) {
       *this = bool(t);
       return *this;
     }
 
-    reference &operator=(bool t) {
+    reference& operator=(bool t) {
       if (t)
         *WordRef |= BitWord(1) << BitPos;
       else
@@ -69,12 +69,15 @@ public:
     }
 
     operator bool() const {
-      return ((*WordRef) & (BitWord(1) << BitPos)) ? true : false;
+      return ((*WordRef) & (BitWord(1) << BitPos)) != 0;
     }
   };
 
+
   /// BitVector default ctor - Creates an empty bitvector.
-  BitVector() : Size(0), Capacity(0) { Bits = nullptr; }
+  BitVector() : Size(0), Capacity(0) {
+    Bits = nullptr;
+  }
 
   /// BitVector ctor - Creates a bitvector of specified number of bits. All
   /// bits are initialized to the specified value.
@@ -100,11 +103,13 @@ public:
   }
 
   BitVector(BitVector &&RHS)
-      : Bits(RHS.Bits), Size(RHS.Size), Capacity(RHS.Capacity) {
+    : Bits(RHS.Bits), Size(RHS.Size), Capacity(RHS.Capacity) {
     RHS.Bits = nullptr;
   }
 
-  ~BitVector() { std::free(Bits); }
+  ~BitVector() {
+    std::free(Bits);
+  }
 
   /// empty - Tests whether there are no bits in this bitvector.
   bool empty() const { return Size == 0; }
@@ -142,7 +147,9 @@ public:
   }
 
   /// none - Returns true if none of the bits are set.
-  bool none() const { return !any(); }
+  bool none() const {
+    return !any();
+  }
 
   /// find_first - Returns the index of the first set bit, -1 if none
   /// of the bits are set.
@@ -170,21 +177,23 @@ public:
       return WordPos * BITWORD_SIZE + countTrailingZeros(Copy);
 
     // Check subsequent words.
-    for (unsigned i = WordPos + 1; i < NumBitWords(size()); ++i)
+    for (unsigned i = WordPos+1; i < NumBitWords(size()); ++i)
       if (Bits[i] != 0)
         return i * BITWORD_SIZE + countTrailingZeros(Bits[i]);
     return -1;
   }
 
   /// clear - Clear all bits.
-  void clear() { Size = 0; }
+  void clear() {
+    Size = 0;
+  }
 
   /// resize - Grow or shrink the bitvector.
   void resize(unsigned N, bool t = false) {
     if (N > Capacity * BITWORD_SIZE) {
       unsigned OldCapacity = Capacity;
       grow(N);
-      init_words(&Bits[OldCapacity], (Capacity - OldCapacity), t);
+      init_words(&Bits[OldCapacity], (Capacity-OldCapacity), t);
     }
 
     // Set any old unused bits that are now included in the BitVector. This
@@ -223,8 +232,7 @@ public:
     assert(I <= E && "Attempted to set backwards range!");
     assert(E <= size() && "Attempted to set out-of-bounds range!");
 
-    if (I == E)
-      return *this;
+    if (I == E) return *this;
 
     if (I / BITWORD_SIZE == E / BITWORD_SIZE) {
       BitWord EMask = 1UL << (E % BITWORD_SIZE);
@@ -236,7 +244,7 @@ public:
 
     BitWord PrefixMask = ~0UL << (I % BITWORD_SIZE);
     Bits[I / BITWORD_SIZE] |= PrefixMask;
-    I = RoundUpToAlignment(I, BITWORD_SIZE);
+    I = alignTo(I, BITWORD_SIZE);
 
     for (; I + BITWORD_SIZE <= E; I += BITWORD_SIZE)
       Bits[I / BITWORD_SIZE] = ~0UL;
@@ -263,8 +271,7 @@ public:
     assert(I <= E && "Attempted to reset backwards range!");
     assert(E <= size() && "Attempted to reset out-of-bounds range!");
 
-    if (I == E)
-      return *this;
+    if (I == E) return *this;
 
     if (I / BITWORD_SIZE == E / BITWORD_SIZE) {
       BitWord EMask = 1UL << (E % BITWORD_SIZE);
@@ -276,7 +283,7 @@ public:
 
     BitWord PrefixMask = ~0UL << (I % BITWORD_SIZE);
     Bits[I / BITWORD_SIZE] &= ~PrefixMask;
-    I = RoundUpToAlignment(I, BITWORD_SIZE);
+    I = alignTo(I, BITWORD_SIZE);
 
     for (; I + BITWORD_SIZE <= E; I += BITWORD_SIZE)
       Bits[I / BITWORD_SIZE] = 0UL;
@@ -302,22 +309,24 @@ public:
 
   // Indexing.
   reference operator[](unsigned Idx) {
-    assert(Idx < Size && "Out-of-bounds Bit access.");
+    assert (Idx < Size && "Out-of-bounds Bit access.");
     return reference(*this, Idx);
   }
 
   bool operator[](unsigned Idx) const {
-    assert(Idx < Size && "Out-of-bounds Bit access.");
+    assert (Idx < Size && "Out-of-bounds Bit access.");
     BitWord Mask = BitWord(1) << (Idx % BITWORD_SIZE);
     return (Bits[Idx / BITWORD_SIZE] & Mask) != 0;
   }
 
-  bool test(unsigned Idx) const { return (*this)[Idx]; }
+  bool test(unsigned Idx) const {
+    return (*this)[Idx];
+  }
 
   /// Test if any common bits are set.
   bool anyCommon(const BitVector &RHS) const {
     unsigned ThisWords = NumBitWords(size());
-    unsigned RHSWords = NumBitWords(RHS.size());
+    unsigned RHSWords  = NumBitWords(RHS.size());
     for (unsigned i = 0, e = std::min(ThisWords, RHSWords); i != e; ++i)
       if (Bits[i] & RHS.Bits[i])
         return true;
@@ -327,7 +336,7 @@ public:
   // Comparison operators.
   bool operator==(const BitVector &RHS) const {
     unsigned ThisWords = NumBitWords(size());
-    unsigned RHSWords = NumBitWords(RHS.size());
+    unsigned RHSWords  = NumBitWords(RHS.size());
     unsigned i;
     for (i = 0; i != std::min(ThisWords, RHSWords); ++i)
       if (Bits[i] != RHS.Bits[i])
@@ -346,12 +355,14 @@ public:
     return true;
   }
 
-  bool operator!=(const BitVector &RHS) const { return !(*this == RHS); }
+  bool operator!=(const BitVector &RHS) const {
+    return !(*this == RHS);
+  }
 
   /// Intersection, union, disjoint union.
   BitVector &operator&=(const BitVector &RHS) {
     unsigned ThisWords = NumBitWords(size());
-    unsigned RHSWords = NumBitWords(RHS.size());
+    unsigned RHSWords  = NumBitWords(RHS.size());
     unsigned i;
     for (i = 0; i != std::min(ThisWords, RHSWords); ++i)
       Bits[i] &= RHS.Bits[i];
@@ -368,7 +379,7 @@ public:
   /// reset - Reset bits that are set in RHS. Same as *this &= ~RHS.
   BitVector &reset(const BitVector &RHS) {
     unsigned ThisWords = NumBitWords(size());
-    unsigned RHSWords = NumBitWords(RHS.size());
+    unsigned RHSWords  = NumBitWords(RHS.size());
     unsigned i;
     for (i = 0; i != std::min(ThisWords, RHSWords); ++i)
       Bits[i] &= ~RHS.Bits[i];
@@ -379,13 +390,13 @@ public:
   /// This is the same as reset(RHS) and any().
   bool test(const BitVector &RHS) const {
     unsigned ThisWords = NumBitWords(size());
-    unsigned RHSWords = NumBitWords(RHS.size());
+    unsigned RHSWords  = NumBitWords(RHS.size());
     unsigned i;
     for (i = 0; i != std::min(ThisWords, RHSWords); ++i)
       if ((Bits[i] & ~RHS.Bits[i]) != 0)
         return true;
 
-    for (; i != ThisWords; ++i)
+    for (; i != ThisWords ; ++i)
       if (Bits[i] != 0)
         return true;
 
@@ -410,8 +421,7 @@ public:
 
   // Assignment operator.
   const BitVector &operator=(const BitVector &RHS) {
-    if (this == &RHS)
-      return *this;
+    if (this == &RHS) return *this;
 
     Size = RHS.size();
     unsigned RHSWords = NumBitWords(Size);
@@ -436,8 +446,7 @@ public:
   }
 
   const BitVector &operator=(BitVector &&RHS) {
-    if (this == &RHS)
-      return *this;
+    if (this == &RHS) return *this;
 
     std::free(Bits);
     Bits = RHS.Bits;
@@ -493,7 +502,7 @@ public:
 
 private:
   unsigned NumBitWords(unsigned S) const {
-    return (S + BITWORD_SIZE - 1) / BITWORD_SIZE;
+    return (S + BITWORD_SIZE-1) / BITWORD_SIZE;
   }
 
   // Set the unused bits in the high words.
@@ -501,21 +510,23 @@ private:
     //  Set high words first.
     unsigned UsedWords = NumBitWords(Size);
     if (Capacity > UsedWords)
-      init_words(&Bits[UsedWords], (Capacity - UsedWords), t);
+      init_words(&Bits[UsedWords], (Capacity-UsedWords), t);
 
     //  Then set any stray high bits of the last used word.
     unsigned ExtraBits = Size % BITWORD_SIZE;
     if (ExtraBits) {
       BitWord ExtraBitMask = ~0UL << ExtraBits;
       if (t)
-        Bits[UsedWords - 1] |= ExtraBitMask;
+        Bits[UsedWords-1] |= ExtraBitMask;
       else
-        Bits[UsedWords - 1] &= ~ExtraBitMask;
+        Bits[UsedWords-1] &= ~ExtraBitMask;
     }
   }
 
   // Clear the unused bits in the high words.
-  void clear_unused_bits() { set_unused_bits(false); }
+  void clear_unused_bits() {
+    set_unused_bits(false);
+  }
 
   void grow(unsigned NewSize) {
     Capacity = std::max(NumBitWords(NewSize), Capacity * 2);
@@ -526,10 +537,10 @@ private:
   }
 
   void init_words(BitWord *B, unsigned NumWords, bool t) {
-    memset(B, 0 - (int)t, NumWords * sizeof(BitWord));
+    memset(B, 0 - (int)t, NumWords*sizeof(BitWord));
   }
 
-  template <bool AddBits, bool InvertMask>
+  template<bool AddBits, bool InvertMask>
   void applyMask(const uint32_t *Mask, unsigned MaskWords) {
     static_assert(BITWORD_SIZE % 32 == 0, "Unsupported BitWord size.");
     MaskWords = std::min(MaskWords, (size() + 31) / 32);
@@ -540,23 +551,17 @@ private:
       // This inner loop should unroll completely when BITWORD_SIZE > 32.
       for (unsigned b = 0; b != BITWORD_SIZE; b += 32) {
         uint32_t M = *Mask++;
-        if (InvertMask)
-          M = ~M;
-        if (AddBits)
-          BW |= BitWord(M) << b;
-        else
-          BW &= ~(BitWord(M) << b);
+        if (InvertMask) M = ~M;
+        if (AddBits) BW |=   BitWord(M) << b;
+        else         BW &= ~(BitWord(M) << b);
       }
       Bits[i] = BW;
     }
     for (unsigned b = 0; MaskWords; b += 32, --MaskWords) {
       uint32_t M = *Mask++;
-      if (InvertMask)
-        M = ~M;
-      if (AddBits)
-        Bits[i] |= BitWord(M) << b;
-      else
-        Bits[i] &= ~(BitWord(M) << b);
+      if (InvertMask) M = ~M;
+      if (AddBits) Bits[i] |=   BitWord(M) << b;
+      else         Bits[i] &= ~(BitWord(M) << b);
     }
     if (AddBits)
       clear_unused_bits();
@@ -571,11 +576,14 @@ static inline size_t capacity_in_bytes(const BitVector &X) {
   return X.getMemorySize();
 }
 
-} // End llvm namespace
+} // end namespace llvm
 
 namespace std {
-/// Implement std::swap in terms of BitVector swap.
-inline void swap(llvm::BitVector &LHS, llvm::BitVector &RHS) { LHS.swap(RHS); }
-}
+  /// Implement std::swap in terms of BitVector swap.
+  inline void
+  swap(llvm::BitVector &LHS, llvm::BitVector &RHS) {
+    LHS.swap(RHS);
+  }
+} // end namespace std
 
-#endif
+#endif // LLVM_ADT_BITVECTOR_H

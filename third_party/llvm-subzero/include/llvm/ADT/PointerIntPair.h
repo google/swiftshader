@@ -55,7 +55,9 @@ public:
 
   PointerTy getPointer() const { return Info::getPointer(Value); }
 
-  IntType getInt() const { return (IntType)Info::getInt(Value); }
+  IntType getInt() const {
+    return (IntType)Info::getInt(Value);
+  }
 
   void setPointer(PointerTy PtrVal) {
     Value = Info::updatePointer(Value, PtrVal);

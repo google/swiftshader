@@ -12,7 +12,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "llvm/Support/Signals.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Config/config.h"
@@ -24,6 +23,7 @@
 #include "llvm/Support/MemoryBuffer.h"
 #include "llvm/Support/Mutex.h"
 #include "llvm/Support/Program.h"
+#include "llvm/Support/Signals.h"
 #include "llvm/Support/StringSaver.h"
 #include "llvm/Support/raw_ostream.h"
 #include <vector>
@@ -62,15 +62,14 @@ static FormattedNumber format_ptr(void *PC) {
   return format_hex((uint64_t)PC, PtrWidth);
 }
 
-static bool
-printSymbolizedStackTrace(void **StackTrace, int Depth,
-                          llvm::raw_ostream &OS) LLVM_ATTRIBUTE_USED;
+static bool printSymbolizedStackTrace(void **StackTrace, int Depth,
+                                      llvm::raw_ostream &OS)
+  LLVM_ATTRIBUTE_USED;
 
 /// Helper that launches llvm-symbolizer and symbolizes a backtrace.
 static bool printSymbolizedStackTrace(void **StackTrace, int Depth,
                                       llvm::raw_ostream &OS) {
-  // FIXME: Subtract necessary number from StackTrace entries to turn return
-  // addresses
+  // FIXME: Subtract necessary number from StackTrace entries to turn return addresses
   // into actual instruction addresses.
   // Use llvm-symbolizer tool to symbolize the stack traces.
   ErrorOr<std::string> LLVMSymbolizerPathOrErr =
@@ -103,7 +102,7 @@ static bool printSymbolizedStackTrace(void **StackTrace, int Depth,
     raw_fd_ostream Input(InputFD, true);
     for (int i = 0; i < Depth; i++) {
       if (Modules[i])
-        Input << Modules[i] << " " << (void *)Offsets[i] << "\n";
+        Input << Modules[i] << " " << (void*)Offsets[i] << "\n";
     }
   }
 

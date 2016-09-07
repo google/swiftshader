@@ -17,7 +17,6 @@
 #ifndef LLVM_ADT_STLEXTRAS_H
 #define LLVM_ADT_STLEXTRAS_H
 
-#include "llvm/Support/Compiler.h"
 #include <algorithm> // for std::all_of
 #include <cassert>
 #include <cstddef> // for std::size_t
@@ -27,27 +26,35 @@
 #include <memory>
 #include <utility> // for std::pair
 
+#include "llvm/ADT/iterator_range.h"
+#include "llvm/Support/Compiler.h"
+
 namespace llvm {
 
 //===----------------------------------------------------------------------===//
 //     Extra additions to <functional>
 //===----------------------------------------------------------------------===//
 
-template <class Ty> struct identity : public std::unary_function<Ty, Ty> {
-  Ty &operator()(Ty &self) const { return self; }
-  const Ty &operator()(const Ty &self) const { return self; }
+template<class Ty>
+struct identity : public std::unary_function<Ty, Ty> {
+  Ty &operator()(Ty &self) const {
+    return self;
+  }
+  const Ty &operator()(const Ty &self) const {
+    return self;
+  }
 };
 
-template <class Ty>
+template<class Ty>
 struct less_ptr : public std::binary_function<Ty, Ty, bool> {
-  bool operator()(const Ty *left, const Ty *right) const {
+  bool operator()(const Ty* left, const Ty* right) const {
     return *left < *right;
   }
 };
 
-template <class Ty>
+template<class Ty>
 struct greater_ptr : public std::binary_function<Ty, Ty, bool> {
-  bool operator()(const Ty *left, const Ty *right) const {
+  bool operator()(const Ty* left, const Ty* right) const {
     return *right < *left;
   }
 };
@@ -58,15 +65,16 @@ struct greater_ptr : public std::binary_function<Ty, Ty, bool> {
 ///
 /// This class does not own the callable, so it is not in general safe to store
 /// a function_ref.
-template <typename Fn> class function_ref;
+template<typename Fn> class function_ref;
 
-template <typename Ret, typename... Params> class function_ref<Ret(Params...)> {
-  Ret (*callback)(intptr_t callable, Params... params);
+template<typename Ret, typename ...Params>
+class function_ref<Ret(Params...)> {
+  Ret (*callback)(intptr_t callable, Params ...params);
   intptr_t callable;
 
-  template <typename Callable>
-  static Ret callback_fn(intptr_t callable, Params... params) {
-    return (*reinterpret_cast<Callable *>(callable))(
+  template<typename Callable>
+  static Ret callback_fn(intptr_t callable, Params ...params) {
+    return (*reinterpret_cast<Callable*>(callable))(
         std::forward<Params>(params)...);
   }
 
@@ -78,7 +86,7 @@ public:
                                  function_ref>::value>::type * = nullptr)
       : callback(callback_fn<typename std::remove_reference<Callable>::type>),
         callable(reinterpret_cast<intptr_t>(&callable)) {}
-  Ret operator()(Params... params) const {
+  Ret operator()(Params ...params) const {
     return callback(callable, std::forward<Params>(params)...);
   }
 };
@@ -88,7 +96,12 @@ public:
 //
 //   for_each(V.begin(), B.end(), deleter<Interval>);
 //
-template <class T> inline void deleter(T *Ptr) { delete Ptr; }
+template <class T>
+inline void deleter(T *Ptr) {
+  delete Ptr;
+}
+
+
 
 //===----------------------------------------------------------------------===//
 //     Extra additions to <iterator>
@@ -97,20 +110,22 @@ template <class T> inline void deleter(T *Ptr) { delete Ptr; }
 // mapped_iterator - This is a simple iterator adapter that causes a function to
 // be dereferenced whenever operator* is invoked on the iterator.
 //
-template <class RootIt, class UnaryFunc> class mapped_iterator {
+template <class RootIt, class UnaryFunc>
+class mapped_iterator {
   RootIt current;
   UnaryFunc Fn;
-
 public:
   typedef typename std::iterator_traits<RootIt>::iterator_category
-      iterator_category;
-  typedef
-      typename std::iterator_traits<RootIt>::difference_type difference_type;
-  typedef typename UnaryFunc::result_type value_type;
+          iterator_category;
+  typedef typename std::iterator_traits<RootIt>::difference_type
+          difference_type;
+  typedef typename std::result_of<
+            UnaryFunc(decltype(*std::declval<RootIt>()))>
+          ::type value_type;
 
   typedef void pointer;
-  // typedef typename UnaryFunc::result_type *pointer;
-  typedef void reference; // Can't modify value returned by fn
+  //typedef typename UnaryFunc::result_type *pointer;
+  typedef void reference;        // Can't modify value returned by fn
 
   typedef RootIt iterator_type;
 
@@ -118,10 +133,10 @@ public:
   inline const UnaryFunc &getFunc() const { return Fn; }
 
   inline explicit mapped_iterator(const RootIt &I, UnaryFunc F)
-      : current(I), Fn(F) {}
+    : current(I), Fn(F) {}
 
-  inline value_type operator*() const { // All this work to do this
-    return Fn(*current);                // little change
+  inline value_type operator*() const {   // All this work to do this
+    return Fn(*current);         // little change
   }
 
   mapped_iterator &operator++() {
@@ -176,6 +191,7 @@ operator+(typename mapped_iterator<Iterator, Func>::difference_type N,
   return mapped_iterator<Iterator, Func>(X.getCurrent() - N, X.getFunc());
 }
 
+
 // map_iterator - Provide a convenient way to create mapped_iterators, just like
 // make_pair is useful for creating pairs...
 //
@@ -186,8 +202,8 @@ inline mapped_iterator<ItTy, FuncTy> map_iterator(const ItTy &I, FuncTy F) {
 
 /// \brief Metafunction to determine if type T has a member called rbegin().
 template <typename T> struct has_rbegin {
-  template <typename U> static char (&f(const U &, decltype(&U::rbegin)))[1];
-  static char (&f(...))[2];
+  template <typename U> static char(&f(const U &, decltype(&U::rbegin)))[1];
+  static char(&f(...))[2];
   const static bool value = sizeof(f(std::declval<T>(), nullptr)) == 1;
 };
 
@@ -272,24 +288,25 @@ LLVM_CONSTEXPR inline size_t array_lengthof(T (&)[N]) {
 }
 
 /// Adapt std::less<T> for array_pod_sort.
-template <typename T>
+template<typename T>
 inline int array_pod_sort_comparator(const void *P1, const void *P2) {
-  if (std::less<T>()(*reinterpret_cast<const T *>(P1),
-                     *reinterpret_cast<const T *>(P2)))
+  if (std::less<T>()(*reinterpret_cast<const T*>(P1),
+                     *reinterpret_cast<const T*>(P2)))
     return -1;
-  if (std::less<T>()(*reinterpret_cast<const T *>(P2),
-                     *reinterpret_cast<const T *>(P1)))
+  if (std::less<T>()(*reinterpret_cast<const T*>(P2),
+                     *reinterpret_cast<const T*>(P1)))
     return 1;
   return 0;
 }
 
 /// get_array_pod_sort_comparator - This is an internal helper function used to
 /// get type deduction of T right.
-template <typename T>
-inline int (*get_array_pod_sort_comparator(const T &))(const void *,
-                                                       const void *) {
+template<typename T>
+inline int (*get_array_pod_sort_comparator(const T &))
+             (const void*, const void*) {
   return array_pod_sort_comparator<T>;
 }
+
 
 /// array_pod_sort - This sorts an array with the specified start and end
 /// extent.  This is just like std::sort, except that it calls qsort instead of
@@ -305,13 +322,12 @@ inline int (*get_array_pod_sort_comparator(const T &))(const void *,
 ///
 /// NOTE: If qsort_r were portable, we could allow a custom comparator and
 /// default to std::less.
-template <class IteratorTy>
+template<class IteratorTy>
 inline void array_pod_sort(IteratorTy Start, IteratorTy End) {
   // Don't inefficiently call qsort with one element or trigger undefined
   // behavior with an empty sequence.
   auto NElts = End - Start;
-  if (NElts <= 1)
-    return;
+  if (NElts <= 1) return;
   qsort(&*Start, NElts, sizeof(*Start), get_array_pod_sort_comparator(*Start));
 }
 
@@ -324,8 +340,7 @@ inline void array_pod_sort(
   // Don't inefficiently call qsort with one element or trigger undefined
   // behavior with an empty sequence.
   auto NElts = End - Start;
-  if (NElts <= 1)
-    return;
+  if (NElts <= 1) return;
   qsort(&*Start, NElts, sizeof(*Start),
         reinterpret_cast<int (*)(const void *, const void *)>(Compare));
 }
@@ -336,7 +351,8 @@ inline void array_pod_sort(
 
 /// For a container of pointers, deletes the pointers and then clears the
 /// container.
-template <typename Container> void DeleteContainerPointers(Container &C) {
+template<typename Container>
+void DeleteContainerPointers(Container &C) {
   for (typename Container::iterator I = C.begin(), E = C.end(); I != E; ++I)
     delete *I;
   C.clear();
@@ -344,7 +360,8 @@ template <typename Container> void DeleteContainerPointers(Container &C) {
 
 /// In a container of pairs (usually a map) whose second element is a pointer,
 /// deletes the second elements and then clears the container.
-template <typename Container> void DeleteContainerSeconds(Container &C) {
+template<typename Container>
+void DeleteContainerSeconds(Container &C) {
   for (typename Container::iterator I = C.begin(), E = C.end(); I != E; ++I)
     delete I->second;
   C.clear();
@@ -352,7 +369,7 @@ template <typename Container> void DeleteContainerSeconds(Container &C) {
 
 /// Provide wrappers to std::all_of which take ranges instead of having to pass
 /// begin/end explicitly.
-template <typename R, class UnaryPredicate>
+template<typename R, class UnaryPredicate>
 bool all_of(R &&Range, UnaryPredicate &&P) {
   return std::all_of(Range.begin(), Range.end(),
                      std::forward<UnaryPredicate>(P));
@@ -366,11 +383,33 @@ bool any_of(R &&Range, UnaryPredicate &&P) {
                      std::forward<UnaryPredicate>(P));
 }
 
+/// Provide wrappers to std::none_of which take ranges instead of having to pass
+/// begin/end explicitly.
+template <typename R, class UnaryPredicate>
+bool none_of(R &&Range, UnaryPredicate &&P) {
+  return std::none_of(Range.begin(), Range.end(),
+                      std::forward<UnaryPredicate>(P));
+}
+
 /// Provide wrappers to std::find which take ranges instead of having to pass
 /// begin/end explicitly.
-template <typename R, class T>
+template<typename R, class T>
 auto find(R &&Range, const T &val) -> decltype(Range.begin()) {
   return std::find(Range.begin(), Range.end(), val);
+}
+
+/// Provide wrappers to std::find_if which take ranges instead of having to pass
+/// begin/end explicitly.
+template <typename R, class T>
+auto find_if(R &&Range, const T &Pred) -> decltype(Range.begin()) {
+  return std::find_if(Range.begin(), Range.end(), Pred);
+}
+
+/// Provide wrappers to std::remove_if which take ranges instead of having to
+/// pass begin/end explicitly.
+template<typename R, class UnaryPredicate>
+auto remove_if(R &&Range, UnaryPredicate &&P) -> decltype(Range.begin()) {
+  return std::remove_if(Range.begin(), Range.end(), P);
 }
 
 //===----------------------------------------------------------------------===//
@@ -413,10 +452,13 @@ typename std::enable_if<std::extent<T>::value != 0>::type
 make_unique(Args &&...) = delete;
 
 struct FreeDeleter {
-  void operator()(void *v) { ::free(v); }
+  void operator()(void* v) {
+    ::free(v);
+  }
 };
 
-template <typename First, typename Second> struct pair_hash {
+template<typename First, typename Second>
+struct pair_hash {
   size_t operator()(const std::pair<First, Second> &P) const {
     return std::hash<First>()(P.first) * 31 + std::hash<Second>()(P.second);
   }

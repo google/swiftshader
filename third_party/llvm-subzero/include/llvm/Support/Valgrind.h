@@ -1,5 +1,4 @@
-//===- llvm/Support/Valgrind.h - Communication with Valgrind -----*- C++
-//-*-===//
+//===- llvm/Support/Valgrind.h - Communication with Valgrind ----*- C++ -*-===//
 //
 //                     The LLVM Compiler Infrastructure
 //
@@ -17,19 +16,17 @@
 #ifndef LLVM_SUPPORT_VALGRIND_H
 #define LLVM_SUPPORT_VALGRIND_H
 
-#include "llvm/Config/llvm-config.h"
-#include "llvm/Support/Compiler.h"
-#include <stddef.h>
+#include <cstddef>
 
 namespace llvm {
 namespace sys {
-// True if Valgrind is controlling this process.
-bool RunningOnValgrind();
+  // True if Valgrind is controlling this process.
+  bool RunningOnValgrind();
 
-// Discard valgrind's translation of code in the range [Addr .. Addr + Len).
-// Otherwise valgrind may continue to execute the old version of the code.
-void ValgrindDiscardTranslations(const void *Addr, size_t Len);
-}
-}
+  // Discard valgrind's translation of code in the range [Addr .. Addr + Len).
+  // Otherwise valgrind may continue to execute the old version of the code.
+  void ValgrindDiscardTranslations(const void *Addr, size_t Len);
+} // namespace sys
+} // end namespace llvm
 
-#endif
+#endif // LLVM_SUPPORT_VALGRIND_H

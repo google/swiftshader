@@ -18,7 +18,6 @@
 #include "llvm/IR/Use.h"
 #include "llvm/Support/CBindingWrapping.h"
 #include "llvm/Support/Casting.h"
-#include "llvm/Support/Compiler.h"
 
 namespace llvm {
 
@@ -27,9 +26,13 @@ class Argument;
 class AssemblyAnnotationWriter;
 class BasicBlock;
 class Constant;
+class ConstantData;
+class ConstantAggregate;
 class DataLayout;
 class Function;
 class GlobalAlias;
+class GlobalIFunc;
+class GlobalIndirectSymbol;
 class GlobalObject;
 class GlobalValue;
 class GlobalVariable;
@@ -45,8 +48,8 @@ class ValueHandleBase;
 class ValueSymbolTable;
 class raw_ostream;
 
-template <typename ValueTy> class StringMapEntry;
-typedef StringMapEntry<Value *> ValueName;
+template<typename ValueTy> class StringMapEntry;
+typedef StringMapEntry<Value*> ValueName;
 
 //===----------------------------------------------------------------------===//
 //                                 Value Class
@@ -106,10 +109,11 @@ protected:
   enum : unsigned { NumUserOperandsBits = 28 };
   unsigned NumUserOperands : NumUserOperandsBits;
 
-  bool IsUsedByMD : 1;
-  bool HasName : 1;
-  bool HasHungOffUses : 1;
-  bool HasDescriptor : 1;
+  // Use the same type as the bitfield above so that MSVC will pack them.
+  unsigned IsUsedByMD : 1;
+  unsigned HasName : 1;
+  unsigned HasHungOffUses : 1;
+  unsigned HasDescriptor : 1;
 
 private:
   template <typename UseT> // UseT == 'Use' or 'const Use'
@@ -159,12 +163,9 @@ private:
     user_iterator_impl() {}
 
     bool operator==(const user_iterator_impl &x) const { return UI == x.UI; }
-    bool operator!=(const user_iterator_impl &x) const {
-      return !operator==(x);
-    }
+    bool operator!=(const user_iterator_impl &x) const { return !operator==(x); }
 
-    /// \brief Returns true if this iterator is equal to user_end() on the
-    /// value.
+    /// \brief Returns true if this iterator is equal to user_end() on the value.
     bool atEnd() const { return *this == user_iterator_impl(); }
 
     user_iterator_impl &operator++() { // Preincrement
@@ -178,7 +179,9 @@ private:
     }
 
     // Retrieve a pointer to the current User.
-    UserTy *operator*() const { return UI->getUser(); }
+    UserTy *operator*() const {
+      return UI->getUser();
+    }
 
     UserTy *operator->() const { return operator*(); }
 
@@ -194,7 +197,6 @@ private:
 
 protected:
   Value(Type *Ty, unsigned scid);
-
 public:
   virtual ~Value();
 
@@ -249,6 +251,7 @@ public:
   ///
   /// \param Name The new name; or "" if the value's name should be removed.
   void setName(const Twine &Name);
+
 
   /// \brief Transfer the name from V to this value.
   ///
@@ -348,13 +351,19 @@ public:
     assertModuleIsMaterialized();
     return *materialized_user_begin();
   }
+  iterator_range<user_iterator> materialized_users() {
+    return make_range(materialized_user_begin(), user_end());
+  }
+  iterator_range<const_user_iterator> materialized_users() const {
+    return make_range(materialized_user_begin(), user_end());
+  }
   iterator_range<user_iterator> users() {
     assertModuleIsMaterialized();
-    return make_range(materialized_user_begin(), user_end());
+    return materialized_users();
   }
   iterator_range<const_user_iterator> users() const {
     assertModuleIsMaterialized();
-    return make_range(materialized_user_begin(), user_end());
+    return materialized_users();
   }
 
   /// \brief Return true if there is exactly one user of this value.
@@ -363,8 +372,7 @@ public:
   /// traversing the whole use list.
   bool hasOneUse() const {
     const_use_iterator I = use_begin(), E = use_end();
-    if (I == E)
-      return false;
+    if (I == E) return false;
     return ++I == E;
   }
 
@@ -398,7 +406,7 @@ public:
 #define HANDLE_VALUE(Name) Name##Val,
 #include "llvm/IR/Value.def"
 
-// Markers:
+    // Markers:
 #define HANDLE_CONSTANT_MARKER(Marker, Constant) Marker = Constant##Val,
 #include "llvm/IR/Value.def"
   };
@@ -413,15 +421,21 @@ public:
   /// # there are more possible values for the value type than in ValueTy enum.
   /// # the InstructionVal enumerator must be the highest valued enumerator in
   ///   the ValueTy enum.
-  unsigned getValueID() const { return SubclassID; }
+  unsigned getValueID() const {
+    return SubclassID;
+  }
 
   /// \brief Return the raw optional flags value contained in this value.
   ///
   /// This should only be used when testing two Values for equivalence.
-  unsigned getRawSubclassOptionalData() const { return SubclassOptionalData; }
+  unsigned getRawSubclassOptionalData() const {
+    return SubclassOptionalData;
+  }
 
   /// \brief Clear the optional flags contained in this value.
-  void clearSubclassOptionalData() { SubclassOptionalData = 0; }
+  void clearSubclassOptionalData() {
+    SubclassOptionalData = 0;
+  }
 
   /// \brief Check the optional flags for equality.
   bool hasSameSubclassOptionalData(const Value *V) const {
@@ -445,7 +459,7 @@ public:
   /// value, it returns 'this'.
   Value *stripPointerCasts();
   const Value *stripPointerCasts() const {
-    return const_cast<Value *>(this)->stripPointerCasts();
+    return const_cast<Value*>(this)->stripPointerCasts();
   }
 
   /// \brief Strip off pointer casts and all-zero GEPs.
@@ -454,7 +468,7 @@ public:
   /// value, it returns 'this'.
   Value *stripPointerCastsNoFollowAliases();
   const Value *stripPointerCastsNoFollowAliases() const {
-    return const_cast<Value *>(this)->stripPointerCastsNoFollowAliases();
+    return const_cast<Value*>(this)->stripPointerCastsNoFollowAliases();
   }
 
   /// \brief Strip off pointer casts and all-constant inbounds GEPs.
@@ -463,7 +477,7 @@ public:
   /// value, it returns 'this'.
   Value *stripInBoundsConstantOffsets();
   const Value *stripInBoundsConstantOffsets() const {
-    return const_cast<Value *>(this)->stripInBoundsConstantOffsets();
+    return const_cast<Value*>(this)->stripInBoundsConstantOffsets();
   }
 
   /// \brief Accumulate offsets from \a stripInBoundsConstantOffsets().
@@ -477,8 +491,8 @@ public:
                                                    APInt &Offset);
   const Value *stripAndAccumulateInBoundsConstantOffsets(const DataLayout &DL,
                                                          APInt &Offset) const {
-    return const_cast<Value *>(this)->stripAndAccumulateInBoundsConstantOffsets(
-        DL, Offset);
+    return const_cast<Value *>(this)
+        ->stripAndAccumulateInBoundsConstantOffsets(DL, Offset);
   }
 
   /// \brief Strip off pointer casts and inbounds GEPs.
@@ -487,8 +501,21 @@ public:
   /// value, it returns 'this'.
   Value *stripInBoundsOffsets();
   const Value *stripInBoundsOffsets() const {
-    return const_cast<Value *>(this)->stripInBoundsOffsets();
+    return const_cast<Value*>(this)->stripInBoundsOffsets();
   }
+
+  /// \brief Returns the number of bytes known to be dereferenceable for the
+  /// pointer value.
+  ///
+  /// If CanBeNull is set by this function the pointer can either be null or be
+  /// dereferenceable up to the returned number of bytes.
+  unsigned getPointerDereferenceableBytes(bool &CanBeNull) const;
+
+  /// \brief Returns an alignment of the pointer value.
+  ///
+  /// Returns an alignment which is either specified explicitly, e.g. via
+  /// align attribute of a function argument, or guaranteed by DataLayout.
+  unsigned getPointerAlignment(const DataLayout &DL) const;
 
   /// \brief Translate PHI node to its predecessor from the given basic block.
   ///
@@ -499,8 +526,8 @@ public:
   Value *DoPHITranslation(const BasicBlock *CurBB, const BasicBlock *PredBB);
 
   const Value *DoPHITranslation(const BasicBlock *CurBB,
-                                const BasicBlock *PredBB) const {
-    return const_cast<Value *>(this)->DoPHITranslation(CurBB, PredBB);
+                                const BasicBlock *PredBB) const{
+    return const_cast<Value*>(this)->DoPHITranslation(CurBB, PredBB);
   }
 
   /// \brief The maximum alignment for instructions.
@@ -516,7 +543,9 @@ public:
   /// completely invalid IR very easily.  It is strongly recommended that you
   /// recreate IR objects with the right types instead of mutating them in
   /// place.
-  void mutateType(Type *Ty) { VTy = Ty; }
+  void mutateType(Type *Ty) {
+    VTy = Ty;
+  }
 
   /// \brief Sort the use-list.
   ///
@@ -581,11 +610,19 @@ inline raw_ostream &operator<<(raw_ostream &OS, const Value &V) {
 }
 
 void Use::set(Value *V) {
-  if (Val)
-    removeFromList();
+  if (Val) removeFromList();
   Val = V;
-  if (V)
-    V->addUse(*this);
+  if (V) V->addUse(*this);
+}
+
+Value *Use::operator=(Value *RHS) {
+  set(RHS);
+  return RHS;
+}
+
+const Use &Use::operator=(const Use &RHS) {
+  set(RHS.Val);
+  return *this;
 }
 
 template <class Compare> void Value::sortUseList(Compare Cmp) {
@@ -661,12 +698,26 @@ template <class Compare> void Value::sortUseList(Compare Cmp) {
 template <> struct isa_impl<Constant, Value> {
   static inline bool doit(const Value &Val) {
     return Val.getValueID() >= Value::ConstantFirstVal &&
-           Val.getValueID() <= Value::ConstantLastVal;
+      Val.getValueID() <= Value::ConstantLastVal;
+  }
+};
+
+template <> struct isa_impl<ConstantData, Value> {
+  static inline bool doit(const Value &Val) {
+    return Val.getValueID() >= Value::ConstantDataFirstVal &&
+           Val.getValueID() <= Value::ConstantDataLastVal;
+  }
+};
+
+template <> struct isa_impl<ConstantAggregate, Value> {
+  static inline bool doit(const Value &Val) {
+    return Val.getValueID() >= Value::ConstantAggregateFirstVal &&
+           Val.getValueID() <= Value::ConstantAggregateLastVal;
   }
 };
 
 template <> struct isa_impl<Argument, Value> {
-  static inline bool doit(const Value &Val) {
+  static inline bool doit (const Value &Val) {
     return Val.getValueID() == Value::ArgumentVal;
   }
 };
@@ -707,9 +758,21 @@ template <> struct isa_impl<GlobalAlias, Value> {
   }
 };
 
+template <> struct isa_impl<GlobalIFunc, Value> {
+  static inline bool doit(const Value &Val) {
+    return Val.getValueID() == Value::GlobalIFuncVal;
+  }
+};
+
+template <> struct isa_impl<GlobalIndirectSymbol, Value> {
+  static inline bool doit(const Value &Val) {
+    return isa<GlobalAlias>(Val) || isa<GlobalIFunc>(Val);
+  }
+};
+
 template <> struct isa_impl<GlobalValue, Value> {
   static inline bool doit(const Value &Val) {
-    return isa<GlobalObject>(Val) || isa<GlobalAlias>(Val);
+    return isa<GlobalObject>(Val) || isa<GlobalIndirectSymbol>(Val);
   }
 };
 
@@ -720,35 +783,37 @@ template <> struct isa_impl<GlobalObject, Value> {
 };
 
 // Value* is only 4-byte aligned.
-template <> class PointerLikeTypeTraits<Value *> {
-  typedef Value *PT;
-
+template<>
+class PointerLikeTypeTraits<Value*> {
+  typedef Value* PT;
 public:
   static inline void *getAsVoidPointer(PT P) { return P; }
-  static inline PT getFromVoidPointer(void *P) { return static_cast<PT>(P); }
+  static inline PT getFromVoidPointer(void *P) {
+    return static_cast<PT>(P);
+  }
   enum { NumLowBitsAvailable = 2 };
 };
 
 // Create wrappers for C Binding types (see CBindingWrapping.h).
 DEFINE_ISA_CONVERSION_FUNCTIONS(Value, LLVMValueRef)
 
-/* Specialized opaque value conversions.
- */
+// Specialized opaque value conversions.
 inline Value **unwrap(LLVMValueRef *Vals) {
-  return reinterpret_cast<Value **>(Vals);
+  return reinterpret_cast<Value**>(Vals);
 }
 
-template <typename T> inline T **unwrap(LLVMValueRef *Vals, unsigned Length) {
+template<typename T>
+inline T **unwrap(LLVMValueRef *Vals, unsigned Length) {
 #ifdef DEBUG
   for (LLVMValueRef *I = Vals, *E = Vals + Length; I != E; ++I)
     cast<T>(*I);
 #endif
   (void)Length;
-  return reinterpret_cast<T **>(Vals);
+  return reinterpret_cast<T**>(Vals);
 }
 
 inline LLVMValueRef *wrap(const Value **Vals) {
-  return reinterpret_cast<LLVMValueRef *>(const_cast<Value **>(Vals));
+  return reinterpret_cast<LLVMValueRef*>(const_cast<Value**>(Vals));
 }
 
 } // End llvm namespace

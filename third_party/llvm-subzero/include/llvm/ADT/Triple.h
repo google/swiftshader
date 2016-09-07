@@ -86,6 +86,7 @@ public:
     spir64,     // SPIR: standard portable IR for OpenCL 64-bit version
     kalimba,    // Kalimba: generic kalimba
     shave,      // SHAVE: Movidius vector VLIW processors
+    lanai,      // Lanai: Lanai 32-bit
     wasm32,     // WebAssembly with 32-bit pointers
     wasm64,     // WebAssembly with 64-bit pointers
     LastArchType = wasm64
@@ -96,6 +97,8 @@ public:
     ARMSubArch_v8_2a,
     ARMSubArch_v8_1a,
     ARMSubArch_v8,
+    ARMSubArch_v8m_baseline,
+    ARMSubArch_v8m_mainline,
     ARMSubArch_v7,
     ARMSubArch_v7em,
     ARMSubArch_v7m,
@@ -128,7 +131,9 @@ public:
     NVIDIA,
     CSR,
     Myriad,
-    LastVendorType = Myriad
+    AMD,
+    Mesa,
+    LastVendorType = Mesa
   };
   enum OSType {
     UnknownOS,
@@ -140,7 +145,7 @@ public:
     IOS,
     KFreeBSD,
     Linux,
-    Lv2, // PS3
+    Lv2,        // PS3
     MacOSX,
     NetBSD,
     OpenBSD,
@@ -149,18 +154,19 @@ public:
     Haiku,
     Minix,
     RTEMS,
-    NaCl, // Native Client
-    CNK,  // BG/P Compute-Node Kernel
+    NaCl,       // Native Client
+    CNK,        // BG/P Compute-Node Kernel
     Bitrig,
     AIX,
-    CUDA,   // NVIDIA CUDA
-    NVCL,   // NVIDIA OpenCL
-    AMDHSA, // AMD HSA Runtime
+    CUDA,       // NVIDIA CUDA
+    NVCL,       // NVIDIA OpenCL
+    AMDHSA,     // AMD HSA Runtime
     PS4,
     ELFIAMCU,
-    TvOS,    // Apple tvOS
-    WatchOS, // Apple watchOS
-    LastOSType = WatchOS
+    TvOS,       // Apple tvOS
+    WatchOS,    // Apple watchOS
+    Mesa3D,
+    LastOSType = Mesa3D
   };
   enum EnvironmentType {
     UnknownEnvironment,
@@ -261,7 +267,9 @@ public:
 
   /// hasEnvironment - Does this triple have the optional environment
   /// (fourth) component?
-  bool hasEnvironment() const { return getEnvironmentName() != ""; }
+  bool hasEnvironment() const {
+    return getEnvironmentName() != "";
+  }
 
   /// getEnvironment - Get the parsed environment type of this triple.
   EnvironmentType getEnvironment() const { return Environment; }
@@ -301,10 +309,10 @@ public:
   bool getMacOSXVersion(unsigned &Major, unsigned &Minor,
                         unsigned &Micro) const;
 
-  /// getiOSVersion - Parse the version number as with getOSVersion.  This
-  /// should
+  /// getiOSVersion - Parse the version number as with getOSVersion.  This should
   /// only be called with IOS or generic triples.
-  void getiOSVersion(unsigned &Major, unsigned &Minor, unsigned &Micro) const;
+  void getiOSVersion(unsigned &Major, unsigned &Minor,
+                     unsigned &Micro) const;
 
   /// getWatchOSVersion - Parse the version number as with getOSVersion.  This
   /// should only be called with WatchOS or generic triples.
@@ -388,8 +396,8 @@ public:
   /// isMacOSXVersionLT - Comparison function for checking OS X version
   /// compatibility, which handles supporting skewed version numbering schemes
   /// used by the "darwin" triples.
-  unsigned isMacOSXVersionLT(unsigned Major, unsigned Minor = 0,
-                             unsigned Micro = 0) const {
+  bool isMacOSXVersionLT(unsigned Major, unsigned Minor = 0,
+                         unsigned Micro = 0) const {
     assert(isMacOSX() && "Not an OS X triple!");
 
     // If this is OS X, expect a sane version number.
@@ -412,30 +420,54 @@ public:
   /// changes, i.e., if the two operating systems diverge or their version
   /// numbers get out of sync, that will need to be changed.
   /// watchOS has completely different version numbers so it is not included.
-  bool isiOS() const { return getOS() == Triple::IOS || isTvOS(); }
+  bool isiOS() const {
+    return getOS() == Triple::IOS || isTvOS();
+  }
 
   /// Is this an Apple tvOS triple.
-  bool isTvOS() const { return getOS() == Triple::TvOS; }
+  bool isTvOS() const {
+    return getOS() == Triple::TvOS;
+  }
 
   /// Is this an Apple watchOS triple.
-  bool isWatchOS() const { return getOS() == Triple::WatchOS; }
+  bool isWatchOS() const {
+    return getOS() == Triple::WatchOS;
+  }
+
+  bool isWatchABI() const {
+    return getSubArch() == Triple::ARMSubArch_v7k;
+  }
 
   /// isOSDarwin - Is this a "Darwin" OS (OS X, iOS, or watchOS).
-  bool isOSDarwin() const { return isMacOSX() || isiOS() || isWatchOS(); }
+  bool isOSDarwin() const {
+    return isMacOSX() || isiOS() || isWatchOS();
+  }
 
-  bool isOSNetBSD() const { return getOS() == Triple::NetBSD; }
+  bool isOSNetBSD() const {
+    return getOS() == Triple::NetBSD;
+  }
 
-  bool isOSOpenBSD() const { return getOS() == Triple::OpenBSD; }
+  bool isOSOpenBSD() const {
+    return getOS() == Triple::OpenBSD;
+  }
 
-  bool isOSFreeBSD() const { return getOS() == Triple::FreeBSD; }
+  bool isOSFreeBSD() const {
+    return getOS() == Triple::FreeBSD;
+  }
 
   bool isOSDragonFly() const { return getOS() == Triple::DragonFly; }
 
-  bool isOSSolaris() const { return getOS() == Triple::Solaris; }
+  bool isOSSolaris() const {
+    return getOS() == Triple::Solaris;
+  }
 
-  bool isOSBitrig() const { return getOS() == Triple::Bitrig; }
+  bool isOSBitrig() const {
+    return getOS() == Triple::Bitrig;
+  }
 
-  bool isOSIAMCU() const { return getOS() == Triple::ELFIAMCU; }
+  bool isOSIAMCU() const {
+    return getOS() == Triple::ELFIAMCU;
+  }
 
   /// Checks if the environment could be MSVC.
   bool isWindowsMSVCEnvironment() const {
@@ -477,36 +509,65 @@ public:
   }
 
   /// Tests whether the OS is Windows.
-  bool isOSWindows() const { return getOS() == Triple::Win32; }
+  bool isOSWindows() const {
+    return getOS() == Triple::Win32;
+  }
 
   /// Tests whether the OS is NaCl (Native Client)
-  bool isOSNaCl() const { return getOS() == Triple::NaCl; }
+  bool isOSNaCl() const {
+    return getOS() == Triple::NaCl;
+  }
 
   /// Tests whether the OS is Linux.
-  bool isOSLinux() const { return getOS() == Triple::Linux; }
+  bool isOSLinux() const {
+    return getOS() == Triple::Linux;
+  }
+
+  /// Tests whether the OS is kFreeBSD.
+  bool isOSKFreeBSD() const {
+    return getOS() == Triple::KFreeBSD;
+  }
+
+  /// Tests whether the OS uses glibc.
+  bool isOSGlibc() const {
+    return getOS() == Triple::Linux || getOS() == Triple::KFreeBSD;
+  }
 
   /// Tests whether the OS uses the ELF binary format.
-  bool isOSBinFormatELF() const { return getObjectFormat() == Triple::ELF; }
+  bool isOSBinFormatELF() const {
+    return getObjectFormat() == Triple::ELF;
+  }
 
   /// Tests whether the OS uses the COFF binary format.
-  bool isOSBinFormatCOFF() const { return getObjectFormat() == Triple::COFF; }
+  bool isOSBinFormatCOFF() const {
+    return getObjectFormat() == Triple::COFF;
+  }
 
   /// Tests whether the environment is MachO.
-  bool isOSBinFormatMachO() const { return getObjectFormat() == Triple::MachO; }
+  bool isOSBinFormatMachO() const {
+    return getObjectFormat() == Triple::MachO;
+  }
 
   /// Tests whether the target is the PS4 CPU
   bool isPS4CPU() const {
-    return getArch() == Triple::x86_64 && getVendor() == Triple::SCEI &&
+    return getArch() == Triple::x86_64 &&
+           getVendor() == Triple::SCEI &&
            getOS() == Triple::PS4;
   }
 
   /// Tests whether the target is the PS4 platform
   bool isPS4() const {
-    return getVendor() == Triple::SCEI && getOS() == Triple::PS4;
+    return getVendor() == Triple::SCEI &&
+           getOS() == Triple::PS4;
   }
 
   /// Tests whether the target is Android
   bool isAndroid() const { return getEnvironment() == Triple::Android; }
+
+  /// Tests whether the target is NVPTX (32- or 64-bit).
+  bool isNVPTX() const {
+    return getArch() == Triple::nvptx || getArch() == Triple::nvptx64;
+  }
 
   /// @}
   /// @name Mutators
@@ -633,5 +694,6 @@ public:
 };
 
 } // End llvm namespace
+
 
 #endif

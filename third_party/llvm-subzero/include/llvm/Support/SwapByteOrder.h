@@ -18,7 +18,6 @@
 #include "llvm/Support/Compiler.h"
 #include "llvm/Support/DataTypes.h"
 #include <cstddef>
-#include <limits>
 
 namespace llvm {
 namespace sys {
@@ -67,36 +66,22 @@ inline uint64_t SwapByteOrder_64(uint64_t value) {
 #endif
 }
 
-inline unsigned char getSwappedBytes(unsigned char C) { return C; }
-inline signed char getSwappedBytes(signed char C) { return C; }
-inline char getSwappedBytes(char C) { return C; }
+inline unsigned char  getSwappedBytes(unsigned char C) { return C; }
+inline   signed char  getSwappedBytes(signed char C) { return C; }
+inline          char  getSwappedBytes(char C) { return C; }
 
-inline unsigned short getSwappedBytes(unsigned short C) {
-  return SwapByteOrder_16(C);
-}
-inline signed short getSwappedBytes(signed short C) {
-  return SwapByteOrder_16(C);
-}
+inline unsigned short getSwappedBytes(unsigned short C) { return SwapByteOrder_16(C); }
+inline   signed short getSwappedBytes(  signed short C) { return SwapByteOrder_16(C); }
 
-inline unsigned int getSwappedBytes(unsigned int C) {
-  return SwapByteOrder_32(C);
-}
-inline signed int getSwappedBytes(signed int C) { return SwapByteOrder_32(C); }
+inline unsigned int   getSwappedBytes(unsigned int   C) { return SwapByteOrder_32(C); }
+inline   signed int   getSwappedBytes(  signed int   C) { return SwapByteOrder_32(C); }
 
 #if __LONG_MAX__ == __INT_MAX__
-inline unsigned long getSwappedBytes(unsigned long C) {
-  return SwapByteOrder_32(C);
-}
-inline signed long getSwappedBytes(signed long C) {
-  return SwapByteOrder_32(C);
-}
+inline unsigned long  getSwappedBytes(unsigned long  C) { return SwapByteOrder_32(C); }
+inline   signed long  getSwappedBytes(  signed long  C) { return SwapByteOrder_32(C); }
 #elif __LONG_MAX__ == __LONG_LONG_MAX__
-inline unsigned long getSwappedBytes(unsigned long C) {
-  return SwapByteOrder_64(C);
-}
-inline signed long getSwappedBytes(signed long C) {
-  return SwapByteOrder_64(C);
-}
+inline unsigned long  getSwappedBytes(unsigned long  C) { return SwapByteOrder_64(C); }
+inline   signed long  getSwappedBytes(  signed long  C) { return SwapByteOrder_64(C); }
 #else
 #error "Unknown long size!"
 #endif
@@ -128,7 +113,8 @@ inline double getSwappedBytes(double C) {
   return out.d;
 }
 
-template <typename T> inline void swapByteOrder(T &Value) {
+template<typename T>
+inline void swapByteOrder(T &Value) {
   Value = getSwappedBytes(Value);
 }
 

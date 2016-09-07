@@ -62,6 +62,7 @@ public:
   /// @result        - true if the address may be read with readByte()
   virtual bool isValidAddress(uint64_t address) const = 0;
 };
+
 }
 
 #endif

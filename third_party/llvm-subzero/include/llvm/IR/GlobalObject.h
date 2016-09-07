@@ -15,7 +15,6 @@
 #ifndef LLVM_IR_GLOBALOBJECT_H
 #define LLVM_IR_GLOBALOBJECT_H
 
-#include "llvm/IR/Constant.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/GlobalValue.h"
 
@@ -35,7 +34,7 @@ protected:
     setGlobalValueSubClassData(0);
   }
 
-  std::string Section; // Section to emit this into, empty means default
+  std::string Section;     // Section to emit this into, empty means default
   Comdat *ObjComdat;
   static const unsigned AlignmentBits = 5;
   static const unsigned GlobalObjectSubClassDataBits =

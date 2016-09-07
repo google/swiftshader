@@ -25,22 +25,26 @@
 
 namespace llvm {
 
-template <typename T> class Optional {
+template<typename T>
+class Optional {
   AlignedCharArrayUnion<T> storage;
   bool hasVal;
-
 public:
   typedef T value_type;
 
   Optional(NoneType) : hasVal(false) {}
   explicit Optional() : hasVal(false) {}
-  Optional(const T &y) : hasVal(true) { new (storage.buffer) T(y); }
+  Optional(const T &y) : hasVal(true) {
+    new (storage.buffer) T(y);
+  }
   Optional(const Optional &O) : hasVal(O.hasVal) {
     if (hasVal)
       new (storage.buffer) T(*O);
   }
 
-  Optional(T &&y) : hasVal(true) { new (storage.buffer) T(std::forward<T>(y)); }
+  Optional(T &&y) : hasVal(true) {
+    new (storage.buffer) T(std::forward<T>(y));
+  }
   Optional(Optional<T> &&O) : hasVal(O) {
     if (O) {
       new (storage.buffer) T(std::move(*O));
@@ -67,13 +71,14 @@ public:
   }
 
   /// Create a new object by constructing it in place with the given arguments.
-  template <typename... ArgTypes> void emplace(ArgTypes &&... Args) {
+  template<typename ...ArgTypes>
+  void emplace(ArgTypes &&...Args) {
     reset();
     hasVal = true;
     new (storage.buffer) T(std::forward<ArgTypes>(Args)...);
   }
 
-  static inline Optional create(const T *y) {
+  static inline Optional create(const T* y) {
     return y ? Optional(*y) : Optional();
   }
 
@@ -107,37 +112,21 @@ public:
     }
   }
 
-  ~Optional() { reset(); }
+  ~Optional() {
+    reset();
+  }
 
-  const T *getPointer() const {
-    assert(hasVal);
-    return reinterpret_cast<const T *>(storage.buffer);
-  }
-  T *getPointer() {
-    assert(hasVal);
-    return reinterpret_cast<T *>(storage.buffer);
-  }
-  const T &getValue() const LLVM_LVALUE_FUNCTION {
-    assert(hasVal);
-    return *getPointer();
-  }
-  T &getValue() LLVM_LVALUE_FUNCTION {
-    assert(hasVal);
-    return *getPointer();
-  }
+  const T* getPointer() const { assert(hasVal); return reinterpret_cast<const T*>(storage.buffer); }
+  T* getPointer() { assert(hasVal); return reinterpret_cast<T*>(storage.buffer); }
+  const T& getValue() const LLVM_LVALUE_FUNCTION { assert(hasVal); return *getPointer(); }
+  T& getValue() LLVM_LVALUE_FUNCTION { assert(hasVal); return *getPointer(); }
 
   explicit operator bool() const { return hasVal; }
   bool hasValue() const { return hasVal; }
-  const T *operator->() const { return getPointer(); }
-  T *operator->() { return getPointer(); }
-  const T &operator*() const LLVM_LVALUE_FUNCTION {
-    assert(hasVal);
-    return *getPointer();
-  }
-  T &operator*() LLVM_LVALUE_FUNCTION {
-    assert(hasVal);
-    return *getPointer();
-  }
+  const T* operator->() const { return getPointer(); }
+  T* operator->() { return getPointer(); }
+  const T& operator*() const LLVM_LVALUE_FUNCTION { assert(hasVal); return *getPointer(); }
+  T& operator*() LLVM_LVALUE_FUNCTION { assert(hasVal); return *getPointer(); }
 
   template <typename U>
   LLVM_CONSTEXPR T getValueOr(U &&value) const LLVM_LVALUE_FUNCTION {
@@ -145,23 +134,18 @@ public:
   }
 
 #if LLVM_HAS_RVALUE_REFERENCE_THIS
-  T &&getValue() && {
-    assert(hasVal);
-    return std::move(*getPointer());
-  }
-  T &&operator*() && {
-    assert(hasVal);
-    return std::move(*getPointer());
-  }
+  T&& getValue() && { assert(hasVal); return std::move(*getPointer()); }
+  T&& operator*() && { assert(hasVal); return std::move(*getPointer()); }
 
-  template <typename U> T getValueOr(U &&value) && {
+  template <typename U>
+  T getValueOr(U &&value) && {
     return hasValue() ? std::move(getValue()) : std::forward<U>(value);
   }
 #endif
 };
 
 template <typename T> struct isPodLike;
-template <typename T> struct isPodLike<Optional<T>> {
+template <typename T> struct isPodLike<Optional<T> > {
   // An Optional<T> is pod-like if T is.
   static const bool value = isPodLike<T>::value;
 };
@@ -172,22 +156,26 @@ template <typename T> struct isPodLike<Optional<T>> {
 ///
 /// This routine will never be defined. It returns \c void to help diagnose
 /// errors at compile time.
-template <typename T, typename U>
+template<typename T, typename U>
 void operator==(const Optional<T> &X, const Optional<U> &Y);
 
-template <typename T> bool operator==(const Optional<T> &X, NoneType) {
+template<typename T>
+bool operator==(const Optional<T> &X, NoneType) {
   return !X.hasValue();
 }
 
-template <typename T> bool operator==(NoneType, const Optional<T> &X) {
+template<typename T>
+bool operator==(NoneType, const Optional<T> &X) {
   return X == None;
 }
 
-template <typename T> bool operator!=(const Optional<T> &X, NoneType) {
+template<typename T>
+bool operator!=(const Optional<T> &X, NoneType) {
   return !(X == None);
 }
 
-template <typename T> bool operator!=(NoneType, const Optional<T> &X) {
+template<typename T>
+bool operator!=(NoneType, const Optional<T> &X) {
   return X != None;
 }
 /// \brief Poison comparison between two \c Optional objects. Clients needs to
@@ -196,7 +184,7 @@ template <typename T> bool operator!=(NoneType, const Optional<T> &X) {
 ///
 /// This routine will never be defined. It returns \c void to help diagnose
 /// errors at compile time.
-template <typename T, typename U>
+template<typename T, typename U>
 void operator!=(const Optional<T> &X, const Optional<U> &Y);
 
 /// \brief Poison comparison between two \c Optional objects. Clients needs to
@@ -205,7 +193,7 @@ void operator!=(const Optional<T> &X, const Optional<U> &Y);
 ///
 /// This routine will never be defined. It returns \c void to help diagnose
 /// errors at compile time.
-template <typename T, typename U>
+template<typename T, typename U>
 void operator<(const Optional<T> &X, const Optional<U> &Y);
 
 /// \brief Poison comparison between two \c Optional objects. Clients needs to
@@ -214,7 +202,7 @@ void operator<(const Optional<T> &X, const Optional<U> &Y);
 ///
 /// This routine will never be defined. It returns \c void to help diagnose
 /// errors at compile time.
-template <typename T, typename U>
+template<typename T, typename U>
 void operator<=(const Optional<T> &X, const Optional<U> &Y);
 
 /// \brief Poison comparison between two \c Optional objects. Clients needs to
@@ -223,7 +211,7 @@ void operator<=(const Optional<T> &X, const Optional<U> &Y);
 ///
 /// This routine will never be defined. It returns \c void to help diagnose
 /// errors at compile time.
-template <typename T, typename U>
+template<typename T, typename U>
 void operator>=(const Optional<T> &X, const Optional<U> &Y);
 
 /// \brief Poison comparison between two \c Optional objects. Clients needs to
@@ -232,7 +220,7 @@ void operator>=(const Optional<T> &X, const Optional<U> &Y);
 ///
 /// This routine will never be defined. It returns \c void to help diagnose
 /// errors at compile time.
-template <typename T, typename U>
+template<typename T, typename U>
 void operator>(const Optional<T> &X, const Optional<U> &Y);
 
 } // end llvm namespace

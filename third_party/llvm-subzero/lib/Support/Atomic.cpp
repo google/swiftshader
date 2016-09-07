@@ -30,17 +30,17 @@ void sys::MemoryFence() {
 #if LLVM_HAS_ATOMICS == 0
   return;
 #else
-#if defined(GNU_ATOMICS)
+#  if defined(GNU_ATOMICS)
   __sync_synchronize();
-#elif defined(_MSC_VER)
+#  elif defined(_MSC_VER)
   MemoryBarrier();
-#else
-#error No memory fence implementation for your platform!
-#endif
+#  else
+# error No memory fence implementation for your platform!
+#  endif
 #endif
 }
 
-sys::cas_flag sys::CompareAndSwap(volatile sys::cas_flag *ptr,
+sys::cas_flag sys::CompareAndSwap(volatile sys::cas_flag* ptr,
                                   sys::cas_flag new_value,
                                   sys::cas_flag old_value) {
 #if LLVM_HAS_ATOMICS == 0
@@ -53,11 +53,11 @@ sys::cas_flag sys::CompareAndSwap(volatile sys::cas_flag *ptr,
 #elif defined(_MSC_VER)
   return InterlockedCompareExchange(ptr, new_value, old_value);
 #else
-#error No compare-and-swap implementation for your platform!
+#  error No compare-and-swap implementation for your platform!
 #endif
 }
 
-sys::cas_flag sys::AtomicIncrement(volatile sys::cas_flag *ptr) {
+sys::cas_flag sys::AtomicIncrement(volatile sys::cas_flag* ptr) {
 #if LLVM_HAS_ATOMICS == 0
   ++(*ptr);
   return *ptr;
@@ -66,11 +66,11 @@ sys::cas_flag sys::AtomicIncrement(volatile sys::cas_flag *ptr) {
 #elif defined(_MSC_VER)
   return InterlockedIncrement(ptr);
 #else
-#error No atomic increment implementation for your platform!
+#  error No atomic increment implementation for your platform!
 #endif
 }
 
-sys::cas_flag sys::AtomicDecrement(volatile sys::cas_flag *ptr) {
+sys::cas_flag sys::AtomicDecrement(volatile sys::cas_flag* ptr) {
 #if LLVM_HAS_ATOMICS == 0
   --(*ptr);
   return *ptr;
@@ -79,11 +79,11 @@ sys::cas_flag sys::AtomicDecrement(volatile sys::cas_flag *ptr) {
 #elif defined(_MSC_VER)
   return InterlockedDecrement(ptr);
 #else
-#error No atomic decrement implementation for your platform!
+#  error No atomic decrement implementation for your platform!
 #endif
 }
 
-sys::cas_flag sys::AtomicAdd(volatile sys::cas_flag *ptr, sys::cas_flag val) {
+sys::cas_flag sys::AtomicAdd(volatile sys::cas_flag* ptr, sys::cas_flag val) {
 #if LLVM_HAS_ATOMICS == 0
   *ptr += val;
   return *ptr;
@@ -92,11 +92,11 @@ sys::cas_flag sys::AtomicAdd(volatile sys::cas_flag *ptr, sys::cas_flag val) {
 #elif defined(_MSC_VER)
   return InterlockedExchangeAdd(ptr, val) + val;
 #else
-#error No atomic add implementation for your platform!
+#  error No atomic add implementation for your platform!
 #endif
 }
 
-sys::cas_flag sys::AtomicMul(volatile sys::cas_flag *ptr, sys::cas_flag val) {
+sys::cas_flag sys::AtomicMul(volatile sys::cas_flag* ptr, sys::cas_flag val) {
   sys::cas_flag original, result;
   do {
     original = *ptr;
@@ -106,7 +106,7 @@ sys::cas_flag sys::AtomicMul(volatile sys::cas_flag *ptr, sys::cas_flag val) {
   return result;
 }
 
-sys::cas_flag sys::AtomicDiv(volatile sys::cas_flag *ptr, sys::cas_flag val) {
+sys::cas_flag sys::AtomicDiv(volatile sys::cas_flag* ptr, sys::cas_flag val) {
   sys::cas_flag original, result;
   do {
     original = *ptr;

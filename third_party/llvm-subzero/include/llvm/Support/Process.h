@@ -25,7 +25,6 @@
 #ifndef LLVM_SUPPORT_PROCESS_H
 #define LLVM_SUPPORT_PROCESS_H
 
-#include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/Optional.h"
 #include "llvm/Config/llvm-config.h"
 #include "llvm/Support/Allocator.h"
@@ -34,9 +33,11 @@
 #include <system_error>
 
 namespace llvm {
+template <typename T> class ArrayRef;
 class StringRef;
 
 namespace sys {
+
 
 /// \brief A collection of legacy interfaces for querying information about the
 /// current executing process.
@@ -68,6 +69,9 @@ public:
   /// @brief Prevent core file generation.
   static void PreventCoreFiles();
 
+  /// \brief true if PreventCoreFiles has been called, false otherwise.
+  static bool AreCoreFilesPrevented();
+
   // This function returns the environment variable \arg name's value as a UTF-8
   // string. \arg Name is assumed to be in UTF-8 encoding too.
   static Optional<std::string> GetEnv(StringRef name);
@@ -76,8 +80,8 @@ public:
   /// in a PATH like environment variable, and returns the first file found,
   /// according to the order of the entries in the PATH like environment
   /// variable.
-  static Optional<std::string> FindInEnvPath(const std::string &EnvName,
-                                             const std::string &FileName);
+  static Optional<std::string> FindInEnvPath(const std::string& EnvName,
+                                             const std::string& FileName);
 
   /// This function returns a SmallVector containing the arguments passed from
   /// the operating system to the program.  This function expects to be handed
@@ -182,6 +186,7 @@ public:
   /// generator will be automatically seeded in non-deterministic fashion.
   static unsigned GetRandomNumber();
 };
+
 }
 }
 

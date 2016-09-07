@@ -11,8 +11,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "llvm/Support/Mutex.h"
 #include "llvm/Config/config.h"
+#include "llvm/Support/Mutex.h"
 
 //===----------------------------------------------------------------------===//
 //=== WARNING: Implementation here must contain only TRULY operating system
@@ -23,8 +23,8 @@
 // Define all methods as no-ops if threading is explicitly disabled
 namespace llvm {
 using namespace sys;
-MutexImpl::MutexImpl(bool recursive) {}
-MutexImpl::~MutexImpl() {}
+MutexImpl::MutexImpl( bool recursive) { }
+MutexImpl::~MutexImpl() { }
 bool MutexImpl::acquire() { return true; }
 bool MutexImpl::release() { return true; }
 bool MutexImpl::tryacquire() { return true; }
@@ -41,20 +41,21 @@ namespace llvm {
 using namespace sys;
 
 // Construct a Mutex using pthread calls
-MutexImpl::MutexImpl(bool recursive) : data_(nullptr) {
+MutexImpl::MutexImpl( bool recursive)
+  : data_(nullptr)
+{
   // Declare the pthread_mutex data structures
-  pthread_mutex_t *mutex =
-      static_cast<pthread_mutex_t *>(malloc(sizeof(pthread_mutex_t)));
+  pthread_mutex_t* mutex =
+    static_cast<pthread_mutex_t*>(malloc(sizeof(pthread_mutex_t)));
   pthread_mutexattr_t attr;
 
   // Initialize the mutex attributes
   int errorcode = pthread_mutexattr_init(&attr);
-  assert(errorcode == 0);
-  (void)errorcode;
+  assert(errorcode == 0); (void)errorcode;
 
   // Initialize the mutex as a recursive mutex, if requested, or normal
   // otherwise.
-  int kind = (recursive ? PTHREAD_MUTEX_RECURSIVE : PTHREAD_MUTEX_NORMAL);
+  int kind = ( recursive  ? PTHREAD_MUTEX_RECURSIVE : PTHREAD_MUTEX_NORMAL );
   errorcode = pthread_mutexattr_settype(&attr, kind);
   assert(errorcode == 0);
 
@@ -71,41 +72,49 @@ MutexImpl::MutexImpl(bool recursive) : data_(nullptr) {
 }
 
 // Destruct a Mutex
-MutexImpl::~MutexImpl() {
-  pthread_mutex_t *mutex = static_cast<pthread_mutex_t *>(data_);
+MutexImpl::~MutexImpl()
+{
+  pthread_mutex_t* mutex = static_cast<pthread_mutex_t*>(data_);
   assert(mutex != nullptr);
   pthread_mutex_destroy(mutex);
   free(mutex);
 }
 
-bool MutexImpl::acquire() {
-  pthread_mutex_t *mutex = static_cast<pthread_mutex_t *>(data_);
+bool
+MutexImpl::acquire()
+{
+  pthread_mutex_t* mutex = static_cast<pthread_mutex_t*>(data_);
   assert(mutex != nullptr);
 
   int errorcode = pthread_mutex_lock(mutex);
   return errorcode == 0;
 }
 
-bool MutexImpl::release() {
-  pthread_mutex_t *mutex = static_cast<pthread_mutex_t *>(data_);
+bool
+MutexImpl::release()
+{
+  pthread_mutex_t* mutex = static_cast<pthread_mutex_t*>(data_);
   assert(mutex != nullptr);
 
   int errorcode = pthread_mutex_unlock(mutex);
   return errorcode == 0;
 }
 
-bool MutexImpl::tryacquire() {
-  pthread_mutex_t *mutex = static_cast<pthread_mutex_t *>(data_);
+bool
+MutexImpl::tryacquire()
+{
+  pthread_mutex_t* mutex = static_cast<pthread_mutex_t*>(data_);
   assert(mutex != nullptr);
 
   int errorcode = pthread_mutex_trylock(mutex);
   return errorcode == 0;
 }
+
 }
 
 #elif defined(LLVM_ON_UNIX)
 #include "Unix/Mutex.inc"
-#elif defined(LLVM_ON_WIN32)
+#elif defined( LLVM_ON_WIN32)
 #include "Windows/Mutex.inc"
 #else
 #warning Neither LLVM_ON_UNIX nor LLVM_ON_WIN32 was set in Support/Mutex.cpp

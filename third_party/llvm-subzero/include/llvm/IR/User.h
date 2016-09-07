@@ -19,7 +19,6 @@
 #ifndef LLVM_IR_USER_H
 #define LLVM_IR_USER_H
 
-#include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/iterator.h"
 #include "llvm/ADT/iterator_range.h"
 #include "llvm/IR/Value.h"
@@ -28,14 +27,19 @@
 
 namespace llvm {
 
+template <typename T> class ArrayRef;
+template <typename T> class MutableArrayRef;
+
 /// \brief Compile-time customization of User operands.
 ///
 /// Customizes operand-related allocators and accessors.
-template <class> struct OperandTraits;
+template <class>
+struct OperandTraits;
 
 class User : public Value {
   User(const User &) = delete;
-  template <unsigned> friend struct HungoffOperandTraits;
+  template <unsigned>
+  friend struct HungoffOperandTraits;
   virtual void anchor();
 
   LLVM_ATTRIBUTE_ALWAYS_INLINE inline static void *
@@ -63,7 +67,8 @@ protected:
   /// This is used for subclasses which have a fixed number of operands.
   void *operator new(size_t Size, unsigned Us, unsigned DescBytes);
 
-  User(Type *ty, unsigned vty, Use *, unsigned NumOps) : Value(ty, vty) {
+  User(Type *ty, unsigned vty, Use *, unsigned NumOps)
+      : Value(ty, vty) {
     assert(NumOps < (1u << NumUserOperandsBits) && "Too many operands");
     NumUserOperands = NumOps;
     // If we have hung off uses, then the operand list should initially be
@@ -83,26 +88,30 @@ protected:
   void growHungoffUses(unsigned N, bool IsPhi = false);
 
 public:
-  ~User() override {}
+  ~User() override {
+  }
   /// \brief Free memory allocated for User and Use objects.
   void operator delete(void *Usr);
   /// \brief Placement delete - required by std, but never called.
-  void operator delete(void *, unsigned) {
+  void operator delete(void*, unsigned) {
     llvm_unreachable("Constructor throws?");
   }
   /// \brief Placement delete - required by std, but never called.
-  void operator delete(void *, unsigned, bool) {
+  void operator delete(void*, unsigned, bool) {
     llvm_unreachable("Constructor throws?");
   }
-
 protected:
   template <int Idx, typename U> static Use &OpFrom(const U *that) {
-    return Idx < 0 ? OperandTraits<U>::op_end(const_cast<U *>(that))[Idx]
-                   : OperandTraits<U>::op_begin(const_cast<U *>(that))[Idx];
+    return Idx < 0
+      ? OperandTraits<U>::op_end(const_cast<U*>(that))[Idx]
+      : OperandTraits<U>::op_begin(const_cast<U*>(that))[Idx];
   }
-  template <int Idx> Use &Op() { return OpFrom<Idx>(this); }
-  template <int Idx> const Use &Op() const { return OpFrom<Idx>(this); }
-
+  template <int Idx> Use &Op() {
+    return OpFrom<Idx>(this);
+  }
+  template <int Idx> const Use &Op() const {
+    return OpFrom<Idx>(this);
+  }
 private:
   Use *&getHungOffOperands() { return *(reinterpret_cast<Use **>(this) - 1); }
 
@@ -115,7 +124,6 @@ private:
            "Setting operand list only required for hung off uses");
     getHungOffOperands() = NewList;
   }
-
 public:
   Use *getOperandList() {
     return HasHungOffUses ? getHungOffOperands() : getIntrusiveOperands();
@@ -129,8 +137,8 @@ public:
   }
   void setOperand(unsigned i, Value *Val) {
     assert(i < NumUserOperands && "setOperand() out of range!");
-    assert((!isa<Constant>((const Value *)this) ||
-            isa<GlobalValue>((const Value *)this)) &&
+    assert((!isa<Constant>((const Value*)this) ||
+            isa<GlobalValue>((const Value*)this)) &&
            "Cannot mutate a constant with setOperand!");
     getOperandList()[i] = Val;
   }
@@ -176,18 +184,22 @@ public:
   // ---------------------------------------------------------------------------
   // Operand Iterator interface...
   //
-  typedef Use *op_iterator;
-  typedef const Use *const_op_iterator;
+  typedef Use*       op_iterator;
+  typedef const Use* const_op_iterator;
   typedef iterator_range<op_iterator> op_range;
   typedef iterator_range<const_op_iterator> const_op_range;
 
-  op_iterator op_begin() { return getOperandList(); }
+  op_iterator       op_begin()       { return getOperandList(); }
   const_op_iterator op_begin() const { return getOperandList(); }
-  op_iterator op_end() { return getOperandList() + NumUserOperands; }
-  const_op_iterator op_end() const {
+  op_iterator       op_end()         {
     return getOperandList() + NumUserOperands;
   }
-  op_range operands() { return op_range(op_begin(), op_end()); }
+  const_op_iterator op_end()   const {
+    return getOperandList() + NumUserOperands;
+  }
+  op_range operands() {
+    return op_range(op_begin(), op_end());
+  }
   const_op_range operands() const {
     return const_op_range(op_begin(), op_end());
   }
@@ -203,8 +215,12 @@ public:
     Value *operator->() const { return operator*(); }
   };
 
-  value_op_iterator value_op_begin() { return value_op_iterator(op_begin()); }
-  value_op_iterator value_op_end() { return value_op_iterator(op_end()); }
+  value_op_iterator value_op_begin() {
+    return value_op_iterator(op_begin());
+  }
+  value_op_iterator value_op_end() {
+    return value_op_iterator(op_end());
+  }
   iterator_range<value_op_iterator> operand_values() {
     return make_range(value_op_begin(), value_op_end());
   }
@@ -239,14 +255,14 @@ static_assert(AlignOf<Use>::Alignment >= AlignOf<User>::Alignment,
 static_assert(AlignOf<Use *>::Alignment >= AlignOf<User>::Alignment,
               "Alignment is insufficient after objects prepended to User");
 
-template <> struct simplify_type<User::op_iterator> {
-  typedef Value *SimpleType;
+template<> struct simplify_type<User::op_iterator> {
+  typedef Value* SimpleType;
   static SimpleType getSimplifiedValue(User::op_iterator &Val) {
     return Val->get();
   }
 };
-template <> struct simplify_type<User::const_op_iterator> {
-  typedef /*const*/ Value *SimpleType;
+template<> struct simplify_type<User::const_op_iterator> {
+  typedef /*const*/ Value* SimpleType;
   static SimpleType getSimplifiedValue(User::const_op_iterator &Val) {
     return Val->get();
   }

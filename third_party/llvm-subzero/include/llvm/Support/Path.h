@@ -16,7 +16,6 @@
 #ifndef LLVM_SUPPORT_PATH_H
 #define LLVM_SUPPORT_PATH_H
 
-#include "llvm/ADT/SmallString.h"
 #include "llvm/ADT/Twine.h"
 #include "llvm/Support/DataTypes.h"
 #include <iterator>
@@ -51,7 +50,7 @@ class const_iterator
     : public std::iterator<std::input_iterator_tag, const StringRef> {
   StringRef Path;      ///< The entire path.
   StringRef Component; ///< The current component. Not necessarily in Path.
-  size_t Position;     ///< The iterators current position within Path.
+  size_t    Position;  ///< The iterators current position within Path.
 
   // An end iterator has Position = Path.size() + 1.
   friend const_iterator begin(StringRef path);
@@ -59,8 +58,8 @@ class const_iterator
 
 public:
   reference operator*() const { return Component; }
-  pointer operator->() const { return &Component; }
-  const_iterator &operator++(); // preincrement
+  pointer   operator->() const { return &Component; }
+  const_iterator &operator++();    // preincrement
   bool operator==(const const_iterator &RHS) const;
   bool operator!=(const const_iterator &RHS) const { return !(*this == RHS); }
 
@@ -77,17 +76,20 @@ class reverse_iterator
     : public std::iterator<std::input_iterator_tag, const StringRef> {
   StringRef Path;      ///< The entire path.
   StringRef Component; ///< The current component. Not necessarily in Path.
-  size_t Position;     ///< The iterators current position within Path.
+  size_t    Position;  ///< The iterators current position within Path.
 
   friend reverse_iterator rbegin(StringRef path);
   friend reverse_iterator rend(StringRef path);
 
 public:
   reference operator*() const { return Component; }
-  pointer operator->() const { return &Component; }
-  reverse_iterator &operator++(); // preincrement
+  pointer   operator->() const { return &Component; }
+  reverse_iterator &operator++();    // preincrement
   bool operator==(const reverse_iterator &RHS) const;
   bool operator!=(const reverse_iterator &RHS) const { return !(*this == RHS); }
+
+  /// @brief Difference in bytes between this and RHS.
+  ptrdiff_t operator-(const reverse_iterator &RHS) const;
 };
 
 /// @brief Get begin iterator over \a path.
@@ -150,8 +152,10 @@ void replace_extension(SmallVectorImpl<char> &path, const Twine &extension);
 ///
 /// @param path Set to \a path + \a component.
 /// @param a The component to be appended to \a path.
-void append(SmallVectorImpl<char> &path, const Twine &a, const Twine &b = "",
-            const Twine &c = "", const Twine &d = "");
+void append(SmallVectorImpl<char> &path, const Twine &a,
+                                         const Twine &b = "",
+                                         const Twine &c = "",
+                                         const Twine &d = "");
 
 /// @brief Append to path.
 ///
@@ -164,8 +168,8 @@ void append(SmallVectorImpl<char> &path, const Twine &a, const Twine &b = "",
 /// @param path Set to \a path + [\a begin, \a end).
 /// @param begin Start of components to append.
 /// @param end One past the end of components to append.
-void append(SmallVectorImpl<char> &path, const_iterator begin,
-            const_iterator end);
+void append(SmallVectorImpl<char> &path,
+            const_iterator begin, const_iterator end);
 
 /// @}
 /// @name Transforms (or some other better name)

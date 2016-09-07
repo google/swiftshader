@@ -39,7 +39,8 @@ namespace llvm {
 ///   .Cases("violet", "purple", Violet)
 ///   .Default(UnknownColor);
 /// \endcode
-template <typename T, typename R = T> class StringSwitch {
+template<typename T, typename R = T>
+class StringSwitch {
   /// \brief The string we are matching.
   StringRef Str;
 
@@ -49,92 +50,96 @@ template <typename T, typename R = T> class StringSwitch {
 
 public:
   LLVM_ATTRIBUTE_ALWAYS_INLINE
-  explicit StringSwitch(StringRef S) : Str(S), Result(nullptr) {}
+  explicit StringSwitch(StringRef S)
+  : Str(S), Result(nullptr) { }
 
-  template <unsigned N>
-  LLVM_ATTRIBUTE_ALWAYS_INLINE StringSwitch &Case(const char (&S)[N],
-                                                  const T &Value) {
-    if (!Result && N - 1 == Str.size() &&
-        (std::memcmp(S, Str.data(), N - 1) == 0)) {
+  template<unsigned N>
+  LLVM_ATTRIBUTE_ALWAYS_INLINE
+  StringSwitch& Case(const char (&S)[N], const T& Value) {
+    if (!Result && N-1 == Str.size() &&
+        (std::memcmp(S, Str.data(), N-1) == 0)) {
       Result = &Value;
     }
 
     return *this;
   }
 
-  template <unsigned N>
-  LLVM_ATTRIBUTE_ALWAYS_INLINE StringSwitch &EndsWith(const char (&S)[N],
-                                                      const T &Value) {
-    if (!Result && Str.size() >= N - 1 &&
-        std::memcmp(S, Str.data() + Str.size() + 1 - N, N - 1) == 0) {
+  template<unsigned N>
+  LLVM_ATTRIBUTE_ALWAYS_INLINE
+  StringSwitch& EndsWith(const char (&S)[N], const T &Value) {
+    if (!Result && Str.size() >= N-1 &&
+        std::memcmp(S, Str.data() + Str.size() + 1 - N, N-1) == 0) {
       Result = &Value;
     }
 
     return *this;
   }
 
-  template <unsigned N>
-  LLVM_ATTRIBUTE_ALWAYS_INLINE StringSwitch &StartsWith(const char (&S)[N],
-                                                        const T &Value) {
-    if (!Result && Str.size() >= N - 1 &&
-        std::memcmp(S, Str.data(), N - 1) == 0) {
+  template<unsigned N>
+  LLVM_ATTRIBUTE_ALWAYS_INLINE
+  StringSwitch& StartsWith(const char (&S)[N], const T &Value) {
+    if (!Result && Str.size() >= N-1 &&
+        std::memcmp(S, Str.data(), N-1) == 0) {
       Result = &Value;
     }
 
     return *this;
   }
 
-  template <unsigned N0, unsigned N1>
-  LLVM_ATTRIBUTE_ALWAYS_INLINE StringSwitch &
-  Cases(const char (&S0)[N0], const char (&S1)[N1], const T &Value) {
-    if (!Result &&
-        ((N0 - 1 == Str.size() && std::memcmp(S0, Str.data(), N0 - 1) == 0) ||
-         (N1 - 1 == Str.size() && std::memcmp(S1, Str.data(), N1 - 1) == 0))) {
+  template<unsigned N0, unsigned N1>
+  LLVM_ATTRIBUTE_ALWAYS_INLINE
+  StringSwitch& Cases(const char (&S0)[N0], const char (&S1)[N1],
+                      const T& Value) {
+    if (!Result && (
+        (N0-1 == Str.size() && std::memcmp(S0, Str.data(), N0-1) == 0) ||
+        (N1-1 == Str.size() && std::memcmp(S1, Str.data(), N1-1) == 0))) {
       Result = &Value;
     }
 
     return *this;
   }
 
-  template <unsigned N0, unsigned N1, unsigned N2>
-  LLVM_ATTRIBUTE_ALWAYS_INLINE StringSwitch &
-  Cases(const char (&S0)[N0], const char (&S1)[N1], const char (&S2)[N2],
-        const T &Value) {
-    if (!Result &&
-        ((N0 - 1 == Str.size() && std::memcmp(S0, Str.data(), N0 - 1) == 0) ||
-         (N1 - 1 == Str.size() && std::memcmp(S1, Str.data(), N1 - 1) == 0) ||
-         (N2 - 1 == Str.size() && std::memcmp(S2, Str.data(), N2 - 1) == 0))) {
+  template<unsigned N0, unsigned N1, unsigned N2>
+  LLVM_ATTRIBUTE_ALWAYS_INLINE
+  StringSwitch& Cases(const char (&S0)[N0], const char (&S1)[N1],
+                      const char (&S2)[N2], const T& Value) {
+    if (!Result && (
+        (N0-1 == Str.size() && std::memcmp(S0, Str.data(), N0-1) == 0) ||
+        (N1-1 == Str.size() && std::memcmp(S1, Str.data(), N1-1) == 0) ||
+        (N2-1 == Str.size() && std::memcmp(S2, Str.data(), N2-1) == 0))) {
       Result = &Value;
     }
 
     return *this;
   }
 
-  template <unsigned N0, unsigned N1, unsigned N2, unsigned N3>
-  LLVM_ATTRIBUTE_ALWAYS_INLINE StringSwitch &
-  Cases(const char (&S0)[N0], const char (&S1)[N1], const char (&S2)[N2],
-        const char (&S3)[N3], const T &Value) {
-    if (!Result &&
-        ((N0 - 1 == Str.size() && std::memcmp(S0, Str.data(), N0 - 1) == 0) ||
-         (N1 - 1 == Str.size() && std::memcmp(S1, Str.data(), N1 - 1) == 0) ||
-         (N2 - 1 == Str.size() && std::memcmp(S2, Str.data(), N2 - 1) == 0) ||
-         (N3 - 1 == Str.size() && std::memcmp(S3, Str.data(), N3 - 1) == 0))) {
+  template<unsigned N0, unsigned N1, unsigned N2, unsigned N3>
+  LLVM_ATTRIBUTE_ALWAYS_INLINE
+  StringSwitch& Cases(const char (&S0)[N0], const char (&S1)[N1],
+                      const char (&S2)[N2], const char (&S3)[N3],
+                      const T& Value) {
+    if (!Result && (
+        (N0-1 == Str.size() && std::memcmp(S0, Str.data(), N0-1) == 0) ||
+        (N1-1 == Str.size() && std::memcmp(S1, Str.data(), N1-1) == 0) ||
+        (N2-1 == Str.size() && std::memcmp(S2, Str.data(), N2-1) == 0) ||
+        (N3-1 == Str.size() && std::memcmp(S3, Str.data(), N3-1) == 0))) {
       Result = &Value;
     }
 
     return *this;
   }
 
-  template <unsigned N0, unsigned N1, unsigned N2, unsigned N3, unsigned N4>
-  LLVM_ATTRIBUTE_ALWAYS_INLINE StringSwitch &
-  Cases(const char (&S0)[N0], const char (&S1)[N1], const char (&S2)[N2],
-        const char (&S3)[N3], const char (&S4)[N4], const T &Value) {
-    if (!Result &&
-        ((N0 - 1 == Str.size() && std::memcmp(S0, Str.data(), N0 - 1) == 0) ||
-         (N1 - 1 == Str.size() && std::memcmp(S1, Str.data(), N1 - 1) == 0) ||
-         (N2 - 1 == Str.size() && std::memcmp(S2, Str.data(), N2 - 1) == 0) ||
-         (N3 - 1 == Str.size() && std::memcmp(S3, Str.data(), N3 - 1) == 0) ||
-         (N4 - 1 == Str.size() && std::memcmp(S4, Str.data(), N4 - 1) == 0))) {
+  template<unsigned N0, unsigned N1, unsigned N2, unsigned N3, unsigned N4>
+  LLVM_ATTRIBUTE_ALWAYS_INLINE
+  StringSwitch& Cases(const char (&S0)[N0], const char (&S1)[N1],
+                      const char (&S2)[N2], const char (&S3)[N3],
+                      const char (&S4)[N4], const T& Value) {
+    if (!Result && (
+        (N0-1 == Str.size() && std::memcmp(S0, Str.data(), N0-1) == 0) ||
+        (N1-1 == Str.size() && std::memcmp(S1, Str.data(), N1-1) == 0) ||
+        (N2-1 == Str.size() && std::memcmp(S2, Str.data(), N2-1) == 0) ||
+        (N3-1 == Str.size() && std::memcmp(S3, Str.data(), N3-1) == 0) ||
+        (N4-1 == Str.size() && std::memcmp(S4, Str.data(), N4-1) == 0))) {
       Result = &Value;
     }
 
@@ -142,7 +147,7 @@ public:
   }
 
   LLVM_ATTRIBUTE_ALWAYS_INLINE
-  R Default(const T &Value) const {
+  R Default(const T& Value) const {
     if (Result)
       return *Result;
 

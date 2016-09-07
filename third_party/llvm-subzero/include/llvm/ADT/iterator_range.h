@@ -19,8 +19,8 @@
 #ifndef LLVM_ADT_ITERATOR_RANGE_H
 #define LLVM_ADT_ITERATOR_RANGE_H
 
-#include <iterator>
 #include <utility>
+#include <iterator>
 
 namespace llvm {
 
@@ -28,17 +28,17 @@ namespace llvm {
 ///
 /// This just wraps two iterators into a range-compatible interface. Nothing
 /// fancy at all.
-template <typename IteratorT> class iterator_range {
+template <typename IteratorT>
+class iterator_range {
   IteratorT begin_iterator, end_iterator;
 
 public:
-  // TODO: Add SFINAE to test that the Container's iterators match the range's
+  //TODO: Add SFINAE to test that the Container's iterators match the range's
   //      iterators.
   template <typename Container>
   iterator_range(Container &&c)
-      // TODO: Consider ADL/non-member begin/end calls.
-      : begin_iterator(c.begin()),
-        end_iterator(c.end()) {}
+  //TODO: Consider ADL/non-member begin/end calls.
+      : begin_iterator(c.begin()), end_iterator(c.end()) {}
   iterator_range(IteratorT begin_iterator, IteratorT end_iterator)
       : begin_iterator(std::move(begin_iterator)),
         end_iterator(std::move(end_iterator)) {}
@@ -59,7 +59,7 @@ template <typename T> iterator_range<T> make_range(std::pair<T, T> p) {
   return iterator_range<T>(std::move(p.first), std::move(p.second));
 }
 
-template <typename T>
+template<typename T>
 iterator_range<decltype(begin(std::declval<T>()))> drop_begin(T &&t, int n) {
   return make_range(std::next(begin(t), n), end(t));
 }

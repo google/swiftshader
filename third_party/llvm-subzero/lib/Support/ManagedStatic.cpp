@@ -14,7 +14,6 @@
 #include "llvm/Support/ManagedStatic.h"
 #include "llvm/Config/config.h"
 #include "llvm/Support/Atomic.h"
-#include "llvm/Support/Compiler.h"
 #include "llvm/Support/Mutex.h"
 #include "llvm/Support/MutexGuard.h"
 #include <cassert>
@@ -22,7 +21,7 @@ using namespace llvm;
 
 static const ManagedStaticBase *StaticList = nullptr;
 
-static sys::Mutex &getManagedStaticMutex() {
+static sys::Mutex& getManagedStaticMutex() {
   // We need to use a function local static here, since this can get called
   // during a static constructor and we need to guarantee that it's initialized
   // correctly.
@@ -31,13 +30,13 @@ static sys::Mutex &getManagedStaticMutex() {
 }
 
 void ManagedStaticBase::RegisterManagedStatic(void *(*Creator)(),
-                                              void (*Deleter)(void *)) const {
+                                              void (*Deleter)(void*)) const {
   assert(Creator);
   if (llvm_is_multithreaded()) {
     MutexGuard Lock(getManagedStaticMutex());
 
     if (!Ptr) {
-      void *tmp = Creator();
+      void* tmp = Creator();
 
       TsanHappensBefore(this);
       sys::MemoryFence();
@@ -49,7 +48,7 @@ void ManagedStaticBase::RegisterManagedStatic(void *(*Creator)(),
       Ptr = tmp;
       TsanIgnoreWritesEnd();
       DeleterFn = Deleter;
-
+      
       // Add to list of managed statics.
       Next = StaticList;
       StaticList = this;
@@ -59,7 +58,7 @@ void ManagedStaticBase::RegisterManagedStatic(void *(*Creator)(),
            "Partially initialized ManagedStatic!?");
     Ptr = Creator();
     DeleterFn = Deleter;
-
+  
     // Add to list of managed statics.
     Next = StaticList;
     StaticList = this;
@@ -76,7 +75,7 @@ void ManagedStaticBase::destroy() const {
 
   // Destroy memory.
   DeleterFn(Ptr);
-
+  
   // Cleanup.
   Ptr = nullptr;
   DeleterFn = nullptr;

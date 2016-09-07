@@ -13,6 +13,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "llvm/ADT/APInt.h"
+#include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/FoldingSet.h"
 #include "llvm/ADT/Hashing.h"
 #include "llvm/ADT/SmallString.h"
@@ -31,8 +32,8 @@ using namespace llvm;
 
 /// A utility function for allocating memory, checking for allocation failures,
 /// and ensuring the contents are zeroed.
-inline static uint64_t *getClearedMemory(unsigned numWords) {
-  uint64_t *result = new uint64_t[numWords];
+inline static uint64_t* getClearedMemory(unsigned numWords) {
+  uint64_t * result = new uint64_t[numWords];
   assert(result && "APInt memory allocation fails!");
   memset(result, 0, numWords * sizeof(uint64_t));
   return result;
@@ -40,8 +41,8 @@ inline static uint64_t *getClearedMemory(unsigned numWords) {
 
 /// A utility function for allocating memory and checking for allocation
 /// failure.  The content is not zeroed.
-inline static uint64_t *getMemory(unsigned numWords) {
-  uint64_t *result = new uint64_t[numWords];
+inline static uint64_t* getMemory(unsigned numWords) {
+  uint64_t * result = new uint64_t[numWords];
   assert(result && "APInt memory allocation fails!");
   return result;
 }
@@ -62,7 +63,7 @@ inline static unsigned getDigit(char cdigit, uint8_t radix) {
     r = cdigit - 'a';
     if (r <= radix - 11U)
       return r + 10;
-
+    
     radix = 10;
   }
 
@@ -73,6 +74,7 @@ inline static unsigned getDigit(char cdigit, uint8_t radix) {
   return -1U;
 }
 
+
 void APInt::initSlowCase(unsigned numBits, uint64_t val, bool isSigned) {
   pVal = getClearedMemory(getNumWords());
   pVal[0] = val;
@@ -81,7 +83,7 @@ void APInt::initSlowCase(unsigned numBits, uint64_t val, bool isSigned) {
       pVal[i] = -1ULL;
 }
 
-void APInt::initSlowCase(const APInt &that) {
+void APInt::initSlowCase(const APInt& that) {
   pVal = getMemory(getNumWords());
   memcpy(pVal, that.pVal, getNumWords() * APINT_WORD_SIZE);
 }
@@ -104,22 +106,22 @@ void APInt::initFromArray(ArrayRef<uint64_t> bigVal) {
 }
 
 APInt::APInt(unsigned numBits, ArrayRef<uint64_t> bigVal)
-    : BitWidth(numBits), VAL(0) {
+  : BitWidth(numBits), VAL(0) {
   initFromArray(bigVal);
 }
 
 APInt::APInt(unsigned numBits, unsigned numWords, const uint64_t bigVal[])
-    : BitWidth(numBits), VAL(0) {
+  : BitWidth(numBits), VAL(0) {
   initFromArray(makeArrayRef(bigVal, numWords));
 }
 
 APInt::APInt(unsigned numbits, StringRef Str, uint8_t radix)
-    : BitWidth(numbits), VAL(0) {
+  : BitWidth(numbits), VAL(0) {
   assert(BitWidth && "Bitwidth too small");
   fromString(numbits, Str, radix);
 }
 
-APInt &APInt::AssignSlowCase(const APInt &RHS) {
+APInt& APInt::AssignSlowCase(const APInt& RHS) {
   // Don't do anything for X = X
   if (this == &RHS)
     return *this;
@@ -140,10 +142,10 @@ APInt &APInt::AssignSlowCase(const APInt &RHS) {
   } else if (getNumWords() == RHS.getNumWords())
     memcpy(pVal, RHS.pVal, RHS.getNumWords() * APINT_WORD_SIZE);
   else if (RHS.isSingleWord()) {
-    delete[] pVal;
+    delete [] pVal;
     VAL = RHS.VAL;
   } else {
-    delete[] pVal;
+    delete [] pVal;
     pVal = getMemory(RHS.getNumWords());
     memcpy(pVal, RHS.pVal, RHS.getNumWords() * APINT_WORD_SIZE);
   }
@@ -151,18 +153,18 @@ APInt &APInt::AssignSlowCase(const APInt &RHS) {
   return clearUnusedBits();
 }
 
-APInt &APInt::operator=(uint64_t RHS) {
+APInt& APInt::operator=(uint64_t RHS) {
   if (isSingleWord())
     VAL = RHS;
   else {
     pVal[0] = RHS;
-    memset(pVal + 1, 0, (getNumWords() - 1) * APINT_WORD_SIZE);
+    memset(pVal+1, 0, (getNumWords() - 1) * APINT_WORD_SIZE);
   }
   return clearUnusedBits();
 }
 
 /// This method 'profiles' an APInt for use with FoldingSet.
-void APInt::Profile(FoldingSetNodeID &ID) const {
+void APInt::Profile(FoldingSetNodeID& ID) const {
   ID.AddInteger(BitWidth);
 
   if (isSingleWord()) {
@@ -193,7 +195,7 @@ static bool add_1(uint64_t dest[], uint64_t x[], unsigned len, uint64_t y) {
 }
 
 /// @brief Prefix increment operator. Increments the APInt by one.
-APInt &APInt::operator++() {
+APInt& APInt::operator++() {
   if (isSingleWord())
     ++VAL;
   else
@@ -212,17 +214,17 @@ static bool sub_1(uint64_t x[], unsigned len, uint64_t y) {
     uint64_t X = x[i];
     x[i] -= y;
     if (y > X)
-      y = 1; // We have to "borrow 1" from next "digit"
+      y = 1;  // We have to "borrow 1" from next "digit"
     else {
-      y = 0; // No need to borrow
-      break; // Remaining digits are unchanged so exit early
+      y = 0;  // No need to borrow
+      break;  // Remaining digits are unchanged so exit early
     }
   }
   return bool(y);
 }
 
 /// @brief Prefix decrement operator. Decrements the APInt by one.
-APInt &APInt::operator--() {
+APInt& APInt::operator--() {
   if (isSingleWord())
     --VAL;
   else
@@ -237,8 +239,8 @@ APInt &APInt::operator--() {
 static bool add(uint64_t *dest, const uint64_t *x, const uint64_t *y,
                 unsigned len) {
   bool carry = false;
-  for (unsigned i = 0; i < len; ++i) {
-    uint64_t limit = std::min(x[i], y[i]); // must come first in case dest == x
+  for (unsigned i = 0; i< len; ++i) {
+    uint64_t limit = std::min(x[i],y[i]); // must come first in case dest == x
     dest[i] = x[i] + y[i] + carry;
     carry = dest[i] < limit || (carry && dest[i] == limit);
   }
@@ -248,7 +250,7 @@ static bool add(uint64_t *dest, const uint64_t *x, const uint64_t *y,
 /// Adds the RHS APint to this APInt.
 /// @returns this, after addition of RHS.
 /// @brief Addition assignment operator.
-APInt &APInt::operator+=(const APInt &RHS) {
+APInt& APInt::operator+=(const APInt& RHS) {
   assert(BitWidth == RHS.BitWidth && "Bit widths must be the same");
   if (isSingleWord())
     VAL += RHS.VAL;
@@ -275,7 +277,7 @@ static bool sub(uint64_t *dest, const uint64_t *x, const uint64_t *y,
 /// Subtracts the RHS APInt from this APInt
 /// @returns this, after subtraction
 /// @brief Subtraction assignment operator.
-APInt &APInt::operator-=(const APInt &RHS) {
+APInt& APInt::operator-=(const APInt& RHS) {
   assert(BitWidth == RHS.BitWidth && "Bit widths must be the same");
   if (isSingleWord())
     VAL -= RHS.VAL;
@@ -343,17 +345,16 @@ static void mul(uint64_t dest[], uint64_t x[], unsigned xlen, uint64_t y[],
 
       carry += (lx * hy) & 0xffffffffULL;
       resul = (carry << 32) | (resul & 0xffffffffULL);
-      dest[i + j] += resul;
-      carry =
-          (((!carry && hasCarry != 2) || hasCarry == 1) ? (1ULL << 32) : 0) +
-          (carry >> 32) + (dest[i + j] < resul ? 1 : 0) + ((lx * hy) >> 32) +
-          hx * hy;
+      dest[i+j] += resul;
+      carry = (((!carry && hasCarry != 2) || hasCarry == 1) ? (1ULL << 32) : 0)+
+              (carry >> 32) + (dest[i+j] < resul ? 1 : 0) +
+              ((lx * hy) >> 32) + hx * hy;
     }
-    dest[i + xlen] = carry;
+    dest[i+xlen] = carry;
   }
 }
 
-APInt &APInt::operator*=(const APInt &RHS) {
+APInt& APInt::operator*=(const APInt& RHS) {
   assert(BitWidth == RHS.BitWidth && "Bit widths must be the same");
   if (isSingleWord()) {
     VAL *= RHS.VAL;
@@ -395,7 +396,7 @@ APInt &APInt::operator*=(const APInt &RHS) {
   return *this;
 }
 
-APInt &APInt::operator&=(const APInt &RHS) {
+APInt& APInt::operator&=(const APInt& RHS) {
   assert(BitWidth == RHS.BitWidth && "Bit widths must be the same");
   if (isSingleWord()) {
     VAL &= RHS.VAL;
@@ -407,7 +408,7 @@ APInt &APInt::operator&=(const APInt &RHS) {
   return *this;
 }
 
-APInt &APInt::operator|=(const APInt &RHS) {
+APInt& APInt::operator|=(const APInt& RHS) {
   assert(BitWidth == RHS.BitWidth && "Bit widths must be the same");
   if (isSingleWord()) {
     VAL |= RHS.VAL;
@@ -419,7 +420,7 @@ APInt &APInt::operator|=(const APInt &RHS) {
   return *this;
 }
 
-APInt &APInt::operator^=(const APInt &RHS) {
+APInt& APInt::operator^=(const APInt& RHS) {
   assert(BitWidth == RHS.BitWidth && "Bit widths must be the same");
   if (isSingleWord()) {
     VAL ^= RHS.VAL;
@@ -432,15 +433,15 @@ APInt &APInt::operator^=(const APInt &RHS) {
   return clearUnusedBits();
 }
 
-APInt APInt::AndSlowCase(const APInt &RHS) const {
+APInt APInt::AndSlowCase(const APInt& RHS) const {
   unsigned numWords = getNumWords();
-  uint64_t *val = getMemory(numWords);
+  uint64_t* val = getMemory(numWords);
   for (unsigned i = 0; i < numWords; ++i)
     val[i] = pVal[i] & RHS.pVal[i];
   return APInt(val, getBitWidth());
 }
 
-APInt APInt::OrSlowCase(const APInt &RHS) const {
+APInt APInt::OrSlowCase(const APInt& RHS) const {
   unsigned numWords = getNumWords();
   uint64_t *val = getMemory(numWords);
   for (unsigned i = 0; i < numWords; ++i)
@@ -448,7 +449,7 @@ APInt APInt::OrSlowCase(const APInt &RHS) const {
   return APInt(val, getBitWidth());
 }
 
-APInt APInt::XorSlowCase(const APInt &RHS) const {
+APInt APInt::XorSlowCase(const APInt& RHS) const {
   unsigned numWords = getNumWords();
   uint64_t *val = getMemory(numWords);
   for (unsigned i = 0; i < numWords; ++i)
@@ -460,7 +461,7 @@ APInt APInt::XorSlowCase(const APInt &RHS) const {
   return Result;
 }
 
-APInt APInt::operator*(const APInt &RHS) const {
+APInt APInt::operator*(const APInt& RHS) const {
   assert(BitWidth == RHS.BitWidth && "Bit widths must be the same");
   if (isSingleWord())
     return APInt(BitWidth, VAL * RHS.VAL);
@@ -469,7 +470,7 @@ APInt APInt::operator*(const APInt &RHS) const {
   return Result;
 }
 
-APInt APInt::operator+(const APInt &RHS) const {
+APInt APInt::operator+(const APInt& RHS) const {
   assert(BitWidth == RHS.BitWidth && "Bit widths must be the same");
   if (isSingleWord())
     return APInt(BitWidth, VAL + RHS.VAL);
@@ -479,7 +480,7 @@ APInt APInt::operator+(const APInt &RHS) const {
   return Result;
 }
 
-APInt APInt::operator-(const APInt &RHS) const {
+APInt APInt::operator-(const APInt& RHS) const {
   assert(BitWidth == RHS.BitWidth && "Bit widths must be the same");
   if (isSingleWord())
     return APInt(BitWidth, VAL - RHS.VAL);
@@ -489,24 +490,8 @@ APInt APInt::operator-(const APInt &RHS) const {
   return Result;
 }
 
-bool APInt::EqualSlowCase(const APInt &RHS) const {
-  // Get some facts about the number of bits used in the two operands.
-  unsigned n1 = getActiveBits();
-  unsigned n2 = RHS.getActiveBits();
-
-  // If the number of bits isn't the same, they aren't equal
-  if (n1 != n2)
-    return false;
-
-  // If the number of bits fits in a word, we only need to compare the low word.
-  if (n1 <= APINT_BITS_PER_WORD)
-    return pVal[0] == RHS.pVal[0];
-
-  // Otherwise, compare everything
-  for (int i = whichWord(n1 - 1); i >= 0; --i)
-    if (pVal[i] != RHS.pVal[i])
-      return false;
-  return true;
+bool APInt::EqualSlowCase(const APInt& RHS) const {
+  return std::equal(pVal, pVal + getNumWords(), RHS.pVal);
 }
 
 bool APInt::EqualSlowCase(uint64_t Val) const {
@@ -517,7 +502,7 @@ bool APInt::EqualSlowCase(uint64_t Val) const {
     return false;
 }
 
-bool APInt::ult(const APInt &RHS) const {
+bool APInt::ult(const APInt& RHS) const {
   assert(BitWidth == RHS.BitWidth && "Bit widths must be same for comparison");
   if (isSingleWord())
     return VAL < RHS.VAL;
@@ -539,7 +524,7 @@ bool APInt::ult(const APInt &RHS) const {
     return pVal[0] < RHS.pVal[0];
 
   // Otherwise, compare all words
-  unsigned topWord = whichWord(std::max(n1, n2) - 1);
+  unsigned topWord = whichWord(std::max(n1,n2)-1);
   for (int i = topWord; i >= 0; --i) {
     if (pVal[i] > RHS.pVal[i])
       return false;
@@ -549,11 +534,11 @@ bool APInt::ult(const APInt &RHS) const {
   return false;
 }
 
-bool APInt::slt(const APInt &RHS) const {
+bool APInt::slt(const APInt& RHS) const {
   assert(BitWidth == RHS.BitWidth && "Bit widths must be same for comparison");
   if (isSingleWord()) {
-    int64_t lhsSext = (int64_t(VAL) << (64 - BitWidth)) >> (64 - BitWidth);
-    int64_t rhsSext = (int64_t(RHS.VAL) << (64 - BitWidth)) >> (64 - BitWidth);
+    int64_t lhsSext = (int64_t(VAL) << (64-BitWidth)) >> (64-BitWidth);
+    int64_t rhsSext = (int64_t(RHS.VAL) << (64-BitWidth)) >> (64-BitWidth);
     return lhsSext < rhsSext;
   }
 
@@ -608,17 +593,15 @@ void APInt::clearBit(unsigned bitPosition) {
 /// @brief Toggles a given bit to its opposite value.
 void APInt::flipBit(unsigned bitPosition) {
   assert(bitPosition < BitWidth && "Out of the bit-width range!");
-  if ((*this)[bitPosition])
-    clearBit(bitPosition);
-  else
-    setBit(bitPosition);
+  if ((*this)[bitPosition]) clearBit(bitPosition);
+  else setBit(bitPosition);
 }
 
 unsigned APInt::getBitsNeeded(StringRef str, uint8_t radix) {
   assert(!str.empty() && "Invalid string length");
-  assert(
-      (radix == 10 || radix == 8 || radix == 16 || radix == 2 || radix == 36) &&
-      "Radix should be 2, 8, 10, 16, or 36!");
+  assert((radix == 10 || radix == 8 || radix == 16 || radix == 2 || 
+          radix == 36) &&
+         "Radix should be 2, 8, 10, 16, or 36!");
 
   size_t slen = str.size();
 
@@ -641,7 +624,7 @@ unsigned APInt::getBitsNeeded(StringRef str, uint8_t radix) {
     return slen * 4 + isNegative;
 
   // FIXME: base 36
-
+  
   // This is grossly inefficient but accurate. We could probably do something
   // with a computation of roughly slen*64/20 and then adjust by the value of
   // the first few digits. But, I'm not sure how accurate that could be.
@@ -650,8 +633,9 @@ unsigned APInt::getBitsNeeded(StringRef str, uint8_t radix) {
   // be too large. This avoids the assertion in the constructor. This
   // calculation doesn't work appropriately for the numbers 0-9, so just use 4
   // bits in that case.
-  unsigned sufficient = radix == 10 ? (slen == 1 ? 4 : slen * 64 / 18)
-                                    : (slen == 1 ? 7 : slen * 16 / 3);
+  unsigned sufficient 
+    = radix == 10? (slen == 1 ? 4 : slen * 64/18)
+                 : (slen == 1 ? 7 : slen * 16/3);
 
   // Convert to the actual binary value.
   APInt tmp(sufficient, StringRef(p, slen), radix);
@@ -693,31 +677,19 @@ APInt APInt::getLoBits(unsigned numBits) const {
 }
 
 unsigned APInt::countLeadingZerosSlowCase() const {
-  // Treat the most significand word differently because it might have
-  // meaningless bits set beyond the precision.
-  unsigned BitsInMSW = BitWidth % APINT_BITS_PER_WORD;
-  integerPart MSWMask;
-  if (BitsInMSW)
-    MSWMask = (integerPart(1) << BitsInMSW) - 1;
-  else {
-    MSWMask = ~integerPart(0);
-    BitsInMSW = APINT_BITS_PER_WORD;
-  }
-
-  unsigned i = getNumWords();
-  integerPart MSW = pVal[i - 1] & MSWMask;
-  if (MSW)
-    return llvm::countLeadingZeros(MSW) - (APINT_BITS_PER_WORD - BitsInMSW);
-
-  unsigned Count = BitsInMSW;
-  for (--i; i > 0u; --i) {
-    if (pVal[i - 1] == 0)
+  unsigned Count = 0;
+  for (int i = getNumWords()-1; i >= 0; --i) {
+    integerPart V = pVal[i];
+    if (V == 0)
       Count += APINT_BITS_PER_WORD;
     else {
-      Count += llvm::countLeadingZeros(pVal[i - 1]);
+      Count += llvm::countLeadingZeros(V);
       break;
     }
   }
+  // Adjust for unused bits in the most significant word (they are zero).
+  unsigned Mod = BitWidth % APINT_BITS_PER_WORD;
+  Count -= Mod > 0 ? APINT_BITS_PER_WORD - Mod : 0;
   return Count;
 }
 
@@ -816,8 +788,38 @@ APInt APInt::byteSwap() const {
   return Result;
 }
 
-APInt llvm::APIntOps::GreatestCommonDivisor(const APInt &API1,
-                                            const APInt &API2) {
+APInt APInt::reverseBits() const {
+  switch (BitWidth) {
+  case 64:
+    return APInt(BitWidth, llvm::reverseBits<uint64_t>(VAL));
+  case 32:
+    return APInt(BitWidth, llvm::reverseBits<uint32_t>(VAL));
+  case 16:
+    return APInt(BitWidth, llvm::reverseBits<uint16_t>(VAL));
+  case 8:
+    return APInt(BitWidth, llvm::reverseBits<uint8_t>(VAL));
+  default:
+    break;
+  }
+
+  APInt Val(*this);
+  APInt Reversed(*this);
+  int S = BitWidth - 1;
+
+  const APInt One(BitWidth, 1);
+
+  for ((Val = Val.lshr(1)); Val != 0; (Val = Val.lshr(1))) {
+    Reversed <<= 1;
+    Reversed |= (Val & One);
+    --S;
+  }
+
+  Reversed <<= S;
+  return Reversed;
+}
+
+APInt llvm::APIntOps::GreatestCommonDivisor(const APInt& API1,
+                                            const APInt& API2) {
   APInt A = API1, B = API2;
   while (!!B) {
     APInt T = B;
@@ -849,8 +851,8 @@ APInt llvm::APIntOps::RoundDoubleToAPInt(double Double, unsigned width) {
 
   // If the exponent doesn't shift all bits out of the mantissa
   if (exp < 52)
-    return isNeg ? -APInt(width, mantissa >> (52 - exp))
-                 : APInt(width, mantissa >> (52 - exp));
+    return isNeg ? -APInt(width, mantissa >> (52 - exp)) :
+                    APInt(width, mantissa >> (52 - exp));
 
   // If the client didn't provide enough bits for us to shift the mantissa into
   // then the result is undefined, just return 0
@@ -873,19 +875,17 @@ APInt llvm::APIntOps::RoundDoubleToAPInt(double Double, unsigned width) {
 double APInt::roundToDouble(bool isSigned) const {
 
   // Handle the simple case where the value is contained in one uint64_t.
-  // It is wrong to optimize getWord(0) to VAL; there might be more than one
-  // word.
+  // It is wrong to optimize getWord(0) to VAL; there might be more than one word.
   if (isSingleWord() || getActiveBits() <= APINT_BITS_PER_WORD) {
     if (isSigned) {
-      int64_t sext =
-          (int64_t(getWord(0)) << (64 - BitWidth)) >> (64 - BitWidth);
+      int64_t sext = (int64_t(getWord(0)) << (64-BitWidth)) >> (64-BitWidth);
       return double(sext);
     } else
       return double(getWord(0));
   }
 
   // Determine if the value is negative.
-  bool isNeg = isSigned ? (*this)[BitWidth - 1] : false;
+  bool isNeg = isSigned ? (*this)[BitWidth-1] : false;
 
   // Construct the absolute value if we're negative.
   APInt Tmp(isNeg ? -(*this) : (*this));
@@ -910,7 +910,7 @@ double APInt::roundToDouble(bool isSigned) const {
   // Number of bits in mantissa is 52. To obtain the mantissa value, we must
   // extract the high 52 bits from the correct words in pVal.
   uint64_t mantissa;
-  unsigned hiWord = whichWord(n - 1);
+  unsigned hiWord = whichWord(n-1);
   if (hiWord == 0) {
     mantissa = Tmp.pVal[0];
     if (n > 52)
@@ -918,7 +918,7 @@ double APInt::roundToDouble(bool isSigned) const {
   } else {
     assert(hiWord > 0 && "huh?");
     uint64_t hibits = Tmp.pVal[hiWord] << (52 - n % APINT_BITS_PER_WORD);
-    uint64_t lobits = Tmp.pVal[hiWord - 1] >> (11 + n % APINT_BITS_PER_WORD);
+    uint64_t lobits = Tmp.pVal[hiWord-1] >> (11 + n % APINT_BITS_PER_WORD);
     mantissa = hibits | lobits;
   }
 
@@ -1065,7 +1065,7 @@ APInt APInt::ashr(unsigned shiftAmt) const {
     else {
       unsigned SignBit = APINT_BITS_PER_WORD - BitWidth;
       return APInt(BitWidth,
-                   (((int64_t(VAL) << SignBit) >> SignBit) >> shiftAmt));
+        (((int64_t(VAL) << SignBit) >> SignBit) >> shiftAmt));
     }
   }
 
@@ -1080,12 +1080,12 @@ APInt APInt::ashr(unsigned shiftAmt) const {
   }
 
   // Create some space for the result.
-  uint64_t *val = new uint64_t[getNumWords()];
+  uint64_t * val = new uint64_t[getNumWords()];
 
   // Compute some values needed by the following shift algorithms
   unsigned wordShift = shiftAmt % APINT_BITS_PER_WORD; // bits to shift per word
-  unsigned offset = shiftAmt / APINT_BITS_PER_WORD;    // word offset for shift
-  unsigned breakWord = getNumWords() - 1 - offset;     // last word affected
+  unsigned offset = shiftAmt / APINT_BITS_PER_WORD; // word offset for shift
+  unsigned breakWord = getNumWords() - 1 - offset; // last word affected
   unsigned bitsInWord = whichBit(BitWidth); // how many bits in last word?
   if (bitsInWord == 0)
     bitsInWord = APINT_BITS_PER_WORD;
@@ -1094,7 +1094,7 @@ APInt APInt::ashr(unsigned shiftAmt) const {
   if (wordShift == 0) {
     // Move the words containing significant bits
     for (unsigned i = 0; i <= breakWord; ++i)
-      val[i] = pVal[i + offset]; // move whole word
+      val[i] = pVal[i+offset]; // move whole word
 
     // Adjust the top significant word for sign bit fill, if negative
     if (isNegative())
@@ -1105,21 +1105,21 @@ APInt APInt::ashr(unsigned shiftAmt) const {
     for (unsigned i = 0; i < breakWord; ++i) {
       // This combines the shifted corresponding word with the low bits from
       // the next word (shifted into this word's high bits).
-      val[i] = (pVal[i + offset] >> wordShift) |
-               (pVal[i + offset + 1] << (APINT_BITS_PER_WORD - wordShift));
+      val[i] = (pVal[i+offset] >> wordShift) |
+               (pVal[i+offset+1] << (APINT_BITS_PER_WORD - wordShift));
     }
 
     // Shift the break word. In this case there are no bits from the next word
     // to include in this word.
-    val[breakWord] = pVal[breakWord + offset] >> wordShift;
+    val[breakWord] = pVal[breakWord+offset] >> wordShift;
 
     // Deal with sign extension in the break word, and possibly the word before
     // it.
     if (isNegative()) {
       if (wordShift > bitsInWord) {
         if (breakWord > 0)
-          val[breakWord - 1] |=
-              ~0ULL << (APINT_BITS_PER_WORD - (wordShift - bitsInWord));
+          val[breakWord-1] |=
+            ~0ULL << (APINT_BITS_PER_WORD - (wordShift - bitsInWord));
         val[breakWord] |= ~0ULL;
       } else
         val[breakWord] |= (~0ULL << (bitsInWord - wordShift));
@@ -1128,7 +1128,7 @@ APInt APInt::ashr(unsigned shiftAmt) const {
 
   // Remaining words are 0 or -1, just assign them.
   uint64_t fillValue = (isNegative() ? -1ULL : 0);
-  for (unsigned i = breakWord + 1; i < getNumWords(); ++i)
+  for (unsigned i = breakWord+1; i < getNumWords(); ++i)
     val[i] = fillValue;
   APInt Result(val, BitWidth);
   Result.clearUnusedBits();
@@ -1164,7 +1164,7 @@ APInt APInt::lshr(unsigned shiftAmt) const {
     return *this;
 
   // Create some space for the result.
-  uint64_t *val = new uint64_t[getNumWords()];
+  uint64_t * val = new uint64_t[getNumWords()];
 
   // If we are shifting less than a word, compute the shift with a simple carry
   if (shiftAmt < APINT_BITS_PER_WORD) {
@@ -1181,8 +1181,8 @@ APInt APInt::lshr(unsigned shiftAmt) const {
   // If we are shifting whole words, just move whole words
   if (wordShift == 0) {
     for (unsigned i = 0; i < getNumWords() - offset; ++i)
-      val[i] = pVal[i + offset];
-    for (unsigned i = getNumWords() - offset; i < getNumWords(); i++)
+      val[i] = pVal[i+offset];
+    for (unsigned i = getNumWords()-offset; i < getNumWords(); i++)
       val[i] = 0;
     APInt Result(val, BitWidth);
     Result.clearUnusedBits();
@@ -1190,15 +1190,15 @@ APInt APInt::lshr(unsigned shiftAmt) const {
   }
 
   // Shift the low order words
-  unsigned breakWord = getNumWords() - offset - 1;
+  unsigned breakWord = getNumWords() - offset -1;
   for (unsigned i = 0; i < breakWord; ++i)
-    val[i] = (pVal[i + offset] >> wordShift) |
-             (pVal[i + offset + 1] << (APINT_BITS_PER_WORD - wordShift));
+    val[i] = (pVal[i+offset] >> wordShift) |
+             (pVal[i+offset+1] << (APINT_BITS_PER_WORD - wordShift));
   // Shift the break word.
-  val[breakWord] = pVal[breakWord + offset] >> wordShift;
+  val[breakWord] = pVal[breakWord+offset] >> wordShift;
 
   // Remaining words are 0
-  for (unsigned i = breakWord + 1; i < getNumWords(); ++i)
+  for (unsigned i = breakWord+1; i < getNumWords(); ++i)
     val[i] = 0;
   APInt Result(val, BitWidth);
   Result.clearUnusedBits();
@@ -1226,7 +1226,7 @@ APInt APInt::shlSlowCase(unsigned shiftAmt) const {
     return *this;
 
   // Create some space for the result.
-  uint64_t *val = new uint64_t[getNumWords()];
+  uint64_t * val = new uint64_t[getNumWords()];
 
   // If we are shifting less than a word, do it the easy way
   if (shiftAmt < APINT_BITS_PER_WORD) {
@@ -1249,7 +1249,7 @@ APInt APInt::shlSlowCase(unsigned shiftAmt) const {
     for (unsigned i = 0; i < offset; i++)
       val[i] = 0;
     for (unsigned i = offset; i < getNumWords(); i++)
-      val[i] = pVal[i - offset];
+      val[i] = pVal[i-offset];
     APInt Result(val, BitWidth);
     Result.clearUnusedBits();
     return Result;
@@ -1258,8 +1258,8 @@ APInt APInt::shlSlowCase(unsigned shiftAmt) const {
   // Copy whole words from this to Result.
   unsigned i = getNumWords() - 1;
   for (; i > offset; --i)
-    val[i] = pVal[i - offset] << wordShift |
-             pVal[i - offset - 1] >> (APINT_BITS_PER_WORD - wordShift);
+    val[i] = pVal[i-offset] << wordShift |
+             pVal[i-offset-1] >> (APINT_BITS_PER_WORD - wordShift);
   val[offset] = pVal[0] << wordShift;
   for (i = 0; i < offset; ++i)
     val[i] = 0;
@@ -1306,14 +1306,15 @@ APInt APInt::sqrt() const {
   // rounding errors in libc sqrt for small values.
   if (magnitude <= 5) {
     static const uint8_t results[32] = {
-        /*     0 */ 0,
-        /*  1- 2 */ 1, 1,
-        /*  3- 6 */ 2, 2, 2, 2,
-        /*  7-12 */ 3, 3, 3, 3, 3, 3,
-        /* 13-20 */ 4, 4, 4, 4, 4, 4, 4, 4,
-        /* 21-30 */ 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
-        /*    31 */ 6};
-    return APInt(BitWidth, results[(isSingleWord() ? VAL : pVal[0])]);
+      /*     0 */ 0,
+      /*  1- 2 */ 1, 1,
+      /*  3- 6 */ 2, 2, 2, 2,
+      /*  7-12 */ 3, 3, 3, 3, 3, 3,
+      /* 13-20 */ 4, 4, 4, 4, 4, 4, 4, 4,
+      /* 21-30 */ 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
+      /*    31 */ 6
+    };
+    return APInt(BitWidth, results[ (isSingleWord() ? VAL : pVal[0]) ]);
   }
 
   // If the magnitude of the value fits in less than 52 bits (the precision of
@@ -1321,9 +1322,8 @@ APInt APInt::sqrt() const {
   // libc sqrt function which will probably use a hardware sqrt computation.
   // This should be faster than the algorithm below.
   if (magnitude < 52) {
-    return APInt(
-        BitWidth,
-        uint64_t(::round(::sqrt(double(isSingleWord() ? VAL : pVal[0])))));
+    return APInt(BitWidth,
+                 uint64_t(::round(::sqrt(double(isSingleWord()?VAL:pVal[0])))));
   }
 
   // Okay, all the short cuts are exhausted. We must compute it. The following
@@ -1359,7 +1359,7 @@ APInt APInt::sqrt() const {
   // floating point representation after 192 bits. There are no discrepancies
   // between this algorithm and pari/gp for bit widths < 192 bits.
   APInt square(x_old * x_old);
-  APInt nextSquare((x_old + 1) * (x_old + 1));
+  APInt nextSquare((x_old + 1) * (x_old +1));
   if (this->ult(square))
     return x_old;
   assert(this->ule(nextSquare) && "Error in APInt::sqrt computation");
@@ -1375,7 +1375,7 @@ APInt APInt::sqrt() const {
 /// however we simplify it to speed up calculating only the inverse, and take
 /// advantage of div+rem calculations. We also use some tricks to avoid copying
 /// (potentially large) APInts around.
-APInt APInt::multiplicativeInverse(const APInt &modulo) const {
+APInt APInt::multiplicativeInverse(const APInt& modulo) const {
   assert(ult(modulo) && "This APInt must be smaller than the modulo");
 
   // Using the properties listed at the following web page (accessed 06/21/08):
@@ -1386,18 +1386,18 @@ APInt APInt::multiplicativeInverse(const APInt &modulo) const {
   // inverse exists, but may not suffice for the general extended Euclidean
   // algorithm.
 
-  APInt r[2] = {modulo, *this};
-  APInt t[2] = {APInt(BitWidth, 0), APInt(BitWidth, 1)};
+  APInt r[2] = { modulo, *this };
+  APInt t[2] = { APInt(BitWidth, 0), APInt(BitWidth, 1) };
   APInt q(BitWidth, 0);
 
   unsigned i;
-  for (i = 0; r[i ^ 1] != 0; i ^= 1) {
+  for (i = 0; r[i^1] != 0; i ^= 1) {
     // An overview of the math without the confusing bit-flipping:
     // q = r[i-2] / r[i-1]
     // r[i] = r[i-2] % r[i-1]
     // t[i] = t[i-2] - t[i-1] * q
-    udivrem(r[i], r[i ^ 1], q, r[i]);
-    t[i] -= t[i ^ 1] * q;
+    udivrem(r[i], r[i^1], q, r[i]);
+    t[i] -= t[i^1] * q;
   }
 
   // If this APInt and the modulo are not coprime, there is no multiplicative
@@ -1419,7 +1419,7 @@ APInt APInt::multiplicativeInverse(const APInt &modulo) const {
 /// the divisor not be 0, 1, or -1.  Taken from "Hacker's Delight", Henry S.
 /// Warren, Jr., chapter 10.
 APInt::ms APInt::magic() const {
-  const APInt &d = *this;
+  const APInt& d = *this;
   unsigned p;
   APInt ad, anc, delta, q1, r1, q2, r2, t;
   APInt signedMin = APInt::getSignedMinValue(d.getBitWidth());
@@ -1427,23 +1427,23 @@ APInt::ms APInt::magic() const {
 
   ad = d.abs();
   t = signedMin + (d.lshr(d.getBitWidth() - 1));
-  anc = t - 1 - t.urem(ad);  // absolute value of nc
-  p = d.getBitWidth() - 1;   // initialize p
-  q1 = signedMin.udiv(anc);  // initialize q1 = 2p/abs(nc)
-  r1 = signedMin - q1 * anc; // initialize r1 = rem(2p,abs(nc))
-  q2 = signedMin.udiv(ad);   // initialize q2 = 2p/abs(d)
-  r2 = signedMin - q2 * ad;  // initialize r2 = rem(2p,abs(d))
+  anc = t - 1 - t.urem(ad);   // absolute value of nc
+  p = d.getBitWidth() - 1;    // initialize p
+  q1 = signedMin.udiv(anc);   // initialize q1 = 2p/abs(nc)
+  r1 = signedMin - q1*anc;    // initialize r1 = rem(2p,abs(nc))
+  q2 = signedMin.udiv(ad);    // initialize q2 = 2p/abs(d)
+  r2 = signedMin - q2*ad;     // initialize r2 = rem(2p,abs(d))
   do {
     p = p + 1;
-    q1 = q1 << 1;      // update q1 = 2p/abs(nc)
-    r1 = r1 << 1;      // update r1 = rem(2p/abs(nc))
-    if (r1.uge(anc)) { // must be unsigned comparison
+    q1 = q1<<1;          // update q1 = 2p/abs(nc)
+    r1 = r1<<1;          // update r1 = rem(2p/abs(nc))
+    if (r1.uge(anc)) {  // must be unsigned comparison
       q1 = q1 + 1;
       r1 = r1 - anc;
     }
-    q2 = q2 << 1;     // update q2 = 2p/abs(d)
-    r2 = r2 << 1;     // update r2 = rem(2p/abs(d))
-    if (r2.uge(ad)) { // must be unsigned comparison
+    q2 = q2<<1;          // update q2 = 2p/abs(d)
+    r2 = r2<<1;          // update r2 = rem(2p/abs(d))
+    if (r2.uge(ad)) {   // must be unsigned comparison
       q2 = q2 + 1;
       r2 = r2 - ad;
     }
@@ -1451,9 +1451,8 @@ APInt::ms APInt::magic() const {
   } while (q1.ult(delta) || (q1 == delta && r1 == 0));
 
   mag.m = q2 + 1;
-  if (d.isNegative())
-    mag.m = -mag.m;            // resulting magic number
-  mag.s = p - d.getBitWidth(); // resulting shift
+  if (d.isNegative()) mag.m = -mag.m;   // resulting magic number
+  mag.s = p - d.getBitWidth();          // resulting shift
   return mag;
 }
 
@@ -1464,11 +1463,11 @@ APInt::ms APInt::magic() const {
 /// LeadingZeros can be used to simplify the calculation if the upper bits
 /// of the divided value are known zero.
 APInt::mu APInt::magicu(unsigned LeadingZeros) const {
-  const APInt &d = *this;
+  const APInt& d = *this;
   unsigned p;
   APInt nc, delta, q1, r1, q2, r2;
   struct mu magu;
-  magu.a = 0; // initialize "add" indicator
+  magu.a = 0;               // initialize "add" indicator
   APInt allOnes = APInt::getAllOnesValue(d.getBitWidth()).lshr(LeadingZeros);
   APInt signedMin = APInt::getSignedMinValue(d.getBitWidth());
   APInt signedMax = APInt::getSignedMaxValue(d.getBitWidth());
@@ -1476,34 +1475,34 @@ APInt::mu APInt::magicu(unsigned LeadingZeros) const {
   nc = allOnes - (allOnes - d).urem(d);
   p = d.getBitWidth() - 1;  // initialize p
   q1 = signedMin.udiv(nc);  // initialize q1 = 2p/nc
-  r1 = signedMin - q1 * nc; // initialize r1 = rem(2p,nc)
+  r1 = signedMin - q1*nc;   // initialize r1 = rem(2p,nc)
   q2 = signedMax.udiv(d);   // initialize q2 = (2p-1)/d
-  r2 = signedMax - q2 * d;  // initialize r2 = rem((2p-1),d)
+  r2 = signedMax - q2*d;    // initialize r2 = rem((2p-1),d)
   do {
     p = p + 1;
     if (r1.uge(nc - r1)) {
       q1 = q1 + q1 + 1;  // update q1
       r1 = r1 + r1 - nc; // update r1
-    } else {
-      q1 = q1 + q1; // update q1
-      r1 = r1 + r1; // update r1
+    }
+    else {
+      q1 = q1+q1; // update q1
+      r1 = r1+r1; // update r1
     }
     if ((r2 + 1).uge(d - r2)) {
-      if (q2.uge(signedMax))
-        magu.a = 1;
-      q2 = q2 + q2 + 1;     // update q2
-      r2 = r2 + r2 + 1 - d; // update r2
-    } else {
-      if (q2.uge(signedMin))
-        magu.a = 1;
-      q2 = q2 + q2;     // update q2
-      r2 = r2 + r2 + 1; // update r2
+      if (q2.uge(signedMax)) magu.a = 1;
+      q2 = q2+q2 + 1;     // update q2
+      r2 = r2+r2 + 1 - d; // update r2
+    }
+    else {
+      if (q2.uge(signedMin)) magu.a = 1;
+      q2 = q2+q2;     // update q2
+      r2 = r2+r2 + 1; // update r2
     }
     delta = d - 1 - r2;
-  } while (p < d.getBitWidth() * 2 &&
+  } while (p < d.getBitWidth()*2 &&
            (q1.ult(delta) || (q1 == delta && r1 == 0)));
-  magu.m = q2 + 1;              // resulting magic number
-  magu.s = p - d.getBitWidth(); // resulting shift
+  magu.m = q2 + 1; // resulting magic number
+  magu.s = p - d.getBitWidth();  // resulting shift
   return magu;
 }
 
@@ -1511,22 +1510,22 @@ APInt::mu APInt::magicu(unsigned LeadingZeros) const {
 /// from "Art of Computer Programming, Volume 2", section 4.3.1, p. 272. The
 /// variables here have the same names as in the algorithm. Comments explain
 /// the algorithm and any deviation from it.
-static void KnuthDiv(unsigned *u, unsigned *v, unsigned *q, unsigned *r,
+static void KnuthDiv(unsigned *u, unsigned *v, unsigned *q, unsigned* r,
                      unsigned m, unsigned n) {
   assert(u && "Must provide dividend");
   assert(v && "Must provide divisor");
   assert(q && "Must provide quotient");
   assert(u != v && u != q && v != q && "Must use different memory");
-  assert(n > 1 && "n must be > 1");
+  assert(n>1 && "n must be > 1");
 
   // b denotes the base of the number system. In our case b is 2^32.
   LLVM_CONSTEXPR uint64_t b = uint64_t(1) << 32;
 
   DEBUG(dbgs() << "KnuthDiv: m=" << m << " n=" << n << '\n');
   DEBUG(dbgs() << "KnuthDiv: original:");
-  DEBUG(for (int i = m + n; i >= 0; i--) dbgs() << " " << u[i]);
+  DEBUG(for (int i = m+n; i >=0; i--) dbgs() << " " << u[i]);
   DEBUG(dbgs() << " by");
-  DEBUG(for (int i = n; i > 0; i--) dbgs() << " " << v[i - 1]);
+  DEBUG(for (int i = n; i >0; i--) dbgs() << " " << v[i-1]);
   DEBUG(dbgs() << '\n');
   // D1. [Normalize.] Set d = b / (v[n-1] + 1) and multiply all the digits of
   // u and v by d. Note that we have taken Knuth's advice here to use a power
@@ -1536,11 +1535,11 @@ static void KnuthDiv(unsigned *u, unsigned *v, unsigned *q, unsigned *r,
   // and v so that its high bits are shifted to the top of v's range without
   // overflow. Note that this can require an extra word in u so that u must
   // be of length m+n+1.
-  unsigned shift = countLeadingZeros(v[n - 1]);
+  unsigned shift = countLeadingZeros(v[n-1]);
   unsigned v_carry = 0;
   unsigned u_carry = 0;
   if (shift) {
-    for (unsigned i = 0; i < m + n; ++i) {
+    for (unsigned i = 0; i < m+n; ++i) {
       unsigned u_tmp = u[i] >> (32 - shift);
       u[i] = (u[i] << shift) | u_carry;
       u_carry = u_tmp;
@@ -1551,12 +1550,12 @@ static void KnuthDiv(unsigned *u, unsigned *v, unsigned *q, unsigned *r,
       v_carry = v_tmp;
     }
   }
-  u[m + n] = u_carry;
+  u[m+n] = u_carry;
 
   DEBUG(dbgs() << "KnuthDiv:   normal:");
-  DEBUG(for (int i = m + n; i >= 0; i--) dbgs() << " " << u[i]);
+  DEBUG(for (int i = m+n; i >=0; i--) dbgs() << " " << u[i]);
   DEBUG(dbgs() << " by");
-  DEBUG(for (int i = n; i > 0; i--) dbgs() << " " << v[i - 1]);
+  DEBUG(for (int i = n; i >0; i--) dbgs() << " " << v[i-1]);
   DEBUG(dbgs() << '\n');
 
   // D2. [Initialize j.]  Set j to m. This is the loop counter over the places.
@@ -1571,14 +1570,14 @@ static void KnuthDiv(unsigned *u, unsigned *v, unsigned *q, unsigned *r,
     // on v[n-2] determines at high speed most of the cases in which the trial
     // value qp is one too large, and it eliminates all cases where qp is two
     // too large.
-    uint64_t dividend = ((uint64_t(u[j + n]) << 32) + u[j + n - 1]);
+    uint64_t dividend = ((uint64_t(u[j+n]) << 32) + u[j+n-1]);
     DEBUG(dbgs() << "KnuthDiv: dividend == " << dividend << '\n');
-    uint64_t qp = dividend / v[n - 1];
-    uint64_t rp = dividend % v[n - 1];
-    if (qp == b || qp * v[n - 2] > b * rp + u[j + n - 2]) {
+    uint64_t qp = dividend / v[n-1];
+    uint64_t rp = dividend % v[n-1];
+    if (qp == b || qp*v[n-2] > b*rp + u[j+n-2]) {
       qp--;
-      rp += v[n - 1];
-      if (rp < b && (qp == b || qp * v[n - 2] > b * rp + u[j + n - 2]))
+      rp += v[n-1];
+      if (rp < b && (qp == b || qp*v[n-2] > b*rp + u[j+n-2]))
         qp--;
     }
     DEBUG(dbgs() << "KnuthDiv: qp == " << qp << ", rp == " << rp << '\n');
@@ -1594,17 +1593,17 @@ static void KnuthDiv(unsigned *u, unsigned *v, unsigned *q, unsigned *r,
     int64_t borrow = 0;
     for (unsigned i = 0; i < n; ++i) {
       uint64_t p = uint64_t(qp) * uint64_t(v[i]);
-      int64_t subres = int64_t(u[j + i]) - borrow - (unsigned)p;
-      u[j + i] = (unsigned)subres;
+      int64_t subres = int64_t(u[j+i]) - borrow - (unsigned)p;
+      u[j+i] = (unsigned)subres;
       borrow = (p >> 32) - (subres >> 32);
-      DEBUG(dbgs() << "KnuthDiv: u[j+i] = " << u[j + i]
+      DEBUG(dbgs() << "KnuthDiv: u[j+i] = " << u[j+i]
                    << ", borrow = " << borrow << '\n');
     }
-    bool isNeg = u[j + n] < borrow;
-    u[j + n] -= (unsigned)borrow;
+    bool isNeg = u[j+n] < borrow;
+    u[j+n] -= (unsigned)borrow;
 
     DEBUG(dbgs() << "KnuthDiv: after subtraction:");
-    DEBUG(for (int i = m + n; i >= 0; i--) dbgs() << " " << u[i]);
+    DEBUG(for (int i = m+n; i >=0; i--) dbgs() << " " << u[i]);
     DEBUG(dbgs() << '\n');
 
     // D5. [Test remainder.] Set q[j] = qp. If the result of step D4 was
@@ -1620,21 +1619,21 @@ static void KnuthDiv(unsigned *u, unsigned *v, unsigned *q, unsigned *r,
       // since it cancels with the borrow that occurred in D4.
       bool carry = false;
       for (unsigned i = 0; i < n; i++) {
-        unsigned limit = std::min(u[j + i], v[i]);
-        u[j + i] += v[i] + carry;
-        carry = u[j + i] < limit || (carry && u[j + i] == limit);
+        unsigned limit = std::min(u[j+i],v[i]);
+        u[j+i] += v[i] + carry;
+        carry = u[j+i] < limit || (carry && u[j+i] == limit);
       }
-      u[j + n] += carry;
+      u[j+n] += carry;
     }
     DEBUG(dbgs() << "KnuthDiv: after correction:");
-    DEBUG(for (int i = m + n; i >= 0; i--) dbgs() << " " << u[i]);
+    DEBUG(for (int i = m+n; i >=0; i--) dbgs() << " " << u[i]);
     DEBUG(dbgs() << "\nKnuthDiv: digit result = " << q[j] << '\n');
 
-    // D7. [Loop on j.]  Decrease j by one. Now if j >= 0, go back to D3.
+  // D7. [Loop on j.]  Decrease j by one. Now if j >= 0, go back to D3.
   } while (--j >= 0);
 
   DEBUG(dbgs() << "KnuthDiv: quotient:");
-  DEBUG(for (int i = m; i >= 0; i--) dbgs() << " " << q[i]);
+  DEBUG(for (int i = m; i >=0; i--) dbgs() <<" " << q[i]);
   DEBUG(dbgs() << '\n');
 
   // D8. [Unnormalize]. Now q[...] is the desired quotient, and the desired
@@ -1647,13 +1646,13 @@ static void KnuthDiv(unsigned *u, unsigned *v, unsigned *q, unsigned *r,
     if (shift) {
       unsigned carry = 0;
       DEBUG(dbgs() << "KnuthDiv: remainder:");
-      for (int i = n - 1; i >= 0; i--) {
+      for (int i = n-1; i >= 0; i--) {
         r[i] = (u[i] >> shift) | carry;
         carry = u[i] << (32 - shift);
         DEBUG(dbgs() << " " << r[i]);
       }
     } else {
-      for (int i = n - 1; i >= 0; i--) {
+      for (int i = n-1; i >= 0; i--) {
         r[i] = u[i];
         DEBUG(dbgs() << " " << r[i]);
       }
@@ -1663,8 +1662,10 @@ static void KnuthDiv(unsigned *u, unsigned *v, unsigned *q, unsigned *r,
   DEBUG(dbgs() << '\n');
 }
 
-void APInt::divide(const APInt LHS, unsigned lhsWords, const APInt &RHS,
-                   unsigned rhsWords, APInt *Quotient, APInt *Remainder) {
+void APInt::divide(const APInt LHS, unsigned lhsWords,
+                   const APInt &RHS, unsigned rhsWords,
+                   APInt *Quotient, APInt *Remainder)
+{
   assert(lhsWords >= rhsWords && "Fractional result");
 
   // First, compose the values into an array of 32-bit words instead of
@@ -1674,7 +1675,7 @@ void APInt::divide(const APInt LHS, unsigned lhsWords, const APInt &RHS,
   // can't use 64-bit operands here because we don't have native results of
   // 128-bits. Furthermore, casting the 64-bit values to 32-bit values won't
   // work on large-endian machines.
-  uint64_t mask = ~0ull >> (sizeof(unsigned) * CHAR_BIT);
+  uint64_t mask = ~0ull >> (sizeof(unsigned)*CHAR_BIT);
   unsigned n = rhsWords * 2;
   unsigned m = (lhsWords * 2) - n;
 
@@ -1685,39 +1686,39 @@ void APInt::divide(const APInt LHS, unsigned lhsWords, const APInt &RHS,
   unsigned *V = nullptr;
   unsigned *Q = nullptr;
   unsigned *R = nullptr;
-  if ((Remainder ? 4 : 3) * n + 2 * m + 1 <= 128) {
+  if ((Remainder?4:3)*n+2*m+1 <= 128) {
     U = &SPACE[0];
-    V = &SPACE[m + n + 1];
-    Q = &SPACE[(m + n + 1) + n];
+    V = &SPACE[m+n+1];
+    Q = &SPACE[(m+n+1) + n];
     if (Remainder)
-      R = &SPACE[(m + n + 1) + n + (m + n)];
+      R = &SPACE[(m+n+1) + n + (m+n)];
   } else {
     U = new unsigned[m + n + 1];
     V = new unsigned[n];
-    Q = new unsigned[m + n];
+    Q = new unsigned[m+n];
     if (Remainder)
       R = new unsigned[n];
   }
 
   // Initialize the dividend
-  memset(U, 0, (m + n + 1) * sizeof(unsigned));
+  memset(U, 0, (m+n+1)*sizeof(unsigned));
   for (unsigned i = 0; i < lhsWords; ++i) {
     uint64_t tmp = (LHS.getNumWords() == 1 ? LHS.VAL : LHS.pVal[i]);
     U[i * 2] = (unsigned)(tmp & mask);
-    U[i * 2 + 1] = (unsigned)(tmp >> (sizeof(unsigned) * CHAR_BIT));
+    U[i * 2 + 1] = (unsigned)(tmp >> (sizeof(unsigned)*CHAR_BIT));
   }
-  U[m + n] = 0; // this extra word is for "spill" in the Knuth algorithm.
+  U[m+n] = 0; // this extra word is for "spill" in the Knuth algorithm.
 
   // Initialize the divisor
-  memset(V, 0, (n) * sizeof(unsigned));
+  memset(V, 0, (n)*sizeof(unsigned));
   for (unsigned i = 0; i < rhsWords; ++i) {
     uint64_t tmp = (RHS.getNumWords() == 1 ? RHS.VAL : RHS.pVal[i]);
     V[i * 2] = (unsigned)(tmp & mask);
-    V[i * 2 + 1] = (unsigned)(tmp >> (sizeof(unsigned) * CHAR_BIT));
+    V[i * 2 + 1] = (unsigned)(tmp >> (sizeof(unsigned)*CHAR_BIT));
   }
 
   // initialize the quotient and remainder
-  memset(Q, 0, (m + n) * sizeof(unsigned));
+  memset(Q, 0, (m+n) * sizeof(unsigned));
   if (Remainder)
     memset(R, 0, n * sizeof(unsigned));
 
@@ -1725,11 +1726,11 @@ void APInt::divide(const APInt LHS, unsigned lhsWords, const APInt &RHS,
   // the divisor. m is the number of words by which the dividend exceeds the
   // divisor (i.e. m+n is the length of the dividend). These sizes must not
   // contain any zero words or the Knuth algorithm fails.
-  for (unsigned i = n; i > 0 && V[i - 1] == 0; i--) {
+  for (unsigned i = n; i > 0 && V[i-1] == 0; i--) {
     n--;
     m++;
   }
-  for (unsigned i = m + n; i > 0 && U[i - 1] == 0; i--)
+  for (unsigned i = m+n; i > 0 && U[i-1] == 0; i--)
     m--;
 
   // If we're left with only a single word for the divisor, Knuth doesn't work
@@ -1742,7 +1743,7 @@ void APInt::divide(const APInt LHS, unsigned lhsWords, const APInt &RHS,
   if (n == 1) {
     unsigned divisor = V[0];
     unsigned remainder = 0;
-    for (int i = m + n - 1; i >= 0; i--) {
+    for (int i = m+n-1; i >= 0; i--) {
       uint64_t partial_dividend = uint64_t(remainder) << 32 | U[i];
       if (partial_dividend == 0) {
         Q[i] = 0;
@@ -1773,7 +1774,7 @@ void APInt::divide(const APInt LHS, unsigned lhsWords, const APInt &RHS,
       if (Quotient->isSingleWord())
         Quotient->VAL = 0;
       else
-        delete[] Quotient->pVal;
+        delete [] Quotient->pVal;
       Quotient->BitWidth = LHS.BitWidth;
       if (!Quotient->isSingleWord())
         Quotient->pVal = getClearedMemory(Quotient->getNumWords());
@@ -1786,7 +1787,7 @@ void APInt::divide(const APInt LHS, unsigned lhsWords, const APInt &RHS,
     // earlier.
     if (lhsWords == 1) {
       uint64_t tmp =
-          uint64_t(Q[0]) | (uint64_t(Q[1]) << (APINT_BITS_PER_WORD / 2));
+        uint64_t(Q[0]) | (uint64_t(Q[1]) << (APINT_BITS_PER_WORD / 2));
       if (Quotient->isSingleWord())
         Quotient->VAL = tmp;
       else
@@ -1794,8 +1795,8 @@ void APInt::divide(const APInt LHS, unsigned lhsWords, const APInt &RHS,
     } else {
       assert(!Quotient->isSingleWord() && "Quotient APInt not large enough");
       for (unsigned i = 0; i < lhsWords; ++i)
-        Quotient->pVal[i] = uint64_t(Q[i * 2]) | (uint64_t(Q[i * 2 + 1])
-                                                  << (APINT_BITS_PER_WORD / 2));
+        Quotient->pVal[i] =
+          uint64_t(Q[i*2]) | (uint64_t(Q[i*2+1]) << (APINT_BITS_PER_WORD / 2));
     }
   }
 
@@ -1806,7 +1807,7 @@ void APInt::divide(const APInt LHS, unsigned lhsWords, const APInt &RHS,
       if (Remainder->isSingleWord())
         Remainder->VAL = 0;
       else
-        delete[] Remainder->pVal;
+        delete [] Remainder->pVal;
       Remainder->BitWidth = RHS.BitWidth;
       if (!Remainder->isSingleWord())
         Remainder->pVal = getClearedMemory(Remainder->getNumWords());
@@ -1817,7 +1818,7 @@ void APInt::divide(const APInt LHS, unsigned lhsWords, const APInt &RHS,
     // order words.
     if (rhsWords == 1) {
       uint64_t tmp =
-          uint64_t(R[0]) | (uint64_t(R[1]) << (APINT_BITS_PER_WORD / 2));
+        uint64_t(R[0]) | (uint64_t(R[1]) << (APINT_BITS_PER_WORD / 2));
       if (Remainder->isSingleWord())
         Remainder->VAL = tmp;
       else
@@ -1826,21 +1827,20 @@ void APInt::divide(const APInt LHS, unsigned lhsWords, const APInt &RHS,
       assert(!Remainder->isSingleWord() && "Remainder APInt not large enough");
       for (unsigned i = 0; i < rhsWords; ++i)
         Remainder->pVal[i] =
-            uint64_t(R[i * 2]) |
-            (uint64_t(R[i * 2 + 1]) << (APINT_BITS_PER_WORD / 2));
+          uint64_t(R[i*2]) | (uint64_t(R[i*2+1]) << (APINT_BITS_PER_WORD / 2));
     }
   }
 
   // Clean up the memory we allocated.
   if (U != &SPACE[0]) {
-    delete[] U;
-    delete[] V;
-    delete[] Q;
-    delete[] R;
+    delete [] U;
+    delete [] V;
+    delete [] Q;
+    delete [] R;
   }
 }
 
-APInt APInt::udiv(const APInt &RHS) const {
+APInt APInt::udiv(const APInt& RHS) const {
   assert(BitWidth == RHS.BitWidth && "Bit widths must be the same");
 
   // First, deal with the easy case
@@ -1872,7 +1872,7 @@ APInt APInt::udiv(const APInt &RHS) const {
   }
 
   // We have to compute it the hard way. Invoke the Knuth divide algorithm.
-  APInt Quotient(1, 0); // to hold result.
+  APInt Quotient(1,0); // to hold result.
   divide(*this, lhsWords, RHS, rhsWords, &Quotient, nullptr);
   return Quotient;
 }
@@ -1888,7 +1888,7 @@ APInt APInt::sdiv(const APInt &RHS) const {
   return this->udiv(RHS);
 }
 
-APInt APInt::urem(const APInt &RHS) const {
+APInt APInt::urem(const APInt& RHS) const {
   assert(BitWidth == RHS.BitWidth && "Bit widths must be the same");
   if (isSingleWord()) {
     assert(RHS.VAL != 0 && "Remainder by zero?");
@@ -1920,7 +1920,7 @@ APInt APInt::urem(const APInt &RHS) const {
   }
 
   // We have to compute it the hard way. Invoke the Knuth divide algorithm.
-  APInt Remainder(1, 0);
+  APInt Remainder(1,0);
   divide(*this, lhsWords, RHS, rhsWords, nullptr, &Remainder);
   return Remainder;
 }
@@ -1936,8 +1936,8 @@ APInt APInt::srem(const APInt &RHS) const {
   return this->urem(RHS);
 }
 
-void APInt::udivrem(const APInt &LHS, const APInt &RHS, APInt &Quotient,
-                    APInt &Remainder) {
+void APInt::udivrem(const APInt &LHS, const APInt &RHS,
+                    APInt &Quotient, APInt &Remainder) {
   assert(LHS.BitWidth == RHS.BitWidth && "Bit widths must be the same");
 
   // First, deal with the easy case
@@ -1951,27 +1951,27 @@ void APInt::udivrem(const APInt &LHS, const APInt &RHS, APInt &Quotient,
   }
 
   // Get some size facts about the dividend and divisor
-  unsigned lhsBits = LHS.getActiveBits();
+  unsigned lhsBits  = LHS.getActiveBits();
   unsigned lhsWords = !lhsBits ? 0 : (APInt::whichWord(lhsBits - 1) + 1);
-  unsigned rhsBits = RHS.getActiveBits();
+  unsigned rhsBits  = RHS.getActiveBits();
   unsigned rhsWords = !rhsBits ? 0 : (APInt::whichWord(rhsBits - 1) + 1);
 
   // Check the degenerate cases
   if (lhsWords == 0) {
-    Quotient = 0;  // 0 / Y ===> 0
-    Remainder = 0; // 0 % Y ===> 0
+    Quotient = 0;                // 0 / Y ===> 0
+    Remainder = 0;               // 0 % Y ===> 0
     return;
   }
 
   if (lhsWords < rhsWords || LHS.ult(RHS)) {
-    Remainder = LHS; // X % Y ===> X, iff X < Y
-    Quotient = 0;    // X / Y ===> 0, iff X < Y
+    Remainder = LHS;            // X % Y ===> X, iff X < Y
+    Quotient = 0;               // X / Y ===> 0, iff X < Y
     return;
   }
 
   if (LHS == RHS) {
-    Quotient = 1;  // X / X ===> 1
-    Remainder = 0; // X % X ===> 0;
+    Quotient  = 1;              // X / X ===> 1
+    Remainder = 0;              // X % X ===> 0;
     return;
   }
 
@@ -1988,8 +1988,8 @@ void APInt::udivrem(const APInt &LHS, const APInt &RHS, APInt &Quotient,
   divide(LHS, lhsWords, RHS, rhsWords, &Quotient, &Remainder);
 }
 
-void APInt::sdivrem(const APInt &LHS, const APInt &RHS, APInt &Quotient,
-                    APInt &Remainder) {
+void APInt::sdivrem(const APInt &LHS, const APInt &RHS,
+                    APInt &Quotient, APInt &Remainder) {
   if (LHS.isNegative()) {
     if (RHS.isNegative())
       APInt::udivrem(-LHS, -RHS, Quotient, Remainder);
@@ -2007,14 +2007,14 @@ void APInt::sdivrem(const APInt &LHS, const APInt &RHS, APInt &Quotient,
 }
 
 APInt APInt::sadd_ov(const APInt &RHS, bool &Overflow) const {
-  APInt Res = *this + RHS;
+  APInt Res = *this+RHS;
   Overflow = isNonNegative() == RHS.isNonNegative() &&
              Res.isNonNegative() != isNonNegative();
   return Res;
 }
 
 APInt APInt::uadd_ov(const APInt &RHS, bool &Overflow) const {
-  APInt Res = *this + RHS;
+  APInt Res = *this+RHS;
   Overflow = Res.ult(RHS);
   return Res;
 }
@@ -2027,7 +2027,7 @@ APInt APInt::ssub_ov(const APInt &RHS, bool &Overflow) const {
 }
 
 APInt APInt::usub_ov(const APInt &RHS, bool &Overflow) const {
-  APInt Res = *this - RHS;
+  APInt Res = *this-RHS;
   Overflow = Res.ugt(*this);
   return Res;
 }
@@ -2040,7 +2040,7 @@ APInt APInt::sdiv_ov(const APInt &RHS, bool &Overflow) const {
 
 APInt APInt::smul_ov(const APInt &RHS, bool &Overflow) const {
   APInt Res = *this * RHS;
-
+  
   if (*this != 0 && RHS != 0)
     Overflow = Res.sdiv(RHS) != *this || Res.sdiv(*this) != RHS;
   else
@@ -2067,7 +2067,7 @@ APInt APInt::sshl_ov(const APInt &ShAmt, bool &Overflow) const {
     Overflow = ShAmt.uge(countLeadingZeros());
   else
     Overflow = ShAmt.uge(countLeadingOnes());
-
+  
   return *this << ShAmt;
 }
 
@@ -2081,12 +2081,15 @@ APInt APInt::ushl_ov(const APInt &ShAmt, bool &Overflow) const {
   return *this << ShAmt;
 }
 
+
+
+
 void APInt::fromString(unsigned numbits, StringRef str, uint8_t radix) {
   // Check our assumptions here
   assert(!str.empty() && "Invalid string length");
-  assert(
-      (radix == 10 || radix == 8 || radix == 16 || radix == 2 || radix == 36) &&
-      "Radix should be 2, 8, 10, 16, or 36!");
+  assert((radix == 10 || radix == 8 || radix == 16 || radix == 2 || 
+          radix == 36) &&
+         "Radix should be 2, 8, 10, 16, or 36!");
 
   StringRef::iterator p = str.begin();
   size_t slen = str.size();
@@ -2097,10 +2100,9 @@ void APInt::fromString(unsigned numbits, StringRef str, uint8_t radix) {
     assert(slen && "String is only a sign, needs a value.");
   }
   assert((slen <= numbits || radix != 2) && "Insufficient bit width");
-  assert(((slen - 1) * 3 <= numbits || radix != 8) && "Insufficient bit width");
-  assert(((slen - 1) * 4 <= numbits || radix != 16) &&
-         "Insufficient bit width");
-  assert((((slen - 1) * 64) / 22 <= numbits || radix != 10) &&
+  assert(((slen-1)*3 <= numbits || radix != 8) && "Insufficient bit width");
+  assert(((slen-1)*4 <= numbits || radix != 16) && "Insufficient bit width");
+  assert((((slen-1)*64)/22 <= numbits || radix != 10) &&
          "Insufficient bit width");
 
   // Allocate memory
@@ -2142,30 +2144,30 @@ void APInt::fromString(unsigned numbits, StringRef str, uint8_t radix) {
   }
 }
 
-void APInt::toString(SmallVectorImpl<char> &Str, unsigned Radix, bool Signed,
-                     bool formatAsCLiteral) const {
-  assert(
-      (Radix == 10 || Radix == 8 || Radix == 16 || Radix == 2 || Radix == 36) &&
-      "Radix should be 2, 8, 10, 16, or 36!");
+void APInt::toString(SmallVectorImpl<char> &Str, unsigned Radix,
+                     bool Signed, bool formatAsCLiteral) const {
+  assert((Radix == 10 || Radix == 8 || Radix == 16 || Radix == 2 || 
+          Radix == 36) &&
+         "Radix should be 2, 8, 10, 16, or 36!");
 
   const char *Prefix = "";
   if (formatAsCLiteral) {
     switch (Radix) {
-    case 2:
-      // Binary literals are a non-standard extension added in gcc 4.3:
-      // http://gcc.gnu.org/onlinedocs/gcc-4.3.0/gcc/Binary-constants.html
-      Prefix = "0b";
-      break;
-    case 8:
-      Prefix = "0";
-      break;
-    case 10:
-      break; // No prefix
-    case 16:
-      Prefix = "0x";
-      break;
-    default:
-      llvm_unreachable("Invalid radix!");
+      case 2:
+        // Binary literals are a non-standard extension added in gcc 4.3:
+        // http://gcc.gnu.org/onlinedocs/gcc-4.3.0/gcc/Binary-constants.html
+        Prefix = "0b";
+        break;
+      case 8:
+        Prefix = "0";
+        break;
+      case 10:
+        break; // No prefix
+      case 16:
+        Prefix = "0x";
+        break;
+      default:
+        llvm_unreachable("Invalid radix!");
     }
   }
 
@@ -2183,7 +2185,7 @@ void APInt::toString(SmallVectorImpl<char> &Str, unsigned Radix, bool Signed,
 
   if (isSingleWord()) {
     char Buffer[65];
-    char *BufPtr = Buffer + 65;
+    char *BufPtr = Buffer+65;
 
     uint64_t N;
     if (!Signed) {
@@ -2207,7 +2209,7 @@ void APInt::toString(SmallVectorImpl<char> &Str, unsigned Radix, bool Signed,
       *--BufPtr = Digits[N % Radix];
       N /= Radix;
     }
-    Str.append(BufPtr, Buffer + 65);
+    Str.append(BufPtr, Buffer+65);
     return;
   }
 
@@ -2244,7 +2246,7 @@ void APInt::toString(SmallVectorImpl<char> &Str, unsigned Radix, bool Signed,
       Tmp = Tmp.lshr(ShiftAmt);
     }
   } else {
-    APInt divisor(Radix == 10 ? 4 : 8, Radix);
+    APInt divisor(Radix == 10? 4 : 8, Radix);
     while (Tmp != 0) {
       APInt APdigit(1, 0);
       APInt tmp2(Tmp.getBitWidth(), 0);
@@ -2258,27 +2260,29 @@ void APInt::toString(SmallVectorImpl<char> &Str, unsigned Radix, bool Signed,
   }
 
   // Reverse the digits before returning.
-  std::reverse(Str.begin() + StartDig, Str.end());
+  std::reverse(Str.begin()+StartDig, Str.end());
 }
 
 /// Returns the APInt as a std::string. Note that this is an inefficient method.
 /// It is better to pass in a SmallVector/SmallString to the methods above.
 std::string APInt::toString(unsigned Radix = 10, bool Signed = true) const {
   SmallString<40> S;
-  toString(S, Radix, Signed, /* formatAsCLiteral = */ false);
+  toString(S, Radix, Signed, /* formatAsCLiteral = */false);
   return S.str();
 }
 
-void APInt::dump() const {
+
+LLVM_DUMP_METHOD void APInt::dump() const {
   SmallString<40> S, U;
   this->toStringUnsigned(U);
   this->toStringSigned(S);
-  dbgs() << "APInt(" << BitWidth << "b, " << U << "u " << S << "s)";
+  dbgs() << "APInt(" << BitWidth << "b, "
+         << U << "u " << S << "s)";
 }
 
 void APInt::print(raw_ostream &OS, bool isSigned) const {
   SmallString<40> S;
-  this->toString(S, 10, isSigned, /* formatAsCLiteral = */ false);
+  this->toString(S, 10, isSigned, /* formatAsCLiteral = */false);
   OS << S;
 }
 
@@ -2292,40 +2296,52 @@ static_assert(integerPartWidth % 2 == 0, "Part width must be divisible by 2!");
 /* Some handy functions local to this file.  */
 namespace {
 
-/* Returns the integer part with the least significant BITS set.
-   BITS cannot be zero.  */
-static inline integerPart lowBitMask(unsigned int bits) {
-  assert(bits != 0 && bits <= integerPartWidth);
+  /* Returns the integer part with the least significant BITS set.
+     BITS cannot be zero.  */
+  static inline integerPart
+  lowBitMask(unsigned int bits)
+  {
+    assert(bits != 0 && bits <= integerPartWidth);
 
-  return ~(integerPart)0 >> (integerPartWidth - bits);
-}
+    return ~(integerPart) 0 >> (integerPartWidth - bits);
+  }
 
-/* Returns the value of the lower half of PART.  */
-static inline integerPart lowHalf(integerPart part) {
-  return part & lowBitMask(integerPartWidth / 2);
-}
+  /* Returns the value of the lower half of PART.  */
+  static inline integerPart
+  lowHalf(integerPart part)
+  {
+    return part & lowBitMask(integerPartWidth / 2);
+  }
 
-/* Returns the value of the upper half of PART.  */
-static inline integerPart highHalf(integerPart part) {
-  return part >> (integerPartWidth / 2);
-}
+  /* Returns the value of the upper half of PART.  */
+  static inline integerPart
+  highHalf(integerPart part)
+  {
+    return part >> (integerPartWidth / 2);
+  }
 
-/* Returns the bit number of the most significant set bit of a part.
-   If the input number has no bits set -1U is returned.  */
-static unsigned int partMSB(integerPart value) {
-  return findLastSet(value, ZB_Max);
-}
+  /* Returns the bit number of the most significant set bit of a part.
+     If the input number has no bits set -1U is returned.  */
+  static unsigned int
+  partMSB(integerPart value)
+  {
+    return findLastSet(value, ZB_Max);
+  }
 
-/* Returns the bit number of the least significant set bit of a
-   part.  If the input number has no bits set -1U is returned.  */
-static unsigned int partLSB(integerPart value) {
-  return findFirstSet(value, ZB_Max);
-}
+  /* Returns the bit number of the least significant set bit of a
+     part.  If the input number has no bits set -1U is returned.  */
+  static unsigned int
+  partLSB(integerPart value)
+  {
+    return findFirstSet(value, ZB_Max);
+  }
 }
 
 /* Sets the least significant part of a bignum to the input value, and
    zeroes out higher parts.  */
-void APInt::tcSet(integerPart *dst, integerPart part, unsigned int parts) {
+void
+APInt::tcSet(integerPart *dst, integerPart part, unsigned int parts)
+{
   unsigned int i;
 
   assert(parts > 0);
@@ -2336,8 +2352,9 @@ void APInt::tcSet(integerPart *dst, integerPart part, unsigned int parts) {
 }
 
 /* Assign one bignum to another.  */
-void APInt::tcAssign(integerPart *dst, const integerPart *src,
-                     unsigned int parts) {
+void
+APInt::tcAssign(integerPart *dst, const integerPart *src, unsigned int parts)
+{
   unsigned int i;
 
   for (i = 0; i < parts; i++)
@@ -2345,7 +2362,9 @@ void APInt::tcAssign(integerPart *dst, const integerPart *src,
 }
 
 /* Returns true if a bignum is zero, false otherwise.  */
-bool APInt::tcIsZero(const integerPart *src, unsigned int parts) {
+bool
+APInt::tcIsZero(const integerPart *src, unsigned int parts)
+{
   unsigned int i;
 
   for (i = 0; i < parts; i++)
@@ -2356,33 +2375,41 @@ bool APInt::tcIsZero(const integerPart *src, unsigned int parts) {
 }
 
 /* Extract the given bit of a bignum; returns 0 or 1.  */
-int APInt::tcExtractBit(const integerPart *parts, unsigned int bit) {
+int
+APInt::tcExtractBit(const integerPart *parts, unsigned int bit)
+{
   return (parts[bit / integerPartWidth] &
-          ((integerPart)1 << bit % integerPartWidth)) != 0;
+          ((integerPart) 1 << bit % integerPartWidth)) != 0;
 }
 
 /* Set the given bit of a bignum. */
-void APInt::tcSetBit(integerPart *parts, unsigned int bit) {
-  parts[bit / integerPartWidth] |= (integerPart)1 << (bit % integerPartWidth);
+void
+APInt::tcSetBit(integerPart *parts, unsigned int bit)
+{
+  parts[bit / integerPartWidth] |= (integerPart) 1 << (bit % integerPartWidth);
 }
 
 /* Clears the given bit of a bignum. */
-void APInt::tcClearBit(integerPart *parts, unsigned int bit) {
+void
+APInt::tcClearBit(integerPart *parts, unsigned int bit)
+{
   parts[bit / integerPartWidth] &=
-      ~((integerPart)1 << (bit % integerPartWidth));
+    ~((integerPart) 1 << (bit % integerPartWidth));
 }
 
 /* Returns the bit number of the least significant set bit of a
    number.  If the input number has no bits set -1U is returned.  */
-unsigned int APInt::tcLSB(const integerPart *parts, unsigned int n) {
+unsigned int
+APInt::tcLSB(const integerPart *parts, unsigned int n)
+{
   unsigned int i, lsb;
 
   for (i = 0; i < n; i++) {
-    if (parts[i] != 0) {
-      lsb = partLSB(parts[i]);
+      if (parts[i] != 0) {
+          lsb = partLSB(parts[i]);
 
-      return lsb + i * integerPartWidth;
-    }
+          return lsb + i * integerPartWidth;
+      }
   }
 
   return -1U;
@@ -2390,7 +2417,9 @@ unsigned int APInt::tcLSB(const integerPart *parts, unsigned int n) {
 
 /* Returns the bit number of the most significant set bit of a number.
    If the input number has no bits set -1U is returned.  */
-unsigned int APInt::tcMSB(const integerPart *parts, unsigned int n) {
+unsigned int
+APInt::tcMSB(const integerPart *parts, unsigned int n)
+{
   unsigned int msb;
 
   do {
@@ -2410,31 +2439,32 @@ unsigned int APInt::tcMSB(const integerPart *parts, unsigned int n) {
    srcLSB, to DST, of dstCOUNT parts, such that the bit srcLSB becomes
    the least significant bit of DST.  All high bits above srcBITS in
    DST are zero-filled.  */
-void APInt::tcExtract(integerPart *dst, unsigned int dstCount,
-                      const integerPart *src, unsigned int srcBits,
-                      unsigned int srcLSB) {
+void
+APInt::tcExtract(integerPart *dst, unsigned int dstCount,const integerPart *src,
+                 unsigned int srcBits, unsigned int srcLSB)
+{
   unsigned int firstSrcPart, dstParts, shift, n;
 
   dstParts = (srcBits + integerPartWidth - 1) / integerPartWidth;
   assert(dstParts <= dstCount);
 
   firstSrcPart = srcLSB / integerPartWidth;
-  tcAssign(dst, src + firstSrcPart, dstParts);
+  tcAssign (dst, src + firstSrcPart, dstParts);
 
   shift = srcLSB % integerPartWidth;
-  tcShiftRight(dst, dstParts, shift);
+  tcShiftRight (dst, dstParts, shift);
 
   /* We now have (dstParts * integerPartWidth - shift) bits from SRC
      in DST.  If this is less that srcBits, append the rest, else
      clear the high bits.  */
   n = dstParts * integerPartWidth - shift;
   if (n < srcBits) {
-    integerPart mask = lowBitMask(srcBits - n);
-    dst[dstParts - 1] |=
-        ((src[firstSrcPart + dstParts] & mask) << n % integerPartWidth);
+    integerPart mask = lowBitMask (srcBits - n);
+    dst[dstParts - 1] |= ((src[firstSrcPart + dstParts] & mask)
+                          << n % integerPartWidth);
   } else if (n > srcBits) {
     if (srcBits % integerPartWidth)
-      dst[dstParts - 1] &= lowBitMask(srcBits % integerPartWidth);
+      dst[dstParts - 1] &= lowBitMask (srcBits % integerPartWidth);
   }
 
   /* Clear high parts.  */
@@ -2443,8 +2473,10 @@ void APInt::tcExtract(integerPart *dst, unsigned int dstCount,
 }
 
 /* DST += RHS + C where C is zero or one.  Returns the carry flag.  */
-integerPart APInt::tcAdd(integerPart *dst, const integerPart *rhs,
-                         integerPart c, unsigned int parts) {
+integerPart
+APInt::tcAdd(integerPart *dst, const integerPart *rhs,
+             integerPart c, unsigned int parts)
+{
   unsigned int i;
 
   assert(c <= 1);
@@ -2466,8 +2498,10 @@ integerPart APInt::tcAdd(integerPart *dst, const integerPart *rhs,
 }
 
 /* DST -= RHS + C where C is zero or one.  Returns the carry flag.  */
-integerPart APInt::tcSubtract(integerPart *dst, const integerPart *rhs,
-                              integerPart c, unsigned int parts) {
+integerPart
+APInt::tcSubtract(integerPart *dst, const integerPart *rhs,
+                  integerPart c, unsigned int parts)
+{
   unsigned int i;
 
   assert(c <= 1);
@@ -2489,7 +2523,9 @@ integerPart APInt::tcSubtract(integerPart *dst, const integerPart *rhs,
 }
 
 /* Negate a bignum in-place.  */
-void APInt::tcNegate(integerPart *dst, unsigned int parts) {
+void
+APInt::tcNegate(integerPart *dst, unsigned int parts)
+{
   tcComplement(dst, parts);
   tcIncrement(dst, parts);
 }
@@ -2505,10 +2541,12 @@ void APInt::tcNegate(integerPart *dst, unsigned int parts) {
     DSTPARTS parts of the result, and if all of the omitted higher
     parts were zero return zero, otherwise overflow occurred and
     return one.  */
-int APInt::tcMultiplyPart(integerPart *dst, const integerPart *src,
-                          integerPart multiplier, integerPart carry,
-                          unsigned int srcParts, unsigned int dstParts,
-                          bool add) {
+int
+APInt::tcMultiplyPart(integerPart *dst, const integerPart *src,
+                      integerPart multiplier, integerPart carry,
+                      unsigned int srcParts, unsigned int dstParts,
+                      bool add)
+{
   unsigned int i, n;
 
   /* Otherwise our writes of DST kill our later reads of SRC.  */
@@ -2516,22 +2554,22 @@ int APInt::tcMultiplyPart(integerPart *dst, const integerPart *src,
   assert(dstParts <= srcParts + 1);
 
   /* N loops; minimum of dstParts and srcParts.  */
-  n = dstParts < srcParts ? dstParts : srcParts;
+  n = dstParts < srcParts ? dstParts: srcParts;
 
   for (i = 0; i < n; i++) {
     integerPart low, mid, high, srcPart;
 
-    /* [ LOW, HIGH ] = MULTIPLIER * SRC[i] + DST[i] + CARRY.
+      /* [ LOW, HIGH ] = MULTIPLIER * SRC[i] + DST[i] + CARRY.
 
-       This cannot overflow, because
+         This cannot overflow, because
 
-       (n - 1) * (n - 1) + 2 (n - 1) = (n - 1) * (n + 1)
+         (n - 1) * (n - 1) + 2 (n - 1) = (n - 1) * (n + 1)
 
-       which is less than n^2.  */
+         which is less than n^2.  */
 
     srcPart = src[i];
 
-    if (multiplier == 0 || srcPart == 0) {
+    if (multiplier == 0 || srcPart == 0)        {
       low = carry;
       high = 0;
     } else {
@@ -2596,8 +2634,10 @@ int APInt::tcMultiplyPart(integerPart *dst, const integerPart *src,
    is filled with the least significant parts of the result.  Returns
    one if overflow occurred, otherwise zero.  DST must be disjoint
    from both operands.  */
-int APInt::tcMultiply(integerPart *dst, const integerPart *lhs,
-                      const integerPart *rhs, unsigned int parts) {
+int
+APInt::tcMultiply(integerPart *dst, const integerPart *lhs,
+                  const integerPart *rhs, unsigned int parts)
+{
   unsigned int i;
   int overflow;
 
@@ -2607,7 +2647,8 @@ int APInt::tcMultiply(integerPart *dst, const integerPart *lhs,
   tcSet(dst, 0, parts);
 
   for (i = 0; i < parts; i++)
-    overflow |= tcMultiplyPart(&dst[i], lhs, rhs[i], 0, parts, parts - i, true);
+    overflow |= tcMultiplyPart(&dst[i], lhs, rhs[i], 0, parts,
+                               parts - i, true);
 
   return overflow;
 }
@@ -2616,13 +2657,14 @@ int APInt::tcMultiply(integerPart *dst, const integerPart *lhs,
    operands.  No overflow occurs.  DST must be disjoint from both
    operands.  Returns the number of parts required to hold the
    result.  */
-unsigned int APInt::tcFullMultiply(integerPart *dst, const integerPart *lhs,
-                                   const integerPart *rhs,
-                                   unsigned int lhsParts,
-                                   unsigned int rhsParts) {
+unsigned int
+APInt::tcFullMultiply(integerPart *dst, const integerPart *lhs,
+                      const integerPart *rhs, unsigned int lhsParts,
+                      unsigned int rhsParts)
+{
   /* Put the narrower number on the LHS for less loops below.  */
   if (lhsParts > rhsParts) {
-    return tcFullMultiply(dst, rhs, lhs, rhsParts, lhsParts);
+    return tcFullMultiply (dst, rhs, lhs, rhsParts, lhsParts);
   } else {
     unsigned int n;
 
@@ -2649,9 +2691,11 @@ unsigned int APInt::tcFullMultiply(integerPart *dst, const integerPart *lhs,
    use by the routine; its contents need not be initialized and are
    destroyed.  LHS, REMAINDER and SCRATCH must be distinct.
 */
-int APInt::tcDivide(integerPart *lhs, const integerPart *rhs,
-                    integerPart *remainder, integerPart *srhs,
-                    unsigned int parts) {
+int
+APInt::tcDivide(integerPart *lhs, const integerPart *rhs,
+                integerPart *remainder, integerPart *srhs,
+                unsigned int parts)
+{
   unsigned int n, shiftCount;
   integerPart mask;
 
@@ -2663,7 +2707,7 @@ int APInt::tcDivide(integerPart *lhs, const integerPart *rhs,
 
   shiftCount = parts * integerPartWidth - shiftCount;
   n = shiftCount / integerPartWidth;
-  mask = (integerPart)1 << (shiftCount % integerPartWidth);
+  mask = (integerPart) 1 << (shiftCount % integerPartWidth);
 
   tcAssign(srhs, rhs, parts);
   tcShiftLeft(srhs, parts, shiftCount);
@@ -2673,20 +2717,22 @@ int APInt::tcDivide(integerPart *lhs, const integerPart *rhs,
   /* Loop, subtracting SRHS if REMAINDER is greater and adding that to
      the total.  */
   for (;;) {
-    int compare;
+      int compare;
 
-    compare = tcCompare(remainder, srhs, parts);
-    if (compare >= 0) {
-      tcSubtract(remainder, srhs, 0, parts);
-      lhs[n] |= mask;
-    }
+      compare = tcCompare(remainder, srhs, parts);
+      if (compare >= 0) {
+        tcSubtract(remainder, srhs, 0, parts);
+        lhs[n] |= mask;
+      }
 
-    if (shiftCount == 0)
-      break;
-    shiftCount--;
-    tcShiftRight(srhs, parts, 1);
-    if ((mask >>= 1) == 0)
-      mask = (integerPart)1 << (integerPartWidth - 1), n--;
+      if (shiftCount == 0)
+        break;
+      shiftCount--;
+      tcShiftRight(srhs, parts, 1);
+      if ((mask >>= 1) == 0) {
+        mask = (integerPart) 1 << (integerPartWidth - 1);
+        n--;
+      }
   }
 
   return false;
@@ -2694,8 +2740,9 @@ int APInt::tcDivide(integerPart *lhs, const integerPart *rhs,
 
 /* Shift a bignum left COUNT bits in-place.  Shifted in bits are zero.
    There are no restrictions on COUNT.  */
-void APInt::tcShiftLeft(integerPart *dst, unsigned int parts,
-                        unsigned int count) {
+void
+APInt::tcShiftLeft(integerPart *dst, unsigned int parts, unsigned int count)
+{
   if (count) {
     unsigned int jump, shift;
 
@@ -2727,8 +2774,9 @@ void APInt::tcShiftLeft(integerPart *dst, unsigned int parts,
 
 /* Shift a bignum right COUNT bits in-place.  Shifted in bits are
    zero.  There are no restrictions on COUNT.  */
-void APInt::tcShiftRight(integerPart *dst, unsigned int parts,
-                         unsigned int count) {
+void
+APInt::tcShiftRight(integerPart *dst, unsigned int parts, unsigned int count)
+{
   if (count) {
     unsigned int i, jump, shift;
 
@@ -2758,8 +2806,9 @@ void APInt::tcShiftRight(integerPart *dst, unsigned int parts,
 }
 
 /* Bitwise and of two bignums.  */
-void APInt::tcAnd(integerPart *dst, const integerPart *rhs,
-                  unsigned int parts) {
+void
+APInt::tcAnd(integerPart *dst, const integerPart *rhs, unsigned int parts)
+{
   unsigned int i;
 
   for (i = 0; i < parts; i++)
@@ -2767,7 +2816,9 @@ void APInt::tcAnd(integerPart *dst, const integerPart *rhs,
 }
 
 /* Bitwise inclusive or of two bignums.  */
-void APInt::tcOr(integerPart *dst, const integerPart *rhs, unsigned int parts) {
+void
+APInt::tcOr(integerPart *dst, const integerPart *rhs, unsigned int parts)
+{
   unsigned int i;
 
   for (i = 0; i < parts; i++)
@@ -2775,8 +2826,9 @@ void APInt::tcOr(integerPart *dst, const integerPart *rhs, unsigned int parts) {
 }
 
 /* Bitwise exclusive or of two bignums.  */
-void APInt::tcXor(integerPart *dst, const integerPart *rhs,
-                  unsigned int parts) {
+void
+APInt::tcXor(integerPart *dst, const integerPart *rhs, unsigned int parts)
+{
   unsigned int i;
 
   for (i = 0; i < parts; i++)
@@ -2784,7 +2836,9 @@ void APInt::tcXor(integerPart *dst, const integerPart *rhs,
 }
 
 /* Complement a bignum in-place.  */
-void APInt::tcComplement(integerPart *dst, unsigned int parts) {
+void
+APInt::tcComplement(integerPart *dst, unsigned int parts)
+{
   unsigned int i;
 
   for (i = 0; i < parts; i++)
@@ -2792,24 +2846,28 @@ void APInt::tcComplement(integerPart *dst, unsigned int parts) {
 }
 
 /* Comparison (unsigned) of two bignums.  */
-int APInt::tcCompare(const integerPart *lhs, const integerPart *rhs,
-                     unsigned int parts) {
+int
+APInt::tcCompare(const integerPart *lhs, const integerPart *rhs,
+                 unsigned int parts)
+{
   while (parts) {
-    parts--;
-    if (lhs[parts] == rhs[parts])
-      continue;
+      parts--;
+      if (lhs[parts] == rhs[parts])
+        continue;
 
-    if (lhs[parts] > rhs[parts])
-      return 1;
-    else
-      return -1;
-  }
+      if (lhs[parts] > rhs[parts])
+        return 1;
+      else
+        return -1;
+    }
 
   return 0;
 }
 
 /* Increment a bignum in-place, return the carry flag.  */
-integerPart APInt::tcIncrement(integerPart *dst, unsigned int parts) {
+integerPart
+APInt::tcIncrement(integerPart *dst, unsigned int parts)
+{
   unsigned int i;
 
   for (i = 0; i < parts; i++)
@@ -2820,7 +2878,8 @@ integerPart APInt::tcIncrement(integerPart *dst, unsigned int parts) {
 }
 
 /* Decrement a bignum in-place, return the borrow flag.  */
-integerPart APInt::tcDecrement(integerPart *dst, unsigned int parts) {
+integerPart
+APInt::tcDecrement(integerPart *dst, unsigned int parts) {
   for (unsigned int i = 0; i < parts; i++) {
     // If the current word is non-zero, then the decrement has no effect on the
     // higher-order words of the integer and no borrow can occur. Exit early.
@@ -2831,20 +2890,23 @@ integerPart APInt::tcDecrement(integerPart *dst, unsigned int parts) {
   return 1;
 }
 
+
 /* Set the least significant BITS bits of a bignum, clear the
    rest.  */
-void APInt::tcSetLeastSignificantBits(integerPart *dst, unsigned int parts,
-                                      unsigned int bits) {
+void
+APInt::tcSetLeastSignificantBits(integerPart *dst, unsigned int parts,
+                                 unsigned int bits)
+{
   unsigned int i;
 
   i = 0;
   while (bits > integerPartWidth) {
-    dst[i++] = ~(integerPart)0;
+    dst[i++] = ~(integerPart) 0;
     bits -= integerPartWidth;
   }
 
   if (bits)
-    dst[i++] = ~(integerPart)0 >> (integerPartWidth - bits);
+    dst[i++] = ~(integerPart) 0 >> (integerPartWidth - bits);
 
   while (i < parts)
     dst[i++] = 0;

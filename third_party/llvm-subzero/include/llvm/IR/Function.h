@@ -18,7 +18,6 @@
 #ifndef LLVM_IR_FUNCTION_H
 #define LLVM_IR_FUNCTION_H
 
-#include "llvm/ADT/Optional.h"
 #include "llvm/ADT/iterator_range.h"
 #include "llvm/IR/Argument.h"
 #include "llvm/IR/Attributes.h"
@@ -30,6 +29,7 @@
 
 namespace llvm {
 
+template <typename T> class Optional;
 class FunctionType;
 class LLVMContext;
 class DISubprogram;
@@ -52,11 +52,10 @@ public:
 
 private:
   // Important things that make up a function!
-  BasicBlockListType BasicBlocks;        ///< The basic blocks
-  mutable ArgumentListType ArgumentList; ///< The formal arguments
-  ValueSymbolTable *SymTab;              ///< Symbol table of args/instructions
-  AttributeSet AttributeSets;            ///< Parameter attributes
-  FunctionType *Ty;
+  BasicBlockListType  BasicBlocks;        ///< The basic blocks
+  mutable ArgumentListType ArgumentList;  ///< The formal arguments
+  ValueSymbolTable *SymTab;               ///< Symbol table of args/instructions
+  AttributeSet AttributeSets;             ///< Parameter attributes
 
   /*
    * Value::SubclassData
@@ -89,24 +88,27 @@ private:
   /// built on demand, so that the list isn't allocated until the first client
   /// needs it.  The hasLazyArguments predicate returns true if the arg list
   /// hasn't been set up yet.
+public:
   bool hasLazyArguments() const {
-    return getSubclassDataFromValue() & (1 << 0);
+    return getSubclassDataFromValue() & (1<<0);
   }
+
+private:
   void CheckLazyArguments() const {
     if (hasLazyArguments())
       BuildLazyArguments();
   }
   void BuildLazyArguments() const;
 
-  Function(const Function &) = delete;
-  void operator=(const Function &) = delete;
+  Function(const Function&) = delete;
+  void operator=(const Function&) = delete;
 
   /// Function ctor - If the (optional) Module argument is specified, the
   /// function is automatically inserted into the end of the function list for
   /// the module.
   ///
-  Function(FunctionType *Ty, LinkageTypes Linkage, const Twine &N = "",
-           Module *M = nullptr);
+  Function(FunctionType *Ty, LinkageTypes Linkage,
+           const Twine &N = "", Module *M = nullptr);
 
 public:
   static Function *Create(FunctionType *Ty, LinkageTypes Linkage,
@@ -182,12 +184,14 @@ public:
 
   /// @brief Add function attributes to this function.
   void addFnAttr(StringRef Kind) {
-    setAttributes(AttributeSets.addAttribute(
-        getContext(), AttributeSet::FunctionIndex, Kind));
+    setAttributes(
+      AttributeSets.addAttribute(getContext(),
+                                 AttributeSet::FunctionIndex, Kind));
   }
   void addFnAttr(StringRef Kind, StringRef Value) {
-    setAttributes(AttributeSets.addAttribute(
-        getContext(), AttributeSet::FunctionIndex, Kind, Value));
+    setAttributes(
+      AttributeSets.addAttribute(getContext(),
+                                 AttributeSet::FunctionIndex, Kind, Value));
   }
 
   /// Set the entry count for this function.
@@ -198,7 +202,7 @@ public:
 
   /// @brief Return true if the function has the attribute.
   bool hasFnAttribute(Attribute::AttrKind Kind) const {
-    return AttributeSets.hasAttribute(AttributeSet::FunctionIndex, Kind);
+    return AttributeSets.hasFnAttribute(Kind);
   }
   bool hasFnAttribute(StringRef Kind) const {
     return AttributeSets.hasAttribute(AttributeSet::FunctionIndex, Kind);
@@ -206,6 +210,8 @@ public:
 
   /// @brief Return the attribute for the given attribute kind.
   Attribute getFnAttribute(Attribute::AttrKind Kind) const {
+    if (!hasFnAttribute(Kind))
+      return Attribute();
     return AttributeSets.getAttribute(AttributeSet::FunctionIndex, Kind);
   }
   Attribute getFnAttribute(StringRef Kind) const {
@@ -214,12 +220,16 @@ public:
 
   /// \brief Return the stack alignment for the function.
   unsigned getFnStackAlignment() const {
+    if (!hasFnAttribute(Attribute::StackAlignment))
+      return 0;
     return AttributeSets.getStackAlignment(AttributeSet::FunctionIndex);
   }
 
   /// hasGC/getGC/setGC/clearGC - The name of the garbage collection algorithm
   ///                             to use during code generation.
-  bool hasGC() const { return getSubclassDataFromValue() & (1 << 14); }
+  bool hasGC() const {
+    return getSubclassDataFromValue() & (1<<14);
+  }
   const std::string &getGC() const;
   void setGC(const std::string Str);
   void clearGC();
@@ -230,8 +240,16 @@ public:
   /// @brief adds the attributes to the list of attributes.
   void addAttributes(unsigned i, AttributeSet attrs);
 
+  /// @brief removes the attribute from the list of attributes.
+  void removeAttribute(unsigned i, Attribute::AttrKind attr);
+
   /// @brief removes the attributes from the list of attributes.
   void removeAttributes(unsigned i, AttributeSet attr);
+
+  /// @brief check if an attributes is in the list of attributes.
+  bool hasAttribute(unsigned i, Attribute::AttrKind attr) const {
+    return getAttributes().hasAttribute(i, attr);
+  }
 
   /// @brief adds the dereferenceable attribute to the list of attributes.
   void addDereferenceableAttr(unsigned i, uint64_t Bytes);
@@ -259,32 +277,31 @@ public:
 
   /// @brief Determine if the function does not access memory.
   bool doesNotAccessMemory() const {
-    return AttributeSets.hasAttribute(AttributeSet::FunctionIndex,
-                                      Attribute::ReadNone);
+    return hasFnAttribute(Attribute::ReadNone);
   }
-  void setDoesNotAccessMemory() { addFnAttr(Attribute::ReadNone); }
+  void setDoesNotAccessMemory() {
+    addFnAttr(Attribute::ReadNone);
+  }
 
   /// @brief Determine if the function does not access or only reads memory.
   bool onlyReadsMemory() const {
-    return doesNotAccessMemory() ||
-           AttributeSets.hasAttribute(AttributeSet::FunctionIndex,
-                                      Attribute::ReadOnly);
+    return doesNotAccessMemory() || hasFnAttribute(Attribute::ReadOnly);
   }
-  void setOnlyReadsMemory() { addFnAttr(Attribute::ReadOnly); }
+  void setOnlyReadsMemory() {
+    addFnAttr(Attribute::ReadOnly);
+  }
 
   /// @brief Determine if the call can access memmory only using pointers based
   /// on its arguments.
   bool onlyAccessesArgMemory() const {
-    return AttributeSets.hasAttribute(AttributeSet::FunctionIndex,
-                                      Attribute::ArgMemOnly);
+    return hasFnAttribute(Attribute::ArgMemOnly);
   }
   void setOnlyAccessesArgMemory() { addFnAttr(Attribute::ArgMemOnly); }
 
-  /// @brief Determine if the function may only access memory that is
+  /// @brief Determine if the function may only access memory that is 
   ///  inaccessible from the IR.
   bool onlyAccessesInaccessibleMemory() const {
-    return AttributeSets.hasAttribute(AttributeSet::FunctionIndex,
-                                      Attribute::InaccessibleMemOnly);
+    return hasFnAttribute(Attribute::InaccessibleMemOnly);
   }
   void setOnlyAccessesInaccessibleMemory() {
     addFnAttr(Attribute::InaccessibleMemOnly);
@@ -293,8 +310,7 @@ public:
   /// @brief Determine if the function may only access memory that is
   //  either inaccessible from the IR or pointed to by its arguments.
   bool onlyAccessesInaccessibleMemOrArgMem() const {
-    return AttributeSets.hasAttribute(AttributeSet::FunctionIndex,
-                                      Attribute::InaccessibleMemOrArgMemOnly);
+    return hasFnAttribute(Attribute::InaccessibleMemOrArgMemOnly);
   }
   void setOnlyAccessesInaccessibleMemOrArgMem() {
     addFnAttr(Attribute::InaccessibleMemOrArgMemOnly);
@@ -302,50 +318,61 @@ public:
 
   /// @brief Determine if the function cannot return.
   bool doesNotReturn() const {
-    return AttributeSets.hasAttribute(AttributeSet::FunctionIndex,
-                                      Attribute::NoReturn);
+    return hasFnAttribute(Attribute::NoReturn);
   }
-  void setDoesNotReturn() { addFnAttr(Attribute::NoReturn); }
+  void setDoesNotReturn() {
+    addFnAttr(Attribute::NoReturn);
+  }
 
   /// @brief Determine if the function cannot unwind.
   bool doesNotThrow() const {
-    return AttributeSets.hasAttribute(AttributeSet::FunctionIndex,
-                                      Attribute::NoUnwind);
+    return hasFnAttribute(Attribute::NoUnwind);
   }
-  void setDoesNotThrow() { addFnAttr(Attribute::NoUnwind); }
+  void setDoesNotThrow() {
+    addFnAttr(Attribute::NoUnwind);
+  }
 
   /// @brief Determine if the call cannot be duplicated.
   bool cannotDuplicate() const {
-    return AttributeSets.hasAttribute(AttributeSet::FunctionIndex,
-                                      Attribute::NoDuplicate);
+    return hasFnAttribute(Attribute::NoDuplicate);
   }
-  void setCannotDuplicate() { addFnAttr(Attribute::NoDuplicate); }
+  void setCannotDuplicate() {
+    addFnAttr(Attribute::NoDuplicate);
+  }
 
   /// @brief Determine if the call is convergent.
   bool isConvergent() const {
-    return AttributeSets.hasAttribute(AttributeSet::FunctionIndex,
-                                      Attribute::Convergent);
+    return hasFnAttribute(Attribute::Convergent);
   }
-  void setConvergent() { addFnAttr(Attribute::Convergent); }
+  void setConvergent() {
+    addFnAttr(Attribute::Convergent);
+  }
+  void setNotConvergent() {
+    removeFnAttr(Attribute::Convergent);
+  }
 
   /// Determine if the function is known not to recurse, directly or
   /// indirectly.
   bool doesNotRecurse() const {
-    return AttributeSets.hasAttribute(AttributeSet::FunctionIndex,
-                                      Attribute::NoRecurse);
+    return hasFnAttribute(Attribute::NoRecurse);
   }
-  void setDoesNotRecurse() { addFnAttr(Attribute::NoRecurse); }
+  void setDoesNotRecurse() {
+    addFnAttr(Attribute::NoRecurse);
+  }  
 
   /// @brief True if the ABI mandates (or the user requested) that this
   /// function be in a unwind table.
   bool hasUWTable() const {
-    return AttributeSets.hasAttribute(AttributeSet::FunctionIndex,
-                                      Attribute::UWTable);
+    return hasFnAttribute(Attribute::UWTable);
   }
-  void setHasUWTable() { addFnAttr(Attribute::UWTable); }
+  void setHasUWTable() {
+    addFnAttr(Attribute::UWTable);
+  }
 
   /// @brief True if this function needs an unwind table.
-  bool needsUnwindTableEntry() const { return hasUWTable() || !doesNotThrow(); }
+  bool needsUnwindTableEntry() const {
+    return hasUWTable() || !doesNotThrow();
+  }
 
   /// @brief Determine if the function returns a structure through first
   /// pointer argument.
@@ -360,14 +387,18 @@ public:
   bool doesNotAlias(unsigned n) const {
     return AttributeSets.hasAttribute(n, Attribute::NoAlias);
   }
-  void setDoesNotAlias(unsigned n) { addAttribute(n, Attribute::NoAlias); }
+  void setDoesNotAlias(unsigned n) {
+    addAttribute(n, Attribute::NoAlias);
+  }
 
   /// @brief Determine if the parameter can be captured.
   /// @param n The parameter to check. 1 is the first parameter, 0 is the return
   bool doesNotCapture(unsigned n) const {
     return AttributeSets.hasAttribute(n, Attribute::NoCapture);
   }
-  void setDoesNotCapture(unsigned n) { addAttribute(n, Attribute::NoCapture); }
+  void setDoesNotCapture(unsigned n) {
+    addAttribute(n, Attribute::NoCapture);
+  }
 
   bool doesNotAccessMemory(unsigned n) const {
     return AttributeSets.hasAttribute(n, Attribute::ReadNone);
@@ -378,9 +409,11 @@ public:
 
   bool onlyReadsMemory(unsigned n) const {
     return doesNotAccessMemory(n) ||
-           AttributeSets.hasAttribute(n, Attribute::ReadOnly);
+      AttributeSets.hasAttribute(n, Attribute::ReadOnly);
   }
-  void setOnlyReadsMemory(unsigned n) { addAttribute(n, Attribute::ReadOnly); }
+  void setOnlyReadsMemory(unsigned n) {
+    addAttribute(n, Attribute::ReadOnly);
+  }
 
   /// Optimize this function for minimum size (-Oz).
   bool optForMinSize() const { return hasFnAttribute(Attribute::MinSize); };
@@ -412,6 +445,12 @@ public:
   ///
   void eraseFromParent() override;
 
+  /// Steal arguments from another function.
+  ///
+  /// Drop this function's arguments and splice in the ones from \c Src.
+  /// Requires that this has no function body.
+  void stealArgumentListFrom(Function &Src);
+
   /// Get the underlying elements of the Function... the basic block list is
   /// empty for external functions.
   ///
@@ -423,44 +462,44 @@ public:
     CheckLazyArguments();
     return ArgumentList;
   }
-  static ArgumentListType Function::*getSublistAccess(Argument *) {
+  static ArgumentListType Function::*getSublistAccess(Argument*) {
     return &Function::ArgumentList;
   }
 
   const BasicBlockListType &getBasicBlockList() const { return BasicBlocks; }
-  BasicBlockListType &getBasicBlockList() { return BasicBlocks; }
-  static BasicBlockListType Function::*getSublistAccess(BasicBlock *) {
+        BasicBlockListType &getBasicBlockList()       { return BasicBlocks; }
+  static BasicBlockListType Function::*getSublistAccess(BasicBlock*) {
     return &Function::BasicBlocks;
   }
 
-  const BasicBlock &getEntryBlock() const { return front(); }
-  BasicBlock &getEntryBlock() { return front(); }
+  const BasicBlock       &getEntryBlock() const   { return front(); }
+        BasicBlock       &getEntryBlock()         { return front(); }
 
   //===--------------------------------------------------------------------===//
   // Symbol Table Accessing functions...
 
   /// getSymbolTable() - Return the symbol table...
   ///
-  inline ValueSymbolTable &getValueSymbolTable() { return *SymTab; }
+  inline       ValueSymbolTable &getValueSymbolTable()       { return *SymTab; }
   inline const ValueSymbolTable &getValueSymbolTable() const { return *SymTab; }
 
   //===--------------------------------------------------------------------===//
   // BasicBlock iterator forwarding functions
   //
-  iterator begin() { return BasicBlocks.begin(); }
-  const_iterator begin() const { return BasicBlocks.begin(); }
-  iterator end() { return BasicBlocks.end(); }
-  const_iterator end() const { return BasicBlocks.end(); }
+  iterator                begin()       { return BasicBlocks.begin(); }
+  const_iterator          begin() const { return BasicBlocks.begin(); }
+  iterator                end  ()       { return BasicBlocks.end();   }
+  const_iterator          end  () const { return BasicBlocks.end();   }
 
-  size_t size() const { return BasicBlocks.size(); }
-  bool empty() const { return BasicBlocks.empty(); }
-  const BasicBlock &front() const { return BasicBlocks.front(); }
-  BasicBlock &front() { return BasicBlocks.front(); }
-  const BasicBlock &back() const { return BasicBlocks.back(); }
-  BasicBlock &back() { return BasicBlocks.back(); }
+  size_t                   size() const { return BasicBlocks.size();  }
+  bool                    empty() const { return BasicBlocks.empty(); }
+  const BasicBlock       &front() const { return BasicBlocks.front(); }
+        BasicBlock       &front()       { return BasicBlocks.front(); }
+  const BasicBlock        &back() const { return BasicBlocks.back();  }
+        BasicBlock        &back()       { return BasicBlocks.back();  }
 
-  /// @name Function Argument Iteration
-  /// @{
+/// @name Function Argument Iteration
+/// @{
 
   arg_iterator arg_begin() {
     CheckLazyArguments();
@@ -487,14 +526,14 @@ public:
     return make_range(arg_begin(), arg_end());
   }
 
-  /// @}
+/// @}
 
   size_t arg_size() const;
   bool arg_empty() const;
 
   /// \brief Check whether this function has a personality function.
   bool hasPersonalityFn() const {
-    return getSubclassDataFromValue() & (1 << 3);
+    return getSubclassDataFromValue() & (1<<3);
   }
 
   /// \brief Get the personality function associated with this function.
@@ -502,18 +541,28 @@ public:
   void setPersonalityFn(Constant *Fn);
 
   /// \brief Check whether this function has prefix data.
-  bool hasPrefixData() const { return getSubclassDataFromValue() & (1 << 1); }
+  bool hasPrefixData() const {
+    return getSubclassDataFromValue() & (1<<1);
+  }
 
   /// \brief Get the prefix data associated with this function.
   Constant *getPrefixData() const;
   void setPrefixData(Constant *PrefixData);
 
   /// \brief Check whether this function has prologue data.
-  bool hasPrologueData() const { return getSubclassDataFromValue() & (1 << 2); }
+  bool hasPrologueData() const {
+    return getSubclassDataFromValue() & (1<<2);
+  }
 
   /// \brief Get the prologue data associated with this function.
   Constant *getPrologueData() const;
   void setPrologueData(Constant *PrologueData);
+
+  /// Print the function to an output stream with an optional
+  /// AssemblyAnnotationWriter.
+  void print(raw_ostream &OS, AssemblyAnnotationWriter *AAW = nullptr,
+             bool ShouldPreserveUseListOrder = false,
+             bool IsForDebug = false) const;
 
   /// viewCFG - This function is meant for use from the debugger.  You can just
   /// say 'call F->viewCFG()' and a ghostview window should pop up from the
@@ -553,7 +602,7 @@ public:
   /// other than direct calls or invokes to it, or blockaddress expressions.
   /// Optionally passes back an offending user for diagnostic purposes.
   ///
-  bool hasAddressTaken(const User ** = nullptr) const;
+  bool hasAddressTaken(const User** = nullptr) const;
 
   /// isDefTriviallyDead - Return true if it is trivially safe to remove
   /// this function definition from the module (because it isn't externally
@@ -607,7 +656,7 @@ public:
 
 private:
   void allocHungoffUselist();
-  template <int Idx> void setHungoffOperand(Constant *C);
+  template<int Idx> void setHungoffOperand(Constant *C);
 
   // Shadow Value::setValueSubclassData with a private forwarding method so that
   // subclasses cannot accidentally use it.
@@ -626,7 +675,8 @@ private:
   void clearMetadata();
 };
 
-template <> struct OperandTraits<Function> : public HungoffOperandTraits<3> {};
+template <>
+struct OperandTraits<Function> : public HungoffOperandTraits<3> {};
 
 DEFINE_TRANSPARENT_OPERAND_ACCESSORS(Function, Value)
 

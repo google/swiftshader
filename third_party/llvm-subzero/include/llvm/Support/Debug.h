@@ -59,19 +59,14 @@ void setCurrentDebugType(const char *Type);
 ///
 /// This will emit the debug information if -debug is present, and -debug-only
 /// is not specified, or is specified as "bitset".
-#define DEBUG_WITH_TYPE(TYPE, X)                                               \
-  do {                                                                         \
-    if (::llvm::DebugFlag && ::llvm::isCurrentDebugType(TYPE)) {               \
-      X;                                                                       \
-    }                                                                          \
+#define DEBUG_WITH_TYPE(TYPE, X)                                        \
+  do { if (::llvm::DebugFlag && ::llvm::isCurrentDebugType(TYPE)) { X; } \
   } while (0)
 
 #else
 #define isCurrentDebugType(X) (false)
 #define setCurrentDebugType(X)
-#define DEBUG_WITH_TYPE(TYPE, X)                                               \
-  do {                                                                         \
-  } while (0)
+#define DEBUG_WITH_TYPE(TYPE, X) do { } while (0)
 #endif
 
 /// EnableDebugBuffering - This defaults to false.  If true, the debug

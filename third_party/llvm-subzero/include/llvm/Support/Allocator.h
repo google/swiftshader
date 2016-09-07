@@ -77,8 +77,7 @@ public:
     return static_cast<T *>(Allocate(Num * sizeof(T), AlignOf<T>::Alignment));
   }
 
-  /// \brief Deallocate space for a sequence of objects without constructing
-  /// them.
+  /// \brief Deallocate space for a sequence of objects without constructing them.
   template <typename T>
   typename std::enable_if<
       !std::is_same<typename std::remove_cv<T>::type, void>::value, void>::type
@@ -240,7 +239,7 @@ public:
 
       uintptr_t AlignedAddr = alignAddr(NewSlab, Alignment);
       assert(AlignedAddr + Size <= (uintptr_t)NewSlab + PaddedSize);
-      char *AlignedPtr = (char *)AlignedAddr;
+      char *AlignedPtr = (char*)AlignedAddr;
       __msan_allocated_memory(AlignedPtr, Size);
       __asan_unpoison_memory_region(AlignedPtr, Size);
       return AlignedPtr;
@@ -251,7 +250,7 @@ public:
     uintptr_t AlignedAddr = alignAddr(CurPtr, Alignment);
     assert(AlignedAddr + Size <= (uintptr_t)End &&
            "Unable to allocate memory!");
-    char *AlignedPtr = (char *)AlignedAddr;
+    char *AlignedPtr = (char*)AlignedAddr;
     CurPtr = AlignedPtr + Size;
     __msan_allocated_memory(AlignedPtr, Size);
     __asan_unpoison_memory_region(AlignedPtr, Size);
@@ -380,7 +379,7 @@ public:
   /// all memory allocated so far.
   void DestroyAll() {
     auto DestroyElements = [](char *Begin, char *End) {
-      assert(Begin == (char *)alignAddr(Begin, alignOf<T>()));
+      assert(Begin == (char*)alignAddr(Begin, alignOf<T>()));
       for (char *Ptr = Begin; Ptr + sizeof(T) <= End; Ptr += sizeof(T))
         reinterpret_cast<T *>(Ptr)->~T();
     };
@@ -389,7 +388,7 @@ public:
          ++I) {
       size_t AllocatedSlabSize = BumpPtrAllocator::computeSlabSize(
           std::distance(Allocator.Slabs.begin(), I));
-      char *Begin = (char *)alignAddr(*I, alignOf<T>());
+      char *Begin = (char*)alignAddr(*I, alignOf<T>());
       char *End = *I == Allocator.Slabs.back() ? Allocator.CurPtr
                                                : (char *)*I + AllocatedSlabSize;
 
@@ -399,7 +398,7 @@ public:
     for (auto &PtrAndSize : Allocator.CustomSizedSlabs) {
       void *Ptr = PtrAndSize.first;
       size_t Size = PtrAndSize.second;
-      DestroyElements((char *)alignAddr(Ptr, alignOf<T>()), (char *)Ptr + Size);
+      DestroyElements((char*)alignAddr(Ptr, alignOf<T>()), (char *)Ptr + Size);
     }
 
     Allocator.Reset();
@@ -409,7 +408,7 @@ public:
   T *Allocate(size_t num = 1) { return Allocator.Allocate<T>(num); }
 };
 
-} // end namespace llvm
+}  // end namespace llvm
 
 template <typename AllocatorT, size_t SlabSize, size_t SizeThreshold>
 void *operator new(size_t Size,

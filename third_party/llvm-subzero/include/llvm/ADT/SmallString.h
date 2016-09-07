@@ -21,18 +21,17 @@ namespace llvm {
 
 /// SmallString - A SmallString is just a SmallVector with methods and accessors
 /// that make it work better as a string (e.g. operator+ etc).
-template <unsigned InternalLen>
+template<unsigned InternalLen>
 class SmallString : public SmallVector<char, InternalLen> {
 public:
   /// Default ctor - Initialize to empty.
   SmallString() {}
 
   /// Initialize from a StringRef.
-  SmallString(StringRef S)
-      : SmallVector<char, InternalLen>(S.begin(), S.end()) {}
+  SmallString(StringRef S) : SmallVector<char, InternalLen>(S.begin(), S.end()) {}
 
   /// Initialize with a range.
-  template <typename ItTy>
+  template<typename ItTy>
   SmallString(ItTy S, ItTy E) : SmallVector<char, InternalLen>(S, E) {}
 
   // Note that in order to add new overloads for append & assign, we have to
@@ -48,7 +47,8 @@ public:
   }
 
   /// Assign from an iterator pair.
-  template <typename in_iter> void assign(in_iter S, in_iter E) {
+  template<typename in_iter>
+  void assign(in_iter S, in_iter E) {
     this->clear();
     SmallVectorImpl<char>::append(S, E);
   }
@@ -70,13 +70,15 @@ public:
   /// @{
 
   /// Append from an iterator pair.
-  template <typename in_iter> void append(in_iter S, in_iter E) {
+  template<typename in_iter>
+  void append(in_iter S, in_iter E) {
     SmallVectorImpl<char>::append(S, E);
   }
 
   void append(size_t NumInputs, char Elt) {
     SmallVectorImpl<char>::append(NumInputs, Elt);
   }
+
 
   /// Append from a StringRef.
   void append(StringRef RHS) {
@@ -94,17 +96,25 @@ public:
 
   /// Check for string equality.  This is more efficient than compare() when
   /// the relative ordering of inequal strings isn't needed.
-  bool equals(StringRef RHS) const { return str().equals(RHS); }
+  bool equals(StringRef RHS) const {
+    return str().equals(RHS);
+  }
 
   /// Check for string equality, ignoring case.
-  bool equals_lower(StringRef RHS) const { return str().equals_lower(RHS); }
+  bool equals_lower(StringRef RHS) const {
+    return str().equals_lower(RHS);
+  }
 
   /// Compare two strings; the result is -1, 0, or 1 if this string is
   /// lexicographically less than, equal to, or greater than the \p RHS.
-  int compare(StringRef RHS) const { return str().compare(RHS); }
+  int compare(StringRef RHS) const {
+    return str().compare(RHS);
+  }
 
   /// compare_lower - Compare two strings, ignoring case.
-  int compare_lower(StringRef RHS) const { return str().compare_lower(RHS); }
+  int compare_lower(StringRef RHS) const {
+    return str().compare_lower(RHS);
+  }
 
   /// compare_numeric - Compare two strings, treating sequences of digits as
   /// numbers.
@@ -117,10 +127,14 @@ public:
   /// @{
 
   /// startswith - Check if this string starts with the given \p Prefix.
-  bool startswith(StringRef Prefix) const { return str().startswith(Prefix); }
+  bool startswith(StringRef Prefix) const {
+    return str().startswith(Prefix);
+  }
 
   /// endswith - Check if this string ends with the given \p Suffix.
-  bool endswith(StringRef Suffix) const { return str().endswith(Suffix); }
+  bool endswith(StringRef Suffix) const {
+    return str().endswith(Suffix);
+  }
 
   /// @}
   /// @name String Searching
@@ -130,7 +144,9 @@ public:
   ///
   /// \return - The index of the first occurrence of \p C, or npos if not
   /// found.
-  size_t find(char C, size_t From = 0) const { return str().find(C, From); }
+  size_t find(char C, size_t From = 0) const {
+    return str().find(C, From);
+  }
 
   /// Search for the first string \p Str in the string.
   ///
@@ -152,7 +168,9 @@ public:
   ///
   /// \returns The index of the last occurrence of \p Str, or npos if not
   /// found.
-  size_t rfind(StringRef Str) const { return str().rfind(Str); }
+  size_t rfind(StringRef Str) const {
+    return str().rfind(Str);
+  }
 
   /// Find the first character in the string that is \p C, or npos if not
   /// found. Same as find.
@@ -192,7 +210,8 @@ public:
   /// found.
   ///
   /// Complexity: O(size() + Chars.size())
-  size_t find_last_of(StringRef Chars, size_t From = StringRef::npos) const {
+  size_t find_last_of(
+      StringRef Chars, size_t From = StringRef::npos) const {
     return str().find_last_of(Chars, From);
   }
 
@@ -201,11 +220,15 @@ public:
   /// @{
 
   /// Return the number of occurrences of \p C in the string.
-  size_t count(char C) const { return str().count(C); }
+  size_t count(char C) const {
+    return str().count(C);
+  }
 
   /// Return the number of non-overlapped occurrences of \p Str in the
   /// string.
-  size_t count(StringRef Str) const { return str().count(Str); }
+  size_t count(StringRef Str) const {
+    return str().count(Str);
+  }
 
   /// @}
   /// @name Substring Operations
@@ -244,7 +267,7 @@ public:
   StringRef str() const { return StringRef(this->begin(), this->size()); }
 
   // TODO: Make this const, if it's safe...
-  const char *c_str() {
+  const char* c_str() {
     this->push_back(0);
     this->pop_back();
     return this->data();
@@ -268,6 +291,7 @@ public:
     return *this;
   }
 };
+
 }
 
 #endif

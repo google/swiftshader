@@ -16,6 +16,7 @@
 #define LLVM_IR_TYPE_H
 
 #include "llvm/ADT/APFloat.h"
+#include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/SmallPtrSet.h"
 #include "llvm/Support/CBindingWrapping.h"
 #include "llvm/Support/Casting.h"
@@ -31,7 +32,7 @@ class Module;
 class LLVMContext;
 class LLVMContextImpl;
 class StringRef;
-template <class GraphType> struct GraphTraits;
+template<class GraphType> struct GraphTraits;
 
 /// The instances of the Type class are immutable: once they are created,
 /// they are never changed.  Also note that only one instance of a particular
@@ -52,40 +53,40 @@ public:
   ///
   enum TypeID {
     // PrimitiveTypes - make sure LastPrimitiveTyID stays up to date.
-    VoidTyID = 0,  ///<  0: type with no size
-    HalfTyID,      ///<  1: 16-bit floating point type
-    FloatTyID,     ///<  2: 32-bit floating point type
-    DoubleTyID,    ///<  3: 64-bit floating point type
-    X86_FP80TyID,  ///<  4: 80-bit floating point type (X87)
-    FP128TyID,     ///<  5: 128-bit floating point type (112-bit mantissa)
-    PPC_FP128TyID, ///<  6: 128-bit floating point type (two 64-bits, PowerPC)
-    LabelTyID,     ///<  7: Labels
-    MetadataTyID,  ///<  8: Metadata
-    X86_MMXTyID,   ///<  9: MMX vectors (64 bits, X86 specific)
-    TokenTyID,     ///< 10: Tokens
+    VoidTyID = 0,    ///<  0: type with no size
+    HalfTyID,        ///<  1: 16-bit floating point type
+    FloatTyID,       ///<  2: 32-bit floating point type
+    DoubleTyID,      ///<  3: 64-bit floating point type
+    X86_FP80TyID,    ///<  4: 80-bit floating point type (X87)
+    FP128TyID,       ///<  5: 128-bit floating point type (112-bit mantissa)
+    PPC_FP128TyID,   ///<  6: 128-bit floating point type (two 64-bits, PowerPC)
+    LabelTyID,       ///<  7: Labels
+    MetadataTyID,    ///<  8: Metadata
+    X86_MMXTyID,     ///<  9: MMX vectors (64 bits, X86 specific)
+    TokenTyID,       ///< 10: Tokens
 
     // Derived types... see DerivedTypes.h file.
     // Make sure FirstDerivedTyID stays up to date!
-    IntegerTyID,  ///< 11: Arbitrary bit width integers
-    FunctionTyID, ///< 12: Functions
-    StructTyID,   ///< 13: Structures
-    ArrayTyID,    ///< 14: Arrays
-    PointerTyID,  ///< 15: Pointers
-    VectorTyID    ///< 16: SIMD 'packed' format, or other vector type
+    IntegerTyID,     ///< 11: Arbitrary bit width integers
+    FunctionTyID,    ///< 12: Functions
+    StructTyID,      ///< 13: Structures
+    ArrayTyID,       ///< 14: Arrays
+    PointerTyID,     ///< 15: Pointers
+    VectorTyID       ///< 16: SIMD 'packed' format, or other vector type
   };
 
 private:
   /// Context - This refers to the LLVMContext in which this type was uniqued.
   LLVMContext &Context;
 
-  TypeID ID : 8;              // The current base type of this type.
+  TypeID   ID : 8;            // The current base type of this type.
   unsigned SubclassData : 24; // Space for subclasses to store data.
 
 protected:
   friend class LLVMContextImpl;
   explicit Type(LLVMContext &C, TypeID tid)
-      : Context(C), ID(tid), SubclassData(0), NumContainedTys(0),
-        ContainedTys(nullptr) {}
+    : Context(C), ID(tid), SubclassData(0),
+      NumContainedTys(0), ContainedTys(nullptr) {}
   ~Type() = default;
 
   unsigned getSubclassData() const { return SubclassData; }
@@ -105,10 +106,21 @@ protected:
   /// of a structure, the pointee of a pointer, the element type of an array,
   /// etc.  This pointer may be 0 for types that don't contain other types
   /// (Integer, Double, Float).
-  Type *const *ContainedTys;
+  Type * const *ContainedTys;
+
+  static bool isSequentialType(TypeID TyID) {
+    return TyID == ArrayTyID || TyID == PointerTyID || TyID == VectorTyID;
+  }
 
 public:
-  void print(raw_ostream &O, bool IsForDebug = false) const;
+  /// Print the current type.
+  /// Omit the type details if \p NoDetails == true.
+  /// E.g., let %st = type { i32, i16 }
+  /// When \p NoDetails is true, we only print %st.
+  /// Put differently, \p NoDetails prints the type as if
+  /// inlined with the operands when printing an instruction.
+  void print(raw_ostream &O, bool IsForDebug = false,
+             bool NoDetails = false) const;
   void dump() const;
 
   /// getContext - Return the LLVMContext in which this type was uniqued.
@@ -148,26 +160,20 @@ public:
   /// types
   bool isFloatingPointTy() const {
     return getTypeID() == HalfTyID || getTypeID() == FloatTyID ||
-           getTypeID() == DoubleTyID || getTypeID() == X86_FP80TyID ||
-           getTypeID() == FP128TyID || getTypeID() == PPC_FP128TyID;
+           getTypeID() == DoubleTyID ||
+           getTypeID() == X86_FP80TyID || getTypeID() == FP128TyID ||
+           getTypeID() == PPC_FP128TyID;
   }
 
   const fltSemantics &getFltSemantics() const {
     switch (getTypeID()) {
-    case HalfTyID:
-      return APFloat::IEEEhalf;
-    case FloatTyID:
-      return APFloat::IEEEsingle;
-    case DoubleTyID:
-      return APFloat::IEEEdouble;
-    case X86_FP80TyID:
-      return APFloat::x87DoubleExtended;
-    case FP128TyID:
-      return APFloat::IEEEquad;
-    case PPC_FP128TyID:
-      return APFloat::PPCDoubleDouble;
-    default:
-      llvm_unreachable("Invalid floating type");
+    case HalfTyID: return APFloat::IEEEhalf;
+    case FloatTyID: return APFloat::IEEEsingle;
+    case DoubleTyID: return APFloat::IEEEdouble;
+    case X86_FP80TyID: return APFloat::x87DoubleExtended;
+    case FP128TyID: return APFloat::IEEEquad;
+    case PPC_FP128TyID: return APFloat::PPCDoubleDouble;
+    default: llvm_unreachable("Invalid floating type");
     }
   }
 
@@ -264,10 +270,11 @@ public:
   /// get the actual size for a particular target, it is reasonable to use the
   /// DataLayout subsystem to do this.
   ///
-  bool isSized(SmallPtrSetImpl<Type *> *Visited = nullptr) const {
+  bool isSized(SmallPtrSetImpl<Type*> *Visited = nullptr) const {
     // If it's a primitive, it is always sized.
     if (getTypeID() == IntegerTyID || isFloatingPointTy() ||
-        getTypeID() == PointerTyID || getTypeID() == X86_MMXTyID)
+        getTypeID() == PointerTyID ||
+        getTypeID() == X86_MMXTyID)
       return true;
     // If it is not something that can have a size (e.g. a function or label),
     // it doesn't have a size.
@@ -307,12 +314,10 @@ public:
   //===--------------------------------------------------------------------===//
   // Type Iteration support.
   //
-  typedef Type *const *subtype_iterator;
+  typedef Type * const *subtype_iterator;
   subtype_iterator subtype_begin() const { return ContainedTys; }
-  subtype_iterator subtype_end() const {
-    return &ContainedTys[NumContainedTys];
-  }
-  ArrayRef<Type *> subtypes() const {
+  subtype_iterator subtype_end() const { return &ContainedTys[NumContainedTys];}
+  ArrayRef<Type*> subtypes() const {
     return makeArrayRef(subtype_begin(), subtype_end());
   }
 
@@ -354,7 +359,10 @@ public:
   inline unsigned getStructNumElements() const;
   inline Type *getStructElementType(unsigned N) const;
 
-  inline Type *getSequentialElementType() const;
+  inline Type *getSequentialElementType() const {
+    assert(isSequentialType(getTypeID()) && "Not a sequential type!");
+    return ContainedTys[0];
+  }
 
   inline uint64_t getArrayNumElements() const;
   Type *getArrayElementType() const { return getSequentialElementType(); }
@@ -423,7 +431,7 @@ private:
   /// isSizedDerivedType - Derived types like structures and arrays are sized
   /// iff all of the members of the type are sized as well.  Since asking for
   /// their size is relatively uncommon, move this operation out of line.
-  bool isSizedDerivedType(SmallPtrSetImpl<Type *> *Visited = nullptr) const;
+  bool isSizedDerivedType(SmallPtrSetImpl<Type*> *Visited = nullptr) const;
 };
 
 // Printing of types.
@@ -456,7 +464,7 @@ template <> struct GraphTraits<Type *> {
   }
 };
 
-template <> struct GraphTraits<const Type *> {
+template <> struct GraphTraits<const Type*> {
   typedef const Type NodeType;
   typedef Type::subtype_iterator ChildIteratorType;
 
@@ -474,12 +482,12 @@ DEFINE_ISA_CONVERSION_FUNCTIONS(Type, LLVMTypeRef)
 
 /* Specialized opaque type conversions.
  */
-inline Type **unwrap(LLVMTypeRef *Tys) {
-  return reinterpret_cast<Type **>(Tys);
+inline Type **unwrap(LLVMTypeRef* Tys) {
+  return reinterpret_cast<Type**>(Tys);
 }
 
 inline LLVMTypeRef *wrap(Type **Tys) {
-  return reinterpret_cast<LLVMTypeRef *>(const_cast<Type **>(Tys));
+  return reinterpret_cast<LLVMTypeRef*>(const_cast<Type**>(Tys));
 }
 
 } // End llvm namespace

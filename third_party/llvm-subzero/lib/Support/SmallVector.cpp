@@ -35,7 +35,7 @@ void SmallVectorBase::grow_pod(void *FirstEl, size_t MinSizeInBytes,
   }
   assert(NewElts && "Out of memory");
 
-  this->EndX = (char *)NewElts + CurSizeBytes;
+  this->EndX = (char*)NewElts+CurSizeBytes;
   this->BeginX = NewElts;
-  this->CapacityX = (char *)this->BeginX + NewCapacityInBytes;
+  this->CapacityX = (char*)this->BeginX + NewCapacityInBytes;
 }

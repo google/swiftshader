@@ -28,13 +28,12 @@ using namespace llvm;
 /// ComputeHash - Compute a strong hash value for this FoldingSetNodeIDRef,
 /// used to lookup the node in the FoldingSetImpl.
 unsigned FoldingSetNodeIDRef::ComputeHash() const {
-  return static_cast<unsigned>(hash_combine_range(Data, Data + Size));
+  return static_cast<unsigned>(hash_combine_range(Data, Data+Size));
 }
 
 bool FoldingSetNodeIDRef::operator==(FoldingSetNodeIDRef RHS) const {
-  if (Size != RHS.Size)
-    return false;
-  return memcmp(Data, RHS.Data, Size * sizeof(*Data)) == 0;
+  if (Size != RHS.Size) return false;
+  return memcmp(Data, RHS.Data, Size*sizeof(*Data)) == 0;
 }
 
 /// Used to compare the "ordering" of two nodes as defined by the
@@ -42,7 +41,7 @@ bool FoldingSetNodeIDRef::operator==(FoldingSetNodeIDRef RHS) const {
 bool FoldingSetNodeIDRef::operator<(FoldingSetNodeIDRef RHS) const {
   if (Size != RHS.Size)
     return Size < RHS.Size;
-  return memcmp(Data, RHS.Data, Size * sizeof(*Data)) < 0;
+  return memcmp(Data, RHS.Data, Size*sizeof(*Data)) < 0;
 }
 
 //===----------------------------------------------------------------------===//
@@ -56,11 +55,17 @@ void FoldingSetNodeID::AddPointer(const void *Ptr) {
   // pointer values is inherently unstable. Nothing should depend on the
   // ordering of nodes in the folding set.
   Bits.append(reinterpret_cast<unsigned *>(&Ptr),
-              reinterpret_cast<unsigned *>(&Ptr + 1));
+              reinterpret_cast<unsigned *>(&Ptr+1));
 }
-void FoldingSetNodeID::AddInteger(signed I) { Bits.push_back(I); }
-void FoldingSetNodeID::AddInteger(unsigned I) { Bits.push_back(I); }
-void FoldingSetNodeID::AddInteger(long I) { AddInteger((unsigned long)I); }
+void FoldingSetNodeID::AddInteger(signed I) {
+  Bits.push_back(I);
+}
+void FoldingSetNodeID::AddInteger(unsigned I) {
+  Bits.push_back(I);
+}
+void FoldingSetNodeID::AddInteger(long I) {
+  AddInteger((unsigned long)I);
+}
 void FoldingSetNodeID::AddInteger(unsigned long I) {
   if (sizeof(long) == sizeof(int))
     AddInteger(unsigned(I));
@@ -80,15 +85,14 @@ void FoldingSetNodeID::AddInteger(unsigned long long I) {
 }
 
 void FoldingSetNodeID::AddString(StringRef String) {
-  unsigned Size = String.size();
+  unsigned Size =  String.size();
   Bits.push_back(Size);
-  if (!Size)
-    return;
+  if (!Size) return;
 
   unsigned Units = Size / 4;
   unsigned Pos = 0;
-  const unsigned *Base = (const unsigned *)String.data();
-
+  const unsigned *Base = (const unsigned*) String.data();
+  
   // If the string is aligned do a bulk transfer.
   if (!((intptr_t)Base & 3)) {
     Bits.append(Base, Base + Units);
@@ -104,34 +108,29 @@ void FoldingSetNodeID::AddString(StringRef String) {
         unsigned V = ((unsigned char)String[Pos - 4] << 24) |
                      ((unsigned char)String[Pos - 3] << 16) |
                      ((unsigned char)String[Pos - 2] << 8) |
-                     (unsigned char)String[Pos - 1];
+                      (unsigned char)String[Pos - 1];
         Bits.push_back(V);
       }
-    } else { // Little-endian host
+    } else {  // Little-endian host
       for (Pos += 4; Pos <= Size; Pos += 4) {
         unsigned V = ((unsigned char)String[Pos - 1] << 24) |
                      ((unsigned char)String[Pos - 2] << 16) |
                      ((unsigned char)String[Pos - 3] << 8) |
-                     (unsigned char)String[Pos - 4];
+                      (unsigned char)String[Pos - 4];
         Bits.push_back(V);
       }
     }
   }
-
+  
   // With the leftover bits.
   unsigned V = 0;
   // Pos will have overshot size by 4 - #bytes left over.
   // No need to take endianness into account here - this is always executed.
   switch (Pos - Size) {
-  case 1:
-    V = (V << 8) | (unsigned char)String[Size - 3]; // Fall thru.
-  case 2:
-    V = (V << 8) | (unsigned char)String[Size - 2]; // Fall thru.
-  case 3:
-    V = (V << 8) | (unsigned char)String[Size - 1];
-    break;
-  default:
-    return; // Nothing left.
+  case 1: V = (V << 8) | (unsigned char)String[Size - 3]; // Fall thru.
+  case 2: V = (V << 8) | (unsigned char)String[Size - 2]; // Fall thru.
+  case 3: V = (V << 8) | (unsigned char)String[Size - 1]; break;
+  default: return; // Nothing left.
   }
 
   Bits.push_back(V);
@@ -142,7 +141,7 @@ void FoldingSetNodeID::AddNodeID(const FoldingSetNodeID &ID) {
   Bits.append(ID.Bits.begin(), ID.Bits.end());
 }
 
-/// ComputeHash - Compute a strong hash value for this FoldingSetNodeID, used to
+/// ComputeHash - Compute a strong hash value for this FoldingSetNodeID, used to 
 /// lookup the node in the FoldingSetImpl.
 unsigned FoldingSetNodeID::ComputeHash() const {
   return FoldingSetNodeIDRef(Bits.data(), Bits.size()).ComputeHash();
@@ -193,30 +192,31 @@ static FoldingSetImpl::Node *GetNextPtr(void *NextInBucketPtr) {
   // The low bit is set if this is the pointer back to the bucket.
   if (reinterpret_cast<intptr_t>(NextInBucketPtr) & 1)
     return nullptr;
-
-  return static_cast<FoldingSetImpl::Node *>(NextInBucketPtr);
+  
+  return static_cast<FoldingSetImpl::Node*>(NextInBucketPtr);
 }
+
 
 /// testing.
 static void **GetBucketPtr(void *NextInBucketPtr) {
   intptr_t Ptr = reinterpret_cast<intptr_t>(NextInBucketPtr);
   assert((Ptr & 1) && "Not a bucket pointer");
-  return reinterpret_cast<void **>(Ptr & ~intptr_t(1));
+  return reinterpret_cast<void**>(Ptr & ~intptr_t(1));
 }
 
 /// GetBucketFor - Hash the specified node ID and return the hash bucket for
 /// the specified ID.
 static void **GetBucketFor(unsigned Hash, void **Buckets, unsigned NumBuckets) {
   // NumBuckets is always a power of 2.
-  unsigned BucketNum = Hash & (NumBuckets - 1);
+  unsigned BucketNum = Hash & (NumBuckets-1);
   return Buckets + BucketNum;
 }
 
 /// AllocateBuckets - Allocated initialized bucket memory.
 static void **AllocateBuckets(unsigned NumBuckets) {
-  void **Buckets = static_cast<void **>(calloc(NumBuckets + 1, sizeof(void *)));
+  void **Buckets = static_cast<void**>(calloc(NumBuckets+1, sizeof(void*)));
   // Set the very last bucket to be a non-null "pointer".
-  Buckets[NumBuckets] = reinterpret_cast<void *>(-1);
+  Buckets[NumBuckets] = reinterpret_cast<void*>(-1);
   return Buckets;
 }
 
@@ -251,14 +251,16 @@ FoldingSetImpl &FoldingSetImpl::operator=(FoldingSetImpl &&RHS) {
   return *this;
 }
 
-FoldingSetImpl::~FoldingSetImpl() { free(Buckets); }
+FoldingSetImpl::~FoldingSetImpl() {
+  free(Buckets);
+}
 
 void FoldingSetImpl::clear() {
   // Set all but the last bucket to null pointers.
-  memset(Buckets, 0, NumBuckets * sizeof(void *));
+  memset(Buckets, 0, NumBuckets*sizeof(void*));
 
   // Set the very last bucket to be a non-null "pointer".
-  Buckets[NumBuckets] = reinterpret_cast<void *>(-1);
+  Buckets[NumBuckets] = reinterpret_cast<void*>(-1);
 
   // Reset the node count to zero.
   NumNodes = 0;
@@ -270,7 +272,7 @@ void FoldingSetImpl::GrowHashTable() {
   void **OldBuckets = Buckets;
   unsigned OldNumBuckets = NumBuckets;
   NumBuckets <<= 1;
-
+  
   // Clear out new buckets.
   Buckets = AllocateBuckets(NumBuckets);
   NumNodes = 0;
@@ -279,8 +281,7 @@ void FoldingSetImpl::GrowHashTable() {
   FoldingSetNodeID TempID;
   for (unsigned i = 0; i != OldNumBuckets; ++i) {
     void *Probe = OldBuckets[i];
-    if (!Probe)
-      continue;
+    if (!Probe) continue;
     while (Node *NodeInBucket = GetNextPtr(Probe)) {
       // Figure out the next link, remove NodeInBucket from the old link.
       Probe = NodeInBucket->getNextInBucket();
@@ -288,27 +289,27 @@ void FoldingSetImpl::GrowHashTable() {
 
       // Insert the node into the new bucket, after recomputing the hash.
       InsertNode(NodeInBucket,
-                 GetBucketFor(ComputeNodeHash(NodeInBucket, TempID), Buckets,
-                              NumBuckets));
+                 GetBucketFor(ComputeNodeHash(NodeInBucket, TempID),
+                              Buckets, NumBuckets));
       TempID.clear();
     }
   }
-
+  
   free(OldBuckets);
 }
 
 /// FindNodeOrInsertPos - Look up the node specified by ID.  If it exists,
 /// return it.  If not, return the insertion token that will make insertion
 /// faster.
-FoldingSetImpl::Node *
-FoldingSetImpl::FindNodeOrInsertPos(const FoldingSetNodeID &ID,
-                                    void *&InsertPos) {
+FoldingSetImpl::Node
+*FoldingSetImpl::FindNodeOrInsertPos(const FoldingSetNodeID &ID,
+                                     void *&InsertPos) {
   unsigned IDHash = ID.ComputeHash();
   void **Bucket = GetBucketFor(IDHash, Buckets, NumBuckets);
   void *Probe = *Bucket;
-
+  
   InsertPos = nullptr;
-
+  
   FoldingSetNodeID TempID;
   while (Node *NodeInBucket = GetNextPtr(Probe)) {
     if (NodeEquals(NodeInBucket, ID, IDHash, TempID))
@@ -317,36 +318,36 @@ FoldingSetImpl::FindNodeOrInsertPos(const FoldingSetNodeID &ID,
 
     Probe = NodeInBucket->getNextInBucket();
   }
-
+  
   // Didn't find the node, return null with the bucket as the InsertPos.
   InsertPos = Bucket;
   return nullptr;
 }
 
 /// InsertNode - Insert the specified node into the folding set, knowing that it
-/// is not already in the map.  InsertPos must be obtained from
+/// is not already in the map.  InsertPos must be obtained from 
 /// FindNodeOrInsertPos.
 void FoldingSetImpl::InsertNode(Node *N, void *InsertPos) {
   assert(!N->getNextInBucket());
   // Do we need to grow the hashtable?
-  if (NumNodes + 1 > NumBuckets * 2) {
+  if (NumNodes+1 > NumBuckets*2) {
     GrowHashTable();
     FoldingSetNodeID TempID;
     InsertPos = GetBucketFor(ComputeNodeHash(N, TempID), Buckets, NumBuckets);
   }
 
   ++NumNodes;
-
+  
   /// The insert position is actually a bucket pointer.
-  void **Bucket = static_cast<void **>(InsertPos);
-
+  void **Bucket = static_cast<void**>(InsertPos);
+  
   void *Next = *Bucket;
-
+  
   // If this is the first insertion into this bucket, its next pointer will be
   // null.  Pretend as if it pointed to itself, setting the low bit to indicate
   // that it is a pointer to the bucket.
   if (!Next)
-    Next = reinterpret_cast<void *>(reinterpret_cast<intptr_t>(Bucket) | 1);
+    Next = reinterpret_cast<void*>(reinterpret_cast<intptr_t>(Bucket)|1);
 
   // Set the node's next pointer, and make the bucket point to the node.
   N->SetNextInBucket(Next);
@@ -359,21 +360,20 @@ bool FoldingSetImpl::RemoveNode(Node *N) {
   // Because each bucket is a circular list, we don't need to compute N's hash
   // to remove it.
   void *Ptr = N->getNextInBucket();
-  if (!Ptr)
-    return false; // Not in folding set.
+  if (!Ptr) return false;  // Not in folding set.
 
   --NumNodes;
   N->SetNextInBucket(nullptr);
 
   // Remember what N originally pointed to, either a bucket or another node.
   void *NodeNextPtr = Ptr;
-
+  
   // Chase around the list until we find the node (or bucket) which points to N.
   while (true) {
     if (Node *NodeInBucket = GetNextPtr(Ptr)) {
       // Advance pointer.
       Ptr = NodeInBucket->getNextInBucket();
-
+      
       // We found a node that points to N, change it to point to N's next node,
       // removing N from the list.
       if (Ptr == N) {
@@ -383,7 +383,7 @@ bool FoldingSetImpl::RemoveNode(Node *N) {
     } else {
       void **Bucket = GetBucketPtr(Ptr);
       Ptr = *Bucket;
-
+      
       // If we found that the bucket points to N, update the bucket to point to
       // whatever is next.
       if (Ptr == N) {
@@ -412,11 +412,11 @@ FoldingSetImpl::Node *FoldingSetImpl::GetOrInsertNode(FoldingSetImpl::Node *N) {
 
 FoldingSetIteratorImpl::FoldingSetIteratorImpl(void **Bucket) {
   // Skip to the first non-null non-self-cycle bucket.
-  while (*Bucket != reinterpret_cast<void *>(-1) &&
+  while (*Bucket != reinterpret_cast<void*>(-1) &&
          (!*Bucket || !GetNextPtr(*Bucket)))
     ++Bucket;
-
-  NodePtr = static_cast<FoldingSetNode *>(*Bucket);
+  
+  NodePtr = static_cast<FoldingSetNode*>(*Bucket);
 }
 
 void FoldingSetIteratorImpl::advance() {
@@ -426,16 +426,16 @@ void FoldingSetIteratorImpl::advance() {
   if (FoldingSetNode *NextNodeInBucket = GetNextPtr(Probe))
     NodePtr = NextNodeInBucket;
   else {
-    // Otherwise, this is the last link in this bucket.
+    // Otherwise, this is the last link in this bucket.  
     void **Bucket = GetBucketPtr(Probe);
 
     // Skip to the next non-null non-self-cycle bucket.
     do {
       ++Bucket;
-    } while (*Bucket != reinterpret_cast<void *>(-1) &&
+    } while (*Bucket != reinterpret_cast<void*>(-1) &&
              (!*Bucket || !GetNextPtr(*Bucket)));
-
-    NodePtr = static_cast<FoldingSetNode *>(*Bucket);
+    
+    NodePtr = static_cast<FoldingSetNode*>(*Bucket);
   }
 }
 
@@ -443,5 +443,5 @@ void FoldingSetIteratorImpl::advance() {
 // FoldingSetBucketIteratorImpl Implementation
 
 FoldingSetBucketIteratorImpl::FoldingSetBucketIteratorImpl(void **Bucket) {
-  Ptr = (!*Bucket || !GetNextPtr(*Bucket)) ? (void *)Bucket : *Bucket;
+  Ptr = (!*Bucket || !GetNextPtr(*Bucket)) ? (void*) Bucket : *Bucket;
 }

@@ -24,10 +24,10 @@ class TimerGroup;
 class raw_ostream;
 
 class TimeRecord {
-  double WallTime;   // Wall clock time elapsed in seconds
-  double UserTime;   // User time elapsed
-  double SystemTime; // System time elapsed
-  ssize_t MemUsed;   // Memory allocated (in bytes)
+  double WallTime;       // Wall clock time elapsed in seconds
+  double UserTime;       // User time elapsed
+  double SystemTime;     // System time elapsed
+  ssize_t MemUsed;       // Memory allocated (in bytes)
 public:
   TimeRecord() : WallTime(0), UserTime(0), SystemTime(0), MemUsed(0) {}
 
@@ -50,16 +50,16 @@ public:
   }
 
   void operator+=(const TimeRecord &RHS) {
-    WallTime += RHS.WallTime;
-    UserTime += RHS.UserTime;
+    WallTime   += RHS.WallTime;
+    UserTime   += RHS.UserTime;
     SystemTime += RHS.SystemTime;
-    MemUsed += RHS.MemUsed;
+    MemUsed    += RHS.MemUsed;
   }
   void operator-=(const TimeRecord &RHS) {
-    WallTime -= RHS.WallTime;
-    UserTime -= RHS.UserTime;
+    WallTime   -= RHS.WallTime;
+    UserTime   -= RHS.UserTime;
     SystemTime -= RHS.SystemTime;
-    MemUsed -= RHS.MemUsed;
+    MemUsed    -= RHS.MemUsed;
   }
 
   /// Print the current time record to \p OS, with a breakdown showing
@@ -76,14 +76,14 @@ public:
 /// if they are never started.
 ///
 class Timer {
-  TimeRecord Time;      // The total time captured
-  TimeRecord StartTime; // The time startTimer() was last called
-  std::string Name;     // The name of this time variable.
-  bool Running;         // Is the timer currently running?
-  bool Triggered;       // Has the timer ever been triggered?
-  TimerGroup *TG;       // The TimerGroup this Timer is in.
+  TimeRecord Time;       // The total time captured
+  TimeRecord StartTime;  // The time startTimer() was last called
+  std::string Name;      // The name of this time variable.
+  bool Running;          // Is the timer currently running?
+  bool Triggered;        // Has the timer ever been triggered?
+  TimerGroup *TG;        // The TimerGroup this Timer is in.
 
-  Timer **Prev, *Next; // Doubly linked list of timers in the group.
+  Timer **Prev, *Next;   // Doubly linked list of timers in the group.
 public:
   explicit Timer(StringRef N) : TG(nullptr) { init(N); }
   Timer(StringRef N, TimerGroup &tg) : TG(nullptr) { init(N, tg); }
@@ -135,14 +135,14 @@ class TimeRegion {
   TimeRegion(const TimeRegion &) = delete;
 
 public:
-  explicit TimeRegion(Timer &t) : T(&t) { T->startTimer(); }
+  explicit TimeRegion(Timer &t) : T(&t) {
+    T->startTimer();
+  }
   explicit TimeRegion(Timer *t) : T(t) {
-    if (T)
-      T->startTimer();
+    if (T) T->startTimer();
   }
   ~TimeRegion() {
-    if (T)
-      T->stopTimer();
+    if (T) T->stopTimer();
   }
 };
 
@@ -152,7 +152,8 @@ public:
 /// is primarily used for debugging and for hunting performance problems.
 ///
 struct NamedRegionTimer : public TimeRegion {
-  explicit NamedRegionTimer(StringRef Name, bool Enabled = true);
+  explicit NamedRegionTimer(StringRef Name,
+                            bool Enabled = true);
   explicit NamedRegionTimer(StringRef Name, StringRef GroupName,
                             bool Enabled = true);
 };
@@ -164,7 +165,7 @@ struct NamedRegionTimer : public TimeRegion {
 ///
 class TimerGroup {
   std::string Name;
-  Timer *FirstTimer; // First timer in the group.
+  Timer *FirstTimer;   // First timer in the group.
   std::vector<std::pair<TimeRecord, std::string>> TimersToPrint;
 
   TimerGroup **Prev, *Next; // Doubly linked list of TimerGroup's.

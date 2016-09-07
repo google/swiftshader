@@ -19,6 +19,7 @@
 #include <cassert>
 #include <cstring>
 #include <type_traits>
+#include <limits>
 
 #ifdef _MSC_VER
 #include <intrin.h>
@@ -220,14 +221,15 @@ static const unsigned char BitReverseTable256[256] = {
 #define R2(n) n, n + 2 * 64, n + 1 * 64, n + 3 * 64
 #define R4(n) R2(n), R2(n + 2 * 16), R2(n + 1 * 16), R2(n + 3 * 16)
 #define R6(n) R4(n), R4(n + 2 * 4), R4(n + 1 * 4), R4(n + 3 * 4)
-    R6(0), R6(2), R6(1), R6(3)
+  R6(0), R6(2), R6(1), R6(3)
 #undef R2
 #undef R4
 #undef R6
 };
 
 /// \brief Reverse the bits in \p Val.
-template <typename T> T reverseBits(T Val) {
+template <typename T>
+T reverseBits(T Val) {
   unsigned char in[sizeof(Val)];
   unsigned char out[sizeof(Val)];
   std::memcpy(in, &Val, sizeof(Val));
@@ -247,7 +249,9 @@ inline uint32_t Hi_32(uint64_t Value) {
 }
 
 /// Lo_32 - This function returns the low 32 bits of a 64 bit value.
-inline uint32_t Lo_32(uint64_t Value) { return static_cast<uint32_t>(Value); }
+inline uint32_t Lo_32(uint64_t Value) {
+  return static_cast<uint32_t>(Value);
+}
 
 /// Make_64 - This functions makes a 64-bit integer from a high / low pair of
 ///           32-bit integers.
@@ -256,59 +260,67 @@ inline uint64_t Make_64(uint32_t High, uint32_t Low) {
 }
 
 /// isInt - Checks if an integer fits into the given bit width.
-template <unsigned N> inline bool isInt(int64_t x) {
-  return N >= 64 ||
-         (-(INT64_C(1) << (N - 1)) <= x && x < (INT64_C(1) << (N - 1)));
+template<unsigned N>
+inline bool isInt(int64_t x) {
+  return N >= 64 || (-(INT64_C(1)<<(N-1)) <= x && x < (INT64_C(1)<<(N-1)));
 }
 // Template specializations to get better code for common cases.
-template <> inline bool isInt<8>(int64_t x) {
+template<>
+inline bool isInt<8>(int64_t x) {
   return static_cast<int8_t>(x) == x;
 }
-template <> inline bool isInt<16>(int64_t x) {
+template<>
+inline bool isInt<16>(int64_t x) {
   return static_cast<int16_t>(x) == x;
 }
-template <> inline bool isInt<32>(int64_t x) {
+template<>
+inline bool isInt<32>(int64_t x) {
   return static_cast<int32_t>(x) == x;
 }
 
 /// isShiftedInt<N,S> - Checks if a signed integer is an N bit number shifted
 ///                     left by S.
-template <unsigned N, unsigned S> inline bool isShiftedInt(int64_t x) {
-  return isInt<N + S>(x) && (x % (1 << S) == 0);
+template<unsigned N, unsigned S>
+inline bool isShiftedInt(int64_t x) {
+  return isInt<N+S>(x) && (x % (1<<S) == 0);
 }
 
 /// isUInt - Checks if an unsigned integer fits into the given bit width.
-template <unsigned N> inline bool isUInt(uint64_t x) {
-  return N >= 64 || x < (UINT64_C(1) << (N));
+template<unsigned N>
+inline bool isUInt(uint64_t x) {
+  return N >= 64 || x < (UINT64_C(1)<<(N));
 }
 // Template specializations to get better code for common cases.
-template <> inline bool isUInt<8>(uint64_t x) {
+template<>
+inline bool isUInt<8>(uint64_t x) {
   return static_cast<uint8_t>(x) == x;
 }
-template <> inline bool isUInt<16>(uint64_t x) {
+template<>
+inline bool isUInt<16>(uint64_t x) {
   return static_cast<uint16_t>(x) == x;
 }
-template <> inline bool isUInt<32>(uint64_t x) {
+template<>
+inline bool isUInt<32>(uint64_t x) {
   return static_cast<uint32_t>(x) == x;
 }
 
 /// isShiftedUInt<N,S> - Checks if a unsigned integer is an N bit number shifted
 ///                     left by S.
-template <unsigned N, unsigned S> inline bool isShiftedUInt(uint64_t x) {
-  return isUInt<N + S>(x) && (x % (1 << S) == 0);
+template<unsigned N, unsigned S>
+inline bool isShiftedUInt(uint64_t x) {
+  return isUInt<N+S>(x) && (x % (1<<S) == 0);
 }
 
 /// isUIntN - Checks if an unsigned integer fits into the given (dynamic)
 /// bit width.
 inline bool isUIntN(unsigned N, uint64_t x) {
-  return N >= 64 || x < (UINT64_C(1) << (N));
+  return N >= 64 || x < (UINT64_C(1)<<(N));
 }
 
 /// isIntN - Checks if an signed integer fits into the given (dynamic)
 /// bit width.
 inline bool isIntN(unsigned N, int64_t x) {
-  return N >= 64 ||
-         (-(INT64_C(1) << (N - 1)) <= x && x < (INT64_C(1) << (N - 1)));
+  return N >= 64 || (-(INT64_C(1)<<(N-1)) <= x && x < (INT64_C(1)<<(N-1)));
 }
 
 /// isMask_32 - This function returns true if the argument is a non-empty
@@ -434,7 +446,8 @@ template <typename T> struct PopulationCounter<T, 8> {
 /// \brief Count the number of set bits in a value.
 /// Ex. countPopulation(0xF000F000) = 8
 /// Returns 0 if the word is zero.
-template <typename T> inline unsigned countPopulation(T Value) {
+template <typename T>
+inline unsigned countPopulation(T Value) {
   static_assert(std::numeric_limits<T>::is_integer &&
                     !std::numeric_limits<T>::is_signed,
                 "Only unsigned integral types are allowed.");
@@ -580,8 +593,7 @@ inline uint64_t NextPowerOf2(uint64_t A) {
 /// Returns the power of two which is less than or equal to the given value.
 /// Essentially, it is a floor operation across the domain of powers of two.
 inline uint64_t PowerOf2Floor(uint64_t A) {
-  if (!A)
-    return 0;
+  if (!A) return 0;
   return 1ull << (63 - countLeadingZeros(A, ZB_Undefined));
 }
 
@@ -595,27 +607,33 @@ inline uint64_t PowerOf2Floor(uint64_t A) {
 ///
 /// Examples:
 /// \code
-///   RoundUpToAlignment(5, 8) = 8
-///   RoundUpToAlignment(17, 8) = 24
-///   RoundUpToAlignment(~0LL, 8) = 0
-///   RoundUpToAlignment(321, 255) = 510
+///   alignTo(5, 8) = 8
+///   alignTo(17, 8) = 24
+///   alignTo(~0LL, 8) = 0
+///   alignTo(321, 255) = 510
 ///
-///   RoundUpToAlignment(5, 8, 7) = 7
-///   RoundUpToAlignment(17, 8, 1) = 17
-///   RoundUpToAlignment(~0LL, 8, 3) = 3
-///   RoundUpToAlignment(321, 255, 42) = 552
+///   alignTo(5, 8, 7) = 7
+///   alignTo(17, 8, 1) = 17
+///   alignTo(~0LL, 8, 3) = 3
+///   alignTo(321, 255, 42) = 552
 /// \endcode
-inline uint64_t RoundUpToAlignment(uint64_t Value, uint64_t Align,
-                                   uint64_t Skew = 0) {
+inline uint64_t alignTo(uint64_t Value, uint64_t Align, uint64_t Skew = 0) {
   Skew %= Align;
   return (Value + Align - 1 - Skew) / Align * Align + Skew;
+}
+
+/// Returns the largest uint64_t less than or equal to \p Value and is
+/// \p Skew mod \p Align. \p Align must be non-zero
+inline uint64_t alignDown(uint64_t Value, uint64_t Align, uint64_t Skew = 0) {
+  Skew %= Align;
+  return (Value - Skew) / Align * Align + Skew;
 }
 
 /// Returns the offset to the next integer (mod 2**64) that is greater than
 /// or equal to \p Value and is a multiple of \p Align. \p Align must be
 /// non-zero.
 inline uint64_t OffsetToAlignment(uint64_t Value, uint64_t Align) {
-  return RoundUpToAlignment(Value, Align) - Value;
+  return alignTo(Value, Align) - Value;
 }
 
 /// SignExtend32 - Sign extend B-bit number x to 32-bit int.

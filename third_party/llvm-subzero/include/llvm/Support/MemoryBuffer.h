@@ -39,18 +39,16 @@ class MemoryBuffer {
 
   MemoryBuffer(const MemoryBuffer &) = delete;
   MemoryBuffer &operator=(const MemoryBuffer &) = delete;
-
 protected:
   MemoryBuffer() {}
   void init(const char *BufStart, const char *BufEnd,
             bool RequiresNullTerminator);
-
 public:
   virtual ~MemoryBuffer();
 
   const char *getBufferStart() const { return BufferStart; }
-  const char *getBufferEnd() const { return BufferEnd; }
-  size_t getBufferSize() const { return BufferEnd - BufferStart; }
+  const char *getBufferEnd() const   { return BufferEnd; }
+  size_t getBufferSize() const { return BufferEnd-BufferStart; }
 
   StringRef getBuffer() const {
     return StringRef(BufferStart, getBufferSize());
@@ -58,7 +56,9 @@ public:
 
   /// Return an identifier for this buffer, typically the filename it was read
   /// from.
-  virtual const char *getBufferIdentifier() const { return "Unknown buffer"; }
+  virtual const char *getBufferIdentifier() const {
+    return "Unknown buffer";
+  }
 
   /// Open the specified file as a MemoryBuffer, returning a new MemoryBuffer
   /// if successful, otherwise returning null. If FileSize is specified, this
@@ -133,7 +133,10 @@ public:
   //===--------------------------------------------------------------------===//
 
   /// The kind of memory backing used to support the MemoryBuffer.
-  enum BufferKind { MemoryBuffer_Malloc, MemoryBuffer_MMap };
+  enum BufferKind {
+    MemoryBuffer_Malloc,
+    MemoryBuffer_MMap
+  };
 
   /// Return information on the memory mechanism used to support the
   /// MemoryBuffer.
@@ -148,7 +151,7 @@ class MemoryBufferRef {
 
 public:
   MemoryBufferRef() {}
-  MemoryBufferRef(MemoryBuffer &Buffer)
+  MemoryBufferRef(MemoryBuffer& Buffer)
       : Buffer(Buffer.getBuffer()), Identifier(Buffer.getBufferIdentifier()) {}
   MemoryBufferRef(StringRef Buffer, StringRef Identifier)
       : Buffer(Buffer), Identifier(Identifier) {}

@@ -39,7 +39,7 @@ namespace llvm {
 /// \returns the minimum number of element insertions, removals, or (if
 /// \p AllowReplacements is \c true) replacements needed to transform one of
 /// the given sequences into the other. If zero, the sequences are identical.
-template <typename T>
+template<typename T>
 unsigned ComputeEditDistance(ArrayRef<T> FromArray, ArrayRef<T> ToArray,
                              bool AllowReplacements = true,
                              unsigned MaxEditDistance = 0) {
@@ -78,14 +78,13 @@ unsigned ComputeEditDistance(ArrayRef<T> FromArray, ArrayRef<T> ToArray,
     for (typename ArrayRef<T>::size_type x = 1; x <= n; ++x) {
       int OldRow = Row[x];
       if (AllowReplacements) {
-        Row[x] =
-            std::min(Previous + (FromArray[y - 1] == ToArray[x - 1] ? 0u : 1u),
-                     std::min(Row[x - 1], Row[x]) + 1);
-      } else {
-        if (FromArray[y - 1] == ToArray[x - 1])
-          Row[x] = Previous;
-        else
-          Row[x] = std::min(Row[x - 1], Row[x]) + 1;
+        Row[x] = std::min(
+            Previous + (FromArray[y-1] == ToArray[x-1] ? 0u : 1u),
+            std::min(Row[x-1], Row[x])+1);
+      }
+      else {
+        if (FromArray[y-1] == ToArray[x-1]) Row[x] = Previous;
+        else Row[x] = std::min(Row[x-1], Row[x]) + 1;
       }
       Previous = OldRow;
       BestThisRow = std::min(BestThisRow, Row[x]);

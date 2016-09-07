@@ -37,9 +37,8 @@ struct AlignmentCalcImpl {
 #pragma warning(suppress : 4324)
 #endif
   T t;
-
 private:
-  AlignmentCalcImpl() {} // Never instantiate.
+  AlignmentCalcImpl() = delete;
 };
 
 // Abstract base class helper, this will have the minimal alignment and size
@@ -56,7 +55,7 @@ struct AlignmentCalcImplBase {
 // of type T.
 template <typename T>
 struct AlignmentCalcImpl<T, true> : AlignmentCalcImplBase, T {
-  virtual ~AlignmentCalcImpl() = 0;
+  ~AlignmentCalcImpl() override = 0;
 };
 
 } // End detail namespace.
@@ -68,7 +67,8 @@ struct AlignmentCalcImpl<T, true> : AlignmentCalcImplBase, T {
 ///  the "desired" alignment returned by GCC's __alignof__ (for example).  Note
 ///  that because the alignment is an enum value, it can be used as a
 ///  compile-time constant (e.g., for template instantiation).
-template <typename T> struct AlignOf {
+template <typename T>
+struct AlignOf {
 #ifndef _MSC_VER
   // Avoid warnings from GCC like:
   //   comparison between 'enum llvm::AlignOf<X>::<anonymous>' and 'enum
@@ -79,8 +79,8 @@ template <typename T> struct AlignOf {
       sizeof(detail::AlignmentCalcImpl<T>) - sizeof(T));
 #else
   enum {
-    Alignment = static_cast<unsigned int>(sizeof(detail::AlignmentCalcImpl<T>) -
-                                          sizeof(T))
+    Alignment = static_cast<unsigned int>(
+        sizeof(::llvm::detail::AlignmentCalcImpl<T>) - sizeof(T))
   };
 #endif
   enum { Alignment_GreaterEqual_2Bytes = Alignment >= 2 ? 1 : 0 };
@@ -102,9 +102,8 @@ template <typename T> constexpr unsigned AlignOf<T>::Alignment;
 ///  of a type.  This provides no extra functionality beyond the AlignOf
 ///  class besides some cosmetic cleanliness.  Example usage:
 ///  alignOf<int>() returns the alignment of an int.
-template <typename T> inline unsigned alignOf() {
-  return AlignOf<T>::Alignment;
-}
+template <typename T>
+inline unsigned alignOf() { return AlignOf<T>::Alignment; }
 
 /// \struct AlignedCharArray
 /// \brief Helper for building an aligned character array type.
@@ -120,17 +119,20 @@ template <typename T> inline unsigned alignOf() {
 #ifndef _MSC_VER
 
 #if __has_feature(cxx_alignas)
-template <std::size_t Alignment, std::size_t Size> struct AlignedCharArray {
+template<std::size_t Alignment, std::size_t Size>
+struct AlignedCharArray {
   alignas(Alignment) char buffer[Size];
 };
 
 #elif defined(__GNUC__) || defined(__IBM_ATTRIBUTES)
 /// \brief Create a type with an aligned char buffer.
-template <std::size_t Alignment, std::size_t Size> struct AlignedCharArray;
+template<std::size_t Alignment, std::size_t Size>
+struct AlignedCharArray;
 
-#define LLVM_ALIGNEDCHARARRAY_TEMPLATE_ALIGNMENT(x)                            \
-  template <std::size_t Size> struct AlignedCharArray<x, Size> {               \
-    __attribute__((aligned(x))) char buffer[Size];                             \
+#define LLVM_ALIGNEDCHARARRAY_TEMPLATE_ALIGNMENT(x) \
+  template<std::size_t Size> \
+  struct AlignedCharArray<x, Size> { \
+    __attribute__((aligned(x))) char buffer[Size]; \
   };
 
 LLVM_ALIGNEDCHARARRAY_TEMPLATE_ALIGNMENT(1)
@@ -145,13 +147,14 @@ LLVM_ALIGNEDCHARARRAY_TEMPLATE_ALIGNMENT(128)
 #undef LLVM_ALIGNEDCHARARRAY_TEMPLATE_ALIGNMENT
 
 #else
-#error No supported align as directive.
+# error No supported align as directive.
 #endif
 
 #else // _MSC_VER
 
 /// \brief Create a type with an aligned char buffer.
-template <std::size_t Alignment, std::size_t Size> struct AlignedCharArray;
+template<std::size_t Alignment, std::size_t Size>
+struct AlignedCharArray;
 
 // We provide special variations of this template for the most common
 // alignments because __declspec(align(...)) doesn't actually work when it is
@@ -161,40 +164,46 @@ template <std::size_t Alignment, std::size_t Size> struct AlignedCharArray;
 // MSVC warns on the existence of the declspec despite the union member forcing
 // proper alignment.
 
-template <std::size_t Size> struct AlignedCharArray<1, Size> {
+template<std::size_t Size>
+struct AlignedCharArray<1, Size> {
   union {
     char aligned;
     char buffer[Size];
   };
 };
 
-template <std::size_t Size> struct AlignedCharArray<2, Size> {
+template<std::size_t Size>
+struct AlignedCharArray<2, Size> {
   union {
     short aligned;
     char buffer[Size];
   };
 };
 
-template <std::size_t Size> struct AlignedCharArray<4, Size> {
+template<std::size_t Size>
+struct AlignedCharArray<4, Size> {
   union {
     int aligned;
     char buffer[Size];
   };
 };
 
-template <std::size_t Size> struct AlignedCharArray<8, Size> {
+template<std::size_t Size>
+struct AlignedCharArray<8, Size> {
   union {
     double aligned;
     char buffer[Size];
   };
 };
 
+
 // The rest of these are provided with a __declspec(align(...)) and we simply
 // can't pass them by-value as function arguments on MSVC.
 
-#define LLVM_ALIGNEDCHARARRAY_TEMPLATE_ALIGNMENT(x)                            \
-  template <std::size_t Size> struct AlignedCharArray<x, Size> {               \
-    __declspec(align(x)) char buffer[Size];                                    \
+#define LLVM_ALIGNEDCHARARRAY_TEMPLATE_ALIGNMENT(x) \
+  template<std::size_t Size> \
+  struct AlignedCharArray<x, Size> { \
+    __declspec(align(x)) char buffer[Size]; \
   };
 
 LLVM_ALIGNEDCHARARRAY_TEMPLATE_ALIGNMENT(16)
@@ -207,33 +216,24 @@ LLVM_ALIGNEDCHARARRAY_TEMPLATE_ALIGNMENT(128)
 #endif // _MSC_VER
 
 namespace detail {
-template <typename T1, typename T2 = char, typename T3 = char,
-          typename T4 = char, typename T5 = char, typename T6 = char,
-          typename T7 = char, typename T8 = char, typename T9 = char,
-          typename T10 = char>
+template <typename T1,
+          typename T2 = char, typename T3 = char, typename T4 = char,
+          typename T5 = char, typename T6 = char, typename T7 = char,
+          typename T8 = char, typename T9 = char, typename T10 = char>
 class AlignerImpl {
-  T1 t1;
-  T2 t2;
-  T3 t3;
-  T4 t4;
-  T5 t5;
-  T6 t6;
-  T7 t7;
-  T8 t8;
-  T9 t9;
-  T10 t10;
+  T1 t1; T2 t2; T3 t3; T4 t4; T5 t5; T6 t6; T7 t7; T8 t8; T9 t9; T10 t10;
 
-  AlignerImpl(); // Never defined or instantiated.
+  AlignerImpl() = delete;
 };
 
-template <typename T1, typename T2 = char, typename T3 = char,
-          typename T4 = char, typename T5 = char, typename T6 = char,
-          typename T7 = char, typename T8 = char, typename T9 = char,
-          typename T10 = char>
+template <typename T1,
+          typename T2 = char, typename T3 = char, typename T4 = char,
+          typename T5 = char, typename T6 = char, typename T7 = char,
+          typename T8 = char, typename T9 = char, typename T10 = char>
 union SizerImpl {
   char arr1[sizeof(T1)], arr2[sizeof(T2)], arr3[sizeof(T3)], arr4[sizeof(T4)],
-      arr5[sizeof(T5)], arr6[sizeof(T6)], arr7[sizeof(T7)], arr8[sizeof(T8)],
-      arr9[sizeof(T9)], arr10[sizeof(T10)];
+       arr5[sizeof(T5)], arr6[sizeof(T6)], arr7[sizeof(T7)], arr8[sizeof(T8)],
+       arr9[sizeof(T9)], arr10[sizeof(T10)];
 };
 } // end namespace detail
 
@@ -244,15 +244,16 @@ union SizerImpl {
 /// expose a char array buffer member which can be used as suitable storage for
 /// a placement new of any of these types. Support for more than ten types can
 /// be added at the cost of more boilerplate.
-template <typename T1, typename T2 = char, typename T3 = char,
-          typename T4 = char, typename T5 = char, typename T6 = char,
-          typename T7 = char, typename T8 = char, typename T9 = char,
-          typename T10 = char>
-struct AlignedCharArrayUnion
-    : llvm::AlignedCharArray<
-          AlignOf<detail::AlignerImpl<T1, T2, T3, T4, T5, T6, T7, T8, T9,
-                                      T10>>::Alignment,
-          sizeof(detail::SizerImpl<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>)> {
+template <typename T1,
+          typename T2 = char, typename T3 = char, typename T4 = char,
+          typename T5 = char, typename T6 = char, typename T7 = char,
+          typename T8 = char, typename T9 = char, typename T10 = char>
+struct AlignedCharArrayUnion : llvm::AlignedCharArray<
+    AlignOf<llvm::detail::AlignerImpl<T1, T2, T3, T4, T5,
+                                      T6, T7, T8, T9, T10> >::Alignment,
+    sizeof(::llvm::detail::SizerImpl<T1, T2, T3, T4, T5,
+                                     T6, T7, T8, T9, T10>)> {
 };
 } // end namespace llvm
-#endif
+
+#endif // LLVM_SUPPORT_ALIGNOF_H

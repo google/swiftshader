@@ -28,7 +28,7 @@
 
 // Require at least Windows 7 API.
 #define _WIN32_WINNT 0x0601
-#define _WIN32_IE 0x0800 // MinGW at it again. FIXME: verify if still needed.
+#define _WIN32_IE    0x0800 // MinGW at it again. FIXME: verify if still needed.
 #define WIN32_LEAN_AND_MEAN
 #ifndef NOMINMAX
 #define NOMINMAX
@@ -40,12 +40,11 @@
 #include "llvm/ADT/Twine.h"
 #include "llvm/Config/config.h" // Get build system configuration settings
 #include "llvm/Support/Compiler.h"
+#include <system_error>
+#include <windows.h>
+#include <wincrypt.h>
 #include <cassert>
 #include <string>
-#include <system_error>
-#include <vector>
-#include <wincrypt.h>
-#include <windows.h>
 
 /// Determines if the program is running on Windows 8 or newer. This
 /// reimplements one of the helpers in the Windows 8.1 SDK, which are intended
@@ -69,14 +68,14 @@ inline bool RunningWindows8OrGreater() {
                             Mask) != FALSE;
 }
 
-inline bool MakeErrMsg(std::string *ErrMsg, const std::string &prefix) {
+inline bool MakeErrMsg(std::string* ErrMsg, const std::string& prefix) {
   if (!ErrMsg)
     return true;
   char *buffer = NULL;
   DWORD LastError = GetLastError();
   DWORD R = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER |
-                              FORMAT_MESSAGE_FROM_SYSTEM |
-                              FORMAT_MESSAGE_MAX_WIDTH_MASK,
+                          FORMAT_MESSAGE_FROM_SYSTEM |
+                          FORMAT_MESSAGE_MAX_WIDTH_MASK,
                           NULL, LastError, 0, (LPSTR)&buffer, 1, NULL);
   if (R)
     *ErrMsg = prefix + ": " + buffer;
@@ -88,16 +87,19 @@ inline bool MakeErrMsg(std::string *ErrMsg, const std::string &prefix) {
   return R != 0;
 }
 
-template <typename HandleTraits> class ScopedHandle {
+template <typename HandleTraits>
+class ScopedHandle {
   typedef typename HandleTraits::handle_type handle_type;
   handle_type Handle;
 
-  ScopedHandle(const ScopedHandle &other);   // = delete;
+  ScopedHandle(const ScopedHandle &other); // = delete;
   void operator=(const ScopedHandle &other); // = delete;
 public:
-  ScopedHandle() : Handle(HandleTraits::GetInvalid()) {}
+  ScopedHandle()
+    : Handle(HandleTraits::GetInvalid()) {}
 
-  explicit ScopedHandle(handle_type h) : Handle(h) {}
+  explicit ScopedHandle(handle_type h)
+    : Handle(h) {}
 
   ~ScopedHandle() {
     if (HandleTraits::IsValid(Handle))
@@ -122,50 +124,87 @@ public:
     return HandleTraits::IsValid(Handle) ? true : false;
   }
 
-  operator handle_type() const { return Handle; }
+  operator handle_type() const {
+    return Handle;
+  }
 };
 
 struct CommonHandleTraits {
   typedef HANDLE handle_type;
 
-  static handle_type GetInvalid() { return INVALID_HANDLE_VALUE; }
+  static handle_type GetInvalid() {
+    return INVALID_HANDLE_VALUE;
+  }
 
-  static void Close(handle_type h) { ::CloseHandle(h); }
+  static void Close(handle_type h) {
+    ::CloseHandle(h);
+  }
 
-  static bool IsValid(handle_type h) { return h != GetInvalid(); }
+  static bool IsValid(handle_type h) {
+    return h != GetInvalid();
+  }
 };
 
 struct JobHandleTraits : CommonHandleTraits {
-  static handle_type GetInvalid() { return NULL; }
+  static handle_type GetInvalid() {
+    return NULL;
+  }
 };
 
 struct CryptContextTraits : CommonHandleTraits {
   typedef HCRYPTPROV handle_type;
 
-  static handle_type GetInvalid() { return 0; }
+  static handle_type GetInvalid() {
+    return 0;
+  }
 
-  static void Close(handle_type h) { ::CryptReleaseContext(h, 0); }
+  static void Close(handle_type h) {
+    ::CryptReleaseContext(h, 0);
+  }
 
-  static bool IsValid(handle_type h) { return h != GetInvalid(); }
+  static bool IsValid(handle_type h) {
+    return h != GetInvalid();
+  }
+};
+
+struct RegTraits : CommonHandleTraits {
+  typedef HKEY handle_type;
+
+  static handle_type GetInvalid() {
+    return NULL;
+  }
+
+  static void Close(handle_type h) {
+    ::RegCloseKey(h);
+  }
+
+  static bool IsValid(handle_type h) {
+    return h != GetInvalid();
+  }
 };
 
 struct FindHandleTraits : CommonHandleTraits {
-  static void Close(handle_type h) { ::FindClose(h); }
+  static void Close(handle_type h) {
+    ::FindClose(h);
+  }
 };
 
 struct FileHandleTraits : CommonHandleTraits {};
 
 typedef ScopedHandle<CommonHandleTraits> ScopedCommonHandle;
-typedef ScopedHandle<FileHandleTraits> ScopedFileHandle;
+typedef ScopedHandle<FileHandleTraits>   ScopedFileHandle;
 typedef ScopedHandle<CryptContextTraits> ScopedCryptContext;
-typedef ScopedHandle<FindHandleTraits> ScopedFindHandle;
-typedef ScopedHandle<JobHandleTraits> ScopedJobHandle;
+typedef ScopedHandle<RegTraits>          ScopedRegHandle;
+typedef ScopedHandle<FindHandleTraits>   ScopedFindHandle;
+typedef ScopedHandle<JobHandleTraits>    ScopedJobHandle;
 
 namespace llvm {
-template <class T> class SmallVectorImpl;
+template <class T>
+class SmallVectorImpl;
 
 template <class T>
-typename SmallVectorImpl<T>::const_pointer c_str(SmallVectorImpl<T> &str) {
+typename SmallVectorImpl<T>::const_pointer
+c_str(SmallVectorImpl<T> &str) {
   str.push_back(0);
   str.pop_back();
   return str.data();
@@ -173,7 +212,8 @@ typename SmallVectorImpl<T>::const_pointer c_str(SmallVectorImpl<T> &str) {
 
 namespace sys {
 namespace path {
-std::error_code widenPath(const Twine &Path8, SmallVectorImpl<wchar_t> &Path16);
+std::error_code widenPath(const Twine &Path8,
+                          SmallVectorImpl<wchar_t> &Path16);
 } // end namespace path
 
 namespace windows {

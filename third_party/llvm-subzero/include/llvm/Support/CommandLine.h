@@ -359,7 +359,7 @@ struct GenericOptionValue {
 protected:
   ~GenericOptionValue() = default;
   GenericOptionValue() = default;
-  GenericOptionValue(const GenericOptionValue &) = default;
+  GenericOptionValue(const GenericOptionValue&) = default;
   GenericOptionValue &operator=(const GenericOptionValue &) = default;
 
 private:
@@ -399,8 +399,8 @@ template <class DataType> class OptionValueCopy : public GenericOptionValue {
 
 protected:
   ~OptionValueCopy() = default;
-  OptionValueCopy(const OptionValueCopy &) = default;
-  OptionValueCopy &operator=(const OptionValueCopy &) = default;
+  OptionValueCopy(const OptionValueCopy&) = default;
+  OptionValueCopy &operator=(const OptionValueCopy&) = default;
 
 public:
   OptionValueCopy() : Valid(false) {}
@@ -436,8 +436,8 @@ struct OptionValueBase<DataType, false> : OptionValueCopy<DataType> {
 protected:
   ~OptionValueBase() = default;
   OptionValueBase() = default;
-  OptionValueBase(const OptionValueBase &) = default;
-  OptionValueBase &operator=(const OptionValueBase &) = default;
+  OptionValueBase(const OptionValueBase&) = default;
+  OptionValueBase &operator=(const OptionValueBase&) = default;
 };
 
 // Top-level option class.
@@ -531,8 +531,8 @@ public:
 };
 
 template <class DataType>
-ValuesClass<DataType> LLVM_END_WITH_NULL values(const char *Arg, DataType Val,
-                                                const char *Desc, ...) {
+ValuesClass<DataType> LLVM_END_WITH_NULL
+values(const char *Arg, DataType Val, const char *Desc, ...) {
   va_list ValueArgs;
   va_start(ValueArgs, Desc);
   ValuesClass<DataType> Vals(Arg, Val, Desc, ValueArgs);
@@ -715,6 +715,7 @@ public:
 class basic_parser_impl { // non-template implementation of basic_parser<t>
 public:
   basic_parser_impl(Option &) {}
+
 
   enum ValueExpected getValueExpectedFlagDefault() const {
     return ValueRequired;
@@ -1345,7 +1346,7 @@ public:
   reference front() { return Storage.front(); }
   const_reference front() const { return Storage.front(); }
 
-  operator std::vector<DataType> &() { return Storage; }
+  operator std::vector<DataType>&() { return Storage; }
   operator ArrayRef<DataType>() { return Storage; }
   std::vector<DataType> *operator&() { return &Storage; }
   const std::vector<DataType> *operator&() const { return &Storage; }

@@ -49,6 +49,7 @@ class Function;
 class Instruction;
 class GlobalVariable;
 class GlobalAlias;
+class GlobalIFunc;
 class Module;
 #define DEFINE_SYMBOL_TABLE_PARENT_TYPE(NODE, PARENT)                          \
   template <> struct SymbolTableListParentType<NODE> { typedef PARENT type; };
@@ -58,6 +59,7 @@ DEFINE_SYMBOL_TABLE_PARENT_TYPE(Argument, Function)
 DEFINE_SYMBOL_TABLE_PARENT_TYPE(Function, Module)
 DEFINE_SYMBOL_TABLE_PARENT_TYPE(GlobalVariable, Module)
 DEFINE_SYMBOL_TABLE_PARENT_TYPE(GlobalAlias, Module)
+DEFINE_SYMBOL_TABLE_PARENT_TYPE(GlobalIFunc, Module)
 #undef DEFINE_SYMBOL_TABLE_PARENT_TYPE
 
 template <typename NodeTy> class SymbolTableList;
@@ -81,17 +83,15 @@ private:
   /// getListOwner - Return the object that owns this list.  If this is a list
   /// of instructions, it returns the BasicBlock that owns them.
   ItemParentClass *getListOwner() {
-    size_t Offset(
-        size_t(&((ItemParentClass *)nullptr->*ItemParentClass::getSublistAccess(
-                                                  static_cast<ValueSubClass *>(
-                                                      nullptr)))));
+    size_t Offset(size_t(&((ItemParentClass*)nullptr->*ItemParentClass::
+                           getSublistAccess(static_cast<ValueSubClass*>(nullptr)))));
     ListTy *Anchor(static_cast<ListTy *>(this));
-    return reinterpret_cast<ItemParentClass *>(
-        reinterpret_cast<char *>(Anchor) - Offset);
+    return reinterpret_cast<ItemParentClass*>(reinterpret_cast<char*>(Anchor)-
+                                              Offset);
   }
 
   static ListTy &getList(ItemParentClass *Par) {
-    return Par->*(Par->getSublistAccess((ValueSubClass *)nullptr));
+    return Par->*(Par->getSublistAccess((ValueSubClass*)nullptr));
   }
 
   static ValueSymbolTable *getSymTab(ItemParentClass *Par) {
@@ -104,8 +104,9 @@ public:
   void transferNodesFromList(SymbolTableListTraits &L2,
                              ilist_iterator<ValueSubClass> first,
                              ilist_iterator<ValueSubClass> last);
-  // private:
-  template <typename TPtr> void setSymTabObject(TPtr *, TPtr);
+//private:
+  template<typename TPtr>
+  void setSymTabObject(TPtr *, TPtr);
   static ValueSymbolTable *toPtr(ValueSymbolTable *P) { return P; }
   static ValueSymbolTable *toPtr(ValueSymbolTable &R) { return &R; }
 };

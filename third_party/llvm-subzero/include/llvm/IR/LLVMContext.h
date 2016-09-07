@@ -16,7 +16,6 @@
 #define LLVM_IR_LLVMCONTEXT_H
 
 #include "llvm/Support/CBindingWrapping.h"
-#include "llvm/Support/Compiler.h"
 #include "llvm/Support/Options.h"
 
 namespace llvm {
@@ -26,11 +25,14 @@ class StringRef;
 class Twine;
 class Instruction;
 class Module;
+class MDString;
+class DICompositeType;
 class SMDiagnostic;
 class DiagnosticInfo;
 template <typename T> class SmallVectorImpl;
 class Function;
 class DebugLoc;
+class OptBisect;
 
 /// This is an important class for using LLVM in a threaded context.  It
 /// (opaquely) owns and manages the core "global" data of LLVM's core
@@ -63,7 +65,8 @@ public:
     MD_make_implicit = 14,            // "make.implicit"
     MD_unpredictable = 15,            // "unpredictable"
     MD_invariant_group = 16,          // "invariant.group"
-    MD_align = 17                     // "align"
+    MD_align = 17,                    // "align"
+    MD_loop = 18,                     // "llvm.loop"
   };
 
   /// Known operand bundle tag IDs, which always have the same value.  All
@@ -71,8 +74,9 @@ public:
   /// Additionally, this scheme allows LLVM to efficiently check for specific
   /// operand bundle tags without comparing strings.
   enum {
-    OB_deopt = 0,   // "deopt"
-    OB_funclet = 1, // "funclet"
+    OB_deopt = 0,         // "deopt"
+    OB_funclet = 1,       // "funclet"
+    OB_gc_transition = 2, // "gc-transition"
   };
 
   /// getMDKindID - Return a unique non-zero ID for the specified metadata kind.
@@ -102,7 +106,23 @@ public:
   /// Remove the GC for a function
   void deleteGC(const Function &Fn);
 
-  typedef void (*InlineAsmDiagHandlerTy)(const SMDiagnostic &, void *Context,
+  /// Return true if the Context runtime configuration is set to discard all
+  /// value names. When true, only GlobalValue names will be available in the
+  /// IR.
+  bool shouldDiscardValueNames() const;
+
+  /// Set the Context runtime configuration to discard all value name (but
+  /// GlobalValue). Clients can use this flag to save memory and runtime,
+  /// especially in release mode.
+  void setDiscardValueNames(bool Discard);
+
+  /// Whether there is a string map for uniquing debug info
+  /// identifiers across the context.  Off by default.
+  bool isODRUniquingDebugTypes() const;
+  void enableDebugTypeODRUniquing();
+  void disableDebugTypeODRUniquing();
+
+  typedef void (*InlineAsmDiagHandlerTy)(const SMDiagnostic&, void *Context,
                                          unsigned LocCookie);
 
   /// Defines the type of a diagnostic handler.
@@ -207,37 +227,37 @@ public:
     return OptionRegistry::instance().template get<ValT, Base, Mem>();
   }
 
+  /// \brief Access the object which manages optimization bisection for failure
+  /// analysis.
+  OptBisect &getOptBisect();
 private:
-  LLVMContext(LLVMContext &) = delete;
-  void operator=(LLVMContext &) = delete;
+  LLVMContext(LLVMContext&) = delete;
+  void operator=(LLVMContext&) = delete;
 
   /// addModule - Register a module as being instantiated in this context.  If
   /// the context is deleted, the module will be deleted as well.
-  void addModule(Module *);
+  void addModule(Module*);
 
   /// removeModule - Unregister a module from this context.
-  void removeModule(Module *);
+  void removeModule(Module*);
 
   // Module needs access to the add/removeModule methods.
   friend class Module;
 };
-
-/// getGlobalContext - Returns a global context.  This is for LLVM clients that
-/// only care about operating on a single thread.
-extern LLVMContext &getGlobalContext();
 
 // Create wrappers for C Binding types (see CBindingWrapping.h).
 DEFINE_SIMPLE_CONVERSION_FUNCTIONS(LLVMContext, LLVMContextRef)
 
 /* Specialized opaque context conversions.
  */
-inline LLVMContext **unwrap(LLVMContextRef *Tys) {
-  return reinterpret_cast<LLVMContext **>(Tys);
+inline LLVMContext **unwrap(LLVMContextRef* Tys) {
+  return reinterpret_cast<LLVMContext**>(Tys);
 }
 
 inline LLVMContextRef *wrap(const LLVMContext **Tys) {
-  return reinterpret_cast<LLVMContextRef *>(const_cast<LLVMContext **>(Tys));
+  return reinterpret_cast<LLVMContextRef*>(const_cast<LLVMContext**>(Tys));
 }
+
 }
 
 #endif

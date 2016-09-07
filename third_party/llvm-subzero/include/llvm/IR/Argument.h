@@ -46,7 +46,7 @@ public:
   explicit Argument(Type *Ty, const Twine &Name = "", Function *F = nullptr);
 
   inline const Function *getParent() const { return Parent; }
-  inline Function *getParent() { return Parent; }
+  inline       Function *getParent()       { return Parent; }
 
   /// \brief Return the index of this formal argument in its containing
   /// function.
@@ -72,6 +72,12 @@ public:
   /// \brief Return true if this argument has the byval attribute on it in its
   /// containing function.
   bool hasByValAttr() const;
+
+  /// \brief Return true if this argument has the swiftself attribute.
+  bool hasSwiftSelfAttr() const;
+
+  /// \brief Return true if this argument has the swifterror attribute.
+  bool hasSwiftErrorAttr() const;
 
   /// \brief Return true if this argument has the byval attribute or inalloca
   /// attribute on it in its containing function.  These attributes both
@@ -120,8 +126,19 @@ public:
   /// \brief Add a Attribute to an argument.
   void addAttr(AttributeSet AS);
 
+  void addAttr(Attribute::AttrKind Kind) {
+    addAttr(AttributeSet::get(getContext(), getArgNo() + 1, Kind));
+  }
+
   /// \brief Remove a Attribute from an argument.
   void removeAttr(AttributeSet AS);
+
+  void removeAttr(Attribute::AttrKind Kind) {
+    removeAttr(AttributeSet::get(getContext(), getArgNo() + 1, Kind));
+  }
+
+  /// \brief Checks if an argument has a given attribute.
+  bool hasAttribute(Attribute::AttrKind Kind) const;
 
   /// \brief Method for support type inquiry through isa, cast, and
   /// dyn_cast.

@@ -18,6 +18,7 @@
 
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/FoldingSet.h"
+#include "llvm/ADT/Optional.h"
 #include "llvm/Support/Compiler.h"
 #include "llvm/Support/PointerLikeTypeTraits.h"
 #include <bitset>
@@ -32,7 +33,7 @@ class AttributeImpl;
 class AttributeSetImpl;
 class AttributeSetNode;
 class Constant;
-template <typename T> struct DenseMapInfo;
+template<typename T> struct DenseMapInfo;
 class Function;
 class LLVMContext;
 class Type;
@@ -64,10 +65,10 @@ public:
 
   enum AttrKind {
     // IR-Level Attributes
-    None, ///< No attributes have been set
-#define GET_ATTR_ENUM
-#include "llvm/IR/Attributes.inc"
-    EndAttrKinds ///< Sentinal value useful for loops
+    None,                  ///< No attributes have been set
+    #define GET_ATTR_ENUM
+    #include "llvm/IR/Attributes.inc"
+    EndAttrKinds           ///< Sentinal value useful for loops
   };
 
 private:
@@ -91,9 +92,12 @@ public:
   static Attribute getWithAlignment(LLVMContext &Context, uint64_t Align);
   static Attribute getWithStackAlignment(LLVMContext &Context, uint64_t Align);
   static Attribute getWithDereferenceableBytes(LLVMContext &Context,
-                                               uint64_t Bytes);
+                                              uint64_t Bytes);
   static Attribute getWithDereferenceableOrNullBytes(LLVMContext &Context,
                                                      uint64_t Bytes);
+  static Attribute getWithAllocSizeArgs(LLVMContext &Context,
+                                        unsigned ElemSizeArg,
+                                        const Optional<unsigned> &NumElemsArg);
 
   //===--------------------------------------------------------------------===//
   // Attribute Accessors
@@ -116,11 +120,11 @@ public:
   bool hasAttribute(StringRef Val) const;
 
   /// \brief Return the attribute's kind as an enum (Attribute::AttrKind). This
-  /// requires the attribute to be an enum or alignment attribute.
+  /// requires the attribute to be an enum or integer attribute.
   Attribute::AttrKind getKindAsEnum() const;
 
   /// \brief Return the attribute's value as an integer. This requires that the
-  /// attribute be an alignment attribute.
+  /// attribute be an integer attribute.
   uint64_t getValueAsInt() const;
 
   /// \brief Return the attribute's kind as a string. This requires the
@@ -147,6 +151,10 @@ public:
   /// dereferenceable_or_null attribute.
   uint64_t getDereferenceableOrNullBytes() const;
 
+  /// Returns the argument numbers for the allocsize attribute (or pair(0, 0)
+  /// if not known).
+  std::pair<unsigned, Optional<unsigned>> getAllocSizeArgs() const;
+
   /// \brief The Attribute is converted to a string of equivalent mnemonic. This
   /// is, presumably, for writing out the mnemonics for the assembly writer.
   std::string getAsString(bool InAttrGrp = false) const;
@@ -158,7 +166,9 @@ public:
   /// \brief Less-than operator. Useful for sorting the attributes list.
   bool operator<(Attribute A) const;
 
-  void Profile(FoldingSetNodeID &ID) const { ID.AddPointer(pImpl); }
+  void Profile(FoldingSetNodeID &ID) const {
+    ID.AddPointer(pImpl);
+  }
 };
 
 //===----------------------------------------------------------------------===//
@@ -171,7 +181,10 @@ public:
 /// index `1'.
 class AttributeSet {
 public:
-  enum AttrIndex : unsigned { ReturnIndex = 0U, FunctionIndex = ~0U };
+  enum AttrIndex : unsigned {
+    ReturnIndex = 0U,
+    FunctionIndex = ~0U
+  };
 
 private:
   friend class AttrBuilder;
@@ -187,13 +200,14 @@ private:
 
   /// \brief Create an AttributeSet with the specified parameters in it.
   static AttributeSet get(LLVMContext &C,
-                          ArrayRef<std::pair<unsigned, Attribute>> Attrs);
-  static AttributeSet
-  get(LLVMContext &C, ArrayRef<std::pair<unsigned, AttributeSetNode *>> Attrs);
+                          ArrayRef<std::pair<unsigned, Attribute> > Attrs);
+  static AttributeSet get(LLVMContext &C,
+                          ArrayRef<std::pair<unsigned,
+                                             AttributeSetNode*> > Attrs);
 
-  static AttributeSet
-  getImpl(LLVMContext &C,
-          ArrayRef<std::pair<unsigned, AttributeSetNode *>> Attrs);
+  static AttributeSet getImpl(LLVMContext &C,
+                              ArrayRef<std::pair<unsigned,
+                                                 AttributeSetNode*> > Attrs);
 
   explicit AttributeSet(AttributeSetImpl *LI) : pImpl(LI) {}
 
@@ -219,8 +233,8 @@ public:
   /// attribute sets are immutable, this returns a new set.
   AttributeSet addAttribute(LLVMContext &C, unsigned Index,
                             StringRef Kind) const;
-  AttributeSet addAttribute(LLVMContext &C, unsigned Index, StringRef Kind,
-                            StringRef Value) const;
+  AttributeSet addAttribute(LLVMContext &C, unsigned Index,
+                            StringRef Kind, StringRef Value) const;
 
   /// Add an attribute to the attribute set at the given indices. Because
   /// attribute sets are immutable, this returns a new set.
@@ -261,6 +275,12 @@ public:
   AttributeSet addDereferenceableOrNullAttr(LLVMContext &C, unsigned Index,
                                             uint64_t Bytes) const;
 
+  /// Add the allocsize attribute to the attribute set at the given index.
+  /// Because attribute sets are immutable, this returns a new set.
+  AttributeSet addAllocSizeAttr(LLVMContext &C, unsigned Index,
+                                unsigned ElemSizeArg,
+                                const Optional<unsigned> &NumElemsArg);
+
   //===--------------------------------------------------------------------===//
   // AttributeSet Accessors
   //===--------------------------------------------------------------------===//
@@ -286,6 +306,10 @@ public:
   /// \brief Return true if attribute exists at the given index.
   bool hasAttributes(unsigned Index) const;
 
+  /// \brief Equivalent to hasAttribute(AttributeSet::FunctionIndex, Kind) but
+  /// may be faster.
+  bool hasFnAttribute(Attribute::AttrKind Kind) const;
+
   /// \brief Return true if the specified attribute is set for at least one
   /// parameter or for the return value.
   bool hasAttrSomewhere(Attribute::AttrKind Attr) const;
@@ -309,6 +333,10 @@ public:
   /// unknown).
   uint64_t getDereferenceableOrNullBytes(unsigned Index) const;
 
+  /// Get the allocsize argument numbers (or pair(0, 0) if unknown).
+  std::pair<unsigned, Optional<unsigned>>
+  getAllocSizeArgs(unsigned Index) const;
+
   /// \brief Return the attributes at the index as a string.
   std::string getAsString(unsigned Index, bool InAttrGrp = false) const;
 
@@ -318,8 +346,12 @@ public:
   iterator end(unsigned Slot) const;
 
   /// operator==/!= - Provide equality predicates.
-  bool operator==(const AttributeSet &RHS) const { return pImpl == RHS.pImpl; }
-  bool operator!=(const AttributeSet &RHS) const { return pImpl != RHS.pImpl; }
+  bool operator==(const AttributeSet &RHS) const {
+    return pImpl == RHS.pImpl;
+  }
+  bool operator!=(const AttributeSet &RHS) const {
+    return pImpl != RHS.pImpl;
+  }
 
   //===--------------------------------------------------------------------===//
   // AttributeSet Introspection
@@ -329,10 +361,14 @@ public:
   uint64_t Raw(unsigned Index) const;
 
   /// \brief Return a raw pointer that uniquely identifies this attribute list.
-  void *getRawPointer() const { return pImpl; }
+  void *getRawPointer() const {
+    return pImpl;
+  }
 
   /// \brief Return true if there are no attributes.
-  bool isEmpty() const { return getNumSlots() == 0; }
+  bool isEmpty() const {
+    return getNumSlots() == 0;
+  }
 
   /// \brief Return the number of slots used in this attribute list.  This is
   /// the number of arguments that have an attribute set on them (including the
@@ -351,16 +387,16 @@ public:
 //===----------------------------------------------------------------------===//
 /// \class
 /// \brief Provide DenseMapInfo for AttributeSet.
-template <> struct DenseMapInfo<AttributeSet> {
+template<> struct DenseMapInfo<AttributeSet> {
   static inline AttributeSet getEmptyKey() {
     uintptr_t Val = static_cast<uintptr_t>(-1);
-    Val <<= PointerLikeTypeTraits<void *>::NumLowBitsAvailable;
-    return AttributeSet(reinterpret_cast<AttributeSetImpl *>(Val));
+    Val <<= PointerLikeTypeTraits<void*>::NumLowBitsAvailable;
+    return AttributeSet(reinterpret_cast<AttributeSetImpl*>(Val));
   }
   static inline AttributeSet getTombstoneKey() {
     uintptr_t Val = static_cast<uintptr_t>(-2);
-    Val <<= PointerLikeTypeTraits<void *>::NumLowBitsAvailable;
-    return AttributeSet(reinterpret_cast<AttributeSetImpl *>(Val));
+    Val <<= PointerLikeTypeTraits<void*>::NumLowBitsAvailable;
+    return AttributeSet(reinterpret_cast<AttributeSetImpl*>(Val));
   }
   static unsigned getHashValue(AttributeSet AS) {
     return (unsigned((uintptr_t)AS.pImpl) >> 4) ^
@@ -382,19 +418,20 @@ class AttrBuilder {
   uint64_t StackAlignment;
   uint64_t DerefBytes;
   uint64_t DerefOrNullBytes;
+  uint64_t AllocSizeArgs;
 
 public:
   AttrBuilder()
       : Attrs(0), Alignment(0), StackAlignment(0), DerefBytes(0),
-        DerefOrNullBytes(0) {}
+        DerefOrNullBytes(0), AllocSizeArgs(0) {}
   explicit AttrBuilder(uint64_t Val)
       : Attrs(0), Alignment(0), StackAlignment(0), DerefBytes(0),
-        DerefOrNullBytes(0) {
+        DerefOrNullBytes(0), AllocSizeArgs(0) {
     addRawValue(Val);
   }
   AttrBuilder(const Attribute &A)
       : Attrs(0), Alignment(0), StackAlignment(0), DerefBytes(0),
-        DerefOrNullBytes(0) {
+        DerefOrNullBytes(0), AllocSizeArgs(0) {
     addAttribute(A);
   }
   AttrBuilder(AttributeSet AS, unsigned Idx);
@@ -463,6 +500,10 @@ public:
   /// dereferenceable_or_null attribute exists (zero is returned otherwise).
   uint64_t getDereferenceableOrNullBytes() const { return DerefOrNullBytes; }
 
+  /// Retrieve the allocsize args, if the allocsize attribute exists.  If it
+  /// doesn't exist, pair(0, 0) is returned.
+  std::pair<unsigned, Optional<unsigned>> getAllocSizeArgs() const;
+
   /// \brief This turns an int alignment (which must be a power of 2) into the
   /// form used internally in Attribute.
   AttrBuilder &addAlignmentAttr(unsigned Align);
@@ -479,32 +520,42 @@ public:
   /// form used internally in Attribute.
   AttrBuilder &addDereferenceableOrNullAttr(uint64_t Bytes);
 
+  /// This turns one (or two) ints into the form used internally in Attribute.
+  AttrBuilder &addAllocSizeAttr(unsigned ElemSizeArg,
+                                const Optional<unsigned> &NumElemsArg);
+
+  /// Add an allocsize attribute, using the representation returned by
+  /// Attribute.getIntValue().
+  AttrBuilder &addAllocSizeAttrFromRawRepr(uint64_t RawAllocSizeRepr);
+
   /// \brief Return true if the builder contains no target-independent
   /// attributes.
   bool empty() const { return Attrs.none(); }
 
   // Iterators for target-dependent attributes.
-  typedef std::pair<std::string, std::string> td_type;
-  typedef std::map<std::string, std::string>::iterator td_iterator;
+  typedef std::pair<std::string, std::string>                td_type;
+  typedef std::map<std::string, std::string>::iterator       td_iterator;
   typedef std::map<std::string, std::string>::const_iterator td_const_iterator;
-  typedef llvm::iterator_range<td_iterator> td_range;
-  typedef llvm::iterator_range<td_const_iterator> td_const_range;
+  typedef llvm::iterator_range<td_iterator>                  td_range;
+  typedef llvm::iterator_range<td_const_iterator>            td_const_range;
 
-  td_iterator td_begin() { return TargetDepAttrs.begin(); }
-  td_iterator td_end() { return TargetDepAttrs.end(); }
+  td_iterator td_begin()             { return TargetDepAttrs.begin(); }
+  td_iterator td_end()               { return TargetDepAttrs.end(); }
 
   td_const_iterator td_begin() const { return TargetDepAttrs.begin(); }
-  td_const_iterator td_end() const { return TargetDepAttrs.end(); }
+  td_const_iterator td_end() const   { return TargetDepAttrs.end(); }
 
   td_range td_attrs() { return td_range(td_begin(), td_end()); }
   td_const_range td_attrs() const {
     return td_const_range(td_begin(), td_end());
   }
 
-  bool td_empty() const { return TargetDepAttrs.empty(); }
+  bool td_empty() const              { return TargetDepAttrs.empty(); }
 
   bool operator==(const AttrBuilder &B);
-  bool operator!=(const AttrBuilder &B) { return !(*this == B); }
+  bool operator!=(const AttrBuilder &B) {
+    return !(*this == B);
+  }
 
   // FIXME: Remove this in 4.0.
 

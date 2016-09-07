@@ -18,16 +18,18 @@ namespace llvm {
 
 using namespace sys;
 
-const TimeValue::SecondsType TimeValue::PosixZeroTimeSeconds = -946684800;
-const TimeValue::SecondsType TimeValue::Win32ZeroTimeSeconds = -12591158400ULL;
+const TimeValue::SecondsType
+  TimeValue::PosixZeroTimeSeconds = -946684800;
+const TimeValue::SecondsType
+  TimeValue::Win32ZeroTimeSeconds = -12591158400ULL;
 
 void TimeValue::normalize() {
-  if (nanos_ >= NANOSECONDS_PER_SECOND) {
+  if ( nanos_ >= NANOSECONDS_PER_SECOND ) {
     do {
       seconds_++;
       nanos_ -= NANOSECONDS_PER_SECOND;
-    } while (nanos_ >= NANOSECONDS_PER_SECOND);
-  } else if (nanos_ <= -NANOSECONDS_PER_SECOND) {
+    } while ( nanos_ >= NANOSECONDS_PER_SECOND );
+  } else if (nanos_ <= -NANOSECONDS_PER_SECOND ) {
     do {
       seconds_--;
       nanos_ += NANOSECONDS_PER_SECOND;
