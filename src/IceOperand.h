@@ -25,6 +25,7 @@
 #include "IceStringPool.h"
 #include "IceTypes.h"
 
+#include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/Format.h"
 
 #include <limits>

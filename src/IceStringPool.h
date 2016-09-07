@@ -19,6 +19,8 @@
 
 #include "IceDefs.h" // Ostream
 
+#include "llvm/Support/ErrorHandling.h"
+
 #include <cstdint> // uintptr_t
 #include <string>
 
