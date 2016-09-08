@@ -75,7 +75,7 @@ inline static unsigned getDigit(char cdigit, uint8_t radix) {
 }
 
 
-void APInt::initSlowCase(unsigned numBits, uint64_t val, bool isSigned) {
+void APInt::initSlowCase(uint64_t val, bool isSigned) {
   pVal = getClearedMemory(getNumWords());
   pVal[0] = val;
   if (isSigned && int64_t(val) < 0)
@@ -260,6 +260,14 @@ APInt& APInt::operator+=(const APInt& RHS) {
   return clearUnusedBits();
 }
 
+APInt& APInt::operator+=(uint64_t RHS) {
+  if (isSingleWord())
+    VAL += RHS;
+  else
+    add_1(pVal, pVal, getNumWords(), RHS);
+  return clearUnusedBits();
+}
+
 /// Subtracts the integer array y from the integer array x
 /// @returns returns the borrow out.
 /// @brief Generalized subtraction of 64-bit integer arrays.
@@ -283,6 +291,14 @@ APInt& APInt::operator-=(const APInt& RHS) {
     VAL -= RHS.VAL;
   else
     sub(pVal, pVal, RHS.pVal, getNumWords());
+  return clearUnusedBits();
+}
+
+APInt& APInt::operator-=(uint64_t RHS) {
+  if (isSingleWord())
+    VAL -= RHS;
+  else
+    sub_1(pVal, getNumWords(), RHS);
   return clearUnusedBits();
 }
 
@@ -470,26 +486,6 @@ APInt APInt::operator*(const APInt& RHS) const {
   return Result;
 }
 
-APInt APInt::operator+(const APInt& RHS) const {
-  assert(BitWidth == RHS.BitWidth && "Bit widths must be the same");
-  if (isSingleWord())
-    return APInt(BitWidth, VAL + RHS.VAL);
-  APInt Result(BitWidth, 0);
-  add(Result.pVal, this->pVal, RHS.pVal, getNumWords());
-  Result.clearUnusedBits();
-  return Result;
-}
-
-APInt APInt::operator-(const APInt& RHS) const {
-  assert(BitWidth == RHS.BitWidth && "Bit widths must be the same");
-  if (isSingleWord())
-    return APInt(BitWidth, VAL - RHS.VAL);
-  APInt Result(BitWidth, 0);
-  sub(Result.pVal, this->pVal, RHS.pVal, getNumWords());
-  Result.clearUnusedBits();
-  return Result;
-}
-
 bool APInt::EqualSlowCase(const APInt& RHS) const {
   return std::equal(pVal, pVal + getNumWords(), RHS.pVal);
 }
@@ -537,37 +533,21 @@ bool APInt::ult(const APInt& RHS) const {
 bool APInt::slt(const APInt& RHS) const {
   assert(BitWidth == RHS.BitWidth && "Bit widths must be same for comparison");
   if (isSingleWord()) {
-    int64_t lhsSext = (int64_t(VAL) << (64-BitWidth)) >> (64-BitWidth);
-    int64_t rhsSext = (int64_t(RHS.VAL) << (64-BitWidth)) >> (64-BitWidth);
+    int64_t lhsSext = SignExtend64(VAL, BitWidth);
+    int64_t rhsSext = SignExtend64(RHS.VAL, BitWidth);
     return lhsSext < rhsSext;
   }
 
-  APInt lhs(*this);
-  APInt rhs(RHS);
   bool lhsNeg = isNegative();
-  bool rhsNeg = rhs.isNegative();
-  if (lhsNeg) {
-    // Sign bit is set so perform two's complement to make it positive
-    lhs.flipAllBits();
-    ++lhs;
-  }
-  if (rhsNeg) {
-    // Sign bit is set so perform two's complement to make it positive
-    rhs.flipAllBits();
-    ++rhs;
-  }
+  bool rhsNeg = RHS.isNegative();
 
-  // Now we have unsigned values to compare so do the comparison if necessary
-  // based on the negativeness of the values.
-  if (lhsNeg)
-    if (rhsNeg)
-      return lhs.ugt(rhs);
-    else
-      return true;
-  else if (rhsNeg)
-    return false;
-  else
-    return lhs.ult(rhs);
+  // If the sign bits don't match, then (LHS < RHS) if LHS is negative
+  if (lhsNeg != rhsNeg)
+    return lhsNeg;
+
+  // Otherwise we can just use an unsigned comparision, because even negative
+  // numbers compare correctly this way if both have the same signed-ness.
+  return ult(RHS);
 }
 
 void APInt::setBit(unsigned bitPosition) {
@@ -878,7 +858,7 @@ double APInt::roundToDouble(bool isSigned) const {
   // It is wrong to optimize getWord(0) to VAL; there might be more than one word.
   if (isSingleWord() || getActiveBits() <= APINT_BITS_PER_WORD) {
     if (isSigned) {
-      int64_t sext = (int64_t(getWord(0)) << (64-BitWidth)) >> (64-BitWidth);
+      int64_t sext = SignExtend64(getWord(0), BitWidth);
       return double(sext);
     } else
       return double(getWord(0));
@@ -1062,11 +1042,7 @@ APInt APInt::ashr(unsigned shiftAmt) const {
   if (isSingleWord()) {
     if (shiftAmt == BitWidth)
       return APInt(BitWidth, 0); // undefined
-    else {
-      unsigned SignBit = APINT_BITS_PER_WORD - BitWidth;
-      return APInt(BitWidth,
-        (((int64_t(VAL) << SignBit) >> SignBit) >> shiftAmt));
-    }
+    return APInt(BitWidth, SignExtend64(VAL, BitWidth) >> shiftAmt);
   }
 
   // If all the bits were shifted out, the result is, technically, undefined.
@@ -1519,7 +1495,7 @@ static void KnuthDiv(unsigned *u, unsigned *v, unsigned *q, unsigned* r,
   assert(n>1 && "n must be > 1");
 
   // b denotes the base of the number system. In our case b is 2^32.
-  LLVM_CONSTEXPR uint64_t b = uint64_t(1) << 32;
+  const uint64_t b = uint64_t(1) << 32;
 
   DEBUG(dbgs() << "KnuthDiv: m=" << m << " n=" << n << '\n');
   DEBUG(dbgs() << "KnuthDiv: original:");
@@ -1662,10 +1638,8 @@ static void KnuthDiv(unsigned *u, unsigned *v, unsigned *q, unsigned* r,
   DEBUG(dbgs() << '\n');
 }
 
-void APInt::divide(const APInt LHS, unsigned lhsWords,
-                   const APInt &RHS, unsigned rhsWords,
-                   APInt *Quotient, APInt *Remainder)
-{
+void APInt::divide(const APInt &LHS, unsigned lhsWords, const APInt &RHS,
+                   unsigned rhsWords, APInt *Quotient, APInt *Remainder) {
   assert(lhsWords >= rhsWords && "Fractional result");
 
   // First, compose the values into an array of 32-bit words instead of

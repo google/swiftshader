@@ -40,6 +40,10 @@ const unsigned int host_char_bit = 8;
 const unsigned int integerPartWidth =
     host_char_bit * static_cast<unsigned int>(sizeof(integerPart));
 
+class APInt;
+
+inline APInt operator-(APInt);
+
 //===----------------------------------------------------------------------===//
 //                              APInt Class
 //===----------------------------------------------------------------------===//
@@ -177,11 +181,11 @@ class APInt {
   /// provides a more convenient form of divide for internal use since KnuthDiv
   /// has specific constraints on its inputs. If those constraints are not met
   /// then it provides a simpler form of divide.
-  static void divide(const APInt LHS, unsigned lhsWords, const APInt &RHS,
+  static void divide(const APInt &LHS, unsigned lhsWords, const APInt &RHS,
                      unsigned rhsWords, APInt *Quotient, APInt *Remainder);
 
   /// out-of-line slow case for inline constructor
-  void initSlowCase(unsigned numBits, uint64_t val, bool isSigned);
+  void initSlowCase(uint64_t val, bool isSigned);
 
   /// shared code between two array constructors
   void initFromArray(ArrayRef<uint64_t> array);
@@ -239,7 +243,7 @@ public:
     if (isSingleWord())
       VAL = val;
     else
-      initSlowCase(numBits, val, isSigned);
+      initSlowCase(val, isSigned);
     clearUnusedBits();
   }
 
@@ -620,13 +624,6 @@ public:
     return Result;
   }
 
-  /// \brief Unary negation operator
-  ///
-  /// Negates *this using two's complement logic.
-  ///
-  /// \returns An APInt value representing the negation of *this.
-  APInt operator-() const { return APInt(BitWidth, 0) - (*this); }
-
   /// \brief Logical negation operator.
   ///
   /// Performs logical negation operation on this APInt.
@@ -745,6 +742,7 @@ public:
   ///
   /// \returns *this
   APInt &operator+=(const APInt &RHS);
+  APInt &operator+=(uint64_t RHS);
 
   /// \brief Subtraction assignment operator.
   ///
@@ -752,6 +750,7 @@ public:
   ///
   /// \returns *this
   APInt &operator-=(const APInt &RHS);
+  APInt &operator-=(uint64_t RHS);
 
   /// \brief Left-shift assignment function.
   ///
@@ -830,18 +829,6 @@ public:
   ///
   /// Multiplies this APInt by RHS and returns the result.
   APInt operator*(const APInt &RHS) const;
-
-  /// \brief Addition operator.
-  ///
-  /// Adds RHS to this APInt and returns the result.
-  APInt operator+(const APInt &RHS) const;
-  APInt operator+(uint64_t RHS) const { return (*this) + APInt(BitWidth, RHS); }
-
-  /// \brief Subtraction operator.
-  ///
-  /// Subtracts RHS from this APInt and returns the result.
-  APInt operator-(const APInt &RHS) const;
-  APInt operator-(uint64_t RHS) const { return (*this) - APInt(BitWidth, RHS); }
 
   /// \brief Left logical shift operator.
   ///
@@ -1527,7 +1514,9 @@ public:
 
   /// \returns the ceil log base 2 of this APInt.
   unsigned ceilLogBase2() const {
-    return BitWidth - (*this - 1).countLeadingZeros();
+    APInt temp(*this);
+    --temp;
+    return BitWidth - temp.countLeadingZeros();
   }
 
   /// \returns the nearest log base 2 of this APInt. Ties round up.
@@ -1744,6 +1733,55 @@ inline raw_ostream &operator<<(raw_ostream &OS, const APInt &I) {
   I.print(OS, true);
   return OS;
 }
+
+inline APInt operator-(APInt v) {
+  v.flipAllBits();
+  ++v;
+  return v;
+}
+
+inline APInt operator+(APInt a, const APInt &b) {
+  a += b;
+  return a;
+}
+
+inline APInt operator+(const APInt &a, APInt &&b) {
+  b += a;
+  return std::move(b);
+}
+
+inline APInt operator+(APInt a, uint64_t RHS) {
+  a += RHS;
+  return a;
+}
+
+inline APInt operator+(uint64_t LHS, APInt b) {
+  b += LHS;
+  return b;
+}
+
+inline APInt operator-(APInt a, const APInt &b) {
+  a -= b;
+  return a;
+}
+
+inline APInt operator-(const APInt &a, APInt &&b) {
+  b = -std::move(b);
+  b += a;
+  return std::move(b);
+}
+
+inline APInt operator-(APInt a, uint64_t RHS) {
+  a -= RHS;
+  return a;
+}
+
+inline APInt operator-(uint64_t LHS, APInt b) {
+  b = -std::move(b);
+  b += LHS;
+  return b;
+}
+
 
 namespace APIntOps {
 

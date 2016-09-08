@@ -33,6 +33,10 @@
 # define __has_attribute(x) 0
 #endif
 
+#ifndef __has_cpp_attribute
+# define __has_cpp_attribute(x) 0
+#endif
+
 #ifndef __has_builtin
 # define __has_builtin(x) 0
 #endif
@@ -228,6 +232,19 @@
 #define LLVM_ATTRIBUTE_RETURNS_NOALIAS
 #endif
 
+/// LLVM_FALLTHROUGH - Mark fallthrough cases in switch statements.
+#if __cplusplus > 201402L && __has_cpp_attribute(fallthrough)
+#define LLVM_FALLTHROUGH [[fallthrough]]
+#elif !__cplusplus
+// Workaround for llvm.org/PR23435, since clang 3.6 and below emit a spurious
+// error when __has_cpp_attribute is given a scoped attribute in C mode.
+#define LLVM_FALLTHROUGH
+#elif __has_cpp_attribute(clang::fallthrough)
+#define LLVM_FALLTHROUGH [[clang::fallthrough]]
+#else
+#define LLVM_FALLTHROUGH
+#endif
+
 /// LLVM_EXTENSION - Support compilers where we have a keyword to suppress
 /// pedantic diagnostics.
 #ifdef __GNUC__
@@ -405,12 +422,16 @@
 // Thread Sanitizer is a tool that finds races in code.
 // See http://code.google.com/p/data-race-test/wiki/DynamicAnnotations .
 // tsan detects these exact functions by name.
+#ifdef __cplusplus
 extern "C" {
+#endif
 void AnnotateHappensAfter(const char *file, int line, const volatile void *cv);
 void AnnotateHappensBefore(const char *file, int line, const volatile void *cv);
 void AnnotateIgnoreWritesBegin(const char *file, int line);
 void AnnotateIgnoreWritesEnd(const char *file, int line);
+#ifdef __cplusplus
 }
+#endif
 
 // This marker is used to define a happens-before arc. The race detector will
 // infer an arc from the begin to the end when they share the same pointer
@@ -447,6 +468,19 @@ void AnnotateIgnoreWritesEnd(const char *file, int line);
 #define LLVM_DUMP_METHOD LLVM_ATTRIBUTE_NOINLINE LLVM_ATTRIBUTE_USED
 #else
 #define LLVM_DUMP_METHOD LLVM_ATTRIBUTE_NOINLINE
+#endif
+
+/// \macro LLVM_PRETTY_FUNCTION
+/// \brief Gets a user-friendly looking function signature for the current scope
+/// using the best available method on each platform.  The exact format of the
+/// resulting string is implementation specific and non-portable, so this should
+/// only be used, for example, for logging or diagnostics.
+#if defined(_MSC_VER)
+#define LLVM_PRETTY_FUNCTION __FUNCSIG__
+#elif defined(__GNUC__) || defined(__clang__)
+#define LLVM_PRETTY_FUNCTION __PRETTY_FUNCTION__
+#else 
+#define LLVM_PRETTY_FUNCTION __func__
 #endif
 
 /// \macro LLVM_THREAD_LOCAL

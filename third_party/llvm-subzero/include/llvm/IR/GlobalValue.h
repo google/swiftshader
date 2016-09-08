@@ -70,8 +70,9 @@ protected:
               LinkageTypes Linkage, const Twine &Name, unsigned AddressSpace)
       : Constant(PointerType::get(Ty, AddressSpace), VTy, Ops, NumOps),
         ValueType(Ty), Linkage(Linkage), Visibility(DefaultVisibility),
-        UnnamedAddr(0), DllStorageClass(DefaultStorageClass),
-        ThreadLocal(NotThreadLocal), IntID((Intrinsic::ID)0U), Parent(nullptr) {
+        UnnamedAddrVal(unsigned(UnnamedAddr::None)),
+        DllStorageClass(DefaultStorageClass), ThreadLocal(NotThreadLocal),
+        IntID((Intrinsic::ID)0U), Parent(nullptr) {
     setName(Name);
   }
 
@@ -80,7 +81,7 @@ protected:
   // them.
   unsigned Linkage : 4;       // The linkage of this global
   unsigned Visibility : 2;    // The visibility style of this global
-  unsigned UnnamedAddr : 1;   // This value's address is not significant
+  unsigned UnnamedAddrVal : 2; // This value's address is not significant
   unsigned DllStorageClass : 2; // DLL storage class
 
   unsigned ThreadLocal : 3; // Is this symbol "Thread Local", if so, what is
@@ -89,7 +90,7 @@ protected:
 
 private:
   // Give subclasses access to what otherwise would be wasted padding.
-  // (19 + 3 + 2 + 1 + 2 + 5) == 32.
+  // (19 + 4 + 2 + 2 + 2 + 3) == 32.
   unsigned SubClassData : GlobalValueSubClassDataBits;
 
   friend class Constant;
@@ -153,8 +154,37 @@ public:
 
   unsigned getAlignment() const;
 
-  bool hasUnnamedAddr() const { return UnnamedAddr; }
-  void setUnnamedAddr(bool Val) { UnnamedAddr = Val; }
+  enum class UnnamedAddr {
+    None,
+    Local,
+    Global,
+  };
+
+  bool hasGlobalUnnamedAddr() const {
+    return getUnnamedAddr() == UnnamedAddr::Global;
+  }
+
+  /// Returns true if this value's address is not significant in this module.
+  /// This attribute is intended to be used only by the code generator and LTO
+  /// to allow the linker to decide whether the global needs to be in the symbol
+  /// table. It should probably not be used in optimizations, as the value may
+  /// have uses outside the module; use hasGlobalUnnamedAddr() instead.
+  bool hasAtLeastLocalUnnamedAddr() const {
+    return getUnnamedAddr() != UnnamedAddr::None;
+  }
+
+  UnnamedAddr getUnnamedAddr() const {
+    return UnnamedAddr(UnnamedAddrVal);
+  }
+  void setUnnamedAddr(UnnamedAddr Val) { UnnamedAddrVal = unsigned(Val); }
+
+  static UnnamedAddr getMinUnnamedAddr(UnnamedAddr A, UnnamedAddr B) {
+    if (A == UnnamedAddr::None || B == UnnamedAddr::None)
+      return UnnamedAddr::None;
+    if (A == UnnamedAddr::Local || B == UnnamedAddr::Local)
+      return UnnamedAddr::Local;
+    return UnnamedAddr::Global;
+  }
 
   bool hasComdat() const { return getComdat() != nullptr; }
   Comdat *getComdat();
@@ -198,14 +228,8 @@ public:
   }
   void setDLLStorageClass(DLLStorageClassTypes C) { DllStorageClass = C; }
 
-  bool hasSection() const { return !StringRef(getSection()).empty(); }
-  // It is unfortunate that we have to use "char *" in here since this is
-  // always non NULL, but:
-  // * The C API expects a null terminated string, so we cannot use StringRef.
-  // * The C API expects us to own it, so we cannot use a std:string.
-  // * For GlobalAliases we can fail to find the section and we have to
-  //   return "", so we cannot use a "const std::string &".
-  const char *getSection() const;
+  bool hasSection() const { return !getSection().empty(); }
+  StringRef getSection() const;
 
   /// Global values are always pointers.
   PointerType *getType() const { return cast<PointerType>(User::getType()); }

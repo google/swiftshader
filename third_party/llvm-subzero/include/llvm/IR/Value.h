@@ -442,11 +442,6 @@ public:
     return SubclassOptionalData == V->SubclassOptionalData;
   }
 
-  /// \brief Clear any optional flags not set in the given Value.
-  void intersectOptionalDataWith(const Value *V) {
-    SubclassOptionalData &= V->SubclassOptionalData;
-  }
-
   /// \brief Return true if there is a value handle associated with this value.
   bool hasValueHandle() const { return HasValueHandle; }
 
@@ -509,7 +504,8 @@ public:
   ///
   /// If CanBeNull is set by this function the pointer can either be null or be
   /// dereferenceable up to the returned number of bytes.
-  unsigned getPointerDereferenceableBytes(bool &CanBeNull) const;
+  unsigned getPointerDereferenceableBytes(const DataLayout &DL,
+                                          bool &CanBeNull) const;
 
   /// \brief Returns an alignment of the pointer value.
   ///
@@ -804,9 +800,9 @@ inline Value **unwrap(LLVMValueRef *Vals) {
 
 template<typename T>
 inline T **unwrap(LLVMValueRef *Vals, unsigned Length) {
-#ifdef DEBUG
+#ifndef NDEBUG
   for (LLVMValueRef *I = Vals, *E = Vals + Length; I != E; ++I)
-    cast<T>(*I);
+    unwrap<T>(*I); // For side effect of calling assert on invalid usage.
 #endif
   (void)Length;
   return reinterpret_cast<T**>(Vals);

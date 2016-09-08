@@ -1,6 +1,7 @@
 #ifdef GET_ATTR_ENUM
 #undef GET_ATTR_ENUM
 Alignment,
+AllocSize,
 AlwaysInline,
 ArgMemOnly,
 Builtin,
@@ -46,8 +47,71 @@ StackProtect,
 StackProtectReq,
 StackProtectStrong,
 StructRet,
+SwiftError,
+SwiftSelf,
 UWTable,
+WriteOnly,
 ZExt,
+#endif
+#ifdef GET_ATTR_KIND_FROM_NAME
+#undef GET_ATTR_KIND_FROM_NAME
+static Attribute::AttrKind getAttrKindFromName(StringRef AttrName) {
+  return StringSwitch<Attribute::AttrKind>(AttrName)
+    .Case("align", Attribute::Alignment)
+    .Case("allocsize", Attribute::AllocSize)
+    .Case("alwaysinline", Attribute::AlwaysInline)
+    .Case("argmemonly", Attribute::ArgMemOnly)
+    .Case("builtin", Attribute::Builtin)
+    .Case("byval", Attribute::ByVal)
+    .Case("cold", Attribute::Cold)
+    .Case("convergent", Attribute::Convergent)
+    .Case("dereferenceable", Attribute::Dereferenceable)
+    .Case("dereferenceable_or_null", Attribute::DereferenceableOrNull)
+    .Case("inalloca", Attribute::InAlloca)
+    .Case("inreg", Attribute::InReg)
+    .Case("inaccessiblememonly", Attribute::InaccessibleMemOnly)
+    .Case("inaccessiblemem_or_argmemonly", Attribute::InaccessibleMemOrArgMemOnly)
+    .Case("inlinehint", Attribute::InlineHint)
+    .Case("jumptable", Attribute::JumpTable)
+    .Case("minsize", Attribute::MinSize)
+    .Case("naked", Attribute::Naked)
+    .Case("nest", Attribute::Nest)
+    .Case("noalias", Attribute::NoAlias)
+    .Case("nobuiltin", Attribute::NoBuiltin)
+    .Case("nocapture", Attribute::NoCapture)
+    .Case("noduplicate", Attribute::NoDuplicate)
+    .Case("noimplicitfloat", Attribute::NoImplicitFloat)
+    .Case("noinline", Attribute::NoInline)
+    .Case("norecurse", Attribute::NoRecurse)
+    .Case("noredzone", Attribute::NoRedZone)
+    .Case("noreturn", Attribute::NoReturn)
+    .Case("nounwind", Attribute::NoUnwind)
+    .Case("nonlazybind", Attribute::NonLazyBind)
+    .Case("nonnull", Attribute::NonNull)
+    .Case("optsize", Attribute::OptimizeForSize)
+    .Case("optnone", Attribute::OptimizeNone)
+    .Case("readnone", Attribute::ReadNone)
+    .Case("readonly", Attribute::ReadOnly)
+    .Case("returned", Attribute::Returned)
+    .Case("returns_twice", Attribute::ReturnsTwice)
+    .Case("signext", Attribute::SExt)
+    .Case("safestack", Attribute::SafeStack)
+    .Case("sanitize_address", Attribute::SanitizeAddress)
+    .Case("sanitize_memory", Attribute::SanitizeMemory)
+    .Case("sanitize_thread", Attribute::SanitizeThread)
+    .Case("alignstack", Attribute::StackAlignment)
+    .Case("ssp", Attribute::StackProtect)
+    .Case("sspreq", Attribute::StackProtectReq)
+    .Case("sspstrong", Attribute::StackProtectStrong)
+    .Case("sret", Attribute::StructRet)
+    .Case("swifterror", Attribute::SwiftError)
+    .Case("swiftself", Attribute::SwiftSelf)
+    .Case("uwtable", Attribute::UWTable)
+    .Case("writeonly", Attribute::WriteOnly)
+    .Case("zeroext", Attribute::ZExt)
+    .Default(Attribute::None);
+}
+
 #endif
 #ifdef GET_ATTR_COMPAT_FUNC
 #undef GET_ATTR_COMPAT_FUNC
@@ -83,6 +147,11 @@ struct StrBoolAttr {
 struct AlignmentAttr : EnumAttr {
   static enum Attribute::AttrKind getKind() {
     return llvm::Attribute::Alignment;
+  }
+};
+struct AllocSizeAttr : EnumAttr {
+  static enum Attribute::AttrKind getKind() {
+    return llvm::Attribute::AllocSize;
   }
 };
 struct AlwaysInlineAttr : EnumAttr {
@@ -310,9 +379,24 @@ struct StructRetAttr : EnumAttr {
     return llvm::Attribute::StructRet;
   }
 };
+struct SwiftErrorAttr : EnumAttr {
+  static enum Attribute::AttrKind getKind() {
+    return llvm::Attribute::SwiftError;
+  }
+};
+struct SwiftSelfAttr : EnumAttr {
+  static enum Attribute::AttrKind getKind() {
+    return llvm::Attribute::SwiftSelf;
+  }
+};
 struct UWTableAttr : EnumAttr {
   static enum Attribute::AttrKind getKind() {
     return llvm::Attribute::UWTable;
+  }
+};
+struct WriteOnlyAttr : EnumAttr {
+  static enum Attribute::AttrKind getKind() {
+    return llvm::Attribute::WriteOnly;
   }
 };
 struct ZExtAttr : EnumAttr {
@@ -330,6 +414,11 @@ struct LessPreciseFPMADAttr : StrBoolAttr {
 struct NoInfsFPMathAttr : StrBoolAttr {
   static const char *getKind() {
     return "no-infs-fp-math";
+  }
+};
+struct NoJumpTablesAttr : StrBoolAttr {
+  static const char *getKind() {
+    return "no-jump-tables";
   }
 };
 struct NoNansFPMathAttr : StrBoolAttr {
@@ -350,18 +439,20 @@ static inline bool hasCompatibleFnAttrs(const Function &Caller,
   Ret &= isEqual<SanitizeAddressAttr>(Caller, Callee);
   Ret &= isEqual<SanitizeThreadAttr>(Caller, Callee);
   Ret &= isEqual<SanitizeMemoryAttr>(Caller, Callee);
+  Ret &= isEqual<SafeStackAttr>(Caller, Callee);
 
   return Ret;
 }
 
 static inline void mergeFnAttrs(Function &Caller,
                                 const Function &Callee) {
+  adjustCallerSSPLevel(Caller, Callee);
   setAND<LessPreciseFPMADAttr>(Caller, Callee);
   setAND<NoInfsFPMathAttr>(Caller, Callee);
   setAND<NoNansFPMathAttr>(Caller, Callee);
   setAND<UnsafeFPMathAttr>(Caller, Callee);
   setOR<NoImplicitFloatAttr>(Caller, Callee);
-  adjustCallerSSPLevel(Caller, Callee);
+  setOR<NoJumpTablesAttr>(Caller, Callee);
 }
 
 #endif
