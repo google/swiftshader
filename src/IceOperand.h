@@ -1075,7 +1075,7 @@ private:
   const Cfg *Func;
   MetadataKind Kind;
   CfgVector<VariableTracking> Metadata;
-  const static InstDefList NoDefinitions;
+  static const InstDefList *NoDefinitions;
 };
 
 /// BooleanVariable represents a variable that was the zero-extended result of a

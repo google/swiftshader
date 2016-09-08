@@ -509,8 +509,17 @@ const Inst *VariablesMetadata::getFirstDefinition(const Variable *Var) const {
 const InstDefList &
 VariablesMetadata::getLatterDefinitions(const Variable *Var) const {
   assert(Kind == VMK_All);
-  if (!isTracked(Var))
-    return NoDefinitions;
+  if (!isTracked(Var)) {
+    // NoDefinitions has to be initialized after we've had a chance to set the
+    // CfgAllocator, so it can't be a static global object. Also, while C++11
+    // guarantees the initialization of static local objects to be thread-safe,
+    // we use a pointer to it so we can avoid frequent  mutex locking overhead.
+    if (NoDefinitions == nullptr) {
+      static const InstDefList NoDefinitionsInstance;
+      NoDefinitions = &NoDefinitionsInstance;
+    }
+    return *NoDefinitions;
+  }
   SizeT VarNum = Var->getIndex();
   return Metadata[VarNum].getLatterDefinitions();
 }
@@ -529,7 +538,7 @@ RegWeight VariablesMetadata::getUseWeight(const Variable *Var) const {
   return Metadata[VarNum].getUseWeight();
 }
 
-const InstDefList VariablesMetadata::NoDefinitions;
+const InstDefList *VariablesMetadata::NoDefinitions = nullptr;
 
 // ======================== dump routines ======================== //
 
