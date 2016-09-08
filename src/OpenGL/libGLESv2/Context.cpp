@@ -1250,7 +1250,7 @@ void Context::bindIndexedUniformBuffer(GLuint buffer, GLuint index, GLintptr off
 	mResourceManager->checkBufferAllocation(buffer);
 
 	Buffer* bufferObject = getBuffer(buffer);
-	mState.uniformBuffers[index].set(bufferObject, offset, size);
+	mState.uniformBuffers[index].set(bufferObject, static_cast<int>(offset), static_cast<int>(size));
 }
 
 void Context::bindGenericTransformFeedbackBuffer(GLuint buffer)
@@ -2289,7 +2289,7 @@ template<typename T> bool Context::getIntegerv(GLenum pname, T *params) const
 	case GL_UNIFORM_BUFFER_START: // indexed[n] 64-bit integer, initially 0
 		if(clientVersion >= 3)
 		{
-			*params = mState.genericUniformBuffer->offset();
+			*params = static_cast<T>(mState.genericUniformBuffer->offset());
 		}
 		else
 		{

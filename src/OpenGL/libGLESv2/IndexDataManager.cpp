@@ -121,7 +121,7 @@ GLenum IndexDataManager::prepareIndexData(GLenum type, GLuint start, GLuint end,
 		computeRange(type, indices, count, &translated->minIndex, &translated->maxIndex);
 
 		translated->indexBuffer = staticBuffer;
-		translated->indexOffset = offset;
+		translated->indexOffset = static_cast<unsigned int>(offset);
 	}
 	else
 	{
