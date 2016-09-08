@@ -43,6 +43,9 @@ namespace es1
 
 		virtual ~Device();
 
+		void *operator new(size_t size);
+		void operator delete(void * mem);
+
 		void clearColor(float red, float green, float blue, float alpha, unsigned int rgbaMask);
 		void clearDepth(float z);
 		void clearStencil(unsigned int stencil, unsigned int mask);
