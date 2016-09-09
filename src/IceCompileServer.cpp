@@ -156,7 +156,7 @@ struct {
 /// Dumps values of build attributes to Stream if Stream is non-null.
 void dumpBuildAttributes(Ostream &Str) {
 // List the supported targets.
-#define SUBZERO_TARGET(TARGET) Str << "target_" #TARGET << "\n";
+#define SUBZERO_TARGET(TARGET) Str << "target_" XSTRINGIFY(TARGET) "\n";
 #include "SZTargets.def"
   const char *Prefix[2] = {"no", "allow"};
   for (size_t i = 0; i < llvm::array_lengthof(ConditionalBuildAttributes);

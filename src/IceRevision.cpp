@@ -14,8 +14,7 @@
 
 #include "IceRevision.h"
 
-#define XSTRINGIFY(x) STRINGIFY(x)
-#define STRINGIFY(x) #x
+#include "IceDefs.h" // XSTRINGIFY
 
 #ifndef SUBZERO_REVISION
 #define SUBZERO_REVISION unknown
