@@ -69,14 +69,14 @@ namespace sw
 		actualSize = (actualSize + pageSize - 1) & ~(pageSize - 1);
 
 		delete routine;
-		routine = new Routine(actualSize);
+		routine = new Routine(static_cast<int>(actualSize));
 
 		return (uint8_t*)routine->getBuffer();
 	}
 
 	void RoutineManager::endFunctionBody(const llvm::Function *function, uint8_t *functionStart, uint8_t *functionEnd)
 	{
-		routine->setFunctionSize(functionEnd - functionStart);
+		routine->setFunctionSize(static_cast<int>(static_cast<ptrdiff_t>(functionEnd - functionStart)));
 	}
 
 	uint8_t *RoutineManager::startExceptionTable(const llvm::Function* F, uintptr_t &ActualSize)

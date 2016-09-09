@@ -74,7 +74,7 @@ namespace sw
 
 	int Routine::getCodeSize()
 	{
-		return functionSize - ((uintptr_t)entry - (uintptr_t)buffer);
+		return functionSize - static_cast<int>((uintptr_t)entry - (uintptr_t)buffer);
 	}
 
 	bool Routine::isDynamic()
