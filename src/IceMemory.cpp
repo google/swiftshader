@@ -38,7 +38,7 @@ void CfgAllocatorTraits::set_current(ArenaAllocator *Allocator) {
   ICE_TLS_SET_FIELD(CfgAllocator, Allocator);
 }
 
-void CfgAllocatorTraits::set_current(nullptr_t) {
+void CfgAllocatorTraits::set_current(std::nullptr_t) {
   ICE_TLS_SET_FIELD(CfgAllocator, nullptr);
 }
 
