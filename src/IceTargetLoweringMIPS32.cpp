@@ -215,6 +215,381 @@ uint32_t TargetMIPS32::getStackAlignment() const {
   return MIPS32_STACK_ALIGNMENT_BYTES;
 }
 
+void TargetMIPS32::genTargetHelperCallFor(Inst *Instr) {
+  constexpr bool NoTailCall = false;
+  constexpr bool IsTargetHelperCall = true;
+
+  switch (Instr->getKind()) {
+  default:
+    return;
+  case Inst::Arithmetic: {
+    Variable *Dest = Instr->getDest();
+    const Type DestTy = Dest->getType();
+    const InstArithmetic::OpKind Op =
+        llvm::cast<InstArithmetic>(Instr)->getOp();
+    if (isVectorType(DestTy)) {
+      switch (Op) {
+      default:
+        break;
+      case InstArithmetic::Fdiv:
+      case InstArithmetic::Frem:
+      case InstArithmetic::Sdiv:
+      case InstArithmetic::Srem:
+      case InstArithmetic::Udiv:
+      case InstArithmetic::Urem:
+        scalarizeArithmetic(Op, Dest, Instr->getSrc(0), Instr->getSrc(1));
+        Instr->setDeleted();
+        return;
+      }
+    }
+    switch (DestTy) {
+    default:
+      return;
+    case IceType_i64: {
+      RuntimeHelper HelperID = RuntimeHelper::H_Num;
+      switch (Op) {
+      default:
+        return;
+      case InstArithmetic::Udiv:
+        HelperID = RuntimeHelper::H_udiv_i64;
+        break;
+      case InstArithmetic::Sdiv:
+        HelperID = RuntimeHelper::H_sdiv_i64;
+        break;
+      case InstArithmetic::Urem:
+        HelperID = RuntimeHelper::H_urem_i64;
+        break;
+      case InstArithmetic::Srem:
+        HelperID = RuntimeHelper::H_srem_i64;
+        break;
+      }
+
+      if (HelperID == RuntimeHelper::H_Num) {
+        return;
+      }
+
+      Operand *TargetHelper = Ctx->getRuntimeHelperFunc(HelperID);
+      constexpr SizeT MaxArgs = 2;
+      auto *Call = Context.insert<InstCall>(MaxArgs, Dest, TargetHelper,
+                                            NoTailCall, IsTargetHelperCall);
+      Call->addArg(Instr->getSrc(0));
+      Call->addArg(Instr->getSrc(1));
+      Instr->setDeleted();
+      return;
+    }
+    case IceType_i32:
+    case IceType_i16:
+    case IceType_i8: {
+      InstCast::OpKind CastKind;
+      RuntimeHelper HelperID = RuntimeHelper::H_Num;
+      switch (Op) {
+      default:
+        return;
+      case InstArithmetic::Udiv:
+        HelperID = RuntimeHelper::H_udiv_i32;
+        CastKind = InstCast::Zext;
+        break;
+      case InstArithmetic::Sdiv:
+        HelperID = RuntimeHelper::H_sdiv_i32;
+        CastKind = InstCast::Sext;
+        break;
+      case InstArithmetic::Urem:
+        HelperID = RuntimeHelper::H_urem_i32;
+        CastKind = InstCast::Zext;
+        break;
+      case InstArithmetic::Srem:
+        HelperID = RuntimeHelper::H_srem_i32;
+        CastKind = InstCast::Sext;
+        break;
+      }
+
+      if (HelperID == RuntimeHelper::H_Num) {
+        return;
+      }
+
+      Operand *Src0 = Instr->getSrc(0);
+      Operand *Src1 = Instr->getSrc(1);
+      if (DestTy != IceType_i32) {
+        // Src0 and Src1 have to be zero-, or signed-extended to i32. For Src0,
+        // we just insert a InstCast right before the call to the helper.
+        Variable *Src0_32 = Func->makeVariable(IceType_i32);
+        Context.insert<InstCast>(CastKind, Src0_32, Src0);
+        Src0 = Src0_32;
+
+        if (auto *C = llvm::dyn_cast<ConstantInteger32>(Src1)) {
+          const int32_t ShAmt = (DestTy == IceType_i16) ? 16 : 24;
+          int32_t NewC = C->getValue();
+          if (CastKind == InstCast::Zext) {
+            NewC &= ~(0x80000000l >> ShAmt);
+          } else {
+            NewC = (NewC << ShAmt) >> ShAmt;
+          }
+          Src1 = Ctx->getConstantInt32(NewC);
+        } else {
+          Variable *Src1_32 = Func->makeVariable(IceType_i32);
+          Context.insert<InstCast>(CastKind, Src1_32, Src1);
+          Src1 = Src1_32;
+        }
+      }
+      Operand *TargetHelper = Ctx->getRuntimeHelperFunc(HelperID);
+      constexpr SizeT MaxArgs = 2;
+      auto *Call = Context.insert<InstCall>(MaxArgs, Dest, TargetHelper,
+                                            NoTailCall, IsTargetHelperCall);
+      assert(Src0->getType() == IceType_i32);
+      Call->addArg(Src0);
+      assert(Src1->getType() == IceType_i32);
+      Call->addArg(Src1);
+      Instr->setDeleted();
+      return;
+    }
+    case IceType_f32:
+    case IceType_f64: {
+      if (Op != InstArithmetic::Frem) {
+        return;
+      }
+      constexpr SizeT MaxArgs = 2;
+      Operand *TargetHelper = Ctx->getRuntimeHelperFunc(
+          DestTy == IceType_f32 ? RuntimeHelper::H_frem_f32
+                                : RuntimeHelper::H_frem_f64);
+      auto *Call = Context.insert<InstCall>(MaxArgs, Dest, TargetHelper,
+                                            NoTailCall, IsTargetHelperCall);
+      Call->addArg(Instr->getSrc(0));
+      Call->addArg(Instr->getSrc(1));
+      Instr->setDeleted();
+      return;
+    }
+    }
+    llvm::report_fatal_error("Control flow should never have reached here.");
+  }
+  case Inst::Cast: {
+    Variable *Dest = Instr->getDest();
+    Operand *Src0 = Instr->getSrc(0);
+    const Type DestTy = Dest->getType();
+    const Type SrcTy = Src0->getType();
+    auto *CastInstr = llvm::cast<InstCast>(Instr);
+    const InstCast::OpKind CastKind = CastInstr->getCastKind();
+
+    switch (CastKind) {
+    default:
+      return;
+    case InstCast::Fptosi:
+    case InstCast::Fptoui: {
+      if (DestTy != IceType_i64) {
+        return;
+      }
+      const bool DestIsSigned = CastKind == InstCast::Fptosi;
+      const bool Src0IsF32 = isFloat32Asserting32Or64(SrcTy);
+      Operand *TargetHelper = Ctx->getRuntimeHelperFunc(
+          Src0IsF32 ? (DestIsSigned ? RuntimeHelper::H_fptosi_f32_i64
+                                    : RuntimeHelper::H_fptoui_f32_i64)
+                    : (DestIsSigned ? RuntimeHelper::H_fptosi_f64_i64
+                                    : RuntimeHelper::H_fptoui_f64_i64));
+      static constexpr SizeT MaxArgs = 1;
+      auto *Call = Context.insert<InstCall>(MaxArgs, Dest, TargetHelper,
+                                            NoTailCall, IsTargetHelperCall);
+      Call->addArg(Src0);
+      Instr->setDeleted();
+      return;
+    }
+    case InstCast::Sitofp:
+    case InstCast::Uitofp: {
+      if (SrcTy != IceType_i64) {
+        return;
+      }
+      const bool SourceIsSigned = CastKind == InstCast::Sitofp;
+      const bool DestIsF32 = isFloat32Asserting32Or64(Dest->getType());
+      Operand *TargetHelper = Ctx->getRuntimeHelperFunc(
+          DestIsF32 ? (SourceIsSigned ? RuntimeHelper::H_sitofp_i64_f32
+                                      : RuntimeHelper::H_uitofp_i64_f32)
+                    : (SourceIsSigned ? RuntimeHelper::H_sitofp_i64_f64
+                                      : RuntimeHelper::H_uitofp_i64_f64));
+      static constexpr SizeT MaxArgs = 1;
+      auto *Call = Context.insert<InstCall>(MaxArgs, Dest, TargetHelper,
+                                            NoTailCall, IsTargetHelperCall);
+      Call->addArg(Src0);
+      Instr->setDeleted();
+      return;
+    }
+    case InstCast::Bitcast: {
+      if (DestTy == SrcTy) {
+        return;
+      }
+      Variable *CallDest = Dest;
+      RuntimeHelper HelperID = RuntimeHelper::H_Num;
+      switch (DestTy) {
+      default:
+        return;
+      case IceType_i8:
+        assert(SrcTy == IceType_v8i1);
+        HelperID = RuntimeHelper::H_bitcast_8xi1_i8;
+        CallDest = Func->makeVariable(IceType_i32);
+        break;
+      case IceType_i16:
+        assert(SrcTy == IceType_v16i1);
+        HelperID = RuntimeHelper::H_bitcast_16xi1_i16;
+        CallDest = Func->makeVariable(IceType_i32);
+        break;
+      case IceType_v8i1: {
+        assert(SrcTy == IceType_i8);
+        HelperID = RuntimeHelper::H_bitcast_i8_8xi1;
+        Variable *Src0AsI32 = Func->makeVariable(stackSlotType());
+        // Arguments to functions are required to be at least 32 bits wide.
+        Context.insert<InstCast>(InstCast::Zext, Src0AsI32, Src0);
+        Src0 = Src0AsI32;
+      } break;
+      case IceType_v16i1: {
+        assert(SrcTy == IceType_i16);
+        HelperID = RuntimeHelper::H_bitcast_i16_16xi1;
+        Variable *Src0AsI32 = Func->makeVariable(stackSlotType());
+        // Arguments to functions are required to be at least 32 bits wide.
+        Context.insert<InstCast>(InstCast::Zext, Src0AsI32, Src0);
+        Src0 = Src0AsI32;
+      } break;
+      }
+      constexpr SizeT MaxSrcs = 1;
+      InstCall *Call = makeHelperCall(HelperID, CallDest, MaxSrcs);
+      Call->addArg(Src0);
+      Context.insert(Call);
+      // The PNaCl ABI disallows i8/i16 return types, so truncate the helper
+      // call result to the appropriate type as necessary.
+      if (CallDest->getType() != Dest->getType())
+        Context.insert<InstCast>(InstCast::Trunc, Dest, CallDest);
+      Instr->setDeleted();
+      return;
+    }
+    case InstCast::Trunc: {
+      if (DestTy == SrcTy) {
+        return;
+      }
+      if (!isVectorType(SrcTy)) {
+        return;
+      }
+      assert(typeNumElements(DestTy) == typeNumElements(SrcTy));
+      assert(typeElementType(DestTy) == IceType_i1);
+      assert(isVectorIntegerType(SrcTy));
+      return;
+    }
+    case InstCast::Sext:
+    case InstCast::Zext: {
+      if (DestTy == SrcTy) {
+        return;
+      }
+      if (!isVectorType(DestTy)) {
+        return;
+      }
+      assert(typeNumElements(DestTy) == typeNumElements(SrcTy));
+      assert(typeElementType(SrcTy) == IceType_i1);
+      assert(isVectorIntegerType(DestTy));
+      return;
+    }
+    }
+    llvm::report_fatal_error("Control flow should never have reached here.");
+  }
+  case Inst::IntrinsicCall: {
+    Variable *Dest = Instr->getDest();
+    auto *IntrinsicCall = llvm::cast<InstIntrinsicCall>(Instr);
+    Intrinsics::IntrinsicID ID = IntrinsicCall->getIntrinsicInfo().ID;
+    switch (ID) {
+    default:
+      return;
+    case Intrinsics::Ctpop: {
+      Operand *Src0 = IntrinsicCall->getArg(0);
+      Operand *TargetHelper =
+          Ctx->getRuntimeHelperFunc(isInt32Asserting32Or64(Src0->getType())
+                                        ? RuntimeHelper::H_call_ctpop_i32
+                                        : RuntimeHelper::H_call_ctpop_i64);
+      static constexpr SizeT MaxArgs = 1;
+      auto *Call = Context.insert<InstCall>(MaxArgs, Dest, TargetHelper,
+                                            NoTailCall, IsTargetHelperCall);
+      Call->addArg(Src0);
+      Instr->setDeleted();
+      return;
+    }
+    case Intrinsics::Longjmp: {
+      static constexpr SizeT MaxArgs = 2;
+      static constexpr Variable *NoDest = nullptr;
+      Operand *TargetHelper =
+          Ctx->getRuntimeHelperFunc(RuntimeHelper::H_call_longjmp);
+      auto *Call = Context.insert<InstCall>(MaxArgs, NoDest, TargetHelper,
+                                            NoTailCall, IsTargetHelperCall);
+      Call->addArg(IntrinsicCall->getArg(0));
+      Call->addArg(IntrinsicCall->getArg(1));
+      Instr->setDeleted();
+      return;
+    }
+    case Intrinsics::Memcpy: {
+      static constexpr SizeT MaxArgs = 3;
+      static constexpr Variable *NoDest = nullptr;
+      Operand *TargetHelper =
+          Ctx->getRuntimeHelperFunc(RuntimeHelper::H_call_memcpy);
+      auto *Call = Context.insert<InstCall>(MaxArgs, NoDest, TargetHelper,
+                                            NoTailCall, IsTargetHelperCall);
+      Call->addArg(IntrinsicCall->getArg(0));
+      Call->addArg(IntrinsicCall->getArg(1));
+      Call->addArg(IntrinsicCall->getArg(2));
+      Instr->setDeleted();
+      return;
+    }
+    case Intrinsics::Memmove: {
+      static constexpr SizeT MaxArgs = 3;
+      static constexpr Variable *NoDest = nullptr;
+      Operand *TargetHelper =
+          Ctx->getRuntimeHelperFunc(RuntimeHelper::H_call_memmove);
+      auto *Call = Context.insert<InstCall>(MaxArgs, NoDest, TargetHelper,
+                                            NoTailCall, IsTargetHelperCall);
+      Call->addArg(IntrinsicCall->getArg(0));
+      Call->addArg(IntrinsicCall->getArg(1));
+      Call->addArg(IntrinsicCall->getArg(2));
+      Instr->setDeleted();
+      return;
+    }
+    case Intrinsics::Memset: {
+      Operand *ValOp = IntrinsicCall->getArg(1);
+      assert(ValOp->getType() == IceType_i8);
+      Variable *ValExt = Func->makeVariable(stackSlotType());
+      Context.insert<InstCast>(InstCast::Zext, ValExt, ValOp);
+
+      static constexpr SizeT MaxArgs = 3;
+      static constexpr Variable *NoDest = nullptr;
+      Operand *TargetHelper =
+          Ctx->getRuntimeHelperFunc(RuntimeHelper::H_call_memset);
+      auto *Call = Context.insert<InstCall>(MaxArgs, NoDest, TargetHelper,
+                                            NoTailCall, IsTargetHelperCall);
+      Call->addArg(IntrinsicCall->getArg(0));
+      Call->addArg(ValExt);
+      Call->addArg(IntrinsicCall->getArg(2));
+      Instr->setDeleted();
+      return;
+    }
+    case Intrinsics::NaClReadTP: {
+      if (SandboxingType == ST_NaCl) {
+        return;
+      }
+      static constexpr SizeT MaxArgs = 0;
+      assert(SandboxingType != ST_Nonsfi);
+      Operand *TargetHelper =
+          Ctx->getRuntimeHelperFunc(RuntimeHelper::H_call_read_tp);
+      Context.insert<InstCall>(MaxArgs, Dest, TargetHelper, NoTailCall,
+                               IsTargetHelperCall);
+      Instr->setDeleted();
+      return;
+    }
+    case Intrinsics::Setjmp: {
+      static constexpr SizeT MaxArgs = 1;
+      Operand *TargetHelper =
+          Ctx->getRuntimeHelperFunc(RuntimeHelper::H_call_setjmp);
+      auto *Call = Context.insert<InstCall>(MaxArgs, Dest, TargetHelper,
+                                            NoTailCall, IsTargetHelperCall);
+      Call->addArg(IntrinsicCall->getArg(0));
+      Instr->setDeleted();
+      return;
+    }
+    }
+    llvm::report_fatal_error("Control flow should never have reached here.");
+  }
+  }
+}
+
 void TargetMIPS32::findMaxStackOutArgsSize() {
   // MinNeededOutArgsBytes should be updated if the Target ever creates a
   // high-level InstCall that requires more stack bytes.
@@ -1830,8 +2205,7 @@ void TargetMIPS32::lowerCall(const InstCall *Instr) {
       ReturnReg = makeReg(Dest->getType(), RegMIPS32::Reg_F0);
       break;
     case IceType_f64:
-      ReturnReg = makeReg(IceType_f32, RegMIPS32::Reg_F0);
-      ReturnRegHi = makeReg(IceType_f32, RegMIPS32::Reg_F1);
+      ReturnReg = makeReg(IceType_f64, RegMIPS32::Reg_F0);
       break;
     case IceType_v4i1:
     case IceType_v8i1:
@@ -1907,8 +2281,9 @@ void TargetMIPS32::lowerCall(const InstCall *Instr) {
     } else {
       assert(Dest->getType() == IceType_i32 || Dest->getType() == IceType_i16 ||
              Dest->getType() == IceType_i8 || Dest->getType() == IceType_i1 ||
+             isScalarFloatingType(Dest->getType()) ||
              isVectorType(Dest->getType()));
-      if (isFloatingType(Dest->getType()) || isVectorType(Dest->getType())) {
+      if (isVectorType(Dest->getType())) {
         UnimplementedLoweringError(this, Instr);
         return;
       } else {
@@ -2302,7 +2677,7 @@ void TargetMIPS32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
 
 void TargetMIPS32::lowerLoad(const InstLoad *Instr) {
   // A Load instruction can be treated the same as an Assign instruction, after
-  // the source operand is transformed into an OperandARM32Mem operand.
+  // the source operand is transformed into an OperandMIPS32Mem operand.
   Type Ty = Instr->getDest()->getType();
   Operand *Src0 = formMemoryOperand(Instr->getSourceAddress(), Ty);
   Variable *DestLoad = Instr->getDest();

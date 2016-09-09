@@ -16,6 +16,12 @@
 ; RUN:   | %if --need=target_ARM32 --need=allow_dump \
 ; RUN:   --command FileCheck --check-prefix ARM32 %s
 
+; RUN: %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command %p2i --filetype=asm --assemble --disassemble --target mips32\
+; RUN:   -i %s --args -Om1 --skip-unimplemented \
+; RUN:   | %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command FileCheck --check-prefix MIPS32 %s
+
 declare void @llvm.memcpy.p0i8.p0i8.i32(i8*, i8*, i32, i32, i1)
 declare void @llvm.memmove.p0i8.p0i8.i32(i8*, i8*, i32, i32, i1)
 declare void @llvm.memset.p0i8.i32(i8*, i8, i32, i32, i1)
@@ -34,6 +40,8 @@ entry:
 ; OM1: call  {{.*}} memcpy
 ; ARM32-LABEL: test_memcpy
 ; ARM32: bl {{.*}} memcpy
+; MIPS32-LABEL: test_memcpy
+; MIPS32: jal {{.*}} memcpy
 
 define internal void @test_memcpy_long_const_len(i32 %iptr_dst, i32 %iptr_src) {
 entry:
@@ -49,6 +57,8 @@ entry:
 ; OM1: call {{.*}} memcpy
 ; ARM32-LABEL: test_memcpy_long_const_len
 ; ARM32: bl {{.*}} memcpy
+; MIPS32-LABEL: test_memcpy_long_const_len
+; MIPS32: jal {{.*}} memcpy
 
 define internal void @test_memcpy_very_small_const_len(i32 %iptr_dst,
                                                        i32 %iptr_src) {
@@ -67,6 +77,8 @@ entry:
 ; OM1: call {{.*}} memcpy
 ; ARM32-LABEL: test_memcpy_very_small_const_len
 ; ARM32: bl {{.*}} memcpy
+; MIPS32-LABEL: test_memcpy_very_small_const_len
+; MIPS32: jal {{.*}} memcpy
 
 define internal void @test_memcpy_const_len_3(i32 %iptr_dst, i32 %iptr_src) {
 entry:
@@ -86,6 +98,8 @@ entry:
 ; OM1: call {{.*}} memcpy
 ; ARM32-LABEL: test_memcpy_const_len_3
 ; ARM32: bl {{.*}} memcpy
+; MIPS32-LABEL: test_memcpy_const_len_3
+; MIPS32: jal {{.*}} memcpy
 
 define internal void @test_memcpy_mid_const_len(i32 %iptr_dst, i32 %iptr_src) {
 entry:
@@ -105,6 +119,8 @@ entry:
 ; OM1: call {{.*}} memcpy
 ; ARM32-LABEL: test_memcpy_mid_const_len
 ; ARM32: bl {{.*}} memcpy
+; MIPS32-LABEL: test_memcpy_mid_const_len
+; MIPS32: jal {{.*}} memcpy
 
 define internal void @test_memcpy_mid_const_len_overlap(i32 %iptr_dst,
                                                         i32 %iptr_src) {
@@ -125,6 +141,8 @@ entry:
 ; OM1: call {{.*}} memcpy
 ; ARM32-LABEL: test_memcpy_mid_const_len_overlap
 ; ARM32: bl {{.*}} memcpy
+; MIPS32-LABEL: test_memcpy_mid_const_len_overlap
+; MIPS32: jal {{.*}} memcpy
 
 define internal void @test_memcpy_big_const_len_overlap(i32 %iptr_dst,
                                                         i32 %iptr_src) {
@@ -145,6 +163,8 @@ entry:
 ; OM1: call {{.*}} memcpy
 ; ARM32-LABEL: test_memcpy_big_const_len_overlap
 ; ARM32: bl {{.*}} memcpy
+; MIPS32-LABEL: test_memcpy_big_const_len_overlap
+; MIPS32: jal {{.*}} memcpy
 
 define internal void @test_memcpy_large_const_len(i32 %iptr_dst,
                                                   i32 %iptr_src) {
@@ -167,6 +187,8 @@ entry:
 ; OM1: call {{.*}} memcpy
 ; ARM32-LABEL: test_memcpy_large_const_len
 ; ARM32: bl {{.*}} memcpy
+; MIPS32-LABEL: test_memcpy_large_const_len
+; MIPS32: jal {{.*}} memcpy
 
 define internal void @test_memmove(i32 %iptr_dst, i32 %iptr_src, i32 %len) {
 entry:
@@ -182,6 +204,8 @@ entry:
 ; OM1: call {{.*}} memmove
 ; ARM32-LABEL: test_memmove
 ; ARM32: bl {{.*}} memmove
+; MIPS32-LABEL: test_memmove
+; MIPS32: jal {{.*}} memmove
 
 define internal void @test_memmove_long_const_len(i32 %iptr_dst,
                                                   i32 %iptr_src) {
@@ -198,6 +222,8 @@ entry:
 ; OM1: call {{.*}} memmove
 ; ARM32-LABEL: test_memmove_long_const_len
 ; ARM32: bl {{.*}} memmove
+; MIPS32-LABEL: test_memmove_long_const_len
+; MIPS32: jal {{.*}} memmove
 
 define internal void @test_memmove_very_small_const_len(i32 %iptr_dst,
                                                         i32 %iptr_src) {
@@ -216,6 +242,8 @@ entry:
 ; OM1: call {{.*}} memmove
 ; ARM32-LABEL: test_memmove_very_small_const_len
 ; ARM32: bl {{.*}} memmove
+; MIPS32-LABEL: test_memmove_very_small_const_len
+; MIPS32: jal {{.*}} memmove
 
 define internal void @test_memmove_const_len_3(i32 %iptr_dst, i32 %iptr_src) {
 entry:
@@ -235,6 +263,8 @@ entry:
 ; OM1: call {{.*}} memmove
 ; ARM32-LABEL: test_memmove_const_len_3
 ; ARM32: bl {{.*}} memmove
+; MIPS32-LABEL: test_memmove_const_len_3
+; MIPS32: jal {{.*}} memmove
 
 define internal void @test_memmove_mid_const_len(i32 %iptr_dst, i32 %iptr_src) {
 entry:
@@ -254,6 +284,8 @@ entry:
 ; OM1: call {{.*}} memmove
 ; ARM32-LABEL: test_memmove_mid_const_len
 ; ARM32: bl {{.*}} memmove
+; MIPS32-LABEL: test_memmove_mid_const_len
+; MIPS32: jal {{.*}} memmove
 
 define internal void @test_memmove_mid_const_len_overlap(i32 %iptr_dst,
                                                          i32 %iptr_src) {
@@ -274,6 +306,8 @@ entry:
 ; OM1: call {{.*}} memmove
 ; ARM32-LABEL: test_memmove_mid_const_len_overlap
 ; ARM32: bl {{.*}} memmove
+; MIPS32-LABEL: test_memmove_mid_const_len_overlap
+; MIPS32: jal {{.*}} memmove
 
 define internal void @test_memmove_big_const_len_overlap(i32 %iptr_dst,
                                                          i32 %iptr_src) {
@@ -294,6 +328,8 @@ entry:
 ; OM1: call {{.*}} memmove
 ; ARM32-LABEL: test_memmove_big_const_len_overlap
 ; ARM32: bl {{.*}} memmove
+; MIPS32-LABEL: test_memmove_big_const_len_overlap
+; MIPS32: jal {{.*}} memmove
 
 define internal void @test_memmove_large_const_len(i32 %iptr_dst,
                                                    i32 %iptr_src) {
@@ -316,6 +352,8 @@ entry:
 ; OM1: call {{.*}} memmove
 ; ARM32-LABEL: test_memmove_large_const_len
 ; ARM32: bl {{.*}} memmove
+; MIPS32-LABEL: test_memmove_large_const_len
+; MIPS32: jal {{.*}} memmove
 
 define internal void @test_memset(i32 %iptr_dst, i32 %wide_val, i32 %len) {
 entry:
@@ -334,6 +372,8 @@ entry:
 ; ARM32-LABEL: test_memset
 ; ARM32: uxtb
 ; ARM32: bl {{.*}} memset
+; MIPS32-LABEL: test_memset
+; MIPS32: jal {{.*}} memset
 
 define internal void @test_memset_const_len_align(i32 %iptr_dst,
                                                   i32 %wide_val) {
@@ -353,6 +393,8 @@ entry:
 ; ARM32-LABEL: test_memset_const_len_align
 ; ARM32: uxtb
 ; ARM32: bl {{.*}} memset
+; MIPS32-LABEL: test_memset_const_len_align
+; MIPS32: jal {{.*}} memset
 
 define internal void @test_memset_long_const_len_zero_val_align(
     i32 %iptr_dst) {
@@ -369,6 +411,8 @@ entry:
 ; ARM32-LABEL: test_memset_long_const_len_zero_val_align
 ; ARM32: uxtb
 ; ARM32: bl {{.*}} memset
+; MIPS32-LABEL: test_memset_long_const_len_zero_val_align
+; MIPS32: jal {{.*}} memset
 
 define internal void @test_memset_const_val(i32 %iptr_dst, i32 %len) {
 entry:
@@ -384,6 +428,8 @@ entry:
 ; ARM32-LABEL: test_memset_const_val
 ; ARM32: uxtb
 ; ARM32: bl {{.*}} memset
+; MIPS32-LABEL: test_memset_const_val
+; MIPS32: jal {{.*}} memset
 
 define internal void @test_memset_const_val_len_very_small(i32 %iptr_dst) {
 entry:
@@ -399,6 +445,8 @@ entry:
 ; ARM32-LABEL: test_memset_const_val_len_very_small
 ; ARM32: uxtb
 ; ARM32: bl {{.*}} memset
+; MIPS32-LABEL: test_memset_const_val_len_very_small
+; MIPS32: jal {{.*}} memset
 
 define internal void @test_memset_const_val_len_3(i32 %iptr_dst) {
 entry:
@@ -415,6 +463,8 @@ entry:
 ; ARM32-LABEL: test_memset_const_val_len_3
 ; ARM32: uxtb
 ; ARM32: bl {{.*}} memset
+; MIPS32-LABEL: test_memset_const_val_len_3
+; MIPS32: jal {{.*}} memset
 
 define internal void @test_memset_const_val_len_mid(i32 %iptr_dst) {
 entry:
@@ -432,6 +482,8 @@ entry:
 ; ARM32-LABEL: test_memset_const_val_len_mid
 ; ARM32: uxtb
 ; ARM32: bl {{.*}} memset
+; MIPS32-LABEL: test_memset_const_val_len_mid
+; MIPS32: jal {{.*}} memset
 
 ; Same as above, but with a negative value.
 define internal void @test_memset_const_neg_val_len_mid(i32 %iptr_dst) {
@@ -450,6 +502,8 @@ entry:
 ; ARM32-LABEL: test_memset_const_neg_val_len_mid
 ; ARM32: uxtb
 ; ARM32: bl {{.*}} memset
+; MIPS32-LABEL: test_memset_const_neg_val_len_mid
+; MIPS32: jal {{.*}} memset
 
 define internal void @test_memset_zero_const_len_small(i32 %iptr_dst) {
 entry:
@@ -467,6 +521,8 @@ entry:
 ; ARM32-LABEL: test_memset_zero_const_len_small
 ; ARM32: uxtb
 ; ARM32: bl {{.*}} memset
+; MIPS32-LABEL: test_memset_zero_const_len_small
+; MIPS32: jal {{.*}} memset
 
 define internal void @test_memset_zero_const_len_small_overlap(i32 %iptr_dst) {
 entry:
@@ -484,6 +540,8 @@ entry:
 ; ARM32-LABEL: test_memset_zero_const_len_small_overlap
 ; ARM32: uxtb
 ; ARM32: bl {{.*}} memset
+; MIPS32-LABEL: test_memset_zero_const_len_small_overlap
+; MIPS32: jal {{.*}} memset
 
 define internal void @test_memset_zero_const_len_big_overlap(i32 %iptr_dst) {
 entry:
@@ -501,6 +559,8 @@ entry:
 ; ARM32-LABEL: test_memset_zero_const_len_big_overlap
 ; ARM32: uxtb
 ; ARM32: bl {{.*}} memset
+; MIPS32-LABEL: test_memset_zero_const_len_big_overlap
+; MIPS32: jal {{.*}} memset
 
 define internal void @test_memset_zero_const_len_large(i32 %iptr_dst) {
 entry:
@@ -519,3 +579,5 @@ entry:
 ; ARM32-LABEL: test_memset_zero_const_len_large
 ; ARM32: uxtb
 ; ARM32: bl {{.*}} memset
+; MIPS32-LABEL: test_memset_zero_const_len_large
+; MIPS32: jal {{.*}} memset

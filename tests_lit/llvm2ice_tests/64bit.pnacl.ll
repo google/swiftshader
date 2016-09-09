@@ -408,6 +408,9 @@ entry:
 ; ARM32: bne
 ; ARM32: bl {{.*}} __divdi3
 
+; MIPS32-LABEL: div64BitSigned
+; MIPS32: jal {{.*}} __divdi3
+
 define internal i64 @div64BitSignedConst(i64 %a) {
 entry:
   %div = sdiv i64 %a, 12345678901234
@@ -431,6 +434,9 @@ entry:
 ; ARM32: movw {{.*}} ; 0xb3a
 ; ARM32: bl {{.*}} __divdi3
 
+; MIPS32-LABEL: div64BitSignedConst
+; MIPS32: jal {{.*}} __divdi3
+
 define internal i64 @div64BitUnsigned(i64 %a, i64 %b) {
 entry:
   %div = udiv i64 %a, %b
@@ -446,6 +452,9 @@ entry:
 ; ARM32: orrs {{r.*}}, {{r.*}}
 ; ARM32: bne
 ; ARM32: bl {{.*}} __udivdi3
+
+; MIPS32-LABEL: div64BitUnsigned
+; MIPS32: jal {{.*}} __udivdi3
 
 define internal i64 @rem64BitSigned(i64 %a, i64 %b) {
 entry:
@@ -463,6 +472,9 @@ entry:
 ; ARM32: bne
 ; ARM32: bl {{.*}} __moddi3
 
+; MIPS32-LABEL: rem64BitSigned
+; MIPS32: jal {{.*}} __moddi3
+
 define internal i64 @rem64BitUnsigned(i64 %a, i64 %b) {
 entry:
   %rem = urem i64 %a, %b
@@ -478,6 +490,9 @@ entry:
 ; ARM32: orrs {{r.*}}, {{r.*}}
 ; ARM32: bne
 ; ARM32: bl {{.*}} __umoddi3
+
+; MIPS32-LABEL: rem64BitUnsigned
+; MIPS32: jal {{.*}} __umoddi3
 
 define internal i64 @shl64BitSigned(i64 %a, i64 %b) {
 entry:

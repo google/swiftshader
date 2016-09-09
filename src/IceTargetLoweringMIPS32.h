@@ -565,7 +565,7 @@ protected:
     (void)Instr;
     return 0;
   }
-  void genTargetHelperCallFor(Inst *Instr) override { (void)Instr; }
+  void genTargetHelperCallFor(Inst *Instr) override;
   void doAddressOptLoad() override;
   void doAddressOptStore() override;
   void randomlyInsertNop(float Probability,

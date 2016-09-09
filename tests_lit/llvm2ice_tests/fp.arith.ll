@@ -145,6 +145,8 @@ entry:
 ; CHECK: call {{.*}} R_{{.*}} fmodf
 ; ARM32-LABEL: remFloat
 ; ARM32: bl {{.*}} fmodf
+; MIPS32-LABEL: remFloat
+; MIPS32: jal {{.*}} fmodf
 
 define internal double @remDouble(double %a, double %b) {
 entry:
@@ -155,3 +157,5 @@ entry:
 ; CHECK: call {{.*}} R_{{.*}} fmod
 ; ARM32-LABEL: remDouble
 ; ARM32: bl {{.*}} fmod
+; MIPS32-LABEL: remDouble
+; MIPS32: jal {{.*}} fmod

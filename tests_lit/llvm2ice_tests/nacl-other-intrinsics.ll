@@ -34,6 +34,13 @@
 ; RUN:   | %if --need=target_ARM32 --need=allow_dump \
 ; RUN:   --command FileCheck --check-prefix ARM32 %s
 
+; RUN: %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command %p2i --filetype=asm --assemble --disassemble --target mips32\
+; RUN:   -i %s --args -Om1 --skip-unimplemented \
+; RUN:   -allow-externally-defined-symbols \
+; RUN:   | %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command FileCheck --check-prefix MIPS32 %s
+
 declare i8* @llvm.nacl.read.tp()
 declare void @llvm.nacl.longjmp(i8*, i32)
 declare i32 @llvm.nacl.setjmp(i8*)
@@ -67,6 +74,8 @@ entry:
 ; CHECKO2REM: mov e{{.*}},{{(DWORD PTR )?}}gs:0x0
 ; CHECKO2UNSANDBOXEDREM-LABEL: test_nacl_read_tp
 ; CHECKO2UNSANDBOXEDREM: call {{.*}} R_{{.*}} __nacl_read_tp
+; MIPS32-LABEL: test_nacl_read_tp
+; MIPS32: jal {{.*}} __nacl_read_tp
 
 define internal i32 @test_nacl_read_tp_more_addressing() {
 entry:
@@ -94,6 +103,8 @@ entry:
 ; CHECKO2UNSANDBOXEDREM-LABEL: test_nacl_read_tp_more_addressing
 ; CHECKO2UNSANDBOXEDREM: call {{.*}} R_{{.*}} __nacl_read_tp
 ; CHECKO2UNSANDBOXEDREM: call {{.*}} R_{{.*}} __nacl_read_tp
+; MIPS32-LABEL: test_nacl_read_tp_more_addressing
+; MIPS32: jal {{.*}} __nacl_read_tp
 
 define internal i32 @test_nacl_read_tp_dead(i32 %a) {
 entry:
@@ -107,6 +118,8 @@ entry:
 ; CHECKO2REM-NOT: mov e{{.*}}, DWORD PTR gs:0x0
 ; CHECKO2UNSANDBOXEDREM-LABEL: test_nacl_read_tp_dead
 ; CHECKO2UNSANDBOXEDREM-NOT: call {{.*}} R_{{.*}} __nacl_read_tp
+; MIPS32-LABEL: test_nacl_read_tp_dead
+; MIPS32: jal {{.*}} __nacl_read_tp
 
 define internal i32 @test_setjmplongjmp(i32 %iptr_env) {
 entry:
