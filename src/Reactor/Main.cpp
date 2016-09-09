@@ -20,16 +20,6 @@ int main()
 	std::unique_ptr<Ice::ELFStreamer> elf(new Ice::ELFStreamer(*out.get()));
 	Ice::GlobalContext context(cout.get(), cout.get(), cout.get(), elf.get());
 
-	// Ice::CfgLocalAllocatorScope _(nullptr);
-	// context.initParserThread();
-	// context.TlsInit();
-
-	context.emitFileHeader();
-
-	// std::unique_ptr<Ice::VariableDeclarationList> GlobalDeclarationsPool(new
-	// Ice::VariableDeclarationList());
-	// context.setDisposeGlobalVariablesAfterLowering(false);
-
 	std::unique_ptr<Ice::Cfg> function(Ice::Cfg::create(&context, 0));
 	{
 		Ice::CfgLocalAllocatorScope _(function.get());
@@ -43,16 +33,10 @@ int main()
 		Ice::InstRet *ret = Ice::InstRet::create(function.get());
 		node->appendInst(ret);
 
-		//function->genCode();
-		//context.translateFunctions();
 		function->translate();
 
-		//auto targetLowering = Ice::X8632::TargetX8632::create(function.get());
-		//targetLowering->translate();
-
-		//function->getAssembler();
+		context.emitFileHeader();
 		function->emitIAS();
-
 		auto assembler = function->releaseAssembler();
 		context.getObjectWriter()->writeFunctionCode(function->getFunctionName(), false, assembler.get());
 		context.getObjectWriter()->writeNonUserSections();
