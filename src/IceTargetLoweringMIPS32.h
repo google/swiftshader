@@ -187,6 +187,14 @@ public:
     Context.insert<InstMIPS32Ret>(RA, Src0);
   }
 
+  void _abs_d(Variable *Dest, Variable *Src) {
+    Context.insert<InstMIPS32Abs_d>(Dest, Src);
+  }
+
+  void _abs_s(Variable *Dest, Variable *Src) {
+    Context.insert<InstMIPS32Abs_s>(Dest, Src);
+  }
+
   void _add_d(Variable *Dest, Variable *Src0, Variable *Src1) {
     Context.insert<InstMIPS32Add_d>(Dest, Src0, Src1);
   }
@@ -357,6 +365,14 @@ public:
 
   void _sltu(Variable *Dest, Variable *Src0, Variable *Src1) {
     Context.insert<InstMIPS32Sltu>(Dest, Src0, Src1);
+  }
+
+  void _sqrt_d(Variable *Dest, Variable *Src) {
+    Context.insert<InstMIPS32Sqrt_d>(Dest, Src);
+  }
+
+  void _sqrt_s(Variable *Dest, Variable *Src) {
+    Context.insert<InstMIPS32Sqrt_s>(Dest, Src);
   }
 
   void _sra(Variable *Dest, Variable *Src, uint32_t Imm) {

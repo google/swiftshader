@@ -60,6 +60,8 @@ const char *InstMIPS32::getWidthString(Type Ty) {
   return "TBD";
 }
 
+template <> const char *InstMIPS32Abs_d::Opcode = "abs.d";
+template <> const char *InstMIPS32Abs_s::Opcode = "abs.s";
 template <> const char *InstMIPS32Add::Opcode = "add";
 template <> const char *InstMIPS32Add_d::Opcode = "add.d";
 template <> const char *InstMIPS32Add_s::Opcode = "add.s";
@@ -104,6 +106,8 @@ template <> const char *InstMIPS32Slt::Opcode = "slt";
 template <> const char *InstMIPS32Slti::Opcode = "slti";
 template <> const char *InstMIPS32Sltiu::Opcode = "sltiu";
 template <> const char *InstMIPS32Sltu::Opcode = "sltu";
+template <> const char *InstMIPS32Sqrt_d::Opcode = "sqrt.d";
+template <> const char *InstMIPS32Sqrt_s::Opcode = "sqrt.s";
 template <> const char *InstMIPS32Sra::Opcode = "sra";
 template <> const char *InstMIPS32Srav::Opcode = "srav";
 template <> const char *InstMIPS32Srl::Opcode = "srl";

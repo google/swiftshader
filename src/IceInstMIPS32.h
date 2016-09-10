@@ -145,6 +145,8 @@ class InstMIPS32 : public InstTarget {
 public:
   enum InstKindMIPS32 {
     k__Start = Inst::Target,
+    Abs_d,
+    Abs_s,
     Add,
     Add_d,
     Add_s,
@@ -198,6 +200,8 @@ public:
     Srav,
     Srl,
     Srlv,
+    Sqrt_d,
+    Sqrt_s,
     Sub,
     Sub_d,
     Sub_s,
@@ -873,6 +877,8 @@ private:
   const uint32_t Imm;
 };
 
+using InstMIPS32Abs_d = InstMIPS32TwoAddrFPR<InstMIPS32::Abs_d>;
+using InstMIPS32Abs_s = InstMIPS32TwoAddrFPR<InstMIPS32::Abs_s>;
 using InstMIPS32Add = InstMIPS32ThreeAddrGPR<InstMIPS32::Add>;
 using InstMIPS32Add_d = InstMIPS32ThreeAddrFPR<InstMIPS32::Add_d>;
 using InstMIPS32Add_s = InstMIPS32ThreeAddrFPR<InstMIPS32::Add_s>;
@@ -917,6 +923,8 @@ using InstMIPS32Slt = InstMIPS32ThreeAddrGPR<InstMIPS32::Slt>;
 using InstMIPS32Slti = InstMIPS32Imm16<InstMIPS32::Slti>;
 using InstMIPS32Sltiu = InstMIPS32Imm16<InstMIPS32::Sltiu>;
 using InstMIPS32Sltu = InstMIPS32ThreeAddrGPR<InstMIPS32::Sltu>;
+using InstMIPS32Sqrt_d = InstMIPS32TwoAddrFPR<InstMIPS32::Sqrt_d>;
+using InstMIPS32Sqrt_s = InstMIPS32TwoAddrFPR<InstMIPS32::Sqrt_s>;
 using InstMIPS32Sra = InstMIPS32Imm16<InstMIPS32::Sra>;
 using InstMIPS32Srav = InstMIPS32ThreeAddrGPR<InstMIPS32::Srav>;
 using InstMIPS32Srl = InstMIPS32Imm16<InstMIPS32::Srl>;

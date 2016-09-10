@@ -2548,6 +2548,8 @@ void TargetMIPS32::lowerInsertElement(const InstInsertElement *Instr) {
 }
 
 void TargetMIPS32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
+  Variable *Dest = Instr->getDest();
+  Type DestTy = (Dest == nullptr) ? IceType_void : Dest->getType();
   switch (Instr->getIntrinsicInfo().ID) {
   case Intrinsics::AtomicCmpxchg: {
     UnimplementedLoweringError(this, Instr);
@@ -2594,7 +2596,15 @@ void TargetMIPS32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     return;
   }
   case Intrinsics::Fabs: {
-    UnimplementedLoweringError(this, Instr);
+    if (isScalarFloatingType(DestTy)) {
+      Variable *T = makeReg(DestTy);
+      if (DestTy == IceType_f32) {
+        _abs_s(T, legalizeToReg(Instr->getArg(0)));
+      } else {
+        _abs_d(T, legalizeToReg(Instr->getArg(0)));
+      }
+      _mov(Dest, T);
+    }
     return;
   }
   case Intrinsics::Longjmp: {
@@ -2654,7 +2664,15 @@ void TargetMIPS32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     return;
   }
   case Intrinsics::Sqrt: {
-    UnimplementedLoweringError(this, Instr);
+    if (isScalarFloatingType(DestTy)) {
+      Variable *T = makeReg(DestTy);
+      if (DestTy == IceType_f32) {
+        _sqrt_s(T, legalizeToReg(Instr->getArg(0)));
+      } else {
+        _sqrt_d(T, legalizeToReg(Instr->getArg(0)));
+      }
+      _mov(Dest, T);
+    }
     return;
   }
   case Intrinsics::Stacksave: {
