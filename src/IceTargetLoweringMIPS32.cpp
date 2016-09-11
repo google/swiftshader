@@ -2393,22 +2393,31 @@ void TargetMIPS32::lowerCast(const InstCast *Instr) {
     _mov(Dest, T);
     break;
   }
-  case InstCast::Fptrunc:
-    // Use _cvt_d_s
-    UnimplementedLoweringError(this, Instr);
-    break;
-  case InstCast::Fpext: {
-    // Use _cvt_s_d
-    UnimplementedLoweringError(this, Instr);
+  case InstCast::Fptrunc: {
+    assert(Dest->getType() == IceType_f32);
+    assert(Src0->getType() == IceType_f64);
+    auto *DestR = legalizeToReg(Dest);
+    auto *Src0R = legalizeToReg(Src0);
+    _cvt_s_d(DestR, Src0R);
+    _mov(Dest, DestR);
     break;
   }
-  case InstCast::Fptosi:
+  case InstCast::Fpext: {
+    assert(Dest->getType() == IceType_f64);
+    assert(Src0->getType() == IceType_f32);
+    auto *DestR = legalizeToReg(Dest);
+    auto *Src0R = legalizeToReg(Src0);
+    _cvt_d_s(DestR, Src0R);
+    _mov(Dest, DestR);
+    break;
+  }
+  case InstCast::Fptosi: //
     UnimplementedLoweringError(this, Instr);
     break;
   case InstCast::Fptoui:
     UnimplementedLoweringError(this, Instr);
     break;
-  case InstCast::Sitofp:
+  case InstCast::Sitofp: //
     UnimplementedLoweringError(this, Instr);
     break;
   case InstCast::Uitofp: {

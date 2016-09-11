@@ -16,6 +16,11 @@
 ; RUN:   | %if --need=allow_dump --need=target_ARM32 --command FileCheck %s \
 ; RUN:   --check-prefix=ARM32
 
+; RUN: %if --need=allow_dump --need=target_MIPS32 --command %p2i \
+; RUN:   --filetype=asm --target mips32 -i %s --args -Om1 --skip-unimplemented \
+; RUN:   | %if --need=allow_dump --need=target_MIPS32 --command FileCheck %s \
+; RUN:   --check-prefix=MIPS32
+
 define internal float @fptrunc(double %a) {
 entry:
   %conv = fptrunc double %a to float
@@ -26,6 +31,8 @@ entry:
 ; CHECK: fld
 ; ARM32-LABEL: fptrunc
 ; ARM32: vcvt.f32.f64 {{s[0-9]+}}, {{d[0-9]+}}
+; MIPS32-LABEL: fptrunc
+; MIPS32: cvt.s.d
 
 define internal double @fpext(float %a) {
 entry:
@@ -37,6 +44,8 @@ entry:
 ; CHECK: fld
 ; ARM32-LABEL: fpext
 ; ARM32: vcvt.f64.f32 {{d[0-9]+}}, {{s[0-9]+}}
+; MIPS32-LABEL: fpext
+; MIPS32: cvt.d.s
 
 define internal i64 @doubleToSigned64(double %a) {
 entry:
