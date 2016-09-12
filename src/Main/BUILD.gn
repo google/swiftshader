@@ -15,9 +15,7 @@
 # Need a separate config to ensure the warnings are added to the end.
 config("swiftshader_main_private_config") {
   if (is_win) {
-    cflags = [
-      "/wd4201", # nameless struct/union
-    ]
+    cflags = [ "/wd4201" ] # nameless struct/union
 
     if (is_clang) {
       cflags += [
@@ -35,9 +33,7 @@ config("swiftshader_main_private_config") {
 }
 
 source_set("swiftshader_main") {
-  deps = [
-    "../Common:swiftshader_common",
-  ]
+  deps = [ "../Common:swiftshader_common" ]
 
   sources = [
     "Config.cpp",
@@ -45,16 +41,14 @@ source_set("swiftshader_main") {
     "SwiftConfig.cpp",
   ]
 
-  if (host_os == "linux") {
+  if (is_linux) {
     sources += [
       "libX11.cpp",
       "FrameBufferX11.cpp",
     ]
-  } else if (host_os == "mac") {
-    sources += [
-      "FrameBufferOSX.mm",
-    ]
-  } else if (host_os == "win") {
+  } else if (is_mac) {
+    sources += [ "FrameBufferOSX.mm" ]
+  } else if (is_win) {
     sources += [
       "FrameBufferDD.cpp",
       "FrameBufferGDI.cpp",
@@ -62,20 +56,22 @@ source_set("swiftshader_main") {
     ]
   }
 
-  if (host_os == "win") {
-    configs -= [
-      "//build/config/win:unicode"
-    ]
-    libs = [
-      "dxguid.lib" # For FrameBufferDD
-    ]
+  if (is_win) {
+    configs -= [ "//build/config/win:unicode" ]
+    libs = [ "dxguid.lib" ] # For FrameBufferDD
   }
-  configs += [
-    ":swiftshader_main_private_config",
-  ]
+  configs += [ ":swiftshader_main_private_config" ]
 
   include_dirs = [
     "..",
     "../Common",
   ]
+
+  if (is_mac) {
+    include_dirs += [ "../../include" ]
+    libs = [
+      "Quartz.framework",
+      "Cocoa.framework"
+    ]
+  }
 }

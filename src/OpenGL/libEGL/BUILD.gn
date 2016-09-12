@@ -24,9 +24,7 @@ config("swiftshader_libEGL_private_config") {
     ]
 
     if (is_clang) {
-      cflags += [
-        "-Wno-unused-function",
-      ]
+      cflags += [ "-Wno-unused-function" ]
     }
   } else {
     cflags = [
@@ -54,29 +52,21 @@ shared_library("swiftshader_libEGL") {
     "resource.h",
   ]
 
-  if(is_debug)
-  {
-    sources += [
-      "../common/debug.cpp",
-    ]
+  if(is_debug) {
+    sources += [ "../common/debug.cpp" ]
   }
 
-  if (host_os == "mac") {
-    sources += [
-      "OSXUtils.mm",
+  if (is_mac) {
+    sources += [ "OSXUtils.mm" ]
+    libs = [
+      "Quartz.framework",
+      "Cocoa.framework",
     ]
-  } else if (host_os == "win") {
-    configs -= [
-      "//build/config/win:unicode"
-    ]
-
-    ldflags = [
-      "/DEF:" + rebase_path("libGLESv2.def", root_build_dir),
-    ]
-  } else if (host_os == "linux") {
-    sources += [
-      "../../Main/libX11.cpp",
-    ]
+  } else if (is_win) {
+    configs -= [ "//build/config/win:unicode" ]
+    ldflags = [ "/DEF:" + rebase_path("libGLESv2.def", root_build_dir) ]
+  } else if (is_linux) {
+    sources += [ "../../Main/libX11.cpp" ]
   }
 
   configs -= [ "//build/config/compiler:chromium_code" ]

@@ -21,9 +21,7 @@ config("swiftshader_reactor_private_config") {
     ]
 
     if (is_clang) {
-      cflags += [
-        "-Wno-delete-incomplete",
-      ]
+      cflags += [ "-Wno-delete-incomplete" ]
     }
   } else {
     cflags = [
@@ -48,18 +46,12 @@ source_set("swiftshader_reactor") {
     "RoutineManager.cpp",
   ]
 
-  if (host_os == "win") {
-    sources += [
-      "DLL.cpp",
-    ]
-    configs -= [
-      "//build/config/win:unicode"
-    ]
+  if (is_win) {
+    sources += [ "DLL.cpp" ]
+    configs -= [ "//build/config/win:unicode" ]
   }
 
-  configs += [
-    ":swiftshader_reactor_private_config",
-  ]
+  configs += [ ":swiftshader_reactor_private_config" ]
 
   include_dirs = [
     "..",

@@ -80,14 +80,9 @@ shared_library("swiftshader_libGLESv2") {
     "resource.h",
   ]
 
-  if (host_os == "win") {
-    configs -= [
-      "//build/config/win:unicode"
-    ]
-
-    ldflags = [
-      "/DEF:" + rebase_path("libGLESv2.def", root_build_dir),
-    ]
+  if (is_win) {
+    configs -= [ "//build/config/win:unicode" ]
+    ldflags = [ "/DEF:" + rebase_path("libGLESv2.def", root_build_dir) ]
   }
 
   configs -= [ "//build/config/compiler:chromium_code" ]

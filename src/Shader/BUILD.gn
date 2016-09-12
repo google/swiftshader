@@ -27,16 +27,12 @@ config("swiftshader_shader_private_config") {
       ]
     }
   } else {
-    cflags = [
-      "-DLOG_TAG=\"swiftshader_shader\"",
-    ]
+    cflags = [ "-DLOG_TAG=\"swiftshader_shader\"" ]
   }
 }
 
 source_set("swiftshader_shader") {
-  deps = [
-    "../Main:swiftshader_main",
-  ]
+  deps = [ "../Main:swiftshader_main" ]
 
   sources = [
     "Constants.cpp",
@@ -54,9 +50,7 @@ source_set("swiftshader_shader") {
     "VertexShader.cpp",
   ]
 
-  configs += [
-    ":swiftshader_shader_private_config",
-  ]
+  configs += [ ":swiftshader_shader_private_config" ]
 
   include_dirs = [
     ".",
