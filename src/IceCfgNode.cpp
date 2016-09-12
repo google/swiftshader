@@ -74,7 +74,7 @@ template <typename List> void removeDeletedAndRenumber(List *L, Cfg *Func) {
   auto I = L->begin(), E = L->end(), Next = I;
   for (++Next; I != E; I = Next++) {
     if (DoDelete && I->isDeleted()) {
-      L->erase(I);
+      L->remove(I);
     } else {
       I->renumber(Func);
     }

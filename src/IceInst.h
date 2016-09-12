@@ -193,6 +193,12 @@ public:
   virtual ~Inst() = default;
   void replaceDest(Variable *Var) { Dest = Var; }
 
+  void operator delete(void *Ptr, std::size_t Size) {
+    assert(CfgAllocatorTraits::current() != nullptr);
+    CfgAllocatorTraits::current()->Deallocate(Ptr, Size);
+    llvm::report_fatal_error("Inst unexpectedly deleted");
+  }
+
 protected:
   Inst(Cfg *Func, InstKind Kind, SizeT MaxSrcs, Variable *Dest);
   void addSource(Operand *Src) {
