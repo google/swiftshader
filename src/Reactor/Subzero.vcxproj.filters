@@ -54,9 +54,6 @@
     <ClCompile Include="$(SolutionDir)..\..\third_party\pnacl-subzero\src\IceInstrumentation.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\..\third_party\pnacl-subzero\src\IceInstX8632.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="$(SolutionDir)..\..\third_party\pnacl-subzero\src\IceIntrinsics.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -94,9 +91,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\..\third_party\pnacl-subzero\src\IceTargetLoweringX86.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\..\third_party\pnacl-subzero\src\IceTargetLoweringX8632.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\..\third_party\pnacl-subzero\src\IceThreading.cpp">
@@ -206,6 +200,18 @@
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\..\third_party\llvm-subzero\lib\Support\Twine.cpp">
       <Filter>Source Files\LLVM</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\third_party\pnacl-subzero\src\IceInstX8664.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\third_party\pnacl-subzero\src\IceTargetLoweringX8664.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\third_party\pnacl-subzero\src\IceInstX8632.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\third_party\pnacl-subzero\src\IceTargetLoweringX8632.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -367,13 +373,7 @@
     <None Include="$(SolutionDir)..\..\third_party\pnacl-subzero\src\IceInst.def">
       <Filter>Source Files</Filter>
     </None>
-    <None Include="$(SolutionDir)..\..\third_party\pnacl-subzero\src\IceInstX8632.def">
-      <Filter>Source Files</Filter>
-    </None>
     <None Include="$(SolutionDir)..\..\third_party\pnacl-subzero\src\IceTargetLowering.def">
-      <Filter>Source Files</Filter>
-    </None>
-    <None Include="$(SolutionDir)..\..\third_party\pnacl-subzero\src\IceTargetLoweringX8632.def">
       <Filter>Source Files</Filter>
     </None>
     <None Include="$(SolutionDir)..\..\third_party\pnacl-subzero\src\IceTimerTree.def">
@@ -384,6 +384,18 @@
     </None>
     <None Include="$(SolutionDir)..\..\third_party\pnacl-subzero\src\SZTargets.def">
       <Filter>Source Files</Filter>
+    </None>
+    <None Include="..\..\third_party\pnacl-subzero\src\IceInstX8664.def">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="..\..\third_party\pnacl-subzero\src\IceTargetLoweringX8664.def">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="..\..\third_party\pnacl-subzero\src\IceInstX8632.def">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="..\..\third_party\pnacl-subzero\src\IceTargetLoweringX8632.def">
+      <Filter>Header Files</Filter>
     </None>
   </ItemGroup>
 </Project>

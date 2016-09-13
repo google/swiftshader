@@ -5,9 +5,17 @@
       <Configuration>Debug</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
     <ProjectConfiguration Include="Release|Win32">
       <Configuration>Release</Configuration>
       <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
@@ -23,7 +31,20 @@
     <PlatformToolset>v140</PlatformToolset>
     <CharacterSet>NotSet</CharacterSet>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>NotSet</CharacterSet>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>NotSet</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v140</PlatformToolset>
@@ -36,14 +57,26 @@
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -62,6 +95,22 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>SZTARGET=X8664;ALLOW_DUMP=0;ALLOW_TIMERS=0;ALLOW_LLVM_CL=0;ALLOW_LLVM_IR=0;ALLOW_LLVM_IR_AS_INPUT=0;ALLOW_MINIMAL_BUILD=0;ALLOW_WASM=0;ICE_THREAD_LOCAL_HACK=0;WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalUsingDirectories>%(AdditionalUsingDirectories)</AdditionalUsingDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\..\third_party\pnacl-subzero;$(SolutionDir)..\..\third_party\llvm-subzero\include;$(SolutionDir)..\..\third_party\pnacl-subzero\pnacl-llvm\include</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -71,6 +120,25 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>SZTARGET=X8632;ALLOW_DUMP=0;ALLOW_TIMERS=0;ALLOW_LLVM_CL=0;ALLOW_LLVM_IR=0;ALLOW_LLVM_IR_AS_INPUT=0;ALLOW_MINIMAL_BUILD=0;ALLOW_WASM=0;ICE_THREAD_LOCAL_HACK=0;WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalUsingDirectories>%(AdditionalUsingDirectories)</AdditionalUsingDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\..\third_party\pnacl-subzero;$(SolutionDir)..\..\third_party\llvm-subzero\include;$(SolutionDir)..\..\third_party\pnacl-subzero\pnacl-llvm\include</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>SZTARGET=X8664;ALLOW_DUMP=0;ALLOW_TIMERS=0;ALLOW_LLVM_CL=0;ALLOW_LLVM_IR=0;ALLOW_LLVM_IR_AS_INPUT=0;ALLOW_MINIMAL_BUILD=0;ALLOW_WASM=0;ICE_THREAD_LOCAL_HACK=0;WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalUsingDirectories>%(AdditionalUsingDirectories)</AdditionalUsingDirectories>
       <AdditionalIncludeDirectories>$(SolutionDir)..\..\third_party\pnacl-subzero;$(SolutionDir)..\..\third_party\llvm-subzero\include;$(SolutionDir)..\..\third_party\pnacl-subzero\pnacl-llvm\include</AdditionalIncludeDirectories>
     </ClCompile>
@@ -114,6 +182,18 @@
     <ClCompile Include="$(SolutionDir)..\..\third_party\llvm-subzero\lib\Support\TimeValue.cpp" />
     <ClCompile Include="$(SolutionDir)..\..\third_party\llvm-subzero\lib\Support\Triple.cpp" />
     <ClCompile Include="$(SolutionDir)..\..\third_party\llvm-subzero\lib\Support\Twine.cpp" />
+    <ClCompile Include="..\..\third_party\pnacl-subzero\src\IceInstX8632.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\third_party\pnacl-subzero\src\IceInstX8664.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\third_party\pnacl-subzero\src\IceTargetLoweringX8632.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\third_party\pnacl-subzero\src\IceTargetLoweringX8664.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="$(SolutionDir)..\..\third_party\pnacl-subzero\src\IceAssembler.cpp" />
     <ClCompile Include="$(SolutionDir)..\..\third_party\pnacl-subzero\src\IceCfg.cpp" />
@@ -126,7 +206,6 @@
     <ClCompile Include="$(SolutionDir)..\..\third_party\pnacl-subzero\src\IceGlobalInits.cpp" />
     <ClCompile Include="$(SolutionDir)..\..\third_party\pnacl-subzero\src\IceInst.cpp" />
     <ClCompile Include="$(SolutionDir)..\..\third_party\pnacl-subzero\src\IceInstrumentation.cpp" />
-    <ClCompile Include="$(SolutionDir)..\..\third_party\pnacl-subzero\src\IceInstX8632.cpp" />
     <ClCompile Include="$(SolutionDir)..\..\third_party\pnacl-subzero\src\IceIntrinsics.cpp" />
     <ClCompile Include="$(SolutionDir)..\..\third_party\pnacl-subzero\src\IceLiveness.cpp" />
     <ClCompile Include="$(SolutionDir)..\..\third_party\pnacl-subzero\src\IceLoopAnalyzer.cpp" />
@@ -140,7 +219,6 @@
     <ClCompile Include="$(SolutionDir)..\..\third_party\pnacl-subzero\src\IceSwitchLowering.cpp" />
     <ClCompile Include="$(SolutionDir)..\..\third_party\pnacl-subzero\src\IceTargetLowering.cpp" />
     <ClCompile Include="$(SolutionDir)..\..\third_party\pnacl-subzero\src\IceTargetLoweringX86.cpp" />
-    <ClCompile Include="$(SolutionDir)..\..\third_party\pnacl-subzero\src\IceTargetLoweringX8632.cpp" />
     <ClCompile Include="$(SolutionDir)..\..\third_party\pnacl-subzero\src\IceThreading.cpp" />
     <ClCompile Include="$(SolutionDir)..\..\third_party\pnacl-subzero\src\IceTimerTree.cpp" />
     <ClCompile Include="$(SolutionDir)..\..\third_party\pnacl-subzero\src\IceTypes.cpp" />
@@ -201,12 +279,14 @@
   <ItemGroup>
     <None Include="$(SolutionDir)..\..\third_party\pnacl-subzero\src\IceClFlags.def" />
     <None Include="$(SolutionDir)..\..\third_party\pnacl-subzero\src\IceInst.def" />
-    <None Include="$(SolutionDir)..\..\third_party\pnacl-subzero\src\IceInstX8632.def" />
     <None Include="$(SolutionDir)..\..\third_party\pnacl-subzero\src\IceTargetLowering.def" />
-    <None Include="$(SolutionDir)..\..\third_party\pnacl-subzero\src\IceTargetLoweringX8632.def" />
     <None Include="$(SolutionDir)..\..\third_party\pnacl-subzero\src\IceTimerTree.def" />
     <None Include="$(SolutionDir)..\..\third_party\pnacl-subzero\src\IceTypes.def" />
     <None Include="$(SolutionDir)..\..\third_party\pnacl-subzero\src\SZTargets.def" />
+    <None Include="..\..\third_party\pnacl-subzero\src\IceInstX8632.def" />
+    <None Include="..\..\third_party\pnacl-subzero\src\IceInstX8664.def" />
+    <None Include="..\..\third_party\pnacl-subzero\src\IceTargetLoweringX8632.def" />
+    <None Include="..\..\third_party\pnacl-subzero\src\IceTargetLoweringX8664.def" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
