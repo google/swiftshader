@@ -2889,7 +2889,234 @@ void TargetMIPS32::lowerLoad(const InstLoad *Instr) {
   lowerAssign(Assign);
 }
 
-void TargetMIPS32::doAddressOptLoad() { UnimplementedError(getFlags()); }
+namespace {
+void dumpAddressOpt(const Cfg *Func, const Variable *Base, int32_t Offset,
+                    const Inst *Reason) {
+  if (!BuildDefs::dump())
+    return;
+  if (!Func->isVerbose(IceV_AddrOpt))
+    return;
+  OstreamLocker _(Func->getContext());
+  Ostream &Str = Func->getContext()->getStrDump();
+  Str << "Instruction: ";
+  Reason->dumpDecorated(Func);
+  Str << "  results in Base=";
+  if (Base)
+    Base->dump(Func);
+  else
+    Str << "<null>";
+  Str << ", Offset=" << Offset << "\n";
+}
+
+bool matchAssign(const VariablesMetadata *VMetadata, Variable **Var,
+                 int32_t *Offset, const Inst **Reason) {
+  // Var originates from Var=SrcVar ==> set Var:=SrcVar
+  if (*Var == nullptr)
+    return false;
+  const Inst *VarAssign = VMetadata->getSingleDefinition(*Var);
+  if (!VarAssign)
+    return false;
+  assert(!VMetadata->isMultiDef(*Var));
+  if (!llvm::isa<InstAssign>(VarAssign))
+    return false;
+
+  Operand *SrcOp = VarAssign->getSrc(0);
+  bool Optimized = false;
+  if (auto *SrcVar = llvm::dyn_cast<Variable>(SrcOp)) {
+    if (!VMetadata->isMultiDef(SrcVar) ||
+        // TODO: ensure SrcVar stays single-BB
+        false) {
+      Optimized = true;
+      *Var = SrcVar;
+    } else if (auto *Const = llvm::dyn_cast<ConstantInteger32>(SrcOp)) {
+      int32_t MoreOffset = Const->getValue();
+      int32_t NewOffset = MoreOffset + *Offset;
+      if (Utils::WouldOverflowAdd(*Offset, MoreOffset))
+        return false;
+      *Var = nullptr;
+      *Offset += NewOffset;
+      Optimized = true;
+    }
+  }
+
+  if (Optimized) {
+    *Reason = VarAssign;
+  }
+
+  return Optimized;
+}
+
+bool isAddOrSub(const Inst *Instr, InstArithmetic::OpKind *Kind) {
+  if (const auto *Arith = llvm::dyn_cast<InstArithmetic>(Instr)) {
+    switch (Arith->getOp()) {
+    default:
+      return false;
+    case InstArithmetic::Add:
+    case InstArithmetic::Sub:
+      *Kind = Arith->getOp();
+      return true;
+    }
+  }
+  return false;
+}
+
+bool matchOffsetBase(const VariablesMetadata *VMetadata, Variable **Base,
+                     int32_t *Offset, const Inst **Reason) {
+  // Base is Base=Var+Const || Base is Base=Const+Var ==>
+  //   set Base=Var, Offset+=Const
+  // Base is Base=Var-Const ==>
+  //   set Base=Var, Offset-=Const
+  if (*Base == nullptr)
+    return false;
+  const Inst *BaseInst = VMetadata->getSingleDefinition(*Base);
+  if (BaseInst == nullptr) {
+    return false;
+  }
+  assert(!VMetadata->isMultiDef(*Base));
+
+  auto *ArithInst = llvm::dyn_cast<const InstArithmetic>(BaseInst);
+  if (ArithInst == nullptr)
+    return false;
+  InstArithmetic::OpKind Kind;
+  if (!isAddOrSub(ArithInst, &Kind))
+    return false;
+  bool IsAdd = Kind == InstArithmetic::Add;
+  Operand *Src0 = ArithInst->getSrc(0);
+  Operand *Src1 = ArithInst->getSrc(1);
+  auto *Var0 = llvm::dyn_cast<Variable>(Src0);
+  auto *Var1 = llvm::dyn_cast<Variable>(Src1);
+  auto *Const0 = llvm::dyn_cast<ConstantInteger32>(Src0);
+  auto *Const1 = llvm::dyn_cast<ConstantInteger32>(Src1);
+  Variable *NewBase = nullptr;
+  int32_t NewOffset = *Offset;
+
+  if (Var0 == nullptr && Const0 == nullptr) {
+    assert(llvm::isa<ConstantRelocatable>(Src0));
+    return false;
+  }
+
+  if (Var1 == nullptr && Const1 == nullptr) {
+    assert(llvm::isa<ConstantRelocatable>(Src1));
+    return false;
+  }
+
+  if (Var0 && Var1)
+    // TODO(jpp): merge base/index splitting into here.
+    return false;
+  if (!IsAdd && Var1)
+    return false;
+  if (Var0)
+    NewBase = Var0;
+  else if (Var1)
+    NewBase = Var1;
+  // Compute the updated constant offset.
+  if (Const0) {
+    int32_t MoreOffset = IsAdd ? Const0->getValue() : -Const0->getValue();
+    if (Utils::WouldOverflowAdd(NewOffset, MoreOffset))
+      return false;
+    NewOffset += MoreOffset;
+  }
+  if (Const1) {
+    int32_t MoreOffset = IsAdd ? Const1->getValue() : -Const1->getValue();
+    if (Utils::WouldOverflowAdd(NewOffset, MoreOffset))
+      return false;
+    NewOffset += MoreOffset;
+  }
+
+  // Update the computed address parameters once we are sure optimization
+  // is valid.
+  *Base = NewBase;
+  *Offset = NewOffset;
+  *Reason = BaseInst;
+  return true;
+}
+} // end of anonymous namespace
+
+OperandMIPS32Mem *TargetMIPS32::formAddressingMode(Type Ty, Cfg *Func,
+                                                   const Inst *LdSt,
+                                                   Operand *Base) {
+  assert(Base != nullptr);
+  int32_t OffsetImm = 0;
+
+  Func->resetCurrentNode();
+  if (Func->isVerbose(IceV_AddrOpt)) {
+    OstreamLocker _(Func->getContext());
+    Ostream &Str = Func->getContext()->getStrDump();
+    Str << "\nAddress mode formation:\t";
+    LdSt->dumpDecorated(Func);
+  }
+
+  if (isVectorType(Ty)) {
+    UnimplementedError(getFlags());
+    return nullptr;
+  }
+
+  auto *BaseVar = llvm::dyn_cast<Variable>(Base);
+  if (BaseVar == nullptr)
+    return nullptr;
+
+  const VariablesMetadata *VMetadata = Func->getVMetadata();
+  const Inst *Reason = nullptr;
+
+  do {
+    if (Reason != nullptr) {
+      dumpAddressOpt(Func, BaseVar, OffsetImm, Reason);
+      Reason = nullptr;
+    }
+
+    if (matchAssign(VMetadata, &BaseVar, &OffsetImm, &Reason)) {
+      continue;
+    }
+
+    if (matchOffsetBase(VMetadata, &BaseVar, &OffsetImm, &Reason)) {
+      continue;
+    }
+  } while (Reason);
+
+  if (BaseVar == nullptr) {
+    // We need base register rather than just OffsetImm. Move the OffsetImm to
+    // BaseVar and form 0(BaseVar) addressing.
+    const Type PointerType = getPointerType();
+    BaseVar = makeReg(PointerType);
+    Context.insert<InstAssign>(BaseVar, Ctx->getConstantInt32(OffsetImm));
+    OffsetImm = 0;
+  } else if (OffsetImm != 0) {
+    // If the OffsetImm is more than signed 16-bit value then add it in the
+    // BaseVar and form 0(BaseVar) addressing.
+    const int32_t PositiveOffset = OffsetImm > 0 ? OffsetImm : -OffsetImm;
+    const InstArithmetic::OpKind Op =
+        OffsetImm > 0 ? InstArithmetic::Add : InstArithmetic::Sub;
+    constexpr bool ZeroExt = false;
+    if (!OperandMIPS32Mem::canHoldOffset(Ty, ZeroExt, OffsetImm)) {
+      const Type PointerType = getPointerType();
+      Variable *T = makeReg(PointerType);
+      Context.insert<InstArithmetic>(Op, T, BaseVar,
+                                     Ctx->getConstantInt32(PositiveOffset));
+      BaseVar = T;
+      OffsetImm = 0;
+    }
+  }
+
+  assert(BaseVar != nullptr);
+  assert(OffsetImm < 0 ? (-OffsetImm & 0x0000ffff) == -OffsetImm
+                       : (OffsetImm & 0x0000ffff) == OffsetImm);
+
+  return OperandMIPS32Mem::create(
+      Func, Ty, BaseVar,
+      llvm::cast<ConstantInteger32>(Ctx->getConstantInt32(OffsetImm)));
+}
+
+void TargetMIPS32::doAddressOptLoad() {
+  Inst *Instr = iteratorToInst(Context.getCur());
+  assert(llvm::isa<InstLoad>(Instr));
+  Variable *Dest = Instr->getDest();
+  Operand *Addr = Instr->getSrc(0);
+  if (OperandMIPS32Mem *Mem =
+          formAddressingMode(Dest->getType(), Func, Instr, Addr)) {
+    Instr->setDeleted();
+    Context.insert<InstLoad>(Dest, Mem);
+  }
+}
 
 void TargetMIPS32::randomlyInsertNop(float Probability,
                                      RandomNumberGenerator &RNG) {
@@ -2959,7 +3186,17 @@ void TargetMIPS32::lowerStore(const InstStore *Instr) {
   }
 }
 
-void TargetMIPS32::doAddressOptStore() { UnimplementedError(getFlags()); }
+void TargetMIPS32::doAddressOptStore() {
+  Inst *Instr = iteratorToInst(Context.getCur());
+  assert(llvm::isa<InstStore>(Instr));
+  Operand *Src = Instr->getSrc(0);
+  Operand *Addr = Instr->getSrc(1);
+  if (OperandMIPS32Mem *Mem =
+          formAddressingMode(Src->getType(), Func, Instr, Addr)) {
+    Instr->setDeleted();
+    Context.insert<InstStore>(Src, Mem);
+  }
+}
 
 void TargetMIPS32::lowerSwitch(const InstSwitch *Instr) {
   Operand *Src = Instr->getComparison();

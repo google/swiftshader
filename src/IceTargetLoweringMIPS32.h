@@ -714,6 +714,9 @@ protected:
 private:
   ENABLE_MAKE_UNIQUE;
 
+  OperandMIPS32Mem *formAddressingMode(Type Ty, Cfg *Func, const Inst *LdSt,
+                                       Operand *Base);
+
   class ComputationTracker {
   public:
     ComputationTracker() = default;
