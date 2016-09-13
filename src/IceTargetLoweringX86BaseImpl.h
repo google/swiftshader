@@ -3062,7 +3062,7 @@ void TargetX86Base<TraitsType>::lowerCast(const InstCast *Instr) {
       if (Src0RM->getType() == T_1->getType())
         _mov(T_1, Src0RM);
       else
-        _movzx(T_1, Src0RM);
+        _movzx(T_1, Src0RM)->setMustKeep();
       _cvt(T_2, T_1, Traits::Insts::Cvt::Si2ss);
       _mov(Dest, T_2);
     }
