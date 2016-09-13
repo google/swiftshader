@@ -208,7 +208,7 @@ void CLCompileServer::run() {
           << ":\n" << EC.message() << "\n";
       return transferErrorCode(getReturnValue(Ice::EC_Args));
     }
-    ELFStr.reset(new ELFStreamer(*FdOs.get()));
+    ELFStr.reset(new ELFFileStreamer(*FdOs.get()));
     Os.reset(FdOs.release());
     // NaCl sets st_blksize to 0, and LLVM uses that to pick the default
     // preferred buffer size. Set to something non-zero.

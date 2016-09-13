@@ -57,6 +57,7 @@ template <template <typename> class> class BitVectorTmpl;
 class Cfg;
 class CfgNode;
 class Constant;
+class ELFFileStreamer;
 class ELFObjectWriter;
 class ELFStreamer;
 class FunctionDeclaration;

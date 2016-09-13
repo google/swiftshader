@@ -303,7 +303,7 @@ void BrowserCompileServer::startCompileThread(int ObjFD) {
   EmitStream->SetBufferSize(1 << 14);
   std::unique_ptr<StringStream> ErrStrm(new StringStream());
   ErrorStream = std::move(ErrStrm);
-  ELFStream.reset(new ELFStreamer(*EmitStream.get()));
+  ELFStream.reset(new ELFFileStreamer(*EmitStream.get()));
   Ctx.reset(new GlobalContext(LogStream.get(), EmitStream.get(),
                               &ErrorStream->getStream(), ELFStream.get()));
   CompileThread = std::thread([this]() {

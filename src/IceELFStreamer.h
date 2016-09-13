@@ -23,14 +23,22 @@ namespace Ice {
 /// Low level writer that can that can handle ELFCLASS32/64. Little endian only
 /// for now.
 class ELFStreamer {
-  ELFStreamer() = delete;
   ELFStreamer(const ELFStreamer &) = delete;
   ELFStreamer &operator=(const ELFStreamer &) = delete;
 
 public:
-  explicit ELFStreamer(Fdstream &Out) : Out(Out) {}
+  ELFStreamer() = default;
+  virtual ~ELFStreamer() = default;
 
-  void write8(uint8_t Value) { Out << char(Value); }
+  virtual void write8(uint8_t Value) = 0;
+  virtual uint64_t tell() const = 0;
+  virtual void seek(uint64_t Off) = 0;
+
+  virtual void writeBytes(llvm::StringRef Bytes) {
+    for (char c : Bytes) {
+      write8(c);
+    }
+  }
 
   void writeLE16(uint16_t Value) {
     write8(uint8_t(Value));
@@ -65,20 +73,32 @@ public:
       writeLE32(Value);
   }
 
-  void writeBytes(llvm::StringRef Bytes) { Out << Bytes; }
-
   void writeZeroPadding(SizeT N) {
     static const char Zeros[16] = {0};
 
     for (SizeT i = 0, e = N / 16; i != e; ++i)
-      Out << llvm::StringRef(Zeros, 16);
+      writeBytes(llvm::StringRef(Zeros, 16));
 
-    Out << llvm::StringRef(Zeros, N % 16);
+    writeBytes(llvm::StringRef(Zeros, N % 16));
   }
+};
 
-  uint64_t tell() const { return Out.tell(); }
+/// Implementation of ELFStreamer writing to a file.
+class ELFFileStreamer : public ELFStreamer {
+  ELFFileStreamer() = delete;
+  ELFFileStreamer(const ELFFileStreamer &) = delete;
+  ELFFileStreamer &operator=(const ELFFileStreamer &) = delete;
 
-  void seek(uint64_t Off) { Out.seek(Off); }
+public:
+  explicit ELFFileStreamer(Fdstream &Out) : Out(Out) {}
+
+  void write8(uint8_t Value) override { Out << char(Value); }
+
+  void writeBytes(llvm::StringRef Bytes) override { Out << Bytes; }
+
+  uint64_t tell() const override { return Out.tell(); }
+
+  void seek(uint64_t Off) override { Out.seek(Off); }
 
 private:
   Fdstream &Out;
