@@ -2436,7 +2436,184 @@ void TargetMIPS32::lowerExtractElement(const InstExtractElement *Instr) {
 }
 
 void TargetMIPS32::lowerFcmp(const InstFcmp *Instr) {
-  UnimplementedLoweringError(this, Instr);
+  Variable *Dest = Instr->getDest();
+  if (isVectorType(Dest->getType())) {
+    UnimplementedLoweringError(this, Instr);
+    return;
+  }
+
+  auto *Src0 = Instr->getSrc(0);
+  auto *Src1 = Instr->getSrc(1);
+  auto *Zero = getZero();
+
+  InstFcmp::FCond Cond = Instr->getCondition();
+  auto *DestR = legalizeToReg(Dest);
+  auto *Src0R = legalizeToReg(Src0);
+  auto *Src1R = legalizeToReg(Src1);
+  const Type Src0Ty = Src0->getType();
+
+  Operand *FCC0 = OperandMIPS32FCC::create(getFunc(), OperandMIPS32FCC::FCC0);
+
+  switch (Cond) {
+  default: {
+    UnimplementedLoweringError(this, Instr);
+    return;
+  }
+  case InstFcmp::False: {
+    Context.insert<InstFakeUse>(Src0R);
+    Context.insert<InstFakeUse>(Src1R);
+    _addiu(DestR, Zero, 0);
+    _mov(Dest, DestR);
+    break;
+  }
+  case InstFcmp::Oeq: {
+    if (Src0Ty == IceType_f32) {
+      _c_eq_s(Src0R, Src1R);
+    } else {
+      _c_eq_d(Src0R, Src1R);
+    }
+    _movf(DestR, Zero, FCC0);
+    _mov(Dest, DestR);
+    break;
+  }
+  case InstFcmp::Ogt: {
+    if (Src0Ty == IceType_f32) {
+      _c_ule_s(Src0R, Src1R);
+    } else {
+      _c_ule_d(Src0R, Src1R);
+    }
+    _movt(DestR, Zero, FCC0);
+    _mov(Dest, DestR);
+    break;
+  }
+  case InstFcmp::Oge: {
+    if (Src0Ty == IceType_f32) {
+      _c_ult_s(Src0R, Src1R);
+    } else {
+      _c_ult_d(Src0R, Src1R);
+    }
+    _movt(DestR, Zero, FCC0);
+    _mov(Dest, DestR);
+    break;
+  }
+  case InstFcmp::Olt: {
+    if (Src0Ty == IceType_f32) {
+      _c_olt_s(Src0R, Src1R);
+    } else {
+      _c_olt_d(Src0R, Src1R);
+    }
+    _movf(DestR, Zero, FCC0);
+    _mov(Dest, DestR);
+    break;
+  }
+  case InstFcmp::Ole: {
+    if (Src0Ty == IceType_f32) {
+      _c_ole_s(Src0R, Src1R);
+    } else {
+      _c_ole_d(Src0R, Src1R);
+    }
+    _movf(DestR, Zero, FCC0);
+    _mov(Dest, DestR);
+    break;
+  }
+  case InstFcmp::One: {
+    if (Src0Ty == IceType_f32) {
+      _c_ueq_s(Src0R, Src1R);
+    } else {
+      _c_ueq_d(Src0R, Src1R);
+    }
+    _movt(DestR, Zero, FCC0);
+    _mov(Dest, DestR);
+    break;
+  }
+  case InstFcmp::Ord: {
+    if (Src0Ty == IceType_f32) {
+      _c_un_s(Src0R, Src1R);
+    } else {
+      _c_un_d(Src0R, Src1R);
+    }
+    _movt(DestR, Zero, FCC0);
+    _mov(Dest, DestR);
+    break;
+  }
+  case InstFcmp::Ueq: {
+    if (Src0Ty == IceType_f32) {
+      _c_ueq_s(Src0R, Src1R);
+    } else {
+      _c_ueq_d(Src0R, Src1R);
+    }
+    _movf(DestR, Zero, FCC0);
+    _mov(Dest, DestR);
+    break;
+  }
+  case InstFcmp::Ugt: {
+    if (Src0Ty == IceType_f32) {
+      _c_ole_s(Src0R, Src1R);
+    } else {
+      _c_ole_d(Src0R, Src1R);
+    }
+    _movt(DestR, Zero, FCC0);
+    _mov(Dest, DestR);
+    break;
+  }
+  case InstFcmp::Uge: {
+    if (Src0Ty == IceType_f32) {
+      _c_olt_s(Src0R, Src1R);
+    } else {
+      _c_olt_d(Src0R, Src1R);
+    }
+    _movt(DestR, Zero, FCC0);
+    _mov(Dest, DestR);
+    break;
+  }
+  case InstFcmp::Ult: {
+    if (Src0Ty == IceType_f32) {
+      _c_ult_s(Src0R, Src1R);
+    } else {
+      _c_ult_d(Src0R, Src1R);
+    }
+    _movf(DestR, Zero, FCC0);
+    _mov(Dest, DestR);
+    break;
+  }
+  case InstFcmp::Ule: {
+    if (Src0Ty == IceType_f32) {
+      _c_ule_s(Src0R, Src1R);
+    } else {
+      _c_ule_d(Src0R, Src1R);
+    }
+    _movf(DestR, Zero, FCC0);
+    _mov(Dest, DestR);
+    break;
+  }
+  case InstFcmp::Une: {
+    if (Src0Ty == IceType_f32) {
+      _c_eq_s(Src0R, Src1R);
+    } else {
+      _c_eq_d(Src0R, Src1R);
+    }
+    _movt(DestR, Zero, FCC0);
+    _mov(Dest, DestR);
+    break;
+  }
+  case InstFcmp::Uno: {
+    if (Src0Ty == IceType_f32) {
+      _c_un_s(Src0R, Src1R);
+    } else {
+      _c_un_d(Src0R, Src1R);
+    }
+    _movf(DestR, Zero, FCC0);
+    _mov(Dest, DestR);
+    break;
+  }
+  case InstFcmp::True: {
+    Context.insert<InstFakeUse>(Src0R);
+    Context.insert<InstFakeUse>(Src1R);
+    _addiu(DestR, Zero, 1);
+    _mov(Dest, DestR);
+    break;
+  }
+  }
 }
 
 void TargetMIPS32::lower64Icmp(const InstIcmp *Instr) {

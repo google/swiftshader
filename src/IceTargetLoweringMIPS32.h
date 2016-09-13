@@ -207,6 +207,62 @@ public:
     Context.insert<InstMIPS32Addiu>(Dest, Src, Imm);
   }
 
+  void _c_eq_d(Variable *Src0, Variable *Src1) {
+    Context.insert<InstMIPS32C_eq_d>(Src0, Src1);
+  }
+
+  void _c_eq_s(Variable *Src0, Variable *Src1) {
+    Context.insert<InstMIPS32C_eq_s>(Src0, Src1);
+  }
+
+  void _c_ole_d(Variable *Src0, Variable *Src1) {
+    Context.insert<InstMIPS32C_ole_d>(Src0, Src1);
+  }
+
+  void _c_ole_s(Variable *Src0, Variable *Src1) {
+    Context.insert<InstMIPS32C_ole_s>(Src0, Src1);
+  }
+
+  void _c_olt_d(Variable *Src0, Variable *Src1) {
+    Context.insert<InstMIPS32C_olt_d>(Src0, Src1);
+  }
+
+  void _c_olt_s(Variable *Src0, Variable *Src1) {
+    Context.insert<InstMIPS32C_olt_s>(Src0, Src1);
+  }
+
+  void _c_ueq_d(Variable *Src0, Variable *Src1) {
+    Context.insert<InstMIPS32C_ueq_d>(Src0, Src1);
+  }
+
+  void _c_ueq_s(Variable *Src0, Variable *Src1) {
+    Context.insert<InstMIPS32C_ueq_s>(Src0, Src1);
+  }
+
+  void _c_ule_d(Variable *Src0, Variable *Src1) {
+    Context.insert<InstMIPS32C_ule_d>(Src0, Src1);
+  }
+
+  void _c_ule_s(Variable *Src0, Variable *Src1) {
+    Context.insert<InstMIPS32C_ule_s>(Src0, Src1);
+  }
+
+  void _c_ult_d(Variable *Src0, Variable *Src1) {
+    Context.insert<InstMIPS32C_ult_d>(Src0, Src1);
+  }
+
+  void _c_ult_s(Variable *Src0, Variable *Src1) {
+    Context.insert<InstMIPS32C_ult_s>(Src0, Src1);
+  }
+
+  void _c_un_d(Variable *Src0, Variable *Src1) {
+    Context.insert<InstMIPS32C_un_d>(Src0, Src1);
+  }
+
+  void _c_un_s(Variable *Src0, Variable *Src1) {
+    Context.insert<InstMIPS32C_un_s>(Src0, Src1);
+  }
+
   void _cvt_d_l(Variable *Dest, Variable *Src) {
     Context.insert<InstMIPS32Cvt_d_l>(Dest, Src);
   }
@@ -285,6 +341,14 @@ public:
 
   void _mov_s(Variable *Dest, Variable *Src) {
     Context.insert<InstMIPS32Mov_s>(Dest, Src);
+  }
+
+  void _movf(Variable *Src0, Variable *Src1, Operand *FCC) {
+    Context.insert<InstMIPS32Movf>(Src0, Src1, FCC);
+  }
+
+  void _movt(Variable *Src0, Variable *Src1, Operand *FCC) {
+    Context.insert<InstMIPS32Movt>(Src0, Src1, FCC);
   }
 
   void _mfc1(Variable *Dest, Variable *Src) {
@@ -481,6 +545,14 @@ public:
 
   Variable *I32Reg(RegNumT RegNum = RegNumT()) {
     return makeReg(IceType_i32, RegNum);
+  }
+
+  Variable *F32Reg(RegNumT RegNum = RegNumT()) {
+    return makeReg(IceType_f32, RegNum);
+  }
+
+  Variable *F64Reg(RegNumT RegNum = RegNumT()) {
+    return makeReg(IceType_f64, RegNum);
   }
 
   static Type stackSlotType();

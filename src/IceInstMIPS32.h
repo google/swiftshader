@@ -55,6 +55,7 @@ class OperandMIPS32 : public Operand {
 public:
   enum OperandKindMIPS32 {
     k__Start = Operand::kTarget,
+    kFCC,
     kMem,
   };
 
@@ -67,6 +68,40 @@ public:
 protected:
   OperandMIPS32(OperandKindMIPS32 Kind, Type Ty)
       : Operand(static_cast<OperandKind>(Kind), Ty) {}
+};
+
+class OperandMIPS32FCC : public OperandMIPS32 {
+  OperandMIPS32FCC() = delete;
+  OperandMIPS32FCC(const OperandMIPS32FCC &) = delete;
+  OperandMIPS32FCC &operator=(const OperandMIPS32FCC &) = delete;
+
+public:
+  enum FCC { FCC0 = 0, FCC1, FCC2, FCC3, FCC4, FCC5, FCC6, FCC7 };
+  static OperandMIPS32FCC *create(Cfg *Func, OperandMIPS32FCC::FCC FCC) {
+    return new (Func->allocate<OperandMIPS32FCC>()) OperandMIPS32FCC(FCC);
+  }
+
+  void emit(const Cfg *Func) const override {
+    if (!BuildDefs::dump())
+      return;
+    Ostream &Str = Func->getContext()->getStrEmit();
+    Str << "$fcc" << static_cast<uint16_t>(FCC);
+  }
+
+  static bool classof(const Operand *Operand) {
+    return Operand->getKind() == static_cast<OperandKind>(kFCC);
+  }
+
+  void dump(const Cfg *Func, Ostream &Str) const override {
+    (void)Func;
+    (void)Str;
+  }
+
+private:
+  OperandMIPS32FCC(OperandMIPS32FCC::FCC FCC)
+      : OperandMIPS32(kFCC, IceType_i32), FCC(FCC){};
+
+  const OperandMIPS32FCC::FCC FCC;
 };
 
 class OperandMIPS32Mem : public OperandMIPS32 {
@@ -155,6 +190,20 @@ public:
     And,
     Andi,
     Br,
+    C_eq_d,
+    C_eq_s,
+    C_ole_d,
+    C_ole_s,
+    C_olt_d,
+    C_olt_s,
+    C_ueq_d,
+    C_ueq_s,
+    C_ule_d,
+    C_ule_s,
+    C_ult_d,
+    C_ult_s,
+    C_un_d,
+    C_un_s,
     Call,
     Cvt_d_l,
     Cvt_d_s,
@@ -178,6 +227,8 @@ public:
     Mov, // actually a pseudo op for addi rd, rs, 0
     Mov_d,
     Mov_s,
+    Movf,
+    Movt,
     Mtc1,
     Mthi,
     Mtlo,
@@ -806,6 +857,56 @@ private:
   InstMIPS32Call(Cfg *Func, Variable *Dest, Operand *CallTarget);
 };
 
+template <InstMIPS32::InstKindMIPS32 K>
+class InstMIPS32FPCmp : public InstMIPS32 {
+  InstMIPS32FPCmp() = delete;
+  InstMIPS32FPCmp(const InstMIPS32FPCmp &) = delete;
+  InstMIPS32Call &operator=(const InstMIPS32FPCmp &) = delete;
+
+public:
+  static InstMIPS32FPCmp *create(Cfg *Func, Variable *Src0, Variable *Src1) {
+    return new (Func->allocate<InstMIPS32FPCmp>())
+        InstMIPS32FPCmp(Func, Src0, Src1);
+  }
+
+  void emit(const Cfg *Func) const override {
+    if (!BuildDefs::dump())
+      return;
+    Ostream &Str = Func->getContext()->getStrEmit();
+    assert(getSrcSize() == 2);
+    Str << "\t" << Opcode << "\t";
+    getSrc(0)->emit(Func);
+    Str << ", ";
+    getSrc(1)->emit(Func);
+  }
+
+  void emitIAS(const Cfg *Func) const override {
+    (void)Func;
+    llvm_unreachable("Not yet implemented");
+  }
+
+  void dump(const Cfg *Func) const override {
+    (void)Func;
+    if (!BuildDefs::dump())
+      return;
+    Ostream &Str = Func->getContext()->getStrDump();
+    dumpOpcode(Str, Opcode, getSrc(0)->getType());
+    Str << " ";
+    dumpSources(Func);
+  }
+
+  static bool classof(const Inst *Inst) { return isClassof(Inst, Call); }
+
+private:
+  InstMIPS32FPCmp(Cfg *Func, Variable *Src0, Variable *Src1)
+      : InstMIPS32(Func, K, 2, nullptr) {
+    addSource(Src0);
+    addSource(Src1);
+  };
+
+  static const char *Opcode;
+};
+
 template <InstMIPS32::InstKindMIPS32 K, bool Signed = false>
 class InstMIPS32Imm16 : public InstMIPS32 {
   InstMIPS32Imm16() = delete;
@@ -877,6 +978,62 @@ private:
   const uint32_t Imm;
 };
 
+/// Conditional mov
+template <InstMIPS32::InstKindMIPS32 K>
+class InstMIPS32MovConditional : public InstMIPS32 {
+  InstMIPS32MovConditional() = delete;
+  InstMIPS32MovConditional(const InstMIPS32MovConditional &) = delete;
+  InstMIPS32MovConditional &
+  operator=(const InstMIPS32MovConditional &) = delete;
+
+public:
+  static InstMIPS32MovConditional *create(Cfg *Func, Variable *Dest,
+                                          Variable *Src, Operand *FCC) {
+    return new (Func->allocate<InstMIPS32MovConditional>())
+        InstMIPS32MovConditional(Func, Dest, Src, FCC);
+  }
+
+  void emit(const Cfg *Func) const override {
+    if (!BuildDefs::dump())
+      return;
+    Ostream &Str = Func->getContext()->getStrEmit();
+    assert(getSrcSize() == 2);
+    Str << "\t" << Opcode << "\t";
+    getDest()->emit(Func);
+    Str << ", ";
+    getSrc(0)->emit(Func);
+    Str << ", ";
+    getSrc(1)->emit(Func);
+  }
+
+  void emitIAS(const Cfg *Func) const override {
+    (void)Func;
+    llvm_unreachable("Not yet implemented");
+  }
+
+  void dump(const Cfg *Func) const override {
+    if (!BuildDefs::dump())
+      return;
+    Ostream &Str = Func->getContext()->getStrDump();
+    dumpDest(Func);
+    Str << " = ";
+    dumpOpcode(Str, Opcode, getDest()->getType());
+    Str << " ";
+    dumpSources(Func);
+  }
+  static bool classof(const Inst *Inst) { return isClassof(Inst, K); }
+
+private:
+  InstMIPS32MovConditional(Cfg *Func, Variable *Dest, Variable *Src,
+                           Operand *FCC)
+      : InstMIPS32(Func, K, 2, Dest) {
+    addSource(Src);
+    addSource(FCC);
+  }
+
+  static const char *Opcode;
+};
+
 using InstMIPS32Abs_d = InstMIPS32TwoAddrFPR<InstMIPS32::Abs_d>;
 using InstMIPS32Abs_s = InstMIPS32TwoAddrFPR<InstMIPS32::Abs_s>;
 using InstMIPS32Add = InstMIPS32ThreeAddrGPR<InstMIPS32::Add>;
@@ -886,6 +1043,20 @@ using InstMIPS32Addu = InstMIPS32ThreeAddrGPR<InstMIPS32::Addu>;
 using InstMIPS32Addiu = InstMIPS32Imm16<InstMIPS32::Addiu, true>;
 using InstMIPS32And = InstMIPS32ThreeAddrGPR<InstMIPS32::And>;
 using InstMIPS32Andi = InstMIPS32Imm16<InstMIPS32::Andi>;
+using InstMIPS32C_eq_d = InstMIPS32FPCmp<InstMIPS32::C_eq_d>;
+using InstMIPS32C_eq_s = InstMIPS32FPCmp<InstMIPS32::C_eq_s>;
+using InstMIPS32C_ole_d = InstMIPS32FPCmp<InstMIPS32::C_ole_d>;
+using InstMIPS32C_ole_s = InstMIPS32FPCmp<InstMIPS32::C_ole_s>;
+using InstMIPS32C_olt_d = InstMIPS32FPCmp<InstMIPS32::C_olt_d>;
+using InstMIPS32C_olt_s = InstMIPS32FPCmp<InstMIPS32::C_olt_s>;
+using InstMIPS32C_ueq_d = InstMIPS32FPCmp<InstMIPS32::C_ueq_d>;
+using InstMIPS32C_ueq_s = InstMIPS32FPCmp<InstMIPS32::C_ueq_s>;
+using InstMIPS32C_ule_d = InstMIPS32FPCmp<InstMIPS32::C_ule_d>;
+using InstMIPS32C_ule_s = InstMIPS32FPCmp<InstMIPS32::C_ule_s>;
+using InstMIPS32C_ult_d = InstMIPS32FPCmp<InstMIPS32::C_ult_d>;
+using InstMIPS32C_ult_s = InstMIPS32FPCmp<InstMIPS32::C_ult_s>;
+using InstMIPS32C_un_d = InstMIPS32FPCmp<InstMIPS32::C_un_d>;
+using InstMIPS32C_un_s = InstMIPS32FPCmp<InstMIPS32::C_un_s>;
 using InstMIPS32Cvt_d_s = InstMIPS32TwoAddrFPR<InstMIPS32::Cvt_d_s>;
 using InstMIPS32Cvt_d_l = InstMIPS32TwoAddrFPR<InstMIPS32::Cvt_d_l>;
 using InstMIPS32Cvt_d_w = InstMIPS32TwoAddrFPR<InstMIPS32::Cvt_d_w>;
@@ -906,6 +1077,8 @@ using InstMIPS32Mfhi = InstMIPS32UnaryopGPR<InstMIPS32::Mfhi>;
 using InstMIPS32Mflo = InstMIPS32UnaryopGPR<InstMIPS32::Mflo>;
 using InstMIPS32Mov_d = InstMIPS32TwoAddrFPR<InstMIPS32::Mov_d>;
 using InstMIPS32Mov_s = InstMIPS32TwoAddrFPR<InstMIPS32::Mov_s>;
+using InstMIPS32Movf = InstMIPS32MovConditional<InstMIPS32::Movf>;
+using InstMIPS32Movt = InstMIPS32MovConditional<InstMIPS32::Movt>;
 using InstMIPS32Mtc1 = InstMIPS32TwoAddrGPR<InstMIPS32::Mtc1>;
 using InstMIPS32Mthi = InstMIPS32UnaryopGPR<InstMIPS32::Mthi>;
 using InstMIPS32Mtlo = InstMIPS32UnaryopGPR<InstMIPS32::Mtlo>;
