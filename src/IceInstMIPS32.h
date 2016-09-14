@@ -1167,6 +1167,24 @@ template <> void InstMIPS32Mult::emit(const Cfg *Func) const;
 template <> void InstMIPS32Multu::emit(const Cfg *Func) const;
 template <> void InstMIPS32Lui::emit(const Cfg *Func) const;
 
+template <> void InstMIPS32Addiu::emitIAS(const Cfg *Func) const;
+template <> void InstMIPS32Slti::emitIAS(const Cfg *Func) const;
+template <> void InstMIPS32Sltiu::emitIAS(const Cfg *Func) const;
+template <> void InstMIPS32And::emitIAS(const Cfg *Func) const;
+template <> void InstMIPS32Andi::emitIAS(const Cfg *Func) const;
+template <> void InstMIPS32Or::emitIAS(const Cfg *Func) const;
+template <> void InstMIPS32Ori::emitIAS(const Cfg *Func) const;
+template <> void InstMIPS32Xor::emitIAS(const Cfg *Func) const;
+template <> void InstMIPS32Xori::emitIAS(const Cfg *Func) const;
+template <> void InstMIPS32Sll::emitIAS(const Cfg *Func) const;
+template <> void InstMIPS32Srl::emitIAS(const Cfg *Func) const;
+template <> void InstMIPS32Sra::emitIAS(const Cfg *Func) const;
+template <> void InstMIPS32Addu::emitIAS(const Cfg *Func) const;
+template <> void InstMIPS32Slt::emitIAS(const Cfg *Func) const;
+template <> void InstMIPS32Sltu::emitIAS(const Cfg *Func) const;
+template <> void InstMIPS32Sw::emitIAS(const Cfg *Func) const;
+template <> void InstMIPS32Lw::emitIAS(const Cfg *Func) const;
+
 } // end of namespace MIPS32
 } // end of namespace Ice
 
