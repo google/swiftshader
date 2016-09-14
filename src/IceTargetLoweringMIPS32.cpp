@@ -84,7 +84,7 @@ const char *getRegClassName(RegClass C) {
 }
 
 // Stack alignment
-constexpr uint32_t MIPS32_STACK_ALIGNMENT_BYTES = 8;
+constexpr uint32_t MIPS32_STACK_ALIGNMENT_BYTES = 16;
 
 // Value is in bytes. Return Value adjusted to the next highest multiple of the
 // stack alignment required for the given type.
