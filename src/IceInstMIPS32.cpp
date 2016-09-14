@@ -104,7 +104,13 @@ template <> const char *InstMIPS32Mflo::Opcode = "mflo";
 template <> const char *InstMIPS32Mov_d::Opcode = "mov.d";
 template <> const char *InstMIPS32Mov_s::Opcode = "mov.s";
 template <> const char *InstMIPS32Movf::Opcode = "movf";
+template <> const char *InstMIPS32Movn::Opcode = "movn";
+template <> const char *InstMIPS32Movn_d::Opcode = "movn.d";
+template <> const char *InstMIPS32Movn_s::Opcode = "movn.s";
 template <> const char *InstMIPS32Movt::Opcode = "movt";
+template <> const char *InstMIPS32Movz::Opcode = "movz";
+template <> const char *InstMIPS32Movz_d::Opcode = "movz.d";
+template <> const char *InstMIPS32Movz_s::Opcode = "movz.s";
 template <> const char *InstMIPS32Mtc1::Opcode = "mtc1";
 template <> const char *InstMIPS32Mthi::Opcode = "mthi";
 template <> const char *InstMIPS32Mtlo::Opcode = "mtlo";
@@ -737,7 +743,8 @@ void InstMIPS32Mov::emitSingleDestSingleSource(const Cfg *Func) const {
     const Type SrcType = Src->getType();
 
     // move GP to/from FP
-    if (DstType != SrcType) {
+    if ((isScalarIntegerType(DstType) && isScalarFloatingType(SrcType)) ||
+        (isScalarFloatingType(DstType) && isScalarIntegerType(SrcType))) {
       if (isScalarFloatingType(DstType)) {
         Str << "\t"
                "mtc1"

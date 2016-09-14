@@ -3209,12 +3209,23 @@ void TargetMIPS32::lowerRet(const InstRet *Instr) {
   if (Instr->hasRetValue()) {
     Operand *Src0 = Instr->getRetValue();
     switch (Src0->getType()) {
+    case IceType_f32: {
+      Operand *Src0F = legalizeToReg(Src0);
+      Reg = makeReg(Src0F->getType(), RegMIPS32::Reg_F0);
+      _mov(Reg, Src0F);
+      break;
+    }
+    case IceType_f64: {
+      Operand *Src0F = legalizeToReg(Src0);
+      Reg = makeReg(Src0F->getType(), RegMIPS32::Reg_F0F1);
+      _mov(Reg, Src0F);
+      break;
+    }
     case IceType_i1:
     case IceType_i8:
     case IceType_i16:
     case IceType_i32: {
-      // Reg = legalizeToReg(Src0, RegMIPS32::Reg_V0);
-      Operand *Src0F = legalize(Src0, Legal_Reg);
+      Operand *Src0F = legalizeToReg(Src0);
       Reg = makeReg(Src0F->getType(), RegMIPS32::Reg_V0);
       _mov(Reg, Src0F);
       break;
@@ -3235,7 +3246,44 @@ void TargetMIPS32::lowerRet(const InstRet *Instr) {
 }
 
 void TargetMIPS32::lowerSelect(const InstSelect *Instr) {
-  UnimplementedLoweringError(this, Instr);
+  Variable *Dest = Instr->getDest();
+  const Type DestTy = Dest->getType();
+
+  if (DestTy == IceType_i64 || isVectorType(DestTy)) {
+    UnimplementedLoweringError(this, Instr);
+    return;
+  }
+
+  Variable *DestR = legalizeToReg(Dest);
+  Variable *SrcTR = legalizeToReg(Instr->getTrueOperand());
+  Variable *SrcFR = legalizeToReg(Instr->getFalseOperand());
+
+  Variable *ConditionR = legalizeToReg(Instr->getCondition());
+
+  assert(Instr->getCondition()->getType() == IceType_i1);
+
+  switch (DestTy) {
+  case IceType_i1:
+  case IceType_i8:
+  case IceType_i16:
+  case IceType_i32:
+    _movn(SrcFR, SrcTR, ConditionR);
+    _mov(DestR, SrcFR);
+    _mov(Dest, DestR);
+    break;
+  case IceType_f32:
+    _movn_s(SrcFR, SrcTR, ConditionR);
+    _mov(DestR, SrcFR);
+    _mov(Dest, DestR);
+    break;
+  case IceType_f64:
+    _movn_d(SrcFR, SrcTR, ConditionR);
+    _mov(DestR, SrcFR);
+    _mov(Dest, DestR);
+    break;
+  default:
+    UnimplementedLoweringError(this, Instr);
+  }
 }
 
 void TargetMIPS32::lowerShuffleVector(const InstShuffleVector *Instr) {

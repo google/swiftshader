@@ -968,6 +968,9 @@ entry:
 ; ARM32-OM1: vmovne.f32 s{{[0-9]+}}
 ; ARM32-O2: vmovmi.f32 s{{[0-9]+}}
 ; ARM32: bx
+; MIPS32-LABEL: selectFloatVarVar
+; MIPS32: movn.s {{.*}}
+; MIPS32: mov.s {{.*}}
 
 define internal double @selectDoubleVarVar(double %a, double %b) {
 entry:
@@ -985,3 +988,6 @@ entry:
 ; ARM32-OM1: vmovne.f64 d{{[0-9]+}}
 ; ARM32-O2: vmovmi.f64 d{{[0-9]+}}
 ; ARM32: bx
+; MIPS32-LABEL: selectDoubleVarVar
+; MIPS32: movn.d {{.*}}
+; MIPS32: mov.d {{.*}}

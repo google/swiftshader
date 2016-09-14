@@ -319,6 +319,18 @@ public:
     Context.insert<InstMIPS32Lui>(Dest, Src, Reloc);
   }
 
+  void _mfc1(Variable *Dest, Variable *Src) {
+    Context.insert<InstMIPS32Mfc1>(Dest, Src);
+  }
+
+  void _mfhi(Variable *Dest, Operand *Src) {
+    Context.insert<InstMIPS32Mfhi>(Dest, Src);
+  }
+
+  void _mflo(Variable *Dest, Operand *Src) {
+    Context.insert<InstMIPS32Mflo>(Dest, Src);
+  }
+
   void _mov(Variable *Dest, Operand *Src0) {
     assert(Dest != nullptr);
     // Variable* Src0_ = llvm::dyn_cast<Variable>(Src0);
@@ -347,20 +359,32 @@ public:
     Context.insert<InstMIPS32Movf>(Src0, Src1, FCC);
   }
 
+  void _movn(Variable *Dest, Variable *Src0, Variable *Src1) {
+    Context.insert<InstMIPS32Movn>(Dest, Src0, Src1);
+  }
+
+  void _movn_d(Variable *Dest, Variable *Src0, Variable *Src1) {
+    Context.insert<InstMIPS32Movn_d>(Dest, Src0, Src1);
+  }
+
+  void _movn_s(Variable *Dest, Variable *Src0, Variable *Src1) {
+    Context.insert<InstMIPS32Movn_s>(Dest, Src0, Src1);
+  }
+
   void _movt(Variable *Src0, Variable *Src1, Operand *FCC) {
     Context.insert<InstMIPS32Movt>(Src0, Src1, FCC);
   }
 
-  void _mfc1(Variable *Dest, Variable *Src) {
-    Context.insert<InstMIPS32Mfc1>(Dest, Src);
+  void _movz(Variable *Dest, Variable *Src0, Variable *Src1) {
+    Context.insert<InstMIPS32Movz>(Dest, Src0, Src1);
   }
 
-  void _mfhi(Variable *Dest, Operand *Src) {
-    Context.insert<InstMIPS32Mfhi>(Dest, Src);
+  void _movz_d(Variable *Dest, Variable *Src0, Variable *Src1) {
+    Context.insert<InstMIPS32Movz_d>(Dest, Src0, Src1);
   }
 
-  void _mflo(Variable *Dest, Operand *Src) {
-    Context.insert<InstMIPS32Mflo>(Dest, Src);
+  void _movz_s(Variable *Dest, Variable *Src0, Variable *Src1) {
+    Context.insert<InstMIPS32Movz_s>(Dest, Src0, Src1);
   }
 
   void _mtc1(Variable *Dest, Variable *Src) {

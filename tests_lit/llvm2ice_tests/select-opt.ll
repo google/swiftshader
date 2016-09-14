@@ -23,6 +23,20 @@
 ; RUN:   | %if --need=target_ARM32 --need=allow_dump \
 ; RUN:   --command FileCheck --check-prefix ARM32 --check-prefix ARM32-OM1 %s
 
+; RUN: %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command %p2i --filetype=asm --assemble \
+; RUN:   --disassemble --target mips32 -i %s --args -Om1 \
+; RUN:   -allow-externally-defined-symbols -skip-unimplemented \
+; RUN:   | %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command FileCheck --check-prefix MIPS32 %s
+
+; RUN: %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command %p2i --filetype=asm --assemble \
+; RUN:   --disassemble --target mips32 -i %s --args -O2 \
+; RUN:   -allow-externally-defined-symbols -skip-unimplemented \
+; RUN:   | %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command FileCheck --check-prefix MIPS32 %s
+
 define internal void @testSelect(i32 %a, i32 %b) {
 entry:
   %cmp = icmp slt i32 %a, %b
@@ -61,6 +75,10 @@ declare void @useInt(i32 %x)
 ; ARM32: bl {{.*}} useInt
 ; ARM32: bl {{.*}} useInt
 ; ARM32: bx lr
+; MIPS32-LABEL: testSelect
+; MIPS32: slt {{.*}}
+; MIPS32: movn {{.*}}
+; MIPS32: move {{.*}}
 
 ; Check for valid addressing mode in the cmp instruction when the
 ; operand is an immediate.
@@ -73,6 +91,9 @@ entry:
 ; CHECK-NOT: cmp 0x{{[0-9a-f]+}},
 ; ARM32-LABEL: testSelectImm32
 ; ARM32-NOT: cmp #{{.*}},
+; MIPS32-LABEL: testSelectImm32
+; MIPS32: movn {{.*}}
+; MIPS32: move {{.*}}
 
 ; Check for valid addressing mode in the cmp instruction when the
 ; operand is an immediate.  There is a different x86-32 lowering
@@ -86,3 +107,4 @@ entry:
 ; CHECK-NOT: cmp 0x{{[0-9a-f]+}},
 ; ARM32-LABEL: testSelectImm64
 ; ARM32-NOT: cmp #{{.*}},
+; MIPS32-LABEL: testSelectImm64
