@@ -31,6 +31,8 @@ else
 endif
 
 CPP.Defines += -DPNACL_LLVM
-SZ_COMMIT_COUNT := $(shell git rev-list --count HEAD)
-SZ_GIT_HASH := $(shell git rev-parse HEAD)
+# SUBZERO_SRC_ROOT should already be set, but if not, set to cwd.
+SUBZERO_SRC_ROOT ?= .
+SZ_COMMIT_COUNT := $(shell git -C $(SUBZERO_SRC_ROOT) rev-list --count HEAD)
+SZ_GIT_HASH := $(shell git -C $(SUBZERO_SRC_ROOT) rev-parse HEAD)
 CPP.Defines += -DSUBZERO_REVISION=$(SZ_COMMIT_COUNT)_$(SZ_GIT_HASH)
