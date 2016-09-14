@@ -21,6 +21,11 @@
 ; RUN:   | %if --need=allow_dump --need=target_MIPS32 --command FileCheck %s \
 ; RUN:   --check-prefix=MIPS32
 
+; RUN: %if --need=allow_dump --need=target_MIPS32 --command %p2i \
+; RUN:   --filetype=asm --target mips32 -i %s --args -O2 --skip-unimplemented \
+; RUN:   | %if --need=allow_dump --need=target_MIPS32 --command FileCheck %s \
+; RUN:   --check-prefix=MIPS32O2
+
 define internal float @fptrunc(double %a) {
 entry:
   %conv = fptrunc double %a to float
@@ -33,6 +38,8 @@ entry:
 ; ARM32: vcvt.f32.f64 {{s[0-9]+}}, {{d[0-9]+}}
 ; MIPS32-LABEL: fptrunc
 ; MIPS32: cvt.s.d
+; MIPS32O2-LABEL: fptrunc
+; MIPS32O2: cvt.s.d
 
 define internal double @fpext(float %a) {
 entry:
@@ -46,6 +53,8 @@ entry:
 ; ARM32: vcvt.f64.f32 {{d[0-9]+}}, {{s[0-9]+}}
 ; MIPS32-LABEL: fpext
 ; MIPS32: cvt.d.s
+; MIPS32O2-LABEL: fpext
+; MIPS32O2: cvt.d.s
 
 define internal i64 @doubleToSigned64(double %a) {
 entry:
@@ -56,6 +65,10 @@ entry:
 ; CHECK: call {{.*}} R_{{.*}} __Sz_fptosi_f64_i64
 ; ARM32-LABEL: doubleToSigned64
 ; TODO(jpp): implement this test.
+; MIPS32-LABEL: doubleToSigned64
+; MIPS32: jal __Sz_fptosi_f64_i64
+; MIPS32O2-LABEL: doubleToSigned64
+; MIPS32O2: jal __Sz_fptosi_f64_i64
 
 define internal i64 @floatToSigned64(float %a) {
 entry:
@@ -66,6 +79,10 @@ entry:
 ; CHECK: call {{.*}} R_{{.*}} __Sz_fptosi_f32_i64
 ; ARM32-LABEL: floatToSigned64
 ; TODO(jpp): implement this test.
+; MIPS32-LABEL: floatToSigned64
+; MIPS32: jal __Sz_fptosi_f32_i64
+; MIPS32O2-LABEL: floatToSigned64
+; MIPS32O2: jal __Sz_fptosi_f32_i64
 
 define internal i64 @doubleToUnsigned64(double %a) {
 entry:
@@ -76,6 +93,10 @@ entry:
 ; CHECK: call {{.*}} R_{{.*}} __Sz_fptoui_f64_i64
 ; ARM32-LABEL: doubleToUnsigned64
 ; TODO(jpp): implement this test.
+; MIPS32-LABEL: doubleToUnsigned64
+; MIPS32: jal __Sz_fptoui_f64_i64
+; MIPS32O2-LABEL: doubleToUnsigned64
+; MIPS32O2: jal __Sz_fptoui_f64_i64
 
 define internal i64 @floatToUnsigned64(float %a) {
 entry:
@@ -86,6 +107,10 @@ entry:
 ; CHECK: call {{.*}} R_{{.*}} __Sz_fptoui_f32_i64
 ; ARM32-LABEL: floatToUnsigned64
 ; TODO(jpp): implement this test.
+; MIPS32-LABEL: floatToUnsigned64
+; MIPS32: jal __Sz_fptoui_f32_i64
+; MIPS32O2-LABEL: floatToUnsigned64
+; MIPS32O2: jal __Sz_fptoui_f32_i64
 
 define internal i32 @doubleToSigned32(double %a) {
 entry:
@@ -122,6 +147,11 @@ entry:
 ; ARM32-LABEL: floatToSigned32
 ; ARM32-DAG: vcvt.s32.f32 [[REG:s[0-9]+]], {{s[0-9]+}}
 ; ARM32-DAG: vmov {{r[0-9]+}}, [[REG]]
+; MIPS32-LABEL: floatToSigned32
+; MIPS32: trunc.w.s $f{{.*}}, $f{{.*}}
+; MIPS32O2-LABEL: floatToSigned32
+; MIPS32O2: trunc.w.s $[[REG:f[0-9]+]], $f{{.*}}
+; MIPS32O2: mfc1 $v0, $[[REG]]
 
 define internal i32 @doubleToUnsigned32(double %a) {
 entry:
@@ -382,6 +412,11 @@ entry:
 ; ARM32-LABEL: signed32ToFloat
 ; ARM32-DAG: vmov [[SRC:s[0-9]+]], {{r[0-9]+}}
 ; ARM32-DAG: vcvt.f32.s32 {{s[0-9]+}}, [[SRC]]
+; MIPS32-LABEL: signed32ToFloat
+; MIPS32: cvt.s.w $f{{.*}}, $f{{.*}}
+; MIPS32O2-LABEL: signed32ToFloat
+; MIPS32O2: mtc1 $a0, $[[REG:f[0-9]+]]
+; MIPS32O2: cvt.s.w $f{{.*}}, $[[REG]]
 
 define internal double @unsigned32ToDouble(i32 %a) {
 entry:

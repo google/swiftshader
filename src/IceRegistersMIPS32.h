@@ -72,8 +72,11 @@ static inline GPRRegister getEncodedGPR(RegNumT RegNum) {
 }
 
 static inline bool isGPRReg(RegNumT RegNum) {
-  return (int(Reg_GPR_First) <= int(RegNum)) &&
-         (unsigned(RegNum) <= Reg_GPR_Last);
+  bool IsGPR = ((int(Reg_GPR_First) <= int(RegNum)) &&
+                (unsigned(RegNum) <= Reg_GPR_Last)) ||
+               ((int(Reg_I64PAIR_First) <= int(RegNum)) &&
+                (unsigned(RegNum) <= Reg_I64PAIR_Last));
+  return IsGPR;
 }
 
 static inline FPRRegister getEncodedFPR(RegNumT RegNum) {

@@ -733,27 +733,39 @@ void InstMIPS32Mov::emitSingleDestSingleSource(const Cfg *Func) const {
 
   // reg to reg
   if (DestIsReg && SrcIsReg) {
-    switch (Dest->getType()) {
-    case IceType_f32:
-      ActualOpcode = "mov.s";
-      break;
-    case IceType_f64:
-      ActualOpcode = "mov.d";
-      break;
-    case IceType_i1:
-    case IceType_i8:
-    case IceType_i16:
-    case IceType_i32:
-      Str << "\t"
-          << "move"
-          << "\t";
-      getDest()->emit(Func);
-      Str << ", ";
-      getSrc(0)->emit(Func);
-      return;
-    default:
-      UnimplementedError(getFlags());
-      return;
+    const Type DstType = Dest->getType();
+    const Type SrcType = Src->getType();
+
+    // move GP to/from FP
+    if (DstType != SrcType) {
+      if (isScalarFloatingType(DstType)) {
+        Str << "\t"
+               "mtc1"
+               "\t";
+        getSrc(0)->emit(Func);
+        Str << ", ";
+        getDest()->emit(Func);
+        return;
+      }
+      ActualOpcode = "mfc1";
+    } else {
+      switch (Dest->getType()) {
+      case IceType_f32:
+        ActualOpcode = "mov.s";
+        break;
+      case IceType_f64:
+        ActualOpcode = "mov.d";
+        break;
+      case IceType_i1:
+      case IceType_i8:
+      case IceType_i16:
+      case IceType_i32:
+        ActualOpcode = "move";
+        break;
+      default:
+        UnimplementedError(getFlags());
+        return;
+      }
     }
 
     assert(ActualOpcode);

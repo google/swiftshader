@@ -1452,6 +1452,69 @@ void TargetMIPS32::PostLoweringLegalizer::legalizeMov(InstMIPS32Mov *MovInstr) {
     return;
 
   bool Legalized = false;
+  auto *SrcR = llvm::cast<Variable>(Src);
+  if (Dest->hasReg() && SrcR->hasReg()) {
+    // This might be a GP to/from FP move generated due to argument passing.
+    // Use mtc1/mfc1 instead of mov.[s/d] if src and dst registers are of
+    // different types.
+    const bool IsDstGPR = RegMIPS32::isGPRReg(Dest->getRegNum());
+    const bool IsSrcGPR = RegMIPS32::isGPRReg(SrcR->getRegNum());
+    const RegNumT SRegNum = SrcR->getRegNum();
+    const RegNumT DRegNum = Dest->getRegNum();
+    if (IsDstGPR != IsSrcGPR) {
+      if (IsDstGPR) {
+        // Dest is GPR and SrcR is FPR. Use mfc1.
+        if (typeWidthInBytes(Dest->getType()) == 8) {
+          // Split it into two mfc1 instructions
+          Variable *SrcGPRHi = Target->makeReg(
+              IceType_f32, RegMIPS32::get64PairFirstRegNum(SRegNum));
+          Variable *SrcGPRLo = Target->makeReg(
+              IceType_f32, RegMIPS32::get64PairSecondRegNum(SRegNum));
+          Variable *DstFPRHi = Target->makeReg(
+              IceType_i32, RegMIPS32::get64PairFirstRegNum(DRegNum));
+          Variable *DstFPRLo = Target->makeReg(
+              IceType_i32, RegMIPS32::get64PairSecondRegNum(DRegNum));
+          Target->_mov(DstFPRHi, SrcGPRLo);
+          Target->_mov(DstFPRLo, SrcGPRHi);
+          Legalized = true;
+        } else {
+          Variable *SrcGPR = Target->makeReg(IceType_f32, SRegNum);
+          Variable *DstFPR = Target->makeReg(IceType_i32, DRegNum);
+          Target->_mov(DstFPR, SrcGPR);
+          Legalized = true;
+        }
+      } else {
+        // Dest is FPR and SrcR is GPR. Use mtc1.
+        if (typeWidthInBytes(SrcR->getType()) == 8) {
+          // Split it into two mtc1 instructions
+          Variable *SrcGPRHi = Target->makeReg(
+              IceType_i32, RegMIPS32::get64PairFirstRegNum(SRegNum));
+          Variable *SrcGPRLo = Target->makeReg(
+              IceType_i32, RegMIPS32::get64PairSecondRegNum(SRegNum));
+          Variable *DstFPRHi = Target->makeReg(
+              IceType_f32, RegMIPS32::get64PairFirstRegNum(DRegNum));
+          Variable *DstFPRLo = Target->makeReg(
+              IceType_f32, RegMIPS32::get64PairSecondRegNum(DRegNum));
+          Target->_mov(DstFPRHi, SrcGPRLo);
+          Target->_mov(DstFPRLo, SrcGPRHi);
+          Legalized = true;
+        } else {
+          Variable *SrcGPR = Target->makeReg(IceType_i32, SRegNum);
+          Variable *DstFPR = Target->makeReg(IceType_f32, DRegNum);
+          Target->_mov(DstFPR, SrcGPR);
+          Legalized = true;
+        }
+      }
+    }
+    if (Legalized) {
+      if (MovInstr->isDestRedefined()) {
+        Target->_set_dest_redefined();
+      }
+      MovInstr->setDeleted();
+      return;
+    }
+  }
+
   if (!Dest->hasReg()) {
     auto *SrcR = llvm::cast<Variable>(Src);
     assert(SrcR->hasReg());
@@ -1469,22 +1532,15 @@ void TargetMIPS32::PostLoweringLegalizer::legalizeMov(InstMIPS32Mov *MovInstr) {
     // case type of the SrcR is still FP thus we need to explicitly generate sw
     // instead of swc1.
     const RegNumT RegNum = SrcR->getRegNum();
-    const bool isSrcGPReg = ((unsigned)RegNum >= RegMIPS32::Reg_A0 &&
-                             (unsigned)RegNum <= RegMIPS32::Reg_A3) ||
-                            ((unsigned)RegNum >= RegMIPS32::Reg_A0A1 &&
-                             (unsigned)RegNum <= RegMIPS32::Reg_A2A3);
-    if (SrcTy == IceType_f32 && isSrcGPReg == true) {
+    const bool IsSrcGPReg = RegMIPS32::isGPRReg(SrcR->getRegNum());
+    if (SrcTy == IceType_f32 && IsSrcGPReg == true) {
       Variable *SrcGPR = Target->makeReg(IceType_i32, RegNum);
       Target->_sw(SrcGPR, Addr);
-    } else if (SrcTy == IceType_f64 && isSrcGPReg == true) {
-      Variable *SrcGPRHi, *SrcGPRLo;
-      if (RegNum == RegMIPS32::Reg_A0A1) {
-        SrcGPRLo = Target->makeReg(IceType_i32, RegMIPS32::Reg_A0);
-        SrcGPRHi = Target->makeReg(IceType_i32, RegMIPS32::Reg_A1);
-      } else {
-        SrcGPRLo = Target->makeReg(IceType_i32, RegMIPS32::Reg_A2);
-        SrcGPRHi = Target->makeReg(IceType_i32, RegMIPS32::Reg_A3);
-      }
+    } else if (SrcTy == IceType_f64 && IsSrcGPReg == true) {
+      Variable *SrcGPRHi =
+          Target->makeReg(IceType_i32, RegMIPS32::get64PairFirstRegNum(RegNum));
+      Variable *SrcGPRLo = Target->makeReg(
+          IceType_i32, RegMIPS32::get64PairSecondRegNum(RegNum));
       OperandMIPS32Mem *AddrHi = OperandMIPS32Mem::create(
           Target->Func, DestTy, Base,
           llvm::cast<ConstantInteger32>(
@@ -2411,15 +2467,33 @@ void TargetMIPS32::lowerCast(const InstCast *Instr) {
     _mov(Dest, DestR);
     break;
   }
-  case InstCast::Fptosi: //
-    UnimplementedLoweringError(this, Instr);
+  case InstCast::Fptosi: {
+    if (Src0Ty == IceType_f32 && DestTy == IceType_i32) {
+      Variable *Src0R = legalizeToReg(Src0);
+      Variable *FTmp = makeReg(IceType_f32);
+      _trunc_w_s(FTmp, Src0R);
+      _mov(Dest, FTmp);
+    } else {
+      UnimplementedLoweringError(this, Instr);
+    }
     break;
+  }
   case InstCast::Fptoui:
     UnimplementedLoweringError(this, Instr);
     break;
-  case InstCast::Sitofp: //
-    UnimplementedLoweringError(this, Instr);
+  case InstCast::Sitofp: {
+    if (Src0Ty == IceType_i32 && DestTy == IceType_f32) {
+      Variable *Src0R = legalizeToReg(Src0);
+      Variable *FTmp1 = makeReg(IceType_f32);
+      Variable *FTmp2 = makeReg(IceType_f32);
+      _mov(FTmp1, Src0R);
+      _cvt_s_w(FTmp2, FTmp1);
+      _mov(Dest, FTmp2);
+    } else {
+      UnimplementedLoweringError(this, Instr);
+    }
     break;
+  }
   case InstCast::Uitofp: {
     UnimplementedLoweringError(this, Instr);
     break;

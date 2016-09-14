@@ -13,6 +13,13 @@
 ; RUN:   | %if --need=target_MIPS32 --need=allow_dump \
 ; RUN:   --command FileCheck --check-prefix MIPS32 %s
 
+; RUN: %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command %p2i --filetype=asm --assemble \
+; RUN:   --disassemble --target mips32 -i %s --args -O2 --skip-unimplemented \
+; RUN:   -allow-externally-defined-symbols \
+; RUN:   | %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command FileCheck --check-prefix MIPS32O2 %s
+
 define internal float @loadFloat(i32 %a) {
 entry:
   %__1 = inttoptr i32 %a to float*
@@ -25,6 +32,8 @@ entry:
 
 ; MIPS32-LABEL: loadFloat
 ; MIPS32: lwc1 $f{{.*}},0{{.*}}
+; MIPS32O2-LABEL: loadFloat
+; MIPS32O2: lwc1 $f{{.*}},0{{.*}}
 
 define internal double @loadDouble(i32 %a) {
 entry:
@@ -38,6 +47,8 @@ entry:
 
 ; MIPS32-LABEL: loadDouble
 ; MIPS32: ldc1 $f{{.*}},0{{.*}}
+; MIPS32O2-LABEL: loadDouble
+; MIPS32O2: ldc1 $f{{.*}},0{{.*}}
 
 define internal void @storeFloat(i32 %a, float %value) {
 entry:
@@ -51,6 +62,9 @@ entry:
 
 ; MIPS32-LABEL: storeFloat
 ; MIPS32: swc1 $f{{.*}},0{{.*}}
+; MIPS32O2-LABEL: storeFloat
+; MIPS32O2: mtc1 a1,$f{{.*}}
+; MIPS32O2: swc1 $f{{.*}},0(a0)
 
 define internal void @storeDouble(i32 %a, double %value) {
 entry:
@@ -65,6 +79,10 @@ entry:
 ; MIPS32-LABEL: storeDouble
 ; MIPS32: ldc1 $f{{.*}},4{{.*}}
 ; MIPS32: sdc1 $f{{.*}},0{{.*}}
+; MIPS32O2-LABEL: storeDouble
+; MIPS32O2: mtc1 a3,$f{{.*}}
+; MIPS32O2: mtc1 a2,$f{{.*}}
+; MIPS32O2: sdc1 $f{{.*}},0(a0)
 
 define internal void @storeFloatConst(i32 %a) {
 entry:
@@ -80,6 +98,10 @@ entry:
 ; MIPS32: lui {{.*}},{{.*}}
 ; MIPS32: lwc1 $f{{.*}},{{.*}}
 ; MIPS32: swc1 $f{{.*}},0{{.*}}
+; MIPS32O2-LABEL: storeFloatConst
+; MIPS32O2: lui {{.*}},{{.*}}
+; MIPS32O2: lwc1 $f{{.*}},{{.*}}
+; MIPS32O2: swc1 $f{{.*}},0{{.*}}
 
 define internal void @storeDoubleConst(i32 %a) {
 entry:
@@ -95,3 +117,7 @@ entry:
 ; MIPS32: lui {{.*}},{{.*}}
 ; MIPS32: ldc1 $f{{.*}},{{.*}}
 ; MIPS32: sdc1 $f{{.*}},0{{.*}}
+; MIPS32O2-LABEL: storeDoubleConst
+; MIPS32O2: lui {{.*}},{{.*}}
+; MIPS32O2: ldc1 $f{{.*}},{{.*}}
+; MIPS32O2: sdc1 $f{{.*}},0{{.*}}
