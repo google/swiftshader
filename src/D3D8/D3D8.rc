@@ -1,6 +1,6 @@
 // Microsoft Visual C++ generated resource script.
 //
-#include "resource.h"
+#include "resource1.h"
 
 #define APSTUDIO_READONLY_SYMBOLS
 /////////////////////////////////////////////////////////////////////////////
@@ -25,20 +25,19 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 // TEXTINCLUDE
 //
 
-1 TEXTINCLUDE
+1 TEXTINCLUDE 
 BEGIN
-    "resource.h\0"
+    "resource1.h\0"
 END
 
-2 TEXTINCLUDE
+2 TEXTINCLUDE 
 BEGIN
     "#include ""afxres.h""\r\n"
     "#include ""../Common/Version.h""\0"
 END
 
-3 TEXTINCLUDE
+3 TEXTINCLUDE 
 BEGIN
-    "\r\n"
     "\0"
 END
 
@@ -67,14 +66,14 @@ BEGIN
     BEGIN
         BLOCK "040904b0"
         BEGIN
-            VALUE "CompanyName", "Google Inc."
-            VALUE "FileDescription", "SwiftShader Direct3D 9 Renderer"
+			VALUE "CompanyName", "Google Inc."
+            VALUE "FileDescription", "SwiftShader Direct3D 8 Renderer"
             VALUE "FileVersion", VERSION_STRING
-            VALUE "InternalName", "D3D9"
-            VALUE "LegalCopyright", "Copyright (C) 2016 Google Inc."
-            VALUE "OriginalFilename", "d3d9.dll"
+            VALUE "InternalName", "D3D8"
+			VALUE "LegalCopyright", "Copyright (C) 2016 Google Inc."
+            VALUE "OriginalFilename", "d3d8.dll"
             VALUE "PrivateBuild", REVISION_STRING
-            VALUE "ProductName", "SwiftShader Direct3D 9 Renderer"
+            VALUE "ProductName", "SwiftShader Direct3D 8 Renderer"
             VALUE "ProductVersion", VERSION_STRING
         END
     END
@@ -84,52 +83,7 @@ BEGIN
     END
 END
 
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Dialog
-//
-
-IDD_DIALOG1 DIALOGEX 0, 0, 129, 47
-STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Waiting for debugger"
-FONT 8, "MS Shell Dlg", 400, 0, 0x1
-BEGIN
-    PUSHBUTTON      "Cancel",IDCANCEL,72,26,50,14
-    LTEXT           "Attach a debugger or ESC to cancel",IDC_STATIC,7,7,115,8
-END
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// DESIGNINFO
-//
-
-#ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO
-BEGIN
-    IDD_DIALOG1, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 122
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 40
-    END
-END
-#endif    // APSTUDIO_INVOKED
-
 #endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////
 
-
-
-#ifndef APSTUDIO_INVOKED
-/////////////////////////////////////////////////////////////////////////////
-//
-// Generated from the TEXTINCLUDE 3 resource.
-//
-
-
-/////////////////////////////////////////////////////////////////////////////
-#endif    // not APSTUDIO_INVOKED
 

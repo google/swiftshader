@@ -255,6 +255,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OGLES2Tools", "third_party\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OGLES3Tools", "third_party\PowerVR_SDK\Tools\OGLES3\Build\WindowsVC2010\OGLES3Tools.vcxproj", "{9088FC9E-9843-4E0D-85D0-1B657AFC480A}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "D3D8", "src\D3D8\D3D8.vcxproj", "{F18D5ABF-CA3A-4B74-BDB2-4A1956C86F18}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -721,6 +723,15 @@ Global
 		{9088FC9E-9843-4E0D-85D0-1B657AFC480A}.Release|Win32.Build.0 = Release|Win32
 		{9088FC9E-9843-4E0D-85D0-1B657AFC480A}.Release|x64.ActiveCfg = Release|x64
 		{9088FC9E-9843-4E0D-85D0-1B657AFC480A}.Release|x64.Build.0 = Release|x64
+		{F18D5ABF-CA3A-4B74-BDB2-4A1956C86F18}.Debug|Win32.ActiveCfg = Debug|Win32
+		{F18D5ABF-CA3A-4B74-BDB2-4A1956C86F18}.Debug|Win32.Build.0 = Debug|Win32
+		{F18D5ABF-CA3A-4B74-BDB2-4A1956C86F18}.Debug|x64.ActiveCfg = Debug|Win32
+		{F18D5ABF-CA3A-4B74-BDB2-4A1956C86F18}.Profile|Win32.ActiveCfg = Profile|Win32
+		{F18D5ABF-CA3A-4B74-BDB2-4A1956C86F18}.Profile|Win32.Build.0 = Profile|Win32
+		{F18D5ABF-CA3A-4B74-BDB2-4A1956C86F18}.Profile|x64.ActiveCfg = Profile|Win32
+		{F18D5ABF-CA3A-4B74-BDB2-4A1956C86F18}.Release|Win32.ActiveCfg = Release|Win32
+		{F18D5ABF-CA3A-4B74-BDB2-4A1956C86F18}.Release|Win32.Build.0 = Release|Win32
+		{F18D5ABF-CA3A-4B74-BDB2-4A1956C86F18}.Release|x64.ActiveCfg = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

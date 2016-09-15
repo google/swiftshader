@@ -184,7 +184,7 @@ namespace D3D9
 				dRect.y1 = destRect->bottom;
 			}
 
-			frameBuffer->blit(window, source, sourceRect ? &sRect : 0, destRect ? &dRect : 0, format, stride);
+			frameBuffer->blit(window, source, sourceRect ? &sRect : nullptr, destRect ? &dRect : nullptr, format, stride);
 		}
 
 		backBuffer[0]->unlockInternal();   // FIXME: External

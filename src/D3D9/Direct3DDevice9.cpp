@@ -343,7 +343,7 @@ namespace D3D9
 
 		TRACE("unsigned long count = %d, const D3DRECT *rects = 0x%0.8p, unsigned long flags = 0x%0.8X, unsigned long color = 0x%0.8X, float z = %f, unsigned long stencil = %d", count, rects, flags, color, z, stencil);
 
-		if(rects == 0 && count != 0)
+		if(!rects && count != 0)
 		{
 			return INVALIDCALL();
 		}
