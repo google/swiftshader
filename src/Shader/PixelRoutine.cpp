@@ -2323,9 +2323,9 @@ namespace sw
 
 				UInt xyzw, packedCol;
 
-				xyzw = UInt(*Pointer<UShort>(buffer)) << 16;
+				xyzw = UInt(*Pointer<UShort>(buffer)) & 0xFFFF;
 				buffer += *Pointer<Int>(data + OFFSET(DrawData, colorPitchB[index]));
-				xyzw |= UInt(*Pointer<UShort>(buffer));
+				xyzw |= UInt(*Pointer<UShort>(buffer)) << 16;
 
 				Short4 tmpCol = Short4(As<Int4>(oC.x));
 				if(state.targetFormat[index] == FORMAT_R8I)
