@@ -229,6 +229,13 @@ struct dev_list_flag {};
                    "Low-level integrated assembly ('.s') file"),               \
         clEnumValEnd))                                                         \
                                                                                \
+  X(ApplicationBinaryInterface, Ice::ABI, dev_opt_flag, "abi",                 \
+    cl::desc("ABI type"), cl::init(Ice::ABI_PNaCl),                            \
+    cl::values(                                                                \
+        clEnumValN(Ice::ABI_PNaCl, "pnacl", "x32 for unsandboxed 64-bit x86"), \
+        clEnumValN(Ice::ABI_Platform, "platform", "Native executable ABI"),    \
+        clEnumValEnd))                                                         \
+                                                                               \
   X(ParseParallel, bool, dev_opt_flag, "parse-parallel",                       \
     cl::desc("Parse function blocks in parallel"), cl::init(true))             \
                                                                                \

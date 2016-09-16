@@ -372,6 +372,11 @@ enum FileType {
   FT_Iasm /// "Integrated assembler" .byte-style .s file
 };
 
+enum ABI {
+  ABI_PNaCl,   /// x32 for unsandboxed 64-bit x86
+  ABI_Platform /// Native executable ABI
+};
+
 using Ostream = llvm::raw_ostream;
 using Fdstream = llvm::raw_fd_ostream;
 
