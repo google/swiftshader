@@ -17,6 +17,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <limits>
+#include <cstring>
 
 template<typename T>
 struct ExecutableAllocator
@@ -69,6 +70,14 @@ public:
 			position++;
 		}
 		else assert(false);
+	}
+
+	void writeBytes(llvm::StringRef Bytes) override
+	{
+		std::size_t oldSize = buffer.size();
+		buffer.resize(oldSize + Bytes.size());
+		memcpy(&buffer[oldSize], Bytes.begin(), Bytes.size());
+		position += Bytes.size();
 	}
 
 	uint64_t tell() const override { return position; }
