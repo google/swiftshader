@@ -419,6 +419,8 @@ public:
     Context.insert<InstMIPS32Multu>(Dest, Src0, Src1);
   }
 
+  void _nop() { Context.insert<InstMIPS32Sll>(getZero(), getZero(), 0); }
+
   void _or(Variable *Dest, Variable *Src0, Variable *Src1) {
     Context.insert<InstMIPS32Or>(Dest, Src0, Src1);
   }

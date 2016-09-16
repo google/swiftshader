@@ -202,10 +202,11 @@ def main():
     elif output_file_name:
       cmd += ['-o', output_file_name]
     if args.disassemble:
-      # Show wide instruction encodings, diassemble, and show relocs.
+      # Show wide instruction encodings, diassemble, show relocs and
+      # dissasemble zeros.
       cmd += (['&&', os.path.join(pnacl_bin_path, GetObjdumpCmd())] +
               args.dis_flags +
-              ['-w', '-d', '-r'] + TargetDisassemblerFlags(args.target) +
+              ['-w', '-d', '-r', '-z'] + TargetDisassemblerFlags(args.target) +
               [output_file_name])
 
     stdout_result = shellcmd(cmd, echo=args.echo_cmd)

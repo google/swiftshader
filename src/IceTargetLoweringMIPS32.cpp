@@ -3196,7 +3196,7 @@ void TargetMIPS32::randomlyInsertNop(float Probability,
                                      RandomNumberGenerator &RNG) {
   RandomNumberGeneratorWrapper RNGW(RNG);
   if (RNGW.getTrueWithProbability(Probability)) {
-    UnimplementedError(getFlags());
+    _nop();
   }
 }
 
