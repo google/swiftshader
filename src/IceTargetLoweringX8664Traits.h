@@ -50,7 +50,7 @@ struct TargetX8664Traits {
   //
   //----------------------------------------------------------------------------
   static constexpr ::Ice::Assembler::AssemblerKind AsmKind =
-      ::Ice::Assembler::Asm_X8632;
+      ::Ice::Assembler::Asm_X8664;
 
   static constexpr bool Is64Bit = true;
   static constexpr bool HasPopa = false;
@@ -702,7 +702,36 @@ public:
 
   static RegNumT getRdxOrDie() { return RegisterSet::Reg_rdx; }
 
-  // x86-64 calling convention:
+#if defined(_MSC_VER)
+  // Microsoft x86-64 calling convention:
+  //
+  // * The first four arguments of vector/fp type, regardless of their
+  // position relative to the other arguments in the argument list, are placed
+  // in registers %xmm0 - %xmm3.
+  //
+  // * The first four arguments of integer types, regardless of their position
+  // relative to the other arguments in the argument list, are placed in
+  // registers %rcx, %rdx, %r8, and %r9.
+
+  /// The maximum number of arguments to pass in XMM registers
+  static constexpr uint32_t X86_MAX_XMM_ARGS = 4;
+  /// The maximum number of arguments to pass in GPR registers
+  static constexpr uint32_t X86_MAX_GPR_ARGS = 4;
+  static RegNumT getRegisterForGprArgNum(Type Ty, uint32_t ArgNum) {
+    if (ArgNum >= X86_MAX_GPR_ARGS) {
+      return RegNumT();
+    }
+    static const RegisterSet::AllRegisters GprForArgNum[] = {
+        RegisterSet::Reg_rcx, RegisterSet::Reg_rdx, RegisterSet::Reg_r8,
+        RegisterSet::Reg_r9,
+    };
+    static_assert(llvm::array_lengthof(GprForArgNum) == X86_MAX_GPR_ARGS,
+                  "Mismatch between MAX_GPR_ARGS and GprForArgNum.");
+    assert(Ty == IceType_i64 || Ty == IceType_i32);
+    return getGprForType(Ty, GprForArgNum[ArgNum]);
+  }
+#else  // !defined(_MSC_VER)
+  // System V x86-64 calling convention:
   //
   // * The first eight arguments of vector/fp type, regardless of their
   // position relative to the other arguments in the argument list, are placed
@@ -719,18 +748,6 @@ public:
   static constexpr uint32_t X86_MAX_XMM_ARGS = 8;
   /// The maximum number of arguments to pass in GPR registers
   static constexpr uint32_t X86_MAX_GPR_ARGS = 6;
-  /// Whether scalar floating point arguments are passed in XMM registers
-  static constexpr bool X86_PASS_SCALAR_FP_IN_XMM = true;
-  /// Get the register for a given argument slot in the XMM registers.
-  static RegNumT getRegisterForXmmArgNum(uint32_t ArgNum) {
-    // TODO(sehr): Change to use the CCArg technique used in ARM32.
-    static_assert(RegisterSet::Reg_xmm0 + 1 == RegisterSet::Reg_xmm1,
-                  "Inconsistency between XMM register numbers and ordinals");
-    if (ArgNum >= X86_MAX_XMM_ARGS) {
-      return RegNumT();
-    }
-    return RegNumT::fixme(RegisterSet::Reg_xmm0 + ArgNum);
-  }
   /// Get the register for a given argument slot in the GPRs.
   static RegNumT getRegisterForGprArgNum(Type Ty, uint32_t ArgNum) {
     if (ArgNum >= X86_MAX_GPR_ARGS) {
@@ -744,6 +761,20 @@ public:
                   "Mismatch between MAX_GPR_ARGS and GprForArgNum.");
     assert(Ty == IceType_i64 || Ty == IceType_i32);
     return getGprForType(Ty, GprForArgNum[ArgNum]);
+  }
+#endif // !defined(_MSC_VER)
+
+  /// Whether scalar floating point arguments are passed in XMM registers
+  static constexpr bool X86_PASS_SCALAR_FP_IN_XMM = true;
+  /// Get the register for a given argument slot in the XMM registers.
+  static RegNumT getRegisterForXmmArgNum(uint32_t ArgNum) {
+    // TODO(sehr): Change to use the CCArg technique used in ARM32.
+    static_assert(RegisterSet::Reg_xmm0 + 1 == RegisterSet::Reg_xmm1,
+                  "Inconsistency between XMM register numbers and ordinals");
+    if (ArgNum >= X86_MAX_XMM_ARGS) {
+      return RegNumT();
+    }
+    return RegNumT::fixme(RegisterSet::Reg_xmm0 + ArgNum);
   }
 
   /// The number of bits in a byte
