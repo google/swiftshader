@@ -102,6 +102,8 @@ void AssemblerMIPS32::bindCfgNodeLabel(const CfgNode *Node) {
   this->bind(L);
 }
 
+namespace {
+
 // Checks that Offset can fit in imm16 constant of branch instruction.
 void assertCanEncodeBranchOffset(IOffsetT Offset) {
   (void)Offset;
@@ -118,32 +120,24 @@ IValueT encodeBranchOffset(IOffsetT Offset, IValueT Inst) {
   return (Inst & ~kBranchOffsetMask) | Offset;
 }
 
-IOffsetT AssemblerMIPS32::decodeBranchOffset(IValueT Inst) {
-  int16_t imm = (Inst & kBranchOffsetMask);
-  IOffsetT Offset = imm;
-  Offset = Offset << 2;
-  return (Offset + kPCReadOffset);
-}
-
-void AssemblerMIPS32::bind(Label *L) {
-  IOffsetT BoundPc = Buffer.size();
-  assert(!L->isBound()); // Labels can only be bound once.
-  while (L->isLinked()) {
-    IOffsetT Position = L->getLinkPosition();
-    IOffsetT Dest = BoundPc - Position;
-    IValueT Inst = Buffer.load<IValueT>(Position);
-    Buffer.store<IValueT>(Position, encodeBranchOffset(Dest, Inst));
-    L->setPosition(decodeBranchOffset(Inst));
-  }
-  L->bindTo(BoundPc);
-}
-
 enum RegSetWanted { WantGPRegs, WantFPRegs };
 
 IValueT getEncodedGPRegNum(const Variable *Var) {
-  assert(Var->hasReg());
+  assert(Var->hasReg() && isScalarIntegerType(Var->getType()));
   const auto Reg = Var->getRegNum();
   return RegMIPS32::getEncodedGPR(Reg);
+}
+
+IValueT getEncodedFPRegNum(const Variable *Var) {
+  assert(Var->hasReg() && isScalarFloatingType(Var->getType()));
+  const auto Reg = Var->getRegNum();
+  IValueT RegEncoding;
+  if (RegMIPS32::isFPRReg(Reg)) {
+    RegEncoding = RegMIPS32::getEncodedFPR(Reg);
+  } else {
+    RegEncoding = RegMIPS32::getEncodedFPR64(Reg);
+  }
+  return RegEncoding;
 }
 
 bool encodeOperand(const Operand *Opnd, IValueT &Value,
@@ -155,7 +149,8 @@ bool encodeOperand(const Operand *Opnd, IValueT &Value,
       case WantGPRegs:
         Value = getEncodedGPRegNum(Var);
         break;
-      default:
+      case WantFPRegs:
+        Value = getEncodedFPRegNum(Var);
         break;
       }
       return true;
@@ -179,6 +174,33 @@ IValueT encodeGPRegister(const Operand *OpReg, const char *RegName,
   return encodeRegister(OpReg, WantGPRegs, RegName, InstName);
 }
 
+IValueT encodeFPRegister(const Operand *OpReg, const char *RegName,
+                         const char *InstName) {
+  return encodeRegister(OpReg, WantFPRegs, RegName, InstName);
+}
+
+} // end of anonymous namespace
+
+IOffsetT AssemblerMIPS32::decodeBranchOffset(IValueT Inst) {
+  int16_t imm = (Inst & kBranchOffsetMask);
+  IOffsetT Offset = imm;
+  Offset = Offset << 2;
+  return (Offset + kPCReadOffset);
+}
+
+void AssemblerMIPS32::bind(Label *L) {
+  IOffsetT BoundPc = Buffer.size();
+  assert(!L->isBound()); // Labels can only be bound once.
+  while (L->isLinked()) {
+    IOffsetT Position = L->getLinkPosition();
+    IOffsetT Dest = BoundPc - Position;
+    IValueT Inst = Buffer.load<IValueT>(Position);
+    Buffer.store<IValueT>(Position, encodeBranchOffset(Dest, Inst));
+    L->setPosition(decodeBranchOffset(Inst));
+  }
+  L->bindTo(BoundPc);
+}
+
 void AssemblerMIPS32::emitRtRsImm16(IValueT Opcode, const Operand *OpRt,
                                     const Operand *OpRs, const uint32_t Imm,
                                     const char *InsnName) {
@@ -187,6 +209,19 @@ void AssemblerMIPS32::emitRtRsImm16(IValueT Opcode, const Operand *OpRt,
 
   Opcode |= Rs << 21;
   Opcode |= Rt << 16;
+  Opcode |= Imm & 0xffff;
+
+  emitInst(Opcode);
+}
+
+void AssemblerMIPS32::emitFtRsImm16(IValueT Opcode, const Operand *OpFt,
+                                    const Operand *OpRs, const uint32_t Imm,
+                                    const char *InsnName) {
+  const IValueT Ft = encodeFPRegister(OpFt, "Ft", InsnName);
+  const IValueT Rs = encodeGPRegister(OpRs, "Rs", InsnName);
+
+  Opcode |= Rs << 21;
+  Opcode |= Ft << 16;
   Opcode |= Imm & 0xffff;
 
   emitInst(Opcode);
@@ -219,22 +254,96 @@ void AssemblerMIPS32::emitRdRsRt(IValueT Opcode, const Operand *OpRd,
   emitInst(Opcode);
 }
 
+void AssemblerMIPS32::emitCOP1FmtFsFd(IValueT Opcode, FPInstDataFormat Format,
+                                      const Operand *OpFd, const Operand *OpFs,
+                                      const char *InsnName) {
+  const IValueT Fd = encodeFPRegister(OpFd, "Fd", InsnName);
+  const IValueT Fs = encodeFPRegister(OpFs, "Fs", InsnName);
+
+  Opcode |= Fd << 6;
+  Opcode |= Fs << 11;
+  Opcode |= Format << 21;
+
+  emitInst(Opcode);
+}
+
+void AssemblerMIPS32::emitCOP1FmtFtFsFd(IValueT Opcode, FPInstDataFormat Format,
+                                        const Operand *OpFd,
+                                        const Operand *OpFs,
+                                        const Operand *OpFt,
+                                        const char *InsnName) {
+  const IValueT Fd = encodeFPRegister(OpFd, "Fd", InsnName);
+  const IValueT Fs = encodeFPRegister(OpFs, "Fs", InsnName);
+  const IValueT Ft = encodeFPRegister(OpFt, "Ft", InsnName);
+
+  Opcode |= Fd << 6;
+  Opcode |= Fs << 11;
+  Opcode |= Ft << 16;
+  Opcode |= Format << 21;
+
+  emitInst(Opcode);
+}
+
+void AssemblerMIPS32::emitCOP1FmtRtFsFd(IValueT Opcode, FPInstDataFormat Format,
+                                        const Operand *OpFd,
+                                        const Operand *OpFs,
+                                        const Operand *OpRt,
+                                        const char *InsnName) {
+  const IValueT Fd = encodeFPRegister(OpFd, "Fd", InsnName);
+  const IValueT Fs = encodeFPRegister(OpFs, "Fs", InsnName);
+  const IValueT Rt = encodeGPRegister(OpRt, "Rt", InsnName);
+
+  Opcode |= Fd << 6;
+  Opcode |= Fs << 11;
+  Opcode |= Rt << 16;
+  Opcode |= Format << 21;
+
+  emitInst(Opcode);
+}
+
+void AssemblerMIPS32::emitCOP1MovRtFs(IValueT Opcode, const Operand *OpRt,
+                                      const Operand *OpFs,
+                                      const char *InsnName) {
+  const IValueT Rt = encodeGPRegister(OpRt, "Rt", InsnName);
+  const IValueT Fs = encodeFPRegister(OpFs, "Fs", InsnName);
+  Opcode |= Fs << 11;
+  Opcode |= Rt << 16;
+
+  emitInst(Opcode);
+}
+
+void AssemblerMIPS32::abs_d(const Operand *OpFd, const Operand *OpFs) {
+  static constexpr IValueT Opcode = 0x44000005;
+  emitCOP1FmtFsFd(Opcode, DoublePrecision, OpFd, OpFs, "abs.d");
+}
+
+void AssemblerMIPS32::abs_s(const Operand *OpFd, const Operand *OpFs) {
+  static constexpr IValueT Opcode = 0x44000005;
+  emitCOP1FmtFsFd(Opcode, SinglePrecision, OpFd, OpFs, "abs.s");
+}
+
+void AssemblerMIPS32::add_d(const Operand *OpFd, const Operand *OpFs,
+                            const Operand *OpFt) {
+  static constexpr IValueT Opcode = 0x44000000;
+  emitCOP1FmtFtFsFd(Opcode, DoublePrecision, OpFd, OpFs, OpFt, "add.d");
+}
+
+void AssemblerMIPS32::add_s(const Operand *OpFd, const Operand *OpFs,
+                            const Operand *OpFt) {
+  static constexpr IValueT Opcode = 0x44000000;
+  emitCOP1FmtFtFsFd(Opcode, SinglePrecision, OpFd, OpFs, OpFt, "add.s");
+}
+
 void AssemblerMIPS32::addiu(const Operand *OpRt, const Operand *OpRs,
                             const uint32_t Imm) {
   static constexpr IValueT Opcode = 0x24000000;
   emitRtRsImm16(Opcode, OpRt, OpRs, Imm, "addiu");
 }
 
-void AssemblerMIPS32::slti(const Operand *OpRt, const Operand *OpRs,
-                           const uint32_t Imm) {
-  static constexpr IValueT Opcode = 0x28000000;
-  emitRtRsImm16(Opcode, OpRt, OpRs, Imm, "slti");
-}
-
-void AssemblerMIPS32::sltiu(const Operand *OpRt, const Operand *OpRs,
-                            const uint32_t Imm) {
-  static constexpr IValueT Opcode = 0x2c000000;
-  emitRtRsImm16(Opcode, OpRt, OpRs, Imm, "sltiu");
+void AssemblerMIPS32::addu(const Operand *OpRd, const Operand *OpRs,
+                           const Operand *OpRt) {
+  static constexpr IValueT Opcode = 0x00000021;
+  emitRdRsRt(Opcode, OpRd, OpRs, OpRt, "addu");
 }
 
 void AssemblerMIPS32::and_(const Operand *OpRd, const Operand *OpRs,
@@ -249,6 +358,186 @@ void AssemblerMIPS32::andi(const Operand *OpRt, const Operand *OpRs,
   emitRtRsImm16(Opcode, OpRt, OpRs, Imm, "andi");
 }
 
+void AssemblerMIPS32::b(Label *TargetLabel) {
+  static constexpr Operand *OpRsNone = nullptr;
+  static constexpr Operand *OpRtNone = nullptr;
+  if (TargetLabel->isBound()) {
+    const int32_t Dest = TargetLabel->getPosition() - Buffer.size();
+    emitBr(CondMIPS32::AL, OpRsNone, OpRtNone, Dest);
+    return;
+  }
+  const IOffsetT Position = Buffer.size();
+  emitBr(CondMIPS32::AL, OpRsNone, OpRtNone, TargetLabel->getEncodedPosition());
+  TargetLabel->linkTo(*this, Position);
+}
+
+void AssemblerMIPS32::cvt_d_l(const Operand *OpFd, const Operand *OpFs) {
+  static constexpr IValueT Opcode = 0x44000021;
+  emitCOP1FmtFsFd(Opcode, Long, OpFd, OpFs, "cvt.d.l");
+}
+
+void AssemblerMIPS32::cvt_d_s(const Operand *OpFd, const Operand *OpFs) {
+  static constexpr IValueT Opcode = 0x44000021;
+  emitCOP1FmtFsFd(Opcode, SinglePrecision, OpFd, OpFs, "cvt.d.s");
+}
+
+void AssemblerMIPS32::cvt_d_w(const Operand *OpFd, const Operand *OpFs) {
+  static constexpr IValueT Opcode = 0x44000021;
+  emitCOP1FmtFsFd(Opcode, Word, OpFd, OpFs, "cvt.d.w");
+}
+
+void AssemblerMIPS32::cvt_s_d(const Operand *OpFd, const Operand *OpFs) {
+  static constexpr IValueT Opcode = 0x44000020;
+  emitCOP1FmtFsFd(Opcode, DoublePrecision, OpFd, OpFs, "cvt.s.d");
+}
+
+void AssemblerMIPS32::cvt_s_l(const Operand *OpFd, const Operand *OpFs) {
+  static constexpr IValueT Opcode = 0x44000020;
+  emitCOP1FmtFsFd(Opcode, Long, OpFd, OpFs, "cvt.s.l");
+}
+
+void AssemblerMIPS32::cvt_s_w(const Operand *OpFd, const Operand *OpFs) {
+  static constexpr IValueT Opcode = 0x44000020;
+  emitCOP1FmtFsFd(Opcode, Word, OpFd, OpFs, "cvt.s.w");
+}
+
+void AssemblerMIPS32::div_d(const Operand *OpFd, const Operand *OpFs,
+                            const Operand *OpFt) {
+  static constexpr IValueT Opcode = 0x44000003;
+  emitCOP1FmtFtFsFd(Opcode, DoublePrecision, OpFd, OpFs, OpFt, "div.d");
+}
+
+void AssemblerMIPS32::div_s(const Operand *OpFd, const Operand *OpFs,
+                            const Operand *OpFt) {
+  static constexpr IValueT Opcode = 0x44000003;
+  emitCOP1FmtFtFsFd(Opcode, SinglePrecision, OpFd, OpFs, OpFt, "div.s");
+}
+
+void AssemblerMIPS32::lw(const Operand *OpRt, const Operand *OpBase,
+                         const uint32_t Offset) {
+  switch (OpRt->getType()) {
+  case IceType_i1:
+  case IceType_i8: {
+    static constexpr IValueT Opcode = 0x80000000;
+    emitRtRsImm16(Opcode, OpRt, OpBase, Offset, "lb");
+  }
+  case IceType_i16: {
+    static constexpr IValueT Opcode = 0x84000000;
+    emitRtRsImm16(Opcode, OpRt, OpBase, Offset, "lh");
+  }
+  case IceType_i32: {
+    static constexpr IValueT Opcode = 0x8C000000;
+    emitRtRsImm16(Opcode, OpRt, OpBase, Offset, "lw");
+    break;
+  }
+  case IceType_f32: {
+    static constexpr IValueT Opcode = 0xC4000000;
+    emitFtRsImm16(Opcode, OpRt, OpBase, Offset, "lwc1");
+  }
+  case IceType_f64: {
+    static constexpr IValueT Opcode = 0xD4000000;
+    emitFtRsImm16(Opcode, OpRt, OpBase, Offset, "ldc1");
+    break;
+  }
+  default: { UnimplementedError(getFlags()); }
+  }
+}
+
+void AssemblerMIPS32::mfc1(const Operand *OpRt, const Operand *OpFs) {
+  static constexpr IValueT Opcode = 0x44000000;
+  emitCOP1MovRtFs(Opcode, OpRt, OpFs, "mfc1");
+}
+
+void AssemblerMIPS32::mov_d(const Operand *OpFd, const Operand *OpFs) {
+  static constexpr IValueT Opcode = 0x44000006;
+  emitCOP1FmtFsFd(Opcode, DoublePrecision, OpFd, OpFs, "mov.d");
+}
+
+void AssemblerMIPS32::mov_s(const Operand *OpFd, const Operand *OpFs) {
+  static constexpr IValueT Opcode = 0x44000006;
+  emitCOP1FmtFsFd(Opcode, SinglePrecision, OpFd, OpFs, "mov.s");
+}
+
+void AssemblerMIPS32::move(const Operand *OpRd, const Operand *OpRs) {
+
+  const Type DstType = OpRd->getType();
+  const Type SrcType = OpRs->getType();
+
+  if ((isScalarIntegerType(DstType) && isScalarFloatingType(SrcType)) ||
+      (isScalarFloatingType(DstType) && isScalarIntegerType(SrcType))) {
+    if (isScalarFloatingType(DstType)) {
+      mtc1(OpRd, OpRs);
+    } else {
+      mfc1(OpRd, OpRs);
+    }
+  } else {
+    switch (DstType) {
+    case IceType_f32:
+      mov_s(OpRd, OpRs);
+      break;
+    case IceType_f64:
+      mov_d(OpRd, OpRs);
+      break;
+    case IceType_i1:
+    case IceType_i8:
+    case IceType_i16:
+    case IceType_i32: {
+      IValueT Opcode = 0x00000021;
+      const IValueT Rd = encodeGPRegister(OpRd, "Rd", "pseudo-move");
+      const IValueT Rs = encodeGPRegister(OpRs, "Rs", "pseudo-move");
+      const IValueT Rt = 0; // $0
+      Opcode |= Rs << 21;
+      Opcode |= Rt << 16;
+      Opcode |= Rd << 11;
+      emitInst(Opcode);
+      break;
+    }
+    default: { UnimplementedError(getFlags()); }
+    }
+  }
+}
+
+void AssemblerMIPS32::movn_d(const Operand *OpFd, const Operand *OpFs,
+                             const Operand *OpFt) {
+  static constexpr IValueT Opcode = 0x44000013;
+  emitCOP1FmtFtFsFd(Opcode, SinglePrecision, OpFd, OpFs, OpFt, "movn.d");
+}
+
+void AssemblerMIPS32::movn_s(const Operand *OpFd, const Operand *OpFs,
+                             const Operand *OpFt) {
+  static constexpr IValueT Opcode = 0x44000013;
+  emitCOP1FmtFtFsFd(Opcode, SinglePrecision, OpFd, OpFs, OpFt, "movn.s");
+}
+
+void AssemblerMIPS32::movz_d(const Operand *OpFd, const Operand *OpFs,
+                             const Operand *OpFt) {
+  static constexpr IValueT Opcode = 0x44000012;
+  emitCOP1FmtFtFsFd(Opcode, SinglePrecision, OpFd, OpFs, OpFt, "movz.d");
+}
+
+void AssemblerMIPS32::movz_s(const Operand *OpFd, const Operand *OpFs,
+                             const Operand *OpFt) {
+  static constexpr IValueT Opcode = 0x44000012;
+  emitCOP1FmtFtFsFd(Opcode, SinglePrecision, OpFd, OpFs, OpFt, "movz.s");
+}
+
+void AssemblerMIPS32::mtc1(const Operand *OpRt, const Operand *OpFs) {
+  static constexpr IValueT Opcode = 0x44800000;
+  emitCOP1MovRtFs(Opcode, OpRt, OpFs, "mtc1");
+}
+
+void AssemblerMIPS32::mul_d(const Operand *OpFd, const Operand *OpFs,
+                            const Operand *OpFt) {
+  static constexpr IValueT Opcode = 0x44000002;
+  emitCOP1FmtFtFsFd(Opcode, DoublePrecision, OpFd, OpFs, OpFt, "mul.d");
+}
+
+void AssemblerMIPS32::mul_s(const Operand *OpFd, const Operand *OpFs,
+                            const Operand *OpFt) {
+  static constexpr IValueT Opcode = 0x44000002;
+  emitCOP1FmtFtFsFd(Opcode, SinglePrecision, OpFd, OpFs, OpFt, "mul.s");
+}
+
 void AssemblerMIPS32::or_(const Operand *OpRd, const Operand *OpRs,
                           const Operand *OpRt) {
   static constexpr IValueT Opcode = 0x00000025;
@@ -261,6 +550,129 @@ void AssemblerMIPS32::ori(const Operand *OpRt, const Operand *OpRs,
   emitRtRsImm16(Opcode, OpRt, OpRs, Imm, "ori");
 }
 
+void AssemblerMIPS32::ret(void) {
+  static constexpr IValueT Opcode = 0x03E00008; // JR $31
+  emitInst(Opcode);
+  nop(); // delay slot
+}
+
+void AssemblerMIPS32::sll(const Operand *OpRd, const Operand *OpRt,
+                          const uint32_t Sa) {
+  static constexpr IValueT Opcode = 0x00000000;
+  emitRdRtSa(Opcode, OpRd, OpRt, Sa, "sll");
+}
+
+void AssemblerMIPS32::slt(const Operand *OpRd, const Operand *OpRs,
+                          const Operand *OpRt) {
+  static constexpr IValueT Opcode = 0x0000002A;
+  emitRdRsRt(Opcode, OpRd, OpRs, OpRt, "slt");
+}
+
+void AssemblerMIPS32::slti(const Operand *OpRt, const Operand *OpRs,
+                           const uint32_t Imm) {
+  static constexpr IValueT Opcode = 0x28000000;
+  emitRtRsImm16(Opcode, OpRt, OpRs, Imm, "slti");
+}
+
+void AssemblerMIPS32::sltu(const Operand *OpRd, const Operand *OpRs,
+                           const Operand *OpRt) {
+  static constexpr IValueT Opcode = 0x0000002B;
+  emitRdRsRt(Opcode, OpRd, OpRs, OpRt, "sltu");
+}
+
+void AssemblerMIPS32::sltiu(const Operand *OpRt, const Operand *OpRs,
+                            const uint32_t Imm) {
+  static constexpr IValueT Opcode = 0x2c000000;
+  emitRtRsImm16(Opcode, OpRt, OpRs, Imm, "sltiu");
+}
+
+void AssemblerMIPS32::sqrt_d(const Operand *OpFd, const Operand *OpFs) {
+  static constexpr IValueT Opcode = 0x44000004;
+  emitCOP1FmtFsFd(Opcode, DoublePrecision, OpFd, OpFs, "sqrt.d");
+}
+
+void AssemblerMIPS32::sqrt_s(const Operand *OpFd, const Operand *OpFs) {
+  static constexpr IValueT Opcode = 0x44000004;
+  emitCOP1FmtFsFd(Opcode, SinglePrecision, OpFd, OpFs, "sqrt.s");
+}
+
+void AssemblerMIPS32::sra(const Operand *OpRd, const Operand *OpRt,
+                          const uint32_t Sa) {
+  static constexpr IValueT Opcode = 0x00000003;
+  emitRdRtSa(Opcode, OpRd, OpRt, Sa, "sra");
+}
+
+void AssemblerMIPS32::srl(const Operand *OpRd, const Operand *OpRt,
+                          const uint32_t Sa) {
+  static constexpr IValueT Opcode = 0x00000002;
+  emitRdRtSa(Opcode, OpRd, OpRt, Sa, "srl");
+}
+
+void AssemblerMIPS32::sub_d(const Operand *OpFd, const Operand *OpFs,
+                            const Operand *OpFt) {
+  static constexpr IValueT Opcode = 0x44000001;
+  emitCOP1FmtFtFsFd(Opcode, DoublePrecision, OpFd, OpFs, OpFt, "sub.d");
+}
+
+void AssemblerMIPS32::sub_s(const Operand *OpFd, const Operand *OpFs,
+                            const Operand *OpFt) {
+  static constexpr IValueT Opcode = 0x44000001;
+  emitCOP1FmtFtFsFd(Opcode, SinglePrecision, OpFd, OpFs, OpFt, "sub.s");
+}
+
+void AssemblerMIPS32::sw(const Operand *OpRt, const Operand *OpBase,
+                         const uint32_t Offset) {
+  switch (OpRt->getType()) {
+  case IceType_i1:
+  case IceType_i8: {
+    static constexpr IValueT Opcode = 0xA0000000;
+    emitRtRsImm16(Opcode, OpRt, OpBase, Offset, "sb");
+    break;
+  }
+  case IceType_i16: {
+    static constexpr IValueT Opcode = 0xA4000000;
+    emitRtRsImm16(Opcode, OpRt, OpBase, Offset, "sh");
+    break;
+  }
+  case IceType_i32: {
+    static constexpr IValueT Opcode = 0xAC000000;
+    emitRtRsImm16(Opcode, OpRt, OpBase, Offset, "sw");
+    break;
+  }
+  case IceType_f32: {
+    static constexpr IValueT Opcode = 0xE4000000;
+    emitFtRsImm16(Opcode, OpRt, OpBase, Offset, "swc1");
+    break;
+  }
+  case IceType_f64: {
+    static constexpr IValueT Opcode = 0xF4000000;
+    emitFtRsImm16(Opcode, OpRt, OpBase, Offset, "sdc1");
+    break;
+  }
+  default: { UnimplementedError(getFlags()); }
+  }
+}
+
+void AssemblerMIPS32::trunc_l_d(const Operand *OpFd, const Operand *OpFs) {
+  static constexpr IValueT Opcode = 0x4400000D;
+  emitCOP1FmtFsFd(Opcode, Long, OpFd, OpFs, "trunc.l.d");
+}
+
+void AssemblerMIPS32::trunc_l_s(const Operand *OpFd, const Operand *OpFs) {
+  static constexpr IValueT Opcode = 0x4400000D;
+  emitCOP1FmtFsFd(Opcode, Long, OpFd, OpFs, "trunc.l.s");
+}
+
+void AssemblerMIPS32::trunc_w_d(const Operand *OpFd, const Operand *OpFs) {
+  static constexpr IValueT Opcode = 0x4400000D;
+  emitCOP1FmtFsFd(Opcode, Word, OpFd, OpFs, "trunc.w.d");
+}
+
+void AssemblerMIPS32::trunc_w_s(const Operand *OpFd, const Operand *OpFs) {
+  static constexpr IValueT Opcode = 0x4400000D;
+  emitCOP1FmtFsFd(Opcode, Word, OpFd, OpFs, "trunc.w.s");
+}
+
 void AssemblerMIPS32::xor_(const Operand *OpRd, const Operand *OpRs,
                            const Operand *OpRt) {
   static constexpr IValueT Opcode = 0x00000026;
@@ -271,71 +683,6 @@ void AssemblerMIPS32::xori(const Operand *OpRt, const Operand *OpRs,
                            const uint32_t Imm) {
   static constexpr IValueT Opcode = 0x38000000;
   emitRtRsImm16(Opcode, OpRt, OpRs, Imm, "xori");
-}
-
-void AssemblerMIPS32::sll(const Operand *OpRd, const Operand *OpRt,
-                          const uint32_t Sa) {
-  static constexpr IValueT Opcode = 0x00000000;
-  emitRdRtSa(Opcode, OpRd, OpRt, Sa, "sll");
-}
-
-void AssemblerMIPS32::srl(const Operand *OpRd, const Operand *OpRt,
-                          const uint32_t Sa) {
-  static constexpr IValueT Opcode = 0x00000002;
-  emitRdRtSa(Opcode, OpRd, OpRt, Sa, "srl");
-}
-
-void AssemblerMIPS32::sra(const Operand *OpRd, const Operand *OpRt,
-                          const uint32_t Sa) {
-  static constexpr IValueT Opcode = 0x00000003;
-  emitRdRtSa(Opcode, OpRd, OpRt, Sa, "sra");
-}
-
-void AssemblerMIPS32::move(const Operand *OpRd, const Operand *OpRs) {
-  IValueT Opcode = 0x00000021;
-  const IValueT Rd = encodeGPRegister(OpRd, "Rd", "pseudo-move");
-  const IValueT Rs = encodeGPRegister(OpRs, "Rs", "pseudo-move");
-  const IValueT Rt = 0; // $0
-  Opcode |= Rs << 21;
-  Opcode |= Rt << 16;
-  Opcode |= Rd << 11;
-  emitInst(Opcode);
-}
-
-void AssemblerMIPS32::addu(const Operand *OpRd, const Operand *OpRs,
-                           const Operand *OpRt) {
-  static constexpr IValueT Opcode = 0x00000021;
-  emitRdRsRt(Opcode, OpRd, OpRs, OpRt, "addu");
-}
-
-void AssemblerMIPS32::sltu(const Operand *OpRd, const Operand *OpRs,
-                           const Operand *OpRt) {
-  static constexpr IValueT Opcode = 0x0000002B;
-  emitRdRsRt(Opcode, OpRd, OpRs, OpRt, "sltu");
-}
-
-void AssemblerMIPS32::slt(const Operand *OpRd, const Operand *OpRs,
-                          const Operand *OpRt) {
-  static constexpr IValueT Opcode = 0x0000002A;
-  emitRdRsRt(Opcode, OpRd, OpRs, OpRt, "slt");
-}
-
-void AssemblerMIPS32::sw(const Operand *OpRt, const Operand *OpBase,
-                         const uint32_t Offset) {
-  static constexpr IValueT Opcode = 0xAC000000;
-  emitRtRsImm16(Opcode, OpRt, OpBase, Offset, "sw");
-}
-
-void AssemblerMIPS32::lw(const Operand *OpRt, const Operand *OpBase,
-                         const uint32_t Offset) {
-  static constexpr IValueT Opcode = 0x8C000000;
-  emitRtRsImm16(Opcode, OpRt, OpBase, Offset, "lw");
-}
-
-void AssemblerMIPS32::ret(void) {
-  static constexpr IValueT Opcode = 0x03E00008; // JR $31
-  emitInst(Opcode);
-  nop(); // delay slot
 }
 
 void AssemblerMIPS32::emitBr(const CondMIPS32::Cond Cond, const Operand *OpRs,
@@ -385,19 +732,6 @@ void AssemblerMIPS32::emitBr(const CondMIPS32::Cond Cond, const Operand *OpRs,
   Opcode = encodeBranchOffset(Offset, Opcode);
   emitInst(Opcode);
   nop(); // delay slot
-}
-
-void AssemblerMIPS32::b(Label *TargetLabel) {
-  static constexpr Operand *OpRsNone = nullptr;
-  static constexpr Operand *OpRtNone = nullptr;
-  if (TargetLabel->isBound()) {
-    const int32_t Dest = TargetLabel->getPosition() - Buffer.size();
-    emitBr(CondMIPS32::AL, OpRsNone, OpRtNone, Dest);
-    return;
-  }
-  const IOffsetT Position = Buffer.size();
-  emitBr(CondMIPS32::AL, OpRsNone, OpRtNone, TargetLabel->getEncodedPosition());
-  TargetLabel->linkTo(*this, Position);
 }
 
 void AssemblerMIPS32::bcc(const CondMIPS32::Cond Cond, const Operand *OpRs,

@@ -86,8 +86,19 @@ static inline FPRRegister getEncodedFPR(RegNumT RegNum) {
 }
 
 static inline bool isFPRReg(RegNumT RegNum) {
-  return (int(Reg_FPR_First) <= int(RegNum)) &&
-         (unsigned(RegNum) <= Reg_FPR_Last);
+  return ((int(Reg_FPR_First) <= int(RegNum)) &&
+          (unsigned(RegNum) <= Reg_FPR_Last));
+}
+
+static inline FPRRegister getEncodedFPR64(RegNumT RegNum) {
+  assert(int(Reg_F64PAIR_First) <= int(RegNum));
+  assert(unsigned(RegNum) <= Reg_F64PAIR_Last);
+  return FPRRegister((RegNum - Reg_F64PAIR_First) * 2);
+}
+
+static inline bool isFPR64Reg(RegNumT RegNum) {
+  return (int(Reg_F64PAIR_First) <= int(RegNum)) &&
+         (unsigned(RegNum) <= Reg_F64PAIR_Last);
 }
 
 const char *getRegName(RegNumT RegNum);

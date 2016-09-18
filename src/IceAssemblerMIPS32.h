@@ -27,6 +27,13 @@ namespace MIPS32 {
 using IValueT = uint32_t;
 using IOffsetT = int32_t;
 
+enum FPInstDataFormat {
+  SinglePrecision = 16,
+  DoublePrecision = 17,
+  Word = 20,
+  Long = 21
+};
+
 class AssemblerMIPS32 : public Assembler {
   AssemblerMIPS32(const AssemblerMIPS32 &) = delete;
   AssemblerMIPS32 &operator=(const AssemblerMIPS32 &) = delete;
@@ -54,56 +61,134 @@ public:
   void nop();
 
   void emitRtRsImm16(IValueT Opcode, const Operand *OpRt, const Operand *OpRs,
-                     const uint32_t Imm, const char *InsnName);
+                     uint32_t Imm, const char *InsnName);
+
+  void emitFtRsImm16(IValueT Opcode, const Operand *OpFt, const Operand *OpRs,
+                     uint32_t Imm, const char *InsnName);
 
   void emitRdRtSa(IValueT Opcode, const Operand *OpRd, const Operand *OpRt,
-                  const uint32_t Sa, const char *InsnName);
+                  uint32_t Sa, const char *InsnName);
 
   void emitRdRsRt(IValueT Opcode, const Operand *OpRd, const Operand *OpRs,
                   const Operand *OpRt, const char *InsnName);
 
+  void emitCOP1FmtFsFd(IValueT Opcode, FPInstDataFormat Format,
+                       const Operand *OpFd, const Operand *OpFs,
+                       const char *InsnName);
+
+  void emitCOP1FmtFtFsFd(IValueT Opcode, FPInstDataFormat Format,
+                         const Operand *OpFd, const Operand *OpFs,
+                         const Operand *OpFt, const char *InsnName);
+
+  void emitCOP1FmtRtFsFd(IValueT Opcode, FPInstDataFormat Format,
+                         const Operand *OpFd, const Operand *OpFs,
+                         const Operand *OpRt, const char *InsnName);
+
+  void emitCOP1MovRtFs(IValueT Opcode, const Operand *OpRt, const Operand *OpFs,
+                       const char *InsnName);
+
   void emitBr(const CondMIPS32::Cond Cond, const Operand *OpRs,
               const Operand *OpRt, IOffsetT Offset);
 
+  void abs_d(const Operand *OpFd, const Operand *OpFs);
+
+  void abs_s(const Operand *OpFd, const Operand *OpFs);
+
+  void add_d(const Operand *OpFd, const Operand *OpFs, const Operand *OpFt);
+
+  void add_s(const Operand *OpFd, const Operand *OpFs, const Operand *OpFt);
+
+  void addu(const Operand *OpRd, const Operand *OpRs, const Operand *OpRt);
+
   void addiu(const Operand *OpRt, const Operand *OpRs, const uint32_t Imm);
-
-  void slti(const Operand *OpRt, const Operand *OpRs, const uint32_t Imm);
-
-  void sltiu(const Operand *OpRt, const Operand *OpRs, const uint32_t Imm);
 
   void and_(const Operand *OpRd, const Operand *OpRs, const Operand *OpRt);
 
   void andi(const Operand *OpRt, const Operand *OpRs, const uint32_t Imm);
 
+  void b(Label *TargetLabel);
+
+  void cvt_d_l(const Operand *OpFd, const Operand *OpFs);
+
+  void cvt_d_s(const Operand *OpFd, const Operand *OpFs);
+
+  void cvt_d_w(const Operand *OpFd, const Operand *OpFs);
+
+  void cvt_s_d(const Operand *OpFd, const Operand *OpFs);
+
+  void cvt_s_l(const Operand *OpFd, const Operand *OpFs);
+
+  void cvt_s_w(const Operand *OpFd, const Operand *OpFs);
+
+  void div_d(const Operand *OpFd, const Operand *OpFs, const Operand *OpFt);
+
+  void div_s(const Operand *OpFd, const Operand *OpFs, const Operand *OpFt);
+
+  void lw(const Operand *OpRt, const Operand *OpBase, const uint32_t Offset);
+
+  void mfc1(const Operand *OpRt, const Operand *OpFs);
+
+  void mov_d(const Operand *OpFd, const Operand *OpFs);
+
+  void mov_s(const Operand *OpFd, const Operand *OpFs);
+
+  void move(const Operand *OpRd, const Operand *OpRs);
+
+  void movn_d(const Operand *OpFd, const Operand *OpFs, const Operand *OpFt);
+
+  void movn_s(const Operand *OpFd, const Operand *OpFs, const Operand *OpFt);
+
+  void movz_d(const Operand *OpFd, const Operand *OpFs, const Operand *OpFt);
+
+  void movz_s(const Operand *OpFd, const Operand *OpFs, const Operand *OpFt);
+
+  void mtc1(const Operand *OpRt, const Operand *OpFs);
+
+  void mul_d(const Operand *OpFd, const Operand *OpFs, const Operand *OpFt);
+
+  void mul_s(const Operand *OpFd, const Operand *OpFs, const Operand *OpFt);
+
   void or_(const Operand *OpRd, const Operand *OpRs, const Operand *OpRt);
 
   void ori(const Operand *OpRt, const Operand *OpRs, const uint32_t Imm);
 
-  void xor_(const Operand *OpRd, const Operand *OpRs, const Operand *OpRt);
-
-  void xori(const Operand *OpRt, const Operand *OpRs, const uint32_t Imm);
+  void ret(void);
 
   void sll(const Operand *OpRd, const Operand *OpRt, const uint32_t Sa);
 
-  void srl(const Operand *OpRd, const Operand *OpRt, const uint32_t Sa);
-
-  void sra(const Operand *OpRd, const Operand *OpRt, const uint32_t Sa);
-
-  void move(const Operand *OpRd, const Operand *OpRs);
-
-  void addu(const Operand *OpRd, const Operand *OpRs, const Operand *OpRt);
-
   void slt(const Operand *OpRd, const Operand *OpRs, const Operand *OpRt);
+
+  void slti(const Operand *OpRt, const Operand *OpRs, const uint32_t Imm);
+
+  void sltiu(const Operand *OpRt, const Operand *OpRs, const uint32_t Imm);
 
   void sltu(const Operand *OpRd, const Operand *OpRs, const Operand *OpRt);
 
+  void sqrt_d(const Operand *OpFd, const Operand *OpFs);
+
+  void sqrt_s(const Operand *OpFd, const Operand *OpFs);
+
+  void sra(const Operand *OpRd, const Operand *OpRt, const uint32_t Sa);
+
+  void srl(const Operand *OpRd, const Operand *OpRt, const uint32_t Sa);
+
+  void sub_d(const Operand *OpFd, const Operand *OpFs, const Operand *OpFt);
+
+  void sub_s(const Operand *OpFd, const Operand *OpFs, const Operand *OpFt);
+
   void sw(const Operand *OpRt, const Operand *OpBase, const uint32_t Offset);
 
-  void lw(const Operand *OpRt, const Operand *OpBase, const uint32_t Offset);
+  void trunc_l_d(const Operand *OpFd, const Operand *OpFs);
 
-  void ret(void);
+  void trunc_l_s(const Operand *OpFd, const Operand *OpFs);
 
-  void b(Label *TargetLabel);
+  void trunc_w_d(const Operand *OpFd, const Operand *OpFs);
+
+  void trunc_w_s(const Operand *OpFd, const Operand *OpFs);
+
+  void xor_(const Operand *OpRd, const Operand *OpRs, const Operand *OpRt);
+
+  void xori(const Operand *OpRt, const Operand *OpRs, const uint32_t Imm);
 
   void bcc(const CondMIPS32::Cond Cond, const Operand *OpRs,
            const Operand *OpRt, Label *TargetLabel);
