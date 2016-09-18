@@ -144,6 +144,9 @@ NonZero:
 ; ARM32-LABEL: test_setjmplongjmp
 ; ARM32: bl {{.*}} setjmp
 ; ARM32: bl {{.*}} longjmp
+; MIPS32-LABEL: test_setjmplongjmp
+; MIPS32: jal {{.*}} setjmp
+; MIPS32: jal {{.*}} longjmp
 
 define internal i32 @test_setjmp_unused(i32 %iptr_env, i32 %i_other) {
 entry:
@@ -155,6 +158,8 @@ entry:
 ; result unused.
 ; CHECKO2REM-LABEL: test_setjmp_unused
 ; CHECKO2REM: call {{.*}} R_{{.*}} setjmp
+; MIPS32-LABEL: test_setjmp_unused
+; MIPS32: jal {{.*}} setjmp
 
 define internal float @test_sqrt_float(float %x, i32 %iptr) {
 entry:
@@ -173,6 +178,11 @@ entry:
 ; ARM32: vsqrt.f32
 ; ARM32: vsqrt.f32
 ; ARM32: vadd.f32
+; MIPS32-LABEL: test_sqrt_float
+; MIPS32: sqrt.s
+; MIPS32: sqrt.s
+; MIPS32: sqrt.s
+; MIPS32: add.s
 
 define internal float @test_sqrt_float_mergeable_load(float %x, i32 %iptr) {
 entry:
@@ -208,6 +218,11 @@ entry:
 ; ARM32: vsqrt.f64
 ; ARM32: vsqrt.f64
 ; ARM32: vadd.f64
+; MIPS32-LABEL: test_sqrt_double
+; MIPS32: sqrt.d
+; MIPS32: sqrt.d
+; MIPS32: sqrt.d
+; MIPS32: add.d
 
 define internal double @test_sqrt_double_mergeable_load(double %x, i32 %iptr) {
 entry:
@@ -232,6 +247,9 @@ entry:
 ; CHECKO2REM-LABEL: test_sqrt_ignored
 ; CHECKO2REM-NOT: sqrtss
 ; CHECKO2REM-NOT: sqrtsd
+; MIPS32-LABEL: test_sqrt_ignored
+; MIPS32: sqrt.s
+; MIPS32: sqrt.d
 
 define internal float @test_fabs_float(float %x) {
 entry:
@@ -253,6 +271,11 @@ entry:
 ; CHECK: pcmpeqd
 ; CHECK: psrld
 ; CHECK: pand {{.*}}xmm{{.*}}xmm
+; MIPS32-LABEL: test_fabs_float
+; MIPS32: abs.s
+; MIPS32: abs.s
+; MIPS32: abs.s
+; MIPS32: add.s
 
 define internal double @test_fabs_double(double %x) {
 entry:
@@ -274,6 +297,11 @@ entry:
 ; CHECK: pcmpeqd
 ; CHECK: psrlq
 ; CHECK: pand {{.*}}xmm{{.*}}xmm
+; MIPS32-LABEL: test_fabs_double
+; MIPS32: abs.d
+; MIPS32: abs.d
+; MIPS32: abs.d
+; MIPS32: add.d
 
 define internal <4 x float> @test_fabs_v4f32(<4 x float> %x) {
 entry:
@@ -485,6 +513,8 @@ entry:
 ; CHECK: call {{.*}} R_{{.*}} __popcountsi2
 ; ARM32-LABEL: test_popcount_32
 ; ARM32: bl {{.*}} __popcountsi2
+; MIPS32-LABEL: test_popcount_32
+; MIPS32: jal {{.*}} __popcountsi2
 
 define internal i64 @test_popcount_64(i64 %x) {
 entry:
@@ -499,6 +529,8 @@ entry:
 ; ARM32-LABEL: test_popcount_64
 ; ARM32: bl {{.*}} __popcountdi2
 ; ARM32: mov {{.*}}, #0
+; MIPS32-LABEL: test_popcount_64
+; MIPS32: jal {{.*}} __popcountdi2
 
 define internal i32 @test_popcount_64_ret_i32(i64 %x) {
 entry:
@@ -510,6 +542,12 @@ entry:
 ; CHECKO2REM-LABEL: test_popcount_64_ret_i32
 ; CHECKO2REM: call {{.*}} R_{{.*}} __popcountdi2
 ; CHECKO2REM-NOT: mov {{.*}}, 0
+; MIPS32-LABEL: test_popcount_64_ret_i32
+; MIPS32: jal {{.*}} __popcountdi2
+; MIPS32: sw v0,{{.*}}
+; MIPS32: sw v1,{{.*}}
+; MIPS32: lw v0,{{.*}}
+; MIPS32: lw ra,{{.*}}
 
 define internal void @test_stacksave_noalloca() {
 entry:
