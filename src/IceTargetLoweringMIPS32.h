@@ -505,6 +505,10 @@ public:
     Context.insert<InstMIPS32Swc1>(Value, Mem);
   }
 
+  void _teq(Variable *Src0, Variable *Src1, uint32_t TrapCode) {
+    Context.insert<InstMIPS32Teq>(Src0, Src1, TrapCode);
+  }
+
   void _trunc_l_d(Variable *Dest, Variable *Src) {
     Context.insert<InstMIPS32Trunc_l_d>(Dest, Src);
   }

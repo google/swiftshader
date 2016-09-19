@@ -265,6 +265,7 @@ public:
     Subu,
     Sw,
     Swc1,
+    Teq,
     Trunc_l_d,
     Trunc_l_s,
     Trunc_w_d,
@@ -913,6 +914,60 @@ private:
   static const char *Opcode;
 };
 
+// Trap
+template <InstMIPS32::InstKindMIPS32 K>
+class InstMIPS32Trap : public InstMIPS32 {
+  InstMIPS32Trap() = delete;
+  InstMIPS32Trap(const InstMIPS32Trap &) = delete;
+  InstMIPS32Trap &operator=(const InstMIPS32Trap &) = delete;
+
+public:
+  static InstMIPS32Trap *create(Cfg *Func, Operand *Src0, Operand *Src1,
+                                uint32_t Tcode) {
+    return new (Func->allocate<InstMIPS32Trap>())
+        InstMIPS32Trap(Func, Src0, Src1, Tcode);
+  }
+
+  void emit(const Cfg *Func) const override {
+    if (!BuildDefs::dump())
+      return;
+    Ostream &Str = Func->getContext()->getStrEmit();
+    Str << "\t" << Opcode << "\t";
+    getSrc(0)->emit(Func);
+    Str << ", ";
+    getSrc(1)->emit(Func);
+    Str << ", " << TrapCode;
+  }
+
+  void emitIAS(const Cfg *Func) const override {
+    (void)Func;
+    llvm_unreachable("Not yet implemented");
+  }
+
+  void dump(const Cfg *Func) const override {
+    if (!BuildDefs::dump())
+      return;
+    Ostream &Str = Func->getContext()->getStrEmit();
+    Str << "\t" << Opcode << "\t";
+    getSrc(0)->emit(Func);
+    Str << ", ";
+    getSrc(1)->emit(Func);
+    Str << ", " << TrapCode;
+  }
+
+  static bool classof(const Inst *Inst) { return isClassof(Inst, K); }
+
+private:
+  InstMIPS32Trap(Cfg *Func, Operand *Src0, Operand *Src1, const uint32_t Tcode)
+      : InstMIPS32(Func, K, 2, nullptr), TrapCode(Tcode) {
+    addSource(Src0);
+    addSource(Src1);
+  }
+
+  static const char *Opcode;
+  const uint32_t TrapCode;
+};
+
 template <InstMIPS32::InstKindMIPS32 K, bool Signed = false>
 class InstMIPS32Imm16 : public InstMIPS32 {
   InstMIPS32Imm16() = delete;
@@ -1120,6 +1175,7 @@ using InstMIPS32Sub_s = InstMIPS32ThreeAddrFPR<InstMIPS32::Sub_s>;
 using InstMIPS32Subu = InstMIPS32ThreeAddrGPR<InstMIPS32::Subu>;
 using InstMIPS32Sw = InstMIPS32Store<InstMIPS32::Sw>;
 using InstMIPS32Swc1 = InstMIPS32Store<InstMIPS32::Swc1>;
+using InstMIPS32Teq = InstMIPS32Trap<InstMIPS32::Teq>;
 using InstMIPS32Trunc_l_d = InstMIPS32TwoAddrFPR<InstMIPS32::Trunc_l_d>;
 using InstMIPS32Trunc_l_s = InstMIPS32TwoAddrFPR<InstMIPS32::Trunc_l_s>;
 using InstMIPS32Trunc_w_d = InstMIPS32TwoAddrFPR<InstMIPS32::Trunc_w_d>;

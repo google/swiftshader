@@ -140,6 +140,7 @@ template <> const char *InstMIPS32Sub_s::Opcode = "sub.s";
 template <> const char *InstMIPS32Subu::Opcode = "subu";
 template <> const char *InstMIPS32Sw::Opcode = "sw";
 template <> const char *InstMIPS32Swc1::Opcode = "swc1";
+template <> const char *InstMIPS32Teq::Opcode = "teq";
 template <> const char *InstMIPS32Trunc_l_d::Opcode = "trunc.l.d";
 template <> const char *InstMIPS32Trunc_l_s::Opcode = "trunc.l.s";
 template <> const char *InstMIPS32Trunc_w_d::Opcode = "trunc.w.d";

@@ -277,71 +277,6 @@ void TargetMIPS32::genTargetHelperCallFor(Inst *Instr) {
       Instr->setDeleted();
       return;
     }
-    case IceType_i32:
-    case IceType_i16:
-    case IceType_i8: {
-      InstCast::OpKind CastKind;
-      RuntimeHelper HelperID = RuntimeHelper::H_Num;
-      switch (Op) {
-      default:
-        return;
-      case InstArithmetic::Udiv:
-        HelperID = RuntimeHelper::H_udiv_i32;
-        CastKind = InstCast::Zext;
-        break;
-      case InstArithmetic::Sdiv:
-        HelperID = RuntimeHelper::H_sdiv_i32;
-        CastKind = InstCast::Sext;
-        break;
-      case InstArithmetic::Urem:
-        HelperID = RuntimeHelper::H_urem_i32;
-        CastKind = InstCast::Zext;
-        break;
-      case InstArithmetic::Srem:
-        HelperID = RuntimeHelper::H_srem_i32;
-        CastKind = InstCast::Sext;
-        break;
-      }
-
-      if (HelperID == RuntimeHelper::H_Num) {
-        return;
-      }
-
-      Operand *Src0 = Instr->getSrc(0);
-      Operand *Src1 = Instr->getSrc(1);
-      if (DestTy != IceType_i32) {
-        // Src0 and Src1 have to be zero-, or signed-extended to i32. For Src0,
-        // we just insert a InstCast right before the call to the helper.
-        Variable *Src0_32 = Func->makeVariable(IceType_i32);
-        Context.insert<InstCast>(CastKind, Src0_32, Src0);
-        Src0 = Src0_32;
-
-        if (auto *C = llvm::dyn_cast<ConstantInteger32>(Src1)) {
-          const int32_t ShAmt = (DestTy == IceType_i16) ? 16 : 24;
-          int32_t NewC = C->getValue();
-          if (CastKind == InstCast::Zext) {
-            NewC &= ~(0x80000000l >> ShAmt);
-          } else {
-            NewC = (NewC << ShAmt) >> ShAmt;
-          }
-          Src1 = Ctx->getConstantInt32(NewC);
-        } else {
-          Variable *Src1_32 = Func->makeVariable(IceType_i32);
-          Context.insert<InstCast>(CastKind, Src1_32, Src1);
-          Src1 = Src1_32;
-        }
-      }
-      Operand *TargetHelper = Ctx->getRuntimeHelperFunc(HelperID);
-      constexpr SizeT MaxArgs = 2;
-      auto *Call = Context.insert<InstCall>(MaxArgs, Dest, TargetHelper,
-                                            NoTailCall, IsTargetHelperCall);
-      assert(Src0->getType() == IceType_i32);
-      Call->addArg(Src0);
-      assert(Src1->getType() == IceType_i32);
-      Call->addArg(Src1);
-      Instr->setDeleted();
-      return;
-    }
     case IceType_f32:
     case IceType_f64: {
       if (Op != InstArithmetic::Frem) {
@@ -1910,6 +1845,7 @@ void TargetMIPS32::lowerArithmetic(const InstArithmetic *Instr) {
   Variable *T = makeReg(Dest->getType());
   Variable *Src0R = legalizeToReg(Src0);
   Variable *Src1R = legalizeToReg(Src1);
+  constexpr uint32_t DivideByZeroTrapCode = 7;
 
   switch (Instr->getOp()) {
   case InstArithmetic::_num:
@@ -1957,6 +1893,7 @@ void TargetMIPS32::lowerArithmetic(const InstArithmetic *Instr) {
   case InstArithmetic::Udiv: {
     auto *T_Zero = I32Reg(RegMIPS32::Reg_ZERO);
     _divu(T_Zero, Src0R, Src1R);
+    _teq(Src1R, T_Zero, DivideByZeroTrapCode); // Trap if divide-by-zero
     _mflo(T, T_Zero);
     _mov(Dest, T);
     return;
@@ -1964,6 +1901,7 @@ void TargetMIPS32::lowerArithmetic(const InstArithmetic *Instr) {
   case InstArithmetic::Sdiv: {
     auto *T_Zero = I32Reg(RegMIPS32::Reg_ZERO);
     _div(T_Zero, Src0R, Src1R);
+    _teq(Src1R, T_Zero, DivideByZeroTrapCode); // Trap if divide-by-zero
     _mflo(T, T_Zero);
     _mov(Dest, T);
     return;
@@ -1971,6 +1909,7 @@ void TargetMIPS32::lowerArithmetic(const InstArithmetic *Instr) {
   case InstArithmetic::Urem: {
     auto *T_Zero = I32Reg(RegMIPS32::Reg_ZERO);
     _divu(T_Zero, Src0R, Src1R);
+    _teq(Src1R, T_Zero, DivideByZeroTrapCode); // Trap if divide-by-zero
     _mfhi(T, T_Zero);
     _mov(Dest, T);
     return;
@@ -1978,6 +1917,7 @@ void TargetMIPS32::lowerArithmetic(const InstArithmetic *Instr) {
   case InstArithmetic::Srem: {
     auto *T_Zero = I32Reg(RegMIPS32::Reg_ZERO);
     _div(T_Zero, Src0R, Src1R);
+    _teq(Src1R, T_Zero, DivideByZeroTrapCode); // Trap if divide-by-zero
     _mfhi(T, T_Zero);
     _mov(Dest, T);
     return;
