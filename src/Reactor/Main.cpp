@@ -127,6 +127,7 @@ int main()
 	Ice::ClFlags::Flags.setTargetArch(sizeof(void*) == 8 ? Ice::Target_X8664 : Ice::Target_X8632);
 	Ice::ClFlags::Flags.setOutFileType(Ice::FT_Elf);
 	Ice::ClFlags::Flags.setOptLevel(Ice::Opt_2);
+	Ice::ClFlags::Flags.setApplicationBinaryInterface(Ice::ABI_Platform);
 
 	std::unique_ptr<Ice::Ostream> cout(new llvm::raw_os_ostream(std::cout));
 	//std::error_code errorCode;
