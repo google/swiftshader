@@ -69,6 +69,8 @@ namespace sw
 	class RoutineManager;
 	class Builder;
 
+	using Type = llvm::Type*;
+
 	class Nucleus
 	{
 	public:
@@ -84,13 +86,13 @@ namespace sw
 		static llvm::Function *getFunction();
 		static llvm::LLVMContext *getContext();
 
-		static llvm::Value *allocateStackVariable(llvm::Type *type, int arraySize = 0);
+		static llvm::Value *allocateStackVariable(Type type, int arraySize = 0);
 		static llvm::BasicBlock *createBasicBlock();
 		static llvm::BasicBlock *getInsertBlock();
 		static void setInsertBlock(llvm::BasicBlock *basicBlock);
 		static llvm::BasicBlock *getPredecessor(llvm::BasicBlock *basicBlock);
 
-		static llvm::Function *createFunction(llvm::Type *ReturnType, std::vector<llvm::Type*> &Params);
+		static llvm::Function *createFunction(Type ReturnType, std::vector<Type> &Params);
 		static llvm::Value *getArgument(llvm::Function *function, unsigned int index);
 
 		// Terminators
@@ -131,19 +133,19 @@ namespace sw
 		static llvm::Value *createAtomicAdd(llvm::Value *ptr, llvm::Value *value);
 
 		// Cast/Conversion Operators
-		static llvm::Value *createTrunc(llvm::Value *V, llvm::Type *destType);
-		static llvm::Value *createZExt(llvm::Value *V, llvm::Type *destType);
-		static llvm::Value *createSExt(llvm::Value *V, llvm::Type *destType);
-		static llvm::Value *createFPToUI(llvm::Value *V, llvm::Type *destType);
-		static llvm::Value *createFPToSI(llvm::Value *V, llvm::Type *destType);
-		static llvm::Value *createUIToFP(llvm::Value *V, llvm::Type *destType);
-		static llvm::Value *createSIToFP(llvm::Value *V, llvm::Type *destType);
-		static llvm::Value *createFPTrunc(llvm::Value *V, llvm::Type *destType);
-		static llvm::Value *createFPExt(llvm::Value *V, llvm::Type *destType);
-		static llvm::Value *createPtrToInt(llvm::Value *V, llvm::Type *destType);
-		static llvm::Value *createIntToPtr(llvm::Value *V, llvm::Type *destType);
-		static llvm::Value *createBitCast(llvm::Value *V, llvm::Type *destType);
-		static llvm::Value *createIntCast(llvm::Value *V, llvm::Type *destType, bool isSigned);
+		static llvm::Value *createTrunc(llvm::Value *V, Type destType);
+		static llvm::Value *createZExt(llvm::Value *V, Type destType);
+		static llvm::Value *createSExt(llvm::Value *V, Type destType);
+		static llvm::Value *createFPToUI(llvm::Value *V, Type destType);
+		static llvm::Value *createFPToSI(llvm::Value *V, Type destType);
+		static llvm::Value *createUIToFP(llvm::Value *V, Type destType);
+		static llvm::Value *createSIToFP(llvm::Value *V, Type destType);
+		static llvm::Value *createFPTrunc(llvm::Value *V, Type destType);
+		static llvm::Value *createFPExt(llvm::Value *V, Type destType);
+		static llvm::Value *createPtrToInt(llvm::Value *V, Type destType);
+		static llvm::Value *createIntToPtr(llvm::Value *V, Type destType);
+		static llvm::Value *createBitCast(llvm::Value *V, Type destType);
+		static llvm::Value *createIntCast(llvm::Value *V, Type destType, bool isSigned);
 
 		// Compare instructions
 		static llvm::Value *createICmpEQ(llvm::Value *lhs, llvm::Value *rhs);
@@ -196,11 +198,11 @@ namespace sw
 		// Global values
 		static const llvm::GlobalValue *getGlobalValueAtAddress(void *Addr);
 		static void addGlobalMapping(const llvm::GlobalValue *GV, void *Addr);
-		static llvm::GlobalValue *createGlobalValue(llvm::Type *Ty, bool isConstant, unsigned int Align);
-		static llvm::Type *getPointerType(llvm::Type *ElementType);
+		static llvm::GlobalValue *createGlobalValue(Type Ty, bool isConstant, unsigned int Align);
+		static Type getPointerType(Type ElementType);
 
 		// Constant values
-		static llvm::Constant *createNullValue(llvm::Type *Ty);
+		static llvm::Constant *createNullValue(Type Ty);
 		static llvm::ConstantInt *createConstantInt(int64_t i);
 		static llvm::ConstantInt *createConstantInt(int i);
 		static llvm::ConstantInt *createConstantInt(unsigned int i);
@@ -210,7 +212,7 @@ namespace sw
 		static llvm::ConstantInt *createConstantShort(short i);
 		static llvm::ConstantInt *createConstantShort(unsigned short i);
 		static llvm::Constant *createConstantFloat(float x);
-		static llvm::Value *createNullPointer(llvm::Type *Ty);
+		static llvm::Value *createNullPointer(Type Ty);
 		static llvm::Value *createConstantVector(llvm::Constant *const *Vals, unsigned NumVals);
 
 	private:
@@ -256,7 +258,7 @@ namespace sw
 	class Void
 	{
 	public:
-		static llvm::Type *getType();
+		static Type getType();
 
 		static bool isVoid()
 		{
@@ -275,7 +277,7 @@ namespace sw
 	class LValue
 	{
 	public:
-		LValue(llvm::Type *type, int arraySize = 0);
+		LValue(Type type, int arraySize = 0);
 
 		static bool isVoid()
 		{
@@ -382,7 +384,7 @@ namespace sw
 	class MMX : public Variable<MMX>
 	{
 	public:
-		static llvm::Type *getType();
+		static Type getType();
 	};
 
 	class Bool : public Variable<Bool>
@@ -401,7 +403,7 @@ namespace sw
 		RValue<Bool> operator=(const Bool &rhs) const;
 		RValue<Bool> operator=(const Reference<Bool> &rhs) const;
 
-		static llvm::Type *getType();
+		static Type getType();
 	};
 
 	RValue<Bool> operator!(RValue<Bool> val);
@@ -429,7 +431,7 @@ namespace sw
 		RValue<Byte> operator=(const Byte &rhs) const;
 		RValue<Byte> operator=(const Reference<Byte> &rhs) const;
 
-		static llvm::Type *getType();
+		static Type getType();
 	};
 
 	RValue<Byte> operator+(RValue<Byte> lhs, RValue<Byte> rhs);
@@ -485,7 +487,7 @@ namespace sw
 		RValue<SByte> operator=(const SByte &rhs) const;
 		RValue<SByte> operator=(const Reference<SByte> &rhs) const;
 
-		static llvm::Type *getType();
+		static Type getType();
 	};
 
 	RValue<SByte> operator+(RValue<SByte> lhs, RValue<SByte> rhs);
@@ -540,7 +542,7 @@ namespace sw
 		RValue<Short> operator=(const Short &rhs) const;
 		RValue<Short> operator=(const Reference<Short> &rhs) const;
 
-		static llvm::Type *getType();
+		static Type getType();
 	};
 
 	RValue<Short> operator+(RValue<Short> lhs, RValue<Short> rhs);
@@ -596,7 +598,7 @@ namespace sw
 		RValue<UShort> operator=(const UShort &rhs) const;
 		RValue<UShort> operator=(const Reference<UShort> &rhs) const;
 
-		static llvm::Type *getType();
+		static Type getType();
 	};
 
 	RValue<UShort> operator+(RValue<UShort> lhs, RValue<UShort> rhs);
@@ -646,7 +648,7 @@ namespace sw
 	//	RValue<Byte4> operator=(const Byte4 &rhs) const;
 	//	RValue<Byte4> operator=(const Reference<Byte4> &rhs) const;
 
-		static llvm::Type *getType();
+		static Type getType();
 	};
 
 //	RValue<Byte4> operator+(RValue<Byte4> lhs, RValue<Byte4> rhs);
@@ -690,7 +692,7 @@ namespace sw
 	//	RValue<SByte4> operator=(const SByte4 &rhs) const;
 	//	RValue<SByte4> operator=(const Reference<SByte4> &rhs) const;
 
-		static llvm::Type *getType();
+		static Type getType();
 	};
 
 //	RValue<SByte4> operator+(RValue<SByte4> lhs, RValue<SByte4> rhs);
@@ -735,7 +737,7 @@ namespace sw
 		RValue<Byte8> operator=(const Byte8 &rhs) const;
 		RValue<Byte8> operator=(const Reference<Byte8> &rhs) const;
 
-		static llvm::Type *getType();
+		static Type getType();
 	};
 
 	RValue<Byte8> operator+(RValue<Byte8> lhs, RValue<Byte8> rhs);
@@ -789,7 +791,7 @@ namespace sw
 		RValue<SByte8> operator=(const SByte8 &rhs) const;
 		RValue<SByte8> operator=(const Reference<SByte8> &rhs) const;
 
-		static llvm::Type *getType();
+		static Type getType();
 	};
 
 	RValue<SByte8> operator+(RValue<SByte8> lhs, RValue<SByte8> rhs);
@@ -841,7 +843,7 @@ namespace sw
 		RValue<Byte16> operator=(const Byte16 &rhs) const;
 		RValue<Byte16> operator=(const Reference<Byte16> &rhs) const;
 
-		static llvm::Type *getType();
+		static Type getType();
 	};
 
 //	RValue<Byte16> operator+(RValue<Byte16> lhs, RValue<Byte16> rhs);
@@ -885,7 +887,7 @@ namespace sw
 	//	RValue<SByte16> operator=(const SByte16 &rhs) const;
 	//	RValue<SByte16> operator=(const Reference<SByte16> &rhs) const;
 
-		static llvm::Type *getType();
+		static Type getType();
 	};
 
 //	RValue<SByte16> operator+(RValue<SByte16> lhs, RValue<SByte16> rhs);
@@ -941,7 +943,7 @@ namespace sw
 		RValue<Short4> operator=(const UShort4 &rhs) const;
 		RValue<Short4> operator=(const Reference<UShort4> &rhs) const;
 
-		static llvm::Type *getType();
+		static Type getType();
 	};
 
 	RValue<Short4> operator+(RValue<Short4> lhs, RValue<Short4> rhs);
@@ -1021,7 +1023,7 @@ namespace sw
 		RValue<UShort4> operator=(const Short4 &rhs) const;
 		RValue<UShort4> operator=(const Reference<Short4> &rhs) const;
 
-		static llvm::Type *getType();
+		static Type getType();
 	};
 
 	RValue<UShort4> operator+(RValue<UShort4> lhs, RValue<UShort4> rhs);
@@ -1078,7 +1080,7 @@ namespace sw
 	//	RValue<Short8> operator=(const Short8 &rhs) const;
 	//	RValue<Short8> operator=(const Reference<Short8> &rhs) const;
 
-		static llvm::Type *getType();
+		static Type getType();
 	};
 
 	RValue<Short8> operator+(RValue<Short8> lhs, RValue<Short8> rhs);
@@ -1135,7 +1137,7 @@ namespace sw
 		RValue<UShort8> operator=(const UShort8 &rhs) const;
 		RValue<UShort8> operator=(const Reference<UShort8> &rhs) const;
 
-		static llvm::Type *getType();
+		static Type getType();
 	};
 
 	RValue<UShort8> operator+(RValue<UShort8> lhs, RValue<UShort8> rhs);
@@ -1207,7 +1209,7 @@ namespace sw
 		RValue<Int> operator=(const Reference<Int> &rhs) const;
 		RValue<Int> operator=(const Reference<UInt> &rhs) const;
 
-		static llvm::Type *getType();
+		static Type getType();
 	};
 
 	RValue<Int> operator+(RValue<Int> lhs, RValue<Int> rhs);
@@ -1277,7 +1279,7 @@ namespace sw
 	//	RValue<Long> operator=(const ULong &rhs) const;
 	//	RValue<Long> operator=(const Reference<ULong> &rhs) const;
 
-		static llvm::Type *getType();
+		static Type getType();
 	};
 
 	RValue<Long> operator+(RValue<Long> lhs, RValue<Long> rhs);
@@ -1345,7 +1347,7 @@ namespace sw
 	//	RValue<Long1> operator=(const ULong1 &rhs) const;
 	//	RValue<Long1> operator=(const Reference<ULong1> &rhs) const;
 
-		static llvm::Type *getType();
+		static Type getType();
 	};
 
 //	RValue<Long1> operator+(RValue<Long1> lhs, RValue<Long1> rhs);
@@ -1400,7 +1402,7 @@ namespace sw
 	//	RValue<Long2> operator=(const Long2 &rhs) const;
 	//	RValue<Long2> operator=(const Reference<Long2 &rhs) const;
 
-		static llvm::Type *getType();
+		static Type getType();
 	};
 
 //	RValue<Long2> operator+(RValue<Long2> lhs, RValue<Long2> rhs);
@@ -1474,7 +1476,7 @@ namespace sw
 		RValue<UInt> operator=(const Reference<UInt> &rhs) const;
 		RValue<UInt> operator=(const Reference<Int> &rhs) const;
 
-		static llvm::Type *getType();
+		static Type getType();
 	};
 
 	RValue<UInt> operator+(RValue<UInt> lhs, RValue<UInt> rhs);
@@ -1533,7 +1535,7 @@ namespace sw
 		RValue<Int2> operator=(const Int2 &rhs) const;
 		RValue<Int2> operator=(const Reference<Int2> &rhs) const;
 
-		static llvm::Type *getType();
+		static Type getType();
 	};
 
 	RValue<Int2> operator+(RValue<Int2> lhs, RValue<Int2> rhs);
@@ -1593,7 +1595,7 @@ namespace sw
 		RValue<UInt2> operator=(const UInt2 &rhs) const;
 		RValue<UInt2> operator=(const Reference<UInt2> &rhs) const;
 
-		static llvm::Type *getType();
+		static Type getType();
 	};
 
 	RValue<UInt2> operator+(RValue<UInt2> lhs, RValue<UInt2> rhs);
@@ -1660,7 +1662,7 @@ namespace sw
 		RValue<Int4> operator=(const Int4 &rhs) const;
 		RValue<Int4> operator=(const Reference<Int4> &rhs) const;
 
-		static llvm::Type *getType();
+		static Type getType();
 
 	private:
 		void constant(int x, int y, int z, int w);
@@ -1740,7 +1742,7 @@ namespace sw
 		RValue<UInt4> operator=(const UInt4 &rhs) const;
 		RValue<UInt4> operator=(const Reference<UInt4> &rhs) const;
 
-		static llvm::Type *getType();
+		static Type getType();
 
 	private:
 		void constant(int x, int y, int z, int w);
@@ -1881,7 +1883,7 @@ namespace sw
 		template<int T>
 		RValue<Float> operator=(const SwizzleMask1Float4<T> &rhs) const;
 
-		static llvm::Type *getType();
+		static Type getType();
 	};
 
 	RValue<Float> operator+(RValue<Float> lhs, RValue<Float> rhs);
@@ -1946,7 +1948,7 @@ namespace sw
 	//	template<int T>
 	//	RValue<Float2> operator=(const SwizzleMask1Float4<T> &rhs);
 
-		static llvm::Type *getType();
+		static Type getType();
 	};
 
 //	RValue<Float2> operator+(RValue<Float2> lhs, RValue<Float2> rhs);
@@ -2016,7 +2018,7 @@ namespace sw
 		template<int T>
 		RValue<Float4> operator=(const SwizzleFloat4<T> &rhs);
 
-		static llvm::Type *getType();
+		static Type getType();
 
 		union
 		{
@@ -2440,7 +2442,7 @@ namespace sw
 		Reference<T> operator[](int index);
 		Reference<T> operator[](RValue<Int> index);
 
-		static llvm::Type *getType();
+		static Type getType();
 
 	private:
 		const int alignment;
@@ -2529,7 +2531,7 @@ namespace sw
 	protected:
 		Nucleus *core;
 		llvm::Function *function;
-		std::vector<llvm::Type*> arguments;
+		std::vector<Type> arguments;
 	};
 
 	template<typename Return>
@@ -2880,7 +2882,7 @@ namespace sw
 	}
 
 	template<class T>
-	llvm::Type *Pointer<T>::getType()
+	Type Pointer<T>::getType()
 	{
 		return Nucleus::getPointerType(T::getType());
 	}
@@ -2980,8 +2982,8 @@ namespace sw
 	{
 		core = new Nucleus();
 
-		llvm::Type *types[] = {Arguments::getType()...};
-		for(llvm::Type *type : types)
+		Type types[] = {Arguments::getType()...};
+		for(Type type : types)
 		{
 			if(type != Void::getType())
 			{

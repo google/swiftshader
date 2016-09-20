@@ -144,7 +144,7 @@ namespace sw
 	{
 		if(builder->GetInsertBlock()->empty() || !builder->GetInsertBlock()->back().isTerminator())
 		{
-			Type *type = function->getReturnType();
+			Type type = function->getReturnType();
 
 			if(type->isVoidTy())
 			{
@@ -246,7 +246,7 @@ namespace sw
 		return context;
 	}
 
-	Value *Nucleus::allocateStackVariable(Type *type, int arraySize)
+	Value *Nucleus::allocateStackVariable(Type type, int arraySize)
 	{
 		// Need to allocate it in the entry block for mem2reg to work
 		llvm::Function *function = getFunction();
@@ -289,7 +289,7 @@ namespace sw
 		return *pred_begin(basicBlock);
 	}
 
-	llvm::Function *Nucleus::createFunction(llvm::Type *ReturnType, std::vector<llvm::Type*> &Params)
+	llvm::Function *Nucleus::createFunction(Type ReturnType, std::vector<Type> &Params)
 	{
 		llvm::FunctionType *functionType = llvm::FunctionType::get(ReturnType, Params, false);
 		llvm::Function *function = llvm::Function::Create(functionType, llvm::GlobalValue::InternalLinkage, "", Nucleus::getModule());
@@ -460,67 +460,67 @@ namespace sw
 		return builder->CreateAtomicRMW(AtomicRMWInst::Add, ptr, value, SequentiallyConsistent);
 	}
 
-	Value *Nucleus::createTrunc(Value *V, Type *destType)
+	Value *Nucleus::createTrunc(Value *V, Type destType)
 	{
 		return builder->CreateTrunc(V, destType);
 	}
 
-	Value *Nucleus::createZExt(Value *V, Type *destType)
+	Value *Nucleus::createZExt(Value *V, Type destType)
 	{
 		return builder->CreateZExt(V, destType);
 	}
 
-	Value *Nucleus::createSExt(Value *V, Type *destType)
+	Value *Nucleus::createSExt(Value *V, Type destType)
 	{
 		return builder->CreateSExt(V, destType);
 	}
 
-	Value *Nucleus::createFPToUI(Value *V, Type *destType)
+	Value *Nucleus::createFPToUI(Value *V, Type destType)
 	{
 		return builder->CreateFPToUI(V, destType);
 	}
 
-	Value *Nucleus::createFPToSI(Value *V, Type *destType)
+	Value *Nucleus::createFPToSI(Value *V, Type destType)
 	{
 		return builder->CreateFPToSI(V, destType);
 	}
 
-	Value *Nucleus::createUIToFP(Value *V, Type *destType)
+	Value *Nucleus::createUIToFP(Value *V, Type destType)
 	{
 		return builder->CreateUIToFP(V, destType);
 	}
 
-	Value *Nucleus::createSIToFP(Value *V, Type *destType)
+	Value *Nucleus::createSIToFP(Value *V, Type destType)
 	{
 		return builder->CreateSIToFP(V, destType);
 	}
 
-	Value *Nucleus::createFPTrunc(Value *V, Type *destType)
+	Value *Nucleus::createFPTrunc(Value *V, Type destType)
 	{
 		return builder->CreateFPTrunc(V, destType);
 	}
 
-	Value *Nucleus::createFPExt(Value *V, Type *destType)
+	Value *Nucleus::createFPExt(Value *V, Type destType)
 	{
 		return builder->CreateFPExt(V, destType);
 	}
 
-	Value *Nucleus::createPtrToInt(Value *V, Type *destType)
+	Value *Nucleus::createPtrToInt(Value *V, Type destType)
 	{
 		return builder->CreatePtrToInt(V, destType);
 	}
 
-	Value *Nucleus::createIntToPtr(Value *V, Type *destType)
+	Value *Nucleus::createIntToPtr(Value *V, Type destType)
 	{
 		return builder->CreateIntToPtr(V, destType);
 	}
 
-	Value *Nucleus::createBitCast(Value *V, Type *destType)
+	Value *Nucleus::createBitCast(Value *V, Type destType)
 	{
 		return builder->CreateBitCast(V, destType);
 	}
 
-	Value *Nucleus::createIntCast(Value *V, Type *destType, bool isSigned)
+	Value *Nucleus::createIntCast(Value *V, Type destType, bool isSigned)
 	{
 		return builder->CreateIntCast(V, destType, isSigned);
 	}
@@ -748,7 +748,7 @@ namespace sw
 		executionEngine->addGlobalMapping(GV, Addr);
 	}
 
-	llvm::GlobalValue *Nucleus::createGlobalValue(llvm::Type *Ty, bool isConstant, unsigned int Align)
+	llvm::GlobalValue *Nucleus::createGlobalValue(Type Ty, bool isConstant, unsigned int Align)
 	{
 		llvm::GlobalValue *global = new llvm::GlobalVariable(*Nucleus::getModule(), Ty, isConstant, llvm::GlobalValue::ExternalLinkage, 0, "");
 		global->setAlignment(Align);
@@ -756,54 +756,54 @@ namespace sw
 		return global;
 	}
 
-	llvm::Type *Nucleus::getPointerType(llvm::Type *ElementType)
+	Type Nucleus::getPointerType(Type ElementType)
 	{
 		return llvm::PointerType::get(ElementType, 0);
 	}
 
-	llvm::Constant *Nucleus::createNullValue(llvm::Type *Ty)
+	llvm::Constant *Nucleus::createNullValue(Type Ty)
 	{
 		return llvm::Constant::getNullValue(Ty);
 	}
 
 	llvm::ConstantInt *Nucleus::createConstantInt(int64_t i)
 	{
-		return llvm::ConstantInt::get(Type::getInt64Ty(*context), i, true);
+		return llvm::ConstantInt::get(llvm::Type::getInt64Ty(*context), i, true);
 	}
 
 	llvm::ConstantInt *Nucleus::createConstantInt(int i)
 	{
-		return llvm::ConstantInt::get(Type::getInt32Ty(*context), i, true);
+		return llvm::ConstantInt::get(llvm::Type::getInt32Ty(*context), i, true);
 	}
 
 	llvm::ConstantInt *Nucleus::createConstantInt(unsigned int i)
 	{
-		return llvm::ConstantInt::get(Type::getInt32Ty(*context), i, false);
+		return llvm::ConstantInt::get(llvm::Type::getInt32Ty(*context), i, false);
 	}
 
 	llvm::ConstantInt *Nucleus::createConstantBool(bool b)
 	{
-		return llvm::ConstantInt::get(Type::getInt1Ty(*context), b);
+		return llvm::ConstantInt::get(llvm::Type::getInt1Ty(*context), b);
 	}
 
 	llvm::ConstantInt *Nucleus::createConstantByte(signed char i)
 	{
-		return llvm::ConstantInt::get(Type::getInt8Ty(*context), i, true);
+		return llvm::ConstantInt::get(llvm::Type::getInt8Ty(*context), i, true);
 	}
 
 	llvm::ConstantInt *Nucleus::createConstantByte(unsigned char i)
 	{
-		return llvm::ConstantInt::get(Type::getInt8Ty(*context), i, false);
+		return llvm::ConstantInt::get(llvm::Type::getInt8Ty(*context), i, false);
 	}
 
 	llvm::ConstantInt *Nucleus::createConstantShort(short i)
 	{
-		return llvm::ConstantInt::get(Type::getInt16Ty(*context), i, true);
+		return llvm::ConstantInt::get(llvm::Type::getInt16Ty(*context), i, true);
 	}
 
 	llvm::ConstantInt *Nucleus::createConstantShort(unsigned short i)
 	{
-		return llvm::ConstantInt::get(Type::getInt16Ty(*context), i, false);
+		return llvm::ConstantInt::get(llvm::Type::getInt16Ty(*context), i, false);
 	}
 
 	llvm::Constant *Nucleus::createConstantFloat(float x)
@@ -811,7 +811,7 @@ namespace sw
 		return ConstantFP::get(Float::getType(), x);
 	}
 
-	llvm::Value *Nucleus::createNullPointer(llvm::Type *Ty)
+	llvm::Value *Nucleus::createNullPointer(Type Ty)
 	{
 		return llvm::ConstantPointerNull::get(llvm::PointerType::get(Ty, 0));
 	}
@@ -821,12 +821,12 @@ namespace sw
 		return llvm::ConstantVector::get(llvm::ArrayRef<llvm::Constant*>(Vals, NumVals));
 	}
 
-	Type *Void::getType()
+	Type Void::getType()
 	{
-		return Type::getVoidTy(*Nucleus::getContext());
+		return llvm::Type::getVoidTy(*Nucleus::getContext());
 	}
 
-	LValue::LValue(llvm::Type *type, int arraySize)
+	LValue::LValue(Type type, int arraySize)
 	{
 		address = Nucleus::allocateStackVariable(type, arraySize);
 	}
@@ -846,9 +846,9 @@ namespace sw
 		return Nucleus::createGEP(address, index);
 	}
 
-	Type *MMX::getType()
+	Type MMX::getType()
 	{
-		return Type::getX86_MMXTy(*Nucleus::getContext());
+		return llvm::Type::getX86_MMXTy(*Nucleus::getContext());
 	}
 
 	Bool::Bool(Argument<Bool> argument)
@@ -920,9 +920,9 @@ namespace sw
 		return RValue<Bool>(Nucleus::createOr(lhs.value, rhs.value));
 	}
 
-	Type *Bool::getType()
+	Type Bool::getType()
 	{
-		return Type::getInt1Ty(*Nucleus::getContext());
+		return llvm::Type::getInt1Ty(*Nucleus::getContext());
 	}
 
 	Byte::Byte(Argument<Byte> argument)
@@ -1186,9 +1186,9 @@ namespace sw
 		return RValue<Bool>(Nucleus::createICmpEQ(lhs.value, rhs.value));
 	}
 
-	Type *Byte::getType()
+	Type Byte::getType()
 	{
-		return Type::getInt8Ty(*Nucleus::getContext());
+		return llvm::Type::getInt8Ty(*Nucleus::getContext());
 	}
 
 	SByte::SByte(Argument<SByte> argument)
@@ -1440,9 +1440,9 @@ namespace sw
 		return RValue<Bool>(Nucleus::createICmpEQ(lhs.value, rhs.value));
 	}
 
-	Type *SByte::getType()
+	Type SByte::getType()
 	{
-		return Type::getInt8Ty(*Nucleus::getContext());
+		return llvm::Type::getInt8Ty(*Nucleus::getContext());
 	}
 
 	Short::Short(Argument<Short> argument)
@@ -1687,9 +1687,9 @@ namespace sw
 		return RValue<Bool>(Nucleus::createICmpEQ(lhs.value, rhs.value));
 	}
 
-	Type *Short::getType()
+	Type Short::getType()
 	{
-		return Type::getInt16Ty(*Nucleus::getContext());
+		return llvm::Type::getInt16Ty(*Nucleus::getContext());
 	}
 
 	UShort::UShort(Argument<UShort> argument)
@@ -1941,12 +1941,12 @@ namespace sw
 		return RValue<Bool>(Nucleus::createICmpEQ(lhs.value, rhs.value));
 	}
 
-	Type *UShort::getType()
+	Type UShort::getType()
 	{
-		return Type::getInt16Ty(*Nucleus::getContext());
+		return llvm::Type::getInt16Ty(*Nucleus::getContext());
 	}
 
-	Type *Byte4::getType()
+	Type Byte4::getType()
 	{
 		#if 0
 			return VectorType::get(Byte::getType(), 4);
@@ -1955,7 +1955,7 @@ namespace sw
 		#endif
 	}
 
-	Type *SByte4::getType()
+	Type SByte4::getType()
 	{
 		#if 0
 			return VectorType::get(SByte::getType(), 4);
@@ -2289,7 +2289,7 @@ namespace sw
 		return x86::pcmpeqb(x, y);
 	}
 
-	Type *Byte8::getType()
+	Type Byte8::getType()
 	{
 		if(CPUID::supportsMMX2())
 		{
@@ -2597,7 +2597,7 @@ namespace sw
 		return x86::pcmpeqb(As<Byte8>(x), As<Byte8>(y));
 	}
 
-	Type *SByte8::getType()
+	Type SByte8::getType()
 	{
 		if(CPUID::supportsMMX2())
 		{
@@ -2655,12 +2655,12 @@ namespace sw
 		return RValue<Byte16>(value);
 	}
 
-	Type *Byte16::getType()
+	Type Byte16::getType()
 	{
 		return VectorType::get(Byte::getType(), 16);
 	}
 
-	Type *SByte16::getType()
+	Type SByte16::getType()
 	{
 		return VectorType::get(SByte::getType(), 16);
 	}
@@ -3216,7 +3216,7 @@ namespace sw
 		return x86::pcmpeqw(x, y);
 	}
 
-	Type *Short4::getType()
+	Type Short4::getType()
 	{
 		if(CPUID::supportsMMX2())
 		{
@@ -3414,7 +3414,6 @@ namespace sw
 		}
 	}
 
-
 	RValue<UShort4> operator*(RValue<UShort4> lhs, RValue<UShort4> rhs)
 	{
 		if(CPUID::supportsMMX2())
@@ -3522,7 +3521,7 @@ namespace sw
 		return x86::packuswb(x, y);
 	}
 
-	Type *UShort4::getType()
+	Type UShort4::getType()
 	{
 		if(CPUID::supportsMMX2())
 		{
@@ -3622,7 +3621,7 @@ namespace sw
 		return x86::pmulhw(x, y);   // FIXME: Fallback required
 	}
 
-	Type *Short8::getType()
+	Type Short8::getType()
 	{
 		return VectorType::get(Short::getType(), 8);
 	}
@@ -3789,7 +3788,7 @@ namespace sw
 //		return RValue<UShort8>(short8);
 //	}
 
-	Type *UShort8::getType()
+	Type UShort8::getType()
 	{
 		return VectorType::get(UShort::getType(), 8);
 	}
@@ -4143,15 +4142,13 @@ namespace sw
 	//	return IfThenElse(val > 0.0f, Int(val + 0.5f), Int(val - 0.5f));
 	}
 
-	Type *Int::getType()
+	Type Int::getType()
 	{
-		return Type::getInt32Ty(*Nucleus::getContext());
+		return llvm::Type::getInt32Ty(*Nucleus::getContext());
 	}
 
 	Long::Long(RValue<Int> cast)
 	{
-
-
 		Value *integer = Nucleus::createSExt(cast.value, Long::getType());
 
 		storeValue(integer);
@@ -4226,9 +4223,9 @@ namespace sw
 		return RValue<Long>(Nucleus::createAtomicAdd(x.value, y.value));
 	}
 
-	Type *Long::getType()
+	Type Long::getType()
 	{
-		return Type::getInt64Ty(*Nucleus::getContext());
+		return llvm::Type::getInt64Ty(*Nucleus::getContext());
 	}
 
 	Long1::Long1(const RValue<UInt> cast)
@@ -4244,7 +4241,7 @@ namespace sw
 		storeValue(rhs.value);
 	}
 
-	Type *Long1::getType()
+	Type Long1::getType()
 	{
 		if(CPUID::supportsMMX2())
 		{
@@ -4267,7 +4264,7 @@ namespace sw
 		return RValue<Long2>(packed);
 	}
 
-	Type *Long2::getType()
+	Type Long2::getType()
 	{
 		return VectorType::get(Long::getType(), 2);
 	}
@@ -4600,9 +4597,9 @@ namespace sw
 //	//	return IfThenElse(val > 0.0f, Int(val + 0.5f), Int(val - 0.5f));
 //	}
 
-	Type *UInt::getType()
+	Type UInt::getType()
 	{
-		return Type::getInt32Ty(*Nucleus::getContext());
+		return llvm::Type::getInt32Ty(*Nucleus::getContext());
 	}
 
 //	Int2::Int2(RValue<Int> cast)
@@ -4959,7 +4956,7 @@ namespace sw
 		return RValue<Int2>(Nucleus::createBitCast(Nucleus::createInsertElement(Nucleus::createBitCast(val.value, VectorType::get(Int::getType(), 2)), element.value, i), Int2::getType()));
 	}
 
-	Type *Int2::getType()
+	Type Int2::getType()
 	{
 		if(CPUID::supportsMMX2())
 		{
@@ -5219,7 +5216,7 @@ namespace sw
 		}
 	}
 
-	Type *UInt2::getType()
+	Type UInt2::getType()
 	{
 		if(CPUID::supportsMMX2())
 		{
@@ -5648,7 +5645,7 @@ namespace sw
 		return RValue<Int4>(Nucleus::createSwizzle(x.value, select));
 	}
 
-	Type *Int4::getType()
+	Type Int4::getType()
 	{
 		return VectorType::get(Int::getType(), 4);
 	}
@@ -5977,7 +5974,7 @@ namespace sw
 		return x86::packusdw(x, y);   // FIXME: Fallback required
 	}
 
-	Type *UInt4::getType()
+	Type UInt4::getType()
 	{
 		return VectorType::get(UInt::getType(), 4);
 	}
@@ -6218,9 +6215,9 @@ namespace sw
 		}
 	}
 
-	Type *Float::getType()
+	Type Float::getType()
 	{
-		return Type::getFloatTy(*Nucleus::getContext());
+		return llvm::Type::getFloatTy(*Nucleus::getContext());
 	}
 
 	Float2::Float2(RValue<Float4> cast)
@@ -6234,7 +6231,7 @@ namespace sw
 		storeValue(float2);
 	}
 
-	Type *Float2::getType()
+	Type Float2::getType()
 	{
 		return VectorType::get(Float::getType(), 2);
 	}
@@ -6843,7 +6840,7 @@ namespace sw
 		}
 	}
 
-	Type *Float4::getType()
+	Type Float4::getType()
 	{
 		return VectorType::get(Float::getType(), 4);
 	}

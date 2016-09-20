@@ -67,7 +67,7 @@ Routine *routine = function(L"one");
 Finally, we can obtain the function pointer to the entry point of the routine, and call it:
 
 ```C++
-int (*callable)() = (int(*)())function.getEntry();
+int (*callable)() = (int(*)())routine->getEntry();
 
 int result = callable();
 assert(result == 1);
