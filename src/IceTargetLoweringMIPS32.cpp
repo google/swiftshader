@@ -2890,9 +2890,11 @@ void TargetMIPS32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     UnimplementedLoweringError(this, Instr);
     return;
   }
-  case Intrinsics::Trap:
-    UnimplementedLoweringError(this, Instr);
+  case Intrinsics::Trap: {
+    const uint32_t TrapCodeZero = 0;
+    _teq(getZero(), getZero(), TrapCodeZero);
     return;
+  }
   case Intrinsics::UnknownIntrinsic:
     Func->setError("Should not be lowering UnknownIntrinsic");
     return;

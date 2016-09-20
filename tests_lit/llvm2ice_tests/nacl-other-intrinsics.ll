@@ -336,6 +336,8 @@ NonZero:
 ; CHECK: ud2
 ; ARM32-LABEL: test_trap
 ; ARM32: .word 0xe7fedef0
+; MIPS32-LABEL: test_trap
+; MIPS32: teq zero,zero
 
 define internal i32 @test_bswap_16(i32 %x) {
 entry:
