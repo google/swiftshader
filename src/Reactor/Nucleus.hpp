@@ -380,12 +380,6 @@ namespace sw
 		Value *value;
 	};
 
-	class MMX : public Variable<MMX>
-	{
-	public:
-		static Type getType();
-	};
-
 	class Bool : public Variable<Bool>
 	{
 	public:

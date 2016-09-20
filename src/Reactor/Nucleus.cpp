@@ -836,6 +836,12 @@ namespace sw
 		return Nucleus::createGEP(address, index);
 	}
 
+	class MMX : public Variable<MMX>
+	{
+	public:
+		static Type getType();
+	};
+
 	Type MMX::getType()
 	{
 		return llvm::Type::getX86_MMXTy(*Nucleus::getContext());
