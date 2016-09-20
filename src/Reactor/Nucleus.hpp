@@ -379,12 +379,6 @@ namespace sw
 		llvm::Value *value;
 	};
 
-	class MMX : public Variable<MMX>
-	{
-	public:
-		static llvm::Type *getType();
-	};
-
 	class Bool : public Variable<Bool>
 	{
 	public:
