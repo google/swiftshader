@@ -254,6 +254,20 @@ void AssemblerMIPS32::emitRdRsRt(IValueT Opcode, const Operand *OpRd,
   emitInst(Opcode);
 }
 
+void AssemblerMIPS32::emitCOP1Fcmp(IValueT Opcode, FPInstDataFormat Format,
+                                   const Operand *OpFs, const Operand *OpFt,
+                                   IValueT CC, const char *InsnName) {
+  const IValueT Fs = encodeFPRegister(OpFs, "Fs", InsnName);
+  const IValueT Ft = encodeFPRegister(OpFt, "Ft", InsnName);
+
+  Opcode |= CC << 8;
+  Opcode |= Fs << 11;
+  Opcode |= Ft << 16;
+  Opcode |= Format << 21;
+
+  emitInst(Opcode);
+}
+
 void AssemblerMIPS32::emitCOP1FmtFsFd(IValueT Opcode, FPInstDataFormat Format,
                                       const Operand *OpFd, const Operand *OpFs,
                                       const char *InsnName) {
@@ -369,6 +383,90 @@ void AssemblerMIPS32::b(Label *TargetLabel) {
   const IOffsetT Position = Buffer.size();
   emitBr(CondMIPS32::AL, OpRsNone, OpRtNone, TargetLabel->getEncodedPosition());
   TargetLabel->linkTo(*this, Position);
+}
+
+void AssemblerMIPS32::c_eq_d(const Operand *OpFs, const Operand *OpFt) {
+  static constexpr IValueT Opcode = 0x44000032;
+  emitCOP1Fcmp(Opcode, DoublePrecision, OpFs, OpFt, OperandMIPS32FCC::FCC0,
+               "c.eq.d");
+}
+
+void AssemblerMIPS32::c_eq_s(const Operand *OpFs, const Operand *OpFt) {
+  static constexpr IValueT Opcode = 0x44000032;
+  emitCOP1Fcmp(Opcode, SinglePrecision, OpFs, OpFt, OperandMIPS32FCC::FCC0,
+               "c.eq.s");
+}
+
+void AssemblerMIPS32::c_ole_d(const Operand *OpFs, const Operand *OpFt) {
+  static constexpr IValueT Opcode = 0x44000036;
+  emitCOP1Fcmp(Opcode, DoublePrecision, OpFs, OpFt, OperandMIPS32FCC::FCC0,
+               "c.ole.d");
+}
+
+void AssemblerMIPS32::c_ole_s(const Operand *OpFs, const Operand *OpFt) {
+  static constexpr IValueT Opcode = 0x44000036;
+  emitCOP1Fcmp(Opcode, SinglePrecision, OpFs, OpFt, OperandMIPS32FCC::FCC0,
+               "c.ole.s");
+}
+
+void AssemblerMIPS32::c_olt_d(const Operand *OpFs, const Operand *OpFt) {
+  static constexpr IValueT Opcode = 0x44000034;
+  emitCOP1Fcmp(Opcode, DoublePrecision, OpFs, OpFt, OperandMIPS32FCC::FCC0,
+               "c.olt.d");
+}
+
+void AssemblerMIPS32::c_olt_s(const Operand *OpFs, const Operand *OpFt) {
+  static constexpr IValueT Opcode = 0x44000034;
+  emitCOP1Fcmp(Opcode, SinglePrecision, OpFs, OpFt, OperandMIPS32FCC::FCC0,
+               "c.olt.s");
+}
+
+void AssemblerMIPS32::c_ueq_d(const Operand *OpFs, const Operand *OpFt) {
+  static constexpr IValueT Opcode = 0x44000033;
+  emitCOP1Fcmp(Opcode, DoublePrecision, OpFs, OpFt, OperandMIPS32FCC::FCC0,
+               "c.ueq.d");
+}
+
+void AssemblerMIPS32::c_ueq_s(const Operand *OpFs, const Operand *OpFt) {
+  static constexpr IValueT Opcode = 0x44000033;
+  emitCOP1Fcmp(Opcode, SinglePrecision, OpFs, OpFt, OperandMIPS32FCC::FCC0,
+               "c.ueq.s");
+}
+
+void AssemblerMIPS32::c_ule_d(const Operand *OpFs, const Operand *OpFt) {
+  static constexpr IValueT Opcode = 0x44000037;
+  emitCOP1Fcmp(Opcode, DoublePrecision, OpFs, OpFt, OperandMIPS32FCC::FCC0,
+               "c.ule.d");
+}
+
+void AssemblerMIPS32::c_ule_s(const Operand *OpFs, const Operand *OpFt) {
+  static constexpr IValueT Opcode = 0x44000037;
+  emitCOP1Fcmp(Opcode, SinglePrecision, OpFs, OpFt, OperandMIPS32FCC::FCC0,
+               "c.ule.s");
+}
+
+void AssemblerMIPS32::c_ult_d(const Operand *OpFs, const Operand *OpFt) {
+  static constexpr IValueT Opcode = 0x44000035;
+  emitCOP1Fcmp(Opcode, DoublePrecision, OpFs, OpFt, OperandMIPS32FCC::FCC0,
+               "c.ult.d");
+}
+
+void AssemblerMIPS32::c_ult_s(const Operand *OpFs, const Operand *OpFt) {
+  static constexpr IValueT Opcode = 0x44000035;
+  emitCOP1Fcmp(Opcode, SinglePrecision, OpFs, OpFt, OperandMIPS32FCC::FCC0,
+               "c.ult.s");
+}
+
+void AssemblerMIPS32::c_un_d(const Operand *OpFs, const Operand *OpFt) {
+  static constexpr IValueT Opcode = 0x44000031;
+  emitCOP1Fcmp(Opcode, DoublePrecision, OpFs, OpFt, OperandMIPS32FCC::FCC0,
+               "c.un.d");
+}
+
+void AssemblerMIPS32::c_un_s(const Operand *OpFs, const Operand *OpFt) {
+  static constexpr IValueT Opcode = 0x44000031;
+  emitCOP1Fcmp(Opcode, SinglePrecision, OpFs, OpFt, OperandMIPS32FCC::FCC0,
+               "c.un.s");
 }
 
 void AssemblerMIPS32::cvt_d_l(const Operand *OpFd, const Operand *OpFs) {
@@ -497,6 +595,23 @@ void AssemblerMIPS32::move(const Operand *OpRd, const Operand *OpRs) {
   }
 }
 
+void AssemblerMIPS32::movf(const Operand *OpRd, const Operand *OpRs,
+                           const Operand *OpCc) {
+  IValueT Opcode = 0x00000001;
+  const IValueT Rd = encodeGPRegister(OpRd, "Rd", "movf");
+  const IValueT Rs = encodeGPRegister(OpRs, "Rs", "movf");
+  OperandMIPS32FCC::FCC Cc = OperandMIPS32FCC::FCC0;
+  if (const auto *OpFCC = llvm::dyn_cast<OperandMIPS32FCC>(OpCc)) {
+    Cc = OpFCC->getFCC();
+  }
+  const IValueT InstEncodingFalse = 0;
+  Opcode |= Rd << 11;
+  Opcode |= InstEncodingFalse << 16;
+  Opcode |= Cc << 18;
+  Opcode |= Rs << 21;
+  emitInst(Opcode);
+}
+
 void AssemblerMIPS32::movn_d(const Operand *OpFd, const Operand *OpFs,
                              const Operand *OpFt) {
   static constexpr IValueT Opcode = 0x44000013;
@@ -507,6 +622,23 @@ void AssemblerMIPS32::movn_s(const Operand *OpFd, const Operand *OpFs,
                              const Operand *OpFt) {
   static constexpr IValueT Opcode = 0x44000013;
   emitCOP1FmtFtFsFd(Opcode, SinglePrecision, OpFd, OpFs, OpFt, "movn.s");
+}
+
+void AssemblerMIPS32::movt(const Operand *OpRd, const Operand *OpRs,
+                           const Operand *OpCc) {
+  IValueT Opcode = 0x00000001;
+  const IValueT Rd = encodeGPRegister(OpRd, "Rd", "movf");
+  const IValueT Rs = encodeGPRegister(OpRs, "Rs", "movf");
+  OperandMIPS32FCC::FCC Cc = OperandMIPS32FCC::FCC0;
+  if (const auto *OpFCC = llvm::dyn_cast<OperandMIPS32FCC>(OpCc)) {
+    Cc = OpFCC->getFCC();
+  }
+  const IValueT InstEncodingTrue = 1;
+  Opcode |= Rd << 11;
+  Opcode |= InstEncodingTrue << 16;
+  Opcode |= Cc << 18;
+  Opcode |= Rs << 21;
+  emitInst(Opcode);
 }
 
 void AssemblerMIPS32::movz_d(const Operand *OpFd, const Operand *OpFs,

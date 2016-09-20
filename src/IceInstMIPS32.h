@@ -76,16 +76,18 @@ class OperandMIPS32FCC : public OperandMIPS32 {
   OperandMIPS32FCC &operator=(const OperandMIPS32FCC &) = delete;
 
 public:
-  enum FCC { FCC0 = 0, FCC1, FCC2, FCC3, FCC4, FCC5, FCC6, FCC7 };
+  using FCC = enum { FCC0 = 0, FCC1, FCC2, FCC3, FCC4, FCC5, FCC6, FCC7 };
   static OperandMIPS32FCC *create(Cfg *Func, OperandMIPS32FCC::FCC FCC) {
     return new (Func->allocate<OperandMIPS32FCC>()) OperandMIPS32FCC(FCC);
   }
+
+  OperandMIPS32FCC::FCC getFCC() const { return FpCondCode; }
 
   void emit(const Cfg *Func) const override {
     if (!BuildDefs::dump())
       return;
     Ostream &Str = Func->getContext()->getStrEmit();
-    Str << "$fcc" << static_cast<uint16_t>(FCC);
+    Str << "$fcc" << static_cast<uint16_t>(FpCondCode);
   }
 
   static bool classof(const Operand *Operand) {
@@ -98,10 +100,10 @@ public:
   }
 
 private:
-  OperandMIPS32FCC(OperandMIPS32FCC::FCC FCC)
-      : OperandMIPS32(kFCC, IceType_i32), FCC(FCC){};
+  OperandMIPS32FCC(OperandMIPS32FCC::FCC CC)
+      : OperandMIPS32(kFCC, IceType_i32), FpCondCode(CC){};
 
-  const OperandMIPS32FCC::FCC FCC;
+  const OperandMIPS32FCC::FCC FpCondCode;
 };
 
 class OperandMIPS32Mem : public OperandMIPS32 {
@@ -1237,6 +1239,20 @@ template <> void InstMIPS32Addiu::emitIAS(const Cfg *Func) const;
 template <> void InstMIPS32Addu::emitIAS(const Cfg *Func) const;
 template <> void InstMIPS32And::emitIAS(const Cfg *Func) const;
 template <> void InstMIPS32Andi::emitIAS(const Cfg *Func) const;
+template <> void InstMIPS32C_eq_d::emitIAS(const Cfg *Func) const;
+template <> void InstMIPS32C_eq_s::emitIAS(const Cfg *Func) const;
+template <> void InstMIPS32C_ole_d::emitIAS(const Cfg *Func) const;
+template <> void InstMIPS32C_ole_s::emitIAS(const Cfg *Func) const;
+template <> void InstMIPS32C_olt_d::emitIAS(const Cfg *Func) const;
+template <> void InstMIPS32C_olt_s::emitIAS(const Cfg *Func) const;
+template <> void InstMIPS32C_ueq_d::emitIAS(const Cfg *Func) const;
+template <> void InstMIPS32C_ueq_s::emitIAS(const Cfg *Func) const;
+template <> void InstMIPS32C_ule_d::emitIAS(const Cfg *Func) const;
+template <> void InstMIPS32C_ule_s::emitIAS(const Cfg *Func) const;
+template <> void InstMIPS32C_ult_d::emitIAS(const Cfg *Func) const;
+template <> void InstMIPS32C_ult_s::emitIAS(const Cfg *Func) const;
+template <> void InstMIPS32C_un_d::emitIAS(const Cfg *Func) const;
+template <> void InstMIPS32C_un_s::emitIAS(const Cfg *Func) const;
 template <> void InstMIPS32Cvt_d_l::emitIAS(const Cfg *Func) const;
 template <> void InstMIPS32Cvt_d_s::emitIAS(const Cfg *Func) const;
 template <> void InstMIPS32Cvt_d_w::emitIAS(const Cfg *Func) const;
@@ -1252,8 +1268,10 @@ template <> void InstMIPS32Mflo::emit(const Cfg *Func) const;
 template <> void InstMIPS32Mfhi::emit(const Cfg *Func) const;
 template <> void InstMIPS32Mov_d::emitIAS(const Cfg *Func) const;
 template <> void InstMIPS32Mov_s::emitIAS(const Cfg *Func) const;
+template <> void InstMIPS32Movf::emitIAS(const Cfg *Func) const;
 template <> void InstMIPS32Movn_d::emitIAS(const Cfg *Func) const;
 template <> void InstMIPS32Movn_s::emitIAS(const Cfg *Func) const;
+template <> void InstMIPS32Movt::emitIAS(const Cfg *Func) const;
 template <> void InstMIPS32Movz_d::emitIAS(const Cfg *Func) const;
 template <> void InstMIPS32Movz_s::emitIAS(const Cfg *Func) const;
 template <> void InstMIPS32Mtc1::emit(const Cfg *Func) const;

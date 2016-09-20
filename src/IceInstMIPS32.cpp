@@ -783,6 +783,76 @@ template <> void InstMIPS32Andi::emitIAS(const Cfg *Func) const {
   Asm->andi(getDest(), getSrc(0), Imm);
 }
 
+template <> void InstMIPS32C_eq_d::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
+  Asm->c_eq_d(getSrc(0), getSrc(1));
+}
+
+template <> void InstMIPS32C_eq_s::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
+  Asm->c_eq_s(getSrc(0), getSrc(1));
+}
+
+template <> void InstMIPS32C_ole_d::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
+  Asm->c_ole_d(getSrc(0), getSrc(1));
+}
+
+template <> void InstMIPS32C_ole_s::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
+  Asm->c_ole_s(getSrc(0), getSrc(1));
+}
+
+template <> void InstMIPS32C_olt_d::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
+  Asm->c_olt_d(getSrc(0), getSrc(1));
+}
+
+template <> void InstMIPS32C_olt_s::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
+  Asm->c_olt_s(getSrc(0), getSrc(1));
+}
+
+template <> void InstMIPS32C_ueq_d::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
+  Asm->c_ueq_d(getSrc(0), getSrc(1));
+}
+
+template <> void InstMIPS32C_ueq_s::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
+  Asm->c_ueq_s(getSrc(0), getSrc(1));
+}
+
+template <> void InstMIPS32C_ule_d::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
+  Asm->c_ule_d(getSrc(0), getSrc(1));
+}
+
+template <> void InstMIPS32C_ule_s::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
+  Asm->c_ule_s(getSrc(0), getSrc(1));
+}
+
+template <> void InstMIPS32C_ult_d::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
+  Asm->c_ult_d(getSrc(0), getSrc(1));
+}
+
+template <> void InstMIPS32C_ult_s::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
+  Asm->c_ult_s(getSrc(0), getSrc(1));
+}
+
+template <> void InstMIPS32C_un_d::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
+  Asm->c_un_d(getSrc(0), getSrc(1));
+}
+
+template <> void InstMIPS32C_un_s::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
+  Asm->c_un_s(getSrc(0), getSrc(1));
+}
+
 template <> void InstMIPS32Cvt_d_l::emitIAS(const Cfg *Func) const {
   auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
   Asm->cvt_d_l(getDest(), getSrc(0));
@@ -858,6 +928,11 @@ template <> void InstMIPS32Mov_s::emitIAS(const Cfg *Func) const {
   Asm->mov_s(getDest(), getSrc(0));
 }
 
+template <> void InstMIPS32Movf::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
+  Asm->movf(getDest(), getSrc(0), getSrc(1));
+}
+
 template <> void InstMIPS32Movn_d::emitIAS(const Cfg *Func) const {
   auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
   Asm->movn_d(getDest(), getSrc(0), getSrc(1));
@@ -866,6 +941,11 @@ template <> void InstMIPS32Movn_d::emitIAS(const Cfg *Func) const {
 template <> void InstMIPS32Movn_s::emitIAS(const Cfg *Func) const {
   auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
   Asm->movn_s(getDest(), getSrc(0), getSrc(1));
+}
+
+template <> void InstMIPS32Movt::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
+  Asm->movt(getDest(), getSrc(0), getSrc(1));
 }
 
 template <> void InstMIPS32Movz_d::emitIAS(const Cfg *Func) const {

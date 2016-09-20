@@ -72,6 +72,10 @@ public:
   void emitRdRsRt(IValueT Opcode, const Operand *OpRd, const Operand *OpRs,
                   const Operand *OpRt, const char *InsnName);
 
+  void emitCOP1Fcmp(IValueT Opcode, FPInstDataFormat Format,
+                    const Operand *OpFs, const Operand *OpFt, IValueT CC,
+                    const char *InsnName);
+
   void emitCOP1FmtFsFd(IValueT Opcode, FPInstDataFormat Format,
                        const Operand *OpFd, const Operand *OpFs,
                        const char *InsnName);
@@ -108,6 +112,34 @@ public:
 
   void b(Label *TargetLabel);
 
+  void c_eq_d(const Operand *OpFd, const Operand *OpFs);
+
+  void c_eq_s(const Operand *OpFd, const Operand *OpFs);
+
+  void c_ole_d(const Operand *OpFd, const Operand *OpFs);
+
+  void c_ole_s(const Operand *OpFd, const Operand *OpFs);
+
+  void c_olt_d(const Operand *OpFd, const Operand *OpFs);
+
+  void c_olt_s(const Operand *OpFd, const Operand *OpFs);
+
+  void c_ueq_d(const Operand *OpFd, const Operand *OpFs);
+
+  void c_ueq_s(const Operand *OpFd, const Operand *OpFs);
+
+  void c_ule_d(const Operand *OpFd, const Operand *OpFs);
+
+  void c_ule_s(const Operand *OpFd, const Operand *OpFs);
+
+  void c_ult_d(const Operand *OpFd, const Operand *OpFs);
+
+  void c_ult_s(const Operand *OpFd, const Operand *OpFs);
+
+  void c_un_d(const Operand *OpFd, const Operand *OpFs);
+
+  void c_un_s(const Operand *OpFd, const Operand *OpFs);
+
   void cvt_d_l(const Operand *OpFd, const Operand *OpFs);
 
   void cvt_d_s(const Operand *OpFd, const Operand *OpFs);
@@ -134,9 +166,13 @@ public:
 
   void move(const Operand *OpRd, const Operand *OpRs);
 
+  void movf(const Operand *OpRd, const Operand *OpRs, const Operand *OpCc);
+
   void movn_d(const Operand *OpFd, const Operand *OpFs, const Operand *OpFt);
 
   void movn_s(const Operand *OpFd, const Operand *OpFs, const Operand *OpFt);
+
+  void movt(const Operand *OpRd, const Operand *OpRs, const Operand *OpCc);
 
   void movz_d(const Operand *OpFd, const Operand *OpFs, const Operand *OpFt);
 
