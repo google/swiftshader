@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "106e1b0e_36b79891",
+        "filename": "src/Reactor/Nucleus.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-09-20T21:44:42Z",
+      "side": 1,
+      "message": "Could these be abstracted before these functions are moved?",
+      "range": {
+        "startLine": 89,
+        "startChar": 8,
+        "endLine": 89,
+        "endChar": 22
+      },
+      "revId": "a47302e7dd5b87b63da0d44c6d3cfa5732d78a88",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
