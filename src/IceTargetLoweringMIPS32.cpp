@@ -1420,12 +1420,19 @@ void TargetMIPS32::PostLoweringLegalizer::legalizeMov(InstMIPS32Mov *MovInstr) {
         }
       } else {
         // Dest is FPR and SrcR is GPR. Use mtc1.
-        if (typeWidthInBytes(SrcR->getType()) == 8) {
-          // Split it into two mtc1 instructions
-          Variable *SrcGPRHi = Target->makeReg(
-              IceType_i32, RegMIPS32::get64PairFirstRegNum(SRegNum));
-          Variable *SrcGPRLo = Target->makeReg(
-              IceType_i32, RegMIPS32::get64PairSecondRegNum(SRegNum));
+        if (typeWidthInBytes(Dest->getType()) == 8) {
+          Variable *SrcGPRHi, *SrcGPRLo;
+          // SrcR could be $zero which is i32
+          if (SRegNum == RegMIPS32::Reg_ZERO) {
+            SrcGPRHi = Target->makeReg(IceType_i32, SRegNum);
+            SrcGPRLo = SrcGPRHi;
+          } else {
+            // Split it into two mtc1 instructions
+            SrcGPRHi = Target->makeReg(
+                IceType_i32, RegMIPS32::get64PairFirstRegNum(SRegNum));
+            SrcGPRLo = Target->makeReg(
+                IceType_i32, RegMIPS32::get64PairSecondRegNum(SRegNum));
+          }
           Variable *DstFPRHi = Target->makeReg(
               IceType_f32, RegMIPS32::get64PairFirstRegNum(DRegNum));
           Variable *DstFPRLo = Target->makeReg(
@@ -3362,9 +3369,104 @@ void TargetDataMIPS32::lowerGlobals(const VariableDeclarationList &Vars,
   }
 }
 
+namespace {
+template <typename T> struct ConstantPoolEmitterTraits;
+
+static_assert(sizeof(uint64_t) == 8,
+              "uint64_t is supposed to be 8 bytes wide.");
+
+// TODO(jaydeep.patil): implement the following when implementing constant
+// randomization:
+//  * template <> struct ConstantPoolEmitterTraits<uint8_t>
+//  * template <> struct ConstantPoolEmitterTraits<uint16_t>
+//  * template <> struct ConstantPoolEmitterTraits<uint32_t>
+template <> struct ConstantPoolEmitterTraits<float> {
+  using ConstantType = ConstantFloat;
+  static constexpr Type IceType = IceType_f32;
+  // AsmTag and TypeName can't be constexpr because llvm::StringRef is unhappy
+  // about them being constexpr.
+  static const char AsmTag[];
+  static const char TypeName[];
+  static uint64_t bitcastToUint64(float Value) {
+    static_assert(sizeof(Value) == sizeof(uint32_t),
+                  "Float should be 4 bytes.");
+    const uint32_t IntValue = Utils::bitCopy<uint32_t>(Value);
+    return static_cast<uint64_t>(IntValue);
+  }
+};
+const char ConstantPoolEmitterTraits<float>::AsmTag[] = ".word";
+const char ConstantPoolEmitterTraits<float>::TypeName[] = "f32";
+
+template <> struct ConstantPoolEmitterTraits<double> {
+  using ConstantType = ConstantDouble;
+  static constexpr Type IceType = IceType_f64;
+  static const char AsmTag[];
+  static const char TypeName[];
+  static uint64_t bitcastToUint64(double Value) {
+    static_assert(sizeof(double) == sizeof(uint64_t),
+                  "Double should be 8 bytes.");
+    return Utils::bitCopy<uint64_t>(Value);
+  }
+};
+const char ConstantPoolEmitterTraits<double>::AsmTag[] = ".quad";
+const char ConstantPoolEmitterTraits<double>::TypeName[] = "f64";
+
+template <typename T>
+void emitConstant(
+    Ostream &Str,
+    const typename ConstantPoolEmitterTraits<T>::ConstantType *Const) {
+  if (!BuildDefs::dump())
+    return;
+  using Traits = ConstantPoolEmitterTraits<T>;
+  Str << Const->getLabelName();
+  T Value = Const->getValue();
+  Str << ":\n\t" << Traits::AsmTag << "\t0x";
+  Str.write_hex(Traits::bitcastToUint64(Value));
+  Str << "\t/* " << Traits::TypeName << " " << Value << " */\n";
+}
+
+template <typename T> void emitConstantPool(GlobalContext *Ctx) {
+  if (!BuildDefs::dump())
+    return;
+  using Traits = ConstantPoolEmitterTraits<T>;
+  static constexpr size_t MinimumAlignment = 4;
+  SizeT Align = std::max(MinimumAlignment, typeAlignInBytes(Traits::IceType));
+  assert((Align % 4) == 0 && "Constants should be aligned");
+  Ostream &Str = Ctx->getStrEmit();
+  ConstantList Pool = Ctx->getConstantPool(Traits::IceType);
+  Str << "\t.section\t.rodata.cst" << Align << ",\"aM\",%progbits," << Align
+      << "\n"
+      << "\t.align\t" << (Align == 4 ? 2 : 3) << "\n";
+  if (getFlags().getReorderPooledConstants()) {
+    // TODO(jaydeep.patil): add constant pooling.
+    UnimplementedError(getFlags());
+  }
+  for (Constant *C : Pool) {
+    if (!C->getShouldBePooled()) {
+      continue;
+    }
+    emitConstant<T>(Str, llvm::dyn_cast<typename Traits::ConstantType>(C));
+  }
+}
+} // end of anonymous namespace
+
 void TargetDataMIPS32::lowerConstants() {
   if (getFlags().getDisableTranslation())
     return;
+  switch (getFlags().getOutFileType()) {
+  case FT_Elf: {
+    ELFObjectWriter *Writer = Ctx->getObjectWriter();
+    Writer->writeConstantPool<ConstantFloat>(IceType_f32);
+    Writer->writeConstantPool<ConstantDouble>(IceType_f64);
+  } break;
+  case FT_Asm:
+  case FT_Iasm: {
+    OstreamLocker _(Ctx);
+    emitConstantPool<float>(Ctx);
+    emitConstantPool<double>(Ctx);
+    break;
+  }
+  }
 }
 
 void TargetDataMIPS32::lowerJumpTables() {
@@ -3486,21 +3588,25 @@ Operand *TargetMIPS32::legalize(Operand *From, LegalMask Allowed,
       }
       return Reg;
     } else if (isScalarFloatingType(Ty)) {
-      // Load floats/doubles from literal pool.
       auto *CFrom = llvm::cast<Constant>(From);
-      assert(CFrom->getShouldBePooled());
-      Constant *Offset = Ctx->getConstantSym(0, CFrom->getLabelName());
-      Variable *TReg1 = makeReg(getPointerType());
-      Variable *TReg2 = makeReg(Ty);
-      Context.insert<InstFakeDef>(TReg2);
-      _lui(TReg1, Offset, RO_Hi);
-      OperandMIPS32Mem *Addr =
-          OperandMIPS32Mem::create(Func, Ty, TReg1, Offset);
-      if (Ty == IceType_f32)
-        _lwc1(TReg2, Addr, RO_Lo);
-      else
-        _ldc1(TReg2, Addr, RO_Lo);
-      return copyToReg(TReg2, RegNum);
+      Variable *TReg = makeReg(Ty);
+      if (!CFrom->getShouldBePooled()) {
+        // Float/Double constant 0 is not pooled.
+        Context.insert<InstFakeDef>(TReg);
+        _mov(TReg, getZero());
+      } else {
+        // Load floats/doubles from literal pool.
+        Constant *Offset = Ctx->getConstantSym(0, CFrom->getLabelName());
+        Variable *TReg1 = makeReg(getPointerType());
+        _lui(TReg1, Offset, RO_Hi);
+        OperandMIPS32Mem *Addr =
+            OperandMIPS32Mem::create(Func, Ty, TReg1, Offset);
+        if (Ty == IceType_f32)
+          _lwc1(TReg, Addr, RO_Lo);
+        else
+          _ldc1(TReg, Addr, RO_Lo);
+      }
+      return copyToReg(TReg, RegNum);
     }
   }
 

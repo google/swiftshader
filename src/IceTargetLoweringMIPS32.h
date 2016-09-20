@@ -38,8 +38,9 @@ public:
     if (auto *ConstDouble = llvm::dyn_cast<ConstantDouble>(C)) {
       return !Utils::isPositiveZero(ConstDouble->getValue());
     }
-    if (llvm::isa<ConstantFloat>(C))
-      return true;
+    if (auto *ConstFloat = llvm::dyn_cast<ConstantFloat>(C)) {
+      return !Utils::isPositiveZero(ConstFloat->getValue());
+    }
     return false;
   }
   static std::unique_ptr<::Ice::TargetLowering> create(Cfg *Func) {
@@ -828,7 +829,6 @@ protected:
 
 private:
   ~TargetDataMIPS32() override = default;
-  template <typename T> static void emitConstantPool(GlobalContext *Ctx);
 };
 
 class TargetHeaderMIPS32 final : public TargetHeaderLowering {
