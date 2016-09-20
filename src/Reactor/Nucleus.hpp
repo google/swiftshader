@@ -31,18 +31,12 @@
 namespace llvm
 {
 	class Function;
-	class Module;
 	class BasicBlock;
 	class Value;
 	class Constant;
 	class ConstantInt;
-	class ConstantFP;
 	class Type;
-	class Argument;
-	class GlobalVariable;
 	class GlobalValue;
-	class ExecutionEngine;
-	class LLVMContext;
 }
 
 namespace sw
@@ -66,8 +60,6 @@ namespace sw
 	extern Optimization optimization[10];
 
 	class Routine;
-	class RoutineManager;
-	class Builder;
 
 	using Type = llvm::Type*;
 	using Value = llvm::Value;
@@ -81,9 +73,6 @@ namespace sw
 		virtual ~Nucleus();
 
 		Routine *acquireRoutine(const wchar_t *name, bool runOptimizations = true);
-
-		static llvm::Module *getModule();
-		static llvm::LLVMContext *getContext();
 
 		static Value *allocateStackVariable(Type type, int arraySize = 0);
 		static BasicBlock *createBasicBlock();
@@ -216,13 +205,6 @@ namespace sw
 
 	private:
 		void optimize();
-
-		static llvm::ExecutionEngine *executionEngine;
-		static Builder *builder;
-		static llvm::Function *function;
-		static llvm::LLVMContext *context;
-		static llvm::Module *module;
-		static RoutineManager *routineManager;
 
 		static BackoffLock codegenMutex;
 	};
