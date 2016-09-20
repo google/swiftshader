@@ -82,10 +82,7 @@ namespace sw
 
 		Routine *acquireRoutine(const wchar_t *name, bool runOptimizations = true);
 
-		static void setFunction(llvm::Function *function);
-
 		static llvm::Module *getModule();
-		static llvm::Function *getFunction();
 		static llvm::LLVMContext *getContext();
 
 		static Value *allocateStackVariable(Type type, int arraySize = 0);
@@ -2994,7 +2991,6 @@ namespace sw
 		}
 
 		function = Nucleus::createFunction(Return::getType(), arguments);
-		Nucleus::setFunction(function);
 	}
 
 	template<typename Return, typename... Arguments>

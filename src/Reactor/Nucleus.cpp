@@ -224,21 +224,9 @@ namespace sw
 		passManager->run(*module);
 	}
 
-	void Nucleus::setFunction(llvm::Function *function)
-	{
-		Nucleus::function = function;
-
-		builder->SetInsertPoint(BasicBlock::Create(*context, "", function));
-	}
-
 	Module *Nucleus::getModule()
 	{
 		return module;
-	}
-
-	llvm::Function *Nucleus::getFunction()
-	{
-		return function;
 	}
 
 	llvm::LLVMContext *Nucleus::getContext()
@@ -249,7 +237,6 @@ namespace sw
 	Value *Nucleus::allocateStackVariable(Type type, int arraySize)
 	{
 		// Need to allocate it in the entry block for mem2reg to work
-		llvm::Function *function = getFunction();
 		BasicBlock &entryBlock = function->getEntryBlock();
 
 		Instruction *declaration;
@@ -270,7 +257,7 @@ namespace sw
 
 	BasicBlock *Nucleus::createBasicBlock()
 	{
-		return BasicBlock::Create(*context, "", Nucleus::getFunction());
+		return BasicBlock::Create(*context, "", function);
 	}
 
 	BasicBlock *Nucleus::getInsertBlock()
@@ -294,6 +281,9 @@ namespace sw
 		llvm::FunctionType *functionType = llvm::FunctionType::get(ReturnType, Params, false);
 		llvm::Function *function = llvm::Function::Create(functionType, llvm::GlobalValue::InternalLinkage, "", Nucleus::getModule());
 		function->setCallingConv(llvm::CallingConv::C);
+
+		Nucleus::function = function;
+		builder->SetInsertPoint(BasicBlock::Create(*context, "", function));
 
 		return function;
 	}
