@@ -298,7 +298,7 @@ namespace sw
 		return function;
 	}
 
-	llvm::Value *Nucleus::getArgument(llvm::Function *function, unsigned int index)
+	Value *Nucleus::getArgument(llvm::Function *function, unsigned int index)
 	{
 		llvm::Function::arg_iterator args = function->arg_begin();
 
@@ -690,12 +690,12 @@ namespace sw
 		return builder->CreateSelect(C, ifTrue, ifFalse);
 	}
 
-	Value *Nucleus::createSwitch(llvm::Value *V, llvm::BasicBlock *Dest, unsigned NumCases)
+	Value *Nucleus::createSwitch(Value *V, BasicBlock *Dest, unsigned NumCases)
 	{
 		return builder->CreateSwitch(V, Dest, NumCases);
 	}
 
-	void Nucleus::addSwitchCase(llvm::Value *Switch, int Case, llvm::BasicBlock *Branch)
+	void Nucleus::addSwitchCase(Value *Switch, int Case, BasicBlock *Branch)
 	{
 		static_cast<SwitchInst*>(Switch)->addCase(Nucleus::createConstantInt(Case), Branch);
 	}
@@ -811,12 +811,12 @@ namespace sw
 		return ConstantFP::get(Float::getType(), x);
 	}
 
-	llvm::Value *Nucleus::createNullPointer(Type Ty)
+	Value *Nucleus::createNullPointer(Type Ty)
 	{
 		return llvm::ConstantPointerNull::get(llvm::PointerType::get(Ty, 0));
 	}
 
-	llvm::Value *Nucleus::createConstantVector(llvm::Constant *const *Vals, unsigned NumVals)
+	Value *Nucleus::createConstantVector(llvm::Constant *const *Vals, unsigned NumVals)
 	{
 		return llvm::ConstantVector::get(llvm::ArrayRef<llvm::Constant*>(Vals, NumVals));
 	}
@@ -831,17 +831,17 @@ namespace sw
 		address = Nucleus::allocateStackVariable(type, arraySize);
 	}
 
-	llvm::Value *LValue::loadValue(unsigned int alignment) const
+	Value *LValue::loadValue(unsigned int alignment) const
 	{
 		return Nucleus::createLoad(address, false, alignment);
 	}
 
-	llvm::Value *LValue::storeValue(llvm::Value *value, unsigned int alignment) const
+	Value *LValue::storeValue(Value *value, unsigned int alignment) const
 	{
 		return Nucleus::createStore(value, address, false, alignment);
 	}
 
-	llvm::Value *LValue::getAddress(llvm::Value *index) const
+	Value *LValue::getAddress(Value *index) const
 	{
 		return Nucleus::createGEP(address, index);
 	}
@@ -6677,8 +6677,8 @@ namespace sw
 
 	RValue<Float4> Insert(const Float4 &val, RValue<Float> element, int i)
 	{
-		llvm::Value *value = val.loadValue();
-		llvm::Value *insert = Nucleus::createInsertElement(value, element.value, i);
+		Value *value = val.loadValue();
+		Value *insert = Nucleus::createInsertElement(value, element.value, i);
 
 		val = RValue<Float4>(insert);
 
