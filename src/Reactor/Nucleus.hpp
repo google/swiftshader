@@ -30,13 +30,18 @@
 
 namespace llvm
 {
-	class Function;
-	class BasicBlock;
+	class Type;
 	class Value;
 	class Constant;
-	class ConstantInt;
-	class Type;
-	class GlobalValue;
+	class BasicBlock;
+}
+
+namespace sw
+{
+	using Type = llvm::Type*;
+	using Value = llvm::Value;
+	using Constant = llvm::Constant;
+	using BasicBlock = llvm::BasicBlock;
 }
 
 namespace sw
@@ -61,10 +66,6 @@ namespace sw
 
 	class Routine;
 
-	using Type = llvm::Type*;
-	using Value = llvm::Value;
-	using BasicBlock = llvm::BasicBlock;
-
 	class Nucleus
 	{
 	public:
@@ -80,8 +81,8 @@ namespace sw
 		static void setInsertBlock(BasicBlock *basicBlock);
 		static BasicBlock *getPredecessor(BasicBlock *basicBlock);
 
-		static llvm::Function *createFunction(Type ReturnType, std::vector<Type> &Params);
-		static Value *getArgument(llvm::Function *function, unsigned int index);
+		static void createFunction(Type returnType, std::vector<Type> &parameters);
+		static Value *getArgument(unsigned int index);
 
 		// Terminators
 		static Value *createRetVoid();
@@ -115,6 +116,7 @@ namespace sw
 		// Memory instructions
 		static Value *createLoad(Value *ptr, bool isVolatile = false, unsigned int align = 0);
 		static Value *createStore(Value *value, Value *ptr, bool isVolatile = false, unsigned int align = 0);
+		static Value *createStore(Constant *constant, Value *ptr, bool isVolatile = false, unsigned int align = 0);
 		static Value *createGEP(Value *ptr, Value *index);
 
 		// Atomic instructions
@@ -184,24 +186,22 @@ namespace sw
 		static Value *createMask(Value *lhs, Value *rhs, unsigned char select);
 
 		// Global values
-		static const llvm::GlobalValue *getGlobalValueAtAddress(void *Addr);
-		static void addGlobalMapping(const llvm::GlobalValue *GV, void *Addr);
-		static llvm::GlobalValue *createGlobalValue(Type Ty, bool isConstant, unsigned int Align);
+		static Value *createGlobalValue(const void *external, Type Ty, bool isConstant, unsigned int Align);
 		static Type getPointerType(Type ElementType);
 
 		// Constant values
-		static llvm::Constant *createNullValue(Type Ty);
-		static llvm::ConstantInt *createConstantInt(int64_t i);
-		static llvm::ConstantInt *createConstantInt(int i);
-		static llvm::ConstantInt *createConstantInt(unsigned int i);
-		static llvm::ConstantInt *createConstantBool(bool b);
-		static llvm::ConstantInt *createConstantByte(signed char i);
-		static llvm::ConstantInt *createConstantByte(unsigned char i);
-		static llvm::ConstantInt *createConstantShort(short i);
-		static llvm::ConstantInt *createConstantShort(unsigned short i);
-		static llvm::Constant *createConstantFloat(float x);
-		static Value *createNullPointer(Type Ty);
-		static Value *createConstantVector(llvm::Constant *const *Vals, unsigned NumVals);
+		static Constant *createNullValue(Type Ty);
+		static Constant *createConstantInt(int64_t i);
+		static Constant *createConstantInt(int i);
+		static Constant *createConstantInt(unsigned int i);
+		static Constant *createConstantBool(bool b);
+		static Constant *createConstantByte(signed char i);
+		static Constant *createConstantByte(unsigned char i);
+		static Constant *createConstantShort(short i);
+		static Constant *createConstantShort(unsigned short i);
+		static Constant *createConstantFloat(float x);
+		static Constant *createNullPointer(Type Ty);
+		static Constant *createConstantVector(Constant *const *Vals, unsigned NumVals);
 
 	private:
 		void optimize();
@@ -267,6 +267,7 @@ namespace sw
 
 		Value *loadValue(unsigned int alignment = 0) const;
 		Value *storeValue(Value *value, unsigned int alignment = 0) const;
+		Value *storeValue(Constant *constant, unsigned int alignment = 0) const;
 		Value *getAddress(Value *index) const;
 
 	protected:
@@ -2497,7 +2498,7 @@ namespace sw
 		template<int index>
 		Argument<typename ArgI<index, Arguments...>::Type> Arg() const
 		{
-			Value *arg = Nucleus::getArgument(function, index);
+			Value *arg = Nucleus::getArgument(index);
 			return Argument<typename ArgI<index, Arguments...>::Type>(arg);
 		}
 
@@ -2505,7 +2506,6 @@ namespace sw
 
 	protected:
 		Nucleus *core;
-		llvm::Function *function;
 		std::vector<Type> arguments;
 	};
 
@@ -2770,16 +2770,9 @@ namespace sw
 	template<class T>
 	Pointer<T>::Pointer(const void *external) : alignment((intptr_t)external & 0x0000000F ? 1 : 16)
 	{
-		const llvm::GlobalValue *globalPointer = Nucleus::getGlobalValueAtAddress(const_cast<void*>(external));   // FIXME: Const
+		Value *globalPointer = Nucleus::createGlobalValue(external, T::getType(), false, alignment);
 
-		if(!globalPointer)
-		{
-			globalPointer = Nucleus::createGlobalValue(T::getType(), false, alignment);
-
-			Nucleus::addGlobalMapping(globalPointer, const_cast<void*>(external));   // FIXME: Const
-		}
-
-		LValue::storeValue((Value*)globalPointer);   // FIXME: Const
+		LValue::storeValue(globalPointer);   // FIXME: Const
 	}
 
 	template<class T>
@@ -2966,7 +2959,7 @@ namespace sw
 			}
 		}
 
-		function = Nucleus::createFunction(Return::getType(), arguments);
+		Nucleus::createFunction(Return::getType(), arguments);
 	}
 
 	template<typename Return, typename... Arguments>
