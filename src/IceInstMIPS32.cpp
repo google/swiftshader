@@ -990,6 +990,11 @@ template <> void InstMIPS32Sw::emitIAS(const Cfg *Func) const {
   Asm->sw(getSrc(0), Mem->getBase(), Imm);
 }
 
+template <> void InstMIPS32Teq::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
+  Asm->teq(getSrc(0), getSrc(1), getTrapCode());
+}
+
 template <> void InstMIPS32Trunc_l_d::emitIAS(const Cfg *Func) const {
   auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
   Asm->trunc_l_d(getDest(), getSrc(0));

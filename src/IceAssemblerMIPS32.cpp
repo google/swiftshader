@@ -653,6 +653,17 @@ void AssemblerMIPS32::sw(const Operand *OpRt, const Operand *OpBase,
   }
 }
 
+void AssemblerMIPS32::teq(const Operand *OpRs, const Operand *OpRt,
+                          const uint32_t TrapCode) {
+  IValueT Opcode = 0x00000034;
+  const IValueT Rs = encodeGPRegister(OpRs, "Rs", "teq");
+  const IValueT Rt = encodeGPRegister(OpRt, "Rt", "teq");
+  Opcode |= (TrapCode & 0xFFFFF) << 6;
+  Opcode |= Rt << 16;
+  Opcode |= Rs << 21;
+  emitInst(Opcode);
+}
+
 void AssemblerMIPS32::trunc_l_d(const Operand *OpFd, const Operand *OpFs) {
   static constexpr IValueT Opcode = 0x4400000D;
   emitCOP1FmtFsFd(Opcode, Long, OpFd, OpFs, "trunc.l.d");

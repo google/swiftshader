@@ -3299,8 +3299,9 @@ void TargetMIPS32::lowerBreakpoint(const InstBreakpoint *Instr) {
   UnimplementedLoweringError(this, Instr);
 }
 
-void TargetMIPS32::lowerUnreachable(const InstUnreachable *Instr) {
-  UnimplementedLoweringError(this, Instr);
+void TargetMIPS32::lowerUnreachable(const InstUnreachable *) {
+  const uint32_t TrapCodeZero = 0;
+  _teq(getZero(), getZero(), TrapCodeZero);
 }
 
 // Turn an i64 Phi instruction into a pair of i32 Phi instructions, to preserve

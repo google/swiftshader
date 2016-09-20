@@ -178,6 +178,8 @@ public:
 
   void sw(const Operand *OpRt, const Operand *OpBase, const uint32_t Offset);
 
+  void teq(const Operand *OpRs, const Operand *OpRt, const uint32_t TrapCode);
+
   void trunc_l_d(const Operand *OpFd, const Operand *OpFs);
 
   void trunc_l_s(const Operand *OpFd, const Operand *OpFs);

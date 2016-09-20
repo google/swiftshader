@@ -18,6 +18,18 @@
 ; RUN:   | %if --need=target_ARM32 --need=allow_dump \
 ; RUN:   --command FileCheck --check-prefix ARM32 %s
 
+; RUN: %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command %p2i --filetype=asm --assemble \
+; RUN:   --disassemble --target mips32 -i %s --args -Om1 --skip-unimplemented \
+; RUN:   | %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command FileCheck --check-prefix MIPS32 %s
+
+; RUN: %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command %p2i --filetype=asm --assemble \
+; RUN:   --disassemble --target mips32 -i %s --args -O2 --skip-unimplemented \
+; RUN:   | %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command FileCheck --check-prefix MIPS32-O2 %s
+
 define internal i32 @divide(i32 %num, i32 %den) {
 entry:
   %cmp = icmp ne i32 %den, 0
@@ -43,3 +55,15 @@ return:                                           ; preds = %entry
 ; ARM32: .word 0xe7fedef0
 ; ARM32: bl {{.*}} __divsi3
 ; ARM32: bx lr
+
+; MIPS32-LABEL: divide
+; MIPS32: beqz
+; MIPS32: nop
+; MIPS32: teq zero,zero
+; MIPS32: div
+
+; MIPS32-O2-LABEL: divide
+; MIPS32-O2: bne
+; MIPS32-O2: nop
+; MIPS32-O2: teq zero,zero
+; MIPS32-O2: div
