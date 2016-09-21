@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "30b79fb7_7ff98a68",
+        "filename": "src/OpenGL/libGLESv2/Program.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1182,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-09-21T14:05:27Z",
+      "side": 1,
+      "message": "Look like this can just be nullptr, with no need for nullObject.",
+      "range": {
+        "startLine": 1182,
+        "startChar": 68,
+        "endLine": 1182,
+        "endChar": 78
+      },
+      "revId": "e97f4b54ab896b6db16a297c5cf919e173053a02",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
