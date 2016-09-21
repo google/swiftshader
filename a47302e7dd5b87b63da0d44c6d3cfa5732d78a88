@@ -22,6 +22,30 @@
       "revId": "a47302e7dd5b87b63da0d44c6d3cfa5732d78a88",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "30b79fb7_c6db1736",
+        "filename": "src/Reactor/Nucleus.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-09-21T02:41:47Z",
+      "side": 1,
+      "message": "This is still WIP. Anyway, these don\u0027t need to be abstracted since this is the LLVM implementation file of Reactor. That said, I\u0027ll remove the llvm:: since there\u0027s a \"using namespace llvm\".",
+      "parentUuid": "106e1b0e_36b79891",
+      "range": {
+        "startLine": 89,
+        "startChar": 8,
+        "endLine": 89,
+        "endChar": 22
+      },
+      "revId": "a47302e7dd5b87b63da0d44c6d3cfa5732d78a88",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
