@@ -64,8 +64,18 @@ config("swiftshader_config") {
 }
 
 group("swiftshader") {
-  deps = [
-    "src/OpenGL/libGLESv2:swiftshader_libGLESv2",
-    "src/OpenGL/libEGL:swiftshader_libEGL",
-  ]
+  if(is_mac)
+  {
+    loadable_module = [
+      "src/OpenGL/libGLESv2:swiftshader_libGLESv2",
+      "src/OpenGL/libEGL:swiftshader_libEGL",
+    ]
+  }
+  else
+  {
+    data_deps = [
+      "src/OpenGL/libGLESv2:swiftshader_libGLESv2",
+      "src/OpenGL/libEGL:swiftshader_libEGL",
+    ]
+  }
 }
