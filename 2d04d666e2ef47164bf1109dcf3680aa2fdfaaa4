@@ -16,6 +16,24 @@
       "revId": "2d04d666e2ef47164bf1109dcf3680aa2fdfaaa4",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "30b79fb7_bf962298",
+        "filename": "BUILD.gn",
+        "patchSetId": 3
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-09-21T15:44:06Z",
+      "side": 1,
+      "message": "Oh, you\u0027re right, this probably doesn\u0027t work, that\u0027s not the right syntax. I don\u0027t have a mac here, so I have to commit, then check using trybots. Complicated workflow...",
+      "parentUuid": "30b79fb7_1f708e98",
+      "revId": "2d04d666e2ef47164bf1109dcf3680aa2fdfaaa4",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
