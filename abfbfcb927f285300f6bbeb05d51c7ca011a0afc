@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "106e1b0e_96378c9a",
+        "filename": "src/Reactor/Nucleus.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-09-21T11:13:19Z",
+      "side": 1,
+      "message": "Ah, so this is what would have allowed all the \"llvm::\" to be removed from this file without the refactor.",
+      "range": {
+        "startLine": 65,
+        "startChar": 1,
+        "endLine": 65,
+        "endChar": 22
+      },
+      "revId": "abfbfcb927f285300f6bbeb05d51c7ca011a0afc",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b0746fbe_d6fbe2a4",
         "filename": "src/Reactor/Nucleus.cpp",
         "patchSetId": 1
