@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "30b79fb7_1f708e98",
+        "filename": "BUILD.gn",
+        "patchSetId": 3
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2016-09-21T15:40:30Z",
+      "side": 1,
+      "message": "Didn\u0027t know this would work, LGTM if tested with gn gen --check on Mac.",
+      "revId": "2d04d666e2ef47164bf1109dcf3680aa2fdfaaa4",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
