@@ -1178,14 +1178,13 @@ namespace es2
 		for(unsigned int bufferBindingIndex = 0; bufferBindingIndex < MAX_UNIFORM_BUFFER_BINDINGS; bufferBindingIndex++)
 		{
 			int index = vertexUniformBuffers[bufferBindingIndex];
-			const gl::BindingPointer<Buffer> &buffer = uniformBuffers[index].get();
-
-			if(buffer)
-			{
-				device->VertexProcessor::setUniformBuffer(bufferBindingIndex, (index != -1) ? buffer->getResource() : nullptr, (index != -1) ? uniformBuffers[index].getOffset() : 0);
-				index = fragmentUniformBuffers[bufferBindingIndex];
-				device->PixelProcessor::setUniformBuffer(bufferBindingIndex, (index != -1) ? buffer->getResource() : nullptr, (index != -1) ? uniformBuffers[index].getOffset() : 0);
-			}
+			Buffer* vsBuffer = (index != -1) ? (Buffer*)uniformBuffers[index].get() : nullptr;
+			device->VertexProcessor::setUniformBuffer(bufferBindingIndex,
+				vsBuffer ? vsBuffer->getResource() : nullptr, (index != -1) ? uniformBuffers[index].getOffset() : 0);
+			index = fragmentUniformBuffers[bufferBindingIndex];
+			Buffer* psBuffer = (index != -1) ? (Buffer*)uniformBuffers[index].get() : nullptr;
+			device->PixelProcessor::setUniformBuffer(bufferBindingIndex,
+				psBuffer ? psBuffer->getResource() : nullptr, (index != -1) ? uniformBuffers[index].getOffset() : 0);
 		}
 	}
 
