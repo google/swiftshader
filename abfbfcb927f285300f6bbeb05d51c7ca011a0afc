@@ -34,6 +34,24 @@
       "revId": "abfbfcb927f285300f6bbeb05d51c7ca011a0afc",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "106e1b0e_56469407",
+        "filename": "src/Reactor/Nucleus.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 693,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-09-21T11:10:58Z",
+      "side": 1,
+      "message": "But all the original functions here were returning \"Value\", not \"llvm::Value\". Is it a different Value? Is it conflicting with the new Value that represents llvm::Value?",
+      "parentUuid": "30b79fb7_76d69e18",
+      "revId": "abfbfcb927f285300f6bbeb05d51c7ca011a0afc",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
