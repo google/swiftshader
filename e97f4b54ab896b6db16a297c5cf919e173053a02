@@ -22,6 +22,30 @@
       "revId": "e97f4b54ab896b6db16a297c5cf919e173053a02",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "106e1b0e_9984df0d",
+        "filename": "src/OpenGL/libGLESv2/Program.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1182,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-09-21T14:19:21Z",
+      "side": 1,
+      "message": "That would not compile, either side of a ternary operator must be of the same type.",
+      "parentUuid": "30b79fb7_7ff98a68",
+      "range": {
+        "startLine": 1182,
+        "startChar": 68,
+        "endLine": 1182,
+        "endChar": 78
+      },
+      "revId": "e97f4b54ab896b6db16a297c5cf919e173053a02",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
