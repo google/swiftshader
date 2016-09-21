@@ -16,6 +16,24 @@
       "revId": "abfbfcb927f285300f6bbeb05d51c7ca011a0afc",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "30b79fb7_76d69e18",
+        "filename": "src/Reactor/Nucleus.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 693,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-09-21T02:42:17Z",
+      "side": 1,
+      "message": "It\u0027s required. I added \"using Value \u003d llvm::Value;\" etc.",
+      "parentUuid": "b0746fbe_d6fbe2a4",
+      "revId": "abfbfcb927f285300f6bbeb05d51c7ca011a0afc",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
