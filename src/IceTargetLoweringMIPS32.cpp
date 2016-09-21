@@ -2468,7 +2468,7 @@ void TargetMIPS32::lowerFcmp(const InstFcmp *Instr) {
   auto *Zero = getZero();
 
   InstFcmp::FCond Cond = Instr->getCondition();
-  auto *DestR = legalizeToReg(Dest);
+  auto *DestR = makeReg(Dest->getType());
   auto *Src0R = legalizeToReg(Src0);
   auto *Src1R = legalizeToReg(Src1);
   const Type Src0Ty = Src0->getType();
@@ -2493,6 +2493,7 @@ void TargetMIPS32::lowerFcmp(const InstFcmp *Instr) {
     } else {
       _c_eq_d(Src0R, Src1R);
     }
+    _addiu(DestR, Zero, 1);
     _movf(DestR, Zero, FCC0);
     _mov(Dest, DestR);
     break;
@@ -2503,6 +2504,7 @@ void TargetMIPS32::lowerFcmp(const InstFcmp *Instr) {
     } else {
       _c_ule_d(Src0R, Src1R);
     }
+    _addiu(DestR, Zero, 1);
     _movt(DestR, Zero, FCC0);
     _mov(Dest, DestR);
     break;
@@ -2513,6 +2515,7 @@ void TargetMIPS32::lowerFcmp(const InstFcmp *Instr) {
     } else {
       _c_ult_d(Src0R, Src1R);
     }
+    _addiu(DestR, Zero, 1);
     _movt(DestR, Zero, FCC0);
     _mov(Dest, DestR);
     break;
@@ -2523,6 +2526,7 @@ void TargetMIPS32::lowerFcmp(const InstFcmp *Instr) {
     } else {
       _c_olt_d(Src0R, Src1R);
     }
+    _addiu(DestR, Zero, 1);
     _movf(DestR, Zero, FCC0);
     _mov(Dest, DestR);
     break;
@@ -2533,6 +2537,7 @@ void TargetMIPS32::lowerFcmp(const InstFcmp *Instr) {
     } else {
       _c_ole_d(Src0R, Src1R);
     }
+    _addiu(DestR, Zero, 1);
     _movf(DestR, Zero, FCC0);
     _mov(Dest, DestR);
     break;
@@ -2543,6 +2548,7 @@ void TargetMIPS32::lowerFcmp(const InstFcmp *Instr) {
     } else {
       _c_ueq_d(Src0R, Src1R);
     }
+    _addiu(DestR, Zero, 1);
     _movt(DestR, Zero, FCC0);
     _mov(Dest, DestR);
     break;
@@ -2553,6 +2559,7 @@ void TargetMIPS32::lowerFcmp(const InstFcmp *Instr) {
     } else {
       _c_un_d(Src0R, Src1R);
     }
+    _addiu(DestR, Zero, 1);
     _movt(DestR, Zero, FCC0);
     _mov(Dest, DestR);
     break;
@@ -2563,6 +2570,7 @@ void TargetMIPS32::lowerFcmp(const InstFcmp *Instr) {
     } else {
       _c_ueq_d(Src0R, Src1R);
     }
+    _addiu(DestR, Zero, 1);
     _movf(DestR, Zero, FCC0);
     _mov(Dest, DestR);
     break;
@@ -2573,6 +2581,7 @@ void TargetMIPS32::lowerFcmp(const InstFcmp *Instr) {
     } else {
       _c_ole_d(Src0R, Src1R);
     }
+    _addiu(DestR, Zero, 1);
     _movt(DestR, Zero, FCC0);
     _mov(Dest, DestR);
     break;
@@ -2583,6 +2592,7 @@ void TargetMIPS32::lowerFcmp(const InstFcmp *Instr) {
     } else {
       _c_olt_d(Src0R, Src1R);
     }
+    _addiu(DestR, Zero, 1);
     _movt(DestR, Zero, FCC0);
     _mov(Dest, DestR);
     break;
@@ -2593,6 +2603,7 @@ void TargetMIPS32::lowerFcmp(const InstFcmp *Instr) {
     } else {
       _c_ult_d(Src0R, Src1R);
     }
+    _addiu(DestR, Zero, 1);
     _movf(DestR, Zero, FCC0);
     _mov(Dest, DestR);
     break;
@@ -2603,6 +2614,7 @@ void TargetMIPS32::lowerFcmp(const InstFcmp *Instr) {
     } else {
       _c_ule_d(Src0R, Src1R);
     }
+    _addiu(DestR, Zero, 1);
     _movf(DestR, Zero, FCC0);
     _mov(Dest, DestR);
     break;
@@ -2613,6 +2625,7 @@ void TargetMIPS32::lowerFcmp(const InstFcmp *Instr) {
     } else {
       _c_eq_d(Src0R, Src1R);
     }
+    _addiu(DestR, Zero, 1);
     _movt(DestR, Zero, FCC0);
     _mov(Dest, DestR);
     break;
@@ -2623,6 +2636,7 @@ void TargetMIPS32::lowerFcmp(const InstFcmp *Instr) {
     } else {
       _c_un_d(Src0R, Src1R);
     }
+    _addiu(DestR, Zero, 1);
     _movf(DestR, Zero, FCC0);
     _mov(Dest, DestR);
     break;

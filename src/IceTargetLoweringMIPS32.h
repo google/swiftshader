@@ -357,7 +357,8 @@ public:
   }
 
   void _movf(Variable *Src0, Variable *Src1, Operand *FCC) {
-    Context.insert<InstMIPS32Movf>(Src0, Src1, FCC);
+    auto *Instr = Context.insert<InstMIPS32Movf>(Src0, Src1, FCC);
+    Instr->setDestRedefined();
   }
 
   void _movn(Variable *Dest, Variable *Src0, Variable *Src1) {
@@ -373,7 +374,8 @@ public:
   }
 
   void _movt(Variable *Src0, Variable *Src1, Operand *FCC) {
-    Context.insert<InstMIPS32Movt>(Src0, Src1, FCC);
+    auto *Instr = Context.insert<InstMIPS32Movt>(Src0, Src1, FCC);
+    Instr->setDestRedefined();
   }
 
   void _movz(Variable *Dest, Variable *Src0, Variable *Src1) {

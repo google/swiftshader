@@ -627,8 +627,8 @@ void AssemblerMIPS32::movn_s(const Operand *OpFd, const Operand *OpFs,
 void AssemblerMIPS32::movt(const Operand *OpRd, const Operand *OpRs,
                            const Operand *OpCc) {
   IValueT Opcode = 0x00000001;
-  const IValueT Rd = encodeGPRegister(OpRd, "Rd", "movf");
-  const IValueT Rs = encodeGPRegister(OpRs, "Rs", "movf");
+  const IValueT Rd = encodeGPRegister(OpRd, "Rd", "movt");
+  const IValueT Rs = encodeGPRegister(OpRs, "Rs", "movt");
   OperandMIPS32FCC::FCC Cc = OperandMIPS32FCC::FCC0;
   if (const auto *OpFCC = llvm::dyn_cast<OperandMIPS32FCC>(OpCc)) {
     Cc = OpFCC->getFCC();

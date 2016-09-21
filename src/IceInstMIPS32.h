@@ -95,8 +95,10 @@ public:
   }
 
   void dump(const Cfg *Func, Ostream &Str) const override {
+    if (!BuildDefs::dump())
+      return;
     (void)Func;
-    (void)Str;
+    Str << "$fcc" << static_cast<uint16_t>(FpCondCode);
   }
 
 private:
@@ -1062,13 +1064,13 @@ public:
     if (!BuildDefs::dump())
       return;
     Ostream &Str = Func->getContext()->getStrEmit();
-    assert(getSrcSize() == 2);
+    assert(getSrcSize() == 3);
     Str << "\t" << Opcode << "\t";
     getDest()->emit(Func);
     Str << ", ";
-    getSrc(0)->emit(Func);
-    Str << ", ";
     getSrc(1)->emit(Func);
+    Str << ", ";
+    getSrc(2)->emit(Func);
   }
 
   void emitIAS(const Cfg *Func) const override {
@@ -1091,7 +1093,8 @@ public:
 private:
   InstMIPS32MovConditional(Cfg *Func, Variable *Dest, Variable *Src,
                            Operand *FCC)
-      : InstMIPS32(Func, K, 2, Dest) {
+      : InstMIPS32(Func, K, 3, Dest) {
+    addSource(Dest);
     addSource(Src);
     addSource(FCC);
   }

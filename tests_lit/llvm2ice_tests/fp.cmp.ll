@@ -76,10 +76,12 @@ if.end3:                                          ; preds = %if.then2, %if.end
 ; MIPS32-LABEL: fcmpEq
 ; MIPS32-LABEL: .LfcmpEq$entry
 ; MIPS32: c.eq.s
-; MIPS32: movf
+; MIPS32: addiu [[REG:.*]], $zero, 1
+; MIPS32: movf [[REG]], $zero, {{.*}}
 ; MIPS32-LABEL: .LfcmpEq$if.end
 ; MIPS32: c.eq.d
-; MIPS32: movf
+; MIPS32: addiu [[REG:.*]], $zero, 1
+; MIPS32: movf [[REG]], $zero, {{.*}}
 
 declare void @func()
 
@@ -139,10 +141,12 @@ if.end3:                                          ; preds = %if.then2, %if.end
 ; MIPS32-LABEL: fcmpNe
 ; MIPS32-LABEL: .LfcmpNe$entry
 ; MIPS32: c.eq.s
-; MIPS32: movt
+; MIPS32: addiu [[REG:.*]], $zero, 1
+; MIPS32: movt [[REG]], $zero, {{.*}}
 ; MIPS32-LABEL: .LfcmpNe$if.end
 ; MIPS32: c.eq.d
-; MIPS32: movt
+; MIPS32: addiu [[REG:.*]], $zero, 1
+; MIPS32: movt [[REG]], $zero, {{.*}}
 
 define internal void @fcmpGt(float %a, float %b, double %c, double %d) {
 entry:
@@ -192,10 +196,12 @@ if.end3:                                          ; preds = %if.then2, %if.end
 ; MIPS32-LABEL: fcmpGt
 ; MIPS32-LABEL: .LfcmpGt$entry
 ; MIPS32: c.ule.s
-; MIPS32: movt
+; MIPS32: addiu [[REG:.*]], $zero, 1
+; MIPS32: movt [[REG]], $zero, {{.*}}
 ; MIPS32-LABEL: .LfcmpGt$if.end
 ; MIPS32: c.ule.d
-; MIPS32: movt
+; MIPS32: addiu [[REG:.*]], $zero, 1
+; MIPS32: movt [[REG]], $zero, {{.*}}
 
 define internal void @fcmpGe(float %a, float %b, double %c, double %d) {
 entry:
@@ -245,10 +251,12 @@ if.end3:                                          ; preds = %if.end, %if.then2
 ; MIPS32-LABEL: fcmpGe
 ; MIPS32-LABEL: .LfcmpGe$entry
 ; MIPS32: c.ult.s
-; MIPS32: movf
+; MIPS32: addiu [[REG:.*]], $zero, 1
+; MIPS32: movf [[REG]], $zero, {{.*}}
 ; MIPS32-LABEL: .LfcmpGe$if.end
 ; MIPS32: c.ult.d
-; MIPS32: movf
+; MIPS32: addiu [[REG:.*]], $zero, 1
+; MIPS32: movf [[REG]], $zero, {{.*}}
 
 define internal void @fcmpLt(float %a, float %b, double %c, double %d) {
 entry:
@@ -298,10 +306,12 @@ if.end3:                                          ; preds = %if.then2, %if.end
 ; MIPS32-LABEL: fcmpLt
 ; MIPS32-LABEL: .LfcmpLt$entry
 ; MIPS32: c.olt.s
-; MIPS32: movf
+; MIPS32: addiu [[REG:.*]], $zero, 1
+; MIPS32: movf [[REG]], $zero, {{.*}}
 ; MIPS32-LABEL: .LfcmpLt$if.end
 ; MIPS32: c.olt.d
-; MIPS32: movf
+; MIPS32: addiu [[REG:.*]], $zero, 1
+; MIPS32: movf [[REG]], $zero, {{.*}}
 
 define internal void @fcmpLe(float %a, float %b, double %c, double %d) {
 entry:
@@ -351,10 +361,12 @@ if.end3:                                          ; preds = %if.end, %if.then2
 ; MIPS32-LABEL: fcmpLe
 ; MIPS32-LABEL: .LfcmpLe$entry
 ; MIPS32: c.ole.s
-; MIPS32: movt
+; MIPS32: addiu [[REG:.*]], $zero, 1
+; MIPS32: movt [[REG]], $zero, {{.*}}
 ; MIPS32-LABEL: .LfcmpLe$if.end
 ; MIPS32: c.ole.d
-; MIPS32: movt
+; MIPS32: addiu [[REG:.*]], $zero, 1
+; MIPS32: movt [[REG]], $zero, {{.*}}
 
 define internal i32 @fcmpFalseFloat(float %a, float %b) {
 entry:
@@ -402,7 +414,8 @@ entry:
 ; ARM32: moveq [[R]], #1
 ; MIPS32-LABEL: fcmpOeqFloat
 ; MIPS32: c.eq.s
-; MIPS32: movf
+; MIPS32: addiu [[REG:.*]], $zero, 1
+; MIPS32: movf [[REG]], $zero, {{.*}}
 
 define internal i32 @fcmpOeqDouble(double %a, double %b) {
 entry:
@@ -422,7 +435,8 @@ entry:
 ; ARM32: moveq [[R]], #1
 ; MIPS32-LABEL: fcmpOeqDouble
 ; MIPS32: c.eq.d
-; MIPS32: movf
+; MIPS32: addiu [[REG:.*]], $zero, 1
+; MIPS32: movf [[REG]], $zero, {{.*}}
 
 define internal i32 @fcmpOgtFloat(float %a, float %b) {
 entry:
@@ -441,7 +455,8 @@ entry:
 ; ARM32: movgt [[R]], #1
 ; MIPS32-LABEL: fcmpOgtFloat
 ; MIPS32: c.ule.s
-; MIPS32: movt
+; MIPS32: addiu [[REG:.*]], $zero, 1
+; MIPS32: movt [[REG]], $zero, {{.*}}
 
 define internal i32 @fcmpOgtDouble(double %a, double %b) {
 entry:
@@ -460,7 +475,8 @@ entry:
 ; ARM32: movgt [[R]], #1
 ; MIPS32-LABEL: fcmpOgtDouble
 ; MIPS32: c.ule.d
-; MIPS32: movt
+; MIPS32: addiu [[REG:.*]], $zero, 1
+; MIPS32: movt [[REG]], $zero, {{.*}}
 
 define internal i32 @fcmpOgeFloat(float %a, float %b) {
 entry:
@@ -479,7 +495,8 @@ entry:
 ; ARM32: movge [[R]], #1
 ; MIPS32-LABEL: fcmpOgeFloat
 ; MIPS32: c.ult.s
-; MIPS32: movt
+; MIPS32: addiu [[REG:.*]], $zero, 1
+; MIPS32: movt [[REG]], $zero, {{.*}}
 
 define internal i32 @fcmpOgeDouble(double %a, double %b) {
 entry:
@@ -498,7 +515,8 @@ entry:
 ; ARM32: movge [[R]], #1
 ; MIPS32-LABEL: fcmpOgeDouble
 ; MIPS32: c.ult.d
-; MIPS32: movt
+; MIPS32: addiu [[REG:.*]], $zero, 1
+; MIPS32: movt [[REG]], $zero, {{.*}}
 
 define internal i32 @fcmpOltFloat(float %a, float %b) {
 entry:
@@ -517,7 +535,8 @@ entry:
 ; ARM32: movmi [[R]], #1
 ; MIPS32-LABEL: fcmpOltFloat
 ; MIPS32: c.olt.s
-; MIPS32: movf
+; MIPS32: addiu [[REG:.*]], $zero, 1
+; MIPS32: movf [[REG]], $zero, {{.*}}
 
 define internal i32 @fcmpOltDouble(double %a, double %b) {
 entry:
@@ -536,7 +555,8 @@ entry:
 ; ARM32: movmi [[R]], #1
 ; MIPS32-LABEL: fcmpOltDouble
 ; MIPS32: c.olt.d
-; MIPS32: movf
+; MIPS32: addiu [[REG:.*]], $zero, 1
+; MIPS32: movf [[REG]], $zero, {{.*}}
 
 define internal i32 @fcmpOleFloat(float %a, float %b) {
 entry:
@@ -555,7 +575,8 @@ entry:
 ; ARM32: movls [[R]], #1
 ; MIPS32-LABEL: fcmpOleFloat
 ; MIPS32: c.ole.s
-; MIPS32: movf
+; MIPS32: addiu [[REG:.*]], $zero, 1
+; MIPS32: movf [[REG]], $zero, {{.*}}
 
 define internal i32 @fcmpOleDouble(double %a, double %b) {
 entry:
@@ -574,7 +595,8 @@ entry:
 ; ARM32: movls [[R]], #1
 ; MIPS32-LABEL: fcmpOleDouble
 ; MIPS32: c.ole.d
-; MIPS32: movf
+; MIPS32: addiu [[REG:.*]], $zero, 1
+; MIPS32: movf [[REG]], $zero, {{.*}}
 
 define internal i32 @fcmpOneFloat(float %a, float %b) {
 entry:
@@ -594,7 +616,8 @@ entry:
 ; ARM32: movgt [[R]], #1
 ; MIPS32-LABEL: fcmpOneFloat
 ; MIPS32: c.ueq.s
-; MIPS32: movt
+; MIPS32: addiu [[REG:.*]], $zero, 1
+; MIPS32: movt [[REG]], $zero, {{.*}}
 
 define internal i32 @fcmpOneDouble(double %a, double %b) {
 entry:
@@ -614,7 +637,8 @@ entry:
 ; ARM32: movgt [[R]], #1
 ; MIPS32-LABEL: fcmpOneDouble
 ; MIPS32: c.ueq.d
-; MIPS32: movt
+; MIPS32: addiu [[REG:.*]], $zero, 1
+; MIPS32: movt [[REG]], $zero, {{.*}}
 
 define internal i32 @fcmpOrdFloat(float %a, float %b) {
 entry:
@@ -633,7 +657,8 @@ entry:
 ; ARM32: movvc [[R]], #1
 ; MIPS32-LABEL: fcmpOrdFloat
 ; MIPS32: c.un.s
-; MIPS32: movt
+; MIPS32: addiu [[REG:.*]], $zero, 1
+; MIPS32: movt [[REG]], $zero, {{.*}}
 
 define internal i32 @fcmpOrdDouble(double %a, double %b) {
 entry:
@@ -652,7 +677,8 @@ entry:
 ; ARM32: movvc [[R]], #1
 ; MIPS32-LABEL: fcmpOrdDouble
 ; MIPS32: c.un.d
-; MIPS32: movt
+; MIPS32: addiu [[REG:.*]], $zero, 1
+; MIPS32: movt [[REG]], $zero, {{.*}}
 
 define internal i32 @fcmpUeqFloat(float %a, float %b) {
 entry:
@@ -672,7 +698,8 @@ entry:
 ; ARM32: movvs [[R]], #1
 ; MIPS32-LABEL: fcmpUeqFloat
 ; MIPS32: c.ueq.s
-; MIPS32: movf
+; MIPS32: addiu [[REG:.*]], $zero, 1
+; MIPS32: movf [[REG]], $zero, {{.*}}
 
 define internal i32 @fcmpUeqDouble(double %a, double %b) {
 entry:
@@ -692,7 +719,8 @@ entry:
 ; ARM32: movvs [[R]], #1
 ; MIPS32-LABEL: fcmpUeqDouble
 ; MIPS32: c.ueq.d
-; MIPS32: movf
+; MIPS32: addiu [[REG:.*]], $zero, 1
+; MIPS32: movf [[REG]], $zero, {{.*}}
 
 define internal i32 @fcmpUgtFloat(float %a, float %b) {
 entry:
@@ -711,7 +739,8 @@ entry:
 ; ARM32: movhi [[R]], #1
 ; MIPS32-LABEL: fcmpUgtFloat
 ; MIPS32: c.ole.s
-; MIPS32: movt
+; MIPS32: addiu [[REG:.*]], $zero, 1
+; MIPS32: movt [[REG]], $zero, {{.*}}
 
 define internal i32 @fcmpUgtDouble(double %a, double %b) {
 entry:
@@ -730,7 +759,8 @@ entry:
 ; ARM32: movhi [[R]], #1
 ; MIPS32-LABEL: fcmpUgtDouble
 ; MIPS32: c.ole.d
-; MIPS32: movt
+; MIPS32: addiu [[REG:.*]], $zero, 1
+; MIPS32: movt [[REG]], $zero, {{.*}}
 
 define internal i32 @fcmpUgeFloat(float %a, float %b) {
 entry:
@@ -749,7 +779,8 @@ entry:
 ; ARM32: movpl [[R]], #1
 ; MIPS32-LABEL: fcmpUgeFloat
 ; MIPS32: c.olt.s
-; MIPS32: movt
+; MIPS32: addiu [[REG:.*]], $zero, 1
+; MIPS32: movt [[REG]], $zero, {{.*}}
 
 define internal i32 @fcmpUgeDouble(double %a, double %b) {
 entry:
@@ -768,7 +799,8 @@ entry:
 ; ARM32: movpl [[R]], #1
 ; MIPS32-LABEL: fcmpUgeDouble
 ; MIPS32: c.olt.d
-; MIPS32: movt
+; MIPS32: addiu [[REG:.*]], $zero, 1
+; MIPS32: movt [[REG]], $zero, {{.*}}
 
 define internal i32 @fcmpUltFloat(float %a, float %b) {
 entry:
@@ -787,7 +819,8 @@ entry:
 ; ARM32: movlt [[R]], #1
 ; MIPS32-LABEL: fcmpUltFloat
 ; MIPS32: c.ult.s
-; MIPS32: movf
+; MIPS32: addiu [[REG:.*]], $zero, 1
+; MIPS32: movf [[REG]], $zero, {{.*}}
 
 define internal i32 @fcmpUltDouble(double %a, double %b) {
 entry:
@@ -806,7 +839,8 @@ entry:
 ; ARM32: movlt [[R]], #1
 ; MIPS32-LABEL: fcmpUltDouble
 ; MIPS32: c.ult.d
-; MIPS32: movf
+; MIPS32: addiu [[REG:.*]], $zero, 1
+; MIPS32: movf [[REG]], $zero, {{.*}}
 
 define internal i32 @fcmpUleFloat(float %a, float %b) {
 entry:
@@ -825,7 +859,8 @@ entry:
 ; ARM32: movle [[R]], #1
 ; MIPS32-LABEL: fcmpUleFloat
 ; MIPS32: c.ule.s
-; MIPS32: movf
+; MIPS32: addiu [[REG:.*]], $zero, 1
+; MIPS32: movf [[REG]], $zero, {{.*}}
 
 define internal i32 @fcmpUleDouble(double %a, double %b) {
 entry:
@@ -844,7 +879,8 @@ entry:
 ; ARM32: movle [[R]], #1
 ; MIPS32-LABEL: fcmpUleDouble
 ; MIPS32: c.ule.d
-; MIPS32: movf
+; MIPS32: addiu [[REG:.*]], $zero, 1
+; MIPS32: movf [[REG]], $zero, {{.*}}
 
 define internal i32 @fcmpUneFloat(float %a, float %b) {
 entry:
@@ -864,7 +900,8 @@ entry:
 ; ARM32: movne [[R]], #1
 ; MIPS32-LABEL: fcmpUneFloat
 ; MIPS32: c.eq.s
-; MIPS32: movt
+; MIPS32: addiu [[REG:.*]], $zero, 1
+; MIPS32: movt [[REG]], $zero, {{.*}}
 
 define internal i32 @fcmpUneDouble(double %a, double %b) {
 entry:
@@ -884,7 +921,8 @@ entry:
 ; ARM32: movne [[R]], #1
 ; MIPS32-LABEL: fcmpUneDouble
 ; MIPS32: c.eq.d
-; MIPS32: movt
+; MIPS32: addiu [[REG:.*]], $zero, 1
+; MIPS32: movt [[REG]], $zero, {{.*}}
 
 define internal i32 @fcmpUnoFloat(float %a, float %b) {
 entry:
@@ -903,7 +941,8 @@ entry:
 ; ARM32: movvs [[R]], #1
 ; MIPS32-LABEL: fcmpUnoFloat
 ; MIPS32: c.un.s
-; MIPS32: movf
+; MIPS32: addiu [[REG:.*]], $zero, 1
+; MIPS32: movf [[REG]], $zero, {{.*}}
 
 define internal i32 @fcmpUnoDouble(double %a, double %b) {
 entry:
@@ -922,7 +961,8 @@ entry:
 ; ARM32: movvs [[R]], #1
 ; MIPS32-LABEL: fcmpUnoDouble
 ; MIPS32: c.un.d
-; MIPS32: movf
+; MIPS32: addiu [[REG:.*]], $zero, 1
+; MIPS32: movf [[REG]], $zero, {{.*}}
 
 define internal i32 @fcmpTrueFloat(float %a, float %b) {
 entry:
