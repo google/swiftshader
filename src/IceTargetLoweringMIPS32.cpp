@@ -1839,15 +1839,6 @@ void TargetMIPS32::lowerArithmetic(const InstArithmetic *Instr) {
     UnimplementedLoweringError(this, Instr);
     return;
   }
-  switch (Instr->getOp()) {
-  default:
-    break;
-  case InstArithmetic::Frem:
-    UnimplementedLoweringError(this, Instr);
-    return;
-  }
-
-  // At this point Dest->getType() is non-i64 scalar
 
   Variable *T = makeReg(Dest->getType());
   Variable *Src0R = legalizeToReg(Src0);
@@ -1979,6 +1970,7 @@ void TargetMIPS32::lowerArithmetic(const InstArithmetic *Instr) {
     }
     break;
   case InstArithmetic::Frem:
+    llvm::report_fatal_error("frem should have been prelowered.");
     break;
   }
   UnimplementedLoweringError(this, Instr);
@@ -2415,6 +2407,10 @@ void TargetMIPS32::lowerCast(const InstCast *Instr) {
     break;
   }
   case InstCast::Fptosi: {
+    if (llvm::isa<Variable64On32>(Dest)) {
+      llvm::report_fatal_error("fp-to-i64 should have been prelowered.");
+      return;
+    }
     if (Src0Ty == IceType_f32 && DestTy == IceType_i32) {
       Variable *Src0R = legalizeToReg(Src0);
       Variable *FTmp = makeReg(IceType_f32);
@@ -2426,9 +2422,17 @@ void TargetMIPS32::lowerCast(const InstCast *Instr) {
     break;
   }
   case InstCast::Fptoui:
+    if (llvm::isa<Variable64On32>(Dest)) {
+      llvm::report_fatal_error("fp-to-i64 should have been prelowered.");
+      return;
+    }
     UnimplementedLoweringError(this, Instr);
     break;
   case InstCast::Sitofp: {
+    if (llvm::isa<Variable64On32>(Dest)) {
+      llvm::report_fatal_error("i64-to-fp should have been prelowered.");
+      return;
+    }
     if (Src0Ty == IceType_i32 && DestTy == IceType_f32) {
       Variable *Src0R = legalizeToReg(Src0);
       Variable *FTmp1 = makeReg(IceType_f32);
@@ -2442,11 +2446,44 @@ void TargetMIPS32::lowerCast(const InstCast *Instr) {
     break;
   }
   case InstCast::Uitofp: {
+    if (llvm::isa<Variable64On32>(Dest)) {
+      llvm::report_fatal_error("i64-to-fp should have been prelowered.");
+      return;
+    }
     UnimplementedLoweringError(this, Instr);
     break;
   }
   case InstCast::Bitcast: {
-    UnimplementedLoweringError(this, Instr);
+    switch (DestTy) {
+    case IceType_NUM:
+    case IceType_void:
+      llvm::report_fatal_error("Unexpected bitcast.");
+    case IceType_i1:
+      UnimplementedLoweringError(this, Instr);
+      break;
+    case IceType_i8:
+      assert(Src0->getType() == IceType_v8i1);
+      llvm::report_fatal_error(
+          "i8 to v8i1 conversion should have been prelowered.");
+      break;
+    case IceType_i16:
+      assert(Src0->getType() == IceType_v16i1);
+      llvm::report_fatal_error(
+          "i16 to v16i1 conversion should have been prelowered.");
+      break;
+    case IceType_v8i1:
+      assert(Src0->getType() == IceType_i8);
+      llvm::report_fatal_error(
+          "v8i1 to i8 conversion should have been prelowered.");
+      break;
+    case IceType_v16i1:
+      assert(Src0->getType() == IceType_i16);
+      llvm::report_fatal_error(
+          "v16i1 to i16 conversion should have been prelowered.");
+      break;
+    default:
+      UnimplementedLoweringError(this, Instr);
+    }
     break;
   }
   }
@@ -2805,7 +2842,7 @@ void TargetMIPS32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     return;
   }
   case Intrinsics::Ctpop: {
-    UnimplementedLoweringError(this, Instr);
+    llvm::report_fatal_error("Ctpop should have been prelowered.");
     return;
   }
   case Intrinsics::Ctlz: {
@@ -2829,42 +2866,19 @@ void TargetMIPS32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     return;
   }
   case Intrinsics::Longjmp: {
-    InstCall *Call = makeHelperCall(RuntimeHelper::H_call_longjmp, nullptr, 2);
-    Call->addArg(Instr->getArg(0));
-    Call->addArg(Instr->getArg(1));
-    lowerCall(Call);
+    llvm::report_fatal_error("longjmp should have been prelowered.");
     return;
   }
   case Intrinsics::Memcpy: {
-    // In the future, we could potentially emit an inline memcpy/memset, etc.
-    // for intrinsic calls w/ a known length.
-    InstCall *Call = makeHelperCall(RuntimeHelper::H_call_memcpy, nullptr, 3);
-    Call->addArg(Instr->getArg(0));
-    Call->addArg(Instr->getArg(1));
-    Call->addArg(Instr->getArg(2));
-    lowerCall(Call);
+    llvm::report_fatal_error("memcpy should have been prelowered.");
     return;
   }
   case Intrinsics::Memmove: {
-    InstCall *Call = makeHelperCall(RuntimeHelper::H_call_memmove, nullptr, 3);
-    Call->addArg(Instr->getArg(0));
-    Call->addArg(Instr->getArg(1));
-    Call->addArg(Instr->getArg(2));
-    lowerCall(Call);
+    llvm::report_fatal_error("memmove should have been prelowered.");
     return;
   }
   case Intrinsics::Memset: {
-    // The value operand needs to be extended to a stack slot size because the
-    // PNaCl ABI requires arguments to be at least 32 bits wide.
-    Operand *ValOp = Instr->getArg(1);
-    assert(ValOp->getType() == IceType_i8);
-    Variable *ValExt = Func->makeVariable(stackSlotType());
-    lowerCast(InstCast::create(Func, InstCast::Zext, ValExt, ValOp));
-    InstCall *Call = makeHelperCall(RuntimeHelper::H_call_memset, nullptr, 3);
-    Call->addArg(Instr->getArg(0));
-    Call->addArg(ValExt);
-    Call->addArg(Instr->getArg(2));
-    lowerCall(Call);
+    llvm::report_fatal_error("memset should have been prelowered.");
     return;
   }
   case Intrinsics::NaClReadTP: {
@@ -2878,10 +2892,7 @@ void TargetMIPS32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     return;
   }
   case Intrinsics::Setjmp: {
-    InstCall *Call =
-        makeHelperCall(RuntimeHelper::H_call_setjmp, Instr->getDest(), 1);
-    Call->addArg(Instr->getArg(0));
-    lowerCall(Call);
+    llvm::report_fatal_error("setjmp should have been prelowered.");
     return;
   }
   case Intrinsics::Sqrt: {
