@@ -677,8 +677,6 @@ if(WIN32)
         ${SOURCE_DIR}/Main/FrameBufferGDI.hpp
         ${SOURCE_DIR}/Main/FrameBufferWin.cpp
         ${SOURCE_DIR}/Main/FrameBufferWin.hpp
-        ${SOURCE_DIR}/Reactor/DLL.cpp
-        ${SOURCE_DIR}/Reactor/DLL.hpp
     )
     list(APPEND OPENGL_COMPILER_LIST ${OPENGL_COMPILER_DIR}/ossource_win.cpp)
     list(APPEND EGL_LIST ${OPENGL_DIR}/libEGL/libEGL.rc)

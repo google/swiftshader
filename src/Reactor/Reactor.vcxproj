@@ -266,13 +266,11 @@
     </ProjectReference>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="DLL.cpp" />
     <ClCompile Include="Nucleus.cpp" />
     <ClCompile Include="Routine.cpp" />
     <ClCompile Include="RoutineManager.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="DLL.hpp" />
     <ClInclude Include="Nucleus.hpp" />
     <ClInclude Include="Reactor.hpp" />
     <ClInclude Include="Routine.hpp" />

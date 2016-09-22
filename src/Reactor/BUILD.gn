@@ -47,7 +47,6 @@ source_set("swiftshader_reactor") {
   ]
 
   if (is_win) {
-    sources += [ "DLL.cpp" ]
     configs -= [ "//build/config/win:unicode" ]
   }
 
