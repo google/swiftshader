@@ -2846,8 +2846,25 @@ void TargetMIPS32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     return;
   }
   case Intrinsics::Ctlz: {
-    UnimplementedLoweringError(this, Instr);
-    return;
+    auto *Src = Instr->getArg(0);
+    const Type SrcTy = Src->getType();
+    assert(SrcTy == IceType_i32 || SrcTy == IceType_i64);
+    switch (SrcTy) {
+    case IceType_i32: {
+      auto *T = I32Reg();
+      auto *SrcR = legalizeToReg(Src);
+      _clz(T, SrcR);
+      _mov(Dest, T);
+      break;
+    }
+    case IceType_i64: {
+      UnimplementedLoweringError(this, Instr);
+      break;
+    }
+    default:
+      llvm::report_fatal_error("Control flow should never have reached here.");
+    }
+    break;
   }
   case Intrinsics::Cttz: {
     UnimplementedLoweringError(this, Instr);

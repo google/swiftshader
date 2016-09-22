@@ -264,6 +264,10 @@ public:
     Context.insert<InstMIPS32C_un_s>(Src0, Src1);
   }
 
+  void _clz(Variable *Dest, Variable *Src) {
+    Context.insert<InstMIPS32Clz>(Dest, Src);
+  }
+
   void _cvt_d_l(Variable *Dest, Variable *Src) {
     Context.insert<InstMIPS32Cvt_d_l>(Dest, Src);
   }

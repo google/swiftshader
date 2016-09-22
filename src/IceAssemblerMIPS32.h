@@ -140,6 +140,8 @@ public:
 
   void c_un_s(const Operand *OpFd, const Operand *OpFs);
 
+  void clz(const Operand *OpRd, const Operand *OpRs);
+
   void cvt_d_l(const Operand *OpFd, const Operand *OpFs);
 
   void cvt_d_s(const Operand *OpFd, const Operand *OpFs);
@@ -167,6 +169,8 @@ public:
   void move(const Operand *OpRd, const Operand *OpRs);
 
   void movf(const Operand *OpRd, const Operand *OpRs, const Operand *OpCc);
+
+  void movn(const Operand *OpRd, const Operand *OpRs, const Operand *OpRt);
 
   void movn_d(const Operand *OpFd, const Operand *OpFs, const Operand *OpFt);
 

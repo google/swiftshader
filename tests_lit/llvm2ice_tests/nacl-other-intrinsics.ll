@@ -403,6 +403,8 @@ entry:
 ; CHECK: xor [[REG_RES]],0x1f
 ; ARM32-LABEL: test_ctlz_32
 ; ARM32: clz
+; MIPS32-LABEL: test_ctlz_32
+; MIPS32: clz
 
 define internal i32 @test_ctlz_32_const() {
 entry:

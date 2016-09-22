@@ -469,6 +469,16 @@ void AssemblerMIPS32::c_un_s(const Operand *OpFs, const Operand *OpFt) {
                "c.un.s");
 }
 
+void AssemblerMIPS32::clz(const Operand *OpRd, const Operand *OpRs) {
+  IValueT Opcode = 0x70000020;
+  const IValueT Rd = encodeGPRegister(OpRd, "Rd", "clz");
+  const IValueT Rs = encodeGPRegister(OpRs, "Rs", "clz");
+  Opcode |= Rd << 11;
+  Opcode |= Rd << 16;
+  Opcode |= Rs << 21;
+  emitInst(Opcode);
+}
+
 void AssemblerMIPS32::cvt_d_l(const Operand *OpFd, const Operand *OpFs) {
   static constexpr IValueT Opcode = 0x44000021;
   emitCOP1FmtFsFd(Opcode, Long, OpFd, OpFs, "cvt.d.l");
@@ -610,6 +620,12 @@ void AssemblerMIPS32::movf(const Operand *OpRd, const Operand *OpRs,
   Opcode |= Cc << 18;
   Opcode |= Rs << 21;
   emitInst(Opcode);
+}
+
+void AssemblerMIPS32::movn(const Operand *OpRd, const Operand *OpRs,
+                           const Operand *OpRt) {
+  static constexpr IValueT Opcode = 0x44000013;
+  emitRdRsRt(Opcode, OpRd, OpRs, OpRt, "movn");
 }
 
 void AssemblerMIPS32::movn_d(const Operand *OpFd, const Operand *OpFs,

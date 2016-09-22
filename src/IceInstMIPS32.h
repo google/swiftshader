@@ -209,6 +209,7 @@ public:
     C_un_d,
     C_un_s,
     Call,
+    Clz,
     Cvt_d_l,
     Cvt_d_s,
     Cvt_d_w,
@@ -1126,6 +1127,7 @@ using InstMIPS32C_ult_d = InstMIPS32FPCmp<InstMIPS32::C_ult_d>;
 using InstMIPS32C_ult_s = InstMIPS32FPCmp<InstMIPS32::C_ult_s>;
 using InstMIPS32C_un_d = InstMIPS32FPCmp<InstMIPS32::C_un_d>;
 using InstMIPS32C_un_s = InstMIPS32FPCmp<InstMIPS32::C_un_s>;
+using InstMIPS32Clz = InstMIPS32TwoAddrGPR<InstMIPS32::Clz>;
 using InstMIPS32Cvt_d_s = InstMIPS32TwoAddrFPR<InstMIPS32::Cvt_d_s>;
 using InstMIPS32Cvt_d_l = InstMIPS32TwoAddrFPR<InstMIPS32::Cvt_d_l>;
 using InstMIPS32Cvt_d_w = InstMIPS32TwoAddrFPR<InstMIPS32::Cvt_d_w>;
@@ -1258,6 +1260,7 @@ template <> void InstMIPS32C_ult_d::emitIAS(const Cfg *Func) const;
 template <> void InstMIPS32C_ult_s::emitIAS(const Cfg *Func) const;
 template <> void InstMIPS32C_un_d::emitIAS(const Cfg *Func) const;
 template <> void InstMIPS32C_un_s::emitIAS(const Cfg *Func) const;
+template <> void InstMIPS32Clz::emitIAS(const Cfg *Func) const;
 template <> void InstMIPS32Cvt_d_l::emitIAS(const Cfg *Func) const;
 template <> void InstMIPS32Cvt_d_s::emitIAS(const Cfg *Func) const;
 template <> void InstMIPS32Cvt_d_w::emitIAS(const Cfg *Func) const;
@@ -1274,6 +1277,7 @@ template <> void InstMIPS32Mfhi::emit(const Cfg *Func) const;
 template <> void InstMIPS32Mov_d::emitIAS(const Cfg *Func) const;
 template <> void InstMIPS32Mov_s::emitIAS(const Cfg *Func) const;
 template <> void InstMIPS32Movf::emitIAS(const Cfg *Func) const;
+template <> void InstMIPS32Movn::emitIAS(const Cfg *Func) const;
 template <> void InstMIPS32Movn_d::emitIAS(const Cfg *Func) const;
 template <> void InstMIPS32Movn_s::emitIAS(const Cfg *Func) const;
 template <> void InstMIPS32Movt::emitIAS(const Cfg *Func) const;
