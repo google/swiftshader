@@ -2890,12 +2890,25 @@ namespace glsl
 				index = allocate(attributes, attribute);
 				const TType &type = attribute->getType();
 				int registerCount = attribute->totalRegisterCount();
+				sw::VertexShader::AttribType attribType = sw::VertexShader::ATTRIBTYPE_FLOAT;
+				switch(type.getBasicType())
+				{
+				case EbtInt:
+					attribType = sw::VertexShader::ATTRIBTYPE_INT;
+					break;
+				case EbtUInt:
+					attribType = sw::VertexShader::ATTRIBTYPE_UINT;
+					break;
+				case EbtFloat:
+				default:
+					break;
+				}
 
 				if(vertexShader && (index + registerCount) <= sw::MAX_VERTEX_INPUTS)
 				{
 					for(int i = 0; i < registerCount; i++)
 					{
-						vertexShader->setInput(index + i, sw::Shader::Semantic(sw::Shader::USAGE_TEXCOORD, index + i));
+						vertexShader->setInput(index + i, sw::Shader::Semantic(sw::Shader::USAGE_TEXCOORD, index + i, false), attribType);
 					}
 				}
 

@@ -148,6 +148,8 @@ namespace sw
 		Pointer<Byte> source2 = source1 + (!textureSampling ? stride : 0);
 		Pointer<Byte> source3 = source2 + (!textureSampling ? stride : 0);
 
+		bool isNativeFloatAttrib = (stream.attribType == VertexShader::ATTRIBTYPE_FLOAT) || stream.normalized;
+
 		switch(stream.type)
 		{
 		case STREAMTYPE_FLOAT:
@@ -156,25 +158,47 @@ namespace sw
 				{
 					// Null stream, all default components
 				}
-				else if(stream.count == 1)
-				{
-					v.x.x = *Pointer<Float>(source0);
-					v.x.y = *Pointer<Float>(source1);
-					v.x.z = *Pointer<Float>(source2);
-					v.x.w = *Pointer<Float>(source3);
-				}
 				else
 				{
-					v.x = *Pointer<Float4>(source0);
-					v.y = *Pointer<Float4>(source1);
-					v.z = *Pointer<Float4>(source2);
-					v.w = *Pointer<Float4>(source3);
+					if(stream.count == 1)
+					{
+						v.x.x = *Pointer<Float>(source0);
+						v.x.y = *Pointer<Float>(source1);
+						v.x.z = *Pointer<Float>(source2);
+						v.x.w = *Pointer<Float>(source3);
+					}
+					else
+					{
+						v.x = *Pointer<Float4>(source0);
+						v.y = *Pointer<Float4>(source1);
+						v.z = *Pointer<Float4>(source2);
+						v.w = *Pointer<Float4>(source3);
 
-					transpose4xN(v.x, v.y, v.z, v.w, stream.count);
+						transpose4xN(v.x, v.y, v.z, v.w, stream.count);
+					}
+
+					switch(stream.attribType)
+					{
+					case VertexShader::ATTRIBTYPE_INT:
+						if(stream.count >= 1) v.x = As<Float4>(Int4(v.x));
+						if(stream.count >= 2) v.x = As<Float4>(Int4(v.y));
+						if(stream.count >= 3) v.x = As<Float4>(Int4(v.z));
+						if(stream.count >= 4) v.x = As<Float4>(Int4(v.w));
+						break;
+					case VertexShader::ATTRIBTYPE_UINT:
+						if(stream.count >= 1) v.x = As<Float4>(UInt4(v.x));
+						if(stream.count >= 2) v.x = As<Float4>(UInt4(v.y));
+						if(stream.count >= 3) v.x = As<Float4>(UInt4(v.z));
+						if(stream.count >= 4) v.x = As<Float4>(UInt4(v.w));
+						break;
+					default:
+						break;
+					}
 				}
 			}
 			break;
 		case STREAMTYPE_BYTE:
+			if(isNativeFloatAttrib) // Stream: UByte, Shader attrib: Float
 			{
 				v.x = Float4(*Pointer<Byte4>(source0));
 				v.y = Float4(*Pointer<Byte4>(source1));
@@ -191,8 +215,18 @@ namespace sw
 					if(stream.count >= 4) v.w *= *Pointer<Float4>(constants + OFFSET(Constants,unscaleByte));
 				}
 			}
+			else // Stream: UByte, Shader attrib: Int / UInt
+			{
+				v.x = As<Float4>(Int4(*Pointer<Byte4>(source0)));
+				v.y = As<Float4>(Int4(*Pointer<Byte4>(source1)));
+				v.z = As<Float4>(Int4(*Pointer<Byte4>(source2)));
+				v.w = As<Float4>(Int4(*Pointer<Byte4>(source3)));
+
+				transpose4xN(v.x, v.y, v.z, v.w, stream.count);
+			}
 			break;
 		case STREAMTYPE_SBYTE:
+			if(isNativeFloatAttrib) // Stream: SByte, Shader attrib: Float
 			{
 				v.x = Float4(*Pointer<SByte4>(source0));
 				v.y = Float4(*Pointer<SByte4>(source1));
@@ -208,6 +242,15 @@ namespace sw
 					if(stream.count >= 3) v.z *= *Pointer<Float4>(constants + OFFSET(Constants,unscaleSByte));
 					if(stream.count >= 4) v.w *= *Pointer<Float4>(constants + OFFSET(Constants,unscaleSByte));
 				}
+			}
+			else // Stream: SByte, Shader attrib: Int / UInt
+			{
+				v.x = As<Float4>(Int4(*Pointer<SByte4>(source0)));
+				v.y = As<Float4>(Int4(*Pointer<SByte4>(source1)));
+				v.z = As<Float4>(Int4(*Pointer<SByte4>(source2)));
+				v.w = As<Float4>(Int4(*Pointer<SByte4>(source3)));
+
+				transpose4xN(v.x, v.y, v.z, v.w, stream.count);
 			}
 			break;
 		case STREAMTYPE_COLOR:
@@ -226,6 +269,7 @@ namespace sw
 			}
 			break;
 		case STREAMTYPE_SHORT:
+			if(isNativeFloatAttrib) // Stream: Int, Shader attrib: Float
 			{
 				v.x = Float4(*Pointer<Short4>(source0));
 				v.y = Float4(*Pointer<Short4>(source1));
@@ -242,8 +286,18 @@ namespace sw
 					if(stream.count >= 4) v.w *= *Pointer<Float4>(constants + OFFSET(Constants,unscaleShort));
 				}
 			}
+			else // Stream: Short, Shader attrib: Int/UInt, no type conversion
+			{
+				v.x = As<Float4>(Int4(*Pointer<Short4>(source0)));
+				v.y = As<Float4>(Int4(*Pointer<Short4>(source1)));
+				v.z = As<Float4>(Int4(*Pointer<Short4>(source2)));
+				v.w = As<Float4>(Int4(*Pointer<Short4>(source3)));
+
+				transpose4xN(v.x, v.y, v.z, v.w, stream.count);
+			}
 			break;
 		case STREAMTYPE_USHORT:
+			if(isNativeFloatAttrib) // Stream: Int, Shader attrib: Float
 			{
 				v.x = Float4(*Pointer<UShort4>(source0));
 				v.y = Float4(*Pointer<UShort4>(source1));
@@ -260,59 +314,70 @@ namespace sw
 					if(stream.count >= 4) v.w *= *Pointer<Float4>(constants + OFFSET(Constants,unscaleUShort));
 				}
 			}
+			else // Stream: UShort, Shader attrib: Int/UInt, no type conversion
+			{
+				v.x = As<Float4>(Int4(*Pointer<UShort4>(source0)));
+				v.y = As<Float4>(Int4(*Pointer<UShort4>(source1)));
+				v.z = As<Float4>(Int4(*Pointer<UShort4>(source2)));
+				v.w = As<Float4>(Int4(*Pointer<UShort4>(source3)));
+
+				transpose4xN(v.x, v.y, v.z, v.w, stream.count);
+			}
 			break;
 		case STREAMTYPE_INT:
+			if(isNativeFloatAttrib) // Stream: Int, Shader attrib: Float
 			{
+				v.x = Float4(*Pointer<Int4>(source0));
+				v.y = Float4(*Pointer<Int4>(source1));
+				v.z = Float4(*Pointer<Int4>(source2));
+				v.w = Float4(*Pointer<Int4>(source3));
+
+				transpose4xN(v.x, v.y, v.z, v.w, stream.count);
+
 				if(stream.normalized)
 				{
-					v.x = Float4(*Pointer<Int4>(source0));
-					v.y = Float4(*Pointer<Int4>(source1));
-					v.z = Float4(*Pointer<Int4>(source2));
-					v.w = Float4(*Pointer<Int4>(source3));
-
-					transpose4xN(v.x, v.y, v.z, v.w, stream.count);
-
 					if(stream.count >= 1) v.x *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleInt));
 					if(stream.count >= 2) v.y *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleInt));
 					if(stream.count >= 3) v.z *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleInt));
 					if(stream.count >= 4) v.w *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleInt));
 				}
-				else
-				{
-					v.x = As<Float4>(*Pointer<Int4>(source0));
-					v.y = As<Float4>(*Pointer<Int4>(source1));
-					v.z = As<Float4>(*Pointer<Int4>(source2));
-					v.w = As<Float4>(*Pointer<Int4>(source3));
+			}
+			else // Stream: Int, Shader attrib: Int/UInt, no type conversion
+			{
+				v.x = *Pointer<Float4>(source0);
+				v.y = *Pointer<Float4>(source1);
+				v.z = *Pointer<Float4>(source2);
+				v.w = *Pointer<Float4>(source3);
 
-					transpose4xN(v.x, v.y, v.z, v.w, stream.count);
-				}
+				transpose4xN(v.x, v.y, v.z, v.w, stream.count);
 			}
 			break;
 		case STREAMTYPE_UINT:
+			if(isNativeFloatAttrib) // Stream: UInt, Shader attrib: Float
 			{
+				v.x = Float4(*Pointer<UInt4>(source0));
+				v.y = Float4(*Pointer<UInt4>(source1));
+				v.z = Float4(*Pointer<UInt4>(source2));
+				v.w = Float4(*Pointer<UInt4>(source3));
+
+				transpose4xN(v.x, v.y, v.z, v.w, stream.count);
+
 				if(stream.normalized)
 				{
-					v.x = Float4(*Pointer<UInt4>(source0));
-					v.y = Float4(*Pointer<UInt4>(source1));
-					v.z = Float4(*Pointer<UInt4>(source2));
-					v.w = Float4(*Pointer<UInt4>(source3));
-
-					transpose4xN(v.x, v.y, v.z, v.w, stream.count);
-
 					if(stream.count >= 1) v.x *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleUInt));
 					if(stream.count >= 2) v.y *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleUInt));
 					if(stream.count >= 3) v.z *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleUInt));
 					if(stream.count >= 4) v.w *= *Pointer<Float4>(constants + OFFSET(Constants, unscaleUInt));
 				}
-				else
-				{
-					v.x = As<Float4>(*Pointer<UInt4>(source0));
-					v.y = As<Float4>(*Pointer<UInt4>(source1));
-					v.z = As<Float4>(*Pointer<UInt4>(source2));
-					v.w = As<Float4>(*Pointer<UInt4>(source3));
+			}
+			else // Stream: UInt, Shader attrib: Int/UInt, no type conversion
+			{
+				v.x = *Pointer<Float4>(source0);
+				v.y = *Pointer<Float4>(source1);
+				v.z = *Pointer<Float4>(source2);
+				v.w = *Pointer<Float4>(source3);
 
-					transpose4xN(v.x, v.y, v.z, v.w, stream.count);
-				}
+				transpose4xN(v.x, v.y, v.z, v.w, stream.count);
 			}
 			break;
 		case STREAMTYPE_UDEC3:
@@ -538,7 +603,7 @@ namespace sw
 		if(stream.count < 1) v.x = Float4(0.0f);
 		if(stream.count < 2) v.y = Float4(0.0f);
 		if(stream.count < 3) v.z = Float4(0.0f);
-		if(stream.count < 4) v.w = Float4(1.0f);
+		if(stream.count < 4) v.w = isNativeFloatAttrib ? Float4(1.0f) : As<Float4>(Int4(0));
 
 		return v;
 	}
