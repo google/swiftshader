@@ -119,6 +119,7 @@ template <> const char *InstMIPS32Mul_d::Opcode = "mul.d";
 template <> const char *InstMIPS32Mul_s::Opcode = "mul.s";
 template <> const char *InstMIPS32Mult::Opcode = "mult";
 template <> const char *InstMIPS32Multu::Opcode = "multu";
+template <> const char *InstMIPS32Nor::Opcode = "nor";
 template <> const char *InstMIPS32Or::Opcode = "or";
 template <> const char *InstMIPS32Ori::Opcode = "ori";
 template <> const char *InstMIPS32Sdc1::Opcode = "sdc1";
@@ -995,6 +996,11 @@ template <> void InstMIPS32Multu::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
   emitThreeAddrLoHi(Opcode, this, Func);
+}
+
+template <> void InstMIPS32Nor::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
+  Asm->nor(getDest(), getSrc(0), getSrc(1));
 }
 
 template <> void InstMIPS32Or::emitIAS(const Cfg *Func) const {

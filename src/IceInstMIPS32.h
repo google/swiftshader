@@ -247,6 +247,7 @@ public:
     Mul_s,
     Mult,
     Multu,
+    Nor,
     Or,
     Ori,
     Ret,
@@ -1161,6 +1162,7 @@ using InstMIPS32Mul_d = InstMIPS32ThreeAddrFPR<InstMIPS32::Mul_d>;
 using InstMIPS32Mul_s = InstMIPS32ThreeAddrFPR<InstMIPS32::Mul_s>;
 using InstMIPS32Mult = InstMIPS32ThreeAddrGPR<InstMIPS32::Mult>;
 using InstMIPS32Multu = InstMIPS32ThreeAddrGPR<InstMIPS32::Multu>;
+using InstMIPS32Nor = InstMIPS32ThreeAddrGPR<InstMIPS32::Nor>;
 using InstMIPS32Or = InstMIPS32ThreeAddrGPR<InstMIPS32::Or>;
 using InstMIPS32Ori = InstMIPS32Imm16<InstMIPS32::Ori>;
 using InstMIPS32Sdc1 = InstMIPS32Store<InstMIPS32::Sdc1>;
@@ -1284,6 +1286,7 @@ template <> void InstMIPS32Mul_d::emitIAS(const Cfg *Func) const;
 template <> void InstMIPS32Mul_s::emitIAS(const Cfg *Func) const;
 template <> void InstMIPS32Mult::emit(const Cfg *Func) const;
 template <> void InstMIPS32Multu::emit(const Cfg *Func) const;
+template <> void InstMIPS32Nor::emitIAS(const Cfg *Func) const;
 template <> void InstMIPS32Or::emitIAS(const Cfg *Func) const;
 template <> void InstMIPS32Ori::emitIAS(const Cfg *Func) const;
 template <> void InstMIPS32Sll::emitIAS(const Cfg *Func) const;

@@ -670,6 +670,12 @@ void AssemblerMIPS32::mul_s(const Operand *OpFd, const Operand *OpFs,
   emitCOP1FmtFtFsFd(Opcode, SinglePrecision, OpFd, OpFs, OpFt, "mul.s");
 }
 
+void AssemblerMIPS32::nor(const Operand *OpRd, const Operand *OpRs,
+                          const Operand *OpRt) {
+  static constexpr IValueT Opcode = 0x00000027;
+  emitRdRsRt(Opcode, OpRd, OpRs, OpRt, "nor");
+}
+
 void AssemblerMIPS32::or_(const Operand *OpRd, const Operand *OpRs,
                           const Operand *OpRt) {
   static constexpr IValueT Opcode = 0x00000025;

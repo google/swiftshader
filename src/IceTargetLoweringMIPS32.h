@@ -424,6 +424,14 @@ public:
 
   void _nop() { Context.insert<InstMIPS32Sll>(getZero(), getZero(), 0); }
 
+  void _nor(Variable *Dest, Variable *Src0, Variable *Src1) {
+    Context.insert<InstMIPS32Nor>(Dest, Src0, Src1);
+  }
+
+  void _not(Variable *Dest, Variable *Src0) {
+    Context.insert<InstMIPS32Nor>(Dest, Src0, getZero());
+  }
+
   void _or(Variable *Dest, Variable *Src0, Variable *Src1) {
     Context.insert<InstMIPS32Or>(Dest, Src0, Src1);
   }

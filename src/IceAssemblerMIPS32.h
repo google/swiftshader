@@ -184,6 +184,8 @@ public:
 
   void mul_s(const Operand *OpFd, const Operand *OpFs, const Operand *OpFt);
 
+  void nor(const Operand *OpRd, const Operand *OpRs, const Operand *OpRt);
+
   void or_(const Operand *OpRd, const Operand *OpRs, const Operand *OpRt);
 
   void ori(const Operand *OpRt, const Operand *OpRs, const uint32_t Imm);
