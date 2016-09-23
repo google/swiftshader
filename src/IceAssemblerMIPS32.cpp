@@ -528,10 +528,12 @@ void AssemblerMIPS32::lw(const Operand *OpRt, const Operand *OpBase,
   case IceType_i8: {
     static constexpr IValueT Opcode = 0x80000000;
     emitRtRsImm16(Opcode, OpRt, OpBase, Offset, "lb");
+    break;
   }
   case IceType_i16: {
     static constexpr IValueT Opcode = 0x84000000;
     emitRtRsImm16(Opcode, OpRt, OpBase, Offset, "lh");
+    break;
   }
   case IceType_i32: {
     static constexpr IValueT Opcode = 0x8C000000;
@@ -541,6 +543,7 @@ void AssemblerMIPS32::lw(const Operand *OpRt, const Operand *OpBase,
   case IceType_f32: {
     static constexpr IValueT Opcode = 0xC4000000;
     emitFtRsImm16(Opcode, OpRt, OpBase, Offset, "lwc1");
+    break;
   }
   case IceType_f64: {
     static constexpr IValueT Opcode = 0xD4000000;
