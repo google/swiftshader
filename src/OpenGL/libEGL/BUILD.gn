@@ -37,8 +37,10 @@ config("swiftshader_libEGL_private_config") {
 }
 
 shared_library("swiftshader_libEGL") {
-  output_name = "libEGL"
-  output_dir = "$root_out_dir/swiftshader"
+  if (!is_mac) {
+    output_name = "libEGL"
+    output_dir = "$root_out_dir/swiftshader"
+  }
 
   sources = [
     "Config.cpp",
