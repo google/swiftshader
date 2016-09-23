@@ -30,12 +30,10 @@
 
 namespace llvm
 {
-	class BasicBlock;
+	class Type;
 	class Value;
 	class Constant;
-	class ConstantInt;
-	class Type;
-	class GlobalValue;
+	class BasicBlock;
 }
 
 namespace sw
@@ -112,6 +110,7 @@ namespace sw
 		// Memory instructions
 		static llvm::Value *createLoad(llvm::Value *ptr, bool isVolatile = false, unsigned int align = 0);
 		static llvm::Value *createStore(llvm::Value *value, llvm::Value *ptr, bool isVolatile = false, unsigned int align = 0);
+		static llvm::Value *createStore(llvm::Constant *constant, llvm::Value *ptr, bool isVolatile = false, unsigned int align = 0);
 		static llvm::Value *createGEP(llvm::Value *ptr, llvm::Value *index);
 
 		// Atomic instructions
@@ -179,25 +178,22 @@ namespace sw
 		static llvm::Value *createSwizzle(llvm::Value *val, unsigned char select);
 		static llvm::Value *createMask(llvm::Value *lhs, llvm::Value *rhs, unsigned char select);
 
-		// Global values
-		static const llvm::GlobalValue *getGlobalValueAtAddress(void *Addr);
-		static void addGlobalMapping(const llvm::GlobalValue *GV, void *Addr);
-		static llvm::GlobalValue *createGlobalValue(llvm::Type *Ty, bool isConstant, unsigned int Align);
-		static llvm::Type *getPointerType(llvm::Type *ElementType);
-
 		// Constant values
 		static llvm::Constant *createNullValue(llvm::Type *Ty);
-		static llvm::ConstantInt *createConstantInt(int64_t i);
-		static llvm::ConstantInt *createConstantInt(int i);
-		static llvm::ConstantInt *createConstantInt(unsigned int i);
-		static llvm::ConstantInt *createConstantBool(bool b);
-		static llvm::ConstantInt *createConstantByte(signed char i);
-		static llvm::ConstantInt *createConstantByte(unsigned char i);
-		static llvm::ConstantInt *createConstantShort(short i);
-		static llvm::ConstantInt *createConstantShort(unsigned short i);
+		static llvm::Constant *createConstantInt(int64_t i);
+		static llvm::Constant *createConstantInt(int i);
+		static llvm::Constant *createConstantInt(unsigned int i);
+		static llvm::Constant *createConstantBool(bool b);
+		static llvm::Constant *createConstantByte(signed char i);
+		static llvm::Constant *createConstantByte(unsigned char i);
+		static llvm::Constant *createConstantShort(short i);
+		static llvm::Constant *createConstantShort(unsigned short i);
 		static llvm::Constant *createConstantFloat(float x);
 		static llvm::Value *createNullPointer(llvm::Type *Ty);
 		static llvm::Value *createConstantVector(llvm::Constant *const *Vals, unsigned NumVals);
+		static llvm::Constant *createConstantPointer(const void *external, llvm::Type *Ty, bool isConstant, unsigned int Align);
+
+		static llvm::Type *getPointerType(llvm::Type *ElementType);
 
 	private:
 		void optimize();
@@ -263,6 +259,7 @@ namespace sw
 
 		llvm::Value *loadValue(unsigned int alignment = 0) const;
 		llvm::Value *storeValue(llvm::Value *value, unsigned int alignment = 0) const;
+		llvm::Value *storeValue(llvm::Constant *constant, unsigned int alignment = 0) const;
 		llvm::Value *getAddress(llvm::Value *index) const;
 
 	protected:
@@ -2770,16 +2767,9 @@ namespace sw
 	template<class T>
 	Pointer<T>::Pointer(const void *external) : alignment((intptr_t)external & 0x0000000F ? 1 : 16)
 	{
-		const llvm::GlobalValue *globalPointer = Nucleus::getGlobalValueAtAddress(const_cast<void*>(external));   // FIXME: Const
+		llvm::Constant *globalPointer = Nucleus::createConstantPointer(external, T::getType(), false, alignment);
 
-		if(!globalPointer)
-		{
-			globalPointer = Nucleus::createGlobalValue(T::getType(), false, alignment);
-
-			Nucleus::addGlobalMapping(globalPointer, const_cast<void*>(external));   // FIXME: Const
-		}
-
-		LValue::storeValue((llvm::Value*)globalPointer);   // FIXME: Const
+		LValue::storeValue(globalPointer);
 	}
 
 	template<class T>

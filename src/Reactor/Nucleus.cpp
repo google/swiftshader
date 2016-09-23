@@ -426,6 +426,11 @@ namespace sw
 		return ::builder->Insert(new StoreInst(value, ptr, isVolatile, align));
 	}
 
+	Value *Nucleus::createStore(Constant *constant, Value *ptr, bool isVolatile, unsigned int align)
+	{
+		return ::builder->Insert(new StoreInst(constant, ptr, isVolatile, align));
+	}
+
 	Value *Nucleus::createGEP(Value *ptr, Value *index)
 	{
 		return ::builder->CreateGEP(ptr, index);
@@ -668,7 +673,7 @@ namespace sw
 
 	void Nucleus::addSwitchCase(llvm::Value *Switch, int Case, llvm::BasicBlock *Branch)
 	{
-		static_cast<SwitchInst*>(Switch)->addCase(Nucleus::createConstantInt(Case), Branch);
+		static_cast<SwitchInst*>(Switch)->addCase(llvm::ConstantInt::get(Type::getInt32Ty(*::context), Case, true), Branch);
 	}
 
 	Value *Nucleus::createUnreachable()
@@ -709,20 +714,19 @@ namespace sw
 		return shuffle;
 	}
 
-	const llvm::GlobalValue *Nucleus::getGlobalValueAtAddress(void *Addr)
+	llvm::Constant *Nucleus::createConstantPointer(const void *address, llvm::Type *Ty, bool isConstant, unsigned int Align)
 	{
-		return ::executionEngine->getGlobalValueAtAddress(Addr);
-	}
+		const GlobalValue *existingGlobal = ::executionEngine->getGlobalValueAtAddress(const_cast<void*>(address));   // FIXME: Const
 
-	void Nucleus::addGlobalMapping(const llvm::GlobalValue *GV, void *Addr)
-	{
-		::executionEngine->addGlobalMapping(GV, Addr);
-	}
+		if(existingGlobal)
+		{
+			return (llvm::Constant*)existingGlobal;
+		}
 
-	llvm::GlobalValue *Nucleus::createGlobalValue(llvm::Type *Ty, bool isConstant, unsigned int Align)
-	{
-		llvm::GlobalValue *global = new llvm::GlobalVariable(*::module, Ty, isConstant, llvm::GlobalValue::ExternalLinkage, 0, "");
+		GlobalValue *global = new GlobalVariable(*::module, Ty, isConstant, GlobalValue::ExternalLinkage, 0, "");
 		global->setAlignment(Align);
+
+		::executionEngine->addGlobalMapping(global, const_cast<void*>(address));
 
 		return global;
 	}
@@ -737,42 +741,42 @@ namespace sw
 		return llvm::Constant::getNullValue(Ty);
 	}
 
-	llvm::ConstantInt *Nucleus::createConstantInt(int64_t i)
+	llvm::Constant *Nucleus::createConstantInt(int64_t i)
 	{
 		return llvm::ConstantInt::get(Type::getInt64Ty(*::context), i, true);
 	}
 
-	llvm::ConstantInt *Nucleus::createConstantInt(int i)
+	llvm::Constant *Nucleus::createConstantInt(int i)
 	{
 		return llvm::ConstantInt::get(Type::getInt32Ty(*::context), i, true);
 	}
 
-	llvm::ConstantInt *Nucleus::createConstantInt(unsigned int i)
+	llvm::Constant *Nucleus::createConstantInt(unsigned int i)
 	{
 		return llvm::ConstantInt::get(Type::getInt32Ty(*::context), i, false);
 	}
 
-	llvm::ConstantInt *Nucleus::createConstantBool(bool b)
+	llvm::Constant *Nucleus::createConstantBool(bool b)
 	{
 		return llvm::ConstantInt::get(Type::getInt1Ty(*::context), b);
 	}
 
-	llvm::ConstantInt *Nucleus::createConstantByte(signed char i)
+	llvm::Constant *Nucleus::createConstantByte(signed char i)
 	{
 		return llvm::ConstantInt::get(Type::getInt8Ty(*::context), i, true);
 	}
 
-	llvm::ConstantInt *Nucleus::createConstantByte(unsigned char i)
+	llvm::Constant *Nucleus::createConstantByte(unsigned char i)
 	{
 		return llvm::ConstantInt::get(Type::getInt8Ty(*::context), i, false);
 	}
 
-	llvm::ConstantInt *Nucleus::createConstantShort(short i)
+	llvm::Constant *Nucleus::createConstantShort(short i)
 	{
 		return llvm::ConstantInt::get(Type::getInt16Ty(*::context), i, true);
 	}
 
-	llvm::ConstantInt *Nucleus::createConstantShort(unsigned short i)
+	llvm::Constant *Nucleus::createConstantShort(unsigned short i)
 	{
 		return llvm::ConstantInt::get(Type::getInt16Ty(*::context), i, false);
 	}
@@ -810,6 +814,11 @@ namespace sw
 	llvm::Value *LValue::storeValue(llvm::Value *value, unsigned int alignment) const
 	{
 		return Nucleus::createStore(value, address, false, alignment);
+	}
+
+	llvm::Value *LValue::storeValue(llvm::Constant *constant, unsigned int alignment) const
+	{
+		return Nucleus::createStore(constant, address, false, alignment);
 	}
 
 	llvm::Value *LValue::getAddress(llvm::Value *index) const
