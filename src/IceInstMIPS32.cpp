@@ -1079,6 +1079,11 @@ template <> void InstMIPS32Sub_s::emitIAS(const Cfg *Func) const {
   Asm->sub_s(getDest(), getSrc(0), getSrc(1));
 }
 
+template <> void InstMIPS32Subu::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
+  Asm->subu(getDest(), getSrc(0), getSrc(1));
+}
+
 template <> void InstMIPS32Sw::emitIAS(const Cfg *Func) const {
   auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
   auto *Mem = llvm::dyn_cast<OperandMIPS32Mem>(getSrc(1));

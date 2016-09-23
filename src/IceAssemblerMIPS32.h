@@ -218,6 +218,8 @@ public:
 
   void sub_s(const Operand *OpFd, const Operand *OpFs, const Operand *OpFt);
 
+  void subu(const Operand *OpRd, const Operand *OpRs, const Operand *OpRt);
+
   void sw(const Operand *OpRt, const Operand *OpBase, const uint32_t Offset);
 
   void teq(const Operand *OpRs, const Operand *OpRt, const uint32_t TrapCode);

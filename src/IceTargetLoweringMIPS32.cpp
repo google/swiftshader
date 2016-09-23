@@ -2867,7 +2867,34 @@ void TargetMIPS32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     break;
   }
   case Intrinsics::Cttz: {
-    UnimplementedLoweringError(this, Instr);
+    auto *Src = Instr->getArg(0);
+    const Type SrcTy = Src->getType();
+    assert(SrcTy == IceType_i32 || SrcTy == IceType_i64);
+    switch (SrcTy) {
+    case IceType_i32: {
+      auto *T1 = I32Reg();
+      auto *T2 = I32Reg();
+      auto *T3 = I32Reg();
+      auto *T4 = I32Reg();
+      auto *T5 = I32Reg();
+      auto *T6 = I32Reg();
+      auto *SrcR = legalizeToReg(Src);
+      _addiu(T1, SrcR, -1);
+      _not(T2, SrcR);
+      _and(T3, T2, T1);
+      _clz(T4, T3);
+      _addiu(T5, getZero(), 32);
+      _subu(T6, T5, T4);
+      _mov(Dest, T6);
+      break;
+    }
+    case IceType_i64: {
+      UnimplementedLoweringError(this, Instr);
+      break;
+    }
+    default:
+      llvm::report_fatal_error("Control flow should never have reached here.");
+    }
     return;
   }
   case Intrinsics::Fabs: {
@@ -3367,7 +3394,8 @@ void TargetMIPS32::postLower() {
     return;
   // TODO(rkotler): Find two-address non-SSA instructions where Dest==Src0,
   // and set the IsDestRedefined flag to keep liveness analysis consistent.
-  UnimplementedError(getFlags());
+  markRedefinitions();
+  Context.availabilityUpdate();
 }
 
 void TargetMIPS32::makeRandomRegisterPermutation(

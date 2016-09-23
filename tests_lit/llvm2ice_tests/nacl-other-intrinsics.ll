@@ -484,6 +484,13 @@ entry:
 ; ARM32-LABEL: test_cttz_32
 ; ARM32: rbit
 ; ARM32: clz
+; MIPS32-LABEL: test_cttz_32
+; MIPS32: addiu
+; MIPS32: nor
+; MIPS32: and
+; MIPS32: clz
+; MIPS32: li
+; MIPS32: subu
 
 define internal i64 @test_cttz_64(i64 %x) {
 entry:

@@ -777,6 +777,12 @@ void AssemblerMIPS32::sub_s(const Operand *OpFd, const Operand *OpFs,
   emitCOP1FmtFtFsFd(Opcode, SinglePrecision, OpFd, OpFs, OpFt, "sub.s");
 }
 
+void AssemblerMIPS32::subu(const Operand *OpRd, const Operand *OpRs,
+                           const Operand *OpRt) {
+  static constexpr IValueT Opcode = 0x00000023;
+  emitRdRsRt(Opcode, OpRd, OpRs, OpRt, "subu");
+}
+
 void AssemblerMIPS32::sw(const Operand *OpRt, const Operand *OpBase,
                          const uint32_t Offset) {
   switch (OpRt->getType()) {

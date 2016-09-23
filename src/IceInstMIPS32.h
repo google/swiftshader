@@ -1305,6 +1305,7 @@ template <> void InstMIPS32Sra::emitIAS(const Cfg *Func) const;
 template <> void InstMIPS32Srl::emitIAS(const Cfg *Func) const;
 template <> void InstMIPS32Sub_d::emitIAS(const Cfg *Func) const;
 template <> void InstMIPS32Sub_s::emitIAS(const Cfg *Func) const;
+template <> void InstMIPS32Subu::emitIAS(const Cfg *Func) const;
 template <> void InstMIPS32Teq::emitIAS(const Cfg *Func) const;
 template <> void InstMIPS32Trunc_l_d::emitIAS(const Cfg *Func) const;
 template <> void InstMIPS32Trunc_l_s::emitIAS(const Cfg *Func) const;
