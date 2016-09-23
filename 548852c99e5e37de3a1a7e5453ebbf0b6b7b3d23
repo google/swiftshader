@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d09643c8_66853f07",
+        "filename": "src/Renderer/VertexProcessor.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-09-23T18:48:07Z",
+      "side": 1,
+      "message": "BITS(ATTRIBTYPE_LAST)",
+      "range": {
+        "startLine": 105,
+        "startChar": 30,
+        "endLine": 105,
+        "endChar": 31
+      },
+      "revId": "548852c99e5e37de3a1a7e5453ebbf0b6b7b3d23",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d09643c8_23a249af",
+        "filename": "src/Shader/VertexShader.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-09-23T18:48:07Z",
+      "side": 1,
+      "message": "Do we need this one? Wouldn\u0027t leaving it unspecified be equivalent to FLOAT? It also seems like the safer default option. It looks like Direct3D might otherwise be affected.",
+      "range": {
+        "startLine": 26,
+        "startChar": 36,
+        "endLine": 26,
+        "endChar": 47
+      },
+      "revId": "548852c99e5e37de3a1a7e5453ebbf0b6b7b3d23",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
