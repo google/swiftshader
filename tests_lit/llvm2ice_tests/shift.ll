@@ -28,13 +28,13 @@
 ; RUN:   --command %p2i --filetype=asm --assemble \
 ; RUN:   --disassemble --target mips32 -i %s --args -O2 --skip-unimplemented \
 ; RUN:   | %if --need=target_MIPS32 --need=allow_dump \
-; RUN:   --command FileCheck --check-prefix MIPS32 %s
+; RUN:   --command FileCheck --check-prefix MIPS32-O2 --check-prefix MIPS32 %s
 
 ; RUN: %if --need=target_MIPS32 --need=allow_dump \
 ; RUN:   --command %p2i --filetype=asm --assemble \
 ; RUN:   --disassemble --target mips32 -i %s --args -Om1 --skip-unimplemented \
 ; RUN:   | %if --need=target_MIPS32 --need=allow_dump \
-; RUN:   --command FileCheck --check-prefix MIPS32 %s
+; RUN:   --command FileCheck --check-prefix MIPS32-OM1 --check-prefix MIPS32 %s
 
 @i1 = internal global [4 x i8] zeroinitializer, align 4
 @i2 = internal global [4 x i8] zeroinitializer, align 4
@@ -149,6 +149,11 @@ entry:
 }
 ; CHECK-LABEL: shlImm64One
 ; CHECK: shl {{.*}},1
+; MIPS32-LABEL: shlImm64One
+; MIPS32: addu	[[T_LO:.*]],[[VAL_LO:.*]],[[VAL_LO]]
+; MIPS32: sltu	[[T1:.*]],[[T_LO]],[[VAL_LO]]
+; MIPS32: addu	[[T2:.*]],[[T1]],[[VAL_HI:.*]]
+; MIPS32: addu	{{.*}},[[VAL_HI]],[[T2]]
 
 define internal i64 @shlImm64LessThan32(i64 %val) {
 entry:
@@ -157,6 +162,11 @@ entry:
 }
 ; CHECK-LABEL: shlImm64LessThan32
 ; CHECK: shl {{.*}},0x4
+; MIPS32-LABEL: shlImm64LessThan32
+; MIPS32: srl	[[T1:.*]],[[VAL_LO:.*]],0x1c
+; MIPS32: sll	[[T2:.*]],{{.*}},0x4
+; MIPS32: or	{{.*}},[[T1]],[[T2]]
+; MIPS32: sll	{{.*}},[[VAL_LO]],0x4
 
 define internal i64 @shlImm64Equal32(i64 %val) {
 entry:
@@ -165,6 +175,11 @@ entry:
 }
 ; CHECK-LABEL: shlImm64Equal32
 ; CHECK-NOT: shl
+; MIPS32-LABEL: shlImm64Equal32
+; MIPS32: li	{{.*}},0
+; MIPS32-O2:	move
+; MIPS32-OM1:	sw
+; MIPS32-OM1:	lw
 
 define internal i64 @shlImm64GreaterThan32(i64 %val) {
 entry:
@@ -173,6 +188,9 @@ entry:
 }
 ; CHECK-LABEL: shlImm64GreaterThan32
 ; CHECK: shl {{.*}},0x8
+; MIPS32-LABEL: shlImm64GreaterThan32
+; MIPS32: sll	{{.*}},{{.*}},0x8
+; MIPS32: li	{{.*}},0
 
 define internal i64 @lshrImm64One(i64 %val) {
 entry:
@@ -181,6 +199,11 @@ entry:
 }
 ; CHECK-LABEL: lshrImm64One
 ; CHECK: shr {{.*}},1
+; MIPS32-LABEL: lshrImm64One
+; MIPS32: sll	[[T1:.*]],[[VAL_HI:.*]],0x1f
+; MIPS32: srl	[[T2:.*]],{{.*}},0x1
+; MIPS32: or	{{.*}},[[T1]],[[T2]]
+; MIPS32: srl	{{.*}},[[VAL_HI]],0x1
 
 define internal i64 @lshrImm64LessThan32(i64 %val) {
 entry:
@@ -190,6 +213,11 @@ entry:
 ; CHECK-LABEL: lshrImm64LessThan32
 ; CHECK: shrd {{.*}},0x4
 ; CHECK: shr {{.*}},0x4
+; MIPS32-LABEL: lshrImm64LessThan32
+; MIPS32: sll	[[T1:.*]],[[VAL_HI:.*]],0x1c
+; MIPS32: srl	[[T2:.*]],{{.*}},0x4
+; MIPS32: or	{{.*}},[[T1]],[[T2]]
+; MIPS32: srl	{{.*}},[[VAL_HI]],0x4
 
 define internal i64 @lshrImm64Equal32(i64 %val) {
 entry:
@@ -198,6 +226,11 @@ entry:
 }
 ; CHECK-LABEL: lshrImm64Equal32
 ; CHECK-NOT: shr
+; MIPS32-LABEL: lshrImm64Equal32
+; MIPS32: li	{{.*}},0
+; MIPS32-O2: move
+; MIPS32-OM1: sw
+; MIPS32-OM1: lw
 
 define internal i64 @lshrImm64GreaterThan32(i64 %val) {
 entry:
@@ -207,6 +240,9 @@ entry:
 ; CHECK-LABEL: lshrImm64GreaterThan32
 ; CHECK-NOT: shrd
 ; CHECK: shr {{.*}},0x8
+; MIPS32-LABEL: lshrImm64GreaterThan32
+; MIPS32: srl	{{.*}},{{.*}},0x8
+; MIPS32: li	{{.*}},0
 
 define internal i64 @ashrImm64One(i64 %val) {
 entry:
@@ -216,6 +252,11 @@ entry:
 ; CHECK-LABEL: ashrImm64One
 ; CHECK: shrd {{.*}},0x1
 ; CHECK: sar {{.*}},1
+; MIPS32-LABEL: ashrImm64One
+; MIPS32: sll	[[T1:.*]],[[VAL_HI:.*]],0x1f
+; MIPS32: srl	[[T2:.*]],{{.*}},0x1
+; MIPS32: or	{{.*}},[[T1]],[[T2]]
+; MIPS32: sra	{{.*}},[[VAL_HI]],0x1
 
 define internal i64 @ashrImm64LessThan32(i64 %val) {
 entry:
@@ -225,6 +266,11 @@ entry:
 ; CHECK-LABEL: ashrImm64LessThan32
 ; CHECK: shrd {{.*}},0x4
 ; CHECK: sar {{.*}},0x4
+; MIPS32-LABEL: ashrImm64LessThan32
+; MIPS32: sll   [[T1:.*]],[[VAL_HI:.*]],0x1c
+; MIPS32: srl   [[T2:.*]],{{.*}},0x4
+; MIPS32: or    {{.*}},[[T1]],[[T2]]
+; MIPS32: sra   {{.*}},[[VAL_HI]],0x4
 
 define internal i64 @ashrImm64Equal32(i64 %val) {
 entry:
@@ -234,6 +280,11 @@ entry:
 ; CHECK-LABEL: ashrImm64Equal32
 ; CHECK: sar {{.*}},0x1f
 ; CHECK-NOT: shrd
+; MIPS32-LABEL: ashrImm64Equal32
+; MIPS32: sra	{{.*}},[[VAL_HI:.*]],0x1f
+; MIPS32-O2: move	{{.*}},[[VAL_HI]]
+; MIPS32-OM1:	sw [[VAL_HI]],{{.*}}
+; MIPS32-OM1:   lw {{.*}},{{.*}}
 
 define internal i64 @ashrImm64GreaterThan32(i64 %val) {
 entry:
@@ -243,3 +294,6 @@ entry:
 ; CHECK-LABEL: ashrImm64GreaterThan32
 ; CHECK: sar {{.*}},0x1f
 ; CHECK: shrd {{.*}},0x8
+; MIPS32-LABEL: ashrImm64GreaterThan32
+; MIPS32: sra	{{.*}},[[VAL_HI:.*]],0x8
+; MIPS32: sra	{{.*}},[[VAL_HI]],0x1f

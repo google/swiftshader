@@ -520,6 +520,19 @@ entry:
 ; ARM32: lslge   [[T2]], r0, [[T3]]
 ; ARM32: lsl     r{{[0-9]+}}, r0, r2
 
+; MIPS32-LABEL: shl64BitSigned
+; MIPS32: sllv	[[T1:.*]],[[A_HI:.*]],[[B_LO:.*]]
+; MIPS32: nor	[[T2:.*]],[[B_LO]],zero
+; MIPS32: srl	[[T3:.*]],[[A_LO:.*]],0x1
+; MIPS32: srlv	[[T4:.*]],[[T3]],[[T2]]
+; MIPS32: or	[[T_HI:.*]],[[T1]],[[T4]]
+; MIPS32: sllv	[[T_LO:.*]],[[A_LO]],[[B_LO]]
+; MIPS32: move	[[T1_LO:.*]],[[T_LO]]
+; MIPS32: andi	[[T5:.*]],[[B_LO]],0x20
+; MIPS32: movn	[[T_HI]],[[T_LO]],[[T5]]
+; MIPS32: movn	[[T1_LO]],zero,[[T5]]
+; MIPS32: move	v1,[[T_HI]]
+
 define internal i32 @shl64BitSignedTrunc(i64 %a, i64 %b) {
 entry:
   %shl = shl i64 %a, %b
@@ -567,6 +580,19 @@ entry:
 ; ARM32: lslge
 ; ARM32: lsl
 
+; MIPS32-LABEL: shl64BitUnsigned
+; MIPS32: sllv  [[T1:.*]],[[A_HI:.*]],[[B_LO:.*]]
+; MIPS32: nor   [[T2:.*]],[[B_LO]],zero
+; MIPS32: srl   [[T3:.*]],[[A_LO:.*]],0x1
+; MIPS32: srlv  [[T4:.*]],[[T3]],[[T2]]
+; MIPS32: or    [[T_HI:.*]],[[T1]],[[T4]]
+; MIPS32: sllv  [[T_LO:.*]],[[A_LO]],[[B_LO]]
+; MIPS32: move  [[T1_LO:.*]],[[T_LO]]
+; MIPS32: andi  [[T5:.*]],[[B_LO]],0x20
+; MIPS32: movn  [[T_HI]],[[T_LO]],[[T5]]
+; MIPS32: movn  [[T1_LO]],zero,[[T5]]
+; MIPS32: move  v1,[[T_HI]]
+
 define internal i64 @shr64BitSigned(i64 %a, i64 %b) {
 entry:
   %shr = ashr i64 %a, %b
@@ -594,6 +620,19 @@ entry:
 ; ARM32: cmp     [[T2]], #0
 ; ARM32: asrge   r{{[0-9]+}}, r{{[0-9]+}}, [[T2]]
 ; ARM32: asr     r{{[0-9]+}}, r{{[0-9]+}}, r{{[0-9]+}}
+
+; MIPS32-LABEL: shr64BitSigned
+; MIPS32: srlv	[[T1:.*]],[[A_LO:.*]],[[B_LO:.*]]
+; MIPS32: nor	[[T2:.*]],[[B_LO]],zero
+; MIPS32: sll	[[T3:.*]],[[A_HI:.*]],0x1
+; MIPS32: sllv	[[T4:.*]],[[T3]],[[T2]]
+; MIPS32: or	[[T_LO:.*]],[[T1]],[[T4]]
+; MIPS32: srav	[[T_HI:.*]],[[A_HI]],[[B_LO]]
+; MIPS32: move	[[T_HI1:.*]],[[T_HI]]
+; MIPS32: andi	[[T5:.*]],[[B_LO]],0x20
+; MIPS32: movn	[[T_LO1:.*]],[[T_HI]],[[T5]]
+; MIPS32: sra	[[T6:.*]],[[A_HI]],0x1f
+; MIPS32: movn	[[T_HI1]],[[T6]],[[T5]]
 
 define internal i32 @shr64BitSignedTrunc(i64 %a, i64 %b) {
 entry:
@@ -647,6 +686,18 @@ entry:
 ; ARM32: cmp
 ; ARM32: lsrge
 ; ARM32: lsr
+
+; MIPS32-LABEL: shr64BitUnsigned
+; MIPS32: srlv  [[T1:.*]],[[A_LO:.*]],[[B_LO:.*]]
+; MIPS32: nor   [[T2:.*]],[[B_LO]],zero
+; MIPS32: sll   [[T3:.*]],[[A_HI:.*]],0x1
+; MIPS32: sllv  [[T4:.*]],[[T3]],[[T2]]
+; MIPS32: or    [[T_LO:.*]],[[T1]],[[T4]]
+; MIPS32: srlv  [[T_HI:.*]],[[A_HI]],[[B_LO]]
+; MIPS32: move  [[T_HI1:.*]],[[T_HI]]
+; MIPS32: andi  [[T5:.*]],[[B_LO]],0x20
+; MIPS32: movn  [[T_LO1:.*]],[[T_HI]],[[T5]]
+; MIPS32: movn  [[T_HI1]],zero,[[T5]]
 
 define internal i32 @shr64BitUnsignedTrunc(i64 %a, i64 %b) {
 entry:

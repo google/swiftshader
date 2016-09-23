@@ -1730,30 +1730,22 @@ void TargetMIPS32::lowerInt64Arithmetic(const InstArithmetic *Instr,
                                         Variable *Dest, Operand *Src0,
                                         Operand *Src1) {
   InstArithmetic::OpKind Op = Instr->getOp();
-  switch (Op) {
-  case InstArithmetic::Add:
-  case InstArithmetic::And:
-  case InstArithmetic::Or:
-  case InstArithmetic::Sub:
-  case InstArithmetic::Xor:
-  case InstArithmetic::Mul:
-    break;
-  default:
-    UnimplementedLoweringError(this, Instr);
-    return;
-  }
   auto *DestLo = llvm::cast<Variable>(loOperand(Dest));
   auto *DestHi = llvm::cast<Variable>(hiOperand(Dest));
-  Variable *Src0LoR = legalizeToReg(loOperand(Src0));
-  Variable *Src1LoR = legalizeToReg(loOperand(Src1));
-  Variable *Src0HiR = legalizeToReg(hiOperand(Src0));
-  Variable *Src1HiR = legalizeToReg(hiOperand(Src1));
+  Variable *Src0LoR = nullptr;
+  Variable *Src1LoR = nullptr;
+  Variable *Src0HiR = nullptr;
+  Variable *Src1HiR = nullptr;
 
   switch (Op) {
   case InstArithmetic::_num:
     llvm::report_fatal_error("Unknown arithmetic operator");
     return;
   case InstArithmetic::Add: {
+    Src0LoR = legalizeToReg(loOperand(Src0));
+    Src1LoR = legalizeToReg(loOperand(Src1));
+    Src0HiR = legalizeToReg(hiOperand(Src0));
+    Src1HiR = legalizeToReg(hiOperand(Src1));
     auto *T_Carry = I32Reg(), *T_Lo = I32Reg(), *T_Hi = I32Reg(),
          *T_Hi2 = I32Reg();
     _addu(T_Lo, Src0LoR, Src1LoR);
@@ -1765,6 +1757,10 @@ void TargetMIPS32::lowerInt64Arithmetic(const InstArithmetic *Instr,
     return;
   }
   case InstArithmetic::And: {
+    Src0LoR = legalizeToReg(loOperand(Src0));
+    Src1LoR = legalizeToReg(loOperand(Src1));
+    Src0HiR = legalizeToReg(hiOperand(Src0));
+    Src1HiR = legalizeToReg(hiOperand(Src1));
     auto *T_Lo = I32Reg(), *T_Hi = I32Reg();
     _and(T_Lo, Src0LoR, Src1LoR);
     _mov(DestLo, T_Lo);
@@ -1773,6 +1769,10 @@ void TargetMIPS32::lowerInt64Arithmetic(const InstArithmetic *Instr,
     return;
   }
   case InstArithmetic::Sub: {
+    Src0LoR = legalizeToReg(loOperand(Src0));
+    Src1LoR = legalizeToReg(loOperand(Src1));
+    Src0HiR = legalizeToReg(hiOperand(Src0));
+    Src1HiR = legalizeToReg(hiOperand(Src1));
     auto *T_Borrow = I32Reg(), *T_Lo = I32Reg(), *T_Hi = I32Reg(),
          *T_Hi2 = I32Reg();
     _subu(T_Lo, Src0LoR, Src1LoR);
@@ -1784,6 +1784,10 @@ void TargetMIPS32::lowerInt64Arithmetic(const InstArithmetic *Instr,
     return;
   }
   case InstArithmetic::Or: {
+    Src0LoR = legalizeToReg(loOperand(Src0));
+    Src1LoR = legalizeToReg(loOperand(Src1));
+    Src0HiR = legalizeToReg(hiOperand(Src0));
+    Src1HiR = legalizeToReg(hiOperand(Src1));
     auto *T_Lo = I32Reg(), *T_Hi = I32Reg();
     _or(T_Lo, Src0LoR, Src1LoR);
     _mov(DestLo, T_Lo);
@@ -1792,6 +1796,10 @@ void TargetMIPS32::lowerInt64Arithmetic(const InstArithmetic *Instr,
     return;
   }
   case InstArithmetic::Xor: {
+    Src0LoR = legalizeToReg(loOperand(Src0));
+    Src1LoR = legalizeToReg(loOperand(Src1));
+    Src0HiR = legalizeToReg(hiOperand(Src0));
+    Src1HiR = legalizeToReg(hiOperand(Src1));
     auto *T_Lo = I32Reg(), *T_Hi = I32Reg();
     _xor(T_Lo, Src0LoR, Src1LoR);
     _mov(DestLo, T_Lo);
@@ -1802,6 +1810,10 @@ void TargetMIPS32::lowerInt64Arithmetic(const InstArithmetic *Instr,
   case InstArithmetic::Mul: {
     // TODO(rkotler): Make sure that mul has the side effect of clobbering
     // LO, HI. Check for any other LO, HI quirkiness in this section.
+    Src0LoR = legalizeToReg(loOperand(Src0));
+    Src1LoR = legalizeToReg(loOperand(Src1));
+    Src0HiR = legalizeToReg(hiOperand(Src0));
+    Src1HiR = legalizeToReg(hiOperand(Src1));
     auto *T_Lo = I32Reg(RegMIPS32::Reg_LO), *T_Hi = I32Reg(RegMIPS32::Reg_HI);
     auto *T1 = I32Reg(), *T2 = I32Reg();
     auto *TM1 = I32Reg(), *TM2 = I32Reg(), *TM3 = I32Reg(), *TM4 = I32Reg();
@@ -1815,6 +1827,172 @@ void TargetMIPS32::lowerInt64Arithmetic(const InstArithmetic *Instr,
     _addu(TM3, TM1, T2);
     _addu(TM4, TM3, TM2);
     _mov(DestHi, TM4);
+    return;
+  }
+  case InstArithmetic::Shl: {
+    auto *T_Lo = I32Reg();
+    auto *T_Hi = I32Reg();
+    auto *T1_Lo = I32Reg();
+    auto *T1_Hi = I32Reg();
+    auto *T1 = I32Reg();
+    auto *T2 = I32Reg();
+    auto *T3 = I32Reg();
+    auto *T4 = I32Reg();
+    auto *T5 = I32Reg();
+
+    if (auto *Const = llvm::dyn_cast<ConstantInteger64>(Src1)) {
+      Src0LoR = legalizeToReg(loOperand(Src0));
+      int64_t ShiftAmount = Const->getValue();
+      if (ShiftAmount == 1) {
+        Src0HiR = legalizeToReg(hiOperand(Src0));
+        _addu(T_Lo, Src0LoR, Src0LoR);
+        _sltu(T1, T_Lo, Src0LoR);
+        _addu(T2, T1, Src0HiR);
+        _addu(T_Hi, Src0HiR, T2);
+      } else if (ShiftAmount < INT32_BITS) {
+        Src0HiR = legalizeToReg(hiOperand(Src0));
+        _srl(T1, Src0LoR, INT32_BITS - ShiftAmount);
+        _sll(T2, Src0HiR, ShiftAmount);
+        _or(T_Hi, T1, T2);
+        _sll(T_Lo, Src0LoR, ShiftAmount);
+      } else if (ShiftAmount == INT32_BITS) {
+        _addiu(T_Lo, getZero(), 0);
+        _mov(T_Hi, Src0LoR);
+      } else if (ShiftAmount > INT32_BITS && ShiftAmount < 64) {
+        _sll(T_Hi, Src0LoR, ShiftAmount - INT32_BITS);
+        _addiu(T_Lo, getZero(), 0);
+      }
+      _mov(DestLo, T_Lo);
+      _mov(DestHi, T_Hi);
+      return;
+    }
+
+    Src0LoR = legalizeToReg(loOperand(Src0));
+    Src1LoR = legalizeToReg(loOperand(Src1));
+    Src0HiR = legalizeToReg(hiOperand(Src0));
+
+    _sllv(T1, Src0HiR, Src1LoR);
+    _not(T2, Src1LoR);
+    _srl(T3, Src0LoR, 1);
+    _srlv(T4, T3, T2);
+    _or(T_Hi, T1, T4);
+    _sllv(T_Lo, Src0LoR, Src1LoR);
+
+    _mov(T1_Hi, T_Hi);
+    _mov(T1_Lo, T_Lo);
+    _andi(T5, Src1LoR, INT32_BITS);
+    _movn(T1_Hi, T_Lo, T5);
+    _movn(T1_Lo, getZero(), T5);
+    _mov(DestHi, T1_Hi);
+    _mov(DestLo, T1_Lo);
+    return;
+  }
+  case InstArithmetic::Lshr: {
+
+    auto *T_Lo = I32Reg();
+    auto *T_Hi = I32Reg();
+    auto *T1_Lo = I32Reg();
+    auto *T1_Hi = I32Reg();
+    auto *T1 = I32Reg();
+    auto *T2 = I32Reg();
+    auto *T3 = I32Reg();
+    auto *T4 = I32Reg();
+    auto *T5 = I32Reg();
+
+    if (auto *Const = llvm::dyn_cast<ConstantInteger64>(Src1)) {
+      Src0HiR = legalizeToReg(hiOperand(Src0));
+      int64_t ShiftAmount = Const->getValue();
+      if (ShiftAmount < INT32_BITS) {
+        Src0LoR = legalizeToReg(loOperand(Src0));
+        _sll(T1, Src0HiR, INT32_BITS - ShiftAmount);
+        _srl(T2, Src0LoR, ShiftAmount);
+        _or(T_Lo, T1, T2);
+        _srl(T_Hi, Src0HiR, ShiftAmount);
+      } else if (ShiftAmount == INT32_BITS) {
+        _mov(T_Lo, Src0HiR);
+        _addiu(T_Hi, getZero(), 0);
+      } else if (ShiftAmount > INT32_BITS && ShiftAmount < 64) {
+        _srl(T_Lo, Src0HiR, ShiftAmount - INT32_BITS);
+        _addiu(T_Hi, getZero(), 0);
+      }
+      _mov(DestLo, T_Lo);
+      _mov(DestHi, T_Hi);
+      return;
+    }
+
+    Src0LoR = legalizeToReg(loOperand(Src0));
+    Src1LoR = legalizeToReg(loOperand(Src1));
+    Src0HiR = legalizeToReg(hiOperand(Src0));
+
+    _srlv(T1, Src0LoR, Src1LoR);
+    _not(T2, Src1LoR);
+    _sll(T3, Src0HiR, 1);
+    _sllv(T4, T3, T2);
+    _or(T_Lo, T1, T4);
+    _srlv(T_Hi, Src0HiR, Src1LoR);
+
+    _mov(T1_Hi, T_Hi);
+    _mov(T1_Lo, T_Lo);
+    _andi(T5, Src1LoR, INT32_BITS);
+    _movn(T1_Lo, T_Hi, T5);
+    _movn(T1_Hi, getZero(), T5);
+    _mov(DestHi, T1_Hi);
+    _mov(DestLo, T1_Lo);
+    return;
+  }
+  case InstArithmetic::Ashr: {
+
+    auto *T_Lo = I32Reg();
+    auto *T_Hi = I32Reg();
+    auto *T1_Lo = I32Reg();
+    auto *T1_Hi = I32Reg();
+    auto *T1 = I32Reg();
+    auto *T2 = I32Reg();
+    auto *T3 = I32Reg();
+    auto *T4 = I32Reg();
+    auto *T5 = I32Reg();
+    auto *T6 = I32Reg();
+
+    if (auto *Const = llvm::dyn_cast<ConstantInteger64>(Src1)) {
+      Src0HiR = legalizeToReg(hiOperand(Src0));
+      int64_t ShiftAmount = Const->getValue();
+      if (ShiftAmount < INT32_BITS) {
+        Src0LoR = legalizeToReg(loOperand(Src0));
+        _sll(T1, Src0HiR, INT32_BITS - ShiftAmount);
+        _srl(T2, Src0LoR, ShiftAmount);
+        _or(T_Lo, T1, T2);
+        _sra(T_Hi, Src0HiR, ShiftAmount);
+      } else if (ShiftAmount == INT32_BITS) {
+        _sra(T_Hi, Src0HiR, INT32_BITS - 1);
+        _mov(T_Lo, Src0HiR);
+      } else if (ShiftAmount > INT32_BITS && ShiftAmount < 64) {
+        _sra(T_Lo, Src0HiR, ShiftAmount - INT32_BITS);
+        _sra(T_Hi, Src0HiR, INT32_BITS - 1);
+      }
+      _mov(DestLo, T_Lo);
+      _mov(DestHi, T_Hi);
+      return;
+    }
+
+    Src0LoR = legalizeToReg(loOperand(Src0));
+    Src1LoR = legalizeToReg(loOperand(Src1));
+    Src0HiR = legalizeToReg(hiOperand(Src0));
+
+    _srlv(T1, Src0LoR, Src1LoR);
+    _not(T2, Src1LoR);
+    _sll(T3, Src0HiR, 1);
+    _sllv(T4, T3, T2);
+    _or(T_Lo, T1, T4);
+    _srav(T_Hi, Src0HiR, Src1LoR);
+
+    _mov(T1_Hi, T_Hi);
+    _mov(T1_Lo, T_Lo);
+    _andi(T5, Src1LoR, INT32_BITS);
+    _movn(T1_Lo, T_Hi, T5);
+    _sra(T6, Src0HiR, INT32_BITS - 1);
+    _movn(T1_Hi, T6, T5);
+    _mov(DestHi, T1_Hi);
+    _mov(DestLo, T1_Lo);
     return;
   }
   default:
@@ -3392,8 +3570,6 @@ void TargetMIPS32::prelowerPhis() {
 void TargetMIPS32::postLower() {
   if (Func->getOptLevel() == Opt_m1)
     return;
-  // TODO(rkotler): Find two-address non-SSA instructions where Dest==Src0,
-  // and set the IsDestRedefined flag to keep liveness analysis consistent.
   markRedefinitions();
   Context.availabilityUpdate();
 }
