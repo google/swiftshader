@@ -32,12 +32,12 @@ namespace llvm
 {
 	class Value;
 	class Constant;
-	class BasicBlock;
 }
 
 namespace sw
 {
 	class Type;
+	class BasicBlock;
 
 	enum Optimization
 	{
@@ -71,10 +71,10 @@ namespace sw
 		Routine *acquireRoutine(const wchar_t *name, bool runOptimizations = true);
 
 		static llvm::Value *allocateStackVariable(Type *type, int arraySize = 0);
-		static llvm::BasicBlock *createBasicBlock();
-		static llvm::BasicBlock *getInsertBlock();
-		static void setInsertBlock(llvm::BasicBlock *basicBlock);
-		static llvm::BasicBlock *getPredecessor(llvm::BasicBlock *basicBlock);
+		static BasicBlock *createBasicBlock();
+		static BasicBlock *getInsertBlock();
+		static void setInsertBlock(BasicBlock *basicBlock);
+		static BasicBlock *getPredecessor(BasicBlock *basicBlock);
 
 		static void createFunction(Type *ReturnType, std::vector<Type*> &Params);
 		static llvm::Value *getArgument(unsigned int index);
@@ -82,8 +82,8 @@ namespace sw
 		// Terminators
 		static llvm::Value *createRetVoid();
 		static llvm::Value *createRet(llvm::Value *V);
-		static llvm::Value *createBr(llvm::BasicBlock *dest);
-		static llvm::Value *createCondBr(llvm::Value *cond, llvm::BasicBlock *ifTrue, llvm::BasicBlock *ifFalse);
+		static llvm::Value *createBr(BasicBlock *dest);
+		static llvm::Value *createCondBr(llvm::Value *cond, BasicBlock *ifTrue, BasicBlock *ifFalse);
 
 		// Binary operators
 		static llvm::Value *createAdd(llvm::Value *lhs, llvm::Value *rhs);
@@ -171,8 +171,8 @@ namespace sw
 
 		// Other instructions
 		static llvm::Value *createSelect(llvm::Value *C, llvm::Value *ifTrue, llvm::Value *ifFalse);
-		static llvm::Value *createSwitch(llvm::Value *V, llvm::BasicBlock *Dest, unsigned NumCases);
-		static void addSwitchCase(llvm::Value *Switch, int Case, llvm::BasicBlock *Branch);
+		static llvm::Value *createSwitch(llvm::Value *V, BasicBlock *Dest, unsigned NumCases);
+		static void addSwitchCase(llvm::Value *Switch, int Case, BasicBlock *Branch);
 		static llvm::Value *createUnreachable();
 
 		// Derived instructions
@@ -2451,9 +2451,9 @@ namespace sw
 //	RValue<Array<T>> operator--(const Array<T> &val, int);   // Post-decrement
 //	const Array<T> &operator--(const Array<T> &val);   // Pre-decrement
 
-	llvm::BasicBlock *beginLoop();
-	bool branch(RValue<Bool> cmp, llvm::BasicBlock *bodyBB, llvm::BasicBlock *endBB);
-	bool elseBlock(llvm::BasicBlock *falseBB);
+	BasicBlock *beginLoop();
+	bool branch(RValue<Bool> cmp, BasicBlock *bodyBB, BasicBlock *endBB);
+	bool elseBlock(BasicBlock *falseBB);
 
 	void Return();
 	void Return(bool ret);

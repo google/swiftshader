@@ -156,13 +156,12 @@ namespace sw
 		int currentLabel;
 		bool whileTest;
 
-		// FIXME: Get rid of llvm::
-		llvm::BasicBlock *ifFalseBlock[24 + 24];
-		llvm::BasicBlock *loopRepTestBlock[4];
-		llvm::BasicBlock *loopRepEndBlock[4];
-		llvm::BasicBlock *labelBlock[2048];
-		std::vector<llvm::BasicBlock*> callRetBlock[2048];
-		llvm::BasicBlock *returnBlock;
+		BasicBlock *ifFalseBlock[24 + 24];
+		BasicBlock *loopRepTestBlock[4];
+		BasicBlock *loopRepEndBlock[4];
+		BasicBlock *labelBlock[2048];
+		std::vector<BasicBlock*> callRetBlock[2048];
+		BasicBlock *returnBlock;
 		bool isConditionalIf[24 + 24];
 	};
 }

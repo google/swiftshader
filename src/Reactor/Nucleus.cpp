@@ -75,9 +75,8 @@ namespace sw
 
 	Optimization optimization[10] = {InstructionCombining, Disabled};
 
-	class Type : public llvm::Type
-	{
-	};
+	class Type : public llvm::Type {};
+	class BasicBlock : public llvm::BasicBlock {};
 
 	inline Type *T(llvm::Type *t)
 	{
@@ -87,6 +86,11 @@ namespace sw
 	inline std::vector<llvm::Type*> &T(std::vector<Type*> &t)
 	{
 		return reinterpret_cast<std::vector<llvm::Type*>&>(t);
+	}
+
+	inline BasicBlock *B(llvm::BasicBlock *t)
+	{
+		return reinterpret_cast<BasicBlock*>(t);
 	}
 
 	Nucleus::Nucleus()
@@ -240,7 +244,7 @@ namespace sw
 	Value *Nucleus::allocateStackVariable(Type *type, int arraySize)
 	{
 		// Need to allocate it in the entry block for mem2reg to work
-		BasicBlock &entryBlock = ::function->getEntryBlock();
+		llvm::BasicBlock &entryBlock = ::function->getEntryBlock();
 
 		Instruction *declaration;
 
@@ -260,12 +264,12 @@ namespace sw
 
 	BasicBlock *Nucleus::createBasicBlock()
 	{
-		return BasicBlock::Create(*::context, "", ::function);
+		return B(BasicBlock::Create(*::context, "", ::function));
 	}
 
 	BasicBlock *Nucleus::getInsertBlock()
 	{
-		return ::builder->GetInsertBlock();
+		return B(::builder->GetInsertBlock());
 	}
 
 	void Nucleus::setInsertBlock(BasicBlock *basicBlock)
@@ -276,7 +280,7 @@ namespace sw
 
 	BasicBlock *Nucleus::getPredecessor(BasicBlock *basicBlock)
 	{
-		return *pred_begin(basicBlock);
+		return B(*pred_begin(basicBlock));
 	}
 
 	void Nucleus::createFunction(Type *ReturnType, std::vector<Type*> &Params)
@@ -680,12 +684,12 @@ namespace sw
 		return ::builder->CreateSelect(C, ifTrue, ifFalse);
 	}
 
-	Value *Nucleus::createSwitch(llvm::Value *V, llvm::BasicBlock *Dest, unsigned NumCases)
+	Value *Nucleus::createSwitch(llvm::Value *V, BasicBlock *Dest, unsigned NumCases)
 	{
 		return ::builder->CreateSwitch(V, Dest, NumCases);
 	}
 
-	void Nucleus::addSwitchCase(llvm::Value *Switch, int Case, llvm::BasicBlock *Branch)
+	void Nucleus::addSwitchCase(llvm::Value *Switch, int Case, BasicBlock *Branch)
 	{
 		static_cast<SwitchInst*>(Switch)->addCase(llvm::ConstantInt::get(Type::getInt32Ty(*::context), Case, true), Branch);
 	}
