@@ -78,7 +78,6 @@ declare void @useInt(i32 %x)
 ; MIPS32-LABEL: testSelect
 ; MIPS32: slt {{.*}}
 ; MIPS32: movn {{.*}}
-; MIPS32: move {{.*}}
 
 ; Check for valid addressing mode in the cmp instruction when the
 ; operand is an immediate.
@@ -93,7 +92,6 @@ entry:
 ; ARM32-NOT: cmp #{{.*}},
 ; MIPS32-LABEL: testSelectImm32
 ; MIPS32: movn {{.*}}
-; MIPS32: move {{.*}}
 
 ; Check for valid addressing mode in the cmp instruction when the
 ; operand is an immediate.  There is a different x86-32 lowering
@@ -108,3 +106,5 @@ entry:
 ; ARM32-LABEL: testSelectImm64
 ; ARM32-NOT: cmp #{{.*}},
 ; MIPS32-LABEL: testSelectImm64
+; MIPS32: movn
+; MIPS32: movn

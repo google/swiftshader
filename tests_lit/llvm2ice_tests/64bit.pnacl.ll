@@ -1926,6 +1926,10 @@ entry:
 ; ARM32-OM1: movne
 ; ARM32-O2: movcc
 
+; MIPS32-LABEL: select64VarVar
+; MIPS32: movn
+; MIPS32: movn
+
 define internal i64 @select64VarConst(i64 %a, i64 %b) {
 entry:
   %cmp = icmp ult i64 %a, %b
@@ -1965,6 +1969,10 @@ entry:
 ; ARM32-O2: mov
 ; ARM32-O2: mov
 
+; MIPS32-LABEL: select64VarConst
+; MIPS32: movn
+; MIPS32: movn
+
 define internal i64 @select64ConstVar(i64 %a, i64 %b) {
 entry:
   %cmp = icmp ult i64 %a, %b
@@ -2003,6 +2011,10 @@ entry:
 ; ARM32: movt
 ; ARM32-OM1: movne
 ; ARM32-O2: movcc
+
+; MIPS32-LABEL: select64ConstVar
+; MIPS32: movn
+; MIPS32: movn
 
 define internal void @icmpEq64Imm() {
 entry:

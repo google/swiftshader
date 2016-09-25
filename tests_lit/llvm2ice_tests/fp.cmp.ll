@@ -1010,7 +1010,6 @@ entry:
 ; ARM32: bx
 ; MIPS32-LABEL: selectFloatVarVar
 ; MIPS32: movn.s {{.*}}
-; MIPS32: mov.s {{.*}}
 
 define internal double @selectDoubleVarVar(double %a, double %b) {
 entry:
@@ -1030,4 +1029,3 @@ entry:
 ; ARM32: bx
 ; MIPS32-LABEL: selectDoubleVarVar
 ; MIPS32: movn.d {{.*}}
-; MIPS32: mov.d {{.*}}

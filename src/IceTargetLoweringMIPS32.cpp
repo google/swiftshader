@@ -3445,14 +3445,29 @@ void TargetMIPS32::lowerSelect(const InstSelect *Instr) {
   Variable *Dest = Instr->getDest();
   const Type DestTy = Dest->getType();
 
-  if (DestTy == IceType_i64 || isVectorType(DestTy)) {
+  if (isVectorType(DestTy)) {
     UnimplementedLoweringError(this, Instr);
     return;
   }
 
-  Variable *DestR = legalizeToReg(Dest);
-  Variable *SrcTR = legalizeToReg(Instr->getTrueOperand());
-  Variable *SrcFR = legalizeToReg(Instr->getFalseOperand());
+  Variable *DestR = nullptr;
+  Variable *DestHiR = nullptr;
+  Variable *SrcTR = nullptr;
+  Variable *SrcTHiR = nullptr;
+  Variable *SrcFR = nullptr;
+  Variable *SrcFHiR = nullptr;
+
+  if (DestTy == IceType_i64) {
+    DestR = llvm::cast<Variable>(loOperand(Dest));
+    DestHiR = llvm::cast<Variable>(hiOperand(Dest));
+    SrcTR = legalizeToReg(loOperand(Instr->getTrueOperand()));
+    SrcTHiR = legalizeToReg(hiOperand(Instr->getTrueOperand()));
+    SrcFR = legalizeToReg(loOperand(Instr->getFalseOperand()));
+    SrcFHiR = legalizeToReg(hiOperand(Instr->getFalseOperand()));
+  } else {
+    SrcTR = legalizeToReg(Instr->getTrueOperand());
+    SrcFR = legalizeToReg(Instr->getFalseOperand());
+  }
 
   Variable *ConditionR = legalizeToReg(Instr->getCondition());
 
@@ -3464,18 +3479,21 @@ void TargetMIPS32::lowerSelect(const InstSelect *Instr) {
   case IceType_i16:
   case IceType_i32:
     _movn(SrcFR, SrcTR, ConditionR);
+    _mov(Dest, SrcFR);
+    break;
+  case IceType_i64:
+    _movn(SrcFR, SrcTR, ConditionR);
+    _movn(SrcFHiR, SrcTHiR, ConditionR);
     _mov(DestR, SrcFR);
-    _mov(Dest, DestR);
+    _mov(DestHiR, SrcFHiR);
     break;
   case IceType_f32:
     _movn_s(SrcFR, SrcTR, ConditionR);
-    _mov(DestR, SrcFR);
-    _mov(Dest, DestR);
+    _mov(Dest, SrcFR);
     break;
   case IceType_f64:
     _movn_d(SrcFR, SrcTR, ConditionR);
-    _mov(DestR, SrcFR);
-    _mov(Dest, DestR);
+    _mov(Dest, SrcFR);
     break;
   default:
     UnimplementedLoweringError(this, Instr);
