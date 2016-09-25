@@ -76,6 +76,7 @@ namespace sw
 	Optimization optimization[10] = {InstructionCombining, Disabled};
 
 	class Type : public llvm::Type {};
+	class Constant : public llvm::Constant {};
 	class BasicBlock : public llvm::BasicBlock {};
 
 	inline Type *T(llvm::Type *t)
@@ -86,6 +87,11 @@ namespace sw
 	inline std::vector<llvm::Type*> &T(std::vector<Type*> &t)
 	{
 		return reinterpret_cast<std::vector<llvm::Type*>&>(t);
+	}
+
+	inline Constant *C(llvm::Constant *c)
+	{
+		return reinterpret_cast<Constant*>(c);
 	}
 
 	inline BasicBlock *B(llvm::BasicBlock *t)
@@ -732,13 +738,13 @@ namespace sw
 		return shuffle;
 	}
 
-	llvm::Constant *Nucleus::createConstantPointer(const void *address, Type *Ty, bool isConstant, unsigned int Align)
+	Constant *Nucleus::createConstantPointer(const void *address, Type *Ty, bool isConstant, unsigned int Align)
 	{
 		const GlobalValue *existingGlobal = ::executionEngine->getGlobalValueAtAddress(const_cast<void*>(address));   // FIXME: Const
 
 		if(existingGlobal)
 		{
-			return (llvm::Constant*)existingGlobal;
+			return (Constant*)existingGlobal;
 		}
 
 		llvm::GlobalValue *global = new llvm::GlobalVariable(*::module, Ty, isConstant, llvm::GlobalValue::ExternalLinkage, 0, "");
@@ -747,7 +753,7 @@ namespace sw
 
 		::executionEngine->addGlobalMapping(global, const_cast<void*>(address));
 
-		return global;
+		return C(global);
 	}
 
 	Type *Nucleus::getPointerType(Type *ElementType)
@@ -755,64 +761,64 @@ namespace sw
 		return T(llvm::PointerType::get(ElementType, 0));
 	}
 
-	llvm::Constant *Nucleus::createNullValue(Type *Ty)
+	Constant *Nucleus::createNullValue(Type *Ty)
 	{
-		return llvm::Constant::getNullValue(Ty);
+		return C(llvm::Constant::getNullValue(Ty));
 	}
 
-	llvm::Constant *Nucleus::createConstantInt(int64_t i)
+	Constant *Nucleus::createConstantInt(int64_t i)
 	{
-		return llvm::ConstantInt::get(Type::getInt64Ty(*::context), i, true);
+		return C(llvm::ConstantInt::get(Type::getInt64Ty(*::context), i, true));
 	}
 
-	llvm::Constant *Nucleus::createConstantInt(int i)
+	Constant *Nucleus::createConstantInt(int i)
 	{
-		return llvm::ConstantInt::get(Type::getInt32Ty(*::context), i, true);
+		return C(llvm::ConstantInt::get(Type::getInt32Ty(*::context), i, true));
 	}
 
-	llvm::Constant *Nucleus::createConstantInt(unsigned int i)
+	Constant *Nucleus::createConstantInt(unsigned int i)
 	{
-		return llvm::ConstantInt::get(Type::getInt32Ty(*::context), i, false);
+		return C(llvm::ConstantInt::get(Type::getInt32Ty(*::context), i, false));
 	}
 
-	llvm::Constant *Nucleus::createConstantBool(bool b)
+	Constant *Nucleus::createConstantBool(bool b)
 	{
-		return llvm::ConstantInt::get(Type::getInt1Ty(*::context), b);
+		return C(llvm::ConstantInt::get(Type::getInt1Ty(*::context), b));
 	}
 
-	llvm::Constant *Nucleus::createConstantByte(signed char i)
+	Constant *Nucleus::createConstantByte(signed char i)
 	{
-		return llvm::ConstantInt::get(Type::getInt8Ty(*::context), i, true);
+		return C(llvm::ConstantInt::get(Type::getInt8Ty(*::context), i, true));
 	}
 
-	llvm::Constant *Nucleus::createConstantByte(unsigned char i)
+	Constant *Nucleus::createConstantByte(unsigned char i)
 	{
-		return llvm::ConstantInt::get(Type::getInt8Ty(*::context), i, false);
+		return C(llvm::ConstantInt::get(Type::getInt8Ty(*::context), i, false));
 	}
 
-	llvm::Constant *Nucleus::createConstantShort(short i)
+	Constant *Nucleus::createConstantShort(short i)
 	{
-		return llvm::ConstantInt::get(Type::getInt16Ty(*::context), i, true);
+		return C(llvm::ConstantInt::get(Type::getInt16Ty(*::context), i, true));
 	}
 
-	llvm::Constant *Nucleus::createConstantShort(unsigned short i)
+	Constant *Nucleus::createConstantShort(unsigned short i)
 	{
-		return llvm::ConstantInt::get(Type::getInt16Ty(*::context), i, false);
+		return C(llvm::ConstantInt::get(Type::getInt16Ty(*::context), i, false));
 	}
 
-	llvm::Constant *Nucleus::createConstantFloat(float x)
+	Constant *Nucleus::createConstantFloat(float x)
 	{
-		return ConstantFP::get(Float::getType(), x);
+		return C(ConstantFP::get(Float::getType(), x));
 	}
 
-	llvm::Value *Nucleus::createNullPointer(Type *Ty)
+	Constant *Nucleus::createNullPointer(Type *Ty)
 	{
-		return llvm::ConstantPointerNull::get(llvm::PointerType::get(Ty, 0));
+		return C(llvm::ConstantPointerNull::get(llvm::PointerType::get(Ty, 0)));
 	}
 
-	llvm::Value *Nucleus::createConstantVector(llvm::Constant *const *Vals, unsigned NumVals)
+	Constant *Nucleus::createConstantVector(Constant *const *Vals, unsigned NumVals)
 	{
-		return llvm::ConstantVector::get(llvm::ArrayRef<llvm::Constant*>(Vals, NumVals));
+		return C(llvm::ConstantVector::get(llvm::ArrayRef<llvm::Constant*>(reinterpret_cast<llvm::Constant *const*>(Vals), NumVals)));
 	}
 
 	Type *Void::getType()
@@ -835,7 +841,7 @@ namespace sw
 		return Nucleus::createStore(value, address, false, alignment);
 	}
 
-	llvm::Value *LValue::storeValue(llvm::Constant *constant, unsigned int alignment) const
+	llvm::Value *LValue::storeValue(Constant *constant, unsigned int alignment) const
 	{
 		return Nucleus::createStore(constant, address, false, alignment);
 	}

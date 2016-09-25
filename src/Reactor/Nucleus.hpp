@@ -31,12 +31,12 @@
 namespace llvm
 {
 	class Value;
-	class Constant;
 }
 
 namespace sw
 {
 	class Type;
+	class Constant;
 	class BasicBlock;
 
 	enum Optimization
@@ -111,7 +111,7 @@ namespace sw
 		// Memory instructions
 		static llvm::Value *createLoad(llvm::Value *ptr, bool isVolatile = false, unsigned int align = 0);
 		static llvm::Value *createStore(llvm::Value *value, llvm::Value *ptr, bool isVolatile = false, unsigned int align = 0);
-		static llvm::Value *createStore(llvm::Constant *constant, llvm::Value *ptr, bool isVolatile = false, unsigned int align = 0);
+		static llvm::Value *createStore(Constant *constant, llvm::Value *ptr, bool isVolatile = false, unsigned int align = 0);
 		static llvm::Value *createGEP(llvm::Value *ptr, llvm::Value *index);
 
 		// Atomic instructions
@@ -180,19 +180,19 @@ namespace sw
 		static llvm::Value *createMask(llvm::Value *lhs, llvm::Value *rhs, unsigned char select);
 
 		// Constant values
-		static llvm::Constant *createNullValue(Type *Ty);
-		static llvm::Constant *createConstantInt(int64_t i);
-		static llvm::Constant *createConstantInt(int i);
-		static llvm::Constant *createConstantInt(unsigned int i);
-		static llvm::Constant *createConstantBool(bool b);
-		static llvm::Constant *createConstantByte(signed char i);
-		static llvm::Constant *createConstantByte(unsigned char i);
-		static llvm::Constant *createConstantShort(short i);
-		static llvm::Constant *createConstantShort(unsigned short i);
-		static llvm::Constant *createConstantFloat(float x);
-		static llvm::Value *createNullPointer(Type *Ty);
-		static llvm::Value *createConstantVector(llvm::Constant *const *Vals, unsigned NumVals);
-		static llvm::Constant *createConstantPointer(const void *external, Type *Ty, bool isConstant, unsigned int Align);
+		static Constant *createNullValue(Type *Ty);
+		static Constant *createConstantInt(int64_t i);
+		static Constant *createConstantInt(int i);
+		static Constant *createConstantInt(unsigned int i);
+		static Constant *createConstantBool(bool b);
+		static Constant *createConstantByte(signed char i);
+		static Constant *createConstantByte(unsigned char i);
+		static Constant *createConstantShort(short i);
+		static Constant *createConstantShort(unsigned short i);
+		static Constant *createConstantFloat(float x);
+		static Constant *createNullPointer(Type *Ty);
+		static Constant *createConstantVector(Constant *const *Vals, unsigned NumVals);
+		static Constant *createConstantPointer(const void *external, Type *Ty, bool isConstant, unsigned int Align);
 
 		static Type *getPointerType(Type *ElementType);
 
@@ -260,7 +260,7 @@ namespace sw
 
 		llvm::Value *loadValue(unsigned int alignment = 0) const;
 		llvm::Value *storeValue(llvm::Value *value, unsigned int alignment = 0) const;
-		llvm::Value *storeValue(llvm::Constant *constant, unsigned int alignment = 0) const;
+		llvm::Value *storeValue(Constant *constant, unsigned int alignment = 0) const;
 		llvm::Value *getAddress(llvm::Value *index) const;
 
 	protected:
@@ -2768,7 +2768,7 @@ namespace sw
 	template<class T>
 	Pointer<T>::Pointer(const void *external) : alignment((intptr_t)external & 0x0000000F ? 1 : 16)
 	{
-		llvm::Constant *globalPointer = Nucleus::createConstantPointer(external, T::getType(), false, alignment);
+		Constant *globalPointer = Nucleus::createConstantPointer(external, T::getType(), false, alignment);
 
 		LValue::storeValue(globalPointer);
 	}
