@@ -1502,8 +1502,8 @@ namespace sw
 				// FIXME: Encapsulate
 				UInt index = callStack[--stackIndex];
 
-				llvm::Value *value = index.loadValue();
-				llvm::Value *switchInst = Nucleus::createSwitch(value, unreachableBlock, (int)callRetBlock[currentLabel].size());
+				Value *value = index.loadValue();
+				Value *switchInst = Nucleus::createSwitch(value, unreachableBlock, (int)callRetBlock[currentLabel].size());
 
 				for(unsigned int i = 0; i < callRetBlock[currentLabel].size(); i++)
 				{
