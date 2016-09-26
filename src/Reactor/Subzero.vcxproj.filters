@@ -1,0 +1,404 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Source Files\LLVM">
+      <UniqueIdentifier>{af578803-bb6c-4fb6-a852-956e276b0b41}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceAssembler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceCfg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceCfgNode.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceClFlags.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceELFObjectWriter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceELFSection.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceFixups.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceGlobalContext.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceGlobalInits.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceInst.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceInstrumentation.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceIntrinsics.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceLiveness.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceLoopAnalyzer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceMangling.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceMemory.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceOperand.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceRangeSpec.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceRegAlloc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceRevision.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceRNG.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceSwitchLowering.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceTargetLowering.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceTargetLoweringX86.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceThreading.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceTimerTree.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceTypes.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceVariableSplitting.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\APInt.cpp">
+      <Filter>Source Files\LLVM</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\Atomic.cpp">
+      <Filter>Source Files\LLVM</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\circular_raw_ostream.cpp">
+      <Filter>Source Files\LLVM</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\CommandLine.cpp">
+      <Filter>Source Files\LLVM</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\ConvertUTF.c">
+      <Filter>Source Files\LLVM</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\ConvertUTFWrapper.cpp">
+      <Filter>Source Files\LLVM</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\Debug.cpp">
+      <Filter>Source Files\LLVM</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\ErrorHandling.cpp">
+      <Filter>Source Files\LLVM</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\FoldingSet.cpp">
+      <Filter>Source Files\LLVM</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\Hashing.cpp">
+      <Filter>Source Files\LLVM</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\Host.cpp">
+      <Filter>Source Files\LLVM</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\ManagedStatic.cpp">
+      <Filter>Source Files\LLVM</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\MemoryBuffer.cpp">
+      <Filter>Source Files\LLVM</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\Mutex.cpp">
+      <Filter>Source Files\LLVM</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\Path.cpp">
+      <Filter>Source Files\LLVM</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\Process.cpp">
+      <Filter>Source Files\LLVM</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\Program.cpp">
+      <Filter>Source Files\LLVM</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\raw_os_ostream.cpp">
+      <Filter>Source Files\LLVM</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\raw_ostream.cpp">
+      <Filter>Source Files\LLVM</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\Signals.cpp">
+      <Filter>Source Files\LLVM</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\SmallPtrSet.cpp">
+      <Filter>Source Files\LLVM</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\SmallVector.cpp">
+      <Filter>Source Files\LLVM</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\StringExtras.cpp">
+      <Filter>Source Files\LLVM</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\StringMap.cpp">
+      <Filter>Source Files\LLVM</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\StringRef.cpp">
+      <Filter>Source Files\LLVM</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\StringSaver.cpp">
+      <Filter>Source Files\LLVM</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\TargetParser.cpp">
+      <Filter>Source Files\LLVM</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\Threading.cpp">
+      <Filter>Source Files\LLVM</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\Timer.cpp">
+      <Filter>Source Files\LLVM</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\TimeValue.cpp">
+      <Filter>Source Files\LLVM</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\Triple.cpp">
+      <Filter>Source Files\LLVM</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\Twine.cpp">
+      <Filter>Source Files\LLVM</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\third_party\pnacl-subzero\src\IceInstX8664.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\third_party\pnacl-subzero\src\IceTargetLoweringX8664.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\third_party\pnacl-subzero\src\IceInstX8632.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\third_party\pnacl-subzero\src\IceTargetLoweringX8632.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SubzeroReactor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Routine.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceAssembler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceAssemblerX8632.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceAssemblerX86Base.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceAssemblerX86BaseImpl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceBitVector.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceBuildDefs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceCfg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceCfgNode.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceClFlags.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceConditionCodesX8632.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceDefs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceELFObjectWriter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceELFSection.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceELFStreamer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceFixups.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceGlobalContext.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceGlobalInits.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceInst.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceInstrumentation.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceInstVarIter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceInstX8632.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceInstX86Base.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\iceinstx86baseimpl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceIntrinsics.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceLiveness.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceLoopAnalyzer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceMangling.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceMemory.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceOperand.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IcePhiLoweringImpl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceRangeSpec.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceRegAlloc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceRegistersX8632.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceRegList.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceRevision.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceRNG.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceStringPool.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceSwitchLowering.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceTargetLowering.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceTargetLoweringX8632.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceTargetLoweringX8632Traits.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceTargetLoweringX86Base.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\icetargetloweringx86baseimpl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceTargetLoweringX86RegClass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceThreading.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceTimerTree.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceTLS.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceTypes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceUtils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceVariableSplitting.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(SolutionDir)third_party\pnacl-subzero\src\IceClFlags.def">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="$(SolutionDir)third_party\pnacl-subzero\src\IceInst.def">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="$(SolutionDir)third_party\pnacl-subzero\src\IceTargetLowering.def">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="$(SolutionDir)third_party\pnacl-subzero\src\IceTimerTree.def">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="$(SolutionDir)third_party\pnacl-subzero\src\IceTypes.def">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="$(SolutionDir)third_party\pnacl-subzero\src\SZTargets.def">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="..\..\third_party\pnacl-subzero\src\IceInstX8664.def">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="..\..\third_party\pnacl-subzero\src\IceTargetLoweringX8664.def">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="..\..\third_party\pnacl-subzero\src\IceInstX8632.def">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="..\..\third_party\pnacl-subzero\src\IceTargetLoweringX8632.def">
+      <Filter>Header Files</Filter>
+    </None>
+  </ItemGroup>
+</Project>

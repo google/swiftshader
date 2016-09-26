@@ -1,0 +1,299 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{0EB31AEC-B020-46AB-BA05-730F6D01C29B}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>Subzero</RootNamespace>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>NotSet</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>NotSet</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>NotSet</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>NotSet</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>SZTARGET=X8632;ALLOW_DUMP=0;ALLOW_TIMERS=0;ALLOW_LLVM_CL=0;ALLOW_LLVM_IR=0;ALLOW_LLVM_IR_AS_INPUT=0;ALLOW_MINIMAL_BUILD=0;ALLOW_WASM=0;ICE_THREAD_LOCAL_HACK=0;WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalUsingDirectories>%(AdditionalUsingDirectories)</AdditionalUsingDirectories>
+      <AdditionalIncludeDirectories>..\;$(SolutionDir)third_party\pnacl-subzero;$(SolutionDir)third_party\llvm-subzero\include;$(SolutionDir)third_party\pnacl-subzero\pnacl-llvm\include</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>SZTARGET=X8664;ALLOW_DUMP=0;ALLOW_TIMERS=0;ALLOW_LLVM_CL=0;ALLOW_LLVM_IR=0;ALLOW_LLVM_IR_AS_INPUT=0;ALLOW_MINIMAL_BUILD=0;ALLOW_WASM=0;ICE_THREAD_LOCAL_HACK=0;WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalUsingDirectories>%(AdditionalUsingDirectories)</AdditionalUsingDirectories>
+      <AdditionalIncludeDirectories>..\;$(SolutionDir)third_party\pnacl-subzero;$(SolutionDir)third_party\llvm-subzero\include;$(SolutionDir)third_party\pnacl-subzero\pnacl-llvm\include</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>SZTARGET=X8632;ALLOW_DUMP=0;ALLOW_TIMERS=0;ALLOW_LLVM_CL=0;ALLOW_LLVM_IR=0;ALLOW_LLVM_IR_AS_INPUT=0;ALLOW_MINIMAL_BUILD=0;ALLOW_WASM=0;ICE_THREAD_LOCAL_HACK=0;WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalUsingDirectories>%(AdditionalUsingDirectories)</AdditionalUsingDirectories>
+      <AdditionalIncludeDirectories>..\;$(SolutionDir)third_party\pnacl-subzero;$(SolutionDir)third_party\llvm-subzero\include;$(SolutionDir)third_party\pnacl-subzero\pnacl-llvm\include</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>Full</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>SZTARGET=X8664;ALLOW_DUMP=0;ALLOW_TIMERS=0;ALLOW_LLVM_CL=0;ALLOW_LLVM_IR=0;ALLOW_LLVM_IR_AS_INPUT=0;ALLOW_MINIMAL_BUILD=0;ALLOW_WASM=0;ICE_THREAD_LOCAL_HACK=0;WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalUsingDirectories>%(AdditionalUsingDirectories)</AdditionalUsingDirectories>
+      <AdditionalIncludeDirectories>..\;$(SolutionDir)third_party\pnacl-subzero;$(SolutionDir)third_party\llvm-subzero\include;$(SolutionDir)third_party\pnacl-subzero\pnacl-llvm\include</AdditionalIncludeDirectories>
+      <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
+      <OmitFramePointers>true</OmitFramePointers>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\APInt.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\Atomic.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\circular_raw_ostream.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\CommandLine.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\ConvertUTF.c" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\ConvertUTFWrapper.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\Debug.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\ErrorHandling.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\FoldingSet.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\Hashing.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\Host.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\ManagedStatic.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\MemoryBuffer.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\Mutex.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\Path.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\Process.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\Program.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\raw_ostream.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\raw_os_ostream.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\Signals.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\SmallPtrSet.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\SmallVector.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\StringExtras.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\StringMap.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\StringRef.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\StringSaver.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\TargetParser.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\Threading.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\Timer.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\TimeValue.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\Triple.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\Twine.cpp" />
+    <ClCompile Include="..\..\third_party\pnacl-subzero\src\IceInstX8632.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\third_party\pnacl-subzero\src\IceInstX8664.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\third_party\pnacl-subzero\src\IceTargetLoweringX8632.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\third_party\pnacl-subzero\src\IceTargetLoweringX8664.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceAssembler.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceCfg.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceCfgNode.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceClFlags.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceELFObjectWriter.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceELFSection.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceFixups.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceGlobalContext.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceGlobalInits.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceInst.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceInstrumentation.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceIntrinsics.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceLiveness.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceLoopAnalyzer.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceMangling.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceMemory.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceOperand.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceRangeSpec.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceRegAlloc.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceRevision.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceRNG.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceSwitchLowering.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceTargetLowering.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceTargetLoweringX86.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceThreading.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceTimerTree.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceTypes.cpp" />
+    <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceVariableSplitting.cpp" />
+    <ClCompile Include="Routine.cpp" />
+    <ClCompile Include="SubzeroReactor.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceAssembler.h" />
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceAssemblerX8632.h" />
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceAssemblerX86Base.h" />
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceAssemblerX86BaseImpl.h" />
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceBitVector.h" />
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceBuildDefs.h" />
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceCfg.h" />
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceCfgNode.h" />
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceClFlags.h" />
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceConditionCodesX8632.h" />
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceDefs.h" />
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceELFObjectWriter.h" />
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceELFSection.h" />
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceELFStreamer.h" />
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceFixups.h" />
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceGlobalContext.h" />
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceGlobalInits.h" />
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceInst.h" />
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceInstrumentation.h" />
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceInstVarIter.h" />
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceInstX8632.h" />
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceInstX86Base.h" />
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\iceinstx86baseimpl.h" />
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceIntrinsics.h" />
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceLiveness.h" />
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceLoopAnalyzer.h" />
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceMangling.h" />
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceMemory.h" />
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceOperand.h" />
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IcePhiLoweringImpl.h" />
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceRangeSpec.h" />
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceRegAlloc.h" />
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceRegistersX8632.h" />
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceRegList.h" />
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceRevision.h" />
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceRNG.h" />
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceStringPool.h" />
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceSwitchLowering.h" />
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceTargetLowering.h" />
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceTargetLoweringX8632.h" />
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceTargetLoweringX8632Traits.h" />
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceTargetLoweringX86Base.h" />
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\icetargetloweringx86baseimpl.h" />
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceTargetLoweringX86RegClass.h" />
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceThreading.h" />
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceTimerTree.h" />
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceTLS.h" />
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceTypes.h" />
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceUtils.h" />
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceVariableSplitting.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(SolutionDir)third_party\pnacl-subzero\src\IceClFlags.def" />
+    <None Include="$(SolutionDir)third_party\pnacl-subzero\src\IceInst.def" />
+    <None Include="$(SolutionDir)third_party\pnacl-subzero\src\IceTargetLowering.def" />
+    <None Include="$(SolutionDir)third_party\pnacl-subzero\src\IceTimerTree.def" />
+    <None Include="$(SolutionDir)third_party\pnacl-subzero\src\IceTypes.def" />
+    <None Include="$(SolutionDir)third_party\pnacl-subzero\src\SZTargets.def" />
+    <None Include="..\..\third_party\pnacl-subzero\src\IceInstX8632.def" />
+    <None Include="..\..\third_party\pnacl-subzero\src\IceInstX8664.def" />
+    <None Include="..\..\third_party\pnacl-subzero\src\IceTargetLoweringX8632.def" />
+    <None Include="..\..\third_party\pnacl-subzero\src\IceTargetLoweringX8664.def" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
