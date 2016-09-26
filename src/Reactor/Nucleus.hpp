@@ -153,13 +153,6 @@ namespace sw
 		static Value *createFCmpULE(Value *lhs, Value *rhs);
 		static Value *createFCmpUNE(Value *lhs, Value *rhs);
 
-		// Call instructions
-		static Value *createCall(Value *callee);
-		static Value *createCall(Value *callee, Value *Arg);
-		static Value *createCall(Value *callee, Value *Arg1, Value *Arg2);
-		static Value *createCall(Value *callee, Value *Arg1, Value *Arg2, Value *Arg3);
-		static Value *createCall(Value *callee, Value *Arg1, Value *Arg2, Value *Arg3,Value *Arg4);
-
 		// Vector instructions
 		static Value *createExtractElement(Value *vector, int index);
 		static Value *createInsertElement(Value *vector, Value *element, int index);
