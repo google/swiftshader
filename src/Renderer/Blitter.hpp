@@ -17,7 +17,7 @@
 
 #include "Surface.hpp"
 #include "RoutineCache.hpp"
-#include "Reactor/Nucleus.hpp"
+#include "Reactor/Reactor.hpp"
 
 #include <string.h>
 

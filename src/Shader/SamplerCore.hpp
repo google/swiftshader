@@ -16,7 +16,7 @@
 #define sw_SamplerCore_hpp
 
 #include "PixelRoutine.hpp"
-#include "Reactor/Nucleus.hpp"
+#include "Reactor/Reactor.hpp"
 
 namespace sw
 {

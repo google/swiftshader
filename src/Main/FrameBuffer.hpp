@@ -15,7 +15,7 @@
 #ifndef	sw_FrameBuffer_hpp
 #define	sw_FrameBuffer_hpp
 
-#include "Reactor/Nucleus.hpp"
+#include "Reactor/Reactor.hpp"
 #include "Renderer/Surface.hpp"
 #include "Common/Thread.hpp"
 
