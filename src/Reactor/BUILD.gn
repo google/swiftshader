@@ -41,7 +41,7 @@ source_set("swiftshader_reactor") {
   ]
 
   sources = [
-    "Nucleus.cpp",
+    "LLVMReactor.cpp",
     "Routine.cpp",
     "LLVMRoutine.cpp",
     "LLVMRoutineManager.cpp",
