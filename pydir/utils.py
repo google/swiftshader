@@ -2,12 +2,16 @@ import os
 import subprocess
 import sys
 
-def GetObjcopyCmd():
+def GetObjcopyCmd(target):
     """Return a suitable objcopy command."""
+    if target == 'mips32':
+      return 'mipsel-nacl-objcopy'
     return 'arm-nacl-objcopy'
 
-def GetObjdumpCmd():
+def GetObjdumpCmd(target):
     """Return a suitable objdump command."""
+    if target == 'mips32':
+      return 'mipsel-nacl-objdump'
     return 'arm-nacl-objdump'
 
 def shellcmd(command, echo=True):

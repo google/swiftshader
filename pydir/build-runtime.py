@@ -9,27 +9,25 @@ import targets
 from utils import FindBaseNaCl, GetObjcopyCmd, shellcmd
 
 
-def Translate(ll_files, extra_args, obj, verbose):
+def Translate(ll_files, extra_args, obj, verbose, target):
   """Translate a set of input bitcode files into a single object file.
 
   Use pnacl-llc to translate textual bitcode input ll_files into object file
   obj, using extra_args as the architectural flags.
   """
+  externalize = [] if target == 'mips32' else ['-externalize']
   shellcmd(['cat'] + ll_files + ['|',
             'pnacl-llc',
-            '-externalize',
             '-function-sections',
             '-O2',
             '-filetype=obj',
             '-bitcode-format=llvm',
-            '-arm-enable-dwarf-eh=1',
             '-o', obj
-    ] + extra_args, echo=verbose)
-  shellcmd([GetObjcopyCmd(),
-            '--strip-symbol=nacl_tp_tdb_offset',
-            '--strip-symbol=nacl_tp_tls_offset',
-            obj
-    ], echo=verbose)
+    ] + extra_args + externalize, echo=verbose)
+  strip_syms = [] if target == 'mips32' else ['nacl_tp_tdb_offset',
+                                              'nacl_tp_tls_offset']
+  shellcmd([GetObjcopyCmd(target), obj] +
+    [('--strip-symbol=' + sym) for sym in strip_syms])
 
 
 def PartialLink(obj_files, extra_args, lib, verbose):
@@ -41,8 +39,10 @@ def PartialLink(obj_files, extra_args, lib, verbose):
 
 
 def MakeRuntimesForTarget(target_info, ll_files,
-                          srcdir, tempdir, rtdir, verbose):
+                          srcdir, tempdir, rtdir, verbose, excluded_targets):
   """Builds native, sandboxed, and nonsfi runtimes for the given target."""
+  if target_info.target in excluded_targets:
+    return
   # File-mangling helper functions.
   def TmpFile(template):
     return template.format(dir=tempdir, target=target_info.target)
@@ -56,7 +56,7 @@ def MakeRuntimesForTarget(target_info, ll_files,
     Translate(ll_files,
               ['-mtriple=' + target_info.triple] + target_info.llc_flags,
               TmpFile('{dir}/szrt_native_{target}.tmp.o'),
-              verbose)
+              verbose, target_info.target)
     # Compile srcdir/szrt_profiler.c to
     # tempdir/szrt_profiler_native_{target}.o.
     shellcmd(['clang',
@@ -81,7 +81,7 @@ def MakeRuntimesForTarget(target_info, ll_files,
                 ['-m {ld_emu}'.format(ld_emu=target_info.ld_emu)],
                 OutFile('{rtdir}/szrt_native_{target}.o'),
                 verbose)
-    shellcmd([GetObjcopyCmd(),
+    shellcmd([GetObjcopyCmd(target_info.target),
               '--strip-symbol=NATIVE',
               OutFile('{rtdir}/szrt_native_{target}.o')])
     # Compile srcdir/szrt_asan.c to szrt_asan_{target}.o
@@ -103,7 +103,7 @@ def MakeRuntimesForTarget(target_info, ll_files,
               ['-mtriple=' + targets.ConvertTripleToNaCl(target_info.triple)] +
               target_info.llc_flags,
               TmpFile('{dir}/szrt_sb_{target}.tmp.o'),
-              verbose)
+              verbose,target_info.target)
     # Assemble srcdir/szrt_asm_{target}.s to tempdir/szrt_asm_{target}.o.
     shellcmd(['llvm-mc',
               '-triple=' + targets.ConvertTripleToNaCl(target_info.triple),
@@ -118,7 +118,7 @@ def MakeRuntimesForTarget(target_info, ll_files,
                 ['-m {ld_emu}'.format(ld_emu=target_info.sb_emu)],
                 OutFile('{rtdir}/szrt_sb_{target}.o'),
                 verbose)
-    shellcmd([GetObjcopyCmd(),
+    shellcmd([GetObjcopyCmd(target_info.target),
               '--strip-symbol=NACL',
               OutFile('{rtdir}/szrt_sb_{target}.o')])
 
@@ -131,7 +131,7 @@ def MakeRuntimesForTarget(target_info, ll_files,
               ['-mtriple=' + target_info.triple] + target_info.llc_flags +
               ['-relocation-model=pic', '-force-tls-non-pic', '-malign-double'],
               TmpFile('{dir}/szrt_nonsfi_{target}.tmp.o'),
-              verbose)
+              verbose, target_info.target)
     # Assemble srcdir/szrt_asm_{target}.s to tempdir/szrt_asm_{target}.o.
     shellcmd(['llvm-mc',
               '-triple=' + target_info.triple, '--defsym NONSFI=1',
@@ -146,7 +146,7 @@ def MakeRuntimesForTarget(target_info, ll_files,
                 ['-m {ld_emu}'.format(ld_emu=target_info.ld_emu)],
                 OutFile('{rtdir}/szrt_nonsfi_{target}.o'),
                 verbose)
-    shellcmd([GetObjcopyCmd(),
+    shellcmd([GetObjcopyCmd(target_info.target),
               '--strip-symbol=NONSFI',
               OutFile('{rtdir}/szrt_nonsfi_{target}.o')])
 
@@ -172,6 +172,9 @@ def main():
                              '{root}/toolchain/linux_x86/pnacl_newlib_raw'
                            ).format(root=nacl_root),
                            help='Path to PNaCl toolchain binaries.')
+    argparser.add_argument('--exclude-target', dest='excluded_targets',
+                           default=[], action='append',
+                           help='Target whose runtime should not be built')
     args = argparser.parse_args()
     os.environ['PATH'] = ('{root}/bin{sep}{path}'
         ).format(root=args.pnacl_root, sep=os.pathsep, path=os.environ['PATH'])
@@ -206,11 +209,17 @@ def main():
                     '{srcdir}/szrt_ll.ll'.format(srcdir=srcdir)]
 
         MakeRuntimesForTarget(targets.X8632Target, ll_files,
-                              srcdir, tempdir, rtdir, args.verbose)
+                              srcdir, tempdir, rtdir, args.verbose,
+                              args.excluded_targets)
         MakeRuntimesForTarget(targets.X8664Target, ll_files,
-                              srcdir, tempdir, rtdir, args.verbose)
+                              srcdir, tempdir, rtdir, args.verbose,
+                              args.excluded_targets)
         MakeRuntimesForTarget(targets.ARM32Target, ll_files,
-                              srcdir, tempdir, rtdir, args.verbose)
+                              srcdir, tempdir, rtdir, args.verbose,
+                              args.excluded_targets)
+        MakeRuntimesForTarget(targets.MIPS32Target, ll_files,
+                              srcdir, tempdir, rtdir, args.verbose,
+                              args.excluded_targets)
 
     finally:
         try:

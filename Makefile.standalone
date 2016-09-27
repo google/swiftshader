@@ -523,6 +523,14 @@ RT_OBJ := build/runtime/szrt_native_x8632.o build/runtime/szrt_sb_x8632.o \
           build/runtime/szrt_asan_x8632.o build/runtime/szrt_asan_x8664.o \
           build/runtime/szrt_asan_arm32.o
 
+EXCLUDED_RT :=
+ifdef MIPS
+RT_SRC += runtime/szrt_asm_mips32.s
+RT_OBJ += build/runtime/szrt_native_mips32.o build/runtime/szrt_sb_mips32.o
+else
+EXCLUDED_RT += --exclude-target=mips32
+endif
+
 runtime: $(RT_OBJ)
 
 # Use runtime.is.built so that build-runtime.py is invoked only once
@@ -531,7 +539,8 @@ runtime: $(RT_OBJ)
 $(RT_OBJ): runtime.is.built
 runtime.is.built: $(RT_SRC) pydir/build-runtime.py
 	@echo ================ Building Subzero runtime ================
-	./pydir/build-runtime.py -v --pnacl-root $(PNACL_TOOLCHAIN_ROOT)
+	./pydir/build-runtime.py -v --pnacl-root $(PNACL_TOOLCHAIN_ROOT) \
+            $(EXCLUDED_RT)
 
 check-lit: $(OBJDIR)/pnacl-sz make_symlink runtime
 	PNACL_BIN_PATH=$(PNACL_BIN_PATH) \
@@ -552,7 +561,8 @@ check-xtest check-xtest-lite: $(OBJDIR)/pnacl-sz make_symlink runtime \
           $(FORCEASM_FLAG) \
           $(FORCEASM_XTEST_EXCLUDES) \
           -i x8664,native,sse2 \
-          -i mips32,xxx
+          -i mips32,native,Om1,simple_loop \
+          -i mips32,native,Om1,test_strengthreduce
 	PNACL_BIN_PATH=$(PNACL_BIN_PATH) \
 	$(LLVM_SRC_PATH)/utils/lit/lit.py -sv $(CHECK_XTEST_TESTS)
 else
@@ -630,6 +640,14 @@ ifeq ($(TARGET),arm32)
   TARGETFLAG=arm32
   SETUP=SetupGccArmOpt
   SPEC := --filetype=obj
+endif
+ifeq ($(TARGET),mips32)
+  # native_client/tests/spec2k/{Makefile.common,run_all.sh} do not currently
+  # have MIPS configs, so those would need to be added for proper Subzero
+  # testing.
+  TARGETFLAG=mips32
+  SETUP=SetupGccMipsOpt
+  SPEC := --filetype=asm
 endif
 SPECFLAGS := -O2
 SPECRUN := --run

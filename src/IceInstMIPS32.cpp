@@ -890,6 +890,11 @@ template <> void InstMIPS32Cvt_s_w::emitIAS(const Cfg *Func) const {
   Asm->cvt_s_w(getDest(), getSrc(0));
 }
 
+template <> void InstMIPS32Div::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
+  Asm->div(getDest(), getSrc(0));
+}
+
 template <> void InstMIPS32Div_d::emitIAS(const Cfg *Func) const {
   auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
   Asm->div_d(getDest(), getSrc(0), getSrc(1));
@@ -898,6 +903,13 @@ template <> void InstMIPS32Div_d::emitIAS(const Cfg *Func) const {
 template <> void InstMIPS32Div_s::emitIAS(const Cfg *Func) const {
   auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
   Asm->div_s(getDest(), getSrc(0), getSrc(1));
+}
+
+template <> void InstMIPS32Lui::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
+  auto *C32 = llvm::dyn_cast<ConstantInteger32>(getSrc(0));
+  uint16_t Imm = static_cast<uint16_t>(C32->getValue());
+  Asm->lui(getDest(), Imm);
 }
 
 template <> void InstMIPS32Lw::emitIAS(const Cfg *Func) const {
@@ -919,10 +931,20 @@ template <> void InstMIPS32Mflo::emit(const Cfg *Func) const {
   emitUnaryopGPRFLoHi(Opcode, this, Func);
 }
 
+template <> void InstMIPS32Mflo::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
+  Asm->mflo(getDest());
+}
+
 template <> void InstMIPS32Mfhi::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
   emitUnaryopGPRFLoHi(Opcode, this, Func);
+}
+
+template <> void InstMIPS32Mfhi::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
+  Asm->mfhi(getDest());
 }
 
 template <> void InstMIPS32Mov_d::emitIAS(const Cfg *Func) const {
@@ -981,10 +1003,25 @@ template <> void InstMIPS32Mtlo::emit(const Cfg *Func) const {
   emitUnaryopGPRTLoHi(Opcode, this, Func);
 }
 
+template <> void InstMIPS32Mtlo::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
+  Asm->mtlo(getDest());
+}
+
 template <> void InstMIPS32Mthi::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
   emitUnaryopGPRTLoHi(Opcode, this, Func);
+}
+
+template <> void InstMIPS32Mthi::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
+  Asm->mthi(getDest());
+}
+
+template <> void InstMIPS32Mul::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
+  Asm->mul(getDest(), getSrc(0), getSrc(1));
 }
 
 template <> void InstMIPS32Mul_d::emitIAS(const Cfg *Func) const {
@@ -1009,6 +1046,11 @@ template <> void InstMIPS32Multu::emit(const Cfg *Func) const {
   emitThreeAddrLoHi(Opcode, this, Func);
 }
 
+template <> void InstMIPS32Multu::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
+  Asm->multu(getDest(), getSrc(0));
+}
+
 template <> void InstMIPS32Nor::emitIAS(const Cfg *Func) const {
   auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
   Asm->nor(getDest(), getSrc(0), getSrc(1));
@@ -1027,6 +1069,11 @@ template <> void InstMIPS32Ori::emitIAS(const Cfg *Func) const {
 template <> void InstMIPS32Sll::emitIAS(const Cfg *Func) const {
   auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
   Asm->sll(getDest(), getSrc(0), Imm);
+}
+
+template <> void InstMIPS32Sllv::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
+  Asm->sllv(getDest(), getSrc(0), getSrc(1));
 }
 
 template <> void InstMIPS32Slt::emitIAS(const Cfg *Func) const {
@@ -1067,6 +1114,11 @@ template <> void InstMIPS32Sra::emitIAS(const Cfg *Func) const {
 template <> void InstMIPS32Srl::emitIAS(const Cfg *Func) const {
   auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
   Asm->srl(getDest(), getSrc(0), Imm);
+}
+
+template <> void InstMIPS32Srlv::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
+  Asm->srlv(getDest(), getSrc(0), getSrc(1));
 }
 
 template <> void InstMIPS32Sub_d::emitIAS(const Cfg *Func) const {

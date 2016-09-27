@@ -186,6 +186,7 @@ def LinkNative(objs, exe, target, verbose=True):
     nacl_root = FindBaseNaCl()
     linker = {
       'arm32': '/usr/bin/arm-linux-gnueabihf-g++',
+      'mips32': '/usr/bin/mipsel-linux-gnu-g++',
       'x8632': ('{root}/../third_party/llvm-build/Release+Asserts/bin/clang'
                ).format(root=nacl_root),
       'x8664': ('{root}/../third_party/llvm-build/Release+Asserts/bin/clang'
@@ -297,7 +298,7 @@ def ProcessPexe(args, pexe, exe):
     llcbin = '{base}/pnacl-llc'.format(base=path_addition)
     gold = '{base}/le32-nacl-ld.gold'.format(base=path_addition)
     objcopy = '{base}/{objcopy}'.format(base=path_addition,
-                                        objcopy=GetObjcopyCmd())
+                                        objcopy=GetObjcopyCmd(args.target))
     opt_level = args.optlevel
     opt_level_map = { 'm1':'0', '-1':'0', '0':'0', '1':'1', '2':'2' }
     hybrid = args.include or args.exclude

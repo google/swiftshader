@@ -60,6 +60,9 @@ public:
 
   void nop();
 
+  void emitRsRt(IValueT Opcode, const Operand *OpRs, const Operand *OpRt,
+                const char *InsnName);
+
   void emitRtRsImm16(IValueT Opcode, const Operand *OpRt, const Operand *OpRs,
                      uint32_t Imm, const char *InsnName);
 
@@ -154,13 +157,21 @@ public:
 
   void cvt_s_w(const Operand *OpFd, const Operand *OpFs);
 
+  void div(const Operand *OpRs, const Operand *OpRt);
+
   void div_d(const Operand *OpFd, const Operand *OpFs, const Operand *OpFt);
 
   void div_s(const Operand *OpFd, const Operand *OpFs, const Operand *OpFt);
 
+  void lui(const Operand *OpRt, const uint16_t Imm);
+
   void lw(const Operand *OpRt, const Operand *OpBase, const uint32_t Offset);
 
   void mfc1(const Operand *OpRt, const Operand *OpFs);
+
+  void mfhi(const Operand *OpRd);
+
+  void mflo(const Operand *OpRd);
 
   void mov_d(const Operand *OpFd, const Operand *OpFs);
 
@@ -184,9 +195,17 @@ public:
 
   void mtc1(const Operand *OpRt, const Operand *OpFs);
 
+  void mthi(const Operand *OpRs);
+
+  void mtlo(const Operand *OpRs);
+
+  void mul(const Operand *OpRd, const Operand *OpRs, const Operand *OpRt);
+
   void mul_d(const Operand *OpFd, const Operand *OpFs, const Operand *OpFt);
 
   void mul_s(const Operand *OpFd, const Operand *OpFs, const Operand *OpFt);
+
+  void multu(const Operand *OpRs, const Operand *OpRt);
 
   void nor(const Operand *OpRd, const Operand *OpRs, const Operand *OpRt);
 
@@ -197,6 +216,8 @@ public:
   void ret(void);
 
   void sll(const Operand *OpRd, const Operand *OpRt, const uint32_t Sa);
+
+  void sllv(const Operand *OpRd, const Operand *OpRt, const Operand *OpRs);
 
   void slt(const Operand *OpRd, const Operand *OpRs, const Operand *OpRt);
 
@@ -213,6 +234,8 @@ public:
   void sra(const Operand *OpRd, const Operand *OpRt, const uint32_t Sa);
 
   void srl(const Operand *OpRd, const Operand *OpRt, const uint32_t Sa);
+
+  void srlv(const Operand *OpRd, const Operand *OpRt, const Operand *OpRs);
 
   void sub_d(const Operand *OpFd, const Operand *OpFs, const Operand *OpFt);
 

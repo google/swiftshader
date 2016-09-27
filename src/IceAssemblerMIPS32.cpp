@@ -201,6 +201,17 @@ void AssemblerMIPS32::bind(Label *L) {
   L->bindTo(BoundPc);
 }
 
+void AssemblerMIPS32::emitRsRt(IValueT Opcode, const Operand *OpRs,
+                               const Operand *OpRt, const char *InsnName) {
+  const IValueT Rs = encodeGPRegister(OpRs, "Rs", InsnName);
+  const IValueT Rt = encodeGPRegister(OpRt, "Rt", InsnName);
+
+  Opcode |= Rs << 21;
+  Opcode |= Rt << 16;
+
+  emitInst(Opcode);
+}
+
 void AssemblerMIPS32::emitRtRsImm16(IValueT Opcode, const Operand *OpRt,
                                     const Operand *OpRs, const uint32_t Imm,
                                     const char *InsnName) {
@@ -509,6 +520,11 @@ void AssemblerMIPS32::cvt_s_w(const Operand *OpFd, const Operand *OpFs) {
   emitCOP1FmtFsFd(Opcode, Word, OpFd, OpFs, "cvt.s.w");
 }
 
+void AssemblerMIPS32::div(const Operand *OpRs, const Operand *OpRt) {
+  static constexpr IValueT Opcode = 0x0000001A;
+  emitRsRt(Opcode, OpRs, OpRt, "div");
+}
+
 void AssemblerMIPS32::div_d(const Operand *OpFd, const Operand *OpFs,
                             const Operand *OpFt) {
   static constexpr IValueT Opcode = 0x44000003;
@@ -519,6 +535,14 @@ void AssemblerMIPS32::div_s(const Operand *OpFd, const Operand *OpFs,
                             const Operand *OpFt) {
   static constexpr IValueT Opcode = 0x44000003;
   emitCOP1FmtFtFsFd(Opcode, SinglePrecision, OpFd, OpFs, OpFt, "div.s");
+}
+
+void AssemblerMIPS32::lui(const Operand *OpRt, const uint16_t Imm) {
+  IValueT Opcode = 0x3C000000;
+  const IValueT Rt = encodeGPRegister(OpRt, "Rt", "lui");
+  Opcode |= Rt << 16;
+  Opcode |= Imm;
+  emitInst(Opcode);
 }
 
 void AssemblerMIPS32::lw(const Operand *OpRt, const Operand *OpBase,
@@ -557,6 +581,20 @@ void AssemblerMIPS32::lw(const Operand *OpRt, const Operand *OpBase,
 void AssemblerMIPS32::mfc1(const Operand *OpRt, const Operand *OpFs) {
   static constexpr IValueT Opcode = 0x44000000;
   emitCOP1MovRtFs(Opcode, OpRt, OpFs, "mfc1");
+}
+
+void AssemblerMIPS32::mfhi(const Operand *OpRd) {
+  IValueT Opcode = 0x000000010;
+  IValueT Rd = encodeGPRegister(OpRd, "Rd", "mfhi");
+  Opcode |= Rd << 11;
+  emitInst(Opcode);
+}
+
+void AssemblerMIPS32::mflo(const Operand *OpRd) {
+  IValueT Opcode = 0x000000012;
+  IValueT Rd = encodeGPRegister(OpRd, "Rd", "mflo");
+  Opcode |= Rd << 11;
+  emitInst(Opcode);
 }
 
 void AssemblerMIPS32::mov_d(const Operand *OpFd, const Operand *OpFs) {
@@ -677,6 +715,26 @@ void AssemblerMIPS32::mtc1(const Operand *OpRt, const Operand *OpFs) {
   emitCOP1MovRtFs(Opcode, OpRt, OpFs, "mtc1");
 }
 
+void AssemblerMIPS32::mthi(const Operand *OpRs) {
+  IValueT Opcode = 0x000000011;
+  IValueT Rs = encodeGPRegister(OpRs, "Rs", "mthi");
+  Opcode |= Rs << 21;
+  emitInst(Opcode);
+}
+
+void AssemblerMIPS32::mtlo(const Operand *OpRs) {
+  IValueT Opcode = 0x000000013;
+  IValueT Rs = encodeGPRegister(OpRs, "Rs", "mtlo");
+  Opcode |= Rs << 21;
+  emitInst(Opcode);
+}
+
+void AssemblerMIPS32::mul(const Operand *OpRd, const Operand *OpRs,
+                          const Operand *OpRt) {
+  static constexpr IValueT Opcode = 0x70000002;
+  emitRdRsRt(Opcode, OpRd, OpRs, OpRt, "mul");
+}
+
 void AssemblerMIPS32::mul_d(const Operand *OpFd, const Operand *OpFs,
                             const Operand *OpFt) {
   static constexpr IValueT Opcode = 0x44000002;
@@ -687,6 +745,11 @@ void AssemblerMIPS32::mul_s(const Operand *OpFd, const Operand *OpFs,
                             const Operand *OpFt) {
   static constexpr IValueT Opcode = 0x44000002;
   emitCOP1FmtFtFsFd(Opcode, SinglePrecision, OpFd, OpFs, OpFt, "mul.s");
+}
+
+void AssemblerMIPS32::multu(const Operand *OpRs, const Operand *OpRt) {
+  static constexpr IValueT Opcode = 0x00000019;
+  emitRsRt(Opcode, OpRs, OpRt, "multu");
 }
 
 void AssemblerMIPS32::nor(const Operand *OpRd, const Operand *OpRs,
@@ -717,6 +780,12 @@ void AssemblerMIPS32::sll(const Operand *OpRd, const Operand *OpRt,
                           const uint32_t Sa) {
   static constexpr IValueT Opcode = 0x00000000;
   emitRdRtSa(Opcode, OpRd, OpRt, Sa, "sll");
+}
+
+void AssemblerMIPS32::sllv(const Operand *OpRd, const Operand *OpRt,
+                           const Operand *OpRs) {
+  static constexpr IValueT Opcode = 0x00000004;
+  emitRdRsRt(Opcode, OpRd, OpRs, OpRt, "sllv");
 }
 
 void AssemblerMIPS32::slt(const Operand *OpRd, const Operand *OpRs,
@@ -763,6 +832,12 @@ void AssemblerMIPS32::srl(const Operand *OpRd, const Operand *OpRt,
                           const uint32_t Sa) {
   static constexpr IValueT Opcode = 0x00000002;
   emitRdRtSa(Opcode, OpRd, OpRt, Sa, "srl");
+}
+
+void AssemblerMIPS32::srlv(const Operand *OpRd, const Operand *OpRt,
+                           const Operand *OpRs) {
+  static constexpr IValueT Opcode = 0x00000006;
+  emitRdRsRt(Opcode, OpRd, OpRs, OpRt, "srlv");
 }
 
 void AssemblerMIPS32::sub_d(const Operand *OpFd, const Operand *OpFs,

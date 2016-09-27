@@ -20,7 +20,9 @@ def TargetAssemblerFlags(target, sandboxed):
             'arm32': ['-triple=%s' % (
                           'armv7a-nacl' if sandboxed else 'armv7a'),
                       '-mcpu=cortex-a9', '-mattr=+neon'],
-            'mips32': ['-triple=mipsel' ] }
+            'mips32': ['-triple=%s' % (
+                          'mipsel-nacl' if sandboxed else 'mipsel'),
+                       '-mcpu=mips32'] }
   return flags[target]
 
 
@@ -204,7 +206,7 @@ def main():
     if args.disassemble:
       # Show wide instruction encodings, diassemble, show relocs and
       # dissasemble zeros.
-      cmd += (['&&', os.path.join(pnacl_bin_path, GetObjdumpCmd())] +
+      cmd += (['&&', os.path.join(pnacl_bin_path, GetObjdumpCmd(args.target))] +
               args.dis_flags +
               ['-w', '-d', '-r', '-z'] + TargetDisassemblerFlags(args.target) +
               [output_file_name])

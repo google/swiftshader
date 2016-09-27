@@ -39,10 +39,13 @@ def RunNativePrefix(toolchain_root, target, attr, run_cmd):
                'x8664' : '',
                'arm32' : os.path.join(toolchain_root, 'arm_trusted',
                                       'run_under_qemu_arm'),
+               'mips32': os.path.join(toolchain_root, 'mips_trusted',
+                                      'run_under_qemu_mips32'),
              }
   attr_map = collections.defaultdict(str, {
       'arm32-neon': ' -cpu cortex-a9',
-      'arm32-hwdiv-arm': ' -cpu cortex-a15' })
+      'arm32-hwdiv-arm': ' -cpu cortex-a15',
+      'mips32-base': ' -cpu mips32r5-generic'})
   prefix = arch_map[target] + attr_map[target + '-' + attr]
   return (prefix + ' ' + run_cmd) if prefix else run_cmd
 
@@ -50,6 +53,7 @@ def NonsfiLoaderArch(target):
   """Returns the arch for the nonsfi_loader"""
   arch_map = { 'arm32' : 'arm',
                'x8632' : 'x86-32',
+               'mips32' : 'mips32',
              }
   return arch_map[target]
 
@@ -66,18 +70,22 @@ def main():
   root = FindBaseNaCl()
 
   # The rest of the attribute sets.
-  targets = [ 'x8632', 'x8664', 'arm32' ]
+  targets = [ 'x8632', 'x8664', 'arm32', 'mips32' ]
   sandboxing = [ 'native', 'sandbox', 'nonsfi' ]
   opt_levels = [ 'Om1', 'O2' ]
   arch_attrs = { 'x8632': [ 'sse2', 'sse4.1' ],
                  'x8664': [ 'sse2', 'sse4.1' ],
-                 'arm32': [ 'neon', 'hwdiv-arm' ] }
+                 'arm32': [ 'neon', 'hwdiv-arm' ],
+                 'mips32': [ 'base' ]
+               }
   flat_attrs = []
   for v in arch_attrs.values():
     flat_attrs += v
   arch_flags = { 'x8632': [],
                  'x8664': [],
-                 'arm32': [] }
+                 'arm32': [],
+                 'mips32': []
+               }
   # all_keys is only used in the help text.
   all_keys = '; '.join([' '.join(targets), ' '.join(sandboxing),
                         ' '.join(opt_levels), ' '.join(flat_attrs)])

@@ -26,12 +26,14 @@ def main():
     # arch_map maps a Subzero target string to TargetInfo (e.g., triple).
     arch_map = { 'x8632': targets.X8632Target,
                  'x8664': targets.X8664Target,
-                 'arm32': targets.ARM32Target }
+                 'arm32': targets.ARM32Target,
+                 'mips32': targets.MIPS32Target}
     arch_sz_flags = { 'x8632': [],
                       'x8664': [],
                       # For ARM, test a large stack offset as well. +/- 4095 is
                       # the limit, so test somewhere near that boundary.
-                      'arm32': ['--test-stack-extra', '4084']
+                      'arm32': ['--test-stack-extra', '4084'],
+                      'mips32': ['--test-stack-extra', '4084']
     }
     arch_llc_flags_extra = {
         # Use sse2 instructions regardless of input -mattr
@@ -40,6 +42,7 @@ def main():
         'x8632': ['-mattr=sse2'],
         'x8664': ['-mattr=sse2'],
         'arm32': [],
+        'mips32':[],
     }
     desc = 'Build a cross-test that compares Subzero and llc translation.'
     argparser = argparse.ArgumentParser(description=desc)
@@ -64,7 +67,8 @@ def main():
                            dest='clang_opt')
     argparser.add_argument('--mattr',  required=False, default='sse2',
                            dest='attr', choices=['sse2', 'sse4.1',
-                                                 'neon', 'hwdiv-arm'],
+                                                 'neon', 'hwdiv-arm',
+                                                 'base'],
                            metavar='ATTRIBUTE',
                            help='Target attribute. Default %(default)s.')
     argparser.add_argument('--sandbox', required=False, default=0, type=int,
@@ -167,7 +171,8 @@ def main():
         # linked into the executable, but when PNaCl supports shared nexe
         # libraries, this would need to change.  (Note: the same issue applies
         # to the __Sz_revision symbol.)
-        shellcmd(['{bin}/{objcopy}'.format(bin=bindir, objcopy=GetObjcopyCmd()),
+        shellcmd(['{bin}/{objcopy}'.format(bin=bindir,
+                  objcopy=GetObjcopyCmd(args.target)),
                   '--weaken-symbol=__Sz_block_profile_info',
                   '--weaken-symbol=__Sz_revision',
                   '--strip-symbol=nacl_tp_tdb_offset',
@@ -175,17 +180,18 @@ def main():
                   obj_sz])
         objs.append(obj_sz)
         shellcmd(['{bin}/pnacl-llc'.format(bin=bindir),
-                  '-arm-enable-dwarf-eh=1',
                   '-mtriple=' + triple,
                   '-externalize',
                   '-filetype=obj',
                   '-bitcode-format=llvm',
                   '-o=' + obj_llc,
                   bitcode] + llc_flags)
-        shellcmd(['{bin}/{objcopy}'.format(bin=bindir, objcopy=GetObjcopyCmd()),
-                  '--strip-symbol=nacl_tp_tdb_offset',
-                  '--strip-symbol=nacl_tp_tls_offset',
-                  obj_llc])
+        strip_syms = [] if args.target == 'mips32' else ['nacl_tp_tdb_offset',
+                                                         'nacl_tp_tls_offset']
+        shellcmd(['{bin}/{objcopy}'.format(bin=bindir,
+                  objcopy=GetObjcopyCmd(args.target)),
+                  obj_llc] +
+                 [('--strip-symbol=' + sym) for sym in strip_syms])
         objs.append(obj_llc)
 
     # Add szrt_sb_${target}.o or szrt_native_${target}.o.
@@ -244,7 +250,6 @@ def main():
               '-disable-opt',
               bitcode_nonfinal, '-S', '-o', bitcode])
     shellcmd(['{bin}/pnacl-llc'.format(bin=bindir),
-              '-arm-enable-dwarf-eh=1',
               '-mtriple=' + triple,
               '-externalize',
               '-filetype=obj',
@@ -253,7 +258,8 @@ def main():
               '-o', obj_llc,
               bitcode] + llc_flags)
     if not args.sandbox and not args.nonsfi:
-        shellcmd(['{bin}/{objcopy}'.format(bin=bindir, objcopy=GetObjcopyCmd()),
+        shellcmd(['{bin}/{objcopy}'.format(bin=bindir,
+                  objcopy=GetObjcopyCmd(args.target)),
                   '--redefine-sym', '_start=_user_start',
                   obj_llc
                  ])
