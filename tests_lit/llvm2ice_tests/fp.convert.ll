@@ -122,6 +122,10 @@ entry:
 ; ARM32-LABEL: doubleToSigned32
 ; ARM32-DAG: vcvt.s32.f64 [[REG:s[0-9]*]], {{d[0-9]*}}
 ; ARM32-DAG: vmov {{r[0-9]+}}, [[REG]]
+; MIPS32-LABEL: doubleToSigned32
+; MIPS32: trunc.w.d
+; MIPS32O2-LABEL: doubleToSigned32
+; MIPS32O2: trunc.w.d
 
 define internal i32 @doubleToSigned32Const() {
 entry:
@@ -136,6 +140,14 @@ entry:
 ; ARM32-DAG: vldr [[DREG:d[0-9]+]], {{\[}}[[ADDR]]{{\]}}
 ; ARM32-DAG: vcvt.s32.f64 [[REG:s[0-9]+]], [[DREG]]
 ; ARM32-DAF: vmov {{r[0-9]+}}, [[REG]]
+; MIPS32-LABEL: doubleToSigned32Const
+; MIPS32: lui
+; MIPS32: ldc1
+; MIPS32: trunc.w.d
+; MIPS32O2-LABEL: doubleToSigned32Const
+; MIPS32O2: lui
+; MIPS32O2: ldc1
+; MIPS32O2: trunc.w.d
 
 define internal i32 @floatToSigned32(float %a) {
 entry:
@@ -163,6 +175,10 @@ entry:
 ; ARM32-LABEL: doubleToUnsigned32
 ; ARM32-DAG: vcvt.u32.f64 [[REG:s[0-9]+]], {{d[0-9]+}}
 ; ARM32-DAG: vmov {{r[0-9]+}}, [[REG]]
+; MIPS32-LABEL: doubleToUnsigned32
+; MIPS32: jal __Sz_fptoui_f64_i32
+; MIPS32O2-LABEL: doubleToUnsigned32
+; MIPS32O2: jal __Sz_fptoui_f64_i32
 
 define internal i32 @floatToUnsigned32(float %a) {
 entry:
@@ -174,6 +190,10 @@ entry:
 ; ARM32-LABEL: floatToUnsigned32
 ; ARM32-DAG: vcvt.u32.f32 [[REG:s[0-9]+]], {{s[0-9]+}}
 ; ARM32-DAG: vmov {{r[0-9]+}}, [[REG]]
+; MIPS32-LABEL: floatToUnsigned32
+; MIPS32: jal __Sz_fptoui_f32_i32
+; MIPS32O2-LABEL: floatToUnsigned32
+; MIPS32O2: jal __Sz_fptoui_f32_i32
 
 define internal i32 @doubleToSigned16(double %a) {
 entry:
@@ -188,6 +208,10 @@ entry:
 ; ARM32-DAG: vcvt.s32.f64 [[REG:s[0-9]*]], {{d[0-9]*}}
 ; ARM32-DAG: vmov {{r[0-9]+}}, [[REG]]
 ; ARM32: sxth
+; MIPS32-LABEL: doubleToSigned16
+; MIPS32: trunc.w.d
+; MIPS32O2-LABEL: doubleToSigned16
+; MIPS32O2: trunc.w.d
 
 define internal i32 @floatToSigned16(float %a) {
 entry:
@@ -202,6 +226,10 @@ entry:
 ; ARM32-DAG: vcvt.s32.f32 [[REG:s[0-9]*]], {{s[0-9]*}}
 ; ARM32-DAG: vmov {{r[0-9]+}}, [[REG]]
 ; ARM32: sxth
+; MIPS32-LABEL: floatToSigned16
+; MIPS32: trunc.w.s
+; MIPS32O2-LABEL: floatToSigned16
+; MIPS32O2: trunc.w.s
 
 define internal i32 @doubleToUnsigned16(double %a) {
 entry:
@@ -216,6 +244,10 @@ entry:
 ; ARM32-DAG: vcvt.u32.f64 [[REG:s[0-9]*]], {{d[0-9]*}}
 ; ARM32-DAG: vmov {{r[0-9]+}}, [[REG]]
 ; ARM32: uxth
+; MIPS32-LABEL: doubleToUnsigned16
+; MIPS32: trunc.w.d
+; MIPS32O2-LABEL: doubleToUnsigned16
+; MIPS32O2: trunc.w.d
 
 define internal i32 @floatToUnsigned16(float %a) {
 entry:
@@ -230,6 +262,10 @@ entry:
 ; ARM32-DAG: vcvt.u32.f32 [[REG:s[0-9]*]], {{s[0-9]*}}
 ; ARM32-DAG: vmov {{r[0-9]+}}, [[REG]]
 ; ARM32: uxth
+; MIPS32-LABEL: floatToUnsigned16
+; MIPS32: trunc.w.s
+; MIPS32O2-LABEL: floatToUnsigned16
+; MIPS32O2: trunc.w.s
 
 define internal i32 @doubleToSigned8(double %a) {
 entry:
@@ -244,6 +280,10 @@ entry:
 ; ARM32-DAG: vcvt.s32.f64 [[REG:s[0-9]*]], {{d[0-9]*}}
 ; ARM32-DAG: vmov {{r[0-9]+}}, [[REG]]
 ; ARM32: sxtb
+; MIPS32-LABEL: doubleToSigned8
+; MIPS32: trunc.w.d
+; MIPS32O2-LABEL: doubleToSigned8
+; MIPS32O2: trunc.w.d
 
 define internal i32 @floatToSigned8(float %a) {
 entry:
@@ -258,6 +298,10 @@ entry:
 ; ARM32-DAG: vcvt.s32.f32 [[REG:s[0-9]*]], {{s[0-9]*}}
 ; ARM32-DAG: vmov {{r[0-9]+}}, [[REG]]
 ; ARM32: sxtb
+; MIPS32-LABEL: floatToSigned8
+; MIPS32: trunc.w.s
+; MIPS32O2-LABEL: floatToSigned8
+; MIPS32O2: trunc.w.s
 
 define internal i32 @doubleToUnsigned8(double %a) {
 entry:
@@ -272,6 +316,10 @@ entry:
 ; ARM32-DAG: vcvt.u32.f64 [[REG:s[0-9]*]], {{d[0-9]*}}
 ; ARM32-DAG: vmov {{r[0-9]+}}, [[REG]]
 ; ARM32: uxtb
+; MIPS32-LABEL: doubleToUnsigned8
+; MIPS32: trunc.w.d
+; MIPS32O2-LABEL: doubleToUnsigned8
+; MIPS32O2: trunc.w.d
 
 define internal i32 @floatToUnsigned8(float %a) {
 entry:
@@ -286,6 +334,10 @@ entry:
 ; ARM32-DAG: vcvt.u32.f32 [[REG:s[0-9]*]], {{s[0-9]*}}
 ; ARM32-DAG: vmov {{r[0-9]+}}, [[REG]]
 ; ARM32: uxtb
+; MIPS32-LABEL: floatToUnsigned8
+; MIPS32: trunc.w.s
+; MIPS32O2-LABEL: floatToUnsigned8
+; MIPS32O2: trunc.w.s
 
 define internal i32 @doubleToUnsigned1(double %a) {
 entry:
@@ -302,6 +354,10 @@ entry:
 ; ARM32-DAG: and {{r[0-9]+}}, [[RES]], #1
 ; ARM32-NOT: uxth
 ; ARM32-NOT: uxtb
+; MIPS32-LABEL: doubleToUnsigned1
+; MIPS32: trunc.w.d
+; MIPS32O2-LABEL: doubleToUnsigned1
+; MIPS32O2: trunc.w.d
 
 define internal i32 @floatToUnsigned1(float %a) {
 entry:
@@ -318,6 +374,10 @@ entry:
 ; ARM32-DAG: and {{r[0-9]+}}, [[RES]], #1
 ; ARM32-NOT: uxth
 ; ARM32-NOT: uxtb
+; MIPS32-LABEL: floatToUnsigned1
+; MIPS32: trunc.w.s
+; MIPS32O2-LABEL: floatToUnsigned1
+; MIPS32O2: trunc.w.s
 
 define internal double @signed64ToDouble(i64 %a) {
 entry:
@@ -329,6 +389,10 @@ entry:
 ; CHECK: fstp QWORD
 ; ARM32-LABEL: signed64ToDouble
 ; TODO(jpp): implement this test.
+; MIPS32-LABEL: signed64ToDouble
+; MIPS32: jal __Sz_sitofp_i64_f64
+; MIPS32O2-LABEL: signed64ToDouble
+; MIPS32O2: jal __Sz_sitofp_i64_f64
 
 define internal float @signed64ToFloat(i64 %a) {
 entry:
@@ -340,6 +404,10 @@ entry:
 ; CHECK: fstp DWORD
 ; ARM32-LABEL: signed64ToFloat
 ; TODO(jpp): implement this test.
+; MIPS32-LABEL: signed64ToFloat
+; MIPS32: jal __Sz_sitofp_i64_f32
+; MIPS32O2-LABEL: signed64ToFloat
+; MIPS32O2: jal __Sz_sitofp_i64_f32
 
 define internal double @unsigned64ToDouble(i64 %a) {
 entry:
@@ -351,6 +419,10 @@ entry:
 ; CHECK: fstp
 ; ARM32-LABEL: unsigned64ToDouble
 ; TODO(jpp): implement this test.
+; MIPS32-LABEL: unsigned64ToDouble
+; MIPS32: jal __Sz_uitofp_i64_f64
+; MIPS32O2-LABEL: unsigned64ToDouble
+; MIPS32O2: jal __Sz_uitofp_i64_f64
 
 define internal float @unsigned64ToFloat(i64 %a) {
 entry:
@@ -362,6 +434,10 @@ entry:
 ; CHECK: fstp
 ; ARM32-LABEL: unsigned64ToFloat
 ; TODO(jpp): implement this test.
+; MIPS32-LABEL: unsigned64ToFloat
+; MIPS32: jal __Sz_uitofp_i64_f32
+; MIPS32O2-LABEL: unsigned64ToFloat
+; MIPS32O2: jal __Sz_uitofp_i64_f32
 
 define internal double @unsigned64ToDoubleConst() {
 entry:
@@ -375,6 +451,10 @@ entry:
 ; CHECK: fstp
 ; ARM32-LABEL: unsigned64ToDoubleConst
 ; TODO(jpp): implement this test.
+; MIPS32-LABEL: unsigned64ToDoubleConst
+; MIPS32: jal __Sz_uitofp_i64_f64
+; MIPS32O2-LABEL: unsigned64ToDoubleConst
+; MIPS32O2: jal __Sz_uitofp_i64_f64
 
 define internal double @signed32ToDouble(i32 %a) {
 entry:
@@ -387,6 +467,10 @@ entry:
 ; ARM32-LABEL: signed32ToDouble
 ; ARM32-DAG: vmov [[SRC:s[0-9]+]], {{r[0-9]+}}
 ; ARM32-DAG: vcvt.f64.s32 {{d[0-9]+}}, [[SRC]]
+; MIPS32-LABEL: signed32ToDouble
+; MIPS32: cvt.d.w
+; MIPS32O2-LABEL: signed32ToDouble
+; MIPS32O2: cvt.d.w
 
 define internal double @signed32ToDoubleConst() {
 entry:
@@ -400,6 +484,10 @@ entry:
 ; ARM32-DAG: mov [[CONST:r[0-9]+]], #123
 ; ARM32-DAG: vmov [[SRC:s[0-9]+]], [[CONST]]
 ; ARM32-DAG: vcvt.f64.s32 {{d[0-9]+}}, [[SRC]]
+; MIPS32-LABEL: signed32ToDoubleConst
+; MIPS32: cvt.d.w
+; MIPS32O2-LABEL: signed32ToDoubleConst
+; MIPS32O2: cvt.d.w
 
 define internal float @signed32ToFloat(i32 %a) {
 entry:
@@ -429,6 +517,10 @@ entry:
 ; ARM32-LABEL: unsigned32ToDouble
 ; ARM32-DAG: vmov [[SRC:s[0-9]+]], {{r[0-9]+}}
 ; ARM32-DAG: vcvt.f64.u32 {{d[0-9]+}}, [[SRC]]
+; MIPS32-LABEL: unsigned32ToDouble
+; MIPS32: jal __Sz_uitofp_i32_f64
+; MIPS32O2-LABEL: unsigned32ToDouble
+; MIPS32O2: jal __Sz_uitofp_i32_f64
 
 define internal float @unsigned32ToFloat(i32 %a) {
 entry:
@@ -441,6 +533,10 @@ entry:
 ; ARM32-LABEL: unsigned32ToFloat
 ; ARM32-DAG: vmov [[SRC:s[0-9]+]], {{r[0-9]+}}
 ; ARM32-DAG: vcvt.f32.u32 {{s[0-9]+}}, [[SRC]]
+; MIPS32-LABEL: unsigned32ToFloat
+; MIPS32: jal __Sz_uitofp_i32_f32
+; MIPS32O2-LABEL: unsigned32ToFloat
+; MIPS32O2: jal __Sz_uitofp_i32_f32
 
 define internal double @signed16ToDouble(i32 %a) {
 entry:
@@ -455,6 +551,10 @@ entry:
 ; ARM32-DAG: sxth [[INT:r[0-9]+]]
 ; ARM32-DAG: vmov [[SRC:s[0-9]+]], [[INT]]
 ; ARM32-DAG: vcvt.f64.s32 {{d[0-9]+}}, [[SRC]]
+; MIPS32-LABEL: signed16ToDouble
+; MIPS32: cvt.d.w
+; MIPS32O2-LABEL: signed16ToDouble
+; MIPS32O2: cvt.d.w
 
 define internal float @signed16ToFloat(i32 %a) {
 entry:
@@ -469,6 +569,10 @@ entry:
 ; ARM32-DAG: sxth [[INT:r[0-9]+]]
 ; ARM32-DAG: vmov [[SRC:s[0-9]+]], [[INT]]
 ; ARM32-DAG: vcvt.f32.s32 {{s[0-9]+}}, [[SRC]]
+; MIPS32-LABEL: signed16ToFloat
+; MIPS32: cvt.s.w
+; MIPS32O2-LABEL: signed16ToFloat
+; MIPS32O2: cvt.s.w
 
 define internal double @unsigned16ToDouble(i32 %a) {
 entry:
@@ -483,6 +587,10 @@ entry:
 ; ARM32-DAG: uxth [[INT:r[0-9]+]]
 ; ARM32-DAG: vmov [[SRC:s[0-9]+]], [[INT]]
 ; ARM32-DAG: vcvt.f64.u32 {{d[0-9]+}}, [[SRC]]
+; MIPS32-LABEL: unsigned16ToDouble
+; MIPS32: cvt.d.w
+; MIPS32O2-LABEL: unsigned16ToDouble
+; MIPS32O2: cvt.d.w
 
 define internal double @unsigned16ToDoubleConst() {
 entry:
@@ -497,6 +605,10 @@ entry:
 ; ARM32-DAG: uxth [[INT]]
 ; ARM32-DAG: vmov [[SRC:s[0-9]+]], [[INT]]
 ; ARM32-DAG: vcvt.f64.u32 {{d[0-9]+}}, [[SRC]]
+; MIPS32-LABEL: unsigned16ToDoubleConst
+; MIPS32: cvt.d.w
+; MIPS32O2-LABEL: unsigned16ToDoubleConst
+; MIPS32O2: cvt.d.w
 
 define internal float @unsigned16ToFloat(i32 %a) {
 entry:
@@ -511,6 +623,10 @@ entry:
 ; ARM32-DAG: uxth [[INT:r[0-9]+]]
 ; ARM32-DAG: vmov [[SRC:s[0-9]+]], [[INT]]
 ; ARM32-DAG: vcvt.f32.u32 {{s[0-9]+}}, [[SRC]]
+; MIPS32-LABEL: unsigned16ToFloat
+; MIPS32: cvt.s.w
+; MIPS32O2-LABEL: unsigned16ToFloat
+; MIPS32O2: cvt.s.w
 
 define internal double @signed8ToDouble(i32 %a) {
 entry:
@@ -525,6 +641,10 @@ entry:
 ; ARM32-DAG: sxtb [[INT:r[0-9]+]]
 ; ARM32-DAG: vmov [[SRC:s[0-9]+]], [[INT]]
 ; ARM32-DAG: vcvt.f64.s32 {{d[0-9]+}}, [[SRC]]
+; MIPS32-LABEL: signed8ToDouble
+; MIPS32: cvt.d.w
+; MIPS32O2-LABEL: signed8ToDouble
+; MIPS32O2: cvt.d.w
 
 define internal float @signed8ToFloat(i32 %a) {
 entry:
@@ -539,6 +659,10 @@ entry:
 ; ARM32-DAG: sxtb [[INT:r[0-9]+]]
 ; ARM32-DAG: vmov [[SRC:s[0-9]+]], [[INT]]
 ; ARM32-DAG: vcvt.f32.s32 {{s[0-9]+}}, [[SRC]]
+; MIPS32-LABEL: signed8ToFloat
+; MIPS32: cvt.s.w
+; MIPS32O2-LABEL: signed8ToFloat
+; MIPS32O2: cvt.s.w
 
 define internal double @unsigned8ToDouble(i32 %a) {
 entry:
@@ -553,6 +677,10 @@ entry:
 ; ARM32-DAG: uxtb [[INT:r[0-9]+]]
 ; ARM32-DAG: vmov [[SRC:s[0-9]+]], [[INT]]
 ; ARM32-DAG: vcvt.f64.u32 {{d[0-9]+}}, [[SRC]]
+; MIPS32-LABEL: unsigned8ToDouble
+; MIPS32: cvt.d.w
+; MIPS32O2-LABEL: unsigned8ToDouble
+; MIPS32O2: cvt.d.w
 
 define internal float @unsigned8ToFloat(i32 %a) {
 entry:
@@ -567,6 +695,10 @@ entry:
 ; ARM32-DAG: uxtb [[INT:r[0-9]+]]
 ; ARM32-DAG: vmov [[SRC:s[0-9]+]], [[INT]]
 ; ARM32-DAG: vcvt.f32.u32 {{s[0-9]+}}, [[SRC]]
+; MIPS32-LABEL: unsigned8ToFloat
+; MIPS32: cvt.s.w
+; MIPS32O2-LABEL: unsigned8ToFloat
+; MIPS32O2: cvt.s.w
 
 define internal double @unsigned1ToDouble(i32 %a) {
 entry:
@@ -581,6 +713,10 @@ entry:
 ; ARM32-DAG: and [[INT:r[0-9]+]], {{r[0-9]+}}, #1
 ; ARM32-DAG: vmov [[SRC:s[0-9]+]], [[INT]]
 ; ARM32-DAG: vcvt.f64.u32 {{d[0-9]+}}, [[SRC]]
+; MIPS32-LABEL: unsigned1ToDouble
+; MIPS32: cvt.d.w
+; MIPS32O2-LABEL: unsigned1ToDouble
+; MIPS32O2: cvt.d.w
 
 define internal float @unsigned1ToFloat(i32 %a) {
 entry:
@@ -595,6 +731,10 @@ entry:
 ; ARM32-DAG: and [[INT:r[0-9]+]], {{r[0-9]+}}, #1
 ; ARM32-DAG: vmov [[SRC:s[0-9]+]], [[INT]]
 ; ARM32-DAG: vcvt.f32.u32 {{s[0-9]+}}, [[SRC]]
+; MIPS32-LABEL: unsigned1ToFloat
+; MIPS32: cvt.s.w
+; MIPS32O2-LABEL: unsigned1ToFloat
+; MIPS32O2: cvt.s.w
 
 define internal float @int32BitcastToFloat(i32 %a) {
 entry:
@@ -605,6 +745,11 @@ entry:
 ; CHECK: mov
 ; ARM32-LABEL: int32BitcastToFloat
 ; ARM32: vmov s{{[0-9]+}}, r{{[0-9]+}}
+; MIPS32-LABEL: int32BitcastToFloat
+; MIPS32: sw
+; MIPS32: lwc1
+; MIPS32O2-LABEL: int32BitcastToFloat
+
 define internal float @int32BitcastToFloatConst() {
 entry:
   %conv = bitcast i32 8675309 to float
@@ -616,6 +761,9 @@ entry:
 ; ARM32-DAG: movw [[REG:r[0-9]+]], #24557
 ; ARM32-DAG: movt [[REG]], #132
 ; ARM32: vmov s{{[0-9]+}}, [[REG]]
+; MIPS32-LABEL: int32BitcastToFloatConst
+; MIPS32: lwc1
+; MIPS32O2-LABEL: int32BitcastToFloatConst
 
 define internal double @int64BitcastToDouble(i64 %a) {
 entry:
@@ -626,6 +774,11 @@ entry:
 ; CHECK: mov
 ; ARM32-LABEL: int64BitcastToDouble
 ; ARM32: vmov d{{[0-9]+}}, r{{[0-9]+}}, r{{[0-9]+}}
+; MIPS32-LABEL: int64BitcastToDouble
+; MIPS32: sw
+; MIPS32: sw
+; MIPS32: ldc1
+; MIPS32O2-LABEL: int64BitcastToDouble
 
 define internal double @int64BitcastToDoubleConst() {
 entry:
@@ -639,3 +792,6 @@ entry:
 ; ARM32-DAG: movt [[REG0]], #137
 ; ARM32-DAG: mov [[REG1:r[0-9]+]], #0
 ; ARM32-DAG: vmov d{{[0-9]+}}, [[REG0]], [[REG1]]
+; MIPS32-LABEL: int64BitcastToDoubleConst
+; MIPS32: ldc1
+; MIPS32O2-LABEL: int64BitcastToDoubleConst

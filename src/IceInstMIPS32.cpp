@@ -992,6 +992,17 @@ template <> void InstMIPS32Movz_s::emitIAS(const Cfg *Func) const {
   Asm->movz_s(getDest(), getSrc(0), getSrc(1));
 }
 
+template <> void InstMIPS32Mtc1::emit(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+  Ostream &Str = Func->getContext()->getStrEmit();
+  assert(getSrcSize() == 1);
+  Str << "\t" << Opcode << "\t";
+  getSrc(0)->emit(Func);
+  Str << ", ";
+  getDest()->emit(Func);
+}
+
 template <> void InstMIPS32Mtc1::emitIAS(const Cfg *Func) const {
   auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
   Asm->mtc1(getDest(), getSrc(0));

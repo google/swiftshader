@@ -309,16 +309,26 @@ void TargetMIPS32::genTargetHelperCallFor(Inst *Instr) {
       return;
     case InstCast::Fptosi:
     case InstCast::Fptoui: {
-      if (DestTy != IceType_i64) {
+      if ((DestTy != IceType_i32) && (DestTy != IceType_i64)) {
         return;
       }
+      const bool DestIs32 = DestTy == IceType_i32;
       const bool DestIsSigned = CastKind == InstCast::Fptosi;
       const bool Src0IsF32 = isFloat32Asserting32Or64(SrcTy);
-      Operand *TargetHelper = Ctx->getRuntimeHelperFunc(
-          Src0IsF32 ? (DestIsSigned ? RuntimeHelper::H_fptosi_f32_i64
-                                    : RuntimeHelper::H_fptoui_f32_i64)
-                    : (DestIsSigned ? RuntimeHelper::H_fptosi_f64_i64
-                                    : RuntimeHelper::H_fptoui_f64_i64));
+      RuntimeHelper RTHFunc = RuntimeHelper::H_Num;
+      if (DestIsSigned) {
+        if (DestIs32) {
+          return;
+        }
+        RTHFunc = Src0IsF32 ? RuntimeHelper::H_fptosi_f32_i64
+                            : RuntimeHelper::H_fptosi_f64_i64;
+      } else {
+        RTHFunc = Src0IsF32 ? (DestIs32 ? RuntimeHelper::H_fptoui_f32_i32
+                                        : RuntimeHelper::H_fptoui_f32_i64)
+                            : (DestIs32 ? RuntimeHelper::H_fptoui_f64_i32
+                                        : RuntimeHelper::H_fptoui_f64_i64);
+      }
+      Operand *TargetHelper = Ctx->getRuntimeHelperFunc(RTHFunc);
       static constexpr SizeT MaxArgs = 1;
       auto *Call = Context.insert<InstCall>(MaxArgs, Dest, TargetHelper,
                                             NoTailCall, IsTargetHelperCall);
@@ -328,16 +338,26 @@ void TargetMIPS32::genTargetHelperCallFor(Inst *Instr) {
     }
     case InstCast::Sitofp:
     case InstCast::Uitofp: {
-      if (SrcTy != IceType_i64) {
+      if ((SrcTy != IceType_i32) && (SrcTy != IceType_i64)) {
         return;
       }
+      const bool SourceIs32 = SrcTy == IceType_i32;
       const bool SourceIsSigned = CastKind == InstCast::Sitofp;
       const bool DestIsF32 = isFloat32Asserting32Or64(Dest->getType());
-      Operand *TargetHelper = Ctx->getRuntimeHelperFunc(
-          DestIsF32 ? (SourceIsSigned ? RuntimeHelper::H_sitofp_i64_f32
-                                      : RuntimeHelper::H_uitofp_i64_f32)
-                    : (SourceIsSigned ? RuntimeHelper::H_sitofp_i64_f64
-                                      : RuntimeHelper::H_uitofp_i64_f64));
+      RuntimeHelper RTHFunc = RuntimeHelper::H_Num;
+      if (SourceIsSigned) {
+        if (SourceIs32) {
+          return;
+        }
+        RTHFunc = DestIsF32 ? RuntimeHelper::H_sitofp_i64_f32
+                            : RuntimeHelper::H_sitofp_i64_f64;
+      } else {
+        RTHFunc = DestIsF32 ? (SourceIs32 ? RuntimeHelper::H_uitofp_i32_f32
+                                          : RuntimeHelper::H_uitofp_i64_f32)
+                            : (SourceIs32 ? RuntimeHelper::H_uitofp_i32_f64
+                                          : RuntimeHelper::H_uitofp_i64_f64);
+      }
+      Operand *TargetHelper = Ctx->getRuntimeHelperFunc(RTHFunc);
       static constexpr SizeT MaxArgs = 1;
       auto *Call = Context.insert<InstCall>(MaxArgs, Dest, TargetHelper,
                                             NoTailCall, IsTargetHelperCall);
@@ -2584,54 +2604,67 @@ void TargetMIPS32::lowerCast(const InstCast *Instr) {
     _mov(Dest, DestR);
     break;
   }
-  case InstCast::Fptosi: {
+  case InstCast::Fptosi:
+  case InstCast::Fptoui: {
     if (llvm::isa<Variable64On32>(Dest)) {
       llvm::report_fatal_error("fp-to-i64 should have been prelowered.");
       return;
     }
-    if (Src0Ty == IceType_f32 && DestTy == IceType_i32) {
-      Variable *Src0R = legalizeToReg(Src0);
-      Variable *FTmp = makeReg(IceType_f32);
-      _trunc_w_s(FTmp, Src0R);
-      _mov(Dest, FTmp);
-    } else {
-      UnimplementedLoweringError(this, Instr);
-    }
-    break;
-  }
-  case InstCast::Fptoui:
-    if (llvm::isa<Variable64On32>(Dest)) {
-      llvm::report_fatal_error("fp-to-i64 should have been prelowered.");
-      return;
+    if (DestTy != IceType_i64) {
+      if (Src0Ty == IceType_f32 && isScalarIntegerType(DestTy)) {
+        Variable *Src0R = legalizeToReg(Src0);
+        Variable *FTmp = makeReg(IceType_f32);
+        _trunc_w_s(FTmp, Src0R);
+        _mov(Dest, FTmp);
+        return;
+      }
+      if (Src0Ty == IceType_f64 && isScalarIntegerType(DestTy)) {
+        Variable *Src0R = legalizeToReg(Src0);
+        Variable *FTmp = makeReg(IceType_f64);
+        _trunc_w_d(FTmp, Src0R);
+        _mov(Dest, FTmp);
+        return;
+      }
     }
     UnimplementedLoweringError(this, Instr);
     break;
-  case InstCast::Sitofp: {
-    if (llvm::isa<Variable64On32>(Dest)) {
-      llvm::report_fatal_error("i64-to-fp should have been prelowered.");
-      return;
-    }
-    if (Src0Ty == IceType_i32 && DestTy == IceType_f32) {
-      Variable *Src0R = legalizeToReg(Src0);
-      Variable *FTmp1 = makeReg(IceType_f32);
-      Variable *FTmp2 = makeReg(IceType_f32);
-      _mov(FTmp1, Src0R);
-      _cvt_s_w(FTmp2, FTmp1);
-      _mov(Dest, FTmp2);
-    } else {
-      UnimplementedLoweringError(this, Instr);
-    }
-    break;
   }
+  case InstCast::Sitofp:
   case InstCast::Uitofp: {
     if (llvm::isa<Variable64On32>(Dest)) {
       llvm::report_fatal_error("i64-to-fp should have been prelowered.");
       return;
     }
+    if (Src0Ty != IceType_i64) {
+      if (isScalarIntegerType(Src0Ty) && DestTy == IceType_f32) {
+        Variable *Src0R = legalizeToReg(Src0);
+        Variable *FTmp1 = makeReg(IceType_f32);
+        Variable *FTmp2 = makeReg(IceType_f32);
+        _mtc1(FTmp1, Src0R);
+        _cvt_s_w(FTmp2, FTmp1);
+        _mov(Dest, FTmp2);
+        return;
+      }
+      if (isScalarIntegerType(Src0Ty) && DestTy == IceType_f64) {
+        Variable *Src0R = legalizeToReg(Src0);
+        Variable *FTmp1 = makeReg(IceType_f64);
+        Variable *FTmp2 = makeReg(IceType_f64);
+        _mtc1(FTmp1, Src0R);
+        _cvt_d_w(FTmp2, FTmp1);
+        _mov(Dest, FTmp2);
+        return;
+      }
+    }
     UnimplementedLoweringError(this, Instr);
     break;
   }
   case InstCast::Bitcast: {
+    Operand *Src0 = Instr->getSrc(0);
+    if (DestTy == Src0->getType()) {
+      auto *Assign = InstAssign::create(Func, Dest, Src0);
+      lowerAssign(Assign);
+      return;
+    }
     switch (DestTy) {
     case IceType_NUM:
     case IceType_void:
