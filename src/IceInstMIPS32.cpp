@@ -273,8 +273,8 @@ void InstMIPS32Label::emit(const Cfg *Func) const {
 }
 
 void InstMIPS32Label::emitIAS(const Cfg *Func) const {
-  (void)Func;
-  llvm_unreachable("Not yet implemented");
+  auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
+  Asm->bindLocalLabel(this, Number);
 }
 
 InstMIPS32Call::InstMIPS32Call(Cfg *Func, Variable *Dest, Operand *CallTarget)
@@ -419,7 +419,11 @@ void InstMIPS32Ret::emit(const Cfg *Func) const {
 
 void InstMIPS32Br::emitIAS(const Cfg *Func) const {
   auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
-  if (isUnconditionalBranch()) {
+  if (Label != nullptr) {
+    // Intra-block branches are of kind bcc
+    Asm->bcc(Predicate, getSrc(0), getSrc(1),
+             Asm->getOrCreateLocalLabel(Label->getNumber()));
+  } else if (isUnconditionalBranch()) {
     Asm->b(Asm->getOrCreateCfgNodeLabel(getTargetFalse()->getIndex()));
   } else {
     switch (Predicate) {
@@ -439,6 +443,9 @@ void InstMIPS32Br::emitIAS(const Cfg *Func) const {
       Asm->bzc(Predicate, getSrc(0),
                Asm->getOrCreateCfgNodeLabel(getTargetFalse()->getIndex()));
       break;
+    }
+    if (getTargetTrue()) {
+      Asm->b(Asm->getOrCreateCfgNodeLabel(getTargetTrue()->getIndex()));
     }
   }
 }

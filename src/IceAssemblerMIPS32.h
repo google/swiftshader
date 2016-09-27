@@ -301,6 +301,16 @@ public:
     return getOrCreateLabel(Number, LocalLabels);
   }
 
+  void bindLocalLabel(const InstMIPS32Label *InstL, SizeT Number) {
+    if (BuildDefs::dump() && !getFlags().getDisableHybridAssembly()) {
+      constexpr SizeT InstSize = 0;
+      emitTextInst(InstL->getLabelName() + ":", InstSize);
+    }
+    Label *L = getOrCreateLocalLabel(Number);
+    if (!getPreliminary())
+      this->bind(L);
+  }
+
   bool fixupIsPCRel(FixupKind Kind) const override {
     (void)Kind;
     llvm::report_fatal_error("Not yet implemented.");
