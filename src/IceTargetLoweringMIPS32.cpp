@@ -3069,7 +3069,21 @@ void TargetMIPS32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
       break;
     }
     case IceType_i64: {
-      UnimplementedLoweringError(this, Instr);
+      auto *T1 = I32Reg();
+      auto *T2 = I32Reg();
+      auto *T3 = I32Reg();
+      auto *T4 = I32Reg();
+      auto *DestLo = llvm::cast<Variable>(loOperand(Dest));
+      auto *DestHi = llvm::cast<Variable>(hiOperand(Dest));
+      Variable *SrcHiR = legalizeToReg(hiOperand(Src));
+      Variable *SrcLoR = legalizeToReg(loOperand(Src));
+      _clz(T1, SrcHiR);
+      _clz(T2, SrcLoR);
+      _addiu(T3, T2, 32);
+      _movn(T3, T1, SrcHiR);
+      _addiu(T4, getZero(), 0);
+      _mov(DestHi, T4);
+      _mov(DestLo, T3);
       break;
     }
     default:
@@ -3100,7 +3114,39 @@ void TargetMIPS32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
       break;
     }
     case IceType_i64: {
-      UnimplementedLoweringError(this, Instr);
+      auto *THi1 = I32Reg();
+      auto *THi2 = I32Reg();
+      auto *THi3 = I32Reg();
+      auto *THi4 = I32Reg();
+      auto *THi5 = I32Reg();
+      auto *THi6 = I32Reg();
+      auto *TLo1 = I32Reg();
+      auto *TLo2 = I32Reg();
+      auto *TLo3 = I32Reg();
+      auto *TLo4 = I32Reg();
+      auto *TLo5 = I32Reg();
+      auto *TLo6 = I32Reg();
+      auto *TResHi = I32Reg();
+      auto *DestLo = llvm::cast<Variable>(loOperand(Dest));
+      auto *DestHi = llvm::cast<Variable>(hiOperand(Dest));
+      Variable *SrcHiR = legalizeToReg(hiOperand(Src));
+      Variable *SrcLoR = legalizeToReg(loOperand(Src));
+      _addiu(THi1, SrcHiR, -1);
+      _not(THi2, SrcHiR);
+      _and(THi3, THi2, THi1);
+      _clz(THi4, THi3);
+      _addiu(THi5, getZero(), 64);
+      _subu(THi6, THi5, THi4);
+      _addiu(TLo1, SrcLoR, -1);
+      _not(TLo2, SrcLoR);
+      _and(TLo3, TLo2, TLo1);
+      _clz(TLo4, TLo3);
+      _addiu(TLo5, getZero(), 32);
+      _subu(TLo6, TLo5, TLo4);
+      _movn(THi6, TLo6, SrcLoR);
+      _addiu(TResHi, getZero(), 0);
+      _mov(DestHi, TResHi);
+      _mov(DestLo, THi6);
       break;
     }
     default:

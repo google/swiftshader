@@ -418,6 +418,8 @@ entry:
 ; CHECK: bsr e{{.*}},{{.*}}e{{.*}}
 ; ARM32-LABEL: test_ctlz_32_const
 ; ARM32: clz
+; MIPS32-LABEL: test_ctlz_32_const
+; MIPS32: clz
 
 define internal i32 @test_ctlz_32_ignored(i32 %x) {
 entry:
@@ -450,6 +452,12 @@ entry:
 ; ARM32: add {{.*}}, #32
 ; ARM32: clzne
 ; ARM32: mov {{.*}}, #0
+; MIPS32-LABEL: test_ctlz_64
+; MIPS32: clz
+; MIPS32: clz
+; MIPS32: addiu
+; MIPS32: movn
+; MIPS32: addiu
 
 define internal i32 @test_ctlz_64_const(i64 %x) {
 entry:
@@ -463,6 +471,12 @@ entry:
 ; ARM32-LABEL: test_ctlz_64
 ; ARM32: clz
 ; ARM32: clzne
+; MIPS32-LABEL: test_ctlz_64_const
+; MIPS32: clz
+; MIPS32: clz
+; MIPS32: addiu
+; MIPS32: movn
+; MIPS32: addiu
 
 define internal i32 @test_ctlz_64_ignored(i64 %x) {
 entry:
@@ -514,6 +528,19 @@ entry:
 ; ARM32: add {{.*}}, #32
 ; ARM32: clzne
 ; ARM32: mov {{.*}}, #0
+; MIPS32-LABEL: test_cttz_64
+; MIPS32: addiu
+; MIPS32: nor
+; MIPS32: and
+; MIPS32: clz
+; MIPS32: li
+; MIPS32: subu
+; MIPS32: addiu
+; MIPS32: nor
+; MIPS32: and
+; MIPS32: clz
+; MIPS32: li
+; MIPS32: subu
 
 define internal i32 @test_popcount_32(i32 %x) {
 entry:

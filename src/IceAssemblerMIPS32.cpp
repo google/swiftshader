@@ -665,7 +665,7 @@ void AssemblerMIPS32::movf(const Operand *OpRd, const Operand *OpRs,
 
 void AssemblerMIPS32::movn(const Operand *OpRd, const Operand *OpRs,
                            const Operand *OpRt) {
-  static constexpr IValueT Opcode = 0x44000013;
+  static constexpr IValueT Opcode = 0x0000000B;
   emitRdRsRt(Opcode, OpRd, OpRs, OpRt, "movn");
 }
 
