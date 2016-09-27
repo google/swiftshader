@@ -18,6 +18,10 @@
 #include "Nucleus.hpp"
 #include "Routine.hpp"
 
+#include <cstddef>
+#include <cwchar>
+#undef Bool
+
 namespace sw
 {
 	class Byte;
@@ -514,7 +518,7 @@ namespace sw
 	{
 	public:
 		Byte8();
-		Byte8(byte x0, byte x1, byte x2, byte x3, byte x4, byte x5, byte x6, byte x7);
+		Byte8(uint8_t x0, uint8_t x1, uint8_t x2, uint8_t x3, uint8_t x4, uint8_t x5, uint8_t x6, uint8_t x7);
 		Byte8(int64_t x);
 		Byte8(RValue<Byte8> rhs);
 		Byte8(const Byte8 &rhs);
@@ -568,7 +572,7 @@ namespace sw
 	{
 	public:
 		SByte8();
-		SByte8(byte x0, byte x1, byte x2, byte x3, byte x4, byte x5, byte x6, byte x7);
+		SByte8(uint8_t x0, uint8_t x1, uint8_t x2, uint8_t x3, uint8_t x4, uint8_t x5, uint8_t x6, uint8_t x7);
 		SByte8(int64_t x);
 		SByte8(RValue<SByte8> rhs);
 		SByte8(const SByte8 &rhs);

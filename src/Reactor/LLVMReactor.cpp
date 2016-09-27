@@ -35,6 +35,7 @@
 #include "CPUID.hpp"
 #include "Thread.hpp"
 #include "Memory.hpp"
+#include "MutexLock.hpp"
 
 #include <xmmintrin.h>
 #include <fstream>
@@ -66,12 +67,13 @@ namespace
 	llvm::LLVMContext *context = nullptr;
 	llvm::Module *module = nullptr;
 	llvm::Function *function = nullptr;
+
+	sw::BackoffLock codegenMutex;
 }
 
 namespace sw
 {
 	using namespace llvm;
-	BackoffLock Nucleus::codegenMutex;
 
 	Optimization optimization[10] = {InstructionCombining, Disabled};
 
@@ -107,7 +109,7 @@ namespace sw
 
 	Nucleus::Nucleus()
 	{
-		codegenMutex.lock();   // Reactor and LLVM are currently not thread safe
+		::codegenMutex.lock();   // Reactor and LLVM are currently not thread safe
 
 		InitializeNativeTarget();
 		JITEmitDebugInfo = false;
@@ -166,7 +168,7 @@ namespace sw
 		::function = nullptr;
 		::module = nullptr;
 
-		codegenMutex.unlock();
+		::codegenMutex.unlock();
 	}
 
 	Routine *Nucleus::acquireRoutine(const wchar_t *name, bool runOptimizations)
@@ -1961,7 +1963,7 @@ namespace sw
 	//	xyzw.parent = this;
 	}
 
-	Byte8::Byte8(byte x0, byte x1, byte x2, byte x3, byte x4, byte x5, byte x6, byte x7)
+	Byte8::Byte8(uint8_t x0, uint8_t x1, uint8_t x2, uint8_t x3, uint8_t x4, uint8_t x5, uint8_t x6, uint8_t x7)
 	{
 	//	xyzw.parent = this;
 
@@ -2298,7 +2300,7 @@ namespace sw
 	//	xyzw.parent = this;
 	}
 
-	SByte8::SByte8(byte x0, byte x1, byte x2, byte x3, byte x4, byte x5, byte x6, byte x7)
+	SByte8::SByte8(uint8_t x0, uint8_t x1, uint8_t x2, uint8_t x3, uint8_t x4, uint8_t x5, uint8_t x6, uint8_t x7)
 	{
 	//	xyzw.parent = this;
 

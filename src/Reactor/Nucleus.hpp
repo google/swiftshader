@@ -15,18 +15,9 @@
 #ifndef sw_Nucleus_hpp
 #define sw_Nucleus_hpp
 
-#include "Common/Types.hpp"
-#include "Common/MutexLock.hpp"
-
-#include <stdarg.h>
+#include <cstdarg>
+#include <cstdint>
 #include <vector>
-#include <stdio.h>
-#include <wchar.h>
-
-#undef abs
-#undef max
-#undef min
-#undef Bool
 
 namespace sw
 {
@@ -184,8 +175,6 @@ namespace sw
 
 	private:
 		void optimize();
-
-		static BackoffLock codegenMutex;
 	};
 }
 
