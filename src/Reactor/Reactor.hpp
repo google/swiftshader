@@ -60,8 +60,6 @@ namespace sw
 		{
 			return true;
 		}
-
-		typedef void ctype;
 	};
 
 	template<class T>
@@ -86,6 +84,7 @@ namespace sw
 		Value *getAddress(Value *index) const;
 
 	protected:
+		Type *const type;
 		Value *address;
 	};
 
@@ -2373,7 +2372,7 @@ namespace sw
 	template<class T>
 	RValue<T> Reference<T>::operator=(const Reference<T> &ref) const
 	{
-		Value *tmp = Nucleus::createLoad(ref.address, false, ref.alignment);
+		Value *tmp = Nucleus::createLoad(ref.address, T::getType(), false, ref.alignment);
 		Nucleus::createStore(tmp, address, false, alignment);
 
 		return RValue<T>(tmp);
@@ -2388,7 +2387,7 @@ namespace sw
 	template<class T>
 	Value *Reference<T>::loadValue() const
 	{
-		return Nucleus::createLoad(address, false, alignment);
+		return Nucleus::createLoad(address, T::getType(), false, alignment);
 	}
 
 	template<class T>
@@ -2754,7 +2753,7 @@ namespace sw
 	template<class T>
 	void Return(const Pointer<T> &ret)
 	{
-		Nucleus::createRet(Nucleus::createLoad(ret.address));
+		Nucleus::createRet(Nucleus::createLoad(ret.address, Pointer<T>::getType()));
 		Nucleus::setInsertBlock(Nucleus::createBasicBlock());
 	}
 

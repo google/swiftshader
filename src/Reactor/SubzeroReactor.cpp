@@ -245,13 +245,24 @@ namespace sw
 
 	Value *Nucleus::allocateStackVariable(Type *t, int arraySize)
 	{
+		assert(arraySize == 0 && "UNIMPLEMENTED");
+
 		Ice::Type type = T(t);
-		Ice::Variable *value = ::function->makeVariable(type);
-		assert(type == Ice::IceType_i32 && arraySize == 0 && "UNIMPLEMENTED");
-		auto bytes = Ice::ConstantInteger32::create(::context, type, 4);
-		auto alloca = Ice::InstAlloca::create(::function, value, bytes, 4);
-		::function->getEntryNode()->appendInst(alloca);
-		return V(value);
+		
+		int32_t size = 0;
+		switch(type)
+		{
+		case Ice::IceType_i32: size = 4; break;
+		case Ice::IceType_i64: size = 8; break;
+		default: assert(false && "UNIMPLEMENTED" && type);
+		}
+
+		auto bytes = Ice::ConstantInteger32::create(::context, type, size);
+		auto address = ::function->makeVariable(T(getPointerType(t)));
+		auto alloca = Ice::InstAlloca::create(::function, address, bytes, size);
+		::function->getEntryNode()->getInsts().push_front(alloca);
+
+		return V(address);
 	}
 
 	BasicBlock *Nucleus::createBasicBlock()
@@ -425,9 +436,9 @@ namespace sw
 		assert(false && "UNIMPLEMENTED"); return nullptr;
 	}
 
-	Value *Nucleus::createLoad(Value *ptr, bool isVolatile, unsigned int align)
+	Value *Nucleus::createLoad(Value *ptr, Type *type, bool isVolatile, unsigned int align)
 	{
-		Ice::Variable *value = ::function->makeVariable(ptr->getType());
+		Ice::Variable *value = ::function->makeVariable(T(type));
 		auto load = Ice::InstLoad::create(::function, value, ptr, align);
 		::basicBlock->appendInst(load);
 		return V(value);
@@ -687,7 +698,14 @@ namespace sw
 
 	Type *Nucleus::getPointerType(Type *ElementType)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		if(sizeof(void*) == 8)
+		{
+			return T(Ice::IceType_i64);
+		}
+		else
+		{
+			return T(Ice::IceType_i32);
+		}
 	}
 
 	Constant *Nucleus::createNullValue(Type *Ty)
@@ -755,14 +773,14 @@ namespace sw
 		return T(Ice::IceType_void);
 	}
 
-	LValue::LValue(Type *type, int arraySize)
+	LValue::LValue(Type *type, int arraySize) : type(type)
 	{
 		address = Nucleus::allocateStackVariable(type, arraySize);
 	}
 
 	Value *LValue::loadValue(unsigned int alignment) const
 	{
-		return Nucleus::createLoad(address, false, alignment);
+		return Nucleus::createLoad(address, type, false, alignment);
 	}
 
 	Value *LValue::storeValue(Value *value, unsigned int alignment) const

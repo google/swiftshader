@@ -23,9 +23,10 @@ int main()
 	Routine *routine = nullptr;
 
 	{
-		Function<Int(Int, Int)> function;
+		Function<Int(Pointer<Int>, Int)> function;
 		{
-			Int x = function.Arg<0>();
+			Pointer<Int> p = function.Arg<0>();
+			Int x = *p;
 			Int y = function.Arg<1>();
    
 			Int sum = x + y;
@@ -37,8 +38,9 @@ int main()
 
 		if(routine)
 		{
-			int (*add)(int, int) = (int(*)(int,int))routine->getEntry();
-			int result = add(1, 2);
+			int (*add)(int*, int) = (int(*)(int*,int))routine->getEntry();
+			int one = 1;
+			int result = add(&one, 2);
 			assert(result == 3);
 		}
 	}

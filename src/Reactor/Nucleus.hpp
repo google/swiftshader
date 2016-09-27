@@ -93,7 +93,7 @@ namespace sw
 		static Value *createNot(Value *V);
 
 		// Memory instructions
-		static Value *createLoad(Value *ptr, bool isVolatile = false, unsigned int align = 0);
+		static Value *createLoad(Value *ptr, Type *type, bool isVolatile = false, unsigned int align = 0);
 		static Value *createStore(Value *value, Value *ptr, bool isVolatile = false, unsigned int align = 0);
 		static Value *createStore(Constant *constant, Value *ptr, bool isVolatile = false, unsigned int align = 0);
 		static Value *createGEP(Value *ptr, Value *index);

@@ -448,8 +448,9 @@ namespace sw
 		return V(::builder->CreateNot(v));
 	}
 
-	Value *Nucleus::createLoad(Value *ptr, bool isVolatile, unsigned int align)
+	Value *Nucleus::createLoad(Value *ptr, Type *type, bool isVolatile, unsigned int align)
 	{
+		assert(ptr->getType()->getContainedType(0) == type);
 		return V(::builder->Insert(new LoadInst(ptr, "", isVolatile, align)));
 	}
 
@@ -809,14 +810,14 @@ namespace sw
 		return T(llvm::Type::getVoidTy(*::context));
 	}
 
-	LValue::LValue(Type *type, int arraySize)
+	LValue::LValue(Type *type, int arraySize) : type(type)
 	{
 		address = Nucleus::allocateStackVariable(type, arraySize);
 	}
 
 	Value *LValue::loadValue(unsigned int alignment) const
 	{
-		return Nucleus::createLoad(address, false, alignment);
+		return Nucleus::createLoad(address, type, false, alignment);
 	}
 
 	Value *LValue::storeValue(Value *value, unsigned int alignment) const
