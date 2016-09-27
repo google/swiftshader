@@ -3049,7 +3049,96 @@ void TargetMIPS32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     return;
   }
   case Intrinsics::Bswap: {
-    UnimplementedLoweringError(this, Instr);
+    auto *Src = Instr->getArg(0);
+    const Type SrcTy = Src->getType();
+    assert(SrcTy == IceType_i16 || SrcTy == IceType_i32 ||
+           SrcTy == IceType_i64);
+    switch (SrcTy) {
+    case IceType_i16: {
+      auto *T1 = I32Reg();
+      auto *T2 = I32Reg();
+      auto *T3 = I32Reg();
+      auto *T4 = I32Reg();
+      auto *SrcR = legalizeToReg(Src);
+      _sll(T1, SrcR, 8);
+      _lui(T2, Ctx->getConstantInt32(255));
+      _and(T1, T1, T2);
+      _sll(T3, SrcR, 24);
+      _or(T1, T3, T1);
+      _srl(T4, T1, 16);
+      _mov(Dest, T4);
+      return;
+    }
+    case IceType_i32: {
+      auto *T1 = I32Reg();
+      auto *T2 = I32Reg();
+      auto *T3 = I32Reg();
+      auto *T4 = I32Reg();
+      auto *T5 = I32Reg();
+      auto *SrcR = legalizeToReg(Src);
+      _srl(T1, SrcR, 24);
+      _srl(T2, SrcR, 8);
+      _andi(T2, T2, 0xFF00);
+      _or(T1, T2, T1);
+      _sll(T4, SrcR, 8);
+      _lui(T3, Ctx->getConstantInt32(255));
+      _and(T4, T4, T3);
+      _sll(T5, SrcR, 24);
+      _or(T4, T5, T4);
+      _or(T4, T4, T1);
+      _mov(Dest, T4);
+      return;
+    }
+    case IceType_i64: {
+      auto *T1 = I32Reg();
+      auto *T2 = I32Reg();
+      auto *T3 = I32Reg();
+      auto *T4 = I32Reg();
+      auto *T5 = I32Reg();
+      auto *T6 = I32Reg();
+      auto *T7 = I32Reg();
+      auto *T8 = I32Reg();
+      auto *T9 = I32Reg();
+      auto *T10 = I32Reg();
+      auto *T11 = I32Reg();
+      auto *T12 = I32Reg();
+      auto *T13 = I32Reg();
+      auto *T14 = I32Reg();
+      auto *T15 = I32Reg();
+      auto *T16 = I32Reg();
+      auto *T17 = I32Reg();
+      auto *T18 = I32Reg();
+      auto *DestLo = llvm::cast<Variable>(loOperand(Dest));
+      auto *DestHi = llvm::cast<Variable>(hiOperand(Dest));
+      Src = legalizeUndef(Src);
+      auto *SrcLoR = legalizeToReg(loOperand(Src));
+      auto *SrcHiR = legalizeToReg(hiOperand(Src));
+      _sll(T1, SrcHiR, 8);
+      _srl(T2, SrcHiR, 24);
+      _srl(T3, SrcHiR, 8);
+      _andi(T3, T3, 0xFF00);
+      _lui(T4, Ctx->getConstantInt32(255));
+      _or(T5, T3, T2);
+      _and(T6, T1, T4);
+      _sll(T7, SrcHiR, 24);
+      _or(T8, T7, T6);
+      _srl(T9, SrcLoR, 24);
+      _srl(T10, SrcLoR, 8);
+      _andi(T11, T10, 0xFF00);
+      _or(T12, T8, T5);
+      _or(T13, T11, T9);
+      _sll(T14, SrcLoR, 8);
+      _and(T15, T14, T4);
+      _sll(T16, SrcLoR, 24);
+      _or(T17, T16, T15);
+      _or(T18, T17, T13);
+      _mov(DestLo, T12);
+      _mov(DestHi, T18);
+      return;
+    }
+    default:
+      llvm::report_fatal_error("Control flow should never have reached here.");
+    }
     return;
   }
   case Intrinsics::Ctpop: {

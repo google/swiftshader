@@ -353,6 +353,14 @@ entry:
 ; ARM32-LABEL: test_bswap_16
 ; ARM32: rev
 ; ARM32: lsr {{.*}} #16
+; MIPS32-LABEL: test_bswap_16
+; MIPS32: sll {{.*}},0x8
+; MIPS32: lui {{.*}},0xff
+; MIPS32: and
+; MIPS32: sll {{.*}},0x18
+; MIPS32: or
+; MIPS32: srl {{.*}},0x10
+; MIPS32: andi {{.*}},0xffff
 
 define internal i32 @test_bswap_32(i32 %x) {
 entry:
@@ -363,6 +371,17 @@ entry:
 ; CHECK: bswap e{{.*}}
 ; ARM32-LABEL: test_bswap_32
 ; ARM32: rev
+; MIPS32-LABEL: test_bswap_32
+; MIPS32: srl {{.*}},0x18
+; MIPS32: srl {{.*}},0x8
+; MIPS32: andi {{.*}},0xff00
+; MIPS32: or
+; MIPS32: sll {{.*}},0x8
+; MIPS32: lui {{.*}},0xff
+; MIPS32: and
+; MIPS32: sll {{.*}},0x18
+; MIPS32: or
+; MIPS32: or
 
 define internal i64 @test_bswap_64(i64 %x) {
 entry:
@@ -375,6 +394,26 @@ entry:
 ; ARM32-LABEL: test_bswap_64
 ; ARM32: rev
 ; ARM32: rev
+; MIPS32-LABEL: test_bswap_64
+; MIPS32: sll {{.*}},0x8
+; MIPS32: srl {{.*}},0x18
+; MIPS32: srl {{.*}},0x8
+; MIPS32: andi {{.*}},0xff00
+; MIPS32: lui {{.*}},0xff
+; MIPS32: or
+; MIPS32: and
+; MIPS32: sll {{.*}},0x18
+; MIPS32: or
+; MIPS32: srl {{.*}},0x18
+; MIPS32: srl {{.*}},0x8
+; MIPS32: andi {{.*}},0xff00
+; MIPS32: or
+; MIPS32: or
+; MIPS32: sll {{.*}},0x8
+; MIPS32: and
+; MIPS32: sll {{.*}},0x18
+; MIPS32: or
+; MIPS32: or
 
 define internal i64 @test_bswap_64_undef() {
 entry:
@@ -387,6 +426,26 @@ entry:
 ; ARM32-LABEL: test_bswap_64
 ; ARM32: rev
 ; ARM32: rev
+; MIPS32-LABEL: test_bswap_64_undef
+; MIPS32: sll {{.*}},0x8
+; MIPS32: srl {{.*}},0x18
+; MIPS32: srl {{.*}},0x8
+; MIPS32: andi {{.*}},0xff00
+; MIPS32: lui {{.*}},0xff
+; MIPS32: or
+; MIPS32: and
+; MIPS32: sll {{.*}},0x18
+; MIPS32: or
+; MIPS32: srl {{.*}},0x18
+; MIPS32: srl {{.*}},0x8
+; MIPS32: andi {{.*}},0xff00
+; MIPS32: or
+; MIPS32: or
+; MIPS32: sll {{.*}},0x8
+; MIPS32: and
+; MIPS32: sll {{.*}},0x18
+; MIPS32: or
+; MIPS32: or
 
 define internal i32 @test_ctlz_32(i32 %x) {
 entry:
