@@ -22,6 +22,30 @@
       "revId": "091ae125f654456f7e732ca6f96c4e9754a1a564",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "25ccbff8_b5af8a32",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1399,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-09-28T13:30:33Z",
+      "side": 1,
+      "message": "The spec specifies that arrays must be constructed from elements of the same type as the array element type, so matrix arrays must be constructed from a list of matrices. (See spec note in ParseHelper.cpp: GLSL ES 3.00 section 5.4.4: Each argument must be the same type as the element type of the array.)",
+      "parentUuid": "25ccbff8_b5882ad8",
+      "range": {
+        "startLine": 1399,
+        "startChar": 4,
+        "endLine": 1399,
+        "endChar": 29
+      },
+      "revId": "091ae125f654456f7e732ca6f96c4e9754a1a564",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
