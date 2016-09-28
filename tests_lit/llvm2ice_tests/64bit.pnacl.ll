@@ -34,7 +34,7 @@
 ; RUN:   --disassemble --target mips32 -i %s --args -O2 --skip-unimplemented \
 ; RUN:   -allow-externally-defined-symbols \
 ; RUN:   | %if --need=target_MIPS32 --need=allow_dump \
-; RUN:   --command FileCheck --check-prefix MIPS32 %s
+; RUN:   --command FileCheck --check-prefix MIPS32 --check-prefix MIPS32-O2 %s
 
 @__init_array_start = internal constant [0 x i8] zeroinitializer, align 4
 @__fini_array_start = internal constant [0 x i8] zeroinitializer, align 4
@@ -1604,6 +1604,12 @@ entry:
 ; ARM32: mov
 ; ARM32: moveq
 
+; MIPS32-LABEL: icmpEq64Bool
+; MIPS32: xor	[[T1:.*]],{{.*}},{{.*}}
+; MIPS32: xor	[[T2:.*]],{{.*}},{{.*}}
+; MIPS32: or	[[T3:.*]],[[T1]],[[T2]]
+; MIPS32: sltiu	{{.*}},[[T3]],1
+
 define internal i32 @icmpNe64Bool(i64 %a, i64 %b) {
 entry:
   %cmp = icmp ne i64 %a, %b
@@ -1621,6 +1627,12 @@ entry:
 ; ARM32-LABEL: icmpNe64Bool
 ; ARM32: mov
 ; ARM32: movne
+
+; MIPS32-LABEL: icmpNe64Bool
+; MIPS32: xor   [[T1:.*]],{{.*}},{{.*}}
+; MIPS32: xor   [[T2:.*]],{{.*}},{{.*}}
+; MIPS32: or    [[T3:.*]],[[T1]],[[T2]]
+; MIPS32: sltu {{.*}},zero,[[T3]]
 
 define internal i32 @icmpSgt64Bool(i64 %a, i64 %b) {
 entry:
@@ -1648,6 +1660,15 @@ entry:
 ; ARM32: sbcs
 ; ARM32: movlt
 
+; MIPS32-LABEL: icmpSgt64Bool
+; MIPS32: xor	[[T1:.*]],[[A_HI:.*]],[[B_HI:.*]]
+; MIPS32: slt	[[T2:.*]],{{.*}},{{.*}}
+; MIPS32: sltu	[[T3:.*]],{{.*}},{{.*}}
+; MIPS32: movz	[[T2]],[[T3]],[[T1]]
+; MIPS32-O2: move	{{.*}},[[T2]]
+; MIPS32-OM1: sw	[[T2]],[[MEM:.*]]
+; MIPS32-OM1: lb	{{.*}},[[MEM]]
+
 define internal i32 @icmpUgt64Bool(i64 %a, i64 %b) {
 entry:
   %cmp = icmp ugt i64 %a, %b
@@ -1673,6 +1694,15 @@ entry:
 ; ARM32: cmp
 ; ARM32: cmpeq
 ; ARM32: movhi
+
+; MIPS32-LABEL: icmpUgt64Bool
+; MIPS32: xor	[[T1:.*]],[[A_HI:.*]],[[B_HI:.*]]
+; MIPS32: sltu	[[T2:.*]],[[B_HI]],[[A_HI]]
+; MIPS32: sltu	[[T3:.*]],{{.*}},{{.*}}
+; MIPS32: movz	[[T2]],[[T3]],[[T1]]
+; MIPS32-O2: move	{{.*}},[[T2]]
+; MIPS32-OM1: sw	[[T2]],[[MEM:.*]]
+; MIPS32-OM1: lb	{{.*}},[[MEM]]
 
 define internal i32 @icmpSge64Bool(i64 %a, i64 %b) {
 entry:
@@ -1700,6 +1730,17 @@ entry:
 ; ARM32: sbcs
 ; ARM32: movge
 
+; MIPS32-LABEL: icmpSge64Bool
+; MIPS32: xor	[[T1:.*]],[[A_HI:.*]],[[B_HI:.*]]
+; MIPS32: slt	[[T2:.*]],[[A_HI]],[[B_HI]]
+; MIPS32: xori	[[T3:.*]],[[T2]],0x1
+; MIPS32: sltu	[[T4:.*]],{{.*}},{{.*}}
+; MIPS32: xori	[[T5:.*]],[[T4]],0x1
+; MIPS32: movz	[[T6:.*]],[[T5]],[[T1]]
+; MIPS32-O2: move       {{.*}},[[T3]]
+; MIPS32-OM1: sw        [[T3]],[[MEM:.*]]
+; MIPS32-OM1: lb        {{.*}},[[MEM]]
+
 define internal i32 @icmpUge64Bool(i64 %a, i64 %b) {
 entry:
   %cmp = icmp uge i64 %a, %b
@@ -1725,6 +1766,17 @@ entry:
 ; ARM32: cmp
 ; ARM32: cmpeq
 ; ARM32: movcs
+
+; MIPS32-LABEL: icmpUge64Bool
+; MIPS32: xor	[[T1:.*]],[[A_HI:.*]],[[B_HI:.*]]
+; MIPS32: sltu	[[T2:.*]],[[A_HI]],[[B_HI]]
+; MIPS32: xori	[[T3:.*]],[[T2]],0x1
+; MIPS32: sltu	[[T4:.*]],{{.*}},{{.*}}
+; MIPS32: xori	[[T5:.*]],[[T4]],0x1
+; MIPS32: movz	[[T6:.*]],[[T5]],[[T1]]
+; MIPS32-O2: move	{{.*}},[[T3]]
+; MIPS32-OM1: sw	[[T3]],[[MEM:.*]]
+; MIPS32-OM1: lb	{{.*}},[[MEM]]
 
 define internal i32 @icmpSlt64Bool(i64 %a, i64 %b) {
 entry:
@@ -1752,6 +1804,15 @@ entry:
 ; ARM32: sbcs
 ; ARM32: movlt
 
+; MIPS32-LABEL: icmpSlt64Bool
+; MIPS32: xor	[[T1:.*]],[[A_HI:.*]],[[B_HI:.*]]
+; MIPS32: slt	[[T2:.*]],[[A_HI]],[[B_HI]]
+; MIPS32: sltu	[[T3:.*]],{{.*}},{{.*}}
+; MIPS32: movz	[[T2:.*]],[[T3]],[[T1]]
+; MIPS32-O2: move	{{.*}},[[T2]]
+; MIPS32-OM1: sw	[[T2]],[[MEM:.*]]
+; MIPS32-OM1: lb	{{.*}},[[MEM]]
+
 define internal i32 @icmpUlt64Bool(i64 %a, i64 %b) {
 entry:
   %cmp = icmp ult i64 %a, %b
@@ -1777,6 +1838,15 @@ entry:
 ; ARM32: cmp
 ; ARM32: cmpeq
 ; ARM32: movcc
+
+; MIPS32-LABEL: icmpUlt64Bool
+; MIPS32: xor	[[T1:.*]],[[A_HI:.*]],[[B_HI:.*]]
+; MIPS32: sltu	[[T2:.*]],[[A_HI]],[[B_HI]]
+; MIPS32: sltu	[[T3:.*]],{{.*}},{{.*}}
+; MIPS32: movz	[[T2:.*]],[[T3]],[[T1]]
+; MIPS32-O2: move	{{.*}},[[T2]]
+; MIPS32-OM1: sw	[[T2]],[[MEM:.*]]
+; MIPS32-OM1: lb	{{.*}},[[MEM]]
 
 define internal i32 @icmpSle64Bool(i64 %a, i64 %b) {
 entry:
@@ -1804,6 +1874,17 @@ entry:
 ; ARM32: sbcs
 ; ARM32: movge
 
+; MIPS32-LABEL: icmpSle64Bool
+; MIPS32: xor	[[T1:.*]],[[A_HI:.*]],[[B_HI:.*]]
+; MIPS32: slt	[[T2:.*]],[[B_HI]],[[A_HI]]
+; MIPS32: xori	[[T3:.*]],[[T2]],0x1
+; MIPS32: sltu	[[T4:.*]],{{.*}},{{.*}}
+; MIPS32: xori	[[T5:.*]],[[T4]],0x1
+; MIPS32: movz	[[T6:.*]],[[T5]],[[T1]]
+; MIPS32-O2: move	{{.*}},[[T3]]
+; MIPS32-OM1: sw	[[T3]],[[MEM:.*]]
+; MIPS32-OM1: lb	{{.*}},[[MEM]]
+
 define internal i32 @icmpUle64Bool(i64 %a, i64 %b) {
 entry:
   %cmp = icmp ule i64 %a, %b
@@ -1829,6 +1910,17 @@ entry:
 ; ARM32: cmp
 ; ARM32: cmpeq
 ; ARM32: movls
+
+; MIPS32-LABEL: icmpUle64Bool
+; MIPS32: xor	[[T1:.*]],[[A_HI:.*]],[[B_HI:.*]]
+; MIPS32: sltu	[[T2:.*]],[[B_HI]],[[A_HI]]
+; MIPS32: xori	[[T3:.*]],[[T2]],0x1
+; MIPS32: sltu	[[T4:.*]],{{.*}},{{.*}}
+; MIPS32: xori	[[T5:.*]],[[T4]],0x1
+; MIPS32: movz	[[T6:.*]],[[T5]],[[T1]]
+; MIPS32-O2: move	{{.*}},[[T3]]
+; MIPS32-OM1: sw	[[T3]],[[MEM:.*]]
+; MIPS32-OM1: lb	{{.*}},[[MEM]]
 
 define internal i64 @load64(i32 %a) {
 entry:

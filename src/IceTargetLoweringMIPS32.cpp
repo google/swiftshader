@@ -2900,8 +2900,149 @@ void TargetMIPS32::lowerFcmp(const InstFcmp *Instr) {
 }
 
 void TargetMIPS32::lower64Icmp(const InstIcmp *Instr) {
-  UnimplementedLoweringError(this, Instr);
-  return;
+  Operand *Src0 = legalize(Instr->getSrc(0));
+  Operand *Src1 = legalize(Instr->getSrc(1));
+  Variable *Dest = Instr->getDest();
+  InstIcmp::ICond Condition = Instr->getCondition();
+
+  Variable *Src0LoR = legalizeToReg(loOperand(Src0));
+  Variable *Src0HiR = legalizeToReg(hiOperand(Src0));
+  Variable *Src1LoR = legalizeToReg(loOperand(Src1));
+  Variable *Src1HiR = legalizeToReg(hiOperand(Src1));
+
+  switch (Condition) {
+  default:
+    llvm_unreachable("unexpected condition");
+    break;
+  case InstIcmp::Eq: {
+    auto *T1 = I32Reg();
+    auto *T2 = I32Reg();
+    auto *T3 = I32Reg();
+    auto *T4 = I32Reg();
+    _xor(T1, Src0HiR, Src1HiR);
+    _xor(T2, Src0LoR, Src1LoR);
+    _or(T3, T1, T2);
+    _sltiu(T4, T3, 1);
+    _mov(Dest, T4);
+    return;
+  }
+  case InstIcmp::Ne: {
+    auto *T1 = I32Reg();
+    auto *T2 = I32Reg();
+    auto *T3 = I32Reg();
+    auto *T4 = I32Reg();
+    _xor(T1, Src0HiR, Src1HiR);
+    _xor(T2, Src0LoR, Src1LoR);
+    _or(T3, T1, T2);
+    _sltu(T4, getZero(), T3);
+    _mov(Dest, T4);
+    return;
+  }
+  case InstIcmp::Sgt: {
+    auto *T1 = I32Reg();
+    auto *T2 = I32Reg();
+    auto *T3 = I32Reg();
+    _xor(T1, Src0HiR, Src1HiR);
+    _slt(T2, Src1HiR, Src0HiR);
+    _sltu(T3, Src1LoR, Src0LoR);
+    _movz(T2, T3, T1);
+    _mov(Dest, T2);
+    return;
+  }
+  case InstIcmp::Ugt: {
+    auto *T1 = I32Reg();
+    auto *T2 = I32Reg();
+    auto *T3 = I32Reg();
+    _xor(T1, Src0HiR, Src1HiR);
+    _sltu(T2, Src1HiR, Src0HiR);
+    _sltu(T3, Src1LoR, Src0LoR);
+    _movz(T2, T3, T1);
+    _mov(Dest, T2);
+    return;
+  }
+  case InstIcmp::Sge: {
+    auto *T1 = I32Reg();
+    auto *T2 = I32Reg();
+    auto *T3 = I32Reg();
+    auto *T4 = I32Reg();
+    auto *T5 = I32Reg();
+    _xor(T1, Src0HiR, Src1HiR);
+    _slt(T2, Src0HiR, Src1HiR);
+    _xori(T3, T2, 1);
+    _sltu(T4, Src0LoR, Src1LoR);
+    _xori(T5, T4, 1);
+    _movz(T3, T5, T1);
+    _mov(Dest, T3);
+    return;
+  }
+  case InstIcmp::Uge: {
+    auto *T1 = I32Reg();
+    auto *T2 = I32Reg();
+    auto *T3 = I32Reg();
+    auto *T4 = I32Reg();
+    auto *T5 = I32Reg();
+    _xor(T1, Src0HiR, Src1HiR);
+    _sltu(T2, Src0HiR, Src1HiR);
+    _xori(T3, T2, 1);
+    _sltu(T4, Src0LoR, Src1LoR);
+    _xori(T5, T4, 1);
+    _movz(T3, T5, T1);
+    _mov(Dest, T3);
+    return;
+  }
+  case InstIcmp::Slt: {
+    auto *T1 = I32Reg();
+    auto *T2 = I32Reg();
+    auto *T3 = I32Reg();
+    _xor(T1, Src0HiR, Src1HiR);
+    _slt(T2, Src0HiR, Src1HiR);
+    _sltu(T3, Src0LoR, Src1LoR);
+    _movz(T2, T3, T1);
+    _mov(Dest, T2);
+    return;
+  }
+  case InstIcmp::Ult: {
+    auto *T1 = I32Reg();
+    auto *T2 = I32Reg();
+    auto *T3 = I32Reg();
+    _xor(T1, Src0HiR, Src1HiR);
+    _sltu(T2, Src0HiR, Src1HiR);
+    _sltu(T3, Src0LoR, Src1LoR);
+    _movz(T2, T3, T1);
+    _mov(Dest, T2);
+    return;
+  }
+  case InstIcmp::Sle: {
+    auto *T1 = I32Reg();
+    auto *T2 = I32Reg();
+    auto *T3 = I32Reg();
+    auto *T4 = I32Reg();
+    auto *T5 = I32Reg();
+    _xor(T1, Src0HiR, Src1HiR);
+    _slt(T2, Src1HiR, Src0HiR);
+    _xori(T3, T2, 1);
+    _sltu(T4, Src1LoR, Src0LoR);
+    _xori(T5, T4, 1);
+    _movz(T3, T5, T1);
+    _mov(Dest, T3);
+    return;
+  }
+  case InstIcmp::Ule: {
+    auto *T1 = I32Reg();
+    auto *T2 = I32Reg();
+    auto *T3 = I32Reg();
+    auto *T4 = I32Reg();
+    auto *T5 = I32Reg();
+    _xor(T1, Src0HiR, Src1HiR);
+    _sltu(T2, Src1HiR, Src0HiR);
+    _xori(T3, T2, 1);
+    _sltu(T4, Src1LoR, Src0LoR);
+    _xori(T5, T4, 1);
+    _movz(T3, T5, T1);
+    _mov(Dest, T3);
+    return;
+  }
+  }
 }
 
 void TargetMIPS32::lowerIcmp(const InstIcmp *Instr) {
