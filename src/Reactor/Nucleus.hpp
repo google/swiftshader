@@ -134,7 +134,7 @@ namespace sw
 		static llvm::Value *createTrunc(llvm::Value *V, llvm::Type *destType);
 		static llvm::Value *createZExt(llvm::Value *V, llvm::Type *destType);
 		static llvm::Value *createSExt(llvm::Value *V, llvm::Type *destType);
-		static llvm::Value *createFPToUI(llvm::Value *V, llvm::Type *destType);
+		// static llvm::Value *createFPToUI(llvm::Value *V, llvm::Type *destType);
 		static llvm::Value *createFPToSI(llvm::Value *V, llvm::Type *destType);
 		static llvm::Value *createUIToFP(llvm::Value *V, llvm::Type *destType);
 		static llvm::Value *createSIToFP(llvm::Value *V, llvm::Type *destType);

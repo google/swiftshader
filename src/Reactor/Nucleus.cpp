@@ -475,10 +475,10 @@ namespace sw
 		return builder->CreateSExt(V, destType);
 	}
 
-	Value *Nucleus::createFPToUI(Value *V, Type *destType)
-	{
-		return builder->CreateFPToUI(V, destType);
-	}
+//	Value *Nucleus::createFPToUI(Value *V, Type *destType)
+//	{
+//		return builder->CreateFPToUI(V, destType);
+//	}
 
 	Value *Nucleus::createFPToSI(Value *V, Type *destType)
 	{
@@ -4293,9 +4293,21 @@ namespace sw
 
 	UInt::UInt(RValue<Float> cast)
 	{
-		Value *integer = Nucleus::createFPToUI(cast.value, UInt::getType());
+		// Note: createFPToUI is broken, must perform conversion using createFPtoSI
+		// Value *integer = Nucleus::createFPToUI(cast.value, UInt::getType());
 
-		storeValue(integer);
+		// Smallest positive value representable in UInt, but not in Int
+		const unsigned int ustart = 0x80000000u;
+		const float ustartf = float(ustart);
+
+		// If the value is negative, store 0, otherwise store the result of the conversion
+		storeValue((~(As<Int>(cast) >> 31) &
+		// Check if the value can be represented as an Int
+			IfThenElse(cast >= ustartf,
+		// If the value is too large, subtract ustart and re-add it after conversion.
+				As<Int>(As<UInt>(Int(cast - Float(ustartf))) + UInt(ustart)),
+		// Otherwise, just convert normally
+				Int(cast))).value);
 	}
 
 	UInt::UInt()
@@ -5798,9 +5810,21 @@ namespace sw
 	{
 	//	xyzw.parent = this;
 
-		Value *xyzw = Nucleus::createFPToUI(cast.value, UInt4::getType());
+		// Note: createFPToUI is broken, must perform conversion using createFPtoSI
+		// Value *xyzw = Nucleus::createFPToUI(cast.value, UInt4::getType());
 
-		storeValue(xyzw);
+		// Smallest positive value representable in UInt, but not in Int
+		const unsigned int ustart = 0x80000000u;
+		const float ustartf = float(ustart);
+
+		// Check if the value can be represented as an Int
+		Int4 uiValue = CmpNLT(cast, Float4(ustartf));
+		// If the value is too large, subtract ustart and re-add it after conversion.
+		uiValue = (uiValue & As<Int4>(As<UInt4>(Int4(cast - Float4(ustartf))) + UInt4(ustart))) |
+		// Otherwise, just convert normally
+		          (~uiValue & Int4(cast));
+		// If the value is negative, store 0, otherwise store the result of the conversion
+		storeValue((~(As<Int4>(cast) >> 31) & uiValue).value);
 	}
 
 	UInt4::UInt4()
