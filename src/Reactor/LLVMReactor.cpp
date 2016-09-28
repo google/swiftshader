@@ -319,28 +319,28 @@ namespace sw
 		return V(&*args);
 	}
 
-	Value *Nucleus::createRetVoid()
+	void Nucleus::createRetVoid()
 	{
 		x86::emms();
 
-		return V(::builder->CreateRetVoid());
+		::builder->CreateRetVoid();
 	}
 
-	Value *Nucleus::createRet(Value *v)
+	void Nucleus::createRet(Value *v)
 	{
 		x86::emms();
 
-		return V(::builder->CreateRet(v));
+		::builder->CreateRet(v);
 	}
 
-	Value *Nucleus::createBr(BasicBlock *dest)
+	void Nucleus::createBr(BasicBlock *dest)
 	{
-		return V(::builder->CreateBr(dest));
+		::builder->CreateBr(dest);
 	}
 
-	Value *Nucleus::createCondBr(Value *cond, BasicBlock *ifTrue, BasicBlock *ifFalse)
+	void Nucleus::createCondBr(Value *cond, BasicBlock *ifTrue, BasicBlock *ifFalse)
 	{
-		return V(::builder->CreateCondBr(cond, ifTrue, ifFalse));
+		::builder->CreateCondBr(cond, ifTrue, ifFalse);
 	}
 
 	Value *Nucleus::createAdd(Value *lhs, Value *rhs)
@@ -683,9 +683,9 @@ namespace sw
 		reinterpret_cast<SwitchInst*>(Switch)->addCase(llvm::ConstantInt::get(Type::getInt32Ty(*::context), Case, true), Branch);
 	}
 
-	Value *Nucleus::createUnreachable()
+	void Nucleus::createUnreachable()
 	{
-		return V(::builder->CreateUnreachable());
+		::builder->CreateUnreachable();
 	}
 
 	Value *Nucleus::createSwizzle(Value *val, unsigned char select)

@@ -64,10 +64,10 @@ namespace sw
 		static Value *getArgument(unsigned int index);
 
 		// Terminators
-		static Value *createRetVoid();
-		static Value *createRet(Value *V);
-		static Value *createBr(BasicBlock *dest);
-		static Value *createCondBr(Value *cond, BasicBlock *ifTrue, BasicBlock *ifFalse);
+		static void createRetVoid();
+		static void createRet(Value *V);
+		static void createBr(BasicBlock *dest);
+		static void createCondBr(Value *cond, BasicBlock *ifTrue, BasicBlock *ifFalse);
 
 		// Binary operators
 		static Value *createAdd(Value *lhs, Value *rhs);
@@ -150,7 +150,7 @@ namespace sw
 		static Value *createSelect(Value *C, Value *ifTrue, Value *ifFalse);
 		static Value *createSwitch(Value *V, BasicBlock *Dest, unsigned NumCases);
 		static void addSwitchCase(Value *Switch, int Case, BasicBlock *Branch);
-		static Value *createUnreachable();
+		static void createUnreachable();
 
 		// Derived instructions
 		static Value *createSwizzle(Value *val, unsigned char select);
