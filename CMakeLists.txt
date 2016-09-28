@@ -605,8 +605,10 @@ set(REACTOR_LIST
     ${SOURCE_DIR}/Reactor/Nucleus.hpp
     ${SOURCE_DIR}/Reactor/Routine.cpp
     ${SOURCE_DIR}/Reactor/Routine.hpp
-    ${SOURCE_DIR}/Reactor/RoutineManager.cpp
-    ${SOURCE_DIR}/Reactor/RoutineManager.hpp
+    ${SOURCE_DIR}/Reactor/LLVMRoutine.cpp
+    ${SOURCE_DIR}/Reactor/LLVMRoutine.hpp
+    ${SOURCE_DIR}/Reactor/LLVMRoutineManager.cpp
+    ${SOURCE_DIR}/Reactor/LLVMRoutineManager.hpp
 )
 
 file(GLOB_RECURSE EGL_LIST

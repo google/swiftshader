@@ -177,8 +177,10 @@
 		<Unit filename="../../Reactor/Reactor.hpp" />
 		<Unit filename="../../Reactor/Routine.cpp" />
 		<Unit filename="../../Reactor/Routine.hpp" />
-		<Unit filename="../../Reactor/RoutineManager.cpp" />
-		<Unit filename="../../Reactor/RoutineManager.hpp" />
+		<Unit filename="../../Reactor/LLVMRoutine.cpp" />
+		<Unit filename="../../Reactor/LLVMRoutine.hpp" />
+		<Unit filename="../../Reactor/LLVMRoutineManager.cpp" />
+		<Unit filename="../../Reactor/LLVMRoutineManager.hpp" />
 		<Unit filename="../../Reactor/x86.hpp" />
 		<Unit filename="../../Renderer/Blitter.cpp" />
 		<Unit filename="../../Renderer/Blitter.hpp" />

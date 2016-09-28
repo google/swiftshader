@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "RoutineManager.hpp"
+#include "LLVMRoutineManager.hpp"
 
-#include "Routine.hpp"
+#include "LLVMRoutine.hpp"
 #include "llvm/Function.h"
 #include "../Common/Memory.hpp"
 #include "../Common/Thread.hpp"
@@ -24,30 +24,30 @@ namespace sw
 {
 	using namespace llvm;
 
-	volatile int RoutineManager::averageInstructionSize = 4;
+	volatile int LLVMRoutineManager::averageInstructionSize = 4;
 
-	RoutineManager::RoutineManager()
+	LLVMRoutineManager::LLVMRoutineManager()
 	{
-		routine = 0;
+		routine = nullptr;
 	}
 
-	RoutineManager::~RoutineManager()
+	LLVMRoutineManager::~LLVMRoutineManager()
 	{
 		delete routine;
 	}
 
-	void RoutineManager::AllocateGOT()
+	void LLVMRoutineManager::AllocateGOT()
 	{
 		UNIMPLEMENTED();
 	}
 
-	uint8_t *RoutineManager::allocateStub(const GlobalValue *function, unsigned stubSize, unsigned alignment)
+	uint8_t *LLVMRoutineManager::allocateStub(const GlobalValue *function, unsigned stubSize, unsigned alignment)
 	{
 		UNIMPLEMENTED();
-		return 0;
+		return nullptr;
 	}
 
-	uint8_t *RoutineManager::startFunctionBody(const llvm::Function *function, uintptr_t &actualSize)
+	uint8_t *LLVMRoutineManager::startFunctionBody(const llvm::Function *function, uintptr_t &actualSize)
 	{
 		if(actualSize == 0)   // Estimate size
 		{
@@ -69,52 +69,52 @@ namespace sw
 		actualSize = (actualSize + pageSize - 1) & ~(pageSize - 1);
 
 		delete routine;
-		routine = new Routine(static_cast<int>(actualSize));
+		routine = new LLVMRoutine(static_cast<int>(actualSize));
 
-		return (uint8_t*)routine->getBuffer();
+		return (uint8_t*)routine->buffer;
 	}
 
-	void RoutineManager::endFunctionBody(const llvm::Function *function, uint8_t *functionStart, uint8_t *functionEnd)
+	void LLVMRoutineManager::endFunctionBody(const llvm::Function *function, uint8_t *functionStart, uint8_t *functionEnd)
 	{
-		routine->setFunctionSize(static_cast<int>(static_cast<ptrdiff_t>(functionEnd - functionStart)));
+		routine->functionSize = static_cast<int>(static_cast<ptrdiff_t>(functionEnd - functionStart));
 	}
 
-	uint8_t *RoutineManager::startExceptionTable(const llvm::Function* F, uintptr_t &ActualSize)
-	{
-		UNIMPLEMENTED();
-		return 0;
-	}
-
-	void RoutineManager::endExceptionTable(const llvm::Function *F, uint8_t *TableStart, uint8_t *TableEnd, uint8_t* FrameRegister)
+	uint8_t *LLVMRoutineManager::startExceptionTable(const llvm::Function* F, uintptr_t &ActualSize)
 	{
 		UNIMPLEMENTED();
+		return nullptr;
 	}
 
-	uint8_t *RoutineManager::getGOTBase() const
+	void LLVMRoutineManager::endExceptionTable(const llvm::Function *F, uint8_t *TableStart, uint8_t *TableEnd, uint8_t* FrameRegister)
+	{
+		UNIMPLEMENTED();
+	}
+
+	uint8_t *LLVMRoutineManager::getGOTBase() const
 	{
 		ASSERT(!HasGOT);
-		return 0;
+		return nullptr;
 	}
 
-	uint8_t *RoutineManager::allocateSpace(intptr_t Size, unsigned Alignment)
+	uint8_t *LLVMRoutineManager::allocateSpace(intptr_t Size, unsigned Alignment)
 	{
 		UNIMPLEMENTED();
-		return 0;
+		return nullptr;
 	}
 
-	uint8_t *RoutineManager::allocateGlobal(uintptr_t Size, unsigned Alignment)
+	uint8_t *LLVMRoutineManager::allocateGlobal(uintptr_t Size, unsigned Alignment)
 	{
 		UNIMPLEMENTED();
-		return 0;
+		return nullptr;
 	}
 
-	void RoutineManager::deallocateFunctionBody(void *Body)
+	void LLVMRoutineManager::deallocateFunctionBody(void *Body)
 	{
 		delete routine;
-		routine = 0;
+		routine = nullptr;
 	}
 
-	void RoutineManager::deallocateExceptionTable(void *ET)
+	void LLVMRoutineManager::deallocateExceptionTable(void *ET)
 	{
 		if(ET)
 		{
@@ -122,26 +122,26 @@ namespace sw
 		}
 	}
 
-	void RoutineManager::setMemoryWritable()
+	void LLVMRoutineManager::setMemoryWritable()
 	{
 	}
 
-	void RoutineManager::setMemoryExecutable()
+	void LLVMRoutineManager::setMemoryExecutable()
 	{
 		markExecutable(routine->buffer, routine->bufferSize);
 	}
 
-	void RoutineManager::setPoisonMemory(bool poison)
+	void LLVMRoutineManager::setPoisonMemory(bool poison)
 	{
 		UNIMPLEMENTED();
 	}
 
-	Routine *RoutineManager::acquireRoutine(void *entry)
+	LLVMRoutine *LLVMRoutineManager::acquireRoutine(void *entry)
 	{
 		routine->entry = entry;
 
-		Routine *result = routine;
-		routine = 0;
+		LLVMRoutine *result = routine;
+		routine = nullptr;
 
 		return result;
 	}

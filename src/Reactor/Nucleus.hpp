@@ -34,6 +34,7 @@ namespace sw
 	class Value;
 	class Constant;
 	class BasicBlock;
+	class Routine;
 
 	enum Optimization
 	{
@@ -52,10 +53,6 @@ namespace sw
 	};
 
 	extern Optimization optimization[10];
-
-	class Routine;
-	class RoutineManager;
-	class Builder;
 
 	class Nucleus
 	{

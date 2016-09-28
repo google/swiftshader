@@ -12,27 +12,35 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef sw_Routine_hpp
-#define sw_Routine_hpp
+#include "LLVMRoutine.hpp"
+
+#include "../Common/Memory.hpp"
+#include "../Common/Thread.hpp"
+#include "../Common/Types.hpp"
 
 namespace sw
 {
-	class Routine
+	LLVMRoutine::LLVMRoutine(int bufferSize) : bufferSize(bufferSize)
 	{
-	public:
-		Routine();
+		void *memory = allocateExecutable(bufferSize);
 
-		virtual ~Routine();
+		buffer = memory;
+		entry = memory;
+		functionSize = bufferSize;   // Updated by LLVMRoutineManager::endFunctionBody
+	}
 
-		virtual const void *getEntry() = 0;
+	LLVMRoutine::~LLVMRoutine()
+	{
+		deallocateExecutable(buffer, bufferSize);
+	}
 
-		// Reference counting
-		void bind();
-		void unbind();
+	const void *LLVMRoutine::getEntry()
+	{
+		return entry;
+	}
 
-	private:
-		volatile int bindCount;
-	};
+	int LLVMRoutine::getCodeSize()
+	{
+		return functionSize - static_cast<int>((uintptr_t)entry - (uintptr_t)buffer);
+	}
 }
-
-#endif   // sw_Routine_hpp

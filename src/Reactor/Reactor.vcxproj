@@ -266,15 +266,17 @@
     </ProjectReference>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="LLVMRoutine.cpp" />
+    <ClCompile Include="LLVMRoutineManager.cpp" />
     <ClCompile Include="Nucleus.cpp" />
     <ClCompile Include="Routine.cpp" />
-    <ClCompile Include="RoutineManager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="LLVMRoutine.hpp" />
+    <ClInclude Include="LLVMRoutineManager.hpp" />
     <ClInclude Include="Nucleus.hpp" />
     <ClInclude Include="Reactor.hpp" />
     <ClInclude Include="Routine.hpp" />
-    <ClInclude Include="RoutineManager.hpp" />
     <ClInclude Include="x86.hpp" />
   </ItemGroup>
   <ItemGroup>

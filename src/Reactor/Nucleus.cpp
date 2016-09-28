@@ -29,8 +29,8 @@
 #include "llvm/Support/TargetSelect.h"
 #include "../lib/ExecutionEngine/JIT/JIT.h"
 
-#include "Routine.hpp"
-#include "RoutineManager.hpp"
+#include "LLVMRoutine.hpp"
+#include "LLVMRoutineManager.hpp"
 #include "x86.hpp"
 #include "CPUID.hpp"
 #include "Thread.hpp"
@@ -60,7 +60,7 @@ namespace llvm
 
 namespace
 {
-	sw::RoutineManager *routineManager = nullptr;
+	sw::LLVMRoutineManager *routineManager = nullptr;
 	llvm::ExecutionEngine *executionEngine = nullptr;
 	llvm::IRBuilder<> *builder = nullptr;
 	llvm::LLVMContext *context = nullptr;
@@ -118,7 +118,7 @@ namespace sw
 		}
 
 		::module = new Module("", *::context);
-		::routineManager = new RoutineManager();
+		::routineManager = new LLVMRoutineManager();
 
 		#if defined(__x86_64__)
 			const char *architecture = "x86-64";
@@ -205,7 +205,7 @@ namespace sw
 		}
 
 		void *entry = ::executionEngine->getPointerToFunction(::function);
-		Routine *routine = ::routineManager->acquireRoutine(entry);
+		LLVMRoutine *routine = ::routineManager->acquireRoutine(entry);
 
 		if(CodeAnalystLogJITCode)
 		{

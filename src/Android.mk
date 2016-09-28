@@ -38,7 +38,8 @@ COMMON_SRC_FILES += \
 COMMON_SRC_FILES += \
 	Reactor/Nucleus.cpp \
 	Reactor/Routine.cpp \
-	Reactor/RoutineManager.cpp
+	Reactor/LLVMRoutine.cpp \
+	Reactor/LLVMRoutineManager.cpp
 
 COMMON_SRC_FILES += \
 	Renderer/Blitter.cpp \

@@ -43,7 +43,8 @@ source_set("swiftshader_reactor") {
   sources = [
     "Nucleus.cpp",
     "Routine.cpp",
-    "RoutineManager.cpp",
+    "LLVMRoutine.cpp",
+    "LLVMRoutineManager.cpp",
   ]
 
   if (is_win) {
