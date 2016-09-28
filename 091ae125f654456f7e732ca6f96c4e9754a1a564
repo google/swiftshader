@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "25ccbff8_b5882ad8",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1399,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-09-28T13:18:30Z",
+      "side": 1,
+      "message": "Other cases can\u0027t happen? I assume not, but just checking.",
+      "range": {
+        "startLine": 1399,
+        "startChar": 4,
+        "endLine": 1399,
+        "endChar": 29
+      },
+      "revId": "091ae125f654456f7e732ca6f96c4e9754a1a564",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
