@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "25ccbff8_fb87336a",
+        "filename": "src/Reactor/Nucleus.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 480,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-09-28T18:21:06Z",
+      "side": 0,
+      "message": "Oh, I was assuming this would be fixed in a newer version of LLVM or SubZero.",
+      "range": {
+        "startLine": 480,
+        "startChar": 4,
+        "endLine": 480,
+        "endChar": 46
+      },
+      "revId": "d6a75646420d2c4418300bd35a93382459447e06",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
