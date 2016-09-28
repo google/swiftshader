@@ -1286,6 +1286,7 @@ template <> void InstMIPS32Movn::emitIAS(const Cfg *Func) const;
 template <> void InstMIPS32Movn_d::emitIAS(const Cfg *Func) const;
 template <> void InstMIPS32Movn_s::emitIAS(const Cfg *Func) const;
 template <> void InstMIPS32Movt::emitIAS(const Cfg *Func) const;
+template <> void InstMIPS32Movz::emitIAS(const Cfg *Func) const;
 template <> void InstMIPS32Movz_d::emitIAS(const Cfg *Func) const;
 template <> void InstMIPS32Movz_s::emitIAS(const Cfg *Func) const;
 template <> void InstMIPS32Mtc1::emit(const Cfg *Func) const;

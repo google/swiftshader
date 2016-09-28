@@ -994,6 +994,11 @@ template <> void InstMIPS32Movt::emitIAS(const Cfg *Func) const {
   Asm->movt(getDest(), getSrc(1), getSrc(2));
 }
 
+template <> void InstMIPS32Movz::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
+  Asm->movz(getDest(), getSrc(0), getSrc(1));
+}
+
 template <> void InstMIPS32Movz_d::emitIAS(const Cfg *Func) const {
   auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
   Asm->movz_d(getDest(), getSrc(0), getSrc(1));

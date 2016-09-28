@@ -709,6 +709,12 @@ void AssemblerMIPS32::movz_d(const Operand *OpFd, const Operand *OpFs,
   emitCOP1FmtFtFsFd(Opcode, SinglePrecision, OpFd, OpFs, OpFt, "movz.d");
 }
 
+void AssemblerMIPS32::movz(const Operand *OpRd, const Operand *OpRs,
+                           const Operand *OpRt) {
+  static constexpr IValueT Opcode = 0x0000000A;
+  emitRdRsRt(Opcode, OpRd, OpRs, OpRt, "movz");
+}
+
 void AssemblerMIPS32::movz_s(const Operand *OpFd, const Operand *OpFs,
                              const Operand *OpFt) {
   static constexpr IValueT Opcode = 0x44000012;

@@ -191,6 +191,8 @@ public:
 
   void movt(const Operand *OpRd, const Operand *OpRs, const Operand *OpCc);
 
+  void movz(const Operand *OpRd, const Operand *OpRs, const Operand *OpRt);
+
   void movz_d(const Operand *OpFd, const Operand *OpFs, const Operand *OpFt);
 
   void movz_s(const Operand *OpFd, const Operand *OpFs, const Operand *OpFt);
