@@ -603,7 +603,7 @@ namespace sw
 		if(stream.count < 1) v.x = Float4(0.0f);
 		if(stream.count < 2) v.y = Float4(0.0f);
 		if(stream.count < 3) v.z = Float4(0.0f);
-		if(stream.count < 4) v.w = isNativeFloatAttrib ? Float4(1.0f) : As<Float4>(Int4(0));
+		if(stream.count < 4) v.w = isNativeFloatAttrib ? As<Float4>(Float4(1.0f)) : As<Float4>(Int4(0));
 
 		return v;
 	}
