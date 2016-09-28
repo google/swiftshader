@@ -1270,6 +1270,7 @@ template <> void InstMIPS32Cvt_s_w::emitIAS(const Cfg *Func) const;
 template <> void InstMIPS32Div::emitIAS(const Cfg *Func) const;
 template <> void InstMIPS32Div_d::emitIAS(const Cfg *Func) const;
 template <> void InstMIPS32Div_s::emitIAS(const Cfg *Func) const;
+template <> void InstMIPS32Divu::emitIAS(const Cfg *Func) const;
 template <> void InstMIPS32Lui::emit(const Cfg *Func) const;
 template <> void InstMIPS32Lui::emitIAS(const Cfg *Func) const;
 template <> void InstMIPS32Lw::emitIAS(const Cfg *Func) const;

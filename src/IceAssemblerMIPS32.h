@@ -163,6 +163,8 @@ public:
 
   void div_s(const Operand *OpFd, const Operand *OpFs, const Operand *OpFt);
 
+  void divu(const Operand *OpRs, const Operand *OpRt);
+
   void lui(const Operand *OpRt, const uint16_t Imm);
 
   void lw(const Operand *OpRt, const Operand *OpBase, const uint32_t Offset);

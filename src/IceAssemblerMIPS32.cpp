@@ -537,6 +537,11 @@ void AssemblerMIPS32::div_s(const Operand *OpFd, const Operand *OpFs,
   emitCOP1FmtFtFsFd(Opcode, SinglePrecision, OpFd, OpFs, OpFt, "div.s");
 }
 
+void AssemblerMIPS32::divu(const Operand *OpRs, const Operand *OpRt) {
+  static constexpr IValueT Opcode = 0x0000001B;
+  emitRsRt(Opcode, OpRs, OpRt, "divu");
+}
+
 void AssemblerMIPS32::lui(const Operand *OpRt, const uint16_t Imm) {
   IValueT Opcode = 0x3C000000;
   const IValueT Rt = encodeGPRegister(OpRt, "Rt", "lui");

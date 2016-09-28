@@ -912,6 +912,11 @@ template <> void InstMIPS32Div_s::emitIAS(const Cfg *Func) const {
   Asm->div_s(getDest(), getSrc(0), getSrc(1));
 }
 
+template <> void InstMIPS32Divu::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
+  Asm->divu(getDest(), getSrc(0));
+}
+
 template <> void InstMIPS32Lui::emitIAS(const Cfg *Func) const {
   auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
   auto *C32 = llvm::dyn_cast<ConstantInteger32>(getSrc(0));
