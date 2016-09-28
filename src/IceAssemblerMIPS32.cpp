@@ -845,6 +845,12 @@ void AssemblerMIPS32::srl(const Operand *OpRd, const Operand *OpRt,
   emitRdRtSa(Opcode, OpRd, OpRt, Sa, "srl");
 }
 
+void AssemblerMIPS32::srav(const Operand *OpRd, const Operand *OpRt,
+                           const Operand *OpRs) {
+  static constexpr IValueT Opcode = 0x00000007;
+  emitRdRsRt(Opcode, OpRd, OpRs, OpRt, "srav");
+}
+
 void AssemblerMIPS32::srlv(const Operand *OpRd, const Operand *OpRt,
                            const Operand *OpRs) {
   static constexpr IValueT Opcode = 0x00000006;

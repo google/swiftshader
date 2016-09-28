@@ -1139,6 +1139,11 @@ template <> void InstMIPS32Sra::emitIAS(const Cfg *Func) const {
   Asm->sra(getDest(), getSrc(0), Imm);
 }
 
+template <> void InstMIPS32Srav::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
+  Asm->srav(getDest(), getSrc(0), getSrc(1));
+}
+
 template <> void InstMIPS32Srl::emitIAS(const Cfg *Func) const {
   auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
   Asm->srl(getDest(), getSrc(0), Imm);

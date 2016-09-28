@@ -237,6 +237,8 @@ public:
 
   void sra(const Operand *OpRd, const Operand *OpRt, const uint32_t Sa);
 
+  void srav(const Operand *OpRd, const Operand *OpRt, const Operand *OpRs);
+
   void srl(const Operand *OpRd, const Operand *OpRt, const uint32_t Sa);
 
   void srlv(const Operand *OpRd, const Operand *OpRt, const Operand *OpRs);

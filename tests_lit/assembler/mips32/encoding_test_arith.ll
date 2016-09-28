@@ -162,3 +162,35 @@ define internal i32 @test_02(i32 %a) {
 ; IASM-NEXT:	.byte 0x0
 ; IASM-NEXT:	.byte 0x0
 ; IASM-NEXT:	.byte 0x0
+
+define internal i32 @ashrImm(i32 %val, i32 %shift) {
+entry:
+  %result = ashr i32 %val, %shift
+  ret i32 %result
+}
+
+; ASM-LABEL: ashrImm:
+; ASM-NEXT: .LashrImm$entry:
+; ASM-NEXT: 	srav	$a0, $a0, $a1
+; ASM-NEXT: 	move	$v0, $a0
+; ASM-NEXT: 	jr	$ra
+
+; DIS-LABEL: <ashrImm>:
+; DIS-NEXT:  00a42007 	srav	a0,a0,a1
+; DIS-NEXT:  00801021 	move	v0,a0
+; DIS-NEXT:  03e00008 	jr	ra
+
+; IASM-LABEL: ashrImm:
+; IASM-NEXT: .LashrImm$entry:
+; IASM-NEXT: 	.byte 0x7
+; IASM-NEXT: 	.byte 0x20
+; IASM-NEXT: 	.byte 0xa4
+; IASM-NEXT: 	.byte 0x0
+; IASM-NEXT: 	.byte 0x21
+; IASM-NEXT: 	.byte 0x10
+; IASM-NEXT: 	.byte 0x80
+; IASM-NEXT: 	.byte 0x0
+; IASM-NEXT: 	.byte 0x8
+; IASM-NEXT: 	.byte 0x0
+; IASM-NEXT: 	.byte 0xe0
+; IASM-NEXT: 	.byte 0x3
