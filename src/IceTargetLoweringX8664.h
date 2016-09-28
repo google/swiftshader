@@ -42,7 +42,9 @@ public:
   }
 
   std::unique_ptr<::Ice::Assembler> createAssembler() const override {
-    const bool EmitAddrSizeOverridePrefix = !NeedSandboxing;
+    const bool EmitAddrSizeOverridePrefix =
+        !NeedSandboxing &&
+        getFlags().getApplicationBinaryInterface() == ABI_PNaCl;
     return makeUnique<X8664::AssemblerX8664>(EmitAddrSizeOverridePrefix);
   }
 
