@@ -1284,10 +1284,7 @@ bool Context::bindSampler(GLuint unit, GLuint sampler)
 
 	Sampler* samplerObject = getSampler(sampler);
 
-	if(sampler)
-	{
-		mState.sampler[unit] = samplerObject;
-	}
+	mState.sampler[unit] = samplerObject;
 
 	return !!samplerObject;
 }
