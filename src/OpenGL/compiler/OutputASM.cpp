@@ -1337,17 +1337,20 @@ namespace glsl
 			if(visit == PostVisit)
 			{
 				int component = 0;
-
+				int arrayMaxIndex = result->isArray() ? result->getArraySize() - 1 : 0;
+				int arrayComponents = result->getType().getElementSize();
 				for(size_t i = 0; i < argumentCount; i++)
 				{
 					TIntermTyped *argi = arg[i]->getAsTyped();
 					int size = argi->getNominalSize();
+					int arrayIndex = std::min(component / arrayComponents, arrayMaxIndex);
+					int swizzle = component - (arrayIndex * arrayComponents);
 
 					if(!argi->isMatrix())
 					{
-						Instruction *mov = emitCast(result, argi);
-						mov->dst.mask = (0xF << component) & 0xF;
-						mov->src[0].swizzle = readSwizzle(argi, size) << (component * 2);
+						Instruction *mov = emitCast(result, arrayIndex, argi, 0);
+						mov->dst.mask = (0xF << swizzle) & 0xF;
+						mov->src[0].swizzle = readSwizzle(argi, size) << (swizzle * 2);
 
 						component += size;
 					}
@@ -1357,9 +1360,9 @@ namespace glsl
 
 						while(component < resultType.getNominalSize())
 						{
-							Instruction *mov = emitCast(result, 0, argi, column);
-							mov->dst.mask = (0xF << component) & 0xF;
-							mov->src[0].swizzle = readSwizzle(argi, size) << (component * 2);
+							Instruction *mov = emitCast(result, arrayIndex, argi, column);
+							mov->dst.mask = (0xF << swizzle) & 0xF;
+							mov->src[0].swizzle = readSwizzle(argi, size) << (swizzle * 2);
 
 							column++;
 							component += size;
@@ -1395,22 +1398,28 @@ namespace glsl
 				}
 				else if(arg0->isMatrix())
 				{
-					const int inCols = arg0->getNominalSize();
-					const int inRows = arg0->getSecondarySize();
+					int arraySize = result->isArray() ? result->getArraySize() : 1;
 
-					for(int i = 0; i < outCols; i++)
+					for(int n = 0; n < arraySize; n++)
 					{
-						if(i >= inCols || outRows > inRows)
-						{
-							// Initialize to identity matrix
-							Constant col((i == 0 ? 1.0f : 0.0f), (i == 1 ? 1.0f : 0.0f), (i == 2 ? 1.0f : 0.0f), (i == 3 ? 1.0f : 0.0f));
-							emitCast(result, i, &col, 0);
-						}
+						TIntermTyped *argi = arg[n]->getAsTyped();
+						const int inCols = argi->getNominalSize();
+						const int inRows = argi->getSecondarySize();
 
-						if(i < inCols)
+						for(int i = 0; i < outCols; i++)
 						{
-							Instruction *mov = emitCast(result, i, arg0, i);
-							mov->dst.mask = 0xF >> (4 - inRows);
+							if(i >= inCols || outRows > inRows)
+							{
+								// Initialize to identity matrix
+								Constant col((i == 0 ? 1.0f : 0.0f), (i == 1 ? 1.0f : 0.0f), (i == 2 ? 1.0f : 0.0f), (i == 3 ? 1.0f : 0.0f));
+								emitCast(result, i + n * outCols, &col, 0);
+							}
+
+							if(i < inCols)
+							{
+								Instruction *mov = emitCast(result, i + n * outCols, argi, i);
+								mov->dst.mask = 0xF >> (4 - inRows);
+							}
 						}
 					}
 				}

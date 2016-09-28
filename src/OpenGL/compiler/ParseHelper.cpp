@@ -2076,7 +2076,23 @@ TIntermTyped* TParseContext::addConstructor(TIntermNode* arguments, const TType*
 		aggregateArguments->getSequence().push_back(arguments);
 	}
 
-	if(op == EOpConstructStruct)
+	if(type->isArray())
+	{
+		// GLSL ES 3.00 section 5.4.4: Each argument must be the same type as the element type of
+		// the array.
+		for(TIntermNode *&argNode : aggregateArguments->getSequence())
+		{
+			const TType &argType = argNode->getAsTyped()->getType();
+			// It has already been checked that the argument is not an array.
+			ASSERT(!argType.isArray());
+			if(!argType.sameElementType(*type))
+			{
+				error(line, "Array constructor argument has an incorrect type", "Error");
+				return false;
+			}
+		}
+	}
+	else if(op == EOpConstructStruct)
 	{
 		const TFieldList &fields = type->getStruct()->fields();
 		TIntermSequence &args = aggregateArguments->getSequence();
