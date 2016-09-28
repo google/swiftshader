@@ -76,6 +76,11 @@ namespace sw
 		return reinterpret_cast<Constant*>(c);
 	}
 
+	BasicBlock *B(Ice::CfgNode *b)
+	{
+		return reinterpret_cast<BasicBlock*>(b);
+	}
+
 	Optimization optimization[10] = {InstructionCombining, Disabled};
 
 	void *loadImage(uint8_t *const elfImage)
@@ -273,18 +278,18 @@ namespace sw
 
 	BasicBlock *Nucleus::createBasicBlock()
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		return B(::function->makeNode());
 	}
 
 	BasicBlock *Nucleus::getInsertBlock()
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		return B(::basicBlock);
 	}
 
 	void Nucleus::setInsertBlock(BasicBlock *basicBlock)
 	{
-		assert(!basicBlock->getInsts().back().getTerminatorEdges().empty() && "Previous basic block must have a terminator");
-		assert(false && "UNIMPLEMENTED"); return;
+		assert(::basicBlock->getInsts().back().getTerminatorEdges().size() >= 0 && "Previous basic block must have a terminator");
+		::basicBlock = basicBlock;
 	}
 
 	BasicBlock *Nucleus::getPredecessor(BasicBlock *basicBlock)
@@ -326,12 +331,14 @@ namespace sw
 
 	void Nucleus::createBr(BasicBlock *dest)
 	{
-		assert(false && "UNIMPLEMENTED");
+		auto br = Ice::InstBr::create(::function, dest);
+		::basicBlock->appendInst(br);
 	}
 
 	void Nucleus::createCondBr(Value *cond, BasicBlock *ifTrue, BasicBlock *ifFalse)
 	{
-		assert(false && "UNIMPLEMENTED");
+		auto br = Ice::InstBr::create(::function, cond, ifTrue, ifFalse);
+		::basicBlock->appendInst(br);
 	}
 
 	Value *Nucleus::createAdd(Value *lhs, Value *rhs)
@@ -585,7 +592,13 @@ namespace sw
 
 	Value *Nucleus::createICmpSLT(Value *lhs, Value *rhs)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		assert(lhs->getType() == rhs->getType());
+
+		auto result = ::function->makeVariable(Ice::IceType_i1);
+		auto cmp = Ice::InstIcmp::create(::function, Ice::InstIcmp::Slt, result, lhs, rhs);
+		::basicBlock->appendInst(cmp);
+
+		return V(result);
 	}
 
 	Value *Nucleus::createICmpSLE(Value *lhs, Value *rhs)
@@ -3406,7 +3419,13 @@ namespace sw
 
 	RValue<Int> operator++(const Int &val, int)   // Post-increment
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<Int>(V(nullptr));
+		auto oldValue = val.loadValue();
+		auto newValue = ::function->makeVariable(Ice::IceType_i32);
+		auto inc = Ice::InstArithmetic::create(::function, Ice::InstArithmetic::Add, newValue, oldValue, ::context->getConstantInt32(1));
+		::basicBlock->appendInst(inc);
+		val.storeValue(V(newValue));
+
+		return RValue<Int>(oldValue);
 	}
 
 	const Int &operator++(const Int &val)   // Pre-increment
