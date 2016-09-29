@@ -18,6 +18,21 @@
 
 using namespace sw;
 
+int reference(int *p, int y)
+{
+	int x = *p;
+	int z = 4;
+
+	for(int i = 0; i < 10; i++)
+	{
+		z += (2 << i) - (i / 3);
+	}
+
+	int sum = x + y + z;
+   
+	return sum;
+}
+
 int main()
 {
 	Routine *routine = nullptr;
@@ -32,7 +47,7 @@ int main()
 
 			For(Int i = 0, i < 10, i++)
 			{
-				z += 2;
+				z += (2 << i) - (i / 3);
 			}
 
 			Int sum = x + y + z;
@@ -44,10 +59,10 @@ int main()
 
 		if(routine)
 		{
-			int (*add)(int*, int) = (int(*)(int*,int))routine->getEntry();
+			int (*callable)(int*, int) = (int(*)(int*,int))routine->getEntry();
 			int one = 1;
-			int result = add(&one, 2);
-			assert(result == 27);
+			int result = callable(&one, 2);
+			assert(result == reference(&one, 2));
 		}
 	}
 

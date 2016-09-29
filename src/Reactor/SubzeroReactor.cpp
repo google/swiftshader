@@ -341,97 +341,105 @@ namespace sw
 		::basicBlock->appendInst(br);
 	}
 
+	static Value *createArithmetic(Ice::InstArithmetic::OpKind op, Value *lhs, Value *rhs)
+	{
+		assert(lhs->getType() == rhs->getType());
+
+		Ice::Variable *result = ::function->makeVariable(lhs->getType());
+		Ice::InstArithmetic *arithmetic = Ice::InstArithmetic::create(::function, op, result, lhs, rhs);
+		::basicBlock->appendInst(arithmetic);
+
+		return V(result);
+	}
+
 	Value *Nucleus::createAdd(Value *lhs, Value *rhs)
 	{
-		Ice::Variable *sum = ::function->makeVariable(Ice::IceType_i32);
-		Ice::InstArithmetic *add = Ice::InstArithmetic::create(::function, Ice::InstArithmetic::Add, sum, lhs, rhs);
-		::basicBlock->appendInst(add);
-		return V(sum);
+		return createArithmetic(Ice::InstArithmetic::Add, lhs, rhs);
 	}
 
 	Value *Nucleus::createSub(Value *lhs, Value *rhs)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		return createArithmetic(Ice::InstArithmetic::Sub, lhs, rhs);
 	}
 
 	Value *Nucleus::createMul(Value *lhs, Value *rhs)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		return createArithmetic(Ice::InstArithmetic::Mul, lhs, rhs);
 	}
 
 	Value *Nucleus::createUDiv(Value *lhs, Value *rhs)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		return createArithmetic(Ice::InstArithmetic::Udiv, lhs, rhs);
 	}
 
 	Value *Nucleus::createSDiv(Value *lhs, Value *rhs)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		return createArithmetic(Ice::InstArithmetic::Sdiv, lhs, rhs);
 	}
 
 	Value *Nucleus::createFAdd(Value *lhs, Value *rhs)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		return createArithmetic(Ice::InstArithmetic::Fadd, lhs, rhs);
 	}
 
 	Value *Nucleus::createFSub(Value *lhs, Value *rhs)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		return createArithmetic(Ice::InstArithmetic::Fsub, lhs, rhs);
 	}
 
 	Value *Nucleus::createFMul(Value *lhs, Value *rhs)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		return createArithmetic(Ice::InstArithmetic::Fmul, lhs, rhs);
 	}
 
 	Value *Nucleus::createFDiv(Value *lhs, Value *rhs)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		return createArithmetic(Ice::InstArithmetic::Fdiv, lhs, rhs);
 	}
 
 	Value *Nucleus::createURem(Value *lhs, Value *rhs)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		return createArithmetic(Ice::InstArithmetic::Urem, lhs, rhs);
 	}
 
 	Value *Nucleus::createSRem(Value *lhs, Value *rhs)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		return createArithmetic(Ice::InstArithmetic::Srem, lhs, rhs);
 	}
 
 	Value *Nucleus::createFRem(Value *lhs, Value *rhs)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		return createArithmetic(Ice::InstArithmetic::Frem, lhs, rhs);
 	}
 
 	Value *Nucleus::createShl(Value *lhs, Value *rhs)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		return createArithmetic(Ice::InstArithmetic::Shl, lhs, rhs);
 	}
 
 	Value *Nucleus::createLShr(Value *lhs, Value *rhs)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		return createArithmetic(Ice::InstArithmetic::Lshr, lhs, rhs);
 	}
 
 	Value *Nucleus::createAShr(Value *lhs, Value *rhs)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		return createArithmetic(Ice::InstArithmetic::Ashr, lhs, rhs);
 	}
 
 	Value *Nucleus::createAnd(Value *lhs, Value *rhs)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		return createArithmetic(Ice::InstArithmetic::And, lhs, rhs);
 	}
 
 	Value *Nucleus::createOr(Value *lhs, Value *rhs)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		return createArithmetic(Ice::InstArithmetic::Or, lhs, rhs);
 	}
 
 	Value *Nucleus::createXor(Value *lhs, Value *rhs)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		return createArithmetic(Ice::InstArithmetic::Xor, lhs, rhs);
 	}
 
 	Value *Nucleus::createAssign(Constant *constant)
