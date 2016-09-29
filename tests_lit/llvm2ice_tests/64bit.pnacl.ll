@@ -1361,6 +1361,30 @@ if.end3:                                          ; preds = %if.then2, %if.end
 ; ARM32: bl {{.*}} <func>
 ; ARM32: bx
 
+; MIPS32-LABEL: icmpEq64
+; MIPS32: xor [[T1:.*]],{{.*}},{{.*}}
+; MIPS32: xor [[T2:.*]],{{.*}},{{.*}}
+; MIPS32: or [[T3:.*]],[[T1]],[[T2]]
+; MIPS32-O2: bnez [[T3]],{{.*}}
+; MIPS32-OM1: sltiu [[T4:.*]],[[T3]],1
+; MIPS32-OM1: sw [[T4]],[[MEM:.*]]
+; MIPS32-OM1: lb [[T5:.*]],[[MEM]]
+; MIPS32-OM1: beqz [[T5]],{{.*}}
+; MIPS32-OM1: b {{.*}}
+; MIPS32: jal {{.*}}
+; MIPS32-OM1: b {{.*}}
+; MIPS32: xor [[T1:.*]],{{.*}},{{.*}}
+; MIPS32: xor [[T2:.*]],{{.*}},{{.*}}
+; MIPS32: or [[T3:.*]],[[T1]],[[T2]]
+; MIPS32-O2: bnez [[T3]],{{.*}}
+; MIPS32-OM1: sltiu [[T4:.*]],[[T3]],1
+; MIPS32-OM1: sw [[T4]],[[MEM:.*]]
+; MIPS32-OM1: lb [[T5:.*]],[[MEM]]
+; MIPS32-OM1: beqz [[T5]],{{.*}}
+; MIPS32-OM1: b {{.*}}
+; MIPS32: jal {{.*}}
+; MIPS32-OM1: b {{.*}}
+
 declare void @func()
 
 define internal void @icmpNe64(i64 %a, i64 %b, i64 %c, i64 %d) {
@@ -1431,6 +1455,30 @@ if.end3:                                          ; preds = %if.end, %if.then2
 ; ARM32-O2: beq
 ; ARM32: bl
 
+; MIPS32-LABEL: icmpNe64
+; MIPS32: xor [[T1:.*]],{{.*}},{{.*}}
+; MIPS32: xor [[T2:.*]],{{.*}},{{.*}}
+; MIPS32: or [[T3:.*]],[[T1]],[[T2]]
+; MIPS32-O2: beqz [[T3]],{{.*}}
+; MIPS32-OM1: sltu [[T4:.*]],zero,[[T3]]
+; MIPS32-OM1: sw [[T4]],[[MEM:.*]]
+; MIPS32-OM1: lb [[T5:.*]],[[MEM]]
+; MIPS32-OM1: beqz [[T5]],{{.*}}
+; MIPS32-OM1: b {{.*}}
+; MIPS32: jal {{.*}}
+; MIPS32-OM1: b {{.*}}
+; MIPS32: xor [[T1:.*]],{{.*}},{{.*}}
+; MIPS32: xor [[T2:.*]],{{.*}},{{.*}}
+; MIPS32: or [[T3:.*]],[[T1]],[[T2]]
+; MIPS32-O2: beqz [[T3]],{{.*}}
+; MIPS32-OM1: sltu [[T4:.*]],zero,[[T3]]
+; MIPS32-OM1: sw [[T4]],[[MEM:.*]]
+; MIPS32-OM1: lb [[T5:.*]],[[MEM]]
+; MIPS32-OM1: beqz [[T5]],{{.*}}
+; MIPS32-OM1: b {{.*}}
+; MIPS32: jal {{.*}}
+; MIPS32-OM1: b {{.*}}
+
 define internal void @icmpGt64(i64 %a, i64 %b, i64 %c, i64 %d) {
 entry:
   %cmp = icmp ugt i64 %a, %b
@@ -1484,6 +1532,38 @@ if.end3:                                          ; preds = %if.then2, %if.end
 ; ARM32-OM1: bne
 ; ARM32-O2: bge
 ; ARM32: bl
+
+; MIPS32-LABEL: icmpGt64
+; MIPS32: xor [[T1:.*]],[[A_HI:.*]],[[B_HI:.*]]
+; MIPS32-O2: sltu [[T2:.*]],[[B_HI]],[[A_HI]]
+; MIPS32-O2: xori [[T3:.*]],[[T2]],0x1
+; MIPS32-O2: sltu [[T4:.*]],{{.*}},{{.*}}
+; MIPS32-O2: xori [[T5:.*]],[[T4]],0x1
+; MIPS32-OM1: sltu [[T3:.*]],[[B_HI]],[[A_HI]]
+; MIPS32-OM1: sltu [[T5:.*]],{{.*}},{{.*}}
+; MIPS32: movz [[T3]],[[T5]],[[T1]]
+; MIPS32-O2: bnez [[T3]],{{.*}}
+; MIPS32-OM1: sw [[T3]],[[MEM:.*]]
+; MIPS32-OM1: lb [[T6:.*]],[[MEM]]
+; MIPS32-OM1: beqz [[T6]],{{.*}}
+; MIPS32-OM1: b {{.*}}
+; MIPS32: jal {{.*}}
+; MIPS32-OM1: b {{.*}}
+; MIPS32: xor [[T1:.*]],[[A_HI:.*]],[[B_HI:.*]]
+; MIPS32-O2: slt [[T2:.*]],[[B_HI]],[[A_HI]]
+; MIPS32-O2: xori [[T3:.*]],[[T2]],0x1
+; MIPS32-O2: sltu [[T4:.*]],{{.*}},{{.*}}
+; MIPS32-O2: xori [[T5:.*]],[[T4]],0x1
+; MIPS32-OM1: slt [[T3:.*]],[[B_HI]],[[A_HI]]
+; MIPS32-OM1: sltu [[T5:.*]],{{.*}},{{.*}}
+; MIPS32: movz [[T3]],[[T5]],[[T1]]
+; MIPS32-O2: bnez [[T3]],{{.*}}
+; MIPS32-OM1: sw [[T3]],[[MEM:.*]]
+; MIPS32-OM1: lb [[T6:.*]],[[MEM]]
+; MIPS32-OM1: beqz [[T6]],{{.*}}
+; MIPS32-OM1: b {{.*}}
+; MIPS32: jal {{.*}}
+; MIPS32-OM1: b {{.*}}
 
 define internal void @icmpGe64(i64 %a, i64 %b, i64 %c, i64 %d) {
 entry:
@@ -1539,6 +1619,38 @@ if.end3:                                          ; preds = %if.end, %if.then2
 ; ARM32-O2: blt
 ; ARM32: bl
 
+; MIPS32-LABEL: icmpGe64
+; MIPS32: xor [[T1:.*]],[[A_HI:.*]],[[B_HI:.*]]
+; MIPS32-OM1: sltu [[T2:.*]],[[A_HI]],[[B_HI]]
+; MIPS32-OM1: xori [[T3:.*]],[[T2]],0x1
+; MIPS32-OM1: sltu [[T4:.*]],{{.*}},{{.*}}
+; MIPS32-OM1: xori [[T5:.*]],[[T4]],0x1
+; MIPS32-O2: sltu [[T3:.*]],[[A_HI]],[[B_HI]]
+; MIPS32-O2: sltu [[T5:.*]],{{.*}},{{.*}}
+; MIPS32: movz [[T3]],[[T5]],[[T1]]
+; MIPS32-O2: bnez [[T3]],{{.*}}
+; MIPS32-OM1: sw [[T3]],[[MEM:.*]]
+; MIPS32-OM1: lb [[T6:.*]],[[MEM]]
+; MIPS32-OM1: beqz [[T6]],{{.*}}
+; MIPS32-OM1: b {{.*}}
+; MIPS32: jal {{.*}}
+; MIPS32-OM1: b {{.*}}
+; MIPS32: xor [[T1:.*]],[[A_HI:.*]],[[B_HI:.*]]
+; MIPS32-OM1: slt [[T2:.*]],[[A_HI]],[[B_HI]]
+; MIPS32-OM1: xori [[T3:.*]],[[T2]],0x1
+; MIPS32-OM1: sltu [[T4:.*]],{{.*}},{{.*}}
+; MIPS32-OM1: xori [[T5:.*]],[[T4]],0x1
+; MIPS32-O2: slt [[T3:.*]],[[A_HI]],[[B_HI]]
+; MIPS32-O2: sltu [[T5:.*]],{{.*}},{{.*}}
+; MIPS32: movz [[T3]],[[T5]],[[T1]]
+; MIPS32-O2: bnez [[T3]],{{.*}}
+; MIPS32-OM1: sw [[T3]],[[MEM:.*]]
+; MIPS32-OM1: lb [[T6:.*]],[[MEM]]
+; MIPS32-OM1: beqz [[T6]],{{.*}}
+; MIPS32-OM1: b {{.*}}
+; MIPS32: jal {{.*}}
+; MIPS32-OM1: b {{.*}}
+
 define internal void @icmpLt64(i64 %a, i64 %b, i64 %c, i64 %d) {
 entry:
   %cmp = icmp ult i64 %a, %b
@@ -1593,6 +1705,38 @@ if.end3:                                          ; preds = %if.then2, %if.end
 ; ARM32-O2: bge
 ; ARM32: bl
 
+; MIPS32-LABEL: icmpLt64
+; MIPS32: xor [[T1:.*]],[[A_HI:.*]],[[B_HI:.*]]
+; MIPS32-O2: sltu [[T2:.*]],[[A_HI]],[[B_HI]]
+; MIPS32-O2: xori [[T3:.*]],[[T2]],0x1
+; MIPS32-O2: sltu [[T4:.*]],{{.*}},{{.*}}
+; MIPS32-O2: xori [[T5:.*]],[[T4]],0x1
+; MIPS32-OM1: sltu [[T3:.*]],[[A_HI]],[[B_HI]]
+; MIPS32-OM1: sltu [[T5:.*]],{{.*}},{{.*}}
+; MIPS32: movz [[T3]],[[T5]],[[T1]]
+; MIPS32-O2: bnez [[T3]],{{.*}}
+; MIPS32-OM1: sw [[T3]],[[MEM:.*]]
+; MIPS32-OM1: lb [[T6:.*]],[[MEM]]
+; MIPS32-OM1: beqz [[T6]],{{.*}}
+; MIPS32-OM1: b {{.*}}
+; MIPS32: jal {{.*}}
+; MIPS32-OM1: b {{.*}}
+; MIPS32: xor [[T1:.*]],[[A_HI:.*]],[[B_HI:.*]]
+; MIPS32-O2: slt [[T2:.*]],[[A_HI]],[[B_HI]]
+; MIPS32-O2: xori [[T3:.*]],[[T2]],0x1
+; MIPS32-O2: sltu [[T4:.*]],{{.*}},{{.*}}
+; MIPS32-O2: xori [[T5:.*]],[[T4]],0x1
+; MIPS32-OM1: slt [[T3:.*]],[[A_HI]],[[B_HI]]
+; MIPS32-OM1: sltu [[T5:.*]],{{.*}},{{.*}}
+; MIPS32: movz [[T3]],[[T5]],[[T1]]
+; MIPS32-O2: bnez [[T3]],{{.*}}
+; MIPS32-OM1: sw [[T3]],[[MEM:.*]]
+; MIPS32-OM1: lb [[T6:.*]],[[MEM]]
+; MIPS32-OM1: beqz [[T6]],{{.*}}
+; MIPS32-OM1: b {{.*}}
+; MIPS32: jal {{.*}}
+; MIPS32-OM1: b {{.*}}
+
 define internal void @icmpLe64(i64 %a, i64 %b, i64 %c, i64 %d) {
 entry:
   %cmp = icmp ule i64 %a, %b
@@ -1646,6 +1790,38 @@ if.end3:                                          ; preds = %if.end, %if.then2
 ; ARM32-OM1: bne
 ; ARM32-O2: blt
 ; ARM32: bl
+
+; MIPS32-LABEL: icmpLe64
+; MIPS32: xor [[T1:.*]],[[A_HI:.*]],[[B_HI:.*]]
+; MIPS32-OM1: sltu [[T2:.*]],[[B_HI]],[[A_HI]]
+; MIPS32-OM1: xori [[T3:.*]],[[T2]],0x1
+; MIPS32-OM1: sltu [[T4:.*]],{{.*}},{{.*}}
+; MIPS32-OM1: xori [[T5:.*]],[[T4]],0x1
+; MIPS32-O2: sltu [[T3:.*]],[[B_HI]],[[A_HI]]
+; MIPS32-O2: sltu [[T5:.*]],{{.*}},{{.*}}
+; MIPS32: movz [[T3]],[[T5]],[[T1]]
+; MIPS32-O2: bnez [[T3]],{{.*}}
+; MIPS32-OM1: sw [[T3]],[[MEM:.*]]
+; MIPS32-OM1: lb [[T6:.*]],[[MEM]]
+; MIPS32-OM1: beqz [[T6]],{{.*}}
+; MIPS32-OM1: b {{.*}}
+; MIPS32: jal {{.*}}
+; MIPS32-OM1: b {{.*}}
+; MIPS32: xor [[T1:.*]],[[A_HI:.*]],[[B_HI:.*]]
+; MIPS32-OM1: slt [[T2:.*]],[[B_HI]],[[A_HI]]
+; MIPS32-OM1: xori [[T3:.*]],[[T2]],0x1
+; MIPS32-OM1: sltu [[T4:.*]],{{.*}},{{.*}}
+; MIPS32-OM1: xori [[T5:.*]],[[T4]],0x1
+; MIPS32-O2: slt [[T3:.*]],[[B_HI]],[[A_HI]]
+; MIPS32-O2: sltu [[T5:.*]],{{.*}},{{.*}}
+; MIPS32: movz [[T3]],[[T5]],[[T1]]
+; MIPS32-O2: bnez [[T3]],{{.*}}
+; MIPS32-OM1: sw [[T3]],[[MEM:.*]]
+; MIPS32-OM1: lb [[T6:.*]],[[MEM]]
+; MIPS32-OM1: beqz [[T6]],{{.*}}
+; MIPS32-OM1: b {{.*}}
+; MIPS32: jal {{.*}}
+; MIPS32-OM1: b {{.*}}
 
 define internal i32 @icmpEq64Bool(i64 %a, i64 %b) {
 entry:

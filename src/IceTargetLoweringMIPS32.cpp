@@ -2239,63 +2239,207 @@ void TargetMIPS32::lowerBr(const InstBr *Instr) {
     Operand *Src1 = CompareInst->getSrc(1);
     const Type Src0Ty = Src0->getType();
     assert(Src0Ty == Src1->getType());
+
+    Variable *Src0R = nullptr;
+    Variable *Src1R = nullptr;
+    Variable *Src0HiR = nullptr;
+    Variable *Src1HiR = nullptr;
     if (Src0Ty == IceType_i64) {
-      UnimplementedLoweringError(this, Instr);
-      return;
+      Src0R = legalizeToReg(loOperand(Src0));
+      Src1R = legalizeToReg(loOperand(Src1));
+      Src0HiR = legalizeToReg(hiOperand(Src0));
+      Src1HiR = legalizeToReg(hiOperand(Src1));
+    } else {
+      Src0R = legalizeToReg(Src0);
+      Src1R = legalizeToReg(Src1);
     }
-    auto *Src0R = legalizeToReg(Src0);
-    auto *Src1R = legalizeToReg(Src1);
-    auto *DestT = makeReg(Src0Ty);
+    auto *DestT = makeReg(IceType_i32);
+
     switch (CompareInst->getCondition()) {
     default:
-      break;
+      llvm_unreachable("unexpected condition");
+      return;
     case InstIcmp::Eq: {
-      _br(TargetTrue, TargetFalse, Src0R, Src1R, CondMIPS32::Cond::NE);
-      break;
+      if (Src0Ty == IceType_i64) {
+        auto *T1 = I32Reg();
+        auto *T2 = I32Reg();
+        auto *T3 = I32Reg();
+        _xor(T1, Src0HiR, Src1HiR);
+        _xor(T2, Src0R, Src1R);
+        _or(T3, T1, T2);
+        _mov(DestT, T3);
+        _br(TargetTrue, TargetFalse, DestT, CondMIPS32::Cond::NEZ);
+      } else {
+        _br(TargetTrue, TargetFalse, Src0R, Src1R, CondMIPS32::Cond::NE);
+      }
+      return;
     }
     case InstIcmp::Ne: {
-      _br(TargetTrue, TargetFalse, Src0R, Src1R, CondMIPS32::Cond::EQ);
-      break;
+      if (Src0Ty == IceType_i64) {
+        auto *T1 = I32Reg();
+        auto *T2 = I32Reg();
+        auto *T3 = I32Reg();
+        _xor(T1, Src0HiR, Src1HiR);
+        _xor(T2, Src0R, Src1R);
+        _or(T3, T1, T2);
+        _mov(DestT, T3);
+        _br(TargetTrue, TargetFalse, DestT, CondMIPS32::Cond::EQZ);
+      } else {
+        _br(TargetTrue, TargetFalse, Src0R, Src1R, CondMIPS32::Cond::EQ);
+      }
+      return;
     }
     case InstIcmp::Ugt: {
-      _sltu(DestT, Src1R, Src0R);
-      _br(TargetTrue, TargetFalse, DestT, CondMIPS32::Cond::EQZ);
-      break;
+      if (Src0Ty == IceType_i64) {
+        auto *T1 = I32Reg();
+        auto *T2 = I32Reg();
+        auto *T3 = I32Reg();
+        auto *T4 = I32Reg();
+        auto *T5 = I32Reg();
+        _xor(T1, Src0HiR, Src1HiR);
+        _sltu(T2, Src1HiR, Src0HiR);
+        _xori(T3, T2, 1);
+        _sltu(T4, Src1R, Src0R);
+        _xori(T5, T4, 1);
+        _movz(T3, T5, T1);
+        _mov(DestT, T3);
+        _br(TargetTrue, TargetFalse, DestT, CondMIPS32::Cond::NEZ);
+      } else {
+        _sltu(DestT, Src1R, Src0R);
+        _br(TargetTrue, TargetFalse, DestT, CondMIPS32::Cond::EQZ);
+      }
+      return;
     }
     case InstIcmp::Uge: {
-      _sltu(DestT, Src0R, Src1R);
-      _br(TargetTrue, TargetFalse, DestT, CondMIPS32::Cond::NEZ);
-      break;
+      if (Src0Ty == IceType_i64) {
+        auto *T1 = I32Reg();
+        auto *T2 = I32Reg();
+        auto *T3 = I32Reg();
+        _xor(T1, Src0HiR, Src1HiR);
+        _sltu(T2, Src0HiR, Src1HiR);
+        _sltu(T3, Src0R, Src1R);
+        _movz(T2, T3, T1);
+        _mov(DestT, T2);
+        _br(TargetTrue, TargetFalse, DestT, CondMIPS32::Cond::NEZ);
+      } else {
+        _sltu(DestT, Src0R, Src1R);
+        _br(TargetTrue, TargetFalse, DestT, CondMIPS32::Cond::NEZ);
+      }
+      return;
     }
     case InstIcmp::Ult: {
-      _sltu(DestT, Src0R, Src1R);
-      _br(TargetTrue, TargetFalse, DestT, CondMIPS32::Cond::EQZ);
-      break;
+      if (Src0Ty == IceType_i64) {
+        auto *T1 = I32Reg();
+        auto *T2 = I32Reg();
+        auto *T3 = I32Reg();
+        auto *T4 = I32Reg();
+        auto *T5 = I32Reg();
+        _xor(T1, Src0HiR, Src1HiR);
+        _sltu(T2, Src0HiR, Src1HiR);
+        _xori(T3, T2, 1);
+        _sltu(T4, Src0R, Src1R);
+        _xori(T5, T4, 1);
+        _movz(T3, T5, T1);
+        _mov(DestT, T3);
+        _br(TargetTrue, TargetFalse, DestT, CondMIPS32::Cond::NEZ);
+      } else {
+        _sltu(DestT, Src0R, Src1R);
+        _br(TargetTrue, TargetFalse, DestT, CondMIPS32::Cond::EQZ);
+      }
+      return;
     }
     case InstIcmp::Ule: {
-      _sltu(DestT, Src1R, Src0R);
-      _br(TargetTrue, TargetFalse, DestT, CondMIPS32::Cond::NEZ);
-      break;
+      if (Src0Ty == IceType_i64) {
+        auto *T1 = I32Reg();
+        auto *T2 = I32Reg();
+        auto *T3 = I32Reg();
+        _xor(T1, Src0HiR, Src1HiR);
+        _sltu(T2, Src1HiR, Src0HiR);
+        _sltu(T3, Src1R, Src0R);
+        _movz(T2, T3, T1);
+        _mov(DestT, T2);
+        _br(TargetTrue, TargetFalse, DestT, CondMIPS32::Cond::NEZ);
+      } else {
+        _sltu(DestT, Src1R, Src0R);
+        _br(TargetTrue, TargetFalse, DestT, CondMIPS32::Cond::NEZ);
+      }
+      return;
     }
     case InstIcmp::Sgt: {
-      _slt(DestT, Src1R, Src0R);
-      _br(TargetTrue, TargetFalse, DestT, CondMIPS32::Cond::EQZ);
-      break;
+      if (Src0Ty == IceType_i64) {
+        auto *T1 = I32Reg();
+        auto *T2 = I32Reg();
+        auto *T3 = I32Reg();
+        auto *T4 = I32Reg();
+        auto *T5 = I32Reg();
+        _xor(T1, Src0HiR, Src1HiR);
+        _slt(T2, Src1HiR, Src0HiR);
+        _xori(T3, T2, 1);
+        _sltu(T4, Src1R, Src0R);
+        _xori(T5, T4, 1);
+        _movz(T3, T5, T1);
+        _mov(DestT, T3);
+        _br(TargetTrue, TargetFalse, DestT, CondMIPS32::Cond::NEZ);
+      } else {
+        _slt(DestT, Src1R, Src0R);
+        _br(TargetTrue, TargetFalse, DestT, CondMIPS32::Cond::EQZ);
+      }
+      return;
     }
     case InstIcmp::Sge: {
-      _slt(DestT, Src0R, Src1R);
-      _br(TargetTrue, TargetFalse, DestT, CondMIPS32::Cond::NEZ);
-      break;
+      if (Src0Ty == IceType_i64) {
+        auto *T1 = I32Reg();
+        auto *T2 = I32Reg();
+        auto *T3 = I32Reg();
+        _xor(T1, Src0HiR, Src1HiR);
+        _slt(T2, Src0HiR, Src1HiR);
+        _sltu(T3, Src0R, Src1R);
+        _movz(T2, T3, T1);
+        _mov(DestT, T2);
+        _br(TargetTrue, TargetFalse, DestT, CondMIPS32::Cond::NEZ);
+      } else {
+        _slt(DestT, Src0R, Src1R);
+        _br(TargetTrue, TargetFalse, DestT, CondMIPS32::Cond::NEZ);
+      }
+      return;
     }
     case InstIcmp::Slt: {
-      _slt(DestT, Src0R, Src1R);
-      _br(TargetTrue, TargetFalse, DestT, CondMIPS32::Cond::EQZ);
-      break;
+      if (Src0Ty == IceType_i64) {
+        auto *T1 = I32Reg();
+        auto *T2 = I32Reg();
+        auto *T3 = I32Reg();
+        auto *T4 = I32Reg();
+        auto *T5 = I32Reg();
+        _xor(T1, Src0HiR, Src1HiR);
+        _slt(T2, Src0HiR, Src1HiR);
+        _xori(T3, T2, 1);
+        _sltu(T4, Src0R, Src1R);
+        _xori(T5, T4, 1);
+        _movz(T3, T5, T1);
+        _mov(DestT, T3);
+        _br(TargetTrue, TargetFalse, DestT, CondMIPS32::Cond::NEZ);
+      } else {
+        _slt(DestT, Src0R, Src1R);
+        _br(TargetTrue, TargetFalse, DestT, CondMIPS32::Cond::EQZ);
+      }
+      return;
     }
     case InstIcmp::Sle: {
-      _slt(DestT, Src1R, Src0R);
-      _br(TargetTrue, TargetFalse, DestT, CondMIPS32::Cond::NEZ);
-      break;
+      if (Src0Ty == IceType_i64) {
+        auto *T1 = I32Reg();
+        auto *T2 = I32Reg();
+        auto *T3 = I32Reg();
+        _xor(T1, Src0HiR, Src1HiR);
+        _slt(T2, Src1HiR, Src0HiR);
+        _sltu(T3, Src1R, Src0R);
+        _movz(T2, T3, T1);
+        _mov(DestT, T2);
+        _br(TargetTrue, TargetFalse, DestT, CondMIPS32::Cond::NEZ);
+      } else {
+        _slt(DestT, Src1R, Src0R);
+        _br(TargetTrue, TargetFalse, DestT, CondMIPS32::Cond::NEZ);
+      }
+      return;
     }
     }
   }
@@ -2913,7 +3057,7 @@ void TargetMIPS32::lower64Icmp(const InstIcmp *Instr) {
   switch (Condition) {
   default:
     llvm_unreachable("unexpected condition");
-    break;
+    return;
   case InstIcmp::Eq: {
     auto *T1 = I32Reg();
     auto *T2 = I32Reg();
