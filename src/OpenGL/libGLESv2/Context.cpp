@@ -3873,7 +3873,7 @@ void Context::setVertexAttrib(GLuint index, const GLuint *values)
 
 void Context::blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1,
                               GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1,
-                              GLbitfield mask)
+                              GLbitfield mask, bool filter)
 {
 	Framebuffer *readFramebuffer = getReadFramebuffer();
 	Framebuffer *drawFramebuffer = getDrawFramebuffer();
@@ -4133,7 +4133,7 @@ void Context::blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1
 				swap(destRect.y0, destRect.y1);
 			}
 
-			bool success = device->stretchRect(readRenderTarget, &sourceRect, drawRenderTarget, &destRect, false);
+			bool success = device->stretchRect(readRenderTarget, &sourceRect, drawRenderTarget, &destRect, filter);
 
 			readRenderTarget->release();
 			drawRenderTarget->release();
