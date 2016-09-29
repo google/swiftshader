@@ -810,31 +810,6 @@ namespace sw
 		return T(llvm::Type::getVoidTy(*::context));
 	}
 
-	LValue::LValue(Type *type, int arraySize) : type(type)
-	{
-		address = Nucleus::allocateStackVariable(type, arraySize);
-	}
-
-	Value *LValue::loadValue(unsigned int alignment) const
-	{
-		return Nucleus::createLoad(address, type, false, alignment);
-	}
-
-	Value *LValue::storeValue(Value *value, unsigned int alignment) const
-	{
-		return Nucleus::createStore(value, address, false, alignment);
-	}
-
-	Value *LValue::storeValue(Constant *constant, unsigned int alignment) const
-	{
-		return Nucleus::createStore(constant, address, false, alignment);
-	}
-
-	Value *LValue::getAddress(Value *index) const
-	{
-		return Nucleus::createGEP(address, index);
-	}
-
 	class MMX : public Variable<MMX>
 	{
 	public:
