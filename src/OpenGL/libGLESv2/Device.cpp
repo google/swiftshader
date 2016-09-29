@@ -460,9 +460,6 @@ namespace es2
 
 	void Device::copyBuffer(sw::byte *sourceBuffer, sw::byte *destBuffer, unsigned int width, unsigned int height, unsigned int sourcePitch, unsigned int destPitch, unsigned int bytes, bool flipX, bool flipY)
 	{
-		unsigned int widthB = width * bytes;
-		unsigned int widthMaxB = widthB - 1;
-
 		if(flipX)
 		{
 			if(flipY)
@@ -470,9 +467,11 @@ namespace es2
 				sourceBuffer += (height - 1) * sourcePitch;
 				for(unsigned int y = 0; y < height; ++y, sourceBuffer -= sourcePitch, destBuffer += destPitch)
 				{
-					for(unsigned int x = 0; x < widthB; ++x)
+					sw::byte *srcX = sourceBuffer + (width - 1) * bytes;
+					sw::byte *dstX = destBuffer;
+					for(unsigned int x = 0; x < width; ++x, dstX += bytes, srcX -= bytes)
 					{
-						destBuffer[x] = sourceBuffer[widthMaxB - x];
+						memcpy(dstX, srcX, bytes);
 					}
 				}
 			}
@@ -480,15 +479,19 @@ namespace es2
 			{
 				for(unsigned int y = 0; y < height; ++y, sourceBuffer += sourcePitch, destBuffer += destPitch)
 				{
-					for(unsigned int x = 0; x < widthB; ++x)
+					sw::byte *srcX = sourceBuffer + (width - 1) * bytes;
+					sw::byte *dstX = destBuffer;
+					for(unsigned int x = 0; x < width; ++x, dstX += bytes, srcX -= bytes)
 					{
-						destBuffer[x] = sourceBuffer[widthMaxB - x];
+						memcpy(dstX, srcX, bytes);
 					}
 				}
 			}
 		}
 		else
 		{
+			unsigned int widthB = width * bytes;
+
 			if(flipY)
 			{
 				sourceBuffer += (height - 1) * sourcePitch;
