@@ -22,6 +22,30 @@
       "revId": "d6a75646420d2c4418300bd35a93382459447e06",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "25ccbff8_52ae2184",
+        "filename": "src/Reactor/Nucleus.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 480,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-09-29T13:14:07Z",
+      "side": 0,
+      "message": "You\u0027re right. I removed it to not have to deal with it when I rebased my Subzero patches, but recent versions of LLVM have a fix for it: http://lists.llvm.org/pipermail/llvm-commits/Week-of-Mon-20150824/295725.html What\u0027s more, AVX-512 has an actual instruction for it, so it would be faster than a Reactor-side workaround. Openened b/31816482, blocked on upgrading LLVM.",
+      "parentUuid": "25ccbff8_fb87336a",
+      "range": {
+        "startLine": 480,
+        "startChar": 4,
+        "endLine": 480,
+        "endChar": 46
+      },
+      "revId": "d6a75646420d2c4418300bd35a93382459447e06",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
