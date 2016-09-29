@@ -88,6 +88,9 @@ namespace sw
 		static Value *createAnd(Value *lhs, Value *rhs);
 		static Value *createOr(Value *lhs, Value *rhs);
 		static Value *createXor(Value *lhs, Value *rhs);
+
+		// Unary operators
+		static Value *createAssign(Constant *c);
 		static Value *createNeg(Value *V);
 		static Value *createFNeg(Value *V);
 		static Value *createNot(Value *V);
@@ -95,7 +98,7 @@ namespace sw
 		// Memory instructions
 		static Value *createLoad(Value *ptr, Type *type, bool isVolatile = false, unsigned int align = 0);
 		static Value *createStore(Value *value, Value *ptr, bool isVolatile = false, unsigned int align = 0);
-		static Value *createStore(Constant *constant, Value *ptr, bool isVolatile = false, unsigned int align = 0);
+		static Constant *createStore(Constant *constant, Value *ptr, bool isVolatile = false, unsigned int align = 0);
 		static Value *createGEP(Value *ptr, Value *index);
 
 		// Atomic instructions

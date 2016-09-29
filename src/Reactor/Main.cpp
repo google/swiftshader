@@ -28,8 +28,9 @@ int main()
 			Pointer<Int> p = function.Arg<0>();
 			Int x = *p;
 			Int y = function.Arg<1>();
-   
-			Int sum = x + y;
+			Int z = 4;
+
+			Int sum = x + y + z;
    
 			Return(sum);
 		}
@@ -41,7 +42,7 @@ int main()
 			int (*add)(int*, int) = (int(*)(int*,int))routine->getEntry();
 			int one = 1;
 			int result = add(&one, 2);
-			assert(result == 3);
+			assert(result == 7);
 		}
 	}
 

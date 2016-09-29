@@ -53,6 +53,7 @@ namespace
 namespace sw
 {
 	class Value : public Ice::Variable {};
+	class Constant : public Ice::Constant {};
 	class BasicBlock : public Ice::CfgNode {};
 
 	Ice::Type T(Type *t)
@@ -68,6 +69,11 @@ namespace sw
 	Value *V(Ice::Variable *v)
 	{
 		return reinterpret_cast<Value*>(v);
+	}
+
+	Constant *C(Ice::Constant *c)
+	{
+		return reinterpret_cast<Constant*>(c);
 	}
 
 	Optimization optimization[10] = {InstructionCombining, Disabled};
@@ -421,6 +427,15 @@ namespace sw
 		assert(false && "UNIMPLEMENTED"); return nullptr;
 	}
 
+	Value *Nucleus::createAssign(Constant *constant)
+	{
+		Ice::Variable *value = ::function->makeVariable(constant->getType());
+		auto assign = Ice::InstAssign::create(::function, value, constant);
+		::basicBlock->appendInst(assign);
+
+		return V(value);
+	}
+
 	Value *Nucleus::createNeg(Value *v)
 	{
 		assert(false && "UNIMPLEMENTED"); return nullptr;
@@ -451,9 +466,11 @@ namespace sw
 		return value;
 	}
 
-	Value *Nucleus::createStore(Constant *constant, Value *ptr, bool isVolatile, unsigned int align)
+	Constant *Nucleus::createStore(Constant *constant, Value *ptr, bool isVolatile, unsigned int align)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		auto store = Ice::InstStore::create(::function, constant, ptr, align);
+		::basicBlock->appendInst(store);
+		return constant;
 	}
 
 	Value *Nucleus::createGEP(Value *ptr, Value *index)
@@ -720,7 +737,7 @@ namespace sw
 
 	Constant *Nucleus::createConstantInt(int i)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		return C(::context->getConstantInt32(i));
 	}
 
 	Constant *Nucleus::createConstantInt(unsigned int i)

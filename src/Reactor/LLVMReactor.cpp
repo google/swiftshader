@@ -433,6 +433,11 @@ namespace sw
 		return V(::builder->CreateXor(lhs, rhs));
 	}
 
+	Value *Nucleus::createAssign(Constant *constant)
+	{
+		return V(constant);
+	}
+
 	Value *Nucleus::createNeg(Value *v)
 	{
 		return V(::builder->CreateNeg(v));
@@ -456,12 +461,14 @@ namespace sw
 
 	Value *Nucleus::createStore(Value *value, Value *ptr, bool isVolatile, unsigned int align)
 	{
-		return V(::builder->Insert(new StoreInst(value, ptr, isVolatile, align)));
+		::builder->Insert(new StoreInst(value, ptr, isVolatile, align));
+		return value;
 	}
 
-	Value *Nucleus::createStore(Constant *constant, Value *ptr, bool isVolatile, unsigned int align)
+	Constant *Nucleus::createStore(Constant *constant, Value *ptr, bool isVolatile, unsigned int align)
 	{
-		return V(::builder->Insert(new StoreInst(constant, ptr, isVolatile, align)));
+		::builder->Insert(new StoreInst(constant, ptr, isVolatile, align));
+		return constant;
 	}
 
 	Value *Nucleus::createGEP(Value *ptr, Value *index)
