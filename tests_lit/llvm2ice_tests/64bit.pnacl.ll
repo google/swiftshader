@@ -36,6 +36,13 @@
 ; RUN:   | %if --need=target_MIPS32 --need=allow_dump \
 ; RUN:   --command FileCheck --check-prefix MIPS32 --check-prefix MIPS32-O2 %s
 
+; RUN: %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command %p2i --filetype=asm --assemble \
+; RUN:   --disassemble --target mips32 -i %s --args -Om1 --skip-unimplemented \
+; RUN:   -allow-externally-defined-symbols \
+; RUN:   | %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command FileCheck --check-prefix MIPS32 --check-prefix MIPS32-OM1 %s
+
 @__init_array_start = internal constant [0 x i8] zeroinitializer, align 4
 @__fini_array_start = internal constant [0 x i8] zeroinitializer, align 4
 @__tls_template_start = internal constant [0 x i8] zeroinitializer, align 8
@@ -47,7 +54,9 @@ entry:
 }
 
 ; MIPS32-LABEL: ignore64BitArg
-; MIPS32: move v0,a2
+; MIPS32-O2: move v0,a2
+; MIPS32-OM1: sw a2,[[MEM:.*]]
+; MIPS32-OM1: lw v0,[[MEM]]
 
 define internal i32 @pass64BitArg(i64 %a, i64 %b, i64 %c, i64 %d, i64 %e, i64 %f) {
 entry:
@@ -203,8 +212,14 @@ entry:
 ; ARM32: bx lr
 
 ; MIPS32-LABEL; return64BitArg
-; MIPS32: move v0,a2
-; MIPS32: move v1,a3
+; MIPS32-O2: move v0,a2
+; MIPS32-O2: move v1,a3
+; MIPS32-OM1: move [[T1:.*]],a2
+; MIPS32-OM1: sw [[T1]],[[MEM1:.*]]
+; MIPS32-OM1: move [[T2:.*]],a3
+; MIPS32-OM1: sw [[T2]],[[MEM2:.*]]
+; MIPS32-OM1: lw v0,[[MEM1]]
+; MIPS32-OM1: lw v1,[[MEM2]]
 ; MIPS32: jr ra
 
 define internal i64 @return64BitConst() {
@@ -531,7 +546,9 @@ entry:
 ; MIPS32: andi	[[T5:.*]],[[B_LO]],0x20
 ; MIPS32: movn	[[T_HI]],[[T_LO]],[[T5]]
 ; MIPS32: movn	[[T1_LO]],zero,[[T5]]
-; MIPS32: move	v1,[[T_HI]]
+; MIPS32-O2: move	v1,[[T_HI]]
+; MIPS32-OM1: sw	[[T_HI]],[[MEM:.*]]
+; MIPS32-OM1: lw        v1,[[MEM]]
 
 define internal i32 @shl64BitSignedTrunc(i64 %a, i64 %b) {
 entry:
@@ -591,7 +608,9 @@ entry:
 ; MIPS32: andi  [[T5:.*]],[[B_LO]],0x20
 ; MIPS32: movn  [[T_HI]],[[T_LO]],[[T5]]
 ; MIPS32: movn  [[T1_LO]],zero,[[T5]]
-; MIPS32: move  v1,[[T_HI]]
+; MIPS32-O2: move       v1,[[T_HI]]
+; MIPS32-OM1: sw        [[T_HI]],[[MEM:.*]]
+; MIPS32-OM1: lw        v1,[[MEM]]
 
 define internal i64 @shr64BitSigned(i64 %a, i64 %b) {
 entry:
@@ -886,9 +905,13 @@ entry:
 ; ARM32: sxth r0, r0
 
 ; MIPS32-LABEL: trunc64To16Signed
-; MIPS32: sll a0,a0,0x10
-; MIPS32: sra a0,a0,0x10
-; MIPS32: move v0,a0
+; MIPS32-O2: sll [[T1:.*]],a0,0x10
+; MIPS32-O2: sra [[T2:.*]],[[T1]],0x10
+; MIPS32-O2: move v0,[[T2]]
+; MIPS32-OM1: sll [[T1:.*]],{{.*}},0x10
+; MIPS32-OM1: sra [[T2:.*]],[[T1]],0x10
+; MIPS32-OM1: sw [[T2]],[[MEM:.*]]
+; MIPS32-OM1: lw v0,[[MEM]]
 
 define internal i32 @trunc64To8Signed(i64 %a) {
 entry:
@@ -908,9 +931,13 @@ entry:
 ; ARM32: sxtb r0, r0
 
 ; MIPS32-LABEL: trunc64To8Signed
-; MIPS32: sll a0,a0,0x18
-; MIPS32: sra a0,a0,0x18
-; MIPS32: move v0,a0
+; MIPS32-O2: sll [[T1:.*]],a0,0x18
+; MIPS32-O2: sra [[T2:.*]],[[T1]],0x18
+; MIPS32-O2: move v0,[[T2]]
+; MIPS32-OM1: sll [[T1:.*]],{{.*}},0x18
+; MIPS32-OM1: sra [[T2:.*]],[[T1]],0x18
+; MIPS32-OM1: sw [[T2]],[[MEM:.*]]
+; MIPS32-OM1: lw v0,[[MEM]]
 
 define internal i32 @trunc64To32SignedConst() {
 entry:
@@ -991,8 +1018,11 @@ entry:
 ; ARM32: uxth
 
 ; MIPS32-LABEL: trunc64To16Unsigned
-; MIPS32: andi a0,a0,0xffff
-; MIPS32: move v0,a0
+; MIPS32-O2: andi [[T1:.*]],a0,0xffff
+; MIPS32-O2: move v0,[[T1]]
+; MIPS32-OM1: andi [[T1:.*]],{{.*}},0xffff
+; MIPS32-OM1: sw [[T1]],[[MEM:.*]]
+; MIPS32-OM1: lw v0,[[MEM]]
 
 define internal i32 @trunc64To8Unsigned(i64 %a) {
 entry:
@@ -1012,8 +1042,11 @@ entry:
 ; ARM32: uxtb
 
 ; MIPS32-LABEL: trunc64To8Unsigned
-; MIPS32: andi a0,a0,0xff
-; MIPS32: move v0,a0
+; MIPS32-O2: andi [[T1:.*]],a0,0xff
+; MIPS32-O2: move v0,[[T1]]
+; MIPS32-OM1: andi [[T1:.*]],{{.*}},0xff
+; MIPS32-OM1: sw [[T1]],[[MEM:.*]]
+; MIPS32-OM1: lw v0,[[MEM]]
 
 define internal i32 @trunc64To1(i64 %a) {
 entry:
@@ -1037,8 +1070,11 @@ entry:
 ; ARM32-O2: and r0, r0, #1
 
 ; MIPS32-LABEL: trunc64To1
-; MIPS32: andi {{.*}},a0,0x1
-; MIPS32: move v0,a0
+; MIPS32-O2: andi [[T1:.*]],a0,0x1
+; MIPS32-O2: move v0,[[T1]]
+; MIPS32-OM1: andi [[T1:.*]],{{.*}},0x1
+; MIPS32-OM1: sw [[T1]],[[MEM:.*]]
+; MIPS32-OM1: lw v0,[[MEM]]
 
 define internal i64 @sext32To64(i32 %a) {
 entry:
@@ -1057,9 +1093,13 @@ entry:
 ; ARM32: asr {{.*}}, #31
 
 ; MIPS32-LABEL: sext32To64
-; MIPS32-LABEL: sra {{.*}},a0,0x1f
-; MIPS32-LABEL: move v1,v0
-; MIPS32-LABEL: move v0,a0
+; MIPS32: sra [[T_HI:.*]],[[T_LO:.*]],0x1f
+; MIPS32-O2: move v1,[[T_HI]]
+; MIPS32-O2: move v0,[[T_LO]]
+; MIPS32-OM1: sw [[T_HI]],[[MEM_HI:.*]]
+; MIPS32-OM1: sw [[T_LO]],[[MEM_LO:.*]]
+; MIPS32-OM1: lw v0,[[MEM_LO]]
+; MIPS32-OM1: lw v1,[[MEM_HI]]
 
 define internal i64 @sext16To64(i32 %a) {
 entry:
@@ -1080,11 +1120,16 @@ entry:
 ; ARM32: asr {{.*}}, #31
 
 ; MIPS32-LABEL: sext16To64
-; MIPS32: sll {{.*}},{{.*}},0x10
-; MIPS32: sra {{.*}},{{.*}},0x10
-; MIPS32: sra {{.*}},{{.*}},0x1f
-; MIPS32: move v1,v0
-; MIPS32: move v0,a0
+; MIPS32: sll [[T1_LO:.*]],{{.*}},0x10
+; MIPS32: sra [[T2_LO:.*]],[[T1_LO]],0x10
+; MIPS32: sra [[T_HI:.*]],[[T2_LO]],0x1f
+; MIPS32-O2: move v1,[[T_HI]]
+; MIPS32-O2: move v0,[[T2_LO]]
+; MIPS32-OM1: sw [[T_HI]],[[MEM_HI:.*]]
+; MIPS32-OM1: sw [[T2_LO]],[[MEM_LO:.*]]
+; MIPS32-OM1: lw v0,[[MEM_LO]]
+; MIPS32-OM1: lw v1,[[MEM_HI]]
+
 
 define internal i64 @sext8To64(i32 %a) {
 entry:
@@ -1105,11 +1150,15 @@ entry:
 ; ARM32: asr {{.*}}, #31
 
 ; MIPS32-LABEL: sext8To64
-; MIPS32: sll {{.*}},a0,0x18
-; MIPS32: sra {{.*}},{{.*}},0x18
-; MIPS32: sra {{.*}},{{.*}},0x1f
-; MIPS32: move v1,v0
-; MIPS32: move v0,a0
+; MIPS32: sll [[T1_LO:.*]],{{.*}},0x18
+; MIPS32: sra [[T2_LO:.*]],[[T1_LO]],0x18
+; MIPS32: sra [[T_HI:.*]],[[T2_LO]],0x1f
+; MIPS32-O2: move v1,[[T_HI]]
+; MIPS32-O2: move v0,[[T2_LO]]
+; MIPS32-OM1: sw [[T_HI]],[[MEM_HI:.*]]
+; MIPS32-OM1: sw [[T2_LO]],[[MEM_LO:.*]]
+; MIPS32-OM1: lw v0,[[MEM_LO]]
+; MIPS32-OM1: lw v1,[[MEM_HI]]
 
 define internal i64 @sext1To64(i32 %a) {
 entry:
@@ -1134,10 +1183,14 @@ entry:
 ; ARM32: movne
 
 ; MIPS32-LABEL: sext1To64
-; MIPS32: sll {{.*}},a0,0x1f
-; MIPS32: sra {{.*}},{{.*}},0x1f
-; MIPS32: move v1,a0
-; MIPS32: move v0,a0
+; MIPS32: sll [[T1:.*]],{{.*}},0x1f
+; MIPS32: sra [[T2:.*]],[[T1]],0x1f
+; MIPS32-O2: move v1,[[T2]]
+; MIPS32-O2: move v0,[[T2]]
+; MIPS32-OM1: sw [[T2]],[[MEM_HI:.*]]
+; MIPS32-OM1: sw [[T2]],[[MEM_LO:.*]]
+; MIPS32-OM1: lw v0,[[MEM_LO]]
+; MIPS32-OM1: lw v1,[[MEM_HI]]
 
 define internal i64 @zext32To64(i32 %a) {
 entry:
@@ -1156,9 +1209,11 @@ entry:
 ; ARM32: mov {{.*}}, #0
 
 ; MIPS32-LABEL: zext32To64
-; MIPS32: li {{.*}},0
-; MIPS32: move v1,v0
-; MIPS32: move v0,a0
+; MIPS32: li [[T1:.*]],0
+; MIPS32-O2: move v1,[[T1]]
+; MIPS32-O2: move v0,a0
+; MIPS32-OM1: sw [[T1]],[[MEM_HI:.*]]
+; MIPS32-OM1: lw v1,[[MEM_HI]]
 
 define internal i64 @zext16To64(i32 %a) {
 entry:
@@ -1179,10 +1234,12 @@ entry:
 ; ARM32: mov {{.*}}, #0
 
 ; MIPS32-LABEL: zext16To64
-; MIPS32: andi {{.*}},a0,0xffff
-; MIPS32: li {{.*}},0
-; MIPS32: move v1,v0
-; MIPS32: move v0,a0
+; MIPS32: andi [[T_LO:.*]],{{.*}},0xffff
+; MIPS32: li [[T_HI:.*]],0
+; MIPS32-O2: move v1,[[T_HI]]
+; MIPS32-O2: move v0,[[T_LO]]
+; MIPS32-OM1: sw [[T_HI]],[[MEM_HI:.*]]
+; MIPS32-OM1: lw v1,[[MEM_HI]]
 
 define internal i64 @zext8To64(i32 %a) {
 entry:
@@ -1203,10 +1260,12 @@ entry:
 ; ARM32: mov {{.*}}, #0
 
 ; MIPS32-LABEL: zext8To64
-; MIPS32: andi {{.*}},a0,0xff
-; MIPS32: li {{.*}},0
-; MIPS32: move v1,v0
-; MIPS32: move v0,a0
+; MIPS32: andi [[T_LO:.*]],{{.*}},0xff
+; MIPS32: li [[T_HI:.*]],0
+; MIPS32-O2: move v1,[[T_HI]]
+; MIPS32-O2: move v0,[[T_LO]]
+; MIPS32-OM1: sw [[T_HI]],[[MEM_HI:.*]]
+; MIPS32-OM1: lw v1,[[MEM_HI]]
 
 define internal i64 @zext1To64(i32 %a) {
 entry:
@@ -1228,10 +1287,12 @@ entry:
 ; ARM32: bx
 
 ; MIPS32-LABEL: zext1To64
-; MIPS32: andi {{.*}},a0,0x1
-; MIPS32: li {{.*}},0
-; MIPS32: move v1,v0
-; MIPS32: move v0,a0
+; MIPS32: andi [[T_LO:.*]],{{.*}},0x1
+; MIPS32: li [[T_HI:.*]],0
+; MIPS32-O2: move v1,[[T_HI]]
+; MIPS32-O2: move v0,[[T_LO]]
+; MIPS32-OM1: sw [[T_HI]],[[MEM_HI:.*]]
+; MIPS32-OM1: lw v1,[[MEM_HI]]
 
 define internal void @icmpEq64(i64 %a, i64 %b, i64 %c, i64 %d) {
 entry:
