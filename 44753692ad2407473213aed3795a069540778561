@@ -22,6 +22,30 @@
       "revId": "44753692ad2407473213aed3795a069540778561",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "25ccbff8_b2c5d536",
+        "filename": "src/Reactor/Reactor.hpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-09-29T13:22:06Z",
+      "side": 1,
+      "message": "It\u0027s needed to compile things on Linux. Apparently cstddef defines it in some cases. Note that it was previously in Nucleus.hpp",
+      "parentUuid": "25ccbff8_dbcb5767",
+      "range": {
+        "startLine": 23,
+        "startChar": 0,
+        "endLine": 23,
+        "endChar": 11
+      },
+      "revId": "44753692ad2407473213aed3795a069540778561",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
