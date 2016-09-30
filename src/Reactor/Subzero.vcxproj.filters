@@ -269,6 +269,12 @@
     <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceVariableSplitting.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceTargetLoweringX8664Traits.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceTargetLoweringX8664.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="$(SolutionDir)third_party\pnacl-subzero\src\IceClFlags.def">

@@ -254,6 +254,8 @@
     <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceTypes.h" />
     <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceUtils.h" />
     <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceVariableSplitting.h" />
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceTargetLoweringX8664.h" />
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceTargetLoweringX8664Traits.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="$(SolutionDir)third_party\pnacl-subzero\src\IceClFlags.def" />
