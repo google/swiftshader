@@ -713,7 +713,20 @@ namespace sw
 
 	Value *Nucleus::createShuffleVector(Value *V1, Value *V2, const int *select)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		assert(V1->getType() == V2->getType());
+
+		int size = Ice::typeNumElements(V1->getType());
+		auto result = ::function->makeVariable(V1->getType());
+		auto shuffle = Ice::InstShuffleVector::create(::function, result, V1, V2);
+
+		for(int i = 0; i < size; i++)
+		{
+			shuffle->addIndex(llvm::cast<Ice::ConstantInteger32>(::context->getConstantInt32(select[i])));
+		}
+
+		::basicBlock->appendInst(shuffle);
+
+		return V(result);
 	}
 
 	Value *Nucleus::createSelect(Value *C, Value *ifTrue, Value *ifFalse)
@@ -738,15 +751,15 @@ namespace sw
 
 	static Value *createSwizzle4(Value *val, unsigned char select)
 	{
-		auto result = ::function->makeVariable(val->getType());
-		auto shuffle = Ice::InstShuffleVector::create(::function, result, val, val);
-		shuffle->addIndex(Ice::ConstantInteger32::create(::context, Ice::IceType_i32, (select >> 0) & 0x03));
-		shuffle->addIndex(Ice::ConstantInteger32::create(::context, Ice::IceType_i32, (select >> 2) & 0x03));
-		shuffle->addIndex(Ice::ConstantInteger32::create(::context, Ice::IceType_i32, (select >> 4) & 0x03));
-		shuffle->addIndex(Ice::ConstantInteger32::create(::context, Ice::IceType_i32, (select >> 6) & 0x03));
-		::basicBlock->appendInst(shuffle);
+		int swizzle[4] =
+		{
+			(select >> 0) & 0x03,
+			(select >> 2) & 0x03,
+			(select >> 4) & 0x03,
+			(select >> 6) & 0x03,
+		};
 
-		return V(result);
+		return Nucleus::createShuffleVector(val, val, swizzle);
 	}
 
 	static Value *createMask4(Value *lhs, Value *rhs, unsigned char select)
