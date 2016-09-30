@@ -143,7 +143,7 @@ namespace sw
 		static Value *createFCmpUNE(Value *lhs, Value *rhs);
 
 		// Vector instructions
-		static Value *createExtractElement(Value *vector, int index);
+		static Value *createExtractElement(Value *vector, Type *type, int index);
 		static Value *createInsertElement(Value *vector, Value *element, int index);
 		static Value *createShuffleVector(Value *V1, Value *V2, Value *mask);
 
@@ -152,10 +152,6 @@ namespace sw
 		static Value *createSwitch(Value *V, BasicBlock *Dest, unsigned NumCases);
 		static void addSwitchCase(Value *Switch, int Case, BasicBlock *Branch);
 		static void createUnreachable();
-
-		// Derived instructions
-		static Value *createSwizzle(Value *val, unsigned char select);
-		static Value *createMask(Value *lhs, Value *rhs, unsigned char select);
 
 		// Constant values
 		static Constant *createNullValue(Type *Ty);

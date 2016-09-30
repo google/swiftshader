@@ -654,8 +654,9 @@ namespace sw
 		return V(::builder->CreateFCmpULE(lhs, rhs));
 	}
 
-	Value *Nucleus::createExtractElement(Value *vector, int index)
+	Value *Nucleus::createExtractElement(Value *vector, Type *type, int index)
 	{
+		assert(vector->getType()->getContainedType(0) == type);
 		return V(::builder->CreateExtractElement(vector, createConstantInt(index)));
 	}
 
@@ -689,7 +690,7 @@ namespace sw
 		::builder->CreateUnreachable();
 	}
 
-	Value *Nucleus::createSwizzle(Value *val, unsigned char select)
+	static Value *createSwizzle4(Value *val, unsigned char select)
 	{
 		Constant *swizzle[4];
 		swizzle[0] = Nucleus::createConstantInt((select >> 0) & 0x03);
@@ -702,7 +703,7 @@ namespace sw
 		return shuffle;
 	}
 
-	Value *Nucleus::createMask(Value *lhs, Value *rhs, unsigned char select)
+	static Value *createMask4(Value *lhs, Value *rhs, unsigned char select)
 	{
 		bool mask[4] = {false, false, false, false};
 
@@ -2684,7 +2685,7 @@ namespace sw
 				Value *shuffle1 = Nucleus::createShuffleVector(short8, V(UndefValue::get(Short8::getType())), V(Nucleus::createConstantVector(pshuflw, 8)));
 				Value *shuffle2 = Nucleus::createShuffleVector(shuffle1, V(UndefValue::get(Short8::getType())), V(Nucleus::createConstantVector(pshufhw, 8)));
 				Value *int4 = Nucleus::createBitCast(shuffle2, Int4::getType());
-				packed = Nucleus::createSwizzle(int4, 0x88);
+				packed = createSwizzle4(int4, 0x88);
 			}
 			else
 			{
@@ -3148,7 +3149,7 @@ namespace sw
 		}
 		else
 		{
-			return RValue<Short4>(Nucleus::createSwizzle(x.value, select));
+			return RValue<Short4>(createSwizzle4(x.value, select));
 		}
 	}
 
@@ -3172,7 +3173,7 @@ namespace sw
 		}
 		else
 		{
-			return RValue<Short>(Nucleus::createExtractElement(val.value, i));
+			return RValue<Short>(Nucleus::createExtractElement(val.value, Short::getType(), i));
 		}
 	}
 
@@ -4601,7 +4602,7 @@ namespace sw
 	Int2::Int2(RValue<Int4> cast)
 	{
 		Value *long2 = Nucleus::createBitCast(cast.value, Long2::getType());
-		Value *element = Nucleus::createExtractElement(long2, 0);
+		Value *element = Nucleus::createExtractElement(long2, Long::getType(), 0);
 		Value *int2 = Nucleus::createBitCast(element, Int2::getType());
 
 		storeValue(int2);
@@ -4916,13 +4917,13 @@ namespace sw
 	{
 		if(false)   // FIXME: LLVM does not generate optimal code
 		{
-			return RValue<Int>(Nucleus::createExtractElement(val.value, i));
+			return RValue<Int>(Nucleus::createExtractElement(val.value, Int::getType(), i));
 		}
 		else
 		{
 			if(i == 0)
 			{
-				return RValue<Int>(Nucleus::createExtractElement(Nucleus::createBitCast(val.value, T(VectorType::get(Int::getType(), 2))), 0));
+				return RValue<Int>(Nucleus::createExtractElement(Nucleus::createBitCast(val.value, T(VectorType::get(Int::getType(), 2))), Int::getType(), 0));
 			}
 			else
 			{
@@ -5750,7 +5751,7 @@ namespace sw
 
 	RValue<Int> Extract(RValue<Int4> x, int i)
 	{
-		return RValue<Int>(Nucleus::createExtractElement(x.value, i));
+		return RValue<Int>(Nucleus::createExtractElement(x.value, Int::getType(), i));
 	}
 
 	RValue<Int4> Insert(RValue<Int4> x, RValue<Int> element, int i)
@@ -5765,7 +5766,7 @@ namespace sw
 
 	RValue<Int4> Swizzle(RValue<Int4> x, unsigned char select)
 	{
-		return RValue<Int4>(Nucleus::createSwizzle(x.value, select));
+		return RValue<Int4>(createSwizzle4(x.value, select));
 	}
 
 	Type *Int4::getType()
@@ -6360,7 +6361,7 @@ namespace sw
 	//	xyzw.parent = this;
 
 		Value *int64x2 = Nucleus::createBitCast(cast.value, Long2::getType());
-		Value *int64 = Nucleus::createExtractElement(int64x2, 0);
+		Value *int64 = Nucleus::createExtractElement(int64x2, Long::getType(), 0);
 		Value *float2 = Nucleus::createBitCast(int64, Float2::getType());
 
 		storeValue(float2);
@@ -6726,12 +6727,12 @@ namespace sw
 
 	RValue<Float> Extract(RValue<Float4> x, int i)
 	{
-		return RValue<Float>(Nucleus::createExtractElement(x.value, i));
+		return RValue<Float>(Nucleus::createExtractElement(x.value, Float::getType(), i));
 	}
 
 	RValue<Float4> Swizzle(RValue<Float4> x, unsigned char select)
 	{
-		return RValue<Float4>(Nucleus::createSwizzle(x.value, select));
+		return RValue<Float4>(createSwizzle4(x.value, select));
 	}
 
 	RValue<Float4> ShuffleLowHigh(RValue<Float4> x, RValue<Float4> y, unsigned char imm)
@@ -6770,7 +6771,7 @@ namespace sw
 	RValue<Float4> Mask(Float4 &lhs, RValue<Float4> rhs, unsigned char select)
 	{
 		Value *vector = lhs.loadValue();
-		Value *shuffle = Nucleus::createMask(vector, rhs.value, select);
+		Value *shuffle = createMask4(vector, rhs.value, select);
 		lhs.storeValue(shuffle);
 
 		return RValue<Float4>(shuffle);
@@ -7050,7 +7051,7 @@ namespace sw
 
 			Value *vector = Nucleus::createInsertElement(V(UndefValue::get(Float4::getType())), val.value, 0);
 
-			return RValue<Float>(Nucleus::createExtractElement(V(::builder->CreateCall(rcpss, vector)), 0));
+			return RValue<Float>(Nucleus::createExtractElement(V(::builder->CreateCall(rcpss, vector)), Float::getType(), 0));
 		}
 
 		RValue<Float> sqrtss(RValue<Float> val)
@@ -7059,7 +7060,7 @@ namespace sw
 
 			Value *vector = Nucleus::createInsertElement(V(UndefValue::get(Float4::getType())), val.value, 0);
 
-			return RValue<Float>(Nucleus::createExtractElement(V(::builder->CreateCall(sqrtss, vector)), 0));
+			return RValue<Float>(Nucleus::createExtractElement(V(::builder->CreateCall(sqrtss, vector)), Float::getType(), 0));
 		}
 
 		RValue<Float> rsqrtss(RValue<Float> val)
@@ -7068,7 +7069,7 @@ namespace sw
 
 			Value *vector = Nucleus::createInsertElement(V(UndefValue::get(Float4::getType())), val.value, 0);
 
-			return RValue<Float>(Nucleus::createExtractElement(V(::builder->CreateCall(rsqrtss, vector)), 0));
+			return RValue<Float>(Nucleus::createExtractElement(V(::builder->CreateCall(rsqrtss, vector)), Float::getType(), 0));
 		}
 
 		RValue<Float4> rcpps(RValue<Float4> val)
@@ -7113,7 +7114,7 @@ namespace sw
 			Value *undef = V(UndefValue::get(Float4::getType()));
 			Value *vector = Nucleus::createInsertElement(undef, val.value, 0);
 
-			return RValue<Float>(Nucleus::createExtractElement(V(::builder->CreateCall3(roundss, undef, vector, V(Nucleus::createConstantInt(imm)))), 0));
+			return RValue<Float>(Nucleus::createExtractElement(V(::builder->CreateCall3(roundss, undef, vector, V(Nucleus::createConstantInt(imm)))), Float::getType(), 0));
 		}
 
 		RValue<Float> floorss(RValue<Float> val)
@@ -7197,7 +7198,7 @@ namespace sw
 			Value *vector1 = Nucleus::createInsertElement(V(UndefValue::get(Float4::getType())), x.value, 0);
 			Value *vector2 = Nucleus::createInsertElement(V(UndefValue::get(Float4::getType())), y.value, 0);
 
-			return RValue<Float>(Nucleus::createExtractElement(V(::builder->CreateCall3(cmpss, vector1, vector2, V(Nucleus::createConstantByte(imm)))), 0));
+			return RValue<Float>(Nucleus::createExtractElement(V(::builder->CreateCall3(cmpss, vector1, vector2, V(Nucleus::createConstantByte(imm)))), Float::getType(), 0));
 		}
 
 		RValue<Float> cmpeqss(RValue<Float> x, RValue<Float> y)

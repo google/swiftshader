@@ -2468,7 +2468,7 @@ namespace sw
 	{
 		Value *vector = parent->loadValue();
 
-		return RValue<Float4>(Nucleus::createSwizzle(vector, T));
+		return Swizzle(RValue<Float4>(vector), T);
 	}
 
 	template<int T>
@@ -2476,7 +2476,7 @@ namespace sw
 	{
 		Value *vector = parent->loadValue();
 
-		return RValue<Float4>(Nucleus::createSwizzle(vector, T));
+		return Swizzle(RValue<Float4>(vector), T);
 	}
 
 	template<int T>
@@ -2484,7 +2484,7 @@ namespace sw
 	{
 		Value *vector = parent->loadValue();
 
-		return RValue<Float4>(Nucleus::createSwizzle(vector, T));
+		return Swizzle(RValue<Float4>(vector), T);
 	}
 
 	template<int T>
@@ -2510,7 +2510,7 @@ namespace sw
 	{
 		Value *vector = parent->loadValue();
 
-		return RValue<Float4>(Nucleus::createSwizzle(vector, T));
+		return Swizzle(RValue<Float4>(vector), T);
 	}
 
 	template<int T>
@@ -2536,7 +2536,7 @@ namespace sw
 	{
 		Value *vector = parent->loadValue();
 
-		return RValue<Float4>(Nucleus::createSwizzle(vector, T));
+		return Swizzle(RValue<Float4>(vector), T);
 	}
 
 	template<int T>

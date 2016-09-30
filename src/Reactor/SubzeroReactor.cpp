@@ -693,7 +693,7 @@ namespace sw
 		assert(false && "UNIMPLEMENTED"); return nullptr;
 	}
 
-	Value *Nucleus::createExtractElement(Value *vector, int index)
+	Value *Nucleus::createExtractElement(Value *vector, Type *type, int index)
 	{
 		assert(false && "UNIMPLEMENTED"); return nullptr;
 	}
@@ -728,12 +728,12 @@ namespace sw
 		assert(false && "UNIMPLEMENTED");
 	}
 
-	Value *Nucleus::createSwizzle(Value *val, unsigned char select)
+	static Value *createSwizzle4(Value *val, unsigned char select)
 	{
 		assert(false && "UNIMPLEMENTED"); return nullptr;
 	}
 
-	Value *Nucleus::createMask(Value *lhs, Value *rhs, unsigned char select)
+	static Value *createMask4(Value *lhs, Value *rhs, unsigned char select)
 	{
 		assert(false && "UNIMPLEMENTED"); return nullptr;
 	}
@@ -3951,7 +3951,7 @@ namespace sw
 	Int2::Int2(RValue<Int4> cast)
 	{
 		Value *long2 = Nucleus::createBitCast(cast.value, Long2::getType());
-		Value *element = Nucleus::createExtractElement(long2, 0);
+		Value *element = Nucleus::createExtractElement(long2, Long2::getType(), 0);
 		Value *int2 = Nucleus::createBitCast(element, Int2::getType());
 
 		storeValue(int2);
@@ -4717,7 +4717,7 @@ namespace sw
 
 	RValue<Int> Extract(RValue<Int4> x, int i)
 	{
-		return RValue<Int>(Nucleus::createExtractElement(x.value, i));
+		return RValue<Int>(Nucleus::createExtractElement(x.value, Int::getType(), i));
 	}
 
 	RValue<Int4> Insert(RValue<Int4> x, RValue<Int> element, int i)
@@ -4732,7 +4732,7 @@ namespace sw
 
 	RValue<Int4> Swizzle(RValue<Int4> x, unsigned char select)
 	{
-		return RValue<Int4>(Nucleus::createSwizzle(x.value, select));
+		return RValue<Int4>(createSwizzle4(x.value, select));
 	}
 
 	Type *Int4::getType()
@@ -5235,7 +5235,7 @@ namespace sw
 	//	xyzw.parent = this;
 
 		Value *int64x2 = Nucleus::createBitCast(cast.value, Long2::getType());
-		Value *int64 = Nucleus::createExtractElement(int64x2, 0);
+		Value *int64 = Nucleus::createExtractElement(int64x2, Long::getType(), 0);
 		Value *float2 = Nucleus::createBitCast(int64, Float2::getType());
 
 		storeValue(float2);
@@ -5521,12 +5521,12 @@ namespace sw
 
 	RValue<Float> Extract(RValue<Float4> x, int i)
 	{
-		return RValue<Float>(Nucleus::createExtractElement(x.value, i));
+		return RValue<Float>(Nucleus::createExtractElement(x.value, Float::getType(), i));
 	}
 
 	RValue<Float4> Swizzle(RValue<Float4> x, unsigned char select)
 	{
-		return RValue<Float4>(Nucleus::createSwizzle(x.value, select));
+		return RValue<Float4>(createSwizzle4(x.value, select));
 	}
 
 	RValue<Float4> ShuffleLowHigh(RValue<Float4> x, RValue<Float4> y, unsigned char imm)
@@ -5547,7 +5547,7 @@ namespace sw
 	RValue<Float4> Mask(Float4 &lhs, RValue<Float4> rhs, unsigned char select)
 	{
 		Value *vector = lhs.loadValue();
-		Value *shuffle = Nucleus::createMask(vector, rhs.value, select);
+		Value *shuffle = createMask4(vector, rhs.value, select);
 		lhs.storeValue(shuffle);
 
 		return RValue<Float4>(shuffle);
