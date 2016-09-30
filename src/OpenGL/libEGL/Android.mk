@@ -49,10 +49,16 @@ COMMON_LDFLAGS := \
 
 include $(CLEAR_VARS)
 ifdef TARGET_2ND_ARCH
+ifeq ($(TARGET_TRANSLATE_2ND_ARCH),true)
+LOCAL_MULTILIB := first
+LOCAL_MODULE_PATH := vendor/transgaming/swiftshader/$(TARGET_ARCH)/debug/obj
+LOCAL_UNSTRIPPED_PATH := vendor/transgaming/swiftshader/$(TARGET_ARCH)/debug/sym
+else
 LOCAL_MODULE_PATH_64 := vendor/transgaming/swiftshader/$(TARGET_ARCH)/debug/obj
 LOCAL_UNSTRIPPED_PATH_64 := vendor/transgaming/swiftshader/$(TARGET_ARCH)/debug/sym
 LOCAL_MODULE_PATH_32 := vendor/transgaming/swiftshader/$(TARGET_2ND_ARCH)/debug/obj
 LOCAL_UNSTRIPPED_PATH_32 := vendor/transgaming/swiftshader/$(TARGET_2ND_ARCH)/debug/sym
+endif
 else
 LOCAL_MODULE_PATH := vendor/transgaming/swiftshader/$(TARGET_ARCH)/debug/obj
 LOCAL_UNSTRIPPED_PATH := vendor/transgaming/swiftshader/$(TARGET_ARCH)/debug/sym
@@ -71,10 +77,16 @@ include $(BUILD_SHARED_LIBRARY)
 
 include $(CLEAR_VARS)
 ifdef TARGET_2ND_ARCH
+ifeq ($(TARGET_TRANSLATE_2ND_ARCH),true)
+LOCAL_MULTILIB := first
+LOCAL_MODULE_PATH := vendor/transgaming/swiftshader/$(TARGET_ARCH)/debug/obj
+LOCAL_UNSTRIPPED_PATH := vendor/transgaming/swiftshader/$(TARGET_ARCH)/debug/sym
+else
 LOCAL_MODULE_PATH_64 := vendor/transgaming/swiftshader/$(TARGET_ARCH)/release/obj
 LOCAL_UNSTRIPPED_PATH_64 := vendor/transgaming/swiftshader/$(TARGET_ARCH)/release/sym
 LOCAL_MODULE_PATH_32 := vendor/transgaming/swiftshader/$(TARGET_2ND_ARCH)/release/obj
 LOCAL_UNSTRIPPED_PATH_32 := vendor/transgaming/swiftshader/$(TARGET_2ND_ARCH)/release/sym
+endif
 else
 LOCAL_MODULE_PATH := vendor/transgaming/swiftshader/$(TARGET_ARCH)/release/obj
 LOCAL_UNSTRIPPED_PATH := vendor/transgaming/swiftshader/$(TARGET_ARCH)/release/sym
@@ -94,8 +106,13 @@ include $(BUILD_SHARED_LIBRARY)
 include $(CLEAR_VARS)
 LOCAL_MODULE := libEGL_swiftshader
 ifdef TARGET_2ND_ARCH
+ifeq ($(TARGET_TRANSLATE_2ND_ARCH),true)
+LOCAL_MULTILIB := first
+LOCAL_MODULE_PATH := $(TARGET_OUT_VENDOR)/lib/egl
+else
 LOCAL_MODULE_PATH_32 := $(TARGET_OUT_VENDOR)/lib/egl
 LOCAL_MODULE_PATH_64 := $(TARGET_OUT_VENDOR)/lib64/egl
+endif
 else
 LOCAL_MODULE_PATH := $(TARGET_OUT_VENDOR)/lib/egl
 endif
