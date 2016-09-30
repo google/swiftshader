@@ -695,12 +695,20 @@ namespace sw
 
 	Value *Nucleus::createExtractElement(Value *vector, Type *type, int index)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		auto result = ::function->makeVariable(T(type));
+		auto extract = Ice::InstExtractElement::create(::function, result, vector, ::context->getConstantInt32(index));
+		::basicBlock->appendInst(extract);
+
+		return V(result);
 	}
 
 	Value *Nucleus::createInsertElement(Value *vector, Value *element, int index)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		auto result = ::function->makeVariable(vector->getType());
+		auto insert = Ice::InstInsertElement::create(::function, result, vector, element, ::context->getConstantInt32(index));
+		::basicBlock->appendInst(insert);
+
+		return V(result);
 	}
 
 	Value *Nucleus::createShuffleVector(Value *V1, Value *V2, Value *mask)
@@ -730,7 +738,15 @@ namespace sw
 
 	static Value *createSwizzle4(Value *val, unsigned char select)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		auto result = ::function->makeVariable(val->getType());
+		auto shuffle = Ice::InstShuffleVector::create(::function, result, val, val);
+		shuffle->addIndex(Ice::ConstantInteger32::create(::context, Ice::IceType_i32, (select >> 0) & 0x03));
+		shuffle->addIndex(Ice::ConstantInteger32::create(::context, Ice::IceType_i32, (select >> 2) & 0x03));
+		shuffle->addIndex(Ice::ConstantInteger32::create(::context, Ice::IceType_i32, (select >> 4) & 0x03));
+		shuffle->addIndex(Ice::ConstantInteger32::create(::context, Ice::IceType_i32, (select >> 6) & 0x03));
+		::basicBlock->appendInst(shuffle);
+
+		return V(result);
 	}
 
 	static Value *createMask4(Value *lhs, Value *rhs, unsigned char select)
@@ -5227,7 +5243,7 @@ namespace sw
 
 	Type *Float::getType()
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		return T(Ice::IceType_f32);
 	}
 
 	Float2::Float2(RValue<Float4> cast)
@@ -5615,7 +5631,7 @@ namespace sw
 
 	Type *Float4::getType()
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		return T(Ice::IceType_v4f32);
 	}
 
 	RValue<Pointer<Byte>> operator+(RValue<Pointer<Byte>> lhs, int offset)

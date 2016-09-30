@@ -50,6 +50,10 @@ int main()
 				z += (2 << i) - (i / 3);
 			}
 
+			Float4 v;
+			v.z = As<Float>(z);
+			z = As<Int>(Float(Float4(v.xzxx).y));
+
 			Int sum = x + y + z;
    
 			Return(sum);
