@@ -2360,19 +2360,19 @@ namespace sw
 	template<class T>
 	Value *LValue<T>::storeValue(Value *value, unsigned int alignment) const
 	{
-		return Nucleus::createStore(value, address, false, alignment);
+		return Nucleus::createStore(value, address, T::getType(), false, alignment);
 	}
 
 	template<class T>
 	Constant *LValue<T>::storeValue(Constant *constant, unsigned int alignment) const
 	{
-		return Nucleus::createStore(constant, address, false, alignment);
+		return Nucleus::createStore(constant, address, T::getType(), false, alignment);
 	}
 
 	template<class T>
 	Value *LValue<T>::getAddress(Value *index) const
 	{
-		return Nucleus::createGEP(address, index);
+		return Nucleus::createGEP(address, T::getType(), index);
 	}
 
 	template<class T>
@@ -2395,7 +2395,7 @@ namespace sw
 	template<class T>
 	RValue<T> Reference<T>::operator=(RValue<T> rhs) const
 	{
-		Nucleus::createStore(rhs.value, address, false, alignment);
+		Nucleus::createStore(rhs.value, address, T::getType(), false, alignment);
 
 		return rhs;
 	}
@@ -2404,7 +2404,7 @@ namespace sw
 	RValue<T> Reference<T>::operator=(const Reference<T> &ref) const
 	{
 		Value *tmp = Nucleus::createLoad(ref.address, T::getType(), false, ref.alignment);
-		Nucleus::createStore(tmp, address, false, alignment);
+		Nucleus::createStore(tmp, address, T::getType(), false, alignment);
 
 		return RValue<T>(tmp);
 	}
@@ -2692,7 +2692,7 @@ namespace sw
 	template<class T>
 	Reference<T> Pointer<T>::operator[](int index)
 	{
-		Value *element = Nucleus::createGEP(LValue<Pointer<T>>::loadValue(), (Value*)Nucleus::createConstantInt(index));
+		Value *element = Nucleus::createGEP(LValue<Pointer<T>>::loadValue(), T::getType(), (Value*)Nucleus::createConstantInt(index));
 
 		return Reference<T>(element, alignment);
 	}
@@ -2700,7 +2700,7 @@ namespace sw
 	template<class T>
 	Reference<T> Pointer<T>::operator[](RValue<Int> index)
 	{
-		Value *element = Nucleus::createGEP(LValue<Pointer<T>>::loadValue(), index.value);
+		Value *element = Nucleus::createGEP(LValue<Pointer<T>>::loadValue(), T::getType(), index.value);
 
 		return Reference<T>(element, alignment);
 	}

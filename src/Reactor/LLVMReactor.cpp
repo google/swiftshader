@@ -459,20 +459,23 @@ namespace sw
 		return V(::builder->Insert(new LoadInst(ptr, "", isVolatile, align)));
 	}
 
-	Value *Nucleus::createStore(Value *value, Value *ptr, bool isVolatile, unsigned int align)
+	Value *Nucleus::createStore(Value *value, Value *ptr, Type *type, bool isVolatile, unsigned int align)
 	{
+		assert(ptr->getType()->getContainedType(0) == type);
 		::builder->Insert(new StoreInst(value, ptr, isVolatile, align));
 		return value;
 	}
 
-	Constant *Nucleus::createStore(Constant *constant, Value *ptr, bool isVolatile, unsigned int align)
+	Constant *Nucleus::createStore(Constant *constant, Value *ptr, Type *type, bool isVolatile, unsigned int align)
 	{
+		assert(ptr->getType()->getContainedType(0) == type);
 		::builder->Insert(new StoreInst(constant, ptr, isVolatile, align));
 		return constant;
 	}
 
-	Value *Nucleus::createGEP(Value *ptr, Value *index)
+	Value *Nucleus::createGEP(Value *ptr, Type *type, Value *index)
 	{
+		assert(ptr->getType()->getContainedType(0) == type);
 		return V(::builder->CreateGEP(ptr, index));
 	}
 
@@ -6893,17 +6896,17 @@ namespace sw
 
 	RValue<Pointer<Byte>> operator+(RValue<Pointer<Byte>> lhs, int offset)
 	{
-		return RValue<Pointer<Byte>>(Nucleus::createGEP(lhs.value, V(Nucleus::createConstantInt(offset))));
+		return RValue<Pointer<Byte>>(Nucleus::createGEP(lhs.value, Byte::getType(), V(Nucleus::createConstantInt(offset))));
 	}
 
 	RValue<Pointer<Byte>> operator+(RValue<Pointer<Byte>> lhs, RValue<Int> offset)
 	{
-		return RValue<Pointer<Byte>>(Nucleus::createGEP(lhs.value, offset.value));
+		return RValue<Pointer<Byte>>(Nucleus::createGEP(lhs.value, Byte::getType(), offset.value));
 	}
 
 	RValue<Pointer<Byte>> operator+(RValue<Pointer<Byte>> lhs, RValue<UInt> offset)
 	{
-		return RValue<Pointer<Byte>>(Nucleus::createGEP(lhs.value, offset.value));
+		return RValue<Pointer<Byte>>(Nucleus::createGEP(lhs.value, Byte::getType(), offset.value));
 	}
 
 	RValue<Pointer<Byte>> operator+=(const Pointer<Byte> &lhs, int offset)
