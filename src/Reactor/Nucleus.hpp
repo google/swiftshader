@@ -113,8 +113,6 @@ namespace sw
 		static Value *createSIToFP(Value *V, Type *destType);
 		static Value *createFPTrunc(Value *V, Type *destType);
 		static Value *createFPExt(Value *V, Type *destType);
-		static Value *createPtrToInt(Value *V, Type *destType);
-		static Value *createIntToPtr(Value *V, Type *destType);
 		static Value *createBitCast(Value *V, Type *destType);
 		static Value *createIntCast(Value *V, Type *destType, bool isSigned);
 

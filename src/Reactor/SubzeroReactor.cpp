@@ -498,59 +498,63 @@ namespace sw
 		assert(false && "UNIMPLEMENTED"); return nullptr;
 	}
 
+	static Value *createCast(Ice::InstCast::OpKind op, Value *v, Type *destType)
+	{
+		if(T(v->getType()) == destType)
+		{
+			return v;
+		}
+
+		Ice::Variable *result = ::function->makeVariable(T(destType));
+		Ice::InstCast *cast = Ice::InstCast::create(::function, op, result, v);
+		::basicBlock->appendInst(cast);
+
+		return V(result);
+	}
+
 	Value *Nucleus::createTrunc(Value *v, Type *destType)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		return createCast(Ice::InstCast::Trunc, v, destType);
 	}
 
 	Value *Nucleus::createZExt(Value *v, Type *destType)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		return createCast(Ice::InstCast::Zext, v, destType);
 	}
 
 	Value *Nucleus::createSExt(Value *v, Type *destType)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		return createCast(Ice::InstCast::Sext, v, destType);
 	}
 
 	Value *Nucleus::createFPToSI(Value *v, Type *destType)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		return createCast(Ice::InstCast::Fptosi, v, destType);
 	}
 
 	Value *Nucleus::createUIToFP(Value *v, Type *destType)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		return createCast(Ice::InstCast::Uitofp, v, destType);
 	}
 
 	Value *Nucleus::createSIToFP(Value *v, Type *destType)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		return createCast(Ice::InstCast::Sitofp, v, destType);
 	}
 
 	Value *Nucleus::createFPTrunc(Value *v, Type *destType)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		return createCast(Ice::InstCast::Fptrunc, v, destType);
 	}
 
 	Value *Nucleus::createFPExt(Value *v, Type *destType)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
-	}
-
-	Value *Nucleus::createPtrToInt(Value *v, Type *destType)
-	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
-	}
-
-	Value *Nucleus::createIntToPtr(Value *v, Type *destType)
-	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		return createCast(Ice::InstCast::Fpext, v, destType);
 	}
 
 	Value *Nucleus::createBitCast(Value *v, Type *destType)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		return createCast(Ice::InstCast::Bitcast, v, destType);
 	}
 
 	Value *Nucleus::createIntCast(Value *v, Type *destType, bool isSigned)

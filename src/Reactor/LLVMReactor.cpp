@@ -524,16 +524,6 @@ namespace sw
 		return V(::builder->CreateFPExt(v, destType));
 	}
 
-	Value *Nucleus::createPtrToInt(Value *v, Type *destType)
-	{
-		return V(::builder->CreatePtrToInt(v, destType));
-	}
-
-	Value *Nucleus::createIntToPtr(Value *v, Type *destType)
-	{
-		return V(::builder->CreateIntToPtr(v, destType));
-	}
-
 	Value *Nucleus::createBitCast(Value *v, Type *destType)
 	{
 		return V(::builder->CreateBitCast(v, destType));
