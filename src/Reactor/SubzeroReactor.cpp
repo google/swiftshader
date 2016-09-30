@@ -711,7 +711,7 @@ namespace sw
 		return V(result);
 	}
 
-	Value *Nucleus::createShuffleVector(Value *V1, Value *V2, Value *mask)
+	Value *Nucleus::createShuffleVector(Value *V1, Value *V2, const int *select)
 	{
 		assert(false && "UNIMPLEMENTED"); return nullptr;
 	}

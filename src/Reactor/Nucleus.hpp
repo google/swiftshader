@@ -145,7 +145,7 @@ namespace sw
 		// Vector instructions
 		static Value *createExtractElement(Value *vector, Type *type, int index);
 		static Value *createInsertElement(Value *vector, Value *element, int index);
-		static Value *createShuffleVector(Value *V1, Value *V2, Value *mask);
+		static Value *createShuffleVector(Value *V1, Value *V2, const int *select);
 
 		// Other instructions
 		static Value *createSelect(Value *C, Value *ifTrue, Value *ifFalse);
