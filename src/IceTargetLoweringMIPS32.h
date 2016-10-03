@@ -60,7 +60,8 @@ public:
   void translateOm1() override;
   void translateO2() override;
   bool doBranchOpt(Inst *Instr, const CfgNode *NextNode) override;
-
+  void setImplicitRet(Variable *Ret) { ImplicitRet = Ret; }
+  Variable *getImplicitRet() const { return ImplicitRet; }
   SizeT getNumRegisters() const override { return RegMIPS32::Reg_NUM; }
   Variable *getPhysicalRegister(RegNumT RegNum,
                                 Type Ty = IceType_void) override;
@@ -109,6 +110,10 @@ public:
 
   bool shouldSplitToVariable64On32(Type Ty) const override {
     return Ty == IceType_i64;
+  }
+
+  bool shouldSplitToVariableVecOn32(Type Ty) const override {
+    return isVectorType(Ty);
   }
 
   // TODO(ascull): what is the best size of MIPS?
@@ -621,9 +626,11 @@ public:
   void split64(Variable *Var);
   Operand *loOperand(Operand *Operand);
   Operand *hiOperand(Operand *Operand);
+  Operand *getOperandAtIndex(Operand *Operand, Type BaseType, uint32_t Index);
 
-  void finishArgumentLowering(Variable *Arg, Variable *FramePtr,
-                              size_t BasicFrameOffset, size_t *InArgsSizeBytes);
+  void finishArgumentLowering(Variable *Arg, bool PartialOnStack,
+                              Variable *FramePtr, size_t BasicFrameOffset,
+                              size_t *InArgsSizeBytes);
 
   Operand *legalizeUndef(Operand *From, RegNumT RegNum = RegNumT());
 
@@ -642,6 +649,7 @@ public:
     /// appropriate register number. Note that, when Ty == IceType_i64, Reg will
     /// be an I64 register pair.
     bool argInReg(Type Ty, uint32_t ArgNo, RegNumT *Reg);
+    void discardReg(RegNumT Reg) { GPRegsUsed |= RegisterAliases[Reg]; }
 
   private:
     // argInGPR is used to find if any GPR register is available for argument of
@@ -755,6 +763,7 @@ protected:
   size_t FixedAllocaSizeBytes = 0;
   size_t FixedAllocaAlignBytes = 0;
   size_t PreservedRegsSizeBytes = 0;
+  Variable *ImplicitRet = nullptr; /// Implicit return
 
 private:
   ENABLE_MAKE_UNIQUE;

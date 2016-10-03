@@ -90,8 +90,9 @@ constexpr uint32_t MIPS32_STACK_ALIGNMENT_BYTES = 16;
 // stack alignment required for the given type.
 uint32_t applyStackAlignmentTy(uint32_t Value, Type Ty) {
   size_t typeAlignInBytes = typeWidthInBytes(Ty);
+  // Vectors are stored on stack with the same alignment as that of int type
   if (isVectorType(Ty))
-    UnimplementedError(getFlags());
+    typeAlignInBytes = typeWidthInBytes(IceType_i32);
   return Utils::applyAlignment(Value, typeAlignInBytes);
 }
 
@@ -228,19 +229,9 @@ void TargetMIPS32::genTargetHelperCallFor(Inst *Instr) {
     const InstArithmetic::OpKind Op =
         llvm::cast<InstArithmetic>(Instr)->getOp();
     if (isVectorType(DestTy)) {
-      switch (Op) {
-      default:
-        break;
-      case InstArithmetic::Fdiv:
-      case InstArithmetic::Frem:
-      case InstArithmetic::Sdiv:
-      case InstArithmetic::Srem:
-      case InstArithmetic::Udiv:
-      case InstArithmetic::Urem:
-        scalarizeArithmetic(Op, Dest, Instr->getSrc(0), Instr->getSrc(1));
-        Instr->setDeleted();
-        return;
-      }
+      scalarizeArithmetic(Op, Dest, Instr->getSrc(0), Instr->getSrc(1));
+      Instr->setDeleted();
+      return;
     }
     switch (DestTy) {
     default:
@@ -303,7 +294,6 @@ void TargetMIPS32::genTargetHelperCallFor(Inst *Instr) {
     const Type SrcTy = Src0->getType();
     auto *CastInstr = llvm::cast<InstCast>(Instr);
     const InstCast::OpKind CastKind = CastInstr->getCastKind();
-
     switch (CastKind) {
     default:
       return;
@@ -444,6 +434,39 @@ void TargetMIPS32::genTargetHelperCallFor(Inst *Instr) {
     Variable *Dest = Instr->getDest();
     auto *IntrinsicCall = llvm::cast<InstIntrinsicCall>(Instr);
     Intrinsics::IntrinsicID ID = IntrinsicCall->getIntrinsicInfo().ID;
+    if (Dest && isVectorType(Dest->getType()) && ID == Intrinsics::Fabs) {
+      Operand *Src0 = IntrinsicCall->getArg(0);
+      GlobalString FabsFloat = Ctx->getGlobalString("llvm.fabs.f32");
+      Operand *CallTarget = Ctx->getConstantExternSym(FabsFloat);
+      GlobalString FabsVec = Ctx->getGlobalString("llvm.fabs.v4f32");
+      bool BadIntrinsic = false;
+      const Intrinsics::FullIntrinsicInfo *FullInfo =
+          Ctx->getIntrinsicsInfo().find(FabsVec, BadIntrinsic);
+      Intrinsics::IntrinsicInfo Info = FullInfo->Info;
+
+      Variable *T = Func->makeVariable(IceType_v4f32);
+      auto *VarVecOn32 = llvm::dyn_cast<VariableVecOn32>(T);
+      VarVecOn32->initVecElement(Func);
+      Context.insert<InstFakeDef>(T);
+
+      for (SizeT i = 0; i < VarVecOn32->ElementsPerContainer; ++i) {
+        auto *Index = Ctx->getConstantInt32(i);
+        auto *Op = Func->makeVariable(IceType_f32);
+        Context.insert<InstExtractElement>(Op, Src0, Index);
+        auto *Res = Func->makeVariable(IceType_f32);
+        Variable *DestT = Func->makeVariable(IceType_v4f32);
+        auto *Call =
+            Context.insert<InstIntrinsicCall>(1, Res, CallTarget, Info);
+        Call->addArg(Op);
+        Context.insert<InstInsertElement>(DestT, T, Res, Index);
+        T = DestT;
+      }
+
+      Context.insert<InstAssign>(Dest, T);
+
+      Instr->setDeleted();
+      return;
+    }
     switch (ID) {
     default:
       return;
@@ -808,8 +831,17 @@ Operand *TargetMIPS32::legalizeUndef(Operand *From, RegNumT RegNum) {
     // overestimated.  If the constant being lowered is a 64 bit value,
     // then the result should be split and the lo and hi components will
     // need to go in uninitialized registers.
-    if (isVectorType(Ty))
-      UnimplementedError(getFlags());
+    if (isVectorType(Ty)) {
+      Variable *Var = makeReg(Ty, RegNum);
+      auto *Reg = llvm::cast<VariableVecOn32>(Var);
+      Reg->initVecElement(Func);
+      auto *Zero = getZero();
+      Context.insert<InstFakeDef>(Zero);
+      for (Variable *Var : Reg->getContainers()) {
+        _mov(Var, Zero);
+      }
+      return Reg;
+    }
     return Ctx->getConstantZero(Ty);
   }
   return From;
@@ -879,7 +911,7 @@ TargetMIPS32::CallingConv::CallingConv()
 // number to make register allocation decisions.
 bool TargetMIPS32::CallingConv::argInReg(Type Ty, uint32_t ArgNo,
                                          RegNumT *Reg) {
-  if (isScalarIntegerType(Ty))
+  if (isScalarIntegerType(Ty) || isVectorType(Ty))
     return argInGPR(Ty, Reg);
   if (isScalarFloatingType(Ty)) {
     if (ArgNo == 0) {
@@ -904,6 +936,13 @@ bool TargetMIPS32::CallingConv::argInGPR(Type Ty, RegNumT *Reg) {
     UnimplementedError(getFlags());
     return false;
   } break;
+  case IceType_v4i1:
+  case IceType_v8i1:
+  case IceType_v16i1:
+  case IceType_v16i8:
+  case IceType_v8i16:
+  case IceType_v4i32:
+  case IceType_v4f32:
   case IceType_i32:
   case IceType_f32: {
     Source = &GPRArgs;
@@ -916,6 +955,12 @@ bool TargetMIPS32::CallingConv::argInGPR(Type Ty, RegNumT *Reg) {
 
   discardUnavailableGPRsAndTheirAliases(Source);
 
+  // If $4 is used for any scalar type (or returining v4f32) then the next
+  // vector type if passed in $6:$7:stack:stack
+  if (isVectorType(Ty)) {
+    alignGPR(Source);
+  }
+
   if (Source->empty()) {
     GPRegsUsed.set();
     return false;
@@ -927,6 +972,21 @@ bool TargetMIPS32::CallingConv::argInGPR(Type Ty, RegNumT *Reg) {
   // Source->back() is marked as unavailable, and it is thus implicitly popped
   // from the stack.
   GPRegsUsed |= RegisterAliases[*Reg];
+
+  // All vector arguments irrespective of their base type are passed in GP
+  // registers. First vector argument is passed in $4:$5:$6:$7 and 2nd
+  // is passed in $6:$7:stack:stack. If it is 1st argument then discard
+  // $4:$5:$6:$7 otherwise discard $6:$7 only.
+  if (isVectorType(Ty)) {
+    if (((unsigned)*Reg) == RegMIPS32::Reg_A0) {
+      GPRegsUsed |= RegisterAliases[RegMIPS32::Reg_A1];
+      GPRegsUsed |= RegisterAliases[RegMIPS32::Reg_A2];
+      GPRegsUsed |= RegisterAliases[RegMIPS32::Reg_A3];
+    } else {
+      GPRegsUsed |= RegisterAliases[RegMIPS32::Reg_A3];
+    }
+  }
+
   return true;
 }
 
@@ -1017,11 +1077,32 @@ void TargetMIPS32::lowerArguments() {
   Context.init(Func->getEntryNode());
   Context.setInsertPoint(Context.getCur());
 
-  for (SizeT I = 0, E = Args.size(); I < E; ++I) {
-    Variable *Arg = Args[I];
+  // v4f32 is returned through stack. $4 is setup by the caller and passed as
+  // first argument implicitly. Callee then copies the return vector at $4.
+  if (isVectorFloatingType(Func->getReturnType())) {
+    Variable *ImplicitRetVec = Func->makeVariable(IceType_i32);
+    ImplicitRetVec->setName(Func, "ImplicitRet_v4f32");
+    ImplicitRetVec->setIsArg();
+    Args.insert(Args.begin(), ImplicitRetVec);
+    setImplicitRet(ImplicitRetVec);
+    Context.insert<InstFakeDef>(ImplicitRetVec);
+    for (CfgNode *Node : Func->getNodes()) {
+      for (Inst &Instr : Node->getInsts()) {
+        if (llvm::isa<InstRet>(&Instr)) {
+          Context.setInsertPoint(Instr);
+          Context.insert<InstFakeUse>(ImplicitRetVec);
+          break;
+        }
+      }
+    }
+    Context.setInsertPoint(Context.getCur());
+  }
+
+  for (SizeT i = 0, E = Args.size(); i < E; ++i) {
+    Variable *Arg = Args[i];
     Type Ty = Arg->getType();
     RegNumT RegNum;
-    if (!CC.argInReg(Ty, I, &RegNum)) {
+    if (!CC.argInReg(Ty, i, &RegNum)) {
       continue;
     }
     Variable *RegisterArg = Func->makeVariable(Ty);
@@ -1030,17 +1111,41 @@ void TargetMIPS32::lowerArguments() {
     }
     RegisterArg->setIsArg();
     Arg->setIsArg(false);
-    Args[I] = RegisterArg;
-    switch (Ty) {
-    default: { RegisterArg->setRegNum(RegNum); } break;
-    case IceType_i64: {
-      auto *RegisterArg64 = llvm::cast<Variable64On32>(RegisterArg);
-      RegisterArg64->initHiLo(Func);
-      RegisterArg64->getLo()->setRegNum(
-          RegNumT::fixme(RegMIPS32::get64PairFirstRegNum(RegNum)));
-      RegisterArg64->getHi()->setRegNum(
-          RegNumT::fixme(RegMIPS32::get64PairSecondRegNum(RegNum)));
-    } break;
+    Args[i] = RegisterArg;
+
+    if (isVectorType(Ty)) {
+      auto *RegisterArgVec = llvm::cast<VariableVecOn32>(RegisterArg);
+      RegisterArgVec->initVecElement(Func);
+      RegisterArgVec->getContainers()[0]->setRegNum(
+          RegNumT::fixme((unsigned)RegNum + 0));
+      RegisterArgVec->getContainers()[1]->setRegNum(
+          RegNumT::fixme((unsigned)RegNum + 1));
+      // First two elements of second vector argument are passed
+      // in $6:$7 and remaining two on stack. Do not assign register
+      // to this is second vector argument.
+      if (i == 0) {
+        RegisterArgVec->getContainers()[2]->setRegNum(
+            RegNumT::fixme((unsigned)RegNum + 2));
+        RegisterArgVec->getContainers()[3]->setRegNum(
+            RegNumT::fixme((unsigned)RegNum + 3));
+      } else {
+        RegisterArgVec->getContainers()[2]->setRegNum(
+            RegNumT::fixme(RegNumT()));
+        RegisterArgVec->getContainers()[3]->setRegNum(
+            RegNumT::fixme(RegNumT()));
+      }
+    } else {
+      switch (Ty) {
+      default: { RegisterArg->setRegNum(RegNum); } break;
+      case IceType_i64: {
+        auto *RegisterArg64 = llvm::cast<Variable64On32>(RegisterArg);
+        RegisterArg64->initHiLo(Func);
+        RegisterArg64->getLo()->setRegNum(
+            RegNumT::fixme(RegMIPS32::get64PairFirstRegNum(RegNum)));
+        RegisterArg64->getHi()->setRegNum(
+            RegNumT::fixme(RegMIPS32::get64PairSecondRegNum(RegNum)));
+      } break;
+      }
     }
     Context.insert<InstAssign>(Arg, RegisterArg);
   }
@@ -1056,20 +1161,46 @@ Type TargetMIPS32::stackSlotType() { return IceType_i32; }
 // recursively on the components, taking care to handle Lo first because of the
 // little-endian architecture. Lastly, this function generates an instruction
 // to copy Arg into its assigned register if applicable.
-void TargetMIPS32::finishArgumentLowering(Variable *Arg, Variable *FramePtr,
+void TargetMIPS32::finishArgumentLowering(Variable *Arg, bool PartialOnStack,
+                                          Variable *FramePtr,
                                           size_t BasicFrameOffset,
                                           size_t *InArgsSizeBytes) {
   const Type Ty = Arg->getType();
   *InArgsSizeBytes = applyStackAlignmentTy(*InArgsSizeBytes, Ty);
 
+  // If $4 is used for any scalar type (or returining v4f32) then the next
+  // vector type if passed in $6:$7:stack:stack. Load 3nd and 4th element
+  // from agument stack.
+  if (auto *ArgVecOn32 = llvm::dyn_cast<VariableVecOn32>(Arg)) {
+    if (PartialOnStack == false) {
+      auto *Elem0 = ArgVecOn32->getContainers()[0];
+      auto *Elem1 = ArgVecOn32->getContainers()[1];
+      finishArgumentLowering(Elem0, PartialOnStack, FramePtr, BasicFrameOffset,
+                             InArgsSizeBytes);
+      finishArgumentLowering(Elem1, PartialOnStack, FramePtr, BasicFrameOffset,
+                             InArgsSizeBytes);
+    }
+    auto *Elem2 = ArgVecOn32->getContainers()[2];
+    auto *Elem3 = ArgVecOn32->getContainers()[3];
+    finishArgumentLowering(Elem2, PartialOnStack, FramePtr, BasicFrameOffset,
+                           InArgsSizeBytes);
+    finishArgumentLowering(Elem3, PartialOnStack, FramePtr, BasicFrameOffset,
+                           InArgsSizeBytes);
+    return;
+  }
+
   if (auto *Arg64On32 = llvm::dyn_cast<Variable64On32>(Arg)) {
     Variable *const Lo = Arg64On32->getLo();
     Variable *const Hi = Arg64On32->getHi();
-    finishArgumentLowering(Lo, FramePtr, BasicFrameOffset, InArgsSizeBytes);
-    finishArgumentLowering(Hi, FramePtr, BasicFrameOffset, InArgsSizeBytes);
+    finishArgumentLowering(Lo, PartialOnStack, FramePtr, BasicFrameOffset,
+                           InArgsSizeBytes);
+    finishArgumentLowering(Hi, PartialOnStack, FramePtr, BasicFrameOffset,
+                           InArgsSizeBytes);
     return;
   }
+
   assert(Ty != IceType_i64);
+  assert(!isVectorType(Ty));
 
   const int32_t ArgStackOffset = BasicFrameOffset + *InArgsSizeBytes;
   *InArgsSizeBytes += typeWidthInBytesOnStack(Ty);
@@ -1282,13 +1413,25 @@ void TargetMIPS32::addProlog(CfgNode *Node) {
   for (Variable *Arg : Args) {
     RegNumT DummyReg;
     const Type Ty = Arg->getType();
+    bool PartialOnStack;
     // Skip arguments passed in registers.
     if (CC.argInReg(Ty, ArgNo, &DummyReg)) {
-      ArgNo++;
-      continue;
+      // Load argument from stack:
+      // 1. If this is first vector argument and return type is v4f32.
+      //    In this case $4 is used to pass stack address implicitly.
+      //    3rd and 4th element of vector argument is passed through stack.
+      // 2. If this is second vector argument.
+      if (ArgNo != 0 && isVectorType(Ty)) {
+        PartialOnStack = true;
+        finishArgumentLowering(Arg, PartialOnStack, FP, TotalStackSizeBytes,
+                               &InArgsSizeBytes);
+      }
     } else {
-      finishArgumentLowering(Arg, FP, TotalStackSizeBytes, &InArgsSizeBytes);
+      PartialOnStack = false;
+      finishArgumentLowering(Arg, PartialOnStack, FP, TotalStackSizeBytes,
+                             &InArgsSizeBytes);
     }
+    ++ArgNo;
   }
 
   // Fill in stack offsets for locals.
@@ -1587,6 +1730,42 @@ Operand *TargetMIPS32::loOperand(Operand *Operand) {
     return OperandMIPS32Mem::create(Func, IceType_i32, Mem->getBase(),
                                     Mem->getOffset(), Mem->getAddrMode());
   }
+  llvm_unreachable("Unsupported operand type");
+  return nullptr;
+}
+
+Operand *TargetMIPS32::getOperandAtIndex(Operand *Operand, Type BaseType,
+                                         uint32_t Index) {
+  if (!isVectorType(Operand->getType())) {
+    llvm::report_fatal_error("getOperandAtIndex: Operand is not vector");
+    return nullptr;
+  }
+
+  if (auto *Mem = llvm::dyn_cast<OperandMIPS32Mem>(Operand)) {
+    assert(Mem->getAddrMode() == OperandMIPS32Mem::Offset);
+    Variable *Base = Mem->getBase();
+    auto *Offset = llvm::cast<ConstantInteger32>(Mem->getOffset());
+    assert(!Utils::WouldOverflowAdd(Offset->getValue(), 4));
+    int32_t NextOffsetVal =
+        Offset->getValue() + (Index * typeWidthInBytes(BaseType));
+    constexpr bool NoSignExt = false;
+    if (!OperandMIPS32Mem::canHoldOffset(BaseType, NoSignExt, NextOffsetVal)) {
+      Constant *_4 = Ctx->getConstantInt32(4);
+      Variable *NewBase = Func->makeVariable(Base->getType());
+      lowerArithmetic(
+          InstArithmetic::create(Func, InstArithmetic::Add, NewBase, Base, _4));
+      Base = NewBase;
+    } else {
+      Offset =
+          llvm::cast<ConstantInteger32>(Ctx->getConstantInt32(NextOffsetVal));
+    }
+    return OperandMIPS32Mem::create(Func, BaseType, Base, Offset,
+                                    Mem->getAddrMode());
+  }
+
+  if (auto *VarVecOn32 = llvm::dyn_cast<VariableVecOn32>(Operand))
+    return VarVecOn32->getContainers()[Index];
+
   llvm_unreachable("Unsupported operand type");
   return nullptr;
 }
@@ -2195,25 +2374,33 @@ void TargetMIPS32::lowerAssign(const InstAssign *Instr) {
     _mov(DestLo, T_Lo);
     _mov(T_Hi, Src0Hi);
     _mov(DestHi, T_Hi);
-  } else {
-    Operand *SrcR;
-    if (Dest->hasReg()) {
-      // If Dest already has a physical register, then legalize the Src operand
-      // into a Variable with the same register assignment.  This especially
-      // helps allow the use of Flex operands.
-      SrcR = legalize(Src0, Legal_Reg, Dest->getRegNum());
-    } else {
-      // Dest could be a stack operand. Since we could potentially need
-      // to do a Store (and store can only have Register operands),
-      // legalize this to a register.
-      SrcR = legalize(Src0, Legal_Reg);
-    }
-    if (isVectorType(Dest->getType())) {
-      UnimplementedLoweringError(this, Instr);
-    } else {
-      _mov(Dest, SrcR);
-    }
+    return;
   }
+  if (isVectorType(Dest->getType())) {
+    auto *DstVec = llvm::dyn_cast<VariableVecOn32>(Dest);
+    for (SizeT i = 0; i < DstVec->ElementsPerContainer; ++i) {
+      auto *DCont = DstVec->getContainers()[i];
+      auto *SCont =
+          legalize(getOperandAtIndex(Src0, IceType_i32, i), Legal_Reg);
+      auto *TReg = makeReg(IceType_i32);
+      _mov(TReg, SCont);
+      _mov(DCont, TReg);
+    }
+    return;
+  }
+  Operand *SrcR;
+  if (Dest->hasReg()) {
+    // If Dest already has a physical register, then legalize the Src operand
+    // into a Variable with the same register assignment.  This especially
+    // helps allow the use of Flex operands.
+    SrcR = legalize(Src0, Legal_Reg, Dest->getRegNum());
+  } else {
+    // Dest could be a stack operand. Since we could potentially need
+    // to do a Store (and store can only have Register operands),
+    // legalize this to a register.
+    SrcR = legalize(Src0, Legal_Reg);
+  }
+  _mov(Dest, SrcR);
 }
 
 void TargetMIPS32::lowerBr(const InstBr *Instr) {
@@ -2446,6 +2633,7 @@ void TargetMIPS32::lowerBr(const InstBr *Instr) {
 }
 
 void TargetMIPS32::lowerCall(const InstCall *Instr) {
+  CfgVector<Variable *> RegArgs;
   NeedsStackAlignment = true;
 
   //  Assign arguments to registers and stack. Also reserve stack.
@@ -2461,6 +2649,22 @@ void TargetMIPS32::lowerCall(const InstCall *Instr) {
   // Classify each argument operand according to the location where the
   // argument is passed.
 
+  // v4f32 is returned through stack. $4 is setup by the caller and passed as
+  // first argument implicitly. Callee then copies the return vector at $4.
+  SizeT ArgNum = 0;
+  Variable *Dest = Instr->getDest();
+  Variable *RetVecFloat = nullptr;
+  if (Dest && isVectorFloatingType(Dest->getType())) {
+    ArgNum = 1;
+    CC.discardReg(RegMIPS32::Reg_A0);
+    RetVecFloat = Func->makeVariable(IceType_i32);
+    auto *ByteCount = ConstantInteger32::create(Ctx, IceType_i32, 16);
+    constexpr SizeT Alignment = 4;
+    lowerAlloca(InstAlloca::create(Func, RetVecFloat, ByteCount, Alignment));
+    RegArgs.emplace_back(
+        legalizeToReg(RetVecFloat, RegNumT::fixme(RegMIPS32::Reg_A0)));
+  }
+
   for (SizeT i = 0, NumArgs = Instr->getNumArgs(); i < NumArgs; ++i) {
     Operand *Arg = legalizeUndef(Instr->getArg(i));
     const Type Ty = Arg->getType();
@@ -2470,14 +2674,52 @@ void TargetMIPS32::lowerCall(const InstCall *Instr) {
     InReg = CC.argInReg(Ty, i, &Reg);
 
     if (!InReg) {
-      ParameterAreaSizeBytes =
-          applyStackAlignmentTy(ParameterAreaSizeBytes, Ty);
-      StackArgs.push_back(std::make_pair(Arg, ParameterAreaSizeBytes));
-      ParameterAreaSizeBytes += typeWidthInBytesOnStack(Ty);
+      if (isVectorType(Ty)) {
+        auto *ArgVec = llvm::cast<VariableVecOn32>(Arg);
+        for (Variable *Elem : ArgVec->getContainers()) {
+          ParameterAreaSizeBytes =
+              applyStackAlignmentTy(ParameterAreaSizeBytes, IceType_i32);
+          StackArgs.push_back(std::make_pair(Elem, ParameterAreaSizeBytes));
+          ParameterAreaSizeBytes += typeWidthInBytesOnStack(IceType_i32);
+        }
+      } else {
+        ParameterAreaSizeBytes =
+            applyStackAlignmentTy(ParameterAreaSizeBytes, Ty);
+        StackArgs.push_back(std::make_pair(Arg, ParameterAreaSizeBytes));
+        ParameterAreaSizeBytes += typeWidthInBytesOnStack(Ty);
+      }
+      ++ArgNum;
       continue;
     }
 
-    if (Ty == IceType_i64) {
+    if (isVectorType(Ty)) {
+      auto *ArgVec = llvm::cast<VariableVecOn32>(Arg);
+      Operand *Elem0 = ArgVec->getContainers()[0];
+      Operand *Elem1 = ArgVec->getContainers()[1];
+      GPRArgs.push_back(
+          std::make_pair(Elem0, RegNumT::fixme((unsigned)Reg + 0)));
+      GPRArgs.push_back(
+          std::make_pair(Elem1, RegNumT::fixme((unsigned)Reg + 1)));
+      Operand *Elem2 = ArgVec->getContainers()[2];
+      Operand *Elem3 = ArgVec->getContainers()[3];
+      // First argument is passed in $4:$5:$6:$7
+      // Second and rest arguments are passed in $6:$7:stack:stack
+      if (ArgNum == 0) {
+        GPRArgs.push_back(
+            std::make_pair(Elem2, RegNumT::fixme((unsigned)Reg + 2)));
+        GPRArgs.push_back(
+            std::make_pair(Elem3, RegNumT::fixme((unsigned)Reg + 3)));
+      } else {
+        ParameterAreaSizeBytes =
+            applyStackAlignmentTy(ParameterAreaSizeBytes, IceType_i32);
+        StackArgs.push_back(std::make_pair(Elem2, ParameterAreaSizeBytes));
+        ParameterAreaSizeBytes += typeWidthInBytesOnStack(IceType_i32);
+        ParameterAreaSizeBytes =
+            applyStackAlignmentTy(ParameterAreaSizeBytes, IceType_i32);
+        StackArgs.push_back(std::make_pair(Elem3, ParameterAreaSizeBytes));
+        ParameterAreaSizeBytes += typeWidthInBytesOnStack(IceType_i32);
+      }
+    } else if (Ty == IceType_i64) {
       Operand *Lo = loOperand(Arg);
       Operand *Hi = hiOperand(Arg);
       GPRArgs.push_back(
@@ -2489,6 +2731,7 @@ void TargetMIPS32::lowerCall(const InstCall *Instr) {
     } else {
       FPArgs.push_back(std::make_pair(Arg, Reg));
     }
+    ++ArgNum;
   }
 
   // Adjust the parameter area so that the stack is aligned. It is assumed that
@@ -2517,7 +2760,7 @@ void TargetMIPS32::lowerCall(const InstCall *Instr) {
 
   // Generate the call instruction.  Assign its result to a temporary with high
   // register allocation weight.
-  Variable *Dest = Instr->getDest();
+
   // ReturnReg doubles as ReturnRegLo as necessary.
   Variable *ReturnReg = nullptr;
   Variable *ReturnRegHi = nullptr;
@@ -2549,10 +2792,19 @@ void TargetMIPS32::lowerCall(const InstCall *Instr) {
     case IceType_v16i1:
     case IceType_v16i8:
     case IceType_v8i16:
-    case IceType_v4i32:
+    case IceType_v4i32: {
+      ReturnReg = makeReg(Dest->getType(), RegMIPS32::Reg_V0);
+      auto *RetVec = llvm::dyn_cast<VariableVecOn32>(ReturnReg);
+      RetVec->initVecElement(Func);
+      for (SizeT i = 0; i < RetVec->ElementsPerContainer; ++i) {
+        auto *Var = RetVec->getContainers()[i];
+        Var->setRegNum(RegNumT::fixme(RegMIPS32::Reg_V0 + i));
+      }
+      break;
+    }
     case IceType_v4f32:
-      UnimplementedLoweringError(this, Instr);
-      return;
+      ReturnReg = makeReg(IceType_i32, RegMIPS32::Reg_V0);
+      break;
     }
   }
   Operand *CallTarget = Instr->getCallTarget();
@@ -2564,7 +2816,6 @@ void TargetMIPS32::lowerCall(const InstCall *Instr) {
   }
 
   // Copy arguments to be passed in registers to the appropriate registers.
-  CfgVector<Variable *> RegArgs;
   for (auto &FPArg : FPArgs) {
     RegArgs.emplace_back(legalizeToReg(FPArg.first, FPArg.second));
   }
@@ -2585,7 +2836,16 @@ void TargetMIPS32::lowerCall(const InstCall *Instr) {
   if (VariableAllocaUsed)
     _addiu(SP, SP, -MaxOutArgsSizeBytes);
 
-  Inst *NewCall = InstMIPS32Call::create(Func, ReturnReg, CallTarget);
+  Inst *NewCall;
+
+  // We don't need to define the return register if it is a vector.
+  // We have inserted fake defs of it just after the call.
+  if (ReturnReg && isVectorIntegerType(ReturnReg->getType())) {
+    Variable *RetReg = nullptr;
+    NewCall = InstMIPS32Call::create(Func, RetReg, CallTarget);
+  } else {
+    NewCall = InstMIPS32Call::create(Func, ReturnReg, CallTarget);
+  }
   Context.insert(NewCall);
 
   if (VariableAllocaUsed)
@@ -2597,18 +2857,49 @@ void TargetMIPS32::lowerCall(const InstCall *Instr) {
 
   if (ReturnRegHi)
     Context.insert(InstFakeDef::create(Func, ReturnRegHi));
+
+  if (ReturnReg) {
+    if (auto *RetVec = llvm::dyn_cast<VariableVecOn32>(ReturnReg)) {
+      for (Variable *Var : RetVec->getContainers()) {
+        Context.insert(InstFakeDef::create(Func, Var));
+      }
+    }
+  }
+
   // Insert a register-kill pseudo instruction.
   Context.insert(InstFakeKill::create(Func, NewCall));
+
   // Generate a FakeUse to keep the call live if necessary.
   if (Instr->hasSideEffects() && ReturnReg) {
-    Context.insert<InstFakeUse>(ReturnReg);
+    if (auto *RetVec = llvm::dyn_cast<VariableVecOn32>(ReturnReg)) {
+      for (Variable *Var : RetVec->getContainers()) {
+        Context.insert<InstFakeUse>(Var);
+      }
+    } else {
+      Context.insert<InstFakeUse>(ReturnReg);
+    }
   }
+
   if (Dest == nullptr)
     return;
 
   // Assign the result of the call to Dest.
   if (ReturnReg) {
-    if (ReturnRegHi) {
+    if (RetVecFloat) {
+      auto *DestVecOn32 = llvm::cast<VariableVecOn32>(Dest);
+      for (SizeT i = 0; i < DestVecOn32->ElementsPerContainer; ++i) {
+        auto *Var = DestVecOn32->getContainers()[i];
+        OperandMIPS32Mem *Mem = OperandMIPS32Mem::create(
+            Func, IceType_i32, RetVecFloat,
+            llvm::cast<ConstantInteger32>(Ctx->getConstantInt32(i * 4)));
+        _lw(Var, Mem);
+      }
+    } else if (auto *RetVec = llvm::dyn_cast<VariableVecOn32>(ReturnReg)) {
+      auto *DestVecOn32 = llvm::cast<VariableVecOn32>(Dest);
+      for (SizeT i = 0; i < DestVecOn32->ElementsPerContainer; ++i) {
+        _mov(DestVecOn32->getContainers()[i], RetVec->getContainers()[i]);
+      }
+    } else if (ReturnRegHi) {
       assert(Dest->getType() == IceType_i64);
       auto *Dest64On32 = llvm::cast<Variable64On32>(Dest);
       Variable *DestLo = Dest64On32->getLo();
@@ -2620,12 +2911,7 @@ void TargetMIPS32::lowerCall(const InstCall *Instr) {
              Dest->getType() == IceType_i8 || Dest->getType() == IceType_i1 ||
              isScalarFloatingType(Dest->getType()) ||
              isVectorType(Dest->getType()));
-      if (isVectorType(Dest->getType())) {
-        UnimplementedLoweringError(this, Instr);
-        return;
-      } else {
-        _mov(Dest, ReturnReg);
-      }
+      _mov(Dest, ReturnReg);
     }
   }
 }
@@ -2845,7 +3131,65 @@ void TargetMIPS32::lowerCast(const InstCast *Instr) {
 }
 
 void TargetMIPS32::lowerExtractElement(const InstExtractElement *Instr) {
-  UnimplementedLoweringError(this, Instr);
+  Variable *Dest = Instr->getDest();
+  const Type DestTy = Dest->getType();
+  Operand *Src1 = Instr->getSrc(1);
+  if (const auto *Imm = llvm::dyn_cast<ConstantInteger32>(Src1)) {
+    const uint32_t Index = Imm->getValue();
+    Variable *TDest = makeReg(DestTy);
+    Variable *TReg = makeReg(DestTy);
+    auto *Src0 = legalizeUndef(Instr->getSrc(0));
+    auto *Src0R = llvm::dyn_cast<VariableVecOn32>(Src0);
+    // Number of elements in each container
+    uint32_t ElemPerCont =
+        typeNumElements(Src0->getType()) / Src0R->ElementsPerContainer;
+    auto *SrcE = Src0R->getContainers()[Index / ElemPerCont];
+    // Position of the element in the container
+    uint32_t PosInCont = Index % ElemPerCont;
+    if (ElemPerCont == 1) {
+      _mov(TDest, SrcE);
+    } else if (ElemPerCont == 2) {
+      switch (PosInCont) {
+      case 0:
+        _andi(TDest, SrcE, 0xffff);
+        break;
+      case 1:
+        _srl(TDest, SrcE, 16);
+        break;
+      default:
+        llvm::report_fatal_error("ExtractElement: Invalid PosInCont");
+        break;
+      }
+    } else if (ElemPerCont == 4) {
+      switch (PosInCont) {
+      case 0:
+        _andi(TDest, SrcE, 0xff);
+        break;
+      case 1:
+        _srl(TReg, SrcE, 8);
+        _andi(TDest, TReg, 0xff);
+        break;
+      case 2:
+        _srl(TReg, SrcE, 16);
+        _andi(TDest, TReg, 0xff);
+        break;
+      case 3:
+        _srl(TDest, SrcE, 24);
+        break;
+      default:
+        llvm::report_fatal_error("ExtractElement: Invalid PosInCont");
+        break;
+      }
+    }
+    if (typeElementType(Src0R->getType()) == IceType_i1) {
+      _andi(TReg, TDest, 0x1);
+      _mov(Dest, TReg);
+    } else {
+      _mov(Dest, TDest);
+    }
+    return;
+  }
+  llvm::report_fatal_error("ExtractElement requires a constant index");
 }
 
 void TargetMIPS32::lowerFcmp(const InstFcmp *Instr) {
@@ -3298,7 +3642,111 @@ void TargetMIPS32::lowerIcmp(const InstIcmp *Instr) {
 }
 
 void TargetMIPS32::lowerInsertElement(const InstInsertElement *Instr) {
-  UnimplementedLoweringError(this, Instr);
+  Variable *Dest = Instr->getDest();
+  const Type DestTy = Dest->getType();
+  Operand *Src2 = Instr->getSrc(2);
+  if (const auto *Imm = llvm::dyn_cast<ConstantInteger32>(Src2)) {
+    const uint32_t Index = Imm->getValue();
+    // Vector to insert in
+    auto *Src0 = Instr->getSrc(0);
+    auto *Src0R = llvm::dyn_cast<VariableVecOn32>(Src0);
+    // Number of elements in each container
+    uint32_t ElemPerCont =
+        typeNumElements(Src0->getType()) / Src0R->ElementsPerContainer;
+    // Source Element
+    auto *SrcE = Src0R->getContainers()[Index / ElemPerCont];
+    Context.insert<InstFakeDef>(SrcE);
+    // Dest is a vector
+    auto *VDest = llvm::dyn_cast<VariableVecOn32>(Dest);
+    VDest->initVecElement(Func);
+    // Temp vector variable
+    auto *TDest = makeReg(DestTy);
+    auto *TVDest = llvm::dyn_cast<VariableVecOn32>(TDest);
+    TVDest->initVecElement(Func);
+    // Destination element
+    auto *DstE = TVDest->getContainers()[Index / ElemPerCont];
+    // Element to insert
+    auto *Src1R = legalizeToReg(Instr->getSrc(1));
+    auto *TReg1 = makeReg(Src1R->getType());
+    auto *TReg2 = makeReg(Src1R->getType());
+    auto *TReg3 = makeReg(Src1R->getType());
+    auto *TReg4 = makeReg(Src1R->getType());
+    auto *TReg5 = makeReg(Src1R->getType());
+    // Position of the element in the container
+    uint32_t PosInCont = Index % ElemPerCont;
+    // Load source vector in a temporary vector
+    for (SizeT i = 0; i < TVDest->ElementsPerContainer; ++i) {
+      auto *DCont = TVDest->getContainers()[i];
+      // Do not define DstE as we are going to redefine it
+      if (DCont == DstE)
+        continue;
+      auto *SCont = Src0R->getContainers()[i];
+      auto *TReg = makeReg(IceType_i32);
+      _mov(TReg, SCont);
+      _mov(DCont, TReg);
+    }
+    // Insert the element
+    if (ElemPerCont == 1) {
+      _mov(DstE, Src1R);
+    } else if (ElemPerCont == 2) {
+      switch (PosInCont) {
+      case 0:
+        _andi(TReg1, Src1R, 0xffff); // Clear upper 16-bits of source
+        _srl(TReg2, SrcE, 16);
+        _sll(TReg3, TReg2, 16); // Clear lower 16-bits of element
+        _or(DstE, TReg1, TReg3);
+        break;
+      case 1:
+        _sll(TReg1, Src1R, 16); // Clear lower 16-bits  of source
+        _sll(TReg2, SrcE, 16);
+        _srl(TReg3, TReg2, 16); // Clear upper 16-bits of element
+        _or(DstE, TReg1, TReg3);
+        break;
+      default:
+        llvm::report_fatal_error("InsertElement: Invalid PosInCont");
+        break;
+      }
+    } else if (ElemPerCont == 4) {
+      switch (PosInCont) {
+      case 0:
+        _andi(TReg1, Src1R, 0xff); // Clear bits[31:8] of source
+        _srl(TReg2, SrcE, 8);
+        _sll(TReg3, TReg2, 8); // Clear bits[7:0] of element
+        _or(DstE, TReg1, TReg3);
+        break;
+      case 1:
+        _andi(TReg1, Src1R, 0xff); // Clear bits[31:8] of source
+        _sll(TReg5, TReg1, 8);     // Position in the destination
+        _lui(TReg2, Ctx->getConstantInt32(0xffff));
+        _ori(TReg3, TReg2, 0x00ff);
+        _and(TReg4, SrcE, TReg3); // Clear bits[15:8] of element
+        _or(DstE, TReg5, TReg4);
+        break;
+      case 2:
+        _andi(TReg1, Src1R, 0xff); // Clear bits[31:8] of source
+        _sll(TReg5, TReg1, 16);    // Position in the destination
+        _lui(TReg2, Ctx->getConstantInt32(0xff00));
+        _ori(TReg3, TReg2, 0xffff);
+        _and(TReg4, SrcE, TReg3); // Clear bits[15:8] of element
+        _or(DstE, TReg5, TReg4);
+        break;
+      case 3:
+        _srl(TReg1, Src1R, 24); // Position in the destination
+        _sll(TReg2, SrcE, 8);
+        _srl(TReg3, TReg2, 8); // Clear bits[31:24] of element
+        _or(DstE, TReg1, TReg3);
+        break;
+      default:
+        llvm::report_fatal_error("InsertElement: Invalid PosInCont");
+        break;
+      }
+    }
+    // Write back temporary vector to the destination
+    auto *Assign = InstAssign::create(Func, Dest, TDest);
+    lowerAssign(Assign);
+    return;
+  }
+  llvm::report_fatal_error("InsertElement requires a constant index");
 }
 
 void TargetMIPS32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
@@ -3887,8 +4335,48 @@ void TargetMIPS32::lowerRet(const InstRet *Instr) {
       Context.insert<InstFakeUse>(R1);
       break;
     }
+    case IceType_v4i1:
+    case IceType_v8i1:
+    case IceType_v16i1:
+    case IceType_v16i8:
+    case IceType_v8i16:
+    case IceType_v4i32: {
+      auto *SrcVec = llvm::dyn_cast<VariableVecOn32>(Src0);
+      Variable *V0 =
+          legalizeToReg(SrcVec->getContainers()[0], RegMIPS32::Reg_V0);
+      Variable *V1 =
+          legalizeToReg(SrcVec->getContainers()[1], RegMIPS32::Reg_V1);
+      Variable *A0 =
+          legalizeToReg(SrcVec->getContainers()[2], RegMIPS32::Reg_A0);
+      Variable *A1 =
+          legalizeToReg(SrcVec->getContainers()[3], RegMIPS32::Reg_A1);
+      Reg = V0;
+      Context.insert<InstFakeUse>(V1);
+      Context.insert<InstFakeUse>(A0);
+      Context.insert<InstFakeUse>(A1);
+      break;
+    }
+    case IceType_v4f32: {
+      auto *SrcVec = llvm::dyn_cast<VariableVecOn32>(Src0);
+      Reg = getImplicitRet();
+      auto *RegT = legalizeToReg(Reg);
+      // Return the vector through buffer in implicit argument a0
+      for (SizeT i = 0; i < SrcVec->ElementsPerContainer; ++i) {
+        OperandMIPS32Mem *Mem = OperandMIPS32Mem::create(
+            Func, IceType_f32, RegT,
+            llvm::cast<ConstantInteger32>(Ctx->getConstantInt32(i * 4)));
+        Variable *Var = legalizeToReg(SrcVec->getContainers()[i]);
+        _sw(Var, Mem);
+      }
+      Variable *V0 = makeReg(IceType_i32, RegMIPS32::Reg_V0);
+      _mov(V0, Reg); // move v0,a0
+      Context.insert<InstFakeUse>(Reg);
+      Context.insert<InstFakeUse>(V0);
+      break;
+    }
     default:
-      UnimplementedLoweringError(this, Instr);
+      llvm::report_fatal_error("Ret: Invalid type.");
+      break;
     }
   }
   _ret(getPhysicalRegister(RegMIPS32::Reg_RA), Reg);
@@ -3969,6 +4457,14 @@ void TargetMIPS32::lowerStore(const InstStore *Instr) {
     Variable *ValueLo = legalizeToReg(loOperand(Value));
     _sw(ValueHi, llvm::cast<OperandMIPS32Mem>(hiOperand(NewAddr)));
     _sw(ValueLo, llvm::cast<OperandMIPS32Mem>(loOperand(NewAddr)));
+  } else if (isVectorType(Value->getType())) {
+    auto *DataVec = llvm::dyn_cast<VariableVecOn32>(Value);
+    for (SizeT i = 0; i < DataVec->ElementsPerContainer; ++i) {
+      auto *DCont = legalizeToReg(DataVec->getContainers()[i]);
+      auto *MCont = llvm::cast<OperandMIPS32Mem>(
+          getOperandAtIndex(NewAddr, IceType_i32, i));
+      _sw(DCont, MCont);
+    }
   } else {
     Variable *ValueR = legalizeToReg(Value);
     _sw(ValueR, NewAddr);
@@ -4199,7 +4695,7 @@ Variable *TargetMIPS32::copyToReg(Operand *Src, RegNumT RegNum) {
   Type Ty = Src->getType();
   Variable *Reg = makeReg(Ty, RegNum);
   if (isVectorType(Ty)) {
-    UnimplementedError(getFlags());
+    llvm::report_fatal_error("Invalid copy from vector type.");
   } else {
     if (auto *Mem = llvm::dyn_cast<OperandMIPS32Mem>(Src)) {
       _lw(Reg, Mem);
@@ -4271,6 +4767,11 @@ Operand *TargetMIPS32::legalize(Operand *From, LegalMask Allowed,
   }
 
   if (llvm::isa<Constant>(From)) {
+    if (llvm::isa<ConstantUndef>(From)) {
+      From = legalizeUndef(From, RegNum);
+      if (isVectorType(Ty))
+        return From;
+    }
     if (auto *C = llvm::dyn_cast<ConstantRelocatable>(From)) {
       (void)C;
       // TODO(reed kotler): complete this case for proper implementation
@@ -4279,23 +4780,15 @@ Operand *TargetMIPS32::legalize(Operand *From, LegalMask Allowed,
       return Reg;
     } else if (auto *C32 = llvm::dyn_cast<ConstantInteger32>(From)) {
       const uint32_t Value = C32->getValue();
-      // Check if the immediate will fit in a Flexible second operand,
-      // if a Flexible second operand is allowed. We need to know the exact
-      // value, so that rules out relocatable constants.
-      // Also try the inverse and use MVN if possible.
-      // Do a movw/movt to a register.
-      Variable *Reg;
-      if (RegNum.hasValue())
-        Reg = getPhysicalRegister(RegNum);
-      else
-        Reg = makeReg(Ty, RegNum);
+      // Use addiu if the immediate is a 16bit value. Otherwise load it
+      // using a lui-ori instructions.
+      Variable *Reg = makeReg(Ty, RegNum);
       if (isInt<16>(int32_t(Value))) {
         Variable *Zero = getPhysicalRegister(RegMIPS32::Reg_ZERO, Ty);
         Context.insert<InstFakeDef>(Zero);
         _addiu(Reg, Zero, Value);
       } else {
         uint32_t UpperBits = (Value >> 16) & 0xFFFF;
-        (void)UpperBits;
         uint32_t LowerBits = Value & 0xFFFF;
         Variable *TReg = makeReg(Ty, RegNum);
         if (LowerBits) {

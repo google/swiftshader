@@ -955,11 +955,10 @@ public:
   void dump(const Cfg *Func) const override {
     if (!BuildDefs::dump())
       return;
-    Ostream &Str = Func->getContext()->getStrEmit();
-    Str << "\t" << Opcode << "\t";
-    getSrc(0)->emit(Func);
-    Str << ", ";
-    getSrc(1)->emit(Func);
+    Ostream &Str = Func->getContext()->getStrDump();
+    dumpOpcode(Str, Opcode, getSrc(0)->getType());
+    Str << " ";
+    dumpSources(Func);
     Str << ", " << TrapCode;
   }
 

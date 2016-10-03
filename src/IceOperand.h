@@ -52,6 +52,7 @@ public:
     kConst_Max = kConst_Target + MaxTargetKinds,
     kVariable,
     kVariable64On32,
+    kVariableVecOn32,
     kVariableBoolean,
     kVariable_Target, // leave space for target-specific variable kinds
     kVariable_Max = kVariable_Target + MaxTargetKinds,
@@ -960,6 +961,66 @@ protected:
 
   Variable *LoVar = nullptr;
   Variable *HiVar = nullptr;
+};
+
+// VariableVecOn32 represents a 128-bit vector variable on a 32-bit
+// architecture. In this case the variable must be split into 4 containers.
+class VariableVecOn32 : public Variable {
+  VariableVecOn32() = delete;
+  VariableVecOn32(const VariableVecOn32 &) = delete;
+  VariableVecOn32 &operator=(const VariableVecOn32 &) = delete;
+
+public:
+  static VariableVecOn32 *create(Cfg *Func, Type Ty, SizeT Index) {
+    return new (Func->allocate<VariableVecOn32>())
+        VariableVecOn32(Func, kVariableVecOn32, Ty, Index);
+  }
+
+  void setName(const Cfg *Func, const std::string &NewName) override {
+    Variable::setName(Func, NewName);
+    if (!Containers.empty()) {
+      for (SizeT i = 0; i < ElementsPerContainer; ++i) {
+        Containers[i]->setName(Func, getName() + "__cont" + std::to_string(i));
+      }
+    }
+  }
+
+  void setIsArg(bool Val = true) override {
+    Variable::setIsArg(Val);
+    for (Variable *Var : Containers) {
+      Var->setIsArg(getIsArg());
+    }
+  }
+
+  const VarList &getContainers() const { return Containers; }
+
+  void initVecElement(Cfg *Func) {
+    for (SizeT i = 0; i < ElementsPerContainer; ++i) {
+      Variable *Var = Func->makeVariable(IceType_i32);
+      Var->setIsArg(getIsArg());
+      if (BuildDefs::dump()) {
+        Var->setName(Func, getName() + "__cont" + std::to_string(i));
+      }
+      Containers.push_back(Var);
+    }
+  }
+
+  static bool classof(const Operand *Operand) {
+    OperandKind Kind = Operand->getKind();
+    return Kind == kVariableVecOn32;
+  }
+
+  // A 128-bit vector value is mapped onto 4 32-bit register values.
+  static constexpr SizeT ElementsPerContainer = 4;
+
+protected:
+  VariableVecOn32(const Cfg *Func, OperandKind K, Type Ty, SizeT Index)
+      : Variable(Func, K, Ty, Index) {
+    assert(typeWidthInBytes(Ty) ==
+           ElementsPerContainer * typeWidthInBytes(IceType_i32));
+  }
+
+  VarList Containers;
 };
 
 enum MetadataKind {

@@ -256,6 +256,12 @@ public:
   /// Return whether a 64-bit Variable should be split into a Variable64On32.
   virtual bool shouldSplitToVariable64On32(Type Ty) const = 0;
 
+  /// Return whether a Vector Variable should be split into a VariableVecOn32.
+  virtual bool shouldSplitToVariableVecOn32(Type Ty) const {
+    (void)Ty;
+    return false;
+  }
+
   bool hasComputedFrame() const { return HasComputedFrame; }
   /// Returns true if this function calls a function that has the "returns
   /// twice" attribute.
@@ -503,6 +509,9 @@ protected:
     const SizeT NumElements = typeNumElements(DestTy);
 
     Variable *T = Func->makeVariable(DestTy);
+    if (auto *VarVecOn32 = llvm::dyn_cast<VariableVecOn32>(T)) {
+      VarVecOn32->initVecElement(Func);
+    }
     Context.insert<InstFakeDef>(T);
 
     for (SizeT I = 0; I < NumElements; ++I) {

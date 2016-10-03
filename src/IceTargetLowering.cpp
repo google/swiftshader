@@ -715,6 +715,10 @@ void TargetLowering::addFakeDefUses(const Inst *Instr) {
     if (auto *Var64 = llvm::dyn_cast<Variable64On32>(Var)) {
       Context.insert<InstFakeUse>(Var64->getLo());
       Context.insert<InstFakeUse>(Var64->getHi());
+    } else if (auto *VarVec = llvm::dyn_cast<VariableVecOn32>(Var)) {
+      for (Variable *Var : VarVec->getContainers()) {
+        Context.insert<InstFakeUse>(Var);
+      }
     } else {
       Context.insert<InstFakeUse>(Var);
     }
@@ -725,6 +729,10 @@ void TargetLowering::addFakeDefUses(const Inst *Instr) {
   if (auto *Var64 = llvm::dyn_cast<Variable64On32>(Dest)) {
     Context.insert<InstFakeDef>(Var64->getLo());
     Context.insert<InstFakeDef>(Var64->getHi());
+  } else if (auto *VarVec = llvm::dyn_cast<VariableVecOn32>(Dest)) {
+    for (Variable *Var : VarVec->getContainers()) {
+      Context.insert<InstFakeDef>(Var);
+    }
   } else {
     Context.insert<InstFakeDef>(Dest);
   }

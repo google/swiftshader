@@ -119,9 +119,14 @@ void Cfg::swapNodes(NodeList &NewNodes) {
 
 template <> Variable *Cfg::makeVariable<Variable>(Type Ty) {
   SizeT Index = Variables.size();
-  Variable *Var = Target->shouldSplitToVariable64On32(Ty)
-                      ? Variable64On32::create(this, Ty, Index)
-                      : Variable::create(this, Ty, Index);
+  Variable *Var;
+  if (Target->shouldSplitToVariableVecOn32(Ty)) {
+    Var = VariableVecOn32::create(this, Ty, Index);
+  } else if (Target->shouldSplitToVariable64On32(Ty)) {
+    Var = Variable64On32::create(this, Ty, Index);
+  } else {
+    Var = Variable::create(this, Ty, Index);
+  }
   Variables.push_back(Var);
   return Var;
 }
@@ -244,9 +249,13 @@ void Cfg::translate() {
   }
 
   // Create the Hi and Lo variables where a split was needed
-  for (Variable *Var : Variables)
-    if (auto *Var64On32 = llvm::dyn_cast<Variable64On32>(Var))
+  for (Variable *Var : Variables) {
+    if (auto *Var64On32 = llvm::dyn_cast<Variable64On32>(Var)) {
       Var64On32->initHiLo(this);
+    } else if (auto *VarVecOn32 = llvm::dyn_cast<VariableVecOn32>(Var)) {
+      VarVecOn32->initVecElement(this);
+    }
+  }
 
   // Instrument the Cfg, e.g. with AddressSanitizer
   if (!BuildDefs::minimal() && getFlags().getSanitizeAddresses()) {
