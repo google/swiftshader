@@ -5279,6 +5279,14 @@ void TargetARM32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
   case Intrinsics::Trap:
     _trap();
     return;
+  case Intrinsics::LoadSubVector: {
+    UnimplementedLoweringError(this, Instr);
+    return;
+  }
+  case Intrinsics::StoreSubVector: {
+    UnimplementedLoweringError(this, Instr);
+    return;
+  }
   case Intrinsics::UnknownIntrinsic:
     Func->setError("Should not be lowering UnknownIntrinsic");
     return;

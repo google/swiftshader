@@ -4344,6 +4344,58 @@ void TargetX86Base<TraitsType>::lowerIntrinsicCall(
   case Intrinsics::Trap:
     _ud2();
     return;
+  case Intrinsics::LoadSubVector: {
+    assert(llvm::isa<ConstantInteger32>(Instr->getArg(0)) &&
+           "LoadSubVector first argument must be a constant");
+    Variable *Dest = Instr->getDest();
+    Type Ty = Dest->getType();
+    auto *SubVectorSize = llvm::dyn_cast<ConstantInteger32>(Instr->getArg(0));
+    Operand *Addr = Instr->getArg(1);
+    X86OperandMem *Src = formMemoryOperand(Addr, Ty);
+    doMockBoundsCheck(Src);
+
+    if (Dest->isRematerializable()) {
+      Context.insert<InstFakeDef>(Dest);
+      return;
+    }
+
+    switch (SubVectorSize->getValue()) {
+    case 4:
+      _movd(Dest, Src);
+      break;
+    case 8:
+      _movq(Dest, Src);
+      break;
+    default:
+      Func->setError("Unexpected size for LoadSubVector");
+      return;
+    }
+    return;
+  }
+  case Intrinsics::StoreSubVector: {
+    assert(llvm::isa<ConstantInteger32>(Instr->getArg(0)) &&
+           "StoreSubVector first argument must be a constant");
+    auto *SubVectorSize = llvm::dyn_cast<ConstantInteger32>(Instr->getArg(0));
+    Operand *Value = Instr->getArg(1);
+    Operand *Addr = Instr->getArg(2);
+    X86OperandMem *NewAddr = formMemoryOperand(Addr, Value->getType());
+    doMockBoundsCheck(NewAddr);
+
+    Value = legalizeToReg(Value);
+
+    switch (SubVectorSize->getValue()) {
+    case 4:
+      _stored(Value, NewAddr);
+      break;
+    case 8:
+      _storeq(Value, NewAddr);
+      break;
+    default:
+      Func->setError("Unexpected size for StoreSubVector");
+      return;
+    }
+    return;
+  }
   case Intrinsics::UnknownIntrinsic:
     Func->setError("Should not be lowering UnknownIntrinsic");
     return;

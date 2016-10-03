@@ -904,9 +904,13 @@ protected:
     AutoMemorySandboxer<> _(this, &Value, &Mem);
     Context.insert<typename Traits::Insts::StoreP>(Value, Mem);
   }
-  void _storeq(Variable *Value, X86OperandMem *Mem) {
+  void _storeq(Operand *Value, X86OperandMem *Mem) {
     AutoMemorySandboxer<> _(this, &Value, &Mem);
     Context.insert<typename Traits::Insts::StoreQ>(Value, Mem);
+  }
+  void _stored(Operand *Value, X86OperandMem *Mem) {
+    AutoMemorySandboxer<> _(this, &Value, &Mem);
+    Context.insert<typename Traits::Insts::StoreD>(Value, Mem);
   }
   void _sub(Variable *Dest, Operand *Src0) {
     AutoMemorySandboxer<> _(this, &Dest, &Src0);

@@ -60,7 +60,10 @@ public:
     Sqrt,
     Stacksave,
     Stackrestore,
-    Trap
+    Trap,
+    // The intrinsics below are not part of the PNaCl specification.
+    LoadSubVector,
+    StoreSubVector
   };
 
   /// Operations that can be represented by the AtomicRMW intrinsic.

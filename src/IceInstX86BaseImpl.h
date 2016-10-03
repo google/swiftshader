@@ -297,9 +297,17 @@ InstImpl<TraitsType>::InstX86StoreP::InstX86StoreP(Cfg *Func, Variable *Value,
 }
 
 template <typename TraitsType>
-InstImpl<TraitsType>::InstX86StoreQ::InstX86StoreQ(Cfg *Func, Variable *Value,
+InstImpl<TraitsType>::InstX86StoreQ::InstX86StoreQ(Cfg *Func, Operand *Value,
                                                    X86OperandMem *Mem)
     : InstX86Base(Func, InstX86Base::StoreQ, 2, nullptr) {
+  this->addSource(Value);
+  this->addSource(Mem);
+}
+
+template <typename TraitsType>
+InstImpl<TraitsType>::InstX86StoreD::InstX86StoreD(Cfg *Func, Operand *Value,
+                                                   X86OperandMem *Mem)
+    : InstX86Base(Func, InstX86Base::StoreD, 2, nullptr) {
   this->addSource(Value);
   this->addSource(Mem);
 }
@@ -2021,6 +2029,46 @@ void InstImpl<TraitsType>::InstX86StoreQ::dump(const Cfg *Func) const {
 }
 
 template <typename TraitsType>
+void InstImpl<TraitsType>::InstX86StoreD::emit(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+  Ostream &Str = Func->getContext()->getStrEmit();
+  assert(this->getSrcSize() == 2);
+  assert(this->getSrc(1)->getType() == IceType_i64 ||
+         this->getSrc(1)->getType() == IceType_f64 ||
+         isVectorType(this->getSrc(1)->getType()));
+  Str << "\t"
+         "movd\t";
+  this->getSrc(0)->emit(Func);
+  Str << ", ";
+  this->getSrc(1)->emit(Func);
+}
+
+template <typename TraitsType>
+void InstImpl<TraitsType>::InstX86StoreD::emitIAS(const Cfg *Func) const {
+  Assembler *Asm = Func->getAssembler<Assembler>();
+  assert(this->getSrcSize() == 2);
+  const auto *SrcVar = llvm::cast<Variable>(this->getSrc(0));
+  const auto DestMem = llvm::cast<X86OperandMem>(this->getSrc(1));
+  assert(DestMem->getSegmentRegister() == X86OperandMem::DefaultSegment);
+  assert(SrcVar->hasReg());
+  auto *Target = InstX86Base::getTarget(Func);
+  Asm->movd(SrcVar->getType(), DestMem->toAsmAddress(Asm, Target),
+            Traits::getEncodedXmm(SrcVar->getRegNum()));
+}
+
+template <typename TraitsType>
+void InstImpl<TraitsType>::InstX86StoreD::dump(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+  Ostream &Str = Func->getContext()->getStrDump();
+  Str << "stored." << this->getSrc(0)->getType() << " ";
+  this->getSrc(1)->dump(Func);
+  Str << ", ";
+  this->getSrc(0)->dump(Func);
+}
+
+template <typename TraitsType>
 void InstImpl<TraitsType>::InstX86Lea::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
@@ -2279,7 +2327,8 @@ template <typename TraitsType>
 void InstImpl<TraitsType>::InstX86Movq::emitIAS(const Cfg *Func) const {
   assert(this->getSrcSize() == 1);
   assert(this->getDest()->getType() == IceType_i64 ||
-         this->getDest()->getType() == IceType_f64);
+         this->getDest()->getType() == IceType_f64 ||
+         isVectorType(this->getDest()->getType()));
   const Variable *Dest = this->getDest();
   const Operand *Src = this->getSrc(0);
   static const XmmEmitterMovOps Emitter = {&Assembler::movq, &Assembler::movq,

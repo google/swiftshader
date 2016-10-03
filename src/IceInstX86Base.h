@@ -166,6 +166,7 @@ template <typename TraitsType> struct InstImpl {
       Store,
       StoreP,
       StoreQ,
+      StoreD,
       Sub,
       SubRMW,
       Subps,
@@ -2595,7 +2596,7 @@ template <typename TraitsType> struct InstImpl {
     InstX86StoreQ &operator=(const InstX86StoreQ &) = delete;
 
   public:
-    static InstX86StoreQ *create(Cfg *Func, Variable *Value,
+    static InstX86StoreQ *create(Cfg *Func, Operand *Value,
                                  X86OperandMem *Mem) {
       return new (Func->allocate<InstX86StoreQ>())
           InstX86StoreQ(Func, Value, Mem);
@@ -2608,7 +2609,29 @@ template <typename TraitsType> struct InstImpl {
     }
 
   private:
-    InstX86StoreQ(Cfg *Func, Variable *Value, X86OperandMem *Mem);
+    InstX86StoreQ(Cfg *Func, Operand *Value, X86OperandMem *Mem);
+  };
+
+  class InstX86StoreD final : public InstX86Base {
+    InstX86StoreD() = delete;
+    InstX86StoreD(const InstX86StoreD &) = delete;
+    InstX86StoreD &operator=(const InstX86StoreD &) = delete;
+
+  public:
+    static InstX86StoreD *create(Cfg *Func, Operand *Value,
+                                 X86OperandMem *Mem) {
+      return new (Func->allocate<InstX86StoreD>())
+          InstX86StoreD(Func, Value, Mem);
+    }
+    void emit(const Cfg *Func) const override;
+    void emitIAS(const Cfg *Func) const override;
+    void dump(const Cfg *Func) const override;
+    static bool classof(const Inst *Instr) {
+      return InstX86Base::isClassof(Instr, InstX86Base::StoreQ);
+    }
+
+  private:
+    InstX86StoreD(Cfg *Func, Operand *Value, X86OperandMem *Mem);
   };
 
   /// Nop instructions of varying length
@@ -3007,6 +3030,7 @@ template <typename TraitsType> struct Insts {
   using Store = typename InstImpl<TraitsType>::InstX86Store;
   using StoreP = typename InstImpl<TraitsType>::InstX86StoreP;
   using StoreQ = typename InstImpl<TraitsType>::InstX86StoreQ;
+  using StoreD = typename InstImpl<TraitsType>::InstX86StoreD;
   using Nop = typename InstImpl<TraitsType>::InstX86Nop;
   template <typename T = typename InstImpl<TraitsType>::Traits>
   using Fld =

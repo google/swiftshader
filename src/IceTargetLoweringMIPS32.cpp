@@ -4043,6 +4043,14 @@ void TargetMIPS32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     _teq(getZero(), getZero(), TrapCodeZero);
     return;
   }
+  case Intrinsics::LoadSubVector: {
+    UnimplementedLoweringError(this, Instr); // Not required for PNaCl
+    return;
+  }
+  case Intrinsics::StoreSubVector: {
+    UnimplementedLoweringError(this, Instr); // Not required for PNaCl
+    return;
+  }
   case Intrinsics::UnknownIntrinsic:
     Func->setError("Should not be lowering UnknownIntrinsic");
     return;
