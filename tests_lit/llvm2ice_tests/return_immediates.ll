@@ -5,13 +5,10 @@
 ; RUN: %p2i --filetype=obj --disassemble -i %s --args -O2 \
 ; RUN:      -allow-externally-defined-symbols | FileCheck %s
 
-; TODO(jvoung): Stop skipping unimplemented parts (via --skip-unimplemented)
-; once enough infrastructure is in. Also, switch to --filetype=obj
-; when possible.
-; RUN: %if --need=target_ARM32 --need=allow_dump \
-; RUN:   --command %p2i --filetype=asm --assemble \
-; RUN:   --disassemble --target arm32 -i %s --args -O2 --skip-unimplemented \
-; RUN:   | %if --need=target_ARM32 --need=allow_dump \
+; RUN: %if --need=target_ARM32 \
+; RUN:   --command %p2i --filetype=obj \
+; RUN:   --disassemble --target arm32 -i %s --args -O2 \
+; RUN:   | %if --need=target_ARM32 \
 ; RUN:   --command FileCheck --check-prefix ARM32 %s
 
 ; TODO(rkotler): Stop skipping unimplemented parts (via --skip-unimplemented)

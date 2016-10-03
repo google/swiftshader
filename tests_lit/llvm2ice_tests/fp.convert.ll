@@ -6,14 +6,14 @@
 ; RUN: %p2i --filetype=obj --disassemble -i %s --args -O2 | FileCheck %s
 ; RUN: %p2i --filetype=obj --disassemble -i %s --args -Om1 | FileCheck %s
 
-; RUN: %if --need=allow_dump --need=target_ARM32 --command %p2i --filetype=asm \
-; RUN:   --target arm32 -i %s --args -O2 --skip-unimplemented \
-; RUN:   | %if --need=allow_dump --need=target_ARM32 --command FileCheck %s \
+; RUN: %if --need=target_ARM32 --command %p2i --filetype=obj --disassemble \
+; RUN:   --target arm32 -i %s --args -O2 \
+; RUN:   | %if --need=target_ARM32 --command FileCheck %s \
 ; RUN:   --check-prefix=ARM32
 
-; RUN: %if --need=allow_dump --need=target_ARM32 --command %p2i --filetype=asm \
-; RUN:   --target arm32 -i %s --args -Om1 --skip-unimplemented \
-; RUN:   | %if --need=allow_dump --need=target_ARM32 --command FileCheck %s \
+; RUN: %if --need=target_ARM32 --command %p2i --filetype=obj --disassemble \
+; RUN:   --target arm32 -i %s --args -Om1 \
+; RUN:   | %if --need=target_ARM32 --command FileCheck %s \
 ; RUN:   --check-prefix=ARM32
 
 ; RUN: %if --need=allow_dump --need=target_MIPS32 --command %p2i \
@@ -135,8 +135,8 @@ entry:
 ; CHECK-LABEL: doubleToSigned32Const
 ; CHECK: cvttsd2si
 ; ARM32-LABEL: doubleToSigned32Const
-; ARM32-DAG: movw [[ADDR:r[0-9]+]], #:lower16:.L$
-; ARM32-DAG: movt [[ADDR]], #:upper16:.L$
+; ARM32-DAG: movw [[ADDR:r[0-9]+]], #{{.*_MOVW_}}
+; ARM32-DAG: movt [[ADDR]], #{{.*_MOVT_}}
 ; ARM32-DAG: vldr [[DREG:d[0-9]+]], {{\[}}[[ADDR]]{{\]}}
 ; ARM32-DAG: vcvt.s32.f64 [[REG:s[0-9]+]], [[DREG]]
 ; ARM32-DAF: vmov {{r[0-9]+}}, [[REG]]

@@ -3,14 +3,14 @@
 ; RUN: %p2i --filetype=obj --disassemble -i %s --args -O2 | FileCheck %s
 ; RUN: %p2i --filetype=obj --disassemble -i %s --args -Om1 | FileCheck %s
 
-; RUN: %if --need=allow_dump --need=target_ARM32 --command %p2i --filetype=asm \
-; RUN:   --target arm32 -i %s --args -O2 --skip-unimplemented \
-; RUN:   | %if --need=allow_dump --need=target_ARM32 --command FileCheck %s \
+; RUN: %if --need=target_ARM32 --command %p2i --filetype=obj --disassemble \
+; RUN:   --target arm32 -i %s --args -O2 \
+; RUN:   | %if --need=target_ARM32 --command FileCheck %s \
 ; RUN:   --check-prefix=ARM32
 
-; RUN: %if --need=allow_dump --need=target_ARM32 --command %p2i --filetype=asm \
-; RUN:   --target arm32 -i %s --args -Om1 --skip-unimplemented \
-; RUN:   | %if --need=allow_dump --need=target_ARM32 --command FileCheck %s \
+; RUN: %if --need=target_ARM32 --command %p2i --filetype=obj --disassemble \
+; RUN:   --target arm32 -i %s --args -Om1 \
+; RUN:   | %if --need=target_ARM32 --command FileCheck %s \
 ; RUN:   --check-prefix=ARM32
 
 define internal i32 @cast_f2i(float %f) {
@@ -52,8 +52,8 @@ entry:
 ; CHECK: mov e{{..}},{{(DWORD PTR )?}}ds:0x0 {{.*}} {{.*}}0012345678901234
 ; CHECK: mov e{{..}},{{(DWORD PTR )?}}ds:0x4 {{.*}} {{.*}}0012345678901234
 ; ARM32-LABEL: cast_d2ll_const
-; ARM32-DAG: movw [[ADDR:r[0-9]+]], #:lower16:.L$
-; ARM32-DAG: movt [[ADDR]], #:upper16:.L$
+; ARM32-DAG: movw [[ADDR:r[0-9]+]], #{{.*_MOVW_}}
+; ARM32-DAG: movt [[ADDR]], #{{.*_MOVT_}}
 ; ARM32-DAG: vldr [[DREG:d[0-9]+]], {{\[}}[[ADDR]]{{\]}}
 ; ARM32: vmov r{{[0-9]+}}, r{{[0-9]+}}, [[DREG]]
 

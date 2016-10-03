@@ -9,19 +9,19 @@
 ; RUN:   -allow-externally-defined-symbols | FileCheck %s
 
 ; RUN: %if --need=allow_dump --need=target_ARM32 --command %p2i --filetype=asm \
-; RUN:   --target arm32 -i %s --args -O2 --skip-unimplemented \
+; RUN:   --target arm32 -i %s --args -O2 \
 ; RUN:   -allow-externally-defined-symbols \
 ; RUN:   | %if --need=allow_dump --need=target_ARM32 --command FileCheck %s \
 ; RUN:   --check-prefix=ARM32
 
 ; RUN: %if --need=allow_dump --need=target_ARM32 --command %p2i --filetype=asm \
-; RUN:   --target arm32 -i %s --args -O2 --skip-unimplemented \
+; RUN:   --target arm32 -i %s --args -O2 \
 ; RUN:   -allow-externally-defined-symbols \
 ; RUN:   | %if --need=allow_dump --need=target_ARM32 --command FileCheck %s \
 ; RUN:   --check-prefix=ARM32O2
 
 ; RUN: %if --need=allow_dump --need=target_ARM32 --command %p2i --filetype=asm \
-; RUN:   --target arm32 -i %s --args -Om1 --skip-unimplemented \
+; RUN:   --target arm32 -i %s --args -Om1 \
 ; RUN:   -allow-externally-defined-symbols \
 ; RUN:   | %if --need=allow_dump --need=target_ARM32 --command FileCheck %s \
 ; RUN:   --check-prefix=ARM32

@@ -27,11 +27,11 @@
 ; RUN:   | %if --need=target_X8632 \
 ; RUN:   --command FileCheck --check-prefix=CHECKO2UNSANDBOXEDREM %s
 
-; RUN: %if --need=target_ARM32 --need=allow_dump \
-; RUN:   --command %p2i --filetype=asm --assemble --disassemble --target arm32 \
-; RUN:   -i %s --args -O2 --skip-unimplemented \
+; RUN: %if --need=target_ARM32 \
+; RUN:   --command %p2i --filetype=obj --disassemble --target arm32 \
+; RUN:   -i %s --args -O2 \
 ; RUN:   -allow-externally-defined-symbols \
-; RUN:   | %if --need=target_ARM32 --need=allow_dump \
+; RUN:   | %if --need=target_ARM32 \
 ; RUN:   --command FileCheck --check-prefix ARM32 %s
 
 ; RUN: %if --need=target_MIPS32 --need=allow_dump \
@@ -335,7 +335,7 @@ NonZero:
 ; CHECK-LABEL: test_trap
 ; CHECK: ud2
 ; ARM32-LABEL: test_trap
-; ARM32: .word 0xe7fedef0
+; ARM32: udf
 ; MIPS32-LABEL: test_trap
 ; MIPS32: teq zero,zero
 

@@ -24,18 +24,15 @@
 ; RUN:   | %if --need=target_X8664 \
 ; RUN:     --command FileCheck --check-prefix=X8664-OPTM1 %s
 
-; TODO(jvoung): Stop skipping unimplemented parts (via --skip-unimplemented)
-; once enough infrastructure is in. Also, switch to --filetype=obj
-; when possible.
-; RUN: %if --need=target_ARM32 --need=allow_dump \
-; RUN:   --command %p2i --filetype=asm --assemble \
-; RUN:   --disassemble --target arm32 -i %s --args -O2 --skip-unimplemented \
-; RUN:   | %if --need=target_ARM32 --need=allow_dump \
+; RUN: %if --need=target_ARM32 \
+; RUN:   --command %p2i --filetype=obj \
+; RUN:   --disassemble --target arm32 -i %s --args -O2 \
+; RUN:   | %if --need=target_ARM32 \
 ; RUN:   --command FileCheck --check-prefix ARM32 %s
-; RUN: %if --need=target_ARM32 --need=allow_dump \
-; RUN:   --command %p2i --filetype=asm --assemble \
-; RUN:   --disassemble --target arm32 -i %s --args -Om1 --skip-unimplemented \
-; RUN:   | %if --need=target_ARM32 --need=allow_dump \
+; RUN: %if --need=target_ARM32 \
+; RUN:   --command %p2i --filetype=obj \
+; RUN:   --disassemble --target arm32 -i %s --args -Om1 \
+; RUN:   | %if --need=target_ARM32_dump \
 ; RUN:   --command FileCheck --check-prefix ARM32 %s
 
 @__init_array_start = internal constant [0 x i8] zeroinitializer, align 4

@@ -23,16 +23,15 @@
 ; RUN:     | %if --need=target_X8632 --command  FileCheck %s
 
 ; Test arm output
-; IAS is not implemented yet.
-; RUN: %if --need=target_ARM32 --command %p2i --filetype=asm --target arm32 \
-; RUN:     -i %s --assemble --disassemble --dis-flags=-rD \
+; RUN: %if --need=target_ARM32 --command %p2i --filetype=obj --target arm32 \
+; RUN:     -i %s --disassemble --dis-flags=-rD \
 ; RUN:     --args -sz-seed=1 -reorder-global-variables \
-; RUN:     --skip-unimplemented -O2 \
+; RUN:     -O2 \
 ; RUN:     | %if --need=target_ARM32 --command FileCheck %s
-; RUN: %if --need=target_ARM32 --command %p2i --filetype=asm --target arm32 \
-; RUN:     -i %s --assemble --disassemble --dis-flags=-rD \
+; RUN: %if --need=target_ARM32 --command %p2i --filetype=obj --target arm32 \
+; RUN:     -i %s --disassemble --dis-flags=-rD \
 ; RUN:     --args -sz-seed=1 -reorder-global-variables \
-; RUN:     --skip-unimplemented -Om1 \
+; RUN:     -Om1 \
 ; RUN:     | %if --need=target_ARM32 --command FileCheck %s
 
 

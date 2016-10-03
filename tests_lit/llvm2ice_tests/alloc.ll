@@ -9,21 +9,18 @@
 ; RUN:   | %if --need=target_X8632 --command FileCheck \
 ; RUN:   --check-prefix CHECK-OPTM1 %s
 
-; TODO(jvoung): Stop skipping unimplemented parts (via --skip-unimplemented)
-; once enough infrastructure is in. Also, switch to --filetype=obj
-; when possible.
-; RUN: %if --need=target_ARM32 --need=allow_dump \
-; RUN:   --command %p2i --filetype=asm --assemble \
-; RUN:   --disassemble --target arm32 -i %s --args -O2 --skip-unimplemented \
+; RUN: %if --need=target_ARM32 \
+; RUN:   --command %p2i --filetype=obj \
+; RUN:   --disassemble --target arm32 -i %s --args -O2 \
 ; RUN:   -allow-externally-defined-symbols \
-; RUN:   | %if --need=target_ARM32 --need=allow_dump \
+; RUN:   | %if --need=target_ARM32 \
 ; RUN:   --command FileCheck --check-prefix ARM32 --check-prefix=ARM-OPT2 %s
 
-; RUN: %if --need=target_ARM32 --need=allow_dump \
-; RUN:   --command %p2i --filetype=asm --assemble \
-; RUN:   --disassemble --target arm32 -i %s --args -Om1 --skip-unimplemented \
+; RUN: %if --need=target_ARM32 \
+; RUN:   --command %p2i --filetype=obj \
+; RUN:   --disassemble --target arm32 -i %s --args -Om1 \
 ; RUN:   -allow-externally-defined-symbols \
-; RUN:   | %if --need=target_ARM32 --need=allow_dump \
+; RUN:   | %if --need=target_ARM32 \
 ; RUN:   --command FileCheck --check-prefix ARM32 --check-prefix=ARM-OPTM1 %s
 
 ; RUN: %if --need=target_MIPS32 --need=allow_dump \

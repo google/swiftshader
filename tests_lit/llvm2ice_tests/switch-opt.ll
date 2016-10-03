@@ -5,10 +5,10 @@
 ; For x86 see adv-switch-opt.ll
 
 ; TODO(jvoung): Update to -02 once the phi assignments is done for ARM
-; RUN: %if --need=target_ARM32 --need=allow_dump \
-; RUN:   --command %p2i --filetype=asm --assemble --disassemble \
-; RUN:   --target arm32 -i %s --args -Om1 --skip-unimplemented \
-; RUN:   | %if --need=target_ARM32 --need=allow_dump \
+; RUN: %if --need=target_ARM32 \
+; RUN:   --command %p2i --filetype=obj --disassemble \
+; RUN:   --target arm32 -i %s --args -Om1 \
+; RUN:   | %if --need=target_ARM32 \
 ; RUN:     --command FileCheck --check-prefix ARM32 %s
 
 ; TODO(jaydeep.patil): Using --skip-unimplemented for MIPS32

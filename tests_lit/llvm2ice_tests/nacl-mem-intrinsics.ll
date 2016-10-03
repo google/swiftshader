@@ -10,10 +10,10 @@
 ; RUN:   --target x8632 --sandbox -i %s --args -Om1 \
 ; RUN:   | %if --need=target_X8632 --command FileCheck --check-prefix OM1 %s
 
-; RUN: %if --need=target_ARM32 --need=allow_dump \
-; RUN:   --command %p2i --filetype=asm --assemble --disassemble --target arm32 \
-; RUN:   -i %s --args -O2 --skip-unimplemented \
-; RUN:   | %if --need=target_ARM32 --need=allow_dump \
+; RUN: %if --need=target_ARM32 \
+; RUN:   --command %p2i --filetype=obj --disassemble --target arm32 \
+; RUN:   -i %s --args -O2 \
+; RUN:   | %if --need=target_ARM32 \
 ; RUN:   --command FileCheck --check-prefix ARM32 %s
 
 ; RUN: %if --need=target_MIPS32 --need=allow_dump \

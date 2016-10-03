@@ -6,16 +6,16 @@
 ; RUN:   -allow-externally-defined-symbols | FileCheck %s \
 ; RUN:   --check-prefix=CHECK-OM1
 
-; RUN: %if --need=allow_dump --need=target_ARM32 --command %p2i --filetype=asm \
+; RUN: %if --need=target_ARM32 --command %p2i --filetype=obj --disassemble \
 ; RUN:   --target arm32 -i %s --args -O2 \
 ; RUN:   -allow-externally-defined-symbols \
-; RUN:   | %if --need=allow_dump --need=target_ARM32 --command FileCheck %s \
+; RUN:   | %if --need=target_ARM32 --command FileCheck %s \
 ; RUN:   --check-prefix=ARM32 --check-prefix=ARM32-O2
 
-; RUN: %if --need=allow_dump --need=target_ARM32 --command %p2i --filetype=asm \
+; RUN: %if --need=target_ARM32 --command %p2i --filetype=obj --disassemble \
 ; RUN:   --target arm32 -i %s --args -Om1 \
 ; RUN:   -allow-externally-defined-symbols \
-; RUN:   | %if --need=allow_dump --need=target_ARM32 --command FileCheck %s \
+; RUN:   | %if --need=target_ARM32 --command FileCheck %s \
 ; RUN:   --check-prefix=ARM32 --check-prefix=ARM32-OM1
 
 ; RUN: %if --need=allow_dump --need=target_MIPS32 --command %p2i \
@@ -67,7 +67,7 @@ if.end3:                                          ; preds = %if.then2, %if.end
 ; ARM32-OM1: mov [[R0:r[0-9]+]], #0
 ; ARM32-OM1: moveq [[R0]], #1
 ; ARM32-O2: bne
-; ARM32: bl func
+; ARM32: bl{{.*}}func
 ; ARM32: vcmp.f64
 ; ARM32: vmrs
 ; ARM32-OM1: mov [[R1:r[0-9]+]], #0

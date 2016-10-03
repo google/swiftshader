@@ -5,10 +5,10 @@
 ; RUN: %p2i -i %s --filetype=obj --disassemble --args -O2 \
 ; RUN:   -allow-externally-defined-symbols | FileCheck %s
 
-; RUN: %if --need=allow_dump --need=target_ARM32 --command %p2i --filetype=asm \
-; RUN:   --target arm32 -i %s --args -O2 --skip-unimplemented \
+; RUN: %if --need=target_ARM32 --command %p2i --filetype=obj \
+; RUN:   --target arm32 -i %s --disassemble --args -O2 \
 ; RUN:   -allow-externally-defined-symbols \
-; RUN:   | %if --need=allow_dump --need=target_ARM32 --command FileCheck %s \
+; RUN:   | %if --need=target_ARM32 --command FileCheck %s \
 ; RUN:   --check-prefix=ARM32
 
 declare void @use_value(i32)
@@ -55,7 +55,7 @@ branch2:
 ; CHECK: jge
 ; ARM32-LABEL: fold_cmp_br_intervening_insts
 ; ARM32: push {{[{].*[}]}}
-; ARM32: bl use_value
+; ARM32: bl{{.*}}use_value
 ; ARM32: cmp {{r[0-9]+}}, {{r[0-9]+}}
 ; ARM32: bge
 ; ARM32: mov r0, #1
@@ -190,7 +190,7 @@ entry:
 ; CHECK: cmp
 ; CHECK: cmovl
 ; ARM32-LABEL: fold_cmp_select_intervening_insts
-; ARM32: bl use_value
+; ARM32: bl{{.*}}use_value
 ; ARM32: cmp r{{[0-9]+}}, r{{[0-9]+}}
 ; ARM32: movlt
 ; ARM32: bx lr
@@ -377,9 +377,9 @@ target_false:
 }
 ; ARM32-LABEL: br_i1_folding2_and
 ; ARM32: tst r0, #1
-; ARM32: beq {{.*}}target_false
+; ARM32: beq
 ; ARM32: tst r1, #1
-; ARM32: beq {{.*}}target_false
+; ARM32: beq
 
 define internal i32 @br_i1_folding2_or(i32 %arg1, i32 %arg2) {
   %t0 = trunc i32 %arg1 to i1
@@ -396,9 +396,9 @@ target_false:
 }
 ; ARM32-LABEL: br_i1_folding2_or
 ; ARM32: tst r0, #1
-; ARM32: bne {{.*}}target_true
+; ARM32: bne
 ; ARM32: tst r1, #1
-; ARM32: beq {{.*}}target_false
+; ARM32: beq
 
 define internal i32 @br_i1_folding3_and_or(i32 %arg1, i32 %arg2, i32 %arg3) {
   %t0 = trunc i32 %arg1 to i1
@@ -420,9 +420,9 @@ target_false:
 ; ARM32: tst r0, #1
 ; ARM32: beq
 ; ARM32: tst r1, #1
-; ARM32: bne {{.*}}target_true
+; ARM32: bne
 ; ARM32: tst r2, #1
-; ARM32: beq {{.*}}target_false
+; ARM32: beq
 
 define internal i32 @br_i1_folding3_or_and(i32 %arg1, i32 %arg2, i32 %arg3) {
   %t0 = trunc i32 %arg1 to i1
@@ -444,9 +444,9 @@ target_false:
 ; ARM32: tst r0, #1
 ; ARM32: bne
 ; ARM32: tst r1, #1
-; ARM32: beq {{.*}}target_false
+; ARM32: beq
 ; ARM32: tst r2, #1
-; ARM32: beq {{.*}}target_false
+; ARM32: beq
 
 define internal i32 @br_i1_folding4(i32 %arg1, i32 %arg2, i32 %arg3, i32 %arg4,
                                     i32 %arg5) {
@@ -474,8 +474,8 @@ target_false:
 ; ARM32: tst r1, #1
 ; ARM32: beq
 ; ARM32: tst r2, #1
-; ARM32: bne     {{.*}}target_true
+; ARM32: bne
 ; ARM32: tst     r3, #1
-; ARM32: beq     {{.*}}target_false
+; ARM32: beq     [[TARGET:.*]]
 ; ARM32: tst     r4, #1
-; ARM32: beq     {{.*}}target_false
+; ARM32: beq     [[TARGET]]

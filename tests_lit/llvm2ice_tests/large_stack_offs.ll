@@ -5,11 +5,11 @@
 ; We only need to test ARM and other architectures which have limited space
 ; for specifying an offset within an instruction.
 
-; RUN: %if --need=target_ARM32 --need=allow_dump \
-; RUN:   --command %p2i --filetype=asm --assemble --disassemble --target arm32 \
-; RUN:   -i %s --args -Om1 --skip-unimplemented --test-stack-extra 4096 \
+; RUN: %if --need=target_ARM32 \
+; RUN:   --command %p2i --filetype=obj --disassemble --target arm32 \
+; RUN:   -i %s --args -Om1 --test-stack-extra 4096 \
 ; RUN:   -allow-externally-defined-symbols \
-; RUN:   | %if --need=target_ARM32 --need=allow_dump \
+; RUN:   | %if --need=target_ARM32 \
 ; RUN:   --command FileCheck --check-prefix ARM32 %s
 
 declare i64 @dummy(i32 %t1, i32 %t2, i32 %t3, i64 %t4, i64 %t5)
