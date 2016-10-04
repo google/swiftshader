@@ -3658,8 +3658,8 @@ template <typename TraitsType> struct Insts {
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::XmmEmitterRegOp                       \
       InstImpl<TraitsType>::InstX86Punpckl::Base::Emitter = {                  \
-          &InstImpl<TraitsType>::Assembler::punpckldq,                         \
-          &InstImpl<TraitsType>::Assembler::punpckldq};                        \
+          &InstImpl<TraitsType>::Assembler::punpckl,                           \
+          &InstImpl<TraitsType>::Assembler::punpckl};                          \
   }                                                                            \
   }
 

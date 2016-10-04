@@ -1083,57 +1083,76 @@ TEST_F(AssemblerX8664Test, Shufp) {
 #undef TestImplSingleXmmXmm
 }
 
-TEST_F(AssemblerX8664Test, Punpckldq) {
-  const Dqword V0(uint64_t(0x1111111122222222ull),
-                  uint64_t(0x5555555577777777ull));
-  const Dqword V1(uint64_t(0xAAAAAAAABBBBBBBBull),
-                  uint64_t(0xCCCCCCCCDDDDDDDDull));
+TEST_F(AssemblerX8664Test, Punpckl) {
+  const Dqword V0_v4i32(uint64_t(0x1111111122222222ull),
+                        uint64_t(0x5555555577777777ull));
+  const Dqword V1_v4i32(uint64_t(0xAAAAAAAABBBBBBBBull),
+                        uint64_t(0xCCCCCCCCDDDDDDDDull));
+  const Dqword Expected_v4i32(uint64_t(0xBBBBBBBB22222222ull),
+                              uint64_t(0xAAAAAAAA11111111ull));
 
-  const Dqword Expected(uint64_t(0xBBBBBBBB22222222ull),
-                        uint64_t(0xAAAAAAAA11111111ull));
+  const Dqword V0_v8i16(uint64_t(0x1111222233334444ull),
+                        uint64_t(0x5555666677778888ull));
+  const Dqword V1_v8i16(uint64_t(0xAAAABBBBCCCCDDDDull),
+                        uint64_t(0xEEEEFFFF00009999ull));
+  const Dqword Expected_v8i16(uint64_t(0xCCCC3333DDDD4444ull),
+                              uint64_t(0xAAAA1111BBBB2222ull));
 
-#define TestImplXmmXmm(Dst, Src, Inst)                                         \
+  const Dqword V0_v16i8(uint64_t(0x1122334455667788ull),
+                        uint64_t(0x99AABBCCDDEEFF00ull));
+  const Dqword V1_v16i8(uint64_t(0xFFEEDDCCBBAA9900ull),
+                        uint64_t(0xBAADF00DFEEDFACEull));
+  const Dqword Expected_v16i8(uint64_t(0xBB55AA6699770088ull),
+                              uint64_t(0xFF11EE22DD33CC44ull));
+
+#define TestImplXmmXmm(Dst, Src, Inst, Ty)                                     \
   do {                                                                         \
-    static constexpr char TestString[] = "(" #Dst ", " #Src ", " #Inst ")";    \
+    static constexpr char TestString[] =                                       \
+        "(" #Dst ", " #Src ", " #Inst ", " #Ty ")";                            \
     const uint32_t T0 = allocateDqword();                                      \
     const uint32_t T1 = allocateDqword();                                      \
                                                                                \
     __ movups(XmmRegister::Encoded_Reg_##Dst, dwordAddress(T0));               \
     __ movups(XmmRegister::Encoded_Reg_##Src, dwordAddress(T1));               \
-    __ Inst(IceType_void, XmmRegister::Encoded_Reg_##Dst,                      \
+    __ Inst(IceType_##Ty, XmmRegister::Encoded_Reg_##Dst,                      \
             XmmRegister::Encoded_Reg_##Src);                                   \
                                                                                \
     AssembledTest test = assemble();                                           \
-    test.setDqwordTo(T0, V0);                                                  \
-    test.setDqwordTo(T1, V1);                                                  \
+    test.setDqwordTo(T0, V0_##Ty);                                             \
+    test.setDqwordTo(T1, V1_##Ty);                                             \
     test.run();                                                                \
                                                                                \
-    ASSERT_EQ(Expected, test.Dst<Dqword>()) << TestString;                     \
+    ASSERT_EQ(Expected_##Ty, test.Dst<Dqword>()) << TestString;                \
     reset();                                                                   \
   } while (0)
 
-#define TestImplXmmAddr(Dst, Inst)                                             \
+#define TestImplXmmAddr(Dst, Inst, Ty)                                         \
   do {                                                                         \
-    static constexpr char TestString[] = "(" #Dst ", Addr, " #Inst ")";        \
+    static constexpr char TestString[] =                                       \
+        "(" #Dst ", Addr, " #Inst ", " #Ty ")";                                \
     const uint32_t T0 = allocateDqword();                                      \
     const uint32_t T1 = allocateDqword();                                      \
                                                                                \
     __ movups(XmmRegister::Encoded_Reg_##Dst, dwordAddress(T0));               \
-    __ Inst(IceType_void, XmmRegister::Encoded_Reg_##Dst, dwordAddress(T1));   \
+    __ Inst(IceType_##Ty, XmmRegister::Encoded_Reg_##Dst, dwordAddress(T1));   \
                                                                                \
     AssembledTest test = assemble();                                           \
-    test.setDqwordTo(T0, V0);                                                  \
-    test.setDqwordTo(T1, V1);                                                  \
+    test.setDqwordTo(T0, V0_##Ty);                                             \
+    test.setDqwordTo(T1, V1_##Ty);                                             \
     test.run();                                                                \
                                                                                \
-    ASSERT_EQ(Expected, test.Dst<Dqword>()) << TestString;                     \
+    ASSERT_EQ(Expected_##Ty, test.Dst<Dqword>()) << TestString;                \
     reset();                                                                   \
   } while (0)
 
 #define TestImpl(Dst, Src)                                                     \
   do {                                                                         \
-    TestImplXmmXmm(Dst, Src, punpckldq);                                       \
-    TestImplXmmAddr(Dst, punpckldq);                                           \
+    TestImplXmmXmm(Dst, Src, punpckl, v4i32);                                  \
+    TestImplXmmAddr(Dst, punpckl, v4i32);                                      \
+    TestImplXmmXmm(Dst, Src, punpckl, v8i16);                                  \
+    TestImplXmmAddr(Dst, punpckl, v8i16);                                      \
+    TestImplXmmXmm(Dst, Src, punpckl, v16i8);                                  \
+    TestImplXmmAddr(Dst, punpckl, v16i8);                                      \
   } while (0)
 
   TestImpl(xmm0, xmm1);
@@ -1143,15 +1162,7 @@ TEST_F(AssemblerX8664Test, Punpckldq) {
   TestImpl(xmm4, xmm5);
   TestImpl(xmm5, xmm6);
   TestImpl(xmm6, xmm7);
-  TestImpl(xmm7, xmm8);
-  TestImpl(xmm8, xmm9);
-  TestImpl(xmm9, xmm10);
-  TestImpl(xmm10, xmm11);
-  TestImpl(xmm11, xmm12);
-  TestImpl(xmm12, xmm13);
-  TestImpl(xmm13, xmm14);
-  TestImpl(xmm14, xmm15);
-  TestImpl(xmm15, xmm0);
+  TestImpl(xmm7, xmm0);
 
 #undef TestImpl
 #undef TestImplXmmAddr
