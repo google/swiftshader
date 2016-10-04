@@ -2142,9 +2142,27 @@ void TargetX86Base<TraitsType>::lowerArithmetic(const InstArithmetic *Instr) {
         llvm::report_fatal_error("Invalid vector multiply type");
       }
     } break;
-    case InstArithmetic::Shl:
-    case InstArithmetic::Lshr:
-    case InstArithmetic::Ashr:
+    case InstArithmetic::Shl: {
+      assert(llvm::isa<Constant>(Src1) && "Non-constant shift not scalarized");
+      Variable *T = makeReg(Ty);
+      _movp(T, Src0);
+      _psll(T, Src1);
+      _movp(Dest, T);
+    } break;
+    case InstArithmetic::Lshr: {
+      assert(llvm::isa<Constant>(Src1) && "Non-constant shift not scalarized");
+      Variable *T = makeReg(Ty);
+      _movp(T, Src0);
+      _psrl(T, Src1);
+      _movp(Dest, T);
+    } break;
+    case InstArithmetic::Ashr: {
+      assert(llvm::isa<Constant>(Src1) && "Non-constant shift not scalarized");
+      Variable *T = makeReg(Ty);
+      _movp(T, Src0);
+      _psra(T, Src1);
+      _movp(Dest, T);
+    } break;
     case InstArithmetic::Udiv:
     case InstArithmetic::Urem:
     case InstArithmetic::Sdiv:
@@ -7009,6 +7027,9 @@ void TargetX86Base<TraitsType>::genTargetHelperCallFor(Inst *Instr) {
       case InstArithmetic::Shl:
       case InstArithmetic::Lshr:
       case InstArithmetic::Ashr:
+        if (llvm::isa<Constant>(Src1)) {
+          return;
+        }
       case InstArithmetic::Udiv:
       case InstArithmetic::Urem:
       case InstArithmetic::Sdiv:
