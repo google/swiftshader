@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "bf18c06f_76e0ae8b",
+        "filename": "src/Reactor/Main.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-10-05T19:53:03Z",
+      "side": 1,
+      "message": "This file contains a very arbitrary smoke test, and I\u0027ll either remove it or replace it with an interesting sample once we get full test coverage by running the CTS. In the meantime this is going to change a lot and I don\u0027t really intend on adding any comments for now.",
+      "parentUuid": "bf18c06f_93291ca4",
+      "range": {
+        "startLine": 23,
+        "startChar": 11,
+        "endLine": 23,
+        "endChar": 13
+      },
+      "revId": "8930a1daabc038cb38068d97546a691bf0aa2c6c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "bf18c06f_73168064",
         "filename": "src/Reactor/Main.cpp",
         "patchSetId": 5
@@ -59,6 +83,30 @@
       "writtenOn": "2016-10-05T18:21:11Z",
       "side": 1,
       "message": "This is called \"one\", so you point to member \u00270\u0027 so that p[-1] is \u00271\u0027. Is there a reason why the test uses negative indices? It seems like it\u0027s generally a bad idea to use those...",
+      "range": {
+        "startLine": 63,
+        "startChar": 7,
+        "endLine": 63,
+        "endChar": 22
+      },
+      "revId": "8930a1daabc038cb38068d97546a691bf0aa2c6c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bf18c06f_f67efeb2",
+        "filename": "src/Reactor/Main.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-10-05T19:53:03Z",
+      "side": 1,
+      "message": "I had a bug for negative indexes. Anyway, this isn\u0027t intended to be a comprehensible test for now (a few revisions ago the routine was still called \"add\" while it was doing something very different).\n\nNothing to see here. Move along. :)",
+      "parentUuid": "bf18c06f_931b5c7c",
       "range": {
         "startLine": 63,
         "startChar": 7,
