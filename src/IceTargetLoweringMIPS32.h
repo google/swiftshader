@@ -365,38 +365,36 @@ public:
     Context.insert<InstMIPS32Mov_s>(Dest, Src);
   }
 
-  void _movf(Variable *Src0, Variable *Src1, Operand *FCC) {
-    auto *Instr = Context.insert<InstMIPS32Movf>(Src0, Src1, FCC);
-    Instr->setDestRedefined();
+  void _movf(Variable *Dest, Variable *Src0, Operand *FCC) {
+    Context.insert<InstMIPS32Movf>(Dest, Src0, FCC)->setDestRedefined();
   }
 
   void _movn(Variable *Dest, Variable *Src0, Variable *Src1) {
-    Context.insert<InstMIPS32Movn>(Dest, Src0, Src1);
+    Context.insert<InstMIPS32Movn>(Dest, Src0, Src1)->setDestRedefined();
   }
 
   void _movn_d(Variable *Dest, Variable *Src0, Variable *Src1) {
-    Context.insert<InstMIPS32Movn_d>(Dest, Src0, Src1);
+    Context.insert<InstMIPS32Movn_d>(Dest, Src0, Src1)->setDestRedefined();
   }
 
   void _movn_s(Variable *Dest, Variable *Src0, Variable *Src1) {
-    Context.insert<InstMIPS32Movn_s>(Dest, Src0, Src1);
+    Context.insert<InstMIPS32Movn_s>(Dest, Src0, Src1)->setDestRedefined();
   }
 
-  void _movt(Variable *Src0, Variable *Src1, Operand *FCC) {
-    auto *Instr = Context.insert<InstMIPS32Movt>(Src0, Src1, FCC);
-    Instr->setDestRedefined();
+  void _movt(Variable *Dest, Variable *Src0, Operand *FCC) {
+    Context.insert<InstMIPS32Movt>(Dest, Src0, FCC)->setDestRedefined();
   }
 
   void _movz(Variable *Dest, Variable *Src0, Variable *Src1) {
-    Context.insert<InstMIPS32Movz>(Dest, Src0, Src1);
+    Context.insert<InstMIPS32Movz>(Dest, Src0, Src1)->setDestRedefined();
   }
 
   void _movz_d(Variable *Dest, Variable *Src0, Variable *Src1) {
-    Context.insert<InstMIPS32Movz_d>(Dest, Src0, Src1);
+    Context.insert<InstMIPS32Movz_d>(Dest, Src0, Src1)->setDestRedefined();
   }
 
   void _movz_s(Variable *Dest, Variable *Src0, Variable *Src1) {
-    Context.insert<InstMIPS32Movz_s>(Dest, Src0, Src1);
+    Context.insert<InstMIPS32Movz_s>(Dest, Src0, Src1)->setDestRedefined();
   }
 
   void _mtc1(Variable *Dest, Variable *Src) {

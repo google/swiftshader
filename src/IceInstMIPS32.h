@@ -1065,13 +1065,13 @@ public:
     if (!BuildDefs::dump())
       return;
     Ostream &Str = Func->getContext()->getStrEmit();
-    assert(getSrcSize() == 3);
+    assert(getSrcSize() == 2);
     Str << "\t" << Opcode << "\t";
     getDest()->emit(Func);
     Str << ", ";
-    getSrc(1)->emit(Func);
+    getSrc(0)->emit(Func);
     Str << ", ";
-    getSrc(2)->emit(Func);
+    getSrc(1)->emit(Func);
   }
 
   void emitIAS(const Cfg *Func) const override {
@@ -1094,8 +1094,7 @@ public:
 private:
   InstMIPS32MovConditional(Cfg *Func, Variable *Dest, Variable *Src,
                            Operand *FCC)
-      : InstMIPS32(Func, K, 3, Dest) {
-    addSource(Dest);
+      : InstMIPS32(Func, K, 2, Dest) {
     addSource(Src);
     addSource(FCC);
   }
@@ -1148,11 +1147,11 @@ using InstMIPS32Mflo = InstMIPS32UnaryopGPR<InstMIPS32::Mflo>;
 using InstMIPS32Mov_d = InstMIPS32TwoAddrFPR<InstMIPS32::Mov_d>;
 using InstMIPS32Mov_s = InstMIPS32TwoAddrFPR<InstMIPS32::Mov_s>;
 using InstMIPS32Movf = InstMIPS32MovConditional<InstMIPS32::Movf>;
-using InstMIPS32Movn = InstMIPS32MovConditional<InstMIPS32::Movn>;
+using InstMIPS32Movn = InstMIPS32ThreeAddrGPR<InstMIPS32::Movn>;
 using InstMIPS32Movn_d = InstMIPS32ThreeAddrGPR<InstMIPS32::Movn_d>;
 using InstMIPS32Movn_s = InstMIPS32ThreeAddrGPR<InstMIPS32::Movn_s>;
 using InstMIPS32Movt = InstMIPS32MovConditional<InstMIPS32::Movt>;
-using InstMIPS32Movz = InstMIPS32MovConditional<InstMIPS32::Movz>;
+using InstMIPS32Movz = InstMIPS32ThreeAddrGPR<InstMIPS32::Movz>;
 using InstMIPS32Movz_d = InstMIPS32ThreeAddrGPR<InstMIPS32::Movz_d>;
 using InstMIPS32Movz_s = InstMIPS32ThreeAddrGPR<InstMIPS32::Movz_s>;
 using InstMIPS32Mtc1 = InstMIPS32TwoAddrGPR<InstMIPS32::Mtc1>;
