@@ -6271,8 +6271,8 @@ namespace D3D9
 
 			if(source->hasStencil())
 			{
-				byte *sourceBuffer = (byte*)source->lockStencil(0, sw::PUBLIC);
-				byte *destBuffer = (byte*)dest->lockStencil(0, sw::PUBLIC);
+				byte *sourceBuffer = (byte*)source->lockStencil(0, 0, 0, sw::PUBLIC);
+				byte *destBuffer = (byte*)dest->lockStencil(0, 0, 0, sw::PUBLIC);
 
 				unsigned int width = source->getWidth();
 				unsigned int height = source->getHeight();

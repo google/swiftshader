@@ -621,8 +621,8 @@ namespace es2
 
 			if(source->hasStencil())
 			{
-				sw::byte *sourceBuffer = (sw::byte*)source->lockStencil(0, PUBLIC);
-				sw::byte *destBuffer = (sw::byte*)dest->lockStencil(0, PUBLIC);
+				sw::byte *sourceBuffer = (sw::byte*)source->lockStencil(0, 0, 0, PUBLIC);
+				sw::byte *destBuffer = (sw::byte*)dest->lockStencil(0, 0, 0, PUBLIC);
 
 				copyBuffer(sourceBuffer, destBuffer, source->getWidth(), source->getHeight(), source->getInternalPitchB(), dest->getInternalPitchB(), egl::Image::bytes(source->getInternalFormat()), flipX, flipY);
 

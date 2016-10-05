@@ -455,8 +455,8 @@ namespace es1
 
 			if(source->hasStencil())
 			{
-				sw::byte *sourceBuffer = (sw::byte*)source->lockStencil(0, PUBLIC);
-				sw::byte *destBuffer = (sw::byte*)dest->lockStencil(0, PUBLIC);
+				sw::byte *sourceBuffer = (sw::byte*)source->lockStencil(0, 0, 0, PUBLIC);
+				sw::byte *destBuffer = (sw::byte*)dest->lockStencil(0, 0, 0, PUBLIC);
 
 				unsigned int width = source->getWidth();
 				unsigned int height = source->getHeight();
