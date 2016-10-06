@@ -684,7 +684,7 @@ public:
 
 	void blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1,
 	                     GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1,
-	                     GLbitfield mask, bool filter);
+	                     GLbitfield mask, bool filter, bool allowPartialDepthStencilBlit);
 
 	virtual void bindTexImage(egl::Surface *surface);
 	virtual EGLenum validateSharedImage(EGLenum target, GLuint name, GLuint textureLevel);

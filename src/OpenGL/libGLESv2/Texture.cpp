@@ -480,7 +480,7 @@ bool Texture::copy(egl::Image *source, const sw::SliceRect &sourceRect, GLenum d
 	Device *device = getDevice();
 
 	sw::SliceRect destRect(xoffset, yoffset, xoffset + (sourceRect.x1 - sourceRect.x0), yoffset + (sourceRect.y1 - sourceRect.y0), zoffset);
-	bool success = device->stretchRect(source, &sourceRect, dest, &destRect, false);
+	bool success = device->stretchRect(source, &sourceRect, dest, &destRect, Device::ALL_BUFFERS);
 
 	if(!success)
 	{
@@ -926,7 +926,7 @@ void Texture2D::generateMipmaps()
 			return error(GL_OUT_OF_MEMORY);
 		}
 
-		getDevice()->stretchRect(image[i - 1], 0, image[i], 0, true);
+		getDevice()->stretchRect(image[i - 1], 0, image[i], 0, Device::ALL_BUFFERS | Device::USE_FILTER);
 	}
 }
 
@@ -1415,7 +1415,7 @@ void TextureCubeMap::generateMipmaps()
 				return error(GL_OUT_OF_MEMORY);
 			}
 
-			getDevice()->stretchRect(image[f][i - 1], 0, image[f][i], 0, true);
+			getDevice()->stretchRect(image[f][i - 1], 0, image[f][i], 0, Device::ALL_BUFFERS | Device::USE_FILTER);
 		}
 	}
 }
@@ -2001,7 +2001,7 @@ void Texture2DArray::generateMipmaps()
 		{
 			sw::SliceRect srcRect(0, 0, srcw, srch, z);
 			sw::SliceRect dstRect(0, 0, w, h, z);
-			getDevice()->stretchRect(image[i - 1], &srcRect, image[i], &dstRect, true);
+			getDevice()->stretchRect(image[i - 1], &srcRect, image[i], &dstRect, Device::ALL_BUFFERS | Device::USE_FILTER);
 		}
 	}
 }

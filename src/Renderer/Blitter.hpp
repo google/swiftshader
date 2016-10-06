@@ -34,7 +34,8 @@ namespace sw
 			WRITE_ALPHA = 0x08,
 			WRITE_RGBA = WRITE_RED | WRITE_GREEN | WRITE_BLUE | WRITE_ALPHA,
 			FILTER_LINEAR = 0x10,
-			CLEAR_OPERATION = 0x20
+			CLEAR_OPERATION = 0x20,
+			USE_STENCIL = 0x40,
 		};
 
 		struct BlitState
@@ -76,7 +77,7 @@ namespace sw
 		virtual ~Blitter();
 
 		void clear(void* pixel, sw::Format format, Surface *dest, const SliceRect &dRect, unsigned int rgbaMask);
-		void blit(Surface *source, const SliceRect &sRect, Surface *dest, const SliceRect &dRect, bool filter);
+		void blit(Surface *source, const SliceRect &sRect, Surface *dest, const SliceRect &dRect, bool filter, bool isStencil = false);
 		void blit3D(Surface *source, Surface *dest);
 
 	private:
@@ -86,6 +87,7 @@ namespace sw
 		bool write(Int4 &color, Pointer<Byte> element, Format format, const Blitter::Options& options);
 		static bool GetScale(float4& scale, Format format);
 		static bool ApplyScaleAndClamp(Float4& value, const BlitState& state);
+		static Int ComputeOffset(Int& x, Int& y, Int& pitchB, int bytes, bool quadLayout);
 		void blit(Surface *source, const SliceRect &sRect, Surface *dest, const SliceRect &dRect, const Blitter::Options& options);
 		bool blitReactor(Surface *source, const SliceRect &sRect, Surface *dest, const SliceRect &dRect, const Blitter::Options& options);
 		Routine *generate(BlitState &state);

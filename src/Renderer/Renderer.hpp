@@ -322,7 +322,7 @@ namespace sw
 		void operator delete(void * mem);
 
 		void clear(void* pixel, Format format, Surface *dest, const SliceRect &dRect, unsigned int rgbaMask);
-		void blit(Surface *source, const SliceRect &sRect, Surface *dest, const SliceRect &dRect, bool filter);
+		void blit(Surface *source, const SliceRect &sRect, Surface *dest, const SliceRect &dRect, bool filter, bool isStencil = false);
 		void blit3D(Surface *source, Surface *dest);
 		void draw(DrawType drawType, unsigned int indexOffset, unsigned int count, bool update = true);
 

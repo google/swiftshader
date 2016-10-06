@@ -3873,7 +3873,7 @@ void Context::setVertexAttrib(GLuint index, const GLuint *values)
 
 void Context::blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1,
                               GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1,
-                              GLbitfield mask, bool filter)
+                              GLbitfield mask, bool filter, bool allowPartialDepthStencilBlit)
 {
 	Framebuffer *readFramebuffer = getReadFramebuffer();
 	Framebuffer *drawFramebuffer = getDrawFramebuffer();
@@ -4048,7 +4048,8 @@ void Context::blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1
 	}
 
 	bool blitRenderTarget = false;
-	bool blitDepthStencil = false;
+	bool blitDepth = false;
+	bool blitStencil = false;
 
 	if(mask & GL_COLOR_BUFFER_BIT)
 	{
@@ -4083,7 +4084,7 @@ void Context::blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1
 					return error(GL_INVALID_OPERATION);
 				}
 
-				blitDepthStencil = true;
+				blitDepth = true;
 				readDSBuffer = readFramebuffer->getDepthbuffer();
 				drawDSBuffer = drawFramebuffer->getDepthbuffer();
 			}
@@ -4098,15 +4099,15 @@ void Context::blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1
 					return error(GL_INVALID_OPERATION);
 				}
 
-				blitDepthStencil = true;
+				blitStencil = true;
 				readDSBuffer = readFramebuffer->getStencilbuffer();
 				drawDSBuffer = drawFramebuffer->getStencilbuffer();
 			}
 		}
 
-		if(partialBufferCopy)
+		if(partialBufferCopy && !allowPartialDepthStencilBlit)
 		{
-			ERR("Only whole-buffer depth and stencil blits are supported by this implementation.");
+			ERR("Only whole-buffer depth and stencil blits are supported by ANGLE_framebuffer_blit.");
 			return error(GL_INVALID_OPERATION);   // Only whole-buffer copies are permitted
 		}
 
@@ -4117,7 +4118,7 @@ void Context::blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1
 		}
 	}
 
-	if(blitRenderTarget || blitDepthStencil)
+	if(blitRenderTarget || blitDepth || blitStencil)
 	{
 		if(blitRenderTarget)
 		{
@@ -4133,7 +4134,7 @@ void Context::blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1
 				swap(destRect.y0, destRect.y1);
 			}
 
-			bool success = device->stretchRect(readRenderTarget, &sourceRect, drawRenderTarget, &destRect, filter);
+			bool success = device->stretchRect(readRenderTarget, &sourceRect, drawRenderTarget, &destRect, (filter ? Device::USE_FILTER : 0) | Device::COLOR_BUFFER);
 
 			readRenderTarget->release();
 			drawRenderTarget->release();
@@ -4145,9 +4146,32 @@ void Context::blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1
 			}
 		}
 
-		if(blitDepthStencil)
+		if(blitDepth)
 		{
-			bool success = device->stretchRect(readFramebuffer->getDepthBuffer(), nullptr, drawFramebuffer->getDepthBuffer(), nullptr, false);
+			egl::Image *readRenderTarget = readFramebuffer->getDepthBuffer();
+			egl::Image *drawRenderTarget = drawFramebuffer->getDepthBuffer();
+
+			bool success = device->stretchRect(readRenderTarget, &sourceRect, drawRenderTarget, &destRect, (filter ? Device::USE_FILTER : 0) | Device::DEPTH_BUFFER);
+
+			readRenderTarget->release();
+			drawRenderTarget->release();
+
+			if(!success)
+			{
+				ERR("BlitFramebuffer failed.");
+				return;
+			}
+		}
+
+		if(blitStencil)
+		{
+			egl::Image *readRenderTarget = readFramebuffer->getStencilBuffer();
+			egl::Image *drawRenderTarget = drawFramebuffer->getStencilBuffer();
+
+			bool success = device->stretchRect(readRenderTarget, &sourceRect, drawRenderTarget, &destRect, (filter ? Device::USE_FILTER : 0) | Device::STENCIL_BUFFER);
+
+			readRenderTarget->release();
+			drawRenderTarget->release();
 
 			if(!success)
 			{

@@ -972,9 +972,7 @@ namespace sw
 		{
 			state.depthTestActive = true;
 			state.depthCompareMode = context->depthCompareMode;
-			state.quadLayoutDepthBuffer = context->depthBuffer->getInternalFormat() != FORMAT_D32F_LOCKABLE &&
-			                              context->depthBuffer->getInternalFormat() != FORMAT_D32FS8_TEXTURE &&
-			                              context->depthBuffer->getInternalFormat() != FORMAT_D32FS8_SHADOW;
+			state.quadLayoutDepthBuffer = Surface::hasQuadLayout(context->depthBuffer->getInternalFormat());
 		}
 
 		state.occlusionEnabled = context->occlusionEnabled;

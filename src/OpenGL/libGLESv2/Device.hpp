@@ -39,6 +39,15 @@ namespace es2
 	class Device : public sw::Renderer
 	{
 	public:
+		enum : unsigned char
+		{
+			USE_FILTER = 0x01,
+			COLOR_BUFFER = 0x02,
+			DEPTH_BUFFER = 0x04,
+			STENCIL_BUFFER = 0x08,
+			ALL_BUFFERS = COLOR_BUFFER | DEPTH_BUFFER | STENCIL_BUFFER,
+		};
+
 		explicit Device(sw::Context *context);
 
 		virtual ~Device();
@@ -64,7 +73,7 @@ namespace es2
 		void setVertexShaderConstantF(unsigned int startRegister, const float *constantData, unsigned int count);
 		void setViewport(const Viewport &viewport);
 
-		bool stretchRect(sw::Surface *sourceSurface, const sw::SliceRect *sourceRect, sw::Surface *destSurface, const sw::SliceRect *destRect, bool filter);
+		bool stretchRect(sw::Surface *sourceSurface, const sw::SliceRect *sourceRect, sw::Surface *destSurface, const sw::SliceRect *destRect, unsigned char flags);
 		bool stretchCube(sw::Surface *sourceSurface, sw::Surface *destSurface);
 		void finish();
 

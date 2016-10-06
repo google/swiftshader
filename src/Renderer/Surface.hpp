@@ -327,6 +327,7 @@ namespace sw
 
 		static bool isStencil(Format format);
 		static bool isDepth(Format format);
+		static bool hasQuadLayout(Format format);
 		static bool isPalette(Format format);
 
 		static bool isFloatFormat(Format format);
