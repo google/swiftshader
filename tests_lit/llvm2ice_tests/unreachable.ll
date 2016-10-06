@@ -52,7 +52,7 @@ return:                                           ; preds = %entry
 
 ; ARM32-LABEL: divide
 ; ARM32: tst
-; ARM32: udf
+; ARM32: e7fedef0
 ; ARM32: bl {{.*}} __divsi3
 ; ARM32: bx lr
 
