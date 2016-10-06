@@ -19,8 +19,16 @@
 
 #include "gtest/gtest.h"
 
-#include <cassert>
+#if defined(__unix__)
 #include <sys/mman.h>
+#elif defined(_WIN32)
+#define NOMINMAX
+#include <Windows.h>
+#else
+#error "Platform unsupported"
+#endif
+
+#include <cassert>
 
 namespace Ice {
 namespace X8664 {
@@ -700,10 +708,21 @@ protected:
       uint32_t MaxCodeSize = MaximumCodeSize;
       EXPECT_LT(MySize, MaxCodeSize);
       assert(MySize < MaximumCodeSize);
+
+#if defined(__unix__)
       ExecutableData = mmap(nullptr, Size, PROT_WRITE | PROT_READ | PROT_EXEC,
                             MAP_PRIVATE | MAP_ANONYMOUS | MAP_32BIT, -1, 0);
       EXPECT_NE(MAP_FAILED, ExecutableData) << strerror(errno);
       assert(MAP_FAILED != ExecutableData);
+#elif defined(_WIN32)
+      ExecutableData = VirtualAlloc(NULL, Size, MEM_COMMIT | MEM_RESERVE,
+                                    PAGE_EXECUTE_READWRITE);
+      EXPECT_NE(nullptr, ExecutableData) << strerror(errno);
+      assert(nullptr != ExecutableData);
+#else
+#error "Platform unsupported"
+#endif
+
       std::memcpy(ExecutableData, Data, MySize);
     }
 
@@ -725,7 +744,13 @@ protected:
 
     ~AssembledTest() {
       if (ExecutableData != nullptr) {
+#if defined(__unix__)
         munmap(ExecutableData, Size);
+#elif defined(_WIN32)
+        VirtualFree(ExecutableData, 0, MEM_RELEASE);
+#else
+#error "Platform unsupported"
+#endif
         ExecutableData = nullptr;
       }
     }
