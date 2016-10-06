@@ -2607,7 +2607,8 @@ void InstImpl<TraitsType>::InstX86Pextr::emit(const Cfg *Func) const {
   assert(this->getSrcSize() == 2);
   // pextrb and pextrd are SSE4.1 instructions.
   Str << "\t" << this->Opcode
-      << Traits::TypeAttributes[this->getSrc(0)->getType()].PackString << "\t";
+      << Traits::TypeAttributes[this->getSrc(0)->getType()].IntegralString
+      << "\t";
   this->getSrc(1)->emit(Func);
   Str << ", ";
   this->getSrc(0)->emit(Func);
@@ -2646,7 +2647,8 @@ void InstImpl<TraitsType>::InstX86Pinsr::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(this->getSrcSize() == 3);
   Str << "\t" << this->Opcode
-      << Traits::TypeAttributes[this->getDest()->getType()].PackString << "\t";
+      << Traits::TypeAttributes[this->getDest()->getType()].IntegralString
+      << "\t";
   this->getSrc(2)->emit(Func);
   Str << ", ";
   Operand *Src1 = this->getSrc(1);

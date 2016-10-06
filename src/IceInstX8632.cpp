@@ -50,8 +50,8 @@ const TargetX8632Traits::InstCmppsAttributesType
 
 const TargetX8632Traits::TypeAttributesType
     TargetX8632Traits::TypeAttributes[] = {
-#define X(tag, elementty, cvt, sdss, pdps, spsd, pack, unpack, width, fld)     \
-  { cvt, sdss, pdps, spsd, pack, unpack, width, fld }                          \
+#define X(tag, elty, cvt, sdss, pdps, spsd, int_, unpack, pack, width, fld)    \
+  { cvt, sdss, pdps, spsd, int_, unpack, pack, width, fld }                    \
   ,
         ICETYPEX8632_TABLE
 #undef X

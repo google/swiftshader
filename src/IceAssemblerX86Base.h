@@ -437,6 +437,10 @@ public:
               const Immediate &mask);
   void punpckl(Type Ty, XmmRegister Dst, XmmRegister Src);
   void punpckl(Type Ty, XmmRegister Dst, const Address &Src);
+  void packss(Type Ty, XmmRegister Dst, XmmRegister Src);
+  void packss(Type Ty, XmmRegister Dst, const Address &Src);
+  void packus(Type Ty, XmmRegister Dst, XmmRegister Src);
+  void packus(Type Ty, XmmRegister Dst, const Address &Src);
   void shufps(Type Ty, XmmRegister dst, XmmRegister src, const Immediate &mask);
   void shufps(Type Ty, XmmRegister dst, const Address &src,
               const Immediate &mask);

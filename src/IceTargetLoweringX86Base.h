@@ -815,6 +815,14 @@ protected:
     AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Punpckl>(Dest, Src0);
   }
+  void _packss(Variable *Dest, Operand *Src0) {
+    AutoMemorySandboxer<> _(this, &Dest, &Src0);
+    Context.insert<typename Traits::Insts::Packss>(Dest, Src0);
+  }
+  void _packus(Variable *Dest, Operand *Src0) {
+    AutoMemorySandboxer<> _(this, &Dest, &Src0);
+    Context.insert<typename Traits::Insts::Packus>(Dest, Src0);
+  }
   void _pshufb(Variable *Dest, Operand *Src0) {
     AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Pshufb>(Dest, Src0);

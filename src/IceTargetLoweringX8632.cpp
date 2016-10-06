@@ -101,8 +101,8 @@ const size_t TargetX8632Traits::TableIcmp64Size =
 
 const TargetX8632Traits::TableTypeX8632AttributesType
     TargetX8632Traits::TableTypeX8632Attributes[] = {
-#define X(tag, elementty, cvt, sdss, pdps, spsd, pack, unpack, width, fld)     \
-  { IceType_##elementty }                                                      \
+#define X(tag, elty, cvt, sdss, pdps, spsd, int_, unpack, pack, width, fld)    \
+  { IceType_##elty }                                                           \
   ,
         ICETYPEX8632_TABLE
 #undef X
@@ -462,7 +462,7 @@ ICEINSTICMP_TABLE
 namespace dummy3 {
 // Define a temporary set of enum values based on low-level table entries.
 enum _tmp_enum {
-#define X(tag, elementty, cvt, sdss, pdps, spsd, pack, unpack, width, fld)     \
+#define X(tag, elty, cvt, sdss, pdps, spsd, int_, unpack, pack, width, fld)    \
   _tmp_##tag,
   ICETYPEX8632_TABLE
 #undef X
@@ -475,7 +475,7 @@ ICETYPE_TABLE
 #undef X
 // Define a set of constants based on low-level table entries, and ensure the
 // table entry keys are consistent.
-#define X(tag, elementty, cvt, sdss, pdps, spsd, pack, unpack, width, fld)     \
+#define X(tag, elty, cvt, sdss, pdps, spsd, int_, unpack, pack, width, fld)    \
   static const int _table2_##tag = _tmp_##tag;                                 \
   static_assert(_table1_##tag == _table2_##tag,                                \
                 "Inconsistency between ICETYPEX8632_TABLE and ICETYPE_TABLE");

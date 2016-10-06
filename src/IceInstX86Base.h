@@ -145,6 +145,8 @@ template <typename TraitsType> struct InstImpl {
       Pshufb,
       Pshufd,
       Punpckl,
+      Packss,
+      Packus,
       Psll,
       Psra,
       Psrl,
@@ -186,7 +188,7 @@ template <typename TraitsType> struct InstImpl {
       IacaEnd
     };
 
-    enum SseSuffix { None, Packed, Unpack, Scalar, Integral };
+    enum SseSuffix { None, Packed, Unpack, Scalar, Integral, Pack };
 
     static const char *getWidthString(Type Ty);
     static const char *getFldString(Type Ty);
@@ -878,6 +880,9 @@ template <typename TraitsType> struct InstImpl {
         SuffixString = Traits::TypeAttributes[DestTy].SdSsString;
         break;
       case InstX86Base::SseSuffix::Integral:
+        SuffixString = Traits::TypeAttributes[DestTy].IntegralString;
+        break;
+      case InstX86Base::SseSuffix::Pack:
         SuffixString = Traits::TypeAttributes[DestTy].PackString;
         break;
       }
@@ -934,7 +939,7 @@ template <typename TraitsType> struct InstImpl {
       // Shift operations are always integral, and hence always need a suffix.
       const Type DestTy = this->getDest()->getType();
       this->emitTwoAddress(Func, this->Opcode,
-                           Traits::TypeAttributes[DestTy].PackString);
+                           Traits::TypeAttributes[DestTy].IntegralString);
     }
     void emitIAS(const Cfg *Func) const override {
       this->validateVectorAddrMode();
@@ -2927,6 +2932,38 @@ template <typename TraitsType> struct InstImpl {
                                                               Source) {}
   };
 
+  class InstX86Packss
+      : public InstX86BaseBinopXmm<InstX86Base::Packss, false,
+                                   InstX86Base::SseSuffix::Pack> {
+  public:
+    static InstX86Packss *create(Cfg *Func, Variable *Dest, Operand *Source) {
+      return new (Func->allocate<InstX86Packss>())
+          InstX86Packss(Func, Dest, Source);
+    }
+
+  private:
+    InstX86Packss(Cfg *Func, Variable *Dest, Operand *Source)
+        : InstX86BaseBinopXmm<InstX86Base::Packss, false,
+                              InstX86Base::SseSuffix::Pack>(Func, Dest,
+                                                            Source) {}
+  };
+
+  class InstX86Packus
+      : public InstX86BaseBinopXmm<InstX86Base::Packus, false,
+                                   InstX86Base::SseSuffix::Pack> {
+  public:
+    static InstX86Packus *create(Cfg *Func, Variable *Dest, Operand *Source) {
+      return new (Func->allocate<InstX86Packus>())
+          InstX86Packus(Func, Dest, Source);
+    }
+
+  private:
+    InstX86Packus(Cfg *Func, Variable *Dest, Operand *Source)
+        : InstX86BaseBinopXmm<InstX86Base::Packus, false,
+                              InstX86Base::SseSuffix::Pack>(Func, Dest,
+                                                            Source) {}
+  };
+
 }; // struct InstImpl
 
 /// struct Insts is a template that can be used to instantiate all the X86
@@ -3052,6 +3089,8 @@ template <typename TraitsType> struct Insts {
 
   using Pshufb = typename InstImpl<TraitsType>::InstX86Pshufb;
   using Punpckl = typename InstImpl<TraitsType>::InstX86Punpckl;
+  using Packss = typename InstImpl<TraitsType>::InstX86Packss;
+  using Packus = typename InstImpl<TraitsType>::InstX86Packus;
 };
 
 /// X86 Instructions have static data (particularly, opcodes and instruction
@@ -3287,6 +3326,12 @@ template <typename TraitsType> struct Insts {
   template <>                                                                  \
   template <>                                                                  \
   const char *InstImpl<TraitsType>::InstX86Punpckl::Base::Opcode = "punpckl";  \
+  template <>                                                                  \
+  template <>                                                                  \
+  const char *InstImpl<TraitsType>::InstX86Packss::Base::Opcode = "packss";    \
+  template <>                                                                  \
+  template <>                                                                  \
+  const char *InstImpl<TraitsType>::InstX86Packus::Base::Opcode = "packus";    \
   /* Inplace GPR ops */                                                        \
   template <>                                                                  \
   template <>                                                                  \
@@ -3660,6 +3705,18 @@ template <typename TraitsType> struct Insts {
       InstImpl<TraitsType>::InstX86Punpckl::Base::Emitter = {                  \
           &InstImpl<TraitsType>::Assembler::punpckl,                           \
           &InstImpl<TraitsType>::Assembler::punpckl};                          \
+  template <>                                                                  \
+  template <>                                                                  \
+  const InstImpl<TraitsType>::Assembler::XmmEmitterRegOp                       \
+      InstImpl<TraitsType>::InstX86Packss::Base::Emitter = {                   \
+          &InstImpl<TraitsType>::Assembler::packss,                            \
+          &InstImpl<TraitsType>::Assembler::packss};                           \
+  template <>                                                                  \
+  template <>                                                                  \
+  const InstImpl<TraitsType>::Assembler::XmmEmitterRegOp                       \
+      InstImpl<TraitsType>::InstX86Packus::Base::Emitter = {                   \
+          &InstImpl<TraitsType>::Assembler::packus,                            \
+          &InstImpl<TraitsType>::Assembler::packus};                           \
   }                                                                            \
   }
 
