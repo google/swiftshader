@@ -14,7 +14,7 @@
 
 #include "Reactor.hpp"
 
-#include <cassert>
+#include "gtest/gtest.h"
 
 using namespace sw;
 
@@ -29,11 +29,11 @@ int reference(int *p, int y)
 	}
 
 	int sum = x + y + z;
-   
+
 	return sum;
 }
 
-int main()
+TEST(SubzeroReactorSample, SubzeroReactor)
 {
 	Routine *routine = nullptr;
 
@@ -66,11 +66,15 @@ int main()
 			int (*callable)(int*, int) = (int(*)(int*,int))routine->getEntry();
 			int one[2] = {1, 0};
 			int result = callable(&one[1], 2);
-			assert(result == reference(&one[1], 2));
+			EXPECT_EQ(result, reference(&one[1], 2));
 		}
 	}
 
 	delete routine;
+}
 
-	return 0;
+int main(int argc, char **argv)
+{
+	::testing::InitGoogleTest(&argc, argv);
+	return RUN_ALL_TESTS();
 }
