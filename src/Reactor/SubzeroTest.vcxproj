@@ -152,6 +152,9 @@
   <ItemGroup>
     <ProjectReference Include="Subzero.vcxproj">
       <Project>{0eb31aec-b020-46ab-ba05-730f6d01c29b}</Project>
+      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

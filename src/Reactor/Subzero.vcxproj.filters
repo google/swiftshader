@@ -13,9 +13,6 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Source Files\LLVM">
-      <UniqueIdentifier>{af578803-bb6c-4fb6-a852-956e276b0b41}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceAssembler.cpp">
@@ -102,118 +99,22 @@
     <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceVariableSplitting.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\APInt.cpp">
-      <Filter>Source Files\LLVM</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\Atomic.cpp">
-      <Filter>Source Files\LLVM</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\circular_raw_ostream.cpp">
-      <Filter>Source Files\LLVM</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\CommandLine.cpp">
-      <Filter>Source Files\LLVM</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\ConvertUTF.c">
-      <Filter>Source Files\LLVM</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\ConvertUTFWrapper.cpp">
-      <Filter>Source Files\LLVM</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\Debug.cpp">
-      <Filter>Source Files\LLVM</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\ErrorHandling.cpp">
-      <Filter>Source Files\LLVM</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\FoldingSet.cpp">
-      <Filter>Source Files\LLVM</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\Hashing.cpp">
-      <Filter>Source Files\LLVM</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\Host.cpp">
-      <Filter>Source Files\LLVM</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\ManagedStatic.cpp">
-      <Filter>Source Files\LLVM</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\MemoryBuffer.cpp">
-      <Filter>Source Files\LLVM</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\Mutex.cpp">
-      <Filter>Source Files\LLVM</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\Path.cpp">
-      <Filter>Source Files\LLVM</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\Process.cpp">
-      <Filter>Source Files\LLVM</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\Program.cpp">
-      <Filter>Source Files\LLVM</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\raw_os_ostream.cpp">
-      <Filter>Source Files\LLVM</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\raw_ostream.cpp">
-      <Filter>Source Files\LLVM</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\Signals.cpp">
-      <Filter>Source Files\LLVM</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\SmallPtrSet.cpp">
-      <Filter>Source Files\LLVM</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\SmallVector.cpp">
-      <Filter>Source Files\LLVM</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\StringExtras.cpp">
-      <Filter>Source Files\LLVM</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\StringMap.cpp">
-      <Filter>Source Files\LLVM</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\StringRef.cpp">
-      <Filter>Source Files\LLVM</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\StringSaver.cpp">
-      <Filter>Source Files\LLVM</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\TargetParser.cpp">
-      <Filter>Source Files\LLVM</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\Threading.cpp">
-      <Filter>Source Files\LLVM</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\Timer.cpp">
-      <Filter>Source Files\LLVM</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\TimeValue.cpp">
-      <Filter>Source Files\LLVM</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\Triple.cpp">
-      <Filter>Source Files\LLVM</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\Twine.cpp">
-      <Filter>Source Files\LLVM</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\third_party\pnacl-subzero\src\IceInstX8664.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\third_party\pnacl-subzero\src\IceTargetLoweringX8664.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\third_party\pnacl-subzero\src\IceInstX8632.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\third_party\pnacl-subzero\src\IceTargetLoweringX8632.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="SubzeroReactor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Routine.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceInstX8632.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceInstX8664.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceTargetLoweringX8632.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceTargetLoweringX8664.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -388,17 +289,17 @@
     <None Include="$(SolutionDir)third_party\pnacl-subzero\src\SZTargets.def">
       <Filter>Source Files</Filter>
     </None>
-    <None Include="..\..\third_party\pnacl-subzero\src\IceInstX8664.def">
-      <Filter>Header Files</Filter>
+    <None Include="$(SolutionDir)third_party\pnacl-subzero\src\IceInstX8632.def">
+      <Filter>Source Files</Filter>
     </None>
-    <None Include="..\..\third_party\pnacl-subzero\src\IceTargetLoweringX8664.def">
-      <Filter>Header Files</Filter>
+    <None Include="$(SolutionDir)third_party\pnacl-subzero\src\IceInstX8664.def">
+      <Filter>Source Files</Filter>
     </None>
-    <None Include="..\..\third_party\pnacl-subzero\src\IceInstX8632.def">
-      <Filter>Header Files</Filter>
+    <None Include="$(SolutionDir)third_party\pnacl-subzero\src\IceTargetLoweringX8632.def">
+      <Filter>Source Files</Filter>
     </None>
-    <None Include="..\..\third_party\pnacl-subzero\src\IceTargetLoweringX8632.def">
-      <Filter>Header Files</Filter>
+    <None Include="$(SolutionDir)third_party\pnacl-subzero\src\IceTargetLoweringX8664.def">
+      <Filter>Source Files</Filter>
     </None>
   </ItemGroup>
 </Project>

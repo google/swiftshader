@@ -87,8 +87,9 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>SZTARGET=X8632;ALLOW_DUMP=0;ALLOW_TIMERS=0;ALLOW_LLVM_CL=0;ALLOW_LLVM_IR=0;ALLOW_LLVM_IR_AS_INPUT=0;ALLOW_MINIMAL_BUILD=0;ALLOW_WASM=0;ICE_THREAD_LOCAL_HACK=0;WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalUsingDirectories>%(AdditionalUsingDirectories)</AdditionalUsingDirectories>
-      <AdditionalIncludeDirectories>..\;$(SolutionDir)third_party\pnacl-subzero;$(SolutionDir)third_party\llvm-subzero\include;$(SolutionDir)third_party\pnacl-subzero\pnacl-llvm\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\;$(SolutionDir)third_party\pnacl-subzero;$(SolutionDir)third_party\llvm-subzero\include;$(SolutionDir)third_party\pnacl-subzero\pnacl-llvm\include;SubmoduleCheck</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <ForcedIncludeFiles>src/IceTypes.h</ForcedIncludeFiles>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -103,8 +104,9 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>SZTARGET=X8664;ALLOW_DUMP=0;ALLOW_TIMERS=0;ALLOW_LLVM_CL=0;ALLOW_LLVM_IR=0;ALLOW_LLVM_IR_AS_INPUT=0;ALLOW_MINIMAL_BUILD=0;ALLOW_WASM=0;ICE_THREAD_LOCAL_HACK=0;WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalUsingDirectories>%(AdditionalUsingDirectories)</AdditionalUsingDirectories>
-      <AdditionalIncludeDirectories>..\;$(SolutionDir)third_party\pnacl-subzero;$(SolutionDir)third_party\llvm-subzero\include;$(SolutionDir)third_party\pnacl-subzero\pnacl-llvm\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\;$(SolutionDir)third_party\pnacl-subzero;$(SolutionDir)third_party\llvm-subzero\include;$(SolutionDir)third_party\pnacl-subzero\pnacl-llvm\include;SubmoduleCheck</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <ForcedIncludeFiles>src/IceTypes.h</ForcedIncludeFiles>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -121,7 +123,8 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>SZTARGET=X8632;ALLOW_DUMP=0;ALLOW_TIMERS=0;ALLOW_LLVM_CL=0;ALLOW_LLVM_IR=0;ALLOW_LLVM_IR_AS_INPUT=0;ALLOW_MINIMAL_BUILD=0;ALLOW_WASM=0;ICE_THREAD_LOCAL_HACK=0;WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalUsingDirectories>%(AdditionalUsingDirectories)</AdditionalUsingDirectories>
-      <AdditionalIncludeDirectories>..\;$(SolutionDir)third_party\pnacl-subzero;$(SolutionDir)third_party\llvm-subzero\include;$(SolutionDir)third_party\pnacl-subzero\pnacl-llvm\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\;$(SolutionDir)third_party\pnacl-subzero;$(SolutionDir)third_party\llvm-subzero\include;$(SolutionDir)third_party\pnacl-subzero\pnacl-llvm\include;SubmoduleCheck</AdditionalIncludeDirectories>
+      <ForcedIncludeFiles>src/IceTypes.h</ForcedIncludeFiles>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -140,11 +143,12 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>SZTARGET=X8664;ALLOW_DUMP=0;ALLOW_TIMERS=0;ALLOW_LLVM_CL=0;ALLOW_LLVM_IR=0;ALLOW_LLVM_IR_AS_INPUT=0;ALLOW_MINIMAL_BUILD=0;ALLOW_WASM=0;ICE_THREAD_LOCAL_HACK=0;WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalUsingDirectories>%(AdditionalUsingDirectories)</AdditionalUsingDirectories>
-      <AdditionalIncludeDirectories>..\;$(SolutionDir)third_party\pnacl-subzero;$(SolutionDir)third_party\llvm-subzero\include;$(SolutionDir)third_party\pnacl-subzero\pnacl-llvm\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\;$(SolutionDir)third_party\pnacl-subzero;$(SolutionDir)third_party\llvm-subzero\include;$(SolutionDir)third_party\pnacl-subzero\pnacl-llvm\include;SubmoduleCheck</AdditionalIncludeDirectories>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <ForcedIncludeFiles>src/IceTypes.h</ForcedIncludeFiles>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -154,48 +158,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\APInt.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\Atomic.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\circular_raw_ostream.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\CommandLine.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\ConvertUTF.c" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\ConvertUTFWrapper.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\Debug.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\ErrorHandling.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\FoldingSet.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\Hashing.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\Host.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\ManagedStatic.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\MemoryBuffer.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\Mutex.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\Path.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\Process.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\Program.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\raw_ostream.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\raw_os_ostream.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\Signals.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\SmallPtrSet.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\SmallVector.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\StringExtras.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\StringMap.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\StringRef.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\StringSaver.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\TargetParser.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\Threading.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\Timer.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\TimeValue.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\Triple.cpp" />
-    <ClCompile Include="$(SolutionDir)third_party\llvm-subzero\lib\Support\Twine.cpp" />
-    <ClCompile Include="..\..\third_party\pnacl-subzero\src\IceInstX8632.cpp">
+    <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceInstX8632.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="..\..\third_party\pnacl-subzero\src\IceInstX8664.cpp">
+    <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceInstX8664.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="..\..\third_party\pnacl-subzero\src\IceTargetLoweringX8632.cpp">
+    <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceTargetLoweringX8632.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="..\..\third_party\pnacl-subzero\src\IceTargetLoweringX8664.cpp">
+    <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceTargetLoweringX8664.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceAssembler.cpp" />
@@ -288,10 +260,15 @@
     <None Include="$(SolutionDir)third_party\pnacl-subzero\src\IceTimerTree.def" />
     <None Include="$(SolutionDir)third_party\pnacl-subzero\src\IceTypes.def" />
     <None Include="$(SolutionDir)third_party\pnacl-subzero\src\SZTargets.def" />
-    <None Include="..\..\third_party\pnacl-subzero\src\IceInstX8632.def" />
-    <None Include="..\..\third_party\pnacl-subzero\src\IceInstX8664.def" />
-    <None Include="..\..\third_party\pnacl-subzero\src\IceTargetLoweringX8632.def" />
-    <None Include="..\..\third_party\pnacl-subzero\src\IceTargetLoweringX8664.def" />
+    <None Include="$(SolutionDir)third_party\pnacl-subzero\src\IceInstX8632.def" />
+    <None Include="$(SolutionDir)third_party\pnacl-subzero\src\IceInstX8664.def" />
+    <None Include="$(SolutionDir)third_party\pnacl-subzero\src\IceTargetLoweringX8632.def" />
+    <None Include="$(SolutionDir)third_party\pnacl-subzero\src\IceTargetLoweringX8664.def" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="SubzeroLLVMDependencies.vcxproj">
+      <Project>{e3bbd7da-45c1-43ef-9c87-3f411031bde4}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
