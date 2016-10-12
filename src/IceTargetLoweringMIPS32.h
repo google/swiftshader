@@ -341,15 +341,15 @@ public:
     Context.insert<InstMIPS32Mflo>(Dest, Src);
   }
 
-  void _mov(Variable *Dest, Operand *Src0) {
+  void _mov(Variable *Dest, Operand *Src0, Operand *Src1 = nullptr) {
     assert(Dest != nullptr);
     // Variable* Src0_ = llvm::dyn_cast<Variable>(Src0);
     if (llvm::isa<ConstantRelocatable>(Src0)) {
       Context.insert<InstMIPS32La>(Dest, Src0);
     } else {
-      auto *Instr = Context.insert<InstMIPS32Mov>(Dest, Src0);
-      if (Instr->isMultiDest()) {
-        // If Instr is multi-dest, then Dest must be a Variable64On32. We add a
+      auto *Instr = Context.insert<InstMIPS32Mov>(Dest, Src0, Src1);
+      if (Instr->getDestHi() != nullptr) {
+        // If DestHi is available, then Dest must be a Variable64On32. We add a
         // fake-def for Instr.DestHi here.
         assert(llvm::isa<Variable64On32>(Dest));
         Context.insert<InstFakeDef>(Instr->getDestHi());

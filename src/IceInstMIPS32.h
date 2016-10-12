@@ -1200,12 +1200,14 @@ class InstMIPS32Mov final : public InstMIPS32 {
   InstMIPS32Mov &operator=(const InstMIPS32Mov &) = delete;
 
 public:
-  static InstMIPS32Mov *create(Cfg *Func, Variable *Dest, Operand *Src) {
-    return new (Func->allocate<InstMIPS32Mov>()) InstMIPS32Mov(Func, Dest, Src);
+  static InstMIPS32Mov *create(Cfg *Func, Variable *Dest, Operand *Src,
+                               Operand *Src2) {
+    return new (Func->allocate<InstMIPS32Mov>())
+        InstMIPS32Mov(Func, Dest, Src, Src2);
   }
+
   bool isRedundantAssign() const override {
-    return !isMultiDest() && !isMultiSource() &&
-           checkForRedundantAssign(getDest(), getSrc(0));
+    return checkForRedundantAssign(getDest(), getSrc(0));
   }
   // bool isSimpleAssign() const override { return true; }
   void emit(const Cfg *Func) const override;
@@ -1213,17 +1215,10 @@ public:
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Inst) { return isClassof(Inst, Mov); }
 
-  bool isMultiDest() const { return DestHi != nullptr; }
-
-  bool isMultiSource() const {
-    assert(getSrcSize() == 1 || getSrcSize() == 2);
-    return getSrcSize() == 2;
-  }
-
   Variable *getDestHi() const { return DestHi; }
 
 private:
-  InstMIPS32Mov(Cfg *Func, Variable *Dest, Operand *Src);
+  InstMIPS32Mov(Cfg *Func, Variable *Dest, Operand *Src, Operand *Src2);
 
   void emitMultiDestSingleSource(const Cfg *Func) const;
   void emitSingleDestMultiSource(const Cfg *Func) const;

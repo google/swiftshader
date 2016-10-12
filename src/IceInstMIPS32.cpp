@@ -283,12 +283,19 @@ InstMIPS32Call::InstMIPS32Call(Cfg *Func, Variable *Dest, Operand *CallTarget)
   addSource(CallTarget);
 }
 
-InstMIPS32Mov::InstMIPS32Mov(Cfg *Func, Variable *Dest, Operand *Src)
+InstMIPS32Mov::InstMIPS32Mov(Cfg *Func, Variable *Dest, Operand *Src,
+                             Operand *Src2)
     : InstMIPS32(Func, InstMIPS32::Mov, 2, Dest) {
   auto *Dest64 = llvm::dyn_cast<Variable64On32>(Dest);
   auto *Src64 = llvm::dyn_cast<Variable64On32>(Src);
 
   assert(Dest64 == nullptr || Src64 == nullptr);
+
+  if (Dest->getType() == IceType_f64 && Src2 != nullptr) {
+    addSource(Src);
+    addSource(Src2);
+    return;
+  }
 
   if (Dest64 != nullptr) {
     // this-> is needed below because there is a parameter named Dest.
@@ -588,110 +595,7 @@ void InstMIPS32Ret::dump(const Cfg *Func) const {
 void InstMIPS32Mov::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
-  assert(!(isMultiDest() && isMultiSource()) && "Invalid mov type.");
-  if (isMultiDest()) {
-    emitMultiDestSingleSource(Func);
-    return;
-  }
 
-  if (isMultiSource()) {
-    emitSingleDestMultiSource(Func);
-    return;
-  }
-
-  emitSingleDestSingleSource(Func);
-}
-
-// TODO(jaydeep.patil) Handle all types of operands in mov
-void InstMIPS32Mov::emitIAS(const Cfg *Func) const {
-  assert(!(isMultiDest() && isMultiSource()) && "Invalid mov type.");
-
-  if (isMultiDest()) {
-    llvm_unreachable("Not yet implemented");
-  }
-  if (isMultiSource()) {
-    llvm_unreachable("Not yet implemented");
-  }
-
-  Variable *Dest = getDest();
-  Operand *Src = getSrc(0);
-  auto *SrcV = llvm::dyn_cast<Variable>(Src);
-  assert(!llvm::isa<Constant>(Src));
-  const bool DestIsReg = Dest->hasReg();
-  const bool SrcIsReg = (SrcV && SrcV->hasReg());
-
-  // reg to reg
-  if (DestIsReg && SrcIsReg) {
-    auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
-    Asm->move(getDest(), getSrc(0));
-    return;
-  }
-  llvm_unreachable("Not yet implemented");
-}
-
-void InstMIPS32Mov::dump(const Cfg *Func) const {
-  if (!BuildDefs::dump())
-    return;
-  assert(getSrcSize() == 1 || getSrcSize() == 2);
-  Ostream &Str = Func->getContext()->getStrDump();
-  Variable *Dest = getDest();
-  Variable *DestHi = getDestHi();
-  Dest->dump(Func);
-  if (DestHi) {
-    Str << ", ";
-    DestHi->dump(Func);
-  }
-  dumpOpcode(Str, " = mov", getDest()->getType());
-  Str << " ";
-  dumpSources(Func);
-}
-
-void InstMIPS32Mov::emitMultiDestSingleSource(const Cfg *Func) const {
-  if (!BuildDefs::dump())
-    return;
-  Ostream &Str = Func->getContext()->getStrEmit();
-  Variable *DestLo = getDest();
-  Variable *DestHi = getDestHi();
-  auto *Src = llvm::cast<Variable>(getSrc(0));
-
-  assert(DestHi->hasReg());
-  assert(DestLo->hasReg());
-  assert(llvm::isa<Variable>(Src) && Src->hasReg());
-
-  // Str << "\t"
-  //    << "vmov" << getPredicate() << "\t";
-  DestLo->emit(Func);
-  Str << ", ";
-  DestHi->emit(Func);
-  Str << ", ";
-  Src->emit(Func);
-}
-
-void InstMIPS32Mov::emitSingleDestMultiSource(const Cfg *Func) const {
-  if (!BuildDefs::dump())
-    return;
-  Ostream &Str = Func->getContext()->getStrEmit();
-  Variable *Dest = getDest();
-  auto *SrcLo = llvm::cast<Variable>(getSrc(0));
-  auto *SrcHi = llvm::cast<Variable>(getSrc(1));
-
-  assert(SrcHi->hasReg());
-  assert(SrcLo->hasReg());
-  assert(Dest->hasReg());
-  assert(getSrcSize() == 2);
-
-  // Str << "\t"
-  //    << "vmov" << getPredicate() << "\t";
-  Dest->emit(Func);
-  Str << ", ";
-  SrcLo->emit(Func);
-  Str << ", ";
-  SrcHi->emit(Func);
-}
-
-void InstMIPS32Mov::emitSingleDestSingleSource(const Cfg *Func) const {
-  if (!BuildDefs::dump())
-    return;
   Ostream &Str = Func->getContext()->getStrEmit();
   Variable *Dest = getDest();
   Operand *Src = getSrc(0);
@@ -750,6 +654,41 @@ void InstMIPS32Mov::emitSingleDestSingleSource(const Cfg *Func) const {
   }
 
   llvm::report_fatal_error("Invalid mov instruction. Dest or Src is memory.");
+}
+
+// TODO(jaydeep.patil) Handle all types of operands in mov
+void InstMIPS32Mov::emitIAS(const Cfg *Func) const {
+  Variable *Dest = getDest();
+  Operand *Src = getSrc(0);
+  auto *SrcV = llvm::dyn_cast<Variable>(Src);
+  assert(!llvm::isa<Constant>(Src));
+  const bool DestIsReg = Dest->hasReg();
+  const bool SrcIsReg = (SrcV && SrcV->hasReg());
+
+  // reg to reg
+  if (DestIsReg && SrcIsReg) {
+    auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
+    Asm->move(getDest(), getSrc(0));
+    return;
+  }
+  llvm_unreachable("Not yet implemented");
+}
+
+void InstMIPS32Mov::dump(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+  assert(getSrcSize() == 1 || getSrcSize() == 2);
+  Ostream &Str = Func->getContext()->getStrDump();
+  Variable *Dest = getDest();
+  Variable *DestHi = getDestHi();
+  Dest->dump(Func);
+  if (DestHi) {
+    Str << ", ";
+    DestHi->dump(Func);
+  }
+  dumpOpcode(Str, " = mov", getDest()->getType());
+  Str << " ";
+  dumpSources(Func);
 }
 
 template <> void InstMIPS32Abs_d::emitIAS(const Cfg *Func) const {
