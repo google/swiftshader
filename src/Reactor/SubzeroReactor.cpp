@@ -98,9 +98,136 @@ namespace sw
 
 	Optimization optimization[10] = {InstructionCombining, Disabled};
 
+	using ElfHeader = std::conditional<sizeof(void*) == 8, Elf64_Ehdr, Elf32_Ehdr>::type;
+	using SectionHeader = std::conditional<sizeof(void*) == 8, Elf64_Shdr, Elf32_Shdr>::type;
+
+	inline const SectionHeader *sectionHeader(const ElfHeader *elfHeader)
+	{
+		return reinterpret_cast<const SectionHeader*>((intptr_t)elfHeader + elfHeader->e_shoff);
+	}
+ 
+	inline const SectionHeader *elfSection(const ElfHeader *elfHeader, int index)
+	{
+		return &sectionHeader(elfHeader)[index];
+	}
+
+	static void *relocateSymbol(const ElfHeader *elfHeader, const Elf32_Rel &relocation, const SectionHeader &relocationTable)
+	{
+		const SectionHeader *target = elfSection(elfHeader, relocationTable.sh_info);
+ 
+		intptr_t address = (intptr_t)elfHeader + target->sh_offset;
+		int32_t *patchSite = (int*)(address + relocation.r_offset);
+		uint32_t index = relocation.getSymbol();
+		int table = relocationTable.sh_link;
+		void *symbolValue = nullptr;
+		
+		if(index != SHN_UNDEF)
+		{
+			if(table == SHN_UNDEF) return nullptr;
+			const SectionHeader *symbolTable = elfSection(elfHeader, table);
+ 
+			uint32_t symtab_entries = symbolTable->sh_size / symbolTable->sh_entsize;
+			if(index >= symtab_entries)
+			{
+				assert(index < symtab_entries && "Symbol Index out of range");
+				return nullptr;
+			}
+ 
+			intptr_t symbolAddress = (intptr_t)elfHeader + symbolTable->sh_offset;
+			Elf32_Sym &symbol = ((Elf32_Sym*)symbolAddress)[index];
+			uint16_t section = symbol.st_shndx;
+
+			if(section != SHN_UNDEF && section < SHN_LORESERVE)
+			{
+				const SectionHeader *target = elfSection(elfHeader, symbol.st_shndx);
+				symbolValue = reinterpret_cast<void*>((intptr_t)elfHeader + symbol.st_value + target->sh_offset);
+			}
+			else
+			{
+				return nullptr;
+			}
+		}
+
+		switch(relocation.getType())
+		{
+		case R_386_NONE:
+			// No relocation
+			break;
+		case R_386_32:
+			*patchSite = (int32_t)((intptr_t)symbolValue + *patchSite);
+			break;
+	//	case R_386_PC32:
+	//		*patchSite = (int32_t)((intptr_t)symbolValue + *patchSite - (intptr_t)patchSite);
+	//		break;
+		default:
+			assert(false && "Unsupported relocation type");
+			return nullptr;
+		}
+
+		return symbolValue;
+	}
+
+	static void *relocateSymbol(const ElfHeader *elfHeader, const Elf64_Rela &relocation, const SectionHeader &relocationTable)
+	{
+		const SectionHeader *target = elfSection(elfHeader, relocationTable.sh_info);
+ 
+		intptr_t address = (intptr_t)elfHeader + target->sh_offset;
+		int32_t *patchSite = (int*)(address + relocation.r_offset);
+		uint32_t index = relocation.getSymbol();
+		int table = relocationTable.sh_link;
+		void *symbolValue = nullptr;
+
+		if(index != SHN_UNDEF)
+		{
+			if(table == SHN_UNDEF) return nullptr;
+			const SectionHeader *symbolTable = elfSection(elfHeader, table);
+ 
+			uint32_t symtab_entries = symbolTable->sh_size / symbolTable->sh_entsize;
+			if(index >= symtab_entries)
+			{
+				assert(index < symtab_entries && "Symbol Index out of range");
+				return nullptr;
+			}
+ 
+			intptr_t symbolAddress = (intptr_t)elfHeader + symbolTable->sh_offset;
+			Elf64_Sym &symbol = ((Elf64_Sym*)symbolAddress)[index];
+			uint16_t section = symbol.st_shndx;
+
+			if(section != SHN_UNDEF && section < SHN_LORESERVE)
+			{
+				const SectionHeader *target = elfSection(elfHeader, symbol.st_shndx);
+				symbolValue = reinterpret_cast<void*>((intptr_t)elfHeader + symbol.st_value + target->sh_offset);
+			}
+			else
+			{
+				return nullptr;
+			}
+		}
+
+		switch(relocation.getType())
+		{
+		case R_X86_64_NONE:
+			// No relocation
+			break;
+	//	case R_X86_64_64:
+	//		*patchSite = (int32_t)((intptr_t)symbolValue + *patchSite) + relocation->r_addend;
+	//		break;
+		case R_X86_64_PC32:
+			*patchSite = (int32_t)((intptr_t)symbolValue + *patchSite - (intptr_t)patchSite) + relocation.r_addend;
+			break;
+	//	case R_X86_64_32S:
+	//		*patchSite = (int32_t)((intptr_t)symbolValue + *patchSite) + relocation.r_addend;
+	//		break;
+		default:
+			assert(false && "Unsupported relocation type");
+			return nullptr;
+		}
+
+		return symbolValue;
+	}
+
 	void *loadImage(uint8_t *const elfImage)
 	{
-		using ElfHeader = std::conditional<sizeof(void*) == 8, Elf64_Ehdr, Elf32_Ehdr>::type;
 		ElfHeader *elfHeader = (ElfHeader*)elfImage;
 
 		if(!elfHeader->checkMagic())
@@ -108,15 +235,40 @@ namespace sw
 			return nullptr;
 		}
 
-		using SectionHeader = std::conditional<sizeof(void*) == 8, Elf64_Shdr, Elf32_Shdr>::type;
+		// Expect ELF bitness to match platform
+		assert(sizeof(void*) == 8 ? elfHeader->e_machine == EM_X86_64 : elfHeader->e_machine == EM_386);
+
 		SectionHeader *sectionHeader = (SectionHeader*)(elfImage + elfHeader->e_shoff);
 		void *entry = nullptr;
 
 		for(int i = 0; i < elfHeader->e_shnum; i++)
 		{
-			if(sectionHeader[i].sh_type == SHT_PROGBITS && sectionHeader[i].sh_flags & SHF_EXECINSTR)
+			if(sectionHeader[i].sh_type == SHT_PROGBITS)
 			{
-				entry = elfImage + sectionHeader[i].sh_offset;
+				if(sectionHeader[i].sh_flags & SHF_EXECINSTR)
+				{
+					entry = elfImage + sectionHeader[i].sh_offset;
+				}
+			}
+			else if(sectionHeader[i].sh_type == SHT_REL)
+			{
+				assert(sizeof(void*) == 4 && "UNIMPLEMENTED");   // Only expected/implemented for 32-bit code
+
+				for(int index = 0; index < sectionHeader[i].sh_size / sectionHeader[i].sh_entsize; index++)
+				{
+					const Elf32_Rel &relocation = ((const Elf32_Rel*)(elfImage + sectionHeader[i].sh_offset))[index];
+					void *symbol = relocateSymbol(elfHeader, relocation, sectionHeader[i]);
+				}
+			}
+			else if(sectionHeader[i].sh_type == SHT_RELA)
+			{
+				assert(sizeof(void*) == 8 && "UNIMPLEMENTED");   // Only expected/implemented for 64-bit code
+
+				for(int index = 0; index < sectionHeader[i].sh_size / sectionHeader[i].sh_entsize; index++)
+				{
+					const Elf64_Rela &relocation = ((const Elf64_Rela*)(elfImage + sectionHeader[i].sh_offset))[index];
+					void *symbol = relocateSymbol(elfHeader, relocation, sectionHeader[i]);
+				}
 			}
 		}
 
@@ -193,8 +345,8 @@ namespace sw
 
 		const void *getEntry() override
 		{
-			VirtualProtect(&buffer[0], buffer.size(), PAGE_EXECUTE_READ, &oldProtection);
-			position = std::numeric_limits<std::size_t>::max();  // Can't write more data after this
+			VirtualProtect(&buffer[0], buffer.size(), PAGE_EXECUTE_READWRITE, &oldProtection);
+			position = std::numeric_limits<std::size_t>::max();  // Can't stream more data after this
 
 			return loadImage(&buffer[0]);
 		}
@@ -209,10 +361,13 @@ namespace sw
 	{
 		::codegenMutex.lock();   // Reactor is currently not thread safe
 
-		Ice::ClFlags::Flags.setTargetArch(sizeof(void*) == 8 ? Ice::Target_X8664 : Ice::Target_X8632);
-		Ice::ClFlags::Flags.setOutFileType(Ice::FT_Elf);
-		Ice::ClFlags::Flags.setOptLevel(Ice::Opt_2);
-		Ice::ClFlags::Flags.setApplicationBinaryInterface(Ice::ABI_Platform);
+		Ice::ClFlags &Flags = Ice::ClFlags::Flags;
+		Ice::ClFlags::getParsedClFlags(Flags);
+
+		Flags.setTargetArch(sizeof(void*) == 8 ? Ice::Target_X8664 : Ice::Target_X8632);
+		Flags.setOutFileType(Ice::FT_Elf);
+		Flags.setOptLevel(Ice::Opt_2);
+		Flags.setApplicationBinaryInterface(Ice::ABI_Platform);
 
 		std::unique_ptr<Ice::Ostream> cout(new llvm::raw_os_ostream(std::cout));
 
@@ -255,12 +410,22 @@ namespace sw
 		::function->setFunctionName(Ice::GlobalString::createWithString(::context, asciiName));
 
 		::function->translate();
+		auto *globals = ::function->getGlobalInits().release();
+
+		if(globals && !globals->empty())
+		{
+			::context->getGlobals()->merge(globals);
+		}
 
 		::context->emitFileHeader();
 		::function->emitIAS();
 		auto assembler = ::function->releaseAssembler();
-		::context->getObjectWriter()->writeFunctionCode(::function->getFunctionName(), false, assembler.get());
-		::context->getObjectWriter()->writeNonUserSections();
+		auto objectWriter = ::context->getObjectWriter();
+		assembler->alignFunction();
+		objectWriter->writeFunctionCode(::function->getFunctionName(), false, assembler.get());
+		::context->lowerGlobals("last");
+		objectWriter->setUndefinedSyms(::context->getConstantExternSyms());
+		objectWriter->writeNonUserSections();
 
 		return ::routine;
 	}
