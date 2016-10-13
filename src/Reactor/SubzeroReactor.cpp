@@ -23,6 +23,7 @@
 #include "src/IceGlobalContext.h"
 #include "src/IceCfgNode.h"
 #include "src/IceELFObjectWriter.h"
+#include "src/IceGlobalInits.h"
 
 #include "llvm/Support/FileSystem.h"
 #include "llvm/Support/raw_os_ostream.h"
@@ -1018,7 +1019,14 @@ namespace sw
 
 	Value *Nucleus::createConstantPointer(const void *address, Type *Ty, bool isConstant, unsigned int Align)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		if(sizeof(void*) == 8)
+		{
+			return createAssign(::context->getConstantInt64(reinterpret_cast<intptr_t>(address)));
+		}
+		else
+		{
+			return createAssign(::context->getConstantInt32(reinterpret_cast<intptr_t>(address)));
+		}
 	}
 
 	Type *Nucleus::getPointerType(Type *ElementType)
@@ -1070,7 +1078,7 @@ namespace sw
 
 	Value *Nucleus::createConstantShort(short i)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		return createAssign(::context->getConstantInt16(i));
 	}
 
 	Value *Nucleus::createConstantShort(unsigned short i)
@@ -1088,14 +1096,92 @@ namespace sw
 		assert(false && "UNIMPLEMENTED"); return nullptr;
 	}
 
-	Value *Nucleus::createConstantVector(const int64_t *constants, Type *type)
+	Value *Nucleus::createConstantVector(const int64_t *c, Type *type)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		const int vectorSize = 16;
+		assert(Ice::typeWidthInBytes(T(type)) == vectorSize);
+		const int alignment = vectorSize;
+		auto globalPool = ::function->getGlobalPool();
+
+		Ice::VariableDeclaration::DataInitializer *dataInitializer = nullptr;
+		switch((int)reinterpret_cast<intptr_t>(type))
+		{
+		case Ice::IceType_v4i32:
+		case Ice::IceType_v4f32:
+			{
+				const int initializer[4] = {(int)c[0], (int)c[1], (int)c[2], (int)c[3]};
+				static_assert(sizeof(initializer) == vectorSize, "!");
+				dataInitializer = Ice::VariableDeclaration::DataInitializer::create(globalPool, (const char*)initializer, vectorSize);
+			}
+			break;
+		case Ice::IceType_v8i16:
+			{
+				const short initializer[8] = {(short)c[0], (short)c[1], (short)c[2], (short)c[3], (short)c[4], (short)c[5], (short)c[6], (short)c[7]};
+				static_assert(sizeof(initializer) == vectorSize, "!");
+				dataInitializer = Ice::VariableDeclaration::DataInitializer::create(globalPool, (const char*)initializer, vectorSize);
+			}
+			break;
+		case Ice::IceType_v16i8:
+			{
+				const char initializer[16] = {(char)c[0], (char)c[1], (char)c[2], (char)c[3], (char)c[4], (char)c[5], (char)c[6], (char)c[7], (char)c[8], (char)c[9], (char)c[10], (char)c[11], (char)c[12], (char)c[13], (char)c[14], (char)c[15]};
+				static_assert(sizeof(initializer) == vectorSize, "!");
+				dataInitializer = Ice::VariableDeclaration::DataInitializer::create(globalPool, (const char*)initializer, vectorSize);
+			}
+			break;
+		case Type_v2i32:
+			{
+				const int initializer[4] = {(int)c[0], (int)c[1], (int)c[0], (int)c[1]};
+				static_assert(sizeof(initializer) == vectorSize, "!");
+				dataInitializer = Ice::VariableDeclaration::DataInitializer::create(globalPool, (const char*)initializer, vectorSize);
+			}
+			break;
+		case Type_v4i16:
+			{
+				const short initializer[8] = {(short)c[0], (short)c[1], (short)c[2], (short)c[3], (short)c[0], (short)c[1], (short)c[2], (short)c[3]};
+				static_assert(sizeof(initializer) == vectorSize, "!");
+				dataInitializer = Ice::VariableDeclaration::DataInitializer::create(globalPool, (const char*)initializer, vectorSize);
+			}
+			break;
+		case Type_v8i8:
+			{
+				const char initializer[16] = {(char)c[0], (char)c[1], (char)c[2], (char)c[3], (char)c[4], (char)c[5], (char)c[6], (char)c[7], (char)c[0], (char)c[1], (char)c[2], (char)c[3], (char)c[4], (char)c[5], (char)c[6], (char)c[7]};
+				static_assert(sizeof(initializer) == vectorSize, "!");
+				dataInitializer = Ice::VariableDeclaration::DataInitializer::create(globalPool, (const char*)initializer, vectorSize);
+			}
+			break;
+		case Type_v4i8:
+			{
+				const char initializer[16] = {(char)c[0], (char)c[1], (char)c[2], (char)c[3], (char)c[0], (char)c[1], (char)c[2], (char)c[3], (char)c[0], (char)c[1], (char)c[2], (char)c[3], (char)c[0], (char)c[1], (char)c[2], (char)c[3]};
+				static_assert(sizeof(initializer) == vectorSize, "!");
+				dataInitializer = Ice::VariableDeclaration::DataInitializer::create(globalPool, (const char*)initializer, vectorSize);
+			}
+			break;
+		default:
+			assert(false && "Unknown constant vector type" && type);
+		}
+
+		auto name = Ice::GlobalString::createWithoutString(::context);
+		auto *variableDeclaration = Ice::VariableDeclaration::create(globalPool);
+		variableDeclaration->setName(name);
+		variableDeclaration->setAlignment(alignment);
+		variableDeclaration->setIsConstant(true);
+		variableDeclaration->addInitializer(dataInitializer);
+		
+		::function->addGlobal(variableDeclaration);
+
+		constexpr int32_t offset = 0;
+		Ice::Operand *ptr = ::context->getConstantSym(offset, name);
+
+		Ice::Variable *result = ::function->makeVariable(T(type));
+		auto load = Ice::InstLoad::create(::function, result, ptr, alignment);
+		::basicBlock->appendInst(load);
+
+		return V(result);
 	}
 
 	Value *Nucleus::createConstantVector(const double *constants, Type *type)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		return createConstantVector((const int64_t*)constants, type);
 	}
 
 	Type *Void::getType()
@@ -2219,35 +2305,27 @@ namespace sw
 
 	Byte8::Byte8()
 	{
-	//	xyzw.parent = this;
 	}
 
 	Byte8::Byte8(uint8_t x0, uint8_t x1, uint8_t x2, uint8_t x3, uint8_t x4, uint8_t x5, uint8_t x6, uint8_t x7)
 	{
-	//	xyzw.parent = this;
-
-		assert(false && "UNIMPLEMENTED");
+		int64_t constantVector[8] = {x0, x1, x2, x3, x4, x5, x6, x7};
+		storeValue(Nucleus::createConstantVector(constantVector, getType()));
 	}
 
 	Byte8::Byte8(RValue<Byte8> rhs)
 	{
-	//	xyzw.parent = this;
-
 		storeValue(rhs.value);
 	}
 
 	Byte8::Byte8(const Byte8 &rhs)
 	{
-	//	xyzw.parent = this;
-
 		Value *value = rhs.loadValue();
 		storeValue(value);
 	}
 
 	Byte8::Byte8(const Reference<Byte8> &rhs)
 	{
-	//	xyzw.parent = this;
-
 		Value *value = rhs.loadValue();
 		storeValue(value);
 	}
@@ -2444,7 +2522,10 @@ namespace sw
 	{
 	//	xyzw.parent = this;
 
-		assert(false && "UNIMPLEMENTED");
+		int64_t constantVector[8] = { x0, x1, x2, x3, x4, x5, x6, x7 };
+		Value *vector = V(Nucleus::createConstantVector(constantVector, getType()));
+
+		storeValue(Nucleus::createBitCast(vector, getType()));
 	}
 
 	SByte8::SByte8(RValue<SByte8> rhs)
@@ -2755,14 +2836,16 @@ namespace sw
 	{
 		//	xyzw.parent = this;
 
-		assert(false && "UNIMPLEMENTED");
+		int64_t constantVector[4] = {xyzw, xyzw, xyzw, xyzw};
+		storeValue(Nucleus::createConstantVector(constantVector, getType()));
 	}
 
 	Short4::Short4(short x, short y, short z, short w)
 	{
-	//	xyzw.parent = this;
+		//	xyzw.parent = this;
 
-		assert(false && "UNIMPLEMENTED");
+		int64_t constantVector[4] = {x, y, z, w};
+		storeValue(Nucleus::createConstantVector(constantVector, getType()));
 	}
 
 	Short4::Short4(RValue<Short4> rhs)
@@ -3095,16 +3178,18 @@ namespace sw
 
 	UShort4::UShort4(unsigned short xyzw)
 	{
-		//	xyzw.parent = this;
+	//	xyzw.parent = this;
 
-		assert(false && "UNIMPLEMENTED");
+		int64_t constantVector[4] = {xyzw, xyzw, xyzw, xyzw};
+		storeValue(Nucleus::createConstantVector(constantVector, getType()));
 	}
 
 	UShort4::UShort4(unsigned short x, unsigned short y, unsigned short z, unsigned short w)
 	{
 	//	xyzw.parent = this;
 
-		assert(false && "UNIMPLEMENTED");
+		int64_t constantVector[4] = {x, y, z, w};
+		storeValue(Nucleus::createConstantVector(constantVector, getType()));
 	}
 
 	UShort4::UShort4(RValue<UShort4> rhs)
@@ -3318,7 +3403,8 @@ namespace sw
 	{
 	//	xyzw.parent = this;
 
-		assert(false && "UNIMPLEMENTED");
+		int64_t constantVector[8] = {c0, c1, c2, c3, c4, c5, c6, c7};
+		storeValue(Nucleus::createConstantVector(constantVector, getType()));
 	}
 
 	Short8::Short8(RValue<Short8> rhs)
@@ -3383,22 +3469,17 @@ namespace sw
 
 	UShort8::UShort8(unsigned short c0, unsigned short c1, unsigned short c2, unsigned short c3, unsigned short c4, unsigned short c5, unsigned short c6, unsigned short c7)
 	{
-	//	xyzw.parent = this;
-
-		assert(false && "UNIMPLEMENTED");
+		int64_t constantVector[8] = {c0, c1, c2, c3, c4, c5, c6, c7};
+		storeValue(Nucleus::createConstantVector(constantVector, getType()));
 	}
 
 	UShort8::UShort8(RValue<UShort8> rhs)
 	{
-	//	xyzw.parent = this;
-
 		storeValue(rhs.value);
 	}
 
 	UShort8::UShort8(const Reference<UShort8> &rhs)
 	{
-	//	xyzw.parent = this;
-
 		Value *value = rhs.loadValue();
 		storeValue(value);
 	}
@@ -4280,7 +4361,8 @@ namespace sw
 	{
 	//	xy.parent = this;
 
-		assert(false && "UNIMPLEMENTED");
+		int64_t constantVector[2] = {x, y};
+		storeValue(Nucleus::createConstantVector(constantVector, getType()));
 	}
 
 	Int2::Int2(RValue<Int2> rhs)
@@ -4491,7 +4573,7 @@ namespace sw
 
 	Type *Int2::getType()
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		return T(Type_v2i32);
 	}
 
 	UInt2::UInt2()
@@ -4503,7 +4585,8 @@ namespace sw
 	{
 	//	xy.parent = this;
 
-		assert(false && "UNIMPLEMENTED");
+		int64_t constantVector[2] = {x, y};
+		storeValue(Nucleus::createConstantVector(constantVector, getType()));
 	}
 
 	UInt2::UInt2(RValue<UInt2> rhs)
@@ -4751,7 +4834,7 @@ namespace sw
 	//	xyzw.parent = this;
 
 		int64_t constantVector[4] = {x, y, z, w};
-		storeValue(Nucleus::createConstantVector(constantVector, Int4::getType()));
+		storeValue(Nucleus::createConstantVector(constantVector, getType()));
 	}
 
 	Int4::Int4(RValue<Int4> rhs)
@@ -5086,7 +5169,7 @@ namespace sw
 	//	xyzw.parent = this;
 
 		int64_t constantVector[4] = {x, y, z, w};
-		storeValue(Nucleus::createConstantVector(constantVector, UInt4::getType()));
+		storeValue(Nucleus::createConstantVector(constantVector, getType()));
 	}
 
 	UInt4::UInt4(RValue<UInt4> rhs)
@@ -5628,7 +5711,7 @@ namespace sw
 		xyzw.parent = this;
 
 		double constantVector[4] = {x, y, z, w};
-		storeValue(Nucleus::createConstantVector(constantVector, Float4::getType()));
+		storeValue(Nucleus::createConstantVector(constantVector, getType()));
 	}
 
 	Float4::Float4(RValue<Float4> rhs)
