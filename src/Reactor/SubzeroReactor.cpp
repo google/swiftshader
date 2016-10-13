@@ -1939,22 +1939,28 @@ namespace sw
 		assert(false && "UNIMPLEMENTED"); return nullptr;
 	}
 
+	Byte4::Byte4(RValue<Byte8> cast)
+	{
+	//	xyzw.parent = this;
+
+		storeValue(Nucleus::createBitCast(cast.value, getType()));
+	}
+
+	Byte4::Byte4(const Reference<Byte4> &rhs)
+	{
+	//	xyzw.parent = this;
+
+		assert(false && "UNIMPLEMENTED");
+	}
+
 	Type *Byte4::getType()
 	{
-		#if 0
-			return VectorType::get(Byte::getType(), 4);
-		#else
-			return UInt::getType();   // FIXME
-		#endif
+		assert(false && "UNIMPLEMENTED"); return nullptr;
 	}
 
 	Type *SByte4::getType()
 	{
-		#if 0
-			return VectorType::get(SByte::getType(), 4);
-		#else
-			return Int::getType();   // FIXME
-		#endif
+		assert(false && "UNIMPLEMENTED"); return nullptr;
 	}
 
 	Byte8::Byte8()
@@ -1965,11 +1971,8 @@ namespace sw
 	Byte8::Byte8(uint8_t x0, uint8_t x1, uint8_t x2, uint8_t x3, uint8_t x4, uint8_t x5, uint8_t x6, uint8_t x7)
 	{
 	//	xyzw.parent = this;
-	}
 
-	Byte8::Byte8(int64_t x)
-	{
-	//	xyzw.parent = this;
+		assert(false && "UNIMPLEMENTED");
 	}
 
 	Byte8::Byte8(RValue<Byte8> rhs)
@@ -2184,13 +2187,6 @@ namespace sw
 	}
 
 	SByte8::SByte8(uint8_t x0, uint8_t x1, uint8_t x2, uint8_t x3, uint8_t x4, uint8_t x5, uint8_t x6, uint8_t x7)
-	{
-	//	xyzw.parent = this;
-
-		assert(false && "UNIMPLEMENTED");
-	}
-
-	SByte8::SByte8(int64_t x)
 	{
 	//	xyzw.parent = this;
 
@@ -2450,6 +2446,26 @@ namespace sw
 	}
 
 	Type *SByte16::getType()
+	{
+		assert(false && "UNIMPLEMENTED"); return nullptr;
+	}
+
+	Short2::Short2(RValue<Short4> cast)
+	{
+		assert(false && "UNIMPLEMENTED");
+	}
+
+	Type *Short2::getType()
+	{
+		assert(false && "UNIMPLEMENTED"); return nullptr;
+	}
+
+	UShort2::UShort2(RValue<UShort4> cast)
+	{
+		assert(false && "UNIMPLEMENTED");
+	}
+
+	Type *UShort2::getType()
 	{
 		assert(false && "UNIMPLEMENTED"); return nullptr;
 	}
@@ -2940,6 +2956,21 @@ namespace sw
 	}
 
 	RValue<UShort4> operator*(RValue<UShort4> lhs, RValue<UShort4> rhs)
+	{
+		assert(false && "UNIMPLEMENTED"); return RValue<UShort4>(V(nullptr));
+	}
+
+	RValue<UShort4> operator&(RValue<UShort4> lhs, RValue<UShort4> rhs)
+	{
+		assert(false && "UNIMPLEMENTED"); return RValue<UShort4>(V(nullptr));
+	}
+
+	RValue<UShort4> operator|(RValue<UShort4> lhs, RValue<UShort4> rhs)
+	{
+		assert(false && "UNIMPLEMENTED"); return RValue<UShort4>(V(nullptr));
+	}
+
+	RValue<UShort4> operator^(RValue<UShort4> lhs, RValue<UShort4> rhs)
 	{
 		assert(false && "UNIMPLEMENTED"); return RValue<UShort4>(V(nullptr));
 	}

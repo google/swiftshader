@@ -34,6 +34,8 @@ namespace sw
 	class SByte16;
 	class Short;
 	class UShort;
+	class Short2;
+	class UShort2;
 	class Short4;
 	class UShort4;
 	class Short8;
@@ -429,11 +431,13 @@ namespace sw
 	class Byte4 : public Variable<Byte4>
 	{
 	public:
+		explicit Byte4(RValue<Byte8> cast);
+
 	//	Byte4();
 	//	Byte4(int x, int y, int z, int w);
 	//	Byte4(RValue<Byte4> rhs);
 	//	Byte4(const Byte4 &rhs);
-	//	Byte4(const Reference<Byte4> &rhs);
+		Byte4(const Reference<Byte4> &rhs);
 
 	//	RValue<Byte4> operator=(RValue<Byte4> rhs) const;
 	//	RValue<Byte4> operator=(const Byte4 &rhs) const;
@@ -519,7 +523,6 @@ namespace sw
 	public:
 		Byte8();
 		Byte8(uint8_t x0, uint8_t x1, uint8_t x2, uint8_t x3, uint8_t x4, uint8_t x5, uint8_t x6, uint8_t x7);
-		Byte8(int64_t x);
 		Byte8(RValue<Byte8> rhs);
 		Byte8(const Byte8 &rhs);
 		Byte8(const Reference<Byte8> &rhs);
@@ -573,7 +576,6 @@ namespace sw
 	public:
 		SByte8();
 		SByte8(uint8_t x0, uint8_t x1, uint8_t x2, uint8_t x3, uint8_t x4, uint8_t x5, uint8_t x6, uint8_t x7);
-		SByte8(int64_t x);
 		SByte8(RValue<SByte8> rhs);
 		SByte8(const SByte8 &rhs);
 		SByte8(const Reference<SByte8> &rhs);
@@ -709,6 +711,22 @@ namespace sw
 //	RValue<SByte16> operator--(const SByte16 &val, int);   // Post-decrement
 //	const SByte16 &operator--(const SByte16 &val);   // Pre-decrement
 
+	class Short2 : public Variable<Short2>
+	{
+	public:
+		explicit Short2(RValue<Short4> cast);
+
+		static Type *getType();
+	};
+
+	class UShort2 : public Variable<UShort2>
+	{
+	public:
+		explicit UShort2(RValue<UShort4> cast);
+
+		static Type *getType();
+	};
+
 	class Short4 : public Variable<Short4>
 	{
 	public:
@@ -822,9 +840,9 @@ namespace sw
 	RValue<UShort4> operator*(RValue<UShort4> lhs, RValue<UShort4> rhs);
 //	RValue<UShort4> operator/(RValue<UShort4> lhs, RValue<UShort4> rhs);
 //	RValue<UShort4> operator%(RValue<UShort4> lhs, RValue<UShort4> rhs);
-//	RValue<UShort4> operator&(RValue<UShort4> lhs, RValue<UShort4> rhs);
-//	RValue<UShort4> operator|(RValue<UShort4> lhs, RValue<UShort4> rhs);
-//	RValue<UShort4> operator^(RValue<UShort4> lhs, RValue<UShort4> rhs);
+	RValue<UShort4> operator&(RValue<UShort4> lhs, RValue<UShort4> rhs);
+	RValue<UShort4> operator|(RValue<UShort4> lhs, RValue<UShort4> rhs);
+	RValue<UShort4> operator^(RValue<UShort4> lhs, RValue<UShort4> rhs);
 	RValue<UShort4> operator<<(RValue<UShort4> lhs, unsigned char rhs);
 	RValue<UShort4> operator>>(RValue<UShort4> lhs, unsigned char rhs);
 	RValue<UShort4> operator<<(RValue<UShort4> lhs, RValue<Long1> rhs);
