@@ -23,7 +23,6 @@ namespace sw
 {
 	class Type;
 	class Value;
-	class Constant;
 	class BasicBlock;
 	class Routine;
 
@@ -90,7 +89,6 @@ namespace sw
 		static Value *createXor(Value *lhs, Value *rhs);
 
 		// Unary operators
-		static Value *createAssign(Constant *c);
 		static Value *createNeg(Value *V);
 		static Value *createFNeg(Value *V);
 		static Value *createNot(Value *V);
@@ -98,7 +96,6 @@ namespace sw
 		// Memory instructions
 		static Value *createLoad(Value *ptr, Type *type, bool isVolatile = false, unsigned int align = 0);
 		static Value *createStore(Value *value, Value *ptr, Type *type, bool isVolatile = false, unsigned int align = 0);
-		static Constant *createStore(Constant *constant, Value *ptr, Type *type, bool isVolatile = false, unsigned int align = 0);
 		static Value *createGEP(Value *ptr, Type *type, Value *index);
 
 		// Atomic instructions
@@ -154,21 +151,22 @@ namespace sw
 		static void createUnreachable();
 
 		// Constant values
-		static Constant *createNullValue(Type *Ty);
-		static Constant *createConstantInt(int64_t i);
-		static Constant *createConstantInt(int i);
-		static Constant *createConstantInt(unsigned int i);
-		static Constant *createConstantBool(bool b);
-		static Constant *createConstantByte(signed char i);
-		static Constant *createConstantByte(unsigned char i);
-		static Constant *createConstantShort(short i);
-		static Constant *createConstantShort(unsigned short i);
-		static Constant *createConstantFloat(float x);
-		static Constant *createNullPointer(Type *Ty);
-		static Constant *createConstantVector(Constant *const *Vals, unsigned NumVals);
-		static Constant *createConstantPointer(const void *external, Type *Ty, bool isConstant, unsigned int Align);
+		static Value *createNullValue(Type *type);
+		static Value *createConstantLong(int64_t i);
+		static Value *createConstantInt(int i);
+		static Value *createConstantInt(unsigned int i);
+		static Value *createConstantBool(bool b);
+		static Value *createConstantByte(signed char i);
+		static Value *createConstantByte(unsigned char i);
+		static Value *createConstantShort(short i);
+		static Value *createConstantShort(unsigned short i);
+		static Value *createConstantFloat(float x);
+		static Value *createNullPointer(Type *type);
+		static Value *createConstantVector(const int64_t *constants, Type *type);
+		static Value *createConstantVector(const double *constants, Type *type);
+		static Value *createConstantPointer(const void *external, Type *type, bool isConstant, unsigned int align);
 
-		static Type *getPointerType(Type *ElementType);
+		static Type *getPointerType(Type *elementType);
 
 	private:
 		void optimize();

@@ -68,7 +68,6 @@ namespace sw
 	};
 
 	class Value : public Ice::Variable {};
-	class Constant : public Ice::Constant {};
 	class BasicBlock : public Ice::CfgNode {};
 
 	Ice::Type T(Type *t)
@@ -90,11 +89,6 @@ namespace sw
 	Value *V(Ice::Variable *v)
 	{
 		return reinterpret_cast<Value*>(v);
-	}
-
-	Constant *C(Ice::Constant *c)
-	{
-		return reinterpret_cast<Constant*>(c);
 	}
 
 	BasicBlock *B(Ice::CfgNode *b)
@@ -456,7 +450,7 @@ namespace sw
 		return createArithmetic(Ice::InstArithmetic::Xor, lhs, rhs);
 	}
 
-	Value *Nucleus::createAssign(Constant *constant)
+	static Value *createAssign(Ice::Constant *constant)
 	{
 		Ice::Variable *value = ::function->makeVariable(constant->getType());
 		auto assign = Ice::InstAssign::create(::function, value, constant);
@@ -571,20 +565,13 @@ namespace sw
 		return value;
 	}
 
-	Constant *Nucleus::createStore(Constant *constant, Value *ptr, Type *type, bool isVolatile, unsigned int align)
-	{
-		auto store = Ice::InstStore::create(::function, constant, ptr, align);
-		::basicBlock->appendInst(store);
-		return constant;
-	}
-
 	Value *Nucleus::createGEP(Value *ptr, Type *type, Value *index)
 	{
 		assert(index->getType() == Ice::IceType_i32);
 
 		if(!Ice::isByteSizedType(T(type)))
 		{
-			index = createMul(index, createAssign(createConstantInt((int)Ice::typeWidthInBytes(T(type)))));
+			index = createMul(index, createConstantInt((int)Ice::typeWidthInBytes(T(type))));
 		}
 
 		if(sizeof(void*) == 8)
@@ -864,7 +851,7 @@ namespace sw
 		assert(false && "UNIMPLEMENTED"); return nullptr;
 	}
 
-	Constant *Nucleus::createConstantPointer(const void *address, Type *Ty, bool isConstant, unsigned int Align)
+	Value *Nucleus::createConstantPointer(const void *address, Type *Ty, bool isConstant, unsigned int Align)
 	{
 		assert(false && "UNIMPLEMENTED"); return nullptr;
 	}
@@ -881,62 +868,67 @@ namespace sw
 		}
 	}
 
-	Constant *Nucleus::createNullValue(Type *Ty)
+	Value *Nucleus::createNullValue(Type *Ty)
 	{
 		assert(false && "UNIMPLEMENTED"); return nullptr;
 	}
 
-	Constant *Nucleus::createConstantInt(int64_t i)
+	Value *Nucleus::createConstantLong(int64_t i)
 	{
 		assert(false && "UNIMPLEMENTED"); return nullptr;
 	}
 
-	Constant *Nucleus::createConstantInt(int i)
+	Value *Nucleus::createConstantInt(int i)
 	{
-		return C(::context->getConstantInt32(i));
+		return createAssign(::context->getConstantInt32(i));
 	}
 
-	Constant *Nucleus::createConstantInt(unsigned int i)
-	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
-	}
-
-	Constant *Nucleus::createConstantBool(bool b)
+	Value *Nucleus::createConstantInt(unsigned int i)
 	{
 		assert(false && "UNIMPLEMENTED"); return nullptr;
 	}
 
-	Constant *Nucleus::createConstantByte(signed char i)
+	Value *Nucleus::createConstantBool(bool b)
 	{
 		assert(false && "UNIMPLEMENTED"); return nullptr;
 	}
 
-	Constant *Nucleus::createConstantByte(unsigned char i)
+	Value *Nucleus::createConstantByte(signed char i)
 	{
 		assert(false && "UNIMPLEMENTED"); return nullptr;
 	}
 
-	Constant *Nucleus::createConstantShort(short i)
+	Value *Nucleus::createConstantByte(unsigned char i)
 	{
 		assert(false && "UNIMPLEMENTED"); return nullptr;
 	}
 
-	Constant *Nucleus::createConstantShort(unsigned short i)
+	Value *Nucleus::createConstantShort(short i)
 	{
 		assert(false && "UNIMPLEMENTED"); return nullptr;
 	}
 
-	Constant *Nucleus::createConstantFloat(float x)
+	Value *Nucleus::createConstantShort(unsigned short i)
 	{
 		assert(false && "UNIMPLEMENTED"); return nullptr;
 	}
 
-	Constant *Nucleus::createNullPointer(Type *Ty)
+	Value *Nucleus::createConstantFloat(float x)
 	{
 		assert(false && "UNIMPLEMENTED"); return nullptr;
 	}
 
-	Constant *Nucleus::createConstantVector(Constant *const *Vals, unsigned NumVals)
+	Value *Nucleus::createNullPointer(Type *Ty)
+	{
+		assert(false && "UNIMPLEMENTED"); return nullptr;
+	}
+
+	Value *Nucleus::createConstantVector(const int64_t *constants, Type *type)
+	{
+		assert(false && "UNIMPLEMENTED"); return nullptr;
+	}
+
+	Value *Nucleus::createConstantVector(const double *constants, Type *type)
 	{
 		assert(false && "UNIMPLEMENTED"); return nullptr;
 	}
@@ -3697,7 +3689,7 @@ namespace sw
 
 	RValue<Long> Long::operator=(int64_t rhs) const
 	{
-		return RValue<Long>(storeValue(Nucleus::createConstantInt(rhs)));
+		return RValue<Long>(storeValue(Nucleus::createConstantLong(rhs)));
 	}
 
 	RValue<Long> Long::operator=(RValue<Long> rhs) const
@@ -4593,13 +4585,8 @@ namespace sw
 	{
 	//	xyzw.parent = this;
 
-		Constant *constantVector[4];
-		constantVector[0] = Nucleus::createConstantInt(x);
-		constantVector[1] = Nucleus::createConstantInt(y);
-		constantVector[2] = Nucleus::createConstantInt(z);
-		constantVector[3] = Nucleus::createConstantInt(w);
-
-		storeValue(Nucleus::createConstantVector(constantVector, 4));
+		int64_t constantVector[4] = {x, y, z, w};
+		storeValue(Nucleus::createConstantVector(constantVector, Int4::getType()));
 	}
 
 	Int4::Int4(RValue<Int4> rhs)
@@ -4933,13 +4920,8 @@ namespace sw
 	{
 	//	xyzw.parent = this;
 
-		Constant *constantVector[4];
-		constantVector[0] = Nucleus::createConstantInt(x);
-		constantVector[1] = Nucleus::createConstantInt(y);
-		constantVector[2] = Nucleus::createConstantInt(z);
-		constantVector[3] = Nucleus::createConstantInt(w);
-
-		storeValue(Nucleus::createConstantVector(constantVector, 4));
+		int64_t constantVector[4] = {x, y, z, w};
+		storeValue(Nucleus::createConstantVector(constantVector, UInt4::getType()));
 	}
 
 	UInt4::UInt4(RValue<UInt4> rhs)
@@ -5480,13 +5462,8 @@ namespace sw
 	{
 		xyzw.parent = this;
 
-		Constant *constantVector[4];
-		constantVector[0] = Nucleus::createConstantFloat(x);
-		constantVector[1] = Nucleus::createConstantFloat(y);
-		constantVector[2] = Nucleus::createConstantFloat(z);
-		constantVector[3] = Nucleus::createConstantFloat(w);
-
-		storeValue(Nucleus::createConstantVector(constantVector, 4));
+		double constantVector[4] = {x, y, z, w};
+		storeValue(Nucleus::createConstantVector(constantVector, Float4::getType()));
 	}
 
 	Float4::Float4(RValue<Float4> rhs)
