@@ -1931,6 +1931,21 @@ namespace sw
 		return T(llvm::Type::getInt16Ty(*::context));
 	}
 
+	Byte4::Byte4(RValue<Byte8> cast)
+	{
+	//	xyzw.parent = this;
+
+		storeValue(Nucleus::createTrunc(Nucleus::createBitCast(cast.value, Long::getType()), Int::getType()));
+	}
+
+	Byte4::Byte4(const Reference<Byte4> &rhs)
+	{
+	//	xyzw.parent = this;
+
+		Value *value = rhs.loadValue();
+		storeValue(value);
+	}
+
 	Type *Byte4::getType()
 	{
 		#if 0
@@ -1967,24 +1982,6 @@ namespace sw
 		constantVector[5] = Nucleus::createConstantByte(x5);
 		constantVector[6] = Nucleus::createConstantByte(x6);
 		constantVector[7] = Nucleus::createConstantByte(x7);
-		Value *vector = V(Nucleus::createConstantVector(constantVector, 8));
-
-		storeValue(Nucleus::createBitCast(vector, getType()));
-	}
-
-	Byte8::Byte8(int64_t x)
-	{
-	//	xyzw.parent = this;
-
-		Constant *constantVector[8];
-		constantVector[0] = Nucleus::createConstantByte((unsigned char)(x >>  0));
-		constantVector[1] = Nucleus::createConstantByte((unsigned char)(x >>  8));
-		constantVector[2] = Nucleus::createConstantByte((unsigned char)(x >> 16));
-		constantVector[3] = Nucleus::createConstantByte((unsigned char)(x >> 24));
-		constantVector[4] = Nucleus::createConstantByte((unsigned char)(x >> 32));
-		constantVector[5] = Nucleus::createConstantByte((unsigned char)(x >> 40));
-		constantVector[6] = Nucleus::createConstantByte((unsigned char)(x >> 48));
-		constantVector[7] = Nucleus::createConstantByte((unsigned char)(x >> 56));
 		Value *vector = V(Nucleus::createConstantVector(constantVector, 8));
 
 		storeValue(Nucleus::createBitCast(vector, getType()));
@@ -2185,7 +2182,7 @@ namespace sw
 	{
 		if(CPUID::supportsMMX2())
 		{
-			return val ^ Byte8(0xFFFFFFFFFFFFFFFF);
+			return val ^ Byte8(0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF);
 		}
 		else
 		{
@@ -2286,24 +2283,6 @@ namespace sw
 		constantVector[5] = Nucleus::createConstantByte(x5);
 		constantVector[6] = Nucleus::createConstantByte(x6);
 		constantVector[7] = Nucleus::createConstantByte(x7);
-		Value *vector = V(Nucleus::createConstantVector(constantVector, 8));
-
-		storeValue(Nucleus::createBitCast(vector, getType()));
-	}
-
-	SByte8::SByte8(int64_t x)
-	{
-	//	xyzw.parent = this;
-
-		Constant *constantVector[8];
-		constantVector[0] = Nucleus::createConstantByte((unsigned char)(x >>  0));
-		constantVector[1] = Nucleus::createConstantByte((unsigned char)(x >>  8));
-		constantVector[2] = Nucleus::createConstantByte((unsigned char)(x >> 16));
-		constantVector[3] = Nucleus::createConstantByte((unsigned char)(x >> 24));
-		constantVector[4] = Nucleus::createConstantByte((unsigned char)(x >> 32));
-		constantVector[5] = Nucleus::createConstantByte((unsigned char)(x >> 40));
-		constantVector[6] = Nucleus::createConstantByte((unsigned char)(x >> 48));
-		constantVector[7] = Nucleus::createConstantByte((unsigned char)(x >> 56));
 		Value *vector = V(Nucleus::createConstantVector(constantVector, 8));
 
 		storeValue(Nucleus::createBitCast(vector, getType()));
@@ -2483,7 +2462,7 @@ namespace sw
 	{
 		if(CPUID::supportsMMX2())
 		{
-			return val ^ SByte8(0xFFFFFFFFFFFFFFFF);
+			return val ^ SByte8(0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF);
 		}
 		else
 		{
@@ -2612,6 +2591,34 @@ namespace sw
 	Type *SByte16::getType()
 	{
 		return T( VectorType::get(SByte::getType(), 16));
+	}
+
+	Short2::Short2(RValue<Short4> cast)
+	{
+		storeValue(Nucleus::createTrunc(Nucleus::createBitCast(cast.value, Long::getType()), UInt::getType()));
+	}
+
+	Type *Short2::getType()
+	{
+		#if 0
+			return T(VectorType::get(Short::getType(), 2));
+		#else
+			return UInt::getType();   // FIXME: LLVM doesn't manipulate it as one 32-bit block
+		#endif
+	}
+
+	UShort2::UShort2(RValue<UShort4> cast)
+	{
+		storeValue(Nucleus::createTrunc(Nucleus::createBitCast(cast.value, Long::getType()), UInt::getType()));
+	}
+
+	Type *UShort2::getType()
+	{
+		#if 0
+			return T(VectorType::get(UShort::getType(), 2));
+		#else
+			return UInt::getType();   // FIXME: LLVM doesn't manipulate it as one 32-bit block
+		#endif
 	}
 
 	Short4::Short4(RValue<Int> cast)
@@ -3328,6 +3335,42 @@ namespace sw
 		else
 		{
 			return RValue<UShort4>(Nucleus::createMul(lhs.value, rhs.value));
+		}
+	}
+
+	RValue<UShort4> operator&(RValue<UShort4> lhs, RValue<UShort4> rhs)
+	{
+		if(CPUID::supportsMMX2())
+		{
+			return As<UShort4>(x86::pand(As<Short4>(lhs), As<Short4>(rhs)));
+		}
+		else
+		{
+			return RValue<UShort4>(Nucleus::createAnd(lhs.value, rhs.value));
+		}
+	}
+
+	RValue<UShort4> operator|(RValue<UShort4> lhs, RValue<UShort4> rhs)
+	{
+		if(CPUID::supportsMMX2())
+		{
+			return As<UShort4>(x86::por(As<Short4>(lhs), As<Short4>(rhs)));
+		}
+		else
+		{
+			return RValue<UShort4>(Nucleus::createOr(lhs.value, rhs.value));
+		}
+	}
+
+	RValue<UShort4> operator^(RValue<UShort4> lhs, RValue<UShort4> rhs)
+	{
+		if(CPUID::supportsMMX2())
+		{
+			return As<UShort4>(x86::pxor(As<Short4>(lhs), As<Short4>(rhs)));
+		}
+		else
+		{
+			return RValue<UShort4>(Nucleus::createXor(lhs.value, rhs.value));
 		}
 	}
 

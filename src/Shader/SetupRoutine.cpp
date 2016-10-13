@@ -114,13 +114,13 @@ namespace sw
 				{
 					If(A > 0.0f)
 					{
-						*Pointer<Byte8>(primitive + OFFSET(Primitive,clockwiseMask)) =  Byte8(0xFFFFFFFFFFFFFFFF);
-						*Pointer<Byte8>(primitive + OFFSET(Primitive,invClockwiseMask)) = Byte8(0x0000000000000000);
+						*Pointer<Byte8>(primitive + OFFSET(Primitive,clockwiseMask)) = Byte8(0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF);
+						*Pointer<Byte8>(primitive + OFFSET(Primitive,invClockwiseMask)) = Byte8(0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00);
 					}
 					Else
 					{
-						*Pointer<Byte8>(primitive + OFFSET(Primitive,clockwiseMask)) =  Byte8(0x0000000000000000);
-						*Pointer<Byte8>(primitive + OFFSET(Primitive,invClockwiseMask)) = Byte8(0xFFFFFFFFFFFFFFFF);
+						*Pointer<Byte8>(primitive + OFFSET(Primitive,clockwiseMask)) = Byte8(0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00);
+						*Pointer<Byte8>(primitive + OFFSET(Primitive,invClockwiseMask)) = Byte8(0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF);
 					}
 				}
 
@@ -133,8 +133,8 @@ namespace sw
 			{
 				if(state.twoSidedStencil)
 				{
-					*Pointer<Byte8>(primitive + OFFSET(Primitive,clockwiseMask)) =  Byte8(0xFFFFFFFFFFFFFFFF);
-					*Pointer<Byte8>(primitive + OFFSET(Primitive,invClockwiseMask)) = Byte8(0x0000000000000000);
+					*Pointer<Byte8>(primitive + OFFSET(Primitive,clockwiseMask)) = Byte8(0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF);
+					*Pointer<Byte8>(primitive + OFFSET(Primitive,invClockwiseMask)) = Byte8(0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00);
 				}
 			}
 

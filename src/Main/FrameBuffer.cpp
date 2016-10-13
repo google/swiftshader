@@ -621,7 +621,7 @@ namespace sw
 		{
 		case FORMAT_X8R8G8B8:
 		case FORMAT_A8R8G8B8:
-			*Pointer<UInt>(d) = UInt(As<Long>(Pack(As<UShort4>(c1), As<UShort4>(c1))));
+			*Pointer<Byte4>(d) = Byte4(Pack(As<UShort4>(c1), As<UShort4>(c1)));
 			break;
 		case FORMAT_X8B8G8R8:
 		case FORMAT_A8B8G8R8:
@@ -630,7 +630,7 @@ namespace sw
 			{
 				c1 = Swizzle(c1, 0xC6);
 
-				*Pointer<UInt>(d) = UInt(As<Long>(Pack(As<UShort4>(c1), As<UShort4>(c1))));
+				*Pointer<Byte4>(d) = Byte4(Pack(As<UShort4>(c1), As<UShort4>(c1)));
 			}
 			break;
 		case FORMAT_R8G8B8:
