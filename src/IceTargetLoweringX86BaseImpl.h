@@ -6022,9 +6022,8 @@ void TargetX86Base<TraitsType>::lowerShuffleVector(
         Index12 == 6 && Index13 == 6 && Index14 == 7 && Index15 == 7) {
       auto *T = makeReg(DestTy);
       auto *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
-      auto *Src1RM = legalize(Src1, Legal_Reg | Legal_Mem);
       _movp(T, Src0RM);
-      _punpckl(T, Src1RM);
+      _punpckl(T, Src0RM);
       _movp(Dest, T);
       return;
     }
@@ -6058,9 +6057,8 @@ void TargetX86Base<TraitsType>::lowerShuffleVector(
         Index4 == 2 && Index5 == 2 && Index6 == 3 && Index7 == 3) {
       auto *T = makeReg(DestTy);
       auto *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
-      auto *Src1RM = legalize(Src1, Legal_Reg | Legal_Mem);
       _movp(T, Src0RM);
-      _punpckl(T, Src1RM);
+      _punpckl(T, Src0RM);
       _movp(Dest, T);
       return;
     }
