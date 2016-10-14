@@ -1628,6 +1628,45 @@ void AssemblerX86Base<TraitsType>::punpckl(Type Ty, XmmRegister Dst,
 }
 
 template <typename TraitsType>
+void AssemblerX86Base<TraitsType>::punpckh(Type Ty, XmmRegister Dst,
+                                           XmmRegister Src) {
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitUint8(0x66);
+  emitRexRB(RexTypeIrrelevant, Dst, Src);
+  emitUint8(0x0F);
+  if (Ty == IceType_v4i32 || Ty == IceType_v4f32) {
+    emitUint8(0x6A);
+  } else if (Ty == IceType_v8i16) {
+    emitUint8(0x69);
+  } else if (Ty == IceType_v16i8) {
+    emitUint8(0x68);
+  } else {
+    assert(false && "Unexpected vector unpack operand type");
+  }
+  emitXmmRegisterOperand(Dst, Src);
+}
+
+template <typename TraitsType>
+void AssemblerX86Base<TraitsType>::punpckh(Type Ty, XmmRegister Dst,
+                                           const Address &Src) {
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitUint8(0x66);
+  emitAddrSizeOverridePrefix();
+  emitRex(RexTypeIrrelevant, Src, Dst);
+  emitUint8(0x0F);
+  if (Ty == IceType_v4i32 || Ty == IceType_v4f32) {
+    emitUint8(0x6A);
+  } else if (Ty == IceType_v8i16) {
+    emitUint8(0x69);
+  } else if (Ty == IceType_v16i8) {
+    emitUint8(0x68);
+  } else {
+    assert(false && "Unexpected vector unpack operand type");
+  }
+  emitOperand(gprEncoding(Dst), Src);
+}
+
+template <typename TraitsType>
 void AssemblerX86Base<TraitsType>::packss(Type Ty, XmmRegister Dst,
                                           XmmRegister Src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);

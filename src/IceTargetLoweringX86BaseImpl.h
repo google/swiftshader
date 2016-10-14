@@ -6002,6 +6002,53 @@ void TargetX86Base<TraitsType>::lowerShuffleVector(
     static constexpr SizeT ExpectedNumElements = 16;
     assert(ExpectedNumElements == Instr->getNumIndexes());
     (void)ExpectedNumElements;
+
+    if (Instr->indexesAre(0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7)) {
+      auto *T = makeReg(DestTy);
+      auto *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
+      _movp(T, Src0RM);
+      _punpckl(T, Src0RM);
+      _movp(Dest, T);
+      return;
+    }
+
+    if (Instr->indexesAre(0, 16, 1, 17, 2, 18, 3, 19, 4, 20, 5, 21, 6, 22, 7,
+                          23)) {
+      auto *T = makeReg(DestTy);
+      auto *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
+      auto *Src1RM = legalize(Src1, Legal_Reg | Legal_Mem);
+      _movp(T, Src0RM);
+      _punpckl(T, Src1RM);
+      _movp(Dest, T);
+      return;
+    }
+
+    if (Instr->indexesAre(8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14,
+                          15, 15)) {
+      auto *T = makeReg(DestTy);
+      auto *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
+      _movp(T, Src0RM);
+      _punpckh(T, Src0RM);
+      _movp(Dest, T);
+      return;
+    }
+
+    if (Instr->indexesAre(8, 24, 9, 25, 10, 26, 11, 27, 12, 28, 13, 29, 14, 30,
+                          15, 31)) {
+      auto *T = makeReg(DestTy);
+      auto *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
+      auto *Src1RM = legalize(Src1, Legal_Reg | Legal_Mem);
+      _movp(T, Src0RM);
+      _punpckh(T, Src1RM);
+      _movp(Dest, T);
+      return;
+    }
+
+    if (InstructionSet < Traits::SSE4_1) {
+      // TODO(jpp): figure out how to lower with sse2.
+      break;
+    }
+
     const SizeT Index0 = Instr->getIndex(0)->getValue();
     const SizeT Index1 = Instr->getIndex(1)->getValue();
     const SizeT Index2 = Instr->getIndex(2)->getValue();
@@ -6019,23 +6066,6 @@ void TargetX86Base<TraitsType>::lowerShuffleVector(
     const SizeT Index14 = Instr->getIndex(14)->getValue();
     const SizeT Index15 = Instr->getIndex(15)->getValue();
 
-    if (Index0 == 0 && Index1 == 0 && Index2 == 1 && Index3 == 1 &&
-        Index4 == 2 && Index5 == 2 && Index6 == 3 && Index7 == 3 &&
-        Index8 == 4 && Index9 == 4 && Index10 == 5 && Index11 == 5 &&
-        Index12 == 6 && Index13 == 6 && Index14 == 7 && Index15 == 7) {
-      auto *T = makeReg(DestTy);
-      auto *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
-      _movp(T, Src0RM);
-      _punpckl(T, Src0RM);
-      _movp(Dest, T);
-      return;
-    }
-
-    if (InstructionSet < Traits::SSE4_1) {
-      // TODO(jpp): figure out how to lower with sse2.
-      break;
-    }
-
     lowerShuffleVector_UsingPshufb(Dest, Src0, Src1, Index0, Index1, Index2,
                                    Index3, Index4, Index5, Index6, Index7,
                                    Index8, Index9, Index10, Index11, Index12,
@@ -6047,17 +6077,8 @@ void TargetX86Base<TraitsType>::lowerShuffleVector(
     static constexpr SizeT ExpectedNumElements = 8;
     assert(ExpectedNumElements == Instr->getNumIndexes());
     (void)ExpectedNumElements;
-    const SizeT Index0 = Instr->getIndex(0)->getValue();
-    const SizeT Index1 = Instr->getIndex(1)->getValue();
-    const SizeT Index2 = Instr->getIndex(2)->getValue();
-    const SizeT Index3 = Instr->getIndex(3)->getValue();
-    const SizeT Index4 = Instr->getIndex(4)->getValue();
-    const SizeT Index5 = Instr->getIndex(5)->getValue();
-    const SizeT Index6 = Instr->getIndex(6)->getValue();
-    const SizeT Index7 = Instr->getIndex(7)->getValue();
 
-    if (Index0 == 0 && Index1 == 0 && Index2 == 1 && Index3 == 1 &&
-        Index4 == 2 && Index5 == 2 && Index6 == 3 && Index7 == 3) {
+    if (Instr->indexesAre(0, 0, 1, 1, 2, 2, 3, 3)) {
       auto *T = makeReg(DestTy);
       auto *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
       _movp(T, Src0RM);
@@ -6066,10 +6087,48 @@ void TargetX86Base<TraitsType>::lowerShuffleVector(
       return;
     }
 
+    if (Instr->indexesAre(0, 8, 1, 9, 2, 10, 3, 11)) {
+      auto *T = makeReg(DestTy);
+      auto *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
+      auto *Src1RM = legalize(Src1, Legal_Reg | Legal_Mem);
+      _movp(T, Src0RM);
+      _punpckl(T, Src0RM);
+      _movp(Dest, T);
+      return;
+    }
+
+    if (Instr->indexesAre(4, 4, 5, 5, 6, 6, 7, 7)) {
+      auto *T = makeReg(DestTy);
+      auto *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
+      _movp(T, Src0RM);
+      _punpckh(T, Src0RM);
+      _movp(Dest, T);
+      return;
+    }
+
+    if (Instr->indexesAre(4, 12, 5, 13, 6, 14, 7, 15)) {
+      auto *T = makeReg(DestTy);
+      auto *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
+      auto *Src1RM = legalize(Src1, Legal_Reg | Legal_Mem);
+      _movp(T, Src0RM);
+      _punpckh(T, Src1RM);
+      _movp(Dest, T);
+      return;
+    }
+
     if (InstructionSet < Traits::SSE4_1) {
       // TODO(jpp): figure out how to lower with sse2.
       break;
     }
+
+    const SizeT Index0 = Instr->getIndex(0)->getValue();
+    const SizeT Index1 = Instr->getIndex(1)->getValue();
+    const SizeT Index2 = Instr->getIndex(2)->getValue();
+    const SizeT Index3 = Instr->getIndex(3)->getValue();
+    const SizeT Index4 = Instr->getIndex(4)->getValue();
+    const SizeT Index5 = Instr->getIndex(5)->getValue();
+    const SizeT Index6 = Instr->getIndex(6)->getValue();
+    const SizeT Index7 = Instr->getIndex(7)->getValue();
 
 #define TO_BYTE_INDEX(I) ((I) << 1)
     lowerShuffleVector_UsingPshufb(

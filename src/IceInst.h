@@ -997,6 +997,37 @@ public:
     return Indexes[Pos];
   }
 
+  inline bool indexesAre(int32_t i0, int32_t i1, int32_t i2, int32_t i3,
+                         int32_t i4, int32_t i5, int32_t i6, int32_t i7) const {
+    static constexpr SizeT ExpectedNumElements = 8;
+    assert(ExpectedNumElements == getNumIndexes());
+    (void)ExpectedNumElements;
+
+    return getIndex(0)->getValue() == i0 && getIndex(1)->getValue() == i1 &&
+           getIndex(2)->getValue() == i2 && getIndex(3)->getValue() == i3 &&
+           getIndex(4)->getValue() == i4 && getIndex(5)->getValue() == i5 &&
+           getIndex(6)->getValue() == i6 && getIndex(7)->getValue() == i7;
+  }
+
+  inline bool indexesAre(int32_t i0, int32_t i1, int32_t i2, int32_t i3,
+                         int32_t i4, int32_t i5, int32_t i6, int32_t i7,
+                         int32_t i8, int32_t i9, int32_t i10, int32_t i11,
+                         int32_t i12, int32_t i13, int32_t i14,
+                         int32_t i15) const {
+    static constexpr SizeT ExpectedNumElements = 16;
+    assert(ExpectedNumElements == getNumIndexes());
+    (void)ExpectedNumElements;
+
+    return getIndex(0)->getValue() == i0 && getIndex(1)->getValue() == i1 &&
+           getIndex(2)->getValue() == i2 && getIndex(3)->getValue() == i3 &&
+           getIndex(4)->getValue() == i4 && getIndex(5)->getValue() == i5 &&
+           getIndex(6)->getValue() == i6 && getIndex(7)->getValue() == i7 &&
+           getIndex(8)->getValue() == i8 && getIndex(9)->getValue() == i9 &&
+           getIndex(10)->getValue() == i10 && getIndex(11)->getValue() == i11 &&
+           getIndex(12)->getValue() == i12 && getIndex(13)->getValue() == i13 &&
+           getIndex(14)->getValue() == i14 && getIndex(15)->getValue() == i15;
+  }
+
   bool isMemoryWrite() const override { return false; }
   void dump(const Cfg *Func) const override;
   static bool classof(const Inst *Instr) {
