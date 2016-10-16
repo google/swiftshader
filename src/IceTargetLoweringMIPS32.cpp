@@ -216,6 +216,25 @@ uint32_t TargetMIPS32::getStackAlignment() const {
   return MIPS32_STACK_ALIGNMENT_BYTES;
 }
 
+uint32_t TargetMIPS32::getCallStackArgumentsSizeBytes(const InstCall *Call) {
+  TargetMIPS32::CallingConv CC;
+  RegNumT DummyReg;
+  size_t OutArgsSizeBytes = 0;
+  for (SizeT i = 0, NumArgs = Call->getNumArgs(); i < NumArgs; ++i) {
+    Operand *Arg = legalizeUndef(Call->getArg(i));
+    const Type Ty = Arg->getType();
+    RegNumT RegNum;
+    if (CC.argInReg(Ty, i, &RegNum)) {
+      continue;
+    }
+
+    OutArgsSizeBytes = applyStackAlignmentTy(OutArgsSizeBytes, Ty);
+    OutArgsSizeBytes += typeWidthInBytesOnStack(Ty);
+  }
+
+  return applyStackAlignment(OutArgsSizeBytes);
+}
+
 void TargetMIPS32::genTargetHelperCallFor(Inst *Instr) {
   constexpr bool NoTailCall = false;
   constexpr bool IsTargetHelperCall = true;
@@ -586,6 +605,7 @@ void TargetMIPS32::findMaxStackOutArgsSize() {
       }
     }
   }
+  CurrentAllocaOffset = MaxOutArgsSizeBytes;
 }
 
 void TargetMIPS32::translateO2() {
@@ -1706,9 +1726,9 @@ void TargetMIPS32::PostLoweringLegalizer::legalizeMov(InstMIPS32Mov *MovInstr) {
     if (Var->isRematerializable()) {
       // This is equivalent to an x86 _lea(RematOffset(%esp/%ebp), Variable).
 
-      // ExtraOffset is only needed for frame-pointer based frames as we have
+      // ExtraOffset is only needed for stack-pointer based frames as we have
       // to account for spill storage.
-      const int32_t ExtraOffset = (Var->getRegNum() == Target->getFrameReg())
+      const int32_t ExtraOffset = (Var->getRegNum() == Target->getStackReg())
                                       ? Target->getFrameFixedAllocaOffset()
                                       : 0;
 
@@ -2008,6 +2028,17 @@ void TargetMIPS32::lowerAlloca(const InstAlloca *Instr) {
       Context.insert<InstFakeDef>(Dest);
       return;
     }
+
+    if (Alignment > MIPS32_STACK_ALIGNMENT_BYTES) {
+      CurrentAllocaOffset =
+          Utils::applyAlignment(CurrentAllocaOffset, Alignment);
+    }
+    auto *T = I32Reg();
+    _addiu(T, SP, CurrentAllocaOffset);
+    _mov(Dest, T);
+    CurrentAllocaOffset += Value;
+    return;
+
   } else {
     // Non-constant sizes need to be adjusted to the next highest multiple of
     // the required alignment at runtime.
@@ -2033,15 +2064,6 @@ void TargetMIPS32::lowerAlloca(const InstAlloca *Instr) {
     }
     _mov(SP, Dest);
     return;
-  }
-
-  // Add enough to the returned address to account for the out args area.
-  if (MaxOutArgsSizeBytes > 0) {
-    Variable *T = makeReg(getPointerType());
-    _addiu(T, SP, MaxOutArgsSizeBytes);
-    _mov(Dest, T);
-  } else {
-    _mov(Dest, SP);
   }
 }
 
@@ -2322,6 +2344,12 @@ void TargetMIPS32::lowerInt64Arithmetic(const InstArithmetic *Instr,
 
 void TargetMIPS32::lowerArithmetic(const InstArithmetic *Instr) {
   Variable *Dest = Instr->getDest();
+
+  if (Dest->isRematerializable()) {
+    Context.insert<InstFakeDef>(Dest);
+    return;
+  }
+
   // We need to signal all the UnimplementedLoweringError errors before any
   // legalization into new variables, otherwise Om1 register allocation may fail
   // when it sees variables that are defined but not used.

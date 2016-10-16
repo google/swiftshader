@@ -104,7 +104,9 @@ public:
     PrologEmitsFixedAllocas = true;
   }
   int32_t getFrameFixedAllocaOffset() const override {
-    return FixedAllocaSizeBytes - (SpillAreaSizeBytes - MaxOutArgsSizeBytes);
+    int32_t FixedAllocaOffset =
+        Utils::applyAlignment(CurrentAllocaOffset, FixedAllocaAlignBytes);
+    return FixedAllocaOffset - MaxOutArgsSizeBytes;
   }
 
   uint32_t maxOutArgsSizeBytes() const override { return MaxOutArgsSizeBytes; }
@@ -701,10 +703,7 @@ protected:
   void lowerSwitch(const InstSwitch *Instr) override;
   void lowerUnreachable(const InstUnreachable *Instr) override;
   void prelowerPhis() override;
-  uint32_t getCallStackArgumentsSizeBytes(const InstCall *Instr) override {
-    (void)Instr;
-    return 0;
-  }
+  uint32_t getCallStackArgumentsSizeBytes(const InstCall *Instr) override;
   void genTargetHelperCallFor(Inst *Instr) override;
   void doAddressOptLoad() override;
   void doAddressOptStore() override;
@@ -754,6 +753,7 @@ protected:
   bool VariableAllocaUsed = false;
   uint32_t MaxOutArgsSizeBytes = 0;
   uint32_t TotalStackSizeBytes = 0;
+  uint32_t CurrentAllocaOffset = 0;
   static SmallBitVector TypeToRegisterSet[RCMIPS32_NUM];
   static SmallBitVector TypeToRegisterSetUnfiltered[RCMIPS32_NUM];
   static SmallBitVector RegisterAliases[RegMIPS32::Reg_NUM];
