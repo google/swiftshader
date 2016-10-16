@@ -1529,7 +1529,17 @@ Variable *TargetMIPS32::PostLoweringLegalizer::newBaseRegister(
         Target->Ctx->getConstantInt32(-Offset), ScratchRegNum);
     Target->_sub(ScratchReg, Base, OffsetVal);
   } else {
-    Target->_addiu(ScratchReg, Base, Offset);
+    constexpr bool SignExt = true;
+    if (!OperandMIPS32Mem::canHoldOffset(Base->getType(), SignExt, Offset)) {
+      const uint32_t UpperBits = (Offset >> 16) & 0xFFFF;
+      const uint32_t LowerBits = Offset & 0xFFFF;
+      Target->_lui(ScratchReg, Target->Ctx->getConstantInt32(UpperBits));
+      if (LowerBits)
+        Target->_ori(ScratchReg, ScratchReg, LowerBits);
+      Target->_addu(ScratchReg, ScratchReg, Base);
+    } else {
+      Target->_addiu(ScratchReg, Base, Offset);
+    }
   }
 
   return ScratchReg;
@@ -1731,6 +1741,35 @@ void TargetMIPS32::PostLoweringLegalizer::legalizeMov(InstMIPS32Mov *MovInstr) {
   }
 }
 
+OperandMIPS32Mem *
+TargetMIPS32::PostLoweringLegalizer::legalizeMemOperand(OperandMIPS32Mem *Mem) {
+  if (llvm::isa<ConstantRelocatable>(Mem->getOffset())) {
+    return nullptr;
+  }
+  Variable *Base = Mem->getBase();
+  auto *Ci32 = llvm::cast<ConstantInteger32>(Mem->getOffset());
+  int32_t Offset = Ci32->getValue();
+
+  if (Base->isRematerializable()) {
+    const int32_t ExtraOffset =
+        (Base->getRegNum() == Target->getFrameOrStackReg())
+            ? Target->getFrameFixedAllocaOffset()
+            : 0;
+    Offset += Base->getStackOffset() + ExtraOffset;
+    Base = Target->getPhysicalRegister(Base->getRegNum());
+  }
+
+  constexpr bool SignExt = true;
+  if (!OperandMIPS32Mem::canHoldOffset(Mem->getType(), SignExt, Offset)) {
+    Base = newBaseRegister(Base, Offset, Target->getReservedTmpReg());
+    Offset = 0;
+  }
+
+  return OperandMIPS32Mem::create(
+      Target->Func, Mem->getType(), Base,
+      llvm::cast<ConstantInteger32>(Target->Ctx->getConstantInt32(Offset)));
+}
+
 void TargetMIPS32::postLowerLegalization() {
   Func->dump("Before postLowerLegalization");
   assert(hasComputedFrame());
@@ -1740,11 +1779,58 @@ void TargetMIPS32::postLowerLegalization() {
     while (!Context.atEnd()) {
       PostIncrLoweringContext PostIncrement(Context);
       Inst *CurInstr = iteratorToInst(Context.getCur());
-
-      // TODO(sagar.thakur): Add remaining cases of legalization.
-
+      const SizeT NumSrcs = CurInstr->getSrcSize();
+      Operand *Src0 = NumSrcs < 1 ? nullptr : CurInstr->getSrc(0);
+      Operand *Src1 = NumSrcs < 2 ? nullptr : CurInstr->getSrc(1);
+      auto *Src0V = llvm::dyn_cast_or_null<Variable>(Src0);
+      auto *Src0M = llvm::dyn_cast_or_null<OperandMIPS32Mem>(Src0);
+      auto *Src1M = llvm::dyn_cast_or_null<OperandMIPS32Mem>(Src1);
+      Variable *Dst = CurInstr->getDest();
       if (auto *MovInstr = llvm::dyn_cast<InstMIPS32Mov>(CurInstr)) {
         Legalizer.legalizeMov(MovInstr);
+        continue;
+      }
+      if (llvm::isa<InstMIPS32Sw>(CurInstr)) {
+        if (auto *LegalMem = Legalizer.legalizeMemOperand(Src1M)) {
+          _sw(Src0V, LegalMem);
+          CurInstr->setDeleted();
+        }
+        continue;
+      }
+      if (llvm::isa<InstMIPS32Swc1>(CurInstr)) {
+        if (auto *LegalMem = Legalizer.legalizeMemOperand(Src1M)) {
+          _swc1(Src0V, LegalMem);
+          CurInstr->setDeleted();
+        }
+        continue;
+      }
+      if (llvm::isa<InstMIPS32Sdc1>(CurInstr)) {
+        if (auto *LegalMem = Legalizer.legalizeMemOperand(Src1M)) {
+          _sdc1(Src0V, LegalMem);
+          CurInstr->setDeleted();
+        }
+        continue;
+      }
+      if (llvm::isa<InstMIPS32Lw>(CurInstr)) {
+        if (auto *LegalMem = Legalizer.legalizeMemOperand(Src0M)) {
+          _lw(Dst, LegalMem);
+          CurInstr->setDeleted();
+        }
+        continue;
+      }
+      if (llvm::isa<InstMIPS32Lwc1>(CurInstr)) {
+        if (auto *LegalMem = Legalizer.legalizeMemOperand(Src0M)) {
+          _lwc1(Dst, LegalMem);
+          CurInstr->setDeleted();
+        }
+        continue;
+      }
+      if (llvm::isa<InstMIPS32Ldc1>(CurInstr)) {
+        if (auto *LegalMem = Legalizer.legalizeMemOperand(Src0M)) {
+          _ldc1(Dst, LegalMem);
+          CurInstr->setDeleted();
+        }
+        continue;
       }
     }
   }

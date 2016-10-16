@@ -90,6 +90,7 @@ public:
   RegNumT getFrameOrStackReg() const override {
     return UsesFramePointer ? getFrameReg() : getStackReg();
   }
+  RegNumT getReservedTmpReg() const { return RegMIPS32::Reg_AT; }
   size_t typeWidthInBytesOnStack(Type Ty) const override {
     // Round up to the next multiple of 4 bytes. In particular, i1, i8, and i16
     // are rounded up to 4 bytes.
@@ -725,6 +726,10 @@ protected:
     explicit PostLoweringLegalizer(TargetMIPS32 *Target)
         : Target(Target), StackOrFrameReg(Target->getPhysicalRegister(
                               Target->getFrameOrStackReg())) {}
+
+    /// Legalizes Mem. if Mem.Base is a rematerializable variable,
+    /// Mem.Offset is fixed up.
+    OperandMIPS32Mem *legalizeMemOperand(OperandMIPS32Mem *Mem);
 
     /// Legalizes Mov if its Source (or Destination) is a spilled Variable, or
     /// if its Source is a Rematerializable variable (this form is used in lieu
