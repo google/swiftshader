@@ -4961,10 +4961,10 @@ Operand *TargetMIPS32::legalize(Operand *From, LegalMask Allowed,
         return From;
     }
     if (auto *C = llvm::dyn_cast<ConstantRelocatable>(From)) {
-      (void)C;
-      // TODO(reed kotler): complete this case for proper implementation
       Variable *Reg = makeReg(Ty, RegNum);
-      Context.insert<InstFakeDef>(Reg);
+      Variable *TReg = makeReg(Ty, RegNum);
+      _lui(TReg, C, RO_Hi);
+      _addiu(Reg, TReg, C, RO_Lo);
       return Reg;
     } else if (auto *C32 = llvm::dyn_cast<ConstantInteger32>(From)) {
       const uint32_t Value = C32->getValue();

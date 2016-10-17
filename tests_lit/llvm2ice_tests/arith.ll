@@ -276,6 +276,11 @@ entry:
 ; CHECK-LABEL: ShlReloc
 ; CHECK: shl {{.*}},cl
 
+; MIPS32-LABEL: ShlReloc
+; MIPS32: lui [[REG:.*]],{{.*}} R_MIPS_HI16 G
+; MIPS32: addiu [[REG]],[[REG]],{{.*}} R_MIPS_LO16 G
+; MIPS32: sllv {{.*}},{{.*}},[[REG]]
+
 define internal i32 @LshrReloc(i32 %a) {
 entry:
   %opnd = ptrtoint [4 x i8]* @G to i32
@@ -285,6 +290,11 @@ entry:
 ; CHECK-LABEL: LshrReloc
 ; CHECK: shr {{.*}},cl
 
+; MIPS32-LABEL: LshrReloc
+; MIPS32: lui [[REG:.*]],{{.*}} R_MIPS_HI16 G
+; MIPS32: addiu [[REG]],[[REG]],{{.*}} R_MIPS_LO16 G
+; MIPS32: srlv {{.*}},{{.*}},[[REG]]
+
 define internal i32 @AshrReloc(i32 %a) {
 entry:
   %opnd = ptrtoint [4 x i8]* @G to i32
@@ -293,3 +303,8 @@ entry:
 }
 ; CHECK-LABEL: AshrReloc
 ; CHECK: sar {{.*}},cl
+
+; MIPS32-LABEL: AshrReloc
+; MIPS32: lui [[REG:.*]],{{.*}} R_MIPS_HI16 G
+; MIPS32: addiu [[REG]],[[REG]],{{.*}} R_MIPS_LO16 G
+; MIPS32: srav {{.*}},{{.*}},[[REG]]

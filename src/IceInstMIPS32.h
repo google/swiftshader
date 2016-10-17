@@ -983,14 +983,21 @@ class InstMIPS32Imm16 : public InstMIPS32 {
 
 public:
   static InstMIPS32Imm16 *create(Cfg *Func, Variable *Dest, Operand *Source,
-                                 uint32_t Imm) {
+                                 uint32_t Imm, RelocOp Reloc = RO_No) {
     return new (Func->allocate<InstMIPS32Imm16>())
-        InstMIPS32Imm16(Func, Dest, Source, Imm);
+        InstMIPS32Imm16(Func, Dest, Source, Imm, Reloc);
   }
 
-  static InstMIPS32Imm16 *create(Cfg *Func, Variable *Dest, uint32_t Imm) {
+  static InstMIPS32Imm16 *create(Cfg *Func, Variable *Dest, uint32_t Imm,
+                                 RelocOp Reloc = RO_No) {
     return new (Func->allocate<InstMIPS32Imm16>())
-        InstMIPS32Imm16(Func, Dest, Imm);
+        InstMIPS32Imm16(Func, Dest, Imm, Reloc);
+  }
+
+  static InstMIPS32Imm16 *create(Cfg *Func, Variable *Dest, Operand *Src0,
+                                 Operand *Src1, RelocOp Reloc) {
+    return new (Func->allocate<InstMIPS32Imm16>())
+        InstMIPS32Imm16(Func, Dest, Src0, Src1, Reloc);
   }
 
   void emit(const Cfg *Func) const override {
@@ -1004,10 +1011,18 @@ public:
       getSrc(0)->emit(Func);
     }
     Str << ", ";
-    if (Signed)
-      Str << (int32_t)Imm;
-    else
-      Str << Imm;
+    if (Reloc == RO_No) {
+      if (Signed)
+        Str << (int32_t)Imm;
+      else
+        Str << Imm;
+    } else {
+      auto *CR = llvm::dyn_cast<ConstantRelocatable>(getSrc(1));
+      emitRelocOp(Str, Reloc);
+      Str << "(";
+      CR->emitWithoutPrefix(Func->getTarget());
+      Str << ")";
+    }
   }
 
   void emitIAS(const Cfg *Func) const override {
@@ -1022,27 +1037,45 @@ public:
     Str << " ";
     dumpDest(Func);
     Str << ", ";
-    dumpSources(Func);
-    Str << ", ";
-    if (Signed)
-      Str << (int32_t)Imm;
-    else
-      Str << Imm;
+    if (Reloc == RO_No) {
+      dumpSources(Func);
+      Str << ", ";
+      if (Signed)
+        Str << (int32_t)Imm;
+      else
+        Str << Imm;
+    } else {
+      getSrc(0)->dump(Func);
+      Str << ",";
+      emitRelocOp(Str, Reloc);
+      Str << "(";
+      getSrc(1)->dump(Func);
+      Str << ")";
+    }
   }
 
   static bool classof(const Inst *Inst) { return isClassof(Inst, K); }
 
 private:
-  InstMIPS32Imm16(Cfg *Func, Variable *Dest, Operand *Source, uint32_t Imm)
-      : InstMIPS32(Func, K, 1, Dest), Imm(Imm) {
+  InstMIPS32Imm16(Cfg *Func, Variable *Dest, Operand *Source, uint32_t Imm,
+                  RelocOp Reloc = RO_No)
+      : InstMIPS32(Func, K, 1, Dest), Reloc(Reloc), Imm(Imm) {
     addSource(Source);
   }
 
-  InstMIPS32Imm16(Cfg *Func, Variable *Dest, uint32_t Imm)
-      : InstMIPS32(Func, K, 0, Dest), Imm(Imm) {}
+  InstMIPS32Imm16(Cfg *Func, Variable *Dest, uint32_t Imm,
+                  RelocOp Reloc = RO_No)
+      : InstMIPS32(Func, K, 0, Dest), Reloc(Reloc), Imm(Imm) {}
+
+  InstMIPS32Imm16(Cfg *Func, Variable *Dest, Operand *Src0, Operand *Src1,
+                  RelocOp Reloc = RO_No)
+      : InstMIPS32(Func, K, 1, Dest), Reloc(Reloc), Imm(0) {
+    addSource(Src0);
+    addSource(Src1);
+  }
 
   static const char *Opcode;
-
+  const RelocOp Reloc;
   const uint32_t Imm;
 };
 

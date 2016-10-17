@@ -216,6 +216,10 @@ public:
     Context.insert<InstMIPS32Addiu>(Dest, Src, Imm);
   }
 
+  void _addiu(Variable *Dest, Variable *Src0, Operand *Src1, RelocOp Reloc) {
+    Context.insert<InstMIPS32Addiu>(Dest, Src0, Src1, Reloc);
+  }
+
   void _c_eq_d(Variable *Src0, Variable *Src1) {
     Context.insert<InstMIPS32C_eq_d>(Src0, Src1);
   }
