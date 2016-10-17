@@ -3212,7 +3212,14 @@ void TargetX86Base<TraitsType>::lowerCast(const InstCast *Instr) {
     case IceType_v16i8:
     case IceType_v4i32:
     case IceType_v4f32: {
-      _movp(Dest, legalizeToReg(Src0));
+      if (Src0->getType() == IceType_i32) {
+        // Bitcast requires equal type sizes, which isn't strictly the case
+        // between scalars and vectors, but to emulate v4i8 vectors one has to
+        // use v16i8 vectors.
+        _movd(Dest, legalize(Src0, Legal_Reg | Legal_Mem));
+      } else {
+        _movp(Dest, legalizeToReg(Src0));
+      }
     } break;
     }
     break;
