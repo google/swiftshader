@@ -4037,6 +4037,9 @@ void TargetMIPS32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
   Variable *Dest = Instr->getDest();
   Type DestTy = (Dest == nullptr) ? IceType_void : Dest->getType();
   switch (Instr->getIntrinsicInfo().ID) {
+  default:
+    llvm::report_fatal_error("Unexpected intrinsic");
+    return;
   case Intrinsics::AtomicCmpxchg: {
     UnimplementedLoweringError(this, Instr);
     return;

@@ -4004,6 +4004,9 @@ template <typename TraitsType>
 void TargetX86Base<TraitsType>::lowerIntrinsicCall(
     const InstIntrinsicCall *Instr) {
   switch (Intrinsics::IntrinsicID ID = Instr->getIntrinsicInfo().ID) {
+  default:
+    llvm::report_fatal_error("Unexpected intrinsic");
+    return;
   case Intrinsics::AtomicCmpxchg: {
     if (!Intrinsics::isMemoryOrderValid(
             ID, getConstantMemoryOrder(Instr->getArg(3)),
