@@ -21,14 +21,10 @@ config("swiftshader_opengl_common_private_config") {
     ]
 
     if (is_clang) {
-      cflags += [
-        "-Wno-delete-incomplete",
-      ]
+      cflags += [ "-Wno-delete-incomplete" ]
     }
   } else {
-    cflags = [
-      "-DLOG_TAG=\"swiftshader_opengl_common\"",
-    ]
+    cflags = [ "-DLOG_TAG=\"swiftshader_opengl_common\"" ]
   }
 }
 
@@ -40,9 +36,7 @@ source_set("swiftshader_opengl_common") {
     "MatrixStack.cpp",
   ]
 
-  configs += [
-    ":swiftshader_opengl_common_private_config",
-  ]
+  configs += [ ":swiftshader_opengl_common_private_config" ]
 
   include_dirs = [
     "..",

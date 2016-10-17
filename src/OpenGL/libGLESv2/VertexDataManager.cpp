@@ -165,7 +165,7 @@ GLenum VertexDataManager::prepareVertexData(GLint start, GLsizei count, Translat
 				if(staticBuffer)
 				{
 					translated[i].vertexBuffer = staticBuffer;
-					translated[i].offset = firstVertexIndex * attrib.stride() + attrib.mOffset;
+					translated[i].offset = firstVertexIndex * attrib.stride() + static_cast<int>(attrib.mOffset);
 					translated[i].stride = isInstanced ? 0 : attrib.stride();
 				}
 				else

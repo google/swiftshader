@@ -12,22 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef sw_RoutineManager_hpp
-#define sw_RoutineManager_hpp
+#ifndef sw_LLVMRoutineManager_hpp
+#define sw_LLVMRoutineManager_hpp
 
 #include "llvm/GlobalValue.h"
 #include "llvm/ExecutionEngine/JITMemoryManager.h"
 
 namespace sw
 {
-	class Routine;
+	class LLVMRoutine;
 
-	class RoutineManager : public llvm::JITMemoryManager
+	class LLVMRoutineManager : public llvm::JITMemoryManager
 	{
 	public:
-		RoutineManager();
+		LLVMRoutineManager();
 
-		virtual ~RoutineManager();
+		virtual ~LLVMRoutineManager();
 
 		virtual void AllocateGOT();
 
@@ -45,13 +45,13 @@ namespace sw
 		virtual void setMemoryExecutable();
 		virtual void setPoisonMemory(bool poison);
 
-		Routine *acquireRoutine(void *entry);
+		LLVMRoutine *acquireRoutine(void *entry);
 
 	private:
-		Routine *routine;
+		LLVMRoutine *routine;
 
 		static volatile int averageInstructionSize;
 	};
 }
 
-#endif   // sw_RoutineManager_hpp
+#endif   // sw_LLVMRoutineManager_hpp

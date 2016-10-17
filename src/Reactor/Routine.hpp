@@ -17,38 +17,21 @@
 
 namespace sw
 {
-	class RoutineManager;
-
 	class Routine
 	{
-		friend class RoutineManager;
-
 	public:
-		Routine(int bufferSize);
-		Routine(void *memory, int bufferSize, int offset);
+		Routine();
 
-		~Routine();
+		virtual ~Routine();
 
-		void setFunctionSize(int functionSize);
+		virtual const void *getEntry() = 0;
 
-		const void *getBuffer();
-		const void *getEntry();
-		int getBufferSize();
-		int getFunctionSize();   // Includes constants before the entry point
-		int getCodeSize();       // Executable code only
-		bool isDynamic();
-
+		// Reference counting
 		void bind();
 		void unbind();
 
 	private:
-		void *buffer;
-		const void *entry;
-		int bufferSize;
-		int functionSize;
-
 		volatile int bindCount;
-		const bool dynamic;   // Generated or precompiled
 	};
 }
 

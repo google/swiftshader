@@ -1447,7 +1447,7 @@ GL_APICALL void GL_APIENTRY glBlitFramebuffer(GLint srcX0, GLint srcY0, GLint sr
 			return error(GL_INVALID_OPERATION);
 		}
 
-		context->blitFramebuffer(srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask);
+		context->blitFramebuffer(srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter == GL_LINEAR);
 	}
 }
 

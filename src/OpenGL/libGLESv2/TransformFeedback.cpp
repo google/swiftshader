@@ -120,7 +120,7 @@ void TransformFeedback::setBuffer(GLuint index, Buffer* buffer)
 
 void TransformFeedback::setBuffer(GLuint index, Buffer* buffer, GLintptr offset, GLsizeiptr size)
 {
-	mBuffer[index].set(buffer, offset, size);
+	mBuffer[index].set(buffer, static_cast<int>(offset), static_cast<int>(size));
 }
 
 void TransformFeedback::detachBuffer(GLuint buffer)

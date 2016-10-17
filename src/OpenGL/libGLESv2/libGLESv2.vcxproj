@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -36,35 +36,35 @@
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>NotSet</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>NotSet</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>NotSet</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Profile|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>NotSet</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>NotSet</CharacterSet>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>NotSet</CharacterSet>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -135,7 +135,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <BrowseInformation>true</BrowseInformation>
       <TreatWarningAsError>true</TreatWarningAsError>
-      <DisableSpecificWarnings>4316;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings>%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <AdditionalDependencies>dxguid.lib;WS2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -164,7 +164,7 @@ copy "$(OutDir)libGLESv2.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\tr
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <BrowseInformation>true</BrowseInformation>
       <TreatWarningAsError>true</TreatWarningAsError>
-      <DisableSpecificWarnings>4244;4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings>%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <AdditionalDependencies>dxguid.lib;WS2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -200,7 +200,7 @@ copy "$(OutDir)libGLESv2.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\tr
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <IntrinsicFunctions>false</IntrinsicFunctions>
       <TreatWarningAsError>true</TreatWarningAsError>
-      <DisableSpecificWarnings>4316;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings>%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <AdditionalDependencies>dxguid.lib;WS2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -237,7 +237,7 @@ copy "$(OutDir)libGLESv2.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\tr
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <IntrinsicFunctions>false</IntrinsicFunctions>
       <TreatWarningAsError>true</TreatWarningAsError>
-      <DisableSpecificWarnings>4244;4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings>%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <AdditionalDependencies>dxguid.lib;WS2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -275,7 +275,7 @@ copy "$(OutDir)libGLESv2.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\tr
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <IntrinsicFunctions>false</IntrinsicFunctions>
       <TreatWarningAsError>true</TreatWarningAsError>
-      <DisableSpecificWarnings>4316;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings>%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <AdditionalDependencies>dxguid.lib;WS2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -311,7 +311,7 @@ copy "$(OutDir)libGLESv2.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\tr
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <IntrinsicFunctions>false</IntrinsicFunctions>
       <TreatWarningAsError>true</TreatWarningAsError>
-      <DisableSpecificWarnings>4244;4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings>%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <AdditionalDependencies>dxguid.lib;WS2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>

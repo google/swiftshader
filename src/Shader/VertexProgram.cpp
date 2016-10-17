@@ -856,11 +856,12 @@ namespace sw
 
 				switch(src.rel.type)
 				{
-				case Shader::PARAMETER_ADDR:   a = a0[component]; break;
-				case Shader::PARAMETER_TEMP:   a = r[src.rel.index][component]; break;
-				case Shader::PARAMETER_INPUT:  a = v[src.rel.index][component]; break;
-				case Shader::PARAMETER_OUTPUT: a = o[src.rel.index][component]; break;
-				case Shader::PARAMETER_CONST:  a = *Pointer<Float>(uniformAddress(src.bufferIndex, src.rel.index) + component * sizeof(float)); break;
+				case Shader::PARAMETER_ADDR:     a = a0[component]; break;
+				case Shader::PARAMETER_TEMP:     a = r[src.rel.index][component]; break;
+				case Shader::PARAMETER_INPUT:    a = v[src.rel.index][component]; break;
+				case Shader::PARAMETER_OUTPUT:   a = o[src.rel.index][component]; break;
+				case Shader::PARAMETER_CONST:    a = *Pointer<Float>(uniformAddress(src.bufferIndex, src.rel.index) + component * sizeof(float)); break;
+				case Shader::PARAMETER_MISCTYPE: a = As<Float4>(Int4(instanceID)); break;
 				default: ASSERT(false);
 				}
 
@@ -998,8 +999,8 @@ namespace sw
 
 	void VertexProgram::BREAK()
 	{
-		llvm::BasicBlock *deadBlock = Nucleus::createBasicBlock();
-		llvm::BasicBlock *endBlock = loopRepEndBlock[loopRepDepth - 1];
+		BasicBlock *deadBlock = Nucleus::createBasicBlock();
+		BasicBlock *endBlock = loopRepEndBlock[loopRepDepth - 1];
 
 		if(breakDepth == 0)
 		{
@@ -1054,8 +1055,8 @@ namespace sw
 	{
 		condition &= enableStack[enableIndex];
 
-		llvm::BasicBlock *continueBlock = Nucleus::createBasicBlock();
-		llvm::BasicBlock *endBlock = loopRepEndBlock[loopRepDepth - 1];
+		BasicBlock *continueBlock = Nucleus::createBasicBlock();
+		BasicBlock *endBlock = loopRepEndBlock[loopRepDepth - 1];
 
 		enableBreak = enableBreak & ~condition;
 		Bool allBreak = SignMask(enableBreak) == 0x0;
@@ -1174,8 +1175,8 @@ namespace sw
 	{
 		ifDepth--;
 
-		llvm::BasicBlock *falseBlock = ifFalseBlock[ifDepth];
-		llvm::BasicBlock *endBlock = Nucleus::createBasicBlock();
+		BasicBlock *falseBlock = ifFalseBlock[ifDepth];
+		BasicBlock *endBlock = Nucleus::createBasicBlock();
 
 		if(isConditionalIf[ifDepth])
 		{
@@ -1201,7 +1202,7 @@ namespace sw
 	{
 		ifDepth--;
 
-		llvm::BasicBlock *endBlock = ifFalseBlock[ifDepth];
+		BasicBlock *endBlock = ifFalseBlock[ifDepth];
 
 		Nucleus::createBr(endBlock);
 		Nucleus::setInsertBlock(endBlock);
@@ -1219,8 +1220,8 @@ namespace sw
 
 		aL[loopDepth] = aL[loopDepth] + increment[loopDepth];   // FIXME: +=
 
-		llvm::BasicBlock *testBlock = loopRepTestBlock[loopRepDepth];
-		llvm::BasicBlock *endBlock = loopRepEndBlock[loopRepDepth];
+		BasicBlock *testBlock = loopRepTestBlock[loopRepDepth];
+		BasicBlock *endBlock = loopRepEndBlock[loopRepDepth];
 
 		Nucleus::createBr(testBlock);
 		Nucleus::setInsertBlock(endBlock);
@@ -1233,8 +1234,8 @@ namespace sw
 	{
 		loopRepDepth--;
 
-		llvm::BasicBlock *testBlock = loopRepTestBlock[loopRepDepth];
-		llvm::BasicBlock *endBlock = loopRepEndBlock[loopRepDepth];
+		BasicBlock *testBlock = loopRepTestBlock[loopRepDepth];
+		BasicBlock *endBlock = loopRepEndBlock[loopRepDepth];
 
 		Nucleus::createBr(testBlock);
 		Nucleus::setInsertBlock(endBlock);
@@ -1247,8 +1248,8 @@ namespace sw
 	{
 		loopRepDepth--;
 
-		llvm::BasicBlock *testBlock = loopRepTestBlock[loopRepDepth];
-		llvm::BasicBlock *endBlock = loopRepEndBlock[loopRepDepth];
+		BasicBlock *testBlock = loopRepTestBlock[loopRepDepth];
+		BasicBlock *endBlock = loopRepEndBlock[loopRepDepth];
 
 		Nucleus::createBr(testBlock);
 		Nucleus::setInsertBlock(endBlock);
@@ -1262,7 +1263,7 @@ namespace sw
 	{
 		loopRepDepth--;
 
-		llvm::BasicBlock *endBlock = loopRepEndBlock[loopRepDepth];
+		BasicBlock *endBlock = loopRepEndBlock[loopRepDepth];
 
 		Nucleus::createBr(loopRepEndBlock[loopRepDepth]);
 		Nucleus::setInsertBlock(endBlock);
@@ -1299,8 +1300,8 @@ namespace sw
 			condition = !condition;
 		}
 
-		llvm::BasicBlock *trueBlock = Nucleus::createBasicBlock();
-		llvm::BasicBlock *falseBlock = Nucleus::createBasicBlock();
+		BasicBlock *trueBlock = Nucleus::createBasicBlock();
+		BasicBlock *falseBlock = Nucleus::createBasicBlock();
 
 		branch(condition, trueBlock, falseBlock);
 
@@ -1348,8 +1349,8 @@ namespace sw
 		enableIndex++;
 		enableStack[enableIndex] = condition;
 
-		llvm::BasicBlock *trueBlock = Nucleus::createBasicBlock();
-		llvm::BasicBlock *falseBlock = Nucleus::createBasicBlock();
+		BasicBlock *trueBlock = Nucleus::createBasicBlock();
+		BasicBlock *falseBlock = Nucleus::createBasicBlock();
 
 		Bool notAllFalse = SignMask(condition) != 0;
 
@@ -1387,9 +1388,9 @@ namespace sw
 			increment[loopDepth] = 1;
 		}
 
-		llvm::BasicBlock *loopBlock = Nucleus::createBasicBlock();
-		llvm::BasicBlock *testBlock = Nucleus::createBasicBlock();
-		llvm::BasicBlock *endBlock = Nucleus::createBasicBlock();
+		BasicBlock *loopBlock = Nucleus::createBasicBlock();
+		BasicBlock *testBlock = Nucleus::createBasicBlock();
+		BasicBlock *endBlock = Nucleus::createBasicBlock();
 
 		loopRepTestBlock[loopRepDepth] = testBlock;
 		loopRepEndBlock[loopRepDepth] = endBlock;
@@ -1414,9 +1415,9 @@ namespace sw
 		iteration[loopDepth] = *Pointer<Int>(data + OFFSET(DrawData,vs.i[integerRegister.index][0]));
 		aL[loopDepth] = aL[loopDepth - 1];
 
-		llvm::BasicBlock *loopBlock = Nucleus::createBasicBlock();
-		llvm::BasicBlock *testBlock = Nucleus::createBasicBlock();
-		llvm::BasicBlock *endBlock = Nucleus::createBasicBlock();
+		BasicBlock *loopBlock = Nucleus::createBasicBlock();
+		BasicBlock *testBlock = Nucleus::createBasicBlock();
+		BasicBlock *endBlock = Nucleus::createBasicBlock();
 
 		loopRepTestBlock[loopRepDepth] = testBlock;
 		loopRepEndBlock[loopRepDepth] = endBlock;
@@ -1438,9 +1439,9 @@ namespace sw
 	{
 		enableIndex++;
 
-		llvm::BasicBlock *loopBlock = Nucleus::createBasicBlock();
-		llvm::BasicBlock *testBlock = Nucleus::createBasicBlock();
-		llvm::BasicBlock *endBlock = Nucleus::createBasicBlock();
+		BasicBlock *loopBlock = Nucleus::createBasicBlock();
+		BasicBlock *testBlock = Nucleus::createBasicBlock();
+		BasicBlock *endBlock = Nucleus::createBasicBlock();
 
 		loopRepTestBlock[loopRepDepth] = testBlock;
 		loopRepEndBlock[loopRepDepth] = endBlock;
@@ -1476,7 +1477,7 @@ namespace sw
 		enableIndex++;
 		enableStack[enableIndex] = Int4(0xFFFFFFFF);
 
-		llvm::BasicBlock *endBlock = Nucleus::createBasicBlock();
+		BasicBlock *endBlock = Nucleus::createBasicBlock();
 
 		loopRepTestBlock[loopRepDepth] = nullptr;
 		loopRepEndBlock[loopRepDepth] = endBlock;
@@ -1494,15 +1495,15 @@ namespace sw
 		}
 		else
 		{
-			llvm::BasicBlock *unreachableBlock = Nucleus::createBasicBlock();
+			BasicBlock *unreachableBlock = Nucleus::createBasicBlock();
 
 			if(callRetBlock[currentLabel].size() > 1)   // Pop the return destination from the call stack
 			{
 				// FIXME: Encapsulate
 				UInt index = callStack[--stackIndex];
 
-				llvm::Value *value = index.loadValue();
-				llvm::Value *switchInst = Nucleus::createSwitch(value, unreachableBlock, (int)callRetBlock[currentLabel].size());
+				Value *value = index.loadValue();
+				Value *switchInst = Nucleus::createSwitch(value, unreachableBlock, (int)callRetBlock[currentLabel].size());
 
 				for(unsigned int i = 0; i < callRetBlock[currentLabel].size(); i++)
 				{

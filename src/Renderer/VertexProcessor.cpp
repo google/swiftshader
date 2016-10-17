@@ -958,6 +958,7 @@ namespace sw
 			state.input[i].type = context->input[i].type;
 			state.input[i].count = context->input[i].count;
 			state.input[i].normalized = context->input[i].normalized;
+			state.input[i].attribType = context->vertexShader ? context->vertexShader->getAttribType(i) : VertexShader::ATTRIBTYPE_FLOAT;
 		}
 
 		if(!context->vertexShader)

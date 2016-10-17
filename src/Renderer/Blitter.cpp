@@ -697,7 +697,7 @@ namespace sw
 
 	bool Blitter::read(Int4 &c, Pointer<Byte> element, Format format)
 	{
-		c = Int4(0, 0, 0, 0xFFFFFFFF);
+		c = Int4(0, 0, 0, 1);
 
 		switch(format)
 		{
@@ -709,10 +709,6 @@ namespace sw
 			c = Insert(c, Int(*Pointer<SByte>(element + 1)), 1);
 		case FORMAT_R8I:
 			c = Insert(c, Int(*Pointer<SByte>(element)), 0);
-			if(format != FORMAT_A8B8G8R8I)
-			{
-				c = Insert(c, Int(0x7F), 3); // Set alpha
-			}
 			break;
 		case FORMAT_A8B8G8R8UI:
 			c = Insert(c, Int(*Pointer<Byte>(element + 3)), 3);
@@ -722,10 +718,6 @@ namespace sw
 			c = Insert(c, Int(*Pointer<Byte>(element + 1)), 1);
 		case FORMAT_R8UI:
 			c = Insert(c, Int(*Pointer<Byte>(element)), 0);
-			if(format != FORMAT_A8B8G8R8UI)
-			{
-				c = Insert(c, Int(0xFF), 3); // Set alpha
-			}
 			break;
 		case FORMAT_A16B16G16R16I:
 			c = Insert(c, Int(*Pointer<Short>(element + 6)), 3);
@@ -735,10 +727,6 @@ namespace sw
 			c = Insert(c, Int(*Pointer<Short>(element + 2)), 1);
 		case FORMAT_R16I:
 			c = Insert(c, Int(*Pointer<Short>(element)), 0);
-			if(format != FORMAT_A16B16G16R16I)
-			{
-				c = Insert(c, Int(0x7FFF), 3); // Set alpha
-			}
 			break;
 		case FORMAT_A16B16G16R16UI:
 			c = Insert(c, Int(*Pointer<UShort>(element + 6)), 3);
@@ -748,10 +736,6 @@ namespace sw
 			c = Insert(c, Int(*Pointer<UShort>(element + 2)), 1);
 		case FORMAT_R16UI:
 			c = Insert(c, Int(*Pointer<UShort>(element)), 0);
-			if(format != FORMAT_A16B16G16R16UI)
-			{
-				c = Insert(c, Int(0xFFFF), 3); // Set alpha
-			}
 			break;
 		case FORMAT_A32B32G32R32I:
 			c = *Pointer<Int4>(element);
@@ -762,7 +746,6 @@ namespace sw
 			c = Insert(c, *Pointer<Int>(element + 4), 1);
 		case FORMAT_R32I:
 			c = Insert(c, *Pointer<Int>(element), 0);
-			c = Insert(c, Int(0x7FFFFFFF), 3); // Set alpha
 			break;
 		case FORMAT_A32B32G32R32UI:
 			c = *Pointer<UInt4>(element);
@@ -773,7 +756,6 @@ namespace sw
 			c = Insert(c, Int(*Pointer<UInt>(element + 4)), 1);
 		case FORMAT_R32UI:
 			c = Insert(c, Int(*Pointer<UInt>(element)), 0);
-			c = Insert(c, Int(UInt(0xFFFFFFFFU)), 3); // Set alpha
 			break;
 		default:
 			return false;

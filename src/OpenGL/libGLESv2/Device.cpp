@@ -25,6 +25,7 @@
 #include "Main/FrameBuffer.hpp"
 #include "Common/Math.hpp"
 #include "Common/Configurator.hpp"
+#include "Common/Memory.hpp"
 #include "Common/Timer.hpp"
 #include "../common/debug.h"
 
@@ -170,6 +171,18 @@ namespace es2
 		}
 
 		delete context;
+	}
+
+	// This object has to be mem aligned
+	void* Device::operator new(size_t size)
+	{
+		ASSERT(size == sizeof(Device)); // This operator can't be called from a derived class
+		return sw::allocate(sizeof(Device), 16);
+	}
+
+	void Device::operator delete(void * mem)
+	{
+		sw::deallocate(mem);
 	}
 
 	void Device::clearColor(float red, float green, float blue, float alpha, unsigned int rgbaMask)
@@ -447,9 +460,6 @@ namespace es2
 
 	void Device::copyBuffer(sw::byte *sourceBuffer, sw::byte *destBuffer, unsigned int width, unsigned int height, unsigned int sourcePitch, unsigned int destPitch, unsigned int bytes, bool flipX, bool flipY)
 	{
-		unsigned int widthB = width * bytes;
-		unsigned int widthMaxB = widthB - 1;
-
 		if(flipX)
 		{
 			if(flipY)
@@ -457,9 +467,11 @@ namespace es2
 				sourceBuffer += (height - 1) * sourcePitch;
 				for(unsigned int y = 0; y < height; ++y, sourceBuffer -= sourcePitch, destBuffer += destPitch)
 				{
-					for(unsigned int x = 0; x < widthB; ++x)
+					sw::byte *srcX = sourceBuffer + (width - 1) * bytes;
+					sw::byte *dstX = destBuffer;
+					for(unsigned int x = 0; x < width; ++x, dstX += bytes, srcX -= bytes)
 					{
-						destBuffer[x] = sourceBuffer[widthMaxB - x];
+						memcpy(dstX, srcX, bytes);
 					}
 				}
 			}
@@ -467,15 +479,19 @@ namespace es2
 			{
 				for(unsigned int y = 0; y < height; ++y, sourceBuffer += sourcePitch, destBuffer += destPitch)
 				{
-					for(unsigned int x = 0; x < widthB; ++x)
+					sw::byte *srcX = sourceBuffer + (width - 1) * bytes;
+					sw::byte *dstX = destBuffer;
+					for(unsigned int x = 0; x < width; ++x, dstX += bytes, srcX -= bytes)
 					{
-						destBuffer[x] = sourceBuffer[widthMaxB - x];
+						memcpy(dstX, srcX, bytes);
 					}
 				}
 			}
 		}
 		else
 		{
+			unsigned int widthB = width * bytes;
+
 			if(flipY)
 			{
 				sourceBuffer += (height - 1) * sourcePitch;
@@ -605,8 +621,8 @@ namespace es2
 
 			if(source->hasStencil())
 			{
-				sw::byte *sourceBuffer = (sw::byte*)source->lockStencil(0, PUBLIC);
-				sw::byte *destBuffer = (sw::byte*)dest->lockStencil(0, PUBLIC);
+				sw::byte *sourceBuffer = (sw::byte*)source->lockStencil(0, 0, 0, PUBLIC);
+				sw::byte *destBuffer = (sw::byte*)dest->lockStencil(0, 0, 0, PUBLIC);
 
 				copyBuffer(sourceBuffer, destBuffer, source->getWidth(), source->getHeight(), source->getInternalPitchB(), dest->getInternalPitchB(), egl::Image::bytes(source->getInternalFormat()), flipX, flipY);
 

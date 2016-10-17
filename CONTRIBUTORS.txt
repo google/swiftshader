@@ -24,3 +24,11 @@ Google Inc.
  Philippe Hamel <hamelphi@google.com>
  Daniel Toyama <kenjitoyama@google.com>
  Meng-Lin Wu <marleymoo@google.com>
+
+TransGaming Inc.
+ Nicolas Capens
+ Gavriel State
+ Jim MacArthur
+ Daniel Koch
+ Luther Johnson
+ Rob Stepinski

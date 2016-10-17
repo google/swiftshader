@@ -16,7 +16,7 @@
 #define sw_SetupRoutine_hpp
 
 #include "SetupProcessor.hpp"
-#include "Reactor/Nucleus.hpp"
+#include "Reactor/Reactor.hpp"
 
 namespace sw
 {

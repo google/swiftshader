@@ -23,9 +23,7 @@ config("swiftshader_opengl_compiler_private_config") {
     ]
 
     if (!is_debug) {
-      cflags += [
-        "/wd4189", # local variable is initialized but not referenced (variables only used in ASSERTS)
-      ]
+      cflags += [ "/wd4189" ] # local variable is initialized but not referenced (variables only used in ASSERTS)
     }
 
     if (is_clang) {
@@ -41,17 +39,13 @@ config("swiftshader_opengl_compiler_private_config") {
     ]
 
     if (!is_debug) {
-      cflags += [
-        "-Wno-unused-variable", # local variable is initialized but not referenced (variables only used in ASSERTS)
-      ]
+      cflags += [ "-Wno-unused-variable" ] # local variable is initialized but not referenced (variables only used in ASSERTS)
     }
   }
 }
 
 source_set("swiftshader_opengl_compiler") {
-  deps = [
-    "preprocessor:swiftshader_opengl_preprocessor",
-  ]
+  deps = [ "preprocessor:swiftshader_opengl_preprocessor" ]
 
   sources = [
     "AnalyzeCallDepth.cpp",
@@ -79,19 +73,13 @@ source_set("swiftshader_opengl_compiler") {
     "ValidateSwitch.cpp",
   ]
 
-  if ((host_os == "linux") || (host_os == "mac")) {
-    sources += [
-      "ossource_posix.cpp",
-    ]
-  } else if (host_os == "win") {
-    sources += [
-      "ossource_win.cpp",
-    ]
+  if (is_linux || is_mac) {
+    sources += [ "ossource_posix.cpp" ]
+  } else if (is_win) {
+    sources += [ "ossource_win.cpp" ]
   }
 
-  configs += [
-    ":swiftshader_opengl_compiler_private_config",
-  ]
+  configs += [ ":swiftshader_opengl_compiler_private_config" ]
 
   include_dirs = [
     "..",

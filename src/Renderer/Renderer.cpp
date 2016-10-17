@@ -190,6 +190,18 @@ namespace sw
 		delete swiftConfig;
 	}
 
+	// This object has to be mem aligned
+	void* Renderer::operator new(size_t size)
+	{
+		ASSERT(size == sizeof(Renderer)); // This operator can't be called from a derived class
+		return sw::allocate(sizeof(Renderer), 16);
+	}
+
+	void Renderer::operator delete(void * mem)
+	{
+		sw::deallocate(mem);
+	}
+
 	void Renderer::clear(void *pixel, Format format, Surface *dest, const SliceRect &dRect, unsigned int rgbaMask)
 	{
 		blitter.clear(pixel, format, dest, dRect, rgbaMask);
@@ -622,7 +634,7 @@ namespace sw
 
 				if(draw->stencilBuffer)
 				{
-					data->stencilBuffer = (unsigned char*)context->stencilBuffer->lockStencil(q * ms, MANAGED);
+					data->stencilBuffer = (unsigned char*)context->stencilBuffer->lockStencil(0, 0, q * ms, MANAGED);
 					data->stencilPitchB = context->stencilBuffer->getStencilPitchB();
 					data->stencilSliceB = context->stencilBuffer->getStencilSliceB();
 				}

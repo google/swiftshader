@@ -1170,12 +1170,12 @@ const TFunction* TParseContext::findFunction(const TSourceLoc &line, TFunction* 
 
 	if (symbol == 0) {
 		error(line, "no matching overloaded function found", call->getName().c_str());
-		return 0;
+		return nullptr;
 	}
 
 	if (!symbol->isFunction()) {
 		error(line, "function name expected", call->getName().c_str());
-		return 0;
+		return nullptr;
 	}
 
 	return static_cast<const TFunction*>(symbol);
@@ -2076,7 +2076,23 @@ TIntermTyped* TParseContext::addConstructor(TIntermNode* arguments, const TType*
 		aggregateArguments->getSequence().push_back(arguments);
 	}
 
-	if(op == EOpConstructStruct)
+	if(type->isArray())
+	{
+		// GLSL ES 3.00 section 5.4.4: Each argument must be the same type as the element type of
+		// the array.
+		for(TIntermNode *&argNode : aggregateArguments->getSequence())
+		{
+			const TType &argType = argNode->getAsTyped()->getType();
+			// It has already been checked that the argument is not an array.
+			ASSERT(!argType.isArray());
+			if(!argType.sameElementType(*type))
+			{
+				error(line, "Array constructor argument has an incorrect type", "Error");
+				return nullptr;
+			}
+		}
+	}
+	else if(op == EOpConstructStruct)
 	{
 		const TFieldList &fields = type->getStruct()->fields();
 		TIntermSequence &args = aggregateArguments->getSequence();
@@ -2088,7 +2104,7 @@ TIntermTyped* TParseContext::addConstructor(TIntermNode* arguments, const TType*
 				error(line, "Structure constructor arguments do not match structure fields", "Error");
 				recover();
 
-				return 0;
+				return nullptr;
 			}
 		}
 	}
@@ -2117,12 +2133,12 @@ TIntermTyped* TParseContext::foldConstConstructor(TIntermAggregate* aggrNode, co
 			returnVal = intermediate.parseConstTree(aggrNode->getLine(), aggrNode, unionArray, aggrNode->getOp(), type);
 		}
 		if (returnVal)
-			return 0;
+			return nullptr;
 
 		return intermediate.addConstantUnion(unionArray, type, aggrNode->getLine());
 	}
 
-	return 0;
+	return nullptr;
 }
 
 //
@@ -2148,7 +2164,7 @@ TIntermTyped* TParseContext::addConstVectorNode(TVectorFields& fields, TIntermTy
 		error(line, "Cannot offset into the vector", "Error");
 		recover();
 
-		return 0;
+		return nullptr;
 	}
 
 	ConstantUnion* constArray = new ConstantUnion[fields.num];
@@ -2199,7 +2215,7 @@ TIntermTyped* TParseContext::addConstMatrixNode(int index, TIntermTyped* node, c
 		error(line, "Cannot offset into the matrix", "Error");
 		recover();
 
-		return 0;
+		return nullptr;
 	}
 
 	return typedNode;
@@ -2237,7 +2253,7 @@ TIntermTyped* TParseContext::addConstArrayNode(int index, TIntermTyped* node, co
 		error(line, "Cannot offset into the array", "Error");
 		recover();
 
-		return 0;
+		return nullptr;
 	}
 
 	return typedNode;
@@ -2272,7 +2288,7 @@ TIntermTyped* TParseContext::addConstStruct(const TString& identifier, TIntermTy
 		error(line, "Cannot offset into the structure", "Error");
 		recover();
 
-		return 0;
+		return nullptr;
 	}
 
 	return typedNode;

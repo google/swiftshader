@@ -36,9 +36,7 @@ config("swiftshader_renderer_private_config") {
 }
 
 source_set("swiftshader_renderer") {
-  deps = [
-    "../Shader:swiftshader_shader",
-  ]
+  deps = [ "../Shader:swiftshader_shader" ]
 
   sources = [
     "Blitter.cpp",
@@ -60,15 +58,11 @@ source_set("swiftshader_renderer") {
     "VertexProcessor.cpp",
   ]
 
-  if (host_os == "win") {
-    configs -= [
-      "//build/config/win:unicode"
-    ]
+  if (is_win) {
+    configs -= [ "//build/config/win:unicode" ]
   }
 
-  configs += [
-    ":swiftshader_renderer_private_config",
-  ]
+  configs += [ ":swiftshader_renderer_private_config" ]
 
   include_dirs = [
     ".",

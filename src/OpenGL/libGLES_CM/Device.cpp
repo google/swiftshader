@@ -25,6 +25,7 @@
 #include "Main/FrameBuffer.hpp"
 #include "Common/Math.hpp"
 #include "Common/Configurator.hpp"
+#include "Common/Memory.hpp"
 #include "Common/Timer.hpp"
 #include "../common/debug.h"
 
@@ -144,6 +145,18 @@ namespace es1
 		}
 
 		delete context;
+	}
+
+	// This object has to be mem aligned
+	void* Device::operator new(size_t size)
+	{
+		ASSERT(size == sizeof(Device)); // This operator can't be called from a derived class
+		return sw::allocate(sizeof(Device), 16);
+	}
+
+	void Device::operator delete(void * mem)
+	{
+		sw::deallocate(mem);
 	}
 
 	void Device::clearColor(float red, float green, float blue, float alpha, unsigned int rgbaMask)
@@ -442,8 +455,8 @@ namespace es1
 
 			if(source->hasStencil())
 			{
-				sw::byte *sourceBuffer = (sw::byte*)source->lockStencil(0, PUBLIC);
-				sw::byte *destBuffer = (sw::byte*)dest->lockStencil(0, PUBLIC);
+				sw::byte *sourceBuffer = (sw::byte*)source->lockStencil(0, 0, 0, PUBLIC);
+				sw::byte *destBuffer = (sw::byte*)dest->lockStencil(0, 0, 0, PUBLIC);
 
 				unsigned int width = source->getWidth();
 				unsigned int height = source->getHeight();

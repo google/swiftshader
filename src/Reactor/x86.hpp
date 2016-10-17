@@ -12,7 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "Nucleus.hpp"
+#ifndef sw_x86_hpp
+#define sw_x86_hpp
+
+#include "Reactor.hpp"
 
 namespace sw
 {
@@ -153,3 +156,5 @@ namespace sw
 		void emms();
 	}
 }
+
+#endif   // sw_x86_hpp

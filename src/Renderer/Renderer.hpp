@@ -318,6 +318,9 @@ namespace sw
 
 		virtual ~Renderer();
 
+		void *operator new(size_t size);
+		void operator delete(void * mem);
+
 		void clear(void* pixel, Format format, Surface *dest, const SliceRect &dRect, unsigned int rgbaMask);
 		void blit(Surface *source, const SliceRect &sRect, Surface *dest, const SliceRect &dRect, bool filter);
 		void blit3D(Surface *source, Surface *dest);

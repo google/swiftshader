@@ -1395,6 +1395,7 @@ namespace sw
 			case FORMAT_A8B8G8R8:
 			case FORMAT_SRGB8_X8:
 			case FORMAT_SRGB8_A8:
+			case FORMAT_G8R8:
 			case FORMAT_R8:
 				current.x = current.x - As<Short4>(As<UShort4>(current.x) >> 8) + Short4(0x0080);
 				current.y = current.y - As<Short4>(As<UShort4>(current.y) >> 8) + Short4(0x0080);
@@ -1512,6 +1513,13 @@ namespace sw
 				current.z = As<Short4>(UnpackLow(current.z, current.x));
 				current.y = As<Short4>(UnpackHigh(current.y, current.x));
 			}
+			break;
+		case FORMAT_G8R8:
+			current.x = As<Short4>(As<UShort4>(current.x) >> 8);
+			current.y = As<Short4>(As<UShort4>(current.y) >> 8);
+			current.x = As<Short4>(Pack(As<UShort4>(current.x), As<UShort4>(current.x)));
+			current.y = As<Short4>(Pack(As<UShort4>(current.y), As<UShort4>(current.y)));
+			current.x = UnpackLow(As<Byte8>(current.x), As<Byte8>(current.y));
 			break;
 		case FORMAT_R8:
 			current.x = As<Short4>(As<UShort4>(current.x) >> 8);
@@ -1711,6 +1719,31 @@ namespace sw
 				value &= *Pointer<Short4>(constants + OFFSET(Constants,invMaskD23Q) + xMask * 8);
 				c23 |= value;
 				*Pointer<Short4>(buffer) = c23;
+			}
+			break;
+		case FORMAT_G8R8:
+			if((rgbaWriteMask & 0x00000003) != 0x0)
+			{
+				Pointer<Byte> buffer = cBuffer + 2 * x;
+				Int2 value;
+				value = Insert(value, *Pointer<Int>(buffer), 0);
+				Int pitch = *Pointer<Int>(data + OFFSET(DrawData, colorPitchB[index]));
+				value = Insert(value, *Pointer<Int>(buffer + pitch), 1);
+
+				Int2 packedCol = As<Int2>(current.x);
+
+				UInt2 mergedMask = *Pointer<UInt2>(constants + OFFSET(Constants, maskW4Q) + xMask * 8);
+				if((rgbaWriteMask & 0x3) != 0x3)
+				{
+					Int tmpMask = *Pointer<Int>(constants + OFFSET(Constants, maskB4Q[5 * (rgbaWriteMask & 0x3)][0]));
+					UInt2 rgbaMask = As<UInt2>(Int2(tmpMask, tmpMask));
+					mergedMask &= rgbaMask;
+				}
+
+				packedCol = As<Int2>((As<UInt2>(packedCol) & mergedMask) | (As<UInt2>(value) & ~mergedMask));
+
+				*Pointer<UInt>(buffer) = As<UInt>(Extract(packedCol, 0));
+				*Pointer<UInt>(buffer + pitch) = As<UInt>(Extract(packedCol, 1));
 			}
 			break;
 		case FORMAT_R8:
@@ -2323,9 +2356,9 @@ namespace sw
 
 				UInt xyzw, packedCol;
 
-				xyzw = UInt(*Pointer<UShort>(buffer)) << 16;
+				xyzw = UInt(*Pointer<UShort>(buffer)) & 0xFFFF;
 				buffer += *Pointer<Int>(data + OFFSET(DrawData, colorPitchB[index]));
-				xyzw |= UInt(*Pointer<UShort>(buffer));
+				xyzw |= UInt(*Pointer<UShort>(buffer)) << 16;
 
 				Short4 tmpCol = Short4(As<Int4>(oC.x));
 				if(state.targetFormat[index] == FORMAT_R8I)

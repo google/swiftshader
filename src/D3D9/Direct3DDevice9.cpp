@@ -343,7 +343,7 @@ namespace D3D9
 
 		TRACE("unsigned long count = %d, const D3DRECT *rects = 0x%0.8p, unsigned long flags = 0x%0.8X, unsigned long color = 0x%0.8X, float z = %f, unsigned long stencil = %d", count, rects, flags, color, z, stencil);
 
-		if(rects == 0 && count != 0)
+		if(!rects && count != 0)
 		{
 			return INVALIDCALL();
 		}
@@ -6271,8 +6271,8 @@ namespace D3D9
 
 			if(source->hasStencil())
 			{
-				byte *sourceBuffer = (byte*)source->lockStencil(0, sw::PUBLIC);
-				byte *destBuffer = (byte*)dest->lockStencil(0, sw::PUBLIC);
+				byte *sourceBuffer = (byte*)source->lockStencil(0, 0, 0, sw::PUBLIC);
+				byte *destBuffer = (byte*)dest->lockStencil(0, 0, 0, sw::PUBLIC);
 
 				unsigned int width = source->getWidth();
 				unsigned int height = source->getHeight();

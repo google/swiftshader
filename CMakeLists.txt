@@ -601,12 +601,14 @@ list(REMOVE_ITEM SWIFTSHADER_LIST
 )
 
 set(REACTOR_LIST
-    ${SOURCE_DIR}/Reactor/Nucleus.cpp
+    ${SOURCE_DIR}/Reactor/LLVMReactor.cpp
     ${SOURCE_DIR}/Reactor/Nucleus.hpp
     ${SOURCE_DIR}/Reactor/Routine.cpp
     ${SOURCE_DIR}/Reactor/Routine.hpp
-    ${SOURCE_DIR}/Reactor/RoutineManager.cpp
-    ${SOURCE_DIR}/Reactor/RoutineManager.hpp
+    ${SOURCE_DIR}/Reactor/LLVMRoutine.cpp
+    ${SOURCE_DIR}/Reactor/LLVMRoutine.hpp
+    ${SOURCE_DIR}/Reactor/LLVMRoutineManager.cpp
+    ${SOURCE_DIR}/Reactor/LLVMRoutineManager.hpp
 )
 
 file(GLOB_RECURSE EGL_LIST
@@ -677,8 +679,6 @@ if(WIN32)
         ${SOURCE_DIR}/Main/FrameBufferGDI.hpp
         ${SOURCE_DIR}/Main/FrameBufferWin.cpp
         ${SOURCE_DIR}/Main/FrameBufferWin.hpp
-        ${SOURCE_DIR}/Reactor/DLL.cpp
-        ${SOURCE_DIR}/Reactor/DLL.hpp
     )
     list(APPEND OPENGL_COMPILER_LIST ${OPENGL_COMPILER_DIR}/ossource_win.cpp)
     list(APPEND EGL_LIST ${OPENGL_DIR}/libEGL/libEGL.rc)

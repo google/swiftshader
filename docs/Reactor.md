@@ -109,7 +109,7 @@ Note that bytes are unsigned unless prefixed with S, while larger integers are s
 
 These scalar types support all of the C++ arithmetic operations.
 
-Reactor also supports several vector types. For example ```Float4``` is a vector of four floats. They support a select number of C++ operators, and several "intrinsic" functions such as ```Max()``` to compute the element-wise maximum and return a bit mask. Check [Nucleus.hpp](../src/Reactor/Nucleus.hpp) for all the types, operators and intrinsics.
+Reactor also supports several vector types. For example ```Float4``` is a vector of four floats. They support a select number of C++ operators, and several "intrinsic" functions such as ```Max()``` to compute the element-wise maximum and return a bit mask. Check [Reactor.hpp](../src/Reactor/Reactor.hpp) for all the types, operators and intrinsics.
 
 ### Casting and Reinterpreting
 

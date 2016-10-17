@@ -1250,7 +1250,7 @@ void Context::bindIndexedUniformBuffer(GLuint buffer, GLuint index, GLintptr off
 	mResourceManager->checkBufferAllocation(buffer);
 
 	Buffer* bufferObject = getBuffer(buffer);
-	mState.uniformBuffers[index].set(bufferObject, offset, size);
+	mState.uniformBuffers[index].set(bufferObject, static_cast<int>(offset), static_cast<int>(size));
 }
 
 void Context::bindGenericTransformFeedbackBuffer(GLuint buffer)
@@ -1284,10 +1284,7 @@ bool Context::bindSampler(GLuint unit, GLuint sampler)
 
 	Sampler* samplerObject = getSampler(sampler);
 
-	if(sampler)
-	{
-		mState.sampler[unit] = samplerObject;
-	}
+	mState.sampler[unit] = samplerObject;
 
 	return !!samplerObject;
 }
@@ -2289,7 +2286,7 @@ template<typename T> bool Context::getIntegerv(GLenum pname, T *params) const
 	case GL_UNIFORM_BUFFER_START: // indexed[n] 64-bit integer, initially 0
 		if(clientVersion >= 3)
 		{
-			*params = mState.genericUniformBuffer->offset();
+			*params = static_cast<T>(mState.genericUniformBuffer->offset());
 		}
 		else
 		{
@@ -3876,7 +3873,7 @@ void Context::setVertexAttrib(GLuint index, const GLuint *values)
 
 void Context::blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1,
                               GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1,
-                              GLbitfield mask)
+                              GLbitfield mask, bool filter)
 {
 	Framebuffer *readFramebuffer = getReadFramebuffer();
 	Framebuffer *drawFramebuffer = getDrawFramebuffer();
@@ -4136,7 +4133,7 @@ void Context::blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1
 				swap(destRect.y0, destRect.y1);
 			}
 
-			bool success = device->stretchRect(readRenderTarget, &sourceRect, drawRenderTarget, &destRect, false);
+			bool success = device->stretchRect(readRenderTarget, &sourceRect, drawRenderTarget, &destRect, filter);
 
 			readRenderTarget->release();
 			drawRenderTarget->release();

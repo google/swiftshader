@@ -36,9 +36,10 @@ COMMON_SRC_FILES += \
 	Main/SwiftConfig.cpp
 
 COMMON_SRC_FILES += \
-	Reactor/Nucleus.cpp \
+	Reactor/LLVMReactor.cpp \
 	Reactor/Routine.cpp \
-	Reactor/RoutineManager.cpp
+	Reactor/LLVMRoutine.cpp \
+	Reactor/LLVMRoutineManager.cpp
 
 COMMON_SRC_FILES += \
 	Renderer/Blitter.cpp \
