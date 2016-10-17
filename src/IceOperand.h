@@ -979,7 +979,7 @@ public:
   void setName(const Cfg *Func, const std::string &NewName) override {
     Variable::setName(Func, NewName);
     if (!Containers.empty()) {
-      for (SizeT i = 0; i < ElementsPerContainer; ++i) {
+      for (SizeT i = 0; i < ContainersPerVector; ++i) {
         Containers[i]->setName(Func, getName() + "__cont" + std::to_string(i));
       }
     }
@@ -995,7 +995,7 @@ public:
   const VarList &getContainers() const { return Containers; }
 
   void initVecElement(Cfg *Func) {
-    for (SizeT i = 0; i < ElementsPerContainer; ++i) {
+    for (SizeT i = 0; i < ContainersPerVector; ++i) {
       Variable *Var = Func->makeVariable(IceType_i32);
       Var->setIsArg(getIsArg());
       if (BuildDefs::dump()) {
@@ -1011,13 +1011,13 @@ public:
   }
 
   // A 128-bit vector value is mapped onto 4 32-bit register values.
-  static constexpr SizeT ElementsPerContainer = 4;
+  static constexpr SizeT ContainersPerVector = 4;
 
 protected:
   VariableVecOn32(const Cfg *Func, OperandKind K, Type Ty, SizeT Index)
       : Variable(Func, K, Ty, Index) {
     assert(typeWidthInBytes(Ty) ==
-           ElementsPerContainer * typeWidthInBytes(IceType_i32));
+           ContainersPerVector * typeWidthInBytes(IceType_i32));
   }
 
   VarList Containers;

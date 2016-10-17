@@ -238,13 +238,97 @@ uint32_t TargetMIPS32::getCallStackArgumentsSizeBytes(const InstCall *Call) {
 void TargetMIPS32::genTargetHelperCallFor(Inst *Instr) {
   constexpr bool NoTailCall = false;
   constexpr bool IsTargetHelperCall = true;
+  Variable *Dest = Instr->getDest();
+  const Type DestTy = Dest ? Dest->getType() : IceType_void;
 
   switch (Instr->getKind()) {
   default:
     return;
+  case Inst::Select: {
+    if (isVectorType(DestTy)) {
+      Operand *SrcT = llvm::cast<InstSelect>(Instr)->getTrueOperand();
+      Operand *SrcF = llvm::cast<InstSelect>(Instr)->getFalseOperand();
+      Operand *Cond = llvm::cast<InstSelect>(Instr)->getCondition();
+      Variable *T = Func->makeVariable(DestTy);
+      auto *Undef = ConstantUndef::create(Ctx, DestTy);
+      Context.insert<InstAssign>(T, Undef);
+      auto *VarVecOn32 = llvm::cast<VariableVecOn32>(T);
+      VarVecOn32->initVecElement(Func);
+      for (SizeT I = 0; I < typeNumElements(DestTy); ++I) {
+        auto *Index = Ctx->getConstantInt32(I);
+        auto *OpC = Func->makeVariable(typeElementType(Cond->getType()));
+        Context.insert<InstExtractElement>(OpC, Cond, Index);
+        auto *OpT = Func->makeVariable(typeElementType(DestTy));
+        Context.insert<InstExtractElement>(OpT, SrcT, Index);
+        auto *OpF = Func->makeVariable(typeElementType(DestTy));
+        Context.insert<InstExtractElement>(OpF, SrcF, Index);
+        auto *Dst = Func->makeVariable(typeElementType(DestTy));
+        Variable *DestT = Func->makeVariable(DestTy);
+        Context.insert<InstSelect>(Dst, OpC, OpT, OpF);
+        Context.insert<InstInsertElement>(DestT, T, Dst, Index);
+        T = DestT;
+      }
+      Context.insert<InstAssign>(Dest, T);
+      Instr->setDeleted();
+    }
+    return;
+  }
+  case Inst::Fcmp: {
+    if (isVectorType(DestTy)) {
+      InstFcmp::FCond Cond = llvm::cast<InstFcmp>(Instr)->getCondition();
+      Operand *Src0 = Instr->getSrc(0);
+      Operand *Src1 = Instr->getSrc(1);
+      Variable *T = Func->makeVariable(IceType_v4f32);
+      auto *Undef = ConstantUndef::create(Ctx, IceType_v4f32);
+      Context.insert<InstAssign>(T, Undef);
+      auto *VarVecOn32 = llvm::cast<VariableVecOn32>(T);
+      VarVecOn32->initVecElement(Func);
+      for (SizeT I = 0; I < typeNumElements(IceType_v4f32); ++I) {
+        auto *Index = Ctx->getConstantInt32(I);
+        auto *Op0 = Func->makeVariable(IceType_f32);
+        Context.insert<InstExtractElement>(Op0, Src0, Index);
+        auto *Op1 = Func->makeVariable(IceType_f32);
+        Context.insert<InstExtractElement>(Op1, Src1, Index);
+        auto *Dst = Func->makeVariable(IceType_f32);
+        Variable *DestT = Func->makeVariable(IceType_v4f32);
+        Context.insert<InstFcmp>(Cond, Dst, Op0, Op1);
+        Context.insert<InstInsertElement>(DestT, T, Dst, Index);
+        T = DestT;
+      }
+      Context.insert<InstAssign>(Dest, T);
+      Instr->setDeleted();
+    }
+    return;
+  }
+  case Inst::Icmp: {
+    if (isVectorType(DestTy)) {
+      InstIcmp::ICond Cond = llvm::cast<InstIcmp>(Instr)->getCondition();
+      Operand *Src0 = Instr->getSrc(0);
+      Operand *Src1 = Instr->getSrc(1);
+      const Type SrcType = Src0->getType();
+      Variable *T = Func->makeVariable(DestTy);
+      auto *Undef = ConstantUndef::create(Ctx, DestTy);
+      Context.insert<InstAssign>(T, Undef);
+      auto *VarVecOn32 = llvm::cast<VariableVecOn32>(T);
+      VarVecOn32->initVecElement(Func);
+      for (SizeT I = 0; I < typeNumElements(SrcType); ++I) {
+        auto *Index = Ctx->getConstantInt32(I);
+        auto *Op0 = Func->makeVariable(typeElementType(SrcType));
+        Context.insert<InstExtractElement>(Op0, Src0, Index);
+        auto *Op1 = Func->makeVariable(typeElementType(SrcType));
+        Context.insert<InstExtractElement>(Op1, Src1, Index);
+        auto *Dst = Func->makeVariable(typeElementType(DestTy));
+        Variable *DestT = Func->makeVariable(DestTy);
+        Context.insert<InstIcmp>(Cond, Dst, Op0, Op1);
+        Context.insert<InstInsertElement>(DestT, T, Dst, Index);
+        T = DestT;
+      }
+      Context.insert<InstAssign>(Dest, T);
+      Instr->setDeleted();
+    }
+    return;
+  }
   case Inst::Arithmetic: {
-    Variable *Dest = Instr->getDest();
-    const Type DestTy = Dest->getType();
     const InstArithmetic::OpKind Op =
         llvm::cast<InstArithmetic>(Instr)->getOp();
     if (isVectorType(DestTy)) {
@@ -307,12 +391,32 @@ void TargetMIPS32::genTargetHelperCallFor(Inst *Instr) {
     llvm::report_fatal_error("Control flow should never have reached here.");
   }
   case Inst::Cast: {
-    Variable *Dest = Instr->getDest();
     Operand *Src0 = Instr->getSrc(0);
-    const Type DestTy = Dest->getType();
     const Type SrcTy = Src0->getType();
     auto *CastInstr = llvm::cast<InstCast>(Instr);
     const InstCast::OpKind CastKind = CastInstr->getCastKind();
+
+    if (isVectorType(DestTy)) {
+      Variable *T = Func->makeVariable(DestTy);
+      auto *VarVecOn32 = llvm::cast<VariableVecOn32>(T);
+      VarVecOn32->initVecElement(Func);
+      auto *Undef = ConstantUndef::create(Ctx, DestTy);
+      Context.insert<InstAssign>(T, Undef);
+      for (SizeT I = 0; I < typeNumElements(DestTy); ++I) {
+        auto *Index = Ctx->getConstantInt32(I);
+        auto *Op = Func->makeVariable(typeElementType(SrcTy));
+        Context.insert<InstExtractElement>(Op, Src0, Index);
+        auto *Dst = Func->makeVariable(typeElementType(DestTy));
+        Variable *DestT = Func->makeVariable(DestTy);
+        Context.insert<InstCast>(CastKind, Dst, Op);
+        Context.insert<InstInsertElement>(DestT, T, Dst, Index);
+        T = DestT;
+      }
+      Context.insert<InstAssign>(Dest, T);
+      Instr->setDeleted();
+      return;
+    }
+
     switch (CastKind) {
     default:
       return;
@@ -352,7 +456,7 @@ void TargetMIPS32::genTargetHelperCallFor(Inst *Instr) {
       }
       const bool SourceIs32 = SrcTy == IceType_i32;
       const bool SourceIsSigned = CastKind == InstCast::Sitofp;
-      const bool DestIsF32 = isFloat32Asserting32Or64(Dest->getType());
+      const bool DestIsF32 = isFloat32Asserting32Or64(DestTy);
       RuntimeHelper RTHFunc = RuntimeHelper::H_Num;
       if (SourceIsSigned) {
         if (SourceIs32) {
@@ -416,7 +520,7 @@ void TargetMIPS32::genTargetHelperCallFor(Inst *Instr) {
       Context.insert(Call);
       // The PNaCl ABI disallows i8/i16 return types, so truncate the helper
       // call result to the appropriate type as necessary.
-      if (CallDest->getType() != Dest->getType())
+      if (CallDest->getType() != DestTy)
         Context.insert<InstCast>(InstCast::Trunc, Dest, CallDest);
       Instr->setDeleted();
       return;
@@ -450,10 +554,9 @@ void TargetMIPS32::genTargetHelperCallFor(Inst *Instr) {
     llvm::report_fatal_error("Control flow should never have reached here.");
   }
   case Inst::IntrinsicCall: {
-    Variable *Dest = Instr->getDest();
     auto *IntrinsicCall = llvm::cast<InstIntrinsicCall>(Instr);
     Intrinsics::IntrinsicID ID = IntrinsicCall->getIntrinsicInfo().ID;
-    if (Dest && isVectorType(Dest->getType()) && ID == Intrinsics::Fabs) {
+    if (isVectorType(DestTy) && ID == Intrinsics::Fabs) {
       Operand *Src0 = IntrinsicCall->getArg(0);
       GlobalString FabsFloat = Ctx->getGlobalString("llvm.fabs.f32");
       Operand *CallTarget = Ctx->getConstantExternSym(FabsFloat);
@@ -464,11 +567,12 @@ void TargetMIPS32::genTargetHelperCallFor(Inst *Instr) {
       Intrinsics::IntrinsicInfo Info = FullInfo->Info;
 
       Variable *T = Func->makeVariable(IceType_v4f32);
-      auto *VarVecOn32 = llvm::dyn_cast<VariableVecOn32>(T);
+      auto *Undef = ConstantUndef::create(Ctx, IceType_v4f32);
+      Context.insert<InstAssign>(T, Undef);
+      auto *VarVecOn32 = llvm::cast<VariableVecOn32>(T);
       VarVecOn32->initVecElement(Func);
-      Context.insert<InstFakeDef>(T);
 
-      for (SizeT i = 0; i < VarVecOn32->ElementsPerContainer; ++i) {
+      for (SizeT i = 0; i < typeNumElements(IceType_v4f32); ++i) {
         auto *Index = Ctx->getConstantInt32(i);
         auto *Op = Func->makeVariable(IceType_f32);
         Context.insert<InstExtractElement>(Op, Src0, Index);
@@ -1099,23 +1203,13 @@ void TargetMIPS32::lowerArguments() {
 
   // v4f32 is returned through stack. $4 is setup by the caller and passed as
   // first argument implicitly. Callee then copies the return vector at $4.
+  Variable *ImplicitRetVec = nullptr;
   if (isVectorFloatingType(Func->getReturnType())) {
-    Variable *ImplicitRetVec = Func->makeVariable(IceType_i32);
+    ImplicitRetVec = Func->makeVariable(IceType_i32);
     ImplicitRetVec->setName(Func, "ImplicitRet_v4f32");
     ImplicitRetVec->setIsArg();
     Args.insert(Args.begin(), ImplicitRetVec);
     setImplicitRet(ImplicitRetVec);
-    Context.insert<InstFakeDef>(ImplicitRetVec);
-    for (CfgNode *Node : Func->getNodes()) {
-      for (Inst &Instr : Node->getInsts()) {
-        if (llvm::isa<InstRet>(&Instr)) {
-          Context.setInsertPoint(Instr);
-          Context.insert<InstFakeUse>(ImplicitRetVec);
-          break;
-        }
-      }
-    }
-    Context.setInsertPoint(Context.getCur());
   }
 
   for (SizeT i = 0, E = Args.size(); i < E; ++i) {
@@ -1168,6 +1262,19 @@ void TargetMIPS32::lowerArguments() {
       }
     }
     Context.insert<InstAssign>(Arg, RegisterArg);
+  }
+
+  // Insert fake use of ImplicitRet_v4f32 to keep it live
+  if (ImplicitRetVec) {
+    for (CfgNode *Node : Func->getNodes()) {
+      for (Inst &Instr : Node->getInsts()) {
+        if (llvm::isa<InstRet>(&Instr)) {
+          Context.setInsertPoint(Instr);
+          Context.insert<InstFakeUse>(ImplicitRetVec);
+          break;
+        }
+      }
+    }
   }
 }
 
@@ -2361,7 +2468,7 @@ void TargetMIPS32::lowerArithmetic(const InstArithmetic *Instr) {
     return;
   }
   if (isVectorType(Dest->getType())) {
-    UnimplementedLoweringError(this, Instr);
+    llvm::report_fatal_error("Arithmetic: Destination type is vector");
     return;
   }
 
@@ -2509,6 +2616,20 @@ void TargetMIPS32::lowerAssign(const InstAssign *Instr) {
     return;
   }
 
+  // Source type may not be same as destination
+  if (isVectorType(Dest->getType())) {
+    Operand *Src0 = legalizeUndef(Instr->getSrc(0));
+    auto *DstVec = llvm::dyn_cast<VariableVecOn32>(Dest);
+    for (SizeT i = 0; i < DstVec->ContainersPerVector; ++i) {
+      auto *DCont = DstVec->getContainers()[i];
+      auto *SCont =
+          legalize(getOperandAtIndex(Src0, IceType_i32, i), Legal_Reg);
+      auto *TReg = makeReg(IceType_i32);
+      _mov(TReg, SCont);
+      _mov(DCont, TReg);
+    }
+    return;
+  }
   Operand *Src0 = Instr->getSrc(0);
   assert(Dest->getType() == Src0->getType());
   if (Dest->getType() == IceType_i64) {
@@ -2522,18 +2643,6 @@ void TargetMIPS32::lowerAssign(const InstAssign *Instr) {
     _mov(DestLo, T_Lo);
     _mov(T_Hi, Src0Hi);
     _mov(DestHi, T_Hi);
-    return;
-  }
-  if (isVectorType(Dest->getType())) {
-    auto *DstVec = llvm::dyn_cast<VariableVecOn32>(Dest);
-    for (SizeT i = 0; i < DstVec->ElementsPerContainer; ++i) {
-      auto *DCont = DstVec->getContainers()[i];
-      auto *SCont =
-          legalize(getOperandAtIndex(Src0, IceType_i32, i), Legal_Reg);
-      auto *TReg = makeReg(IceType_i32);
-      _mov(TReg, SCont);
-      _mov(DCont, TReg);
-    }
     return;
   }
   Operand *SrcR;
@@ -2944,7 +3053,7 @@ void TargetMIPS32::lowerCall(const InstCall *Instr) {
       ReturnReg = makeReg(Dest->getType(), RegMIPS32::Reg_V0);
       auto *RetVec = llvm::dyn_cast<VariableVecOn32>(ReturnReg);
       RetVec->initVecElement(Func);
-      for (SizeT i = 0; i < RetVec->ElementsPerContainer; ++i) {
+      for (SizeT i = 0; i < RetVec->ContainersPerVector; ++i) {
         auto *Var = RetVec->getContainers()[i];
         Var->setRegNum(RegNumT::fixme(RegMIPS32::Reg_V0 + i));
       }
@@ -3035,7 +3144,7 @@ void TargetMIPS32::lowerCall(const InstCall *Instr) {
   if (ReturnReg) {
     if (RetVecFloat) {
       auto *DestVecOn32 = llvm::cast<VariableVecOn32>(Dest);
-      for (SizeT i = 0; i < DestVecOn32->ElementsPerContainer; ++i) {
+      for (SizeT i = 0; i < DestVecOn32->ContainersPerVector; ++i) {
         auto *Var = DestVecOn32->getContainers()[i];
         OperandMIPS32Mem *Mem = OperandMIPS32Mem::create(
             Func, IceType_i32, RetVecFloat,
@@ -3044,7 +3153,7 @@ void TargetMIPS32::lowerCall(const InstCall *Instr) {
       }
     } else if (auto *RetVec = llvm::dyn_cast<VariableVecOn32>(ReturnReg)) {
       auto *DestVecOn32 = llvm::cast<VariableVecOn32>(Dest);
-      for (SizeT i = 0; i < DestVecOn32->ElementsPerContainer; ++i) {
+      for (SizeT i = 0; i < DestVecOn32->ContainersPerVector; ++i) {
         _mov(DestVecOn32->getContainers()[i], RetVec->getContainers()[i]);
       }
     } else if (ReturnRegHi) {
@@ -3080,7 +3189,7 @@ void TargetMIPS32::lowerCast(const InstCast *Instr) {
            : (1 << (CHAR_BITS * typeWidthInBytes(Src0Ty))) - 1);
 
   if (isVectorType(DestTy)) {
-    UnimplementedLoweringError(this, Instr);
+    llvm::report_fatal_error("Cast: Destination type is vector");
     return;
   }
   switch (CastKind) {
@@ -3243,6 +3352,11 @@ void TargetMIPS32::lowerCast(const InstCast *Instr) {
       lowerAssign(Assign);
       return;
     }
+    if (isVectorType(DestTy) || isVectorType(Src0->getType())) {
+      llvm::report_fatal_error(
+          "Bitcast: vector type should have been prelowered.");
+      return;
+    }
     switch (DestTy) {
     case IceType_NUM:
     case IceType_void:
@@ -3292,16 +3406,6 @@ void TargetMIPS32::lowerCast(const InstCast *Instr) {
       }
       break;
     }
-    case IceType_v8i1:
-      assert(Src0->getType() == IceType_i8);
-      llvm::report_fatal_error(
-          "v8i1 to i8 conversion should have been prelowered.");
-      break;
-    case IceType_v16i1:
-      assert(Src0->getType() == IceType_i16);
-      llvm::report_fatal_error(
-          "v16i1 to i16 conversion should have been prelowered.");
-      break;
     default:
       UnimplementedLoweringError(this, Instr);
     }
@@ -3322,7 +3426,7 @@ void TargetMIPS32::lowerExtractElement(const InstExtractElement *Instr) {
     auto *Src0R = llvm::dyn_cast<VariableVecOn32>(Src0);
     // Number of elements in each container
     uint32_t ElemPerCont =
-        typeNumElements(Src0->getType()) / Src0R->ElementsPerContainer;
+        typeNumElements(Src0->getType()) / Src0R->ContainersPerVector;
     auto *SrcE = Src0R->getContainers()[Index / ElemPerCont];
     // Position of the element in the container
     uint32_t PosInCont = Index % ElemPerCont;
@@ -3362,8 +3466,9 @@ void TargetMIPS32::lowerExtractElement(const InstExtractElement *Instr) {
       }
     }
     if (typeElementType(Src0R->getType()) == IceType_i1) {
-      _andi(TReg, TDest, 0x1);
-      _mov(Dest, TReg);
+      Variable *TReg1 = makeReg(DestTy);
+      _andi(TReg1, TDest, 0x1);
+      _mov(Dest, TReg1);
     } else {
       _mov(Dest, TDest);
     }
@@ -3375,7 +3480,7 @@ void TargetMIPS32::lowerExtractElement(const InstExtractElement *Instr) {
 void TargetMIPS32::lowerFcmp(const InstFcmp *Instr) {
   Variable *Dest = Instr->getDest();
   if (isVectorType(Dest->getType())) {
-    UnimplementedLoweringError(this, Instr);
+    llvm::report_fatal_error("Fcmp: Destination type is vector");
     return;
   }
 
@@ -3384,7 +3489,7 @@ void TargetMIPS32::lowerFcmp(const InstFcmp *Instr) {
   auto *Zero = getZero();
 
   InstFcmp::FCond Cond = Instr->getCondition();
-  auto *DestR = makeReg(Dest->getType());
+  auto *DestR = makeReg(IceType_i32);
   auto *Src0R = legalizeToReg(Src0);
   auto *Src1R = legalizeToReg(Src1);
   const Type Src0Ty = Src0->getType();
@@ -3722,7 +3827,7 @@ void TargetMIPS32::lowerIcmp(const InstIcmp *Instr) {
   }
   Variable *Dest = Instr->getDest();
   if (isVectorType(Dest->getType())) {
-    UnimplementedLoweringError(this, Instr);
+    llvm::report_fatal_error("Icmp: Destination type is vector");
     return;
   }
   InstIcmp::ICond Cond = Instr->getCondition();
@@ -3828,14 +3933,13 @@ void TargetMIPS32::lowerInsertElement(const InstInsertElement *Instr) {
   if (const auto *Imm = llvm::dyn_cast<ConstantInteger32>(Src2)) {
     const uint32_t Index = Imm->getValue();
     // Vector to insert in
-    auto *Src0 = Instr->getSrc(0);
+    auto *Src0 = legalizeUndef(Instr->getSrc(0));
     auto *Src0R = llvm::dyn_cast<VariableVecOn32>(Src0);
     // Number of elements in each container
     uint32_t ElemPerCont =
-        typeNumElements(Src0->getType()) / Src0R->ElementsPerContainer;
+        typeNumElements(Src0->getType()) / Src0R->ContainersPerVector;
     // Source Element
     auto *SrcE = Src0R->getContainers()[Index / ElemPerCont];
-    Context.insert<InstFakeDef>(SrcE);
     // Dest is a vector
     auto *VDest = llvm::dyn_cast<VariableVecOn32>(Dest);
     VDest->initVecElement(Func);
@@ -3855,7 +3959,7 @@ void TargetMIPS32::lowerInsertElement(const InstInsertElement *Instr) {
     // Position of the element in the container
     uint32_t PosInCont = Index % ElemPerCont;
     // Load source vector in a temporary vector
-    for (SizeT i = 0; i < TVDest->ElementsPerContainer; ++i) {
+    for (SizeT i = 0; i < TVDest->ContainersPerVector; ++i) {
       auto *DCont = TVDest->getContainers()[i];
       // Do not define DstE as we are going to redefine it
       if (DCont == DstE)
@@ -4406,7 +4510,6 @@ OperandMIPS32Mem *TargetMIPS32::formAddressingMode(Type Ty, Cfg *Func,
   }
 
   if (isVectorType(Ty)) {
-    UnimplementedError(getFlags());
     return nullptr;
   }
 
@@ -4549,7 +4652,7 @@ void TargetMIPS32::lowerRet(const InstRet *Instr) {
       Reg = getImplicitRet();
       auto *RegT = legalizeToReg(Reg);
       // Return the vector through buffer in implicit argument a0
-      for (SizeT i = 0; i < SrcVec->ElementsPerContainer; ++i) {
+      for (SizeT i = 0; i < SrcVec->ContainersPerVector; ++i) {
         OperandMIPS32Mem *Mem = OperandMIPS32Mem::create(
             Func, IceType_f32, RegT,
             llvm::cast<ConstantInteger32>(Ctx->getConstantInt32(i * 4)));
@@ -4575,7 +4678,7 @@ void TargetMIPS32::lowerSelect(const InstSelect *Instr) {
   const Type DestTy = Dest->getType();
 
   if (isVectorType(DestTy)) {
-    UnimplementedLoweringError(this, Instr);
+    llvm::report_fatal_error("Select: Destination type is vector");
     return;
   }
 
@@ -4647,7 +4750,7 @@ void TargetMIPS32::lowerStore(const InstStore *Instr) {
     _sw(ValueLo, llvm::cast<OperandMIPS32Mem>(loOperand(NewAddr)));
   } else if (isVectorType(Value->getType())) {
     auto *DataVec = llvm::dyn_cast<VariableVecOn32>(Value);
-    for (SizeT i = 0; i < DataVec->ElementsPerContainer; ++i) {
+    for (SizeT i = 0; i < DataVec->ContainersPerVector; ++i) {
       auto *DCont = legalizeToReg(DataVec->getContainers()[i]);
       auto *MCont = llvm::cast<OperandMIPS32Mem>(
           getOperandAtIndex(NewAddr, IceType_i32, i));

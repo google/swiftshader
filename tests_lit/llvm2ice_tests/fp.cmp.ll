@@ -379,8 +379,8 @@ entry:
 ; ARM32-LABEL: fcmpFalseFloat
 ; ARM32: mov [[R:r[0-9]+]], #0
 ; MIPS32-LABEL: fcmpFalseFloat
-; MIPS32: addiu
-; MIPS32: sb
+; MIPS32: addiu [[R:.*]], $zero, 0
+; MIPS32: andi [[R]], [[R]], 1
 
 define internal i32 @fcmpFalseDouble(double %a, double %b) {
 entry:
@@ -393,8 +393,8 @@ entry:
 ; ARM32-LABEL: fcmpFalseDouble
 ; ARM32: mov [[R:r[0-9]+]], #0
 ; MIPS32-LABEL: fcmpFalseDouble
-; MIPS32: addiu
-; MIPS32: sb
+; MIPS32: addiu [[R:.*]], $zero, 0
+; MIPS32: andi [[R]], [[R]], 1
 
 define internal i32 @fcmpOeqFloat(float %a, float %b) {
 entry:
@@ -975,8 +975,8 @@ entry:
 ; ARM32-LABEL: fcmpTrueFloat
 ; ARM32: mov {{r[0-9]+}}, #1
 ; MIPS32-LABEL: fcmpTrueFloat
-; MIPS32: addiu
-; MIPS32: sb
+; MIPS32: addiu [[R:.*]], $zero, 1
+; MIPS32: andi [[R]], [[R]], 1
 
 define internal i32 @fcmpTrueDouble(double %a, double %b) {
 entry:
@@ -989,8 +989,8 @@ entry:
 ; ARM32-LABEL: fcmpTrueDouble
 ; ARM32: mov {{r[0-9]+}}, #1
 ; MIPS32-LABEL: fcmpTrueDouble
-; MIPS32: addiu
-; MIPS32: sb
+; MIPS32: addiu [[R:.*]], $zero, 1
+; MIPS32: andi [[R]], [[R]], 1
 
 define internal float @selectFloatVarVar(float %a, float %b) {
 entry:

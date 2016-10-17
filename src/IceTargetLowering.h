@@ -511,8 +511,11 @@ protected:
     Variable *T = Func->makeVariable(DestTy);
     if (auto *VarVecOn32 = llvm::dyn_cast<VariableVecOn32>(T)) {
       VarVecOn32->initVecElement(Func);
+      auto *Undef = ConstantUndef::create(Ctx, DestTy);
+      Context.insert<InstAssign>(T, Undef);
+    } else {
+      Context.insert<InstFakeDef>(T);
     }
-    Context.insert<InstFakeDef>(T);
 
     for (SizeT I = 0; I < NumElements; ++I) {
       auto *Index = Ctx->getConstantInt32(I);
