@@ -4424,6 +4424,30 @@ void TargetX86Base<TraitsType>::lowerIntrinsicCall(
     }
     return;
   }
+  case Intrinsics::VectorPackSigned: {
+    Operand *Src0 = Instr->getArg(0);
+    Operand *Src1 = Instr->getArg(1);
+    Variable *Dest = Instr->getDest();
+    auto *T = makeReg(Dest->getType());
+    auto *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
+    auto *Src1RM = legalize(Src1, Legal_Reg | Legal_Mem);
+    _movp(T, Src0RM);
+    _packss(T, Src1RM);
+    _movp(Dest, T);
+    return;
+  }
+  case Intrinsics::VectorPackUnsigned: {
+    Operand *Src0 = Instr->getArg(0);
+    Operand *Src1 = Instr->getArg(1);
+    Variable *Dest = Instr->getDest();
+    auto *T = makeReg(Dest->getType());
+    auto *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
+    auto *Src1RM = legalize(Src1, Legal_Reg | Legal_Mem);
+    _movp(T, Src0RM);
+    _packus(T, Src1RM);
+    _movp(Dest, T);
+    return;
+  }
   default: // UnknownIntrinsic
     Func->setError("Unexpected intrinsic");
     return;
