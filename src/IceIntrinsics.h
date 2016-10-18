@@ -65,7 +65,8 @@ public:
     LoadSubVector,
     StoreSubVector,
     VectorPackSigned,
-    VectorPackUnsigned
+    VectorPackUnsigned,
+    SignMask
   };
 
   /// Operations that can be represented by the AtomicRMW intrinsic.

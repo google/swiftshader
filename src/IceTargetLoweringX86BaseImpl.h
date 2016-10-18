@@ -4455,6 +4455,21 @@ void TargetX86Base<TraitsType>::lowerIntrinsicCall(
     _movp(Dest, T);
     return;
   }
+  case Intrinsics::SignMask: {
+    Operand *SrcReg = legalizeToReg(Instr->getArg(0));
+    Variable *Dest = Instr->getDest();
+    Variable *T = makeReg(IceType_i32);
+    if (SrcReg->getType() == IceType_v4f32 ||
+        SrcReg->getType() == IceType_v4i32 ||
+        SrcReg->getType() == IceType_v16i8) {
+      _movmsk(T, SrcReg);
+    } else {
+      // TODO(capn): We could implement v8i16 sign mask using packsswb/pmovmskb
+      llvm::report_fatal_error("Invalid type for SignMask intrinsic");
+    }
+    _mov(Dest, T);
+    return;
+  }
   default: // UnknownIntrinsic
     Func->setError("Unexpected intrinsic");
     return;

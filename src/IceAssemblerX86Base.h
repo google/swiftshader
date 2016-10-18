@@ -465,8 +465,7 @@ public:
   void ucomiss(Type Ty, XmmRegister a, XmmRegister b);
   void ucomiss(Type Ty, XmmRegister a, const Address &b);
 
-  void movmskpd(GPRRegister dst, XmmRegister src);
-  void movmskps(GPRRegister dst, XmmRegister src);
+  void movmsk(Type Ty, GPRRegister dst, XmmRegister src);
 
   void sqrtss(Type Ty, XmmRegister dst, const Address &src);
   void sqrtss(Type Ty, XmmRegister dst, XmmRegister src);

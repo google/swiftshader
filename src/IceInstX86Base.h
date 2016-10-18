@@ -117,6 +117,7 @@ template <typename TraitsType> struct InstImpl {
       Maxss,
       Mov,
       Movd,
+      Movmsk,
       Movp,
       Movq,
       MovssRegs,
@@ -1248,6 +1249,27 @@ template <typename TraitsType> struct InstImpl {
   private:
     InstX86Movd(Cfg *Func, Variable *Dest, Operand *Src)
         : InstX86BaseUnaryopXmm<InstX86Base::Movd>(Func, Dest, Src) {}
+  };
+
+  class InstX86Movmsk final : public InstX86Base {
+    InstX86Movmsk() = delete;
+    InstX86Movmsk(const InstX86Movmsk &) = delete;
+    InstX86Movmsk &operator=(const InstX86Movmsk &) = delete;
+
+  public:
+    static InstX86Movmsk *create(Cfg *Func, Variable *Dest, Operand *Source) {
+      return new (Func->allocate<InstX86Movmsk>())
+          InstX86Movmsk(Func, Dest, Source);
+    }
+    void emit(const Cfg *Func) const override;
+    void emitIAS(const Cfg *Func) const override;
+    void dump(const Cfg *Func) const override;
+    static bool classof(const Inst *Instr) {
+      return InstX86Base::isClassof(Instr, InstX86Base::InstX86Movmsk);
+    }
+
+  private:
+    InstX86Movmsk(Cfg *Func, Variable *Dest, Operand *Source);
   };
 
   class InstX86Sqrtss : public InstX86BaseUnaryopXmm<InstX86Base::Sqrtss> {
@@ -3005,6 +3027,7 @@ template <typename TraitsType> struct Insts {
   using Movsx = typename InstImpl<TraitsType>::InstX86Movsx;
   using Movzx = typename InstImpl<TraitsType>::InstX86Movzx;
   using Movd = typename InstImpl<TraitsType>::InstX86Movd;
+  using Movmsk = typename InstImpl<TraitsType>::InstX86Movmsk;
   using Sqrtss = typename InstImpl<TraitsType>::InstX86Sqrtss;
   using Mov = typename InstImpl<TraitsType>::InstX86Mov;
   using Movp = typename InstImpl<TraitsType>::InstX86Movp;

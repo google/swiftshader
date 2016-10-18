@@ -181,6 +181,13 @@ InstImpl<TraitsType>::InstX86Call::InstX86Call(Cfg *Func, Variable *Dest,
 }
 
 template <typename TraitsType>
+InstImpl<TraitsType>::InstX86Movmsk::InstX86Movmsk(Cfg *Func, Variable *Dest,
+                                                   Operand *Source)
+    : InstX86Base(Func, InstX86Base::Movmsk, 1, Dest) {
+  this->addSource(Source);
+}
+
+template <typename TraitsType>
 InstImpl<TraitsType>::InstX86Cmov::InstX86Cmov(Cfg *Func, Variable *Dest,
                                                Operand *Source,
                                                BrCond Condition)
@@ -1005,6 +1012,64 @@ void InstImpl<TraitsType>::emitIASMovlikeXMM(const Cfg *Func,
     (Asm->*(Emitter.AddrXmm))(StackAddr,
                               Traits::getEncodedXmm(SrcVar->getRegNum()));
   }
+}
+
+template <typename TraitsType>
+void InstImpl<TraitsType>::InstX86Movmsk::dump(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+  Ostream &Str = Func->getContext()->getStrDump();
+  this->dumpDest(Func);
+  Str << " = movmsk." << this->getSrc(0)->getType() << " ";
+  this->dumpSources(Func);
+}
+
+template <typename TraitsType>
+void InstImpl<TraitsType>::InstX86Movmsk::emit(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+  Ostream &Str = Func->getContext()->getStrEmit();
+  assert(this->getSrcSize() == 1);
+  Type SrcTy = this->getSrc(0)->getType();
+  assert(isVectorType(SrcTy));
+  switch (SrcTy) {
+  case IceType_v16i8:
+    Str << "\t"
+           "pmovmskb"
+           "\t";
+    break;
+  case IceType_v4i32:
+  case IceType_v4f32:
+    Str << "\t"
+           "movmskps"
+           "\t";
+    break;
+  default:
+    llvm_unreachable("Unexpected operand type");
+  }
+  this->getSrc(0)->emit(Func);
+  Str << ", ";
+  this->getDest()->emit(Func);
+}
+
+template <typename TraitsType>
+void InstImpl<TraitsType>::InstX86Movmsk::emitIAS(const Cfg *Func) const {
+  assert(this->getSrcSize() == 1);
+  Assembler *Asm = Func->getAssembler<Assembler>();
+  const Variable *Dest = this->getDest();
+  const Variable *Src = llvm::cast<Variable>(this->getSrc(0));
+  const Type DestTy = Dest->getType();
+  const Type SrcTy = Src->getType();
+  assert(isVectorType(SrcTy));
+  assert(isScalarIntegerType(DestTy));
+  if (!Traits::Is64Bit) {
+    assert(typeWidthInBytes(DestTy) <= 4);
+  } else {
+    assert(DestTy == IceType_i32 || DestTy == IceType_i64);
+  }
+  XmmRegister SrcReg = Traits::getEncodedXmm(Src->getRegNum());
+  GPRRegister DestReg = Traits::getEncodedGPR(Dest->getRegNum());
+  Asm->movmsk(SrcTy, DestReg, SrcReg);
 }
 
 template <typename TraitsType>

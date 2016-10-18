@@ -1916,21 +1916,25 @@ void AssemblerX86Base<TraitsType>::ucomiss(Type Ty, XmmRegister a,
 }
 
 template <typename TraitsType>
-void AssemblerX86Base<TraitsType>::movmskpd(GPRRegister dst, XmmRegister src) {
+void AssemblerX86Base<TraitsType>::movmsk(Type Ty, GPRRegister dst,
+                                          XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  emitUint8(0x66);
+  if (Ty == IceType_v16i8) {
+    emitUint8(0x66);
+  } else if (Ty == IceType_v4f32 || Ty == IceType_v4i32) {
+    // No operand size prefix
+  } else {
+    assert(false && "Unexpected movmsk operand type");
+  }
   emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
-  emitUint8(0x50);
-  emitXmmRegisterOperand(dst, src);
-}
-
-template <typename TraitsType>
-void AssemblerX86Base<TraitsType>::movmskps(GPRRegister dst, XmmRegister src) {
-  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  emitRexRB(RexTypeIrrelevant, dst, src);
-  emitUint8(0x0F);
-  emitUint8(0x50);
+  if (Ty == IceType_v16i8) {
+    emitUint8(0xD7);
+  } else if (Ty == IceType_v4f32 || Ty == IceType_v4i32) {
+    emitUint8(0x50);
+  } else {
+    assert(false && "Unexpected movmsk operand type");
+  }
   emitXmmRegisterOperand(dst, src);
 }
 
