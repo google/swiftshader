@@ -734,6 +734,9 @@ protected:
     /// Mem.Offset is fixed up.
     OperandMIPS32Mem *legalizeMemOperand(OperandMIPS32Mem *Mem);
 
+    /// Legalizes Immediate if larger value overflows range of 16 bits
+    Variable *legalizeImmediate(int32_t Imm);
+
     /// Legalizes Mov if its Source (or Destination) is a spilled Variable, or
     /// if its Source is a Rematerializable variable (this form is used in lieu
     /// of lea, which is not available in MIPS.)
@@ -758,6 +761,7 @@ protected:
   uint32_t MaxOutArgsSizeBytes = 0;
   uint32_t TotalStackSizeBytes = 0;
   uint32_t CurrentAllocaOffset = 0;
+  uint32_t VariableAllocaAlignBytes = 0;
   static SmallBitVector TypeToRegisterSet[RCMIPS32_NUM];
   static SmallBitVector TypeToRegisterSetUnfiltered[RCMIPS32_NUM];
   static SmallBitVector RegisterAliases[RegMIPS32::Reg_NUM];

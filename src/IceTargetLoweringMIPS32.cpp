@@ -1485,11 +1485,9 @@ void TargetMIPS32::addProlog(CfgNode *Node) {
   if (!NeedsStackAlignment) {
     SpillAreaSizeBytes += MaxOutArgsSizeBytes * (VariableAllocaUsed ? 0 : 1);
   } else {
-    uint32_t StackOffset = PreservedRegsSizeBytes;
-    uint32_t StackSize = applyStackAlignment(StackOffset + SpillAreaSizeBytes);
-    if (!VariableAllocaUsed)
-      StackSize = applyStackAlignment(StackSize + MaxOutArgsSizeBytes);
-    SpillAreaSizeBytes = StackSize - StackOffset;
+    SpillAreaSizeBytes = applyStackAlignment(
+        SpillAreaSizeBytes +
+        (VariableAllocaUsed ? VariableAllocaAlignBytes : MaxOutArgsSizeBytes));
   }
 
   // Combine fixed alloca with SpillAreaSize.
@@ -1897,6 +1895,24 @@ TargetMIPS32::PostLoweringLegalizer::legalizeMemOperand(OperandMIPS32Mem *Mem) {
       llvm::cast<ConstantInteger32>(Target->Ctx->getConstantInt32(Offset)));
 }
 
+Variable *TargetMIPS32::PostLoweringLegalizer::legalizeImmediate(int32_t Imm) {
+  Variable *Reg = nullptr;
+  if (!((std::numeric_limits<int16_t>::min() <= Imm) &&
+        (Imm <= std::numeric_limits<int16_t>::max()))) {
+    const uint32_t UpperBits = (Imm >> 16) & 0xFFFF;
+    const uint32_t LowerBits = Imm & 0xFFFF;
+    Variable *TReg = Target->makeReg(IceType_i32, Target->getReservedTmpReg());
+    Reg = Target->makeReg(IceType_i32, Target->getReservedTmpReg());
+    if (LowerBits) {
+      Target->_lui(TReg, Target->Ctx->getConstantInt32(UpperBits));
+      Target->_ori(Reg, TReg, LowerBits);
+    } else {
+      Target->_lui(Reg, Target->Ctx->getConstantInt32(UpperBits));
+    }
+  }
+  return Reg;
+}
+
 void TargetMIPS32::postLowerLegalization() {
   Func->dump("Before postLowerLegalization");
   assert(hasComputedFrame());
@@ -1955,6 +1971,14 @@ void TargetMIPS32::postLowerLegalization() {
       if (llvm::isa<InstMIPS32Ldc1>(CurInstr)) {
         if (auto *LegalMem = Legalizer.legalizeMemOperand(Src0M)) {
           _ldc1(Dst, LegalMem);
+          CurInstr->setDeleted();
+        }
+        continue;
+      }
+      if (auto *AddiuInstr = llvm::dyn_cast<InstMIPS32Addiu>(CurInstr)) {
+        if (auto *LegalImm = Legalizer.legalizeImmediate(
+                static_cast<int32_t>(AddiuInstr->getImmediateValue()))) {
+          _addu(Dst, Src0V, LegalImm);
           CurInstr->setDeleted();
         }
         continue;
@@ -2150,6 +2174,7 @@ void TargetMIPS32::lowerAlloca(const InstAlloca *Instr) {
     // Non-constant sizes need to be adjusted to the next highest multiple of
     // the required alignment at runtime.
     VariableAllocaUsed = true;
+    VariableAllocaAlignBytes = AlignmentParam;
     Variable *AlignAmount;
     auto *TotalSizeR = legalizeToReg(TotalSize, Legal_Reg);
     auto *T1 = I32Reg();

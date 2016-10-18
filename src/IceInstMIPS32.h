@@ -1054,6 +1054,8 @@ public:
     }
   }
 
+  uint32_t getImmediateValue() const { return Imm; }
+
   static bool classof(const Inst *Inst) { return isClassof(Inst, K); }
 
 private:
