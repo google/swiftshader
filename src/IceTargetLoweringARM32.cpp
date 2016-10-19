@@ -66,6 +66,10 @@ bool shouldBePooled(const ::Ice::Constant *C) {
   return ::Ice::ARM32::TargetARM32::shouldBePooled(C);
 }
 
+::Ice::Type getPointerType() {
+  return ::Ice::ARM32::TargetARM32::getPointerType();
+}
+
 } // end of namespace ARM32
 
 namespace Ice {

@@ -43,6 +43,7 @@ public:
     }
     return false;
   }
+  static ::Ice::Type getPointerType() { return ::Ice::IceType_i32; }
   static std::unique_ptr<::Ice::TargetLowering> create(Cfg *Func) {
     return makeUnique<TargetMIPS32>(Func);
   }

@@ -15,6 +15,7 @@
 #include "IceTypes.h"
 
 #include "IceDefs.h"
+#include "IceTargetLowering.h"
 
 #include "llvm/Support/ErrorHandling.h"
 
@@ -175,6 +176,8 @@ Type typeElementType(Type Ty) {
   llvm_unreachable("Invalid type for typeElementType()");
   return IceType_void;
 }
+
+Type getPointerType() { return TargetLowering::getPointerType(); }
 
 bool isVectorType(Type Ty) {
   if (Ty < IceType_NUM)

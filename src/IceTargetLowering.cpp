@@ -58,6 +58,7 @@
   createTargetHeaderLowering(::Ice::GlobalContext *Ctx);                       \
   void staticInit(::Ice::GlobalContext *Ctx);                                  \
   bool shouldBePooled(const ::Ice::Constant *C);                               \
+  ::Ice::Type getPointerType();                                                \
   } // end of namespace X
 #include "SZTargets.def"
 #undef SUBZERO_TARGET
@@ -293,6 +294,19 @@ bool TargetLowering::shouldBePooled(const Constant *C) {
 #define SUBZERO_TARGET(X)                                                      \
   case TARGET_LOWERING_CLASS_FOR(X):                                           \
     return ::X::shouldBePooled(C);
+#include "SZTargets.def"
+#undef SUBZERO_TARGET
+  }
+}
+
+::Ice::Type TargetLowering::getPointerType() {
+  const TargetArch Target = getFlags().getTargetArch();
+  switch (Target) {
+  default:
+    return ::Ice::IceType_void;
+#define SUBZERO_TARGET(X)                                                      \
+  case TARGET_LOWERING_CLASS_FOR(X):                                           \
+    return ::X::getPointerType();
 #include "SZTargets.def"
 #undef SUBZERO_TARGET
   }

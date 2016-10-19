@@ -41,6 +41,10 @@ bool shouldBePooled(const class ::Ice::Constant *C) {
   return ::Ice::X8664::TargetX8664::shouldBePooled(C);
 }
 
+::Ice::Type getPointerType() {
+  return ::Ice::X8664::TargetX8664::getPointerType();
+}
+
 } // end of namespace X8664
 
 namespace Ice {

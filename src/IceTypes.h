@@ -85,7 +85,7 @@ const char *typeString(Type Ty);
 inline std::string typeStdString(Type Ty) { return typeString(Ty); }
 const char *regClassString(RegClass C);
 
-inline Type getPointerType() { return IceType_i32; }
+Type getPointerType();
 
 bool isVectorType(Type Ty);
 

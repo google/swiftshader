@@ -52,6 +52,11 @@ void staticInit(::Ice::GlobalContext *Ctx) {
 bool shouldBePooled(const ::Ice::Constant *C) {
   return ::Ice::MIPS32::TargetMIPS32::shouldBePooled(C);
 }
+
+::Ice::Type getPointerType() {
+  return ::Ice::MIPS32::TargetMIPS32::getPointerType();
+}
+
 } // end of namespace MIPS32
 
 namespace Ice {

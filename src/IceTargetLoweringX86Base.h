@@ -79,6 +79,7 @@ public:
 
   static void staticInit(GlobalContext *Ctx);
   static bool shouldBePooled(const Constant *C);
+  static ::Ice::Type getPointerType();
 
   static FixupKind getPcRelFixup() { return PcRelFixup; }
   static FixupKind getAbsFixup() { return AbsFixup; }

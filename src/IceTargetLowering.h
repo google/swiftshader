@@ -175,6 +175,7 @@ public:
   // Each target must define a public static method:
   //   static void staticInit(GlobalContext *Ctx);
   static bool shouldBePooled(const class Constant *C);
+  static Type getPointerType();
 
   static std::unique_ptr<TargetLowering> createLowering(TargetArch Target,
                                                         Cfg *Func);

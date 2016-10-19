@@ -48,6 +48,11 @@ void staticInit(::Ice::GlobalContext *Ctx) {
 bool shouldBePooled(const class ::Ice::Constant *C) {
   return ::Ice::X8632::TargetX8632::shouldBePooled(C);
 }
+
+::Ice::Type getPointerType() {
+  return ::Ice::X8632::TargetX8632::getPointerType();
+}
+
 } // end of namespace X8632
 
 namespace Ice {

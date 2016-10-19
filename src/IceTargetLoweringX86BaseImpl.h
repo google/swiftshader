@@ -430,6 +430,16 @@ bool TargetX86Base<TraitsType>::shouldBePooled(const Constant *C) {
   return C->shouldBeRandomizedOrPooled();
 }
 
+template <typename TraitsType>
+::Ice::Type TargetX86Base<TraitsType>::getPointerType() {
+  if (!Traits::Is64Bit ||
+      ::Ice::getFlags().getApplicationBinaryInterface() == ::Ice::ABI_PNaCl) {
+    return ::Ice::IceType_i32;
+  } else {
+    return ::Ice::IceType_i64;
+  }
+}
+
 template <typename TraitsType> void TargetX86Base<TraitsType>::translateO2() {
   TimerMarker T(TimerStack::TT_O2, Func);
 
@@ -7456,7 +7466,7 @@ TargetX86Base<TraitsType>::getMemoryOperandForStackSlot(Type Ty, Variable *Slot,
   // TODO(wala,stichnot): lea should not
   // be required. The address of the stack slot is known at compile time
   // (although not until after addProlog()).
-  constexpr Type PointerType = IceType_i32;
+  const Type PointerType = getPointerType();
   Variable *Loc = makeReg(PointerType);
   _lea(Loc, Slot);
   Constant *ConstantOffset = Ctx->getConstantInt32(Offset);

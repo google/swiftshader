@@ -68,6 +68,8 @@ public:
     return false;
   }
 
+  static ::Ice::Type getPointerType() { return ::Ice::IceType_i32; }
+
   // TODO(jvoung): return a unique_ptr.
   static std::unique_ptr<::Ice::TargetLowering> create(Cfg *Func) {
     return makeUnique<TargetARM32>(Func);
