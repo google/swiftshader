@@ -4972,9 +4972,6 @@ void TargetARM32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
   Type DestTy = (Dest != nullptr) ? Dest->getType() : IceType_void;
   Intrinsics::IntrinsicID ID = Instr->getIntrinsicInfo().ID;
   switch (ID) {
-  default:
-    llvm::report_fatal_error("Unexpected intrinsic");
-    return;
   case Intrinsics::AtomicFence:
   case Intrinsics::AtomicFenceAll:
     assert(Dest == nullptr);
@@ -5290,8 +5287,8 @@ void TargetARM32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     UnimplementedLoweringError(this, Instr);
     return;
   }
-  case Intrinsics::UnknownIntrinsic:
-    Func->setError("Should not be lowering UnknownIntrinsic");
+  default: // UnknownIntrinsic
+    Func->setError("Unexpected intrinsic");
     return;
   }
   return;

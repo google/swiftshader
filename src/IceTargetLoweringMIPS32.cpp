@@ -4062,9 +4062,6 @@ void TargetMIPS32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
   Variable *Dest = Instr->getDest();
   Type DestTy = (Dest == nullptr) ? IceType_void : Dest->getType();
   switch (Instr->getIntrinsicInfo().ID) {
-  default:
-    llvm::report_fatal_error("Unexpected intrinsic");
-    return;
   case Intrinsics::AtomicCmpxchg: {
     UnimplementedLoweringError(this, Instr);
     return;
@@ -4363,8 +4360,8 @@ void TargetMIPS32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     UnimplementedLoweringError(this, Instr); // Not required for PNaCl
     return;
   }
-  case Intrinsics::UnknownIntrinsic:
-    Func->setError("Should not be lowering UnknownIntrinsic");
+  default: // UnknownIntrinsic
+    Func->setError("Unexpected intrinsic");
     return;
   }
   return;
