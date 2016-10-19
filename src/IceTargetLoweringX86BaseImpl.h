@@ -6232,8 +6232,6 @@ void TargetX86Base<TraitsType>::lowerShuffleVector(
       }
       break;
       CASE_SRCS_IN(0, 0, 1, 1) : {
-        assert(false && "Following code is untested but likely correct; test "
-                        "and remove assert.");
         T = lowerShuffleVector_TwoFromSameSrc(Src0, Index0, Index1, Src1,
                                               Index2, Index3);
       }
@@ -6248,8 +6246,6 @@ void TargetX86Base<TraitsType>::lowerShuffleVector(
       CASE_SRCS_IN(0, 1, 0, 1) : {
         if (Index0 == 0 && (Index1 - ExpectedNumElements) == 0 && Index2 == 1 &&
             (Index3 - ExpectedNumElements) == 1) {
-          assert(false && "Following code is untested but likely correct; test "
-                          "and remove assert.");
           auto *Src1RM = legalize(Src1, Legal_Reg | Legal_Mem);
           auto *Src0R = legalizeToReg(Src0);
           T = makeReg(DestTy);
@@ -6264,8 +6260,6 @@ void TargetX86Base<TraitsType>::lowerShuffleVector(
               Unified, UNIFIED_INDEX_0, UNIFIED_INDEX_1, UNIFIED_INDEX_0,
               UNIFIED_INDEX_1);
         } else {
-          assert(false && "Following code is untested but likely correct; test "
-                          "and remove assert.");
           auto *Unified0 = lowerShuffleVector_UnifyFromDifferentSrcs(
               Src0, Index0, Src1, Index1);
           auto *Unified1 = lowerShuffleVector_UnifyFromDifferentSrcs(
