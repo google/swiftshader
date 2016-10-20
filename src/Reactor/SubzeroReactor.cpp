@@ -503,12 +503,14 @@ namespace sw
 
 	void Nucleus::createRetVoid()
 	{
-		assert(false && "UNIMPLEMENTED");
+		Ice::InstRet *ret = Ice::InstRet::create(::function);
+		::basicBlock->appendInst(ret);
 	}
 
 	void Nucleus::createRet(Value *v)
 	{
-		assert(false && "UNIMPLEMENTED");
+		Ice::InstRet *ret = Ice::InstRet::create(::function, v);
+		::basicBlock->appendInst(ret);
 	}
 
 	void Nucleus::createBr(BasicBlock *dest)
@@ -1023,7 +1025,8 @@ namespace sw
 
 	void Nucleus::createUnreachable()
 	{
-		assert(false && "UNIMPLEMENTED");
+		Ice::InstUnreachable *unreachable = Ice::InstUnreachable::create(::function);
+		::basicBlock->appendInst(unreachable);
 	}
 
 	static Value *createSwizzle4(Value *val, unsigned char select)
@@ -6092,15 +6095,16 @@ namespace sw
 
 	void Return(bool ret)
 	{
-		Ice::Operand *Ret = Ice::ConstantInteger32::create(::context, Ice::IceType_i32, ret ? 1 : 0);
-		Ice::InstRet *retu = Ice::InstRet::create(::function, Ret);
-		::basicBlock->appendInst(retu);
+		Nucleus::createRet(Nucleus::createConstantInt(ret));
+		Nucleus::setInsertBlock(Nucleus::createBasicBlock());
+		Nucleus::createUnreachable();
 	}
 
 	void Return(const Int &ret)
 	{
-		Ice::InstRet *retu = Ice::InstRet::create(::function, ret.loadValue());
-		::basicBlock->appendInst(retu);
+		Nucleus::createRet(ret.loadValue());
+		Nucleus::setInsertBlock(Nucleus::createBasicBlock());
+		Nucleus::createUnreachable();
 	}
 
 	BasicBlock *beginLoop()
