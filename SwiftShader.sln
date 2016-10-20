@@ -5,9 +5,6 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "LLVM", "LLVM", "{B408B98A-E888-4ECF-81E0-7A37A6854B17}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SwiftShader", "src\SwiftShader\SwiftShader.vcxproj", "{7B02CB19-4CDF-4F79-BC9B-7F3F6164A003}"
-	ProjectSection(ProjectDependencies) = postProject
-		{28FD076D-10B5-4BD8-A4CF-F44C7002A803} = {28FD076D-10B5-4BD8-A4CF-F44C7002A803}
-	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Reactor", "src\Reactor\Reactor.vcxproj", "{28FD076D-10B5-4BD8-A4CF-F44C7002A803}"
 EndProject
@@ -22,9 +19,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libGLESv2", "src\OpenGL\lib
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libEGL", "src\OpenGL\libEGL\libEGL.vcxproj", "{E746FCA9-64C3-433E-85E8-9A5A67AB7ED6}"
-	ProjectSection(ProjectDependencies) = postProject
-		{7B02CB19-4CDF-4F79-BC9B-7F3F6164A003} = {7B02CB19-4CDF-4F79-BC9B-7F3F6164A003}
-	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LLVMAnalysis", "third_party\LLVM\lib\Analysis\LLVMAnalysis.vcxproj", "{97EDF19C-6360-4770-9255-EBA2F1A13E9B}"
 	ProjectSection(ProjectDependencies) = postProject
