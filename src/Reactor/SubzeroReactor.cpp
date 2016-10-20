@@ -434,6 +434,7 @@ namespace sw
 		assembler->alignFunction();
 		objectWriter->writeFunctionCode(::function->getFunctionName(), false, assembler.get());
 		::context->lowerGlobals("last");
+		::context->lowerConstants();
 		objectWriter->setUndefinedSyms(::context->getConstantExternSyms());
 		objectWriter->writeNonUserSections();
 
@@ -1047,7 +1048,7 @@ namespace sw
 		assert(false && "UNIMPLEMENTED"); return nullptr;
 	}
 
-	Value *Nucleus::createConstantPointer(const void *address, Type *Ty, bool isConstant, unsigned int Align)
+	Value *Nucleus::createConstantPointer(const void *address, Type *Ty, unsigned int align)
 	{
 		if(sizeof(void*) == 8)
 		{
@@ -1073,12 +1074,20 @@ namespace sw
 
 	Value *Nucleus::createNullValue(Type *Ty)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		if(Ice::isVectorType(T(Ty)))
+		{
+			int64_t c[4] = {0, 0, 0, 0};
+			return createConstantVector(c, Ty);
+		}
+		else
+		{
+			return createAssign(::context->getConstantZero(T(Ty)));
+		}
 	}
 
 	Value *Nucleus::createConstantLong(int64_t i)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		return createAssign(::context->getConstantInt64(i));
 	}
 
 	Value *Nucleus::createConstantInt(int i)
@@ -1088,22 +1097,22 @@ namespace sw
 
 	Value *Nucleus::createConstantInt(unsigned int i)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		return createAssign(::context->getConstantInt32(i));
 	}
 
 	Value *Nucleus::createConstantBool(bool b)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		return createAssign(::context->getConstantInt1(b));
 	}
 
 	Value *Nucleus::createConstantByte(signed char i)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		return createAssign(::context->getConstantInt8(i));
 	}
 
 	Value *Nucleus::createConstantByte(unsigned char i)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		return createAssign(::context->getConstantInt8(i));
 	}
 
 	Value *Nucleus::createConstantShort(short i)
@@ -1113,17 +1122,24 @@ namespace sw
 
 	Value *Nucleus::createConstantShort(unsigned short i)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		return createAssign(::context->getConstantInt16(i));
 	}
 
 	Value *Nucleus::createConstantFloat(float x)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		return createAssign(::context->getConstantFloat(x));
 	}
 
 	Value *Nucleus::createNullPointer(Type *Ty)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		if(true)
+		{
+			return createNullValue(T(sizeof(void*) == 8 ? Ice::IceType_i64 : Ice::IceType_i32));
+		}
+		else
+		{
+			return createConstantPointer(nullptr, Ty);
+		}
 	}
 
 	Value *Nucleus::createConstantVector(const int64_t *constants, Type *type)
