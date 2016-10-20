@@ -4031,16 +4031,6 @@ namespace sw
 		assert(false && "UNIMPLEMENTED"); return nullptr;
 	}
 
-	RValue<Long2> UnpackHigh(RValue<Long2> x, RValue<Long2> y)
-	{
-		assert(false && "UNIMPLEMENTED"); return RValue<Long2>(V(nullptr));
-	}
-
-	Type *Long2::getType()
-	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
-	}
-
 	UInt::UInt(Argument<UInt> argument)
 	{
 		storeValue(argument.value);
@@ -4370,11 +4360,7 @@ namespace sw
 
 	Int2::Int2(RValue<Int4> cast)
 	{
-		Value *long2 = Nucleus::createBitCast(cast.value, Long2::getType());
-		Value *element = Nucleus::createExtractElement(long2, Long2::getType(), 0);
-		Value *int2 = Nucleus::createBitCast(element, Int2::getType());
-
-		storeValue(int2);
+		storeValue(Nucleus::createBitCast(cast.value, getType()));
 	}
 
 	Int2::Int2()
@@ -5644,13 +5630,7 @@ namespace sw
 
 	Float2::Float2(RValue<Float4> cast)
 	{
-	//	xyzw.parent = this;
-
-		Value *int64x2 = Nucleus::createBitCast(cast.value, Long2::getType());
-		Value *int64 = Nucleus::createExtractElement(int64x2, Long::getType(), 0);
-		Value *float2 = Nucleus::createBitCast(int64, Float2::getType());
-
-		storeValue(float2);
+		storeValue(Nucleus::createBitCast(cast.value, getType()));
 	}
 
 	Type *Float2::getType()

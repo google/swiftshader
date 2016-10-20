@@ -2654,7 +2654,7 @@ namespace sw
 			}
 
 			#if 0   // FIXME: No optimal instruction selection
-				Value *qword2 = Nucleus::createBitCast(packed, Long2::getType());
+				Value *qword2 = Nucleus::createBitCast(packed, T(VectorType::get(Long::getType(), 2)));
 				Value *element = Nucleus::createExtractElement(qword2, 0);
 				Value *short4 = Nucleus::createBitCast(element, Short4::getType());
 			#else   // FIXME: Requires SSE
@@ -3478,7 +3478,7 @@ namespace sw
 		Value *loLong = Nucleus::createBitCast(lo.value, Long::getType());
 		Value *hiLong = Nucleus::createBitCast(hi.value, Long::getType());
 
-		Value *long2 = V(UndefValue::get(Long2::getType()));
+		Value *long2 = V(UndefValue::get(VectorType::get(Long::getType(), 2)));
 		long2 = Nucleus::createInsertElement(long2, loLong, 0);
 		long2 = Nucleus::createInsertElement(long2, hiLong, 1);
 		Value *short8 = Nucleus::createBitCast(long2, Short8::getType());
@@ -3556,7 +3556,7 @@ namespace sw
 		Value *loLong = Nucleus::createBitCast(lo.value, Long::getType());
 		Value *hiLong = Nucleus::createBitCast(hi.value, Long::getType());
 
-		Value *long2 = V(UndefValue::get(Long2::getType()));
+		Value *long2 = V(UndefValue::get(VectorType::get(Long::getType(), 2)));
 		long2 = Nucleus::createInsertElement(long2, loLong, 0);
 		long2 = Nucleus::createInsertElement(long2, hiLong, 1);
 		Value *short8 = Nucleus::createBitCast(long2, Short8::getType());
@@ -4121,19 +4121,6 @@ namespace sw
 		}
 	}
 
-	RValue<Long2> UnpackHigh(RValue<Long2> x, RValue<Long2> y)
-	{
-		int shuffle[2] = {1, 3};
-		Value *packed = Nucleus::createShuffleVector(x.value, y.value, shuffle);
-
-		return RValue<Long2>(packed);
-	}
-
-	Type *Long2::getType()
-	{
-		return T(VectorType::get(Long::getType(), 2));
-	}
-
 	UInt::UInt(Argument<UInt> argument)
 	{
 		storeValue(argument.value);
@@ -4492,7 +4479,7 @@ namespace sw
 
 	Int2::Int2(RValue<Int4> cast)
 	{
-		Value *long2 = Nucleus::createBitCast(cast.value, Long2::getType());
+		Value *long2 = Nucleus::createBitCast(cast.value, T(VectorType::get(Long::getType(), 2)));
 		Value *element = Nucleus::createExtractElement(long2, Long::getType(), 0);
 		Value *int2 = Nucleus::createBitCast(element, Int2::getType());
 
@@ -5155,7 +5142,7 @@ namespace sw
 
 	Int4::Int4(RValue<Short4> cast)
 	{
-		Value *long2 = V(UndefValue::get(Long2::getType()));
+		Value *long2 = V(UndefValue::get(VectorType::get(Long::getType(), 2)));
 		Value *element = Nucleus::createBitCast(cast.value, Long::getType());
 		long2 = Nucleus::createInsertElement(long2, element, 0);
 		RValue<Int4> vector = RValue<Int4>(Nucleus::createBitCast(long2, Int4::getType()));
@@ -5183,7 +5170,7 @@ namespace sw
 
 	Int4::Int4(RValue<UShort4> cast)
 	{
-		Value *long2 = V(UndefValue::get(Long2::getType()));
+		Value *long2 = V(UndefValue::get(VectorType::get(Long::getType(), 2)));
 		Value *element = Nucleus::createBitCast(cast.value, Long::getType());
 		long2 = Nucleus::createInsertElement(long2, element, 0);
 		RValue<Int4> vector = RValue<Int4>(Nucleus::createBitCast(long2, Int4::getType()));
@@ -5289,7 +5276,7 @@ namespace sw
 		Value *loLong = Nucleus::createBitCast(lo.value, Long::getType());
 		Value *hiLong = Nucleus::createBitCast(hi.value, Long::getType());
 
-		Value *long2 = V(UndefValue::get(Long2::getType()));
+		Value *long2 = V(UndefValue::get(VectorType::get(Long::getType(), 2)));
 		long2 = Nucleus::createInsertElement(long2, loLong, 0);
 		long2 = Nucleus::createInsertElement(long2, hiLong, 1);
 		Value *int4 = Nucleus::createBitCast(long2, Int4::getType());
@@ -5677,7 +5664,7 @@ namespace sw
 		Value *loLong = Nucleus::createBitCast(lo.value, Long::getType());
 		Value *hiLong = Nucleus::createBitCast(hi.value, Long::getType());
 
-		Value *long2 = V(UndefValue::get(Long2::getType()));
+		Value *long2 = V(UndefValue::get(VectorType::get(Long::getType(), 2)));
 		long2 = Nucleus::createInsertElement(long2, loLong, 0);
 		long2 = Nucleus::createInsertElement(long2, hiLong, 1);
 		Value *uint4 = Nucleus::createBitCast(long2, Int4::getType());
@@ -6153,7 +6140,7 @@ namespace sw
 	{
 	//	xyzw.parent = this;
 
-		Value *int64x2 = Nucleus::createBitCast(cast.value, Long2::getType());
+		Value *int64x2 = Nucleus::createBitCast(cast.value, T(VectorType::get(Long::getType(), 2)));
 		Value *int64 = Nucleus::createExtractElement(int64x2, Long::getType(), 0);
 		Value *float2 = Nucleus::createBitCast(int64, Float2::getType());
 
@@ -7577,7 +7564,7 @@ namespace sw
 
 		//RValue<Int2> movdq2q(RValue<Int4> x)
 		//{
-		//	Value *long2 = Nucleus::createBitCast(x.value, Long2::getType());
+		//	Value *long2 = Nucleus::createBitCast(x.value, T(VectorType::get(Long::getType(), 2)));
 		//	Value *element = Nucleus::createExtractElement(long2, ConstantInt::get(Int::getType(), 0));
 
 		//	return RValue<Int2>(Nucleus::createBitCast(element, Int2::getType()));
