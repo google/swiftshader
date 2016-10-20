@@ -1124,63 +1124,78 @@ namespace sw
 		assert(false && "UNIMPLEMENTED"); return nullptr;
 	}
 
-	Value *Nucleus::createConstantVector(const int64_t *c, Type *type)
+	Value *Nucleus::createConstantVector(const int64_t *constants, Type *type)
 	{
 		const int vectorSize = 16;
 		assert(Ice::typeWidthInBytes(T(type)) == vectorSize);
 		const int alignment = vectorSize;
 		auto globalPool = ::function->getGlobalPool();
 
+		const int64_t *i = constants;
+		const double *f = reinterpret_cast<const double*>(constants);
 		Ice::VariableDeclaration::DataInitializer *dataInitializer = nullptr;
+
 		switch((int)reinterpret_cast<intptr_t>(type))
 		{
 		case Ice::IceType_v4i32:
+			{
+				const int initializer[4] = {(int)i[0], (int)i[1], (int)i[2], (int)i[3]};
+				static_assert(sizeof(initializer) == vectorSize, "!");
+				dataInitializer = Ice::VariableDeclaration::DataInitializer::create(globalPool, (const char*)initializer, vectorSize);
+			}
+			break;
 		case Ice::IceType_v4f32:
 			{
-				const int initializer[4] = {(int)c[0], (int)c[1], (int)c[2], (int)c[3]};
+				const float initializer[4] = {(float)f[0], (float)f[1], (float)f[2], (float)f[3]};
 				static_assert(sizeof(initializer) == vectorSize, "!");
 				dataInitializer = Ice::VariableDeclaration::DataInitializer::create(globalPool, (const char*)initializer, vectorSize);
 			}
 			break;
 		case Ice::IceType_v8i16:
 			{
-				const short initializer[8] = {(short)c[0], (short)c[1], (short)c[2], (short)c[3], (short)c[4], (short)c[5], (short)c[6], (short)c[7]};
+				const short initializer[8] = {(short)i[0], (short)i[1], (short)i[2], (short)i[3], (short)i[4], (short)i[5], (short)i[6], (short)i[7]};
 				static_assert(sizeof(initializer) == vectorSize, "!");
 				dataInitializer = Ice::VariableDeclaration::DataInitializer::create(globalPool, (const char*)initializer, vectorSize);
 			}
 			break;
 		case Ice::IceType_v16i8:
 			{
-				const char initializer[16] = {(char)c[0], (char)c[1], (char)c[2], (char)c[3], (char)c[4], (char)c[5], (char)c[6], (char)c[7], (char)c[8], (char)c[9], (char)c[10], (char)c[11], (char)c[12], (char)c[13], (char)c[14], (char)c[15]};
+				const char initializer[16] = {(char)i[0], (char)i[1], (char)i[2], (char)i[3], (char)i[4], (char)i[5], (char)i[6], (char)i[7], (char)i[8], (char)i[9], (char)i[10], (char)i[11], (char)i[12], (char)i[13], (char)i[14], (char)i[15]};
 				static_assert(sizeof(initializer) == vectorSize, "!");
 				dataInitializer = Ice::VariableDeclaration::DataInitializer::create(globalPool, (const char*)initializer, vectorSize);
 			}
 			break;
 		case Type_v2i32:
+			{
+				const int initializer[4] = {(int)i[0], (int)i[1], (int)i[0], (int)i[1]};
+				static_assert(sizeof(initializer) == vectorSize, "!");
+				dataInitializer = Ice::VariableDeclaration::DataInitializer::create(globalPool, (const char*)initializer, vectorSize);
+			}
+			break;
 		case Type_v2f32:
 			{
-				const int initializer[4] = {(int)c[0], (int)c[1], (int)c[0], (int)c[1]};
+				const float initializer[4] = {(float)f[0], (float)f[1], (float)f[0], (float)f[1]};
 				static_assert(sizeof(initializer) == vectorSize, "!");
 				dataInitializer = Ice::VariableDeclaration::DataInitializer::create(globalPool, (const char*)initializer, vectorSize);
 			}
 			break;
 		case Type_v4i16:
 			{
-				const short initializer[8] = {(short)c[0], (short)c[1], (short)c[2], (short)c[3], (short)c[0], (short)c[1], (short)c[2], (short)c[3]};
+				const short initializer[8] = {(short)i[0], (short)i[1], (short)i[2], (short)i[3], (short)i[0], (short)i[1], (short)i[2], (short)i[3]};
 				static_assert(sizeof(initializer) == vectorSize, "!");
 				dataInitializer = Ice::VariableDeclaration::DataInitializer::create(globalPool, (const char*)initializer, vectorSize);
 			}
 			break;
 		case Type_v8i8:
 			{
-				const char initializer[16] = {(char)c[0], (char)c[1], (char)c[2], (char)c[3], (char)c[4], (char)c[5], (char)c[6], (char)c[7], (char)c[0], (char)c[1], (char)c[2], (char)c[3], (char)c[4], (char)c[5], (char)c[6], (char)c[7]};
+				const char initializer[16] = {(char)i[0], (char)i[1], (char)i[2], (char)i[3], (char)i[4], (char)i[5], (char)i[6], (char)i[7], (char)i[0], (char)i[1], (char)i[2], (char)i[3], (char)i[4], (char)i[5], (char)i[6], (char)i[7]};
 				static_assert(sizeof(initializer) == vectorSize, "!");
 				dataInitializer = Ice::VariableDeclaration::DataInitializer::create(globalPool, (const char*)initializer, vectorSize);
 			}
 			break;
 		case Type_v4i8:
 			{
-				const char initializer[16] = {(char)c[0], (char)c[1], (char)c[2], (char)c[3], (char)c[0], (char)c[1], (char)c[2], (char)c[3], (char)c[0], (char)c[1], (char)c[2], (char)c[3], (char)c[0], (char)c[1], (char)c[2], (char)c[3]};
+				const char initializer[16] = {(char)i[0], (char)i[1], (char)i[2], (char)i[3], (char)i[0], (char)i[1], (char)i[2], (char)i[3], (char)i[0], (char)i[1], (char)i[2], (char)i[3], (char)i[0], (char)i[1], (char)i[2], (char)i[3]};
 				static_assert(sizeof(initializer) == vectorSize, "!");
 				dataInitializer = Ice::VariableDeclaration::DataInitializer::create(globalPool, (const char*)initializer, vectorSize);
 			}
