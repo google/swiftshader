@@ -302,7 +302,7 @@ namespace sw
 		ELFMemoryStreamer &operator=(const ELFMemoryStreamer &) = delete;
 
 	public:
-		ELFMemoryStreamer() : Routine()
+		ELFMemoryStreamer() : Routine(), entry(nullptr)
 		{
 			position = 0;
 			buffer.reserve(0x1000);
@@ -346,13 +346,19 @@ namespace sw
 
 		const void *getEntry() override
 		{
-			VirtualProtect(&buffer[0], buffer.size(), PAGE_EXECUTE_READWRITE, &oldProtection);
-			position = std::numeric_limits<std::size_t>::max();  // Can't stream more data after this
+			if(!entry)
+			{
+				VirtualProtect(&buffer[0], buffer.size(), PAGE_EXECUTE_READWRITE, &oldProtection);
+				position = std::numeric_limits<std::size_t>::max();  // Can't stream more data after this
 
-			return loadImage(&buffer[0]);
+				entry = loadImage(&buffer[0]);
+			}
+
+			return entry;
 		}
 
 	private:
+		void *entry;
 		std::vector<uint8_t, ExecutableAllocator<uint8_t>> buffer;
 		std::size_t position;
 		DWORD oldProtection;
