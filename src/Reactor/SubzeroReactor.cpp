@@ -446,14 +446,13 @@ namespace sw
 
 	Value *Nucleus::allocateStackVariable(Type *t, int arraySize)
 	{
-		assert(arraySize == 0 && "UNIMPLEMENTED");
-
 		Ice::Type type = T(t);
-		int size = Ice::typeWidthInBytes(type);
+		int typeSize = Ice::typeWidthInBytes(type);
+		int totalSize = typeSize * (arraySize ? arraySize : 1);
 
-		auto bytes = Ice::ConstantInteger32::create(::context, type, size);
+		auto bytes = Ice::ConstantInteger32::create(::context, type, totalSize);
 		auto address = ::function->makeVariable(T(getPointerType(t)));
-		auto alloca = Ice::InstAlloca::create(::function, address, bytes, size);
+		auto alloca = Ice::InstAlloca::create(::function, address, bytes, typeSize);
 		::function->getEntryNode()->getInsts().push_front(alloca);
 
 		return V(address);
