@@ -2566,7 +2566,7 @@ namespace sw
 	template<class T>
 	Pointer<T>::Pointer(const void *external) : alignment((intptr_t)external & 0x0000000F ? 1 : 16)
 	{
-		Value *globalPointer = Nucleus::createConstantPointer(external, T::getType(), false, alignment);
+		Value *globalPointer = Nucleus::createConstantPointer(external, T::getType(), alignment);
 
 		LValue<Pointer<T>>::storeValue(globalPointer);
 	}

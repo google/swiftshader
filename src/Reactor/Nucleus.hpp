@@ -164,7 +164,7 @@ namespace sw
 		static Value *createNullPointer(Type *type);
 		static Value *createConstantVector(const int64_t *constants, Type *type);
 		static Value *createConstantVector(const double *constants, Type *type);
-		static Value *createConstantPointer(const void *external, Type *type, bool isConstant, unsigned int align);
+		static Value *createConstantPointer(const void *external, Type *type, unsigned int align = 0);
 
 		static Type *getPointerType(Type *elementType);
 

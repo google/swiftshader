@@ -719,7 +719,7 @@ namespace sw
 		return shuffle;
 	}
 
-	Value *Nucleus::createConstantPointer(const void *address, Type *Ty, bool isConstant, unsigned int Align)
+	Value *Nucleus::createConstantPointer(const void *address, Type *Ty, unsigned int align)
 	{
 		const GlobalValue *existingGlobal = ::executionEngine->getGlobalValueAtAddress(const_cast<void*>(address));   // FIXME: Const
 
@@ -728,9 +728,8 @@ namespace sw
 			return (Value*)existingGlobal;
 		}
 
-		llvm::GlobalValue *global = new llvm::GlobalVariable(*::module, Ty, isConstant, llvm::GlobalValue::ExternalLinkage, 0, "");
-
-		global->setAlignment(Align);
+		llvm::GlobalValue *global = new llvm::GlobalVariable(*::module, Ty, true, llvm::GlobalValue::ExternalLinkage, 0, "");
+		global->setAlignment(align);
 
 		::executionEngine->addGlobalMapping(global, const_cast<void*>(address));
 
