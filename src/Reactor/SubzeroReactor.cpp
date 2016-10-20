@@ -825,130 +825,147 @@ namespace sw
 		assert(false && "UNIMPLEMENTED"); return nullptr;
 	}
 
-	Value *Nucleus::createICmpEQ(Value *lhs, Value *rhs)
-	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
-	}
-
-	Value *Nucleus::createICmpNE(Value *lhs, Value *rhs)
-	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
-	}
-
-	Value *Nucleus::createICmpUGT(Value *lhs, Value *rhs)
-	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
-	}
-
-	Value *Nucleus::createICmpUGE(Value *lhs, Value *rhs)
-	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
-	}
-
-	Value *Nucleus::createICmpULT(Value *lhs, Value *rhs)
-	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
-	}
-
-	Value *Nucleus::createICmpULE(Value *lhs, Value *rhs)
-	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
-	}
-
-	Value *Nucleus::createICmpSGT(Value *lhs, Value *rhs)
-	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
-	}
-
-	Value *Nucleus::createICmpSGE(Value *lhs, Value *rhs)
-	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
-	}
-
-	Value *Nucleus::createICmpSLT(Value *lhs, Value *rhs)
+	static Value *createIntCompare(Ice::InstIcmp::ICond condition, Value *lhs, Value *rhs)
 	{
 		assert(lhs->getType() == rhs->getType());
 
-		auto result = ::function->makeVariable(Ice::IceType_i1);
-		auto cmp = Ice::InstIcmp::create(::function, Ice::InstIcmp::Slt, result, lhs, rhs);
+		auto result = ::function->makeVariable(Ice::isScalarIntegerType(lhs->getType()) ? Ice::IceType_i1 : lhs->getType());
+		auto cmp = Ice::InstIcmp::create(::function, condition, result, lhs, rhs);
 		::basicBlock->appendInst(cmp);
 
 		return V(result);
 	}
 
+	Value *Nucleus::createICmpEQ(Value *lhs, Value *rhs)
+	{
+		return createIntCompare(Ice::InstIcmp::Eq, lhs, rhs);
+	}
+
+	Value *Nucleus::createICmpNE(Value *lhs, Value *rhs)
+	{
+		return createIntCompare(Ice::InstIcmp::Ne, lhs, rhs);
+	}
+
+	Value *Nucleus::createICmpUGT(Value *lhs, Value *rhs)
+	{
+		return createIntCompare(Ice::InstIcmp::Ugt, lhs, rhs);
+	}
+
+	Value *Nucleus::createICmpUGE(Value *lhs, Value *rhs)
+	{
+		return createIntCompare(Ice::InstIcmp::Uge, lhs, rhs);
+	}
+
+	Value *Nucleus::createICmpULT(Value *lhs, Value *rhs)
+	{
+		return createIntCompare(Ice::InstIcmp::Ult, lhs, rhs);
+	}
+
+	Value *Nucleus::createICmpULE(Value *lhs, Value *rhs)
+	{
+		return createIntCompare(Ice::InstIcmp::Ule, lhs, rhs);
+	}
+
+	Value *Nucleus::createICmpSGT(Value *lhs, Value *rhs)
+	{
+		return createIntCompare(Ice::InstIcmp::Sgt, lhs, rhs);
+	}
+
+	Value *Nucleus::createICmpSGE(Value *lhs, Value *rhs)
+	{
+		return createIntCompare(Ice::InstIcmp::Sge, lhs, rhs);
+	}
+
+	Value *Nucleus::createICmpSLT(Value *lhs, Value *rhs)
+	{
+		return createIntCompare(Ice::InstIcmp::Slt, lhs, rhs);
+	}
+
 	Value *Nucleus::createICmpSLE(Value *lhs, Value *rhs)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		return createIntCompare(Ice::InstIcmp::Sle, lhs, rhs);
+	}
+
+	static Value *createFloatCompare(Ice::InstFcmp::FCond condition, Value *lhs, Value *rhs)
+	{
+		assert(lhs->getType() == rhs->getType());
+		assert(Ice::isScalarFloatingType(lhs->getType()) || lhs->getType() == Ice::IceType_v4f32);
+
+		auto result = ::function->makeVariable(Ice::isScalarFloatingType(lhs->getType()) ? Ice::IceType_i1 : Ice::IceType_v4i32);
+		auto cmp = Ice::InstFcmp::create(::function, condition, result, lhs, rhs);
+		::basicBlock->appendInst(cmp);
+
+		return V(result);
 	}
 
 	Value *Nucleus::createFCmpOEQ(Value *lhs, Value *rhs)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		return createFloatCompare(Ice::InstFcmp::Oeq, lhs, rhs);
 	}
 
 	Value *Nucleus::createFCmpOGT(Value *lhs, Value *rhs)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		return createFloatCompare(Ice::InstFcmp::Ogt, lhs, rhs);
 	}
 
 	Value *Nucleus::createFCmpOGE(Value *lhs, Value *rhs)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		return createFloatCompare(Ice::InstFcmp::Oge, lhs, rhs);
 	}
 
 	Value *Nucleus::createFCmpOLT(Value *lhs, Value *rhs)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		return createFloatCompare(Ice::InstFcmp::Olt, lhs, rhs);
 	}
 
 	Value *Nucleus::createFCmpOLE(Value *lhs, Value *rhs)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		return createFloatCompare(Ice::InstFcmp::Ole, lhs, rhs);
 	}
 
 	Value *Nucleus::createFCmpONE(Value *lhs, Value *rhs)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		return createFloatCompare(Ice::InstFcmp::One, lhs, rhs);
 	}
 
 	Value *Nucleus::createFCmpORD(Value *lhs, Value *rhs)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		return createFloatCompare(Ice::InstFcmp::Ord, lhs, rhs);
 	}
 
 	Value *Nucleus::createFCmpUNO(Value *lhs, Value *rhs)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		return createFloatCompare(Ice::InstFcmp::Uno, lhs, rhs);
 	}
 
 	Value *Nucleus::createFCmpUEQ(Value *lhs, Value *rhs)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		return createFloatCompare(Ice::InstFcmp::Ueq, lhs, rhs);
 	}
 
 	Value *Nucleus::createFCmpUGT(Value *lhs, Value *rhs)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		return createFloatCompare(Ice::InstFcmp::Ugt, lhs, rhs);
 	}
 
 	Value *Nucleus::createFCmpUGE(Value *lhs, Value *rhs)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		return createFloatCompare(Ice::InstFcmp::Uge, lhs, rhs);
 	}
 
 	Value *Nucleus::createFCmpULT(Value *lhs, Value *rhs)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		return createFloatCompare(Ice::InstFcmp::Ult, lhs, rhs);
 	}
 
 	Value *Nucleus::createFCmpULE(Value *lhs, Value *rhs)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		return createFloatCompare(Ice::InstFcmp::Ule, lhs, rhs);
 	}
 
 	Value *Nucleus::createFCmpUNE(Value *lhs, Value *rhs)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		return createFloatCompare(Ice::InstFcmp::Une, lhs, rhs);
 	}
 
 	Value *Nucleus::createExtractElement(Value *vector, Type *type, int index)
