@@ -2778,7 +2778,14 @@ namespace sw
 
 	RValue<Int> SignMask(RValue<SByte8> x)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<Int>(V(nullptr));
+		Ice::Variable *result = ::function->makeVariable(Ice::IceType_i32);
+		const Ice::Intrinsics::IntrinsicInfo intrinsic = {Ice::Intrinsics::SignMask, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F};
+		auto target = ::context->getConstantUndef(Ice::IceType_i32);
+		auto movmsk = Ice::InstIntrinsicCall::create(::function, 1, result, target, intrinsic);
+		movmsk->addArg(x.value);
+		::basicBlock->appendInst(movmsk);
+
+		return RValue<Int>(V(result));
 	}
 
 	RValue<Byte8> CmpGT(RValue<SByte8> x, RValue<SByte8> y)
@@ -5182,7 +5189,14 @@ namespace sw
 
 	RValue<Int> SignMask(RValue<Int4> x)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<Int>(V(nullptr));
+		Ice::Variable *result = ::function->makeVariable(Ice::IceType_i32);
+		const Ice::Intrinsics::IntrinsicInfo intrinsic = {Ice::Intrinsics::SignMask, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F};
+		auto target = ::context->getConstantUndef(Ice::IceType_i32);
+		auto movmsk = Ice::InstIntrinsicCall::create(::function, 1, result, target, intrinsic);
+		movmsk->addArg(x.value);
+		::basicBlock->appendInst(movmsk);
+
+		return RValue<Int>(V(result));
 	}
 
 	RValue<Int4> Swizzle(RValue<Int4> x, unsigned char select)
@@ -6004,7 +6018,14 @@ namespace sw
 
 	RValue<Int> SignMask(RValue<Float4> x)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<Int>(V(nullptr));
+		Ice::Variable *result = ::function->makeVariable(Ice::IceType_i32);
+		const Ice::Intrinsics::IntrinsicInfo intrinsic = {Ice::Intrinsics::SignMask, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F};
+		auto target = ::context->getConstantUndef(Ice::IceType_i32);
+		auto movmsk = Ice::InstIntrinsicCall::create(::function, 1, result, target, intrinsic);
+		movmsk->addArg(x.value);
+		::basicBlock->appendInst(movmsk);
+
+		return RValue<Int>(V(result));
 	}
 
 	RValue<Int4> CmpEQ(RValue<Float4> x, RValue<Float4> y)
