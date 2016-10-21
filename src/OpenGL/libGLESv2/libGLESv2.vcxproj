@@ -136,6 +136,7 @@
       <BrowseInformation>true</BrowseInformation>
       <TreatWarningAsError>true</TreatWarningAsError>
       <DisableSpecificWarnings>%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <AdditionalDependencies>dxguid.lib;WS2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -165,6 +166,7 @@ copy "$(OutDir)libGLESv2.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\tr
       <BrowseInformation>true</BrowseInformation>
       <TreatWarningAsError>true</TreatWarningAsError>
       <DisableSpecificWarnings>%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <AdditionalDependencies>dxguid.lib;WS2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -201,6 +203,7 @@ copy "$(OutDir)libGLESv2.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\tr
       <IntrinsicFunctions>false</IntrinsicFunctions>
       <TreatWarningAsError>true</TreatWarningAsError>
       <DisableSpecificWarnings>%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <AdditionalDependencies>dxguid.lib;WS2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -238,6 +241,7 @@ copy "$(OutDir)libGLESv2.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\tr
       <IntrinsicFunctions>false</IntrinsicFunctions>
       <TreatWarningAsError>true</TreatWarningAsError>
       <DisableSpecificWarnings>%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <AdditionalDependencies>dxguid.lib;WS2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>

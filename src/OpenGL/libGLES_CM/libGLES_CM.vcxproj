@@ -134,6 +134,7 @@
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <BrowseInformation>true</BrowseInformation>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <AdditionalDependencies>dxguid.lib;WS2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -161,6 +162,7 @@ copy "$(OutDir)libGLES_CM.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\t
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <BrowseInformation>true</BrowseInformation>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <AdditionalDependencies>dxguid.lib;WS2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -195,6 +197,7 @@ copy "$(OutDir)libGLES_CM.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\t
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <IntrinsicFunctions>false</IntrinsicFunctions>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <AdditionalDependencies>dxguid.lib;WS2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -230,6 +233,7 @@ copy "$(OutDir)libGLES_CM.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\t
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <IntrinsicFunctions>false</IntrinsicFunctions>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <AdditionalDependencies>dxguid.lib;WS2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>

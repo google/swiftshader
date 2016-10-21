@@ -90,6 +90,7 @@
       <AdditionalIncludeDirectories>..\;$(SolutionDir)third_party\pnacl-subzero;$(SolutionDir)third_party\llvm-subzero\include;$(SolutionDir)third_party\pnacl-subzero\pnacl-llvm\include;SubmoduleCheck</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <ForcedIncludeFiles>src/IceTypes.h</ForcedIncludeFiles>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -107,6 +108,7 @@
       <AdditionalIncludeDirectories>..\;$(SolutionDir)third_party\pnacl-subzero;$(SolutionDir)third_party\llvm-subzero\include;$(SolutionDir)third_party\pnacl-subzero\pnacl-llvm\include;SubmoduleCheck</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <ForcedIncludeFiles>src/IceTypes.h</ForcedIncludeFiles>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -125,6 +127,7 @@
       <AdditionalUsingDirectories>%(AdditionalUsingDirectories)</AdditionalUsingDirectories>
       <AdditionalIncludeDirectories>..\;$(SolutionDir)third_party\pnacl-subzero;$(SolutionDir)third_party\llvm-subzero\include;$(SolutionDir)third_party\pnacl-subzero\pnacl-llvm\include;SubmoduleCheck</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>src/IceTypes.h</ForcedIncludeFiles>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -149,6 +152,7 @@
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <ForcedIncludeFiles>src/IceTypes.h</ForcedIncludeFiles>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
