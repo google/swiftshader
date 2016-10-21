@@ -182,6 +182,82 @@ TEST(SubzeroReactorTest, VectorConstant)
 	delete routine;
 }
 
+TEST(SubzeroReactorTest, Swizzle)
+{
+	Routine *routine = nullptr;
+
+	{
+		Function<Int(Pointer<Byte>)> function;
+		{
+			Pointer<Byte> out = function.Arg<0>();
+
+			for(int i = 0; i < 256; i++)
+			{
+				*Pointer<Float4>(out + 16 * i) = Swizzle(Float4(1.0f, 2.0f, 3.0f, 4.0f), i);
+			}
+
+			for(int i = 0; i < 256; i++)
+			{
+				*Pointer<Float4>(out + 16 * (256 + i)) = ShuffleLowHigh(Float4(1.0f, 2.0f, 3.0f, 4.0f), Float4(5.0f, 6.0f, 7.0f, 8.0f), i);
+			}
+
+			*Pointer<Float4>(out + 16 * (512 + 0)) = UnpackLow(Float4(1.0f, 2.0f, 3.0f, 4.0f), Float4(5.0f, 6.0f, 7.0f, 8.0f));
+			*Pointer<Float4>(out + 16 * (512 + 1)) = UnpackHigh(Float4(1.0f, 2.0f, 3.0f, 4.0f), Float4(5.0f, 6.0f, 7.0f, 8.0f));
+
+			Return(0);
+		}
+
+		routine = function(L"one");
+
+		if(routine)
+		{
+			float out[256 + 256 + 2][4];
+			memset(out, 0, sizeof(out));
+
+			float exp[256 + 256 + 2][4];
+
+			for(int i = 0; i < 256; i++)
+			{
+				exp[i][0] = float((i >> 0) & 0x03) + 1.0f;
+				exp[i][1] = float((i >> 2) & 0x03) + 1.0f;
+				exp[i][2] = float((i >> 4) & 0x03) + 1.0f;
+				exp[i][3] = float((i >> 6) & 0x03) + 1.0f;
+			}
+
+			for(int i = 0; i < 256; i++)
+			{
+				exp[256 + i][0] = float((i >> 0) & 0x03) + 1.0f;
+				exp[256 + i][1] = float((i >> 2) & 0x03) + 1.0f;
+				exp[256 + i][2] = float((i >> 4) & 0x03) + 5.0f;
+				exp[256 + i][3] = float((i >> 6) & 0x03) + 5.0f;
+			}
+
+			exp[512 + 0][0] = 1.0f;
+			exp[512 + 0][1] = 5.0f;
+			exp[512 + 0][2] = 2.0f;
+			exp[512 + 0][3] = 6.0f;
+
+			exp[512 + 1][0] = 3.0f;
+			exp[512 + 1][1] = 7.0f;
+			exp[512 + 1][2] = 4.0f;
+			exp[512 + 1][3] = 8.0f;
+
+			int(*callable)(void*) = (int(*)(void*))routine->getEntry();
+			callable(out);
+
+			for(int i = 0; i < 256 + 256 + 2; i++)
+			{
+				EXPECT_EQ(out[i][0], exp[i][0]);
+				EXPECT_EQ(out[i][1], exp[i][1]);
+				EXPECT_EQ(out[i][2], exp[i][2]);
+				EXPECT_EQ(out[i][3], exp[i][3]);
+			}
+		}
+	}
+
+	delete routine;
+}
+
 int main(int argc, char **argv)
 {
 	::testing::InitGoogleTest(&argc, argv);
