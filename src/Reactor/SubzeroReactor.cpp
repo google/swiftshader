@@ -2542,12 +2542,14 @@ namespace sw
 
 	RValue<Short4> Unpack(RValue<Byte4> x)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<Short4>(V(nullptr));
+		int shuffle[16] = {0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7};   // Real type is v16i8
+		return RValue<Short4>(Nucleus::createShuffleVector(x.value, x.value, shuffle));
 	}
 
 	RValue<Short4> UnpackLow(RValue<Byte8> x, RValue<Byte8> y)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<Short4>(V(nullptr));
+		int shuffle[16] = {0, 16, 1, 17, 2, 18, 3, 19, 4, 20, 5, 21, 6, 22, 7, 23};   // Real type is v16i8
+		return RValue<Short4>(Nucleus::createShuffleVector(x.value, y.value, shuffle));
 	}
 
 	RValue<Short4> UnpackHigh(RValue<Byte8> x, RValue<Byte8> y)
@@ -2763,7 +2765,8 @@ namespace sw
 
 	RValue<Short4> UnpackLow(RValue<SByte8> x, RValue<SByte8> y)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<Short4>(V(nullptr));
+		int shuffle[16] = {0, 16, 1, 17, 2, 18, 3, 19, 4, 20, 5, 21, 6, 22, 7, 23};   // Real type is v16i8
+		return RValue<Short4>(Nucleus::createShuffleVector(x.value, y.value, shuffle));
 	}
 
 	RValue<Short4> UnpackHigh(RValue<SByte8> x, RValue<SByte8> y)
@@ -3185,7 +3188,8 @@ namespace sw
 
 	RValue<Int2> UnpackLow(RValue<Short4> x, RValue<Short4> y)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<Int2>(V(nullptr));
+		int shuffle[8] = {0, 8, 1, 9, 2, 10, 3, 11};   // Real type is v8i16
+		return RValue<Int2>(Nucleus::createShuffleVector(x.value, y.value, shuffle));
 	}
 
 	RValue<Int2> UnpackHigh(RValue<Short4> x, RValue<Short4> y)
@@ -3195,7 +3199,20 @@ namespace sw
 
 	RValue<Short4> Swizzle(RValue<Short4> x, unsigned char select)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<Short4>(V(nullptr));
+		// Real type is v8i16
+		int shuffle[8] =
+		{
+			(select >> 0) & 0x03,
+			(select >> 2) & 0x03,
+			(select >> 4) & 0x03,
+			(select >> 6) & 0x03,
+			(select >> 0) & 0x03,
+			(select >> 2) & 0x03,
+			(select >> 4) & 0x03,
+			(select >> 6) & 0x03,
+		};
+
+		return RValue<Short4>(Nucleus::createShuffleVector(x.value, x.value, shuffle));
 	}
 
 	RValue<Short4> Insert(RValue<Short4> val, RValue<Short> element, int i)
@@ -5955,17 +5972,27 @@ namespace sw
 
 	RValue<Float4> ShuffleLowHigh(RValue<Float4> x, RValue<Float4> y, unsigned char imm)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<Float4>(V(nullptr));
+		int shuffle[4] =
+		{
+			((imm >> 0) & 0x03) + 0,
+			((imm >> 2) & 0x03) + 0,
+			((imm >> 4) & 0x03) + 4,
+			((imm >> 6) & 0x03) + 4,
+		};
+
+		return RValue<Float4>(Nucleus::createShuffleVector(x.value, y.value, shuffle));
 	}
 
 	RValue<Float4> UnpackLow(RValue<Float4> x, RValue<Float4> y)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<Float4>(V(nullptr));
+		int shuffle[4] = {0, 4, 1, 5};
+		return RValue<Float4>(Nucleus::createShuffleVector(x.value, y.value, shuffle));
 	}
 
 	RValue<Float4> UnpackHigh(RValue<Float4> x, RValue<Float4> y)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<Float4>(V(nullptr));
+		int shuffle[4] = {2, 6, 3, 7};
+		return RValue<Float4>(Nucleus::createShuffleVector(x.value, y.value, shuffle));
 	}
 
 	RValue<Float4> Mask(Float4 &lhs, RValue<Float4> rhs, unsigned char select)
