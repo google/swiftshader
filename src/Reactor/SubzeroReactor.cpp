@@ -95,6 +95,11 @@ namespace sw
 		return reinterpret_cast<Value*>(v);
 	}
 
+	Value *C(Ice::Constant *c)   // Only safe for casting right-hand side operand
+	{
+		return reinterpret_cast<Value*>(c);
+	}
+
 	BasicBlock *B(Ice::CfgNode *b)
 	{
 		return reinterpret_cast<BasicBlock*>(b);
@@ -525,7 +530,7 @@ namespace sw
 
 	static Value *createArithmetic(Ice::InstArithmetic::OpKind op, Value *lhs, Value *rhs)
 	{
-		assert(lhs->getType() == rhs->getType());
+		assert(lhs->getType() == rhs->getType() || (llvm::isa<Ice::Constant>(rhs) && (op == Ice::InstArithmetic::Shl || Ice::InstArithmetic::Lshr || Ice::InstArithmetic::Ashr)));
 
 		Ice::Variable *result = ::function->makeVariable(lhs->getType());
 		Ice::InstArithmetic *arithmetic = Ice::InstArithmetic::create(::function, op, result, lhs, rhs);
@@ -2454,12 +2459,12 @@ namespace sw
 
 //	RValue<Byte8> operator<<(RValue<Byte8> lhs, unsigned char rhs)
 //	{
-//		return RValue<Byte8>(Nucleus::createShl(lhs.value, rhs.value));
+//		return RValue<Byte8>(Nucleus::createShl(lhs.value, C(::context->getConstantInt32(rhs))));
 //	}
 
 //	RValue<Byte8> operator>>(RValue<Byte8> lhs, unsigned char rhs)
 //	{
-//		return RValue<Byte8>(Nucleus::createLShr(lhs.value, rhs.value));
+//		return RValue<Byte8>(Nucleus::createLShr(lhs.value, C(::context->getConstantInt32(rhs))));
 //	}
 
 	RValue<Byte8> operator+=(const Byte8 &lhs, RValue<Byte8> rhs)
@@ -2677,12 +2682,12 @@ namespace sw
 
 //	RValue<SByte8> operator<<(RValue<SByte8> lhs, unsigned char rhs)
 //	{
-//		return RValue<SByte8>(Nucleus::createShl(lhs.value, rhs.value));
+//		return RValue<SByte8>(Nucleus::createShl(lhs.value, C(::context->getConstantInt32(rhs))));
 //	}
 
 //	RValue<SByte8> operator>>(RValue<SByte8> lhs, unsigned char rhs)
 //	{
-//		return RValue<SByte8>(Nucleus::createAShr(lhs.value, rhs.value));
+//		return RValue<SByte8>(Nucleus::createAShr(lhs.value, C(::context->getConstantInt32(rhs))));
 //	}
 
 	RValue<SByte8> operator+=(const SByte8 &lhs, RValue<SByte8> rhs)
@@ -3042,16 +3047,12 @@ namespace sw
 
 	RValue<Short4> operator<<(RValue<Short4> lhs, unsigned char rhs)
 	{
-	//	return RValue<Short4>(Nucleus::createShl(lhs.value, rhs.value));
-
-		assert(false && "UNIMPLEMENTED"); return RValue<Short4>(V(nullptr));
+		return RValue<Short4>(Nucleus::createShl(lhs.value, C(::context->getConstantInt32(rhs))));
 	}
 
 	RValue<Short4> operator>>(RValue<Short4> lhs, unsigned char rhs)
 	{
-	//	return RValue<Short4>(Nucleus::createAShr(lhs.value, rhs.value));
-
-		assert(false && "UNIMPLEMENTED"); return RValue<Short4>(V(nullptr));
+		return RValue<Short4>(Nucleus::createAShr(lhs.value, C(::context->getConstantInt32(rhs))));
 	}
 
 	RValue<Short4> operator<<(RValue<Short4> lhs, RValue<Long1> rhs)
@@ -3392,12 +3393,12 @@ namespace sw
 
 	RValue<UShort4> operator<<(RValue<UShort4> lhs, unsigned char rhs)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<UShort4>(V(nullptr));
+		return RValue<UShort4>(Nucleus::createShl(lhs.value, C(::context->getConstantInt32(rhs))));
 	}
 
 	RValue<UShort4> operator>>(RValue<UShort4> lhs, unsigned char rhs)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<UShort4>(V(nullptr));
+		return RValue<UShort4>(Nucleus::createLShr(lhs.value, C(::context->getConstantInt32(rhs))));
 	}
 
 	RValue<UShort4> operator<<(RValue<UShort4> lhs, RValue<Long1> rhs)
@@ -3515,12 +3516,12 @@ namespace sw
 
 	RValue<Short8> operator<<(RValue<Short8> lhs, unsigned char rhs)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<Short8>(V(nullptr));
+		return RValue<Short8>(Nucleus::createShl(lhs.value, C(::context->getConstantInt32(rhs))));
 	}
 
 	RValue<Short8> operator>>(RValue<Short8> lhs, unsigned char rhs)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<Short8>(V(nullptr));
+		return RValue<Short8>(Nucleus::createAShr(lhs.value, C(::context->getConstantInt32(rhs))));
 	}
 
 	RValue<Int4> MulAdd(RValue<Short8> x, RValue<Short8> y)
@@ -3595,12 +3596,12 @@ namespace sw
 
 	RValue<UShort8> operator<<(RValue<UShort8> lhs, unsigned char rhs)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<UShort8>(V(nullptr));
+		return RValue<UShort8>(Nucleus::createShl(lhs.value, C(::context->getConstantInt32(rhs))));
 	}
 
 	RValue<UShort8> operator>>(RValue<UShort8> lhs, unsigned char rhs)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<UShort8>(V(nullptr));
+		return RValue<UShort8>(Nucleus::createLShr(lhs.value, C(::context->getConstantInt32(rhs))));
 	}
 
 	RValue<UShort8> operator+(RValue<UShort8> lhs, RValue<UShort8> rhs)
@@ -4520,12 +4521,12 @@ namespace sw
 
 	RValue<Int2> operator<<(RValue<Int2> lhs, unsigned char rhs)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<Int2>(V(nullptr));
+		return RValue<Int2>(Nucleus::createShl(lhs.value, C(::context->getConstantInt32(rhs))));
 	}
 
 	RValue<Int2> operator>>(RValue<Int2> lhs, unsigned char rhs)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<Int2>(V(nullptr));
+		return RValue<Int2>(Nucleus::createAShr(lhs.value, C(::context->getConstantInt32(rhs))));
 	}
 
 	RValue<Int2> operator<<(RValue<Int2> lhs, RValue<Long1> rhs)
@@ -4739,12 +4740,12 @@ namespace sw
 
 	RValue<UInt2> operator<<(RValue<UInt2> lhs, unsigned char rhs)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<UInt2>(V(nullptr));
+		return RValue<UInt2>(Nucleus::createShl(lhs.value, C(::context->getConstantInt32(rhs))));
 	}
 
 	RValue<UInt2> operator>>(RValue<UInt2> lhs, unsigned char rhs)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<UInt2>(V(nullptr));
+		return RValue<UInt2>(Nucleus::createLShr(lhs.value, C(::context->getConstantInt32(rhs))));
 	}
 
 	RValue<UInt2> operator<<(RValue<UInt2> lhs, RValue<Long1> rhs)
@@ -5036,12 +5037,12 @@ namespace sw
 
 	RValue<Int4> operator<<(RValue<Int4> lhs, unsigned char rhs)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<Int4>(V(nullptr));
+		return RValue<Int4>(Nucleus::createShl(lhs.value, C(::context->getConstantInt32(rhs))));
 	}
 
 	RValue<Int4> operator>>(RValue<Int4> lhs, unsigned char rhs)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<Int4>(V(nullptr));
+		return RValue<Int4>(Nucleus::createAShr(lhs.value, C(::context->getConstantInt32(rhs))));
 	}
 
 	RValue<Int4> operator<<(RValue<Int4> lhs, RValue<Int4> rhs)
@@ -5350,12 +5351,12 @@ namespace sw
 
 	RValue<UInt4> operator<<(RValue<UInt4> lhs, unsigned char rhs)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<UInt4>(V(nullptr));
+		return RValue<UInt4>(Nucleus::createShl(lhs.value, C(::context->getConstantInt32(rhs))));
 	}
 
 	RValue<UInt4> operator>>(RValue<UInt4> lhs, unsigned char rhs)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<UInt4>(V(nullptr));
+		return RValue<UInt4>(Nucleus::createLShr(lhs.value, C(::context->getConstantInt32(rhs))));
 	}
 
 	RValue<UInt4> operator<<(RValue<UInt4> lhs, RValue<UInt4> rhs)
