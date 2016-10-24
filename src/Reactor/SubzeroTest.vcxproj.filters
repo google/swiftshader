@@ -27,5 +27,37 @@
     <ClCompile Include="..\..\third_party\pnacl-subzero\unittest\AssemblerX8664\XmmArith.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\third_party\pnacl-subzero\unittest\AssemblerX8664\DataMov.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\third_party\pnacl-subzero\unittest\AssemblerX8632\DataMov.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\third_party\pnacl-subzero\unittest\AssemblerX8664\ControlFlow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\third_party\pnacl-subzero\unittest\AssemblerX8632\ControlFlow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\third_party\pnacl-subzero\unittest\AssemblerX8664\LowLevel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\third_party\pnacl-subzero\unittest\AssemblerX8664\Other.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\third_party\pnacl-subzero\unittest\AssemblerX8632\LowLevel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\third_party\pnacl-subzero\unittest\AssemblerX8632\Other.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\third_party\pnacl-subzero\unittest\AssemblerX8632\TestUtil.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\third_party\pnacl-subzero\unittest\AssemblerX8664\TestUtil.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
