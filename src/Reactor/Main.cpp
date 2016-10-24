@@ -258,6 +258,64 @@ TEST(SubzeroReactorTest, Swizzle)
 	delete routine;
 }
 
+TEST(SubzeroReactorTest, Branching)
+{
+	Routine *routine = nullptr;
+
+	{
+		Function<Int(Void)> function;
+		{
+			Int x = 0;
+
+			For(Int i = 0, i < 8, i++)
+			{
+				If(i < 2)
+				{
+					x += 1;
+				}
+				Else If(i < 4)
+				{
+					x += 10;
+				}
+				Else If(i < 6)
+				{
+					x += 100;
+				}
+				Else
+				{
+					x += 1000;
+				}
+
+				For(Int i = 0, i < 5, i++)
+					x += 10000;
+			}
+
+			For(Int j = 0, j < 2, j++)
+				If(x == 402222)
+				{
+					If(x != 402222)
+						x += 1000000;
+				}
+				Else
+					x = -5;
+
+			Return(x);
+		}
+
+		routine = function(L"one");
+
+		if(routine)
+		{
+			int(*callable)() = (int(*)())routine->getEntry();
+			int result = callable();
+
+			EXPECT_EQ(result, 402222);
+		}
+	}
+
+	delete routine;
+}
+
 int main(int argc, char **argv)
 {
 	::testing::InitGoogleTest(&argc, argv);

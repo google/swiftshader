@@ -69,6 +69,8 @@ namespace
 	llvm::Function *function = nullptr;
 
 	sw::BackoffLock codegenMutex;
+
+	sw::BasicBlock *falseBB = nullptr;
 }
 
 namespace sw
@@ -284,11 +286,6 @@ namespace sw
 	{
 	//	assert(::builder->GetInsertBlock()->back().isTerminator());
 		return ::builder->SetInsertPoint(basicBlock);
-	}
-
-	BasicBlock *Nucleus::getPredecessor(BasicBlock *basicBlock)
-	{
-		return B(*pred_begin(basicBlock));
 	}
 
 	void Nucleus::createFunction(Type *ReturnType, std::vector<Type*> &Params)
@@ -6739,12 +6736,26 @@ namespace sw
 		return true;
 	}
 
+	void endIf(BasicBlock *falseBB)
+	{
+		::falseBB = falseBB;
+	}
+
 	bool elseBlock(BasicBlock *falseBB)
 	{
+		assert(falseBB && "Else not preceded by If");
 		falseBB->back().eraseFromParent();
 		Nucleus::setInsertBlock(falseBB);
 
 		return true;
+	}
+
+	BasicBlock *beginElse()
+	{
+		BasicBlock *falseBB = ::falseBB;
+		::falseBB = nullptr;
+
+		return falseBB;
 	}
 
 	RValue<Long> Ticks()

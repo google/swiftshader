@@ -2227,7 +2227,9 @@ namespace sw
 
 	BasicBlock *beginLoop();
 	bool branch(RValue<Bool> cmp, BasicBlock *bodyBB, BasicBlock *endBB);
+	void endIf(BasicBlock *falseBB);
 	bool elseBlock(BasicBlock *falseBB);
+	BasicBlock *beginElse();
 
 	void Return();
 	void Return(bool ret);
@@ -2840,18 +2842,25 @@ namespace sw
 
 	#define If(cond)                                        \
 	for(BasicBlock *trueBB__ = Nucleus::createBasicBlock(), \
-		*falseBB__ = Nucleus::createBasicBlock(),           \
-		*endBB__ = Nucleus::createBasicBlock(),             \
-		*onceBB__ = endBB__;                                \
-		onceBB__ && branch(cond, trueBB__, falseBB__);      \
-		onceBB__ = 0, Nucleus::createBr(endBB__), Nucleus::setInsertBlock(falseBB__), Nucleus::createBr(endBB__), Nucleus::setInsertBlock(endBB__))
+	    *falseBB__ = Nucleus::createBasicBlock(),           \
+	    *endBB__ = Nucleus::createBasicBlock(),             \
+	    *onceBB__ = endBB__;                                \
+	    onceBB__ && branch(cond, trueBB__, falseBB__);      \
+	    onceBB__ = nullptr,                                 \
+	    Nucleus::createBr(endBB__),                         \
+	    Nucleus::setInsertBlock(falseBB__),                 \
+	    Nucleus::createBr(endBB__),                         \
+	    Nucleus::setInsertBlock(endBB__),                   \
+	    endIf(falseBB__))
 
 	#define Else                                         \
-	for(BasicBlock *endBB__ = Nucleus::getInsertBlock(), \
-		*falseBB__ = Nucleus::getPredecessor(endBB__),   \
-		*onceBB__ = endBB__;                             \
-		onceBB__ && elseBlock(falseBB__);                \
-		onceBB__ = 0, Nucleus::createBr(endBB__), Nucleus::setInsertBlock(endBB__))
+	for(BasicBlock *elseBB__ = beginElse(),              \
+	    *endBB__ = Nucleus::getInsertBlock(),            \
+	    *onceBB__ = endBB__;                             \
+	    onceBB__ && elseBlock(elseBB__);                 \
+	    onceBB__ = nullptr,                              \
+	    Nucleus::createBr(endBB__),                      \
+	    Nucleus::setInsertBlock(endBB__))
 }
 
 #endif   // sw_Reactor_hpp

@@ -57,7 +57,6 @@ namespace sw
 		static BasicBlock *createBasicBlock();
 		static BasicBlock *getInsertBlock();
 		static void setInsertBlock(BasicBlock *basicBlock);
-		static BasicBlock *getPredecessor(BasicBlock *basicBlock);
 
 		static void createFunction(Type *ReturnType, std::vector<Type*> &Params);
 		static Value *getArgument(unsigned int index);
