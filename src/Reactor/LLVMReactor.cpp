@@ -6718,16 +6718,6 @@ namespace sw
 		Nucleus::createUnreachable();
 	}
 
-	BasicBlock *beginLoop()
-	{
-		BasicBlock *loopBB = Nucleus::createBasicBlock();
-
-		Nucleus::createBr(loopBB);
-		Nucleus::setInsertBlock(loopBB);
-
-		return loopBB;
-	}
-
 	bool branch(RValue<Bool> cmp, BasicBlock *bodyBB, BasicBlock *endBB)
 	{
 		Nucleus::createCondBr(cmp.value, bodyBB, endBB);

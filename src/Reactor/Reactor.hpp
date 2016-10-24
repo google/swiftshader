@@ -2225,7 +2225,60 @@ namespace sw
 //	RValue<Array<T>> operator--(const Array<T> &val, int);   // Post-decrement
 //	const Array<T> &operator--(const Array<T> &val);   // Pre-decrement
 
-	BasicBlock *beginLoop();
+	struct Loop
+	{
+		Loop(bool init) : loopOnce(init)
+		{
+		}
+
+		operator bool()
+		{
+			return loopOnce;
+		}
+
+		bool operator=(bool value)
+		{
+			return loopOnce = value;
+		}
+
+		bool setup()
+		{
+			if(Nucleus::getInsertBlock() != endBB)
+			{
+				testBB = Nucleus::createBasicBlock();
+
+				Nucleus::createBr(testBB);
+				Nucleus::setInsertBlock(testBB);
+
+				return true;
+			}
+
+			return false;
+		}
+
+		bool test(RValue<Bool> cmp)
+		{
+			BasicBlock *bodyBB = Nucleus::createBasicBlock();
+			endBB = Nucleus::createBasicBlock();
+
+			Nucleus::createCondBr(cmp.value, bodyBB, endBB);
+			Nucleus::setInsertBlock(bodyBB);
+
+			return true;
+		}
+
+		void end()
+		{
+			Nucleus::createBr(testBB);
+			Nucleus::setInsertBlock(endBB);
+		}
+
+	private:
+		BasicBlock *testBB = nullptr;
+		BasicBlock *endBB = nullptr;
+		bool loopOnce = true;
+	};
+
 	bool branch(RValue<Bool> cmp, BasicBlock *bodyBB, BasicBlock *endBB);
 	void endIf(BasicBlock *falseBB);
 	bool elseBlock(BasicBlock *falseBB);
@@ -2817,27 +2870,24 @@ namespace sw
 		return ReinterpretCast<T>(val);
 	}
 
-	#define For(init, cond, inc)                     \
-	init;                                            \
-	for(BasicBlock *loopBB__ = beginLoop(),          \
-		*bodyBB__ = Nucleus::createBasicBlock(),     \
-		*endBB__ = Nucleus::createBasicBlock(),      \
-		*onceBB__ = endBB__;                         \
-		onceBB__ && branch(cond, bodyBB__, endBB__); \
-		inc, onceBB__ = 0, Nucleus::createBr(loopBB__), Nucleus::setInsertBlock(endBB__))
+	extern BasicBlock *falseBB__;
 
-	#define While(cond) For(((void*)0), cond, ((void*)0))
+	#define For(init, cond, inc) \
+	for(Loop loop__ = true; loop__; loop__ = false) \
+	for(init; loop__.setup() && loop__.test(cond); inc, loop__.end())
 
-	#define Do                                          \
-	{                                                   \
-		BasicBlock *body = Nucleus::createBasicBlock(); \
-		Nucleus::createBr(body);                        \
-		Nucleus::setInsertBlock(body);
+	#define While(cond) For((void)0, cond, (void)0)
 
-	#define Until(cond)                                 \
-		BasicBlock *end = Nucleus::createBasicBlock();  \
-		Nucleus::createCondBr((cond).value, end, body); \
-		Nucleus::setInsertBlock(end);                   \
+	#define Do                                            \
+	{                                                     \
+		BasicBlock *body__ = Nucleus::createBasicBlock(); \
+		Nucleus::createBr(body__);                        \
+		Nucleus::setInsertBlock(body__);
+
+	#define Until(cond)                                     \
+		BasicBlock *end__ = Nucleus::createBasicBlock();    \
+		Nucleus::createCondBr((cond).value, end__, body__); \
+		Nucleus::setInsertBlock(end__);                     \
 	}
 
 	#define If(cond)                                        \
