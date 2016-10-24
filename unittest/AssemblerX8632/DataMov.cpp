@@ -973,7 +973,8 @@ TEST_F(AssemblerX8632Test, Movmsk) {
     const Dqword V0 Value1;                                                    \
                                                                                \
     __ movups(XmmRegister::Encoded_Reg_##Src, dwordAddress(T0));               \
-    __ Inst(GPRRegister::Encoded_Reg_##GPR, XmmRegister::Encoded_Reg_##Src);   \
+    __ Inst(IceType_v4f32, GPRRegister::Encoded_Reg_##GPR,                     \
+            XmmRegister::Encoded_Reg_##Src);                                   \
                                                                                \
     AssembledTest test = assemble();                                           \
     test.setDqwordTo(T0, V0);                                                  \
@@ -985,8 +986,7 @@ TEST_F(AssemblerX8632Test, Movmsk) {
 
 #define TestMovmsk(GPR, Src)                                                   \
   do {                                                                         \
-    TestMovmskGPRXmm(GPR, Src, (-1.0, 1.0, -1.0, 1.0), 0x05ul, movmskps);      \
-    TestMovmskGPRXmm(GPR, Src, (1.0, -1.0), 0x02ul, movmskpd);                 \
+    TestMovmskGPRXmm(GPR, Src, (-1.0, 1.0, -1.0, 1.0), 0x05ul, movmsk);        \
   } while (0)
 
   TestMovmsk(eax, xmm0);

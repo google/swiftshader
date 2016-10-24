@@ -1059,6 +1059,7 @@ void InstImpl<TraitsType>::InstX86Movmsk::emitIAS(const Cfg *Func) const {
   const Variable *Dest = this->getDest();
   const Variable *Src = llvm::cast<Variable>(this->getSrc(0));
   const Type DestTy = Dest->getType();
+  (void)DestTy;
   const Type SrcTy = Src->getType();
   assert(isVectorType(SrcTy));
   assert(isScalarIntegerType(DestTy));

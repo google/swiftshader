@@ -435,9 +435,8 @@ template <typename TraitsType>
   if (!Traits::Is64Bit ||
       ::Ice::getFlags().getApplicationBinaryInterface() == ::Ice::ABI_PNaCl) {
     return ::Ice::IceType_i32;
-  } else {
-    return ::Ice::IceType_i64;
   }
+  return ::Ice::IceType_i64;
 }
 
 template <typename TraitsType> void TargetX86Base<TraitsType>::translateO2() {
@@ -4437,7 +4436,7 @@ void TargetX86Base<TraitsType>::lowerIntrinsicCall(
     Operand *Src0 = Instr->getArg(0);
     Operand *Src1 = Instr->getArg(1);
     Variable *Dest = Instr->getDest();
-    auto *T = makeReg(Dest->getType());
+    auto *T = makeReg(Src0->getType());
     auto *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
     auto *Src1RM = legalize(Src1, Legal_Reg | Legal_Mem);
     _movp(T, Src0RM);
@@ -4449,7 +4448,7 @@ void TargetX86Base<TraitsType>::lowerIntrinsicCall(
     Operand *Src0 = Instr->getArg(0);
     Operand *Src1 = Instr->getArg(1);
     Variable *Dest = Instr->getDest();
-    auto *T = makeReg(Dest->getType());
+    auto *T = makeReg(Src0->getType());
     auto *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
     auto *Src1RM = legalize(Src1, Legal_Reg | Legal_Mem);
     _movp(T, Src0RM);

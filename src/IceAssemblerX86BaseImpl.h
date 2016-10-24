@@ -1667,15 +1667,15 @@ void AssemblerX86Base<TraitsType>::punpckh(Type Ty, XmmRegister Dst,
 }
 
 template <typename TraitsType>
-void AssemblerX86Base<TraitsType>::packss(Type DestTy, XmmRegister Dst,
+void AssemblerX86Base<TraitsType>::packss(Type Ty, XmmRegister Dst,
                                           XmmRegister Src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
   emitRexRB(RexTypeIrrelevant, Dst, Src);
   emitUint8(0x0F);
-  if (DestTy == IceType_v8i16) {
+  if (Ty == IceType_v4i32 || Ty == IceType_v4f32) {
     emitUint8(0x6B);
-  } else if (DestTy == IceType_v16i8) {
+  } else if (Ty == IceType_v8i16) {
     emitUint8(0x63);
   } else {
     assert(false && "Unexpected vector pack operand type");
@@ -1684,16 +1684,16 @@ void AssemblerX86Base<TraitsType>::packss(Type DestTy, XmmRegister Dst,
 }
 
 template <typename TraitsType>
-void AssemblerX86Base<TraitsType>::packss(Type DestTy, XmmRegister Dst,
+void AssemblerX86Base<TraitsType>::packss(Type Ty, XmmRegister Dst,
                                           const Address &Src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
   emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, Src, Dst);
   emitUint8(0x0F);
-  if (DestTy == IceType_v8i16) {
+  if (Ty == IceType_v4i32 || Ty == IceType_v4f32) {
     emitUint8(0x6B);
-  } else if (DestTy == IceType_v16i8) {
+  } else if (Ty == IceType_v8i16) {
     emitUint8(0x63);
   } else {
     assert(false && "Unexpected vector pack operand type");
@@ -1702,16 +1702,16 @@ void AssemblerX86Base<TraitsType>::packss(Type DestTy, XmmRegister Dst,
 }
 
 template <typename TraitsType>
-void AssemblerX86Base<TraitsType>::packus(Type DestTy, XmmRegister Dst,
+void AssemblerX86Base<TraitsType>::packus(Type Ty, XmmRegister Dst,
                                           XmmRegister Src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
   emitRexRB(RexTypeIrrelevant, Dst, Src);
   emitUint8(0x0F);
-  if (DestTy == IceType_v8i16) {
+  if (Ty == IceType_v4i32 || Ty == IceType_v4f32) {
     emitUint8(0x38);
     emitUint8(0x2B);
-  } else if (DestTy == IceType_v16i8) {
+  } else if (Ty == IceType_v8i16) {
     emitUint8(0x67);
   } else {
     assert(false && "Unexpected vector pack operand type");
@@ -1720,17 +1720,17 @@ void AssemblerX86Base<TraitsType>::packus(Type DestTy, XmmRegister Dst,
 }
 
 template <typename TraitsType>
-void AssemblerX86Base<TraitsType>::packus(Type DestTy, XmmRegister Dst,
+void AssemblerX86Base<TraitsType>::packus(Type Ty, XmmRegister Dst,
                                           const Address &Src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
   emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, Src, Dst);
   emitUint8(0x0F);
-  if (DestTy == IceType_v8i16) {
+  if (Ty == IceType_v4i32 || Ty == IceType_v4f32) {
     emitUint8(0x38);
     emitUint8(0x2B);
-  } else if (DestTy == IceType_v16i8) {
+  } else if (Ty == IceType_v8i16) {
     emitUint8(0x67);
   } else {
     assert(false && "Unexpected vector pack operand type");
