@@ -290,11 +290,18 @@ TEST(SubzeroReactorTest, Branching)
 					x += 10000;
 			}
 
-			For(Int j = 0, j < 2, j++)
-				If(x == 402222)
-				{
-					If(x != 402222)
+			For(Int i = 0, i < 10, i++)
+				for(int i = 0; i < 10; i++)
+					For(Int i = 0, i < 10, i++)
+					{
 						x += 1000000;
+					}
+
+			For(Int i = 0, i < 2, i++)
+				If(x == 1000402222)
+				{
+					If(x != 1000402222)
+						x += 1000000000;
 				}
 				Else
 					x = -5;
@@ -309,7 +316,7 @@ TEST(SubzeroReactorTest, Branching)
 			int(*callable)() = (int(*)())routine->getEntry();
 			int result = callable();
 
-			EXPECT_EQ(result, 402222);
+			EXPECT_EQ(result, 1000402222);
 		}
 	}
 
