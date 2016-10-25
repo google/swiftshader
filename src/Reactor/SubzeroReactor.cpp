@@ -3192,7 +3192,15 @@ namespace sw
 
 	RValue<SByte8> Pack(RValue<Short4> x, RValue<Short4> y)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<SByte8>(V(nullptr));
+		Ice::Variable *result = ::function->makeVariable(Ice::IceType_v16i8);
+		const Ice::Intrinsics::IntrinsicInfo intrinsic = {Ice::Intrinsics::VectorPackSigned, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F};
+		auto target = ::context->getConstantUndef(Ice::IceType_i32);
+		auto pack = Ice::InstIntrinsicCall::create(::function, 2, result, target, intrinsic);
+		pack->addArg(x.value);
+		pack->addArg(y.value);
+		::basicBlock->appendInst(pack);
+
+		return RValue<SByte8>(V(result));
 	}
 
 	RValue<Int2> UnpackLow(RValue<Short4> x, RValue<Short4> y)
@@ -3481,7 +3489,15 @@ namespace sw
 
 	RValue<Byte8> Pack(RValue<UShort4> x, RValue<UShort4> y)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<Byte8>(V(nullptr));
+		Ice::Variable *result = ::function->makeVariable(Ice::IceType_v16i8);
+		const Ice::Intrinsics::IntrinsicInfo intrinsic = {Ice::Intrinsics::VectorPackUnsigned, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F};
+		auto target = ::context->getConstantUndef(Ice::IceType_i32);
+		auto pack = Ice::InstIntrinsicCall::create(::function, 2, result, target, intrinsic);
+		pack->addArg(x.value);
+		pack->addArg(y.value);
+		::basicBlock->appendInst(pack);
+
+		return RValue<Byte8>(V(result));
 	}
 
 	Type *UShort4::getType()
@@ -5180,7 +5196,15 @@ namespace sw
 
 	RValue<Short8> Pack(RValue<Int4> x, RValue<Int4> y)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<Short8>(V(nullptr));
+		Ice::Variable *result = ::function->makeVariable(Ice::IceType_v8i16);
+		const Ice::Intrinsics::IntrinsicInfo intrinsic = {Ice::Intrinsics::VectorPackSigned, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F};
+		auto target = ::context->getConstantUndef(Ice::IceType_i32);
+		auto pack = Ice::InstIntrinsicCall::create(::function, 2, result, target, intrinsic);
+		pack->addArg(x.value);
+		pack->addArg(y.value);
+		::basicBlock->appendInst(pack);
+
+		return RValue<Short8>(V(result));
 	}
 
 	RValue<Int> Extract(RValue<Int4> x, int i)
@@ -5496,7 +5520,15 @@ namespace sw
 
 	RValue<UShort8> Pack(RValue<UInt4> x, RValue<UInt4> y)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<UShort8>(V(nullptr));
+		Ice::Variable *result = ::function->makeVariable(Ice::IceType_v8i16);
+		const Ice::Intrinsics::IntrinsicInfo intrinsic = {Ice::Intrinsics::VectorPackUnsigned, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F};
+		auto target = ::context->getConstantUndef(Ice::IceType_i32);
+		auto pack = Ice::InstIntrinsicCall::create(::function, 2, result, target, intrinsic);
+		pack->addArg(x.value);
+		pack->addArg(y.value);
+		::basicBlock->appendInst(pack);
+
+		return RValue<UShort8>(V(result));
 	}
 
 	Type *UInt4::getType()
