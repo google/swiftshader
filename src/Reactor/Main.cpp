@@ -203,6 +203,10 @@ TEST(SubzeroReactorTest, Swizzle)
 
 			*Pointer<Float4>(out + 16 * (512 + 0)) = UnpackLow(Float4(1.0f, 2.0f, 3.0f, 4.0f), Float4(5.0f, 6.0f, 7.0f, 8.0f));
 			*Pointer<Float4>(out + 16 * (512 + 1)) = UnpackHigh(Float4(1.0f, 2.0f, 3.0f, 4.0f), Float4(5.0f, 6.0f, 7.0f, 8.0f));
+			*Pointer<Int2>(out + 16 * (512 + 2)) = UnpackLow(Short4(1, 2, 3, 4), Short4(5, 6, 7, 8));
+			*Pointer<Int2>(out + 16 * (512 + 3)) = UnpackHigh(Short4(1, 2, 3, 4), Short4(5, 6, 7, 8));
+			*Pointer<Short4>(out + 16 * (512 + 4)) = UnpackLow(Byte8(1, 2, 3, 4, 5, 6, 7, 8), Byte8(9, 10, 11, 12, 13, 14, 15, 16));
+			*Pointer<Short4>(out + 16 * (512 + 5)) = UnpackHigh(Byte8(1, 2, 3, 4, 5, 6, 7, 8), Byte8(9, 10, 11, 12, 13, 14, 15, 16));
 
 			Return(0);
 		}
@@ -211,47 +215,62 @@ TEST(SubzeroReactorTest, Swizzle)
 
 		if(routine)
 		{
-			float out[256 + 256 + 2][4];
-			memset(out, 0, sizeof(out));
-
-			float exp[256 + 256 + 2][4];
-
-			for(int i = 0; i < 256; i++)
+			struct
 			{
-				exp[i][0] = float((i >> 0) & 0x03) + 1.0f;
-				exp[i][1] = float((i >> 2) & 0x03) + 1.0f;
-				exp[i][2] = float((i >> 4) & 0x03) + 1.0f;
-				exp[i][3] = float((i >> 6) & 0x03) + 1.0f;
-			}
+				float f[256 + 256 + 2][4];
+				int i[4][4];
+			} out;
 
-			for(int i = 0; i < 256; i++)
-			{
-				exp[256 + i][0] = float((i >> 0) & 0x03) + 1.0f;
-				exp[256 + i][1] = float((i >> 2) & 0x03) + 1.0f;
-				exp[256 + i][2] = float((i >> 4) & 0x03) + 5.0f;
-				exp[256 + i][3] = float((i >> 6) & 0x03) + 5.0f;
-			}
-
-			exp[512 + 0][0] = 1.0f;
-			exp[512 + 0][1] = 5.0f;
-			exp[512 + 0][2] = 2.0f;
-			exp[512 + 0][3] = 6.0f;
-
-			exp[512 + 1][0] = 3.0f;
-			exp[512 + 1][1] = 7.0f;
-			exp[512 + 1][2] = 4.0f;
-			exp[512 + 1][3] = 8.0f;
+			memset(&out, 0, sizeof(out));
 
 			int(*callable)(void*) = (int(*)(void*))routine->getEntry();
-			callable(out);
+			callable(&out);
 
-			for(int i = 0; i < 256 + 256 + 2; i++)
+			for(int i = 0; i < 256; i++)
 			{
-				EXPECT_EQ(out[i][0], exp[i][0]);
-				EXPECT_EQ(out[i][1], exp[i][1]);
-				EXPECT_EQ(out[i][2], exp[i][2]);
-				EXPECT_EQ(out[i][3], exp[i][3]);
+				EXPECT_EQ(out.f[i][0], float((i >> 0) & 0x03) + 1.0f);
+				EXPECT_EQ(out.f[i][1], float((i >> 2) & 0x03) + 1.0f);
+				EXPECT_EQ(out.f[i][2], float((i >> 4) & 0x03) + 1.0f);
+				EXPECT_EQ(out.f[i][3], float((i >> 6) & 0x03) + 1.0f);
 			}
+
+			for(int i = 0; i < 256; i++)
+			{
+				EXPECT_EQ(out.f[256 + i][0], float((i >> 0) & 0x03) + 1.0f);
+				EXPECT_EQ(out.f[256 + i][1], float((i >> 2) & 0x03) + 1.0f);
+				EXPECT_EQ(out.f[256 + i][2], float((i >> 4) & 0x03) + 5.0f);
+				EXPECT_EQ(out.f[256 + i][3], float((i >> 6) & 0x03) + 5.0f);
+			}
+
+			EXPECT_EQ(out.f[512 + 0][0], 1.0f);
+			EXPECT_EQ(out.f[512 + 0][1], 5.0f);
+			EXPECT_EQ(out.f[512 + 0][2], 2.0f);
+			EXPECT_EQ(out.f[512 + 0][3], 6.0f);
+
+			EXPECT_EQ(out.f[512 + 1][0], 3.0f);
+			EXPECT_EQ(out.f[512 + 1][1], 7.0f);
+			EXPECT_EQ(out.f[512 + 1][2], 4.0f);
+			EXPECT_EQ(out.f[512 + 1][3], 8.0f);
+
+			EXPECT_EQ(out.i[0][0], 0x00050001);
+			EXPECT_EQ(out.i[0][1], 0x00060002);
+			EXPECT_EQ(out.i[0][2], 0x00000000);
+			EXPECT_EQ(out.i[0][3], 0x00000000);
+
+			EXPECT_EQ(out.i[1][0], 0x00070003);
+			EXPECT_EQ(out.i[1][1], 0x00080004);
+			EXPECT_EQ(out.i[1][2], 0x00000000);
+			EXPECT_EQ(out.i[1][3], 0x00000000);
+
+			EXPECT_EQ(out.i[2][0], 0x0A020901);
+			EXPECT_EQ(out.i[2][1], 0x0C040B03);
+			EXPECT_EQ(out.i[2][2], 0x00000000);
+			EXPECT_EQ(out.i[2][3], 0x00000000);
+
+			EXPECT_EQ(out.i[3][0], 0x0E060D05);
+			EXPECT_EQ(out.i[3][1], 0x10080F07);
+			EXPECT_EQ(out.i[3][2], 0x00000000);
+			EXPECT_EQ(out.i[3][3], 0x00000000);
 		}
 	}
 
