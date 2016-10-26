@@ -801,6 +801,18 @@ protected:
     AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Pmull>(Dest, Src0);
   }
+  void _pmulhw(Variable *Dest, Operand *Src0) {
+    AutoMemorySandboxer<> _(this, &Dest, &Src0);
+    Context.insert<typename Traits::Insts::Pmulhw>(Dest, Src0);
+  }
+  void _pmulhuw(Variable *Dest, Operand *Src0) {
+    AutoMemorySandboxer<> _(this, &Dest, &Src0);
+    Context.insert<typename Traits::Insts::Pmulhuw>(Dest, Src0);
+  }
+  void _pmaddwd(Variable *Dest, Operand *Src0) {
+    AutoMemorySandboxer<> _(this, &Dest, &Src0);
+    Context.insert<typename Traits::Insts::Pmaddwd>(Dest, Src0);
+  }
   void _pmuludq(Variable *Dest, Operand *Src0) {
     AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Pmuludq>(Dest, Src0);

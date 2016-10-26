@@ -839,6 +839,87 @@ void AssemblerX86Base<TraitsType>::pmull(Type Ty, XmmRegister dst,
 }
 
 template <typename TraitsType>
+void AssemblerX86Base<TraitsType>::pmulhw(Type Ty, XmmRegister dst,
+                                          XmmRegister src) {
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitUint8(0x66);
+  emitRexRB(RexTypeIrrelevant, dst, src);
+  emitUint8(0x0F);
+  assert(Ty == IceType_v8i16);
+  (void)Ty;
+  emitUint8(0xE5);
+  emitXmmRegisterOperand(dst, src);
+}
+
+template <typename TraitsType>
+void AssemblerX86Base<TraitsType>::pmulhw(Type Ty, XmmRegister dst,
+                                          const Address &src) {
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitUint8(0x66);
+  emitAddrSizeOverridePrefix();
+  emitRex(RexTypeIrrelevant, src, dst);
+  emitUint8(0x0F);
+  assert(Ty == IceType_v8i16);
+  (void)Ty;
+  emitUint8(0xE5);
+  emitOperand(gprEncoding(dst), src);
+}
+
+template <typename TraitsType>
+void AssemblerX86Base<TraitsType>::pmulhuw(Type Ty, XmmRegister dst,
+                                           XmmRegister src) {
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitUint8(0x66);
+  emitRexRB(RexTypeIrrelevant, dst, src);
+  emitUint8(0x0F);
+  assert(Ty == IceType_v8i16);
+  (void)Ty;
+  emitUint8(0xE4);
+  emitXmmRegisterOperand(dst, src);
+}
+
+template <typename TraitsType>
+void AssemblerX86Base<TraitsType>::pmulhuw(Type Ty, XmmRegister dst,
+                                           const Address &src) {
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitUint8(0x66);
+  emitAddrSizeOverridePrefix();
+  emitRex(RexTypeIrrelevant, src, dst);
+  emitUint8(0x0F);
+  assert(Ty == IceType_v8i16);
+  (void)Ty;
+  emitUint8(0xE4);
+  emitOperand(gprEncoding(dst), src);
+}
+
+template <typename TraitsType>
+void AssemblerX86Base<TraitsType>::pmaddwd(Type Ty, XmmRegister dst,
+                                           XmmRegister src) {
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitUint8(0x66);
+  emitRexRB(RexTypeIrrelevant, dst, src);
+  emitUint8(0x0F);
+  assert(Ty == IceType_v8i16);
+  (void)Ty;
+  emitUint8(0xF5);
+  emitXmmRegisterOperand(dst, src);
+}
+
+template <typename TraitsType>
+void AssemblerX86Base<TraitsType>::pmaddwd(Type Ty, XmmRegister dst,
+                                           const Address &src) {
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitUint8(0x66);
+  emitAddrSizeOverridePrefix();
+  emitRex(RexTypeIrrelevant, src, dst);
+  emitUint8(0x0F);
+  assert(Ty == IceType_v8i16);
+  (void)Ty;
+  emitUint8(0xF5);
+  emitOperand(gprEncoding(dst), src);
+}
+
+template <typename TraitsType>
 void AssemblerX86Base<TraitsType>::pmuludq(Type /* Ty */, XmmRegister dst,
                                            XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);

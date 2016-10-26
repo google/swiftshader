@@ -1082,8 +1082,7 @@ void InstImpl<TraitsType>::InstX86Sqrt::emit(const Cfg *Func) const {
   Type Ty = this->getSrc(0)->getType();
   assert(isScalarFloatingType(Ty));
   Str << "\t"
-         "sqrt"
-      << Traits::TypeAttributes[Ty].SpSdString << "\t";
+         "sqrt" << Traits::TypeAttributes[Ty].SpSdString << "\t";
   this->getSrc(0)->emit(Func);
   Str << ", ";
   this->getDest()->emit(Func);

@@ -363,6 +363,12 @@ public:
   void pandn(Type Ty, XmmRegister dst, const Address &src);
   void pmull(Type Ty, XmmRegister dst, XmmRegister src);
   void pmull(Type Ty, XmmRegister dst, const Address &src);
+  void pmulhw(Type Ty, XmmRegister dst, XmmRegister src);
+  void pmulhw(Type Ty, XmmRegister dst, const Address &src);
+  void pmulhuw(Type Ty, XmmRegister dst, XmmRegister src);
+  void pmulhuw(Type Ty, XmmRegister dst, const Address &src);
+  void pmaddwd(Type Ty, XmmRegister dst, XmmRegister src);
+  void pmaddwd(Type Ty, XmmRegister dst, const Address &src);
   void pmuludq(Type Ty, XmmRegister dst, XmmRegister src);
   void pmuludq(Type Ty, XmmRegister dst, const Address &src);
   void por(Type Ty, XmmRegister dst, XmmRegister src);

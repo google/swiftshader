@@ -4473,6 +4473,42 @@ void TargetX86Base<TraitsType>::lowerIntrinsicCall(
     _mov(Dest, T);
     return;
   }
+  case Intrinsics::MultiplyHighSigned: {
+    Operand *Src0 = Instr->getArg(0);
+    Operand *Src1 = Instr->getArg(1);
+    Variable *Dest = Instr->getDest();
+    auto *T = makeReg(Dest->getType());
+    auto *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
+    auto *Src1RM = legalize(Src1, Legal_Reg | Legal_Mem);
+    _movp(T, Src0RM);
+    _pmulhw(T, Src1RM);
+    _movp(Dest, T);
+    return;
+  }
+  case Intrinsics::MultiplyHighUnsigned: {
+    Operand *Src0 = Instr->getArg(0);
+    Operand *Src1 = Instr->getArg(1);
+    Variable *Dest = Instr->getDest();
+    auto *T = makeReg(Dest->getType());
+    auto *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
+    auto *Src1RM = legalize(Src1, Legal_Reg | Legal_Mem);
+    _movp(T, Src0RM);
+    _pmulhuw(T, Src1RM);
+    _movp(Dest, T);
+    return;
+  }
+  case Intrinsics::MultiplyAddPairs: {
+    Operand *Src0 = Instr->getArg(0);
+    Operand *Src1 = Instr->getArg(1);
+    Variable *Dest = Instr->getDest();
+    auto *T = makeReg(Dest->getType());
+    auto *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
+    auto *Src1RM = legalize(Src1, Legal_Reg | Legal_Mem);
+    _movp(T, Src0RM);
+    _pmaddwd(T, Src1RM);
+    _movp(Dest, T);
+    return;
+  }
   default: // UnknownIntrinsic
     Func->setError("Unexpected intrinsic");
     return;

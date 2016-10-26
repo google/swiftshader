@@ -140,6 +140,9 @@ template <typename TraitsType> struct InstImpl {
       Pextr,
       Pinsr,
       Pmull,
+      Pmulhw,
+      Pmulhuw,
+      Pmaddwd,
       Pmuludq,
       Pop,
       Por,
@@ -1848,6 +1851,60 @@ template <typename TraitsType> struct InstImpl {
                                                                 Source) {}
   };
 
+  class InstX86Pmulhw
+      : public InstX86BaseBinopXmm<InstX86Base::Pmulhw, false,
+                                   InstX86Base::SseSuffix::None> {
+  public:
+    static InstX86Pmulhw *create(Cfg *Func, Variable *Dest, Operand *Source) {
+      assert(Dest->getType() == IceType_v8i16 &&
+             Source->getType() == IceType_v8i16);
+      return new (Func->allocate<InstX86Pmulhw>())
+          InstX86Pmulhw(Func, Dest, Source);
+    }
+
+  private:
+    InstX86Pmulhw(Cfg *Func, Variable *Dest, Operand *Source)
+        : InstX86BaseBinopXmm<InstX86Base::Pmulhw, false,
+                              InstX86Base::SseSuffix::None>(Func, Dest,
+                                                            Source) {}
+  };
+
+  class InstX86Pmulhuw
+      : public InstX86BaseBinopXmm<InstX86Base::Pmulhuw, false,
+                                   InstX86Base::SseSuffix::None> {
+  public:
+    static InstX86Pmulhuw *create(Cfg *Func, Variable *Dest, Operand *Source) {
+      assert(Dest->getType() == IceType_v8i16 &&
+             Source->getType() == IceType_v8i16);
+      return new (Func->allocate<InstX86Pmulhuw>())
+          InstX86Pmulhuw(Func, Dest, Source);
+    }
+
+  private:
+    InstX86Pmulhuw(Cfg *Func, Variable *Dest, Operand *Source)
+        : InstX86BaseBinopXmm<InstX86Base::Pmulhuw, false,
+                              InstX86Base::SseSuffix::None>(Func, Dest,
+                                                            Source) {}
+  };
+
+  class InstX86Pmaddwd
+      : public InstX86BaseBinopXmm<InstX86Base::Pmaddwd, false,
+                                   InstX86Base::SseSuffix::None> {
+  public:
+    static InstX86Pmaddwd *create(Cfg *Func, Variable *Dest, Operand *Source) {
+      assert(Dest->getType() == IceType_v8i16 &&
+             Source->getType() == IceType_v8i16);
+      return new (Func->allocate<InstX86Pmaddwd>())
+          InstX86Pmaddwd(Func, Dest, Source);
+    }
+
+  private:
+    InstX86Pmaddwd(Cfg *Func, Variable *Dest, Operand *Source)
+        : InstX86BaseBinopXmm<InstX86Base::Pmaddwd, false,
+                              InstX86Base::SseSuffix::None>(Func, Dest,
+                                                            Source) {}
+  };
+
   class InstX86Pmuludq
       : public InstX86BaseBinopXmm<InstX86Base::Pmuludq, false,
                                    InstX86Base::SseSuffix::None> {
@@ -3066,6 +3123,9 @@ template <typename TraitsType> struct Insts {
   using Mulps = typename InstImpl<TraitsType>::InstX86Mulps;
   using Mulss = typename InstImpl<TraitsType>::InstX86Mulss;
   using Pmull = typename InstImpl<TraitsType>::InstX86Pmull;
+  using Pmulhw = typename InstImpl<TraitsType>::InstX86Pmulhw;
+  using Pmulhuw = typename InstImpl<TraitsType>::InstX86Pmulhuw;
+  using Pmaddwd = typename InstImpl<TraitsType>::InstX86Pmaddwd;
   using Pmuludq = typename InstImpl<TraitsType>::InstX86Pmuludq;
   using Divps = typename InstImpl<TraitsType>::InstX86Divps;
   using Divss = typename InstImpl<TraitsType>::InstX86Divss;
@@ -3289,6 +3349,15 @@ template <typename TraitsType> struct Insts {
   template <>                                                                  \
   template <>                                                                  \
   const char *InstImpl<TraitsType>::InstX86Pmull::Base::Opcode = "pmull";      \
+  template <>                                                                  \
+  template <>                                                                  \
+  const char *InstImpl<TraitsType>::InstX86Pmulhw::Base::Opcode = "pmulhw";    \
+  template <>                                                                  \
+  template <>                                                                  \
+  const char *InstImpl<TraitsType>::InstX86Pmulhuw::Base::Opcode = "pmulhuw";  \
+  template <>                                                                  \
+  template <>                                                                  \
+  const char *InstImpl<TraitsType>::InstX86Pmaddwd::Base::Opcode = "pmaddwd";  \
   template <>                                                                  \
   template <>                                                                  \
   const char *InstImpl<TraitsType>::InstX86Pmuludq::Base::Opcode = "pmuludq";  \
@@ -3641,6 +3710,24 @@ template <typename TraitsType> struct Insts {
       InstImpl<TraitsType>::InstX86Pmull::Base::Emitter = {                    \
           &InstImpl<TraitsType>::Assembler::pmull,                             \
           &InstImpl<TraitsType>::Assembler::pmull};                            \
+  template <>                                                                  \
+  template <>                                                                  \
+  const InstImpl<TraitsType>::Assembler::XmmEmitterRegOp                       \
+      InstImpl<TraitsType>::InstX86Pmulhw::Base::Emitter = {                   \
+          &InstImpl<TraitsType>::Assembler::pmulhw,                            \
+          &InstImpl<TraitsType>::Assembler::pmulhw};                           \
+  template <>                                                                  \
+  template <>                                                                  \
+  const InstImpl<TraitsType>::Assembler::XmmEmitterRegOp                       \
+      InstImpl<TraitsType>::InstX86Pmulhuw::Base::Emitter = {                  \
+          &InstImpl<TraitsType>::Assembler::pmulhuw,                           \
+          &InstImpl<TraitsType>::Assembler::pmulhuw};                          \
+  template <>                                                                  \
+  template <>                                                                  \
+  const InstImpl<TraitsType>::Assembler::XmmEmitterRegOp                       \
+      InstImpl<TraitsType>::InstX86Pmaddwd::Base::Emitter = {                  \
+          &InstImpl<TraitsType>::Assembler::pmaddwd,                           \
+          &InstImpl<TraitsType>::Assembler::pmaddwd};                          \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::XmmEmitterRegOp                       \

@@ -63,10 +63,13 @@ public:
     Trap,
     // The intrinsics below are not part of the PNaCl specification.
     LoadSubVector,
+    MultiplyAddPairs,
+    MultiplyHighSigned,
+    MultiplyHighUnsigned,
+    SignMask,
     StoreSubVector,
     VectorPackSigned,
-    VectorPackUnsigned,
-    SignMask
+    VectorPackUnsigned
   };
 
   /// Operations that can be represented by the AtomicRMW intrinsic.
