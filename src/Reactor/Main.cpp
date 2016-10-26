@@ -342,6 +342,97 @@ TEST(SubzeroReactorTest, Branching)
 	delete routine;
 }
 
+TEST(SubzeroReactorTest, MinMax)
+{
+	Routine *routine = nullptr;
+
+	{
+		Function<Int(Pointer<Byte>)> function;
+		{
+			Pointer<Byte> out = function.Arg<0>();
+
+			*Pointer<Float4>(out + 16 * 0) = Min(Float4(1.0f, 0.0f, -0.0f, +0.0f), Float4(0.0f, 1.0f, +0.0f, -0.0f));
+			*Pointer<Float4>(out + 16 * 1) = Max(Float4(1.0f, 0.0f, -0.0f, +0.0f), Float4(0.0f, 1.0f, +0.0f, -0.0f));
+
+			*Pointer<Int4>(out + 16 * 2) = Min(Int4(1, 0, -1, -0), Int4(0, 1, 0, +0));
+			*Pointer<Int4>(out + 16 * 3) = Max(Int4(1, 0, -1, -0), Int4(0, 1, 0, +0));
+			*Pointer<UInt4>(out + 16 * 4) = Min(UInt4(1, 0, -1, -0), UInt4(0, 1, 0, +0));
+			*Pointer<UInt4>(out + 16 * 5) = Max(UInt4(1, 0, -1, -0), UInt4(0, 1, 0, +0));
+
+			*Pointer<Short4>(out + 16 * 6) = Min(Short4(1, 0, -1, -0), Short4(0, 1, 0, +0));
+			*Pointer<Short4>(out + 16 * 7) = Max(Short4(1, 0, -1, -0), Short4(0, 1, 0, +0));
+			*Pointer<UShort4>(out + 16 * 8) = Min(UShort4(1, 0, -1, -0), UShort4(0, 1, 0, +0));
+			*Pointer<UShort4>(out + 16 * 9) = Max(UShort4(1, 0, -1, -0), UShort4(0, 1, 0, +0));
+
+			Return(0);
+		}
+
+		routine = function(L"one");
+
+		if(routine)
+		{
+			int out[10][4];
+
+			memset(&out, 0, sizeof(out));
+
+			int(*callable)(void*) = (int(*)(void*))routine->getEntry();
+			callable(&out);
+
+			EXPECT_EQ(out[0][0], 0x00000000);
+			EXPECT_EQ(out[0][1], 0x00000000);
+			EXPECT_EQ(out[0][2], 0x80000000);
+			EXPECT_EQ(out[0][3], 0x00000000);
+
+			EXPECT_EQ(out[1][0], 0x3F800000);
+			EXPECT_EQ(out[1][1], 0x3F800000);
+			EXPECT_EQ(out[1][2], 0x00000000);
+			EXPECT_EQ(out[1][3], 0x80000000);
+
+			EXPECT_EQ(out[2][0], 0x00000000);
+			EXPECT_EQ(out[2][1], 0x00000000);
+			EXPECT_EQ(out[2][2], 0xFFFFFFFF);
+			EXPECT_EQ(out[2][3], 0x00000000);
+
+			EXPECT_EQ(out[3][0], 0x00000001);
+			EXPECT_EQ(out[3][1], 0x00000001);
+			EXPECT_EQ(out[3][2], 0x00000000);
+			EXPECT_EQ(out[3][3], 0x00000000);
+
+			EXPECT_EQ(out[4][0], 0x00000000);
+			EXPECT_EQ(out[4][1], 0x00000000);
+			EXPECT_EQ(out[4][2], 0x00000000);
+			EXPECT_EQ(out[4][3], 0x00000000);
+
+			EXPECT_EQ(out[5][0], 0x00000001);
+			EXPECT_EQ(out[5][1], 0x00000001);
+			EXPECT_EQ(out[5][2], 0xFFFFFFFF);
+			EXPECT_EQ(out[5][3], 0x00000000);
+
+			EXPECT_EQ(out[6][0], 0x00000000);
+			EXPECT_EQ(out[6][1], 0x0000FFFF);
+			EXPECT_EQ(out[6][2], 0x00000000);
+			EXPECT_EQ(out[6][3], 0x00000000);
+
+			EXPECT_EQ(out[7][0], 0x00010001);
+			EXPECT_EQ(out[7][1], 0x00000000);
+			EXPECT_EQ(out[7][2], 0x00000000);
+			EXPECT_EQ(out[7][3], 0x00000000);
+
+			EXPECT_EQ(out[8][0], 0x00000000);
+			EXPECT_EQ(out[8][1], 0x00000000);
+			EXPECT_EQ(out[8][2], 0x00000000);
+			EXPECT_EQ(out[8][3], 0x00000000);
+
+			EXPECT_EQ(out[9][0], 0x00010001);
+			EXPECT_EQ(out[9][1], 0x0000FFFF);
+			EXPECT_EQ(out[9][2], 0x00000000);
+			EXPECT_EQ(out[9][3], 0x00000000);
+		}
+	}
+
+	delete routine;
+}
+
 int main(int argc, char **argv)
 {
 	::testing::InitGoogleTest(&argc, argv);
