@@ -6144,8 +6144,9 @@ void TargetX86Base<TraitsType>::lowerShuffleVector(
     if (Instr->indexesAre(0, 8, 1, 9, 2, 10, 3, 11)) {
       auto *T = makeReg(DestTy);
       auto *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
+      auto *Src1RM = legalize(Src1, Legal_Reg | Legal_Mem);
       _movp(T, Src0RM);
-      _punpckl(T, Src0RM);
+      _punpckl(T, Src1RM);
       _movp(Dest, T);
       return;
     }
