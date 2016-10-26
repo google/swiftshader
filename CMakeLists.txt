@@ -832,7 +832,11 @@ endif()
 if(BUILD_EXTRA_PROGRAMS)
     if(LINUX)
         add_executable(OGLES2HelloAPI ${HELLO2_DIR}/OGLES2HelloAPI_LinuxX11.cpp)
-        target_link_libraries(OGLES2HelloAPI dl X11 EGL GLESv2)
+        set_target_properties(OGLES2HelloAPI PROPERTIES
+            INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/include"
+            COMPILE_DEFINITIONS "GL_GLEXT_PROTOTYPES"
+        )
+        target_link_libraries(OGLES2HelloAPI dl X11 libEGL libGLESv2)
     elseif(APPLE)
         add_executable(OGLES2HelloAPI MACOSX_BUNDLE
             ${HELLO2_DIR}/OGLES2HelloAPI_OSX.mm
