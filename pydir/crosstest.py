@@ -127,6 +127,7 @@ def main():
             shellcmd(['{bin}/pnacl-clang'.format(bin=bindir),
                       ('-O2' if args.clang_opt else '-O0'),
                       ('-DARM32' if args.target == 'arm32' else ''), '-c', arg,
+                      ('-DMIPS32' if args.target == 'mips32' else ''),
                       '-o', bitcode_nonfinal])
             shellcmd(['{bin}/pnacl-opt'.format(bin=bindir),
                       '-pnacl-abi-simplify-preopt',
@@ -207,6 +208,9 @@ def main():
     if args.target == 'arm32':
       target_params.append('-DARM32')
       target_params.append('-static')
+
+    if args.target == 'mips32':
+      target_params.append('-DMIPS32')
 
     pure_c = os.path.splitext(args.driver)[1] == '.c'
     if not args.nonsfi:

@@ -21,3 +21,12 @@ typedef signed char myint8_t;
 
 template <typename FromType, typename ToType> ToType cast(FromType a);
 template <typename FromType, typename ToType> ToType castBits(FromType a);
+
+// Targets like MIPS32, pass floating-point arguments in general purpose
+// registers when the first argument is passed in a general purpose register.
+// Overloaded cast and castBits functions take two extra integer argument to
+// check proper conversion of floating-point to/from general purpose registers.
+template <typename FromType, typename ToType>
+ToType cast(int i, FromType a, int j);
+template <typename FromType, typename ToType>
+ToType castBits(int i, FromType a, int j);

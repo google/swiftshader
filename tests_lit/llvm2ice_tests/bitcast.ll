@@ -89,7 +89,8 @@ entry:
 ; MIPS32: ldc1 {{.*}}, %lo(.L$double$0012345678901234)({{.*}})
 ; MIPS32-O2: mfc1 $v1, $f{{[0-9]+}}
 ; MIPS32-O2: mfc1 $v0, $f{{[0-9]+}}
-; MIPS32-OM1: sdc1
+; MIPS32-OM1: mfc1
+; MIPS32-OM1: mfc1
 ; MIPS32-OM1: lw
 ; MIPS32-OM1: lw
 

@@ -24,8 +24,9 @@ entry:
 }
 
 ; MIPS32-LABEL: load_i64
-; MIPS32: lw {{.*}},0({{.*}})
-; MIPS32-NEXT: lw {{.*}},4({{.*}})
+; MIPS32: lw [[BASE:.*]],
+; MIPS32-NEXT: lw {{.*}},0([[BASE]])
+; MIPS32-NEXT: lw {{.*}},4([[BASE]])
 
 define internal void @load_i32(i32 %addr_arg) {
 entry:

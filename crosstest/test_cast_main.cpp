@@ -54,6 +54,26 @@ namespace Subzero_ {
     }                                                                          \
   } while (0)
 
+#define COMPARE_ARG(Func, FromCName, ToCName, Input, FromString)               \
+  do {                                                                         \
+    ToCName ResultSz, ResultLlc;                                               \
+    ResultLlc = Func<FromCName, ToCName>(1, Input, 2);                         \
+    ResultSz = Subzero_::Func<FromCName, ToCName>(1, Input, 2);                \
+    ++TotalTests;                                                              \
+    if (!memcmp(&ResultLlc, &ResultSz, sizeof(ToCName))) {                     \
+      ++Passes;                                                                \
+    } else {                                                                   \
+      ++Failures;                                                              \
+      std::cout << std::fixed << XSTR(Func) << "<" << FromString               \
+                << ", " XSTR(ToCName) ">(" << Input << "): ";                  \
+      if (sizeof(ToCName) == 1)                                                \
+        std::cout << "sz=" << (int)ResultSz << " llc=" << (int)ResultLlc;      \
+      else                                                                     \
+        std::cout << "sz=" << ResultSz << " llc=" << ResultLlc;                \
+      std::cout << "\n";                                                       \
+    }                                                                          \
+  } while (0)
+
 #define COMPARE_VEC(Func, FromCName, ToCName, Input, FromString, ToString)     \
   do {                                                                         \
     ToCName ResultSz, ResultLlc;                                               \
@@ -87,6 +107,17 @@ void testValue(FromType Val, size_t &TotalTests, size_t &Passes,
   COMPARE(cast, FromType, int64, Val, FromTypeString);
   COMPARE(cast, FromType, float, Val, FromTypeString);
   COMPARE(cast, FromType, double, Val, FromTypeString);
+  COMPARE_ARG(cast, FromType, bool, Val, FromTypeString);
+  COMPARE_ARG(cast, FromType, uint8_t, Val, FromTypeString);
+  COMPARE_ARG(cast, FromType, myint8_t, Val, FromTypeString);
+  COMPARE_ARG(cast, FromType, uint16_t, Val, FromTypeString);
+  COMPARE_ARG(cast, FromType, int16_t, Val, FromTypeString);
+  COMPARE_ARG(cast, FromType, uint32_t, Val, FromTypeString);
+  COMPARE_ARG(cast, FromType, int32_t, Val, FromTypeString);
+  COMPARE_ARG(cast, FromType, uint64, Val, FromTypeString);
+  COMPARE_ARG(cast, FromType, int64, Val, FromTypeString);
+  COMPARE_ARG(cast, FromType, float, Val, FromTypeString);
+  COMPARE_ARG(cast, FromType, double, Val, FromTypeString);
 }
 
 template <typename FromType, typename ToType>
@@ -198,6 +229,7 @@ int main(int argc, char *argv[]) {
     uint32_t Val = ValsUi32[i];
     testValue<uint32_t>(Val, TotalTests, Passes, Failures, "uint32_t");
     COMPARE(castBits, uint32_t, float, Val, "uint32_t");
+    COMPARE_ARG(castBits, uint32_t, float, Val, "uint32_t");
   }
   for (size_t i = 0; i < NumValsSi32; ++i) {
     int32_t Val = ValsSi32[i];
@@ -207,6 +239,7 @@ int main(int argc, char *argv[]) {
     uint64 Val = ValsUi64[i];
     testValue<uint64>(Val, TotalTests, Passes, Failures, "uint64");
     COMPARE(castBits, uint64, double, Val, "uint64");
+    COMPARE_ARG(castBits, uint64, double, Val, "uint64");
   }
   for (size_t i = 0; i < NumValsSi64; ++i) {
     int64 Val = ValsSi64[i];
@@ -219,6 +252,7 @@ int main(int argc, char *argv[]) {
         Val = -Val;
       testValue<float>(Val, TotalTests, Passes, Failures, "float");
       COMPARE(castBits, float, uint32_t, Val, "float");
+      COMPARE_ARG(castBits, float, uint32_t, Val, "float");
     }
   }
   for (size_t i = 0; i < NumValsF64; ++i) {
@@ -228,8 +262,10 @@ int main(int argc, char *argv[]) {
         Val = -Val;
       testValue<double>(Val, TotalTests, Passes, Failures, "double");
       COMPARE(castBits, double, uint64, Val, "double");
+      COMPARE_ARG(castBits, double, uint64, Val, "double");
     }
   }
+
   testVector<v4ui32, v4f32>(TotalTests, Passes, Failures, "v4ui32", "v4f32");
   testVector<v4si32, v4f32>(TotalTests, Passes, Failures, "v4si32", "v4f32");
   testVector<v4f32, v4si32>(TotalTests, Passes, Failures, "v4f32", "v4si32");

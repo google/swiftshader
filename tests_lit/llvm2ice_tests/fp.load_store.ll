@@ -77,11 +77,10 @@ entry:
 ; CHECK: movsd
 
 ; MIPS32-LABEL: storeDouble
-; MIPS32: ldc1 $f{{.*}},4{{.*}}
 ; MIPS32: sdc1 $f{{.*}},0{{.*}}
 ; MIPS32O2-LABEL: storeDouble
-; MIPS32O2: mtc1 a3,$f{{.*}}
 ; MIPS32O2: mtc1 a2,$f{{.*}}
+; MIPS32O2: mtc1 a3,$f{{.*}}
 ; MIPS32O2: sdc1 $f{{.*}},0(a0)
 
 define internal void @storeFloatConst(i32 %a) {

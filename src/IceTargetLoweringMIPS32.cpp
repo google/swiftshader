@@ -120,7 +120,6 @@ void TargetMIPS32::assignVarStackSlots(VarList &SortedSpilledVariables,
   size_t NextStackOffset = SpillAreaPaddingBytes;
   CfgVector<size_t> LocalsSize(Func->getNumNodes());
   const bool SimpleCoalescing = !callsReturnsTwice();
-
   for (Variable *Var : SortedSpilledVariables) {
     size_t Increment = typeWidthInBytesOnStack(Var->getType());
     if (SimpleCoalescing && VMetadata->isTracked(Var)) {
@@ -1746,9 +1745,9 @@ void TargetMIPS32::PostLoweringLegalizer::legalizeMov(InstMIPS32Mov *MovInstr) {
               SrcGPRHi = Target->makeReg(IceType_i32, FirstReg);
               SrcGPRLo = Target->makeReg(IceType_i32, SecondReg);
             } else {
-              SrcGPRHi = Target->makeReg(
-                  IceType_i32, RegMIPS32::get64PairFirstRegNum(SRegNum));
               SrcGPRLo = Target->makeReg(
+                  IceType_i32, RegMIPS32::get64PairFirstRegNum(SRegNum));
+              SrcGPRHi = Target->makeReg(
                   IceType_i32, RegMIPS32::get64PairSecondRegNum(SRegNum));
             }
           }
@@ -1780,19 +1779,19 @@ void TargetMIPS32::PostLoweringLegalizer::legalizeMov(InstMIPS32Mov *MovInstr) {
     auto *SrcR = llvm::cast<Variable>(Src);
     assert(SrcR->hasReg());
     assert(!SrcR->isRematerializable());
-    int32_t Offset = 0;
-
-    if (MovInstr->getDestHi() != nullptr)
-      Offset = MovInstr->getDestHi()->getStackOffset();
-    else
-      Offset = Dest->getStackOffset();
+    int32_t Offset = Dest->getStackOffset();
 
     // This is a _mov(Mem(), Variable), i.e., a store.
     auto *Base = Target->getPhysicalRegister(Target->getFrameOrStackReg());
 
-    OperandMIPS32Mem *Addr = OperandMIPS32Mem::create(
+    OperandMIPS32Mem *TAddr = OperandMIPS32Mem::create(
         Target->Func, DestTy, Base,
         llvm::cast<ConstantInteger32>(Target->Ctx->getConstantInt32(Offset)));
+    OperandMIPS32Mem *TAddrHi = OperandMIPS32Mem::create(
+        Target->Func, DestTy, Base,
+        llvm::cast<ConstantInteger32>(
+            Target->Ctx->getConstantInt32(Offset + 4)));
+    OperandMIPS32Mem *Addr = legalizeMemOperand(TAddr);
 
     // FP arguments are passed in GP reg if first argument is in GP. In this
     // case type of the SrcR is still FP thus we need to explicitly generate sw
@@ -1807,24 +1806,18 @@ void TargetMIPS32::PostLoweringLegalizer::legalizeMov(InstMIPS32Mov *MovInstr) {
           Target->makeReg(IceType_i32, RegMIPS32::get64PairFirstRegNum(RegNum));
       Variable *SrcGPRLo = Target->makeReg(
           IceType_i32, RegMIPS32::get64PairSecondRegNum(RegNum));
-      OperandMIPS32Mem *AddrHi = OperandMIPS32Mem::create(
-          Target->Func, DestTy, Base,
-          llvm::cast<ConstantInteger32>(
-              Target->Ctx->getConstantInt32(Offset + 4)));
-      Target->_sw(SrcGPRLo, Addr);
-      Target->_sw(SrcGPRHi, AddrHi);
+      Target->_sw(SrcGPRHi, Addr);
+      OperandMIPS32Mem *AddrHi = legalizeMemOperand(TAddrHi);
+      Target->_sw(SrcGPRLo, AddrHi);
     } else if (DestTy == IceType_f64 && IsSrcGPReg) {
       const auto FirstReg =
           (llvm::cast<Variable>(MovInstr->getSrc(0)))->getRegNum();
       const auto SecondReg =
           (llvm::cast<Variable>(MovInstr->getSrc(1)))->getRegNum();
-      Variable *SrcGPRHi = Target->makeReg(IceType_i32, SecondReg);
-      Variable *SrcGPRLo = Target->makeReg(IceType_i32, FirstReg);
-      OperandMIPS32Mem *AddrHi = OperandMIPS32Mem::create(
-          Target->Func, DestTy, Base,
-          llvm::cast<ConstantInteger32>(
-              Target->Ctx->getConstantInt32(Offset + 4)));
+      Variable *SrcGPRHi = Target->makeReg(IceType_i32, FirstReg);
+      Variable *SrcGPRLo = Target->makeReg(IceType_i32, SecondReg);
       Target->_sw(SrcGPRLo, Addr);
+      OperandMIPS32Mem *AddrHi = legalizeMemOperand(TAddrHi);
       Target->_sw(SrcGPRHi, AddrHi);
     } else {
       Target->_sw(SrcR, Addr);
@@ -1852,12 +1845,70 @@ void TargetMIPS32::PostLoweringLegalizer::legalizeMov(InstMIPS32Mov *MovInstr) {
         // This is a _mov(Variable, Mem()), i.e., a load.
         const int32_t Offset = Var->getStackOffset();
         auto *Base = Target->getPhysicalRegister(Target->getFrameOrStackReg());
-        OperandMIPS32Mem *Addr;
-        Addr = OperandMIPS32Mem::create(
-            Target->Func, DestTy, Base,
-            llvm::cast<ConstantInteger32>(
-                Target->Ctx->getConstantInt32(Offset)));
-        Target->_lw(Dest, Addr);
+        const RegNumT RegNum = Dest->getRegNum();
+        const bool IsDstGPReg = RegMIPS32::isGPRReg(Dest->getRegNum());
+        // If we are moving i64 to a double using stack then the address may
+        // not be aligned to 8-byte boundary as we split i64 into Hi-Lo parts
+        // and store them individually with 4-byte alignment. Load the Hi-Lo
+        // parts in TmpReg and move them to the dest using mtc1.
+        if (DestTy == IceType_f64 && !Utils::IsAligned(Offset, 8) &&
+            !IsDstGPReg) {
+          auto *Reg = Target->makeReg(IceType_i32, Target->getReservedTmpReg());
+          const RegNumT RegNum = Dest->getRegNum();
+          Variable *DestLo = Target->makeReg(
+              IceType_f32, RegMIPS32::get64PairFirstRegNum(RegNum));
+          Variable *DestHi = Target->makeReg(
+              IceType_f32, RegMIPS32::get64PairSecondRegNum(RegNum));
+          OperandMIPS32Mem *AddrLo = OperandMIPS32Mem::create(
+              Target->Func, IceType_i32, Base,
+              llvm::cast<ConstantInteger32>(
+                  Target->Ctx->getConstantInt32(Offset)));
+          OperandMIPS32Mem *AddrHi = OperandMIPS32Mem::create(
+              Target->Func, IceType_i32, Base,
+              llvm::cast<ConstantInteger32>(
+                  Target->Ctx->getConstantInt32(Offset + 4)));
+          Target->_lw(Reg, AddrLo);
+          Target->_mov(DestLo, Reg);
+          Target->_lw(Reg, AddrHi);
+          Target->_mov(DestHi, Reg);
+        } else {
+          OperandMIPS32Mem *TAddr = OperandMIPS32Mem::create(
+              Target->Func, DestTy, Base,
+              llvm::cast<ConstantInteger32>(
+                  Target->Ctx->getConstantInt32(Offset)));
+          OperandMIPS32Mem *Addr = legalizeMemOperand(TAddr);
+          OperandMIPS32Mem *TAddrHi = OperandMIPS32Mem::create(
+              Target->Func, DestTy, Base,
+              llvm::cast<ConstantInteger32>(
+                  Target->Ctx->getConstantInt32(Offset + 4)));
+          // FP arguments are passed in GP reg if first argument is in GP.
+          // In this case type of the Dest is still FP thus we need to
+          // explicitly generate lw instead of lwc1.
+          if (DestTy == IceType_f32 && IsDstGPReg) {
+            Variable *DstGPR = Target->makeReg(IceType_i32, RegNum);
+            Target->_lw(DstGPR, Addr);
+          } else if (DestTy == IceType_f64 && IsDstGPReg) {
+            Variable *DstGPRHi = Target->makeReg(
+                IceType_i32, RegMIPS32::get64PairFirstRegNum(RegNum));
+            Variable *DstGPRLo = Target->makeReg(
+                IceType_i32, RegMIPS32::get64PairSecondRegNum(RegNum));
+            Target->_lw(DstGPRHi, Addr);
+            OperandMIPS32Mem *AddrHi = legalizeMemOperand(TAddrHi);
+            Target->_lw(DstGPRLo, AddrHi);
+          } else if (DestTy == IceType_f64 && IsDstGPReg) {
+            const auto FirstReg =
+                (llvm::cast<Variable>(MovInstr->getSrc(0)))->getRegNum();
+            const auto SecondReg =
+                (llvm::cast<Variable>(MovInstr->getSrc(1)))->getRegNum();
+            Variable *DstGPRHi = Target->makeReg(IceType_i32, FirstReg);
+            Variable *DstGPRLo = Target->makeReg(IceType_i32, SecondReg);
+            Target->_lw(DstGPRLo, Addr);
+            OperandMIPS32Mem *AddrHi = legalizeMemOperand(TAddrHi);
+            Target->_lw(DstGPRHi, AddrHi);
+          } else {
+            Target->_lw(Dest, Addr);
+          }
+        }
         Legalized = true;
       }
     }
@@ -2541,7 +2592,15 @@ void TargetMIPS32::lowerArithmetic(const InstArithmetic *Instr) {
     return;
   }
   case InstArithmetic::Lshr: {
-    _srlv(T, Src0R, Src1R);
+    auto *T0R = Src0R;
+    auto *T1R = Src1R;
+    if (Dest->getType() != IceType_i32) {
+      T0R = makeReg(IceType_i32);
+      lowerCast(InstCast::create(Func, InstCast::Zext, T0R, Src0R));
+      T1R = makeReg(IceType_i32);
+      lowerCast(InstCast::create(Func, InstCast::Zext, T1R, Src1R));
+    }
+    _srlv(T, T0R, T1R);
     _mov(Dest, T);
     return;
   }
@@ -2552,8 +2611,16 @@ void TargetMIPS32::lowerArithmetic(const InstArithmetic *Instr) {
   }
   case InstArithmetic::Udiv: {
     auto *T_Zero = I32Reg(RegMIPS32::Reg_ZERO);
-    _divu(T_Zero, Src0R, Src1R);
-    _teq(Src1R, T_Zero, DivideByZeroTrapCode); // Trap if divide-by-zero
+    auto *T0R = Src0R;
+    auto *T1R = Src1R;
+    if (Dest->getType() != IceType_i32) {
+      T0R = makeReg(IceType_i32);
+      lowerCast(InstCast::create(Func, InstCast::Zext, T0R, Src0R));
+      T1R = makeReg(IceType_i32);
+      lowerCast(InstCast::create(Func, InstCast::Zext, T1R, Src1R));
+    }
+    _divu(T_Zero, T0R, T1R);
+    _teq(T1R, T_Zero, DivideByZeroTrapCode); // Trap if divide-by-zero
     _mflo(T, T_Zero);
     _mov(Dest, T);
     return;
@@ -2568,8 +2635,16 @@ void TargetMIPS32::lowerArithmetic(const InstArithmetic *Instr) {
   }
   case InstArithmetic::Urem: {
     auto *T_Zero = I32Reg(RegMIPS32::Reg_ZERO);
-    _divu(T_Zero, Src0R, Src1R);
-    _teq(Src1R, T_Zero, DivideByZeroTrapCode); // Trap if divide-by-zero
+    auto *T0R = Src0R;
+    auto *T1R = Src1R;
+    if (Dest->getType() != IceType_i32) {
+      T0R = makeReg(IceType_i32);
+      lowerCast(InstCast::create(Func, InstCast::Zext, T0R, Src0R));
+      T1R = makeReg(IceType_i32);
+      lowerCast(InstCast::create(Func, InstCast::Zext, T1R, Src1R));
+    }
+    _divu(T_Zero, T0R, T1R);
+    _teq(T1R, T_Zero, DivideByZeroTrapCode); // Trap if divide-by-zero
     _mfhi(T, T_Zero);
     _mov(Dest, T);
     return;
@@ -3353,20 +3428,24 @@ void TargetMIPS32::lowerCast(const InstCast *Instr) {
       return;
     }
     if (Src0Ty != IceType_i64) {
+      Variable *Src0R = legalizeToReg(Src0);
+      auto *T0R = Src0R;
+      if (Src0Ty != IceType_i32 && CastKind == InstCast::Uitofp) {
+        T0R = makeReg(IceType_i32);
+        lowerCast(InstCast::create(Func, InstCast::Zext, T0R, Src0R));
+      }
       if (isScalarIntegerType(Src0Ty) && DestTy == IceType_f32) {
-        Variable *Src0R = legalizeToReg(Src0);
         Variable *FTmp1 = makeReg(IceType_f32);
         Variable *FTmp2 = makeReg(IceType_f32);
-        _mtc1(FTmp1, Src0R);
+        _mtc1(FTmp1, T0R);
         _cvt_s_w(FTmp2, FTmp1);
         _mov(Dest, FTmp2);
         return;
       }
       if (isScalarIntegerType(Src0Ty) && DestTy == IceType_f64) {
-        Variable *Src0R = legalizeToReg(Src0);
         Variable *FTmp1 = makeReg(IceType_f64);
         Variable *FTmp2 = makeReg(IceType_f64);
-        _mtc1(FTmp1, Src0R);
+        _mtc1(FTmp1, T0R);
         _cvt_d_w(FTmp2, FTmp1);
         _mov(Dest, FTmp2);
         return;
@@ -3413,8 +3492,12 @@ void TargetMIPS32::lowerCast(const InstCast *Instr) {
     case IceType_i64: {
       assert(Src0->getType() == IceType_f64);
       Variable *Src0R = legalizeToReg(Src0);
-      auto *Dest64 = llvm::cast<Variable64On32>(Dest);
-      _mov(Dest64, Src0R);
+      auto *T = llvm::cast<Variable64On32>(Func->makeVariable(IceType_i64));
+      T->initHiLo(Func);
+      T->getHi()->setMustHaveReg();
+      T->getLo()->setMustHaveReg();
+      _mov(T, Src0R);
+      lowerAssign(InstAssign::create(Func, Dest, T));
       break;
     }
     case IceType_f64: {
@@ -5246,6 +5329,8 @@ void TargetHeaderMIPS32::lower() {
       << "nomicromips\n";
   Str << "\t.set\t"
       << "nomips16\n";
+  Str << "\t.set\t"
+      << "noat\n";
 }
 
 SmallBitVector TargetMIPS32::TypeToRegisterSet[RCMIPS32_NUM];
