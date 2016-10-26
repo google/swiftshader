@@ -62,12 +62,16 @@ public:
     Stackrestore,
     Trap,
     // The intrinsics below are not part of the PNaCl specification.
+    AddSaturateSigned,
+    AddSaturateUnsigned,
     LoadSubVector,
     MultiplyAddPairs,
     MultiplyHighSigned,
     MultiplyHighUnsigned,
     SignMask,
     StoreSubVector,
+    SubtractSaturateSigned,
+    SubtractSaturateUnsigned,
     VectorPackSigned,
     VectorPackUnsigned
   };

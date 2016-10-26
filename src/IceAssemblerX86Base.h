@@ -357,6 +357,10 @@ public:
 
   void padd(Type Ty, XmmRegister dst, XmmRegister src);
   void padd(Type Ty, XmmRegister dst, const Address &src);
+  void padds(Type Ty, XmmRegister dst, XmmRegister src);
+  void padds(Type Ty, XmmRegister dst, const Address &src);
+  void paddus(Type Ty, XmmRegister dst, XmmRegister src);
+  void paddus(Type Ty, XmmRegister dst, const Address &src);
   void pand(Type Ty, XmmRegister dst, XmmRegister src);
   void pand(Type Ty, XmmRegister dst, const Address &src);
   void pandn(Type Ty, XmmRegister dst, XmmRegister src);
@@ -375,6 +379,10 @@ public:
   void por(Type Ty, XmmRegister dst, const Address &src);
   void psub(Type Ty, XmmRegister dst, XmmRegister src);
   void psub(Type Ty, XmmRegister dst, const Address &src);
+  void psubs(Type Ty, XmmRegister dst, XmmRegister src);
+  void psubs(Type Ty, XmmRegister dst, const Address &src);
+  void psubus(Type Ty, XmmRegister dst, XmmRegister src);
+  void psubus(Type Ty, XmmRegister dst, const Address &src);
   void pxor(Type Ty, XmmRegister dst, XmmRegister src);
   void pxor(Type Ty, XmmRegister dst, const Address &src);
 

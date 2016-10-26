@@ -767,6 +767,14 @@ protected:
     AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Padd>(Dest, Src0);
   }
+  void _padds(Variable *Dest, Operand *Src0) {
+    AutoMemorySandboxer<> _(this, &Dest, &Src0);
+    Context.insert<typename Traits::Insts::Padds>(Dest, Src0);
+  }
+  void _paddus(Variable *Dest, Operand *Src0) {
+    AutoMemorySandboxer<> _(this, &Dest, &Src0);
+    Context.insert<typename Traits::Insts::Paddus>(Dest, Src0);
+  }
   void _pand(Variable *Dest, Operand *Src0) {
     AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Pand>(Dest, Src0);
@@ -863,6 +871,14 @@ protected:
   void _psub(Variable *Dest, Operand *Src0) {
     AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Psub>(Dest, Src0);
+  }
+  void _psubs(Variable *Dest, Operand *Src0) {
+    AutoMemorySandboxer<> _(this, &Dest, &Src0);
+    Context.insert<typename Traits::Insts::Psubs>(Dest, Src0);
+  }
+  void _psubus(Variable *Dest, Operand *Src0) {
+    AutoMemorySandboxer<> _(this, &Dest, &Src0);
+    Context.insert<typename Traits::Insts::Psubus>(Dest, Src0);
   }
   void _push(Operand *Src0) {
     Context.insert<typename Traits::Insts::Push>(Src0);

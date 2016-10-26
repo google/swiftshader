@@ -758,6 +758,76 @@ void AssemblerX86Base<TraitsType>::padd(Type Ty, XmmRegister dst,
 }
 
 template <typename TraitsType>
+void AssemblerX86Base<TraitsType>::padds(Type Ty, XmmRegister dst,
+                                         XmmRegister src) {
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitUint8(0x66);
+  emitRexRB(RexTypeIrrelevant, dst, src);
+  emitUint8(0x0F);
+  if (isByteSizedArithType(Ty)) {
+    emitUint8(0xEC);
+  } else if (Ty == IceType_i16) {
+    emitUint8(0xED);
+  } else {
+    assert(false && "Unexpected padds operand type");
+  }
+  emitXmmRegisterOperand(dst, src);
+}
+
+template <typename TraitsType>
+void AssemblerX86Base<TraitsType>::padds(Type Ty, XmmRegister dst,
+                                         const Address &src) {
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitUint8(0x66);
+  emitAddrSizeOverridePrefix();
+  emitRex(RexTypeIrrelevant, src, dst);
+  emitUint8(0x0F);
+  if (isByteSizedArithType(Ty)) {
+    emitUint8(0xEC);
+  } else if (Ty == IceType_i16) {
+    emitUint8(0xED);
+  } else {
+    assert(false && "Unexpected padds operand type");
+  }
+  emitOperand(gprEncoding(dst), src);
+}
+
+template <typename TraitsType>
+void AssemblerX86Base<TraitsType>::paddus(Type Ty, XmmRegister dst,
+                                          XmmRegister src) {
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitUint8(0x66);
+  emitRexRB(RexTypeIrrelevant, dst, src);
+  emitUint8(0x0F);
+  if (isByteSizedArithType(Ty)) {
+    emitUint8(0xDC);
+  } else if (Ty == IceType_i16) {
+    emitUint8(0xDD);
+  } else {
+    assert(false && "Unexpected paddus operand type");
+  }
+  emitXmmRegisterOperand(dst, src);
+}
+
+template <typename TraitsType>
+void AssemblerX86Base<TraitsType>::paddus(Type Ty, XmmRegister dst,
+                                          const Address &src) {
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitUint8(0x66);
+  emitAddrSizeOverridePrefix();
+  emitRex(RexTypeIrrelevant, src, dst);
+  emitUint8(0x0F);
+  if (isByteSizedArithType(Ty)) {
+    emitUint8(0xDC);
+  } else if (Ty == IceType_i16) {
+    emitUint8(0xDD);
+  } else {
+    assert(false && "Unexpected paddus operand type");
+  }
+  emitOperand(gprEncoding(dst), src);
+}
+
+template <typename TraitsType>
 void AssemblerX86Base<TraitsType>::pand(Type /* Ty */, XmmRegister dst,
                                         XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
@@ -996,6 +1066,75 @@ void AssemblerX86Base<TraitsType>::psub(Type Ty, XmmRegister dst,
     emitUint8(0xF9);
   } else {
     emitUint8(0xFA);
+  }
+  emitOperand(gprEncoding(dst), src);
+}
+
+template <typename TraitsType>
+void AssemblerX86Base<TraitsType>::psubs(Type Ty, XmmRegister dst,
+                                         XmmRegister src) {
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitUint8(0x66);
+  emitRexRB(RexTypeIrrelevant, dst, src);
+  emitUint8(0x0F);
+  if (isByteSizedArithType(Ty)) {
+    emitUint8(0xE8);
+  } else if (Ty == IceType_i16) {
+    emitUint8(0xE9);
+  } else {
+    assert(false && "Unexpected psubs operand type");
+  }
+  emitXmmRegisterOperand(dst, src);
+}
+
+template <typename TraitsType>
+void AssemblerX86Base<TraitsType>::psubs(Type Ty, XmmRegister dst,
+                                         const Address &src) {
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitUint8(0x66);
+  emitAddrSizeOverridePrefix();
+  emitRex(RexTypeIrrelevant, src, dst);
+  emitUint8(0x0F);
+  if (isByteSizedArithType(Ty)) {
+    emitUint8(0xE8);
+  } else if (Ty == IceType_i16) {
+    emitUint8(0xE9);
+  } else {
+    assert(false && "Unexpected psubs operand type");
+  }
+  emitOperand(gprEncoding(dst), src);
+}
+template <typename TraitsType>
+void AssemblerX86Base<TraitsType>::psubus(Type Ty, XmmRegister dst,
+                                          XmmRegister src) {
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitUint8(0x66);
+  emitRexRB(RexTypeIrrelevant, dst, src);
+  emitUint8(0x0F);
+  if (isByteSizedArithType(Ty)) {
+    emitUint8(0xD8);
+  } else if (Ty == IceType_i16) {
+    emitUint8(0xD9);
+  } else {
+    assert(false && "Unexpected psubus operand type");
+  }
+  emitXmmRegisterOperand(dst, src);
+}
+
+template <typename TraitsType>
+void AssemblerX86Base<TraitsType>::psubus(Type Ty, XmmRegister dst,
+                                          const Address &src) {
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitUint8(0x66);
+  emitAddrSizeOverridePrefix();
+  emitRex(RexTypeIrrelevant, src, dst);
+  emitUint8(0x0F);
+  if (isByteSizedArithType(Ty)) {
+    emitUint8(0xD8);
+  } else if (Ty == IceType_i16) {
+    emitUint8(0xD9);
+  } else {
+    assert(false && "Unexpected psubus operand type");
   }
   emitOperand(gprEncoding(dst), src);
 }

@@ -132,6 +132,8 @@ template <typename TraitsType> struct InstImpl {
       Orps,
       OrRMW,
       Padd,
+      Padds,
+      Paddus,
       Pand,
       Pandn,
       Pblendvb,
@@ -156,6 +158,8 @@ template <typename TraitsType> struct InstImpl {
       Psra,
       Psrl,
       Psub,
+      Psubs,
+      Psubus,
       Push,
       Pxor,
       Ret,
@@ -1435,6 +1439,38 @@ template <typename TraitsType> struct InstImpl {
                                                                 Source) {}
   };
 
+  class InstX86Padds
+      : public InstX86BaseBinopXmm<InstX86Base::Padds, true,
+                                   InstX86Base::SseSuffix::Integral> {
+  public:
+    static InstX86Padds *create(Cfg *Func, Variable *Dest, Operand *Source) {
+      return new (Func->allocate<InstX86Padds>())
+          InstX86Padds(Func, Dest, Source);
+    }
+
+  private:
+    InstX86Padds(Cfg *Func, Variable *Dest, Operand *Source)
+        : InstX86BaseBinopXmm<InstX86Base::Padds, true,
+                              InstX86Base::SseSuffix::Integral>(Func, Dest,
+                                                                Source) {}
+  };
+
+  class InstX86Paddus
+      : public InstX86BaseBinopXmm<InstX86Base::Paddus, true,
+                                   InstX86Base::SseSuffix::Integral> {
+  public:
+    static InstX86Paddus *create(Cfg *Func, Variable *Dest, Operand *Source) {
+      return new (Func->allocate<InstX86Paddus>())
+          InstX86Paddus(Func, Dest, Source);
+    }
+
+  private:
+    InstX86Paddus(Cfg *Func, Variable *Dest, Operand *Source)
+        : InstX86BaseBinopXmm<InstX86Base::Paddus, true,
+                              InstX86Base::SseSuffix::Integral>(Func, Dest,
+                                                                Source) {}
+  };
+
   class InstX86Sub : public InstX86BaseBinopGPR<InstX86Base::Sub> {
   public:
     static InstX86Sub *create(Cfg *Func, Variable *Dest, Operand *Source) {
@@ -1527,6 +1563,38 @@ template <typename TraitsType> struct InstImpl {
   private:
     InstX86Psub(Cfg *Func, Variable *Dest, Operand *Source)
         : InstX86BaseBinopXmm<InstX86Base::Psub, true,
+                              InstX86Base::SseSuffix::Integral>(Func, Dest,
+                                                                Source) {}
+  };
+
+  class InstX86Psubs
+      : public InstX86BaseBinopXmm<InstX86Base::Psubs, true,
+                                   InstX86Base::SseSuffix::Integral> {
+  public:
+    static InstX86Psubs *create(Cfg *Func, Variable *Dest, Operand *Source) {
+      return new (Func->allocate<InstX86Psubs>())
+          InstX86Psubs(Func, Dest, Source);
+    }
+
+  private:
+    InstX86Psubs(Cfg *Func, Variable *Dest, Operand *Source)
+        : InstX86BaseBinopXmm<InstX86Base::Psubs, true,
+                              InstX86Base::SseSuffix::Integral>(Func, Dest,
+                                                                Source) {}
+  };
+
+  class InstX86Psubus
+      : public InstX86BaseBinopXmm<InstX86Base::Psubus, true,
+                                   InstX86Base::SseSuffix::Integral> {
+  public:
+    static InstX86Psubus *create(Cfg *Func, Variable *Dest, Operand *Source) {
+      return new (Func->allocate<InstX86Psubus>())
+          InstX86Psubus(Func, Dest, Source);
+    }
+
+  private:
+    InstX86Psubus(Cfg *Func, Variable *Dest, Operand *Source)
+        : InstX86BaseBinopXmm<InstX86Base::Psubus, true,
                               InstX86Base::SseSuffix::Integral>(Func, Dest,
                                                                 Source) {}
   };
@@ -3097,6 +3165,8 @@ template <typename TraitsType> struct Insts {
   using Andnps = typename InstImpl<TraitsType>::InstX86Andnps;
   using Andps = typename InstImpl<TraitsType>::InstX86Andps;
   using Padd = typename InstImpl<TraitsType>::InstX86Padd;
+  using Padds = typename InstImpl<TraitsType>::InstX86Padds;
+  using Paddus = typename InstImpl<TraitsType>::InstX86Paddus;
   using Sub = typename InstImpl<TraitsType>::InstX86Sub;
   using SubRMW = typename InstImpl<TraitsType>::InstX86SubRMW;
   using Subps = typename InstImpl<TraitsType>::InstX86Subps;
@@ -3104,6 +3174,8 @@ template <typename TraitsType> struct Insts {
   using Sbb = typename InstImpl<TraitsType>::InstX86Sbb;
   using SbbRMW = typename InstImpl<TraitsType>::InstX86SbbRMW;
   using Psub = typename InstImpl<TraitsType>::InstX86Psub;
+  using Psubs = typename InstImpl<TraitsType>::InstX86Psubs;
+  using Psubus = typename InstImpl<TraitsType>::InstX86Psubus;
   using And = typename InstImpl<TraitsType>::InstX86And;
   using AndRMW = typename InstImpl<TraitsType>::InstX86AndRMW;
   using Pand = typename InstImpl<TraitsType>::InstX86Pand;
@@ -3279,6 +3351,12 @@ template <typename TraitsType> struct Insts {
   const char *InstImpl<TraitsType>::InstX86Padd::Base::Opcode = "padd";        \
   template <>                                                                  \
   template <>                                                                  \
+  const char *InstImpl<TraitsType>::InstX86Padds::Base::Opcode = "padds";      \
+  template <>                                                                  \
+  template <>                                                                  \
+  const char *InstImpl<TraitsType>::InstX86Paddus::Base::Opcode = "paddus";    \
+  template <>                                                                  \
+  template <>                                                                  \
   const char *InstImpl<TraitsType>::InstX86Sub::Base::Opcode = "sub";          \
   template <>                                                                  \
   template <>                                                                  \
@@ -3298,6 +3376,12 @@ template <typename TraitsType> struct Insts {
   template <>                                                                  \
   template <>                                                                  \
   const char *InstImpl<TraitsType>::InstX86Psub::Base::Opcode = "psub";        \
+  template <>                                                                  \
+  template <>                                                                  \
+  const char *InstImpl<TraitsType>::InstX86Psubs::Base::Opcode = "psubs";      \
+  template <>                                                                  \
+  template <>                                                                  \
+  const char *InstImpl<TraitsType>::InstX86Psubus::Base::Opcode = "psubus";    \
   template <>                                                                  \
   template <>                                                                  \
   const char *InstImpl<TraitsType>::InstX86And::Base::Opcode = "and";          \
@@ -3683,6 +3767,18 @@ template <typename TraitsType> struct Insts {
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::XmmEmitterRegOp                       \
+      InstImpl<TraitsType>::InstX86Padds::Base::Emitter = {                    \
+          &InstImpl<TraitsType>::Assembler::padds,                             \
+          &InstImpl<TraitsType>::Assembler::padds};                            \
+  template <>                                                                  \
+  template <>                                                                  \
+  const InstImpl<TraitsType>::Assembler::XmmEmitterRegOp                       \
+      InstImpl<TraitsType>::InstX86Paddus::Base::Emitter = {                   \
+          &InstImpl<TraitsType>::Assembler::paddus,                            \
+          &InstImpl<TraitsType>::Assembler::paddus};                           \
+  template <>                                                                  \
+  template <>                                                                  \
+  const InstImpl<TraitsType>::Assembler::XmmEmitterRegOp                       \
       InstImpl<TraitsType>::InstX86Pand::Base::Emitter = {                     \
           &InstImpl<TraitsType>::Assembler::pand,                              \
           &InstImpl<TraitsType>::Assembler::pand};                             \
@@ -3746,6 +3842,18 @@ template <typename TraitsType> struct Insts {
       InstImpl<TraitsType>::InstX86Psub::Base::Emitter = {                     \
           &InstImpl<TraitsType>::Assembler::psub,                              \
           &InstImpl<TraitsType>::Assembler::psub};                             \
+  template <>                                                                  \
+  template <>                                                                  \
+  const InstImpl<TraitsType>::Assembler::XmmEmitterRegOp                       \
+      InstImpl<TraitsType>::InstX86Psubs::Base::Emitter = {                    \
+          &InstImpl<TraitsType>::Assembler::psubs,                             \
+          &InstImpl<TraitsType>::Assembler::psubs};                            \
+  template <>                                                                  \
+  template <>                                                                  \
+  const InstImpl<TraitsType>::Assembler::XmmEmitterRegOp                       \
+      InstImpl<TraitsType>::InstX86Psubus::Base::Emitter = {                   \
+          &InstImpl<TraitsType>::Assembler::psubus,                            \
+          &InstImpl<TraitsType>::Assembler::psubus};                           \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::XmmEmitterRegOp                       \

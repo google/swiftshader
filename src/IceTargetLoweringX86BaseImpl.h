@@ -4509,6 +4509,54 @@ void TargetX86Base<TraitsType>::lowerIntrinsicCall(
     _movp(Dest, T);
     return;
   }
+  case Intrinsics::AddSaturateSigned: {
+    Operand *Src0 = Instr->getArg(0);
+    Operand *Src1 = Instr->getArg(1);
+    Variable *Dest = Instr->getDest();
+    auto *T = makeReg(Dest->getType());
+    auto *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
+    auto *Src1RM = legalize(Src1, Legal_Reg | Legal_Mem);
+    _movp(T, Src0RM);
+    _padds(T, Src1RM);
+    _movp(Dest, T);
+    return;
+  }
+  case Intrinsics::SubtractSaturateSigned: {
+    Operand *Src0 = Instr->getArg(0);
+    Operand *Src1 = Instr->getArg(1);
+    Variable *Dest = Instr->getDest();
+    auto *T = makeReg(Dest->getType());
+    auto *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
+    auto *Src1RM = legalize(Src1, Legal_Reg | Legal_Mem);
+    _movp(T, Src0RM);
+    _psubs(T, Src1RM);
+    _movp(Dest, T);
+    return;
+  }
+  case Intrinsics::AddSaturateUnsigned: {
+    Operand *Src0 = Instr->getArg(0);
+    Operand *Src1 = Instr->getArg(1);
+    Variable *Dest = Instr->getDest();
+    auto *T = makeReg(Dest->getType());
+    auto *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
+    auto *Src1RM = legalize(Src1, Legal_Reg | Legal_Mem);
+    _movp(T, Src0RM);
+    _paddus(T, Src1RM);
+    _movp(Dest, T);
+    return;
+  }
+  case Intrinsics::SubtractSaturateUnsigned: {
+    Operand *Src0 = Instr->getArg(0);
+    Operand *Src1 = Instr->getArg(1);
+    Variable *Dest = Instr->getDest();
+    auto *T = makeReg(Dest->getType());
+    auto *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
+    auto *Src1RM = legalize(Src1, Legal_Reg | Legal_Mem);
+    _movp(T, Src0RM);
+    _psubus(T, Src1RM);
+    _movp(Dest, T);
+    return;
+  }
   default: // UnknownIntrinsic
     Func->setError("Unexpected intrinsic");
     return;
