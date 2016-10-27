@@ -3222,7 +3222,7 @@ namespace sw
 		pack->addArg(y.value);
 		::basicBlock->appendInst(pack);
 
-		return As<SByte8>(Swizzle(As<Int4>(RValue<Byte16>(V(result))), 0x88));
+		return As<SByte8>(Swizzle(As<Int4>(V(result)), 0x88));
 	}
 
 	RValue<Int2> UnpackLow(RValue<Short4> x, RValue<Short4> y)
@@ -3535,7 +3535,7 @@ namespace sw
 		pack->addArg(y.value);
 		::basicBlock->appendInst(pack);
 
-		return As<Byte8>(Swizzle(As<Int4>(RValue<Byte16>(V(result))), 0x88));
+		return As<Byte8>(Swizzle(As<Int4>(V(result)), 0x88));
 	}
 
 	Type *UShort4::getType()
