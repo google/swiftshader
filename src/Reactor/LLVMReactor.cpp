@@ -7008,126 +7008,126 @@ namespace sw
 		{
 			llvm::Function *paddsw = Intrinsic::getDeclaration(::module, Intrinsic::x86_mmx_padds_w);
 
-			return As<Short4>(RValue<MMX>(V(::builder->CreateCall2(paddsw, As<MMX>(x).value, As<MMX>(y).value))));
+			return As<Short4>(V(::builder->CreateCall2(paddsw, As<MMX>(x).value, As<MMX>(y).value)));
 		}
 
 		RValue<Short4> psubsw(RValue<Short4> x, RValue<Short4> y)
 		{
 			llvm::Function *psubsw = Intrinsic::getDeclaration(::module, Intrinsic::x86_mmx_psubs_w);
 
-			return As<Short4>(RValue<MMX>(V(::builder->CreateCall2(psubsw, As<MMX>(x).value, As<MMX>(y).value))));
+			return As<Short4>(V(::builder->CreateCall2(psubsw, As<MMX>(x).value, As<MMX>(y).value)));
 		}
 
 		RValue<UShort4> paddusw(RValue<UShort4> x, RValue<UShort4> y)
 		{
 			llvm::Function *paddusw = Intrinsic::getDeclaration(::module, Intrinsic::x86_mmx_paddus_w);
 
-			return As<UShort4>(RValue<MMX>(V(::builder->CreateCall2(paddusw, As<MMX>(x).value, As<MMX>(y).value))));
+			return As<UShort4>(V(::builder->CreateCall2(paddusw, As<MMX>(x).value, As<MMX>(y).value)));
 		}
 
 		RValue<UShort4> psubusw(RValue<UShort4> x, RValue<UShort4> y)
 		{
 			llvm::Function *psubusw = Intrinsic::getDeclaration(::module, Intrinsic::x86_mmx_psubus_w);
 
-			return As<UShort4>(RValue<MMX>(V(::builder->CreateCall2(psubusw, As<MMX>(x).value, As<MMX>(y).value))));
+			return As<UShort4>(V(::builder->CreateCall2(psubusw, As<MMX>(x).value, As<MMX>(y).value)));
 		}
 
 		RValue<SByte8> paddsb(RValue<SByte8> x, RValue<SByte8> y)
 		{
 			llvm::Function *paddsb = Intrinsic::getDeclaration(::module, Intrinsic::x86_mmx_padds_b);
 
-			return As<SByte8>(RValue<MMX>(V(::builder->CreateCall2(paddsb, As<MMX>(x).value, As<MMX>(y).value))));
+			return As<SByte8>(V(::builder->CreateCall2(paddsb, As<MMX>(x).value, As<MMX>(y).value)));
 		}
 
 		RValue<SByte8> psubsb(RValue<SByte8> x, RValue<SByte8> y)
 		{
 			llvm::Function *psubsb = Intrinsic::getDeclaration(::module, Intrinsic::x86_mmx_psubs_b);
 
-			return As<SByte8>(RValue<MMX>(V(::builder->CreateCall2(psubsb, As<MMX>(x).value, As<MMX>(y).value))));
+			return As<SByte8>(V(::builder->CreateCall2(psubsb, As<MMX>(x).value, As<MMX>(y).value)));
 		}
 
 		RValue<Byte8> paddusb(RValue<Byte8> x, RValue<Byte8> y)
 		{
 			llvm::Function *paddusb = Intrinsic::getDeclaration(::module, Intrinsic::x86_mmx_paddus_b);
 
-			return As<Byte8>(RValue<MMX>(V(::builder->CreateCall2(paddusb, As<MMX>(x).value, As<MMX>(y).value))));
+			return As<Byte8>(V(::builder->CreateCall2(paddusb, As<MMX>(x).value, As<MMX>(y).value)));
 		}
 
 		RValue<Byte8> psubusb(RValue<Byte8> x, RValue<Byte8> y)
 		{
 			llvm::Function *psubusb = Intrinsic::getDeclaration(::module, Intrinsic::x86_mmx_psubus_b);
 
-			return As<Byte8>(RValue<MMX>(V(::builder->CreateCall2(psubusb, As<MMX>(x).value, As<MMX>(y).value))));
+			return As<Byte8>(V(::builder->CreateCall2(psubusb, As<MMX>(x).value, As<MMX>(y).value)));
 		}
 
 		RValue<Short4> paddw(RValue<Short4> x, RValue<Short4> y)
 		{
 			llvm::Function *paddw = Intrinsic::getDeclaration(::module, Intrinsic::x86_mmx_padd_w);
 
-			return As<Short4>(RValue<MMX>(V(::builder->CreateCall2(paddw, As<MMX>(x).value, As<MMX>(y).value))));
+			return As<Short4>(V(::builder->CreateCall2(paddw, As<MMX>(x).value, As<MMX>(y).value)));
 		}
 
 		RValue<Short4> psubw(RValue<Short4> x, RValue<Short4> y)
 		{
 			llvm::Function *psubw = Intrinsic::getDeclaration(::module, Intrinsic::x86_mmx_psub_w);
 
-			return As<Short4>(RValue<MMX>(V(::builder->CreateCall2(psubw, As<MMX>(x).value, As<MMX>(y).value))));
+			return As<Short4>(V(::builder->CreateCall2(psubw, As<MMX>(x).value, As<MMX>(y).value)));
 		}
 
 		RValue<Short4> pmullw(RValue<Short4> x, RValue<Short4> y)
 		{
 			llvm::Function *pmullw = Intrinsic::getDeclaration(::module, Intrinsic::x86_mmx_pmull_w);
 
-			return As<Short4>(RValue<MMX>(V(::builder->CreateCall2(pmullw, As<MMX>(x).value, As<MMX>(y).value))));
+			return As<Short4>(V(::builder->CreateCall2(pmullw, As<MMX>(x).value, As<MMX>(y).value)));
 		}
 
 		RValue<Short4> pand(RValue<Short4> x, RValue<Short4> y)
 		{
 			llvm::Function *pand = Intrinsic::getDeclaration(::module, Intrinsic::x86_mmx_pand);
 
-			return As<Short4>(RValue<MMX>(V(::builder->CreateCall2(pand, As<MMX>(x).value, As<MMX>(y).value))));
+			return As<Short4>(V(::builder->CreateCall2(pand, As<MMX>(x).value, As<MMX>(y).value)));
 		}
 
 		RValue<Short4> por(RValue<Short4> x, RValue<Short4> y)
 		{
 			llvm::Function *por = Intrinsic::getDeclaration(::module, Intrinsic::x86_mmx_por);
 
-			return As<Short4>(RValue<MMX>(V(::builder->CreateCall2(por, As<MMX>(x).value, As<MMX>(y).value))));
+			return As<Short4>(V(::builder->CreateCall2(por, As<MMX>(x).value, As<MMX>(y).value)));
 		}
 
 		RValue<Short4> pxor(RValue<Short4> x, RValue<Short4> y)
 		{
 			llvm::Function *pxor = Intrinsic::getDeclaration(::module, Intrinsic::x86_mmx_pxor);
 
-			return As<Short4>(RValue<MMX>(V(::builder->CreateCall2(pxor, As<MMX>(x).value, As<MMX>(y).value))));
+			return As<Short4>(V(::builder->CreateCall2(pxor, As<MMX>(x).value, As<MMX>(y).value)));
 		}
 
 		RValue<Short4> pshufw(RValue<Short4> x, unsigned char y)
 		{
 			llvm::Function *pshufw = Intrinsic::getDeclaration(::module, Intrinsic::x86_sse_pshuf_w);
 
-			return As<Short4>(RValue<MMX>(V(::builder->CreateCall2(pshufw, As<MMX>(x).value, V(Nucleus::createConstantByte(y))))));
+			return As<Short4>(V(::builder->CreateCall2(pshufw, As<MMX>(x).value, V(Nucleus::createConstantByte(y)))));
 		}
 
 		RValue<Int2> punpcklwd(RValue<Short4> x, RValue<Short4> y)
 		{
 			llvm::Function *punpcklwd = Intrinsic::getDeclaration(::module, Intrinsic::x86_mmx_punpcklwd);
 
-			return As<Int2>(RValue<MMX>(V(::builder->CreateCall2(punpcklwd, As<MMX>(x).value, As<MMX>(y).value))));
+			return As<Int2>(V(::builder->CreateCall2(punpcklwd, As<MMX>(x).value, As<MMX>(y).value)));
 		}
 
 		RValue<Int2> punpckhwd(RValue<Short4> x, RValue<Short4> y)
 		{
 			llvm::Function *punpckhwd = Intrinsic::getDeclaration(::module, Intrinsic::x86_mmx_punpckhwd);
 
-			return As<Int2>(RValue<MMX>(V(::builder->CreateCall2(punpckhwd, As<MMX>(x).value, As<MMX>(y).value))));
+			return As<Int2>(V(::builder->CreateCall2(punpckhwd, As<MMX>(x).value, As<MMX>(y).value)));
 		}
 
 		RValue<Short4> pinsrw(RValue<Short4> x, RValue<Int> y, unsigned int i)
 		{
 			llvm::Function *pinsrw = Intrinsic::getDeclaration(::module, Intrinsic::x86_mmx_pinsr_w);
 
-			return As<Short4>(RValue<MMX>(V(::builder->CreateCall3(pinsrw, As<MMX>(x).value, y.value, V(Nucleus::createConstantInt(i))))));
+			return As<Short4>(V(::builder->CreateCall3(pinsrw, As<MMX>(x).value, y.value, V(Nucleus::createConstantInt(i)))));
 		}
 
 		RValue<Int> pextrw(RValue<Short4> x, unsigned int i)
@@ -7141,112 +7141,112 @@ namespace sw
 		{
 			llvm::Function *punpckldq = Intrinsic::getDeclaration(::module, Intrinsic::x86_mmx_punpckldq);
 
-			return As<Long1>(RValue<MMX>(V(::builder->CreateCall2(punpckldq, As<MMX>(x).value, As<MMX>(y).value))));
+			return As<Long1>(V(::builder->CreateCall2(punpckldq, As<MMX>(x).value, As<MMX>(y).value)));
 		}
 
 		RValue<Long1> punpckhdq(RValue<Int2> x, RValue<Int2> y)
 		{
 			llvm::Function *punpckhdq = Intrinsic::getDeclaration(::module, Intrinsic::x86_mmx_punpckhdq);
 
-			return As<Long1>(RValue<MMX>(V(::builder->CreateCall2(punpckhdq, As<MMX>(x).value, As<MMX>(y).value))));
+			return As<Long1>(V(::builder->CreateCall2(punpckhdq, As<MMX>(x).value, As<MMX>(y).value)));
 		}
 
 		RValue<Short4> punpcklbw(RValue<Byte8> x, RValue<Byte8> y)
 		{
 			llvm::Function *punpcklbw = Intrinsic::getDeclaration(::module, Intrinsic::x86_mmx_punpcklbw);
 
-			return As<Short4>(RValue<MMX>(V(::builder->CreateCall2(punpcklbw, As<MMX>(x).value, As<MMX>(y).value))));
+			return As<Short4>(V(::builder->CreateCall2(punpcklbw, As<MMX>(x).value, As<MMX>(y).value)));
 		}
 
 		RValue<Short4> punpckhbw(RValue<Byte8> x, RValue<Byte8> y)
 		{
 			llvm::Function *punpckhbw = Intrinsic::getDeclaration(::module, Intrinsic::x86_mmx_punpckhbw);
 
-			return As<Short4>(RValue<MMX>(V(::builder->CreateCall2(punpckhbw, As<MMX>(x).value, As<MMX>(y).value))));
+			return As<Short4>(V(::builder->CreateCall2(punpckhbw, As<MMX>(x).value, As<MMX>(y).value)));
 		}
 
 		RValue<Byte8> paddb(RValue<Byte8> x, RValue<Byte8> y)
 		{
 			llvm::Function *paddb = Intrinsic::getDeclaration(::module, Intrinsic::x86_mmx_padd_b);
 
-			return As<Byte8>(RValue<MMX>(V(::builder->CreateCall2(paddb, As<MMX>(x).value, As<MMX>(y).value))));
+			return As<Byte8>(V(::builder->CreateCall2(paddb, As<MMX>(x).value, As<MMX>(y).value)));
 		}
 
 		RValue<Byte8> psubb(RValue<Byte8> x, RValue<Byte8> y)
 		{
 			llvm::Function *psubb = Intrinsic::getDeclaration(::module, Intrinsic::x86_mmx_psub_b);
 
-			return As<Byte8>(RValue<MMX>(V(::builder->CreateCall2(psubb, As<MMX>(x).value, As<MMX>(y).value))));
+			return As<Byte8>(V(::builder->CreateCall2(psubb, As<MMX>(x).value, As<MMX>(y).value)));
 		}
 
 		RValue<Int2> paddd(RValue<Int2> x, RValue<Int2> y)
 		{
 			llvm::Function *paddd = Intrinsic::getDeclaration(::module, Intrinsic::x86_mmx_padd_d);
 
-			return As<Int2>(RValue<MMX>(V(::builder->CreateCall2(paddd, As<MMX>(x).value, As<MMX>(y).value))));
+			return As<Int2>(V(::builder->CreateCall2(paddd, As<MMX>(x).value, As<MMX>(y).value)));
 		}
 
 		RValue<Int2> psubd(RValue<Int2> x, RValue<Int2> y)
 		{
 			llvm::Function *psubd = Intrinsic::getDeclaration(::module, Intrinsic::x86_mmx_psub_d);
 
-			return As<Int2>(RValue<MMX>(V(::builder->CreateCall2(psubd, As<MMX>(x).value, As<MMX>(y).value))));
+			return As<Int2>(V(::builder->CreateCall2(psubd, As<MMX>(x).value, As<MMX>(y).value)));
 		}
 
 		RValue<UShort4> pavgw(RValue<UShort4> x, RValue<UShort4> y)
 		{
 			llvm::Function *pavgw = Intrinsic::getDeclaration(::module, Intrinsic::x86_mmx_pavg_w);
 
-			return As<UShort4>(RValue<MMX>(V(::builder->CreateCall2(pavgw, As<MMX>(x).value, As<MMX>(y).value))));
+			return As<UShort4>(V(::builder->CreateCall2(pavgw, As<MMX>(x).value, As<MMX>(y).value)));
 		}
 
 		RValue<Short4> pmaxsw(RValue<Short4> x, RValue<Short4> y)
 		{
 			llvm::Function *pmaxsw = Intrinsic::getDeclaration(::module, Intrinsic::x86_mmx_pmaxs_w);
 
-			return As<Short4>(RValue<MMX>(V(::builder->CreateCall2(pmaxsw, As<MMX>(x).value, As<MMX>(y).value))));
+			return As<Short4>(V(::builder->CreateCall2(pmaxsw, As<MMX>(x).value, As<MMX>(y).value)));
 		}
 
 		RValue<Short4> pminsw(RValue<Short4> x, RValue<Short4> y)
 		{
 			llvm::Function *pminsw = Intrinsic::getDeclaration(::module, Intrinsic::x86_mmx_pmins_w);
 
-			return As<Short4>(RValue<MMX>(V(::builder->CreateCall2(pminsw, As<MMX>(x).value, As<MMX>(y).value))));
+			return As<Short4>(V(::builder->CreateCall2(pminsw, As<MMX>(x).value, As<MMX>(y).value)));
 		}
 
 		RValue<Short4> pcmpgtw(RValue<Short4> x, RValue<Short4> y)
 		{
 			llvm::Function *pcmpgtw = Intrinsic::getDeclaration(::module, Intrinsic::x86_mmx_pcmpgt_w);
 
-			return As<Short4>(RValue<MMX>(V(::builder->CreateCall2(pcmpgtw, As<MMX>(x).value, As<MMX>(y).value))));
+			return As<Short4>(V(::builder->CreateCall2(pcmpgtw, As<MMX>(x).value, As<MMX>(y).value)));
 		}
 
 		RValue<Short4> pcmpeqw(RValue<Short4> x, RValue<Short4> y)
 		{
 			llvm::Function *pcmpeqw = Intrinsic::getDeclaration(::module, Intrinsic::x86_mmx_pcmpeq_w);
 
-			return As<Short4>(RValue<MMX>(V(::builder->CreateCall2(pcmpeqw, As<MMX>(x).value, As<MMX>(y).value))));
+			return As<Short4>(V(::builder->CreateCall2(pcmpeqw, As<MMX>(x).value, As<MMX>(y).value)));
 		}
 
 		RValue<Byte8> pcmpgtb(RValue<SByte8> x, RValue<SByte8> y)
 		{
 			llvm::Function *pcmpgtb = Intrinsic::getDeclaration(::module, Intrinsic::x86_mmx_pcmpgt_b);
 
-			return As<Byte8>(RValue<MMX>(V(::builder->CreateCall2(pcmpgtb, As<MMX>(x).value, As<MMX>(y).value))));
+			return As<Byte8>(V(::builder->CreateCall2(pcmpgtb, As<MMX>(x).value, As<MMX>(y).value)));
 		}
 
 		RValue<Byte8> pcmpeqb(RValue<Byte8> x, RValue<Byte8> y)
 		{
 			llvm::Function *pcmpeqb = Intrinsic::getDeclaration(::module, Intrinsic::x86_mmx_pcmpeq_b);
 
-			return As<Byte8>(RValue<MMX>(V(::builder->CreateCall2(pcmpeqb, As<MMX>(x).value, As<MMX>(y).value))));
+			return As<Byte8>(V(::builder->CreateCall2(pcmpeqb, As<MMX>(x).value, As<MMX>(y).value)));
 		}
 
 		RValue<Short4> packssdw(RValue<Int2> x, RValue<Int2> y)
 		{
 			llvm::Function *packssdw = Intrinsic::getDeclaration(::module, Intrinsic::x86_mmx_packssdw);
 
-			return As<Short4>(RValue<MMX>(V(::builder->CreateCall2(packssdw, As<MMX>(x).value, As<MMX>(y).value))));
+			return As<Short4>(V(::builder->CreateCall2(packssdw, As<MMX>(x).value, As<MMX>(y).value)));
 		}
 
 		RValue<Short8> packssdw(RValue<Int4> x, RValue<Int4> y)
@@ -7276,14 +7276,14 @@ namespace sw
 		{
 			llvm::Function *packsswb = Intrinsic::getDeclaration(::module, Intrinsic::x86_mmx_packsswb);
 
-			return As<SByte8>(RValue<MMX>(V(::builder->CreateCall2(packsswb, As<MMX>(x).value, As<MMX>(y).value))));
+			return As<SByte8>(V(::builder->CreateCall2(packsswb, As<MMX>(x).value, As<MMX>(y).value)));
 		}
 
 		RValue<Byte8> packuswb(RValue<UShort4> x, RValue<UShort4> y)
 		{
 			llvm::Function *packuswb = Intrinsic::getDeclaration(::module, Intrinsic::x86_mmx_packuswb);
 
-			return As<Byte8>(RValue<MMX>(V(::builder->CreateCall2(packuswb, As<MMX>(x).value, As<MMX>(y).value))));
+			return As<Byte8>(V(::builder->CreateCall2(packuswb, As<MMX>(x).value, As<MMX>(y).value)));
 		}
 
 		RValue<UShort8> packusdw(RValue<UInt4> x, RValue<UInt4> y)
@@ -7305,7 +7305,7 @@ namespace sw
 		{
 			llvm::Function *psrlw = Intrinsic::getDeclaration(::module, Intrinsic::x86_mmx_psrli_w);
 
-			return As<UShort4>(RValue<MMX>(V(::builder->CreateCall2(psrlw, As<MMX>(x).value, V(Nucleus::createConstantInt(y))))));
+			return As<UShort4>(V(::builder->CreateCall2(psrlw, As<MMX>(x).value, V(Nucleus::createConstantInt(y)))));
 		}
 
 		RValue<UShort8> psrlw(RValue<UShort8> x, unsigned char y)
@@ -7319,7 +7319,7 @@ namespace sw
 		{
 			llvm::Function *psraw = Intrinsic::getDeclaration(::module, Intrinsic::x86_mmx_psrai_w);
 
-			return As<Short4>(RValue<MMX>(V(::builder->CreateCall2(psraw, As<MMX>(x).value, V(Nucleus::createConstantInt(y))))));
+			return As<Short4>(V(::builder->CreateCall2(psraw, As<MMX>(x).value, V(Nucleus::createConstantInt(y)))));
 		}
 
 		RValue<Short8> psraw(RValue<Short8> x, unsigned char y)
@@ -7333,7 +7333,7 @@ namespace sw
 		{
 			llvm::Function *psllw = Intrinsic::getDeclaration(::module, Intrinsic::x86_mmx_pslli_w);
 
-			return As<Short4>(RValue<MMX>(V(::builder->CreateCall2(psllw, As<MMX>(x).value, V(Nucleus::createConstantInt(y))))));
+			return As<Short4>(V(::builder->CreateCall2(psllw, As<MMX>(x).value, V(Nucleus::createConstantInt(y)))));
 		}
 
 		RValue<Short8> psllw(RValue<Short8> x, unsigned char y)
@@ -7347,7 +7347,7 @@ namespace sw
 		{
 			llvm::Function *pslld = Intrinsic::getDeclaration(::module, Intrinsic::x86_mmx_pslli_d);
 
-			return As<Int2>(RValue<MMX>(V(::builder->CreateCall2(pslld, As<MMX>(x).value, V(Nucleus::createConstantInt(y))))));
+			return As<Int2>(V(::builder->CreateCall2(pslld, As<MMX>(x).value, V(Nucleus::createConstantInt(y)))));
 		}
 
 		RValue<Int4> pslld(RValue<Int4> x, unsigned char y)
@@ -7374,7 +7374,7 @@ namespace sw
 		{
 			llvm::Function *psrad = Intrinsic::getDeclaration(::module, Intrinsic::x86_mmx_psrai_d);
 
-			return As<Int2>(RValue<MMX>(V(::builder->CreateCall2(psrad, As<MMX>(x).value, V(Nucleus::createConstantInt(y))))));
+			return As<Int2>(V(::builder->CreateCall2(psrad, As<MMX>(x).value, V(Nucleus::createConstantInt(y)))));
 		}
 
 		RValue<Int4> psrad(RValue<Int4> x, unsigned char y)
@@ -7401,7 +7401,7 @@ namespace sw
 		{
 			llvm::Function *psrld = Intrinsic::getDeclaration(::module, Intrinsic::x86_mmx_psrli_d);
 
-			return As<UInt2>(RValue<MMX>(V(::builder->CreateCall2(psrld, As<MMX>(x).value, V(Nucleus::createConstantInt(y))))));
+			return As<UInt2>(V(::builder->CreateCall2(psrld, As<MMX>(x).value, V(Nucleus::createConstantInt(y)))));
 		}
 
 		RValue<UInt4> psrld(RValue<UInt4> x, unsigned char y)
@@ -7428,42 +7428,42 @@ namespace sw
 		{
 			llvm::Function *psrlw = Intrinsic::getDeclaration(::module, Intrinsic::x86_mmx_psrl_w);
 
-			return As<UShort4>(RValue<MMX>(V(::builder->CreateCall2(psrlw, As<MMX>(x).value, As<MMX>(y).value))));
+			return As<UShort4>(V(::builder->CreateCall2(psrlw, As<MMX>(x).value, As<MMX>(y).value)));
 		}
 
 		RValue<Short4> psraw(RValue<Short4> x, RValue<Long1> y)
 		{
 			llvm::Function *psraw = Intrinsic::getDeclaration(::module, Intrinsic::x86_mmx_psra_w);
 
-			return As<Short4>(RValue<MMX>(V(::builder->CreateCall2(psraw, As<MMX>(x).value, As<MMX>(y).value))));
+			return As<Short4>(V(::builder->CreateCall2(psraw, As<MMX>(x).value, As<MMX>(y).value)));
 		}
 
 		RValue<Short4> psllw(RValue<Short4> x, RValue<Long1> y)
 		{
 			llvm::Function *psllw = Intrinsic::getDeclaration(::module, Intrinsic::x86_mmx_psll_w);
 
-			return As<Short4>(RValue<MMX>(V(::builder->CreateCall2(psllw, As<MMX>(x).value, As<MMX>(y).value))));
+			return As<Short4>(V(::builder->CreateCall2(psllw, As<MMX>(x).value, As<MMX>(y).value)));
 		}
 
 		RValue<Int2> pslld(RValue<Int2> x, RValue<Long1> y)
 		{
 			llvm::Function *pslld = Intrinsic::getDeclaration(::module, Intrinsic::x86_mmx_psll_d);
 
-			return As<Int2>(RValue<MMX>(V(::builder->CreateCall2(pslld, As<MMX>(x).value, As<MMX>(y).value))));
+			return As<Int2>(V(::builder->CreateCall2(pslld, As<MMX>(x).value, As<MMX>(y).value)));
 		}
 
 		RValue<UInt2> psrld(RValue<UInt2> x, RValue<Long1> y)
 		{
 			llvm::Function *psrld = Intrinsic::getDeclaration(::module, Intrinsic::x86_mmx_psrl_d);
 
-			return As<UInt2>(RValue<MMX>(V(::builder->CreateCall2(psrld, As<MMX>(x).value, As<MMX>(y).value))));
+			return As<UInt2>(V(::builder->CreateCall2(psrld, As<MMX>(x).value, As<MMX>(y).value)));
 		}
 
 		RValue<Int2> psrad(RValue<Int2> x, RValue<Long1> y)
 		{
 			llvm::Function *psrld = Intrinsic::getDeclaration(::module, Intrinsic::x86_mmx_psra_d);
 
-			return As<Int2>(RValue<MMX>(V(::builder->CreateCall2(psrld, As<MMX>(x).value, As<MMX>(y).value))));
+			return As<Int2>(V(::builder->CreateCall2(psrld, As<MMX>(x).value, As<MMX>(y).value)));
 		}
 
 		RValue<Int4> pmaxsd(RValue<Int4> x, RValue<Int4> y)
@@ -7498,21 +7498,21 @@ namespace sw
 		{
 			llvm::Function *pmulhw = Intrinsic::getDeclaration(::module, Intrinsic::x86_mmx_pmulh_w);
 
-			return As<Short4>(RValue<MMX>(V(::builder->CreateCall2(pmulhw, As<MMX>(x).value, As<MMX>(y).value))));
+			return As<Short4>(V(::builder->CreateCall2(pmulhw, As<MMX>(x).value, As<MMX>(y).value)));
 		}
 
 		RValue<UShort4> pmulhuw(RValue<UShort4> x, RValue<UShort4> y)
 		{
 			llvm::Function *pmulhuw = Intrinsic::getDeclaration(::module, Intrinsic::x86_mmx_pmulhu_w);
 
-			return As<UShort4>(RValue<MMX>(V(::builder->CreateCall2(pmulhuw, As<MMX>(x).value, As<MMX>(y).value))));
+			return As<UShort4>(V(::builder->CreateCall2(pmulhuw, As<MMX>(x).value, As<MMX>(y).value)));
 		}
 
 		RValue<Int2> pmaddwd(RValue<Short4> x, RValue<Short4> y)
 		{
 			llvm::Function *pmaddwd = Intrinsic::getDeclaration(::module, Intrinsic::x86_mmx_pmadd_wd);
 
-			return As<Int2>(RValue<MMX>(V(::builder->CreateCall2(pmaddwd, As<MMX>(x).value, As<MMX>(y).value))));
+			return As<Int2>(V(::builder->CreateCall2(pmaddwd, As<MMX>(x).value, As<MMX>(y).value)));
 		}
 
 		RValue<Short8> pmulhw(RValue<Short8> x, RValue<Short8> y)

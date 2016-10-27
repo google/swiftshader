@@ -2852,6 +2852,12 @@ namespace sw
 		return ReinterpretCast<T>(RValue<S>(var));
 	}
 
+	template<class T>
+	RValue<T> As(Value *val)
+	{
+		return RValue<T>(Nucleus::createBitCast(val, T::getType()));
+	}
+
 	template<class T, class S>
 	RValue<T> As(RValue<S> val)
 	{
