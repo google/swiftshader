@@ -619,6 +619,10 @@ protected:
     AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Cvt>(Dest, Src0, Variant);
   }
+  void _round(Variable *Dest, Operand *Src0, Operand *Imm) {
+    AutoMemorySandboxer<> _(this, &Dest, &Src0);
+    Context.insert<typename Traits::Insts::Round>(Dest, Src0, Imm);
+  }
   void _div(Variable *Dest, Operand *Src0, Operand *Src1) {
     AutoMemorySandboxer<> _(this, &Dest, &Src0, &Src1);
     Context.insert<typename Traits::Insts::Div>(Dest, Src0, Src1);
@@ -893,6 +897,10 @@ protected:
   void _rol(Variable *Dest, Operand *Src0) {
     AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Rol>(Dest, Src0);
+  }
+  void _round(Variable *Dest, Operand *Src, Constant *Imm) {
+    AutoMemorySandboxer<> _(this, &Dest, &Src);
+    Context.insert<typename Traits::Insts::Round>(Dest, Src, Imm);
   }
   X86OperandMem *_sandbox_mem_reference(X86OperandMem *Mem) {
     return dispatchToConcrete(&Traits::ConcreteTarget::_sandbox_mem_reference,

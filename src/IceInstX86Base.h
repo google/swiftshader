@@ -164,6 +164,7 @@ template <typename TraitsType> struct InstImpl {
       Pxor,
       Ret,
       Rol,
+      Round,
       Sar,
       Sbb,
       SbbRMW,
@@ -2564,6 +2565,25 @@ template <typename TraitsType> struct InstImpl {
     InstX86Cvt(Cfg *Func, Variable *Dest, Operand *Source, CvtVariant Variant);
   };
 
+  /// Round instruction
+  class InstX86Round final
+      : public InstX86BaseThreeAddressop<InstX86Base::Round> {
+  public:
+    static InstX86Round *create(Cfg *Func, Variable *Dest, Operand *Source,
+                                Operand *Imm) {
+      return new (Func->allocate<InstX86Round>())
+          InstX86Round(Func, Dest, Source, Imm);
+    }
+
+    void emit(const Cfg *Func) const override;
+    void emitIAS(const Cfg *Func) const override;
+
+  private:
+    InstX86Round(Cfg *Func, Variable *Dest, Operand *Source, Operand *Imm)
+        : InstX86BaseThreeAddressop<InstX86Base::Round>(Func, Dest, Source,
+                                                        Imm) {}
+  };
+
   /// cmp - Integer compare instruction.
   class InstX86Icmp final : public InstX86Base {
     InstX86Icmp() = delete;
@@ -3229,6 +3249,7 @@ template <typename TraitsType> struct Insts {
   using Cmpxchg = typename InstImpl<TraitsType>::InstX86Cmpxchg;
   using Cmpxchg8b = typename InstImpl<TraitsType>::InstX86Cmpxchg8b;
   using Cvt = typename InstImpl<TraitsType>::InstX86Cvt;
+  using Round = typename InstImpl<TraitsType>::InstX86Round;
   using Icmp = typename InstImpl<TraitsType>::InstX86Icmp;
   using Ucomiss = typename InstImpl<TraitsType>::InstX86Ucomiss;
   using UD2 = typename InstImpl<TraitsType>::InstX86UD2;
@@ -3492,6 +3513,9 @@ template <typename TraitsType> struct Insts {
   template <>                                                                  \
   const char *InstImpl<TraitsType>::InstX86Insertps::Base::Opcode =            \
       "insertps";                                                              \
+  template <>                                                                  \
+  template <>                                                                  \
+  const char *InstImpl<TraitsType>::InstX86Round::Base::Opcode = "round";      \
   template <>                                                                  \
   template <>                                                                  \
   const char *InstImpl<TraitsType>::InstX86Shufps::Base::Opcode = "shufps";    \

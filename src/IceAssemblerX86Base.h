@@ -511,7 +511,9 @@ public:
     kRoundUp = 0x2,
     kRoundToZero = 0x3
   };
-  void roundsd(XmmRegister dst, XmmRegister src, RoundingMode mode);
+  void round(Type Ty, XmmRegister dst, XmmRegister src, const Immediate &mode);
+  void round(Type Ty, XmmRegister dst, const Address &src,
+             const Immediate &mode);
 
   //----------------------------------------------------------------------------
   //

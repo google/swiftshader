@@ -2392,17 +2392,58 @@ void AssemblerX86Base<TraitsType>::pcmpgt(Type Ty, XmmRegister dst,
 }
 
 template <typename TraitsType>
-void AssemblerX86Base<TraitsType>::roundsd(XmmRegister dst, XmmRegister src,
-                                           RoundingMode mode) {
+void AssemblerX86Base<TraitsType>::round(Type Ty, XmmRegister dst,
+                                         XmmRegister src,
+                                         const Immediate &mode) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
   emitUint8(0x66);
   emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   emitUint8(0x3A);
-  emitUint8(0x0B);
+  switch (Ty) {
+  case IceType_v4f32:
+    emitUint8(0x08);
+    break;
+  case IceType_f32:
+    emitUint8(0x0A);
+    break;
+  case IceType_f64:
+    emitUint8(0x0B);
+    break;
+  default:
+    assert(false && "Unsupported round operand type");
+  }
   emitXmmRegisterOperand(dst, src);
   // Mask precision exeption.
-  emitUint8(static_cast<uint8_t>(mode) | 0x8);
+  emitUint8(static_cast<uint8_t>(mode.value()) | 0x8);
+}
+
+template <typename TraitsType>
+void AssemblerX86Base<TraitsType>::round(Type Ty, XmmRegister dst,
+                                         const Address &src,
+                                         const Immediate &mode) {
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitUint8(0x66);
+  emitAddrSizeOverridePrefix();
+  emitRex(RexTypeIrrelevant, src, dst);
+  emitUint8(0x0F);
+  emitUint8(0x3A);
+  switch (Ty) {
+  case IceType_v4f32:
+    emitUint8(0x08);
+    break;
+  case IceType_f32:
+    emitUint8(0x0A);
+    break;
+  case IceType_f64:
+    emitUint8(0x0B);
+    break;
+  default:
+    assert(false && "Unsupported round operand type");
+  }
+  emitOperand(gprEncoding(dst), src);
+  // Mask precision exeption.
+  emitUint8(static_cast<uint8_t>(mode.value()) | 0x8);
 }
 
 template <typename TraitsType>

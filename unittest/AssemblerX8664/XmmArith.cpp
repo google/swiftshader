@@ -2194,8 +2194,8 @@ TEST_F(AssemblerX8664Test, Roundsd) {
                                                                                \
     __ movups(Encoded_Xmm_##Dst(), dwordAddress(T0));                          \
     __ movups(Encoded_Xmm_##Src(), dwordAddress(T1));                          \
-    __ roundsd(Encoded_Xmm_##Dst(), Encoded_Xmm_##Src(),                       \
-               AssemblerX8664::k##Mode);                                       \
+    __ round(IceType_f64, Encoded_Xmm_##Dst(), Encoded_Xmm_##Src(),            \
+             Immediate(AssemblerX8664::k##Mode));                              \
                                                                                \
     AssembledTest test = assemble();                                           \
     test.setDqwordTo(T0, V0);                                                  \

@@ -1767,6 +1767,35 @@ void InstImpl<TraitsType>::InstX86Cvt::dump(const Cfg *Func) const {
 }
 
 template <typename TraitsType>
+void InstImpl<TraitsType>::InstX86Round::emit(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+  Ostream &Str = Func->getContext()->getStrEmit();
+  assert(this->getSrcSize() == 3);
+  Str << "\t" << this->Opcode
+      << Traits::TypeAttributes[this->getDest()->getType()].SpSdString
+      << "\t";
+  this->getSrc(1)->emit(Func);
+  Str << ", ";
+  this->getSrc(0)->emit(Func);
+  Str << ", ";
+  this->getDest()->emit(Func);
+}
+
+template <typename TraitsType>
+void InstImpl<TraitsType>::InstX86Round::emitIAS(const Cfg *Func) const {
+  assert(this->getSrcSize() == 2);
+  assert(InstX86Base::getTarget(Func)->getInstructionSet() >= Traits::SSE4_1);
+  const Variable *Dest = this->getDest();
+  Type Ty = Dest->getType();
+  static const ThreeOpImmEmitter<XmmRegister, XmmRegister> Emitter = {
+      &Assembler::round, &Assembler::round};
+  emitIASThreeOpImmOps<XmmRegister, XmmRegister, Traits::getEncodedXmm,
+                       Traits::getEncodedXmm>(Func, Ty, Dest, this->getSrc(0),
+                                              this->getSrc(1), Emitter);
+}
+
+template <typename TraitsType>
 void InstImpl<TraitsType>::InstX86Icmp::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;

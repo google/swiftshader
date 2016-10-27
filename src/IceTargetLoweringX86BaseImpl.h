@@ -4557,6 +4557,21 @@ void TargetX86Base<TraitsType>::lowerIntrinsicCall(
     _movp(Dest, T);
     return;
   }
+  case Intrinsics::Round: {
+    Variable *Dest = Instr->getDest();
+    Operand *Src = Instr->getArg(0);
+    Operand *Mode = Instr->getArg(1);
+    assert(llvm::isa<ConstantInteger32>(Mode) &&
+           "Round last argument must be a constant");
+    auto *SrcRM = legalize(Src, Legal_Reg | Legal_Mem);
+    int32_t Imm = llvm::cast<ConstantInteger32>(Mode)->getValue();
+    (void)Imm;
+    assert(Imm >= 0 && Imm < 4 && "Invalid rounding mode");
+    auto *T = makeReg(Dest->getType());
+    _round(T, SrcRM, Mode);
+    _movp(Dest, T);
+    return;
+  }
   default: // UnknownIntrinsic
     Func->setError("Unexpected intrinsic");
     return;
