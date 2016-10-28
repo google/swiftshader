@@ -34,6 +34,16 @@ enum FPInstDataFormat {
   Long = 21
 };
 
+class MIPS32Fixup final : public AssemblerFixup {
+  MIPS32Fixup &operator=(const MIPS32Fixup &) = delete;
+  MIPS32Fixup(const MIPS32Fixup &) = default;
+
+public:
+  MIPS32Fixup() = default;
+  size_t emit(GlobalContext *Ctx, const Assembler &Asm) const final;
+  void emitOffset(Assembler *Asm) const;
+};
+
 class AssemblerMIPS32 : public Assembler {
   AssemblerMIPS32(const AssemblerMIPS32 &) = delete;
   AssemblerMIPS32 &operator=(const AssemblerMIPS32 &) = delete;
@@ -56,6 +66,8 @@ public:
     }
   }
 
+  MIPS32Fixup *createMIPS32Fixup(const RelocOp Reloc, const Constant *RelOp);
+
   void trap();
 
   void nop();
@@ -65,6 +77,10 @@ public:
 
   void emitRtRsImm16(IValueT Opcode, const Operand *OpRt, const Operand *OpRs,
                      uint32_t Imm, const char *InsnName);
+
+  void emitRtRsImm16Rel(IValueT Opcode, const Operand *OpRt,
+                        const Operand *OpRs, const Operand *OpImm,
+                        const RelocOp Reloc, const char *InsnName);
 
   void emitFtRsImm16(IValueT Opcode, const Operand *OpFt, const Operand *OpRs,
                      uint32_t Imm, const char *InsnName);
@@ -101,6 +117,8 @@ public:
 
   void abs_s(const Operand *OpFd, const Operand *OpFs);
 
+  void addi(const Operand *OpRt, const Operand *OpRs, const uint32_t Imm);
+
   void add_d(const Operand *OpFd, const Operand *OpFs, const Operand *OpFt);
 
   void add_s(const Operand *OpFd, const Operand *OpFs, const Operand *OpFt);
@@ -108,6 +126,9 @@ public:
   void addu(const Operand *OpRd, const Operand *OpRs, const Operand *OpRt);
 
   void addiu(const Operand *OpRt, const Operand *OpRs, const uint32_t Imm);
+
+  void addiu(const Operand *OpRt, const Operand *OpRs, const Operand *OpImm,
+             const RelocOp Reloc);
 
   void and_(const Operand *OpRd, const Operand *OpRs, const Operand *OpRt);
 
@@ -165,9 +186,17 @@ public:
 
   void divu(const Operand *OpRs, const Operand *OpRt);
 
-  void lui(const Operand *OpRt, const uint16_t Imm);
+  void jal(const ConstantRelocatable *Target);
+
+  void lui(const Operand *OpRt, const Operand *OpImm, const RelocOp Reloc);
+
+  void ldc1(const Operand *OpRt, const Operand *OpBase, const Operand *OpOff,
+            const RelocOp Reloc);
 
   void lw(const Operand *OpRt, const Operand *OpBase, const uint32_t Offset);
+
+  void lwc1(const Operand *OpRt, const Operand *OpBase, const Operand *OpOff,
+            const RelocOp Reloc);
 
   void mfc1(const Operand *OpRt, const Operand *OpFs);
 
@@ -209,6 +238,8 @@ public:
 
   void mul_s(const Operand *OpFd, const Operand *OpFs, const Operand *OpFt);
 
+  void mult(const Operand *OpRs, const Operand *OpRt);
+
   void multu(const Operand *OpRs, const Operand *OpRt);
 
   void nor(const Operand *OpRd, const Operand *OpRs, const Operand *OpRt);
@@ -249,7 +280,13 @@ public:
 
   void subu(const Operand *OpRd, const Operand *OpRs, const Operand *OpRt);
 
+  void sdc1(const Operand *OpRt, const Operand *OpBase, const Operand *OpOff,
+            const RelocOp Reloc);
+
   void sw(const Operand *OpRt, const Operand *OpBase, const uint32_t Offset);
+
+  void swc1(const Operand *OpRt, const Operand *OpBase, const Operand *OpOff,
+            const RelocOp Reloc);
 
   void teq(const Operand *OpRs, const Operand *OpRt, const uint32_t TrapCode);
 
@@ -319,7 +356,7 @@ public:
 
   bool fixupIsPCRel(FixupKind Kind) const override {
     (void)Kind;
-    llvm::report_fatal_error("Not yet implemented.");
+    return false;
   }
 
   static bool classof(const Assembler *Asm) {

@@ -205,6 +205,10 @@ public:
     Context.insert<InstMIPS32Abs_s>(Dest, Src);
   }
 
+  void _addi(Variable *Dest, Variable *Src, uint32_t Imm) {
+    Context.insert<InstMIPS32Addi>(Dest, Src, Imm);
+  }
+
   void _add_d(Variable *Dest, Variable *Src0, Variable *Src1) {
     Context.insert<InstMIPS32Add_d>(Dest, Src0, Src1);
   }

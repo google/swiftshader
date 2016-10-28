@@ -62,6 +62,7 @@ const char *InstMIPS32::getWidthString(Type Ty) {
 
 template <> const char *InstMIPS32Abs_d::Opcode = "abs.d";
 template <> const char *InstMIPS32Abs_s::Opcode = "abs.s";
+template <> const char *InstMIPS32Addi::Opcode = "addi";
 template <> const char *InstMIPS32Add::Opcode = "add";
 template <> const char *InstMIPS32Add_d::Opcode = "add.d";
 template <> const char *InstMIPS32Add_s::Opcode = "add.s";
@@ -543,7 +544,7 @@ void InstMIPS32Call::emit(const Cfg *Func) const {
     llvm::report_fatal_error("MIPS2Call to ConstantInteger32");
   } else if (const auto *CallTarget =
                  llvm::dyn_cast<ConstantRelocatable>(getCallTarget())) {
-    // Calls only have 24-bits, but the linker should insert veneers to extend
+    // Calls only have 26-bits, but the linker should insert veneers to extend
     // the range if needed.
     Str << "\t"
            "jal"
@@ -558,8 +559,14 @@ void InstMIPS32Call::emit(const Cfg *Func) const {
 }
 
 void InstMIPS32Call::emitIAS(const Cfg *Func) const {
-  (void)Func;
-  llvm_unreachable("Not yet implemented");
+  assert(getSrcSize() == 1);
+  auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
+  if (const auto *CallTarget =
+          llvm::dyn_cast<ConstantRelocatable>(getCallTarget())) {
+    Asm->jal(CallTarget);
+  } else {
+    llvm::report_fatal_error("MIPS32Call: Invalid operand");
+  }
 }
 
 void InstMIPS32Call::dump(const Cfg *Func) const {
@@ -656,7 +663,6 @@ void InstMIPS32Mov::emit(const Cfg *Func) const {
   llvm::report_fatal_error("Invalid mov instruction. Dest or Src is memory.");
 }
 
-// TODO(jaydeep.patil) Handle all types of operands in mov
 void InstMIPS32Mov::emitIAS(const Cfg *Func) const {
   Variable *Dest = getDest();
   Operand *Src = getSrc(0);
@@ -671,7 +677,8 @@ void InstMIPS32Mov::emitIAS(const Cfg *Func) const {
     Asm->move(getDest(), getSrc(0));
     return;
   }
-  llvm_unreachable("Not yet implemented");
+
+  llvm::report_fatal_error("InstMIPS32Mov invalid operands");
 }
 
 void InstMIPS32Mov::dump(const Cfg *Func) const {
@@ -701,6 +708,11 @@ template <> void InstMIPS32Abs_s::emitIAS(const Cfg *Func) const {
   Asm->abs_s(getDest(), getSrc(0));
 }
 
+template <> void InstMIPS32Addi::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
+  Asm->addi(getDest(), getSrc(0), Imm);
+}
+
 template <> void InstMIPS32Add_d::emitIAS(const Cfg *Func) const {
   auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
   Asm->add_d(getDest(), getSrc(0), getSrc(1));
@@ -713,7 +725,11 @@ template <> void InstMIPS32Add_s::emitIAS(const Cfg *Func) const {
 
 template <> void InstMIPS32Addiu::emitIAS(const Cfg *Func) const {
   auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
-  Asm->addiu(getDest(), getSrc(0), Imm);
+  if (Reloc == RO_No) {
+    Asm->addiu(getDest(), getSrc(0), Imm);
+  } else {
+    Asm->addiu(getDest(), getSrc(0), getSrc(1), Reloc);
+  }
 }
 
 template <> void InstMIPS32Addu::emitIAS(const Cfg *Func) const {
@@ -838,7 +854,7 @@ template <> void InstMIPS32Cvt_s_w::emitIAS(const Cfg *Func) const {
 
 template <> void InstMIPS32Div::emitIAS(const Cfg *Func) const {
   auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
-  Asm->div(getDest(), getSrc(0));
+  Asm->div(getSrc(0), getSrc(1));
 }
 
 template <> void InstMIPS32Div_d::emitIAS(const Cfg *Func) const {
@@ -853,14 +869,18 @@ template <> void InstMIPS32Div_s::emitIAS(const Cfg *Func) const {
 
 template <> void InstMIPS32Divu::emitIAS(const Cfg *Func) const {
   auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
-  Asm->divu(getDest(), getSrc(0));
+  Asm->divu(getSrc(0), getSrc(1));
 }
 
 template <> void InstMIPS32Lui::emitIAS(const Cfg *Func) const {
   auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
-  auto *C32 = llvm::dyn_cast<ConstantInteger32>(getSrc(0));
-  uint16_t Imm = static_cast<uint16_t>(C32->getValue());
-  Asm->lui(getDest(), Imm);
+  Asm->lui(getDest(), getSrc(0), Reloc);
+}
+
+template <> void InstMIPS32Ldc1::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
+  auto *Mem = llvm::dyn_cast<OperandMIPS32Mem>(getSrc(0));
+  Asm->ldc1(getDest(), Mem->getBase(), Mem->getOffset(), Reloc);
 }
 
 template <> void InstMIPS32Lw::emitIAS(const Cfg *Func) const {
@@ -869,6 +889,12 @@ template <> void InstMIPS32Lw::emitIAS(const Cfg *Func) const {
   ConstantInteger32 *Offset = llvm::cast<ConstantInteger32>(Mem->getOffset());
   uint32_t Imm = static_cast<uint32_t>(Offset->getValue());
   Asm->lw(getDest(), Mem->getBase(), Imm);
+}
+
+template <> void InstMIPS32Lwc1::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
+  auto *Mem = llvm::dyn_cast<OperandMIPS32Mem>(getSrc(0));
+  Asm->lwc1(getDest(), Mem->getBase(), Mem->getOffset(), Reloc);
 }
 
 template <> void InstMIPS32Mfc1::emitIAS(const Cfg *Func) const {
@@ -961,7 +987,7 @@ template <> void InstMIPS32Mtc1::emit(const Cfg *Func) const {
 
 template <> void InstMIPS32Mtc1::emitIAS(const Cfg *Func) const {
   auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
-  Asm->mtc1(getDest(), getSrc(0));
+  Asm->mtc1(getSrc(0), getDest());
 }
 
 template <> void InstMIPS32Mtlo::emit(const Cfg *Func) const {
@@ -1007,6 +1033,11 @@ template <> void InstMIPS32Mult::emit(const Cfg *Func) const {
   emitThreeAddrLoHi(Opcode, this, Func);
 }
 
+template <> void InstMIPS32Mult::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
+  Asm->mult(getDest(), getSrc(0));
+}
+
 template <> void InstMIPS32Multu::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
@@ -1015,7 +1046,7 @@ template <> void InstMIPS32Multu::emit(const Cfg *Func) const {
 
 template <> void InstMIPS32Multu::emitIAS(const Cfg *Func) const {
   auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
-  Asm->multu(getDest(), getSrc(0));
+  Asm->multu(getSrc(0), getSrc(1));
 }
 
 template <> void InstMIPS32Nor::emitIAS(const Cfg *Func) const {
@@ -1108,12 +1139,24 @@ template <> void InstMIPS32Subu::emitIAS(const Cfg *Func) const {
   Asm->subu(getDest(), getSrc(0), getSrc(1));
 }
 
+template <> void InstMIPS32Sdc1::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
+  auto *Mem = llvm::dyn_cast<OperandMIPS32Mem>(getSrc(0));
+  Asm->sdc1(getSrc(0), Mem->getBase(), Mem->getOffset(), Reloc);
+}
+
 template <> void InstMIPS32Sw::emitIAS(const Cfg *Func) const {
   auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
   auto *Mem = llvm::dyn_cast<OperandMIPS32Mem>(getSrc(1));
   ConstantInteger32 *Offset = llvm::cast<ConstantInteger32>(Mem->getOffset());
   uint32_t Imm = static_cast<uint32_t>(Offset->getValue());
   Asm->sw(getSrc(0), Mem->getBase(), Imm);
+}
+
+template <> void InstMIPS32Swc1::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
+  auto *Mem = llvm::dyn_cast<OperandMIPS32Mem>(getSrc(0));
+  Asm->swc1(getSrc(0), Mem->getBase(), Mem->getOffset(), Reloc);
 }
 
 template <> void InstMIPS32Teq::emitIAS(const Cfg *Func) const {

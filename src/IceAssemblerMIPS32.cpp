@@ -225,6 +225,30 @@ void AssemblerMIPS32::emitRtRsImm16(IValueT Opcode, const Operand *OpRt,
   emitInst(Opcode);
 }
 
+void AssemblerMIPS32::emitRtRsImm16Rel(IValueT Opcode, const Operand *OpRt,
+                                       const Operand *OpRs,
+                                       const Operand *OpImm,
+                                       const RelocOp Reloc,
+                                       const char *InsnName) {
+  const IValueT Rt = encodeGPRegister(OpRt, "Rt", InsnName);
+  const IValueT Rs = encodeGPRegister(OpRs, "Rs", InsnName);
+  uint32_t Imm16 = 0;
+
+  if (const auto *OpRel = llvm::dyn_cast<ConstantRelocatable>(OpImm)) {
+    emitFixup(createMIPS32Fixup(Reloc, OpRel));
+  } else if (auto *C32 = llvm::dyn_cast<ConstantInteger32>(OpImm)) {
+    Imm16 = C32->getValue();
+  } else {
+    llvm::report_fatal_error(std::string(InsnName) + ": Invalid 3rd operand");
+  }
+
+  Opcode |= Rs << 21;
+  Opcode |= Rt << 16;
+  Opcode |= Imm16 & 0xffff;
+
+  emitInst(Opcode);
+}
+
 void AssemblerMIPS32::emitFtRsImm16(IValueT Opcode, const Operand *OpFt,
                                     const Operand *OpRs, const uint32_t Imm,
                                     const char *InsnName) {
@@ -347,6 +371,12 @@ void AssemblerMIPS32::abs_s(const Operand *OpFd, const Operand *OpFs) {
   emitCOP1FmtFsFd(Opcode, SinglePrecision, OpFd, OpFs, "abs.s");
 }
 
+void AssemblerMIPS32::addi(const Operand *OpRt, const Operand *OpRs,
+                           const uint32_t Imm) {
+  static constexpr IValueT Opcode = 0x20000000;
+  emitRtRsImm16(Opcode, OpRt, OpRs, Imm, "addi");
+}
+
 void AssemblerMIPS32::add_d(const Operand *OpFd, const Operand *OpFs,
                             const Operand *OpFt) {
   static constexpr IValueT Opcode = 0x44000000;
@@ -363,6 +393,12 @@ void AssemblerMIPS32::addiu(const Operand *OpRt, const Operand *OpRs,
                             const uint32_t Imm) {
   static constexpr IValueT Opcode = 0x24000000;
   emitRtRsImm16(Opcode, OpRt, OpRs, Imm, "addiu");
+}
+
+void AssemblerMIPS32::addiu(const Operand *OpRt, const Operand *OpRs,
+                            const Operand *OpImm, const RelocOp Reloc) {
+  static constexpr IValueT Opcode = 0x24000000;
+  emitRtRsImm16Rel(Opcode, OpRt, OpRs, OpImm, Reloc, "addiu");
 }
 
 void AssemblerMIPS32::addu(const Operand *OpRd, const Operand *OpRs,
@@ -542,11 +578,110 @@ void AssemblerMIPS32::divu(const Operand *OpRs, const Operand *OpRt) {
   emitRsRt(Opcode, OpRs, OpRt, "divu");
 }
 
-void AssemblerMIPS32::lui(const Operand *OpRt, const uint16_t Imm) {
+MIPS32Fixup *AssemblerMIPS32::createMIPS32Fixup(const RelocOp Reloc,
+                                                const Constant *RelOp) {
+  MIPS32Fixup *Fixup = new (allocate<MIPS32Fixup>()) MIPS32Fixup();
+  switch (Reloc) {
+  case RelocOp::RO_Hi:
+    Fixup->set_kind(llvm::ELF::R_MIPS_HI16);
+    break;
+  case RelocOp::RO_Lo:
+    Fixup->set_kind(llvm::ELF::R_MIPS_LO16);
+    break;
+  case RelocOp::RO_Jal:
+    Fixup->set_kind(llvm::ELF::R_MIPS_26);
+    break;
+  default:
+    llvm::report_fatal_error("Fixup: Invalid Reloc type");
+    break;
+  }
+  Fixup->set_value(RelOp);
+  Buffer.installFixup(Fixup);
+  return Fixup;
+}
+
+size_t MIPS32Fixup::emit(GlobalContext *Ctx, const Assembler &Asm) const {
+  if (!BuildDefs::dump())
+    return InstMIPS32::InstSize;
+  Ostream &Str = Ctx->getStrEmit();
+  IValueT Inst = Asm.load<IValueT>(position());
+  const auto Symbol = symbol().toString();
+  Str << "\t"
+      << ".word " << llvm::format_hex(Inst, 8) << " # ";
+  switch (kind()) {
+  case llvm::ELF::R_MIPS_HI16:
+    Str << "R_MIPS_HI16 ";
+    break;
+  case llvm::ELF::R_MIPS_LO16:
+    Str << "R_MIPS_LO16 ";
+    break;
+  case llvm::ELF::R_MIPS_26:
+    Str << "R_MIPS_26 ";
+    break;
+  default:
+    Str << "Unknown ";
+    break;
+  }
+  Str << Symbol << "\n";
+  return InstMIPS32::InstSize;
+}
+
+void MIPS32Fixup::emitOffset(Assembler *Asm) const {
+  const IValueT Inst = Asm->load<IValueT>(position());
+  IValueT ImmMask = 0;
+  const IValueT Imm = offset();
+  if (kind() == llvm::ELF::R_MIPS_26) {
+    ImmMask = 0x03FFFFFF;
+  } else {
+    ImmMask = 0x0000FFFF;
+  }
+  Asm->store(position(), (Inst & ~ImmMask) | (Imm & ImmMask));
+}
+
+void AssemblerMIPS32::jal(const ConstantRelocatable *Target) {
+  IValueT Opcode = 0x0C000000;
+  emitFixup(createMIPS32Fixup(RelocOp::RO_Jal, Target));
+  emitInst(Opcode);
+  nop();
+}
+
+void AssemblerMIPS32::lui(const Operand *OpRt, const Operand *OpImm,
+                          const RelocOp Reloc) {
   IValueT Opcode = 0x3C000000;
   const IValueT Rt = encodeGPRegister(OpRt, "Rt", "lui");
+  IValueT Imm16 = 0;
+
+  if (const auto *OpRel = llvm::dyn_cast<ConstantRelocatable>(OpImm)) {
+    emitFixup(createMIPS32Fixup(Reloc, OpRel));
+  } else if (auto *C32 = llvm::dyn_cast<ConstantInteger32>(OpImm)) {
+    Imm16 = C32->getValue();
+  } else {
+    llvm::report_fatal_error("lui: Invalid 2nd operand");
+  }
+
   Opcode |= Rt << 16;
-  Opcode |= Imm;
+  Opcode |= Imm16;
+  emitInst(Opcode);
+}
+
+void AssemblerMIPS32::ldc1(const Operand *OpRt, const Operand *OpBase,
+                           const Operand *OpOff, const RelocOp Reloc) {
+  IValueT Opcode = 0xD4000000;
+  const IValueT Rt = encodeFPRegister(OpRt, "Ft", "ldc1");
+  const IValueT Base = encodeGPRegister(OpBase, "Base", "ldc1");
+  IValueT Imm16 = 0;
+
+  if (const auto *OpRel = llvm::dyn_cast<ConstantRelocatable>(OpOff)) {
+    emitFixup(createMIPS32Fixup(Reloc, OpRel));
+  } else if (auto *C32 = llvm::dyn_cast<ConstantInteger32>(OpOff)) {
+    Imm16 = C32->getValue();
+  } else {
+    llvm::report_fatal_error("ldc1: Invalid 2nd operand");
+  }
+
+  Opcode |= Base << 21;
+  Opcode |= Rt << 16;
+  Opcode |= Imm16;
   emitInst(Opcode);
 }
 
@@ -581,6 +716,27 @@ void AssemblerMIPS32::lw(const Operand *OpRt, const Operand *OpBase,
   }
   default: { UnimplementedError(getFlags()); }
   }
+}
+
+void AssemblerMIPS32::lwc1(const Operand *OpRt, const Operand *OpBase,
+                           const Operand *OpOff, const RelocOp Reloc) {
+  IValueT Opcode = 0xC4000000;
+  const IValueT Rt = encodeFPRegister(OpRt, "Ft", "lwc1");
+  const IValueT Base = encodeGPRegister(OpBase, "Base", "lwc1");
+  IValueT Imm16 = 0;
+
+  if (const auto *OpRel = llvm::dyn_cast<ConstantRelocatable>(OpOff)) {
+    emitFixup(createMIPS32Fixup(Reloc, OpRel));
+  } else if (auto *C32 = llvm::dyn_cast<ConstantInteger32>(OpOff)) {
+    Imm16 = C32->getValue();
+  } else {
+    llvm::report_fatal_error("lwc1: Invalid 2nd operand");
+  }
+
+  Opcode |= Base << 21;
+  Opcode |= Rt << 16;
+  Opcode |= Imm16;
+  emitInst(Opcode);
 }
 
 void AssemblerMIPS32::mfc1(const Operand *OpRt, const Operand *OpFs) {
@@ -620,7 +776,7 @@ void AssemblerMIPS32::move(const Operand *OpRd, const Operand *OpRs) {
   if ((isScalarIntegerType(DstType) && isScalarFloatingType(SrcType)) ||
       (isScalarFloatingType(DstType) && isScalarIntegerType(SrcType))) {
     if (isScalarFloatingType(DstType)) {
-      mtc1(OpRd, OpRs);
+      mtc1(OpRs, OpRd);
     } else {
       mfc1(OpRd, OpRs);
     }
@@ -758,6 +914,11 @@ void AssemblerMIPS32::mul_s(const Operand *OpFd, const Operand *OpFs,
   emitCOP1FmtFtFsFd(Opcode, SinglePrecision, OpFd, OpFs, OpFt, "mul.s");
 }
 
+void AssemblerMIPS32::mult(const Operand *OpRs, const Operand *OpRt) {
+  static constexpr IValueT Opcode = 0x00000018;
+  emitRsRt(Opcode, OpRs, OpRt, "mult");
+}
+
 void AssemblerMIPS32::multu(const Operand *OpRs, const Operand *OpRt) {
   static constexpr IValueT Opcode = 0x00000019;
   emitRsRt(Opcode, OpRs, OpRt, "multu");
@@ -875,6 +1036,27 @@ void AssemblerMIPS32::subu(const Operand *OpRd, const Operand *OpRs,
   emitRdRsRt(Opcode, OpRd, OpRs, OpRt, "subu");
 }
 
+void AssemblerMIPS32::sdc1(const Operand *OpRt, const Operand *OpBase,
+                           const Operand *OpOff, const RelocOp Reloc) {
+  IValueT Opcode = 0xF4000000;
+  const IValueT Rt = encodeFPRegister(OpRt, "Ft", "sdc1");
+  const IValueT Base = encodeGPRegister(OpBase, "Base", "sdc1");
+  IValueT Imm16 = 0;
+
+  if (const auto *OpRel = llvm::dyn_cast<ConstantRelocatable>(OpOff)) {
+    emitFixup(createMIPS32Fixup(Reloc, OpRel));
+  } else if (auto *C32 = llvm::dyn_cast<ConstantInteger32>(OpOff)) {
+    Imm16 = C32->getValue();
+  } else {
+    llvm::report_fatal_error("sdc1: Invalid 2nd operand");
+  }
+
+  Opcode |= Base << 21;
+  Opcode |= Rt << 16;
+  Opcode |= Imm16;
+  emitInst(Opcode);
+}
+
 void AssemblerMIPS32::sw(const Operand *OpRt, const Operand *OpBase,
                          const uint32_t Offset) {
   switch (OpRt->getType()) {
@@ -908,6 +1090,27 @@ void AssemblerMIPS32::sw(const Operand *OpRt, const Operand *OpBase,
   }
 }
 
+void AssemblerMIPS32::swc1(const Operand *OpRt, const Operand *OpBase,
+                           const Operand *OpOff, const RelocOp Reloc) {
+  IValueT Opcode = 0xE4000000;
+  const IValueT Rt = encodeFPRegister(OpRt, "Ft", "swc1");
+  const IValueT Base = encodeGPRegister(OpBase, "Base", "swc1");
+  IValueT Imm16 = 0;
+
+  if (const auto *OpRel = llvm::dyn_cast<ConstantRelocatable>(OpOff)) {
+    emitFixup(createMIPS32Fixup(Reloc, OpRel));
+  } else if (auto *C32 = llvm::dyn_cast<ConstantInteger32>(OpOff)) {
+    Imm16 = C32->getValue();
+  } else {
+    llvm::report_fatal_error("swc1: Invalid 2nd operand");
+  }
+
+  Opcode |= Base << 21;
+  Opcode |= Rt << 16;
+  Opcode |= Imm16;
+  emitInst(Opcode);
+}
+
 void AssemblerMIPS32::teq(const Operand *OpRs, const Operand *OpRt,
                           const uint32_t TrapCode) {
   IValueT Opcode = 0x00000034;
@@ -931,12 +1134,12 @@ void AssemblerMIPS32::trunc_l_s(const Operand *OpFd, const Operand *OpFs) {
 
 void AssemblerMIPS32::trunc_w_d(const Operand *OpFd, const Operand *OpFs) {
   static constexpr IValueT Opcode = 0x4400000D;
-  emitCOP1FmtFsFd(Opcode, Word, OpFd, OpFs, "trunc.w.d");
+  emitCOP1FmtFsFd(Opcode, DoublePrecision, OpFd, OpFs, "trunc.w.d");
 }
 
 void AssemblerMIPS32::trunc_w_s(const Operand *OpFd, const Operand *OpFs) {
   static constexpr IValueT Opcode = 0x4400000D;
-  emitCOP1FmtFsFd(Opcode, Word, OpFd, OpFs, "trunc.w.s");
+  emitCOP1FmtFsFd(Opcode, SinglePrecision, OpFd, OpFs, "trunc.w.s");
 }
 
 void AssemblerMIPS32::xor_(const Operand *OpRd, const Operand *OpRs,

@@ -470,3 +470,53 @@ entry:
 ; IASM-NEXT: 	.byte 0x0
 ; IASM-NEXT: 	.byte 0x0
 ; IASM-NEXT: 	.byte 0x0
+
+define internal i64 @cast_d2ll_const() {
+entry:
+  %v0 = bitcast double 0x12345678901234 to i64
+  ret i64 %v0
+}
+; ASM-LABEL: cast_d2ll_const
+; ASM-LABEL: .Lcast_d2ll_const$entry:
+; ASM-NEXT:	lui $[[REG:.*]], %hi({{.*}})
+; ASM-NEXT:	ldc1 $[[FREG:.*]], %lo({{.*}})($[[REG]])
+
+; DIS-LABEL: 000000c0 <cast_d2ll_const>:
+; DIS-NEXT:  c0: 3c020000  lui v0,0x0
+; DIS-NEXT:  c4: d4400000  ldc1 $f0,0(v0)
+
+; IASM-LABEL: cast_d2ll_const:
+; IASM-LABEL: .Lcast_d2ll_const$entry:
+; IASM-NEXT:	.word 0x3c020000 # R_MIPS_HI16 [[LAB:.*]]
+; IASM-NEXT:	.word 0xd4400000 # R_MIPS_LO16 [[LAB]]
+; IASM-NEXT:	.byte 0x0
+; IASM-NEXT:	.byte 0x8
+; IASM-NEXT:	.byte 0x3
+; IASM-NEXT:	.byte 0x44
+; IASM-NEXT:	.byte 0x0
+; IASM-NEXT:	.byte 0x0
+; IASM-NEXT:	.byte 0x2
+; IASM-NEXT:	.byte 0x44
+; IASM-NEXT:	.byte 0x8
+; IASM-NEXT:	.byte 0x0
+; IASM-NEXT:	.byte 0xe0
+; IASM-NEXT:	.byte 0x3
+; IASM-NEXT:	.byte 0x0
+; IASM-NEXT:	.byte 0x0
+; IASM-NEXT:	.byte 0x0
+; IASM-NEXT:	.byte 0x0
+
+
+declare void @bar(i32 %a1, i32 %a2)
+define internal void @Call() {
+  call void @bar(i32 1, i32 2)
+  ret void
+}
+; ASM-LABEL: Call
+; ASM: jal	bar
+
+; DIS-LABEL: 000000e0 <Call>:
+; DIS: f0: 0c000000  jal     0
+
+; IASM-LABEL: Call:
+; IASM:	.word 0xc000000 # R_MIPS_26 bar

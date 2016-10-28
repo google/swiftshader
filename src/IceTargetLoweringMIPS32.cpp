@@ -1654,9 +1654,7 @@ Variable *TargetMIPS32::PostLoweringLegalizer::newBaseRegister(
   const bool ShouldSub = Offset != 0 && (-Offset & 0xFFFF0000) == 0;
   Variable *ScratchReg = Target->makeReg(IceType_i32, ScratchRegNum);
   if (ShouldSub) {
-    Variable *OffsetVal = Target->legalizeToReg(
-        Target->Ctx->getConstantInt32(-Offset), ScratchRegNum);
-    Target->_sub(ScratchReg, Base, OffsetVal);
+    Target->_addi(ScratchReg, Base, -Offset);
   } else {
     constexpr bool SignExt = true;
     if (!OperandMIPS32Mem::canHoldOffset(Base->getType(), SignExt, Offset)) {
@@ -4973,8 +4971,7 @@ void TargetDataMIPS32::lowerGlobals(const VariableDeclarationList &Vars,
   switch (getFlags().getOutFileType()) {
   case FT_Elf: {
     ELFObjectWriter *Writer = Ctx->getObjectWriter();
-    Writer->writeDataSection(Vars, llvm::ELF::R_MIPS_GLOB_DAT, SectionSuffix,
-                             IsPIC);
+    Writer->writeDataSection(Vars, llvm::ELF::R_MIPS_32, SectionSuffix, IsPIC);
   } break;
   case FT_Asm:
   case FT_Iasm: {

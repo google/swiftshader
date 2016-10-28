@@ -28,11 +28,11 @@
 namespace Ice {
 namespace MIPS32 {
 
-enum RelocOp { RO_No, RO_Hi, RO_Lo };
+enum RelocOp { RO_No, RO_Hi, RO_Lo, RO_Jal };
 
 inline void emitRelocOp(Ostream &Str, RelocOp Reloc) {
   switch (Reloc) {
-  case RO_No:
+  default:
     break;
   case RO_Hi:
     Str << "%hi";
@@ -189,6 +189,7 @@ public:
     Add,
     Add_d,
     Add_s,
+    Addi,
     Addiu,
     Addu,
     And,
@@ -1143,6 +1144,7 @@ using InstMIPS32Add = InstMIPS32ThreeAddrGPR<InstMIPS32::Add>;
 using InstMIPS32Add_d = InstMIPS32ThreeAddrFPR<InstMIPS32::Add_d>;
 using InstMIPS32Add_s = InstMIPS32ThreeAddrFPR<InstMIPS32::Add_s>;
 using InstMIPS32Addu = InstMIPS32ThreeAddrGPR<InstMIPS32::Addu>;
+using InstMIPS32Addi = InstMIPS32Imm16<InstMIPS32::Addi, true>;
 using InstMIPS32Addiu = InstMIPS32Imm16<InstMIPS32::Addiu, true>;
 using InstMIPS32And = InstMIPS32ThreeAddrGPR<InstMIPS32::And>;
 using InstMIPS32Andi = InstMIPS32Imm16<InstMIPS32::Andi>;
@@ -1270,6 +1272,7 @@ template <> void InstMIPS32Abs_d::emitIAS(const Cfg *Func) const;
 template <> void InstMIPS32Abs_s::emitIAS(const Cfg *Func) const;
 template <> void InstMIPS32Add_d::emitIAS(const Cfg *Func) const;
 template <> void InstMIPS32Add_s::emitIAS(const Cfg *Func) const;
+template <> void InstMIPS32Addi::emitIAS(const Cfg *Func) const;
 template <> void InstMIPS32Addiu::emitIAS(const Cfg *Func) const;
 template <> void InstMIPS32Addu::emitIAS(const Cfg *Func) const;
 template <> void InstMIPS32And::emitIAS(const Cfg *Func) const;
@@ -1299,9 +1302,11 @@ template <> void InstMIPS32Div::emitIAS(const Cfg *Func) const;
 template <> void InstMIPS32Div_d::emitIAS(const Cfg *Func) const;
 template <> void InstMIPS32Div_s::emitIAS(const Cfg *Func) const;
 template <> void InstMIPS32Divu::emitIAS(const Cfg *Func) const;
+template <> void InstMIPS32Ldc1::emitIAS(const Cfg *Func) const;
 template <> void InstMIPS32Lui::emit(const Cfg *Func) const;
 template <> void InstMIPS32Lui::emitIAS(const Cfg *Func) const;
 template <> void InstMIPS32Lw::emitIAS(const Cfg *Func) const;
+template <> void InstMIPS32Lwc1::emitIAS(const Cfg *Func) const;
 template <> void InstMIPS32Mfc1::emitIAS(const Cfg *Func) const;
 template <> void InstMIPS32Mflo::emit(const Cfg *Func) const;
 template <> void InstMIPS32Mflo::emitIAS(const Cfg *Func) const;
