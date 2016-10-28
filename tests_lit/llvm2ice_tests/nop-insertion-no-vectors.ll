@@ -1,11 +1,11 @@
 ; REQUIRES: allow_dump
 
 ; RUN: %p2i -i %s --filetype=asm --assemble --disassemble --target=mips32 \
-; RUN:    -a -skip-unimplemented -sz-seed=1 -nop-insertion \
+; RUN:    -a -sz-seed=1 -nop-insertion \
 ; RUN:    -nop-insertion-percentage=50 -max-nops-per-instruction=1 \
 ; RUN:    | FileCheck %s --check-prefix=MIPS32P50N1
 ; RUN: %p2i -i %s --filetype=asm --assemble --disassemble --target=mips32 \
-; RUN:    -a -skip-unimplemented -sz-seed=1 -nop-insertion \
+; RUN:    -a -sz-seed=1 -nop-insertion \
 ; RUN:    -nop-insertion-percentage=110 -max-nops-per-instruction=2 \
 ; RUN:    | FileCheck %s --check-prefix=MIPS32P110N2
 

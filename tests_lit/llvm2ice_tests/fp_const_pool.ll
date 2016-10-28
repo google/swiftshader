@@ -7,7 +7,7 @@
 
 ; RUN: %if --need=target_MIPS32 --need=allow_dump \
 ; RUN:   --command %p2i --filetype=asm --assemble --disassemble \
-; RUN:   --target mips32 -i %s --args -O2 --skip-unimplemented \
+; RUN:   --target mips32 -i %s --args -O2 \
 ; RUN:   | %if --need=target_MIPS32 --need=allow_dump \
 ; RUN:   --command FileCheck --check-prefix MIPS32 %s
 
@@ -111,7 +111,7 @@ entry:
 ; MIPS32 constant pool
 ; RUN: %if --need=target_MIPS32 --command %p2i \
 ; RUN:   --target mips32 -i %s --filetype=asm --llvm-source \
-; RUN:   --args -O2 --skip-unimplemented \
+; RUN:   --args -O2 \
 ; RUN:   | %if --need=target_MIPS32 --command FileCheck \
 ; RUN:   --check-prefix=MIPS32CP %s
 ; MIPS32CP-LABEL: .L$float$7fc00000:

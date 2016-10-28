@@ -4,22 +4,22 @@
 
 ; Compile using standalone assembler.
 ; RUN: %p2i --filetype=asm -i %s --target=mips32 --args -O2 \
-; RUN:   --allow-externally-defined-symbols --skip-unimplemented \
+; RUN:   --allow-externally-defined-symbols \
 ; RUN:   | FileCheck %s --check-prefix=ASM
 
 ; Show bytes in assembled standalone code.
 ; RUN: %p2i --filetype=asm -i %s --target=mips32 --assemble --disassemble \
-; RUN:   --args -O2 --allow-externally-defined-symbols --skip-unimplemented \
+; RUN:   --args -O2 --allow-externally-defined-symbols \
 ; RUN:   | FileCheck %s --check-prefix=DIS
 
 ; Compile using integrated assembler.
 ; RUN: %p2i --filetype=iasm -i %s --target=mips32 --args -O2 \
-; RUN:   --allow-externally-defined-symbols --skip-unimplemented \
+; RUN:   --allow-externally-defined-symbols \
 ; RUN:   | FileCheck %s --check-prefix=IASM
 
 ; Show bytes in assembled integrated code.
 ; RUN: %p2i --filetype=iasm -i %s --target=mips32 --assemble --disassemble \
-; RUN:   --args -O2 --allow-externally-defined-symbols --skip-unimplemented \
+; RUN:   --args -O2 --allow-externally-defined-symbols \
 ; RUN:   | FileCheck %s --check-prefix=DIS
 
 define internal void @encTrap() {

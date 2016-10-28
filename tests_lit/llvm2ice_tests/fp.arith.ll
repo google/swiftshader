@@ -23,12 +23,12 @@
 
 ; RUN: %if --need=target_MIPS32 --need=allow_dump \
 ; RUN:   --command %p2i --filetype=asm --assemble --disassemble --target \
-; RUN:   mips32 -i %s --args -O2 --skip-unimplemented \
+; RUN:   mips32 -i %s --args -O2 \
 ; RUN:   | %if --need=target_MIPS32 --need=allow_dump \
 ; RUN:   --command FileCheck --check-prefix MIPS32 %s
 ; RUN: %if --need=target_MIPS32 --need=allow_dump \
 ; RUN:   --command %p2i --filetype=asm --assemble --disassemble --target \
-; RUN:   mips32 -i %s --args -Om1 --skip-unimplemented \
+; RUN:   mips32 -i %s --args -Om1 \
 ; RUN:   | %if --need=target_MIPS32 --need=allow_dump \
 ; RUN:   --command FileCheck --check-prefix MIPS32 %s
 

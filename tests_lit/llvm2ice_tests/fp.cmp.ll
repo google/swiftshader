@@ -20,7 +20,7 @@
 
 ; RUN: %if --need=allow_dump --need=target_MIPS32 --command %p2i \
 ; RUN:   --filetype=asm --target mips32 -i %s --args -Om1 \
-; RUN:   -allow-externally-defined-symbols --skip-unimplemented \
+; RUN:   -allow-externally-defined-symbols \
 ; RUN:   | %if --need=allow_dump --need=target_MIPS32 --command FileCheck %s \
 ; RUN:   --check-prefix=MIPS32
 
