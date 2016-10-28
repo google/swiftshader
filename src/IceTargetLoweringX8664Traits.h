@@ -702,7 +702,7 @@ public:
 
   static RegNumT getRdxOrDie() { return RegisterSet::Reg_rdx; }
 
-#if defined(_MSC_VER)
+#if defined(_WIN32)
   // Microsoft x86-64 calling convention:
   //
   // * The first four arguments of vector/fp type, regardless of their
@@ -730,7 +730,7 @@ public:
     assert(Ty == IceType_i64 || Ty == IceType_i32);
     return getGprForType(Ty, GprForArgNum[ArgNum]);
   }
-#else  // !defined(_MSC_VER)
+#elif defined(__unix__)
   // System V x86-64 calling convention:
   //
   // * The first eight arguments of vector/fp type, regardless of their
@@ -762,7 +762,9 @@ public:
     assert(Ty == IceType_i64 || Ty == IceType_i32);
     return getGprForType(Ty, GprForArgNum[ArgNum]);
   }
-#endif // !defined(_MSC_VER)
+#else
+#error "Unsupported platform"
+#endif
 
   /// Whether scalar floating point arguments are passed in XMM registers
   static constexpr bool X86_PASS_SCALAR_FP_IN_XMM = true;

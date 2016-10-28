@@ -17,11 +17,16 @@
 
 #include "IceRegList.h"
 
-// x86-64 ABI:
+// System V AMD64 ABI:
 //   Scratch GPRs: rax, rcx, rdx, rsi, rdi, r8, r9, r10, r11
 //   Callee-save GPRs: rbx, rbp, r12, r13, r14, r15
 //   Scratch XMMs: xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7,
 //                 xmm8, xmm9, xmm10, xmm11, xmm12, xmm13, xmm14, xmm15
+// Microsoft x86-64 ABI:
+//   Scratch GPRs: rax, rcx, rdx, r8, r9, r10, r11
+//   Callee-save GPRs: rbx, rbp, rsi, rdi, r12, r13, r14, r15
+//   Scratch XMMs: xmm0, xmm1, xmm2, xmm3, xmm4, xmm5
+//   Callee-save XMMs: xmm6-xmm15
 //   Scratch registers are listed first, followed by preserved registers, so
 //   that the register allocator will favor scratch registers.
 // Key to table columns:
@@ -45,7 +50,7 @@
 //   isTrunc8Rcvr: An 8-bit GPR that a wider GPR trivially truncates to.
 //   isAhRcvr: An 8-bit GPR that register "ah" can be assigned to.
 //   aliases: List of register aliases, which need not include this register.
-#define REGX8664_BYTEREG_TABLE                                                 \
+#define REGX8664_BYTEREG_TABLE2(U, W)                                          \
   /* val, encode, name, base, scratch,preserved,stackptr,frameptr,sboxres,     \
      isGPR,is64,is32,is16,is8, isXmm,                                          \
      is64To8,is32To8,is16To8,isTrunc8Rcvr,isAhRcvr, aliases */                 \
@@ -56,10 +61,6 @@
     REGLIST3(RegX8664, rcx, ecx, cx))                                          \
   X(Reg_dl,    2, "dl",   Reg_rdx, 1,0,0,0,0, 1,0,0,0,1, 0, 0,0,0,1,1,         \
     REGLIST3(RegX8664, rdx, edx, dx))                                          \
-  X(Reg_sil,   6, "sil",  Reg_rsi, 1,0,0,0,0, 1,0,0,0,1, 0, 0,0,0,1,0,         \
-    REGLIST3(RegX8664, rsi, esi, si))                                          \
-  X(Reg_dil,   7, "dil",  Reg_rdi, 1,0,0,0,0, 1,0,0,0,1, 0, 0,0,0,1,0,         \
-    REGLIST3(RegX8664, rdi, edi, di))                                          \
   X(Reg_r8l,   8, "r8b",  Reg_r8,  1,0,0,0,0, 1,0,0,0,1, 0, 0,0,0,1,0,         \
     REGLIST3(RegX8664, r8, r8d, r8w))                                          \
   X(Reg_r9l,   9, "r9b",  Reg_r9,  1,0,0,0,0, 1,0,0,0,1, 0, 0,0,0,1,0,         \
@@ -68,6 +69,10 @@
     REGLIST3(RegX8664, r10, r10d, r10w))                                       \
   X(Reg_r11l, 11, "r11b", Reg_r11, 1,0,0,0,0, 1,0,0,0,1, 0, 0,0,0,1,0,         \
     REGLIST3(RegX8664, r11, r11d, r11w))                                       \
+  X(Reg_sil,   6, "sil",  Reg_rsi, U,W,0,0,0, 1,0,0,0,1, 0, 0,0,0,1,0,         \
+    REGLIST3(RegX8664, rsi, esi, si))                                          \
+  X(Reg_dil,   7, "dil",  Reg_rdi, U,W,0,0,0, 1,0,0,0,1, 0, 0,0,0,1,0,         \
+    REGLIST3(RegX8664, rdi, edi, di))                                          \
   X(Reg_bl,    3, "bl",   Reg_rbx, 0,1,0,0,0, 1,0,0,0,1, 0, 0,0,0,1,1,         \
     REGLIST3(RegX8664, rbx, ebx, bx))                                          \
   X(Reg_spl,   4, "spl",  Reg_rsp, 0,0,1,0,0, 1,0,0,0,0, 0, 0,0,0,0,0,         \
@@ -96,7 +101,7 @@
 //          sboxres, isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8,
 //          is16To8, isTrunc8Rcvr, isAhRcvr, aliases)
 
-#define REGX8664_GPR_TABLE                                                     \
+#define REGX8664_GPR_TABLE2(U, W)                                              \
   /* val, encode, name, base, scratch,preserved,stackptr,frameptr,             \
      isGPR,is64,is32,is16,is8, isXmm,                                          \
      is64To8,is32To8,is16To8,isTrunc8Rcvr,isAhRcvr, aliases */                 \
@@ -107,10 +112,6 @@
     REGLIST4(RegX8664, ecx, cx, cl, ch))                                       \
   X(Reg_rdx, 2,  "rdx", Reg_rdx, 1,0,0,0,0, 1,1,0,0,0, 0, 1,0,0,0,0,           \
     REGLIST4(RegX8664, edx, dx, dl, dh))                                       \
-  X(Reg_rsi, 6,  "rsi", Reg_rsi, 1,0,0,0,0, 1,1,0,0,0, 0, 1,0,0,0,0,           \
-    REGLIST3(RegX8664, esi, si, sil))                                          \
-  X(Reg_rdi, 7,  "rdi", Reg_rdi, 1,0,0,0,0, 1,1,0,0,0, 0, 1,0,0,0,0,           \
-    REGLIST3(RegX8664, edi, di, dil))                                          \
   X(Reg_r8,  8,  "r8",  Reg_r8,  1,0,0,0,0, 1,1,0,0,0, 0, 1,0,0,0,0,           \
     REGLIST3(RegX8664, r8d, r8w, r8l))                                         \
   X(Reg_r9,  9,  "r9",  Reg_r9,  1,0,0,0,0, 1,1,0,0,0, 0, 1,0,0,0,0,           \
@@ -119,6 +120,10 @@
     REGLIST3(RegX8664, r10d, r10w, r10l))                                      \
   X(Reg_r11, 11, "r11", Reg_r11, 1,0,0,0,0, 1,1,0,0,0, 0, 1,0,0,0,0,           \
     REGLIST3(RegX8664, r11d, r11w, r11l))                                      \
+  X(Reg_rsi, 6,  "rsi", Reg_rsi, U,W,0,0,0, 1,1,0,0,0, 0, 1,0,0,0,0,           \
+    REGLIST3(RegX8664, esi, si, sil))                                          \
+  X(Reg_rdi, 7,  "rdi", Reg_rdi, U,W,0,0,0, 1,1,0,0,0, 0, 1,0,0,0,0,           \
+    REGLIST3(RegX8664, edi, di, dil))                                          \
   X(Reg_rbx, 3,  "rbx", Reg_rbx, 0,1,0,0,0, 1,1,0,0,0, 0, 1,0,0,0,0,           \
     REGLIST4(RegX8664, ebx, bx, bl, bh))                                       \
   X(Reg_rsp, 4,  "rsp", Reg_rsp, 0,0,1,0,0, 1,0,0,0,0, 0, 1,0,0,0,0,           \
@@ -140,10 +145,6 @@
     REGLIST4(RegX8664, rcx, cx, cl, ch))                                       \
   X(Reg_edx,   2, "edx",  Reg_rdx, 1,0,0,0,0, 1,0,1,0,0, 0, 0,1,0,0,0,         \
     REGLIST4(RegX8664, rdx, dx, dl, dh))                                       \
-  X(Reg_esi,   6, "esi",  Reg_rsi, 1,0,0,0,0, 1,0,1,0,0, 0, 0,1,0,0,0,         \
-    REGLIST3(RegX8664, rsi, si, sil))                                          \
-  X(Reg_edi,   7, "edi",  Reg_rdi, 1,0,0,0,0, 1,0,1,0,0, 0, 0,1,0,0,0,         \
-    REGLIST3(RegX8664, rdi, di, dil))                                          \
   X(Reg_r8d,   8, "r8d",  Reg_r8,  1,0,0,0,0, 1,0,1,0,0, 0, 0,1,0,0,0,         \
     REGLIST3(RegX8664, r8, r8w, r8l))                                          \
   X(Reg_r9d,   9, "r9d",  Reg_r9,  1,0,0,0,0, 1,0,1,0,0, 0, 0,1,0,0,0,         \
@@ -152,6 +153,10 @@
     REGLIST3(RegX8664, r10, r10w, r10l))                                       \
   X(Reg_r11d, 11, "r11d", Reg_r11, 1,0,0,0,0, 1,0,1,0,0, 0, 0,1,0,0,0,         \
     REGLIST3(RegX8664, r11, r11w, r11l))                                       \
+  X(Reg_esi,   6, "esi",  Reg_rsi, U,W,0,0,0, 1,0,1,0,0, 0, 0,1,0,0,0,         \
+    REGLIST3(RegX8664, rsi, si, sil))                                          \
+  X(Reg_edi,   7, "edi",  Reg_rdi, U,W,0,0,0, 1,0,1,0,0, 0, 0,1,0,0,0,         \
+    REGLIST3(RegX8664, rdi, di, dil))                                          \
   X(Reg_ebx,   3, "ebx",  Reg_rbx, 0,1,0,0,0, 1,0,1,0,0, 0, 0,1,0,0,0,         \
     REGLIST4(RegX8664, rbx, bx, bl, bh))                                       \
   X(Reg_esp,   4, "esp",  Reg_rsp, 0,0,1,0,0, 1,0,0,0,0, 0, 0,0,0,0,0,         \
@@ -173,10 +178,6 @@
     REGLIST4(RegX8664, rcx, ecx, cl, ch))                                      \
   X(Reg_dx,    2, "dx",   Reg_rdx, 1,0,0,0,0, 1,0,0,1,0, 0, 0,0,1,0,0,         \
     REGLIST4(RegX8664, rdx, edx, dl, dh))                                      \
-  X(Reg_si,    6, "si",   Reg_rsi, 1,0,0,0,0, 1,0,0,1,0, 0, 0,0,1,0,0,         \
-    REGLIST3(RegX8664, rsi, esi, sil))                                         \
-  X(Reg_di,    7, "di",   Reg_rdi, 1,0,0,0,0, 1,0,0,1,0, 0, 0,0,1,0,0,         \
-    REGLIST3(RegX8664, rdi, edi, dil))                                         \
   X(Reg_r8w,   8, "r8w",  Reg_r8,  1,0,0,0,0, 1,0,0,1,0, 0, 0,0,1,0,0,         \
     REGLIST3(RegX8664, r8, r8d, r8l))                                          \
   X(Reg_r9w,   9, "r9w",  Reg_r9,  1,0,0,0,0, 1,0,0,1,0, 0, 0,0,1,0,0,         \
@@ -185,6 +186,10 @@
     REGLIST3(RegX8664, r10, r10d, r10l))                                       \
   X(Reg_r11w, 11, "r11w", Reg_r11, 1,0,0,0,0, 1,0,0,1,0, 0, 0,0,1,0,0,         \
     REGLIST3(RegX8664, r11, r11d, r11l))                                       \
+  X(Reg_si,    6, "si",   Reg_rsi, U,W,0,0,0, 1,0,0,1,0, 0, 0,0,1,0,0,         \
+    REGLIST3(RegX8664, rsi, esi, sil))                                         \
+  X(Reg_di,    7, "di",   Reg_rdi, U,W,0,0,0, 1,0,0,1,0, 0, 0,0,1,0,0,         \
+    REGLIST3(RegX8664, rdi, edi, dil))                                         \
   X(Reg_bx,    3, "bx",   Reg_rbx, 0,1,0,0,0, 1,0,0,1,0, 0, 0,0,1,0,0,         \
     REGLIST4(RegX8664, rbx, ebx, bl, bh))                                      \
   X(Reg_sp,    4, "sp",   Reg_rsp, 0,0,1,0,0, 1,0,0,0,0, 0, 0,0,0,0,0,         \
@@ -205,6 +210,16 @@
 //#define X(val, encode, name, base, scratch, preserved, stackptr, frameptr,
 //          sboxres, isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8,
 //          is16To8, isTrunc8Rcvr, isAhRcvr, aliases)
+
+#if defined(_WIN32)  // Microsoft x86-64 ABI
+#define REGX8664_BYTEREG_TABLE REGX8664_BYTEREG_TABLE2(0, 1)
+#define REGX8664_GPR_TABLE REGX8664_GPR_TABLE2(0, 1)
+#elif defined(__unix__)  // System V AMD64 ABI
+#define REGX8664_BYTEREG_TABLE REGX8664_BYTEREG_TABLE2(1, 0)
+#define REGX8664_GPR_TABLE REGX8664_GPR_TABLE2(1, 0)
+#else
+#error "Unsupported platform"
+#endif
 
 // Note: It would be more appropriate to list the xmm register aliases as
 // REGLIST0(), but the corresponding empty initializer gives a syntax error, so
