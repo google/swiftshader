@@ -44,6 +44,19 @@
 ; RUN:   -allow-externally-defined-symbols \
 ; RUN:   | %if --need=target_ARM32 --command FileCheck --check-prefix=SYMTAB %s
 
+; RUN: %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command %p2i --filetype=asm --assemble --disassemble --target \
+; RUN:   mips32 -i %s --args -O2 -allow-externally-defined-symbols \
+; RUN:   | %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command FileCheck --check-prefix=IASMIPS32 %s
+
+; RUN: %if --need=target_MIPS32 --need=allow_dump --command %p2i \
+; RUN:   --filetype=asm --assemble --disassemble --dis-flags=-t \
+; RUN:   --target mips32 -i %s --args --verbose none \
+; RUN:   -allow-externally-defined-symbols \
+; RUN:   | %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command FileCheck --check-prefix=SYMTAB %s
+
 define internal i32 @main(i32 %argc, i32 %argv) {
 entry:
   %expanded1 = ptrtoint [4 x i8]* @PrimitiveInit to i32
@@ -84,6 +97,9 @@ entry:
 ; IASARM32: movw {{.*}} PrimitiveInit
 ; IASARM32: movt {{.*}} PrimitiveInit
 ; IASARM32: bl
+; IASMIPS32: 	lui	{{.*}}	PrimitiveInit
+; IASMIPS32: 	addiu	{{.*}}	PrimitiveInit
+; IASMIPS32: 	jal
 
 ; SYMTAB-DAG: 00000000 {{.*}} .rodata {{.*}} PrimitiveInitConst
 ; IAS: mov {{.*}},0x0 {{.*}} .rodata
@@ -91,6 +107,9 @@ entry:
 ; IASARM32: movw {{.*}} PrimitiveInitConst
 ; IASARM32: movt {{.*}} PrimitiveInitConst
 ; IASARM32: bl
+; IASMIPS32: 	lui	{{.*}}	PrimitiveInitConst
+; IASMIPS32: 	addiu	{{.*}}	PrimitiveInitConst
+; IASMIPS32: 	jal
 
 ; SYMTAB-DAG: 00000000 {{.*}} .bss {{.*}} PrimitiveInitStatic
 ; IAS: mov {{.*}},0x0 {{.*}} .bss
@@ -98,6 +117,9 @@ entry:
 ; IASARM32: movw {{.*}} PrimitiveInitStatic
 ; IASARM32: movt {{.*}} PrimitiveInitStatic
 ; IASARM32: bl
+; IASMIPS32: 	lui	{{.*}}	PrimitiveInitStatic
+; IASMIPS32: 	addiu	{{.*}}	PrimitiveInitStatic
+; IASMIPS32: 	jal
 
 ; SYMTAB-DAG: 00000004 {{.*}} .bss {{.*}} PrimitiveUninit
 ; IAS: mov {{.*}},0x4 {{.*}} .bss
@@ -105,6 +127,9 @@ entry:
 ; IASARM32: movw {{.*}} PrimitiveUninit
 ; IASARM32: movt {{.*}} PrimitiveUninit
 ; IASARM32: bl
+; IASMIPS32: 	lui	{{.*}}	PrimitiveUninit
+; IASMIPS32: 	addiu	{{.*}}	PrimitiveUninit
+; IASMIPS32: 	jal
 
 ; SYMTAB-DAG: 00000004{{.*}}.data{{.*}}ArrayInit
 ; IAS: mov {{.*}},0x4 {{.*}} .data
@@ -112,6 +137,9 @@ entry:
 ; IASARM32: movw {{.*}} ArrayInit
 ; IASARM32: movt {{.*}} ArrayInit
 ; IASARM32: bl
+; IASMIPS32: 	lui	{{.*}}	ArrayInit
+; IASMIPS32: 	addiu	{{.*}}	ArrayInit
+; IASMIPS32: 	jal
 
 ; SYMTAB-DAG: 00000018 {{.*}} .data {{.*}} ArrayInitPartial
 ; IAS: mov {{.*}},0x18 {{.*}} .data
@@ -119,6 +147,9 @@ entry:
 ; IASARM32: movw {{.*}} ArrayInitPartial
 ; IASARM32: movt {{.*}} ArrayInitPartial
 ; IASARM32: bl
+; IASMIPS32: 	lui	{{.*}}	ArrayInitPartial
+; IASMIPS32: 	addiu	{{.*}}	ArrayInitPartial
+; IASMIPS32: 	jal
 
 ; SYMTAB-DAG: 00000008 {{.*}} .bss {{.*}} ArrayUninit
 ; IAS: mov {{.*}},0x8 {{.*}} .bss
@@ -126,6 +157,9 @@ entry:
 ; IASARM32: movw {{.*}} ArrayUninit
 ; IASARM32: movt {{.*}} ArrayUninit
 ; IASARM32: bl
+; IASMIPS32: 	lui	{{.*}}	ArrayUninit
+; IASMIPS32: 	addiu	{{.*}}	ArrayUninit
+; IASMIPS32: 	jal
 
 declare void @use(i32)
 

@@ -120,6 +120,27 @@ entry:
 ; ARM32:      bl      {{.*}} ignore64BitArgNoInline
 
 ; MIPS32-LABEL: pass64BitArg
+; MIPS32-O2: 	sw	a3,{{.*}}(sp)
+; MIPS32-O2: 	sw	a2,{{.*}}(sp)
+; MIPS32-O2: 	li	a2,123
+; MIPS32-O2: 	jal	{{.*}}	ignore64BitArgNoInline
+; MIPS32-O2: 	nop
+; MIPS32-O2: 	move	s0,v0
+; MIPS32-O2: 	sw	s3,{{.*}}(sp)
+; MIPS32-O2: 	sw	s2,{{.*}}(sp)
+; MIPS32-O2: 	lw	a0,{{.*}}(sp)
+; MIPS32-O2: 	move	a1,s1
+; MIPS32-O2: 	li	a2,123
+; MIPS32-O2: 	jal	{{.*}}	ignore64BitArgNoInline
+; MIPS32-O2: 	nop
+; MIPS32-O2: 	move	s1,v0
+; MIPS32-O2: 	sw	s7,{{.*}}(sp)
+; MIPS32-O2: 	sw	s6,{{.*}}(sp)
+; MIPS32-O2: 	move	a0,s4
+; MIPS32-O2: 	move	a1,s5
+; MIPS32-O2: 	li	a2,123
+; MIPS32-O2: 	jal	{{.*}}	ignore64BitArgNoInline
+; MIPS32-O2: 	nop
 
 
 declare i32 @ignore64BitArgNoInline(i64, i32, i64)
@@ -163,6 +184,18 @@ entry:
 ; ARM32:      {{mov|ldr}} r1
 ; ARM32:      mov     r2, #123
 ; ARM32:      bl      {{.*}} ignore64BitArgNoInline
+
+; MIPS32-LABEL: pass64BitConstArg
+; MIPS32-O2: 	lui	[[REG:.*]],0xdead
+; MIPS32-O2: 	ori	[[REG1:.*]],[[REG]],0xbeef
+; MIPS32-O2: 	lui	[[REG:.*]],0x1234
+; MIPS32-O2: 	ori	[[REG2:.*]],[[REG]],0x5678
+; MIPS32-O2: 	sw	[[REG1]],{{.*}}(sp)
+; MIPS32-O2: 	sw	[[REG2]],{{.*}}(sp)
+; MIPS32-O2: 	move	a0,a2
+; MIPS32-O2: 	move	a1,a3
+; MIPS32-O2: 	li	a2,123
+; MIPS32-O2: 	jal	{{.*}}	ignore64BitArgNoInline
 
 define internal i32 @pass64BitUndefArg() {
 entry:
@@ -566,6 +599,11 @@ entry:
 ; ARM32-LABEL: shl64BitSignedTrunc
 ; ARM32: lsl r
 
+; MIPS32-LABEL: shl64BitSignedTrunc
+; MIPS32-O2: 	sllv
+; MIPS32-O2: 	andi	{{.*}},0x20
+; MIPS32-O2: 	movn
+
 define internal i64 @shl64BitUnsigned(i64 %a, i64 %b) {
 entry:
   %shl = shl i64 %a, %b
@@ -675,6 +713,16 @@ entry:
 ; ARM32: cmp
 ; ARM32: asrge
 
+; MIPS32-LABEL: shr64BitSignedTrunc
+; MIPS32-O2: 	srlv
+; MIPS32-O2: 	nor
+; MIPS32-O2: 	sll
+; MIPS32-O2: 	sllv
+; MIPS32-O2: 	or
+; MIPS32-O2: 	srav
+; MIPS32-O2: 	andi	{{.*}},0x20
+; MIPS32-O2: 	movn
+
 define internal i64 @shr64BitUnsigned(i64 %a, i64 %b) {
 entry:
   %shr = lshr i64 %a, %b
@@ -738,6 +786,16 @@ entry:
 ; ARM32: sub
 ; ARM32: cmp
 ; ARM32: lsrge
+
+; MIPS32-LABEL: shr64BitUnsignedTrunc
+; MIPS32-O2: 	srlv
+; MIPS32-O2: 	nor
+; MIPS32-O2: 	sll
+; MIPS32-O2: 	sllv
+; MIPS32-O2: 	or
+; MIPS32-O2: 	srlv
+; MIPS32-O2: 	andi
+; MIPS32-O2: 	movn
 
 define internal i64 @and64BitSigned(i64 %a, i64 %b) {
 entry:
@@ -2173,6 +2231,10 @@ entry:
 ; ARM32: ldr r{{.*}}, [r[[REG:.*]]]
 ; ARM32: ldr r{{.*}}, [r[[REG]], #4]
 
+; MIPS32-LABEL: load64
+; MIPS32-O2: 	lw	{{.*}},0([[REG:.*]])
+; MIPS32-O2: 	lw	[[REG]],4([[REG]])
+
 define internal void @store64(i32 %a, i64 %value) {
 entry:
   %__2 = inttoptr i32 %a to i64*
@@ -2191,6 +2253,10 @@ entry:
 ; ARM32-LABEL: store64
 ; ARM32: str r{{.*}}, [r[[REG:.*]], #4]
 ; ARM32: str r{{.*}}, [r[[REG]]]
+
+; MIPS32-LABEL: store64
+; MIPS32-O2: 	sw	{{.*}},4([[REG:.*]])
+; MIPS32-O2: 	sw	{{.*}},0([[REG]])
 
 define internal void @store64Const(i32 %a) {
 entry:
@@ -2214,6 +2280,14 @@ entry:
 ; ARM32: movt [[REG2:.*]], #4660  ; 0x1234
 ; ARM32: str [[REG1]], [r[[REG:.*]], #4]
 ; ARM32: str [[REG2]], [r[[REG]]]
+
+; MIPS32-LABEL: store64Const
+; MIPS32-O2: 	lui	[[REG1:.*]],0xdead
+; MIPS32-O2: 	ori	[[REG1:.*]],[[REG1]],0xbeef
+; MIPS32-O2: 	lui	[[REG2:.*]],0x1234
+; MIPS32-O2: 	ori	[[REG2:.*]],[[REG2]],0x5678
+; MIPS32-O2: 	sw	[[REG1]],4([[REG:.*]])
+; MIPS32-O2: 	sw	[[REG2]],0([[REG]])
 
 define internal i64 @select64VarVar(i64 %a, i64 %b) {
 entry:

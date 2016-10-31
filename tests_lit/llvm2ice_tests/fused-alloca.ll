@@ -4,6 +4,12 @@
 ; RUN:   --target x8632 -i %s --args -O2 -allow-externally-defined-symbols \
 ; RUN:   | %if --need=target_X8632 --command FileCheck %s
 
+; RUN: %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command %p2i --filetype=asm --assemble --disassemble --target \
+; RUN:   mips32 -i %s --args -O2 -allow-externally-defined-symbols \
+; RUN:   | %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command FileCheck --check-prefix MIPS32 %s
+
 ; Test that a sequence of allocas with less than stack alignment get fused.
 define internal void @fused_small_align(i32 %arg) {
 entry:
@@ -25,6 +31,14 @@ entry:
 ; CHECK-NEXT: mov    DWORD PTR [esp+0x18],eax
 ; CHECK-NEXT: mov    DWORD PTR [esp],eax
 ; CHECK-NEXT: add    esp,0x30
+; MIPS32-LABEL: fused_small_align
+; MIPS32: 	addiu	sp,sp,{{.*}}
+; MIPS32: 	move	v0,a0
+; MIPS32: 	sw	v0,{{.*}}(sp)
+; MIPS32: 	move	v0,a0
+; MIPS32: 	sw	v0,{{.*}}(sp)
+; MIPS32: 	sw	a0,{{.*}}(sp)
+; MIPS32: 	addiu	sp,sp,{{.*}}
 
 ; Test that a sequence of allocas with greater than stack alignment get fused.
 define internal void @fused_large_align(i32 %arg) {
@@ -51,6 +65,18 @@ entry:
 ; CHECK-NEXT: mov    DWORD PTR [esp+0x60],eax
 ; CHECK-NEXT: mov    esp,ebp
 ; CHECK-NEXT: pop    ebp
+; MIPS32-LABEL: fused_large_align
+; MIPS32: 	addiu	sp,sp,{{.*}}
+; MIPS32: 	sw	s8,{{.*}}(sp)
+; MIPS32: 	move	s8,sp
+; MIPS32: 	move	v0,a0
+; MIPS32: 	sw	v0,{{.*}}(sp)
+; MIPS32: 	move	v0,a0
+; MIPS32: 	sw	v0,{{.*}}(sp)
+; MIPS32: 	sw	a0,{{.*}}(sp)
+; MIPS32: 	move	sp,s8
+; MIPS32: 	lw	s8,{{.*}}(sp)
+; MIPS32: 	addiu	sp,sp,{{.*}}
 
 ; Test that an interior pointer into a rematerializable variable is also
 ; rematerializable, and test that it is detected even when the use appears
@@ -84,6 +110,14 @@ block2:
 ; CHECK-NEXT: lea    eax,[esp+0x81]
 ; CHECK-NEXT: add    esp,0x180
 ; CHECK-NEXT: ret
+; MIPS32-LABEL: fused_derived
+; MIPS32: 	addiu	sp,sp,{{.*}}
+; MIPS32: 	b
+; MIPS32: 	move	v0,a0
+; MIPS32: 	sw	v0,{{.*}}(sp)
+; MIPS32: 	sw	a0,{{.*}}(sp)
+; MIPS32: 	addiu	v0,sp,129
+; MIPS32: 	addiu	sp,sp,{{.*}}
 
 ; Test that a fixed alloca gets referenced by the frame pointer.
 define internal void @fused_small_align_with_dynamic(i32 %arg) {
@@ -115,6 +149,20 @@ next:
 ; CHECK-NEXT: mov    DWORD PTR [edx],eax
 ; CHECK-NEXT: mov    esp,ebp
 ; CHECK-NEXT: pop    ebp
+; MIPS32-LABEL: fused_small_align_with_dynamic
+; MIPS32: 	addiu	sp,sp,{{.*}}
+; MIPS32: 	sw	s8,{{.*}}(sp)
+; MIPS32: 	move	s8,sp
+; MIPS32: 	addiu	v0,sp,0
+; MIPS32: 	addiu	v1,sp,16
+; MIPS32: 	move	a1,a0
+; MIPS32: 	sw	a1,16(s8)
+; MIPS32: 	move	a1,a0
+; MIPS32: 	sw	a1,0(v0)
+; MIPS32: 	sw	a0,0(v1)
+; MIPS32: 	move	sp,s8
+; MIPS32: 	lw	s8,{{.*}}(sp)
+; MIPS32: 	addiu	sp,sp,{{.*}}
 
 ; Test that a sequence with greater than stack alignment and dynamic size
 ; get folded and referenced correctly;
@@ -161,3 +209,22 @@ next:
 ; CHECK-NEXT: mov    DWORD PTR [ebx],eax
 ; CHECK-NEXT: mov    esp,ebp
 ; CHECK-NEXT: pop    ebp
+; MIPS32-LABEL: fused_large_align_with_dynamic
+; MIPS32: 	addiu	sp,sp,{{.*}}
+; MIPS32: 	sw	s8,{{.*}}(sp)
+; MIPS32: 	move	s8,sp
+; MIPS32: 	addiu	v0,sp,0
+; MIPS32: 	addiu	v1,sp,64
+; MIPS32: 	move	a1,v0
+; MIPS32: 	move	a2,a0
+; MIPS32: 	sw	a2,0(a1)
+; MIPS32: 	move	a1,a0
+; MIPS32: 	sw	a1,32(v0)
+; MIPS32: 	move	v0,a0
+; MIPS32: 	sw	v0,64(s8)
+; MIPS32: 	move	v0,a0
+; MIPS32: 	sw	v0,48(s8)
+; MIPS32: 	sw	a0,0(v1)
+; MIPS32: 	move	sp,s8
+; MIPS32: 	lw	s8,{{.*}}(sp)
+; MIPS32: 	addiu	sp,sp,{{.*}}

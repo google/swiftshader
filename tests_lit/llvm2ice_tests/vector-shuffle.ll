@@ -5,6 +5,12 @@
 ; RUN: %p2i -i %s --target=x8632 --filetype=obj --disassemble -a -O2 \
 ; RUN:     --allow-externally-defined-symbols | FileCheck %s --check-prefix=X86
 
+; RUN: %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command %p2i --filetype=asm --assemble --disassemble --target \
+; RUN:   mips32 -i %s --args -O2 -allow-externally-defined-symbols \
+; RUN:   | %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command FileCheck --check-prefix MIPS32 %s
+
 declare void @useV4I32(<4 x i32> %t);
 
 define internal void @shuffleV4I32(<4 x i32> %a, <4 x i32> %b) {
@@ -51,3 +57,19 @@ define internal void @shuffleV4I32(<4 x i32> %a, <4 x i32> %b) {
 
   ret void
 }
+; MIPS32-LABEL: shuffleV4I32
+; MIPS32: 	move
+; MIPS32: 	move
+; MIPS32: 	move
+; MIPS32: 	move
+; MIPS32: 	jal
+; MIPS32: 	move
+; MIPS32: 	move
+; MIPS32: 	move
+; MIPS32: 	move
+; MIPS32: 	jal
+; MIPS32: 	move
+; MIPS32: 	move
+; MIPS32: 	move
+; MIPS32: 	move
+; MIPS32: 	jal

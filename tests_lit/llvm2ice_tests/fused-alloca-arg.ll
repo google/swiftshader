@@ -4,6 +4,12 @@
 ; RUN:   --target x8632 -i %s --args -O2 -allow-externally-defined-symbols \
 ; RUN:   | %if --need=target_X8632 --command FileCheck %s
 
+; RUN: %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command %p2i --filetype=asm --assemble --disassemble --target \
+; RUN:   mips32 -i %s --args -O2 -allow-externally-defined-symbols \
+; RUN:   | %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command FileCheck --check-prefix MIPS32 %s
+
 declare void @copy(i32 %arg1, i8* %arr1, i8* %arr2, i8* %arr3, i8* %arr4);
 
 ; Test that alloca base addresses get passed correctly to functions.
@@ -32,6 +38,21 @@ entry:
 ; CHECK-NEXT:   call
 ; CHECK-NEXT:   add    esp,0x4c
 ; CHECK-NEXT:   ret
+; MIPS32-LABEL: caller1
+; MIPS32: 	addiu	sp,sp,{{.*}}
+; MIPS32: 	sw	ra,{{.*}}(sp)
+; MIPS32: 	move	v0,a0
+; MIPS32: 	sw	v0,{{.*}}(sp)
+; MIPS32: 	addiu	v0,sp,16
+; MIPS32: 	sw	v0,{{.*}}(sp)
+; MIPS32: 	addiu	a1,sp,16
+; MIPS32: 	addiu	a2,sp,16
+; MIPS32: 	addiu	a3,sp,16
+; MIPS32: 	jal
+; MIPS32: 	nop
+; MIPS32: 	lw	ra,{{.*}}(sp)
+; MIPS32: 	addiu	sp,sp,{{.*}}
+; MIPS32: 	jr	ra
 
 ; Test that alloca base addresses get passed correctly to functions.
 define internal void @caller2(i32 %arg) {
@@ -63,3 +84,20 @@ entry:
 ; CHECK-NEXT:   call
 ; CHECK-NEXT:   add    esp,0x6c
 ; CHECK-NEXT:   ret
+; MIPS32-LABEL: caller2
+; MIPS32: 	addiu	sp,sp,{{.*}}
+; MIPS32: 	sw	ra,{{.*}}(sp)
+; MIPS32: 	move	v0,a0
+; MIPS32: 	sw	v0,{{.*}}(sp)
+; MIPS32: 	move	v0,a0
+; MIPS32: 	sw	v0,{{.*}}(sp)
+; MIPS32: 	addiu	v0,sp,48
+; MIPS32: 	sw	v0,{{.*}}(sp)
+; MIPS32: 	addiu	a1,sp,16
+; MIPS32: 	addiu	a2,sp,48
+; MIPS32: 	addiu	a3,sp,16
+; MIPS32: 	jal
+; MIPS32: 	nop
+; MIPS32: 	lw	ra,{{.*}}(sp)
+; MIPS32: 	addiu	sp,sp,{{.*}}
+; MIPS32: 	jr	ra

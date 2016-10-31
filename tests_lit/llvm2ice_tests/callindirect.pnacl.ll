@@ -35,6 +35,12 @@
 ; RUN:   | %if --need=target_ARM32_dump \
 ; RUN:   --command FileCheck --check-prefix ARM32 %s
 
+; RUN: %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command %p2i --filetype=asm --assemble --disassemble --target \
+; RUN:   mips32 -i %s --args -O2 -allow-externally-defined-symbols \
+; RUN:   | %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command FileCheck --check-prefix MIPS32 %s
+
 @__init_array_start = internal constant [0 x i8] zeroinitializer, align 4
 @__fini_array_start = internal constant [0 x i8] zeroinitializer, align 4
 @__tls_template_start = internal constant [0 x i8] zeroinitializer, align 8
@@ -98,6 +104,11 @@ entry:
 ; ARM32: blx [[REGISTER]]
 ; ARM32: blx [[REGISTER]]
 
+; MIPS32-LABEL: CallIndirect
+; MIPS32: jalr	[[REGISTER:.*]]
+; MIPS32: jalr	[[REGISTER]]
+; MIPS32: jalr	[[REGISTER]]
+; MIPS32: jalr	[[REGISTER]]
 
 @fp_v = internal global [4 x i8] zeroinitializer, align 4
 
@@ -149,6 +160,12 @@ entry:
 ; ARM32: blx [[REGISTER:r[0-9]*]]
 ; ARM32: blx [[REGISTER]]
 ; ARM32: blx [[REGISTER]]
+
+; MIPS32-LABEL: CallIndirectGlobal
+; MIPS32: jalr	[[REGISTER:.*]]
+; MIPS32: jalr	[[REGISTER]]
+; MIPS32: jalr	[[REGISTER]]
+; MIPS32: jalr	[[REGISTER]]
 
 ; Calling an absolute address is used for non-IRT PNaCl pexes to directly
 ; access syscall trampolines. This is not really an indirect call, but

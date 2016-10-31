@@ -10,6 +10,12 @@
 ; RUN:   --target x8632 -i %s --args -Om1 -allow-externally-defined-symbols \
 ; RUN:   | %if --need=target_X8632 --command FileCheck %s
 
+; RUN: %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command %p2i --filetype=asm --assemble --disassemble --target \
+; RUN:   mips32 -i %s --args -O2 -allow-externally-defined-symbols \
+; RUN:   | %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command FileCheck --check-prefix MIPS32 %s
+
 ; Can't test on ARM yet. Need to use several vpush {contiguous FP regs},
 ; instead of push {any GPR list}.
 
@@ -21,6 +27,9 @@ entry:
 ; CHECK:      mov eax,DWORD PTR [esp+0xc]
 ; CHECK-NEXT: ret
 ; ARM32-LABEL: doubleArgs
+; MIPS32-LABEL: doubleArgs
+; MIPS32: 	move	v0,a2
+; MIPS32: 	jr	ra
 
 define internal i32 @floatArgs(float %a, i32 %b, float %c) {
 entry:
@@ -29,6 +38,9 @@ entry:
 ; CHECK-LABEL: floatArgs
 ; CHECK:      mov eax,DWORD PTR [esp+0x8]
 ; CHECK-NEXT: ret
+; MIPS32-LABEL: floatArgs
+; MIPS32: 	move	v0,a1
+; MIPS32: 	jr	ra
 
 define internal i32 @passFpArgs(float %a, double %b, float %c, double %d, float %e, double %f) {
 entry:
@@ -46,6 +58,19 @@ entry:
 ; CHECK: call {{.*}} R_{{.*}} ignoreFpArgsNoInline
 ; CHECK: mov DWORD PTR [esp+0x4],0x7b
 ; CHECK: call {{.*}} R_{{.*}} ignoreFpArgsNoInline
+; MIPS32-LABEL: passFpArgs
+; MIPS32: 	mfc1	a2,$f15
+; MIPS32: 	mfc1	a3,$f14
+; MIPS32: 	li	a1,123
+; MIPS32: 	jal	{{.*}}	ignoreFpArgsNoInline
+; MIPS32: 	mfc1	a2,$f23
+; MIPS32: 	mfc1	a3,$f22
+; MIPS32: 	li	a1,123
+; MIPS32: 	jal	{{.*}}	ignoreFpArgsNoInline
+; MIPS32: 	mfc1	a2,$f25
+; MIPS32: 	mfc1	a3,$f24
+; MIPS32: 	li	a1,123
+; MIPS32: 	jal	{{.*}}	ignoreFpArgsNoInline
 
 declare i32 @ignoreFpArgsNoInline(float %x, i32 %y, double %z)
 
@@ -57,6 +82,11 @@ entry:
 ; CHECK-LABEL: passFpConstArg
 ; CHECK: mov DWORD PTR [esp+0x4],0x7b
 ; CHECK: call {{.*}} R_{{.*}} ignoreFpArgsNoInline
+; MIPS32-LABEL: passFpConstArg
+; MIPS32: 	mfc1	a2,$f1
+; MIPS32: 	mfc1	a3,$f0
+; MIPS32: 	li	a1,123
+; MIPS32: 	jal	{{.*}}	ignoreFpArgsNoInline
 
 define internal i32 @passFp32ConstArg(float %a) {
 entry:
@@ -67,6 +97,10 @@ entry:
 ; CHECK: mov DWORD PTR [esp+0x4],0x7b
 ; CHECK: movss DWORD PTR [esp+0x8]
 ; CHECK: call {{.*}} R_{{.*}} ignoreFp32ArgsNoInline
+; MIPS32-LABEL: passFp32ConstArg
+; MIPS32: 	mfc1	a2,$f0
+; MIPS32: 	li	a1,123
+; MIPS32: 	jal	{{.*}}	ignoreFp32ArgsNoInline
 
 declare i32 @ignoreFp32ArgsNoInline(float %x, i32 %y, float %z)
 
@@ -76,6 +110,9 @@ entry:
 }
 ; CHECK-LABEL: returnFloatArg
 ; CHECK: fld DWORD PTR [esp
+; MIPS32-LABEL: returnFloatArg
+; MIPS32: 	mov.s	$f0,$f12
+; MIPS32: 	jr	ra
 
 define internal double @returnDoubleArg(double %a) {
 entry:
@@ -83,6 +120,9 @@ entry:
 }
 ; CHECK-LABEL: returnDoubleArg
 ; CHECK: fld QWORD PTR [esp
+; MIPS32-LABEL: returnDoubleArg
+; MIPS32: 	mov.d	$f0,$f12
+; MIPS32: 	jr	ra
 
 define internal float @returnFloatConst() {
 entry:
@@ -90,6 +130,10 @@ entry:
 }
 ; CHECK-LABEL: returnFloatConst
 ; CHECK: fld
+; MIPS32-LABEL: returnFloatConst
+; MIPS32: 	lui	v0,0x0	   160: R_MIPS_HI16	.L$float$3f9d70a4
+; MIPS32: 	lwc1	$f0,0(v0)  164: R_MIPS_LO16	.L$float$3f9d70a4
+; MIPS32: 	jr	ra
 
 define internal double @returnDoubleConst() {
 entry:
@@ -97,3 +141,7 @@ entry:
 }
 ; CHECK-LABEL: returnDoubleConst
 ; CHECK: fld
+; MIPS32-LABEL: returnDoubleConst
+; MIPS32: 	lui	v0,0x0	   170: R_MIPS_HI16  .L$double$3ff3ae147ae147ae
+; MIPS32: 	ldc1	$f0,0(v0)  174: R_MIPS_LO16  .L$double$3ff3ae147ae147ae
+; MIPS32: 	jr	ra

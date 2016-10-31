@@ -6,6 +6,12 @@
 ; RUN: %p2i -i %s --filetype=obj --disassemble --args -Om1 \
 ; RUN:   -allow-externally-defined-symbols | FileCheck --check-prefix=OPTM1 %s
 
+; RUN: %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command %p2i --filetype=asm --assemble --disassemble --target \
+; RUN:   mips32 -i %s --args -O2 -allow-externally-defined-symbols \
+; RUN:   | %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command FileCheck --check-prefix MIPS32 %s
+
 ; The first five functions test that vectors are moved from their
 ; correct argument location to xmm0.
 
@@ -22,6 +28,15 @@ entry:
 ; OPTM1: movups XMMWORD PTR [[LOC:.*]],xmm0
 ; OPTM1: movups xmm0,XMMWORD PTR [[LOC]]
 ; OPTM1: ret
+; MIPS32-LABEL: test_returning_arg0
+; MIPS32: 	lw	v0,{{.*}}(sp)
+; MIPS32: 	lw	v1,{{.*}}(sp)
+; MIPS32: 	move	a1,a0
+; MIPS32: 	sw	a2,0(a1)
+; MIPS32: 	sw	a3,4(a1)
+; MIPS32: 	sw	v0,8(a1)
+; MIPS32: 	sw	v1,12(a1)
+; MIPS32: 	move	v0,a0
 }
 
 define internal <4 x float> @test_returning_arg1(
@@ -37,6 +52,17 @@ entry:
 ; OPTM1: movups XMMWORD PTR [[LOC:.*]],xmm1
 ; OPTM1: movups xmm0,XMMWORD PTR [[LOC]]
 ; OPTM1: ret
+; MIPS32-LABEL: test_returning_arg1
+; MIPS32: 	lw	v0,{{.*}}(sp)
+; MIPS32: 	lw	v1,{{.*}}(sp)
+; MIPS32: 	lw	a1,{{.*}}(sp)
+; MIPS32: 	lw	a2,{{.*}}(sp)
+; MIPS32: 	move	a3,a0
+; MIPS32: 	sw	v0,0(a3)
+; MIPS32: 	sw	v1,4(a3)
+; MIPS32: 	sw	a1,8(a3)
+; MIPS32: 	sw	a2,12(a3)
+; MIPS32: 	move	v0,a0
 }
 
 define internal <4 x float> @test_returning_arg2(
@@ -52,6 +78,17 @@ entry:
 ; OPTM1: movups XMMWORD PTR [[LOC:.*]],xmm2
 ; OPTM1: movups xmm0,XMMWORD PTR [[LOC]]
 ; OPTM1: ret
+; MIPS32-LABEL: test_returning_arg2
+; MIPS32: 	lw	v0,{{.*}}(sp)
+; MIPS32: 	lw	v1,{{.*}}(sp)
+; MIPS32: 	lw	a1,{{.*}}(sp)
+; MIPS32: 	lw	a2,{{.*}}(sp)
+; MIPS32: 	move	a3,a0
+; MIPS32: 	sw	v0,0(a3)
+; MIPS32: 	sw	v1,4(a3)
+; MIPS32: 	sw	a1,8(a3)
+; MIPS32: 	sw	a2,12(a3)
+; MIPS32: 	move	v0,a0
 }
 
 define internal <4 x float> @test_returning_arg3(
@@ -67,6 +104,17 @@ entry:
 ; OPTM1: movups XMMWORD PTR [[LOC:.*]],xmm3
 ; OPTM1: movups xmm0,XMMWORD PTR [[LOC]]
 ; OPTM1: ret
+; MIPS32-LABEL: test_returning_arg3
+; MIPS32: 	lw	v0,{{.*}}(sp)
+; MIPS32: 	lw	v1,{{.*}}(sp)
+; MIPS32: 	lw	a1,{{.*}}(sp)
+; MIPS32: 	lw	a2,{{.*}}(sp)
+; MIPS32: 	move	a3,a0
+; MIPS32: 	sw	v0,0(a3)
+; MIPS32: 	sw	v1,4(a3)
+; MIPS32: 	sw	a1,8(a3)
+; MIPS32: 	sw	a2,12(a3)
+; MIPS32: 	move	v0,a0
 }
 
 define internal <4 x float> @test_returning_arg4(
@@ -81,6 +129,17 @@ entry:
 ; OPTM1-LABEL: test_returning_arg4
 ; OPTM1: movups xmm0,XMMWORD PTR {{.*}}
 ; OPTM1: ret
+; MIPS32-LABEL: test_returning_arg4
+; MIPS32: 	lw	v0,{{.*}}(sp)
+; MIPS32: 	lw	v1,{{.*}}(sp)
+; MIPS32: 	lw	a1,{{.*}}(sp)
+; MIPS32: 	lw	a2,{{.*}}(sp)
+; MIPS32: 	move	a3,a0
+; MIPS32: 	sw	v0,0(a3)
+; MIPS32: 	sw	v1,4(a3)
+; MIPS32: 	sw	a1,8(a3)
+; MIPS32: 	sw	a2,12(a3)
+; MIPS32: 	move	v0,a0
 }
 
 ; The next five functions check that xmm arguments are handled
@@ -102,6 +161,17 @@ entry:
 ; OPTM1: movups XMMWORD PTR [[LOC:.*]],xmm0
 ; OPTM1: movups xmm0,XMMWORD PTR [[LOC]]
 ; OPTM1: ret
+; MIPS32-LABEL: test_returning_interspersed_arg0
+; MIPS32: 	lw	v0,{{.*}}(sp)
+; MIPS32: 	lw	v1,{{.*}}(sp)
+; MIPS32: 	lw	a1,{{.*}}(sp)
+; MIPS32: 	lw	a2,{{.*}}(sp)
+; MIPS32: 	move	a3,a0
+; MIPS32: 	sw	v0,0(a3)
+; MIPS32: 	sw	v1,4(a3)
+; MIPS32: 	sw	a1,8(a3)
+; MIPS32: 	sw	a2,12(a3)
+; MIPS32: 	move	v0,a0
 }
 
 define internal <4 x float> @test_returning_interspersed_arg1(
@@ -119,6 +189,17 @@ entry:
 ; OPTM1: movups XMMWORD PTR [[LOC:.*]],xmm1
 ; OPTM1: movups xmm0,XMMWORD PTR [[LOC]]
 ; OPTM1: ret
+; MIPS32-LABEL: test_returning_interspersed_arg1
+; MIPS32: 	lw	v0,{{.*}}(sp)
+; MIPS32: 	lw	v1,{{.*}}(sp)
+; MIPS32: 	lw	a1,{{.*}}(sp)
+; MIPS32: 	lw	a2,{{.*}}(sp)
+; MIPS32: 	move	a3,a0
+; MIPS32: 	sw	v0,0(a3)
+; MIPS32: 	sw	v1,4(a3)
+; MIPS32: 	sw	a1,8(a3)
+; MIPS32: 	sw	a2,12(a3)
+; MIPS32: 	move	v0,a0
 }
 
 define internal <4 x float> @test_returning_interspersed_arg2(
@@ -136,6 +217,17 @@ entry:
 ; OPTM1: movups XMMWORD PTR [[LOC:.*]],xmm2
 ; OPTM1: movups xmm0,XMMWORD PTR [[LOC]]
 ; OPTM1: ret
+; MIPS32-LABEL: test_returning_interspersed_arg2
+; MIPS32: 	lw	v0,{{.*}}(sp)
+; MIPS32: 	lw	v1,{{.*}}(sp)
+; MIPS32: 	lw	a1,{{.*}}(sp)
+; MIPS32: 	lw	a2,{{.*}}(sp)
+; MIPS32: 	move	a3,a0
+; MIPS32: 	sw	v0,0(a3)
+; MIPS32: 	sw	v1,4(a3)
+; MIPS32: 	sw	a1,8(a3)
+; MIPS32: 	sw	a2,12(a3)
+; MIPS32: 	move	v0,a0
 }
 
 define internal <4 x float> @test_returning_interspersed_arg3(
@@ -153,6 +245,18 @@ entry:
 ; OPTM1: movups XMMWORD PTR [[LOC:.*]],xmm3
 ; OPTM1: movups xmm0,XMMWORD PTR [[LOC]]
 ; OPTM1: ret
+; MIPS32-LABEL: test_returning_interspersed_arg3
+; MIPS32: 	lw	v0,{{.*}}(sp)
+; MIPS32: 	lw	v1,{{.*}}(sp)
+; MIPS32: 	lw	a1,{{.*}}(sp)
+; MIPS32: 	lw	a2,{{.*}}(sp)
+; MIPS32: 	move	a3,a0
+; MIPS32: 	sw	v0,0(a3)
+; MIPS32: 	sw	v1,4(a3)
+; MIPS32: 	sw	a1,8(a3)
+; MIPS32: 	sw	a2,12(a3)
+; MIPS32: 	move	v0,a0
+
 }
 
 define internal <4 x float> @test_returning_interspersed_arg4(
@@ -169,6 +273,17 @@ entry:
 ; OPTM1-LABEL: test_returning_interspersed_arg4
 ; OPTM1: movups xmm0,XMMWORD PTR {{.*}}
 ; OPTM1: ret
+; MIPS32-LABEL: test_returning_interspersed_arg4
+; MIPS32: 	lw	v0,1{{.*}}(sp)
+; MIPS32: 	lw	v1,1{{.*}}(sp)
+; MIPS32: 	lw	a1,1{{.*}}(sp)
+; MIPS32: 	lw	a2,1{{.*}}(sp)
+; MIPS32: 	move	a3,a0
+; MIPS32: 	sw	v0,0(a3)
+; MIPS32: 	sw	v1,4(a3)
+; MIPS32: 	sw	a1,8(a3)
+; MIPS32: 	sw	a2,12(a3)
+; MIPS32: 	move	v0,a0
 }
 
 ; Test that vectors are passed correctly as arguments to a function.
@@ -214,6 +329,73 @@ entry:
 ; OPTM1: movups  xmm3,XMMWORD PTR {{.*}}
 ; OPTM1: call {{.*}} R_{{.*}} VectorArgs
 ; OPTM1-NEXT: add esp,0x6c
+; MIPS32-LABEL: test_passing_vectors
+; MIPS32: 	sw	s7,{{.*}}(sp)
+; MIPS32: 	sw	s6,{{.*}}(sp)
+; MIPS32: 	sw	s5,{{.*}}(sp)
+; MIPS32: 	sw	s4,{{.*}}(sp)
+; MIPS32: 	sw	s3,{{.*}}(sp)
+; MIPS32: 	sw	s2,{{.*}}(sp)
+; MIPS32: 	sw	s1,{{.*}}(sp)
+; MIPS32: 	sw	s0,{{.*}}(sp)
+; MIPS32: 	lw	s0,{{.*}}(sp)
+; MIPS32: 	lw	s1,{{.*}}(sp)
+; MIPS32: 	lw	s2,{{.*}}(sp)
+; MIPS32: 	lw	s3,{{.*}}(sp)
+; MIPS32: 	lw	s4,{{.*}}(sp)
+; MIPS32: 	lw	s5,{{.*}}(sp)
+; MIPS32: 	lw	s6,{{.*}}(sp)
+; MIPS32: 	lw	s7,{{.*}}(sp)
+; MIPS32: 	jal	0 <test_returning_arg0>	228: R_MIPS_26	killXmmRegisters
+; MIPS32: 	nop
+; MIPS32: 	lw	v0,{{.*}}(sp)
+; MIPS32: 	sw	v0,{{.*}}(sp)
+; MIPS32: 	lw	v0,{{.*}}(sp)
+; MIPS32: 	sw	v0,{{.*}}(sp)
+; MIPS32: 	lw	v0,{{.*}}(sp)
+; MIPS32: 	sw	v0,{{.*}}(sp)
+; MIPS32: 	lw	v0,{{.*}}(sp)
+; MIPS32: 	sw	v0,{{.*}}(sp)
+; MIPS32: 	lw	v0,{{.*}}(sp)
+; MIPS32: 	sw	v0,{{.*}}(sp)
+; MIPS32: 	lw	v0,{{.*}}(sp)
+; MIPS32: 	sw	v0,{{.*}}(sp)
+; MIPS32: 	lw	v0,{{.*}}(sp)
+; MIPS32: 	sw	v0,{{.*}}(sp)
+; MIPS32: 	lw	v0,{{.*}}(sp)
+; MIPS32: 	sw	v0,{{.*}}(sp)
+; MIPS32: 	lw	v0,{{.*}}(sp)
+; MIPS32: 	sw	v0,{{.*}}(sp)
+; MIPS32: 	lw	v0,{{.*}}(sp)
+; MIPS32: 	sw	v0,{{.*}}(sp)
+; MIPS32: 	lw	v0,{{.*}}(sp)
+; MIPS32: 	sw	v0,{{.*}}(sp)
+; MIPS32: 	lw	v0,{{.*}}(sp)
+; MIPS32: 	sw	v0,{{.*}}(sp)
+; MIPS32: 	sw	s4,{{.*}}(sp)
+; MIPS32: 	sw	s5,{{.*}}(sp)
+; MIPS32: 	sw	s6,{{.*}}(sp)
+; MIPS32: 	sw	s7,{{.*}}(sp)
+; MIPS32: 	sw	s0,{{.*}}(sp)
+; MIPS32: 	sw	s1,{{.*}}(sp)
+; MIPS32: 	sw	s2,{{.*}}(sp)
+; MIPS32: 	sw	s3,{{.*}}(sp)
+; MIPS32: 	lw	a0,{{.*}}(sp)
+; MIPS32: 	lw	a1,{{.*}}(sp)
+; MIPS32: 	lw	a2,{{.*}}(sp)
+; MIPS32: 	lw	a3,{{.*}}(sp)
+; MIPS32: 	jal	0 <test_returning_arg0>	2c0: R_MIPS_26	VectorArgs
+; MIPS32: 	nop
+; MIPS32: 	lw	s0,{{.*}}(sp)
+; MIPS32: 	lw	s1,{{.*}}(sp)
+; MIPS32: 	lw	s2,{{.*}}(sp)
+; MIPS32: 	lw	s3,{{.*}}(sp)
+; MIPS32: 	lw	s4,{{.*}}(sp)
+; MIPS32: 	lw	s5,{{.*}}(sp)
+; MIPS32: 	lw	s6,{{.*}}(sp)
+; MIPS32: 	lw	s7,{{.*}}(sp)
+; MIPS32: 	lw	ra,{{.*}}(sp)
+
 }
 
 declare void @InterspersedVectorArgs(
@@ -260,6 +442,88 @@ entry:
 ; OPTM1: call {{.*}} R_{{.*}} InterspersedVectorArgs
 ; OPTM1-NEXT: add esp,0x9c
 ; OPTM1: ret
+; MIPS32-LABEL: test_passing_vectors_interspersed
+; MIPS32: 	sw	s7,{{.*}}(sp)
+; MIPS32: 	sw	s6,{{.*}}(sp)
+; MIPS32: 	sw	s5,{{.*}}(sp)
+; MIPS32: 	sw	s4,{{.*}}(sp)
+; MIPS32: 	sw	s3,{{.*}}(sp)
+; MIPS32: 	sw	s2,{{.*}}(sp)
+; MIPS32: 	sw	s1,{{.*}}(sp)
+; MIPS32: 	sw	s0,{{.*}}(sp)
+; MIPS32: 	lw	s0,{{.*}}(sp)
+; MIPS32: 	lw	s1,{{.*}}(sp)
+; MIPS32: 	lw	s2,{{.*}}(sp)
+; MIPS32: 	lw	s3,{{.*}}(sp)
+; MIPS32: 	lw	s4,{{.*}}(sp)
+; MIPS32: 	lw	s5,{{.*}}(sp)
+; MIPS32: 	lw	s6,{{.*}}(sp)
+; MIPS32: 	lw	s7,{{.*}}(sp)
+; MIPS32: 	jal	0 <test_returning_arg0>	348: R_MIPS_26	killXmmRegisters
+; MIPS32: 	nop
+; MIPS32: 	li	v0,0
+; MIPS32: 	li	v1,0
+; MIPS32: 	sw	v0,{{.*}}(sp)
+; MIPS32: 	sw	v1,{{.*}}(sp)
+; MIPS32: 	lw	v0,{{.*}}(sp)
+; MIPS32: 	sw	v0,{{.*}}(sp)
+; MIPS32: 	lw	v0,{{.*}}(sp)
+; MIPS32: 	sw	v0,{{.*}}(sp)
+; MIPS32: 	lw	v0,{{.*}}(sp)
+; MIPS32: 	sw	v0,{{.*}}(sp)
+; MIPS32: 	lw	v0,{{.*}}(sp)
+; MIPS32: 	sw	v0,{{.*}}(sp)
+; MIPS32: 	li	v0,0
+; MIPS32: 	li	v1,1
+; MIPS32: 	sw	v0,{{.*}}(sp)
+; MIPS32: 	sw	v1,{{.*}}(sp)
+; MIPS32: 	lw	v0,{{.*}}(sp)
+; MIPS32: 	sw	v0,{{.*}}(sp)
+; MIPS32: 	lw	v0,{{.*}}(sp)
+; MIPS32: 	sw	v0,{{.*}}(sp)
+; MIPS32: 	lw	v0,{{.*}}(sp)
+; MIPS32: 	sw	v0,{{.*}}(sp)
+; MIPS32: 	lw	v0,{{.*}}(sp)
+; MIPS32: 	sw	v0,{{.*}}(sp)
+; MIPS32: 	lui	v0,0x0	    3b0: R_MIPS_HI16	.L$float$40000000
+; MIPS32: 	lwc1	$f0,0(v0)   3b4: R_MIPS_LO16	.L$float$40000000
+; MIPS32: 	swc1	$f0,{{.*}}(sp)
+; MIPS32: 	lw	v0,{{.*}}(sp)
+; MIPS32: 	sw	v0,{{.*}}(sp)
+; MIPS32: 	lw	v0,{{.*}}(sp)
+; MIPS32: 	sw	v0,{{.*}}(sp)
+; MIPS32: 	lw	v0,{{.*}}(sp)
+; MIPS32: 	sw	v0,{{.*}}(sp)
+; MIPS32: 	lw	v0,{{.*}}(sp)
+; MIPS32: 	sw	v0,{{.*}}(sp)
+; MIPS32: 	lui	v0,0x0	    3dc: R_MIPS_HI16  .L$double$4008000000000000
+; MIPS32: 	ldc1	$f0,0(v0)   3e0: R_MIPS_LO16  .L$double$4008000000000000
+; MIPS32: 	sdc1	$f0,{{.*}}(sp)
+; MIPS32: 	sw	s4,{{.*}}(sp)
+; MIPS32: 	sw	s5,{{.*}}(sp)
+; MIPS32: 	sw	s6,{{.*}}(sp)
+; MIPS32: 	sw	s7,{{.*}}(sp)
+; MIPS32: 	li	v0,4
+; MIPS32: 	sw	v0,{{.*}}(sp)
+; MIPS32: 	sw	s0,{{.*}}(sp)
+; MIPS32: 	sw	s1,{{.*}}(sp)
+; MIPS32: 	sw	s2,{{.*}}(sp)
+; MIPS32: 	sw	s3,{{.*}}(sp)
+; MIPS32: 	lw	a0,{{.*}}(sp)
+; MIPS32: 	lw	a1,{{.*}}(sp)
+; MIPS32: 	lw	a2,{{.*}}(sp)
+; MIPS32: 	lw	a3,{{.*}}(sp)
+; MIPS32: 	jal	0 <test_returning_arg0>	420: R_MIPS_26	InterspersedVectorArgs
+; MIPS32: 	nop
+; MIPS32: 	lw	s0,{{.*}}(sp)
+; MIPS32: 	lw	s1,{{.*}}(sp)
+; MIPS32: 	lw	s2,{{.*}}(sp)
+; MIPS32: 	lw	s3,{{.*}}(sp)
+; MIPS32: 	lw	s4,{{.*}}(sp)
+; MIPS32: 	lw	s5,{{.*}}(sp)
+; MIPS32: 	lw	s6,{{.*}}(sp)
+; MIPS32: 	lw	s7,{{.*}}(sp)
+; MIPS32: 	lw	ra,{{.*}}(sp)
 }
 
 ; Test that a vector returned from a function is recognized to be in
@@ -284,4 +548,33 @@ entry:
 ; OPTM1: movups xmm0,{{.*}}
 ; OPTM1: call {{.*}} R_{{.*}} VectorReturn
 ; OPTM1: ret
+; MIPS32-LABEL: test_receiving_vectors
+; MIPS32: 	sw	s8,{{.*}}(sp)
+; MIPS32: 	sw	s0,{{.*}}(sp)
+; MIPS32: 	move	s8,sp
+; MIPS32: 	move	v0,a0
+; MIPS32: 	addiu	v1,sp,16
+; MIPS32: 	move	s0,v1
+; MIPS32: 	move	a0,s0
+; MIPS32: 	sw	a2,{{.*}}(sp)
+; MIPS32: 	sw	a3,{{.*}}(sp)
+; MIPS32: 	move	a2,v0
+; MIPS32: 	move	a3,a1
+; MIPS32: 	jal	0 <test_returning_arg0>	494: R_MIPS_26	VectorReturn
+; MIPS32: 	nop
+; MIPS32: 	lw	v0,0(s0)
+; MIPS32: 	lw	v1,4(s0)
+; MIPS32: 	lw	a1,8(s0)
+; MIPS32: 	lw	s0,12(s0)
+; MIPS32: 	addiu	a0,sp,32
+; MIPS32: 	sw	a1,{{.*}}(sp)
+; MIPS32: 	sw	s0,{{.*}}(sp)
+; MIPS32: 	move	a2,v0
+; MIPS32: 	move	a3,v1
+; MIPS32: 	jal	0 <test_returning_arg0>	4c0: R_MIPS_26	VectorReturn
+; MIPS32: 	nop
+; MIPS32: 	move	sp,s8
+; MIPS32: 	lw	s0,{{.*}}(sp)
+; MIPS32: 	lw	s8,{{.*}}(sp)
+; MIPS32: 	lw	ra,{{.*}}(sp)
 }

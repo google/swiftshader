@@ -6,6 +6,12 @@
 ; RUN: %p2i -i %s --target=x8664 --filetype=obj --disassemble --args -O2 \
 ; RUN:   | FileCheck %s --check-prefix=CHECK --check-prefix=X8664
 
+; RUN: %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command %p2i --filetype=asm --assemble --disassemble --target \
+; RUN:   mips32 -i %s --args -O2 -allow-externally-defined-symbols \
+; RUN:   | %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command FileCheck --check-prefix MIPS32 %s
+
 ; Dense but non-continuous ranges should be converted into a jump table.
 define internal i32 @testJumpTable(i32 %a) {
 entry:
@@ -43,6 +49,32 @@ sw.epilog:
 ; "mov eax, [...]; jmp rax", so we assume the all characters except the first
 ; one in the register name will match.
 
+; MIPS32-LABEL: testJumpTable
+; MIPS32: 	move	[[REG1:.*]],{{.*}}
+; MIPS32: 	li	[[REG2:.*]],91
+; MIPS32: 	beq	[[REG1]],[[REG2]],6c <.LtestJumpTable$sw.default>
+; MIPS32: 	nop
+; MIPS32: 	li	[[REG2:.*]],92
+; MIPS32: 	beq	[[REG1]],[[REG2]],7c <.LtestJumpTable$sw.bb1>
+; MIPS32: 	nop
+; MIPS32: 	li	[[REG2:.*]],93
+; MIPS32: 	beq	[[REG1]],[[REG2]],6c <.LtestJumpTable$sw.default>
+; MIPS32: 	nop
+; MIPS32: 	li	[[REG2:.*]],99
+; MIPS32: 	beq	[[REG1]],[[REG2]],7c <.LtestJumpTable$sw.bb1>
+; MIPS32: 	nop
+; MIPS32: 	li	[[REG2:.*]],98
+; MIPS32: 	beq	[[REG1]],[[REG2]],6c <.LtestJumpTable$sw.default>
+; MIPS32: 	nop
+; MIPS32: 	li	[[REG2:.*]],96
+; MIPS32: 	beq	[[REG1]],[[REG2]],7c <.LtestJumpTable$sw.bb1>
+; MIPS32: 	nop
+; MIPS32: 	li	[[REG2:.*]],97
+; MIPS32: 	beq	[[REG1]],[[REG2]],60 <.LtestJumpTable$split_entry_sw.epilog_0>
+; MIPS32: 	nop
+; MIPS32: 	b	6c <.LtestJumpTable$sw.default>
+; MIPS32: 	nop
+
 ; Continuous ranges which map to the same target should be grouped and
 ; efficiently tested.
 define internal i32 @testRangeTest() {
@@ -76,6 +108,35 @@ sw.epilog:
 ; CHECK-NEXT: jbe
 ; CHECK-NEXT: jmp
 
+; MIPS32-LABEL: testRangeTest
+; MIPS32: 	li	[[REG1:.*]],10
+; MIPS32: 	li	[[REG2:.*]],0
+; MIPS32: 	beq	[[REG1]],[[REG2]],114 <.LtestRangeTest$split_entry_sw.epilog_0>
+; MIPS32: 	nop
+; MIPS32: 	li	[[REG2:.*]],1
+; MIPS32: 	beq	[[REG1]],[[REG2]],114 <.LtestRangeTest$split_entry_sw.epilog_0>
+; MIPS32: 	nop
+; MIPS32: 	li	[[REG2:.*]],2
+; MIPS32: 	beq	[[REG1]],[[REG2]],114 <.LtestRangeTest$split_entry_sw.epilog_0>
+; MIPS32: 	nop
+; MIPS32: 	li	[[REG2:.*]],3
+; MIPS32: 	beq	[[REG1]],[[REG2]],114 <.LtestRangeTest$split_entry_sw.epilog_0>
+; MIPS32: 	nop
+; MIPS32: 	li	[[REG2:.*]],10
+; MIPS32: 	beq	[[REG1]],[[REG2]],fc <.LtestRangeTest$split_sw.bb1_sw.epilog_2>
+; MIPS32: 	nop
+; MIPS32: 	li	[[REG2:.*]],11
+; MIPS32: 	beq	[[REG1]],[[REG2]],fc <.LtestRangeTest$split_sw.bb1_sw.epilog_2>
+; MIPS32: 	nop
+; MIPS32: 	li	[[REG2:.*]],12
+; MIPS32: 	beq	[[REG1]],[[REG2]],fc <.LtestRangeTest$split_sw.bb1_sw.epilog_2>
+; MIPS32: 	nop
+; MIPS32: 	li	[[REG2:.*]],13
+; MIPS32: 	beq	[[REG1]],[[REG2]],fc <.LtestRangeTest$split_sw.bb1_sw.epilog_2>
+; MIPS32: 	nop
+; MIPS32: 	b	108 <.LtestRangeTest$split_sw.default_sw.epilog_1>
+; MIPS32: 	nop
+
 ; Sparse cases should be searched with a binary search.
 define internal i32 @testBinarySearch() {
 entry:
@@ -108,6 +169,23 @@ sw.epilog:
 ; CHECK-NEXT: cmp {{.*}},0xa
 ; CHECK-NEXT: je
 ; CHECK-NEXT: jmp
+
+; MIPS32-LABEL: testBinarySearch
+; MIPS32: 	li	[[REG1:.*]],10
+; MIPS32: 	li	[[REG2:.*]],0
+; MIPS32: 	beq	[[REG1]],[[REG2]],174 <.LtestBinarySearch$split_entry_sw.epilog_0>
+; MIPS32: 	nop
+; MIPS32: 	li	[[REG2:.*]],10
+; MIPS32: 	beq	[[REG1]],[[REG2]],174 <.LtestBinarySearch$split_entry_sw.epilog_0>
+; MIPS32: 	nop
+; MIPS32: 	li	[[REG2:.*]],20
+; MIPS32: 	beq	[[REG1]],[[REG2]],15c <.LtestBinarySearch$split_sw.bb1_sw.epilog_2>
+; MIPS32: 	nop
+; MIPS32: 	li	[[REG2:.*]],30
+; MIPS32: 	beq	[[REG1]],[[REG2]],15c <.LtestBinarySearch$split_sw.bb1_sw.epilog_2>
+; MIPS32: 	nop
+; MIPS32: 	b	168 <.LtestBinarySearch$split_sw.default_sw.epilog_1>
+; MIPS32: 	nop
 
 ; 64-bit switches where the cases are all 32-bit values should be reduced to a
 ; 32-bit switch after checking the top byte is 0.
@@ -149,6 +227,14 @@ return:
 ; X8632-NEXT: je
 ; X8632-NEXT: cmp {{.*}},0xea
 ; X8632-NEXT: je
+
+; MIPS32-LABEL: testSwitchSmall64
+; MIPS32: 	li	[[REG:.*]],0
+; MIPS32: 	bne	{{.*}},[[REG]],198 <.LtestSwitchSmall64$local$__0>
+; MIPS32: 	nop
+; MIPS32: 	li	[[REG:.*]],123
+; MIPS32: 	beq	{{.*}},[[REG]],210 <.LtestSwitchSmall64$split_entry_return_0>
+; MIPS32: 	nop
 
 ; Test for correct 64-bit lowering.
 ; TODO(ascull): this should generate better code like the 32-bit version
@@ -194,6 +280,14 @@ return:
 ; X8632-NEXT: jne
 ; X8632-NEXT: cmp {{.*}},0x12
 ; X8632-NEXT: je
+
+; MIPS32-LABEL: testSwitch64
+; MIPS32: 	li	[[REG:.*]],0
+; MIPS32: 	bne	{{.*}},[[REG]],238 <.LtestSwitch64$local$__0>
+; MIPS32: 	nop
+; MIPS32: 	li	[[REG:.*]],123
+; MIPS32: 	beq	{{.*}},[[REG]],2b4 <.LtestSwitch64$split_entry_return_0>
+; MIPS32: 	nop
 
 ; Test for correct 64-bit jump table with UINT64_MAX as one of the values.
 define internal i32 @testJumpTable64(i64 %a) {

@@ -20,6 +20,12 @@
 ; RUN:   | %if --need=target_ARM32 \
 ; RUN:   --command FileCheck --check-prefix ARM32 %s
 
+; RUN: %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command %p2i --filetype=asm --assemble --disassemble --target \
+; RUN:   mips32 -i %s --args -O2 -allow-externally-defined-symbols \
+; RUN:   | %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command FileCheck --check-prefix MIPS32 %s
+
 @i8v = internal global [1 x i8] zeroinitializer, align 1
 @i16v = internal global [2 x i8] zeroinitializer, align 2
 @i32v = internal global [4 x i8] zeroinitializer, align 4
@@ -70,6 +76,28 @@ entry:
 ; ARM32-DAG: str r{{.*}}, [r{{[0-9]+}}]
 ; ARM32-DAG: str r{{.*}}, [{{.*}}, #4]
 
+; MIPS32-LABEL: from_int8
+; MIPS32: 	lui	{{.*}}	i8v
+; MIPS32: 	addiu	{{.*}}	i8v
+; MIPS32: 	lb
+; MIPS32: 	move
+; MIPS32: 	sll	{{.*}},0x18
+; MIPS32: 	sra	{{.*}},0x18
+; MIPS32: 	lui	{{.*}}	i16v
+; MIPS32: 	addiu	{{.*}}	i16v
+; MIPS32: 	sh
+; MIPS32: 	move
+; MIPS32: 	sll	{{.*}},0x18
+; MIPS32: 	sra	{{.*}},0x18
+; MIPS32: 	lui	{{.*}}	i32v
+; MIPS32: 	addiu	{{.*}}	i32v
+; MIPS32: 	sw
+; MIPS32: 	sll	{{.*}},0x18
+; MIPS32: 	sra	{{.*}},0x18
+; MIPS32: 	sra	{{.*}},0x1f
+; MIPS32: 	lui	{{.*}}	i64v
+; MIPS32: 	addiu	{{.*}}	i64v
+
 define internal void @from_int16() {
 entry:
   %__0 = bitcast [2 x i8]* @i16v to i16*
@@ -107,6 +135,26 @@ entry:
 ; ARM32: movw {{.*}}i64v
 ; ARM32: str r
 
+; MIPS32-LABEL: from_int16
+; MIPS32: 	lui	{{.*}}	i16v
+; MIPS32: 	addiu	{{.*}}	i16v
+; MIPS32: 	lh
+; MIPS32: 	move
+; MIPS32: 	lui	{{.*}}	i8v
+; MIPS32: 	addiu	{{.*}}	i8v
+; MIPS32: 	sb
+; MIPS32: 	move
+; MIPS32: 	sll	{{.*}},0x10
+; MIPS32: 	sra	{{.*}},0x10
+; MIPS32: 	lui	{{.*}}	i32v
+; MIPS32: 	addiu	{{.*}}	i32v
+; MIPS32: 	sw
+; MIPS32: 	sll	{{.*}},0x10
+; MIPS32: 	sra	{{.*}},0x10
+; MIPS32: 	sra	{{.*}},0x1f
+; MIPS32: 	lui	{{.*}}	i64v
+; MIPS32: 	addiu	{{.*}}	i64v
+
 define internal void @from_int32() {
 entry:
   %__0 = bitcast [4 x i8]* @i32v to i32*
@@ -140,6 +188,22 @@ entry:
 ; ARM32: movw {{.*}}i64v
 ; ARM32: str r
 
+; MIPS32-LABEL: from_int32
+; MIPS32: 	lui	{{.*}}	i32v
+; MIPS32: 	addiu	{{.*}}	i32v
+; MIPS32: 	lw
+; MIPS32: 	move
+; MIPS32: 	lui	{{.*}}	i8v
+; MIPS32: 	addiu	{{.*}}	i8v
+; MIPS32: 	sb
+; MIPS32: 	move
+; MIPS32: 	lui	{{.*}}	i16v
+; MIPS32: 	addiu	{{.*}}	i16v
+; MIPS32: 	sh
+; MIPS32: 	sra	{{.*}},0x1f
+; MIPS32: 	lui	{{.*}}	i64v
+; MIPS32: 	addiu	{{.*}}	i64v
+
 define internal void @from_int64() {
 entry:
   %__0 = bitcast [8 x i8]* @i64v to i64*
@@ -170,6 +234,21 @@ entry:
 ; ARM32: strh
 ; ARM32: movw {{.*}}i32v
 ; ARM32: str r
+
+; MIPS32-LABEL: from_int64
+; MIPS32: 	lui	{{.*}}	i64v
+; MIPS32: 	addiu	{{.*}}	i64v
+; MIPS32: 	lw
+; MIPS32: 	move
+; MIPS32: 	lui	{{.*}}	i8v
+; MIPS32: 	addiu	{{.*}}	i8v
+; MIPS32: 	sb
+; MIPS32: 	move
+; MIPS32: 	lui	{{.*}}	i16v
+; MIPS32: 	addiu	{{.*}}	i16v
+; MIPS32: 	sh
+; MIPS32: 	lui	{{.*}}	i32v
+; MIPS32: 	addiu	{{.*}}	i32v
 
 define internal void @from_uint8() {
 entry:
@@ -210,6 +289,25 @@ entry:
 ; ARM32: movw {{.*}}i64v
 ; ARM32: str r
 
+; MIPS32-LABEL: from_uint8
+; MIPS32: 	lui	{{.*}}	u8v
+; MIPS32: 	addiu	{{.*}}	u8v
+; MIPS32: 	lb
+; MIPS32: 	move
+; MIPS32: 	andi	{{.*}},0xff
+; MIPS32: 	lui	{{.*}}	i16v
+; MIPS32: 	addiu	{{.*}}	i16v
+; MIPS32: 	sh
+; MIPS32: 	move
+; MIPS32: 	andi	{{.*}},0xff
+; MIPS32: 	lui	{{.*}}	i32v
+; MIPS32: 	addiu	{{.*}}	i32v
+; MIPS32: 	sw
+; MIPS32: 	andi	{{.*}},0xff
+; MIPS32: 	li	{{.*}},0
+; MIPS32: 	lui	{{.*}}	i64v
+; MIPS32: 	addiu	{{.*}}	i64v
+
 define internal void @from_uint16() {
 entry:
   %__0 = bitcast [2 x i8]* @u16v to i16*
@@ -247,6 +345,24 @@ entry:
 ; ARM32: movw {{.*}}i64v
 ; ARM32: str r
 
+; MIPS32-LABEL: from_uint16
+; MIPS32: 	lui	{{.*}}	u16v
+; MIPS32: 	addiu	{{.*}}	u16v
+; MIPS32: 	lh
+; MIPS32: 	move
+; MIPS32: 	lui	{{.*}}	i8v
+; MIPS32: 	addiu	{{.*}}	i8v
+; MIPS32: 	sb
+; MIPS32: 	move
+; MIPS32: 	andi	{{.*}},0xffff
+; MIPS32: 	lui	{{.*}}	i32v
+; MIPS32: 	addiu	{{.*}}	i32v
+; MIPS32: 	sw
+; MIPS32: 	andi	{{.*}},0xffff
+; MIPS32: 	li	{{.*}},0
+; MIPS32: 	lui	{{.*}}	i64v
+; MIPS32: 	addiu	{{.*}}	i64v
+
 define internal void @from_uint32() {
 entry:
   %__0 = bitcast [4 x i8]* @u32v to i32*
@@ -280,6 +396,22 @@ entry:
 ; ARM32: movw {{.*}}i64v
 ; ARM32: str r
 
+; MIPS32-LABEL: from_uint32
+; MIPS32: 	lui	{{.*}}	u32v
+; MIPS32: 	addiu	{{.*}}	u32v
+; MIPS32: 	lw
+; MIPS32: 	move
+; MIPS32: 	lui	{{.*}}	i8v
+; MIPS32: 	addiu	{{.*}}	i8v
+; MIPS32: 	sb
+; MIPS32: 	move
+; MIPS32: 	lui	{{.*}}	i16v
+; MIPS32: 	addiu	{{.*}}	i16v
+; MIPS32: 	sh
+; MIPS32: 	li	{{.*}},0
+; MIPS32: 	lui	{{.*}}	i64v
+; MIPS32: 	addiu	{{.*}}	i64v
+
 define internal void @from_uint64() {
 entry:
   %__0 = bitcast [8 x i8]* @u64v to i64*
@@ -310,3 +442,18 @@ entry:
 ; ARM32: strh
 ; ARM32: movw {{.*}}i32v
 ; ARM32: str r
+
+; MIPS32-LABEL: from_uint64
+; MIPS32: 	lui	{{.*}}	u64v
+; MIPS32: 	addiu	{{.*}}	u64v
+; MIPS32: 	lw
+; MIPS32: 	move
+; MIPS32: 	lui	{{.*}}	i8v
+; MIPS32: 	addiu	{{.*}}	i8v
+; MIPS32: 	sb
+; MIPS32: 	move
+; MIPS32: 	lui	{{.*}}	i16v
+; MIPS32: 	addiu	{{.*}}	i16v
+; MIPS32: 	sh
+; MIPS32: 	lui	{{.*}}	i32v
+; MIPS32: 	addiu	{{.*}}	i32v

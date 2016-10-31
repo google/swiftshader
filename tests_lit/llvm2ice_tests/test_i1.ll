@@ -15,6 +15,12 @@
 ; RUN:   | %if --need=target_ARM32 --need=allow_dump \
 ; RUN:   --command FileCheck --check-prefix ARM32 %s
 
+; RUN: %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command %p2i --filetype=asm --assemble --disassemble --target \
+; RUN:   mips32 -i %s --args -O2 -allow-externally-defined-symbols \
+; RUN:   | %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command FileCheck --check-prefix MIPS32 %s
+
 ; Test that and with true uses immediate 1, not -1.
 define internal i32 @testAndTrue(i32 %arg) {
 entry:
@@ -27,6 +33,9 @@ entry:
 ; CHECK: and {{.*}},0x1
 ; ARM32-LABEL: testAndTrue
 ; ARM32: and {{.*}}, #1
+; MIPS32-LABEL: testAndTrue
+; MIPS32: 	li	[[REG:.*]],1
+; MIPS32: 	and	{{.*}},[[REG]]
 
 ; Test that or with true uses immediate 1, not -1.
 define internal i32 @testOrTrue(i32 %arg) {
@@ -40,6 +49,9 @@ entry:
 ; CHECK: or {{.*}},0x1
 ; ARM32-LABEL: testOrTrue
 ; ARM32: orr {{.*}}, #1
+; MIPS32-LABEL: testOrTrue
+; MIPS32: 	li	[[REG:.*]],1
+; MIPS32: 	or	{{.*}},[[REG]]
 
 ; Test that xor with true uses immediate 1, not -1.
 define internal i32 @testXorTrue(i32 %arg) {
@@ -53,6 +65,9 @@ entry:
 ; CHECK: xor {{.*}},0x1
 ; ARM32-LABEL: testXorTrue
 ; ARM32: eor {{.*}}, #1
+; MIPS32-LABEL: testXorTrue
+; MIPS32: 	li	[[REG:.*]],1
+; MIPS32: 	xor	{{.*}},[[REG]]
 
 ; Test that trunc to i1 masks correctly.
 define internal i32 @testTrunc(i32 %arg) {
@@ -65,6 +80,8 @@ entry:
 ; CHECK: and {{.*}},0x1
 ; ARM32-LABEL: testTrunc
 ; ARM32: and {{.*}}, #1
+; MIPS32-LABEL: testTrunc
+; MIPS32: 	andi	{{.*}},0x1
 
 ; Test zext to i8.
 define internal i32 @testZextI8(i32 %arg) {
@@ -82,6 +99,9 @@ entry:
 ; ARM32-LABEL: testZextI8
 ; ARM32: {{.*}}, #1
 ; ARM32: uxtb
+; MIPS32-LABEL: testZextI8
+; MIPS32: 	andi	{{.*}},0x1
+; MIPS32: 	andi	{{.*}},0xff
 
 ; Test zext to i16.
 define internal i32 @testZextI16(i32 %arg) {
@@ -102,6 +122,10 @@ entry:
 ; ARM32: and {{.*}}, #1
 ; ARM32: uxth
 
+; MIPS32-LABEL: testZextI16
+; MIPS32: 	andi	{{.*}},0x1
+; MIPS32: 	andi	{{.*}},0xffff
+
 ; Test zext to i32.
 define internal i32 @testZextI32(i32 %arg) {
 entry:
@@ -117,6 +141,8 @@ entry:
 ; CHECK-NOT: and {{.*}},0x1
 ; ARM32-LABEL: testZextI32
 ; ARM32: and {{.*}}, #1
+; MIPS32-LABEL: testZextI32
+; MIPS32: 	andi	{{.*}},0x1
 
 ; Test zext to i64.
 define internal i64 @testZextI64(i32 %arg) {
@@ -134,6 +160,11 @@ entry:
 ; ARM32-LABEL: testZextI64
 ; ARM32: and {{.*}}, #1
 ; ARM32: mov {{.*}}, #0
+; MIPS32-LABEL: testZextI64
+; MIPS32: 	andi	{{.*}},0x1
+; MIPS32: 	li	{{.*}},0
+; MIPS32: 	move
+; MIPS32: 	move
 
 ; Test sext to i8.
 define internal i32 @testSextI8(i32 %arg) {
@@ -156,6 +187,12 @@ entry:
 ; ARM32: mvn {{.*}}, #0
 ; ARM32: movne
 ; ARM32: sxtb
+;
+; MIPS32-LABEL: testSextI8
+; MIPS32: 	sll	{{.*}},0x1f
+; MIPS32: 	sra	{{.*}},0x1f
+; MIPS32: 	sll	{{.*}},0x18
+; MIPS32: 	sra	{{.*}},0x18
 
 ; Test sext to i16.
 define internal i32 @testSextI16(i32 %arg) {
@@ -180,6 +217,12 @@ entry:
 ; ARM32: movne
 ; ARM32: sxth
 
+; MIPS32-LABEL: testSextI16
+; MIPS32: 	sll	{{.*}},0x1f
+; MIPS32: 	sra	{{.*}},0x1f
+; MIPS32: 	sll	{{.*}},0x10
+; MIPS32: 	sra	{{.*}},0x10
+
 ; Test sext to i32.
 define internal i32 @testSextI32(i32 %arg) {
 entry:
@@ -200,6 +243,10 @@ entry:
 ; ARM32: tst {{.*}}, #1
 ; ARM32: mvn {{.*}}, #0
 ; ARM32: movne
+
+; MIPS32-LABEL: testSextI32
+; MIPS32: 	sll	{{.*}},0x1f
+; MIPS32: 	sra	{{.*}},0x1f
 
 ; Test sext to i64.
 define internal i64 @testSextI64(i32 %arg) {
@@ -223,6 +270,12 @@ entry:
 ; ARM32: movne [[REG:r[0-9]+]]
 ; ARM32: mov {{.*}}, [[REG]]
 
+; MIPS32-LABEL: testSextI64
+; MIPS32: 	sll	{{.*}},0x1f
+; MIPS32: 	sra	{{.*}},0x1f
+; MIPS32: 	move
+; MIPS32: 	move
+
 ; Kind of like sext i1 to i32, but with an immediate source. On ARM,
 ; sxtb cannot take an immediate operand, so make sure it's using a reg.
 ; If we had optimized constants, this could just be mov dst, 0xffffffff
@@ -240,6 +293,10 @@ define internal i32 @testSextTrue() {
 ; ARM32: tst {{.*}}, #1
 ; ARM32: mvn {{.*}}, #0
 ; ARM32: movne
+; MIPS32-LABEL: testSextTrue
+; MIPS32: 	li	{{.*}},1
+; MIPS32: 	sll	{{.*}},0x1f
+; MIPS32: 	sra	{{.*}},0x1f
 
 define internal i32 @testZextTrue() {
   %result = zext i1 true to i32
@@ -251,6 +308,9 @@ define internal i32 @testZextTrue() {
 ; ARM32-LABEL: testZextTrue
 ; ARM32: mov{{.*}}, #1
 ; ARM32: and {{.*}}, #1
+; MIPS32-LABEL: testZextTrue
+; MIPS32: 	li	{{.*}},1
+; MIPS32: 	andi	{{.*}},0x1
 
 ; Test fptosi float to i1.
 define internal i32 @testFptosiFloat(float %arg) {
@@ -265,6 +325,11 @@ entry:
 ; CHECK: movzx [[REG:.*]],
 ; CHECK-NEXT: shl [[REG]],0x1f
 ; CHECK-NEXT: sar [[REG]],0x1f
+; MIPS32-LABEL: testFptosiFloat
+; MIPS32: 	trunc.w.s
+; MIPS32: 	mfc1
+; MIPS32: 	sll	{{.*}},0x1f
+; MIPS32: 	sra	{{.*}},0x1f
 
 ; Test fptosi double to i1.
 define internal i32 @testFptosiDouble(double %arg) {
@@ -279,3 +344,8 @@ entry:
 ; CHECK: movzx [[REG:.*]],
 ; CHECK-NEXT: shl [[REG]],0x1f
 ; CHECK-NEXT: sar [[REG]],0x1f
+; MIPS32-LABEL: testFptosiDouble
+; MIPS32: 	trunc.w.d
+; MIPS32: 	mfc1
+; MIPS32: 	sll	{{.*}},0x1f
+; MIPS32: 	sra	{{.*}},0x1f

@@ -9,6 +9,12 @@
 ; RUN:   --target x8632 -i %s --args -Om1 -mattr=sse4.1 \
 ; RUN:   | %if --need=target_X8632 --command FileCheck %s
 
+; RUN: %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command %p2i --filetype=asm --assemble --disassemble --target \
+; RUN:   mips32 -i %s --args -O2 -allow-externally-defined-symbols \
+; RUN:   | %if --need=target_MIPS32 --need=allow_dump \
+; RUN:   --command FileCheck --check-prefix MIPS32 %s
+
 define internal float @Square_float(float %a) {
 entry:
   %result = fmul float %a, %a
@@ -16,6 +22,9 @@ entry:
 }
 ; CHECK-LABEL: Square_float
 ; CHECK: mulss [[REG:xmm.]],[[REG]]
+; MIPS32-LABEL: Square_float
+; MIPS32: 	mov.s
+; MIPS32: 	mul.s
 
 define internal double @Square_double(double %a) {
 entry:
@@ -24,6 +33,9 @@ entry:
 }
 ; CHECK-LABEL: Square_double
 ; CHECK: mulsd [[REG:xmm.]],[[REG]]
+; MIPS32-LABEL: Square_double
+; MIPS32: 	mov.d
+; MIPS32: 	mul.d
 
 define internal i32 @Square_i32(i32 %a) {
 entry:
@@ -32,6 +44,9 @@ entry:
 }
 ; CHECK-LABEL: Square_i32
 ; CHECK: imul [[REG:e..]],[[REG]]
+; MIPS32-LABEL: Square_i32
+; MIPS32: 	move
+; MIPS32: 	mul
 
 define internal i32 @Square_i16(i32 %a) {
 entry:
@@ -42,6 +57,11 @@ entry:
 }
 ; CHECK-LABEL: Square_i16
 ; CHECK: imul [[REG:..]],[[REG]]
+; MIPS32-LABEL: Square_i16
+; MIPS32: 	move
+; MIPS32: 	mul
+; MIPS32: 	sll
+; MIPS32: 	sra
 
 define internal i32 @Square_i8(i32 %a) {
 entry:
@@ -52,6 +72,11 @@ entry:
 }
 ; CHECK-LABEL: Square_i8
 ; CHECK: imul al
+; MIPS32-LABEL: Square_i8
+; MIPS32: 	move
+; MIPS32: 	mul
+; MIPS32: 	sll
+; MIPS32: 	sra
 
 define internal <4 x float> @Square_v4f32(<4 x float> %a) {
 entry:

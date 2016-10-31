@@ -34,6 +34,11 @@
 ; RUN:     -Om1 \
 ; RUN:     | %if --need=target_ARM32 --command FileCheck %s
 
+; RUN: %if --need=target_MIPS32 --need=allow_dump \
+; RUN:     --command %p2i --filetype=asm --assemble --disassemble --target \
+; RUN:     mips32 -i %s --dis-flags=-rD --args -O2 -sz-seed=1 \
+; RUN:     -reorder-global-variables \
+; RUN:     | %if --need=target_MIPS32 --need=allow_dump --command FileCheck %s
 
 @PrimitiveInit = internal global [4 x i8] c"\1B\00\00\00", align 4
 
