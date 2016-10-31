@@ -1939,10 +1939,11 @@ void AssemblerX86Base<TraitsType>::movmsk(Type Ty, GPRRegister dst,
 }
 
 template <typename TraitsType>
-void AssemblerX86Base<TraitsType>::sqrtss(Type Ty, XmmRegister dst,
-                                          const Address &src) {
+void AssemblerX86Base<TraitsType>::sqrt(Type Ty, XmmRegister dst,
+                                        const Address &src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  emitUint8(isFloat32Asserting32Or64(Ty) ? 0xF3 : 0xF2);
+  if (isScalarFloatingType(Ty))
+    emitUint8(isFloat32Asserting32Or64(Ty) ? 0xF3 : 0xF2);
   emitAddrSizeOverridePrefix();
   emitRex(RexTypeIrrelevant, src, dst);
   emitUint8(0x0F);
@@ -1951,10 +1952,11 @@ void AssemblerX86Base<TraitsType>::sqrtss(Type Ty, XmmRegister dst,
 }
 
 template <typename TraitsType>
-void AssemblerX86Base<TraitsType>::sqrtss(Type Ty, XmmRegister dst,
-                                          XmmRegister src) {
+void AssemblerX86Base<TraitsType>::sqrt(Type Ty, XmmRegister dst,
+                                        XmmRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
-  emitUint8(isFloat32Asserting32Or64(Ty) ? 0xF3 : 0xF2);
+  if (isScalarFloatingType(Ty))
+    emitUint8(isFloat32Asserting32Or64(Ty) ? 0xF3 : 0xF2);
   emitRexRB(RexTypeIrrelevant, dst, src);
   emitUint8(0x0F);
   emitUint8(0x51);

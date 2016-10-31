@@ -1074,7 +1074,7 @@ void InstImpl<TraitsType>::InstX86Movmsk::emitIAS(const Cfg *Func) const {
 }
 
 template <typename TraitsType>
-void InstImpl<TraitsType>::InstX86Sqrtss::emit(const Cfg *Func) const {
+void InstImpl<TraitsType>::InstX86Sqrt::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
   Ostream &Str = Func->getContext()->getStrEmit();
@@ -1082,7 +1082,8 @@ void InstImpl<TraitsType>::InstX86Sqrtss::emit(const Cfg *Func) const {
   Type Ty = this->getSrc(0)->getType();
   assert(isScalarFloatingType(Ty));
   Str << "\t"
-         "sqrt" << Traits::TypeAttributes[Ty].SdSsString << "\t";
+         "sqrt"
+      << Traits::TypeAttributes[Ty].SpSdString << "\t";
   this->getSrc(0)->emit(Func);
   Str << ", ";
   this->getDest()->emit(Func);

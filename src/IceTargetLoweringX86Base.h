@@ -909,9 +909,9 @@ protected:
     AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Movmsk>(Dest, Src0);
   }
-  void _sqrtss(Variable *Dest, Operand *Src0) {
+  void _sqrt(Variable *Dest, Operand *Src0) {
     AutoMemorySandboxer<> _(this, &Dest, &Src0);
-    Context.insert<typename Traits::Insts::Sqrtss>(Dest, Src0);
+    Context.insert<typename Traits::Insts::Sqrt>(Dest, Src0);
   }
   void _store(Operand *Value, X86Operand *Mem) {
     AutoMemorySandboxer<> _(this, &Value, &Mem);

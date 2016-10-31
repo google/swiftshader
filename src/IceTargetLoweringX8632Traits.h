@@ -949,7 +949,7 @@ public:
     const char *CvtString;      // i (integer), s (single FP), d (double FP)
     const char *SdSsString;     // ss, sd, or <blank>
     const char *PdPsString;     // ps, pd, or <blank>
-    const char *SpsdString;     // ss, sd, ps, pd, or <blank>
+    const char *SpSdString;     // ss, sd, ps, pd, or <blank>
     const char *IntegralString; // b, w, d, or <blank>
     const char *UnpackString;   // bw, wd, dq, or <blank>
     const char *PackString;     // wb, dw, or <blank>

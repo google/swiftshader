@@ -4349,10 +4349,12 @@ void TargetX86Base<TraitsType>::lowerIntrinsicCall(
     return;
   }
   case Intrinsics::Sqrt: {
+    assert(isScalarFloatingType(Instr->getDest()->getType()) ||
+           getFlags().getApplicationBinaryInterface() != ::Ice::ABI_PNaCl);
     Operand *Src = legalize(Instr->getArg(0));
     Variable *Dest = Instr->getDest();
     Variable *T = makeReg(Dest->getType());
-    _sqrtss(T, Src);
+    _sqrt(T, Src);
     _mov(Dest, T);
     return;
   }

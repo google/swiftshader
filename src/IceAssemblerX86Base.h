@@ -467,8 +467,8 @@ public:
 
   void movmsk(Type Ty, GPRRegister dst, XmmRegister src);
 
-  void sqrtss(Type Ty, XmmRegister dst, const Address &src);
-  void sqrtss(Type Ty, XmmRegister dst, XmmRegister src);
+  void sqrt(Type Ty, XmmRegister dst, const Address &src);
+  void sqrt(Type Ty, XmmRegister dst, XmmRegister src);
 
   void xorps(Type Ty, XmmRegister dst, const Address &src);
   void xorps(Type Ty, XmmRegister dst, XmmRegister src);

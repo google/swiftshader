@@ -1752,7 +1752,7 @@ TEST_F(AssemblerX8664Test, Sqrtss) {
                                                                                \
     __ movups(Encoded_Xmm_##Src(), dwordAddress(T0));                          \
     __ movups(Encoded_Xmm_##Dst(), dwordAddress(T1));                          \
-    __ sqrtss(IceType_f##Size, Encoded_Xmm_##Dst(), Encoded_Xmm_##Src());      \
+    __ sqrt(IceType_f##Size, Encoded_Xmm_##Dst(), Encoded_Xmm_##Src());        \
                                                                                \
     AssembledTest test = assemble();                                           \
     test.setDqwordTo(T0, test##Size##SrcValue);                                \
@@ -1774,7 +1774,7 @@ TEST_F(AssemblerX8664Test, Sqrtss) {
     const uint32_t T1 = allocateDqword();                                      \
                                                                                \
     __ movups(Encoded_Xmm_##Dst(), dwordAddress(T1));                          \
-    __ sqrtss(IceType_f##Size, Encoded_Xmm_##Dst(), dwordAddress(T0));         \
+    __ sqrt(IceType_f##Size, Encoded_Xmm_##Dst(), dwordAddress(T0));           \
                                                                                \
     AssembledTest test = assemble();                                           \
     test.setDqwordTo(T0, test##Size##SrcValue);                                \

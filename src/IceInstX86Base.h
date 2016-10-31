@@ -166,7 +166,7 @@ template <typename TraitsType> struct InstImpl {
       Shr,
       Shrd,
       Shufps,
-      Sqrtss,
+      Sqrt,
       Store,
       StoreP,
       StoreQ,
@@ -1272,18 +1272,17 @@ template <typename TraitsType> struct InstImpl {
     InstX86Movmsk(Cfg *Func, Variable *Dest, Operand *Source);
   };
 
-  class InstX86Sqrtss : public InstX86BaseUnaryopXmm<InstX86Base::Sqrtss> {
+  class InstX86Sqrt : public InstX86BaseUnaryopXmm<InstX86Base::Sqrt> {
   public:
-    static InstX86Sqrtss *create(Cfg *Func, Variable *Dest, Operand *Src) {
-      return new (Func->allocate<InstX86Sqrtss>())
-          InstX86Sqrtss(Func, Dest, Src);
+    static InstX86Sqrt *create(Cfg *Func, Variable *Dest, Operand *Src) {
+      return new (Func->allocate<InstX86Sqrt>()) InstX86Sqrt(Func, Dest, Src);
     }
 
     virtual void emit(const Cfg *Func) const override;
 
   private:
-    InstX86Sqrtss(Cfg *Func, Variable *Dest, Operand *Src)
-        : InstX86BaseUnaryopXmm<InstX86Base::Sqrtss>(Func, Dest, Src) {}
+    InstX86Sqrt(Cfg *Func, Variable *Dest, Operand *Src)
+        : InstX86BaseUnaryopXmm<InstX86Base::Sqrt>(Func, Dest, Src) {}
   };
 
   /// Move/assignment instruction - wrapper for mov/movss/movsd.
@@ -3028,7 +3027,7 @@ template <typename TraitsType> struct Insts {
   using Movzx = typename InstImpl<TraitsType>::InstX86Movzx;
   using Movd = typename InstImpl<TraitsType>::InstX86Movd;
   using Movmsk = typename InstImpl<TraitsType>::InstX86Movmsk;
-  using Sqrtss = typename InstImpl<TraitsType>::InstX86Sqrtss;
+  using Sqrt = typename InstImpl<TraitsType>::InstX86Sqrt;
   using Mov = typename InstImpl<TraitsType>::InstX86Mov;
   using Movp = typename InstImpl<TraitsType>::InstX86Movp;
   using Movq = typename InstImpl<TraitsType>::InstX86Movq;
@@ -3169,7 +3168,7 @@ template <typename TraitsType> struct Insts {
   const char *InstImpl<TraitsType>::InstX86Movzx::Base::Opcode = "movz";       \
   template <>                                                                  \
   template <>                                                                  \
-  const char *InstImpl<TraitsType>::InstX86Sqrtss::Base::Opcode = "sqrtss";    \
+  const char *InstImpl<TraitsType>::InstX86Sqrt::Base::Opcode = "sqrt";        \
   template <>                                                                  \
   template <>                                                                  \
   const char *InstImpl<TraitsType>::InstX86Cbwdq::Base::Opcode =               \
@@ -3436,9 +3435,9 @@ template <typename TraitsType> struct Insts {
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::XmmEmitterRegOp                       \
-      InstImpl<TraitsType>::InstX86Sqrtss::Base::Emitter = {                   \
-          &InstImpl<TraitsType>::Assembler::sqrtss,                            \
-          &InstImpl<TraitsType>::Assembler::sqrtss};                           \
+      InstImpl<TraitsType>::InstX86Sqrt::Base::Emitter = {                     \
+          &InstImpl<TraitsType>::Assembler::sqrt,                              \
+          &InstImpl<TraitsType>::Assembler::sqrt};                             \
                                                                                \
   /* Binary GPR ops */                                                         \
   template <>                                                                  \

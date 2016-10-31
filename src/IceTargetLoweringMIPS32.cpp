@@ -4422,6 +4422,9 @@ void TargetMIPS32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
         _sqrt_d(T, legalizeToReg(Instr->getArg(0)));
       }
       _mov(Dest, T);
+    } else {
+      assert(getFlags().getApplicationBinaryInterface() != ::Ice::ABI_PNaCl);
+      UnimplementedLoweringError(this, Instr); // Not required for PNaCl
     }
     return;
   }
