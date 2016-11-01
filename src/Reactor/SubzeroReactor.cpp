@@ -5759,17 +5759,24 @@ namespace sw
 
 	RValue<Float> Rcp_pp(RValue<Float> x, bool exactAtPow2)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<Float>(V(nullptr));
+		return 1.0f / x;
 	}
 
 	RValue<Float> RcpSqrt_pp(RValue<Float> x)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<Float>(V(nullptr));
+		return Rcp_pp(Sqrt(x));
 	}
 
 	RValue<Float> Sqrt(RValue<Float> x)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<Float>(V(nullptr));
+		Ice::Variable *result = ::function->makeVariable(Ice::IceType_f32);
+		const Ice::Intrinsics::IntrinsicInfo intrinsic = {Ice::Intrinsics::Sqrt, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F};
+		auto target = ::context->getConstantUndef(Ice::IceType_i32);
+		auto sqrt = Ice::InstIntrinsicCall::create(::function, 1, result, target, intrinsic);
+		sqrt->addArg(x.value);
+		::basicBlock->appendInst(sqrt);
+
+		return RValue<Float>(V(result));
 	}
 
 	RValue<Float> Round(RValue<Float> x)
@@ -6073,17 +6080,24 @@ namespace sw
 
 	RValue<Float4> Rcp_pp(RValue<Float4> x, bool exactAtPow2)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<Float4>(V(nullptr));
+		return Float4(1.0f) / x;
 	}
 
 	RValue<Float4> RcpSqrt_pp(RValue<Float4> x)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<Float4>(V(nullptr));
+		return Rcp_pp(Sqrt(x));
 	}
 
 	RValue<Float4> Sqrt(RValue<Float4> x)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<Float4>(V(nullptr));
+		Ice::Variable *result = ::function->makeVariable(Ice::IceType_v4f32);
+		const Ice::Intrinsics::IntrinsicInfo intrinsic = {Ice::Intrinsics::Sqrt, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F};
+		auto target = ::context->getConstantUndef(Ice::IceType_i32);
+		auto sqrt = Ice::InstIntrinsicCall::create(::function, 1, result, target, intrinsic);
+		sqrt->addArg(x.value);
+		::basicBlock->appendInst(sqrt);
+
+		return RValue<Float4>(V(result));
 	}
 
 	RValue<Float4> Insert(const Float4 &val, RValue<Float> element, int i)
