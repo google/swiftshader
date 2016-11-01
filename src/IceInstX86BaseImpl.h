@@ -1773,8 +1773,7 @@ void InstImpl<TraitsType>::InstX86Round::emit(const Cfg *Func) const {
   Ostream &Str = Func->getContext()->getStrEmit();
   assert(this->getSrcSize() == 3);
   Str << "\t" << this->Opcode
-      << Traits::TypeAttributes[this->getDest()->getType()].SpSdString
-      << "\t";
+      << Traits::TypeAttributes[this->getDest()->getType()].SpSdString << "\t";
   this->getSrc(1)->emit(Func);
   Str << ", ";
   this->getSrc(0)->emit(Func);

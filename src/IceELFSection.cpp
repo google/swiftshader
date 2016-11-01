@@ -45,11 +45,12 @@ void ELFDataSection::appendZeros(ELFStreamer &Str, SizeT NumBytes) {
 
 void ELFDataSection::appendRelocationOffset(ELFStreamer &Str, bool IsRela,
                                             RelocOffsetT RelocOffset) {
+  const SizeT RelocAddrSize = typeWidthInBytes(getPointerType());
   if (IsRela) {
     appendZeros(Str, RelocAddrSize);
     return;
   }
-  static_assert(RelocAddrSize == 4, " writeLE32 assumes RelocAddrSize is 4");
+  assert(RelocAddrSize == 4 && " writeLE32 assumes RelocAddrSize is 4");
   Str.writeLE32(RelocOffset);
   Header.sh_size += RelocAddrSize;
 }

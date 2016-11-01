@@ -6851,6 +6851,7 @@ void TargetX86Base<TraitsType>::lowerCaseCluster(const CaseCluster &Case,
 
     constexpr RelocOffsetT RelocOffset = 0;
     constexpr Variable *NoBase = nullptr;
+    constexpr Constant *NoOffset = nullptr;
     auto JTName = GlobalString::createWithString(Ctx, JumpTable->getName());
     Constant *Offset = Ctx->getConstantSym(RelocOffset, JTName);
     uint16_t Shift = typeWidthInBytesLog2(PointerType);
@@ -6860,9 +6861,16 @@ void TargetX86Base<TraitsType>::lowerCaseCluster(const CaseCluster &Case,
     if (Traits::Is64Bit && NeedSandboxing) {
       assert(Index != nullptr && Index->getType() == IceType_i32);
     }
-    auto *TargetInMemory = X86OperandMem::create(Func, PointerType, NoBase,
-                                                 Offset, Index, Shift, Segment);
-    _mov(Target, TargetInMemory);
+
+    if (PointerType == IceType_i32) {
+      _mov(Target, X86OperandMem::create(Func, PointerType, NoBase, Offset,
+                                         Index, Shift, Segment));
+    } else {
+      auto *Base = makeReg(IceType_i64);
+      _lea(Base, X86OperandMem::create(Func, IceType_void, NoBase, Offset));
+      _mov(Target, X86OperandMem::create(Func, PointerType, Base, NoOffset,
+                                         Index, Shift, Segment));
+    }
 
     lowerIndirectJump(Target);
 
@@ -8357,8 +8365,11 @@ void TargetDataX86<TraitsType>::lowerJumpTables() {
   switch (getFlags().getOutFileType()) {
   case FT_Elf: {
     ELFObjectWriter *Writer = Ctx->getObjectWriter();
+    constexpr FixupKind FK_Abs64 = llvm::ELF::R_X86_64_64;
+    const FixupKind RelocationKind =
+        (getPointerType() == IceType_i32) ? Traits::FK_Abs : FK_Abs64;
     for (const JumpTableData &JT : Ctx->getJumpTables())
-      Writer->writeJumpTable(JT, Traits::FK_Abs, IsPIC);
+      Writer->writeJumpTable(JT, RelocationKind, IsPIC);
   } break;
   case FT_Asm:
     // Already emitted from Cfg

@@ -592,9 +592,11 @@ void TargetX8664::lowerIndirectJump(Variable *JumpTarget) {
   std::unique_ptr<AutoBundle> Bundler;
 
   if (!NeedSandboxing) {
-    Variable *T = makeReg(IceType_i64);
-    _movzx(T, JumpTarget);
-    JumpTarget = T;
+    if (JumpTarget->getType() != IceType_i64) {
+      Variable *T = makeReg(IceType_i64);
+      _movzx(T, JumpTarget);
+      JumpTarget = T;
+    }
   } else {
     Variable *T = makeReg(IceType_i32);
     Variable *T64 = makeReg(IceType_i64);
