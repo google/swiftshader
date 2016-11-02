@@ -645,6 +645,17 @@ void AssemblerMIPS32::jal(const ConstantRelocatable *Target) {
   nop();
 }
 
+void AssemblerMIPS32::jalr(const Operand *OpRs, const Operand *OpRd) {
+  IValueT Opcode = 0x00000009;
+  const IValueT Rs = encodeGPRegister(OpRs, "Rs", "jalr");
+  const IValueT Rd =
+      (OpRd == nullptr) ? 31 : encodeGPRegister(OpRd, "Rd", "jalr");
+  Opcode |= Rd << 16;
+  Opcode |= Rs << 21;
+  emitInst(Opcode);
+  nop();
+}
+
 void AssemblerMIPS32::lui(const Operand *OpRt, const Operand *OpImm,
                           const RelocOp Reloc) {
   IValueT Opcode = 0x3C000000;
@@ -833,13 +844,13 @@ void AssemblerMIPS32::movn(const Operand *OpRd, const Operand *OpRs,
 void AssemblerMIPS32::movn_d(const Operand *OpFd, const Operand *OpFs,
                              const Operand *OpFt) {
   static constexpr IValueT Opcode = 0x44000013;
-  emitCOP1FmtFtFsFd(Opcode, SinglePrecision, OpFd, OpFs, OpFt, "movn.d");
+  emitCOP1FmtRtFsFd(Opcode, SinglePrecision, OpFd, OpFs, OpFt, "movn.d");
 }
 
 void AssemblerMIPS32::movn_s(const Operand *OpFd, const Operand *OpFs,
                              const Operand *OpFt) {
   static constexpr IValueT Opcode = 0x44000013;
-  emitCOP1FmtFtFsFd(Opcode, SinglePrecision, OpFd, OpFs, OpFt, "movn.s");
+  emitCOP1FmtRtFsFd(Opcode, SinglePrecision, OpFd, OpFs, OpFt, "movn.s");
 }
 
 void AssemblerMIPS32::movt(const Operand *OpRd, const Operand *OpRs,

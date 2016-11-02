@@ -552,7 +552,7 @@ void InstMIPS32Call::emit(const Cfg *Func) const {
     CallTarget->emitWithoutPrefix(Func->getTarget());
   } else {
     Str << "\t"
-           "jal"
+           "jalr"
            "\t";
     getCallTarget()->emit(Func);
   }
@@ -561,11 +561,14 @@ void InstMIPS32Call::emit(const Cfg *Func) const {
 void InstMIPS32Call::emitIAS(const Cfg *Func) const {
   assert(getSrcSize() == 1);
   auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
-  if (const auto *CallTarget =
-          llvm::dyn_cast<ConstantRelocatable>(getCallTarget())) {
+  if (llvm::isa<ConstantInteger32>(getCallTarget())) {
+    llvm::report_fatal_error("MIPS32Call to ConstantInteger32");
+  } else if (const auto *CallTarget =
+                 llvm::dyn_cast<ConstantRelocatable>(getCallTarget())) {
     Asm->jal(CallTarget);
   } else {
-    llvm::report_fatal_error("MIPS32Call: Invalid operand");
+    const Operand *ImplicitRA = nullptr;
+    Asm->jalr(getCallTarget(), ImplicitRA);
   }
 }
 

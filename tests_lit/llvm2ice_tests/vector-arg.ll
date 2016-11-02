@@ -560,18 +560,19 @@ entry:
 ; MIPS32: 	sw	a3,{{.*}}(sp)
 ; MIPS32: 	move	a2,v0
 ; MIPS32: 	move	a3,a1
-; MIPS32: 	jal	0 <test_returning_arg0>	494: R_MIPS_26	VectorReturn
+; MIPS32: 	jal	0 <test_returning_arg0>	{{.*}} R_MIPS_26	VectorReturn
 ; MIPS32: 	nop
 ; MIPS32: 	lw	v0,0(s0)
 ; MIPS32: 	lw	v1,4(s0)
-; MIPS32: 	lw	a1,8(s0)
+; MIPS32: 	lw	a0,8(s0)
+; MIPS32: 	move	a1,a0
 ; MIPS32: 	lw	s0,12(s0)
 ; MIPS32: 	addiu	a0,sp,32
 ; MIPS32: 	sw	a1,{{.*}}(sp)
 ; MIPS32: 	sw	s0,{{.*}}(sp)
 ; MIPS32: 	move	a2,v0
 ; MIPS32: 	move	a3,v1
-; MIPS32: 	jal	0 <test_returning_arg0>	4c0: R_MIPS_26	VectorReturn
+; MIPS32: 	jal	0 <test_returning_arg0>	{{.*}} R_MIPS_26	VectorReturn
 ; MIPS32: 	nop
 ; MIPS32: 	move	sp,s8
 ; MIPS32: 	lw	s0,{{.*}}(sp)

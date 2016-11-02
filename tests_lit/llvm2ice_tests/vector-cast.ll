@@ -33,7 +33,8 @@ entry:
 ; X8632: pcmpgtb
 ; ARM32: vshl.s8
 ; ARM32-NEXT: vshr.s8
-; MIPS32: 	andi	t2,a0,0xff
+; MIPS32: 	move	t2,a0
+; MIPS32: 	andi	t2,t2,0xff
 ; MIPS32: 	andi	t2,t2,0x1
 ; MIPS32: 	sll	t2,t2,0x1f
 ; MIPS32: 	sra	t2,t2,0x1f
@@ -41,7 +42,8 @@ entry:
 ; MIPS32: 	srl	v0,v0,0x8
 ; MIPS32: 	sll	v0,v0,0x8
 ; MIPS32: 	or	t2,t2,v0
-; MIPS32: 	srl	v0,a0,0x8
+; MIPS32: 	move	v0,a0
+; MIPS32: 	srl	v0,v0,0x8
 ; MIPS32: 	andi	v0,v0,0xff
 ; MIPS32: 	andi	v0,v0,0x1
 ; MIPS32: 	sll	v0,v0,0x1f
@@ -52,7 +54,8 @@ entry:
 ; MIPS32: 	ori	t3,t3,0xff
 ; MIPS32: 	and	t2,t2,t3
 ; MIPS32: 	or	v0,v0,t2
-; MIPS32: 	srl	t2,a0,0x10
+; MIPS32: 	move	t2,a0
+; MIPS32: 	srl	t2,t2,0x10
 ; MIPS32: 	andi	t2,t2,0xff
 ; MIPS32: 	andi	t2,t2,0x1
 ; MIPS32: 	sll	t2,t2,0x1f
@@ -71,7 +74,8 @@ entry:
 ; MIPS32: 	sll	t2,t2,0x8
 ; MIPS32: 	srl	t2,t2,0x8
 ; MIPS32: 	or	a0,a0,t2
-; MIPS32: 	andi	v0,a1,0xff
+; MIPS32: 	move	v0,a1
+; MIPS32: 	andi	v0,v0,0xff
 ; MIPS32: 	andi	v0,v0,0x1
 ; MIPS32: 	sll	v0,v0,0x1f
 ; MIPS32: 	sra	v0,v0,0x1f
@@ -79,7 +83,8 @@ entry:
 ; MIPS32: 	srl	v1,v1,0x8
 ; MIPS32: 	sll	v1,v1,0x8
 ; MIPS32: 	or	v0,v0,v1
-; MIPS32: 	srl	v1,a1,0x8
+; MIPS32: 	move	v1,a1
+; MIPS32: 	srl	v1,v1,0x8
 ; MIPS32: 	andi	v1,v1,0xff
 ; MIPS32: 	andi	v1,v1,0x1
 ; MIPS32: 	sll	v1,v1,0x1f
@@ -90,7 +95,8 @@ entry:
 ; MIPS32: 	ori	t2,t2,0xff
 ; MIPS32: 	and	v0,v0,t2
 ; MIPS32: 	or	v1,v1,v0
-; MIPS32: 	srl	v0,a1,0x10
+; MIPS32: 	move	v0,a1
+; MIPS32: 	srl	v0,v0,0x10
 ; MIPS32: 	andi	v0,v0,0xff
 ; MIPS32: 	andi	v0,v0,0x1
 ; MIPS32: 	sll	v0,v0,0x1f
@@ -109,7 +115,8 @@ entry:
 ; MIPS32: 	sll	v0,v0,0x8
 ; MIPS32: 	srl	v0,v0,0x8
 ; MIPS32: 	or	a1,a1,v0
-; MIPS32: 	andi	v0,a2,0xff
+; MIPS32: 	move	v0,a2
+; MIPS32: 	andi	v0,v0,0xff
 ; MIPS32: 	andi	v0,v0,0x1
 ; MIPS32: 	sll	v0,v0,0x1f
 ; MIPS32: 	sra	v0,v0,0x1f
@@ -117,7 +124,8 @@ entry:
 ; MIPS32: 	srl	t0,t0,0x8
 ; MIPS32: 	sll	t0,t0,0x8
 ; MIPS32: 	or	v0,v0,t0
-; MIPS32: 	srl	v1,a2,0x8
+; MIPS32: 	move	v1,a2
+; MIPS32: 	srl	v1,v1,0x8
 ; MIPS32: 	andi	v1,v1,0xff
 ; MIPS32: 	andi	v1,v1,0x1
 ; MIPS32: 	sll	v1,v1,0x1f
@@ -128,7 +136,8 @@ entry:
 ; MIPS32: 	ori	t0,t0,0xff
 ; MIPS32: 	and	v0,v0,t0
 ; MIPS32: 	or	v1,v1,v0
-; MIPS32: 	srl	v0,a2,0x10
+; MIPS32: 	move	v0,a2
+; MIPS32: 	srl	v0,v0,0x10
 ; MIPS32: 	andi	v0,v0,0xff
 ; MIPS32: 	andi	v0,v0,0x1
 ; MIPS32: 	sll	v0,v0,0x1f
@@ -147,7 +156,8 @@ entry:
 ; MIPS32: 	sll	v0,v0,0x8
 ; MIPS32: 	srl	v0,v0,0x8
 ; MIPS32: 	or	a2,a2,v0
-; MIPS32: 	andi	v0,a3,0xff
+; MIPS32: 	move	v0,a3
+; MIPS32: 	andi	v0,v0,0xff
 ; MIPS32: 	andi	v0,v0,0x1
 ; MIPS32: 	sll	v0,v0,0x1f
 ; MIPS32: 	sra	v0,v0,0x1f
@@ -155,7 +165,8 @@ entry:
 ; MIPS32: 	srl	t1,t1,0x8
 ; MIPS32: 	sll	t1,t1,0x8
 ; MIPS32: 	or	v0,v0,t1
-; MIPS32: 	srl	v1,a3,0x8
+; MIPS32: 	move	v1,a3
+; MIPS32: 	srl	v1,v1,0x8
 ; MIPS32: 	andi	v1,v1,0xff
 ; MIPS32: 	andi	v1,v1,0x1
 ; MIPS32: 	sll	v1,v1,0x1f
@@ -166,7 +177,8 @@ entry:
 ; MIPS32: 	ori	t0,t0,0xff
 ; MIPS32: 	and	v0,v0,t0
 ; MIPS32: 	or	v1,v1,v0
-; MIPS32: 	srl	v0,a3,0x10
+; MIPS32: 	move	v0,a3
+; MIPS32: 	srl	v0,v0,0x10
 ; MIPS32: 	andi	v0,v0,0xff
 ; MIPS32: 	andi	v0,v0,0x1
 ; MIPS32: 	sll	v0,v0,0x1f
@@ -201,7 +213,8 @@ entry:
 ; MIPS32: 	move	v1,zero
 ; MIPS32: 	move	t0,zero
 ; MIPS32: 	move	t1,zero
-; MIPS32: 	andi	t2,a0,0xffff
+; MIPS32: 	move	t2,a0
+; MIPS32: 	andi	t2,t2,0xffff
 ; MIPS32: 	andi	t2,t2,0x1
 ; MIPS32: 	sll	t2,t2,0x1f
 ; MIPS32: 	sra	t2,t2,0x1f
@@ -217,7 +230,8 @@ entry:
 ; MIPS32: 	sll	t2,t2,0x10
 ; MIPS32: 	srl	t2,t2,0x10
 ; MIPS32: 	or	a0,a0,t2
-; MIPS32: 	andi	v0,a1,0xffff
+; MIPS32: 	move	v0,a1
+; MIPS32: 	andi	v0,v0,0xffff
 ; MIPS32: 	andi	v0,v0,0x1
 ; MIPS32: 	sll	v0,v0,0x1f
 ; MIPS32: 	sra	v0,v0,0x1f
@@ -233,7 +247,8 @@ entry:
 ; MIPS32: 	sll	v0,v0,0x10
 ; MIPS32: 	srl	v0,v0,0x10
 ; MIPS32: 	or	a1,a1,v0
-; MIPS32: 	andi	v0,a2,0xffff
+; MIPS32: 	move	v0,a2
+; MIPS32: 	andi	v0,v0,0xffff
 ; MIPS32: 	andi	v0,v0,0x1
 ; MIPS32: 	sll	v0,v0,0x1f
 ; MIPS32: 	sra	v0,v0,0x1f
@@ -249,7 +264,8 @@ entry:
 ; MIPS32: 	sll	v0,v0,0x10
 ; MIPS32: 	srl	v0,v0,0x10
 ; MIPS32: 	or	a2,a2,v0
-; MIPS32: 	andi	v0,a3,0xffff
+; MIPS32: 	move	v0,a3
+; MIPS32: 	andi	v0,v0,0xffff
 ; MIPS32: 	andi	v0,v0,0x1
 ; MIPS32: 	sll	v0,v0,0x1f
 ; MIPS32: 	sra	v0,v0,0x1f
@@ -305,14 +321,16 @@ entry:
 ; X8632: pand
 ; ARM32: vmov.i8 [[S:.*]], #1
 ; ARM32-NEXT: vand {{.*}}, [[S]]
-; MIPS32: 	andi	t2,a0,0xff
+; MIPS32: 	move	t2,a0
+; MIPS32: 	andi	t2,t2,0xff
 ; MIPS32: 	andi	t2,t2,0x1
 ; MIPS32: 	andi	t2,t2,0x1
 ; MIPS32: 	andi	t2,t2,0xff
 ; MIPS32: 	srl	v0,v0,0x8
 ; MIPS32: 	sll	v0,v0,0x8
 ; MIPS32: 	or	t2,t2,v0
-; MIPS32: 	srl	v0,a0,0x8
+; MIPS32: 	move	v0,a0
+; MIPS32: 	srl	v0,v0,0x8
 ; MIPS32: 	andi	v0,v0,0xff
 ; MIPS32: 	andi	v0,v0,0x1
 ; MIPS32: 	andi	v0,v0,0x1
@@ -322,7 +340,8 @@ entry:
 ; MIPS32: 	ori	t3,t3,0xff
 ; MIPS32: 	and	t2,t2,t3
 ; MIPS32: 	or	v0,v0,t2
-; MIPS32: 	srl	t2,a0,0x10
+; MIPS32: 	move	t2,a0
+; MIPS32: 	srl	t2,t2,0x10
 ; MIPS32: 	andi	t2,t2,0xff
 ; MIPS32: 	andi	t2,t2,0x1
 ; MIPS32: 	andi	t2,t2,0x1
@@ -339,14 +358,16 @@ entry:
 ; MIPS32: 	sll	t2,t2,0x8
 ; MIPS32: 	srl	t2,t2,0x8
 ; MIPS32: 	or	a0,a0,t2
-; MIPS32: 	andi	v0,a1,0xff
+; MIPS32: 	move	v0,a1
+; MIPS32: 	andi	v0,v0,0xff
 ; MIPS32: 	andi	v0,v0,0x1
 ; MIPS32: 	andi	v0,v0,0x1
 ; MIPS32: 	andi	v0,v0,0xff
 ; MIPS32: 	srl	v1,v1,0x8
 ; MIPS32: 	sll	v1,v1,0x8
 ; MIPS32: 	or	v0,v0,v1
-; MIPS32: 	srl	v1,a1,0x8
+; MIPS32: 	move	v1,a1
+; MIPS32: 	srl	v1,v1,0x8
 ; MIPS32: 	andi	v1,v1,0xff
 ; MIPS32: 	andi	v1,v1,0x1
 ; MIPS32: 	andi	v1,v1,0x1
@@ -356,7 +377,8 @@ entry:
 ; MIPS32: 	ori	t2,t2,0xff
 ; MIPS32: 	and	v0,v0,t2
 ; MIPS32: 	or	v1,v1,v0
-; MIPS32: 	srl	v0,a1,0x10
+; MIPS32: 	move	v0,a1
+; MIPS32: 	srl	v0,v0,0x10
 ; MIPS32: 	andi	v0,v0,0xff
 ; MIPS32: 	andi	v0,v0,0x1
 ; MIPS32: 	andi	v0,v0,0x1
@@ -373,14 +395,16 @@ entry:
 ; MIPS32: 	sll	v0,v0,0x8
 ; MIPS32: 	srl	v0,v0,0x8
 ; MIPS32: 	or	a1,a1,v0
-; MIPS32: 	andi	v0,a2,0xff
+; MIPS32: 	move	v0,a2
+; MIPS32: 	andi	v0,v0,0xff
 ; MIPS32: 	andi	v0,v0,0x1
 ; MIPS32: 	andi	v0,v0,0x1
 ; MIPS32: 	andi	v0,v0,0xff
 ; MIPS32: 	srl	t0,t0,0x8
 ; MIPS32: 	sll	t0,t0,0x8
 ; MIPS32: 	or	v0,v0,t0
-; MIPS32: 	srl	v1,a2,0x8
+; MIPS32: 	move	v1,a2
+; MIPS32: 	srl	v1,v1,0x8
 ; MIPS32: 	andi	v1,v1,0xff
 ; MIPS32: 	andi	v1,v1,0x1
 ; MIPS32: 	andi	v1,v1,0x1
@@ -390,7 +414,8 @@ entry:
 ; MIPS32: 	ori	t0,t0,0xff
 ; MIPS32: 	and	v0,v0,t0
 ; MIPS32: 	or	v1,v1,v0
-; MIPS32: 	srl	v0,a2,0x10
+; MIPS32: 	move	v0,a2
+; MIPS32: 	srl	v0,v0,0x10
 ; MIPS32: 	andi	v0,v0,0xff
 ; MIPS32: 	andi	v0,v0,0x1
 ; MIPS32: 	andi	v0,v0,0x1
@@ -407,14 +432,16 @@ entry:
 ; MIPS32: 	sll	v0,v0,0x8
 ; MIPS32: 	srl	v0,v0,0x8
 ; MIPS32: 	or	a2,a2,v0
-; MIPS32: 	andi	v0,a3,0xff
+; MIPS32: 	move	v0,a3
+; MIPS32: 	andi	v0,v0,0xff
 ; MIPS32: 	andi	v0,v0,0x1
 ; MIPS32: 	andi	v0,v0,0x1
 ; MIPS32: 	andi	v0,v0,0xff
 ; MIPS32: 	srl	t1,t1,0x8
 ; MIPS32: 	sll	t1,t1,0x8
 ; MIPS32: 	or	v0,v0,t1
-; MIPS32: 	srl	v1,a3,0x8
+; MIPS32: 	move	v1,a3
+; MIPS32: 	srl	v1,v1,0x8
 ; MIPS32: 	andi	v1,v1,0xff
 ; MIPS32: 	andi	v1,v1,0x1
 ; MIPS32: 	andi	v1,v1,0x1
@@ -424,7 +451,8 @@ entry:
 ; MIPS32: 	ori	t0,t0,0xff
 ; MIPS32: 	and	v0,v0,t0
 ; MIPS32: 	or	v1,v1,v0
-; MIPS32: 	srl	v0,a3,0x10
+; MIPS32: 	move	v0,a3
+; MIPS32: 	srl	v0,v0,0x10
 ; MIPS32: 	andi	v0,v0,0xff
 ; MIPS32: 	andi	v0,v0,0x1
 ; MIPS32: 	andi	v0,v0,0x1
@@ -455,7 +483,8 @@ entry:
 ; X8632: pand
 ; ARM32: vmov.i16 [[S:.*]], #1
 ; ARM32-NEXT: vand {{.*}}, [[S]]
-; MIPS32: 	andi	t2,a0,0xffff
+; MIPS32: 	move	t2,a0
+; MIPS32: 	andi	t2,t2,0xffff
 ; MIPS32: 	andi	t2,t2,0x1
 ; MIPS32: 	andi	t2,t2,0x1
 ; MIPS32: 	andi	t2,t2,0xffff
@@ -469,7 +498,8 @@ entry:
 ; MIPS32: 	sll	t2,t2,0x10
 ; MIPS32: 	srl	t2,t2,0x10
 ; MIPS32: 	or	a0,a0,t2
-; MIPS32: 	andi	v0,a1,0xffff
+; MIPS32: 	move	v0,a1
+; MIPS32: 	andi	v0,v0,0xffff
 ; MIPS32: 	andi	v0,v0,0x1
 ; MIPS32: 	andi	v0,v0,0x1
 ; MIPS32: 	andi	v0,v0,0xffff
@@ -483,7 +513,8 @@ entry:
 ; MIPS32: 	sll	v0,v0,0x10
 ; MIPS32: 	srl	v0,v0,0x10
 ; MIPS32: 	or	a1,a1,v0
-; MIPS32: 	andi	v0,a2,0xffff
+; MIPS32: 	move	v0,a2
+; MIPS32: 	andi	v0,v0,0xffff
 ; MIPS32: 	andi	v0,v0,0x1
 ; MIPS32: 	andi	v0,v0,0x1
 ; MIPS32: 	andi	v0,v0,0xffff
@@ -497,7 +528,8 @@ entry:
 ; MIPS32: 	sll	v0,v0,0x10
 ; MIPS32: 	srl	v0,v0,0x10
 ; MIPS32: 	or	a2,a2,v0
-; MIPS32: 	andi	v0,a3,0xffff
+; MIPS32: 	move	v0,a3
+; MIPS32: 	andi	v0,v0,0xffff
 ; MIPS32: 	andi	v0,v0,0x1
 ; MIPS32: 	andi	v0,v0,0x1
 ; MIPS32: 	andi	v0,v0,0xffff
@@ -547,12 +579,14 @@ entry:
 ; X8632: pcmpeqb
 ; X8632: psubb
 ; X8632: pand
-; MIPS32: 	andi	t2,a0,0xff
+; MIPS32: 	move	t2,a0
+; MIPS32: 	andi	t2,t2,0xff
 ; MIPS32: 	andi	t2,t2,0xff
 ; MIPS32: 	srl	v0,v0,0x8
 ; MIPS32: 	sll	v0,v0,0x8
 ; MIPS32: 	or	t2,t2,v0
-; MIPS32: 	srl	v0,a0,0x8
+; MIPS32: 	move	v0,a0
+; MIPS32: 	srl	v0,v0,0x8
 ; MIPS32: 	andi	v0,v0,0xff
 ; MIPS32: 	andi	v0,v0,0xff
 ; MIPS32: 	sll	v0,v0,0x8
@@ -560,7 +594,8 @@ entry:
 ; MIPS32: 	ori	t3,t3,0xff
 ; MIPS32: 	and	t2,t2,t3
 ; MIPS32: 	or	v0,v0,t2
-; MIPS32: 	srl	t2,a0,0x10
+; MIPS32: 	move	t2,a0
+; MIPS32: 	srl	t2,t2,0x10
 ; MIPS32: 	andi	t2,t2,0xff
 ; MIPS32: 	andi	t2,t2,0xff
 ; MIPS32: 	sll	t2,t2,0x10
@@ -573,12 +608,14 @@ entry:
 ; MIPS32: 	sll	t2,t2,0x8
 ; MIPS32: 	srl	t2,t2,0x8
 ; MIPS32: 	or	a0,a0,t2
-; MIPS32: 	andi	v0,a1,0xff
+; MIPS32: 	move	v0,a1
+; MIPS32: 	andi	v0,v0,0xff
 ; MIPS32: 	andi	v0,v0,0xff
 ; MIPS32: 	srl	v1,v1,0x8
 ; MIPS32: 	sll	v1,v1,0x8
 ; MIPS32: 	or	v0,v0,v1
-; MIPS32: 	srl	v1,a1,0x8
+; MIPS32: 	move	v1,a1
+; MIPS32: 	srl	v1,v1,0x8
 ; MIPS32: 	andi	v1,v1,0xff
 ; MIPS32: 	andi	v1,v1,0xff
 ; MIPS32: 	sll	v1,v1,0x8
@@ -586,7 +623,8 @@ entry:
 ; MIPS32: 	ori	t2,t2,0xff
 ; MIPS32: 	and	v0,v0,t2
 ; MIPS32: 	or	v1,v1,v0
-; MIPS32: 	srl	v0,a1,0x10
+; MIPS32: 	move	v0,a1
+; MIPS32: 	srl	v0,v0,0x10
 ; MIPS32: 	andi	v0,v0,0xff
 ; MIPS32: 	andi	v0,v0,0xff
 ; MIPS32: 	sll	v0,v0,0x10
@@ -599,12 +637,14 @@ entry:
 ; MIPS32: 	sll	v0,v0,0x8
 ; MIPS32: 	srl	v0,v0,0x8
 ; MIPS32: 	or	a1,a1,v0
-; MIPS32: 	andi	v0,a2,0xff
+; MIPS32: 	move	v0,a2
+; MIPS32: 	andi	v0,v0,0xff
 ; MIPS32: 	andi	v0,v0,0xff
 ; MIPS32: 	srl	t0,t0,0x8
 ; MIPS32: 	sll	t0,t0,0x8
 ; MIPS32: 	or	v0,v0,t0
-; MIPS32: 	srl	v1,a2,0x8
+; MIPS32: 	move	v1,a2
+; MIPS32: 	srl	v1,v1,0x8
 ; MIPS32: 	andi	v1,v1,0xff
 ; MIPS32: 	andi	v1,v1,0xff
 ; MIPS32: 	sll	v1,v1,0x8
@@ -612,7 +652,8 @@ entry:
 ; MIPS32: 	ori	t0,t0,0xff
 ; MIPS32: 	and	v0,v0,t0
 ; MIPS32: 	or	v1,v1,v0
-; MIPS32: 	srl	v0,a2,0x10
+; MIPS32: 	move	v0,a2
+; MIPS32: 	srl	v0,v0,0x10
 ; MIPS32: 	andi	v0,v0,0xff
 ; MIPS32: 	andi	v0,v0,0xff
 ; MIPS32: 	sll	v0,v0,0x10
@@ -625,12 +666,14 @@ entry:
 ; MIPS32: 	sll	v0,v0,0x8
 ; MIPS32: 	srl	v0,v0,0x8
 ; MIPS32: 	or	a2,a2,v0
-; MIPS32: 	andi	v0,a3,0xff
+; MIPS32: 	move	v0,a3
+; MIPS32: 	andi	v0,v0,0xff
 ; MIPS32: 	andi	v0,v0,0xff
 ; MIPS32: 	srl	t1,t1,0x8
 ; MIPS32: 	sll	t1,t1,0x8
 ; MIPS32: 	or	v0,v0,t1
-; MIPS32: 	srl	v1,a3,0x8
+; MIPS32: 	move	v1,a3
+; MIPS32: 	srl	v1,v1,0x8
 ; MIPS32: 	andi	v1,v1,0xff
 ; MIPS32: 	andi	v1,v1,0xff
 ; MIPS32: 	sll	v1,v1,0x8
@@ -638,7 +681,8 @@ entry:
 ; MIPS32: 	ori	t0,t0,0xff
 ; MIPS32: 	and	v0,v0,t0
 ; MIPS32: 	or	v1,v1,v0
-; MIPS32: 	srl	v0,a3,0x10
+; MIPS32: 	move	v0,a3
+; MIPS32: 	srl	v0,v0,0x10
 ; MIPS32: 	andi	v0,v0,0xff
 ; MIPS32: 	andi	v0,v0,0xff
 ; MIPS32: 	sll	v0,v0,0x10
@@ -663,7 +707,8 @@ entry:
 ; X8632: pcmpeqw
 ; X8632: psubw
 ; X8632: pand
-; MIPS32: 	andi	t2,a0,0xffff
+; MIPS32: 	move	t2,a0
+; MIPS32: 	andi	t2,t2,0xffff
 ; MIPS32: 	andi	t2,t2,0xffff
 ; MIPS32: 	srl	v0,v0,0x10
 ; MIPS32: 	sll	v0,v0,0x10
@@ -673,7 +718,8 @@ entry:
 ; MIPS32: 	sll	t2,t2,0x10
 ; MIPS32: 	srl	t2,t2,0x10
 ; MIPS32: 	or	a0,a0,t2
-; MIPS32: 	andi	v0,a1,0xffff
+; MIPS32: 	move	v0,a1
+; MIPS32: 	andi	v0,v0,0xffff
 ; MIPS32: 	andi	v0,v0,0xffff
 ; MIPS32: 	srl	v1,v1,0x10
 ; MIPS32: 	sll	v1,v1,0x10
@@ -683,7 +729,8 @@ entry:
 ; MIPS32: 	sll	v0,v0,0x10
 ; MIPS32: 	srl	v0,v0,0x10
 ; MIPS32: 	or	a1,a1,v0
-; MIPS32: 	andi	v0,a2,0xffff
+; MIPS32: 	move	v0,a2
+; MIPS32: 	andi	v0,v0,0xffff
 ; MIPS32: 	andi	v0,v0,0xffff
 ; MIPS32: 	srl	t0,t0,0x10
 ; MIPS32: 	sll	t0,t0,0x10
@@ -693,7 +740,8 @@ entry:
 ; MIPS32: 	sll	v0,v0,0x10
 ; MIPS32: 	srl	v0,v0,0x10
 ; MIPS32: 	or	a2,a2,v0
-; MIPS32: 	andi	v0,a3,0xffff
+; MIPS32: 	move	v0,a3
+; MIPS32: 	andi	v0,v0,0xffff
 ; MIPS32: 	andi	v0,v0,0xffff
 ; MIPS32: 	srl	t1,t1,0x10
 ; MIPS32: 	sll	t1,t1,0x10

@@ -188,6 +188,8 @@ public:
 
   void jal(const ConstantRelocatable *Target);
 
+  void jalr(const Operand *OpRs, const Operand *OpRd);
+
   void lui(const Operand *OpRt, const Operand *OpImm, const RelocOp Reloc);
 
   void ldc1(const Operand *OpRt, const Operand *OpBase, const Operand *OpOff,

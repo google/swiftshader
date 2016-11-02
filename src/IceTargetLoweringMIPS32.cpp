@@ -3247,12 +3247,15 @@ void TargetMIPS32::lowerCall(const InstCall *Instr) {
   if (ReturnReg) {
     if (RetVecFloat) {
       auto *DestVecOn32 = llvm::cast<VariableVecOn32>(Dest);
+      auto *TBase = legalizeToReg(RetVecFloat);
       for (SizeT i = 0; i < DestVecOn32->ContainersPerVector; ++i) {
         auto *Var = DestVecOn32->getContainers()[i];
+        auto *TVar = makeReg(IceType_i32);
         OperandMIPS32Mem *Mem = OperandMIPS32Mem::create(
-            Func, IceType_i32, RetVecFloat,
+            Func, IceType_i32, TBase,
             llvm::cast<ConstantInteger32>(Ctx->getConstantInt32(i * 4)));
-        _lw(Var, Mem);
+        _lw(TVar, Mem);
+        _mov(Var, TVar);
       }
     } else if (auto *RetVec = llvm::dyn_cast<VariableVecOn32>(ReturnReg)) {
       auto *DestVecOn32 = llvm::cast<VariableVecOn32>(Dest);
@@ -3538,7 +3541,8 @@ void TargetMIPS32::lowerExtractElement(const InstExtractElement *Instr) {
     // Number of elements in each container
     uint32_t ElemPerCont =
         typeNumElements(Src0->getType()) / Src0R->ContainersPerVector;
-    auto *SrcE = Src0R->getContainers()[Index / ElemPerCont];
+    auto *Src = Src0R->getContainers()[Index / ElemPerCont];
+    auto *SrcE = legalizeToReg(Src);
     // Position of the element in the container
     uint32_t PosInCont = Index % ElemPerCont;
     if (ElemPerCont == 1) {
@@ -4050,7 +4054,10 @@ void TargetMIPS32::lowerInsertElement(const InstInsertElement *Instr) {
     uint32_t ElemPerCont =
         typeNumElements(Src0->getType()) / Src0R->ContainersPerVector;
     // Source Element
-    auto *SrcE = Src0R->getContainers()[Index / ElemPerCont];
+    auto *Src = Src0R->getContainers()[Index / ElemPerCont];
+    auto *SrcE = Src;
+    if (ElemPerCont > 1)
+      SrcE = legalizeToReg(Src);
     // Dest is a vector
     auto *VDest = llvm::dyn_cast<VariableVecOn32>(Dest);
     VDest->initVecElement(Func);
@@ -4067,6 +4074,7 @@ void TargetMIPS32::lowerInsertElement(const InstInsertElement *Instr) {
     auto *TReg3 = makeReg(Src1R->getType());
     auto *TReg4 = makeReg(Src1R->getType());
     auto *TReg5 = makeReg(Src1R->getType());
+    auto *TDReg = makeReg(Src1R->getType());
     // Position of the element in the container
     uint32_t PosInCont = Index % ElemPerCont;
     // Load source vector in a temporary vector
@@ -4089,13 +4097,15 @@ void TargetMIPS32::lowerInsertElement(const InstInsertElement *Instr) {
         _andi(TReg1, Src1R, 0xffff); // Clear upper 16-bits of source
         _srl(TReg2, SrcE, 16);
         _sll(TReg3, TReg2, 16); // Clear lower 16-bits of element
-        _or(DstE, TReg1, TReg3);
+        _or(TDReg, TReg1, TReg3);
+        _mov(DstE, TDReg);
         break;
       case 1:
         _sll(TReg1, Src1R, 16); // Clear lower 16-bits  of source
         _sll(TReg2, SrcE, 16);
         _srl(TReg3, TReg2, 16); // Clear upper 16-bits of element
-        _or(DstE, TReg1, TReg3);
+        _or(TDReg, TReg1, TReg3);
+        _mov(DstE, TDReg);
         break;
       default:
         llvm::report_fatal_error("InsertElement: Invalid PosInCont");
@@ -4107,7 +4117,8 @@ void TargetMIPS32::lowerInsertElement(const InstInsertElement *Instr) {
         _andi(TReg1, Src1R, 0xff); // Clear bits[31:8] of source
         _srl(TReg2, SrcE, 8);
         _sll(TReg3, TReg2, 8); // Clear bits[7:0] of element
-        _or(DstE, TReg1, TReg3);
+        _or(TDReg, TReg1, TReg3);
+        _mov(DstE, TDReg);
         break;
       case 1:
         _andi(TReg1, Src1R, 0xff); // Clear bits[31:8] of source
@@ -4115,7 +4126,8 @@ void TargetMIPS32::lowerInsertElement(const InstInsertElement *Instr) {
         _lui(TReg2, Ctx->getConstantInt32(0xffff));
         _ori(TReg3, TReg2, 0x00ff);
         _and(TReg4, SrcE, TReg3); // Clear bits[15:8] of element
-        _or(DstE, TReg5, TReg4);
+        _or(TDReg, TReg5, TReg4);
+        _mov(DstE, TDReg);
         break;
       case 2:
         _andi(TReg1, Src1R, 0xff); // Clear bits[31:8] of source
@@ -4123,13 +4135,15 @@ void TargetMIPS32::lowerInsertElement(const InstInsertElement *Instr) {
         _lui(TReg2, Ctx->getConstantInt32(0xff00));
         _ori(TReg3, TReg2, 0xffff);
         _and(TReg4, SrcE, TReg3); // Clear bits[15:8] of element
-        _or(DstE, TReg5, TReg4);
+        _or(TDReg, TReg5, TReg4);
+        _mov(DstE, TDReg);
         break;
       case 3:
         _srl(TReg1, Src1R, 24); // Position in the destination
         _sll(TReg2, SrcE, 8);
         _srl(TReg3, TReg2, 8); // Clear bits[31:24] of element
-        _or(DstE, TReg1, TReg3);
+        _or(TDReg, TReg1, TReg3);
+        _mov(DstE, TDReg);
         break;
       default:
         llvm::report_fatal_error("InsertElement: Invalid PosInCont");
@@ -4746,7 +4760,7 @@ void TargetMIPS32::lowerRet(const InstRet *Instr) {
     case IceType_v16i8:
     case IceType_v8i16:
     case IceType_v4i32: {
-      auto *SrcVec = llvm::dyn_cast<VariableVecOn32>(Src0);
+      auto *SrcVec = llvm::dyn_cast<VariableVecOn32>(legalizeUndef(Src0));
       Variable *V0 =
           legalizeToReg(SrcVec->getContainers()[0], RegMIPS32::Reg_V0);
       Variable *V1 =
@@ -4762,7 +4776,7 @@ void TargetMIPS32::lowerRet(const InstRet *Instr) {
       break;
     }
     case IceType_v4f32: {
-      auto *SrcVec = llvm::dyn_cast<VariableVecOn32>(Src0);
+      auto *SrcVec = llvm::dyn_cast<VariableVecOn32>(legalizeUndef(Src0));
       Reg = getImplicitRet();
       auto *RegT = legalizeToReg(Reg);
       // Return the vector through buffer in implicit argument a0
@@ -4806,13 +4820,13 @@ void TargetMIPS32::lowerSelect(const InstSelect *Instr) {
   if (DestTy == IceType_i64) {
     DestR = llvm::cast<Variable>(loOperand(Dest));
     DestHiR = llvm::cast<Variable>(hiOperand(Dest));
-    SrcTR = legalizeToReg(loOperand(Instr->getTrueOperand()));
-    SrcTHiR = legalizeToReg(hiOperand(Instr->getTrueOperand()));
-    SrcFR = legalizeToReg(loOperand(Instr->getFalseOperand()));
-    SrcFHiR = legalizeToReg(hiOperand(Instr->getFalseOperand()));
+    SrcTR = legalizeToReg(loOperand(legalizeUndef(Instr->getTrueOperand())));
+    SrcTHiR = legalizeToReg(hiOperand(legalizeUndef(Instr->getTrueOperand())));
+    SrcFR = legalizeToReg(loOperand(legalizeUndef(Instr->getFalseOperand())));
+    SrcFHiR = legalizeToReg(hiOperand(legalizeUndef(Instr->getFalseOperand())));
   } else {
-    SrcTR = legalizeToReg(Instr->getTrueOperand());
-    SrcFR = legalizeToReg(Instr->getFalseOperand());
+    SrcTR = legalizeToReg(legalizeUndef(Instr->getTrueOperand()));
+    SrcFR = legalizeToReg(legalizeUndef(Instr->getFalseOperand()));
   }
 
   Variable *ConditionR = legalizeToReg(Instr->getCondition());
