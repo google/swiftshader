@@ -658,6 +658,10 @@ entry:
 ; ARM32-LABEL: test_stacksave_noalloca
 ; ARM32: mov {{.*}}, sp
 ; ARM32: mov sp, {{.*}}
+; MIPS32-LABEL: test_stacksave_noalloca
+; MIPS32: 	sw	sp,{{.*}}
+; MIPS32: 	lw	[[REG:.*]],0(sp)
+; MIPS32: 	move	sp,[[REG]]
 
 declare i32 @foo(i32 %x)
 
@@ -702,3 +706,9 @@ entry:
 ; ARM32: mov {{.*}}, sp
 ; ARM32: mov {{.*}}, sp
 ; ARM32: mov sp, {{.*}}
+; MIPS32-LABEL: test_stacksave_multiple
+; MIPS32: 	sw	sp,[[MEMLOC:.*]]
+; MIPS32: 	sw	sp,{{.*}}
+; MIPS32: 	sw	sp,{{.*}}
+; MIPS32: 	lw	[[REG:.*]],[[MEMLOC]]
+; MIPS32: 	move	sp,[[REG]]

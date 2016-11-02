@@ -369,6 +369,21 @@ public:
     }
   }
 
+  void _mov_redefined(Variable *Dest, Operand *Src0, Operand *Src1 = nullptr) {
+    if (llvm::isa<ConstantRelocatable>(Src0)) {
+      Context.insert<InstMIPS32La>(Dest, Src0);
+    } else {
+      auto *Instr = Context.insert<InstMIPS32Mov>(Dest, Src0, Src1);
+      Instr->setDestRedefined();
+      if (Instr->getDestHi() != nullptr) {
+        // If Instr is multi-dest, then Dest must be a Variable64On32. We add a
+        // fake-def for Instr.DestHi here.
+        assert(llvm::isa<Variable64On32>(Dest));
+        Context.insert<InstFakeDef>(Instr->getDestHi());
+      }
+    }
+  }
+
   void _mov_d(Variable *Dest, Variable *Src) {
     Context.insert<InstMIPS32Mov_d>(Dest, Src);
   }

@@ -4443,11 +4443,18 @@ void TargetMIPS32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     return;
   }
   case Intrinsics::Stacksave: {
-    UnimplementedLoweringError(this, Instr);
+    Variable *SP = getPhysicalRegister(RegMIPS32::Reg_SP);
+    _mov(Dest, SP);
     return;
   }
   case Intrinsics::Stackrestore: {
-    UnimplementedLoweringError(this, Instr);
+    if (getFlags().getUseSandboxing()) {
+      UnimplementedLoweringError(this, Instr);
+      return;
+    }
+    Variable *Val = legalizeToReg(Instr->getArg(0));
+    Variable *SP = getPhysicalRegister(RegMIPS32::Reg_SP);
+    _mov_redefined(SP, Val);
     return;
   }
   case Intrinsics::Trap: {
