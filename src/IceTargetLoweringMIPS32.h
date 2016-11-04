@@ -877,6 +877,7 @@ public:
                     const std::string &SectionSuffix) override;
   void lowerConstants() override;
   void lowerJumpTables() override;
+  void emitTargetRODataSections() override;
 
 protected:
   explicit TargetDataMIPS32(GlobalContext *Ctx);
@@ -902,6 +903,104 @@ protected:
 
 private:
   ~TargetHeaderMIPS32() = default;
+};
+
+// This structure (with some minor modifications) is copied from
+// llvm/lib/Target/Mips/MCTargetDesc/MipsABIFlagsSection.h file.
+struct MipsABIFlagsSection {
+
+  // Version of the MIPS.abiflags section
+  enum AFL_VERSION {
+    AFL_VERSION_V0 = 0 // Version 0
+  };
+
+  // The level of the ISA: 1-5, 32, 64.
+  enum AFL_ISA_LEVEL {
+    AFL_ISA_LEVEL_NONE = 0,
+    AFL_ISA_LEVEL_MIPS32 = 32, // MIPS32
+  };
+
+  // The revision of ISA: 0 for MIPS V and below, 1-n otherwise.
+  enum AFL_ISA_REV {
+    AFL_ISA_REV_NONE = 0,
+    AFL_ISA_REV_R1 = 1, // R1
+  };
+
+  // Values for the xxx_size bytes of an ABI flags structure.
+  enum AFL_REG {
+    AFL_REG_NONE = 0x00, // No registers.
+    AFL_REG_32 = 0x01,   // 32-bit registers.
+    AFL_REG_64 = 0x02,   // 64-bit registers.
+    AFL_REG_128 = 0x03   // 128-bit registers.
+  };
+
+  // Values for the fp_abi word of an ABI flags structure.
+  enum AFL_FP_ABI {
+    AFL_FP_ANY = 0,
+    AFL_FP_DOUBLE = 1,
+    AFL_FP_XX = 5,
+    AFL_FP_64 = 6,
+    AFL_FP_64A = 7
+  };
+
+  // Values for the isa_ext word of an ABI flags structure.
+  enum AFL_EXT {
+    AFL_EXT_NONE = 0,
+    AFL_EXT_XLR = 1,          // RMI Xlr instruction.
+    AFL_EXT_OCTEON2 = 2,      // Cavium Networks Octeon2.
+    AFL_EXT_OCTEONP = 3,      // Cavium Networks OcteonP.
+    AFL_EXT_LOONGSON_3A = 4,  // Loongson 3A.
+    AFL_EXT_OCTEON = 5,       // Cavium Networks Octeon.
+    AFL_EXT_5900 = 6,         // MIPS R5900 instruction.
+    AFL_EXT_4650 = 7,         // MIPS R4650 instruction.
+    AFL_EXT_4010 = 8,         // LSI R4010 instruction.
+    AFL_EXT_4100 = 9,         // NEC VR4100 instruction.
+    AFL_EXT_3900 = 10,        // Toshiba R3900 instruction.
+    AFL_EXT_10000 = 11,       // MIPS R10000 instruction.
+    AFL_EXT_SB1 = 12,         // Broadcom SB-1 instruction.
+    AFL_EXT_4111 = 13,        // NEC VR4111/VR4181 instruction.
+    AFL_EXT_4120 = 14,        // NEC VR4120 instruction.
+    AFL_EXT_5400 = 15,        // NEC VR5400 instruction.
+    AFL_EXT_5500 = 16,        // NEC VR5500 instruction.
+    AFL_EXT_LOONGSON_2E = 17, // ST Microelectronics Loongson 2E.
+    AFL_EXT_LOONGSON_2F = 18  // ST Microelectronics Loongson 2F.
+  };
+
+  // Masks for the ases word of an ABI flags structure.
+  enum AFL_ASE {
+    AFL_ASE_NONE = 0x00000000,
+    AFL_ASE_DSP = 0x00000001,       // DSP ASE.
+    AFL_ASE_DSPR2 = 0x00000002,     // DSP R2 ASE.
+    AFL_ASE_EVA = 0x00000004,       // Enhanced VA Scheme.
+    AFL_ASE_MCU = 0x00000008,       // MCU (MicroController) ASE.
+    AFL_ASE_MDMX = 0x00000010,      // MDMX ASE.
+    AFL_ASE_MIPS3D = 0x00000020,    // MIPS-3D ASE.
+    AFL_ASE_MT = 0x00000040,        // MT ASE.
+    AFL_ASE_SMARTMIPS = 0x00000080, // SmartMIPS ASE.
+    AFL_ASE_VIRT = 0x00000100,      // VZ ASE.
+    AFL_ASE_MSA = 0x00000200,       // MSA ASE.
+    AFL_ASE_MIPS16 = 0x00000400,    // MIPS16 ASE.
+    AFL_ASE_MICROMIPS = 0x00000800, // MICROMIPS ASE.
+    AFL_ASE_XPA = 0x00001000        // XPA ASE.
+  };
+
+  enum AFL_FLAGS1 { AFL_FLAGS1_NONE = 0, AFL_FLAGS1_ODDSPREG = 1 };
+
+  enum AFL_FLAGS2 { AFL_FLAGS2_NONE = 0 };
+
+  uint16_t Version = AFL_VERSION_V0;
+  uint8_t ISALevel = AFL_ISA_LEVEL_MIPS32;
+  uint8_t ISARevision = AFL_ISA_REV_R1;
+  uint8_t GPRSize = AFL_REG_32;
+  uint8_t CPR1Size = AFL_REG_32;
+  uint8_t CPR2Size = AFL_REG_NONE;
+  uint8_t FPABI = AFL_FP_DOUBLE;
+  uint32_t Extension = AFL_EXT_NONE;
+  uint32_t ASE = AFL_ASE_NONE;
+  uint32_t Flags1 = AFL_FLAGS1_ODDSPREG;
+  uint32_t Flags2 = AFL_FLAGS2_NONE;
+
+  MipsABIFlagsSection() = default;
 };
 
 } // end of namespace MIPS32

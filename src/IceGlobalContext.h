@@ -395,6 +395,10 @@ public:
 
   void lowerJumpTables();
 
+  /// Emit target specific read-only data sections if any. E.g., for MIPS this
+  /// generates a .MIPS.abiflags section.
+  void emitTargetRODataSections();
+
   void emitQueueBlockingPush(std::unique_ptr<EmitterWorkItem> Item);
   std::unique_ptr<EmitterWorkItem> emitQueueBlockingPop();
   void emitQueueNotifyEnd() { EmitQ.notifyEnd(); }

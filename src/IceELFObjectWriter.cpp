@@ -301,6 +301,21 @@ void partitionGlobalsBySection(const VariableDeclarationList &Vars,
 
 } // end of anonymous namespace
 
+void ELFObjectWriter::writeTargetRODataSection(const std::string &Name,
+                                               Elf64_Word ShType,
+                                               Elf64_Xword ShFlags,
+                                               Elf64_Xword ShAddralign,
+                                               Elf64_Xword ShEntsize,
+                                               const llvm::StringRef &SecData) {
+  TimerMarker Timer(TimerStack::TT_writeELF, &Ctx);
+  assert(!SectionNumbersAssigned);
+  ELFDataSection *Section = createSection<ELFDataSection>(
+      Name, ShType, ShFlags, ShAddralign, ShEntsize);
+  Section->setFileOffset(alignFileOffset(ShAddralign));
+  Section->appendData(Str, llvm::StringRef(SecData.data(), SecData.size()));
+  RODataSections.push_back(Section);
+}
+
 void ELFObjectWriter::writeDataSection(const VariableDeclarationList &Vars,
                                        FixupKind RelocationKind,
                                        const std::string &SectionSuffix,

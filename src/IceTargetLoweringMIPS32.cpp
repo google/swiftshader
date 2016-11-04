@@ -4989,6 +4989,22 @@ void ConstantUndef::emit(GlobalContext *) const {
 TargetDataMIPS32::TargetDataMIPS32(GlobalContext *Ctx)
     : TargetDataLowering(Ctx) {}
 
+// Generate .MIPS.abiflags section. This section contains a versioned data
+// structure with essential information required for loader to determine the
+// requirements of the application.
+void TargetDataMIPS32::emitTargetRODataSections() {
+  struct MipsABIFlagsSection Flags;
+  ELFObjectWriter *Writer = Ctx->getObjectWriter();
+  const std::string Name = ".MIPS.abiflags";
+  const llvm::ELF::Elf64_Word ShType = llvm::ELF::SHT_MIPS_ABIFLAGS;
+  const llvm::ELF::Elf64_Xword ShFlags = llvm::ELF::SHF_ALLOC;
+  const llvm::ELF::Elf64_Xword ShAddralign = 8;
+  const llvm::ELF::Elf64_Xword ShEntsize = sizeof(Flags);
+  Writer->writeTargetRODataSection(
+      Name, ShType, ShFlags, ShAddralign, ShEntsize,
+      llvm::StringRef(reinterpret_cast<const char *>(&Flags), sizeof(Flags)));
+}
+
 void TargetDataMIPS32::lowerGlobals(const VariableDeclarationList &Vars,
                                     const std::string &SectionSuffix) {
   const bool IsPIC = getFlags().getUseNonsfi();

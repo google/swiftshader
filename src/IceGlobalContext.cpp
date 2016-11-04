@@ -471,6 +471,10 @@ void GlobalContext::lowerConstants() { DataLowering->lowerConstants(); }
 
 void GlobalContext::lowerJumpTables() { DataLowering->lowerJumpTables(); }
 
+void GlobalContext::emitTargetRODataSections() {
+  DataLowering->emitTargetRODataSections();
+}
+
 void GlobalContext::saveBlockInfoPtrs() {
   for (VariableDeclaration *Global : Globals) {
     if (Cfg::isProfileGlobal(*Global)) {

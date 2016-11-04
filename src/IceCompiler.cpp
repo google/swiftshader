@@ -168,6 +168,7 @@ void Compiler::run(const Ice::ClFlags &Flags, GlobalContext &Ctx,
     if (getFlags().getOutFileType() == FT_Elf) {
       TimerMarker T1(Ice::TimerStack::TT_emitAsm, &Ctx);
       Ctx.getObjectWriter()->setUndefinedSyms(Ctx.getConstantExternSyms());
+      Ctx.emitTargetRODataSections();
       Ctx.getObjectWriter()->writeNonUserSections();
     }
   }

@@ -616,6 +616,7 @@ public:
                             const std::string &SectionSuffix) = 0;
   virtual void lowerConstants() = 0;
   virtual void lowerJumpTables() = 0;
+  virtual void emitTargetRODataSections() {}
 
 protected:
   void emitGlobal(const VariableDeclaration &Var,

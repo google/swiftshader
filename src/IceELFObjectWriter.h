@@ -93,6 +93,12 @@ public:
   /// is used as an array index so should start at 0 and be contiguous.
   enum SectionType { ROData = 0, Data, BSS, NumSectionTypes };
 
+  /// Create target specific section with the given information about section.
+  void writeTargetRODataSection(const std::string &Name, Elf64_Word ShType,
+                                Elf64_Xword ShFlags, Elf64_Xword ShAddralign,
+                                Elf64_Xword ShEntsize,
+                                const llvm::StringRef &SecData);
+
 private:
   GlobalContext &Ctx;
   ELFStreamer &Str;
