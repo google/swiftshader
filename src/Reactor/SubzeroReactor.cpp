@@ -1529,32 +1529,26 @@ namespace sw
 	RValue<Byte> operator++(const Byte &val, int)   // Post-increment
 	{
 		RValue<Byte> res = val;
-
-		assert(false && "UNIMPLEMENTED");
-
+		val += Byte(1);
 		return res;
 	}
 
 	const Byte &operator++(const Byte &val)   // Pre-increment
 	{
-		assert(false && "UNIMPLEMENTED");
-
+		val += Byte(1);
 		return val;
 	}
 
 	RValue<Byte> operator--(const Byte &val, int)   // Post-decrement
 	{
 		RValue<Byte> res = val;
-
-		assert(false && "UNIMPLEMENTED");
-
+		val -= Byte(1);
 		return res;
 	}
 
 	const Byte &operator--(const Byte &val)   // Pre-decrement
 	{
-		assert(false && "UNIMPLEMENTED");
-
+		val -= Byte(1);
 		return val;
 	}
 
@@ -1779,35 +1773,26 @@ namespace sw
 	RValue<SByte> operator++(const SByte &val, int)   // Post-increment
 	{
 		RValue<SByte> res = val;
-
-		assert(false && "UNIMPLEMENTED");
-
+		val += SByte(1);
 		return res;
 	}
 
 	const SByte &operator++(const SByte &val)   // Pre-increment
 	{
-		assert(false && "UNIMPLEMENTED");
-		assert(false && "UNIMPLEMENTED");
-
+		val += SByte(1);
 		return val;
 	}
 
 	RValue<SByte> operator--(const SByte &val, int)   // Post-decrement
 	{
 		RValue<SByte> res = val;
-
-		assert(false && "UNIMPLEMENTED");
-		assert(false && "UNIMPLEMENTED");
-
+		val -= SByte(1);
 		return res;
 	}
 
 	const SByte &operator--(const SByte &val)   // Pre-decrement
 	{
-		assert(false && "UNIMPLEMENTED");
-		assert(false && "UNIMPLEMENTED");
-
+		val -= SByte(1);
 		return val;
 	}
 
@@ -2025,36 +2010,26 @@ namespace sw
 	RValue<Short> operator++(const Short &val, int)   // Post-increment
 	{
 		RValue<Short> res = val;
-
-		assert(false && "UNIMPLEMENTED");
-		assert(false && "UNIMPLEMENTED");
-
+		val += Short(1);
 		return res;
 	}
 
 	const Short &operator++(const Short &val)   // Pre-increment
 	{
-		assert(false && "UNIMPLEMENTED");
-		assert(false && "UNIMPLEMENTED");
-
+		val += Short(1);
 		return val;
 	}
 
 	RValue<Short> operator--(const Short &val, int)   // Post-decrement
 	{
 		RValue<Short> res = val;
-
-		assert(false && "UNIMPLEMENTED");
-		assert(false && "UNIMPLEMENTED");
-
+		val -= Short(1);
 		return res;
 	}
 
 	const Short &operator--(const Short &val)   // Pre-decrement
 	{
-		assert(false && "UNIMPLEMENTED");
-		assert(false && "UNIMPLEMENTED");
-
+		val -= Short(1);
 		return val;
 	}
 
@@ -2279,36 +2254,26 @@ namespace sw
 	RValue<UShort> operator++(const UShort &val, int)   // Post-increment
 	{
 		RValue<UShort> res = val;
-
-		assert(false && "UNIMPLEMENTED");
-		assert(false && "UNIMPLEMENTED");
-
+		val += UShort(1);
 		return res;
 	}
 
 	const UShort &operator++(const UShort &val)   // Pre-increment
 	{
-		assert(false && "UNIMPLEMENTED");
-		assert(false && "UNIMPLEMENTED");
-
+		val += UShort(1);
 		return val;
 	}
 
 	RValue<UShort> operator--(const UShort &val, int)   // Post-decrement
 	{
 		RValue<UShort> res = val;
-
-		assert(false && "UNIMPLEMENTED");
-		assert(false && "UNIMPLEMENTED");
-
+		val -= UShort(1);
 		return res;
 	}
 
 	const UShort &operator--(const UShort &val)   // Pre-decrement
 	{
-		assert(false && "UNIMPLEMENTED");
-		assert(false && "UNIMPLEMENTED");
-
+		val -= UShort(1);
 		return val;
 	}
 
@@ -2358,7 +2323,8 @@ namespace sw
 	{
 	//	xyzw.parent = this;
 
-		assert(false && "UNIMPLEMENTED");
+		Value *value = rhs.loadValue();
+		storeValue(value);
 	}
 
 	Type *Byte4::getType()
@@ -3973,28 +3939,28 @@ namespace sw
 
 	RValue<Int> operator++(const Int &val, int)   // Post-increment
 	{
-		auto oldValue = val.loadValue();
-		auto newValue = ::function->makeVariable(Ice::IceType_i32);
-		auto inc = Ice::InstArithmetic::create(::function, Ice::InstArithmetic::Add, newValue, oldValue, ::context->getConstantInt32(1));
-		::basicBlock->appendInst(inc);
-		val.storeValue(V(newValue));
-
-		return RValue<Int>(oldValue);
+		RValue<UInt> res = val;
+		val += 1;
+		return res;
 	}
 
 	const Int &operator++(const Int &val)   // Pre-increment
 	{
-		assert(false && "UNIMPLEMENTED"); return val;
+		val += 1;
+		return val;
 	}
 
 	RValue<Int> operator--(const Int &val, int)   // Post-decrement
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<Int>(V(nullptr));
+		RValue<Int> res = val;
+		val -= 1;
+		return res;
 	}
 
 	const Int &operator--(const Int &val)   // Pre-decrement
 	{
-		assert(false && "UNIMPLEMENTED"); return val;
+		val -= 1;
+		return val;
 	}
 
 	RValue<Bool> operator<(RValue<Int> lhs, RValue<Int> rhs)
@@ -4388,22 +4354,28 @@ namespace sw
 
 	RValue<UInt> operator++(const UInt &val, int)   // Post-increment
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<UInt>(V(nullptr));
+		RValue<UInt> res = val;
+		val += 1;
+		return res;
 	}
 
 	const UInt &operator++(const UInt &val)   // Pre-increment
 	{
-		assert(false && "UNIMPLEMENTED"); return val;
+		val += 1;
+		return val;
 	}
 
 	RValue<UInt> operator--(const UInt &val, int)   // Post-decrement
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<UInt>(V(nullptr));
+		RValue<UInt> res = val;
+		val -= 1;
+		return res;
 	}
 
 	const UInt &operator--(const UInt &val)   // Pre-decrement
 	{
-		assert(false && "UNIMPLEMENTED"); return val;
+		val -= 1;
+		return val;
 	}
 
 	RValue<UInt> Max(RValue<UInt> x, RValue<UInt> y)
