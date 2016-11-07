@@ -321,7 +321,7 @@ namespace sw
 			buffer += q * *Pointer<Int>(data + OFFSET(DrawData,stencilSliceB));
 		}
 
-		Byte8 value = As<Byte8>(Long1(*Pointer<UInt>(buffer)));
+		Byte8 value = *Pointer<Byte8>(buffer);
 		Byte8 valueCCW = value;
 
 		if(!state.noStencilMask)
@@ -763,7 +763,7 @@ namespace sw
 			buffer += q * *Pointer<Int>(data + OFFSET(DrawData,stencilSliceB));
 		}
 
-		Byte8 bufferValue = As<Byte8>(Long1(*Pointer<UInt>(buffer)));
+		Byte8 bufferValue = *Pointer<Byte8>(buffer);
 
 		Byte8 newValue;
 		stencilOperation(newValue, bufferValue, state.stencilPassOperation, state.stencilZFailOperation, state.stencilFailOperation, false, zMask, sMask);

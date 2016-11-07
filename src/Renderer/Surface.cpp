@@ -3051,6 +3051,7 @@ namespace sw
 		int height2 = (height + 1) & ~1;
 
 		// FIXME: Unpacking byte4 to short4 in the sampler currently involves reading 8 bytes,
+		// and stencil operations also read 8 bytes per four 8-bit stencil values,
 		// so we have to allocate 4 extra bytes to avoid buffer overruns.
 		return allocateZero(size(width2, height2, depth, format) + 4);
 	}
