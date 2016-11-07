@@ -110,7 +110,6 @@ namespace sw
 		static Value *createFPTrunc(Value *V, Type *destType);
 		static Value *createFPExt(Value *V, Type *destType);
 		static Value *createBitCast(Value *V, Type *destType);
-		static Value *createIntCast(Value *V, Type *destType, bool isSigned);
 
 		// Compare instructions
 		static Value *createICmpEQ(Value *lhs, Value *rhs);

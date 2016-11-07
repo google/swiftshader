@@ -2443,13 +2443,13 @@ namespace sw
 	template<class T>
 	RValue<T>::RValue(typename IntLiteral<T>::type i)
 	{
-		value = (Value*)Nucleus::createConstantInt(i);
+		value = Nucleus::createConstantInt(i);
 	}
 
 	template<class T>
 	RValue<T>::RValue(typename FloatLiteral<T>::type f)
 	{
-		value = (Value*)Nucleus::createConstantFloat(f);
+		value = Nucleus::createConstantFloat(f);
 	}
 
 	template<class T>
@@ -2687,7 +2687,7 @@ namespace sw
 	template<class T>
 	Reference<T> Pointer<T>::operator[](int index)
 	{
-		Value *element = Nucleus::createGEP(LValue<Pointer<T>>::loadValue(), T::getType(), (Value*)Nucleus::createConstantInt(index));
+		Value *element = Nucleus::createGEP(LValue<Pointer<T>>::loadValue(), T::getType(), Nucleus::createConstantInt(index));
 
 		return Reference<T>(element, alignment);
 	}
@@ -2714,7 +2714,7 @@ namespace sw
 	template<class T, int S>
 	Reference<T> Array<T, S>::operator[](int index)
 	{
-		Value *element = LValue<T>::getAddress((Value*)Nucleus::createConstantInt(index));
+		Value *element = LValue<T>::getAddress(Nucleus::createConstantInt(index));
 
 		return Reference<T>(element);
 	}

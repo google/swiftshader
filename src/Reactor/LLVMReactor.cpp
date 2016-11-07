@@ -508,11 +508,6 @@ namespace sw
 		return V(::builder->CreateBitCast(v, destType));
 	}
 
-	Value *Nucleus::createIntCast(Value *v, Type *destType, bool isSigned)
-	{
-		return V(::builder->CreateIntCast(v, destType, isSigned));
-	}
-
 	Value *Nucleus::createICmpEQ(Value *lhs, Value *rhs)
 	{
 		return V(::builder->CreateICmpEQ(lhs, rhs));
