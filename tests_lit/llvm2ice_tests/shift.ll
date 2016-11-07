@@ -82,7 +82,7 @@ entry:
 ; CHECK: shl {{.*}},0x1
 
 ; MIPS32-LABEL: shlImmLarge
-; MIPS32: sllv
+; MIPS32: sll
 
 define internal i32 @shlImmNeg(i32 %val) {
 entry:
@@ -93,7 +93,7 @@ entry:
 ; CHECK: shl {{.*}},0xff
 
 ; MIPS32-LABEL: shlImmNeg
-; MIPS32: sllv
+; MIPS32: sll
 
 define internal i32 @lshrImmLarge(i32 %val) {
 entry:
@@ -104,7 +104,7 @@ entry:
 ; CHECK: shr {{.*}},0x1
 
 ; MIPS32-LABEL: lshrImmLarge
-; MIPS32: srlv
+; MIPS32: srl
 
 define internal i32 @lshrImmNeg(i32 %val) {
 entry:
@@ -115,7 +115,7 @@ entry:
 ; CHECK: shr {{.*}},0xff
 
 ; MIPS32-LABEL: lshrImmNeg
-; MIPS32: srlv
+; MIPS32: srl
 
 define internal i32 @ashrImmLarge(i32 %val) {
 entry:
@@ -126,7 +126,7 @@ entry:
 ; CHECK: sar {{.*}},0x1
 
 ; MIPS32-LABEL: ashrImmLarge
-; MIPS32: srav
+; MIPS32: sra
 
 define internal i32 @ashrImmNeg(i32 %val) {
 entry:
@@ -137,7 +137,7 @@ entry:
 ; CHECK: sar {{.*}},0xff
 
 ; MIPS32-LABEL: ashrImmNeg
-; MIPS32: srav
+; MIPS32: sra
 
 define internal i64 @shlImm64One(i64 %val) {
 entry:

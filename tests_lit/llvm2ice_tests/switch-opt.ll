@@ -66,7 +66,7 @@ sw.epilog:                                        ; preds = %sw.bb2, %sw.default
 ; MIPS32: beq	{{.*}},{{.*}},{{.*}} <[[SW_BB2]]>
 ; MIPS32: b	{{.*}} <[[SW_DEFAULT:.*]]>
 ; MIPS32: <[[SW_DEFAULT]]>
-; MIPS32: li	{{.*}},27
+; MIPS32: addiu	{{.*}},27
 ; MIPS32: b	{{.*}} <[[SW_EPILOG]]>
 ; MIPS32: <[[SW_BB1]]>
 ; MIPS32: li	{{.*}},21

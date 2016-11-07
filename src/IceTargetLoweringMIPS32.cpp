@@ -2553,30 +2553,75 @@ void TargetMIPS32::lowerArithmetic(const InstArithmetic *Instr) {
 
   Variable *T = makeReg(Dest->getType());
   Variable *Src0R = legalizeToReg(Src0);
-  Variable *Src1R = legalizeToReg(Src1);
+  Variable *Src1R = nullptr;
+  uint32_t Value = 0;
+  bool IsSrc1Imm16 = false;
+
+  switch (Instr->getOp()) {
+  case InstArithmetic::Add:
+  case InstArithmetic::And:
+  case InstArithmetic::Or:
+  case InstArithmetic::Xor:
+  case InstArithmetic::Sub:
+  case InstArithmetic::Shl:
+  case InstArithmetic::Lshr:
+  case InstArithmetic::Ashr: {
+    auto *Const32 = llvm::dyn_cast<ConstantInteger32>(Src1);
+    if (Const32 != nullptr && isInt<16>(int32_t(Const32->getValue()))) {
+      IsSrc1Imm16 = true;
+      Value = Const32->getValue();
+    } else {
+      Src1R = legalizeToReg(Src1);
+    }
+    break;
+  }
+  default:
+    Src1R = legalizeToReg(Src1);
+    break;
+  }
   constexpr uint32_t DivideByZeroTrapCode = 7;
 
   switch (Instr->getOp()) {
   case InstArithmetic::_num:
     break;
   case InstArithmetic::Add:
-    _addu(T, Src0R, Src1R);
+    if (IsSrc1Imm16) {
+      _addiu(T, Src0R, Value);
+    } else {
+      _addu(T, Src0R, Src1R);
+    }
     _mov(Dest, T);
     return;
   case InstArithmetic::And:
-    _and(T, Src0R, Src1R);
+    if (IsSrc1Imm16) {
+      _andi(T, Src0R, Value);
+    } else {
+      _and(T, Src0R, Src1R);
+    }
     _mov(Dest, T);
     return;
   case InstArithmetic::Or:
-    _or(T, Src0R, Src1R);
+    if (IsSrc1Imm16) {
+      _ori(T, Src0R, Value);
+    } else {
+      _or(T, Src0R, Src1R);
+    }
     _mov(Dest, T);
     return;
   case InstArithmetic::Xor:
-    _xor(T, Src0R, Src1R);
+    if (IsSrc1Imm16) {
+      _xori(T, Src0R, Value);
+    } else {
+      _xor(T, Src0R, Src1R);
+    }
     _mov(Dest, T);
     return;
   case InstArithmetic::Sub:
-    _subu(T, Src0R, Src1R);
+    if (IsSrc1Imm16) {
+      _addiu(T, Src0R, -Value);
+    } else {
+      _subu(T, Src0R, Src1R);
+    }
     _mov(Dest, T);
     return;
   case InstArithmetic::Mul: {
@@ -2585,7 +2630,11 @@ void TargetMIPS32::lowerArithmetic(const InstArithmetic *Instr) {
     return;
   }
   case InstArithmetic::Shl: {
-    _sllv(T, Src0R, Src1R);
+    if (IsSrc1Imm16) {
+      _sll(T, Src0R, Value);
+    } else {
+      _sllv(T, Src0R, Src1R);
+    }
     _mov(Dest, T);
     return;
   }
@@ -2595,15 +2644,25 @@ void TargetMIPS32::lowerArithmetic(const InstArithmetic *Instr) {
     if (Dest->getType() != IceType_i32) {
       T0R = makeReg(IceType_i32);
       lowerCast(InstCast::create(Func, InstCast::Zext, T0R, Src0R));
-      T1R = makeReg(IceType_i32);
-      lowerCast(InstCast::create(Func, InstCast::Zext, T1R, Src1R));
+      if (!IsSrc1Imm16) {
+        T1R = makeReg(IceType_i32);
+        lowerCast(InstCast::create(Func, InstCast::Zext, T1R, Src1R));
+      }
     }
-    _srlv(T, T0R, T1R);
+    if (IsSrc1Imm16) {
+      _srl(T, T0R, Value);
+    } else {
+      _srlv(T, T0R, T1R);
+    }
     _mov(Dest, T);
     return;
   }
   case InstArithmetic::Ashr: {
-    _srav(T, Src0R, Src1R);
+    if (IsSrc1Imm16) {
+      _sra(T, Src0R, Value);
+    } else {
+      _srav(T, Src0R, Src1R);
+    }
     _mov(Dest, T);
     return;
   }

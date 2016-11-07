@@ -32,47 +32,36 @@ entry:
 ; MIPS32P50N1: nop
 ; MIPS32P50N1: sw {{.*}}
 ; MIPS32P50N1: lw {{.*}}
-; MIPS32P50N1: li {{.*}}
-; MIPS32P50N1: nop
-; MIPS32P50N1: addu {{.*}}
-; MIPS32P50N1: sw {{.*}}
-; MIPS32P50N1: nop
-; MIPS32P50N1: lw {{.*}}
-; MIPS32P50N1: nop
-; MIPS32P50N1: li {{.*}}
-; MIPS32P50N1: nop
-; MIPS32P50N1: addu {{.*}}
+; MIPS32P50N1: addiu {{.*}},1
 ; MIPS32P50N1: nop
 ; MIPS32P50N1: sw {{.*}}
 ; MIPS32P50N1: lw {{.*}}
 ; MIPS32P50N1: nop
-; MIPS32P50N1: li {{.*}}
-; MIPS32P50N1: addu {{.*}}
-; MIPS32P50N1: nop
-; MIPS32P50N1: sw {{.*}}
-; MIPS32P50N1: lw {{.*}}
-; MIPS32P50N1: nop
-; MIPS32P50N1: li {{.*}}
-; MIPS32P50N1: nop
-; MIPS32P50N1: subu {{.*}}
-; MIPS32P50N1: sw {{.*}}
-; MIPS32P50N1: lw {{.*}}
-; MIPS32P50N1: li {{.*}}
-; MIPS32P50N1: subu {{.*}}
-; MIPS32P50N1: sw {{.*}}
-; MIPS32P50N1: nop
-; MIPS32P50N1: lw {{.*}}
-; MIPS32P50N1: li {{.*}}
-; MIPS32P50N1: subu {{.*}}
+; MIPS32P50N1: addiu {{.*}},2
 ; MIPS32P50N1: nop
 ; MIPS32P50N1: sw {{.*}}
 ; MIPS32P50N1: nop
 ; MIPS32P50N1: lw {{.*}}
 ; MIPS32P50N1: nop
+; MIPS32P50N1: addiu {{.*}},3
+; MIPS32P50N1: sw {{.*}}
+; MIPS32P50N1: nop
+; MIPS32P50N1: lw {{.*}}
+; MIPS32P50N1: addiu {{.*}},-1
+; MIPS32P50N1: nop
+; MIPS32P50N1: sw {{.*}}
+; MIPS32P50N1: lw {{.*}}
+; MIPS32P50N1: nop
+; MIPS32P50N1: addiu {{.*}},-2
+; MIPS32P50N1: nop
+; MIPS32P50N1: sw {{.*}}
+; MIPS32P50N1: lw {{.*}}
+; MIPS32P50N1: addiu {{.*}},-3
+; MIPS32P50N1: sw {{.*}}
+; MIPS32P50N1: lw {{.*}}
 ; MIPS32P50N1: lw {{.*}}
 ; MIPS32P50N1: nop
 ; MIPS32P50N1: mul {{.*}}
-; MIPS32P50N1: nop
 ; MIPS32P50N1: sw {{.*}}
 ; MIPS32P50N1: lw {{.*}}
 ; MIPS32P50N1: nop
@@ -81,7 +70,9 @@ entry:
 ; MIPS32P50N1: mul {{.*}}
 ; MIPS32P50N1: nop
 ; MIPS32P50N1: sw {{.*}}
+; MIPS32P50N1: nop
 ; MIPS32P50N1: lw {{.*}}
+; MIPS32P50N1: nop
 ; MIPS32P50N1: addiu {{.*}}
 ; MIPS32P50N1: jr ra
 ; MIPS32P50N1: nop
@@ -104,10 +95,7 @@ entry:
 ; MIPS32P110N2: lw {{.*}}
 ; MIPS32P110N2: nop
 ; MIPS32P110N2: nop
-; MIPS32P110N2: li {{.*}}
-; MIPS32P110N2: nop
-; MIPS32P110N2: nop
-; MIPS32P110N2: addu {{.*}}
+; MIPS32P110N2: addiu {{.*}},1
 ; MIPS32P110N2: nop
 ; MIPS32P110N2: nop
 ; MIPS32P110N2: sw {{.*}}
@@ -116,10 +104,7 @@ entry:
 ; MIPS32P110N2: lw {{.*}}
 ; MIPS32P110N2: nop
 ; MIPS32P110N2: nop
-; MIPS32P110N2: li {{.*}}
-; MIPS32P110N2: nop
-; MIPS32P110N2: nop
-; MIPS32P110N2: addu {{.*}}
+; MIPS32P110N2: addiu {{.*}},2
 ; MIPS32P110N2: nop
 ; MIPS32P110N2: nop
 ; MIPS32P110N2: sw {{.*}}
@@ -128,10 +113,7 @@ entry:
 ; MIPS32P110N2: lw {{.*}}
 ; MIPS32P110N2: nop
 ; MIPS32P110N2: nop
-; MIPS32P110N2: li {{.*}}
-; MIPS32P110N2: nop
-; MIPS32P110N2: nop
-; MIPS32P110N2: addu {{.*}}
+; MIPS32P110N2: addiu {{.*}},3
 ; MIPS32P110N2: nop
 ; MIPS32P110N2: nop
 ; MIPS32P110N2: sw {{.*}}
@@ -140,10 +122,7 @@ entry:
 ; MIPS32P110N2: lw {{.*}}
 ; MIPS32P110N2: nop
 ; MIPS32P110N2: nop
-; MIPS32P110N2: li {{.*}}
-; MIPS32P110N2: nop
-; MIPS32P110N2: nop
-; MIPS32P110N2: subu {{.*}}
+; MIPS32P110N2: addiu {{.*}},-1
 ; MIPS32P110N2: nop
 ; MIPS32P110N2: nop
 ; MIPS32P110N2: sw {{.*}}
@@ -152,10 +131,7 @@ entry:
 ; MIPS32P110N2: lw {{.*}}
 ; MIPS32P110N2: nop
 ; MIPS32P110N2: nop
-; MIPS32P110N2: li {{.*}}
-; MIPS32P110N2: nop
-; MIPS32P110N2: nop
-; MIPS32P110N2: subu {{.*}}
+; MIPS32P110N2: addiu {{.*}},-2
 ; MIPS32P110N2: nop
 ; MIPS32P110N2: nop
 ; MIPS32P110N2: sw {{.*}}
@@ -164,10 +140,7 @@ entry:
 ; MIPS32P110N2: lw {{.*}}
 ; MIPS32P110N2: nop
 ; MIPS32P110N2: nop
-; MIPS32P110N2: li {{.*}}
-; MIPS32P110N2: nop
-; MIPS32P110N2: nop
-; MIPS32P110N2: subu {{.*}}
+; MIPS32P110N2: addiu {{.*}},-3
 ; MIPS32P110N2: nop
 ; MIPS32P110N2: nop
 ; MIPS32P110N2: sw {{.*}}

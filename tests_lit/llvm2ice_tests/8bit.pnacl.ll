@@ -49,8 +49,7 @@ entry:
 ; CHECK-LABEL: add8BitConst
 ; CHECK: add {{[abcd]l}}
 ; MIPS32-LABEL: add8BitConst
-; MIPS32: 	li
-; MIPS32: 	addu
+; MIPS32: 	addiu
 ; MIPS32: 	andi	{{.*}},0xff
 ; MIPS32: 	move
 ; MIPS32: 	jr
@@ -83,8 +82,7 @@ entry:
 ; CHECK-LABEL: sub8BitConst
 ; CHECK: sub {{[abcd]l}}
 ; MIPS32-LABEL: sub8BitConst
-; MIPS32: 	li
-; MIPS32: 	subu
+; MIPS32: 	addiu   {{.*}},-123
 ; MIPS32: 	andi	{{.*}},0xff
 ; MIPS32: 	move
 ; MIPS32: 	jr
@@ -306,8 +304,7 @@ entry:
 ; CHECK-LABEL: shl8BitConst
 ; CHECK: shl {{[abcd]l|BYTE PTR}},0x6
 ; MIPS32-LABEL: shl8BitConst
-; MIPS32: 	li
-; MIPS32: 	sllv
+; MIPS32: 	sll
 ; MIPS32: 	andi	{{.*}},0xff
 ; MIPS32: 	move
 ; MIPS32: 	jr
@@ -340,8 +337,7 @@ entry:
 ; CHECK-LABEL: lshr8BitConst
 ; CHECK: shr {{[abcd]l|BYTE PTR}},0x6
 ; MIPS32-LABEL: lshr8BitConst
-; MIPS32: 	li
-; MIPS32: 	srlv
+; MIPS32: 	srl
 ; MIPS32: 	andi	{{.*}},0xff
 ; MIPS32: 	move
 ; MIPS32: 	jr
@@ -374,8 +370,7 @@ entry:
 ; CHECK-LABEL: ashr8BitConst
 ; CHECK: sar {{[abcd]l|BYTE PTR}},0x6
 ; MIPS32-LABEL: ashr8BitConst
-; MIPS32: 	li
-; MIPS32: 	srav
+; MIPS32: 	sra
 ; MIPS32: 	andi	{{.*}},0xff
 ; MIPS32: 	move
 ; MIPS32: 	jr
@@ -577,8 +572,7 @@ entry:
 ; CHECK: mov {{[a-d]l}},BYTE PTR
 ; MIPS32-LABEL: load_i8
 ; MIPS32: 	lb
-; MIPS32: 	li
-; MIPS32: 	subu
+; MIPS32: 	addiu	{{.*}},0
 ; MIPS32: 	andi	{{.*}},0xff
 ; MIPS32: 	move
 ; MIPS32: 	jr
@@ -598,8 +592,7 @@ entry:
 ; MIPS32: 	lui
 ; MIPS32: 	addiu
 ; MIPS32: 	lb
-; MIPS32: 	li
-; MIPS32: 	subu
+; MIPS32: 	addiu	{{.*}},0
 ; MIPS32: 	andi	{{.*}},0xff
 ; MIPS32: 	jr
 ; MIPS32: 	nop

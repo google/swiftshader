@@ -34,8 +34,7 @@ entry:
 ; ARM32-LABEL: testAndTrue
 ; ARM32: and {{.*}}, #1
 ; MIPS32-LABEL: testAndTrue
-; MIPS32: 	li	[[REG:.*]],1
-; MIPS32: 	and	{{.*}},[[REG]]
+; MIPS32: 	andi	{{.*}},0x1
 
 ; Test that or with true uses immediate 1, not -1.
 define internal i32 @testOrTrue(i32 %arg) {
@@ -50,8 +49,7 @@ entry:
 ; ARM32-LABEL: testOrTrue
 ; ARM32: orr {{.*}}, #1
 ; MIPS32-LABEL: testOrTrue
-; MIPS32: 	li	[[REG:.*]],1
-; MIPS32: 	or	{{.*}},[[REG]]
+; MIPS32: 	ori	{{.*}},0x1
 
 ; Test that xor with true uses immediate 1, not -1.
 define internal i32 @testXorTrue(i32 %arg) {
@@ -66,8 +64,7 @@ entry:
 ; ARM32-LABEL: testXorTrue
 ; ARM32: eor {{.*}}, #1
 ; MIPS32-LABEL: testXorTrue
-; MIPS32: 	li	[[REG:.*]],1
-; MIPS32: 	xor	{{.*}},[[REG]]
+; MIPS32: 	xori	{{.*}},0x1
 
 ; Test that trunc to i1 masks correctly.
 define internal i32 @testTrunc(i32 %arg) {

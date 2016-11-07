@@ -55,19 +55,19 @@ sw.epilog:
 ; MIPS32: 	beq	[[REG1]],[[REG2]],6c <.LtestJumpTable$sw.default>
 ; MIPS32: 	nop
 ; MIPS32: 	li	[[REG2:.*]],92
-; MIPS32: 	beq	[[REG1]],[[REG2]],7c <.LtestJumpTable$sw.bb1>
+; MIPS32: 	beq	[[REG1]],[[REG2]],78 <.LtestJumpTable$sw.bb1>
 ; MIPS32: 	nop
 ; MIPS32: 	li	[[REG2:.*]],93
 ; MIPS32: 	beq	[[REG1]],[[REG2]],6c <.LtestJumpTable$sw.default>
 ; MIPS32: 	nop
 ; MIPS32: 	li	[[REG2:.*]],99
-; MIPS32: 	beq	[[REG1]],[[REG2]],7c <.LtestJumpTable$sw.bb1>
+; MIPS32: 	beq	[[REG1]],[[REG2]],78 <.LtestJumpTable$sw.bb1>
 ; MIPS32: 	nop
 ; MIPS32: 	li	[[REG2:.*]],98
 ; MIPS32: 	beq	[[REG1]],[[REG2]],6c <.LtestJumpTable$sw.default>
 ; MIPS32: 	nop
 ; MIPS32: 	li	[[REG2:.*]],96
-; MIPS32: 	beq	[[REG1]],[[REG2]],7c <.LtestJumpTable$sw.bb1>
+; MIPS32: 	beq	[[REG1]],[[REG2]],78 <.LtestJumpTable$sw.bb1>
 ; MIPS32: 	nop
 ; MIPS32: 	li	[[REG2:.*]],97
 ; MIPS32: 	beq	[[REG1]],[[REG2]],60 <.LtestJumpTable$split_entry_sw.epilog_0>
