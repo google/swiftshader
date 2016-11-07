@@ -384,6 +384,7 @@ namespace sw
 		Flags.setOutFileType(Ice::FT_Elf);
 		Flags.setOptLevel(Ice::Opt_2);
 		Flags.setApplicationBinaryInterface(Ice::ABI_Platform);
+		Flags.setTargetInstructionSet(Ice::X86InstructionSet_SSE4_1);
 		Flags.setVerbose(false ? Ice::IceV_All : Ice::IceV_None);
 
 		static llvm::raw_os_ostream cout(std::cout);
@@ -4010,7 +4011,11 @@ namespace sw
 
 	RValue<Int> RoundInt(RValue<Float> cast)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<Int>(V(nullptr));
+		Ice::Variable *result = ::function->makeVariable(Ice::IceType_i32);
+		auto round = Ice::InstCast::create(::function, Ice::InstCast::Fptosi, result, cast.value);
+		::basicBlock->appendInst(round);
+
+		return RValue<Int>(V(result));
 	}
 
 	Type *Int::getType()
@@ -5215,7 +5220,11 @@ namespace sw
 
 	RValue<Int4> RoundInt(RValue<Float4> cast)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<Int4>(V(nullptr));
+		Ice::Variable *result = ::function->makeVariable(Ice::IceType_v4i32);
+		auto round = Ice::InstCast::create(::function, Ice::InstCast::Fptosi, result, cast.value);
+		::basicBlock->appendInst(round);
+
+		return RValue<Int4>(V(result));
 	}
 
 	RValue<Short8> Pack(RValue<Int4> x, RValue<Int4> y)
@@ -5751,27 +5760,27 @@ namespace sw
 
 	RValue<Float> Round(RValue<Float> x)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<Float>(V(nullptr));
+		return Float4(Round(Float4(x))).x;
 	}
 
 	RValue<Float> Trunc(RValue<Float> x)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<Float>(V(nullptr));
+		return Float4(Trunc(Float4(x))).x;
 	}
 
 	RValue<Float> Frac(RValue<Float> x)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<Float>(V(nullptr));
+		return Float4(Frac(Float4(x))).x;
 	}
 
 	RValue<Float> Floor(RValue<Float> x)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<Float>(V(nullptr));
+		return Float4(Floor(Float4(x))).x;
 	}
 
 	RValue<Float> Ceil(RValue<Float> x)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<Float>(V(nullptr));
+		return Float4(Ceil(Float4(x))).x;
 	}
 
 	Type *Float::getType()
@@ -6168,27 +6177,59 @@ namespace sw
 
 	RValue<Float4> Round(RValue<Float4> x)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<Float4>(V(nullptr));
+		Ice::Variable *result = ::function->makeVariable(Ice::IceType_v4f32);
+		const Ice::Intrinsics::IntrinsicInfo intrinsic = {Ice::Intrinsics::Round, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F};
+		auto target = ::context->getConstantUndef(Ice::IceType_i32);
+		auto round = Ice::InstIntrinsicCall::create(::function, 2, result, target, intrinsic);
+		round->addArg(x.value);
+		round->addArg(::context->getConstantInt32(0));
+		::basicBlock->appendInst(round);
+
+		return RValue<Float4>(V(result));
 	}
 
 	RValue<Float4> Trunc(RValue<Float4> x)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<Float4>(V(nullptr));
+		Ice::Variable *result = ::function->makeVariable(Ice::IceType_v4f32);
+		const Ice::Intrinsics::IntrinsicInfo intrinsic = {Ice::Intrinsics::Round, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F};
+		auto target = ::context->getConstantUndef(Ice::IceType_i32);
+		auto round = Ice::InstIntrinsicCall::create(::function, 2, result, target, intrinsic);
+		round->addArg(x.value);
+		round->addArg(::context->getConstantInt32(3));
+		::basicBlock->appendInst(round);
+
+		return RValue<Float4>(V(result));
 	}
 
 	RValue<Float4> Frac(RValue<Float4> x)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<Float4>(V(nullptr));
+		return x - Floor(x);
 	}
 
 	RValue<Float4> Floor(RValue<Float4> x)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<Float4>(V(nullptr));
+		Ice::Variable *result = ::function->makeVariable(Ice::IceType_v4f32);
+		const Ice::Intrinsics::IntrinsicInfo intrinsic = {Ice::Intrinsics::Round, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F};
+		auto target = ::context->getConstantUndef(Ice::IceType_i32);
+		auto round = Ice::InstIntrinsicCall::create(::function, 2, result, target, intrinsic);
+		round->addArg(x.value);
+		round->addArg(::context->getConstantInt32(1));
+		::basicBlock->appendInst(round);
+
+		return RValue<Float4>(V(result));
 	}
 
 	RValue<Float4> Ceil(RValue<Float4> x)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<Float4>(V(nullptr));
+		Ice::Variable *result = ::function->makeVariable(Ice::IceType_v4f32);
+		const Ice::Intrinsics::IntrinsicInfo intrinsic = {Ice::Intrinsics::Round, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F};
+		auto target = ::context->getConstantUndef(Ice::IceType_i32);
+		auto round = Ice::InstIntrinsicCall::create(::function, 2, result, target, intrinsic);
+		round->addArg(x.value);
+		round->addArg(::context->getConstantInt32(2));
+		::basicBlock->appendInst(round);
+
+		return RValue<Float4>(V(result));
 	}
 
 	Type *Float4::getType()
