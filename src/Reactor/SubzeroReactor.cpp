@@ -830,11 +830,6 @@ namespace sw
 		return createCast(Ice::InstCast::Bitcast, v, destType);
 	}
 
-	Value *Nucleus::createIntCast(Value *v, Type *destType, bool isSigned)
-	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
-	}
-
 	static Value *createIntCompare(Ice::InstIcmp::ICond condition, Value *lhs, Value *rhs)
 	{
 		assert(lhs->getType() == rhs->getType());
