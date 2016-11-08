@@ -2575,12 +2575,12 @@ namespace sw
 
 //	RValue<Byte8> CmpGT(RValue<Byte8> x, RValue<Byte8> y)
 //	{
-//		assert(false && "UNIMPLEMENTED"); return RValue<Byte8>(V(nullptr));
+//		return RValue<Byte8>(createIntCompare(Ice::InstIcmp::Ugt, x.value, y.value));
 //	}
 
 	RValue<Byte8> CmpEQ(RValue<Byte8> x, RValue<Byte8> y)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<Byte8>(V(nullptr));
+		return RValue<Byte8>(Nucleus::createSExt(Nucleus::createICmpEQ(x.value, y.value), Int4::getType()));
 	}
 
 	Type *Byte8::getType()
@@ -2817,12 +2817,12 @@ namespace sw
 
 	RValue<Byte8> CmpGT(RValue<SByte8> x, RValue<SByte8> y)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<Byte8>(V(nullptr));
+		return RValue<Byte8>(createIntCompare(Ice::InstIcmp::Sgt, x.value, y.value));
 	}
 
 	RValue<Byte8> CmpEQ(RValue<SByte8> x, RValue<SByte8> y)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<Byte8>(V(nullptr));
+		return RValue<Byte8>(Nucleus::createSExt(Nucleus::createICmpEQ(x.value, y.value), Int4::getType()));
 	}
 
 	Type *SByte8::getType()
@@ -3317,12 +3317,12 @@ namespace sw
 
 	RValue<Short4> CmpGT(RValue<Short4> x, RValue<Short4> y)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<Short4>(V(nullptr));
+		return RValue<Short4>(createIntCompare(Ice::InstIcmp::Sgt, x.value, y.value));
 	}
 
 	RValue<Short4> CmpEQ(RValue<Short4> x, RValue<Short4> y)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<Short4>(V(nullptr));
+		return RValue<Short4>(Nucleus::createSExt(Nucleus::createICmpEQ(x.value, y.value), Int4::getType()));
 	}
 
 	Type *Short4::getType()
