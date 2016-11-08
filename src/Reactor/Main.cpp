@@ -433,6 +433,92 @@ TEST(SubzeroReactorTest, MinMax)
 	delete routine;
 }
 
+
+TEST(SubzeroReactorTest, NotNeg)
+{
+	Routine *routine = nullptr;
+
+	{
+		Function<Int(Pointer<Byte>)> function;
+		{
+			Pointer<Byte> out = function.Arg<0>();
+
+			*Pointer<Int>(out + 16 * 0) = ~Int(0x55555555);
+			*Pointer<Short>(out + 16 * 1) = ~Short(0x5555);
+			*Pointer<Int4>(out + 16 * 2) = ~Int4(0x55555555, 0xAAAAAAAA, 0x00000000, 0xFFFFFFFF);
+			*Pointer<Short4>(out + 16 * 3) = ~Short4(0x5555, 0xAAAA, 0x0000, 0xFFFF);
+
+			*Pointer<Int>(out + 16 * 4) = -Int(0x55555555);
+			*Pointer<Short>(out + 16 * 5) = -Short(0x5555);
+			*Pointer<Int4>(out + 16 * 6) = -Int4(0x55555555, 0xAAAAAAAA, 0x00000000, 0xFFFFFFFF);
+			*Pointer<Short4>(out + 16 * 7) = -Short4(0x5555, 0xAAAA, 0x0000, 0xFFFF);
+
+			*Pointer<Float4>(out + 16 * 8) = -Float4(1.0f, -1.0f, 0.0f, -0.0f);
+
+			Return(0);
+		}
+
+		routine = function(L"one");
+
+		if(routine)
+		{
+			int out[10][4];
+
+			memset(&out, 0, sizeof(out));
+
+			int(*callable)(void*) = (int(*)(void*))routine->getEntry();
+			callable(&out);
+
+			EXPECT_EQ(out[0][0], 0xAAAAAAAA);
+			EXPECT_EQ(out[0][1], 0x00000000);
+			EXPECT_EQ(out[0][2], 0x00000000);
+			EXPECT_EQ(out[0][3], 0x00000000);
+
+			EXPECT_EQ(out[1][0], 0x0000AAAA);
+			EXPECT_EQ(out[1][1], 0x00000000);
+			EXPECT_EQ(out[1][2], 0x00000000);
+			EXPECT_EQ(out[1][3], 0x00000000);
+
+			EXPECT_EQ(out[2][0], 0xAAAAAAAA);
+			EXPECT_EQ(out[2][1], 0x55555555);
+			EXPECT_EQ(out[2][2], 0xFFFFFFFF);
+			EXPECT_EQ(out[2][3], 0x00000000);
+
+			EXPECT_EQ(out[3][0], 0x5555AAAA);
+			EXPECT_EQ(out[3][1], 0x0000FFFF);
+			EXPECT_EQ(out[3][2], 0x00000000);
+			EXPECT_EQ(out[3][3], 0x00000000);
+
+			EXPECT_EQ(out[4][0], 0xAAAAAAAB);
+			EXPECT_EQ(out[4][1], 0x00000000);
+			EXPECT_EQ(out[4][2], 0x00000000);
+			EXPECT_EQ(out[4][3], 0x00000000);
+
+			EXPECT_EQ(out[5][0], 0x0000AAAB);
+			EXPECT_EQ(out[5][1], 0x00000000);
+			EXPECT_EQ(out[5][2], 0x00000000);
+			EXPECT_EQ(out[5][3], 0x00000000);
+
+			EXPECT_EQ(out[6][0], 0xAAAAAAAB);
+			EXPECT_EQ(out[6][1], 0x55555556);
+			EXPECT_EQ(out[6][2], 0x00000000);
+			EXPECT_EQ(out[6][3], 0x00000001);
+			
+			EXPECT_EQ(out[7][0], 0x5556AAAB);
+			EXPECT_EQ(out[7][1], 0x00010000);
+			EXPECT_EQ(out[7][2], 0x00000000);
+			EXPECT_EQ(out[7][3], 0x00000000);
+
+			EXPECT_EQ(out[8][0], 0xBF800000);
+			EXPECT_EQ(out[8][1], 0x3F800000);
+			EXPECT_EQ(out[8][2], 0x80000000);
+			EXPECT_EQ(out[8][3], 0x00000000);
+		}
+	}
+
+	delete routine;
+}
+
 int main(int argc, char **argv)
 {
 	::testing::InitGoogleTest(&argc, argv);

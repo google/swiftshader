@@ -95,7 +95,7 @@ namespace sw
 		return reinterpret_cast<Value*>(v);
 	}
 
-	Value *C(Ice::Constant *c)   // Only safe for casting right-hand side operand
+	Value *C(Ice::Constant *c)
 	{
 		return reinterpret_cast<Value*>(c);
 	}
@@ -644,17 +644,30 @@ namespace sw
 
 	Value *Nucleus::createNeg(Value *v)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		return createSub(createNullValue(T(v->getType())), v);
 	}
 
 	Value *Nucleus::createFNeg(Value *v)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		double c[4] = {-0.0, -0.0, -0.0, -0.0};
+		Value *negativeZero = Ice::isVectorType(v->getType()) ?
+		                      createConstantVector(c, T(v->getType())) :
+		                      C(::context->getConstantFloat(-0.0f));
+
+		return createFSub(negativeZero, v);
 	}
 
 	Value *Nucleus::createNot(Value *v)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		if(Ice::isScalarIntegerType(v->getType()))
+		{
+			return createXor(v, C(::context->getConstantInt(v->getType(), -1)));
+		}
+		else   // Vector
+		{
+			int64_t c[4] = {-1, -1, -1, -1};
+			return createXor(v, createConstantVector(c, T(v->getType())));
+		}
 	}
 
 	Value *Nucleus::createLoad(Value *ptr, Type *type, bool isVolatile, unsigned int align)
@@ -3157,12 +3170,12 @@ namespace sw
 
 	RValue<Short4> operator-(RValue<Short4> val)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<Short4>(V(nullptr));
+		return RValue<Short4>(Nucleus::createNeg(val.value));
 	}
 
 	RValue<Short4> operator~(RValue<Short4> val)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<Short4>(V(nullptr));
+		return RValue<Short4>(Nucleus::createNot(val.value));
 	}
 
 	RValue<Short4> RoundShort4(RValue<Float4> cast)
@@ -3512,7 +3525,7 @@ namespace sw
 
 	RValue<UShort4> operator~(RValue<UShort4> val)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<UShort4>(V(nullptr));
+		return RValue<UShort4>(Nucleus::createNot(val.value));
 	}
 
 	RValue<UShort4> Max(RValue<UShort4> x, RValue<UShort4> y)
@@ -4748,7 +4761,7 @@ namespace sw
 
 	RValue<Int2> operator~(RValue<Int2> val)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<Int2>(V(nullptr));
+		return RValue<Int2>(Nucleus::createNot(val.value));
 	}
 
 	RValue<Long1> UnpackLow(RValue<Int2> x, RValue<Int2> y)
