@@ -275,6 +275,18 @@
     <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceTargetLoweringX8664.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceAssemblerX8664.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceConditionCodesX8664.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceInstX8664.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceRegistersX8664.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="$(SolutionDir)third_party\pnacl-subzero\src\IceClFlags.def">

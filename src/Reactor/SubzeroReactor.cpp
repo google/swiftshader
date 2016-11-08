@@ -3307,12 +3307,12 @@ namespace sw
 
 	RValue<Short4> Insert(RValue<Short4> val, RValue<Short> element, int i)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<Short4>(V(nullptr));
+		return RValue<Short4>(Nucleus::createInsertElement(val.value, element.value, i));
 	}
 
 	RValue<Short> Extract(RValue<Short4> val, int i)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<Short>(V(nullptr));
+		return RValue<Short>(Nucleus::createExtractElement(val.value, Int::getType(), i));
 	}
 
 	RValue<Short4> CmpGT(RValue<Short4> x, RValue<Short4> y)
@@ -4776,12 +4776,12 @@ namespace sw
 
 	RValue<Int> Extract(RValue<Int2> val, int i)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<Int>(V(nullptr));
+		return RValue<Int>(Nucleus::createExtractElement(val.value, Int::getType(), i));
 	}
 
 	RValue<Int2> Insert(RValue<Int2> val, RValue<Int> element, int i)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<Int2>(V(nullptr));
+		return RValue<Int2>(Nucleus::createInsertElement(val.value, element.value, i));
 	}
 
 	Type *Int2::getType()
@@ -6187,14 +6187,9 @@ namespace sw
 		return RValue<Float4>(V(result));
 	}
 
-	RValue<Float4> Insert(const Float4 &val, RValue<Float> element, int i)
+	RValue<Float4> Insert(RValue<Float4> x, RValue<Float> element, int i)
 	{
-		Value *value = val.loadValue();
-		Value *insert = Nucleus::createInsertElement(value, element.value, i);
-
-		val = RValue<Float4>(insert);
-
-		return val;
+		return RValue<Float4>(Nucleus::createInsertElement(x.value, element.value, i));
 	}
 
 	RValue<Float> Extract(RValue<Float4> x, int i)
