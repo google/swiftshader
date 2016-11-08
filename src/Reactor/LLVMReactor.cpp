@@ -6470,14 +6470,9 @@ namespace sw
 		return x86::sqrtps(x);
 	}
 
-	RValue<Float4> Insert(const Float4 &val, RValue<Float> element, int i)
+	RValue<Float4> Insert(RValue<Float4> val, RValue<Float> element, int i)
 	{
-		Value *value = val.loadValue();
-		Value *insert = Nucleus::createInsertElement(value, element.value, i);
-
-		val = RValue<Float4>(insert);
-
-		return val;
+		return RValue<Float4>(Nucleus::createInsertElement(val.value, element.value, i));
 	}
 
 	RValue<Float> Extract(RValue<Float4> x, int i)

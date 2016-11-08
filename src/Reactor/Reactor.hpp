@@ -1462,7 +1462,7 @@ namespace sw
 	RValue<Int4> Min(RValue<Int4> x, RValue<Int4> y);
 	RValue<Int4> RoundInt(RValue<Float4> cast);
 	RValue<Short8> Pack(RValue<Int4> x, RValue<Int4> y);
-	RValue<Int> Extract(RValue<Int4> x, int i);
+	RValue<Int> Extract(RValue<Int4> val, int i);
 	RValue<Int4> Insert(RValue<Int4> val, RValue<Int> element, int i);
 	RValue<Int> SignMask(RValue<Int4> x);
 	RValue<Int4> Swizzle(RValue<Int4> x, unsigned char select);
@@ -2135,7 +2135,7 @@ namespace sw
 	RValue<Float4> Rcp_pp(RValue<Float4> val, bool exactAtPow2 = false);
 	RValue<Float4> RcpSqrt_pp(RValue<Float4> val);
 	RValue<Float4> Sqrt(RValue<Float4> x);
-	RValue<Float4> Insert(const Float4 &val, RValue<Float> element, int i);
+	RValue<Float4> Insert(RValue<Float4> val, RValue<Float> element, int i);
 	RValue<Float> Extract(RValue<Float4> x, int i);
 	RValue<Float4> Swizzle(RValue<Float4> x, unsigned char select);
 	RValue<Float4> ShuffleLowHigh(RValue<Float4> x, RValue<Float4> y, unsigned char imm);
@@ -2511,7 +2511,7 @@ namespace sw
 	template<int T>
 	RValue<Float4> SwizzleMask1Float4<T>::operator=(float x) const
 	{
-		return Insert(*parent, Float(x), T & 0x3);
+		return *parent = Insert(*parent, Float(x), T & 0x3);
 	}
 
 	template<int T>
@@ -2523,7 +2523,7 @@ namespace sw
 	template<int T>
 	RValue<Float4> SwizzleMask1Float4<T>::operator=(RValue<Float> rhs) const   // FIXME: Call a non-template function
 	{
-		return Insert(*parent, rhs, T & 0x3);
+		return *parent = Insert(*parent, rhs, T & 0x3);
 	}
 
 	template<int T>
