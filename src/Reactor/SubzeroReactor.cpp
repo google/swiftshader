@@ -1065,7 +1065,17 @@ namespace sw
 
 	static Value *createMask4(Value *lhs, Value *rhs, unsigned char select)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		int64_t mask[4] = {0, 0, 0, 0};
+
+		mask[(select >> 0) & 0x03] = -1;
+		mask[(select >> 2) & 0x03] = -1;
+		mask[(select >> 4) & 0x03] = -1;
+		mask[(select >> 6) & 0x03] = -1;
+
+		Value *condition = Nucleus::createConstantVector(mask, T(Ice::IceType_v4i1));
+		Value *result = Nucleus::createSelect(condition, rhs, lhs);
+
+		return result;
 	}
 
 	Value *Nucleus::createConstantPointer(const void *address, Type *Ty, unsigned int align)
@@ -1176,6 +1186,7 @@ namespace sw
 		switch((int)reinterpret_cast<intptr_t>(type))
 		{
 		case Ice::IceType_v4i32:
+		case Ice::IceType_v4i1:
 			{
 				const int initializer[4] = {(int)i[0], (int)i[1], (int)i[2], (int)i[3]};
 				static_assert(sizeof(initializer) == vectorSize, "!");
@@ -1190,6 +1201,7 @@ namespace sw
 			}
 			break;
 		case Ice::IceType_v8i16:
+		case Ice::IceType_v8i1:
 			{
 				const short initializer[8] = {(short)i[0], (short)i[1], (short)i[2], (short)i[3], (short)i[4], (short)i[5], (short)i[6], (short)i[7]};
 				static_assert(sizeof(initializer) == vectorSize, "!");
@@ -1197,6 +1209,7 @@ namespace sw
 			}
 			break;
 		case Ice::IceType_v16i8:
+		case Ice::IceType_v16i1:
 			{
 				const char initializer[16] = {(char)i[0], (char)i[1], (char)i[2], (char)i[3], (char)i[4], (char)i[5], (char)i[6], (char)i[7], (char)i[8], (char)i[9], (char)i[10], (char)i[11], (char)i[12], (char)i[13], (char)i[14], (char)i[15]};
 				static_assert(sizeof(initializer) == vectorSize, "!");
@@ -6230,10 +6243,10 @@ namespace sw
 	RValue<Float4> Mask(Float4 &lhs, RValue<Float4> rhs, unsigned char select)
 	{
 		Value *vector = lhs.loadValue();
-		Value *shuffle = createMask4(vector, rhs.value, select);
-		lhs.storeValue(shuffle);
+		Value *result = createMask4(vector, rhs.value, select);
+		lhs.storeValue(result);
 
-		return RValue<Float4>(shuffle);
+		return RValue<Float4>(result);
 	}
 
 	RValue<Int> SignMask(RValue<Float4> x)
