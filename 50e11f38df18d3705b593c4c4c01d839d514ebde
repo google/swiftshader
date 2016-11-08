@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2bc73767_838f1d0a",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 4112,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-11-08T19:50:57Z",
+      "side": 1,
+      "message": "I believe this was an ANGLE-specific restriction. Could you check with the ES2 spec if this is supposed to be allowed or not?",
+      "range": {
+        "startLine": 4108,
+        "startChar": 2,
+        "endLine": 4112,
+        "endChar": 3
+      },
+      "revId": "50e11f38df18d3705b593c4c4c01d839d514ebde",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2bc73767_43e7c5d1",
+        "filename": "src/OpenGL/libGLESv2/Device.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 675,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-11-08T19:50:57Z",
+      "side": 1,
+      "message": "Can we ever intentionally end up here with all the conditions false? If not, please add an UNREACHABLE().",
+      "range": {
+        "startLine": 675,
+        "startChar": 2,
+        "endLine": 675,
+        "endChar": 3
+      },
+      "revId": "50e11f38df18d3705b593c4c4c01d839d514ebde",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2bc73767_833d5d26",
+        "filename": "src/Renderer/Surface.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2632,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-11-08T19:50:57Z",
+      "side": 1,
+      "message": "Also use this in PixelProcessor::update() for state.quadLayoutDepthBuffer",
+      "range": {
+        "startLine": 2632,
+        "startChar": 15,
+        "endLine": 2632,
+        "endChar": 28
+      },
+      "revId": "50e11f38df18d3705b593c4c4c01d839d514ebde",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
