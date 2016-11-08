@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "2bc73767_2358089b",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 4112,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-11-08T21:11:48Z",
+      "side": 1,
+      "message": "Yes, the only place this restriction is mentioned is in:\n\nhttps://www.khronos.org/registry/gles/extensions/ANGLE/ANGLE_framebuffer_blit.txt\n\n\"If \u003cmask\u003e includes DEPTH_BUFFER_BIT or STENCIL_BUFFER_BIT, only complete buffers can be copied.  If the source rectangle does not specify the complete source buffer or the destination rectangle (after factoring the scissor region, if applicable) does not specify the complete destination buffer, an INVALID_OPERATION error is generated.\"\n\nNote that this isn\u0027t a restriction in NV_framebuffer_blit, which is also exposed in the extension strings, and BlitFramebufferANGLE calls BlitFramebufferNV, so we use the same call for functions with slightly different specs.\n\nWe could choose to ignore Angle\u0027s spec or make it a parameter to allow both behaviors.",
+      "parentUuid": "2bc73767_838f1d0a",
+      "range": {
+        "startLine": 4108,
+        "startChar": 2,
+        "endLine": 4112,
+        "endChar": 3
+      },
+      "revId": "50e11f38df18d3705b593c4c4c01d839d514ebde",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2bc73767_43e7c5d1",
         "filename": "src/OpenGL/libGLESv2/Device.cpp",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2016-11-08T19:50:57Z",
       "side": 1,
       "message": "Can we ever intentionally end up here with all the conditions false? If not, please add an UNREACHABLE().",
+      "range": {
+        "startLine": 675,
+        "startChar": 2,
+        "endLine": 675,
+        "endChar": 3
+      },
+      "revId": "50e11f38df18d3705b593c4c4c01d839d514ebde",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2bc73767_c342f4a9",
+        "filename": "src/OpenGL/libGLESv2/Device.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 675,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-11-08T21:11:48Z",
+      "side": 1,
+      "message": "It can be acceptable that there\u0027s just nothing to do, I think.",
+      "parentUuid": "2bc73767_43e7c5d1",
       "range": {
         "startLine": 675,
         "startChar": 2,
