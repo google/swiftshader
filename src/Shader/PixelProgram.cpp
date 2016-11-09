@@ -1741,11 +1741,11 @@ namespace sw
 				UInt index = callStack[--stackIndex];
 
 				Value *value = index.loadValue();
-				Value *switchInst = Nucleus::createSwitch(value, unreachableBlock, (int)callRetBlock[currentLabel].size());
+				SwitchCases *switchCases = Nucleus::createSwitch(value, unreachableBlock, (int)callRetBlock[currentLabel].size());
 
 				for(unsigned int i = 0; i < callRetBlock[currentLabel].size(); i++)
 				{
-					Nucleus::addSwitchCase(switchInst, i, callRetBlock[currentLabel][i]);
+					Nucleus::addSwitchCase(switchCases, i, callRetBlock[currentLabel][i]);
 				}
 			}
 			else if(callRetBlock[currentLabel].size() == 1)   // Jump directly to the unique return destination

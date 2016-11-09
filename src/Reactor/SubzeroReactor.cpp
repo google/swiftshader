@@ -72,6 +72,7 @@ namespace sw
 	};
 
 	class Value : public Ice::Variable {};
+	class SwitchCases : public Ice::InstSwitch {};
 	class BasicBlock : public Ice::CfgNode {};
 
 	Ice::Type T(Type *t)
@@ -218,15 +219,15 @@ namespace sw
 		case R_X86_64_NONE:
 			// No relocation
 			break;
-	//	case R_X86_64_64:
-	//		*patchSite = (int32_t)((intptr_t)symbolValue + *patchSite) + relocation->r_addend;
-	//		break;
+		case R_X86_64_64:
+			*(int64_t*)patchSite = (int64_t)((intptr_t)symbolValue + *(int64_t*)patchSite) + relocation.r_addend;
+			break;
 		case R_X86_64_PC32:
 			*patchSite = (int32_t)((intptr_t)symbolValue + *patchSite - (intptr_t)patchSite) + relocation.r_addend;
 			break;
-	//	case R_X86_64_32S:
-	//		*patchSite = (int32_t)((intptr_t)symbolValue + *patchSite) + relocation.r_addend;
-	//		break;
+		case R_X86_64_32S:
+			*patchSite = (int32_t)((intptr_t)symbolValue + *patchSite) + relocation.r_addend;
+			break;
 		default:
 			assert(false && "Unsupported relocation type");
 			return nullptr;
@@ -446,6 +447,7 @@ namespace sw
 		objectWriter->writeFunctionCode(::function->getFunctionName(), false, assembler.get());
 		::context->lowerGlobals("last");
 		::context->lowerConstants();
+		::context->lowerJumpTables();
 		objectWriter->setUndefinedSyms(::context->getConstantExternSyms());
 		objectWriter->writeNonUserSections();
 
@@ -1034,14 +1036,17 @@ namespace sw
 		return V(result);
 	}
 
-	Value *Nucleus::createSwitch(Value *v, BasicBlock *Dest, unsigned NumCases)
+	SwitchCases *Nucleus::createSwitch(Value *control, BasicBlock *defaultBranch, unsigned numCases)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		auto switchInst = Ice::InstSwitch::create(::function, numCases, control, defaultBranch);
+		::basicBlock->appendInst(switchInst);
+
+		return reinterpret_cast<SwitchCases*>(switchInst);
 	}
 
-	void Nucleus::addSwitchCase(Value *Switch, int Case, BasicBlock *Branch)
+	void Nucleus::addSwitchCase(SwitchCases *switchCases, int label, BasicBlock *branch)
 	{
-		assert(false && "UNIMPLEMENTED"); return;
+		switchCases->addBranch(label, label, branch);
 	}
 
 	void Nucleus::createUnreachable()
