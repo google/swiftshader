@@ -3689,7 +3689,8 @@ namespace sw
 
 	RValue<Int4> Abs(RValue<Int4> x)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<Int4>(V(nullptr));
+		auto negative = x >> 31;
+		return (x ^ negative) - negative;
 	}
 
 	RValue<Short8> MulHigh(RValue<Short8> x, RValue<Short8> y)
@@ -6154,7 +6155,11 @@ namespace sw
 
 	RValue<Float4> Abs(RValue<Float4> x)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<Float4>(V(nullptr));
+		Value *vector = Nucleus::createBitCast(x.value, Int4::getType());
+		int64_t constantVector[4] = {0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF};
+		Value *result = Nucleus::createAnd(vector, V(Nucleus::createConstantVector(constantVector, Int4::getType())));
+
+		return As<Float4>(result);
 	}
 
 	RValue<Float4> Max(RValue<Float4> x, RValue<Float4> y)
