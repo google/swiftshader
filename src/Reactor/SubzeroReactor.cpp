@@ -2926,15 +2926,23 @@ namespace sw
 
 	Short4::Short4(RValue<Int> cast)
 	{
-		Value *extend = Nucleus::createZExt(cast.value, Long::getType());
-		Value *swizzle = Swizzle(RValue<Short4>(extend), 0x00).value;
+		Value *vector = loadValue();
+		Value *insert = Nucleus::createInsertElement(vector, cast.value, 0);
+		Value *swizzle = Swizzle(RValue<Short4>(insert), 0x00).value;
 
 		storeValue(swizzle);
 	}
 
 	Short4::Short4(RValue<Int4> cast)
 	{
-		assert(false && "UNIMPLEMENTED");
+		int pshufb[16] = {0, 1, 4, 5, 8, 9, 12, 13, 0, 1, 4, 5, 8, 9, 12, 13};
+		Value *byte16 = Nucleus::createBitCast(cast.value, Byte16::getType());
+		Value *packed = Nucleus::createShuffleVector(byte16, byte16, pshufb);
+
+		Value *int2 = RValue<Int2>(Int2(RValue<Int4>(packed))).value;
+		Value *short4 = Nucleus::createBitCast(int2, Short4::getType());
+
+		storeValue(short4);
 	}
 
 //	Short4::Short4(RValue<Float> cast)
@@ -3198,7 +3206,8 @@ namespace sw
 
 	RValue<Short4> RoundShort4(RValue<Float4> cast)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<Short4>(V(nullptr));
+		RValue<Int4> int4 = RoundInt(cast);
+		return As<Short4>(Pack(int4, int4));
 	}
 
 	RValue<Short4> Max(RValue<Short4> x, RValue<Short4> y)
@@ -3355,7 +3364,22 @@ namespace sw
 
 	UShort4::UShort4(RValue<Float4> cast, bool saturate)
 	{
-		assert(false && "UNIMPLEMENTED");
+		if(saturate)
+		{
+			if(true)   // SSE 4.1
+			{
+				Int4 int4(Min(cast, Float4(0xFFFF)));   // packusdw takes care of 0x0000 saturation
+				*this = As<Short4>(Pack(As<UInt4>(int4), As<UInt4>(int4)));
+			}
+			else
+			{
+				*this = Short4(Int4(Max(Min(cast, Float4(0xFFFF)), Float4(0x0000))));
+			}
+		}
+		else
+		{
+			*this = Short4(Int4(cast));
+		}
 	}
 
 	UShort4::UShort4()
@@ -4622,7 +4646,10 @@ namespace sw
 
 	Int2::Int2(RValue<Int> lo, RValue<Int> hi)
 	{
-		assert(false && "UNIMPLEMENTED");
+		int shuffle[4] = {0, 4, 1, 5};
+		Value *packed = Nucleus::createShuffleVector(Int4(lo).loadValue(), Int4(hi).loadValue(), shuffle);
+
+		storeValue(Nucleus::createBitCast(packed, Int2::getType()));
 	}
 
 	RValue<Int2> Int2::operator=(RValue<Int2> rhs) const
@@ -5009,12 +5036,39 @@ namespace sw
 
 	Int4::Int4(RValue<Byte4> cast)
 	{
-		assert(false && "UNIMPLEMENTED");
+		Value *x = Nucleus::createBitCast(cast.value, Int::getType());
+		Value *a = Nucleus::createInsertElement(loadValue(), x, 0);
+
+		Value *e;
+		int swizzle[16] = {0, 16, 1, 17, 2, 18, 3, 19, 4, 20, 5, 21, 6, 22, 7, 23};
+		Value *b = Nucleus::createBitCast(a, Byte16::getType());
+		Value *c = Nucleus::createShuffleVector(b, V(Nucleus::createNullValue(Byte16::getType())), swizzle);
+
+		int swizzle2[8] = {0, 8, 1, 9, 2, 10, 3, 11};
+		Value *d = Nucleus::createBitCast(c, Short8::getType());
+		e = Nucleus::createShuffleVector(d, V(Nucleus::createNullValue(Short8::getType())), swizzle2);
+
+		Value *f = Nucleus::createBitCast(e, Int4::getType());
+		storeValue(f);
 	}
 
 	Int4::Int4(RValue<SByte4> cast)
 	{
-		assert(false && "UNIMPLEMENTED");
+		Value *x = Nucleus::createBitCast(cast.value, Int::getType());
+		Value *a = Nucleus::createInsertElement(loadValue(), x, 0);
+
+		Value *e;
+		int swizzle[16] = {0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7};
+		Value *b = Nucleus::createBitCast(a, Byte16::getType());
+		Value *c = Nucleus::createShuffleVector(b, b, swizzle);
+
+		int swizzle2[8] = {0, 0, 1, 1, 2, 2, 3, 3};
+		Value *d = Nucleus::createBitCast(c, Short8::getType());
+		e = Nucleus::createShuffleVector(d, d, swizzle2);
+
+		Value *f = Nucleus::createBitCast(e, Int4::getType());
+		Value *g = Nucleus::createAShr(f, C(::context->getConstantInt32(24)));
+		storeValue(g);
 	}
 
 	Int4::Int4(RValue<Float4> cast)
@@ -5028,12 +5082,19 @@ namespace sw
 
 	Int4::Int4(RValue<Short4> cast)
 	{
-		assert(false && "UNIMPLEMENTED");
+		int swizzle[8] = {0, 0, 1, 1, 2, 2, 3, 3};
+		Value *c = Nucleus::createShuffleVector(cast.value, cast.value, swizzle);
+		Value *d = Nucleus::createBitCast(c, Int4::getType());
+		Value *e = Nucleus::createAShr(d, C(::context->getConstantInt32(16)));
+		storeValue(e);
 	}
 
 	Int4::Int4(RValue<UShort4> cast)
 	{
-		assert(false && "UNIMPLEMENTED");
+		int swizzle[8] = {0, 8, 1, 9, 2, 10, 3, 11};
+		Value *c = Nucleus::createShuffleVector(cast.value, Short8(0, 0, 0, 0, 0, 0, 0, 0).loadValue(), swizzle);
+		Value *d = Nucleus::createBitCast(c, Int4::getType());
+		storeValue(d);
 	}
 
 	Int4::Int4()
@@ -5124,7 +5185,13 @@ namespace sw
 	{
 	//	xyzw.parent = this;
 
-		assert(false && "UNIMPLEMENTED");
+		Value *vector = loadValue();
+		Value *insert = Nucleus::createInsertElement(vector, rhs.value, 0);
+
+		int swizzle[4] = {0, 0, 0, 0};
+		Value *replicate = Nucleus::createShuffleVector(insert, insert, swizzle);
+
+		storeValue(replicate);
 	}
 
 	Int4::Int4(const Int &rhs)
@@ -5929,14 +5996,20 @@ namespace sw
 	{
 		xyzw.parent = this;
 
-		assert(false && "UNIMPLEMENTED");
+		Value *a = Int4(cast).loadValue();
+		Value *xyzw = Nucleus::createSIToFP(a, Float4::getType());
+
+		storeValue(xyzw);
 	}
 
 	Float4::Float4(RValue<SByte4> cast)
 	{
 		xyzw.parent = this;
 
-		assert(false && "UNIMPLEMENTED");
+		Value *a = Int4(cast).loadValue();
+		Value *xyzw = Nucleus::createSIToFP(a, Float4::getType());
+
+		storeValue(xyzw);
 	}
 
 	Float4::Float4(RValue<Short4> cast)
@@ -6033,7 +6106,13 @@ namespace sw
 	{
 		xyzw.parent = this;
 
-		assert(false && "UNIMPLEMENTED");
+		Value *vector = loadValue();
+		Value *insert = Nucleus::createInsertElement(vector, rhs.value, 0);
+
+		int swizzle[4] = {0, 0, 0, 0};
+		Value *replicate = Nucleus::createShuffleVector(insert, insert, swizzle);
+
+		storeValue(replicate);
 	}
 
 	Float4::Float4(const Float &rhs)
