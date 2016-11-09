@@ -23,6 +23,7 @@ namespace sw
 {
 	class Type;
 	class Value;
+	class SwitchCases;
 	class BasicBlock;
 	class Routine;
 
@@ -144,8 +145,8 @@ namespace sw
 
 		// Other instructions
 		static Value *createSelect(Value *C, Value *ifTrue, Value *ifFalse);
-		static Value *createSwitch(Value *V, BasicBlock *Dest, unsigned NumCases);
-		static void addSwitchCase(Value *Switch, int Case, BasicBlock *Branch);
+		static SwitchCases *createSwitch(Value *control, BasicBlock *defaultBranch, unsigned numCases);
+		static void addSwitchCase(SwitchCases *switchCases, int label, BasicBlock *branch);
 		static void createUnreachable();
 
 		// Constant values

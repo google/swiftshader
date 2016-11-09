@@ -81,6 +81,7 @@ namespace sw
 
 	class Type : public llvm::Type {};
 	class Value : public llvm::Value {};
+	class SwitchCases : public llvm::SwitchInst {};
 	class BasicBlock : public llvm::BasicBlock {};
 
 	inline Type *T(llvm::Type *t)
@@ -661,14 +662,14 @@ namespace sw
 		return V(::builder->CreateSelect(C, ifTrue, ifFalse));
 	}
 
-	Value *Nucleus::createSwitch(Value *v, BasicBlock *Dest, unsigned NumCases)
+	SwitchCases *Nucleus::createSwitch(Value *control, BasicBlock *defaultBranch, unsigned numCases)
 	{
-		return V(::builder->CreateSwitch(v, Dest, NumCases));
+		return reinterpret_cast<SwitchCases*>(::builder->CreateSwitch(control, defaultBranch, numCases));
 	}
 
-	void Nucleus::addSwitchCase(Value *Switch, int Case, BasicBlock *Branch)
+	void Nucleus::addSwitchCase(SwitchCases *switchCases, int label, BasicBlock *branch)
 	{
-		reinterpret_cast<SwitchInst*>(Switch)->addCase(llvm::ConstantInt::get(Type::getInt32Ty(*::context), Case, true), Branch);
+		switchCases->addCase(llvm::ConstantInt::get(Type::getInt32Ty(*::context), label, true), branch);
 	}
 
 	void Nucleus::createUnreachable()
