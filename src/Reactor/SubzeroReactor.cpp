@@ -1073,7 +1073,7 @@ namespace sw
 		mask[(select >> 6) & 0x03] = -1;
 
 		Value *condition = Nucleus::createConstantVector(mask, T(Ice::IceType_v4i1));
-		Value *result = Nucleus::createSelect(condition, lhs, rhs);
+		Value *result = Nucleus::createSelect(condition, rhs, lhs);
 
 		return result;
 	}
