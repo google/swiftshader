@@ -15,7 +15,7 @@ def Translate(ll_files, extra_args, obj, verbose, target):
   Use pnacl-llc to translate textual bitcode input ll_files into object file
   obj, using extra_args as the architectural flags.
   """
-  externalize = [] if target == 'mips32' else ['-externalize']
+  externalize = ['-externalize']
   shellcmd(['cat'] + ll_files + ['|',
             'pnacl-llc',
             '-function-sections',
@@ -24,10 +24,10 @@ def Translate(ll_files, extra_args, obj, verbose, target):
             '-bitcode-format=llvm',
             '-o', obj
     ] + extra_args + externalize, echo=verbose)
-  strip_syms = [] if target == 'mips32' else ['nacl_tp_tdb_offset',
-                                              'nacl_tp_tls_offset']
+  localize_syms = ['nacl_tp_tdb_offset', 'nacl_tp_tls_offset']
+
   shellcmd([GetObjcopyCmd(target), obj] +
-    [('--strip-symbol=' + sym) for sym in strip_syms])
+    [('--localize-symbol=' + sym) for sym in localize_syms])
 
 
 def PartialLink(obj_files, extra_args, lib, verbose):
