@@ -1,0 +1,157 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8b62e38d_05de8525",
+        "filename": "src/Main/BUILD.gn",
+        "patchSetId": 2
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5885
+      },
+      "writtenOn": "2016-11-10T18:21:02Z",
+      "side": 1,
+      "message": "This warning tends to find lots of bugs. I strongly suggest that you fix where it fires, and then turn it on.",
+      "revId": "03b67af45753d2011c006016b91cb21ca1d8a106",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8b62e38d_25e709fd",
+        "filename": "src/OpenGL/common/BUILD.gn",
+        "patchSetId": 2
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5885
+      },
+      "writtenOn": "2016-11-10T18:21:02Z",
+      "side": 1,
+      "message": "This warning firing is also usually a serious bug. Fix and enable.",
+      "revId": "03b67af45753d2011c006016b91cb21ca1d8a106",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8b62e38d_05c76555",
+        "filename": "src/OpenGL/compiler/BUILD.gn",
+        "patchSetId": 2
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5885
+      },
+      "writtenOn": "2016-11-10T18:21:02Z",
+      "side": 1,
+      "message": "These two usually aren\u0027t bugs, but make for confusing code. I\u0027d fix and enable these as well.",
+      "revId": "03b67af45753d2011c006016b91cb21ca1d8a106",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8b62e38d_a5cbf95d",
+        "filename": "src/OpenGL/libEGL/BUILD.gn",
+        "patchSetId": 2
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5885
+      },
+      "writtenOn": "2016-11-10T18:21:02Z",
+      "side": 1,
+      "message": "ditto",
+      "revId": "03b67af45753d2011c006016b91cb21ca1d8a106",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8b62e38d_65b661e1",
+        "filename": "src/OpenGL/libGLESv2/BUILD.gn",
+        "patchSetId": 2
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5885
+      },
+      "writtenOn": "2016-11-10T18:21:02Z",
+      "side": 1,
+      "message": "fix",
+      "revId": "03b67af45753d2011c006016b91cb21ca1d8a106",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8b62e38d_25c06936",
+        "filename": "src/Reactor/BUILD.gn",
+        "patchSetId": 2
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5885
+      },
+      "writtenOn": "2016-11-10T18:21:02Z",
+      "side": 1,
+      "message": "fix",
+      "revId": "03b67af45753d2011c006016b91cb21ca1d8a106",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8b62e38d_45bd5db5",
+        "filename": "src/Renderer/BUILD.gn",
+        "patchSetId": 2
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5885
+      },
+      "writtenOn": "2016-11-10T18:21:02Z",
+      "side": 1,
+      "message": "fix",
+      "revId": "03b67af45753d2011c006016b91cb21ca1d8a106",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8b62e38d_05b0c5dc",
+        "filename": "src/Renderer/BUILD.gn",
+        "patchSetId": 2
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5885
+      },
+      "writtenOn": "2016-11-10T18:21:02Z",
+      "side": 1,
+      "message": "this one isn\u0027t actually buggy code, but it points out non-standards-conforming code. And it\u0027s easy to fix, might as well do it.",
+      "revId": "03b67af45753d2011c006016b91cb21ca1d8a106",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8b62e38d_a5a459a3",
+        "filename": "src/Shader/BUILD.gn",
+        "patchSetId": 2
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5885
+      },
+      "writtenOn": "2016-11-10T18:21:02Z",
+      "side": 1,
+      "message": "fix",
+      "revId": "03b67af45753d2011c006016b91cb21ca1d8a106",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
