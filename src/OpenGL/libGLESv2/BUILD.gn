@@ -27,7 +27,6 @@ config("swiftshader_libGLESv2_private_config") {
     if (is_clang)
     {
       cflags += [
-        "-Wno-delete-incomplete",
         "-D__STDC_CONSTANT_MACROS",
         "-D__STDC_LIMIT_MACROS",
       ]

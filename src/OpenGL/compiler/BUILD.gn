@@ -25,13 +25,6 @@ config("swiftshader_opengl_compiler_private_config") {
     if (!is_debug) {
       cflags += [ "/wd4189" ] # local variable is initialized but not referenced (variables only used in ASSERTS)
     }
-
-    if (is_clang) {
-      cflags += [
-        "-Wno-unused-function",
-        "-Wno-unused-variable",
-      ]
-    }
   } else {
     cflags = [
       "-DLOG_TAG=\"swiftshader_opengl_compiler\"",

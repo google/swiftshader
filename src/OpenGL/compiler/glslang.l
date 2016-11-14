@@ -84,7 +84,6 @@ static int floatsuffix_check(TParseContext* context);
 
 %option noyywrap nounput never-interactive
 %option yylineno reentrant bison-bridge bison-locations
-%option stack
 %option extra-type="TParseContext*"
 %x COMMENT FIELDS
 
@@ -99,15 +98,6 @@ O           [0-7]
 %{
     TParseContext* context = yyextra;
 %}
-
-    /* Single-line comments */
-"//"[^\n]* ;
-
-    /* Multi-line comments */
-"/*"           { yy_push_state(COMMENT, yyscanner); }
-<COMMENT>. |
-<COMMENT>\n ;
-<COMMENT>"*/"  { yy_pop_state(yyscanner); }
 
 "invariant"    { return(INVARIANT); }
 "highp"        { return(HIGH_PRECISION); }
@@ -494,7 +484,6 @@ int ES2_identifier_ES3_keyword(TParseContext *context, int token)
 int uint_constant(TParseContext *context)
 {
     struct yyguts_t* yyg = (struct yyguts_t*) context->getScanner();
-    yyscan_t yyscanner = (yyscan_t) context->getScanner();
 
     if (context->getShaderVersion() < 300)
     {

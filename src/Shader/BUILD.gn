@@ -23,7 +23,6 @@ config("swiftshader_shader_private_config") {
     if (is_clang) {
       cflags += [
         "-Wno-sign-compare",
-        "-Wno-delete-incomplete",
       ]
     }
   } else {

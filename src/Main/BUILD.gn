@@ -19,7 +19,6 @@ config("swiftshader_main_private_config") {
 
     if (is_clang) {
       cflags += [
-        "-Wno-overloaded-virtual",
         "-Wno-string-conversion",
         "-Wno-sign-compare",
       ]

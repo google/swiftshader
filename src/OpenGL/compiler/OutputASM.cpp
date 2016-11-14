@@ -1508,8 +1508,8 @@ namespace glsl
 			if(visit == PostVisit)
 			{
 				TIntermTyped *arg0 = arg[0]->getAsTyped();
-				TIntermTyped *arg1 = arg[1]->getAsTyped();
-				ASSERT((arg0->getNominalSize() == arg1->getNominalSize()) && (arg0->getSecondarySize() == arg1->getSecondarySize()));
+				ASSERT((arg0->getNominalSize() == arg[1]->getAsTyped()->getNominalSize()) &&
+				       (arg0->getSecondarySize() == arg[1]->getAsTyped()->getSecondarySize()));
 
 				int size = arg0->getNominalSize();
 				for(int i = 0; i < size; i++)
@@ -2169,8 +2169,7 @@ namespace glsl
 
 				if(memberType.getBasicType() == EbtBool)
 				{
-					int arraySize = (memberType.isArray() ? memberType.getArraySize() : 1);
-					ASSERT(argumentInfo.clampedIndex < arraySize);
+					ASSERT(argumentInfo.clampedIndex < (memberType.isArray() ? memberType.getArraySize() : 1)); // index < arraySize
 
 					// Convert the packed bool, which is currently an int, to a true bool
 					Instruction *instruction = new Instruction(sw::Shader::OPCODE_I2B);
@@ -2189,9 +2188,8 @@ namespace glsl
 				{
 					int numCols = memberType.getNominalSize();
 					int numRows = memberType.getSecondarySize();
-					int arraySize = (memberType.isArray() ? memberType.getArraySize() : 1);
 
-					ASSERT(argumentInfo.clampedIndex < (numCols * arraySize));
+					ASSERT(argumentInfo.clampedIndex < (numCols * (memberType.isArray() ? memberType.getArraySize() : 1))); // index < cols * arraySize
 
 					unsigned int dstIndex = registerIndex(&unpackedUniform);
 					unsigned int srcSwizzle = (argumentInfo.clampedIndex % numCols) * 0x55;
