@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d0472c8e_7d43aaaf",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 4110,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-11-15T15:30:21Z",
+      "side": 1,
+      "message": "nit: ANGLE_framebuffer_blit\n\nElse it sounds as if it\u0027s a SwiftShader limitation, which now is definitely no longer the case, and could incorrectly be removed.",
+      "range": {
+        "startLine": 4110,
+        "startChar": 67,
+        "endLine": 4110,
+        "endChar": 86
+      },
+      "revId": "8b7c4422df2b43a20f2c93c8adbd1bc7e131c0f3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d0472c8e_7dc9ea0e",
+        "filename": "src/OpenGL/libGLESv2/Device.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 675,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-11-15T15:30:21Z",
+      "side": 1,
+      "message": "nit: I\u0027d still prefer an UNREACHABLE() here. As far as I could tell, this is currently unreachable, and if it were ever reached it means we\u0027re not filtering out the no-op early enough.",
+      "range": {
+        "startLine": 675,
+        "startChar": 2,
+        "endLine": 675,
+        "endChar": 3
+      },
+      "revId": "8b7c4422df2b43a20f2c93c8adbd1bc7e131c0f3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d0472c8e_9d92f6e4",
+        "filename": "src/OpenGL/libGLESv2/Texture.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 483,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-11-15T15:30:21Z",
+      "side": 1,
+      "message": "It\u0027s fine for now, but this and the ones below looks weird and it\u0027s an indication that ideally we shouldn\u0027t be using stretchRect() but directly use one of the lower level methods. Could use a refactor one day...",
+      "range": {
+        "startLine": 483,
+        "startChar": 82,
+        "endLine": 483,
+        "endChar": 93
+      },
+      "revId": "8b7c4422df2b43a20f2c93c8adbd1bc7e131c0f3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
