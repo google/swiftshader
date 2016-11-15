@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d0472c8e_5d2eaec0",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1512,
+      "author": {
+        "id": 5885
+      },
+      "writtenOn": "2016-11-15T15:38:04Z",
+      "side": 1,
+      "message": "Other strategies for variables in asserts are:\n\n* `(void)arg1;  // Used in assert` This suppresses the warning\n* Put the variable in an `if !defined(NDEBUG)` blog (or whatever controls your ASSERT macro)\n\nBut what you have is fine too if you\u0027re happy with that.",
+      "revId": "98a0ac77817539e6f9822eaeb6ba083102cb4011",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d0472c8e_7d2d6abf",
+        "filename": "src/OpenGL/libEGL/main.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 5885
+      },
+      "writtenOn": "2016-11-15T15:38:04Z",
+      "side": 1,
+      "message": "nit: style guide prefers `if !defined` over `ifndef` (cf previous line)",
+      "revId": "98a0ac77817539e6f9822eaeb6ba083102cb4011",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
