@@ -33,6 +33,24 @@
       "revId": "98a0ac77817539e6f9822eaeb6ba083102cb4011",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d0472c8e_3dc482a0",
+        "filename": "src/OpenGL/libEGL/main.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-11-15T16:14:02Z",
+      "side": 1,
+      "message": "These functions are called from line 151, which uses \"#ifndef NDEBUG\" at line 150, so I used the identical line here. It appears there\u0027s not a consistent style used in this file.",
+      "parentUuid": "d0472c8e_7d2d6abf",
+      "revId": "98a0ac77817539e6f9822eaeb6ba083102cb4011",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
