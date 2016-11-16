@@ -2225,9 +2225,15 @@ namespace sw
 //	RValue<Array<T>> operator--(const Array<T> &val, int);   // Post-decrement
 //	const Array<T> &operator--(const Array<T> &val);   // Pre-decrement
 
-	struct Loop
+	bool branch(RValue<Bool> cmp, BasicBlock *bodyBB, BasicBlock *endBB);
+	void endIf(BasicBlock *falseBB);
+	bool elseBlock(BasicBlock *falseBB);
+	BasicBlock *beginElse();
+
+	class ForData
 	{
-		Loop(bool init) : loopOnce(init)
+	public:
+		ForData(bool init) : loopOnce(init)
 		{
 		}
 
@@ -2279,10 +2285,70 @@ namespace sw
 		bool loopOnce = true;
 	};
 
-	bool branch(RValue<Bool> cmp, BasicBlock *bodyBB, BasicBlock *endBB);
-	void endIf(BasicBlock *falseBB);
-	bool elseBlock(BasicBlock *falseBB);
-	BasicBlock *beginElse();
+	class IfData
+	{
+	public:
+		IfData(RValue<Bool> cmp) : loopOnce(true)
+		{
+			trueBB = Nucleus::createBasicBlock();
+			falseBB = Nucleus::createBasicBlock();
+			endBB = Nucleus::createBasicBlock();
+
+			branch(cmp, trueBB, falseBB);
+		}
+
+		operator bool()
+		{
+			return loopOnce;
+		}
+
+		bool operator=(bool value)
+		{
+			Nucleus::createBr(endBB);
+			Nucleus::setInsertBlock(falseBB);
+			Nucleus::createBr(endBB);
+			Nucleus::setInsertBlock(endBB);
+			endIf(falseBB);
+
+			return loopOnce = value;
+		}
+
+	private:
+		BasicBlock *trueBB;
+		BasicBlock *falseBB;
+		BasicBlock *endBB;
+		bool loopOnce;
+	};
+
+	class ElseData
+	{
+	public:
+		ElseData(bool init) : loopOnce(init)
+		{
+			elseBB = beginElse();
+			endBB = Nucleus::getInsertBlock();
+
+			elseBlock(elseBB);
+		}
+
+		operator bool()
+		{
+			return loopOnce;
+		}
+
+		bool operator=(bool value)
+		{
+			Nucleus::createBr(endBB);
+			Nucleus::setInsertBlock(endBB);
+
+			return loopOnce = value;
+		}
+
+	private:
+		BasicBlock *elseBB;
+		BasicBlock *endBB;
+		bool loopOnce;
+	};
 
 	void Return();
 	void Return(bool ret);
@@ -2876,11 +2942,9 @@ namespace sw
 		return ReinterpretCast<T>(val);
 	}
 
-	extern BasicBlock *falseBB__;
-
 	#define For(init, cond, inc) \
-	for(Loop loop__ = true; loop__; loop__ = false) \
-	for(init; loop__.setup() && loop__.test(cond); inc, loop__.end())
+	for(ForData for__ = true; for__; for__ = false) \
+	for(init; for__.setup() && for__.test(cond); inc, for__.end())
 
 	#define While(cond) For((void)0, cond, (void)0)
 
@@ -2896,27 +2960,11 @@ namespace sw
 		Nucleus::setInsertBlock(end__);                     \
 	}
 
-	#define If(cond)                                        \
-	for(BasicBlock *trueBB__ = Nucleus::createBasicBlock(), \
-	    *falseBB__ = Nucleus::createBasicBlock(),           \
-	    *endBB__ = Nucleus::createBasicBlock(),             \
-	    *onceBB__ = endBB__;                                \
-	    onceBB__ && branch(cond, trueBB__, falseBB__);      \
-	    onceBB__ = nullptr,                                 \
-	    Nucleus::createBr(endBB__),                         \
-	    Nucleus::setInsertBlock(falseBB__),                 \
-	    Nucleus::createBr(endBB__),                         \
-	    Nucleus::setInsertBlock(endBB__),                   \
-	    endIf(falseBB__))
+	#define If(cond) \
+	for(IfData if__ = cond; if__; if__ = false)
 
-	#define Else                                         \
-	for(BasicBlock *elseBB__ = beginElse(),              \
-	    *endBB__ = Nucleus::getInsertBlock(),            \
-	    *onceBB__ = endBB__;                             \
-	    onceBB__ && elseBlock(elseBB__);                 \
-	    onceBB__ = nullptr,                              \
-	    Nucleus::createBr(endBB__),                      \
-	    Nucleus::setInsertBlock(endBB__))
+	#define Else \
+	for(ElseData else__ = true; else__; else__ = false)
 }
 
 #endif   // sw_Reactor_hpp
