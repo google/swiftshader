@@ -47,8 +47,6 @@ namespace
 
 	std::mutex codegenMutex;
 
-	sw::BasicBlock *falseBB = nullptr;
-
 	Ice::ELFFileStreamer *elfFile = nullptr;
 	Ice::Fdstream *out = nullptr;
 }
@@ -6531,31 +6529,8 @@ namespace sw
 		return true;
 	}
 
-	void endIf(BasicBlock *falseBB)
-	{
-		::falseBB = falseBB;
-	}
-
-	bool elseBlock(BasicBlock *falseBB)
-	{
-		assert(falseBB && "Else not preceded by If");
-		falseBB->getInsts().back().setDeleted();
-		Nucleus::setInsertBlock(falseBB);
-
-		return true;
-	}
-
-	BasicBlock *beginElse()
-	{
-		BasicBlock *falseBB = ::falseBB;
-		::falseBB = nullptr;
-
-		return falseBB;
-	}
-
 	RValue<Long> Ticks()
 	{
 		assert(false && "UNIMPLEMENTED"); return RValue<Long>(V(nullptr));
 	}
 }
-
