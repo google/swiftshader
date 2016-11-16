@@ -69,3 +69,11 @@ group("swiftshader") {
     "src/OpenGL/libEGL:swiftshader_libEGL",
   ]
 }
+
+group("swiftshader_tests") {
+  testonly = true
+
+  data_deps = [
+    "tests/unittests:swiftshader_unittests",
+  ]
+}
