@@ -29,10 +29,10 @@ namespace sw
 		virtual ~Rasterizer() {};
 
 	protected:
-		const Pointer<Byte> primitive;
-		const Int count;
-		const Int cluster;
-		const Pointer<Byte> data;
+		Pointer<Byte> primitive;
+		Int count;
+		Int cluster;
+		Pointer<Byte> data;
 	};
 }
 

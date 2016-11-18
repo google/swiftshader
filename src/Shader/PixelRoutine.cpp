@@ -868,7 +868,7 @@ namespace sw
 		}
 	}
 
-	void PixelRoutine::blendFactor(const Vector4s &blendFactor, const Vector4s &current, const Vector4s &pixel, BlendFactor blendFactorActive)
+	void PixelRoutine::blendFactor(Vector4s &blendFactor, const Vector4s &current, const Vector4s &pixel, BlendFactor blendFactorActive)
 	{
 		switch(blendFactorActive)
 		{
@@ -949,7 +949,7 @@ namespace sw
 		}
 	}
 
-	void PixelRoutine::blendFactorAlpha(const Vector4s &blendFactor, const Vector4s &current, const Vector4s &pixel, BlendFactor blendFactorAlphaActive)
+	void PixelRoutine::blendFactorAlpha(Vector4s &blendFactor, const Vector4s &current, const Vector4s &pixel, BlendFactor blendFactorAlphaActive)
 	{
 		switch(blendFactorAlphaActive)
 		{
@@ -1899,7 +1899,7 @@ namespace sw
 		}
 	}
 
-	void PixelRoutine::blendFactor(const Vector4f &blendFactor, const Vector4f &oC, const Vector4f &pixel, BlendFactor blendFactorActive)
+	void PixelRoutine::blendFactor(Vector4f &blendFactor, const Vector4f &oC, const Vector4f &pixel, BlendFactor blendFactorActive)
 	{
 		switch(blendFactorActive)
 		{
@@ -1970,7 +1970,7 @@ namespace sw
 		}
 	}
 
-	void PixelRoutine::blendFactorAlpha(const Vector4f &blendFactor, const Vector4f &oC, const Vector4f &pixel, BlendFactor blendFactorAlphaActive)
+	void PixelRoutine::blendFactorAlpha(Vector4f &blendFactor, const Vector4f &oC, const Vector4f &pixel, BlendFactor blendFactorAlphaActive)
 	{
 		switch(blendFactorAlphaActive)
 		{

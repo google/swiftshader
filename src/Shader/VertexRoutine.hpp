@@ -29,10 +29,10 @@ namespace sw
 		virtual ~VertexRoutinePrototype() {};
 
 	protected:
-		const Pointer<Byte> vertex;
-		const Pointer<Byte> batch;
-		const Pointer<Byte> task;
-		const Pointer<Byte> data;
+		Pointer<Byte> vertex;
+		Pointer<Byte> batch;
+		Pointer<Byte> task;
+		Pointer<Byte> data;
 	};
 
 	class VertexRoutine : public VertexRoutinePrototype
