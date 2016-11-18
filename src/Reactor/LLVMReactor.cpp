@@ -822,7 +822,7 @@ namespace sw
 		return T(llvm::Type::getVoidTy(*::context));
 	}
 
-	class MMX : public Variable<MMX>
+	class MMX : public LValue<MMX>
 	{
 	public:
 		static Type *getType();
