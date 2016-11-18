@@ -24,6 +24,7 @@
 
 namespace sw
 {
+	class Bool;
 	class Byte;
 	class SByte;
 	class Byte4;
@@ -119,20 +120,26 @@ namespace sw
 		struct type;
 	};
 
-	template<> struct
-	IntLiteral<Int>
+	template<>
+	struct IntLiteral<Bool>
+	{
+		typedef bool type;
+	};
+
+	template<>
+	struct IntLiteral<Int>
 	{
 		typedef int type;
 	};
 
-	template<> struct
-	IntLiteral<UInt>
+	template<>
+	struct IntLiteral<UInt>
 	{
 		typedef unsigned int type;
 	};
 
-	template<> struct
-	IntLiteral<Long>
+	template<>
+	struct IntLiteral<Long>
 	{
 		typedef int64_t type;
 	};
@@ -143,8 +150,8 @@ namespace sw
 		struct type;
 	};
 
-	template<> struct
-	FloatLiteral<Float>
+	template<>
+	struct FloatLiteral<Float>
 	{
 		typedef float type;
 	};
@@ -2224,8 +2231,7 @@ namespace sw
 	bool branch(RValue<Bool> cmp, BasicBlock *bodyBB, BasicBlock *endBB);
 
 	void Return();
-	void Return(bool ret);
-	void Return(const Int &ret);
+	void Return(RValue<Int> ret);
 
 	template<class T>
 	void Return(const Pointer<T> &ret);
