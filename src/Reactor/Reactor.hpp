@@ -69,11 +69,19 @@ namespace sw
 	template<class T>
 	class Pointer;
 
+	class Variable
+	{
+	protected:
+		Value *address;
+	};
+
 	template<class T>
-	class LValue
+	class LValue : public Variable
 	{
 	public:
 		LValue(int arraySize = 0);
+
+		RValue<Pointer<T>> operator&();
 
 		static bool isVoid()
 		{
@@ -83,18 +91,6 @@ namespace sw
 		Value *loadValue(unsigned int alignment = 0) const;
 		Value *storeValue(Value *value, unsigned int alignment = 0) const;
 		Value *getAddress(Value *index) const;
-
-	protected:
-		Value *address;
-	};
-
-	template<class T>
-	class Variable : public LValue<T>
-	{
-	public:
-		Variable(int arraySize = 0);
-
-		RValue<Pointer<T>> operator&();
 	};
 
 	template<class T>
@@ -177,7 +173,7 @@ namespace sw
 		Value *value;
 	};
 
-	class Bool : public Variable<Bool>
+	class Bool : public LValue<Bool>
 	{
 	public:
 		Bool(Argument<Bool> argument);
@@ -200,7 +196,7 @@ namespace sw
 	RValue<Bool> operator&&(RValue<Bool> lhs, RValue<Bool> rhs);
 	RValue<Bool> operator||(RValue<Bool> lhs, RValue<Bool> rhs);
 
-	class Byte : public Variable<Byte>
+	class Byte : public LValue<Byte>
 	{
 	public:
 		Byte(Argument<Byte> argument);
@@ -258,7 +254,7 @@ namespace sw
 	RValue<Bool> operator!=(RValue<Byte> lhs, RValue<Byte> rhs);
 	RValue<Bool> operator==(RValue<Byte> lhs, RValue<Byte> rhs);
 
-	class SByte : public Variable<SByte>
+	class SByte : public LValue<SByte>
 	{
 	public:
 		SByte(Argument<SByte> argument);
@@ -314,7 +310,7 @@ namespace sw
 	RValue<Bool> operator!=(RValue<SByte> lhs, RValue<SByte> rhs);
 	RValue<Bool> operator==(RValue<SByte> lhs, RValue<SByte> rhs);
 
-	class Short : public Variable<Short>
+	class Short : public LValue<Short>
 	{
 	public:
 		Short(Argument<Short> argument);
@@ -369,7 +365,7 @@ namespace sw
 	RValue<Bool> operator!=(RValue<Short> lhs, RValue<Short> rhs);
 	RValue<Bool> operator==(RValue<Short> lhs, RValue<Short> rhs);
 
-	class UShort : public Variable<UShort>
+	class UShort : public LValue<UShort>
 	{
 	public:
 		UShort(Argument<UShort> argument);
@@ -425,7 +421,7 @@ namespace sw
 	RValue<Bool> operator!=(RValue<UShort> lhs, RValue<UShort> rhs);
 	RValue<Bool> operator==(RValue<UShort> lhs, RValue<UShort> rhs);
 
-	class Byte4 : public Variable<Byte4>
+	class Byte4 : public LValue<Byte4>
 	{
 	public:
 		explicit Byte4(RValue<Byte8> cast);
@@ -471,7 +467,7 @@ namespace sw
 //	RValue<Byte4> operator--(const Byte4 &val, int);   // Post-decrement
 //	const Byte4 &operator--(const Byte4 &val);   // Pre-decrement
 
-	class SByte4 : public Variable<SByte4>
+	class SByte4 : public LValue<SByte4>
 	{
 	public:
 	//	SByte4();
@@ -515,7 +511,7 @@ namespace sw
 //	RValue<SByte4> operator--(const SByte4 &val, int);   // Post-decrement
 //	const SByte4 &operator--(const SByte4 &val);   // Pre-decrement
 
-	class Byte8 : public Variable<Byte8>
+	class Byte8 : public LValue<Byte8>
 	{
 	public:
 		Byte8();
@@ -568,7 +564,7 @@ namespace sw
 //	RValue<Byte8> CmpGT(RValue<Byte8> x, RValue<Byte8> y);
 	RValue<Byte8> CmpEQ(RValue<Byte8> x, RValue<Byte8> y);
 
-	class SByte8 : public Variable<SByte8>
+	class SByte8 : public LValue<SByte8>
 	{
 	public:
 		SByte8();
@@ -620,7 +616,7 @@ namespace sw
 	RValue<Byte8> CmpGT(RValue<SByte8> x, RValue<SByte8> y);
 	RValue<Byte8> CmpEQ(RValue<SByte8> x, RValue<SByte8> y);
 
-	class Byte16 : public Variable<Byte16>
+	class Byte16 : public LValue<Byte16>
 	{
 	public:
 	//	Byte16();
@@ -664,7 +660,7 @@ namespace sw
 //	RValue<Byte16> operator--(const Byte16 &val, int);   // Post-decrement
 //	const Byte16 &operator--(const Byte16 &val);   // Pre-decrement
 
-	class SByte16 : public Variable<SByte16>
+	class SByte16 : public LValue<SByte16>
 	{
 	public:
 	//	SByte16();
@@ -708,7 +704,7 @@ namespace sw
 //	RValue<SByte16> operator--(const SByte16 &val, int);   // Post-decrement
 //	const SByte16 &operator--(const SByte16 &val);   // Pre-decrement
 
-	class Short2 : public Variable<Short2>
+	class Short2 : public LValue<Short2>
 	{
 	public:
 		explicit Short2(RValue<Short4> cast);
@@ -716,7 +712,7 @@ namespace sw
 		static Type *getType();
 	};
 
-	class UShort2 : public Variable<UShort2>
+	class UShort2 : public LValue<UShort2>
 	{
 	public:
 		explicit UShort2(RValue<UShort4> cast);
@@ -724,7 +720,7 @@ namespace sw
 		static Type *getType();
 	};
 
-	class Short4 : public Variable<Short4>
+	class Short4 : public LValue<Short4>
 	{
 	public:
 		explicit Short4(RValue<Int> cast);
@@ -806,7 +802,7 @@ namespace sw
 	RValue<Short4> CmpGT(RValue<Short4> x, RValue<Short4> y);
 	RValue<Short4> CmpEQ(RValue<Short4> x, RValue<Short4> y);
 
-	class UShort4 : public Variable<UShort4>
+	class UShort4 : public LValue<UShort4>
 	{
 	public:
 		explicit UShort4(RValue<Int4> cast);
@@ -872,7 +868,7 @@ namespace sw
 	RValue<UShort4> Average(RValue<UShort4> x, RValue<UShort4> y);
 	RValue<Byte8> Pack(RValue<UShort4> x, RValue<UShort4> y);
 
-	class Short8 : public Variable<Short8>
+	class Short8 : public LValue<Short8>
 	{
 	public:
 	//	Short8();
@@ -929,7 +925,7 @@ namespace sw
 	RValue<Int4> MulAdd(RValue<Short8> x, RValue<Short8> y);
 	RValue<Int4> Abs(RValue<Int4> x);
 
-	class UShort8 : public Variable<UShort8>
+	class UShort8 : public LValue<UShort8>
 	{
 	public:
 	//	UShort8();
@@ -985,7 +981,7 @@ namespace sw
 	RValue<UShort8> Swizzle(RValue<UShort8> x, char select0, char select1, char select2, char select3, char select4, char select5, char select6, char select7);
 	RValue<UShort8> MulHigh(RValue<UShort8> x, RValue<UShort8> y);
 
-	class Int : public Variable<Int>
+	class Int : public LValue<Int>
 	{
 	public:
 		Int(Argument<Int> argument);
@@ -1057,7 +1053,7 @@ namespace sw
 	RValue<Int> Clamp(RValue<Int> x, RValue<Int> min, RValue<Int> max);
 	RValue<Int> RoundInt(RValue<Float> cast);
 
-	class Long : public Variable<Long>
+	class Long : public LValue<Long>
 	{
 	public:
 	//	Long(Argument<Long> argument);
@@ -1125,7 +1121,7 @@ namespace sw
 //	RValue<Long> RoundLong(RValue<Float> cast);
 	RValue<Long> AddAtomic( RValue<Pointer<Long>> x, RValue<Long> y);
 
-	class Long1 : public Variable<Long1>
+	class Long1 : public LValue<Long1>
 	{
 	public:
 	//	Long1(Argument<Long1> argument);
@@ -1192,7 +1188,7 @@ namespace sw
 
 //	RValue<Long1> RoundLong1(RValue<Float> cast);
 
-	class UInt : public Variable<UInt>
+	class UInt : public LValue<UInt>
 	{
 	public:
 		UInt(Argument<UInt> argument);
@@ -1261,7 +1257,7 @@ namespace sw
 	RValue<UInt> Clamp(RValue<UInt> x, RValue<UInt> min, RValue<UInt> max);
 //	RValue<UInt> RoundUInt(RValue<Float> cast);
 
-	class Int2 : public Variable<Int2>
+	class Int2 : public LValue<Int2>
 	{
 	public:
 	//	explicit Int2(RValue<Int> cast);
@@ -1325,7 +1321,7 @@ namespace sw
 	RValue<Int> Extract(RValue<Int2> val, int i);
 	RValue<Int2> Insert(RValue<Int2> val, RValue<Int> element, int i);
 
-	class UInt2 : public Variable<UInt2>
+	class UInt2 : public LValue<UInt2>
 	{
 	public:
 		UInt2();
@@ -1381,7 +1377,7 @@ namespace sw
 
 //	RValue<UInt2> RoundInt(RValue<Float4> cast);
 
-	class Int4 : public Variable<Int4>
+	class Int4 : public LValue<Int4>
 	{
 	public:
 		explicit Int4(RValue<Byte4> cast);
@@ -1467,7 +1463,7 @@ namespace sw
 	RValue<Int> SignMask(RValue<Int4> x);
 	RValue<Int4> Swizzle(RValue<Int4> x, unsigned char select);
 
-	class UInt4 : public Variable<UInt4>
+	class UInt4 : public LValue<UInt4>
 	{
 	public:
 		explicit UInt4(RValue<Float4> cast);
@@ -1609,7 +1605,7 @@ namespace sw
 		Float4 *parent;
 	};
 
-	class Float : public Variable<Float>
+	class Float : public LValue<Float>
 	{
 	public:
 		explicit Float(RValue<Int> cast);
@@ -1663,7 +1659,7 @@ namespace sw
 	RValue<Float> Floor(RValue<Float> val);
 	RValue<Float> Ceil(RValue<Float> val);
 
-	class Float2 : public Variable<Float2>
+	class Float2 : public LValue<Float2>
 	{
 	public:
 	//	explicit Float2(RValue<Byte2> cast);
@@ -1718,7 +1714,7 @@ namespace sw
 //	RValue<Float2> Swizzle(RValue<Float2> x, unsigned char select);
 //	RValue<Float2> Mask(Float2 &lhs, RValue<Float2> rhs, unsigned char select);
 
-	class Float4 : public Variable<Float4>
+	class Float4 : public LValue<Float4>
 	{
 	public:
 		explicit Float4(RValue<Byte4> cast);
@@ -2156,7 +2152,7 @@ namespace sw
 	RValue<Float4> Ceil(RValue<Float4> x);
 
 	template<class T>
-	class Pointer : public Variable<Pointer<T>>
+	class Pointer : public LValue<Pointer<T>>
 	{
 	public:
 		template<class S>
@@ -2211,7 +2207,7 @@ namespace sw
 	RValue<Pointer<Byte>> operator-=(const Pointer<Byte> &lhs, RValue<UInt> offset);
 
 	template<class T, int S = 1>
-	class Array : public Variable<T>
+	class Array : public LValue<T>
 	{
 	public:
 		Array(int size = S);
@@ -2320,14 +2316,9 @@ namespace sw
 	}
 
 	template<class T>
-	Variable<T>::Variable(int arraySize) : LValue<T>(arraySize)
+	RValue<Pointer<T>> LValue<T>::operator&()
 	{
-	}
-
-	template<class T>
-	RValue<Pointer<T>> Variable<T>::operator&()
-	{
-		return RValue<Pointer<T>>(LValue<T>::address);
+		return RValue<Pointer<T>>(address);
 	}
 
 	template<class T>
@@ -2650,7 +2641,7 @@ namespace sw
 	}
 
 	template<class T, int S>
-	Array<T, S>::Array(int size) : Variable<T>(size)
+	Array<T, S>::Array(int size) : LValue<T>(size)
 	{
 	}
 
