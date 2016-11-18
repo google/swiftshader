@@ -6507,16 +6507,9 @@ namespace sw
 		Nucleus::createUnreachable();
 	}
 
-	void Return(bool ret)
+	void Return(RValue<Int> ret)
 	{
-		Nucleus::createRet(Nucleus::createConstantInt(ret));
-		Nucleus::setInsertBlock(Nucleus::createBasicBlock());
-		Nucleus::createUnreachable();
-	}
-
-	void Return(const Int &ret)
-	{
-		Nucleus::createRet(ret.loadValue());
+		Nucleus::createRet(ret.value);
 		Nucleus::setInsertBlock(Nucleus::createBasicBlock());
 		Nucleus::createUnreachable();
 	}
