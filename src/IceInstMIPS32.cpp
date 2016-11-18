@@ -97,6 +97,7 @@ template <> const char *InstMIPS32Div_s::Opcode = "div.s";
 template <> const char *InstMIPS32Divu::Opcode = "divu";
 template <> const char *InstMIPS32La::Opcode = "la";
 template <> const char *InstMIPS32Ldc1::Opcode = "ldc1";
+template <> const char *InstMIPS32Ll::Opcode = "ll";
 template <> const char *InstMIPS32Lui::Opcode = "lui";
 template <> const char *InstMIPS32Lw::Opcode = "lw";
 template <> const char *InstMIPS32Lwc1::Opcode = "lwc1";
@@ -124,6 +125,7 @@ template <> const char *InstMIPS32Multu::Opcode = "multu";
 template <> const char *InstMIPS32Nor::Opcode = "nor";
 template <> const char *InstMIPS32Or::Opcode = "or";
 template <> const char *InstMIPS32Ori::Opcode = "ori";
+template <> const char *InstMIPS32Sc::Opcode = "sc";
 template <> const char *InstMIPS32Sdc1::Opcode = "sdc1";
 template <> const char *InstMIPS32Sll::Opcode = "sll";
 template <> const char *InstMIPS32Sllv::Opcode = "sllv";
@@ -143,6 +145,7 @@ template <> const char *InstMIPS32Sub_s::Opcode = "sub.s";
 template <> const char *InstMIPS32Subu::Opcode = "subu";
 template <> const char *InstMIPS32Sw::Opcode = "sw";
 template <> const char *InstMIPS32Swc1::Opcode = "swc1";
+const char *InstMIPS32Sync::Opcode = "sync";
 template <> const char *InstMIPS32Teq::Opcode = "teq";
 template <> const char *InstMIPS32Trunc_l_d::Opcode = "trunc.l.d";
 template <> const char *InstMIPS32Trunc_l_s::Opcode = "trunc.l.s";
@@ -429,8 +432,12 @@ void InstMIPS32Br::emitIAS(const Cfg *Func) const {
   auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
   if (Label != nullptr) {
     // Intra-block branches are of kind bcc
-    Asm->bcc(Predicate, getSrc(0), getSrc(1),
-             Asm->getOrCreateLocalLabel(Label->getNumber()));
+    if (isUnconditionalBranch()) {
+      Asm->b(Asm->getOrCreateLocalLabel(Label->getNumber()));
+    } else {
+      Asm->bcc(Predicate, getSrc(0), getSrc(1),
+               Asm->getOrCreateLocalLabel(Label->getNumber()));
+    }
   } else if (isUnconditionalBranch()) {
     Asm->b(Asm->getOrCreateCfgNodeLabel(getTargetFalse()->getIndex()));
   } else {
@@ -465,10 +472,14 @@ void InstMIPS32Br::emit(const Cfg *Func) const {
   Str << "\t"
          "b" << InstMIPS32CondAttributes[Predicate].EmitString << "\t";
   if (Label != nullptr) {
-    getSrc(0)->emit(Func);
-    Str << ", ";
-    getSrc(1)->emit(Func);
-    Str << ", " << Label->getLabelName();
+    if (isUnconditionalBranch()) {
+      Str << Label->getLabelName();
+    } else {
+      getSrc(0)->emit(Func);
+      Str << ", ";
+      getSrc(1)->emit(Func);
+      Str << ", " << Label->getLabelName();
+    }
   } else {
     if (isUnconditionalBranch()) {
       Str << getTargetFalse()->getAsmName();
@@ -513,10 +524,14 @@ void InstMIPS32Br::dump(const Cfg *Func) const {
          "b" << InstMIPS32CondAttributes[Predicate].EmitString << "\t";
 
   if (Label != nullptr) {
-    getSrc(0)->dump(Func);
-    Str << ", ";
-    getSrc(1)->dump(Func);
-    Str << ", " << Label->getLabelName();
+    if (isUnconditionalBranch()) {
+      Str << Label->getLabelName();
+    } else {
+      getSrc(0)->dump(Func);
+      Str << ", ";
+      getSrc(1)->dump(Func);
+      Str << ", " << Label->getLabelName();
+    }
   } else {
     if (isUnconditionalBranch()) {
       Str << getTargetFalse()->getAsmName();
@@ -886,6 +901,14 @@ template <> void InstMIPS32Ldc1::emitIAS(const Cfg *Func) const {
   Asm->ldc1(getDest(), Mem->getBase(), Mem->getOffset(), Reloc);
 }
 
+template <> void InstMIPS32Ll::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
+  auto *Mem = llvm::dyn_cast<OperandMIPS32Mem>(getSrc(0));
+  ConstantInteger32 *Offset = llvm::cast<ConstantInteger32>(Mem->getOffset());
+  uint32_t Imm = static_cast<uint32_t>(Offset->getValue());
+  Asm->ll(getDest(), Mem->getBase(), Imm);
+}
+
 template <> void InstMIPS32Lw::emitIAS(const Cfg *Func) const {
   auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
   auto *Mem = llvm::dyn_cast<OperandMIPS32Mem>(getSrc(0));
@@ -1067,6 +1090,14 @@ template <> void InstMIPS32Ori::emitIAS(const Cfg *Func) const {
   Asm->ori(getDest(), getSrc(0), Imm);
 }
 
+template <> void InstMIPS32Sc::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
+  auto *Mem = llvm::dyn_cast<OperandMIPS32Mem>(getSrc(1));
+  ConstantInteger32 *Offset = llvm::cast<ConstantInteger32>(Mem->getOffset());
+  uint32_t Imm = static_cast<uint32_t>(Offset->getValue());
+  Asm->sc(getSrc(0), Mem->getBase(), Imm);
+}
+
 template <> void InstMIPS32Sll::emitIAS(const Cfg *Func) const {
   auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
   Asm->sll(getDest(), getSrc(0), Imm);
@@ -1160,6 +1191,11 @@ template <> void InstMIPS32Swc1::emitIAS(const Cfg *Func) const {
   auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
   auto *Mem = llvm::dyn_cast<OperandMIPS32Mem>(getSrc(0));
   Asm->swc1(getSrc(0), Mem->getBase(), Mem->getOffset(), Reloc);
+}
+
+void InstMIPS32Sync::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<MIPS32::AssemblerMIPS32>();
+  Asm->sync();
 }
 
 template <> void InstMIPS32Teq::emitIAS(const Cfg *Func) const {

@@ -175,6 +175,10 @@ public:
 
   void _br(CfgNode *Target) { Context.insert<InstMIPS32Br>(Target); }
 
+  void _br(CfgNode *Target, const InstMIPS32Label *Label) {
+    Context.insert<InstMIPS32Br>(Target, Label);
+  }
+
   void _br(CfgNode *TargetTrue, CfgNode *TargetFalse, Operand *Src0,
            Operand *Src1, CondMIPS32::Cond Condition) {
     Context.insert<InstMIPS32Br>(TargetTrue, TargetFalse, Src0, Src1,
@@ -329,6 +333,10 @@ public:
     Context.insert<InstMIPS32Ldc1>(Value, Mem, Reloc);
   }
 
+  void _ll(Variable *Value, OperandMIPS32Mem *Mem) {
+    Context.insert<InstMIPS32Ll>(Value, Mem);
+  }
+
   void _lw(Variable *Value, OperandMIPS32Mem *Mem) {
     Context.insert<InstMIPS32Lw>(Value, Mem);
   }
@@ -474,6 +482,10 @@ public:
     Context.insert<InstMIPS32Ori>(Dest, Src, Imm);
   }
 
+  InstMIPS32Sc *_sc(Variable *Value, OperandMIPS32Mem *Mem) {
+    return Context.insert<InstMIPS32Sc>(Value, Mem);
+  }
+
   void _sdc1(Variable *Value, OperandMIPS32Mem *Mem) {
     Context.insert<InstMIPS32Sdc1>(Value, Mem);
   }
@@ -549,6 +561,8 @@ public:
   void _swc1(Variable *Value, OperandMIPS32Mem *Mem) {
     Context.insert<InstMIPS32Swc1>(Value, Mem);
   }
+
+  void _sync() { Context.insert<InstMIPS32Sync>(); }
 
   void _teq(Variable *Src0, Variable *Src1, uint32_t TrapCode) {
     Context.insert<InstMIPS32Teq>(Src0, Src1, TrapCode);
@@ -746,6 +760,8 @@ protected:
   void lowerFcmp(const InstFcmp *Instr) override;
   void lowerIcmp(const InstIcmp *Instr) override;
   void lower64Icmp(const InstIcmp *Instr);
+  void createArithInst(Intrinsics::AtomicRMWOperation Operation, Variable *Dest,
+                       Variable *Src0, Variable *Src1);
   void lowerIntrinsicCall(const InstIntrinsicCall *Instr) override;
   void lowerInsertElement(const InstInsertElement *Instr) override;
   void lowerLoad(const InstLoad *Instr) override;

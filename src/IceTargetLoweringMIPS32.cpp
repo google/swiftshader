@@ -240,6 +240,14 @@ uint32_t TargetMIPS32::getCallStackArgumentsSizeBytes(const InstCall *Call) {
   return applyStackAlignment(OutArgsSizeBytes);
 }
 
+namespace {
+inline uint64_t getConstantMemoryOrder(Operand *Opnd) {
+  if (auto *Integer = llvm::dyn_cast<ConstantInteger32>(Opnd))
+    return Integer->getValue();
+  return Intrinsics::MemoryOrderInvalid;
+}
+}
+
 void TargetMIPS32::genTargetHelperCallFor(Inst *Instr) {
   constexpr bool NoTailCall = false;
   constexpr bool IsTargetHelperCall = true;
@@ -1053,7 +1061,7 @@ bool TargetMIPS32::CallingConv::argInReg(Type Ty, uint32_t ArgNo,
     }
     return argInGPR(Ty, Reg);
   }
-  UnimplementedError(getFlags());
+  llvm::report_fatal_error("argInReg: Invalid type.");
   return false;
 }
 
@@ -1062,7 +1070,7 @@ bool TargetMIPS32::CallingConv::argInGPR(Type Ty, RegNumT *Reg) {
 
   switch (Ty) {
   default: {
-    UnimplementedError(getFlags());
+    llvm::report_fatal_error("argInGPR: Invalid type.");
     return false;
   } break;
   case IceType_v4i1:
@@ -1147,7 +1155,7 @@ bool TargetMIPS32::CallingConv::argInVFP(Type Ty, RegNumT *Reg) {
 
   switch (Ty) {
   default: {
-    UnimplementedError(getFlags());
+    llvm::report_fatal_error("argInVFP: Invalid type.");
     return false;
   } break;
   case IceType_f32: {
@@ -2539,8 +2547,18 @@ void TargetMIPS32::lowerInt64Arithmetic(const InstArithmetic *Instr,
     _mov(DestLo, T1_Lo);
     return;
   }
-  default:
-    UnimplementedLoweringError(this, Instr);
+  case InstArithmetic::Fadd:
+  case InstArithmetic::Fsub:
+  case InstArithmetic::Fmul:
+  case InstArithmetic::Fdiv:
+  case InstArithmetic::Frem:
+    llvm::report_fatal_error("FP instruction with i64 type");
+    return;
+  case InstArithmetic::Udiv:
+  case InstArithmetic::Sdiv:
+  case InstArithmetic::Urem:
+  case InstArithmetic::Srem:
+    llvm::report_fatal_error("64-bit div and rem should have been prelowered");
     return;
   }
 }
@@ -2784,7 +2802,7 @@ void TargetMIPS32::lowerArithmetic(const InstArithmetic *Instr) {
     llvm::report_fatal_error("frem should have been prelowered.");
     break;
   }
-  UnimplementedLoweringError(this, Instr);
+  llvm::report_fatal_error("Unknown arithmetic operator");
 }
 
 void TargetMIPS32::lowerAssign(const InstAssign *Instr) {
@@ -3496,7 +3514,7 @@ void TargetMIPS32::lowerCast(const InstCast *Instr) {
         return;
       }
     }
-    UnimplementedLoweringError(this, Instr);
+    llvm::report_fatal_error("Destination is i64 in fp-to-i32");
     break;
   }
   case InstCast::Sitofp:
@@ -3529,7 +3547,7 @@ void TargetMIPS32::lowerCast(const InstCast *Instr) {
         return;
       }
     }
-    UnimplementedLoweringError(this, Instr);
+    llvm::report_fatal_error("Source is i64 in i32-to-fp");
     break;
   }
   case InstCast::Bitcast: {
@@ -3598,7 +3616,7 @@ void TargetMIPS32::lowerCast(const InstCast *Instr) {
       break;
     }
     default:
-      UnimplementedLoweringError(this, Instr);
+      llvm::report_fatal_error("Unexpected bitcast.");
     }
     break;
   }
@@ -3690,7 +3708,7 @@ void TargetMIPS32::lowerFcmp(const InstFcmp *Instr) {
 
   switch (Cond) {
   default: {
-    UnimplementedLoweringError(this, Instr);
+    llvm::report_fatal_error("Unhandled fp comparison.");
     return;
   }
   case InstFcmp::False: {
@@ -4235,36 +4253,430 @@ void TargetMIPS32::lowerInsertElement(const InstInsertElement *Instr) {
   llvm::report_fatal_error("InsertElement requires a constant index");
 }
 
+void TargetMIPS32::createArithInst(Intrinsics::AtomicRMWOperation Operation,
+                                   Variable *Dest, Variable *Src0,
+                                   Variable *Src1) {
+  switch (Operation) {
+  default:
+    llvm::report_fatal_error("Unknown AtomicRMW operation");
+  case Intrinsics::AtomicExchange:
+    llvm::report_fatal_error("Can't handle Atomic xchg operation");
+  case Intrinsics::AtomicAdd:
+    _addu(Dest, Src0, Src1);
+    break;
+  case Intrinsics::AtomicAnd:
+    _and(Dest, Src0, Src1);
+    break;
+  case Intrinsics::AtomicSub:
+    _subu(Dest, Src0, Src1);
+    break;
+  case Intrinsics::AtomicOr:
+    _or(Dest, Src0, Src1);
+    break;
+  case Intrinsics::AtomicXor:
+    _xor(Dest, Src0, Src1);
+    break;
+  }
+}
+
 void TargetMIPS32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
   Variable *Dest = Instr->getDest();
   Type DestTy = (Dest == nullptr) ? IceType_void : Dest->getType();
-  switch (Instr->getIntrinsicInfo().ID) {
+
+  Intrinsics::IntrinsicID ID = Instr->getIntrinsicInfo().ID;
+  switch (ID) {
+  case Intrinsics::AtomicLoad: {
+    assert(isScalarIntegerType(DestTy));
+    // We require the memory address to be naturally aligned. Given that is the
+    // case, then normal loads are atomic.
+    if (!Intrinsics::isMemoryOrderValid(
+            ID, getConstantMemoryOrder(Instr->getArg(1)))) {
+      Func->setError("Unexpected memory ordering for AtomicLoad");
+      return;
+    }
+    if (DestTy == IceType_i64) {
+      auto *Base = legalizeToReg(Instr->getArg(0));
+      auto *AddrLo = OperandMIPS32Mem::create(
+          Func, IceType_i32, Base,
+          llvm::cast<ConstantInteger32>(Ctx->getConstantInt32(0)));
+      auto *AddrHi = OperandMIPS32Mem::create(
+          Func, IceType_i32, Base,
+          llvm::cast<ConstantInteger32>(Ctx->getConstantInt32(4)));
+      auto *T_Lo = makeReg(IceType_i32);
+      auto *T_Hi = makeReg(IceType_i32);
+      auto *Dest64 = llvm::cast<Variable64On32>(Dest);
+      lowerLoad(InstLoad::create(Func, T_Lo, AddrLo, IceType_i32));
+      lowerLoad(InstLoad::create(Func, T_Hi, AddrHi, IceType_i32));
+      _sync();
+      _mov(Dest64->getLo(), T_Lo);
+      _mov(Dest64->getHi(), T_Hi);
+      // Adding a fake-use of T to ensure the atomic load is not removed if Dest
+      // is unused.
+      Context.insert<InstFakeUse>(T_Lo);
+      Context.insert<InstFakeUse>(T_Hi);
+    } else {
+      auto *T = makeReg(DestTy);
+      lowerLoad(InstLoad::create(Func, T,
+                                 formMemoryOperand(Instr->getArg(0), DestTy)));
+      _sync();
+      _mov(Dest, T);
+      // Adding a fake-use of T to ensure the atomic load is not removed if Dest
+      // is unused.
+      Context.insert<InstFakeUse>(T);
+    }
+    return;
+  }
+  case Intrinsics::AtomicStore: {
+    // We require the memory address to be naturally aligned. Given that is the
+    // case, then normal stores are atomic.
+    if (!Intrinsics::isMemoryOrderValid(
+            ID, getConstantMemoryOrder(Instr->getArg(2)))) {
+      Func->setError("Unexpected memory ordering for AtomicStore");
+      return;
+    }
+    auto *Val = Instr->getArg(0);
+    auto Ty = Val->getType();
+    if (Ty == IceType_i64) {
+      Variable *ValHi, *ValLo;
+      _sync();
+      if (auto *C64 = llvm::dyn_cast<ConstantInteger64>(Val)) {
+        const uint64_t Value = C64->getValue();
+        uint64_t Upper32Bits = (Value >> INT32_BITS) & 0xFFFFFFFF;
+        uint64_t Lower32Bits = Value & 0xFFFFFFFF;
+        ValLo = legalizeToReg(Ctx->getConstantInt32(Lower32Bits));
+        ValHi = legalizeToReg(Ctx->getConstantInt32(Upper32Bits));
+      } else {
+        auto *Val64 = llvm::cast<Variable64On32>(Val);
+        ValLo = legalizeToReg(loOperand(Val64));
+        ValHi = legalizeToReg(hiOperand(Val64));
+      }
+
+      auto *Base = legalizeToReg(Instr->getArg(1));
+      auto *AddrLo = OperandMIPS32Mem::create(
+          Func, IceType_i32, Base,
+          llvm::cast<ConstantInteger32>(Ctx->getConstantInt32(0)));
+      auto *AddrHi = OperandMIPS32Mem::create(
+          Func, IceType_i32, Base,
+          llvm::cast<ConstantInteger32>(Ctx->getConstantInt32(4)));
+      lowerStore(InstStore::create(Func, ValLo, AddrLo, IceType_i32));
+      lowerStore(InstStore::create(Func, ValHi, AddrHi, IceType_i32));
+      _sync();
+    } else {
+      _sync();
+      auto *Val = legalizeToReg(Instr->getArg(0));
+      lowerStore(InstStore::create(
+          Func, Val, formMemoryOperand(Instr->getArg(1), DestTy)));
+      _sync();
+    }
+    return;
+  }
   case Intrinsics::AtomicCmpxchg: {
-    UnimplementedLoweringError(this, Instr);
+    assert(isScalarIntegerType(DestTy));
+    // We require the memory address to be naturally aligned. Given that is the
+    // case, then normal loads are atomic.
+    if (!Intrinsics::isMemoryOrderValid(
+            ID, getConstantMemoryOrder(Instr->getArg(3)),
+            getConstantMemoryOrder(Instr->getArg(4)))) {
+      Func->setError("Unexpected memory ordering for AtomicCmpxchg");
+      return;
+    }
+
+    InstMIPS32Label *Exit = InstMIPS32Label::create(Func, this);
+    InstMIPS32Label *Retry = InstMIPS32Label::create(Func, this);
+    constexpr CfgNode *NoTarget = nullptr;
+    auto *New = Instr->getArg(2);
+    auto *Expected = Instr->getArg(1);
+    auto *ActualAddress = Instr->getArg(0);
+
+    if (DestTy == IceType_i64) {
+      InstMIPS32Label *Retry1 = InstMIPS32Label::create(Func, this);
+      auto *T1 = I32Reg();
+      auto *T2 = I32Reg();
+      _sync();
+      Variable *ValHi, *ValLo, *ExpectedLo, *ExpectedHi;
+      if (llvm::isa<ConstantUndef>(Expected)) {
+        ExpectedLo = legalizeToReg(Ctx->getConstantZero(IceType_i32));
+        ExpectedHi = legalizeToReg(Ctx->getConstantZero(IceType_i32));
+      } else {
+        auto *Expected64 = llvm::cast<Variable64On32>(Expected);
+        ExpectedLo = legalizeToReg(loOperand(Expected64));
+        ExpectedHi = legalizeToReg(hiOperand(Expected64));
+      }
+      if (auto *C64 = llvm::dyn_cast<ConstantInteger64>(New)) {
+        const uint64_t Value = C64->getValue();
+        uint64_t Upper32Bits = (Value >> INT32_BITS) & 0xFFFFFFFF;
+        uint64_t Lower32Bits = Value & 0xFFFFFFFF;
+        ValLo = legalizeToReg(Ctx->getConstantInt32(Lower32Bits));
+        ValHi = legalizeToReg(Ctx->getConstantInt32(Upper32Bits));
+      } else {
+        auto *Val = llvm::cast<Variable64On32>(New);
+        ValLo = legalizeToReg(loOperand(Val));
+        ValHi = legalizeToReg(hiOperand(Val));
+      }
+      auto *Dest64 = llvm::cast<Variable64On32>(Dest);
+      auto *BaseR = legalizeToReg(ActualAddress);
+      auto *AddrLo = OperandMIPS32Mem::create(
+          Func, IceType_i32, BaseR,
+          llvm::cast<ConstantInteger32>(Ctx->getConstantInt32(0)));
+      auto *AddrHi = OperandMIPS32Mem::create(
+          Func, IceType_i32, BaseR,
+          llvm::cast<ConstantInteger32>(Ctx->getConstantInt32(4)));
+      Context.insert(Retry);
+      _ll(T1, AddrLo);
+      _br(NoTarget, NoTarget, T1, ExpectedLo, Exit, CondMIPS32::Cond::NE);
+      _sc(ValLo, AddrLo);
+      _br(NoTarget, NoTarget, ValLo, getZero(), Retry, CondMIPS32::Cond::EQ);
+      _mov(Dest64->getLo(), T1);
+      Context.insert(Retry1);
+      _ll(T2, AddrHi);
+      _br(NoTarget, NoTarget, T2, ExpectedHi, Exit, CondMIPS32::Cond::NE);
+      _sc(ValHi, AddrHi);
+      _br(NoTarget, NoTarget, ValHi, getZero(), Retry1, CondMIPS32::Cond::EQ);
+      _mov(Dest64->getHi(), T2);
+      Context.insert<InstFakeUse>(getZero());
+      Context.insert(Exit);
+      _sync();
+    } else if (DestTy == IceType_i8 || DestTy == IceType_i16) {
+      auto *NewR = legalizeToReg(New);
+      auto *ExpectedR = legalizeToReg(Expected);
+      auto *ActualAddressR = legalizeToReg(ActualAddress);
+      const uint32_t ShiftAmount =
+          (INT32_BITS - CHAR_BITS * typeWidthInBytes(DestTy));
+      const uint32_t Mask = (1 << (CHAR_BITS * typeWidthInBytes(DestTy))) - 1;
+      auto *RegAt = getPhysicalRegister(RegMIPS32::Reg_AT);
+      auto *T1 = I32Reg();
+      auto *T2 = I32Reg();
+      auto *T3 = I32Reg();
+      auto *T4 = I32Reg();
+      auto *T5 = I32Reg();
+      auto *T6 = I32Reg();
+      auto *T7 = I32Reg();
+      auto *T8 = I32Reg();
+      auto *T9 = I32Reg();
+      _sync();
+      _addiu(RegAt, getZero(), -4);
+      _and(T1, ActualAddressR, RegAt);
+      _andi(RegAt, ActualAddressR, 3);
+      _sll(T2, RegAt, 3);
+      _ori(RegAt, getZero(), Mask);
+      _sllv(T3, RegAt, T2);
+      _nor(T4, getZero(), T3);
+      _andi(RegAt, ExpectedR, Mask);
+      _sllv(T5, RegAt, T2);
+      _andi(RegAt, NewR, Mask);
+      _sllv(T6, RegAt, T2);
+      Context.insert(Retry);
+      _ll(T7, formMemoryOperand(T1, DestTy));
+      _and(T8, T7, T3);
+      _br(NoTarget, NoTarget, T8, T5, Exit, CondMIPS32::Cond::NE);
+      _and(RegAt, T7, T4);
+      _or(T9, RegAt, T6);
+      _sc(T9, formMemoryOperand(T1, DestTy));
+      _br(NoTarget, NoTarget, getZero(), T9, Retry, CondMIPS32::Cond::EQ);
+      Context.insert<InstFakeUse>(getZero());
+      Context.insert(Exit);
+      _srlv(RegAt, T8, T2);
+      _sll(RegAt, RegAt, ShiftAmount);
+      _sra(RegAt, RegAt, ShiftAmount);
+      _mov(Dest, RegAt);
+      _sync();
+      Context.insert<InstFakeUse>(ExpectedR);
+      Context.insert<InstFakeUse>(NewR);
+    } else {
+      auto *T1 = I32Reg();
+      auto *NewR = legalizeToReg(New);
+      auto *ExpectedR = legalizeToReg(Expected);
+      auto *ActualAddressR = legalizeToReg(ActualAddress);
+      _sync();
+      Context.insert(Retry);
+      _ll(T1, formMemoryOperand(ActualAddressR, DestTy));
+      _br(NoTarget, NoTarget, T1, ExpectedR, Exit, CondMIPS32::Cond::NE);
+      _sc(NewR, formMemoryOperand(ActualAddressR, DestTy));
+      _br(NoTarget, NoTarget, NewR, getZero(), Retry, CondMIPS32::Cond::EQ);
+      Context.insert<InstFakeUse>(getZero());
+      Context.insert(Exit);
+      _mov(Dest, T1);
+      _sync();
+      Context.insert<InstFakeUse>(ExpectedR);
+      Context.insert<InstFakeUse>(NewR);
+    }
+    return;
+  }
+  case Intrinsics::AtomicRMW: {
+    assert(isScalarIntegerType(DestTy));
+    // We require the memory address to be naturally aligned. Given that is the
+    // case, then normal loads are atomic.
+    if (!Intrinsics::isMemoryOrderValid(
+            ID, getConstantMemoryOrder(Instr->getArg(3)))) {
+      Func->setError("Unexpected memory ordering for AtomicRMW");
+      return;
+    }
+
+    constexpr CfgNode *NoTarget = nullptr;
+    InstMIPS32Label *Retry = InstMIPS32Label::create(Func, this);
+    auto Operation = static_cast<Intrinsics::AtomicRMWOperation>(
+        llvm::cast<ConstantInteger32>(Instr->getArg(0))->getValue());
+    auto *New = Instr->getArg(2);
+    auto *ActualAddress = Instr->getArg(1);
+
+    if (DestTy == IceType_i64) {
+      InstMIPS32Label *Retry1 = InstMIPS32Label::create(Func, this);
+      _sync();
+      Variable *ValHi, *ValLo;
+      if (auto *C64 = llvm::dyn_cast<ConstantInteger64>(New)) {
+        const uint64_t Value = C64->getValue();
+        uint64_t Upper32Bits = (Value >> INT32_BITS) & 0xFFFFFFFF;
+        uint64_t Lower32Bits = Value & 0xFFFFFFFF;
+        ValLo = legalizeToReg(Ctx->getConstantInt32(Lower32Bits));
+        ValHi = legalizeToReg(Ctx->getConstantInt32(Upper32Bits));
+      } else {
+        auto *Val = llvm::cast<Variable64On32>(New);
+        ValLo = legalizeToReg(loOperand(Val));
+        ValHi = legalizeToReg(hiOperand(Val));
+      }
+      auto *Dest64 = llvm::cast<Variable64On32>(Dest);
+      auto *BaseR = legalizeToReg(ActualAddress);
+      auto *AddrLo = OperandMIPS32Mem::create(
+          Func, IceType_i32, BaseR,
+          llvm::cast<ConstantInteger32>(Ctx->getConstantInt32(0)));
+      auto *AddrHi = OperandMIPS32Mem::create(
+          Func, IceType_i32, BaseR,
+          llvm::cast<ConstantInteger32>(Ctx->getConstantInt32(4)));
+      auto *RegAt = getPhysicalRegister(RegMIPS32::Reg_AT);
+      auto *T1 = I32Reg();
+      auto *T2 = I32Reg();
+      auto *T3 = I32Reg();
+      Context.insert(Retry);
+      _ll(T1, AddrLo);
+      if (Operation == Intrinsics::AtomicExchange) {
+        _mov(RegAt, ValLo);
+      } else if (Operation == Intrinsics::AtomicAdd) {
+        createArithInst(Operation, RegAt, T1, ValLo);
+        _sltu(T2, RegAt, T1);
+      } else if (Operation == Intrinsics::AtomicSub) {
+        createArithInst(Operation, RegAt, T1, ValLo);
+        _sltu(T2, T1, ValLo);
+      } else {
+        createArithInst(Operation, RegAt, T1, ValLo);
+      }
+      _sc(RegAt, AddrLo);
+      _br(NoTarget, NoTarget, RegAt, getZero(), Retry, CondMIPS32::Cond::EQ);
+      Context.insert<InstFakeUse>(getZero());
+      _mov(Dest64->getLo(), T1);
+      Context.insert(Retry1);
+      _ll(T3, AddrHi);
+      if (Operation == Intrinsics::AtomicAdd ||
+          Operation == Intrinsics::AtomicSub) {
+        _addu(RegAt, T2, ValHi);
+        createArithInst(Operation, RegAt, T3, RegAt);
+      } else if (Operation == Intrinsics::AtomicExchange) {
+        _mov(RegAt, ValHi);
+      } else {
+        createArithInst(Operation, RegAt, T3, ValHi);
+      }
+      _sc(RegAt, AddrHi);
+      _br(NoTarget, NoTarget, RegAt, getZero(), Retry1, CondMIPS32::Cond::EQ);
+      Context.insert<InstFakeUse>(getZero());
+      _mov(Dest64->getHi(), T3);
+      Context.insert<InstFakeUse>(ValLo);
+      Context.insert<InstFakeUse>(ValHi);
+      _sync();
+    } else if (DestTy == IceType_i8 || DestTy == IceType_i16) {
+      const uint32_t ShiftAmount =
+          INT32_BITS - (CHAR_BITS * typeWidthInBytes(DestTy));
+      const uint32_t Mask = (1 << (CHAR_BITS * typeWidthInBytes(DestTy))) - 1;
+      auto *NewR = legalizeToReg(New);
+      auto *ActualAddressR = legalizeToReg(ActualAddress);
+      auto *RegAt = getPhysicalRegister(RegMIPS32::Reg_AT);
+      auto *T1 = I32Reg();
+      auto *T2 = I32Reg();
+      auto *T3 = I32Reg();
+      auto *T4 = I32Reg();
+      auto *T5 = I32Reg();
+      auto *T6 = I32Reg();
+      auto *T7 = I32Reg();
+      _sync();
+      _addiu(RegAt, getZero(), -4);
+      _and(T1, ActualAddressR, RegAt);
+      _andi(RegAt, ActualAddressR, 3);
+      _sll(T2, RegAt, 3);
+      _ori(RegAt, getZero(), Mask);
+      _sllv(T3, RegAt, T2);
+      _nor(T4, getZero(), T3);
+      _sllv(T5, NewR, T2);
+      Context.insert(Retry);
+      _ll(T6, formMemoryOperand(T1, DestTy));
+      if (Operation != Intrinsics::AtomicExchange) {
+        createArithInst(Operation, RegAt, T6, T5);
+        _and(RegAt, RegAt, T3);
+      }
+      _and(T7, T6, T4);
+      if (Operation == Intrinsics::AtomicExchange) {
+        _or(RegAt, T7, T5);
+      } else {
+        _or(RegAt, T7, RegAt);
+      }
+      _sc(RegAt, formMemoryOperand(T1, DestTy));
+      _br(NoTarget, NoTarget, RegAt, getZero(), Retry, CondMIPS32::Cond::EQ);
+      Context.insert<InstFakeUse>(getZero());
+      _and(RegAt, T6, T3);
+      _srlv(RegAt, RegAt, T2);
+      _sll(RegAt, RegAt, ShiftAmount);
+      _sra(RegAt, RegAt, ShiftAmount);
+      _mov(Dest, RegAt);
+      _sync();
+      Context.insert<InstFakeUse>(NewR);
+      Context.insert<InstFakeUse>(Dest);
+    } else {
+      auto *T1 = I32Reg();
+      auto *T2 = I32Reg();
+      auto *NewR = legalizeToReg(New);
+      auto *ActualAddressR = legalizeToReg(ActualAddress);
+      _sync();
+      Context.insert(Retry);
+      _ll(T1, formMemoryOperand(ActualAddressR, DestTy));
+      if (Operation == Intrinsics::AtomicExchange) {
+        _mov(T2, NewR);
+      } else {
+        createArithInst(Operation, T2, T1, NewR);
+      }
+      _sc(T2, formMemoryOperand(ActualAddressR, DestTy));
+      _br(NoTarget, NoTarget, T2, getZero(), Retry, CondMIPS32::Cond::EQ);
+      Context.insert<InstFakeUse>(getZero());
+      _mov(Dest, T1);
+      _sync();
+      Context.insert<InstFakeUse>(NewR);
+      Context.insert<InstFakeUse>(Dest);
+    }
     return;
   }
   case Intrinsics::AtomicFence:
-    UnimplementedLoweringError(this, Instr);
-    return;
   case Intrinsics::AtomicFenceAll:
-    // NOTE: FenceAll should prevent and load/store from being moved across the
-    // fence (both atomic and non-atomic). The InstMIPS32Mfence instruction is
-    // currently marked coarsely as "HasSideEffects".
-    UnimplementedLoweringError(this, Instr);
+    assert(Dest == nullptr);
+    _sync();
     return;
   case Intrinsics::AtomicIsLockFree: {
-    UnimplementedLoweringError(this, Instr);
-    return;
-  }
-  case Intrinsics::AtomicLoad: {
-    UnimplementedLoweringError(this, Instr);
-    return;
-  }
-  case Intrinsics::AtomicRMW:
-    UnimplementedLoweringError(this, Instr);
-    return;
-  case Intrinsics::AtomicStore: {
-    UnimplementedLoweringError(this, Instr);
+    Operand *ByteSize = Instr->getArg(0);
+    auto *CI = llvm::dyn_cast<ConstantInteger32>(ByteSize);
+    auto *T = I32Reg();
+    if (CI == nullptr) {
+      // The PNaCl ABI requires the byte size to be a compile-time constant.
+      Func->setError("AtomicIsLockFree byte size should be compile-time const");
+      return;
+    }
+    static constexpr int32_t NotLockFree = 0;
+    static constexpr int32_t LockFree = 1;
+    int32_t Result = NotLockFree;
+    switch (CI->getValue()) {
+    case 1:
+    case 2:
+    case 4:
+    case 8:
+      Result = LockFree;
+      break;
+    }
+    _addiu(T, getZero(), Result);
+    _mov(Dest, T);
     return;
   }
   case Intrinsics::Bswap: {
@@ -4935,7 +5347,7 @@ void TargetMIPS32::lowerSelect(const InstSelect *Instr) {
     _mov(Dest, SrcFR);
     break;
   default:
-    UnimplementedLoweringError(this, Instr);
+    llvm::report_fatal_error("Select: Invalid type.");
   }
 }
 
@@ -5297,7 +5709,7 @@ Operand *TargetMIPS32::legalize(Operand *From, LegalMask Allowed,
       // using a lui-ori instructions.
       Variable *Reg = makeReg(Ty, RegNum);
       if (isInt<16>(int32_t(Value))) {
-        Variable *Zero = getPhysicalRegister(RegMIPS32::Reg_ZERO, Ty);
+        Variable *Zero = makeReg(Ty, RegMIPS32::Reg_ZERO);
         Context.insert<InstFakeDef>(Zero);
         _addiu(Reg, Zero, Value);
       } else {

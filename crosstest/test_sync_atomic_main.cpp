@@ -160,14 +160,14 @@ template <typename Type> struct ThreadData {
 };
 
 template <typename Type> void *threadWrapper(void *Data) {
-#ifdef ARM32
+#if defined(ARM32) || defined(MIPS32)
   // Given that most of times these crosstests for ARM are run under qemu, we
   // set a lower NumReps to allow crosstests to complete within a reasonable
   // amount of time.
   static const size_t NumReps = 1000;
-#else  // ARM32
+#else  // ARM32 || MIPS32
   static const size_t NumReps = 8000;
-#endif // ARM32
+#endif // ARM32 || MIPS32
 
   ThreadData<Type> *TData = reinterpret_cast<ThreadData<Type> *>(Data);
   for (size_t i = 0; i < NumReps; ++i) {

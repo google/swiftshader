@@ -195,6 +195,8 @@ public:
   void ldc1(const Operand *OpRt, const Operand *OpBase, const Operand *OpOff,
             const RelocOp Reloc);
 
+  void ll(const Operand *OpRt, const Operand *OpBase, const uint32_t Offset);
+
   void lw(const Operand *OpRt, const Operand *OpBase, const uint32_t Offset);
 
   void lwc1(const Operand *OpRt, const Operand *OpBase, const Operand *OpOff,
@@ -252,6 +254,8 @@ public:
 
   void ret(void);
 
+  void sc(const Operand *OpRt, const Operand *OpBase, const uint32_t Offset);
+
   void sll(const Operand *OpRd, const Operand *OpRt, const uint32_t Sa);
 
   void sllv(const Operand *OpRd, const Operand *OpRt, const Operand *OpRs);
@@ -289,6 +293,8 @@ public:
 
   void swc1(const Operand *OpRt, const Operand *OpBase, const Operand *OpOff,
             const RelocOp Reloc);
+
+  void sync();
 
   void teq(const Operand *OpRs, const Operand *OpRt, const uint32_t TrapCode);
 

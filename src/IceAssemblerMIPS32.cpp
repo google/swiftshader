@@ -696,6 +696,12 @@ void AssemblerMIPS32::ldc1(const Operand *OpRt, const Operand *OpBase,
   emitInst(Opcode);
 }
 
+void AssemblerMIPS32::ll(const Operand *OpRt, const Operand *OpBase,
+                         const uint32_t Offset) {
+  static constexpr IValueT Opcode = 0xC0000000;
+  emitRtRsImm16(Opcode, OpRt, OpBase, Offset, "ll");
+}
+
 void AssemblerMIPS32::lw(const Operand *OpRt, const Operand *OpBase,
                          const uint32_t Offset) {
   switch (OpRt->getType()) {
@@ -959,6 +965,12 @@ void AssemblerMIPS32::ret(void) {
   nop(); // delay slot
 }
 
+void AssemblerMIPS32::sc(const Operand *OpRt, const Operand *OpBase,
+                         const uint32_t Offset) {
+  static constexpr IValueT Opcode = 0xE0000000;
+  emitRtRsImm16(Opcode, OpRt, OpBase, Offset, "sc");
+}
+
 void AssemblerMIPS32::sll(const Operand *OpRd, const Operand *OpRt,
                           const uint32_t Sa) {
   static constexpr IValueT Opcode = 0x00000000;
@@ -1119,6 +1131,11 @@ void AssemblerMIPS32::swc1(const Operand *OpRt, const Operand *OpBase,
   Opcode |= Base << 21;
   Opcode |= Rt << 16;
   Opcode |= Imm16;
+  emitInst(Opcode);
+}
+
+void AssemblerMIPS32::sync() {
+  static constexpr IValueT Opcode = 0x0000000f;
   emitInst(Opcode);
 }
 

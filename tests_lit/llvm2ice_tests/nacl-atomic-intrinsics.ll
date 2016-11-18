@@ -26,6 +26,18 @@
 ; RUN:   | %if --need=allow_dump --need=target_ARM32 --command FileCheck %s \
 ; RUN:   --check-prefix=ARM32
 
+; RUN: %if --need=allow_dump --need=target_MIPS32 --command %p2i --filetype=asm\
+; RUN:   --target mips32 -i %s --args -O2 \
+; RUN:   -allow-externally-defined-symbols \
+; RUN:   | %if --need=allow_dump --need=target_MIPS32 --command FileCheck %s \
+; RUN:   --check-prefix=MIPS32O2 --check-prefix=MIPS32
+
+; RUN: %if --need=allow_dump --need=target_MIPS32 --command %p2i --filetype=asm\
+; RUN:   --target mips32 -i %s --args -Om1 \
+; RUN:   -allow-externally-defined-symbols \
+; RUN:   | %if --need=allow_dump --need=target_MIPS32 --command FileCheck %s \
+; RUN:   --check-prefix=MIPS32OM1 --check-prefix=MIPS32
+
 declare i8 @llvm.nacl.atomic.load.i8(i8*, i32)
 declare i16 @llvm.nacl.atomic.load.i16(i16*, i32)
 declare i32 @llvm.nacl.atomic.load.i32(i32*, i32)
@@ -76,6 +88,9 @@ entry:
 ; ARM32-LABEL: test_atomic_load_8
 ; ARM32: ldrb r{{[0-9]+}}, [r{{[0-9]+}}
 ; ARM32: dmb
+; MIPS32-LABEL: test_atomic_load_8
+; MIPS32: lb
+; MIPS32: sync
 
 define internal i32 @test_atomic_load_16(i32 %iptr) {
 entry:
@@ -91,6 +106,9 @@ entry:
 ; ARM32-LABEL: test_atomic_load_16
 ; ARM32: ldrh r{{[0-9]+}}, [r{{[0-9]+}}
 ; ARM32: dmb
+; MIPS32-LABEL: test_atomic_load_16
+; MIPS32: lh
+; MIPS32: sync
 
 define internal i32 @test_atomic_load_32(i32 %iptr) {
 entry:
@@ -104,6 +122,9 @@ entry:
 ; ARM32-LABEL: test_atomic_load_32
 ; ARM32: ldr r{{[0-9]+}}, [r{{[0-9]+}}
 ; ARM32: dmb
+; MIPS32-LABEL: test_atomic_load_32
+; MIPS32: lw
+; MIPS32: sync
 
 define internal i64 @test_atomic_load_64(i32 %iptr) {
 entry:
@@ -117,6 +138,10 @@ entry:
 ; ARM32-LABEL: test_atomic_load_64
 ; ARM32: ldrexd r{{[0-9]+}}, r{{[0-9]+}}, [r{{[0-9]+}}
 ; ARM32: dmb
+; MIPS32-LABEL: test_atomic_load_64
+; MIPS32: lw
+; MIPS32: lw
+; MIPS32: sync
 
 define internal i32 @test_atomic_load_32_with_arith(i32 %iptr) {
 entry:
@@ -139,6 +164,9 @@ next:
 ; ARM32-LABEL: test_atomic_load_32_with_arith
 ; ARM32: ldr r{{[0-9]+}}, [r{{[0-9]+}}
 ; ARM32: dmb
+; MIPS32-LABEL: test_atomic_load_32_with_arith
+; MIPS32: lw
+; MIPS32: sync
 
 define internal i32 @test_atomic_load_32_ignored(i32 %iptr) {
 entry:
@@ -155,6 +183,9 @@ entry:
 ; ARM32-LABEL: test_atomic_load_32_ignored
 ; ARM32: ldr r{{[0-9]+}}, [r{{[0-9]+}}
 ; ARM32: dmb
+; MIPS32-LABEL: test_atomic_load_32_ignored
+; MIPS32: lw
+; MIPS32: sync
 
 define internal i64 @test_atomic_load_64_ignored(i32 %iptr) {
 entry:
@@ -168,6 +199,10 @@ entry:
 ; ARM32-LABEL: test_atomic_load_64_ignored
 ; ARM32: ldrexd r{{[0-9]+}}, r{{[0-9]+}}, [r{{[0-9]+}}
 ; ARM32: dmb
+; MIPS32-LABEL: test_atomic_load_64_ignored
+; MIPS32: lw
+; MIPS32: lw
+; MIPS32: sync
 
 ;;; Store
 
@@ -185,6 +220,10 @@ entry:
 ; ARM32: dmb
 ; ARM32: strb r{{[0-9]+}}, [r{{[0-9]+}}
 ; ARM32: dmb
+; MIPS32-LABEL: test_atomic_store_8
+; MIPS32: sync
+; MIPS32: sb
+; MIPS32: sync
 
 define internal void @test_atomic_store_16(i32 %iptr, i32 %v) {
 entry:
@@ -200,6 +239,10 @@ entry:
 ; ARM32: dmb
 ; ARM32: strh r{{[0-9]+}}, [r{{[0-9]+}}
 ; ARM32: dmb
+; MIPS32-LABEL: test_atomic_store_16
+; MIPS32: sync
+; MIPS32: sh
+; MIPS32: sync
 
 define internal void @test_atomic_store_32(i32 %iptr, i32 %v) {
 entry:
@@ -214,6 +257,10 @@ entry:
 ; ARM32: dmb
 ; ARM32: str r{{[0-9]+}}, [r{{[0-9]+}}
 ; ARM32: dmb
+; MIPS32-LABEL: test_atomic_store_32
+; MIPS32: sync
+; MIPS32: sw
+; MIPS32: sync
 
 define internal void @test_atomic_store_64(i32 %iptr, i64 %v) {
 entry:
@@ -232,6 +279,11 @@ entry:
 ; ARM32: cmp [[S]], #0
 ; ARM32: bne
 ; ARM32: dmb
+; MIPS32-LABEL: test_atomic_store_64
+; MIPS32: sync
+; MIPS32: sw
+; MIPS32: sw
+; MIPS32: sync
 
 define internal void @test_atomic_store_64_const(i32 %iptr) {
 entry:
@@ -256,6 +308,14 @@ entry:
 ; ARM32: cmp [[S]], #0
 ; ARM32: bne .L[[RETRY]]
 ; ARM32: dmb
+; MIPS32-LABEL: test_atomic_store_64_const
+; MIPS32: sync
+; MIPS32: lui	{{.*}}, 29646
+; MIPS32: ori	{{.*}},{{.*}}, 12274
+; MIPS32: addiu	{{.*}}, $zero, 2874
+; MIPS32: sw
+; MIPS32: sw
+; MIPS32: sync
 
 ;;; RMW
 
@@ -280,6 +340,28 @@ entry:
 ; ARM32: strexb
 ; ARM32: bne
 ; ARM32: dmb
+; MIPS32-LABEL: test_atomic_rmw_add_8
+; MIPS32: sync
+; MIPS32: addiu	{{.*}}, $zero, -4
+; MIPS32: and
+; MIPS32: andi	{{.*}}, {{.*}}, 3
+; MIPS32: sll	{{.*}}, {{.*}}, 3
+; MIPS32: ori	{{.*}}, $zero, 255
+; MIPS32: sllv
+; MIPS32: nor
+; MIPS32: sllv
+; MIPS32: ll
+; MIPS32: addu
+; MIPS32: and
+; MIPS32: and
+; MIPS32: or
+; MIPS32: sc
+; MIPS32: beq	{{.*}}, $zero, {{.*}}
+; MIPS32: and
+; MIPS32: srlv
+; MIPS32: sll	{{.*}}, {{.*}}, 24
+; MIPS32: sra	{{.*}}, {{.*}}, 24
+; MIPS32: sync
 
 define internal i32 @test_atomic_rmw_add_16(i32 %iptr, i32 %v) {
 entry:
@@ -299,6 +381,28 @@ entry:
 ; ARM32: strexh
 ; ARM32: bne
 ; ARM32: dmb
+; MIPS32-LABEL: test_atomic_rmw_add_16
+; MIPS32: sync
+; MIPS32: addiu	{{.*}}, $zero, -4
+; MIPS32: and
+; MIPS32: andi	{{.*}}, {{.*}}, 3
+; MIPS32: sll	{{.*}}, {{.*}}, 3
+; MIPS32: ori	{{.*}}, {{.*}}, 65535
+; MIPS32: sllv
+; MIPS32: nor
+; MIPS32: sllv
+; MIPS32: ll
+; MIPS32: addu
+; MIPS32: and
+; MIPS32: and
+; MIPS32: or
+; MIPS32: sc
+; MIPS32: beq	{{.*}}, $zero, {{.*}}
+; MIPS32: and
+; MIPS32: srlv
+; MIPS32: sll	{{.*}}, {{.*}}, 16
+; MIPS32: sra	{{.*}}, {{.*}}, 16
+; MIPS32: sync
 
 define internal i32 @test_atomic_rmw_add_32(i32 %iptr, i32 %v) {
 entry:
@@ -316,6 +420,13 @@ entry:
 ; ARM32: strex
 ; ARM32: bne
 ; ARM32: dmb
+; MIPS32-LABEL: test_atomic_rmw_add_32
+; MIPS32: sync
+; MIPS32: ll
+; MIPS32: addu
+; MIPS32: sc
+; MIPS32: beq	{{.*}}, $zero, {{.*}}
+; MIPS32: sync
 
 define internal i64 @test_atomic_rmw_add_64(i32 %iptr, i64 %v) {
 entry:
@@ -346,6 +457,19 @@ entry:
 ; ARM32: strexd r{{[0-9]+}}, r{{[0-9]+}}, r{{[0-9]+}}, [r{{[0-9]+}}]
 ; ARM32: bne
 ; ARM32: dmb
+; MIPS32-LABEL: test_atomic_rmw_add_64
+; MIPS32: sync
+; MIPS32: ll
+; MIPS32: addu
+; MIPS32: sltu
+; MIPS32: sc
+; MIPS32: beq	{{.*}}, $zero, {{.*}}
+; MIPS32: ll
+; MIPS32: addu
+; MIPS32: addu
+; MIPS32: sc
+; MIPS32: beq	{{.*}}, $zero, {{.*}}
+; MIPS32: sync
 
 ; Same test as above, but with a global address to test FakeUse issues.
 define internal i64 @test_atomic_rmw_add_64_global(i64 %v) {
@@ -363,6 +487,19 @@ entry:
 ; ARM32: strexd r{{[0-9]+}}, r{{[0-9]+}}, r{{[0-9]+}}, [r{{[0-9]+}}]
 ; ARM32: bne
 ; ARM32: dmb
+; MIPS32-LABEL: test_atomic_rmw_add_64_global
+; MIPS32: sync
+; MIPS32: ll
+; MIPS32: addu
+; MIPS32: sltu
+; MIPS32: sc
+; MIPS32: beq	{{.*}}, $zero, {{.*}}
+; MIPS32: ll
+; MIPS32: addu
+; MIPS32: addu
+; MIPS32: sc
+; MIPS32: beq	{{.*}}, $zero, {{.*}}
+; MIPS32: sync
 
 ; Test with some more register pressure. When we have an alloca, ebp is
 ; used to manage the stack frame, so it cannot be used as a register either.
@@ -404,6 +541,19 @@ eblock:
 ; ARM32: strexd r{{[0-9]+}}, r{{[0-9]+}}, r{{[0-9]+}}, [r{{[0-9]+}}]
 ; ARM32: bne
 ; ARM32: dmb
+; MIPS32-LABEL: test_atomic_rmw_add_64_alloca
+; MIPS32: sync
+; MIPS32: ll
+; MIPS32: addu
+; MIPS32: sltu
+; MIPS32: sc
+; MIPS32: beq	{{.*}}, $zero, {{.*}}
+; MIPS32: ll
+; MIPS32: addu
+; MIPS32: addu
+; MIPS32: sc
+; MIPS32: beq	{{.*}}, $zero, {{.*}}
+; MIPS32: sync
 
 define internal i32 @test_atomic_rmw_add_32_ignored(i32 %iptr, i32 %v) {
 entry:
@@ -422,6 +572,13 @@ entry:
 ; ARM32: strex
 ; ARM32: bne
 ; ARM32: dmb
+; MIPS32-LABEL: test_atomic_rmw_add_32_ignored
+; MIPS32: sync
+; MIPS32: ll
+; MIPS32: addu
+; MIPS32: sc
+; MIPS32: beq	{{.*}}, $zero, {{.*}}
+; MIPS32: sync
 
 ; Atomic RMW 64 needs to be expanded into its own loop.
 ; Make sure that works w/ non-trivial function bodies.
@@ -462,6 +619,19 @@ err:
 ; ARM32: bne
 ; ARM32: dmb
 ; ARM32: b
+; MIPS32-LABEL: test_atomic_rmw_add_64_loop
+; MIPS32: sync
+; MIPS32: ll
+; MIPS32: addu
+; MIPS32: sltu
+; MIPS32: sc
+; MIPS32: beq	{{.*}}, $zero, {{.*}}
+; MIPS32: ll
+; MIPS32: addu
+; MIPS32: addu
+; MIPS32: sc
+; MIPS32: beq	{{.*}}, $zero, {{.*}}
+; MIPS32: sync
 
 ;; sub
 
@@ -484,6 +654,28 @@ entry:
 ; ARM32: strexb
 ; ARM32: bne
 ; ARM32: dmb
+; MIPS32-LABEL: test_atomic_rmw_sub_8
+; MIPS32: sync
+; MIPS32: addiu	{{.*}}, $zero, -4
+; MIPS32: and
+; MIPS32: andi	{{.*}}, {{.*}}, 3
+; MIPS32: sll	{{.*}}, {{.*}}, 3
+; MIPS32: ori	{{.*}}, $zero, 255
+; MIPS32: sllv
+; MIPS32: nor
+; MIPS32: sllv
+; MIPS32: ll
+; MIPS32: subu
+; MIPS32: and
+; MIPS32: and
+; MIPS32: or
+; MIPS32: sc
+; MIPS32: beq	{{.*}}, $zero, {{.*}}
+; MIPS32: and
+; MIPS32: srlv
+; MIPS32: sll	{{.*}}, {{.*}}, 24
+; MIPS32: sra	{{.*}}, {{.*}}, 24
+; MIPS32: sync
 
 define internal i32 @test_atomic_rmw_sub_16(i32 %iptr, i32 %v) {
 entry:
@@ -504,6 +696,28 @@ entry:
 ; ARM32: strexh
 ; ARM32: bne
 ; ARM32: dmb
+; MIPS32-LABEL: test_atomic_rmw_sub_16
+; MIPS32: sync
+; MIPS32: addiu	{{.*}}, $zero, -4
+; MIPS32: and
+; MIPS32: andi	{{.*}}, {{.*}}, 3
+; MIPS32: sll	{{.*}}, {{.*}}, 3
+; MIPS32: ori	{{.*}}, {{.*}}, 65535
+; MIPS32: sllv
+; MIPS32: nor
+; MIPS32: sllv
+; MIPS32: ll
+; MIPS32: subu
+; MIPS32: and
+; MIPS32: and
+; MIPS32: or
+; MIPS32: sc
+; MIPS32: beq	{{.*}}, $zero, {{.*}}
+; MIPS32: and
+; MIPS32: srlv
+; MIPS32: sll	{{.*}}, {{.*}}, 16
+; MIPS32: sra	{{.*}}, {{.*}}, 16
+; MIPS32: sync
 
 define internal i32 @test_atomic_rmw_sub_32(i32 %iptr, i32 %v) {
 entry:
@@ -522,6 +736,13 @@ entry:
 ; ARM32: strex
 ; ARM32: bne
 ; ARM32: dmb
+; MIPS32-LABEL: test_atomic_rmw_sub_32
+; MIPS32: sync
+; MIPS32: ll
+; MIPS32: subu
+; MIPS32: sc
+; MIPS32: beq	{{.*}}, $zero, {{.*}}
+; MIPS32: sync
 
 define internal i64 @test_atomic_rmw_sub_64(i32 %iptr, i64 %v) {
 entry:
@@ -547,6 +768,19 @@ entry:
 ; ARM32: strexd r{{[0-9]+}}, r{{[0-9]+}}, r{{[0-9]+}}, [r{{[0-9]+}}]
 ; ARM32: bne
 ; ARM32: dmb
+; MIPS32-LABEL: test_atomic_rmw_sub_64
+; MIPS32: sync
+; MIPS32: ll
+; MIPS32: subu
+; MIPS32: sltu
+; MIPS32: sc
+; MIPS32: beq	{{.*}}, $zero, {{.*}}
+; MIPS32: ll
+; MIPS32: addu
+; MIPS32: subu
+; MIPS32: sc
+; MIPS32: beq	{{.*}}, $zero, {{.*}}
+; MIPS32: sync
 
 define internal i32 @test_atomic_rmw_sub_32_ignored(i32 %iptr, i32 %v) {
 entry:
@@ -565,6 +799,13 @@ entry:
 ; ARM32: strex
 ; ARM32: bne
 ; ARM32: dmb
+; MIPS32-LABEL: test_atomic_rmw_sub_32_ignored
+; MIPS32: sync
+; MIPS32: ll
+; MIPS32: subu
+; MIPS32: sc
+; MIPS32: beq	{{.*}}, $zero, {{.*}}
+; MIPS32: sync
 
 ;; or
 
@@ -590,6 +831,28 @@ entry:
 ; ARM32: strexb
 ; ARM32: bne
 ; ARM32: dmb
+; MIPS32-LABEL: test_atomic_rmw_or_8
+; MIPS32: sync
+; MIPS32: addiu	{{.*}}, $zero, -4
+; MIPS32: and
+; MIPS32: andi	{{.*}}, {{.*}}, 3
+; MIPS32: sll	{{.*}}, {{.*}}, 3
+; MIPS32: ori	{{.*}}, $zero, 255
+; MIPS32: sllv
+; MIPS32: nor
+; MIPS32: sllv
+; MIPS32: ll
+; MIPS32: or
+; MIPS32: and
+; MIPS32: and
+; MIPS32: or
+; MIPS32: sc
+; MIPS32: beq	{{.*}}, $zero, {{.*}}
+; MIPS32: and
+; MIPS32: srlv
+; MIPS32: sll	{{.*}}, {{.*}}, 24
+; MIPS32: sra	{{.*}}, {{.*}}, 24
+; MIPS32: sync
 
 ; Same test as above, but with a global address to test FakeUse issues.
 define internal i32 @test_atomic_rmw_or_8_global(i32 %v) {
@@ -610,6 +873,28 @@ entry:
 ; ARM32: strexb
 ; ARM32: bne
 ; ARM32: dmb
+; MIPS32-LABEL: test_atomic_rmw_or_8_global
+; MIPS32: sync
+; MIPS32: addiu	{{.*}}, $zero, -4
+; MIPS32: and
+; MIPS32: andi	{{.*}}, {{.*}}, 3
+; MIPS32: sll	{{.*}}, {{.*}}, 3
+; MIPS32: ori	{{.*}}, $zero, 255
+; MIPS32: sllv
+; MIPS32: nor
+; MIPS32: sllv
+; MIPS32: ll
+; MIPS32: or
+; MIPS32: and
+; MIPS32: and
+; MIPS32: or
+; MIPS32: sc
+; MIPS32: beq	{{.*}}, $zero, {{.*}}
+; MIPS32: and
+; MIPS32: srlv
+; MIPS32: sll	{{.*}}, {{.*}}, 24
+; MIPS32: sra	{{.*}}, {{.*}}, 24
+; MIPS32: sync
 
 define internal i32 @test_atomic_rmw_or_16(i32 %iptr, i32 %v) {
 entry:
@@ -631,6 +916,28 @@ entry:
 ; ARM32: strexh
 ; ARM32: bne
 ; ARM32: dmb
+; MIPS32-LABEL: test_atomic_rmw_or_16
+; MIPS32: sync
+; MIPS32: addiu	{{.*}}, $zero, -4
+; MIPS32: and
+; MIPS32: andi	{{.*}}, {{.*}}, 3
+; MIPS32: sll	{{.*}}, {{.*}}, 3
+; MIPS32: ori	{{.*}}, {{.*}}, 65535
+; MIPS32: sllv
+; MIPS32: nor
+; MIPS32: sllv
+; MIPS32: ll
+; MIPS32: or
+; MIPS32: and
+; MIPS32: and
+; MIPS32: or
+; MIPS32: sc
+; MIPS32: beq	{{.*}}, $zero, {{.*}}
+; MIPS32: and
+; MIPS32: srlv
+; MIPS32: sll	{{.*}}, {{.*}}, 16
+; MIPS32: sra	{{.*}}, {{.*}}, 16
+; MIPS32: sync
 
 ; Same test as above, but with a global address to test FakeUse issues.
 define internal i32 @test_atomic_rmw_or_16_global(i32 %v) {
@@ -651,6 +958,28 @@ entry:
 ; ARM32: strexh
 ; ARM32: bne
 ; ARM32: dmb
+; MIPS32-LABEL: test_atomic_rmw_or_16_global
+; MIPS32: sync
+; MIPS32: addiu	{{.*}}, $zero, -4
+; MIPS32: and
+; MIPS32: andi	{{.*}}, {{.*}}, 3
+; MIPS32: sll	{{.*}}, {{.*}}, 3
+; MIPS32: ori	{{.*}}, {{.*}}, 65535
+; MIPS32: sllv
+; MIPS32: nor
+; MIPS32: sllv
+; MIPS32: ll
+; MIPS32: or
+; MIPS32: and
+; MIPS32: and
+; MIPS32: or
+; MIPS32: sc
+; MIPS32: beq	{{.*}}, $zero, {{.*}}
+; MIPS32: and
+; MIPS32: srlv
+; MIPS32: sll	{{.*}}, {{.*}}, 16
+; MIPS32: sra	{{.*}}, {{.*}}, 16
+; MIPS32: sync
 
 define internal i32 @test_atomic_rmw_or_32(i32 %iptr, i32 %v) {
 entry:
@@ -670,6 +999,13 @@ entry:
 ; ARM32: strex
 ; ARM32: bne
 ; ARM32: dmb
+; MIPS32-LABEL: test_atomic_rmw_or_32
+; MIPS32: sync
+; MIPS32: ll
+; MIPS32: or
+; MIPS32: sc
+; MIPS32: beq	{{.*}}, $zero, {{.*}}
+; MIPS32: sync
 
 ; Same test as above, but with a global address to test FakeUse issues.
 define internal i32 @test_atomic_rmw_or_32_global(i32 %v) {
@@ -688,6 +1024,13 @@ entry:
 ; ARM32: strex
 ; ARM32: bne
 ; ARM32: dmb
+; MIPS32-LABEL: test_atomic_rmw_or_32_global
+; MIPS32: sync
+; MIPS32: ll
+; MIPS32: or
+; MIPS32: sc
+; MIPS32: beq	{{.*}}, $zero, {{.*}}
+; MIPS32: sync
 
 define internal i64 @test_atomic_rmw_or_64(i32 %iptr, i64 %v) {
 entry:
@@ -713,6 +1056,17 @@ entry:
 ; ARM32: strexd r{{[0-9]+}}, r{{[0-9]+}}, r{{[0-9]+}}, [r{{[0-9]+}}]
 ; ARM32: bne
 ; ARM32: dmb
+; MIPS32-LABEL: test_atomic_rmw_or_64
+; MIPS32: sync
+; MIPS32: ll
+; MIPS32: or
+; MIPS32: sc
+; MIPS32: beq	{{.*}}, $zero, {{.*}}
+; MIPS32: ll
+; MIPS32: or
+; MIPS32: sc
+; MIPS32: beq	{{.*}}, $zero, {{.*}}
+; MIPS32: sync
 
 define internal i32 @test_atomic_rmw_or_32_ignored(i32 %iptr, i32 %v) {
 entry:
@@ -735,6 +1089,13 @@ entry:
 ; ARM32: strex
 ; ARM32: bne
 ; ARM32: dmb
+; MIPS32-LABEL: test_atomic_rmw_or_32_ignored
+; MIPS32: sync
+; MIPS32: ll
+; MIPS32: or
+; MIPS32: sc
+; MIPS32: beq	{{.*}}, $zero, {{.*}}
+; MIPS32: sync
 
 ;; and
 
@@ -758,6 +1119,28 @@ entry:
 ; ARM32: strexb
 ; ARM32: bne
 ; ARM32: dmb
+; MIPS32-LABEL: test_atomic_rmw_and_8
+; MIPS32: sync
+; MIPS32: addiu	{{.*}}, $zero, -4
+; MIPS32: and
+; MIPS32: andi	{{.*}}, {{.*}}, 3
+; MIPS32: sll	{{.*}}, {{.*}}, 3
+; MIPS32: ori	{{.*}}, $zero, 255
+; MIPS32: sllv
+; MIPS32: nor
+; MIPS32: sllv
+; MIPS32: ll
+; MIPS32: and
+; MIPS32: and
+; MIPS32: and
+; MIPS32: or
+; MIPS32: sc
+; MIPS32: beq	{{.*}}, $zero, {{.*}}
+; MIPS32: and
+; MIPS32: srlv
+; MIPS32: sll	{{.*}}, {{.*}}, 24
+; MIPS32: sra	{{.*}}, {{.*}}, 24
+; MIPS32: sync
 
 define internal i32 @test_atomic_rmw_and_16(i32 %iptr, i32 %v) {
 entry:
@@ -779,6 +1162,28 @@ entry:
 ; ARM32: strexh
 ; ARM32: bne
 ; ARM32: dmb
+; MIPS32-LABEL: test_atomic_rmw_and_16
+; MIPS32: sync
+; MIPS32: addiu	{{.*}}, $zero, -4
+; MIPS32: and
+; MIPS32: andi	{{.*}}, {{.*}}, 3
+; MIPS32: sll	{{.*}}, {{.*}}, 3
+; MIPS32: ori	{{.*}}, {{.*}}, 65535
+; MIPS32: sllv
+; MIPS32: nor
+; MIPS32: sllv
+; MIPS32: ll
+; MIPS32: and
+; MIPS32: and
+; MIPS32: and
+; MIPS32: or
+; MIPS32: sc
+; MIPS32: beq	{{.*}}, $zero, {{.*}}
+; MIPS32: and
+; MIPS32: srlv
+; MIPS32: sll	{{.*}}, {{.*}}, 16
+; MIPS32: sra	{{.*}}, {{.*}}, 16
+; MIPS32: sync
 
 define internal i32 @test_atomic_rmw_and_32(i32 %iptr, i32 %v) {
 entry:
@@ -798,6 +1203,13 @@ entry:
 ; ARM32: strex
 ; ARM32: bne
 ; ARM32: dmb
+; MIPS32-LABEL: test_atomic_rmw_and_32
+; MIPS32: sync
+; MIPS32: ll
+; MIPS32: and
+; MIPS32: sc
+; MIPS32: beq	{{.*}}, $zero, {{.*}}
+; MIPS32: sync
 
 define internal i64 @test_atomic_rmw_and_64(i32 %iptr, i64 %v) {
 entry:
@@ -823,6 +1235,17 @@ entry:
 ; ARM32: strexd r{{[0-9]+}}, r{{[0-9]+}}, r{{[0-9]+}}, [r{{[0-9]+}}]
 ; ARM32: bne
 ; ARM32: dmb
+; MIPS32-LABEL: test_atomic_rmw_and_64
+; MIPS32: sync
+; MIPS32: ll
+; MIPS32: and
+; MIPS32: sc
+; MIPS32: beq	{{.*}}, $zero, {{.*}}
+; MIPS32: ll
+; MIPS32: and
+; MIPS32: sc
+; MIPS32: beq	{{.*}}, $zero, {{.*}}
+; MIPS32: sync
 
 define internal i32 @test_atomic_rmw_and_32_ignored(i32 %iptr, i32 %v) {
 entry:
@@ -843,6 +1266,13 @@ entry:
 ; ARM32: strex
 ; ARM32: bne
 ; ARM32: dmb
+; MIPS32-LABEL: test_atomic_rmw_and_32_ignored
+; MIPS32: sync
+; MIPS32: ll
+; MIPS32: and
+; MIPS32: sc
+; MIPS32: beq	{{.*}}, $zero, {{.*}}
+; MIPS32: sync
 
 ;; xor
 
@@ -866,6 +1296,28 @@ entry:
 ; ARM32: strexb
 ; ARM32: bne
 ; ARM32: dmb
+; MIPS32-LABEL: test_atomic_rmw_xor_8
+; MIPS32: sync
+; MIPS32: addiu	{{.*}}, $zero, -4
+; MIPS32: and
+; MIPS32: andi	{{.*}}, {{.*}}, 3
+; MIPS32: sll	{{.*}}, {{.*}}, 3
+; MIPS32: ori	{{.*}}, $zero, 255
+; MIPS32: sllv
+; MIPS32: nor
+; MIPS32: sllv
+; MIPS32: ll
+; MIPS32: xor
+; MIPS32: and
+; MIPS32: and
+; MIPS32: or
+; MIPS32: sc
+; MIPS32: beq	{{.*}}, $zero, {{.*}}
+; MIPS32: and
+; MIPS32: srlv
+; MIPS32: sll	{{.*}}, {{.*}}, 24
+; MIPS32: sra	{{.*}}, {{.*}}, 24
+; MIPS32: sync
 
 define internal i32 @test_atomic_rmw_xor_16(i32 %iptr, i32 %v) {
 entry:
@@ -887,6 +1339,28 @@ entry:
 ; ARM32: strexh
 ; ARM32: bne
 ; ARM32: dmb
+; MIPS32-LABEL: test_atomic_rmw_xor_16
+; MIPS32: sync
+; MIPS32: addiu	{{.*}}, $zero, -4
+; MIPS32: and
+; MIPS32: andi	{{.*}}, {{.*}}, 3
+; MIPS32: sll	{{.*}}, {{.*}}, 3
+; MIPS32: ori	{{.*}}, {{.*}}, 65535
+; MIPS32: sllv
+; MIPS32: nor
+; MIPS32: sllv
+; MIPS32: ll
+; MIPS32: xor
+; MIPS32: and
+; MIPS32: and
+; MIPS32: or
+; MIPS32: sc
+; MIPS32: beq	{{.*}}, $zero, {{.*}}
+; MIPS32: and
+; MIPS32: srlv
+; MIPS32: sll	{{.*}}, {{.*}}, 16
+; MIPS32: sra	{{.*}}, {{.*}}, 16
+; MIPS32: sync
 
 define internal i32 @test_atomic_rmw_xor_32(i32 %iptr, i32 %v) {
 entry:
@@ -906,6 +1380,13 @@ entry:
 ; ARM32: strex
 ; ARM32: bne
 ; ARM32: dmb
+; MIPS32-LABEL: test_atomic_rmw_xor_32
+; MIPS32: sync
+; MIPS32: ll
+; MIPS32: xor
+; MIPS32: sc
+; MIPS32: beq	{{.*}}, $zero, {{.*}}
+; MIPS32: sync
 
 define internal i64 @test_atomic_rmw_xor_64(i32 %iptr, i64 %v) {
 entry:
@@ -931,6 +1412,17 @@ entry:
 ; ARM32: strexd r{{[0-9]+}}, r{{[0-9]+}}, r{{[0-9]+}}, [r{{[0-9]+}}]
 ; ARM32: bne
 ; ARM32: dmb
+; MIPS32-LABEL: test_atomic_rmw_xor_64
+; MIPS32: sync
+; MIPS32: ll
+; MIPS32: xor
+; MIPS32: sc
+; MIPS32: beq	{{.*}}, $zero, {{.*}}
+; MIPS32: ll
+; MIPS32: xor
+; MIPS32: sc
+; MIPS32: beq	{{.*}}, $zero, {{.*}}
+; MIPS32: sync
 
 define internal i32 @test_atomic_rmw_xor_32_ignored(i32 %iptr, i32 %v) {
 entry:
@@ -950,6 +1442,13 @@ entry:
 ; ARM32: strex
 ; ARM32: bne
 ; ARM32: dmb
+; MIPS32-LABEL: test_atomic_rmw_xor_32_ignored
+; MIPS32: sync
+; MIPS32: ll
+; MIPS32: xor
+; MIPS32: sc
+; MIPS32: beq	{{.*}}, $zero, {{.*}}
+; MIPS32: sync
 
 ;; exchange
 
@@ -970,6 +1469,26 @@ entry:
 ; ARM32: cmp
 ; ARM32: bne
 ; ARM32: dmb
+; MIPS32-LABEL: test_atomic_rmw_xchg_8
+; MIPS32: sync
+; MIPS32: addiu	{{.*}}, $zero, -4
+; MIPS32: and
+; MIPS32: andi	{{.*}}, {{.*}}, 3
+; MIPS32: sll	{{.*}}, {{.*}}, 3
+; MIPS32: ori	{{.*}}, $zero, 255
+; MIPS32: sllv
+; MIPS32: nor
+; MIPS32: sllv
+; MIPS32: ll
+; MIPS32: and
+; MIPS32: or
+; MIPS32: sc
+; MIPS32: beq	{{.*}}, $zero, {{.*}}
+; MIPS32: and
+; MIPS32: srlv
+; MIPS32: sll	{{.*}}, {{.*}}, 24
+; MIPS32: sra	{{.*}}, {{.*}}, 24
+; MIPS32: sync
 
 define internal i32 @test_atomic_rmw_xchg_16(i32 %iptr, i32 %v) {
 entry:
@@ -988,6 +1507,26 @@ entry:
 ; ARM32: cmp
 ; ARM32: bne
 ; ARM32: dmb
+; MIPS32-LABEL: test_atomic_rmw_xchg_16
+; MIPS32: sync
+; MIPS32: addiu	{{.*}}, $zero, -4
+; MIPS32: and
+; MIPS32: andi	{{.*}}, {{.*}}, 3
+; MIPS32: sll	{{.*}}, {{.*}}, 3
+; MIPS32: ori	{{.*}}, {{.*}}, 65535
+; MIPS32: sllv
+; MIPS32: nor
+; MIPS32: sllv
+; MIPS32: ll
+; MIPS32: and
+; MIPS32: or
+; MIPS32: sc
+; MIPS32: beq	{{.*}}, $zero, {{.*}}
+; MIPS32: and
+; MIPS32: srlv
+; MIPS32: sll	{{.*}}, {{.*}}, 16
+; MIPS32: sra	{{.*}}, {{.*}}, 16
+; MIPS32: sync
 
 define internal i32 @test_atomic_rmw_xchg_32(i32 %iptr, i32 %v) {
 entry:
@@ -1004,6 +1543,13 @@ entry:
 ; ARM32: cmp
 ; ARM32: bne
 ; ARM32: dmb
+; MIPS32-LABEL: test_atomic_rmw_xchg_32
+; MIPS32: sync
+; MIPS32: ll
+; MIPS32: move
+; MIPS32: sc
+; MIPS32: beq	{{.*}}, $zero, {{.*}}
+; MIPS32: sync
 
 define internal i64 @test_atomic_rmw_xchg_64(i32 %iptr, i64 %v) {
 entry:
@@ -1026,6 +1572,17 @@ entry:
 ; ARM32: cmp
 ; ARM32: bne
 ; ARM32: dmb
+; MIPS32-LABEL: test_atomic_rmw_xchg_64
+; MIPS32: sync
+; MIPS32: ll
+; MIPS32: move
+; MIPS32: sc
+; MIPS32: beq	{{.*}}, $zero, {{.*}}
+; MIPS32: ll
+; MIPS32: move
+; MIPS32: sc
+; MIPS32: beq	{{.*}}, $zero, {{.*}}
+; MIPS32: sync
 
 define internal i32 @test_atomic_rmw_xchg_32_ignored(i32 %iptr, i32 %v) {
 entry:
@@ -1044,6 +1601,13 @@ entry:
 ; ARM32: cmp
 ; ARM32: bne
 ; ARM32: dmb
+; MIPS32-LABEL: test_atomic_rmw_xchg_32_ignored
+; MIPS32: sync
+; MIPS32: ll
+; MIPS32: move
+; MIPS32: sc
+; MIPS32: beq	{{.*}}, $zero, {{.*}}
+; MIPS32: sync
 
 ;;;; Cmpxchg
 
@@ -1073,6 +1637,30 @@ entry:
 ; ARM32: cmp [[SUCCESS]], #0
 ; ARM32: bne
 ; ARM32: dmb
+; MIPS32-LABEL: test_atomic_cmpxchg_8
+; MIPS32: sync
+; MIPS32: addiu	{{.*}}, $zero, -4
+; MIPS32: and
+; MIPS32: andi	{{.*}}, {{.*}}, 3
+; MIPS32: sll	{{.*}}, {{.*}}, 3
+; MIPS32: ori	{{.*}}, $zero, 255
+; MIPS32: sllv
+; MIPS32: nor
+; MIPS32: andi	{{.*}}, {{.*}}, 255
+; MIPS32: sllv
+; MIPS32: andi	{{.*}}, {{.*}}, 255
+; MIPS32: sllv
+; MIPS32: ll
+; MIPS32: and
+; MIPS32: bne
+; MIPS32: and
+; MIPS32: or
+; MIPS32: sc
+; MIPS32: beq	$zero, {{.*}}, {{.*}}
+; MIPS32: srlv
+; MIPS32: sll	{{.*}}, {{.*}}, 24
+; MIPS32: sra	{{.*}}, {{.*}}, 24
+; MIPS32: sync
 
 define internal i32 @test_atomic_cmpxchg_16(i32 %iptr, i32 %expected,
                                             i32 %desired) {
@@ -1098,6 +1686,30 @@ entry:
 ; ARM32: cmp [[SUCCESS]], #0
 ; ARM32: bne
 ; ARM32: dmb
+; MIPS32-LABEL: test_atomic_cmpxchg_16
+; MIPS32: sync
+; MIPS32: addiu	{{.*}}, $zero, -4
+; MIPS32: and
+; MIPS32: andi	{{.*}}, {{.*}}, 3
+; MIPS32: sll	{{.*}}, {{.*}}, 3
+; MIPS32: ori	{{.*}}, {{.*}}, 65535
+; MIPS32: sllv
+; MIPS32: nor
+; MIPS32: andi	{{.*}}, {{.*}}, 65535
+; MIPS32: sllv
+; MIPS32: andi	{{.*}}, {{.*}}, 65535
+; MIPS32: sllv
+; MIPS32: ll
+; MIPS32: and
+; MIPS32: bne
+; MIPS32: and
+; MIPS32: or
+; MIPS32: sc
+; MIPS32: beq	$zero, {{.*}}, {{.*}}
+; MIPS32: srlv
+; MIPS32: sll	{{.*}}, {{.*}}, 16
+; MIPS32: sra	{{.*}}, {{.*}}, 16
+; MIPS32: sync
 
 define internal i32 @test_atomic_cmpxchg_32(i32 %iptr, i32 %expected,
                                             i32 %desired) {
@@ -1119,6 +1731,13 @@ entry:
 ; ARM32: cmp [[SUCCESS]], #0
 ; ARM32: bne
 ; ARM32: dmb
+; MIPS32-LABEL: test_atomic_cmpxchg_32
+; MIPS32: sync
+; MIPS32: ll
+; MIPS32: bne
+; MIPS32: sc
+; MIPS32: beq	{{.*}}, $zero, {{.*}}
+; MIPS32: sync
 
 define internal i64 @test_atomic_cmpxchg_64(i32 %iptr, i64 %expected,
                                             i64 %desired) {
@@ -1148,6 +1767,18 @@ entry:
 ; ARM32: cmp [[SUCCESS]], #0
 ; ARM32: bne
 ; ARM32: dmb
+; MIPS32-LABEL: test_atomic_cmpxchg_64
+; MIPS32: sync
+; MIPS32: ll
+; MIPS32: bne
+; MIPS32: sc
+; MIPS32: beq
+; MIPS32: ll
+; MIPS32: bne
+; MIPS32: sc
+; MIPS32: beq
+; MIPS32: sync
+
 
 define internal i64 @test_atomic_cmpxchg_64_undef(i32 %iptr, i64 %desired) {
 entry:
@@ -1170,6 +1801,17 @@ entry:
 ; ARM32: cmp [[SUCCESS]], #0
 ; ARM32: bne
 ; ARM32: dmb
+; MIPS32-LABEL: test_atomic_cmpxchg_64_undef
+; MIPS32: sync
+; MIPS32: ll
+; MIPS32: bne
+; MIPS32: sc
+; MIPS32: beq
+; MIPS32: ll
+; MIPS32: bne
+; MIPS32: sc
+; MIPS32: beq
+; MIPS32: sync
 
 ; Test a case where %old really does need to be copied out of edx:eax.
 define internal void @test_atomic_cmpxchg_64_store(
@@ -1203,6 +1845,18 @@ entry:
 ; ARM32: dmb
 ; ARM32: str
 ; ARM32: str
+; MIPS32-LABEL: test_atomic_cmpxchg_64_store
+; MIPS32: sync
+; MIPS32: ll
+; MIPS32: bne
+; MIPS32: sc
+; MIPS32: beq
+; MIPS32: ll
+; MIPS32: bne
+; MIPS32: sc
+; MIPS32: beq
+; MIPS32: sync
+
 
 ; Test with some more register pressure. When we have an alloca, ebp is
 ; used to manage the stack frame, so it cannot be used as a register either.
@@ -1246,6 +1900,17 @@ eblock:
 ; ARM32: cmp [[SUCCESS]], #0
 ; ARM32: bne
 ; ARM32: dmb
+; MIPS32-LABEL: test_atomic_cmpxchg_64_alloca
+; MIPS32: sync
+; MIPS32: ll
+; MIPS32: bne
+; MIPS32: sc
+; MIPS32: beq
+; MIPS32: ll
+; MIPS32: bne
+; MIPS32: sc
+; MIPS32: beq
+; MIPS32: sync
 
 define internal i32 @test_atomic_cmpxchg_32_ignored(i32 %iptr, i32 %expected,
                                                     i32 %desired) {
@@ -1267,6 +1932,13 @@ entry:
 ; ARM32: cmp [[SUCCESS]], #0
 ; ARM32: bne
 ; ARM32: dmb
+; MIPS32-LABEL: test_atomic_cmpxchg_32_ignored
+; MIPS32: sync
+; MIPS32: ll
+; MIPS32: bne
+; MIPS32: sc
+; MIPS32: beq	{{.*}}, $zero, {{.*}}
+; MIPS32: sync
 
 define internal i64 @test_atomic_cmpxchg_64_ignored(i32 %iptr, i64 %expected,
                                                     i64 %desired) {
@@ -1293,6 +1965,17 @@ entry:
 ; ARM32: cmp [[SUCCESS]], #0
 ; ARM32: bne
 ; ARM32: dmb
+; MIPS32-LABEL: test_atomic_cmpxchg_64_ignored
+; MIPS32: sync
+; MIPS32: ll
+; MIPS32: bne
+; MIPS32: sc
+; MIPS32: beq
+; MIPS32: ll
+; MIPS32: bne
+; MIPS32: sc
+; MIPS32: beq
+; MIPS32: sync
 
 ;;;; Fence and is-lock-free.
 
@@ -1305,6 +1988,8 @@ entry:
 ; CHECK: mfence
 ; ARM32-LABEL: test_atomic_fence
 ; ARM32: dmb sy
+; MIPS32-LABEL: test_atomic_fence
+; MIPS32: sync
 
 define internal void @test_atomic_fence_all() {
 entry:
@@ -1315,6 +2000,8 @@ entry:
 ; CHECK: mfence
 ; ARM32-LABEL: test_atomic_fence_all
 ; ARM32: dmb sy
+; MIPS32-LABEL: test_atomic_fence_all
+; MIPS32: sync
 
 define internal i32 @test_atomic_is_lock_free(i32 %iptr) {
 entry:
@@ -1327,6 +2014,8 @@ entry:
 ; CHECK: mov {{.*}},0x1
 ; ARM32-LABEL: test_atomic_is_lock_free
 ; ARM32: mov {{.*}}, #1
+; MIPS32-LABEL: test_atomic_is_lock_free
+; MIPS32: addiu {{.*}}, $zero, 1
 
 define internal i32 @test_not_lock_free(i32 %iptr) {
 entry:
@@ -1339,6 +2028,8 @@ entry:
 ; CHECK: mov {{.*}},0x0
 ; ARM32-LABEL: test_not_lock_free
 ; ARM32: mov {{.*}}, #0
+; MIPS32-LABEL: test_not_lock_free
+; MIPS32: addiu {{.*}}, $zero, 0
 
 define internal i32 @test_atomic_is_lock_free_ignored(i32 %iptr) {
 entry:
@@ -1355,6 +2046,9 @@ entry:
 ; ARM32O2-LABEL: test_atomic_is_lock_free_ignored
 ; ARM32O2-NOT: mov {{.*}}, #1
 ; ARM32O2: mov {{.*}}, #0
+; MIPS32O2-LABEL: test_atomic_is_lock_free
+; MIPS32O2-NOT: addiu {{.*}}, $zero, 1
+; MIPS32O2: addiu {{.*}}, $zero, 0
 
 ; TODO(jvoung): at some point we can take advantage of the
 ; fact that nacl.atomic.is.lock.free will resolve to a constant

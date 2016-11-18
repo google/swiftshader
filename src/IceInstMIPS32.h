@@ -224,6 +224,7 @@ public:
     La,
     Label,
     Ldc1,
+    Ll,
     Lui,
     Lw,
     Lwc1,
@@ -253,6 +254,7 @@ public:
     Or,
     Ori,
     Ret,
+    Sc,
     Sdc1,
     Sll,
     Sllv,
@@ -272,6 +274,7 @@ public:
     Subu,
     Sw,
     Swc1,
+    Sync,
     Teq,
     Trunc_l_d,
     Trunc_l_s,
@@ -598,35 +601,40 @@ public:
       return;
     Ostream &Str = Func->getContext()->getStrEmit();
     const Type Ty = getDest()->getType();
-    switch (Ty) {
-    case IceType_i1:
-    case IceType_i8:
-      Str << "\t"
-          << "lb"
-          << "\t";
-      break;
-    case IceType_i16:
-      Str << "\t"
-          << "lh"
-          << "\t";
-      break;
-    case IceType_i32:
-      Str << "\t"
-          << "lw"
-          << "\t";
-      break;
-    case IceType_f32:
-      Str << "\t"
-          << "lwc1"
-          << "\t";
-      break;
-    case IceType_f64:
-      Str << "\t"
-          << "ldc1"
-          << "\t";
-      break;
-    default:
-      llvm_unreachable("InstMIPS32Load unknown type");
+
+    if (getKind() == static_cast<InstKind>(Ll)) {
+      Str << "\t" << Opcode << "\t";
+    } else {
+      switch (Ty) {
+      case IceType_i1:
+      case IceType_i8:
+        Str << "\t"
+               "lb"
+               "\t";
+        break;
+      case IceType_i16:
+        Str << "\t"
+               "lh"
+               "\t";
+        break;
+      case IceType_i32:
+        Str << "\t"
+               "lw"
+               "\t";
+        break;
+      case IceType_f32:
+        Str << "\t"
+               "lwc1"
+               "\t";
+        break;
+      case IceType_f64:
+        Str << "\t"
+               "ldc1"
+               "\t";
+        break;
+      default:
+        llvm_unreachable("InstMIPS32Load unknown type");
+      }
     }
     getDest()->emit(Func);
     Str << ", ";
@@ -683,35 +691,40 @@ public:
     Ostream &Str = Func->getContext()->getStrEmit();
     assert(getSrcSize() == 2);
     const Type Ty = getSrc(0)->getType();
-    switch (Ty) {
-    case IceType_i1:
-    case IceType_i8:
-      Str << "\t"
-          << "sb"
-          << "\t";
-      break;
-    case IceType_i16:
-      Str << "\t"
-          << "sh"
-          << "\t";
-      break;
-    case IceType_i32:
-      Str << "\t"
-          << "sw"
-          << "\t";
-      break;
-    case IceType_f32:
-      Str << "\t"
-          << "swc1"
-          << "\t";
-      break;
-    case IceType_f64:
-      Str << "\t"
-          << "sdc1"
-          << "\t";
-      break;
-    default:
-      llvm_unreachable("InstMIPS32Store unknown type");
+
+    if (getKind() == static_cast<InstKind>(Sc)) {
+      Str << "\t" << Opcode << "\t";
+    } else {
+      switch (Ty) {
+      case IceType_i1:
+      case IceType_i8:
+        Str << "\t"
+               "sb"
+               "\t";
+        break;
+      case IceType_i16:
+        Str << "\t"
+               "sh"
+               "\t";
+        break;
+      case IceType_i32:
+        Str << "\t"
+               "sw"
+               "\t";
+        break;
+      case IceType_f32:
+        Str << "\t"
+               "swc1"
+               "\t";
+        break;
+      case IceType_f64:
+        Str << "\t"
+               "sdc1"
+               "\t";
+        break;
+      default:
+        llvm_unreachable("InstMIPS32Store unknown type");
+      }
     }
     getSrc(0)->emit(Func);
     Str << ", ";
@@ -791,6 +804,13 @@ public:
     constexpr InstMIPS32Label *NoLabel = nullptr;
     return new (Func->allocate<InstMIPS32Br>())
         InstMIPS32Br(Func, NoCondTarget, Target, NoLabel, CondMIPS32::AL);
+  }
+
+  static InstMIPS32Br *create(Cfg *Func, CfgNode *Target,
+                              const InstMIPS32Label *Label) {
+    constexpr CfgNode *NoCondTarget = nullptr;
+    return new (Func->allocate<InstMIPS32Br>())
+        InstMIPS32Br(Func, NoCondTarget, Target, Label, CondMIPS32::AL);
   }
 
   /// Create a conditional branch to the false node.
@@ -918,6 +938,40 @@ private:
     addSource(Src1);
   };
 
+  static const char *Opcode;
+};
+
+class InstMIPS32Sync : public InstMIPS32 {
+  InstMIPS32Sync() = delete;
+  InstMIPS32Sync(const InstMIPS32Sync &) = delete;
+  InstMIPS32Sync &operator=(const InstMIPS32Sync &) = delete;
+
+public:
+  static InstMIPS32Sync *create(Cfg *Func) {
+    return new (Func->allocate<InstMIPS32Sync>()) InstMIPS32Sync(Func);
+  }
+
+  void emit(const Cfg *Func) const override {
+    if (!BuildDefs::dump())
+      return;
+    Ostream &Str = Func->getContext()->getStrEmit();
+    Str << "\t" << Opcode << "\t";
+  }
+
+  void dump(const Cfg *Func) const override {
+    if (!BuildDefs::dump())
+      return;
+    Func->getContext()->getStrDump() << Opcode << "\t";
+  }
+
+  static bool classof(const Inst *Inst) {
+    return isClassof(Inst, InstMIPS32::Sync);
+  }
+
+  void emitIAS(const Cfg *Func) const override;
+
+private:
+  InstMIPS32Sync(Cfg *Func) : InstMIPS32(Func, InstMIPS32::Sync, 0, nullptr) {}
   static const char *Opcode;
 };
 
@@ -1175,6 +1229,7 @@ using InstMIPS32Div_s = InstMIPS32ThreeAddrFPR<InstMIPS32::Div_s>;
 using InstMIPS32Divu = InstMIPS32ThreeAddrGPR<InstMIPS32::Divu>;
 using InstMIPS32La = InstMIPS32UnaryopGPR<InstMIPS32::La>;
 using InstMIPS32Ldc1 = InstMIPS32Load<InstMIPS32::Ldc1>;
+using InstMIPS32Ll = InstMIPS32Load<InstMIPS32::Ll>;
 using InstMIPS32Lui = InstMIPS32UnaryopGPR<InstMIPS32::Lui>;
 using InstMIPS32Lw = InstMIPS32Load<InstMIPS32::Lw>;
 using InstMIPS32Lwc1 = InstMIPS32Load<InstMIPS32::Lwc1>;
@@ -1202,6 +1257,7 @@ using InstMIPS32Multu = InstMIPS32ThreeAddrGPR<InstMIPS32::Multu>;
 using InstMIPS32Nor = InstMIPS32ThreeAddrGPR<InstMIPS32::Nor>;
 using InstMIPS32Or = InstMIPS32ThreeAddrGPR<InstMIPS32::Or>;
 using InstMIPS32Ori = InstMIPS32Imm16<InstMIPS32::Ori>;
+using InstMIPS32Sc = InstMIPS32Store<InstMIPS32::Sc>;
 using InstMIPS32Sdc1 = InstMIPS32Store<InstMIPS32::Sdc1>;
 using InstMIPS32Sll = InstMIPS32Imm16<InstMIPS32::Sll>;
 using InstMIPS32Sllv = InstMIPS32ThreeAddrGPR<InstMIPS32::Sllv>;
