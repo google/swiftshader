@@ -1053,8 +1053,8 @@ namespace sw
 
 	Int Blitter::ComputeOffset(Int& x, Int& y, Int& pitchB, int bytes, bool quadLayout)
 	{
-		return (quadLayout ? (y & Int(~1)) : y) * pitchB +
-		       (quadLayout ? ((y & Int(1)) << 1) + (x * 2) - (x & Int(1)) : x) * bytes;
+		return (quadLayout ? (y & Int(~1)) : RValue<Int>(y)) * pitchB +
+		       (quadLayout ? ((y & Int(1)) << 1) + (x * 2) - (x & Int(1)) : RValue<Int>(x)) * bytes;
 	}
 
 	Routine *Blitter::generate(BlitState &state)
@@ -1123,11 +1123,11 @@ namespace sw
 			For(Int j = y0d, j < y1d, j++)
 			{
 				Float x = x0;
-				Pointer<Byte> destLine = dest + (dstQuadLayout ? j & Int(~1) : j) * dPitchB;
+				Pointer<Byte> destLine = dest + (dstQuadLayout ? j & Int(~1) : RValue<Int>(j)) * dPitchB;
 
 				For(Int i = x0d, i < x1d, i++)
 				{
-					Pointer<Byte> d = destLine + (dstQuadLayout ? (((j & Int(1)) << 1) + (i * 2) - (i & Int(1))) : i) * dstBytes;
+					Pointer<Byte> d = destLine + (dstQuadLayout ? (((j & Int(1)) << 1) + (i * 2) - (i & Int(1))) : RValue<Int>(i)) * dstBytes;
 					if(hasConstantColorI)
 					{
 						if(!write(constantColorI, d, state.destFormat, state.options))
