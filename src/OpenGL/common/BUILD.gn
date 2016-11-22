@@ -16,8 +16,8 @@
 config("swiftshader_opengl_common_private_config") {
   if (is_win) {
     cflags = [
-      "/wd4201", # nameless struct/union
-      "/wd4324", # structure was padded due to alignment specifier
+      "/wd4201",  # nameless struct/union
+      "/wd4324",  # structure was padded due to alignment specifier
     ]
   } else {
     cflags = [ "-DLOG_TAG=\"swiftshader_opengl_common\"" ]
@@ -26,10 +26,10 @@ config("swiftshader_opengl_common_private_config") {
 
 source_set("swiftshader_opengl_common") {
   sources = [
-    "debug.cpp",
     "Image.cpp",
-    "Object.cpp",
     "MatrixStack.cpp",
+    "Object.cpp",
+    "debug.cpp",
   ]
 
   configs += [ ":swiftshader_opengl_common_private_config" ]

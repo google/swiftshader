@@ -19,8 +19,8 @@ config("swiftshader_libEGL_private_config") {
       "/DEGLAPI=",
       "/DEGL_EGLEXT_PROTOTYPES",
       "/DLIBEGL_EXPORTS",
-      "/wd4201", # nameless struct/union
-      "/wd4065", # switch statement contains 'default' but no 'case' labels
+      "/wd4201",  # nameless struct/union
+      "/wd4065",  # switch statement contains 'default' but no 'case' labels
     ]
   } else {
     cflags = [
@@ -39,18 +39,18 @@ shared_library("swiftshader_libEGL") {
   }
 
   sources = [
+    "../common/Object.cpp",
     "Config.cpp",
     "Display.cpp",
     "Surface.cpp",
     "libEGL.cpp",
-    "main.cpp",
-    "../common/Object.cpp",
     "libEGL.def",
     "libEGL.rc",
+    "main.cpp",
     "resource.h",
   ]
 
-  if(is_debug) {
+  if (is_debug) {
     sources += [ "../common/debug.cpp" ]
   }
 

@@ -16,8 +16,8 @@
 config("swiftshader_reactor_private_config") {
   if (is_win) {
     cflags = [
-      "/wd4201", # nameless struct/union
-      "/wd4245", # conversion from int to unsigned int (llvm)
+      "/wd4201",  # nameless struct/union
+      "/wd4245",  # conversion from int to unsigned int (llvm)
     ]
   } else {
     cflags = [
@@ -32,15 +32,15 @@ config("swiftshader_reactor_private_config") {
 
 source_set("swiftshader_reactor") {
   deps = [
-    "../OpenGL/common:swiftshader_opengl_common",
     "../../third_party/LLVM:swiftshader_llvm",
+    "../OpenGL/common:swiftshader_opengl_common",
   ]
 
   sources = [
     "LLVMReactor.cpp",
-    "Routine.cpp",
     "LLVMRoutine.cpp",
     "LLVMRoutineManager.cpp",
+    "Routine.cpp",
   ]
 
   if (is_win) {

@@ -15,18 +15,18 @@
 config("swiftshader_config") {
   if (is_win) {
     cflags = [
-      "/GS", # Detects some buffer overruns
+      "/GS",  # Detects some buffer overruns
       "/Zc:wchar_t",
       "/D_CRT_SECURE_NO_DEPRECATE",
       "/DNOMINMAX",
       "/D_WINDLL",
       "/EHsc",
       "/nologo",
-      "/Gd", # Default calling convention
+      "/Gd",  # Default calling convention
     ]
 
     if (is_debug) {
-      cflags += [ "/RTC1" ] # Run-Time Error Checks
+      cflags += [ "/RTC1" ]  # Run-Time Error Checks
     } else {
       cflags += [ "/DANGLE_DISABLE_TRACE" ]
     }
@@ -35,7 +35,7 @@ config("swiftshader_config") {
 
     if (is_debug) {
       cflags += [ "-g" ]
-    } else { # Release
+    } else {  # Release
       # All Release builds use function/data sections to make the shared libraries smaller
       cflags += [
         "-ffunction-sections",
@@ -47,17 +47,17 @@ config("swiftshader_config") {
       # Choose the right Release architecture
       if (target_cpu == "x64") {
         cflags += [ "-march=core2" ]
-      } else { # 32
+      } else {  # 32
         cflags += [ "-march=i686" ]
       }
     }
 
-    if (target_cpu == "x64") { # 64 bit version
+    if (target_cpu == "x64") {  # 64 bit version
       cflags += [
         "-m64",
         "-fPIC",
       ]
-    } else { # 32 bit version
+    } else {  # 32 bit version
       cflags += [ "-m32" ]
     }
   }

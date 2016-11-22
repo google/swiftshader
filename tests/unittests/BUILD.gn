@@ -15,10 +15,13 @@
 import("//testing/test.gni")
 
 test("swiftshader_unittests") {
-  deps = [ 
-    "../../src/OpenGL/libGLESv2:swiftshader_libGLESv2",
+  deps = [
     "../../src/OpenGL/libEGL:swiftshader_libEGL",
+    "../../src/OpenGL/libGLESv2:swiftshader_libGLESv2",
     "//testing/gtest",
   ]
-  sources = [ "main.cpp" ]
+
+  sources = [
+    "main.cpp",
+  ]
 }

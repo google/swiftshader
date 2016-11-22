@@ -20,12 +20,11 @@ config("swiftshader_libGLESv2_private_config") {
       "/DGL_APICALL=",
       "/DGL_GLEXT_PROTOTYPES",
       "/DLIBGLESV2_EXPORTS",
-      "/wd4201", # nameless struct/union
-      "/wd4324", # structure was padded due to alignment specifier
+      "/wd4201",  # nameless struct/union
+      "/wd4324",  # structure was padded due to alignment specifier
     ]
 
-    if (is_clang)
-    {
+    if (is_clang) {
       cflags += [
         "-D__STDC_CONSTANT_MACROS",
         "-D__STDC_LIMIT_MACROS",
@@ -63,9 +62,6 @@ shared_library("swiftshader_libGLESv2") {
     "Fence.cpp",
     "Framebuffer.cpp",
     "IndexDataManager.cpp",
-    "libGLESv2.cpp",
-    "libGLESv3.cpp",
-    "main.cpp",
     "Program.cpp",
     "Query.cpp",
     "Renderbuffer.cpp",
@@ -73,12 +69,15 @@ shared_library("swiftshader_libGLESv2") {
     "Shader.cpp",
     "Texture.cpp",
     "TransformFeedback.cpp",
-    "utilities.cpp",
     "VertexArray.cpp",
     "VertexDataManager.cpp",
+    "libGLESv2.cpp",
     "libGLESv2.def",
     "libGLESv2.rc",
+    "libGLESv3.cpp",
+    "main.cpp",
     "resource.h",
+    "utilities.cpp",
   ]
 
   if (is_win) {
