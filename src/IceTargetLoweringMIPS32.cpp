@@ -5844,6 +5844,8 @@ TargetHeaderMIPS32::TargetHeaderMIPS32(GlobalContext *Ctx)
     : TargetHeaderLowering(Ctx) {}
 
 void TargetHeaderMIPS32::lower() {
+  if (!BuildDefs::dump())
+    return;
   OstreamLocker L(Ctx);
   Ostream &Str = Ctx->getStrEmit();
   Str << "\t.set\t"
@@ -5852,6 +5854,8 @@ void TargetHeaderMIPS32::lower() {
       << "nomips16\n";
   Str << "\t.set\t"
       << "noat\n";
+  if (getFlags().getUseSandboxing())
+    Str << "\t.bundle_align_mode 4\n";
 }
 
 SmallBitVector TargetMIPS32::TypeToRegisterSet[RCMIPS32_NUM];
@@ -5888,6 +5892,8 @@ void TargetMIPS32::Sandboxer::lw(Variable *Dest, OperandMIPS32Mem *Mem) {
     Target->_and(Base, Base, T7);
   }
   Target->_lw(Dest, Mem);
+  if (Target->NeedSandboxing && (Dest->getRegNum() == Target->getStackReg()))
+    Target->_and(Dest, Dest, T7);
 }
 
 void TargetMIPS32::Sandboxer::sw(Variable *Dest, OperandMIPS32Mem *Mem) {
@@ -5946,12 +5952,18 @@ void TargetMIPS32::Sandboxer::reset_sp(Variable *Src) {
   createAutoBundle();
   Target->_mov(SP, Src);
   Target->_and(SP, SP, T7);
+  Target->getContext().insert<InstFakeUse>(SP);
 }
 
 InstMIPS32Call *TargetMIPS32::Sandboxer::jal(Variable *ReturnReg,
                                              Operand *CallTarget) {
-  if (Target->NeedSandboxing)
+  if (Target->NeedSandboxing) {
     createAutoBundle();
+    if (auto *CallTargetR = llvm::dyn_cast<Variable>(CallTarget)) {
+      Variable *T6 = Target->getPhysicalRegister(RegMIPS32::Reg_T6);
+      Target->_and(CallTargetR, CallTargetR, T6);
+    }
+  }
   return Target->Context.insert<InstMIPS32Call>(ReturnReg, CallTarget);
 }
 

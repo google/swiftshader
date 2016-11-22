@@ -650,7 +650,7 @@ void AssemblerMIPS32::jalr(const Operand *OpRs, const Operand *OpRd) {
   const IValueT Rs = encodeGPRegister(OpRs, "Rs", "jalr");
   const IValueT Rd =
       (OpRd == nullptr) ? 31 : encodeGPRegister(OpRd, "Rd", "jalr");
-  Opcode |= Rd << 16;
+  Opcode |= Rd << 11;
   Opcode |= Rs << 21;
   emitInst(Opcode);
   nop();

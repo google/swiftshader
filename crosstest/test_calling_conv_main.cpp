@@ -69,6 +69,16 @@ void testCaller(size_t &TotalTests, size_t &Passes, size_t &Failures) {
     void (*Subzero_Caller)(void);
     CalleePtrTy Callee;
   } Funcs[] = {
+#ifdef MIPS32
+#define X(caller, callee, argc)                                                \
+  {                                                                            \
+    STR(caller), STR(callee), argc, &caller, &Subzero_::caller,                \
+        reinterpret_cast<CalleePtrTy>(&Subzero_::callee),                      \
+  }                                                                            \
+  ,
+      TEST_FUNC_TABLE
+#undef X
+#else
 #define X(caller, callee, argc)                                                \
   {                                                                            \
     STR(caller), STR(callee), argc, &caller, &Subzero_::caller,                \
@@ -77,6 +87,7 @@ void testCaller(size_t &TotalTests, size_t &Passes, size_t &Failures) {
   ,
       TEST_FUNC_TABLE
 #undef X
+#endif
   };
 
   const static size_t NumFuncs = sizeof(Funcs) / sizeof(*Funcs);

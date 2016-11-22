@@ -47,6 +47,8 @@ def RunNativePrefix(toolchain_root, target, attr, run_cmd):
       'arm32-hwdiv-arm': ' -cpu cortex-a15',
       'mips32-base': ' -cpu mips32r5-generic'})
   prefix = arch_map[target] + attr_map[target + '-' + attr]
+  if target == 'mips32':
+    prefix = 'QEMU_SET_ENV=LD_LIBRARY_PATH=/usr/mipsel-linux-gnu/lib/ ' + prefix
   return (prefix + ' ' + run_cmd) if prefix else run_cmd
 
 def NonsfiLoaderArch(target):

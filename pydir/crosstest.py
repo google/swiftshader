@@ -158,7 +158,9 @@ def main():
                   bitcode] + arch_sz_flags[args.target])
         if args.filetype != 'obj':
             shellcmd(['{bin}/llvm-mc'.format(bin=bindir),
-                      '-triple=' + triple,
+                      '-triple=' + ('mipsel-linux-gnu'
+                                    if args.target == 'mips32' and args.sandbox
+                                    else triple),
                       '-filetype=obj',
                       '-o=' + obj_sz,
                       asm_sz])
