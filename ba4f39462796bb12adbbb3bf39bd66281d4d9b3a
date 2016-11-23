@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b07d5855_c56fec68",
+        "filename": "src/Reactor/SubzeroReactor.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 1953,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-11-23T15:57:01Z",
+      "side": 1,
+      "message": "Note: You can just write the shorter:\n!\"UNIMPLEMENTED\"",
+      "range": {
+        "startLine": 1953,
+        "startChar": 9,
+        "endLine": 1953,
+        "endChar": 33
+      },
+      "revId": "ba4f39462796bb12adbbb3bf39bd66281d4d9b3a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
