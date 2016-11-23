@@ -5387,7 +5387,7 @@ const Inst *AddressOptimizer::matchAssign(Variable **Var,
         if (Utils::WouldOverflowAdd(*Offset, MoreOffset))
           return nullptr;
         *Var = nullptr;
-        Offset += MoreOffset;
+        *Offset += MoreOffset;
         return VarAssign;
       } else if (auto *AddReloc = llvm::dyn_cast<ConstantRelocatable>(SrcOp)) {
         if (*Relocatable == nullptr) {
