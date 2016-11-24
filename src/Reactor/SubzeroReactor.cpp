@@ -113,7 +113,7 @@ namespace sw
 	{
 		return reinterpret_cast<const SectionHeader*>((intptr_t)elfHeader + elfHeader->e_shoff);
 	}
- 
+
 	inline const SectionHeader *elfSection(const ElfHeader *elfHeader, int index)
 	{
 		return &sectionHeader(elfHeader)[index];
@@ -122,25 +122,25 @@ namespace sw
 	static void *relocateSymbol(const ElfHeader *elfHeader, const Elf32_Rel &relocation, const SectionHeader &relocationTable)
 	{
 		const SectionHeader *target = elfSection(elfHeader, relocationTable.sh_info);
- 
+
 		intptr_t address = (intptr_t)elfHeader + target->sh_offset;
 		int32_t *patchSite = (int*)(address + relocation.r_offset);
 		uint32_t index = relocation.getSymbol();
 		int table = relocationTable.sh_link;
 		void *symbolValue = nullptr;
-		
+
 		if(index != SHN_UNDEF)
 		{
 			if(table == SHN_UNDEF) return nullptr;
 			const SectionHeader *symbolTable = elfSection(elfHeader, table);
- 
+
 			uint32_t symtab_entries = symbolTable->sh_size / symbolTable->sh_entsize;
 			if(index >= symtab_entries)
 			{
 				assert(index < symtab_entries && "Symbol Index out of range");
 				return nullptr;
 			}
- 
+
 			intptr_t symbolAddress = (intptr_t)elfHeader + symbolTable->sh_offset;
 			Elf32_Sym &symbol = ((Elf32_Sym*)symbolAddress)[index];
 			uint16_t section = symbol.st_shndx;
@@ -178,7 +178,7 @@ namespace sw
 	static void *relocateSymbol(const ElfHeader *elfHeader, const Elf64_Rela &relocation, const SectionHeader &relocationTable)
 	{
 		const SectionHeader *target = elfSection(elfHeader, relocationTable.sh_info);
- 
+
 		intptr_t address = (intptr_t)elfHeader + target->sh_offset;
 		int32_t *patchSite = (int*)(address + relocation.r_offset);
 		uint32_t index = relocation.getSymbol();
@@ -189,14 +189,14 @@ namespace sw
 		{
 			if(table == SHN_UNDEF) return nullptr;
 			const SectionHeader *symbolTable = elfSection(elfHeader, table);
- 
+
 			uint32_t symtab_entries = symbolTable->sh_size / symbolTable->sh_entsize;
 			if(index >= symtab_entries)
 			{
 				assert(index < symtab_entries && "Symbol Index out of range");
 				return nullptr;
 			}
- 
+
 			intptr_t symbolAddress = (intptr_t)elfHeader + symbolTable->sh_offset;
 			Elf64_Sym &symbol = ((Elf64_Sym*)symbolAddress)[index];
 			uint16_t section = symbol.st_shndx;
@@ -685,8 +685,8 @@ namespace sw
 					const Ice::Intrinsics::IntrinsicInfo intrinsic = {Ice::Intrinsics::LoadSubVector, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F};
 					auto target = ::context->getConstantUndef(Ice::IceType_i32);
 					auto load = Ice::InstIntrinsicCall::create(::function, 2, result, target, intrinsic);
-					load->addArg(::context->getConstantInt32(4));
 					load->addArg(ptr);
+					load->addArg(::context->getConstantInt32(4));
 					::basicBlock->appendInst(load);
 				}
 				break;
@@ -698,8 +698,8 @@ namespace sw
 					const Ice::Intrinsics::IntrinsicInfo intrinsic = {Ice::Intrinsics::LoadSubVector, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F};
 					auto target = ::context->getConstantUndef(Ice::IceType_i32);
 					auto load = Ice::InstIntrinsicCall::create(::function, 2, result, target, intrinsic);
-					load->addArg(::context->getConstantInt32(8));
 					load->addArg(ptr);
+					load->addArg(::context->getConstantInt32(8));
 					::basicBlock->appendInst(load);
 				}
 				break;
@@ -729,9 +729,9 @@ namespace sw
 					const Ice::Intrinsics::IntrinsicInfo intrinsic = {Ice::Intrinsics::StoreSubVector, Ice::Intrinsics::SideEffects_T, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_T};
 					auto target = ::context->getConstantUndef(Ice::IceType_i32);
 					auto store = Ice::InstIntrinsicCall::create(::function, 3, nullptr, target, intrinsic);
-					store->addArg(::context->getConstantInt32(4));
 					store->addArg(value);
 					store->addArg(ptr);
+					store->addArg(::context->getConstantInt32(4));
 					::basicBlock->appendInst(store);
 				}
 				break;
@@ -743,9 +743,9 @@ namespace sw
 					const Ice::Intrinsics::IntrinsicInfo intrinsic = {Ice::Intrinsics::StoreSubVector, Ice::Intrinsics::SideEffects_T, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_T};
 					auto target = ::context->getConstantUndef(Ice::IceType_i32);
 					auto store = Ice::InstIntrinsicCall::create(::function, 3, nullptr, target, intrinsic);
-					store->addArg(::context->getConstantInt32(8));
 					store->addArg(value);
 					store->addArg(ptr);
+					store->addArg(::context->getConstantInt32(8));
 					::basicBlock->appendInst(store);
 				}
 				break;
@@ -1245,7 +1245,7 @@ namespace sw
 		variableDeclaration->setAlignment(alignment);
 		variableDeclaration->setIsConstant(true);
 		variableDeclaration->addInitializer(dataInitializer);
-		
+
 		::function->addGlobal(variableDeclaration);
 
 		constexpr int32_t offset = 0;
