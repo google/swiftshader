@@ -546,7 +546,7 @@ template <typename TraitsType> void TargetX86Base<TraitsType>::translateO2() {
     return;
   // The post-codegen dump is done here, after liveness analysis and associated
   // cleanup, to make the dump cleaner and more useful.
-  Func->dump("After initial x8632 codegen");
+  Func->dump("After initial x86 codegen");
   // Validate the live range computations. The expensive validation call is
   // deliberately only made when assertions are enabled.
   assert(Func->validateLiveness());
@@ -621,7 +621,7 @@ template <typename TraitsType> void TargetX86Base<TraitsType>::translateOm1() {
   if (SandboxingType != ST_None) {
     initSandbox();
   }
-  Func->dump("After initial x8632 codegen");
+  Func->dump("After initial x86 codegen");
 
   regAlloc(RAK_InfOnly);
   if (Func->hasError())
@@ -4383,12 +4383,12 @@ void TargetX86Base<TraitsType>::lowerIntrinsicCall(
     _ud2();
     return;
   case Intrinsics::LoadSubVector: {
-    assert(llvm::isa<ConstantInteger32>(Instr->getArg(0)) &&
-           "LoadSubVector first argument must be a constant");
+    assert(llvm::isa<ConstantInteger32>(Instr->getArg(1)) &&
+           "LoadSubVector second argument must be a constant");
     Variable *Dest = Instr->getDest();
     Type Ty = Dest->getType();
-    auto *SubVectorSize = llvm::dyn_cast<ConstantInteger32>(Instr->getArg(0));
-    Operand *Addr = Instr->getArg(1);
+    auto *SubVectorSize = llvm::cast<ConstantInteger32>(Instr->getArg(1));
+    Operand *Addr = Instr->getArg(0);
     X86OperandMem *Src = formMemoryOperand(Addr, Ty);
     doMockBoundsCheck(Src);
 
@@ -4411,11 +4411,11 @@ void TargetX86Base<TraitsType>::lowerIntrinsicCall(
     return;
   }
   case Intrinsics::StoreSubVector: {
-    assert(llvm::isa<ConstantInteger32>(Instr->getArg(0)) &&
-           "StoreSubVector first argument must be a constant");
-    auto *SubVectorSize = llvm::dyn_cast<ConstantInteger32>(Instr->getArg(0));
-    Operand *Value = Instr->getArg(1);
-    Operand *Addr = Instr->getArg(2);
+    assert(llvm::isa<ConstantInteger32>(Instr->getArg(2)) &&
+           "StoreSubVector third argument must be a constant");
+    auto *SubVectorSize = llvm::cast<ConstantInteger32>(Instr->getArg(2));
+    Operand *Value = Instr->getArg(0);
+    Operand *Addr = Instr->getArg(1);
     X86OperandMem *NewAddr = formMemoryOperand(Addr, Value->getType());
     doMockBoundsCheck(NewAddr);
 
