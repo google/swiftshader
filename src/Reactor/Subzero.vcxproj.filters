@@ -117,6 +117,9 @@
     <ClCompile Include="$(SolutionDir)third_party\pnacl-subzero\src\IceTargetLoweringX8664.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Optimizer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceAssembler.h">
@@ -285,6 +288,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="$(SolutionDir)third_party\pnacl-subzero\src\IceRegistersX8664.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Optimizer.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
