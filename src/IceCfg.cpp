@@ -853,15 +853,17 @@ void Cfg::floatConstantCSE() {
         // Block should not end with a call
       }
       while (Current != End && !llvm::isa<InstCall>(iteratorToInst(Current))) {
-        for (SizeT i = 0; i < Current->getSrcSize(); ++i) {
-          if (auto *Const = llvm::dyn_cast<Constant>(Current->getSrc(i))) {
-            if (Const->getType() == IceType_f32 ||
-                Const->getType() == IceType_f64) {
-              FloatUses[Const].push_back(Current);
+        if (!Current->isDeleted()) {
+          for (SizeT i = 0; i < Current->getSrcSize(); ++i) {
+            if (auto *Const = llvm::dyn_cast<Constant>(Current->getSrc(i))) {
+              if (Const->getType() == IceType_f32 ||
+                  Const->getType() == IceType_f64) {
+                FloatUses[Const].push_back(Current);
+              }
             }
           }
         }
-        Current++;
+        ++Current;
       }
       for (auto &Pair : FloatUses) {
         static constexpr SizeT MinUseThreshold = 3;
