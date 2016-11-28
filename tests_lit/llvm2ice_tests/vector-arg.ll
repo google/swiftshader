@@ -553,7 +553,7 @@ entry:
 ; MIPS32: 	sw	s0,{{.*}}(sp)
 ; MIPS32: 	move	s8,sp
 ; MIPS32: 	move	v0,a0
-; MIPS32: 	addiu	v1,sp,16
+; MIPS32: 	addiu	v1,sp,32
 ; MIPS32: 	move	s0,v1
 ; MIPS32: 	move	a0,s0
 ; MIPS32: 	sw	a2,{{.*}}(sp)
@@ -567,7 +567,7 @@ entry:
 ; MIPS32: 	lw	a0,8(s0)
 ; MIPS32: 	move	a1,a0
 ; MIPS32: 	lw	s0,12(s0)
-; MIPS32: 	addiu	a0,sp,32
+; MIPS32: 	addiu	a0,sp,48
 ; MIPS32: 	sw	a1,{{.*}}(sp)
 ; MIPS32: 	sw	s0,{{.*}}(sp)
 ; MIPS32: 	move	a2,v0

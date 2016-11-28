@@ -225,18 +225,32 @@ uint32_t TargetMIPS32::getCallStackArgumentsSizeBytes(const InstCall *Call) {
   TargetMIPS32::CallingConv CC;
   RegNumT DummyReg;
   size_t OutArgsSizeBytes = 0;
+  Variable *Dest = Call->getDest();
+  bool PartialOnStack = false;
+  if (Dest != nullptr && isVectorFloatingType(Dest->getType())) {
+    CC.discardReg(RegMIPS32::Reg_A0);
+    // Next vector is partially on stack
+    PartialOnStack = true;
+  }
   for (SizeT i = 0, NumArgs = Call->getNumArgs(); i < NumArgs; ++i) {
     Operand *Arg = legalizeUndef(Call->getArg(i));
     const Type Ty = Arg->getType();
     RegNumT RegNum;
     if (CC.argInReg(Ty, i, &RegNum)) {
+      // If PartialOnStack is true and if this is a vector type then last two
+      // elements are on stack
+      if (PartialOnStack && isVectorType(Ty)) {
+        OutArgsSizeBytes = applyStackAlignmentTy(OutArgsSizeBytes, IceType_i32);
+        OutArgsSizeBytes += typeWidthInBytesOnStack(IceType_i32) * 2;
+      }
       continue;
     }
-
     OutArgsSizeBytes = applyStackAlignmentTy(OutArgsSizeBytes, Ty);
     OutArgsSizeBytes += typeWidthInBytesOnStack(Ty);
   }
-
+  // Add size of argument save area
+  constexpr int BytesPerStackArg = 4;
+  OutArgsSizeBytes += MIPS32_MAX_GPR_ARG * BytesPerStackArg;
   return applyStackAlignment(OutArgsSizeBytes);
 }
 

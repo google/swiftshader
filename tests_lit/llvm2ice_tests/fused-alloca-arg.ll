@@ -43,11 +43,11 @@ entry:
 ; MIPS32: 	sw	ra,{{.*}}(sp)
 ; MIPS32: 	move	v0,a0
 ; MIPS32: 	sw	v0,{{.*}}(sp)
-; MIPS32: 	addiu	v0,sp,16
+; MIPS32: 	addiu	v0,sp,32
 ; MIPS32: 	sw	v0,{{.*}}(sp)
-; MIPS32: 	addiu	a1,sp,16
-; MIPS32: 	addiu	a2,sp,16
-; MIPS32: 	addiu	a3,sp,16
+; MIPS32: 	addiu	a1,sp,32
+; MIPS32: 	addiu	a2,sp,32
+; MIPS32: 	addiu	a3,sp,32
 ; MIPS32: 	jal
 ; MIPS32: 	nop
 ; MIPS32: 	lw	ra,{{.*}}(sp)
@@ -91,11 +91,11 @@ entry:
 ; MIPS32: 	sw	v0,{{.*}}(sp)
 ; MIPS32: 	move	v0,a0
 ; MIPS32: 	sw	v0,{{.*}}(sp)
-; MIPS32: 	addiu	v0,sp,48
+; MIPS32: 	addiu	v0,sp,64
 ; MIPS32: 	sw	v0,{{.*}}(sp)
-; MIPS32: 	addiu	a1,sp,16
-; MIPS32: 	addiu	a2,sp,48
-; MIPS32: 	addiu	a3,sp,16
+; MIPS32: 	addiu	a1,sp,32
+; MIPS32: 	addiu	a2,sp,64
+; MIPS32: 	addiu	a3,sp,32
 ; MIPS32: 	jal
 ; MIPS32: 	nop
 ; MIPS32: 	lw	ra,{{.*}}(sp)
