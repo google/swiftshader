@@ -1246,6 +1246,52 @@ bool TextureCubeMap::isMipmapCubeComplete() const
 	return true;
 }
 
+void TextureCubeMap::updateBorders(int level)
+{
+	egl::Image *posX = image[CubeFaceIndex(GL_TEXTURE_CUBE_MAP_POSITIVE_X)][level];
+	egl::Image *negX = image[CubeFaceIndex(GL_TEXTURE_CUBE_MAP_NEGATIVE_X)][level];
+	egl::Image *posY = image[CubeFaceIndex(GL_TEXTURE_CUBE_MAP_POSITIVE_Y)][level];
+	egl::Image *negY = image[CubeFaceIndex(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y)][level];
+	egl::Image *posZ = image[CubeFaceIndex(GL_TEXTURE_CUBE_MAP_POSITIVE_Z)][level];
+	egl::Image *negZ = image[CubeFaceIndex(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z)][level];
+
+	if(!posX || !negX || !posY || !negY || !posZ || !negZ)
+	{
+		return;
+	}
+
+	// Copy top / bottom first.
+	posX->copyCubeEdge(sw::Surface::BOTTOM, negY, sw::Surface::RIGHT);
+	posY->copyCubeEdge(sw::Surface::BOTTOM, posZ, sw::Surface::TOP);
+	posZ->copyCubeEdge(sw::Surface::BOTTOM, negY, sw::Surface::TOP);
+	negX->copyCubeEdge(sw::Surface::BOTTOM, negY, sw::Surface::LEFT);
+	negY->copyCubeEdge(sw::Surface::BOTTOM, negZ, sw::Surface::BOTTOM);
+	negZ->copyCubeEdge(sw::Surface::BOTTOM, negY, sw::Surface::BOTTOM);
+
+	posX->copyCubeEdge(sw::Surface::TOP, posY, sw::Surface::RIGHT);
+	posY->copyCubeEdge(sw::Surface::TOP, negZ, sw::Surface::TOP);
+	posZ->copyCubeEdge(sw::Surface::TOP, posY, sw::Surface::BOTTOM);
+	negX->copyCubeEdge(sw::Surface::TOP, posY, sw::Surface::LEFT);
+	negY->copyCubeEdge(sw::Surface::TOP, posZ, sw::Surface::BOTTOM);
+	negZ->copyCubeEdge(sw::Surface::TOP, posY, sw::Surface::TOP);
+
+	// Copy left / right after top and bottom are done.
+	// The corner colors will be computed assuming top / bottom are already set.
+	posX->copyCubeEdge(sw::Surface::RIGHT, negZ, sw::Surface::LEFT);
+	posY->copyCubeEdge(sw::Surface::RIGHT, posX, sw::Surface::TOP);
+	posZ->copyCubeEdge(sw::Surface::RIGHT, posX, sw::Surface::LEFT);
+	negX->copyCubeEdge(sw::Surface::RIGHT, posZ, sw::Surface::LEFT);
+	negY->copyCubeEdge(sw::Surface::RIGHT, posX, sw::Surface::BOTTOM);
+	negZ->copyCubeEdge(sw::Surface::RIGHT, negX, sw::Surface::LEFT);
+
+	posX->copyCubeEdge(sw::Surface::LEFT, posZ, sw::Surface::RIGHT);
+	posY->copyCubeEdge(sw::Surface::LEFT, negX, sw::Surface::TOP);
+	posZ->copyCubeEdge(sw::Surface::LEFT, negX, sw::Surface::RIGHT);
+	negX->copyCubeEdge(sw::Surface::LEFT, negZ, sw::Surface::RIGHT);
+	negY->copyCubeEdge(sw::Surface::LEFT, negX, sw::Surface::BOTTOM);
+	negZ->copyCubeEdge(sw::Surface::LEFT, posX, sw::Surface::RIGHT);
+}
+
 bool TextureCubeMap::isCompressed(GLenum target, GLint level) const
 {
 	return IsCompressed(getFormat(target, level), egl::getClientVersion());

@@ -3554,6 +3554,81 @@ namespace sw
 		internal.write(x, y, z, color);
 	}
 
+	void Surface::copyCubeEdge(Edge dstEdge, Surface *src, Edge srcEdge)
+	{
+		Surface *dst = this;
+
+		// Figure out if the edges to be copied in reverse order respectively from one another
+		// The copy should be reversed whenever the same edges are contiguous or if we're
+		// copying top <-> right or bottom <-> left. This is explained by the layout, which is:
+		//
+		//      | +y |
+		// | -x | +z | +x | -z |
+		//      | -y |
+
+		bool reverse = (srcEdge == dstEdge) ||
+		               ((srcEdge == TOP) && (dstEdge == RIGHT)) ||
+		               ((srcEdge == RIGHT) && (dstEdge == TOP)) ||
+		               ((srcEdge == BOTTOM) && (dstEdge == LEFT)) ||
+		               ((srcEdge == LEFT) && (dstEdge == BOTTOM));
+
+		int srcBytes = src->bytes(src->Surface::getInternalFormat());
+		int srcPitch = src->getInternalPitchB();
+		int dstBytes = dst->bytes(dst->Surface::getInternalFormat());
+		int dstPitch = dst->getInternalPitchB();
+
+		int srcW = src->getWidth();
+		int srcH = src->getHeight();
+		int dstW = dst->getWidth();
+		int dstH = dst->getHeight();
+
+		ASSERT(srcW == srcH && dstW == dstH && srcW == dstW && srcBytes == dstBytes);
+
+		// Src is expressed in the regular [0, width-1], [0, height-1] space
+		int srcDelta = ((srcEdge == TOP) || (srcEdge == BOTTOM)) ? srcBytes : srcPitch;
+		int srcStart = ((srcEdge == BOTTOM) ? srcPitch * (srcH - 1) : ((srcEdge == RIGHT) ? srcBytes * (srcW - 1) : 0));
+
+		// Dst contains borders, so it is expressed in the [-1, width+1], [-1, height+1] space
+		int dstDelta = (((dstEdge == TOP) || (dstEdge == BOTTOM)) ? dstBytes : dstPitch) * (reverse ? -1 : 1);
+		int dstStart = ((dstEdge == BOTTOM) ? dstPitch * (dstH + 1) : ((dstEdge == RIGHT) ? dstBytes * (dstW + 1) : 0)) + (reverse ? dstW * -dstDelta : dstDelta);
+
+		char *srcBuf = (char*)src->lockInternal(0, 0, 0, sw::LOCK_READONLY, sw::PRIVATE) + srcStart;
+		char *dstBuf = (char*)dst->lockInternal(-1, -1, 0, sw::LOCK_READWRITE, sw::PRIVATE) + dstStart;
+
+		for(int i = 0; i < srcW; ++i, dstBuf += dstDelta, srcBuf += srcDelta)
+		{
+			memcpy(dstBuf, srcBuf, srcBytes);
+		}
+
+		if(dstEdge == LEFT || dstEdge == RIGHT)
+		{
+			// TOP and BOTTOM are already set, let's average out the corners
+			int x0 = (dstEdge == RIGHT) ? dstW : -1;
+			int y0 = -1;
+			int x1 = (dstEdge == RIGHT) ? dstW - 1 : 0;
+			int y1 = 0;
+			dst->computeCubeCorner(x0, y0, x1, y1);
+			y0 = dstH;
+			y1 = dstH - 1;
+			dst->computeCubeCorner(x0, y0, x1, y1);
+		}
+
+		src->unlockInternal();
+		dst->unlockInternal();
+	}
+
+	void Surface::computeCubeCorner(int x0, int y0, int x1, int y1)
+	{
+		ASSERT(internal.lock != LOCK_UNLOCKED);
+
+		sw::Color<float> color = internal.read(x0, y1);
+		color += internal.read(x1, y0);
+		color += internal.read(x1, y1);
+		color *= (1.0f / 3.0f);
+
+		internal.write(x0, y0, color);
+	}
+
 	bool Surface::hasStencil() const
 	{
 		return isStencil(external.format);

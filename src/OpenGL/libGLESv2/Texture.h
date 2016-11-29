@@ -237,6 +237,7 @@ public:
 	void releaseTexImage() override;
 
 	void generateMipmaps() override;
+	void updateBorders(int level);
 
 	Renderbuffer *getRenderbuffer(GLenum target, GLint level, GLint layer) override;
 	egl::Image *getRenderTarget(GLenum target, unsigned int level) override;

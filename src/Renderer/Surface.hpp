@@ -317,6 +317,10 @@ namespace sw
 		void copyInternal(const Surface* src, int x, int y, float srcX, float srcY, bool filter);
 		void copyInternal(const Surface* src, int x, int y, int z, float srcX, float srcY, float srcZ, bool filter);
 
+		enum Edge { TOP, BOTTOM, RIGHT, LEFT };
+		void copyCubeEdge(Edge dstEdge, Surface *src, Edge srcEdge);
+		void computeCubeCorner(int x0, int y0, int x1, int y1);
+
 		bool hasStencil() const;
 		bool hasDepth() const;
 		bool hasPalette() const;
