@@ -52,7 +52,7 @@ class [[clang::lto_visibility_public]] Image : public sw::Surface, public gl::Ob
 protected:
 	// 2D texture image
 	Image(Texture *parentTexture, GLsizei width, GLsizei height, GLenum format, GLenum type)
-		: sw::Surface(parentTexture->getResource(), width, height, 1, SelectInternalFormat(format, type), true, true),
+		: sw::Surface(parentTexture->getResource(), width, height, 1, 0, SelectInternalFormat(format, type), true, true),
 		  width(width), height(height), format(format), type(type), internalFormat(SelectInternalFormat(format, type)), depth(1),
 		  parentTexture(parentTexture)
 	{
@@ -61,9 +61,9 @@ protected:
 		parentTexture->addRef();
 	}
 
-	// 3D texture image
-	Image(Texture *parentTexture, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type)
-		: sw::Surface(parentTexture->getResource(), width, height, depth, SelectInternalFormat(format, type), true, true),
+	// 3D/Cube texture image
+	Image(Texture *parentTexture, GLsizei width, GLsizei height, GLsizei depth, int border, GLenum format, GLenum type)
+		: sw::Surface(parentTexture->getResource(), width, height, depth, border, SelectInternalFormat(format, type), true, true),
 		  width(width), height(height), format(format), type(type), internalFormat(SelectInternalFormat(format, type)), depth(depth),
 		  parentTexture(parentTexture)
 	{
@@ -74,7 +74,7 @@ protected:
 
 	// Native EGL image
 	Image(GLsizei width, GLsizei height, GLenum format, GLenum type, int pitchP)
-		: sw::Surface(nullptr, width, height, 1, SelectInternalFormat(format, type), true, true, pitchP),
+		: sw::Surface(nullptr, width, height, 1, 0, SelectInternalFormat(format, type), true, true, pitchP),
 		  width(width), height(height), format(format), type(type), internalFormat(SelectInternalFormat(format, type)), depth(1),
 		  parentTexture(nullptr)
 	{
@@ -84,7 +84,7 @@ protected:
 
 	// Render target
 	Image(GLsizei width, GLsizei height, sw::Format internalFormat, int multiSampleDepth, bool lockable)
-		: sw::Surface(nullptr, width, height, multiSampleDepth, internalFormat, lockable, true),
+		: sw::Surface(nullptr, width, height, multiSampleDepth, 0, internalFormat, lockable, true),
 		  width(width), height(height), format(0 /*GL_NONE*/), type(0 /*GL_NONE*/), internalFormat(internalFormat), depth(multiSampleDepth),
 		  parentTexture(nullptr)
 	{
@@ -96,8 +96,8 @@ public:
 	// 2D texture image
 	static Image *create(Texture *parentTexture, GLsizei width, GLsizei height, GLenum format, GLenum type);
 
-	// 3D texture image
-	static Image *create(Texture *parentTexture, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type);
+	// 3D/Cube texture image
+	static Image *create(Texture *parentTexture, GLsizei width, GLsizei height, GLsizei depth, int border, GLenum format, GLenum type);
 
 	// Native EGL image
 	static Image *create(GLsizei width, GLsizei height, GLenum format, GLenum type, int pitchP);

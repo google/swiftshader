@@ -244,6 +244,7 @@ namespace sw
 			int pitchP;
 			int sliceB;
 			int sliceP;
+			int border;
 			Format format;
 			AtomicInt lock;
 
@@ -252,11 +253,11 @@ namespace sw
 
 	protected:
 		Surface(int width, int height, int depth, Format format, void *pixels, int pitch, int slice);
-		Surface(Resource *texture, int width, int height, int depth, Format format, bool lockable, bool renderTarget, int pitchP = 0);
+		Surface(Resource *texture, int width, int height, int depth, int border, Format format, bool lockable, bool renderTarget, int pitchP = 0);
 
 	public:
 		static Surface *create(int width, int height, int depth, Format format, void *pixels, int pitch, int slice);
-		static Surface *create(Resource *texture, int width, int height, int depth, Format format, bool lockable, bool renderTarget, int pitchP = 0);
+		static Surface *create(Resource *texture, int width, int height, int depth, int border, Format format, bool lockable, bool renderTarget, int pitchP = 0);
 
 		virtual ~Surface() = 0;
 
@@ -265,6 +266,7 @@ namespace sw
 		inline int getWidth() const;
 		inline int getHeight() const;
 		inline int getDepth() const;
+		inline int getBorder() const;
 		inline Format getFormat(bool internal = false) const;
 		inline int getPitchB(bool internal = false) const;
 		inline int getPitchP(bool internal = false) const;
@@ -326,11 +328,11 @@ namespace sw
 		Resource *getResource();
 
 		static int bytes(Format format);
-		static int pitchB(int width, Format format, bool target);
-		static int pitchP(int width, Format format, bool target);
-		static int sliceB(int width, int height, Format format, bool target);
-		static int sliceP(int width, int height, Format format, bool target);
-		static unsigned int size(int width, int height, int depth, Format format);   // FIXME: slice * depth
+		static int pitchB(int width, int border, Format format, bool target);
+		static int pitchP(int width, int border, Format format, bool target);
+		static int sliceB(int width, int height, int border, Format format, bool target);
+		static int sliceP(int width, int height, int border, Format format, bool target);
+		static unsigned int size(int width, int height, int depth, int border, Format format);   // FIXME: slice * depth
 
 		static bool isStencil(Format format);
 		static bool isDepth(Format format);
@@ -433,27 +435,27 @@ namespace sw
 			};
 		};
 
-		static void decodeR8G8B8(Buffer &destination, const Buffer &source);
-		static void decodeX1R5G5B5(Buffer &destination, const Buffer &source);
-		static void decodeA1R5G5B5(Buffer &destination, const Buffer &source);
-		static void decodeX4R4G4B4(Buffer &destination, const Buffer &source);
-		static void decodeA4R4G4B4(Buffer &destination, const Buffer &source);
-		static void decodeP8(Buffer &destination, const Buffer &source);
+		static void decodeR8G8B8(Buffer &destination, Buffer &source);
+		static void decodeX1R5G5B5(Buffer &destination, Buffer &source);
+		static void decodeA1R5G5B5(Buffer &destination, Buffer &source);
+		static void decodeX4R4G4B4(Buffer &destination, Buffer &source);
+		static void decodeA4R4G4B4(Buffer &destination, Buffer &source);
+		static void decodeP8(Buffer &destination, Buffer &source);
 
 		#if S3TC_SUPPORT
-		static void decodeDXT1(Buffer &internal, const Buffer &external);
-		static void decodeDXT3(Buffer &internal, const Buffer &external);
-		static void decodeDXT5(Buffer &internal, const Buffer &external);
+		static void decodeDXT1(Buffer &internal, Buffer &external);
+		static void decodeDXT3(Buffer &internal, Buffer &external);
+		static void decodeDXT5(Buffer &internal, Buffer &external);
 		#endif
-		static void decodeATI1(Buffer &internal, const Buffer &external);
-		static void decodeATI2(Buffer &internal, const Buffer &external);
-		static void decodeEAC(Buffer &internal, const Buffer &external, int nbChannels, bool isSigned);
-		static void decodeETC2(Buffer &internal, const Buffer &external, int nbAlphaBits, bool isSRGB);
-		static void decodeASTC(Buffer &internal, const Buffer &external, int xSize, int ySize, int zSize, bool isSRGB);
+		static void decodeATI1(Buffer &internal, Buffer &external);
+		static void decodeATI2(Buffer &internal, Buffer &external);
+		static void decodeEAC(Buffer &internal, Buffer &external, int nbChannels, bool isSigned);
+		static void decodeETC2(Buffer &internal, Buffer &external, int nbAlphaBits, bool isSRGB);
+		static void decodeASTC(Buffer &internal, Buffer &external, int xSize, int ySize, int zSize, bool isSRGB);
 
 		static void update(Buffer &destination, Buffer &source);
 		static void genericUpdate(Buffer &destination, Buffer &source);
-		static void *allocateBuffer(int width, int height, int depth, Format format);
+		static void *allocateBuffer(int width, int height, int depth, int border, Format format);
 		static void memfill4(void *buffer, int pattern, int bytes);
 
 		bool identicalFormats() const;
@@ -507,6 +509,11 @@ namespace sw
 	int Surface::getDepth() const
 	{
 		return external.depth;
+	}
+
+	int Surface::getBorder() const
+	{
+		return internal.border;
 	}
 
 	Format Surface::getFormat(bool internal) const
