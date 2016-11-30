@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8dee7b71_82fcfdfd",
+        "filename": "src/Reactor/SubzeroReactor.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-11-30T20:43:02Z",
+      "side": 1,
+      "message": "There are a bunch of extra white spaces in this file",
+      "range": {
+        "startLine": 123,
+        "startChar": 0,
+        "endLine": 123,
+        "endChar": 2
+      },
+      "revId": "acec5bd1503653deeadfff5fc673f0adb62f5090",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8dee7b71_c2020526",
+        "filename": "src/Reactor/SubzeroReactor.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-11-30T20:43:02Z",
+      "side": 1,
+      "message": "Any reason to commit all those commented out cases?",
+      "range": {
+        "startLine": 159,
+        "startChar": 0,
+        "endLine": 161,
+        "endChar": 11
+      },
+      "revId": "acec5bd1503653deeadfff5fc673f0adb62f5090",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
