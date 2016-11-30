@@ -4047,6 +4047,7 @@ void Context::blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1
 		partialBufferCopy = true;
 	}
 
+	bool sameBounds = (srcX0 == dstX0 && srcY0 == dstY0 && srcX1 == dstX1 && srcY1 == dstY1);
 	bool blitRenderTarget = false;
 	bool blitDepth = false;
 	bool blitStencil = false;
@@ -4062,7 +4063,7 @@ void Context::blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1
 			return error(GL_INVALID_OPERATION);
 		}
 
-		if(partialBufferCopy && readBufferSamples > 1)
+		if(partialBufferCopy && readBufferSamples > 1 && !sameBounds)
 		{
 			return error(GL_INVALID_OPERATION);
 		}
@@ -4079,7 +4080,10 @@ void Context::blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1
 		{
 			if(readFramebuffer->getDepthbuffer() && drawFramebuffer->getDepthbuffer())
 			{
-				if(readFramebuffer->getDepthbufferType() != drawFramebuffer->getDepthbufferType())
+				GLenum readDepthBufferType = readFramebuffer->getDepthbufferType();
+				GLenum drawDepthBufferType = drawFramebuffer->getDepthbufferType();
+				if((readDepthBufferType != drawDepthBufferType) &&
+				   !(Framebuffer::IsRenderbuffer(readDepthBufferType) && Framebuffer::IsRenderbuffer(drawDepthBufferType)))
 				{
 					return error(GL_INVALID_OPERATION);
 				}
@@ -4094,7 +4098,10 @@ void Context::blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1
 		{
 			if(readFramebuffer->getStencilbuffer() && drawFramebuffer->getStencilbuffer())
 			{
-				if(readFramebuffer->getStencilbufferType() != drawFramebuffer->getStencilbufferType())
+				GLenum readStencilBufferType = readFramebuffer->getStencilbufferType();
+				GLenum drawStencilBufferType = drawFramebuffer->getStencilbufferType();
+				if((readStencilBufferType != drawStencilBufferType) &&
+				   !(Framebuffer::IsRenderbuffer(readStencilBufferType) && Framebuffer::IsRenderbuffer(drawStencilBufferType)))
 				{
 					return error(GL_INVALID_OPERATION);
 				}
@@ -4119,8 +4126,7 @@ void Context::blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1
 		// INVALID_OPERATION error is generated.
 		if((drawDSBuffer && drawDSBuffer->getSamples() > 1) ||
 		   ((readDSBuffer && readDSBuffer->getSamples() > 1) &&
-		    ((srcX0 != dstX0 || srcY0 != dstY0 || srcX1 != dstX1 || srcY1 != dstY1) ||
-		     (drawDSBuffer->getFormat() != readDSBuffer->getFormat()))))
+		    (!sameBounds || (drawDSBuffer->getFormat() != readDSBuffer->getFormat()))))
 		{
 			return error(GL_INVALID_OPERATION);
 		}
