@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8dee7b71_9d16a032",
+        "filename": "src/Reactor/SubzeroReactor.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 3693,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-11-30T21:52:48Z",
+      "side": 1,
+      "message": "No subzero intrinsic for this?",
+      "range": {
+        "startLine": 3692,
+        "startChar": 0,
+        "endLine": 3693,
+        "endChar": 35
+      },
+      "revId": "2c364fe1b5f8d19b8e119bd953f2d16a151daa34",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
