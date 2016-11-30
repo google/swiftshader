@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8dee7b71_bd96049b",
+        "filename": "src/Reactor/Reactor.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2514,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-11-30T21:49:33Z",
+      "side": 1,
+      "message": "Would be more elegant on 2 lines instead of 1. I know it works, it just looks a bit weird.",
+      "range": {
+        "startLine": 2514,
+        "startChar": 2,
+        "endLine": 2514,
+        "endChar": 54
+      },
+      "revId": "1752433bf8590497b00995eaf01a04a70aabdf0f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
