@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8dee7b71_dd1ae887",
+        "filename": "src/Reactor/SubzeroReactor.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 3949,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-11-30T21:42:50Z",
+      "side": 1,
+      "message": "There\u0027s no intrinsic operation for incrementing and decrementing integers in SubZero?",
+      "range": {
+        "startLine": 3949,
+        "startChar": 2,
+        "endLine": 3949,
+        "endChar": 11
+      },
+      "revId": "e4d261f19e14bfce6008a16d83bd11545dd5ecce",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
