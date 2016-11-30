@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8dee7b71_dd2f88b9",
+        "filename": "src/Reactor/Reactor.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2569,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-11-30T21:35:28Z",
+      "side": 0,
+      "message": "This confuses me. What was the purpose of creating a non-constant constant?",
+      "range": {
+        "startLine": 2569,
+        "startChar": 80,
+        "endLine": 2569,
+        "endChar": 85
+      },
+      "revId": "f3dd33b70fc0f1d45014d756874c316e9a477087",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
