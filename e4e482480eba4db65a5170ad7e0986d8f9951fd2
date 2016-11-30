@@ -22,6 +22,30 @@
       "revId": "e4e482480eba4db65a5170ad7e0986d8f9951fd2",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "adffbf6a_924c9ce6",
+        "filename": "src/Shader/PixelRoutine.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 324,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-11-30T22:48:40Z",
+      "side": 1,
+      "message": "No, we already allocate 4 more bytes for a similar case in texture sampling. Surface::allocateBuffer():\n\n// FIXME: Unpacking byte4 to short4 in the sampler currently involves reading 8 bytes,\n// so we have to allocate 4 extra bytes to avoid buffer overruns.\nreturn allocateZero(size(width2, height2, depth, format) + 4);",
+      "parentUuid": "cd9b1332_ded1c161",
+      "range": {
+        "startLine": 324,
+        "startChar": 25,
+        "endLine": 324,
+        "endChar": 30
+      },
+      "revId": "e4e482480eba4db65a5170ad7e0986d8f9951fd2",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
