@@ -31,11 +31,16 @@ namespace
 		void analyzeUses(Ice::Cfg *function);
 		void eliminateUnusedAllocas();
 		void eliminateUnitializedLoads();
+		void eliminateLoadsFollowingSingleStore();
+
+		void replace(Ice::Inst *instruction, Ice::Operand *newValue);
+		void deleteInstruction(Ice::Inst *instruction);
 
 		static bool isLoad(const Ice::Inst &instruction);
 		static bool isStore(const Ice::Inst &instruction);
 		static Ice::Operand *storeAddress(const Ice::Inst *instruction);
 		static Ice::Operand *loadAddress(const Ice::Inst *instruction);
+		static Ice::Operand *storeData(const Ice::Inst *instruction);
 
 		Ice::Cfg *function;
 		Ice::GlobalContext *context;
@@ -51,6 +56,8 @@ namespace
 		};
 
 		std::map<Ice::Operand*, Uses> uses;
+		std::map<Ice::Inst*, Ice::CfgNode*> node;
+		std::map<Ice::Variable*, Ice::Inst*> definition;
 	};
 
 	void Optimizer::run(Ice::Cfg *function)
@@ -62,6 +69,7 @@ namespace
 
 		eliminateUnusedAllocas();
 		eliminateUnitializedLoads();
+		eliminateLoadsFollowingSingleStore();
 	}
 
 	void Optimizer::eliminateUnusedAllocas()
@@ -139,9 +147,107 @@ namespace
 		}
 	}
 
+	void Optimizer::eliminateLoadsFollowingSingleStore()
+	{
+		Ice::CfgNode *entryBlock = function->getEntryNode();
+
+		for(Ice::Inst &alloca : entryBlock->getInsts())
+		{
+			if(alloca.isDeleted())
+			{
+				continue;
+			}
+
+			if(!llvm::isa<Ice::InstAlloca>(alloca))
+			{
+				return;   // Allocas are all at the top
+			}
+
+			Ice::Operand *address = alloca.getDest();
+			const auto &addressEntry = uses.find(address);
+			auto &addressUses = addressEntry->second;
+
+			if(!addressUses.areOnlyLoadStore())
+			{
+				continue;
+			}
+
+			if(addressUses.stores.size() == 1)
+			{
+				Ice::Inst *store = addressUses.stores[0];
+				Ice::Operand *storeValue = storeData(store);
+
+				for(Ice::Inst *load = &*++store->getIterator(), *next = nullptr; load != next; next = load, load = &*++store->getIterator())
+				{
+					if(load->isDeleted() || !isLoad(*load))
+					{
+						continue;
+					}
+
+					if(loadAddress(load) != address)
+					{
+						continue;
+					}
+
+					replace(load, storeValue);
+
+					for(int i = 0; i < addressUses.loads.size(); i++)
+					{
+						if(addressUses.loads[i] == load)
+						{
+							addressUses.loads[i] = addressUses.loads.back();
+							addressUses.loads.pop_back();
+							break;
+						}
+					}
+
+					for(int i = 0; i < addressUses.size(); i++)
+					{
+						if(addressUses[i] == load)
+						{
+							addressUses[i] = addressUses.back();
+							addressUses.pop_back();
+							break;
+						}
+					}
+
+					if(addressUses.size() == 1)
+					{
+						assert(addressUses[0] == store);
+
+						alloca.setDeleted();
+						store->setDeleted();
+						uses.erase(address);
+
+						auto &valueUses = uses[storeValue];
+
+						for(int i = 0; i < valueUses.size(); i++)
+						{
+							if(valueUses[i] == store)
+							{
+								valueUses[i] = valueUses.back();
+								valueUses.pop_back();
+								break;
+							}
+						}
+
+						if(valueUses.empty())
+						{
+							uses.erase(storeValue);
+						}
+
+						break;
+					}
+				}
+			}
+		}
+	}
+
 	void Optimizer::analyzeUses(Ice::Cfg *function)
 	{
 		uses.clear();
+		node.clear();
+		definition.clear();
 
 		for(Ice::CfgNode *basicBlock : function->getNodes())
 		{
@@ -151,6 +257,9 @@ namespace
 				{
 					continue;
 				}
+
+				node[&instruction] = basicBlock;
+				definition[instruction.getDest()] = &instruction;
 
 				for(int i = 0; i < instruction.getSrcSize(); i++)
 				{
@@ -167,6 +276,69 @@ namespace
 					{
 						Ice::Operand *src = instruction.getSrc(i);
 						uses[src].insert(src, &instruction);
+					}
+				}
+			}
+		}
+	}
+
+	void Optimizer::replace(Ice::Inst *instruction, Ice::Operand *newValue)
+	{
+		Ice::Variable *oldValue = instruction->getDest();
+
+		if(!newValue)
+		{
+			newValue = context->getConstantUndef(oldValue->getType());
+		}
+
+		for(Ice::Inst *use : uses[oldValue])
+		{
+			assert(!use->isDeleted());   // Should have been removed from uses already
+
+			for(int i = 0; i < use->getSrcSize(); i++)
+			{
+				if(use->getSrc(i) == oldValue)
+				{
+					use->replaceSource(i, newValue);
+				}
+			}
+
+			uses[newValue].insert(newValue, use);
+		}
+
+		uses.erase(oldValue);
+
+		deleteInstruction(instruction);
+	}
+
+	void Optimizer::deleteInstruction(Ice::Inst *instruction)
+	{
+		if(instruction->isDeleted())
+		{
+			return;
+		}
+
+		instruction->setDeleted();
+
+		for(int i = 0; i < instruction->getSrcSize(); i++)
+		{
+			Ice::Operand *src = instruction->getSrc(i);
+
+			const auto &srcEntry = uses.find(src);
+
+			if(srcEntry != uses.end())
+			{
+				auto &srcUses = srcEntry->second;
+
+				srcUses.erase(instruction);
+
+				if(srcUses.empty())
+				{
+					uses.erase(srcEntry);
+
+					if(Ice::Variable *var = llvm::dyn_cast<Ice::Variable>(src))
+					{
+						deleteInstruction(definition[var]);
 					}
 				}
 			}
@@ -235,6 +407,26 @@ namespace
 		if(auto *instrinsic = llvm::dyn_cast<Ice::InstIntrinsicCall>(instruction))
 		{
 			if(instrinsic->getIntrinsicInfo().ID == Ice::Intrinsics::LoadSubVector)
+			{
+				return instrinsic->getSrc(1);
+			}
+		}
+
+		return nullptr;
+	}
+
+	Ice::Operand *Optimizer::storeData(const Ice::Inst *instruction)
+	{
+		assert(isStore(*instruction));
+
+		if(auto *store = llvm::dyn_cast<Ice::InstStore>(instruction))
+		{
+			return store->getData();
+		}
+
+		if(auto *instrinsic = llvm::dyn_cast<Ice::InstIntrinsicCall>(instruction))
+		{
+			if(instrinsic->getIntrinsicInfo().ID == Ice::Intrinsics::StoreSubVector)
 			{
 				return instrinsic->getSrc(1);
 			}
