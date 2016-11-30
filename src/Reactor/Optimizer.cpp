@@ -32,6 +32,7 @@ namespace
 		void eliminateUnusedAllocas();
 		void eliminateUnitializedLoads();
 		void eliminateLoadsFollowingSingleStore();
+		void optimizeStoresInSingleBasicBlock();
 
 		void replace(Ice::Inst *instruction, Ice::Operand *newValue);
 		void deleteInstruction(Ice::Inst *instruction);
@@ -70,6 +71,7 @@ namespace
 		eliminateUnusedAllocas();
 		eliminateUnitializedLoads();
 		eliminateLoadsFollowingSingleStore();
+		optimizeStoresInSingleBasicBlock();
 	}
 
 	void Optimizer::eliminateUnusedAllocas()
@@ -237,6 +239,88 @@ namespace
 						}
 
 						break;
+					}
+				}
+			}
+		}
+	}
+
+	void Optimizer::optimizeStoresInSingleBasicBlock()
+	{
+		Ice::CfgNode *entryBlock = function->getEntryNode();
+
+		for(Ice::Inst &alloca : entryBlock->getInsts())
+		{
+			if(alloca.isDeleted())
+			{
+				continue;
+			}
+
+			if(!llvm::isa<Ice::InstAlloca>(alloca))
+			{
+				return;   // Allocas are all at the top
+			}
+
+			Ice::Operand *address = alloca.getDest();
+			const auto &addressEntry = uses.find(address);
+			const auto &addressUses = addressEntry->second;
+
+			if(!addressUses.areOnlyLoadStore())
+			{
+				continue;
+			}
+
+			Ice::CfgNode *singleBasicBlock = node[addressUses.stores[0]];
+
+			for(int i = 1; i < addressUses.stores.size(); i++)
+			{
+				Ice::Inst *store = addressUses.stores[i];
+				if(node[store] != singleBasicBlock)
+				{
+					singleBasicBlock = nullptr;
+					break;
+				}
+			}
+
+			if(singleBasicBlock)
+			{
+				auto &insts = singleBasicBlock->getInsts();
+				Ice::Inst *store = nullptr;
+				Ice::Operand *storeValue = nullptr;
+
+				for(Ice::Inst &inst : insts)
+				{
+					if(inst.isDeleted())
+					{
+						continue;
+					}
+
+					if(isStore(inst))
+					{
+						if(storeAddress(&inst) != address)
+						{
+							continue;
+						}
+
+						// New store found. If we had a previous one, eliminate it.
+						if(store)
+						{
+							deleteInstruction(store);
+						}
+
+						store = &inst;
+						storeValue = storeData(store);
+					}
+					else if(isLoad(inst))
+					{
+						Ice::Inst *load = &inst;
+
+						if(loadAddress(load) != address)
+						{
+							continue;
+						}
+
+						replace(load, storeValue);
 					}
 				}
 			}
