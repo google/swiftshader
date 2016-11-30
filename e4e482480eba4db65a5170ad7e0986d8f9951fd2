@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cd9b1332_ded1c161",
+        "filename": "src/Shader/PixelRoutine.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 324,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-11-30T21:55:02Z",
+      "side": 1,
+      "message": "Can\u0027t we overflow doing this?",
+      "range": {
+        "startLine": 324,
+        "startChar": 25,
+        "endLine": 324,
+        "endChar": 30
+      },
+      "revId": "e4e482480eba4db65a5170ad7e0986d8f9951fd2",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
