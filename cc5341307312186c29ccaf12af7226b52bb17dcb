@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cd9b1332_be7b9590",
+        "filename": "src/Reactor/SubzeroReactor.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 3369,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-11-30T21:53:59Z",
+      "side": 1,
+      "message": "Shouldn\u0027t there be a real check here?",
+      "range": {
+        "startLine": 3369,
+        "startChar": 6,
+        "endLine": 3369,
+        "endChar": 10
+      },
+      "revId": "cc5341307312186c29ccaf12af7226b52bb17dcb",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
