@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8dee7b71_7df4fcd5",
+        "filename": "src/Reactor/SubzeroReactor.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 5767,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-11-30T21:56:30Z",
+      "side": 1,
+      "message": "There must be a fast version of this in subzero, no?",
+      "range": {
+        "startLine": 5767,
+        "startChar": 9,
+        "endLine": 5767,
+        "endChar": 24
+      },
+      "revId": "8e415d67fcfb9e33aafec17f98516cdfedc732a9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
