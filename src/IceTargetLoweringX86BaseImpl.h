@@ -4397,17 +4397,19 @@ void TargetX86Base<TraitsType>::lowerIntrinsicCall(
       return;
     }
 
+    auto *T = makeReg(Ty);
     switch (SubVectorSize->getValue()) {
     case 4:
-      _movd(Dest, Src);
+      _movd(T, Src);
       break;
     case 8:
-      _movq(Dest, Src);
+      _movq(T, Src);
       break;
     default:
       Func->setError("Unexpected size for LoadSubVector");
       return;
     }
+    _movp(Dest, T);
     return;
   }
   case Intrinsics::StoreSubVector: {
