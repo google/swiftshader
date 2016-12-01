@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "adffbf6a_1288a106",
+        "filename": "src/Shader/SetupRoutine.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 574,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-12-01T21:39:00Z",
+      "side": 1,
+      "message": "This changes the behavior. What this a potential bug?",
+      "range": {
+        "startLine": 571,
+        "startChar": 0,
+        "endLine": 574,
+        "endChar": 37
+      },
+      "revId": "091f2ad37276414d3ca05f6771aeee7ccf73cb7a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
