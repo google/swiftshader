@@ -22,6 +22,30 @@
       "revId": "1752433bf8590497b00995eaf01a04a70aabdf0f",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "adffbf6a_215758ea",
+        "filename": "src/Reactor/Reactor.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2514,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-12-01T15:43:56Z",
+      "side": 1,
+      "message": "It would have to be three lines to not cause another load:\n\nRValue\u003cFloat4\u003e inserted \u003d Insert(*parent, Float(x), T \u0026 0x3);\n*parent \u003d inserted;\nreturn inserted;\n\nWhich looks slightly weird to me. :) Keep in mind that this is an operator\u003d implementation, so it\u0027s natural to be returning the result of an assignment.",
+      "parentUuid": "8dee7b71_bd96049b",
+      "range": {
+        "startLine": 2514,
+        "startChar": 2,
+        "endLine": 2514,
+        "endChar": 54
+      },
+      "revId": "1752433bf8590497b00995eaf01a04a70aabdf0f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
