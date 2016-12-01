@@ -22,6 +22,30 @@
       "revId": "08cb62a66c83cc06120b2f4c00b810564cc0061e",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "adffbf6a_0ccfeb41",
+        "filename": "src/Reactor/SubzeroReactor.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 361,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-12-01T16:40:17Z",
+      "side": 1,
+      "message": "This class owns it. It\u0027s a pointer into buffer, defined below.",
+      "parentUuid": "8dee7b71_bd13a4d3",
+      "range": {
+        "startLine": 361,
+        "startChar": 8,
+        "endLine": 361,
+        "endChar": 13
+      },
+      "revId": "08cb62a66c83cc06120b2f4c00b810564cc0061e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
