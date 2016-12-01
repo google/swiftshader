@@ -22,6 +22,30 @@
       "revId": "0cef7a0c6fa8edaec4e0577f4d42a75e93244a8b",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "adffbf6a_611b205a",
+        "filename": "src/Reactor/SubzeroReactor.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 5763,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-12-01T15:33:30Z",
+      "side": 1,
+      "message": "There are, but not for this intrinsic at the moment. For what it\u0027s worth, it\u0027s implemented the same way with LLVM at the moment and there are no significant downsides to using the vector version.",
+      "parentUuid": "8dee7b71_7d299c99",
+      "range": {
+        "startLine": 5763,
+        "startChar": 9,
+        "endLine": 5763,
+        "endChar": 35
+      },
+      "revId": "0cef7a0c6fa8edaec4e0577f4d42a75e93244a8b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
