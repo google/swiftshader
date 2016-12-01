@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "adffbf6a_ec01c76c",
+        "filename": "src/Reactor/SubzeroReactor.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-12-01T16:46:09Z",
+      "side": 1,
+      "message": "Thanks for noticing. I\u0027ve installed the Trailing Whitespace Visualizer extension for VS2015 so the next patch they\u0027ll be removed.",
+      "parentUuid": "8dee7b71_82fcfdfd",
+      "range": {
+        "startLine": 123,
+        "startChar": 0,
+        "endLine": 123,
+        "endChar": 2
+      },
+      "revId": "acec5bd1503653deeadfff5fc673f0adb62f5090",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8dee7b71_c2020526",
         "filename": "src/Reactor/SubzeroReactor.cpp",
         "patchSetId": 5
@@ -36,6 +60,30 @@
       "writtenOn": "2016-11-30T20:43:02Z",
       "side": 1,
       "message": "Any reason to commit all those commented out cases?",
+      "range": {
+        "startLine": 159,
+        "startChar": 0,
+        "endLine": 161,
+        "endChar": 11
+      },
+      "revId": "acec5bd1503653deeadfff5fc673f0adb62f5090",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "adffbf6a_6c6b172c",
+        "filename": "src/Reactor/SubzeroReactor.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-12-01T16:46:09Z",
+      "side": 1,
+      "message": "They\u0027re potentially used by Subzero, but I haven\u0027t run into them yet. Could remove them if truly not used.",
+      "parentUuid": "8dee7b71_c2020526",
       "range": {
         "startLine": 159,
         "startChar": 0,
