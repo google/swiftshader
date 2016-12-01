@@ -22,6 +22,30 @@
       "revId": "091f2ad37276414d3ca05f6771aeee7ccf73cb7a",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "adffbf6a_f2287df4",
+        "filename": "src/Shader/SetupRoutine.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 574,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-12-01T21:47:28Z",
+      "side": 1,
+      "message": "I don\u0027t think it changes behavior. X1 is assigned the first argument (X1, now Xa), unless swapped, and X2 is assigned the second argument (X2, now Xb), unless swapped. We just needed X0 before to hold the original value of X1.",
+      "parentUuid": "adffbf6a_1288a106",
+      "range": {
+        "startLine": 571,
+        "startChar": 0,
+        "endLine": 574,
+        "endChar": 37
+      },
+      "revId": "091f2ad37276414d3ca05f6771aeee7ccf73cb7a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
