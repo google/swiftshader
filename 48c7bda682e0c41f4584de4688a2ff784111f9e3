@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "adffbf6a_12054179",
+        "filename": "src/Renderer/Surface.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1269,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-12-01T21:59:36Z",
+      "side": 1,
+      "message": "Will remove border from stencil",
+      "parentUuid": "adffbf6a_928db116",
+      "range": {
+        "startLine": 1265,
+        "startChar": 2,
+        "endLine": 1269,
+        "endChar": 25
+      },
+      "revId": "48c7bda682e0c41f4584de4688a2ff784111f9e3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "adffbf6a_326fa56b",
         "filename": "src/Renderer/Surface.hpp",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2016-12-01T21:42:05Z",
       "side": 1,
       "message": "Doesn\u0027t seem to be used anywhere.",
+      "range": {
+        "startLine": 265,
+        "startChar": 2,
+        "endLine": 265,
+        "endChar": 31
+      },
+      "revId": "48c7bda682e0c41f4584de4688a2ff784111f9e3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "adffbf6a_d20a9989",
+        "filename": "src/Renderer/Surface.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 265,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-12-01T21:59:36Z",
+      "side": 1,
+      "message": "It will be in the next cl, but I cut the big patch in smaller more reviewable submittable cls.",
+      "parentUuid": "adffbf6a_326fa56b",
       "range": {
         "startLine": 265,
         "startChar": 2,
