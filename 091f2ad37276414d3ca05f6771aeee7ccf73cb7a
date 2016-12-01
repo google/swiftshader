@@ -46,6 +46,30 @@
       "revId": "091f2ad37276414d3ca05f6771aeee7ccf73cb7a",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "adffbf6a_f2bcfd6a",
+        "filename": "src/Shader/SetupRoutine.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 574,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-12-01T21:55:26Z",
+      "side": 1,
+      "message": "Ah, so it wasn\u0027t writing to the input argument before because the input was the result of an array lookup, which was performing a copy under the hood. Very bug prone, but clearer now.",
+      "parentUuid": "adffbf6a_f2287df4",
+      "range": {
+        "startLine": 571,
+        "startChar": 0,
+        "endLine": 574,
+        "endChar": 37
+      },
+      "revId": "091f2ad37276414d3ca05f6771aeee7ccf73cb7a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
