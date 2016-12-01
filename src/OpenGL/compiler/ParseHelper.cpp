@@ -816,7 +816,7 @@ bool TParseContext::arraySizeErrorCheck(const TSourceLoc &line, TIntermTyped* ex
 //
 bool TParseContext::arrayQualifierErrorCheck(const TSourceLoc &line, TPublicType type)
 {
-	if ((type.qualifier == EvqAttribute) || (type.qualifier == EvqVertexIn) || (type.qualifier == EvqConstExpr)) {
+	if ((type.qualifier == EvqAttribute) || (type.qualifier == EvqVertexIn) || (type.qualifier == EvqConstExpr && mShaderVersion < 300)) {
 		error(line, "cannot declare arrays of this qualifier", TType(type).getCompleteString().c_str());
 		return true;
 	}
