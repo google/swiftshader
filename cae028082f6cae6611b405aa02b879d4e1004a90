@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "adffbf6a_efbed6b0",
+        "filename": "src/Reactor/Reactor.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2958,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-12-01T21:33:09Z",
+      "side": 1,
+      "message": "This could be clearer. It took me a minute to understand it. How about:\n\n\tenum {IF_CASE, ELSE_IF_CASE, ELSE_CASE, NUM_CASES};\n\tfor(IfElseData ifElse__(cond); ifElse__ \u003c NUM_CASES; ++ifElse__) \\\n\tif(ifElse__ \u003d\u003d IF_CASE)\n\n\t#define Else                \\\n\telse if(ifElse__ \u003d\u003d ELSE_IF_CASE)      \\\n\t{                           \\\n\t\t ifElse__.elseClause(); \\\n\t}                           \\\n\telse if(ifElse__ \u003d\u003d ELSE_CASE)",
+      "range": {
+        "startLine": 2950,
+        "startChar": 0,
+        "endLine": 2958,
+        "endChar": 5
+      },
+      "revId": "cae028082f6cae6611b405aa02b879d4e1004a90",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
