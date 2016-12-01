@@ -46,6 +46,30 @@
       "revId": "1752433bf8590497b00995eaf01a04a70aabdf0f",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "adffbf6a_2180f81c",
+        "filename": "src/Reactor/Reactor.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2514,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-12-01T15:49:03Z",
+      "side": 1,
+      "message": "Ok, didn\u0027t realize:\n*parent \u003d Insert(*parent, Float(x), T \u0026 0x3);\nreturn *parent;\nwas causing another load.",
+      "parentUuid": "adffbf6a_215758ea",
+      "range": {
+        "startLine": 2514,
+        "startChar": 2,
+        "endLine": 2514,
+        "endChar": 54
+      },
+      "revId": "1752433bf8590497b00995eaf01a04a70aabdf0f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
