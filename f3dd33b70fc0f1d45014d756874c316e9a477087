@@ -22,6 +22,30 @@
       "revId": "f3dd33b70fc0f1d45014d756874c316e9a477087",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "adffbf6a_41209c62",
+        "filename": "src/Reactor/Reactor.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2569,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-12-01T15:58:40Z",
+      "side": 0,
+      "message": "This allowed to overwrite the pointers externally, which was used when we supported writing routines to a DLL and loading them afterwards. The DLL support was deprecated: https://swiftshader-review.googlesource.com/#/c/7250/",
+      "parentUuid": "8dee7b71_dd2f88b9",
+      "range": {
+        "startLine": 2569,
+        "startChar": 80,
+        "endLine": 2569,
+        "endChar": 85
+      },
+      "revId": "f3dd33b70fc0f1d45014d756874c316e9a477087",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
