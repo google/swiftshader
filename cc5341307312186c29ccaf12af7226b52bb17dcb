@@ -70,6 +70,30 @@
       "revId": "cc5341307312186c29ccaf12af7226b52bb17dcb",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "adffbf6a_010a1400",
+        "filename": "src/Reactor/SubzeroReactor.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 3369,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-12-01T15:36:51Z",
+      "side": 1,
+      "message": "We don\u0027t have CPUID here yet, which has some other tangled dependencies. I plan on cleaning that up soon: https://bugs.chromium.org/p/swiftshader/issues/detail?id\u003d16",
+      "parentUuid": "adffbf6a_21ac78d4",
+      "range": {
+        "startLine": 3369,
+        "startChar": 6,
+        "endLine": 3369,
+        "endChar": 10
+      },
+      "revId": "cc5341307312186c29ccaf12af7226b52bb17dcb",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
