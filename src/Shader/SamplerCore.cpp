@@ -820,19 +820,8 @@ namespace sw
 			if(!gather)   // Blend
 			{
 				// Fractions
-				UShort4 f0u = uuuu0;
-				UShort4 f0v = vvvv0;
-
-				if(!state.hasNPOTTexture)
-				{
-					f0u = f0u << *Pointer<Long1>(mipmap + OFFSET(Mipmap,uInt));   // .u
-					f0v = f0v << *Pointer<Long1>(mipmap + OFFSET(Mipmap,vInt));   // .v
-				}
-				else
-				{
-					f0u = f0u * *Pointer<UShort4>(mipmap + OFFSET(Mipmap,width));
-					f0v = f0v * *Pointer<UShort4>(mipmap + OFFSET(Mipmap,height));
-				}
+				UShort4 f0u = As<UShort4>(uuuu0) * *Pointer<UShort4>(mipmap + OFFSET(Mipmap,width));
+				UShort4 f0v = As<UShort4>(vvvv0) * *Pointer<UShort4>(mipmap + OFFSET(Mipmap,height));
 
 				UShort4 f1u = ~f0u;
 				UShort4 f1v = ~f0v;
@@ -1029,28 +1018,16 @@ namespace sw
 			}
 
 			// Fractions
-			UShort4 f[2][2][2];
-			Short4 fs[2][2][2];
-			UShort4 f0u;
-			UShort4 f0v;
-			UShort4 f0s;
-
-			if(!state.hasNPOTTexture)
-			{
-				f0u = As<UShort4>(u[0][0][0]) << *Pointer<Long1>(mipmap + OFFSET(Mipmap,uInt));
-				f0v = As<UShort4>(v[0][0][0]) << *Pointer<Long1>(mipmap + OFFSET(Mipmap,vInt));
-				f0s = As<UShort4>(s[0][0][0]) << *Pointer<Long1>(mipmap + OFFSET(Mipmap,wInt));
-			}
-			else
-			{
-				f0u = As<UShort4>(u[0][0][0]) * *Pointer<UShort4>(mipmap + OFFSET(Mipmap,width));
-				f0v = As<UShort4>(v[0][0][0]) * *Pointer<UShort4>(mipmap + OFFSET(Mipmap,height));
-				f0s = As<UShort4>(s[0][0][0]) * *Pointer<UShort4>(mipmap + OFFSET(Mipmap,depth));
-			}
+			UShort4 f0u = As<UShort4>(u[0][0][0]) * *Pointer<UShort4>(mipmap + OFFSET(Mipmap,width));
+			UShort4 f0v = As<UShort4>(v[0][0][0]) * *Pointer<UShort4>(mipmap + OFFSET(Mipmap,height));
+			UShort4 f0s = As<UShort4>(s[0][0][0]) * *Pointer<UShort4>(mipmap + OFFSET(Mipmap,depth));
 
 			UShort4 f1u = ~f0u;
 			UShort4 f1v = ~f0v;
 			UShort4 f1s = ~f0s;
+
+			UShort4 f[2][2][2];
+			Short4 fs[2][2][2];
 
 			f[1][1][1] = MulHigh(f1u, f1v);
 			f[0][1][1] = MulHigh(f0u, f1v);
@@ -1699,44 +1676,26 @@ namespace sw
 
 	void SamplerCore::computeIndices(Int index[4], Short4 uuuu, Short4 vvvv, Short4 wwww, Vector4f &offset, const Pointer<Byte> &mipmap, SamplerFunction function)
 	{
-		Short4 uuu2;
-
 		bool texelFetch = (function == Fetch);
 		bool hasOffset = (function.option == Offset);
 
-		if(!state.hasNPOTTexture && !hasFloatTexture() && !hasOffset)
+		if(!texelFetch)
 		{
-			if(!texelFetch)
-			{
-				vvvv = As<UShort4>(vvvv) >> *Pointer<Long1>(mipmap + OFFSET(Mipmap, vFrac));
-			}
-			uuu2 = uuuu;
-			uuuu = As<Short4>(UnpackLow(uuuu, vvvv));
-			uuu2 = As<Short4>(UnpackHigh(uuu2, vvvv));
-			if(!texelFetch)
-			{
-				uuuu = As<Short4>(As<UInt2>(uuuu) >> *Pointer<Long1>(mipmap + OFFSET(Mipmap, uFrac)));
-				uuu2 = As<Short4>(As<UInt2>(uuu2) >> *Pointer<Long1>(mipmap + OFFSET(Mipmap, uFrac)));
-			}
+			uuuu = MulHigh(As<UShort4>(uuuu), *Pointer<UShort4>(mipmap + OFFSET(Mipmap, width)));
+			vvvv = MulHigh(As<UShort4>(vvvv), *Pointer<UShort4>(mipmap + OFFSET(Mipmap, height)));
 		}
-		else
+
+		if(hasOffset)
 		{
-			if(!texelFetch)
-			{
-				uuuu = MulHigh(As<UShort4>(uuuu), *Pointer<UShort4>(mipmap + OFFSET(Mipmap, width)));
-				vvvv = MulHigh(As<UShort4>(vvvv), *Pointer<UShort4>(mipmap + OFFSET(Mipmap, height)));
-			}
-			if(hasOffset)
-			{
-				uuuu = applyOffset(uuuu, offset.x, Int4(*Pointer<UShort4>(mipmap + OFFSET(Mipmap, width))), texelFetch ? ADDRESSING_TEXELFETCH : state.addressingModeU);
-				vvvv = applyOffset(vvvv, offset.y, Int4(*Pointer<UShort4>(mipmap + OFFSET(Mipmap, height))), texelFetch ? ADDRESSING_TEXELFETCH : state.addressingModeV);
-			}
-			uuu2 = uuuu;
-			uuuu = As<Short4>(UnpackLow(uuuu, vvvv));
-			uuu2 = As<Short4>(UnpackHigh(uuu2, vvvv));
-			uuuu = As<Short4>(MulAdd(uuuu, *Pointer<Short4>(mipmap + OFFSET(Mipmap,onePitchP))));
-			uuu2 = As<Short4>(MulAdd(uuu2, *Pointer<Short4>(mipmap + OFFSET(Mipmap,onePitchP))));
+			uuuu = applyOffset(uuuu, offset.x, Int4(*Pointer<UShort4>(mipmap + OFFSET(Mipmap, width))), texelFetch ? ADDRESSING_TEXELFETCH : state.addressingModeU);
+			vvvv = applyOffset(vvvv, offset.y, Int4(*Pointer<UShort4>(mipmap + OFFSET(Mipmap, height))), texelFetch ? ADDRESSING_TEXELFETCH : state.addressingModeV);
 		}
+		
+		Short4 uuu2 = uuuu;
+		uuuu = As<Short4>(UnpackLow(uuuu, vvvv));
+		uuu2 = As<Short4>(UnpackHigh(uuu2, vvvv));
+		uuuu = As<Short4>(MulAdd(uuuu, *Pointer<Short4>(mipmap + OFFSET(Mipmap,onePitchP))));
+		uuu2 = As<Short4>(MulAdd(uuu2, *Pointer<Short4>(mipmap + OFFSET(Mipmap,onePitchP))));
 
 		if((state.textureType == TEXTURE_3D) || (state.textureType == TEXTURE_2D_ARRAY))
 		{

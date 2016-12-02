@@ -24,25 +24,9 @@ namespace sw
 	{
 		const void *buffer[6];
 
-		union
-		{
-			struct
-			{
-				int64_t uInt;
-				int64_t vInt;
-				int64_t wInt;
-				int64_t uFrac;
-				int64_t vFrac;
-				int64_t wFrac;
-			};
-
-			struct
-			{
-				float4 fWidth;
-				float4 fHeight;
-				float4 fDepth;
-			};
-		};
+		float4 fWidth;
+		float4 fHeight;
+		float4 fDepth;
 
 		short uHalf[4];
 		short vHalf[4];
@@ -150,7 +134,6 @@ namespace sw
 			AddressingMode addressingModeV : BITS(ADDRESSING_LAST);
 			AddressingMode addressingModeW : BITS(ADDRESSING_LAST);
 			MipmapType mipmapFilter        : BITS(FILTER_LAST);
-			bool hasNPOTTexture            : 1;
 			bool sRGB                      : 1;
 			SwizzleType swizzleR           : BITS(SWIZZLE_LAST);
 			SwizzleType swizzleG           : BITS(SWIZZLE_LAST);
@@ -201,7 +184,6 @@ namespace sw
 
 	private:
 		MipmapType mipmapFilter() const;
-		bool hasNPOTTexture() const;
 		TextureType getTextureType() const;
 		FilterType getTextureFilter() const;
 		AddressingMode getAddressingModeU() const;

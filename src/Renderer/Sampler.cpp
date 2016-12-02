@@ -48,10 +48,6 @@ namespace sw
 			{
 				mipmap.buffer[face] = &zero;
 			}
-
-			mipmap.uFrac = 16;
-			mipmap.vFrac = 16;
-			mipmap.wFrac = 16;
 		}
 
 		externalTextureFormat = FORMAT_NULL;
@@ -97,7 +93,6 @@ namespace sw
 			state.addressingModeV = getAddressingModeV();
 			state.addressingModeW = getAddressingModeW();
 			state.mipmapFilter = mipmapFilter();
-			state.hasNPOTTexture = hasNPOTTexture();
 			state.sRGB = sRGB && Surface::isSRGBreadable(externalTextureFormat);
 			state.swizzleR = swizzleR;
 			state.swizzleG = swizzleG;
@@ -158,16 +153,7 @@ namespace sw
 					texture.depthLOD[3] = depth * exp2LOD;
 				}
 
-				if(!Surface::isFloatFormat(internalTextureFormat))
-				{
-					mipmap.uInt = logWidth;
-					mipmap.vInt = logHeight;
-					mipmap.wInt = logDepth;
-					mipmap.uFrac = 16 - logWidth;
-					mipmap.vFrac = 16 - logHeight;
-					mipmap.wFrac = 16 - logDepth;
-				}
-				else
+				if(Surface::isFloatFormat(internalTextureFormat))
 				{
 					mipmap.fWidth[0] = (float)width / 65536.0f;
 					mipmap.fWidth[1] = (float)width / 65536.0f;
@@ -239,8 +225,6 @@ namespace sw
 					mipmap.buffer[1] = (byte*)mipmap.buffer[0] + YSize;
 					mipmap.buffer[2] = (byte*)mipmap.buffer[1] + CSize;
 
-					texture.mipmap[1].uFrac = texture.mipmap[0].uFrac + 1;
-					texture.mipmap[1].vFrac = texture.mipmap[0].vFrac + 1;
 					texture.mipmap[1].width[0] = width / 2;
 					texture.mipmap[1].width[1] = width / 2;
 					texture.mipmap[1].width[2] = width / 2;
@@ -418,24 +402,6 @@ namespace sw
 
 		// Only one mipmap level
 		return MIPMAP_NONE;
-	}
-
-	bool Sampler::hasNPOTTexture() const
-	{
-		if(textureType == TEXTURE_NULL)
-		{
-			return false;
-		}
-
-		for(int i = 0; i < MIPMAP_LEVELS; i++)
-		{
-			if(texture.mipmap[i].width[0] != texture.mipmap[i].onePitchP[1])
-			{
-				return true;   // Shifting of the texture coordinates doesn't yield the correct address, so using multiply by pitch
-			}
-		}
-
-		return !isPow2(texture.mipmap[0].width[0]) || !isPow2(texture.mipmap[0].height[0]) || !isPow2(texture.mipmap[0].depth[0]);
 	}
 
 	TextureType Sampler::getTextureType() const
