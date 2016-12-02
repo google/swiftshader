@@ -86,8 +86,8 @@ namespace sw
 		RValue<Int2> punpckhwd(RValue<Short4> x, RValue<Short4> y);
 		RValue<Short4> pinsrw(RValue<Short4> x, RValue<Int> y, unsigned int i);
 		RValue<Int> pextrw(RValue<Short4> x, unsigned int i);
-		RValue<Long1> punpckldq(RValue<Int2> x, RValue<Int2> y);
-		RValue<Long1> punpckhdq(RValue<Int2> x, RValue<Int2> y);
+		RValue<Short4> punpckldq(RValue<Int2> x, RValue<Int2> y);
+		RValue<Short4> punpckhdq(RValue<Int2> x, RValue<Int2> y);
 		RValue<Short4> punpcklbw(RValue<Byte8> x, RValue<Byte8> y);
 		RValue<Short4> punpckhbw(RValue<Byte8> x, RValue<Byte8> y);
 		RValue<Byte8> paddb(RValue<Byte8> x, RValue<Byte8> y);
@@ -124,13 +124,6 @@ namespace sw
 		RValue<Int4> psrad(RValue<Int4> x, unsigned char y);
 		RValue<UInt2> psrld(RValue<UInt2> x, unsigned char y);
 		RValue<UInt4> psrld(RValue<UInt4> x, unsigned char y);
-
-		RValue<UShort4> psrlw(RValue<UShort4> x, RValue<Long1> y);
-		RValue<Short4> psraw(RValue<Short4> x, RValue<Long1> y);
-		RValue<Short4> psllw(RValue<Short4> x, RValue<Long1> y);
-		RValue<Int2> pslld(RValue<Int2> x, RValue<Long1> y);
-		RValue<UInt2> psrld(RValue<UInt2> x, RValue<Long1> y);
-		RValue<Int2> psrad(RValue<Int2> x, RValue<Long1> y);
 
 		RValue<Int4> pmaxsd(RValue<Int4> x, RValue<Int4> y);
 		RValue<Int4> pminsd(RValue<Int4> x, RValue<Int4> y);

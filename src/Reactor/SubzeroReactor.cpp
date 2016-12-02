@@ -3113,20 +3113,6 @@ namespace sw
 		return RValue<Short4>(Nucleus::createAShr(lhs.value, C(::context->getConstantInt32(rhs))));
 	}
 
-	RValue<Short4> operator<<(RValue<Short4> lhs, RValue<Long1> rhs)
-	{
-	//	return RValue<Short4>(Nucleus::createShl(lhs.value, rhs.value));
-
-		assert(false && "UNIMPLEMENTED"); return RValue<Short4>(V(nullptr));
-	}
-
-	RValue<Short4> operator>>(RValue<Short4> lhs, RValue<Long1> rhs)
-	{
-	//	return RValue<Short4>(Nucleus::createAShr(lhs.value, rhs.value));
-
-		assert(false && "UNIMPLEMENTED"); return RValue<Short4>(V(nullptr));
-	}
-
 	RValue<Short4> operator+=(Short4 &lhs, RValue<Short4> rhs)
 	{
 		return lhs = lhs + rhs;
@@ -3173,16 +3159,6 @@ namespace sw
 	}
 
 	RValue<Short4> operator>>=(Short4 &lhs, unsigned char rhs)
-	{
-		return lhs = lhs >> rhs;
-	}
-
-	RValue<Short4> operator<<=(Short4 &lhs, RValue<Long1> rhs)
-	{
-		return lhs = lhs << rhs;
-	}
-
-	RValue<Short4> operator>>=(Short4 &lhs, RValue<Long1> rhs)
 	{
 		return lhs = lhs >> rhs;
 	}
@@ -3533,32 +3509,12 @@ namespace sw
 		return RValue<UShort4>(Nucleus::createLShr(lhs.value, C(::context->getConstantInt32(rhs))));
 	}
 
-	RValue<UShort4> operator<<(RValue<UShort4> lhs, RValue<Long1> rhs)
-	{
-		assert(false && "UNIMPLEMENTED"); return RValue<UShort4>(V(nullptr));
-	}
-
-	RValue<UShort4> operator>>(RValue<UShort4> lhs, RValue<Long1> rhs)
-	{
-		assert(false && "UNIMPLEMENTED"); return RValue<UShort4>(V(nullptr));
-	}
-
 	RValue<UShort4> operator<<=(UShort4 &lhs, unsigned char rhs)
 	{
 		return lhs = lhs << rhs;
 	}
 
 	RValue<UShort4> operator>>=(UShort4 &lhs, unsigned char rhs)
-	{
-		return lhs = lhs >> rhs;
-	}
-
-	RValue<UShort4> operator<<=(UShort4 &lhs, RValue<Long1> rhs)
-	{
-		return lhs = lhs << rhs;
-	}
-
-	RValue<UShort4> operator>>=(UShort4 &lhs, RValue<Long1> rhs)
 	{
 		return lhs = lhs >> rhs;
 	}
@@ -4253,21 +4209,6 @@ namespace sw
 		return T(Ice::IceType_i64);
 	}
 
-	Long1::Long1(const RValue<UInt> cast)
-	{
-		assert(false && "UNIMPLEMENTED");
-	}
-
-	Long1::Long1(RValue<Long1> rhs)
-	{
-		storeValue(rhs.value);
-	}
-
-	Type *Long1::getType()
-	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
-	}
-
 	UInt::UInt(Argument<UInt> argument)
 	{
 		storeValue(argument.value);
@@ -4723,16 +4664,6 @@ namespace sw
 		return RValue<Int2>(Nucleus::createAShr(lhs.value, C(::context->getConstantInt32(rhs))));
 	}
 
-	RValue<Int2> operator<<(RValue<Int2> lhs, RValue<Long1> rhs)
-	{
-		assert(false && "UNIMPLEMENTED"); return RValue<Int2>(V(nullptr));
-	}
-
-	RValue<Int2> operator>>(RValue<Int2> lhs, RValue<Long1> rhs)
-	{
-		assert(false && "UNIMPLEMENTED"); return RValue<Int2>(V(nullptr));
-	}
-
 	RValue<Int2> operator+=(Int2 &lhs, RValue<Int2> rhs)
 	{
 		return lhs = lhs + rhs;
@@ -4783,16 +4714,6 @@ namespace sw
 		return lhs = lhs >> rhs;
 	}
 
-	RValue<Int2> operator<<=(Int2 &lhs, RValue<Long1> rhs)
-	{
-		return lhs = lhs << rhs;
-	}
-
-	RValue<Int2> operator>>=(Int2 &lhs, RValue<Long1> rhs)
-	{
-		return lhs = lhs >> rhs;
-	}
-
 //	RValue<Int2> operator+(RValue<Int2> val)
 //	{
 //		return val;
@@ -4808,14 +4729,14 @@ namespace sw
 		return RValue<Int2>(Nucleus::createNot(val.value));
 	}
 
-	RValue<Long1> UnpackLow(RValue<Int2> x, RValue<Int2> y)
+	RValue<Short4> UnpackLow(RValue<Int2> x, RValue<Int2> y)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<Long1>(V(nullptr));
+		assert(false && "UNIMPLEMENTED"); return RValue<Short4>(V(nullptr));
 	}
 
-	RValue<Long1> UnpackHigh(RValue<Int2> x, RValue<Int2> y)
+	RValue<Short4> UnpackHigh(RValue<Int2> x, RValue<Int2> y)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<Long1>(V(nullptr));
+		assert(false && "UNIMPLEMENTED"); return RValue<Short4>(V(nullptr));
 	}
 
 	RValue<Int> Extract(RValue<Int2> val, int i)
@@ -4942,16 +4863,6 @@ namespace sw
 		return RValue<UInt2>(Nucleus::createLShr(lhs.value, C(::context->getConstantInt32(rhs))));
 	}
 
-	RValue<UInt2> operator<<(RValue<UInt2> lhs, RValue<Long1> rhs)
-	{
-		assert(false && "UNIMPLEMENTED"); return RValue<UInt2>(V(nullptr));
-	}
-
-	RValue<UInt2> operator>>(RValue<UInt2> lhs, RValue<Long1> rhs)
-	{
-		assert(false && "UNIMPLEMENTED"); return RValue<UInt2>(V(nullptr));
-	}
-
 	RValue<UInt2> operator+=(UInt2 &lhs, RValue<UInt2> rhs)
 	{
 		return lhs = lhs + rhs;
@@ -4998,16 +4909,6 @@ namespace sw
 	}
 
 	RValue<UInt2> operator>>=(UInt2 &lhs, unsigned char rhs)
-	{
-		return lhs = lhs >> rhs;
-	}
-
-	RValue<UInt2> operator<<=(UInt2 &lhs, RValue<Long1> rhs)
-	{
-		return lhs = lhs << rhs;
-	}
-
-	RValue<UInt2> operator>>=(UInt2 &lhs, RValue<Long1> rhs)
 	{
 		return lhs = lhs >> rhs;
 	}

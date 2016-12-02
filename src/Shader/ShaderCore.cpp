@@ -425,10 +425,10 @@ namespace sw
 		Int2 tmp2 = UnpackLow(row0, row1);
 		Int2 tmp3 = UnpackLow(row2, row3);
 
-		row0 = As<Short4>(UnpackLow(tmp2, tmp3));
-		row1 = As<Short4>(UnpackHigh(tmp2, tmp3));
-		row2 = As<Short4>(UnpackLow(tmp0, tmp1));
-		row3 = As<Short4>(UnpackHigh(tmp0, tmp1));
+		row0 = UnpackLow(tmp2, tmp3);
+		row1 = UnpackHigh(tmp2, tmp3);
+		row2 = UnpackLow(tmp0, tmp1);
+		row3 = UnpackHigh(tmp0, tmp1);
 	}
 
 	void transpose4x4(Float4 &row0, Float4 &row1, Float4 &row2, Float4 &row3)

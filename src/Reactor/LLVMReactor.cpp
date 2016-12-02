@@ -2879,20 +2879,6 @@ namespace sw
 		return x86::psraw(lhs, rhs);
 	}
 
-	RValue<Short4> operator<<(RValue<Short4> lhs, RValue<Long1> rhs)
-	{
-	//	return RValue<Short4>(Nucleus::createShl(lhs.value, rhs.value));
-
-		return x86::psllw(lhs, rhs);
-	}
-
-	RValue<Short4> operator>>(RValue<Short4> lhs, RValue<Long1> rhs)
-	{
-	//	return RValue<Short4>(Nucleus::createAShr(lhs.value, rhs.value));
-
-		return x86::psraw(lhs, rhs);
-	}
-
 	RValue<Short4> operator+=(Short4 &lhs, RValue<Short4> rhs)
 	{
 		return lhs = lhs + rhs;
@@ -2939,16 +2925,6 @@ namespace sw
 	}
 
 	RValue<Short4> operator>>=(Short4 &lhs, unsigned char rhs)
-	{
-		return lhs = lhs >> rhs;
-	}
-
-	RValue<Short4> operator<<=(Short4 &lhs, RValue<Long1> rhs)
-	{
-		return lhs = lhs << rhs;
-	}
-
-	RValue<Short4> operator>>=(Short4 &lhs, RValue<Long1> rhs)
 	{
 		return lhs = lhs >> rhs;
 	}
@@ -3353,36 +3329,12 @@ namespace sw
 		return x86::psrlw(lhs, rhs);
 	}
 
-	RValue<UShort4> operator<<(RValue<UShort4> lhs, RValue<Long1> rhs)
-	{
-	//	return RValue<Short4>(Nucleus::createShl(lhs.value, rhs.value));
-
-		return As<UShort4>(x86::psllw(As<Short4>(lhs), rhs));
-	}
-
-	RValue<UShort4> operator>>(RValue<UShort4> lhs, RValue<Long1> rhs)
-	{
-	//	return RValue<Short4>(Nucleus::createLShr(lhs.value, rhs.value));
-
-		return x86::psrlw(lhs, rhs);
-	}
-
 	RValue<UShort4> operator<<=(UShort4 &lhs, unsigned char rhs)
 	{
 		return lhs = lhs << rhs;
 	}
 
 	RValue<UShort4> operator>>=(UShort4 &lhs, unsigned char rhs)
-	{
-		return lhs = lhs >> rhs;
-	}
-
-	RValue<UShort4> operator<<=(UShort4 &lhs, RValue<Long1> rhs)
-	{
-		return lhs = lhs << rhs;
-	}
-
-	RValue<UShort4> operator>>=(UShort4 &lhs, RValue<Long1> rhs)
 	{
 		return lhs = lhs >> rhs;
 	}
@@ -4086,31 +4038,6 @@ namespace sw
 		return T(llvm::Type::getInt64Ty(*::context));
 	}
 
-	Long1::Long1(const RValue<UInt> cast)
-	{
-		Value *undefCast = Nucleus::createInsertElement(V(UndefValue::get(VectorType::get(Int::getType(), 2))), cast.value, 0);
-		Value *zeroCast = Nucleus::createInsertElement(undefCast, V(Nucleus::createConstantInt(0)), 1);
-
-		storeValue(Nucleus::createBitCast(zeroCast, Long1::getType()));
-	}
-
-	Long1::Long1(RValue<Long1> rhs)
-	{
-		storeValue(rhs.value);
-	}
-
-	Type *Long1::getType()
-	{
-		if(CPUID::supportsMMX2())
-		{
-			return MMX::getType();
-		}
-		else
-		{
-			return T(VectorType::get(Long::getType(), 1));
-		}
-	}
-
 	UInt::UInt(Argument<UInt> argument)
 	{
 		storeValue(argument.value);
@@ -4521,7 +4448,13 @@ namespace sw
 			// movd mm0, lo
 			// movd mm1, hi
 			// punpckldq mm0, mm1
-			storeValue(As<Int2>(UnpackLow(As<Int2>(Long1(RValue<UInt>(lo))), As<Int2>(Long1(RValue<UInt>(hi))))).value);
+
+			Value *loLong = Nucleus::createInsertElement(V(UndefValue::get(VectorType::get(Int::getType(), 2))), lo.value, 0);
+			loLong = Nucleus::createInsertElement(loLong, V(ConstantInt::get(Int::getType(), 0)), 1);
+			Value *hiLong = Nucleus::createInsertElement(V(UndefValue::get(VectorType::get(Int::getType(), 2))), hi.value, 0);
+			hiLong = Nucleus::createInsertElement(hiLong, V(ConstantInt::get(Int::getType(), 0)), 1);
+
+			storeValue(As<Int2>(UnpackLow(As<Int2>(loLong), As<Int2>(hiLong))).value);
 		}
 		else
 		{
@@ -4644,20 +4577,6 @@ namespace sw
 		return x86::psrad(lhs, rhs);
 	}
 
-	RValue<Int2> operator<<(RValue<Int2> lhs, RValue<Long1> rhs)
-	{
-	//	return RValue<Int2>(Nucleus::createShl(lhs.value, rhs.value));
-
-		return x86::pslld(lhs, rhs);
-	}
-
-	RValue<Int2> operator>>(RValue<Int2> lhs, RValue<Long1> rhs)
-	{
-	//	return RValue<Int2>(Nucleus::createAShr(lhs.value, rhs.value));
-
-		return x86::psrad(lhs, rhs);
-	}
-
 	RValue<Int2> operator+=(Int2 &lhs, RValue<Int2> rhs)
 	{
 		return lhs = lhs + rhs;
@@ -4708,16 +4627,6 @@ namespace sw
 		return lhs = lhs >> rhs;
 	}
 
-	RValue<Int2> operator<<=(Int2 &lhs, RValue<Long1> rhs)
-	{
-		return lhs = lhs << rhs;
-	}
-
-	RValue<Int2> operator>>=(Int2 &lhs, RValue<Long1> rhs)
-	{
-		return lhs = lhs >> rhs;
-	}
-
 //	RValue<Int2> operator+(RValue<Int2> val)
 //	{
 //		return val;
@@ -4740,7 +4649,7 @@ namespace sw
 		}
 	}
 
-	RValue<Long1> UnpackLow(RValue<Int2> x, RValue<Int2> y)
+	RValue<Short4> UnpackLow(RValue<Int2> x, RValue<Int2> y)
 	{
 		if(CPUID::supportsMMX2())
 		{
@@ -4751,11 +4660,11 @@ namespace sw
 			int shuffle[2] = {0, 2};
 			Value *packed = Nucleus::createShuffleVector(x.value, y.value, shuffle);
 
-			return RValue<Long1>(Nucleus::createBitCast(packed, Long1::getType()));
+			return As<Short4>(packed);
 		}
 	}
 
-	RValue<Long1> UnpackHigh(RValue<Int2> x, RValue<Int2> y)
+	RValue<Short4> UnpackHigh(RValue<Int2> x, RValue<Int2> y)
 	{
 		if(CPUID::supportsMMX2())
 		{
@@ -4766,7 +4675,7 @@ namespace sw
 			int shuffle[2] = {1, 3};
 			Value *packed = Nucleus::createShuffleVector(x.value, y.value, shuffle);
 
-			return RValue<Long1>(Nucleus::createBitCast(packed, Long1::getType()));
+			return As<Short4>(packed);
 		}
 	}
 
@@ -4958,20 +4867,6 @@ namespace sw
 		return x86::psrld(lhs, rhs);
 	}
 
-	RValue<UInt2> operator<<(RValue<UInt2> lhs, RValue<Long1> rhs)
-	{
-	//	return RValue<UInt2>(Nucleus::createShl(lhs.value, rhs.value));
-
-		return As<UInt2>(x86::pslld(As<Int2>(lhs), rhs));
-	}
-
-	RValue<UInt2> operator>>(RValue<UInt2> lhs, RValue<Long1> rhs)
-	{
-	//	return RValue<UInt2>(Nucleus::createLShr(lhs.value, rhs.value));
-
-		return x86::psrld(lhs, rhs);
-	}
-
 	RValue<UInt2> operator+=(UInt2 &lhs, RValue<UInt2> rhs)
 	{
 		return lhs = lhs + rhs;
@@ -5018,16 +4913,6 @@ namespace sw
 	}
 
 	RValue<UInt2> operator>>=(UInt2 &lhs, unsigned char rhs)
-	{
-		return lhs = lhs >> rhs;
-	}
-
-	RValue<UInt2> operator<<=(UInt2 &lhs, RValue<Long1> rhs)
-	{
-		return lhs = lhs << rhs;
-	}
-
-	RValue<UInt2> operator>>=(UInt2 &lhs, RValue<Long1> rhs)
 	{
 		return lhs = lhs >> rhs;
 	}
@@ -7097,18 +6982,18 @@ namespace sw
 			return RValue<Int>(V(::builder->CreateCall2(pextrw, As<MMX>(x).value, V(Nucleus::createConstantInt(i)))));
 		}
 
-		RValue<Long1> punpckldq(RValue<Int2> x, RValue<Int2> y)
+		RValue<Short4> punpckldq(RValue<Int2> x, RValue<Int2> y)
 		{
 			llvm::Function *punpckldq = Intrinsic::getDeclaration(::module, Intrinsic::x86_mmx_punpckldq);
 
-			return As<Long1>(V(::builder->CreateCall2(punpckldq, As<MMX>(x).value, As<MMX>(y).value)));
+			return As<Short4>(V(::builder->CreateCall2(punpckldq, As<MMX>(x).value, As<MMX>(y).value)));
 		}
 
-		RValue<Long1> punpckhdq(RValue<Int2> x, RValue<Int2> y)
+		RValue<Short4> punpckhdq(RValue<Int2> x, RValue<Int2> y)
 		{
 			llvm::Function *punpckhdq = Intrinsic::getDeclaration(::module, Intrinsic::x86_mmx_punpckhdq);
 
-			return As<Long1>(V(::builder->CreateCall2(punpckhdq, As<MMX>(x).value, As<MMX>(y).value)));
+			return As<Short4>(V(::builder->CreateCall2(punpckhdq, As<MMX>(x).value, As<MMX>(y).value)));
 		}
 
 		RValue<Short4> punpcklbw(RValue<Byte8> x, RValue<Byte8> y)
@@ -7382,48 +7267,6 @@ namespace sw
 
 				return UInt4(lo, hi);
 			}
-		}
-
-		RValue<UShort4> psrlw(RValue<UShort4> x, RValue<Long1> y)
-		{
-			llvm::Function *psrlw = Intrinsic::getDeclaration(::module, Intrinsic::x86_mmx_psrl_w);
-
-			return As<UShort4>(V(::builder->CreateCall2(psrlw, As<MMX>(x).value, As<MMX>(y).value)));
-		}
-
-		RValue<Short4> psraw(RValue<Short4> x, RValue<Long1> y)
-		{
-			llvm::Function *psraw = Intrinsic::getDeclaration(::module, Intrinsic::x86_mmx_psra_w);
-
-			return As<Short4>(V(::builder->CreateCall2(psraw, As<MMX>(x).value, As<MMX>(y).value)));
-		}
-
-		RValue<Short4> psllw(RValue<Short4> x, RValue<Long1> y)
-		{
-			llvm::Function *psllw = Intrinsic::getDeclaration(::module, Intrinsic::x86_mmx_psll_w);
-
-			return As<Short4>(V(::builder->CreateCall2(psllw, As<MMX>(x).value, As<MMX>(y).value)));
-		}
-
-		RValue<Int2> pslld(RValue<Int2> x, RValue<Long1> y)
-		{
-			llvm::Function *pslld = Intrinsic::getDeclaration(::module, Intrinsic::x86_mmx_psll_d);
-
-			return As<Int2>(V(::builder->CreateCall2(pslld, As<MMX>(x).value, As<MMX>(y).value)));
-		}
-
-		RValue<UInt2> psrld(RValue<UInt2> x, RValue<Long1> y)
-		{
-			llvm::Function *psrld = Intrinsic::getDeclaration(::module, Intrinsic::x86_mmx_psrl_d);
-
-			return As<UInt2>(V(::builder->CreateCall2(psrld, As<MMX>(x).value, As<MMX>(y).value)));
-		}
-
-		RValue<Int2> psrad(RValue<Int2> x, RValue<Long1> y)
-		{
-			llvm::Function *psrld = Intrinsic::getDeclaration(::module, Intrinsic::x86_mmx_psra_d);
-
-			return As<Int2>(V(::builder->CreateCall2(psrld, As<MMX>(x).value, As<MMX>(y).value)));
 		}
 
 		RValue<Int4> pmaxsd(RValue<Int4> x, RValue<Int4> y)

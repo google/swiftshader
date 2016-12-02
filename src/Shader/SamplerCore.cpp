@@ -1908,8 +1908,8 @@ namespace sw
 				c.z = *Pointer<Short4>(buffer[f2] + 4 * index[2]);
 				c.z = As<Short4>(UnpackLow(c.z, *Pointer<Short4>(buffer[f3] + 4 * index[3])));
 				c.y = c.x;
-				c.x = As<Short4>(UnpackLow(As<Int2>(c.x), As<Int2>(c.z)));
-				c.y = As<Short4>(UnpackHigh(As<Int2>(c.y), As<Int2>(c.z)));
+				c.x = UnpackLow(As<Int2>(c.x), As<Int2>(c.z));
+				c.y = UnpackHigh(As<Int2>(c.y), As<Int2>(c.z));
 				break;
 			case 1:
 				c.x = Insert(c.x, *Pointer<Short>(buffer[f0] + 2 * index[0]), 0);

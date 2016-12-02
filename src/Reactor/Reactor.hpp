@@ -48,7 +48,6 @@ namespace sw
 	class Int4;
 	class UInt4;
 	class Long;
-	class Long1;
 	class Float;
 	class Float2;
 	class Float4;
@@ -765,8 +764,6 @@ namespace sw
 	RValue<Short4> operator^(RValue<Short4> lhs, RValue<Short4> rhs);
 	RValue<Short4> operator<<(RValue<Short4> lhs, unsigned char rhs);
 	RValue<Short4> operator>>(RValue<Short4> lhs, unsigned char rhs);
-	RValue<Short4> operator<<(RValue<Short4> lhs, RValue<Long1> rhs);
-	RValue<Short4> operator>>(RValue<Short4> lhs, RValue<Long1> rhs);
 	RValue<Short4> operator+=(Short4 &lhs, RValue<Short4> rhs);
 	RValue<Short4> operator-=(Short4 &lhs, RValue<Short4> rhs);
 	RValue<Short4> operator*=(Short4 &lhs, RValue<Short4> rhs);
@@ -777,8 +774,6 @@ namespace sw
 	RValue<Short4> operator^=(Short4 &lhs, RValue<Short4> rhs);
 	RValue<Short4> operator<<=(Short4 &lhs, unsigned char rhs);
 	RValue<Short4> operator>>=(Short4 &lhs, unsigned char rhs);
-	RValue<Short4> operator<<=(Short4 &lhs, RValue<Long1> rhs);
-	RValue<Short4> operator>>=(Short4 &lhs, RValue<Long1> rhs);
 //	RValue<Short4> operator+(RValue<Short4> val);
 	RValue<Short4> operator-(RValue<Short4> val);
 	RValue<Short4> operator~(RValue<Short4> val);
@@ -845,8 +840,6 @@ namespace sw
 	RValue<UShort4> operator^(RValue<UShort4> lhs, RValue<UShort4> rhs);
 	RValue<UShort4> operator<<(RValue<UShort4> lhs, unsigned char rhs);
 	RValue<UShort4> operator>>(RValue<UShort4> lhs, unsigned char rhs);
-	RValue<UShort4> operator<<(RValue<UShort4> lhs, RValue<Long1> rhs);
-	RValue<UShort4> operator>>(RValue<UShort4> lhs, RValue<Long1> rhs);
 //	RValue<UShort4> operator+=(UShort4 &lhs, RValue<UShort4> rhs);
 //	RValue<UShort4> operator-=(UShort4 &lhs, RValue<UShort4> rhs);
 //	RValue<UShort4> operator*=(UShort4 &lhs, RValue<UShort4> rhs);
@@ -857,8 +850,6 @@ namespace sw
 //	RValue<UShort4> operator^=(UShort4 &lhs, RValue<UShort4> rhs);
 	RValue<UShort4> operator<<=(UShort4 &lhs, unsigned char rhs);
 	RValue<UShort4> operator>>=(UShort4 &lhs, unsigned char rhs);
-	RValue<UShort4> operator<<=(UShort4 &lhs, RValue<Long1> rhs);
-	RValue<UShort4> operator>>=(UShort4 &lhs, RValue<Long1> rhs);
 //	RValue<UShort4> operator+(RValue<UShort4> val);
 //	RValue<UShort4> operator-(RValue<UShort4> val);
 	RValue<UShort4> operator~(RValue<UShort4> val);
@@ -1128,73 +1119,6 @@ namespace sw
 //	RValue<Long> RoundLong(RValue<Float> cast);
 	RValue<Long> AddAtomic( RValue<Pointer<Long>> x, RValue<Long> y);
 
-	class Long1 : public LValue<Long1>
-	{
-	public:
-	//	Long1(Argument<Long1> argument);
-
-	//	explicit Long1(RValue<Short> cast);
-	//	explicit Long1(RValue<UShort> cast);
-	//	explicit Long1(RValue<Int> cast);
-		explicit Long1(RValue<UInt> cast);
-	//	explicit Long1(RValue<Float> cast);
-
-	//	Long1();
-	//	Long1(qword x);
-		Long1(RValue<Long1> rhs);
-	//	Long1(RValue<ULong1> rhs);
-	//	Long1(const Long1 &rhs);
-	//	Long1(const Reference<Long1> &rhs);
-	//	Long1(const ULong1 &rhs);
-	//	Long1(const Reference<ULong1> &rhs);
-
-	//	RValue<Long1> operator=(qword rhs);
-	//	RValue<Long1> operator=(RValue<Long1> rhs);
-	//	RValue<Long1> operator=(RValue<ULong1> rhs);
-	//	RValue<Long1> operator=(const Long1 &rhs);
-	//	RValue<Long1> operator=(const Reference<Long1> &rhs);
-	//	RValue<Long1> operator=(const ULong1 &rhs);
-	//	RValue<Long1> operator=(const Reference<ULong1> &rhs);
-
-		static Type *getType();
-	};
-
-//	RValue<Long1> operator+(RValue<Long1> lhs, RValue<Long1> rhs);
-//	RValue<Long1> operator-(RValue<Long1> lhs, RValue<Long1> rhs);
-//	RValue<Long1> operator*(RValue<Long1> lhs, RValue<Long1> rhs);
-//	RValue<Long1> operator/(RValue<Long1> lhs, RValue<Long1> rhs);
-//	RValue<Long1> operator%(RValue<Long1> lhs, RValue<Long1> rhs);
-//	RValue<Long1> operator&(RValue<Long1> lhs, RValue<Long1> rhs);
-//	RValue<Long1> operator|(RValue<Long1> lhs, RValue<Long1> rhs);
-//	RValue<Long1> operator^(RValue<Long1> lhs, RValue<Long1> rhs);
-//	RValue<Long1> operator<<(RValue<Long1> lhs, RValue<Long1> rhs);
-//	RValue<Long1> operator>>(RValue<Long1> lhs, RValue<Long1> rhs);
-//	RValue<Long1> operator+=(Long1 &lhs, RValue<Long1> rhs);
-//	RValue<Long1> operator-=(Long1 &lhs, RValue<Long1> rhs);
-//	RValue<Long1> operator*=(Long1 &lhs, RValue<Long1> rhs);
-//	RValue<Long1> operator/=(Long1 &lhs, RValue<Long1> rhs);
-//	RValue<Long1> operator%=(Long1 &lhs, RValue<Long1> rhs);
-//	RValue<Long1> operator&=(Long1 &lhs, RValue<Long1> rhs);
-//	RValue<Long1> operator|=(Long1 &lhs, RValue<Long1> rhs);
-//	RValue<Long1> operator^=(Long1 &lhs, RValue<Long1> rhs);
-//	RValue<Long1> operator<<=(Long1 &lhs, RValue<Long1> rhs);
-//	RValue<Long1> operator>>=(Long1 &lhs, RValue<Long1> rhs);
-//	RValue<Long1> operator+(RValue<Long1> val);
-//	RValue<Long1> operator-(RValue<Long1> val);
-//	RValue<Long1> operator~(RValue<Long1> val);
-//	RValue<Long1> operator++(Long1 &val, int);   // Post-increment
-//	const Long1 &operator++(Long1 &val);   // Pre-increment
-//	RValue<Long1> operator--(Long1 &val, int);   // Post-decrement
-//	const Long1 &operator--(Long1 &val);   // Pre-decrement
-//	RValue<Bool> operator<(RValue<Long1> lhs, RValue<Long1> rhs);
-//	RValue<Bool> operator<=(RValue<Long1> lhs, RValue<Long1> rhs);
-//	RValue<Bool> operator>(RValue<Long1> lhs, RValue<Long1> rhs);
-//	RValue<Bool> operator>=(RValue<Long1> lhs, RValue<Long1> rhs);
-//	RValue<Bool> operator!=(RValue<Long1> lhs, RValue<Long1> rhs);
-//	RValue<Bool> operator==(RValue<Long1> lhs, RValue<Long1> rhs);
-
-//	RValue<Long1> RoundLong1(RValue<Float> cast);
-
 	class UInt : public LValue<UInt>
 	{
 	public:
@@ -1294,8 +1218,6 @@ namespace sw
 	RValue<Int2> operator^(RValue<Int2> lhs, RValue<Int2> rhs);
 	RValue<Int2> operator<<(RValue<Int2> lhs, unsigned char rhs);
 	RValue<Int2> operator>>(RValue<Int2> lhs, unsigned char rhs);
-	RValue<Int2> operator<<(RValue<Int2> lhs, RValue<Long1> rhs);
-	RValue<Int2> operator>>(RValue<Int2> lhs, RValue<Long1> rhs);
 	RValue<Int2> operator+=(Int2 &lhs, RValue<Int2> rhs);
 	RValue<Int2> operator-=(Int2 &lhs, RValue<Int2> rhs);
 //	RValue<Int2> operator*=(Int2 &lhs, RValue<Int2> rhs);
@@ -1306,8 +1228,6 @@ namespace sw
 	RValue<Int2> operator^=(Int2 &lhs, RValue<Int2> rhs);
 	RValue<Int2> operator<<=(Int2 &lhs, unsigned char rhs);
 	RValue<Int2> operator>>=(Int2 &lhs, unsigned char rhs);
-	RValue<Int2> operator<<=(Int2 &lhs, RValue<Long1> rhs);
-	RValue<Int2> operator>>=(Int2 &lhs, RValue<Long1> rhs);
 //	RValue<Int2> operator+(RValue<Int2> val);
 //	RValue<Int2> operator-(RValue<Int2> val);
 	RValue<Int2> operator~(RValue<Int2> val);
@@ -1323,8 +1243,8 @@ namespace sw
 //	RValue<Bool> operator==(RValue<Int2> lhs, RValue<Int2> rhs);
 
 //	RValue<Int2> RoundInt(RValue<Float4> cast);
-	RValue<Long1> UnpackLow(RValue<Int2> x, RValue<Int2> y);
-	RValue<Long1> UnpackHigh(RValue<Int2> x, RValue<Int2> y);
+	RValue<Short4> UnpackLow(RValue<Int2> x, RValue<Int2> y);
+	RValue<Short4> UnpackHigh(RValue<Int2> x, RValue<Int2> y);
 	RValue<Int> Extract(RValue<Int2> val, int i);
 	RValue<Int2> Insert(RValue<Int2> val, RValue<Int> element, int i);
 
@@ -1354,8 +1274,6 @@ namespace sw
 	RValue<UInt2> operator^(RValue<UInt2> lhs, RValue<UInt2> rhs);
 	RValue<UInt2> operator<<(RValue<UInt2> lhs, unsigned char rhs);
 	RValue<UInt2> operator>>(RValue<UInt2> lhs, unsigned char rhs);
-	RValue<UInt2> operator<<(RValue<UInt2> lhs, RValue<Long1> rhs);
-	RValue<UInt2> operator>>(RValue<UInt2> lhs, RValue<Long1> rhs);
 	RValue<UInt2> operator+=(UInt2 &lhs, RValue<UInt2> rhs);
 	RValue<UInt2> operator-=(UInt2 &lhs, RValue<UInt2> rhs);
 //	RValue<UInt2> operator*=(UInt2 &lhs, RValue<UInt2> rhs);
@@ -1366,8 +1284,6 @@ namespace sw
 	RValue<UInt2> operator^=(UInt2 &lhs, RValue<UInt2> rhs);
 	RValue<UInt2> operator<<=(UInt2 &lhs, unsigned char rhs);
 	RValue<UInt2> operator>>=(UInt2 &lhs, unsigned char rhs);
-	RValue<UInt2> operator<<=(UInt2 &lhs, RValue<Long1> rhs);
-	RValue<UInt2> operator>>=(UInt2 &lhs, RValue<Long1> rhs);
 //	RValue<UInt2> operator+(RValue<UInt2> val);
 //	RValue<UInt2> operator-(RValue<UInt2> val);
 	RValue<UInt2> operator~(RValue<UInt2> val);
