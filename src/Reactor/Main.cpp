@@ -182,6 +182,49 @@ TEST(SubzeroReactorTest, VectorConstant)
 	delete routine;
 }
 
+TEST(SubzeroReactorTest, Concatenate)
+{
+	Routine *routine = nullptr;
+
+	{
+		Function<Int(Pointer<Byte>)> function;
+		{
+			Pointer<Byte> out = function.Arg<0>();
+
+			*Pointer<Int4>(out + 16 * 0)   = Int4(Int2(0x04030201, 0x08070605), Int2(0x0C0B0A09, 0x100F0E0D));
+			*Pointer<Short8>(out + 16 * 1) = Short8(Short4(0x0201, 0x0403, 0x0605, 0x0807), Short4(0x0A09, 0x0C0B, 0x0E0D, 0x100F));
+
+			Return(0);
+		}
+
+		routine = function(L"one");
+
+		if(routine)
+		{
+			int8_t ref[16 * 5] = {1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15, 16,
+			                      1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15, 16};
+
+			int8_t out[16 * 5] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+			                      -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+		
+			int (*callable)(void*) = (int(*)(void*))routine->getEntry();
+			callable(out);
+
+			for(int row = 0; row < 2; row++)
+			{
+				for(int col = 0; col < 16; col++)
+				{
+					int i = row * 16 + col;
+
+					EXPECT_EQ(out[i], ref[i]) << "Row " << row << " column " << col << " not equal to reference.";
+				}
+			}
+		}
+	}
+
+	delete routine;
+}
+
 TEST(SubzeroReactorTest, Swizzle)
 {
 	Routine *routine = nullptr;
