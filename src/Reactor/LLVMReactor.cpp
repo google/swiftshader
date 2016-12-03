@@ -68,7 +68,7 @@ namespace
 	llvm::Module *module = nullptr;
 	llvm::Function *function = nullptr;
 
-	sw::BackoffLock codegenMutex;
+	sw::MutexLock codegenMutex;
 }
 
 namespace sw

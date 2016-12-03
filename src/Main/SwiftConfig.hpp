@@ -101,7 +101,7 @@ namespace sw
 
 		Thread *serverThread;
 		volatile bool terminate;
-		BackoffLock criticalSection;   // Protects reading and writing the configuration settings
+		MutexLock criticalSection;   // Protects reading and writing the configuration settings
 
 		bool newConfig;
 

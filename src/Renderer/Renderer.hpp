@@ -465,7 +465,7 @@ namespace sw
 		unsigned int qHead;
 		unsigned int qSize;
 
-		BackoffLock schedulerMutex;
+		MutexLock schedulerMutex;
 
 		#if PERF_HUD
 			int64_t vertexTime[16];

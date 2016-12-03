@@ -45,7 +45,7 @@ namespace sw
 	private:
 		~Resource();   // Always call destruct() instead
 
-		BackoffLock criticalSection;
+		MutexLock criticalSection;
 		Event unblock;
 		volatile int blocked;
 

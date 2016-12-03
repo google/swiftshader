@@ -92,7 +92,7 @@ namespace egl
 		ContextSet mContextSet;
 
 		typedef std::set<FenceSync*> SyncSet;
-		sw::BackoffLock mSyncSetMutex;
+		sw::MutexLock mSyncSetMutex;
 		SyncSet mSyncSet;
 
 		gl::NameSpace<Image> mSharedImageNameSpace;
