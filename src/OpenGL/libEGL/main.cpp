@@ -18,7 +18,7 @@
 
 #include "libEGL.hpp"
 #include "Context.hpp"
-#include "Surface.h"
+#include "EGLSurface.h"
 
 #include "resource.h"
 #include "Common/Thread.hpp"

@@ -19,7 +19,7 @@
 #include "Display.h"
 
 #include "main.h"
-#include "libEGL/Surface.h"
+#include "libEGL/EGLSurface.h"
 #include "libEGL/Context.hpp"
 #include "common/Image.hpp"
 #include "common/debug.h"

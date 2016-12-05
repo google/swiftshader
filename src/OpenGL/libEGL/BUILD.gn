@@ -39,10 +39,12 @@ shared_library("swiftshader_libEGL") {
   }
 
   sources = [
+    "../../Renderer/Surface.cpp",
+    "../common/Image.cpp",
     "../common/Object.cpp",
     "Config.cpp",
     "Display.cpp",
-    "Surface.cpp",
+    "EGLSurface.cpp",
     "libEGL.cpp",
     "libEGL.def",
     "libEGL.rc",

@@ -16,7 +16,7 @@
 
 #include "main.h"
 #include "Display.h"
-#include "Surface.h"
+#include "EGLSurface.h"
 #include "Texture.hpp"
 #include "Context.hpp"
 #include "common/Image.hpp"

@@ -28,7 +28,7 @@
 #include "VertexDataManager.h"
 #include "IndexDataManager.h"
 #include "libEGL/Display.h"
-#include "libEGL/Surface.h"
+#include "libEGL/EGLSurface.h"
 #include "Common/Half.hpp"
 
 #include <EGL/eglext.h>

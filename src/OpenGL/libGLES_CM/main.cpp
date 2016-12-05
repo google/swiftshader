@@ -18,7 +18,7 @@
 
 #include "libGLES_CM.hpp"
 #include "Framebuffer.h"
-#include "libEGL/Surface.h"
+#include "libEGL/EGLSurface.h"
 #include "Common/Thread.hpp"
 #include "Common/SharedLibrary.hpp"
 #include "common/debug.h"
