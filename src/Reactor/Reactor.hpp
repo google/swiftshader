@@ -2094,7 +2094,6 @@ namespace sw
 		}
 
 		Pointer(Argument<Pointer<T>> argument);
-		explicit Pointer(const void *external);
 
 		Pointer();
 		Pointer(RValue<Pointer<T>> rhs);
@@ -2472,14 +2471,6 @@ namespace sw
 	Pointer<T>::Pointer(Argument<Pointer<T>> argument) : alignment(1)
 	{
 		LValue<Pointer<T>>::storeValue(argument.value);
-	}
-
-	template<class T>
-	Pointer<T>::Pointer(const void *external) : alignment((intptr_t)external & 0x0000000F ? 1 : 16)
-	{
-		Value *globalPointer = Nucleus::createConstantPointer(external, T::getType(), alignment);
-
-		LValue<Pointer<T>>::storeValue(globalPointer);
 	}
 
 	template<class T>

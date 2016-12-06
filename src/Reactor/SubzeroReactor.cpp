@@ -1081,18 +1081,6 @@ namespace sw
 		return result;
 	}
 
-	Value *Nucleus::createConstantPointer(const void *address, Type *Ty, unsigned int align)
-	{
-		if(sizeof(void*) == 8)
-		{
-			return createAssign(::context->getConstantInt64(reinterpret_cast<intptr_t>(address)));
-		}
-		else
-		{
-			return createAssign(::context->getConstantInt32(reinterpret_cast<intptr_t>(address)));
-		}
-	}
-
 	Type *Nucleus::getPointerType(Type *ElementType)
 	{
 		if(sizeof(void*) == 8)
@@ -1165,14 +1153,7 @@ namespace sw
 
 	Value *Nucleus::createNullPointer(Type *Ty)
 	{
-		if(true)
-		{
-			return createNullValue(T(sizeof(void*) == 8 ? Ice::IceType_i64 : Ice::IceType_i32));
-		}
-		else
-		{
-			return createConstantPointer(nullptr, Ty);
-		}
+		return createNullValue(T(sizeof(void*) == 8 ? Ice::IceType_i64 : Ice::IceType_i32));
 	}
 
 	Value *Nucleus::createConstantVector(const int64_t *constants, Type *type)

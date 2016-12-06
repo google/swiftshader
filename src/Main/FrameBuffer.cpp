@@ -34,15 +34,7 @@ namespace sw
 {
 	extern bool forceWindowed;
 
-	void *FrameBuffer::cursor;
-	int FrameBuffer::cursorWidth = 0;
-	int FrameBuffer::cursorHeight = 0;
-	int FrameBuffer::cursorHotspotX;
-	int FrameBuffer::cursorHotspotY;
-	int FrameBuffer::cursorPositionX;
-	int FrameBuffer::cursorPositionY;
-	int FrameBuffer::cursorX;
-	int FrameBuffer::cursorY;
+	FrameBuffer::Cursor FrameBuffer::cursor = {0};
 	bool FrameBuffer::topLeftOrigin = false;
 
 	FrameBuffer::FrameBuffer(int width, int height, bool fullscreen, bool topLeftOrigin)
@@ -114,29 +106,29 @@ namespace sw
 	{
 		if(cursorImage)
 		{
-			cursor = cursorImage->lockExternal(0, 0, 0, sw::LOCK_READONLY, sw::PUBLIC);
+			cursor.image = cursorImage->lockExternal(0, 0, 0, sw::LOCK_READONLY, sw::PUBLIC);
 			cursorImage->unlockExternal();
 
-			cursorWidth = cursorImage->getWidth();
-			cursorHeight = cursorImage->getHeight();
+			cursor.width = cursorImage->getWidth();
+			cursor.height = cursorImage->getHeight();
 		}
 		else
 		{
-			cursorWidth = 0;
-			cursorHeight = 0;
+			cursor.width = 0;
+			cursor.height = 0;
 		}
 	}
 
 	void FrameBuffer::setCursorOrigin(int x0, int y0)
 	{
-		cursorHotspotX = x0;
-		cursorHotspotY = y0;
+		cursor.hotspotX = x0;
+		cursor.hotspotY = y0;
 	}
 
 	void FrameBuffer::setCursorPosition(int x, int y)
 	{
-		cursorPositionX = x;
-		cursorPositionY = y;
+		cursor.positionX = x;
+		cursor.positionY = y;
 	}
 
 	void FrameBuffer::copy(void *source, Format format, size_t stride)
@@ -162,8 +154,8 @@ namespace sw
 			target = (byte*)source + (height - 1) * stride;
 		}
 
-		cursorX = cursorPositionX - cursorHotspotX;
-		cursorY = cursorPositionY - cursorHotspotY;
+		cursor.x = cursor.positionX - cursor.hotspotX;
+		cursor.y = cursor.positionY - cursor.hotspotY;
 
 		if(ASYNCHRONOUS_BLIT)
 		{
@@ -188,8 +180,8 @@ namespace sw
 		update.destFormat = destFormat;
 		update.sourceFormat = sourceFormat;
 		update.stride = stride;
-		update.cursorWidth = cursorWidth;
-		update.cursorHeight = cursorHeight;
+		update.cursorWidth = cursor.width;
+		update.cursorHeight = cursor.height;
 
 		if(memcmp(&blitState, &update, sizeof(BlitState)) != 0)
 		{
@@ -197,10 +189,10 @@ namespace sw
 			delete blitRoutine;
 
 			blitRoutine = copyRoutine(blitState);
-			blitFunction = (void(*)(void*, void*))blitRoutine->getEntry();
+			blitFunction = (void(*)(void*, void*, Cursor*))blitRoutine->getEntry();
 		}
 
-		blitFunction(locked, target);
+		blitFunction(locked, target, &cursor);
 	}
 
 	Routine *FrameBuffer::copyRoutine(const BlitState &state)
@@ -213,10 +205,11 @@ namespace sw
 		const int sBytes = Surface::bytes(state.sourceFormat);
 		const int sStride = topLeftOrigin ? (sBytes * width2) : -(sBytes * width2);
 
-		Function<Void(Pointer<Byte>, Pointer<Byte>)> function;
+		Function<Void(Pointer<Byte>, Pointer<Byte>, Pointer<Byte>)> function;
 		{
 			Pointer<Byte> dst(function.Arg<0>());
 			Pointer<Byte> src(function.Arg<1>());
+			Pointer<Byte> cursor(function.Arg<2>());
 
 			For(Int y = 0, y < height, y++)
 			{
@@ -539,10 +532,10 @@ namespace sw
 				}
 			}
 
-			Int x0 = *Pointer<Int>(&cursorX);
-			Int y0 = *Pointer<Int>(&cursorY);
+			Int x0 = *Pointer<Int>(cursor + OFFSET(Cursor,x));
+			Int y0 = *Pointer<Int>(cursor + OFFSET(Cursor,y));
 
-			For(Int y1 = 0, y1 < cursorHeight, y1++)
+			For(Int y1 = 0, y1 < state.cursorHeight, y1++)
 			{
 				Int y = y0 + y1;
 
@@ -550,9 +543,9 @@ namespace sw
 				{
 					Pointer<Byte> d = dst + y * dStride + x0 * dBytes;
 					Pointer<Byte> s = src + y * sStride + x0 * sBytes;
-					Pointer<Byte> c = *Pointer<Pointer<Byte> >(&cursor) + y1 * cursorWidth * 4;
+					Pointer<Byte> c = *Pointer<Pointer<Byte>>(cursor + OFFSET(Cursor,image)) + y1 * state.cursorWidth * 4;
 
-					For(Int x1 = 0, x1 < cursorWidth, x1++)
+					For(Int x1 = 0, x1 < state.cursorWidth, x1++)
 					{
 						Int x = x0 + x1;
 

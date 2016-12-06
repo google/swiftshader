@@ -705,26 +705,7 @@ namespace sw
 			mask[3] ? 7 : 3,
 		};
 
-		Value *shuffle = Nucleus::createShuffleVector(lhs, rhs, swizzle);
-
-		return shuffle;
-	}
-
-	Value *Nucleus::createConstantPointer(const void *address, Type *Ty, unsigned int align)
-	{
-		const GlobalValue *existingGlobal = ::executionEngine->getGlobalValueAtAddress(const_cast<void*>(address));   // FIXME: Const
-
-		if(existingGlobal)
-		{
-			return (Value*)existingGlobal;
-		}
-
-		llvm::GlobalValue *global = new llvm::GlobalVariable(*::module, Ty, true, llvm::GlobalValue::ExternalLinkage, 0, "");
-		global->setAlignment(align);
-
-		::executionEngine->addGlobalMapping(global, const_cast<void*>(address));
-
-		return V(global);
+		return Nucleus::createShuffleVector(lhs, rhs, swizzle);
 	}
 
 	Type *Nucleus::getPointerType(Type *ElementType)
