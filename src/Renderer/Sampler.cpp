@@ -126,10 +126,6 @@ namespace sw
 				int pitchP = surface->getInternalPitchP();
 				int sliceP = surface->getInternalSliceP();
 
-				int logWidth = log2(width);
-				int logHeight = log2(height);
-				int logDepth = log2(depth);
-
 				if(level == 0)
 				{
 					texture.widthHeightLOD[0] = width * exp2LOD;
