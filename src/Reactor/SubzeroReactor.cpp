@@ -69,7 +69,7 @@ namespace sw
 		Type_v2f32 = Ice::IceType_v4f32 | EmulatedV2,
 	};
 
-	class Value : public Ice::Variable {};
+	class Value : public Ice::Operand {};
 	class SwitchCases : public Ice::InstSwitch {};
 	class BasicBlock : public Ice::CfgNode {};
 
@@ -89,14 +89,9 @@ namespace sw
 		return reinterpret_cast<Type*>(t);
 	}
 
-	Value *V(Ice::Variable *v)
+	Value *V(Ice::Operand *v)
 	{
 		return reinterpret_cast<Value*>(v);
-	}
-
-	Value *C(Ice::Constant *c)
-	{
-		return reinterpret_cast<Value*>(c);
 	}
 
 	BasicBlock *B(Ice::CfgNode *b)
@@ -633,13 +628,13 @@ namespace sw
 		return createArithmetic(Ice::InstArithmetic::Xor, lhs, rhs);
 	}
 
-	static Value *createAssign(Ice::Constant *constant)
+	static Ice::Variable *createAssign(Ice::Operand *constant)
 	{
 		Ice::Variable *value = ::function->makeVariable(constant->getType());
 		auto assign = Ice::InstAssign::create(::function, value, constant);
 		::basicBlock->appendInst(assign);
 
-		return V(value);
+		return value;
 	}
 
 	Value *Nucleus::createNeg(Value *v)
@@ -652,7 +647,7 @@ namespace sw
 		double c[4] = {-0.0, -0.0, -0.0, -0.0};
 		Value *negativeZero = Ice::isVectorType(v->getType()) ?
 		                      createConstantVector(c, T(v->getType())) :
-		                      C(::context->getConstantFloat(-0.0f));
+		                      V(::context->getConstantFloat(-0.0f));
 
 		return createFSub(negativeZero, v);
 	}
@@ -661,7 +656,7 @@ namespace sw
 	{
 		if(Ice::isScalarIntegerType(v->getType()))
 		{
-			return createXor(v, C(::context->getConstantInt(v->getType(), -1)));
+			return createXor(v, V(::context->getConstantInt(v->getType(), -1)));
 		}
 		else   // Vector
 		{
@@ -766,6 +761,18 @@ namespace sw
 	Value *Nucleus::createGEP(Value *ptr, Type *type, Value *index)
 	{
 		assert(index->getType() == Ice::IceType_i32);
+
+		if(auto *constant = llvm::dyn_cast<Ice::ConstantInteger32>(index))
+		{
+			int32_t offset = constant->getValue() * (int)Ice::typeWidthInBytes(T(type));
+
+			if(offset == 0)
+			{
+				return ptr;
+			}
+
+			return createAdd(ptr, createConstantInt(offset));
+		}
 
 		if(!Ice::isByteSizedType(T(type)))
 		{
@@ -1102,53 +1109,53 @@ namespace sw
 		}
 		else
 		{
-			return createAssign(::context->getConstantZero(T(Ty)));
+			return V(::context->getConstantZero(T(Ty)));
 		}
 	}
 
 	Value *Nucleus::createConstantLong(int64_t i)
 	{
-		return createAssign(::context->getConstantInt64(i));
+		return V(::context->getConstantInt64(i));
 	}
 
 	Value *Nucleus::createConstantInt(int i)
 	{
-		return createAssign(::context->getConstantInt32(i));
+		return V(::context->getConstantInt32(i));
 	}
 
 	Value *Nucleus::createConstantInt(unsigned int i)
 	{
-		return createAssign(::context->getConstantInt32(i));
+		return V(::context->getConstantInt32(i));
 	}
 
 	Value *Nucleus::createConstantBool(bool b)
 	{
-		return createAssign(::context->getConstantInt1(b));
+		return V(::context->getConstantInt1(b));
 	}
 
 	Value *Nucleus::createConstantByte(signed char i)
 	{
-		return createAssign(::context->getConstantInt8(i));
+		return V(::context->getConstantInt8(i));
 	}
 
 	Value *Nucleus::createConstantByte(unsigned char i)
 	{
-		return createAssign(::context->getConstantInt8(i));
+		return V(::context->getConstantInt8(i));
 	}
 
 	Value *Nucleus::createConstantShort(short i)
 	{
-		return createAssign(::context->getConstantInt16(i));
+		return V(::context->getConstantInt16(i));
 	}
 
 	Value *Nucleus::createConstantShort(unsigned short i)
 	{
-		return createAssign(::context->getConstantInt16(i));
+		return V(::context->getConstantInt16(i));
 	}
 
 	Value *Nucleus::createConstantFloat(float x)
 	{
-		return createAssign(::context->getConstantFloat(x));
+		return V(::context->getConstantFloat(x));
 	}
 
 	Value *Nucleus::createNullPointer(Type *Ty)
@@ -2440,12 +2447,12 @@ namespace sw
 
 //	RValue<Byte8> operator<<(RValue<Byte8> lhs, unsigned char rhs)
 //	{
-//		return RValue<Byte8>(Nucleus::createShl(lhs.value, C(::context->getConstantInt32(rhs))));
+//		return RValue<Byte8>(Nucleus::createShl(lhs.value, V(::context->getConstantInt32(rhs))));
 //	}
 
 //	RValue<Byte8> operator>>(RValue<Byte8> lhs, unsigned char rhs)
 //	{
-//		return RValue<Byte8>(Nucleus::createLShr(lhs.value, C(::context->getConstantInt32(rhs))));
+//		return RValue<Byte8>(Nucleus::createLShr(lhs.value, V(::context->getConstantInt32(rhs))));
 //	}
 
 	RValue<Byte8> operator+=(Byte8 &lhs, RValue<Byte8> rhs)
@@ -2688,12 +2695,12 @@ namespace sw
 
 //	RValue<SByte8> operator<<(RValue<SByte8> lhs, unsigned char rhs)
 //	{
-//		return RValue<SByte8>(Nucleus::createShl(lhs.value, C(::context->getConstantInt32(rhs))));
+//		return RValue<SByte8>(Nucleus::createShl(lhs.value, V(::context->getConstantInt32(rhs))));
 //	}
 
 //	RValue<SByte8> operator>>(RValue<SByte8> lhs, unsigned char rhs)
 //	{
-//		return RValue<SByte8>(Nucleus::createAShr(lhs.value, C(::context->getConstantInt32(rhs))));
+//		return RValue<SByte8>(Nucleus::createAShr(lhs.value, V(::context->getConstantInt32(rhs))));
 //	}
 
 	RValue<SByte8> operator+=(SByte8 &lhs, RValue<SByte8> rhs)
@@ -3086,12 +3093,12 @@ namespace sw
 
 	RValue<Short4> operator<<(RValue<Short4> lhs, unsigned char rhs)
 	{
-		return RValue<Short4>(Nucleus::createShl(lhs.value, C(::context->getConstantInt32(rhs))));
+		return RValue<Short4>(Nucleus::createShl(lhs.value, V(::context->getConstantInt32(rhs))));
 	}
 
 	RValue<Short4> operator>>(RValue<Short4> lhs, unsigned char rhs)
 	{
-		return RValue<Short4>(Nucleus::createAShr(lhs.value, C(::context->getConstantInt32(rhs))));
+		return RValue<Short4>(Nucleus::createAShr(lhs.value, V(::context->getConstantInt32(rhs))));
 	}
 
 	RValue<Short4> operator+=(Short4 &lhs, RValue<Short4> rhs)
@@ -3482,12 +3489,12 @@ namespace sw
 
 	RValue<UShort4> operator<<(RValue<UShort4> lhs, unsigned char rhs)
 	{
-		return RValue<UShort4>(Nucleus::createShl(lhs.value, C(::context->getConstantInt32(rhs))));
+		return RValue<UShort4>(Nucleus::createShl(lhs.value, V(::context->getConstantInt32(rhs))));
 	}
 
 	RValue<UShort4> operator>>(RValue<UShort4> lhs, unsigned char rhs)
 	{
-		return RValue<UShort4>(Nucleus::createLShr(lhs.value, C(::context->getConstantInt32(rhs))));
+		return RValue<UShort4>(Nucleus::createLShr(lhs.value, V(::context->getConstantInt32(rhs))));
 	}
 
 	RValue<UShort4> operator<<=(UShort4 &lhs, unsigned char rhs)
@@ -3636,12 +3643,12 @@ namespace sw
 
 	RValue<Short8> operator<<(RValue<Short8> lhs, unsigned char rhs)
 	{
-		return RValue<Short8>(Nucleus::createShl(lhs.value, C(::context->getConstantInt32(rhs))));
+		return RValue<Short8>(Nucleus::createShl(lhs.value, V(::context->getConstantInt32(rhs))));
 	}
 
 	RValue<Short8> operator>>(RValue<Short8> lhs, unsigned char rhs)
 	{
-		return RValue<Short8>(Nucleus::createAShr(lhs.value, C(::context->getConstantInt32(rhs))));
+		return RValue<Short8>(Nucleus::createAShr(lhs.value, V(::context->getConstantInt32(rhs))));
 	}
 
 	RValue<Int4> MulAdd(RValue<Short8> x, RValue<Short8> y)
@@ -3720,12 +3727,12 @@ namespace sw
 
 	RValue<UShort8> operator<<(RValue<UShort8> lhs, unsigned char rhs)
 	{
-		return RValue<UShort8>(Nucleus::createShl(lhs.value, C(::context->getConstantInt32(rhs))));
+		return RValue<UShort8>(Nucleus::createShl(lhs.value, V(::context->getConstantInt32(rhs))));
 	}
 
 	RValue<UShort8> operator>>(RValue<UShort8> lhs, unsigned char rhs)
 	{
-		return RValue<UShort8>(Nucleus::createLShr(lhs.value, C(::context->getConstantInt32(rhs))));
+		return RValue<UShort8>(Nucleus::createLShr(lhs.value, V(::context->getConstantInt32(rhs))));
 	}
 
 	RValue<UShort8> operator+(RValue<UShort8> lhs, RValue<UShort8> rhs)
@@ -4656,12 +4663,12 @@ namespace sw
 
 	RValue<Int2> operator<<(RValue<Int2> lhs, unsigned char rhs)
 	{
-		return RValue<Int2>(Nucleus::createShl(lhs.value, C(::context->getConstantInt32(rhs))));
+		return RValue<Int2>(Nucleus::createShl(lhs.value, V(::context->getConstantInt32(rhs))));
 	}
 
 	RValue<Int2> operator>>(RValue<Int2> lhs, unsigned char rhs)
 	{
-		return RValue<Int2>(Nucleus::createAShr(lhs.value, C(::context->getConstantInt32(rhs))));
+		return RValue<Int2>(Nucleus::createAShr(lhs.value, V(::context->getConstantInt32(rhs))));
 	}
 
 	RValue<Int2> operator+=(Int2 &lhs, RValue<Int2> rhs)
@@ -4858,12 +4865,12 @@ namespace sw
 
 	RValue<UInt2> operator<<(RValue<UInt2> lhs, unsigned char rhs)
 	{
-		return RValue<UInt2>(Nucleus::createShl(lhs.value, C(::context->getConstantInt32(rhs))));
+		return RValue<UInt2>(Nucleus::createShl(lhs.value, V(::context->getConstantInt32(rhs))));
 	}
 
 	RValue<UInt2> operator>>(RValue<UInt2> lhs, unsigned char rhs)
 	{
-		return RValue<UInt2>(Nucleus::createLShr(lhs.value, C(::context->getConstantInt32(rhs))));
+		return RValue<UInt2>(Nucleus::createLShr(lhs.value, V(::context->getConstantInt32(rhs))));
 	}
 
 	RValue<UInt2> operator+=(UInt2 &lhs, RValue<UInt2> rhs)
@@ -4969,7 +4976,7 @@ namespace sw
 		e = Nucleus::createShuffleVector(d, d, swizzle2);
 
 		Value *f = Nucleus::createBitCast(e, Int4::getType());
-		Value *g = Nucleus::createAShr(f, C(::context->getConstantInt32(24)));
+		Value *g = Nucleus::createAShr(f, V(::context->getConstantInt32(24)));
 		storeValue(g);
 	}
 
@@ -4987,7 +4994,7 @@ namespace sw
 		int swizzle[8] = {0, 0, 1, 1, 2, 2, 3, 3};
 		Value *c = Nucleus::createShuffleVector(cast.value, cast.value, swizzle);
 		Value *d = Nucleus::createBitCast(c, Int4::getType());
-		Value *e = Nucleus::createAShr(d, C(::context->getConstantInt32(16)));
+		Value *e = Nucleus::createAShr(d, V(::context->getConstantInt32(16)));
 		storeValue(e);
 	}
 
@@ -5178,12 +5185,12 @@ namespace sw
 
 	RValue<Int4> operator<<(RValue<Int4> lhs, unsigned char rhs)
 	{
-		return RValue<Int4>(Nucleus::createShl(lhs.value, C(::context->getConstantInt32(rhs))));
+		return RValue<Int4>(Nucleus::createShl(lhs.value, V(::context->getConstantInt32(rhs))));
 	}
 
 	RValue<Int4> operator>>(RValue<Int4> lhs, unsigned char rhs)
 	{
-		return RValue<Int4>(Nucleus::createAShr(lhs.value, C(::context->getConstantInt32(rhs))));
+		return RValue<Int4>(Nucleus::createAShr(lhs.value, V(::context->getConstantInt32(rhs))));
 	}
 
 	RValue<Int4> operator<<(RValue<Int4> lhs, RValue<Int4> rhs)
@@ -5543,12 +5550,12 @@ namespace sw
 
 	RValue<UInt4> operator<<(RValue<UInt4> lhs, unsigned char rhs)
 	{
-		return RValue<UInt4>(Nucleus::createShl(lhs.value, C(::context->getConstantInt32(rhs))));
+		return RValue<UInt4>(Nucleus::createShl(lhs.value, V(::context->getConstantInt32(rhs))));
 	}
 
 	RValue<UInt4> operator>>(RValue<UInt4> lhs, unsigned char rhs)
 	{
-		return RValue<UInt4>(Nucleus::createLShr(lhs.value, C(::context->getConstantInt32(rhs))));
+		return RValue<UInt4>(Nucleus::createLShr(lhs.value, V(::context->getConstantInt32(rhs))));
 	}
 
 	RValue<UInt4> operator<<(RValue<UInt4> lhs, RValue<UInt4> rhs)
