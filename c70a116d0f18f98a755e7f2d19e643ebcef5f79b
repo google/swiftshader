@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cd24f349_2e990d0c",
+        "filename": "src/Main/FrameBuffer.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-12-08T14:50:53Z",
+      "side": 0,
+      "message": "No longer gets initialized. Not important?",
+      "range": {
+        "startLine": 38,
+        "startChar": 0,
+        "endLine": 39,
+        "endChar": 35
+      },
+      "revId": "c70a116d0f18f98a755e7f2d19e643ebcef5f79b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
