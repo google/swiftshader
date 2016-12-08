@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cd24f349_6e0aa502",
+        "filename": "src/OpenGL/libEGL/BUILD.gn",
+        "patchSetId": 2
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-12-08T16:24:43Z",
+      "side": 1,
+      "message": "This was ok as a quick fix, but we shouldn\u0027t have this kind of difference in build configuration. Or if there\u0027s no clean way of doing this, it needs a comment to explain why this is necessary.",
+      "range": {
+        "startLine": 55,
+        "startChar": 0,
+        "endLine": 59,
+        "endChar": 5
+      },
+      "revId": "3ea9295f5b2f4a1dfa022d58dc53299e02fbbea1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
