@@ -149,20 +149,20 @@ Pointers also use a template class:
 Function<Int(Pointer<Int>)> function;
 {
     Pointer<Int> x = function.Arg<0>();
-   
+
     Int dereference = *x;
-   
+
     Return(dereference);
 }
 ```
 
-Pointer arithmetic is only supported on Pointer<Byte>, and can be used to address structure fields:
+Pointer arithmetic is only supported on ```Pointer<Byte>```, and can be used to access structure fields:
 
 ```C++
 struct S
 {
     int x;
-    int y;    
+    int y;
 };
 
 Function<Int(Pointer<Byte>)> function;
