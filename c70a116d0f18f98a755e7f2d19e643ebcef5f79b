@@ -22,6 +22,30 @@
       "revId": "c70a116d0f18f98a755e7f2d19e643ebcef5f79b",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "cd24f349_aef19d26",
+        "filename": "src/Main/FrameBuffer.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-12-08T15:54:33Z",
+      "side": 0,
+      "message": "It\u0027s important, but these are static members so they already get initialized to zero. That said, I like it to be explicit so I\u0027ll initialize to {0} on the right. Thanks.",
+      "parentUuid": "cd24f349_2e990d0c",
+      "range": {
+        "startLine": 38,
+        "startChar": 0,
+        "endLine": 39,
+        "endChar": 35
+      },
+      "revId": "c70a116d0f18f98a755e7f2d19e643ebcef5f79b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
