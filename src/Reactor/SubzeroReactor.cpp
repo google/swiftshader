@@ -3227,7 +3227,7 @@ namespace sw
 		pmulhw->addArg(y.value);
 		::basicBlock->appendInst(pmulhw);
 
-		return RValue<UShort4>(V(result));
+		return RValue<Short4>(V(result));
 	}
 
 	RValue<Int2> MulAdd(RValue<Short4> x, RValue<Short4> y)
@@ -3452,7 +3452,7 @@ namespace sw
 
 	RValue<UShort4> operator+(RValue<UShort4> lhs, RValue<UShort4> rhs)
 	{
-		return RValue<Short4>(Nucleus::createAdd(lhs.value, rhs.value));
+		return RValue<UShort4>(Nucleus::createAdd(lhs.value, rhs.value));
 	}
 
 	RValue<UShort4> operator-(RValue<UShort4> lhs, RValue<UShort4> rhs)
@@ -4032,7 +4032,7 @@ namespace sw
 
 	RValue<Int> operator++(Int &val, int)   // Post-increment
 	{
-		RValue<UInt> res = val;
+		RValue<Int> res = val;
 		val += 1;
 		return res;
 	}
