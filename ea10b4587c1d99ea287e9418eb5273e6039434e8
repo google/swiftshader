@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5a427b4d_384588b5",
+        "filename": "src/Shader/ShaderCore.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 482,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-12-09T21:11:59Z",
+      "side": 1,
+      "message": "I\u0027m guessing this is unused?\nWhy not just use tmp01.zwzw then?",
+      "range": {
+        "startLine": 482,
+        "startChar": 26,
+        "endLine": 482,
+        "endChar": 33
+      },
+      "revId": "ea10b4587c1d99ea287e9418eb5273e6039434e8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a427b4d_d8331c4f",
+        "filename": "src/Shader/ShaderCore.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 484,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-12-09T21:11:59Z",
+      "side": 1,
+      "message": "same",
+      "range": {
+        "startLine": 484,
+        "startChar": 26,
+        "endLine": 484,
+        "endChar": 33
+      },
+      "revId": "ea10b4587c1d99ea287e9418eb5273e6039434e8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
