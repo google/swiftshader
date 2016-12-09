@@ -1159,18 +1159,18 @@ private:
 
   /// Helpers for lowering ShuffleVector
   /// @{
-  Variable *lowerShuffleVector_AllFromSameSrc(Variable *Src, SizeT Index0,
+  Variable *lowerShuffleVector_AllFromSameSrc(Operand *Src, SizeT Index0,
                                               SizeT Index1, SizeT Index2,
                                               SizeT Index3);
   static constexpr SizeT IGNORE_INDEX = 0x80000000u;
-  Variable *lowerShuffleVector_TwoFromSameSrc(Variable *Src0, SizeT Index0,
-                                              SizeT Index1, Variable *Src1,
+  Variable *lowerShuffleVector_TwoFromSameSrc(Operand *Src0, SizeT Index0,
+                                              SizeT Index1, Operand *Src1,
                                               SizeT Index2, SizeT Index3);
   static constexpr SizeT UNIFIED_INDEX_0 = 0;
   static constexpr SizeT UNIFIED_INDEX_1 = 2;
-  Variable *lowerShuffleVector_UnifyFromDifferentSrcs(Variable *Src0,
+  Variable *lowerShuffleVector_UnifyFromDifferentSrcs(Operand *Src0,
                                                       SizeT Index0,
-                                                      Variable *Src1,
+                                                      Operand *Src1,
                                                       SizeT Index1);
   static constexpr SizeT CLEAR_ALL_BITS = 0x80;
   SizeT PshufbMaskCount = 0;

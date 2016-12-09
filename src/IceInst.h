@@ -979,8 +979,8 @@ class InstShuffleVector : public InstHighLevel {
   InstShuffleVector &operator=(const InstShuffleVector &) = delete;
 
 public:
-  static InstShuffleVector *create(Cfg *Func, Variable *Dest, Variable *Src0,
-                                   Variable *Src1) {
+  static InstShuffleVector *create(Cfg *Func, Variable *Dest, Operand *Src0,
+                                   Operand *Src1) {
     return new (Func->allocate<InstShuffleVector>())
         InstShuffleVector(Func, Dest, Src0, Src1);
   }
@@ -1035,7 +1035,7 @@ public:
   }
 
 private:
-  InstShuffleVector(Cfg *Func, Variable *Dest, Variable *Src0, Variable *Src1);
+  InstShuffleVector(Cfg *Func, Variable *Dest, Operand *Src0, Operand *Src1);
 
   void destroy(Cfg *Func) override {
     Func->deallocateArrayOf<ConstantInteger32 *>(Indexes);

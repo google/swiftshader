@@ -5842,8 +5842,8 @@ void TargetARM32::lowerShuffleVector(const InstShuffleVector *Instr) {
 
   // Unoptimized shuffle. Perform a series of inserts and extracts.
   Context.insert<InstFakeDef>(T);
-  auto *Src0 = llvm::cast<Variable>(Instr->getSrc(0));
-  auto *Src1 = llvm::cast<Variable>(Instr->getSrc(1));
+  auto *Src0 = Instr->getSrc(0);
+  auto *Src1 = Instr->getSrc(1);
   const SizeT NumElements = typeNumElements(DestTy);
   const Type ElementType = typeElementType(DestTy);
   for (SizeT I = 0; I < Instr->getNumIndexes(); ++I) {

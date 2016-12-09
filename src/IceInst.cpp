@@ -583,8 +583,8 @@ InstFakeUse::InstFakeUse(Cfg *Func, Variable *Src, uint32_t Weight)
 InstFakeKill::InstFakeKill(Cfg *Func, const Inst *Linked)
     : InstHighLevel(Func, Inst::FakeKill, 0, nullptr), Linked(Linked) {}
 
-InstShuffleVector::InstShuffleVector(Cfg *Func, Variable *Dest, Variable *Src0,
-                                     Variable *Src1)
+InstShuffleVector::InstShuffleVector(Cfg *Func, Variable *Dest, Operand *Src0,
+                                     Operand *Src1)
     : InstHighLevel(Func, Inst::ShuffleVector, 2, Dest),
       NumIndexes(typeNumElements(Dest->getType())) {
   addSource(Src0);

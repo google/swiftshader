@@ -5993,7 +5993,7 @@ inline uint32_t makePshufdMask(SizeT Index0, SizeT Index1, SizeT Index2,
 
 template <typename TraitsType>
 Variable *TargetX86Base<TraitsType>::lowerShuffleVector_AllFromSameSrc(
-    Variable *Src, SizeT Index0, SizeT Index1, SizeT Index2, SizeT Index3) {
+    Operand *Src, SizeT Index0, SizeT Index1, SizeT Index2, SizeT Index3) {
   constexpr SizeT SrcBit = 1 << 2;
   assert((Index0 & SrcBit) == (Index1 & SrcBit));
   assert((Index0 & SrcBit) == (Index2 & SrcBit));
@@ -6011,7 +6011,7 @@ Variable *TargetX86Base<TraitsType>::lowerShuffleVector_AllFromSameSrc(
 
 template <typename TraitsType>
 Variable *TargetX86Base<TraitsType>::lowerShuffleVector_TwoFromSameSrc(
-    Variable *Src0, SizeT Index0, SizeT Index1, Variable *Src1, SizeT Index2,
+    Operand *Src0, SizeT Index0, SizeT Index1, Operand *Src1, SizeT Index2,
     SizeT Index3) {
   constexpr SizeT SrcBit = 1 << 2;
   assert((Index0 & SrcBit) == (Index1 & SrcBit) || (Index1 == IGNORE_INDEX));
@@ -6032,7 +6032,7 @@ Variable *TargetX86Base<TraitsType>::lowerShuffleVector_TwoFromSameSrc(
 
 template <typename TraitsType>
 Variable *TargetX86Base<TraitsType>::lowerShuffleVector_UnifyFromDifferentSrcs(
-    Variable *Src0, SizeT Index0, Variable *Src1, SizeT Index1) {
+    Operand *Src0, SizeT Index0, Operand *Src1, SizeT Index1) {
   return lowerShuffleVector_TwoFromSameSrc(Src0, Index0, IGNORE_INDEX, Src1,
                                            Index1, IGNORE_INDEX);
 }
@@ -6145,8 +6145,8 @@ void TargetX86Base<TraitsType>::lowerShuffleVector(
     const InstShuffleVector *Instr) {
   auto *Dest = Instr->getDest();
   const Type DestTy = Dest->getType();
-  auto *Src0 = llvm::cast<Variable>(Instr->getSrc(0));
-  auto *Src1 = llvm::cast<Variable>(Instr->getSrc(1));
+  auto *Src0 = Instr->getSrc(0);
+  auto *Src1 = Instr->getSrc(1);
   const SizeT NumElements = typeNumElements(DestTy);
 
   auto *T = makeReg(DestTy);
