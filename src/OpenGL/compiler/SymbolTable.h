@@ -369,6 +369,7 @@ public:
 	{
 		if(ptype1->getBasicType() == EbtGSampler2D)
 		{
+			insertUnmangledBuiltIn(name);
 			bool gvec4 = (rvalue->getBasicType() == EbtGVec4);
 			insertBuiltIn(level, gvec4 ? new TType(EbtFloat, 4) : rvalue, name, new TType(EbtSampler2D), ptype2, ptype3, ptype4, ptype5);
 			insertBuiltIn(level, gvec4 ? new TType(EbtInt, 4) : rvalue, name, new TType(EbtISampler2D), ptype2, ptype3, ptype4, ptype5);
@@ -376,6 +377,7 @@ public:
 		}
 		else if(ptype1->getBasicType() == EbtGSampler3D)
 		{
+			insertUnmangledBuiltIn(name);
 			bool gvec4 = (rvalue->getBasicType() == EbtGVec4);
 			insertBuiltIn(level, gvec4 ? new TType(EbtFloat, 4) : rvalue, name, new TType(EbtSampler3D), ptype2, ptype3, ptype4, ptype5);
 			insertBuiltIn(level, gvec4 ? new TType(EbtInt, 4) : rvalue, name, new TType(EbtISampler3D), ptype2, ptype3, ptype4, ptype5);
@@ -383,6 +385,7 @@ public:
 		}
 		else if(ptype1->getBasicType() == EbtGSamplerCube)
 		{
+			insertUnmangledBuiltIn(name);
 			bool gvec4 = (rvalue->getBasicType() == EbtGVec4);
 			insertBuiltIn(level, gvec4 ? new TType(EbtFloat, 4) : rvalue, name, new TType(EbtSamplerCube), ptype2, ptype3, ptype4, ptype5);
 			insertBuiltIn(level, gvec4 ? new TType(EbtInt, 4) : rvalue, name, new TType(EbtISamplerCube), ptype2, ptype3, ptype4, ptype5);
@@ -390,6 +393,7 @@ public:
 		}
 		else if(ptype1->getBasicType() == EbtGSampler2DArray)
 		{
+			insertUnmangledBuiltIn(name);
 			bool gvec4 = (rvalue->getBasicType() == EbtGVec4);
 			insertBuiltIn(level, gvec4 ? new TType(EbtFloat, 4) : rvalue, name, new TType(EbtSampler2DArray), ptype2, ptype3, ptype4, ptype5);
 			insertBuiltIn(level, gvec4 ? new TType(EbtInt, 4) : rvalue, name, new TType(EbtISampler2DArray), ptype2, ptype3, ptype4, ptype5);
@@ -398,6 +402,7 @@ public:
 		else if(IsGenType(rvalue) || IsGenType(ptype1) || IsGenType(ptype2) || IsGenType(ptype3))
 		{
 			ASSERT(!ptype4);
+			insertUnmangledBuiltIn(name);
 			insertBuiltIn(level, op, ext, GenType(rvalue, 1), name, GenType(ptype1, 1), GenType(ptype2, 1), GenType(ptype3, 1));
 			insertBuiltIn(level, op, ext, GenType(rvalue, 2), name, GenType(ptype1, 2), GenType(ptype2, 2), GenType(ptype3, 2));
 			insertBuiltIn(level, op, ext, GenType(rvalue, 3), name, GenType(ptype1, 3), GenType(ptype2, 3), GenType(ptype3, 3));
@@ -406,6 +411,7 @@ public:
 		else if(IsVecType(rvalue) || IsVecType(ptype1) || IsVecType(ptype2) || IsVecType(ptype3))
 		{
 			ASSERT(!ptype4);
+			insertUnmangledBuiltIn(name);
 			insertBuiltIn(level, op, ext, VecType(rvalue, 2), name, VecType(ptype1, 2), VecType(ptype2, 2), VecType(ptype3, 2));
 			insertBuiltIn(level, op, ext, VecType(rvalue, 3), name, VecType(ptype1, 3), VecType(ptype2, 3), VecType(ptype3, 3));
 			insertBuiltIn(level, op, ext, VecType(rvalue, 4), name, VecType(ptype1, 4), VecType(ptype2, 4), VecType(ptype3, 4));
@@ -441,17 +447,20 @@ public:
 				function->addParameter(param5);
 			}
 
+			ASSERT(hasUnmangledBuiltIn(name));
 			insert(level, *function);
 		}
 	}
 
 	void insertBuiltIn(ESymbolLevel level, TOperator op, TType *rvalue, const char *name, TType *ptype1, TType *ptype2 = 0, TType *ptype3 = 0, TType *ptype4 = 0, TType *ptype5 = 0)
 	{
+		insertUnmangledBuiltIn(name);
 		insertBuiltIn(level, op, "", rvalue, name, ptype1, ptype2, ptype3, ptype4, ptype5);
 	}
 
 	void insertBuiltIn(ESymbolLevel level, TType *rvalue, const char *name, TType *ptype1, TType *ptype2 = 0, TType *ptype3 = 0, TType *ptype4 = 0, TType *ptype5 = 0)
 	{
+		insertUnmangledBuiltIn(name);
 		insertBuiltIn(level, EOpNull, rvalue, name, ptype1, ptype2, ptype3, ptype4, ptype5);
 	}
 
@@ -518,12 +527,20 @@ public:
 	void setGlobalInvariant() { mGlobalInvariant = true; }
 	bool getGlobalInvariant() const { return mGlobalInvariant; }
 
+	bool hasUnmangledBuiltIn(const char *name) { return mUnmangledBuiltinNames.count(std::string(name)) > 0; }
+
+private:
+	// Used to insert unmangled functions to check redeclaration of built-ins in ESSL 3.00.
+	void insertUnmangledBuiltIn(const char *name) { mUnmangledBuiltinNames.insert(std::string(name)); }
+
 protected:
 	ESymbolLevel currentLevel() const { return static_cast<ESymbolLevel>(table.size() - 1); }
 
 	std::vector<TSymbolTableLevel*> table;
 	typedef std::map< TBasicType, TPrecision > PrecisionStackLevel;
 	std::vector< PrecisionStackLevel > precisionStack;
+
+	std::set<std::string> mUnmangledBuiltinNames;
 
 	std::set<std::string> mInvariantVaryings;
 	bool mGlobalInvariant;

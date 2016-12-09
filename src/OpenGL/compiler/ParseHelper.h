@@ -142,6 +142,7 @@ public:
 	bool layoutLocationErrorCheck(const TSourceLoc& location, const TLayoutQualifier &layoutQualifier);
 	bool functionCallLValueErrorCheck(const TFunction *fnCandidate, TIntermAggregate *);
 	void es3InvariantErrorCheck(const TQualifier qualifier, const TSourceLoc &invariantLocation);
+	void checkInputOutputTypeIsValidES3(const TQualifier qualifier, const TPublicType &type, const TSourceLoc &qualifierLocation);
 
 	const TExtensionBehavior& extensionBehavior() const { return mDirectiveHandler.extensionBehavior(); }
 	bool supportsExtension(const char* extension);

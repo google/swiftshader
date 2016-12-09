@@ -62,6 +62,134 @@ static bool ValidateMultiplication(TOperator op, const TType &left, const TType 
 	}
 }
 
+TOperator TypeToConstructorOperator(const TType &type)
+{
+	switch(type.getBasicType())
+	{
+	case EbtFloat:
+		if(type.isMatrix())
+		{
+			switch(type.getNominalSize())
+			{
+			case 2:
+				switch(type.getSecondarySize())
+				{
+				case 2:
+					return EOpConstructMat2;
+				case 3:
+					return EOpConstructMat2x3;
+				case 4:
+					return EOpConstructMat2x4;
+				default:
+					break;
+				}
+				break;
+
+			case 3:
+				switch(type.getSecondarySize())
+				{
+				case 2:
+					return EOpConstructMat3x2;
+				case 3:
+					return EOpConstructMat3;
+				case 4:
+					return EOpConstructMat3x4;
+				default:
+					break;
+				}
+				break;
+
+			case 4:
+				switch(type.getSecondarySize())
+				{
+				case 2:
+					return EOpConstructMat4x2;
+				case 3:
+					return EOpConstructMat4x3;
+				case 4:
+					return EOpConstructMat4;
+				default:
+					break;
+				}
+				break;
+			}
+		}
+		else
+		{
+			switch(type.getNominalSize())
+			{
+			case 1:
+				return EOpConstructFloat;
+			case 2:
+				return EOpConstructVec2;
+			case 3:
+				return EOpConstructVec3;
+			case 4:
+				return EOpConstructVec4;
+			default:
+				break;
+			}
+		}
+		break;
+
+	case EbtInt:
+		switch(type.getNominalSize())
+		{
+		case 1:
+			return EOpConstructInt;
+		case 2:
+			return EOpConstructIVec2;
+		case 3:
+			return EOpConstructIVec3;
+		case 4:
+			return EOpConstructIVec4;
+		default:
+			break;
+		}
+		break;
+
+	case EbtUInt:
+		switch(type.getNominalSize())
+		{
+		case 1:
+			return EOpConstructUInt;
+		case 2:
+			return EOpConstructUVec2;
+		case 3:
+			return EOpConstructUVec3;
+		case 4:
+			return EOpConstructUVec4;
+		default:
+			break;
+		}
+		break;
+
+	case EbtBool:
+		switch(type.getNominalSize())
+		{
+		case 1:
+			return EOpConstructBool;
+		case 2:
+			return EOpConstructBVec2;
+		case 3:
+			return EOpConstructBVec3;
+		case 4:
+			return EOpConstructBVec4;
+		default:
+			break;
+		}
+		break;
+
+	case EbtStruct:
+		return EOpConstructStruct;
+
+	default:
+		break;
+	}
+
+	return EOpNull;
+}
+
 const char* getOperatorString(TOperator op) {
 	switch (op) {
 	case EOpInitialize: return "=";
@@ -656,6 +784,17 @@ bool TIntermediate::postProcess(TIntermNode* root)
 // Member functions of the nodes used for building the tree.
 //
 ////////////////////////////////////////////////////////////////
+
+// static
+TIntermTyped *TIntermTyped::CreateIndexNode(int index)
+{
+	ConstantUnion *u = new ConstantUnion[1];
+	u[0].setIConst(index);
+
+	TType type(EbtInt, EbpUndefined, EvqConstExpr, 1);
+	TIntermConstantUnion *node = new TIntermConstantUnion(u, type);
+	return node;
+}
 
 //
 // Say whether or not an operation node changes the value of a variable.

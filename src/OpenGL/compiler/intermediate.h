@@ -238,6 +238,7 @@ enum TOperator {
 	EOpBitwiseOrAssign
 };
 
+extern TOperator TypeToConstructorOperator(const TType &type);
 extern const char* getOperatorString(TOperator op);
 
 class TIntermTraverser;
@@ -334,6 +335,7 @@ public:
 	int registerSize() const { return type.registerSize(); }
 	int getArraySize() const { return type.getArraySize(); }
 
+	static TIntermTyped *CreateIndexNode(int index);
 protected:
 	TType type;
 };
