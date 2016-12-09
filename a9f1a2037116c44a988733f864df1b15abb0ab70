@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5a427b4d_78fb10c7",
+        "filename": "src/OpenGL/compiler/ParseHelper.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 3313,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-12-09T22:03:33Z",
+      "side": 1,
+      "message": "Missing a break here. Will check for more errors before I commit.",
+      "range": {
+        "startLine": 3313,
+        "startChar": 0,
+        "endLine": 3313,
+        "endChar": 3
+      },
+      "revId": "a9f1a2037116c44a988733f864df1b15abb0ab70",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
