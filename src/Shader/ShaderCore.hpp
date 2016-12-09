@@ -87,7 +87,6 @@ namespace sw
 	void transpose4x2(Float4 &row0, Float4 &row1, Float4 &row2, Float4 &row3);
 	void transpose4x1(Float4 &row0, Float4 &row1, Float4 &row2, Float4 &row3);
 	void transpose2x4(Float4 &row0, Float4 &row1, Float4 &row2, Float4 &row3);
-	void transpose2x4h(Float4 &row0, Float4 &row1, Float4 &row2, Float4 &row3);
 	void transpose4xN(Float4 &row0, Float4 &row1, Float4 &row2, Float4 &row3, int N);
 
 	class Register

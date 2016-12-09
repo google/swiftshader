@@ -687,7 +687,7 @@ namespace sw
 				}
 				else
 				{
-					if(state.output[i].write == 0x02)
+					if(state.output[i].write == 0x03)
 					{
 						transpose2x4(v.x, v.y, v.z, v.w);
 					}
