@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "5a427b4d_f8e6e02a",
+        "filename": "src/Shader/ShaderCore.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 482,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-12-09T22:04:52Z",
+      "side": 1,
+      "message": "Cool, thanks for the explanation.",
+      "parentUuid": "5a427b4d_b8d7384f",
+      "range": {
+        "startLine": 482,
+        "startChar": 26,
+        "endLine": 482,
+        "endChar": 33
+      },
+      "revId": "ea10b4587c1d99ea287e9418eb5273e6039434e8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a427b4d_d8331c4f",
         "filename": "src/Shader/ShaderCore.cpp",
         "patchSetId": 2
