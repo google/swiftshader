@@ -29,13 +29,14 @@ namespace
 
 	private:
 		void analyzeUses(Ice::Cfg *function);
-		void eliminateUnusedAllocas();
+		void eliminateDeadCode();
 		void eliminateUnitializedLoads();
 		void eliminateLoadsFollowingSingleStore();
 		void optimizeStoresInSingleBasicBlock();
 
 		void replace(Ice::Inst *instruction, Ice::Operand *newValue);
 		void deleteInstruction(Ice::Inst *instruction);
+		bool isDead(Ice::Inst *instruction);
 
 		static bool isLoad(const Ice::Inst &instruction);
 		static bool isStore(const Ice::Inst &instruction);
@@ -68,30 +69,37 @@ namespace
 
 		analyzeUses(function);
 
-		eliminateUnusedAllocas();
+		eliminateDeadCode();
 		eliminateUnitializedLoads();
 		eliminateLoadsFollowingSingleStore();
 		optimizeStoresInSingleBasicBlock();
+		eliminateDeadCode();
 	}
 
-	void Optimizer::eliminateUnusedAllocas()
+	void Optimizer::eliminateDeadCode()
 	{
-		Ice::CfgNode *entryBlock = function->getEntryNode();
-
-		for(Ice::Inst &alloca : entryBlock->getInsts())
+		bool modified;
+		do
 		{
-			if(!llvm::isa<Ice::InstAlloca>(alloca))
+			modified = false;
+			for(Ice::CfgNode *basicBlock : function->getNodes())
 			{
-				return;   // Allocas are all at the top
-			}
+				for(Ice::Inst &inst : Ice::reverse_range(basicBlock->getInsts()))
+				{
+					if(inst.isDeleted())
+					{
+						continue;
+					}
 
-			Ice::Operand *address = alloca.getDest();
-
-			if(uses[address].empty())
-			{
-				alloca.setDeleted();
+					if(isDead(&inst))
+					{
+						deleteInstruction(&inst);
+						modified = true;
+					}
+				}
 			}
 		}
+		while(modified);
 	}
 
 	void Optimizer::eliminateUnitializedLoads()
@@ -397,7 +405,7 @@ namespace
 
 	void Optimizer::deleteInstruction(Ice::Inst *instruction)
 	{
-		if(instruction->isDeleted())
+		if(!instruction || instruction->isDeleted())
 		{
 			return;
 		}
@@ -427,6 +435,30 @@ namespace
 				}
 			}
 		}
+	}
+
+	bool Optimizer::isDead(Ice::Inst *instruction)
+	{
+		Ice::Variable *dest = instruction->getDest();
+
+		if(dest)
+		{
+			return uses[dest].empty() && !instruction->hasSideEffects();
+		}
+		else if(isStore(*instruction))
+		{
+			if(Ice::Variable *address = llvm::dyn_cast<Ice::Variable>(storeAddress(instruction)))
+			{
+				Ice::Inst *def = definition[address];
+
+				if(!def || llvm::isa<Ice::InstAlloca>(def))
+				{
+					return uses[address].size() == 1;   // Dead if this store is the only use
+				}
+			}
+		}
+
+		return false;
 	}
 
 	bool Optimizer::isLoad(const Ice::Inst &instruction)
