@@ -73,6 +73,43 @@ TEST(SubzeroReactorTest, Sample)
 	delete routine;
 }
 
+TEST(SubzeroReactorTest, Uninitialized)
+{
+	Routine *routine = nullptr;
+
+	{
+		Function<Int()> function;
+		{
+			Int a;
+			Int z = 4;
+			Int q;
+			Int c;
+			Int p;
+			Bool b;
+
+			q += q;
+
+			If(b)
+			{
+				c = p;
+			}
+   
+			Return(a + z + q + c);
+		}
+
+		routine = function(L"one");
+
+		if(routine)
+		{
+			int (*callable)() = (int(*)())routine->getEntry();
+			int result = callable();
+			EXPECT_EQ(result, result);   // Anything is fine, just don't crash
+		}
+	}
+
+	delete routine;
+}
+
 TEST(SubzeroReactorTest, SubVectorLoadStore)
 {
 	Routine *routine = nullptr;
