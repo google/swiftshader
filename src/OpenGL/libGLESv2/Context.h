@@ -195,7 +195,7 @@ public:
 		mCurrentValue[1].f = 0.0f;
 		mCurrentValue[2].f = 0.0f;
 		mCurrentValue[3].f = 1.0f;
-		mCurrentValueType = ValueUnion::FloatType;
+		mCurrentValueType = GL_FLOAT;
 	}
 
 	int typeSize() const
@@ -217,6 +217,11 @@ public:
 		}
 	}
 
+	GLenum currentValueType() const
+	{
+		return mCurrentValueType;
+	}
+
 	GLsizei stride() const
 	{
 		return mStride ? mStride : typeSize();
@@ -231,9 +236,9 @@ public:
 	{
 		switch(mCurrentValueType)
 		{
-		case ValueUnion::FloatType:	return mCurrentValue[i].f;
-		case ValueUnion::IntType:	return static_cast<float>(mCurrentValue[i].i);
-		case ValueUnion::UIntType:	return static_cast<float>(mCurrentValue[i].ui);
+		case GL_FLOAT:        return mCurrentValue[i].f;
+		case GL_INT:          return static_cast<float>(mCurrentValue[i].i);
+		case GL_UNSIGNED_INT: return static_cast<float>(mCurrentValue[i].ui);
 		default: UNREACHABLE(mCurrentValueType); return mCurrentValue[i].f;
 		}
 	}
@@ -242,9 +247,9 @@ public:
 	{
 		switch(mCurrentValueType)
 		{
-		case ValueUnion::FloatType:	return static_cast<GLint>(mCurrentValue[i].f);
-		case ValueUnion::IntType:	return mCurrentValue[i].i;
-		case ValueUnion::UIntType:	return static_cast<GLint>(mCurrentValue[i].ui);
+		case GL_FLOAT:        return static_cast<GLint>(mCurrentValue[i].f);
+		case GL_INT:          return mCurrentValue[i].i;
+		case GL_UNSIGNED_INT: return static_cast<GLint>(mCurrentValue[i].ui);
 		default: UNREACHABLE(mCurrentValueType); return mCurrentValue[i].i;
 		}
 	}
@@ -253,9 +258,9 @@ public:
 	{
 		switch(mCurrentValueType)
 		{
-		case ValueUnion::FloatType:	return static_cast<GLuint>(mCurrentValue[i].f);
-		case ValueUnion::IntType:	return static_cast<GLuint>(mCurrentValue[i].i);
-		case ValueUnion::UIntType:	return mCurrentValue[i].ui;
+		case GL_FLOAT:        return static_cast<GLuint>(mCurrentValue[i].f);
+		case GL_INT:          return static_cast<GLuint>(mCurrentValue[i].i);
+		case GL_UNSIGNED_INT: return mCurrentValue[i].ui;
 		default: UNREACHABLE(mCurrentValueType); return mCurrentValue[i].ui;
 		}
 	}
@@ -266,7 +271,7 @@ public:
 		mCurrentValue[1].f = values[1];
 		mCurrentValue[2].f = values[2];
 		mCurrentValue[3].f = values[3];
-		mCurrentValueType = ValueUnion::FloatType;
+		mCurrentValueType = GL_FLOAT;
 	}
 
 	inline void setCurrentValue(const GLint *values)
@@ -275,7 +280,7 @@ public:
 		mCurrentValue[1].i = values[1];
 		mCurrentValue[2].i = values[2];
 		mCurrentValue[3].i = values[3];
-		mCurrentValueType = ValueUnion::IntType;
+		mCurrentValueType = GL_INT;
 	}
 
 	inline void setCurrentValue(const GLuint *values)
@@ -284,7 +289,7 @@ public:
 		mCurrentValue[1].ui = values[1];
 		mCurrentValue[2].ui = values[2];
 		mCurrentValue[3].ui = values[3];
-		mCurrentValueType = ValueUnion::UIntType;
+		mCurrentValueType = GL_UNSIGNED_INT;
 	}
 
 	// From glVertexAttribPointer
@@ -307,15 +312,13 @@ public:
 private:
 	union ValueUnion
 	{
-		enum Type { FloatType, IntType, UIntType };
-
 		float f;
 		GLint i;
 		GLuint ui;
 	};
 
 	ValueUnion mCurrentValue[4];   // From glVertexAttrib
-	ValueUnion::Type mCurrentValueType;
+	GLenum mCurrentValueType;
 };
 
 typedef VertexAttribute VertexAttributeArray[MAX_VERTEX_ATTRIBS];

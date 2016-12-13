@@ -212,10 +212,22 @@ GLenum VertexDataManager::prepareVertexData(GLint start, GLsizei count, Translat
 
 				translated[i].vertexBuffer = mCurrentValueBuffer[i]->getResource();
 
-				translated[i].type = sw::STREAMTYPE_FLOAT;
+				switch(attrib.currentValueType())
+				{
+				case GL_INT:
+					translated[i].type = sw::STREAMTYPE_INT;
+					break;
+				case GL_UNSIGNED_INT:
+					translated[i].type = sw::STREAMTYPE_UINT;
+					break;
+				default:
+					translated[i].type = sw::STREAMTYPE_FLOAT;
+					break;
+				}
 				translated[i].count = 4;
 				translated[i].stride = 0;
 				translated[i].offset = 0;
+				translated[i].normalized = false;
 			}
 		}
 	}
