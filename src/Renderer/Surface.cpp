@@ -2732,6 +2732,7 @@ namespace sw
 			return false;
 		case FORMAT_R32F:
 		case FORMAT_G32R32F:
+		case FORMAT_B32G32R32F:
 		case FORMAT_X32B32G32R32F:
 		case FORMAT_A32B32G32R32F:
 		case FORMAT_D32F:
@@ -2801,6 +2802,7 @@ namespace sw
 		case FORMAT_A8B8G8R8I_SNORM:
 		case FORMAT_Q8W8V8U8:
 		case FORMAT_Q16W16V16U16:
+		case FORMAT_B32G32R32F:
 		case FORMAT_A32B32G32R32F:
 			return false;
 		case FORMAT_R32F:
