@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a756307_48737f54",
+        "filename": "src/Renderer/Surface.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 2805,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-12-13T22:24:07Z",
+      "side": 1,
+      "message": "Sorry I missed this earlier, but this is wrong. This belongs next to FORMAT_X32B32G32R32F lower in this function.",
+      "range": {
+        "startLine": 2805,
+        "startChar": 7,
+        "endLine": 2805,
+        "endChar": 24
+      },
+      "revId": "c018e08121fb7212b87aae470d6e6330f2271a4e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
