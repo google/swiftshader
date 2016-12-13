@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5a427b4d_0d4b9677",
+        "filename": "src/Reactor/Optimizer.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-12-13T20:00:13Z",
+      "side": 0,
+      "message": "Unused allocas are dead code, so the new method supersedes this one.",
+      "range": {
+        "startLine": 32,
+        "startChar": 16,
+        "endLine": 32,
+        "endChar": 29
+      },
+      "revId": "16252ab6ae40e3b0938c62eedfb403abc2a02e39",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
