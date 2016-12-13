@@ -515,6 +515,7 @@ namespace sw
 
 	bool Context::alphaTestActive()
 	{
+		if(transparencyAntialiasing != TRANSPARENCY_NONE) return true;
 		if(!alphaTestEnable) return false;
 		if(alphaCompareMode == ALPHA_ALWAYS) return false;
 		if(alphaReference == 0.0f && alphaCompareMode == ALPHA_GREATEREQUAL) return false;

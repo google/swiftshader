@@ -122,7 +122,7 @@ namespace sw
 
 			bool alphaTestActive() const
 			{
-				return alphaCompareMode != ALPHA_ALWAYS;
+				return (alphaCompareMode != ALPHA_ALWAYS) || (transparencyAntialiasing != TRANSPARENCY_NONE);
 			}
 
 			bool pixelFogActive() const

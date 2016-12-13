@@ -52,7 +52,7 @@ namespace es2
 		setDestBlendFactor(BLEND_ZERO);
 		setCullMode(CULL_COUNTERCLOCKWISE);
 		setDepthCompare(DEPTH_LESSEQUAL);
-		setAlphaReference(0.0f);
+		setAlphaReference(127.5f);
 		setAlphaCompare(ALPHA_ALWAYS);
 		setAlphaBlendEnable(false);
 		setFogEnable(false);
