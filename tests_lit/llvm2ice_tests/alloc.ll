@@ -80,7 +80,7 @@ entry:
 ; CHECK-LABEL: fixed_416_align_32
 ; CHECK:      push    ebp
 ; CHECK-NEXT: mov     ebp,esp
-; CHECK:      sub     esp,0x1b8
+; CHECK:      sub     esp,0x1d8
 ; CHECK:      and     esp,0xffffffe0
 ; CHECK:      lea     eax,[esp+0x10]
 ; CHECK:      mov     DWORD PTR [esp],eax
@@ -145,7 +145,7 @@ entry:
 ; CHECK-LABEL: fixed_351_align_32
 ; CHECK:      push    ebp
 ; CHECK-NEXT: mov     ebp,esp
-; CHECK:      sub     esp,0x178
+; CHECK:      sub     esp,0x198
 ; CHECK:      and     esp,0xffffffe0
 ; CHECK:      lea     eax,[esp+0x10]
 ; CHECK:      mov     DWORD PTR [esp],eax

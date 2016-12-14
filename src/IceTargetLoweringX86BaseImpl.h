@@ -1124,40 +1124,47 @@ void TargetX86Base<TraitsType>::addProlog(CfgNode *Node) {
   const Type ReturnType = Func->getReturnType();
   if (!Traits::X86_PASS_SCALAR_FP_IN_XMM) {
     if (isScalarFloatingType(ReturnType)) {
-      // Avoid misaligned double-precicion load/store.
-      NeedsStackAlignment = true;
+      // Avoid misaligned double-precision load/store.
+      RequiredStackAlignment = std::max<size_t>(
+          RequiredStackAlignment, Traits::X86_STACK_ALIGNMENT_BYTES);
       SpillAreaSizeBytes =
           std::max(typeWidthInBytesOnStack(ReturnType), SpillAreaSizeBytes);
     }
   }
 
-  // Align esp if necessary.
-  if (NeedsStackAlignment) {
-    uint32_t StackOffset =
-        Traits::X86_RET_IP_SIZE_BYTES + PreservedRegsSizeBytes;
-    uint32_t StackSize =
-        Traits::applyStackAlignment(StackOffset + SpillAreaSizeBytes);
-    StackSize = Traits::applyStackAlignment(StackSize + maxOutArgsSizeBytes());
-    SpillAreaSizeBytes = StackSize - StackOffset;
-  } else {
-    SpillAreaSizeBytes += maxOutArgsSizeBytes();
+  RequiredStackAlignment =
+      std::max<size_t>(RequiredStackAlignment, SpillAreaAlignmentBytes);
+
+  if (PrologEmitsFixedAllocas) {
+    RequiredStackAlignment =
+        std::max(RequiredStackAlignment, FixedAllocaAlignBytes);
   }
 
   // Combine fixed allocations into SpillAreaSizeBytes if we are emitting the
   // fixed allocations in the prolog.
   if (PrologEmitsFixedAllocas)
     SpillAreaSizeBytes += FixedAllocaSizeBytes;
+
+  // Entering the function has made the stack pointer unaligned. Re-align it by
+  // adjusting the stack size.
+  uint32_t StackOffset = Traits::X86_RET_IP_SIZE_BYTES + PreservedRegsSizeBytes;
+  uint32_t StackSize = Utils::applyAlignment(StackOffset + SpillAreaSizeBytes,
+                                             RequiredStackAlignment);
+  StackSize = Utils::applyAlignment(StackSize + maxOutArgsSizeBytes(),
+                                    RequiredStackAlignment);
+  SpillAreaSizeBytes = StackSize - StackOffset;
+
   if (SpillAreaSizeBytes) {
     // Generate "sub stackptr, SpillAreaSizeBytes"
     _sub_sp(Ctx->getConstantInt32(SpillAreaSizeBytes));
-    // If the fixed allocas are aligned more than the stack frame, align the
-    // stack pointer accordingly.
-    if (PrologEmitsFixedAllocas &&
-        FixedAllocaAlignBytes > Traits::X86_STACK_ALIGNMENT_BYTES) {
-      assert(IsEbpBasedFrame);
-      _and(getPhysicalRegister(getStackReg(), Traits::WordType),
-           Ctx->getConstantInt32(-FixedAllocaAlignBytes));
-    }
+  }
+
+  // If the required alignment is greater than the stack pointer's guaranteed
+  // alignment, align the stack pointer accordingly.
+  if (RequiredStackAlignment > Traits::X86_STACK_ALIGNMENT_BYTES) {
+    assert(IsEbpBasedFrame);
+    _and(getPhysicalRegister(getStackReg(), Traits::WordType),
+         Ctx->getConstantInt32(-RequiredStackAlignment));
   }
 
   // Account for known-frame-offset alloca instructions that were not already
@@ -1449,7 +1456,8 @@ void TargetX86Base<TraitsType>::lowerAlloca(const InstAlloca *Instr) {
   // alloca. All the alloca code ensures that the stack alignment is preserved
   // after the alloca. The stack alignment restriction can be relaxed in some
   // cases.
-  NeedsStackAlignment = true;
+  RequiredStackAlignment = std::max<size_t>(RequiredStackAlignment,
+                                            Traits::X86_STACK_ALIGNMENT_BYTES);
 
   // For default align=0, set it to the real value 1, to avoid any
   // bit-manipulation problems below.
@@ -2603,7 +2611,8 @@ void TargetX86Base<TraitsType>::lowerCall(const InstCall *Instr) {
   // * Stack arguments of vector type are aligned to start at the next highest
   // multiple of 16 bytes. Other stack arguments are aligned to the next word
   // size boundary (4 or 8 bytes, respectively).
-  NeedsStackAlignment = true;
+  RequiredStackAlignment = std::max<size_t>(RequiredStackAlignment,
+                                            Traits::X86_STACK_ALIGNMENT_BYTES);
 
   using OperandList =
       llvm::SmallVector<Operand *, constexprMax(Traits::X86_MAX_XMM_ARGS,

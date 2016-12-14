@@ -1061,7 +1061,7 @@ protected:
 
   InstructionSetEnum InstructionSet = Traits::InstructionSet::Begin;
   bool IsEbpBasedFrame = false;
-  bool NeedsStackAlignment = false;
+  size_t RequiredStackAlignment = sizeof(Traits::WordType);
   size_t SpillAreaSizeBytes = 0;
   size_t FixedAllocaSizeBytes = 0;
   size_t FixedAllocaAlignBytes = 0;

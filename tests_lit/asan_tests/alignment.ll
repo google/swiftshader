@@ -13,7 +13,7 @@ define internal i32 @func(i32 %arg1, i32 %arg2) {
 }
 
 ; CHECK: func
-; CHECK-NEXT: sub    esp,0xa0
+; CHECK-NEXT: sub    esp,0xac
 ; CHECK-NEXT: lea    eax,[esp]
 ; CHECK-NEXT: shr    eax,0x3
 ; CHECK-NEXT: mov    DWORD PTR [eax+0x20000000],0xffffffff
@@ -27,5 +27,5 @@ define internal i32 @func(i32 %arg1, i32 %arg2) {
 ; CHECK-NEXT: mov    DWORD PTR [eax+0x2000000c],0x0
 ; CHECK-NEXT: mov    DWORD PTR [eax+0x20000010],0x0
 ; CHECK-NEXT: mov    eax,0x2a
-; CHECK-NEXT: add    esp,0xa0
+; CHECK-NEXT: add    esp,0xac
 ; CHECK-NEXT: ret

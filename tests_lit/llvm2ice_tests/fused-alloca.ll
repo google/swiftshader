@@ -25,12 +25,12 @@ entry:
   ret void
 }
 ; CHECK-LABEL: fused_small_align
-; CHECK-NEXT: sub    esp,0x30
-; CHECK-NEXT: mov    eax,DWORD PTR [esp+0x34]
+; CHECK-NEXT: sub    esp,0x3c
+; CHECK-NEXT: mov    eax,DWORD PTR [esp+0x40]
 ; CHECK-NEXT: mov    DWORD PTR [esp+0x10],eax
 ; CHECK-NEXT: mov    DWORD PTR [esp+0x18],eax
 ; CHECK-NEXT: mov    DWORD PTR [esp],eax
-; CHECK-NEXT: add    esp,0x30
+; CHECK-NEXT: add    esp,0x3c
 ; MIPS32-LABEL: fused_small_align
 ; MIPS32: 	addiu	sp,sp,{{.*}}
 ; MIPS32: 	move	v0,a0
@@ -57,7 +57,7 @@ entry:
 ; CHECK-LABEL: fused_large_align
 ; CHECK-NEXT: push   ebp
 ; CHECK-NEXT: mov    ebp,esp
-; CHECK-NEXT: sub    esp,0x80
+; CHECK-NEXT: sub    esp,0xb8
 ; CHECK-NEXT: and    esp,0xffffffc0
 ; CHECK-NEXT: mov    eax,DWORD PTR [ebp+0x8]
 ; CHECK-NEXT: mov    DWORD PTR [esp+0x40],eax
@@ -102,13 +102,13 @@ block2:
   br label %block1
 }
 ; CHECK-LABEL: fused_derived
-; CHECK-NEXT: sub    esp,0x180
-; CHECK-NEXT: mov    [[ARG:e..]],DWORD PTR [esp+0x184]
+; CHECK-NEXT: sub    esp,0x18c
+; CHECK-NEXT: mov    [[ARG:e..]],DWORD PTR [esp+0x190]
 ; CHECK-NEXT: jmp
 ; CHECK-NEXT: mov    DWORD PTR [esp+0x80],[[ARG]]
 ; CHECK-NEXT: mov    DWORD PTR [esp+0x8c],[[ARG]]
 ; CHECK-NEXT: lea    eax,[esp+0x81]
-; CHECK-NEXT: add    esp,0x180
+; CHECK-NEXT: add    esp,0x18c
 ; CHECK-NEXT: ret
 ; MIPS32-LABEL: fused_derived
 ; MIPS32: 	addiu	sp,sp,{{.*}}
