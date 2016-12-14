@@ -22,6 +22,30 @@
       "revId": "c018e08121fb7212b87aae470d6e6330f2271a4e",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a756307_7fd62f09",
+        "filename": "src/Renderer/Surface.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 2805,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-12-14T14:04:13Z",
+      "side": 1,
+      "message": "Out of curiosity, what issue does this cause, since there\u0027s no actual fourth component? At a glance the uses of isUnsignedComponent() don\u0027t seem affected by this.",
+      "parentUuid": "1a756307_48737f54",
+      "range": {
+        "startLine": 2805,
+        "startChar": 7,
+        "endLine": 2805,
+        "endChar": 24
+      },
+      "revId": "c018e08121fb7212b87aae470d6e6330f2271a4e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
