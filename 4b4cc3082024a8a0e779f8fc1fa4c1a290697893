@@ -22,6 +22,30 @@
       "revId": "4b4cc3082024a8a0e779f8fc1fa4c1a290697893",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a756307_5aeee198",
+        "filename": "src/Shader/PixelRoutine.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 579,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-12-14T15:16:05Z",
+      "side": 1,
+      "message": "If you want to compute coverage using all non fully transparent alpha, then you want to use all pixels that are greater than 0.0 alpha. Using CmpNLT (equivalent to \u003e\u003d) means that all pixels would have then same outcome when comparing with 0.0 (assuming alpha is between 0 and 1). Using CmpNLE (equivalent to \u003e) provides a difference between exactly 0.0 and semi-transparent or opaque pixels.\nI understand how the a2c* values could be modified to fit this behavior, but when the alpha value is a floating point value, I\u0027m not certain how we would determine the a2c* values to get the same answer.\nThe dEQP test thoroughly tests many values between 0 and 1 (0.00, 0.05, 0.11, 0.16, 0.21, ..., 0.89, 0.95, 1.00) and this code works for all cases.\nI\u0027m not fully clear on how this is wrong, honestly.",
+      "parentUuid": "1a756307_ffc13f3d",
+      "range": {
+        "startLine": 579,
+        "startChar": 19,
+        "endLine": 579,
+        "endChar": 25
+      },
+      "revId": "4b4cc3082024a8a0e779f8fc1fa4c1a290697893",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
