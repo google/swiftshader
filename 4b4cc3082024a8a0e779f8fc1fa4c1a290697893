@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a756307_ffc13f3d",
+        "filename": "src/Shader/PixelRoutine.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 579,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-12-14T14:07:30Z",
+      "side": 1,
+      "message": "I don\u0027t think this is the right fix. The a2c values should form a \"staircase\", but probably don\u0027t due to the alpha reference value we\u0027re using.",
+      "range": {
+        "startLine": 579,
+        "startChar": 19,
+        "endLine": 579,
+        "endChar": 25
+      },
+      "revId": "4b4cc3082024a8a0e779f8fc1fa4c1a290697893",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
