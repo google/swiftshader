@@ -46,6 +46,30 @@
       "revId": "c018e08121fb7212b87aae470d6e6330f2271a4e",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a756307_5a17c1bc",
+        "filename": "src/Renderer/Surface.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 2805,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2016-12-14T15:03:42Z",
+      "side": 1,
+      "message": "I\u0027m not sure if it causes an issue, but it should definitely behave the same as FORMAT_X32B32G32R32F below. It may not produce a different result, but it may simplify some of the generated code, which tends to be simpler in the unsigned case (see SamplerCore::sampleAniso(), for example).",
+      "parentUuid": "1a756307_7fd62f09",
+      "range": {
+        "startLine": 2805,
+        "startChar": 7,
+        "endLine": 2805,
+        "endChar": 24
+      },
+      "revId": "c018e08121fb7212b87aae470d6e6330f2271a4e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
