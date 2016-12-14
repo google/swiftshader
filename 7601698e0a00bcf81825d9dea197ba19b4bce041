@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a756307_5ad6e111",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2016-12-14T17:40:48Z",
+      "side": 1,
+      "message": "\"The alpha reference value was wrong (the alpha-to-coverage ramp is centered around it)\"",
+      "range": {
+        "startLine": 14,
+        "startChar": 2,
+        "endLine": 15,
+        "endChar": 40
+      },
+      "revId": "7601698e0a00bcf81825d9dea197ba19b4bce041",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
