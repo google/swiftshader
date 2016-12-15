@@ -853,11 +853,6 @@ namespace sw
 		return createCast(Ice::InstCast::Fptosi, v, destType);
 	}
 
-	Value *Nucleus::createUIToFP(Value *v, Type *destType)
-	{
-		return createCast(Ice::InstCast::Uitofp, v, destType);
-	}
-
 	Value *Nucleus::createSIToFP(Value *v, Type *destType)
 	{
 		return createCast(Ice::InstCast::Sitofp, v, destType);
@@ -5996,9 +5991,10 @@ namespace sw
 	{
 		xyzw.parent = this;
 
-		Value *xyzw = Nucleus::createUIToFP(cast.value, Float4::getType());
+		RValue<Float4> result = Float4(Int4(cast & UInt4(0x7FFFFFFF))) +
+		                        As<Float4>((As<Int4>(cast) >> 31) & As<Int4>(Float4(0x80000000u)));
 
-		storeValue(xyzw);
+		storeValue(result.value);
 	}
 
 	Float4::Float4()

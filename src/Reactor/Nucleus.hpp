@@ -106,7 +106,6 @@ namespace sw
 		static Value *createZExt(Value *V, Type *destType);
 		static Value *createSExt(Value *V, Type *destType);
 		static Value *createFPToSI(Value *V, Type *destType);
-		static Value *createUIToFP(Value *V, Type *destType);
 		static Value *createSIToFP(Value *V, Type *destType);
 		static Value *createFPTrunc(Value *V, Type *destType);
 		static Value *createFPExt(Value *V, Type *destType);
