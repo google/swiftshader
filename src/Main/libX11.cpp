@@ -56,21 +56,24 @@ LibX11exports *LibX11::loadExports()
 
 	if(!libX11)
 	{
-		libX11 = loadLibrary("libX11.so");
-
-		if(libX11)
+		if(getProcAddress(RTLD_DEFAULT, "XOpenDisplay"))   // Search the global scope for pre-loaded X11 library.
 		{
-			libXext = loadLibrary("libXext.so");
-			libX11exports = new LibX11exports(libX11, libXext);
+			libX11exports = new LibX11exports(RTLD_DEFAULT, RTLD_DEFAULT);
+			libX11 = (void*)-1;   // No need to load it.
 		}
-		else   // Might have failed to load due to sandboxing. Search the global scope for pre-loaded library.
+		else
 		{
-			if(getProcAddress(RTLD_DEFAULT, "XOpenDisplay"))
-			{
-				libX11exports = new LibX11exports(RTLD_DEFAULT, RTLD_DEFAULT);
-			}
+			libX11 = loadLibrary("libX11.so");
 
-			libX11 = (void*)-1;   // Don't attempt loading more than once.
+			if(libX11)
+			{
+				libXext = loadLibrary("libXext.so");
+				libX11exports = new LibX11exports(libX11, libXext);
+			}
+			else
+			{
+				libX11 = (void*)-1;   // Don't attempt loading more than once.
+			}
 		}
 	}
 
