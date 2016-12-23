@@ -1669,7 +1669,8 @@ bool TargetX86Base<TraitsType>::optimizeScalarMul(Variable *Dest, Operand *Src0,
     return false;
   Variable *T = makeReg(Traits::WordType);
   if (typeWidthInBytes(Src0->getType()) < typeWidthInBytes(T->getType())) {
-    _movzx(T, Src0);
+    Operand *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
+    _movzx(T, Src0RM);
   } else {
     _mov(T, Src0);
   }
@@ -4206,7 +4207,8 @@ void TargetX86Base<TraitsType>::lowerIntrinsicCall(
         // converting it to a 64-bit value, and using ctpop_i64. _movzx should
         // ensure we will not have any bits set on Val's upper 32 bits.
         Variable *V = makeReg(IceType_i64);
-        _movzx(V, Val);
+        Operand *ValRM = legalize(Val, Legal_Reg | Legal_Mem);
+        _movzx(V, ValRM);
         Val = V;
       }
       ValTy = IceType_i64;
@@ -6845,7 +6847,8 @@ void TargetX86Base<TraitsType>::lowerCaseCluster(const CaseCluster &Case,
         assert(Traits::Is64Bit);
         _mov(Index, RangeIndex); // trunc
       } else {
-        _movzx(Index, RangeIndex);
+        Operand *RangeIndexRM = legalize(RangeIndex, Legal_Reg | Legal_Mem);
+        _movzx(Index, RangeIndexRM);
       }
     } else {
       Index = legalizeToReg(RangeIndex);
