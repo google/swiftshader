@@ -49,6 +49,11 @@ public:
 		return map.begin()->first;
 	}
 
+	GLuint lastName()
+	{
+		return map.rbegin()->first;
+	}
+
 	GLuint allocate(ObjectType *object = nullptr)
 	{
 		GLuint name = freeName;

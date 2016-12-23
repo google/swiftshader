@@ -210,7 +210,7 @@ Context::~Context()
 
 	while(!mVertexArrayNameSpace.empty())
 	{
-		deleteVertexArray(mVertexArrayNameSpace.firstName());
+		deleteVertexArray(mVertexArrayNameSpace.lastName());
 	}
 
 	while(!mTransformFeedbackNameSpace.empty())
