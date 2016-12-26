@@ -1296,7 +1296,7 @@ void TargetMIPS32::lowerArguments() {
     for (CfgNode *Node : Func->getNodes()) {
       for (Inst &Instr : Node->getInsts()) {
         if (llvm::isa<InstRet>(&Instr)) {
-          Context.setInsertPoint(Instr);
+          Context.setInsertPoint(instToIterator(&Instr));
           Context.insert<InstFakeUse>(ImplicitRetVec);
           break;
         }
