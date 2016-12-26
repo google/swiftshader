@@ -45,7 +45,7 @@ struct dev_list_flag {};
                clEnumValN(Ice::Opt_m1, "O-1", "-1"),                           \
                clEnumValN(Ice::Opt_0, "O0", "0"),                              \
                clEnumValN(Ice::Opt_1, "O1", "1"),                              \
-               clEnumValN(Ice::Opt_2, "O2", "2"), clEnumValEnd))               \
+               clEnumValN(Ice::Opt_2, "O2", "2") CLENUMVALEND))                \
                                                                                \
   X(OutputFilename, std::string, release_opt_flag, "o",                        \
     cl::desc("Override output filename"), cl::init("-"),                       \
@@ -64,8 +64,8 @@ struct dev_list_flag {};
         clEnumValN(Ice::Target_ARM32, "arm32", "arm32 (same as arm)"),         \
         clEnumValN(Ice::Target_ARM64, "arm64", "arm64"),                       \
         clEnumValN(Ice::Target_MIPS32, "mips", "mips32"),                      \
-        clEnumValN(Ice::Target_MIPS32, "mips32", "mips32 (same as mips)"),     \
-        clEnumValEnd))                                                         \
+        clEnumValN(Ice::Target_MIPS32, "mips32", "mips32 (same as mips)")      \
+        CLENUMVALEND))                                                         \
                                                                                \
   /* The following are development flags, and ideally should not appear in a   \
    * release build. */                                                         \
@@ -150,8 +150,8 @@ struct dev_list_flag {};
     cl::values(                                                                \
       clEnumValN(Ice::LCSE_Disabled, "0", "disabled"),                         \
       clEnumValN(Ice::LCSE_EnabledSSA, "enabled", "assume-ssa"),               \
-      clEnumValN(Ice::LCSE_EnabledNoSSA, "no-ssa", "no-assume-ssa"),           \
-      clEnumValEnd))                                                           \
+      clEnumValN(Ice::LCSE_EnabledNoSSA, "no-ssa", "no-assume-ssa")            \
+      CLENUMVALEND))                                                           \
                                                                                \
   X(EmitRevision, bool, dev_opt_flag, "emit-revision",                         \
     cl::desc("Emit Subzero revision string into the output"), cl::init(true))  \
@@ -189,8 +189,8 @@ struct dev_list_flag {};
   X(InputFileFormat, llvm::NaClFileFormat, dev_opt_flag, "bitcode-format",     \
     cl::desc("Define format of input file:"),                                  \
     cl::values(clEnumValN(llvm::LLVMFormat, "llvm", "LLVM file (default)"),    \
-               clEnumValN(llvm::PNaClFormat, "pnacl", "PNaCl bitcode file"),   \
-               clEnumValEnd),                                                  \
+               clEnumValN(llvm::PNaClFormat, "pnacl", "PNaCl bitcode file")    \
+               CLENUMVALEND),                                                  \
     cl::init(llvm::LLVMFormat))                                                \
                                                                                \
   X(KeepDeletedInsts, bool, dev_opt_flag, "keep-deleted-insts",                \
@@ -226,15 +226,15 @@ struct dev_list_flag {};
         clEnumValN(Ice::FT_Elf, "obj", "Native ELF object ('.o') file"),       \
         clEnumValN(Ice::FT_Asm, "asm", "Assembly ('.s') file"),                \
         clEnumValN(Ice::FT_Iasm, "iasm",                                       \
-                   "Low-level integrated assembly ('.s') file"),               \
-        clEnumValEnd))                                                         \
+                   "Low-level integrated assembly ('.s') file")                \
+        CLENUMVALEND))                                                         \
                                                                                \
   X(ApplicationBinaryInterface, Ice::ABI, dev_opt_flag, "abi",                 \
     cl::desc("ABI type"), cl::init(Ice::ABI_PNaCl),                            \
     cl::values(                                                                \
         clEnumValN(Ice::ABI_PNaCl, "pnacl", "x32 for unsandboxed 64-bit x86"), \
-        clEnumValN(Ice::ABI_Platform, "platform", "Native executable ABI"),    \
-        clEnumValEnd))                                                         \
+        clEnumValN(Ice::ABI_Platform, "platform", "Native executable ABI")     \
+        CLENUMVALEND))                                                         \
                                                                                \
   X(ParseParallel, bool, dev_opt_flag, "parse-parallel",                       \
     cl::desc("Parse function blocks in parallel"), cl::init(true))             \
@@ -248,8 +248,8 @@ struct dev_list_flag {};
                clEnumValN(Ice::RPI_Randomize, "randomize",                     \
                           "Turn on immediate constants blinding"),             \
                clEnumValN(Ice::RPI_Pool, "pool",                               \
-                          "Turn on immediate constants pooling"),              \
-               clEnumValEnd))                                                  \
+                          "Turn on immediate constants pooling")               \
+               CLENUMVALEND))                                                  \
                                                                                \
   X(RandomizeAndPoolImmediatesThreshold, uint32_t, dev_opt_flag,               \
     "randomize-pool-threshold",                                                \
@@ -320,8 +320,8 @@ struct dev_list_flag {};
         clEnumValN(Ice::ARM32InstructionSet_Neon, "neon",                      \
                    "Enable ARM Neon instructions"),                            \
         clEnumValN(Ice::ARM32InstructionSet_HWDivArm, "hwdiv-arm",             \
-                   "Enable ARM integer divide instructions in ARM mode"),      \
-        clEnumValEnd))                                                         \
+                   "Enable ARM integer divide instructions in ARM mode")       \
+        CLENUMVALEND))                                                         \
                                                                                \
   X(TestPrefix, std::string, dev_opt_flag, "prefix",                           \
     cl::desc("Prepend a prefix to symbol names for testing"), cl::init(""),    \
@@ -388,7 +388,7 @@ struct dev_list_flag {};
         clEnumValN(Ice::IceV_All, "all", "Use all verbose options"),           \
         clEnumValN(Ice::IceV_Most, "most",                                     \
                    "Use all verbose options except 'regalloc,global_init'"),   \
-        clEnumValN(Ice::IceV_None, "none", "No verbosity"), clEnumValEnd))     \
+        clEnumValN(Ice::IceV_None, "none", "No verbosity") CLENUMVALEND))      \
                                                                                \
   X(VerboseFocusOnString, std::string, dev_opt_flag, "verbose-focus",          \
     cl::desc("Override with -verbose=none except for specified functions"),    \

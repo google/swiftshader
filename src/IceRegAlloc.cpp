@@ -74,7 +74,7 @@ void dumpLiveRange(const Variable *Var, const Cfg *Func) {
   Ostream &Str = Func->getContext()->getStrDump();
   Str << "R=";
   if (Var->hasRegTmp()) {
-    Str << llvm::format("%2d", Var->getRegNumTmp());
+    Str << llvm::format("%2d", int(Var->getRegNumTmp()));
   } else {
     Str << "NA";
   }

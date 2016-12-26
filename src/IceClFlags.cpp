@@ -60,12 +60,32 @@ using llvm::cl::ParseCommandLineOptions;
 
 using llvm::cl::Positional;
 
+// LLVM commit 3ffe113e11168abcd809ec5ac539538ade5db0cb changed the internals of
+// llvm::cl that need to be mirrored here.  That commit removed the clEnumValEnd
+// macro, so we can use that to determine which version of LLVM we're compiling
+// against.
+#if defined(clEnumValEnd)
+
+#define CLENUMVALEND , clEnumValEnd
+
 template <typename T> using ValuesClass = llvm::cl::ValuesClass<T>;
 
 template <typename T, typename... A>
 ValuesClass<T> values(const char *Arg, T Val, const char *Desc, A &&... Args) {
   return llvm::cl::values(Arg, Val, Desc, std::forward<A>(Args)..., nullptr);
 }
+
+#else // !defined(clEnumValEnd)
+
+#define CLENUMVALEND
+
+using llvm::cl::OptionEnumValue;
+
+template <typename... A> llvm::cl::ValuesClass values(A &&... Args) {
+  return llvm::cl::values(std::forward<A>(Args)...);
+}
+
+#endif // !defined(clEnumValEnd)
 
 using llvm::cl::value_desc;
 } // end of namespace cl
