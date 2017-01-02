@@ -32,7 +32,7 @@ class Display;
 class Config
 {
 public:
-	Config(sw::Format displayFormat, EGLint minSwapInterval, EGLint maxSwapInterval, sw::Format renderTargetFormat, sw::Format depthStencilFormat, EGLint multiSample);
+	Config(sw::Format displayFormat, EGLint minSwapInterval, EGLint maxSwapInterval, sw::Format renderTargetFormat, sw::Format depthStencilFormat, EGLint multiSample, bool conformant);
 
 	EGLConfig getHandle() const;
 

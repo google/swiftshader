@@ -34,7 +34,13 @@ using namespace std;
 
 namespace egl
 {
-Config::Config(sw::Format displayFormat, EGLint minInterval, EGLint maxInterval, sw::Format renderTargetFormat, sw::Format depthStencilFormat, EGLint multiSample)
+#ifdef __ANDROID__
+const bool android = true;
+#else
+const bool android = false;
+#endif
+
+Config::Config(sw::Format displayFormat, EGLint minInterval, EGLint maxInterval, sw::Format renderTargetFormat, sw::Format depthStencilFormat, EGLint multiSample, bool conformant)
 	: mDisplayFormat(displayFormat), mRenderTargetFormat(renderTargetFormat), mDepthStencilFormat(depthStencilFormat), mMultiSample(multiSample)
 {
 	mBindToTextureRGB = EGL_FALSE;
@@ -118,13 +124,9 @@ Config::Config(sw::Format displayFormat, EGLint minInterval, EGLint maxInterval,
 	mBufferSize = mRedSize + mGreenSize + mBlueSize + mLuminanceSize + mAlphaSize;
 	mAlphaMaskSize = 0;
 	mColorBufferType = EGL_RGB_BUFFER;
-	mConfigCaveat = EGL_NONE;
+	mConfigCaveat = (conformant || !android) ? EGL_NONE : EGL_NON_CONFORMANT_CONFIG;
 	mConfigID = 0;
-	mConformant = EGL_OPENGL_ES_BIT | EGL_OPENGL_ES2_BIT
-#ifndef __ANDROID__ // Do not allow GLES 3.0 on Android
-		| EGL_OPENGL_ES3_BIT
-#endif
-		;
+	mConformant = EGL_OPENGL_ES_BIT | EGL_OPENGL_ES2_BIT | (android ? 0 : EGL_OPENGL_ES3_BIT);   // Do not advertize OpenGL ES 3.0 conformance on Android
 
 	switch(depthStencilFormat)
 	{
@@ -181,11 +183,7 @@ Config::Config(sw::Format displayFormat, EGLint minInterval, EGLint maxInterval,
 	mMinSwapInterval = minInterval;
 	mNativeRenderable = EGL_FALSE;
 	mNativeVisualType = 0;
-	mRenderableType = EGL_OPENGL_ES_BIT | EGL_OPENGL_ES2_BIT
-#ifndef __ANDROID__ // Do not allow GLES 3.0 on Android
-		| EGL_OPENGL_ES3_BIT
-#endif
-		;
+	mRenderableType = EGL_OPENGL_ES_BIT | EGL_OPENGL_ES2_BIT | ((conformant && android) ? 0 : EGL_OPENGL_ES3_BIT);   // Only advertise non-conformant configs as OpenGL ES 3.0 renderable on Android
 	mSampleBuffers = (multiSample > 0) ? 1 : 0;
 	mSamples = multiSample;
 	mSurfaceType = EGL_PBUFFER_BIT | EGL_WINDOW_BIT | EGL_SWAP_BEHAVIOR_PRESERVED_BIT;
@@ -335,9 +333,11 @@ ConfigSet::ConfigSet()
 
 void ConfigSet::add(sw::Format displayFormat, EGLint minSwapInterval, EGLint maxSwapInterval, sw::Format renderTargetFormat, sw::Format depthStencilFormat, EGLint multiSample)
 {
-	Config config(displayFormat, minSwapInterval, maxSwapInterval, renderTargetFormat, depthStencilFormat, multiSample);
+	Config conformantConfig(displayFormat, minSwapInterval, maxSwapInterval, renderTargetFormat, depthStencilFormat, multiSample, true);
+	mSet.insert(conformantConfig);
 
-	mSet.insert(config);
+	Config nonConformantConfig(displayFormat, minSwapInterval, maxSwapInterval, renderTargetFormat, depthStencilFormat, multiSample, false);
+	mSet.insert(nonConformantConfig);
 }
 
 size_t ConfigSet::size() const
@@ -353,6 +353,7 @@ bool ConfigSet::getConfigs(EGLConfig *configs, const EGLint *attribList, EGLint 
 	for(Iterator config = mSet.begin(); config != mSet.end(); config++)
 	{
 		bool match = true;
+		bool caveatMatch = (config->mConfigCaveat == EGL_NONE);
 		const EGLint *attribute = attribList;
 
 		while(attribute[0] != EGL_NONE)
@@ -407,10 +408,15 @@ bool ConfigSet::getConfigs(EGLConfig *configs, const EGLint *attribList, EGLint 
 				}
 			}
 
+			if(attribute[0] == EGL_CONFIG_CAVEAT)
+			{
+				caveatMatch = match;
+			}
+
 			attribute += 2;
 		}
 
-		if(match)
+		if(match && caveatMatch)   // We require the caveats to be NONE or the requested flags
 		{
 			passed.push_back(&*config);
 		}
