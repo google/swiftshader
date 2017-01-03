@@ -18,18 +18,29 @@
 #ifndef LLVM_IR_FUNCTION_H
 #define LLVM_IR_FUNCTION_H
 
+#include "llvm/ADT/ilist_node.h"
 #include "llvm/ADT/iterator_range.h"
+#include "llvm/ADT/StringRef.h"
 #include "llvm/IR/Argument.h"
 #include "llvm/IR/Attributes.h"
 #include "llvm/IR/BasicBlock.h"
 #include "llvm/IR/CallingConv.h"
 #include "llvm/IR/GlobalObject.h"
+#include "llvm/IR/Intrinsics.h"
 #include "llvm/IR/OperandTraits.h"
+#include "llvm/IR/SymbolTableListTraits.h"
+#include "llvm/IR/Value.h"
 #include "llvm/Support/Compiler.h"
+#include <cassert>
+#include <cstddef>
+#include <cstdint>
+#include <memory>
+#include <string>
 
 namespace llvm {
 
 template <typename T> class Optional;
+class AssemblyAnnotationWriter;
 class FunctionType;
 class LLVMContext;
 class DISubprogram;
@@ -50,7 +61,8 @@ private:
   // Important things that make up a function!
   BasicBlockListType  BasicBlocks;        ///< The basic blocks
   mutable ArgumentListType ArgumentList;  ///< The formal arguments
-  ValueSymbolTable *SymTab;               ///< Symbol table of args/instructions
+  std::unique_ptr<ValueSymbolTable>
+      SymTab;                             ///< Symbol table of args/instructions
   AttributeSet AttributeSets;             ///< Parameter attributes
 
   /*
@@ -73,8 +85,6 @@ private:
 
   friend class SymbolTableListTraits<Function>;
 
-  void setParent(Module *parent);
-
   /// hasLazyArguments/CheckLazyArguments - The argument list of a function is
   /// built on demand, so that the list isn't allocated until the first client
   /// needs it.  The hasLazyArguments predicate returns true if the arg list
@@ -89,10 +99,8 @@ private:
     if (hasLazyArguments())
       BuildLazyArguments();
   }
-  void BuildLazyArguments() const;
 
-  Function(const Function&) = delete;
-  void operator=(const Function&) = delete;
+  void BuildLazyArguments() const;
 
   /// Function ctor - If the (optional) Module argument is specified, the
   /// function is automatically inserted into the end of the function list for
@@ -102,18 +110,21 @@ private:
            const Twine &N = "", Module *M = nullptr);
 
 public:
+  Function(const Function&) = delete;
+  void operator=(const Function&) = delete;
+  ~Function() override;
+
   static Function *Create(FunctionType *Ty, LinkageTypes Linkage,
                           const Twine &N = "", Module *M = nullptr) {
     return new Function(Ty, Linkage, N, M);
   }
 
-  ~Function() override;
-
-  /// \brief Provide fast operand accessors
+  // Provide fast operand accessors.
   DECLARE_TRANSPARENT_OPERAND_ACCESSORS(Value);
-
-  Type *getReturnType() const;           // Return the type of the ret val
-  FunctionType *getFunctionType() const; // Return the FunctionType for me
+  /// Returns the type of the ret val.
+  Type *getReturnType() const;
+  /// Returns the FunctionType for me.
+  FunctionType *getFunctionType() const;
 
   /// getContext - Return a reference to the LLVMContext associated with this
   /// function.
@@ -164,27 +175,23 @@ public:
   void setAttributes(AttributeSet Attrs) { AttributeSets = Attrs; }
 
   /// @brief Add function attributes to this function.
-  void addFnAttr(Attribute::AttrKind N) {
-    setAttributes(AttributeSets.addAttribute(getContext(),
-                                             AttributeSet::FunctionIndex, N));
+  void addFnAttr(Attribute::AttrKind Kind) {
+    addAttribute(AttributeSet::FunctionIndex, Kind);
+  }
+
+  /// @brief Add function attributes to this function.
+  void addFnAttr(StringRef Kind, StringRef Val = StringRef()) {
+    addAttribute(AttributeSet::FunctionIndex,
+                 Attribute::get(getContext(), Kind, Val));
+  }
+
+  void addFnAttr(Attribute Attr) {
+    addAttribute(AttributeSet::FunctionIndex, Attr);
   }
 
   /// @brief Remove function attributes from this function.
   void removeFnAttr(Attribute::AttrKind Kind) {
-    setAttributes(AttributeSets.removeAttribute(
-        getContext(), AttributeSet::FunctionIndex, Kind));
-  }
-
-  /// @brief Add function attributes to this function.
-  void addFnAttr(StringRef Kind) {
-    setAttributes(
-      AttributeSets.addAttribute(getContext(),
-                                 AttributeSet::FunctionIndex, Kind));
-  }
-  void addFnAttr(StringRef Kind, StringRef Value) {
-    setAttributes(
-      AttributeSets.addAttribute(getContext(),
-                                 AttributeSet::FunctionIndex, Kind, Value));
+    removeAttribute(AttributeSet::FunctionIndex, Kind);
   }
 
   /// @brief Remove function attribute from this function.
@@ -193,18 +200,30 @@ public:
         getContext(), AttributeSet::FunctionIndex, Kind));
   }
 
-  /// Set the entry count for this function.
+  /// \brief Set the entry count for this function.
+  ///
+  /// Entry count is the number of times this function was executed based on
+  /// pgo data.
   void setEntryCount(uint64_t Count);
 
-  /// Get the entry count for this function.
+  /// \brief Get the entry count for this function.
+  ///
+  /// Entry count is the number of times the function was executed based on
+  /// pgo data.
   Optional<uint64_t> getEntryCount() const;
+
+  /// Set the section prefix for this function.
+  void setSectionPrefix(StringRef Prefix);
+
+  /// Get the section prefix for this function.
+  Optional<StringRef> getSectionPrefix() const;
 
   /// @brief Return true if the function has the attribute.
   bool hasFnAttribute(Attribute::AttrKind Kind) const {
     return AttributeSets.hasFnAttribute(Kind);
   }
   bool hasFnAttribute(StringRef Kind) const {
-    return AttributeSets.hasAttribute(AttributeSet::FunctionIndex, Kind);
+    return AttributeSets.hasFnAttribute(Kind);
   }
 
   /// @brief Return the attribute for the given attribute kind.
@@ -327,7 +346,7 @@ public:
   }
 
   /// @brief Determine if the function may only access memory that is
-  //  either inaccessible from the IR or pointed to by its arguments.
+  ///  either inaccessible from the IR or pointed to by its arguments.
   bool onlyAccessesInaccessibleMemOrArgMem() const {
     return hasFnAttribute(Attribute::InaccessibleMemOrArgMemOnly);
   }
@@ -481,12 +500,14 @@ public:
     CheckLazyArguments();
     return ArgumentList;
   }
+
   static ArgumentListType Function::*getSublistAccess(Argument*) {
     return &Function::ArgumentList;
   }
 
   const BasicBlockListType &getBasicBlockList() const { return BasicBlocks; }
         BasicBlockListType &getBasicBlockList()       { return BasicBlocks; }
+
   static BasicBlockListType Function::*getSublistAccess(BasicBlock*) {
     return &Function::BasicBlocks;
   }
@@ -497,10 +518,12 @@ public:
   //===--------------------------------------------------------------------===//
   // Symbol Table Accessing functions...
 
-  /// getSymbolTable() - Return the symbol table...
+  /// getSymbolTable() - Return the symbol table if any, otherwise nullptr.
   ///
-  inline       ValueSymbolTable &getValueSymbolTable()       { return *SymTab; }
-  inline const ValueSymbolTable &getValueSymbolTable() const { return *SymTab; }
+  inline ValueSymbolTable *getValueSymbolTable() { return SymTab.get(); }
+  inline const ValueSymbolTable *getValueSymbolTable() const {
+    return SymTab.get();
+  }
 
   //===--------------------------------------------------------------------===//
   // BasicBlock iterator forwarding functions
@@ -528,6 +551,7 @@ public:
     CheckLazyArguments();
     return ArgumentList.begin();
   }
+
   arg_iterator arg_end() {
     CheckLazyArguments();
     return ArgumentList.end();
@@ -540,7 +564,6 @@ public:
   iterator_range<arg_iterator> args() {
     return make_range(arg_begin(), arg_end());
   }
-
   iterator_range<const_arg_iterator> args() const {
     return make_range(arg_begin(), arg_end());
   }
@@ -648,8 +671,8 @@ private:
   void allocHungoffUselist();
   template<int Idx> void setHungoffOperand(Constant *C);
 
-  // Shadow Value::setValueSubclassData with a private forwarding method so that
-  // subclasses cannot accidentally use it.
+  /// Shadow Value::setValueSubclassData with a private forwarding method so
+  /// that subclasses cannot accidentally use it.
   void setValueSubclassData(unsigned short D) {
     Value::setValueSubclassData(D);
   }
@@ -661,6 +684,6 @@ struct OperandTraits<Function> : public HungoffOperandTraits<3> {};
 
 DEFINE_TRANSPARENT_OPERAND_ACCESSORS(Function, Value)
 
-} // End llvm namespace
+} // end namespace llvm
 
-#endif
+#endif // LLVM_IR_FUNCTION_H

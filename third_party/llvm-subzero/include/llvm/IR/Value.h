@@ -18,12 +18,14 @@
 #include "llvm/IR/Use.h"
 #include "llvm/Support/CBindingWrapping.h"
 #include "llvm/Support/Casting.h"
+#include "llvm-c/Types.h"
+#include <cassert>
+#include <iterator>
 
 namespace llvm {
 
 class APInt;
 class Argument;
-class AssemblyAnnotationWriter;
 class BasicBlock;
 class Constant;
 class ConstantData;
@@ -41,12 +43,10 @@ class Instruction;
 class LLVMContext;
 class Module;
 class ModuleSlotTracker;
+class raw_ostream;
 class StringRef;
 class Twine;
 class Type;
-class ValueHandleBase;
-class ValueSymbolTable;
-class raw_ostream;
 
 template<typename ValueTy> class StringMapEntry;
 typedef StringMapEntry<Value*> ValueName;
@@ -77,6 +77,7 @@ class Value {
 
   const unsigned char SubclassID;   // Subclass identifier (for isa/dyn_cast)
   unsigned char HasValueHandle : 1; // Has a ValueHandle pointing to this?
+
 protected:
   /// \brief Hold subclass data that can be dropped.
   ///
@@ -134,6 +135,7 @@ private:
       U = U->getNext();
       return *this;
     }
+
     use_iterator_impl operator++(int) { // Postincrement
       auto tmp = *this;
       ++*this;
@@ -160,7 +162,7 @@ private:
     friend class Value;
 
   public:
-    user_iterator_impl() {}
+    user_iterator_impl() = default;
 
     bool operator==(const user_iterator_impl &x) const { return UI == x.UI; }
     bool operator!=(const user_iterator_impl &x) const { return !operator==(x); }
@@ -172,6 +174,7 @@ private:
       ++UI;
       return *this;
     }
+
     user_iterator_impl operator++(int) { // Postincrement
       auto tmp = *this;
       ++*this;
@@ -192,12 +195,12 @@ private:
     Use &getUse() const { return *UI; }
   };
 
-  void operator=(const Value &) = delete;
-  Value(const Value &) = delete;
-
 protected:
   Value(Type *Ty, unsigned scid);
+
 public:
+  Value(const Value &) = delete;
+  void operator=(const Value &) = delete;
   virtual ~Value();
 
   /// \brief Support for debugging, callable in GDB: V->dump()
@@ -236,6 +239,7 @@ public:
 
 private:
   void destroyValueName();
+  void doRAUW(Value *New, bool NoMetadata);
   void setNameImpl(const Twine &Name);
 
 public:
@@ -252,7 +256,6 @@ public:
   /// \param Name The new name; or "" if the value's name should be removed.
   void setName(const Twine &Name);
 
-
   /// \brief Transfer the name from V to this value.
   ///
   /// After taking V's name, sets V's name to empty.
@@ -266,6 +269,12 @@ public:
   /// "V" instead of "this".  After this completes, 'this's use list is
   /// guaranteed to be empty.
   void replaceAllUsesWith(Value *V);
+
+  /// \brief Change non-metadata uses of this to point to a new Value.
+  ///
+  /// Go through the uses list for this definition and make each use point to
+  /// "V" instead of "this". This function skips metadata entries in the list.
+  void replaceNonMetadataUsesWith(Value *V);
 
   /// replaceUsesOutsideBlock - Go through the uses list for this definition and
   /// make each use point to "V" instead of "this" when the use is outside the
@@ -447,6 +456,12 @@ public:
 
   /// \brief Return true if there is metadata referencing this value.
   bool isUsedByMetadata() const { return IsUsedByMD; }
+
+  /// \brief Return true if this value is a swifterror value.
+  ///
+  /// swifterror values can be either a function argument or an alloca with a
+  /// swifterror attribute.
+  bool isSwiftError() const;
 
   /// \brief Strip off pointer casts, all-zero GEPs, and aliases.
   ///
@@ -778,18 +793,6 @@ template <> struct isa_impl<GlobalObject, Value> {
   }
 };
 
-// Value* is only 4-byte aligned.
-template<>
-class PointerLikeTypeTraits<Value*> {
-  typedef Value* PT;
-public:
-  static inline void *getAsVoidPointer(PT P) { return P; }
-  static inline PT getFromVoidPointer(void *P) {
-    return static_cast<PT>(P);
-  }
-  enum { NumLowBitsAvailable = 2 };
-};
-
 // Create wrappers for C Binding types (see CBindingWrapping.h).
 DEFINE_ISA_CONVERSION_FUNCTIONS(Value, LLVMValueRef)
 
@@ -812,6 +815,6 @@ inline LLVMValueRef *wrap(const Value **Vals) {
   return reinterpret_cast<LLVMValueRef*>(const_cast<Value**>(Vals));
 }
 
-} // End llvm namespace
+} // end namespace llvm
 
-#endif
+#endif // LLVM_IR_VALUE_H

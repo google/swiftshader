@@ -111,17 +111,17 @@ unsigned getFPUNeonSupportLevel(unsigned FPUKind);
 unsigned getFPURestriction(unsigned FPUKind);
 
 // FIXME: These should be moved to TargetTuple once it exists
-bool getFPUFeatures(unsigned FPUKind, std::vector<const char *> &Features);
-bool getHWDivFeatures(unsigned HWDivKind, std::vector<const char *> &Features);
+bool getFPUFeatures(unsigned FPUKind, std::vector<StringRef> &Features);
+bool getHWDivFeatures(unsigned HWDivKind, std::vector<StringRef> &Features);
 bool getExtensionFeatures(unsigned Extensions,
-                                   std::vector<const char*> &Features);
+                          std::vector<StringRef> &Features);
 
 StringRef getArchName(unsigned ArchKind);
 unsigned getArchAttr(unsigned ArchKind);
 StringRef getCPUAttr(unsigned ArchKind);
 StringRef getSubArch(unsigned ArchKind);
 StringRef getArchExtName(unsigned ArchExtKind);
-const char *getArchExtFeature(StringRef ArchExt);
+StringRef getArchExtFeature(StringRef ArchExt);
 StringRef getHWDivName(unsigned HWDivKind);
 
 // Information by Name
@@ -162,7 +162,8 @@ enum ArchExtKind : unsigned {
   AEK_SIMD = 0x10,
   AEK_FP16 = 0x20,
   AEK_PROFILE = 0x40,
-  AEK_RAS = 0x80
+  AEK_RAS = 0x80,
+  AEK_LSE = 0x100
 };
 
 StringRef getCanonicalArchName(StringRef Arch);
@@ -174,17 +175,17 @@ unsigned getFPUNeonSupportLevel(unsigned FPUKind);
 unsigned getFPURestriction(unsigned FPUKind);
 
 // FIXME: These should be moved to TargetTuple once it exists
-bool getFPUFeatures(unsigned FPUKind, std::vector<const char *> &Features);
+bool getFPUFeatures(unsigned FPUKind, std::vector<StringRef> &Features);
 bool getExtensionFeatures(unsigned Extensions,
-                                   std::vector<const char*> &Features);
-bool getArchFeatures(unsigned ArchKind, std::vector<const char *> &Features);
+                                   std::vector<StringRef> &Features);
+bool getArchFeatures(unsigned ArchKind, std::vector<StringRef> &Features);
 
 StringRef getArchName(unsigned ArchKind);
 unsigned getArchAttr(unsigned ArchKind);
 StringRef getCPUAttr(unsigned ArchKind);
 StringRef getSubArch(unsigned ArchKind);
 StringRef getArchExtName(unsigned ArchExtKind);
-const char *getArchExtFeature(StringRef ArchExt);
+StringRef getArchExtFeature(StringRef ArchExt);
 unsigned checkArchVersion(StringRef Arch);
 
 // Information by Name

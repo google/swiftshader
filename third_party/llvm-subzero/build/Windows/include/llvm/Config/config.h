@@ -1,5 +1,3 @@
-/* include/llvm/Config/config.h.cmake corresponding to config.h.in. */
-
 #ifndef CONFIG_H
 #define CONFIG_H
 
@@ -9,67 +7,49 @@
 /* Bug report URL. */
 #define BUG_REPORT_URL "http://llvm.org/bugs/"
 
-/* Define if you want backtraces on crash */
-#define ENABLE_BACKTRACES
+/* Define to 1 to enable backtraces, and to 0 otherwise. */
+#define ENABLE_BACKTRACES 1
 
-/* Define to enable crash overrides */
-#define ENABLE_CRASH_OVERRIDES
-
-/* Define to disable C++ atexit */
-#define DISABLE_LLVM_DYLIB_ATEXIT
-
-/* Define if position independent code is enabled */
-#define ENABLE_PIC
-
-/* Define if timestamp information (e.g., __DATE__) is allowed */
-#define ENABLE_TIMESTAMPS 1
-
-/* Define to 1 if you have the `arc4random' function. */
-/* #undef HAVE_DECL_ARC4RANDOM */
+/* Define to 1 to enable crash overrides, and to 0 otherwise. */
+#define ENABLE_CRASH_OVERRIDES 1
 
 /* Define to 1 if you have the `backtrace' function. */
 /* #undef HAVE_BACKTRACE */
 
-/* Define to 1 if you have the `bcopy' function. */
-#undef HAVE_BCOPY
-
-/* Define to 1 if you have the `closedir' function. */
-/* #undef HAVE_CLOSEDIR */
-
-/* Define to 1 if you have the <cxxabi.h> header file. */
-/* #undef HAVE_CXXABI_H */
-
 /* Define to 1 if you have the <CrashReporterClient.h> header file. */
-#undef HAVE_CRASHREPORTERCLIENT_H
+/* #undef HAVE_CRASHREPORTERCLIENT_H */
 
 /* can use __crashreporter_info__ */
-#undef HAVE_CRASHREPORTER_INFO
+#define HAVE_CRASHREPORTER_INFO 0
+
+/* Define to 1 if you have the declaration of `arc4random', and to 0 if you
+   don't. */
+#define HAVE_DECL_ARC4RANDOM 0
+
+/* Define to 1 if you have the declaration of `FE_ALL_EXCEPT', and to 0 if you
+   don't. */
+#define HAVE_DECL_FE_ALL_EXCEPT 1
+
+/* Define to 1 if you have the declaration of `FE_INEXACT', and to 0 if you
+   don't. */
+#define HAVE_DECL_FE_INEXACT 1
 
 /* Define to 1 if you have the declaration of `strerror_s', and to 0 if you
-don't. */
+   don't. */
 #define HAVE_DECL_STRERROR_S 1
 
 /* Define to 1 if you have the DIA SDK installed, and to 0 if you don't. */
-/* #undef HAVE_DIA_SDK */
+#define HAVE_DIA_SDK 0
 
 /* Define to 1 if you have the <dirent.h> header file, and it defines `DIR'.
-*/
+   */
 /* #undef HAVE_DIRENT_H */
-
-/* Define if you have the GNU dld library. */
-#undef HAVE_DLD
-
-/* Define to 1 if you have the `dlerror' function. */
-/* #undef HAVE_DLERROR */
 
 /* Define to 1 if you have the <dlfcn.h> header file. */
 /* #undef HAVE_DLFCN_H */
 
 /* Define if dlopen() is available on this platform. */
 /* #undef HAVE_DLOPEN */
-
-/* Define if you have the _dyld_func_lookup function. */
-#undef HAVE_DYLD
 
 /* Define to 1 if you have the <errno.h> header file. */
 #define HAVE_ERRNO_H 1
@@ -92,11 +72,11 @@ don't. */
 /* Define to 1 if you have the <ffi.h> header file. */
 /* #undef HAVE_FFI_H */
 
+/* Define to 1 if you have the `futimens' function. */
+/* #undef HAVE_FUTIMENS */
+
 /* Define to 1 if you have the `futimes' function. */
 /* #undef HAVE_FUTIMES */
-
-/* Define to 1 if you have the `futimens' function */
-/* #undef HAVE_FUTIMENS */
 
 /* Define to 1 if you have the `getcwd' function. */
 /* #undef HAVE_GETCWD */
@@ -122,14 +102,8 @@ don't. */
 /* Define to 1 if you have the `isatty' function. */
 /* #undef HAVE_ISATTY */
 
-/* Define if you have the libdl library or equivalent. */
-/* #undef HAVE_LIBDL */
-
-/* Define to 1 if you have the `m' library (-lm). */
-#undef HAVE_LIBM
-
-/* Define to 1 if you have the `ole32' library (-lole32). */
-#undef HAVE_LIBOLE32
+/* Define to 1 if you have the `edit' library (-ledit). */
+/* #undef HAVE_LIBEDIT */
 
 /* Define to 1 if you have the `psapi' library (-lpsapi). */
 /* #undef HAVE_LIBPSAPI */
@@ -140,35 +114,22 @@ don't. */
 /* Define to 1 if you have the `shell32' library (-lshell32). */
 /* #undef HAVE_LIBSHELL32 */
 
-/* Define to 1 if you have the 'z' library (-lz). */
+/* Define to 1 if you have the `z' library (-lz). */
 /* #undef HAVE_LIBZ */
-
-/* Define to 1 if you have the 'edit' library (-ledit). */
-/* #undef HAVE_LIBEDIT */
-
-/* Define to 1 if you have the <limits.h> header file. */
-#define HAVE_LIMITS_H 1
 
 /* Define to 1 if you have the <link.h> header file. */
 /* #undef HAVE_LINK_H */
 
-/* Define if you can use -rdynamic. */
-#define HAVE_LINK_EXPORT_DYNAMIC 1
-
-/* Define if you can use -Wl,-R. to pass -R. to the linker, in order to add
-the current directory to the dynamic linker search path. */
-#undef HAVE_LINK_R
-
-/* Define to 1 if you have the `longjmp' function. */
-/* #undef HAVE_LONGJMP */
+/* Define to 1 if you have the `lseek64' function. */
+/* #undef HAVE_LSEEK64 */
 
 /* Define to 1 if you have the <mach/mach.h> header file. */
 /* #undef HAVE_MACH_MACH_H */
 
-/* Define to 1 if you have the <mach-o/dyld.h> header file. */
-/* #undef HAVE_MACH_O_DYLD_H */
+/* Define to 1 if you have the `mallctl' function. */
+/* #undef HAVE_MALLCTL */
 
-/* Define if mallinfo() is available on this platform. */
+/* Define to 1 if you have the `mallinfo' function. */
 /* #undef HAVE_MALLINFO */
 
 /* Define to 1 if you have the <malloc.h> header file. */
@@ -180,9 +141,6 @@ the current directory to the dynamic linker search path. */
 /* Define to 1 if you have the `malloc_zone_statistics' function. */
 /* #undef HAVE_MALLOC_ZONE_STATISTICS */
 
-/* Define to 1 if you have the `mallctl` function. */
-/* #undef HAVE_MALLCTL */
-
 /* Define to 1 if you have the `mkdtemp' function. */
 /* #undef HAVE_MKDTEMP */
 
@@ -192,33 +150,17 @@ the current directory to the dynamic linker search path. */
 /* Define to 1 if you have the `mktemp' function. */
 /* #undef HAVE_MKTEMP */
 
-/* Define to 1 if you have a working `mmap' system call. */
-#undef HAVE_MMAP
-
-/* Define if mmap() uses MAP_ANONYMOUS to map anonymous pages, or undefine if
-it uses MAP_ANON */
-#undef HAVE_MMAP_ANONYMOUS
-
-/* Define if mmap() can map files into memory */
-#undef HAVE_MMAP_FILE
-
 /* Define to 1 if you have the <ndir.h> header file, and it defines `DIR'. */
 /* #undef HAVE_NDIR_H */
 
-/* Define to 1 if you have the `opendir' function. */
-/* #undef HAVE_OPENDIR */
+/* Define to 1 if you have the `posix_fallocate' function. */
+/* #undef HAVE_POSIX_FALLOCATE */
 
 /* Define to 1 if you have the `posix_spawn' function. */
 /* #undef HAVE_POSIX_SPAWN */
 
 /* Define to 1 if you have the `pread' function. */
 /* #undef HAVE_PREAD */
-
-/* Define if libtool can extract symbol lists from object files. */
-#undef HAVE_PRELOADED_SYMBOLS
-
-/* Define to have the %a format string */
-#undef HAVE_PRINTF_A
 
 /* Have pthread_getspecific */
 /* #undef HAVE_PTHREAD_GETSPECIFIC */
@@ -232,12 +174,6 @@ it uses MAP_ANON */
 /* Have pthread_rwlock_init */
 /* #undef HAVE_PTHREAD_RWLOCK_INIT */
 
-/* Define to 1 if srand48/lrand48/drand48 exist in <stdlib.h> */
-/* #undef HAVE_RAND48 */
-
-/* Define to 1 if you have the `readdir' function. */
-/* #undef HAVE_READDIR */
-
 /* Define to 1 if you have the `realpath' function. */
 /* #undef HAVE_REALPATH */
 
@@ -247,35 +183,17 @@ it uses MAP_ANON */
 /* Define to 1 if you have the `setenv' function. */
 /* #undef HAVE_SETENV */
 
-/* Define to 1 if you have the `setjmp' function. */
-/* #undef HAVE_SETJMP */
-
 /* Define to 1 if you have the `setrlimit' function. */
 /* #undef HAVE_SETRLIMIT */
 
-/* Define if you have the shl_load function. */
-#undef HAVE_SHL_LOAD
-
-/* Define to 1 if you have the `siglongjmp' function. */
-/* #undef HAVE_SIGLONGJMP */
+/* Define to 1 if you have the `sigaltstack' function. */
+/* #undef HAVE_SIGALTSTACK */
 
 /* Define to 1 if you have the <signal.h> header file. */
 #define HAVE_SIGNAL_H 1
 
-/* Define to 1 if you have the `sigsetjmp' function. */
-/* #undef HAVE_SIGSETJMP */
-
 /* Define to 1 if you have the <stdint.h> header file. */
 #define HAVE_STDINT_H 1
-
-/* Set to 1 if the std::isinf function is found in <cmath> */
-#undef HAVE_STD_ISINF_IN_CMATH
-
-/* Set to 1 if the std::isnan function is found in <cmath> */
-#undef HAVE_STD_ISNAN_IN_CMATH
-
-/* Define to 1 if you have the `strdup' function. */
-/* #undef HAVE_STRDUP */
 
 /* Define to 1 if you have the `strerror' function. */
 #define HAVE_STRERROR 1
@@ -286,14 +204,11 @@ it uses MAP_ANON */
 /* Define to 1 if you have the `strtoll' function. */
 #define HAVE_STRTOLL 1
 
-/* Define to 1 if you have the `strtoq' function. */
-/* #undef HAVE_STRTOQ */
-
 /* Define to 1 if you have the `sysconf' function. */
-#undef HAVE_SYSCONF
+/* #undef HAVE_SYSCONF */
 
 /* Define to 1 if you have the <sys/dir.h> header file, and it defines `DIR'.
-*/
+   */
 /* #undef HAVE_SYS_DIR_H */
 
 /* Define to 1 if you have the <sys/ioctl.h> header file. */
@@ -303,7 +218,7 @@ it uses MAP_ANON */
 /* #undef HAVE_SYS_MMAN_H */
 
 /* Define to 1 if you have the <sys/ndir.h> header file, and it defines `DIR'.
-*/
+   */
 /* #undef HAVE_SYS_NDIR_H */
 
 /* Define to 1 if you have the <sys/param.h> header file. */
@@ -319,13 +234,16 @@ it uses MAP_ANON */
 /* #undef HAVE_SYS_TIME_H */
 
 /* Define to 1 if you have the <sys/types.h> header file. */
-/* #undef HAVE_SYS_TYPES_H */
+#define HAVE_SYS_TYPES_H 1
 
 /* Define to 1 if you have the <sys/uio.h> header file. */
 /* #undef HAVE_SYS_UIO_H */
 
 /* Define if the setupterm() function is supported this platform. */
 /* #undef HAVE_TERMINFO */
+
+/* Define if the xar_open() function is supported this platform. */
+/* #undef HAVE_LIBXAR */
 
 /* Define to 1 if you have the <termios.h> header file. */
 /* #undef HAVE_TERMIOS_H */
@@ -335,9 +253,6 @@ it uses MAP_ANON */
 
 /* Define to 1 if you have the <unistd.h> header file. */
 /* #undef HAVE_UNISTD_H */
-
-/* Define to 1 if you have the <utime.h> header file. */
-/* #undef HAVE_UTIME_H */
 
 /* Define to 1 if the system has the type `u_int64_t'. */
 /* #undef HAVE_U_INT64_T */
@@ -353,6 +268,12 @@ it uses MAP_ANON */
 
 /* Have host's _alloca */
 /* #undef HAVE__ALLOCA */
+
+/* Define to 1 if you have the `_chsize_s' function. */
+#define HAVE__CHSIZE_S 1
+
+/* Define to 1 if you have the `_Unwind_Backtrace' function. */
+/* #undef HAVE__UNWIND_BACKTRACE */
 
 /* Have host's __alloca */
 /* #undef HAVE___ALLOCA */
@@ -374,9 +295,6 @@ it uses MAP_ANON */
 
 /* Have host's __divdi3 */
 /* #undef HAVE___DIVDI3 */
-
-/* Define to 1 if you have the `__dso_handle' function. */
-#undef HAVE___DSO_HANDLE
 
 /* Have host's __fixdfdi */
 /* #undef HAVE___FIXDFDI */
@@ -409,28 +327,14 @@ it uses MAP_ANON */
 /* #undef HAVE____CHKSTK_MS */
 
 /* Linker version detected at compile time. */
-#undef HOST_LINK_VERSION
+/* #undef HOST_LINK_VERSION */
 
-/* Installation directory for binary executables */
-/* #undef LLVM_BINDIR */
+/* Define if we link Polly to the tools */
+/* #undef LINK_POLLY_INTO_TOOLS */
 
-/* Time at which LLVM was configured */
-/* #undef LLVM_CONFIGTIME */
-
-/* Installation directory for data files */
-/* #undef LLVM_DATADIR */
-
-/* Target triple LLVM will generate code for by default
-* Doesn't use `cmakedefine` because it is allowed to be empty.
-*/
+/* Target triple LLVM will generate code for by default */
+/* Doesn't use `cmakedefine` because it is allowed to be empty. */
 #define LLVM_DEFAULT_TARGET_TRIPLE "i686-pc-win32"
-
-/* Installation directory for documentation */
-/* #undef LLVM_DOCSDIR */
-
-/* Define if LLVM is built with asserts and checks that change the layout of
-client-visible data structures.  */
-#define LLVM_ENABLE_ABI_BREAKING_CHECKS
 
 /* Define if threads enabled */
 #define LLVM_ENABLE_THREADS 1
@@ -438,23 +342,11 @@ client-visible data structures.  */
 /* Define if zlib compression is available */
 #define LLVM_ENABLE_ZLIB 0
 
-/* Installation directory for config files */
-/* #undef LLVM_ETCDIR */
-
 /* Has gcc/MSVC atomic intrinsics */
 #define LLVM_HAS_ATOMICS 1
 
 /* Host triple LLVM will be executed on */
 #define LLVM_HOST_TRIPLE "i686-pc-win32"
-
-/* Installation directory for include files */
-/* #undef LLVM_INCLUDEDIR */
-
-/* Installation directory for .info files */
-/* #undef LLVM_INFODIR */
-
-/* Installation directory for man pages */
-/* #undef LLVM_MANDIR */
 
 /* LLVM architecture name for the native architecture, if available */
 #define LLVM_NATIVE_ARCH X86
@@ -487,45 +379,28 @@ client-visible data structures.  */
 #define LLVM_PREFIX "C:/Program Files (x86)/LLVM"
 
 /* Define if we have the Intel JIT API runtime support library */
-/* #undef LLVM_USE_INTEL_JITEVENTS */
+#define LLVM_USE_INTEL_JITEVENTS 0
 
 /* Define if we have the oprofile JIT-support library */
-/* #undef LLVM_USE_OPROFILE */
+#define LLVM_USE_OPROFILE 0
+
+/* LLVM version information */
+/* #undef LLVM_VERSION_INFO */
 
 /* Major version of the LLVM API */
-#define LLVM_VERSION_MAJOR 3
+#define LLVM_VERSION_MAJOR 4
 
 /* Minor version of the LLVM API */
-#define LLVM_VERSION_MINOR 8
+#define LLVM_VERSION_MINOR 0
 
 /* Patch version of the LLVM API */
-#define LLVM_VERSION_PATCH 1
+#define LLVM_VERSION_PATCH 0
 
 /* LLVM version string */
-#define LLVM_VERSION_STRING "3.8.1"
-
-/* Define if we link Polly to the tools */
-/* #undef LINK_POLLY_INTO_TOOLS */
-
-/* Define if the OS needs help to load dependent libraries for dlopen(). */
-/* #undef LTDL_DLOPEN_DEPLIBS */
-
-/* Define to the sub-directory in which libtool stores uninstalled libraries.
-*/
-#undef LTDL_OBJDIR
+#define LLVM_VERSION_STRING "4.0.0svn"
 
 /* Define to the extension used for shared libraries, say, ".so". */
 #define LTDL_SHLIB_EXT ".dll"
-
-/* Define to the system default library search path. */
-/* #undef LTDL_SYSSEARCHPATH */
-
-/* Define if /dev/zero should be used when mapping RWX memory, or undefine if
-its not necessary */
-#undef NEED_DEV_ZERO_FOR_MMAP
-
-/* Define if dlsym() requires a leading underscore in symbol names. */
-#undef NEED_USCORE
 
 /* Define to the address where bug reports for this package should be sent. */
 #define PACKAGE_BUGREPORT "http://llvm.org/bugs/"
@@ -534,37 +409,19 @@ its not necessary */
 #define PACKAGE_NAME "LLVM"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "LLVM 3.8.1"
+#define PACKAGE_STRING "LLVM 4.0.0svn"
 
 /* Define to the one symbol short name of this package. */
 #undef PACKAGE_TARNAME
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "3.8.1"
+#define PACKAGE_VERSION "4.0.0svn"
+
+/* Define to the vendor of this package. */
+/* #undef PACKAGE_VENDOR */
 
 /* Define as the return type of signal handlers (`int' or `void'). */
 #define RETSIGTYPE void
-
-/* Define to 1 if the `S_IS*' macros in <sys/stat.h> do not work properly. */
-#undef STAT_MACROS_BROKEN
-
-/* Define to 1 if you have the ANSI C header files. */
-#undef STDC_HEADERS
-
-/* Define to 1 if you can safely include both <sys/time.h> and <time.h>. */
-#undef TIME_WITH_SYS_TIME
-
-/* Define to 1 if your <sys/time.h> declares `struct tm'. */
-#undef TM_IN_SYS_TIME
-
-/* Type of 1st arg on ELM Callback */
-#define WIN32_ELMCB_PCSTR PCSTR
-
-/* Define to `int' if <sys/types.h> does not define. */
-#undef pid_t
-
-/* Define to `unsigned int' if <sys/types.h> does not define. */
-#undef size_t
 
 /* Define to a function replacing strtoll */
 /* #undef strtoll */
@@ -577,8 +434,5 @@ its not necessary */
 
 /* Define to a function implementing strdup */
 #define strdup _strdup
-
-/* Define to 1 if you have the `_chsize_s' function. */
-#define HAVE__CHSIZE_S 1
 
 #endif

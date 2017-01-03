@@ -81,6 +81,8 @@ private:
 
   TypeID   ID : 8;            // The current base type of this type.
   unsigned SubclassData : 24; // Space for subclasses to store data.
+                              // Note that this should be synchronized with
+                              // MAX_INT_BITS value in IntegerType class.
 
 protected:
   friend class LLVMContextImpl;
@@ -108,7 +110,7 @@ protected:
   Type * const *ContainedTys;
 
   static bool isSequentialType(TypeID TyID) {
-    return TyID == ArrayTyID || TyID == PointerTyID || TyID == VectorTyID;
+    return TyID == ArrayTyID || TyID == VectorTyID;
   }
 
 public:
@@ -164,12 +166,12 @@ public:
 
   const fltSemantics &getFltSemantics() const {
     switch (getTypeID()) {
-    case HalfTyID: return APFloat::IEEEhalf;
-    case FloatTyID: return APFloat::IEEEsingle;
-    case DoubleTyID: return APFloat::IEEEdouble;
-    case X86_FP80TyID: return APFloat::x87DoubleExtended;
-    case FP128TyID: return APFloat::IEEEquad;
-    case PPC_FP128TyID: return APFloat::PPCDoubleDouble;
+    case HalfTyID: return APFloat::IEEEhalf();
+    case FloatTyID: return APFloat::IEEEsingle();
+    case DoubleTyID: return APFloat::IEEEdouble();
+    case X86_FP80TyID: return APFloat::x87DoubleExtended();
+    case FP128TyID: return APFloat::IEEEquad();
+    case PPC_FP128TyID: return APFloat::PPCDoubleDouble();
     default: llvm_unreachable("Invalid floating type");
     }
   }
@@ -342,12 +344,21 @@ public:
   }
 
   inline uint64_t getArrayNumElements() const;
-  Type *getArrayElementType() const { return getSequentialElementType(); }
+  Type *getArrayElementType() const {
+    assert(getTypeID() == ArrayTyID);
+    return ContainedTys[0];
+  }
 
   inline unsigned getVectorNumElements() const;
-  Type *getVectorElementType() const { return getSequentialElementType(); }
+  Type *getVectorElementType() const {
+    assert(getTypeID() == VectorTyID);
+    return ContainedTys[0];
+  }
 
-  Type *getPointerElementType() const { return getSequentialElementType(); }
+  Type *getPointerElementType() const {
+    assert(getTypeID() == PointerTyID);
+    return ContainedTys[0];
+  }
 
   /// Get the address space of this pointer or pointer vector type.
   inline unsigned getPointerAddressSpace() const;

@@ -75,7 +75,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>
       </SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)third_party\llvm-subzero\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)third_party\llvm-subzero\include;$(SolutionDir)third_party\llvm-subzero\build\Windows\include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
@@ -86,7 +86,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>
       </SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)third_party\llvm-subzero\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)third_party\llvm-subzero\include;$(SolutionDir)third_party\llvm-subzero\build\Windows\include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
@@ -99,7 +99,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>
       </SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)third_party\llvm-subzero\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)third_party\llvm-subzero\include;$(SolutionDir)third_party\llvm-subzero\build\Windows\include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
@@ -116,7 +116,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>
       </SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)third_party\llvm-subzero\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)third_party\llvm-subzero\include;$(SolutionDir)third_party\llvm-subzero\build\Windows\include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
@@ -130,7 +130,7 @@
     <ClCompile Include="..\..\third_party\llvm-subzero\lib\Support\Atomic.cpp" />
     <ClCompile Include="..\..\third_party\llvm-subzero\lib\Support\circular_raw_ostream.cpp" />
     <ClCompile Include="..\..\third_party\llvm-subzero\lib\Support\CommandLine.cpp" />
-    <ClCompile Include="..\..\third_party\llvm-subzero\lib\Support\ConvertUTF.c" />
+    <ClCompile Include="..\..\third_party\llvm-subzero\lib\Support\ConvertUTF.cpp" />
     <ClCompile Include="..\..\third_party\llvm-subzero\lib\Support\ConvertUTFWrapper.cpp" />
     <ClCompile Include="..\..\third_party\llvm-subzero\lib\Support\Debug.cpp" />
     <ClCompile Include="..\..\third_party\llvm-subzero\lib\Support\ErrorHandling.cpp" />
@@ -140,11 +140,18 @@
     <ClCompile Include="..\..\third_party\llvm-subzero\lib\Support\ManagedStatic.cpp" />
     <ClCompile Include="..\..\third_party\llvm-subzero\lib\Support\MemoryBuffer.cpp" />
     <ClCompile Include="..\..\third_party\llvm-subzero\lib\Support\Mutex.cpp" />
+    <ClCompile Include="..\..\third_party\llvm-subzero\lib\Support\NativeFormatting.cpp" />
     <ClCompile Include="..\..\third_party\llvm-subzero\lib\Support\Path.cpp" />
     <ClCompile Include="..\..\third_party\llvm-subzero\lib\Support\Process.cpp" />
     <ClCompile Include="..\..\third_party\llvm-subzero\lib\Support\Program.cpp" />
     <ClCompile Include="..\..\third_party\llvm-subzero\lib\Support\raw_ostream.cpp" />
     <ClCompile Include="..\..\third_party\llvm-subzero\lib\Support\raw_os_ostream.cpp" />
+    <ClCompile Include="..\..\third_party\llvm-subzero\lib\Support\regcomp.c" />
+    <ClCompile Include="..\..\third_party\llvm-subzero\lib\Support\regerror.c" />
+    <ClCompile Include="..\..\third_party\llvm-subzero\lib\Support\Regex.cpp" />
+    <ClCompile Include="..\..\third_party\llvm-subzero\lib\Support\regexec.c" />
+    <ClCompile Include="..\..\third_party\llvm-subzero\lib\Support\regfree.c" />
+    <ClCompile Include="..\..\third_party\llvm-subzero\lib\Support\regstrlcpy.c" />
     <ClCompile Include="..\..\third_party\llvm-subzero\lib\Support\Signals.cpp" />
     <ClCompile Include="..\..\third_party\llvm-subzero\lib\Support\SmallPtrSet.cpp" />
     <ClCompile Include="..\..\third_party\llvm-subzero\lib\Support\SmallVector.cpp" />
@@ -155,7 +162,6 @@
     <ClCompile Include="..\..\third_party\llvm-subzero\lib\Support\TargetParser.cpp" />
     <ClCompile Include="..\..\third_party\llvm-subzero\lib\Support\Threading.cpp" />
     <ClCompile Include="..\..\third_party\llvm-subzero\lib\Support\Timer.cpp" />
-    <ClCompile Include="..\..\third_party\llvm-subzero\lib\Support\TimeValue.cpp" />
     <ClCompile Include="..\..\third_party\llvm-subzero\lib\Support\Triple.cpp" />
     <ClCompile Include="..\..\third_party\llvm-subzero\lib\Support\Twine.cpp" />
   </ItemGroup>

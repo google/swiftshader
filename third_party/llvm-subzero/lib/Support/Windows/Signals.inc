@@ -28,6 +28,7 @@
 #ifdef __MINGW32__
  #include <imagehlp.h>
 #else
+ #include <crtdbg.h>
  #include <dbghelp.h>
 #endif
 #include <psapi.h>
@@ -266,7 +267,7 @@ static BOOL CALLBACK findModuleCallback(PCSTR ModuleName,
       continue;
     intptr_t Addr = (intptr_t)Data->StackTrace[I];
     if (Beg <= Addr && Addr < End) {
-      Data->Modules[I] = Data->StrPool->save(ModuleName);
+      Data->Modules[I] = Data->StrPool->save(ModuleName).data();
       Data->Offsets[I] = Addr - Beg;
     }
   }
