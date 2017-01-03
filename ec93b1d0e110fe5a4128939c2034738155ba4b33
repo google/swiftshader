@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "77d3da1d_e0b702b4",
+        "filename": "src/OpenGL/compiler/ParseHelper.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 2796,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-01-03T22:25:19Z",
+      "side": 1,
+      "message": "This change caused a regression in 3DMark on Android. I\u0027ll look into it.",
+      "range": {
+        "startLine": 2795,
+        "startChar": 5,
+        "endLine": 2796,
+        "endChar": 35
+      },
+      "revId": "ec93b1d0e110fe5a4128939c2034738155ba4b33",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
