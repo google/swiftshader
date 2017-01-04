@@ -22,6 +22,30 @@
       "revId": "ec93b1d0e110fe5a4128939c2034738155ba4b33",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d7e3a6ee_4a4c4be3",
+        "filename": "src/OpenGL/compiler/ParseHelper.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 2796,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-01-04T19:15:50Z",
+      "side": 1,
+      "message": "https://swiftshader-review.googlesource.com/8368",
+      "parentUuid": "77d3da1d_e0b702b4",
+      "range": {
+        "startLine": 2795,
+        "startChar": 5,
+        "endLine": 2796,
+        "endChar": 35
+      },
+      "revId": "ec93b1d0e110fe5a4128939c2034738155ba4b33",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
