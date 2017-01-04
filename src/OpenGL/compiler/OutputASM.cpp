@@ -2455,7 +2455,7 @@ namespace glsl
 
 					dst.type = registerType(left);
 					dst.index += fieldOffset;
-					dst.mask = writeMask(right);
+					dst.mask = writeMask(result);
 
 					return 0xE4;
 				}
