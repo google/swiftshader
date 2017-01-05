@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d7e3a6ee_0d6173bb",
+        "filename": "src/OpenGL/libGL/Device.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-01-05T21:45:29Z",
+      "side": 1,
+      "message": "Line endings.",
+      "range": {
+        "startLine": 186,
+        "startChar": 0,
+        "endLine": 194,
+        "endChar": 22
+      },
+      "revId": "474eaa3c169215726ba13ca0c878d056e102dae1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
