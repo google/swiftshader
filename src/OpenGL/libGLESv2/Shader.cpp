@@ -22,6 +22,7 @@
 #include "utilities.h"
 
 #include <string>
+#include <algorithm>
 
 namespace es2
 {

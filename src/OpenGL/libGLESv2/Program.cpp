@@ -26,6 +26,7 @@
 #include "Shader/PixelShader.hpp"
 #include "Shader/VertexShader.hpp"
 
+#include <algorithm>
 #include <string>
 #include <stdlib.h>
 

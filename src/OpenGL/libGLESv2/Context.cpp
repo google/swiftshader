@@ -40,6 +40,8 @@
 
 #include <EGL/eglext.h>
 
+#include <algorithm>
+
 namespace es2
 {
 Context::Context(egl::Display *display, const Context *shareContext, EGLint clientVersion)
@@ -667,8 +669,8 @@ void Context::setViewportParams(GLint x, GLint y, GLsizei width, GLsizei height)
 {
 	mState.viewportX = x;
 	mState.viewportY = y;
-	mState.viewportWidth = width;
-	mState.viewportHeight = height;
+	mState.viewportWidth = std::min<GLsizei>(width, IMPLEMENTATION_MAX_RENDERBUFFER_SIZE);     // GL_MAX_VIEWPORT_DIMS[0]
+	mState.viewportHeight = std::min<GLsizei>(height, IMPLEMENTATION_MAX_RENDERBUFFER_SIZE);   // GL_MAX_VIEWPORT_DIMS[1]
 }
 
 void Context::setScissorParams(GLint x, GLint y, GLsizei width, GLsizei height)
