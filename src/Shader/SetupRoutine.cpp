@@ -585,10 +585,10 @@ namespace sw
 				Int FDX12 = DX12 << 4;
 				Int FDY12 = DY12 << 4;
 
-				Int X = DX12 * ((y1 << 4) - Y1) + X1 * DY12;
-				Int x = X / FDY12;     // Edge
-				Int d = X % FDY12;     // Error-term
-				Int ceil = -d >> 31;   // Ceiling division: remainder <= 0
+				Int X = DX12 * ((y1 << 4) - Y1) + (X1 & 0x0000000F) * DY12;
+				Int x = (X1 >> 4) + X / FDY12;   // Edge
+				Int d = X % FDY12;               // Error-term
+				Int ceil = -d >> 31;             // Ceiling division: remainder <= 0
 				x -= ceil;
 				d -= ceil & FDY12;
 
