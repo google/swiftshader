@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d7e3a6ee_8ea9fe77",
+        "filename": "src/Shader/SetupRoutine.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 588,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-01-05T19:38:00Z",
+      "side": 1,
+      "message": "Nit: I still find this bit a tad more confusing than:\nInt(0x10) - (Y1 \u0026 0xF)\nBut that\u0027s no big deal.",
+      "range": {
+        "startLine": 588,
+        "startChar": 20,
+        "endLine": 588,
+        "endChar": 34
+      },
+      "revId": "372025deb0cc5ae073a8ef0e16c87ee7da7e42ef",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
