@@ -559,14 +559,7 @@ namespace sw
 	{
 		If(Ya != Yb)
 		{
-			Int xMin = *Pointer<Int>(data + OFFSET(DrawData,scissorX0));
-			Int xMax = *Pointer<Int>(data + OFFSET(DrawData,scissorX1));
-
 			Bool swap = Yb < Ya;
-
-			Pointer<Byte> leftEdge = primitive + q * sizeof(Primitive) + OFFSET(Primitive,outline->left);
-			Pointer<Byte> rightEdge = primitive + q * sizeof(Primitive) + OFFSET(Primitive,outline->right);
-			Pointer<Byte> edge = IfThenElse(swap, rightEdge, leftEdge);
 
 			Int X1 = IfThenElse(swap, Xb, Xa);
 			Int X2 = IfThenElse(swap, Xa, Xb);
@@ -578,6 +571,13 @@ namespace sw
 
 			If(y1 < y2)
 			{
+				Int xMin = *Pointer<Int>(data + OFFSET(DrawData,scissorX0));
+				Int xMax = *Pointer<Int>(data + OFFSET(DrawData,scissorX1));
+
+				Pointer<Byte> leftEdge = primitive + q * sizeof(Primitive) + OFFSET(Primitive,outline->left);
+				Pointer<Byte> rightEdge = primitive + q * sizeof(Primitive) + OFFSET(Primitive,outline->right);
+				Pointer<Byte> edge = IfThenElse(swap, rightEdge, leftEdge);
+
 				// Deltas
 				Int DX12 = X2 - X1;
 				Int DY12 = Y2 - Y1;
