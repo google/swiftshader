@@ -336,8 +336,10 @@ void ConfigSet::add(sw::Format displayFormat, EGLint minSwapInterval, EGLint max
 	Config conformantConfig(displayFormat, minSwapInterval, maxSwapInterval, renderTargetFormat, depthStencilFormat, multiSample, true);
 	mSet.insert(conformantConfig);
 
-	Config nonConformantConfig(displayFormat, minSwapInterval, maxSwapInterval, renderTargetFormat, depthStencilFormat, multiSample, false);
-	mSet.insert(nonConformantConfig);
+	#ifdef __ANDROID__
+		Config nonConformantConfig(displayFormat, minSwapInterval, maxSwapInterval, renderTargetFormat, depthStencilFormat, multiSample, false);
+		mSet.insert(nonConformantConfig);
+	#endif
 }
 
 size_t ConfigSet::size() const
