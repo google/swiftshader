@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d7e3a6ee_cdaeab7d",
+        "filename": "CMakeLists.txt",
+        "patchSetId": 1
+      },
+      "lineNbr": 839,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-01-06T15:06:50Z",
+      "side": 1,
+      "message": "Just curious: Why was adding the \"lib\" prefix necessary?",
+      "range": {
+        "startLine": 839,
+        "startChar": 52,
+        "endLine": 839,
+        "endChar": 62
+      },
+      "revId": "64fb8ff100b721156d72d1c633ace583724aa12a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
