@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d7e3a6ee_aaa5b855",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 3604,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-01-06T22:42:46Z",
+      "side": 1,
+      "message": "What happens when the loop is reversed? (Using greater than with a negative increment). Is this also handling the EOpGreaterThan case somehow?",
+      "range": {
+        "startLine": 3604,
+        "startChar": 9,
+        "endLine": 3604,
+        "endChar": 24
+      },
+      "revId": "669e7f05c32eb7ec88b6663c19dda7fd5c9848cb",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
