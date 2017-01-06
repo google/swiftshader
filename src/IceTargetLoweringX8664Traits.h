@@ -702,7 +702,7 @@ public:
 
   static RegNumT getRdxOrDie() { return RegisterSet::Reg_rdx; }
 
-#if defined(_WIN32)
+#if defined(_WIN32) && defined(SUBZERO_USE_MICROSOFT_ABI)
   // Microsoft x86-64 calling convention:
   //
   // * The first four arguments of vector/fp type, regardless of their
