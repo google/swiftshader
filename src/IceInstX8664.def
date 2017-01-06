@@ -214,11 +214,9 @@
 #if defined(_WIN32) && defined(SUBZERO_USE_MICROSOFT_ABI)  // Microsoft x86-64 ABI
 #define REGX8664_BYTEREG_TABLE REGX8664_BYTEREG_TABLE2(0, 1)
 #define REGX8664_GPR_TABLE REGX8664_GPR_TABLE2(0, 1)
-#elif defined(__unix__)  // System V AMD64 ABI
+#else  // System V AMD64 ABI
 #define REGX8664_BYTEREG_TABLE REGX8664_BYTEREG_TABLE2(1, 0)
 #define REGX8664_GPR_TABLE REGX8664_GPR_TABLE2(1, 0)
-#else
-#error "Unsupported platform"
 #endif
 
 // Note: It would be more appropriate to list the xmm register aliases as

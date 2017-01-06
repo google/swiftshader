@@ -730,7 +730,7 @@ public:
     assert(Ty == IceType_i64 || Ty == IceType_i32);
     return getGprForType(Ty, GprForArgNum[ArgNum]);
   }
-#elif defined(__unix__)
+#else
   // System V x86-64 calling convention:
   //
   // * The first eight arguments of vector/fp type, regardless of their
@@ -762,8 +762,6 @@ public:
     assert(Ty == IceType_i64 || Ty == IceType_i32);
     return getGprForType(Ty, GprForArgNum[ArgNum]);
   }
-#else
-#error "Unsupported platform"
 #endif
 
   /// Whether scalar floating point arguments are passed in XMM registers
