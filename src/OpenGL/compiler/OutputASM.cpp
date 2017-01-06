@@ -24,6 +24,8 @@
 #include <GLES2/gl2ext.h>
 #include <GLES3/gl3.h>
 
+#include <stdlib.h>
+
 namespace glsl
 {
 	// Integer to TString conversion
@@ -3599,11 +3601,16 @@ namespace glsl
 
 			if(comparator == EOpLessThan)
 			{
-				int iterations = (limit - initial) / increment;
-
-				if(iterations <= 0)
+				if(!(initial < limit))   // Never loops
 				{
-					iterations = 0;
+					return 0;
+				}
+
+				int iterations = (limit - initial + abs(increment) - 1) / increment;   // Ceiling division
+
+				if(iterations < 0)
+				{
+					return ~0u;
 				}
 
 				return iterations;
