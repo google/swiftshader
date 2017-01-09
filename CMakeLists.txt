@@ -2,7 +2,10 @@ cmake_minimum_required(VERSION 2.8)
 
 project(SwiftShader C CXX)
 
-set(CMAKE_BUILD_TYPE "Release" CACHE STRING "The type of build: Debug Release RelWithDebInfo." )
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "The type of build: Debug Release MinSizeRel RelWithDebInfo." FORCE)
+endif()
+set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Debug Release MinSizeRel RelWithDebInfo)
 
 option(BUILD_EGL "Build the EGL library" 1)
 if(WIN32)
