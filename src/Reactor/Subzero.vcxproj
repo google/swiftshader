@@ -85,7 +85,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>SZTARGET=X8632;ALLOW_DUMP=0;ALLOW_TIMERS=0;ALLOW_LLVM_CL=0;ALLOW_LLVM_IR=0;ALLOW_LLVM_IR_AS_INPUT=0;ALLOW_MINIMAL_BUILD=0;ALLOW_WASM=0;ICE_THREAD_LOCAL_HACK=0;WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SZTARGET=X8632;ALLOW_DUMP=0;ALLOW_TIMERS=0;ALLOW_LLVM_CL=0;ALLOW_LLVM_IR=0;ALLOW_LLVM_IR_AS_INPUT=0;ALLOW_MINIMAL_BUILD=0;ALLOW_WASM=0;ICE_THREAD_LOCAL_HACK=0;SUBZERO_USE_MICROSOFT_ABI;WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalUsingDirectories>%(AdditionalUsingDirectories)</AdditionalUsingDirectories>
       <AdditionalIncludeDirectories>$(SolutionDir)third_party\pnacl-subzero;$(SolutionDir)third_party\llvm-subzero\include;$(SolutionDir)third_party\llvm-subzero\build\Windows\include;$(SolutionDir)third_party\pnacl-subzero\pnacl-llvm\include;SubmoduleCheck</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -103,7 +103,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>SZTARGET=X8664;ALLOW_DUMP=0;ALLOW_TIMERS=0;ALLOW_LLVM_CL=0;ALLOW_LLVM_IR=0;ALLOW_LLVM_IR_AS_INPUT=0;ALLOW_MINIMAL_BUILD=0;ALLOW_WASM=0;ICE_THREAD_LOCAL_HACK=0;WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SZTARGET=X8664;ALLOW_DUMP=0;ALLOW_TIMERS=0;ALLOW_LLVM_CL=0;ALLOW_LLVM_IR=0;ALLOW_LLVM_IR_AS_INPUT=0;ALLOW_MINIMAL_BUILD=0;ALLOW_WASM=0;ICE_THREAD_LOCAL_HACK=0;SUBZERO_USE_MICROSOFT_ABI;WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalUsingDirectories>%(AdditionalUsingDirectories)</AdditionalUsingDirectories>
       <AdditionalIncludeDirectories>$(SolutionDir)third_party\pnacl-subzero;$(SolutionDir)third_party\llvm-subzero\include;$(SolutionDir)third_party\llvm-subzero\build\Windows\include;$(SolutionDir)third_party\pnacl-subzero\pnacl-llvm\include;SubmoduleCheck</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -123,7 +123,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>SZTARGET=X8632;ALLOW_DUMP=0;ALLOW_TIMERS=0;ALLOW_LLVM_CL=0;ALLOW_LLVM_IR=0;ALLOW_LLVM_IR_AS_INPUT=0;ALLOW_MINIMAL_BUILD=0;ALLOW_WASM=0;ICE_THREAD_LOCAL_HACK=0;WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SZTARGET=X8632;ALLOW_DUMP=0;ALLOW_TIMERS=0;ALLOW_LLVM_CL=0;ALLOW_LLVM_IR=0;ALLOW_LLVM_IR_AS_INPUT=0;ALLOW_MINIMAL_BUILD=0;ALLOW_WASM=0;ICE_THREAD_LOCAL_HACK=0;SUBZERO_USE_MICROSOFT_ABI;WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalUsingDirectories>%(AdditionalUsingDirectories)</AdditionalUsingDirectories>
       <AdditionalIncludeDirectories>$(SolutionDir)third_party\pnacl-subzero;$(SolutionDir)third_party\llvm-subzero\include;$(SolutionDir)third_party\llvm-subzero\build\Windows\include;$(SolutionDir)third_party\pnacl-subzero\pnacl-llvm\include;SubmoduleCheck</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>src/IceTypes.h</ForcedIncludeFiles>
@@ -145,7 +145,7 @@
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>SZTARGET=X8664;ALLOW_DUMP=0;ALLOW_TIMERS=0;ALLOW_LLVM_CL=0;ALLOW_LLVM_IR=0;ALLOW_LLVM_IR_AS_INPUT=0;ALLOW_MINIMAL_BUILD=0;ALLOW_WASM=0;ICE_THREAD_LOCAL_HACK=0;WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SZTARGET=X8664;ALLOW_DUMP=0;ALLOW_TIMERS=0;ALLOW_LLVM_CL=0;ALLOW_LLVM_IR=0;ALLOW_LLVM_IR_AS_INPUT=0;ALLOW_MINIMAL_BUILD=0;ALLOW_WASM=0;ICE_THREAD_LOCAL_HACK=0;SUBZERO_USE_MICROSOFT_ABI;WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalUsingDirectories>%(AdditionalUsingDirectories)</AdditionalUsingDirectories>
       <AdditionalIncludeDirectories>$(SolutionDir)third_party\pnacl-subzero;$(SolutionDir)third_party\llvm-subzero\include;$(SolutionDir)third_party\llvm-subzero\build\Windows\include;$(SolutionDir)third_party\pnacl-subzero\pnacl-llvm\include;SubmoduleCheck</AdditionalIncludeDirectories>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
