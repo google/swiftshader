@@ -22,6 +22,30 @@
       "revId": "669e7f05c32eb7ec88b6663c19dda7fd5c9848cb",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d7e3a6ee_48dd17c9",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 3604,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-01-09T14:44:05Z",
+      "side": 1,
+      "message": "Only EOpLessThan and EOpLessThanEqual are handled.\n\nThis code is used to attempt to statically determine the loop iteration count, and unroll it if it\u0027s below a certain limit. So we don\u0027t need to handle every type of comparator (or more complex cases). \u003c and \u003c\u003d should be fine for now, but there were a couple of bugs in it.",
+      "parentUuid": "d7e3a6ee_aaa5b855",
+      "range": {
+        "startLine": 3604,
+        "startChar": 9,
+        "endLine": 3604,
+        "endChar": 24
+      },
+      "revId": "669e7f05c32eb7ec88b6663c19dda7fd5c9848cb",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
