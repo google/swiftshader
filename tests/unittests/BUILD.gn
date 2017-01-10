@@ -18,10 +18,14 @@ test("swiftshader_unittests") {
   deps = [
     "../../src/OpenGL/libEGL:swiftshader_libEGL",
     "../../src/OpenGL/libGLESv2:swiftshader_libGLESv2",
+    "//base",
+    "//base/test:test_support",
+    "//testing/gmock",
     "//testing/gtest",
   ]
 
   sources = [
-    "main.cpp",
+    "//gpu/swiftshader_tests_main.cc",
+    "unittests.cpp",
   ]
 }
