@@ -112,6 +112,12 @@ public:
 
   uint32_t maxOutArgsSizeBytes() const override { return MaxOutArgsSizeBytes; }
 
+  uint32_t getFramePointerOffset(uint32_t CurrentOffset,
+                                 uint32_t Size) const override {
+    (void)Size;
+    return CurrentOffset + MaxOutArgsSizeBytes;
+  }
+
   bool shouldSplitToVariable64On32(Type Ty) const override {
     return Ty == IceType_i64;
   }
@@ -613,6 +619,8 @@ public:
     void addiu_sp(uint32_t StackOffset);
     void lw(Variable *Dest, OperandMIPS32Mem *Mem);
     void sw(Variable *Dest, OperandMIPS32Mem *Mem);
+    void ll(Variable *Dest, OperandMIPS32Mem *Mem);
+    void sc(Variable *Dest, OperandMIPS32Mem *Mem);
     void lwc1(Variable *Dest, OperandMIPS32Mem *Mem, RelocOp Reloc = RO_No);
     void ldc1(Variable *Dest, OperandMIPS32Mem *Mem, RelocOp Reloc = RO_No);
     void ret(Variable *RetAddr, Variable *RetValue);

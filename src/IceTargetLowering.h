@@ -253,7 +253,13 @@ public:
   virtual void reserveFixedAllocaArea(size_t Size, size_t Align) = 0;
   virtual int32_t getFrameFixedAllocaOffset() const = 0;
   virtual uint32_t maxOutArgsSizeBytes() const { return 0; }
-
+  // Addressing relative to frame pointer differs in MIPS compared to X86/ARM
+  // since MIPS decrements its stack pointer prior to saving it in the frame
+  // pointer register.
+  virtual uint32_t getFramePointerOffset(uint32_t CurrentOffset,
+                                         uint32_t Size) const {
+    return -(CurrentOffset + Size);
+  }
   /// Return whether a 64-bit Variable should be split into a Variable64On32.
   virtual bool shouldSplitToVariable64On32(Type Ty) const = 0;
 

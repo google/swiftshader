@@ -156,7 +156,7 @@ next:
 ; MIPS32: 	addiu	v0,sp,0
 ; MIPS32: 	addiu	v1,sp,16
 ; MIPS32: 	move	a1,a0
-; MIPS32: 	sw	a1,16(s8)
+; MIPS32: 	sw	a1,32(s8)
 ; MIPS32: 	move	a1,a0
 ; MIPS32: 	sw	a1,0(v0)
 ; MIPS32: 	sw	a0,0(v1)
@@ -221,9 +221,9 @@ next:
 ; MIPS32: 	move	a1,a0
 ; MIPS32: 	sw	a1,32(v0)
 ; MIPS32: 	move	v0,a0
-; MIPS32: 	sw	v0,64(s8)
+; MIPS32: 	sw	v0,80(s8)
 ; MIPS32: 	move	v0,a0
-; MIPS32: 	sw	v0,48(s8)
+; MIPS32: 	sw	v0,96(s8)
 ; MIPS32: 	sw	a0,0(v1)
 ; MIPS32: 	move	sp,s8
 ; MIPS32: 	lw	s8,{{.*}}(sp)

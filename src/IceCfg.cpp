@@ -939,7 +939,7 @@ void Cfg::sortAndCombineAllocas(CfgVector<InstAlloca *> &Allocas,
       // Addressing is relative to the frame pointer.  Subtract the offset after
       // adding the size of the alloca, because it grows downwards from the
       // frame pointer.
-      Offsets.push_back(-(CurrentOffset + Size));
+      Offsets.push_back(Target->getFramePointerOffset(CurrentOffset, Size));
     } else {
       // Addressing is relative to the stack pointer or to a user pointer.  Add
       // the offset before adding the size of the object, because it grows
