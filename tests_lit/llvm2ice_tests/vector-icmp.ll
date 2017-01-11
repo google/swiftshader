@@ -2758,7 +2758,7 @@ entry:
 ; MIPS32: sll [[T0]],[[T0]],0x18
 ; MIPS32: xor [[T10]],[[T10]],[[T0]]
 ; MIPS32: sltiu [[T10]],[[T10]],1
-; MIPS32: srl [[T10]],[[T10]],0x18
+; MIPS32: sll [[T10]],[[T10]],0x18
 ; MIPS32: sll [[T8]],[[T8]],0x8
 ; MIPS32: srl [[T8]],[[T8]],0x8
 ; MIPS32: or [[T10]],[[T10]],[[T8]]
@@ -2812,7 +2812,7 @@ entry:
 ; MIPS32: sll [[T1]],[[T1]],0x18
 ; MIPS32: xor [[T11]],[[T11]],[[T1]]
 ; MIPS32: sltiu [[T11]],[[T11]],1
-; MIPS32: srl [[T11]],[[T11]],0x18
+; MIPS32: sll [[T11]],[[T11]],0x18
 ; MIPS32: sll [[T0]],[[T0]],0x8
 ; MIPS32: srl [[T0]],[[T0]],0x8
 ; MIPS32: or [[T11]],[[T11]],[[T0]]
@@ -2866,7 +2866,7 @@ entry:
 ; MIPS32: sll [[T2]],[[T2]],0x18
 ; MIPS32: xor [[T12]],[[T12]],[[T2]]
 ; MIPS32: sltiu [[T12]],[[T12]],1
-; MIPS32: srl [[T12]],[[T12]],0x18
+; MIPS32: sll [[T12]],[[T12]],0x18
 ; MIPS32: sll [[T0]],[[T0]],0x8
 ; MIPS32: srl [[T0]],[[T0]],0x8
 ; MIPS32: or [[T12]],[[T12]],[[T0]]
@@ -2920,7 +2920,7 @@ entry:
 ; MIPS32: sll [[T3]],[[T3]],0x18
 ; MIPS32: xor [[T13]],[[T13]],[[T3]]
 ; MIPS32: sltiu [[T13]],[[T13]],1
-; MIPS32: srl [[T13]],[[T13]],0x18
+; MIPS32: sll [[T13]],[[T13]],0x18
 ; MIPS32: sll [[T0]],[[T0]],0x8
 ; MIPS32: srl [[T0]],[[T0]],0x8
 ; MIPS32: or [[T13]],[[T13]],[[T0]]
@@ -2997,7 +2997,7 @@ entry:
 ; MIPS32: sll [[T0]],[[T0]],0x18
 ; MIPS32: xor [[T10]],[[T10]],[[T0]]
 ; MIPS32: sltu [[T10]],zero,[[T10]]
-; MIPS32: srl [[T10]],[[T10]],0x18
+; MIPS32: sll [[T10]],[[T10]],0x18
 ; MIPS32: sll [[T8]],[[T8]],0x8
 ; MIPS32: srl [[T8]],[[T8]],0x8
 ; MIPS32: or [[T10]],[[T10]],[[T8]]
@@ -3051,7 +3051,7 @@ entry:
 ; MIPS32: sll [[T1]],[[T1]],0x18
 ; MIPS32: xor [[T11]],[[T11]],[[T1]]
 ; MIPS32: sltu [[T11]],zero,[[T11]]
-; MIPS32: srl [[T11]],[[T11]],0x18
+; MIPS32: sll [[T11]],[[T11]],0x18
 ; MIPS32: sll [[T0]],[[T0]],0x8
 ; MIPS32: srl [[T0]],[[T0]],0x8
 ; MIPS32: or [[T11]],[[T11]],[[T0]]
@@ -3105,7 +3105,7 @@ entry:
 ; MIPS32: sll [[T2]],[[T2]],0x18
 ; MIPS32: xor [[T12]],[[T12]],[[T2]]
 ; MIPS32: sltu [[T12]],zero,[[T12]]
-; MIPS32: srl [[T12]],[[T12]],0x18
+; MIPS32: sll [[T12]],[[T12]],0x18
 ; MIPS32: sll [[T0]],[[T0]],0x8
 ; MIPS32: srl [[T0]],[[T0]],0x8
 ; MIPS32: or [[T12]],[[T12]],[[T0]]
@@ -3159,7 +3159,7 @@ entry:
 ; MIPS32: sll [[T3]],[[T3]],0x18
 ; MIPS32: xor [[T13]],[[T13]],[[T3]]
 ; MIPS32: sltu [[T13]],zero,[[T13]]
-; MIPS32: srl [[T13]],[[T13]],0x18
+; MIPS32: sll [[T13]],[[T13]],0x18
 ; MIPS32: sll [[T0]],[[T0]],0x8
 ; MIPS32: srl [[T0]],[[T0]],0x8
 ; MIPS32: or [[T13]],[[T13]],[[T0]]
@@ -3231,7 +3231,7 @@ entry:
 ; MIPS32: sll [[T10]],[[T10]],0x18
 ; MIPS32: sll [[T0]],[[T0]],0x18
 ; MIPS32: slt [[T0]],[[T0]],[[T10]]
-; MIPS32: srl [[T0]],[[T0]],0x18
+; MIPS32: sll [[T0]],[[T0]],0x18
 ; MIPS32: sll [[T9]],[[T9]],0x8
 ; MIPS32: srl [[T9]],[[T9]],0x8
 ; MIPS32: or v0,[[T0]],[[T9]]
@@ -3281,7 +3281,7 @@ entry:
 ; MIPS32: sll [[T11]],[[T11]],0x18
 ; MIPS32: sll [[T1]],[[T1]],0x18
 ; MIPS32: slt [[T1]],[[T1]],[[T11]]
-; MIPS32: srl [[T1]],[[T1]],0x18
+; MIPS32: sll [[T1]],[[T1]],0x18
 ; MIPS32: sll [[T4]],[[T4]],0x8
 ; MIPS32: srl [[T4]],[[T4]],0x8
 ; MIPS32: or v1,[[T1]],[[T4]]
@@ -3331,7 +3331,7 @@ entry:
 ; MIPS32: sll [[T12]],[[T12]],0x18
 ; MIPS32: sll [[T2]],[[T2]],0x18
 ; MIPS32: slt [[T2]],[[T2]],[[T12]]
-; MIPS32: srl [[T2]],[[T2]],0x18
+; MIPS32: sll [[T2]],[[T2]],0x18
 ; MIPS32: sll [[T11]],[[T11]],0x8
 ; MIPS32: srl [[T11]],[[T11]],0x8
 ; MIPS32: or [[T2]],[[T2]],[[T11]]
@@ -3381,7 +3381,7 @@ entry:
 ; MIPS32: sll [[T13]],[[T13]],0x18
 ; MIPS32: sll [[T3]],[[T3]],0x18
 ; MIPS32: slt [[T3]],[[T3]],[[T13]]
-; MIPS32: srl [[T3]],[[T3]],0x18
+; MIPS32: sll [[T3]],[[T3]],0x18
 ; MIPS32: sll [[T11]],[[T11]],0x8
 ; MIPS32: srl [[T11]],[[T11]],0x8
 ; MIPS32: or [[T3]],[[T3]],[[T11]]
@@ -3456,7 +3456,7 @@ entry:
 ; MIPS32: sll [[T0]],[[T0]],0x18
 ; MIPS32: slt [[T0]],[[T0]],[[T10]]
 ; MIPS32: xori [[T0]],[[T0]],0x1
-; MIPS32: srl [[T0]],[[T0]],0x18
+; MIPS32: sll [[T0]],[[T0]],0x18
 ; MIPS32: sll [[T9]],[[T9]],0x8
 ; MIPS32: srl [[T9]],[[T9]],0x8
 ; MIPS32: or v0,[[T0]],[[T9]]
@@ -3510,7 +3510,7 @@ entry:
 ; MIPS32: sll [[T1]],[[T1]],0x18
 ; MIPS32: slt [[T1]],[[T1]],[[T11]]
 ; MIPS32: xori [[T1]],[[T1]],0x1
-; MIPS32: srl [[T1]],[[T1]],0x18
+; MIPS32: sll [[T1]],[[T1]],0x18
 ; MIPS32: sll [[T4]],[[T4]],0x8
 ; MIPS32: srl [[T4]],[[T4]],0x8
 ; MIPS32: or v1,[[T1]],[[T4]]
@@ -3564,7 +3564,7 @@ entry:
 ; MIPS32: sll [[T2]],[[T2]],0x18
 ; MIPS32: slt [[T2]],[[T2]],[[T12]]
 ; MIPS32: xori [[T2]],[[T2]],0x1
-; MIPS32: srl [[T2]],[[T2]],0x18
+; MIPS32: sll [[T2]],[[T2]],0x18
 ; MIPS32: sll [[T11]],[[T11]],0x8
 ; MIPS32: srl [[T11]],[[T11]],0x8
 ; MIPS32: or [[T2]],[[T2]],[[T11]]
@@ -3618,7 +3618,7 @@ entry:
 ; MIPS32: sll [[T3]],[[T3]],0x18
 ; MIPS32: slt [[T3]],[[T3]],[[T13]]
 ; MIPS32: xori [[T3]],[[T3]],0x1
-; MIPS32: srl [[T3]],[[T3]],0x18
+; MIPS32: sll [[T3]],[[T3]],0x18
 ; MIPS32: sll [[T11]],[[T11]],0x8
 ; MIPS32: srl [[T11]],[[T11]],0x8
 ; MIPS32: or [[T3]],[[T3]],[[T11]]
@@ -3688,7 +3688,7 @@ entry:
 ; MIPS32: sll [[T10]],[[T10]],0x18
 ; MIPS32: sll [[T0]],[[T0]],0x18
 ; MIPS32: slt [[T10]],[[T10]],[[T0]]
-; MIPS32: srl [[T10]],[[T10]],0x18
+; MIPS32: sll [[T10]],[[T10]],0x18
 ; MIPS32: sll [[T8]],[[T8]],0x8
 ; MIPS32: srl [[T8]],[[T8]],0x8
 ; MIPS32: or [[T10]],[[T10]],[[T8]]
@@ -3738,7 +3738,7 @@ entry:
 ; MIPS32: sll [[T11]],[[T11]],0x18
 ; MIPS32: sll [[T1]],[[T1]],0x18
 ; MIPS32: slt [[T11]],[[T11]],[[T1]]
-; MIPS32: srl [[T11]],[[T11]],0x18
+; MIPS32: sll [[T11]],[[T11]],0x18
 ; MIPS32: sll [[T0]],[[T0]],0x8
 ; MIPS32: srl [[T0]],[[T0]],0x8
 ; MIPS32: or [[T11]],[[T11]],[[T0]]
@@ -3788,7 +3788,7 @@ entry:
 ; MIPS32: sll [[T12]],[[T12]],0x18
 ; MIPS32: sll [[T2]],[[T2]],0x18
 ; MIPS32: slt [[T12]],[[T12]],[[T2]]
-; MIPS32: srl [[T12]],[[T12]],0x18
+; MIPS32: sll [[T12]],[[T12]],0x18
 ; MIPS32: sll [[T0]],[[T0]],0x8
 ; MIPS32: srl [[T0]],[[T0]],0x8
 ; MIPS32: or [[T12]],[[T12]],[[T0]]
@@ -3838,7 +3838,7 @@ entry:
 ; MIPS32: sll [[T13]],[[T13]],0x18
 ; MIPS32: sll [[T3]],[[T3]],0x18
 ; MIPS32: slt [[T13]],[[T13]],[[T3]]
-; MIPS32: srl [[T13]],[[T13]],0x18
+; MIPS32: sll [[T13]],[[T13]],0x18
 ; MIPS32: sll [[T0]],[[T0]],0x8
 ; MIPS32: srl [[T0]],[[T0]],0x8
 ; MIPS32: or [[T13]],[[T13]],[[T0]]
@@ -3916,7 +3916,7 @@ entry:
 ; MIPS32: sll [[T0]],[[T0]],0x18
 ; MIPS32: sltu [[T10]],[[T10]],[[T0]]
 ; MIPS32: xori [[T10]],[[T10]],0x1
-; MIPS32: srl [[T10]],[[T10]],0x18
+; MIPS32: sll [[T10]],[[T10]],0x18
 ; MIPS32: sll [[T8]],[[T8]],0x8
 ; MIPS32: srl [[T8]],[[T8]],0x8
 ; MIPS32: or [[T10]],[[T10]],[[T8]]
@@ -3970,7 +3970,7 @@ entry:
 ; MIPS32: sll [[T1]],[[T1]],0x18
 ; MIPS32: sltu [[T11]],[[T11]],[[T1]]
 ; MIPS32: xori [[T11]],[[T11]],0x1
-; MIPS32: srl [[T11]],[[T11]],0x18
+; MIPS32: sll [[T11]],[[T11]],0x18
 ; MIPS32: sll [[T0]],[[T0]],0x8
 ; MIPS32: srl [[T0]],[[T0]],0x8
 ; MIPS32: or [[T11]],[[T11]],[[T0]]
@@ -4024,7 +4024,7 @@ entry:
 ; MIPS32: sll [[T2]],[[T2]],0x18
 ; MIPS32: sltu [[T12]],[[T12]],[[T2]]
 ; MIPS32: xori [[T12]],[[T12]],0x1
-; MIPS32: srl [[T12]],[[T12]],0x18
+; MIPS32: sll [[T12]],[[T12]],0x18
 ; MIPS32: sll [[T0]],[[T0]],0x8
 ; MIPS32: srl [[T0]],[[T0]],0x8
 ; MIPS32: or [[T12]],[[T12]],[[T0]]
@@ -4078,7 +4078,7 @@ entry:
 ; MIPS32: sll [[T3]],[[T3]],0x18
 ; MIPS32: sltu [[T13]],[[T13]],[[T3]]
 ; MIPS32: xori [[T13]],[[T13]],0x1
-; MIPS32: srl [[T13]],[[T13]],0x18
+; MIPS32: sll [[T13]],[[T13]],0x18
 ; MIPS32: sll [[T0]],[[T0]],0x8
 ; MIPS32: srl [[T0]],[[T0]],0x8
 ; MIPS32: or [[T13]],[[T13]],[[T0]]
@@ -4151,7 +4151,7 @@ entry:
 ; MIPS32: sll [[T10]],[[T10]],0x18
 ; MIPS32: sll [[T0]],[[T0]],0x18
 ; MIPS32: sltu [[T0]],[[T0]],[[T10]]
-; MIPS32: srl [[T0]],[[T0]],0x18
+; MIPS32: sll [[T0]],[[T0]],0x18
 ; MIPS32: sll [[T9]],[[T9]],0x8
 ; MIPS32: srl [[T9]],[[T9]],0x8
 ; MIPS32: or v0,[[T0]],[[T9]]
@@ -4201,7 +4201,7 @@ entry:
 ; MIPS32: sll [[T11]],[[T11]],0x18
 ; MIPS32: sll [[T1]],[[T1]],0x18
 ; MIPS32: sltu [[T1]],[[T1]],[[T11]]
-; MIPS32: srl [[T1]],[[T1]],0x18
+; MIPS32: sll [[T1]],[[T1]],0x18
 ; MIPS32: sll [[T4]],[[T4]],0x8
 ; MIPS32: srl [[T4]],[[T4]],0x8
 ; MIPS32: or v1,[[T1]],[[T4]]
@@ -4251,7 +4251,7 @@ entry:
 ; MIPS32: sll [[T12]],[[T12]],0x18
 ; MIPS32: sll [[T2]],[[T2]],0x18
 ; MIPS32: sltu [[T2]],[[T2]],[[T12]]
-; MIPS32: srl [[T2]],[[T2]],0x18
+; MIPS32: sll [[T2]],[[T2]],0x18
 ; MIPS32: sll [[T11]],[[T11]],0x8
 ; MIPS32: srl [[T11]],[[T11]],0x8
 ; MIPS32: or [[T2]],[[T2]],[[T11]]
@@ -4301,7 +4301,7 @@ entry:
 ; MIPS32: sll [[T13]],[[T13]],0x18
 ; MIPS32: sll [[T3]],[[T3]],0x18
 ; MIPS32: sltu [[T3]],[[T3]],[[T13]]
-; MIPS32: srl [[T3]],[[T3]],0x18
+; MIPS32: sll [[T3]],[[T3]],0x18
 ; MIPS32: sll [[T11]],[[T11]],0x8
 ; MIPS32: srl [[T11]],[[T11]],0x8
 ; MIPS32: or [[T3]],[[T3]],[[T11]]
@@ -4377,7 +4377,7 @@ entry:
 ; MIPS32: sll [[T0]],[[T0]],0x18
 ; MIPS32: sltu [[T0]],[[T0]],[[T10]]
 ; MIPS32: xori [[T0]],[[T0]],0x1
-; MIPS32: srl [[T0]],[[T0]],0x18
+; MIPS32: sll [[T0]],[[T0]],0x18
 ; MIPS32: sll [[T9]],[[T9]],0x8
 ; MIPS32: srl [[T9]],[[T9]],0x8
 ; MIPS32: or v0,[[T0]],[[T9]]
@@ -4431,7 +4431,7 @@ entry:
 ; MIPS32: sll [[T1]],[[T1]],0x18
 ; MIPS32: sltu [[T1]],[[T1]],[[T11]]
 ; MIPS32: xori [[T1]],[[T1]],0x1
-; MIPS32: srl [[T1]],[[T1]],0x18
+; MIPS32: sll [[T1]],[[T1]],0x18
 ; MIPS32: sll [[T4]],[[T4]],0x8
 ; MIPS32: srl [[T4]],[[T4]],0x8
 ; MIPS32: or v1,[[T1]],[[T4]]
@@ -4485,7 +4485,7 @@ entry:
 ; MIPS32: sll [[T2]],[[T2]],0x18
 ; MIPS32: sltu [[T2]],[[T2]],[[T12]]
 ; MIPS32: xori [[T2]],[[T2]],0x1
-; MIPS32: srl [[T2]],[[T2]],0x18
+; MIPS32: sll [[T2]],[[T2]],0x18
 ; MIPS32: sll [[T11]],[[T11]],0x8
 ; MIPS32: srl [[T11]],[[T11]],0x8
 ; MIPS32: or [[T2]],[[T2]],[[T11]]
@@ -4539,7 +4539,7 @@ entry:
 ; MIPS32: sll [[T3]],[[T3]],0x18
 ; MIPS32: sltu [[T3]],[[T3]],[[T13]]
 ; MIPS32: xori [[T3]],[[T3]],0x1
-; MIPS32: srl [[T3]],[[T3]],0x18
+; MIPS32: sll [[T3]],[[T3]],0x18
 ; MIPS32: sll [[T11]],[[T11]],0x8
 ; MIPS32: srl [[T11]],[[T11]],0x8
 ; MIPS32: or [[T3]],[[T3]],[[T11]]
@@ -4610,7 +4610,7 @@ entry:
 ; MIPS32: sll [[T10]],[[T10]],0x18
 ; MIPS32: sll [[T0]],[[T0]],0x18
 ; MIPS32: sltu [[T10]],[[T10]],[[T0]]
-; MIPS32: srl [[T10]],[[T10]],0x18
+; MIPS32: sll [[T10]],[[T10]],0x18
 ; MIPS32: sll [[T8]],[[T8]],0x8
 ; MIPS32: srl [[T8]],[[T8]],0x8
 ; MIPS32: or [[T10]],[[T10]],[[T8]]
@@ -4660,7 +4660,7 @@ entry:
 ; MIPS32: sll [[T11]],[[T11]],0x18
 ; MIPS32: sll [[T1]],[[T1]],0x18
 ; MIPS32: sltu [[T11]],[[T11]],[[T1]]
-; MIPS32: srl [[T11]],[[T11]],0x18
+; MIPS32: sll [[T11]],[[T11]],0x18
 ; MIPS32: sll [[T0]],[[T0]],0x8
 ; MIPS32: srl [[T0]],[[T0]],0x8
 ; MIPS32: or [[T11]],[[T11]],[[T0]]
@@ -4710,7 +4710,7 @@ entry:
 ; MIPS32: sll [[T12]],[[T12]],0x18
 ; MIPS32: sll [[T2]],[[T2]],0x18
 ; MIPS32: sltu [[T12]],[[T12]],[[T2]]
-; MIPS32: srl [[T12]],[[T12]],0x18
+; MIPS32: sll [[T12]],[[T12]],0x18
 ; MIPS32: sll [[T0]],[[T0]],0x8
 ; MIPS32: srl [[T0]],[[T0]],0x8
 ; MIPS32: or [[T12]],[[T12]],[[T0]]
@@ -4760,7 +4760,7 @@ entry:
 ; MIPS32: sll [[T13]],[[T13]],0x18
 ; MIPS32: sll [[T3]],[[T3]],0x18
 ; MIPS32: sltu [[T13]],[[T13]],[[T3]]
-; MIPS32: srl [[T13]],[[T13]],0x18
+; MIPS32: sll [[T13]],[[T13]],0x18
 ; MIPS32: sll [[T0]],[[T0]],0x8
 ; MIPS32: srl [[T0]],[[T0]],0x8
 ; MIPS32: or [[T13]],[[T13]],[[T0]]
@@ -4844,7 +4844,7 @@ entry:
 ; MIPS32: sll [[T0]],[[T0]],0x1f
 ; MIPS32: xor [[T10]],[[T10]],[[T0]]
 ; MIPS32: sltiu [[T10]],[[T10]],1
-; MIPS32: srl [[T10]],[[T10]],0x18
+; MIPS32: sll [[T10]],[[T10]],0x18
 ; MIPS32: sll [[T8]],[[T8]],0x8
 ; MIPS32: srl [[T8]],[[T8]],0x8
 ; MIPS32: or [[T10]],[[T10]],[[T8]]
@@ -4906,7 +4906,7 @@ entry:
 ; MIPS32: sll [[T1]],[[T1]],0x1f
 ; MIPS32: xor [[T11]],[[T11]],[[T1]]
 ; MIPS32: sltiu [[T11]],[[T11]],1
-; MIPS32: srl [[T11]],[[T11]],0x18
+; MIPS32: sll [[T11]],[[T11]],0x18
 ; MIPS32: sll [[T0]],[[T0]],0x8
 ; MIPS32: srl [[T0]],[[T0]],0x8
 ; MIPS32: or [[T11]],[[T11]],[[T0]]
@@ -4968,7 +4968,7 @@ entry:
 ; MIPS32: sll [[T2]],[[T2]],0x1f
 ; MIPS32: xor [[T12]],[[T12]],[[T2]]
 ; MIPS32: sltiu [[T12]],[[T12]],1
-; MIPS32: srl [[T12]],[[T12]],0x18
+; MIPS32: sll [[T12]],[[T12]],0x18
 ; MIPS32: sll [[T0]],[[T0]],0x8
 ; MIPS32: srl [[T0]],[[T0]],0x8
 ; MIPS32: or [[T12]],[[T12]],[[T0]]
@@ -5030,7 +5030,7 @@ entry:
 ; MIPS32: sll [[T3]],[[T3]],0x1f
 ; MIPS32: xor [[T13]],[[T13]],[[T3]]
 ; MIPS32: sltiu [[T13]],[[T13]],1
-; MIPS32: srl [[T13]],[[T13]],0x18
+; MIPS32: sll [[T13]],[[T13]],0x18
 ; MIPS32: sll [[T0]],[[T0]],0x8
 ; MIPS32: srl [[T0]],[[T0]],0x8
 ; MIPS32: or [[T13]],[[T13]],[[T0]]
@@ -5115,7 +5115,7 @@ entry:
 ; MIPS32: sll [[T0]],[[T0]],0x1f
 ; MIPS32: xor [[T10]],[[T10]],[[T0]]
 ; MIPS32: sltu [[T10]],zero,[[T10]]
-; MIPS32: srl [[T10]],[[T10]],0x18
+; MIPS32: sll [[T10]],[[T10]],0x18
 ; MIPS32: sll [[T8]],[[T8]],0x8
 ; MIPS32: srl [[T8]],[[T8]],0x8
 ; MIPS32: or [[T10]],[[T10]],[[T8]]
@@ -5177,7 +5177,7 @@ entry:
 ; MIPS32: sll [[T1]],[[T1]],0x1f
 ; MIPS32: xor [[T11]],[[T11]],[[T1]]
 ; MIPS32: sltu [[T11]],zero,[[T11]]
-; MIPS32: srl [[T11]],[[T11]],0x18
+; MIPS32: sll [[T11]],[[T11]],0x18
 ; MIPS32: sll [[T0]],[[T0]],0x8
 ; MIPS32: srl [[T0]],[[T0]],0x8
 ; MIPS32: or [[T11]],[[T11]],[[T0]]
@@ -5239,7 +5239,7 @@ entry:
 ; MIPS32: sll [[T2]],[[T2]],0x1f
 ; MIPS32: xor [[T12]],[[T12]],[[T2]]
 ; MIPS32: sltu [[T12]],zero,[[T12]]
-; MIPS32: srl [[T12]],[[T12]],0x18
+; MIPS32: sll [[T12]],[[T12]],0x18
 ; MIPS32: sll [[T0]],[[T0]],0x8
 ; MIPS32: srl [[T0]],[[T0]],0x8
 ; MIPS32: or [[T12]],[[T12]],[[T0]]
@@ -5301,7 +5301,7 @@ entry:
 ; MIPS32: sll [[T3]],[[T3]],0x1f
 ; MIPS32: xor [[T13]],[[T13]],[[T3]]
 ; MIPS32: sltu [[T13]],zero,[[T13]]
-; MIPS32: srl [[T13]],[[T13]],0x18
+; MIPS32: sll [[T13]],[[T13]],0x18
 ; MIPS32: sll [[T0]],[[T0]],0x8
 ; MIPS32: srl [[T0]],[[T0]],0x8
 ; MIPS32: or [[T13]],[[T13]],[[T0]]
@@ -5381,7 +5381,7 @@ entry:
 ; MIPS32: sll [[T10]],[[T10]],0x1f
 ; MIPS32: sll [[T0]],[[T0]],0x1f
 ; MIPS32: slt [[T0]],[[T0]],[[T10]]
-; MIPS32: srl [[T0]],[[T0]],0x18
+; MIPS32: sll [[T0]],[[T0]],0x18
 ; MIPS32: sll [[T9]],[[T9]],0x8
 ; MIPS32: srl [[T9]],[[T9]],0x8
 ; MIPS32: or v0,[[T0]],[[T9]]
@@ -5439,7 +5439,7 @@ entry:
 ; MIPS32: sll [[T11]],[[T11]],0x1f
 ; MIPS32: sll [[T1]],[[T1]],0x1f
 ; MIPS32: slt [[T1]],[[T1]],[[T11]]
-; MIPS32: srl [[T1]],[[T1]],0x18
+; MIPS32: sll [[T1]],[[T1]],0x18
 ; MIPS32: sll [[T4]],[[T4]],0x8
 ; MIPS32: srl [[T4]],[[T4]],0x8
 ; MIPS32: or v1,[[T1]],[[T4]]
@@ -5497,7 +5497,7 @@ entry:
 ; MIPS32: sll [[T12]],[[T12]],0x1f
 ; MIPS32: sll [[T2]],[[T2]],0x1f
 ; MIPS32: slt [[T2]],[[T2]],[[T12]]
-; MIPS32: srl [[T2]],[[T2]],0x18
+; MIPS32: sll [[T2]],[[T2]],0x18
 ; MIPS32: sll [[T11]],[[T11]],0x8
 ; MIPS32: srl [[T11]],[[T11]],0x8
 ; MIPS32: or [[T2]],[[T2]],[[T11]]
@@ -5555,7 +5555,7 @@ entry:
 ; MIPS32: sll [[T13]],[[T13]],0x1f
 ; MIPS32: sll [[T3]],[[T3]],0x1f
 ; MIPS32: slt [[T3]],[[T3]],[[T13]]
-; MIPS32: srl [[T3]],[[T3]],0x18
+; MIPS32: sll [[T3]],[[T3]],0x18
 ; MIPS32: sll [[T11]],[[T11]],0x8
 ; MIPS32: srl [[T11]],[[T11]],0x8
 ; MIPS32: or [[T3]],[[T3]],[[T11]]
@@ -5638,7 +5638,7 @@ entry:
 ; MIPS32: sll [[T0]],[[T0]],0x1f
 ; MIPS32: slt [[T0]],[[T0]],[[T10]]
 ; MIPS32: xori [[T0]],[[T0]],0x1
-; MIPS32: srl [[T0]],[[T0]],0x18
+; MIPS32: sll [[T0]],[[T0]],0x18
 ; MIPS32: sll [[T9]],[[T9]],0x8
 ; MIPS32: srl [[T9]],[[T9]],0x8
 ; MIPS32: or v0,[[T0]],[[T9]]
@@ -5700,7 +5700,7 @@ entry:
 ; MIPS32: sll [[T1]],[[T1]],0x1f
 ; MIPS32: slt [[T1]],[[T1]],[[T11]]
 ; MIPS32: xori [[T1]],[[T1]],0x1
-; MIPS32: srl [[T1]],[[T1]],0x18
+; MIPS32: sll [[T1]],[[T1]],0x18
 ; MIPS32: sll [[T4]],[[T4]],0x8
 ; MIPS32: srl [[T4]],[[T4]],0x8
 ; MIPS32: or v1,[[T1]],[[T4]]
@@ -5762,7 +5762,7 @@ entry:
 ; MIPS32: sll [[T2]],[[T2]],0x1f
 ; MIPS32: slt [[T2]],[[T2]],[[T12]]
 ; MIPS32: xori [[T2]],[[T2]],0x1
-; MIPS32: srl [[T2]],[[T2]],0x18
+; MIPS32: sll [[T2]],[[T2]],0x18
 ; MIPS32: sll [[T11]],[[T11]],0x8
 ; MIPS32: srl [[T11]],[[T11]],0x8
 ; MIPS32: or [[T2]],[[T2]],[[T11]]
@@ -5824,7 +5824,7 @@ entry:
 ; MIPS32: sll [[T3]],[[T3]],0x1f
 ; MIPS32: slt [[T3]],[[T3]],[[T13]]
 ; MIPS32: xori [[T3]],[[T3]],0x1
-; MIPS32: srl [[T3]],[[T3]],0x18
+; MIPS32: sll [[T3]],[[T3]],0x18
 ; MIPS32: sll [[T11]],[[T11]],0x8
 ; MIPS32: srl [[T11]],[[T11]],0x8
 ; MIPS32: or [[T3]],[[T3]],[[T11]]
@@ -5902,7 +5902,7 @@ entry:
 ; MIPS32: sll [[T10]],[[T10]],0x1f
 ; MIPS32: sll [[T0]],[[T0]],0x1f
 ; MIPS32: slt [[T10]],[[T10]],[[T0]]
-; MIPS32: srl [[T10]],[[T10]],0x18
+; MIPS32: sll [[T10]],[[T10]],0x18
 ; MIPS32: sll [[T8]],[[T8]],0x8
 ; MIPS32: srl [[T8]],[[T8]],0x8
 ; MIPS32: or [[T10]],[[T10]],[[T8]]
@@ -5960,7 +5960,7 @@ entry:
 ; MIPS32: sll [[T11]],[[T11]],0x1f
 ; MIPS32: sll [[T1]],[[T1]],0x1f
 ; MIPS32: slt [[T11]],[[T11]],[[T1]]
-; MIPS32: srl [[T11]],[[T11]],0x18
+; MIPS32: sll [[T11]],[[T11]],0x18
 ; MIPS32: sll [[T0]],[[T0]],0x8
 ; MIPS32: srl [[T0]],[[T0]],0x8
 ; MIPS32: or [[T11]],[[T11]],[[T0]]
@@ -6018,7 +6018,7 @@ entry:
 ; MIPS32: sll [[T12]],[[T12]],0x1f
 ; MIPS32: sll [[T2]],[[T2]],0x1f
 ; MIPS32: slt [[T12]],[[T12]],[[T2]]
-; MIPS32: srl [[T12]],[[T12]],0x18
+; MIPS32: sll [[T12]],[[T12]],0x18
 ; MIPS32: sll [[T0]],[[T0]],0x8
 ; MIPS32: srl [[T0]],[[T0]],0x8
 ; MIPS32: or [[T12]],[[T12]],[[T0]]
@@ -6076,7 +6076,7 @@ entry:
 ; MIPS32: sll [[T13]],[[T13]],0x1f
 ; MIPS32: sll [[T3]],[[T3]],0x1f
 ; MIPS32: slt [[T13]],[[T13]],[[T3]]
-; MIPS32: srl [[T13]],[[T13]],0x18
+; MIPS32: sll [[T13]],[[T13]],0x18
 ; MIPS32: sll [[T0]],[[T0]],0x8
 ; MIPS32: srl [[T0]],[[T0]],0x8
 ; MIPS32: or [[T13]],[[T13]],[[T0]]
@@ -6162,7 +6162,7 @@ entry:
 ; MIPS32: sll [[T0]],[[T0]],0x1f
 ; MIPS32: sltu [[T10]],[[T10]],[[T0]]
 ; MIPS32: xori [[T10]],[[T10]],0x1
-; MIPS32: srl [[T10]],[[T10]],0x18
+; MIPS32: sll [[T10]],[[T10]],0x18
 ; MIPS32: sll [[T8]],[[T8]],0x8
 ; MIPS32: srl [[T8]],[[T8]],0x8
 ; MIPS32: or [[T10]],[[T10]],[[T8]]
@@ -6224,7 +6224,7 @@ entry:
 ; MIPS32: sll [[T1]],[[T1]],0x1f
 ; MIPS32: sltu [[T11]],[[T11]],[[T1]]
 ; MIPS32: xori [[T11]],[[T11]],0x1
-; MIPS32: srl [[T11]],[[T11]],0x18
+; MIPS32: sll [[T11]],[[T11]],0x18
 ; MIPS32: sll [[T0]],[[T0]],0x8
 ; MIPS32: srl [[T0]],[[T0]],0x8
 ; MIPS32: or [[T11]],[[T11]],[[T0]]
@@ -6286,7 +6286,7 @@ entry:
 ; MIPS32: sll [[T2]],[[T2]],0x1f
 ; MIPS32: sltu [[T12]],[[T12]],[[T2]]
 ; MIPS32: xori [[T12]],[[T12]],0x1
-; MIPS32: srl [[T12]],[[T12]],0x18
+; MIPS32: sll [[T12]],[[T12]],0x18
 ; MIPS32: sll [[T0]],[[T0]],0x8
 ; MIPS32: srl [[T0]],[[T0]],0x8
 ; MIPS32: or [[T12]],[[T12]],[[T0]]
@@ -6348,7 +6348,7 @@ entry:
 ; MIPS32: sll [[T3]],[[T3]],0x1f
 ; MIPS32: sltu [[T13]],[[T13]],[[T3]]
 ; MIPS32: xori [[T13]],[[T13]],0x1
-; MIPS32: srl [[T13]],[[T13]],0x18
+; MIPS32: sll [[T13]],[[T13]],0x18
 ; MIPS32: sll [[T0]],[[T0]],0x8
 ; MIPS32: srl [[T0]],[[T0]],0x8
 ; MIPS32: or [[T13]],[[T13]],[[T0]]
@@ -6429,7 +6429,7 @@ entry:
 ; MIPS32: sll [[T10]],[[T10]],0x1f
 ; MIPS32: sll [[T0]],[[T0]],0x1f
 ; MIPS32: sltu [[T0]],[[T0]],[[T10]]
-; MIPS32: srl [[T0]],[[T0]],0x18
+; MIPS32: sll [[T0]],[[T0]],0x18
 ; MIPS32: sll [[T9]],[[T9]],0x8
 ; MIPS32: srl [[T9]],[[T9]],0x8
 ; MIPS32: or v0,[[T0]],[[T9]]
@@ -6487,7 +6487,7 @@ entry:
 ; MIPS32: sll [[T11]],[[T11]],0x1f
 ; MIPS32: sll [[T1]],[[T1]],0x1f
 ; MIPS32: sltu [[T1]],[[T1]],[[T11]]
-; MIPS32: srl [[T1]],[[T1]],0x18
+; MIPS32: sll [[T1]],[[T1]],0x18
 ; MIPS32: sll [[T4]],[[T4]],0x8
 ; MIPS32: srl [[T4]],[[T4]],0x8
 ; MIPS32: or v1,[[T1]],[[T4]]
@@ -6545,7 +6545,7 @@ entry:
 ; MIPS32: sll [[T12]],[[T12]],0x1f
 ; MIPS32: sll [[T2]],[[T2]],0x1f
 ; MIPS32: sltu [[T2]],[[T2]],[[T12]]
-; MIPS32: srl [[T2]],[[T2]],0x18
+; MIPS32: sll [[T2]],[[T2]],0x18
 ; MIPS32: sll [[T11]],[[T11]],0x8
 ; MIPS32: srl [[T11]],[[T11]],0x8
 ; MIPS32: or [[T2]],[[T2]],[[T11]]
@@ -6603,7 +6603,7 @@ entry:
 ; MIPS32: sll [[T13]],[[T13]],0x1f
 ; MIPS32: sll [[T3]],[[T3]],0x1f
 ; MIPS32: sltu [[T3]],[[T3]],[[T13]]
-; MIPS32: srl [[T3]],[[T3]],0x18
+; MIPS32: sll [[T3]],[[T3]],0x18
 ; MIPS32: sll [[T11]],[[T11]],0x8
 ; MIPS32: srl [[T11]],[[T11]],0x8
 ; MIPS32: or [[T3]],[[T3]],[[T11]]
@@ -6687,7 +6687,7 @@ entry:
 ; MIPS32: sll [[T0]],[[T0]],0x1f
 ; MIPS32: sltu [[T0]],[[T0]],[[T10]]
 ; MIPS32: xori [[T0]],[[T0]],0x1
-; MIPS32: srl [[T0]],[[T0]],0x18
+; MIPS32: sll [[T0]],[[T0]],0x18
 ; MIPS32: sll [[T9]],[[T9]],0x8
 ; MIPS32: srl [[T9]],[[T9]],0x8
 ; MIPS32: or v0,[[T0]],[[T9]]
@@ -6749,7 +6749,7 @@ entry:
 ; MIPS32: sll [[T1]],[[T1]],0x1f
 ; MIPS32: sltu [[T1]],[[T1]],[[T11]]
 ; MIPS32: xori [[T1]],[[T1]],0x1
-; MIPS32: srl [[T1]],[[T1]],0x18
+; MIPS32: sll [[T1]],[[T1]],0x18
 ; MIPS32: sll [[T4]],[[T4]],0x8
 ; MIPS32: srl [[T4]],[[T4]],0x8
 ; MIPS32: or v1,[[T1]],[[T4]]
@@ -6811,7 +6811,7 @@ entry:
 ; MIPS32: sll [[T2]],[[T2]],0x1f
 ; MIPS32: sltu [[T2]],[[T2]],[[T12]]
 ; MIPS32: xori [[T2]],[[T2]],0x1
-; MIPS32: srl [[T2]],[[T2]],0x18
+; MIPS32: sll [[T2]],[[T2]],0x18
 ; MIPS32: sll [[T11]],[[T11]],0x8
 ; MIPS32: srl [[T11]],[[T11]],0x8
 ; MIPS32: or [[T2]],[[T2]],[[T11]]
@@ -6873,7 +6873,7 @@ entry:
 ; MIPS32: sll [[T3]],[[T3]],0x1f
 ; MIPS32: sltu [[T3]],[[T3]],[[T13]]
 ; MIPS32: xori [[T3]],[[T3]],0x1
-; MIPS32: srl [[T3]],[[T3]],0x18
+; MIPS32: sll [[T3]],[[T3]],0x18
 ; MIPS32: sll [[T11]],[[T11]],0x8
 ; MIPS32: srl [[T11]],[[T11]],0x8
 ; MIPS32: or [[T3]],[[T3]],[[T11]]
@@ -6952,7 +6952,7 @@ entry:
 ; MIPS32: sll [[T10]],[[T10]],0x1f
 ; MIPS32: sll [[T0]],[[T0]],0x1f
 ; MIPS32: sltu [[T10]],[[T10]],[[T0]]
-; MIPS32: srl [[T10]],[[T10]],0x18
+; MIPS32: sll [[T10]],[[T10]],0x18
 ; MIPS32: sll [[T8]],[[T8]],0x8
 ; MIPS32: srl [[T8]],[[T8]],0x8
 ; MIPS32: or [[T10]],[[T10]],[[T8]]
@@ -7010,7 +7010,7 @@ entry:
 ; MIPS32: sll [[T11]],[[T11]],0x1f
 ; MIPS32: sll [[T1]],[[T1]],0x1f
 ; MIPS32: sltu [[T11]],[[T11]],[[T1]]
-; MIPS32: srl [[T11]],[[T11]],0x18
+; MIPS32: sll [[T11]],[[T11]],0x18
 ; MIPS32: sll [[T0]],[[T0]],0x8
 ; MIPS32: srl [[T0]],[[T0]],0x8
 ; MIPS32: or [[T11]],[[T11]],[[T0]]
@@ -7068,7 +7068,7 @@ entry:
 ; MIPS32: sll [[T12]],[[T12]],0x1f
 ; MIPS32: sll [[T2]],[[T2]],0x1f
 ; MIPS32: sltu [[T12]],[[T12]],[[T2]]
-; MIPS32: srl [[T12]],[[T12]],0x18
+; MIPS32: sll [[T12]],[[T12]],0x18
 ; MIPS32: sll [[T0]],[[T0]],0x8
 ; MIPS32: srl [[T0]],[[T0]],0x8
 ; MIPS32: or [[T12]],[[T12]],[[T0]]
@@ -7126,7 +7126,7 @@ entry:
 ; MIPS32: sll [[T13]],[[T13]],0x1f
 ; MIPS32: sll [[T3]],[[T3]],0x1f
 ; MIPS32: sltu [[T13]],[[T13]],[[T3]]
-; MIPS32: srl [[T13]],[[T13]],0x18
+; MIPS32: sll [[T13]],[[T13]],0x18
 ; MIPS32: sll [[T0]],[[T0]],0x8
 ; MIPS32: srl [[T0]],[[T0]],0x8
 ; MIPS32: or [[T13]],[[T13]],[[T0]]

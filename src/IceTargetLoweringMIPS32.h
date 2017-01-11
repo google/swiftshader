@@ -392,6 +392,11 @@ public:
     }
   }
 
+  void _mov_fp64_to_i64(Variable *Dest, Operand *Src, Int64Part Int64HiLo) {
+    assert(Dest != nullptr);
+    Context.insert<InstMIPS32MovFP64ToI64>(Dest, Src, Int64HiLo);
+  }
+
   void _mov_d(Variable *Dest, Variable *Src) {
     Context.insert<InstMIPS32Mov_d>(Dest, Src);
   }
@@ -659,7 +664,9 @@ public:
   Variable *makeReg(Type Ty, RegNumT RegNum = RegNumT());
 
   Variable *getZero() {
-    return getPhysicalRegister(RegMIPS32::Reg_ZERO, IceType_i32);
+    auto *Zero = makeReg(IceType_i32, RegMIPS32::Reg_ZERO);
+    Context.insert<InstFakeDef>(Zero);
+    return Zero;
   }
 
   Variable *I32Reg(RegNumT RegNum = RegNumT()) {
@@ -809,6 +816,7 @@ protected:
     ///
     /// Moves to memory become store instructions, and moves from memory, loads.
     void legalizeMov(InstMIPS32Mov *Mov);
+    void legalizeMovFp(InstMIPS32MovFP64ToI64 *MovInstr);
 
   private:
     /// Creates a new Base register centered around [Base, +/- Offset].

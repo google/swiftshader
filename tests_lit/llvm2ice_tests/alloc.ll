@@ -62,9 +62,9 @@ entry:
 ; ARM32:       bl {{.*}} R_{{.*}}    f1
 
 ; MIPS32-LABEL: fixed_416_align_16
-; MIPS32-OPT2: addiu sp,sp,-436
+; MIPS32-OPT2: addiu sp,sp,-448
 ; MIPS32-OPT2: addiu a0,sp,16
-; MIPS32-OPTM1: addiu sp,sp,-456
+; MIPS32-OPTM1: addiu sp,sp,-464
 ; MIPS32-OPTM1: addiu [[REG:.*]],sp,16
 ; MIPS32-OPTM1: sw [[REG]],{{.*}}
 ; MIPS32-OPTM1: lw a0,{{.*}}
@@ -93,9 +93,9 @@ entry:
 ; ARM32:       bl {{.*}} R_{{.*}}    f1
 
 ; MIPS32-LABEL: fixed_416_align_32
-; MIPS32-OPT2: addiu sp,sp,-440
-; MIPS32-OPT2: addiu a0,sp,32
-; MIPS32-OPTM1: addiu sp,sp,-456
+; MIPS32-OPT2: addiu sp,sp,-448
+; MIPS32-OPT2: addiu a0,sp,16
+; MIPS32-OPTM1: addiu sp,sp,-464
 ; MIPS32-OPTM1: addiu [[REG:.*]],sp,32
 ; MIPS32-OPTM1: sw [[REG]],{{.*}}
 ; MIPS32-OPTM1: lw a0,{{.*}}
@@ -127,9 +127,9 @@ entry:
 ; ARM32:       bl {{.*}} R_{{.*}}    f1
 
 ; MIPS32-LABEL: fixed_351_align_16
-; MIPS32-OPT2: addiu sp,sp,-372
+; MIPS32-OPT2: addiu sp,sp,-384
 ; MIPS32-OPT2: addiu a0,sp,16
-; MIPS32-OPTM1: addiu sp,sp,-392
+; MIPS32-OPTM1: addiu sp,sp,-400
 ; MIPS32-OPTM1: addiu [[REG:.*]],sp,16
 ; MIPS32-OPTM1: sw [[REG]],{{.*}}
 ; MIPS32-OPTM1: lw a0,{{.*}}
@@ -158,9 +158,9 @@ entry:
 ; ARM32:       bl {{.*}} R_{{.*}}    f1
 
 ; MIPS32-LABEL: fixed_351_align_32
-; MIPS32-OPT2: addiu sp,sp,-376
-; MIPS32-OPT2: addiu a0,sp,32
-; MIPS32-OPTM1: addiu sp,sp,-392
+; MIPS32-OPT2: addiu sp,sp,-384
+; MIPS32-OPT2: addiu a0,sp,16
+; MIPS32-OPTM1: addiu sp,sp,-400
 ; MIPS32-OPTM1: addiu [[REG:.*]],sp,32
 ; MIPS32-OPTM1: sw [[REG]],{{.*}}
 ; MIPS32-OPTM1: lw a0,{{.*}}

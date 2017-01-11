@@ -31,7 +31,7 @@ entry:
 
 ; ASM-LABEL: fcmpFalseFloat:
 ; ASM-NEXT: .LfcmpFalseFloat$entry:
-; ASM-NEXT: 	addiu	$v0, $zero, 0
+; ASM: 	addiu	$v0, $zero, 0
 ; ASM-NEXT: 	andi	$v0, $v0, 1
 ; ASM-NEXT: 	jr	$ra
 
@@ -64,7 +64,7 @@ entry:
 
 ; ASM-LABEL: fcmpFalseDouble:
 ; ASM-NEXT: .LfcmpFalseDouble$entry:
-; ASM-NEXT: 	addiu	$v0, $zero, 0
+; ASM: 	addiu	$v0, $zero, 0
 ; ASM-NEXT: 	andi	$v0, $v0, 1
 ; ASM-NEXT: 	jr	$ra
 
@@ -97,9 +97,9 @@ entry:
 
 ; ASM-LABEL: fcmpOeqFloat
 ; ASM-NEXT: .LfcmpOeqFloat$entry:
-; ASM-NEXT: 	c.eq.s	$f12, $f14
-; ASM-NEXT: 	addiu	$v0, $zero, 1
-; ASM-NEXT: 	movf	$v0, $zero, $fcc0
+; ASM: 	c.eq.s	$f12, $f14
+; ASM: 	addiu	$v0, $zero, 1
+; ASM: 	movf	$v0, $zero, $fcc0
 ; ASM-NEXT: 	andi	$v0, $v0, 1
 ; ASM-NEXT: 	jr	$ra
 
@@ -142,9 +142,9 @@ entry:
 
 ; ASM-LABEL: fcmpOeqDouble
 ; ASM-NEXT: .LfcmpOeqDouble$entry:
-; ASM-NEXT: 	c.eq.d	$f12, $f14
-; ASM-NEXT: 	addiu	$v0, $zero, 1
-; ASM-NEXT: 	movf	$v0, $zero, $fcc0
+; ASM: 	c.eq.d	$f12, $f14
+; ASM: 	addiu	$v0, $zero, 1
+; ASM: 	movf	$v0, $zero, $fcc0
 ; ASM-NEXT: 	andi	$v0, $v0, 1
 ; ASM-NEXT: 	jr	$ra
 
@@ -187,9 +187,9 @@ entry:
 
 ; ASM-LABEL: fcmpOgtFloat
 ; ASM-NEXT: .LfcmpOgtFloat$entry:
-; ASM-NEXT: 	c.ule.s	$f12, $f14
-; ASM-NEXT: 	addiu	$v0, $zero, 1
-; ASM-NEXT: 	movt	$v0, $zero, $fcc0
+; ASM: 	c.ule.s	$f12, $f14
+; ASM: 	addiu	$v0, $zero, 1
+; ASM: 	movt	$v0, $zero, $fcc0
 ; ASM-NEXT: 	andi	$v0, $v0, 1
 ; ASM-NEXT: 	jr	$ra
 
@@ -232,9 +232,9 @@ entry:
 
 ; ASM-LABEL: fcmpOgtDouble
 ; ASM-NEXT: .LfcmpOgtDouble$entry:
-; ASM-NEXT: 	c.ule.d	$f12, $f14
-; ASM-NEXT: 	addiu	$v0, $zero, 1
-; ASM-NEXT: 	movt	$v0, $zero, $fcc0
+; ASM: 	c.ule.d	$f12, $f14
+; ASM: 	addiu	$v0, $zero, 1
+; ASM: 	movt	$v0, $zero, $fcc0
 ; ASM-NEXT: 	andi	$v0, $v0, 1
 ; ASM-NEXT: 	jr	$ra
 
@@ -277,9 +277,9 @@ entry:
 
 ; ASM-LABEL: fcmpOgeFloat
 ; ASM-NEXT: .LfcmpOgeFloat$entry:
-; ASM-NEXT: 	c.ult.s	$f12, $f14
-; ASM-NEXT: 	addiu	$v0, $zero, 1
-; ASM-NEXT: 	movt	$v0, $zero, $fcc0
+; ASM: 	c.ult.s	$f12, $f14
+; ASM: 	addiu	$v0, $zero, 1
+; ASM: 	movt	$v0, $zero, $fcc0
 ; ASM-NEXT: 	andi	$v0, $v0, 1
 ; ASM-NEXT: 	jr	$ra
 
@@ -322,9 +322,9 @@ entry:
 
 ; ASM-LABEL: fcmpOgeDouble
 ; ASM-NEXT: .LfcmpOgeDouble$entry:
-; ASM-NEXT: 	c.ult.d	$f12, $f14
-; ASM-NEXT: 	addiu	$v0, $zero, 1
-; ASM-NEXT: 	movt	$v0, $zero, $fcc0
+; ASM: 	c.ult.d	$f12, $f14
+; ASM: 	addiu	$v0, $zero, 1
+; ASM: 	movt	$v0, $zero, $fcc0
 ; ASM-NEXT: 	andi	$v0, $v0, 1
 ; ASM-NEXT: 	jr	$ra
 
@@ -367,9 +367,9 @@ entry:
 
 ; ASM-LABEL: fcmpOltFloat
 ; ASM-NEXT: .LfcmpOltFloat$entry:
-; ASM-NEXT: 	c.olt.s	$f12, $f14
-; ASM-NEXT: 	addiu	$v0, $zero, 1
-; ASM-NEXT: 	movf	$v0, $zero, $fcc0
+; ASM: 	c.olt.s	$f12, $f14
+; ASM: 	addiu	$v0, $zero, 1
+; ASM: 	movf	$v0, $zero, $fcc0
 ; ASM-NEXT: 	andi	$v0, $v0, 1
 ; ASM-NEXT: 	jr	$ra
 
@@ -412,9 +412,9 @@ entry:
 
 ; ASM-LABEL: fcmpOltDouble
 ; ASM-NEXT: .LfcmpOltDouble$entry:
-; ASM-NEXT: 	c.olt.d	$f12, $f14
-; ASM-NEXT: 	addiu	$v0, $zero, 1
-; ASM-NEXT: 	movf	$v0, $zero, $fcc0
+; ASM: 	c.olt.d	$f12, $f14
+; ASM: 	addiu	$v0, $zero, 1
+; ASM: 	movf	$v0, $zero, $fcc0
 ; ASM-NEXT: 	andi	$v0, $v0, 1
 ; ASM-NEXT: 	jr	$ra
 
@@ -457,9 +457,9 @@ entry:
 
 ; ASM-LABEL: fcmpOleFloat
 ; ASM-NEXT: .LfcmpOleFloat$entry:
-; ASM-NEXT: 	c.ole.s	$f12, $f14
-; ASM-NEXT: 	addiu	$v0, $zero, 1
-; ASM-NEXT: 	movf	$v0, $zero, $fcc0
+; ASM: 	c.ole.s	$f12, $f14
+; ASM: 	addiu	$v0, $zero, 1
+; ASM: 	movf	$v0, $zero, $fcc0
 ; ASM-NEXT: 	andi	$v0, $v0, 1
 ; ASM-NEXT: 	jr	$ra
 
@@ -502,9 +502,9 @@ entry:
 
 ; ASM-LABEL: fcmpOleDouble
 ; ASM-NEXT: .LfcmpOleDouble$entry:
-; ASM-NEXT: 	c.ole.d	$f12, $f14
-; ASM-NEXT: 	addiu	$v0, $zero, 1
-; ASM-NEXT: 	movf	$v0, $zero, $fcc0
+; ASM: 	c.ole.d	$f12, $f14
+; ASM: 	addiu	$v0, $zero, 1
+; ASM: 	movf	$v0, $zero, $fcc0
 ; ASM-NEXT: 	andi	$v0, $v0, 1
 ; ASM-NEXT: 	jr	$ra
 
@@ -547,9 +547,9 @@ entry:
 
 ; ASM-LABEL: fcmpOneFloat
 ; ASM-NEXT: .LfcmpOneFloat$entry:
-; ASM-NEXT: 	c.ueq.s	$f12, $f14
-; ASM-NEXT: 	addiu	$v0, $zero, 1
-; ASM-NEXT: 	movt	$v0, $zero, $fcc0
+; ASM: 	c.ueq.s	$f12, $f14
+; ASM: 	addiu	$v0, $zero, 1
+; ASM: 	movt	$v0, $zero, $fcc0
 ; ASM-NEXT: 	andi	$v0, $v0, 1
 ; ASM-NEXT: 	jr	$ra
 
@@ -592,9 +592,9 @@ entry:
 
 ; ASM-LABEL: fcmpOneDouble
 ; ASM-NEXT: .LfcmpOneDouble$entry:
-; ASM-NEXT: 	c.ueq.d	$f12, $f14
-; ASM-NEXT: 	addiu	$v0, $zero, 1
-; ASM-NEXT: 	movt	$v0, $zero, $fcc0
+; ASM: 	c.ueq.d	$f12, $f14
+; ASM: 	addiu	$v0, $zero, 1
+; ASM: 	movt	$v0, $zero, $fcc0
 ; ASM-NEXT: 	andi	$v0, $v0, 1
 ; ASM-NEXT: 	jr	$ra
 
@@ -637,9 +637,9 @@ entry:
 
 ; ASM-LABEL: fcmpOrdFloat:
 ; ASM-NEXT: .LfcmpOrdFloat$entry:
-; ASM-NEXT: 	c.un.s	$f12, $f14
-; ASM-NEXT: 	addiu	$v0, $zero, 1
-; ASM-NEXT: 	movt	$v0, $zero, $fcc0
+; ASM: 	c.un.s	$f12, $f14
+; ASM: 	addiu	$v0, $zero, 1
+; ASM: 	movt	$v0, $zero, $fcc0
 ; ASM-NEXT: 	andi	$v0, $v0, 1
 ; ASM-NEXT: 	jr	$ra
 
@@ -682,9 +682,9 @@ entry:
 
 ; ASM-LABEL: fcmpOrdDouble:
 ; ASM-NEXT: .LfcmpOrdDouble$entry:
-; ASM-NEXT: 	c.un.d	$f12, $f14
-; ASM-NEXT: 	addiu	$v0, $zero, 1
-; ASM-NEXT: 	movt	$v0, $zero, $fcc0
+; ASM: 	c.un.d	$f12, $f14
+; ASM: 	addiu	$v0, $zero, 1
+; ASM: 	movt	$v0, $zero, $fcc0
 ; ASM-NEXT: 	andi	$v0, $v0, 1
 ; ASM-NEXT: 	jr	$ra
 
@@ -727,9 +727,9 @@ entry:
 
 ; ASM-LABEL: fcmpUeqFloat
 ; ASM-NEXT: .LfcmpUeqFloat$entry:
-; ASM-NEXT: 	c.ueq.s	$f12, $f14
-; ASM-NEXT: 	addiu	$v0, $zero, 1
-; ASM-NEXT: 	movf	$v0, $zero, $fcc0
+; ASM: 	c.ueq.s	$f12, $f14
+; ASM: 	addiu	$v0, $zero, 1
+; ASM: 	movf	$v0, $zero, $fcc0
 ; ASM-NEXT: 	andi	$v0, $v0, 1
 ; ASM-NEXT: 	jr	$ra
 
@@ -772,9 +772,9 @@ entry:
 
 ; ASM-LABEL: fcmpUeqDouble
 ; ASM-NEXT: .LfcmpUeqDouble$entry:
-; ASM-NEXT: 	c.ueq.d	$f12, $f14
-; ASM-NEXT: 	addiu	$v0, $zero, 1
-; ASM-NEXT: 	movf	$v0, $zero, $fcc0
+; ASM: 	c.ueq.d	$f12, $f14
+; ASM: 	addiu	$v0, $zero, 1
+; ASM: 	movf	$v0, $zero, $fcc0
 ; ASM-NEXT: 	andi	$v0, $v0, 1
 ; ASM-NEXT: 	jr	$ra
 
@@ -817,9 +817,9 @@ entry:
 
 ; ASM-LABEL: fcmpUgtFloat
 ; ASM-NEXT: .LfcmpUgtFloat$entry:
-; ASM-NEXT: 	c.ole.s	$f12, $f14
-; ASM-NEXT: 	addiu	$v0, $zero, 1
-; ASM-NEXT: 	movt	$v0, $zero, $fcc0
+; ASM: 	c.ole.s	$f12, $f14
+; ASM: 	addiu	$v0, $zero, 1
+; ASM: 	movt	$v0, $zero, $fcc0
 ; ASM-NEXT: 	andi	$v0, $v0, 1
 ; ASM-NEXT: 	jr	$ra
 
@@ -862,9 +862,9 @@ entry:
 
 ; ASM-LABEL: fcmpUgtDouble
 ; ASM-NEXT: .LfcmpUgtDouble$entry:
-; ASM-NEXT: 	c.ole.d	$f12, $f14
-; ASM-NEXT: 	addiu	$v0, $zero, 1
-; ASM-NEXT: 	movt	$v0, $zero, $fcc0
+; ASM: 	c.ole.d	$f12, $f14
+; ASM: 	addiu	$v0, $zero, 1
+; ASM: 	movt	$v0, $zero, $fcc0
 ; ASM-NEXT: 	andi	$v0, $v0, 1
 ; ASM-NEXT: 	jr	$ra
 
@@ -907,9 +907,9 @@ entry:
 
 ; ASM-LABEL: fcmpUgeFloat
 ; ASM-NEXT: .LfcmpUgeFloat$entry:
-; ASM-NEXT: 	c.olt.s	$f12, $f14
-; ASM-NEXT: 	addiu	$v0, $zero, 1
-; ASM-NEXT: 	movt	$v0, $zero, $fcc0
+; ASM: 	c.olt.s	$f12, $f14
+; ASM: 	addiu	$v0, $zero, 1
+; ASM: 	movt	$v0, $zero, $fcc0
 ; ASM-NEXT: 	andi	$v0, $v0, 1
 ; ASM-NEXT: 	jr	$ra
 
@@ -952,9 +952,9 @@ entry:
 
 ; ASM-LABEL: fcmpUgeDouble
 ; ASM-NEXT: .LfcmpUgeDouble$entry:
-; ASM-NEXT: 	c.olt.d	$f12, $f14
-; ASM-NEXT: 	addiu	$v0, $zero, 1
-; ASM-NEXT: 	movt	$v0, $zero, $fcc0
+; ASM: 	c.olt.d	$f12, $f14
+; ASM: 	addiu	$v0, $zero, 1
+; ASM: 	movt	$v0, $zero, $fcc0
 ; ASM-NEXT: 	andi	$v0, $v0, 1
 ; ASM-NEXT: 	jr	$ra
 
@@ -997,9 +997,9 @@ entry:
 
 ; ASM-LABEL: fcmpUltFloat
 ; ASM-NEXT: .LfcmpUltFloat$entry:
-; ASM-NEXT: 	c.ult.s	$f12, $f14
-; ASM-NEXT: 	addiu	$v0, $zero, 1
-; ASM-NEXT: 	movf	$v0, $zero, $fcc0
+; ASM: 	c.ult.s	$f12, $f14
+; ASM: 	addiu	$v0, $zero, 1
+; ASM: 	movf	$v0, $zero, $fcc0
 ; ASM-NEXT: 	andi	$v0, $v0, 1
 ; ASM-NEXT: 	jr	$ra
 
@@ -1042,9 +1042,9 @@ entry:
 
 ; ASM-LABEL: fcmpUltDouble
 ; ASM-NEXT: .LfcmpUltDouble$entry:
-; ASM-NEXT: 	c.ult.d	$f12, $f14
-; ASM-NEXT: 	addiu	$v0, $zero, 1
-; ASM-NEXT: 	movf	$v0, $zero, $fcc0
+; ASM: 	c.ult.d	$f12, $f14
+; ASM: 	addiu	$v0, $zero, 1
+; ASM: 	movf	$v0, $zero, $fcc0
 ; ASM-NEXT: 	andi	$v0, $v0, 1
 ; ASM-NEXT: 	jr	$ra
 
@@ -1087,9 +1087,9 @@ entry:
 
 ; ASM-LABEL: fcmpUleFloat
 ; ASM-NEXT: .LfcmpUleFloat$entry:
-; ASM-NEXT: 	c.ule.s	$f12, $f14
-; ASM-NEXT: 	addiu	$v0, $zero, 1
-; ASM-NEXT: 	movf	$v0, $zero, $fcc0
+; ASM: 	c.ule.s	$f12, $f14
+; ASM: 	addiu	$v0, $zero, 1
+; ASM: 	movf	$v0, $zero, $fcc0
 ; ASM-NEXT: 	andi	$v0, $v0, 1
 ; ASM-NEXT: 	jr	$ra
 
@@ -1132,9 +1132,9 @@ entry:
 
 ; ASM-LABEL: fcmpUleDouble
 ; ASM-NEXT: .LfcmpUleDouble$entry:
-; ASM-NEXT: 	c.ule.d	$f12, $f14
-; ASM-NEXT: 	addiu	$v0, $zero, 1
-; ASM-NEXT: 	movf	$v0, $zero, $fcc0
+; ASM: 	c.ule.d	$f12, $f14
+; ASM: 	addiu	$v0, $zero, 1
+; ASM: 	movf	$v0, $zero, $fcc0
 ; ASM-NEXT: 	andi	$v0, $v0, 1
 ; ASM-NEXT: 	jr	$ra
 
@@ -1177,9 +1177,9 @@ entry:
 
 ; ASM-LABEL: fcmpUneFloat
 ; ASM-NEXT: .LfcmpUneFloat$entry:
-; ASM-NEXT: 	c.eq.s	$f12, $f14
-; ASM-NEXT: 	addiu	$v0, $zero, 1
-; ASM-NEXT: 	movt	$v0, $zero, $fcc0
+; ASM: 	c.eq.s	$f12, $f14
+; ASM: 	addiu	$v0, $zero, 1
+; ASM: 	movt	$v0, $zero, $fcc0
 ; ASM-NEXT: 	andi	$v0, $v0, 1
 ; ASM-NEXT: 	jr	$ra
 
@@ -1222,9 +1222,9 @@ entry:
 
 ; ASM-LABEL: fcmpUneDouble
 ; ASM-NEXT: .LfcmpUneDouble$entry:
-; ASM-NEXT: 	c.eq.d	$f12, $f14
-; ASM-NEXT: 	addiu	$v0, $zero, 1
-; ASM-NEXT: 	movt	$v0, $zero, $fcc0
+; ASM: 	c.eq.d	$f12, $f14
+; ASM: 	addiu	$v0, $zero, 1
+; ASM: 	movt	$v0, $zero, $fcc0
 ; ASM-NEXT: 	andi	$v0, $v0, 1
 ; ASM-NEXT: 	jr	$ra
 
@@ -1267,9 +1267,9 @@ entry:
 
 ; ASM-LABEL: fcmpUnoFloat
 ; ASM-NEXT: .LfcmpUnoFloat$entry:
-; ASM-NEXT: 	c.un.s	$f12, $f14
-; ASM-NEXT: 	addiu	$v0, $zero, 1
-; ASM-NEXT: 	movf	$v0, $zero, $fcc0
+; ASM: 	c.un.s	$f12, $f14
+; ASM: 	addiu	$v0, $zero, 1
+; ASM: 	movf	$v0, $zero, $fcc0
 ; ASM-NEXT: 	andi	$v0, $v0, 1
 ; ASM-NEXT: 	jr	$ra
 
@@ -1312,9 +1312,9 @@ entry:
 
 ; ASM-LABEL: fcmpUnoDouble
 ; ASM-NEXT: .LfcmpUnoDouble$entry:
-; ASM-NEXT: 	c.un.d	$f12, $f14
-; ASM-NEXT: 	addiu	$v0, $zero, 1
-; ASM-NEXT: 	movf	$v0, $zero, $fcc0
+; ASM: 	c.un.d	$f12, $f14
+; ASM: 	addiu	$v0, $zero, 1
+; ASM: 	movf	$v0, $zero, $fcc0
 ; ASM-NEXT: 	andi	$v0, $v0, 1
 ; ASM-NEXT: 	jr	$ra
 
@@ -1357,7 +1357,7 @@ entry:
 
 ; ASM-LABEL: fcmpTrueFloat
 ; ASM-NEXT: .LfcmpTrueFloat$entry:
-; ASM-NEXT: 	addiu	$v0, $zero, 1
+; ASM: 	addiu	$v0, $zero, 1
 ; ASM-NEXT: 	andi	$v0, $v0, 1
 ; ASM-NEXT: 	jr	$ra
 
@@ -1390,7 +1390,7 @@ entry:
 
 ; ASM-LABEL: fcmpTrueDouble
 ; ASM-NEXT: .LfcmpTrueDouble$entry:
-; ASM-NEXT: 	addiu	$v0, $zero, 1
+; ASM: 	addiu	$v0, $zero, 1
 ; ASM-NEXT: 	andi	$v0, $v0, 1
 ; ASM-NEXT: 	jr	$ra
 

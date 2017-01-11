@@ -65,8 +65,10 @@ entry:
 ; ARM32-LABEL: cast_d2ll
 ; ARM32: vmov r{{[0-9]+}}, r{{[0-9]+}}, d{{[0-9]+}}
 ; MIPS32-LABEL: cast_d2ll
-; MIPS32-O2: mfc1 $v1, $f{{[0-9]+}}
-; MIPS32-O2: mfc1 $v0, $f{{[0-9]+}}
+; MIPS32-O2: swc1 $f13, {{.*}}
+; MIPS32-O2: swc1 $f12, {{.*}}
+; MIPS32-O2: lw $v0, {{.*}}
+; MIPS32-O2: lw $v1, {{.*}}
 ; MIPS32-OM1: sdc1
 ; MIPS32-OM1: lw
 ; MIPS32-OM1: lw
@@ -87,12 +89,10 @@ entry:
 ; MIPS32-LABEL: cast_d2ll_const
 ; MIPS32: lui {{.*}}, %hi(.L$double$0012345678901234)
 ; MIPS32: ldc1 {{.*}}, %lo(.L$double$0012345678901234)({{.*}})
-; MIPS32-O2: mfc1 $v1, $f{{[0-9]+}}
-; MIPS32-O2: mfc1 $v0, $f{{[0-9]+}}
-; MIPS32-OM1: mfc1
-; MIPS32-OM1: mfc1
-; MIPS32-OM1: lw
-; MIPS32-OM1: lw
+; MIPS32: swc1 $f{{[0-9]+}}, {{.*}}
+; MIPS32: swc1 $f{{[0-9]+}}, {{.*}}
+; MIPS32: lw $v0, {{.*}}
+; MIPS32: lw $v1, {{.*}}
 
 define internal double @cast_ll2d(i64 %ll) {
 entry:

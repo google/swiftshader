@@ -41,6 +41,7 @@ entry:
 
 ; ASM-LABEL: encBswap16
 ; ASM-NEXT: .LencBswap16$entry:
+; ASM-NEXT: 	andi	$a0, $a0, 65535
 ; ASM-NEXT: 	sll	$v0, $a0, 8
 ; ASM-NEXT: 	lui	$v1, 255
 ; ASM-NEXT: 	and	$v0, $v0, $v1
@@ -51,6 +52,7 @@ entry:
 ; ASM-NEXT: 	jr	$ra
 
 ; DIS-LABEL: <encBswap16>:
+; DIS-NEXT:  3084ffff 	andi	a0,a0,0xffff
 ; DIS-NEXT:  00041200 	sll	v0,a0,0x8
 ; DIS-NEXT:  3c0300ff 	lui	v1,0xff
 ; DIS-NEXT:  00431024 	and	v0,v0,v1
@@ -62,6 +64,10 @@ entry:
 
 ; IASM-LABEL: encBswap16
 ; IASM-NEXT: .LencBswap16$entry:
+; IASM-NEXT: 	.byte 0xff
+; IASM-NEXT: 	.byte 0xff
+; IASM-NEXT: 	.byte 0x84
+; IASM-NEXT: 	.byte 0x30
 ; IASM-NEXT: 	.byte 0x0
 ; IASM-NEXT: 	.byte 0x12
 ; IASM-NEXT: 	.byte 0x4
@@ -576,7 +582,7 @@ entry:
 ; ASM-NEXT: 	clz	$a0, $a0
 ; ASM-NEXT: 	addiu	$a0, $a0, 32
 ; ASM-NEXT: 	movn	$a0, $v0, $a1
-; ASM-NEXT: 	addiu	$v0, $zero, 0
+; ASM:      	addiu	$v0, $zero, 0
 ; ASM-NEXT: 	move	$v1, $v0
 ; ASM-NEXT: 	move	$v0, $a0
 ; ASM-NEXT: 	jr	$ra
@@ -705,10 +711,10 @@ entry:
 ; ASM-LABEL: encCttz32
 ; ASM-NEXT: .LencCttz32$entry:
 ; ASM-NEXT: 	addiu	$v0, $a0, -1
-; ASM-NEXT: 	nor	$a0, $a0, $zero
+; ASM: 	nor	$a0, $a0, $zero
 ; ASM-NEXT: 	and	$a0, $a0, $v0
 ; ASM-NEXT: 	clz	$a0, $a0
-; ASM-NEXT: 	addiu	$v0, $zero, 32
+; ASM: 	addiu	$v0, $zero, 32
 ; ASM-NEXT: 	subu	$v0, $v0, $a0
 ; ASM-NEXT: 	jr	$ra
 
@@ -763,10 +769,10 @@ entry:
 ; ASM-NEXT: 	lui     $v0, 1
 ; ASM-NEXT: 	ori     $v0, $v0, 57920
 ; ASM-NEXT: 	addiu   $v1, $v0, -1
-; ASM-NEXT: 	nor     $v0, $v0, $zero
+; ASM: 	nor     $v0, $v0, $zero
 ; ASM-NEXT: 	and     $v0, $v0, $v1
 ; ASM-NEXT: 	clz     $v0, $v0
-; ASM-NEXT: 	addiu   $v1, $zero, 32
+; ASM: 	addiu   $v1, $zero, 32
 ; ASM-NEXT: 	subu    $v1, $v1, $v0
 ; ASM-NEXT: 	move    $v0, $v1
 ; ASM-NEXT: 	jr      $ra
@@ -835,19 +841,19 @@ entry:
 ; ASM-LABEL: encCttz64
 ; ASM-NEXT: .LencCttz64$entry:
 ; ASM-NEXT: 	addiu   $v0, $a1, -1
-; ASM-NEXT: 	nor     $a1, $a1, $zero
+; ASM: 	nor     $a1, $a1, $zero
 ; ASM-NEXT: 	and     $a1, $a1, $v0
 ; ASM-NEXT: 	clz     $a1, $a1
-; ASM-NEXT: 	addiu   $v0, $zero, 64
+; ASM: 	addiu   $v0, $zero, 64
 ; ASM-NEXT: 	subu    $v0, $v0, $a1
 ; ASM-NEXT: 	addiu   $v1, $a0, -1
-; ASM-NEXT: 	nor     $a1, $a0, $zero
+; ASM: 	nor     $a1, $a0, $zero
 ; ASM-NEXT: 	and     $a1, $a1, $v1
 ; ASM-NEXT: 	clz     $a1, $a1
-; ASM-NEXT: 	addiu   $v1, $zero, 32
+; ASM: 	addiu   $v1, $zero, 32
 ; ASM-NEXT: 	subu    $v1, $v1, $a1
 ; ASM-NEXT: 	movn    $v0, $v1, $a0
-; ASM-NEXT: 	addiu   $v1, $zero, 0
+; ASM: 	addiu   $v1, $zero, 0
 ; ASM-NEXT: 	jr      $ra
 
 ; DIS-LABEL:  <encCttz64>:
@@ -944,19 +950,19 @@ entry:
 ; ASM-NEXT: 	lui     $v1, 48793
 ; ASM-NEXT: 	ori     $v1, $v1, 6676
 ; ASM-NEXT: 	addiu   $a0, $v0, -1
-; ASM-NEXT: 	nor     $v0, $v0, $zero
+; ASM: 	nor     $v0, $v0, $zero
 ; ASM-NEXT: 	and     $v0, $v0, $a0
 ; ASM-NEXT: 	clz     $v0, $v0
-; ASM-NEXT: 	addiu   $a0, $zero, 64
+; ASM: 	addiu   $a0, $zero, 64
 ; ASM-NEXT: 	subu    $a0, $a0, $v0
 ; ASM-NEXT: 	addiu   $v0, $v1, -1
-; ASM-NEXT: 	nor     $a1, $v1, $zero
+; ASM: 	nor     $a1, $v1, $zero
 ; ASM-NEXT: 	and     $a1, $a1, $v0
 ; ASM-NEXT: 	clz     $a1, $a1
-; ASM-NEXT: 	addiu   $v0, $zero, 32
+; ASM: 	addiu   $v0, $zero, 32
 ; ASM-NEXT: 	subu    $v0, $v0, $a1
 ; ASM-NEXT: 	movn    $a0, $v0, $v1
-; ASM-NEXT: 	addiu   $v0, $zero, 0
+; ASM: 	addiu   $v0, $zero, 0
 ; ASM-NEXT: 	move    $v1, $v0
 ; ASM-NEXT: 	move    $v0, $a0
 ; ASM-NEXT: 	jr      $ra
@@ -1072,7 +1078,7 @@ define internal void @encTrap() {
 
 ; ASM-LABEL: encTrap
 ; ASM-NEXT: .LencTrap$__0:
-; ASM-NEXT: 	teq	$zero, $zero, 0
+; ASM: 	teq	$zero, $zero, 0
 
 ; DIS-LABEL: <encTrap>:
 ; DIS-NEXT:  00000034 	teq	zero,zero

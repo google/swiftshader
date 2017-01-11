@@ -97,7 +97,7 @@ uint32_t applyStackAlignmentTy(uint32_t Value, Type Ty) {
   size_t typeAlignInBytes = typeWidthInBytes(Ty);
   // Vectors are stored on stack with the same alignment as that of int type
   if (isVectorType(Ty))
-    typeAlignInBytes = typeWidthInBytes(IceType_i32);
+    typeAlignInBytes = typeWidthInBytes(IceType_i64);
   return Utils::applyAlignment(Value, typeAlignInBytes);
 }
 
@@ -240,7 +240,7 @@ uint32_t TargetMIPS32::getCallStackArgumentsSizeBytes(const InstCall *Call) {
       // If PartialOnStack is true and if this is a vector type then last two
       // elements are on stack
       if (PartialOnStack && isVectorType(Ty)) {
-        OutArgsSizeBytes = applyStackAlignmentTy(OutArgsSizeBytes, IceType_i32);
+        OutArgsSizeBytes = applyStackAlignmentTy(OutArgsSizeBytes, IceType_i64);
         OutArgsSizeBytes += typeWidthInBytesOnStack(IceType_i32) * 2;
       }
       continue;
@@ -987,7 +987,6 @@ Operand *TargetMIPS32::legalizeUndef(Operand *From, RegNumT RegNum) {
       auto *Reg = llvm::cast<VariableVecOn32>(Var);
       Reg->initVecElement(Func);
       auto *Zero = getZero();
-      Context.insert<InstFakeDef>(Zero);
       for (Variable *Var : Reg->getContainers()) {
         _mov(Var, Zero);
       }
@@ -1475,7 +1474,7 @@ void TargetMIPS32::addProlog(CfgNode *Node) {
   // prolog/epilog.
   using RegClassType = std::tuple<uint32_t, uint32_t, VarList *>;
   const RegClassType RegClass = RegClassType(
-      RegMIPS32::Reg_GPR_First, RegMIPS32::Reg_GPR_Last, &PreservedGPRs);
+      RegMIPS32::Reg_GPR_First, RegMIPS32::Reg_FPR_Last, &PreservedGPRs);
   const uint32_t FirstRegInClass = std::get<0>(RegClass);
   const uint32_t LastRegInClass = std::get<1>(RegClass);
   VarList *const PreservedRegsInClass = std::get<2>(RegClass);
@@ -1520,7 +1519,8 @@ void TargetMIPS32::addProlog(CfgNode *Node) {
   // Combine fixed alloca with SpillAreaSize.
   SpillAreaSizeBytes += FixedAllocaSizeBytes;
 
-  TotalStackSizeBytes = PreservedRegsSizeBytes + SpillAreaSizeBytes;
+  TotalStackSizeBytes =
+      applyStackAlignment(PreservedRegsSizeBytes + SpillAreaSizeBytes);
 
   // Generate "addiu sp, sp, -TotalStackSizeBytes"
   if (TotalStackSizeBytes) {
@@ -1533,11 +1533,16 @@ void TargetMIPS32::addProlog(CfgNode *Node) {
   if (!PreservedGPRs.empty()) {
     uint32_t StackOffset = TotalStackSizeBytes;
     for (Variable *Var : *PreservedRegsInClass) {
-      Variable *PhysicalRegister = getPhysicalRegister(Var->getRegNum());
-      StackOffset -= typeWidthInBytesOnStack(PhysicalRegister->getType());
+      Type RegType;
+      if (RegMIPS32::isFPRReg(Var->getRegNum()))
+        RegType = IceType_f32;
+      else
+        RegType = IceType_i32;
+      auto *PhysicalRegister = makeReg(RegType, Var->getRegNum());
+      StackOffset -= typeWidthInBytesOnStack(RegType);
       Variable *SP = getPhysicalRegister(RegMIPS32::Reg_SP);
       OperandMIPS32Mem *MemoryLocation = OperandMIPS32Mem::create(
-          Func, IceType_i32, SP,
+          Func, RegType, SP,
           llvm::cast<ConstantInteger32>(Ctx->getConstantInt32(StackOffset)));
       Sandboxer(this).sw(PhysicalRegister, MemoryLocation);
     }
@@ -1652,10 +1657,15 @@ void TargetMIPS32::addEpilog(CfgNode *Node) {
     uint32_t StackOffset = TotalStackSizeBytes - PreservedRegsSizeBytes;
     for (RIter = PreservedGPRs.rbegin(), END = PreservedGPRs.rend();
          RIter != END; ++RIter) {
-      Variable *PhysicalRegister = getPhysicalRegister((*RIter)->getRegNum());
+      Type RegType;
+      if (RegMIPS32::isFPRReg((*RIter)->getRegNum()))
+        RegType = IceType_f32;
+      else
+        RegType = IceType_i32;
+      auto *PhysicalRegister = makeReg(RegType, (*RIter)->getRegNum());
       Variable *SP = getPhysicalRegister(RegMIPS32::Reg_SP);
       OperandMIPS32Mem *MemoryLocation = OperandMIPS32Mem::create(
-          Func, IceType_i32, SP,
+          Func, RegType, SP,
           llvm::cast<ConstantInteger32>(Ctx->getConstantInt32(StackOffset)));
       _lw(PhysicalRegister, MemoryLocation);
       StackOffset += typeWidthInBytesOnStack(PhysicalRegister->getType());
@@ -1703,6 +1713,39 @@ Variable *TargetMIPS32::PostLoweringLegalizer::newBaseRegister(
   return ScratchReg;
 }
 
+void TargetMIPS32::PostLoweringLegalizer::legalizeMovFp(
+    InstMIPS32MovFP64ToI64 *MovInstr) {
+  Variable *Dest = MovInstr->getDest();
+  Operand *Src = MovInstr->getSrc(0);
+  const Type SrcTy = Src->getType();
+
+  if (Dest != nullptr && SrcTy == IceType_f64) {
+    int32_t Offset = Dest->getStackOffset();
+    auto *Base = Target->getPhysicalRegister(Target->getFrameOrStackReg());
+    OperandMIPS32Mem *TAddr = OperandMIPS32Mem::create(
+        Target->Func, IceType_f32, Base,
+        llvm::cast<ConstantInteger32>(Target->Ctx->getConstantInt32(Offset)));
+    OperandMIPS32Mem *Addr = legalizeMemOperand(TAddr);
+    auto *SrcV = llvm::cast<Variable>(Src);
+    Variable *SrcR;
+    if (MovInstr->getInt64Part() == Int64_Lo) {
+      SrcR = Target->makeReg(
+          IceType_f32, RegMIPS32::get64PairFirstRegNum(SrcV->getRegNum()));
+    } else {
+      SrcR = Target->makeReg(
+          IceType_f32, RegMIPS32::get64PairSecondRegNum(SrcV->getRegNum()));
+    }
+    Sandboxer(Target).sw(SrcR, Addr);
+    if (MovInstr->isDestRedefined()) {
+      Target->_set_dest_redefined();
+    }
+    MovInstr->setDeleted();
+    return;
+  }
+
+  llvm::report_fatal_error("legalizeMovFp: Invalid operands");
+}
+
 void TargetMIPS32::PostLoweringLegalizer::legalizeMov(InstMIPS32Mov *MovInstr) {
   Variable *Dest = MovInstr->getDest();
   assert(Dest != nullptr);
@@ -1747,8 +1790,8 @@ void TargetMIPS32::PostLoweringLegalizer::legalizeMov(InstMIPS32Mov *MovInstr) {
             DstFPRLo = Target->makeReg(
                 IceType_i32, RegMIPS32::get64PairSecondRegNum(DRegNum));
           }
-          Target->_mov(DstFPRHi, SrcGPRLo);
-          Target->_mov(DstFPRLo, SrcGPRHi);
+          Target->_mov(DstFPRHi, SrcGPRHi);
+          Target->_mov(DstFPRLo, SrcGPRLo);
           Legalized = true;
         } else {
           Variable *SrcGPR = Target->makeReg(IceType_f32, SRegNum);
@@ -1860,9 +1903,10 @@ void TargetMIPS32::PostLoweringLegalizer::legalizeMov(InstMIPS32Mov *MovInstr) {
 
       // ExtraOffset is only needed for stack-pointer based frames as we have
       // to account for spill storage.
-      const int32_t ExtraOffset = (Var->getRegNum() == Target->getStackReg())
-                                      ? Target->getFrameFixedAllocaOffset()
-                                      : 0;
+      const int32_t ExtraOffset =
+          (Var->getRegNum() == Target->getFrameOrStackReg())
+              ? Target->getFrameFixedAllocaOffset()
+              : 0;
 
       const int32_t Offset = Var->getStackOffset() + ExtraOffset;
       Variable *Base = Target->getPhysicalRegister(Var->getRegNum());
@@ -2016,6 +2060,10 @@ void TargetMIPS32::postLowerLegalization() {
       Variable *Dst = CurInstr->getDest();
       if (auto *MovInstr = llvm::dyn_cast<InstMIPS32Mov>(CurInstr)) {
         Legalizer.legalizeMov(MovInstr);
+        continue;
+      }
+      if (auto *MovInstr = llvm::dyn_cast<InstMIPS32MovFP64ToI64>(CurInstr)) {
+        Legalizer.legalizeMovFp(MovInstr);
         continue;
       }
       if (llvm::isa<InstMIPS32Sw>(CurInstr)) {
@@ -2608,15 +2656,24 @@ void TargetMIPS32::lowerArithmetic(const InstArithmetic *Instr) {
 
   switch (Instr->getOp()) {
   case InstArithmetic::Add:
+  case InstArithmetic::Sub: {
+    auto *Const32 = llvm::dyn_cast<ConstantInteger32>(Src1);
+    if (Const32 != nullptr && isInt<16>(int32_t(Const32->getValue()))) {
+      IsSrc1Imm16 = true;
+      Value = Const32->getValue();
+    } else {
+      Src1R = legalizeToReg(Src1);
+    }
+    break;
+  }
   case InstArithmetic::And:
   case InstArithmetic::Or:
   case InstArithmetic::Xor:
-  case InstArithmetic::Sub:
   case InstArithmetic::Shl:
   case InstArithmetic::Lshr:
   case InstArithmetic::Ashr: {
     auto *Const32 = llvm::dyn_cast<ConstantInteger32>(Src1);
-    if (Const32 != nullptr && isInt<16>(int32_t(Const32->getValue()))) {
+    if (Const32 != nullptr && llvm::isUInt<16>(uint32_t(Const32->getValue()))) {
       IsSrc1Imm16 = true;
       Value = Const32->getValue();
     } else {
@@ -2633,14 +2690,25 @@ void TargetMIPS32::lowerArithmetic(const InstArithmetic *Instr) {
   switch (Instr->getOp()) {
   case InstArithmetic::_num:
     break;
-  case InstArithmetic::Add:
+  case InstArithmetic::Add: {
+    auto *T0R = Src0R;
+    auto *T1R = Src1R;
+    if (Dest->getType() != IceType_i32) {
+      T0R = makeReg(IceType_i32);
+      lowerCast(InstCast::create(Func, InstCast::Sext, T0R, Src0R));
+      if (!IsSrc1Imm16) {
+        T1R = makeReg(IceType_i32);
+        lowerCast(InstCast::create(Func, InstCast::Sext, T1R, Src1R));
+      }
+    }
     if (IsSrc1Imm16) {
-      _addiu(T, Src0R, Value);
+      _addiu(T, T0R, Value);
     } else {
-      _addu(T, Src0R, Src1R);
+      _addu(T, T0R, T1R);
     }
     _mov(Dest, T);
     return;
+  }
   case InstArithmetic::And:
     if (IsSrc1Imm16) {
       _andi(T, Src0R, Value);
@@ -2665,14 +2733,25 @@ void TargetMIPS32::lowerArithmetic(const InstArithmetic *Instr) {
     }
     _mov(Dest, T);
     return;
-  case InstArithmetic::Sub:
+  case InstArithmetic::Sub: {
+    auto *T0R = Src0R;
+    auto *T1R = Src1R;
+    if (Dest->getType() != IceType_i32) {
+      T0R = makeReg(IceType_i32);
+      lowerCast(InstCast::create(Func, InstCast::Sext, T0R, Src0R));
+      if (!IsSrc1Imm16) {
+        T1R = makeReg(IceType_i32);
+        lowerCast(InstCast::create(Func, InstCast::Sext, T1R, Src1R));
+      }
+    }
     if (IsSrc1Imm16) {
-      _addiu(T, Src0R, -Value);
+      _addiu(T, T0R, -Value);
     } else {
-      _subu(T, Src0R, Src1R);
+      _subu(T, T0R, T1R);
     }
     _mov(Dest, T);
     return;
+  }
   case InstArithmetic::Mul: {
     _mul(T, Src0R, Src1R);
     _mov(Dest, T);
@@ -2707,10 +2786,20 @@ void TargetMIPS32::lowerArithmetic(const InstArithmetic *Instr) {
     return;
   }
   case InstArithmetic::Ashr: {
+    auto *T0R = Src0R;
+    auto *T1R = Src1R;
+    if (Dest->getType() != IceType_i32) {
+      T0R = makeReg(IceType_i32);
+      lowerCast(InstCast::create(Func, InstCast::Sext, T0R, Src0R));
+      if (!IsSrc1Imm16) {
+        T1R = makeReg(IceType_i32);
+        lowerCast(InstCast::create(Func, InstCast::Sext, T1R, Src1R));
+      }
+    }
     if (IsSrc1Imm16) {
-      _sra(T, Src0R, Value);
+      _sra(T, T0R, Value);
     } else {
-      _srav(T, Src0R, Src1R);
+      _srav(T, T0R, T1R);
     }
     _mov(Dest, T);
     return;
@@ -2733,8 +2822,16 @@ void TargetMIPS32::lowerArithmetic(const InstArithmetic *Instr) {
   }
   case InstArithmetic::Sdiv: {
     auto *T_Zero = I32Reg(RegMIPS32::Reg_ZERO);
-    _div(T_Zero, Src0R, Src1R);
-    _teq(Src1R, T_Zero, DivideByZeroTrapCode); // Trap if divide-by-zero
+    auto *T0R = Src0R;
+    auto *T1R = Src1R;
+    if (Dest->getType() != IceType_i32) {
+      T0R = makeReg(IceType_i32);
+      lowerCast(InstCast::create(Func, InstCast::Sext, T0R, Src0R));
+      T1R = makeReg(IceType_i32);
+      lowerCast(InstCast::create(Func, InstCast::Sext, T1R, Src1R));
+    }
+    _div(T_Zero, T0R, T1R);
+    _teq(T1R, T_Zero, DivideByZeroTrapCode); // Trap if divide-by-zero
     _mflo(T, T_Zero);
     _mov(Dest, T);
     return;
@@ -2757,8 +2854,16 @@ void TargetMIPS32::lowerArithmetic(const InstArithmetic *Instr) {
   }
   case InstArithmetic::Srem: {
     auto *T_Zero = I32Reg(RegMIPS32::Reg_ZERO);
-    _div(T_Zero, Src0R, Src1R);
-    _teq(Src1R, T_Zero, DivideByZeroTrapCode); // Trap if divide-by-zero
+    auto *T0R = Src0R;
+    auto *T1R = Src1R;
+    if (Dest->getType() != IceType_i32) {
+      T0R = makeReg(IceType_i32);
+      lowerCast(InstCast::create(Func, InstCast::Sext, T0R, Src0R));
+      T1R = makeReg(IceType_i32);
+      lowerCast(InstCast::create(Func, InstCast::Sext, T1R, Src1R));
+    }
+    _div(T_Zero, T0R, T1R);
+    _teq(T1R, T_Zero, DivideByZeroTrapCode); // Trap if divide-by-zero
     _mfhi(T, T_Zero);
     _mov(Dest, T);
     return;
@@ -2905,8 +3010,32 @@ void TargetMIPS32::lowerBr(const InstBr *Instr) {
       Src0HiR = legalizeToReg(hiOperand(Src0));
       Src1HiR = legalizeToReg(hiOperand(Src1));
     } else {
-      Src0R = legalizeToReg(Src0);
-      Src1R = legalizeToReg(Src1);
+      auto *Src0RT = legalizeToReg(Src0);
+      auto *Src1RT = legalizeToReg(Src1);
+      // Sign/Zero extend the source operands
+      if (Src0Ty != IceType_i32) {
+        InstCast::OpKind CastKind;
+        switch (CompareInst->getCondition()) {
+        case InstIcmp::Eq:
+        case InstIcmp::Ne:
+        case InstIcmp::Sgt:
+        case InstIcmp::Sge:
+        case InstIcmp::Slt:
+        case InstIcmp::Sle:
+          CastKind = InstCast::Sext;
+          break;
+        default:
+          CastKind = InstCast::Zext;
+          break;
+        }
+        Src0R = makeReg(IceType_i32);
+        Src1R = makeReg(IceType_i32);
+        lowerCast(InstCast::create(Func, CastKind, Src0R, Src0RT));
+        lowerCast(InstCast::create(Func, CastKind, Src1R, Src1RT));
+      } else {
+        Src0R = Src0RT;
+        Src1R = Src1RT;
+      }
     }
     auto *DestT = makeReg(IceType_i32);
 
@@ -3144,9 +3273,9 @@ void TargetMIPS32::lowerCall(const InstCall *Instr) {
     if (!InReg) {
       if (isVectorType(Ty)) {
         auto *ArgVec = llvm::cast<VariableVecOn32>(Arg);
+        ParameterAreaSizeBytes =
+            applyStackAlignmentTy(ParameterAreaSizeBytes, IceType_i64);
         for (Variable *Elem : ArgVec->getContainers()) {
-          ParameterAreaSizeBytes =
-              applyStackAlignmentTy(ParameterAreaSizeBytes, IceType_i32);
           StackArgs.push_back(std::make_pair(Elem, ParameterAreaSizeBytes));
           ParameterAreaSizeBytes += typeWidthInBytesOnStack(IceType_i32);
         }
@@ -3179,11 +3308,9 @@ void TargetMIPS32::lowerCall(const InstCall *Instr) {
             std::make_pair(Elem3, RegNumT::fixme((unsigned)Reg + 3)));
       } else {
         ParameterAreaSizeBytes =
-            applyStackAlignmentTy(ParameterAreaSizeBytes, IceType_i32);
+            applyStackAlignmentTy(ParameterAreaSizeBytes, IceType_i64);
         StackArgs.push_back(std::make_pair(Elem2, ParameterAreaSizeBytes));
         ParameterAreaSizeBytes += typeWidthInBytesOnStack(IceType_i32);
-        ParameterAreaSizeBytes =
-            applyStackAlignmentTy(ParameterAreaSizeBytes, IceType_i32);
         StackArgs.push_back(std::make_pair(Elem3, ParameterAreaSizeBytes));
         ParameterAreaSizeBytes += typeWidthInBytesOnStack(IceType_i32);
       }
@@ -3484,7 +3611,20 @@ void TargetMIPS32::lowerCast(const InstCast *Instr) {
       Src0 = loOperand(Src0);
     Variable *Src0R = legalizeToReg(Src0);
     Variable *T = makeReg(DestTy);
-    _mov(T, Src0R);
+    switch (DestTy) {
+    case IceType_i1:
+      _andi(T, Src0R, 0x1);
+      break;
+    case IceType_i8:
+      _andi(T, Src0R, 0xff);
+      break;
+    case IceType_i16:
+      _andi(T, Src0R, 0xffff);
+      break;
+    default:
+      _mov(T, Src0R);
+      break;
+    }
     _mov(Dest, T);
     break;
   }
@@ -3540,9 +3680,12 @@ void TargetMIPS32::lowerCast(const InstCast *Instr) {
     if (Src0Ty != IceType_i64) {
       Variable *Src0R = legalizeToReg(Src0);
       auto *T0R = Src0R;
-      if (Src0Ty != IceType_i32 && CastKind == InstCast::Uitofp) {
+      if (Src0Ty != IceType_i32) {
         T0R = makeReg(IceType_i32);
-        lowerCast(InstCast::create(Func, InstCast::Zext, T0R, Src0R));
+        if (CastKind == InstCast::Uitofp)
+          lowerCast(InstCast::create(Func, InstCast::Zext, T0R, Src0R));
+        else
+          lowerCast(InstCast::create(Func, InstCast::Sext, T0R, Src0R));
       }
       if (isScalarIntegerType(Src0Ty) && DestTy == IceType_f32) {
         Variable *FTmp1 = makeReg(IceType_f32);
@@ -3604,9 +3747,12 @@ void TargetMIPS32::lowerCast(const InstCast *Instr) {
       Variable *Src0R = legalizeToReg(Src0);
       auto *T = llvm::cast<Variable64On32>(Func->makeVariable(IceType_i64));
       T->initHiLo(Func);
-      T->getHi()->setMustHaveReg();
-      T->getLo()->setMustHaveReg();
-      _mov(T, Src0R);
+      T->getHi()->setMustNotHaveReg();
+      T->getLo()->setMustNotHaveReg();
+      Context.insert<InstFakeDef>(T->getHi());
+      Context.insert<InstFakeDef>(T->getLo());
+      _mov_fp64_to_i64(T->getHi(), Src0R, Int64_Hi);
+      _mov_fp64_to_i64(T->getLo(), Src0R, Int64_Lo);
       lowerAssign(InstAssign::create(Func, Dest, T));
       break;
     }
@@ -4178,12 +4324,12 @@ void TargetMIPS32::lowerInsertElement(const InstInsertElement *Instr) {
     auto *DstE = TVDest->getContainers()[Index / ElemPerCont];
     // Element to insert
     auto *Src1R = legalizeToReg(Instr->getSrc(1));
-    auto *TReg1 = makeReg(Src1R->getType());
-    auto *TReg2 = makeReg(Src1R->getType());
-    auto *TReg3 = makeReg(Src1R->getType());
-    auto *TReg4 = makeReg(Src1R->getType());
-    auto *TReg5 = makeReg(Src1R->getType());
-    auto *TDReg = makeReg(Src1R->getType());
+    auto *TReg1 = makeReg(IceType_i32);
+    auto *TReg2 = makeReg(IceType_i32);
+    auto *TReg3 = makeReg(IceType_i32);
+    auto *TReg4 = makeReg(IceType_i32);
+    auto *TReg5 = makeReg(IceType_i32);
+    auto *TDReg = makeReg(IceType_i32);
     // Position of the element in the container
     uint32_t PosInCont = Index % ElemPerCont;
     // Load source vector in a temporary vector
@@ -4248,7 +4394,7 @@ void TargetMIPS32::lowerInsertElement(const InstInsertElement *Instr) {
         _mov(DstE, TDReg);
         break;
       case 3:
-        _srl(TReg1, Src1R, 24); // Position in the destination
+        _sll(TReg1, Src1R, 24); // Position in the destination
         _sll(TReg2, SrcE, 8);
         _srl(TReg3, TReg2, 8); // Clear bits[31:24] of element
         _or(TDReg, TReg1, TReg3);
@@ -5729,8 +5875,8 @@ Operand *TargetMIPS32::legalize(Operand *From, LegalMask Allowed,
       } else {
         uint32_t UpperBits = (Value >> 16) & 0xFFFF;
         uint32_t LowerBits = Value & 0xFFFF;
-        Variable *TReg = makeReg(Ty, RegNum);
         if (LowerBits) {
+          Variable *TReg = makeReg(Ty, RegNum);
           _lui(TReg, Ctx->getConstantInt32(UpperBits));
           _ori(Reg, TReg, LowerBits);
         } else {

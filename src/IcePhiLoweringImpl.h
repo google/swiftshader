@@ -36,7 +36,8 @@ void prelowerPhis32Bit(TargetT *Target, CfgNode *Node, Cfg *Func) {
     if (Phi->isDeleted())
       continue;
     Variable *Dest = Phi->getDest();
-    if (Dest->getType() == IceType_i64) {
+    Type DestTy = Dest->getType();
+    if (DestTy == IceType_i64) {
       auto *DestLo = llvm::cast<Variable>(Target->loOperand(Dest));
       auto *DestHi = llvm::cast<Variable>(Target->hiOperand(Dest));
       auto *PhiLo = InstPhi::create(Func, Phi->getSrcSize(), DestLo);
@@ -50,6 +51,23 @@ void prelowerPhis32Bit(TargetT *Target, CfgNode *Node, Cfg *Func) {
       }
       Node->getPhis().push_back(PhiLo);
       Node->getPhis().push_back(PhiHi);
+      Phi->setDeleted();
+    } else if (isVectorType(DestTy) &&
+               Target->shouldSplitToVariableVecOn32(DestTy)) {
+      auto *DstVec = llvm::cast<VariableVecOn32>(Dest);
+      SizeT Idx = 0;
+      for (Variable *DestElem : DstVec->getContainers()) {
+        auto *PhiElem = InstPhi::create(Func, Phi->getSrcSize(), DestElem);
+        for (SizeT I = 0; I < Phi->getSrcSize(); ++I) {
+          Operand *Src = Phi->getSrc(I);
+          CfgNode *Label = Phi->getLabel(I);
+          Src = Target->legalizeUndef(Src);
+          auto *SrcVec = llvm::cast<VariableVecOn32>(Src);
+          PhiElem->addArgument(SrcVec->getContainers()[Idx], Label);
+        }
+        ++Idx;
+        Node->getPhis().push_back(PhiElem);
+      }
       Phi->setDeleted();
     }
   }

@@ -196,7 +196,10 @@ void AssemblerMIPS32::bind(Label *L) {
     IOffsetT Dest = BoundPc - Position;
     IValueT Inst = Buffer.load<IValueT>(Position);
     Buffer.store<IValueT>(Position, encodeBranchOffset(Dest, Inst));
-    L->setPosition(decodeBranchOffset(Inst));
+    IOffsetT NextBrPc = decodeBranchOffset(Inst);
+    if (NextBrPc != 0)
+      NextBrPc = Position - NextBrPc;
+    L->setPosition(NextBrPc);
   }
   L->bindTo(BoundPc);
 }
@@ -428,7 +431,10 @@ void AssemblerMIPS32::b(Label *TargetLabel) {
     return;
   }
   const IOffsetT Position = Buffer.size();
-  emitBr(CondMIPS32::AL, OpRsNone, OpRtNone, TargetLabel->getEncodedPosition());
+  IOffsetT PrevPosition = TargetLabel->getEncodedPosition();
+  if (PrevPosition != 0)
+    PrevPosition = Position - PrevPosition;
+  emitBr(CondMIPS32::AL, OpRsNone, OpRtNone, PrevPosition);
   TargetLabel->linkTo(*this, Position);
 }
 
@@ -850,7 +856,7 @@ void AssemblerMIPS32::movn(const Operand *OpRd, const Operand *OpRs,
 void AssemblerMIPS32::movn_d(const Operand *OpFd, const Operand *OpFs,
                              const Operand *OpFt) {
   static constexpr IValueT Opcode = 0x44000013;
-  emitCOP1FmtRtFsFd(Opcode, SinglePrecision, OpFd, OpFs, OpFt, "movn.d");
+  emitCOP1FmtRtFsFd(Opcode, DoublePrecision, OpFd, OpFs, OpFt, "movn.d");
 }
 
 void AssemblerMIPS32::movn_s(const Operand *OpFd, const Operand *OpFs,
@@ -879,7 +885,7 @@ void AssemblerMIPS32::movt(const Operand *OpRd, const Operand *OpRs,
 void AssemblerMIPS32::movz_d(const Operand *OpFd, const Operand *OpFs,
                              const Operand *OpFt) {
   static constexpr IValueT Opcode = 0x44000012;
-  emitCOP1FmtFtFsFd(Opcode, SinglePrecision, OpFd, OpFs, OpFt, "movz.d");
+  emitCOP1FmtFtFsFd(Opcode, DoublePrecision, OpFd, OpFs, OpFt, "movz.d");
 }
 
 void AssemblerMIPS32::movz(const Operand *OpRd, const Operand *OpRs,
@@ -1239,7 +1245,10 @@ void AssemblerMIPS32::bcc(const CondMIPS32::Cond Cond, const Operand *OpRs,
     return;
   }
   const IOffsetT Position = Buffer.size();
-  emitBr(Cond, OpRs, OpRt, TargetLabel->getEncodedPosition());
+  IOffsetT PrevPosition = TargetLabel->getEncodedPosition();
+  if (PrevPosition != 0)
+    PrevPosition = Position - PrevPosition;
+  emitBr(Cond, OpRs, OpRt, PrevPosition);
   TargetLabel->linkTo(*this, Position);
 }
 
@@ -1252,7 +1261,10 @@ void AssemblerMIPS32::bzc(const CondMIPS32::Cond Cond, const Operand *OpRs,
     return;
   }
   const IOffsetT Position = Buffer.size();
-  emitBr(Cond, OpRs, OpRtNone, TargetLabel->getEncodedPosition());
+  IOffsetT PrevPosition = TargetLabel->getEncodedPosition();
+  if (PrevPosition)
+    PrevPosition = Position - PrevPosition;
+  emitBr(Cond, OpRs, OpRtNone, PrevPosition);
   TargetLabel->linkTo(*this, Position);
 }
 

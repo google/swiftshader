@@ -29,6 +29,7 @@ namespace Ice {
 namespace MIPS32 {
 
 enum RelocOp { RO_No, RO_Hi, RO_Lo, RO_Jal };
+enum Int64Part { Int64_Hi, Int64_Lo };
 
 inline void emitRelocOp(Ostream &Str, RelocOp Reloc) {
   switch (Reloc) {
@@ -232,6 +233,7 @@ public:
     Mfhi,
     Mflo,
     Mov, // actually a pseudo op for addi rd, rs, 0
+    Mov_fp,
     Mov_d,
     Mov_s,
     Movf,
@@ -1318,6 +1320,44 @@ private:
   void emitSingleDestSingleSource(const Cfg *Func) const;
 
   Variable *DestHi = nullptr;
+};
+
+/// Handle double to i64 move
+class InstMIPS32MovFP64ToI64 final : public InstMIPS32 {
+  InstMIPS32MovFP64ToI64() = delete;
+  InstMIPS32MovFP64ToI64(const InstMIPS32MovFP64ToI64 &) = delete;
+  InstMIPS32MovFP64ToI64 &operator=(const InstMIPS32MovFP64ToI64 &) = delete;
+
+public:
+  static InstMIPS32MovFP64ToI64 *create(Cfg *Func, Variable *Dest, Operand *Src,
+                                        Int64Part Int64HiLo) {
+    return new (Func->allocate<InstMIPS32MovFP64ToI64>())
+        InstMIPS32MovFP64ToI64(Func, Dest, Src, Int64HiLo);
+  }
+
+  bool isRedundantAssign() const override {
+    return checkForRedundantAssign(getDest(), getSrc(0));
+  }
+
+  void dump(const Cfg *Func) const override {
+    if (!BuildDefs::dump())
+      return;
+    Ostream &Str = Func->getContext()->getStrDump();
+    getDest()->dump(Func);
+    Str << " = ";
+    dumpOpcode(Str, "mov_fp", getDest()->getType());
+    Str << " ";
+    getSrc(0)->dump(Func);
+  }
+
+  Int64Part getInt64Part() const { return Int64HiLo; }
+
+  static bool classof(const Inst *Inst) { return isClassof(Inst, Mov_fp); }
+
+private:
+  InstMIPS32MovFP64ToI64(Cfg *Func, Variable *Dest, Operand *Src,
+                         Int64Part Int64HiLo);
+  const Int64Part Int64HiLo;
 };
 
 // Declare partial template specializations of emit() methods that already have

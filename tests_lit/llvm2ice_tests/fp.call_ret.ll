@@ -59,16 +59,16 @@ entry:
 ; CHECK: mov DWORD PTR [esp+0x4],0x7b
 ; CHECK: call {{.*}} R_{{.*}} ignoreFpArgsNoInline
 ; MIPS32-LABEL: passFpArgs
-; MIPS32: 	mfc1	a2,$f15
-; MIPS32: 	mfc1	a3,$f14
+; MIPS32: 	mfc1	a2,$f{{[0-9]+}}
+; MIPS32: 	mfc1	a3,$f{{[0-9]+}}
 ; MIPS32: 	li	a1,123
 ; MIPS32: 	jal	{{.*}}	ignoreFpArgsNoInline
-; MIPS32: 	mfc1	a2,$f23
-; MIPS32: 	mfc1	a3,$f22
+; MIPS32: 	mfc1	a2,$f{{[0-9]+}}
+; MIPS32: 	mfc1	a3,$f{{[0-9]+}}
 ; MIPS32: 	li	a1,123
 ; MIPS32: 	jal	{{.*}}	ignoreFpArgsNoInline
-; MIPS32: 	mfc1	a2,$f25
-; MIPS32: 	mfc1	a3,$f24
+; MIPS32: 	mfc1	a2,$f{{[0-9]+}}
+; MIPS32: 	mfc1	a3,$f{{[0-9]+}}
 ; MIPS32: 	li	a1,123
 ; MIPS32: 	jal	{{.*}}	ignoreFpArgsNoInline
 
@@ -83,8 +83,8 @@ entry:
 ; CHECK: mov DWORD PTR [esp+0x4],0x7b
 ; CHECK: call {{.*}} R_{{.*}} ignoreFpArgsNoInline
 ; MIPS32-LABEL: passFpConstArg
-; MIPS32: 	mfc1	a2,$f1
-; MIPS32: 	mfc1	a3,$f0
+; MIPS32: 	mfc1	a2,$f{{[0-9]+}}
+; MIPS32: 	mfc1	a3,$f{{[0-9]+}}
 ; MIPS32: 	li	a1,123
 ; MIPS32: 	jal	{{.*}}	ignoreFpArgsNoInline
 
@@ -131,8 +131,8 @@ entry:
 ; CHECK-LABEL: returnFloatConst
 ; CHECK: fld
 ; MIPS32-LABEL: returnFloatConst
-; MIPS32: 	lui	v0,0x0	   160: R_MIPS_HI16	.L$float$3f9d70a4
-; MIPS32: 	lwc1	$f0,0(v0)  164: R_MIPS_LO16	.L$float$3f9d70a4
+; MIPS32: 	lui	v0,0x0    {{.*}} .L$float$3f9d70a4
+; MIPS32: 	lwc1	$f0,0(v0) {{.*}} .L$float$3f9d70a4
 ; MIPS32: 	jr	ra
 
 define internal double @returnDoubleConst() {
@@ -142,6 +142,6 @@ entry:
 ; CHECK-LABEL: returnDoubleConst
 ; CHECK: fld
 ; MIPS32-LABEL: returnDoubleConst
-; MIPS32: 	lui	v0,0x0	   170: R_MIPS_HI16  .L$double$3ff3ae147ae147ae
-; MIPS32: 	ldc1	$f0,0(v0)  174: R_MIPS_LO16  .L$double$3ff3ae147ae147ae
+; MIPS32: 	lui	v0,0x0	   {{.*}}  .L$double$3ff3ae147ae147ae
+; MIPS32: 	ldc1	$f0,0(v0)  {{.*}}  .L$double$3ff3ae147ae147ae
 ; MIPS32: 	jr	ra

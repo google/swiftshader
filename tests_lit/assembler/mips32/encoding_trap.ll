@@ -28,7 +28,7 @@ define internal void @encTrap() {
 
 ; ASM-LABEL: encTrap
 ; ASM-NEXT: .LencTrap$__0:
-; ASM-NEXT: 	teq	$zero, $zero, 0
+; ASM: 	teq	$zero, $zero, 0
 
 ; DIS-LABEL: 00000000 <encTrap>:
 ; DIS-NEXT:    0:	00000034 	teq	zero,zero

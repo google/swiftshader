@@ -478,25 +478,41 @@ entry:
 }
 ; ASM-LABEL: cast_d2ll_const
 ; ASM-LABEL: .Lcast_d2ll_const$entry:
-; ASM-NEXT:	lui $[[REG:.*]], %hi({{.*}})
+; ASM:	lui $[[REG:.*]], %hi({{.*}})
 ; ASM-NEXT:	ldc1 $[[FREG:.*]], %lo({{.*}})($[[REG]])
 
-; DIS-LABEL: 000000c0 <cast_d2ll_const>:
-; DIS-NEXT:  c0: 3c020000  lui v0,0x0
-; DIS-NEXT:  c4: d4400000  ldc1 $f0,0(v0)
+; DIS-LABEL: <cast_d2ll_const>:
+; DIS:  3c020000  lui v0,0x0
+; DIS-NEXT:  d4400000  ldc1 $f0,0(v0)
 
 ; IASM-LABEL: cast_d2ll_const:
 ; IASM-LABEL: .Lcast_d2ll_const$entry:
+; IASM-NEXT:	.byte 0xf0
+; IASM-NEXT:	.byte 0xff
+; IASM-NEXT:	.byte 0xbd
+; IASM-NEXT:	.byte 0x27
 ; IASM-NEXT:	.word 0x3c020000 # R_MIPS_HI16 [[LAB:.*]]
 ; IASM-NEXT:	.word 0xd4400000 # R_MIPS_LO16 [[LAB]]
 ; IASM-NEXT:	.byte 0x0
-; IASM-NEXT:	.byte 0x8
-; IASM-NEXT:	.byte 0x3
-; IASM-NEXT:	.byte 0x44
+; IASM-NEXT:	.byte 0x0
+; IASM-NEXT:	.byte 0xa1
+; IASM-NEXT:	.byte 0xe7
+; IASM-NEXT:	.byte 0x4
+; IASM-NEXT:	.byte 0x0
+; IASM-NEXT:	.byte 0xa0
+; IASM-NEXT:	.byte 0xe7
+; IASM-NEXT:	.byte 0x4
+; IASM-NEXT:	.byte 0x0
+; IASM-NEXT:	.byte 0xa2
+; IASM-NEXT:	.byte 0x8f
 ; IASM-NEXT:	.byte 0x0
 ; IASM-NEXT:	.byte 0x0
-; IASM-NEXT:	.byte 0x2
-; IASM-NEXT:	.byte 0x44
+; IASM-NEXT:	.byte 0xa3
+; IASM-NEXT:	.byte 0x8f
+; IASM-NEXT:	.byte 0x10
+; IASM-NEXT:	.byte 0x0
+; IASM-NEXT:	.byte 0xbd
+; IASM-NEXT:	.byte 0x27
 ; IASM-NEXT:	.byte 0x8
 ; IASM-NEXT:	.byte 0x0
 ; IASM-NEXT:	.byte 0xe0
@@ -505,7 +521,14 @@ entry:
 ; IASM-NEXT:	.byte 0x0
 ; IASM-NEXT:	.byte 0x0
 ; IASM-NEXT:	.byte 0x0
-
+; IASM-NEXT:	.byte 0x34
+; IASM-NEXT:	.byte 0x0
+; IASM-NEXT:	.byte 0x0
+; IASM-NEXT:	.byte 0x0
+; IASM-NEXT:	.byte 0x34
+; IASM-NEXT:	.byte 0x0
+; IASM-NEXT:	.byte 0x0
+; IASM-NEXT:	.byte 0x0
 
 declare void @bar(i32 %a1, i32 %a2)
 define internal void @Call() {
@@ -515,8 +538,8 @@ define internal void @Call() {
 ; ASM-LABEL: Call
 ; ASM: jal	bar
 
-; DIS-LABEL: 000000e0 <Call>:
-; DIS: f0: 0c000000  jal     0
+; DIS-LABEL: 000000f0 <Call>:
+; DIS: 100:	0c000000  jal     0
 
 ; IASM-LABEL: Call:
 ; IASM:	.word 0xc000000 # R_MIPS_26 bar

@@ -29,7 +29,7 @@ entry:
 ; SSE41: pblendvb xmm{{[0-7]}},{{xmm[0-7]|XMMWORD}}
 
 ; MIPS32-LABEL: test_select_v16i8
-; MIPS32: addiu [[T0:.*]],sp,-20
+; MIPS32: addiu [[T0:.*]],sp,-32
 ; MIPS32: sw [[T1:.*]],
 ; MIPS32: sw [[T2:.*]],
 ; MIPS32: sw [[T3:.*]],
@@ -98,7 +98,7 @@ entry:
 ; MIPS32: srl [[T6]],[[T6]],0x18
 ; MIPS32: srl [[T10]],[[T10]],0x18
 ; MIPS32: movn [[T10]],[[T6]],[[T16]]
-; MIPS32: srl [[T10]],[[T10]],0x18
+; MIPS32: sll [[T10]],[[T10]],0x18
 ; MIPS32: sll [[T1]],[[T1]],0x8
 ; MIPS32: srl [[T1]],[[T1]],0x8
 ; MIPS32: or [[T10]],[[T10]],[[T1]]
@@ -153,7 +153,7 @@ entry:
 ; MIPS32: srl [[T7]],[[T7]],0x18
 ; MIPS32: srl [[T11]],[[T11]],0x18
 ; MIPS32: movn [[T11]],[[T7]],[[T17]]
-; MIPS32: srl [[T11]],[[T11]],0x18
+; MIPS32: sll [[T11]],[[T11]],0x18
 ; MIPS32: sll [[T14]],[[T14]],0x8
 ; MIPS32: srl [[T14]],[[T14]],0x8
 ; MIPS32: or [[T11]],[[T11]],[[T14]]
@@ -208,7 +208,7 @@ entry:
 ; MIPS32: srl [[T8]],[[T8]],0x18
 ; MIPS32: srl [[T12]],[[T12]],0x18
 ; MIPS32: movn [[T12]],[[T8]],[[T18]]
-; MIPS32: srl [[T12]],[[T12]],0x18
+; MIPS32: sll [[T12]],[[T12]],0x18
 ; MIPS32: sll [[T16]],[[T16]],0x8
 ; MIPS32: srl [[T16]],[[T16]],0x8
 ; MIPS32: or [[T12]],[[T12]],[[T16]]
@@ -263,7 +263,7 @@ entry:
 ; MIPS32: srl [[T9]],[[T9]],0x18
 ; MIPS32: srl [[T13]],[[T13]],0x18
 ; MIPS32: movn [[T13]],[[T9]],[[T19]]
-; MIPS32: srl [[T13]],[[T13]],0x18
+; MIPS32: sll [[T13]],[[T13]],0x18
 ; MIPS32: sll [[T16]],[[T16]],0x8
 ; MIPS32: srl [[T16]],[[T16]],0x8
 ; MIPS32: or [[T13]],[[T13]],[[T16]]
@@ -276,7 +276,7 @@ entry:
 ; MIPS32: lw [[T3]],
 ; MIPS32: lw [[T2]],
 ; MIPS32: lw [[T1]],
-; MIPS32: addiu [[T0]],sp,20
+; MIPS32: addiu [[T0]],sp,32
 }
 
 define internal <16 x i1> @test_select_v16i1(<16 x i1> %cond, <16 x i1> %arg1,
@@ -293,7 +293,7 @@ entry:
 ; SSE41: pblendvb xmm{{[0-7]}},{{xmm[0-7]|XMMWORD}}
 
 ; MIPS32-LABEL: test_select_v16i1
-; MIPS32: addiu [[T0:.*]],sp,-20
+; MIPS32: addiu [[T0:.*]],sp,-32
 ; MIPS32: sw [[T1:.*]],
 ; MIPS32: sw [[T2:.*]],
 ; MIPS32: sw [[T3:.*]],
@@ -370,7 +370,7 @@ entry:
 ; MIPS32: srl [[T10]],[[T10]],0x18
 ; MIPS32: andi [[T10]],[[T10]],0x1
 ; MIPS32: movn [[T10]],[[T6]],[[T16]]
-; MIPS32: srl [[T10]],[[T10]],0x18
+; MIPS32: sll [[T10]],[[T10]],0x18
 ; MIPS32: sll [[T1]],[[T1]],0x8
 ; MIPS32: srl [[T1]],[[T1]],0x8
 ; MIPS32: or [[T10]],[[T10]],[[T1]]
@@ -433,7 +433,7 @@ entry:
 ; MIPS32: srl [[T11]],[[T11]],0x18
 ; MIPS32: andi [[T11]],[[T11]],0x1
 ; MIPS32: movn [[T11]],[[T7]],[[T17]]
-; MIPS32: srl [[T11]],[[T11]],0x18
+; MIPS32: sll [[T11]],[[T11]],0x18
 ; MIPS32: sll [[T14]],[[T14]],0x8
 ; MIPS32: srl [[T14]],[[T14]],0x8
 ; MIPS32: or [[T11]],[[T11]],[[T14]]
@@ -496,7 +496,7 @@ entry:
 ; MIPS32: srl [[T12]],[[T12]],0x18
 ; MIPS32: andi [[T12]],[[T12]],0x1
 ; MIPS32: movn [[T12]],[[T8]],[[T18]]
-; MIPS32: srl [[T12]],[[T12]],0x18
+; MIPS32: sll [[T12]],[[T12]],0x18
 ; MIPS32: sll [[T16]],[[T16]],0x8
 ; MIPS32: srl [[T16]],[[T16]],0x8
 ; MIPS32: or [[T12]],[[T12]],[[T16]]
@@ -559,7 +559,7 @@ entry:
 ; MIPS32: srl [[T13]],[[T13]],0x18
 ; MIPS32: andi [[T13]],[[T13]],0x1
 ; MIPS32: movn [[T13]],[[T9]],[[T19]]
-; MIPS32: srl [[T13]],[[T13]],0x18
+; MIPS32: sll [[T13]],[[T13]],0x18
 ; MIPS32: sll [[T16]],[[T16]],0x8
 ; MIPS32: srl [[T16]],[[T16]],0x8
 ; MIPS32: or [[T13]],[[T13]],[[T16]]
@@ -572,7 +572,7 @@ entry:
 ; MIPS32: lw [[T3]],
 ; MIPS32: lw [[T2]],
 ; MIPS32: lw [[T1]],
-; MIPS32: addiu [[T0]],sp,20
+; MIPS32: addiu [[T0]],sp,32
 }
 
 define internal <8 x i16> @test_select_v8i16(<8 x i1> %cond, <8 x i16> %arg1,
@@ -589,7 +589,7 @@ entry:
 ; SSE41: pblendvb xmm{{[0-7]}},{{xmm[0-7]|XMMWORD}}
 
 ; MIPS32-LABEL: test_select_v8i16
-; MIPS32: addiu [[T0:.*]],sp,-20
+; MIPS32: addiu [[T0:.*]],sp,-32
 ; MIPS32: sw [[T1:.*]],
 ; MIPS32: sw [[T2:.*]],
 ; MIPS32: sw [[T3:.*]],
@@ -700,7 +700,7 @@ entry:
 ; MIPS32: lw [[T3]],
 ; MIPS32: lw [[T2]],
 ; MIPS32: lw [[T1]],
-; MIPS32: addiu [[T0]],sp,20
+; MIPS32: addiu [[T0]],sp,32
 }
 
 define internal <8 x i1> @test_select_v8i1(<8 x i1> %cond, <8 x i1> %arg1,
@@ -717,7 +717,7 @@ entry:
 ; SSE41: pblendvb xmm{{[0-7]}},{{xmm[0-7]|XMMWORD}}
 
 ; MIPS32-LABEL: test_select_v8i1
-; MIPS32: addiu [[T0:.*]],sp,-20
+; MIPS32: addiu [[T0:.*]],sp,-32
 ; MIPS32: sw [[T1:.*]],
 ; MIPS32: sw [[T2:.*]],
 ; MIPS32: sw [[T3:.*]],
@@ -844,7 +844,7 @@ entry:
 ; MIPS32: lw [[T3]],
 ; MIPS32: lw [[T2]],
 ; MIPS32: lw [[T1]],
-; MIPS32: addiu [[T0]],sp,20
+; MIPS32: addiu [[T0]],sp,32
 }
 
 define internal <4 x i32> @test_select_v4i32(<4 x i1> %cond, <4 x i32> %arg1,

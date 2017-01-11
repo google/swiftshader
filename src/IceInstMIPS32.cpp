@@ -315,6 +315,13 @@ InstMIPS32Mov::InstMIPS32Mov(Cfg *Func, Variable *Dest, Operand *Src,
   }
 }
 
+InstMIPS32MovFP64ToI64::InstMIPS32MovFP64ToI64(Cfg *Func, Variable *Dst,
+                                               Operand *Src,
+                                               Int64Part Int64HiLo)
+    : InstMIPS32(Func, InstMIPS32::Mov_fp, 1, Dst), Int64HiLo(Int64HiLo) {
+  addSource(Src);
+}
+
 InstMIPS32Ret::InstMIPS32Ret(Cfg *Func, Variable *RA, Variable *Source)
     : InstMIPS32(Func, InstMIPS32::Ret, Source ? 2 : 1, nullptr) {
   addSource(RA);
