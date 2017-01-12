@@ -998,7 +998,7 @@ void TargetX86Base<TraitsType>::addProlog(CfgNode *Node) {
   // | 1. return address      |
   // +------------------------+
   // | 2. preserved registers |
-  // +------------------------+
+  // +------------------------+ <--- BasePointer (if used)
   // | 3. padding             |
   // +------------------------+
   // | 4. global spill area   |
@@ -1017,14 +1017,16 @@ void TargetX86Base<TraitsType>::addProlog(CfgNode *Node) {
   // +------------------------+ <--- StackPointer
   //
   // The following variables record the size in bytes of the given areas:
-  //  * X86_RET_IP_SIZE_BYTES:  area 1
-  //  * PreservedRegsSizeBytes: area 2
-  //  * SpillAreaPaddingBytes:  area 3
-  //  * GlobalsSize:            area 4
+  //  * X86_RET_IP_SIZE_BYTES:   area 1
+  //  * PreservedRegsSizeBytes:  area 2
+  //  * SpillAreaPaddingBytes:   area 3
+  //  * GlobalsSize:             area 4
+  //  * LocalsSlotsPaddingBytes: area 5
   //  * GlobalsAndSubsequentPaddingSize: areas 4 - 5
-  //  * LocalsSpillAreaSize:    area 6
-  //  * SpillAreaSizeBytes:     areas 3 - 10
-  //  * maxOutArgsSizeBytes():  area 10
+  //  * LocalsSpillAreaSize:     area 6
+  //  * FixedAllocaSizeBytes:    areas 7 - 8
+  //  * SpillAreaSizeBytes:      areas 3 - 10
+  //  * maxOutArgsSizeBytes():   areas 9 - 10
 
   // Determine stack frame offsets for each Variable without a register
   // assignment. This can be done as one variable per stack slot. Or, do
@@ -1105,7 +1107,6 @@ void TargetX86Base<TraitsType>::addProlog(CfgNode *Node) {
   // after the preserved registers and before the spill areas.
   // LocalsSlotsPaddingBytes is the amount of padding between the globals and
   // locals area if they are separate.
-  assert(SpillAreaAlignmentBytes <= Traits::X86_STACK_ALIGNMENT_BYTES);
   assert(LocalsSlotsAlignmentBytes <= SpillAreaAlignmentBytes);
   uint32_t SpillAreaPaddingBytes = 0;
   uint32_t LocalsSlotsPaddingBytes = 0;
@@ -1177,8 +1178,8 @@ void TargetX86Base<TraitsType>::addProlog(CfgNode *Node) {
   // Fill in stack offsets for stack args, and copy args into registers for
   // those that were register-allocated. Args are pushed right to left, so
   // Arg[0] is closest to the stack/frame pointer.
-  Variable *FramePtr =
-      getPhysicalRegister(getFrameOrStackReg(), Traits::WordType);
+  RegNumT FrameOrStackReg = IsEbpBasedFrame ? getFrameReg() : getStackReg();
+  Variable *FramePtr = getPhysicalRegister(FrameOrStackReg, Traits::WordType);
   size_t BasicFrameOffset =
       PreservedRegsSizeBytes + Traits::X86_RET_IP_SIZE_BYTES;
   if (!IsEbpBasedFrame)
@@ -1226,7 +1227,7 @@ void TargetX86Base<TraitsType>::addProlog(CfgNode *Node) {
   // Fill in stack offsets for locals.
   assignVarStackSlots(SortedSpilledVariables, SpillAreaPaddingBytes,
                       SpillAreaSizeBytes, GlobalsAndSubsequentPaddingSize,
-                      IsEbpBasedFrame);
+                      IsEbpBasedFrame && !needsStackPointerAlignment());
   // Assign stack offsets to variables that have been linked to spilled
   // variables.
   for (Variable *Var : VariablesLinkedToSpillSlots) {

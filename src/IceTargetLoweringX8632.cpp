@@ -116,7 +116,12 @@ const TargetX8632Traits::TableTypeX8632AttributesType
 const size_t TargetX8632Traits::TableTypeX8632AttributesSize =
     llvm::array_lengthof(TableTypeX8632Attributes);
 
+#if defined(SUBZERO_USE_MICROSOFT_ABI)
+// Windows 32-bit only guarantees 4 byte stack alignment
+const uint32_t TargetX8632Traits::X86_STACK_ALIGNMENT_BYTES = 4;
+#else
 const uint32_t TargetX8632Traits::X86_STACK_ALIGNMENT_BYTES = 16;
+#endif
 const char *TargetX8632Traits::TargetName = "X8632";
 
 template <>

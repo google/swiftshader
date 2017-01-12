@@ -1391,7 +1391,7 @@ void TargetMIPS32::addProlog(CfgNode *Node) {
   // +------------------------+
   // | 8. padding             |
   // +------------------------+
-  // | 9. out args           |
+  // | 9. out args            |
   // +------------------------+ <--- StackPointer
   //
   // The following variables record the size in bytes of the given areas:

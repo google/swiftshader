@@ -153,6 +153,10 @@ public:
   RegNumT getStackReg() const override { return Traits::StackPtr; }
   RegNumT getFrameReg() const override { return Traits::FramePtr; }
   RegNumT getFrameOrStackReg() const override {
+    // If the stack pointer needs to be aligned, then the frame pointer is
+    // unaligned, so always use the stack pointer.
+    if (needsStackPointerAlignment())
+      return getStackReg();
     return IsEbpBasedFrame ? getFrameReg() : getStackReg();
   }
   size_t typeWidthInBytesOnStack(Type Ty) const override {
@@ -162,6 +166,11 @@ public:
   }
   uint32_t getStackAlignment() const override {
     return Traits::X86_STACK_ALIGNMENT_BYTES;
+  }
+  bool needsStackPointerAlignment() const override {
+    // If the ABI's stack alignment is smaller than the vector size (16 bytes),
+    // use the (realigned) stack pointer for addressing any stack variables.
+    return Traits::X86_STACK_ALIGNMENT_BYTES < 16;
   }
   void reserveFixedAllocaArea(size_t Size, size_t Align) override {
     FixedAllocaSizeBytes = Size;

@@ -250,6 +250,7 @@ public:
   virtual RegNumT getFrameOrStackReg() const = 0;
   virtual size_t typeWidthInBytesOnStack(Type Ty) const = 0;
   virtual uint32_t getStackAlignment() const = 0;
+  virtual bool needsStackPointerAlignment() const { return false; }
   virtual void reserveFixedAllocaArea(size_t Size, size_t Align) = 0;
   virtual int32_t getFrameFixedAllocaOffset() const = 0;
   virtual uint32_t maxOutArgsSizeBytes() const { return 0; }

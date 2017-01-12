@@ -1006,6 +1006,13 @@ void Cfg::processAllocas(bool SortAndCombine) {
   assert(EntryNode);
   // LLVM enforces power of 2 alignment.
   assert(llvm::isPowerOf2_32(StackAlignment));
+  // If the ABI's stack alignment is smaller than the vector size (16 bytes),
+  // conservatively use a frame pointer to allow for explicit alignment of the
+  // stack pointer. This needs to happen before register allocation so the frame
+  // pointer can be reserved.
+  if (getTarget()->needsStackPointerAlignment()) {
+    getTarget()->setHasFramePointer();
+  }
   // Determine if there are large alignment allocations in the entry block or
   // dynamic allocations (variable size in the entry block).
   bool HasLargeAlignment = false;
@@ -1083,7 +1090,7 @@ void Cfg::processAllocas(bool SortAndCombine) {
   // Add instructions to the head of the entry block in reverse order.
   InstList &Insts = getEntryNode()->getInsts();
   if (HasDynamicAllocation && HasLargeAlignment) {
-    // We are using a frame pointer, but fixed large-alignment alloca addresses,
+    // We are using a frame pointer, but fixed large-alignment alloca addresses
     // do not have a known offset from either the stack or frame pointer.
     // They grow up from a user pointer from an alloca.
     sortAndCombineAllocas(AlignedAllocas, MaxAlignment, Insts, BVT_UserPointer);
