@@ -2935,7 +2935,8 @@ namespace sw
 	Short4::Short4(RValue<Int> cast)
 	{
 		Value *vector = loadValue();
-		Value *insert = Nucleus::createInsertElement(vector, cast.value, 0);
+		Value *element = Nucleus::createTrunc(cast.value, Short::getType());
+		Value *insert = Nucleus::createInsertElement(vector, element, 0);
 		Value *swizzle = Swizzle(RValue<Short4>(insert), 0x00).value;
 
 		storeValue(swizzle);
