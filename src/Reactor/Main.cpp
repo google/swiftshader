@@ -55,7 +55,7 @@ TEST(SubzeroReactorTest, Sample)
 			z = As<Int>(Float(Float4(v.xzxx).y));
 
 			Int sum = x + y + z;
-   
+
 			Return(sum);
 		}
 
@@ -93,7 +93,7 @@ TEST(SubzeroReactorTest, Uninitialized)
 			{
 				c = p;
 			}
-   
+
 			Return(a + z + q + c);
 		}
 
@@ -125,7 +125,7 @@ TEST(SubzeroReactorTest, SubVectorLoadStore)
 			*Pointer<Byte8>(out + 16 * 2)  = *Pointer<Byte8>(in + 16 * 2);
 			*Pointer<Byte4>(out + 16 * 3)  = *Pointer<Byte4>(in + 16 * 3);
 			*Pointer<Short2>(out + 16 * 4) = *Pointer<Short2>(in + 16 * 4);
-   
+
 			Return(0);
 		}
 
@@ -144,7 +144,7 @@ TEST(SubzeroReactorTest, SubVectorLoadStore)
 			                      -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
 			                      -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
 			                      -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
-		
+
 			int (*callable)(void*, void*) = (int(*)(void*,void*))routine->getEntry();
 			callable(in, out);
 
@@ -243,7 +243,7 @@ TEST(SubzeroReactorTest, Concatenate)
 
 			int8_t out[16 * 5] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
 			                      -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
-		
+
 			int (*callable)(void*) = (int(*)(void*))routine->getEntry();
 			callable(out);
 
@@ -513,7 +513,6 @@ TEST(SubzeroReactorTest, MinMax)
 	delete routine;
 }
 
-
 TEST(SubzeroReactorTest, NotNeg)
 {
 	Routine *routine = nullptr;
@@ -583,7 +582,7 @@ TEST(SubzeroReactorTest, NotNeg)
 			EXPECT_EQ(out[6][1], 0x55555556);
 			EXPECT_EQ(out[6][2], 0x00000000);
 			EXPECT_EQ(out[6][3], 0x00000001);
-			
+
 			EXPECT_EQ(out[7][0], 0x5556AAAB);
 			EXPECT_EQ(out[7][1], 0x00010000);
 			EXPECT_EQ(out[7][2], 0x00000000);
@@ -593,6 +592,68 @@ TEST(SubzeroReactorTest, NotNeg)
 			EXPECT_EQ(out[8][1], 0x3F800000);
 			EXPECT_EQ(out[8][2], 0x80000000);
 			EXPECT_EQ(out[8][3], 0x00000000);
+		}
+	}
+
+	delete routine;
+}
+
+TEST(SubzeroReactorTest, VectorCompare)
+{
+	Routine *routine = nullptr;
+
+	{
+		Function<Int(Pointer<Byte>)> function;
+		{
+			Pointer<Byte> out = function.Arg<0>();
+
+			*Pointer<Int4>(out + 16 * 0) = CmpEQ(Float4(1.0f, 1.0f, -0.0f, +0.0f), Float4(0.0f, 1.0f, +0.0f, -0.0f));
+			*Pointer<Int4>(out + 16 * 1) = CmpEQ(Int4(1, 0, -1, -0), Int4(0, 1, 0, +0));
+			*Pointer<Byte8>(out + 16 * 2) = CmpEQ(SByte8(1, 2, 3, 4, 5, 6, 7, 8), SByte8(7, 6, 5, 4, 3, 2, 1, 0));
+
+			*Pointer<Int4>(out + 16 * 3) = CmpNLT(Float4(1.0f, 1.0f, -0.0f, +0.0f), Float4(0.0f, 1.0f, +0.0f, -0.0f));
+			*Pointer<Int4>(out + 16 * 4) = CmpNLT(Int4(1, 0, -1, -0), Int4(0, 1, 0, +0));
+			*Pointer<Byte8>(out + 16 * 5) = CmpGT(SByte8(1, 2, 3, 4, 5, 6, 7, 8), SByte8(7, 6, 5, 4, 3, 2, 1, 0));
+
+			Return(0);
+		}
+
+		routine = function(L"one");
+
+		if(routine)
+		{
+			int out[6][4];
+
+			memset(&out, 0, sizeof(out));
+
+			int(*callable)(void*) = (int(*)(void*))routine->getEntry();
+			callable(&out);
+
+			EXPECT_EQ(out[0][0], 0x00000000);
+			EXPECT_EQ(out[0][1], 0xFFFFFFFF);
+			EXPECT_EQ(out[0][2], 0xFFFFFFFF);
+			EXPECT_EQ(out[0][3], 0xFFFFFFFF);
+
+			EXPECT_EQ(out[1][0], 0x00000000);
+			EXPECT_EQ(out[1][1], 0x00000000);
+			EXPECT_EQ(out[1][2], 0x00000000);
+			EXPECT_EQ(out[1][3], 0xFFFFFFFF);
+
+			EXPECT_EQ(out[2][0], 0xFF000000);
+			EXPECT_EQ(out[2][1], 0x00000000);
+
+			EXPECT_EQ(out[3][0], 0xFFFFFFFF);
+			EXPECT_EQ(out[3][1], 0xFFFFFFFF);
+			EXPECT_EQ(out[3][2], 0xFFFFFFFF);
+			EXPECT_EQ(out[3][3], 0xFFFFFFFF);
+
+			EXPECT_EQ(out[4][0], 0xFFFFFFFF);
+			EXPECT_EQ(out[4][1], 0x00000000);
+			EXPECT_EQ(out[4][2], 0x00000000);
+			EXPECT_EQ(out[4][3], 0xFFFFFFFF);
+
+			EXPECT_EQ(out[5][0], 0x00000000);
+			EXPECT_EQ(out[5][1], 0xFFFFFFFF);
 		}
 	}
 

@@ -2606,7 +2606,7 @@ namespace sw
 
 	RValue<Byte8> CmpEQ(RValue<Byte8> x, RValue<Byte8> y)
 	{
-		return RValue<Byte8>(Nucleus::createSExt(Nucleus::createICmpEQ(x.value, y.value), Int4::getType()));
+		return RValue<Byte8>(Nucleus::createICmpEQ(x.value, y.value));
 	}
 
 	Type *Byte8::getType()
@@ -2848,7 +2848,7 @@ namespace sw
 
 	RValue<Byte8> CmpEQ(RValue<SByte8> x, RValue<SByte8> y)
 	{
-		return RValue<Byte8>(Nucleus::createSExt(Nucleus::createICmpEQ(x.value, y.value), Int4::getType()));
+		return RValue<Byte8>(Nucleus::createICmpEQ(x.value, y.value));
 	}
 
 	Type *SByte8::getType()
@@ -3333,7 +3333,7 @@ namespace sw
 
 	RValue<Short4> CmpEQ(RValue<Short4> x, RValue<Short4> y)
 	{
-		return RValue<Short4>(Nucleus::createSExt(Nucleus::createICmpEQ(x.value, y.value), Int4::getType()));
+		return RValue<Short4>(Nucleus::createICmpEQ(x.value, y.value));
 	}
 
 	Type *Short4::getType()
@@ -5292,32 +5292,32 @@ namespace sw
 
 	RValue<Int4> CmpEQ(RValue<Int4> x, RValue<Int4> y)
 	{
-		return RValue<Int4>(Nucleus::createSExt(Nucleus::createICmpEQ(x.value, y.value), Int4::getType()));
+		return RValue<Int4>(Nucleus::createICmpEQ(x.value, y.value));
 	}
 
 	RValue<Int4> CmpLT(RValue<Int4> x, RValue<Int4> y)
 	{
-		return RValue<Int4>(Nucleus::createSExt(Nucleus::createICmpSLT(x.value, y.value), Int4::getType()));
+		return RValue<Int4>(Nucleus::createICmpSLT(x.value, y.value));
 	}
 
 	RValue<Int4> CmpLE(RValue<Int4> x, RValue<Int4> y)
 	{
-		return RValue<Int4>(Nucleus::createSExt(Nucleus::createICmpSLE(x.value, y.value), Int4::getType()));
+		return RValue<Int4>(Nucleus::createICmpSLE(x.value, y.value));
 	}
 
 	RValue<Int4> CmpNEQ(RValue<Int4> x, RValue<Int4> y)
 	{
-		return RValue<Int4>(Nucleus::createSExt(Nucleus::createICmpNE(x.value, y.value), Int4::getType()));
+		return RValue<Int4>(Nucleus::createICmpNE(x.value, y.value));
 	}
 
 	RValue<Int4> CmpNLT(RValue<Int4> x, RValue<Int4> y)
 	{
-		return RValue<Int4>(Nucleus::createSExt(Nucleus::createICmpSGE(x.value, y.value), Int4::getType()));
+		return RValue<Int4>(Nucleus::createICmpSGE(x.value, y.value));
 	}
 
 	RValue<Int4> CmpNLE(RValue<Int4> x, RValue<Int4> y)
 	{
-		return RValue<Int4>(Nucleus::createSExt(Nucleus::createICmpSGT(x.value, y.value), Int4::getType()));
+		return RValue<Int4>(Nucleus::createICmpSGT(x.value, y.value));
 	}
 
 	RValue<Int4> Max(RValue<Int4> x, RValue<Int4> y)
@@ -5657,32 +5657,32 @@ namespace sw
 
 	RValue<UInt4> CmpEQ(RValue<UInt4> x, RValue<UInt4> y)
 	{
-		return RValue<UInt4>(Nucleus::createSExt(Nucleus::createICmpEQ(x.value, y.value), Int4::getType()));
+		return RValue<UInt4>(Nucleus::createICmpEQ(x.value, y.value));
 	}
 
 	RValue<UInt4> CmpLT(RValue<UInt4> x, RValue<UInt4> y)
 	{
-		return RValue<UInt4>(Nucleus::createSExt(Nucleus::createICmpULT(x.value, y.value), Int4::getType()));
+		return RValue<UInt4>(Nucleus::createICmpULT(x.value, y.value));
 	}
 
 	RValue<UInt4> CmpLE(RValue<UInt4> x, RValue<UInt4> y)
 	{
-		return RValue<UInt4>(Nucleus::createSExt(Nucleus::createICmpULE(x.value, y.value), Int4::getType()));
+		return RValue<UInt4>(Nucleus::createICmpULE(x.value, y.value));
 	}
 
 	RValue<UInt4> CmpNEQ(RValue<UInt4> x, RValue<UInt4> y)
 	{
-		return RValue<UInt4>(Nucleus::createSExt(Nucleus::createICmpNE(x.value, y.value), Int4::getType()));
+		return RValue<UInt4>(Nucleus::createICmpNE(x.value, y.value));
 	}
 
 	RValue<UInt4> CmpNLT(RValue<UInt4> x, RValue<UInt4> y)
 	{
-		return RValue<UInt4>(Nucleus::createSExt(Nucleus::createICmpUGE(x.value, y.value), Int4::getType()));
+		return RValue<UInt4>(Nucleus::createICmpUGE(x.value, y.value));
 	}
 
 	RValue<UInt4> CmpNLE(RValue<UInt4> x, RValue<UInt4> y)
 	{
-		return RValue<UInt4>(Nucleus::createSExt(Nucleus::createICmpUGT(x.value, y.value), Int4::getType()));
+		return RValue<UInt4>(Nucleus::createICmpUGT(x.value, y.value));
 	}
 
 	RValue<UInt4> Max(RValue<UInt4> x, RValue<UInt4> y)
@@ -6303,32 +6303,32 @@ namespace sw
 
 	RValue<Int4> CmpEQ(RValue<Float4> x, RValue<Float4> y)
 	{
-		return RValue<Int4>(Nucleus::createSExt(Nucleus::createFCmpOEQ(x.value, y.value), Int4::getType()));
+		return RValue<Int4>(Nucleus::createFCmpOEQ(x.value, y.value));
 	}
 
 	RValue<Int4> CmpLT(RValue<Float4> x, RValue<Float4> y)
 	{
-		return RValue<Int4>(Nucleus::createSExt(Nucleus::createFCmpOLT(x.value, y.value), Int4::getType()));
+		return RValue<Int4>(Nucleus::createFCmpOLT(x.value, y.value));
 	}
 
 	RValue<Int4> CmpLE(RValue<Float4> x, RValue<Float4> y)
 	{
-		return RValue<Int4>(Nucleus::createSExt(Nucleus::createFCmpOLE(x.value, y.value), Int4::getType()));
+		return RValue<Int4>(Nucleus::createFCmpOLE(x.value, y.value));
 	}
 
 	RValue<Int4> CmpNEQ(RValue<Float4> x, RValue<Float4> y)
 	{
-		return RValue<Int4>(Nucleus::createSExt(Nucleus::createFCmpONE(x.value, y.value), Int4::getType()));
+		return RValue<Int4>(Nucleus::createFCmpONE(x.value, y.value));
 	}
 
 	RValue<Int4> CmpNLT(RValue<Float4> x, RValue<Float4> y)
 	{
-		return RValue<Int4>(Nucleus::createSExt(Nucleus::createFCmpOGE(x.value, y.value), Int4::getType()));
+		return RValue<Int4>(Nucleus::createFCmpOGE(x.value, y.value));
 	}
 
 	RValue<Int4> CmpNLE(RValue<Float4> x, RValue<Float4> y)
 	{
-		return RValue<Int4>(Nucleus::createSExt(Nucleus::createFCmpOGT(x.value, y.value), Int4::getType()));
+		return RValue<Int4>(Nucleus::createFCmpOGT(x.value, y.value));
 	}
 
 	RValue<Float4> Round(RValue<Float4> x)
