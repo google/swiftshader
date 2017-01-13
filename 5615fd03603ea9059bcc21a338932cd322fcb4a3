@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "23f9258e_6f0b0d0e",
+        "filename": "src/OpenGL/libGL/libGL.def",
+        "patchSetId": 1
+      },
+      "lineNbr": 372,
+      "author": {
+        "id": 5885
+      },
+      "writtenOn": "2017-01-13T17:45:58Z",
+      "side": 0,
+      "message": "looks unrelated?",
+      "range": {
+        "startLine": 372,
+        "startChar": 0,
+        "endLine": 372,
+        "endChar": 1
+      },
+      "revId": "5615fd03603ea9059bcc21a338932cd322fcb4a3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
