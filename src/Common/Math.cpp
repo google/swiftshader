@@ -14,8 +14,6 @@
 
 #include "Math.hpp"
 
-#include "CPUID.hpp"
-
 namespace sw
 {
 	inline uint64_t FNV_1a(uint64_t hash, unsigned char data)
@@ -26,7 +24,7 @@ namespace sw
 	uint64_t FNV_1a(const unsigned char *data, int size)
 	{
 		int64_t hash = 0xCBF29CE484222325;
-   
+
 		for(int i = 0; i < size; i++)
 		{
 			hash = FNV_1a(hash, data[i]);

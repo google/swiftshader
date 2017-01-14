@@ -16,7 +16,6 @@
 
 #include "Context.hpp"
 #include "Surface.hpp"
-#include "CPUID.hpp"
 #include "PixelRoutine.hpp"
 #include "Debug.hpp"
 

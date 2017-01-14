@@ -18,7 +18,6 @@
 #include "QuadRasterizer.hpp"
 #include "Surface.hpp"
 #include "Primitive.hpp"
-#include "CPUID.hpp"
 #include "SamplerCore.hpp"
 #include "Constants.hpp"
 #include "Debug.hpp"

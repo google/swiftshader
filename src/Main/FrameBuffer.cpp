@@ -15,7 +15,6 @@
 #include "FrameBuffer.hpp"
 
 #include "Timer.hpp"
-#include "CPUID.hpp"
 #include "Renderer/Surface.hpp"
 #include "Reactor/Reactor.hpp"
 #include "Common/Debug.hpp"

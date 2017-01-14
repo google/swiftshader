@@ -1068,7 +1068,7 @@ namespace sw
 
 		if(!routine)   // Create one
 		{
-			VertexRoutine *generator = 0;
+			VertexRoutine *generator = nullptr;
 
 			if(state.fixedFunction)
 			{

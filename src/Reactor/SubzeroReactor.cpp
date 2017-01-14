@@ -57,6 +57,34 @@ namespace
 	Ice::Fdstream *out = nullptr;
 }
 
+namespace
+{
+	class CPUID
+	{
+	public:
+		const static bool SSE4_1;
+
+	private:
+		static void cpuid(int registers[4], int info)
+		{
+			#if defined(_WIN32)
+				__cpuid(registers, info);
+			#else
+				__asm volatile("cpuid": "=a" (registers[0]), "=b" (registers[1]), "=c" (registers[2]), "=d" (registers[3]): "a" (info));
+			#endif
+		}
+
+		static bool detectSSE4_1()
+		{
+			int registers[4];
+			cpuid(registers, 1);
+			return (registers[2] & 0x00080000) != 0;
+		}
+	};
+
+	const bool CPUID::SSE4_1 = CPUID::detectSSE4_1();
+}
+
 namespace sw
 {
 	enum EmulatedType
@@ -402,7 +430,7 @@ namespace sw
 		Flags.setOutFileType(Ice::FT_Elf);
 		Flags.setOptLevel(Ice::Opt_2);
 		Flags.setApplicationBinaryInterface(Ice::ABI_Platform);
-		Flags.setTargetInstructionSet(Ice::X86InstructionSet_SSE4_1);
+		Flags.setTargetInstructionSet(CPUID::SSE4_1 ? Ice::X86InstructionSet_SSE4_1 : Ice::X86InstructionSet_SSE2);
 		Flags.setVerbose(false ? Ice::IceV_All : Ice::IceV_None);
 
 		static llvm::raw_os_ostream cout(std::cout);
