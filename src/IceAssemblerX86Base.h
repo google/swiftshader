@@ -467,6 +467,9 @@ public:
   void cvttps2dq(Type, XmmRegister dst, XmmRegister src);
   void cvttps2dq(Type, XmmRegister dst, const Address &src);
 
+  void cvtps2dq(Type, XmmRegister dst, XmmRegister src);
+  void cvtps2dq(Type, XmmRegister dst, const Address &src);
+
   void cvtsi2ss(Type DestTy, XmmRegister dst, Type SrcTy, GPRRegister src);
   void cvtsi2ss(Type DestTy, XmmRegister dst, Type SrcTy, const Address &src);
 
@@ -475,6 +478,9 @@ public:
 
   void cvttss2si(Type DestTy, GPRRegister dst, Type SrcTy, XmmRegister src);
   void cvttss2si(Type DestTy, GPRRegister dst, Type SrcTy, const Address &src);
+
+  void cvtss2si(Type DestTy, GPRRegister dst, Type SrcTy, XmmRegister src);
+  void cvtss2si(Type DestTy, GPRRegister dst, Type SrcTy, const Address &src);
 
   void ucomiss(Type Ty, XmmRegister a, XmmRegister b);
   void ucomiss(Type Ty, XmmRegister a, const Address &b);

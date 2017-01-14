@@ -1063,10 +1063,10 @@ void InstImpl<TraitsType>::InstX86Movmsk::emitIAS(const Cfg *Func) const {
   const Type SrcTy = Src->getType();
   assert(isVectorType(SrcTy));
   assert(isScalarIntegerType(DestTy));
-  if (!Traits::Is64Bit) {
-    assert(typeWidthInBytes(DestTy) <= 4);
-  } else {
+  if (Traits::Is64Bit) {
     assert(DestTy == IceType_i32 || DestTy == IceType_i64);
+  } else {
+    assert(typeWidthInBytes(DestTy) <= 4);
   }
   XmmRegister SrcReg = Traits::getEncodedXmm(Src->getRegNum());
   GPRRegister DestReg = Traits::getEncodedGPR(Dest->getRegNum());
@@ -1712,13 +1712,28 @@ void InstImpl<TraitsType>::InstX86Cvt::emitIAS(const Cfg *Func) const {
   case Tss2si: {
     assert(isScalarFloatingType(SrcTy));
     assert(isScalarIntegerType(DestTy));
-    if (!Traits::Is64Bit) {
-      assert(typeWidthInBytes(DestTy) <= 4);
-    } else {
+    if (Traits::Is64Bit) {
       assert(DestTy == IceType_i32 || DestTy == IceType_i64);
+    } else {
+      assert(typeWidthInBytes(DestTy) <= 4);
     }
     static const CastEmitterRegOp<GPRRegister, XmmRegister> Emitter = {
         &Assembler::cvttss2si, &Assembler::cvttss2si};
+    emitIASCastRegOp<GPRRegister, XmmRegister, Traits::getEncodedGPR,
+                     Traits::getEncodedXmm>(Func, DestTy, Dest, SrcTy, Src,
+                                            Emitter);
+    return;
+  }
+  case Ss2si: {
+    assert(isScalarFloatingType(SrcTy));
+    assert(isScalarIntegerType(DestTy));
+    if (Traits::Is64Bit) {
+      assert(DestTy == IceType_i32 || DestTy == IceType_i64);
+    } else {
+      assert(typeWidthInBytes(DestTy) <= 4);
+    }
+    static const CastEmitterRegOp<GPRRegister, XmmRegister> Emitter = {
+        &Assembler::cvtss2si, &Assembler::cvtss2si};
     emitIASCastRegOp<GPRRegister, XmmRegister, Traits::getEncodedGPR,
                      Traits::getEncodedXmm>(Func, DestTy, Dest, SrcTy, Src,
                                             Emitter);
@@ -1746,6 +1761,14 @@ void InstImpl<TraitsType>::InstX86Cvt::emitIAS(const Cfg *Func) const {
     assert(isVectorIntegerType(DestTy));
     static const XmmEmitterRegOp Emitter = {&Assembler::cvttps2dq,
                                             &Assembler::cvttps2dq};
+    emitIASRegOpTyXMM(Func, DestTy, Dest, Src, Emitter);
+    return;
+  }
+  case Ps2dq: {
+    assert(isVectorFloatingType(SrcTy));
+    assert(isVectorIntegerType(DestTy));
+    static const XmmEmitterRegOp Emitter = {&Assembler::cvtps2dq,
+                                            &Assembler::cvtps2dq};
     emitIASRegOpTyXMM(Func, DestTy, Dest, Src, Emitter);
     return;
   }

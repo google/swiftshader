@@ -2041,6 +2041,29 @@ void AssemblerX86Base<TraitsType>::cvttps2dq(Type /* Ignore */, XmmRegister dst,
 }
 
 template <typename TraitsType>
+void AssemblerX86Base<TraitsType>::cvtps2dq(Type /* Ignore */, XmmRegister dst,
+                                            XmmRegister src) {
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitUint8(0x66);
+  emitRexRB(RexTypeIrrelevant, dst, src);
+  emitUint8(0x0F);
+  emitUint8(0x5B);
+  emitXmmRegisterOperand(dst, src);
+}
+
+template <typename TraitsType>
+void AssemblerX86Base<TraitsType>::cvtps2dq(Type /* Ignore */, XmmRegister dst,
+                                            const Address &src) {
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitUint8(0x66);
+  emitAddrSizeOverridePrefix();
+  emitRex(RexTypeIrrelevant, src, dst);
+  emitUint8(0x0F);
+  emitUint8(0x5B);
+  emitOperand(gprEncoding(dst), src);
+}
+
+template <typename TraitsType>
 void AssemblerX86Base<TraitsType>::cvtsi2ss(Type DestTy, XmmRegister dst,
                                             Type SrcTy, GPRRegister src) {
   AssemblerBuffer::EnsureCapacity ensured(&Buffer);
@@ -2107,6 +2130,29 @@ void AssemblerX86Base<TraitsType>::cvttss2si(Type DestTy, GPRRegister dst,
   emitRex(DestTy, src, dst);
   emitUint8(0x0F);
   emitUint8(0x2C);
+  emitOperand(gprEncoding(dst), src);
+}
+
+template <typename TraitsType>
+void AssemblerX86Base<TraitsType>::cvtss2si(Type DestTy, GPRRegister dst,
+                                            Type SrcTy, XmmRegister src) {
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitUint8(isFloat32Asserting32Or64(SrcTy) ? 0xF3 : 0xF2);
+  emitRexRB(DestTy, dst, src);
+  emitUint8(0x0F);
+  emitUint8(0x2D);
+  emitXmmRegisterOperand(dst, src);
+}
+
+template <typename TraitsType>
+void AssemblerX86Base<TraitsType>::cvtss2si(Type DestTy, GPRRegister dst,
+                                            Type SrcTy, const Address &src) {
+  AssemblerBuffer::EnsureCapacity ensured(&Buffer);
+  emitUint8(isFloat32Asserting32Or64(SrcTy) ? 0xF3 : 0xF2);
+  emitAddrSizeOverridePrefix();
+  emitRex(DestTy, src, dst);
+  emitUint8(0x0F);
+  emitUint8(0x2D);
   emitOperand(gprEncoding(dst), src);
 }
 

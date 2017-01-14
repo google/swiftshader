@@ -2981,13 +2981,11 @@ void TargetX86Base<TraitsType>::lowerCast(const InstCast *Instr) {
   }
   case InstCast::Fptosi:
     if (isVectorType(DestTy)) {
-      assert(DestTy == IceType_v4i32 &&
-             Instr->getSrc(0)->getType() == IceType_v4f32);
-      Operand *Src0RM = legalize(Instr->getSrc(0), Legal_Reg | Legal_Mem);
-      if (llvm::isa<X86OperandMem>(Src0RM))
-        Src0RM = legalizeToReg(Src0RM);
+      assert(DestTy == IceType_v4i32);
+      assert(Instr->getSrc(0)->getType() == IceType_v4f32);
+      Operand *Src0R = legalizeToReg(Instr->getSrc(0));
       Variable *T = makeReg(DestTy);
-      _cvt(T, Src0RM, Traits::Insts::Cvt::Tps2dq);
+      _cvt(T, Src0R, Traits::Insts::Cvt::Tps2dq);
       _movp(Dest, T);
     } else if (!Traits::Is64Bit && DestTy == IceType_i64) {
       llvm::report_fatal_error("Helper call was expected");
@@ -3047,13 +3045,11 @@ void TargetX86Base<TraitsType>::lowerCast(const InstCast *Instr) {
     break;
   case InstCast::Sitofp:
     if (isVectorType(DestTy)) {
-      assert(DestTy == IceType_v4f32 &&
-             Instr->getSrc(0)->getType() == IceType_v4i32);
-      Operand *Src0RM = legalize(Instr->getSrc(0), Legal_Reg | Legal_Mem);
-      if (llvm::isa<X86OperandMem>(Src0RM))
-        Src0RM = legalizeToReg(Src0RM);
+      assert(DestTy == IceType_v4f32);
+      assert(Instr->getSrc(0)->getType() == IceType_v4i32);
+      Operand *Src0R = legalizeToReg(Instr->getSrc(0));
       Variable *T = makeReg(DestTy);
-      _cvt(T, Src0RM, Traits::Insts::Cvt::Dq2ps);
+      _cvt(T, Src0R, Traits::Insts::Cvt::Dq2ps);
       _movp(Dest, T);
     } else if (!Traits::Is64Bit && Instr->getSrc(0)->getType() == IceType_i64) {
       llvm::report_fatal_error("Helper call was expected");
@@ -4571,7 +4567,46 @@ void TargetX86Base<TraitsType>::lowerIntrinsicCall(
     _movp(Dest, T);
     return;
   }
+  case Intrinsics::Nearbyint: {
+    Operand *Src = Instr->getArg(0);
+    Variable *Dest = Instr->getDest();
+    Type DestTy = Dest->getType();
+    if (isVectorType(DestTy)) {
+      assert(DestTy == IceType_v4i32);
+      assert(Src->getType() == IceType_v4f32);
+      Operand *Src0R = legalizeToReg(Src);
+      Variable *T = makeReg(DestTy);
+      _cvt(T, Src0R, Traits::Insts::Cvt::Ps2dq);
+      _movp(Dest, T);
+    } else if (!Traits::Is64Bit && DestTy == IceType_i64) {
+      llvm::report_fatal_error("Helper call was expected");
+    } else {
+      Operand *Src0RM = legalize(Src, Legal_Reg | Legal_Mem);
+      // t1.i32 = cvt Src0RM; t2.dest_type = t1; Dest = t2.dest_type
+      Variable *T_1 = nullptr;
+      if (Traits::Is64Bit && DestTy == IceType_i64) {
+        T_1 = makeReg(IceType_i64);
+      } else {
+        assert(DestTy != IceType_i64);
+        T_1 = makeReg(IceType_i32);
+      }
+      // cvt() requires its integer argument to be a GPR.
+      Variable *T_2 = makeReg(DestTy);
+      if (isByteSizedType(DestTy)) {
+        assert(T_1->getType() == IceType_i32);
+        T_1->setRegClass(RCX86_Is32To8);
+        T_2->setRegClass(RCX86_IsTrunc8Rcvr);
+      }
+      _cvt(T_1, Src0RM, Traits::Insts::Cvt::Ss2si);
+      _mov(T_2, T_1); // T_1 and T_2 may have different integer types
+      if (DestTy == IceType_i1)
+        _and(T_2, Ctx->getConstantInt1(1));
+      _mov(Dest, T_2);
+    }
+    return;
+  }
   case Intrinsics::Round: {
+    assert(InstructionSet >= Traits::SSE4_1);
     Variable *Dest = Instr->getDest();
     Operand *Src = Instr->getArg(0);
     Operand *Mode = Instr->getArg(1);
@@ -7311,7 +7346,8 @@ void TargetX86Base<TraitsType>::genTargetHelperCallFor(Inst *Instr) {
       break;
     case InstCast::Fptoui:
       if (isVectorType(DestTy)) {
-        assert(DestTy == IceType_v4i32 && SrcType == IceType_v4f32);
+        assert(DestTy == IceType_v4i32);
+        assert(SrcType == IceType_v4f32);
         HelperID = RuntimeHelper::H_fptoui_4xi32_f32;
       } else if (DestTy == IceType_i64 ||
                  (!Traits::Is64Bit && DestTy == IceType_i32)) {
@@ -7343,7 +7379,8 @@ void TargetX86Base<TraitsType>::genTargetHelperCallFor(Inst *Instr) {
       break;
     case InstCast::Uitofp:
       if (isVectorType(SrcType)) {
-        assert(DestTy == IceType_v4f32 && SrcType == IceType_v4i32);
+        assert(DestTy == IceType_v4f32);
+        assert(SrcType == IceType_v4i32);
         HelperID = RuntimeHelper::H_uitofp_4xi32_4xf32;
       } else if (SrcType == IceType_i64 ||
                  (!Traits::Is64Bit && SrcType == IceType_i32)) {

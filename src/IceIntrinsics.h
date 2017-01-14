@@ -68,6 +68,7 @@ public:
     MultiplyAddPairs,
     MultiplyHighSigned,
     MultiplyHighUnsigned,
+    Nearbyint,
     Round,
     SignMask,
     StoreSubVector,

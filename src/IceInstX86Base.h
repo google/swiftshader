@@ -2546,7 +2546,7 @@ template <typename TraitsType> struct InstImpl {
     InstX86Cvt &operator=(const InstX86Cvt &) = delete;
 
   public:
-    enum CvtVariant { Si2ss, Tss2si, Float2float, Dq2ps, Tps2dq };
+    enum CvtVariant { Si2ss, Tss2si, Ss2si, Float2float, Dq2ps, Tps2dq, Ps2dq };
     static InstX86Cvt *create(Cfg *Func, Variable *Dest, Operand *Source,
                               CvtVariant Variant) {
       return new (Func->allocate<InstX86Cvt>())
