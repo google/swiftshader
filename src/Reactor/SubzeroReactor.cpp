@@ -3324,7 +3324,7 @@ namespace sw
 
 	RValue<Short> Extract(RValue<Short4> val, int i)
 	{
-		return RValue<Short>(Nucleus::createExtractElement(val.value, Int::getType(), i));
+		return RValue<Short>(Nucleus::createExtractElement(val.value, Short::getType(), i));
 	}
 
 	RValue<Short4> CmpGT(RValue<Short4> x, RValue<Short4> y)
