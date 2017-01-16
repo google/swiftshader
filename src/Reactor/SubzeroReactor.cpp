@@ -1302,10 +1302,6 @@ namespace sw
 		storeValue(argument.value);
 	}
 
-	Bool::Bool()
-	{
-	}
-
 	Bool::Bool(bool x)
 	{
 		storeValue(Nucleus::createConstantBool(x));
@@ -1395,10 +1391,6 @@ namespace sw
 		Value *integer = Nucleus::createTrunc(cast.value, Byte::getType());
 
 		storeValue(integer);
-	}
-
-	Byte::Byte()
-	{
 	}
 
 	Byte::Byte(int x)
@@ -1646,10 +1638,6 @@ namespace sw
 		storeValue(integer);
 	}
 
-	SByte::SByte()
-	{
-	}
-
 	SByte::SByte(signed char x)
 	{
 		storeValue(Nucleus::createConstantByte(x));
@@ -1881,10 +1869,6 @@ namespace sw
 		Value *integer = Nucleus::createTrunc(cast.value, Short::getType());
 
 		storeValue(integer);
-	}
-
-	Short::Short()
-	{
 	}
 
 	Short::Short(short x)
@@ -2127,10 +2111,6 @@ namespace sw
 		storeValue(integer);
 	}
 
-	UShort::UShort()
-	{
-	}
-
 	UShort::UShort(unsigned short x)
 	{
 		storeValue(Nucleus::createConstantShort(x));
@@ -2354,15 +2334,11 @@ namespace sw
 
 	Byte4::Byte4(RValue<Byte8> cast)
 	{
-	//	xyzw.parent = this;
-
 		storeValue(Nucleus::createBitCast(cast.value, getType()));
 	}
 
 	Byte4::Byte4(const Reference<Byte4> &rhs)
 	{
-	//	xyzw.parent = this;
-
 		Value *value = rhs.loadValue();
 		storeValue(value);
 	}
@@ -2375,10 +2351,6 @@ namespace sw
 	Type *SByte4::getType()
 	{
 		return T(Type_v4i8);
-	}
-
-	Byte8::Byte8()
-	{
 	}
 
 	Byte8::Byte8(uint8_t x0, uint8_t x1, uint8_t x2, uint8_t x3, uint8_t x4, uint8_t x5, uint8_t x6, uint8_t x7)
@@ -2614,15 +2586,8 @@ namespace sw
 		return T(Type_v8i8);
 	}
 
-	SByte8::SByte8()
-	{
-	//	xyzw.parent = this;
-	}
-
 	SByte8::SByte8(uint8_t x0, uint8_t x1, uint8_t x2, uint8_t x3, uint8_t x4, uint8_t x5, uint8_t x6, uint8_t x7)
 	{
-	//	xyzw.parent = this;
-
 		int64_t constantVector[8] = { x0, x1, x2, x3, x4, x5, x6, x7 };
 		Value *vector = V(Nucleus::createConstantVector(constantVector, getType()));
 
@@ -2631,23 +2596,17 @@ namespace sw
 
 	SByte8::SByte8(RValue<SByte8> rhs)
 	{
-	//	xyzw.parent = this;
-
 		storeValue(rhs.value);
 	}
 
 	SByte8::SByte8(const SByte8 &rhs)
 	{
-	//	xyzw.parent = this;
-
 		Value *value = rhs.loadValue();
 		storeValue(value);
 	}
 
 	SByte8::SByte8(const Reference<SByte8> &rhs)
 	{
-	//	xyzw.parent = this;
-
 		Value *value = rhs.loadValue();
 		storeValue(value);
 	}
@@ -2858,23 +2817,17 @@ namespace sw
 
 	Byte16::Byte16(RValue<Byte16> rhs)
 	{
-	//	xyzw.parent = this;
-
 		storeValue(rhs.value);
 	}
 
 	Byte16::Byte16(const Byte16 &rhs)
 	{
-	//	xyzw.parent = this;
-
 		Value *value = rhs.loadValue();
 		storeValue(value);
 	}
 
 	Byte16::Byte16(const Reference<Byte16> &rhs)
 	{
-	//	xyzw.parent = this;
-
 		Value *value = rhs.loadValue();
 		storeValue(value);
 	}
@@ -2963,68 +2916,47 @@ namespace sw
 		assert(false && "UNIMPLEMENTED");
 	}
 
-	Short4::Short4()
-	{
-	//	xyzw.parent = this;
-	}
-
 	Short4::Short4(short xyzw)
 	{
-		//	xyzw.parent = this;
-
 		int64_t constantVector[4] = {xyzw, xyzw, xyzw, xyzw};
 		storeValue(Nucleus::createConstantVector(constantVector, getType()));
 	}
 
 	Short4::Short4(short x, short y, short z, short w)
 	{
-		//	xyzw.parent = this;
-
 		int64_t constantVector[4] = {x, y, z, w};
 		storeValue(Nucleus::createConstantVector(constantVector, getType()));
 	}
 
 	Short4::Short4(RValue<Short4> rhs)
 	{
-	//	xyzw.parent = this;
-
 		storeValue(rhs.value);
 	}
 
 	Short4::Short4(const Short4 &rhs)
 	{
-	//	xyzw.parent = this;
-
 		Value *value = rhs.loadValue();
 		storeValue(value);
 	}
 
 	Short4::Short4(const Reference<Short4> &rhs)
 	{
-	//	xyzw.parent = this;
-
 		Value *value = rhs.loadValue();
 		storeValue(value);
 	}
 
 	Short4::Short4(RValue<UShort4> rhs)
 	{
-	//	xyzw.parent = this;
-
 		storeValue(rhs.value);
 	}
 
 	Short4::Short4(const UShort4 &rhs)
 	{
-	//	xyzw.parent = this;
-
 		storeValue(rhs.loadValue());
 	}
 
 	Short4::Short4(const Reference<UShort4> &rhs)
 	{
-	//	xyzw.parent = this;
-
 		storeValue(rhs.loadValue());
 	}
 
@@ -3367,69 +3299,48 @@ namespace sw
 		}
 	}
 
-	UShort4::UShort4()
-	{
-	//	xyzw.parent = this;
-	}
-
 	UShort4::UShort4(unsigned short xyzw)
 	{
-	//	xyzw.parent = this;
-
 		int64_t constantVector[4] = {xyzw, xyzw, xyzw, xyzw};
 		storeValue(Nucleus::createConstantVector(constantVector, getType()));
 	}
 
 	UShort4::UShort4(unsigned short x, unsigned short y, unsigned short z, unsigned short w)
 	{
-	//	xyzw.parent = this;
-
 		int64_t constantVector[4] = {x, y, z, w};
 		storeValue(Nucleus::createConstantVector(constantVector, getType()));
 	}
 
 	UShort4::UShort4(RValue<UShort4> rhs)
 	{
-	//	xyzw.parent = this;
-
 		storeValue(rhs.value);
 	}
 
 	UShort4::UShort4(const UShort4 &rhs)
 	{
-	//	xyzw.parent = this;
-
 		Value *value = rhs.loadValue();
 		storeValue(value);
 	}
 
 	UShort4::UShort4(const Reference<UShort4> &rhs)
 	{
-	//	xyzw.parent = this;
-
 		Value *value = rhs.loadValue();
 		storeValue(value);
 	}
 
 	UShort4::UShort4(RValue<Short4> rhs)
 	{
-	//	xyzw.parent = this;
-
 		storeValue(rhs.value);
 	}
 
 	UShort4::UShort4(const Short4 &rhs)
 	{
-	//	xyzw.parent = this;
-
 		Value *value = rhs.loadValue();
 		storeValue(value);
 	}
 
 	UShort4::UShort4(const Reference<Short4> &rhs)
 	{
-	//	xyzw.parent = this;
-
 		Value *value = rhs.loadValue();
 		storeValue(value);
 	}
@@ -3625,23 +3536,17 @@ namespace sw
 
 	Short8::Short8(short c0, short c1, short c2, short c3, short c4, short c5, short c6, short c7)
 	{
-	//	xyzw.parent = this;
-
 		int64_t constantVector[8] = {c0, c1, c2, c3, c4, c5, c6, c7};
 		storeValue(Nucleus::createConstantVector(constantVector, getType()));
 	}
 
 	Short8::Short8(RValue<Short8> rhs)
 	{
-	//	xyzw.parent = this;
-
 		storeValue(rhs.value);
 	}
 
 	Short8::Short8(const Reference<Short8> &rhs)
 	{
-	//	xyzw.parent = this;
-
 		Value *value = rhs.loadValue();
 		storeValue(value);
 	}
@@ -3849,10 +3754,6 @@ namespace sw
 		Value *integer = Nucleus::createFPToSI(cast.value, Int::getType());
 
 		storeValue(integer);
-	}
-
-	Int::Int()
-	{
 	}
 
 	Int::Int(int x)
@@ -4161,10 +4062,6 @@ namespace sw
 		storeValue(integer);
 	}
 
-	Long::Long()
-	{
-	}
-
 	Long::Long(RValue<Long> rhs)
 	{
 		storeValue(rhs.value);
@@ -4261,10 +4158,6 @@ namespace sw
 				As<Int>(As<UInt>(Int(cast - Float(ustartf))) + UInt(ustart)),
 		// Otherwise, just convert normally
 				Int(cast))).value);
-	}
-
-	UInt::UInt()
-	{
 	}
 
 	UInt::UInt(int x)
@@ -4577,38 +4470,25 @@ namespace sw
 		storeValue(Nucleus::createBitCast(cast.value, getType()));
 	}
 
-	Int2::Int2()
-	{
-	//	xy.parent = this;
-	}
-
 	Int2::Int2(int x, int y)
 	{
-	//	xy.parent = this;
-
 		int64_t constantVector[2] = {x, y};
 		storeValue(Nucleus::createConstantVector(constantVector, getType()));
 	}
 
 	Int2::Int2(RValue<Int2> rhs)
 	{
-	//	xy.parent = this;
-
 		storeValue(rhs.value);
 	}
 
 	Int2::Int2(const Int2 &rhs)
 	{
-	//	xy.parent = this;
-
 		Value *value = rhs.loadValue();
 		storeValue(value);
 	}
 
 	Int2::Int2(const Reference<Int2> &rhs)
 	{
-	//	xy.parent = this;
-
 		Value *value = rhs.loadValue();
 		storeValue(value);
 	}
@@ -4787,38 +4667,25 @@ namespace sw
 		return T(Type_v2i32);
 	}
 
-	UInt2::UInt2()
-	{
-	//	xy.parent = this;
-	}
-
 	UInt2::UInt2(unsigned int x, unsigned int y)
 	{
-	//	xy.parent = this;
-
 		int64_t constantVector[2] = {x, y};
 		storeValue(Nucleus::createConstantVector(constantVector, getType()));
 	}
 
 	UInt2::UInt2(RValue<UInt2> rhs)
 	{
-	//	xy.parent = this;
-
 		storeValue(rhs.value);
 	}
 
 	UInt2::UInt2(const UInt2 &rhs)
 	{
-	//	xy.parent = this;
-
 		Value *value = rhs.loadValue();
 		storeValue(value);
 	}
 
 	UInt2::UInt2(const Reference<UInt2> &rhs)
 	{
-	//	xy.parent = this;
-
 		Value *value = rhs.loadValue();
 		storeValue(value);
 	}
@@ -5005,8 +4872,6 @@ namespace sw
 
 	Int4::Int4(RValue<Float4> cast)
 	{
-	//	xyzw.parent = this;
-
 		Value *xyzw = Nucleus::createFPToSI(cast.value, Int4::getType());
 
 		storeValue(xyzw);
@@ -5027,11 +4892,6 @@ namespace sw
 		Value *c = Nucleus::createShuffleVector(cast.value, Short8(0, 0, 0, 0, 0, 0, 0, 0).loadValue(), swizzle);
 		Value *d = Nucleus::createBitCast(c, Int4::getType());
 		storeValue(d);
-	}
-
-	Int4::Int4()
-	{
-	//	xyzw.parent = this;
 	}
 
 	Int4::Int4(int xyzw)
@@ -5056,54 +4916,40 @@ namespace sw
 
 	void Int4::constant(int x, int y, int z, int w)
 	{
-	//	xyzw.parent = this;
-
 		int64_t constantVector[4] = {x, y, z, w};
 		storeValue(Nucleus::createConstantVector(constantVector, getType()));
 	}
 
 	Int4::Int4(RValue<Int4> rhs)
 	{
-	//	xyzw.parent = this;
-
 		storeValue(rhs.value);
 	}
 
 	Int4::Int4(const Int4 &rhs)
 	{
-	//	xyzw.parent = this;
-
 		Value *value = rhs.loadValue();
 		storeValue(value);
 	}
 
 	Int4::Int4(const Reference<Int4> &rhs)
 	{
-	//	xyzw.parent = this;
-
 		Value *value = rhs.loadValue();
 		storeValue(value);
 	}
 
 	Int4::Int4(RValue<UInt4> rhs)
 	{
-	//	xyzw.parent = this;
-
 		storeValue(rhs.value);
 	}
 
 	Int4::Int4(const UInt4 &rhs)
 	{
-	//	xyzw.parent = this;
-
 		Value *value = rhs.loadValue();
 		storeValue(value);
 	}
 
 	Int4::Int4(const Reference<UInt4> &rhs)
 	{
-	//	xyzw.parent = this;
-
 		Value *value = rhs.loadValue();
 		storeValue(value);
 	}
@@ -5118,8 +4964,6 @@ namespace sw
 
 	Int4::Int4(RValue<Int> rhs)
 	{
-	//	xyzw.parent = this;
-
 		Value *vector = loadValue();
 		Value *insert = Nucleus::createInsertElement(vector, rhs.value, 0);
 
@@ -5131,15 +4975,11 @@ namespace sw
 
 	Int4::Int4(const Int &rhs)
 	{
-	//	xyzw.parent = this;
-
 		*this = RValue<Int>(rhs.loadValue());
 	}
 
 	Int4::Int4(const Reference<Int> &rhs)
 	{
-	//	xyzw.parent = this;
-
 		*this = RValue<Int>(rhs.loadValue());
 	}
 
@@ -5405,8 +5245,6 @@ namespace sw
 
 	UInt4::UInt4(RValue<Float4> cast)
 	{
-	//	xyzw.parent = this;
-
 		// Smallest positive value representable in UInt, but not in Int
 		const unsigned int ustart = 0x80000000u;
 		const float ustartf = float(ustart);
@@ -5419,11 +5257,6 @@ namespace sw
 		          (~uiValue & Int4(cast));
 		// If the value is negative, store 0, otherwise store the result of the conversion
 		storeValue((~(As<Int4>(cast) >> 31) & uiValue).value);
-	}
-
-	UInt4::UInt4()
-	{
-	//	xyzw.parent = this;
 	}
 
 	UInt4::UInt4(int xyzw)
@@ -5448,54 +5281,40 @@ namespace sw
 
 	void UInt4::constant(int x, int y, int z, int w)
 	{
-	//	xyzw.parent = this;
-
 		int64_t constantVector[4] = {x, y, z, w};
 		storeValue(Nucleus::createConstantVector(constantVector, getType()));
 	}
 
 	UInt4::UInt4(RValue<UInt4> rhs)
 	{
-	//	xyzw.parent = this;
-
 		storeValue(rhs.value);
 	}
 
 	UInt4::UInt4(const UInt4 &rhs)
 	{
-	//	xyzw.parent = this;
-
 		Value *value = rhs.loadValue();
 		storeValue(value);
 	}
 
 	UInt4::UInt4(const Reference<UInt4> &rhs)
 	{
-	//	xyzw.parent = this;
-
 		Value *value = rhs.loadValue();
 		storeValue(value);
 	}
 
 	UInt4::UInt4(RValue<Int4> rhs)
 	{
-	//	xyzw.parent = this;
-
 		storeValue(rhs.value);
 	}
 
 	UInt4::UInt4(const Int4 &rhs)
 	{
-	//	xyzw.parent = this;
-
 		Value *value = rhs.loadValue();
 		storeValue(value);
 	}
 
 	UInt4::UInt4(const Reference<Int4> &rhs)
 	{
-	//	xyzw.parent = this;
-
 		Value *value = rhs.loadValue();
 		storeValue(value);
 	}
@@ -5737,10 +5556,6 @@ namespace sw
 		storeValue(integer);
 	}
 
-	Float::Float()
-	{
-	}
-
 	Float::Float(float x)
 	{
 		storeValue(Nucleus::createConstantFloat(x));
@@ -5943,121 +5758,98 @@ namespace sw
 		return T(Type_v2f32);
 	}
 
-	Float4::Float4(RValue<Byte4> cast)
+	Float4::Float4(RValue<Byte4> cast) : FloatXYZW(this)
 	{
-		xyzw.parent = this;
-
 		Value *a = Int4(cast).loadValue();
 		Value *xyzw = Nucleus::createSIToFP(a, Float4::getType());
 
 		storeValue(xyzw);
 	}
 
-	Float4::Float4(RValue<SByte4> cast)
+	Float4::Float4(RValue<SByte4> cast) : FloatXYZW(this)
 	{
-		xyzw.parent = this;
-
 		Value *a = Int4(cast).loadValue();
 		Value *xyzw = Nucleus::createSIToFP(a, Float4::getType());
 
 		storeValue(xyzw);
 	}
 
-	Float4::Float4(RValue<Short4> cast)
+	Float4::Float4(RValue<Short4> cast) : FloatXYZW(this)
 	{
-		xyzw.parent = this;
-
 		Int4 c(cast);
 		storeValue(Nucleus::createSIToFP(RValue<Int4>(c).value, Float4::getType()));
 	}
 
-	Float4::Float4(RValue<UShort4> cast)
+	Float4::Float4(RValue<UShort4> cast) : FloatXYZW(this)
 	{
-		xyzw.parent = this;
-
 		Int4 c(cast);
 		storeValue(Nucleus::createSIToFP(RValue<Int4>(c).value, Float4::getType()));
 	}
 
-	Float4::Float4(RValue<Int4> cast)
+	Float4::Float4(RValue<Int4> cast) : FloatXYZW(this)
 	{
-		xyzw.parent = this;
-
 		Value *xyzw = Nucleus::createSIToFP(cast.value, Float4::getType());
 
 		storeValue(xyzw);
 	}
 
-	Float4::Float4(RValue<UInt4> cast)
+	Float4::Float4(RValue<UInt4> cast) : FloatXYZW(this)
 	{
-		xyzw.parent = this;
-
 		RValue<Float4> result = Float4(Int4(cast & UInt4(0x7FFFFFFF))) +
 		                        As<Float4>((As<Int4>(cast) >> 31) & As<Int4>(Float4(0x80000000u)));
 
 		storeValue(result.value);
 	}
 
-	Float4::Float4()
+	Float4::Float4() : FloatXYZW(this)
 	{
-		xyzw.parent = this;
 	}
 
-	Float4::Float4(float xyzw)
+	Float4::Float4(float xyzw) : FloatXYZW(this)
 	{
 		constant(xyzw, xyzw, xyzw, xyzw);
 	}
 
-	Float4::Float4(float x, float yzw)
+	Float4::Float4(float x, float yzw) : FloatXYZW(this)
 	{
 		constant(x, yzw, yzw, yzw);
 	}
 
-	Float4::Float4(float x, float y, float zw)
+	Float4::Float4(float x, float y, float zw) : FloatXYZW(this)
 	{
 		constant(x, y, zw, zw);
 	}
 
-	Float4::Float4(float x, float y, float z, float w)
+	Float4::Float4(float x, float y, float z, float w) : FloatXYZW(this)
 	{
 		constant(x, y, z, w);
 	}
 
 	void Float4::constant(float x, float y, float z, float w)
 	{
-		xyzw.parent = this;
-
 		double constantVector[4] = {x, y, z, w};
 		storeValue(Nucleus::createConstantVector(constantVector, getType()));
 	}
 
-	Float4::Float4(RValue<Float4> rhs)
+	Float4::Float4(RValue<Float4> rhs) : FloatXYZW(this)
 	{
-		xyzw.parent = this;
-
 		storeValue(rhs.value);
 	}
 
-	Float4::Float4(const Float4 &rhs)
+	Float4::Float4(const Float4 &rhs) : FloatXYZW(this)
 	{
-		xyzw.parent = this;
-
 		Value *value = rhs.loadValue();
 		storeValue(value);
 	}
 
-	Float4::Float4(const Reference<Float4> &rhs)
+	Float4::Float4(const Reference<Float4> &rhs) : FloatXYZW(this)
 	{
-		xyzw.parent = this;
-
 		Value *value = rhs.loadValue();
 		storeValue(value);
 	}
 
-	Float4::Float4(RValue<Float> rhs)
+	Float4::Float4(RValue<Float> rhs) : FloatXYZW(this)
 	{
-		xyzw.parent = this;
-
 		Value *vector = loadValue();
 		Value *insert = Nucleus::createInsertElement(vector, rhs.value, 0);
 
@@ -6067,17 +5859,13 @@ namespace sw
 		storeValue(replicate);
 	}
 
-	Float4::Float4(const Float &rhs)
+	Float4::Float4(const Float &rhs) : FloatXYZW(this)
 	{
-		xyzw.parent = this;
-
 		*this = RValue<Float>(rhs.loadValue());
 	}
 
-	Float4::Float4(const Reference<Float> &rhs)
+	Float4::Float4(const Reference<Float> &rhs) : FloatXYZW(this)
 	{
-		xyzw.parent = this;
-
 		*this = RValue<Float>(rhs.loadValue());
 	}
 

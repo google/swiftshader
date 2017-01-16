@@ -184,7 +184,7 @@ namespace sw
 	public:
 		Bool(Argument<Bool> argument);
 
-		Bool();
+		Bool() = default;
 		Bool(bool x);
 		Bool(RValue<Bool> rhs);
 		Bool(const Bool &rhs);
@@ -211,7 +211,7 @@ namespace sw
 		explicit Byte(RValue<UInt> cast);
 		explicit Byte(RValue<UShort> cast);
 
-		Byte();
+		Byte() = default;
 		Byte(int x);
 		Byte(unsigned char x);
 		Byte(RValue<Byte> rhs);
@@ -268,7 +268,7 @@ namespace sw
 		explicit SByte(RValue<Int> cast);
 		explicit SByte(RValue<Short> cast);
 
-		SByte();
+		SByte() = default;
 		SByte(signed char x);
 		SByte(RValue<SByte> rhs);
 		SByte(const SByte &rhs);
@@ -323,7 +323,7 @@ namespace sw
 
 		explicit Short(RValue<Int> cast);
 
-		Short();
+		Short() = default;
 		Short(short x);
 		Short(RValue<Short> rhs);
 		Short(const Short &rhs);
@@ -379,7 +379,7 @@ namespace sw
 		explicit UShort(RValue<UInt> cast);
 		explicit UShort(RValue<Int> cast);
 
-		UShort();
+		UShort() = default;
 		UShort(unsigned short x);
 		UShort(RValue<UShort> rhs);
 		UShort(const UShort &rhs);
@@ -432,7 +432,7 @@ namespace sw
 	public:
 		explicit Byte4(RValue<Byte8> cast);
 
-	//	Byte4();
+		Byte4() = default;
 	//	Byte4(int x, int y, int z, int w);
 	//	Byte4(RValue<Byte4> rhs);
 	//	Byte4(const Byte4 &rhs);
@@ -476,7 +476,7 @@ namespace sw
 	class SByte4 : public LValue<SByte4>
 	{
 	public:
-	//	SByte4();
+		SByte4() = default;
 	//	SByte4(int x, int y, int z, int w);
 	//	SByte4(RValue<SByte4> rhs);
 	//	SByte4(const SByte4 &rhs);
@@ -520,7 +520,7 @@ namespace sw
 	class Byte8 : public LValue<Byte8>
 	{
 	public:
-		Byte8();
+		Byte8() = default;
 		Byte8(uint8_t x0, uint8_t x1, uint8_t x2, uint8_t x3, uint8_t x4, uint8_t x5, uint8_t x6, uint8_t x7);
 		Byte8(RValue<Byte8> rhs);
 		Byte8(const Byte8 &rhs);
@@ -573,7 +573,7 @@ namespace sw
 	class SByte8 : public LValue<SByte8>
 	{
 	public:
-		SByte8();
+		SByte8() = default;
 		SByte8(uint8_t x0, uint8_t x1, uint8_t x2, uint8_t x3, uint8_t x4, uint8_t x5, uint8_t x6, uint8_t x7);
 		SByte8(RValue<SByte8> rhs);
 		SByte8(const SByte8 &rhs);
@@ -625,7 +625,7 @@ namespace sw
 	class Byte16 : public LValue<Byte16>
 	{
 	public:
-	//	Byte16();
+		Byte16() = default;
 	//	Byte16(int x, int y, int z, int w);
 		Byte16(RValue<Byte16> rhs);
 		Byte16(const Byte16 &rhs);
@@ -669,7 +669,7 @@ namespace sw
 	class SByte16 : public LValue<SByte16>
 	{
 	public:
-	//	SByte16();
+		SByte16() = default;
 	//	SByte16(int x, int y, int z, int w);
 	//	SByte16(RValue<SByte16> rhs);
 	//	SByte16(const SByte16 &rhs);
@@ -734,7 +734,7 @@ namespace sw
 	//	explicit Short4(RValue<Float> cast);
 		explicit Short4(RValue<Float4> cast);
 
-		Short4();
+		Short4() = default;
 		Short4(short xyzw);
 		Short4(short x, short y, short z, short w);
 		Short4(RValue<Short4> rhs);
@@ -810,7 +810,7 @@ namespace sw
 		explicit UShort4(RValue<Int4> cast);
 		explicit UShort4(RValue<Float4> cast, bool saturate = false);
 
-		UShort4();
+		UShort4() = default;
 		UShort4(unsigned short xyzw);
 		UShort4(unsigned short x, unsigned short y, unsigned short z, unsigned short w);
 		UShort4(RValue<UShort4> rhs);
@@ -869,7 +869,7 @@ namespace sw
 	class Short8 : public LValue<Short8>
 	{
 	public:
-	//	Short8();
+		Short8() = default;
 		Short8(short c0, short c1, short c2, short c3, short c4, short c5, short c6, short c7);
 		Short8(RValue<Short8> rhs);
 	//	Short8(const Short8 &rhs);
@@ -926,7 +926,7 @@ namespace sw
 	class UShort8 : public LValue<UShort8>
 	{
 	public:
-	//	UShort8();
+		UShort8() = default;
 		UShort8(unsigned short c0, unsigned short c1, unsigned short c2, unsigned short c3, unsigned short c4, unsigned short c5, unsigned short c6, unsigned short c7);
 		UShort8(RValue<UShort8> rhs);
 	//	UShort8(const UShort8 &rhs);
@@ -992,7 +992,7 @@ namespace sw
 		explicit Int(RValue<Long> cast);
 		explicit Int(RValue<Float> cast);
 
-		Int();
+		Int() = default;
 		Int(int x);
 		Int(RValue<Int> rhs);
 		Int(RValue<UInt> rhs);
@@ -1062,7 +1062,7 @@ namespace sw
 		explicit Long(RValue<UInt> cast);
 	//	explicit Long(RValue<Float> cast);
 
-		Long();
+		Long() = default;
 	//	Long(qword x);
 		Long(RValue<Long> rhs);
 	//	Long(RValue<ULong> rhs);
@@ -1128,7 +1128,7 @@ namespace sw
 		explicit UInt(RValue<Long> cast);
 		explicit UInt(RValue<Float> cast);
 
-		UInt();
+		UInt() = default;
 		UInt(int x);
 		UInt(unsigned int x);
 		UInt(RValue<UInt> rhs);
@@ -1194,7 +1194,7 @@ namespace sw
 	//	explicit Int2(RValue<Int> cast);
 		explicit Int2(RValue<Int4> cast);
 
-		Int2();
+		Int2() = default;
 		Int2(int x, int y);
 		Int2(RValue<Int2> rhs);
 		Int2(const Int2 &rhs);
@@ -1251,7 +1251,7 @@ namespace sw
 	class UInt2 : public LValue<UInt2>
 	{
 	public:
-		UInt2();
+		UInt2() = default;
 		UInt2(unsigned int x, unsigned int y);
 		UInt2(RValue<UInt2> rhs);
 		UInt2(const UInt2 &rhs);
@@ -1309,7 +1309,7 @@ namespace sw
 		explicit Int4(RValue<Short4> cast);
 		explicit Int4(RValue<UShort4> cast);
 
-		Int4();
+		Int4() = default;
 		Int4(int xyzw);
 		Int4(int x, int yzw);
 		Int4(int x, int y, int zw);
@@ -1391,7 +1391,7 @@ namespace sw
 	public:
 		explicit UInt4(RValue<Float4> cast);
 
-		UInt4();
+		UInt4() = default;
 		UInt4(int xyzw);
 		UInt4(int x, int yzw);
 		UInt4(int x, int y, int zw);
@@ -1487,7 +1487,7 @@ namespace sw
 	template<int T>
 	class SwizzleMaskFloat4
 	{
-		friend class Float4;
+		friend struct FloatXYZW;
 
 	public:
 		operator RValue<Float4>() const;
@@ -1533,7 +1533,7 @@ namespace sw
 	public:
 		explicit Float(RValue<Int> cast);
 
-		Float();
+		Float() = default;
 		Float(float x);
 		Float(RValue<Float> rhs);
 		Float(const Float &rhs);
@@ -1592,7 +1592,7 @@ namespace sw
 	//	explicit Float2(RValue<UInt2> cast);
 		explicit Float2(RValue<Float4> cast);
 
-	//	Float2();
+		Float2() = default;
 	//	Float2(float x, float y);
 	//	Float2(RValue<Float2> rhs);
 	//	Float2(const Float2 &rhs);
@@ -1637,56 +1637,17 @@ namespace sw
 //	RValue<Float2> Swizzle(RValue<Float2> x, unsigned char select);
 //	RValue<Float2> Mask(Float2 &lhs, RValue<Float2> rhs, unsigned char select);
 
-	class Float4 : public LValue<Float4>
+	struct FloatXYZW
 	{
+		friend class Float4;
+
+	private:
+		FloatXYZW(Float4 *parent)
+		{
+			xyzw.parent = parent;
+		}
+
 	public:
-		explicit Float4(RValue<Byte4> cast);
-		explicit Float4(RValue<SByte4> cast);
-		explicit Float4(RValue<Short4> cast);
-		explicit Float4(RValue<UShort4> cast);
-		explicit Float4(RValue<Int4> cast);
-		explicit Float4(RValue<UInt4> cast);
-
-		Float4();
-		Float4(float xyzw);
-		Float4(float x, float yzw);
-		Float4(float x, float y, float zw);
-		Float4(float x, float y, float z, float w);
-		Float4(RValue<Float4> rhs);
-		Float4(const Float4 &rhs);
-		Float4(const Reference<Float4> &rhs);
-		Float4(RValue<Float> rhs);
-		Float4(const Float &rhs);
-		Float4(const Reference<Float> &rhs);
-
-		template<int T>
-		Float4(const SwizzleMask1Float4<T> &rhs);
-		template<int T>
-		Float4(const SwizzleFloat4<T> &rhs);
-		template<int X, int Y>
-		Float4(const Swizzle2Float4<X> &x, const Swizzle2Float4<Y> &y);
-		template<int X, int Y>
-		Float4(const SwizzleMask2Float4<X> &x, const Swizzle2Float4<Y> &y);
-		template<int X, int Y>
-		Float4(const Swizzle2Float4<X> &x, const SwizzleMask2Float4<Y> &y);
-		template<int X, int Y>
-		Float4(const SwizzleMask2Float4<X> &x, const SwizzleMask2Float4<Y> &y);
-
-		RValue<Float4> operator=(float replicate);
-		RValue<Float4> operator=(RValue<Float4> rhs);
-		RValue<Float4> operator=(const Float4 &rhs);
-		RValue<Float4> operator=(const Reference<Float4> &rhs);
-		RValue<Float4> operator=(RValue<Float> rhs);
-		RValue<Float4> operator=(const Float &rhs);
-		RValue<Float4> operator=(const Reference<Float> &rhs);
-
-		template<int T>
-		RValue<Float4> operator=(const SwizzleMask1Float4<T> &rhs);
-		template<int T>
-		RValue<Float4> operator=(const SwizzleFloat4<T> &rhs);
-
-		static Type *getType();
-
 		union
 		{
 			SwizzleMask1Float4<0x00> x;
@@ -2030,6 +1991,57 @@ namespace sw
 			SwizzleFloat4<0xFE>      zwww;
 			SwizzleFloat4<0xFF>      wwww;
 		};
+	};
+
+	class Float4 : public LValue<Float4>, public FloatXYZW
+	{
+	public:
+		explicit Float4(RValue<Byte4> cast);
+		explicit Float4(RValue<SByte4> cast);
+		explicit Float4(RValue<Short4> cast);
+		explicit Float4(RValue<UShort4> cast);
+		explicit Float4(RValue<Int4> cast);
+		explicit Float4(RValue<UInt4> cast);
+
+		Float4();
+		Float4(float xyzw);
+		Float4(float x, float yzw);
+		Float4(float x, float y, float zw);
+		Float4(float x, float y, float z, float w);
+		Float4(RValue<Float4> rhs);
+		Float4(const Float4 &rhs);
+		Float4(const Reference<Float4> &rhs);
+		Float4(RValue<Float> rhs);
+		Float4(const Float &rhs);
+		Float4(const Reference<Float> &rhs);
+
+		template<int T>
+		Float4(const SwizzleMask1Float4<T> &rhs);
+		template<int T>
+		Float4(const SwizzleFloat4<T> &rhs);
+		template<int X, int Y>
+		Float4(const Swizzle2Float4<X> &x, const Swizzle2Float4<Y> &y);
+		template<int X, int Y>
+		Float4(const SwizzleMask2Float4<X> &x, const Swizzle2Float4<Y> &y);
+		template<int X, int Y>
+		Float4(const Swizzle2Float4<X> &x, const SwizzleMask2Float4<Y> &y);
+		template<int X, int Y>
+		Float4(const SwizzleMask2Float4<X> &x, const SwizzleMask2Float4<Y> &y);
+
+		RValue<Float4> operator=(float replicate);
+		RValue<Float4> operator=(RValue<Float4> rhs);
+		RValue<Float4> operator=(const Float4 &rhs);
+		RValue<Float4> operator=(const Reference<Float4> &rhs);
+		RValue<Float4> operator=(RValue<Float> rhs);
+		RValue<Float4> operator=(const Float &rhs);
+		RValue<Float4> operator=(const Reference<Float> &rhs);
+
+		template<int T>
+		RValue<Float4> operator=(const SwizzleMask1Float4<T> &rhs);
+		template<int T>
+		RValue<Float4> operator=(const SwizzleFloat4<T> &rhs);
+
+		static Type *getType();
 
 	private:
 		void constant(float x, float y, float z, float w);
@@ -2408,50 +2420,38 @@ namespace sw
 	}
 
 	template<int T>
-	Float4::Float4(const SwizzleMask1Float4<T> &rhs)
+	Float4::Float4(const SwizzleMask1Float4<T> &rhs) : FloatXYZW(this)
 	{
-		xyzw.parent = this;
-
 		*this = rhs.operator RValue<Float4>();
 	}
 
 	template<int T>
-	Float4::Float4(const SwizzleFloat4<T> &rhs)
+	Float4::Float4(const SwizzleFloat4<T> &rhs) : FloatXYZW(this)
 	{
-		xyzw.parent = this;
-
 		*this = rhs.operator RValue<Float4>();
 	}
 
 	template<int X, int Y>
-	Float4::Float4(const Swizzle2Float4<X> &x, const Swizzle2Float4<Y> &y)
+	Float4::Float4(const Swizzle2Float4<X> &x, const Swizzle2Float4<Y> &y) : FloatXYZW(this)
 	{
-		xyzw.parent = this;
-
 		*this = ShuffleLowHigh(*x.parent, *y.parent, (X & 0xF) | (Y & 0xF) << 4);
 	}
 
 	template<int X, int Y>
-	Float4::Float4(const SwizzleMask2Float4<X> &x, const Swizzle2Float4<Y> &y)
+	Float4::Float4(const SwizzleMask2Float4<X> &x, const Swizzle2Float4<Y> &y) : FloatXYZW(this)
 	{
-		xyzw.parent = this;
-
 		*this = ShuffleLowHigh(*x.parent, *y.parent, (X & 0xF) | (Y & 0xF) << 4);
 	}
 
 	template<int X, int Y>
-	Float4::Float4(const Swizzle2Float4<X> &x, const SwizzleMask2Float4<Y> &y)
+	Float4::Float4(const Swizzle2Float4<X> &x, const SwizzleMask2Float4<Y> &y) : FloatXYZW(this)
 	{
-		xyzw.parent = this;
-
 		*this = ShuffleLowHigh(*x.parent, *y.parent, (X & 0xF) | (Y & 0xF) << 4);
 	}
 
 	template<int X, int Y>
-	Float4::Float4(const SwizzleMask2Float4<X> &x, const SwizzleMask2Float4<Y> &y)
+	Float4::Float4(const SwizzleMask2Float4<X> &x, const SwizzleMask2Float4<Y> &y) : FloatXYZW(this)
 	{
-		xyzw.parent = this;
-
 		*this = ShuffleLowHigh(*x.parent, *y.parent, (X & 0xF) | (Y & 0xF) << 4);
 	}
 
