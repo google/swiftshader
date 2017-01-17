@@ -110,7 +110,7 @@ namespace sw
 		RValue<SByte8> packsswb(RValue<Short4> x, RValue<Short4> y);
 		RValue<Byte8> packuswb(RValue<UShort4> x, RValue<UShort4> y);
 
-		RValue<UShort8> packusdw(RValue<UInt4> x, RValue<UInt4> y);
+		RValue<UShort8> packusdw(RValue<Int4> x, RValue<Int4> y);
 
 		RValue<UShort4> psrlw(RValue<UShort4> x, unsigned char y);
 		RValue<UShort8> psrlw(RValue<UShort8> x, unsigned char y);

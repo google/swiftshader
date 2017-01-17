@@ -3534,6 +3534,12 @@ namespace sw
 		return T(Type_v4i16);
 	}
 
+	Short8::Short8(short c)
+	{
+		int64_t constantVector[8] = {c, c, c, c, c, c, c, c};
+		storeValue(Nucleus::createConstantVector(constantVector, getType()));
+	}
+
 	Short8::Short8(short c0, short c1, short c2, short c3, short c4, short c5, short c6, short c7)
 	{
 		int64_t constantVector[8] = {c0, c1, c2, c3, c4, c5, c6, c7};
@@ -3598,6 +3604,12 @@ namespace sw
 	Type *Short8::getType()
 	{
 		return T(Ice::IceType_v8i16);
+	}
+
+	UShort8::UShort8(unsigned short c)
+	{
+		int64_t constantVector[8] = {c, c, c, c, c, c, c, c};
+		storeValue(Nucleus::createConstantVector(constantVector, getType()));
 	}
 
 	UShort8::UShort8(unsigned short c0, unsigned short c1, unsigned short c2, unsigned short c3, unsigned short c4, unsigned short c5, unsigned short c6, unsigned short c7)

@@ -3017,11 +3017,11 @@ namespace sw
 
 		if(!saturate || !CPUID::supportsSSE4_1())
 		{
-			*this = Short4(Int4(int4));
+			*this = Short4(int4);
 		}
 		else
 		{
-			*this = As<Short4>(Int2(As<Int4>(x86::packusdw(As<UInt4>(int4), As<UInt4>(int4)))));
+			*this = As<Short4>(Int2(As<Int4>(x86::packusdw(int4, int4))));
 		}
 	}
 
@@ -3276,6 +3276,12 @@ namespace sw
 		}
 	}
 
+	Short8::Short8(short c)
+	{
+		int64_t constantVector[8] = {c, c, c, c, c, c, c, c};
+		storeValue(Nucleus::createConstantVector(constantVector, getType()));
+	}
+
 	Short8::Short8(short c0, short c1, short c2, short c3, short c4, short c5, short c6, short c7)
 	{
 		int64_t constantVector[8] = {c0, c1, c2, c3, c4, c5, c6, c7};
@@ -3352,6 +3358,12 @@ namespace sw
 	Type *Short8::getType()
 	{
 		return T(VectorType::get(Short::getType(), 8));
+	}
+
+	UShort8::UShort8(unsigned short c)
+	{
+		int64_t constantVector[8] = {c, c, c, c, c, c, c, c};
+		storeValue(Nucleus::createConstantVector(constantVector, getType()));
 	}
 
 	UShort8::UShort8(unsigned short c0, unsigned short c1, unsigned short c2, unsigned short c3, unsigned short c4, unsigned short c5, unsigned short c6, unsigned short c7)
@@ -5552,7 +5564,7 @@ namespace sw
 
 	RValue<UShort8> Pack(RValue<UInt4> x, RValue<UInt4> y)
 	{
-		return x86::packusdw(x, y);   // FIXME: Fallback required
+		return x86::packusdw(As<Int4>(x), As<Int4>(y));
 	}
 
 	Type *UInt4::getType()
@@ -6888,7 +6900,7 @@ namespace sw
 			return As<Byte8>(V(::builder->CreateCall2(packuswb, As<MMX>(x).value, As<MMX>(y).value)));
 		}
 
-		RValue<UShort8> packusdw(RValue<UInt4> x, RValue<UInt4> y)
+		RValue<UShort8> packusdw(RValue<Int4> x, RValue<Int4> y)
 		{
 			if(CPUID::supportsSSE4_1())
 			{
@@ -6898,8 +6910,10 @@ namespace sw
 			}
 			else
 			{
-				// FIXME: Not an exact replacement!
-				return As<UShort8>(packssdw(As<Int4>(x - UInt4(0x00008000, 0x00008000, 0x00008000, 0x00008000)), As<Int4>(y - UInt4(0x00008000, 0x00008000, 0x00008000, 0x00008000))) + Short8(0x8000u, 0x8000u, 0x8000u, 0x8000u, 0x8000u, 0x8000u, 0x8000u, 0x8000u));
+				RValue<Int4> bx = (x & ~(x >> 31)) - Int4(0x8000);
+				RValue<Int4> by = (y & ~(y >> 31)) - Int4(0x8000);
+
+				return As<UShort8>(packssdw(bx, by) + Short8(0x8000u));
 			}
 		}
 
