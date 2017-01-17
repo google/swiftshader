@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "236e8540_8ddbc95c",
+        "filename": "third_party/PowerVR_SDK/Examples/Beginner/01_HelloAPI/OGLES2/OGLES2HelloAPI_Windows.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-01-17T22:05:15Z",
+      "side": 1,
+      "message": "Changing this to 2 makes the bug disappear.",
+      "range": {
+        "startLine": 164,
+        "startChar": 23,
+        "endLine": 164,
+        "endChar": 29
+      },
+      "revId": "7d21929b48324964651a9f94284324dac0f050a4",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
