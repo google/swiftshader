@@ -22,6 +22,30 @@
       "revId": "741d837c9b0afc9302c861c2048d1ab42aabb815",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "63915dce_045aba62",
+        "filename": "src/Reactor/SubzeroReactor.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 6214,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-01-18T17:44:25Z",
+      "side": 1,
+      "message": "Yes, trunc is defined as rounding toward zero, which is the default float to int conversion for C and also what Subzero and LLVM adhere to.",
+      "parentUuid": "63915dce_217168f8",
+      "range": {
+        "startLine": 6214,
+        "startChar": 10,
+        "endLine": 6214,
+        "endChar": 26
+      },
+      "revId": "741d837c9b0afc9302c861c2048d1ab42aabb815",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
