@@ -328,7 +328,10 @@ namespace
 							continue;
 						}
 
-						replace(load, storeValue);
+						if(storeValue)
+						{
+							replace(load, storeValue);
+						}
 					}
 				}
 			}
