@@ -501,7 +501,7 @@ public:
   }
   // Define NoRegisterValue as an enum value so that it can be used as an
   // argument for the public ctor if desired.
-  enum { NoRegisterValue = std::numeric_limits<BaseType>::max() };
+  enum : BaseType { NoRegisterValue = std::numeric_limits<BaseType>::max() };
 
   bool hasValue() const { return Value != NoRegisterValue; }
   bool hasNoValue() const { return !hasValue(); }
