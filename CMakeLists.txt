@@ -627,7 +627,6 @@ set(SUBZERO_REACTOR_LIST
 set(SUBZERO_INCLUDE_DIR
     ${SUBZERO_DIR}/
     ${SUBZERO_LLVM_DIR}/include/
-    
     ${SUBZERO_DIR}/pnacl-llvm/include/
     ${SOURCE_DIR}/Reactor/SubmoduleCheck/
 )
@@ -637,7 +636,7 @@ if(WIN32)
 elseif(LINUX)
     list(APPEND SUBZERO_INCLUDE_DIR ${SUBZERO_LLVM_DIR}/build/Linux/include/)
 elseif(APPLE)
-    message(SEND_ERROR "Subzero is not supported yet on Mac OS")
+    list(APPEND SUBZERO_INCLUDE_DIR ${SUBZERO_LLVM_DIR}/build/MacOS/include/)
 endif()
 
 add_library(ReactorSubzero STATIC
