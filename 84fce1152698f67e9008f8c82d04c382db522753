@@ -70,6 +70,30 @@
       "revId": "84fce1152698f67e9008f8c82d04c382db522753",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0847de68_65b91dba",
+        "filename": "DEPS.chromium",
+        "patchSetId": 1
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-01-19T18:53:48Z",
+      "side": 1,
+      "message": "The problem is that a local submodule update can overwrite the third party checkout (or vice-versa) and make it unclear that DEPS.chromium needs to be updated, rather than doing a submodule update. If both are in the same location, I can see potential weirdness happening because of that. Having the code in 2 different locations removes this potential confusion.",
+      "parentUuid": "0847de68_02f7ffa6",
+      "range": {
+        "startLine": 12,
+        "startChar": 3,
+        "endLine": 12,
+        "endChar": 32
+      },
+      "revId": "84fce1152698f67e9008f8c82d04c382db522753",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
