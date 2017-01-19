@@ -22,6 +22,30 @@
       "revId": "84fce1152698f67e9008f8c82d04c382db522753",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0847de68_e24f4374",
+        "filename": "DEPS.chromium",
+        "patchSetId": 1
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-01-19T18:17:07Z",
+      "side": 1,
+      "message": "Let\u0027s leave that decision to Chromium folks.\nI personally dislike very much having a DEPS pull that shadows a git submodule.",
+      "parentUuid": "0847de68_e25aa35e",
+      "range": {
+        "startLine": 12,
+        "startChar": 3,
+        "endLine": 12,
+        "endChar": 32
+      },
+      "revId": "84fce1152698f67e9008f8c82d04c382db522753",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
