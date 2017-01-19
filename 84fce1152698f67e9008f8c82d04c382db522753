@@ -46,6 +46,30 @@
       "revId": "84fce1152698f67e9008f8c82d04c382db522753",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0847de68_02f7ffa6",
+        "filename": "DEPS.chromium",
+        "patchSetId": 1
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-01-19T18:40:03Z",
+      "side": 1,
+      "message": "Isn\u0027t that kind of the point? Chrome uses DEPS instead of git submodules to achieve essentially the same thing (but more predictably, I guess). I\u0027d be less surprising if these source files stayed in the same place regardless of the build system.",
+      "parentUuid": "0847de68_e24f4374",
+      "range": {
+        "startLine": 12,
+        "startChar": 3,
+        "endLine": 12,
+        "endChar": 32
+      },
+      "revId": "84fce1152698f67e9008f8c82d04c382db522753",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
