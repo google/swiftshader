@@ -94,6 +94,30 @@
       "revId": "84fce1152698f67e9008f8c82d04c382db522753",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0847de68_455aa193",
+        "filename": "DEPS.chromium",
+        "patchSetId": 1
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-01-19T19:05:02Z",
+      "side": 1,
+      "message": "I don\u0027t think having it in two locations solves that confusion. If they had differences, our build output would be different depending on whether Visual Studio or GN is used for the build. So either way this is going to require vigilance on our part to keep things as intended. At least with a single location you can do a git status to see if there are changes. Anyway, I\u0027ll reach out to some chrome infra people to see if they have any strong opinions or recommendations.",
+      "parentUuid": "0847de68_65b91dba",
+      "range": {
+        "startLine": 12,
+        "startChar": 3,
+        "endLine": 12,
+        "endChar": 32
+      },
+      "revId": "84fce1152698f67e9008f8c82d04c382db522753",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
