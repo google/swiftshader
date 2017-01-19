@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0847de68_e25aa35e",
+        "filename": "DEPS.chromium",
+        "patchSetId": 1
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-01-19T18:02:20Z",
+      "side": 1,
+      "message": "I do think this should go in \u0027src/third_party/swiftshader/third_party/pnacl-subzero\u0027. Otherwise it would clash with anyone else\u0027s attempt to put Subzero there (as a recursive DEPS or otherwise). And since we\u0027re building a shared library, there\u0027s no desired interdependence and SwiftShader should have all its source under the same directory. You can add \"use_relative_paths \u003d True\" to the top so you can drop the \"src/third_party/swiftshader/\" part of the path.",
+      "range": {
+        "startLine": 12,
+        "startChar": 3,
+        "endLine": 12,
+        "endChar": 32
+      },
+      "revId": "84fce1152698f67e9008f8c82d04c382db522753",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
