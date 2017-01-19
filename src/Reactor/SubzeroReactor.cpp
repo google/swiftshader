@@ -31,8 +31,12 @@
 #include "llvm/Support/raw_os_ostream.h"
 
 #if defined(_WIN32)
+#ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
+#endif // !WIN32_LEAN_AND_MEAN
+#ifndef NOMINMAX
 #define NOMINMAX
+#endif // !NOMINMAX
 #include <Windows.h>
 #else
 #include <sys/mman.h>
@@ -109,7 +113,7 @@ namespace sw
 
 	Ice::Type T(Type *t)
 	{
-		static_assert(Ice::IceType_NUM < EmulatedBits, "Ice::Type overlaps with our emulated types!");
+		static_assert(static_cast<unsigned int>(Ice::IceType_NUM) < static_cast<unsigned int>(EmulatedBits), "Ice::Type overlaps with our emulated types!");
 		return (Ice::Type)(reinterpret_cast<std::intptr_t>(t) & ~EmulatedBits);
 	}
 
@@ -292,20 +296,20 @@ namespace sw
 			{
 				assert(sizeof(void*) == 4 && "UNIMPLEMENTED");   // Only expected/implemented for 32-bit code
 
-				for(int index = 0; index < sectionHeader[i].sh_size / sectionHeader[i].sh_entsize; index++)
+				for(Elf32_Word index = 0; index < sectionHeader[i].sh_size / sectionHeader[i].sh_entsize; index++)
 				{
 					const Elf32_Rel &relocation = ((const Elf32_Rel*)(elfImage + sectionHeader[i].sh_offset))[index];
-					void *symbol = relocateSymbol(elfHeader, relocation, sectionHeader[i]);
+					relocateSymbol(elfHeader, relocation, sectionHeader[i]);
 				}
 			}
 			else if(sectionHeader[i].sh_type == SHT_RELA)
 			{
 				assert(sizeof(void*) == 8 && "UNIMPLEMENTED");   // Only expected/implemented for 64-bit code
 
-				for(int index = 0; index < sectionHeader[i].sh_size / sectionHeader[i].sh_entsize; index++)
+				for(Elf32_Word index = 0; index < sectionHeader[i].sh_size / sectionHeader[i].sh_entsize; index++)
 				{
 					const Elf64_Rela &relocation = ((const Elf64_Rela*)(elfImage + sectionHeader[i].sh_offset))[index];
-					void *symbol = relocateSymbol(elfHeader, relocation, sectionHeader[i]);
+					relocateSymbol(elfHeader, relocation, sectionHeader[i]);
 				}
 			}
 		}
@@ -681,15 +685,6 @@ namespace sw
 	Value *Nucleus::createXor(Value *lhs, Value *rhs)
 	{
 		return createArithmetic(Ice::InstArithmetic::Xor, lhs, rhs);
-	}
-
-	static Ice::Variable *createAssign(Ice::Operand *constant)
-	{
-		Ice::Variable *value = ::function->makeVariable(constant->getType());
-		auto assign = Ice::InstAssign::create(::function, value, constant);
-		::basicBlock->appendInst(assign);
-
-		return value;
 	}
 
 	Value *Nucleus::createNeg(Value *v)

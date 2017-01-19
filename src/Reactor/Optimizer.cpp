@@ -135,7 +135,7 @@ namespace
 
 					for(Ice::Inst *use : uses[loadData])
 					{
-						for(int i = 0; i < use->getSrcSize(); i++)
+						for(Ice::SizeT i = 0; i < use->getSrcSize(); i++)
 						{
 							if(use->getSrc(i) == loadData)
 							{
@@ -201,7 +201,7 @@ namespace
 
 					replace(load, storeValue);
 
-					for(int i = 0; i < addressUses.loads.size(); i++)
+					for(size_t i = 0; i < addressUses.loads.size(); i++)
 					{
 						if(addressUses.loads[i] == load)
 						{
@@ -211,7 +211,7 @@ namespace
 						}
 					}
 
-					for(int i = 0; i < addressUses.size(); i++)
+					for(size_t i = 0; i < addressUses.size(); i++)
 					{
 						if(addressUses[i] == load)
 						{
@@ -231,7 +231,7 @@ namespace
 
 						auto &valueUses = uses[storeValue];
 
-						for(int i = 0; i < valueUses.size(); i++)
+						for(size_t i = 0; i < valueUses.size(); i++)
 						{
 							if(valueUses[i] == store)
 							{
@@ -280,7 +280,7 @@ namespace
 
 			Ice::CfgNode *singleBasicBlock = node[addressUses.stores[0]];
 
-			for(int i = 1; i < addressUses.stores.size(); i++)
+			for(size_t i = 1; i < addressUses.stores.size(); i++)
 			{
 				Ice::Inst *store = addressUses.stores[i];
 				if(node[store] != singleBasicBlock)
@@ -356,9 +356,9 @@ namespace
 				node[&instruction] = basicBlock;
 				definition[instruction.getDest()] = &instruction;
 
-				for(int i = 0; i < instruction.getSrcSize(); i++)
+				for(Ice::SizeT i = 0; i < instruction.getSrcSize(); i++)
 				{
-					int unique = 0;
+					Ice::SizeT unique = 0;
 					for(; unique < i; unique++)
 					{
 						if(instruction.getSrc(i) == instruction.getSrc(unique))
@@ -390,7 +390,7 @@ namespace
 		{
 			assert(!use->isDeleted());   // Should have been removed from uses already
 
-			for(int i = 0; i < use->getSrcSize(); i++)
+			for(Ice::SizeT i = 0; i < use->getSrcSize(); i++)
 			{
 				if(use->getSrc(i) == oldValue)
 				{
@@ -415,7 +415,7 @@ namespace
 
 		instruction->setDeleted();
 
-		for(int i = 0; i < instruction->getSrcSize(); i++)
+		for(Ice::SizeT i = 0; i < instruction->getSrcSize(); i++)
 		{
 			Ice::Operand *src = instruction->getSrc(i);
 
@@ -583,14 +583,14 @@ namespace
 	{
 		auto &uses = *this;
 
-		for(int i = 0; i < uses.size(); i++)
+		for(size_t i = 0; i < uses.size(); i++)
 		{
 			if(uses[i] == instruction)
 			{
 				uses[i] = back();
 				pop_back();
 
-				for(int i = 0; i < loads.size(); i++)
+				for(size_t i = 0; i < loads.size(); i++)
 				{
 					if(loads[i] == instruction)
 					{
@@ -600,7 +600,7 @@ namespace
 					}
 				}
 
-				for(int i = 0; i < stores.size(); i++)
+				for(size_t i = 0; i < stores.size(); i++)
 				{
 					if(stores[i] == instruction)
 					{
