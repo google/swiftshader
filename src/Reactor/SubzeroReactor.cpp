@@ -12,10 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "Nucleus.hpp"
-
 #include "Reactor.hpp"
-#include "Routine.hpp"
 
 #include "Optimizer.hpp"
 
@@ -45,7 +42,7 @@
 #endif
 #endif
 
-#include <mutex>
+//#include <mutex>
 #include <limits>
 #include <iostream>
 #include <cassert>
@@ -5535,7 +5532,11 @@ namespace sw
 		return T(Type_v2i32);
 	}
 
-	Int4::Int4(RValue<Byte4> cast)
+	Int4::Int4() : XYZW(this)
+	{
+	}
+
+	Int4::Int4(RValue<Byte4> cast) : XYZW(this)
 	{
 		Value *x = Nucleus::createBitCast(cast.value, Int::getType());
 		Value *a = Nucleus::createInsertElement(loadValue(), x, 0);
@@ -5553,7 +5554,7 @@ namespace sw
 		storeValue(f);
 	}
 
-	Int4::Int4(RValue<SByte4> cast)
+	Int4::Int4(RValue<SByte4> cast) : XYZW(this)
 	{
 		Value *x = Nucleus::createBitCast(cast.value, Int::getType());
 		Value *a = Nucleus::createInsertElement(loadValue(), x, 0);
@@ -5569,14 +5570,14 @@ namespace sw
 		*this = As<Int4>(e) >> 24;
 	}
 
-	Int4::Int4(RValue<Float4> cast)
+	Int4::Int4(RValue<Float4> cast) : XYZW(this)
 	{
 		Value *xyzw = Nucleus::createFPToSI(cast.value, Int4::getType());
 
 		storeValue(xyzw);
 	}
 
-	Int4::Int4(RValue<Short4> cast)
+	Int4::Int4(RValue<Short4> cast) : XYZW(this)
 	{
 		int swizzle[8] = {0, 0, 1, 1, 2, 2, 3, 3};
 		Value *c = Nucleus::createShuffleVector(cast.value, cast.value, swizzle);
@@ -5584,7 +5585,7 @@ namespace sw
 		*this = As<Int4>(c) >> 16;
 	}
 
-	Int4::Int4(RValue<UShort4> cast)
+	Int4::Int4(RValue<UShort4> cast) : XYZW(this)
 	{
 		int swizzle[8] = {0, 8, 1, 9, 2, 10, 3, 11};
 		Value *c = Nucleus::createShuffleVector(cast.value, Short8(0, 0, 0, 0, 0, 0, 0, 0).loadValue(), swizzle);
@@ -5592,22 +5593,22 @@ namespace sw
 		storeValue(d);
 	}
 
-	Int4::Int4(int xyzw)
+	Int4::Int4(int xyzw) : XYZW(this)
 	{
 		constant(xyzw, xyzw, xyzw, xyzw);
 	}
 
-	Int4::Int4(int x, int yzw)
+	Int4::Int4(int x, int yzw) : XYZW(this)
 	{
 		constant(x, yzw, yzw, yzw);
 	}
 
-	Int4::Int4(int x, int y, int zw)
+	Int4::Int4(int x, int y, int zw) : XYZW(this)
 	{
 		constant(x, y, zw, zw);
 	}
 
-	Int4::Int4(int x, int y, int z, int w)
+	Int4::Int4(int x, int y, int z, int w) : XYZW(this)
 	{
 		constant(x, y, z, w);
 	}
@@ -5618,41 +5619,41 @@ namespace sw
 		storeValue(Nucleus::createConstantVector(constantVector, getType()));
 	}
 
-	Int4::Int4(RValue<Int4> rhs)
+	Int4::Int4(RValue<Int4> rhs) : XYZW(this)
 	{
 		storeValue(rhs.value);
 	}
 
-	Int4::Int4(const Int4 &rhs)
+	Int4::Int4(const Int4 &rhs) : XYZW(this)
 	{
 		Value *value = rhs.loadValue();
 		storeValue(value);
 	}
 
-	Int4::Int4(const Reference<Int4> &rhs)
+	Int4::Int4(const Reference<Int4> &rhs) : XYZW(this)
 	{
 		Value *value = rhs.loadValue();
 		storeValue(value);
 	}
 
-	Int4::Int4(RValue<UInt4> rhs)
+	Int4::Int4(RValue<UInt4> rhs) : XYZW(this)
 	{
 		storeValue(rhs.value);
 	}
 
-	Int4::Int4(const UInt4 &rhs)
+	Int4::Int4(const UInt4 &rhs) : XYZW(this)
 	{
 		Value *value = rhs.loadValue();
 		storeValue(value);
 	}
 
-	Int4::Int4(const Reference<UInt4> &rhs)
+	Int4::Int4(const Reference<UInt4> &rhs) : XYZW(this)
 	{
 		Value *value = rhs.loadValue();
 		storeValue(value);
 	}
 
-	Int4::Int4(RValue<Int2> lo, RValue<Int2> hi)
+	Int4::Int4(RValue<Int2> lo, RValue<Int2> hi) : XYZW(this)
 	{
 		int shuffle[4] = {0, 1, 4, 5};   // Real type is v4i32
 		Value *packed = Nucleus::createShuffleVector(lo.value, hi.value, shuffle);
@@ -5660,7 +5661,7 @@ namespace sw
 		storeValue(packed);
 	}
 
-	Int4::Int4(RValue<Int> rhs)
+	Int4::Int4(RValue<Int> rhs) : XYZW(this)
 	{
 		Value *vector = Nucleus::createBitCast(rhs.value, Int4::getType());
 
@@ -5670,12 +5671,12 @@ namespace sw
 		storeValue(replicate);
 	}
 
-	Int4::Int4(const Int &rhs)
+	Int4::Int4(const Int &rhs) : XYZW(this)
 	{
 		*this = RValue<Int>(rhs.loadValue());
 	}
 
-	Int4::Int4(const Reference<Int> &rhs)
+	Int4::Int4(const Reference<Int> &rhs) : XYZW(this)
 	{
 		*this = RValue<Int>(rhs.loadValue());
 	}
@@ -6000,7 +6001,11 @@ namespace sw
 		return T(Ice::IceType_v4i32);
 	}
 
-	UInt4::UInt4(RValue<Float4> cast)
+	UInt4::UInt4() : XYZW(this)
+	{
+	}
+
+	UInt4::UInt4(RValue<Float4> cast) : XYZW(this)
 	{
 		// Smallest positive value representable in UInt, but not in Int
 		const unsigned int ustart = 0x80000000u;
@@ -6016,22 +6021,22 @@ namespace sw
 		storeValue((~(As<Int4>(cast) >> 31) & uiValue).value);
 	}
 
-	UInt4::UInt4(int xyzw)
+	UInt4::UInt4(int xyzw) : XYZW(this)
 	{
 		constant(xyzw, xyzw, xyzw, xyzw);
 	}
 
-	UInt4::UInt4(int x, int yzw)
+	UInt4::UInt4(int x, int yzw) : XYZW(this)
 	{
 		constant(x, yzw, yzw, yzw);
 	}
 
-	UInt4::UInt4(int x, int y, int zw)
+	UInt4::UInt4(int x, int y, int zw) : XYZW(this)
 	{
 		constant(x, y, zw, zw);
 	}
 
-	UInt4::UInt4(int x, int y, int z, int w)
+	UInt4::UInt4(int x, int y, int z, int w) : XYZW(this)
 	{
 		constant(x, y, z, w);
 	}
@@ -6042,41 +6047,41 @@ namespace sw
 		storeValue(Nucleus::createConstantVector(constantVector, getType()));
 	}
 
-	UInt4::UInt4(RValue<UInt4> rhs)
+	UInt4::UInt4(RValue<UInt4> rhs) : XYZW(this)
 	{
 		storeValue(rhs.value);
 	}
 
-	UInt4::UInt4(const UInt4 &rhs)
+	UInt4::UInt4(const UInt4 &rhs) : XYZW(this)
 	{
 		Value *value = rhs.loadValue();
 		storeValue(value);
 	}
 
-	UInt4::UInt4(const Reference<UInt4> &rhs)
+	UInt4::UInt4(const Reference<UInt4> &rhs) : XYZW(this)
 	{
 		Value *value = rhs.loadValue();
 		storeValue(value);
 	}
 
-	UInt4::UInt4(RValue<Int4> rhs)
+	UInt4::UInt4(RValue<Int4> rhs) : XYZW(this)
 	{
 		storeValue(rhs.value);
 	}
 
-	UInt4::UInt4(const Int4 &rhs)
+	UInt4::UInt4(const Int4 &rhs) : XYZW(this)
 	{
 		Value *value = rhs.loadValue();
 		storeValue(value);
 	}
 
-	UInt4::UInt4(const Reference<Int4> &rhs)
+	UInt4::UInt4(const Reference<Int4> &rhs) : XYZW(this)
 	{
 		Value *value = rhs.loadValue();
 		storeValue(value);
 	}
 
-	UInt4::UInt4(RValue<UInt2> lo, RValue<UInt2> hi)
+	UInt4::UInt4(RValue<UInt2> lo, RValue<UInt2> hi) : XYZW(this)
 	{
 		int shuffle[4] = {0, 1, 4, 5};   // Real type is v4i32
 		Value *packed = Nucleus::createShuffleVector(lo.value, hi.value, shuffle);
@@ -6572,7 +6577,7 @@ namespace sw
 		return T(Type_v2f32);
 	}
 
-	Float4::Float4(RValue<Byte4> cast) : FloatXYZW(this)
+	Float4::Float4(RValue<Byte4> cast) : XYZW(this)
 	{
 		Value *a = Int4(cast).loadValue();
 		Value *xyzw = Nucleus::createSIToFP(a, Float4::getType());
@@ -6580,7 +6585,7 @@ namespace sw
 		storeValue(xyzw);
 	}
 
-	Float4::Float4(RValue<SByte4> cast) : FloatXYZW(this)
+	Float4::Float4(RValue<SByte4> cast) : XYZW(this)
 	{
 		Value *a = Int4(cast).loadValue();
 		Value *xyzw = Nucleus::createSIToFP(a, Float4::getType());
@@ -6588,26 +6593,26 @@ namespace sw
 		storeValue(xyzw);
 	}
 
-	Float4::Float4(RValue<Short4> cast) : FloatXYZW(this)
+	Float4::Float4(RValue<Short4> cast) : XYZW(this)
 	{
 		Int4 c(cast);
 		storeValue(Nucleus::createSIToFP(RValue<Int4>(c).value, Float4::getType()));
 	}
 
-	Float4::Float4(RValue<UShort4> cast) : FloatXYZW(this)
+	Float4::Float4(RValue<UShort4> cast) : XYZW(this)
 	{
 		Int4 c(cast);
 		storeValue(Nucleus::createSIToFP(RValue<Int4>(c).value, Float4::getType()));
 	}
 
-	Float4::Float4(RValue<Int4> cast) : FloatXYZW(this)
+	Float4::Float4(RValue<Int4> cast) : XYZW(this)
 	{
 		Value *xyzw = Nucleus::createSIToFP(cast.value, Float4::getType());
 
 		storeValue(xyzw);
 	}
 
-	Float4::Float4(RValue<UInt4> cast) : FloatXYZW(this)
+	Float4::Float4(RValue<UInt4> cast) : XYZW(this)
 	{
 		RValue<Float4> result = Float4(Int4(cast & UInt4(0x7FFFFFFF))) +
 		                        As<Float4>((As<Int4>(cast) >> 31) & As<Int4>(Float4(0x80000000u)));
@@ -6615,26 +6620,26 @@ namespace sw
 		storeValue(result.value);
 	}
 
-	Float4::Float4() : FloatXYZW(this)
+	Float4::Float4() : XYZW(this)
 	{
 	}
 
-	Float4::Float4(float xyzw) : FloatXYZW(this)
+	Float4::Float4(float xyzw) : XYZW(this)
 	{
 		constant(xyzw, xyzw, xyzw, xyzw);
 	}
 
-	Float4::Float4(float x, float yzw) : FloatXYZW(this)
+	Float4::Float4(float x, float yzw) : XYZW(this)
 	{
 		constant(x, yzw, yzw, yzw);
 	}
 
-	Float4::Float4(float x, float y, float zw) : FloatXYZW(this)
+	Float4::Float4(float x, float y, float zw) : XYZW(this)
 	{
 		constant(x, y, zw, zw);
 	}
 
-	Float4::Float4(float x, float y, float z, float w) : FloatXYZW(this)
+	Float4::Float4(float x, float y, float z, float w) : XYZW(this)
 	{
 		constant(x, y, z, w);
 	}
@@ -6645,24 +6650,24 @@ namespace sw
 		storeValue(Nucleus::createConstantVector(constantVector, getType()));
 	}
 
-	Float4::Float4(RValue<Float4> rhs) : FloatXYZW(this)
+	Float4::Float4(RValue<Float4> rhs) : XYZW(this)
 	{
 		storeValue(rhs.value);
 	}
 
-	Float4::Float4(const Float4 &rhs) : FloatXYZW(this)
+	Float4::Float4(const Float4 &rhs) : XYZW(this)
 	{
 		Value *value = rhs.loadValue();
 		storeValue(value);
 	}
 
-	Float4::Float4(const Reference<Float4> &rhs) : FloatXYZW(this)
+	Float4::Float4(const Reference<Float4> &rhs) : XYZW(this)
 	{
 		Value *value = rhs.loadValue();
 		storeValue(value);
 	}
 
-	Float4::Float4(RValue<Float> rhs) : FloatXYZW(this)
+	Float4::Float4(RValue<Float> rhs) : XYZW(this)
 	{
 		Value *vector = Nucleus::createBitCast(rhs.value, Float4::getType());
 
@@ -6672,12 +6677,12 @@ namespace sw
 		storeValue(replicate);
 	}
 
-	Float4::Float4(const Float &rhs) : FloatXYZW(this)
+	Float4::Float4(const Float &rhs) : XYZW(this)
 	{
 		*this = RValue<Float>(rhs.loadValue());
 	}
 
-	Float4::Float4(const Reference<Float> &rhs) : FloatXYZW(this)
+	Float4::Float4(const Reference<Float> &rhs) : XYZW(this)
 	{
 		*this = RValue<Float>(rhs.loadValue());
 	}
