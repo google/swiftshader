@@ -514,8 +514,9 @@ void TargetLowering::regAlloc(RegAllocKind Kind) {
     RegExclude |= RegSet_FramePointer;
   SmallBitVector RegMask = getRegisterSet(RegInclude, RegExclude);
   bool Repeat = (Kind == RAK_Global && getFlags().getRepeatRegAlloc());
+  CfgSet<Variable *> EmptySet;
   do {
-    LinearScan.init(Kind);
+    LinearScan.init(Kind, EmptySet);
     LinearScan.scan(RegMask, getFlags().getRandomizeRegisterAllocation());
     if (!LinearScan.hasEvictions())
       Repeat = false;
