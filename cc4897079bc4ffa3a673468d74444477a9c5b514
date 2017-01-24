@@ -22,6 +22,29 @@
       "revId": "cc4897079bc4ffa3a673468d74444477a9c5b514",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8f167a7c_27c8a059",
+        "filename": "src/Main/FrameBuffer.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 266,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-01-24T20:09:37Z",
+      "side": 1,
+      "message": "There\u0027s another loop below which takes care of any remaining individual pixels (see line 310).",
+      "range": {
+        "startLine": 266,
+        "startChar": 17,
+        "endLine": 266,
+        "endChar": 26
+      },
+      "revId": "cc4897079bc4ffa3a673468d74444477a9c5b514",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
