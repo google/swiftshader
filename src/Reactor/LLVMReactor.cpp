@@ -4887,7 +4887,7 @@ namespace sw
 
 			// Each Short is packed into each Int in the (Short | Short) format.
 			// Shifting by 16 will retrieve the original Short value.
-			// Shitfing an Int will propagate the sign bit, which will work
+			// Shifting an Int will propagate the sign bit, which will work
 			// for both positive and negative values of a Short.
 			*this >>= 16;
 		}

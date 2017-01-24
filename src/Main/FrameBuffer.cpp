@@ -263,17 +263,16 @@ namespace sw
 							}
 							break;
 						case FORMAT_R5G6B5:
-							For(, x < width, x++)
+							For(, x < width - 3, x += 4)
 							{
-								Int rgb = Int(*Pointer<Short>(s));
+								Int4 rgb = Int4(*Pointer<Short4>(s));
 
-								*Pointer<Int>(d) = 0xFF000000 |
-								                   ((rgb & 0xF800) << 8) | ((rgb & 0xE01F) << 3) |
-								                   ((rgb & 0x07E0) << 5) | ((rgb & 0x0600) >> 1) |
-								                   ((rgb & 0x001C) >> 2);
+								*Pointer<Int4>(d) = (((rgb & Int4(0xF800)) << 8) | ((rgb & Int4(0xE01F)) << 3)) |
+								                    (((rgb & Int4(0x07E0)) << 5) | ((rgb & Int4(0x0600)) >> 1)) |
+								                    (((rgb & Int4(0x001C)) >> 2) | Int4(0xFF000000));
 
-								s += sBytes;
-								d += dBytes;
+								s += 4 * sBytes;
+								d += 4 * dBytes;
 							}
 							break;
 						default:
@@ -372,17 +371,17 @@ namespace sw
 							}
 							break;
 						case FORMAT_R5G6B5:
-							For(, x < width, x++)
+							For(, x < width - 3, x += 4)
 							{
-								Int rgb = Int(*Pointer<Short>(s));
+								Int4 rgb = Int4(*Pointer<Short4>(s));
 
-								*Pointer<Int>(d) = 0xFF000000 |
-								                   ((rgb & 0x001F) << 19) | ((rgb & 0x001C) << 14) |
-								                   ((rgb & 0x07E0) << 5) | ((rgb & 0x0600) >> 1) |
-								                   ((rgb & 0xF800) >> 8) | ((rgb & 0xE000) >> 13);
+								*Pointer<Int4>(d) = Int4(0xFF000000) |
+                                                    (((rgb & Int4(0x001F)) << 19) | ((rgb & Int4(0x001C)) << 14)) |
+								                    (((rgb & Int4(0x07E0)) << 5) | ((rgb & Int4(0x0600)) >> 1)) |
+								                    (((rgb & Int4(0xF800)) >> 8) | ((rgb & Int4(0xE000)) >> 13));
 
-								s += sBytes;
-								d += dBytes;
+								s += 4 * sBytes;
+								d += 4 * dBytes;
 							}
 							break;
 						default:

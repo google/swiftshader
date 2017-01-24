@@ -496,7 +496,7 @@ namespace es2
 		if(targetUniform->type == floatType[index])
 		{
 			memcpy(targetUniform->data + uniformIndex[location].element * sizeof(GLfloat)* numElements,
-				   v, numElements * sizeof(GLfloat)* count);
+				   v, numElements * sizeof(GLfloat) * count);
 		}
 		else if(targetUniform->type == boolType[index])
 		{
