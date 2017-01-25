@@ -589,12 +589,31 @@ namespace sw
 		::basicBlock->appendInst(br);
 	}
 
+	static bool isCommutative(Ice::InstArithmetic::OpKind op)
+	{
+		switch(op)
+		{
+		case Ice::InstArithmetic::Add:
+		case Ice::InstArithmetic::Fadd:
+		case Ice::InstArithmetic::Mul:
+		case Ice::InstArithmetic::Fmul:
+		case Ice::InstArithmetic::And:
+		case Ice::InstArithmetic::Or:
+		case Ice::InstArithmetic::Xor:
+			return true;
+		default:
+			return false;
+		}
+	}
+
 	static Value *createArithmetic(Ice::InstArithmetic::OpKind op, Value *lhs, Value *rhs)
 	{
 		assert(lhs->getType() == rhs->getType() || (llvm::isa<Ice::Constant>(rhs) && (op == Ice::InstArithmetic::Shl || Ice::InstArithmetic::Lshr || Ice::InstArithmetic::Ashr)));
 
+		bool swapOperands = llvm::isa<Ice::Constant>(lhs) && isCommutative(op);
+
 		Ice::Variable *result = ::function->makeVariable(lhs->getType());
-		Ice::InstArithmetic *arithmetic = Ice::InstArithmetic::create(::function, op, result, lhs, rhs);
+		Ice::InstArithmetic *arithmetic = Ice::InstArithmetic::create(::function, op, result, swapOperands ? rhs : lhs, swapOperands ? lhs : rhs);
 		::basicBlock->appendInst(arithmetic);
 
 		return V(result);
