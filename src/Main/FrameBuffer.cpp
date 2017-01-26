@@ -568,17 +568,17 @@ namespace sw
 		Short4 c1;
 		Short4 c2;
 
-		c1 = UnpackLow(As<Byte8>(c1), *Pointer<Byte8>(c));
+		c1 = Unpack(*Pointer<Byte4>(c));
 
 		switch(state.sourceFormat)
 		{
 		case FORMAT_X8R8G8B8:
 		case FORMAT_A8R8G8B8:
-			c2 = UnpackLow(As<Byte8>(c2), *Pointer<Byte8>(s));
+			c2 = Unpack(*Pointer<Byte4>(s));
 			break;
 		case FORMAT_X8B8G8R8:
 		case FORMAT_A8B8G8R8:
-			c2 = Swizzle(UnpackLow(As<Byte8>(c2), *Pointer<Byte8>(s)), 0xC6);
+			c2 = Swizzle(Unpack(*Pointer<Byte4>(s)), 0xC6);
 			break;
 		case FORMAT_A16B16G16R16:
 			c2 = Swizzle(*Pointer<Short4>(s), 0xC6);

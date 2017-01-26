@@ -2141,6 +2141,14 @@ namespace sw
 		return UnpackLow(RValue<Byte8>(byte8), RValue<Byte8>(byte8));
 	}
 
+	RValue<Short4> Unpack(RValue<Byte4> x, RValue<Byte4> y)
+	{
+		Value *xx = Nucleus::createInsertElement(V(UndefValue::get(VectorType::get(Int::getType(), 2))), x.value, 0);
+		Value *yy = Nucleus::createInsertElement(V(UndefValue::get(VectorType::get(Int::getType(), 2))), y.value, 0);
+
+		return UnpackLow(As<Byte8>(xx), As<Byte8>(yy));
+	}
+
 	RValue<Short4> UnpackLow(RValue<Byte8> x, RValue<Byte8> y)
 	{
 		if(CPUID::supportsMMX2())

@@ -2572,6 +2572,11 @@ namespace sw
 		return RValue<Short4>(Nucleus::createShuffleVector(x.value, x.value, shuffle));
 	}
 
+	RValue<Short4> Unpack(RValue<Byte4> x, RValue<Byte4> y)
+	{
+		return UnpackLow(As<Byte8>(x), As<Byte8>(y));
+	}
+
 	RValue<Short4> UnpackLow(RValue<Byte8> x, RValue<Byte8> y)
 	{
 		int shuffle[16] = {0, 16, 1, 17, 2, 18, 3, 19, 4, 20, 5, 21, 6, 22, 7, 23};   // Real type is v16i8

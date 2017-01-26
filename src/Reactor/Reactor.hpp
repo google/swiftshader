@@ -564,6 +564,7 @@ namespace sw
 	RValue<Byte8> AddSat(RValue<Byte8> x, RValue<Byte8> y);
 	RValue<Byte8> SubSat(RValue<Byte8> x, RValue<Byte8> y);
 	RValue<Short4> Unpack(RValue<Byte4> x);
+	RValue<Short4> Unpack(RValue<Byte4> x, RValue<Byte4> y);
 	RValue<Short4> UnpackLow(RValue<Byte8> x, RValue<Byte8> y);
 	RValue<Short4> UnpackHigh(RValue<Byte8> x, RValue<Byte8> y);
 	RValue<Int> SignMask(RValue<Byte8> x);
