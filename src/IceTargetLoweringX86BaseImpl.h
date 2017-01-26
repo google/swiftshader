@@ -5497,6 +5497,22 @@ const Inst *AddressOptimizer::matchShiftedIndex(Variable **Index,
   if (IndexInst == nullptr)
     return nullptr;
   assert(!VMetadata->isMultiDef(*Index));
+
+  // When using an unsigned 32-bit array index on x64, it gets zero-extended
+  // before the shift & add. The explicit zero extension can be eliminated
+  // because x86 32-bit operations automatically get zero-extended into the
+  // corresponding 64-bit register.
+  if (auto *CastInst = llvm::dyn_cast<InstCast>(IndexInst)) {
+    if (CastInst->getCastKind() == InstCast::Zext) {
+      if (auto *Var = llvm::dyn_cast<Variable>(CastInst->getSrc(0))) {
+        if (Var->getType() == IceType_i32 &&
+            CastInst->getDest()->getType() == IceType_i64) {
+          IndexInst = VMetadata->getSingleDefinition(Var);
+        }
+      }
+    }
+  }
+
   if (IndexInst->getSrcSize() < 2)
     return nullptr;
   if (auto *ArithInst = llvm::dyn_cast<InstArithmetic>(IndexInst)) {
