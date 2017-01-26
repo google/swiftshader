@@ -1638,7 +1638,6 @@ entry:
 ; ARM32: bne
 ; ARM32: dmb
 ; MIPS32-LABEL: test_atomic_cmpxchg_8
-; MIPS32: sync
 ; MIPS32: addiu	{{.*}}, $zero, -4
 ; MIPS32: and
 ; MIPS32: andi	{{.*}}, {{.*}}, 3
@@ -1650,6 +1649,7 @@ entry:
 ; MIPS32: sllv
 ; MIPS32: andi	{{.*}}, {{.*}}, 255
 ; MIPS32: sllv
+; MIPS32: sync
 ; MIPS32: ll
 ; MIPS32: and
 ; MIPS32: bne
@@ -1687,7 +1687,6 @@ entry:
 ; ARM32: bne
 ; ARM32: dmb
 ; MIPS32-LABEL: test_atomic_cmpxchg_16
-; MIPS32: sync
 ; MIPS32: addiu	{{.*}}, $zero, -4
 ; MIPS32: and
 ; MIPS32: andi	{{.*}}, {{.*}}, 3
@@ -1699,6 +1698,7 @@ entry:
 ; MIPS32: sllv
 ; MIPS32: andi	{{.*}}, {{.*}}, 65535
 ; MIPS32: sllv
+; MIPS32: sync
 ; MIPS32: ll
 ; MIPS32: and
 ; MIPS32: bne
