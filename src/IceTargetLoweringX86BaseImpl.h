@@ -6196,28 +6196,36 @@ void TargetX86Base<TraitsType>::lowerShuffleVector_UsingPshufb(
           IDX_IN_SRC(Idx12, 0), IDX_IN_SRC(Idx13, 0), IDX_IN_SRC(Idx14, 0),
           IDX_IN_SRC(Idx15, 0)),
       NotRebased);
-  auto *Mask1M = X86OperandMem::create(
-      Func, MaskType, NoBase,
-      lowerShuffleVector_CreatePshufbMask(
-          IDX_IN_SRC(Idx0, 1), IDX_IN_SRC(Idx1, 1), IDX_IN_SRC(Idx2, 1),
-          IDX_IN_SRC(Idx3, 1), IDX_IN_SRC(Idx4, 1), IDX_IN_SRC(Idx5, 1),
-          IDX_IN_SRC(Idx6, 1), IDX_IN_SRC(Idx7, 1), IDX_IN_SRC(Idx8, 1),
-          IDX_IN_SRC(Idx9, 1), IDX_IN_SRC(Idx10, 1), IDX_IN_SRC(Idx11, 1),
-          IDX_IN_SRC(Idx12, 1), IDX_IN_SRC(Idx13, 1), IDX_IN_SRC(Idx14, 1),
-          IDX_IN_SRC(Idx15, 1)),
-      NotRebased);
-#undef IDX_IN_SRC
+
   auto *T0 = makeReg(DestTy);
-  auto *T1 = makeReg(DestTy);
   auto *Src0RM = legalize(Src0, Legal_Reg | Legal_Mem);
   _movp(T0, Src0RM);
-  auto *Src1RM = legalize(Src1, Legal_Reg | Legal_Mem);
-  _movp(T1, Src1RM);
 
-  _pshufb(T1, Mask1M);
   _pshufb(T0, Mask0M);
-  _por(T1, T0);
-  _movp(Dest, T1);
+
+  if (Idx0 > 16 || Idx1 > 16 || Idx2 > 16 || Idx3 > 16 || Idx4 > 16 ||
+      Idx5 > 16 || Idx6 > 16 || Idx7 > 16 || Idx8 > 16 || Idx9 > 16 ||
+      Idx10 > 16 || Idx11 > 16 || Idx12 > 16 || Idx13 > 16 || Idx14 > 16 ||
+      Idx15 > 16) {
+    auto *Mask1M = X86OperandMem::create(
+        Func, MaskType, NoBase,
+        lowerShuffleVector_CreatePshufbMask(
+            IDX_IN_SRC(Idx0, 1), IDX_IN_SRC(Idx1, 1), IDX_IN_SRC(Idx2, 1),
+            IDX_IN_SRC(Idx3, 1), IDX_IN_SRC(Idx4, 1), IDX_IN_SRC(Idx5, 1),
+            IDX_IN_SRC(Idx6, 1), IDX_IN_SRC(Idx7, 1), IDX_IN_SRC(Idx8, 1),
+            IDX_IN_SRC(Idx9, 1), IDX_IN_SRC(Idx10, 1), IDX_IN_SRC(Idx11, 1),
+            IDX_IN_SRC(Idx12, 1), IDX_IN_SRC(Idx13, 1), IDX_IN_SRC(Idx14, 1),
+            IDX_IN_SRC(Idx15, 1)),
+        NotRebased);
+#undef IDX_IN_SRC
+    auto *T1 = makeReg(DestTy);
+    auto *Src1RM = legalize(Src1, Legal_Reg | Legal_Mem);
+    _movp(T1, Src1RM);
+    _pshufb(T1, Mask1M);
+    _por(T0, T1);
+  }
+
+  _movp(Dest, T0);
 }
 
 template <typename TraitsType>
