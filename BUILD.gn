@@ -31,10 +31,21 @@ config("swiftshader_config") {
       cflags += [ "/DANGLE_DISABLE_TRACE" ]
     }
   } else {
-    cflags = [ "-std=c++11" ]
+    cflags = [
+      "-std=c++11",
+      "-Wall",
+      "-fexceptions",
+      "-fvisibility=protected",
+      "-fno-operator-names",
+      "-D__STDC_CONSTANT_MACROS",
+      "-D__STDC_LIMIT_MACROS",
+    ]
 
     if (is_debug) {
-      cflags += [ "-g" ]
+      cflags += [
+        "-g",
+        "-g3",
+      ]
     } else {  # Release
       # All Release builds use function/data sections to make the shared libraries smaller
       cflags += [
@@ -42,24 +53,30 @@ config("swiftshader_config") {
         "-fdata-sections",
         "-fomit-frame-pointer",
         "-DANGLE_DISABLE_TRACE",
+        "-DNDEBUG",
+        "-O2",
+        "-Os",
       ]
-
-      # Choose the right Release architecture
-      if (target_cpu == "x64") {
-        cflags += [ "-march=core2" ]
-      } else {  # 32
-        cflags += [ "-march=i686" ]
-      }
     }
 
     if (target_cpu == "x64") {  # 64 bit version
       cflags += [
         "-m64",
         "-fPIC",
+        "-march=core2",
       ]
     } else {  # 32 bit version
-      cflags += [ "-m32" ]
+      cflags += [
+        "-m32",
+        "-msse2",
+        "-march=i686",
+      ]
     }
+
+    ldflags = [
+      "-Wl,--hash-style=both",
+      "-Wl,--gc-sections",
+    ]
   }
 }
 

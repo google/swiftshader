@@ -36,7 +36,7 @@ config("swiftshader_libGLESv2_private_config") {
       "-D__STDC_CONSTANT_MACROS",
       "-D__STDC_LIMIT_MACROS",
       "-DGL_API=",
-      "-DGL_APICALL=",
+      "-DGL_APICALL=__attribute__((visibility(\"protected\")))",
       "-DGL_GLEXT_PROTOTYPES",
       "-Wno-sign-compare",
     ]
@@ -83,6 +83,9 @@ shared_library("swiftshader_libGLESv2") {
   if (is_win) {
     configs -= [ "//build/config/win:unicode" ]
     ldflags = [ "/DEF:" + rebase_path("libGLESv2.def", root_build_dir) ]
+  } else if (is_linux) {
+    ldflags =
+        [ "-Wl,--version-script=" + rebase_path("exports.map", root_build_dir) ]
   }
 
   configs -= [ "//build/config/compiler:chromium_code" ]

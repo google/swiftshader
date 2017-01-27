@@ -25,7 +25,7 @@ config("swiftshader_libEGL_private_config") {
   } else {
     cflags = [
       "-DLOG_TAG=\"swiftshader_libEGL\"",
-      "-DEGLAPI=",
+      "-DEGLAPI=__attribute__((visibility(\"protected\")))",
       "-DEGL_EGLEXT_PROTOTYPES",
       "-Wno-sign-compare",
     ]
@@ -70,6 +70,8 @@ shared_library("swiftshader_libEGL") {
     ldflags = [ "/DEF:" + rebase_path("libGLESv2.def", root_build_dir) ]
   } else if (is_linux) {
     sources += [ "../../Main/libX11.cpp" ]
+    ldflags =
+        [ "-Wl,--version-script=" + rebase_path("exports.map", root_build_dir) ]
   }
 
   configs -= [ "//build/config/compiler:chromium_code" ]
