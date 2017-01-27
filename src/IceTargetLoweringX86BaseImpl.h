@@ -6014,6 +6014,23 @@ void TargetX86Base<TraitsType>::doAddressOptLoad() {
 }
 
 template <typename TraitsType>
+void TargetX86Base<TraitsType>::doAddressOptLoadSubVector() {
+  auto *Intrinsic = llvm::cast<InstIntrinsicCall>(Context.getCur());
+  Operand *Addr = Intrinsic->getArg(0);
+  Variable *Dest = Intrinsic->getDest();
+  if (auto *OptAddr = computeAddressOpt(Intrinsic, Dest->getType(), Addr)) {
+    Intrinsic->setDeleted();
+    const Ice::Intrinsics::IntrinsicInfo Info = {
+        Ice::Intrinsics::LoadSubVector, Ice::Intrinsics::SideEffects_F,
+        Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F};
+    auto Target = Ctx->getConstantUndef(Ice::IceType_i32);
+    auto *NewLoad = Context.insert<InstIntrinsicCall>(2, Dest, Target, Info);
+    NewLoad->addArg(OptAddr);
+    NewLoad->addArg(Intrinsic->getArg(1));
+  }
+}
+
+template <typename TraitsType>
 void TargetX86Base<TraitsType>::randomlyInsertNop(float Probability,
                                                   RandomNumberGenerator &RNG) {
   RandomNumberGeneratorWrapper RNGW(RNG);
@@ -6854,6 +6871,25 @@ void TargetX86Base<TraitsType>::doAddressOptStore() {
     auto *NewStore = Context.insert<InstStore>(Data, OptAddr);
     if (Instr->getDest())
       NewStore->setRmwBeacon(Instr->getRmwBeacon());
+  }
+}
+
+template <typename TraitsType>
+void TargetX86Base<TraitsType>::doAddressOptStoreSubVector() {
+  auto *Intrinsic = llvm::cast<InstIntrinsicCall>(Context.getCur());
+  Operand *Addr = Intrinsic->getArg(1);
+  Operand *Data = Intrinsic->getArg(0);
+  if (auto *OptAddr = computeAddressOpt(Intrinsic, Data->getType(), Addr)) {
+    Intrinsic->setDeleted();
+    const Ice::Intrinsics::IntrinsicInfo Info = {
+        Ice::Intrinsics::StoreSubVector, Ice::Intrinsics::SideEffects_T,
+        Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_T};
+    auto Target = Ctx->getConstantUndef(Ice::IceType_i32);
+    auto *NewStore =
+        Context.insert<InstIntrinsicCall>(3, nullptr, Target, Info);
+    NewStore->addArg(Data);
+    NewStore->addArg(OptAddr);
+    NewStore->addArg(Intrinsic->getArg(2));
   }
 }
 

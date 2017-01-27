@@ -426,6 +426,8 @@ protected:
   virtual void doAddressOptOther() {}
   virtual void doAddressOptLoad() {}
   virtual void doAddressOptStore() {}
+  virtual void doAddressOptLoadSubVector() {}
+  virtual void doAddressOptStoreSubVector() {}
   virtual void doMockBoundsCheck(Operand *) {}
   virtual void randomlyInsertNop(float Probability,
                                  RandomNumberGenerator &RNG) = 0;

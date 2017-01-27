@@ -313,6 +313,8 @@ protected:
   void doAddressOptOther() override;
   void doAddressOptLoad() override;
   void doAddressOptStore() override;
+  void doAddressOptLoadSubVector() override;
+  void doAddressOptStoreSubVector() override;
   void doMockBoundsCheck(Operand *Opnd) override;
   void randomlyInsertNop(float Probability,
                          RandomNumberGenerator &RNG) override;
