@@ -90,7 +90,7 @@ namespace sw
 
 		Value *loadValue(unsigned int alignment = 0) const;
 		Value *storeValue(Value *value, unsigned int alignment = 0) const;
-		Value *getAddress(Value *index) const;
+		Value *getAddress(Value *index, bool unsignedIndex) const;
 	};
 
 	template<class T>
@@ -2120,7 +2120,9 @@ namespace sw
 
 		Reference<T> operator*();
 		Reference<T> operator[](int index);
+		Reference<T> operator[](unsigned int index);
 		Reference<T> operator[](RValue<Int> index);
+		Reference<T> operator[](RValue<UInt> index);
 
 		static Type *getType();
 
@@ -2149,7 +2151,9 @@ namespace sw
 		Array(int size = S);
 
 		Reference<T> operator[](int index);
+		Reference<T> operator[](unsigned int index);
 		Reference<T> operator[](RValue<Int> index);
+		Reference<T> operator[](RValue<UInt> index);
 	};
 
 //	RValue<Array<T>> operator++(Array<T> &val, int);   // Post-increment
@@ -2245,9 +2249,9 @@ namespace sw
 	}
 
 	template<class T>
-	Value *LValue<T>::getAddress(Value *index) const
+	Value *LValue<T>::getAddress(Value *index, bool unsignedIndex) const
 	{
-		return Nucleus::createGEP(address, T::getType(), index);
+		return Nucleus::createGEP(address, T::getType(), index, unsignedIndex);
 	}
 
 	template<class T>
@@ -2536,7 +2540,15 @@ namespace sw
 	template<class T>
 	Reference<T> Pointer<T>::operator[](int index)
 	{
-		Value *element = Nucleus::createGEP(LValue<Pointer<T>>::loadValue(), T::getType(), Nucleus::createConstantInt(index));
+		Value *element = Nucleus::createGEP(LValue<Pointer<T>>::loadValue(), T::getType(), Nucleus::createConstantInt(index), false);
+
+		return Reference<T>(element, alignment);
+	}
+
+	template<class T>
+	Reference<T> Pointer<T>::operator[](unsigned int index)
+	{
+		Value *element = Nucleus::createGEP(LValue<Pointer<T>>::loadValue(), T::getType(), Nucleus::createConstantInt(index), true);
 
 		return Reference<T>(element, alignment);
 	}
@@ -2544,7 +2556,15 @@ namespace sw
 	template<class T>
 	Reference<T> Pointer<T>::operator[](RValue<Int> index)
 	{
-		Value *element = Nucleus::createGEP(LValue<Pointer<T>>::loadValue(), T::getType(), index.value);
+		Value *element = Nucleus::createGEP(LValue<Pointer<T>>::loadValue(), T::getType(), index.value, false);
+
+		return Reference<T>(element, alignment);
+	}
+
+	template<class T>
+	Reference<T> Pointer<T>::operator[](RValue<UInt> index)
+	{
+		Value *element = Nucleus::createGEP(LValue<Pointer<T>>::loadValue(), T::getType(), index.value, true);
 
 		return Reference<T>(element, alignment);
 	}
@@ -2563,7 +2583,15 @@ namespace sw
 	template<class T, int S>
 	Reference<T> Array<T, S>::operator[](int index)
 	{
-		Value *element = LValue<T>::getAddress(Nucleus::createConstantInt(index));
+		Value *element = LValue<T>::getAddress(Nucleus::createConstantInt(index), false);
+
+		return Reference<T>(element);
+	}
+
+	template<class T, int S>
+	Reference<T> Array<T, S>::operator[](unsigned int index)
+	{
+		Value *element = LValue<T>::getAddress(Nucleus::createConstantInt(index), true);
 
 		return Reference<T>(element);
 	}
@@ -2571,7 +2599,15 @@ namespace sw
 	template<class T, int S>
 	Reference<T> Array<T, S>::operator[](RValue<Int> index)
 	{
-		Value *element = LValue<T>::getAddress(index.value);
+		Value *element = LValue<T>::getAddress(index.value, false);
+
+		return Reference<T>(element);
+	}
+
+	template<class T, int S>
+	Reference<T> Array<T, S>::operator[](RValue<UInt> index)
+	{
+		Value *element = LValue<T>::getAddress(index.value, true);
 
 		return Reference<T>(element);
 	}

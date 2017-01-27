@@ -804,7 +804,7 @@ namespace sw
 		return value;
 	}
 
-	Value *Nucleus::createGEP(Value *ptr, Type *type, Value *index)
+	Value *Nucleus::createGEP(Value *ptr, Type *type, Value *index, bool unsignedIndex)
 	{
 		assert(index->getType() == Ice::IceType_i32);
 
@@ -827,7 +827,14 @@ namespace sw
 
 		if(sizeof(void*) == 8)
 		{
-			index = createSExt(index, T(Ice::IceType_i64));
+			if(unsignedIndex)
+			{
+				index = createZExt(index, T(Ice::IceType_i64));
+			}
+			else
+			{
+				index = createSExt(index, T(Ice::IceType_i64));
+			}
 		}
 
 		return createAdd(ptr, index);
@@ -6272,12 +6279,12 @@ namespace sw
 
 	RValue<Pointer<Byte>> operator+(RValue<Pointer<Byte>> lhs, RValue<Int> offset)
 	{
-		return RValue<Pointer<Byte>>(Nucleus::createGEP(lhs.value, Byte::getType(), offset.value));
+		return RValue<Pointer<Byte>>(Nucleus::createGEP(lhs.value, Byte::getType(), offset.value, false));
 	}
 
 	RValue<Pointer<Byte>> operator+(RValue<Pointer<Byte>> lhs, RValue<UInt> offset)
 	{
-		return RValue<Pointer<Byte>>(Nucleus::createGEP(lhs.value, Byte::getType(), offset.value));
+		return RValue<Pointer<Byte>>(Nucleus::createGEP(lhs.value, Byte::getType(), offset.value, true));
 	}
 
 	RValue<Pointer<Byte>> operator+=(Pointer<Byte> &lhs, int offset)
