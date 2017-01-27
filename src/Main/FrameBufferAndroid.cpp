@@ -117,6 +117,9 @@ namespace sw
 		case HAL_PIXEL_FORMAT_RGB_565: destFormat = FORMAT_R5G6B5; break;
 		case HAL_PIXEL_FORMAT_RGB_888: destFormat = FORMAT_R8G8B8; break;
 		case HAL_PIXEL_FORMAT_RGBA_8888: destFormat = FORMAT_A8B8G8R8; break;
+#if ANDROID_PLATFORM_SDK_VERSION > 16
+		case HAL_PIXEL_FORMAT_IMPLEMENTATION_DEFINED: destFormat = FORMAT_X8B8G8R8; break;
+#endif
 		case HAL_PIXEL_FORMAT_RGBX_8888: destFormat = FORMAT_X8B8G8R8; break;
 		case HAL_PIXEL_FORMAT_BGRA_8888: destFormat = FORMAT_A8R8G8B8; break;
 		}

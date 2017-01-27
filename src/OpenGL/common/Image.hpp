@@ -199,6 +199,9 @@ inline GLenum GLPixelFormatFromAndroid(int halFormat)
 	switch(halFormat)
 	{
 	case HAL_PIXEL_FORMAT_RGBA_8888: return GL_RGBA8;
+#if ANDROID_PLATFORM_SDK_VERSION > 16
+	case HAL_PIXEL_FORMAT_IMPLEMENTATION_DEFINED: return GL_RGB8;
+#endif
 	case HAL_PIXEL_FORMAT_RGBX_8888: return GL_RGB8;
 	case HAL_PIXEL_FORMAT_RGB_888:   return GL_NONE;   // Unsupported
 	case HAL_PIXEL_FORMAT_BGRA_8888: return GL_BGRA8_EXT;
@@ -216,6 +219,9 @@ inline GLenum GLPixelTypeFromAndroid(int halFormat)
 	switch(halFormat)
 	{
 	case HAL_PIXEL_FORMAT_RGBA_8888: return GL_UNSIGNED_BYTE;
+#if ANDROID_PLATFORM_SDK_VERSION > 16
+	case HAL_PIXEL_FORMAT_IMPLEMENTATION_DEFINED: return GL_UNSIGNED_BYTE;
+#endif
 	case HAL_PIXEL_FORMAT_RGBX_8888: return GL_UNSIGNED_BYTE;
 	case HAL_PIXEL_FORMAT_RGB_888:   return GL_NONE;   // Unsupported
 	case HAL_PIXEL_FORMAT_BGRA_8888: return GL_UNSIGNED_BYTE;
