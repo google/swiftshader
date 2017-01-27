@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d535538a_055ff1dc",
+        "filename": "src/OpenGL/libEGL/BUILD.gn",
+        "patchSetId": 1
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-01-27T21:19:47Z",
+      "side": 1,
+      "message": "This may not work on Mac, but let\u0027s deal with that separately later.",
+      "range": {
+        "startLine": 28,
+        "startChar": 44,
+        "endLine": 28,
+        "endChar": 53
+      },
+      "revId": "97b64d6a830b1a961e5d0897d945c694ecfc4e7f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
