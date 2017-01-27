@@ -2928,9 +2928,9 @@ namespace sw
 
 	Short4::Short4(RValue<Int4> cast)
 	{
-		int pshufb[16] = {0, 1, 4, 5, 8, 9, 12, 13, 0, 1, 4, 5, 8, 9, 12, 13};
-		Value *byte16 = Nucleus::createBitCast(cast.value, Byte16::getType());
-		Value *packed = Nucleus::createShuffleVector(byte16, byte16, pshufb);
+		int select[8] = {0, 2, 4, 6, 0, 2, 4, 6};
+		Value *short8 = Nucleus::createBitCast(cast.value, Short8::getType());
+		Value *packed = Nucleus::createShuffleVector(short8, short8, select);
 
 		Value *int2 = RValue<Int2>(Int2(RValue<Int4>(packed))).value;
 		Value *short4 = Nucleus::createBitCast(int2, Short4::getType());
@@ -4691,7 +4691,7 @@ namespace sw
 
 	RValue<Short4> UnpackHigh(RValue<Int2> x, RValue<Int2> y)
 	{
-		int shuffle[16] = {0, 4, 1, 5};   // Real type is v4i32
+		int shuffle[4] = {0, 4, 1, 5};   // Real type is v4i32
 		auto lowHigh = RValue<Int4>(Nucleus::createShuffleVector(x.value, y.value, shuffle));
 		return As<Short4>(Swizzle(lowHigh, 0xEE));
 	}
@@ -5008,11 +5008,10 @@ namespace sw
 
 	Int4::Int4(RValue<Int> rhs)
 	{
-		Value *vector = loadValue();
-		Value *insert = Nucleus::createInsertElement(vector, rhs.value, 0);
+		Value *vector = Nucleus::createBitCast(rhs.value, Int4::getType());
 
 		int swizzle[4] = {0, 0, 0, 0};
-		Value *replicate = Nucleus::createShuffleVector(insert, insert, swizzle);
+		Value *replicate = Nucleus::createShuffleVector(vector, vector, swizzle);
 
 		storeValue(replicate);
 	}
@@ -5908,11 +5907,10 @@ namespace sw
 
 	Float4::Float4(RValue<Float> rhs) : FloatXYZW(this)
 	{
-		Value *vector = loadValue();
-		Value *insert = Nucleus::createInsertElement(vector, rhs.value, 0);
+		Value *vector = Nucleus::createBitCast(rhs.value, Float4::getType());
 
 		int swizzle[4] = {0, 0, 0, 0};
-		Value *replicate = Nucleus::createShuffleVector(insert, insert, swizzle);
+		Value *replicate = Nucleus::createShuffleVector(vector, vector, swizzle);
 
 		storeValue(replicate);
 	}
