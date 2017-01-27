@@ -3,5 +3,7 @@
 # This list is used by Chromium to make sure that one of the owners in this
 # list has approved a SwiftShader related change before landing it
 
-sugoi@chromium.org
 capn@chromium.org
+capn@google.com
+sugoi@chromium.org
+sugoi@google.com
