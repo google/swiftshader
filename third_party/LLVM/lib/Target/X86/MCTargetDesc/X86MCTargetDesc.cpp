@@ -25,6 +25,7 @@
 #include "llvm/ADT/Triple.h"
 #include "llvm/Support/Host.h"
 #include "llvm/Support/TargetRegistry.h"
+#include <intrin.h>   /* for __cpuid()     */
 
 #define GET_REGINFO_MC_DESC
 #include "X86GenRegisterInfo.inc"
