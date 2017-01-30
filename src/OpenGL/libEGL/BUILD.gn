@@ -25,10 +25,15 @@ config("swiftshader_libEGL_private_config") {
   } else {
     cflags = [
       "-DLOG_TAG=\"swiftshader_libEGL\"",
-      "-DEGLAPI=__attribute__((visibility(\"protected\")))",
       "-DEGL_EGLEXT_PROTOTYPES",
       "-Wno-sign-compare",
     ]
+
+    if (is_linux) {
+      cflags += [ "-DGL_APICALL=__attribute__((visibility(\"protected\")))" ]
+    } else {
+      cflags += [ "-DGL_APICALL=__attribute__((visibility(\"default\")))" ]
+    }
   }
 }
 

@@ -73,10 +73,12 @@ config("swiftshader_config") {
       ]
     }
 
-    ldflags = [
-      "-Wl,--hash-style=both",
-      "-Wl,--gc-sections",
-    ]
+    if (is_linux) {
+      ldflags = [
+        "-Wl,--hash-style=both",
+        "-Wl,--gc-sections",
+      ]
+    }
   }
 }
 
