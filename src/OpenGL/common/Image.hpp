@@ -18,7 +18,7 @@
 #include "libEGL/Texture.hpp"
 #include "Renderer/Surface.hpp"
 
-#include <GLES2/gl2.h>
+#include <GLES3/gl3.h>
 #include <GLES2/gl2ext.h>
 
 #if defined(__ANDROID__)
@@ -198,10 +198,10 @@ inline GLenum GLPixelFormatFromAndroid(int halFormat)
 {
 	switch(halFormat)
 	{
-	case HAL_PIXEL_FORMAT_RGBA_8888: return GL_RGBA;
-	case HAL_PIXEL_FORMAT_RGBX_8888: return GL_RGB;
+	case HAL_PIXEL_FORMAT_RGBA_8888: return GL_RGBA8;
+	case HAL_PIXEL_FORMAT_RGBX_8888: return GL_RGB8;
 	case HAL_PIXEL_FORMAT_RGB_888:   return GL_NONE;   // Unsupported
-	case HAL_PIXEL_FORMAT_BGRA_8888: return GL_BGRA_EXT;
+	case HAL_PIXEL_FORMAT_BGRA_8888: return GL_BGRA8_EXT;
 	case HAL_PIXEL_FORMAT_RGB_565:   return GL_RGB565;
 	case HAL_PIXEL_FORMAT_YV12:      return SW_YV12_BT601;
 #ifdef GRALLOC_MODULE_API_VERSION_0_2
