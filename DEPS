@@ -12,5 +12,5 @@ vars = {
 
 deps = {
   'third_party/pnacl-subzero':
-    Var('chromium_git') + '/native_client/pnacl-subzero@' +  Var('subzero_revision'),
+    Var('chromium_git') + 'native_client/pnacl-subzero@' +  Var('subzero_revision'),
 }
