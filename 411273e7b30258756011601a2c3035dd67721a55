@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cf59a509_0ec609c0",
+        "filename": "src/OpenGL/libEGL/BUILD.gn",
+        "patchSetId": 1
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-02-01T21:35:59Z",
+      "side": 0,
+      "message": "Lets deal with this in a separate change since this depends on another non-trivial set of changes and it\u0027s unrelated to enabling Subzero builds on Windows.",
+      "range": {
+        "startLine": 60,
+        "startChar": 0,
+        "endLine": 64,
+        "endChar": 5
+      },
+      "revId": "411273e7b30258756011601a2c3035dd67721a55",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
