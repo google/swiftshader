@@ -22,9 +22,9 @@ namespace sw
 		Entry entry = {threadFunction, parameters, &init};
 
 		#if defined(_WIN32)
-			handle = CreateThread(0, 1024 * 1024, startFunction, &entry, 0, 0);
+			handle = CreateThread(NULL, 1024 * 1024, startFunction, &entry, 0, NULL);
 		#else
-			pthread_create(&handle, 0, startFunction, &entry);
+			pthread_create(&handle, NULL, startFunction, &entry);
 		#endif
 
 		init.wait();
@@ -37,11 +37,17 @@ namespace sw
 
 	void Thread::join()
 	{
-		#if defined(_WIN32)
-			WaitForSingleObject(handle, INFINITE);
-		#else
-			pthread_join(handle, 0);
-		#endif
+		if(!hasJoined)
+		{
+			#if defined(_WIN32)
+				WaitForSingleObject(handle, INFINITE);
+				CloseHandle(handle);
+			#else
+				pthread_join(handle, NULL);
+			#endif
+
+			hasJoined = true;
+		}
 	}
 
 	#if defined(_WIN32)
@@ -58,17 +64,17 @@ namespace sw
 			Entry entry = *(Entry*)parameters;
 			entry.init->signal();
 			entry.threadFunction(entry.threadParameters);
-			return 0;
+			return nullptr;
 		}
 	#endif
 
 	Event::Event()
 	{
 		#if defined(_WIN32)
-			handle = CreateEvent(0, FALSE, FALSE, 0);
+			handle = CreateEvent(NULL, FALSE, FALSE, NULL);
 		#else
-			pthread_cond_init(&handle, 0);
-			pthread_mutex_init(&mutex, 0);
+			pthread_cond_init(&handle, NULL);
+			pthread_mutex_init(&mutex, NULL);
 			signaled = false;
 		#endif
 	}

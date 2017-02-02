@@ -70,6 +70,8 @@ namespace sw
 			static void *startFunction(void *parameters);
 			pthread_t handle;
 		#endif
+
+		bool hasJoined = false;
 	};
 
 	class Event
