@@ -6203,10 +6203,10 @@ void TargetX86Base<TraitsType>::lowerShuffleVector_UsingPshufb(
 
   _pshufb(T0, Mask0M);
 
-  if (Idx0 > 16 || Idx1 > 16 || Idx2 > 16 || Idx3 > 16 || Idx4 > 16 ||
-      Idx5 > 16 || Idx6 > 16 || Idx7 > 16 || Idx8 > 16 || Idx9 > 16 ||
-      Idx10 > 16 || Idx11 > 16 || Idx12 > 16 || Idx13 > 16 || Idx14 > 16 ||
-      Idx15 > 16) {
+  if (Idx0 >= 16 || Idx1 >= 16 || Idx2 >= 16 || Idx3 >= 16 || Idx4 >= 16 ||
+      Idx5 >= 16 || Idx6 >= 16 || Idx7 >= 16 || Idx8 >= 16 || Idx9 >= 16 ||
+      Idx10 >= 16 || Idx11 >= 16 || Idx12 >= 16 || Idx13 >= 16 || Idx14 >= 16 ||
+      Idx15 >= 16) {
     auto *Mask1M = X86OperandMem::create(
         Func, MaskType, NoBase,
         lowerShuffleVector_CreatePshufbMask(
