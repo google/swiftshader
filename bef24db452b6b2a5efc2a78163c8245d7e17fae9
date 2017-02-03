@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "02f05c63_561350fa",
+        "filename": "src/Common/MutexLock.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-02-03T14:14:49Z",
+      "side": 1,
+      "message": "SwiftShader",
+      "range": {
+        "startLine": 21,
+        "startChar": 64,
+        "endLine": 21,
+        "endChar": 76
+      },
+      "revId": "bef24db452b6b2a5efc2a78163c8245d7e17fae9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fdce8ae6_4b491066",
+        "filename": "src/Common/MutexLock.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-02-03T14:14:49Z",
+      "side": 1,
+      "message": "nit: Android",
+      "range": {
+        "startLine": 21,
+        "startChar": 26,
+        "endLine": 21,
+        "endChar": 33
+      },
+      "revId": "bef24db452b6b2a5efc2a78163c8245d7e17fae9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a66f4d47_ec98aec8",
+        "filename": "src/Common/MutexLock.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-02-03T14:14:49Z",
+      "side": 1,
+      "message": "This is no longer a backoff lock. I suggest renaming it to MutexLock and for the non-Android code have a \"using MutexLock \u003d BackoffLock;\" and replacing all explicit uses of BackoffLock with MutexLock.",
+      "range": {
+        "startLine": 27,
+        "startChar": 7,
+        "endLine": 27,
+        "endChar": 18
+      },
+      "revId": "bef24db452b6b2a5efc2a78163c8245d7e17fae9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8a54a43a_3078320f",
+        "filename": "src/Common/MutexLock.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-02-03T14:14:49Z",
+      "side": 1,
+      "message": "Just \"return pthread_mutex_trylock(\u0026mutex) \u003d\u003d 0;\"",
+      "range": {
+        "startLine": 41,
+        "startChar": 17,
+        "endLine": 45,
+        "endChar": 16
+      },
+      "revId": "bef24db452b6b2a5efc2a78163c8245d7e17fae9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "82317c03_92d7af51",
+        "filename": "src/Common/MutexLock.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-02-03T14:14:49Z",
+      "side": 1,
+      "message": "I don\u0027t think additional padding is needed in this case.",
+      "range": {
+        "startLine": 63,
+        "startChar": 16,
+        "endLine": 63,
+        "endChar": 23
+      },
+      "revId": "bef24db452b6b2a5efc2a78163c8245d7e17fae9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "29134b2d_8c0ef727",
+        "filename": "src/Common/MutexLock.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-02-03T14:14:49Z",
+      "side": 1,
+      "message": "!__ANDROID__",
+      "range": {
+        "startLine": 180,
+        "startChar": 12,
+        "endLine": 180,
+        "endChar": 21
+      },
+      "revId": "bef24db452b6b2a5efc2a78163c8245d7e17fae9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
