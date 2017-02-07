@@ -36,6 +36,8 @@ namespace sw
 
 	class FrameBuffer
 	{
+		virtual void typeinfo();   // Dummy key method (https://gcc.gnu.org/onlinedocs/gcc/Vague-Linkage.html)
+
 	public:
 		FrameBuffer(int width, int height, bool fullscreen, bool topLeftOrigin);
 
@@ -103,6 +105,8 @@ namespace sw
 
 		static bool topLeftOrigin;
 	};
+
+	inline void FrameBuffer::typeinfo() {}
 }
 
 #endif	 //	sw_FrameBuffer_hpp

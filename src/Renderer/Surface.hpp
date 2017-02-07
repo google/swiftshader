@@ -250,6 +250,8 @@ namespace sw
 			bool dirty;
 		};
 
+		virtual void typeinfo();   // Dummy key method (https://gcc.gnu.org/onlinedocs/gcc/Vague-Linkage.html)
+
 	public:
 		Surface(int width, int height, int depth, Format format, void *pixels, int pitch, int slice);
 		Surface(Resource *texture, int width, int height, int depth, Format format, bool lockable, bool renderTarget, int pitchP = 0);
@@ -475,6 +477,8 @@ namespace sw
 
 namespace sw
 {
+	inline void Surface::typeinfo() {}
+
 	void *Surface::lock(int x, int y, int z, Lock lock, Accessor client, bool internal)
 	{
 		return internal ? lockInternal(x, y, z, lock, client) : lockExternal(x, y, z, lock, client);

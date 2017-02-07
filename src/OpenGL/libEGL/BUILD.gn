@@ -57,11 +57,6 @@ shared_library("swiftshader_libEGL") {
 
   if (is_debug) {
     sources += [ "../common/debug.cpp" ]
-  } else if (is_linux) {
-    sources += [
-      "../../Renderer/Surface.cpp",
-      "../common/Image.cpp",
-    ]
   }
 
   if (is_mac) {

@@ -48,6 +48,8 @@ size_t ComputePackingOffset(GLenum format, GLenum type, GLsizei width, GLsizei h
 
 class Image : public sw::Surface, public gl::Object
 {
+	virtual void typeinfo();   // Dummy key method (https://gcc.gnu.org/onlinedocs/gcc/Vague-Linkage.html)
+
 public:
 	// 2D texture image
 	Image(Texture *parentTexture, GLsizei width, GLsizei height, GLenum format, GLenum type)
@@ -191,6 +193,8 @@ protected:
 	void loadD24S8ImageData(GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, int inputPitch, int inputHeight, const void *input, void *buffer);
 	void loadD32FS8ImageData(GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, int inputPitch, int inputHeight, const void *input, void *buffer);
 };
+
+inline void Image::typeinfo() {}
 
 #ifdef __ANDROID__
 
