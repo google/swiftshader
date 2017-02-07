@@ -25,6 +25,10 @@ config("swiftshader_subzero_common_private_config") {
     "ICE_THREAD_LOCAL_HACK=0",
   ]
 
+  if (is_win) {
+    defines += [ "SUBZERO_USE_MICROSOFT_ABI" ]
+  }
+
   if (target_cpu == "x64") {
     defines += [
       "SZTARGET=X8664",
@@ -53,7 +57,6 @@ config("swiftshader_subzero_common_private_config") {
 }
 
 config("swiftshader_subzero_private_config") {
-#  cflags_cc = [ "--sysroot=/" ] #FIXME
   cflags = []
 
   if (is_win) {
@@ -93,7 +96,6 @@ config("swiftshader_subzero_private_config") {
 }
 
 config("swiftshader_reactor_with_subzero_private_config") {
-#  cflags_cc = [ "--sysroot=/" ] #FIXME
   cflags = []
 
   if (is_win) {
@@ -232,15 +234,19 @@ source_set("swiftshader_subzero") {
 }
 
 source_set("swiftshader_reactor") {
-  deps = [ "../OpenGL/common:swiftshader_opengl_common" ]
+  deps = [
+    "../OpenGL/common:swiftshader_opengl_common",
+  ]
 
-  sources = [ "Routine.cpp" ]
+  sources = [
+    "Routine.cpp",
+  ]
 
   # Currently, Subzero will only be used on Windows
   # LLVM will be used on Linux and MacOS
-  use_subzero = is_win
+  use_subzero = false
 
-  if(use_subzero) {
+  if (use_subzero) {
     deps += [ ":swiftshader_subzero" ]
 
     sources += [
