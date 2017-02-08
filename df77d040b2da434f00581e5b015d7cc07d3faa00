@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9a091b7c_c3a1472d",
+        "filename": "src/OpenGL/libGLES_CM/Android.mk",
+        "patchSetId": 2
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-02-08T19:27:58Z",
+      "side": 1,
+      "message": "libGLESv1_CM_swiftshader_debug",
+      "range": {
+        "startLine": 71,
+        "startChar": 16,
+        "endLine": 71,
+        "endChar": 40
+      },
+      "revId": "df77d040b2da434f00581e5b015d7cc07d3faa00",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
