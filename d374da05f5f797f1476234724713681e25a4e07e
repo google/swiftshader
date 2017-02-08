@@ -45,6 +45,30 @@
       "revId": "d374da05f5f797f1476234724713681e25a4e07e",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f1e9f482_ee0aa322",
+        "filename": "src/Reactor/BUILD.gn",
+        "patchSetId": 1
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-02-08T21:20:20Z",
+      "side": 1,
+      "message": "These variable names usually start with \"use\" or \"is\", so I renamed it to \"use_swiftshader_with_subzero\"",
+      "parentUuid": "d9294491_e23117a0",
+      "range": {
+        "startLine": 18,
+        "startChar": 2,
+        "endLine": 18,
+        "endChar": 13
+      },
+      "revId": "d374da05f5f797f1476234724713681e25a4e07e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
