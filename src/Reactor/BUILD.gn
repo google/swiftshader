@@ -12,6 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+declare_args() {
+  # Currently, Subzero is not used by default
+  # LLVM is still the default backend
+  use_swiftshader_with_subzero = false
+}
+
 # Need a separate config to ensure the warnings are added to the end.
 config("swiftshader_subzero_common_private_config") {
   defines = [
@@ -242,11 +248,7 @@ source_set("swiftshader_reactor") {
     "Routine.cpp",
   ]
 
-  # Currently, Subzero will only be used on Windows
-  # LLVM will be used on Linux and MacOS
-  use_subzero = false
-
-  if (use_subzero) {
+  if (use_swiftshader_with_subzero) {
     deps += [ ":swiftshader_subzero" ]
 
     sources += [
