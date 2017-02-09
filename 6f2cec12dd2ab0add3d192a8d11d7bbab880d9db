@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a9f341cb_bfe1d732",
+        "filename": "src/Reactor/BUILD.gn",
+        "patchSetId": 1
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-02-09T17:27:09Z",
+      "side": 1,
+      "message": "Do we want to revert to using a local variable for this, instead of args? Below, \"use_subzero\" is used. Also, to make the build faster I think we should avoid building LLVM when we\u0027re using Subzero.",
+      "range": {
+        "startLine": 140,
+        "startChar": 4,
+        "endLine": 140,
+        "endChar": 32
+      },
+      "revId": "6f2cec12dd2ab0add3d192a8d11d7bbab880d9db",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
