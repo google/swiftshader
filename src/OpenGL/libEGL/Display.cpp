@@ -42,6 +42,7 @@
 
 namespace egl
 {
+void Display::typeinfo() {}
 
 Display *Display::get(EGLDisplay dpy)
 {

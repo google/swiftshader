@@ -105,8 +105,6 @@ namespace sw
 
 		static bool topLeftOrigin;
 	};
-
-	inline void FrameBuffer::typeinfo() {}
 }
 
 #endif	 //	sw_FrameBuffer_hpp

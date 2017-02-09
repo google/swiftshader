@@ -98,8 +98,6 @@ protected:
 	EGLint swapInterval;
 };
 
-inline void Surface::typeinfo() {}
-
 class WindowSurface : public Surface
 {
 public:

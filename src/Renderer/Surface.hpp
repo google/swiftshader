@@ -477,8 +477,6 @@ namespace sw
 
 namespace sw
 {
-	inline void Surface::typeinfo() {}
-
 	void *Surface::lock(int x, int y, int z, Lock lock, Accessor client, bool internal)
 	{
 		return internal ? lockInternal(x, y, z, lock, client) : lockExternal(x, y, z, lock, client);

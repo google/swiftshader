@@ -1178,6 +1178,8 @@ namespace egl
 		}
 	}
 
+	void Image::typeinfo() {}
+
 	Image::~Image()
 	{
 		if(parentTexture)

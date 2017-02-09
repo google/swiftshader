@@ -99,8 +99,6 @@ namespace egl
 
 		gl::NameSpace<Image> mSharedImageNameSpace;
 	};
-
-	inline void Display::typeinfo() {}
 }
 
 #endif   // INCLUDE_DISPLAY_H_

@@ -39,6 +39,7 @@ namespace sw
 
 	unsigned int *Surface::palette = 0;
 	unsigned int Surface::paletteID = 0;
+	void Surface::typeinfo() {}
 
 	void Rect::clip(int minX, int minY, int maxX, int maxY)
 	{

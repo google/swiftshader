@@ -194,8 +194,6 @@ protected:
 	void loadD32FS8ImageData(GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, int inputPitch, int inputHeight, const void *input, void *buffer);
 };
 
-inline void Image::typeinfo() {}
-
 #ifdef __ANDROID__
 
 inline GLenum GLPixelFormatFromAndroid(int halFormat)
