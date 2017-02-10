@@ -69,7 +69,10 @@ shared_library("swiftshader_libEGL") {
     configs -= [ "//build/config/win:unicode" ]
     ldflags = [ "/DEF:" + rebase_path("libGLESv2.def", root_build_dir) ]
   } else if (is_linux) {
-    sources += [ "../../Main/libX11.cpp" ]
+    sources += [
+      "../../Main/libX11.cpp",
+      "TypeInfo.cpp",
+    ]
     ldflags =
         [ "-Wl,--version-script=" + rebase_path("exports.map", root_build_dir) ]
   }
