@@ -787,6 +787,7 @@ protected:
   void lowerStore(const InstStore *Instr) override;
   void lowerSwitch(const InstSwitch *Instr) override;
   void lowerUnreachable(const InstUnreachable *Instr) override;
+  void lowerOther(const Inst *Instr) override;
   void prelowerPhis() override;
   uint32_t getCallStackArgumentsSizeBytes(const InstCall *Instr) override;
   void genTargetHelperCallFor(Inst *Instr) override;

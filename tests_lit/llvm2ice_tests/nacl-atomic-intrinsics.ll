@@ -89,7 +89,9 @@ entry:
 ; ARM32: ldrb r{{[0-9]+}}, [r{{[0-9]+}}
 ; ARM32: dmb
 ; MIPS32-LABEL: test_atomic_load_8
-; MIPS32: lb
+; MIPS32: sync
+; MIPS32: ll
+; MIPS32: sc
 ; MIPS32: sync
 
 define internal i32 @test_atomic_load_16(i32 %iptr) {
@@ -107,7 +109,9 @@ entry:
 ; ARM32: ldrh r{{[0-9]+}}, [r{{[0-9]+}}
 ; ARM32: dmb
 ; MIPS32-LABEL: test_atomic_load_16
-; MIPS32: lh
+; MIPS32: sync
+; MIPS32: ll
+; MIPS32: sc
 ; MIPS32: sync
 
 define internal i32 @test_atomic_load_32(i32 %iptr) {
@@ -123,7 +127,9 @@ entry:
 ; ARM32: ldr r{{[0-9]+}}, [r{{[0-9]+}}
 ; ARM32: dmb
 ; MIPS32-LABEL: test_atomic_load_32
-; MIPS32: lw
+; MIPS32: sync
+; MIPS32: ll
+; MIPS32: sc
 ; MIPS32: sync
 
 define internal i64 @test_atomic_load_64(i32 %iptr) {
@@ -139,8 +145,7 @@ entry:
 ; ARM32: ldrexd r{{[0-9]+}}, r{{[0-9]+}}, [r{{[0-9]+}}
 ; ARM32: dmb
 ; MIPS32-LABEL: test_atomic_load_64
-; MIPS32: lw
-; MIPS32: lw
+; MIPS32: jal __sync_val_compare_and_swap_8
 ; MIPS32: sync
 
 define internal i32 @test_atomic_load_32_with_arith(i32 %iptr) {
@@ -165,8 +170,11 @@ next:
 ; ARM32: ldr r{{[0-9]+}}, [r{{[0-9]+}}
 ; ARM32: dmb
 ; MIPS32-LABEL: test_atomic_load_32_with_arith
-; MIPS32: lw
 ; MIPS32: sync
+; MIPS32: ll
+; MIPS32: sc
+; MIPS32: sync
+; MIPS32: subu
 
 define internal i32 @test_atomic_load_32_ignored(i32 %iptr) {
 entry:
@@ -184,7 +192,9 @@ entry:
 ; ARM32: ldr r{{[0-9]+}}, [r{{[0-9]+}}
 ; ARM32: dmb
 ; MIPS32-LABEL: test_atomic_load_32_ignored
-; MIPS32: lw
+; MIPS32: sync
+; MIPS32: ll
+; MIPS32: sc
 ; MIPS32: sync
 
 define internal i64 @test_atomic_load_64_ignored(i32 %iptr) {
@@ -200,8 +210,7 @@ entry:
 ; ARM32: ldrexd r{{[0-9]+}}, r{{[0-9]+}}, [r{{[0-9]+}}
 ; ARM32: dmb
 ; MIPS32-LABEL: test_atomic_load_64_ignored
-; MIPS32: lw
-; MIPS32: lw
+; MIPS32: jal	__sync_val_compare_and_swap_8
 ; MIPS32: sync
 
 ;;; Store
@@ -222,7 +231,8 @@ entry:
 ; ARM32: dmb
 ; MIPS32-LABEL: test_atomic_store_8
 ; MIPS32: sync
-; MIPS32: sb
+; MIPS32: ll
+; MIPS32: sc
 ; MIPS32: sync
 
 define internal void @test_atomic_store_16(i32 %iptr, i32 %v) {
@@ -241,7 +251,8 @@ entry:
 ; ARM32: dmb
 ; MIPS32-LABEL: test_atomic_store_16
 ; MIPS32: sync
-; MIPS32: sh
+; MIPS32: ll
+; MIPS32: sc
 ; MIPS32: sync
 
 define internal void @test_atomic_store_32(i32 %iptr, i32 %v) {
@@ -259,7 +270,8 @@ entry:
 ; ARM32: dmb
 ; MIPS32-LABEL: test_atomic_store_32
 ; MIPS32: sync
-; MIPS32: sw
+; MIPS32: ll
+; MIPS32: sc
 ; MIPS32: sync
 
 define internal void @test_atomic_store_64(i32 %iptr, i64 %v) {
@@ -281,8 +293,7 @@ entry:
 ; ARM32: dmb
 ; MIPS32-LABEL: test_atomic_store_64
 ; MIPS32: sync
-; MIPS32: sw
-; MIPS32: sw
+; MIPS32: jal	__sync_lock_test_and_set_8
 ; MIPS32: sync
 
 define internal void @test_atomic_store_64_const(i32 %iptr) {
@@ -313,8 +324,7 @@ entry:
 ; MIPS32: lui	{{.*}}, 29646
 ; MIPS32: ori	{{.*}},{{.*}}, 12274
 ; MIPS32: addiu	{{.*}}, $zero, 2874
-; MIPS32: sw
-; MIPS32: sw
+; MIPS32: jal	__sync_lock_test_and_set_8
 ; MIPS32: sync
 
 ;;; RMW
@@ -459,16 +469,7 @@ entry:
 ; ARM32: dmb
 ; MIPS32-LABEL: test_atomic_rmw_add_64
 ; MIPS32: sync
-; MIPS32: ll
-; MIPS32: addu
-; MIPS32: sltu
-; MIPS32: sc
-; MIPS32: beq	{{.*}}, $zero, {{.*}}
-; MIPS32: ll
-; MIPS32: addu
-; MIPS32: addu
-; MIPS32: sc
-; MIPS32: beq	{{.*}}, $zero, {{.*}}
+; MIPS32: jal	__sync_fetch_and_add_8
 ; MIPS32: sync
 
 ; Same test as above, but with a global address to test FakeUse issues.
@@ -489,16 +490,7 @@ entry:
 ; ARM32: dmb
 ; MIPS32-LABEL: test_atomic_rmw_add_64_global
 ; MIPS32: sync
-; MIPS32: ll
-; MIPS32: addu
-; MIPS32: sltu
-; MIPS32: sc
-; MIPS32: beq	{{.*}}, $zero, {{.*}}
-; MIPS32: ll
-; MIPS32: addu
-; MIPS32: addu
-; MIPS32: sc
-; MIPS32: beq	{{.*}}, $zero, {{.*}}
+; MIPS32: jal	__sync_fetch_and_add_8
 ; MIPS32: sync
 
 ; Test with some more register pressure. When we have an alloca, ebp is
@@ -543,16 +535,7 @@ eblock:
 ; ARM32: dmb
 ; MIPS32-LABEL: test_atomic_rmw_add_64_alloca
 ; MIPS32: sync
-; MIPS32: ll
-; MIPS32: addu
-; MIPS32: sltu
-; MIPS32: sc
-; MIPS32: beq	{{.*}}, $zero, {{.*}}
-; MIPS32: ll
-; MIPS32: addu
-; MIPS32: addu
-; MIPS32: sc
-; MIPS32: beq	{{.*}}, $zero, {{.*}}
+; MIPS32: jal	__sync_fetch_and_add_8
 ; MIPS32: sync
 
 define internal i32 @test_atomic_rmw_add_32_ignored(i32 %iptr, i32 %v) {
@@ -621,16 +604,7 @@ err:
 ; ARM32: b
 ; MIPS32-LABEL: test_atomic_rmw_add_64_loop
 ; MIPS32: sync
-; MIPS32: ll
-; MIPS32: addu
-; MIPS32: sltu
-; MIPS32: sc
-; MIPS32: beq	{{.*}}, $zero, {{.*}}
-; MIPS32: ll
-; MIPS32: addu
-; MIPS32: addu
-; MIPS32: sc
-; MIPS32: beq	{{.*}}, $zero, {{.*}}
+; MIPS32: jal	__sync_fetch_and_add_8
 ; MIPS32: sync
 
 ;; sub
@@ -770,16 +744,7 @@ entry:
 ; ARM32: dmb
 ; MIPS32-LABEL: test_atomic_rmw_sub_64
 ; MIPS32: sync
-; MIPS32: ll
-; MIPS32: subu
-; MIPS32: sltu
-; MIPS32: sc
-; MIPS32: beq	{{.*}}, $zero, {{.*}}
-; MIPS32: ll
-; MIPS32: addu
-; MIPS32: subu
-; MIPS32: sc
-; MIPS32: beq	{{.*}}, $zero, {{.*}}
+; MIPS32: jal	__sync_fetch_and_sub_8
 ; MIPS32: sync
 
 define internal i32 @test_atomic_rmw_sub_32_ignored(i32 %iptr, i32 %v) {
@@ -1058,14 +1023,7 @@ entry:
 ; ARM32: dmb
 ; MIPS32-LABEL: test_atomic_rmw_or_64
 ; MIPS32: sync
-; MIPS32: ll
-; MIPS32: or
-; MIPS32: sc
-; MIPS32: beq	{{.*}}, $zero, {{.*}}
-; MIPS32: ll
-; MIPS32: or
-; MIPS32: sc
-; MIPS32: beq	{{.*}}, $zero, {{.*}}
+; MIPS32: jal	__sync_fetch_and_or_8
 ; MIPS32: sync
 
 define internal i32 @test_atomic_rmw_or_32_ignored(i32 %iptr, i32 %v) {
@@ -1237,14 +1195,7 @@ entry:
 ; ARM32: dmb
 ; MIPS32-LABEL: test_atomic_rmw_and_64
 ; MIPS32: sync
-; MIPS32: ll
-; MIPS32: and
-; MIPS32: sc
-; MIPS32: beq	{{.*}}, $zero, {{.*}}
-; MIPS32: ll
-; MIPS32: and
-; MIPS32: sc
-; MIPS32: beq	{{.*}}, $zero, {{.*}}
+; MIPS32: jal	__sync_fetch_and_and_8
 ; MIPS32: sync
 
 define internal i32 @test_atomic_rmw_and_32_ignored(i32 %iptr, i32 %v) {
@@ -1414,14 +1365,7 @@ entry:
 ; ARM32: dmb
 ; MIPS32-LABEL: test_atomic_rmw_xor_64
 ; MIPS32: sync
-; MIPS32: ll
-; MIPS32: xor
-; MIPS32: sc
-; MIPS32: beq	{{.*}}, $zero, {{.*}}
-; MIPS32: ll
-; MIPS32: xor
-; MIPS32: sc
-; MIPS32: beq	{{.*}}, $zero, {{.*}}
+; MIPS32: jal	__sync_fetch_and_xor_8
 ; MIPS32: sync
 
 define internal i32 @test_atomic_rmw_xor_32_ignored(i32 %iptr, i32 %v) {
@@ -1574,14 +1518,7 @@ entry:
 ; ARM32: dmb
 ; MIPS32-LABEL: test_atomic_rmw_xchg_64
 ; MIPS32: sync
-; MIPS32: ll
-; MIPS32: move
-; MIPS32: sc
-; MIPS32: beq	{{.*}}, $zero, {{.*}}
-; MIPS32: ll
-; MIPS32: move
-; MIPS32: sc
-; MIPS32: beq	{{.*}}, $zero, {{.*}}
+; MIPS32: jal	__sync_lock_test_and_set_8
 ; MIPS32: sync
 
 define internal i32 @test_atomic_rmw_xchg_32_ignored(i32 %iptr, i32 %v) {
@@ -1769,14 +1706,7 @@ entry:
 ; ARM32: dmb
 ; MIPS32-LABEL: test_atomic_cmpxchg_64
 ; MIPS32: sync
-; MIPS32: ll
-; MIPS32: bne
-; MIPS32: sc
-; MIPS32: beq
-; MIPS32: ll
-; MIPS32: bne
-; MIPS32: sc
-; MIPS32: beq
+; MIPS32: jal	__sync_val_compare_and_swap_8
 ; MIPS32: sync
 
 
@@ -1803,14 +1733,7 @@ entry:
 ; ARM32: dmb
 ; MIPS32-LABEL: test_atomic_cmpxchg_64_undef
 ; MIPS32: sync
-; MIPS32: ll
-; MIPS32: bne
-; MIPS32: sc
-; MIPS32: beq
-; MIPS32: ll
-; MIPS32: bne
-; MIPS32: sc
-; MIPS32: beq
+; MIPS32: jal	__sync_val_compare_and_swap_8
 ; MIPS32: sync
 
 ; Test a case where %old really does need to be copied out of edx:eax.
@@ -1847,14 +1770,7 @@ entry:
 ; ARM32: str
 ; MIPS32-LABEL: test_atomic_cmpxchg_64_store
 ; MIPS32: sync
-; MIPS32: ll
-; MIPS32: bne
-; MIPS32: sc
-; MIPS32: beq
-; MIPS32: ll
-; MIPS32: bne
-; MIPS32: sc
-; MIPS32: beq
+; MIPS32: jal	__sync_val_compare_and_swap_8
 ; MIPS32: sync
 
 
@@ -1902,14 +1818,7 @@ eblock:
 ; ARM32: dmb
 ; MIPS32-LABEL: test_atomic_cmpxchg_64_alloca
 ; MIPS32: sync
-; MIPS32: ll
-; MIPS32: bne
-; MIPS32: sc
-; MIPS32: beq
-; MIPS32: ll
-; MIPS32: bne
-; MIPS32: sc
-; MIPS32: beq
+; MIPS32: jal	__sync_val_compare_and_swap_8
 ; MIPS32: sync
 
 define internal i32 @test_atomic_cmpxchg_32_ignored(i32 %iptr, i32 %expected,
@@ -1967,14 +1876,7 @@ entry:
 ; ARM32: dmb
 ; MIPS32-LABEL: test_atomic_cmpxchg_64_ignored
 ; MIPS32: sync
-; MIPS32: ll
-; MIPS32: bne
-; MIPS32: sc
-; MIPS32: beq
-; MIPS32: ll
-; MIPS32: bne
-; MIPS32: sc
-; MIPS32: beq
+; MIPS32: jal	__sync_val_compare_and_swap_8
 ; MIPS32: sync
 
 ;;;; Fence and is-lock-free.

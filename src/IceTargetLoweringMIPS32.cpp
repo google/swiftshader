@@ -620,6 +620,128 @@ void TargetMIPS32::genTargetHelperCallFor(Inst *Instr) {
     switch (ID) {
     default:
       return;
+    case Intrinsics::AtomicLoad: {
+      if (DestTy != IceType_i64)
+        return;
+      if (!Intrinsics::isMemoryOrderValid(
+              ID, getConstantMemoryOrder(IntrinsicCall->getArg(1)))) {
+        Func->setError("Unexpected memory ordering for AtomicLoad");
+        return;
+      }
+      Operand *Addr = IntrinsicCall->getArg(0);
+      Operand *TargetHelper = Ctx->getConstantExternSym(
+          Ctx->getGlobalString("__sync_val_compare_and_swap_8"));
+      static constexpr SizeT MaxArgs = 3;
+      auto *_0 = Ctx->getConstantZero(IceType_i64);
+      auto *Call = Context.insert<InstCall>(MaxArgs, Dest, TargetHelper,
+                                            NoTailCall, IsTargetHelperCall);
+      Call->addArg(Addr);
+      Call->addArg(_0);
+      Call->addArg(_0);
+      Context.insert<InstMIPS32Sync>();
+      Instr->setDeleted();
+      return;
+    }
+    case Intrinsics::AtomicStore: {
+      Operand *Val = IntrinsicCall->getArg(0);
+      if (Val->getType() != IceType_i64)
+        return;
+      if (!Intrinsics::isMemoryOrderValid(
+              ID, getConstantMemoryOrder(IntrinsicCall->getArg(2)))) {
+        Func->setError("Unexpected memory ordering for AtomicStore");
+        return;
+      }
+      Operand *Addr = IntrinsicCall->getArg(1);
+      Variable *NoDest = nullptr;
+      Operand *TargetHelper = Ctx->getConstantExternSym(
+          Ctx->getGlobalString("__sync_lock_test_and_set_8"));
+      Context.insert<InstMIPS32Sync>();
+      static constexpr SizeT MaxArgs = 2;
+      auto *Call = Context.insert<InstCall>(MaxArgs, NoDest, TargetHelper,
+                                            NoTailCall, IsTargetHelperCall);
+      Call->addArg(Addr);
+      Call->addArg(Val);
+      Context.insert<InstMIPS32Sync>();
+      Instr->setDeleted();
+      return;
+    }
+    case Intrinsics::AtomicCmpxchg: {
+      if (DestTy != IceType_i64)
+        return;
+      if (!Intrinsics::isMemoryOrderValid(
+              ID, getConstantMemoryOrder(IntrinsicCall->getArg(3)),
+              getConstantMemoryOrder(IntrinsicCall->getArg(4)))) {
+        Func->setError("Unexpected memory ordering for AtomicCmpxchg");
+        return;
+      }
+      Operand *Addr = IntrinsicCall->getArg(0);
+      Operand *Oldval = IntrinsicCall->getArg(1);
+      Operand *Newval = IntrinsicCall->getArg(2);
+      Operand *TargetHelper = Ctx->getConstantExternSym(
+          Ctx->getGlobalString("__sync_val_compare_and_swap_8"));
+      Context.insert<InstMIPS32Sync>();
+      static constexpr SizeT MaxArgs = 3;
+      auto *Call = Context.insert<InstCall>(MaxArgs, Dest, TargetHelper,
+                                            NoTailCall, IsTargetHelperCall);
+      Call->addArg(Addr);
+      Call->addArg(Oldval);
+      Call->addArg(Newval);
+      Context.insert<InstMIPS32Sync>();
+      Instr->setDeleted();
+      return;
+    }
+    case Intrinsics::AtomicRMW: {
+      if (DestTy != IceType_i64)
+        return;
+      if (!Intrinsics::isMemoryOrderValid(
+              ID, getConstantMemoryOrder(IntrinsicCall->getArg(3)))) {
+        Func->setError("Unexpected memory ordering for AtomicRMW");
+        return;
+      }
+      auto Operation = static_cast<Intrinsics::AtomicRMWOperation>(
+          llvm::cast<ConstantInteger32>(IntrinsicCall->getArg(0))->getValue());
+      auto *Addr = IntrinsicCall->getArg(1);
+      auto *Newval = IntrinsicCall->getArg(2);
+      Operand *TargetHelper;
+      switch (Operation) {
+      case Intrinsics::AtomicAdd:
+        TargetHelper = Ctx->getConstantExternSym(
+            Ctx->getGlobalString("__sync_fetch_and_add_8"));
+        break;
+      case Intrinsics::AtomicSub:
+        TargetHelper = Ctx->getConstantExternSym(
+            Ctx->getGlobalString("__sync_fetch_and_sub_8"));
+        break;
+      case Intrinsics::AtomicOr:
+        TargetHelper = Ctx->getConstantExternSym(
+            Ctx->getGlobalString("__sync_fetch_and_or_8"));
+        break;
+      case Intrinsics::AtomicAnd:
+        TargetHelper = Ctx->getConstantExternSym(
+            Ctx->getGlobalString("__sync_fetch_and_and_8"));
+        break;
+      case Intrinsics::AtomicXor:
+        TargetHelper = Ctx->getConstantExternSym(
+            Ctx->getGlobalString("__sync_fetch_and_xor_8"));
+        break;
+      case Intrinsics::AtomicExchange:
+        TargetHelper = Ctx->getConstantExternSym(
+            Ctx->getGlobalString("__sync_lock_test_and_set_8"));
+        break;
+      default:
+        llvm::report_fatal_error("Unknown AtomicRMW operation");
+        return;
+      }
+      Context.insert<InstMIPS32Sync>();
+      static constexpr SizeT MaxArgs = 2;
+      auto *Call = Context.insert<InstCall>(MaxArgs, Dest, TargetHelper,
+                                            NoTailCall, IsTargetHelperCall);
+      Call->addArg(Addr);
+      Call->addArg(Newval);
+      Context.insert<InstMIPS32Sync>();
+      Instr->setDeleted();
+      return;
+    }
     case Intrinsics::Ctpop: {
       Operand *Src0 = IntrinsicCall->getArg(0);
       Operand *TargetHelper =
@@ -4455,34 +4577,66 @@ void TargetMIPS32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
       return;
     }
     if (DestTy == IceType_i64) {
+      llvm::report_fatal_error("AtomicLoad.i64 should have been prelowered.");
+      return;
+    } else if (DestTy == IceType_i32) {
+      auto *T1 = makeReg(DestTy);
+      auto *RegAt = getPhysicalRegister(RegMIPS32::Reg_AT);
       auto *Base = legalizeToReg(Instr->getArg(0));
-      auto *AddrLo = OperandMIPS32Mem::create(
-          Func, IceType_i32, Base,
-          llvm::cast<ConstantInteger32>(Ctx->getConstantInt32(0)));
-      auto *AddrHi = OperandMIPS32Mem::create(
-          Func, IceType_i32, Base,
-          llvm::cast<ConstantInteger32>(Ctx->getConstantInt32(4)));
-      auto *T_Lo = makeReg(IceType_i32);
-      auto *T_Hi = makeReg(IceType_i32);
-      auto *Dest64 = llvm::cast<Variable64On32>(Dest);
-      lowerLoad(InstLoad::create(Func, T_Lo, AddrLo, IceType_i32));
-      lowerLoad(InstLoad::create(Func, T_Hi, AddrHi, IceType_i32));
+      auto *Addr = formMemoryOperand(Base, DestTy);
+      InstMIPS32Label *Retry = InstMIPS32Label::create(Func, this);
+      InstMIPS32Label *Exit = InstMIPS32Label::create(Func, this);
+      constexpr CfgNode *NoTarget = nullptr;
       _sync();
-      _mov(Dest64->getLo(), T_Lo);
-      _mov(Dest64->getHi(), T_Hi);
-      // Adding a fake-use of T to ensure the atomic load is not removed if Dest
-      // is unused.
-      Context.insert<InstFakeUse>(T_Lo);
-      Context.insert<InstFakeUse>(T_Hi);
+      Context.insert(Retry);
+      Sandboxer(this).ll(T1, Addr);
+      _br(NoTarget, NoTarget, T1, getZero(), Exit, CondMIPS32::Cond::NE);
+      _addiu(RegAt, getZero(), 0); // Loaded value is zero here, writeback zero
+      Sandboxer(this).sc(RegAt, Addr);
+      _br(NoTarget, NoTarget, RegAt, getZero(), Retry, CondMIPS32::Cond::EQ);
+      Context.insert(Exit);
+      _sync();
+      _mov(Dest, T1);
+      Context.insert<InstFakeUse>(T1);
     } else {
-      auto *T = makeReg(DestTy);
+      const uint32_t Mask = (1 << (CHAR_BITS * typeWidthInBytes(DestTy))) - 1;
       auto *Base = legalizeToReg(Instr->getArg(0));
-      lowerLoad(InstLoad::create(Func, T, formMemoryOperand(Base, DestTy)));
+      auto *T1 = makeReg(IceType_i32);
+      auto *T2 = makeReg(IceType_i32);
+      auto *T3 = makeReg(IceType_i32);
+      auto *T4 = makeReg(IceType_i32);
+      auto *T5 = makeReg(IceType_i32);
+      auto *T6 = makeReg(IceType_i32);
+      auto *SrcMask = makeReg(IceType_i32);
+      auto *Tdest = makeReg(IceType_i32);
+      auto *RegAt = getPhysicalRegister(RegMIPS32::Reg_AT);
+      InstMIPS32Label *Retry = InstMIPS32Label::create(Func, this);
+      InstMIPS32Label *Exit = InstMIPS32Label::create(Func, this);
+      constexpr CfgNode *NoTarget = nullptr;
       _sync();
-      _mov(Dest, T);
-      // Adding a fake-use of T to ensure the atomic load is not removed if Dest
-      // is unused.
-      Context.insert<InstFakeUse>(T);
+      _addiu(T1, getZero(), -4); // Address mask 0xFFFFFFFC
+      _andi(T2, Base, 3);        // Last two bits of the address
+      _and(T3, Base, T1);        // Align the address
+      _sll(T4, T2, 3);
+      _ori(T5, getZero(), Mask);
+      _sllv(SrcMask, T5, T4); // Source mask
+      auto *Addr = formMemoryOperand(T3, IceType_i32);
+      Context.insert(Retry);
+      Sandboxer(this).ll(T6, Addr);
+      _and(Tdest, T6, SrcMask);
+      _br(NoTarget, NoTarget, T6, getZero(), Exit, CondMIPS32::Cond::NE);
+      _addiu(RegAt, getZero(), 0); // Loaded value is zero here, writeback zero
+      Sandboxer(this).sc(RegAt, Addr);
+      _br(NoTarget, NoTarget, RegAt, getZero(), Retry, CondMIPS32::Cond::EQ);
+      Context.insert(Exit);
+      auto *T7 = makeReg(IceType_i32);
+      auto *T8 = makeReg(IceType_i32);
+      _srlv(T7, Tdest, T4);
+      _andi(T8, T7, Mask);
+      _sync();
+      _mov(Dest, T8);
+      Context.insert<InstFakeUse>(T6);
+      Context.insert<InstFakeUse>(SrcMask);
     }
     return;
   }
@@ -4497,35 +4651,59 @@ void TargetMIPS32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     auto *Val = Instr->getArg(0);
     auto Ty = Val->getType();
     if (Ty == IceType_i64) {
-      Variable *ValHi, *ValLo;
-      _sync();
-      if (auto *C64 = llvm::dyn_cast<ConstantInteger64>(Val)) {
-        const uint64_t Value = C64->getValue();
-        uint64_t Upper32Bits = (Value >> INT32_BITS) & 0xFFFFFFFF;
-        uint64_t Lower32Bits = Value & 0xFFFFFFFF;
-        ValLo = legalizeToReg(Ctx->getConstantInt32(Lower32Bits));
-        ValHi = legalizeToReg(Ctx->getConstantInt32(Upper32Bits));
-      } else {
-        auto *Val64 = llvm::cast<Variable64On32>(Val);
-        ValLo = legalizeToReg(loOperand(Val64));
-        ValHi = legalizeToReg(hiOperand(Val64));
-      }
-
-      auto *Base = legalizeToReg(Instr->getArg(1));
-      auto *AddrLo = OperandMIPS32Mem::create(
-          Func, IceType_i32, Base,
-          llvm::cast<ConstantInteger32>(Ctx->getConstantInt32(0)));
-      auto *AddrHi = OperandMIPS32Mem::create(
-          Func, IceType_i32, Base,
-          llvm::cast<ConstantInteger32>(Ctx->getConstantInt32(4)));
-      lowerStore(InstStore::create(Func, ValLo, AddrLo, IceType_i32));
-      lowerStore(InstStore::create(Func, ValHi, AddrHi, IceType_i32));
-      _sync();
-    } else {
-      _sync();
+      llvm::report_fatal_error("AtomicStore.i64 should have been prelowered.");
+      return;
+    } else if (Ty == IceType_i32) {
       auto *Val = legalizeToReg(Instr->getArg(0));
       auto *Base = legalizeToReg(Instr->getArg(1));
-      lowerStore(InstStore::create(Func, Val, formMemoryOperand(Base, DestTy)));
+      auto *Addr = formMemoryOperand(Base, Ty);
+      InstMIPS32Label *Retry = InstMIPS32Label::create(Func, this);
+      constexpr CfgNode *NoTarget = nullptr;
+      auto *T1 = makeReg(IceType_i32);
+      auto *RegAt = getPhysicalRegister(RegMIPS32::Reg_AT);
+      _sync();
+      Context.insert(Retry);
+      Sandboxer(this).ll(T1, Addr);
+      _mov(RegAt, Val);
+      Sandboxer(this).sc(RegAt, Addr);
+      _br(NoTarget, NoTarget, RegAt, getZero(), Retry, CondMIPS32::Cond::EQ);
+      Context.insert<InstFakeUse>(T1); // To keep LL alive
+      _sync();
+    } else {
+      auto *Val = legalizeToReg(Instr->getArg(0));
+      auto *Base = legalizeToReg(Instr->getArg(1));
+      InstMIPS32Label *Retry = InstMIPS32Label::create(Func, this);
+      constexpr CfgNode *NoTarget = nullptr;
+      auto *T1 = makeReg(IceType_i32);
+      auto *T2 = makeReg(IceType_i32);
+      auto *T3 = makeReg(IceType_i32);
+      auto *T4 = makeReg(IceType_i32);
+      auto *T5 = makeReg(IceType_i32);
+      auto *T6 = makeReg(IceType_i32);
+      auto *T7 = makeReg(IceType_i32);
+      auto *RegAt = getPhysicalRegister(RegMIPS32::Reg_AT);
+      auto *SrcMask = makeReg(IceType_i32);
+      auto *DstMask = makeReg(IceType_i32);
+      const uint32_t Mask = (1 << (CHAR_BITS * typeWidthInBytes(Ty))) - 1;
+      _sync();
+      _addiu(T1, getZero(), -4);
+      _and(T7, Base, T1);
+      auto *Addr = formMemoryOperand(T7, Ty);
+      _andi(T2, Base, 3);
+      _sll(T3, T2, 3);
+      _ori(T4, getZero(), Mask);
+      _sllv(T5, T4, T3);
+      _sllv(T6, Val, T3);
+      _nor(SrcMask, getZero(), T5);
+      _and(DstMask, T6, T5);
+      Context.insert(Retry);
+      Sandboxer(this).ll(RegAt, Addr);
+      _and(RegAt, RegAt, SrcMask);
+      _or(RegAt, RegAt, DstMask);
+      Sandboxer(this).sc(RegAt, Addr);
+      _br(NoTarget, NoTarget, RegAt, getZero(), Retry, CondMIPS32::Cond::EQ);
+      Context.insert<InstFakeUse>(SrcMask);
+      Context.insert<InstFakeUse>(DstMask);
       _sync();
     }
     return;
@@ -4549,73 +4727,9 @@ void TargetMIPS32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     auto *ActualAddress = Instr->getArg(0);
 
     if (DestTy == IceType_i64) {
-      InstMIPS32Label *Retry1 = InstMIPS32Label::create(Func, this);
-      auto *T1 = I32Reg();
-      auto *T2 = I32Reg();
-      auto *T3 = I32Reg();
-      auto *T4 = I32Reg();
-      auto *T5 = I32Reg();
-      auto *T6 = I32Reg();
-      Variable *ValHi, *ValLo, *ExpectedLo, *ExpectedHi;
-      if (llvm::isa<ConstantUndef>(Expected)) {
-        ExpectedLo = legalizeToReg(Ctx->getConstantZero(IceType_i32));
-        ExpectedHi = legalizeToReg(Ctx->getConstantZero(IceType_i32));
-      } else if (auto *Expected64 = llvm::dyn_cast<Variable64On32>(Expected)) {
-        ExpectedLo = legalizeToReg(loOperand(Expected64));
-        ExpectedHi = legalizeToReg(hiOperand(Expected64));
-      } else if (auto *C64 = llvm::dyn_cast<ConstantInteger64>(Expected)) {
-        const uint64_t Value = C64->getValue();
-        uint64_t Upper32Bits = (Value >> INT32_BITS) & 0xFFFFFFFF;
-        uint64_t Lower32Bits = Value & 0xFFFFFFFF;
-        ExpectedLo = legalizeToReg(Ctx->getConstantInt32(Lower32Bits));
-        ExpectedHi = legalizeToReg(Ctx->getConstantInt32(Upper32Bits));
-      } else {
-        llvm::report_fatal_error(
-            "AtomicCmpxchg: getArg(1) is nor Constant neither Variable64On32");
-      }
-      if (auto *C64 = llvm::dyn_cast<ConstantInteger64>(New)) {
-        const uint64_t Value = C64->getValue();
-        uint64_t Upper32Bits = (Value >> INT32_BITS) & 0xFFFFFFFF;
-        uint64_t Lower32Bits = Value & 0xFFFFFFFF;
-        ValLo = legalizeToReg(Ctx->getConstantInt32(Lower32Bits));
-        ValHi = legalizeToReg(Ctx->getConstantInt32(Upper32Bits));
-      } else {
-        auto *Val = llvm::cast<Variable64On32>(New);
-        ValLo = legalizeToReg(loOperand(Val));
-        ValHi = legalizeToReg(hiOperand(Val));
-      }
-      auto *Dest64 = llvm::cast<Variable64On32>(Dest);
-      auto *BaseR = legalizeToReg(ActualAddress);
-      auto *AddrLo = OperandMIPS32Mem::create(
-          Func, IceType_i32, BaseR,
-          llvm::cast<ConstantInteger32>(Ctx->getConstantInt32(0)));
-      auto *AddrHi = OperandMIPS32Mem::create(
-          Func, IceType_i32, BaseR,
-          llvm::cast<ConstantInteger32>(Ctx->getConstantInt32(4)));
-      lowerLoad(InstLoad::create(Func, T3, AddrLo));
-      lowerLoad(InstLoad::create(Func, T4, AddrHi));
-      _sync();
-      Context.insert(Retry);
-      Sandboxer(this).ll(T1, AddrLo);
-      _br(NoTarget, NoTarget, T1, ExpectedLo, Exit, CondMIPS32::Cond::NE);
-      _mov(T5, ValLo);
-      Sandboxer(this).sc(T5, AddrLo);
-      Context.insert<InstFakeUse>(ValLo);
-      Context.insert<InstFakeUse>(ExpectedLo);
-      _br(NoTarget, NoTarget, T5, getZero(), Retry, CondMIPS32::Cond::EQ);
-      Context.insert(Retry1);
-      Sandboxer(this).ll(T2, AddrHi);
-      _br(NoTarget, NoTarget, T2, ExpectedHi, Exit, CondMIPS32::Cond::NE);
-      _mov(T6, ValHi);
-      Sandboxer(this).sc(T6, AddrHi);
-      Context.insert<InstFakeUse>(ValHi);
-      Context.insert<InstFakeUse>(ExpectedHi);
-      _br(NoTarget, NoTarget, T6, getZero(), Retry1, CondMIPS32::Cond::EQ);
-      Context.insert<InstFakeUse>(getZero());
-      Context.insert(Exit);
-      _mov(Dest64->getLo(), T3);
-      _mov(Dest64->getHi(), T4);
-      _sync();
+      llvm::report_fatal_error(
+          "AtomicCmpxchg.i64 should have been prelowered.");
+      return;
     } else if (DestTy == IceType_i8 || DestTy == IceType_i16) {
       auto *NewR = legalizeToReg(New);
       auto *ExpectedR = legalizeToReg(Expected);
@@ -4635,6 +4749,7 @@ void TargetMIPS32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
       auto *T9 = I32Reg();
       _addiu(RegAt, getZero(), -4);
       _and(T1, ActualAddressR, RegAt);
+      auto *Addr = formMemoryOperand(T1, DestTy);
       _andi(RegAt, ActualAddressR, 3);
       _sll(T2, RegAt, 3);
       _ori(RegAt, getZero(), Mask);
@@ -4646,13 +4761,12 @@ void TargetMIPS32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
       _sllv(T6, RegAt, T2);
       _sync();
       Context.insert(Retry);
-      Sandboxer(this).ll(T7, formMemoryOperand(T1, DestTy));
+      Sandboxer(this).ll(T7, Addr);
       _and(T8, T7, T3);
       _br(NoTarget, NoTarget, T8, T5, Exit, CondMIPS32::Cond::NE);
       _and(RegAt, T7, T4);
       _or(T9, RegAt, T6);
-      Sandboxer(this).sc(T9, formMemoryOperand(T1, DestTy));
-      Context.insert<InstFakeUse>(T6);
+      Sandboxer(this).sc(T9, Addr);
       _br(NoTarget, NoTarget, getZero(), T9, Retry, CondMIPS32::Cond::EQ);
       Context.insert<InstFakeUse>(getZero());
       Context.insert(Exit);
@@ -4661,6 +4775,11 @@ void TargetMIPS32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
       _sra(RegAt, RegAt, ShiftAmount);
       _mov(Dest, RegAt);
       _sync();
+      Context.insert<InstFakeUse>(T3);
+      Context.insert<InstFakeUse>(T4);
+      Context.insert<InstFakeUse>(T5);
+      Context.insert<InstFakeUse>(T6);
+      Context.insert<InstFakeUse>(T8);
       Context.insert<InstFakeUse>(ExpectedR);
       Context.insert<InstFakeUse>(NewR);
     } else {
@@ -4703,69 +4822,8 @@ void TargetMIPS32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     auto *ActualAddress = Instr->getArg(1);
 
     if (DestTy == IceType_i64) {
-      InstMIPS32Label *Retry1 = InstMIPS32Label::create(Func, this);
-      _sync();
-      Variable *ValHi, *ValLo;
-      if (auto *C64 = llvm::dyn_cast<ConstantInteger64>(New)) {
-        const uint64_t Value = C64->getValue();
-        uint64_t Upper32Bits = (Value >> INT32_BITS) & 0xFFFFFFFF;
-        uint64_t Lower32Bits = Value & 0xFFFFFFFF;
-        ValLo = legalizeToReg(Ctx->getConstantInt32(Lower32Bits));
-        ValHi = legalizeToReg(Ctx->getConstantInt32(Upper32Bits));
-      } else {
-        auto *Val = llvm::cast<Variable64On32>(New);
-        ValLo = legalizeToReg(loOperand(Val));
-        ValHi = legalizeToReg(hiOperand(Val));
-      }
-      auto *Dest64 = llvm::cast<Variable64On32>(Dest);
-      auto *BaseR = legalizeToReg(ActualAddress);
-      auto *AddrLo = OperandMIPS32Mem::create(
-          Func, IceType_i32, BaseR,
-          llvm::cast<ConstantInteger32>(Ctx->getConstantInt32(0)));
-      auto *AddrHi = OperandMIPS32Mem::create(
-          Func, IceType_i32, BaseR,
-          llvm::cast<ConstantInteger32>(Ctx->getConstantInt32(4)));
-      auto *RegAt = getPhysicalRegister(RegMIPS32::Reg_AT);
-      auto *T1 = I32Reg();
-      auto *T2 = I32Reg();
-      auto *T3 = I32Reg();
-      Context.insert(Retry);
-      Sandboxer(this).ll(T1, AddrLo);
-      if (Operation == Intrinsics::AtomicExchange) {
-        _mov(RegAt, ValLo);
-        Context.insert<InstFakeUse>(T1);
-      } else if (Operation == Intrinsics::AtomicAdd) {
-        createArithInst(Operation, RegAt, T1, ValLo);
-        _sltu(T2, RegAt, T1);
-      } else if (Operation == Intrinsics::AtomicSub) {
-        createArithInst(Operation, RegAt, T1, ValLo);
-        _sltu(T2, T1, ValLo);
-      } else {
-        createArithInst(Operation, RegAt, T1, ValLo);
-      }
-      Sandboxer(this).sc(RegAt, AddrLo);
-      _br(NoTarget, NoTarget, RegAt, getZero(), Retry, CondMIPS32::Cond::EQ);
-      Context.insert<InstFakeUse>(getZero());
-      _mov(Dest64->getLo(), T1);
-      Context.insert(Retry1);
-      Sandboxer(this).ll(T3, AddrHi);
-      if (Operation == Intrinsics::AtomicAdd ||
-          Operation == Intrinsics::AtomicSub) {
-        _addu(RegAt, T2, ValHi);
-        createArithInst(Operation, RegAt, T3, RegAt);
-      } else if (Operation == Intrinsics::AtomicExchange) {
-        _mov(RegAt, ValHi);
-        Context.insert<InstFakeUse>(T3);
-      } else {
-        createArithInst(Operation, RegAt, T3, ValHi);
-      }
-      Sandboxer(this).sc(RegAt, AddrHi);
-      _br(NoTarget, NoTarget, RegAt, getZero(), Retry1, CondMIPS32::Cond::EQ);
-      Context.insert<InstFakeUse>(getZero());
-      _mov(Dest64->getHi(), T3);
-      Context.insert<InstFakeUse>(ValLo);
-      Context.insert<InstFakeUse>(ValHi);
-      _sync();
+      llvm::report_fatal_error("AtomicRMW.i64 should have been prelowered.");
+      return;
     } else if (DestTy == IceType_i8 || DestTy == IceType_i16) {
       const uint32_t ShiftAmount =
           INT32_BITS - (CHAR_BITS * typeWidthInBytes(DestTy));
@@ -5622,6 +5680,14 @@ void TargetMIPS32::lowerBreakpoint(const InstBreakpoint *Instr) {
 void TargetMIPS32::lowerUnreachable(const InstUnreachable *) {
   const uint32_t TrapCodeZero = 0;
   _teq(getZero(), getZero(), TrapCodeZero);
+}
+
+void TargetMIPS32::lowerOther(const Inst *Instr) {
+  if (llvm::isa<InstMIPS32Sync>(Instr)) {
+    _sync();
+  } else {
+    TargetLowering::lowerOther(Instr);
+  }
 }
 
 // Turn an i64 Phi instruction into a pair of i32 Phi instructions, to preserve

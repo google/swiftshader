@@ -64,3 +64,11 @@ double __Sz_sitofp_i64_f64(int64_t Value) { return (double)Value; }
 // unsandboxed_irt:
 //   __nacl_read_tp
 //   __aeabi_read_tp [arm32 only]
+// MIPS runtime library:
+// __sync_fetch_and_add_8
+// __sync_fetch_and_and_8
+// __sync_fetch_and_or_8
+// __sync_fetch_and_sub_8
+// __sync_fetch_and_xor_8
+// __sync_lock_test_and_set_8
+// __sync_val_compare_and_swap_8
