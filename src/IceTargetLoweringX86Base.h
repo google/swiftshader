@@ -747,6 +747,14 @@ protected:
     AutoMemorySandboxer<> _(this, &Dest, &Src0);
     Context.insert<typename Traits::Insts::Minss>(Dest, Src0);
   }
+  void _maxps(Variable *Dest, Operand *Src0) {
+    AutoMemorySandboxer<> _(this, &Dest, &Src0);
+    Context.insert<typename Traits::Insts::Maxps>(Dest, Src0);
+  }
+  void _minps(Variable *Dest, Operand *Src0) {
+    AutoMemorySandboxer<> _(this, &Dest, &Src0);
+    Context.insert<typename Traits::Insts::Minps>(Dest, Src0);
+  }
   void _mul(Variable *Dest, Variable *Src0, Operand *Src1) {
     AutoMemorySandboxer<> _(this, &Dest, &Src0, &Src1);
     Context.insert<typename Traits::Insts::Mul>(Dest, Src0, Src1);

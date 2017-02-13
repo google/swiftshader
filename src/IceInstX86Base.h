@@ -113,6 +113,8 @@ template <typename TraitsType> struct InstImpl {
       Lea,
       Load,
       Mfence,
+      Minps,
+      Maxps,
       Minss,
       Maxss,
       Mov,
@@ -1719,6 +1721,38 @@ template <typename TraitsType> struct InstImpl {
                                                               Source) {}
   };
 
+  class InstX86Maxps
+      : public InstX86BaseBinopXmm<InstX86Base::Maxps, true,
+                                   InstX86Base::SseSuffix::None> {
+  public:
+    static InstX86Maxps *create(Cfg *Func, Variable *Dest, Operand *Source) {
+      return new (Func->allocate<InstX86Maxps>())
+          InstX86Maxps(Func, Dest, Source);
+    }
+
+  private:
+    InstX86Maxps(Cfg *Func, Variable *Dest, Operand *Source)
+        : InstX86BaseBinopXmm<InstX86Base::Maxps, true,
+                              InstX86Base::SseSuffix::None>(Func, Dest,
+                                                            Source) {}
+  };
+
+  class InstX86Minps
+      : public InstX86BaseBinopXmm<InstX86Base::Minps, true,
+                                   InstX86Base::SseSuffix::None> {
+  public:
+    static InstX86Minps *create(Cfg *Func, Variable *Dest, Operand *Source) {
+      return new (Func->allocate<InstX86Minps>())
+          InstX86Minps(Func, Dest, Source);
+    }
+
+  private:
+    InstX86Minps(Cfg *Func, Variable *Dest, Operand *Source)
+        : InstX86BaseBinopXmm<InstX86Base::Minps, true,
+                              InstX86Base::SseSuffix::None>(Func, Dest,
+                                                            Source) {}
+  };
+
   class InstX86Or : public InstX86BaseBinopGPR<InstX86Base::Or> {
   public:
     static InstX86Or *create(Cfg *Func, Variable *Dest, Operand *Source) {
@@ -3210,6 +3244,8 @@ template <typename TraitsType> struct Insts {
   using Pxor = typename InstImpl<TraitsType>::InstX86Pxor;
   using Maxss = typename InstImpl<TraitsType>::InstX86Maxss;
   using Minss = typename InstImpl<TraitsType>::InstX86Minss;
+  using Maxps = typename InstImpl<TraitsType>::InstX86Maxps;
+  using Minps = typename InstImpl<TraitsType>::InstX86Minps;
   using Imul = typename InstImpl<TraitsType>::InstX86Imul;
   using ImulImm = typename InstImpl<TraitsType>::InstX86ImulImm;
   using Mulps = typename InstImpl<TraitsType>::InstX86Mulps;
@@ -3367,6 +3403,12 @@ template <typename TraitsType> struct Insts {
   template <>                                                                  \
   template <>                                                                  \
   const char *InstImpl<TraitsType>::InstX86Minss::Base::Opcode = "min";        \
+  template <>                                                                  \
+  template <>                                                                  \
+  const char *InstImpl<TraitsType>::InstX86Maxps::Base::Opcode = "max";        \
+  template <>                                                                  \
+  template <>                                                                  \
+  const char *InstImpl<TraitsType>::InstX86Minps::Base::Opcode = "min";        \
   template <>                                                                  \
   template <>                                                                  \
   const char *InstImpl<TraitsType>::InstX86Padd::Base::Opcode = "padd";        \
@@ -3920,6 +3962,18 @@ template <typename TraitsType> struct Insts {
       InstImpl<TraitsType>::InstX86Minss::Base::Emitter = {                    \
           &InstImpl<TraitsType>::Assembler::minss,                             \
           &InstImpl<TraitsType>::Assembler::minss};                            \
+  template <>                                                                  \
+  template <>                                                                  \
+  const InstImpl<TraitsType>::Assembler::XmmEmitterRegOp                       \
+      InstImpl<TraitsType>::InstX86Maxps::Base::Emitter = {                    \
+          &InstImpl<TraitsType>::Assembler::maxps,                             \
+          &InstImpl<TraitsType>::Assembler::maxps};                            \
+  template <>                                                                  \
+  template <>                                                                  \
+  const InstImpl<TraitsType>::Assembler::XmmEmitterRegOp                       \
+      InstImpl<TraitsType>::InstX86Minps::Base::Emitter = {                    \
+          &InstImpl<TraitsType>::Assembler::minps,                             \
+          &InstImpl<TraitsType>::Assembler::minps};                            \
   template <>                                                                  \
   template <>                                                                  \
   const InstImpl<TraitsType>::Assembler::XmmEmitterRegOp                       \
