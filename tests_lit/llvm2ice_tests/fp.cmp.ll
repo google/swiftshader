@@ -1000,9 +1000,7 @@ entry:
 }
 ; CHECK-LABEL: selectFloatVarVar
 ; CHECK: movss
-; CHECK: ucomiss
-; CHECK: ja
-; CHECK: movss
+; CHECK: minss
 ; ARM32-LABEL: selectFloatVarVar
 ; ARM32: vcmp.f32
 ; ARM32-OM1: vmovne.f32 s{{[0-9]+}}
@@ -1019,9 +1017,7 @@ entry:
 }
 ; CHECK-LABEL: selectDoubleVarVar
 ; CHECK: movsd
-; CHECK: ucomisd
-; CHECK: ja
-; CHECK: movsd
+; CHECK: minsd
 ; ARM32-LABEL: selectDoubleVarVar
 ; ARM32: vcmp.f64
 ; ARM32-OM1: vmovne.f64 d{{[0-9]+}}

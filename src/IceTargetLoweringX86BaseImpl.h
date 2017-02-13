@@ -260,10 +260,12 @@ template <typename Traits> void BoolFolding<Traits>::init(CfgNode *Node) {
     invalidateProducersOnStore(&Instr);
     // Check whether Instr is a valid producer.
     Variable *Var = Instr.getDest();
-    if (Var // only consider instructions with an actual dest var
-        && Var->getType() == IceType_i1          // only bool-type dest vars
-        && getProducerKind(&Instr) != PK_None) { // white-listed instructions
-      Producers[Var->getIndex()] = BoolFoldingEntry<Traits>(&Instr);
+    if (Var) { // only consider instructions with an actual dest var
+      if (isBooleanType(Var->getType())) {        // only bool-type dest vars
+        if (getProducerKind(&Instr) != PK_None) { // white-listed instructions
+          Producers[Var->getIndex()] = BoolFoldingEntry<Traits>(&Instr);
+        }
+      }
     }
     // Check each src variable against the map.
     FOREACH_VAR_IN_INST(Var, Instr) {
@@ -3335,14 +3337,18 @@ void TargetX86Base<TraitsType>::lowerFcmpAndConsumer(const InstFcmp *Fcmp,
   Operand *Src1 = Fcmp->getSrc(1);
   Variable *Dest = Fcmp->getDest();
 
-  if (isVectorType(Dest->getType()))
-    llvm::report_fatal_error("Vector compare/branch cannot be folded");
-
   if (Consumer != nullptr) {
     if (auto *Select = llvm::dyn_cast<InstSelect>(Consumer)) {
       if (lowerOptimizeFcmpSelect(Fcmp, Select))
         return;
     }
+  }
+
+  if (isVectorType(Dest->getType())) {
+    lowerFcmp(Fcmp);
+    if (Consumer != nullptr)
+      lowerSelectVector(llvm::cast<InstSelect>(Consumer));
+    return;
   }
 
   // Lowering a = fcmp cond, b, c
@@ -3509,8 +3515,12 @@ void TargetX86Base<TraitsType>::lowerIcmpAndConsumer(const InstIcmp *Icmp,
   Operand *Src1 = legalize(Icmp->getSrc(1));
   Variable *Dest = Icmp->getDest();
 
-  if (isVectorType(Dest->getType()))
-    llvm::report_fatal_error("Vector compare/branch cannot be folded");
+  if (isVectorType(Dest->getType())) {
+    lowerIcmp(Icmp);
+    if (Consumer != nullptr)
+      lowerSelectVector(llvm::cast<InstSelect>(Consumer));
+    return;
+  }
 
   if (!Traits::Is64Bit && Src0->getType() == IceType_i64) {
     lowerIcmp64(Icmp, Consumer);
@@ -6616,11 +6626,6 @@ template <typename TraitsType>
 void TargetX86Base<TraitsType>::lowerSelect(const InstSelect *Select) {
   Variable *Dest = Select->getDest();
 
-  if (isVectorType(Dest->getType())) {
-    lowerSelectVector(Select);
-    return;
-  }
-
   Operand *Condition = Select->getCondition();
   // Handle folding opportunities.
   if (const Inst *Producer = FoldingInfo.getProducerFor(Condition)) {
@@ -6638,6 +6643,11 @@ void TargetX86Base<TraitsType>::lowerSelect(const InstSelect *Select) {
       return;
     }
     }
+  }
+
+  if (isVectorType(Dest->getType())) {
+    lowerSelectVector(Select);
+    return;
   }
 
   Operand *CmpResult = legalize(Condition, Legal_Reg | Legal_Mem);
@@ -6746,24 +6756,47 @@ bool TargetX86Base<TraitsType>::lowerOptimizeFcmpSelect(
   Operand *CmpSrc1 = Fcmp->getSrc(1);
   Operand *SelectSrcT = Select->getTrueOperand();
   Operand *SelectSrcF = Select->getFalseOperand();
+  Variable *SelectDest = Select->getDest();
 
-  if (CmpSrc0->getType() != SelectSrcT->getType())
+  // TODO(capn): also handle swapped compare/select operand order.
+  if (CmpSrc0 != SelectSrcT || CmpSrc1 != SelectSrcF)
     return false;
 
-  // TODO(sehr, stichnot): fcmp/select patterns (e,g., minsd/maxss) go here.
+  // TODO(sehr, stichnot): fcmp/select patterns (e.g., minsd/maxss) go here.
   InstFcmp::FCond Condition = Fcmp->getCondition();
   switch (Condition) {
   default:
     return false;
   case InstFcmp::True:
-  case InstFcmp::False:
-  case InstFcmp::Ogt:
-  case InstFcmp::Olt:
-    (void)CmpSrc0;
-    (void)CmpSrc1;
-    (void)SelectSrcT;
-    (void)SelectSrcF;
     break;
+  case InstFcmp::False:
+    break;
+  case InstFcmp::Ogt: {
+    Variable *T = makeReg(SelectDest->getType());
+    if (isScalarFloatingType(SelectSrcT->getType())) {
+      _mov(T, legalize(SelectSrcT, Legal_Reg | Legal_Mem));
+      _maxss(T, legalize(SelectSrcF, Legal_Reg | Legal_Mem));
+      _mov(SelectDest, T);
+    } else {
+      _movp(T, legalize(SelectSrcT, Legal_Reg | Legal_Mem));
+      _maxps(T, legalize(SelectSrcF, Legal_Reg | Legal_Mem));
+      _movp(SelectDest, T);
+    }
+    return true;
+  } break;
+  case InstFcmp::Olt: {
+    Variable *T = makeReg(SelectSrcT->getType());
+    if (isScalarFloatingType(SelectSrcT->getType())) {
+      _mov(T, legalize(SelectSrcT, Legal_Reg | Legal_Mem));
+      _minss(T, legalize(SelectSrcF, Legal_Reg | Legal_Mem));
+      _mov(SelectDest, T);
+    } else {
+      _movp(T, legalize(SelectSrcT, Legal_Reg | Legal_Mem));
+      _minps(T, legalize(SelectSrcF, Legal_Reg | Legal_Mem));
+      _movp(SelectDest, T);
+    }
+    return true;
+  } break;
   }
   return false;
 }
@@ -6794,6 +6827,7 @@ void TargetX86Base<TraitsType>::lowerSelectVector(const InstSelect *Instr) {
   Variable *T = makeReg(SrcTy);
   Operand *SrcTRM = legalize(SrcT, Legal_Reg | Legal_Mem);
   Operand *SrcFRM = legalize(SrcF, Legal_Reg | Legal_Mem);
+
   if (InstructionSet >= Traits::SSE4_1) {
     // TODO(wala): If the condition operand is a constant, use blendps or
     // pblendw.
