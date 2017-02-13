@@ -35,7 +35,6 @@ config("swiftshader_config") {
       "-std=c++11",
       "-Wall",
       "-fexceptions",
-      "-fvisibility=protected",
       "-fno-operator-names",
       "-D__STDC_CONSTANT_MACROS",
       "-D__STDC_LIMIT_MACROS",

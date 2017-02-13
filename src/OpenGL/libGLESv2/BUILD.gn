@@ -41,7 +41,7 @@ config("swiftshader_libGLESv2_private_config") {
     ]
 
     if (is_linux) {
-      cflags += [ "-DGL_APICALL=__attribute__((visibility(\"protected\")))" ]
+      cflags += [ "-DGL_APICALL=" ]
     } else {
       cflags += [ "-DGL_APICALL=__attribute__((visibility(\"default\")))" ]
     }
