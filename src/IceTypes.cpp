@@ -117,17 +117,17 @@ struct TypePropertyFields {
   bool TypeIsFloatingType;
   bool TypeIsScalarFloatingType;
   bool TypeIsVectorFloatingType;
-  bool TypeIsLoadStoreType;
+  bool TypeIsBooleanType;
   bool TypeIsCallParameterType;
   Type CompareResultType;
 };
 
 const TypePropertyFields TypePropertiesTable[] = {
-#define X(tag, IsVec, IsInt, IsFloat, IsIntArith, IsLoadStore, IsParam,        \
+#define X(tag, IsVec, IsInt, IsFloat, IsIntArith, IsBoolean, IsParam,          \
           CompareResult)                                                       \
   {                                                                            \
     IsVec, IsInt, IsInt & !IsVec, IsInt & IsVec, IsIntArith, IsFloat,          \
-        IsFloat & !IsVec, IsFloat & IsVec, IsLoadStore, IsParam,               \
+        IsFloat & !IsVec, IsFloat & IsVec, IsBoolean, IsParam,                 \
         IceType_##CompareResult                                                \
   }                                                                            \
   ,
@@ -186,6 +186,13 @@ bool isVectorType(Type Ty) {
   return false;
 }
 
+bool isBooleanType(Type Ty) {
+  if (Ty < IceType_NUM)
+    return TypePropertiesTable[Ty].TypeIsBooleanType;
+  llvm_unreachable("Invalid type for isBooleanType()");
+  return false;
+}
+
 bool isIntegerType(Type Ty) {
   if (Ty < IceType_NUM)
     return TypePropertiesTable[Ty].TypeIsIntegerType;
@@ -237,7 +244,7 @@ bool isVectorFloatingType(Type Ty) {
 
 bool isLoadStoreType(Type Ty) {
   if (Ty < IceType_NUM)
-    return TypePropertiesTable[Ty].TypeIsLoadStoreType;
+    return Ty != IceType_void && !isBooleanType(Ty);
   llvm_unreachable("Invalid type for isLoadStoreType()");
   return false;
 }

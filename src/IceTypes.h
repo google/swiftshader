@@ -89,6 +89,7 @@ Type getPointerType();
 
 bool isVectorType(Type Ty);
 
+bool isBooleanType(Type Ty); // scalar or vector
 bool isIntegerType(Type Ty); // scalar or vector
 bool isScalarIntegerType(Type Ty);
 bool isVectorIntegerType(Type Ty);

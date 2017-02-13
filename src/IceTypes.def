@@ -58,28 +58,28 @@
 //   I - Is integer value (scalar or vector).
 //   F - Is floating point value (scalar or vector).
 //   IA - Is integer arithmetic type
-//   LS - true if load/store allowed on type.
+//   B - Is Boolean type (scalar or vector).
 //   P  - true if can be used for parameter of call.
 //   CR - Result type of compare instruction for argument type
 //        (IceType_void if disallowed)
 #define ICETYPE_PROPS_TABLE                                                    \
-  /* Enum Value    V  I  F IA LS  P  CR */                                     \
+  /* Enum Value    V  I  F IA  B  P  CR */                                     \
   X(void,          0, 0, 0, 0, 0, 0, void)                                     \
-  X(i1,            0, 1, 0, 0, 0, 0, i1)                                       \
-  X(i8,            0, 1, 0, 1, 1, 0, i1)                                       \
-  X(i16,           0, 1, 0, 1, 1, 0, i1)                                       \
-  X(i32,           0, 1, 0, 1, 1, 1, i1)                                       \
-  X(i64,           0, 1, 0, 1, 1, 1, i1)                                       \
-  X(f32,           0, 0, 1, 0, 1, 1, i1)                                       \
-  X(f64,           0, 0, 1, 0, 1, 1, i1)                                       \
-  X(v4i1,          1, 1, 0, 0, 0, 1, v4i1)                                     \
-  X(v8i1,          1, 1, 0, 0, 0, 1, v8i1)                                     \
-  X(v16i1,         1, 1, 0, 0, 0, 1, v16i1)                                    \
-  X(v16i8,         1, 1, 0, 1, 1, 1, v16i1)                                    \
-  X(v8i16,         1, 1, 0, 1, 1, 1, v8i1)                                     \
-  X(v4i32,         1, 1, 0, 1, 1, 1, v4i1)                                     \
-  X(v4f32,         1, 0, 1, 0, 1, 1, v4i1)                                     \
-//#define X(tag, IsVec, IsInt, IsFloat, IsIntArith, IsLoadStore, IsParam,      \
+  X(i1,            0, 1, 0, 0, 1, 0, i1)                                       \
+  X(i8,            0, 1, 0, 1, 0, 0, i1)                                       \
+  X(i16,           0, 1, 0, 1, 0, 0, i1)                                       \
+  X(i32,           0, 1, 0, 1, 0, 1, i1)                                       \
+  X(i64,           0, 1, 0, 1, 0, 1, i1)                                       \
+  X(f32,           0, 0, 1, 0, 0, 1, i1)                                       \
+  X(f64,           0, 0, 1, 0, 0, 1, i1)                                       \
+  X(v4i1,          1, 1, 0, 0, 1, 1, v4i1)                                     \
+  X(v8i1,          1, 1, 0, 0, 1, 1, v8i1)                                     \
+  X(v16i1,         1, 1, 0, 0, 1, 1, v16i1)                                    \
+  X(v16i8,         1, 1, 0, 1, 0, 1, v16i1)                                    \
+  X(v8i16,         1, 1, 0, 1, 0, 1, v8i1)                                     \
+  X(v4i32,         1, 1, 0, 1, 0, 1, v4i1)                                     \
+  X(v4f32,         1, 0, 1, 0, 0, 1, v4i1)                                     \
+//#define X(tag, IsVec, IsInt, IsFloat, IsIntArith, IsBoolean, IsParam,        \
 //          CompareResult)
 
 #endif // SUBZERO_SRC_ICETYPES_DEF
