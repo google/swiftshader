@@ -460,8 +460,8 @@ TEST(SubzeroReactorTest, MinMax)
 
 			EXPECT_EQ(out[0][0], 0x00000000);
 			EXPECT_EQ(out[0][1], 0x00000000);
-			EXPECT_EQ(out[0][2], 0x80000000);
-			EXPECT_EQ(out[0][3], 0x00000000);
+			EXPECT_EQ(out[0][2], 0x00000000);
+			EXPECT_EQ(out[0][3], 0x80000000);
 
 			EXPECT_EQ(out[1][0], 0x3F800000);
 			EXPECT_EQ(out[1][1], 0x3F800000);

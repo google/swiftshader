@@ -6040,11 +6040,11 @@ namespace sw
 	RValue<Float4> Max(RValue<Float4> x, RValue<Float4> y)
 	{
 		Ice::Variable *condition = ::function->makeVariable(Ice::IceType_v4i1);
-		auto cmp = Ice::InstFcmp::create(::function, Ice::InstFcmp::Ule, condition, x.value, y.value);
+		auto cmp = Ice::InstFcmp::create(::function, Ice::InstFcmp::Ogt, condition, x.value, y.value);
 		::basicBlock->appendInst(cmp);
 
 		Ice::Variable *result = ::function->makeVariable(Ice::IceType_v4f32);
-		auto select = Ice::InstSelect::create(::function, result, condition, y.value, x.value);
+		auto select = Ice::InstSelect::create(::function, result, condition, x.value, y.value);
 		::basicBlock->appendInst(select);
 
 		return RValue<Float4>(V(result));
@@ -6053,11 +6053,11 @@ namespace sw
 	RValue<Float4> Min(RValue<Float4> x, RValue<Float4> y)
 	{
 		Ice::Variable *condition = ::function->makeVariable(Ice::IceType_v4i1);
-		auto cmp = Ice::InstFcmp::create(::function, Ice::InstFcmp::Ugt, condition, x.value, y.value);
+		auto cmp = Ice::InstFcmp::create(::function, Ice::InstFcmp::Olt, condition, x.value, y.value);
 		::basicBlock->appendInst(cmp);
 
 		Ice::Variable *result = ::function->makeVariable(Ice::IceType_v4f32);
-		auto select = Ice::InstSelect::create(::function, result, condition, y.value, x.value);
+		auto select = Ice::InstSelect::create(::function, result, condition, x.value, y.value);
 		::basicBlock->appendInst(select);
 
 		return RValue<Float4>(V(result));

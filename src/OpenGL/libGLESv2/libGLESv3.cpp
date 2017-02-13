@@ -52,7 +52,6 @@ static bool validImageSize(GLint level, GLsizei width, GLsizei height)
 	return true;
 }
 
-
 static bool validateColorBufferFormat(GLenum textureFormat, GLenum colorbufferFormat)
 {
 	GLenum validationError = ValidateCompressedFormat(textureFormat, egl::getClientVersion(), false);
