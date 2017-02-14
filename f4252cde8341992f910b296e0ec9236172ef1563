@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6e1a27e8_dd18535c",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2138,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-02-14T19:13:53Z",
+      "side": 1,
+      "message": "Let\u0027s remove these comments. I don\u0027t think they\u0027re very useful since the symbolic constants aren\u0027t defined here. If we must guarantee a minimum, it should be done using a static_assert().",
+      "range": {
+        "startLine": 2138,
+        "startChar": 37,
+        "endLine": 2138,
+        "endChar": 61
+      },
+      "revId": "f4252cde8341992f910b296e0ec9236172ef1563",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bcd18d32_737f0550",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2214,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-02-14T19:13:53Z",
+      "side": 1,
+      "message": "Remove. This isn\u0027t a FIXME, and would be tested by dEQP once we implement 3.1.",
+      "range": {
+        "startLine": 2214,
+        "startChar": 15,
+        "endLine": 2214,
+        "endChar": 86
+      },
+      "revId": "f4252cde8341992f910b296e0ec9236172ef1563",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
