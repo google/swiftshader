@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "83aca6c8_177cbf51",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 2262,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-02-14T19:42:12Z",
+      "side": 1,
+      "message": "nit: The comment from Patch Set 1 was better, because this isn\u0027t a FIXME (i.e. a random person reading this should not attempt to fix it). Most likely we\u0027ll never support binary formats so there\u0027s no point in having this unused loop here either.",
+      "range": {
+        "startLine": 2259,
+        "startChar": 2,
+        "endLine": 2262,
+        "endChar": 3
+      },
+      "revId": "b56c2519fb977762ec237079f9909fc6ba4a37e0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
