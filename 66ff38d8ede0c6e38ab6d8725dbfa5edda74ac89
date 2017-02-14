@@ -22,6 +22,30 @@
       "revId": "66ff38d8ede0c6e38ab6d8725dbfa5edda74ac89",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b7e43625_9412206b",
+        "filename": "src/Renderer/Blitter.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 5545
+      },
+      "writtenOn": "2017-02-14T23:01:14Z",
+      "side": 1,
+      "message": "Oh, maybe clearing in a scissor. Wonder if that could be a special case though",
+      "parentUuid": "971059c4_4459c590",
+      "range": {
+        "startLine": 72,
+        "startChar": 0,
+        "endLine": 88,
+        "endChar": 4
+      },
+      "revId": "66ff38d8ede0c6e38ab6d8725dbfa5edda74ac89",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
