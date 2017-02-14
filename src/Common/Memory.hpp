@@ -16,6 +16,7 @@
 #define Memory_hpp
 
 #include <stddef.h>
+#include <stdint.h>
 
 namespace sw
 {
@@ -28,6 +29,9 @@ void deallocate(void *memory);
 void *allocateExecutable(size_t bytes);   // Allocates memory that can be made executable using markExecutable()
 void markExecutable(void *memory, size_t bytes);
 void deallocateExecutable(void *memory, size_t bytes);
+
+void clear(uint16_t *memory, uint16_t element, size_t count);
+void clear(uint32_t *memory, uint32_t element, size_t count);
 }
 
 #endif   // Memory_hpp
