@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7759e3bc_cc196cdf",
+        "filename": "src/Renderer/Blitter.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 748,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-02-14T20:58:58Z",
+      "side": 1,
+      "message": "Should have a Byte8 constructor taking Byte16 (and 16 to 4 and 8 to 4 and all Short variants).",
+      "range": {
+        "startLine": 748,
+        "startChar": 29,
+        "endLine": 748,
+        "endChar": 42
+      },
+      "revId": "08361179e0bbdcab8a09795d0052fd7d52f95737",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
