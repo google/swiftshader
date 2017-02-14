@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "971059c4_4459c590",
+        "filename": "src/Renderer/Blitter.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 5545
+      },
+      "writtenOn": "2017-02-14T22:59:27Z",
+      "side": 1,
+      "message": "Just curious: Why do we need to clear row by row, and not clear the entire memory region all at once? Are tehre special considerations for stride?",
+      "range": {
+        "startLine": 72,
+        "startChar": 0,
+        "endLine": 88,
+        "endChar": 4
+      },
+      "revId": "66ff38d8ede0c6e38ab6d8725dbfa5edda74ac89",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
