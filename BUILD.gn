@@ -23,6 +23,7 @@ config("swiftshader_config") {
       "/EHsc",
       "/nologo",
       "/Gd",  # Default calling convention
+      "/DSTRICT_CONFORMANCE", # Disables OpenGL ES 3.0
     ]
 
     if (is_debug) {
@@ -38,6 +39,7 @@ config("swiftshader_config") {
       "-fno-operator-names",
       "-D__STDC_CONSTANT_MACROS",
       "-D__STDC_LIMIT_MACROS",
+      "-DSTRICT_CONFORMANCE", # Disables OpenGL ES 3.0
     ]
 
     if (is_debug) {

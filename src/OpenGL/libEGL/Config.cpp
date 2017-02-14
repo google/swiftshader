@@ -34,10 +34,13 @@ using namespace std;
 
 namespace egl
 {
-#ifdef __ANDROID__
-const bool android = true;
+// OpenGL ES 3.0 support is not conformant yet, but can be used for testing purposes. Expose it as conformant configs
+// if strict conformance advertisement isn't required. If strict conformance advertisement is required, expose them
+// as non-conformant configs, but only when EGL_CONFIG_CAVEAT is EGL_NON_CONFORMANT_CONFIG or EGL_DONT_CARE.
+#if defined(__ANDROID__) || defined(STRICT_CONFORMANCE)
+const bool strictConformance = true;
 #else
-const bool android = false;
+const bool strictConformance = false;
 #endif
 
 Config::Config(sw::Format displayFormat, EGLint minInterval, EGLint maxInterval, sw::Format renderTargetFormat, sw::Format depthStencilFormat, EGLint multiSample, bool conformant)
@@ -124,9 +127,9 @@ Config::Config(sw::Format displayFormat, EGLint minInterval, EGLint maxInterval,
 	mBufferSize = mRedSize + mGreenSize + mBlueSize + mLuminanceSize + mAlphaSize;
 	mAlphaMaskSize = 0;
 	mColorBufferType = EGL_RGB_BUFFER;
-	mConfigCaveat = (conformant || !android) ? EGL_NONE : EGL_NON_CONFORMANT_CONFIG;
+	mConfigCaveat = (conformant || !strictConformance) ? EGL_NONE : EGL_NON_CONFORMANT_CONFIG;
 	mConfigID = 0;
-	mConformant = EGL_OPENGL_ES_BIT | EGL_OPENGL_ES2_BIT | (android ? 0 : EGL_OPENGL_ES3_BIT);   // Do not advertize OpenGL ES 3.0 conformance on Android
+	mConformant = EGL_OPENGL_ES_BIT | EGL_OPENGL_ES2_BIT | (strictConformance ? 0 : EGL_OPENGL_ES3_BIT);
 
 	switch(depthStencilFormat)
 	{
@@ -183,7 +186,7 @@ Config::Config(sw::Format displayFormat, EGLint minInterval, EGLint maxInterval,
 	mMinSwapInterval = minInterval;
 	mNativeRenderable = EGL_FALSE;
 	mNativeVisualType = 0;
-	mRenderableType = EGL_OPENGL_ES_BIT | EGL_OPENGL_ES2_BIT | ((conformant && android) ? 0 : EGL_OPENGL_ES3_BIT);   // Only advertise non-conformant configs as OpenGL ES 3.0 renderable on Android
+	mRenderableType = EGL_OPENGL_ES_BIT | EGL_OPENGL_ES2_BIT | ((conformant && strictConformance) ? 0 : EGL_OPENGL_ES3_BIT);
 	mSampleBuffers = (multiSample > 0) ? 1 : 0;
 	mSamples = multiSample;
 	mSurfaceType = EGL_PBUFFER_BIT | EGL_WINDOW_BIT | EGL_SWAP_BEHAVIOR_PRESERVED_BIT;
@@ -336,10 +339,11 @@ void ConfigSet::add(sw::Format displayFormat, EGLint minSwapInterval, EGLint max
 	Config conformantConfig(displayFormat, minSwapInterval, maxSwapInterval, renderTargetFormat, depthStencilFormat, multiSample, true);
 	mSet.insert(conformantConfig);
 
-	#ifdef __ANDROID__
+	if(strictConformance)   // When strict conformance is required, add non-conformant configs explicitly as such.
+	{
 		Config nonConformantConfig(displayFormat, minSwapInterval, maxSwapInterval, renderTargetFormat, depthStencilFormat, multiSample, false);
 		mSet.insert(nonConformantConfig);
-	#endif
+	}
 }
 
 size_t ConfigSet::size() const
