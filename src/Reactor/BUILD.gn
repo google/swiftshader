@@ -114,6 +114,13 @@ config("swiftshader_reactor_with_subzero_private_config") {
       "/wd4800",
     ]
 
+    if (use_swiftshader_with_subzero) {
+      cflags += [
+        "/wd4018",  # signed/unsigned mismatch (llvm)
+        "/wd4310",  # cast truncates constant value (llvm)
+      ]
+    }
+
     if (is_clang) {
       if (is_debug) {
         cflags += [ "-Wno-sign-compare" ]
