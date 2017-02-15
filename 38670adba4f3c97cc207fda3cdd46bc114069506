@@ -22,6 +22,30 @@
       "revId": "38670adba4f3c97cc207fda3cdd46bc114069506",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ce6e5e3a_f864a65d",
+        "filename": "src/Renderer/Blitter.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-02-15T18:43:53Z",
+      "side": 1,
+      "message": "I filed b/35387001 to look into that. I\u0027d rather not rush into it for this particular case, but instead come up with something that works for most if not all Reactor code. Note that we already have other duplication like this in Surface::write() so it would be a big task to take care of it all.",
+      "parentUuid": "6d158de4_a43ff30c",
+      "range": {
+        "startLine": 64,
+        "startChar": 0,
+        "endLine": 102,
+        "endChar": 3
+      },
+      "revId": "38670adba4f3c97cc207fda3cdd46bc114069506",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
