@@ -514,7 +514,7 @@ namespace sw
 
 	int Surface::getPitchP(bool internal) const
 	{
-		return internal ? getInternalPitchP() : getExternalPitchB();
+		return internal ? getInternalPitchP() : getExternalPitchP();
 	}
 
 	int Surface::getSliceB(bool internal) const
@@ -524,7 +524,7 @@ namespace sw
 
 	int Surface::getSliceP(bool internal) const
 	{
-		return internal ? getInternalSliceP() : getExternalSliceB();
+		return internal ? getInternalSliceP() : getExternalSliceP();
 	}
 
 	Format Surface::getExternalFormat() const
