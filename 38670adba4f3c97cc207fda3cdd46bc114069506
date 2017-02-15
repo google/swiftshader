@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6d158de4_a43ff30c",
+        "filename": "src/Renderer/Blitter.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-02-15T18:04:09Z",
+      "side": 1,
+      "message": "I still would like it if there was a way of not duplicating these between the code generated version and the regular version.",
+      "range": {
+        "startLine": 64,
+        "startChar": 0,
+        "endLine": 102,
+        "endChar": 3
+      },
+      "revId": "38670adba4f3c97cc207fda3cdd46bc114069506",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
