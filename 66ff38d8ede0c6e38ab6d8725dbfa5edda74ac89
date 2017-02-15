@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "50ca75c8_5e2bfef0",
+        "filename": "src/Common/Memory.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-02-15T03:26:31Z",
+      "side": 1,
+      "message": "Intel uses micro-code optimizations to make this instruction really fast. In fact before this patch I tried using unrolled SSE writes and rep stos is still faster, to my own surprise.",
+      "parentUuid": "30a6c3d4_db530a9c",
+      "range": {
+        "startLine": 144,
+        "startChar": 11,
+        "endLine": 144,
+        "endChar": 20
+      },
+      "revId": "66ff38d8ede0c6e38ab6d8725dbfa5edda74ac89",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6cf330c6_d69c75b9",
         "filename": "src/Common/Memory.cpp",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2017-02-14T23:07:23Z",
       "side": 1,
       "message": "is it possible to see that |element| has equal lo and hi bytes and just use memset() in that case? same for the uint32_t version",
+      "range": {
+        "startLine": 141,
+        "startChar": 0,
+        "endLine": 150,
+        "endChar": 7
+      },
+      "revId": "66ff38d8ede0c6e38ab6d8725dbfa5edda74ac89",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1b908399_b79c0d49",
+        "filename": "src/Common/Memory.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-02-15T03:26:31Z",
+      "side": 1,
+      "message": "That shouldn\u0027t make a difference. At least on Windows, memset() is implemented using rep stosb, which is just as fast as a wider stos due to the microcode already replicating the data to vector width.",
+      "parentUuid": "6cf330c6_d69c75b9",
       "range": {
         "startLine": 141,
         "startChar": 0,
@@ -95,6 +143,30 @@
     },
     {
       "key": {
+        "uuid": "830a28af_a7ba56c4",
+        "filename": "src/Renderer/Blitter.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-02-15T03:26:31Z",
+      "side": 1,
+      "message": "dRect can be any subrectangle within the surface. Also, we can\u0027t make assumptions about the stride being equal (or close) to the width. That said, if we\u0027re clearing the entire surface and the stride is tested to be close to the width, then we could indeed use a single call. I\u0027ll test if that makes much of a difference. Thanks.",
+      "parentUuid": "b7e43625_9412206b",
+      "range": {
+        "startLine": 72,
+        "startChar": 0,
+        "endLine": 88,
+        "endChar": 4
+      },
+      "revId": "66ff38d8ede0c6e38ab6d8725dbfa5edda74ac89",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a2e6a828_5420d275",
         "filename": "src/Renderer/Surface.hpp",
         "patchSetId": 1
@@ -106,6 +178,30 @@
       "writtenOn": "2017-02-14T23:07:23Z",
       "side": 1,
       "message": "nit: should this be a separate CL for accountability?",
+      "range": {
+        "startLine": 517,
+        "startChar": 58,
+        "endLine": 517,
+        "endChar": 59
+      },
+      "revId": "66ff38d8ede0c6e38ab6d8725dbfa5edda74ac89",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "cc89b017_9d4d417c",
+        "filename": "src/Renderer/Surface.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 517,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-02-15T03:26:31Z",
+      "side": 1,
+      "message": "Yes, this is just a WIP patch.",
+      "parentUuid": "a2e6a828_5420d275",
       "range": {
         "startLine": 517,
         "startChar": 58,
