@@ -59,13 +59,6 @@ namespace sw
 
 	FrameBufferAndroid::~FrameBufferAndroid()
 	{
-		if(buffer)
-		{
-			// Probably doesn't have to cancel assuming a success queueing earlier
-			cancelBuffer(nativeWindow, buffer, -1);
-			buffer = nullptr;
-		}
-
 		nativeWindow->common.decRef(&nativeWindow->common);
 	}
 
