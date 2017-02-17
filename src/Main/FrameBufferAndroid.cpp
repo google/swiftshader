@@ -68,13 +68,13 @@ namespace sw
 
 		if(buffer)
 		{
-			queueBuffer(nativeWindow, buffer, -1);
-
 			if(locked)
 			{
 				locked = nullptr;
 				unlock();
 			}
+
+			queueBuffer(nativeWindow, buffer, -1);
 
 			buffer->common.decRef(&buffer->common);
 		}
