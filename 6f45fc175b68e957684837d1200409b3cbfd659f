@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "db49144e_6941f6c3",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1852,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-02-17T19:17:55Z",
+      "side": 1,
+      "message": "This is a bit of a confusing name, especially since it\u0027s set to true before any params have been written. Anyway, I think it would be more elegant to just replace all of the break statements with return true, so we won\u0027t need this boolean.",
+      "range": {
+        "startLine": 1852,
+        "startChar": 6,
+        "endLine": 1852,
+        "endChar": 17
+      },
+      "revId": "6f45fc175b68e957684837d1200409b3cbfd659f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b848b627_89cc206d",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1853,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-02-17T19:17:55Z",
+      "side": 1,
+      "message": "There seems to be a lot of reformatting. Could you undo it?",
+      "range": {
+        "startLine": 1853,
+        "startChar": 7,
+        "endLine": 1853,
+        "endChar": 8
+      },
+      "revId": "6f45fc175b68e957684837d1200409b3cbfd659f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
