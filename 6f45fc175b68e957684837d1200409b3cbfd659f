@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "03b5fce9_d97228ef",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1852,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-02-17T19:42:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "db49144e_6941f6c3",
+      "range": {
+        "startLine": 1852,
+        "startChar": 6,
+        "endLine": 1852,
+        "endChar": 17
+      },
+      "revId": "6f45fc175b68e957684837d1200409b3cbfd659f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b848b627_89cc206d",
         "filename": "src/OpenGL/libGLESv2/Context.cpp",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2017-02-17T19:17:55Z",
       "side": 1,
       "message": "There seems to be a lot of reformatting. Could you undo it?",
+      "range": {
+        "startLine": 1853,
+        "startChar": 7,
+        "endLine": 1853,
+        "endChar": 8
+      },
+      "revId": "6f45fc175b68e957684837d1200409b3cbfd659f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "acae832e_2661c851",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1853,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-02-17T19:42:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b848b627_89cc206d",
       "range": {
         "startLine": 1853,
         "startChar": 7,
