@@ -1851,55 +1851,55 @@ template<typename T> bool Context::getIntegerv(GLenum pname, T *params) const
 	// Context::getFloatv.
 	switch(pname)
 	{
-	case GL_MAX_VERTEX_ATTRIBS:               *params = MAX_VERTEX_ATTRIBS;               break;
-	case GL_MAX_VERTEX_UNIFORM_VECTORS:       *params = MAX_VERTEX_UNIFORM_VECTORS;       break;
-	case GL_MAX_VARYING_VECTORS:              *params = MAX_VARYING_VECTORS;              break;
-	case GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS: *params = MAX_COMBINED_TEXTURE_IMAGE_UNITS; break;
-	case GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS:   *params = MAX_VERTEX_TEXTURE_IMAGE_UNITS;   break;
-	case GL_MAX_TEXTURE_IMAGE_UNITS:          *params = MAX_TEXTURE_IMAGE_UNITS;          break;
-	case GL_MAX_FRAGMENT_UNIFORM_VECTORS:     *params = MAX_FRAGMENT_UNIFORM_VECTORS;     break;
-	case GL_MAX_RENDERBUFFER_SIZE:            *params = IMPLEMENTATION_MAX_RENDERBUFFER_SIZE; break;
-	case GL_NUM_SHADER_BINARY_FORMATS:        *params = 0;                                    break;
-	case GL_SHADER_BINARY_FORMATS:      /* no shader binary formats are supported */          break;
-	case GL_ARRAY_BUFFER_BINDING:             *params = getArrayBufferName();                 break;
-	case GL_ELEMENT_ARRAY_BUFFER_BINDING:     *params = getElementArrayBufferName();          break;
+	case GL_MAX_VERTEX_ATTRIBS:               *params = MAX_VERTEX_ATTRIBS;               return true;
+	case GL_MAX_VERTEX_UNIFORM_VECTORS:       *params = MAX_VERTEX_UNIFORM_VECTORS;       return true;
+	case GL_MAX_VARYING_VECTORS:              *params = MAX_VARYING_VECTORS;              return true;
+	case GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS: *params = MAX_COMBINED_TEXTURE_IMAGE_UNITS; return true;
+	case GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS:   *params = MAX_VERTEX_TEXTURE_IMAGE_UNITS;   return true;
+	case GL_MAX_TEXTURE_IMAGE_UNITS:          *params = MAX_TEXTURE_IMAGE_UNITS;          return true;
+	case GL_MAX_FRAGMENT_UNIFORM_VECTORS:     *params = MAX_FRAGMENT_UNIFORM_VECTORS;     return true;
+	case GL_MAX_RENDERBUFFER_SIZE:            *params = IMPLEMENTATION_MAX_RENDERBUFFER_SIZE; return true;
+	case GL_NUM_SHADER_BINARY_FORMATS:        *params = 0;                                    return true;
+	case GL_SHADER_BINARY_FORMATS:      /* no shader binary formats are supported */          return true;
+	case GL_ARRAY_BUFFER_BINDING:             *params = getArrayBufferName();                 return true;
+	case GL_ELEMENT_ARRAY_BUFFER_BINDING:     *params = getElementArrayBufferName();          return true;
 //	case GL_FRAMEBUFFER_BINDING:            // now equivalent to GL_DRAW_FRAMEBUFFER_BINDING_ANGLE
-	case GL_DRAW_FRAMEBUFFER_BINDING_ANGLE:   *params = mState.drawFramebuffer;               break;
-	case GL_READ_FRAMEBUFFER_BINDING_ANGLE:   *params = mState.readFramebuffer;               break;
-	case GL_RENDERBUFFER_BINDING:             *params = mState.renderbuffer.name();           break;
-	case GL_CURRENT_PROGRAM:                  *params = mState.currentProgram;                break;
-	case GL_PACK_ALIGNMENT:                   *params = mState.packAlignment;                 break;
-	case GL_UNPACK_ALIGNMENT:                 *params = mState.unpackInfo.alignment;          break;
-	case GL_GENERATE_MIPMAP_HINT:             *params = mState.generateMipmapHint;            break;
-	case GL_FRAGMENT_SHADER_DERIVATIVE_HINT_OES: *params = mState.fragmentShaderDerivativeHint; break;
-	case GL_ACTIVE_TEXTURE:                   *params = (mState.activeSampler + GL_TEXTURE0); break;
-	case GL_STENCIL_FUNC:                     *params = mState.stencilFunc;                   break;
-	case GL_STENCIL_REF:                      *params = mState.stencilRef;                    break;
-	case GL_STENCIL_VALUE_MASK:               *params = sw::clampToSignedInt(mState.stencilMask); break;
-	case GL_STENCIL_BACK_FUNC:                *params = mState.stencilBackFunc;               break;
-	case GL_STENCIL_BACK_REF:                 *params = mState.stencilBackRef;                break;
-	case GL_STENCIL_BACK_VALUE_MASK:          *params = sw::clampToSignedInt(mState.stencilBackMask); break;
-	case GL_STENCIL_FAIL:                     *params = mState.stencilFail;                   break;
-	case GL_STENCIL_PASS_DEPTH_FAIL:          *params = mState.stencilPassDepthFail;          break;
-	case GL_STENCIL_PASS_DEPTH_PASS:          *params = mState.stencilPassDepthPass;          break;
-	case GL_STENCIL_BACK_FAIL:                *params = mState.stencilBackFail;               break;
-	case GL_STENCIL_BACK_PASS_DEPTH_FAIL:     *params = mState.stencilBackPassDepthFail;      break;
-	case GL_STENCIL_BACK_PASS_DEPTH_PASS:     *params = mState.stencilBackPassDepthPass;      break;
-	case GL_DEPTH_FUNC:                       *params = mState.depthFunc;                     break;
-	case GL_BLEND_SRC_RGB:                    *params = mState.sourceBlendRGB;                break;
-	case GL_BLEND_SRC_ALPHA:                  *params = mState.sourceBlendAlpha;              break;
-	case GL_BLEND_DST_RGB:                    *params = mState.destBlendRGB;                  break;
-	case GL_BLEND_DST_ALPHA:                  *params = mState.destBlendAlpha;                break;
-	case GL_BLEND_EQUATION_RGB:               *params = mState.blendEquationRGB;              break;
-	case GL_BLEND_EQUATION_ALPHA:             *params = mState.blendEquationAlpha;            break;
-	case GL_STENCIL_WRITEMASK:                *params = sw::clampToSignedInt(mState.stencilWritemask); break;
-	case GL_STENCIL_BACK_WRITEMASK:           *params = sw::clampToSignedInt(mState.stencilBackWritemask); break;
-	case GL_STENCIL_CLEAR_VALUE:              *params = mState.stencilClearValue;             break;
-	case GL_SUBPIXEL_BITS:                    *params = 4;                                    break;
-	case GL_MAX_TEXTURE_SIZE:                 *params = IMPLEMENTATION_MAX_TEXTURE_SIZE;          break;
-	case GL_MAX_CUBE_MAP_TEXTURE_SIZE:        *params = IMPLEMENTATION_MAX_CUBE_MAP_TEXTURE_SIZE; break;
-	case GL_NUM_COMPRESSED_TEXTURE_FORMATS:   *params = NUM_COMPRESSED_TEXTURE_FORMATS;           break;
-	case GL_MAX_SAMPLES_ANGLE:                *params = IMPLEMENTATION_MAX_SAMPLES;               break;
+	case GL_DRAW_FRAMEBUFFER_BINDING_ANGLE:   *params = mState.drawFramebuffer;               return true;
+	case GL_READ_FRAMEBUFFER_BINDING_ANGLE:   *params = mState.readFramebuffer;               return true;
+	case GL_RENDERBUFFER_BINDING:             *params = mState.renderbuffer.name();           return true;
+	case GL_CURRENT_PROGRAM:                  *params = mState.currentProgram;                return true;
+	case GL_PACK_ALIGNMENT:                   *params = mState.packAlignment;                 return true;
+	case GL_UNPACK_ALIGNMENT:                 *params = mState.unpackInfo.alignment;          return true;
+	case GL_GENERATE_MIPMAP_HINT:             *params = mState.generateMipmapHint;            return true;
+	case GL_FRAGMENT_SHADER_DERIVATIVE_HINT_OES: *params = mState.fragmentShaderDerivativeHint; return true;
+	case GL_ACTIVE_TEXTURE:                   *params = (mState.activeSampler + GL_TEXTURE0); return true;
+	case GL_STENCIL_FUNC:                     *params = mState.stencilFunc;                   return true;
+	case GL_STENCIL_REF:                      *params = mState.stencilRef;                    return true;
+	case GL_STENCIL_VALUE_MASK:               *params = sw::clampToSignedInt(mState.stencilMask); return true;
+	case GL_STENCIL_BACK_FUNC:                *params = mState.stencilBackFunc;               return true;
+	case GL_STENCIL_BACK_REF:                 *params = mState.stencilBackRef;                return true;
+	case GL_STENCIL_BACK_VALUE_MASK:          *params = sw::clampToSignedInt(mState.stencilBackMask); return true;
+	case GL_STENCIL_FAIL:                     *params = mState.stencilFail;                   return true;
+	case GL_STENCIL_PASS_DEPTH_FAIL:          *params = mState.stencilPassDepthFail;          return true;
+	case GL_STENCIL_PASS_DEPTH_PASS:          *params = mState.stencilPassDepthPass;          return true;
+	case GL_STENCIL_BACK_FAIL:                *params = mState.stencilBackFail;               return true;
+	case GL_STENCIL_BACK_PASS_DEPTH_FAIL:     *params = mState.stencilBackPassDepthFail;      return true;
+	case GL_STENCIL_BACK_PASS_DEPTH_PASS:     *params = mState.stencilBackPassDepthPass;      return true;
+	case GL_DEPTH_FUNC:                       *params = mState.depthFunc;                     return true;
+	case GL_BLEND_SRC_RGB:                    *params = mState.sourceBlendRGB;                return true;
+	case GL_BLEND_SRC_ALPHA:                  *params = mState.sourceBlendAlpha;              return true;
+	case GL_BLEND_DST_RGB:                    *params = mState.destBlendRGB;                  return true;
+	case GL_BLEND_DST_ALPHA:                  *params = mState.destBlendAlpha;                return true;
+	case GL_BLEND_EQUATION_RGB:               *params = mState.blendEquationRGB;              return true;
+	case GL_BLEND_EQUATION_ALPHA:             *params = mState.blendEquationAlpha;            return true;
+	case GL_STENCIL_WRITEMASK:                *params = sw::clampToSignedInt(mState.stencilWritemask); return true;
+	case GL_STENCIL_BACK_WRITEMASK:           *params = sw::clampToSignedInt(mState.stencilBackWritemask); return true;
+	case GL_STENCIL_CLEAR_VALUE:              *params = mState.stencilClearValue;             return true;
+	case GL_SUBPIXEL_BITS:                    *params = 4;                                    return true;
+	case GL_MAX_TEXTURE_SIZE:                 *params = IMPLEMENTATION_MAX_TEXTURE_SIZE;          return true;
+	case GL_MAX_CUBE_MAP_TEXTURE_SIZE:        *params = IMPLEMENTATION_MAX_CUBE_MAP_TEXTURE_SIZE; return true;
+	case GL_NUM_COMPRESSED_TEXTURE_FORMATS:   *params = NUM_COMPRESSED_TEXTURE_FORMATS;           return true;
+	case GL_MAX_SAMPLES_ANGLE:                *params = IMPLEMENTATION_MAX_SAMPLES;               return true;
 	case GL_SAMPLE_BUFFERS:
 	case GL_SAMPLES:
 		{
@@ -1930,26 +1930,26 @@ template<typename T> bool Context::getIntegerv(GLenum pname, T *params) const
 				*params = 0;
 			}
 		}
-		break;
+		return true;
 	case GL_IMPLEMENTATION_COLOR_READ_TYPE:
 		{
 			Framebuffer *framebuffer = getReadFramebuffer();
 			*params = framebuffer->getImplementationColorReadType();
 		}
-		break;
+		return true;
 	case GL_IMPLEMENTATION_COLOR_READ_FORMAT:
 		{
 			Framebuffer *framebuffer = getReadFramebuffer();
 			*params = framebuffer->getImplementationColorReadFormat();
 		}
-		break;
+		return true;
 	case GL_MAX_VIEWPORT_DIMS:
 		{
 			int maxDimension = IMPLEMENTATION_MAX_RENDERBUFFER_SIZE;
 			params[0] = maxDimension;
 			params[1] = maxDimension;
 		}
-		break;
+		return true;
 	case GL_COMPRESSED_TEXTURE_FORMATS:
 		{
 			for(int i = 0; i < NUM_COMPRESSED_TEXTURE_FORMATS; i++)
@@ -1957,21 +1957,21 @@ template<typename T> bool Context::getIntegerv(GLenum pname, T *params) const
 				params[i] = compressedTextureFormats[i];
 			}
 		}
-		break;
+		return true;
 	case GL_VIEWPORT:
 		params[0] = mState.viewportX;
 		params[1] = mState.viewportY;
 		params[2] = mState.viewportWidth;
 		params[3] = mState.viewportHeight;
-		break;
+		return true;
 	case GL_SCISSOR_BOX:
 		params[0] = mState.scissorX;
 		params[1] = mState.scissorY;
 		params[2] = mState.scissorWidth;
 		params[3] = mState.scissorHeight;
-		break;
-	case GL_CULL_FACE_MODE:                   *params = mState.cullMode;                 break;
-	case GL_FRONT_FACE:                       *params = mState.frontFace;                break;
+		return true;
+	case GL_CULL_FACE_MODE:                   *params = mState.cullMode;                 return true;
+	case GL_FRONT_FACE:                       *params = mState.frontFace;                return true;
 	case GL_RED_BITS:
 	case GL_GREEN_BITS:
 	case GL_BLUE_BITS:
@@ -1984,10 +1984,10 @@ template<typename T> bool Context::getIntegerv(GLenum pname, T *params) const
 			{
 				switch(pname)
 				{
-				case GL_RED_BITS:   *params = colorbuffer->getRedSize();   break;
-				case GL_GREEN_BITS: *params = colorbuffer->getGreenSize(); break;
-				case GL_BLUE_BITS:  *params = colorbuffer->getBlueSize();  break;
-				case GL_ALPHA_BITS: *params = colorbuffer->getAlphaSize(); break;
+				case GL_RED_BITS:   *params = colorbuffer->getRedSize();   return true;
+				case GL_GREEN_BITS: *params = colorbuffer->getGreenSize(); return true;
+				case GL_BLUE_BITS:  *params = colorbuffer->getBlueSize();  return true;
+				case GL_ALPHA_BITS: *params = colorbuffer->getAlphaSize(); return true;
 				}
 			}
 			else
@@ -1995,7 +1995,7 @@ template<typename T> bool Context::getIntegerv(GLenum pname, T *params) const
 				*params = 0;
 			}
 		}
-		break;
+		return true;
 	case GL_DEPTH_BITS:
 		{
 			Framebuffer *framebuffer = getDrawFramebuffer();
@@ -2010,7 +2010,7 @@ template<typename T> bool Context::getIntegerv(GLenum pname, T *params) const
 				*params = 0;
 			}
 		}
-		break;
+		return true;
 	case GL_STENCIL_BITS:
 		{
 			Framebuffer *framebuffer = getDrawFramebuffer();
@@ -2025,7 +2025,7 @@ template<typename T> bool Context::getIntegerv(GLenum pname, T *params) const
 				*params = 0;
 			}
 		}
-		break;
+		return true;
 	case GL_TEXTURE_BINDING_2D:
 		if(mState.activeSampler > MAX_COMBINED_TEXTURE_IMAGE_UNITS - 1)
 		{
@@ -2034,7 +2034,7 @@ template<typename T> bool Context::getIntegerv(GLenum pname, T *params) const
 		}
 
 		*params = mState.samplerTexture[TEXTURE_2D][mState.activeSampler].name();
-		break;
+		return true;
 	case GL_TEXTURE_BINDING_CUBE_MAP:
 		if(mState.activeSampler > MAX_COMBINED_TEXTURE_IMAGE_UNITS - 1)
 		{
@@ -2043,7 +2043,7 @@ template<typename T> bool Context::getIntegerv(GLenum pname, T *params) const
 		}
 
 		*params = mState.samplerTexture[TEXTURE_CUBE][mState.activeSampler].name();
-		break;
+		return true;
 	case GL_TEXTURE_BINDING_EXTERNAL_OES:
 		if(mState.activeSampler > MAX_COMBINED_TEXTURE_IMAGE_UNITS - 1)
 		{
@@ -2052,7 +2052,7 @@ template<typename T> bool Context::getIntegerv(GLenum pname, T *params) const
 		}
 
 		*params = mState.samplerTexture[TEXTURE_EXTERNAL][mState.activeSampler].name();
-		break;
+		return true;
 	case GL_TEXTURE_BINDING_3D_OES:
 		if(mState.activeSampler > MAX_COMBINED_TEXTURE_IMAGE_UNITS - 1)
 		{
@@ -2061,40 +2061,7 @@ template<typename T> bool Context::getIntegerv(GLenum pname, T *params) const
 		}
 
 		*params = mState.samplerTexture[TEXTURE_3D][mState.activeSampler].name();
-		break;
-	case GL_TEXTURE_BINDING_2D_ARRAY:
-		if(clientVersion < 3)
-		{
-			return false;
-		}
-		else if(mState.activeSampler > MAX_COMBINED_TEXTURE_IMAGE_UNITS - 1)
-		{
-			error(GL_INVALID_OPERATION);
-			return false;
-		}
-
-		*params = mState.samplerTexture[TEXTURE_2D_ARRAY][mState.activeSampler].name();
-		break;
-	case GL_COPY_READ_BUFFER_BINDING:
-		if(clientVersion >= 3)
-		{
-			*params = mState.copyReadBuffer.name();
-		}
-		else
-		{
-			return false;
-		}
-		break;
-	case GL_COPY_WRITE_BUFFER_BINDING:
-		if(clientVersion >= 3)
-		{
-			*params = mState.copyWriteBuffer.name();
-		}
-		else
-		{
-			return false;
-		}
-		break;
+		return true;
 	case GL_DRAW_BUFFER0:
 	case GL_DRAW_BUFFER1:
 	case GL_DRAW_BUFFER2:
@@ -2111,243 +2078,224 @@ template<typename T> bool Context::getIntegerv(GLenum pname, T *params) const
 	case GL_DRAW_BUFFER13:
 	case GL_DRAW_BUFFER14:
 	case GL_DRAW_BUFFER15:
-		*params = getDrawFramebuffer()->getDrawBuffer(pname - GL_DRAW_BUFFER0);
-		break;
-	case GL_MAJOR_VERSION:
-		if(clientVersion >= 3)
+		if((pname - GL_DRAW_BUFFER0) < MAX_DRAW_BUFFERS)
 		{
-			*params = clientVersion;
+			*params = getDrawFramebuffer()->getDrawBuffer(pname - GL_DRAW_BUFFER0);
 		}
 		else
 		{
 			return false;
 		}
-		break;
-	case GL_MAX_3D_TEXTURE_SIZE:
-		*params = IMPLEMENTATION_MAX_TEXTURE_SIZE;
-		break;
-	case GL_MAX_ARRAY_TEXTURE_LAYERS:
-		*params = IMPLEMENTATION_MAX_TEXTURE_SIZE;
-		break;
-	case GL_MAX_COLOR_ATTACHMENTS:
-		*params = MAX_COLOR_ATTACHMENTS;
-		break;
-	case GL_MAX_COMBINED_FRAGMENT_UNIFORM_COMPONENTS:
-		*params = MAX_COMBINED_FRAGMENT_UNIFORM_COMPONENTS;
-		break;
-	case GL_MAX_COMBINED_UNIFORM_BLOCKS:
-		*params = MAX_VERTEX_UNIFORM_BLOCKS + MAX_FRAGMENT_UNIFORM_BLOCKS;
-		break;
-	case GL_MAX_COMBINED_VERTEX_UNIFORM_COMPONENTS:
-		*params = MAX_COMBINED_VERTEX_UNIFORM_COMPONENTS;
-		break;
+		return true;
 	case GL_MAX_DRAW_BUFFERS:
 		*params = MAX_DRAW_BUFFERS;
-		break;
-	case GL_MAX_ELEMENT_INDEX:
-		*params = MAX_ELEMENT_INDEX;
-		break;
-	case GL_MAX_ELEMENTS_INDICES:
-		*params = MAX_ELEMENTS_INDICES;
-		break;
-	case GL_MAX_ELEMENTS_VERTICES:
-		*params = MAX_ELEMENTS_VERTICES;
-		break;
-	case GL_MAX_FRAGMENT_INPUT_COMPONENTS:
-		*params = MAX_FRAGMENT_INPUT_VECTORS * 4;
-		break;
-	case GL_MAX_FRAGMENT_UNIFORM_BLOCKS:
-		*params = MAX_FRAGMENT_UNIFORM_BLOCKS;
-		break;
-	case GL_MAX_FRAGMENT_UNIFORM_COMPONENTS:
-		*params = MAX_FRAGMENT_UNIFORM_COMPONENTS;
-		break;
-	case GL_MAX_PROGRAM_TEXEL_OFFSET:
-		UNIMPLEMENTED();
-		*params = MAX_PROGRAM_TEXEL_OFFSET;
-		break;
-	case GL_MAX_SERVER_WAIT_TIMEOUT:
-		UNIMPLEMENTED();
-		*params = 0;
-		break;
-	case GL_MAX_TEXTURE_LOD_BIAS:
-		UNIMPLEMENTED();
-		*params = 2;
-		break;
-	case GL_MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS:
-		*params = sw::MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS;
-		break;
-	case GL_MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS:
-		*params = MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS;
-		break;
-	case GL_MAX_TRANSFORM_FEEDBACK_SEPARATE_COMPONENTS:
-		*params = sw::MAX_TRANSFORM_FEEDBACK_SEPARATE_COMPONENTS;
-		break;
-	case GL_MAX_UNIFORM_BLOCK_SIZE:
-		*params = MAX_UNIFORM_BLOCK_SIZE;
-		break;
-	case GL_MAX_UNIFORM_BUFFER_BINDINGS:
-		*params = MAX_UNIFORM_BUFFER_BINDINGS;
-		break;
-	case GL_MAX_VARYING_COMPONENTS:
-		UNIMPLEMENTED();
-		// FIXME: should be MAX_VARYING_VECTORS * 4, but MAX_VARYING_VECTORS
-		// must be increased (see MAX_VERTEX_OUTPUTS and MAX_FRAGMENT_INPUTS)
-		*params = 60;
-		break;
-	case GL_MAX_VERTEX_OUTPUT_COMPONENTS:
-		*params = MAX_VERTEX_OUTPUT_VECTORS * 4;
-		break;
-	case GL_MAX_VERTEX_UNIFORM_BLOCKS:
-		*params = MAX_VERTEX_UNIFORM_BLOCKS;
-		break;
-	case GL_MAX_VERTEX_UNIFORM_COMPONENTS:
-		*params = MAX_VERTEX_UNIFORM_COMPONENTS;
-		break;
-	case GL_MIN_PROGRAM_TEXEL_OFFSET:
-		UNIMPLEMENTED();
-		*params = MIN_PROGRAM_TEXEL_OFFSET;
-		break;
-	case GL_MINOR_VERSION:
-		if (clientVersion >= 3)
-		{
-			*params = 0;
-		}
-		else
-		{
-			return false;
-		}
-		break;
-	case GL_NUM_EXTENSIONS:
-		GLuint numExtensions;
-		getExtensions(0, &numExtensions);
-		*params = numExtensions;
-		break;
-	case GL_NUM_PROGRAM_BINARY_FORMATS:
-		*params = NUM_PROGRAM_BINARY_FORMATS;
-		break;
-	case GL_PACK_ROW_LENGTH:
-		*params = mState.packRowLength;
-		break;
-	case GL_PACK_SKIP_PIXELS:
-		*params = mState.packSkipPixels;
-		break;
-	case GL_PACK_SKIP_ROWS:
-		*params = mState.packSkipRows;
-		break;
-	case GL_PIXEL_PACK_BUFFER_BINDING:
-		if(clientVersion >= 3)
-		{
-			*params = mState.pixelPackBuffer.name();
-		}
-		else
-		{
-			return false;
-		}
-		break;
-	case GL_PIXEL_UNPACK_BUFFER_BINDING:
-		if(clientVersion >= 3)
-		{
-			*params = mState.pixelUnpackBuffer.name();
-		}
-		else
-		{
-			return false;
-		}
-		break;
-	case GL_PROGRAM_BINARY_FORMATS:
-		// Since NUM_PROGRAM_BINARY_FORMATS is 0, the input
-		// should be a 0 sized array, so don't write to params
-		break;
-	case GL_READ_BUFFER:
-		*params = getReadFramebuffer()->getReadBuffer();
-		break;
-	case GL_SAMPLER_BINDING:
-		*params = mState.sampler[mState.activeSampler].name();
-		break;
-	case GL_UNIFORM_BUFFER_BINDING:
-		if(clientVersion >= 3)
-		{
-			*params = mState.genericUniformBuffer.name();
-		}
-		else
-		{
-			return false;
-		}
-		break;
-	case GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT:
-		*params = UNIFORM_BUFFER_OFFSET_ALIGNMENT;
-		break;
-	case GL_UNIFORM_BUFFER_SIZE:
-		if(clientVersion >= 3)
-		{
-			*params = static_cast<T>(mState.genericUniformBuffer->size());
-		}
-		else
-		{
-			return false;
-		}
-		break;
-	case GL_UNIFORM_BUFFER_START:
-		if(clientVersion >= 3)
-		{
-			*params = static_cast<T>(mState.genericUniformBuffer->offset());
-		}
-		else
-		{
-			return false;
-		}
-		*params = 0;
-		break;
-	case GL_UNPACK_IMAGE_HEIGHT:
-		*params = mState.unpackInfo.imageHeight;
-		break;
-	case GL_UNPACK_ROW_LENGTH:
-		*params = mState.unpackInfo.rowLength;
-		break;
-	case GL_UNPACK_SKIP_IMAGES:
-		*params = mState.unpackInfo.skipImages;
-		break;
-	case GL_UNPACK_SKIP_PIXELS:
-		*params = mState.unpackInfo.skipPixels;
-		break;
-	case GL_UNPACK_SKIP_ROWS:
-		*params = mState.unpackInfo.skipRows;
-		break;
-	case GL_VERTEX_ARRAY_BINDING:
-		*params = getCurrentVertexArray()->name;
-		break;
-	case GL_TRANSFORM_FEEDBACK_BINDING:
-		{
-			TransformFeedback* transformFeedback = getTransformFeedback(mState.transformFeedback);
-			if(transformFeedback)
-			{
-				*params = transformFeedback->name;
-			}
-			else
-			{
-				return false;
-			}
-		}
-		break;
-	case GL_TRANSFORM_FEEDBACK_BUFFER_BINDING:
-		{
-			TransformFeedback* transformFeedback = getTransformFeedback(mState.transformFeedback);
-			if(transformFeedback)
-			{
-				*params = transformFeedback->getGenericBufferName();
-			}
-			else
-			{
-				return false;
-			}
-		}
-		break;
+		return true;
 	default:
-		return false;
+		break;
 	}
 
-	return true;
+	if(clientVersion >= 3)
+	{
+		switch(pname)
+		{
+		case GL_TEXTURE_BINDING_2D_ARRAY:
+			if(mState.activeSampler > MAX_COMBINED_TEXTURE_IMAGE_UNITS - 1)
+			{
+				error(GL_INVALID_OPERATION);
+				return false;
+			}
+
+			*params = mState.samplerTexture[TEXTURE_2D_ARRAY][mState.activeSampler].name();
+			return true;
+		case GL_COPY_READ_BUFFER_BINDING:
+			*params = mState.copyReadBuffer.name();
+			return true;
+		case GL_COPY_WRITE_BUFFER_BINDING:
+			*params = mState.copyWriteBuffer.name();
+			return true;
+		case GL_MAJOR_VERSION:
+			*params = clientVersion;
+			return true;
+		case GL_MAX_3D_TEXTURE_SIZE:
+			*params = IMPLEMENTATION_MAX_TEXTURE_SIZE;
+			return true;
+		case GL_MAX_ARRAY_TEXTURE_LAYERS:
+			*params = IMPLEMENTATION_MAX_TEXTURE_SIZE;
+			return true;
+		case GL_MAX_COLOR_ATTACHMENTS: // Note: not supported in OES_framebuffer_object
+			*params = MAX_COLOR_ATTACHMENTS;
+			return true;
+		case GL_MAX_COMBINED_FRAGMENT_UNIFORM_COMPONENTS:
+			*params = MAX_COMBINED_FRAGMENT_UNIFORM_COMPONENTS;
+			return true;
+		case GL_MAX_COMBINED_UNIFORM_BLOCKS:
+			*params = MAX_VERTEX_UNIFORM_BLOCKS + MAX_FRAGMENT_UNIFORM_BLOCKS;
+			return true;
+		case GL_MAX_COMBINED_VERTEX_UNIFORM_COMPONENTS:
+			*params = MAX_COMBINED_VERTEX_UNIFORM_COMPONENTS;
+			return true;
+		case GL_MAX_ELEMENT_INDEX:
+			*params = MAX_ELEMENT_INDEX;
+			return true;
+		case GL_MAX_ELEMENTS_INDICES:
+			*params = MAX_ELEMENTS_INDICES;
+			return true;
+		case GL_MAX_ELEMENTS_VERTICES:
+			*params = MAX_ELEMENTS_VERTICES;
+			return true;
+		case GL_MAX_FRAGMENT_INPUT_COMPONENTS:
+			*params = MAX_FRAGMENT_INPUT_VECTORS * 4;
+			return true;
+		case GL_MAX_FRAGMENT_UNIFORM_BLOCKS:
+			*params = MAX_FRAGMENT_UNIFORM_BLOCKS;
+			return true;
+		case GL_MAX_FRAGMENT_UNIFORM_COMPONENTS:
+			*params = MAX_FRAGMENT_UNIFORM_COMPONENTS;
+			return true;
+		case GL_MAX_PROGRAM_TEXEL_OFFSET:
+			UNIMPLEMENTED();
+			*params = MAX_PROGRAM_TEXEL_OFFSET;
+			return true;
+		case GL_MAX_SERVER_WAIT_TIMEOUT:
+			UNIMPLEMENTED();
+			*params = 0;
+			return true;
+		case GL_MAX_TEXTURE_LOD_BIAS:
+			UNIMPLEMENTED();
+			*params = 2;
+			return true;
+		case GL_MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS:
+			*params = sw::MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS;
+			return true;
+		case GL_MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS:
+			*params = MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS;
+			return true;
+		case GL_MAX_TRANSFORM_FEEDBACK_SEPARATE_COMPONENTS:
+			*params = sw::MAX_TRANSFORM_FEEDBACK_SEPARATE_COMPONENTS;
+			return true;
+		case GL_MAX_UNIFORM_BLOCK_SIZE:
+			*params = MAX_UNIFORM_BLOCK_SIZE;
+			return true;
+		case GL_MAX_UNIFORM_BUFFER_BINDINGS:
+			*params = MAX_UNIFORM_BUFFER_BINDINGS;
+			return true;
+		case GL_MAX_VARYING_COMPONENTS:
+			UNIMPLEMENTED();
+			// FIXME: should be MAX_VARYING_VECTORS * 4, but MAX_VARYING_VECTORS
+			// must be increased (see MAX_VERTEX_OUTPUTS and MAX_FRAGMENT_INPUTS)
+			*params = 60;
+			return true;
+		case GL_MAX_VERTEX_OUTPUT_COMPONENTS:
+			*params = MAX_VERTEX_OUTPUT_VECTORS * 4;
+			return true;
+		case GL_MAX_VERTEX_UNIFORM_BLOCKS:
+			*params = MAX_VERTEX_UNIFORM_BLOCKS;
+			return true;
+		case GL_MAX_VERTEX_UNIFORM_COMPONENTS:
+			*params = MAX_VERTEX_UNIFORM_COMPONENTS;
+			return true;
+		case GL_MIN_PROGRAM_TEXEL_OFFSET:
+			UNIMPLEMENTED();
+			*params = MIN_PROGRAM_TEXEL_OFFSET;
+			return true;
+		case GL_MINOR_VERSION:
+			*params = 0;
+			return true;
+		case GL_NUM_EXTENSIONS:
+			GLuint numExtensions;
+			getExtensions(0, &numExtensions);
+			*params = numExtensions;
+			return true;
+		case GL_NUM_PROGRAM_BINARY_FORMATS:
+			*params = NUM_PROGRAM_BINARY_FORMATS;
+			return true;
+		case GL_PACK_ROW_LENGTH:
+			*params = mState.packRowLength;
+			return true;
+		case GL_PACK_SKIP_PIXELS:
+			*params = mState.packSkipPixels;
+			return true;
+		case GL_PACK_SKIP_ROWS:
+			*params = mState.packSkipRows;
+			return true;
+		case GL_PIXEL_PACK_BUFFER_BINDING:
+			*params = mState.pixelPackBuffer.name();
+			return true;
+		case GL_PIXEL_UNPACK_BUFFER_BINDING:
+			*params = mState.pixelUnpackBuffer.name();
+			return true;
+		case GL_PROGRAM_BINARY_FORMATS:
+			// Since NUM_PROGRAM_BINARY_FORMATS is 0, the input
+			// should be a 0 sized array, so don't write to params
+			return true;
+		case GL_READ_BUFFER:
+			*params = getReadFramebuffer()->getReadBuffer();
+			return true;
+		case GL_SAMPLER_BINDING:
+			*params = mState.sampler[mState.activeSampler].name();
+			return true;
+		case GL_UNIFORM_BUFFER_BINDING:
+			*params = mState.genericUniformBuffer.name();
+			return true;
+		case GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT:
+			*params = UNIFORM_BUFFER_OFFSET_ALIGNMENT;
+			return true;
+		case GL_UNIFORM_BUFFER_SIZE:
+			*params = static_cast<T>(mState.genericUniformBuffer->size());
+			return true;
+		case GL_UNIFORM_BUFFER_START:
+			*params = static_cast<T>(mState.genericUniformBuffer->offset());
+			return true;
+		case GL_UNPACK_IMAGE_HEIGHT:
+			*params = mState.unpackInfo.imageHeight;
+			return true;
+		case GL_UNPACK_ROW_LENGTH:
+			*params = mState.unpackInfo.rowLength;
+			return true;
+		case GL_UNPACK_SKIP_IMAGES:
+			*params = mState.unpackInfo.skipImages;
+			return true;
+		case GL_UNPACK_SKIP_PIXELS:
+			*params = mState.unpackInfo.skipPixels;
+			return true;
+		case GL_UNPACK_SKIP_ROWS:
+			*params = mState.unpackInfo.skipRows;
+			return true;
+		case GL_VERTEX_ARRAY_BINDING:
+			*params = getCurrentVertexArray()->name;
+			return true;
+		case GL_TRANSFORM_FEEDBACK_BINDING:
+			{
+				TransformFeedback* transformFeedback = getTransformFeedback(mState.transformFeedback);
+				if(transformFeedback)
+				{
+					*params = transformFeedback->name;
+				}
+				else
+				{
+					return false;
+				}
+			}
+			return true;
+		case GL_TRANSFORM_FEEDBACK_BUFFER_BINDING:
+			{
+				TransformFeedback* transformFeedback = getTransformFeedback(mState.transformFeedback);
+				if(transformFeedback)
+				{
+					*params = transformFeedback->getGenericBufferName();
+				}
+				else
+				{
+					return false;
+				}
+			}
+			return true;
+		default:
+			break;
+		}
+	}
+
+	return false;
 }
 
 template bool Context::getTransformFeedbackiv<GLint>(GLuint index, GLenum pname, GLint *param) const;
