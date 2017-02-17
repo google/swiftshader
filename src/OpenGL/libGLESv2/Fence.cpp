@@ -125,11 +125,49 @@ FenceSync::~FenceSync()
 
 GLenum FenceSync::clientWait(GLbitfield flags, GLuint64 timeout)
 {
-	return GL_TRUE;
+	// The current assumtion is that no matter where the fence is placed, it is
+	// done by the time it is tested, which is similar to Context::flush(), since
+	// we don't queue anything without processing it as fast as possible.
+	return GL_ALREADY_SIGNALED;
 }
 
 void FenceSync::serverWait(GLbitfield flags, GLuint64 timeout)
 {
+}
+
+void FenceSync::getSynciv(GLenum pname, GLsizei *length, GLint *values)
+{
+	switch(pname)
+	{
+	case GL_OBJECT_TYPE:
+		values[0] = GL_SYNC_FENCE;
+		if(length) {
+			*length = 1;
+		}
+		break;
+	case GL_SYNC_STATUS:
+		// The current assumtion is that no matter where the fence is placed, it is
+		// done by the time it is tested, which is similar to Context::flush(), since
+		// we don't queue anything without processing it as fast as possible.
+		values[0] = GL_SIGNALED;
+		if(length) {
+			*length = 1;
+		}
+		break;
+	case GL_SYNC_CONDITION:
+		values[0] = GL_SYNC_GPU_COMMANDS_COMPLETE;
+		if(length) {
+			*length = 1;
+		}
+		break;
+	case GL_SYNC_FLAGS:
+		if(length) {
+			*length = 0;
+		}
+		break;
+	default:
+		return error(GL_INVALID_ENUM);
+	}
 }
 
 }

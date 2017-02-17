@@ -2157,7 +2157,6 @@ template<typename T> bool Context::getIntegerv(GLenum pname, T *params) const
 			*params = MAX_PROGRAM_TEXEL_OFFSET;
 			return true;
 		case GL_MAX_SERVER_WAIT_TIMEOUT:
-			UNIMPLEMENTED();
 			*params = 0;
 			return true;
 		case GL_MAX_TEXTURE_LOD_BIAS:

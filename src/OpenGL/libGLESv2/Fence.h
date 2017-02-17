@@ -49,6 +49,7 @@ public:
 
 	GLenum clientWait(GLbitfield flags, GLuint64 timeout);
 	void serverWait(GLbitfield flags, GLuint64 timeout);
+	void getSynciv(GLenum pname, GLsizei *length, GLint *values);
 
 	GLenum getCondition() const { return mCondition; }
 	GLbitfield getFlags() const { return mFlags; }

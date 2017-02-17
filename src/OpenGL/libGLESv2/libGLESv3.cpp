@@ -3233,7 +3233,18 @@ GL_APICALL void GL_APIENTRY glGetSynciv(GLsync sync, GLenum pname, GLsizei bufSi
 		return error(GL_INVALID_VALUE);
 	}
 
-	UNIMPLEMENTED();
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		es2::FenceSync *fenceSyncObject = context->getFenceSync(sync);
+		if(!fenceSyncObject)
+		{
+			return error(GL_INVALID_VALUE);
+		}
+
+		fenceSyncObject->getSynciv(pname, length, values);
+	}
 }
 
 GL_APICALL void GL_APIENTRY glGetInteger64i_v(GLenum target, GLuint index, GLint64 *data)
