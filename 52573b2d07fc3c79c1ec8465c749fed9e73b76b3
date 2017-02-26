@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "783d9bbb_feacccf4",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-02-26T21:11:05Z",
+      "side": 1,
+      "message": "Could you provide some more information on which GCC build is broken? As far as I\u0027m aware all intended builds of SwiftShader compile fine.",
+      "range": {
+        "startLine": 7,
+        "startChar": 4,
+        "endLine": 7,
+        "endChar": 13
+      },
+      "revId": "52573b2d07fc3c79c1ec8465c749fed9e73b76b3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "cfb72fb1_c183f3af",
+        "filename": "src/Renderer/Context.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-02-26T21:11:05Z",
+      "side": 1,
+      "message": "We need these to be unsigned enums, because we create bitfields out of them and otherwise the upper bit is treated as a sign bit and comparisons don\u0027t work as intended. So this more than likely causes our conformance tests to fail.\n\nAlso, specifying the underlying type of an enum is supported by all C++11 compilers. We don\u0027t intend to support any older compilers.",
+      "range": {
+        "startLine": 55,
+        "startChar": 6,
+        "endLine": 55,
+        "endChar": 14
+      },
+      "revId": "52573b2d07fc3c79c1ec8465c749fed9e73b76b3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b8fe4939_6e6bbfae",
+        "filename": "third_party/LLVM/BUILD.gn",
+        "patchSetId": 1
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-02-26T21:11:05Z",
+      "side": 1,
+      "message": "This looks like a good change to me. Alexis, could you create a separate patch to handle all defined this way in all BUILD.gn files and for all platforms? Thanks.",
+      "range": {
+        "startLine": 64,
+        "startChar": 0,
+        "endLine": 67,
+        "endChar": 3
+      },
+      "revId": "52573b2d07fc3c79c1ec8465c749fed9e73b76b3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "07d09244_fa32a5ee",
+        "filename": "third_party/LLVM/include/llvm/CodeGen/RegAllocPBQP.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-02-26T21:11:05Z",
+      "side": 1,
+      "message": "These files are part of LLVM, which we don\u0027t intend to modify within the SwiftShader repository (granted, it\u0027s an old version, so it\u0027s riddled with minor issues). Instead we just silence any compiler warnings.",
+      "range": {
+        "startLine": 126,
+        "startChar": 4,
+        "endLine": 126,
+        "endChar": 49
+      },
+      "revId": "52573b2d07fc3c79c1ec8465c749fed9e73b76b3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3b5510b6_c3e1a609",
+        "filename": "third_party/pnacl-subzero",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-02-26T21:11:05Z",
+      "side": 1,
+      "message": "We shouldn\u0027t roll back the Subzero revision. What\u0027s the issue you\u0027re experiencing? If it\u0027s genuine we can patch Subzero and update the revision both here and in the DEPS file.",
+      "range": {
+        "startLine": 1,
+        "startChar": 18,
+        "endLine": 1,
+        "endChar": 58
+      },
+      "revId": "52573b2d07fc3c79c1ec8465c749fed9e73b76b3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
