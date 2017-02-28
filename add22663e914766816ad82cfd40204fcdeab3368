@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c678dc39_7c0a2dca",
+        "filename": "third_party/LLVM/BUILD.gn",
+        "patchSetId": 3
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5960
+      },
+      "writtenOn": "2017-02-28T01:48:12Z",
+      "side": 1,
+      "message": "can we just use \"-w\" instead?",
+      "range": {
+        "startLine": 51,
+        "startChar": 2,
+        "endLine": 69,
+        "endChar": 3
+      },
+      "revId": "add22663e914766816ad82cfd40204fcdeab3368",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}

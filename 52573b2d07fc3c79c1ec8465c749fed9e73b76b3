@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "b58955f0_10759353",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5960
+      },
+      "writtenOn": "2017-02-28T01:48:12Z",
+      "side": 1,
+      "message": "Updated the CL description.\nAnd FYI this is the last of 4 CLs that fix the build, the other three being in Chromium, angle, and ffmpeg",
+      "parentUuid": "783d9bbb_feacccf4",
+      "range": {
+        "startLine": 7,
+        "startChar": 4,
+        "endLine": 7,
+        "endChar": 13
+      },
+      "revId": "52573b2d07fc3c79c1ec8465c749fed9e73b76b3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "cfb72fb1_c183f3af",
         "filename": "src/Renderer/Context.hpp",
         "patchSetId": 1
@@ -45,6 +69,30 @@
       "revId": "52573b2d07fc3c79c1ec8465c749fed9e73b76b3",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e52ac203_b1bc929c",
+        "filename": "src/Renderer/Context.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5960
+      },
+      "writtenOn": "2017-02-28T01:48:12Z",
+      "side": 1,
+      "message": "These changes were intended to fix a compile error causing by using these enums in a bitfield like so:\nDrawType draw_type : BITS(DRAW_LAST);\n\nThis causes an error in gcc because BITS(DRAW_LAST) cannot contain the full range of DrawType, which was specified to be unsigned int.  Unfortunately, this error is not ignorable.\n\nAlso, enum comparisons work by converting to int first, so unless there will ever be 2^31 entries in these enums, there should be no problem.  I understand this limit could be reached easily in an enum bitfield, but comparisons like \u003e wouldn\u0027t make sense in that case anyway.",
+      "parentUuid": "cfb72fb1_c183f3af",
+      "range": {
+        "startLine": 55,
+        "startChar": 6,
+        "endLine": 55,
+        "endChar": 14
+      },
+      "revId": "52573b2d07fc3c79c1ec8465c749fed9e73b76b3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     },
     {
       "key": {
@@ -118,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "8ef44029_a6d5289f",
+        "filename": "third_party/LLVM/include/llvm/CodeGen/RegAllocPBQP.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 5960
+      },
+      "writtenOn": "2017-02-28T01:48:12Z",
+      "side": 1,
+      "message": "I reverted everything in LLVM and instead disabled the warnings",
+      "parentUuid": "07d09244_fa32a5ee",
+      "range": {
+        "startLine": 126,
+        "startChar": 4,
+        "endLine": 126,
+        "endChar": 49
+      },
+      "revId": "52573b2d07fc3c79c1ec8465c749fed9e73b76b3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3b5510b6_c3e1a609",
         "filename": "third_party/pnacl-subzero",
         "patchSetId": 1
@@ -129,6 +201,30 @@
       "writtenOn": "2017-02-26T21:11:05Z",
       "side": 1,
       "message": "We shouldn\u0027t roll back the Subzero revision. What\u0027s the issue you\u0027re experiencing? If it\u0027s genuine we can patch Subzero and update the revision both here and in the DEPS file.",
+      "range": {
+        "startLine": 1,
+        "startChar": 18,
+        "endLine": 1,
+        "endChar": 58
+      },
+      "revId": "52573b2d07fc3c79c1ec8465c749fed9e73b76b3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ee8918b0_24a8eff8",
+        "filename": "third_party/pnacl-subzero",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5960
+      },
+      "writtenOn": "2017-02-28T01:48:12Z",
+      "side": 1,
+      "message": "I don\u0027t know how this got added.  Reverted",
+      "parentUuid": "3b5510b6_c3e1a609",
       "range": {
         "startLine": 1,
         "startChar": 18,
