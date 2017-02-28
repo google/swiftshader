@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "cd689fb9_53a83464",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-02-28T15:19:58Z",
+      "side": 1,
+      "message": "Is this an officially supported configuration? It means you\u0027re using your workstation\u0027s toolchain, which means you could run into any random GCC bug that ever existed (which I\u0027m assuming the enum error is).",
+      "range": {
+        "startLine": 12,
+        "startChar": 0,
+        "endLine": 12,
+        "endChar": 11
+      },
+      "revId": "add22663e914766816ad82cfd40204fcdeab3368",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c678dc39_7c0a2dca",
         "filename": "third_party/LLVM/BUILD.gn",
         "patchSetId": 3
@@ -13,6 +36,30 @@
       "writtenOn": "2017-02-28T01:48:12Z",
       "side": 1,
       "message": "can we just use \"-w\" instead?",
+      "range": {
+        "startLine": 51,
+        "startChar": 2,
+        "endLine": 69,
+        "endChar": 3
+      },
+      "revId": "add22663e914766816ad82cfd40204fcdeab3368",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8fe1757a_09b3c69e",
+        "filename": "third_party/LLVM/BUILD.gn",
+        "patchSetId": 3
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-02-28T15:19:58Z",
+      "side": 1,
+      "message": "It\u0027s tempting, but if we update LLVM and/or make changes to it then it could be useful to get some warnings. We don\u0027t add new environments very often, so I think it\u0027s manageable to keep this set of disabled warnings as limited as possible.",
+      "parentUuid": "c678dc39_7c0a2dca",
       "range": {
         "startLine": 51,
         "startChar": 2,
