@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "52819594_b8c0d860",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5960
+      },
+      "writtenOn": "2017-03-01T19:42:22Z",
+      "side": 1,
+      "message": "done",
+      "parentUuid": "856546e6_c20f07f8",
+      "range": {
+        "startLine": 7,
+        "startChar": 4,
+        "endLine": 7,
+        "endChar": 13
+      },
+      "revId": "52573b2d07fc3c79c1ec8465c749fed9e73b76b3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "cfb72fb1_c183f3af",
         "filename": "src/Renderer/Context.hpp",
         "patchSetId": 1
@@ -141,6 +165,30 @@
       "revId": "52573b2d07fc3c79c1ec8465c749fed9e73b76b3",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "25f60fe8_0242c39f",
+        "filename": "src/Renderer/Context.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5960
+      },
+      "writtenOn": "2017-03-01T19:42:22Z",
+      "side": 1,
+      "message": "I believe the error is correct.  In \"7.2 Enumeration declarations\" of the standard, it says \"It is possible to define an enumeration that has values not defined by any of its enumerators\".\n\nI verified with this test on clang and gcc:\n\n#include \u003ccassert\u003e\n#include \u003cvector\u003e\n\nenum E {\n  a, // 000\n  b, // 001\n  c, // 010\n  d, // 011\n  e, // 100\n  f, // 101\n  g, // 110\n  h, // 111\n};\n\nstruct S {\n  E e : 3;\n  int dummy;\n};\n\nint main(void) {\n  S s;\n  std::vector\u003cE\u003e es{a, b, c, d, e, f, g, h};\n  for (int i \u003d 0; i \u003c 7; i++) {\n    for (int j \u003d i + 1; j \u003c 7; j++) {\n      s.e \u003d es[i];\n      assert(s.e \u003c es[j]);\n    }\n  }\n  return 0;\n}",
+      "parentUuid": "747cb725_72deb8c7",
+      "range": {
+        "startLine": 55,
+        "startChar": 6,
+        "endLine": 55,
+        "endChar": 14
+      },
+      "revId": "52573b2d07fc3c79c1ec8465c749fed9e73b76b3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     },
     {
       "key": {
