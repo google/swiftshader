@@ -216,6 +216,30 @@
     },
     {
       "key": {
+        "uuid": "2a73e4c8_4433d5d1",
+        "filename": "src/Renderer/Context.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5960
+      },
+      "writtenOn": "2017-03-02T20:17:18Z",
+      "side": 1,
+      "message": "I can\u0027t seem to reproduce the failure on my machine,\nmaybe we have different compiler versions?\n\n$ g++ --version\ng++-4.8.real (Ubuntu 4.8.4-2ubuntu1~14.04.3) 4.8.4\nCopyright (C) 2013 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n$ clang++ --version\nUbuntu clang version 3.4-1ubuntu3 (tags/RELEASE_34/final) (based on LLVM 3.4)\nTarget: x86_64-pc-linux-gnu\nThread model: posix",
+      "parentUuid": "de3b5045_f0971290",
+      "range": {
+        "startLine": 55,
+        "startChar": 6,
+        "endLine": 55,
+        "endChar": 14
+      },
+      "revId": "52573b2d07fc3c79c1ec8465c749fed9e73b76b3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b8fe4939_6e6bbfae",
         "filename": "third_party/LLVM/BUILD.gn",
         "patchSetId": 1
