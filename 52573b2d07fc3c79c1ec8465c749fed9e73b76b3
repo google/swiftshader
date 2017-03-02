@@ -192,6 +192,30 @@
     },
     {
       "key": {
+        "uuid": "de3b5045_f0971290",
+        "filename": "src/Renderer/Context.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-03-02T10:48:46Z",
+      "side": 1,
+      "message": "Thanks for the standards reference. I think the most interesting part is: \"For an enumeration whose underlying type is fixed, the values of the enumeration are the values of the underlying type.\" That\u0027s news to me, and a bit surprising.\n\nBut your test does not expose the issue caused by having an implicit signed underlying type. With these inner loops instead, it fails:\n\nfor (int i \u003d 0; i \u003c 7; i++) {\n  for (int j \u003d i + 1; j \u003c 7; j++) {\n    s.e \u003d es[j];\n    assert(s.e \u003e es[i]);\n  }\n}\n\nI\u0027ll look into how to best fix this when I\u0027m back from vacation next week.",
+      "parentUuid": "25f60fe8_0242c39f",
+      "range": {
+        "startLine": 55,
+        "startChar": 6,
+        "endLine": 55,
+        "endChar": 14
+      },
+      "revId": "52573b2d07fc3c79c1ec8465c749fed9e73b76b3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b8fe4939_6e6bbfae",
         "filename": "third_party/LLVM/BUILD.gn",
         "patchSetId": 1
