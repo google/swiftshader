@@ -17,7 +17,7 @@
 
 /* Define to disable the link-time checking of mismatch for
    LLVM_ENABLE_ABI_BREAKING_CHECKS */
-#define LLVM_DISABLE_ABI_BREAKING_CHECKS_ENFORCING 0
+#define LLVM_DISABLE_ABI_BREAKING_CHECKS_ENFORCING 1
 #if !LLVM_DISABLE_ABI_BREAKING_CHECKS_ENFORCING
 
 // ABI_BREAKING_CHECKS protection: provides link-time failure when clients build
