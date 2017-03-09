@@ -17,6 +17,7 @@
 
 #include "Main/Config.hpp"
 #include "Renderer/Surface.hpp"
+#include "Common/Types.hpp"
 
 namespace sw
 {
@@ -63,7 +64,7 @@ namespace sw
 		SAMPLER_VERTEX
 	};
 
-	enum TextureType : unsigned int
+	enum TextureType ENUM_UNDERLYING_TYPE_UNSIGNED_INT
 	{
 		TEXTURE_NULL,
 		TEXTURE_2D,
@@ -74,7 +75,7 @@ namespace sw
 		TEXTURE_LAST = TEXTURE_2D_ARRAY
 	};
 
-	enum FilterType : unsigned int
+	enum FilterType ENUM_UNDERLYING_TYPE_UNSIGNED_INT
 	{
 		FILTER_POINT,
 		FILTER_GATHER,
@@ -86,7 +87,7 @@ namespace sw
 		FILTER_LAST = FILTER_ANISOTROPIC
 	};
 
-	enum MipmapType : unsigned int
+	enum MipmapType ENUM_UNDERLYING_TYPE_UNSIGNED_INT
 	{
 		MIPMAP_NONE,
 		MIPMAP_POINT,
@@ -95,7 +96,7 @@ namespace sw
 		MIPMAP_LAST = MIPMAP_LINEAR
 	};
 
-	enum AddressingMode : unsigned int
+	enum AddressingMode ENUM_UNDERLYING_TYPE_UNSIGNED_INT
 	{
 		ADDRESSING_WRAP,
 		ADDRESSING_CLAMP,
@@ -108,7 +109,7 @@ namespace sw
 		ADDRESSING_LAST = ADDRESSING_TEXELFETCH
 	};
 
-	enum SwizzleType : unsigned int
+	enum SwizzleType ENUM_UNDERLYING_TYPE_UNSIGNED_INT
 	{
 		SWIZZLE_RED,
 		SWIZZLE_GREEN,

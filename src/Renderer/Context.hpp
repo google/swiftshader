@@ -20,6 +20,7 @@
 #include "Stream.hpp"
 #include "Point.hpp"
 #include "Vertex.hpp"
+#include "Common/Types.hpp"
 
 namespace sw
 {
@@ -52,7 +53,7 @@ namespace sw
 		PositionT = 15
 	};
 
-	enum DrawType : unsigned int
+	enum DrawType ENUM_UNDERLYING_TYPE_UNSIGNED_INT
 	{
 		// These types must stay ordered by vertices per primitive. Also, if these basic types
 		// are modified, verify the value assigned to task->verticesPerPrimitive in Renderer.cpp
@@ -97,7 +98,7 @@ namespace sw
 		DRAW_LAST = DRAW_INDEXEDTRIANGLEFAN32
 	};
 
-	enum FillMode : unsigned int
+	enum FillMode ENUM_UNDERLYING_TYPE_UNSIGNED_INT
 	{
 		FILL_SOLID,
 		FILL_WIREFRAME,
@@ -106,7 +107,7 @@ namespace sw
 		FILL_LAST = FILL_VERTEX
 	};
 
-	enum ShadingMode : unsigned int
+	enum ShadingMode ENUM_UNDERLYING_TYPE_UNSIGNED_INT
 	{
 		SHADING_FLAT,
 		SHADING_GOURAUD,
@@ -114,7 +115,7 @@ namespace sw
 		SHADING_LAST = SHADING_GOURAUD
 	};
 
-	enum DepthCompareMode : unsigned int
+	enum DepthCompareMode ENUM_UNDERLYING_TYPE_UNSIGNED_INT
 	{
 		DEPTH_ALWAYS,
 		DEPTH_NEVER,
@@ -128,7 +129,7 @@ namespace sw
 		DEPTH_LAST = DEPTH_GREATEREQUAL
 	};
 
-	enum StencilCompareMode : unsigned int
+	enum StencilCompareMode ENUM_UNDERLYING_TYPE_UNSIGNED_INT
 	{
 		STENCIL_ALWAYS,
 		STENCIL_NEVER,
@@ -142,7 +143,7 @@ namespace sw
 		STENCIL_LAST = STENCIL_GREATEREQUAL
 	};
 
-	enum StencilOperation : unsigned int
+	enum StencilOperation ENUM_UNDERLYING_TYPE_UNSIGNED_INT
 	{
 		OPERATION_KEEP,
 		OPERATION_ZERO,
@@ -156,7 +157,7 @@ namespace sw
 		OPERATION_LAST = OPERATION_DECR
 	};
 
-	enum AlphaCompareMode : unsigned int
+	enum AlphaCompareMode ENUM_UNDERLYING_TYPE_UNSIGNED_INT
 	{
 		ALPHA_ALWAYS,
 		ALPHA_NEVER,
@@ -170,7 +171,7 @@ namespace sw
 		ALPHA_LAST = ALPHA_GREATEREQUAL
 	};
 
-	enum CullMode : unsigned int
+	enum CullMode ENUM_UNDERLYING_TYPE_UNSIGNED_INT
 	{
 		CULL_NONE,
 		CULL_CLOCKWISE,
@@ -179,7 +180,7 @@ namespace sw
 		CULL_LAST = CULL_COUNTERCLOCKWISE
 	};
 
-	enum BlendFactor : unsigned int
+	enum BlendFactor ENUM_UNDERLYING_TYPE_UNSIGNED_INT
 	{
 		BLEND_ZERO,
 		BLEND_ONE,
@@ -200,7 +201,7 @@ namespace sw
 		BLEND_LAST = BLEND_INVCONSTANT
 	};
 
-	enum BlendOperation : unsigned int
+	enum BlendOperation ENUM_UNDERLYING_TYPE_UNSIGNED_INT
 	{
 		BLENDOP_ADD,
 		BLENDOP_SUB,
@@ -215,7 +216,7 @@ namespace sw
 		BLENDOP_LAST = BLENDOP_NULL
 	};
 
-	enum LogicalOperation : unsigned int
+	enum LogicalOperation ENUM_UNDERLYING_TYPE_UNSIGNED_INT
 	{
 		LOGICALOP_CLEAR,
 		LOGICALOP_SET,
@@ -237,7 +238,7 @@ namespace sw
 		LOGICALOP_LAST = LOGICALOP_OR_INVERTED
 	};
 
-	enum MaterialSource : unsigned int
+	enum MaterialSource ENUM_UNDERLYING_TYPE_UNSIGNED_INT
 	{
 		MATERIAL_MATERIAL,
 		MATERIAL_COLOR1,
@@ -246,7 +247,7 @@ namespace sw
 		MATERIAL_LAST = MATERIAL_COLOR2
 	};
 
-	enum FogMode : unsigned int
+	enum FogMode ENUM_UNDERLYING_TYPE_UNSIGNED_INT
 	{
 		FOG_NONE,
 		FOG_LINEAR,
@@ -256,7 +257,7 @@ namespace sw
 		FOG_LAST = FOG_EXP2
 	};
 
-	enum TexGen : unsigned int
+	enum TexGen ENUM_UNDERLYING_TYPE_UNSIGNED_INT
 	{
 		TEXGEN_PASSTHRU,
 		TEXGEN_NORMAL,
@@ -268,7 +269,7 @@ namespace sw
 		TEXGEN_LAST = TEXGEN_NONE
 	};
 
-	enum TransparencyAntialiasing : unsigned int
+	enum TransparencyAntialiasing ENUM_UNDERLYING_TYPE_UNSIGNED_INT
 	{
 		TRANSPARENCY_NONE,
 		TRANSPARENCY_ALPHA_TO_COVERAGE,

@@ -15,6 +15,18 @@
 #ifndef sw_Types_hpp
 #define sw_Types_hpp
 
+#include <limits>
+#include <type_traits>
+
+// GCC warns against bitfields not fitting the entire range of an enum with a fixed underlying type of unsigned int, which gets promoted to an error with -Werror and cannot be suppressed.
+// However, GCC already defaults to using unsigned int as the underlying type of an unscoped enum without a fixed underlying type. So we can just omit it.
+#if defined(__GNUC__) && !defined(__clang__)
+namespace {enum E {}; static_assert(!std::numeric_limits<std::underlying_type<E>::type>::is_signed, "expected unscoped enum whose underlying type is not fixed to be unsigned");}
+#define ENUM_UNDERLYING_TYPE_UNSIGNED_INT
+#else
+#define ENUM_UNDERLYING_TYPE_UNSIGNED_INT : unsigned int
+#endif
+
 #if defined(_MSC_VER)
 	typedef signed __int8 int8_t;
 	typedef signed __int16 int16_t;
