@@ -240,6 +240,30 @@
     },
     {
       "key": {
+        "uuid": "d74c7d3a_3365d86c",
+        "filename": "src/Renderer/Context.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-03-09T21:10:59Z",
+      "side": 1,
+      "message": "Indeed it cannot be reproduced with GCC 4.8.4. I was using Visual Studio 2015.3 earlier. It turns out the C++ standard supports either behavior: \"For an enumeration whose underlying type is not fixed, the underlying type is an integral type [...]. It is implementation-defined which integral type is used as the underlying type\".\n\nApparently VS uses int, while GCC uses unsigned int.\n\nI\u0027ll create a compiler-specific patch (or something based on numeric_limits\u003c\u003e::is_signed).",
+      "parentUuid": "2a73e4c8_4433d5d1",
+      "range": {
+        "startLine": 55,
+        "startChar": 6,
+        "endLine": 55,
+        "endChar": 14
+      },
+      "revId": "52573b2d07fc3c79c1ec8465c749fed9e73b76b3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b8fe4939_6e6bbfae",
         "filename": "third_party/LLVM/BUILD.gn",
         "patchSetId": 1
