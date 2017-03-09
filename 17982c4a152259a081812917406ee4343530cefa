@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a3d99438_9c502d8f",
+        "filename": "third_party/llvm-subzero/lib/Support/Error.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-03-09T21:52:12Z",
+      "side": 0,
+      "message": "This file was only compiled to define one of these symbols. We don\u0027t need it when the ABI-breaking check mismatch check is disabled.",
+      "range": {
+        "startLine": 122,
+        "startChar": 0,
+        "endLine": 126,
+        "endChar": 6
+      },
+      "revId": "17982c4a152259a081812917406ee4343530cefa",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
