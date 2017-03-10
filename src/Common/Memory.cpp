@@ -139,7 +139,7 @@ void clear(uint16_t *memory, uint16_t element, size_t count)
 	#if defined(_MSC_VER) && defined(__x86__)
 		__stosw(memory, element, count);
 	#elif defined(__GNUC__) && defined(__x86__)
-		__asm__("rep stosw" : : "D"(memory), "a"(element), "c"(count) : "%edi", "%ecx");
+		__asm__("rep stosw" : : "D"(memory), "a"(element), "c"(count));
 	#else
 		for(size_t i = 0; i < count; i++)
 		{
@@ -153,7 +153,7 @@ void clear(uint32_t *memory, uint32_t element, size_t count)
 	#if defined(_MSC_VER) && defined(__x86__)
 		__stosd((unsigned long*)memory, element, count);
 	#elif defined(__GNUC__) && defined(__x86__)
-		__asm__("rep stosl" : : "D"(memory), "a"(element), "c"(count) : "%edi", "%ecx");
+		__asm__("rep stosl" : : "D"(memory), "a"(element), "c"(count));
 	#else
 		for(size_t i = 0; i < count; i++)
 		{
