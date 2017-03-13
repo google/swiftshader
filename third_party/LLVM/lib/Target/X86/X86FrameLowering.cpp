@@ -850,12 +850,24 @@ void X86FrameLowering::emitPrologue(MachineFunction &MF) const {
         .setMIFlag(MachineInstr::FrameSetup);
     }
 
-    BuildMI(MBB, MBBI, DL,
-            TII.get(Is64Bit ? X86::W64ALLOCA : X86::CALLpcrel32))
-      .addExternalSymbol(StackProbeSymbol)
-      .addReg(StackPtr,    RegState::Define | RegState::Implicit)
-      .addReg(X86::EFLAGS, RegState::Define | RegState::Implicit)
-      .setMIFlag(MachineInstr::FrameSetup);
+    if (Is64Bit && MF.getTarget().getCodeModel() == CodeModel::Large) {
+      // For the large code model, we have to call through a register. Use R11,
+      // as it is unused and clobbered by all probe functions.
+      BuildMI(MBB, MBBI, DL, TII.get(X86::MOV64ri), X86::R11)
+          .addExternalSymbol(StackProbeSymbol);
+      BuildMI(MBB, MBBI, DL, TII.get(X86::CALL64r))
+          .addReg(X86::R11)
+          .addReg(StackPtr, RegState::Define | RegState::Implicit)
+          .addReg(X86::EFLAGS, RegState::Define | RegState::Implicit)
+          .setMIFlag(MachineInstr::FrameSetup);
+    } else {
+      BuildMI(MBB, MBBI, DL,
+              TII.get(STI.is64Bit() ? X86::CALL64pcrel32 : X86::CALLpcrel32))
+          .addExternalSymbol(StackProbeSymbol)
+          .addReg(StackPtr, RegState::Define | RegState::Implicit)
+          .addReg(X86::EFLAGS, RegState::Define | RegState::Implicit)
+          .setMIFlag(MachineInstr::FrameSetup);
+    }
 
     // MSVC x64's __chkstk needs to adjust %rsp.
     // FIXME: %rax preserves the offset and should be available.
