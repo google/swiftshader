@@ -657,7 +657,16 @@ namespace sw
 			nextDraw++;
 			schedulerMutex.unlock();
 
-			if(threadCount > 1)
+			#ifndef NDEBUG
+			if(threadCount == 1)   // Use main thread for draw execution
+			{
+				threadsAwake = 1;
+				task[0].type = Task::RESUME;
+
+				taskLoop(0);
+			}
+			else
+			#endif
 			{
 				if(!threadsAwake)
 				{
@@ -668,13 +677,6 @@ namespace sw
 
 					resume[0]->signal();
 				}
-			}
-			else   // Use main thread for draw execution
-			{
-				threadsAwake = 1;
-				task[0].type = Task::RESUME;
-
-				taskLoop(0);
 			}
 		}
 	}
