@@ -36,7 +36,6 @@ public:
 
 	EGLConfig getHandle() const;
 
-	const sw::Format mDisplayFormat;
 	const sw::Format mRenderTargetFormat;
 	const sw::Format mDepthStencilFormat;
 	const EGLint mMultiSample;

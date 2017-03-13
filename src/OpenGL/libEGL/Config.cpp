@@ -44,7 +44,7 @@ const bool strictConformance = false;
 #endif
 
 Config::Config(sw::Format displayFormat, EGLint minInterval, EGLint maxInterval, sw::Format renderTargetFormat, sw::Format depthStencilFormat, EGLint multiSample, bool conformant)
-	: mDisplayFormat(displayFormat), mRenderTargetFormat(renderTargetFormat), mDepthStencilFormat(depthStencilFormat), mMultiSample(multiSample)
+	: mRenderTargetFormat(renderTargetFormat), mDepthStencilFormat(depthStencilFormat), mMultiSample(multiSample)
 {
 	mBindToTextureRGB = EGL_FALSE;
 	mBindToTextureRGBA = EGL_FALSE;
@@ -195,8 +195,10 @@ Config::Config(sw::Format displayFormat, EGLint minInterval, EGLint maxInterval,
 	mTransparentGreenValue = 0;
 	mTransparentBlueValue = 0;
 
-	mRecordableAndroid = EGL_TRUE;
+	// Although we could support any format as an Android HWComposer compatible config by converting when necessary,
+	// the intent of EGL_ANDROID_framebuffer_target is to prevent any copies or conversions.
 	mFramebufferTargetAndroid = (displayFormat == renderTargetFormat) ? EGL_TRUE : EGL_FALSE;
+	mRecordableAndroid = EGL_TRUE;
 }
 
 EGLConfig Config::getHandle() const
