@@ -17,10 +17,8 @@ config("swiftshader_common_private_config") {
   if (is_win) {
     cflags = [ "/wd4201" ]  # nameless struct/union
   } else {
-    cflags = [
-      "-DLOG_TAG=\"swiftshader_common\"",
-      "-msse2",
-    ]
+    cflags = [ "-msse2" ]
+    defines = [ "LOG_TAG=\"swiftshader_common\"" ]
   }
 }
 

@@ -141,11 +141,14 @@ config("swiftshader_reactor_private_config") {
     ]
   } else {
     cflags = [
-      "-DLOG_TAG=\"swiftshader_reactor\"",
       "-Wno-unused-local-typedef",
       "-msse2",
-      "-D__STDC_CONSTANT_MACROS",
-      "-D__STDC_LIMIT_MACROS",
+    ]
+
+    defines = [
+      "LOG_TAG=\"swiftshader_reactor\"",
+      "__STDC_CONSTANT_MACROS",
+      "__STDC_LIMIT_MACROS",
     ]
   }
 }

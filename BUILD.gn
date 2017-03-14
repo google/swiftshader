@@ -13,23 +13,27 @@
 # limitations under the License.
 
 config("swiftshader_config") {
+  defines = [ "STRICT_CONFORMANCE" ]  # Disables OpenGL ES 3.0
+
   if (is_win) {
     cflags = [
       "/GS",  # Detects some buffer overruns
       "/Zc:wchar_t",
-      "/D_CRT_SECURE_NO_DEPRECATE",
-      "/DNOMINMAX",
-      "/D_WINDLL",
       "/EHsc",
       "/nologo",
       "/Gd",  # Default calling convention
-      "/DSTRICT_CONFORMANCE", # Disables OpenGL ES 3.0
+    ]
+
+    defines += [
+      "_CRT_SECURE_NO_DEPRECATE",
+      "NOMINMAX",
+      "_WINDLL",
     ]
 
     if (is_debug) {
       cflags += [ "/RTC1" ]  # Run-Time Error Checks
     } else {
-      cflags += [ "/DANGLE_DISABLE_TRACE" ]
+      defines += [ "ANGLE_DISABLE_TRACE" ]
     }
   } else {
     cflags = [
@@ -37,9 +41,11 @@ config("swiftshader_config") {
       "-Wall",
       "-fexceptions",
       "-fno-operator-names",
-      "-D__STDC_CONSTANT_MACROS",
-      "-D__STDC_LIMIT_MACROS",
-      "-DSTRICT_CONFORMANCE", # Disables OpenGL ES 3.0
+    ]
+
+    defines += [
+      "__STDC_CONSTANT_MACROS",
+      "__STDC_LIMIT_MACROS",
     ]
 
     if (is_debug) {
@@ -53,10 +59,13 @@ config("swiftshader_config") {
         "-ffunction-sections",
         "-fdata-sections",
         "-fomit-frame-pointer",
-        "-DANGLE_DISABLE_TRACE",
-        "-DNDEBUG",
         "-O2",
         "-Os",
+      ]
+
+      defines += [
+        "ANGLE_DISABLE_TRACE",
+        "NDEBUG",
       ]
     }
 

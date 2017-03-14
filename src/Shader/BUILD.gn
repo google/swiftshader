@@ -24,7 +24,7 @@ config("swiftshader_shader_private_config") {
       cflags += [ "-Wno-sign-compare" ]
     }
   } else {
-    cflags = [ "-DLOG_TAG=\"swiftshader_shader\"" ]
+    defines = [ "LOG_TAG=\"swiftshader_shader\"" ]
   }
 }
 

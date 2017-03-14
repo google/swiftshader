@@ -21,10 +21,11 @@ config("swiftshader_renderer_private_config") {
     ]
   } else {
     cflags = [
-      "-DLOG_TAG=\"swiftshader_renderer\"",
       "-msse2",
       "-Wno-sign-compare",
     ]
+
+    defines = [ "LOG_TAG=\"swiftshader_renderer\"" ]
   }
 }
 

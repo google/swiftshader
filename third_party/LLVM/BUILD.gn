@@ -51,8 +51,6 @@ config("swiftshader_llvm_private_config") {
   if (is_clang) {
     cflags += [
       "-msse2",
-      "-D__STDC_CONSTANT_MACROS",
-      "-D__STDC_LIMIT_MACROS",
       "-Wno-unused-local-typedef",
       "-Wno-unused-private-field",
       "-Wno-null-dereference",
@@ -61,6 +59,11 @@ config("swiftshader_llvm_private_config") {
       "-Wno-deprecated-declarations",
       "-Wno-unused-variable",
       "-Wno-unused-result",
+    ]
+
+    defines = [
+      "__STDC_CONSTANT_MACROS",
+      "__STDC_LIMIT_MACROS",
     ]
   }
 }

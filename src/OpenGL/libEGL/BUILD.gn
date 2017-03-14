@@ -14,25 +14,26 @@
 
 # Need a separate config to ensure the warnings are added to the end.
 config("swiftshader_libEGL_private_config") {
+  defines = [ "EGL_EGLEXT_PROTOTYPES" ]
+
   if (is_win) {
     cflags = [
-      "/DEGLAPI=",
-      "/DEGL_EGLEXT_PROTOTYPES",
-      "/DLIBEGL_EXPORTS",
       "/wd4201",  # nameless struct/union
       "/wd4065",  # switch statement contains 'default' but no 'case' labels
     ]
-  } else {
-    cflags = [
-      "-DLOG_TAG=\"swiftshader_libEGL\"",
-      "-DEGL_EGLEXT_PROTOTYPES",
-      "-Wno-sign-compare",
+
+    defines += [
+      "EGLAPI=",
+      "LIBEGL_EXPORTS",
     ]
+  } else {
+    cflags = [ "-Wno-sign-compare" ]
+    defines += [ "LOG_TAG=\"swiftshader_libEGL\"" ]
 
     if (is_linux) {
-      cflags += [ "-DGL_APICALL=__attribute__((visibility(\"protected\")))" ]
+      defines += [ "GL_APICALL=__attribute__((visibility(\"protected\")))" ]
     } else {
-      cflags += [ "-DGL_APICALL=__attribute__((visibility(\"default\")))" ]
+      defines += [ "GL_APICALL=__attribute__((visibility(\"default\")))" ]
     }
   }
 }

@@ -24,10 +24,8 @@ config("swiftshader_main_private_config") {
       ]
     }
   } else {
-    cflags = [
-      "-DLOG_TAG=\"swiftshader_main\"",
-      "-msse2",
-    ]
+    cflags = [ "-msse2" ]
+    defines = [ "LOG_TAG=\"swiftshader_main\"" ]
   }
 }
 

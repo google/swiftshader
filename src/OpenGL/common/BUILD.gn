@@ -20,7 +20,7 @@ config("swiftshader_opengl_common_private_config") {
       "/wd4324",  # structure was padded due to alignment specifier
     ]
   } else {
-    cflags = [ "-DLOG_TAG=\"swiftshader_opengl_common\"" ]
+    defines = [ "LOG_TAG=\"swiftshader_opengl_common\"" ]
   }
 }
 
