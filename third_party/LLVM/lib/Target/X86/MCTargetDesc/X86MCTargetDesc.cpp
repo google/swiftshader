@@ -35,6 +35,10 @@
 #define GET_SUBTARGETINFO_MC_DESC
 #include "X86GenSubtargetInfo.inc"
 
+#ifdef _MSC_VER
+#include <intrin.h>
+#endif
+
 using namespace llvm;
 
 
