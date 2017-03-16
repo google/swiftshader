@@ -2062,6 +2062,8 @@ void FramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, GL
 
 	if(context)
 	{
+		GLint clientVersion = context->getClientVersion();
+
 		if(texture == 0)
 		{
 			textarget = GL_NONE;
@@ -2098,7 +2100,7 @@ void FramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, GL
 				return error(GL_INVALID_ENUM);
 			}
 
-			if((level != 0) && (context->getClientVersion() < 3))
+			if((level != 0) && (clientVersion < 3))
 			{
 				return error(GL_INVALID_VALUE);
 			}
@@ -2174,6 +2176,14 @@ void FramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, GL
 			break;
 		case GL_DEPTH_ATTACHMENT:   framebuffer->setDepthbuffer(textarget, texture, level);   break;
 		case GL_STENCIL_ATTACHMENT: framebuffer->setStencilbuffer(textarget, texture, level); break;
+		case GL_DEPTH_STENCIL_ATTACHMENT:
+			if(clientVersion >= 3)
+			{
+				framebuffer->setDepthbuffer(textarget, texture, level);
+				framebuffer->setStencilbuffer(textarget, texture, level);
+				break;
+			}
+			else return error(GL_INVALID_ENUM);
 		default:
 			return error(GL_INVALID_ENUM);
 		}
