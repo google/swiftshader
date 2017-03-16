@@ -103,7 +103,7 @@ DESTRUCTOR void detachProcess()
 }
 
 #if defined(_WIN32)
-#ifndef NDEBUG
+#ifdef DEBUGGER_WAIT_DIALOG
 static INT_PTR CALLBACK DebuggerWaitDialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	RECT rect;
