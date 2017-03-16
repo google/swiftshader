@@ -147,7 +147,7 @@ extern "C" BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved
 	switch(reason)
 	{
 	case DLL_PROCESS_ATTACH:
-		#ifndef NDEBUG
+		#ifdef DEBUGGER_WAIT_DIALOG
 			WaitForDebugger(instance);
 		#endif
 		egl::attachProcess();
