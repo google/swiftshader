@@ -3289,7 +3289,7 @@ namespace sw
 		unsigned char maskedS = s & mask;
 		unsigned char invMask = ~mask;
 		unsigned int fill = maskedS;
-		fill = fill | (fill << 8) | (fill << 16) + (fill << 24);
+		fill = fill | (fill << 8) | (fill << 16) | (fill << 24);
 
 		char *buffer = (char*)lockStencil(0, 0, 0, PUBLIC);
 

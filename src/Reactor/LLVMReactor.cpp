@@ -5218,7 +5218,7 @@ namespace sw
 		else
 		{
 			RValue<Int4> greater = CmpNLE(x, y);
-			return x & greater | y & ~greater;
+			return (x & greater) | (y & ~greater);
 		}
 	}
 
@@ -5231,7 +5231,7 @@ namespace sw
 		else
 		{
 			RValue<Int4> less = CmpLT(x, y);
-			return x & less | y & ~less;
+			return (x & less) | (y & ~less);
 		}
 	}
 
@@ -5558,7 +5558,7 @@ namespace sw
 		else
 		{
 			RValue<UInt4> greater = CmpNLE(x, y);
-			return x & greater | y & ~greater;
+			return (x & greater) | (y & ~greater);
 		}
 	}
 
@@ -5571,7 +5571,7 @@ namespace sw
 		else
 		{
 			RValue<UInt4> less = CmpLT(x, y);
-			return x & less | y & ~less;
+			return (x & less) | (y & ~less);
 		}
 	}
 

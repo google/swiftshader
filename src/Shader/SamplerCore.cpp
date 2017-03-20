@@ -705,10 +705,10 @@ namespace sw
 		{
 			Short4 b;
 
-			c.x = borderMask & c.x | ~borderMask & (*Pointer<Short4>(texture + OFFSET(Texture,borderColor4[0])) >> (hasUnsignedTextureComponent(0) ? 0 : 1));
-			c.y = borderMask & c.y | ~borderMask & (*Pointer<Short4>(texture + OFFSET(Texture,borderColor4[1])) >> (hasUnsignedTextureComponent(1) ? 0 : 1));
-			c.z = borderMask & c.z | ~borderMask & (*Pointer<Short4>(texture + OFFSET(Texture,borderColor4[2])) >> (hasUnsignedTextureComponent(2) ? 0 : 1));
-			c.w = borderMask & c.w | ~borderMask & (*Pointer<Short4>(texture + OFFSET(Texture,borderColor4[3])) >> (hasUnsignedTextureComponent(3) ? 0 : 1));
+			c.x = (borderMask & c.x) | (~borderMask & (*Pointer<Short4>(texture + OFFSET(Texture,borderColor4[0])) >> (hasUnsignedTextureComponent(0) ? 0 : 1)));
+			c.y = (borderMask & c.y) | (~borderMask & (*Pointer<Short4>(texture + OFFSET(Texture,borderColor4[1])) >> (hasUnsignedTextureComponent(1) ? 0 : 1)));
+			c.z = (borderMask & c.z) | (~borderMask & (*Pointer<Short4>(texture + OFFSET(Texture,borderColor4[2])) >> (hasUnsignedTextureComponent(2) ? 0 : 1)));
+			c.w = (borderMask & c.w) | (~borderMask & (*Pointer<Short4>(texture + OFFSET(Texture,borderColor4[3])) >> (hasUnsignedTextureComponent(3) ? 0 : 1)));
 		}
 	}
 
@@ -1170,10 +1170,10 @@ namespace sw
 		{
 			Int4 b;
 
-			c.x = As<Float4>(borderMask & As<Int4>(c.x) | ~borderMask & *Pointer<Int4>(texture + OFFSET(Texture,borderColorF[0])));
-			c.y = As<Float4>(borderMask & As<Int4>(c.y) | ~borderMask & *Pointer<Int4>(texture + OFFSET(Texture,borderColorF[1])));
-			c.z = As<Float4>(borderMask & As<Int4>(c.z) | ~borderMask & *Pointer<Int4>(texture + OFFSET(Texture,borderColorF[2])));
-			c.w = As<Float4>(borderMask & As<Int4>(c.w) | ~borderMask & *Pointer<Int4>(texture + OFFSET(Texture,borderColorF[3])));
+			c.x = As<Float4>((borderMask & As<Int4>(c.x)) | (~borderMask & *Pointer<Int4>(texture + OFFSET(Texture,borderColorF[0]))));
+			c.y = As<Float4>((borderMask & As<Int4>(c.y)) | (~borderMask & *Pointer<Int4>(texture + OFFSET(Texture,borderColorF[1]))));
+			c.z = As<Float4>((borderMask & As<Int4>(c.z)) | (~borderMask & *Pointer<Int4>(texture + OFFSET(Texture,borderColorF[2]))));
+			c.w = As<Float4>((borderMask & As<Int4>(c.w)) | (~borderMask & *Pointer<Int4>(texture + OFFSET(Texture,borderColorF[3]))));
 		}
 	}
 
@@ -1439,8 +1439,8 @@ namespace sw
 				Float4 dvdy = duvdxy.wwww;
 
 				Int4 mask = As<Int4>(CmpNLT(dUV2.x, dUV2.y));
-				uDelta = As<Float4>(As<Int4>(dudx) & mask | As<Int4>(dudy) & ~mask);
-				vDelta = As<Float4>(As<Int4>(dvdx) & mask | As<Int4>(dvdy) & ~mask);
+				uDelta = As<Float4>((As<Int4>(dudx) & mask) | ((As<Int4>(dudy) & ~mask)));
+				vDelta = As<Float4>((As<Int4>(dvdx) & mask) | ((As<Int4>(dvdy) & ~mask)));
 
 				anisotropy = lod * Rcp_pp(det);
 				anisotropy = Min(anisotropy, *Pointer<Float>(texture + OFFSET(Texture,maxAnisotropy)));

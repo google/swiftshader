@@ -51,21 +51,26 @@ config("swiftshader_llvm_private_config") {
   if (is_clang) {
     cflags += [
       "-msse2",
-      "-Wno-unused-local-typedef",
-      "-Wno-unused-private-field",
-      "-Wno-null-dereference",
       "-Wno-header-hygiene",
-      "-Wno-unused-function",
-      "-Wno-deprecated-declarations",
-      "-Wno-unused-variable",
-      "-Wno-unused-result",
+      "-Wno-null-dereference",
+      "-Wno-unused-private-field",
+      "-Wno-unused-local-typedef",
     ]
-
-    defines = [
-      "__STDC_CONSTANT_MACROS",
-      "__STDC_LIMIT_MACROS",
-    ]
+  } else {
+    cflags += [ "-Wno-unused-but-set-variable" ]
   }
+  cflags += [
+    "-Wno-attributes",
+    "-Wno-deprecated-declarations",
+    "-Wno-enum-compare",
+    "-Wno-unused-function",
+    "-Wno-unused-result",
+    "-Wno-unused-variable",
+  ]
+  defines = [
+    "__STDC_CONSTANT_MACROS",
+    "__STDC_LIMIT_MACROS",
+  ]
 }
 
 source_set("swiftshader_llvm") {
