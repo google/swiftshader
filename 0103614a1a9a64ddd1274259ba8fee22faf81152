@@ -22,6 +22,30 @@
       "revId": "0103614a1a9a64ddd1274259ba8fee22faf81152",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "23da5a73_098fcbd9",
+        "filename": "third_party/LLVM/BUILD.gn",
+        "patchSetId": 7
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5960
+      },
+      "writtenOn": "2017-03-20T18:50:56Z",
+      "side": 1,
+      "message": "sorry that was a bad merge, fixed in latest patch set",
+      "parentUuid": "fcdbcf9b_cde1a4a8",
+      "range": {
+        "startLine": 58,
+        "startChar": 6,
+        "endLine": 60,
+        "endChar": 34
+      },
+      "revId": "0103614a1a9a64ddd1274259ba8fee22faf81152",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
