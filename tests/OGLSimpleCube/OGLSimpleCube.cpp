@@ -37,7 +37,7 @@ Inspired by http://www.cs.rit.edu/~ncs/Courses/570/UserGuide/OpenGLonWin-11.html
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 const char *className = "OpenGL";
-char *windowName = "OpenGL Cube";
+const char *windowName = "OpenGL Cube";
 int winX = 0, winY = 0;
 int winWidth = 300, winHeight = 300;
 float angle = 0.1f;
