@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fcdbcf9b_cde1a4a8",
+        "filename": "third_party/LLVM/BUILD.gn",
+        "patchSetId": 7
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-03-20T01:59:53Z",
+      "side": 1,
+      "message": "Fails to compile with Clang due to changes in these flags.",
+      "range": {
+        "startLine": 58,
+        "startChar": 6,
+        "endLine": 60,
+        "endChar": 34
+      },
+      "revId": "0103614a1a9a64ddd1274259ba8fee22faf81152",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
