@@ -636,6 +636,17 @@ namespace es2
 			{
 				return true;
 			}
+
+			// GL_EXT_read_format_bgra combinations.
+			if(format == GL_BGRA_EXT)
+			{
+				if(type == GL_UNSIGNED_BYTE ||
+				   type == GL_UNSIGNED_SHORT_4_4_4_4_REV_EXT ||
+				   type == GL_UNSIGNED_SHORT_1_5_5_5_REV_EXT)
+				{
+					return true;
+				}
+			}
 		}
 		else if(sw::Surface::isFloatFormat(internalformat))
 		{
