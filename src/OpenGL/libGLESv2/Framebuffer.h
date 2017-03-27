@@ -56,10 +56,10 @@ public:
 	egl::Image *getDepthBuffer();
 	egl::Image *getStencilBuffer();
 
-	Renderbuffer *getColorbuffer(GLuint index);
-	Renderbuffer *getReadColorbuffer();
-	Renderbuffer *getDepthbuffer();
-	Renderbuffer *getStencilbuffer();
+	Renderbuffer *getColorbuffer(GLuint index) const;
+	Renderbuffer *getReadColorbuffer() const;
+	Renderbuffer *getDepthbuffer() const;
+	Renderbuffer *getStencilbuffer() const;
 
 	GLenum getColorbufferType(GLuint index);
 	GLenum getDepthbufferType();
@@ -78,10 +78,10 @@ public:
 	GLenum completeness();
 	GLenum completeness(int &width, int &height, int &samples);
 
-	GLenum getImplementationColorReadFormat();
-	GLenum getImplementationColorReadType();
-	GLenum getDepthReadFormat();
-	GLenum getDepthReadType();
+	GLenum getImplementationColorReadFormat() const;
+	GLenum getImplementationColorReadType() const;
+	GLenum getDepthReadFormat() const;
+	GLenum getDepthReadType() const;
 
 	virtual bool isDefaultFramebuffer() const { return false; }
 

@@ -3197,21 +3197,7 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum
 		return error(GL_INVALID_OPERATION);
 	}
 
-	GLenum readFormat = GL_NONE;
-	GLenum readType = GL_NONE;
-	switch(format)
-	{
-	case GL_DEPTH_COMPONENT:
-		readFormat = framebuffer->getDepthReadFormat();
-		readType = framebuffer->getDepthReadType();
-		break;
-	default:
-		readFormat = framebuffer->getImplementationColorReadFormat();
-		readType = framebuffer->getImplementationColorReadType();
-		break;
-	}
-
-	if(!(readFormat == format && readType == type) && !ValidReadPixelsFormatType(readFormat, readType, format, type, clientVersion))
+	if(!IsValidReadPixelsFormatType(framebuffer, format, type, clientVersion))
 	{
 		return error(GL_INVALID_OPERATION);
 	}
@@ -4072,7 +4058,7 @@ void Context::blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1
 
 		// OpenGL ES 3.0.4 spec, p.199:
 		// ...an INVALID_OPERATION error is generated if the formats of the read
-		// and draw framebuffers are not identical or if the source and destination 
+		// and draw framebuffers are not identical or if the source and destination
 		// rectangles are not defined with the same(X0, Y 0) and (X1, Y 1) bounds.
 		// If SAMPLE_BUFFERS for the draw framebuffer is greater than zero, an
 		// INVALID_OPERATION error is generated.
