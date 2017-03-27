@@ -405,15 +405,14 @@ GLenum Framebuffer::getImplementationColorReadFormat()
 
 	if(colorbuffer)
 	{
-		// Don't return GL_RGBA since that's always supported. Provide a second option here.
 		switch(colorbuffer->getInternalFormat())
 		{
-		case sw::FORMAT_A8R8G8B8:      return GL_BGRA_EXT;
-		case sw::FORMAT_A8B8G8R8:      return GL_BGRA_EXT;
-		case sw::FORMAT_X8R8G8B8:      return 0x80E0;   // GL_BGR_EXT
-		case sw::FORMAT_X8B8G8R8:      return 0x80E0;   // GL_BGR_EXT
-		case sw::FORMAT_A1R5G5B5:      return GL_BGRA_EXT;
-		case sw::FORMAT_R5G6B5:        return 0x80E0;   // GL_BGR_EXT
+		case sw::FORMAT_A8R8G8B8: return GL_BGRA_EXT;
+		case sw::FORMAT_A8B8G8R8: return GL_RGBA;
+		case sw::FORMAT_X8R8G8B8: return GL_BGRA_EXT;
+		case sw::FORMAT_X8B8G8R8: return GL_RGBA;
+		case sw::FORMAT_A1R5G5B5: return GL_BGRA_EXT;
+		case sw::FORMAT_R5G6B5:   return GL_RGB;
 		default:
 			UNREACHABLE(colorbuffer->getInternalFormat());
 		}
@@ -430,12 +429,12 @@ GLenum Framebuffer::getImplementationColorReadType()
 	{
 		switch(colorbuffer->getInternalFormat())
 		{
-		case sw::FORMAT_A8R8G8B8:      return GL_UNSIGNED_BYTE;
-		case sw::FORMAT_A8B8G8R8:      return GL_UNSIGNED_BYTE;
-		case sw::FORMAT_X8R8G8B8:      return GL_UNSIGNED_BYTE;
-		case sw::FORMAT_X8B8G8R8:      return GL_UNSIGNED_BYTE;
-		case sw::FORMAT_A1R5G5B5:      return GL_UNSIGNED_SHORT_1_5_5_5_REV_EXT;
-		case sw::FORMAT_R5G6B5:        return GL_UNSIGNED_SHORT_5_6_5;
+		case sw::FORMAT_A8R8G8B8: return GL_UNSIGNED_BYTE;
+		case sw::FORMAT_A8B8G8R8: return GL_UNSIGNED_BYTE;
+		case sw::FORMAT_X8R8G8B8: return GL_UNSIGNED_BYTE;
+		case sw::FORMAT_X8B8G8R8: return GL_UNSIGNED_BYTE;
+		case sw::FORMAT_A1R5G5B5: return GL_UNSIGNED_SHORT_1_5_5_5_REV_EXT;
+		case sw::FORMAT_R5G6B5:   return GL_UNSIGNED_SHORT_5_6_5;
 		default:
 			UNREACHABLE(colorbuffer->getInternalFormat());
 		}
