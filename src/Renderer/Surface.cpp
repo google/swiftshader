@@ -2909,7 +2909,7 @@ namespace sw
 		}
 	}
 
-	bool Surface::isNonNormalizedInteger(Format format)
+	bool Surface::isSignedNonNormalizedInteger(Format format)
 	{
 		switch(format)
 		{
@@ -2925,6 +2925,16 @@ namespace sw
 		case FORMAT_X16B16G16R16I:
 		case FORMAT_G16R16I:
 		case FORMAT_R16I:
+			return true;
+		default:
+			return false;
+		}
+	}
+
+	bool Surface::isUnsignedNonNormalizedInteger(Format format)
+	{
+		switch(format)
+		{
 		case FORMAT_A16B16G16R16UI:
 		case FORMAT_X16B16G16R16UI:
 		case FORMAT_G16R16UI:
@@ -2941,6 +2951,21 @@ namespace sw
 		default:
 			return false;
 		}
+	}
+
+	bool Surface::isNonNormalizedInteger(Format format)
+	{
+		return isSignedNonNormalizedInteger(format) ||
+		       isUnsignedNonNormalizedInteger(format);
+	}
+
+	bool Surface::isNormalizedInteger(Format format)
+	{
+		return !isFloatFormat(format) &&
+		       !isNonNormalizedInteger(format) &&
+		       !isCompressed(format) &&
+		       !isDepth(format) &&
+		       !isStencil(format);
 	}
 
 	int Surface::componentCount(Format format)

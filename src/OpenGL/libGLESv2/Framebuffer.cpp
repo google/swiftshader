@@ -213,23 +213,23 @@ egl::Image *Framebuffer::getStencilBuffer()
 	return nullptr;
 }
 
-Renderbuffer *Framebuffer::getColorbuffer(GLuint index)
+Renderbuffer *Framebuffer::getColorbuffer(GLuint index) const
 {
 	return (index < MAX_COLOR_ATTACHMENTS) ? mColorbufferPointer[index] : (Renderbuffer*)nullptr;
 }
 
-Renderbuffer *Framebuffer::getReadColorbuffer()
+Renderbuffer *Framebuffer::getReadColorbuffer() const
 {
 	Context *context = getContext();
 	return getColorbuffer(context->getReadFramebufferColorIndex());
 }
 
-Renderbuffer *Framebuffer::getDepthbuffer()
+Renderbuffer *Framebuffer::getDepthbuffer() const
 {
 	return mDepthbufferPointer;
 }
 
-Renderbuffer *Framebuffer::getStencilbuffer()
+Renderbuffer *Framebuffer::getStencilbuffer() const
 {
 	return mStencilbufferPointer;
 }
@@ -491,7 +491,7 @@ GLenum Framebuffer::completeness(int &width, int &height, int &samples)
 	return GL_FRAMEBUFFER_COMPLETE;
 }
 
-GLenum Framebuffer::getImplementationColorReadFormat()
+GLenum Framebuffer::getImplementationColorReadFormat() const
 {
 	Renderbuffer *colorbuffer = getReadColorbuffer();
 
@@ -555,7 +555,7 @@ GLenum Framebuffer::getImplementationColorReadFormat()
 	return GL_RGBA;
 }
 
-GLenum Framebuffer::getImplementationColorReadType()
+GLenum Framebuffer::getImplementationColorReadType() const
 {
 	Renderbuffer *colorbuffer = getReadColorbuffer();
 
@@ -619,7 +619,7 @@ GLenum Framebuffer::getImplementationColorReadType()
 	return GL_UNSIGNED_BYTE;
 }
 
-GLenum Framebuffer::getDepthReadFormat()
+GLenum Framebuffer::getDepthReadFormat() const
 {
 	Renderbuffer *depthbuffer = getDepthbuffer();
 
@@ -633,7 +633,7 @@ GLenum Framebuffer::getDepthReadFormat()
 	return GL_NONE;
 }
 
-GLenum Framebuffer::getDepthReadType()
+GLenum Framebuffer::getDepthReadType() const
 {
 	Renderbuffer *depthbuffer = getDepthbuffer();
 

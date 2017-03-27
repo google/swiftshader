@@ -29,6 +29,7 @@
 namespace es2
 {
 	struct Color;
+	class Framebuffer;
 
 	unsigned int UniformComponentCount(GLenum type);
 	GLenum UniformComponentType(GLenum type);
@@ -46,7 +47,7 @@ namespace es2
 	GLenum ValidateCompressedFormat(GLenum format, GLint clientVersion, bool expectCompressedFormats);
 	GLenum ValidateSubImageParams(bool compressed, GLsizei width, GLsizei height, GLint xoffset, GLint yoffset, GLenum target, GLint level, GLenum sizedInternalFormat, Texture *texture);
 	GLenum ValidateSubImageParams(bool compressed, GLsizei width, GLsizei height, GLsizei depth, GLint xoffset, GLint yoffset, GLint zoffset, GLenum target, GLint level, GLenum sizedInternalFormat, Texture *texture);
-	bool ValidReadPixelsFormatType(GLenum internalFormat, GLenum internalType, GLenum format, GLenum type, GLint clientVersion);
+	bool IsValidReadPixelsFormatType(const Framebuffer *framebuffer, GLenum format, GLenum type, GLint clientVersion);
 	bool IsDepthTexture(GLenum format);
 	bool IsStencilTexture(GLenum format);
 	bool IsCubemapTextureTarget(GLenum target);
