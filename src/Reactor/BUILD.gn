@@ -15,7 +15,7 @@
 declare_args() {
   # Currently, Subzero is not used by default
   # LLVM is still the default backend
-  use_swiftshader_with_subzero = is_win
+  use_swiftshader_with_subzero = is_win || is_linux
 }
 
 # Need a separate config to ensure the warnings are added to the end.
