@@ -28,6 +28,10 @@ config("swiftshader_libEGL_private_config") {
     ]
   } else {
     cflags = [ "-Wno-sign-compare" ]
+    if (!is_clang) {
+      cflags += [ "-Wno-unused-but-set-variable" ]
+    }
+
     defines += [ "LOG_TAG=\"swiftshader_libEGL\"" ]
 
     if (is_linux) {
