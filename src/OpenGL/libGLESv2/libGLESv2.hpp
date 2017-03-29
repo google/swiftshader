@@ -159,6 +159,7 @@ public:
 	                         GLenum format, GLenum type, GLsizei bufSize, GLvoid *data);
 	void (*glReadPixels)(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLvoid* pixels);
 	void (*glReleaseShaderCompiler)(void);
+	void (*glRenderbufferStorageMultisample)(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height);
 	void (*glRenderbufferStorageMultisampleANGLE)(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height);
 	void (*glRenderbufferStorage)(GLenum target, GLenum internalformat, GLsizei width, GLsizei height);
 	void (*glSampleCoverage)(GLclampf value, GLboolean invert);
