@@ -269,6 +269,7 @@ void ReadnPixelsEXT(GLint x, GLint y, GLsizei width, GLsizei height,
                     GLenum format, GLenum type, GLsizei bufSize, GLvoid *data);
 void ReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLvoid* pixels);
 void ReleaseShaderCompiler(void);
+void RenderbufferStorageMultisample(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height);
 void RenderbufferStorageMultisampleANGLE(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height);
 void RenderbufferStorage(GLenum target, GLenum internalformat, GLsizei width, GLsizei height);
 void SampleCoverage(GLclampf value, GLboolean invert);
@@ -1007,6 +1008,11 @@ GL_APICALL void GL_APIENTRY glReleaseShaderCompiler(void)
 	return es2::ReleaseShaderCompiler();
 }
 
+GL_APICALL void GL_APIENTRY glRenderbufferStorageMultisample(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height)
+{
+	return es2::RenderbufferStorageMultisample(target, samples, internalformat, width, height);
+}
+
 GL_APICALL void GL_APIENTRY glRenderbufferStorageMultisampleANGLE(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height)
 {
 	return es2::RenderbufferStorageMultisampleANGLE(target, samples, internalformat, width, height);
@@ -1456,6 +1462,7 @@ LibGLESv2exports::LibGLESv2exports()
 	this->glReadnPixelsEXT = es2::ReadnPixelsEXT;
 	this->glReadPixels = es2::ReadPixels;
 	this->glReleaseShaderCompiler = es2::ReleaseShaderCompiler;
+	this->glRenderbufferStorageMultisample = es2::RenderbufferStorageMultisample;
 	this->glRenderbufferStorageMultisampleANGLE = es2::RenderbufferStorageMultisampleANGLE;
 	this->glRenderbufferStorage = es2::RenderbufferStorage;
 	this->glSampleCoverage = es2::SampleCoverage;

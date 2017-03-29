@@ -386,7 +386,7 @@ GLenum Framebuffer::completeness(int &width, int &height, int &samples)
 
 		if(IsRenderbuffer(mDepthbufferType))
 		{
-			if(!es2::IsDepthRenderable(depthbuffer->getFormat()))
+			if(!es2::IsDepthRenderable(depthbuffer->getFormat(), egl::getClientVersion()))
 			{
 				return GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
 			}
@@ -436,7 +436,7 @@ GLenum Framebuffer::completeness(int &width, int &height, int &samples)
 
 		if(IsRenderbuffer(mStencilbufferType))
 		{
-			if(!es2::IsStencilRenderable(stencilbuffer->getFormat()))
+			if(!es2::IsStencilRenderable(stencilbuffer->getFormat(), egl::getClientVersion()))
 			{
 				return GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
 			}
