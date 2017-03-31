@@ -565,95 +565,97 @@ set_target_properties(llvm PROPERTIES
 # Subzero
 ###########################################################
 
-set(SUBZERO_LIST
-    ${SUBZERO_DIR}/src/IceAssembler.cpp
-    ${SUBZERO_DIR}/src/IceCfg.cpp
-    ${SUBZERO_DIR}/src/IceCfgNode.cpp
-    ${SUBZERO_DIR}/src/IceClFlags.cpp
-    ${SUBZERO_DIR}/src/IceELFObjectWriter.cpp
-    ${SUBZERO_DIR}/src/IceELFSection.cpp
-    ${SUBZERO_DIR}/src/IceFixups.cpp
-    ${SUBZERO_DIR}/src/IceGlobalContext.cpp
-    ${SUBZERO_DIR}/src/IceGlobalInits.cpp
-    ${SUBZERO_DIR}/src/IceInst.cpp
-    ${SUBZERO_DIR}/src/IceInstrumentation.cpp
-    ${SUBZERO_DIR}/src/IceIntrinsics.cpp
-    ${SUBZERO_DIR}/src/IceLiveness.cpp
-    ${SUBZERO_DIR}/src/IceLoopAnalyzer.cpp
-    ${SUBZERO_DIR}/src/IceMangling.cpp
-    ${SUBZERO_DIR}/src/IceMemory.cpp
-    ${SUBZERO_DIR}/src/IceOperand.cpp
-    ${SUBZERO_DIR}/src/IceRangeSpec.cpp
-    ${SUBZERO_DIR}/src/IceRegAlloc.cpp
-    ${SUBZERO_DIR}/src/IceRevision.cpp
-    ${SUBZERO_DIR}/src/IceRNG.cpp
-    ${SUBZERO_DIR}/src/IceSwitchLowering.cpp
-    ${SUBZERO_DIR}/src/IceTargetLowering.cpp
-    ${SUBZERO_DIR}/src/IceTargetLoweringX86.cpp
-    ${SUBZERO_DIR}/src/IceThreading.cpp
-    ${SUBZERO_DIR}/src/IceTimerTree.cpp
-    ${SUBZERO_DIR}/src/IceTypes.cpp
-    ${SUBZERO_DIR}/src/IceVariableSplitting.cpp
-)
-
-if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-    list(APPEND SUBZERO_LIST
-        ${SUBZERO_DIR}/src/IceInstX8664.cpp
-        ${SUBZERO_DIR}/src/IceTargetLoweringX8664.cpp
+if(${REACTOR_BACKEND} STREQUAL "Subzero")
+    set(SUBZERO_LIST
+        ${SUBZERO_DIR}/src/IceAssembler.cpp
+        ${SUBZERO_DIR}/src/IceCfg.cpp
+        ${SUBZERO_DIR}/src/IceCfgNode.cpp
+        ${SUBZERO_DIR}/src/IceClFlags.cpp
+        ${SUBZERO_DIR}/src/IceELFObjectWriter.cpp
+        ${SUBZERO_DIR}/src/IceELFSection.cpp
+        ${SUBZERO_DIR}/src/IceFixups.cpp
+        ${SUBZERO_DIR}/src/IceGlobalContext.cpp
+        ${SUBZERO_DIR}/src/IceGlobalInits.cpp
+        ${SUBZERO_DIR}/src/IceInst.cpp
+        ${SUBZERO_DIR}/src/IceInstrumentation.cpp
+        ${SUBZERO_DIR}/src/IceIntrinsics.cpp
+        ${SUBZERO_DIR}/src/IceLiveness.cpp
+        ${SUBZERO_DIR}/src/IceLoopAnalyzer.cpp
+        ${SUBZERO_DIR}/src/IceMangling.cpp
+        ${SUBZERO_DIR}/src/IceMemory.cpp
+        ${SUBZERO_DIR}/src/IceOperand.cpp
+        ${SUBZERO_DIR}/src/IceRangeSpec.cpp
+        ${SUBZERO_DIR}/src/IceRegAlloc.cpp
+        ${SUBZERO_DIR}/src/IceRevision.cpp
+        ${SUBZERO_DIR}/src/IceRNG.cpp
+        ${SUBZERO_DIR}/src/IceSwitchLowering.cpp
+        ${SUBZERO_DIR}/src/IceTargetLowering.cpp
+        ${SUBZERO_DIR}/src/IceTargetLoweringX86.cpp
+        ${SUBZERO_DIR}/src/IceThreading.cpp
+        ${SUBZERO_DIR}/src/IceTimerTree.cpp
+        ${SUBZERO_DIR}/src/IceTypes.cpp
+        ${SUBZERO_DIR}/src/IceVariableSplitting.cpp
     )
-    set(SUBZERO_TARGET X8664)
-else()
-    list(APPEND SUBZERO_LIST
-        ${SUBZERO_DIR}/src/IceInstX8632.cpp
-        ${SUBZERO_DIR}/src/IceTargetLoweringX8632.cpp
+
+    if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+        list(APPEND SUBZERO_LIST
+            ${SUBZERO_DIR}/src/IceInstX8664.cpp
+            ${SUBZERO_DIR}/src/IceTargetLoweringX8664.cpp
+        )
+        set(SUBZERO_TARGET X8664)
+    else()
+        list(APPEND SUBZERO_LIST
+            ${SUBZERO_DIR}/src/IceInstX8632.cpp
+            ${SUBZERO_DIR}/src/IceTargetLoweringX8632.cpp
+        )
+        set(SUBZERO_TARGET X8632)
+    endif()
+
+    file(GLOB_RECURSE SUBZERO_DEPENDENCIES_LIST
+        ${SUBZERO_LLVM_DIR}/*.cpp
+        ${SUBZERO_LLVM_DIR}/*.c
+        ${SUBZERO_LLVM_DIR}/*.h
     )
-    set(SUBZERO_TARGET X8632)
-endif()
 
-file(GLOB_RECURSE SUBZERO_DEPENDENCIES_LIST
-    ${SUBZERO_LLVM_DIR}/*.cpp
-    ${SUBZERO_LLVM_DIR}/*.c
-    ${SUBZERO_LLVM_DIR}/*.h
-)
+    set(SUBZERO_REACTOR_LIST
+        ${SOURCE_DIR}/Reactor/SubzeroReactor.cpp
+        ${SOURCE_DIR}/Reactor/Routine.cpp
+        ${SOURCE_DIR}/Reactor/Optimizer.cpp
+        ${SOURCE_DIR}/Reactor/Nucleus.hpp
+        ${SOURCE_DIR}/Reactor/Routine.hpp
+    )
 
-set(SUBZERO_REACTOR_LIST
-    ${SOURCE_DIR}/Reactor/SubzeroReactor.cpp
-    ${SOURCE_DIR}/Reactor/Routine.cpp
-    ${SOURCE_DIR}/Reactor/Optimizer.cpp
-    ${SOURCE_DIR}/Reactor/Nucleus.hpp
-    ${SOURCE_DIR}/Reactor/Routine.hpp
-)
+    set(SUBZERO_INCLUDE_DIR
+        ${SUBZERO_DIR}/
+        ${SUBZERO_LLVM_DIR}/include/
+        ${SUBZERO_DIR}/pnacl-llvm/include/
+        ${SOURCE_DIR}/Reactor/SubmoduleCheck/
+     )
 
-set(SUBZERO_INCLUDE_DIR
-    ${SUBZERO_DIR}/
-    ${SUBZERO_LLVM_DIR}/include/
-    ${SUBZERO_DIR}/pnacl-llvm/include/
-    ${SOURCE_DIR}/Reactor/SubmoduleCheck/
-)
+    if(WIN32)
+        list(APPEND SUBZERO_INCLUDE_DIR ${SUBZERO_LLVM_DIR}/build/Windows/include/)
+    elseif(LINUX)
+        list(APPEND SUBZERO_INCLUDE_DIR ${SUBZERO_LLVM_DIR}/build/Linux/include/)
+    elseif(APPLE)
+        list(APPEND SUBZERO_INCLUDE_DIR ${SUBZERO_LLVM_DIR}/build/MacOS/include/)
+    endif()
 
-if(WIN32)
-    list(APPEND SUBZERO_INCLUDE_DIR ${SUBZERO_LLVM_DIR}/build/Windows/include/)
-elseif(LINUX)
-    list(APPEND SUBZERO_INCLUDE_DIR ${SUBZERO_LLVM_DIR}/build/Linux/include/)
-elseif(APPLE)
-    list(APPEND SUBZERO_INCLUDE_DIR ${SUBZERO_LLVM_DIR}/build/MacOS/include/)
-endif()
+    add_library(ReactorSubzero STATIC
+        ${SUBZERO_LIST}
+        ${SUBZERO_DEPENDENCIES_LIST}
+        ${SUBZERO_REACTOR_LIST}
+    )
 
-add_library(ReactorSubzero STATIC
-    ${SUBZERO_LIST}
-    ${SUBZERO_DEPENDENCIES_LIST}
-    ${SUBZERO_REACTOR_LIST}
-)
+    set_target_properties(ReactorSubzero PROPERTIES
+        POSITION_INDEPENDENT_CODE 1
+        INCLUDE_DIRECTORIES "${SUBZERO_INCLUDE_DIR}"
+        COMPILE_DEFINITIONS "SZTARGET=${SUBZERO_TARGET}; ALLOW_DUMP=0; ALLOW_TIMERS=0; ALLOW_LLVM_CL=0; ALLOW_LLVM_IR=0; ALLOW_LLVM_IR_AS_INPUT=0; ALLOW_MINIMAL_BUILD=0; ALLOW_WASM=0; ICE_THREAD_LOCAL_HACK=0;"
+        FOLDER "Subzero"
+    )
 
-set_target_properties(ReactorSubzero PROPERTIES
-    POSITION_INDEPENDENT_CODE 1
-    INCLUDE_DIRECTORIES "${SUBZERO_INCLUDE_DIR}"
-    COMPILE_DEFINITIONS "SZTARGET=${SUBZERO_TARGET}; ALLOW_DUMP=0; ALLOW_TIMERS=0; ALLOW_LLVM_CL=0; ALLOW_LLVM_IR=0; ALLOW_LLVM_IR_AS_INPUT=0; ALLOW_MINIMAL_BUILD=0; ALLOW_WASM=0; ICE_THREAD_LOCAL_HACK=0;"
-    FOLDER "Subzero"
-)
-
-if(WIN32)
-    target_compile_definitions(ReactorSubzero PRIVATE SUBZERO_USE_MICROSOFT_ABI)
+    if(WIN32)
+        target_compile_definitions(ReactorSubzero PRIVATE SUBZERO_USE_MICROSOFT_ABI)
+    endif()
 endif()
 
 ###########################################################
