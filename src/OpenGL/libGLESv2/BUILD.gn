@@ -49,7 +49,7 @@ config("swiftshader_libGLESv2_private_config") {
     ]
 
     if (is_linux) {
-      defines += [ "GL_APICALL=" ]
+      defines += [ "GL_APICALL=__attribute__((visibility(\"protected\")))" ]
     } else {
       defines += [ "GL_APICALL=__attribute__((visibility(\"default\")))" ]
     }
