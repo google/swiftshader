@@ -2179,10 +2179,7 @@ template<typename T> bool Context::getIntegerv(GLenum pname, T *params) const
 			*params = MAX_UNIFORM_BUFFER_BINDINGS;
 			return true;
 		case GL_MAX_VARYING_COMPONENTS:
-			UNIMPLEMENTED();
-			// FIXME: should be MAX_VARYING_VECTORS * 4, but MAX_VARYING_VECTORS
-			// must be increased (see MAX_VERTEX_OUTPUTS and MAX_FRAGMENT_INPUTS)
-			*params = 60;
+			*params = MAX_VARYING_VECTORS * 4;
 			return true;
 		case GL_MAX_VERTEX_OUTPUT_COMPONENTS:
 			*params = MAX_VERTEX_OUTPUT_VECTORS * 4;
