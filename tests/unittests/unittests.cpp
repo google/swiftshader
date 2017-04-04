@@ -13,7 +13,61 @@
 // limitations under the License.
 
 #include "gtest/gtest.h"
+#include "gmock/gmock.h"
 
-TEST(SwiftShaderCompilationOnly, Unit) {
-  // Empty test to trigger compilation of SwiftShader on build bots
+#include <EGL/egl.h>
+#include <GLES2/gl2.h>
+
+#if defined(_WIN32)
+#include <Windows.h>
+#endif
+
+class SwiftShaderTest : public testing::Test
+{
+protected:
+	void SetUp() override
+	{
+		#if defined(_WIN32)
+			// The DLLs are delay loaded (see BUILD.gn), so we can load
+			// the correct ones from the swiftshader subdirectory.
+			HMODULE libEGL = LoadLibraryA("swiftshader\\libEGL.dll");
+			EXPECT_NE(NULL, libEGL);
+
+			HMODULE libGLESv2 = LoadLibraryA("swiftshader\\libGLESv2.dll");
+			EXPECT_NE(NULL, libGLESv2);
+		#endif
+	}
+};
+
+TEST_F(SwiftShaderTest, CompilationOnly)
+{
+	// Empty test to trigger compilation of SwiftShader on build bots
+}
+
+TEST_F(SwiftShaderTest, Initalization)
+{
+	EXPECT_EQ(EGL_SUCCESS, eglGetError());
+
+	EGLDisplay display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+	EXPECT_EQ(EGL_SUCCESS, eglGetError());
+	EXPECT_NE(EGL_NO_DISPLAY, display);
+
+	eglQueryString(display, EGL_VENDOR);
+	EXPECT_EQ(EGL_NOT_INITIALIZED, eglGetError());
+
+	EGLint major;
+	EGLint minor;
+	EGLBoolean initialized = eglInitialize(display, &major, &minor);
+	EXPECT_EQ(EGL_SUCCESS, eglGetError());
+	EXPECT_EQ((EGLBoolean)EGL_TRUE, initialized);
+	EXPECT_EQ(1, major);
+	EXPECT_EQ(4, minor);
+
+	const char *vendor = eglQueryString(display, EGL_VENDOR);
+	EXPECT_EQ(EGL_SUCCESS, eglGetError());
+	EXPECT_STREQ("Google Inc.", vendor);
+
+	const char *version = eglQueryString(display, EGL_VERSION);
+	EXPECT_EQ(EGL_SUCCESS, eglGetError());
+	EXPECT_THAT(version, testing::HasSubstr("1.4 SwiftShader "));
 }
