@@ -31,10 +31,10 @@ protected:
 			// The DLLs are delay loaded (see BUILD.gn), so we can load
 			// the correct ones from the swiftshader subdirectory.
 			HMODULE libEGL = LoadLibraryA("swiftshader\\libEGL.dll");
-			EXPECT_NE(NULL, libEGL);
+			EXPECT_NE((HMODULE)NULL, libEGL);
 
 			HMODULE libGLESv2 = LoadLibraryA("swiftshader\\libGLESv2.dll");
-			EXPECT_NE(NULL, libGLESv2);
+			EXPECT_NE((HMODULE)NULL, libGLESv2);
 		#endif
 	}
 };
