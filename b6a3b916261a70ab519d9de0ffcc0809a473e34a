@@ -25,6 +25,29 @@
     },
     {
       "key": {
+        "uuid": "87e7ac50_fb8639b9",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-04-10T15:45:32Z",
+      "side": 1,
+      "message": "Could also use a Bug id to further explain which test was affected and why, and to make sure we keep track of fixing this for formats other than 8-bit components.",
+      "range": {
+        "startLine": 17,
+        "startChar": 0,
+        "endLine": 17,
+        "endChar": 0
+      },
+      "revId": "b6a3b916261a70ab519d9de0ffcc0809a473e34a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "be9dd093_b3dcf210",
         "filename": "src/Shader/SamplerCore.cpp",
         "patchSetId": 1
