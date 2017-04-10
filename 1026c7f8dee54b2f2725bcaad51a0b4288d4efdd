@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fe9642ea_9bf7086a",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-04-10T15:47:54Z",
+      "side": 1,
+      "message": "Could use a Bug to explain which test is affected by this change, and that we\u0027ll need a proper fix.",
+      "range": {
+        "startLine": 13,
+        "startChar": 0,
+        "endLine": 13,
+        "endChar": 0
+      },
+      "revId": "1026c7f8dee54b2f2725bcaad51a0b4288d4efdd",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e15c54c0_07e37881",
+        "filename": "src/Main/Config.hpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-04-10T15:47:54Z",
+      "side": 1,
+      "message": "The test already passes with 22 / 20, so let\u0027s not increase it beyond that yet to increase the chances that we run into this again with an OpenGL ES 3.0 test and fix it properly.",
+      "range": {
+        "startLine": 90,
+        "startChar": 0,
+        "endLine": 91,
+        "endChar": 27
+      },
+      "revId": "1026c7f8dee54b2f2725bcaad51a0b4288d4efdd",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
