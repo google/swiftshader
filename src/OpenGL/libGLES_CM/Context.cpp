@@ -1175,6 +1175,24 @@ bool Context::getFloatv(GLenum pname, GLfloat *params)
 			params[i] = projectionStack.current()[i % 4][i / 4];
 		}
 		break;
+	case GL_CURRENT_COLOR:
+		for(int i = 0; i < 4; i++)
+		{
+			params[i] = mState.vertexAttribute[sw::Color0].mCurrentValue[i];
+		}
+		break;
+	case GL_CURRENT_NORMAL:
+		for(int i = 0; i < 3; i++)
+		{
+			params[i] = mState.vertexAttribute[sw::Normal].mCurrentValue[i];
+		}
+		break;
+	case GL_CURRENT_TEXTURE_COORDS:
+		for(int i = 0; i < 4; i++)
+		{
+			params[i] = mState.vertexAttribute[sw::TexCoord0].mCurrentValue[i];
+		}
+		break;
 	default:
 		return false;
 	}
