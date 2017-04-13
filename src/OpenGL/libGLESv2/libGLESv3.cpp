@@ -3887,7 +3887,7 @@ GL_APICALL void GL_APIENTRY glGetInternalformativ(GLenum target, GLenum internal
 		return;
 	}
 
-	if(!IsColorRenderable(internalformat, egl::getClientVersion()) &&
+	if(!IsColorRenderable(internalformat, egl::getClientVersion(), false) &&
 	   !IsDepthRenderable(internalformat, egl::getClientVersion()) &&
 	   !IsStencilRenderable(internalformat, egl::getClientVersion()))
 	{

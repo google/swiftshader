@@ -55,7 +55,7 @@ namespace es2
 	bool IsTextureTarget(GLenum target);
 	bool ValidateTextureFormatType(GLenum format, GLenum type, GLint internalformat, GLint clientVersion);
 
-	bool IsColorRenderable(GLenum internalformat, GLint clientVersion);
+	bool IsColorRenderable(GLenum internalformat, GLint clientVersion, bool isTexture);
 	bool IsDepthRenderable(GLenum internalformat, GLint clientVersion);
 	bool IsStencilRenderable(GLenum internalformat, GLint clientVersion);
 

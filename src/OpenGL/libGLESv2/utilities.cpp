@@ -1038,12 +1038,13 @@ namespace es2
 		return true;
 	}
 
-	bool IsColorRenderable(GLenum internalformat, GLint clientVersion)
+	bool IsColorRenderable(GLenum internalformat, GLint clientVersion, bool isTexture)
 	{
 		switch(internalformat)
 		{
 		case GL_RGB:
 		case GL_RGBA:
+			return isTexture;
 		case GL_RGBA4:
 		case GL_RGB5_A1:
 		case GL_RGB565:

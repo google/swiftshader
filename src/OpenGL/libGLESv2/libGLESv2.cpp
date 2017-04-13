@@ -4699,7 +4699,7 @@ void RenderbufferStorageMultisample(GLenum target, GLsizei samples, GLenum inter
 
 		GLint clientVersion = context->getClientVersion();
 
-		if(IsColorRenderable(internalformat, clientVersion))
+		if(IsColorRenderable(internalformat, clientVersion, false))
 		{
 			context->setRenderbufferStorage(new es2::Colorbuffer(width, height, internalformat, samples));
 		}
@@ -4721,7 +4721,7 @@ void RenderbufferStorageMultisample(GLenum target, GLsizei samples, GLenum inter
 
 void RenderbufferStorageMultisampleANGLE(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height)
 {
-	RenderbufferStorageMultisample(target, 0, internalformat, width, height);
+	RenderbufferStorageMultisample(target, samples, internalformat, width, height);
 }
 
 void RenderbufferStorage(GLenum target, GLenum internalformat, GLsizei width, GLsizei height)
