@@ -88,7 +88,12 @@ shared_library("swiftshader_libEGL") {
     # https://crbug.com/686980
     # This target relies on the linker to be smart and garbage collect unused symbols.
     # It is not the case for LLD + ThinLTO, so we have to use this ugly workaround.
-    cflags = ["-Xclang", "-fno-lto-unit"]
+    cflags = [
+      "-Xclang",
+      "-fno-lto-unit",
+      "-fno-whole-program-vtables",
+      "-fno-sanitize=cfi",
+    ]
   }
 
   configs -= [ "//build/config/compiler:chromium_code" ]
