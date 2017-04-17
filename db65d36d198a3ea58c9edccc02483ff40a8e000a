@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b8a9ba07_8191bda9",
+        "filename": "src/OpenGL/libEGL/BUILD.gn",
+        "patchSetId": 1
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 6110
+      },
+      "writtenOn": "2017-04-17T21:13:52Z",
+      "side": 1,
+      "message": "You might want to add -fno-whole-program-vtables -fno-sanitize\u003dcfi here to disable the features that use -flto-unit.",
+      "revId": "db65d36d198a3ea58c9edccc02483ff40a8e000a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
