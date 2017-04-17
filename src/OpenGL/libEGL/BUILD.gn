@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import("//build/toolchain/toolchain.gni")
+
 # Need a separate config to ensure the warnings are added to the end.
 config("swiftshader_libEGL_private_config") {
   defines = [ "EGL_EGLEXT_PROTOTYPES" ]
@@ -80,6 +82,13 @@ shared_library("swiftshader_libEGL") {
     ]
     ldflags =
         [ "-Wl,--version-script=" + rebase_path("exports.map", root_build_dir) ]
+  }
+
+  if (use_thin_lto) {
+    # https://crbug.com/686980
+    # This target relies on the linker to be smart and garbage collect unused symbols.
+    # It is not the case for LLD + ThinLTO, so we have to use this ugly workaround.
+    cflags = ["-Xclang", "-fno-lto-unit"]
   }
 
   configs -= [ "//build/config/compiler:chromium_code" ]
