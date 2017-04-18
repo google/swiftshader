@@ -5304,11 +5304,59 @@ void TargetARM32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
   case Intrinsics::Trap:
     _trap();
     return;
+  case Intrinsics::AddSaturateSigned: {
+    UnimplementedLoweringError(this, Instr);
+    return;
+  }
+  case Intrinsics::AddSaturateUnsigned: {
+    UnimplementedLoweringError(this, Instr);
+    return;
+  }
   case Intrinsics::LoadSubVector: {
     UnimplementedLoweringError(this, Instr);
     return;
   }
   case Intrinsics::StoreSubVector: {
+    UnimplementedLoweringError(this, Instr);
+    return;
+  }
+  case Intrinsics::MultiplyAddPairs: {
+    UnimplementedLoweringError(this, Instr);
+    return;
+  }
+  case Intrinsics::MultiplyHighSigned: {
+    UnimplementedLoweringError(this, Instr);
+    return;
+  }
+  case Intrinsics::MultiplyHighUnsigned: {
+    UnimplementedLoweringError(this, Instr);
+    return;
+  }
+  case Intrinsics::Nearbyint: {
+    UnimplementedLoweringError(this, Instr);
+    return;
+  }
+  case Intrinsics::Round: {
+    UnimplementedLoweringError(this, Instr);
+    return;
+  }
+  case Intrinsics::SignMask: {
+    UnimplementedLoweringError(this, Instr);
+    return;
+  }
+  case Intrinsics::SubtractSaturateSigned: {
+    UnimplementedLoweringError(this, Instr);
+    return;
+  }
+  case Intrinsics::SubtractSaturateUnsigned: {
+    UnimplementedLoweringError(this, Instr);
+    return;
+  }
+  case Intrinsics::VectorPackSigned: {
+    UnimplementedLoweringError(this, Instr);
+    return;
+  }
+  case Intrinsics::VectorPackUnsigned: {
     UnimplementedLoweringError(this, Instr);
     return;
   }
