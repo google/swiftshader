@@ -1152,7 +1152,8 @@ namespace sw
 	{
 		if(Ice::isVectorType(T(Ty)))
 		{
-			int64_t c[4] = {0, 0, 0, 0};
+			assert(Ice::typeNumElements(T(Ty)) <= 16);
+			int64_t c[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 			return createConstantVector(c, Ty);
 		}
 		else
