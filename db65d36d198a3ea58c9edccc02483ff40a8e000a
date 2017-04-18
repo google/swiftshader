@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "1bfe7a0b_328dc6d7",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-04-18T01:07:46Z",
+      "side": 1,
+      "message": "nit: This format links to Buganizer (SwiftShader is also used by Android). Instead, use \"Bug chromium:686980\".",
+      "range": {
+        "startLine": 25,
+        "startChar": 0,
+        "endLine": 25,
+        "endChar": 10
+      },
+      "revId": "db65d36d198a3ea58c9edccc02483ff40a8e000a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b8a9ba07_8191bda9",
         "filename": "src/OpenGL/libEGL/BUILD.gn",
         "patchSetId": 1
