@@ -289,7 +289,7 @@ namespace sw
 		return symbolValue;
 	}
 
-	void *loadImage(uint8_t *const elfImage)
+	void *loadImage(uint8_t *const elfImage, size_t &codeSize)
 	{
 		ElfHeader *elfHeader = (ElfHeader*)elfImage;
 
@@ -312,6 +312,7 @@ namespace sw
 				if(sectionHeader[i].sh_flags & SHF_EXECINSTR)
 				{
 					entry = elfImage + sectionHeader[i].sh_offset;
+					codeSize = sectionHeader[i].sh_size;
 				}
 			}
 			else if(sectionHeader[i].sh_type == SHT_REL)
@@ -429,7 +430,14 @@ namespace sw
 
 				position = std::numeric_limits<std::size_t>::max();   // Can't stream more data after this
 
-				entry = loadImage(&buffer[0]);
+				size_t codeSize = 0;
+				entry = loadImage(&buffer[0], codeSize);
+
+				#if defined(_WIN32)
+					FlushInstructionCache(GetCurrentProcess(), NULL, 0);
+				#else
+					__builtin___clear_cache((char*)entry, (char*)entry + codeSize);
+				#endif
 			}
 
 			return entry;
