@@ -49,10 +49,18 @@ else()
     message(FATAL_ERROR "Platform is not supported")
 endif()
 
-if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-    set(ARCH "x86_64")
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm" OR CMAKE_SYSTEM_PROCESSOR MATCHES "aarch")
+    if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+        set(ARCH "aarch64")
+    else()
+        set(ARCH "arm")
+    endif()
 else()
-    set(ARCH "x86")
+    if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+        set(ARCH "x86_64")
+    else()
+        set(ARCH "x86")
+    endif()
 endif()
 
 ###########################################################
@@ -591,25 +599,35 @@ if(${REACTOR_BACKEND} STREQUAL "Subzero")
         ${SUBZERO_DIR}/src/IceRNG.cpp
         ${SUBZERO_DIR}/src/IceSwitchLowering.cpp
         ${SUBZERO_DIR}/src/IceTargetLowering.cpp
-        ${SUBZERO_DIR}/src/IceTargetLoweringX86.cpp
         ${SUBZERO_DIR}/src/IceThreading.cpp
         ${SUBZERO_DIR}/src/IceTimerTree.cpp
         ${SUBZERO_DIR}/src/IceTypes.cpp
         ${SUBZERO_DIR}/src/IceVariableSplitting.cpp
     )
 
-    if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+    if(ARCH STREQUAL "x86_64")
         list(APPEND SUBZERO_LIST
+            ${SUBZERO_DIR}/src/IceTargetLoweringX86.cpp
             ${SUBZERO_DIR}/src/IceInstX8664.cpp
             ${SUBZERO_DIR}/src/IceTargetLoweringX8664.cpp
         )
         set(SUBZERO_TARGET X8664)
-    else()
+    elseif(ARCH STREQUAL "x86")
         list(APPEND SUBZERO_LIST
+            ${SUBZERO_DIR}/src/IceTargetLoweringX86.cpp
             ${SUBZERO_DIR}/src/IceInstX8632.cpp
             ${SUBZERO_DIR}/src/IceTargetLoweringX8632.cpp
         )
         set(SUBZERO_TARGET X8632)
+    elseif(ARCH STREQUAL "arm")
+        list(APPEND SUBZERO_LIST
+            ${SUBZERO_DIR}/src/IceAssemblerARM32.cpp
+            ${SUBZERO_DIR}/src/IceInstARM32.cpp
+            ${SUBZERO_DIR}/src/IceTargetLoweringARM32.cpp
+        )
+        set(SUBZERO_TARGET ARM32)
+    else()
+        message(FATAL_ERROR "Architecture '${ARCH}' not supported by Subzero")
     endif()
 
     file(GLOB_RECURSE SUBZERO_DEPENDENCIES_LIST
