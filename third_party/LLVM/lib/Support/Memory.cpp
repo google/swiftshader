@@ -69,7 +69,7 @@ void llvm::sys::Memory::InvalidateInstructionCache(const void *Addr,
   // FIXME: Can we safely always call this for __GNUC__ everywhere?
   char *Start = (char*) Addr;
   char *End = Start + Len;
-  __clear_cache(Start, End);
+  __builtin___clear_cache(Start, End);
 #  elif defined(__mips__)
   cacheflush((char*)Addr, Len, BCACHE);
 #  endif

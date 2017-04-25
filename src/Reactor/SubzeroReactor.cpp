@@ -66,6 +66,14 @@ namespace
 
 namespace
 {
+	#if !defined(__i386__) && defined(_M_IX86)
+		#define __i386__ 1
+	#endif
+
+	#if !defined(__x86_64__) && (defined(_M_AMD64) || defined (_M_X64))
+		#define __x86_64__ 1
+	#endif
+
 	class CPUID
 	{
 	public:
@@ -74,18 +82,29 @@ namespace
 	private:
 		static void cpuid(int registers[4], int info)
 		{
-			#if defined(_WIN32)
-				__cpuid(registers, info);
+			#if defined(__i386__) || defined(__x86_64__)
+				#if defined(_WIN32)
+					__cpuid(registers, info);
+				#else
+					__asm volatile("cpuid": "=a" (registers[0]), "=b" (registers[1]), "=c" (registers[2]), "=d" (registers[3]): "a" (info));
+				#endif
 			#else
-				__asm volatile("cpuid": "=a" (registers[0]), "=b" (registers[1]), "=c" (registers[2]), "=d" (registers[3]): "a" (info));
+				registers[0] = 0;
+				registers[1] = 0;
+				registers[2] = 0;
+				registers[3] = 0;
 			#endif
 		}
 
 		static bool detectSSE4_1()
 		{
-			int registers[4];
-			cpuid(registers, 1);
-			return (registers[2] & 0x00080000) != 0;
+			#if defined(__i386__) || defined(__x86_64__)
+				int registers[4];
+				cpuid(registers, 1);
+				return (registers[2] & 0x00080000) != 0;
+			#else
+				return false;
+			#endif
 		}
 	};
 
