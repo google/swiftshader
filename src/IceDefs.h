@@ -398,7 +398,10 @@ public:
     Other.Value = nullptr;
     Other.Lock = nullptr;
   }
-  ~LockedPtr() { Lock->unlock(); }
+  ~LockedPtr() {
+    if (Lock != nullptr)
+      Lock->unlock();
+  }
   T *operator->() const { return Value; }
   T &operator*() const { return *Value; }
   T *get() { return Value; }
