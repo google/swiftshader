@@ -2,6 +2,7 @@
 /lib/
 /obj/
 /bin/
+/build/
 .vs
 
 # Ignored files #
@@ -26,3 +27,4 @@
 *.aps
 *.opendb
 *.db
+*~
