@@ -17,6 +17,7 @@ option(BUILD_GLES_CM "Build the OpenGL ES 1.1 library" 1)
 option(USE_GROUP_SOURCES "Group the source files in a folder tree for Visual Studio" 1)
 
 option(BUILD_SAMPLES "Build sample programs" 1)
+option(BUILD_TESTS "Build test programs" 1)
 
 set(REACTOR_BACKEND "LLVM" CACHE STRING "JIT compiler back-end used by Reactor")
 set_property(CACHE REACTOR_BACKEND PROPERTY STRINGS LLVM Subzero)
@@ -976,5 +977,28 @@ if(BUILD_SAMPLES)
         set_source_files_properties(${HELLO2_DIR}/Build/OSX/en.lproj/MainMenu.xib PROPERTIES
             MACOSX_PACKAGE_LOCATION "Resources"
         )
+    endif()
+endif()
+
+if(BUILD_TESTS AND ${REACTOR_BACKEND} STREQUAL "Subzero")
+    set(SUBZERO_TEST_LIST
+        ${SOURCE_DIR}/Reactor/Main.cpp
+        ${CMAKE_SOURCE_DIR}/third_party/googletest/googletest/src/gtest-all.cc
+    )
+
+    set(SUBZERO_TEST_INCLUDE_DIR
+        ${CMAKE_SOURCE_DIR}/third_party/googletest/googletest/include
+        ${CMAKE_SOURCE_DIR}/third_party/googletest/googletest/
+    )
+
+    add_executable(SubzeroTest ${SUBZERO_TEST_LIST})
+    set_target_properties(SubzeroTest PROPERTIES
+        INCLUDE_DIRECTORIES "${SUBZERO_TEST_INCLUDE_DIR}"
+        FOLDER "Tests"
+    )
+    if(WIN32)
+        target_link_libraries(SubzeroTest ReactorSubzero)
+    else()
+        target_link_libraries(SubzeroTest ReactorSubzero pthread dl)
     endif()
 endif()
