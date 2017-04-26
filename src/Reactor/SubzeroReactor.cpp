@@ -849,12 +849,43 @@ namespace sw
 
 		if(valueType & EmulatedBits)
 		{
-			const Ice::Intrinsics::IntrinsicInfo intrinsic = {Ice::Intrinsics::LoadSubVector, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F};
-			auto target = ::context->getConstantUndef(Ice::IceType_i32);
-			auto load = Ice::InstIntrinsicCall::create(::function, 2, result, target, intrinsic);
-			load->addArg(ptr);
-			load->addArg(::context->getConstantInt32(typeSize(type)));
-			::basicBlock->appendInst(load);
+			if(emulateIntrinsics)
+			{
+				if(typeSize(type) == 4)
+				{
+					auto pointer = RValue<Pointer<Byte>>(ptr);
+					Int x = *Pointer<Int>(pointer +1-1);
+
+					Int4 vector;
+					vector = Insert(vector, x, 0);
+
+					auto bitcast = Ice::InstCast::create(::function, Ice::InstCast::Bitcast, result, vector.loadValue());
+					::basicBlock->appendInst(bitcast);
+				}
+				else if(typeSize(type) == 8)
+				{
+					auto pointer = RValue<Pointer<Byte>>(ptr);
+					Int x = *Pointer<Int>(pointer +1-1);
+					Int y = *Pointer<Int>(pointer + 4);
+
+					Int4 vector;
+					vector = Insert(vector, x, 0);
+					vector = Insert(vector, y, 1);
+
+					auto bitcast = Ice::InstCast::create(::function, Ice::InstCast::Bitcast, result, vector.loadValue());
+					::basicBlock->appendInst(bitcast);
+				}
+				else assert(false);
+			}
+			else
+			{
+				const Ice::Intrinsics::IntrinsicInfo intrinsic = {Ice::Intrinsics::LoadSubVector, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F};
+				auto target = ::context->getConstantUndef(Ice::IceType_i32);
+				auto load = Ice::InstIntrinsicCall::create(::function, 2, result, target, intrinsic);
+				load->addArg(ptr);
+				load->addArg(::context->getConstantInt32(typeSize(type)));
+				::basicBlock->appendInst(load);
+			}
 		}
 		else
 		{
@@ -871,13 +902,46 @@ namespace sw
 
 		if(valueType & EmulatedBits)
 		{
-			const Ice::Intrinsics::IntrinsicInfo intrinsic = {Ice::Intrinsics::StoreSubVector, Ice::Intrinsics::SideEffects_T, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_T};
-			auto target = ::context->getConstantUndef(Ice::IceType_i32);
-			auto store = Ice::InstIntrinsicCall::create(::function, 3, nullptr, target, intrinsic);
-			store->addArg(value);
-			store->addArg(ptr);
-			store->addArg(::context->getConstantInt32(typeSize(type)));
-			::basicBlock->appendInst(store);
+			if(emulateIntrinsics)
+			{
+				if(typeSize(type) == 4)
+				{
+					Ice::Variable *vector = ::function->makeVariable(Ice::IceType_v4i32);
+					auto bitcast = Ice::InstCast::create(::function, Ice::InstCast::Bitcast, vector, value);
+					::basicBlock->appendInst(bitcast);
+
+					RValue<Int4> v(V(vector));
+
+					auto pointer = RValue<Pointer<Byte>>(ptr);
+					Int x = Extract(v, 0);
+					*Pointer<Int>(pointer) = x;
+				}
+				else if(typeSize(type) == 8)
+				{
+					Ice::Variable *vector = ::function->makeVariable(Ice::IceType_v4i32);
+					auto bitcast = Ice::InstCast::create(::function, Ice::InstCast::Bitcast, vector, value);
+					::basicBlock->appendInst(bitcast);
+
+					RValue<Int4> v(V(vector));
+
+					auto pointer = RValue<Pointer<Byte>>(ptr);
+					Int x = Extract(v, 0);
+					*Pointer<Int>(pointer) = x;
+					Int y = Extract(v, 1);
+					*Pointer<Int>(pointer + 4) = y;
+				}
+				else assert(false);
+			}
+			else
+			{
+				const Ice::Intrinsics::IntrinsicInfo intrinsic = {Ice::Intrinsics::StoreSubVector, Ice::Intrinsics::SideEffects_T, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_T};
+				auto target = ::context->getConstantUndef(Ice::IceType_i32);
+				auto store = Ice::InstIntrinsicCall::create(::function, 3, nullptr, target, intrinsic);
+				store->addArg(value);
+				store->addArg(ptr);
+				store->addArg(::context->getConstantInt32(typeSize(type)));
+				::basicBlock->appendInst(store);
+			}
 		}
 		else
 		{
