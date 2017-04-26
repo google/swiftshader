@@ -77,6 +77,7 @@ namespace
 	class CPUID
 	{
 	public:
+		const static bool ARM;
 		const static bool SSE4_1;
 
 	private:
@@ -96,6 +97,17 @@ namespace
 			#endif
 		}
 
+		static bool detectARM()
+		{
+			#if defined(__arm__)
+				return true;
+			#elif defined(__i386__) || defined(__x86_64__)
+				return false;
+			#else
+				#error "Unknown architecture"
+			#endif
+		}
+
 		static bool detectSSE4_1()
 		{
 			#if defined(__i386__) || defined(__x86_64__)
@@ -108,7 +120,9 @@ namespace
 		}
 	};
 
+	const bool CPUID::ARM = CPUID::detectARM();
 	const bool CPUID::SSE4_1 = CPUID::detectSSE4_1();
+	const bool emulateIntrinsics = CPUID::ARM;
 }
 
 namespace sw
@@ -4146,14 +4160,22 @@ namespace sw
 
 	RValue<Int> RoundInt(RValue<Float> cast)
 	{
-		Ice::Variable *result = ::function->makeVariable(Ice::IceType_i32);
-		const Ice::Intrinsics::IntrinsicInfo intrinsic = {Ice::Intrinsics::Nearbyint, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F};
-		auto target = ::context->getConstantUndef(Ice::IceType_i32);
-		auto nearbyint = Ice::InstIntrinsicCall::create(::function, 1, result, target, intrinsic);
-		nearbyint->addArg(cast.value);
-		::basicBlock->appendInst(nearbyint);
+		if(emulateIntrinsics)
+		{
+			// Push the fractional part off the mantissa. Accurate up to +/-2^22.
+			return Int((cast + Float(0x00C00000)) - Float(0x00C00000));
+		}
+		else
+		{
+			Ice::Variable *result = ::function->makeVariable(Ice::IceType_i32);
+			const Ice::Intrinsics::IntrinsicInfo intrinsic = {Ice::Intrinsics::Nearbyint, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F};
+			auto target = ::context->getConstantUndef(Ice::IceType_i32);
+			auto nearbyint = Ice::InstIntrinsicCall::create(::function, 1, result, target, intrinsic);
+			nearbyint->addArg(cast.value);
+			::basicBlock->appendInst(nearbyint);
 
-		return RValue<Int>(V(result));
+			return RValue<Int>(V(result));
+		}
 	}
 
 	Type *Int::getType()
@@ -5301,14 +5323,22 @@ namespace sw
 
 	RValue<Int4> RoundInt(RValue<Float4> cast)
 	{
-		Ice::Variable *result = ::function->makeVariable(Ice::IceType_v4i32);
-		const Ice::Intrinsics::IntrinsicInfo intrinsic = {Ice::Intrinsics::Nearbyint, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F};
-		auto target = ::context->getConstantUndef(Ice::IceType_i32);
-		auto nearbyint = Ice::InstIntrinsicCall::create(::function, 1, result, target, intrinsic);
-		nearbyint->addArg(cast.value);
-		::basicBlock->appendInst(nearbyint);
+		if(emulateIntrinsics)
+		{
+			// Push the fractional part off the mantissa. Accurate up to +/-2^22.
+			return Int4((cast + Float4(0x00C00000)) - Float4(0x00C00000));
+		}
+		else
+		{
+			Ice::Variable *result = ::function->makeVariable(Ice::IceType_v4i32);
+			const Ice::Intrinsics::IntrinsicInfo intrinsic = {Ice::Intrinsics::Nearbyint, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F};
+			auto target = ::context->getConstantUndef(Ice::IceType_i32);
+			auto nearbyint = Ice::InstIntrinsicCall::create(::function, 1, result, target, intrinsic);
+			nearbyint->addArg(cast.value);
+			::basicBlock->appendInst(nearbyint);
 
-		return RValue<Int4>(V(result));
+			return RValue<Int4>(V(result));
+		}
 	}
 
 	RValue<Short8> Pack(RValue<Int4> x, RValue<Int4> y)
@@ -6247,7 +6277,12 @@ namespace sw
 
 	RValue<Float4> Round(RValue<Float4> x)
 	{
-		if(CPUID::SSE4_1)
+		if(emulateIntrinsics)
+		{
+			// Push the fractional part off the mantissa. Accurate up to +/-2^22.
+			return (x + Float4(0x00C00000)) - Float4(0x00C00000);
+		}
+		else if(CPUID::SSE4_1)
 		{
 			Ice::Variable *result = ::function->makeVariable(Ice::IceType_v4f32);
 			const Ice::Intrinsics::IntrinsicInfo intrinsic = {Ice::Intrinsics::Round, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F};
