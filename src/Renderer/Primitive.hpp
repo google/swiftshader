@@ -69,9 +69,11 @@ namespace sw
 			unsigned short right;
 		};
 
-		Span outlineUnderflow;
+		// The rasterizer adds a zero length span to the top and bottom of the polygon to allow
+		// for 2x2 pixel processing. We need an even number of spans to keep accesses aligned.
+		Span outlineUnderflow[2];
 		Span outline[OUTLINE_RESOLUTION];
-		Span outlineOverflow;
+		Span outlineOverflow[2];
 	};
 }
 
