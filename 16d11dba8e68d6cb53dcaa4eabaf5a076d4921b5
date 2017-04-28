@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da65339d_6fd88440",
+        "filename": "src/Renderer/Primitive.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5880
+      },
+      "writtenOn": "2017-04-28T17:20:56Z",
+      "side": 1,
+      "message": "nit: if making the guards bigger isn\u0027t needed then you could use the alignas() attribute.",
+      "revId": "16d11dba8e68d6cb53dcaa4eabaf5a076d4921b5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
