@@ -16,6 +16,24 @@
       "revId": "16d11dba8e68d6cb53dcaa4eabaf5a076d4921b5",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9eb99df3_91a002b6",
+        "filename": "src/Renderer/Primitive.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-04-28T18:35:07Z",
+      "side": 1,
+      "message": "Cool, I didn\u0027t know about alignas(). Glad that got standardized in C++1.",
+      "parentUuid": "da65339d_6fd88440",
+      "revId": "16d11dba8e68d6cb53dcaa4eabaf5a076d4921b5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
