@@ -2513,6 +2513,13 @@ public:
     return legalizeToReg(Target, Swapped ? Src0 : Src1);
   }
 
+  bool isSrc1ImmediateZero() const {
+    if (!swappedOperands() && hasConstOperand()) {
+      return getConstantValue() == 0;
+    }
+    return false;
+  }
+
   bool immediateIsFlexEncodable() const {
     uint32_t Rotate, Imm8;
     return OperandARM32FlexImm::canHoldImm(getConstantValue(), &Rotate, &Imm8);
@@ -3422,8 +3429,12 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Instr) {
   case InstArithmetic::Shl: {
     Variable *Src0R = Srcs.unswappedSrc0R(this);
     if (!isVectorType(T->getType())) {
-      Operand *Src1R = Srcs.unswappedSrc1RShAmtImm(this);
-      _lsl(T, Src0R, Src1R);
+      if (Srcs.isSrc1ImmediateZero()) {
+        _mov(T, Src0R);
+      } else {
+        Operand *Src1R = Srcs.unswappedSrc1RShAmtImm(this);
+        _lsl(T, Src0R, Src1R);
+      }
     } else {
       auto *Src1R = Srcs.unswappedSrc1R(this);
       _vshl(T, Src0R, Src1R)->setSignType(InstARM32::FS_Unsigned);
@@ -3434,11 +3445,15 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Instr) {
   case InstArithmetic::Lshr: {
     Variable *Src0R = Srcs.unswappedSrc0R(this);
     if (!isVectorType(T->getType())) {
-      Operand *Src1R = Srcs.unswappedSrc1RShAmtImm(this);
       if (DestTy != IceType_i32) {
         _uxt(Src0R, Src0R);
       }
-      _lsr(T, Src0R, Src1R);
+      if (Srcs.isSrc1ImmediateZero()) {
+        _mov(T, Src0R);
+      } else {
+        Operand *Src1R = Srcs.unswappedSrc1RShAmtImm(this);
+        _lsr(T, Src0R, Src1R);
+      }
     } else {
       auto *Src1R = Srcs.unswappedSrc1R(this);
       auto *Src1RNeg = makeReg(Src1R->getType());
@@ -3454,7 +3469,11 @@ void TargetARM32::lowerArithmetic(const InstArithmetic *Instr) {
       if (DestTy != IceType_i32) {
         _sxt(Src0R, Src0R);
       }
-      _asr(T, Src0R, Srcs.unswappedSrc1RShAmtImm(this));
+      if (Srcs.isSrc1ImmediateZero()) {
+        _mov(T, Src0R);
+      } else {
+        _asr(T, Src0R, Srcs.unswappedSrc1RShAmtImm(this));
+      }
     } else {
       auto *Src1R = Srcs.unswappedSrc1R(this);
       auto *Src1RNeg = makeReg(Src1R->getType());
