@@ -33,7 +33,7 @@ namespace sw
 {
 	extern bool forceWindowed;
 
-	FrameBuffer::Cursor FrameBuffer::cursor = {0};
+	FrameBuffer::Cursor FrameBuffer::cursor = {};
 	bool FrameBuffer::topLeftOrigin = false;
 	void FrameBuffer::typeinfo() {}
 
@@ -531,31 +531,34 @@ namespace sw
 				}
 			}
 
-			Int x0 = *Pointer<Int>(cursor + OFFSET(Cursor,x));
-			Int y0 = *Pointer<Int>(cursor + OFFSET(Cursor,y));
-
-			For(Int y1 = 0, y1 < state.cursorHeight, y1++)
+			if(state.cursorWidth > 0 && state.cursorHeight > 0)
 			{
-				Int y = y0 + y1;
+				Int x0 = *Pointer<Int>(cursor + OFFSET(Cursor,x));
+				Int y0 = *Pointer<Int>(cursor + OFFSET(Cursor,y));
 
-				If(y >= 0 && y < height)
+				For(Int y1 = 0, y1 < state.cursorHeight, y1++)
 				{
-					Pointer<Byte> d = dst + y * dStride + x0 * dBytes;
-					Pointer<Byte> s = src + y * sStride + x0 * sBytes;
-					Pointer<Byte> c = *Pointer<Pointer<Byte>>(cursor + OFFSET(Cursor,image)) + y1 * state.cursorWidth * 4;
+					Int y = y0 + y1;
 
-					For(Int x1 = 0, x1 < state.cursorWidth, x1++)
+					If(y >= 0 && y < height)
 					{
-						Int x = x0 + x1;
+						Pointer<Byte> d = dst + y * dStride + x0 * dBytes;
+						Pointer<Byte> s = src + y * sStride + x0 * sBytes;
+						Pointer<Byte> c = *Pointer<Pointer<Byte>>(cursor + OFFSET(Cursor,image)) + y1 * state.cursorWidth * 4;
 
-						If(x >= 0 && x < width)
+						For(Int x1 = 0, x1 < state.cursorWidth, x1++)
 						{
-							blend(state, d, s, c);
-						}
+							Int x = x0 + x1;
 
-						c += 4;
-						s += sBytes;
-						d += dBytes;
+							If(x >= 0 && x < width)
+							{
+								blend(state, d, s, c);
+							}
+
+							c += 4;
+							s += sBytes;
+							d += dBytes;
+						}
 					}
 				}
 			}
