@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4cc56a4d_95d1948e",
+        "filename": "src/Android.mk",
+        "patchSetId": 2
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-05-02T17:41:07Z",
+      "side": 1,
+      "message": "nit: USE+LLVM and USE_SUBZERO variables could be introduced.",
+      "revId": "358aac6ce9516423374bc72d681d19b3012bc82c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "faa11b1f_6b20d3b8",
+        "filename": "src/Reactor/Android.mk",
+        "patchSetId": 2
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-05-02T17:41:07Z",
+      "side": 1,
+      "message": "nit: weird mix of tab and spaces",
+      "revId": "358aac6ce9516423374bc72d681d19b3012bc82c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
