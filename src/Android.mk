@@ -1,5 +1,10 @@
 LOCAL_PATH:= $(call my-dir)
 
+# Use Subzero as the Reactor JIT back-end on ARM, else LLVM.
+ifeq ($(TARGET_ARCH),$(filter $(TARGET_ARCH),arm))
+use_subzero := true
+endif
+
 COMMON_C_INCLUDES += \
 	bionic \
 	$(LOCAL_PATH)/../include \
@@ -8,8 +13,18 @@ COMMON_C_INCLUDES += \
 	$(LOCAL_PATH)/Renderer/ \
 	$(LOCAL_PATH)/Common/ \
 	$(LOCAL_PATH)/Shader/ \
-	$(LOCAL_PATH)/../third_party/LLVM/include \
 	$(LOCAL_PATH)/Main/
+
+ifdef use_subzero
+COMMON_C_INCLUDES += \
+	$(LOCAL_PATH)/../third_party/pnacl-subzero/ \
+	$(LOCAL_PATH)/../third_party/llvm-subzero/include/ \
+	$(LOCAL_PATH)/../third_party/llvm-subzero/build/Android/include/ \
+	$(LOCAL_PATH)/../third_party/pnacl-subzero/pnacl-llvm/include/
+else
+COMMON_C_INCLUDES += \
+	$(LOCAL_PATH)/../third_party/LLVM/include
+endif
 
 # Marshmallow does not have stlport, but comes with libc++ by default
 ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 23 && echo PreMarshmallow),PreMarshmallow)
@@ -35,11 +50,18 @@ COMMON_SRC_FILES += \
 	Main/FrameBufferAndroid.cpp \
 	Main/SwiftConfig.cpp
 
+ifdef use_subzero
+COMMON_SRC_FILES += \
+	Reactor/SubzeroReactor.cpp \
+	Reactor/Routine.cpp \
+	Reactor/Optimizer.cpp
+else
 COMMON_SRC_FILES += \
 	Reactor/LLVMReactor.cpp \
 	Reactor/Routine.cpp \
 	Reactor/LLVMRoutine.cpp \
 	Reactor/LLVMRoutineManager.cpp
+endif
 
 COMMON_SRC_FILES += \
 	Renderer/Blitter.cpp \
@@ -85,6 +107,7 @@ COMMON_CFLAGS := \
 	-Wno-unused-parameter \
 	-Wno-implicit-exception-spec-mismatch \
 	-Wno-overloaded-virtual \
+	-Wno-non-virtual-dtor \
 	-fno-operator-names \
 	-msse2 \
 	-D__STDC_CONSTANT_MACROS \
@@ -97,6 +120,14 @@ COMMON_CFLAGS += -Xclang -fuse-init-array
 else
 COMMON_CFLAGS += -D__STDC_INT64__
 endif
+
+# Common Subzero defines
+COMMON_CFLAGS += -DALLOW_DUMP=0 -DALLOW_TIMERS=0 -DALLOW_LLVM_CL=0 -DALLOW_LLVM_IR=0 -DALLOW_LLVM_IR_AS_INPUT=0 -DALLOW_MINIMAL_BUILD=0 -DALLOW_WASM=0 -DICE_THREAD_LOCAL_HACK=1
+
+# Subzero target
+LOCAL_CFLAGS_x86 += -DSZTARGET=X8632
+LOCAL_CFLAGS_x86_64 += -DSZTARGET=X8664
+LOCAL_CFLAGS_arm += -DSZTARGET=ARM32
 
 include $(CLEAR_VARS)
 LOCAL_CLANG := true

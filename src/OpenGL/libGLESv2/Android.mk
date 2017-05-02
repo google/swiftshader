@@ -47,16 +47,16 @@ COMMON_C_INCLUDES := \
 	$(LOCAL_PATH)/../../../include \
 	$(LOCAL_PATH)/../ \
 	$(LOCAL_PATH)/../../ \
-	$(LOCAL_PATH)/../../../third_party/LLVM/include-android \
-	$(LOCAL_PATH)/../../../third_party/LLVM/include \
-	$(LOCAL_PATH)/../../../third_party/LLVM/lib/Target/X86 \
 	$(LOCAL_PATH)/../../Renderer/ \
 	$(LOCAL_PATH)/../../Common/ \
 	$(LOCAL_PATH)/../../Shader/ \
 	$(LOCAL_PATH)/../../Main/
 
-COMMON_STATIC_LIBRARIES := \
-	libLLVM_swiftshader
+ifdef use_subzero
+COMMON_STATIC_LIBRARIES := libsubzero
+else
+COMMON_STATIC_LIBRARIES := libLLVM_swiftshader
+endif
 
 COMMON_SHARED_LIBRARIES := \
 	libdl \

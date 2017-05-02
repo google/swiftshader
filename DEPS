@@ -7,7 +7,7 @@ use_relative_paths = True
 vars = {
   'chromium_git': 'https://chromium.googlesource.com',
   # Current revision of subzero.
-  'subzero_revision': 'c48bb8b02c98ae49438e43aa1143a958784822a5',
+  'subzero_revision': 'fb705a6d55003b2c32772ae49e25b0babcff5acc',
 }
 
 deps = {

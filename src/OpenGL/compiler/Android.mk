@@ -5,9 +5,6 @@ COMMON_C_INCLUDES := \
 	$(LOCAL_PATH)/../../../include \
 	$(LOCAL_PATH)/../ \
 	$(LOCAL_PATH)/../../ \
-	$(LOCAL_PATH)/../../../third_party/LLVM/include-android \
-	$(LOCAL_PATH)/../../../third_party/LLVM/include \
-	$(LOCAL_PATH)/../../../third_party/LLVM/lib/Target/X86 \
 	$(LOCAL_PATH)/../../Renderer/ \
 	$(LOCAL_PATH)/../../Common/ \
 	$(LOCAL_PATH)/../../Shader/ \

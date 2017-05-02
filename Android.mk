@@ -16,6 +16,6 @@
 
 LOCAL_PATH:= $(call my-dir)
 
-ifeq ($(TARGET_ARCH),$(filter $(TARGET_ARCH),x86 x86_64))
+ifeq ($(TARGET_ARCH),$(filter $(TARGET_ARCH),x86 x86_64 arm))
 include $(call all-makefiles-under,$(LOCAL_PATH))
 endif
