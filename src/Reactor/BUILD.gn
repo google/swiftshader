@@ -48,8 +48,8 @@ config("swiftshader_subzero_common_private_config") {
   }
 
   include_dirs = [
-    "../../third_party/pnacl-subzero",
-    "../../third_party/pnacl-subzero/pnacl-llvm/include/",
+    "../../third_party/subzero",
+    "../../third_party/subzero/pnacl-llvm/include/",
     "../../third_party/llvm-subzero/include/",
   ]
 
@@ -155,7 +155,7 @@ config("swiftshader_reactor_private_config") {
 
 if (use_swiftshader_with_subzero) {
   source_set("swiftshader_subzero") {
-    subzero_dir = "../../third_party/pnacl-subzero"
+    subzero_dir = "../../third_party/subzero"
     subzero_llvm_dir = "../../third_party/llvm-subzero"
 
     sources = [

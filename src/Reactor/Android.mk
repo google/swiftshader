@@ -22,7 +22,7 @@ LOCAL_CLANG := true
 LOCAL_MODULE := libsubzero
 LOCAL_MODULE_TAGS := optional
 
-SUBZERO_PATH := ../../third_party/pnacl-subzero
+SUBZERO_PATH := ../../third_party/subzero
 LLVMDEPENDENCIES_PATH := ../../third_party/llvm-subzero
 
 LOCAL_SRC_FILES := \

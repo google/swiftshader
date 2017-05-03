@@ -17,10 +17,10 @@ COMMON_C_INCLUDES += \
 
 ifdef use_subzero
 COMMON_C_INCLUDES += \
-	$(LOCAL_PATH)/../third_party/pnacl-subzero/ \
+	$(LOCAL_PATH)/../third_party/subzero/ \
 	$(LOCAL_PATH)/../third_party/llvm-subzero/include/ \
 	$(LOCAL_PATH)/../third_party/llvm-subzero/build/Android/include/ \
-	$(LOCAL_PATH)/../third_party/pnacl-subzero/pnacl-llvm/include/
+	$(LOCAL_PATH)/../third_party/subzero/pnacl-llvm/include/
 else
 COMMON_C_INCLUDES += \
 	$(LOCAL_PATH)/../third_party/LLVM/include
