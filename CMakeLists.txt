@@ -648,7 +648,6 @@ if(${REACTOR_BACKEND} STREQUAL "Subzero")
         ${SUBZERO_DIR}/
         ${SUBZERO_LLVM_DIR}/include/
         ${SUBZERO_DIR}/pnacl-llvm/include/
-        ${SOURCE_DIR}/Reactor/SubmoduleCheck/
      )
 
     if(WIN32)
