@@ -835,7 +835,7 @@ namespace sw
 		}
 		else   // Vector
 		{
-			int64_t c[4] = {-1, -1, -1, -1};
+			int64_t c[16] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
 			return createXor(v, createConstantVector(c, T(v->getType())));
 		}
 	}
