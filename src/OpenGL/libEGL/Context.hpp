@@ -26,7 +26,7 @@ class Display;
 class Surface;
 class Image;
 
-class Context : public gl::Object
+class [[clang::lto_visibility_public]] Context : public gl::Object
 {
 public:
 	Context(egl::Display *display) : display(display) {}

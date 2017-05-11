@@ -18,6 +18,7 @@ config("swiftshader_opengl_common_private_config") {
     cflags = [
       "/wd4201",  # nameless struct/union
       "/wd4324",  # structure was padded due to alignment specifier
+      "/wd5030",  # attribute is not recognized
     ]
   } else {
     defines = [ "LOG_TAG=\"swiftshader_opengl_common\"" ]

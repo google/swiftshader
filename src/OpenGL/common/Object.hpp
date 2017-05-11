@@ -28,7 +28,7 @@ typedef unsigned int GLuint;
 namespace gl
 {
 
-class Object
+class [[clang::lto_visibility_public]] Object
 {
 public:
 	Object();

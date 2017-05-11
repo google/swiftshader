@@ -217,7 +217,7 @@ namespace sw
 		LOCK_DISCARD
 	};
 
-	class Surface
+	class [[clang::lto_visibility_public]] Surface
 	{
 	private:
 		struct Buffer

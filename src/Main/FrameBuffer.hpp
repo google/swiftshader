@@ -34,7 +34,7 @@ namespace sw
 		int cursorHeight;
 	};
 
-	class FrameBuffer
+	class [[clang::lto_visibility_public]] FrameBuffer
 	{
 		virtual void typeinfo();   // Dummy key method (https://gcc.gnu.org/onlinedocs/gcc/Vague-Linkage.html)
 

@@ -18,6 +18,7 @@ config("swiftshader_shader_private_config") {
     cflags = [
       "/wd4201",  # nameless struct/union
       "/wd4324",  # structure was padded due to alignment specifier
+      "/wd5030",  # attribute is not recognized
     ]
 
     if (is_clang) {

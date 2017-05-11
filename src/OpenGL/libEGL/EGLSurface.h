@@ -31,7 +31,7 @@ class Config;
 class Texture;
 class Image;
 
-class Surface : public gl::Object
+class [[clang::lto_visibility_public]] Surface : public gl::Object
 {
 	virtual void typeinfo();   // Dummy key method (https://gcc.gnu.org/onlinedocs/gcc/Vague-Linkage.html)
 

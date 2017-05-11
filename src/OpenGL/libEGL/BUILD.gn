@@ -22,6 +22,7 @@ config("swiftshader_libEGL_private_config") {
     cflags = [
       "/wd4201",  # nameless struct/union
       "/wd4065",  # switch statement contains 'default' but no 'case' labels
+      "/wd5030",  # attribute is not recognized
     ]
 
     defines += [
