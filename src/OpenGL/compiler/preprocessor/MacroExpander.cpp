@@ -60,6 +60,7 @@ MacroExpander::MacroExpander(Lexer* lexer,
                              bool parseDefined) :
 	mLexer(lexer), mMacroSet(macroSet), mDiagnostics(diagnostics), mParseDefined(parseDefined)
 {
+	mReserveToken = nullptr;
 }
 
 MacroExpander::~MacroExpander()
@@ -68,6 +69,8 @@ MacroExpander::~MacroExpander()
 	{
 		delete mContextStack[i];
 	}
+
+	delete mReserveToken;
 }
 
 void MacroExpander::lex(Token* token)
@@ -147,10 +150,10 @@ void MacroExpander::lex(Token* token)
 
 void MacroExpander::getToken(Token* token)
 {
-	if (mReserveToken.get())
+	if (mReserveToken)
 	{
 		*token = *mReserveToken;
-		mReserveToken.reset();
+		delete mReserveToken;
 		return;
 	}
 
@@ -180,8 +183,8 @@ void MacroExpander::ungetToken(const Token& token)
 	}
 	else
 	{
-		assert(!mReserveToken.get());
-		mReserveToken.reset(new Token(token));
+		assert(!mReserveToken);
+		mReserveToken = new Token(token);
 	}
 }
 
