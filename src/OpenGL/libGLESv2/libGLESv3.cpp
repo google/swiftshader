@@ -492,6 +492,7 @@ static bool ValidateSamplerObjectParameter(GLenum pname)
 	case GL_TEXTURE_MAX_LOD:
 	case GL_TEXTURE_COMPARE_MODE:
 	case GL_TEXTURE_COMPARE_FUNC:
+	case GL_TEXTURE_MAX_ANISOTROPY_EXT:
 		return true;
 	default:
 		return false;
