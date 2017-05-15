@@ -22,6 +22,30 @@
       "revId": "04f41257e7a3060bceebf6dbe308add632c4d253",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "40790e1a_d358a4d6",
+        "filename": "src/Main/FrameBuffer.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-05-15T21:37:31Z",
+      "side": 1,
+      "message": "This is supported on any C++03 compliant compiler. Missing initializer list elements cause the corresponding fields to get value-initialized, which in the case of scalars means zero-initialization.",
+      "parentUuid": "62166ecf_cdff937a",
+      "range": {
+        "startLine": 36,
+        "startChar": 40,
+        "endLine": 36,
+        "endChar": 45
+      },
+      "revId": "04f41257e7a3060bceebf6dbe308add632c4d253",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
