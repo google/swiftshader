@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "62166ecf_cdff937a",
+        "filename": "src/Main/FrameBuffer.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-05-15T15:07:52Z",
+      "side": 1,
+      "message": "Is this valid on all platforms? I\u0027m now wary of empty brackets initializers.",
+      "range": {
+        "startLine": 36,
+        "startChar": 40,
+        "endLine": 36,
+        "endChar": 45
+      },
+      "revId": "04f41257e7a3060bceebf6dbe308add632c4d253",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
