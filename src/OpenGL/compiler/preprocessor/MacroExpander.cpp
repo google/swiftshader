@@ -154,6 +154,7 @@ void MacroExpander::getToken(Token* token)
 	{
 		*token = *mReserveToken;
 		delete mReserveToken;
+		mReserveToken = nullptr;
 		return;
 	}
 
