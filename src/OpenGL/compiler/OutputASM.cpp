@@ -2944,9 +2944,19 @@ namespace glsl
 		TIntermSymbol *symbol = sampler->getAsSymbolNode();
 		TIntermBinary *binary = sampler->getAsBinaryNode();
 
-		if(symbol && type.getQualifier() == EvqUniform)
+		if(symbol)
 		{
-			return samplerRegister(symbol);
+			switch(type.getQualifier())
+			{
+			case EvqUniform:
+				return samplerRegister(symbol);
+			case EvqIn:
+			case EvqConstReadOnly:
+				// Function arguments are not (uniform) sampler registers
+				return -1;
+			default:
+				UNREACHABLE(type.getQualifier());
+			}
 		}
 		else if(binary)
 		{
@@ -2992,7 +3002,7 @@ namespace glsl
 		}
 
 		UNREACHABLE(0);
-		return -1;   // Not a sampler register
+		return -1;   // Not a (uniform) sampler register
 	}
 
 	int OutputASM::samplerRegister(TIntermSymbol *sampler)
