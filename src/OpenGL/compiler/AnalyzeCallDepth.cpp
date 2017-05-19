@@ -14,6 +14,23 @@
 
 #include "AnalyzeCallDepth.h"
 
+static TIntermSequence::iterator
+traverseCaseBody(AnalyzeCallDepth* analysis,
+				 TIntermSequence::iterator& start,
+				 const TIntermSequence::iterator& end) {
+	TIntermSequence::iterator current = start;
+	for (++current; current != end; ++current)
+	{
+		(*current)->traverse(analysis);
+		if((*current)->getAsBranchNode()) // Kill, Break, Continue or Return
+		{
+			break;
+		}
+	}
+	return current;
+}
+
+
 AnalyzeCallDepth::FunctionNode::FunctionNode(TIntermAggregate *node) : node(node)
 {
 	visit = PreVisit;
@@ -99,6 +116,50 @@ AnalyzeCallDepth::~AnalyzeCallDepth()
 	{
 		delete functions[i];
 	}
+}
+
+bool AnalyzeCallDepth::visitSwitch(Visit visit, TIntermSwitch *node)
+{
+	TIntermTyped* switchValue = node->getInit();
+	TIntermAggregate* opList = node->getStatementList();
+
+	if(!switchValue || !opList)
+	{
+		return false;
+	}
+
+	// TODO: We need to dig into switch statement cases from
+	// visitSwitch for all traversers. Is there a way to
+	// preserve existing functionality while moving the iteration
+	// to the general traverser?
+	TIntermSequence& sequence = opList->getSequence();
+	TIntermSequence::iterator it = sequence.begin();
+	TIntermSequence::iterator defaultIt = sequence.end();
+	for(; it != sequence.end(); ++it)
+	{
+		TIntermCase* currentCase = (*it)->getAsCaseNode();
+		if(currentCase)
+		{
+			TIntermSequence::iterator caseIt = it;
+			TIntermTyped* condition = currentCase->getCondition();
+			if(condition) // non default case
+			{
+				condition->traverse(this);
+				traverseCaseBody(this, caseIt, sequence.end());
+			}
+			else
+			{
+				defaultIt = it; // The default case might not be the last case, keep it for last
+			}
+		}
+	}
+
+	// If there's a default case, traverse it here
+	if(defaultIt != sequence.end())
+	{
+		traverseCaseBody(this, defaultIt, sequence.end());
+	}
+	return false;
 }
 
 bool AnalyzeCallDepth::visitAggregate(Visit visit, TIntermAggregate *node)

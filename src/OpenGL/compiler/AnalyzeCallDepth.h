@@ -27,6 +27,7 @@ public:
 	AnalyzeCallDepth(TIntermNode *root);
 	~AnalyzeCallDepth();
 
+	virtual bool visitSwitch(Visit, TIntermSwitch*);
 	virtual bool visitAggregate(Visit, TIntermAggregate*);
 
 	unsigned int analyzeCallDepth();
