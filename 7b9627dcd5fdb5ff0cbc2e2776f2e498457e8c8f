@@ -22,6 +22,30 @@
       "revId": "7b9627dcd5fdb5ff0cbc2e2776f2e498457e8c8f",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5333094f_f34c79f0",
+        "filename": "src/OpenGL/common/Image.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1185,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-05-19T20:09:04Z",
+      "side": 1,
+      "message": "Not really. First of all this patch doesn\u0027t change all that much. Instead of syncing in the Surface destructor (base class of Image), we sync here at the top of Image\u0027s destructor so the parent texture gets released right after it instead of right before it.\n\nEGL images on Android do often get allocated in different threads than where they get destroyed, but as long as they get unlocked before they get destroyed there won\u0027t be any deadlock. And that would simply be a logic error. We just need lock/unlock pairs for any reads or writes.",
+      "parentUuid": "e79d7ea8_6c1da573",
+      "range": {
+        "startLine": 1185,
+        "startChar": 2,
+        "endLine": 1185,
+        "endChar": 6
+      },
+      "revId": "7b9627dcd5fdb5ff0cbc2e2776f2e498457e8c8f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
