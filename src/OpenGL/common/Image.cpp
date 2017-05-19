@@ -1182,6 +1182,8 @@ namespace egl
 
 	Image::~Image()
 	{
+		sync();   // Wait for any threads that use this image to finish.
+
 		if(parentTexture)
 		{
 			parentTexture->release();

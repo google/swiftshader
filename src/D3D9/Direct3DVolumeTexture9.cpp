@@ -50,8 +50,6 @@ namespace D3D9
 
 	Direct3DVolumeTexture9::~Direct3DVolumeTexture9()
 	{
-		resource->lock(sw::DESTRUCT);
-
 		for(int level = 0; level < sw::MIPMAP_LEVELS; level++)
 		{
 			if(volumeLevel[level])
@@ -60,8 +58,6 @@ namespace D3D9
 				volumeLevel[level] = 0;
 			}
 		}
-
-		resource->unlock();
 	}
 
 	long Direct3DVolumeTexture9::QueryInterface(const IID &iid, void **object)

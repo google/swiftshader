@@ -347,8 +347,6 @@ Texture2D::Texture2D(GLuint name) : Texture(name)
 
 Texture2D::~Texture2D()
 {
-	resource->lock(sw::DESTRUCT);
-
 	for(int i = 0; i < IMPLEMENTATION_MAX_TEXTURE_LEVELS; i++)
 	{
 		if(image[i])
@@ -357,8 +355,6 @@ Texture2D::~Texture2D()
 			image[i] = nullptr;
 		}
 	}
-
-	resource->unlock();
 
 	if(mSurface)
 	{

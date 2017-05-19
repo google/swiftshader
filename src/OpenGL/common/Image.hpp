@@ -254,9 +254,7 @@ private:
 
 	virtual ~AndroidNativeImage()
 	{
-		// Wait for any draw calls that use this image to finish
-		resource->lock(sw::DESTRUCT);
-		resource->unlock();
+		sync();   // Wait for any threads that use this image to finish.
 
 		nativeBuffer->common.decRef(&nativeBuffer->common);
 	}

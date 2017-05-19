@@ -1270,9 +1270,11 @@ namespace sw
 
 	Surface::~Surface()
 	{
-		// Synchronize so we can deallocate the buffers below
-		resource->lock(DESTRUCT);
-		resource->unlock();
+		// sync() must be called before this destructor to ensure all locks have been released.
+		// We can't call it here because the parent resource may already have been destroyed.
+		ASSERT(external.lock == LOCK_UNLOCKED);
+		ASSERT(internal.lock == LOCK_UNLOCKED);
+		ASSERT(stencil.lock == LOCK_UNLOCKED);
 
 		if(!hasParent)
 		{
@@ -3156,6 +3158,12 @@ namespace sw
 			(char*&)buffer += 1;
 			bytes -= 1;
 		}
+	}
+
+	void Surface::sync()
+	{
+		resource->lock(EXCLUSIVE);
+		resource->unlock();
 	}
 
 	bool Surface::isEntire(const SliceRect& rect) const

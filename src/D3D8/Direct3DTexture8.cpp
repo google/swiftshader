@@ -48,8 +48,6 @@ namespace D3D8
 
 	Direct3DTexture8::~Direct3DTexture8()
 	{
-		resource->lock(sw::DESTRUCT);
-
 		for(int level = 0; level < sw::MIPMAP_LEVELS; level++)
 		{
 			if(surfaceLevel[level])
@@ -58,8 +56,6 @@ namespace D3D8
 				surfaceLevel[level] = 0;
 			}
 		}
-
-		resource->unlock();
 	}
 
 	long Direct3DTexture8::QueryInterface(const IID &iid, void **object)

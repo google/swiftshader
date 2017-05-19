@@ -291,6 +291,8 @@ namespace sw
 		inline int getStencilPitchB() const;
 		inline int getStencilSliceB() const;
 
+		void sync();   // Wait for lock(s) to be released
+
 		inline int getMultiSampleCount() const;
 		inline int getSuperSampleCount() const;
 
@@ -345,10 +347,9 @@ namespace sw
 
 		static void setTexturePalette(unsigned int *palette);
 
-	protected:
+	private:
 		sw::Resource *resource;
 
-	private:
 		typedef unsigned char byte;
 		typedef unsigned short word;
 		typedef unsigned int dword;

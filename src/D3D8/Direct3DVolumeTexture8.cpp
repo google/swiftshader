@@ -49,8 +49,6 @@ namespace D3D8
 
 	Direct3DVolumeTexture8::~Direct3DVolumeTexture8()
 	{
-		resource->lock(sw::DESTRUCT);
-
 		for(int level = 0; level < sw::MIPMAP_LEVELS; level++)
 		{
 			if(volumeLevel[level])
@@ -59,8 +57,6 @@ namespace D3D8
 				volumeLevel[level] = 0;
 			}
 		}
-
-		resource->unlock();
 	}
 
 	long Direct3DVolumeTexture8::QueryInterface(const IID &iid, void **object)

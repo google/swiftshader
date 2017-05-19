@@ -55,8 +55,6 @@ namespace D3D9
 
 	Direct3DCubeTexture9::~Direct3DCubeTexture9()
 	{
-		resource->lock(sw::DESTRUCT);
-
 		for(unsigned int face = 0; face < 6; face++)
 		{
 			for(int level = 0; level < sw::MIPMAP_LEVELS; level++)
@@ -68,8 +66,6 @@ namespace D3D9
 				}
 			}
 		}
-
-		resource->unlock();
 	}
 
 	long Direct3DCubeTexture9::QueryInterface(const IID &iid, void **object)

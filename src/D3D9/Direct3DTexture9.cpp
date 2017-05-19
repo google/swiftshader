@@ -49,8 +49,6 @@ namespace D3D9
 
 	Direct3DTexture9::~Direct3DTexture9()
 	{
-		resource->lock(sw::DESTRUCT);
-
 		for(int level = 0; level < sw::MIPMAP_LEVELS; level++)
 		{
 			if(surfaceLevel[level])
@@ -59,8 +57,6 @@ namespace D3D9
 				surfaceLevel[level] = 0;
 			}
 		}
-
-		resource->unlock();
 	}
 
 	long Direct3DTexture9::QueryInterface(const IID &iid, void **object)

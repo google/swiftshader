@@ -37,7 +37,7 @@ namespace D3D8
 			for(unsigned int level = 0; level < sw::MIPMAP_LEVELS; level++)
 			{
 				if(level < this->levels)
-				{					
+				{
 					surfaceLevel[face][level] = new Direct3DSurface8(device, this, width, height, format, pool, D3DMULTISAMPLE_NONE, true, usage);
 					surfaceLevel[face][level]->bind();
 				}
@@ -54,8 +54,6 @@ namespace D3D8
 
 	Direct3DCubeTexture8::~Direct3DCubeTexture8()
 	{
-		resource->lock(sw::DESTRUCT);
-
 		for(unsigned int face = 0; face < 6; face++)
 		{
 			for(int level = 0; level < sw::MIPMAP_LEVELS; level++)
@@ -67,8 +65,6 @@ namespace D3D8
 				}
 			}
 		}
-
-		resource->unlock();
 	}
 
 	long Direct3DCubeTexture8::QueryInterface(const IID &iid, void **object)
