@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e79d7ea8_6c1da573",
+        "filename": "src/OpenGL/common/Image.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1185,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-05-19T15:00:40Z",
+      "side": 1,
+      "message": "There\u0027s no chance Image objects could be allocated in different threads and end up creating a deadlock?",
+      "range": {
+        "startLine": 1185,
+        "startChar": 2,
+        "endLine": 1185,
+        "endChar": 6
+      },
+      "revId": "7b9627dcd5fdb5ff0cbc2e2776f2e498457e8c8f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
