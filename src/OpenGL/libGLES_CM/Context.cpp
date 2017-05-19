@@ -37,8 +37,8 @@ using std::abs;
 
 namespace es1
 {
-Context::Context(egl::Display *const display, const Context *shareContext)
-	: egl::Context(display),
+Context::Context(egl::Display *const display, const Context *shareContext, const egl::Config *config)
+	: egl::Context(display), config(config),
 	  modelViewStack(MAX_MODELVIEW_STACK_DEPTH),
 	  projectionStack(MAX_PROJECTION_STACK_DEPTH),
 	  textureStack0(MAX_TEXTURE_STACK_DEPTH),
@@ -321,9 +321,14 @@ void Context::makeCurrent(egl::Surface *surface)
 	markAllStateDirty();
 }
 
-int Context::getClientVersion() const
+EGLint Context::getClientVersion() const
 {
 	return 1;
+}
+
+EGLint Context::getConfigID() const
+{
+	return config->mConfigID;
 }
 
 // This function will set all of the state-related dirty flags, so that all state is set during next pre-draw.
@@ -3470,8 +3475,8 @@ unsigned int Context::getActiveTexture() const
 
 }
 
-egl::Context *es1CreateContext(egl::Display *display, const egl::Context *shareContext)
+egl::Context *es1CreateContext(egl::Display *display, const egl::Context *shareContext, const egl::Config *config)
 {
 	ASSERT(!shareContext || shareContext->getClientVersion() == 1);   // Should be checked by eglCreateContext
-	return new es1::Context(display, static_cast<const es1::Context*>(shareContext));
+	return new es1::Context(display, static_cast<const es1::Context*>(shareContext), config);
 }

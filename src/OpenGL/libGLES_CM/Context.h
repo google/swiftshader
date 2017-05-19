@@ -291,14 +291,16 @@ struct State
 	TextureUnit textureUnit[MAX_TEXTURE_UNITS];
 };
 
-class Context : public egl::Context
+class [[clang::lto_visibility_public]] Context : public egl::Context
 {
 public:
-	Context(egl::Display *display, const Context *shareContext);
+	Context(egl::Display *display, const Context *shareContext, const egl::Config *config);
 
-	virtual void makeCurrent(egl::Surface *surface);
-	virtual int getClientVersion() const;
-	virtual void finish();
+	void makeCurrent(egl::Surface *surface) override;
+	EGLint getClientVersion() const override;
+	EGLint getConfigID() const override;
+
+	void finish() override;
 
 	void markAllStateDirty();
 
@@ -593,6 +595,8 @@ private:
 
 	bool cullSkipsDraw(GLenum drawMode);
 	bool isTriangleMode(GLenum drawMode);
+
+	const egl::Config *const config;
 
 	State mState;
 

@@ -45,8 +45,8 @@
 
 namespace es2
 {
-Context::Context(egl::Display *display, const Context *shareContext, EGLint clientVersion)
-	: egl::Context(display), clientVersion(clientVersion)
+Context::Context(egl::Display *display, const Context *shareContext, EGLint clientVersion, const egl::Config *config)
+	: egl::Context(display), clientVersion(clientVersion), config(config)
 {
 	sw::Context *context = new sw::Context();
 	device = new es2::Device(context);
@@ -311,6 +311,11 @@ void Context::makeCurrent(egl::Surface *surface)
 EGLint Context::getClientVersion() const
 {
 	return clientVersion;
+}
+
+EGLint Context::getConfigID() const
+{
+	return config->mConfigID;
 }
 
 // This function will set all of the state-related dirty flags, so that all state is set during next pre-draw.
@@ -4358,8 +4363,8 @@ const GLubyte *Context::getExtensions(GLuint index, GLuint *numExt) const
 
 }
 
-egl::Context *es2CreateContext(egl::Display *display, const egl::Context *shareContext, int clientVersion)
+egl::Context *es2CreateContext(egl::Display *display, const egl::Context *shareContext, int clientVersion, const egl::Config *config)
 {
 	ASSERT(!shareContext || shareContext->getClientVersion() == clientVersion);   // Should be checked by eglCreateContext
-	return new es2::Context(display, static_cast<const es2::Context*>(shareContext), clientVersion);
+	return new es2::Context(display, static_cast<const es2::Context*>(shareContext), clientVersion, config);
 }

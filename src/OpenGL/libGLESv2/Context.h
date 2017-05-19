@@ -429,10 +429,11 @@ struct State
 class [[clang::lto_visibility_public]] Context : public egl::Context
 {
 public:
-	Context(egl::Display *display, const Context *shareContext, EGLint clientVersion);
+	Context(egl::Display *display, const Context *shareContext, EGLint clientVersion, const egl::Config *config);
 
 	void makeCurrent(egl::Surface *surface) override;
-	virtual EGLint getClientVersion() const;
+	EGLint getClientVersion() const override;
+	EGLint getConfigID() const override;
 
 	void markAllStateDirty();
 
@@ -725,6 +726,7 @@ private:
 	Query *createQuery(GLuint handle, GLenum type);
 
 	const EGLint clientVersion;
+	const egl::Config *const config;
 
 	State mState;
 
