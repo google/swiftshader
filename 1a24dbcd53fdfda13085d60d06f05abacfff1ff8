@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8f8d6ab4_e53a217d",
+        "filename": "src/Shader/Shader.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5870
+      },
+      "writtenOn": "2017-05-19T21:48:34Z",
+      "side": 1,
+      "message": "nit: unordered_set?",
+      "range": {
+        "startLine": 20,
+        "startChar": 10,
+        "endLine": 20,
+        "endChar": 13
+      },
+      "revId": "1a24dbcd53fdfda13085d60d06f05abacfff1ff8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
