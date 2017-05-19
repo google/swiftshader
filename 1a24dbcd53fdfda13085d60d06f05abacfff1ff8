@@ -22,6 +22,30 @@
       "revId": "1a24dbcd53fdfda13085d60d06f05abacfff1ff8",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e71be196_e6804dc4",
+        "filename": "src/Shader/Shader.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5545
+      },
+      "writtenOn": "2017-05-19T21:49:08Z",
+      "side": 1,
+      "message": "I think it has to run on pre-c++11 so I didn\u0027t switch to it",
+      "parentUuid": "8f8d6ab4_e53a217d",
+      "range": {
+        "startLine": 20,
+        "startChar": 10,
+        "endLine": 20,
+        "endChar": 13
+      },
+      "revId": "1a24dbcd53fdfda13085d60d06f05abacfff1ff8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
