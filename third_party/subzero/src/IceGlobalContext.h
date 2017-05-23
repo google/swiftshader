@@ -297,55 +297,16 @@ public:
   ELFObjectWriter *getObjectWriter() const { return ObjectWriter.get(); }
 
   /// Reset stats at the beginning of a function.
-  void resetStats() {
-    if (BuildDefs::dump())
-      ICE_TLS_GET_FIELD(TLS)->StatsFunction.reset();
-  }
+  void resetStats();
   void dumpStats(const Cfg *Func = nullptr);
-  void statsUpdateEmitted(uint32_t InstCount) {
-    if (!getFlags().getDumpStats())
-      return;
-    ThreadContext *Tls = ICE_TLS_GET_FIELD(TLS);
-    Tls->StatsFunction.update(CodeStats::CS_InstCount, InstCount);
-    Tls->StatsCumulative.update(CodeStats::CS_InstCount, InstCount);
-  }
-  void statsUpdateRegistersSaved(uint32_t Num) {
-    if (!getFlags().getDumpStats())
-      return;
-    ThreadContext *Tls = ICE_TLS_GET_FIELD(TLS);
-    Tls->StatsFunction.update(CodeStats::CS_RegsSaved, Num);
-    Tls->StatsCumulative.update(CodeStats::CS_RegsSaved, Num);
-  }
-  void statsUpdateFrameBytes(uint32_t Bytes) {
-    if (!getFlags().getDumpStats())
-      return;
-    ThreadContext *Tls = ICE_TLS_GET_FIELD(TLS);
-    Tls->StatsFunction.update(CodeStats::CS_FrameByte, Bytes);
-    Tls->StatsCumulative.update(CodeStats::CS_FrameByte, Bytes);
-  }
-  void statsUpdateSpills() {
-    if (!getFlags().getDumpStats())
-      return;
-    ThreadContext *Tls = ICE_TLS_GET_FIELD(TLS);
-    Tls->StatsFunction.update(CodeStats::CS_NumSpills);
-    Tls->StatsCumulative.update(CodeStats::CS_NumSpills);
-  }
-  void statsUpdateFills() {
-    if (!getFlags().getDumpStats())
-      return;
-    ThreadContext *Tls = ICE_TLS_GET_FIELD(TLS);
-    Tls->StatsFunction.update(CodeStats::CS_NumFills);
-    Tls->StatsCumulative.update(CodeStats::CS_NumFills);
-  }
+  void statsUpdateEmitted(uint32_t InstCount);
+  void statsUpdateRegistersSaved(uint32_t Num);
+  void statsUpdateFrameBytes(uint32_t Bytes);
+  void statsUpdateSpills();
+  void statsUpdateFills();
 
   /// Number of Randomized or Pooled Immediates
-  void statsUpdateRPImms() {
-    if (!getFlags().getDumpStats())
-      return;
-    ThreadContext *Tls = ICE_TLS_GET_FIELD(TLS);
-    Tls->StatsFunction.update(CodeStats::CS_NumRPImms);
-    Tls->StatsCumulative.update(CodeStats::CS_NumRPImms);
-  }
+  void statsUpdateRPImms();
 
   /// These are predefined TimerStackIdT values.
   enum TimerStackKind { TSK_Default = 0, TSK_Funcs, TSK_Num };
@@ -403,32 +364,8 @@ public:
   std::unique_ptr<EmitterWorkItem> emitQueueBlockingPop();
   void emitQueueNotifyEnd() { EmitQ.notifyEnd(); }
 
-  void initParserThread() {
-    ThreadContext *Tls = new ThreadContext();
-    auto Timers = getTimers();
-    Timers->initInto(Tls->Timers);
-    AllThreadContexts.push_back(Tls);
-    ICE_TLS_SET_FIELD(TLS, Tls);
-  }
-
-  void startWorkerThreads() {
-    size_t NumWorkers = getFlags().getNumTranslationThreads();
-    auto Timers = getTimers();
-    for (size_t i = 0; i < NumWorkers; ++i) {
-      ThreadContext *WorkerTLS = new ThreadContext();
-      Timers->initInto(WorkerTLS->Timers);
-      AllThreadContexts.push_back(WorkerTLS);
-      TranslationThreads.push_back(std::thread(
-          &GlobalContext::translateFunctionsWrapper, this, WorkerTLS));
-    }
-    if (NumWorkers) {
-      ThreadContext *WorkerTLS = new ThreadContext();
-      Timers->initInto(WorkerTLS->Timers);
-      AllThreadContexts.push_back(WorkerTLS);
-      EmitterThreads.push_back(
-          std::thread(&GlobalContext::emitterWrapper, this, WorkerTLS));
-    }
-  }
+  void initParserThread();
+  void startWorkerThreads();
 
   void waitForWorkerThreads();
 
@@ -444,18 +381,12 @@ public:
   }
 
   /// Translation thread startup routine.
-  void translateFunctionsWrapper(ThreadContext *MyTLS) {
-    ICE_TLS_SET_FIELD(TLS, MyTLS);
-    translateFunctions();
-  }
+  void translateFunctionsWrapper(ThreadContext *MyTLS);
   /// Translate functions from the Cfg queue until the queue is empty.
   void translateFunctions();
 
   /// Emitter thread startup routine.
-  void emitterWrapper(ThreadContext *MyTLS) {
-    ICE_TLS_SET_FIELD(TLS, MyTLS);
-    emitItems();
-  }
+  void emitterWrapper(ThreadContext *MyTLS);
   /// Emit functions and global initializers from the emitter queue until the
   /// queue is empty.
   void emitItems();
@@ -643,7 +574,7 @@ private:
   ICE_TLS_DECLARE_FIELD(ThreadContext *, TLS);
 
 public:
-  static void TlsInit() { ICE_TLS_INIT_FIELD(TLS); }
+  static void TlsInit();
 };
 
 /// Helper class to push and pop a timer marker. The constructor pushes a

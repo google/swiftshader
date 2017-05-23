@@ -372,6 +372,11 @@ GlobalContext::GlobalContext(Ostream *OsDump, Ostream *OsEmit, Ostream *OsError,
   }
 }
 
+void GlobalContext::translateFunctionsWrapper(ThreadContext *MyTLS) {
+  ICE_TLS_SET_FIELD(TLS, MyTLS);
+  translateFunctions();
+}
+
 void GlobalContext::translateFunctions() {
   TimerMarker Timer(TimerStack::TT_translateFunctions, this);
   while (std::unique_ptr<OptWorkItem> OptItem = optQueueBlockingPop()) {
@@ -453,6 +458,9 @@ void resizePending(std::vector<std::unique_ptr<EmitterWorkItem>> *Pending,
 }
 
 } // end of anonymous namespace
+
+// static
+void GlobalContext::TlsInit() { ICE_TLS_INIT_FIELD(TLS); }
 
 void GlobalContext::emitFileHeader() {
   TimerMarker T1(Ice::TimerStack::TT_emitAsm, this);
@@ -554,6 +562,11 @@ void GlobalContext::lowerProfileData() {
   Globals.push_back(ProfileBlockInfoVarDecl);
   constexpr char ProfileDataSection[] = "$sz_profiler$";
   lowerGlobals(ProfileDataSection);
+}
+
+void GlobalContext::emitterWrapper(ThreadContext *MyTLS) {
+  ICE_TLS_SET_FIELD(TLS, MyTLS);
+  emitItems();
 }
 
 void GlobalContext::emitItems() {
@@ -987,6 +1000,38 @@ std::unique_ptr<EmitterWorkItem> GlobalContext::emitQueueBlockingPop() {
   return EmitQ.blockingPop();
 }
 
+void GlobalContext::initParserThread() {
+  ThreadContext *Tls = new ThreadContext();
+  auto Timers = getTimers();
+  Timers->initInto(Tls->Timers);
+  AllThreadContexts.push_back(Tls);
+  ICE_TLS_SET_FIELD(TLS, Tls);
+}
+
+void GlobalContext::startWorkerThreads() {
+  size_t NumWorkers = getFlags().getNumTranslationThreads();
+  auto Timers = getTimers();
+  for (size_t i = 0; i < NumWorkers; ++i) {
+    ThreadContext *WorkerTLS = new ThreadContext();
+    Timers->initInto(WorkerTLS->Timers);
+    AllThreadContexts.push_back(WorkerTLS);
+    TranslationThreads.push_back(std::thread(
+        &GlobalContext::translateFunctionsWrapper, this, WorkerTLS));
+  }
+  if (NumWorkers) {
+    ThreadContext *WorkerTLS = new ThreadContext();
+    Timers->initInto(WorkerTLS->Timers);
+    AllThreadContexts.push_back(WorkerTLS);
+    EmitterThreads.push_back(
+        std::thread(&GlobalContext::emitterWrapper, this, WorkerTLS));
+  }
+}
+
+void GlobalContext::resetStats() {
+  if (BuildDefs::dump())
+    ICE_TLS_GET_FIELD(TLS)->StatsFunction.reset();
+}
+
 void GlobalContext::dumpStats(const Cfg *Func) {
   if (!getFlags().getDumpStats())
     return;
@@ -995,6 +1040,54 @@ void GlobalContext::dumpStats(const Cfg *Func) {
   } else {
     ICE_TLS_GET_FIELD(TLS)->StatsFunction.dump(Func, this);
   }
+}
+
+void GlobalContext::statsUpdateEmitted(uint32_t InstCount) {
+  if (!getFlags().getDumpStats())
+    return;
+  ThreadContext *Tls = ICE_TLS_GET_FIELD(TLS);
+  Tls->StatsFunction.update(CodeStats::CS_InstCount, InstCount);
+  Tls->StatsCumulative.update(CodeStats::CS_InstCount, InstCount);
+}
+
+void GlobalContext::statsUpdateRegistersSaved(uint32_t Num) {
+  if (!getFlags().getDumpStats())
+    return;
+  ThreadContext *Tls = ICE_TLS_GET_FIELD(TLS);
+  Tls->StatsFunction.update(CodeStats::CS_RegsSaved, Num);
+  Tls->StatsCumulative.update(CodeStats::CS_RegsSaved, Num);
+}
+
+void GlobalContext::statsUpdateFrameBytes(uint32_t Bytes) {
+  if (!getFlags().getDumpStats())
+    return;
+  ThreadContext *Tls = ICE_TLS_GET_FIELD(TLS);
+  Tls->StatsFunction.update(CodeStats::CS_FrameByte, Bytes);
+  Tls->StatsCumulative.update(CodeStats::CS_FrameByte, Bytes);
+}
+
+void GlobalContext::statsUpdateSpills() {
+  if (!getFlags().getDumpStats())
+    return;
+  ThreadContext *Tls = ICE_TLS_GET_FIELD(TLS);
+  Tls->StatsFunction.update(CodeStats::CS_NumSpills);
+  Tls->StatsCumulative.update(CodeStats::CS_NumSpills);
+}
+
+void GlobalContext::statsUpdateFills() {
+  if (!getFlags().getDumpStats())
+    return;
+  ThreadContext *Tls = ICE_TLS_GET_FIELD(TLS);
+  Tls->StatsFunction.update(CodeStats::CS_NumFills);
+  Tls->StatsCumulative.update(CodeStats::CS_NumFills);
+}
+
+void GlobalContext::statsUpdateRPImms() {
+  if (!getFlags().getDumpStats())
+    return;
+  ThreadContext *Tls = ICE_TLS_GET_FIELD(TLS);
+  Tls->StatsFunction.update(CodeStats::CS_NumRPImms);
+  Tls->StatsCumulative.update(CodeStats::CS_NumRPImms);
 }
 
 void GlobalContext::dumpTimers(TimerStackIdT StackID, bool DumpCumulative) {
