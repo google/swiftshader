@@ -1353,24 +1353,33 @@ namespace es2
 				}
 			}
 
-			// For openGL ES 3.0, we need to still add the vertex shader outputs for unmatched varyings, for transform feedback.
-			if(!matched && (egl::getClientVersion() >= 3))
+			if(!matched)
 			{
-				int out = output->reg;
-				int components = VariableRegisterSize(output->type);
-				int registers = VariableRegisterCount(output->type) * output->size();
-
-				if(out >= 0)
+				// For openGL ES 3.0, we need to still add the vertex shader outputs for unmatched varyings, for transform feedback.
+				for(const std::string &indexedTfVaryingName : transformFeedbackVaryings)
 				{
-					if(out + registers > MAX_VARYING_VECTORS)
-					{
-						appendToInfoLog("Too many varyings");
-						return false;
-					}
+					std::string tfVaryingName = es2::ParseUniformName(indexedTfVaryingName, nullptr);
 
-					for(int i = 0; i < registers; i++)
+					if(tfVaryingName == output->name)
 					{
-						vertexBinary->setOutput(out + i, components, sw::Shader::Semantic(sw::Shader::USAGE_COLOR));
+						int out = output->reg;
+						int components = VariableRegisterSize(output->type);
+						int registers = VariableRegisterCount(output->type) * output->size();
+
+						if(out >= 0)
+						{
+							if(out + registers > MAX_VARYING_VECTORS)
+							{
+								appendToInfoLog("Too many varyings");
+								return false;
+							}
+
+							for(int i = 0; i < registers; i++)
+							{
+								vertexBinary->setOutput(out + i, components, sw::Shader::Semantic(sw::Shader::USAGE_COLOR));
+							}
+						}
+						break;
 					}
 				}
 			}
