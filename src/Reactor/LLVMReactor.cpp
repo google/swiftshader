@@ -6370,12 +6370,10 @@ namespace sw
 		Nucleus::createUnreachable();
 	}
 
-	bool branch(RValue<Bool> cmp, BasicBlock *bodyBB, BasicBlock *endBB)
+	void branch(RValue<Bool> cmp, BasicBlock *bodyBB, BasicBlock *endBB)
 	{
 		Nucleus::createCondBr(cmp.value, bodyBB, endBB);
 		Nucleus::setInsertBlock(bodyBB);
-
-		return true;
 	}
 
 	RValue<Long> Ticks()

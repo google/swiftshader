@@ -2162,7 +2162,7 @@ namespace sw
 //	RValue<Array<T>> operator--(Array<T> &val, int);   // Post-decrement
 //	const Array<T> &operator--(Array<T> &val);   // Pre-decrement
 
-	bool branch(RValue<Bool> cmp, BasicBlock *bodyBB, BasicBlock *endBB);
+	void branch(RValue<Bool> cmp, BasicBlock *bodyBB, BasicBlock *endBB);
 
 	void Return();
 	void Return(RValue<Int> ret);
