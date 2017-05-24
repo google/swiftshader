@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a5e40320_0ab67c6f",
+        "filename": "BUILD.gn",
+        "patchSetId": 2
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5885
+      },
+      "writtenOn": "2017-05-24T14:17:24Z",
+      "side": 1,
+      "message": "Please don\u0027t build code shipping with chrome with -fexceptions.",
+      "range": {
+        "startLine": 37,
+        "startChar": 10,
+        "endLine": 37,
+        "endChar": 17
+      },
+      "revId": "a11d03e4ef1c51f3943a059060cfc1164eee06ad",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a1cb484_f4c88635",
+        "filename": "BUILD.gn",
+        "patchSetId": 2
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5885
+      },
+      "writtenOn": "2017-05-24T14:17:24Z",
+      "side": 1,
+      "message": "-O2 -Os in sequence is the same as just -Os.",
+      "range": {
+        "startLine": 58,
+        "startChar": 9,
+        "endLine": 58,
+        "endChar": 11
+      },
+      "revId": "a11d03e4ef1c51f3943a059060cfc1164eee06ad",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
