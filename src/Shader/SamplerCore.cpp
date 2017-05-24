@@ -495,6 +495,9 @@ namespace sw
 				case FORMAT_V16U16:
 				case FORMAT_A16W16V16U16:
 				case FORMAT_Q16W16V16U16:
+				case FORMAT_YV12_BT601:
+				case FORMAT_YV12_BT709:
+				case FORMAT_YV12_JFIF:
 					if(componentCount < 2) c.y = Float4(1.0f);
 					if(componentCount < 3) c.z = Float4(1.0f);
 					if(componentCount < 4) c.w = Float4(1.0f);
