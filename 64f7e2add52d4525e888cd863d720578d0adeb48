@@ -46,6 +46,30 @@
       "revId": "64f7e2add52d4525e888cd863d720578d0adeb48",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f643b40c_0c4cf04b",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 3616,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-05-24T15:06:06Z",
+      "side": 1,
+      "message": "Ah ok, fair enough.",
+      "parentUuid": "dc1f8176_5731137e",
+      "range": {
+        "startLine": 3616,
+        "startChar": 4,
+        "endLine": 3616,
+        "endChar": 27
+      },
+      "revId": "64f7e2add52d4525e888cd863d720578d0adeb48",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
