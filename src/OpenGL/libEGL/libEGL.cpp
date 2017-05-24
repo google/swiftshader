@@ -133,12 +133,12 @@ EGLBoolean Initialize(EGLDisplay dpy, EGLint *major, EGLint *minor)
 	TRACE("(EGLDisplay dpy = %p, EGLint *major = %p, EGLint *minor = %p)",
 		  dpy, major, minor);
 
-	if(dpy == EGL_NO_DISPLAY)
+	egl::Display *display = egl::Display::get(dpy);
+
+	if(!display)
 	{
 		return error(EGL_BAD_DISPLAY, EGL_FALSE);
 	}
-
-	egl::Display *display = egl::Display::get(dpy);
 
 	if(!display->initialize())
 	{
