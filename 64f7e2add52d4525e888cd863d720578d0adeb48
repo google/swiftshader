@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f8573ad0_1ac384c2",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 3616,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-05-24T14:49:53Z",
+      "side": 1,
+      "message": "Is there no potential consequence to executing a loop in reverse order?",
+      "range": {
+        "startLine": 3616,
+        "startChar": 4,
+        "endLine": 3616,
+        "endChar": 27
+      },
+      "revId": "64f7e2add52d4525e888cd863d720578d0adeb48",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
