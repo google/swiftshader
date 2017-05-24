@@ -211,6 +211,30 @@
       "revId": "f389f6428969f95765121255f9aafe655879d6a0",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2cdb8642_96cb808c",
+        "filename": "src/OpenGL/compiler/AnalyzeCallDepth.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 5545
+      },
+      "writtenOn": "2017-05-24T21:46:22Z",
+      "side": 1,
+      "message": "I see now, thanks for the explanation!",
+      "parentUuid": "49c7ac7e_4bcb6413",
+      "range": {
+        "startLine": 162,
+        "startChar": 0,
+        "endLine": 162,
+        "endChar": 14
+      },
+      "revId": "f389f6428969f95765121255f9aafe655879d6a0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
