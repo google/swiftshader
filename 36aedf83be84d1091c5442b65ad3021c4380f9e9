@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "44c36991_c1113ab9",
+        "filename": "SwiftShader.sln",
+        "patchSetId": 1
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-05-24T15:22:02Z",
+      "side": 1,
+      "message": "Would it be possible not to move the project to VS17 right away? I know it\u0027s a prototype, but I\u0027d avoid this if possible.",
+      "range": {
+        "startLine": 2,
+        "startChar": 0,
+        "endLine": 3,
+        "endChar": 34
+      },
+      "revId": "36aedf83be84d1091c5442b65ad3021c4380f9e9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
