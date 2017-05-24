@@ -3517,7 +3517,7 @@ namespace glsl
 				TIntermSequence &sequence = init->getSequence();
 				TIntermTyped *variable = sequence[0]->getAsTyped();
 
-				if(variable && variable->getQualifier() == EvqTemporary)
+				if(variable && variable->getQualifier() == EvqTemporary && variable->getBasicType() == EbtInt)
 				{
 					TIntermBinary *assign = variable->getAsBinaryNode();
 
@@ -3607,6 +3607,19 @@ namespace glsl
 			{
 				comparator = EOpLessThan;
 				limit += 1;
+			}
+			else if(comparator == EOpGreaterThanEqual)
+			{
+				comparator = EOpLessThan;
+				limit -= 1;
+				std::swap(initial, limit);
+				increment = -increment;
+			}
+			else if(comparator == EOpGreaterThan)
+			{
+				comparator = EOpLessThan;
+				std::swap(initial, limit);
+				increment = -increment;
 			}
 
 			if(comparator == EOpLessThan)
