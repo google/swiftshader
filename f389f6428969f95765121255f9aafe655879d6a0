@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2eb12aa8_73883d47",
+        "filename": "src/OpenGL/compiler/AnalyzeCallDepth.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 5870
+      },
+      "writtenOn": "2017-05-24T16:46:46Z",
+      "side": 1,
+      "message": "what is this for?",
+      "range": {
+        "startLine": 132,
+        "startChar": 4,
+        "endLine": 132,
+        "endChar": 11
+      },
+      "revId": "f389f6428969f95765121255f9aafe655879d6a0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f53e2c06_f628af1c",
+        "filename": "src/OpenGL/compiler/AnalyzeCallDepth.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 5870
+      },
+      "writtenOn": "2017-05-24T16:46:46Z",
+      "side": 1,
+      "message": "is there any reason to not update the actual |it| value after the loop? You\u0027ve handled the elements here",
+      "range": {
+        "startLine": 134,
+        "startChar": 10,
+        "endLine": 134,
+        "endChar": 16
+      },
+      "revId": "f389f6428969f95765121255f9aafe655879d6a0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bfd718df_55b86de3",
+        "filename": "src/OpenGL/compiler/AnalyzeCallDepth.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 5870
+      },
+      "writtenOn": "2017-05-24T16:46:46Z",
+      "side": 1,
+      "message": "nit: this looks exactly like the default case handling. Extract a function?",
+      "range": {
+        "startLine": 134,
+        "startChar": 0,
+        "endLine": 141,
+        "endChar": 5
+      },
+      "revId": "f389f6428969f95765121255f9aafe655879d6a0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4a9c0bdc_b024aec4",
+        "filename": "src/OpenGL/compiler/AnalyzeCallDepth.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 5870
+      },
+      "writtenOn": "2017-05-24T16:46:46Z",
+      "side": 1,
+      "message": "1. is there a single \u0027return true\u0027?\n2. what does return value mean?",
+      "range": {
+        "startLine": 162,
+        "startChar": 0,
+        "endLine": 162,
+        "endChar": 14
+      },
+      "revId": "f389f6428969f95765121255f9aafe655879d6a0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
