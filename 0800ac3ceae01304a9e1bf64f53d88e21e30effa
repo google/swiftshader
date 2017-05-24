@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8f621b82_1affcfff",
+        "filename": "src/OpenGL/compiler/AnalyzeCallDepth.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 5870
+      },
+      "writtenOn": "2017-05-24T17:11:32Z",
+      "side": 1,
+      "message": "nit: isn\u0027t used anymore",
+      "range": {
+        "startLine": 138,
+        "startChar": 0,
+        "endLine": 138,
+        "endChar": 17
+      },
+      "revId": "0800ac3ceae01304a9e1bf64f53d88e21e30effa",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
