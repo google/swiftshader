@@ -187,6 +187,30 @@
       "revId": "f389f6428969f95765121255f9aafe655879d6a0",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "49c7ac7e_4bcb6413",
+        "filename": "src/OpenGL/compiler/AnalyzeCallDepth.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-05-24T18:36:27Z",
+      "side": 1,
+      "message": "Returning true means we want the AST traverser to continue visiting the children of this node (and visit this node again in the end). Here we can return false because we traversed them ourselves, i.e. the node is fully processed.",
+      "parentUuid": "075a13f9_c3d6e576",
+      "range": {
+        "startLine": 162,
+        "startChar": 0,
+        "endLine": 162,
+        "endChar": 14
+      },
+      "revId": "f389f6428969f95765121255f9aafe655879d6a0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
