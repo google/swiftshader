@@ -66,6 +66,7 @@ shared_library("swiftshader_libGLESv2") {
   }
 
   deps = [
+    "//build/config:exe_and_shlib_deps",
     "../../OpenGL/compiler:swiftshader_opengl_compiler",
     "../../Reactor:swiftshader_reactor",
     "../../Renderer:swiftshader_renderer",

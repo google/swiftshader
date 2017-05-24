@@ -51,6 +51,10 @@ shared_library("swiftshader_libEGL") {
     output_dir = "$root_out_dir/swiftshader"
   }
 
+  deps = [
+    "//build/config:exe_and_shlib_deps",
+  ]
+
   sources = [
     "../common/Object.cpp",
     "Config.cpp",
