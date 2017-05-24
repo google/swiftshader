@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "10299030_9a3f7a58",
+        "filename": "src/OpenGL/compiler/AnalyzeCallDepth.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 5545
+      },
+      "writtenOn": "2017-05-24T17:09:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2eb12aa8_73883d47",
+      "range": {
+        "startLine": 132,
+        "startChar": 4,
+        "endLine": 132,
+        "endChar": 11
+      },
+      "revId": "f389f6428969f95765121255f9aafe655879d6a0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f53e2c06_f628af1c",
         "filename": "src/OpenGL/compiler/AnalyzeCallDepth.cpp",
         "patchSetId": 4
@@ -36,6 +60,30 @@
       "writtenOn": "2017-05-24T16:46:46Z",
       "side": 1,
       "message": "is there any reason to not update the actual |it| value after the loop? You\u0027ve handled the elements here",
+      "range": {
+        "startLine": 134,
+        "startChar": 10,
+        "endLine": 134,
+        "endChar": 16
+      },
+      "revId": "f389f6428969f95765121255f9aafe655879d6a0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e3e53ec8_831a99e3",
+        "filename": "src/OpenGL/compiler/AnalyzeCallDepth.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 5545
+      },
+      "writtenOn": "2017-05-24T17:09:07Z",
+      "side": 1,
+      "message": "I believe this works in terms of raw sequences of program statements, so to properly support the body of a case statement falling through to the next case and at the same time know about all cases, we need to view a statement both as the body of a case and as potentially a case condition by itself.",
+      "parentUuid": "f53e2c06_f628af1c",
       "range": {
         "startLine": 134,
         "startChar": 10,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "ac858cd6_134e0584",
+        "filename": "src/OpenGL/compiler/AnalyzeCallDepth.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 5545
+      },
+      "writtenOn": "2017-05-24T17:09:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "bfd718df_55b86de3",
+      "range": {
+        "startLine": 134,
+        "startChar": 0,
+        "endLine": 141,
+        "endChar": 5
+      },
+      "revId": "f389f6428969f95765121255f9aafe655879d6a0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4a9c0bdc_b024aec4",
         "filename": "src/OpenGL/compiler/AnalyzeCallDepth.cpp",
         "patchSetId": 4
@@ -82,6 +154,30 @@
       "writtenOn": "2017-05-24T16:46:46Z",
       "side": 1,
       "message": "1. is there a single \u0027return true\u0027?\n2. what does return value mean?",
+      "range": {
+        "startLine": 162,
+        "startChar": 0,
+        "endLine": 162,
+        "endChar": 14
+      },
+      "revId": "f389f6428969f95765121255f9aafe655879d6a0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "075a13f9_c3d6e576",
+        "filename": "src/OpenGL/compiler/AnalyzeCallDepth.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 5545
+      },
+      "writtenOn": "2017-05-24T17:09:07Z",
+      "side": 1,
+      "message": "Refers to \"visited\" status of the node; I believe \"false\" is OK to return since this node is meant to just pass through the analysis, people don\u0027t care if this is visited twice.",
+      "parentUuid": "4a9c0bdc_b024aec4",
       "range": {
         "startLine": 162,
         "startChar": 0,
