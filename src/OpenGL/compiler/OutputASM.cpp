@@ -3521,7 +3521,7 @@ namespace glsl
 				{
 					TIntermBinary *assign = variable->getAsBinaryNode();
 
-					if(assign->getOp() == EOpInitialize)
+					if(assign && assign->getOp() == EOpInitialize)
 					{
 						TIntermSymbol *symbol = assign->getLeft()->getAsSymbolNode();
 						TIntermConstantUnion *constant = assign->getRight()->getAsConstantUnion();
