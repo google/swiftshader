@@ -22,6 +22,30 @@
       "revId": "64f7e2add52d4525e888cd863d720578d0adeb48",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "dc1f8176_5731137e",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 3616,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-05-24T14:58:12Z",
+      "side": 1,
+      "message": "We\u0027re not executing it in reverse order here. This function just determines the loop count (if possible) so we can unroll ones with few iterations.",
+      "parentUuid": "f8573ad0_1ac384c2",
+      "range": {
+        "startLine": 3616,
+        "startChar": 4,
+        "endLine": 3616,
+        "endChar": 27
+      },
+      "revId": "64f7e2add52d4525e888cd863d720578d0adeb48",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
