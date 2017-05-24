@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7f8bfbac_31d7c874",
+        "filename": "BUILD.gn",
+        "patchSetId": 1
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-05-24T15:28:20Z",
+      "side": 0,
+      "message": "Should this be an explicit -fno-exceptions instead? Please also adjust CMakeLists.txt accordingly.",
+      "range": {
+        "startLine": 42,
+        "startChar": 6,
+        "endLine": 42,
+        "endChar": 21
+      },
+      "revId": "7e95d88483531f04e2db74a0cfeb4d40d9a3af19",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
