@@ -137,7 +137,7 @@ if(MSVC)
 else()
     set_cpp_flag("--std=c++11")
     set_cpp_flag("-Wall")
-    set_cpp_flag("-fexceptions")
+    set_cpp_flag("-fno-exceptions")
 
     # Don't allow symbols to be overridden by another module.
     # This enables libGLES_CM and libGLESv2 to statically link LLVM.
@@ -167,9 +167,8 @@ else()
     set_cpp_flag("-s" RELEASE)
 
     # For distribution it is more important to be slim than super optimized
-    # so even in Release we use only -O2
-    set_cpp_flag("-O2 -Os" RELEASE)
-    set_cpp_flag("-O2 -Os" RELWITHDEBINFO)
+    set_cpp_flag("-Os" RELEASE)
+    set_cpp_flag("-Os" RELWITHDEBINFO)
 
     set_cpp_flag("-DNDEBUG" RELEASE)
     set_cpp_flag("-DNDEBUG" RELWITHDEBINFO)
