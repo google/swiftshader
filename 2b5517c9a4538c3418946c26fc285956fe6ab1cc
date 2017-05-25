@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b32c80e3_635fa8fa",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-05-25T19:27:27Z",
+      "side": 1,
+      "message": "Let\u0027s make this a little more descriptive, like maybe \"Add initial Vulkan DLL and entry functions.\"",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 20
+      },
+      "revId": "2b5517c9a4538c3418946c26fc285956fe6ab1cc",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3b6c1117_16f68e20",
+        "filename": "src/Vulkan/libVulkan/main.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-05-25T19:27:27Z",
+      "side": 1,
+      "message": "FYI this produces a \"\u0027dllexport\u0027: used more than once\" warning.",
+      "range": {
+        "startLine": 31,
+        "startChar": 0,
+        "endLine": 31,
+        "endChar": 24
+      },
+      "revId": "2b5517c9a4538c3418946c26fc285956fe6ab1cc",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
