@@ -436,12 +436,6 @@ set(LLVM_LIST
     ${LLVM_DIR}/lib/Support/raw_os_ostream.cpp
     ${LLVM_DIR}/lib/Support/raw_ostream.cpp
     ${LLVM_DIR}/lib/Support/system_error.cpp
-    ${LLVM_DIR}/lib/TableGen/Error.cpp
-    ${LLVM_DIR}/lib/TableGen/Main.cpp
-    ${LLVM_DIR}/lib/TableGen/Record.cpp
-    ${LLVM_DIR}/lib/TableGen/TGLexer.cpp
-    ${LLVM_DIR}/lib/TableGen/TGParser.cpp
-    ${LLVM_DIR}/lib/TableGen/TableGenBackend.cpp
     ${LLVM_DIR}/lib/Target/Mangler.cpp
     ${LLVM_DIR}/lib/Target/TargetData.cpp
     ${LLVM_DIR}/lib/Target/TargetELFWriterInfo.cpp
