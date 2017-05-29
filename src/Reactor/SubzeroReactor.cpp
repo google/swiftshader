@@ -492,20 +492,16 @@ namespace sw
 		{
 			if(!entry)
 			{
-				#if defined(_WIN32)
-					VirtualProtect(&buffer[0], buffer.size(), PAGE_EXECUTE_READWRITE, &oldProtection);
-				#else
-					mprotect(&buffer[0], buffer.size(), PROT_READ | PROT_WRITE | PROT_EXEC);
-				#endif
-
 				position = std::numeric_limits<std::size_t>::max();   // Can't stream more data after this
 
 				size_t codeSize = 0;
 				entry = loadImage(&buffer[0], codeSize);
 
 				#if defined(_WIN32)
+					VirtualProtect(&buffer[0], buffer.size(), PAGE_EXECUTE_READ, &oldProtection);
 					FlushInstructionCache(GetCurrentProcess(), NULL, 0);
 				#else
+					mprotect(&buffer[0], buffer.size(), PROT_READ | PROT_EXEC);
 					__builtin___clear_cache((char*)entry, (char*)entry + codeSize);
 				#endif
 			}
