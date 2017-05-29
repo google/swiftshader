@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9b28b9ae_ad379b35",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2099,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-05-29T20:57:00Z",
+      "side": 1,
+      "message": "Nit: it\u0027s called MAX_COLOR_ATTACHMENTS_EXT in the extension. It might be worth clarifying that MAX_COLOR_ATTACHMENTS has the same enum value.",
+      "range": {
+        "startLine": 2099,
+        "startChar": 41,
+        "endLine": 2099,
+        "endChar": 69
+      },
+      "revId": "3495ccd58e8af80ea01c2bdbe6ce0f956e4e6048",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bcadc0a3_02656c13",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2099,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-05-29T20:57:00Z",
+      "side": 1,
+      "message": "Nit: it\u0027s called MAX_COLOR_ATTACHMENTS_EXT in the extension. It might be worth clarifying that MAX_COLOR_ATTACHMENTS has the same enum value.",
+      "range": {
+        "startLine": 2099,
+        "startChar": 41,
+        "endLine": 2099,
+        "endChar": 69
+      },
+      "revId": "3495ccd58e8af80ea01c2bdbe6ce0f956e4e6048",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
