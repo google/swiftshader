@@ -35,7 +35,6 @@ namespace sw
 
 	FrameBuffer::Cursor FrameBuffer::cursor = {};
 	bool FrameBuffer::topLeftOrigin = false;
-	void FrameBuffer::typeinfo() {}
 
 	FrameBuffer::FrameBuffer(int width, int height, bool fullscreen, bool topLeftOrigin)
 	{

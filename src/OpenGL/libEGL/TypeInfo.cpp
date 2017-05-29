@@ -18,7 +18,6 @@
 
 namespace sw
 {
-void FrameBuffer::typeinfo() {}
 void Surface::typeinfo() {}
 }
 

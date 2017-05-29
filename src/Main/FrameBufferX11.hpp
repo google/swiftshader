@@ -33,7 +33,7 @@ namespace sw
 	public:
 		FrameBufferX11(Display *display, Window window, int width, int height);
 
-		~FrameBufferX11();
+		~FrameBufferX11() override;
 
 		void flip(void *source, Format sourceFormat, size_t sourceStride) override {blit(source, 0, 0, sourceFormat, sourceStride);};
 		void blit(void *source, const Rect *sourceRect, const Rect *destRect, Format sourceFormat, size_t sourceStride) override;

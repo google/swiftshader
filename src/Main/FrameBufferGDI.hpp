@@ -24,8 +24,8 @@ namespace sw
 	public:
 		FrameBufferGDI(HWND windowHandle, int width, int height, bool fullscreen, bool topLeftOrigin);
 
-		virtual ~FrameBufferGDI();
-		
+		~FrameBufferGDI() override;
+
 		void flip(void *source, Format sourceFormat, size_t sourceStride) override;
 		void blit(void *source, const Rect *sourceRect, const Rect *destRect, Format sourceFormat, size_t sourceStride) override;
 
