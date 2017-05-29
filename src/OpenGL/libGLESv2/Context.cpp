@@ -2096,6 +2096,9 @@ template<typename T> bool Context::getIntegerv(GLenum pname, T *params) const
 	case GL_MAX_DRAW_BUFFERS:
 		*params = MAX_DRAW_BUFFERS;
 		return true;
+	case GL_MAX_COLOR_ATTACHMENTS: // Note: MAX_COLOR_ATTACHMENTS_EXT added by GL_EXT_draw_buffers
+		*params = MAX_COLOR_ATTACHMENTS;
+		return true;
 	default:
 		break;
 	}
@@ -2127,9 +2130,6 @@ template<typename T> bool Context::getIntegerv(GLenum pname, T *params) const
 			return true;
 		case GL_MAX_ARRAY_TEXTURE_LAYERS:
 			*params = IMPLEMENTATION_MAX_TEXTURE_SIZE;
-			return true;
-		case GL_MAX_COLOR_ATTACHMENTS: // Note: not supported in OES_framebuffer_object
-			*params = MAX_COLOR_ATTACHMENTS;
 			return true;
 		case GL_MAX_COMBINED_FRAGMENT_UNIFORM_COMPONENTS:
 			*params = MAX_COMBINED_FRAGMENT_UNIFORM_COMPONENTS;
