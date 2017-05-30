@@ -41,7 +41,6 @@ namespace sw
 
 	unsigned int *Surface::palette = 0;
 	unsigned int Surface::paletteID = 0;
-	void Surface::typeinfo() {}
 
 	void Rect::clip(int minX, int minY, int maxX, int maxY)
 	{
@@ -1166,6 +1165,36 @@ namespace sw
 	void Surface::Buffer::unlockRect()
 	{
 		lock = LOCK_UNLOCKED;
+	}
+
+	class SurfaceImplementation : public Surface
+	{
+	public:
+		SurfaceImplementation(int width, int height, int depth, Format format, void *pixels, int pitch, int slice)
+			: Surface(width, height, depth, format, pixels, pitch, slice) {}
+		SurfaceImplementation(Resource *texture, int width, int height, int depth, Format format, bool lockable, bool renderTarget, int pitchP = 0)
+			: Surface(texture, width, height, depth, format, lockable, renderTarget, pitchP) {}
+		~SurfaceImplementation() override {};
+
+		void *lockInternal(int x, int y, int z, Lock lock, Accessor client) override
+		{
+			return Surface::lockInternal(x, y, z, lock, client);
+		}
+
+		void unlockInternal() override
+		{
+			Surface::unlockInternal();
+		}
+	};
+
+	Surface *Surface::create(int width, int height, int depth, Format format, void *pixels, int pitch, int slice)
+	{
+		return new SurfaceImplementation(width, height, depth, format, pixels, pitch, slice);
+	}
+
+	Surface *Surface::create(Resource *texture, int width, int height, int depth, Format format, bool lockable, bool renderTarget, int pitchPprovided)
+	{
+		return new SurfaceImplementation(texture, width, height, depth, format, lockable, renderTarget, pitchPprovided);
 	}
 
 	Surface::Surface(int width, int height, int depth, Format format, void *pixels, int pitch, int slice) : lockable(true), renderTarget(false)

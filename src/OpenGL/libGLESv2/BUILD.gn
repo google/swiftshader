@@ -100,7 +100,6 @@ shared_library("swiftshader_libGLESv2") {
     configs -= [ "//build/config/win:unicode" ]
     ldflags = [ "/DEF:" + rebase_path("libGLESv2.def", root_build_dir) ]
   } else if (is_linux) {
-    sources += [ "TypeInfo.cpp" ]
     ldflags =
         [ "-Wl,--version-script=" + rebase_path("exports.map", root_build_dir) ]
   }

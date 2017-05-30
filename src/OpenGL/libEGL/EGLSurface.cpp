@@ -38,7 +38,6 @@
 
 namespace egl
 {
-void Surface::typeinfo() {}
 
 Surface::Surface(const Display *display, const Config *config) : display(display), config(config)
 {

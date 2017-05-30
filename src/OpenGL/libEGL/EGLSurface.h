@@ -33,8 +33,6 @@ class Image;
 
 class [[clang::lto_visibility_public]] Surface : public gl::Object
 {
-	virtual void typeinfo();   // Dummy key method (https://gcc.gnu.org/onlinedocs/gcc/Vague-Linkage.html)
-
 public:
 	virtual bool initialize();
 	virtual void swap() = 0;

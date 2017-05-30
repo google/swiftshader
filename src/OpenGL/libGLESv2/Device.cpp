@@ -290,7 +290,7 @@ namespace es2
 			UNREACHABLE(format);
 		}
 
-		egl::Image *surface = new egl::Image(width, height, format, multiSampleDepth, lockable);
+		egl::Image *surface = egl::Image::create(width, height, format, multiSampleDepth, lockable);
 
 		if(!surface)
 		{
@@ -309,7 +309,7 @@ namespace es2
 			return nullptr;
 		}
 
-		egl::Image *surface = new egl::Image(width, height, format, multiSampleDepth, lockable);
+		egl::Image *surface = egl::Image::create(width, height, format, multiSampleDepth, lockable);
 
 		if(!surface)
 		{

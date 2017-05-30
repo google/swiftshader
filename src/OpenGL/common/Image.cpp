@@ -1178,7 +1178,54 @@ namespace egl
 		}
 	}
 
-	void Image::typeinfo() {}
+	class ImageImplementation : public Image
+	{
+	public:
+		ImageImplementation(Texture *parentTexture, GLsizei width, GLsizei height, GLenum format, GLenum type)
+			: Image(parentTexture, width, height, format, type) {}
+		ImageImplementation(Texture *parentTexture, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type)
+			: Image(parentTexture, width, height, depth, format, type) {}
+		ImageImplementation(GLsizei width, GLsizei height, GLenum format, GLenum type, int pitchP)
+			: Image(width, height, format, type, pitchP) {}
+		ImageImplementation(GLsizei width, GLsizei height, sw::Format internalFormat, int multiSampleDepth, bool lockable)
+			: Image(width, height, internalFormat, multiSampleDepth, lockable) {}
+		~ImageImplementation() override {}
+
+		void *lockInternal(int x, int y, int z, sw::Lock lock, sw::Accessor client) override
+		{
+			return Image::lockInternal(x, y, z, lock, client);
+		}
+
+		void unlockInternal() override
+		{
+			return Image::unlockInternal();
+		}
+
+		void release() override
+		{
+			return Image::release();
+		}
+	};
+
+	Image *Image::create(Texture *parentTexture, GLsizei width, GLsizei height, GLenum format, GLenum type)
+	{
+		return new ImageImplementation(parentTexture, width, height, format, type);
+	}
+
+	Image *Image::create(Texture *parentTexture, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type)
+	{
+		return new ImageImplementation(parentTexture, width, height, depth, format, type);
+	}
+
+	Image *Image::create(GLsizei width, GLsizei height, GLenum format, GLenum type, int pitchP)
+	{
+		return new ImageImplementation(width, height, format, type, pitchP);
+	}
+
+	Image *Image::create(GLsizei width, GLsizei height, sw::Format internalFormat, int multiSampleDepth, bool lockable)
+	{
+		return new ImageImplementation(width, height, internalFormat, multiSampleDepth, lockable);
+	}
 
 	Image::~Image()
 	{
@@ -1190,6 +1237,16 @@ namespace egl
 		}
 
 		ASSERT(!shared);
+	}
+
+	void *Image::lockInternal(int x, int y, int z, sw::Lock lock, sw::Accessor client)
+	{
+		return Surface::lockInternal(x, y, z, lock, client);
+	}
+
+	void Image::unlockInternal()
+	{
+		Surface::unlockInternal();
 	}
 
 	void Image::release()
@@ -1620,10 +1677,11 @@ namespace egl
 		}
 		else
 		{
-			sw::Surface source(width, height, depth, ConvertFormatType(format, type), const_cast<void*>(input), inputPitch, inputPitch * inputHeight);
+			sw::Surface *source = sw::Surface::create(width, height, depth, ConvertFormatType(format, type), const_cast<void*>(input), inputPitch, inputPitch * inputHeight);
 			sw::Rect sourceRect(0, 0, width, height);
 			sw::Rect destRect(xoffset, yoffset, xoffset + width, yoffset + height);
-			sw::blitter.blit(&source, sourceRect, this, destRect, false);
+			sw::blitter.blit(source, sourceRect, this, destRect, false);
+			delete source;
 		}
 	}
 

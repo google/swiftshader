@@ -42,7 +42,18 @@
 
 namespace egl
 {
-void Display::typeinfo() {}
+
+class DisplayImplementation : public Display
+{
+public:
+	DisplayImplementation(void *nativeDisplay) : Display(nativeDisplay) {}
+	~DisplayImplementation() override {}
+
+	Image *getSharedImage(EGLImageKHR name) override
+	{
+		return Display::getSharedImage(name);
+	}
+};
 
 Display *Display::get(EGLDisplay dpy)
 {
@@ -61,7 +72,7 @@ Display *Display::get(EGLDisplay dpy)
 		}
 	#endif
 
-	static Display display(nativeDisplay);
+	static DisplayImplementation display(nativeDisplay);
 
 	return &display;
 }

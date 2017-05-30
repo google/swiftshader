@@ -250,13 +250,15 @@ namespace sw
 			bool dirty;
 		};
 
-		virtual void typeinfo();   // Dummy key method (https://gcc.gnu.org/onlinedocs/gcc/Vague-Linkage.html)
-
-	public:
+	protected:
 		Surface(int width, int height, int depth, Format format, void *pixels, int pitch, int slice);
 		Surface(Resource *texture, int width, int height, int depth, Format format, bool lockable, bool renderTarget, int pitchP = 0);
 
-		virtual ~Surface();
+	public:
+		static Surface *create(int width, int height, int depth, Format format, void *pixels, int pitch, int slice);
+		static Surface *create(Resource *texture, int width, int height, int depth, Format format, bool lockable, bool renderTarget, int pitchP = 0);
+
+		virtual ~Surface() = 0;
 
 		inline void *lock(int x, int y, int z, Lock lock, Accessor client, bool internal = false);
 		inline void unlock(bool internal = false);
@@ -277,8 +279,8 @@ namespace sw
 		inline int getExternalSliceB() const;
 		inline int getExternalSliceP() const;
 
-		virtual void *lockInternal(int x, int y, int z, Lock lock, Accessor client);
-		virtual void unlockInternal();
+		virtual void *lockInternal(int x, int y, int z, Lock lock, Accessor client) = 0;
+		virtual void unlockInternal() = 0;
 		inline Format getInternalFormat() const;
 		inline int getInternalPitchB() const;
 		inline int getInternalPitchP() const;
