@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b72ff9fa_bfee5917",
+        "filename": "src/OpenGL/libEGL/libEGL.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-06-05T19:38:34Z",
+      "side": 1,
+      "message": "nit: This extension can be exposed everywhere as well, since it just adds new entry functions (which are already advertised) but the KHR_platform ones define the valid enums for it.",
+      "range": {
+        "startLine": 180,
+        "startChar": 3,
+        "endLine": 180,
+        "endChar": 27
+      },
+      "revId": "cd1098109864a703ca927c33effc06c584d3ca48",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
