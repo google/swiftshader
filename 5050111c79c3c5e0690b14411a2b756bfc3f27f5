@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9521b9b6_d52fa3a3",
+        "filename": "src/OpenGL/libEGL/libEGL.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 175,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-06-05T19:03:36Z",
+      "side": 1,
+      "message": "nit: In my opinion the previous logic flow was easier to understand, i.e. handle the client extensions first, then validate the display, then handle display extensions. This change first validates display unless dpy is not null or name is not extensions, and then checks again if dpy is null and name is extensions before handling the client extensions.",
+      "range": {
+        "startLine": 175,
+        "startChar": 1,
+        "endLine": 175,
+        "endChar": 56
+      },
+      "revId": "5050111c79c3c5e0690b14411a2b756bfc3f27f5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
