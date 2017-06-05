@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import("//build/config/compiler/compiler.gni")
+
 config("swiftshader_config") {
   defines = [ "STRICT_CONFORMANCE" ]  # Disables OpenGL ES 3.0
 
