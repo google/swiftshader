@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4cf01a5a_05fe8ad7",
+        "filename": "src/OpenGL/libEGL/libEGL.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 184,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-06-05T15:13:14Z",
+      "side": 1,
+      "message": "We currently support only EGL 1.4. Implementing 1.5 would require a non-trivial amount of additional work.\n\nHowever, we can instead implement EGL_EXT_client_extensions for all platforms. Note the code above which already implements it for Linux (with Linux-specific extensions).\n\nNote that it\u0027s an error to expect to be able to query extensions with a null display when EGL_EXT_client_extensions is not implemented or EGL \u003c\u003d 1.4. So I\u0027m curious which test expected that to work?",
+      "range": {
+        "startLine": 184,
+        "startChar": 27,
+        "endLine": 184,
+        "endChar": 30
+      },
+      "revId": "f7ac636982bf82f08b260f5f7156961814fca4a6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
