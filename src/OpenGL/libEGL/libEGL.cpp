@@ -171,15 +171,16 @@ const char *QueryString(EGLDisplay dpy, EGLint name)
 {
 	TRACE("(EGLDisplay dpy = %p, EGLint name = %d)", dpy, name);
 
-	#if defined(__linux__) && !defined(__ANDROID__)
-		if(dpy == EGL_NO_DISPLAY && name == EGL_EXTENSIONS)
-		{
-			return success("EGL_KHR_platform_gbm "
-			               "EGL_KHR_platform_x11 "
-			               "EGL_EXT_client_extensions "
-			               "EGL_EXT_platform_base");
-		}
-	#endif
+	if(dpy == EGL_NO_DISPLAY && name == EGL_EXTENSIONS)
+	{
+		return success(
+#if defined(__linux__) && !defined(__ANDROID__)
+			"EGL_KHR_platform_gbm "
+			"EGL_KHR_platform_x11 "
+			"EGL_EXT_platform_base "
+#endif
+			"EGL_EXT_client_extensions");
+	}
 
 	egl::Display *display = egl::Display::get(dpy);
 
