@@ -177,9 +177,9 @@ const char *QueryString(EGLDisplay dpy, EGLint name)
 #if defined(__linux__) && !defined(__ANDROID__)
 			"EGL_KHR_platform_gbm "
 			"EGL_KHR_platform_x11 "
-			"EGL_EXT_platform_base "
 #endif
-			"EGL_EXT_client_extensions");
+			"EGL_EXT_client_extensions "
+			"EGL_EXT_platform_base");
 	}
 
 	egl::Display *display = egl::Display::get(dpy);
