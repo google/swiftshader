@@ -87,6 +87,12 @@ config("swiftshader_config") {
         "-Wl,--hash-style=both",
         "-Wl,--gc-sections",
       ]
+      # A bug in the gold linker prevents using ICF on 32-bit (crbug.com/729532)
+      if (use_gold && target_cpu == "x86") {
+        ldflags += [
+          "-Wl,--icf=none",
+        ]
+      }
     }
   }
 }
