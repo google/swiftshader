@@ -797,10 +797,10 @@ namespace es2
 		case GL_BGRA_EXT:          // GL_EXT_texture_format_BGRA8888
 		case GL_DEPTH_STENCIL:     // GL_OES_packed_depth_stencil (GL_DEPTH_STENCIL_OES)
 		case GL_DEPTH_COMPONENT:   // GL_OES_depth_texture
+		case GL_RED_EXT:           // GL_EXT_texture_rg
+		case GL_RG_EXT:            // GL_EXT_texture_rg
 			break;
-		case GL_RED:
 		case GL_RED_INTEGER:
-		case GL_RG:
 		case GL_RG_INTEGER:
 		case GL_RGB_INTEGER:
 		case GL_RGBA_INTEGER:
@@ -948,6 +948,7 @@ namespace es2
 			{
 			case GL_UNSIGNED_BYTE: VALIDATE_INTERNALFORMAT(GL_RG8)
 			case GL_BYTE:          VALIDATE_INTERNALFORMAT(GL_RG8_SNORM)
+			case GL_HALF_FLOAT_OES: break;
 			case GL_HALF_FLOAT:    VALIDATE_INTERNALFORMAT(GL_RG16F)
 			case GL_FLOAT:         VALIDATE_INTERNALFORMAT(GL_RG32F, GL_RG16F)
 			default:               return error(GL_INVALID_OPERATION, false);
@@ -970,6 +971,7 @@ namespace es2
 			{
 			case GL_UNSIGNED_BYTE: VALIDATE_INTERNALFORMAT(GL_R8)
 			case GL_BYTE:          VALIDATE_INTERNALFORMAT(GL_R8_SNORM)
+			case GL_HALF_FLOAT_OES: break;
 			case GL_HALF_FLOAT:    VALIDATE_INTERNALFORMAT(GL_R16F)
 			case GL_FLOAT:         VALIDATE_INTERNALFORMAT(GL_R32F, GL_R16F)
 			default:               return error(GL_INVALID_OPERATION, false);
@@ -1042,6 +1044,8 @@ namespace es2
 	{
 		switch(internalformat)
 		{
+		case GL_RED_EXT:
+		case GL_RG_EXT:
 		case GL_RGB:
 		case GL_RGBA:
 			return isTexture;
@@ -1060,14 +1064,15 @@ namespace es2
 		case GL_RGBA32F:
 		case GL_BGRA8_EXT:
 			return true;
-		case GL_R8:
+		case GL_R8_EXT:
+		case GL_RG8_EXT:
+			return isTexture || (clientVersion >= 3);
 		case GL_R8UI:
 		case GL_R8I:
 		case GL_R16UI:
 		case GL_R16I:
 		case GL_R32UI:
 		case GL_R32I:
-		case GL_RG8:
 		case GL_RG8UI:
 		case GL_RG8I:
 		case GL_RG16UI:
@@ -1140,6 +1145,8 @@ namespace es2
 		case GL_RGB565:
 		case GL_RGB8_OES:
 		case GL_RGBA8_OES:
+		case GL_RED:
+		case GL_RG:
 		case GL_RGB:
 		case GL_RGBA:
 		case GL_R16F:
@@ -1196,6 +1203,8 @@ namespace es2
 		case GL_RGB565:
 		case GL_RGB8_OES:
 		case GL_RGBA8_OES:
+		case GL_RED:
+		case GL_RG:
 		case GL_RGB:
 		case GL_RGBA:
 		case GL_R16F:
