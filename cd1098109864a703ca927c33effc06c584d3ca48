@@ -22,6 +22,30 @@
       "revId": "cd1098109864a703ca927c33effc06c584d3ca48",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "774f8a12_642f8f2f",
+        "filename": "src/OpenGL/libEGL/libEGL.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-06-05T20:45:43Z",
+      "side": 1,
+      "message": "I\u0027ll keep it safe for now and just expose the required extension. We can add the other one later if needed.",
+      "parentUuid": "b72ff9fa_bfee5917",
+      "range": {
+        "startLine": 180,
+        "startChar": 3,
+        "endLine": 180,
+        "endChar": 27
+      },
+      "revId": "cd1098109864a703ca927c33effc06c584d3ca48",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
