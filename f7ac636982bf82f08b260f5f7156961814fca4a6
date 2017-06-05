@@ -46,6 +46,30 @@
       "revId": "f7ac636982bf82f08b260f5f7156961814fca4a6",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "28131743_e8d55bd6",
+        "filename": "src/OpenGL/libEGL/libEGL.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 184,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-06-05T15:46:17Z",
+      "side": 1,
+      "message": "Ah, yes, that\u0027s actually expected. Note that the support for EGL_EXT_client_extensions can only be checked by calling eglQueryString(EGL_NO_DISPLAY, EGL_EXTENSIONS), and it will return NULL and generate EGL_BAD_DISPLAY if not supported.\n\nSo we have a few options:\n1. Leave things as-is and live with hitting the error every time.\n2. Implement EGL_EXT_client_extensions to not generate the error.\n3. Generate the error silently.\n\nI\u0027m fine with waiting to address this, but in that case please open a bug to not lose track of the analysis and this patch. I think the second option is ideal since it\u0027s the most forward looking for when we do implement EGL 1.5. I\u0027m not a fan of the last option since it could easily become misused and mask a real issue.",
+      "parentUuid": "0efa0a0a_237ddf2c",
+      "range": {
+        "startLine": 184,
+        "startChar": 27,
+        "endLine": 184,
+        "endChar": 30
+      },
+      "revId": "f7ac636982bf82f08b260f5f7156961814fca4a6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
