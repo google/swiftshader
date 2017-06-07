@@ -79,7 +79,7 @@ namespace sw
 
 	enum
 	{
-		OUTLINE_RESOLUTION = 4096,   // Maximum vertical resolution of the render target
+		OUTLINE_RESOLUTION = 8192,   // Maximum vertical resolution of the render target
 		MIPMAP_LEVELS = 14,
 		TEXTURE_IMAGE_UNITS = 16,
 		VERTEX_TEXTURE_IMAGE_UNITS = 16,
