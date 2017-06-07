@@ -1052,6 +1052,8 @@ namespace es2
 		case GL_RGBA4:
 		case GL_RGB5_A1:
 		case GL_RGB565:
+		case GL_R8_EXT:
+		case GL_RG8_EXT:
 		case GL_RGB8_OES:
 		case GL_RGBA8_OES:
 		case GL_R16F:
@@ -1064,9 +1066,6 @@ namespace es2
 		case GL_RGBA32F:
 		case GL_BGRA8_EXT:
 			return true;
-		case GL_R8_EXT:
-		case GL_RG8_EXT:
-			return isTexture || (clientVersion >= 3);
 		case GL_R8UI:
 		case GL_R8I:
 		case GL_R16UI:
