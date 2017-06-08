@@ -1,0 +1,165 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a2361951_ccd969e0",
+        "filename": "src/Renderer/QuadRasterizer.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-06-08T18:50:31Z",
+      "side": 1,
+      "message": "Let\u0027s avoid doing this four time. Note that below the \u0027q * sizeof(Primitive)\u0027 adds a constant offset so there\u0027s no need to add that to the outline. Also, if this is moved to line 117 it would avoid loading it at every loop iteration. I\u0027d also prefer to just call it \u0027outline\u0027.",
+      "range": {
+        "startLine": 120,
+        "startChar": 3,
+        "endLine": 120,
+        "endChar": 124
+      },
+      "revId": "a2b9523e6fcca8c862e81342eef35926e76b8c9c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "56ee76d3_614ebcbc",
+        "filename": "src/Renderer/QuadRasterizer.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-06-08T18:50:31Z",
+      "side": 1,
+      "message": "Let\u0027s load this just once instead of five time. Also, if you do it at line 117 it avoids repeating it for each scanline. I\u0027d also prefer it to be simply called \u0027outline\u0027.",
+      "range": {
+        "startLine": 120,
+        "startChar": 3,
+        "endLine": 120,
+        "endChar": 124
+      },
+      "revId": "a2b9523e6fcca8c862e81342eef35926e76b8c9c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d2702970_8447ba3f",
+        "filename": "src/Renderer/Renderer.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 626,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-06-08T18:50:31Z",
+      "side": 1,
+      "message": "We also need this for the depth and stencil buffers, since we could be rendering e.g. a shadow map without color.",
+      "range": {
+        "startLine": 623,
+        "startChar": 6,
+        "endLine": 626,
+        "endChar": 7
+      },
+      "revId": "a2b9523e6fcca8c862e81342eef35926e76b8c9c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "df91666b_7f0e7158",
+        "filename": "src/Renderer/Renderer.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 875,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-06-08T18:50:31Z",
+      "side": 1,
+      "message": "Nice solution to do it at executeTask! It ensures that the thread already owns the batch of primitives, and we just have to check what height the draw needs.",
+      "range": {
+        "startLine": 875,
+        "startChar": 5,
+        "endLine": 875,
+        "endChar": 68
+      },
+      "revId": "a2b9523e6fcca8c862e81342eef35926e76b8c9c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "603df3a6_92db1fd8",
+        "filename": "src/Renderer/Renderer.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 882,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-06-08T18:50:31Z",
+      "side": 1,
+      "message": "I don\u0027t think we need allocate/deallocate here. Their main use is for aligned memory allocation, which adds a bit of overhead. The outline spans are just pairs of 16-bit integers, and don\u0027t have any additional alignment requirement, so just new/delete suffices.",
+      "range": {
+        "startLine": 882,
+        "startChar": 55,
+        "endLine": 882,
+        "endChar": 63
+      },
+      "revId": "a2b9523e6fcca8c862e81342eef35926e76b8c9c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0cd60d36_3a591fc6",
+        "filename": "src/Shader/SetupRoutine.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 222,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-06-08T18:50:31Z",
+      "side": 1,
+      "message": "outline",
+      "range": {
+        "startLine": 222,
+        "startChar": 18,
+        "endLine": 222,
+        "endChar": 28
+      },
+      "revId": "a2b9523e6fcca8c862e81342eef35926e76b8c9c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e27c0ece_0d704d4c",
+        "filename": "src/Shader/SetupRoutine.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 578,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-06-08T18:50:31Z",
+      "side": 1,
+      "message": "outline",
+      "range": {
+        "startLine": 578,
+        "startChar": 18,
+        "endLine": 578,
+        "endChar": 28
+      },
+      "revId": "a2b9523e6fcca8c862e81342eef35926e76b8c9c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
