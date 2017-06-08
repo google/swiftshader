@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9197e731_15b5bc34",
+        "filename": "src/OpenGL/common/Image.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 1181,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-06-08T19:12:11Z",
+      "side": 1,
+      "message": "Nit: Chromium usually uses \"Impl\" instead of \"Implementation\", which is shorter and should convey the same information.",
+      "range": {
+        "startLine": 1181,
+        "startChar": 7,
+        "endLine": 1181,
+        "endChar": 26
+      },
+      "revId": "2cc6d9a421a3b7ae7f23d7fc3e9c00cbc2e8a05e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e82c6db7_71ef70bd",
+        "filename": "src/OpenGL/common/Image.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 1684,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-06-08T19:12:11Z",
+      "side": 1,
+      "message": "Nit: since this create/delete pattern is repeated in multiple places, maybe a guard class would ensure we don\u0027t create leaks in the future?",
+      "range": {
+        "startLine": 1684,
+        "startChar": 3,
+        "endLine": 1684,
+        "endChar": 17
+      },
+      "revId": "2cc6d9a421a3b7ae7f23d7fc3e9c00cbc2e8a05e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8d8addc3_d04f8594",
+        "filename": "src/OpenGL/libEGL/Display.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-06-08T19:12:11Z",
+      "side": 1,
+      "message": "Same naming nit",
+      "range": {
+        "startLine": 46,
+        "startChar": 13,
+        "endLine": 46,
+        "endChar": 27
+      },
+      "revId": "2cc6d9a421a3b7ae7f23d7fc3e9c00cbc2e8a05e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d82b5b56_baf7a38e",
+        "filename": "src/Renderer/Surface.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 1170,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-06-08T19:12:11Z",
+      "side": 1,
+      "message": "Same naming nit",
+      "range": {
+        "startLine": 1170,
+        "startChar": 14,
+        "endLine": 1170,
+        "endChar": 28
+      },
+      "revId": "2cc6d9a421a3b7ae7f23d7fc3e9c00cbc2e8a05e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
