@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "239d8804_e181a41a",
+        "filename": "src/OpenGL/common/Image.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 1181,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-06-08T20:16:47Z",
+      "side": 1,
+      "message": "I agree the naming could be better, but I don\u0027t think \u0027Impl\u0027 would improve it. Quoting https://dev.chromium.org/developers/design-documents/compositor-thread-architecture: The word “impl” is horribly chosen, sorry! :)\n\nI\u0027d also prefer not to have this confused with Java-style interface and impl classes. And it\u0027s probably a good thing that it\u0027s a long name because we want to avoid using these directly for any other purpose. The short and sweet \u0027Image\u0027 should be used instead.\n\nOther naming I\u0027ve considered is ConcreteImage, but it didn\u0027t sound as nice to me. All the functionality still resides in Image (note how all the methods below just pass things back to it), so calling it Implementation isn\u0027t perfect, but it\u0027s still technically correct when thinking of C++ meaning of abstract classes and their \"implementation\").\n\nOther suggestions very welcome, but I think I\u0027ll stick with this for now.",
+      "parentUuid": "9197e731_15b5bc34",
+      "range": {
+        "startLine": 1181,
+        "startChar": 7,
+        "endLine": 1181,
+        "endChar": 26
+      },
+      "revId": "2cc6d9a421a3b7ae7f23d7fc3e9c00cbc2e8a05e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e82c6db7_71ef70bd",
         "filename": "src/OpenGL/common/Image.cpp",
         "patchSetId": 5
@@ -36,6 +60,30 @@
       "writtenOn": "2017-06-08T19:12:11Z",
       "side": 1,
       "message": "Nit: since this create/delete pattern is repeated in multiple places, maybe a guard class would ensure we don\u0027t create leaks in the future?",
+      "range": {
+        "startLine": 1684,
+        "startChar": 3,
+        "endLine": 1684,
+        "endChar": 17
+      },
+      "revId": "2cc6d9a421a3b7ae7f23d7fc3e9c00cbc2e8a05e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bff7a593_62fcc321",
+        "filename": "src/OpenGL/common/Image.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 1684,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-06-08T20:16:47Z",
+      "side": 1,
+      "message": "We could use std::unique_ptr\u003c\u003e here, but unfortunately that\u0027s not supported by the older Android versions.\n\nAnother way to avoid this repeated pattern would be to move it within the Blitter. I\u0027ll consider that as a follow-up.",
+      "parentUuid": "e82c6db7_71ef70bd",
       "range": {
         "startLine": 1684,
         "startChar": 3,
