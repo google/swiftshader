@@ -11,7 +11,7 @@
 	<key>LSApplicationCategoryType</key>
 	<string></string>
 	<key>CFBundleIdentifier</key>
-	<string>com.imgtec.${PRODUCT_NAME:rfc1034identifier}</string>
+	<string>com.imgtec.$\{PRODUCT_NAME:rfc1034identifier\}</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
