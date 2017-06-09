@@ -35,13 +35,10 @@ config("swiftshader_libEGL_private_config") {
       cflags += [ "-Wno-unused-but-set-variable" ]
     }
 
-    defines += [ "LOG_TAG=\"swiftshader_libEGL\"" ]
-
-    if (is_linux) {
-      defines += [ "EGLAPI=__attribute__((visibility(\"protected\")))" ]
-    } else {
-      defines += [ "EGLAPI=__attribute__((visibility(\"default\")))" ]
-    }
+    defines += [
+      "LOG_TAG=\"swiftshader_libEGL\"",
+      "EGLAPI=__attribute__((visibility(\"default\")))",
+    ]
   }
 }
 

@@ -49,13 +49,8 @@ config("swiftshader_libGLESv2_private_config") {
       "LOG_TAG=\"swiftshader_libGLESv2\"",
       "__STDC_CONSTANT_MACROS",
       "__STDC_LIMIT_MACROS",
+      "GL_APICALL=__attribute__((visibility(\"default\")))",
     ]
-
-    if (is_linux) {
-      defines += [ "GL_APICALL=__attribute__((visibility(\"protected\")))" ]
-    } else {
-      defines += [ "GL_APICALL=__attribute__((visibility(\"default\")))" ]
-    }
   }
 }
 
