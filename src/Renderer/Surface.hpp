@@ -293,7 +293,8 @@ namespace sw
 		inline int getStencilPitchB() const;
 		inline int getStencilSliceB() const;
 
-		void sync();   // Wait for lock(s) to be released
+		void sync();                      // Wait for lock(s) to be released.
+		inline bool isUnlocked() const;   // Only reliable after sync().
 
 		inline int getMultiSampleCount() const;
 		inline int getSuperSampleCount() const;
@@ -606,6 +607,13 @@ namespace sw
 	int Surface::getSuperSampleCount() const
 	{
 		return internal.depth > 4 ? internal.depth / 4 : 1;
+	}
+
+	bool Surface::isUnlocked() const
+	{
+		return external.lock == LOCK_UNLOCKED &&
+		       internal.lock == LOCK_UNLOCKED &&
+		       stencil.lock == LOCK_UNLOCKED;
 	}
 
 	bool Surface::isExternalDirty() const

@@ -1189,7 +1189,11 @@ namespace egl
 			: Image(width, height, format, type, pitchP) {}
 		ImageImplementation(GLsizei width, GLsizei height, sw::Format internalFormat, int multiSampleDepth, bool lockable)
 			: Image(width, height, internalFormat, multiSampleDepth, lockable) {}
-		~ImageImplementation() override {}
+
+		~ImageImplementation() override
+		{
+			sync();   // Wait for any threads that use this image to finish.
+		}
 
 		void *lockInternal(int x, int y, int z, sw::Lock lock, sw::Accessor client) override
 		{
@@ -1229,7 +1233,9 @@ namespace egl
 
 	Image::~Image()
 	{
-		sync();   // Wait for any threads that use this image to finish.
+		// sync() must be called in the destructor of the most derived class to ensure their vtable isn't destroyed
+		// before all threads are done using this image. Image itself is abstract so it can't be the most derived.
+		ASSERT(isUnlocked());
 
 		if(parentTexture)
 		{

@@ -1301,9 +1301,7 @@ namespace sw
 	{
 		// sync() must be called before this destructor to ensure all locks have been released.
 		// We can't call it here because the parent resource may already have been destroyed.
-		ASSERT(external.lock == LOCK_UNLOCKED);
-		ASSERT(internal.lock == LOCK_UNLOCKED);
-		ASSERT(stencil.lock == LOCK_UNLOCKED);
+		ASSERT(isUnlocked());
 
 		if(!hasParent)
 		{
@@ -1371,9 +1369,9 @@ namespace sw
 
 	void Surface::unlockExternal()
 	{
-		resource->unlock();
-
 		external.unlockRect();
+
+		resource->unlock();
 	}
 
 	void *Surface::lockInternal(int x, int y, int z, Lock lock, Accessor client)
@@ -1455,9 +1453,9 @@ namespace sw
 
 	void Surface::unlockInternal()
 	{
-		resource->unlock();
-
 		internal.unlockRect();
+
+		resource->unlock();
 	}
 
 	void *Surface::lockStencil(int x, int y, int front, Accessor client)
@@ -1474,9 +1472,9 @@ namespace sw
 
 	void Surface::unlockStencil()
 	{
-		resource->unlock();
-
 		stencil.unlockRect();
+
+		resource->unlock();
 	}
 
 	int Surface::bytes(Format format)
