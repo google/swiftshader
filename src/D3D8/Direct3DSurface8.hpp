@@ -31,22 +31,26 @@ namespace D3D8
 	public:
 		Direct3DSurface8(Direct3DDevice8 *device, Unknown *container, int width, int height, D3DFORMAT format, D3DPOOL pool, D3DMULTISAMPLE_TYPE multiSample, bool lockable, unsigned long usage);
 
-		virtual ~Direct3DSurface8();
+		~Direct3DSurface8() override;
+
+		// Surface methods
+		void *lockInternal(int x, int y, int z, sw::Lock lock, sw::Accessor client) override;
+		void unlockInternal() override;
 
 		// IUnknown methods
-		long __stdcall QueryInterface(const IID &iid, void **object);
-		unsigned long __stdcall AddRef();
-		unsigned long __stdcall Release();		
+		long __stdcall QueryInterface(const IID &iid, void **object) override;
+		unsigned long __stdcall AddRef() override;
+		unsigned long __stdcall Release() override;
 
 		// IDirect3DSurface8 methods
-		long __stdcall GetDevice(IDirect3DDevice8 **device);
-		long __stdcall SetPrivateData(const GUID &guid, const void *data, unsigned long size, unsigned long flags);
-		long __stdcall GetPrivateData(const GUID &guid, void *data, unsigned long *size);
-		long __stdcall FreePrivateData(const GUID &guid);
-		long __stdcall GetContainer(const IID &iid, void **container);
-		long __stdcall GetDesc(D3DSURFACE_DESC *desc);
-		long __stdcall LockRect(D3DLOCKED_RECT *lockedRect, const RECT *rect, unsigned long Flags);
-		long __stdcall UnlockRect();
+		long __stdcall GetDevice(IDirect3DDevice8 **device) override;
+		long __stdcall SetPrivateData(const GUID &guid, const void *data, unsigned long size, unsigned long flags) override;
+		long __stdcall GetPrivateData(const GUID &guid, void *data, unsigned long *size) override;
+		long __stdcall FreePrivateData(const GUID &guid) override;
+		long __stdcall GetContainer(const IID &iid, void **container) override;
+		long __stdcall GetDesc(D3DSURFACE_DESC *desc) override;
+		long __stdcall LockRect(D3DLOCKED_RECT *lockedRect, const RECT *rect, unsigned long Flags) override;
+		long __stdcall UnlockRect() override;
 
 		// Internal methods
 		static sw::Format translateFormat(D3DFORMAT format);

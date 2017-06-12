@@ -33,14 +33,13 @@ namespace D3D8
 	public:
 		Direct3DStateBlock8(Direct3DDevice8 *device, D3DSTATEBLOCKTYPE type);
 
-		virtual ~Direct3DStateBlock8();
+		~Direct3DStateBlock8() override;
 
 		// IUnknown methods
-		long __stdcall QueryInterface(const IID &iid, void **object);
-		unsigned long __stdcall AddRef();
-		unsigned long __stdcall Release();
+		long __stdcall QueryInterface(const IID &iid, void **object) override;
+		unsigned long __stdcall AddRef() override;
+		unsigned long __stdcall Release() override;
 
-		// IDirect3DStateBlock8 methods
 		long __stdcall Apply();
 		long __stdcall Capture();
 		long __stdcall GetDevice(IDirect3DDevice8 **device);
@@ -75,13 +74,13 @@ namespace D3D8
 		void capturePixelRenderStates();
 		void capturePixelTextureStates();
 		void capturePixelShaderStates();
-	
+
 		// Vertex states
 		void captureVertexRenderStates();
 		void captureVertexTextureStates();
 		void captureLightStates();
 		void captureVertexShaderStates();
-	
+
 		// All (remaining) states
 		void captureTextures();
 		void captureVertexTextures();

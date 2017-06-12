@@ -37,17 +37,17 @@ namespace D3D9
 	public:
 		Direct3DStateBlock9(Direct3DDevice9 *device, D3DSTATEBLOCKTYPE type);
 
-		virtual ~Direct3DStateBlock9();
+		~Direct3DStateBlock9() override;
 
 		// IUnknown methods
-		long __stdcall QueryInterface(const IID &iid, void **object);
-		unsigned long __stdcall AddRef();
-		unsigned long __stdcall Release();
+		long __stdcall QueryInterface(const IID &iid, void **object) override;
+		unsigned long __stdcall AddRef() override;
+		unsigned long __stdcall Release() override;
 
 		// IDirect3DStateBlock9 methods
-		long __stdcall Apply();
-		long __stdcall Capture();
-		long __stdcall GetDevice(IDirect3DDevice9 **device);
+		long __stdcall Apply() override;
+		long __stdcall Capture() override;
+		long __stdcall GetDevice(IDirect3DDevice9 **device) override;
 
 		// Internal methods
 		void lightEnable(unsigned long index, int enable);

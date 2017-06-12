@@ -2659,7 +2659,7 @@ namespace D3D9
 		void *bitmap = cursorSurface->lockExternal(0, 0, 0, sw::LOCK_READONLY, sw::PUBLIC);
 
 		delete cursor;
-		cursor = new sw::Surface(0, width, height, 1, sw::FORMAT_A8R8G8B8, false, false);
+		cursor = sw::Surface::create(0, width, height, 1, sw::FORMAT_A8R8G8B8, false, false);
 
 		void *buffer = cursor->lockExternal(0, 0, 0, sw::LOCK_DISCARD, sw::PUBLIC);
 		memcpy(buffer, bitmap, width * height * sizeof(unsigned int));

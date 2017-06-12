@@ -27,9 +27,9 @@ namespace D3D9
 		virtual ~Unknown();
 
 		// IUnknown methods
-		long __stdcall QueryInterface(const IID &iid, void **object);
-		unsigned long __stdcall AddRef();
-		unsigned long __stdcall Release();
+		long __stdcall QueryInterface(const IID &iid, void **object) override;
+		unsigned long __stdcall AddRef() override;
+		unsigned long __stdcall Release() override;
 
 		// Internal methods
 		virtual void bind();

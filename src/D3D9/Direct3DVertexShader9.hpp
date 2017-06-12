@@ -30,16 +30,16 @@ namespace D3D9
 	public:
 		Direct3DVertexShader9(Direct3DDevice9 *device, const unsigned long *shaderToken);
 
-		virtual ~Direct3DVertexShader9();
+		~Direct3DVertexShader9() override;
 
 		// IUnknown methods
-		long __stdcall QueryInterface(const IID &iid, void **object);
-		unsigned long __stdcall AddRef();
-		unsigned long __stdcall Release();
+		long __stdcall QueryInterface(const IID &iid, void **object) override;
+		unsigned long __stdcall AddRef() override;
+		unsigned long __stdcall Release() override;
 
 		// IDirect3DVertexShader9 methods
-		long __stdcall GetDevice(IDirect3DDevice9 **device);
-		long __stdcall GetFunction(void *data, unsigned int *size);
+		long __stdcall GetDevice(IDirect3DDevice9 **device) override;
+		long __stdcall GetFunction(void *data, unsigned int *size) override;
 
 		// Internal methods
 		const sw::VertexShader *getVertexShader() const;

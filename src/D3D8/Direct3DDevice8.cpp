@@ -81,7 +81,7 @@ namespace D3D8
 		pixelShaderHandle = 0;
 
 		lightsDirty = true;
-				
+
 		for(int i = 0; i < 16; i++)
 		{
 			dataStream[i] = 0;
@@ -176,13 +176,13 @@ namespace D3D8
 				swapChain[i] = 0;
 			}
 		}
-		
+
 		if(depthStencil)
 		{
 			depthStencil->unbind();
 			depthStencil = 0;
 		}
-		
+
 		if(renderTarget)
 		{
 			renderTarget->unbind();
@@ -270,7 +270,7 @@ namespace D3D8
 
 		return Unknown::AddRef();
 	}
-	
+
 	unsigned long Direct3DDevice8::Release()
 	{
 		TRACE("");
@@ -311,7 +311,7 @@ namespace D3D8
 		TRACE("");
 
 		stateRecorder[token]->Capture();
-		
+
 		return D3D_OK;
 	}
 
@@ -488,7 +488,7 @@ namespace D3D8
 			sourceSurface->UnlockRect();
 			destinationSurface->UnlockRect();
 		}
-		
+
 		return D3D_OK;
 	}
 
@@ -678,7 +678,7 @@ namespace D3D8
 		pixelShader[index]->AddRef();
 
 		*handle = index;
-		
+
 		return D3D_OK;
 	}
 
@@ -708,7 +708,7 @@ namespace D3D8
 		}
 
 		(*surface)->AddRef();
-		
+
 		return D3D_OK;
 	}
 
@@ -778,7 +778,7 @@ namespace D3D8
 		}
 
 		(*vertexBuffer)->AddRef();
-		
+
 		return D3D_OK;
 	}
 
@@ -865,7 +865,7 @@ namespace D3D8
 
 		stateRecorder[token]->unbind();
 		stateRecorder[token] = 0;
-		
+
 		return D3D_OK;
 	}
 
@@ -936,7 +936,7 @@ namespace D3D8
 		bindData(indexData, baseVertexIndex);
 
 		renderer->draw(drawType, indexOffset, primitiveCount);
-		
+
 		return D3D_OK;
 	}
 
@@ -965,7 +965,7 @@ namespace D3D8
 		}
 
 		int length = (minIndex + numVertices) * vertexStreamZeroStride;
-		
+
 		Direct3DVertexBuffer8 *vertexBuffer = new Direct3DVertexBuffer8(this, length, 0, 0, D3DPOOL_DEFAULT);
 
 		unsigned char *data;
@@ -1098,7 +1098,7 @@ namespace D3D8
 		length *= vertexStreamZeroStride;
 
 		CreateVertexBuffer(length, 0, 0, D3DPOOL_DEFAULT, &vertexBuffer);
-		
+
 		unsigned char *data;
 		vertexBuffer->Lock(0, 0, &data, 0);
 		memcpy(data, vertexStreamZeroData, length);
@@ -1131,7 +1131,7 @@ namespace D3D8
 
 		SetStreamSource(0, 0, 0);
 		vertexBuffer->Release();
-		
+
 		return D3D_OK;
 	}
 
@@ -1344,7 +1344,7 @@ namespace D3D8
 		swapChain[0]->screenshot(description.pBits);
 
 		destSurface->UnlockRect();
-		
+
 		return D3D_OK;
 	}
 
@@ -1401,7 +1401,7 @@ namespace D3D8
 		case 6: UNIMPLEMENTED();   // FIXME: D3DDEVINFOID_D3DVERTEXSTATS
 		case 7: return E_FAIL;
 		}
-		
+
 		return D3D_OK;
 	}
 
@@ -1561,7 +1561,7 @@ namespace D3D8
 
 		*renderTarget = this->renderTarget;
 		this->renderTarget->AddRef();
-		
+
 		return D3D_OK;
 	}
 
@@ -1575,7 +1575,7 @@ namespace D3D8
 		}
 
 		*streamData = dataStream[streamNumber];
-		
+
 		if(dataStream[streamNumber])
 		{
 			dataStream[streamNumber]->AddRef();
@@ -1596,7 +1596,7 @@ namespace D3D8
 		}
 
 		*texture = this->texture[stage];
-		
+
 		if(this->texture[stage])
 		{
 			this->texture[stage]->AddRef();
@@ -1739,7 +1739,7 @@ namespace D3D8
 				light.Direction.y = 0;
 				light.Direction.z = 1;
 				light.Range = 0;
-				light.Falloff = 0; 
+				light.Falloff = 0;
 				light.Attenuation0 = 0;
 				light.Attenuation1 = 0;
 				light.Attenuation2 = 0;
@@ -1879,13 +1879,13 @@ namespace D3D8
 			swapChain[0]->unbind();
 			swapChain[0] = 0;
 		}
-		
+
 		if(depthStencil)
 		{
 			depthStencil->unbind();
 			depthStencil = 0;
 		}
-		
+
 		if(renderTarget)
 		{
 			renderTarget->unbind();
@@ -2047,7 +2047,7 @@ namespace D3D8
 		delete cursor;
 		showCursor = false;
 
-		return D3D_OK;		
+		return D3D_OK;
 	}
 
 	long Direct3DDevice8::ResourceManagerDiscardBytes(unsigned long bytes)
@@ -2133,11 +2133,6 @@ namespace D3D8
 		sw::FrameBuffer::setCursorPosition(point.x, point.y);
 	}
 
-	void Direct3DDevice8::SetCursorPosition(unsigned int x, unsigned int y, unsigned long flags)
-	{
-		SetCursorPosition((int)x, (int)y, flags);
-	}
-
 	long Direct3DDevice8::SetCursorProperties(unsigned int x0, unsigned int y0, IDirect3DSurface8 *cursorBitmap)
 	{
 		TRACE("");
@@ -2154,7 +2149,7 @@ namespace D3D8
 		cursorBitmap->LockRect(&lock, 0, 0);
 
 		delete cursor;
-		cursor = new sw::Surface(0, desc.Width, desc.Height, 1, sw::FORMAT_A8R8G8B8, false, false);
+		cursor = sw::Surface::create(0, desc.Width, desc.Height, 1, sw::FORMAT_A8R8G8B8, false, false);
 
 		void *buffer = cursor->lockExternal(0, 0, 0, sw::LOCK_DISCARD, sw::PUBLIC);
 		memcpy(buffer, lock.pBits, desc.Width * desc.Height * sizeof(unsigned int));
@@ -2179,7 +2174,7 @@ namespace D3D8
 		}
 
 		swapChain[0]->setGammaRamp((sw::GammaRamp*)ramp, flags & D3DSGR_CALIBRATE);
-		
+
 		return;
 	}
 
@@ -2333,7 +2328,7 @@ namespace D3D8
 			renderState[state] = value;
 
 			switch(state)
-			{		
+			{
 			case D3DRS_ZENABLE:
 				switch(value)
 				{
@@ -2488,7 +2483,7 @@ namespace D3D8
 					ASSERT(false);
 				}
 				break;
-			case D3DRS_CULLMODE:	
+			case D3DRS_CULLMODE:
 				switch(value)
 				{
 				case D3DCULL_NONE:
@@ -3098,10 +3093,10 @@ namespace D3D8
 		{
 			stateRecorder.back()->setStreamSource(stream, vertexBuffer, stride);
 		}
-	
+
 		return D3D_OK;
 	}
-	
+
 	long Direct3DDevice8::SetTexture(unsigned long stage, IDirect3DBaseTexture8 *iBaseTexture)
 	{
 		TRACE("");
@@ -3301,7 +3296,7 @@ namespace D3D8
 					renderer->setSecondArgument(stage, sw::TextureStage::SOURCE_TEXTURE);
 					break;
 				case D3DTA_TFACTOR:
-					renderer->setSecondArgument(stage, sw::TextureStage::SOURCE_TFACTOR);						
+					renderer->setSecondArgument(stage, sw::TextureStage::SOURCE_TFACTOR);
 					break;
 				case D3DTA_SPECULAR:
 					renderer->setSecondArgument(stage, sw::TextureStage::SOURCE_SPECULAR);
@@ -3928,14 +3923,14 @@ namespace D3D8
 				Direct3DVertexShader8 *shader = vertexShader[index];
 				renderer->setVertexShader(shader->getVertexShader());
 				declaration = shader->getDeclaration();
-				
+
 				FVF = 0;
 			}
 			else
 			{
 				renderer->setVertexShader(0);
 				declaration = 0;
-				
+
 				FVF = handle;
 			}
 		}
@@ -3993,7 +3988,7 @@ namespace D3D8
 		{
 			stateRecorder.back()->setViewport(viewport);
 		}
-		
+
 		return D3D_OK;
 	}
 
@@ -4160,7 +4155,7 @@ namespace D3D8
 
 		RECT sRect;
 		RECT dRect;
-		
+
 		if(sourceRect && destPoint)
 		{
 			sRect.left = sourceRect->left;
@@ -4237,14 +4232,14 @@ namespace D3D8
 		for(unsigned int y = 0; y < height; y++)
 		{
 			memcpy(destinationLock.pBits, sourceLock.pBits, bytes);
-			
+
 			(byte*&)sourceLock.pBits += sourceLock.Pitch;
 			(byte*&)destinationLock.pBits += destinationLock.Pitch;
 		}
 
 		sourceSurface->UnlockRect();
 		destinationSurface->UnlockRect();
-		
+
 		return D3D_OK;
 	}
 
@@ -4296,7 +4291,7 @@ namespace D3D8
 		if(FVF & D3DFVF_PSIZE)		stride += 4;
 		if(FVF & D3DFVF_DIFFUSE)	stride += 4;
 		if(FVF & D3DFVF_SPECULAR)	stride += 4;
-		
+
 		switch((FVF & D3DFVF_TEXCOUNT_MASK) >> D3DFVF_TEXCOUNT_SHIFT)
 		{
 		case 8: stride += 4 + 4 * ((1 + (FVF >> 30)) % 4);
@@ -4428,25 +4423,25 @@ namespace D3D8
 			{
 				renderer->setInputStream(sw::BlendIndices, attribute.define((char*&)buffer - 4, sw::STREAMTYPE_INDICES, 1));
 			}
-			
+
 			if(FVF & D3DFVF_NORMAL)
 			{
 				renderer->setInputStream(sw::Normal, attribute.define(buffer, sw::STREAMTYPE_FLOAT, 3));
 				(char*&)buffer += 12;
 			}
-			
+
 			if(FVF & D3DFVF_PSIZE)
 			{
 				renderer->setInputStream(sw::PointSize, attribute.define(buffer, sw::STREAMTYPE_FLOAT, 1));
 				(char*&)buffer += 4;
 			}
-			
+
 			if(FVF & D3DFVF_DIFFUSE)
 			{
 				renderer->setInputStream(sw::Color0, attribute.define(buffer, sw::STREAMTYPE_COLOR, 4));
 				(char*&)buffer += 4;
 			}
-			
+
 			if(FVF & D3DFVF_SPECULAR)
 			{
 				renderer->setInputStream(sw::Color1, attribute.define(buffer, sw::STREAMTYPE_COLOR, 4));
@@ -4633,7 +4628,7 @@ namespace D3D8
 			renderer->setLightDiffuse(active, diffuse);
 			renderer->setLightSpecular(active, specular);
 			renderer->setLightAmbient(active, ambient);
-			
+
 			if(l.Type == D3DLIGHT_DIRECTIONAL)
 			{
 			//	goto next;   // FIXME
@@ -4734,7 +4729,7 @@ namespace D3D8
 			if(baseTexture && textureUsed)
 			{
 				int levelCount = baseTexture->getInternalLevelCount();
-				
+
 				int textureLOD = baseTexture->GetLOD();
 				int stageLOD = textureStageState[stage][D3DTSS_MAXMIPLEVEL];
 				int LOD = textureLOD > stageLOD ? textureLOD : stageLOD;
@@ -4849,7 +4844,7 @@ namespace D3D8
 			sw::FrameBuffer::setCursorImage(cursor);
 
 			HCURSOR oldCursor = SetCursor(nullCursor);
-			
+
 			if(oldCursor != nullCursor)
 			{
 				win32Cursor = oldCursor;
@@ -4906,7 +4901,7 @@ namespace D3D8
 
 		sourceVolume->UnlockBox();
 		destinationVolume->UnlockBox();
-		
+
 		return D3D_OK;
 	}
 

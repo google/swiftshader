@@ -30,19 +30,19 @@ namespace D3D9
 	public:
 		Direct3DQuery9(Direct3DDevice9 *device, D3DQUERYTYPE type);
 
-		virtual ~Direct3DQuery9();
+		~Direct3DQuery9() override;
 
 		// IUnknown methods
-		long __stdcall QueryInterface(const IID &iid, void **object);
-		unsigned long __stdcall AddRef();
-		unsigned long __stdcall Release();
+		long __stdcall QueryInterface(const IID &iid, void **object) override;
+		unsigned long __stdcall AddRef() override;
+		unsigned long __stdcall Release() override;
 
 		// IDirect3DQuery9 methods
-		long __stdcall GetDevice(IDirect3DDevice9 **device);
-		D3DQUERYTYPE __stdcall GetType();
-		unsigned long __stdcall GetDataSize();
-		long __stdcall Issue(unsigned long flags);
-		long __stdcall GetData(void *data, unsigned long size, unsigned long flags);
+		long __stdcall GetDevice(IDirect3DDevice9 **device) override;
+		D3DQUERYTYPE __stdcall GetType() override;
+		unsigned long __stdcall GetDataSize() override;
+		long __stdcall Issue(unsigned long flags) override;
+		long __stdcall GetData(void *data, unsigned long size, unsigned long flags) override;
 
 	private:
 		// Creation parameters

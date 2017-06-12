@@ -39,6 +39,9 @@ namespace gl
 		unsigned int getPitch() const;
 		void unlock();
 
+		void *lockInternal(int x, int y, int z, sw::Lock lock, sw::Accessor client) override;
+		void unlockInternal() override;
+
 		int getWidth();
 		int getHeight();
 		GLenum getFormat();
@@ -53,7 +56,7 @@ namespace gl
 		static sw::Format selectInternalFormat(GLenum format, GLenum type);
 
 	private:
-		virtual ~Image();
+		~Image() override;
 
 		void loadAlphaImageData(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, int inputPitch, const void *input, void *buffer) const;
 		void loadAlphaFloatImageData(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, int inputPitch, const void *input, void *buffer) const;

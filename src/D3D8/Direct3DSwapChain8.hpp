@@ -30,20 +30,20 @@ namespace D3D8
 	public:
 		Direct3DSwapChain8(Direct3DDevice8 *device, D3DPRESENT_PARAMETERS *presentParameters);
 
-		virtual ~Direct3DSwapChain8();
+		~Direct3DSwapChain8() override;
 
 		// IUnknown methods
-		long __stdcall QueryInterface(const IID &iid, void **object);
-		unsigned long __stdcall AddRef();
-		unsigned long __stdcall Release();
+		long __stdcall QueryInterface(const IID &iid, void **object) override;
+		unsigned long __stdcall AddRef() override;
+		unsigned long __stdcall Release() override;
 
 		// IDirect3DSwapChain8 methods
-	    long __stdcall Present(const RECT *sourceRect, const RECT *destRect, HWND destWindowOverride, const RGNDATA *dirtyRegion);
-	    long __stdcall GetBackBuffer(unsigned int index, D3DBACKBUFFER_TYPE type, IDirect3DSurface8 **backBuffer);
+	    long __stdcall Present(const RECT *sourceRect, const RECT *destRect, HWND destWindowOverride, const RGNDATA *dirtyRegion) override;
+	    long __stdcall GetBackBuffer(unsigned int index, D3DBACKBUFFER_TYPE type, IDirect3DSurface8 **backBuffer) override;
 
 		// Internal methods
 		void reset(D3DPRESENT_PARAMETERS *presentParameters);
-		
+
 		void screenshot(void *destBuffer);
 		void setGammaRamp(sw::GammaRamp *gammaRamp, bool calibrate);
 		void getGammaRamp(sw::GammaRamp *gammaRamp);

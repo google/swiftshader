@@ -30,27 +30,27 @@ namespace D3D8
 	public:
 		Direct3D8(int version, const HINSTANCE instance);
 
-		virtual ~Direct3D8();
+		~Direct3D8() override;
 
 		// IUnknown methods
-		long __stdcall QueryInterface(const IID &iid, void **object);
-		unsigned long __stdcall AddRef();
-		unsigned long __stdcall Release();
+		long __stdcall QueryInterface(const IID &iid, void **object) override;
+		unsigned long __stdcall AddRef() override;
+		unsigned long __stdcall Release() override;
 
 		// IDirect3D8 methods
-		long __stdcall CheckDepthStencilMatch(unsigned int adapter, D3DDEVTYPE deviceType, D3DFORMAT adapterFormat, D3DFORMAT renderTargetFormat, D3DFORMAT depthStencilFormat);
-		long __stdcall CheckDeviceFormat(unsigned int adapter, D3DDEVTYPE deviceType, D3DFORMAT adapaterFormat, unsigned long usage, D3DRESOURCETYPE type, D3DFORMAT checkFormat);
-		long __stdcall CheckDeviceMultiSampleType(unsigned int adapter, D3DDEVTYPE deviceType, D3DFORMAT surfaceFormat, int windowed, D3DMULTISAMPLE_TYPE multiSampleType);
-		long __stdcall CheckDeviceType(unsigned int adapter, D3DDEVTYPE checkType, D3DFORMAT displayFormat, D3DFORMAT backBufferFormat, int windowed);
-		long __stdcall CreateDevice(unsigned int adapter, D3DDEVTYPE deviceType, HWND focusWindow, unsigned long behaviorFlags, D3DPRESENT_PARAMETERS *presentParameters, IDirect3DDevice8 **returnedDeviceInterface);
-		long __stdcall EnumAdapterModes(unsigned int adapter, unsigned int index, D3DDISPLAYMODE *mode);
-		unsigned int __stdcall GetAdapterCount();
-		long __stdcall GetAdapterDisplayMode(unsigned int adapter, D3DDISPLAYMODE *mode);
-		long __stdcall GetAdapterIdentifier(unsigned int adapter, unsigned long flags, D3DADAPTER_IDENTIFIER8 *identifier);
-		unsigned int __stdcall GetAdapterModeCount(unsigned int adapter);
-		HMONITOR __stdcall GetAdapterMonitor(unsigned int adapter);
-		long __stdcall GetDeviceCaps(unsigned int adapter, D3DDEVTYPE deviceType, D3DCAPS8 *caps);
-		long __stdcall RegisterSoftwareDevice(void *initializeFunction);
+		long __stdcall CheckDepthStencilMatch(unsigned int adapter, D3DDEVTYPE deviceType, D3DFORMAT adapterFormat, D3DFORMAT renderTargetFormat, D3DFORMAT depthStencilFormat) override;
+		long __stdcall CheckDeviceFormat(unsigned int adapter, D3DDEVTYPE deviceType, D3DFORMAT adapaterFormat, unsigned long usage, D3DRESOURCETYPE type, D3DFORMAT checkFormat) override;
+		long __stdcall CheckDeviceMultiSampleType(unsigned int adapter, D3DDEVTYPE deviceType, D3DFORMAT surfaceFormat, int windowed, D3DMULTISAMPLE_TYPE multiSampleType) override;
+		long __stdcall CheckDeviceType(unsigned int adapter, D3DDEVTYPE checkType, D3DFORMAT displayFormat, D3DFORMAT backBufferFormat, int windowed) override;
+		long __stdcall CreateDevice(unsigned int adapter, D3DDEVTYPE deviceType, HWND focusWindow, unsigned long behaviorFlags, D3DPRESENT_PARAMETERS *presentParameters, IDirect3DDevice8 **returnedDeviceInterface) override;
+		long __stdcall EnumAdapterModes(unsigned int adapter, unsigned int index, D3DDISPLAYMODE *mode) override;
+		unsigned int __stdcall GetAdapterCount() override;
+		long __stdcall GetAdapterDisplayMode(unsigned int adapter, D3DDISPLAYMODE *mode) override;
+		long __stdcall GetAdapterIdentifier(unsigned int adapter, unsigned long flags, D3DADAPTER_IDENTIFIER8 *identifier) override;
+		unsigned int __stdcall GetAdapterModeCount(unsigned int adapter) override;
+		HMONITOR __stdcall GetAdapterMonitor(unsigned int adapter) override;
+		long __stdcall GetDeviceCaps(unsigned int adapter, D3DDEVTYPE deviceType, D3DCAPS8 *caps) override;
+		long __stdcall RegisterSoftwareDevice(void *initializeFunction) override;
 
 	private:
 		void loadSystemD3D8();

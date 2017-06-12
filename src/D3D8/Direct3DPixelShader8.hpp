@@ -28,14 +28,13 @@ namespace D3D8
 	public:
 		Direct3DPixelShader8(Direct3DDevice8 *device, const unsigned long *shaderToken);
 
-		virtual ~Direct3DPixelShader8();
+		~Direct3DPixelShader8() override;
 
 		// IUnknown methods
-		long __stdcall QueryInterface(const IID &iid, void **object);
-		unsigned long __stdcall AddRef();
-		unsigned long __stdcall Release();
+		long __stdcall QueryInterface(const IID &iid, void **object) override;
+		unsigned long __stdcall AddRef() override;
+		unsigned long __stdcall Release() override;
 
-		// IDirect3DPixelShader8 methods
 		void __stdcall GetFunction(void *data, unsigned int *size);
 
 		// Internal methods

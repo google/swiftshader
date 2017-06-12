@@ -30,22 +30,22 @@ namespace D3D8
 	public:
 		Direct3DResource8(Direct3DDevice8 *device, D3DRESOURCETYPE type, unsigned int size);
 
-		virtual ~Direct3DResource8();
+		~Direct3DResource8() override;
 
 		// IUnknown methods
-		long __stdcall QueryInterface(const IID &iid, void **object);
-		unsigned long __stdcall AddRef();
-		unsigned long __stdcall Release();
+		long __stdcall QueryInterface(const IID &iid, void **object) override;
+		unsigned long __stdcall AddRef() override;
+		unsigned long __stdcall Release() override;
 
 		// IDirect3DResource8 methods
-		long __stdcall GetDevice(IDirect3DDevice8 **device);
-		long __stdcall SetPrivateData(const GUID &guid, const void *data, unsigned long size, unsigned long flags);
-		long __stdcall GetPrivateData(const GUID &guid, void *data, unsigned long *size);
-		long __stdcall FreePrivateData(const GUID &guid);
-		unsigned long __stdcall SetPriority(unsigned long newPriority);
-		unsigned long __stdcall GetPriority();
-		void __stdcall PreLoad();
-		D3DRESOURCETYPE __stdcall GetType();
+		long __stdcall GetDevice(IDirect3DDevice8 **device) override;
+		long __stdcall SetPrivateData(const GUID &guid, const void *data, unsigned long size, unsigned long flags) override;
+		long __stdcall GetPrivateData(const GUID &guid, void *data, unsigned long *size) override;
+		long __stdcall FreePrivateData(const GUID &guid) override;
+		unsigned long __stdcall SetPriority(unsigned long newPriority) override;
+		unsigned long __stdcall GetPriority() override;
+		void __stdcall PreLoad() override;
+		D3DRESOURCETYPE __stdcall GetType() override;
 
 		// Internal methods
 		static unsigned int getMemoryUsage();

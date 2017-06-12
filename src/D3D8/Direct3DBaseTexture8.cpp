@@ -135,7 +135,7 @@ namespace D3D8
 		return LOD;
 	}
 
-	long Direct3DBaseTexture8::SetLOD(long newLOD)
+	unsigned long Direct3DBaseTexture8::SetLOD(unsigned long newLOD)
 	{
 		TRACE("");
 

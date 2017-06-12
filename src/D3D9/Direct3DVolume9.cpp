@@ -41,6 +41,16 @@ namespace D3D9
 		resource->unbind();
 	}
 
+	void *Direct3DVolume9::lockInternal(int x, int y, int z, sw::Lock lock, sw::Accessor client)
+	{
+		return Surface::lockInternal(x, y, z, lock, client);
+	}
+
+	void Direct3DVolume9::unlockInternal()
+	{
+		Surface::unlockInternal();
+	}
+
 	long __stdcall Direct3DVolume9::QueryInterface(const IID &iid, void **object)
 	{
 		CriticalSection cs(device);

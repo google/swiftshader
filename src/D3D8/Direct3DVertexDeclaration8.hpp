@@ -28,12 +28,12 @@ namespace D3D8
 	public:
 		Direct3DVertexDeclaration8(Direct3DDevice8 *device, const unsigned long *vertexElements);
 
-		virtual ~Direct3DVertexDeclaration8();
+		~Direct3DVertexDeclaration8() override;
 
 		// IUnknown methods
-		long __stdcall QueryInterface(const IID &iid, void **object);
-		unsigned long __stdcall AddRef();
-		unsigned long __stdcall Release();
+		long __stdcall QueryInterface(const IID &iid, void **object) override;
+		unsigned long __stdcall AddRef() override;
+		unsigned long __stdcall Release() override;
 
 		// Internal methods
 		const unsigned long *getDeclaration() const;

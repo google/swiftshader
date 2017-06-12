@@ -30,34 +30,34 @@ namespace D3D8
 	public:
 		Direct3DVolumeTexture8(Direct3DDevice8 *device, unsigned int width, unsigned int height, unsigned int depth, unsigned int levels, unsigned long usage, D3DFORMAT format, D3DPOOL pool);
 
-		virtual ~Direct3DVolumeTexture8();
+		~Direct3DVolumeTexture8() override;
 
 		// IUnknown methods
-		long __stdcall QueryInterface(const IID &iid, void **object);
-		unsigned long __stdcall AddRef();
-		unsigned long __stdcall Release();
+		long __stdcall QueryInterface(const IID &iid, void **object) override;
+		unsigned long __stdcall AddRef() override;
+		unsigned long __stdcall Release() override;
 
 		// IDirect3DResource8 methods
-		long __stdcall FreePrivateData(const GUID &guid);
-		long __stdcall GetPrivateData(const GUID &guid, void *data, unsigned long *size);
-		void __stdcall PreLoad();
-		long __stdcall SetPrivateData(const GUID &guid, const void *data, unsigned long size, unsigned long flags);
-		long __stdcall GetDevice(IDirect3DDevice8 **device);
-		unsigned long __stdcall SetPriority(unsigned long newPriority);
-		unsigned long __stdcall GetPriority();
-		D3DRESOURCETYPE __stdcall GetType();
+		long __stdcall FreePrivateData(const GUID &guid) override;
+		long __stdcall GetPrivateData(const GUID &guid, void *data, unsigned long *size) override;
+		void __stdcall PreLoad() override;
+		long __stdcall SetPrivateData(const GUID &guid, const void *data, unsigned long size, unsigned long flags) override;
+		long __stdcall GetDevice(IDirect3DDevice8 **device) override;
+		unsigned long __stdcall SetPriority(unsigned long newPriority) override;
+		unsigned long __stdcall GetPriority() override;
+		D3DRESOURCETYPE __stdcall GetType() override;
 
 		// IDirect3DBaseTexture methods
-		unsigned long __stdcall GetLevelCount();
-		unsigned long __stdcall GetLOD();
-		unsigned long __stdcall SetLOD(unsigned long newLOD);
+		unsigned long __stdcall GetLevelCount() override;
+		unsigned long __stdcall GetLOD() override;
+		unsigned long __stdcall SetLOD(unsigned long newLOD) override;
 
 		// IDirect3DVolumeTexture8 methods
-		long __stdcall GetLevelDesc(unsigned int level, D3DVOLUME_DESC *description);
-		long __stdcall GetVolumeLevel(unsigned int level, IDirect3DVolume8 **volume);
-		long __stdcall LockBox(unsigned int level, D3DLOCKED_BOX *lockedVolume, const D3DBOX *box, unsigned long flags);
-		long __stdcall UnlockBox(unsigned int level);
-		long __stdcall AddDirtyBox(const D3DBOX *dirtyBox);
+		long __stdcall GetLevelDesc(unsigned int level, D3DVOLUME_DESC *description) override;
+		long __stdcall GetVolumeLevel(unsigned int level, IDirect3DVolume8 **volume) override;
+		long __stdcall LockBox(unsigned int level, D3DLOCKED_BOX *lockedVolume, const D3DBOX *box, unsigned long flags) override;
+		long __stdcall UnlockBox(unsigned int level) override;
+		long __stdcall AddDirtyBox(const D3DBOX *dirtyBox) override;
 
 		// Internal methods
 		Direct3DVolume8 *getInternalVolumeLevel(unsigned int level);

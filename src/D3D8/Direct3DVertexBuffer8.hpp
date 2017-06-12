@@ -31,27 +31,27 @@ namespace D3D8
 	public:
 		Direct3DVertexBuffer8(Direct3DDevice8 *device, unsigned int length, unsigned long usage, long FVF, D3DPOOL pool);
 
-		virtual ~Direct3DVertexBuffer8();
+		~Direct3DVertexBuffer8() override;
 
 		// IUnknown methods
-		long __stdcall QueryInterface(const IID &iid, void **object);
-		unsigned long __stdcall AddRef();
-		unsigned long __stdcall Release();
+		long __stdcall QueryInterface(const IID &iid, void **object) override;
+		unsigned long __stdcall AddRef() override;
+		unsigned long __stdcall Release() override;
 
 		// IDirect3DResource8 methods
-		long __stdcall FreePrivateData(const GUID &guid);
-		long __stdcall GetPrivateData(const GUID &guid, void *data, unsigned long *size);
-		void __stdcall PreLoad();
-		long __stdcall SetPrivateData(const GUID &guid, const void *data, unsigned long size, unsigned long flags);
-		long __stdcall GetDevice(IDirect3DDevice8 **device);
-		unsigned long __stdcall SetPriority(unsigned long newPriority);
-		unsigned long __stdcall GetPriority();
-		D3DRESOURCETYPE __stdcall GetType();
+		long __stdcall FreePrivateData(const GUID &guid) override;
+		long __stdcall GetPrivateData(const GUID &guid, void *data, unsigned long *size) override;
+		void __stdcall PreLoad() override;
+		long __stdcall SetPrivateData(const GUID &guid, const void *data, unsigned long size, unsigned long flags) override;
+		long __stdcall GetDevice(IDirect3DDevice8 **device) override;
+		unsigned long __stdcall SetPriority(unsigned long newPriority) override;
+		unsigned long __stdcall GetPriority() override;
+		D3DRESOURCETYPE __stdcall GetType() override;
 
 		// IDirect3DVertexBuffer8 methods
-		long __stdcall Lock(unsigned int offset, unsigned int size, unsigned char **data, unsigned long flags);
-		long __stdcall Unlock();
-		long __stdcall GetDesc(D3DVERTEXBUFFER_DESC *description);
+		long __stdcall Lock(unsigned int offset, unsigned int size, unsigned char **data, unsigned long flags) override;
+		long __stdcall Unlock() override;
+		long __stdcall GetDesc(D3DVERTEXBUFFER_DESC *description) override;
 
 		// Internal methods
 		int getLength() const;

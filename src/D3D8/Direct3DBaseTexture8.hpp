@@ -31,27 +31,27 @@ namespace D3D8
 	public:
 		Direct3DBaseTexture8(Direct3DDevice8 *device, D3DRESOURCETYPE type, unsigned long levels, unsigned long usage);
 
-		virtual ~Direct3DBaseTexture8();
+		~Direct3DBaseTexture8() override;
 
 		// IUnknown methods
-		long __stdcall QueryInterface(const IID &iid, void **object);
-		unsigned long __stdcall AddRef();
-		unsigned long __stdcall Release();
+		long __stdcall QueryInterface(const IID &iid, void **object) override;
+		unsigned long __stdcall AddRef() override;
+		unsigned long __stdcall Release() override;
 
 		// IDirect3DResource8 methods
-		long __stdcall FreePrivateData(const GUID &guid);
-		long __stdcall GetPrivateData(const GUID &guid, void *data, unsigned long *size);
-		void __stdcall PreLoad();
-		long __stdcall SetPrivateData(const GUID &guid, const void *data, unsigned long size, unsigned long flags);
-		long __stdcall GetDevice(IDirect3DDevice8 **device);
-		unsigned long __stdcall SetPriority(unsigned long newPriority);
-		unsigned long __stdcall GetPriority();
-		D3DRESOURCETYPE __stdcall GetType();
+		long __stdcall FreePrivateData(const GUID &guid) override;
+		long __stdcall GetPrivateData(const GUID &guid, void *data, unsigned long *size) override;
+		void __stdcall PreLoad() override;
+		long __stdcall SetPrivateData(const GUID &guid, const void *data, unsigned long size, unsigned long flags) override;
+		long __stdcall GetDevice(IDirect3DDevice8 **device) override;
+		unsigned long __stdcall SetPriority(unsigned long newPriority) override;
+		unsigned long __stdcall GetPriority() override;
+		D3DRESOURCETYPE __stdcall GetType() override;
 
 		// IDirect3DBaseTexture8 methods
-		unsigned long __stdcall GetLevelCount();
-		unsigned long __stdcall GetLOD();
-		long __stdcall SetLOD(long newLOD);
+		unsigned long __stdcall GetLevelCount() override;
+		unsigned long __stdcall GetLOD() override;
+		unsigned long __stdcall SetLOD(unsigned long newLOD) override;
 
 		// Intenal methods
 		sw::Resource *getResource() const;
