@@ -91,10 +91,11 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>GL_GLEXT_PROTOTYPES;STANDALONE;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)third_party\googletest\googletest\include\;$(SolutionDir)third_party\googletest\googletest\;SubmoduleCheck;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <ForcedIncludeFiles>gtest/gtest.h</ForcedIncludeFiles>
+      <AdditionalIncludeDirectories>$(SolutionDir)include\;$(SolutionDir)third_party\googletest\googletest\include\;$(SolutionDir)third_party\googletest\googletest\;$(SolutionDir)third_party\googletest\googlemock\include\;SubmoduleCheck;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ForcedIncludeFiles>
+      </ForcedIncludeFiles>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -107,10 +108,11 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>GL_GLEXT_PROTOTYPES;STANDALONE;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)third_party\googletest\googletest\include\;$(SolutionDir)third_party\googletest\googletest\;SubmoduleCheck;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <ForcedIncludeFiles>gtest/gtest.h</ForcedIncludeFiles>
+      <AdditionalIncludeDirectories>$(SolutionDir)include\;$(SolutionDir)third_party\googletest\googletest\include\;$(SolutionDir)third_party\googletest\googletest\;$(SolutionDir)third_party\googletest\googlemock\include\;SubmoduleCheck;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ForcedIncludeFiles>
+      </ForcedIncludeFiles>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -125,10 +127,11 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>GL_GLEXT_PROTOTYPES;STANDALONE;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)third_party\googletest\googletest\include\;$(SolutionDir)third_party\googletest\googletest\;SubmoduleCheck;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <ForcedIncludeFiles>gtest/gtest.h</ForcedIncludeFiles>
+      <AdditionalIncludeDirectories>$(SolutionDir)include\;$(SolutionDir)third_party\googletest\googletest\include\;$(SolutionDir)third_party\googletest\googletest\;$(SolutionDir)third_party\googletest\googlemock\include\;SubmoduleCheck;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ForcedIncludeFiles>
+      </ForcedIncludeFiles>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -145,10 +148,11 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>GL_GLEXT_PROTOTYPES;STANDALONE;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)third_party\googletest\googletest\include\;$(SolutionDir)third_party\googletest\googletest\;SubmoduleCheck;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <ForcedIncludeFiles>gtest/gtest.h</ForcedIncludeFiles>
+      <AdditionalIncludeDirectories>$(SolutionDir)include\;$(SolutionDir)third_party\googletest\googletest\include\;$(SolutionDir)third_party\googletest\googletest\;$(SolutionDir)third_party\googletest\googlemock\include\;SubmoduleCheck;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ForcedIncludeFiles>
+      </ForcedIncludeFiles>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -161,6 +165,14 @@
     <ClCompile Include="..\..\third_party\googletest\googletest\src\gtest-all.cc" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="unittests.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\OpenGL\libEGL\libEGL.vcxproj">
+      <Project>{e746fca9-64c3-433e-85e8-9a5a67ab7ed6}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\src\OpenGL\libGLESv2\libGLESv2.vcxproj">
+      <Project>{b5871a7a-968c-42e3-a33b-981e6f448e78}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
