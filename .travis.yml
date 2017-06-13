@@ -1,0 +1,15 @@
+language: cpp
+
+os: linux
+dist: trusty
+sudo: false
+
+compiler:
+  - clang
+  - gcc
+
+script:
+  - $CXX --version
+  - mkdir build
+  - cd build
+  - cmake .. && make
