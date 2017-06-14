@@ -8,8 +8,12 @@ compiler:
   - clang
   - gcc
 
+env:
+  - REACTOR_BACKEND=LLVM
+  - REACTOR_BACKEND=Subzero
+
 script:
   - $CXX --version
-  - mkdir build
-  - cd build
-  - cmake .. && make
+  - mkdir build && cd build
+  - cmake -DREACTOR_BACKEND=$REACTOR_BACKEND ..
+  - make
