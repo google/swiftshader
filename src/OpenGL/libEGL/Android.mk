@@ -19,7 +19,7 @@ endif
 COMMON_SRC_FILES := \
 	Config.cpp \
 	Display.cpp \
-	EGLSurface.cpp \
+	Surface.cpp \
 	libEGL.cpp \
 	main.cpp
 

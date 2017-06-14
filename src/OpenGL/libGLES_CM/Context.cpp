@@ -28,7 +28,7 @@
 #include "VertexDataManager.h"
 #include "IndexDataManager.h"
 #include "libEGL/Display.h"
-#include "libEGL/EGLSurface.h"
+#include "common/Surface.hpp"
 #include "Common/Half.hpp"
 
 #include <EGL/eglext.h>
@@ -281,7 +281,7 @@ Context::~Context()
 	delete device;
 }
 
-void Context::makeCurrent(egl::Surface *surface)
+void Context::makeCurrent(gl::Surface *surface)
 {
 	if(!mHasBeenCurrent)
 	{
@@ -3095,7 +3095,7 @@ void Context::setVertexAttrib(GLuint index, GLfloat x, GLfloat y, GLfloat z, GLf
 	mVertexDataManager->dirtyCurrentValue(index);
 }
 
-void Context::bindTexImage(egl::Surface *surface)
+void Context::bindTexImage(gl::Surface *surface)
 {
 	es1::Texture2D *textureObject = getTexture2D();
 

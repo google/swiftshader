@@ -12,15 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Surface.h: Defines the egl::Surface class, representing a drawing surface
+// Surface.hpp: Defines the egl::Surface class, representing a rendering surface
 // such as the client area of a window, including any back buffers.
 // Implements EGLSurface and related functionality. [EGL 1.4] section 2.2 page 3.
 
-#ifndef INCLUDE_SURFACE_H_
-#define INCLUDE_SURFACE_H_
+#ifndef INCLUDE_EGL_SURFACE_H_
+#define INCLUDE_EGL_SURFACE_H_
+
+#include "common/Object.hpp"
+#include "common/Surface.hpp"
 
 #include "Main/FrameBuffer.hpp"
-#include "common/Object.hpp"
 
 #include <EGL/egl.h>
 
@@ -28,27 +30,25 @@ namespace egl
 {
 class Display;
 class Config;
-class Texture;
-class Image;
 
-class [[clang::lto_visibility_public]] Surface : public gl::Object
+class Surface : public gl::Surface, public gl::Object
 {
 public:
 	virtual bool initialize();
 	virtual void swap() = 0;
 
-	virtual egl::Image *getRenderTarget();
-	virtual egl::Image *getDepthStencil();
+	egl::Image *getRenderTarget() override;
+	egl::Image *getDepthStencil() override;
 
 	void setSwapBehavior(EGLenum swapBehavior);
 	void setSwapInterval(EGLint interval);
 
 	virtual EGLint getConfigID() const;
 	virtual EGLenum getSurfaceType() const;
-	virtual sw::Format getInternalFormat() const;
+	sw::Format getInternalFormat() const override;
 
-	virtual EGLint getWidth() const;
-	virtual EGLint getHeight() const;
+	EGLint getWidth() const override;
+	EGLint getHeight() const override;
 	virtual EGLint getPixelAspectRatio() const;
 	virtual EGLenum getRenderBuffer() const;
 	virtual EGLenum getSwapBehavior() const;
@@ -57,7 +57,7 @@ public:
 	virtual EGLBoolean getLargestPBuffer() const;
 	virtual EGLNativeWindowType getWindowHandle() const = 0;
 
-	virtual void setBoundTexture(egl::Texture *texture);
+	void setBoundTexture(egl::Texture *texture) override;
 	virtual egl::Texture *getBoundTexture() const;
 
 	virtual bool isWindowSurface() const { return false; }
@@ -66,7 +66,7 @@ public:
 protected:
 	Surface(const Display *display, const Config *config);
 
-	virtual ~Surface();
+	~Surface() override;
 
 	virtual void deleteResources();
 
@@ -134,4 +134,4 @@ private:
 };
 }
 
-#endif   // INCLUDE_SURFACE_H_
+#endif   // INCLUDE_EGL_SURFACE_H_

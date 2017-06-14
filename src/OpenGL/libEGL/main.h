@@ -28,6 +28,8 @@ namespace egl
 	class Display;
 	class Context;
 	class Surface;
+	class Config;
+	class Image;
 
 	struct Current
 	{
@@ -76,12 +78,6 @@ namespace egl
 
 		return returnValue;
 	}
-
-	class Config;
-	class Surface;
-	class Display;
-	class Context;
-	class Image;
 }
 
 extern LibGLES_CM libGLES_CM;

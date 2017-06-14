@@ -163,6 +163,9 @@
     <ClInclude Include="..\common\Image.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\common\Surface.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="libGLESv2.rc" />

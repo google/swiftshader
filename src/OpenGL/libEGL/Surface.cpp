@@ -16,7 +16,7 @@
 // such as the client area of a window, including any back buffers.
 // Implements EGLSurface and related functionality. [EGL 1.4] section 2.2 page 3.
 
-#include "EGLSurface.h"
+#include "Surface.hpp"
 
 #include "main.h"
 #include "Display.h"
@@ -36,9 +36,19 @@
 
 #include <algorithm>
 
+namespace gl
+{
+Surface::Surface()
+{
+}
+
+Surface::~Surface()
+{
+}
+}
+
 namespace egl
 {
-
 Surface::Surface(const Display *display, const Config *config) : display(display), config(config)
 {
 	backBuffer = nullptr;

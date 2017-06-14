@@ -37,7 +37,6 @@
 namespace egl
 {
 class Display;
-class Surface;
 class Config;
 }
 
@@ -431,7 +430,7 @@ class [[clang::lto_visibility_public]] Context : public egl::Context
 public:
 	Context(egl::Display *display, const Context *shareContext, EGLint clientVersion, const egl::Config *config);
 
-	void makeCurrent(egl::Surface *surface) override;
+	void makeCurrent(gl::Surface *surface) override;
 	EGLint getClientVersion() const override;
 	EGLint getConfigID() const override;
 
@@ -691,7 +690,7 @@ public:
 	                     GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1,
 	                     GLbitfield mask, bool filter, bool allowPartialDepthStencilBlit);
 
-	void bindTexImage(egl::Surface *surface) override;
+	void bindTexImage(gl::Surface *surface) override;
 	EGLenum validateSharedImage(EGLenum target, GLuint name, GLuint textureLevel) override;
 	egl::Image *createSharedImage(EGLenum target, GLuint name, GLuint textureLevel) override;
 	egl::Image *getSharedImage(GLeglImageOES image);
@@ -701,7 +700,7 @@ public:
 	const GLubyte *getExtensions(GLuint index, GLuint *numExt = nullptr) const;
 
 private:
-	virtual ~Context();
+	~Context() override;
 
 	void applyScissor(int width, int height);
 	bool applyRenderTarget();

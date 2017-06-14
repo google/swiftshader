@@ -19,7 +19,7 @@
 #include "libGLESv2.hpp"
 #include "Framebuffer.h"
 #include "libEGL/main.h"
-#include "libEGL/EGLSurface.h"
+#include "common/Surface.hpp"
 #include "Common/Thread.hpp"
 #include "Common/SharedLibrary.hpp"
 #include "common/debug.h"

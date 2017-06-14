@@ -319,13 +319,14 @@ copy "$(OutDir)libEGL.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\trans
     <ClCompile Include="Display.cpp" />
     <ClCompile Include="libEGL.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="EGLSurface.cpp" />
+    <ClCompile Include="Surface.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\common\debug.h" />
     <ClInclude Include="..\common\Image.hpp" />
     <ClInclude Include="..\common\NameSpace.hpp" />
     <ClInclude Include="..\common\Object.hpp" />
+    <ClInclude Include="..\common\Surface.hpp" />
     <ClInclude Include="..\include\EGL\egl.h" />
     <ClInclude Include="..\include\EGL\eglext.h" />
     <ClInclude Include="..\include\EGL\eglplatform.h" />
@@ -335,7 +336,7 @@ copy "$(OutDir)libEGL.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\trans
     <ClInclude Include="libEGL.hpp" />
     <ClInclude Include="main.h" />
     <ClInclude Include="resource.h" />
-    <ClInclude Include="EGLSurface.h" />
+    <ClInclude Include="Surface.hpp" />
     <ClInclude Include="Sync.hpp" />
     <ClInclude Include="Texture.hpp" />
   </ItemGroup>

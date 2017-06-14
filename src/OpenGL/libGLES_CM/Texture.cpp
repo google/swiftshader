@@ -23,7 +23,7 @@
 #include "Framebuffer.h"
 #include "Device.hpp"
 #include "libEGL/Display.h"
-#include "libEGL/EGLSurface.h"
+#include "common/Surface.hpp"
 #include "common/debug.h"
 
 #include <algorithm>
@@ -474,7 +474,7 @@ void Texture2D::setImage(GLint level, GLsizei width, GLsizei height, GLenum form
 	Texture::setImage(format, type, unpackAlignment, pixels, image[level]);
 }
 
-void Texture2D::bindTexImage(egl::Surface *surface)
+void Texture2D::bindTexImage(gl::Surface *surface)
 {
 	GLenum format;
 

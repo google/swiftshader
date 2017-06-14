@@ -12,10 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Surface.cpp: Implements the egl::Surface class, representing a drawing surface
-// such as the client area of a window, including any back buffers.
-// Implements EGLSurface and related functionality. [EGL 1.4] section 2.2 page 3.
-
 #include "FrameBufferX11.hpp"
 
 #include "libX11.hpp"

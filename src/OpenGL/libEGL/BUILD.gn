@@ -56,7 +56,7 @@ shared_library("swiftshader_libEGL") {
     "../common/Object.cpp",
     "Config.cpp",
     "Display.cpp",
-    "EGLSurface.cpp",
+    "Surface.cpp",
     "libEGL.cpp",
     "libEGL.def",
     "libEGL.rc",

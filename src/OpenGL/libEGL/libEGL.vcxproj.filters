@@ -29,7 +29,7 @@
     <ClCompile Include="..\common\Object.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="EGLSurface.cpp">
+    <ClCompile Include="Surface.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -79,7 +79,10 @@
     <ClInclude Include="..\common\NameSpace.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="EGLSurface.h">
+    <ClInclude Include="..\common\Surface.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Surface.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
