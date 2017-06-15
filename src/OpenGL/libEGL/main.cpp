@@ -51,7 +51,6 @@ void attachThread()
 
 		current->error = EGL_SUCCESS;
 		current->API = EGL_OPENGL_ES_API;
-		current->display = EGL_NO_DISPLAY;
 		current->context = nullptr;
 		current->drawSurface = nullptr;
 		current->readSurface = nullptr;
@@ -209,20 +208,6 @@ EGLenum getCurrentAPI()
 	Current *current = getCurrent();
 
 	return current->API;
-}
-
-void setCurrentDisplay(EGLDisplay dpy)
-{
-	Current *current = getCurrent();
-
-	current->display = dpy;
-}
-
-EGLDisplay getCurrentDisplay()
-{
-	Current *current = getCurrent();
-
-	return current->display;
 }
 
 void setCurrentContext(egl::Context *ctx)

@@ -810,7 +810,6 @@ EGLBoolean MakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLCont
 		UNIMPLEMENTED();   // FIXME
 	}
 
-	egl::setCurrentDisplay(dpy);
 	egl::setCurrentDrawSurface(drawSurface);
 	egl::setCurrentReadSurface(readSurface);
 	egl::setCurrentContext(context);
@@ -856,7 +855,14 @@ EGLDisplay GetCurrentDisplay(void)
 {
 	TRACE("()");
 
-	return success(egl::getCurrentDisplay());
+	egl::Context *context = egl::getCurrentContext();
+
+	if(!context)
+	{
+		return success(EGL_NO_DISPLAY);
+	}
+
+	return success(context->getDisplay());
 }
 
 EGLBoolean QueryContext(EGLDisplay dpy, EGLContext ctx, EGLint attribute, EGLint *value)

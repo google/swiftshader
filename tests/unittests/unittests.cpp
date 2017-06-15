@@ -39,11 +39,6 @@ protected:
 	}
 };
 
-TEST_F(SwiftShaderTest, CompilationOnly)
-{
-	// Empty test to trigger compilation of SwiftShader on build bots
-}
-
 TEST_F(SwiftShaderTest, Initalization)
 {
 	EXPECT_EQ(EGL_SUCCESS, eglGetError());
@@ -162,9 +157,9 @@ TEST_F(SwiftShaderTest, Initalization)
 	EXPECT_EQ(EGL_SUCCESS, eglGetError());
 	EXPECT_EQ((EGLBoolean)EGL_TRUE, success);
 
-//	currentDisplay = eglGetCurrentDisplay();
-//	EXPECT_EQ(EGL_SUCCESS, eglGetError());
-//	EXPECT_EQ(EGL_NO_DISPLAY, currentDisplay);
+	currentDisplay = eglGetCurrentDisplay();
+	EXPECT_EQ(EGL_SUCCESS, eglGetError());
+	EXPECT_EQ(EGL_NO_DISPLAY, currentDisplay);
 
 	currentDrawSurface = eglGetCurrentSurface(EGL_DRAW);
 	EXPECT_EQ(EGL_SUCCESS, eglGetError());

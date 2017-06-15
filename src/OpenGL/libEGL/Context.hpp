@@ -38,6 +38,8 @@ public:
 	virtual EGLint getConfigID() const = 0;
 	virtual void finish() = 0;
 
+	Display *getDisplay() const { return display; }
+
 protected:
 	Context(egl::Display *display) : display(display) {}
 	virtual ~Context() {};

@@ -35,7 +35,6 @@ namespace egl
 	{
 		EGLint error;
 		EGLenum API;
-		EGLDisplay display;
 		Context *context;
 		Surface *drawSurface;
 		Surface *readSurface;
@@ -48,9 +47,6 @@ namespace egl
 
 	void setCurrentAPI(EGLenum API);
 	EGLenum getCurrentAPI();
-
-	void setCurrentDisplay(EGLDisplay dpy);
-	EGLDisplay getCurrentDisplay();
 
 	void setCurrentContext(Context *ctx);
 	Context *getCurrentContext();
