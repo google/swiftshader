@@ -43,10 +43,8 @@ config("swiftshader_libEGL_private_config") {
 }
 
 shared_library("swiftshader_libEGL") {
-  if (!is_mac) {
-    output_name = "libEGL"
-    output_dir = "$root_out_dir/swiftshader"
-  }
+  output_name = "libEGL"
+  output_dir = "$root_out_dir/swiftshader"
 
   deps = [
     "//build/config:exe_and_shlib_deps",
@@ -74,13 +72,12 @@ shared_library("swiftshader_libEGL") {
       "Quartz.framework",
       "Cocoa.framework",
     ]
+    ldflags = [ "-Wl,-install_name,@loader_path/swiftshader/libEGL.dylib" ]
   } else if (is_win) {
     configs -= [ "//build/config/win:unicode" ]
     ldflags = [ "/DEF:" + rebase_path("libGLESv2.def", root_build_dir) ]
   } else if (is_linux) {
-    sources += [
-      "../../Main/libX11.cpp",
-    ]
+    sources += [ "../../Main/libX11.cpp" ]
     ldflags =
         [ "-Wl,--version-script=" + rebase_path("exports.map", root_build_dir) ]
   }

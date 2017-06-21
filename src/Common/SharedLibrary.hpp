@@ -59,7 +59,7 @@ void *loadLibrary(const char *(&names)[n], const char *mustContainSymbol = nullp
 		}
 	}
 
-	return 0;
+	return nullptr;
 }
 
 #if defined(_WIN32)
@@ -70,7 +70,7 @@ void *loadLibrary(const char *(&names)[n], const char *mustContainSymbol = nullp
 
 	inline void *getLibraryHandle(const char *path)
 	{
-		HMODULE module = 0;
+		HMODULE module = NULL;
 		GetModuleHandleEx(0, path, &module);
 		return (void*)module;
 	}
@@ -103,7 +103,7 @@ void *loadLibrary(const char *(&names)[n], const char *mustContainSymbol = nullp
 				return dlopen(path, RTLD_LAZY | RTLD_LOCAL);   // Increment reference count
 			}
 
-			return 0;
+			return nullptr;
 		#endif
 	}
 
