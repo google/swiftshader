@@ -42,8 +42,10 @@ test("swiftshader_unittests") {
       "/DELAYLOAD:libGLESv2.dll",
     ]
   } else if (is_mac) {
-    # On Mac OS the rpath is part of the dylib and a full file path instead of
-    # a directory, which is added to the executable at link time.
+    ldflags = [
+      "-rpath",
+      "@executable_path/swiftshader/",
+    ]
   } else {
     ldflags = [ "-Wl,-rpath=\$ORIGIN/swiftshader" ]
   }
