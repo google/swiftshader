@@ -121,6 +121,14 @@ else
 COMMON_CFLAGS += -D__STDC_INT64__
 endif
 
+# gralloc1 is introduced from N MR1
+ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 25 && echo NMR1),NMR1)
+COMMON_CFLAGS += -DHAVE_GRALLOC1
+COMMON_C_INCLUDES += \
+	system/core/libsync/include \
+	system/core/libsync
+endif
+
 # Common Subzero defines
 COMMON_CFLAGS += -DALLOW_DUMP=0 -DALLOW_TIMERS=0 -DALLOW_LLVM_CL=0 -DALLOW_LLVM_IR=0 -DALLOW_LLVM_IR_AS_INPUT=0 -DALLOW_MINIMAL_BUILD=0 -DALLOW_WASM=0 -DICE_THREAD_LOCAL_HACK=1
 

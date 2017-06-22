@@ -41,7 +41,6 @@ namespace sw
 	private:
 		ANativeWindow* nativeWindow;
 		ANativeWindowBuffer* buffer;
-		gralloc_module_t const* gralloc;
 	};
 }
 

@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "FrameBufferAndroid.hpp"
+#include "GrallocAndroid.hpp"
 
 #include <cutils/log.h>
 
@@ -47,12 +48,8 @@ namespace sw
 
 	FrameBufferAndroid::FrameBufferAndroid(ANativeWindow* window, int width, int height)
 		: FrameBuffer(width, height, false, false),
-		  nativeWindow(window), buffer(nullptr), gralloc(nullptr)
+		  nativeWindow(window), buffer(nullptr)
 	{
-		hw_module_t const* pModule;
-		hw_get_module(GRALLOC_HARDWARE_MODULE_ID, &pModule);
-		gralloc = reinterpret_cast<gralloc_module_t const*>(pModule);
-
 		nativeWindow->common.incRef(&nativeWindow->common);
 		native_window_set_usage(nativeWindow, GRALLOC_USAGE_SW_READ_OFTEN | GRALLOC_USAGE_SW_WRITE_OFTEN);
 	}
@@ -85,7 +82,7 @@ namespace sw
 			return nullptr;
 		}
 
-		if(gralloc->lock(gralloc, buffer->handle,
+		if(GrallocModule::getInstance()->lock(buffer->handle,
 		                 GRALLOC_USAGE_SW_READ_OFTEN | GRALLOC_USAGE_SW_WRITE_OFTEN,
 		                 0, 0, buffer->width, buffer->height, &locked) != 0)
 		{
@@ -127,7 +124,7 @@ namespace sw
 
 		locked = nullptr;
 
-		if(gralloc->unlock(gralloc, buffer->handle) != 0)
+		if(GrallocModule::getInstance()->unlock(buffer->handle) != 0)
 		{
 			ALOGE("%s: badness unlock failed", __FUNCTION__);
 		}

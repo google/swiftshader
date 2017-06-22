@@ -27,10 +27,21 @@ GrallocModule::GrallocModule()
 	const hw_module_t *module = nullptr;
 	hw_get_module(GRALLOC_HARDWARE_MODULE_ID, &module);
 
-	if(!module)
+	m_major_version = (module->module_api_version >> 8) & 0xff;
+	switch(m_major_version)
 	{
-		ALOGE("Failed to load standard gralloc");
+	case 0:
+		m_module = reinterpret_cast<const gralloc_module_t*>(module);
+		break;
+	case 1:
+#ifdef HAVE_GRALLOC1
+		gralloc1_open(module, &m_gralloc1_device);
+		m_gralloc1_lock = (GRALLOC1_PFN_LOCK) m_gralloc1_device->getFunction(m_gralloc1_device, GRALLOC1_FUNCTION_LOCK);
+		m_gralloc1_unlock = (GRALLOC1_PFN_UNLOCK)m_gralloc1_device->getFunction(m_gralloc1_device, GRALLOC1_FUNCTION_UNLOCK);
+		break;
+#endif
+	default:
+		ALOGE("unknown gralloc major version (%d)", m_major_version);
+		break;
 	}
-
-	m_module = reinterpret_cast<const gralloc_module_t*>(module);
 }

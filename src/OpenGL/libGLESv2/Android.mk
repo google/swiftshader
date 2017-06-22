@@ -64,6 +64,12 @@ COMMON_SHARED_LIBRARIES := \
 	libcutils \
 	libhardware
 
+# gralloc1 is introduced from N MR1
+ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 25 && echo NMR1),NMR1)
+COMMON_CFLAGS += -DHAVE_GRALLOC1
+COMMON_SHARED_LIBRARIES += libsync
+endif
+
 # Marshmallow does not have stlport, but comes with libc++ by default
 ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 23 && echo PreMarshmallow),PreMarshmallow)
 COMMON_SHARED_LIBRARIES += libstlport
