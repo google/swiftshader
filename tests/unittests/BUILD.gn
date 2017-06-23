@@ -44,7 +44,7 @@ test("swiftshader_unittests") {
   } else if (is_mac) {
     ldflags = [
       "-rpath",
-      "@executable_path/swiftshader/",
+      "@executable_path/",
     ]
   } else {
     ldflags = [ "-Wl,-rpath=\$ORIGIN/swiftshader" ]
