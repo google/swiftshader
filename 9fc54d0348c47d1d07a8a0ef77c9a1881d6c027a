@@ -1,0 +1,667 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e3fa0195_3ae849f1",
+        "filename": "src/Vulkan/libVulkan/Context.h",
+        "patchSetId": 4
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-06-26T18:55:08Z",
+      "side": 1,
+      "message": "nit: Having macros for the size of arrays is fragile. There should be an ArraySize macro defined somewhere, or you can do\n\n    sizeof(global_ext) / sizeof(global_ext[0])\n\nSame for device_extensions.",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c9a349fd_aee1dd52",
+        "filename": "src/Vulkan/libVulkan/Context.h",
+        "patchSetId": 4
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-06-26T18:55:08Z",
+      "side": 1,
+      "message": "If dEQP requires global extensions to run the tests, this should be the only one required.",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "58ed966e_3c55dd6e",
+        "filename": "src/Vulkan/libVulkan/Context.h",
+        "patchSetId": 4
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-06-26T18:55:08Z",
+      "side": 1,
+      "message": "If dEQP requires device extensions to run the tests, this should be the only one required along with the corresponding platform-specific extensions to specify the surface, like VK_KHR_win32_surface",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "81b26aa7_8ee99f81",
+        "filename": "src/Vulkan/libVulkan/Context.h",
+        "patchSetId": 4
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-06-26T18:55:08Z",
+      "side": 1,
+      "message": "nit: comment as to why this is 36 and not 64 like you could query with QueryPerformanceCounter or RDTSC",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "47e9db30_9419ba91",
+        "filename": "src/Vulkan/libVulkan/Context.h",
+        "patchSetId": 4
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-06-26T18:55:08Z",
+      "side": 1,
+      "message": "Comment that this cannot be 16, 16, 16 or something to help vectorization of code, because graphics or compute queues need to have it set to 1, 1, 1",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "382bad37_1c925413",
+        "filename": "src/Vulkan/libVulkan/Context.h",
+        "patchSetId": 4
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-06-26T18:55:08Z",
+      "side": 1,
+      "message": "nit: capn / sugoi do you require a void(*)() for untyped function pointers?",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2b83ddf7_58e029c3",
+        "filename": "src/Vulkan/libVulkan/Context.h",
+        "patchSetId": 4
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-06-26T18:55:08Z",
+      "side": 1,
+      "message": "vkDestroyBufferView is duplicated. Did you mean vkCreateImageView?",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5a5d2faf_c260ccb2",
+        "filename": "src/Vulkan/libVulkan/Context.h",
+        "patchSetId": 4
+      },
+      "lineNbr": 299,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-06-26T18:55:08Z",
+      "side": 1,
+      "message": "A bunch of entry-points aren\u0027t needed once the unnecessary extensions are removed.",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4fd5155d_69fa9568",
+        "filename": "src/Vulkan/libVulkan/Context.h",
+        "patchSetId": 4
+      },
+      "lineNbr": 311,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-06-26T18:55:08Z",
+      "side": 1,
+      "message": "The DEBUG_REPORT extension is not exposed even now, once the extensions are trimmed, can you take a look at the entry-point and make sure an extension entrypoint is added iff the extension is enabled?",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6075187f_44e8daef",
+        "filename": "src/Vulkan/libVulkan/Context.h",
+        "patchSetId": 4
+      },
+      "lineNbr": 322,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-06-26T18:55:08Z",
+      "side": 1,
+      "message": "nit: Swiftshader should have only one memory type: CPU RAM. As such it seems you could just use VkMemoryType object here.",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "43fe15d5_bbfea1d9",
+        "filename": "src/Vulkan/libVulkan/Context.h",
+        "patchSetId": 4
+      },
+      "lineNbr": 330,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-06-26T18:55:08Z",
+      "side": 1,
+      "message": "This is the same structure as VkMemoryHeap so you could use that.",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8496ac2a_0e247a08",
+        "filename": "src/Vulkan/libVulkan/Context.h",
+        "patchSetId": 4
+      },
+      "lineNbr": 338,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-06-26T18:55:08Z",
+      "side": 1,
+      "message": "nit: Physical devices are only used to query the system, and shouldn\u0027t need a pointer back to the instance. Nevermind, it is used for vkCreateDevice, please comment about this.\n\nAlso in C++ you don\u0027t need to write \"struct MyStruct*\" but just \"MyStruct*\" because the typedef for the struct is implicit.",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "69c6243f_6f1af792",
+        "filename": "src/Vulkan/libVulkan/Context.h",
+        "patchSetId": 4
+      },
+      "lineNbr": 341,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-06-26T18:55:08Z",
+      "side": 1,
+      "message": "[1] Make this a VkPhysicalDeviceMemoryProperties directly, so that it can be directly copied over in vkGetPhysicalDeviceMemoryProperties",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0b8456a4_e4f45ed8",
+        "filename": "src/Vulkan/libVulkan/Device.h",
+        "patchSetId": 4
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-06-26T18:55:08Z",
+      "side": 1,
+      "message": "nit: stray define.",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4bb82f30_ffd9c45c",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-06-26T18:55:08Z",
+      "side": 1,
+      "message": "The function could also be stored as PFN_vkVoidFunction in the entrypoint map.",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5bb46314_6bc043ab",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-06-26T18:55:08Z",
+      "side": 1,
+      "message": "nit: add a TODO to check more precisely for the version, we don\u0027t support Vulkan 1.1 for example.",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "809976e1_f33b4416",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-06-26T18:55:08Z",
+      "side": 1,
+      "message": "nit: per the spec, this should also check for layers. Since we don\u0027t support any layers we could return VK_ERROR_LAYER_NOT_PRESENT as soon as pCreateInfo-\u003eenabledLayerCount !\u003d 0",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "05eee8b7_0d89c2a8",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-06-26T18:55:08Z",
+      "side": 1,
+      "message": "nit: the instance should be created with pAllocator if it is specified.",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "96c7d284_7f9ae753",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-06-26T18:55:08Z",
+      "side": 1,
+      "message": "Since the physical device only depends on the instance, it could be initialized here.",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "39e79e81_80f2f335",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-06-26T18:55:08Z",
+      "side": 1,
+      "message": "The spec doesn\u0027t mention a special-case for null instances so you could ASSERT(myInstance !\u003d nullptr) isntead.",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "493cc5e0_7500b4aa",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-06-26T18:55:08Z",
+      "side": 1,
+      "message": "myInstance-\u003ephysicalDeviceNum is always one (and will probably always be). This can lead to code simplification in this function. Also I\u0027m not sure of OutArray simplifies code here. If you want to go the OutArray route, I suggest doing a design discussion with sugoi or capn, and use it consistently through all of the entrypoints. (including EnumerateInstanceProperties)",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "39b7c1c5_b6886388",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 168,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-06-26T18:55:08Z",
+      "side": 1,
+      "message": "Same here: there is only one queue family and while there might be value in having an async blit queue for Swiftshader, that will come much much later. So the code could be simplified.",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ea379ee5_2387f27e",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-06-26T18:55:08Z",
+      "side": 1,
+      "message": "physicalDevice is unused.",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "117d42dc_737065f8",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 185,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-06-26T18:55:08Z",
+      "side": 1,
+      "message": "Please add the member name as a comment on each of these.\n\nAlso all of these are optional, leave them to false unless they are required by dEQP (they shouldn\u0027t). We\u0027ll toggle them to true in the patch that implements the feature and passes dEQP.",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "92b19fa4_aa4f567b",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 227,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-06-26T18:55:08Z",
+      "side": 1,
+      "message": "From the spec, sampleCounts must be at least (VK_SAMPLE_COUNT_1_BIT | VK_SAMPLE_COUNT_4_BIT)",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "efe31a48_8e8371f3",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 229,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-06-26T18:55:08Z",
+      "side": 1,
+      "message": "Same thing about the comment with the member name.",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "63c48feb_235443e6",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 230,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-06-26T18:55:08Z",
+      "side": 1,
+      "message": "Where did you get these values? I\u0027ll let sugoi or capn comment on the limits for Swiftshader.",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "106dd4ab_29309cb7",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 339,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-06-26T18:55:08Z",
+      "side": 1,
+      "message": "Same thing about member names in comments.",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "174cd7e7_f86e56a5",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 350,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-06-26T18:55:08Z",
+      "side": 1,
+      "message": "deviceName is already set to \"Swiftshader Device\" (also I think Swiftshader doesn\u0027t have a second uppercase name, otherwise the abbreviation would become SS, which isn\u0027t great for historical reasons).\n\nAlso strcpy isn\u0027t safe and strncpy should always be used instead.",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6ec79204_757c87cc",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 398,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-06-26T18:55:08Z",
+      "side": 1,
+      "message": "Check for layers too, like in vkCreateInstance.",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0c93cc28_8555650d",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 399,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-06-26T18:55:08Z",
+      "side": 1,
+      "message": "Please do a design discussion with sugoi and capn about how the Vulkan callbacks will work inside Swiftshader. Also here you use 8 compared to ALIGNMENT in other place. You could instead have a simple template and use alignof(T).",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ca91ffdf_37b16879",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 403,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-06-26T18:55:08Z",
+      "side": 1,
+      "message": "Since allocation failure is handled here, please handle it in other places where there are allocations (vkCreateInstance)",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bc8e0e97_bdb906b7",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 417,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-06-26T18:55:08Z",
+      "side": 1,
+      "message": "We don\u0027t need to support this because we set all the optional features to 0. The robustBufferAccess member can also be removed.",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9e4d847b_ec4d9171",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 418,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-06-26T18:55:08Z",
+      "side": 1,
+      "message": "nit: add a TODO to check for features too and return VK_ERROR_FEATURE_NOT_PRESENT if needed.",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fc422b96_87386db1",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 427,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-06-26T18:55:08Z",
+      "side": 1,
+      "message": "This information already exists in the physical device, so the function can just become:\n\n    *pMemoryProperties \u003d physicalDevice-\u003ememoryProperties;",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "10e49bb6_90c11476",
+        "filename": "src/Vulkan/libVulkan/libVulkan.def",
+        "patchSetId": 4
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-06-26T18:55:08Z",
+      "side": 1,
+      "message": "Same here and in all other places that have a list of all the supported vulkan entrypoints: trim them based on the reduced extensions supported.",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "25c4d891_36cc36f6",
+        "filename": "src/Vulkan/libVulkan/libVulkan.hpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-06-26T18:55:08Z",
+      "side": 1,
+      "message": "What is this class used for? I see it has members assigned in main.cpp but I don\u0027t see them read anywhere.\n\nRight now there are 3 mechanisms to get the entrypoints:\n\n 1 - This class (not sure how it can be queried)\n 2 - The symbols exposed via the libVulkan.def which you can get with Windows\u0027s GetProcAddress\n 3 - The vkGetInstance/GlobalEntrypoint entrypoints.\n\n2) and 3) are the only ones required by the spec so maybe LibVulkanExports isn\u0027t needed?",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8a91903b_5c39c940",
+        "filename": "src/Vulkan/libVulkan/libVulkan.hpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-06-26T18:55:08Z",
+      "side": 1,
+      "message": "Instead of having the whole prototype here, you could use the PFN_* types defined in vulkan.h as such:\n\n    PFN_vkCreateInstance vkCreateInstance;",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "89da4656_ea0004ca",
+        "filename": "src/Vulkan/libVulkan/libVulkan.hpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 205,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-06-26T18:55:08Z",
+      "side": 1,
+      "message": "What is this used for?",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
