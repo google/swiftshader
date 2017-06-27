@@ -20,7 +20,7 @@ The Renderer layer generates specialized processing routines for draw calls and 
 
 Reactor is an embedded language for C++ to dynamically generate code in a WYSIWYG fashion. It allows to specialize the processing routines for the state and shaders used by each draw call. Its syntax closely resembles C and shading languages, to make the code generation easily readable.
 
-The JIT layer is a run-time compiler, such as [LLVM](http://llvm.org/)'s JIT. Reactor records its operations in an in-memory intermediate form which can be materialized by the JIT into a function which can be called directly.
+The JIT layer is a run-time compiler, such as [LLVM](http://llvm.org/)'s JIT, or [Subzero](Subzero.md). Reactor records its operations in an in-memory intermediate form which can be materialized by the JIT into a function which can be called directly.
 
 Design
 ------
