@@ -495,6 +495,24 @@
     },
     {
       "key": {
+        "uuid": "fa3b920c_e92877ed",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 350,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-06-27T14:48:23Z",
+      "side": 1,
+      "message": "Actually it\u0027s \"SwiftShader\". I tried to inform TransGaming\u0027s marketing people about SS, but didn\u0027t see a problem. :-/ Note that the namespace I use is \"sw\".",
+      "parentUuid": "174cd7e7_f86e56a5",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "6ec79204_757c87cc",
         "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
         "patchSetId": 4
