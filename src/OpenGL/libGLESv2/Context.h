@@ -664,6 +664,9 @@ public:
 
 	bool hasZeroDivisor() const;
 
+	void drawArrays(GLenum mode, GLint first, GLsizei count, GLsizei instanceCount = 1);
+	void drawElements(GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const void *indices, GLsizei instanceCount = 1);
+	void blit(sw::Surface *source, const sw::SliceRect &sRect, sw::Surface *dest, const sw::SliceRect &dRect) override;
 	void readPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLsizei *bufSize, void* pixels);
 	void clear(GLbitfield mask);
 	void clearColorBuffer(GLint drawbuffer, const GLint *value);
@@ -671,8 +674,6 @@ public:
 	void clearColorBuffer(GLint drawbuffer, const GLfloat *value);
 	void clearDepthBuffer(const GLfloat value);
 	void clearStencilBuffer(const GLint value);
-	void drawArrays(GLenum mode, GLint first, GLsizei count, GLsizei instanceCount = 1);
-	void drawElements(GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const void *indices, GLsizei instanceCount = 1);
 	void finish() override;
 	void flush();
 

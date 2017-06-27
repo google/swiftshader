@@ -490,11 +490,12 @@ public:
 	bool isQueryParameterBool(GLenum pname);
 	bool isQueryParameterPointer(GLenum pname);
 
-	void readPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLsizei *bufSize, void* pixels);
-	void clear(GLbitfield mask);
 	void drawArrays(GLenum mode, GLint first, GLsizei count);
 	void drawElements(GLenum mode, GLsizei count, GLenum type, const void *indices);
 	void drawTexture(GLfloat x, GLfloat y, GLfloat z, GLfloat width, GLfloat height);
+	void blit(sw::Surface *source, const sw::SliceRect &sRect, sw::Surface *dest, const sw::SliceRect &dRect) override;
+	void readPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLsizei *bufSize, void* pixels);
+	void clear(GLbitfield mask);
 	void flush();
 
 	void recordInvalidEnum();

@@ -14,7 +14,7 @@
 
 #include "Image.hpp"
 
-#include "Renderer/Blitter.hpp"
+#include "../libEGL/Context.hpp"
 #include "../libEGL/Texture.hpp"
 #include "../common/debug.h"
 #include "Common/Math.hpp"
@@ -1287,17 +1287,18 @@ namespace egl
 		return parentTexture == parent;
 	}
 
-	void Image::loadImageData(GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const UnpackInfo& unpackInfo, const void *input)
+	void Image::loadImageData(Context *context, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const UnpackInfo& unpackInfo, const void *input)
 	{
-		GLsizei inputWidth = (unpackInfo.rowLength == 0) ? width : unpackInfo.rowLength;
-		GLsizei inputPitch = ComputePitch(inputWidth, format, type, unpackInfo.alignment);
-		GLsizei inputHeight = (unpackInfo.imageHeight == 0) ? height : unpackInfo.imageHeight;
-		input = ((char*)input) + ComputePackingOffset(format, type, inputWidth, inputHeight, unpackInfo.alignment, unpackInfo.skipImages, unpackInfo.skipRows, unpackInfo.skipPixels);
 		sw::Format selectedInternalFormat = SelectInternalFormat(format, type);
 		if(selectedInternalFormat == sw::FORMAT_NULL)
 		{
 			return;
 		}
+
+		GLsizei inputWidth = (unpackInfo.rowLength == 0) ? width : unpackInfo.rowLength;
+		GLsizei inputPitch = ComputePitch(inputWidth, format, type, unpackInfo.alignment);
+		GLsizei inputHeight = (unpackInfo.imageHeight == 0) ? height : unpackInfo.imageHeight;
+		input = ((char*)input) + ComputePackingOffset(format, type, inputWidth, inputHeight, unpackInfo.alignment, unpackInfo.skipImages, unpackInfo.skipRows, unpackInfo.skipPixels);
 
 		if(selectedInternalFormat == internalFormat)
 		{
@@ -1686,7 +1687,7 @@ namespace egl
 			sw::Surface *source = sw::Surface::create(width, height, depth, ConvertFormatType(format, type), const_cast<void*>(input), inputPitch, inputPitch * inputHeight);
 			sw::Rect sourceRect(0, 0, width, height);
 			sw::Rect destRect(xoffset, yoffset, xoffset + width, yoffset + height);
-			sw::blitter.blit(source, sourceRect, this, destRect, false);
+			context->blit(source, sourceRect, this, destRect);
 			delete source;
 		}
 	}

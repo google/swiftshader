@@ -20,8 +20,6 @@
 
 namespace sw
 {
-	Blitter blitter;
-
 	Blitter::Blitter()
 	{
 		blitCache = new RoutineCache<BlitState>(1024);

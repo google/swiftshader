@@ -3510,6 +3510,11 @@ void Context::drawElements(GLenum mode, GLuint start, GLuint end, GLsizei count,
 	}
 }
 
+void Context::blit(sw::Surface *source, const sw::SliceRect &sRect, sw::Surface *dest, const sw::SliceRect &dRect)
+{
+	device->blit(source, sRect, dest, dRect, false);
+}
+
 void Context::finish()
 {
 	device->finish();

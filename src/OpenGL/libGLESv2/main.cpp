@@ -93,14 +93,14 @@ es2::Context *getContext()
 		return static_cast<es2::Context*>(context);
 	}
 
-	return 0;
+	return nullptr;
 }
 
 Device *getDevice()
 {
 	Context *context = getContext();
 
-	return context ? context->getDevice() : 0;
+	return context ? context->getDevice() : nullptr;
 }
 
 // Records an error code

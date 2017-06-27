@@ -114,6 +114,7 @@ namespace sw
 
 		setRenderTarget(0, 0);
 		clipper = new Clipper(symmetricNormalizedDepth);
+		blitter = new Blitter;
 
 		updateViewMatrix = true;
 		updateBaseMatrix = true;
@@ -177,7 +178,10 @@ namespace sw
 		sync->destruct();
 
 		delete clipper;
-		clipper = 0;
+		clipper = nullptr;
+
+		delete blitter;
+		blitter = nullptr;
 
 		terminateThreads();
 		delete resumeApp;
@@ -200,21 +204,6 @@ namespace sw
 	void Renderer::operator delete(void * mem)
 	{
 		sw::deallocate(mem);
-	}
-
-	void Renderer::clear(void *pixel, Format format, Surface *dest, const SliceRect &dRect, unsigned int rgbaMask)
-	{
-		blitter.clear(pixel, format, dest, dRect, rgbaMask);
-	}
-
-	void Renderer::blit(Surface *source, const SliceRect &sRect, Surface *dest, const SliceRect &dRect, bool filter, bool isStencil)
-	{
-		blitter.blit(source, sRect, dest, dRect, filter, isStencil);
-	}
-
-	void Renderer::blit3D(Surface *source, Surface *dest)
-	{
-		blitter.blit3D(source, dest);
 	}
 
 	void Renderer::draw(DrawType drawType, unsigned int indexOffset, unsigned int count, bool update)
@@ -679,6 +668,21 @@ namespace sw
 				}
 			}
 		}
+	}
+
+	void Renderer::clear(void *pixel, Format format, Surface *dest, const SliceRect &dRect, unsigned int rgbaMask)
+	{
+		blitter->clear(pixel, format, dest, dRect, rgbaMask);
+	}
+
+	void Renderer::blit(Surface *source, const SliceRect &sRect, Surface *dest, const SliceRect &dRect, bool filter, bool isStencil)
+	{
+		blitter->blit(source, sRect, dest, dRect, filter, isStencil);
+	}
+
+	void Renderer::blit3D(Surface *source, Surface *dest)
+	{
+		blitter->blit3D(source, dest);
 	}
 
 	void Renderer::threadFunction(void *parameters)

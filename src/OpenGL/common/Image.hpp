@@ -40,6 +40,8 @@
 namespace egl
 {
 
+class Context;
+
 sw::Format ConvertFormatType(GLenum format, GLenum type);
 sw::Format SelectInternalFormat(GLenum format, GLenum type);
 GLsizei ComputePitch(GLsizei width, GLenum format, GLenum type, GLint alignment);
@@ -176,7 +178,7 @@ public:
 		GLint skipImages;
 	};
 
-	void loadImageData(GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const UnpackInfo& unpackInfo, const void *input);
+	void loadImageData(Context *context, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const UnpackInfo& unpackInfo, const void *input);
 	void loadCompressedData(GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLsizei imageSize, const void *pixels);
 
 	void release() override = 0;

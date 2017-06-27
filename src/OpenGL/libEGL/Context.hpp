@@ -16,6 +16,7 @@
 #define egl_Context_hpp
 
 #include "common/Object.hpp"
+#include "Renderer/Surface.hpp"
 
 #include <EGL/egl.h>
 #include <GLES/gl.h>
@@ -37,6 +38,7 @@ public:
 	virtual EGLint getClientVersion() const = 0;
 	virtual EGLint getConfigID() const = 0;
 	virtual void finish() = 0;
+	virtual void blit(sw::Surface *source, const sw::SliceRect &sRect, sw::Surface *dest, const sw::SliceRect &dRect) = 0;
 
 	Display *getDisplay() const { return display; }
 

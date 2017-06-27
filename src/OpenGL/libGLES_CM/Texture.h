@@ -99,8 +99,8 @@ public:
 protected:
 	~Texture() override;
 
-	void setImage(GLenum format, GLenum type, GLint unpackAlignment, const void *pixels, egl::Image *image);
-	void subImage(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint unpackAlignment, const void *pixels, egl::Image *image);
+	void setImage(egl::Context *context, GLenum format, GLenum type, GLint unpackAlignment, const void *pixels, egl::Image *image);
+	void subImage(egl::Context *context, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint unpackAlignment, const void *pixels, egl::Image *image);
 	void setCompressedImage(GLsizei imageSize, const void *pixels, egl::Image *image);
 	void subImageCompressed(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const void *pixels, egl::Image *image);
 
@@ -140,9 +140,9 @@ public:
 	sw::Format getInternalFormat(GLenum target, GLint level) const override;
 	int getLevelCount() const override;
 
-	void setImage(GLint level, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint unpackAlignment, const void *pixels);
+	void setImage(egl::Context *context, GLint level, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint unpackAlignment, const void *pixels);
 	void setCompressedImage(GLint level, GLenum format, GLsizei width, GLsizei height, GLsizei imageSize, const void *pixels);
-	void subImage(GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint unpackAlignment, const void *pixels);
+	void subImage(egl::Context *context, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint unpackAlignment, const void *pixels);
 	void subImageCompressed(GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const void *pixels);
 	void copyImage(GLint level, GLenum format, GLint x, GLint y, GLsizei width, GLsizei height, Framebuffer *source);
 	void copySubImage(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height, Framebuffer *source);

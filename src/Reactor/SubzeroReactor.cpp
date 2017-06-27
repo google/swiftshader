@@ -450,7 +450,7 @@ namespace sw
 			buffer.reserve(0x1000);
 		}
 
-		virtual ~ELFMemoryStreamer()
+		~ELFMemoryStreamer() override
 		{
 			#if defined(_WIN32)
 				if(buffer.size() != 0)
