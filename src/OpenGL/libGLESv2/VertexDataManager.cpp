@@ -153,7 +153,7 @@ GLenum VertexDataManager::prepareVertexData(GLint start, GLsizei count, Translat
 
 				Buffer *buffer = attrib.mBoundBuffer;
 
-				if(!buffer && attrib.mPointer == nullptr)
+				if((!buffer && attrib.mPointer == nullptr) || (buffer && !buffer->data()))
 				{
 					// This is an application error that would normally result in a crash, but we catch it and return an error
 					ERR("An enabled vertex array has no buffer and no pointer.");
