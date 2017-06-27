@@ -88,7 +88,7 @@ public:
 
 	virtual Renderbuffer *getRenderbuffer(GLenum target) = 0;
 	virtual egl::Image *getRenderTarget(GLenum target, unsigned int level) = 0;
-	virtual egl::Image *createSharedImage(GLenum target, unsigned int level);
+	egl::Image *createSharedImage(GLenum target, unsigned int level);
 	virtual bool isShared(GLenum target, unsigned int level) const = 0;
 
 	virtual void generateMipmaps() = 0;
@@ -97,7 +97,7 @@ public:
 	virtual void copySubImage(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height, Framebuffer *source) = 0;
 
 protected:
-	virtual ~Texture();
+	~Texture() override;
 
 	void setImage(GLenum format, GLenum type, GLint unpackAlignment, const void *pixels, egl::Image *image);
 	void subImage(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint unpackAlignment, const void *pixels, egl::Image *image);
@@ -131,14 +131,14 @@ public:
 	void releaseProxy(const Renderbuffer *proxy) override;
 	void sweep() override;
 
-	virtual GLenum getTarget() const;
+	GLenum getTarget() const override;
 
-	virtual GLsizei getWidth(GLenum target, GLint level) const;
-	virtual GLsizei getHeight(GLenum target, GLint level) const;
-	virtual GLenum getFormat(GLenum target, GLint level) const;
-	virtual GLenum getType(GLenum target, GLint level) const;
-	virtual sw::Format getInternalFormat(GLenum target, GLint level) const;
-	virtual int getLevelCount() const;
+	GLsizei getWidth(GLenum target, GLint level) const override;
+	GLsizei getHeight(GLenum target, GLint level) const override;
+	GLenum getFormat(GLenum target, GLint level) const override;
+	GLenum getType(GLenum target, GLint level) const override;
+	sw::Format getInternalFormat(GLenum target, GLint level) const override;
+	int getLevelCount() const override;
 
 	void setImage(GLint level, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint unpackAlignment, const void *pixels);
 	void setCompressedImage(GLint level, GLenum format, GLsizei width, GLsizei height, GLsizei imageSize, const void *pixels);
@@ -149,23 +149,23 @@ public:
 
 	void setSharedImage(egl::Image *image);
 
-	virtual bool isSamplerComplete() const;
-	virtual bool isCompressed(GLenum target, GLint level) const;
-	virtual bool isDepth(GLenum target, GLint level) const;
-	virtual void bindTexImage(gl::Surface *surface);
-	virtual void releaseTexImage();
+	bool isSamplerComplete() const override;
+	bool isCompressed(GLenum target, GLint level) const override;
+	bool isDepth(GLenum target, GLint level) const override;
+	void bindTexImage(gl::Surface *surface);
+	void releaseTexImage() override;
 
-	virtual void generateMipmaps();
-	virtual void autoGenerateMipmaps();
+	void generateMipmaps() override;
+	void autoGenerateMipmaps() override;
 
-	virtual Renderbuffer *getRenderbuffer(GLenum target);
-	virtual egl::Image *getRenderTarget(GLenum target, unsigned int level);
-	virtual bool isShared(GLenum target, unsigned int level) const;
+	Renderbuffer *getRenderbuffer(GLenum target) override;
+	egl::Image *getRenderTarget(GLenum target, unsigned int level) override;
+	bool isShared(GLenum target, unsigned int level) const override;
 
 	egl::Image *getImage(unsigned int level);
 
 protected:
-	virtual ~Texture2D();
+	~Texture2D() override;
 
 	bool isMipmapComplete() const;
 
@@ -187,10 +187,10 @@ class TextureExternal : public Texture2D
 public:
 	explicit TextureExternal(GLuint name);
 
-	virtual GLenum getTarget() const;
+	GLenum getTarget() const override;
 
 protected:
-	virtual ~TextureExternal();
+	~TextureExternal() override;
 };
 }
 

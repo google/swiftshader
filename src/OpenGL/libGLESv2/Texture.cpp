@@ -1611,48 +1611,9 @@ void Texture3D::setImage(GLint level, GLsizei width, GLsizei height, GLsizei dep
 	Texture::setImage(format, type, unpackInfo, pixels, image[level]);
 }
 
-void Texture3D::bindTexImage(gl::Surface *surface)
-{
-	GLenum format;
-
-	switch(surface->getInternalFormat())
-	{
-	case sw::FORMAT_A8R8G8B8:
-		format = GL_RGBA;
-		break;
-	case sw::FORMAT_X8R8G8B8:
-		format = GL_RGB;
-		break;
-	default:
-		UNIMPLEMENTED();
-		return;
-	}
-
-	for(int level = 0; level < IMPLEMENTATION_MAX_TEXTURE_LEVELS; level++)
-	{
-		if(image[level])
-		{
-			image[level]->release();
-			image[level] = nullptr;
-		}
-	}
-
-	image[0] = surface->getRenderTarget();
-
-	mSurface = surface;
-	mSurface->setBoundTexture(this);
-}
-
 void Texture3D::releaseTexImage()
 {
-	for(int level = 0; level < IMPLEMENTATION_MAX_TEXTURE_LEVELS; level++)
-	{
-		if(image[level])
-		{
-			image[level]->release();
-			image[level] = nullptr;
-		}
-	}
+	UNREACHABLE(0);   // 3D textures cannot have an EGL surface bound as an image
 }
 
 void Texture3D::setCompressedImage(GLint level, GLenum format, GLsizei width, GLsizei height, GLsizei depth, GLsizei imageSize, const void *pixels)
