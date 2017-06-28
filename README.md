@@ -1,14 +1,14 @@
-SwiftShader [![Build Status](https://travis-ci.org/google/swiftshader.svg?branch=master)](https://travis-ci.org/google/swiftshader) [![Build status](https://ci.appveyor.com/api/projects/status/yrmyvb34j22jg1uj?svg=true)](https://ci.appveyor.com/project/c0d1f1ed/swiftshader)
+# SwiftShader [![Build Status](https://travis-ci.org/google/swiftshader.svg?branch=master)](https://travis-ci.org/google/swiftshader) [![Build status](https://ci.appveyor.com/api/projects/status/yrmyvb34j22jg1uj?svg=true)](https://ci.appveyor.com/project/c0d1f1ed/swiftshader)
 
-==========
+-----------------------------------------------------------------------------------------------------------
 
 Introduction
------------------
+------------
 
 SwiftShader is a high-performance CPU-based implementation of the OpenGL ES and Direct3D 9 graphics APIs<sup>1</sup><sup>2</sup>. Its goal is to provide hardware independence for advanced 3D graphics.
 
 Usage
---------
+-----
 
 The SwiftShader libraries act as drop-in replacements for graphics drivers.
 
@@ -17,7 +17,7 @@ On Windows, most applications can be made to use SwiftShader's DLLs by placing t
 Prebuilt binaries can be found at: https://goo.gl/5MOcdb
 
 Contributing
------------------
+------------
 
 See [CONTRIBUTING.txt](CONTRIBUTING.txt) for important contributing requirements.
 
@@ -60,28 +60,28 @@ Documentation
 See [docs/Index.md](docs/Index.md).
 
 Contact
------------
+-------
 
 Public mailing list: [swiftshader@googlegroups.com](https://groups.google.com/forum/#!forum/swiftshader)
 
 Bug tracker: https://bugs.chromium.org/p/swiftshader
 
 License
-----------
+-------
 
 The SwiftShader project is licensed under the Apache License Version 2.0. You can find a copy of it in [LICENSE.txt](LICENSE.txt).
 
 Files in the third_party folder are subject to their respective license.
 
 Authors and Contributors
------------------------------------
+------------------------
 
 The legal authors for copyright purposes are listed in [AUTHORS.txt](AUTHORS.txt).
 
 [CONTRIBUTORS.txt](CONTRIBUTORS.txt) contains a list of names of individuals who have contributed to SwiftShader. If you're not on the list, but you've signed the [Google CLA](https://cla.developers.google.com/clas) and have contributed more than a formatting change, feel free to request to be added.
 
 Disclaimer
----------------
+----------
 
 1. Trademarks are the property of their respective owners.
 2. We do not claim official conformance with any graphics APIs at this moment.
