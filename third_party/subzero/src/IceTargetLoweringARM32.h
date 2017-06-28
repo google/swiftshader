@@ -910,6 +910,14 @@ protected:
   void _vorr(Variable *Dest, Variable *Src0, Variable *Src1) {
     Context.insert<InstARM32Vorr>(Dest, Src0, Src1);
   }
+  void _vqadd(Variable *Dest, Variable *Src0, Variable *Src1, bool Unsigned) {
+    Context.insert<InstARM32Vqadd>(Dest, Src0, Src1)
+        ->setSignType(Unsigned ? InstARM32::FS_Unsigned : InstARM32::FS_Signed);
+  }
+  void _vqsub(Variable *Dest, Variable *Src0, Variable *Src1, bool Unsigned) {
+    Context.insert<InstARM32Vqsub>(Dest, Src0, Src1)
+        ->setSignType(Unsigned ? InstARM32::FS_Unsigned : InstARM32::FS_Signed);
+  }
   InstARM32Vshl *_vshl(Variable *Dest, Variable *Src0, Variable *Src1) {
     return Context.insert<InstARM32Vshl>(Dest, Src0, Src1);
   }

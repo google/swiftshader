@@ -1037,6 +1037,56 @@ template <> void InstARM32Vsub::emitIAS(const Cfg *Func) const {
   assert(!Asm->needsTextFixup());
 }
 
+template <> void InstARM32Vqadd::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  const Variable *Dest = getDest();
+  Type DestTy = Dest->getType();
+  switch (DestTy) {
+  default:
+    llvm::report_fatal_error("Vqadd not defined on type " +
+                             typeStdString(DestTy));
+  case IceType_v16i8:
+  case IceType_v8i16:
+  case IceType_v4i32:
+    switch (Sign) {
+    case InstARM32::FS_None: // defaults to unsigned.
+    case InstARM32::FS_Unsigned:
+      Asm->vqaddqu(typeElementType(DestTy), Dest, getSrc(0), getSrc(1));
+      break;
+    case InstARM32::FS_Signed:
+      Asm->vqaddqi(typeElementType(DestTy), Dest, getSrc(0), getSrc(1));
+      break;
+    }
+    break;
+  }
+  assert(!Asm->needsTextFixup());
+}
+
+template <> void InstARM32Vqsub::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  const Variable *Dest = getDest();
+  Type DestTy = Dest->getType();
+  switch (DestTy) {
+  default:
+    llvm::report_fatal_error("Vqsub not defined on type " +
+                             typeStdString(DestTy));
+  case IceType_v16i8:
+  case IceType_v8i16:
+  case IceType_v4i32:
+    switch (Sign) {
+    case InstARM32::FS_None: // defaults to unsigned.
+    case InstARM32::FS_Unsigned:
+      Asm->vqsubqu(typeElementType(DestTy), Dest, getSrc(0), getSrc(1));
+      break;
+    case InstARM32::FS_Signed:
+      Asm->vqsubqi(typeElementType(DestTy), Dest, getSrc(0), getSrc(1));
+      break;
+    }
+    break;
+  }
+  assert(!Asm->needsTextFixup());
+}
+
 template <> void InstARM32Vmul::emitIAS(const Cfg *Func) const {
   auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   const Variable *Dest = getDest();
@@ -1639,6 +1689,10 @@ template <> const char *InstARM32UnaryopFP<InstARM32::Vneg>::Opcode = "vneg";
 template <> const char *InstARM32ThreeAddrFP<InstARM32::Vshl>::Opcode = "vshl";
 template <> const char *InstARM32ThreeAddrFP<InstARM32::Vshr>::Opcode = "vshr";
 template <> const char *InstARM32Vsub::Opcode = "vsub";
+template <>
+const char *InstARM32ThreeAddrFP<InstARM32::Vqadd>::Opcode = "vqadd";
+template <>
+const char *InstARM32ThreeAddrFP<InstARM32::Vqsub>::Opcode = "vqsub";
 // Four-addr ops
 template <> const char *InstARM32Mla::Opcode = "mla";
 template <> const char *InstARM32Mls::Opcode = "mls";
@@ -3110,6 +3164,8 @@ template class InstARM32UnaryopSignAwareFP<InstARM32::Vneg>;
 template class InstARM32ThreeAddrSignAwareFP<InstARM32::Vshl>;
 template class InstARM32ThreeAddrSignAwareFP<InstARM32::Vshr>;
 template class InstARM32ThreeAddrFP<InstARM32::Vsub>;
+template class InstARM32ThreeAddrSignAwareFP<InstARM32::Vqadd>;
+template class InstARM32ThreeAddrSignAwareFP<InstARM32::Vqsub>;
 
 template class InstARM32LoadBase<InstARM32::Ldr>;
 template class InstARM32LoadBase<InstARM32::Ldrex>;

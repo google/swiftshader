@@ -5320,12 +5320,14 @@ void TargetARM32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
   case Intrinsics::Trap:
     _trap();
     return;
-  case Intrinsics::AddSaturateSigned: {
-    UnimplementedLoweringError(this, Instr);
-    return;
-  }
+  case Intrinsics::AddSaturateSigned:
   case Intrinsics::AddSaturateUnsigned: {
-    UnimplementedLoweringError(this, Instr);
+    bool Unsigned = (ID == Intrinsics::AddSaturateUnsigned);
+    Variable *Src0 = legalizeToReg(Instr->getArg(0));
+    Variable *Src1 = legalizeToReg(Instr->getArg(1));
+    Variable *T = makeReg(DestTy);
+    _vqadd(T, Src0, Src1, Unsigned);
+    _mov(Dest, T);
     return;
   }
   case Intrinsics::LoadSubVector: {
@@ -5360,12 +5362,14 @@ void TargetARM32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     UnimplementedLoweringError(this, Instr);
     return;
   }
-  case Intrinsics::SubtractSaturateSigned: {
-    UnimplementedLoweringError(this, Instr);
-    return;
-  }
+  case Intrinsics::SubtractSaturateSigned:
   case Intrinsics::SubtractSaturateUnsigned: {
-    UnimplementedLoweringError(this, Instr);
+    bool Unsigned = (ID == Intrinsics::SubtractSaturateUnsigned);
+    Variable *Src0 = legalizeToReg(Instr->getArg(0));
+    Variable *Src1 = legalizeToReg(Instr->getArg(1));
+    Variable *T = makeReg(DestTy);
+    _vqsub(T, Src0, Src1, Unsigned);
+    _mov(Dest, T);
     return;
   }
   case Intrinsics::VectorPackSigned: {

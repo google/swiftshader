@@ -591,6 +591,18 @@ public:
   void vsubqi(Type ElmtTy, const Operand *OpQd, const Operand *OpQm,
               const Operand *OpQn);
 
+  // Integer vector saturating subtract.
+  void vqsubqi(Type ElmtTy, const Operand *OpQd, const Operand *OpQm,
+               const Operand *OpQn);
+  void vqsubqu(Type ElmtTy, const Operand *OpQd, const Operand *OpQm,
+               const Operand *OpQn);
+
+  // Integer vector saturating add.
+  void vqaddqi(Type ElmtTy, const Operand *OpQd, const Operand *OpQm,
+               const Operand *OpQn);
+  void vqaddqu(Type ElmtTy, const Operand *OpQd, const Operand *OpQm,
+               const Operand *OpQn);
+
   // Float vector subtract
   void vsubqf(const Operand *OpQd, const Operand *OpQm, const Operand *OpQn);
 
