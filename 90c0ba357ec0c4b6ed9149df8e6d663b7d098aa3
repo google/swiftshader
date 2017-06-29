@@ -295,6 +295,30 @@
     },
     {
       "key": {
+        "uuid": "616026a2_bc0149a8",
+        "filename": "src/Vulkan/libVulkan/Context.h",
+        "patchSetId": 7
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-06-29T18:39:55Z",
+      "side": 1,
+      "message": "Vulkan requires there is at least one queue family with GRAPHICS | COMPUTE and TRANSFER is implied if either GRAPHICS or COMPUTE is present. (so strictly speaking it is not necessary in the bitfield but will still need to be supported)",
+      "parentUuid": "f4506054_66689823",
+      "range": {
+        "startLine": 70,
+        "startChar": 2,
+        "endLine": 71,
+        "endChar": 24
+      },
+      "revId": "90c0ba357ec0c4b6ed9149df8e6d663b7d098aa3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "bbcd45ca_1d1c8511",
         "filename": "src/Vulkan/libVulkan/Context.h",
         "patchSetId": 7
@@ -341,6 +365,30 @@
     },
     {
       "key": {
+        "uuid": "186cf099_5d329af7",
+        "filename": "src/Vulkan/libVulkan/Context.h",
+        "patchSetId": 7
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-06-29T18:39:55Z",
+      "side": 1,
+      "message": "All the queues of a queue family support all the operations declared in queueFlags so here 1 means there is one queue that supports all operations.",
+      "parentUuid": "11daedbe_c37414e7",
+      "range": {
+        "startLine": 72,
+        "startChar": 2,
+        "endLine": 72,
+        "endChar": 3
+      },
+      "revId": "90c0ba357ec0c4b6ed9149df8e6d663b7d098aa3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d2ccc5d3_92a669fa",
         "filename": "src/Vulkan/libVulkan/Context.h",
         "patchSetId": 7
@@ -375,6 +423,30 @@
       "writtenOn": "2017-06-29T18:28:58Z",
       "side": 1,
       "message": "Can we get away with a value of 0 for now? The spec says it indicates no support for timestamps. We can set it to the proper value when we do implement it.",
+      "range": {
+        "startLine": 73,
+        "startChar": 4,
+        "endLine": 73,
+        "endChar": 5
+      },
+      "revId": "90c0ba357ec0c4b6ed9149df8e6d663b7d098aa3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9c50fc1d_6a19b0ef",
+        "filename": "src/Vulkan/libVulkan/Context.h",
+        "patchSetId": 7
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-06-29T18:39:55Z",
+      "side": 1,
+      "message": "sgtm too",
+      "parentUuid": "47d91b98_fc75210b",
       "range": {
         "startLine": 73,
         "startChar": 4,
