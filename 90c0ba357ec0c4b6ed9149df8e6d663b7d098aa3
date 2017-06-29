@@ -2,6 +2,144 @@
   "comments": [
     {
       "key": {
+        "uuid": "71b01100_c4667b88",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 7
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-06-29T18:28:58Z",
+      "side": 1,
+      "message": "nit: FYI the Git documentation suggests using the imperative mood for commit message summaries (https://github.com/git/git/blob/master/Documentation/SubmittingPatches#L122). So something like \"Implement all functions to run dEQP tests.\" I like this suggestion because then every commit message starts with a verb which describes what sort of change it is, i.e. \"Fix X\", \"Refactor X\", \"Implement X\", \"Test X\", \"Document X\" etc. and because it describes what will happen if I apply someone\u0027s patch. So if I apply your patch, it will \"Implement all functions to run dEQP tests\".\n\nnit: dEQP starts with a small letter.\n\nnit: Can you add a small paragraph which describes in broad strokes what kind of functions had to be implemented. Personally I try to use simple language for this because years later I might not (read: will not) remember the technical details but I need to determine if the change is relevant to what I\u0027m looking for, or to understand in more abstract terms what this change was about. Of course this is far less important for the first few commits of a prototype, but in my experience it pays off in the longer term to be descriptive about all changes. Also please clarify what it means to be able to \"run dEQP tests\". It\u0027s not clear from the summary that it\u0027s just the bootstrapping part (which again may be super obvious now but can get more unclear in the future).",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 43
+      },
+      "revId": "90c0ba357ec0c4b6ed9149df8e6d663b7d098aa3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d4fa2cfe_5388830b",
+        "filename": "src/Vulkan/libVulkan/Context.h",
+        "patchSetId": 7
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-06-29T18:28:58Z",
+      "side": 1,
+      "message": "nit: There\u0027s no Context class being defined here. That might be the future intention, but let\u0027s add a description for it when we do add it. It\u0027s possible we may not. So just remove this comment for now.",
+      "range": {
+        "startLine": 15,
+        "startChar": 0,
+        "endLine": 16,
+        "endChar": 24
+      },
+      "revId": "90c0ba357ec0c4b6ed9149df8e6d663b7d098aa3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a7d96180_cfcb9b9f",
+        "filename": "src/Vulkan/libVulkan/Context.h",
+        "patchSetId": 7
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-06-29T18:28:58Z",
+      "side": 1,
+      "message": "https://github.com/KhronosGroup/Vulkan-Docs appears to use a small letters \"vulkan\" directory for the headers.",
+      "range": {
+        "startLine": 22,
+        "startChar": 10,
+        "endLine": 22,
+        "endChar": 16
+      },
+      "revId": "90c0ba357ec0c4b6ed9149df8e6d663b7d098aa3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "57c55585_278fc35f",
+        "filename": "src/Vulkan/libVulkan/Context.h",
+        "patchSetId": 7
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-06-29T18:28:58Z",
+      "side": 1,
+      "message": "This header and vk_platform.h appear to be missing from the CL.",
+      "range": {
+        "startLine": 22,
+        "startChar": 17,
+        "endLine": 22,
+        "endChar": 25
+      },
+      "revId": "90c0ba357ec0c4b6ed9149df8e6d663b7d098aa3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3500144a_3332ee5a",
+        "filename": "src/Vulkan/libVulkan/Context.h",
+        "patchSetId": 7
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-06-29T18:28:58Z",
+      "side": 1,
+      "message": "Defining this static variable in the header means that every .cpp file which includes it and uses it is going to get its own copy of the definition (i.e. it\u0027s going to exist multiple times in the object code). If this was just a declaration, with the definition in Context.cpp, other .cpp files that include this header would resolve this variable at link time to be the same one as that in Context.cpp.",
+      "range": {
+        "startLine": 26,
+        "startChar": 49,
+        "endLine": 26,
+        "endChar": 52
+      },
+      "revId": "90c0ba357ec0c4b6ed9149df8e6d663b7d098aa3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "683fcfce_5664b605",
+        "filename": "src/Vulkan/libVulkan/Context.h",
+        "patchSetId": 7
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-06-29T18:28:58Z",
+      "side": 1,
+      "message": "nit: Just my opinion but I feel the extension version number can go on the same line, as well as the open and closing brackets, without losing readability.",
+      "range": {
+        "startLine": 27,
+        "startChar": 0,
+        "endLine": 30,
+        "endChar": 3
+      },
+      "revId": "90c0ba357ec0c4b6ed9149df8e6d663b7d098aa3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "96f6b8fb_a1d60479",
         "filename": "src/Vulkan/libVulkan/Context.h",
         "patchSetId": 7
@@ -16,6 +154,305 @@
       "revId": "90c0ba357ec0c4b6ed9149df8e6d663b7d098aa3",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fb76c38c_15797084",
+        "filename": "src/Vulkan/libVulkan/Context.h",
+        "patchSetId": 7
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-06-29T18:28:58Z",
+      "side": 1,
+      "message": "it: Missing tabs to align it with the previous block.",
+      "range": {
+        "startLine": 39,
+        "startChar": 0,
+        "endLine": 42,
+        "endChar": 5
+      },
+      "revId": "90c0ba357ec0c4b6ed9149df8e6d663b7d098aa3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "dc1e31d4_9d3bab6a",
+        "filename": "src/Vulkan/libVulkan/Context.h",
+        "patchSetId": 7
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-06-29T18:28:58Z",
+      "side": 1,
+      "message": "It seem like we need VKAPI_CALL before the function name here. Otherwise the default_alloc below doesn\u0027t compile for me (error C2440: \u0027initializing\u0027: cannot convert from \u0027void *(__cdecl *)(void *,std::size_t,std::size_t,VkSystemAllocationScope)\u0027 to \u0027PFN_vkAllocationFunction\u0027).\n\nSame for the ones below.",
+      "range": {
+        "startLine": 45,
+        "startChar": 13,
+        "endLine": 45,
+        "endChar": 14
+      },
+      "revId": "90c0ba357ec0c4b6ed9149df8e6d663b7d098aa3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "26ed71e6_1170e563",
+        "filename": "src/Vulkan/libVulkan/Context.h",
+        "patchSetId": 7
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-06-29T18:28:58Z",
+      "side": 1,
+      "message": "Note again that every .cpp file which includes this header (which quite literally means it gets copy-pasted into it by the preprocessor), will have its own definition of this static function. Static functions are not linked against by other .cpp files. So while this duplication probably works fine, it results in a bit of (binary) code bloat. Note also that these multiple definitions have distinct addresses, so the pointers to them below in default_alloc are different for each .cpp file (and default_alloc itself is also static so that too isn\u0027t the same everywhere). Again, that might work just fine as long as nothing depends on the pointers being the same, but it\u0027s probably not what is intended.",
+      "range": {
+        "startLine": 45,
+        "startChar": 1,
+        "endLine": 45,
+        "endChar": 7
+      },
+      "revId": "90c0ba357ec0c4b6ed9149df8e6d663b7d098aa3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "adc694b5_d601fded",
+        "filename": "src/Vulkan/libVulkan/Context.h",
+        "patchSetId": 7
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-06-29T18:28:58Z",
+      "side": 1,
+      "message": "This isn\u0027t handling anything other than the size parameter, so let\u0027s add assert()\u0027s that check that the other parameters are defaults that we currently handle correctly, with a comment that other values are unimplemented (as opposed to these asserts being for situations that should not happen).",
+      "range": {
+        "startLine": 47,
+        "startChar": 9,
+        "endLine": 47,
+        "endChar": 22
+      },
+      "revId": "90c0ba357ec0c4b6ed9149df8e6d663b7d098aa3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "083706bd_fbbfd616",
+        "filename": "src/Vulkan/libVulkan/Context.h",
+        "patchSetId": 7
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-06-29T18:28:58Z",
+      "side": 1,
+      "message": "There are two more function pointer fields in the VkAllocationCallbacks struct. I think we need stubs for them with asserts that would alert us if they got called.",
+      "range": {
+        "startLine": 65,
+        "startChar": 1,
+        "endLine": 65,
+        "endChar": 3
+      },
+      "revId": "90c0ba357ec0c4b6ed9149df8e6d663b7d098aa3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f4506054_66689823",
+        "filename": "src/Vulkan/libVulkan/Context.h",
+        "patchSetId": 7
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-06-29T18:28:58Z",
+      "side": 1,
+      "message": "Can we get away with just VK_QUEUE_GRAPHICS_BIT for now?",
+      "range": {
+        "startLine": 70,
+        "startChar": 2,
+        "endLine": 71,
+        "endChar": 24
+      },
+      "revId": "90c0ba357ec0c4b6ed9149df8e6d663b7d098aa3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bbcd45ca_1d1c8511",
+        "filename": "src/Vulkan/libVulkan/Context.h",
+        "patchSetId": 7
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-06-29T18:28:58Z",
+      "side": 1,
+      "message": "nit: Let\u0027s add a commend at the end of this line that clarifies what this nameless constant is for. Can be just // queueCount",
+      "range": {
+        "startLine": 72,
+        "startChar": 3,
+        "endLine": 72,
+        "endChar": 4
+      },
+      "revId": "90c0ba357ec0c4b6ed9149df8e6d663b7d098aa3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "11daedbe_c37414e7",
+        "filename": "src/Vulkan/libVulkan/Context.h",
+        "patchSetId": 7
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-06-29T18:28:58Z",
+      "side": 1,
+      "message": "If we need the above three bit flags, should this be 3?",
+      "range": {
+        "startLine": 72,
+        "startChar": 2,
+        "endLine": 72,
+        "endChar": 3
+      },
+      "revId": "90c0ba357ec0c4b6ed9149df8e6d663b7d098aa3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d2ccc5d3_92a669fa",
+        "filename": "src/Vulkan/libVulkan/Context.h",
+        "patchSetId": 7
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-06-29T18:28:58Z",
+      "side": 1,
+      "message": "// timestampValidBits",
+      "range": {
+        "startLine": 73,
+        "startChar": 2,
+        "endLine": 73,
+        "endChar": 4
+      },
+      "revId": "90c0ba357ec0c4b6ed9149df8e6d663b7d098aa3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "47d91b98_fc75210b",
+        "filename": "src/Vulkan/libVulkan/Context.h",
+        "patchSetId": 7
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-06-29T18:28:58Z",
+      "side": 1,
+      "message": "Can we get away with a value of 0 for now? The spec says it indicates no support for timestamps. We can set it to the proper value when we do implement it.",
+      "range": {
+        "startLine": 73,
+        "startChar": 4,
+        "endLine": 73,
+        "endChar": 5
+      },
+      "revId": "90c0ba357ec0c4b6ed9149df8e6d663b7d098aa3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "973747be_2e7c8517",
+        "filename": "src/Vulkan/libVulkan/Context.h",
+        "patchSetId": 7
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-06-29T18:28:58Z",
+      "side": 1,
+      "message": "Without context This comment isn\u0027t very clear to me (why would I want it to be 16). The spec states that \"Queues supporting graphics and/or compute operations must report (1,1,1) in minImageTransferGranularity, meaning that there are no additional restrictions on the granularity of image transfer operations for these queues.\" Since we need at the very least a graphics queue, that\u0027s enough of a reason why this must be 1,1,1. This comment could just be that entire spec quote (I personally don\u0027t mind if that makes this line very long, you only read it and scroll to the right when you\u0027re in need of an explanation for these values).",
+      "range": {
+        "startLine": 74,
+        "startChar": 18,
+        "endLine": 74,
+        "endChar": 106
+      },
+      "revId": "90c0ba357ec0c4b6ed9149df8e6d663b7d098aa3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "90684783_4a602665",
+        "filename": "src/Vulkan/libVulkan/Context.h",
+        "patchSetId": 7
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-06-29T18:28:58Z",
+      "side": 1,
+      "message": "Might also best just be a non-static declaration, with the definition in Context.cpp",
+      "range": {
+        "startLine": 77,
+        "startChar": 1,
+        "endLine": 77,
+        "endChar": 7
+      },
+      "revId": "90c0ba357ec0c4b6ed9149df8e6d663b7d098aa3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ffb44e60_1ae0a705",
+        "filename": "src/Vulkan/libVulkan/Context.h",
+        "patchSetId": 7
+      },
+      "lineNbr": 226,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-06-29T18:28:58Z",
+      "side": 1,
+      "message": "If the name can be initialized during construction and is never supposed to change, then this can be \"const char *const name\". (The first const means we can\u0027t change the characters of the string the name pointer currently points to, but we can still make name point elsewhere which is probably not intended, unless we add that second const)",
+      "range": {
+        "startLine": 226,
+        "startChar": 2,
+        "endLine": 226,
+        "endChar": 26
+      },
+      "revId": "90c0ba357ec0c4b6ed9149df8e6d663b7d098aa3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     },
     {
       "key": {
@@ -50,6 +487,29 @@
       "revId": "90c0ba357ec0c4b6ed9149df8e6d663b7d098aa3",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "720eada1_c9ef95b2",
+        "filename": "src/Vulkan/libVulkan/Context.h",
+        "patchSetId": 7
+      },
+      "lineNbr": 255,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-06-29T18:28:58Z",
+      "side": 1,
+      "message": "Do we already need these in this patch?",
+      "range": {
+        "startLine": 247,
+        "startChar": 0,
+        "endLine": 255,
+        "endChar": 4
+      },
+      "revId": "90c0ba357ec0c4b6ed9149df8e6d663b7d098aa3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     },
     {
       "key": {
@@ -206,6 +666,75 @@
     },
     {
       "key": {
+        "uuid": "de72ca0f_d5ee6984",
+        "filename": "src/Vulkan/libVulkan/libVulkan.hpp",
+        "patchSetId": 7
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-06-29T18:28:58Z",
+      "side": 1,
+      "message": "I don\u0027t think we need this for Vulkan. Our OpenGL ES library implementations have classes like this because libEGL, libGLES_CM, and libGLESv2 have overlapping exported functions, which causes linking issues when trying to call from one to another directly. Instead we pass a pointer to a class like this between them so we can be certain to call the right ones. We don\u0027t have such a problem with Vulkan (hallelujah).",
+      "range": {
+        "startLine": 22,
+        "startChar": 6,
+        "endLine": 22,
+        "endChar": 22
+      },
+      "revId": "90c0ba357ec0c4b6ed9149df8e6d663b7d098aa3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e6c8ec80_b724e830",
+        "filename": "src/Vulkan/libVulkan/libVulkan.vcxproj",
+        "patchSetId": 7
+      },
+      "lineNbr": 201,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-06-29T18:28:58Z",
+      "side": 1,
+      "message": "This file is missing from the CL.",
+      "range": {
+        "startLine": 201,
+        "startChar": 24,
+        "endLine": 201,
+        "endChar": 35
+      },
+      "revId": "90c0ba357ec0c4b6ed9149df8e6d663b7d098aa3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f0d5f025_28f9b5ba",
+        "filename": "src/Vulkan/libVulkan/main.cpp",
+        "patchSetId": 7
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-06-29T18:28:58Z",
+      "side": 1,
+      "message": "Since we don\u0027t need LibVulkanExports, we can just directly implement all the vk* exported functions in libVulkan.cpp instead of requiring all these trampolines to vulkan::* functions.",
+      "range": {
+        "startLine": 114,
+        "startChar": 1,
+        "endLine": 117,
+        "endChar": 2
+      },
+      "revId": "90c0ba357ec0c4b6ed9149df8e6d663b7d098aa3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6aa9953a_b1fd30c3",
         "filename": "src/Vulkan/libVulkan/utils.cpp",
         "patchSetId": 7
@@ -220,6 +749,29 @@
       "revId": "90c0ba357ec0c4b6ed9149df8e6d663b7d098aa3",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "99d88c42_25b761bc",
+        "filename": "src/Vulkan/libVulkan/utils.cpp",
+        "patchSetId": 7
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-06-29T18:28:58Z",
+      "side": 1,
+      "message": "This will dereference a null pointer if the name is not in the map. So check for that and return nullptr early so the application can deal with it.",
+      "range": {
+        "startLine": 11,
+        "startChar": 9,
+        "endLine": 11,
+        "endChar": 58
+      },
+      "revId": "90c0ba357ec0c4b6ed9149df8e6d663b7d098aa3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     },
     {
       "key": {
