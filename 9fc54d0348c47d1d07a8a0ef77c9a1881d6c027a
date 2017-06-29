@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "51c7d18e_5ef1165b",
+        "filename": "src/Vulkan/libVulkan/Context.h",
+        "patchSetId": 4
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 6260
+      },
+      "writtenOn": "2017-06-29T19:26:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e3fa0195_3ae849f1",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "c9a349fd_aee1dd52",
         "filename": "src/Vulkan/libVulkan/Context.h",
         "patchSetId": 4
@@ -30,6 +48,24 @@
       "writtenOn": "2017-06-26T18:55:08Z",
       "side": 1,
       "message": "If dEQP requires global extensions to run the tests, this should be the only one required.",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9cab5c4a_b88d201b",
+        "filename": "src/Vulkan/libVulkan/Context.h",
+        "patchSetId": 4
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 6260
+      },
+      "writtenOn": "2017-06-29T19:26:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c9a349fd_aee1dd52",
       "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "56bb56ac_cc71d6af",
+        "filename": "src/Vulkan/libVulkan/Context.h",
+        "patchSetId": 4
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 6260
+      },
+      "writtenOn": "2017-06-29T19:26:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "58ed966e_3c55dd6e",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "81b26aa7_8ee99f81",
         "filename": "src/Vulkan/libVulkan/Context.h",
         "patchSetId": 4
@@ -70,6 +124,24 @@
     },
     {
       "key": {
+        "uuid": "54d76cb4_c6cb2df0",
+        "filename": "src/Vulkan/libVulkan/Context.h",
+        "patchSetId": 4
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 6260
+      },
+      "writtenOn": "2017-06-29T19:26:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "81b26aa7_8ee99f81",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "47e9db30_9419ba91",
         "filename": "src/Vulkan/libVulkan/Context.h",
         "patchSetId": 4
@@ -81,6 +153,24 @@
       "writtenOn": "2017-06-26T18:55:08Z",
       "side": 1,
       "message": "Comment that this cannot be 16, 16, 16 or something to help vectorization of code, because graphics or compute queues need to have it set to 1, 1, 1",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e25cc97f_9a988d33",
+        "filename": "src/Vulkan/libVulkan/Context.h",
+        "patchSetId": 4
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 6260
+      },
+      "writtenOn": "2017-06-29T19:26:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "47e9db30_9419ba91",
       "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
@@ -139,6 +229,42 @@
     },
     {
       "key": {
+        "uuid": "bd8b9980_38ded6c1",
+        "filename": "src/Vulkan/libVulkan/Context.h",
+        "patchSetId": 4
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 6260
+      },
+      "writtenOn": "2017-06-29T19:26:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2b83ddf7_58e029c3",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c9bda9f3_63b25d48",
+        "filename": "src/Vulkan/libVulkan/Context.h",
+        "patchSetId": 4
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 6260
+      },
+      "writtenOn": "2017-06-29T19:26:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a9ab03ff_b0966916",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "5a5d2faf_c260ccb2",
         "filename": "src/Vulkan/libVulkan/Context.h",
         "patchSetId": 4
@@ -150,6 +276,24 @@
       "writtenOn": "2017-06-26T18:55:08Z",
       "side": 1,
       "message": "A bunch of entry-points aren\u0027t needed once the unnecessary extensions are removed.",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "38bf32b6_814907a4",
+        "filename": "src/Vulkan/libVulkan/Context.h",
+        "patchSetId": 4
+      },
+      "lineNbr": 299,
+      "author": {
+        "id": 6260
+      },
+      "writtenOn": "2017-06-29T19:26:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5a5d2faf_c260ccb2",
       "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
@@ -190,6 +334,24 @@
     },
     {
       "key": {
+        "uuid": "8670e458_34e1c947",
+        "filename": "src/Vulkan/libVulkan/Context.h",
+        "patchSetId": 4
+      },
+      "lineNbr": 322,
+      "author": {
+        "id": 6260
+      },
+      "writtenOn": "2017-06-29T19:26:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6075187f_44e8daef",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "43fe15d5_bbfea1d9",
         "filename": "src/Vulkan/libVulkan/Context.h",
         "patchSetId": 4
@@ -201,6 +363,24 @@
       "writtenOn": "2017-06-26T18:55:08Z",
       "side": 1,
       "message": "This is the same structure as VkMemoryHeap so you could use that.",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4533e15b_4561f5cd",
+        "filename": "src/Vulkan/libVulkan/Context.h",
+        "patchSetId": 4
+      },
+      "lineNbr": 330,
+      "author": {
+        "id": 6260
+      },
+      "writtenOn": "2017-06-29T19:26:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "43fe15d5_bbfea1d9",
       "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
@@ -235,6 +415,24 @@
       "writtenOn": "2017-06-26T18:55:08Z",
       "side": 1,
       "message": "[1] Make this a VkPhysicalDeviceMemoryProperties directly, so that it can be directly copied over in vkGetPhysicalDeviceMemoryProperties",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c1d44919_00cb836f",
+        "filename": "src/Vulkan/libVulkan/Context.h",
+        "patchSetId": 4
+      },
+      "lineNbr": 341,
+      "author": {
+        "id": 6260
+      },
+      "writtenOn": "2017-06-29T19:26:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "69c6243f_6f1af792",
       "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
@@ -310,6 +508,24 @@
     },
     {
       "key": {
+        "uuid": "1521a10a_bd84ada4",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 6260
+      },
+      "writtenOn": "2017-06-29T19:26:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5bb46314_6bc043ab",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "809976e1_f33b4416",
         "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
         "patchSetId": 4
@@ -321,6 +537,24 @@
       "writtenOn": "2017-06-26T18:55:08Z",
       "side": 1,
       "message": "nit: per the spec, this should also check for layers. Since we don\u0027t support any layers we could return VK_ERROR_LAYER_NOT_PRESENT as soon as pCreateInfo-\u003eenabledLayerCount !\u003d 0",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ad481c89_387e8b5d",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 6260
+      },
+      "writtenOn": "2017-06-29T19:26:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "809976e1_f33b4416",
       "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
@@ -344,6 +578,24 @@
     },
     {
       "key": {
+        "uuid": "2f602e39_20bab090",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 6260
+      },
+      "writtenOn": "2017-06-29T19:26:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "05eee8b7_0d89c2a8",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "96c7d284_7f9ae753",
         "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
         "patchSetId": 4
@@ -355,6 +607,24 @@
       "writtenOn": "2017-06-26T18:55:08Z",
       "side": 1,
       "message": "Since the physical device only depends on the instance, it could be initialized here.",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "da4756ba_662ff837",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 6260
+      },
+      "writtenOn": "2017-06-29T19:26:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "96c7d284_7f9ae753",
       "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
@@ -378,6 +648,24 @@
     },
     {
       "key": {
+        "uuid": "8afe0f53_8fcf09fd",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 6260
+      },
+      "writtenOn": "2017-06-29T19:26:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "39e79e81_80f2f335",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "493cc5e0_7500b4aa",
         "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
         "patchSetId": 4
@@ -389,6 +677,24 @@
       "writtenOn": "2017-06-26T18:55:08Z",
       "side": 1,
       "message": "myInstance-\u003ephysicalDeviceNum is always one (and will probably always be). This can lead to code simplification in this function. Also I\u0027m not sure of OutArray simplifies code here. If you want to go the OutArray route, I suggest doing a design discussion with sugoi or capn, and use it consistently through all of the entrypoints. (including EnumerateInstanceProperties)",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "43e330ef_c4115b21",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 6260
+      },
+      "writtenOn": "2017-06-29T19:26:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "493cc5e0_7500b4aa",
       "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
@@ -412,6 +718,24 @@
     },
     {
       "key": {
+        "uuid": "f38d9e1c_8ada217e",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 168,
+      "author": {
+        "id": 6260
+      },
+      "writtenOn": "2017-06-29T19:26:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "39b7c1c5_b6886388",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "ea379ee5_2387f27e",
         "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
         "patchSetId": 4
@@ -423,6 +747,24 @@
       "writtenOn": "2017-06-26T18:55:08Z",
       "side": 1,
       "message": "physicalDevice is unused.",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d348e8da_b91588e4",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 6260
+      },
+      "writtenOn": "2017-06-29T19:26:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ea379ee5_2387f27e",
       "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
@@ -446,6 +788,24 @@
     },
     {
       "key": {
+        "uuid": "58040395_83daa3b1",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 185,
+      "author": {
+        "id": 6260
+      },
+      "writtenOn": "2017-06-29T19:26:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "117d42dc_737065f8",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "92b19fa4_aa4f567b",
         "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
         "patchSetId": 4
@@ -463,6 +823,24 @@
     },
     {
       "key": {
+        "uuid": "1318f556_ef159f08",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 227,
+      "author": {
+        "id": 6260
+      },
+      "writtenOn": "2017-06-29T19:26:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "92b19fa4_aa4f567b",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "efe31a48_8e8371f3",
         "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
         "patchSetId": 4
@@ -474,6 +852,24 @@
       "writtenOn": "2017-06-26T18:55:08Z",
       "side": 1,
       "message": "Same thing about the comment with the member name.",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "38bc9d9e_8da80722",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 229,
+      "author": {
+        "id": 6260
+      },
+      "writtenOn": "2017-06-29T19:26:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "efe31a48_8e8371f3",
       "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
@@ -508,6 +904,24 @@
       "writtenOn": "2017-06-26T18:55:08Z",
       "side": 1,
       "message": "Same thing about member names in comments.",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4daadf2f_65378769",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 339,
+      "author": {
+        "id": 6260
+      },
+      "writtenOn": "2017-06-29T19:26:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "106dd4ab_29309cb7",
       "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
@@ -549,6 +963,24 @@
     },
     {
       "key": {
+        "uuid": "b6d107a9_d5135cc8",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 350,
+      "author": {
+        "id": 6260
+      },
+      "writtenOn": "2017-06-29T19:26:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "174cd7e7_f86e56a5",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "6ec79204_757c87cc",
         "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
         "patchSetId": 4
@@ -560,6 +992,24 @@
       "writtenOn": "2017-06-26T18:55:08Z",
       "side": 1,
       "message": "Check for layers too, like in vkCreateInstance.",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e68263cd_ee4bb4e9",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 398,
+      "author": {
+        "id": 6260
+      },
+      "writtenOn": "2017-06-29T19:26:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6ec79204_757c87cc",
       "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
@@ -600,6 +1050,24 @@
     },
     {
       "key": {
+        "uuid": "81a2dad8_814f5f25",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 403,
+      "author": {
+        "id": 6260
+      },
+      "writtenOn": "2017-06-29T19:26:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ca91ffdf_37b16879",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "bc8e0e97_bdb906b7",
         "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
         "patchSetId": 4
@@ -611,6 +1079,24 @@
       "writtenOn": "2017-06-26T18:55:08Z",
       "side": 1,
       "message": "We don\u0027t need to support this because we set all the optional features to 0. The robustBufferAccess member can also be removed.",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1aef6702_f3c13da2",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 417,
+      "author": {
+        "id": 6260
+      },
+      "writtenOn": "2017-06-29T19:26:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "bc8e0e97_bdb906b7",
       "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
@@ -634,6 +1120,24 @@
     },
     {
       "key": {
+        "uuid": "a0fc7d7c_238a5f03",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 418,
+      "author": {
+        "id": 6260
+      },
+      "writtenOn": "2017-06-29T19:26:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9e4d847b_ec4d9171",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "fc422b96_87386db1",
         "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
         "patchSetId": 4
@@ -645,6 +1149,24 @@
       "writtenOn": "2017-06-26T18:55:08Z",
       "side": 1,
       "message": "This information already exists in the physical device, so the function can just become:\n\n    *pMemoryProperties \u003d physicalDevice-\u003ememoryProperties;",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "44c5fcbf_38349e39",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 427,
+      "author": {
+        "id": 6260
+      },
+      "writtenOn": "2017-06-29T19:26:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fc422b96_87386db1",
       "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
