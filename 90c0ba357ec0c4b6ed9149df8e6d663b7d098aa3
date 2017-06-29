@@ -1,0 +1,293 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "96f6b8fb_a1d60479",
+        "filename": "src/Vulkan/libVulkan/Context.h",
+        "patchSetId": 7
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-06-29T17:08:09Z",
+      "side": 1,
+      "message": "nit: spaces vs. tabs.",
+      "revId": "90c0ba357ec0c4b6ed9149df8e6d663b7d098aa3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8f1a69c3_e3770543",
+        "filename": "src/Vulkan/libVulkan/Context.h",
+        "patchSetId": 7
+      },
+      "lineNbr": 228,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-06-29T17:08:09Z",
+      "side": 1,
+      "message": "nit: tabs.",
+      "revId": "90c0ba357ec0c4b6ed9149df8e6d663b7d098aa3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8b532071_ede9fd58",
+        "filename": "src/Vulkan/libVulkan/Context.h",
+        "patchSetId": 7
+      },
+      "lineNbr": 247,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-06-29T17:08:09Z",
+      "side": 1,
+      "message": "These ones where added but look like the belong to another patch.",
+      "revId": "90c0ba357ec0c4b6ed9149df8e6d663b7d098aa3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cf3cfb5b_88108abf",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 7
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-06-29T17:08:09Z",
+      "side": 1,
+      "message": "nit: tabs.",
+      "revId": "90c0ba357ec0c4b6ed9149df8e6d663b7d098aa3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "edb9f9b6_3b1ee2c4",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 7
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-06-29T17:08:09Z",
+      "side": 1,
+      "message": "nit: trailing space.",
+      "revId": "90c0ba357ec0c4b6ed9149df8e6d663b7d098aa3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "be2db32c_9cf44b6f",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 7
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-06-29T17:08:09Z",
+      "side": 1,
+      "message": "nit: trailing space.",
+      "revId": "90c0ba357ec0c4b6ed9149df8e6d663b7d098aa3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8b070ae2_7162e1dc",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 7
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-06-29T17:08:09Z",
+      "side": 1,
+      "message": "nit: trailing space.",
+      "revId": "90c0ba357ec0c4b6ed9149df8e6d663b7d098aa3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2a79f537_f9b2b2b7",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 7
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-06-29T17:08:09Z",
+      "side": 1,
+      "message": "Memory isn\u0027t filled with actual values for now. It could be done here.",
+      "revId": "90c0ba357ec0c4b6ed9149df8e6d663b7d098aa3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "681b85b9_09895cf5",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 7
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-06-29T17:08:09Z",
+      "side": 1,
+      "message": "nit: tabs vs. space.",
+      "revId": "90c0ba357ec0c4b6ed9149df8e6d663b7d098aa3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cb4381c1_11a4856c",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 7
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-06-29T17:08:09Z",
+      "side": 1,
+      "message": "this condition should always be true and could be removed.",
+      "revId": "90c0ba357ec0c4b6ed9149df8e6d663b7d098aa3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fd9541a4_747dbf43",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 7
+      },
+      "lineNbr": 386,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-06-29T17:08:09Z",
+      "side": 1,
+      "message": "You can make a constexpr variable to store the size of these arrays if you want to factor some code.",
+      "revId": "90c0ba357ec0c4b6ed9149df8e6d663b7d098aa3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5847f688_12629d89",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 7
+      },
+      "lineNbr": 406,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-06-29T17:08:09Z",
+      "side": 1,
+      "message": "nit: tabs vs. spaces.",
+      "revId": "90c0ba357ec0c4b6ed9149df8e6d663b7d098aa3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6aa9953a_b1fd30c3",
+        "filename": "src/Vulkan/libVulkan/utils.cpp",
+        "patchSetId": 7
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-06-29T17:08:09Z",
+      "side": 1,
+      "message": "nit: tab vs. spaces.",
+      "revId": "90c0ba357ec0c4b6ed9149df8e6d663b7d098aa3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1a55b4b1_f1c70517",
+        "filename": "src/Vulkan/libVulkan/utils.h",
+        "patchSetId": 7
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-06-29T17:08:09Z",
+      "side": 1,
+      "message": "nit: trailing space.",
+      "revId": "90c0ba357ec0c4b6ed9149df8e6d663b7d098aa3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c817f093_0543d72d",
+        "filename": "src/Vulkan/libVulkan/utils.h",
+        "patchSetId": 7
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-06-29T17:08:09Z",
+      "side": 1,
+      "message": "nit: trailing space.",
+      "revId": "90c0ba357ec0c4b6ed9149df8e6d663b7d098aa3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ba2ccc6e_c922f9d7",
+        "filename": "src/Vulkan/libVulkan/utils.h",
+        "patchSetId": 7
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-06-29T17:08:09Z",
+      "side": 1,
+      "message": "This seems t obelong to another patch.",
+      "revId": "90c0ba357ec0c4b6ed9149df8e6d663b7d098aa3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6731833b_97f9ee77",
+        "filename": "src/Vulkan/libVulkan/utils.h",
+        "patchSetId": 7
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-06-29T17:08:09Z",
+      "side": 1,
+      "message": "This seems to belong to another patch.",
+      "revId": "90c0ba357ec0c4b6ed9149df8e6d663b7d098aa3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}

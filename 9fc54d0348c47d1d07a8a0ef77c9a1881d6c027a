@@ -121,6 +121,24 @@
     },
     {
       "key": {
+        "uuid": "a9ab03ff_b0966916",
+        "filename": "src/Vulkan/libVulkan/Context.h",
+        "patchSetId": 4
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-06-29T17:08:09Z",
+      "side": 1,
+      "message": "There still isn\u0027t vkCreateImage ;-)",
+      "parentUuid": "2b83ddf7_58e029c3",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "5a5d2faf_c260ccb2",
         "filename": "src/Vulkan/libVulkan/Context.h",
         "patchSetId": 4
@@ -251,6 +269,24 @@
       "writtenOn": "2017-06-26T18:55:08Z",
       "side": 1,
       "message": "The function could also be stored as PFN_vkVoidFunction in the entrypoint map.",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "19080029_53b5f908",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-06-29T17:08:09Z",
+      "side": 1,
+      "message": "This isn\u0027t addressed yet.",
+      "parentUuid": "4bb82f30_ffd9c45c",
       "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
@@ -649,6 +685,24 @@
     },
     {
       "key": {
+        "uuid": "5faab334_8d6b8911",
+        "filename": "src/Vulkan/libVulkan/libVulkan.hpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-06-29T17:08:09Z",
+      "side": 1,
+      "message": "This isn\u0027t addressed yet.",
+      "parentUuid": "25c4d891_36cc36f6",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "8a91903b_5c39c940",
         "filename": "src/Vulkan/libVulkan/libVulkan.hpp",
         "patchSetId": 4
@@ -666,6 +720,24 @@
     },
     {
       "key": {
+        "uuid": "76711496_4a48fc14",
+        "filename": "src/Vulkan/libVulkan/libVulkan.hpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-06-29T17:08:09Z",
+      "side": 1,
+      "message": "This isn\u0027t addressed yet.",
+      "parentUuid": "8a91903b_5c39c940",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "89da4656_ea0004ca",
         "filename": "src/Vulkan/libVulkan/libVulkan.hpp",
         "patchSetId": 4
@@ -677,6 +749,24 @@
       "writtenOn": "2017-06-26T18:55:08Z",
       "side": 1,
       "message": "What is this used for?",
+      "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8a28d6ae_ec294e97",
+        "filename": "src/Vulkan/libVulkan/libVulkan.hpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 205,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-06-29T17:08:09Z",
+      "side": 1,
+      "message": "This isn\u0027t addressed yet.",
+      "parentUuid": "89da4656_ea0004ca",
       "revId": "9fc54d0348c47d1d07a8a0ef77c9a1881d6c027a",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
