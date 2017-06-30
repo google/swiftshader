@@ -274,35 +274,42 @@ void Context::makeCurrent(gl::Surface *surface)
 
 		mState.viewportX = 0;
 		mState.viewportY = 0;
-		mState.viewportWidth = surface->getWidth();
-		mState.viewportHeight = surface->getHeight();
+		mState.viewportWidth = surface ? surface->getWidth() : 0;
+		mState.viewportHeight = surface ? surface->getHeight() : 0;
 
 		mState.scissorX = 0;
 		mState.scissorY = 0;
-		mState.scissorWidth = surface->getWidth();
-		mState.scissorHeight = surface->getHeight();
+		mState.scissorWidth = surface ? surface->getWidth() : 0;
+		mState.scissorHeight = surface ? surface->getHeight() : 0;
 
 		mHasBeenCurrent = true;
 	}
 
-	// Wrap the existing resources into GL objects and assign them to the '0' names
-	egl::Image *defaultRenderTarget = surface->getRenderTarget();
-	egl::Image *depthStencil = surface->getDepthStencil();
-
-	Colorbuffer *colorbufferZero = new Colorbuffer(defaultRenderTarget);
-	DepthStencilbuffer *depthStencilbufferZero = new DepthStencilbuffer(depthStencil);
-	Framebuffer *framebufferZero = new DefaultFramebuffer(colorbufferZero, depthStencilbufferZero);
-
-	setFramebufferZero(framebufferZero);
-
-	if(defaultRenderTarget)
+	if(surface)
 	{
-		defaultRenderTarget->release();
+		// Wrap the existing resources into GL objects and assign them to the '0' names
+		egl::Image *defaultRenderTarget = surface->getRenderTarget();
+		egl::Image *depthStencil = surface->getDepthStencil();
+
+		Colorbuffer *colorbufferZero = new Colorbuffer(defaultRenderTarget);
+		DepthStencilbuffer *depthStencilbufferZero = new DepthStencilbuffer(depthStencil);
+		Framebuffer *framebufferZero = new DefaultFramebuffer(colorbufferZero, depthStencilbufferZero);
+
+		setFramebufferZero(framebufferZero);
+
+		if(defaultRenderTarget)
+		{
+			defaultRenderTarget->release();
+		}
+
+		if(depthStencil)
+		{
+			depthStencil->release();
+		}
 	}
-
-	if(depthStencil)
+	else
 	{
-		depthStencil->release();
+		setFramebufferZero(nullptr);
 	}
 
 	markAllStateDirty();
