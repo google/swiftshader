@@ -58,10 +58,10 @@ namespace sw
 		key = new Key[size];
 		ref = new Key*[size];
 		data = new Data*[size];
-		
+
 		for(int i = 0; i < size; i++)
 		{
-			data[i] = 0;
+			data[i] = nullptr;
 
 			ref[i] = &key[i];
 		}
@@ -71,22 +71,22 @@ namespace sw
 	LRUCache<Key, Data>::~LRUCache()
 	{
 		delete[] key;
-		key = 0;
+		key = nullptr;
 
 		delete[] ref;
-		ref = 0;
+		ref = nullptr;
 
 		for(int i = 0; i < size; i++)
 		{
 			if(data[i])
 			{
 				data[i]->unbind();
-				data[i] = 0;
+				data[i] = nullptr;
 			}
 		}
 
 		delete[] data;
-		data = 0;
+		data = nullptr;
 	}
 
 	template<class Key, class Data>
@@ -118,9 +118,9 @@ namespace sw
 			}
 		}
 
-		return 0;   // Not found
+		return nullptr;   // Not found
 	}
-	
+
 	template<class Key, class Data>
 	Data *LRUCache<Key, Data>::add(const Key &key, Data *data)
 	{
@@ -128,9 +128,9 @@ namespace sw
 		fill = fill + 1 < size ? fill + 1 : size;
 
 		*ref[top] = key;
-	
+
 		data->bind();
-		
+
 		if(this->data[top])
 		{
 			this->data[top]->unbind();

@@ -559,6 +559,8 @@ namespace sw
 
 	Nucleus::~Nucleus()
 	{
+		delete ::routine;
+
 		delete ::allocator;
 		delete ::function;
 		delete ::context;
@@ -604,7 +606,10 @@ namespace sw
 		objectWriter->setUndefinedSyms(::context->getConstantExternSyms());
 		objectWriter->writeNonUserSections();
 
-		return ::routine;
+		Routine *handoffRoutine = ::routine;
+		::routine = nullptr;
+
+		return handoffRoutine;
 	}
 
 	void Nucleus::optimize()
