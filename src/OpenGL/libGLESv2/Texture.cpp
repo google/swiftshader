@@ -1975,19 +1975,20 @@ GLenum TextureExternal::getTarget() const
 
 }
 
-egl::Image *createBackBuffer(int width, int height, const egl::Config *config)
+egl::Image *createBackBuffer(int width, int height, sw::Format format, int multiSampleDepth)
 {
-	if(config)
+	if(width > es2::IMPLEMENTATION_MAX_RENDERBUFFER_SIZE || height > es2::IMPLEMENTATION_MAX_RENDERBUFFER_SIZE)
 	{
-		return egl::Image::create(width, height, config->mRenderTargetFormat, config->mSamples, false);
+		ERR("Invalid parameters: %dx%d", width, height);
+		return nullptr;
 	}
 
-	return nullptr;
+	return egl::Image::create(width, height, format, multiSampleDepth, false);
 }
 
-egl::Image *createDepthStencil(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool discard)
+egl::Image *createDepthStencil(int width, int height, sw::Format format, int multiSampleDepth)
 {
-	if(width == 0 || height == 0 || height > sw::OUTLINE_RESOLUTION)
+	if(width > es2::IMPLEMENTATION_MAX_RENDERBUFFER_SIZE || height > es2::IMPLEMENTATION_MAX_RENDERBUFFER_SIZE)
 	{
 		ERR("Invalid parameters: %dx%d", width, height);
 		return nullptr;

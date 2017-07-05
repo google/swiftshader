@@ -804,22 +804,23 @@ GLenum TextureExternal::getTarget() const
 
 }
 
-egl::Image *createBackBuffer(int width, int height, const egl::Config *config)
+egl::Image *createBackBuffer(int width, int height, sw::Format format, int multiSampleDepth)
 {
-	if(config)
-	{
-		return egl::Image::create(width, height, config->mRenderTargetFormat, config->mSamples, false);
-	}
-
-	return nullptr;
-}
-
-egl::Image *createDepthStencil(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool discard)
-{
-	if(height > sw::OUTLINE_RESOLUTION)
+	if(width > es1::IMPLEMENTATION_MAX_RENDERBUFFER_SIZE || height > es1::IMPLEMENTATION_MAX_RENDERBUFFER_SIZE)
 	{
 		ERR("Invalid parameters: %dx%d", width, height);
-		return 0;
+		return nullptr;
+	}
+
+	return egl::Image::create(width, height, format, multiSampleDepth, false);
+}
+
+egl::Image *createDepthStencil(int width, int height, sw::Format format, int multiSampleDepth)
+{
+	if(width > es1::IMPLEMENTATION_MAX_RENDERBUFFER_SIZE || height > es1::IMPLEMENTATION_MAX_RENDERBUFFER_SIZE)
+	{
+		ERR("Invalid parameters: %dx%d", width, height);
+		return nullptr;
 	}
 
 	bool lockable = true;

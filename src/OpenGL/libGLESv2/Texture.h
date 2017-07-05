@@ -30,7 +30,6 @@
 #include <vector>
 
 namespace gl { class Surface; }
-namespace egl { class Config; }
 
 namespace es2
 {

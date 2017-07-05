@@ -78,11 +78,11 @@ bool Surface::initialize()
 
 	if(libGLES_CM)
 	{
-		backBuffer = libGLES_CM->createBackBuffer(width, height, config);
+		backBuffer = libGLES_CM->createBackBuffer(width, height, config->mRenderTargetFormat, config->mSamples);
 	}
 	else if(libGLESv2)
 	{
-		backBuffer = libGLESv2->createBackBuffer(width, height, config);
+		backBuffer = libGLESv2->createBackBuffer(width, height, config->mRenderTargetFormat, config->mSamples);
 	}
 
 	if(!backBuffer)
@@ -96,11 +96,11 @@ bool Surface::initialize()
 	{
 		if(libGLES_CM)
 		{
-			depthStencil = libGLES_CM->createDepthStencil(width, height, config->mDepthStencilFormat, config->mSamples, false);
+			depthStencil = libGLES_CM->createDepthStencil(width, height, config->mDepthStencilFormat, config->mSamples);
 		}
 		else if(libGLESv2)
 		{
-			depthStencil = libGLESv2->createDepthStencil(width, height, config->mDepthStencilFormat, config->mSamples, false);
+			depthStencil = libGLESv2->createDepthStencil(width, height, config->mDepthStencilFormat, config->mSamples);
 		}
 
 		if(!depthStencil)

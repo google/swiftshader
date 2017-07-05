@@ -332,8 +332,8 @@ void DrawTexfvOES(const GLfloat *coords);
 
 egl::Context *es1CreateContext(egl::Display *display, const egl::Context *shareContext, const egl::Config *config);
 extern "C" __eglMustCastToProperFunctionPointerType es1GetProcAddress(const char *procname);
-egl::Image *createBackBuffer(int width, int height, const egl::Config *config);
-egl::Image *createDepthStencil(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool discard);
+egl::Image *createBackBuffer(int width, int height, sw::Format format, int multiSampleDepth);
+egl::Image *createDepthStencil(int width, int height, sw::Format format, int multiSampleDepth);
 sw::FrameBuffer *createFrameBuffer(void *nativeDisplay, EGLNativeWindowType window, int width, int height);
 
 extern "C"
