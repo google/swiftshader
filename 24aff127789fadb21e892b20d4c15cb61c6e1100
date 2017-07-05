@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "04435595_accc1a13",
+        "filename": "src/Vulkan/libVulkan/Context.h",
+        "patchSetId": 9
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-07-05T21:48:16Z",
+      "side": 1,
+      "message": "weird alignment",
+      "range": {
+        "startLine": 70,
+        "startChar": 16,
+        "endLine": 70,
+        "endChar": 31
+      },
+      "revId": "24aff127789fadb21e892b20d4c15cb61c6e1100",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c9f18db4_0ffd6082",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 9
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-07-05T21:48:16Z",
+      "side": 1,
+      "message": "Extra tab",
+      "range": {
+        "startLine": 18,
+        "startChar": 0,
+        "endLine": 18,
+        "endChar": 2
+      },
+      "revId": "24aff127789fadb21e892b20d4c15cb61c6e1100",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9bc0a638_ea62e9ae",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 9
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-07-05T21:48:16Z",
+      "side": 1,
+      "message": "extra tabs",
+      "range": {
+        "startLine": 116,
+        "startChar": 0,
+        "endLine": 116,
+        "endChar": 3
+      },
+      "revId": "24aff127789fadb21e892b20d4c15cb61c6e1100",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
