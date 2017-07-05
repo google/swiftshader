@@ -587,11 +587,11 @@ namespace sw
 		::function->translate();
 		assert(!::function->hasError());
 
-		auto *globals = ::function->getGlobalInits().release();
+		auto globals = ::function->getGlobalInits();
 
 		if(globals && !globals->empty())
 		{
-			::context->getGlobals()->merge(globals);
+			::context->getGlobals()->merge(globals.get());
 		}
 
 		::context->emitFileHeader();
