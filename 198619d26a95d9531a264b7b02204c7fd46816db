@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1b3512e2_d12b3f48",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2104,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-07-06T19:45:23Z",
+      "side": 1,
+      "message": "I\u0027m aware of the division here. I\u0027ll add invWidth, invHeight, invDepth to the Mipmap structure once the refactoring is completed, if necessary. Offset is an ES3 only feature, so I\u0027m not too worried about slowing it down now.",
+      "range": {
+        "startLine": 2104,
+        "startChar": 76,
+        "endLine": 2104,
+        "endChar": 77
+      },
+      "revId": "198619d26a95d9531a264b7b02204c7fd46816db",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
