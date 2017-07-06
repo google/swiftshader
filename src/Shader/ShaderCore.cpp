@@ -978,10 +978,10 @@ namespace sw
 
 	void ShaderCore::log2(Vector4f &dst, const Vector4f &src, bool pp)
 	{
-		dst.x = logarithm2(src.x, pp);
-		dst.y = logarithm2(src.y, pp);
-		dst.z = logarithm2(src.z, pp);
-		dst.w = logarithm2(src.w, pp);
+		dst.x = logarithm2(src.x, false, pp);
+		dst.y = logarithm2(src.y, false, pp);
+		dst.z = logarithm2(src.z, false, pp);
+		dst.w = logarithm2(src.w, false, pp);
 	}
 
 	void ShaderCore::log(Vector4f &dst, const Vector4f &src, bool pp)
