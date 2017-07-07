@@ -1406,6 +1406,16 @@ namespace sw
 		}
 	}
 
+	Float SamplerCore::log2sqrt(Float lod)
+	{
+		// log2(sqrt(lod))                               // Equals 0.25 * log2(lod^2).
+		lod *= lod;                                      // Squaring doubles the exponent and produces an extra bit of precision.
+		lod = Float(As<Int>(lod)) - Float(0x3F800000);   // Interpret as integer and subtract the exponent bias.
+		lod *= As<Float>(Int(0x33000000));               // Scale by 0.25 * 2^-23 (mantissa length).
+
+		return lod;
+	}
+
 	void SamplerCore::computeLod(Pointer<Byte> &texture, Float &lod, Float &anisotropy, Float4 &uDelta, Float4 &vDelta, Float4 &uuuu, Float4 &vvvv, const Float &lodBias, Vector4f &dsx, Vector4f &dsy, SamplerFunction function)
 	{
 		if(function != Lod && function != Fetch)
@@ -1451,10 +1461,7 @@ namespace sw
 				lod *= Rcp_pp(anisotropy * anisotropy);
 			}
 
-			// log2(sqrt(lod))
-			lod = Float(As<Int>(lod));
-			lod -= Float(0x3F800000);
-			lod *= As<Float>(Int(0x33800000));
+			lod = log2sqrt(lod);   // log2(sqrt(lod))
 
 			if(function == Bias)
 			{
@@ -1510,10 +1517,7 @@ namespace sw
 				lod = Max(Float(dUV2.x), Float(dUV2.y));   // Square length of major axis
 			}
 
-			// log2(sqrt(lod))
-			lod = Float(As<Int>(lod));
-			lod -= Float(0x3F800000);
-			lod *= As<Float>(Int(0x33800000));
+			lod = log2sqrt(lod);   // log2(sqrt(lod))
 
 			if(function == Bias)
 			{
@@ -1577,10 +1581,7 @@ namespace sw
 
 				lod = Max(Float(dudxy.x), Float(dudxy.y));   // FIXME: Max(dudxy.x, dudxy.y);
 
-				// log2(sqrt(lod))
-				lod = Float(As<Int>(lod));
-				lod -= Float(0x3F800000);
-				lod *= As<Float>(Int(0x33800000));
+				lod = log2sqrt(lod);   // log2(sqrt(lod))
 
 				if(function == Bias)
 				{
