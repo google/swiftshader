@@ -95,6 +95,30 @@
     },
     {
       "key": {
+        "uuid": "eb178d9f_3e0c4df0",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2104,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-07-07T15:09:19Z",
+      "side": 1,
+      "message": "Agreed and I\u0027m aware of this. I do intend to apply the offset after multiplication here, this is an intermediate state. I don\u0027t think we need the texture coordinates in the [0,1] space passed this function, so I do intend to return coordinates in the [0,dimension] space, but that will require a larger refactor.",
+      "parentUuid": "ae0aadf2_6cb532cc",
+      "range": {
+        "startLine": 2104,
+        "startChar": 76,
+        "endLine": 2104,
+        "endChar": 77
+      },
+      "revId": "198619d26a95d9531a264b7b02204c7fd46816db",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7cb174cc_e330e055",
         "filename": "src/Shader/SamplerCore.cpp",
         "patchSetId": 1
@@ -106,6 +130,30 @@
       "writtenOn": "2017-07-07T14:59:40Z",
       "side": 1,
       "message": "Should probably use the value that is exactly one bit below 1.0f. Same for the ones below.",
+      "range": {
+        "startLine": 2108,
+        "startChar": 45,
+        "endLine": 2108,
+        "endChar": 53
+      },
+      "revId": "198619d26a95d9531a264b7b02204c7fd46816db",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "79f8cd7d_6b516f9b",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2108,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-07-07T15:09:19Z",
+      "side": 1,
+      "message": "This would cause tests to fail. Frac(1.0f) \u003d\u003d 0.0f.",
+      "parentUuid": "7cb174cc_e330e055",
       "range": {
         "startLine": 2108,
         "startChar": 45,
@@ -141,6 +189,30 @@
     },
     {
       "key": {
+        "uuid": "62928b22_48d646f2",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2120,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-07-07T15:09:19Z",
+      "side": 1,
+      "message": "Yes, the Frac() call here isn\u0027t strictly necessary here, but I do need to if I want address to return a Float4 value, so I put it here for benchmarking purposes.",
+      "parentUuid": "12cf9600_5706b878",
+      "range": {
+        "startLine": 2120,
+        "startChar": 10,
+        "endLine": 2120,
+        "endChar": 14
+      },
+      "revId": "198619d26a95d9531a264b7b02204c7fd46816db",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "dd05f1d4_8ba118c3",
         "filename": "src/Shader/SamplerCore.cpp",
         "patchSetId": 1
@@ -152,6 +224,30 @@
       "writtenOn": "2017-07-07T14:59:40Z",
       "side": 1,
       "message": "I think we might need a Floor() here as well to make sure the values clamped to just below 1.0 don\u0027t get rounded up to 1.0. Note that we don\u0027t need it when Frac() was applied.",
+      "range": {
+        "startLine": 2123,
+        "startChar": 17,
+        "endLine": 2123,
+        "endChar": 21
+      },
+      "revId": "198619d26a95d9531a264b7b02204c7fd46816db",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4d73674d_35dac2d4",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2123,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-07-07T15:09:19Z",
+      "side": 1,
+      "message": "Doesn\u0027t converting a positive floating point value to integer automatically floors it?",
+      "parentUuid": "dd05f1d4_8ba118c3",
       "range": {
         "startLine": 2123,
         "startChar": 17,
