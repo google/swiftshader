@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "95adc4fc_d155ac14",
+        "filename": "tests/VulkanHelloTriangle/main.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-07-07T14:48:08Z",
+      "side": 1,
+      "message": "Maybe just don\u0027t print anything for now?",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 5,
+        "endChar": 32
+      },
+      "revId": "e3616c9041c23fdc9e0a6dfc9726c64cd6502f24",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
