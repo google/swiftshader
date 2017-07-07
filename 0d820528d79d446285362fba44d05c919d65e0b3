@@ -22,6 +22,30 @@
       "revId": "0d820528d79d446285362fba44d05c919d65e0b3",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e2fa293c_a8750726",
+        "filename": "src/Common/Memory.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-07-07T12:52:34Z",
+      "side": 1,
+      "message": "Not really. This change only affects allocation of buffers used by Renderer (and Renderer and Context themselves), so it\u0027s a one-time cost. Surfaces were already zero cleared and are much larger and more frequently allocated/deallocated. Also note that Renderer\u0027s buffers get written many many times during draw calls, so one more wipe isn\u0027t going to be significant.\n\nAlso, if we ever have real issues caused by reading values that weren\u0027t written before, it\u0027s going to be well worth getting deterministic behavior.",
+      "parentUuid": "29d66e48_a4fb13e8",
+      "range": {
+        "startLine": 89,
+        "startChar": 0,
+        "endLine": 89,
+        "endChar": 27
+      },
+      "revId": "0d820528d79d446285362fba44d05c919d65e0b3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
