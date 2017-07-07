@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "29d66e48_a4fb13e8",
+        "filename": "src/Common/Memory.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-07-07T11:18:04Z",
+      "side": 1,
+      "message": "Isn\u0027t this going to be costly?",
+      "range": {
+        "startLine": 89,
+        "startChar": 0,
+        "endLine": 89,
+        "endChar": 27
+      },
+      "revId": "0d820528d79d446285362fba44d05c919d65e0b3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
