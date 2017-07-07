@@ -39,22 +39,31 @@ static sw::Thread::LocalStorageKey currentTLS = TLS_OUT_OF_INDEXES;
 
 namespace egl
 {
-void attachThread()
+Current *attachThread()
 {
 	TRACE("()");
 
-	Current *current = new Current;
-
-	if(current)
+	if(currentTLS == TLS_OUT_OF_INDEXES)
 	{
-		sw::Thread::setLocalStorage(currentTLS, current);
-
-		current->error = EGL_SUCCESS;
-		current->API = EGL_OPENGL_ES_API;
-		current->context = nullptr;
-		current->drawSurface = nullptr;
-		current->readSurface = nullptr;
+		currentTLS = sw::Thread::allocateLocalStorageKey();
 	}
+
+	Current *current = (Current*)sw::Thread::getLocalStorage(currentTLS);
+
+	if(!current)
+	{
+		current = new Current;
+
+		sw::Thread::setLocalStorage(currentTLS, current);
+	}
+
+	current->error = EGL_SUCCESS;
+	current->API = EGL_OPENGL_ES_API;
+	current->context = nullptr;
+	current->drawSurface = nullptr;
+	current->readSurface = nullptr;
+
+	return current;
 }
 
 void detachThread()
@@ -81,13 +90,6 @@ CONSTRUCTOR void attachProcess()
 			fclose(debug);
 		}
 	#endif
-
-	currentTLS = sw::Thread::allocateLocalStorageKey();
-
-	if(currentTLS == TLS_OUT_OF_INDEXES)
-	{
-		return;
-	}
 
 	attachThread();
 }
@@ -176,10 +178,10 @@ static Current *getCurrent(void)
 
 	if(!current)
 	{
-		attachThread();
+		current = attachThread();
 	}
 
-	return (Current*)sw::Thread::getLocalStorage(currentTLS);
+	return current;
 }
 
 void setCurrentError(EGLint error)
