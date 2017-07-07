@@ -2,6 +2,52 @@
   "comments": [
     {
       "key": {
+        "uuid": "b1bd768a_e72a0154",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2088,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-07-07T14:59:40Z",
+      "side": 1,
+      "message": "nit: Let\u0027s move this toward the end of the argument list like we do with the other methods that take \u0027addressingMode\u0027 and \u0027function\u0027.",
+      "range": {
+        "startLine": 2088,
+        "startChar": 56,
+        "endLine": 2088,
+        "endChar": 70
+      },
+      "revId": "198619d26a95d9531a264b7b02204c7fd46816db",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fe10fe79_ba90bb3c",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2088,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-07-07T14:59:40Z",
+      "side": 1,
+      "message": "nit: This is slightly confusing since we already have an \u0027offset\u0027 parameter.",
+      "range": {
+        "startLine": 2088,
+        "startChar": 141,
+        "endLine": 2088,
+        "endChar": 150
+      },
+      "revId": "198619d26a95d9531a264b7b02204c7fd46816db",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1b3512e2_d12b3f48",
         "filename": "src/Shader/SamplerCore.cpp",
         "patchSetId": 1
@@ -18,6 +64,99 @@
         "startChar": 76,
         "endLine": 2104,
         "endChar": 77
+      },
+      "revId": "198619d26a95d9531a264b7b02204c7fd46816db",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ae0aadf2_6cb532cc",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2104,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-07-07T14:59:40Z",
+      "side": 1,
+      "message": "I don\u0027t think this is a good approach. The offsets should be applied after multiplication by the dimension, to ensure that they\u0027re exact integer steps in texel coordinate space. This change would add the the offset in normalized texcoord space, by dividing and then afterwards multiplying by the same amount, but there is going to be loss of precision.\n\nIt might be possible to fix this by multiplying by the dimension within this method so the output is unnormalized floating-point. Note that since computeIndices() produces scalar results, it seems like we could do the 32-bit integer multiplication in scalar with little or no loss of performance.",
+      "parentUuid": "1b3512e2_d12b3f48",
+      "range": {
+        "startLine": 2104,
+        "startChar": 76,
+        "endLine": 2104,
+        "endChar": 77
+      },
+      "revId": "198619d26a95d9531a264b7b02204c7fd46816db",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7cb174cc_e330e055",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2108,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-07-07T14:59:40Z",
+      "side": 1,
+      "message": "Should probably use the value that is exactly one bit below 1.0f. Same for the ones below.",
+      "range": {
+        "startLine": 2108,
+        "startChar": 45,
+        "endLine": 2108,
+        "endChar": 53
+      },
+      "revId": "198619d26a95d9531a264b7b02204c7fd46816db",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "12cf9600_5706b878",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2120,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-07-07T14:59:40Z",
+      "side": 1,
+      "message": "FYI this is really fast with SSE 4.1 (introduced 10 years ago), and still acceptable without.",
+      "range": {
+        "startLine": 2120,
+        "startChar": 10,
+        "endLine": 2120,
+        "endChar": 14
+      },
+      "revId": "198619d26a95d9531a264b7b02204c7fd46816db",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "dd05f1d4_8ba118c3",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2123,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-07-07T14:59:40Z",
+      "side": 1,
+      "message": "I think we might need a Floor() here as well to make sure the values clamped to just below 1.0 don\u0027t get rounded up to 1.0. Note that we don\u0027t need it when Frac() was applied.",
+      "range": {
+        "startLine": 2123,
+        "startChar": 17,
+        "endLine": 2123,
+        "endChar": 21
       },
       "revId": "198619d26a95d9531a264b7b02204c7fd46816db",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
