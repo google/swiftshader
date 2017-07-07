@@ -26,7 +26,7 @@ namespace sw
 		count = 0;
 		orphaned = false;
 
-		buffer = allocateZero(bytes);
+		buffer = allocate(bytes);
 	}
 
 	Resource::~Resource()

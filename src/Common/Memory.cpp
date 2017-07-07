@@ -32,8 +32,6 @@
 
 #undef allocate
 #undef deallocate
-#undef allocateZero
-#undef deallocateZero
 
 #if (defined(__i386__) || defined(_M_IX86) || defined(__x86_64__) || defined (_M_X64)) && !defined(__x86__)
 #define __x86__
@@ -65,10 +63,10 @@ struct Allocation
 	unsigned char *block;
 };
 
-void *allocate(size_t bytes, size_t alignment)
+inline void *allocateRaw(size_t bytes, size_t alignment)
 {
 	unsigned char *block = new unsigned char[bytes + sizeof(Allocation) + alignment];
-	unsigned char *aligned = 0;
+	unsigned char *aligned = nullptr;
 
 	if(block)
 	{
@@ -82,9 +80,9 @@ void *allocate(size_t bytes, size_t alignment)
 	return aligned;
 }
 
-void *allocateZero(size_t bytes, size_t alignment)
+void *allocate(size_t bytes, size_t alignment)
 {
-	void *memory = allocate(bytes, alignment);
+	void *memory = allocateRaw(bytes, alignment);
 
 	if(memory)
 	{

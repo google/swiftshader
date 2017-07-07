@@ -3116,7 +3116,7 @@ namespace sw
 		// FIXME: Unpacking byte4 to short4 in the sampler currently involves reading 8 bytes,
 		// and stencil operations also read 8 bytes per four 8-bit stencil values,
 		// so we have to allocate 4 extra bytes to avoid buffer overruns.
-		return allocateZero(size(width2, height2, depth, format) + 4);
+		return allocate(size(width2, height2, depth, format) + 4);
 	}
 
 	void Surface::memfill4(void *buffer, int pattern, int bytes)
