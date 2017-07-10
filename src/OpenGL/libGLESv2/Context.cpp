@@ -245,6 +245,11 @@ Context::~Context()
 	mState.pixelPackBuffer = nullptr;
 	mState.pixelUnpackBuffer = nullptr;
 	mState.genericUniformBuffer = nullptr;
+
+	for(int i = 0; i < MAX_UNIFORM_BUFFER_BINDINGS; i++) {
+		mState.uniformBuffers[i].set(nullptr, 0, 0);
+	}
+
 	mState.renderbuffer = nullptr;
 
 	for(int i = 0; i < MAX_COMBINED_TEXTURE_IMAGE_UNITS; ++i)
