@@ -20,6 +20,7 @@
 #define gl_Object_hpp
 
 #include "common/debug.h"
+#include "Common/MutexLock.hpp"
 
 #include <set>
 
@@ -51,6 +52,7 @@ protected:
 
 #ifndef NDEBUG
 public:
+	static sw::MutexLock instances_mutex;
 	static std::set<Object*> instances;   // For leak checking
 #endif
 };
