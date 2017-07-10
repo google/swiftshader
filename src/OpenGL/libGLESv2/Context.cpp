@@ -2981,9 +2981,9 @@ void Context::applyShaders()
 		mAppliedProgramSerial = programObject->getSerial();
 	}
 
-	programObject->applyTransformFeedback(getTransformFeedback());
-	programObject->applyUniformBuffers(mState.uniformBuffers);
-	programObject->applyUniforms();
+	programObject->applyTransformFeedback(device, getTransformFeedback());
+	programObject->applyUniformBuffers(device, mState.uniformBuffers);
+	programObject->applyUniforms(device);
 }
 
 void Context::applyTextures()

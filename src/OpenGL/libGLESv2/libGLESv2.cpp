@@ -5970,7 +5970,7 @@ void ValidateProgram(GLuint program)
 			}
 		}
 
-		programObject->validate();
+		programObject->validate(context->getDevice());
 	}
 }
 

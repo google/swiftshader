@@ -172,9 +172,9 @@ namespace es2
 		bool getUniformuiv(GLint location, GLsizei *bufSize, GLuint *params);
 
 		void dirtyAllUniforms();
-		void applyUniforms();
-		void applyUniformBuffers(BufferBinding* uniformBuffers);
-		void applyTransformFeedback(TransformFeedback* transformFeedback);
+		void applyUniforms(Device *device);
+		void applyUniformBuffers(Device *device, BufferBinding* uniformBuffers);
+		void applyTransformFeedback(Device *device, TransformFeedback* transformFeedback);
 
 		void link();
 		bool isLinked() const;
@@ -207,7 +207,7 @@ namespace es2
 		void flagForDeletion();
 		bool isFlaggedForDeletion() const;
 
-		void validate();
+		void validate(Device* device);
 		bool validateSamplers(bool logErrors);
 		bool isValidated() const;
 
@@ -232,32 +232,32 @@ namespace es2
 		bool areMatchingUniformBlocks(const glsl::UniformBlock &block1, const glsl::UniformBlock &block2, const Shader *shader1, const Shader *shader2);
 		bool defineUniform(GLenum shader, GLenum type, GLenum precision, const std::string &_name, unsigned int arraySize, int registerIndex, const Uniform::BlockInfo& blockInfo);
 		bool defineUniformBlock(const Shader *shader, const glsl::UniformBlock &block);
-		bool applyUniform(GLint location, float* data);
-		bool applyUniform1bv(GLint location, GLsizei count, const GLboolean *v);
-		bool applyUniform2bv(GLint location, GLsizei count, const GLboolean *v);
-		bool applyUniform3bv(GLint location, GLsizei count, const GLboolean *v);
-		bool applyUniform4bv(GLint location, GLsizei count, const GLboolean *v);
-		bool applyUniform1fv(GLint location, GLsizei count, const GLfloat *v);
-		bool applyUniform2fv(GLint location, GLsizei count, const GLfloat *v);
-		bool applyUniform3fv(GLint location, GLsizei count, const GLfloat *v);
-		bool applyUniform4fv(GLint location, GLsizei count, const GLfloat *v);
-		bool applyUniformMatrix2fv(GLint location, GLsizei count, const GLfloat *value);
-		bool applyUniformMatrix2x3fv(GLint location, GLsizei count, const GLfloat *value);
-		bool applyUniformMatrix2x4fv(GLint location, GLsizei count, const GLfloat *value);
-		bool applyUniformMatrix3fv(GLint location, GLsizei count, const GLfloat *value);
-		bool applyUniformMatrix3x2fv(GLint location, GLsizei count, const GLfloat *value);
-		bool applyUniformMatrix3x4fv(GLint location, GLsizei count, const GLfloat *value);
-		bool applyUniformMatrix4fv(GLint location, GLsizei count, const GLfloat *value);
-		bool applyUniformMatrix4x2fv(GLint location, GLsizei count, const GLfloat *value);
-		bool applyUniformMatrix4x3fv(GLint location, GLsizei count, const GLfloat *value);
-		bool applyUniform1iv(GLint location, GLsizei count, const GLint *v);
-		bool applyUniform2iv(GLint location, GLsizei count, const GLint *v);
-		bool applyUniform3iv(GLint location, GLsizei count, const GLint *v);
-		bool applyUniform4iv(GLint location, GLsizei count, const GLint *v);
-		bool applyUniform1uiv(GLint location, GLsizei count, const GLuint *v);
-		bool applyUniform2uiv(GLint location, GLsizei count, const GLuint *v);
-		bool applyUniform3uiv(GLint location, GLsizei count, const GLuint *v);
-		bool applyUniform4uiv(GLint location, GLsizei count, const GLuint *v);
+		bool applyUniform(Device *device, GLint location, float* data);
+		bool applyUniform1bv(Device *device, GLint location, GLsizei count, const GLboolean *v);
+		bool applyUniform2bv(Device *device, GLint location, GLsizei count, const GLboolean *v);
+		bool applyUniform3bv(Device *device, GLint location, GLsizei count, const GLboolean *v);
+		bool applyUniform4bv(Device *device, GLint location, GLsizei count, const GLboolean *v);
+		bool applyUniform1fv(Device *device, GLint location, GLsizei count, const GLfloat *v);
+		bool applyUniform2fv(Device *device, GLint location, GLsizei count, const GLfloat *v);
+		bool applyUniform3fv(Device *device, GLint location, GLsizei count, const GLfloat *v);
+		bool applyUniform4fv(Device *device, GLint location, GLsizei count, const GLfloat *v);
+		bool applyUniformMatrix2fv(Device *device, GLint location, GLsizei count, const GLfloat *value);
+		bool applyUniformMatrix2x3fv(Device *device, GLint location, GLsizei count, const GLfloat *value);
+		bool applyUniformMatrix2x4fv(Device *device, GLint location, GLsizei count, const GLfloat *value);
+		bool applyUniformMatrix3fv(Device *device, GLint location, GLsizei count, const GLfloat *value);
+		bool applyUniformMatrix3x2fv(Device *device, GLint location, GLsizei count, const GLfloat *value);
+		bool applyUniformMatrix3x4fv(Device *device, GLint location, GLsizei count, const GLfloat *value);
+		bool applyUniformMatrix4fv(Device *device, GLint location, GLsizei count, const GLfloat *value);
+		bool applyUniformMatrix4x2fv(Device *device, GLint location, GLsizei count, const GLfloat *value);
+		bool applyUniformMatrix4x3fv(Device *device, GLint location, GLsizei count, const GLfloat *value);
+		bool applyUniform1iv(Device *device, GLint location, GLsizei count, const GLint *v);
+		bool applyUniform2iv(Device *device, GLint location, GLsizei count, const GLint *v);
+		bool applyUniform3iv(Device *device, GLint location, GLsizei count, const GLint *v);
+		bool applyUniform4iv(Device *device, GLint location, GLsizei count, const GLint *v);
+		bool applyUniform1uiv(Device *device, GLint location, GLsizei count, const GLuint *v);
+		bool applyUniform2uiv(Device *device, GLint location, GLsizei count, const GLuint *v);
+		bool applyUniform3uiv(Device *device, GLint location, GLsizei count, const GLuint *v);
+		bool applyUniform4uiv(Device *device, GLint location, GLsizei count, const GLuint *v);
 
 		bool setUniformfv(GLint location, GLsizei count, const GLfloat *v, int numElements);
 		bool setUniformMatrixfv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value, GLenum type);
@@ -270,7 +270,6 @@ namespace es2
 		static unsigned int issueSerial();
 
 	private:
-		es2::Device *device;
 		FragmentShader *fragmentShader;
 		VertexShader *vertexShader;
 
