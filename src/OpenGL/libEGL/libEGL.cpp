@@ -862,7 +862,14 @@ EGLDisplay GetCurrentDisplay(void)
 		return success(EGL_NO_DISPLAY);
 	}
 
-	return success(context->getDisplay());
+	egl::Display *display = context->getDisplay();
+
+	if(!display)
+	{
+		return error(EGL_BAD_ACCESS, EGL_NO_DISPLAY);
+	}
+
+	return success(display->getEGLDisplay());
 }
 
 EGLBoolean QueryContext(EGLDisplay dpy, EGLContext ctx, EGLint attribute, EGLint *value)

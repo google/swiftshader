@@ -38,7 +38,7 @@ namespace egl
 	class [[clang::lto_visibility_public]] Display
 	{
 	protected:
-		explicit Display(void *nativeDisplay);
+		explicit Display(EGLDisplay eglDisplay, void *nativeDisplay);
 		virtual ~Display() = 0;
 
 	public:
@@ -70,6 +70,7 @@ namespace egl
 		EGLint getMinSwapInterval() const;
 		EGLint getMaxSwapInterval() const;
 
+		EGLDisplay getEGLDisplay() const;
 		void *getNativeDisplay() const;
 
 		EGLImageKHR createSharedImage(Image *image);
@@ -79,6 +80,7 @@ namespace egl
 	private:
 		sw::Format getDisplayFormat() const;
 
+		const EGLDisplay eglDisplay;
 		void *const nativeDisplay;
 
 		EGLint mMaxSwapInterval;

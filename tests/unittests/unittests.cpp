@@ -117,7 +117,7 @@ TEST_F(SwiftShaderTest, Initalization)
 
 	EGLContext context = eglCreateContext(display, config, NULL, contextAttributes);
 	EXPECT_EQ(EGL_SUCCESS, eglGetError());
-	EXPECT_NE(EGL_NO_SURFACE, surface);
+	EXPECT_NE(EGL_NO_CONTEXT, context);
 
 	success = eglMakeCurrent(display, surface, surface, context);
 	EXPECT_EQ(EGL_SUCCESS, eglGetError());
@@ -125,19 +125,19 @@ TEST_F(SwiftShaderTest, Initalization)
 
 	EGLDisplay currentDisplay = eglGetCurrentDisplay();
 	EXPECT_EQ(EGL_SUCCESS, eglGetError());
-	EXPECT_NE(EGL_NO_DISPLAY, currentDisplay);
+	EXPECT_EQ(display, currentDisplay);
 
 	EGLSurface currentDrawSurface = eglGetCurrentSurface(EGL_DRAW);
 	EXPECT_EQ(EGL_SUCCESS, eglGetError());
-	EXPECT_NE(EGL_NO_SURFACE, currentDrawSurface);
+	EXPECT_EQ(surface, currentDrawSurface);
 
 	EGLSurface currentReadSurface = eglGetCurrentSurface(EGL_READ);
 	EXPECT_EQ(EGL_SUCCESS, eglGetError());
-	EXPECT_NE(EGL_NO_SURFACE, currentReadSurface);
+	EXPECT_EQ(surface, currentReadSurface);
 
 	EGLContext currentContext = eglGetCurrentContext();
 	EXPECT_EQ(EGL_SUCCESS, eglGetError());
-	EXPECT_NE(EGL_NO_CONTEXT, currentContext);
+	EXPECT_EQ(context, currentContext);
 
 	EXPECT_EQ((GLenum)GL_NO_ERROR, glGetError());
 
