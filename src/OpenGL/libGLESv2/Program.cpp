@@ -151,8 +151,6 @@ namespace es2
 
 	Program::Program(ResourceManager *manager, GLuint handle) : serial(issueSerial()), resourceManager(manager), handle(handle)
 	{
-		device = getDevice();
-
 		fragmentShader = 0;
 		vertexShader = 0;
 		pixelBinary = 0;
@@ -1064,7 +1062,7 @@ namespace es2
 	}
 
 	// Applies all the uniforms set for this program object to the device
-	void Program::applyUniforms()
+	void Program::applyUniforms(Device *device)
 	{
 		GLint numUniforms = static_cast<GLint>(uniformIndex.size());
 		for(GLint location = 0; location < numUniforms; location++)
@@ -1086,23 +1084,23 @@ namespace es2
 
 				switch(targetUniform->type)
 				{
-				case GL_BOOL:       applyUniform1bv(location, size, b);       break;
-				case GL_BOOL_VEC2:  applyUniform2bv(location, size, b);       break;
-				case GL_BOOL_VEC3:  applyUniform3bv(location, size, b);       break;
-				case GL_BOOL_VEC4:  applyUniform4bv(location, size, b);       break;
-				case GL_FLOAT:      applyUniform1fv(location, size, f);       break;
-				case GL_FLOAT_VEC2: applyUniform2fv(location, size, f);       break;
-				case GL_FLOAT_VEC3: applyUniform3fv(location, size, f);       break;
-				case GL_FLOAT_VEC4: applyUniform4fv(location, size, f);       break;
-				case GL_FLOAT_MAT2:   applyUniformMatrix2fv(location, size, f);   break;
-				case GL_FLOAT_MAT2x3: applyUniformMatrix2x3fv(location, size, f); break;
-				case GL_FLOAT_MAT2x4: applyUniformMatrix2x4fv(location, size, f); break;
-				case GL_FLOAT_MAT3x2: applyUniformMatrix3x2fv(location, size, f); break;
-				case GL_FLOAT_MAT3:   applyUniformMatrix3fv(location, size, f);   break;
-				case GL_FLOAT_MAT3x4: applyUniformMatrix3x4fv(location, size, f); break;
-				case GL_FLOAT_MAT4x2: applyUniformMatrix4x2fv(location, size, f); break;
-				case GL_FLOAT_MAT4x3: applyUniformMatrix4x3fv(location, size, f); break;
-				case GL_FLOAT_MAT4:   applyUniformMatrix4fv(location, size, f);   break;
+				case GL_BOOL:       applyUniform1bv(device, location, size, b);       break;
+				case GL_BOOL_VEC2:  applyUniform2bv(device, location, size, b);       break;
+				case GL_BOOL_VEC3:  applyUniform3bv(device, location, size, b);       break;
+				case GL_BOOL_VEC4:  applyUniform4bv(device, location, size, b);       break;
+				case GL_FLOAT:      applyUniform1fv(device, location, size, f);       break;
+				case GL_FLOAT_VEC2: applyUniform2fv(device, location, size, f);       break;
+				case GL_FLOAT_VEC3: applyUniform3fv(device, location, size, f);       break;
+				case GL_FLOAT_VEC4: applyUniform4fv(device, location, size, f);       break;
+				case GL_FLOAT_MAT2:   applyUniformMatrix2fv(device, location, size, f);   break;
+				case GL_FLOAT_MAT2x3: applyUniformMatrix2x3fv(device, location, size, f); break;
+				case GL_FLOAT_MAT2x4: applyUniformMatrix2x4fv(device, location, size, f); break;
+				case GL_FLOAT_MAT3x2: applyUniformMatrix3x2fv(device, location, size, f); break;
+				case GL_FLOAT_MAT3:   applyUniformMatrix3fv(device, location, size, f);   break;
+				case GL_FLOAT_MAT3x4: applyUniformMatrix3x4fv(device, location, size, f); break;
+				case GL_FLOAT_MAT4x2: applyUniformMatrix4x2fv(device, location, size, f); break;
+				case GL_FLOAT_MAT4x3: applyUniformMatrix4x3fv(device, location, size, f); break;
+				case GL_FLOAT_MAT4:   applyUniformMatrix4fv(device, location, size, f);   break;
 				case GL_SAMPLER_2D:
 				case GL_SAMPLER_CUBE:
 				case GL_SAMPLER_EXTERNAL_OES:
@@ -1119,14 +1117,14 @@ namespace es2
 				case GL_UNSIGNED_INT_SAMPLER_3D:
 				case GL_INT_SAMPLER_2D_ARRAY:
 				case GL_UNSIGNED_INT_SAMPLER_2D_ARRAY:
-				case GL_INT:        applyUniform1iv(location, size, i);       break;
-				case GL_INT_VEC2:   applyUniform2iv(location, size, i);       break;
-				case GL_INT_VEC3:   applyUniform3iv(location, size, i);       break;
-				case GL_INT_VEC4:   applyUniform4iv(location, size, i);       break;
-				case GL_UNSIGNED_INT:      applyUniform1uiv(location, size, ui); break;
-				case GL_UNSIGNED_INT_VEC2: applyUniform2uiv(location, size, ui); break;
-				case GL_UNSIGNED_INT_VEC3: applyUniform3uiv(location, size, ui); break;
-				case GL_UNSIGNED_INT_VEC4: applyUniform4uiv(location, size, ui); break;
+				case GL_INT:        applyUniform1iv(device, location, size, i);       break;
+				case GL_INT_VEC2:   applyUniform2iv(device, location, size, i);       break;
+				case GL_INT_VEC3:   applyUniform3iv(device, location, size, i);       break;
+				case GL_INT_VEC4:   applyUniform4iv(device, location, size, i);       break;
+				case GL_UNSIGNED_INT:      applyUniform1uiv(device, location, size, ui); break;
+				case GL_UNSIGNED_INT_VEC2: applyUniform2uiv(device, location, size, ui); break;
+				case GL_UNSIGNED_INT_VEC3: applyUniform3uiv(device, location, size, ui); break;
+				case GL_UNSIGNED_INT_VEC4: applyUniform4uiv(device, location, size, ui); break;
 				default:
 					UNREACHABLE(targetUniform->type);
 				}
@@ -1136,7 +1134,7 @@ namespace es2
 		}
 	}
 
-	void Program::applyUniformBuffers(BufferBinding* uniformBuffers)
+	void Program::applyUniformBuffers(Device *device, BufferBinding* uniformBuffers)
 	{
 		GLint vertexUniformBuffers[MAX_UNIFORM_BUFFER_BINDINGS];
 		GLint fragmentUniformBuffers[MAX_UNIFORM_BUFFER_BINDINGS];
@@ -1189,7 +1187,7 @@ namespace es2
 		}
 	}
 
-	void Program::applyTransformFeedback(TransformFeedback* transformFeedback)
+	void Program::applyTransformFeedback(Device *device, TransformFeedback* transformFeedback)
 	{
 		// Make sure the flags will fit in a 64 bit unsigned int variable
 		ASSERT(sw::max<int>(MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS, sw::MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS) <= 64);
@@ -1930,7 +1928,7 @@ namespace es2
 		return true;
 	}
 
-	bool Program::applyUniform(GLint location, float* data)
+	bool Program::applyUniform(Device *device, GLint location, float* data)
 	{
 		Uniform *targetUniform = uniforms[uniformIndex[location].index];
 
@@ -1947,7 +1945,7 @@ namespace es2
 		return true;
 	}
 
-	bool Program::applyUniform1bv(GLint location, GLsizei count, const GLboolean *v)
+	bool Program::applyUniform1bv(Device *device, GLint location, GLsizei count, const GLboolean *v)
 	{
 		int vector[MAX_UNIFORM_VECTORS][4];
 
@@ -1961,10 +1959,10 @@ namespace es2
 			v += 1;
 		}
 
-		return applyUniform(location, (float*)vector);
+		return applyUniform(device, location, (float*)vector);
 	}
 
-	bool Program::applyUniform2bv(GLint location, GLsizei count, const GLboolean *v)
+	bool Program::applyUniform2bv(Device *device, GLint location, GLsizei count, const GLboolean *v)
 	{
 		int vector[MAX_UNIFORM_VECTORS][4];
 
@@ -1978,10 +1976,10 @@ namespace es2
 			v += 2;
 		}
 
-		return applyUniform(location, (float*)vector);
+		return applyUniform(device, location, (float*)vector);
 	}
 
-	bool Program::applyUniform3bv(GLint location, GLsizei count, const GLboolean *v)
+	bool Program::applyUniform3bv(Device *device, GLint location, GLsizei count, const GLboolean *v)
 	{
 		int vector[MAX_UNIFORM_VECTORS][4];
 
@@ -1995,10 +1993,10 @@ namespace es2
 			v += 3;
 		}
 
-		return applyUniform(location, (float*)vector);
+		return applyUniform(device, location, (float*)vector);
 	}
 
-	bool Program::applyUniform4bv(GLint location, GLsizei count, const GLboolean *v)
+	bool Program::applyUniform4bv(Device *device, GLint location, GLsizei count, const GLboolean *v)
 	{
 		int vector[MAX_UNIFORM_VECTORS][4];
 
@@ -2012,10 +2010,10 @@ namespace es2
 			v += 4;
 		}
 
-		return applyUniform(location, (float*)vector);
+		return applyUniform(device, location, (float*)vector);
 	}
 
-	bool Program::applyUniform1fv(GLint location, GLsizei count, const GLfloat *v)
+	bool Program::applyUniform1fv(Device *device, GLint location, GLsizei count, const GLfloat *v)
 	{
 		float vector[MAX_UNIFORM_VECTORS][4];
 
@@ -2029,10 +2027,10 @@ namespace es2
 			v += 1;
 		}
 
-		return applyUniform(location, (float*)vector);
+		return applyUniform(device, location, (float*)vector);
 	}
 
-	bool Program::applyUniform2fv(GLint location, GLsizei count, const GLfloat *v)
+	bool Program::applyUniform2fv(Device *device, GLint location, GLsizei count, const GLfloat *v)
 	{
 		float vector[MAX_UNIFORM_VECTORS][4];
 
@@ -2046,10 +2044,10 @@ namespace es2
 			v += 2;
 		}
 
-		return applyUniform(location, (float*)vector);
+		return applyUniform(device, location, (float*)vector);
 	}
 
-	bool Program::applyUniform3fv(GLint location, GLsizei count, const GLfloat *v)
+	bool Program::applyUniform3fv(Device *device, GLint location, GLsizei count, const GLfloat *v)
 	{
 		float vector[MAX_UNIFORM_VECTORS][4];
 
@@ -2063,15 +2061,15 @@ namespace es2
 			v += 3;
 		}
 
-		return applyUniform(location, (float*)vector);
+		return applyUniform(device, location, (float*)vector);
 	}
 
-	bool Program::applyUniform4fv(GLint location, GLsizei count, const GLfloat *v)
+	bool Program::applyUniform4fv(Device *device, GLint location, GLsizei count, const GLfloat *v)
 	{
-		return applyUniform(location, (float*)v);
+		return applyUniform(device, location, (float*)v);
 	}
 
-	bool Program::applyUniformMatrix2fv(GLint location, GLsizei count, const GLfloat *value)
+	bool Program::applyUniformMatrix2fv(Device *device, GLint location, GLsizei count, const GLfloat *value)
 	{
 		float matrix[(MAX_UNIFORM_VECTORS + 1) / 2][2][4];
 
@@ -2083,10 +2081,10 @@ namespace es2
 			value += 4;
 		}
 
-		return applyUniform(location, (float*)matrix);
+		return applyUniform(device, location, (float*)matrix);
 	}
 
-	bool Program::applyUniformMatrix2x3fv(GLint location, GLsizei count, const GLfloat *value)
+	bool Program::applyUniformMatrix2x3fv(Device *device, GLint location, GLsizei count, const GLfloat *value)
 	{
 		float matrix[(MAX_UNIFORM_VECTORS + 1) / 2][2][4];
 
@@ -2098,10 +2096,10 @@ namespace es2
 			value += 6;
 		}
 
-		return applyUniform(location, (float*)matrix);
+		return applyUniform(device, location, (float*)matrix);
 	}
 
-	bool Program::applyUniformMatrix2x4fv(GLint location, GLsizei count, const GLfloat *value)
+	bool Program::applyUniformMatrix2x4fv(Device *device, GLint location, GLsizei count, const GLfloat *value)
 	{
 		float matrix[(MAX_UNIFORM_VECTORS + 1) / 2][2][4];
 
@@ -2113,10 +2111,10 @@ namespace es2
 			value += 8;
 		}
 
-		return applyUniform(location, (float*)matrix);
+		return applyUniform(device, location, (float*)matrix);
 	}
 
-	bool Program::applyUniformMatrix3fv(GLint location, GLsizei count, const GLfloat *value)
+	bool Program::applyUniformMatrix3fv(Device *device, GLint location, GLsizei count, const GLfloat *value)
 	{
 		float matrix[(MAX_UNIFORM_VECTORS + 2) / 3][3][4];
 
@@ -2129,10 +2127,10 @@ namespace es2
 			value += 9;
 		}
 
-		return applyUniform(location, (float*)matrix);
+		return applyUniform(device, location, (float*)matrix);
 	}
 
-	bool Program::applyUniformMatrix3x2fv(GLint location, GLsizei count, const GLfloat *value)
+	bool Program::applyUniformMatrix3x2fv(Device *device, GLint location, GLsizei count, const GLfloat *value)
 	{
 		float matrix[(MAX_UNIFORM_VECTORS + 2) / 3][3][4];
 
@@ -2145,10 +2143,10 @@ namespace es2
 			value += 6;
 		}
 
-		return applyUniform(location, (float*)matrix);
+		return applyUniform(device, location, (float*)matrix);
 	}
 
-	bool Program::applyUniformMatrix3x4fv(GLint location, GLsizei count, const GLfloat *value)
+	bool Program::applyUniformMatrix3x4fv(Device *device, GLint location, GLsizei count, const GLfloat *value)
 	{
 		float matrix[(MAX_UNIFORM_VECTORS + 2) / 3][3][4];
 
@@ -2161,15 +2159,15 @@ namespace es2
 			value += 12;
 		}
 
-		return applyUniform(location, (float*)matrix);
+		return applyUniform(device, location, (float*)matrix);
 	}
 
-	bool Program::applyUniformMatrix4fv(GLint location, GLsizei count, const GLfloat *value)
+	bool Program::applyUniformMatrix4fv(Device *device, GLint location, GLsizei count, const GLfloat *value)
 	{
-		return applyUniform(location, (float*)value);
+		return applyUniform(device, location, (float*)value);
 	}
 
-	bool Program::applyUniformMatrix4x2fv(GLint location, GLsizei count, const GLfloat *value)
+	bool Program::applyUniformMatrix4x2fv(Device *device, GLint location, GLsizei count, const GLfloat *value)
 	{
 		float matrix[(MAX_UNIFORM_VECTORS + 3) / 4][4][4];
 
@@ -2183,10 +2181,10 @@ namespace es2
 			value += 8;
 		}
 
-		return applyUniform(location, (float*)matrix);
+		return applyUniform(device, location, (float*)matrix);
 	}
 
-	bool Program::applyUniformMatrix4x3fv(GLint location, GLsizei count, const GLfloat *value)
+	bool Program::applyUniformMatrix4x3fv(Device *device, GLint location, GLsizei count, const GLfloat *value)
 	{
 		float matrix[(MAX_UNIFORM_VECTORS + 3) / 4][4][4];
 
@@ -2200,10 +2198,10 @@ namespace es2
 			value += 12;
 		}
 
-		return applyUniform(location, (float*)matrix);
+		return applyUniform(device, location, (float*)matrix);
 	}
 
-	bool Program::applyUniform1iv(GLint location, GLsizei count, const GLint *v)
+	bool Program::applyUniform1iv(Device *device, GLint location, GLsizei count, const GLint *v)
 	{
 		GLint vector[MAX_UNIFORM_VECTORS][4];
 
@@ -2248,13 +2246,13 @@ namespace es2
 		}
 		else
 		{
-			return applyUniform(location, (float*)vector);
+			return applyUniform(device, location, (float*)vector);
 		}
 
 		return true;
 	}
 
-	bool Program::applyUniform2iv(GLint location, GLsizei count, const GLint *v)
+	bool Program::applyUniform2iv(Device *device, GLint location, GLsizei count, const GLint *v)
 	{
 		GLint vector[MAX_UNIFORM_VECTORS][4];
 
@@ -2268,10 +2266,10 @@ namespace es2
 			v += 2;
 		}
 
-		return applyUniform(location, (float*)vector);
+		return applyUniform(device, location, (float*)vector);
 	}
 
-	bool Program::applyUniform3iv(GLint location, GLsizei count, const GLint *v)
+	bool Program::applyUniform3iv(Device *device, GLint location, GLsizei count, const GLint *v)
 	{
 		GLint vector[MAX_UNIFORM_VECTORS][4];
 
@@ -2285,10 +2283,10 @@ namespace es2
 			v += 3;
 		}
 
-		return applyUniform(location, (float*)vector);
+		return applyUniform(device, location, (float*)vector);
 	}
 
-	bool Program::applyUniform4iv(GLint location, GLsizei count, const GLint *v)
+	bool Program::applyUniform4iv(Device *device, GLint location, GLsizei count, const GLint *v)
 	{
 		GLint vector[MAX_UNIFORM_VECTORS][4];
 
@@ -2302,10 +2300,10 @@ namespace es2
 			v += 4;
 		}
 
-		return applyUniform(location, (float*)vector);
+		return applyUniform(device, location, (float*)vector);
 	}
 
-	bool Program::applyUniform1uiv(GLint location, GLsizei count, const GLuint *v)
+	bool Program::applyUniform1uiv(Device *device, GLint location, GLsizei count, const GLuint *v)
 	{
 		GLuint vector[MAX_UNIFORM_VECTORS][4];
 
@@ -2350,13 +2348,13 @@ namespace es2
 		}
 		else
 		{
-			return applyUniform(location, (float*)vector);
+			return applyUniform(device, location, (float*)vector);
 		}
 
 		return true;
 	}
 
-	bool Program::applyUniform2uiv(GLint location, GLsizei count, const GLuint *v)
+	bool Program::applyUniform2uiv(Device *device, GLint location, GLsizei count, const GLuint *v)
 	{
 		GLuint vector[MAX_UNIFORM_VECTORS][4];
 
@@ -2370,10 +2368,10 @@ namespace es2
 			v += 2;
 		}
 
-		return applyUniform(location, (float*)vector);
+		return applyUniform(device, location, (float*)vector);
 	}
 
-	bool Program::applyUniform3uiv(GLint location, GLsizei count, const GLuint *v)
+	bool Program::applyUniform3uiv(Device *device, GLint location, GLsizei count, const GLuint *v)
 	{
 		GLuint vector[MAX_UNIFORM_VECTORS][4];
 
@@ -2387,10 +2385,10 @@ namespace es2
 			v += 3;
 		}
 
-		return applyUniform(location, (float*)vector);
+		return applyUniform(device, location, (float*)vector);
 	}
 
-	bool Program::applyUniform4uiv(GLint location, GLsizei count, const GLuint *v)
+	bool Program::applyUniform4uiv(Device *device, GLint location, GLsizei count, const GLuint *v)
 	{
 		GLuint vector[MAX_UNIFORM_VECTORS][4];
 
@@ -2404,7 +2402,7 @@ namespace es2
 			v += 4;
 		}
 
-		return applyUniform(location, (float*)vector);
+		return applyUniform(device, location, (float*)vector);
 	}
 
 	void Program::appendToInfoLog(const char *format, ...)
@@ -2875,7 +2873,7 @@ namespace es2
 		return orphaned;
 	}
 
-	void Program::validate()
+	void Program::validate(Device* device)
 	{
 		resetInfoLog();
 
@@ -2886,7 +2884,7 @@ namespace es2
 		}
 		else
 		{
-			applyUniforms();
+			applyUniforms(device);
 			if(!validateSamplers(true))
 			{
 				validated = false;
