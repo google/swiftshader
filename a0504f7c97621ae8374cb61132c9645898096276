@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "728abead_f384b887",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-07-10T21:21:25Z",
+      "side": 1,
+      "message": "nit: When using the format \"Bug swiftshader:73\" it will create a link to the Monorail tracker and post the commit message there when it lands.",
+      "range": {
+        "startLine": 8,
+        "startChar": 0,
+        "endLine": 8,
+        "endChar": 70
+      },
+      "revId": "a0504f7c97621ae8374cb61132c9645898096276",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
