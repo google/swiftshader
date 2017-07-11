@@ -25,7 +25,7 @@
 	#include <pthread.h>
 	#include <sched.h>
 	#include <unistd.h>
-	#define TLS_OUT_OF_INDEXES (~0)
+	#define TLS_OUT_OF_INDEXES (pthread_key_t)(~0)
 #endif
 
 namespace sw
