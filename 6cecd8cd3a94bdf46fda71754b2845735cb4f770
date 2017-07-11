@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d264c04f_7730840a",
+        "filename": "src/OpenGL/common/Object.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-07-11T00:58:49Z",
+      "side": 1,
+      "message": "SwiftShader is used on Android builds that don\u0027t have full C++11 support (Subzero is only used for Chrome and recent Android Things versions). I recommend using MutexLock.hpp.",
+      "range": {
+        "startLine": 24,
+        "startChar": 0,
+        "endLine": 24,
+        "endChar": 16
+      },
+      "revId": "6cecd8cd3a94bdf46fda71754b2845735cb4f770",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
