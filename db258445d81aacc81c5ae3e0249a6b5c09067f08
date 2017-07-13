@@ -48,6 +48,54 @@
     },
     {
       "key": {
+        "uuid": "59a38502_eb2322c5",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 646,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-07-13T17:00:10Z",
+      "side": 1,
+      "message": "Will do.",
+      "parentUuid": "9ecaeb84_4f33ca5b",
+      "range": {
+        "startLine": 644,
+        "startChar": 12,
+        "endLine": 646,
+        "endChar": 63
+      },
+      "revId": "db258445d81aacc81c5ae3e0249a6b5c09067f08",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "56639ffe_24a9f029",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 646,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-07-13T17:00:10Z",
+      "side": 1,
+      "message": "So, do I bring back the + or keep the \u003c\u003c ?",
+      "parentUuid": "87779ead_0b45c0fa",
+      "range": {
+        "startLine": 646,
+        "startChar": 58,
+        "endLine": 646,
+        "endChar": 62
+      },
+      "revId": "db258445d81aacc81c5ae3e0249a6b5c09067f08",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b636a053_595a16f3",
         "filename": "src/Shader/SamplerCore.cpp",
         "patchSetId": 1
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "d53fcb06_214dc312",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 702,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-07-13T17:00:10Z",
+      "side": 1,
+      "message": "I\u0027m not a fan of having to verify if multiple long lines of code are actually the same code or not, and I think loops make this clearer, but this isn\u0027t critical in any way, so I can revert.",
+      "parentUuid": "b636a053_595a16f3",
+      "range": {
+        "startLine": 699,
+        "startChar": 3,
+        "endLine": 702,
+        "endChar": 4
+      },
+      "revId": "db258445d81aacc81c5ae3e0249a6b5c09067f08",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "82277a2d_91f2f2be",
         "filename": "src/Shader/SamplerCore.cpp",
         "patchSetId": 1
@@ -82,6 +154,30 @@
       "writtenOn": "2017-07-13T15:23:25Z",
       "side": 1,
       "message": "I find this particularly hard to read what\u0027s going on here compared to the original.",
+      "range": {
+        "startLine": 801,
+        "startChar": 116,
+        "endLine": 801,
+        "endChar": 133
+      },
+      "revId": "db258445d81aacc81c5ae3e0249a6b5c09067f08",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d8c1e650_08e74282",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 801,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-07-13T17:00:10Z",
+      "side": 1,
+      "message": "Note: This code goes away in the next patch. I can revert it if you want.",
+      "parentUuid": "82277a2d_91f2f2be",
       "range": {
         "startLine": 801,
         "startChar": 116,
@@ -151,6 +247,30 @@
       "writtenOn": "2017-07-13T15:23:25Z",
       "side": 1,
       "message": "Takes a second to see that this is just a loop with two iterations. Could use s\u003d[0,1] instead and s*4 below but that also requires taking a close look to read it properly.\n\nOne potential way to get rid of a lot of the repetition in the original code would be to create something like a Color class which has the componentCount as a member, and so when performing operations like a simple \"c0 + c1\" it performs an addition on only the active components. It would avoid all the four-iteration loops and if(componentCount \u003e n) that this change introduces.",
+      "range": {
+        "startLine": 1254,
+        "startChar": 5,
+        "endLine": 1254,
+        "endChar": 34
+      },
+      "revId": "db258445d81aacc81c5ae3e0249a6b5c09067f08",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "012af364_e97b2ba6",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1254,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-07-13T17:00:10Z",
+      "side": 1,
+      "message": "We could just add some operators to Vector4f.",
+      "parentUuid": "ffb2cf5c_4c3e1851",
       "range": {
         "startLine": 1254,
         "startChar": 5,
