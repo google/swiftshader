@@ -1,0 +1,165 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "87779ead_0b45c0fa",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 646,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-07-13T15:23:25Z",
+      "side": 1,
+      "message": "Addition can execute on either one of two ALU ports on Intel CPUs, while shifts only execute on one.\n\nThat said, it\u0027s somewhat easier to reason about a shift here, so it\u0027s probably an optimization we should do at the Reactor level or even below.",
+      "range": {
+        "startLine": 646,
+        "startChar": 58,
+        "endLine": 646,
+        "endChar": 62
+      },
+      "revId": "db258445d81aacc81c5ae3e0249a6b5c09067f08",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ecaeb84_4f33ca5b",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 646,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-07-13T15:23:25Z",
+      "side": 1,
+      "message": "This would be easier to read with an if statement.",
+      "range": {
+        "startLine": 644,
+        "startChar": 12,
+        "endLine": 646,
+        "endChar": 63
+      },
+      "revId": "db258445d81aacc81c5ae3e0249a6b5c09067f08",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b636a053_595a16f3",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 702,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-07-13T15:23:25Z",
+      "side": 1,
+      "message": "I find loops like these less readable than just spelling it out per component. And it\u0027s the same lines of code anyway.",
+      "range": {
+        "startLine": 699,
+        "startChar": 3,
+        "endLine": 702,
+        "endChar": 4
+      },
+      "revId": "db258445d81aacc81c5ae3e0249a6b5c09067f08",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "82277a2d_91f2f2be",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 801,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-07-13T15:23:25Z",
+      "side": 1,
+      "message": "I find this particularly hard to read what\u0027s going on here compared to the original.",
+      "range": {
+        "startLine": 801,
+        "startChar": 116,
+        "endLine": 801,
+        "endChar": 133
+      },
+      "revId": "db258445d81aacc81c5ae3e0249a6b5c09067f08",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ff072ad9_e6c2ace1",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 978,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-07-13T15:23:25Z",
+      "side": 1,
+      "message": "That\u0027s a lot of indices. It was already a lot before, so I don\u0027t think adding another one is helping.",
+      "range": {
+        "startLine": 978,
+        "startChar": 9,
+        "endLine": 978,
+        "endChar": 21
+      },
+      "revId": "db258445d81aacc81c5ae3e0249a6b5c09067f08",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "51a5f9e7_25c4fc99",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1242,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-07-13T15:23:25Z",
+      "side": 1,
+      "message": "A bit hard to decipher.",
+      "range": {
+        "startLine": 1242,
+        "startChar": 23,
+        "endLine": 1242,
+        "endChar": 80
+      },
+      "revId": "db258445d81aacc81c5ae3e0249a6b5c09067f08",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ffb2cf5c_4c3e1851",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1254,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-07-13T15:23:25Z",
+      "side": 1,
+      "message": "Takes a second to see that this is just a loop with two iterations. Could use s\u003d[0,1] instead and s*4 below but that also requires taking a close look to read it properly.\n\nOne potential way to get rid of a lot of the repetition in the original code would be to create something like a Color class which has the componentCount as a member, and so when performing operations like a simple \"c0 + c1\" it performs an addition on only the active components. It would avoid all the four-iteration loops and if(componentCount \u003e n) that this change introduces.",
+      "range": {
+        "startLine": 1254,
+        "startChar": 5,
+        "endLine": 1254,
+        "endChar": 34
+      },
+      "revId": "db258445d81aacc81c5ae3e0249a6b5c09067f08",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}

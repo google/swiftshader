@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "abd9e3ba_da5a32cf",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 811,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-07-13T15:23:25Z",
+      "side": 0,
+      "message": "We can get rid of these separate lines by making sampleTexel() return these variables instead of taking them as a reference argument.",
+      "range": {
+        "startLine": 808,
+        "startChar": 3,
+        "endLine": 811,
+        "endChar": 15
+      },
+      "revId": "9494572a1798d5148d18d3db57c06ce07d608d23",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
