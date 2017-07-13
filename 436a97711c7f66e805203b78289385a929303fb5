@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6e8ef70c_84c70779",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1191,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-07-13T18:10:58Z",
+      "side": 1,
+      "message": "Sample usage of the Vector4f operators.",
+      "range": {
+        "startLine": 1189,
+        "startChar": 0,
+        "endLine": 1191,
+        "endChar": 39
+      },
+      "revId": "436a97711c7f66e805203b78289385a929303fb5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5477845c_07ad0eb4",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1255,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-07-13T18:10:58Z",
+      "side": 1,
+      "message": "Sample usage of the Vector4f operators.",
+      "range": {
+        "startLine": 1246,
+        "startChar": 0,
+        "endLine": 1255,
+        "endChar": 36
+      },
+      "revId": "436a97711c7f66e805203b78289385a929303fb5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
