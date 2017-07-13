@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "b00e8a07_8a9e2861",
+        "filename": "src/Renderer/Sampler.hpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-07-13T20:59:11Z",
+      "side": 1,
+      "message": "Changed to int4",
+      "parentUuid": "af1301b9_31a52353",
+      "range": {
+        "startLine": 28,
+        "startChar": 2,
+        "endLine": 32,
+        "endChar": 16
+      },
+      "revId": "ae50ea4de4bbb2559b2a5a54414d3917cb446a5d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "99827ee0_ff1100e5",
         "filename": "src/Shader/SamplerCore.cpp",
         "patchSetId": 3
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "4f0771a5_1a8379d0",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 1355,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-07-13T20:59:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "99827ee0_ff1100e5",
+      "range": {
+        "startLine": 1355,
+        "startChar": 32,
+        "endLine": 1355,
+        "endChar": 78
+      },
+      "revId": "ae50ea4de4bbb2559b2a5a54414d3917cb446a5d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b2361c8f_8095c2fd",
         "filename": "src/Shader/SamplerCore.cpp",
         "patchSetId": 3
@@ -59,6 +107,30 @@
       "writtenOn": "2017-07-13T18:14:30Z",
       "side": 1,
       "message": ", 16",
+      "range": {
+        "startLine": 1771,
+        "startChar": 40,
+        "endLine": 1771,
+        "endChar": 41
+      },
+      "revId": "ae50ea4de4bbb2559b2a5a54414d3917cb446a5d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "91b0dd30_b0102223",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 1771,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-07-13T20:59:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b2361c8f_8095c2fd",
       "range": {
         "startLine": 1771,
         "startChar": 40,

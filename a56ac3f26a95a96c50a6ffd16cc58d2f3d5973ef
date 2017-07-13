@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6f6beb43_a6cf9134",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 1793,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-07-13T20:59:11Z",
+      "side": 1,
+      "message": "For future reference: This is necessary in case Frac() returns exactly 1.0f. Other modes could easily be fixed to not return 1.0f.",
+      "range": {
+        "startLine": 1793,
+        "startChar": 12,
+        "endLine": 1793,
+        "endChar": 30
+      },
+      "revId": "a56ac3f26a95a96c50a6ffd16cc58d2f3d5973ef",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "79382c81_b0316e37",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 1824,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-07-13T20:59:11Z",
+      "side": 1,
+      "message": "Note: This is overflow detection. Essentially, if we overflowed, Frac(tmp) would return 0.0f, but since we overflowed, it should be considered as if it was 1.0f, for the purpose of figuring out if we need to use the previous or next pixel.",
+      "range": {
+        "startLine": 1824,
+        "startChar": 15,
+        "endLine": 1824,
+        "endChar": 39
+      },
+      "revId": "a56ac3f26a95a96c50a6ffd16cc58d2f3d5973ef",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
