@@ -76,11 +76,15 @@ namespace sw
 		void cubeFace(Int face[4], Float4 &U, Float4 &V, Float4 &lodX, Float4 &lodY, Float4 &lodZ, Float4 &x, Float4 &y, Float4 &z);
 		Short4 applyOffset(Short4 &uvw, Float4 &offset, const Int4 &whd, AddressingMode mode);
 		void computeIndices(UInt index[4], Short4 uuuu, Short4 vvvv, Short4 wwww, Vector4f &offset, const Pointer<Byte> &mipmap, SamplerFunction function);
+		void computeIndices(UInt index[4], Int4& uuuu, Int4& vvvv, Int4& wwww, const Pointer<Byte> &mipmap, SamplerFunction function);
 		void sampleTexel(Vector4s &c, Short4 &u, Short4 &v, Short4 &s, Vector4f &offset, Pointer<Byte> &mipmap, Pointer<Byte> buffer[4], SamplerFunction function);
-		void sampleTexel(Vector4s &c, UInt index[4], Pointer<Byte> buffer[4]);
 		void sampleTexel(Vector4f &c, Short4 &u, Short4 &v, Short4 &s, Vector4f &offset, Float4 &z, Pointer<Byte> &mipmap, Pointer<Byte> buffer[4], SamplerFunction function);
+		void sampleTexel(Vector4s &c, UInt index[4], Pointer<Byte> buffer[4]);
+		void sampleTexel(Vector4f &c, Int4 &u, Int4 &v, Int4 &s, Float4 &z, Pointer<Byte> &mipmap, Pointer<Byte> buffer[4], SamplerFunction function);
 		void selectMipmap(Pointer<Byte> &texture, Pointer<Byte> buffer[4], Pointer<Byte> &mipmap, Float &lod, Int face[4], bool secondLOD);
 		Short4 address(Float4 &uw, AddressingMode addressingMode, Pointer<Byte>& mipmap);
+		void address(Float4 &uw, Int4& xyz0, Int4& xyz1, Float4& f, Pointer<Byte>& mipmap, Float4 &texOffset, Int4 &filter, int whd, AddressingMode addressingMode, SamplerFunction function);
+		Int4 computeFilterOffset(Float &lod);
 
 		void convertFixed12(Short4 &ci, Float4 &cf);
 		void convertFixed12(Vector4s &cs, Vector4f &cf);
@@ -94,6 +98,7 @@ namespace sw
 		bool hasFloatTexture() const;
 		bool hasUnsignedTextureComponent(int component) const;
 		int textureComponentCount() const;
+		bool hasThirdCoordinate() const;
 		bool has16bitTextureFormat() const;
 		bool has8bitTextureComponents() const;
 		bool has16bitTextureComponents() const;

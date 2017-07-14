@@ -36,7 +36,8 @@ namespace sw
 		short height[4];
 		short depth[4];
 		short onePitchP[4];
-		int sliceP[2];
+		int4 pitchP;
+		int4 sliceP;
 	};
 
 	struct Texture

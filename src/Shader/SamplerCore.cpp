@@ -1256,15 +1256,24 @@ namespace sw
 
 		selectMipmap(texture, buffer, mipmap, lod, face, secondLOD);
 
-		bool texelFetch = (function == Fetch);
+		Int4 x0, x1, y0, y1, z0;
+		Float4 fu, fv;
+		Int4 filter = computeFilterOffset(lod);
+		address(w, z0, z0, fv, mipmap, offset.z, filter, OFFSET(Mipmap, depth), state.addressingModeW, function);
+		address(v, y0, y1, fv, mipmap, offset.y, filter, OFFSET(Mipmap, height), state.addressingModeV, function);
+		address(u, x0, x1, fu, mipmap, offset.x, filter, OFFSET(Mipmap, width), state.addressingModeU, function);
 
-		Short4 uuuu = texelFetch ? Short4(As<Int4>(u)) : address(u, state.addressingModeU, mipmap);
-		Short4 vvvv = texelFetch ? Short4(As<Int4>(v)) : address(v, state.addressingModeV, mipmap);
-		Short4 wwww = texelFetch ? Short4(As<Int4>(w)) : address(w, state.addressingModeW, mipmap);
-
-		if(state.textureFilter == FILTER_POINT || texelFetch)
+		Int4 pitchP = *Pointer<Int4>(mipmap + OFFSET(Mipmap, pitchP), 16);
+		y0 *= pitchP;
+		if(hasThirdCoordinate())
 		{
-			sampleTexel(c, uuuu, vvvv, wwww, offset, w, mipmap, buffer, function);
+			Int4 sliceP = *Pointer<Int4>(mipmap + OFFSET(Mipmap, sliceP), 16);
+			z0 *= sliceP;
+		}
+
+		if(state.textureFilter == FILTER_POINT || (function == Fetch))
+		{
+			sampleTexel(c, x0, y0, z0, w, mipmap, buffer, function);
 		}
 		else
 		{
@@ -1273,22 +1282,15 @@ namespace sw
 			Vector4f c2;
 			Vector4f c3;
 
-			Short4 uuuu0 = offsetSample(uuuu, mipmap, OFFSET(Mipmap,uHalf), state.addressingModeU == ADDRESSING_WRAP, gather ? 0 : -1, lod);
-			Short4 vvvv0 = offsetSample(vvvv, mipmap, OFFSET(Mipmap,vHalf), state.addressingModeV == ADDRESSING_WRAP, gather ? 0 : -1, lod);
-			Short4 uuuu1 = offsetSample(uuuu, mipmap, OFFSET(Mipmap,uHalf), state.addressingModeU == ADDRESSING_WRAP, gather ? 2 : +1, lod);
-			Short4 vvvv1 = offsetSample(vvvv, mipmap, OFFSET(Mipmap,vHalf), state.addressingModeV == ADDRESSING_WRAP, gather ? 2 : +1, lod);
+			y1 *= pitchP;
 
-			sampleTexel(c0, uuuu0, vvvv0, wwww, offset, w, mipmap, buffer, function);
-			sampleTexel(c1, uuuu1, vvvv0, wwww, offset, w, mipmap, buffer, function);
-			sampleTexel(c2, uuuu0, vvvv1, wwww, offset, w, mipmap, buffer, function);
-			sampleTexel(c3, uuuu1, vvvv1, wwww, offset, w, mipmap, buffer, function);
+			sampleTexel(c0, x0, y0, z0, w, mipmap, buffer, function);
+			sampleTexel(c1, x1, y0, z0, w, mipmap, buffer, function);
+			sampleTexel(c2, x0, y1, z0, w, mipmap, buffer, function);
+			sampleTexel(c3, x1, y1, z0, w, mipmap, buffer, function);
 
 			if(!gather)   // Blend
 			{
-				// Fractions
-				Float4 fu = Frac(Float4(As<UShort4>(uuuu0)) * *Pointer<Float4>(mipmap + OFFSET(Mipmap,fWidth)));
-				Float4 fv = Frac(Float4(As<UShort4>(vvvv0)) * *Pointer<Float4>(mipmap + OFFSET(Mipmap,fHeight)));
-
 				if(componentCount >= 1) c0.x = c0.x + fu * (c1.x - c0.x);
 				if(componentCount >= 2) c0.y = c0.y + fu * (c1.y - c0.y);
 				if(componentCount >= 3) c0.z = c0.z + fu * (c1.z - c0.z);
@@ -1324,15 +1326,21 @@ namespace sw
 
 		selectMipmap(texture, buffer, mipmap, lod, face, secondLOD);
 
-		bool texelFetch = (function == Fetch);
+		Int4 x0, x1, y0, y1, z0, z1;
+		Float4 fu, fv, fw;
+		Int4 filter = computeFilterOffset(lod);
+		address(u, x0, x1, fu, mipmap, offset.x, filter, OFFSET(Mipmap, width), state.addressingModeU, function);
+		address(v, y0, y1, fv, mipmap, offset.y, filter, OFFSET(Mipmap, height), state.addressingModeV, function);
+		address(w, z0, z1, fw, mipmap, offset.z, filter, OFFSET(Mipmap, depth), state.addressingModeW, function);
 
-		Short4 uuuu = texelFetch ? Short4(As<Int4>(u)) : address(u, state.addressingModeU, mipmap);
-		Short4 vvvv = texelFetch ? Short4(As<Int4>(v)) : address(v, state.addressingModeV, mipmap);
-		Short4 wwww = texelFetch ? Short4(As<Int4>(w)) : address(w, state.addressingModeW, mipmap);
+		Int4 pitchP = *Pointer<Int4>(mipmap + OFFSET(Mipmap, pitchP), 16);
+		Int4 sliceP = *Pointer<Int4>(mipmap + OFFSET(Mipmap, sliceP), 16);
+		y0 *= pitchP;
+		z0 *= sliceP;
 
-		if(state.textureFilter == FILTER_POINT || texelFetch)
+		if(state.textureFilter == FILTER_POINT || (function == Fetch))
 		{
-			sampleTexel(c, uuuu, vvvv, wwww, offset, w, mipmap, buffer, function);
+			sampleTexel(c, x0, y0, z0, w, mipmap, buffer, function);
 		}
 		else
 		{
@@ -1345,26 +1353,17 @@ namespace sw
 			Vector4f c6;
 			Vector4f c7;
 
-			Short4 uuuu0 = offsetSample(uuuu, mipmap, OFFSET(Mipmap,uHalf), state.addressingModeU == ADDRESSING_WRAP, -1, lod);
-			Short4 vvvv0 = offsetSample(vvvv, mipmap, OFFSET(Mipmap,vHalf), state.addressingModeV == ADDRESSING_WRAP, -1, lod);
-			Short4 wwww0 = offsetSample(wwww, mipmap, OFFSET(Mipmap,wHalf), state.addressingModeW == ADDRESSING_WRAP, -1, lod);
-			Short4 uuuu1 = offsetSample(uuuu, mipmap, OFFSET(Mipmap,uHalf), state.addressingModeU == ADDRESSING_WRAP, +1, lod);
-			Short4 vvvv1 = offsetSample(vvvv, mipmap, OFFSET(Mipmap,vHalf), state.addressingModeV == ADDRESSING_WRAP, +1, lod);
-			Short4 wwww1 = offsetSample(wwww, mipmap, OFFSET(Mipmap,wHalf), state.addressingModeW == ADDRESSING_WRAP, +1, lod);
+			y1 *= pitchP;
+			z1 *= sliceP;
 
-			sampleTexel(c0, uuuu0, vvvv0, wwww0, offset, w, mipmap, buffer, function);
-			sampleTexel(c1, uuuu1, vvvv0, wwww0, offset, w, mipmap, buffer, function);
-			sampleTexel(c2, uuuu0, vvvv1, wwww0, offset, w, mipmap, buffer, function);
-			sampleTexel(c3, uuuu1, vvvv1, wwww0, offset, w, mipmap, buffer, function);
-			sampleTexel(c4, uuuu0, vvvv0, wwww1, offset, w, mipmap, buffer, function);
-			sampleTexel(c5, uuuu1, vvvv0, wwww1, offset, w, mipmap, buffer, function);
-			sampleTexel(c6, uuuu0, vvvv1, wwww1, offset, w, mipmap, buffer, function);
-			sampleTexel(c7, uuuu1, vvvv1, wwww1, offset, w, mipmap, buffer, function);
-
-			// Fractions
-			Float4 fu = Frac(Float4(As<UShort4>(uuuu0)) * *Pointer<Float4>(mipmap + OFFSET(Mipmap,fWidth)));
-			Float4 fv = Frac(Float4(As<UShort4>(vvvv0)) * *Pointer<Float4>(mipmap + OFFSET(Mipmap,fHeight)));
-			Float4 fw = Frac(Float4(As<UShort4>(wwww0)) * *Pointer<Float4>(mipmap + OFFSET(Mipmap,fDepth)));
+			sampleTexel(c0, x0, y0, z0, w, mipmap, buffer, function);
+			sampleTexel(c1, x1, y0, z0, w, mipmap, buffer, function);
+			sampleTexel(c2, x0, y1, z0, w, mipmap, buffer, function);
+			sampleTexel(c3, x1, y1, z0, w, mipmap, buffer, function);
+			sampleTexel(c4, x0, y0, z1, w, mipmap, buffer, function);
+			sampleTexel(c5, x1, y0, z1, w, mipmap, buffer, function);
+			sampleTexel(c6, x0, y1, z1, w, mipmap, buffer, function);
+			sampleTexel(c7, x1, y1, z1, w, mipmap, buffer, function);
 
 			// Blend first slice
 			if(componentCount >= 1) c0.x = c0.x + fu * (c1.x - c0.x);
@@ -1701,7 +1700,7 @@ namespace sw
 		uuuu = As<Short4>(MulAdd(uuuu, *Pointer<Short4>(mipmap + OFFSET(Mipmap,onePitchP))));
 		uuu2 = As<Short4>(MulAdd(uuu2, *Pointer<Short4>(mipmap + OFFSET(Mipmap,onePitchP))));
 
-		if((state.textureType == TEXTURE_3D) || (state.textureType == TEXTURE_2D_ARRAY))
+		if(hasThirdCoordinate())
 		{
 			if(state.textureType != TEXTURE_2D_ARRAY)
 			{
@@ -1731,7 +1730,7 @@ namespace sw
 		if(texelFetch)
 		{
 			Int size = Int(*Pointer<Int>(mipmap + OFFSET(Mipmap, sliceP)));
-			if((state.textureType == TEXTURE_3D) || (state.textureType == TEXTURE_2D_ARRAY))
+			if(hasThirdCoordinate())
 			{
 				size *= Int(*Pointer<Short>(mipmap + OFFSET(Mipmap, depth)));
 			}
@@ -1742,6 +1741,21 @@ namespace sw
 			{
 				index[i] = Min(Max(index[i], min), max);
 			}
+		}
+	}
+
+	void SamplerCore::computeIndices(UInt index[4], Int4& uuuu, Int4& vvvv, Int4& wwww, const Pointer<Byte> &mipmap, SamplerFunction function)
+	{
+		UInt4 indices = uuuu + vvvv;
+
+		if(hasThirdCoordinate())
+		{
+			indices += As<UInt4>(wwww);
+		}
+
+		for(int i = 0; i < 4; i++)
+		{
+			index[i] = Extract(As<Int4>(indices), i);
 		}
 	}
 
@@ -2030,11 +2044,11 @@ namespace sw
 		}
 	}
 
-	void SamplerCore::sampleTexel(Vector4f &c, Short4 &uuuu, Short4 &vvvv, Short4 &wwww, Vector4f &offset, Float4 &z, Pointer<Byte> &mipmap, Pointer<Byte> buffer[4], SamplerFunction function)
+	void SamplerCore::sampleTexel(Vector4f &c, Int4 &uuuu, Int4 &vvvv, Int4 &wwww, Float4 &z, Pointer<Byte> &mipmap, Pointer<Byte> buffer[4], SamplerFunction function)
 	{
 		UInt index[4];
 
-		computeIndices(index, uuuu, vvvv, wwww, offset, mipmap, function);
+		computeIndices(index, uuuu, vvvv, wwww, mipmap, function);
 
 		if(hasFloatTexture())
 		{
@@ -2168,6 +2182,21 @@ namespace sw
 		}
 	}
 
+	Int4 SamplerCore::computeFilterOffset(Float &lod)
+	{
+		Int4 filtering((state.textureFilter == FILTER_POINT) ? 0 : 1);
+		if(state.textureFilter == FILTER_MIN_LINEAR_MAG_POINT)
+		{
+			filtering &= CmpNLE(Float4(lod), Float4(0.0f));
+		}
+		else if(state.textureFilter == FILTER_MIN_POINT_MAG_LINEAR)
+		{
+			filtering &= CmpLE(Float4(lod), Float4(0.0f));
+		}
+
+		return filtering;
+	}
+
 	Short4 SamplerCore::address(Float4 &uw, AddressingMode addressingMode, Pointer<Byte>& mipmap)
 	{
 		if(addressingMode == ADDRESSING_LAYER && state.textureType != TEXTURE_2D_ARRAY)
@@ -2207,6 +2236,119 @@ namespace sw
 		else   // Wrap (or border)
 		{
 			return Short4(Int4(uw * Float4(1 << 16)));
+		}
+	}
+
+	void SamplerCore::address(Float4 &uvw, Int4& xyz0, Int4& xyz1, Float4& f, Pointer<Byte>& mipmap, Float4 &texOffset, Int4 &filter, int whd, AddressingMode addressingMode, SamplerFunction function)
+	{
+		if(addressingMode == ADDRESSING_LAYER && state.textureType != TEXTURE_2D_ARRAY)
+		{
+			return; // Unused
+		}
+
+		Int4 dim = Int4(*Pointer<Short4>(mipmap + whd, 16));
+		Int4 maxXYZ = dim - Int4(1);
+
+		if(function == Fetch)
+		{
+			xyz0 = Min(Max(((function.option == Offset) && (addressingMode != ADDRESSING_LAYER)) ? As<Int4>(uvw) + As<Int4>(texOffset) : As<Int4>(uvw), Int4(0)), maxXYZ);
+		}
+		else if(addressingMode == ADDRESSING_LAYER && state.textureType == TEXTURE_2D_ARRAY) // Note: Offset does not apply to array layers
+		{
+			xyz0 = Min(Max(RoundInt(uvw), Int4(0)), maxXYZ);
+		}
+		else
+		{
+			const int halfBits = 0x3effffff; // Value just under 0.5f
+			const int oneBits  = 0x3f7fffff; // Value just under 1.0f
+			const int twoBits  = 0x3fffffff; // Value just under 2.0f
+
+			Float4 coord = Float4(dim);
+			switch(addressingMode)
+			{
+			case ADDRESSING_CLAMP:
+				{
+					Float4 one = As<Float4>(Int4(oneBits));
+					coord *= Min(Max(uvw, Float4(0.0f)), one);
+				}
+				break;
+			case ADDRESSING_MIRROR:
+				{
+					Float4 half = As<Float4>(Int4(halfBits));
+					Float4 one = As<Float4>(Int4(oneBits));
+					Float4 two = As<Float4>(Int4(twoBits));
+					coord *= one - Abs(two * Frac(uvw * half) - one);
+				}
+				break;
+			case ADDRESSING_MIRRORONCE:
+				{
+					Float4 half = As<Float4>(Int4(halfBits));
+					Float4 one = As<Float4>(Int4(oneBits));
+					Float4 two = As<Float4>(Int4(twoBits));
+					coord *= one - Abs(two * Frac(Min(Max(uvw, -one), two) * half) - one);
+				}
+				break;
+			default:   // Wrap (or border)
+				coord *= Frac(uvw);
+				break;
+			}
+
+			xyz0 = Int4(coord);
+
+			if(function.option == Offset)
+			{
+				xyz0 += As<Int4>(texOffset);
+				switch(addressingMode)
+				{
+				case ADDRESSING_MIRROR:
+				case ADDRESSING_MIRRORONCE:
+				case ADDRESSING_BORDER:
+					// FIXME: Implement ADDRESSING_MIRROR, ADDRESSING_MIRRORONCE and ADDRESSING_BORDER. Fall through to Clamp.
+				case ADDRESSING_CLAMP:
+					xyz0 = Min(Max(xyz0, Int4(0)), maxXYZ);
+					break;
+				default:   // Wrap
+					xyz0 = (xyz0 + dim * Int4(-MIN_PROGRAM_TEXEL_OFFSET)) % dim;
+					break;
+				}
+			}
+
+			if(state.textureFilter != FILTER_POINT) // Compute 2nd coordinate, if needed
+			{
+				bool gather = state.textureFilter == FILTER_GATHER;
+
+				xyz1 = xyz0 + filter; // Increment
+
+				if(!gather)
+				{
+					Float4 frac = Frac(coord);
+					f = Abs(frac - Float4(0.5f));
+					xyz1 -= CmpLT(frac, Float4(0.5f)) & (filter + filter); // Decrement xyz if necessary
+				}
+
+				switch(addressingMode)
+				{
+				case ADDRESSING_MIRROR:
+				case ADDRESSING_MIRRORONCE:
+				case ADDRESSING_BORDER:
+					// FIXME: Implement ADDRESSING_MIRROR, ADDRESSING_MIRRORONCE and ADDRESSING_BORDER. Fall through to Clamp.
+				case ADDRESSING_CLAMP:
+					xyz1 = gather ? Min(xyz1, maxXYZ) : Min(Max(xyz1, Int4(0)), maxXYZ);
+					break;
+				default:   // Wrap
+					{
+						// The coordinates overflow or underflow by at most 1
+						Int4 over = CmpNLT(xyz1, dim);
+						xyz1 = (over & Int4(0)) | (~over & xyz1); // xyz >= dim ? 0 : xyz
+						if(!gather)
+						{
+							Int4 under = CmpLT(xyz1, Int4(0));
+							xyz1 = (under & maxXYZ) | (~under & xyz1); // xyz < 0 ? dim - 1 : xyz
+						}
+					}
+					break;
+				}
+			}
 		}
 	}
 
@@ -2295,6 +2437,11 @@ namespace sw
 	int SamplerCore::textureComponentCount() const
 	{
 		return Surface::componentCount(state.textureFormat);
+	}
+
+	bool SamplerCore::hasThirdCoordinate() const
+	{
+		return (state.textureType == TEXTURE_3D) || (state.textureType == TEXTURE_2D_ARRAY);
 	}
 
 	bool SamplerCore::has16bitTextureFormat() const

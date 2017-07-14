@@ -207,8 +207,15 @@ namespace sw
 				mipmap.onePitchP[2] = 1;
 				mipmap.onePitchP[3] = pitchP;
 
+				mipmap.pitchP[0] = pitchP;
+				mipmap.pitchP[1] = pitchP;
+				mipmap.pitchP[2] = pitchP;
+				mipmap.pitchP[3] = pitchP;
+
 				mipmap.sliceP[0] = sliceP;
 				mipmap.sliceP[1] = sliceP;
+				mipmap.sliceP[2] = sliceP;
+				mipmap.sliceP[3] = sliceP;
 
 				if(internalTextureFormat == FORMAT_YV12_BT601 ||
 				   internalTextureFormat == FORMAT_YV12_BT709 ||
