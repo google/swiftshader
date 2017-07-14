@@ -360,35 +360,35 @@ namespace sw
 
 				sampleTexture(texture, cs, u, v, w, q, dsx, dsy, offset, function, false);
 
-				for(int component = 0; component < textureComponentCount(); component++)
+				if(has16bitTextureFormat())
 				{
-					if(has16bitTextureFormat())
+					switch(state.textureFormat)
 					{
-						switch(state.textureFormat)
+					case FORMAT_R5G6B5:
+						if(state.sRGB)
 						{
-						case FORMAT_R5G6B5:
-							if(state.sRGB)
-							{
-								sRGBtoLinear16_5_12(cs.x);
-								sRGBtoLinear16_6_12(cs.y);
-								sRGBtoLinear16_5_12(cs.z);
+							sRGBtoLinear16_5_12(cs.x);
+							sRGBtoLinear16_6_12(cs.y);
+							sRGBtoLinear16_5_12(cs.z);
 
-								convertSigned12(c.x, cs.x);
-								convertSigned12(c.y, cs.y);
-								convertSigned12(c.z, cs.z);
-							}
-							else
-							{
-								c.x = Float4(As<UShort4>(cs.x)) * Float4(1.0f / 0xF800);
-								c.y = Float4(As<UShort4>(cs.y)) * Float4(1.0f / 0xFC00);
-								c.z = Float4(As<UShort4>(cs.z)) * Float4(1.0f / 0xF800);
-							}
-							break;
-						default:
-							ASSERT(false);
+							convertSigned12(c.x, cs.x);
+							convertSigned12(c.y, cs.y);
+							convertSigned12(c.z, cs.z);
 						}
+						else
+						{
+							c.x = Float4(As<UShort4>(cs.x)) * Float4(1.0f / 0xF800);
+							c.y = Float4(As<UShort4>(cs.y)) * Float4(1.0f / 0xFC00);
+							c.z = Float4(As<UShort4>(cs.z)) * Float4(1.0f / 0xF800);
+						}
+						break;
+					default:
+						ASSERT(false);
 					}
-					else
+				}
+				else
+				{
+					for(int component = 0; component < textureComponentCount(); component++)
 					{
 						switch(state.textureFormat)
 						{
