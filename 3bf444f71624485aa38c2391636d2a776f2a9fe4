@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a8d08c34_0cedaa09",
+        "filename": "src/Vulkan/libVulkan/Context.h",
+        "patchSetId": 2
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-07-14T22:05:22Z",
+      "side": 1,
+      "message": "No need to store any data for now.",
+      "revId": "3bf444f71624485aa38c2391636d2a776f2a9fe4",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e4a0159b_90d865e8",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 475,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-07-14T22:05:22Z",
+      "side": 1,
+      "message": "The tests you are targeting probably use a single sampler so we can hardcode it. No need to store any data for now.",
+      "range": {
+        "startLine": 470,
+        "startChar": 0,
+        "endLine": 475,
+        "endChar": 24
+      },
+      "revId": "3bf444f71624485aa38c2391636d2a776f2a9fe4",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
