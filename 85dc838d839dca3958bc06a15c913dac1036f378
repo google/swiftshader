@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f40684e7_1d868891",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1777,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-07-17T20:14:04Z",
+      "side": 1,
+      "message": "I prefer not to remove the indenting here. It makes it clearer that this code has its own scope. C switch statements allow for some really crazy things (e.g. https://blog.feabhas.com/2017/02/abusing-c-switch-statement-beauty-eye-beholder/), so keeping the same indentation rules as elsewhere makes it clearer that we\u0027re not doing something out of there ordinary here.\n\nIf you\u0027d still like to consider this change, let\u0027s keep it for a separate CL.",
+      "range": {
+        "startLine": 1777,
+        "startChar": 3,
+        "endLine": 1777,
+        "endChar": 4
+      },
+      "revId": "85dc838d839dca3958bc06a15c913dac1036f378",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
