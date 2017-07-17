@@ -27,7 +27,7 @@
 #include <limits.h>
 #include <algorithm>
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && MSC_VER < 1900
 #define snprintf _snprintf
 #endif
 
