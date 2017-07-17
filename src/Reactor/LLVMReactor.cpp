@@ -6255,16 +6255,22 @@ namespace sw
 
 	RValue<Float4> Frac(RValue<Float4> x)
 	{
+		Float4 frc;
+
 		if(CPUID::supportsSSE4_1())
 		{
-			return x - x86::floorps(x);
+			frc = x - x86::floorps(x);
 		}
 		else
 		{
-			Float4 frc = x - Float4(Int4(x));   // Signed fractional part
+			frc = x - Float4(Int4(x));   // Signed fractional part.
 
-			return frc + As<Float4>(As<Int4>(CmpNLE(Float4(0.0f), frc)) & As<Int4>(Float4(1, 1, 1, 1)));
+			frc += As<Float4>(As<Int4>(CmpNLE(Float4(0.0f), frc)) & As<Int4>(Float4(1.0f)));   // Add 1.0 if negative.
 		}
+
+		// x - floor(x) can be 1.0 for very small negative x.
+		// Clamp against the value just below 1.0.
+		return Min(frc, As<Float4>(Int4(0x3F7FFFFF)));
 	}
 
 	RValue<Float4> Floor(RValue<Float4> x)
