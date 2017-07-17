@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "734d2c4b_afe0ad29",
+        "filename": "src/Shader/SamplerCore.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-07-17T19:25:56Z",
+      "side": 1,
+      "message": "This is a confusing name. I thought it was about the format having a depth component. I think \"hasThirdCoordinate\" or similar might work better.",
+      "range": {
+        "startLine": 98,
+        "startChar": 7,
+        "endLine": 98,
+        "endChar": 15
+      },
+      "revId": "e629d421f7645a8fcec931622d18de6d9e90c59b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
