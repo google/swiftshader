@@ -444,6 +444,15 @@ namespace sw
 		else ASSERT(false);
 	}
 
+	void PixelProcessor::setHighPrecisionFiltering(unsigned int sampler, bool highPrecisionFiltering)
+	{
+		if(sampler < TEXTURE_IMAGE_UNITS)
+		{
+			context->sampler[sampler].setHighPrecisionFiltering(highPrecisionFiltering);
+		}
+		else ASSERT(false);
+	}
+
 	void PixelProcessor::setSwizzleR(unsigned int sampler, SwizzleType swizzleR)
 	{
 		if(sampler < TEXTURE_IMAGE_UNITS)

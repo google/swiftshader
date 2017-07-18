@@ -156,6 +156,8 @@ const GLenum compressedTextureFormats[] =
 #endif
 };
 
+const GLenum GL_TEXTURE_FILTERING_HINT_CHROMIUM = 0x8AF0;
+
 const GLint NUM_COMPRESSED_TEXTURE_FORMATS = sizeof(compressedTextureFormats) / sizeof(compressedTextureFormats[0]);
 
 const GLint multisampleCount[] = {4, 2, 1};
@@ -376,6 +378,7 @@ struct State
 
 	GLenum generateMipmapHint;
 	GLenum fragmentShaderDerivativeHint;
+	GLenum textureFilteringHint;
 
 	GLint viewportX;
 	GLint viewportY;
@@ -489,6 +492,7 @@ public:
 
 	void setGenerateMipmapHint(GLenum hint);
 	void setFragmentShaderDerivativeHint(GLenum hint);
+	void setTextureFilteringHint(GLenum hint);
 
 	void setViewportParams(GLint x, GLint y, GLsizei width, GLsizei height);
 

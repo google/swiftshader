@@ -345,6 +345,7 @@ namespace sw
 		void setMipmapLOD(SamplerType type, int sampler, float bias);
 		void setBorderColor(SamplerType type, int sampler, const Color<float> &borderColor);
 		void setMaxAnisotropy(SamplerType type, int sampler, float maxAnisotropy);
+		void setHighPrecisionFiltering(SamplerType type, int sampler, bool highPrecisionFiltering);
 		void setSwizzleR(SamplerType type, int sampler, SwizzleType swizzleR);
 		void setSwizzleG(SamplerType type, int sampler, SwizzleType swizzleG);
 		void setSwizzleB(SamplerType type, int sampler, SwizzleType swizzleB);

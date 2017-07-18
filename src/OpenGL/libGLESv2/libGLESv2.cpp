@@ -4247,6 +4247,9 @@ void Hint(GLenum target, GLenum mode)
 	case GL_FRAGMENT_SHADER_DERIVATIVE_HINT_OES:
 		if(context) context->setFragmentShaderDerivativeHint(mode);
 		break;
+	case GL_TEXTURE_FILTERING_HINT_CHROMIUM:
+		if(context) context->setTextureFilteringHint(mode);
+		break;
 	default:
 		return error(GL_INVALID_ENUM);
 	}

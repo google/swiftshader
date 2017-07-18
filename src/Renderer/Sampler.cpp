@@ -60,6 +60,7 @@ namespace sw
 		mipmapFilterState = MIPMAP_NONE;
 		sRGB = false;
 		gather = false;
+		highPrecisionFiltering = false;
 
 		swizzleR = SWIZZLE_RED;
 		swizzleG = SWIZZLE_GREEN;
@@ -97,6 +98,7 @@ namespace sw
 			state.swizzleG = swizzleG;
 			state.swizzleB = swizzleB;
 			state.swizzleA = swizzleA;
+			state.highPrecisionFiltering = highPrecisionFiltering;
 
 			#if PERF_PROFILE
 				state.compressedFormat = Surface::isCompressed(externalTextureFormat);
@@ -296,6 +298,11 @@ namespace sw
 	void Sampler::setMaxAnisotropy(float maxAnisotropy)
 	{
 		texture.maxAnisotropy = maxAnisotropy;
+	}
+
+	void Sampler::setHighPrecisionFiltering(bool highPrecisionFiltering)
+	{
+		this->highPrecisionFiltering = highPrecisionFiltering;
 	}
 
 	void Sampler::setSwizzleR(SwizzleType swizzleR)

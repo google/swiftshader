@@ -314,7 +314,7 @@ namespace sw
 		}
 		else
 		{
-			if(hasFloatTexture())   // FIXME: Mostly identical to integer sampling
+			if(hasFloatTexture() || state.highPrecisionFiltering)   // FIXME: Mostly identical to integer sampling
 			{
 				Float4 uuuu = u;
 				Float4 vvvv = v;

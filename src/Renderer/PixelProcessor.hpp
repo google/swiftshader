@@ -231,6 +231,7 @@ namespace sw
 		void setMipmapLOD(unsigned int sampler, float bias);
 		void setBorderColor(unsigned int sampler, const Color<float> &borderColor);
 		void setMaxAnisotropy(unsigned int sampler, float maxAnisotropy);
+		void setHighPrecisionFiltering(unsigned int sampler, bool highPrecisionFiltering);
 		void setSwizzleR(unsigned int sampler, SwizzleType swizzleR);
 		void setSwizzleG(unsigned int sampler, SwizzleType swizzleG);
 		void setSwizzleB(unsigned int sampler, SwizzleType swizzleB);

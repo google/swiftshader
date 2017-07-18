@@ -2314,6 +2314,18 @@ namespace sw
 		}
 	}
 
+	void Renderer::setHighPrecisionFiltering(SamplerType type, int sampler, bool highPrecisionFiltering)
+	{
+		if(type == SAMPLER_PIXEL)
+		{
+			PixelProcessor::setHighPrecisionFiltering(sampler, highPrecisionFiltering);
+		}
+		else
+		{
+			VertexProcessor::setHighPrecisionFiltering(sampler, highPrecisionFiltering);
+		}
+	}
+
 	void Renderer::setSwizzleR(SamplerType type, int sampler, SwizzleType swizzleR)
 	{
 		if(type == SAMPLER_PIXEL)
