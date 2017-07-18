@@ -22,6 +22,29 @@
       "revId": "85dc838d839dca3958bc06a15c913dac1036f378",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "84d29a43_6afeafe1",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2110,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-07-18T03:20:23Z",
+      "side": 1,
+      "message": "Doesn\u0027t compile on Android: \"conditional expression is ambiguous; \u0027RValue\u003csw::Float4\u003e\u0027 can be converted to \u0027sw::Float4\u0027 and vice versa\"",
+      "range": {
+        "startLine": 2106,
+        "startChar": 5,
+        "endLine": 2110,
+        "endChar": 64
+      },
+      "revId": "85dc838d839dca3958bc06a15c913dac1036f378",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
