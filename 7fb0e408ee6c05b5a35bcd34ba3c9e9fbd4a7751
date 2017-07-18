@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ba8f2f91_eeb39839",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 1768,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-07-18T14:51:40Z",
+      "side": 1,
+      "message": "This check is no longer necessary since the new address function clamps the coordinates, even in texelFetch mode.",
+      "range": {
+        "startLine": 1760,
+        "startChar": 0,
+        "endLine": 1768,
+        "endChar": 3
+      },
+      "revId": "7fb0e408ee6c05b5a35bcd34ba3c9e9fbd4a7751",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
