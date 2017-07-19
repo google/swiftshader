@@ -1,0 +1,113 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "88d5aac7_08b253b5",
+        "filename": "extensions/CHROMIUM_texture_filtering_hint.txt",
+        "patchSetId": 5
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-07-19T17:11:56Z",
+      "side": 1,
+      "message": "nit: no space",
+      "range": {
+        "startLine": 7,
+        "startChar": 7,
+        "endLine": 7,
+        "endChar": 8
+      },
+      "revId": "921ddfbcd59595d75afc13dae461ef4c24bb7e9f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2f017972_f3be9538",
+        "filename": "extensions/CHROMIUM_texture_filtering_hint.txt",
+        "patchSetId": 5
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-07-19T17:11:56Z",
+      "side": 1,
+      "message": "nit: Could add Contributors and Contact sections.",
+      "revId": "921ddfbcd59595d75afc13dae461ef4c24bb7e9f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "26d7462a_cd161aa3",
+        "filename": "extensions/CHROMIUM_texture_filtering_hint.txt",
+        "patchSetId": 5
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-07-19T17:11:56Z",
+      "side": 1,
+      "message": "nit: Not sure if it\u0027s a thing, but exceeds 80 columns here.",
+      "range": {
+        "startLine": 21,
+        "startChar": 77,
+        "endLine": 21,
+        "endChar": 82
+      },
+      "revId": "921ddfbcd59595d75afc13dae461ef4c24bb7e9f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "02aa01b8_8420809a",
+        "filename": "extensions/CHROMIUM_texture_filtering_hint.txt",
+        "patchSetId": 5
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-07-19T17:11:56Z",
+      "side": 1,
+      "message": "I\u0027m not sure if we want to say this. We may want to set defaults differently based on the project or platform.",
+      "range": {
+        "startLine": 30,
+        "startChar": 16,
+        "endLine": 30,
+        "endChar": 45
+      },
+      "revId": "921ddfbcd59595d75afc13dae461ef4c24bb7e9f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ba1f0b4_a7c5fd0f",
+        "filename": "extensions/CHROMIUM_texture_filtering_hint.txt",
+        "patchSetId": 5
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-07-19T17:11:56Z",
+      "side": 1,
+      "message": "nit: 2017/7/19 First version",
+      "range": {
+        "startLine": 53,
+        "startChar": 4,
+        "endLine": 53,
+        "endChar": 40
+      },
+      "revId": "921ddfbcd59595d75afc13dae461ef4c24bb7e9f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
