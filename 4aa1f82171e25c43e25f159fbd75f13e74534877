@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5aa502a2_6186c874",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-07-19T14:23:34Z",
+      "side": 1,
+      "message": "Let\u0027s be a little more descriptive: \"Add texture filtering precision hint.\"",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 37
+      },
+      "revId": "4aa1f82171e25c43e25f159fbd75f13e74534877",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f32c56f5_ed474780",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-07-19T14:23:34Z",
+      "side": 1,
+      "message": "ANGLE has an \u0027extensions\u0027 directory which contains all of the extension specs. This makes it very clear which revisions of an extension it adheres to. No need to add all of the other ones in this CL, but the hint extension should definitely be documented on the SwiftShader side.\n\nb/14877732 for adding the other ones.",
+      "range": {
+        "startLine": 11,
+        "startChar": 0,
+        "endLine": 11,
+        "endChar": 55
+      },
+      "revId": "4aa1f82171e25c43e25f159fbd75f13e74534877",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
