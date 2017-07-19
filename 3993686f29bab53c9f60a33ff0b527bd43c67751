@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0dceaa1c_345bfadb",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 1748,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-07-19T17:57:13Z",
+      "side": 1,
+      "message": "Doesn\u0027t compile for Chrome Linux: \" error: conditional expression is ambiguous; \u0027RValue\u003csw::Int4\u003e\u0027 can be converted to \u0027sw::Int4\u0027 and vice versa\"",
+      "range": {
+        "startLine": 1748,
+        "startChar": 26,
+        "endLine": 1748,
+        "endChar": 67
+      },
+      "revId": "3993686f29bab53c9f60a33ff0b527bd43c67751",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
