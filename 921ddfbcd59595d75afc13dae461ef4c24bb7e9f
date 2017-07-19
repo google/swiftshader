@@ -88,6 +88,30 @@
     },
     {
       "key": {
+        "uuid": "60553995_749901e8",
+        "filename": "extensions/CHROMIUM_texture_filtering_hint.txt",
+        "patchSetId": 5
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5190
+      },
+      "writtenOn": "2017-07-19T17:15:12Z",
+      "side": 1,
+      "message": "Defaults generally should act as specified in the core spec-- otherwise tests and applications ignorant of the existence of the extension may get unexpected results. But in the case of performing at a higher precision than specified, that may still be behaving within spec?",
+      "parentUuid": "02aa01b8_8420809a",
+      "range": {
+        "startLine": 30,
+        "startChar": 16,
+        "endLine": 30,
+        "endChar": 45
+      },
+      "revId": "921ddfbcd59595d75afc13dae461ef4c24bb7e9f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7ba1f0b4_a7c5fd0f",
         "filename": "extensions/CHROMIUM_texture_filtering_hint.txt",
         "patchSetId": 5
