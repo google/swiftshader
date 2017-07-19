@@ -45,6 +45,52 @@
       "revId": "4aa1f82171e25c43e25f159fbd75f13e74534877",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c0947e99_f978093a",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 4331,
+      "author": {
+        "id": 5190
+      },
+      "writtenOn": "2017-07-19T14:56:53Z",
+      "side": 1,
+      "message": "If you\u0027re taking an enum from the CHROMIUM allocation, it should probably be GL_CHROMIUM_texture_filtering.\n\nAlso, I think the extension string should probably be GL_CHROMIUM_texture_filter_hint -- the other hint extensions use \"hint\" in their strings, and other texture filtering-related extensions use \"texture_filter\" rather than \"texture_filtering\".",
+      "range": {
+        "startLine": 4331,
+        "startChar": 3,
+        "endLine": 4331,
+        "endChar": 35
+      },
+      "revId": "4aa1f82171e25c43e25f159fbd75f13e74534877",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "899055c6_5cf80db9",
+        "filename": "src/OpenGL/libGLESv2/Context.h",
+        "patchSetId": 2
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 5190
+      },
+      "writtenOn": "2017-07-19T14:56:53Z",
+      "side": 1,
+      "message": "If this token is added by an extension, it should get suffixed appropriately (i.e. _CHROMIUM).\n\nAlso-- are you defining any other GL enumerants in this file, or is everything else just implementation-defined constants? Canonically the extension enumerants get defined in gl2ext.h.",
+      "range": {
+        "startLine": 159,
+        "startChar": 13,
+        "endLine": 159,
+        "endChar": 38
+      },
+      "revId": "4aa1f82171e25c43e25f159fbd75f13e74534877",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
