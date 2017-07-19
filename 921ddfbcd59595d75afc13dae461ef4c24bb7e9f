@@ -112,6 +112,30 @@
     },
     {
       "key": {
+        "uuid": "6536b910_d92e70e8",
+        "filename": "extensions/CHROMIUM_texture_filtering_hint.txt",
+        "patchSetId": 5
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-07-19T17:39:12Z",
+      "side": 1,
+      "message": "Yes, like other hints, the implementation is within spec regardless of the selected preference. This extension is specifically to go beyond the minimum precision requirement (which isn\u0027t really spelled out in the spec but is defined by conformance tests).\n\nAlexis, it might be worth clarifying that in an Issues section as well, together with the other questions Shannon had in the e-mail thread.",
+      "parentUuid": "60553995_749901e8",
+      "range": {
+        "startLine": 30,
+        "startChar": 16,
+        "endLine": 30,
+        "endChar": 45
+      },
+      "revId": "921ddfbcd59595d75afc13dae461ef4c24bb7e9f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7ba1f0b4_a7c5fd0f",
         "filename": "extensions/CHROMIUM_texture_filtering_hint.txt",
         "patchSetId": 5
