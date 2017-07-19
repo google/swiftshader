@@ -48,6 +48,54 @@
     },
     {
       "key": {
+        "uuid": "f4155be0_a4baec91",
+        "filename": "src/Renderer/QuadRasterizer.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-07-19T17:58:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a2361951_ccd969e0",
+      "range": {
+        "startLine": 120,
+        "startChar": 3,
+        "endLine": 120,
+        "endChar": 124
+      },
+      "revId": "a2b9523e6fcca8c862e81342eef35926e76b8c9c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7b876311_656eae76",
+        "filename": "src/Renderer/QuadRasterizer.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-07-19T17:58:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "56ee76d3_614ebcbc",
+      "range": {
+        "startLine": 120,
+        "startChar": 3,
+        "endLine": 120,
+        "endChar": 124
+      },
+      "revId": "a2b9523e6fcca8c862e81342eef35926e76b8c9c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d2702970_8447ba3f",
         "filename": "src/Renderer/Renderer.cpp",
         "patchSetId": 3
@@ -59,6 +107,30 @@
       "writtenOn": "2017-06-08T18:50:31Z",
       "side": 1,
       "message": "We also need this for the depth and stencil buffers, since we could be rendering e.g. a shadow map without color.",
+      "range": {
+        "startLine": 623,
+        "startChar": 6,
+        "endLine": 626,
+        "endChar": 7
+      },
+      "revId": "a2b9523e6fcca8c862e81342eef35926e76b8c9c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0f55fb28_14ac581a",
+        "filename": "src/Renderer/Renderer.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 626,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-07-19T17:58:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d2702970_8447ba3f",
       "range": {
         "startLine": 623,
         "startChar": 6,
@@ -117,6 +189,30 @@
     },
     {
       "key": {
+        "uuid": "dc8be703_0e1293e2",
+        "filename": "src/Renderer/Renderer.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 882,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-07-19T17:58:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "603df3a6_92db1fd8",
+      "range": {
+        "startLine": 882,
+        "startChar": 55,
+        "endLine": 882,
+        "endChar": 63
+      },
+      "revId": "a2b9523e6fcca8c862e81342eef35926e76b8c9c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0cd60d36_3a591fc6",
         "filename": "src/Shader/SetupRoutine.cpp",
         "patchSetId": 3
@@ -140,6 +236,30 @@
     },
     {
       "key": {
+        "uuid": "9205d7b9_aad7f0e9",
+        "filename": "src/Shader/SetupRoutine.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 222,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-07-19T17:58:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0cd60d36_3a591fc6",
+      "range": {
+        "startLine": 222,
+        "startChar": 18,
+        "endLine": 222,
+        "endChar": 28
+      },
+      "revId": "a2b9523e6fcca8c862e81342eef35926e76b8c9c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e27c0ece_0d704d4c",
         "filename": "src/Shader/SetupRoutine.cpp",
         "patchSetId": 3
@@ -151,6 +271,30 @@
       "writtenOn": "2017-06-08T18:50:31Z",
       "side": 1,
       "message": "outline",
+      "range": {
+        "startLine": 578,
+        "startChar": 18,
+        "endLine": 578,
+        "endChar": 28
+      },
+      "revId": "a2b9523e6fcca8c862e81342eef35926e76b8c9c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6b86c22c_75e09f87",
+        "filename": "src/Shader/SetupRoutine.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 578,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-07-19T17:58:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e27c0ece_0d704d4c",
       "range": {
         "startLine": 578,
         "startChar": 18,
