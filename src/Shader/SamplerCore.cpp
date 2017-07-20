@@ -314,7 +314,9 @@ namespace sw
 		}
 		else
 		{
-			if(hasFloatTexture() || hasUnnormalizedIntegerTexture() || state.highPrecisionFiltering)   // FIXME: Mostly identical to integer sampling
+			// FIXME: YUV and sRGB are not supported by the floating point path
+			bool forceFloatFiltering = state.highPrecisionFiltering && !state.sRGB && !hasYuvFormat() && (state.textureFilter != FILTER_POINT);
+			if(hasFloatTexture() || hasUnnormalizedIntegerTexture() || forceFloatFiltering)   // FIXME: Mostly identical to integer sampling
 			{
 				Float4 uuuu = u;
 				Float4 vvvv = v;
@@ -353,6 +355,30 @@ namespace sw
 				}
 
 				sampleFloatFilter(texture, c, uuuu, vvvv, wwww, offset, lod, anisotropy, uDelta, vDelta, face, function);
+
+				if(!hasFloatTexture() && !hasUnnormalizedIntegerTexture())
+				{
+					if(has16bitTextureFormat())
+					{
+						switch(state.textureFormat)
+						{
+						case FORMAT_R5G6B5:
+							c.x *= Float4(1.0f / 0xF800);
+							c.y *= Float4(1.0f / 0xFC00);
+							c.z *= Float4(1.0f / 0xF800);
+							break;
+						default:
+							ASSERT(false);
+						}
+					}
+					else
+					{
+						for(int component = 0; component < textureComponentCount(); component++)
+						{
+							c[component] *= Float4(hasUnsignedTextureComponent(component) ? 1.0f / 0xFFFF : 1.0f / 0x7FFF);
+						}
+					}
+				}
 			}
 			else
 			{
