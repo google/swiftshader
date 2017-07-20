@@ -22,6 +22,30 @@
       "revId": "28327a29f3b69b8a37249c4edf0a52db9244bd4b",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c63cbf0a_e5f407dc",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1412,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-07-20T14:23:00Z",
+      "side": 1,
+      "message": "We can repeat it until we reach infinity, which is after about 7 iterations when the input is 2 (i.e. we\u0027re at mipmap level 1), due to having 8 mantissa bits. To have up to 16 mipmap levels, we need four bits in the exponent, so only three iterations can be used. Infinity still produces a sane output value by the way.\n\nI\u0027m hoping that squaring once is enough though.",
+      "parentUuid": "95625ddf_034120b0",
+      "range": {
+        "startLine": 1412,
+        "startChar": 2,
+        "endLine": 1412,
+        "endChar": 13
+      },
+      "revId": "28327a29f3b69b8a37249c4edf0a52db9244bd4b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
