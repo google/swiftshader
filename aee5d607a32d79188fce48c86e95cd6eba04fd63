@@ -1,0 +1,159 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "841bc14a_23a4601e",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-07-20T14:21:22Z",
+      "side": 1,
+      "message": "Unnormalized integer",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 7
+      },
+      "revId": "aee5d607a32d79188fce48c86e95cd6eba04fd63",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9e5b6991_2b0c67d5",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-07-20T14:21:22Z",
+      "side": 1,
+      "message": "Could you add the name of the dEQP test?",
+      "range": {
+        "startLine": 10,
+        "startChar": 19,
+        "endLine": 10,
+        "endChar": 27
+      },
+      "revId": "aee5d607a32d79188fce48c86e95cd6eba04fd63",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d3e72fb6_52606bde",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-07-20T14:21:22Z",
+      "side": 1,
+      "message": "Bug swiftshader:#",
+      "revId": "aee5d607a32d79188fce48c86e95cd6eba04fd63",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bacadb3e_09b2f9b8",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 317,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-07-20T14:21:22Z",
+      "side": 1,
+      "message": "Can be removed now?",
+      "range": {
+        "startLine": 317,
+        "startChar": 85,
+        "endLine": 317,
+        "endChar": 90
+      },
+      "revId": "aee5d607a32d79188fce48c86e95cd6eba04fd63",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9b1435e0_46dd8b9c",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1799,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-07-20T14:21:22Z",
+      "side": 1,
+      "message": "Can be done with a single shift right if the bytes are duplicated as before.",
+      "range": {
+        "startLine": 1791,
+        "startChar": 6,
+        "endLine": 1799,
+        "endChar": 12
+      },
+      "revId": "aee5d607a32d79188fce48c86e95cd6eba04fd63",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ee94b7a5_28954e20",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1873,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-07-20T14:21:22Z",
+      "side": 1,
+      "message": "redundant",
+      "range": {
+        "startLine": 1873,
+        "startChar": 16,
+        "endLine": 1873,
+        "endChar": 34
+      },
+      "revId": "aee5d607a32d79188fce48c86e95cd6eba04fd63",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1d9e2f69_1433aeb7",
+        "filename": "src/Shader/SamplerCore.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-07-20T14:21:22Z",
+      "side": 1,
+      "message": "Let\u0027s avoid confusion by calling it hasUnnormalizedIntegerTexture",
+      "range": {
+        "startLine": 94,
+        "startChar": 7,
+        "endLine": 94,
+        "endChar": 24
+      },
+      "revId": "aee5d607a32d79188fce48c86e95cd6eba04fd63",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
