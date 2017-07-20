@@ -676,7 +676,10 @@ sw::Format Display::getDisplayFormat() const
 			if(fd != -1)
 			{
 				struct fb_var_screeninfo info;
-				if(ioctl(fd, FBIOGET_VSCREENINFO, &info) >= 0)
+				int io = ioctl(fd, FBIOGET_VSCREENINFO, &info);
+				close(fd);
+
+				if(io >= 0)
 				{
 					switch(info.bits_per_pixel)
 					{
@@ -716,8 +719,6 @@ sw::Format Display::getDisplayFormat() const
 						UNIMPLEMENTED();
 					}
 				}
-
-				close(fd);
 			}
 		}
 
