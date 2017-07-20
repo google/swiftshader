@@ -3329,7 +3329,7 @@ void Context::clearColorBuffer(GLint drawbuffer, void *value, sw::Format format)
 
 		if(colorbuffer)
 		{
-			sw::SliceRect clearRect = colorbuffer->getRect();
+			sw::Rect clearRect = colorbuffer->getRect();
 
 			if(mState.scissorTestEnabled)
 			{
@@ -3368,7 +3368,7 @@ void Context::clearDepthBuffer(const GLfloat value)
 		if(depthbuffer)
 		{
 			float depth = clamp01(value);
-			sw::SliceRect clearRect = depthbuffer->getRect();
+			sw::Rect clearRect = depthbuffer->getRect();
 
 			if(mState.scissorTestEnabled)
 			{
@@ -3392,7 +3392,7 @@ void Context::clearStencilBuffer(const GLint value)
 		if(stencilbuffer)
 		{
 			unsigned char stencil = value < 0 ? 0 : static_cast<unsigned char>(value & 0x000000FF);
-			sw::SliceRect clearRect = stencilbuffer->getRect();
+			sw::Rect clearRect = stencilbuffer->getRect();
 
 			if(mState.scissorTestEnabled)
 			{

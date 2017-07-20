@@ -365,7 +365,7 @@ namespace D3D8
 
 		for(unsigned int i = 0; i < count; i++)
 		{
-			sw::SliceRect clearRect(rects[i].x1, rects[i].y1, rects[i].x2, rects[i].y2, 0);
+			sw::Rect clearRect(rects[i].x1, rects[i].y1, rects[i].x2, rects[i].y2);
 
 			clearRect.clip(viewport.X, viewport.Y, viewport.X + viewport.Width, viewport.Y + viewport.Height);
 

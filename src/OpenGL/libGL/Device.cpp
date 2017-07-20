@@ -201,7 +201,7 @@ namespace gl
 			return;
 		}
 
-		sw::SliceRect clearRect = renderTarget->getRect();
+		sw::Rect clearRect = renderTarget->getRect();
 
 		if(scissorEnable)
 		{
@@ -225,7 +225,7 @@ namespace gl
 		}
 
 		z = clamp01(z);
-		sw::SliceRect clearRect = depthStencil->getRect();
+		sw::Rect clearRect = depthStencil->getRect();
 
 		if(scissorEnable)
 		{
@@ -242,7 +242,7 @@ namespace gl
 			return;
 		}
 
-		sw::SliceRect clearRect = depthStencil->getRect();
+		sw::Rect clearRect = depthStencil->getRect();
 
 		if(scissorEnable)
 		{

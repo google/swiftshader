@@ -202,18 +202,14 @@ namespace es2
 		{
 			if(renderTarget[i])
 			{
-				sw::SliceRect clearRect = renderTarget[i]->getRect();
+				sw::Rect clearRect = renderTarget[i]->getRect();
 
 				if(scissorEnable)
 				{
 					clearRect.clip(scissorRect.x0, scissorRect.y0, scissorRect.x1, scissorRect.y1);
 				}
 
-				int depth = sw::max(renderTarget[i]->getDepth(), 1);
-				for(clearRect.slice = 0; clearRect.slice < depth; clearRect.slice++)
-				{
-					clear(rgba, FORMAT_A32B32G32R32F, renderTarget[i], clearRect, rgbaMask);
-				}
+				clear(rgba, FORMAT_A32B32G32R32F, renderTarget[i], clearRect, rgbaMask);
 			}
 		}
 	}
@@ -226,7 +222,7 @@ namespace es2
 		}
 
 		z = clamp01(z);
-		sw::SliceRect clearRect = depthBuffer->getRect();
+		sw::Rect clearRect = depthBuffer->getRect();
 
 		if(scissorEnable)
 		{
@@ -243,7 +239,7 @@ namespace es2
 			return;
 		}
 
-		sw::SliceRect clearRect = stencilBuffer->getRect();
+		sw::Rect clearRect = stencilBuffer->getRect();
 
 		if(scissorEnable)
 		{

@@ -3193,14 +3193,14 @@ namespace sw
 		resource->unlock();
 	}
 
-	bool Surface::isEntire(const SliceRect& rect) const
+	bool Surface::isEntire(const Rect& rect) const
 	{
 		return (rect.x0 == 0 && rect.y0 == 0 && rect.x1 == internal.width && rect.y1 == internal.height && internal.depth == 1);
 	}
 
-	SliceRect Surface::getRect() const
+	Rect Surface::getRect() const
 	{
-		return SliceRect(0, 0, internal.width, internal.height, 0);
+		return Rect(0, 0, internal.width, internal.height);
 	}
 
 	void Surface::clearDepth(float depth, int x0, int y0, int width, int height)

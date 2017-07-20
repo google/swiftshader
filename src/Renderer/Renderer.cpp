@@ -672,9 +672,15 @@ namespace sw
 		}
 	}
 
-	void Renderer::clear(void *pixel, Format format, Surface *dest, const SliceRect &dRect, unsigned int rgbaMask)
+	void Renderer::clear(void *value, Format format, Surface *dest, const Rect &clearRect, unsigned int rgbaMask)
 	{
-		blitter->clear(pixel, format, dest, dRect, rgbaMask);
+		SliceRect rect = clearRect;
+		int samples = dest->getDepth();
+
+		for(rect.slice = 0; rect.slice < samples; rect.slice++)
+		{
+			blitter->clear(value, format, dest, rect, rgbaMask);
+		}
 	}
 
 	void Renderer::blit(Surface *source, const SliceRect &sRect, Surface *dest, const SliceRect &dRect, bool filter, bool isStencil)

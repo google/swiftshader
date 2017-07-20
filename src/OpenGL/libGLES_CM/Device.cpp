@@ -172,7 +172,7 @@ namespace es1
 		rgba[2] = blue;
 		rgba[3] = alpha;
 
-		sw::SliceRect clearRect = renderTarget->getRect();
+		sw::Rect clearRect = renderTarget->getRect();
 
 		if(scissorEnable)
 		{
@@ -190,7 +190,7 @@ namespace es1
 		}
 
 		z = clamp01(z);
-		sw::SliceRect clearRect = depthBuffer->getRect();
+		sw::Rect clearRect = depthBuffer->getRect();
 
 		if(scissorEnable)
 		{
@@ -207,7 +207,7 @@ namespace es1
 			return;
 		}
 
-		sw::SliceRect clearRect = stencilBuffer->getRect();
+		sw::Rect clearRect = stencilBuffer->getRect();
 
 		if(scissorEnable)
 		{
