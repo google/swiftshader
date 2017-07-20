@@ -69,6 +69,30 @@
       "revId": "1f7f5a8d97bd7686cc0b7b99dbaf88093bbeeb25",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c5331f03_bac6f697",
+        "filename": "src/Renderer/Renderer.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 326,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-07-20T18:33:07Z",
+      "side": 1,
+      "message": "I\u0027m not certain if it would be better if the copy happened explicitly in the function, but it\u0027s not a big deal either way. The API ends up lying a little, because it doesn\u0027t only clear the specified slice.",
+      "parentUuid": "16989ef0_21f9ab22",
+      "range": {
+        "startLine": 326,
+        "startChar": 56,
+        "endLine": 326,
+        "endChar": 70
+      },
+      "revId": "1f7f5a8d97bd7686cc0b7b99dbaf88093bbeeb25",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
