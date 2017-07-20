@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "b7e7db25_2c98d79c",
+        "filename": "src/Renderer/Renderer.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 675,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-07-20T18:26:59Z",
+      "side": 1,
+      "message": "Note that this wouldn\u0027t be correct for a multisampled array texture. That\u0027s not a thing until ES 3.1 though: OES_texture_storage_multisample_2d_array. So this isn\u0027t making things worse, but will need some attention later.",
+      "range": {
+        "startLine": 675,
+        "startChar": 22,
+        "endLine": 675,
+        "endChar": 30
+      },
+      "revId": "1f7f5a8d97bd7686cc0b7b99dbaf88093bbeeb25",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "56550a2c_7aa07666",
         "filename": "src/Renderer/Renderer.hpp",
         "patchSetId": 1
@@ -13,6 +36,30 @@
       "writtenOn": "2017-07-20T18:23:06Z",
       "side": 1,
       "message": "Why remove the const reference?",
+      "range": {
+        "startLine": 326,
+        "startChar": 56,
+        "endLine": 326,
+        "endChar": 70
+      },
+      "revId": "1f7f5a8d97bd7686cc0b7b99dbaf88093bbeeb25",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "16989ef0_21f9ab22",
+        "filename": "src/Renderer/Renderer.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 326,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-07-20T18:26:59Z",
+      "side": 1,
+      "message": "Because I use its slice member as loop counter.",
+      "parentUuid": "56550a2c_7aa07666",
       "range": {
         "startLine": 326,
         "startChar": 56,
