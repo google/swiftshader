@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "969e1e20_b189ed67",
+        "filename": "src/OpenGL/libGLESv2/Device.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 205,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-07-20T19:33:06Z",
+      "side": 1,
+      "message": "Should be Rect",
+      "range": {
+        "startLine": 205,
+        "startChar": 8,
+        "endLine": 205,
+        "endChar": 17
+      },
+      "revId": "27c232a5ca102caf4aa8f938eef2d3e832611fcd",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
