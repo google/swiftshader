@@ -178,6 +178,30 @@
     },
     {
       "key": {
+        "uuid": "ad05c60b_21faf2a1",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 317,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-07-20T20:17:02Z",
+      "side": 1,
+      "message": "Right, I didn\u0027t realize this comment is ancient. It refers to the cubeFace and computeLod calls being the same as above, so it could be refactored a little. I\u0027ll look into it as part of my integer path optimizations, so just leave the comment for now.",
+      "parentUuid": "1ab5a772_7d23ccfe",
+      "range": {
+        "startLine": 317,
+        "startChar": 85,
+        "endLine": 317,
+        "endChar": 90
+      },
+      "revId": "aee5d607a32d79188fce48c86e95cd6eba04fd63",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9b1435e0_46dd8b9c",
         "filename": "src/Shader/SamplerCore.cpp",
         "patchSetId": 1
