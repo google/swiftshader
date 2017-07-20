@@ -93,6 +93,30 @@
       "revId": "1f7f5a8d97bd7686cc0b7b99dbaf88093bbeeb25",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "61e38f3f_38f11bc3",
+        "filename": "src/Renderer/Renderer.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 326,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-07-20T19:09:36Z",
+      "side": 1,
+      "message": "You\u0027re right. Did the Right Thing™ and refactored it to make all clear operations only use Rect without slice.",
+      "parentUuid": "c5331f03_bac6f697",
+      "range": {
+        "startLine": 326,
+        "startChar": 56,
+        "endLine": 326,
+        "endChar": 70
+      },
+      "revId": "1f7f5a8d97bd7686cc0b7b99dbaf88093bbeeb25",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
