@@ -33,6 +33,7 @@ namespace sw
 	bool fullPixelPositionRegister = false;
 	bool leadingVertexFirst = false;         // Flat shading uses first vertex, else last
 	bool secondaryColor = false;             // Specular lighting is applied after texturing
+	bool colorsDefaultToZero = false;
 
 	bool forceWindowed = false;
 	bool quadLayoutEnabled = false;

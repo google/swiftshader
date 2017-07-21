@@ -65,6 +65,7 @@ namespace sw
 		bool fullPixelPositionRegister;
 		bool leadingVertexFirst;
 		bool secondaryColor;
+		bool colorsDefaultToZero;
 	};
 
 	static const Conventions OpenGL =
@@ -74,7 +75,8 @@ namespace sw
 		true,    // booleanFaceRegister
 		true,    // fullPixelPositionRegister
 		false,   // leadingVertexFirst
-		false    // secondaryColor
+		false,   // secondaryColor
+		true,    // colorsDefaultToZero
 	};
 
 	static const Conventions Direct3D =
@@ -85,6 +87,7 @@ namespace sw
 		false,   // fullPixelPositionRegister
 		true,    // leadingVertexFirst
 		true,    // secondardyColor
+		false,   // colorsDefaultToZero
 	};
 
 	struct Query

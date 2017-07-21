@@ -48,6 +48,7 @@ namespace sw
 	extern bool fullPixelPositionRegister;
 	extern bool leadingVertexFirst;         // Flat shading uses first vertex, else last
 	extern bool secondaryColor;             // Specular lighting is applied after texturing
+	extern bool colorsDefaultToZero;
 
 	extern bool forceWindowed;
 	extern bool complementaryDepthBuffer;
@@ -110,6 +111,7 @@ namespace sw
 		sw::fullPixelPositionRegister = conventions.fullPixelPositionRegister;
 		sw::leadingVertexFirst = conventions.leadingVertexFirst;
 		sw::secondaryColor = conventions.secondaryColor;
+		sw::colorsDefaultToZero = conventions.colorsDefaultToZero;
 		sw::exactColorRounding = exactColorRounding;
 
 		setRenderTarget(0, 0);
