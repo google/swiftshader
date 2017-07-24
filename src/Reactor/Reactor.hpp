@@ -1535,6 +1535,7 @@ namespace sw
 	{
 	public:
 		explicit Float(RValue<Int> cast);
+		explicit Float(RValue<UInt> cast);
 
 		Float() = default;
 		Float(float x);

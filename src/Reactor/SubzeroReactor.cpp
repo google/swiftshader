@@ -5715,6 +5715,14 @@ namespace sw
 		storeValue(integer);
 	}
 
+	Float::Float(RValue<UInt> cast)
+	{
+		RValue<Float> result = Float(Int(cast & UInt(0x7FFFFFFF))) +
+		                       As<Float>((As<Int>(cast) >> 31) & As<Int>(Float(0x80000000u)));
+
+		storeValue(result.value);
+	}
+
 	Float::Float(float x)
 	{
 		storeValue(Nucleus::createConstantFloat(x));
