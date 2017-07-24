@@ -2541,7 +2541,7 @@ namespace sw
 	Short4::Short4(RValue<Int> cast)
 	{
 		Value *extend = Nucleus::createZExt(cast.value, Long::getType());
-		Value *swizzle = Swizzle(RValue<Short4>(extend), 0x00).value;
+		Value *swizzle = Swizzle(As<Short4>(extend), 0x00).value;
 
 		storeValue(swizzle);
 	}
@@ -2584,7 +2584,7 @@ namespace sw
 				Value *element = Nucleus::createExtractElement(qword2, 0);
 				Value *short4 = Nucleus::createBitCast(element, Short4::getType());
 			#else   // FIXME: Requires SSE
-				Value *int2 = RValue<Int2>(Int2(RValue<Int4>(packed))).value;
+				Value *int2 = RValue<Int2>(Int2(As<Int4>(packed))).value;
 				Value *short4 = Nucleus::createBitCast(int2, Short4::getType());
 			#endif
 		#endif
