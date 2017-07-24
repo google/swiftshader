@@ -25,7 +25,6 @@ config("swiftshader_libEGL_private_config") {
 
     defines += [
       "EGLAPI=",
-      "LIBEGL_EXPORTS",
     ]
   } else {
     cflags = [ "-Wno-sign-compare" ]
@@ -34,8 +33,7 @@ config("swiftshader_libEGL_private_config") {
     }
 
     defines += [
-      "LOG_TAG=\"swiftshader_libEGL\"",
-      "EGLAPI=__attribute__((visibility(\"default\")))",
+      "EGLAPI=__attribute__((visibility(\"default\"))) __attribute__((no_sanitize(\"function\")))",
     ]
   }
 }

@@ -229,7 +229,7 @@ void setCurrentContext(egl::Context *ctx)
 	current->context = ctx;
 }
 
-egl::Context *getCurrentContext()
+NO_SANITIZE_FUNCTION egl::Context *getCurrentContext()
 {
 	Current *current = getCurrent();
 

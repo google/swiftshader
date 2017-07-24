@@ -25,8 +25,6 @@ config("swiftshader_renderer_private_config") {
       "-msse2",
       "-Wno-sign-compare",
     ]
-
-    defines = [ "LOG_TAG=\"swiftshader_renderer\"" ]
   }
 }
 

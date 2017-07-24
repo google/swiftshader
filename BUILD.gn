@@ -30,6 +30,7 @@ config("swiftshader_config") {
       "_CRT_SECURE_NO_DEPRECATE",
       "NOMINMAX",
       "_WINDLL",
+      "NO_SANITIZE_FUNCTION=",
     ]
 
     if (is_debug) {
@@ -48,6 +49,7 @@ config("swiftshader_config") {
     defines += [
       "__STDC_CONSTANT_MACROS",
       "__STDC_LIMIT_MACROS",
+      "NO_SANITIZE_FUNCTION=__attribute__((no_sanitize(\"function\")))",
     ]
 
     if (is_debug) {

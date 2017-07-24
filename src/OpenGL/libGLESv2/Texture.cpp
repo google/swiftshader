@@ -1975,7 +1975,7 @@ GLenum TextureExternal::getTarget() const
 
 }
 
-egl::Image *createBackBuffer(int width, int height, sw::Format format, int multiSampleDepth)
+NO_SANITIZE_FUNCTION egl::Image *createBackBuffer(int width, int height, sw::Format format, int multiSampleDepth)
 {
 	if(width > es2::IMPLEMENTATION_MAX_RENDERBUFFER_SIZE || height > es2::IMPLEMENTATION_MAX_RENDERBUFFER_SIZE)
 	{
@@ -1986,7 +1986,7 @@ egl::Image *createBackBuffer(int width, int height, sw::Format format, int multi
 	return egl::Image::create(width, height, format, multiSampleDepth, false);
 }
 
-egl::Image *createDepthStencil(int width, int height, sw::Format format, int multiSampleDepth)
+NO_SANITIZE_FUNCTION egl::Image *createDepthStencil(int width, int height, sw::Format format, int multiSampleDepth)
 {
 	if(width > es2::IMPLEMENTATION_MAX_RENDERBUFFER_SIZE || height > es2::IMPLEMENTATION_MAX_RENDERBUFFER_SIZE)
 	{

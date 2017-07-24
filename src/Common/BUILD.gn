@@ -21,7 +21,6 @@ config("swiftshader_common_private_config") {
     ]
   } else {
     cflags = [ "-msse2" ]
-    defines = [ "LOG_TAG=\"swiftshader_common\"" ]
   }
 }
 

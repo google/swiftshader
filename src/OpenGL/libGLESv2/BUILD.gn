@@ -28,7 +28,6 @@ config("swiftshader_libGLESv2_private_config") {
 
     defines += [
       "GL_APICALL=",
-      "LIBGLESV2_EXPORTS",
     ]
 
     if (is_clang) {
@@ -44,10 +43,9 @@ config("swiftshader_libGLESv2_private_config") {
     }
 
     defines += [
-      "LOG_TAG=\"swiftshader_libGLESv2\"",
       "__STDC_CONSTANT_MACROS",
       "__STDC_LIMIT_MACROS",
-      "GL_APICALL=__attribute__((visibility(\"default\")))",
+      "GL_APICALL=__attribute__((visibility(\"default\"))) __attribute__((no_sanitize(\"function\")))",
     ]
   }
 }

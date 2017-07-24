@@ -20,8 +20,6 @@ config("swiftshader_opengl_common_private_config") {
       "/wd4324",  # structure was padded due to alignment specifier
       "/wd5030",  # attribute is not recognized
     ]
-  } else {
-    defines = [ "LOG_TAG=\"swiftshader_opengl_common\"" ]
   }
 }
 

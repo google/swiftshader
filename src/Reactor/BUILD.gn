@@ -146,7 +146,6 @@ config("swiftshader_reactor_private_config") {
     ]
 
     defines = [
-      "LOG_TAG=\"swiftshader_reactor\"",
       "__STDC_CONSTANT_MACROS",
       "__STDC_LIMIT_MACROS",
     ]

@@ -28,7 +28,7 @@ config("swiftshader_main_private_config") {
     }
   } else {
     cflags = [ "-msse2" ]
-    defines = [ "LOG_TAG=\"swiftshader_main\"" ]
+    defines = [ "NO_SANITIZE_FUNCTION=__attribute__((no_sanitize(\"function\")))" ]
   }
 }
 

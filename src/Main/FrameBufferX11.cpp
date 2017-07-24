@@ -123,7 +123,7 @@ namespace sw
 
 	void FrameBufferX11::unlock()
 	{
-		locked = 0;
+		locked = nullptr;
 	}
 
 	void FrameBufferX11::blit(void *source, const Rect *sourceRect, const Rect *destRect, Format sourceFormat, size_t sourceStride)
@@ -143,7 +143,7 @@ namespace sw
 	}
 }
 
-sw::FrameBuffer *createFrameBuffer(void *display, Window window, int width, int height)
+NO_SANITIZE_FUNCTION sw::FrameBuffer *createFrameBuffer(void *display, Window window, int width, int height)
 {
 	return new sw::FrameBufferX11((::Display*)display, window, width, height);
 }

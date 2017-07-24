@@ -28,7 +28,6 @@ config("swiftshader_opengl_compiler_private_config") {
     }
   } else {
     cflags = [ "-Wno-sign-compare" ]
-    defines = [ "LOG_TAG=\"swiftshader_opengl_compiler\"" ]
 
     if (!is_debug) {
       cflags += [ "-Wno-unused-variable" ]  # local variable is initialized but not referenced (variables only used in ASSERTS)
