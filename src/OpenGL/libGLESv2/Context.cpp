@@ -4370,6 +4370,14 @@ const GLubyte *Context::getExtensions(GLuint index, GLuint *numExt) const
 			{
 				extensionsCat += std::string(extension) + " ";
 			}
+
+			if(clientVersion >= 3)
+			{
+				for(const char *extension : es3extensions)
+				{
+					extensionsCat += std::string(extension) + " ";
+				}
+			}
 		}
 
 		return (const GLubyte*)extensionsCat.c_str();
