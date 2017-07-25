@@ -2710,6 +2710,16 @@ namespace sw
 		return RValue<Byte8>(Nucleus::createNot(val.value));
 	}
 
+	RValue<Byte> Extract(RValue<Byte8> val, int i)
+	{
+		return RValue<Byte>(Nucleus::createExtractElement(val.value, Byte::getType(), i));
+	}
+
+	RValue<Byte8> Insert(RValue<Byte8> val, RValue<Byte> element, int i)
+	{
+		return RValue<Byte8>(Nucleus::createInsertElement(val.value, element.value, i));
+	}
+
 	RValue<Byte8> AddSat(RValue<Byte8> x, RValue<Byte8> y)
 	{
 		Ice::Variable *result = ::function->makeVariable(Ice::IceType_v16i8);
@@ -2760,16 +2770,64 @@ namespace sw
 		return As<Short4>(Swizzle(As<Int4>(lowHigh), 0xEE));
 	}
 
+	RValue<SByte> Extract(RValue<SByte8> val, int i)
+	{
+		return RValue<SByte>(Nucleus::createExtractElement(val.value, SByte::getType(), i));
+	}
+
+	RValue<SByte8> Insert(RValue<SByte8> val, RValue<SByte> element, int i)
+	{
+		return RValue<SByte8>(Nucleus::createInsertElement(val.value, element.value, i));
+	}
+
+	RValue<SByte8> operator>>(RValue<SByte8> lhs, unsigned char rhs)
+	{
+		if(emulateIntrinsics)
+		{
+			SByte8 result;
+			result = Insert(result, Extract(lhs, 0) >> SByte(rhs), 0);
+			result = Insert(result, Extract(lhs, 1) >> SByte(rhs), 1);
+			result = Insert(result, Extract(lhs, 2) >> SByte(rhs), 2);
+			result = Insert(result, Extract(lhs, 3) >> SByte(rhs), 3);
+			result = Insert(result, Extract(lhs, 4) >> SByte(rhs), 4);
+			result = Insert(result, Extract(lhs, 5) >> SByte(rhs), 5);
+			result = Insert(result, Extract(lhs, 6) >> SByte(rhs), 6);
+			result = Insert(result, Extract(lhs, 7) >> SByte(rhs), 7);
+
+			return result;
+		}
+		else
+		{
+			#if defined(__i386__) || defined(__x86_64__)
+				// SSE2 doesn't support byte vector shifts, so shift as shorts and recombine.
+				RValue<Short4> hi = (As<Short4>(lhs) >> rhs) & Short4(0xFF00);
+				RValue<Short4> lo = As<Short4>(As<UShort4>((As<Short4>(lhs) << 8) >> rhs) >> 8);
+
+				return As<SByte8>(hi | lo);
+			#else
+				return RValue<SByte8>(Nucleus::createAShr(lhs.value, V(::context->getConstantInt32(rhs))));
+			#endif
+		}
+	}
+
 	RValue<Int> SignMask(RValue<Byte8> x)
 	{
-		Ice::Variable *result = ::function->makeVariable(Ice::IceType_i32);
-		const Ice::Intrinsics::IntrinsicInfo intrinsic = {Ice::Intrinsics::SignMask, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F};
-		auto target = ::context->getConstantUndef(Ice::IceType_i32);
-		auto movmsk = Ice::InstIntrinsicCall::create(::function, 1, result, target, intrinsic);
-		movmsk->addArg(x.value);
-		::basicBlock->appendInst(movmsk);
+		if(emulateIntrinsics)
+		{
+			Byte8 xx = As<Byte8>(As<SByte8>(x) >> 7) & Byte8(0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80);
+			return Int(Extract(xx, 0)) | Int(Extract(xx, 1)) | Int(Extract(xx, 2)) | Int(Extract(xx, 3)) | Int(Extract(xx, 4)) | Int(Extract(xx, 5)) | Int(Extract(xx, 6)) | Int(Extract(xx, 7));
+		}
+		else
+		{
+			Ice::Variable *result = ::function->makeVariable(Ice::IceType_i32);
+			const Ice::Intrinsics::IntrinsicInfo intrinsic = {Ice::Intrinsics::SignMask, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F};
+			auto target = ::context->getConstantUndef(Ice::IceType_i32);
+			auto movmsk = Ice::InstIntrinsicCall::create(::function, 1, result, target, intrinsic);
+			movmsk->addArg(x.value);
+			::basicBlock->appendInst(movmsk);
 
-		return RValue<Int>(V(result));
+			return RValue<Int>(V(result));
+		}
 	}
 
 //	RValue<Byte8> CmpGT(RValue<Byte8> x, RValue<Byte8> y)
@@ -2991,14 +3049,22 @@ namespace sw
 
 	RValue<Int> SignMask(RValue<SByte8> x)
 	{
-		Ice::Variable *result = ::function->makeVariable(Ice::IceType_i32);
-		const Ice::Intrinsics::IntrinsicInfo intrinsic = {Ice::Intrinsics::SignMask, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F};
-		auto target = ::context->getConstantUndef(Ice::IceType_i32);
-		auto movmsk = Ice::InstIntrinsicCall::create(::function, 1, result, target, intrinsic);
-		movmsk->addArg(x.value);
-		::basicBlock->appendInst(movmsk);
+		if(emulateIntrinsics)
+		{
+			SByte8 xx = (x >> 7) & SByte8(0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80);
+			return Int(Extract(xx, 0)) | Int(Extract(xx, 1)) | Int(Extract(xx, 2)) | Int(Extract(xx, 3)) | Int(Extract(xx, 4)) | Int(Extract(xx, 5)) | Int(Extract(xx, 6)) | Int(Extract(xx, 7));
+		}
+		else
+		{
+			Ice::Variable *result = ::function->makeVariable(Ice::IceType_i32);
+			const Ice::Intrinsics::IntrinsicInfo intrinsic = {Ice::Intrinsics::SignMask, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F};
+			auto target = ::context->getConstantUndef(Ice::IceType_i32);
+			auto movmsk = Ice::InstIntrinsicCall::create(::function, 1, result, target, intrinsic);
+			movmsk->addArg(x.value);
+			::basicBlock->appendInst(movmsk);
 
-		return RValue<Int>(V(result));
+			return RValue<Int>(V(result));
+		}
 	}
 
 	RValue<Byte8> CmpGT(RValue<SByte8> x, RValue<SByte8> y)
@@ -5679,14 +5745,22 @@ namespace sw
 
 	RValue<Int> SignMask(RValue<Int4> x)
 	{
-		Ice::Variable *result = ::function->makeVariable(Ice::IceType_i32);
-		const Ice::Intrinsics::IntrinsicInfo intrinsic = {Ice::Intrinsics::SignMask, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F};
-		auto target = ::context->getConstantUndef(Ice::IceType_i32);
-		auto movmsk = Ice::InstIntrinsicCall::create(::function, 1, result, target, intrinsic);
-		movmsk->addArg(x.value);
-		::basicBlock->appendInst(movmsk);
+		if(emulateIntrinsics)
+		{
+			Int4 xx = (x >> 31) & Int4(0x00000001, 0x00000002, 0x00000004, 0x00000008);
+			return Extract(xx, 0) | Extract(xx, 1) | Extract(xx, 2) | Extract(xx, 3);
+		}
+		else
+		{
+			Ice::Variable *result = ::function->makeVariable(Ice::IceType_i32);
+			const Ice::Intrinsics::IntrinsicInfo intrinsic = {Ice::Intrinsics::SignMask, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F};
+			auto target = ::context->getConstantUndef(Ice::IceType_i32);
+			auto movmsk = Ice::InstIntrinsicCall::create(::function, 1, result, target, intrinsic);
+			movmsk->addArg(x.value);
+			::basicBlock->appendInst(movmsk);
 
-		return RValue<Int>(V(result));
+			return RValue<Int>(V(result));
+		}
 	}
 
 	RValue<Int4> Swizzle(RValue<Int4> x, unsigned char select)
@@ -6592,14 +6666,22 @@ namespace sw
 
 	RValue<Int> SignMask(RValue<Float4> x)
 	{
-		Ice::Variable *result = ::function->makeVariable(Ice::IceType_i32);
-		const Ice::Intrinsics::IntrinsicInfo intrinsic = {Ice::Intrinsics::SignMask, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F};
-		auto target = ::context->getConstantUndef(Ice::IceType_i32);
-		auto movmsk = Ice::InstIntrinsicCall::create(::function, 1, result, target, intrinsic);
-		movmsk->addArg(x.value);
-		::basicBlock->appendInst(movmsk);
+		if(emulateIntrinsics)
+		{
+			Int4 xx = (As<Int4>(x) >> 31) & Int4(0x00000001, 0x00000002, 0x00000004, 0x00000008);
+			return Extract(xx, 0) | Extract(xx, 1) | Extract(xx, 2) | Extract(xx, 3);
+		}
+		else
+		{
+			Ice::Variable *result = ::function->makeVariable(Ice::IceType_i32);
+			const Ice::Intrinsics::IntrinsicInfo intrinsic = {Ice::Intrinsics::SignMask, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F};
+			auto target = ::context->getConstantUndef(Ice::IceType_i32);
+			auto movmsk = Ice::InstIntrinsicCall::create(::function, 1, result, target, intrinsic);
+			movmsk->addArg(x.value);
+			::basicBlock->appendInst(movmsk);
 
-		return RValue<Int>(V(result));
+			return RValue<Int>(V(result));
+		}
 	}
 
 	RValue<Int4> CmpEQ(RValue<Float4> x, RValue<Float4> y)
