@@ -2,41 +2,6 @@ cmake_minimum_required(VERSION 2.8)
 
 project(SwiftShader C CXX)
 
-if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "The type of build: Debug Release MinSizeRel RelWithDebInfo." FORCE)
-endif()
-set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Debug Release MinSizeRel RelWithDebInfo)
-
-option(BUILD_EGL "Build the EGL library" 1)
-if(WIN32)
-    option(BUILD_GL32 "Build the OpenGL32 library" 1)
-endif()
-option(BUILD_GLESv2 "Build the OpenGL ES 2 library" 1)
-option(BUILD_GLES_CM "Build the OpenGL ES 1.1 library" 1)
-
-option(USE_GROUP_SOURCES "Group the source files in a folder tree for Visual Studio" 1)
-
-option(BUILD_SAMPLES "Build sample programs" 1)
-option(BUILD_TESTS "Build test programs" 1)
-
-set(REACTOR_BACKEND "LLVM" CACHE STRING "JIT compiler back-end used by Reactor")
-set_property(CACHE REACTOR_BACKEND PROPERTY STRINGS LLVM Subzero)
-
-# LLVM disallows calling cmake . from the main LLVM dir, the reason is that
-# it builds header files that could overwrite the orignal ones. Here we
-# want to include LLVM as a subdirectory and even though it wouldn't cause
-# the problem, if cmake . is called from the main dir, the condition that
-# LLVM checkes, "CMAKE_SOURCE_DIR == CMAKE_BINARY_DIR" will be true. So we
-# disallow it ourselves too to. In addition if there are remining CMakeFiles
-# and CMakeCache in the directory, cmake .. from a subdirectory will still
-# try to build from the main directory so we instruct users to delete these
-# files when they get the error.
-if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
-    message(FATAL_ERROR "In source builds are not allowed by LLVM, please create a build/ directory and build from there. You may have to delete the CMakeCache.txt file and CMakeFiles directory that are next to the CMakeLists.txt.")
-endif()
-
-set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-
 ###########################################################
 # Detect system
 ###########################################################
@@ -64,6 +29,51 @@ else()
 endif()
 
 set(CMAKE_MACOSX_RPATH ON)
+
+###########################################################
+# Options
+###########################################################
+
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "The type of build: Debug Release MinSizeRel RelWithDebInfo." FORCE)
+endif()
+set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Debug Release MinSizeRel RelWithDebInfo)
+
+option(BUILD_EGL "Build the EGL library" 1)
+if(WIN32)
+    option(BUILD_GL32 "Build the OpenGL32 library" 1)
+endif()
+option(BUILD_GLESv2 "Build the OpenGL ES 2 library" 1)
+option(BUILD_GLES_CM "Build the OpenGL ES 1.1 library" 1)
+
+option(USE_GROUP_SOURCES "Group the source files in a folder tree for Visual Studio" 1)
+
+option(BUILD_SAMPLES "Build sample programs" 1)
+option(BUILD_TESTS "Build test programs" 1)
+
+if(ARCH STREQUAL "arm")
+    set(DEFAULT_REACTOR_BACKEND "Subzero")
+else()
+    set(DEFAULT_REACTOR_BACKEND "LLVM")
+endif()
+
+set(REACTOR_BACKEND DEFAULT_REACTOR_BACKEND CACHE STRING "JIT compiler back-end used by Reactor")
+set_property(CACHE REACTOR_BACKEND PROPERTY STRINGS LLVM Subzero)
+
+# LLVM disallows calling cmake . from the main LLVM dir, the reason is that
+# it builds header files that could overwrite the orignal ones. Here we
+# want to include LLVM as a subdirectory and even though it wouldn't cause
+# the problem, if cmake . is called from the main dir, the condition that
+# LLVM checkes, "CMAKE_SOURCE_DIR == CMAKE_BINARY_DIR" will be true. So we
+# disallow it ourselves too to. In addition if there are remining CMakeFiles
+# and CMakeCache in the directory, cmake .. from a subdirectory will still
+# try to build from the main directory so we instruct users to delete these
+# files when they get the error.
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
+    message(FATAL_ERROR "In source builds are not allowed by LLVM, please create a build/ directory and build from there. You may have to delete the CMakeCache.txt file and CMakeFiles directory that are next to the CMakeLists.txt.")
+endif()
+
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 ###########################################################
 # Convenience macros
