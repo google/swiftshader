@@ -45,6 +45,7 @@ namespace
 		static Ice::Operand *storeAddress(const Ice::Inst *instruction);
 		static Ice::Operand *loadAddress(const Ice::Inst *instruction);
 		static Ice::Operand *storeData(const Ice::Inst *instruction);
+		static std::size_t storeSize(const Ice::Inst *instruction);
 
 		Ice::Cfg *function;
 		Ice::GlobalContext *context;
@@ -312,10 +313,15 @@ namespace
 							continue;
 						}
 
-						// New store found. If we had a previous one, eliminate it.
+						// New store found. If we had a previous one, try to eliminate it.
 						if(store)
 						{
-							deleteInstruction(store);
+							// If the previous store is wider than the new one, we can't eliminate it
+							// because there could be a wide load reading its non-overwritten data.
+							if(storeSize(&inst) >= storeSize(store))
+							{
+								deleteInstruction(store);
+							}
 						}
 
 						store = &inst;
@@ -561,6 +567,23 @@ namespace
 		}
 
 		return nullptr;
+	}
+
+	std::size_t Optimizer::storeSize(const Ice::Inst *store)
+	{
+		assert(isStore(*store));
+
+		if(auto *instStore = llvm::dyn_cast<Ice::InstStore>(store))
+		{
+			return Ice::typeWidthInBytes(instStore->getData()->getType());
+		}
+
+		if(auto *storeSubVector = asStoreSubVector(store))
+		{
+			return llvm::cast<Ice::ConstantInteger32>(storeSubVector->getSrc(3))->getValue();
+		}
+
+		return 0;
 	}
 
 	bool Optimizer::Uses::areOnlyLoadStore() const
