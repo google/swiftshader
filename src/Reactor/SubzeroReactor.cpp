@@ -6833,14 +6833,27 @@ namespace sw
 
 	RValue<Float4> Sqrt(RValue<Float4> x)
 	{
-		Ice::Variable *result = ::function->makeVariable(Ice::IceType_v4f32);
-		const Ice::Intrinsics::IntrinsicInfo intrinsic = {Ice::Intrinsics::Sqrt, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F};
-		auto target = ::context->getConstantUndef(Ice::IceType_i32);
-		auto sqrt = Ice::InstIntrinsicCall::create(::function, 1, result, target, intrinsic);
-		sqrt->addArg(x.value);
-		::basicBlock->appendInst(sqrt);
+		if(emulateIntrinsics)
+		{
+			Float4 result;
+			result.x = Sqrt(Float(Float4(x).x));
+			result.y = Sqrt(Float(Float4(x).y));
+			result.z = Sqrt(Float(Float4(x).z));
+			result.w = Sqrt(Float(Float4(x).w));
 
-		return RValue<Float4>(V(result));
+			return result;
+		}
+		else
+		{
+			Ice::Variable *result = ::function->makeVariable(Ice::IceType_v4f32);
+			const Ice::Intrinsics::IntrinsicInfo intrinsic = {Ice::Intrinsics::Sqrt, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F};
+			auto target = ::context->getConstantUndef(Ice::IceType_i32);
+			auto sqrt = Ice::InstIntrinsicCall::create(::function, 1, result, target, intrinsic);
+			sqrt->addArg(x.value);
+			::basicBlock->appendInst(sqrt);
+
+			return RValue<Float4>(V(result));
+		}
 	}
 
 	RValue<Float4> Insert(RValue<Float4> x, RValue<Float> element, int i)
