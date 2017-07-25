@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c6fddba8_72377171",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 470,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-07-25T18:54:35Z",
+      "side": 1,
+      "message": "If this is to avoid doing a malloc(0) it should be ok because in C++ no structure has sizeof(0). We could remove all the state from the sampler.",
+      "revId": "068d008badb55237c06b7494a9ce0677f8126a15",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
