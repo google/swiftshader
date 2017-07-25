@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b8b42bbc_69f7f2ff",
+        "filename": "src/Shader/VertexRoutine.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-07-25T21:49:06Z",
+      "side": 1,
+      "message": "This isn\u0027t the proper way to compute \u0027vertexID\u0027. Apart from that, the rest of the cl should be in a reviewable state.",
+      "range": {
+        "startLine": 62,
+        "startChar": 4,
+        "endLine": 62,
+        "endChar": 21
+      },
+      "revId": "1a2898984f2ad5cd9f23e350cb5e66b9ae8bc274",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
