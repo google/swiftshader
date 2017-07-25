@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d5db2e42_a3975595",
+        "filename": "src/Vulkan/libVulkan/Context.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-07-25T22:12:42Z",
+      "side": 1,
+      "message": "nit: this C construct is not used often. This code isn\u0027t performance sensitive so it could be a vector\u003cuint32_t\u003e (SPIRV is made of a bunch of 32 bit integers). That said, this could be empty, just like for the sampler.",
+      "revId": "9cb10298d24a0f5d10623fe0116f28295b542f14",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
