@@ -2720,30 +2720,69 @@ namespace sw
 		return RValue<Byte8>(Nucleus::createInsertElement(val.value, element.value, i));
 	}
 
+	RValue<Byte> Saturate(RValue<UShort> x)
+	{
+		return Byte(IfThenElse(Int(x) > 0xFF, Int(0xFF), Int(x)));
+	}
+
 	RValue<Byte8> AddSat(RValue<Byte8> x, RValue<Byte8> y)
 	{
-		Ice::Variable *result = ::function->makeVariable(Ice::IceType_v16i8);
-		const Ice::Intrinsics::IntrinsicInfo intrinsic = {Ice::Intrinsics::AddSaturateUnsigned, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F};
-		auto target = ::context->getConstantUndef(Ice::IceType_i32);
-		auto paddusb = Ice::InstIntrinsicCall::create(::function, 2, result, target, intrinsic);
-		paddusb->addArg(x.value);
-		paddusb->addArg(y.value);
-		::basicBlock->appendInst(paddusb);
+		if(emulateIntrinsics)
+		{
+			Byte8 result;
+			result = Insert(result, Saturate(UShort(Int(Extract(x, 0))) + UShort(Int(Extract(y, 0)))), 0);
+			result = Insert(result, Saturate(UShort(Int(Extract(x, 1))) + UShort(Int(Extract(y, 1)))), 1);
+			result = Insert(result, Saturate(UShort(Int(Extract(x, 2))) + UShort(Int(Extract(y, 2)))), 2);
+			result = Insert(result, Saturate(UShort(Int(Extract(x, 3))) + UShort(Int(Extract(y, 3)))), 3);
+			result = Insert(result, Saturate(UShort(Int(Extract(x, 4))) + UShort(Int(Extract(y, 4)))), 4);
+			result = Insert(result, Saturate(UShort(Int(Extract(x, 5))) + UShort(Int(Extract(y, 5)))), 5);
+			result = Insert(result, Saturate(UShort(Int(Extract(x, 6))) + UShort(Int(Extract(y, 6)))), 6);
+			result = Insert(result, Saturate(UShort(Int(Extract(x, 7))) + UShort(Int(Extract(y, 7)))), 7);
 
-		return RValue<Byte8>(V(result));
+			return result;
+		}
+		else
+		{
+			Ice::Variable *result = ::function->makeVariable(Ice::IceType_v16i8);
+			const Ice::Intrinsics::IntrinsicInfo intrinsic = {Ice::Intrinsics::AddSaturateUnsigned, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F};
+			auto target = ::context->getConstantUndef(Ice::IceType_i32);
+			auto paddusb = Ice::InstIntrinsicCall::create(::function, 2, result, target, intrinsic);
+			paddusb->addArg(x.value);
+			paddusb->addArg(y.value);
+			::basicBlock->appendInst(paddusb);
+
+			return RValue<Byte8>(V(result));
+		}
 	}
 
 	RValue<Byte8> SubSat(RValue<Byte8> x, RValue<Byte8> y)
 	{
-		Ice::Variable *result = ::function->makeVariable(Ice::IceType_v16i8);
-		const Ice::Intrinsics::IntrinsicInfo intrinsic = {Ice::Intrinsics::SubtractSaturateUnsigned, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F};
-		auto target = ::context->getConstantUndef(Ice::IceType_i32);
-		auto psubusw = Ice::InstIntrinsicCall::create(::function, 2, result, target, intrinsic);
-		psubusw->addArg(x.value);
-		psubusw->addArg(y.value);
-		::basicBlock->appendInst(psubusw);
+		if(emulateIntrinsics)
+		{
+			Byte8 result;
+			result = Insert(result, Saturate(UShort(Int(Extract(x, 0))) - UShort(Int(Extract(y, 0)))), 0);
+			result = Insert(result, Saturate(UShort(Int(Extract(x, 1))) - UShort(Int(Extract(y, 1)))), 1);
+			result = Insert(result, Saturate(UShort(Int(Extract(x, 2))) - UShort(Int(Extract(y, 2)))), 2);
+			result = Insert(result, Saturate(UShort(Int(Extract(x, 3))) - UShort(Int(Extract(y, 3)))), 3);
+			result = Insert(result, Saturate(UShort(Int(Extract(x, 4))) - UShort(Int(Extract(y, 4)))), 4);
+			result = Insert(result, Saturate(UShort(Int(Extract(x, 5))) - UShort(Int(Extract(y, 5)))), 5);
+			result = Insert(result, Saturate(UShort(Int(Extract(x, 6))) - UShort(Int(Extract(y, 6)))), 6);
+			result = Insert(result, Saturate(UShort(Int(Extract(x, 7))) - UShort(Int(Extract(y, 7)))), 7);
 
-		return RValue<Byte8>(V(result));
+			return result;
+		}
+		else
+		{
+			Ice::Variable *result = ::function->makeVariable(Ice::IceType_v16i8);
+			const Ice::Intrinsics::IntrinsicInfo intrinsic = {Ice::Intrinsics::SubtractSaturateUnsigned, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F};
+			auto target = ::context->getConstantUndef(Ice::IceType_i32);
+			auto psubusw = Ice::InstIntrinsicCall::create(::function, 2, result, target, intrinsic);
+			psubusw->addArg(x.value);
+			psubusw->addArg(y.value);
+			::basicBlock->appendInst(psubusw);
+
+			return RValue<Byte8>(V(result));
+		}
 	}
 
 	RValue<Short4> Unpack(RValue<Byte4> x)
@@ -3008,30 +3047,69 @@ namespace sw
 		return RValue<SByte8>(Nucleus::createNot(val.value));
 	}
 
+	RValue<SByte> Saturate(RValue<Short> x)
+	{
+		return SByte(IfThenElse(Int(x) > 0x7F, Int(0x7F), IfThenElse(Int(x) < -0x80, Int(0x80), Int(x))));
+	}
+
 	RValue<SByte8> AddSat(RValue<SByte8> x, RValue<SByte8> y)
 	{
-		Ice::Variable *result = ::function->makeVariable(Ice::IceType_v16i8);
-		const Ice::Intrinsics::IntrinsicInfo intrinsic = {Ice::Intrinsics::AddSaturateSigned, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F};
-		auto target = ::context->getConstantUndef(Ice::IceType_i32);
-		auto paddsb = Ice::InstIntrinsicCall::create(::function, 2, result, target, intrinsic);
-		paddsb->addArg(x.value);
-		paddsb->addArg(y.value);
-		::basicBlock->appendInst(paddsb);
+		if(emulateIntrinsics)
+		{
+			SByte8 result;
+			result = Insert(result, Saturate(Short(Int(Extract(x, 0))) + Short(Int(Extract(y, 0)))), 0);
+			result = Insert(result, Saturate(Short(Int(Extract(x, 1))) + Short(Int(Extract(y, 1)))), 1);
+			result = Insert(result, Saturate(Short(Int(Extract(x, 2))) + Short(Int(Extract(y, 2)))), 2);
+			result = Insert(result, Saturate(Short(Int(Extract(x, 3))) + Short(Int(Extract(y, 3)))), 3);
+			result = Insert(result, Saturate(Short(Int(Extract(x, 4))) + Short(Int(Extract(y, 4)))), 4);
+			result = Insert(result, Saturate(Short(Int(Extract(x, 5))) + Short(Int(Extract(y, 5)))), 5);
+			result = Insert(result, Saturate(Short(Int(Extract(x, 6))) + Short(Int(Extract(y, 6)))), 6);
+			result = Insert(result, Saturate(Short(Int(Extract(x, 7))) + Short(Int(Extract(y, 7)))), 7);
 
-		return RValue<SByte8>(V(result));
+			return result;
+		}
+		else
+		{
+			Ice::Variable *result = ::function->makeVariable(Ice::IceType_v16i8);
+			const Ice::Intrinsics::IntrinsicInfo intrinsic = {Ice::Intrinsics::AddSaturateSigned, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F};
+			auto target = ::context->getConstantUndef(Ice::IceType_i32);
+			auto paddsb = Ice::InstIntrinsicCall::create(::function, 2, result, target, intrinsic);
+			paddsb->addArg(x.value);
+			paddsb->addArg(y.value);
+			::basicBlock->appendInst(paddsb);
+
+			return RValue<SByte8>(V(result));
+		}
 	}
 
 	RValue<SByte8> SubSat(RValue<SByte8> x, RValue<SByte8> y)
 	{
-		Ice::Variable *result = ::function->makeVariable(Ice::IceType_v16i8);
-		const Ice::Intrinsics::IntrinsicInfo intrinsic = {Ice::Intrinsics::SubtractSaturateSigned, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F};
-		auto target = ::context->getConstantUndef(Ice::IceType_i32);
-		auto psubsb = Ice::InstIntrinsicCall::create(::function, 2, result, target, intrinsic);
-		psubsb->addArg(x.value);
-		psubsb->addArg(y.value);
-		::basicBlock->appendInst(psubsb);
+		if(emulateIntrinsics)
+		{
+			SByte8 result;
+			result = Insert(result, Saturate(Short(Int(Extract(x, 0))) - Short(Int(Extract(y, 0)))), 0);
+			result = Insert(result, Saturate(Short(Int(Extract(x, 1))) - Short(Int(Extract(y, 1)))), 1);
+			result = Insert(result, Saturate(Short(Int(Extract(x, 2))) - Short(Int(Extract(y, 2)))), 2);
+			result = Insert(result, Saturate(Short(Int(Extract(x, 3))) - Short(Int(Extract(y, 3)))), 3);
+			result = Insert(result, Saturate(Short(Int(Extract(x, 4))) - Short(Int(Extract(y, 4)))), 4);
+			result = Insert(result, Saturate(Short(Int(Extract(x, 5))) - Short(Int(Extract(y, 5)))), 5);
+			result = Insert(result, Saturate(Short(Int(Extract(x, 6))) - Short(Int(Extract(y, 6)))), 6);
+			result = Insert(result, Saturate(Short(Int(Extract(x, 7))) - Short(Int(Extract(y, 7)))), 7);
 
-		return RValue<SByte8>(V(result));
+			return result;
+		}
+		else
+		{
+			Ice::Variable *result = ::function->makeVariable(Ice::IceType_v16i8);
+			const Ice::Intrinsics::IntrinsicInfo intrinsic = {Ice::Intrinsics::SubtractSaturateSigned, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F};
+			auto target = ::context->getConstantUndef(Ice::IceType_i32);
+			auto psubsb = Ice::InstIntrinsicCall::create(::function, 2, result, target, intrinsic);
+			psubsb->addArg(x.value);
+			psubsb->addArg(y.value);
+			::basicBlock->appendInst(psubsb);
+
+			return RValue<SByte8>(V(result));
+		}
 	}
 
 	RValue<Short4> UnpackLow(RValue<SByte8> x, RValue<SByte8> y)
@@ -3446,30 +3524,61 @@ namespace sw
 		return RValue<Short4>(V(result));
 	}
 
+	RValue<Short> Saturate(RValue<Int> x)
+	{
+		return Short(IfThenElse(x > 0x7FFF, Int(0x7FFF), IfThenElse(x < -0x8000, Int(0x8000), x)));
+	}
+
 	RValue<Short4> AddSat(RValue<Short4> x, RValue<Short4> y)
 	{
-		Ice::Variable *result = ::function->makeVariable(Ice::IceType_v8i16);
-		const Ice::Intrinsics::IntrinsicInfo intrinsic = {Ice::Intrinsics::AddSaturateSigned, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F};
-		auto target = ::context->getConstantUndef(Ice::IceType_i32);
-		auto paddsw = Ice::InstIntrinsicCall::create(::function, 2, result, target, intrinsic);
-		paddsw->addArg(x.value);
-		paddsw->addArg(y.value);
-		::basicBlock->appendInst(paddsw);
+		if(emulateIntrinsics)
+		{
+			Short4 result;
+			result = Insert(result, Saturate(Int(Extract(x, 0)) + Int(Extract(y, 0))), 0);
+			result = Insert(result, Saturate(Int(Extract(x, 1)) + Int(Extract(y, 1))), 1);
+			result = Insert(result, Saturate(Int(Extract(x, 2)) + Int(Extract(y, 2))), 2);
+			result = Insert(result, Saturate(Int(Extract(x, 3)) + Int(Extract(y, 3))), 3);
 
-		return RValue<Short4>(V(result));
+			return result;
+		}
+		else
+		{
+			Ice::Variable *result = ::function->makeVariable(Ice::IceType_v8i16);
+			const Ice::Intrinsics::IntrinsicInfo intrinsic = {Ice::Intrinsics::AddSaturateSigned, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F};
+			auto target = ::context->getConstantUndef(Ice::IceType_i32);
+			auto paddsw = Ice::InstIntrinsicCall::create(::function, 2, result, target, intrinsic);
+			paddsw->addArg(x.value);
+			paddsw->addArg(y.value);
+			::basicBlock->appendInst(paddsw);
+
+			return RValue<Short4>(V(result));
+		}
 	}
 
 	RValue<Short4> SubSat(RValue<Short4> x, RValue<Short4> y)
 	{
-		Ice::Variable *result = ::function->makeVariable(Ice::IceType_v8i16);
-		const Ice::Intrinsics::IntrinsicInfo intrinsic = {Ice::Intrinsics::SubtractSaturateSigned, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F};
-		auto target = ::context->getConstantUndef(Ice::IceType_i32);
-		auto psubsw = Ice::InstIntrinsicCall::create(::function, 2, result, target, intrinsic);
-		psubsw->addArg(x.value);
-		psubsw->addArg(y.value);
-		::basicBlock->appendInst(psubsw);
+		if(emulateIntrinsics)
+		{
+			Short4 result;
+			result = Insert(result, Saturate(Int(Extract(x, 0)) - Int(Extract(y, 0))), 0);
+			result = Insert(result, Saturate(Int(Extract(x, 1)) - Int(Extract(y, 1))), 1);
+			result = Insert(result, Saturate(Int(Extract(x, 2)) - Int(Extract(y, 2))), 2);
+			result = Insert(result, Saturate(Int(Extract(x, 3)) - Int(Extract(y, 3))), 3);
 
-		return RValue<Short4>(V(result));
+			return result;
+		}
+		else
+		{
+			Ice::Variable *result = ::function->makeVariable(Ice::IceType_v8i16);
+			const Ice::Intrinsics::IntrinsicInfo intrinsic = {Ice::Intrinsics::SubtractSaturateSigned, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F};
+			auto target = ::context->getConstantUndef(Ice::IceType_i32);
+			auto psubsw = Ice::InstIntrinsicCall::create(::function, 2, result, target, intrinsic);
+			psubsw->addArg(x.value);
+			psubsw->addArg(y.value);
+			::basicBlock->appendInst(psubsw);
+
+			return RValue<Short4>(V(result));
+		}
 	}
 
 	RValue<Short4> MulHigh(RValue<Short4> x, RValue<Short4> y)
@@ -3801,30 +3910,61 @@ namespace sw
 		return RValue<UShort4>(V(result));
 	}
 
+	RValue<UShort> SaturateUShort(RValue<Int> x)
+	{
+		return UShort(IfThenElse(x > 0xFFFF, Int(0xFFFF), IfThenElse(x < 0, Int(0), x)));
+	}
+
 	RValue<UShort4> AddSat(RValue<UShort4> x, RValue<UShort4> y)
 	{
-		Ice::Variable *result = ::function->makeVariable(Ice::IceType_v8i16);
-		const Ice::Intrinsics::IntrinsicInfo intrinsic = {Ice::Intrinsics::AddSaturateUnsigned, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F};
-		auto target = ::context->getConstantUndef(Ice::IceType_i32);
-		auto paddusw = Ice::InstIntrinsicCall::create(::function, 2, result, target, intrinsic);
-		paddusw->addArg(x.value);
-		paddusw->addArg(y.value);
-		::basicBlock->appendInst(paddusw);
+		if(emulateIntrinsics)
+		{
+			UShort4 result;
+			result = Insert(result, SaturateUShort(Int(Extract(x, 0)) + Int(Extract(y, 0))), 0);
+			result = Insert(result, SaturateUShort(Int(Extract(x, 1)) + Int(Extract(y, 1))), 1);
+			result = Insert(result, SaturateUShort(Int(Extract(x, 2)) + Int(Extract(y, 2))), 2);
+			result = Insert(result, SaturateUShort(Int(Extract(x, 3)) + Int(Extract(y, 3))), 3);
 
-		return RValue<UShort4>(V(result));
+			return result;
+		}
+		else
+		{
+			Ice::Variable *result = ::function->makeVariable(Ice::IceType_v8i16);
+			const Ice::Intrinsics::IntrinsicInfo intrinsic = {Ice::Intrinsics::AddSaturateUnsigned, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F};
+			auto target = ::context->getConstantUndef(Ice::IceType_i32);
+			auto paddusw = Ice::InstIntrinsicCall::create(::function, 2, result, target, intrinsic);
+			paddusw->addArg(x.value);
+			paddusw->addArg(y.value);
+			::basicBlock->appendInst(paddusw);
+
+			return RValue<UShort4>(V(result));
+		}
 	}
 
 	RValue<UShort4> SubSat(RValue<UShort4> x, RValue<UShort4> y)
 	{
-		Ice::Variable *result = ::function->makeVariable(Ice::IceType_v8i16);
-		const Ice::Intrinsics::IntrinsicInfo intrinsic = {Ice::Intrinsics::SubtractSaturateUnsigned, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F};
-		auto target = ::context->getConstantUndef(Ice::IceType_i32);
-		auto psubusw = Ice::InstIntrinsicCall::create(::function, 2, result, target, intrinsic);
-		psubusw->addArg(x.value);
-		psubusw->addArg(y.value);
-		::basicBlock->appendInst(psubusw);
+		if(emulateIntrinsics)
+		{
+			UShort4 result;
+			result = Insert(result, SaturateUShort(Int(Extract(x, 0)) - Int(Extract(y, 0))), 0);
+			result = Insert(result, SaturateUShort(Int(Extract(x, 1)) - Int(Extract(y, 1))), 1);
+			result = Insert(result, SaturateUShort(Int(Extract(x, 2)) - Int(Extract(y, 2))), 2);
+			result = Insert(result, SaturateUShort(Int(Extract(x, 3)) - Int(Extract(y, 3))), 3);
 
-		return RValue<UShort4>(V(result));
+			return result;
+		}
+		else
+		{
+			Ice::Variable *result = ::function->makeVariable(Ice::IceType_v8i16);
+			const Ice::Intrinsics::IntrinsicInfo intrinsic = {Ice::Intrinsics::SubtractSaturateUnsigned, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F};
+			auto target = ::context->getConstantUndef(Ice::IceType_i32);
+			auto psubusw = Ice::InstIntrinsicCall::create(::function, 2, result, target, intrinsic);
+			psubusw->addArg(x.value);
+			psubusw->addArg(y.value);
+			::basicBlock->appendInst(psubusw);
+
+			return RValue<UShort4>(V(result));
+		}
 	}
 
 	RValue<UShort4> MulHigh(RValue<UShort4> x, RValue<UShort4> y)
