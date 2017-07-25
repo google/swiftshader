@@ -1937,16 +1937,16 @@ namespace sw
 					{
 					case FORMAT_R8I:
 					case FORMAT_R8UI:
-					{
-						Int zero(0);
-						c.x = Unpack(As<Byte4>(c0), As<Byte4>(zero));
-						// Propagate sign bit
-						if(state.textureFormat == FORMAT_R8I)
 						{
-							c.x = (c.x << 8) >> 8;
+							Int zero(0);
+							c.x = Unpack(As<Byte4>(c0), As<Byte4>(zero));
+							// Propagate sign bit
+							if(state.textureFormat == FORMAT_R8I)
+							{
+								c.x = (c.x << 8) >> 8;
+							}
 						}
-					}
-					break;
+						break;
 					default:
 						c.x = Unpack(As<Byte4>(c0));
 						break;

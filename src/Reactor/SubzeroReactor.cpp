@@ -123,6 +123,7 @@ namespace
 	const bool CPUID::ARM = CPUID::detectARM();
 	const bool CPUID::SSE4_1 = CPUID::detectSSE4_1();
 	const bool emulateIntrinsics = CPUID::ARM;
+	const bool emulateMismatchedBitCast = CPUID::ARM;
 }
 
 namespace sw
@@ -981,6 +982,25 @@ namespace sw
 
 	Value *Nucleus::createBitCast(Value *v, Type *destType)
 	{
+		// Bitcasts must be between types of the same logical size. But with emulated narrow vectors we need
+		// support for casting between scalars and wide vectors. For platforms where this is not supported,
+		// emulate them by writing to the stack and reading back as the destination type.
+		if(emulateMismatchedBitCast)
+		{
+			if(!Ice::isVectorType(v->getType()) && Ice::isVectorType(T(destType)))
+			{
+				Value *address = allocateStackVariable(destType);
+				createStore(v, address, T(v->getType()));
+				return createLoad(address, destType);
+			}
+			else if(Ice::isVectorType(v->getType()) && !Ice::isVectorType(T(destType)))
+			{
+				Value *address = allocateStackVariable(T(v->getType()));
+				createStore(v, address, T(v->getType()));
+				return createLoad(address, destType);
+			}
+		}
+
 		return createCast(Ice::InstCast::Bitcast, v, destType);
 	}
 
