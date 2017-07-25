@@ -3609,15 +3609,26 @@ namespace sw
 
 	RValue<Int2> MulAdd(RValue<Short4> x, RValue<Short4> y)
 	{
-		Ice::Variable *result = ::function->makeVariable(Ice::IceType_v8i16);
-		const Ice::Intrinsics::IntrinsicInfo intrinsic = {Ice::Intrinsics::MultiplyAddPairs, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F};
-		auto target = ::context->getConstantUndef(Ice::IceType_i32);
-		auto pmaddwd = Ice::InstIntrinsicCall::create(::function, 2, result, target, intrinsic);
-		pmaddwd->addArg(x.value);
-		pmaddwd->addArg(y.value);
-		::basicBlock->appendInst(pmaddwd);
+		if(emulateIntrinsics)
+		{
+			Int2 result;
+			result = Insert(result, Int(Extract(x, 0)) * Int(Extract(y, 0)) + Int(Extract(x, 1)) * Int(Extract(y, 1)), 0);
+			result = Insert(result, Int(Extract(x, 2)) * Int(Extract(y, 2)) + Int(Extract(x, 3)) * Int(Extract(y, 3)), 1);
 
-		return As<Int2>(V(result));
+			return result;
+		}
+		else
+		{
+			Ice::Variable *result = ::function->makeVariable(Ice::IceType_v8i16);
+			const Ice::Intrinsics::IntrinsicInfo intrinsic = {Ice::Intrinsics::MultiplyAddPairs, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F};
+			auto target = ::context->getConstantUndef(Ice::IceType_i32);
+			auto pmaddwd = Ice::InstIntrinsicCall::create(::function, 2, result, target, intrinsic);
+			pmaddwd->addArg(x.value);
+			pmaddwd->addArg(y.value);
+			::basicBlock->appendInst(pmaddwd);
+
+			return As<Int2>(V(result));
+		}
 	}
 
 	RValue<SByte8> Pack(RValue<Short4> x, RValue<Short4> y)
