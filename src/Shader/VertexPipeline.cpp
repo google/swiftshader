@@ -158,7 +158,7 @@ namespace sw
 		return dst;
 	}
 
-	void VertexPipeline::pipeline()
+	void VertexPipeline::pipeline(UInt &index)
 	{
 		Vector4f position;
 		Vector4f normal;

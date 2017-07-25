@@ -56,14 +56,15 @@ namespace sw
 		Int4 enableLeave;
 
 		Int instanceID;
+		Int4 vertexID;
 
 		typedef Shader::DestinationParameter Dst;
 		typedef Shader::SourceParameter Src;
 		typedef Shader::Control Control;
 		typedef Shader::Usage Usage;
 
-		void pipeline() override;
-		void program();
+		void pipeline(UInt &index) override;
+		void program(UInt &index);
 		void passThrough();
 
 		Vector4f fetchRegister(const Src &src, unsigned int offset = 0);

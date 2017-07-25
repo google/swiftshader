@@ -700,11 +700,11 @@ namespace sw
 					{
 						unsigned char index = instruction[i]->dst.index;
 
-						if(index == 0)
+						if(index == Shader::VPosIndex)
 						{
 							vPosDeclared = true;
 						}
-						else if(index == 1)
+						else if(index == Shader::VFaceIndex)
 						{
 							vFaceDeclared = true;
 						}

@@ -54,7 +54,7 @@ namespace sw
 		const VertexProcessor::State &state;
 
 	private:
-		virtual void pipeline() = 0;
+		virtual void pipeline(UInt &index) = 0;
 
 		typedef VertexProcessor::State::Input Stream;
 

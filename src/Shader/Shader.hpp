@@ -358,6 +358,14 @@ namespace sw
 			PARAMETER_VOID
 		};
 
+		enum MiscParameterIndex
+		{
+			VPosIndex = 0,
+			VFaceIndex = 1,
+			InstanceIDIndex = 2,
+			VertexIDIndex = 3,
+		};
+
 		enum Modifier
 		{
 			MODIFIER_NONE,

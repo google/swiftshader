@@ -846,8 +846,8 @@ namespace sw
 			reg = v[2 + i];
 			break;
 		case Shader::PARAMETER_MISCTYPE:
-			if(src.index == 0) reg = vPos;
-			if(src.index == 1) reg = vFace;
+			if(src.index == Shader::VPosIndex) reg = vPos;
+			if(src.index == Shader::VFaceIndex) reg = vFace;
 			break;
 		case Shader::PARAMETER_SAMPLER:
 			if(src.rel.type == Shader::PARAMETER_VOID)

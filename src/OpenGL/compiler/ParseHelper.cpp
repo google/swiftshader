@@ -406,6 +406,7 @@ bool TParseContext::lValueErrorCheck(const TSourceLoc &line, const char* op, TIn
 	case EvqFrontFacing:    message = "can't modify gl_FrontFacing"; break;
 	case EvqPointCoord:     message = "can't modify gl_PointCoord";  break;
 	case EvqInstanceID:     message = "can't modify gl_InstanceID";  break;
+	case EvqVertexID:       message = "can't modify gl_VertexID";    break;
 	default:
 
 		//

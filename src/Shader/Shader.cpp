@@ -1059,9 +1059,14 @@ namespace sw
 		case PARAMETER_LOOP:			return "aL";
 	//	case PARAMETER_TEMPFLOAT16:		return "";
 		case PARAMETER_MISCTYPE:
-			if(index == 0)				return "vPos";
-			else if(index == 1)			return "vFace";
-			else						ASSERT(false);
+			switch(index)
+			{
+			case VPosIndex:				return "vPos";
+			case VFaceIndex:			return "vFace";
+			case InstanceIDIndex:		return "iID";
+			case VertexIDIndex:			return "vID";
+			default: ASSERT(false);
+			}
 		case PARAMETER_LABEL:			return "l";
 		case PARAMETER_PREDICATE:		return "p0";
 		case PARAMETER_FLOAT4LITERAL:	return "";

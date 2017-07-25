@@ -62,7 +62,7 @@ namespace sw
 				*Pointer<UInt>(tagCache + tagIndex) = indexQ;
 
 				readInput(indexQ);
-				pipeline();
+				pipeline(indexQ);
 				postTransform();
 				computeClipFlags();
 

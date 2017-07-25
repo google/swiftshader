@@ -45,6 +45,7 @@ namespace sw
 		void setPositionRegister(int posReg);
 		void setPointSizeRegister(int ptSizeReg);
 		void declareInstanceId() { instanceIdDeclared = true; }
+		void declareVertexId() { vertexIdDeclared = true; }
 
 		const Semantic& getInput(int inputIdx) const;
 		const Semantic& getOutput(int outputIdx, int component) const;
@@ -52,6 +53,7 @@ namespace sw
 		int getPositionRegister() const { return positionRegister; }
 		int getPointSizeRegister() const { return pointSizeRegister; }
 		bool isInstanceIdDeclared() const { return instanceIdDeclared; }
+		bool isVertexIdDeclared() const { return vertexIdDeclared; }
 
 	private:
 		void analyze();
@@ -68,6 +70,7 @@ namespace sw
 		int pointSizeRegister;
 
 		bool instanceIdDeclared;
+		bool vertexIdDeclared;
 		bool textureSampling;
 	};
 }

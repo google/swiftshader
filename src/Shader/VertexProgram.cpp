@@ -64,7 +64,7 @@ namespace sw
 		}
 	}
 
-	void VertexProgram::pipeline()
+	void VertexProgram::pipeline(UInt& index)
 	{
 		for(int i = 0; i < VERTEX_TEXTURE_IMAGE_UNITS; i++)
 		{
@@ -73,7 +73,7 @@ namespace sw
 
 		if(!state.preTransformed)
 		{
-			program();
+			program(index);
 		}
 		else
 		{
@@ -81,7 +81,7 @@ namespace sw
 		}
 	}
 
-	void VertexProgram::program()
+	void VertexProgram::program(UInt& index)
 	{
 	//	shader->print("VertexShader-%0.8X.txt", state.shaderID);
 
@@ -93,6 +93,21 @@ namespace sw
 		if(shader->containsLeaveInstruction())
 		{
 			enableLeave = Int4(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF);
+		}
+
+		if(shader->isVertexIdDeclared())
+		{
+			if(state.textureSampling)
+			{
+				vertexID = Int4(index);
+			}
+			else
+			{
+				vertexID = Insert(vertexID, As<Int>(index), 0);
+				vertexID = Insert(vertexID, As<Int>(index + 1), 1);
+				vertexID = Insert(vertexID, As<Int>(index + 2), 2);
+				vertexID = Insert(vertexID, As<Int>(index + 3), 3);
+			}
 		}
 
 		// Create all call site return blocks up front
@@ -721,7 +736,15 @@ namespace sw
 			}
 			break;
 		case Shader::PARAMETER_MISCTYPE:
-			reg.x = As<Float>(Int(instanceID));
+			if(src.index == Shader::InstanceIDIndex)
+			{
+				reg.x = As<Float>(instanceID);
+			}
+			else if(src.index == Shader::VertexIDIndex)
+			{
+				reg.x = As<Float4>(vertexID);
+			}
+			else ASSERT(false);
 			return reg;
 		default:
 			ASSERT(false);
@@ -861,7 +884,17 @@ namespace sw
 				case Shader::PARAMETER_INPUT:    a = v[src.rel.index][component]; break;
 				case Shader::PARAMETER_OUTPUT:   a = o[src.rel.index][component]; break;
 				case Shader::PARAMETER_CONST:    a = *Pointer<Float>(uniformAddress(src.bufferIndex, src.rel.index) + component * sizeof(float)); break;
-				case Shader::PARAMETER_MISCTYPE: a = As<Float4>(Int4(instanceID)); break;
+				case Shader::PARAMETER_MISCTYPE:
+					if(src.rel.index == Shader::InstanceIDIndex)
+					{
+						a = As<Float4>(Int4(instanceID)); break;
+					}
+					else if(src.rel.index == Shader::VertexIDIndex)
+					{
+						a = As<Float4>(vertexID); break;
+					}
+					else ASSERT(false);
+					break;
 				default: ASSERT(false);
 				}
 

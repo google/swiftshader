@@ -30,7 +30,7 @@ namespace sw
 		virtual ~VertexPipeline();
 
 	private:
-		void pipeline() override;
+		void pipeline(UInt &index) override;
 		void processTextureCoordinate(int stage, Vector4f &normal, Vector4f &position);
 		void processPointSize();
 

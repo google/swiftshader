@@ -27,6 +27,7 @@ namespace sw
 		positionRegister = Pos;
 		pointSizeRegister = Unused;
 		instanceIdDeclared = false;
+		vertexIdDeclared = false;
 		textureSampling = false;
 
 		for(int i = 0; i < MAX_VERTEX_INPUTS; i++)
@@ -48,6 +49,7 @@ namespace sw
 			positionRegister = vs->positionRegister;
 			pointSizeRegister = vs->pointSizeRegister;
 			instanceIdDeclared = vs->instanceIdDeclared;
+			vertexIdDeclared = vs->vertexIdDeclared;
 			usedSamplers = vs->usedSamplers;
 
 			optimize();
@@ -62,6 +64,7 @@ namespace sw
 		positionRegister = Pos;
 		pointSizeRegister = Unused;
 		instanceIdDeclared = false;
+		vertexIdDeclared = false;
 		textureSampling = false;
 
 		for(int i = 0; i < MAX_VERTEX_INPUTS; i++)
