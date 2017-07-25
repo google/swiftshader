@@ -46,6 +46,7 @@ namespace
 		static Ice::Operand *loadAddress(const Ice::Inst *instruction);
 		static Ice::Operand *storeData(const Ice::Inst *instruction);
 		static std::size_t storeSize(const Ice::Inst *instruction);
+		static bool loadTypeMatchesStore(const Ice::Inst *load, const Ice::Inst *store);
 
 		Ice::Cfg *function;
 		Ice::GlobalContext *context;
@@ -202,6 +203,11 @@ namespace
 						continue;
 					}
 
+					if(!loadTypeMatchesStore(load, store))
+					{
+						continue;
+					}
+
 					replace(load, storeValue);
 
 					for(size_t i = 0; i < addressUses.loads.size(); i++)
@@ -298,6 +304,7 @@ namespace
 				auto &insts = singleBasicBlock->getInsts();
 				Ice::Inst *store = nullptr;
 				Ice::Operand *storeValue = nullptr;
+				bool unmatchedLoads = false;
 
 				for(Ice::Inst &inst : insts)
 				{
@@ -314,7 +321,7 @@ namespace
 						}
 
 						// New store found. If we had a previous one, try to eliminate it.
-						if(store)
+						if(store && !unmatchedLoads)
 						{
 							// If the previous store is wider than the new one, we can't eliminate it
 							// because there could be a wide load reading its non-overwritten data.
@@ -326,6 +333,7 @@ namespace
 
 						store = &inst;
 						storeValue = storeData(store);
+						unmatchedLoads = false;
 					}
 					else if(isLoad(inst))
 					{
@@ -336,10 +344,13 @@ namespace
 							continue;
 						}
 
-						if(storeValue)
+						if(!loadTypeMatchesStore(load, store))
 						{
-							replace(load, storeValue);
+							unmatchedLoads = true;
+							continue;
 						}
+
+						replace(load, storeValue);
 					}
 				}
 			}
@@ -584,6 +595,38 @@ namespace
 		}
 
 		return 0;
+	}
+
+	bool Optimizer::loadTypeMatchesStore(const Ice::Inst *load, const Ice::Inst *store)
+	{
+		if(!load || !store)
+		{
+			return false;
+		}
+
+		assert(isLoad(*load) && isStore(*store));
+		assert(loadAddress(load) == storeAddress(store));
+
+		if(auto *instStore = llvm::dyn_cast<Ice::InstStore>(store))
+		{
+			if(auto *instLoad = llvm::dyn_cast<Ice::InstLoad>(load))
+			{
+				return instStore->getData()->getType() == instLoad->getDest()->getType();
+			}
+		}
+
+		if(auto *storeSubVector = asStoreSubVector(store))
+		{
+			if(auto *loadSubVector = asLoadSubVector(load))
+			{
+				// Check for matching type and sub-vector width.
+				return storeSubVector->getSrc(1)->getType() == loadSubVector->getDest()->getType() &&
+				       llvm::cast<Ice::ConstantInteger32>(storeSubVector->getSrc(3))->getValue() ==
+				       llvm::cast<Ice::ConstantInteger32>(loadSubVector->getSrc(2))->getValue();
+			}
+		}
+
+		return false;
 	}
 
 	bool Optimizer::Uses::areOnlyLoadStore() const
