@@ -289,7 +289,6 @@ namespace sw
 			}
 		}
 
-
 		return symbolValue;
 	}
 
@@ -2865,7 +2864,7 @@ namespace sw
 			movmsk->addArg(x.value);
 			::basicBlock->appendInst(movmsk);
 
-			return RValue<Int>(V(result));
+			return RValue<Int>(V(result)) & 0xFF;
 		}
 	}
 
@@ -3141,7 +3140,7 @@ namespace sw
 			movmsk->addArg(x.value);
 			::basicBlock->appendInst(movmsk);
 
-			return RValue<Int>(V(result));
+			return RValue<Int>(V(result)) & 0xFF;
 		}
 	}
 
