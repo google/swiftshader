@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "05c4f184_62e9e02b",
+        "filename": "src/Renderer/VertexProcessor.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-07-26T21:16:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7da74c7e_a83d685a",
+      "range": {
+        "startLine": 80,
+        "startChar": 8,
+        "endLine": 80,
+        "endChar": 23
+      },
+      "revId": "7fe5c22568ca6500eff6374626ceffb08ab617d3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6862f4d9_498ce9e6",
         "filename": "src/Renderer/VertexProcessor.hpp",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2017-07-26T20:49:54Z",
       "side": 1,
       "message": "Probably also not needed.",
+      "range": {
+        "startLine": 225,
+        "startChar": 7,
+        "endLine": 225,
+        "endChar": 25
+      },
+      "revId": "7fe5c22568ca6500eff6374626ceffb08ab617d3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f690cd77_13d0cf78",
+        "filename": "src/Renderer/VertexProcessor.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 225,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-07-26T21:16:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6862f4d9_498ce9e6",
       "range": {
         "startLine": 225,
         "startChar": 7,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "c662d30a_68c460d4",
+        "filename": "src/Shader/VertexRoutine.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-07-26T21:16:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "138566c9_36a7659c",
+      "range": {
+        "startLine": 60,
+        "startChar": 3,
+        "endLine": 66,
+        "endChar": 4
+      },
+      "revId": "7fe5c22568ca6500eff6374626ceffb08ab617d3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "12b7db2f_c2f4fbab",
         "filename": "src/Shader/VertexRoutine.hpp",
         "patchSetId": 2
@@ -82,6 +154,30 @@
       "writtenOn": "2017-07-26T20:49:54Z",
       "side": 1,
       "message": "I think this can be moved to VertexProgam, since only programmable vertex processing has a need for it. Similar to instanceID.",
+      "range": {
+        "startLine": 50,
+        "startChar": 2,
+        "endLine": 50,
+        "endChar": 16
+      },
+      "revId": "7fe5c22568ca6500eff6374626ceffb08ab617d3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "78c09f77_aac01f9f",
+        "filename": "src/Shader/VertexRoutine.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-07-26T21:16:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "12b7db2f_c2f4fbab",
       "range": {
         "startLine": 50,
         "startChar": 2,
