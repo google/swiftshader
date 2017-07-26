@@ -1,10 +1,6 @@
-# This file is used by gcl to get repository specific information.
+# This file is used by git-cl to get repository specific information.
+GERRIT_HOST: True
 CODE_REVIEW_SERVER: codereview.chromium.org
 CC_LIST: native-client-reviews@googlegroups.com
-VIEW_VC: https://gerrit.chromium.org/gerrit/gitweb?p=native_client/pnacl-subzero.git;a=commit;h=
+VIEW_VC: https://chromium.googlesource.com/native_client/pnacl-subzero/+/
 STATUS: http://nativeclient-status.appspot.com/status
-TRY_ON_UPLOAD: False
-TRYSERVER_PROJECT: nacl
-TRYSERVER_SVN_URL: svn://svn.chromium.org/chrome-try/try-nacl
-PUSH_URL_CONFIG: url.ssh://gerrit.chromium.org.pushinsteadof
-ORIGIN_URL_CONFIG: http://chromium.googlesource.com
