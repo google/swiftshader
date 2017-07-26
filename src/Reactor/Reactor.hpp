@@ -89,8 +89,8 @@ namespace sw
 			return false;
 		}
 
-		Value *loadValue(unsigned int alignment = 0) const;
-		Value *storeValue(Value *value, unsigned int alignment = 0) const;
+		Value *loadValue() const;
+		Value *storeValue(Value *value) const;
 		Value *getAddress(Value *index, bool unsignedIndex) const;
 	};
 
@@ -2105,7 +2105,7 @@ namespace sw
 		template<class S>
 		Pointer(const Pointer<S> &pointer, int alignment = 1) : alignment(alignment)
 		{
-			Value *pointerS = pointer.loadValue(alignment);
+			Value *pointerS = pointer.loadValue();
 			Value *pointerT = Nucleus::createBitCast(pointerS, Nucleus::getPointerType(T::getType()));
 			LValue<Pointer<T>>::storeValue(pointerT);
 		}
@@ -2240,15 +2240,15 @@ namespace sw
 	}
 
 	template<class T>
-	Value *LValue<T>::loadValue(unsigned int alignment) const
+	Value *LValue<T>::loadValue() const
 	{
-		return Nucleus::createLoad(address, T::getType(), false, alignment);
+		return Nucleus::createLoad(address, T::getType(), false, 0);
 	}
 
 	template<class T>
-	Value *LValue<T>::storeValue(Value *value, unsigned int alignment) const
+	Value *LValue<T>::storeValue(Value *value) const
 	{
-		return Nucleus::createStore(value, address, T::getType(), false, alignment);
+		return Nucleus::createStore(value, address, T::getType(), false, 0);
 	}
 
 	template<class T>
