@@ -853,7 +853,7 @@ namespace sw
 				if(typeSize(type) == 4)
 				{
 					auto pointer = RValue<Pointer<Byte>>(ptr);
-					Int x = *Pointer<Int>(pointer +1-1);
+					Int x = *Pointer<Int>(pointer);
 
 					Int4 vector;
 					vector = Insert(vector, x, 0);
@@ -864,7 +864,7 @@ namespace sw
 				else if(typeSize(type) == 8)
 				{
 					auto pointer = RValue<Pointer<Byte>>(ptr);
-					Int x = *Pointer<Int>(pointer +1-1);
+					Int x = *Pointer<Int>(pointer);
 					Int y = *Pointer<Int>(pointer + 4);
 
 					Int4 vector;
