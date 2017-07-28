@@ -950,6 +950,7 @@ namespace glsl
 			break;
 		case EOpVectorLogicalNot: if(visit == PostVisit) emit(sw::Shader::OPCODE_NOT, result, arg); break;
 		case EOpLogicalNot:       if(visit == PostVisit) emit(sw::Shader::OPCODE_NOT, result, arg); break;
+		case EOpBitwiseNot:       if(visit == PostVisit) emit(sw::Shader::OPCODE_NOT, result, arg); break;
 		case EOpPostIncrement:
 			if(visit == PostVisit)
 			{
