@@ -22,6 +22,30 @@
       "revId": "0fbd2e41e46381c915b7e24ebad428e2734a8a81",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8199a3ea_f23855fb",
+        "filename": "src/Reactor/LLVMReactor.cpp",
+        "patchSetId": 7
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-07-28T20:51:15Z",
+      "side": 1,
+      "message": "Ok, no, it\u0027s the undefined predeclared Type class from the header. Very confusing.",
+      "parentUuid": "2d92557e_c6a564c9",
+      "range": {
+        "startLine": 98,
+        "startChar": 15,
+        "endLine": 98,
+        "endChar": 19
+      },
+      "revId": "0fbd2e41e46381c915b7e24ebad428e2734a8a81",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
