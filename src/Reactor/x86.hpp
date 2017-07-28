@@ -22,8 +22,6 @@ namespace sw
 	namespace x86
 	{
 		RValue<Int> cvtss2si(RValue<Float> val);
-		RValue<Int2> cvtps2pi(RValue<Float4> val);
-		RValue<Int2> cvttps2pi(RValue<Float4> val);
 		RValue<Int4> cvtps2dq(RValue<Float4> val);
 
 		RValue<Float> rcpss(RValue<Float> val);
@@ -44,26 +42,6 @@ namespace sw
 		RValue<Float4> floorps(RValue<Float4> val);
 		RValue<Float4> ceilps(RValue<Float4> val);
 
-		RValue<Float4> cmpps(RValue<Float4> x, RValue<Float4> y, unsigned char imm);
-		RValue<Float4> cmpeqps(RValue<Float4> x, RValue<Float4> y);
-		RValue<Float4> cmpltps(RValue<Float4> x, RValue<Float4> y);
-		RValue<Float4> cmpleps(RValue<Float4> x, RValue<Float4> y);
-		RValue<Float4> cmpunordps(RValue<Float4> x, RValue<Float4> y);
-		RValue<Float4> cmpneqps(RValue<Float4> x, RValue<Float4> y);
-		RValue<Float4> cmpnltps(RValue<Float4> x, RValue<Float4> y);
-		RValue<Float4> cmpnleps(RValue<Float4> x, RValue<Float4> y);
-		RValue<Float4> cmpordps(RValue<Float4> x, RValue<Float4> y);
-
-		RValue<Float> cmpss(RValue<Float> x, RValue<Float> y, unsigned char imm);
-		RValue<Float> cmpeqss(RValue<Float> x, RValue<Float> y);
-		RValue<Float> cmpltss(RValue<Float> x, RValue<Float> y);
-		RValue<Float> cmpless(RValue<Float> x, RValue<Float> y);
-		RValue<Float> cmpunordss(RValue<Float> x, RValue<Float> y);
-		RValue<Float> cmpneqss(RValue<Float> x, RValue<Float> y);
-		RValue<Float> cmpnltss(RValue<Float> x, RValue<Float> y);
-		RValue<Float> cmpnless(RValue<Float> x, RValue<Float> y);
-		RValue<Float> cmpordss(RValue<Float> x, RValue<Float> y);
-
 		RValue<Int4> pabsd(RValue<Int4> x);
 
 		RValue<Short4> paddsw(RValue<Short4> x, RValue<Short4> y);
@@ -74,26 +52,6 @@ namespace sw
 		RValue<SByte8> psubsb(RValue<SByte8> x, RValue<SByte8> y);
 		RValue<Byte8> paddusb(RValue<Byte8> x, RValue<Byte8> y);
 		RValue<Byte8> psubusb(RValue<Byte8> x, RValue<Byte8> y);
-
-		RValue<Short4> paddw(RValue<Short4> x, RValue<Short4> y);
-		RValue<Short4> psubw(RValue<Short4> x, RValue<Short4> y);
-		RValue<Short4> pmullw(RValue<Short4> x, RValue<Short4> y);
-		RValue<Short4> pand(RValue<Short4> x, RValue<Short4> y);
-		RValue<Short4> por(RValue<Short4> x, RValue<Short4> y);
-		RValue<Short4> pxor(RValue<Short4> x, RValue<Short4> y);
-		RValue<Short4> pshufw(RValue<Short4> x, unsigned char y);
-		RValue<Int2> punpcklwd(RValue<Short4> x, RValue<Short4> y);
-		RValue<Int2> punpckhwd(RValue<Short4> x, RValue<Short4> y);
-		RValue<Short4> pinsrw(RValue<Short4> x, RValue<Int> y, unsigned int i);
-		RValue<Int> pextrw(RValue<Short4> x, unsigned int i);
-		RValue<Short4> punpckldq(RValue<Int2> x, RValue<Int2> y);
-		RValue<Short4> punpckhdq(RValue<Int2> x, RValue<Int2> y);
-		RValue<Short4> punpcklbw(RValue<Byte8> x, RValue<Byte8> y);
-		RValue<Short4> punpckhbw(RValue<Byte8> x, RValue<Byte8> y);
-		RValue<Byte8> paddb(RValue<Byte8> x, RValue<Byte8> y);
-		RValue<Byte8> psubb(RValue<Byte8> x, RValue<Byte8> y);
-		RValue<Int2> paddd(RValue<Int2> x, RValue<Int2> y);
-		RValue<Int2> psubd(RValue<Int2> x, RValue<Int2> y);
 
 		RValue<UShort4> pavgw(RValue<UShort4> x, RValue<UShort4> y);
 
@@ -141,12 +99,10 @@ namespace sw
 		RValue<Int> movmskps(RValue<Float4> x);
 		RValue<Int> pmovmskb(RValue<Byte8> x);
 
-		RValue<Int4> pmovzxbd(RValue<Int4> x);
-		RValue<Int4> pmovsxbd(RValue<Int4> x);
-		RValue<Int4> pmovzxwd(RValue<Int4> x);
-		RValue<Int4> pmovsxwd(RValue<Int4> x);
-
-		void emms();
+		RValue<Int4> pmovzxbd(RValue<Byte16> x);
+		RValue<Int4> pmovsxbd(RValue<SByte16> x);
+		RValue<Int4> pmovzxwd(RValue<UShort8> x);
+		RValue<Int4> pmovsxwd(RValue<Short8> x);
 	}
 }
 

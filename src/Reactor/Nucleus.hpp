@@ -15,6 +15,7 @@
 #ifndef sw_Nucleus_hpp
 #define sw_Nucleus_hpp
 
+#include <cassert>
 #include <cstdarg>
 #include <cstdint>
 #include <vector>
