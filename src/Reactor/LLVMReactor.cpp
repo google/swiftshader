@@ -2553,44 +2553,28 @@ namespace sw
 	{
 		Value *short8 = Nucleus::createBitCast(cast.value, Short8::getType());
 
-		#if 0   // FIXME: Check codegen (pshuflw phshufhw pshufd)
-			Constant *pack[8];
-			pack[0] = Nucleus::createConstantInt(0);
-			pack[1] = Nucleus::createConstantInt(2);
-			pack[2] = Nucleus::createConstantInt(4);
-			pack[3] = Nucleus::createConstantInt(6);
+		Value *packed;
 
-			Value *short4 = Nucleus::createShuffleVector(short8, short8, Nucleus::createConstantVector(pack, 4));
-		#else
-			Value *packed;
+		// FIXME: Use Swizzle<Short8>
+		if(!CPUID::supportsSSSE3())
+		{
+			int pshuflw[8] = {0, 2, 0, 2, 4, 5, 6, 7};
+			int pshufhw[8] = {0, 1, 2, 3, 4, 6, 4, 6};
 
-			// FIXME: Use Swizzle<Short8>
-			if(!CPUID::supportsSSSE3())
-			{
-				int pshuflw[8] = {0, 2, 0, 2, 4, 5, 6, 7};
-				int pshufhw[8] = {0, 1, 2, 3, 4, 6, 4, 6};
+			Value *shuffle1 = Nucleus::createShuffleVector(short8, short8, pshuflw);
+			Value *shuffle2 = Nucleus::createShuffleVector(shuffle1, shuffle1, pshufhw);
+			Value *int4 = Nucleus::createBitCast(shuffle2, Int4::getType());
+			packed = createSwizzle4(int4, 0x88);
+		}
+		else
+		{
+			int pshufb[16] = {0, 1, 4, 5, 8, 9, 12, 13, 0, 1, 4, 5, 8, 9, 12, 13};
+			Value *byte16 = Nucleus::createBitCast(cast.value, Byte16::getType());
+			packed = Nucleus::createShuffleVector(byte16, byte16, pshufb);
+		}
 
-				Value *shuffle1 = Nucleus::createShuffleVector(short8, short8, pshuflw);
-				Value *shuffle2 = Nucleus::createShuffleVector(shuffle1, shuffle1, pshufhw);
-				Value *int4 = Nucleus::createBitCast(shuffle2, Int4::getType());
-				packed = createSwizzle4(int4, 0x88);
-			}
-			else
-			{
-				int pshufb[16] = {0, 1, 4, 5, 8, 9, 12, 13, 0, 1, 4, 5, 8, 9, 12, 13};
-				Value *byte16 = Nucleus::createBitCast(cast.value, Byte16::getType());
-				packed = Nucleus::createShuffleVector(byte16, byte16, pshufb);
-			}
-
-			#if 0   // FIXME: No optimal instruction selection
-				Value *qword2 = Nucleus::createBitCast(packed, T(llvm::VectorType::get(T(Long::getType()), 2)));
-				Value *element = Nucleus::createExtractElement(qword2, 0);
-				Value *short4 = Nucleus::createBitCast(element, Short4::getType());
-			#else   // FIXME: Requires SSE
-				Value *int2 = RValue<Int2>(Int2(As<Int4>(packed))).value;
-				Value *short4 = Nucleus::createBitCast(int2, Short4::getType());
-			#endif
-		#endif
+		Value *int2 = RValue<Int2>(Int2(As<Int4>(packed))).value;
+		Value *short4 = Nucleus::createBitCast(int2, Short4::getType());
 
 		storeValue(short4);
 	}
@@ -4551,22 +4535,15 @@ namespace sw
 
 	RValue<Int> Extract(RValue<Int2> val, int i)
 	{
-		if(false)   // FIXME: LLVM does not generate optimal code
+		if(i == 0)
 		{
-			return RValue<Int>(Nucleus::createExtractElement(val.value, Int::getType(), i));
+			return RValue<Int>(Nucleus::createExtractElement(Nucleus::createBitCast(val.value, T(llvm::VectorType::get(T(Int::getType()), 2))), Int::getType(), 0));
 		}
 		else
 		{
-			if(i == 0)
-			{
-				return RValue<Int>(Nucleus::createExtractElement(Nucleus::createBitCast(val.value, T(llvm::VectorType::get(T(Int::getType()), 2))), Int::getType(), 0));
-			}
-			else
-			{
-				Int2 val2 = As<Int2>(UnpackHigh(val, val));
+			Int2 val2 = As<Int2>(UnpackHigh(val, val));
 
-				return Extract(val2, 0);
-			}
+			return Extract(val2, 0);
 		}
 	}
 
@@ -5823,60 +5800,16 @@ namespace sw
 
 	Float4::Float4(RValue<Byte4> cast) : FloatXYZW(this)
 	{
-		#if 0
-			Value *xyzw = Nucleus::createUIToFP(cast.value, Float4::getType());   // FIXME: Crashes
-		#elif 0
-			Value *vector = loadValue();
-
-			Value *i8x = Nucleus::createExtractElement(cast.value, 0);
-			Value *f32x = Nucleus::createUIToFP(i8x, Float::getType());
-			Value *x = Nucleus::createInsertElement(vector, f32x, 0);
-
-			Value *i8y = Nucleus::createExtractElement(cast.value, V(Nucleus::createConstantInt(1)));
-			Value *f32y = Nucleus::createUIToFP(i8y, Float::getType());
-			Value *xy = Nucleus::createInsertElement(x, f32y, V(Nucleus::createConstantInt(1)));
-
-			Value *i8z = Nucleus::createExtractElement(cast.value, Nucleus::createConstantInt(2));
-			Value *f32z = Nucleus::createUIToFP(i8z, Float::getType());
-			Value *xyz = Nucleus::createInsertElement(xy, f32z, Nucleus::createConstantInt(2));
-
-			Value *i8w = Nucleus::createExtractElement(cast.value, Nucleus::createConstantInt(3));
-			Value *f32w = Nucleus::createUIToFP(i8w, Float::getType());
-			Value *xyzw = Nucleus::createInsertElement(xyz, f32w, Nucleus::createConstantInt(3));
-		#else
-			Value *a = Int4(cast).loadValue();
-			Value *xyzw = Nucleus::createSIToFP(a, Float4::getType());
-		#endif
+		Value *a = Int4(cast).loadValue();
+		Value *xyzw = Nucleus::createSIToFP(a, Float4::getType());
 
 		storeValue(xyzw);
 	}
 
 	Float4::Float4(RValue<SByte4> cast) : FloatXYZW(this)
 	{
-		#if 0
-			Value *xyzw = Nucleus::createSIToFP(cast.value, Float4::getType());   // FIXME: Crashes
-		#elif 0
-			Value *vector = loadValue();
-
-			Value *i8x = Nucleus::createExtractElement(cast.value, 0);
-			Value *f32x = Nucleus::createSIToFP(i8x, Float::getType());
-			Value *x = Nucleus::createInsertElement(vector, f32x, 0);
-
-			Value *i8y = Nucleus::createExtractElement(cast.value, V(Nucleus::createConstantInt(1)));
-			Value *f32y = Nucleus::createSIToFP(i8y, Float::getType());
-			Value *xy = Nucleus::createInsertElement(x, f32y, V(Nucleus::createConstantInt(1)));
-
-			Value *i8z = Nucleus::createExtractElement(cast.value, Nucleus::createConstantInt(2));
-			Value *f32z = Nucleus::createSIToFP(i8z, Float::getType());
-			Value *xyz = Nucleus::createInsertElement(xy, f32z, Nucleus::createConstantInt(2));
-
-			Value *i8w = Nucleus::createExtractElement(cast.value, Nucleus::createConstantInt(3));
-			Value *f32w = Nucleus::createSIToFP(i8w, Float::getType());
-			Value *xyzw = Nucleus::createInsertElement(xyz, f32w, Nucleus::createConstantInt(3));
-		#else
-			Value *a = Int4(cast).loadValue();
-			Value *xyzw = Nucleus::createSIToFP(a, Float4::getType());
-		#endif
+		Value *a = Int4(cast).loadValue();
+		Value *xyzw = Nucleus::createSIToFP(a, Float4::getType());
 
 		storeValue(xyzw);
 	}
@@ -6403,19 +6336,9 @@ namespace sw
 
 		RValue<Int4> cvtps2dq(RValue<Float4> val)
 		{
-			if(CPUID::supportsSSE2())
-			{
-				llvm::Function *cvtps2dq = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse2_cvtps2dq);
+			llvm::Function *cvtps2dq = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse2_cvtps2dq);
 
-				return RValue<Int4>(V(::builder->CreateCall(cvtps2dq, val.value)));
-			}
-			else
-			{
-				Int2 lo = x86::cvtps2pi(val);
-				Int2 hi = x86::cvtps2pi(Swizzle(val, 0xEE));
-
-				return Int4(lo, hi);
-			}
+			return RValue<Int4>(V(::builder->CreateCall(cvtps2dq, val.value)));
 		}
 
 		RValue<Float> rcpss(RValue<Float> val)
@@ -6868,25 +6791,9 @@ namespace sw
 
 		RValue<Short8> packssdw(RValue<Int4> x, RValue<Int4> y)
 		{
-			if(CPUID::supportsSSE2())
-			{
-				llvm::Function *packssdw = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse2_packssdw_128);
+			llvm::Function *packssdw = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse2_packssdw_128);
 
-				return RValue<Short8>(V(::builder->CreateCall2(packssdw, x.value, y.value)));
-			}
-			else
-			{
-				Int2 loX = Int2(x);
-				Int2 hiX = Int2(Swizzle(x, 0xEE));
-
-				Int2 loY = Int2(y);
-				Int2 hiY = Int2(Swizzle(y, 0xEE));
-
-				Short4 lo = x86::packssdw(loX, hiX);
-				Short4 hi = x86::packssdw(loY, hiY);
-
-				return Short8(lo, hi);
-			}
+			return RValue<Short8>(V(::builder->CreateCall2(packssdw, x.value, y.value)));
 		}
 
 		RValue<SByte8> packsswb(RValue<Short4> x, RValue<Short4> y)
@@ -6971,22 +6878,9 @@ namespace sw
 
 		RValue<Int4> pslld(RValue<Int4> x, unsigned char y)
 		{
-			if(CPUID::supportsSSE2())
-			{
-				llvm::Function *pslld = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse2_pslli_d);
+			llvm::Function *pslld = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse2_pslli_d);
 
-				return RValue<Int4>(V(::builder->CreateCall2(pslld, x.value, V(Nucleus::createConstantInt(y)))));
-			}
-			else
-			{
-				Int2 lo = Int2(x);
-				Int2 hi = Int2(Swizzle(x, 0xEE));
-
-				lo = x86::pslld(lo, y);
-				hi = x86::pslld(hi, y);
-
-				return Int4(lo, hi);
-			}
+			return RValue<Int4>(V(::builder->CreateCall2(pslld, x.value, V(Nucleus::createConstantInt(y)))));
 		}
 
 		RValue<Int2> psrad(RValue<Int2> x, unsigned char y)
@@ -6998,22 +6892,9 @@ namespace sw
 
 		RValue<Int4> psrad(RValue<Int4> x, unsigned char y)
 		{
-			if(CPUID::supportsSSE2())
-			{
-				llvm::Function *psrad = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse2_psrai_d);
+			llvm::Function *psrad = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse2_psrai_d);
 
-				return RValue<Int4>(V(::builder->CreateCall2(psrad, x.value, V(Nucleus::createConstantInt(y)))));
-			}
-			else
-			{
-				Int2 lo = Int2(x);
-				Int2 hi = Int2(Swizzle(x, 0xEE));
-
-				lo = x86::psrad(lo, y);
-				hi = x86::psrad(hi, y);
-
-				return Int4(lo, hi);
-			}
+			return RValue<Int4>(V(::builder->CreateCall2(psrad, x.value, V(Nucleus::createConstantInt(y)))));
 		}
 
 		RValue<UInt2> psrld(RValue<UInt2> x, unsigned char y)
@@ -7025,22 +6906,9 @@ namespace sw
 
 		RValue<UInt4> psrld(RValue<UInt4> x, unsigned char y)
 		{
-			if(CPUID::supportsSSE2())
-			{
-				llvm::Function *psrld = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse2_psrli_d);
+			llvm::Function *psrld = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse2_psrli_d);
 
-				return RValue<UInt4>(V(::builder->CreateCall2(psrld, x.value, V(Nucleus::createConstantInt(y)))));
-			}
-			else
-			{
-				UInt2 lo = As<UInt2>(Int2(As<Int4>(x)));
-				UInt2 hi = As<UInt2>(Int2(Swizzle(As<Int4>(x), 0xEE)));
-
-				lo = x86::psrld(lo, y);
-				hi = x86::psrld(hi, y);
-
-				return UInt4(lo, hi);
-			}
+			return RValue<UInt4>(V(::builder->CreateCall2(psrld, x.value, V(Nucleus::createConstantInt(y)))));
 		}
 
 		RValue<Int4> pmaxsd(RValue<Int4> x, RValue<Int4> y)
