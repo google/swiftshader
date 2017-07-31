@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5c0cddd8_965f89f0",
+        "filename": "src/OpenGL/common/Image.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 476,
+      "author": {
+        "id": 5870
+      },
+      "writtenOn": "2017-07-31T23:47:25Z",
+      "side": 1,
+      "message": "why does source have 3 components here, but 4 in the neighbor functions?",
+      "range": {
+        "startLine": 476,
+        "startChar": 29,
+        "endLine": 476,
+        "endChar": 34
+      },
+      "revId": "e3801c8ba9d60a53b928c64ccb64a08e1846aaf3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ca602027_de8bdc72",
+        "filename": "src/OpenGL/common/Image.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1440,
+      "author": {
+        "id": 5870
+      },
+      "writtenOn": "2017-07-31T23:47:25Z",
+      "side": 1,
+      "message": "readonly?",
+      "range": {
+        "startLine": 1440,
+        "startChar": 33,
+        "endLine": 1440,
+        "endChar": 47
+      },
+      "revId": "e3801c8ba9d60a53b928c64ccb64a08e1846aaf3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0c76da46_e69ab091",
+        "filename": "src/OpenGL/common/Image.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1809,
+      "author": {
+        "id": 5870
+      },
+      "writtenOn": "2017-07-31T23:47:25Z",
+      "side": 1,
+      "message": "these loads look suspicious next to all \u0027save\u0027 calls",
+      "range": {
+        "startLine": 1809,
+        "startChar": 5,
+        "endLine": 1809,
+        "endChar": 23
+      },
+      "revId": "e3801c8ba9d60a53b928c64ccb64a08e1846aaf3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ddd7d219_d09bcfb1",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.def",
+        "patchSetId": 1
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 5870
+      },
+      "writtenOn": "2017-07-31T23:47:25Z",
+      "side": 1,
+      "message": "nit: spaces",
+      "range": {
+        "startLine": 186,
+        "startChar": 0,
+        "endLine": 186,
+        "endChar": 4
+      },
+      "revId": "e3801c8ba9d60a53b928c64ccb64a08e1846aaf3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e5028f22_ade8285f",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 244,
+      "author": {
+        "id": 5870
+      },
+      "writtenOn": "2017-07-31T23:47:25Z",
+      "side": 1,
+      "message": "nit: spaces",
+      "range": {
+        "startLine": 244,
+        "startChar": 0,
+        "endLine": 244,
+        "endChar": 8
+      },
+      "revId": "e3801c8ba9d60a53b928c64ccb64a08e1846aaf3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
