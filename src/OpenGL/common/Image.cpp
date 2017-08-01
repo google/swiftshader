@@ -263,10 +263,10 @@ namespace
 		for(int x = 0; x < width; x++)
 		{
 			unsigned int rgba = source1010102U[x];
-			dest16U[4 * x + 0] = (rgba & 0x00000FFC) >> 2;
-			dest16U[4 * x + 1] = (rgba & 0x003FF000) >> 12;
-			dest16U[4 * x + 2] = (rgba & 0xFFC00000) >> 22;
-			dest16U[4 * x + 3] = (rgba & 0x00000003);
+			dest16U[4 * x + 0] = (rgba & 0x000003FF);
+			dest16U[4 * x + 1] = (rgba & 0x000FFC00) >> 10;
+			dest16U[4 * x + 2] = (rgba & 0x3FF00000) >> 20;
+			dest16U[4 * x + 3] = (rgba & 0xC0000000) >> 30;
 		}
 	}
 
