@@ -17,7 +17,7 @@
 #include "src/IceCfg.h"
 #include "src/IceCfgNode.h"
 
-#include <map>
+#include <unordered_map>
 #include <vector>
 
 namespace
@@ -61,9 +61,9 @@ namespace
 			std::vector<Ice::Inst*> stores;
 		};
 
-		std::map<Ice::Operand*, Uses> uses;
-		std::map<Ice::Inst*, Ice::CfgNode*> node;
-		std::map<Ice::Variable*, Ice::Inst*> definition;
+		std::unordered_map<Ice::Operand*, Uses> uses;
+		std::unordered_map<Ice::Inst*, Ice::CfgNode*> node;
+		std::unordered_map<Ice::Variable*, Ice::Inst*> definition;
 	};
 
 	void Optimizer::run(Ice::Cfg *function)
