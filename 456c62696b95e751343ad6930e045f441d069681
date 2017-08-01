@@ -1,0 +1,165 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8abb50e2_bb74e6b4",
+        "filename": "src/OpenGL/common/Image.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 1450,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-08-01T21:43:42Z",
+      "side": 1,
+      "message": "could be:\nlock(0, 0, isWrite ? sw::LOCK_WRITEONLY : sw::LOCK_READONLY);",
+      "range": {
+        "startLine": 1450,
+        "startChar": 18,
+        "endLine": 1450,
+        "endChar": 91
+      },
+      "revId": "456c62696b95e751343ad6930e045f441d069681",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "161e77f7_47a637f4",
+        "filename": "src/OpenGL/common/Image.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 1847,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-08-01T21:43:42Z",
+      "side": 1,
+      "message": "Weird indentation",
+      "range": {
+        "startLine": 1847,
+        "startChar": 0,
+        "endLine": 1847,
+        "endChar": 17
+      },
+      "revId": "456c62696b95e751343ad6930e045f441d069681",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6b5a4007_77507667",
+        "filename": "src/OpenGL/common/Image.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 1864,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-08-01T21:43:42Z",
+      "side": 1,
+      "message": "Weird indentation",
+      "range": {
+        "startLine": 1864,
+        "startChar": 0,
+        "endLine": 1864,
+        "endChar": 16
+      },
+      "revId": "456c62696b95e751343ad6930e045f441d069681",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "26c13826_e0071516",
+        "filename": "src/OpenGL/common/Image.hpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-08-01T21:43:42Z",
+      "side": 1,
+      "message": "This is a bit clumsy looking to have all load function\u0027s first argument be \"true\". How about we keep the same API and add transferImageData() as a private function?\nWe could keep loadImageData() and add another function called something like getImageData(). Both would simply call transferImageData() internally.",
+      "range": {
+        "startLine": 182,
+        "startChar": 6,
+        "endLine": 182,
+        "endChar": 36
+      },
+      "revId": "456c62696b95e751343ad6930e045f441d069681",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c74d75b8_f081481e",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 5056,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-08-01T21:43:42Z",
+      "side": 1,
+      "message": "weird indentation",
+      "range": {
+        "startLine": 5056,
+        "startChar": 0,
+        "endLine": 5056,
+        "endChar": 16
+      },
+      "revId": "456c62696b95e751343ad6930e045f441d069681",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "52eeb7f1_5ccfaed8",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 5069,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-08-01T21:43:42Z",
+      "side": 1,
+      "message": "weird indentation",
+      "range": {
+        "startLine": 5066,
+        "startChar": 0,
+        "endLine": 5069,
+        "endChar": 64
+      },
+      "revId": "456c62696b95e751343ad6930e045f441d069681",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a5212a8_ef4ffdb7",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 5080,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-08-01T21:43:42Z",
+      "side": 1,
+      "message": "weird indentation",
+      "range": {
+        "startLine": 5080,
+        "startChar": 0,
+        "endLine": 5080,
+        "endChar": 24
+      },
+      "revId": "456c62696b95e751343ad6930e045f441d069681",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
