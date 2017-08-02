@@ -17,7 +17,7 @@ import("../swiftshader.gni")
 declare_args() {
   # Currently, Subzero is not used by default
   # LLVM is still the default backend
-  use_swiftshader_with_subzero = is_win || is_linux || is_chromeos
+  use_swiftshader_with_subzero = is_win || is_linux || is_mac || is_chromeos
 }
 
 # Need a separate config to ensure the warnings are added to the end.
