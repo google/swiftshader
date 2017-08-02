@@ -36,22 +36,22 @@ configs_to_add += [
 
 template("swiftshader_source_set") {
   source_set(target_name) {
+    configs -= configs_to_delete
+    configs += configs_to_add
     forward_variables_from(invoker, "*", [ "configs" ])
     if (defined(invoker.configs)) {
       configs += invoker.configs
     }
-    configs -= configs_to_delete
-    configs += configs_to_add
   }
 }
 
 template("swiftshader_shared_library") {
   shared_library(target_name) {
+    configs -= configs_to_delete
+    configs += configs_to_add
     forward_variables_from(invoker, "*", [ "configs" ])
     if (defined(invoker.configs)) {
       configs += invoker.configs
     }
-    configs -= configs_to_delete
-    configs += configs_to_add
   }
 }
