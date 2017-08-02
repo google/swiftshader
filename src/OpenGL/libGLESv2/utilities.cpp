@@ -1087,6 +1087,7 @@ namespace es2
 		case GL_RGBA16I:
 		case GL_RGBA32I:
 		case GL_RGBA32UI:
+		case GL_R11F_G11F_B10F:
 			return clientVersion >= 3;
 		case GL_DEPTH_COMPONENT24:
 		case GL_DEPTH_COMPONENT32_OES:
