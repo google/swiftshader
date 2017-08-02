@@ -36,7 +36,6 @@ config("swiftshader_config") {
   } else {
     cflags = [
       "-std=c++11",
-      "-Wall",
       "-fno-exceptions",
       "-fno-operator-names",
       "-ffunction-sections",
