@@ -75,6 +75,7 @@ config("swiftshader_subzero_private_config") {
       "/wd4146",
       "/wd4245",  # conversion from int to unsigned int (llvm)
       "/wd4267",
+      "/wd4291",
       "/wd4310",
       "/wd4334",
       "/wd4389",
@@ -112,6 +113,8 @@ config("swiftshader_reactor_with_subzero_private_config") {
       "/wd4146",
       "/wd4245",  # conversion from int to unsigned int (llvm)
       "/wd4267",
+      "/wd4291",
+      "/wd4309",
       "/wd4702",
       "/wd4800",
     ]

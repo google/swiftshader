@@ -55,8 +55,6 @@ config("swiftshader_llvm_private_config") {
       "-msse2",
       "-Wno-header-hygiene",
       "-Wno-null-dereference",
-      "-Wno-unused-private-field",
-      "-Wno-unused-local-typedef",
     ]
   } else {
     cflags += [ "-Wno-unused-but-set-variable" ]
@@ -66,6 +64,8 @@ config("swiftshader_llvm_private_config") {
     "-Wno-deprecated-declarations",
     "-Wno-enum-compare",
     "-Wno-unused-function",
+    "-Wno-unused-local-typedef",
+    "-Wno-unused-private-field",
     "-Wno-unused-result",
     "-Wno-unused-variable",
   ]
