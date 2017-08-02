@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import("../../swiftshader.gni")
+
 # Need a separate config to ensure the warnings are added to the end.
 config("swiftshader_libEGL_private_config") {
   defines = [ "EGL_EGLEXT_PROTOTYPES" ]
@@ -23,22 +25,18 @@ config("swiftshader_libEGL_private_config") {
       "/wd5030",  # attribute is not recognized
     ]
 
-    defines += [
-      "EGLAPI=",
-    ]
+    defines += [ "EGLAPI=" ]
   } else {
     cflags = [ "-Wno-sign-compare" ]
     if (!is_clang) {
       cflags += [ "-Wno-unused-but-set-variable" ]
     }
 
-    defines += [
-      "EGLAPI=__attribute__((visibility(\"default\"))) __attribute__((no_sanitize(\"function\")))",
-    ]
+    defines += [ "EGLAPI=__attribute__((visibility(\"default\"))) __attribute__((no_sanitize(\"function\")))" ]
   }
 }
 
-shared_library("swiftshader_libEGL") {
+swiftshader_shared_library("swiftshader_libEGL") {
   if (!is_mac) {
     output_name = "libEGL"
     output_dir = "$root_out_dir/swiftshader"
@@ -60,10 +58,6 @@ shared_library("swiftshader_libEGL") {
     "resource.h",
   ]
 
-  if (is_debug) {
-    sources += [ "../common/debug.cpp" ]
-  }
-
   if (is_mac) {
     sources += [ "OSXUtils.mm" ]
     libs = [
@@ -72,7 +66,6 @@ shared_library("swiftshader_libEGL") {
     ]
     ldflags = [ "-Wl,-install_name,@rpath/libswiftshader_libEGL.dylib" ]
   } else if (is_win) {
-    configs -= [ "//build/config/win:unicode" ]
     ldflags = [ "/DEF:" + rebase_path("libGLESv2.def", root_build_dir) ]
   } else if (is_linux) {
     sources += [ "../../Main/libX11.cpp" ]
@@ -80,12 +73,7 @@ shared_library("swiftshader_libEGL") {
         [ "-Wl,--version-script=" + rebase_path("exports.map", root_build_dir) ]
   }
 
-  configs -= [ "//build/config/compiler:chromium_code" ]
-  configs += [
-    "//build/config/compiler:no_chromium_code",
-    "//third_party/swiftshader:swiftshader_config",
-    ":swiftshader_libEGL_private_config",
-  ]
+  configs = [ ":swiftshader_libEGL_private_config" ]
 
   include_dirs = [
     "../../../include",

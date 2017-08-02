@@ -31,46 +31,27 @@ config("swiftshader_config") {
       "NOMINMAX",
       "_WINDLL",
       "NO_SANITIZE_FUNCTION=",
+      "ANGLE_DISABLE_TRACE",
     ]
-
-    if (is_debug) {
-      cflags += [ "/RTC1" ]  # Run-Time Error Checks
-    } else {
-      defines += [ "ANGLE_DISABLE_TRACE" ]
-    }
   } else {
     cflags = [
       "-std=c++11",
       "-Wall",
       "-fno-exceptions",
       "-fno-operator-names",
+      "-ffunction-sections",
+      "-fdata-sections",
+      "-fomit-frame-pointer",
+      "-Os",
     ]
 
     defines += [
       "__STDC_CONSTANT_MACROS",
       "__STDC_LIMIT_MACROS",
       "NO_SANITIZE_FUNCTION=__attribute__((no_sanitize(\"function\")))",
+      "ANGLE_DISABLE_TRACE",
+      "NDEBUG",
     ]
-
-    if (is_debug) {
-      cflags += [
-        "-g",
-        "-g3",
-      ]
-    } else {  # Release
-      # All Release builds use function/data sections to make the shared libraries smaller
-      cflags += [
-        "-ffunction-sections",
-        "-fdata-sections",
-        "-fomit-frame-pointer",
-        "-Os",
-      ]
-
-      defines += [
-        "ANGLE_DISABLE_TRACE",
-        "NDEBUG",
-      ]
-    }
 
     if (target_cpu == "x64") {  # 64 bit version
       cflags += [
@@ -91,11 +72,10 @@ config("swiftshader_config") {
         "-Wl,--hash-style=both",
         "-Wl,--gc-sections",
       ]
+
       # A bug in the gold linker prevents using ICF on 32-bit (crbug.com/729532)
       if (use_gold && target_cpu == "x86") {
-        ldflags += [
-          "-Wl,--icf=none",
-        ]
+        ldflags += [ "-Wl,--icf=none" ]
       }
     }
   }

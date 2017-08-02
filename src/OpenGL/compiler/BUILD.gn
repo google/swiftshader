@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import("../../swiftshader.gni")
+
 # Need a separate config to ensure the warnings are added to the end.
 config("swiftshader_opengl_compiler_private_config") {
   if (is_win) {
@@ -35,7 +37,7 @@ config("swiftshader_opengl_compiler_private_config") {
   }
 }
 
-source_set("swiftshader_opengl_compiler") {
+swiftshader_source_set("swiftshader_opengl_compiler") {
   deps = [
     "preprocessor:swiftshader_opengl_preprocessor",
   ]
@@ -72,7 +74,7 @@ source_set("swiftshader_opengl_compiler") {
     sources += [ "ossource_win.cpp" ]
   }
 
-  configs += [ ":swiftshader_opengl_compiler_private_config" ]
+  configs = [ ":swiftshader_opengl_compiler_private_config" ]
 
   include_dirs = [
     "..",

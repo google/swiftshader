@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import("../swiftshader.gni")
+
 # Need a separate config to ensure the warnings are added to the end.
 config("swiftshader_main_private_config") {
   if (is_win) {
@@ -28,11 +30,12 @@ config("swiftshader_main_private_config") {
     }
   } else {
     cflags = [ "-msse2" ]
-    defines = [ "NO_SANITIZE_FUNCTION=__attribute__((no_sanitize(\"function\")))" ]
+    defines =
+        [ "NO_SANITIZE_FUNCTION=__attribute__((no_sanitize(\"function\")))" ]
   }
 }
 
-source_set("swiftshader_main") {
+swiftshader_source_set("swiftshader_main") {
   deps = [
     "../Common:swiftshader_common",
   ]
@@ -59,11 +62,10 @@ source_set("swiftshader_main") {
   }
 
   if (is_win) {
-    configs -= [ "//build/config/win:unicode" ]
     libs = [ "dxguid.lib" ]  # For FrameBufferDD
   }
 
-  configs += [ ":swiftshader_main_private_config" ]
+  configs = [ ":swiftshader_main_private_config" ]
 
   include_dirs = [
     "..",

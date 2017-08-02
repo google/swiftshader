@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import("../../src/swiftshader.gni")
+
 # Need a separate config to ensure the warnings are added to the end.
 config("swiftshader_llvm_private_config") {
   cflags = []
@@ -73,7 +75,7 @@ config("swiftshader_llvm_private_config") {
   ]
 }
 
-source_set("swiftshader_llvm") {
+swiftshader_source_set("swiftshader_llvm") {
   sources = [
     "lib/Analysis/AliasAnalysis.cpp",
     "lib/Analysis/AliasSetTracker.cpp",
@@ -449,10 +451,7 @@ source_set("swiftshader_llvm") {
     "lib/VMCore/Verifier.cpp",
   ]
 
-  if (is_win) {
-    configs -= [ "//build/config/win:unicode" ]
-  }
-  configs += [ ":swiftshader_llvm_private_config" ]
+  configs = [ ":swiftshader_llvm_private_config" ]
 
   include_dirs = [ "lib/Target/X86" ]
 
