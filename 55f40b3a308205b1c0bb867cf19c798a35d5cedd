@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6961528d_01285b54",
+        "filename": "src/Common/BUILD.gn",
+        "patchSetId": 1
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-08-02T13:16:31Z",
+      "side": 1,
+      "message": "Could this use a relative path?",
+      "range": {
+        "startLine": 15,
+        "startChar": 8,
+        "endLine": 15,
+        "endChar": 49
+      },
+      "revId": "55f40b3a308205b1c0bb867cf19c798a35d5cedd",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
