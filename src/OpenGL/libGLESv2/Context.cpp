@@ -4314,6 +4314,7 @@ const GLubyte *Context::getExtensions(GLuint index, GLuint *numExt) const
 		"GL_OES_texture_half_float_linear",
 		"GL_OES_texture_npot",
 		"GL_OES_texture_3D",
+		"GL_OES_vertex_half_float",
 		"GL_EXT_blend_minmax",
 		"GL_EXT_color_buffer_half_float",
 		"GL_EXT_draw_buffers",

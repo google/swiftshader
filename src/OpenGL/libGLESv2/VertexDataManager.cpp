@@ -193,6 +193,7 @@ GLenum VertexDataManager::prepareVertexData(GLint start, GLsizei count, Translat
 				case GL_FIXED:          translated[i].type = sw::STREAMTYPE_FIXED;  break;
 				case GL_FLOAT:          translated[i].type = sw::STREAMTYPE_FLOAT;  break;
 				case GL_HALF_FLOAT:     translated[i].type = sw::STREAMTYPE_HALF;   break;
+				case GL_HALF_FLOAT_OES: translated[i].type = sw::STREAMTYPE_HALF;   break;
 				case GL_INT_2_10_10_10_REV:          translated[i].type = sw::STREAMTYPE_2_10_10_10_INT;  break;
 				case GL_UNSIGNED_INT_2_10_10_10_REV: translated[i].type = sw::STREAMTYPE_2_10_10_10_UINT; break;
 				default: UNREACHABLE(attrib.mType); translated[i].type = sw::STREAMTYPE_FLOAT;  break;
