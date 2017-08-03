@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "7da55ae9_cc5a75ad",
+        "filename": "src/swiftshader.gni",
+        "patchSetId": 3
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-08-03T19:08:42Z",
+      "side": 1,
+      "message": "Ok, will do, thanks!",
+      "parentUuid": "50d7d86c_a790387a",
+      "range": {
+        "startLine": 23,
+        "startChar": 29,
+        "endLine": 23,
+        "endChar": 41
+      },
+      "revId": "9441b0724c13635e28f67755e1090279dcc3b411",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "163b1465_b17b3650",
         "filename": "src/swiftshader.gni",
         "patchSetId": 3
@@ -71,6 +95,30 @@
     },
     {
       "key": {
+        "uuid": "d0804dc6_85dfd663",
+        "filename": "src/swiftshader.gni",
+        "patchSetId": 3
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-08-03T19:08:42Z",
+      "side": 1,
+      "message": "Noted. Will try to get this to work.",
+      "parentUuid": "163b1465_b17b3650",
+      "range": {
+        "startLine": 31,
+        "startChar": 51,
+        "endLine": 31,
+        "endChar": 59
+      },
+      "revId": "9441b0724c13635e28f67755e1090279dcc3b411",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1d6cf6a1_b0d9945b",
         "filename": "third_party/LLVM/BUILD.gn",
         "patchSetId": 3
@@ -82,6 +130,30 @@
       "writtenOn": "2017-08-03T19:01:00Z",
       "side": 1,
       "message": "Completely unrelated to this CL, since I\u0027m fighting a build error in third_party/swiftshader/third_party/llvm-subzero/lib/Support/Atomic.cpp in chrome/win-on-linux builds atm: Didn\u0027t you write some custom backend so you no longer depend on LLVM? Or am I mixing things up?",
+      "range": {
+        "startLine": 78,
+        "startChar": 22,
+        "endLine": 78,
+        "endChar": 31
+      },
+      "revId": "9441b0724c13635e28f67755e1090279dcc3b411",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ed8a06e7_30d3b3d5",
+        "filename": "third_party/LLVM/BUILD.gn",
+        "patchSetId": 3
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-08-03T19:08:42Z",
+      "side": 1,
+      "message": "Yes, we use Subzero on Windows and Linux now (hopefully MacOS soon also). See the top of the src/Reactor/BUILD.gn file.",
+      "parentUuid": "1d6cf6a1_b0d9945b",
       "range": {
         "startLine": 78,
         "startChar": 22,
