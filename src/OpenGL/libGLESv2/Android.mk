@@ -68,6 +68,11 @@ COMMON_SHARED_LIBRARIES := \
 	libcutils \
 	libhardware
 
+# libnativewindow is introduced from O
+ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 26 && echo O),O)
+COMMON_SHARED_LIBRARIES += libnativewindow
+endif
+
 # gralloc1 is introduced from N MR1
 ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 25 && echo NMR1),NMR1)
 COMMON_CFLAGS += -DHAVE_GRALLOC1
