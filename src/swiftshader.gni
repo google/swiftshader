@@ -20,7 +20,7 @@ if (is_debug) {
   ]
   configs_to_add += [
     "//build/config:release",
-    "//build/config/compiler:optimize_max",
+    "//build/config/compiler:optimize",
   ]
   if (is_win) {
     configs_to_delete += [ "//build/config/win:default_crt" ]
