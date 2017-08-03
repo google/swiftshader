@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9544825e_0854fc3b",
+        "filename": "BUILD.gn",
+        "patchSetId": 3
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5885
+      },
+      "writtenOn": "2017-08-03T19:01:00Z",
+      "side": 1,
+      "message": "If you run on Android, you likely want to use -Oz there",
+      "range": {
+        "startLine": 45,
+        "startChar": 7,
+        "endLine": 45,
+        "endChar": 11
+      },
+      "revId": "9441b0724c13635e28f67755e1090279dcc3b411",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "50d7d86c_a790387a",
+        "filename": "src/swiftshader.gni",
+        "patchSetId": 3
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5885
+      },
+      "writtenOn": "2017-08-03T19:01:00Z",
+      "side": 1,
+      "message": "You want optimize, not optimize_max. See comment on https://cs.chromium.org/chromium/src/build/config/compiler/BUILD.gn?type\u003dcs\u0026q\u003doptimize_max+file:build/config\u0026sq\u003dpackage:chromium\u0026l\u003d1572 , also optimize is the default in release builds because of binary size.",
+      "range": {
+        "startLine": 23,
+        "startChar": 29,
+        "endLine": 23,
+        "endChar": 41
+      },
+      "revId": "9441b0724c13635e28f67755e1090279dcc3b411",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "163b1465_b17b3650",
+        "filename": "src/swiftshader.gni",
+        "patchSetId": 3
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5885
+      },
+      "writtenOn": "2017-08-03T19:01:00Z",
+      "side": 1,
+      "message": "(i\u0027d recommend you try building with this set)",
+      "range": {
+        "startLine": 31,
+        "startChar": 51,
+        "endLine": 31,
+        "endChar": 59
+      },
+      "revId": "9441b0724c13635e28f67755e1090279dcc3b411",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1d6cf6a1_b0d9945b",
+        "filename": "third_party/LLVM/BUILD.gn",
+        "patchSetId": 3
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 5885
+      },
+      "writtenOn": "2017-08-03T19:01:00Z",
+      "side": 1,
+      "message": "Completely unrelated to this CL, since I\u0027m fighting a build error in third_party/swiftshader/third_party/llvm-subzero/lib/Support/Atomic.cpp in chrome/win-on-linux builds atm: Didn\u0027t you write some custom backend so you no longer depend on LLVM? Or am I mixing things up?",
+      "range": {
+        "startLine": 78,
+        "startChar": 22,
+        "endLine": 78,
+        "endChar": 31
+      },
+      "revId": "9441b0724c13635e28f67755e1090279dcc3b411",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
