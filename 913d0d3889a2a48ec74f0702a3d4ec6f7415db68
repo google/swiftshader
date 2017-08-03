@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c766ccd2_a6f39e6b",
+        "filename": "src/OpenGL/common/Image.cpp",
+        "patchSetId": 9
+      },
+      "lineNbr": 1460,
+      "author": {
+        "id": 5870
+      },
+      "writtenOn": "2017-08-03T22:52:16Z",
+      "side": 1,
+      "message": "nit: creating a \"const bool isWrite \u003d ...\" would shorten up all later checks",
+      "range": {
+        "startLine": 1460,
+        "startChar": 30,
+        "endLine": 1460,
+        "endChar": 69
+      },
+      "revId": "913d0d3889a2a48ec74f0702a3d4ec6f7415db68",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
