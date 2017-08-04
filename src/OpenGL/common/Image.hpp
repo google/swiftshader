@@ -22,7 +22,6 @@
 #include <GLES2/gl2ext.h>
 
 #if defined(__ANDROID__)
-#include <hardware/gralloc.h>
 #include <system/window.h>
 #include "../../Common/GrallocAndroid.hpp"
 #include "../../Common/DebugAndroid.hpp"

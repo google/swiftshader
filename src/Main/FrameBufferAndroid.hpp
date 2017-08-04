@@ -18,8 +18,8 @@
 #include "Main/FrameBuffer.hpp"
 #include "Common/Debug.hpp"
 
-#include <hardware/gralloc.h>
-#include <system/window.h>
+struct ANativeWindow;
+struct ANativeWindowBuffer;
 
 namespace sw
 {

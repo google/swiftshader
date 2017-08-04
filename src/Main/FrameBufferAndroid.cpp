@@ -15,6 +15,7 @@
 #include "FrameBufferAndroid.hpp"
 #include "GrallocAndroid.hpp"
 
+#include <system/window.h>
 #include <cutils/log.h>
 
 namespace sw
