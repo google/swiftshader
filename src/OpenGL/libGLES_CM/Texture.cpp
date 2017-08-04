@@ -476,19 +476,12 @@ void Texture2D::setImage(egl::Context *context, GLint level, GLsizei width, GLsi
 
 void Texture2D::bindTexImage(gl::Surface *surface)
 {
-	GLenum format;
-
 	switch(surface->getInternalFormat())
 	{
 	case sw::FORMAT_A8R8G8B8:
-		format = GL_BGRA_EXT;
-		break;
 	case sw::FORMAT_A8B8G8R8:
-		format = GL_RGBA;
-		break;
 	case sw::FORMAT_X8B8G8R8:
 	case sw::FORMAT_X8R8G8B8:
-		format = GL_RGB;
 		break;
 	default:
 		UNIMPLEMENTED();
