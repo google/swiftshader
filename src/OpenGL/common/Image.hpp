@@ -220,14 +220,16 @@ inline GLenum GLPixelFormatFromAndroid(int halFormat)
 	case HAL_PIXEL_FORMAT_IMPLEMENTATION_DEFINED: return GL_RGB8;
 #endif
 	case HAL_PIXEL_FORMAT_RGBX_8888: return GL_RGB8;
-	case HAL_PIXEL_FORMAT_RGB_888:   return GL_NONE;   // Unsupported
 	case HAL_PIXEL_FORMAT_BGRA_8888: return GL_BGRA8_EXT;
 	case HAL_PIXEL_FORMAT_RGB_565:   return GL_RGB565;
 	case HAL_PIXEL_FORMAT_YV12:      return SW_YV12_BT601;
 #ifdef GRALLOC_MODULE_API_VERSION_0_2
 	case HAL_PIXEL_FORMAT_YCbCr_420_888: return SW_YV12_BT601;
 #endif
-	default:                         return GL_NONE;
+	case HAL_PIXEL_FORMAT_RGB_888:   // Unsupported.
+	default:
+		ALOGE("Unsupported EGL image format %d", halFormat); ASSERT(false);
+		return GL_NONE;
 	}
 }
 
@@ -240,14 +242,16 @@ inline GLenum GLPixelTypeFromAndroid(int halFormat)
 	case HAL_PIXEL_FORMAT_IMPLEMENTATION_DEFINED: return GL_UNSIGNED_BYTE;
 #endif
 	case HAL_PIXEL_FORMAT_RGBX_8888: return GL_UNSIGNED_BYTE;
-	case HAL_PIXEL_FORMAT_RGB_888:   return GL_NONE;   // Unsupported
 	case HAL_PIXEL_FORMAT_BGRA_8888: return GL_UNSIGNED_BYTE;
 	case HAL_PIXEL_FORMAT_RGB_565:   return GL_UNSIGNED_SHORT_5_6_5;
 	case HAL_PIXEL_FORMAT_YV12:      return GL_UNSIGNED_BYTE;
 #ifdef GRALLOC_MODULE_API_VERSION_0_2
 	case HAL_PIXEL_FORMAT_YCbCr_420_888: return GL_UNSIGNED_BYTE;
 #endif
-	default:                         return GL_NONE;
+	case HAL_PIXEL_FORMAT_RGB_888:   // Unsupported.
+	default:
+		ALOGE("Unsupported EGL image format %d", halFormat); ASSERT(false);
+		return GL_NONE;
 	}
 }
 
