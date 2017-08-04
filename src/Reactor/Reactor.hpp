@@ -18,7 +18,7 @@
 #include "Nucleus.hpp"
 #include "Routine.hpp"
 
-#include <assert.h>
+#include <cassert>
 #include <cstddef>
 #include <cwchar>
 #undef Bool

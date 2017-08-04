@@ -16,6 +16,7 @@
 #define DebugAndroid_hpp
 
 #include <cutils/log.h>
+#include <cassert>
 
 // On Android Virtual Devices we heavily depend on logging, even in
 // production builds. We do this because AVDs are components of larger
