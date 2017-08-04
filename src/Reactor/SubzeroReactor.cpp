@@ -2838,7 +2838,7 @@ namespace sw
 		{
 			#if defined(__i386__) || defined(__x86_64__)
 				// SSE2 doesn't support byte vector shifts, so shift as shorts and recombine.
-				RValue<Short4> hi = (As<Short4>(lhs) >> rhs) & Short4(0xFF00);
+				RValue<Short4> hi = (As<Short4>(lhs) >> rhs) & Short4(0xFF00u);
 				RValue<Short4> lo = As<Short4>(As<UShort4>((As<Short4>(lhs) << 8) >> rhs) >> 8);
 
 				return As<SByte8>(hi | lo);
