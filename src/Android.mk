@@ -108,6 +108,9 @@ COMMON_CFLAGS := \
 	-Wno-implicit-exception-spec-mismatch \
 	-Wno-overloaded-virtual \
 	-Wno-non-virtual-dtor \
+	-Wno-attributes \
+	-Wno-unknown-attributes \
+	-Wno-unknown-warning-option \
 	-fno-operator-names \
 	-msse2 \
 	-D__STDC_CONSTANT_MACROS \

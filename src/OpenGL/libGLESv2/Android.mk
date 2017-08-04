@@ -13,7 +13,9 @@ COMMON_CFLAGS := \
 	-Wno-unused-parameter \
 	-Wno-implicit-exception-spec-mismatch \
 	-Wno-overloaded-virtual \
+	-Wno-attributes \
 	-Wno-unknown-attributes \
+	-Wno-unknown-warning-option \
 	-DANDROID_PLATFORM_SDK_VERSION=$(PLATFORM_SDK_VERSION) \
 	-DNO_SANITIZE_FUNCTION=
 
