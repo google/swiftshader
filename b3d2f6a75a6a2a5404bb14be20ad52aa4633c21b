@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9b2cdbc2_edb1bb5f",
+        "filename": "src/OpenGL/libGL/Context.cpp",
+        "patchSetId": 7
+      },
+      "lineNbr": 2084,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-08-04T15:35:29Z",
+      "side": 1,
+      "message": "extra tabs",
+      "range": {
+        "startLine": 2084,
+        "startChar": 13,
+        "endLine": 2084,
+        "endChar": 17
+      },
+      "revId": "b3d2f6a75a6a2a5404bb14be20ad52aa4633c21b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ce8bc83e_a8f19081",
+        "filename": "src/Renderer/Renderer.cpp",
+        "patchSetId": 7
+      },
+      "lineNbr": 2102,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-08-04T15:35:29Z",
+      "side": 1,
+      "message": "extra tab",
+      "range": {
+        "startLine": 2102,
+        "startChar": 0,
+        "endLine": 2102,
+        "endChar": 1
+      },
+      "revId": "b3d2f6a75a6a2a5404bb14be20ad52aa4633c21b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0fd6ad56_c07c1f0d",
+        "filename": "src/Renderer/Sampler.cpp",
+        "patchSetId": 7
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-08-04T15:35:29Z",
+      "side": 1,
+      "message": "extra tabs",
+      "range": {
+        "startLine": 107,
+        "startChar": 0,
+        "endLine": 107,
+        "endChar": 1
+      },
+      "revId": "b3d2f6a75a6a2a5404bb14be20ad52aa4633c21b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "05ccd48e_2b7328aa",
+        "filename": "src/Renderer/Sampler.cpp",
+        "patchSetId": 7
+      },
+      "lineNbr": 327,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-08-04T15:35:29Z",
+      "side": 1,
+      "message": "extra tabs",
+      "range": {
+        "startLine": 327,
+        "startChar": 2,
+        "endLine": 327,
+        "endChar": 4
+      },
+      "revId": "b3d2f6a75a6a2a5404bb14be20ad52aa4633c21b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f56491c4_0e2dab9d",
+        "filename": "src/Renderer/Sampler.hpp",
+        "patchSetId": 7
+      },
+      "lineNbr": 196,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-08-04T15:35:29Z",
+      "side": 1,
+      "message": "extra tabs",
+      "range": {
+        "startLine": 196,
+        "startChar": 0,
+        "endLine": 196,
+        "endChar": 2
+      },
+      "revId": "b3d2f6a75a6a2a5404bb14be20ad52aa4633c21b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
