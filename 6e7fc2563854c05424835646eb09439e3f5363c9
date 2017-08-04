@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c286061e_dbf91506",
+        "filename": "src/OpenGL/common/Image.cpp",
+        "patchSetId": 14
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-08-04T19:51:47Z",
+      "side": 1,
+      "message": "Ah, yes, I see this was non-trivial due to xoffset being applied here. I think this can all be made a lot more elegant by applying it at TransferImageData\u003c\u003e or even earlier, and using ComputePixelSize().\n\nAfter all, to copy between two arbitrary rectangles all you need is the address of the first pixel, the length of the rows, and the pitch between them, for each image. Source/dest can then be swapped without the inner loops needing any additional information.",
+      "range": {
+        "startLine": 74,
+        "startChar": 2,
+        "endLine": 81,
+        "endChar": 3
+      },
+      "revId": "6e7fc2563854c05424835646eb09439e3f5363c9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e2496de6_9d0b4bb1",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
+        "patchSetId": 14
+      },
+      "lineNbr": 6977,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-08-04T19:51:47Z",
+      "side": 1,
+      "message": "The extension\u0027s entry function will have to be added here.",
+      "revId": "6e7fc2563854c05424835646eb09439e3f5363c9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6abc1c68_3396b0b6",
+        "filename": "src/OpenGL/libGLESv2/main.cpp",
+        "patchSetId": 14
+      },
+      "lineNbr": 866,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-08-04T19:51:47Z",
+      "side": 1,
+      "message": "We\u0027re going to need an extension spec for this in the extensions directory. The function will probably require a suffix to discern it from core functions. @shannonwoods, can you help review the extension text for conformity with Khronos standards?",
+      "range": {
+        "startLine": 866,
+        "startChar": 28,
+        "endLine": 866,
+        "endChar": 41
+      },
+      "revId": "6e7fc2563854c05424835646eb09439e3f5363c9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
