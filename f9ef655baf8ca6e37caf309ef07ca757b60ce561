@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e73345e3_29a86a5d",
+        "filename": "src/OpenGL/common/Image.cpp",
+        "patchSetId": 12
+      },
+      "lineNbr": 410,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-08-04T17:00:45Z",
+      "side": 1,
+      "message": "All of these are now identical to LoadImageRow\u003cT\u003e, except dest and source are swapped. So you can eliminate the duplication and rename them TransferImageRow and call them with reversed parameter order based on TransferType.",
+      "range": {
+        "startLine": 410,
+        "startChar": 6,
+        "endLine": 410,
+        "endChar": 18
+      },
+      "revId": "f9ef655baf8ca6e37caf309ef07ca757b60ce561",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
