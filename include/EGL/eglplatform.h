@@ -2,7 +2,7 @@
 #define __eglplatform_h_
 
 /*
-** Copyright (c) 2007-2013 The Khronos Group Inc.
+** Copyright (c) 2007-2016 The Khronos Group Inc.
 **
 ** Permission is hereby granted, free of charge, to any person obtaining a
 ** copy of this software and/or associated documentation files (the
@@ -120,5 +120,13 @@ typedef EGLNativeWindowType  NativeWindowType;
  * integer type.
  */
 typedef khronos_int32_t EGLint;
+
+
+/* C++ / C typecast macros for special EGL handle values */
+#if defined(__cplusplus)
+#define EGL_CAST(type, value) (static_cast<type>(value))
+#else
+#define EGL_CAST(type, value) ((type) (value))
+#endif
 
 #endif /* __eglplatform_h */
