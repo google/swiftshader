@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d2af5794_3823dadf",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-08-04T18:55:20Z",
+      "side": 1,
+      "message": "nit: Probably worth pointing out that this originates from https://cs.chromium.org/chromium/src/third_party/khronos/EGL/eglplatform.h",
+      "revId": "f518c1725c4937ba9c8cdb205591c8e70e259fcc",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
