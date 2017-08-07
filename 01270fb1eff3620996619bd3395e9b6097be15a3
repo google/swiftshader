@@ -22,6 +22,30 @@
       "revId": "01270fb1eff3620996619bd3395e9b6097be15a3",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "44ff371d_8bdb1e5a",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1309,
+      "author": {
+        "id": 6260
+      },
+      "writtenOn": "2017-08-07T14:58:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ec86152b_fdaa5c12",
+      "range": {
+        "startLine": 1309,
+        "startChar": 120,
+        "endLine": 1309,
+        "endChar": 121
+      },
+      "revId": "01270fb1eff3620996619bd3395e9b6097be15a3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
