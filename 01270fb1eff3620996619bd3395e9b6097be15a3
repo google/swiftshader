@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ec86152b_fdaa5c12",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1309,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-08-07T14:56:26Z",
+      "side": 1,
+      "message": "nit: a needless space got added here. Can be cleaned up in the next CL if you like.",
+      "range": {
+        "startLine": 1309,
+        "startChar": 120,
+        "endLine": 1309,
+        "endChar": 121
+      },
+      "revId": "01270fb1eff3620996619bd3395e9b6097be15a3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
