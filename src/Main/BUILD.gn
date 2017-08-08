@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import("//ui/ozone/ozone.gni")
 import("../swiftshader.gni")
 
 # Need a separate config to ensure the warnings are added to the end.
@@ -46,7 +47,9 @@ swiftshader_source_set("swiftshader_main") {
     "SwiftConfig.cpp",
   ]
 
-  if (is_linux) {
+  if (use_ozone) {
+    sources += [ "FrameBufferOzone.cpp" ]
+  } else if (is_linux) {
     sources += [
       "FrameBufferX11.cpp",
       "libX11.cpp",
