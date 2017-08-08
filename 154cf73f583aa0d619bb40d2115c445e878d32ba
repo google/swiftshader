@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "76d1fece_09ffe43e",
+        "filename": "src/Main/BUILD.gn",
+        "patchSetId": 1
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-08-08T17:17:29Z",
+      "side": 1,
+      "message": "Does use_ozone\u003d\u003dtrue imply use_x11\u003d\u003dfalse?",
+      "range": {
+        "startLine": 50,
+        "startChar": 21,
+        "endLine": 50,
+        "endChar": 30
+      },
+      "revId": "154cf73f583aa0d619bb40d2115c445e878d32ba",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e7d3c780_9de8feb0",
+        "filename": "src/Main/FrameBufferOzone.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-08-08T17:17:29Z",
+      "side": 1,
+      "message": "Considering that buffer is an uninitialized pointer, I wonder how much of a risk there is that this would be getting called in its current form, and crash?",
+      "range": {
+        "startLine": 29,
+        "startChar": 2,
+        "endLine": 29,
+        "endChar": 17
+      },
+      "revId": "154cf73f583aa0d619bb40d2115c445e878d32ba",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ac0d0686_25c660d5",
+        "filename": "src/Main/FrameBufferOzone.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-08-08T17:17:29Z",
+      "side": 1,
+      "message": "Ozone",
+      "range": {
+        "startLine": 40,
+        "startChar": 26,
+        "endLine": 40,
+        "endChar": 29
+      },
+      "revId": "154cf73f583aa0d619bb40d2115c445e878d32ba",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
