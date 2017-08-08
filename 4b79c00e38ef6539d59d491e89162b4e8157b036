@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4be1d341_31c60760",
+        "filename": "src/Main/FrameBufferOzone.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-08-08T20:21:31Z",
+      "side": 1,
+      "message": "destFormat\n\nDefaults to FORMAT_X8R8G8B8 in FrameBuffer constructor, which is fine.",
+      "range": {
+        "startLine": 21,
+        "startChar": 49,
+        "endLine": 21,
+        "endChar": 68
+      },
+      "revId": "4b79c00e38ef6539d59d491e89162b4e8157b036",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "908290aa_f7f490a0",
+        "filename": "src/Main/FrameBufferOzone.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-08-08T20:21:31Z",
+      "side": 1,
+      "message": "destFormat",
+      "range": {
+        "startLine": 22,
+        "startChar": 58,
+        "endLine": 22,
+        "endChar": 77
+      },
+      "revId": "4b79c00e38ef6539d59d491e89162b4e8157b036",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9cd310a2_5c03b52a",
+        "filename": "src/Main/FrameBufferOzone.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-08-08T20:21:31Z",
+      "side": 1,
+      "message": "destFormat",
+      "range": {
+        "startLine": 23,
+        "startChar": 66,
+        "endLine": 23,
+        "endChar": 85
+      },
+      "revId": "4b79c00e38ef6539d59d491e89162b4e8157b036",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
