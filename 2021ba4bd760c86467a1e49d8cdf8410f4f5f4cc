@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e5c0479b_965d13bd",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 2504,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-08-08T18:22:30Z",
+      "side": 1,
+      "message": "Singling out this example for a more focused discussing whether we should write these as two lines:\n\nIt\u0027s definitely worth considering, but I\u0027d first like to argue that it\u0027s a decision we can make after https://swiftshader-review.googlesource.com/3729 has landed, which this CL merely works towards. My argument is that this CL is a minimal change which is already a significant improvement on the original code. On the left, it\u0027s not clear that -1 is the returned value, instead of something that alters the behavior of error(). For example it could be confused to be a severity level. And it will get worse once we start adding additional arguments in the next CLs. On the right, there is no such confusion.\n\nThat assumes people know how the comma operator works. Which I think should be basic knowledge, no different from how ?: works, or how || and \u0026\u0026 have short-circuiting behavior. They all allow for combining multiple statements into a single expression. There\u0027s plenty of cases where using the ternary operator makes for more concise code without hurting readability/maintainability, but there are also cases where if/else is much cleaner.\n\nSo I think this reduces the question to what the benefits are of writing it as one line or two. First of all I kind of like having most of the validations happen by having an if() followed by a single line for generating the error and returning some value. Note that the return value is actually not important, so in my view that makes it less justified to spend a line of code on it. More importantly, OpenGL specifies that when an error gets generated, the function returns without side effects (other than recording the error). When we separate the error generation and return statements, this becomes a less tightly couple semantic. It\u0027s why the left hand side code was acceptable in the first place; we want to generate the error and return from the function in one go.\n\nNote that this example in particular would have two return statements in the if/else blocks, so it\u0027s very tempting to lift them out and have just one return statement below the if/else. But this breaks up GL\u0027s error handling semantics even further and runs the risk of introducing side-effects.\n\nOther cases are less prone to this so we could consider using two lines for those, but then things become inconsistent. That\u0027s why the left hand side has never been rewritten as two lines in some case despite its issues.\n\nIn any case, I think we can defer looking into this again to a later point.",
+      "range": {
+        "startLine": 2504,
+        "startChar": 4,
+        "endLine": 2504,
+        "endChar": 43
+      },
+      "revId": "2021ba4bd760c86467a1e49d8cdf8410f4f5f4cc",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
