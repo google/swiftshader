@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "56f34269_0d704516",
+        "filename": "src/D3D9/Direct3DQuery9.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-08-09T20:22:52Z",
+      "side": 1,
+      "message": "Scratch that. There\u0027s no curly braces grouping the statements. So this was correct. I\u0027ve inverted the test and added braces for clarity.",
+      "parentUuid": "7db562d9_e30e202f",
+      "range": {
+        "startLine": 172,
+        "startChar": 59,
+        "endLine": 172,
+        "endChar": 114
+      },
+      "revId": "40f343df8d521371e6d8430582ddf575b32de641",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7db562d9_030cf434",
         "filename": "src/D3D9/Direct3DQuery9.cpp",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2016-07-03T04:36:22Z",
       "side": 1,
       "message": "Do you happen to have some documentation or a test app which confirms that this is the correct implementation? All I could find is this vague description: https://msdn.microsoft.com/en-us/library/windows/desktop/bb172594(v\u003dvs.85).aspx",
+      "range": {
+        "startLine": 230,
+        "startChar": 34,
+        "endLine": 230,
+        "endChar": 61
+      },
+      "revId": "40f343df8d521371e6d8430582ddf575b32de641",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d9b04e98_b1a05d3a",
+        "filename": "src/D3D9/Direct3DQuery9.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 230,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-08-09T20:22:52Z",
+      "side": 1,
+      "message": "A had a look at the source code of the QuerySample sample, and it appears this is indeed correct: http://developer.download.nvidia.com/SDK/9.5/Samples/screenshots/samples/QuerySample.html",
+      "parentUuid": "7db562d9_030cf434",
       "range": {
         "startLine": 230,
         "startChar": 34,
