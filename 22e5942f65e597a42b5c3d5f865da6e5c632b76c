@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6e216289_8f073a56",
+        "filename": "src/Vulkan/libVulkan/libVulkan.vcxproj",
+        "patchSetId": 3
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-08-10T14:14:28Z",
+      "side": 1,
+      "message": "This is specific to your system. You can use $(SolutionDir)\\src instead.",
+      "range": {
+        "startLine": 76,
+        "startChar": 105,
+        "endLine": 76,
+        "endChar": 115
+      },
+      "revId": "22e5942f65e597a42b5c3d5f865da6e5c632b76c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c38142a9_d8fbf455",
+        "filename": "src/Vulkan/libVulkan/libVulkan.vcxproj",
+        "patchSetId": 3
+      },
+      "lineNbr": 202,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-08-10T14:14:28Z",
+      "side": 1,
+      "message": "No need for this. SwiftShader is already linked in as a build reference.",
+      "range": {
+        "startLine": 202,
+        "startChar": 39,
+        "endLine": 202,
+        "endChar": 51
+      },
+      "revId": "22e5942f65e597a42b5c3d5f865da6e5c632b76c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
