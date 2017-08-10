@@ -14,8 +14,22 @@
 # limitations under the License.
 #
 
-LOCAL_PATH:= $(call my-dir)
+LOCAL_PATH := $(call my-dir)
 
+# Use Subzero as the Reactor JIT back-end on ARM, else LLVM.
+ifeq ($(TARGET_ARCH),$(filter $(TARGET_ARCH),arm))
+use_subzero := true
+endif
+
+# Subzero requires full C++11 support, which is available from Marshmallow and up.
+ifdef use_subzero
+ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 23 && echo PreMarshmallow),PreMarshmallow)
+unsupported_build := true
+endif
+endif
+
+ifndef unsupported_build
 ifeq ($(TARGET_ARCH),$(filter $(TARGET_ARCH),x86 x86_64 arm))
 include $(call all-makefiles-under,$(LOCAL_PATH))
+endif
 endif

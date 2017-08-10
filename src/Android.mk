@@ -1,10 +1,5 @@
 LOCAL_PATH:= $(call my-dir)
 
-# Use Subzero as the Reactor JIT back-end on ARM, else LLVM.
-ifeq ($(TARGET_ARCH),$(filter $(TARGET_ARCH),arm))
-use_subzero := true
-endif
-
 COMMON_C_INCLUDES += \
 	bionic \
 	$(LOCAL_PATH)/../include \
