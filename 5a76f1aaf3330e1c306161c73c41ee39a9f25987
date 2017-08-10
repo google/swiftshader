@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "de78a71d_931936b3",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1344,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-08-10T15:18:42Z",
+      "side": 1,
+      "message": "tabs :)",
+      "range": {
+        "startLine": 1344,
+        "startChar": 0,
+        "endLine": 1344,
+        "endChar": 2
+      },
+      "revId": "5a76f1aaf3330e1c306161c73c41ee39a9f25987",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
