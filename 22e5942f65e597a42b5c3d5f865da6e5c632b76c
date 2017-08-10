@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "3badf279_46a7e00a",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-08-10T14:27:34Z",
+      "side": 1,
+      "message": "Can be removed once my other comments have been addressed.",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 5
+      },
+      "revId": "22e5942f65e597a42b5c3d5f865da6e5c632b76c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6e216289_8f073a56",
         "filename": "src/Vulkan/libVulkan/libVulkan.vcxproj",
         "patchSetId": 3
