@@ -12,6 +12,12 @@ if (is_win) {
   configs_to_delete += [ "//build/config/win:unicode" ]
 }
 
+if (is_debug) {
+  # always build optimized version of SwiftShader for performance reasons
+  configs_to_delete += [ "//build/config/compiler:default_optimization" ]
+  configs_to_add += [ "//build/config/compiler:optimize" ]
+}
+
 configs_to_delete += [ "//build/config/compiler:chromium_code" ]
 configs_to_add += [
   "//build/config/compiler:no_chromium_code",
