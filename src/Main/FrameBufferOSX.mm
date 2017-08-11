@@ -25,7 +25,7 @@ namespace sw {
 		: FrameBuffer(width, height, false, false), width(width), height(height),
 		  layer(layer), buffer(nullptr), provider(nullptr), currentImage(nullptr)
 	{
-		destFormat = sw::FORMAT_X8B8G8R8;
+		format = sw::FORMAT_X8B8G8R8;
 		int bufferSize = width * height * 4 * sizeof(uint8_t);
 		buffer = new uint8_t[bufferSize];
 		provider = CGDataProviderCreateWithData(nullptr, buffer, bufferSize, nullptr);
@@ -72,13 +72,13 @@ namespace sw {
 	void *FrameBufferOSX::lock()
 	{
 		stride = width * 4 * sizeof(uint8_t);
-		locked = buffer;
-		return locked;
+		framebuffer = buffer;
+		return framebuffer;
 	};
 
 	void FrameBufferOSX::unlock()
 	{
-		locked = nullptr;
+		framebuffer = nullptr;
 	};
 }
 

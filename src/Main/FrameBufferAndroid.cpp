@@ -67,9 +67,9 @@ namespace sw
 
 		if(buffer)
 		{
-			if(locked)
+			if(framebuffer)
 			{
-				locked = nullptr;
+				framebuffer = nullptr;
 				unlock();
 			}
 
@@ -86,7 +86,7 @@ namespace sw
 
 		if(GrallocModule::getInstance()->lock(buffer->handle,
 		                 GRALLOC_USAGE_SW_READ_OFTEN | GRALLOC_USAGE_SW_WRITE_OFTEN,
-		                 0, 0, buffer->width, buffer->height, &locked) != 0)
+		                 0, 0, buffer->width, buffer->height, &framebuffer) != 0)
 		{
 			ALOGE("%s failed to lock buffer %p", __FUNCTION__, buffer);
 			return nullptr;
@@ -101,26 +101,26 @@ namespace sw
 
 		switch(buffer->format)
 		{
-		case HAL_PIXEL_FORMAT_RGB_565:   destFormat = FORMAT_R5G6B5; break;
-		case HAL_PIXEL_FORMAT_RGBA_8888: destFormat = FORMAT_A8B8G8R8; break;
+		case HAL_PIXEL_FORMAT_RGB_565:   format = FORMAT_R5G6B5; break;
+		case HAL_PIXEL_FORMAT_RGBA_8888: format = FORMAT_A8B8G8R8; break;
 #if ANDROID_PLATFORM_SDK_VERSION > 16
-		case HAL_PIXEL_FORMAT_IMPLEMENTATION_DEFINED: destFormat = FORMAT_X8B8G8R8; break;
+		case HAL_PIXEL_FORMAT_IMPLEMENTATION_DEFINED: format = FORMAT_X8B8G8R8; break;
 #endif
-		case HAL_PIXEL_FORMAT_RGBX_8888: destFormat = FORMAT_X8B8G8R8; break;
-		case HAL_PIXEL_FORMAT_BGRA_8888: destFormat = FORMAT_A8R8G8B8; break;
+		case HAL_PIXEL_FORMAT_RGBX_8888: format = FORMAT_X8B8G8R8; break;
+		case HAL_PIXEL_FORMAT_BGRA_8888: format = FORMAT_A8R8G8B8; break;
 		case HAL_PIXEL_FORMAT_RGB_888:
 			// Frame buffers are expected to have 16-bit or 32-bit colors, not 24-bit.
 			ALOGE("Unsupported frame buffer format RGB_888"); ASSERT(false);
-			destFormat = FORMAT_R8G8B8;   // Wrong component order.
+			format = FORMAT_R8G8B8;   // Wrong component order.
 			break;
 		default:
 			ALOGE("Unsupported frame buffer format %d", buffer->format); ASSERT(false);
-			destFormat = FORMAT_NULL;
+			format = FORMAT_NULL;
 			break;
 		}
 
-		stride = buffer->stride * Surface::bytes(destFormat);
-		return locked;
+		stride = buffer->stride * Surface::bytes(format);
+		return framebuffer;
 	}
 
 	void FrameBufferAndroid::unlock()
@@ -131,7 +131,7 @@ namespace sw
 			return;
 		}
 
-		locked = nullptr;
+		framebuffer = nullptr;
 
 		if(GrallocModule::getInstance()->unlock(buffer->handle) != 0)
 		{

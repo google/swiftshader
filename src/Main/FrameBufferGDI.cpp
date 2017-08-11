@@ -37,7 +37,7 @@ namespace sw
 
 		init(this->windowHandle);
 
-		destFormat = FORMAT_X8R8G8B8;
+		format = FORMAT_X8R8G8B8;
 	}
 
 	FrameBufferGDI::~FrameBufferGDI()
@@ -64,7 +64,7 @@ namespace sw
 	{
 		stride = width * 4;
 
-		return locked;
+		return framebuffer;
 	}
 
 	void FrameBufferGDI::unlock()
@@ -146,7 +146,7 @@ namespace sw
 		bitmapInfo.bmiHeader.biWidth = width;
 		bitmapInfo.bmiHeader.biCompression = BI_RGB;
 
-		bitmap = CreateDIBSection(bitmapContext, &bitmapInfo, DIB_RGB_COLORS, &locked, 0, 0);
+		bitmap = CreateDIBSection(bitmapContext, &bitmapInfo, DIB_RGB_COLORS, &framebuffer, 0, 0);
 		SelectObject(bitmapContext, bitmap);
 
 		updateBounds(window);

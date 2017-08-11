@@ -27,7 +27,7 @@
 #include <cutils/properties.h>
 #endif
 
-#define ASYNCHRONOUS_BLIT 0   // FIXME: Currently leads to rare race conditions
+#define ASYNCHRONOUS_BLIT false   // FIXME: Currently leads to rare race conditions
 
 namespace sw
 {
@@ -40,30 +40,18 @@ namespace sw
 	{
 		this->topLeftOrigin = topLeftOrigin;
 
-		locked = nullptr;
+		framebuffer = nullptr;
 
 		this->width = width;
 		this->height = height;
-		destFormat = FORMAT_X8R8G8B8;
-		sourceFormat = FORMAT_X8R8G8B8;
+		format = FORMAT_X8R8G8B8;
 		stride = 0;
 
-		if(forceWindowed)
-		{
-			fullscreen = false;
-		}
-
-		windowed = !fullscreen;
+		windowed = !fullscreen || forceWindowed;
 
 		blitFunction = nullptr;
 		blitRoutine = nullptr;
-
-		blitState.width = 0;
-		blitState.height = 0;
-		blitState.destFormat = FORMAT_X8R8G8B8;
-		blitState.sourceFormat = FORMAT_X8R8G8B8;
-		blitState.cursorWidth = 0;
-		blitState.cursorHeight = 0;
+		blitState = {};
 
 		if(ASYNCHRONOUS_BLIT)
 		{
@@ -84,21 +72,6 @@ namespace sw
 		}
 
 		delete blitRoutine;
-	}
-
-	int FrameBuffer::getWidth() const
-	{
-		return width;
-	}
-
-	int FrameBuffer::getHeight() const
-	{
-		return height;
-	}
-
-	int FrameBuffer::getStride() const
-	{
-		return stride;
 	}
 
 	void FrameBuffer::setCursorImage(sw::Surface *cursorImage)
@@ -130,7 +103,7 @@ namespace sw
 		cursor.positionY = y;
 	}
 
-	void FrameBuffer::copy(void *source, Format format, size_t stride)
+	void FrameBuffer::copy(void *source, Format sourceFormat, size_t sourceStride)
 	{
 		if(!source)
 		{
@@ -142,15 +115,22 @@ namespace sw
 			return;
 		}
 
-		sourceFormat = format;
+		updateState = {};
+		updateState.width = width;
+		updateState.height = height;
+		updateState.destFormat = format;
+		updateState.sourceFormat = sourceFormat;
+		updateState.stride = topLeftOrigin ? (int)sourceStride : -(int)sourceStride;
+		updateState.cursorWidth = cursor.width;
+		updateState.cursorHeight = cursor.height;
 
 		if(topLeftOrigin)
 		{
-			target = source;
+			renderbuffer = source;
 		}
 		else
 		{
-			target = (byte*)source + (height - 1) * stride;
+			renderbuffer = (byte*)source + (height - 1) * sourceStride;
 		}
 
 		cursor.x = cursor.positionX - cursor.hotspotX;
@@ -173,25 +153,16 @@ namespace sw
 
 	void FrameBuffer::copyLocked()
 	{
-		BlitState update = {};
-		update.width = width;
-		update.height = height;
-		update.destFormat = destFormat;
-		update.sourceFormat = sourceFormat;
-		update.stride = stride;
-		update.cursorWidth = cursor.width;
-		update.cursorHeight = cursor.height;
-
-		if(memcmp(&blitState, &update, sizeof(BlitState)) != 0)
+		if(memcmp(&blitState, &updateState, sizeof(BlitState)) != 0)
 		{
-			blitState = update;
+			blitState = updateState;
 			delete blitRoutine;
 
 			blitRoutine = copyRoutine(blitState);
 			blitFunction = (void(*)(void*, void*, Cursor*))blitRoutine->getEntry();
 		}
 
-		blitFunction(locked, target, &cursor);
+		blitFunction(framebuffer, renderbuffer, &cursor);
 	}
 
 	Routine *FrameBuffer::copyRoutine(const BlitState &state)

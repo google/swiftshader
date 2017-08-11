@@ -33,7 +33,7 @@ namespace gl
 			return texture->getResource();
 		}
 
-		return 0;
+		return nullptr;
 	}
 
 	Image::Image(Texture *parentTexture, GLsizei width, GLsizei height, GLenum format, GLenum type)
@@ -141,7 +141,7 @@ namespace gl
 
 	void Image::unbind()
 	{
-		parentTexture = 0;
+		parentTexture = nullptr;
 
 		release();
 	}
