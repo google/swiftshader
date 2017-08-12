@@ -5,6 +5,7 @@ os:
   - osx
 
 dist: trusty
+osx_image: xcode8
 sudo: false
 
 compiler:
