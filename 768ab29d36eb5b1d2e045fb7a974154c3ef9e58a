@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "73491465_814669a5",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 420,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-08-12T03:38:22Z",
+      "side": 1,
+      "message": "nit: I think it\u0027s clearer to assign 0 to each of them individually. Else it looks like they\u0027re related and assigning one to the other has meaning.",
+      "range": {
+        "startLine": 418,
+        "startChar": 2,
+        "endLine": 420,
+        "endChar": 62
+      },
+      "revId": "768ab29d36eb5b1d2e045fb7a974154c3ef9e58a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e0f733c2_3a406895",
+        "filename": "src/Vulkan/libVulkan/main.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 276,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-08-12T03:38:22Z",
+      "side": 1,
+      "message": "Shouldn\u0027t we still be alerted that this is unimplemented if pProperties is not null? Same below.",
+      "range": {
+        "startLine": 276,
+        "startChar": 2,
+        "endLine": 276,
+        "endChar": 3
+      },
+      "revId": "768ab29d36eb5b1d2e045fb7a974154c3ef9e58a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7b04d20e_85f70d41",
+        "filename": "src/Vulkan/libVulkan/main.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 301,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-08-12T03:38:22Z",
+      "side": 1,
+      "message": "asynchronous (for now)",
+      "range": {
+        "startLine": 301,
+        "startChar": 24,
+        "endLine": 301,
+        "endChar": 36
+      },
+      "revId": "768ab29d36eb5b1d2e045fb7a974154c3ef9e58a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
