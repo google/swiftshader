@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "927f42c0_4d8f0c99",
+        "filename": "BUILD.gn",
+        "patchSetId": 2
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 6732
+      },
+      "writtenOn": "2017-08-14T19:12:52Z",
+      "side": 1,
+      "message": "See other comment.",
+      "revId": "c55dd8408be26ef8d29c159e1be2f4217a66e1a2",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}

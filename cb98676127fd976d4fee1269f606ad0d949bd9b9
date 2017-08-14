@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e6d9ed0e_72cad5b4",
+        "filename": "src/swiftshader.gni",
+        "patchSetId": 2
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 6732
+      },
+      "writtenOn": "2017-08-14T19:12:52Z",
+      "side": 0,
+      "message": "This is incompatible with /RTC1 - you can\u0027t fully optimize swiftshader and have run-time checks. With this change Chromium is hitting this error when building with VC++:\n\ncl : Command line error D8016 : \u0027/O1\u0027 and \u0027/RTC1\u0027 command-line options are incompatible",
+      "revId": "cb98676127fd976d4fee1269f606ad0d949bd9b9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
