@@ -33,9 +33,7 @@ config("swiftshader_config") {
       "NO_SANITIZE_FUNCTION=",
     ]
 
-    if (is_debug) {
-      cflags += [ "/RTC1" ]  # Run-Time Error Checks
-    } else {
+    if (!is_debug) {
       defines += [ "ANGLE_DISABLE_TRACE" ]
     }
   } else {
