@@ -16,6 +16,24 @@
       "revId": "cb98676127fd976d4fee1269f606ad0d949bd9b9",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2a36c961_2daf55a7",
+        "filename": "src/swiftshader.gni",
+        "patchSetId": 2
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-08-14T19:20:39Z",
+      "side": 0,
+      "message": "Right, this should be fixed by this cl:\nhttps://swiftshader-review.googlesource.com/#/c/SwiftShader/+/11594/",
+      "parentUuid": "e6d9ed0e_72cad5b4",
+      "revId": "cb98676127fd976d4fee1269f606ad0d949bd9b9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
