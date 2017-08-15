@@ -1,0 +1,89 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6b3cf90a_72c4bd48",
+        "filename": "src/Vulkan/libVulkan/Buffer.h",
+        "patchSetId": 2
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-08-15T15:48:39Z",
+      "side": 1,
+      "message": "The philosophy for Vulkan is that the driver takes the arguments and immediately converts them to the useful internal representation. This is possible because there is no validation nor reflection API.\n\nIf BufferViews aren\u0027t implemented in Swiftshader, I\u0027d suggest making them empty structs. Same thing for all the objects in this namespace.",
+      "revId": "20303333858e2e7710a601dde40820149e0fb2f5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3033646a_f9b984e2",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 931,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-08-15T15:48:39Z",
+      "side": 1,
+      "message": "Base pipelines are a way for the driver to reuse compilation and allocations of stuff between pipelines. They are not meant to help populate the pipelines so I think we can simply not handle them for now.",
+      "revId": "20303333858e2e7710a601dde40820149e0fb2f5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "04c29efc_3feae672",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 977,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-08-15T15:48:39Z",
+      "side": 1,
+      "message": "ditto.",
+      "revId": "20303333858e2e7710a601dde40820149e0fb2f5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e0face41_6f7007fe",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1409,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-08-15T15:48:39Z",
+      "side": 1,
+      "message": "pCreateInfo and pointed objects are only valid for the duration of this function so we cannot store pBindings.",
+      "revId": "20303333858e2e7710a601dde40820149e0fb2f5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "057ff067_7cff87f6",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1435,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-08-15T15:48:39Z",
+      "side": 1,
+      "message": "Same for pPoolSizes.",
+      "revId": "20303333858e2e7710a601dde40820149e0fb2f5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
