@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "df720298_90b6e81e",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 9
+      },
+      "lineNbr": 1225,
+      "author": {
+        "id": 6260
+      },
+      "writtenOn": "2017-08-16T20:12:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d35725a5_481f34b6",
+      "range": {
+        "startLine": 1225,
+        "startChar": 51,
+        "endLine": 1225,
+        "endChar": 53
+      },
+      "revId": "d39266bb8ecc01442ee3149dfc8479ceb3ac9c8c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "36c00079_3184ad39",
         "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
         "patchSetId": 9
@@ -59,6 +83,30 @@
       "writtenOn": "2017-08-16T19:43:15Z",
       "side": 1,
       "message": "nit: next line.",
+      "range": {
+        "startLine": 1226,
+        "startChar": 16,
+        "endLine": 1226,
+        "endChar": 18
+      },
+      "revId": "d39266bb8ecc01442ee3149dfc8479ceb3ac9c8c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ceb69bb5_8ee154fa",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 9
+      },
+      "lineNbr": 1226,
+      "author": {
+        "id": 6260
+      },
+      "writtenOn": "2017-08-16T20:12:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "36c00079_3184ad39",
       "range": {
         "startLine": 1226,
         "startChar": 16,
@@ -94,6 +142,30 @@
     },
     {
       "key": {
+        "uuid": "a7b2a889_81385e0d",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 9
+      },
+      "lineNbr": 1250,
+      "author": {
+        "id": 6260
+      },
+      "writtenOn": "2017-08-16T20:12:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8ad40b87_3e940aad",
+      "range": {
+        "startLine": 1229,
+        "startChar": 3,
+        "endLine": 1250,
+        "endChar": 9
+      },
+      "revId": "d39266bb8ecc01442ee3149dfc8479ceb3ac9c8c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e7afe897_dcd815db",
         "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
         "patchSetId": 9
@@ -117,6 +189,30 @@
     },
     {
       "key": {
+        "uuid": "dc1949e3_55ce0749",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 9
+      },
+      "lineNbr": 1331,
+      "author": {
+        "id": 6260
+      },
+      "writtenOn": "2017-08-16T20:12:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e7afe897_dcd815db",
+      "range": {
+        "startLine": 1323,
+        "startChar": 3,
+        "endLine": 1331,
+        "endChar": 28
+      },
+      "revId": "d39266bb8ecc01442ee3149dfc8479ceb3ac9c8c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b35dac31_283b75bc",
         "filename": "src/Vulkan/libVulkan/libVulkan.vcxproj",
         "patchSetId": 9
@@ -128,6 +224,30 @@
       "writtenOn": "2017-08-16T19:43:15Z",
       "side": 1,
       "message": "We shouldn\u0027t depend on anything in src\\OpenGL.",
+      "range": {
+        "startLine": 76,
+        "startChar": 73,
+        "endLine": 76,
+        "endChar": 99
+      },
+      "revId": "d39266bb8ecc01442ee3149dfc8479ceb3ac9c8c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f4d75680_249b8949",
+        "filename": "src/Vulkan/libVulkan/libVulkan.vcxproj",
+        "patchSetId": 9
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 6260
+      },
+      "writtenOn": "2017-08-16T20:12:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b35dac31_283b75bc",
       "range": {
         "startLine": 76,
         "startChar": 73,
