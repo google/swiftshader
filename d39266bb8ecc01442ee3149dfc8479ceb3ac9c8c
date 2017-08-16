@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7c249e40_83b36183",
+        "filename": "src/Vulkan/libVulkan/Device.hpp",
+        "patchSetId": 9
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-08-16T19:43:15Z",
+      "side": 1,
+      "message": "There\u0027s also a ViewportData being defined in this patch. Do we need both/either?",
+      "range": {
+        "startLine": 25,
+        "startChar": 1,
+        "endLine": 38,
+        "endChar": 3
+      },
+      "revId": "d39266bb8ecc01442ee3149dfc8479ceb3ac9c8c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d35725a5_481f34b6",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 9
+      },
+      "lineNbr": 1225,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-08-16T19:43:15Z",
+      "side": 1,
+      "message": "nit: next line.",
+      "range": {
+        "startLine": 1225,
+        "startChar": 51,
+        "endLine": 1225,
+        "endChar": 53
+      },
+      "revId": "d39266bb8ecc01442ee3149dfc8479ceb3ac9c8c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "36c00079_3184ad39",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 9
+      },
+      "lineNbr": 1226,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-08-16T19:43:15Z",
+      "side": 1,
+      "message": "nit: next line.",
+      "range": {
+        "startLine": 1226,
+        "startChar": 16,
+        "endLine": 1226,
+        "endChar": 18
+      },
+      "revId": "d39266bb8ecc01442ee3149dfc8479ceb3ac9c8c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8ad40b87_3e940aad",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 9
+      },
+      "lineNbr": 1250,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-08-16T19:43:15Z",
+      "side": 1,
+      "message": "nit: This (and the other case contents) is best indented another level. Case labels basically work the same as goto labels:\n\n    statements1\nlabel:\n    statements2\n\nSo the labels are indented one level less than the surrounding code, to stand out.",
+      "range": {
+        "startLine": 1229,
+        "startChar": 3,
+        "endLine": 1250,
+        "endChar": 9
+      },
+      "revId": "d39266bb8ecc01442ee3149dfc8479ceb3ac9c8c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e7afe897_dcd815db",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 9
+      },
+      "lineNbr": 1331,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-08-16T19:43:15Z",
+      "side": 1,
+      "message": "Same code in both blocks: have it once above the if/else.",
+      "range": {
+        "startLine": 1323,
+        "startChar": 3,
+        "endLine": 1331,
+        "endChar": 28
+      },
+      "revId": "d39266bb8ecc01442ee3149dfc8479ceb3ac9c8c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b35dac31_283b75bc",
+        "filename": "src/Vulkan/libVulkan/libVulkan.vcxproj",
+        "patchSetId": 9
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-08-16T19:43:15Z",
+      "side": 1,
+      "message": "We shouldn\u0027t depend on anything in src\\OpenGL.",
+      "range": {
+        "startLine": 76,
+        "startChar": 73,
+        "endLine": 76,
+        "endChar": 99
+      },
+      "revId": "d39266bb8ecc01442ee3149dfc8479ceb3ac9c8c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
