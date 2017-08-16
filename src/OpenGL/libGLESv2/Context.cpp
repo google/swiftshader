@@ -2178,15 +2178,18 @@ template<typename T> bool Context::getIntegerv(GLenum pname, T *params) const
 			*params = MAX_FRAGMENT_UNIFORM_COMPONENTS;
 			return true;
 		case GL_MAX_PROGRAM_TEXEL_OFFSET:
-			UNIMPLEMENTED();
+			// Note: SwiftShader has no actual texel offset limit, so this limit can be modified if required.
+			// In any case, any behavior outside the specified range is valid since the spec mentions:
+			// (see OpenGL ES 3.0.5, 3.8.10.1 Scale Factor and Level of Detail, p.153)			// "If any of the offset values are outside the range of the  implementation-defined values
+			//  MIN_PROGRAM_TEXEL_OFFSET and MAX_PROGRAM_TEXEL_OFFSET, results of the texture lookup are
+			//  undefined."
 			*params = MAX_PROGRAM_TEXEL_OFFSET;
 			return true;
 		case GL_MAX_SERVER_WAIT_TIMEOUT:
 			*params = 0;
 			return true;
 		case GL_MAX_TEXTURE_LOD_BIAS:
-			UNIMPLEMENTED();
-			*params = 2;
+			*params = MAX_TEXTURE_LOD_BIAS;
 			return true;
 		case GL_MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS:
 			*params = sw::MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS;
@@ -2216,7 +2219,11 @@ template<typename T> bool Context::getIntegerv(GLenum pname, T *params) const
 			*params = MAX_VERTEX_UNIFORM_COMPONENTS;
 			return true;
 		case GL_MIN_PROGRAM_TEXEL_OFFSET:
-			UNIMPLEMENTED();
+			// Note: SwiftShader has no actual texel offset limit, so this limit can be modified if required.
+			// In any case, any behavior outside the specified range is valid since the spec mentions:
+			// (see OpenGL ES 3.0.5, 3.8.10.1 Scale Factor and Level of Detail, p.153)			// "If any of the offset values are outside the range of the  implementation-defined values
+			//  MIN_PROGRAM_TEXEL_OFFSET and MAX_PROGRAM_TEXEL_OFFSET, results of the texture lookup are
+			//  undefined."
 			*params = MIN_PROGRAM_TEXEL_OFFSET;
 			return true;
 		case GL_MINOR_VERSION:
