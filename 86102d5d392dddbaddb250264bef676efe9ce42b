@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7b549044_3ff42c13",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 499,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-08-16T18:46:59Z",
+      "side": 1,
+      "message": "tabs :)",
+      "range": {
+        "startLine": 499,
+        "startChar": 0,
+        "endLine": 499,
+        "endChar": 2
+      },
+      "revId": "86102d5d392dddbaddb250264bef676efe9ce42b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8301300d_a96a04d2",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 676,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-08-16T18:46:59Z",
+      "side": 1,
+      "message": "I meant: should  \"size\" be compared to \"myMem-\u003esize\" to avoid possible overflows?",
+      "range": {
+        "startLine": 676,
+        "startChar": 9,
+        "endLine": 676,
+        "endChar": 24
+      },
+      "revId": "86102d5d392dddbaddb250264bef676efe9ce42b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ddb0fbd3_31aee944",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 1218,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-08-16T18:46:59Z",
+      "side": 1,
+      "message": "extra line",
+      "range": {
+        "startLine": 1218,
+        "startChar": 0,
+        "endLine": 1218,
+        "endChar": 2
+      },
+      "revId": "86102d5d392dddbaddb250264bef676efe9ce42b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d2696179_77d978b7",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 1232,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-08-16T18:46:59Z",
+      "side": 1,
+      "message": "maybe \"cmd-\u003eframebuffer-\u003eattachments.image\" could be put in a temporary variable for readability.",
+      "range": {
+        "startLine": 1232,
+        "startChar": 16,
+        "endLine": 1232,
+        "endChar": 51
+      },
+      "revId": "86102d5d392dddbaddb250264bef676efe9ce42b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e744ea98_1d2bc1af",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 1237,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-08-16T18:46:59Z",
+      "side": 1,
+      "message": "vkutils::formatSize(cmd-\u003eframebuffer-\u003eattachments.image-\u003eformat)?",
+      "range": {
+        "startLine": 1237,
+        "startChar": 107,
+        "endLine": 1237,
+        "endChar": 108
+      },
+      "revId": "86102d5d392dddbaddb250264bef676efe9ce42b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "41e9146b_53883837",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 1237,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-08-16T18:46:59Z",
+      "side": 1,
+      "message": "vkutils::formatSize(cmd-\u003eframebuffer-\u003eattachments.image-\u003eformat)?",
+      "range": {
+        "startLine": 1237,
+        "startChar": 127,
+        "endLine": 1237,
+        "endChar": 128
+      },
+      "revId": "86102d5d392dddbaddb250264bef676efe9ce42b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
