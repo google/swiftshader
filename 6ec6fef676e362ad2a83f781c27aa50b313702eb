@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "45e9cc6b_d20568cb",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-08-16T18:20:47Z",
+      "side": 1,
+      "message": "Implement GL_MAX_PROGRAM_TEXEL_OFFSET and GL_MAX_TEXTURE_LOD_BIAS.",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 9,
+        "endChar": 11
+      },
+      "revId": "6ec6fef676e362ad2a83f781c27aa50b313702eb",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1947d1c7_fc4f2b37",
+        "filename": "src/Renderer/Sampler.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-08-16T18:20:47Z",
+      "side": 1,
+      "message": "This comment belongs with the definition of MAX_TEXTURE_LOD.",
+      "range": {
+        "startLine": 75,
+        "startChar": 36,
+        "endLine": 75,
+        "endChar": 63
+      },
+      "revId": "6ec6fef676e362ad2a83f781c27aa50b313702eb",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
