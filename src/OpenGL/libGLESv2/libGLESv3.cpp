@@ -2280,11 +2280,6 @@ GL_APICALL GLint GL_APIENTRY glGetFragDataLocation(GLuint program, const GLchar 
 
 	es2::Context *context = es2::getContext();
 
-	if(strstr(name, "gl_") == name)
-	{
-		return -1;
-	}
-
 	if(context)
 	{
 		es2::Program *programObject = context->getProgram(program);
@@ -2305,9 +2300,10 @@ GL_APICALL GLint GL_APIENTRY glGetFragDataLocation(GLuint program, const GLchar 
 		{
 			return error(GL_INVALID_OPERATION, -1);
 		}
+
+		return programObject->getFragDataLocation(name);
 	}
 
-	UNIMPLEMENTED();
 	return -1;
 }
 

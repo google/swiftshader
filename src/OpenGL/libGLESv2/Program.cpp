@@ -254,6 +254,27 @@ namespace es2
 		return vertexBinary;
 	}
 
+	GLint Program::getFragDataLocation(const GLchar *name)
+	{
+		if(name && linked)
+		{
+			std::string baseName(name);
+			unsigned int subscript = GL_INVALID_INDEX;
+			baseName = ParseUniformName(baseName, &subscript);
+			for(glsl::VaryingList::iterator input = fragmentShader->varyings.begin(); input != fragmentShader->varyings.end(); ++input)
+			{
+				if(input->name == baseName)
+				{
+					int rowCount = VariableRowCount(input->type);
+					int colCount = VariableColumnCount(input->type);
+					return (subscript == GL_INVALID_INDEX) ? input->reg : input->reg + (rowCount > 1 ? colCount * subscript : subscript);
+				}
+			}
+		}
+
+		return -1;
+	}
+
 	void Program::bindAttributeLocation(GLuint index, const char *name)
 	{
 		if(index < MAX_VERTEX_ATTRIBS)

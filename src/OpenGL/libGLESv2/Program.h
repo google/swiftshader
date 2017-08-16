@@ -182,6 +182,8 @@ namespace es2
 		void getInfoLog(GLsizei bufSize, GLsizei *length, char *infoLog);
 		void getAttachedShaders(GLsizei maxCount, GLsizei *count, GLuint *shaders);
 
+		GLint getFragDataLocation(const GLchar *name);
+
 		void getActiveAttribute(GLuint index, GLsizei bufsize, GLsizei *length, GLint *size, GLenum *type, GLchar *name) const;
 		size_t getActiveAttributeCount() const;
 		GLint getActiveAttributeMaxLength() const;
