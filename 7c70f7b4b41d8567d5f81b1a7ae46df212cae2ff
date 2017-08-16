@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "8807222f_45f179d2",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 7
+      },
+      "lineNbr": 672,
+      "author": {
+        "id": 6260
+      },
+      "writtenOn": "2017-08-16T18:41:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "773a1f60_8b4dc446",
+      "range": {
+        "startLine": 672,
+        "startChar": 16,
+        "endLine": 672,
+        "endChar": 17
+      },
+      "revId": "7c70f7b4b41d8567d5f81b1a7ae46df212cae2ff",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9b56d5d4_bca7c7d8",
         "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
         "patchSetId": 7
@@ -36,6 +60,30 @@
       "writtenOn": "2017-08-15T21:02:24Z",
       "side": 1,
       "message": "can this be removed?",
+      "range": {
+        "startLine": 674,
+        "startChar": 0,
+        "endLine": 679,
+        "endChar": 24
+      },
+      "revId": "7c70f7b4b41d8567d5f81b1a7ae46df212cae2ff",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "51843dc6_ff98eb2e",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 7
+      },
+      "lineNbr": 679,
+      "author": {
+        "id": 6260
+      },
+      "writtenOn": "2017-08-16T18:41:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9b56d5d4_bca7c7d8",
       "range": {
         "startLine": 674,
         "startChar": 0,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "2a74cd43_b8be2438",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 7
+      },
+      "lineNbr": 723,
+      "author": {
+        "id": 6260
+      },
+      "writtenOn": "2017-08-16T18:41:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ba7bd432_b7830916",
+      "range": {
+        "startLine": 723,
+        "startChar": 73,
+        "endLine": 723,
+        "endChar": 74
+      },
+      "revId": "7c70f7b4b41d8567d5f81b1a7ae46df212cae2ff",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f554a486_9129abf3",
         "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
         "patchSetId": 7
@@ -82,6 +154,30 @@
       "writtenOn": "2017-08-15T21:02:24Z",
       "side": 1,
       "message": "Do we need to do this every time? (couldn\u0027t this be done in the Device\u0027s constructor/destructor)?",
+      "range": {
+        "startLine": 1216,
+        "startChar": 2,
+        "endLine": 1216,
+        "endChar": 53
+      },
+      "revId": "7c70f7b4b41d8567d5f81b1a7ae46df212cae2ff",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "29985eaa_e4ec574b",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 7
+      },
+      "lineNbr": 1216,
+      "author": {
+        "id": 6260
+      },
+      "writtenOn": "2017-08-16T18:41:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f554a486_9129abf3",
       "range": {
         "startLine": 1216,
         "startChar": 2,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "a70adc7d_6850b1b8",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 7
+      },
+      "lineNbr": 1227,
+      "author": {
+        "id": 6260
+      },
+      "writtenOn": "2017-08-16T18:41:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fbdb6e40_ec759886",
+      "range": {
+        "startLine": 1217,
+        "startChar": 0,
+        "endLine": 1227,
+        "endChar": 66
+      },
+      "revId": "7c70f7b4b41d8567d5f81b1a7ae46df212cae2ff",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "eda5c866_9e85b3e7",
         "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
         "patchSetId": 7
@@ -128,6 +248,30 @@
       "writtenOn": "2017-08-15T21:02:24Z",
       "side": 1,
       "message": "It would be nice if this was done only once we know the image size.",
+      "range": {
+        "startLine": 1229,
+        "startChar": 0,
+        "endLine": 1236,
+        "endChar": 51
+      },
+      "revId": "7c70f7b4b41d8567d5f81b1a7ae46df212cae2ff",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "16796e3f_c2f5f1ff",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 7
+      },
+      "lineNbr": 1236,
+      "author": {
+        "id": 6260
+      },
+      "writtenOn": "2017-08-16T18:41:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "eda5c866_9e85b3e7",
       "range": {
         "startLine": 1229,
         "startChar": 0,
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "3f0d2173_6ed26ddf",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 7
+      },
+      "lineNbr": 1256,
+      "author": {
+        "id": 6260
+      },
+      "writtenOn": "2017-08-16T18:41:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "19542cc5_51a84fca",
+      "range": {
+        "startLine": 1253,
+        "startChar": 0,
+        "endLine": 1256,
+        "endChar": 94
+      },
+      "revId": "7c70f7b4b41d8567d5f81b1a7ae46df212cae2ff",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4df49005_3042bf22",
         "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
         "patchSetId": 7
@@ -174,6 +342,30 @@
       "writtenOn": "2017-08-15T21:02:24Z",
       "side": 1,
       "message": "Could this be derived from some input argument?",
+      "range": {
+        "startLine": 1305,
+        "startChar": 43,
+        "endLine": 1305,
+        "endChar": 45
+      },
+      "revId": "7c70f7b4b41d8567d5f81b1a7ae46df212cae2ff",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c596ffac_6fc9acf7",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 7
+      },
+      "lineNbr": 1305,
+      "author": {
+        "id": 6260
+      },
+      "writtenOn": "2017-08-16T18:41:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4df49005_3042bf22",
       "range": {
         "startLine": 1305,
         "startChar": 43,
@@ -209,6 +401,30 @@
     },
     {
       "key": {
+        "uuid": "8e62fe45_f0472fac",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 7
+      },
+      "lineNbr": 1308,
+      "author": {
+        "id": 6260
+      },
+      "writtenOn": "2017-08-16T18:41:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "56b7e36b_25418021",
+      "range": {
+        "startLine": 1308,
+        "startChar": 22,
+        "endLine": 1308,
+        "endChar": 23
+      },
+      "revId": "7c70f7b4b41d8567d5f81b1a7ae46df212cae2ff",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "20fb4d61_9e594a5a",
         "filename": "src/Vulkan/libVulkan/libVulkan.vcxproj",
         "patchSetId": 7
@@ -220,6 +436,30 @@
       "writtenOn": "2017-08-15T21:02:24Z",
       "side": 1,
       "message": "Local file path.",
+      "range": {
+        "startLine": 76,
+        "startChar": 74,
+        "endLine": 76,
+        "endChar": 94
+      },
+      "revId": "7c70f7b4b41d8567d5f81b1a7ae46df212cae2ff",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3e293339_ad689bde",
+        "filename": "src/Vulkan/libVulkan/libVulkan.vcxproj",
+        "patchSetId": 7
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 6260
+      },
+      "writtenOn": "2017-08-16T18:41:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "20fb4d61_9e594a5a",
       "range": {
         "startLine": 76,
         "startChar": 74,
@@ -255,6 +495,30 @@
     },
     {
       "key": {
+        "uuid": "599a4a23_0482f0e4",
+        "filename": "src/Vulkan/libVulkan/libVulkan.vcxproj",
+        "patchSetId": 7
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 6260
+      },
+      "writtenOn": "2017-08-16T18:41:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6ef58371_936cf143",
+      "range": {
+        "startLine": 83,
+        "startChar": 74,
+        "endLine": 83,
+        "endChar": 94
+      },
+      "revId": "7c70f7b4b41d8567d5f81b1a7ae46df212cae2ff",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "009aa284_65558799",
         "filename": "src/Vulkan/libVulkan/libVulkan.vcxproj",
         "patchSetId": 7
@@ -278,6 +542,30 @@
     },
     {
       "key": {
+        "uuid": "41a850e9_8342ca56",
+        "filename": "src/Vulkan/libVulkan/libVulkan.vcxproj",
+        "patchSetId": 7
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 6260
+      },
+      "writtenOn": "2017-08-16T18:41:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "009aa284_65558799",
+      "range": {
+        "startLine": 90,
+        "startChar": 74,
+        "endLine": 90,
+        "endChar": 93
+      },
+      "revId": "7c70f7b4b41d8567d5f81b1a7ae46df212cae2ff",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ea7887fd_6767871c",
         "filename": "src/Vulkan/libVulkan/libVulkan.vcxproj",
         "patchSetId": 7
@@ -289,6 +577,30 @@
       "writtenOn": "2017-08-15T21:02:24Z",
       "side": 1,
       "message": "same",
+      "range": {
+        "startLine": 97,
+        "startChar": 74,
+        "endLine": 97,
+        "endChar": 93
+      },
+      "revId": "7c70f7b4b41d8567d5f81b1a7ae46df212cae2ff",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2134b1c1_b535c793",
+        "filename": "src/Vulkan/libVulkan/libVulkan.vcxproj",
+        "patchSetId": 7
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 6260
+      },
+      "writtenOn": "2017-08-16T18:41:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ea7887fd_6767871c",
       "range": {
         "startLine": 97,
         "startChar": 74,
