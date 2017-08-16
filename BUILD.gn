@@ -15,7 +15,7 @@
 import("//build/config/compiler/compiler.gni")
 
 config("swiftshader_config") {
-  defines = [ "STRICT_CONFORMANCE" ]  # Disables OpenGL ES 3.0
+  defines = []
 
   if (is_win) {
     cflags = [
