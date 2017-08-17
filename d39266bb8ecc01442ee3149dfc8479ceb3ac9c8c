@@ -166,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "30d72b81_37e0995c",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 9
+      },
+      "lineNbr": 1250,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-08-17T12:27:03Z",
+      "side": 1,
+      "message": "I think Nicolas meant \"indent these statements by one extra tab\", not \"put case and label on different lines\".",
+      "parentUuid": "a7b2a889_81385e0d",
+      "range": {
+        "startLine": 1229,
+        "startChar": 3,
+        "endLine": 1250,
+        "endChar": 9
+      },
+      "revId": "d39266bb8ecc01442ee3149dfc8479ceb3ac9c8c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e7afe897_dcd815db",
         "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
         "patchSetId": 9
