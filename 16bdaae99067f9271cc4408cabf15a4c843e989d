@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "a7b239d0_927ce3db",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 1225,
+      "author": {
+        "id": 6260
+      },
+      "writtenOn": "2017-08-17T14:50:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f713ef5e_18d0b80f",
+      "range": {
+        "startLine": 1225,
+        "startChar": 51,
+        "endLine": 1225,
+        "endChar": 52
+      },
+      "revId": "16bdaae99067f9271cc4408cabf15a4c843e989d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1764d147_7a69015d",
         "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
         "patchSetId": 10
@@ -36,6 +60,30 @@
       "writtenOn": "2017-08-17T12:27:03Z",
       "side": 1,
       "message": "nit: extra space",
+      "range": {
+        "startLine": 1227,
+        "startChar": 16,
+        "endLine": 1227,
+        "endChar": 17
+      },
+      "revId": "16bdaae99067f9271cc4408cabf15a4c843e989d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fe1704f6_dec91d91",
+        "filename": "src/Vulkan/libVulkan/libVulkan.cpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 1227,
+      "author": {
+        "id": 6260
+      },
+      "writtenOn": "2017-08-17T14:50:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1764d147_7a69015d",
       "range": {
         "startLine": 1227,
         "startChar": 16,
