@@ -22,6 +22,30 @@
       "revId": "2e7a08a8073d79309d5a57b2e8d477d5d92eb2c4",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "88abaf20_8f33b196",
+        "filename": "src/OpenGL/libGLESv2/libGLESv3.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2286,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-08-17T16:35:03Z",
+      "side": 0,
+      "message": "This should be done implicitly now, no? Do we store gl_ variables in the varyings list?\n\nIn any case, if it is still necessary, it would need to be moved within Program::getFragDataLocation(), because this is pre-empting mandatory validation which should throw expected gl errors.",
+      "parentUuid": "16ac6905_aad91867",
+      "range": {
+        "startLine": 2283,
+        "startChar": 1,
+        "endLine": 2286,
+        "endChar": 2
+      },
+      "revId": "2e7a08a8073d79309d5a57b2e8d477d5d92eb2c4",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
