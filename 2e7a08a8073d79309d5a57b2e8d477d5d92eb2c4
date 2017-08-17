@@ -46,6 +46,30 @@
       "revId": "2e7a08a8073d79309d5a57b2e8d477d5d92eb2c4",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ae9c16ec_6cc38874",
+        "filename": "src/OpenGL/libGLESv2/libGLESv3.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2286,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-08-17T16:53:16Z",
+      "side": 0,
+      "message": "It looks like this got adopted from GetUniformLocation, where it\u0027s a shortcut we must take because built-in uniforms are stored in the program as well, but their location can\u0027t be queried (because they can\u0027t be specified by the app).\n\nSo indeed it looks like this can just be removed.",
+      "parentUuid": "88abaf20_8f33b196",
+      "range": {
+        "startLine": 2283,
+        "startChar": 1,
+        "endLine": 2286,
+        "endChar": 2
+      },
+      "revId": "2e7a08a8073d79309d5a57b2e8d477d5d92eb2c4",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
