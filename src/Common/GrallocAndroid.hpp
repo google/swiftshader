@@ -23,6 +23,8 @@
 #include <sync/sync.h>
 #endif
 
+#include <unistd.h> // for close()
+
 class GrallocModule
 {
 public:

@@ -5,6 +5,7 @@ LOCAL_CLANG := true
 
 LOCAL_MODULE := libLLVM_swiftshader
 LOCAL_MODULE_TAGS := optional
+LOCAL_VENDOR_MODULE := true
 
 LOCAL_SRC_FILES := \
 	lib/Analysis/AliasAnalysis.cpp \

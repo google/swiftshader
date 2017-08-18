@@ -23,7 +23,9 @@ endif
 
 # libnativewindow is introduced from O
 ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 26 && echo O),O)
-COMMON_SHARED_LIBRARIES := libnativewindow
+COMMON_SHARED_LIBRARIES := libnativewindow liblog
+COMMON_HEADER_LIBRARIES := libhardware_headers libnativebase_headers
+COMMON_STATIC_LIBRARIES := libarect
 endif
 
 # Marshmallow does not have stlport, but comes with libc++ by default
@@ -144,21 +146,27 @@ LOCAL_CFLAGS_arm += -DSZTARGET=ARM32
 include $(CLEAR_VARS)
 LOCAL_CLANG := true
 LOCAL_MODULE := swiftshader_top_release
+LOCAL_VENDOR_MODULE := true
 LOCAL_MODULE_TAGS := optional
 LOCAL_SRC_FILES := $(COMMON_SRC_FILES)
 LOCAL_CFLAGS := $(COMMON_CFLAGS) -fomit-frame-pointer -ffunction-sections -fdata-sections -DANGLE_DISABLE_TRACE
 LOCAL_C_INCLUDES := $(COMMON_C_INCLUDES)
 LOCAL_SHARED_LIBRARIES := $(COMMON_SHARED_LIBRARIES)
+LOCAL_HEADER_LIBRARIES := $(COMMON_HEADER_LIBRARIES)
+LOCAL_STATIC_LIBRARIES := $(COMMON_STATIC_LIBRARIES)
 include $(BUILD_STATIC_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_CLANG := true
 LOCAL_MODULE := swiftshader_top_debug
+LOCAL_VENDOR_MODULE := true
 LOCAL_MODULE_TAGS := optional
 LOCAL_SRC_FILES := $(COMMON_SRC_FILES)
 LOCAL_CFLAGS := $(COMMON_CFLAGS) -UNDEBUG -g -O0 -DDEFAULT_THREAD_COUNT=1
 LOCAL_C_INCLUDES := $(COMMON_C_INCLUDES)
 LOCAL_SHARED_LIBRARIES := $(COMMON_SHARED_LIBRARIES)
+LOCAL_HEADER_LIBRARIES := $(COMMON_HEADER_LIBRARIES)
+LOCAL_STATIC_LIBRARIES := $(COMMON_STATIC_LIBRARIES)
 include $(BUILD_STATIC_LIBRARY)
 
 include $(call all-makefiles-under,$(LOCAL_PATH))
