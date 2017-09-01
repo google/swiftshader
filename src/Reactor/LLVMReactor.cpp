@@ -159,6 +159,26 @@ namespace sw
 		return T(type)->getPrimitiveSizeInBits() / 8;
 	}
 
+	static unsigned int elementCount(Type *type)
+	{
+		uintptr_t t = reinterpret_cast<uintptr_t>(type);
+		if(t < EmulatedTypeCount)
+		{
+			switch(t)
+			{
+			case Type_v2i32: return 2;
+			case Type_v4i16: return 4;
+			case Type_v2i16: return 2;
+			case Type_v8i8:  return 8;
+			case Type_v4i8:  return 4;
+			case Type_v2f32: return 2;
+			default: assert(false);
+			}
+		}
+
+		return llvm::cast<llvm::VectorType>(T(type))->getNumElements();
+	}
+
 	Nucleus::Nucleus()
 	{
 		::codegenMutex.lock();   // Reactor and LLVM are currently not thread safe
@@ -905,31 +925,33 @@ namespace sw
 	Value *Nucleus::createConstantVector(const int64_t *constants, Type *type)
 	{
 		assert(llvm::isa<llvm::VectorType>(T(type)));
-		const int numConstants = llvm::cast<llvm::VectorType>(T(type))->getNumElements();
-		assert(numConstants <= 16);
+		const int numConstants = elementCount(type);                                       // Number of provided constants for the (emulated) type.
+		const int numElements = llvm::cast<llvm::VectorType>(T(type))->getNumElements();   // Number of elements of the underlying vector type.
+		assert(numElements <= 16 && numConstants <= numElements);
 		llvm::Constant *constantVector[16];
 
-		for(int i = 0; i < numConstants; i++)
+		for(int i = 0; i < numElements; i++)
 		{
-			constantVector[i] = llvm::ConstantInt::get(T(type)->getContainedType(0), constants[i]);
+			constantVector[i] = llvm::ConstantInt::get(T(type)->getContainedType(0), constants[i % numConstants]);
 		}
 
-		return V(llvm::ConstantVector::get(llvm::ArrayRef<llvm::Constant*>(constantVector, numConstants)));
+		return V(llvm::ConstantVector::get(llvm::ArrayRef<llvm::Constant*>(constantVector, numElements)));
 	}
 
 	Value *Nucleus::createConstantVector(const double *constants, Type *type)
 	{
 		assert(llvm::isa<llvm::VectorType>(T(type)));
-		const int numConstants = llvm::cast<llvm::VectorType>(T(type))->getNumElements();
-		assert(numConstants <= 8);
+		const int numConstants = elementCount(type);                                       // Number of provided constants for the (emulated) type.
+		const int numElements = llvm::cast<llvm::VectorType>(T(type))->getNumElements();   // Number of elements of the underlying vector type.
+		assert(numElements <= 8 && numConstants <= numElements);
 		llvm::Constant *constantVector[8];
 
-		for(int i = 0; i < numConstants; i++)
+		for(int i = 0; i < numElements; i++)
 		{
-			constantVector[i] = llvm::ConstantFP::get(T(type)->getContainedType(0), constants[i]);
+			constantVector[i] = llvm::ConstantFP::get(T(type)->getContainedType(0), constants[i % numConstants]);
 		}
 
-		return V(llvm::ConstantVector::get(llvm::ArrayRef<llvm::Constant*>(constantVector, numConstants)));
+		return V(llvm::ConstantVector::get(llvm::ArrayRef<llvm::Constant*>(constantVector, numElements)));
 	}
 
 	Type *Void::getType()
