@@ -488,7 +488,7 @@ EGLBoolean ReleaseThread(void)
 
 	detachThread();
 
-	return success(EGL_TRUE);
+	return EGL_TRUE;   // success() is not called here because it would re-allocate thread-local storage.
 }
 
 EGLSurface CreatePbufferFromClientBuffer(EGLDisplay dpy, EGLenum buftype, EGLClientBuffer buffer, EGLConfig config, const EGLint *attrib_list)
