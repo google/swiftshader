@@ -15,7 +15,7 @@
 #define MAJOR_VERSION 3
 #define MINOR_VERSION 3
 #define BUILD_VERSION 0
-#define BUILD_REVISION 7
+#define BUILD_REVISION 8
 
 #define STRINGIFY(x) #x
 #define MACRO_STRINGIFY(x) STRINGIFY(x)
