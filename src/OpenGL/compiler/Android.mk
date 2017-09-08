@@ -72,6 +72,13 @@ COMMON_SRC_FILES := \
 	ValidateLimitations.cpp \
 	ValidateSwitch.cpp \
 
+# liblog_headers is introduced from O
+ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 26 && echo O),O)
+COMMON_HEADER_LIBRARIES := liblog_headers
+else
+COMMON_HEADER_LIBRARIES :=
+endif
+
 include $(CLEAR_VARS)
 LOCAL_CLANG := true
 LOCAL_MODULE := swiftshader_compiler_release
@@ -85,6 +92,7 @@ LOCAL_CFLAGS += \
 	-DANGLE_DISABLE_TRACE
 LOCAL_C_INCLUDES := $(COMMON_C_INCLUDES)
 LOCAL_SHARED_LIBRARIES := libcutils
+LOCAL_HEADER_LIBRARIES := $(COMMON_HEADER_LIBRARIES)
 include $(BUILD_STATIC_LIBRARY)
 
 include $(CLEAR_VARS)
@@ -102,4 +110,5 @@ LOCAL_CFLAGS += \
 
 LOCAL_C_INCLUDES := $(COMMON_C_INCLUDES)
 LOCAL_SHARED_LIBRARIES := libcutils
+LOCAL_HEADER_LIBRARIES := $(COMMON_HEADER_LIBRARIES)
 include $(BUILD_STATIC_LIBRARY)
