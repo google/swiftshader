@@ -149,7 +149,7 @@ namespace sw
 				writeMaskQ = replicate(writeMask);
 				invWriteMaskQ = ~writeMaskQ;
 				referenceMaskedQ = referenceQ & testMaskQ;
-				referenceMaskedSignedQ = replicate((reference + 0x80) & 0xFF & testMask);
+				referenceMaskedSignedQ = replicate(((reference & testMask) + 0x80) & 0xFF);
 			}
 
 			static int64_t replicate(int b)
