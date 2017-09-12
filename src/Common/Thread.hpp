@@ -28,6 +28,8 @@
 	#define TLS_OUT_OF_INDEXES (pthread_key_t)(~0)
 #endif
 
+#include <stdlib.h>
+
 namespace sw
 {
 	class Event;
@@ -52,8 +54,9 @@ namespace sw
 
 		static LocalStorageKey allocateLocalStorageKey();
 		static void freeLocalStorageKey(LocalStorageKey key);
-		static void setLocalStorage(LocalStorageKey key, void *value);
+		static void *allocateLocalStorage(LocalStorageKey key, size_t size);
 		static void *getLocalStorage(LocalStorageKey key);
+		static void freeLocalStorage(LocalStorageKey key);
 
 	private:
 		struct Entry
@@ -135,7 +138,7 @@ namespace sw
 			return TlsAlloc();
 		#else
 			LocalStorageKey key;
-			pthread_key_create(&key, NULL);
+			pthread_key_create(&key, free);
 			return key;
 		#endif
 	}
@@ -149,16 +152,24 @@ namespace sw
 		#endif
 	}
 
-	inline void Thread::setLocalStorage(LocalStorageKey key, void *value)
+	inline void *Thread::allocateLocalStorage(LocalStorageKey key, size_t size)
 	{
+		if(key == TLS_OUT_OF_INDEXES)
+		{
+			return nullptr;
+		}
+
+		freeLocalStorage(key);
+
+		void *storage = malloc(size);
+
 		#if defined(_WIN32)
-			TlsSetValue(key, value);
+			TlsSetValue(key, storage);
 		#else
-			if(key != TLS_OUT_OF_INDEXES)   // Avoid undefined behavior.
-			{
-				pthread_setspecific(key, value);
-			}
+			pthread_setspecific(key, storage);
 		#endif
+
+		return storage;
 	}
 
 	inline void *Thread::getLocalStorage(LocalStorageKey key)
@@ -172,6 +183,17 @@ namespace sw
 			}
 
 			return pthread_getspecific(key);
+		#endif
+	}
+
+	inline void Thread::freeLocalStorage(LocalStorageKey key)
+	{
+		free(getLocalStorage(key));
+
+		#if defined(_WIN32)
+			TlsSetValue(key, nullptr);
+		#else
+			pthread_setspecific(key, nullptr);
 		#endif
 	}
 

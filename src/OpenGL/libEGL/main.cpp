@@ -48,14 +48,7 @@ Current *attachThread()
 		currentTLS = sw::Thread::allocateLocalStorageKey();
 	}
 
-	Current *current = (Current*)sw::Thread::getLocalStorage(currentTLS);
-
-	if(!current)
-	{
-		current = new Current;
-
-		sw::Thread::setLocalStorage(currentTLS, current);
-	}
+	Current *current = (Current*)sw::Thread::allocateLocalStorage(currentTLS, sizeof(Current));
 
 	current->error = EGL_SUCCESS;
 	current->API = EGL_OPENGL_ES_API;
@@ -72,8 +65,7 @@ void detachThread()
 
 	eglMakeCurrent(EGL_NO_DISPLAY, EGL_NO_CONTEXT, EGL_NO_SURFACE, EGL_NO_SURFACE);
 
-	delete (Current*)sw::Thread::getLocalStorage(currentTLS);
-	sw::Thread::setLocalStorage(currentTLS, nullptr);
+	sw::Thread::freeLocalStorage(currentTLS);
 }
 
 CONSTRUCTOR void attachProcess()
