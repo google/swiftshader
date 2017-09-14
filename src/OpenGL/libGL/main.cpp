@@ -36,12 +36,10 @@ static void glAttachThread()
 {
 	TRACE("()");
 
-	gl::Current *current = new gl::Current;
+	gl::Current *current = (gl::Current*)sw::Thread::allocateLocalStorage(currentTLS, sizeof(gl::Current));
 
 	if(current)
 	{
-		sw::Thread::setLocalStorage(currentTLS, current);
-
 		current->context = nullptr;
 		current->display = nullptr;
 		current->drawSurface = nullptr;
@@ -55,8 +53,7 @@ static void glDetachThread()
 
 	wglMakeCurrent(NULL, NULL);
 
-	delete (gl::Current*)sw::Thread::getLocalStorage(currentTLS);
-	sw::Thread::setLocalStorage(currentTLS, nullptr);
+	sw::Thread::freeLocalStorage(currentTLS);
 }
 
 CONSTRUCTOR static bool glAttachProcess()
