@@ -545,7 +545,7 @@ namespace sw
 
 				if(context->isDrawTriangle(false))
 				{
-					N += depthBias;
+					N += context->depthBias;
 				}
 
 				if(complementaryDepthBuffer)
@@ -583,7 +583,7 @@ namespace sw
 				data->halfPixelX = replicate(0.5f / W);
 				data->halfPixelY = replicate(0.5f / H);
 				data->viewportHeight = abs(viewport.height);
-				data->slopeDepthBias = slopeDepthBias;
+				data->slopeDepthBias = context->slopeDepthBias;
 				data->depthRange = Z;
 				data->depthNear = N;
 				draw->clipFlags = clipFlags;
@@ -2447,12 +2447,12 @@ namespace sw
 
 	void Renderer::setDepthBias(float bias)
 	{
-		depthBias = bias;
+		context->depthBias = bias;
 	}
 
 	void Renderer::setSlopeDepthBias(float slopeBias)
 	{
-		slopeDepthBias = slopeBias;
+		context->slopeDepthBias = slopeBias;
 	}
 
 	void Renderer::setRasterizerDiscard(bool rasterizerDiscard)

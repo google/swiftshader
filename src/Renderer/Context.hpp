@@ -434,6 +434,9 @@ namespace sw
 		CullMode cullMode;
 		float alphaReference;
 
+		float depthBias;
+		float slopeDepthBias;
+
 		TextureStage textureStage[8];
 		Sampler sampler[TOTAL_IMAGE_UNITS];
 

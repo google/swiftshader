@@ -276,6 +276,9 @@ namespace sw
 		cullMode = CULL_CLOCKWISE;
 		alphaReference = 0.0f;
 
+		depthBias = 0.0f;
+		slopeDepthBias = 0.0f;
+
 		for(int i = 0; i < RENDERTARGETS; i++)
 		{
 			colorWriteMask[i] = 0x0000000F;

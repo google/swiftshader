@@ -95,6 +95,11 @@ namespace sw
 				}
 
 				z[q] = interpolate(x, Dz[q], z[q], primitive + OFFSET(Primitive,z), false, false);
+
+				if(state.depthClamp)
+				{
+					z[q] = Min(Max(z[q], Float4(0.0f)), Float4(1.0f));
+				}
 			}
 		}
 

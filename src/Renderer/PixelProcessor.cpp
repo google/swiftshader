@@ -990,6 +990,7 @@ namespace sw
 		state.pixelFogMode = context->pixelFogActive();
 		state.wBasedFog = context->wBasedFog && context->pixelFogActive() != FOG_NONE;
 		state.perspective = context->perspectiveActive();
+		state.depthClamp = (context->depthBias != 0.0f) || (context->slopeDepthBias != 0.0f);
 
 		if(context->alphaBlendActive())
 		{

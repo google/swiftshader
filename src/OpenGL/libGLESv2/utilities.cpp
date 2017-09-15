@@ -1607,6 +1607,7 @@ namespace sw2es
 	//	case sw::FORMAT_D32_LOCKABLE:  return 0;
 	//	case sw::FORMAT_S8_LOCKABLE:   return 8;
 		default:
+			UNREACHABLE(stencilFormat);
 			return 0;
 		}
 	}
@@ -1642,6 +1643,7 @@ namespace sw2es
 		case sw::FORMAT_R5G6B5:
 			return 0;
 		default:
+			UNREACHABLE(colorFormat);
 			return 0;
 		}
 	}
@@ -1705,6 +1707,7 @@ namespace sw2es
 		case sw::FORMAT_R5G6B5:
 			return 5;
 		default:
+			UNREACHABLE(colorFormat);
 			return 0;
 		}
 	}
@@ -1759,6 +1762,7 @@ namespace sw2es
 		case sw::FORMAT_R5G6B5:
 			return 6;
 		default:
+			UNREACHABLE(colorFormat);
 			return 0;
 		}
 	}
@@ -1802,6 +1806,7 @@ namespace sw2es
 		case sw::FORMAT_R5G6B5:
 			return 5;
 		default:
+			UNREACHABLE(colorFormat);
 			return 0;
 		}
 	}
@@ -1827,7 +1832,9 @@ namespace sw2es
 	//	case sw::FORMAT_S8_LOCKABLE:    return 0;
 		case sw::FORMAT_D32FS8_SHADOW:
 		case sw::FORMAT_D32FS8_TEXTURE: return 32;
-		default:                        return 0;
+		default:
+			UNREACHABLE(depthFormat);
+			return 0;
 		}
 	}
 

@@ -2180,7 +2180,8 @@ template<typename T> bool Context::getIntegerv(GLenum pname, T *params) const
 		case GL_MAX_PROGRAM_TEXEL_OFFSET:
 			// Note: SwiftShader has no actual texel offset limit, so this limit can be modified if required.
 			// In any case, any behavior outside the specified range is valid since the spec mentions:
-			// (see OpenGL ES 3.0.5, 3.8.10.1 Scale Factor and Level of Detail, p.153)			// "If any of the offset values are outside the range of the  implementation-defined values
+			// (see OpenGL ES 3.0.5, 3.8.10.1 Scale Factor and Level of Detail, p.153)
+			// "If any of the offset values are outside the range of the  implementation-defined values
 			//  MIN_PROGRAM_TEXEL_OFFSET and MAX_PROGRAM_TEXEL_OFFSET, results of the texture lookup are
 			//  undefined."
 			*params = MAX_PROGRAM_TEXEL_OFFSET;
@@ -2221,7 +2222,8 @@ template<typename T> bool Context::getIntegerv(GLenum pname, T *params) const
 		case GL_MIN_PROGRAM_TEXEL_OFFSET:
 			// Note: SwiftShader has no actual texel offset limit, so this limit can be modified if required.
 			// In any case, any behavior outside the specified range is valid since the spec mentions:
-			// (see OpenGL ES 3.0.5, 3.8.10.1 Scale Factor and Level of Detail, p.153)			// "If any of the offset values are outside the range of the  implementation-defined values
+			// (see OpenGL ES 3.0.5, 3.8.10.1 Scale Factor and Level of Detail, p.153)
+			// "If any of the offset values are outside the range of the  implementation-defined values
 			//  MIN_PROGRAM_TEXEL_OFFSET and MAX_PROGRAM_TEXEL_OFFSET, results of the texture lookup are
 			//  undefined."
 			*params = MIN_PROGRAM_TEXEL_OFFSET;
@@ -2855,7 +2857,7 @@ void Context::applyState(GLenum drawMode)
 			if(depthbuffer)
 			{
 				device->setSlopeDepthBias(mState.polygonOffsetFactor);
-				float depthBias = ldexp(mState.polygonOffsetUnits, -(int)(depthbuffer->getDepthSize()));
+				float depthBias = ldexp(mState.polygonOffsetUnits, -23);   // We use 32-bit floating-point for all depth formats, with 23 mantissa bits.
 				device->setDepthBias(depthBias);
 			}
 		}

@@ -95,9 +95,6 @@ namespace sw
 
 		void setRoutineCacheSize(int cacheSize);
 
-		float depthBias;
-		float slopeDepthBias;
-
 	private:
 		Context *const context;
 

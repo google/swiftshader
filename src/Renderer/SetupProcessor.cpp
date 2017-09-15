@@ -85,7 +85,7 @@ namespace sw
 		state.pointSprite = context->pointSpriteActive();
 		state.cullMode = context->cullMode;
 		state.twoSidedStencil = context->stencilActive() && context->twoSidedStencil;
-		state.slopeDepthBias = slopeDepthBias != 0.0f;
+		state.slopeDepthBias = context->slopeDepthBias != 0.0f;
 		state.vFace = context->pixelShader && context->pixelShader->isVFaceDeclared();
 
 		state.positionRegister = Pos;

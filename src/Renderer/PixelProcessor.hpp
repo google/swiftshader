@@ -66,6 +66,7 @@ namespace sw
 			bool occlusionEnabled                     : 1;
 			bool wBasedFog                            : 1;
 			bool perspective                          : 1;
+			bool depthClamp                           : 1;
 
 			bool alphaBlendActive                     : 1;
 			BlendFactor sourceBlendFactor             : BITS(BLEND_LAST);
