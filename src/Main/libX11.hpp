@@ -39,6 +39,7 @@ struct LibX11exports
 	XImage *(*XCreateImage)(Display *display, Visual *visual, unsigned int depth, int format, int offset, char *data, unsigned int width, unsigned int height, int bitmap_pad, int bytes_per_line);
 	int (*XCloseDisplay)(Display *display);
 	int (*XPutImage)(Display *display, Drawable d, GC gc, XImage *image, int src_x, int src_y, int dest_x, int dest_y, unsigned int width, unsigned int height);
+	int (*XDrawString)(Display *display, Drawable d, GC gc, int x, int y, char *string, int length);
 
 	Bool (*XShmQueryExtension)(Display *display);
 	XImage *(*XShmCreateImage)(Display *display, Visual *visual, unsigned int depth, int format, char *data, XShmSegmentInfo *shminfo, unsigned int width, unsigned int height);

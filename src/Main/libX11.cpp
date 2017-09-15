@@ -35,6 +35,7 @@ LibX11exports::LibX11exports(void *libX11, void *libXext)
 	XCreateImage = (XImage *(*)(Display*, Visual*, unsigned int, int, int, char*, unsigned int, unsigned int, int, int))getProcAddress(libX11, "XCreateImage");
 	XCloseDisplay = (int (*)(Display*))getProcAddress(libX11, "XCloseDisplay");
 	XPutImage = (int (*)(Display*, Drawable, GC, XImage*, int, int, int, int, unsigned int, unsigned int))getProcAddress(libX11, "XPutImage");
+	XDrawString = (int (*)(Display*, Drawable, GC, int, int, char*, int))getProcAddress(libX11, "XDrawString");
 
 	XShmQueryExtension = (Bool (*)(Display*))getProcAddress(libXext, "XShmQueryExtension");
 	XShmCreateImage = (XImage *(*)(Display*, Visual*, unsigned int, int, char*, XShmSegmentInfo*, unsigned int, unsigned int))getProcAddress(libXext, "XShmCreateImage");

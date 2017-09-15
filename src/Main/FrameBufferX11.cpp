@@ -15,6 +15,7 @@
 #include "FrameBufferX11.hpp"
 
 #include "libX11.hpp"
+#include "Timer.hpp"
 
 #include <sys/ipc.h>
 #include <sys/shm.h>
@@ -140,6 +141,30 @@ namespace sw
 		}
 
 		libX11->XSync(x_display, False);
+
+		if(false)   // Draw the framerate on screen
+		{
+			static double fpsTime = sw::Timer::seconds();
+			static int framesSec = 0;
+
+			double time = sw::Timer::seconds();
+			double delta = time - fpsTime;
+			framesSec++;
+
+			static double FPS = 0.0;
+
+			if(delta > 1.0)
+			{
+				FPS = framesSec / delta;
+
+				fpsTime = time;
+				framesSec = 0;
+			}
+
+			char string[256];
+			sprintf(string, "FPS: %.1f", FPS);
+			libX11->XDrawString(x_display, x_window, x_gc, 50, 50, string, strlen(string));
+		}
 	}
 }
 
