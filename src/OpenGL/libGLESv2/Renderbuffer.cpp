@@ -423,7 +423,7 @@ RenderbufferStorage::RenderbufferStorage()
 	mWidth = 0;
 	mHeight = 0;
 	format = GL_RGBA4;
-	internalFormat = sw::FORMAT_A8B8G8R8;
+	internalFormat = sw::FORMAT_NULL;
 	mSamples = 0;
 }
 
