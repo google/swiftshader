@@ -110,8 +110,8 @@ namespace sw
 		}
 
 		bool building;
-		volatile int reference;
-		volatile unsigned int data;
+		AtomicInt reference;
+		AtomicInt data;
 
 		const Type type;
 	};
@@ -213,8 +213,8 @@ namespace sw
 
 		~DrawCall();
 
-		DrawType drawType;
-		int batchSize;
+		AtomicInt drawType;
+		AtomicInt batchSize;
 
 		Routine *vertexRoutine;
 		Routine *setupRoutine;
@@ -247,11 +247,11 @@ namespace sw
 
 		std::list<Query*> *queries;
 
-		int clipFlags;
+		AtomicInt clipFlags;
 
-		volatile int primitive;    // Current primitive to enter pipeline
-		volatile int count;        // Number of primitives to render
-		volatile int references;   // Remaining references to this draw call, 0 when done drawing, -1 when resources unlocked and slot is free
+		AtomicInt primitive;    // Current primitive to enter pipeline
+		AtomicInt count;        // Number of primitives to render
+		AtomicInt references;   // Remaining references to this draw call, 0 when done drawing, -1 when resources unlocked and slot is free
 
 		DrawData *data;
 	};
@@ -279,9 +279,9 @@ namespace sw
 				SUSPEND
 			};
 
-			volatile Type type;
-			volatile int primitiveUnit;
-			volatile int pixelCluster;
+			AtomicInt type;
+			AtomicInt primitiveUnit;
+			AtomicInt pixelCluster;
 		};
 
 		struct PrimitiveProgress
@@ -295,11 +295,11 @@ namespace sw
 				references = 0;
 			}
 
-			volatile int drawCall;
-			volatile int firstPrimitive;
-			volatile int primitiveCount;
-			volatile int visible;
-			volatile int references;
+			AtomicInt drawCall;
+			AtomicInt firstPrimitive;
+			AtomicInt primitiveCount;
+			AtomicInt visible;
+			AtomicInt references;
 		};
 
 		struct PixelProgress
@@ -311,9 +311,9 @@ namespace sw
 				executing = false;
 			}
 
-			volatile int drawCall;
-			volatile int processedPrimitives;
-			volatile bool executing;
+			AtomicInt drawCall;
+			AtomicInt processedPrimitives;
+			AtomicInt executing;
 		};
 
 	public:
@@ -449,8 +449,8 @@ namespace sw
 		Plane clipPlane[MAX_CLIP_PLANES];   // Tranformed to clip space
 		bool updateClipPlanes;
 
-		volatile bool exitThreads;
-		volatile int threadsAwake;
+		AtomicInt exitThreads;
+		AtomicInt threadsAwake;
 		Thread *worker[16];
 		Event *resume[16];         // Events for resuming threads
 		Event *suspend[16];        // Events for suspending threads
@@ -464,8 +464,8 @@ namespace sw
 		DrawCall *drawCall[DRAW_COUNT];
 		DrawCall *drawList[DRAW_COUNT];
 
-		volatile int currentDraw;
-		volatile int nextDraw;
+		AtomicInt currentDraw;
+		AtomicInt nextDraw;
 
 		Task taskQueue[32];
 		unsigned int qHead;

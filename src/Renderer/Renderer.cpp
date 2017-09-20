@@ -314,7 +314,7 @@ namespace sw
 					Query* q = *query;
 					if(includePrimitivesWrittenQueries || (q->type != Query::TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN))
 					{
-						atomicIncrement(&(q->reference));
+						++q->reference; // Atomic
 						draw->queries->push_back(q);
 					}
 				}
@@ -645,7 +645,7 @@ namespace sw
 			draw->references = (count + batch - 1) / batch;
 
 			schedulerMutex.lock();
-			nextDraw++;
+			++nextDraw; // Atomic
 			schedulerMutex.unlock();
 
 			#ifndef NDEBUG
@@ -771,9 +771,12 @@ namespace sw
 		{
 			DrawCall *draw = drawList[currentDraw % DRAW_COUNT];
 
-			if(draw->primitive >= draw->count)
+			int primitive = draw->primitive;
+			int count = draw->count;
+
+			if(primitive >= count)
 			{
-				currentDraw++;
+				++currentDraw; // Atomic
 
 				if(currentDraw == nextDraw)
 				{
@@ -785,8 +788,8 @@ namespace sw
 
 			if(!primitiveProgress[unit].references)   // Task not already being executed and not still in use by a pixel unit
 			{
-				int primitive = draw->primitive;
-				int count = draw->count;
+				primitive = draw->primitive;
+				count = draw->count;
 				int batch = draw->batchSize;
 
 				primitiveProgress[unit].drawCall = currentDraw;
@@ -812,7 +815,9 @@ namespace sw
 	{
 		schedulerMutex.lock();
 
-		if((int)qSize < threadCount - threadsAwake + 1)
+		int curThreadsAwake = threadsAwake;
+
+		if((int)qSize < threadCount - curThreadsAwake + 1)
 		{
 			findAvailableTasks();
 		}
@@ -822,9 +827,9 @@ namespace sw
 			task[threadIndex] = taskQueue[(qHead - qSize) % 32];
 			qSize--;
 
-			if(threadsAwake != threadCount)
+			if(curThreadsAwake != threadCount)
 			{
-				int wakeup = qSize - threadsAwake + 1;
+				int wakeup = qSize - curThreadsAwake + 1;
 
 				for(int i = 0; i < threadCount && wakeup > 0; i++)
 				{
@@ -834,7 +839,7 @@ namespace sw
 						task[i].type = Task::RESUME;
 						resume[i]->signal();
 
-						threadsAwake++;
+						++threadsAwake; // Atomic
 						wakeup--;
 					}
 				}
@@ -844,7 +849,7 @@ namespace sw
 		{
 			task[threadIndex].type = Task::SUSPEND;
 
-			threadsAwake--;
+			--threadsAwake; // Atomic
 		}
 
 		schedulerMutex.unlock();
@@ -943,15 +948,15 @@ namespace sw
 
 		if(pixelProgress[cluster].processedPrimitives >= draw.count)
 		{
-			pixelProgress[cluster].drawCall++;
+			++pixelProgress[cluster].drawCall; // Atomic
 			pixelProgress[cluster].processedPrimitives = 0;
 		}
 
-		int ref = atomicDecrement(&primitiveProgress[unit].references);
+		int ref = primitiveProgress[unit].references--; // Atomic
 
 		if(ref == 0)
 		{
-			ref = atomicDecrement(&draw.references);
+			ref = draw.references--; // Atomic
 
 			if(ref == 0)
 			{
@@ -976,17 +981,17 @@ namespace sw
 						case Query::FRAGMENTS_PASSED:
 							for(int cluster = 0; cluster < clusterCount; cluster++)
 							{
-								atomicAdd((volatile int*)&query->data, data.occlusion[cluster]);
+								query->data += data.occlusion[cluster];
 							}
 							break;
 						case Query::TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN:
-							atomicAdd((volatile int*)&query->data, processedPrimitives);
+							query->data += processedPrimitives;
 							break;
 						default:
 							break;
 						}
 
-						atomicDecrement(&query->reference);
+						--query->reference; // Atomic
 					}
 
 					delete draw.queries;
@@ -1069,17 +1074,18 @@ namespace sw
 	void Renderer::processPrimitiveVertices(int unit, unsigned int start, unsigned int triangleCount, unsigned int loop, int thread)
 	{
 		Triangle *triangle = triangleBatch[unit];
-		DrawCall *draw = drawList[primitiveProgress[unit].drawCall % DRAW_COUNT];
+		int primitiveDrawCall = primitiveProgress[unit].drawCall;
+		DrawCall *draw = drawList[primitiveDrawCall % DRAW_COUNT];
 		DrawData *data = draw->data;
 		VertexTask *task = vertexTask[thread];
 
 		const void *indices = data->indices;
 		VertexProcessor::RoutinePointer vertexRoutine = draw->vertexPointer;
 
-		if(task->vertexCache.drawCall != primitiveProgress[unit].drawCall)
+		if(task->vertexCache.drawCall != primitiveDrawCall)
 		{
 			task->vertexCache.clear();
-			task->vertexCache.drawCall = primitiveProgress[unit].drawCall;
+			task->vertexCache.drawCall = primitiveDrawCall;
 		}
 
 		unsigned int batch[128][3];   // FIXME: Adjust to dynamic batch size

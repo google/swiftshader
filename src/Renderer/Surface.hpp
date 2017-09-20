@@ -245,7 +245,7 @@ namespace sw
 			int sliceB;
 			int sliceP;
 			Format format;
-			Lock lock;
+			AtomicInt lock;
 
 			bool dirty;
 		};

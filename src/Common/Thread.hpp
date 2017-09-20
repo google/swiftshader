@@ -30,6 +30,17 @@
 
 #include <stdlib.h>
 
+#if defined(__clang__)
+#define USE_STD_ATOMIC __has_include(<atomic>) // clang has an explicit check for the availability of atomic
+// atomic is available in C++11 or newer, and in Visual Studio 2012 or newer
+#elif (defined(_MSC_VER) && (_MSC_VER >= 1700)) || (__cplusplus >= 201103L)
+#define USE_STD_ATOMIC 1
+#endif
+
+#if USE_STD_ATOMIC
+#include <atomic>
+#endif
+
 namespace sw
 {
 	class Event;
@@ -265,7 +276,7 @@ namespace sw
 
 	inline int atomicAdd(volatile int* target, int value)
 	{
-		#if defined(_MSC_VER)
+		#if defined(_WIN32)
 			return InterlockedExchangeAdd((volatile long*)target, value) + value;
 		#else
 			return __sync_add_and_fetch(target, value);
@@ -280,6 +291,46 @@ namespace sw
 			__asm__ __volatile__ ("nop");
 		#endif
 	}
+
+	#if USE_STD_ATOMIC
+		class AtomicInt
+		{
+		public:
+			AtomicInt() : ai() {}
+			AtomicInt(int i) : ai(i) {}
+
+			inline operator int() const { return ai.load(std::memory_order_acquire); }
+			inline void operator=(const AtomicInt& i) { ai.store(i.ai.load(std::memory_order_acquire), std::memory_order_release); }
+			inline void operator=(int i) { ai.store(i, std::memory_order_release); }
+			inline void operator--() { ai.fetch_sub(1, std::memory_order_acq_rel); }
+			inline void operator++() { ai.fetch_add(1, std::memory_order_acq_rel); }
+			inline int operator--(int) { return ai.fetch_sub(1, std::memory_order_acq_rel) - 1; }
+			inline int operator++(int) { return ai.fetch_add(1, std::memory_order_acq_rel) + 1; }
+			inline void operator-=(int i) { ai.fetch_sub(i, std::memory_order_acq_rel); }
+			inline void operator+=(int i) { ai.fetch_add(i, std::memory_order_acq_rel); }
+		private:
+			std::atomic<int> ai;
+		};
+	#else
+		class AtomicInt
+		{
+		public:
+			AtomicInt() {}
+			AtomicInt(int i) : vi(i) {}
+
+			inline operator int() const { return vi; } // Note: this isn't a guaranteed atomic operation
+			inline void operator=(const AtomicInt& i) { sw::atomicExchange(&vi, i.vi); }
+			inline void operator=(int i) { sw::atomicExchange(&vi, i); }
+			inline void operator--() { sw::atomicDecrement(&vi); }
+			inline void operator++() { sw::atomicIncrement(&vi); }
+			inline int operator--(int) { return sw::atomicDecrement(&vi); }
+			inline int operator++(int) { return sw::atomicIncrement(&vi); }
+			inline void operator-=(int i) { sw::atomicAdd(&vi, -i); }
+			inline void operator+=(int i) { sw::atomicAdd(&vi, i); }
+		private:
+			volatile int vi;
+		};
+	#endif
 }
 
 #endif   // sw_Thread_hpp

@@ -60,20 +60,21 @@ namespace sw
 
 		if(clipFlagsOr & CLIP_USER)
 		{
+			int clipFlags = draw.clipFlags;
 			DrawData &data = *draw.data;
 
 			if(polygon.n >= 3) {
-			if(draw.clipFlags & CLIP_PLANE0) clipPlane(polygon, data.clipPlane[0]);
+			if(clipFlags & CLIP_PLANE0) clipPlane(polygon, data.clipPlane[0]);
 			if(polygon.n >= 3) {
-			if(draw.clipFlags & CLIP_PLANE1) clipPlane(polygon, data.clipPlane[1]);
+			if(clipFlags & CLIP_PLANE1) clipPlane(polygon, data.clipPlane[1]);
 			if(polygon.n >= 3) {
-			if(draw.clipFlags & CLIP_PLANE2) clipPlane(polygon, data.clipPlane[2]);
+			if(clipFlags & CLIP_PLANE2) clipPlane(polygon, data.clipPlane[2]);
 			if(polygon.n >= 3) {
-			if(draw.clipFlags & CLIP_PLANE3) clipPlane(polygon, data.clipPlane[3]);
+			if(clipFlags & CLIP_PLANE3) clipPlane(polygon, data.clipPlane[3]);
 			if(polygon.n >= 3) {
-			if(draw.clipFlags & CLIP_PLANE4) clipPlane(polygon, data.clipPlane[4]);
+			if(clipFlags & CLIP_PLANE4) clipPlane(polygon, data.clipPlane[4]);
 			if(polygon.n >= 3) {
-			if(draw.clipFlags & CLIP_PLANE5) clipPlane(polygon, data.clipPlane[5]);
+			if(clipFlags & CLIP_PLANE5) clipPlane(polygon, data.clipPlane[5]);
 			}}}}}}
 		}
 
