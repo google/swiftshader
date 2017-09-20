@@ -56,7 +56,7 @@ namespace es
 
 // A macro asserting a condition and outputting failures to the debug log
 #undef ASSERT
-#if !defined(NDEBUG)
+#if !defined(NDEBUG) || defined(DCHECK_ALWAYS_ON)
 #define ASSERT(expression) do { \
 	if(!(expression)) \
 		ERR("\t! Assert failed in %s(%d): "#expression"\n", __FUNCTION__, __LINE__); \
@@ -68,7 +68,7 @@ namespace es
 
 // A macro to indicate unimplemented functionality
 #undef UNIMPLEMENTED
-#if !defined(NDEBUG)
+#if !defined(NDEBUG) || defined(DCHECK_ALWAYS_ON)
 #define UNIMPLEMENTED() do { \
 	FIXME("\t! Unimplemented: %s(%d)\n", __FUNCTION__, __LINE__); \
 	assert(false); \
@@ -79,7 +79,7 @@ namespace es
 
 // A macro for code which is not expected to be reached under valid assumptions
 #undef UNREACHABLE
-#if !defined(NDEBUG)
+#if !defined(NDEBUG) || defined(DCHECK_ALWAYS_ON)
 #define UNREACHABLE(value) do { \
 	ERR("\t! Unreachable case reached: %s(%d). %s: %d\n", __FUNCTION__, __LINE__, #value, value); \
 	assert(false); \
