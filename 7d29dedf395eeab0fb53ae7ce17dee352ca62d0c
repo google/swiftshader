@@ -91,6 +91,30 @@
       "revId": "7d29dedf395eeab0fb53ae7ce17dee352ca62d0c",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6f7306a8_2eee0b59",
+        "filename": "src/Common/Thread.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-09-21T14:33:29Z",
+      "side": 1,
+      "message": "What\u0027s weird is that both Android J and N report GCC version 4.2.1. N has __clang_major__\u003d3 and __clang_minor__\u003d8 though, while J has 3.1. Clang 3.8 also has __cplusplus\u003d201402L\n\nApparently you can also use something like:\n\n#if defined(__clang__) \u0026\u0026 __has_feature(cxx_atomic)\n\nSo I think this can be replaced by:\n\n// std::atomic is reliably available in C++14 or newer, in Visual Studio 2012 or newer, or Clang 4.4 or newer.\n#if (__cplusplus \u003e\u003d 201402L) || (defined(_MSC_VER) \u0026\u0026 (_MSC_VER \u003e\u003d 1700)) || (defined(__clang__) \u0026\u0026 __has_feature(cxx_atomic))",
+      "parentUuid": "18105d7e_e9a707ab",
+      "range": {
+        "startLine": 34,
+        "startChar": 0,
+        "endLine": 35,
+        "endChar": 17
+      },
+      "revId": "7d29dedf395eeab0fb53ae7ce17dee352ca62d0c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
