@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "11784bbe_293801f7",
+        "filename": "src/Common/Thread.hpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-09-21T17:41:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fe0826a9_4d1f6707",
+      "range": {
+        "startLine": 34,
+        "startChar": 4,
+        "endLine": 34,
+        "endChar": 29
+      },
+      "revId": "8de19157baf0ec194c25e712223924b28500246b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "49036bbf_9e86f19a",
         "filename": "src/Common/Thread.hpp",
         "patchSetId": 3
@@ -59,6 +83,30 @@
       "writtenOn": "2017-09-21T17:02:17Z",
       "side": 1,
       "message": "nit: Can be combined into #elif to avoid the double #endif at the end. Or...",
+      "range": {
+        "startLine": 38,
+        "startChar": 0,
+        "endLine": 39,
+        "endChar": 3
+      },
+      "revId": "8de19157baf0ec194c25e712223924b28500246b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "69367a53_b7501a39",
+        "filename": "src/Common/Thread.hpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-09-21T17:41:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "49036bbf_9e86f19a",
       "range": {
         "startLine": 38,
         "startChar": 0,
