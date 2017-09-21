@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1e1e9e89_83fa5c5b",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-09-21T14:19:24Z",
+      "side": 1,
+      "message": "nit: This is more of a side-effect than the actual change. \"Use atomic operations to specify shared memory access order.\"",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 66
+      },
+      "revId": "7d29dedf395eeab0fb53ae7ce17dee352ca62d0c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "824c001a_f8e23ce7",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-09-21T14:19:24Z",
+      "side": 1,
+      "message": "nit: Could use a bit of info on why these were detected and why they\u0027re not a major issue so far. \"x86 has a strong memory ordering model which guarantees that changes are observed in the same order by other threads. However, C++ does not provide such guarantees unless specified using atomic operations\".",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 9,
+        "endChar": 13
+      },
+      "revId": "7d29dedf395eeab0fb53ae7ce17dee352ca62d0c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "91e930b9_3e7203ea",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-09-21T14:19:24Z",
+      "side": 1,
+      "message": "older versions of Android",
+      "range": {
+        "startLine": 14,
+        "startChar": 37,
+        "endLine": 14,
+        "endChar": 44
+      },
+      "revId": "7d29dedf395eeab0fb53ae7ce17dee352ca62d0c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "18105d7e_e9a707ab",
+        "filename": "src/Common/Thread.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-09-21T14:19:24Z",
+      "side": 1,
+      "message": "Unfortunately this doesn\u0027t work on Android JellyBean MR2, because __cplusplus is defined as 201103L (sigh). It looks like it\u0027s supported from GCC 4.4 (https://gcc.gnu.org/projects/cxx-status.html#cxx11), which you can check for with __GNUC__ and __GNUC_MINOR__",
+      "range": {
+        "startLine": 34,
+        "startChar": 0,
+        "endLine": 35,
+        "endChar": 17
+      },
+      "revId": "7d29dedf395eeab0fb53ae7ce17dee352ca62d0c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
