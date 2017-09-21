@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fe0826a9_4d1f6707",
+        "filename": "src/Common/Thread.hpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-09-21T17:02:17Z",
+      "side": 1,
+      "message": "Turns out this doesn\u0027t work, because Clang 3.1 reports it as supported. __has_include(\u003catomic\u003e) seems to do the trick.",
+      "range": {
+        "startLine": 34,
+        "startChar": 4,
+        "endLine": 34,
+        "endChar": 29
+      },
+      "revId": "8de19157baf0ec194c25e712223924b28500246b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c7b7890f_e128d239",
+        "filename": "src/Common/Thread.hpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-09-21T17:02:17Z",
+      "side": 1,
+      "message": "nit: I think this would be more readable if combined with the previous line.",
+      "range": {
+        "startLine": 34,
+        "startChar": 0,
+        "endLine": 34,
+        "endChar": 3
+      },
+      "revId": "8de19157baf0ec194c25e712223924b28500246b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "49036bbf_9e86f19a",
+        "filename": "src/Common/Thread.hpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-09-21T17:02:17Z",
+      "side": 1,
+      "message": "nit: Can be combined into #elif to avoid the double #endif at the end. Or...",
+      "range": {
+        "startLine": 38,
+        "startChar": 0,
+        "endLine": 39,
+        "endChar": 3
+      },
+      "revId": "8de19157baf0ec194c25e712223924b28500246b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e73f7593_f58b43d4",
+        "filename": "src/Common/Thread.hpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-09-21T17:02:17Z",
+      "side": 1,
+      "message": "nit: Having this twice makes it a bit confusing (if I was reading this without prior knowledge) and prone to bugs if only one of them is changed. Try doing all the conditional logic in one #if ?",
+      "range": {
+        "startLine": 40,
+        "startChar": 0,
+        "endLine": 41,
+        "endChar": 22
+      },
+      "revId": "8de19157baf0ec194c25e712223924b28500246b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
