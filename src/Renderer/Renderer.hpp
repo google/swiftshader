@@ -39,8 +39,6 @@ namespace sw
 
 	extern int batchSize;
 	extern int threadCount;
-	extern int unitCount;
-	extern int clusterCount;
 
 	enum TranscendentalPrecision
 	{
@@ -405,6 +403,8 @@ namespace sw
 			void resetTimers();
 		#endif
 
+		static int getClusterCount() { return clusterCount; }
+
 	private:
 		static void threadFunction(void *parameters);
 		void threadLoop(int threadIndex);
@@ -468,8 +468,11 @@ namespace sw
 		AtomicInt nextDraw;
 
 		Task taskQueue[32];
-		unsigned int qHead;
-		unsigned int qSize;
+		AtomicInt qHead;
+		AtomicInt qSize;
+
+		static AtomicInt unitCount;
+		static AtomicInt clusterCount;
 
 		MutexLock schedulerMutex;
 
