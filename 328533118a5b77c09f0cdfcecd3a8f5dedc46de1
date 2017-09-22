@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ae9d70e2_6a44e0d7",
+        "filename": "src/Renderer/QuadRasterizer.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-09-22T21:30:10Z",
+      "side": 1,
+      "message": "This is only used during Reactor routine generation, which happens on the main thread. So the risk of a data race must be coming from having multiple \u0027main\u0027 thread, which is when there are multiple GL contexts. Hence I think there must be a more elegant solution...",
+      "range": {
+        "startLine": 52,
+        "startChar": 31,
+        "endLine": 52,
+        "endChar": 46
+      },
+      "revId": "328533118a5b77c09f0cdfcecd3a8f5dedc46de1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
