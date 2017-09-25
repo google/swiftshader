@@ -85,8 +85,11 @@ namespace sw
 
 		if(!mit_shm)
 		{
-			buffer = new char[width * height * 4];
-			x_image = libX11->XCreateImage(x_display, visual, depth, ZPixmap, 0, buffer, width, height, 32, width * 4);
+			int bytes_per_line = width * 4;
+			int bytes_per_image = height * bytes_per_line;
+			buffer = new char[bytes_per_image];
+			memset(buffer, 0, bytes_per_image);
+			x_image = libX11->XCreateImage(x_display, visual, depth, ZPixmap, 0, buffer, width, height, 32, bytes_per_line);
 		}
 	}
 
