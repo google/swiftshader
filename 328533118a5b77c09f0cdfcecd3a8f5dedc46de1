@@ -22,6 +22,30 @@
       "revId": "328533118a5b77c09f0cdfcecd3a8f5dedc46de1",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3f879726_f4ae01f1",
+        "filename": "src/Renderer/QuadRasterizer.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-09-25T15:20:10Z",
+      "side": 1,
+      "message": "Never mind. I thought that this was where TSAN reported a thread race, but it\u0027s only changed because you made clusterCount a member of Renderer.",
+      "parentUuid": "ae9d70e2_6a44e0d7",
+      "range": {
+        "startLine": 52,
+        "startChar": 31,
+        "endLine": 52,
+        "endChar": 46
+      },
+      "revId": "328533118a5b77c09f0cdfcecd3a8f5dedc46de1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
