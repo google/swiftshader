@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c5c84a45_70022f92",
+        "filename": "third_party/llvm-subzero/include/llvm/Support/Allocator.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-09-26T21:26:28Z",
+      "side": 1,
+      "message": "Can we use a C++11 attribute for this? Also, has this already been handled in upstream LLVM? If not, we should land the patch upstream so that we don\u0027t have to redo this on an LLVM update. Alternatively: Subzero should eventually have no dependencies on LLVM, so if we can rewrite things on the Subzero side to not use Allocator, that would be great.",
+      "range": {
+        "startLine": 36,
+        "startChar": 0,
+        "endLine": 41,
+        "endChar": 6
+      },
+      "revId": "3dd9b6185203845065ca58cfaa304a1921ea9dc7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
