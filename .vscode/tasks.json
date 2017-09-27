@@ -17,7 +17,7 @@
     "showOutput": "always",
     "suppressTaskName": true,
     "options": {
-        "cwd": "${workspaceRoot}/build"
+        "cwd": "${workspaceRoot}/debug"
     },
     "tasks": [
         {
