@@ -181,7 +181,7 @@ void Texture::setImage(GLenum format, GLenum type, GLint unpackAlignment, const 
 
 void Texture::setCompressedImage(GLsizei imageSize, const void *pixels, Image *image)
 {
-	if(pixels && image)
+	if(pixels && image && (imageSize > 0)) // imageSize's correlation to width and height is already validated with egl::ComputeCompressedSize() at the API level
 	{
 		image->loadCompressedData(0, 0, 0, image->getWidth(), image->getHeight(), 1, imageSize, pixels);
 	}
@@ -232,7 +232,7 @@ void Texture::subImageCompressed(GLint xoffset, GLint yoffset, GLsizei width, GL
 		return error(GL_INVALID_OPERATION);
 	}
 
-	if(pixels)
+	if(pixels && (imageSize > 0)) // imageSize's correlation to width and height is already validated with egl::ComputeCompressedSize() at the API level
 	{
 		image->loadCompressedData(xoffset, yoffset, 0, width, height, 1, imageSize, pixels);
 	}
