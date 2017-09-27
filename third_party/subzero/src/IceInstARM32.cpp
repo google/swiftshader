@@ -999,15 +999,13 @@ template <> void InstARM32Vshr::emitIAS(const Cfg *Func) const {
   case IceType_v4i32: {
     const Type ElmtTy = typeElementType(DestTy);
     const auto *Imm6 = llvm::cast<ConstantInteger32>(getSrc(1));
-    assert(Sign != InstARM32::FS_None);
     switch (Sign) {
-    case InstARM32::FS_None: // defaults to unsigned.
-    case InstARM32::FS_Unsigned:
-      Asm->vshrquc(ElmtTy, Dest, getSrc(0), Imm6);
-      break;
     case InstARM32::FS_Signed:
-      Asm->vshrqic(ElmtTy, Dest, getSrc(0), Imm6);
+    case InstARM32::FS_Unsigned:
+      Asm->vshrqc(ElmtTy, Dest, getSrc(0), Imm6, Sign);
       break;
+    default:
+      assert(false && "Vshr requires signedness specification.");
     }
   } break;
   }

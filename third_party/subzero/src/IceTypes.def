@@ -79,7 +79,7 @@
   X(v8i16,         1, 1, 0, 1, 0, 1, v8i1)                                     \
   X(v4i32,         1, 1, 0, 1, 0, 1, v4i1)                                     \
   X(v4f32,         1, 0, 1, 0, 0, 1, v4i1)                                     \
-//#define X(tag, IsVec, IsInt, IsFloat, IsIntArith, IsBoolean, IsParam,        \
+//#define X(tag, IsVec, IsInt, IsFloat, IsIntArith, IsBoolean, IsParam,
 //          CompareResult)
 
 #endif // SUBZERO_SRC_ICETYPES_DEF

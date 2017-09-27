@@ -549,11 +549,8 @@ public:
   void vshlqc(Type ElmtTy, const Operand *OpQd, const Operand *OpQm,
               const ConstantInteger32 *OpQn);
 
-  void vshrqic(Type ElmtTy, const Operand *OpQd, const Operand *OpQm,
-               const ConstantInteger32 *OpQn);
-
-  void vshrquc(Type ElmtTy, const Operand *OpQd, const Operand *OpQm,
-               const ConstantInteger32 *OpQn);
+  void vshrqc(Type ElmtTy, const Operand *OpQd, const Operand *OpQm,
+              const ConstantInteger32 *OpQn, InstARM32::FPSign Sign);
 
   void vsqrtd(const Operand *OpDd, const Operand *OpDm, CondARM32::Cond Cond);
 
