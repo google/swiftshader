@@ -570,7 +570,7 @@ namespace sw
 	void SamplerCore::border(Short4 &mask, Float4 &coordinates)
 	{
 		Int4 border = As<Int4>(CmpLT(Abs(coordinates - Float4(0.5f)), Float4(0.5f)));
-		mask = As<Short4>(Int2(As<Int4>(Pack(border, border))));
+		mask = As<Short4>(Int2(As<Int4>(PackSigned(border, border))));
 	}
 
 	void SamplerCore::border(Int4 &mask, Float4 &coordinates)
@@ -2271,7 +2271,7 @@ namespace sw
 
 			// Clamp
 			convert -= Int4(0x00008000, 0x00008000, 0x00008000, 0x00008000);
-			convert = As<Int4>(Pack(convert, convert));
+			convert = As<Int4>(PackSigned(convert, convert));
 
 			return As<Short4>(Int2(convert)) + Short4(0x8000u);
 		}

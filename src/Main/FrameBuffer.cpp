@@ -253,10 +253,10 @@ namespace sw
 						case FORMAT_A16B16G16R16:
 							For(, x < width - 1, x += 2)
 							{
-								UShort4 c0 = As<UShort4>(Swizzle(*Pointer<Short4>(s + 0), 0xC6)) >> 8;
-								UShort4 c1 = As<UShort4>(Swizzle(*Pointer<Short4>(s + 8), 0xC6)) >> 8;
+								Short4 c0 = As<UShort4>(Swizzle(*Pointer<Short4>(s + 0), 0xC6)) >> 8;
+								Short4 c1 = As<UShort4>(Swizzle(*Pointer<Short4>(s + 8), 0xC6)) >> 8;
 
-								*Pointer<Int2>(d) = As<Int2>(Pack(c0, c1));
+								*Pointer<Int2>(d) = As<Int2>(PackUnsigned(c0, c1));
 
 								s += 2 * sBytes;
 								d += 2 * dBytes;
@@ -300,9 +300,9 @@ namespace sw
 								break;
 							case FORMAT_A16B16G16R16:
 								{
-									UShort4 c = As<UShort4>(Swizzle(*Pointer<Short4>(s), 0xC6)) >> 8;
+									Short4 c = As<UShort4>(Swizzle(*Pointer<Short4>(s), 0xC6)) >> 8;
 
-									*Pointer<Int>(d) = Int(As<Int2>(Pack(c, c)));
+									*Pointer<Int>(d) = Int(As<Int2>(PackUnsigned(c, c)));
 								}
 								break;
 							case FORMAT_R5G6B5:
@@ -361,10 +361,10 @@ namespace sw
 						case FORMAT_A16B16G16R16:
 							For(, x < width - 1, x += 2)
 							{
-								UShort4 c0 = *Pointer<UShort4>(s + 0) >> 8;
-								UShort4 c1 = *Pointer<UShort4>(s + 8) >> 8;
+								Short4 c0 = *Pointer<UShort4>(s + 0) >> 8;
+								Short4 c1 = *Pointer<UShort4>(s + 8) >> 8;
 
-								*Pointer<Int2>(d) = As<Int2>(Pack(c0, c1));
+								*Pointer<Int2>(d) = As<Int2>(PackUnsigned(c0, c1));
 
 								s += 2 * sBytes;
 								d += 2 * dBytes;
@@ -408,9 +408,9 @@ namespace sw
 								break;
 							case FORMAT_A16B16G16R16:
 								{
-									UShort4 c = *Pointer<UShort4>(s) >> 8;
+									Short4 c = *Pointer<UShort4>(s) >> 8;
 
-									*Pointer<Int>(d) = Int(As<Int2>(Pack(c, c)));
+									*Pointer<Int>(d) = Int(As<Int2>(PackUnsigned(c, c)));
 								}
 								break;
 							case FORMAT_R5G6B5:
@@ -503,8 +503,8 @@ namespace sw
 								break;
 							case FORMAT_A16B16G16R16:
 								{
-									UShort4 cc = *Pointer<UShort4>(s) >> 8;
-									Int c = Int(As<Int2>(Pack(cc, cc)));
+									Short4 cc = *Pointer<UShort4>(s) >> 8;
+									Int c = Int(As<Int2>(PackUnsigned(cc, cc)));
 
 									*Pointer<Short>(d) = Short((c & 0x00F80000) >> 19 |
 									                           (c & 0x0000FC00) >> 5 |
@@ -615,7 +615,7 @@ namespace sw
 		{
 		case FORMAT_X8R8G8B8:
 		case FORMAT_A8R8G8B8:
-			*Pointer<Byte4>(d) = Byte4(Pack(As<UShort4>(c1), As<UShort4>(c1)));
+			*Pointer<Byte4>(d) = Byte4(PackUnsigned(c1, c1));
 			break;
 		case FORMAT_X8B8G8R8:
 		case FORMAT_A8B8G8R8:
@@ -624,12 +624,12 @@ namespace sw
 			{
 				c1 = Swizzle(c1, 0xC6);
 
-				*Pointer<Byte4>(d) = Byte4(Pack(As<UShort4>(c1), As<UShort4>(c1)));
+				*Pointer<Byte4>(d) = Byte4(PackUnsigned(c1, c1));
 			}
 			break;
 		case FORMAT_R8G8B8:
 			{
-				Int c = Int(As<Int2>(Pack(As<UShort4>(c1), As<UShort4>(c1))));
+				Int c = Int(As<Int2>(PackUnsigned(c1, c1)));
 
 				*Pointer<Byte>(d + 0) = Byte(c >> 0);
 				*Pointer<Byte>(d + 1) = Byte(c >> 8);
@@ -638,7 +638,7 @@ namespace sw
 			break;
 		case FORMAT_R5G6B5:
 			{
-				Int c = Int(As<Int2>(Pack(As<UShort4>(c1), As<UShort4>(c1))));
+				Int c = Int(As<Int2>(PackUnsigned(c1, c1)));
 
 				*Pointer<Short>(d) = Short((c & 0x00F80000) >> 8 |
 				                           (c & 0x0000FC00) >> 5 |

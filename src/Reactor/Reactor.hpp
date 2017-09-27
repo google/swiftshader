@@ -797,7 +797,8 @@ namespace sw
 	RValue<Short4> SubSat(RValue<Short4> x, RValue<Short4> y);
 	RValue<Short4> MulHigh(RValue<Short4> x, RValue<Short4> y);
 	RValue<Int2> MulAdd(RValue<Short4> x, RValue<Short4> y);
-	RValue<SByte8> Pack(RValue<Short4> x, RValue<Short4> y);
+	RValue<SByte8> PackSigned(RValue<Short4> x, RValue<Short4> y);
+	RValue<Byte8> PackUnsigned(RValue<Short4> x, RValue<Short4> y);
 	RValue<Int2> UnpackLow(RValue<Short4> x, RValue<Short4> y);
 	RValue<Int2> UnpackHigh(RValue<Short4> x, RValue<Short4> y);
 	RValue<Short4> Swizzle(RValue<Short4> x, unsigned char select);
@@ -866,7 +867,6 @@ namespace sw
 	RValue<UShort4> SubSat(RValue<UShort4> x, RValue<UShort4> y);
 	RValue<UShort4> MulHigh(RValue<UShort4> x, RValue<UShort4> y);
 	RValue<UShort4> Average(RValue<UShort4> x, RValue<UShort4> y);
-	RValue<Byte8> Pack(RValue<UShort4> x, RValue<UShort4> y);
 
 	class Short8 : public LValue<Short8>
 	{
@@ -1831,7 +1831,8 @@ namespace sw
 	RValue<Int4> Max(RValue<Int4> x, RValue<Int4> y);
 	RValue<Int4> Min(RValue<Int4> x, RValue<Int4> y);
 	RValue<Int4> RoundInt(RValue<Float4> cast);
-	RValue<Short8> Pack(RValue<Int4> x, RValue<Int4> y);
+	RValue<Short8> PackSigned(RValue<Int4> x, RValue<Int4> y);
+	RValue<UShort8> PackUnsigned(RValue<Int4> x, RValue<Int4> y);
 	RValue<Int> Extract(RValue<Int4> val, int i);
 	RValue<Int4> Insert(RValue<Int4> val, RValue<Int> element, int i);
 	RValue<Int> SignMask(RValue<Int4> x);
@@ -1911,7 +1912,6 @@ namespace sw
 	RValue<UInt4> Max(RValue<UInt4> x, RValue<UInt4> y);
 	RValue<UInt4> Min(RValue<UInt4> x, RValue<UInt4> y);
 //	RValue<UInt4> RoundInt(RValue<Float4> cast);
-	RValue<UShort8> Pack(RValue<UInt4> x, RValue<UInt4> y);
 
 	class Float : public LValue<Float>
 	{

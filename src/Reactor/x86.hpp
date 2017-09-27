@@ -66,7 +66,7 @@ namespace sw
 		RValue<Short4> packssdw(RValue<Int2> x, RValue<Int2> y);
 		RValue<Short8> packssdw(RValue<Int4> x, RValue<Int4> y);
 		RValue<SByte8> packsswb(RValue<Short4> x, RValue<Short4> y);
-		RValue<Byte8> packuswb(RValue<UShort4> x, RValue<UShort4> y);
+		RValue<Byte8> packuswb(RValue<Short4> x, RValue<Short4> y);
 
 		RValue<UShort8> packusdw(RValue<Int4> x, RValue<Int4> y);
 

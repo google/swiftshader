@@ -1665,7 +1665,7 @@ namespace sw
 	void PixelPipeline::TEXKILL(Int cMask[4], Vector4s &src)
 	{
 		Short4 test = src.x | src.y | src.z;
-		Int kill = SignMask(Pack(test, test)) ^ 0x0000000F;
+		Int kill = SignMask(PackSigned(test, test)) ^ 0x0000000F;
 
 		for(unsigned int q = 0; q < state.multiSample; q++)
 		{

@@ -445,8 +445,8 @@ namespace sw
 		case FORMAT_A8R8G8B8:
 			if(writeRGBA)
 			{
-				UShort4 c0 = As<UShort4>(RoundShort4(c.zyxw));
-				*Pointer<Byte4>(element) = Byte4(Pack(c0, c0));
+				Short4 c0 = RoundShort4(c.zyxw);
+				*Pointer<Byte4>(element) = Byte4(PackUnsigned(c0, c0));
 			}
 			else
 			{
@@ -460,8 +460,8 @@ namespace sw
 		case FORMAT_SRGB8_A8:
 			if(writeRGBA)
 			{
-				UShort4 c0 = As<UShort4>(RoundShort4(c));
-				*Pointer<Byte4>(element) = Byte4(Pack(c0, c0));
+				Short4 c0 = RoundShort4(c);
+				*Pointer<Byte4>(element) = Byte4(PackUnsigned(c0, c0));
 			}
 			else
 			{
@@ -474,8 +474,8 @@ namespace sw
 		case FORMAT_X8R8G8B8:
 			if(writeRGBA)
 			{
-				UShort4 c0 = As<UShort4>(RoundShort4(c.zyxw)) | UShort4(0x0000, 0x0000, 0x0000, 0xFFFFu);
-				*Pointer<Byte4>(element) = Byte4(Pack(c0, c0));
+				Short4 c0 = RoundShort4(c.zyxw) | Short4(0x0000, 0x0000, 0x0000, 0xFFFFu);
+				*Pointer<Byte4>(element) = Byte4(PackUnsigned(c0, c0));
 			}
 			else
 			{
@@ -489,8 +489,8 @@ namespace sw
 		case FORMAT_SRGB8_X8:
 			if(writeRGBA)
 			{
-				UShort4 c0 = As<UShort4>(RoundShort4(c)) | UShort4(0x0000, 0x0000, 0x0000, 0xFFFFu);
-				*Pointer<Byte4>(element) = Byte4(Pack(c0, c0));
+				Short4 c0 = RoundShort4(c) | Short4(0x0000, 0x0000, 0x0000, 0xFFFFu);
+				*Pointer<Byte4>(element) = Byte4(PackUnsigned(c0, c0));
 			}
 			else
 			{
