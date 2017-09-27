@@ -63,8 +63,8 @@ namespace sw
 
 	int batchSize = 128;
 	int threadCount = 1;
-	AtomicInt Renderer::unitCount = 1;
-	AtomicInt Renderer::clusterCount = 1;
+	AtomicInt Renderer::unitCount(1);
+	AtomicInt Renderer::clusterCount(1);
 
 	TranscendentalPrecision logPrecision = ACCURATE;
 	TranscendentalPrecision expPrecision = ACCURATE;
