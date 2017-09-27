@@ -888,17 +888,32 @@ protected:
   void _veor(Variable *Dest, Variable *Src0, Variable *Src1) {
     Context.insert<InstARM32Veor>(Dest, Src0, Src1);
   }
+  void _vldr1d(Variable *Dest, OperandARM32Mem *Addr,
+               CondARM32::Cond Pred = CondARM32::AL) {
+    Context.insert<InstARM32Vldr1d>(Dest, Addr, Pred);
+  }
+  void _vldr1q(Variable *Dest, OperandARM32Mem *Addr,
+               CondARM32::Cond Pred = CondARM32::AL) {
+    Context.insert<InstARM32Vldr1q>(Dest, Addr, Pred);
+  }
   void _vmrs(CondARM32::Cond Pred = CondARM32::AL) {
     Context.insert<InstARM32Vmrs>(Pred);
   }
   void _vmla(Variable *Dest, Variable *Src0, Variable *Src1) {
     Context.insert<InstARM32Vmla>(Dest, Src0, Src1);
   }
+  void _vmlap(Variable *Dest, Variable *Src0, Variable *Src1) {
+    Context.insert<InstARM32Vmlap>(Dest, Src0, Src1);
+  }
   void _vmls(Variable *Dest, Variable *Src0, Variable *Src1) {
     Context.insert<InstARM32Vmls>(Dest, Src0, Src1);
   }
   void _vmul(Variable *Dest, Variable *Src0, Variable *Src1) {
     Context.insert<InstARM32Vmul>(Dest, Src0, Src1);
+  }
+  void _vmulh(Variable *Dest, Variable *Src0, Variable *Src1, bool Unsigned) {
+    Context.insert<InstARM32Vmulh>(Dest, Src0, Src1)
+        ->setSignType(Unsigned ? InstARM32::FS_Unsigned : InstARM32::FS_Signed);
   }
   void _vmvn(Variable *Dest, Variable *Src0) {
     Context.insert<InstARM32Vmvn>(Dest, Src0, CondARM32::AL);
@@ -913,6 +928,13 @@ protected:
   void _vqadd(Variable *Dest, Variable *Src0, Variable *Src1, bool Unsigned) {
     Context.insert<InstARM32Vqadd>(Dest, Src0, Src1)
         ->setSignType(Unsigned ? InstARM32::FS_Unsigned : InstARM32::FS_Signed);
+  }
+  void _vqmovn2(Variable *Dest, Variable *Src0, Variable *Src1, bool Unsigned,
+                bool Saturating) {
+    Context.insert<InstARM32Vqmovn2>(Dest, Src0, Src1)
+        ->setSignType(Saturating ? (Unsigned ? InstARM32::FS_Unsigned
+                                             : InstARM32::FS_Signed)
+                                 : InstARM32::FS_None);
   }
   void _vqsub(Variable *Dest, Variable *Src0, Variable *Src1, bool Unsigned) {
     Context.insert<InstARM32Vqsub>(Dest, Src0, Src1)
@@ -932,6 +954,14 @@ protected:
   void _vsqrt(Variable *Dest, Variable *Src,
               CondARM32::Cond Pred = CondARM32::AL) {
     Context.insert<InstARM32Vsqrt>(Dest, Src, Pred);
+  }
+  void _vstr1d(Variable *Value, OperandARM32Mem *Addr,
+               CondARM32::Cond Pred = CondARM32::AL) {
+    Context.insert<InstARM32Vstr1>(Value, Addr, Pred, 32);
+  }
+  void _vstr1q(Variable *Value, OperandARM32Mem *Addr,
+               CondARM32::Cond Pred = CondARM32::AL) {
+    Context.insert<InstARM32Vstr1>(Value, Addr, Pred, 64);
   }
   void _vsub(Variable *Dest, Variable *Src0, Variable *Src1) {
     Context.insert<InstARM32Vsub>(Dest, Src0, Src1);
