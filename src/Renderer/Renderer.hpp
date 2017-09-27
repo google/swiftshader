@@ -460,14 +460,21 @@ namespace sw
 		PixelProgress pixelProgress[16];
 		Task task[16];   // Current tasks for threads
 
-		enum {DRAW_COUNT = 16};   // Number of draw calls buffered
+		enum {
+			DRAW_COUNT = 16,   // Number of draw calls buffered (must be power of 2)
+			DRAW_COUNT_BITS = DRAW_COUNT - 1,
+		};
 		DrawCall *drawCall[DRAW_COUNT];
 		DrawCall *drawList[DRAW_COUNT];
 
 		AtomicInt currentDraw;
 		AtomicInt nextDraw;
 
-		Task taskQueue[32];
+		enum {
+			TASK_COUNT = 32,   // Size of the task queue (must be power of 2)
+			TASK_COUNT_BITS = TASK_COUNT - 1,
+		};
+		Task taskQueue[TASK_COUNT];
 		AtomicInt qHead;
 		AtomicInt qSize;
 

@@ -290,7 +290,7 @@ namespace sw
 					if(drawCall[i]->references == -1)
 					{
 						draw = drawCall[i];
-						drawList[nextDraw % DRAW_COUNT] = draw;
+						drawList[nextDraw & DRAW_COUNT_BITS] = draw;
 
 						break;
 					}
@@ -750,7 +750,7 @@ namespace sw
 								pixelProgress[cluster].executing = true;
 
 								// Commit to the task queue
-								qHead = (qHead + 1) % 32;
+								qHead = (qHead + 1) & TASK_COUNT_BITS;
 								qSize++;
 
 								break;
@@ -769,7 +769,7 @@ namespace sw
 
 		for(int unit = 0; unit < unitCount; unit++)
 		{
-			DrawCall *draw = drawList[currentDraw % DRAW_COUNT];
+			DrawCall *draw = drawList[currentDraw & DRAW_COUNT_BITS];
 
 			int primitive = draw->primitive;
 			int count = draw->count;
@@ -783,7 +783,7 @@ namespace sw
 					return;   // No more primitives to process
 				}
 
-				draw = drawList[currentDraw % DRAW_COUNT];
+				draw = drawList[currentDraw & DRAW_COUNT_BITS];
 			}
 
 			if(!primitiveProgress[unit].references)   // Task not already being executed and not still in use by a pixel unit
@@ -805,7 +805,7 @@ namespace sw
 				primitiveProgress[unit].references = -1;
 
 				// Commit to the task queue
-				qHead = (qHead + 1) % 32;
+				qHead = (qHead + 1) & TASK_COUNT_BITS;
 				qSize++;
 			}
 		}
@@ -824,7 +824,7 @@ namespace sw
 
 		if(qSize != 0)
 		{
-			task[threadIndex] = taskQueue[(qHead - qSize) % 32];
+			task[threadIndex] = taskQueue[(qHead - qSize) & TASK_COUNT_BITS];
 			qSize--;
 
 			if(curThreadsAwake != threadCount)
@@ -869,7 +869,7 @@ namespace sw
 
 				int input = primitiveProgress[unit].firstPrimitive;
 				int count = primitiveProgress[unit].primitiveCount;
-				DrawCall *draw = drawList[primitiveProgress[unit].drawCall % DRAW_COUNT];
+				DrawCall *draw = drawList[primitiveProgress[unit].drawCall & DRAW_COUNT_BITS];
 				int (Renderer::*setupPrimitives)(int batch, int count) = draw->setupPrimitives;
 
 				processPrimitiveVertices(unit, input, count, draw->count, threadIndex);
@@ -904,7 +904,7 @@ namespace sw
 				{
 					int cluster = task[threadIndex].pixelCluster;
 					Primitive *primitive = primitiveBatch[unit];
-					DrawCall *draw = drawList[pixelProgress[cluster].drawCall % DRAW_COUNT];
+					DrawCall *draw = drawList[pixelProgress[cluster].drawCall & DRAW_COUNT_BITS];
 					DrawData *data = draw->data;
 					PixelProcessor::RoutinePointer pixelRoutine = draw->pixelPointer;
 
@@ -938,7 +938,7 @@ namespace sw
 		int unit = pixelTask.primitiveUnit;
 		int cluster = pixelTask.pixelCluster;
 
-		DrawCall &draw = *drawList[primitiveProgress[unit].drawCall % DRAW_COUNT];
+		DrawCall &draw = *drawList[primitiveProgress[unit].drawCall & DRAW_COUNT_BITS];
 		DrawData &data = *draw.data;
 		int primitive = primitiveProgress[unit].firstPrimitive;
 		int count = primitiveProgress[unit].primitiveCount;
@@ -1075,7 +1075,7 @@ namespace sw
 	{
 		Triangle *triangle = triangleBatch[unit];
 		int primitiveDrawCall = primitiveProgress[unit].drawCall;
-		DrawCall *draw = drawList[primitiveDrawCall % DRAW_COUNT];
+		DrawCall *draw = drawList[primitiveDrawCall & DRAW_COUNT_BITS];
 		DrawData *data = draw->data;
 		VertexTask *task = vertexTask[thread];
 
@@ -1505,7 +1505,7 @@ namespace sw
 		Triangle *triangle = triangleBatch[unit];
 		Primitive *primitive = primitiveBatch[unit];
 
-		DrawCall &draw = *drawList[primitiveProgress[unit].drawCall % DRAW_COUNT];
+		DrawCall &draw = *drawList[primitiveProgress[unit].drawCall & DRAW_COUNT_BITS];
 		SetupProcessor::State &state = draw.setupState;
 		const SetupProcessor::RoutinePointer &setupRoutine = draw.setupPointer;
 
@@ -1551,7 +1551,7 @@ namespace sw
 		Primitive *primitive = primitiveBatch[unit];
 		int visible = 0;
 
-		DrawCall &draw = *drawList[primitiveProgress[unit].drawCall % DRAW_COUNT];
+		DrawCall &draw = *drawList[primitiveProgress[unit].drawCall & DRAW_COUNT_BITS];
 		SetupProcessor::State &state = draw.setupState;
 
 		const Vertex &v0 = triangle[0].v0;
@@ -1608,7 +1608,7 @@ namespace sw
 		Primitive *primitive = primitiveBatch[unit];
 		int visible = 0;
 
-		DrawCall &draw = *drawList[primitiveProgress[unit].drawCall % DRAW_COUNT];
+		DrawCall &draw = *drawList[primitiveProgress[unit].drawCall & DRAW_COUNT_BITS];
 		SetupProcessor::State &state = draw.setupState;
 
 		const Vertex &v0 = triangle[0].v0;
@@ -1652,7 +1652,7 @@ namespace sw
 		Primitive *primitive = primitiveBatch[unit];
 		int visible = 0;
 
-		DrawCall &draw = *drawList[primitiveProgress[unit].drawCall % DRAW_COUNT];
+		DrawCall &draw = *drawList[primitiveProgress[unit].drawCall & DRAW_COUNT_BITS];
 		SetupProcessor::State &state = draw.setupState;
 
 		int ms = state.multiSample;
@@ -1677,7 +1677,7 @@ namespace sw
 		Primitive *primitive = primitiveBatch[unit];
 		int visible = 0;
 
-		DrawCall &draw = *drawList[primitiveProgress[unit].drawCall % DRAW_COUNT];
+		DrawCall &draw = *drawList[primitiveProgress[unit].drawCall & DRAW_COUNT_BITS];
 		SetupProcessor::State &state = draw.setupState;
 
 		int ms = state.multiSample;
