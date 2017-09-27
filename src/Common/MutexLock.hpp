@@ -57,7 +57,7 @@ namespace sw
 	};
 }
 
-#else   // !__ANDROID__
+#else   // !__linux__
 
 #include <atomic>
 

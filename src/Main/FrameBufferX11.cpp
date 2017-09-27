@@ -148,24 +148,30 @@ namespace sw
 		if(false)   // Draw the framerate on screen
 		{
 			static double fpsTime = sw::Timer::seconds();
-			static int framesSec = 0;
+			static int frames = -1;
 
 			double time = sw::Timer::seconds();
 			double delta = time - fpsTime;
-			framesSec++;
+			frames++;
 
 			static double FPS = 0.0;
+			static double maxFPS = 0.0;
 
 			if(delta > 1.0)
 			{
-				FPS = framesSec / delta;
+				FPS = frames / delta;
 
 				fpsTime = time;
-				framesSec = 0;
+				frames = 0;
+
+				if(FPS > maxFPS)
+				{
+					maxFPS = FPS;
+				}
 			}
 
 			char string[256];
-			sprintf(string, "FPS: %.1f", FPS);
+			sprintf(string, "FPS: %.2f (max: %.2f)", FPS, maxFPS);
 			libX11->XDrawString(x_display, x_window, x_gc, 50, 50, string, strlen(string));
 		}
 	}
