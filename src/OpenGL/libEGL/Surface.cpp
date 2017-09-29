@@ -278,8 +278,7 @@ bool WindowSurface::checkForResize()
 		RECT client;
 		if(!GetClientRect(window, &client))
 		{
-			ASSERT(false);
-			return false;
+			return error(EGL_BAD_NATIVE_WINDOW, false);
 		}
 
 		int windowWidth = client.right - client.left;
