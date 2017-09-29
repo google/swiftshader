@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e97ca637_7bf3b549",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-09-29T13:52:43Z",
+      "side": 1,
+      "message": "Bug id",
+      "revId": "6bff37ab450a2cfb22c352a332849c1b7b7b1b44",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7e31ad09_5a49d733",
+        "filename": "src/OpenGL/common/Image.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1731,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-09-29T13:52:43Z",
+      "side": 1,
+      "message": "I\u0027d like to better understand the root cause of this issue. Is width\u003d\u003d0, or is the format not handled correctly by ComputeCompressedPitch()? In the former case, we should probably avoid calling this low-level function in the first place, handling the no-op at a higher level. In the latter case, there\u0027s probably something else that needs to be fixed. Either way, a division by zero is often just a symptom, and handling it by jumping over it seems like a symptomatic fix which may mask another issue which we\u0027ll run into again.",
+      "range": {
+        "startLine": 1731,
+        "startChar": 2,
+        "endLine": 1731,
+        "endChar": 20
+      },
+      "revId": "6bff37ab450a2cfb22c352a332849c1b7b7b1b44",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
