@@ -660,6 +660,119 @@ TEST(SubzeroReactorTest, VectorCompare)
 	delete routine;
 }
 
+TEST(SubzeroReactorTest, SaturatedAddAndSubtract)
+{
+	Routine *routine = nullptr;
+
+	{
+		Function<Int(Pointer<Byte>)> function;
+		{
+			Pointer<Byte> out = function.Arg<0>();
+
+			*Pointer<Byte8>(out + 8 * 0) =
+				AddSat(Byte8(1, 2, 3, 4, 5, 6, 7, 8),
+				       Byte8(7, 6, 5, 4, 3, 2, 1, 0));
+			*Pointer<Byte8>(out + 8 * 1) =
+				AddSat(Byte8(0xFE, 0xFE, 0xFE, 0xFE, 0xFE, 0xFE, 0xFE, 0xFE),
+				       Byte8(7, 6, 5, 4, 3, 2, 1, 0));
+			*Pointer<Byte8>(out + 8 * 2) =
+				SubSat(Byte8(1, 2, 3, 4, 5, 6, 7, 8),
+				       Byte8(7, 6, 5, 4, 3, 2, 1, 0));
+
+			*Pointer<SByte8>(out + 8 * 3) =
+				AddSat(SByte8(1, 2, 3, 4, 5, 6, 7, 8),
+				       SByte8(7, 6, 5, 4, 3, 2, 1, 0));
+			*Pointer<SByte8>(out + 8 * 4) =
+				AddSat(SByte8(0x7E, 0x7E, 0x7E, 0x7E, 0x7E, 0x7E, 0x7E, 0x7E),
+				       SByte8(7, 6, 5, 4, 3, 2, 1, 0));
+			*Pointer<SByte8>(out + 8 * 5) =
+				AddSat(SByte8(0x81, 0x82, 0x83, 0x84, 0x85, 0x86, 0x87, 0x88),
+				       SByte8(-7, -6, -5, -4, -3, -2, -1, -0));
+			*Pointer<SByte8>(out + 8 * 6) =
+				SubSat(SByte8(0x81, 0x82, 0x83, 0x84, 0x85, 0x86, 0x87, 0x88),
+				       SByte8(7, 6, 5, 4, 3, 2, 1, 0));
+
+			*Pointer<Short4>(out + 8 * 7) =
+				AddSat(Short4(1, 2, 3, 4), Short4(3, 2, 1, 0));
+			*Pointer<Short4>(out + 8 * 8) =
+				AddSat(Short4(0x7FFE, 0x7FFE, 0x7FFE, 0x7FFE),
+				       Short4(3, 2, 1, 0));
+			*Pointer<Short4>(out + 8 * 9) =
+				AddSat(Short4(0x8001, 0x8002, 0x8003, 0x8004),
+				       Short4(-3, -2, -1, -0));
+			*Pointer<Short4>(out + 8 * 10) =
+				SubSat(Short4(0x8001, 0x8002, 0x8003, 0x8004),
+				       Short4(3, 2, 1, 0));
+
+			*Pointer<UShort4>(out + 8 * 11) =
+				AddSat(UShort4(1, 2, 3, 4), UShort4(3, 2, 1, 0));
+			*Pointer<UShort4>(out + 8 * 12) =
+				AddSat(UShort4(0xFFFE, 0xFFFE, 0xFFFE, 0xFFFE),
+				       UShort4(3, 2, 1, 0));
+			*Pointer<UShort4>(out + 8 * 13) =
+				SubSat(UShort4(1, 2, 3, 4), UShort4(3, 2, 1, 0));
+
+			Return(0);
+		}
+
+		routine = function(L"one");
+
+		if(routine)
+		{
+			int out[14][2];
+
+			memset(&out, 0, sizeof(out));
+
+			int(*callable)(void*) = (int(*)(void*))routine->getEntry();
+			callable(&out);
+
+			EXPECT_EQ(out[0][0], 0x08080808);
+			EXPECT_EQ(out[0][1], 0x08080808);
+
+			EXPECT_EQ(out[1][0], 0xFFFFFFFF);
+			EXPECT_EQ(out[1][1], 0xFEFFFFFF);
+
+			EXPECT_EQ(out[2][0], 0x00000000);
+			EXPECT_EQ(out[2][1], 0x08060402);
+
+			EXPECT_EQ(out[3][0], 0x08080808);
+			EXPECT_EQ(out[3][1], 0x08080808);
+
+			EXPECT_EQ(out[4][0], 0x7F7F7F7F);
+			EXPECT_EQ(out[4][1], 0x7E7F7F7F);
+
+			EXPECT_EQ(out[5][0], 0x80808080);
+			EXPECT_EQ(out[5][1], 0x88868482);
+
+			EXPECT_EQ(out[6][0], 0x80808080);
+			EXPECT_EQ(out[6][1], 0x88868482);
+
+			EXPECT_EQ(out[7][0], 0x00040004);
+			EXPECT_EQ(out[7][1], 0x00040004);
+
+			EXPECT_EQ(out[8][0], 0x7FFF7FFF);
+			EXPECT_EQ(out[8][1], 0x7FFE7FFF);
+
+			EXPECT_EQ(out[9][0], 0x80008000);
+			EXPECT_EQ(out[9][1], 0x80048002);
+
+			EXPECT_EQ(out[10][0], 0x80008000);
+			EXPECT_EQ(out[10][1], 0x80048002);
+
+			EXPECT_EQ(out[11][0], 0x00040004);
+			EXPECT_EQ(out[11][1], 0x00040004);
+
+			EXPECT_EQ(out[12][0], 0xFFFFFFFF);
+			EXPECT_EQ(out[12][1], 0xFFFEFFFF);
+
+			EXPECT_EQ(out[13][0], 0x00000000);
+			EXPECT_EQ(out[13][1], 0x00040002);
+		}
+	}
+
+	delete routine;
+}
+
 int main(int argc, char **argv)
 {
 	::testing::InitGoogleTest(&argc, argv);
