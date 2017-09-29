@@ -820,6 +820,68 @@ TEST(SubzeroReactorTest, Unpack)
 	delete routine;
 }
 
+TEST(SubzeroReactorTest, Pack)
+{
+	Routine *routine = nullptr;
+
+	{
+		Function<Int(Pointer<Byte>)> function;
+		{
+			Pointer<Byte> out = function.Arg<0>();
+
+			*Pointer<SByte8>(out + 8 * 0) =
+				PackSigned(Short4(-1, -2, 1, 2),
+					   Short4(3, 4, -3, -4));
+
+			*Pointer<Byte8>(out + 8 * 1) =
+				PackUnsigned(Short4(-1, -2, 1, 2),
+					     Short4(3, 4, -3, -4));
+
+			*Pointer<Short8>(out + 8 * 2) =
+				PackSigned(Int4(-1, -2, 1, 2),
+					   Int4(3, 4, -3, -4));
+
+			*Pointer<UShort8>(out + 8 * 4) =
+				PackUnsigned(Int4(-1, -2, 1, 2),
+					     Int4(3, 4, -3, -4));
+
+			Return(0);
+		}
+
+		routine = function(L"one");
+
+		if(routine)
+		{
+			int out[6][2];
+
+			memset(&out, 0, sizeof(out));
+
+			int(*callable)(void*) = (int(*)(void*))routine->getEntry();
+			callable(&out);
+
+			EXPECT_EQ(out[0][0], 0x0201FEFF);
+			EXPECT_EQ(out[0][1], 0xFCFD0403);
+
+			EXPECT_EQ(out[1][0], 0x02010000);
+			EXPECT_EQ(out[1][1], 0x00000403);
+
+			EXPECT_EQ(out[2][0], 0xFFFEFFFF);
+			EXPECT_EQ(out[2][1], 0x00020001);
+
+			EXPECT_EQ(out[3][0], 0x00040003);
+			EXPECT_EQ(out[3][1], 0xFFFCFFFD);
+
+			EXPECT_EQ(out[4][0], 0x00000000);
+			EXPECT_EQ(out[4][1], 0x00020001);
+
+			EXPECT_EQ(out[5][0], 0x00040003);
+			EXPECT_EQ(out[5][1], 0x00000000);
+		}
+	}
+
+	delete routine;
+}
+
 int main(int argc, char **argv)
 {
 	::testing::InitGoogleTest(&argc, argv);
