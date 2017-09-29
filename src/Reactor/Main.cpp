@@ -773,6 +773,53 @@ TEST(SubzeroReactorTest, SaturatedAddAndSubtract)
 	delete routine;
 }
 
+TEST(SubzeroReactorTest, Unpack)
+{
+	Routine *routine = nullptr;
+
+	{
+		Function<Int(Pointer<Byte>,Pointer<Byte>)> function;
+		{
+			Pointer<Byte> in = function.Arg<0>();
+			Pointer<Byte> out = function.Arg<1>();
+
+			Byte4 test_byte_a = *Pointer<Byte4>(in + 4 * 0);
+			Byte4 test_byte_b = *Pointer<Byte4>(in + 4 * 1);
+
+			*Pointer<Short4>(out + 8 * 0) =
+				Unpack(test_byte_a, test_byte_b);
+
+			*Pointer<Short4>(out + 8 * 1) = Unpack(test_byte_a);
+
+			Return(0);
+		}
+
+		routine = function(L"one");
+
+		if(routine)
+		{
+			int in[1][2];
+			int out[2][2];
+
+			memset(&out, 0, sizeof(out));
+
+			in[0][0] = 0xABCDEF12;
+			in[0][1] = 0x34567890;
+
+			int(*callable)(void*,void*) = (int(*)(void*,void*))routine->getEntry();
+			callable(&in, &out);
+
+			EXPECT_EQ(out[0][0], 0x78EF9012);
+			EXPECT_EQ(out[0][1], 0x34AB56CD);
+
+			EXPECT_EQ(out[1][0], 0xEFEF1212);
+			EXPECT_EQ(out[1][1], 0xABABCDCD);
+		}
+	}
+
+	delete routine;
+}
+
 int main(int argc, char **argv)
 {
 	::testing::InitGoogleTest(&argc, argv);
