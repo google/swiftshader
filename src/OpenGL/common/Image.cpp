@@ -663,10 +663,19 @@ namespace egl
 				return sw::FORMAT_G32R32F;
 			case GL_RGB:
 			case GL_RGB32F:
+			case GL_R11F_G11F_B10F:
+			case GL_RGB9_E5:
 				return sw::FORMAT_X32B32G32R32F;
 			case GL_RGBA:
 			case GL_RGBA32F:
 				return sw::FORMAT_A32B32G32R32F;
+			case GL_R16F:
+				return sw::FORMAT_R16F;
+			case GL_RG16F:
+				return sw::FORMAT_G16R16F;
+			case GL_RGB16F:
+			case GL_RGBA16F:
+				return sw::FORMAT_A16B16G16R16F;
 			case GL_DEPTH_COMPONENT:
 			case GL_DEPTH_COMPONENT32F:
 				return sw::FORMAT_D32F;
@@ -697,6 +706,9 @@ namespace egl
 			case GL_RGBA:
 			case GL_RGBA16F:
 				return sw::FORMAT_A16B16G16R16F;
+			case GL_R11F_G11F_B10F:
+			case GL_RGB9_E5:
+				return sw::FORMAT_X32B32G32R32F;
 			default:
 				UNREACHABLE(format);
 			}
@@ -1062,6 +1074,8 @@ namespace egl
 			case GL_RGB32F:          return sizeof(float) * 3;
 			case GL_RGBA:            return sizeof(float) * 4;
 			case GL_RGBA32F:         return sizeof(float) * 4;
+			case GL_R11F_G11F_B10F:  return sizeof(int);
+			case GL_RGB9_E5:         return sizeof(int);
 			default: UNREACHABLE(format);
 			}
 			break;
@@ -1083,6 +1097,8 @@ namespace egl
 			case GL_RGB16F:          return sizeof(unsigned short) * 3;
 			case GL_RGBA:            return sizeof(unsigned short) * 4;
 			case GL_RGBA16F:         return sizeof(unsigned short) * 4;
+			case GL_R11F_G11F_B10F:  return sizeof(int);
+			case GL_RGB9_E5:         return sizeof(int);
 			default: UNREACHABLE(format);
 			}
 			break;
@@ -1494,6 +1510,12 @@ namespace egl
 					case GL_RGBA32F:
 						LoadImageData<Bytes_16>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getHeight(), input, buffer);
 						break;
+					case GL_R11F_G11F_B10F:
+						LoadImageData<R11G11B10F>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getHeight(), input, buffer);
+						break;
+					case GL_RGB9_E5:
+						LoadImageData<RGB9E5>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getHeight(), input, buffer);
+						break;
 					case GL_DEPTH_COMPONENT:
 					case GL_DEPTH_COMPONENT32F:
 						LoadImageData<Bytes_4>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getHeight(), input, buffer);
@@ -1532,6 +1554,12 @@ namespace egl
 					case GL_RGBA:
 					case GL_RGBA16F:
 						LoadImageData<Bytes_8>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getHeight(), input, buffer);
+						break;
+					case GL_R11F_G11F_B10F:
+						LoadImageData<R11G11B10F>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getHeight(), input, buffer);
+						break;
+					case GL_RGB9_E5:
+						LoadImageData<RGB9E5>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getHeight(), input, buffer);
 						break;
 					default: UNREACHABLE(format);
 					}
