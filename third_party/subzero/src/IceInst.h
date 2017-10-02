@@ -997,35 +997,45 @@ public:
     return Indexes[Pos];
   }
 
-  inline bool indexesAre(int32_t i0, int32_t i1, int32_t i2, int32_t i3,
-                         int32_t i4, int32_t i5, int32_t i6, int32_t i7) const {
+  int32_t getIndexValue(SizeT Pos) const { return getIndex(Pos)->getValue(); }
+
+  bool indexesAre(int32_t i0, int32_t i1, int32_t i2, int32_t i3) const {
+    static constexpr SizeT ExpectedNumElements = 4;
+    assert(ExpectedNumElements == getNumIndexes());
+    (void)ExpectedNumElements;
+
+    return getIndexValue(0) == i0 && getIndexValue(1) == i1 &&
+           getIndexValue(2) == i2 && getIndexValue(3) == i3;
+  }
+
+  bool indexesAre(int32_t i0, int32_t i1, int32_t i2, int32_t i3, int32_t i4,
+                  int32_t i5, int32_t i6, int32_t i7) const {
     static constexpr SizeT ExpectedNumElements = 8;
     assert(ExpectedNumElements == getNumIndexes());
     (void)ExpectedNumElements;
 
-    return getIndex(0)->getValue() == i0 && getIndex(1)->getValue() == i1 &&
-           getIndex(2)->getValue() == i2 && getIndex(3)->getValue() == i3 &&
-           getIndex(4)->getValue() == i4 && getIndex(5)->getValue() == i5 &&
-           getIndex(6)->getValue() == i6 && getIndex(7)->getValue() == i7;
+    return getIndexValue(0) == i0 && getIndexValue(1) == i1 &&
+           getIndexValue(2) == i2 && getIndexValue(3) == i3 &&
+           getIndexValue(4) == i4 && getIndexValue(5) == i5 &&
+           getIndexValue(6) == i6 && getIndexValue(7) == i7;
   }
 
-  inline bool indexesAre(int32_t i0, int32_t i1, int32_t i2, int32_t i3,
-                         int32_t i4, int32_t i5, int32_t i6, int32_t i7,
-                         int32_t i8, int32_t i9, int32_t i10, int32_t i11,
-                         int32_t i12, int32_t i13, int32_t i14,
-                         int32_t i15) const {
+  bool indexesAre(int32_t i0, int32_t i1, int32_t i2, int32_t i3, int32_t i4,
+                  int32_t i5, int32_t i6, int32_t i7, int32_t i8, int32_t i9,
+                  int32_t i10, int32_t i11, int32_t i12, int32_t i13,
+                  int32_t i14, int32_t i15) const {
     static constexpr SizeT ExpectedNumElements = 16;
     assert(ExpectedNumElements == getNumIndexes());
     (void)ExpectedNumElements;
 
-    return getIndex(0)->getValue() == i0 && getIndex(1)->getValue() == i1 &&
-           getIndex(2)->getValue() == i2 && getIndex(3)->getValue() == i3 &&
-           getIndex(4)->getValue() == i4 && getIndex(5)->getValue() == i5 &&
-           getIndex(6)->getValue() == i6 && getIndex(7)->getValue() == i7 &&
-           getIndex(8)->getValue() == i8 && getIndex(9)->getValue() == i9 &&
-           getIndex(10)->getValue() == i10 && getIndex(11)->getValue() == i11 &&
-           getIndex(12)->getValue() == i12 && getIndex(13)->getValue() == i13 &&
-           getIndex(14)->getValue() == i14 && getIndex(15)->getValue() == i15;
+    return getIndexValue(0) == i0 && getIndexValue(1) == i1 &&
+           getIndexValue(2) == i2 && getIndexValue(3) == i3 &&
+           getIndexValue(4) == i4 && getIndexValue(5) == i5 &&
+           getIndexValue(6) == i6 && getIndexValue(7) == i7 &&
+           getIndexValue(8) == i8 && getIndexValue(9) == i9 &&
+           getIndexValue(10) == i10 && getIndexValue(11) == i11 &&
+           getIndexValue(12) == i12 && getIndexValue(13) == i13 &&
+           getIndexValue(14) == i14 && getIndexValue(15) == i15;
   }
 
   bool isMemoryWrite() const override { return false; }

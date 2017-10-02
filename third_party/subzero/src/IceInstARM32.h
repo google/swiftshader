@@ -434,12 +434,17 @@ public:
     Vcmp,
     Vcvt,
     Vdiv,
+    Vdup,
     Veor,
     Vldr1d,
     Vldr1q,
     Vmla,
     Vmlap,
     Vmls,
+    Vmovl,
+    Vmovh,
+    Vmovhl,
+    Vmovlh,
     Vmrs,
     Vmul,
     Vmulh,
@@ -453,7 +458,8 @@ public:
     Vshr,
     Vsqrt,
     Vstr1,
-    Vsub
+    Vsub,
+    Vzip
   };
 
   static constexpr size_t InstSize = sizeof(uint32_t);
@@ -1020,6 +1026,10 @@ using InstARM32Vdiv = InstARM32ThreeAddrFP<InstARM32::Vdiv>;
 using InstARM32Veor = InstARM32ThreeAddrFP<InstARM32::Veor>;
 using InstARM32Vmla = InstARM32FourAddrFP<InstARM32::Vmla>;
 using InstARM32Vmls = InstARM32FourAddrFP<InstARM32::Vmls>;
+using InstARM32Vmovl = InstARM32ThreeAddrFP<InstARM32::Vmovl>;
+using InstARM32Vmovh = InstARM32ThreeAddrFP<InstARM32::Vmovh>;
+using InstARM32Vmovhl = InstARM32ThreeAddrFP<InstARM32::Vmovhl>;
+using InstARM32Vmovlh = InstARM32ThreeAddrFP<InstARM32::Vmovlh>;
 using InstARM32Vmul = InstARM32ThreeAddrFP<InstARM32::Vmul>;
 using InstARM32Vmvn = InstARM32UnaryopFP<InstARM32::Vmvn>;
 using InstARM32Vneg = InstARM32UnaryopSignAwareFP<InstARM32::Vneg>;
@@ -1036,6 +1046,7 @@ using InstARM32Ldr = InstARM32LoadBase<InstARM32::Ldr>;
 using InstARM32Ldrex = InstARM32LoadBase<InstARM32::Ldrex>;
 using InstARM32Vldr1d = InstARM32LoadBase<InstARM32::Vldr1d>;
 using InstARM32Vldr1q = InstARM32LoadBase<InstARM32::Vldr1q>;
+using InstARM32Vzip = InstARM32ThreeAddrFP<InstARM32::Vzip>;
 /// MovT leaves the bottom bits alone so dest is also a source. This helps
 /// indicate that a previous MovW setting dest is not dead code.
 using InstARM32Movt = InstARM32TwoAddrGPR<InstARM32::Movt>;
@@ -1372,6 +1383,30 @@ private:
                  CondARM32::Cond Predicate, SizeT Size);
 
   SizeT Size;
+};
+
+/// Vector element duplication/replication instruction.
+class InstARM32Vdup final : public InstARM32Pred {
+  InstARM32Vdup() = delete;
+  InstARM32Vdup(const InstARM32Vdup &) = delete;
+  InstARM32Vdup &operator=(const InstARM32Vdup &) = delete;
+
+public:
+  /// Value must be a register.
+  static InstARM32Vdup *create(Cfg *Func, Variable *Dest, Variable *Src,
+                               IValueT Idx) {
+    return new (Func->allocate<InstARM32Vdup>())
+        InstARM32Vdup(Func, Dest, Src, Idx);
+  }
+  void emit(const Cfg *Func) const override;
+  void emitIAS(const Cfg *Func) const override;
+  void dump(const Cfg *Func) const override;
+  static bool classof(const Inst *Instr) { return isClassof(Instr, Vdup); }
+
+private:
+  InstARM32Vdup(Cfg *Func, Variable *Dest, Variable *Src, IValueT Idx);
+
+  const IValueT Idx;
 };
 
 class InstARM32Trap : public InstARM32 {

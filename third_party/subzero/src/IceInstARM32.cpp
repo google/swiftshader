@@ -903,6 +903,82 @@ template <> void InstARM32Vmvn::emitIAS(const Cfg *Func) const {
   }
 }
 
+template <> void InstARM32Vmovl::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  const Variable *Dest = getDest();
+  switch (Dest->getType()) {
+  default:
+    llvm::report_fatal_error("Vmovlq not defined on type " +
+                             typeStdString(Dest->getType()));
+  case IceType_v4i1:
+  case IceType_v8i1:
+  case IceType_v16i1:
+  case IceType_v16i8:
+  case IceType_v8i16:
+  case IceType_v4i32:
+  case IceType_v4f32: {
+    Asm->vmovlq(Dest, getSrc(0), getSrc(1));
+  } break;
+  }
+}
+
+template <> void InstARM32Vmovh::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  const Variable *Dest = getDest();
+  switch (Dest->getType()) {
+  default:
+    llvm::report_fatal_error("Vmovhq not defined on type " +
+                             typeStdString(Dest->getType()));
+  case IceType_v4i1:
+  case IceType_v8i1:
+  case IceType_v16i1:
+  case IceType_v16i8:
+  case IceType_v8i16:
+  case IceType_v4i32:
+  case IceType_v4f32: {
+    Asm->vmovhq(Dest, getSrc(0), getSrc(1));
+  } break;
+  }
+}
+
+template <> void InstARM32Vmovhl::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  const Variable *Dest = getDest();
+  switch (Dest->getType()) {
+  default:
+    llvm::report_fatal_error("Vmovhlq not defined on type " +
+                             typeStdString(Dest->getType()));
+  case IceType_v4i1:
+  case IceType_v8i1:
+  case IceType_v16i1:
+  case IceType_v16i8:
+  case IceType_v8i16:
+  case IceType_v4i32:
+  case IceType_v4f32: {
+    Asm->vmovhlq(Dest, getSrc(0), getSrc(1));
+  } break;
+  }
+}
+
+template <> void InstARM32Vmovlh::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  const Variable *Dest = getDest();
+  switch (Dest->getType()) {
+  default:
+    llvm::report_fatal_error("Vmovlhq not defined on type " +
+                             typeStdString(Dest->getType()));
+  case IceType_v4i1:
+  case IceType_v8i1:
+  case IceType_v16i1:
+  case IceType_v16i8:
+  case IceType_v8i16:
+  case IceType_v4i32:
+  case IceType_v4f32: {
+    Asm->vmovlhq(Dest, getSrc(0), getSrc(1));
+  } break;
+  }
+}
+
 template <> void InstARM32Vneg::emitIAS(const Cfg *Func) const {
   auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   const Variable *Dest = getDest();
@@ -1168,6 +1244,15 @@ template <> void InstARM32Vmlap::emitIAS(const Cfg *Func) const {
   assert(!Asm->needsTextFixup());
 }
 
+template <> void InstARM32Vzip::emitIAS(const Cfg *Func) const {
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  const Operand *Src0 = getSrc(0);
+  const Operand *Src1 = getSrc(1);
+  Type DestTy = Dest->getType();
+  Asm->vzip(typeElementType(DestTy), Dest, Src0, Src1);
+  assert(!Asm->needsTextFixup());
+}
+
 template <> void InstARM32Vmul::emitIAS(const Cfg *Func) const {
   auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
   const Variable *Dest = getDest();
@@ -1423,6 +1508,12 @@ InstARM32Vstr1::InstARM32Vstr1(Cfg *Func, Variable *Value, OperandARM32Mem *Mem,
   addSource(Value);
   addSource(Mem);
   this->Size = Size;
+}
+
+InstARM32Vdup::InstARM32Vdup(Cfg *Func, Variable *Dest, Variable *Src,
+                             IValueT Idx)
+    : InstARM32Pred(Func, InstARM32::Vdup, 1, Dest, CondARM32::AL), Idx(Idx) {
+  addSource(Src);
 }
 
 InstARM32Trap::InstARM32Trap(Cfg *Func)
@@ -1775,6 +1866,10 @@ template <> const char *InstARM32Vmla::Opcode = "vmla";
 template <> const char *InstARM32Vmls::Opcode = "vmls";
 template <> const char *InstARM32Vmul::Opcode = "vmul";
 template <> const char *InstARM32Vmvn::Opcode = "vmvn";
+template <> const char *InstARM32Vmovl::Opcode = "vmovl";
+template <> const char *InstARM32Vmovh::Opcode = "vmovh";
+template <> const char *InstARM32Vmovhl::Opcode = "vmovhl";
+template <> const char *InstARM32Vmovlh::Opcode = "vmovlh";
 template <> const char *InstARM32Vorr::Opcode = "vorr";
 template <> const char *InstARM32UnaryopFP<InstARM32::Vneg>::Opcode = "vneg";
 template <> const char *InstARM32ThreeAddrFP<InstARM32::Vshl>::Opcode = "vshl";
@@ -1790,6 +1885,7 @@ template <>
 const char *InstARM32ThreeAddrFP<InstARM32::Vmulh>::Opcode = "vmulh";
 template <>
 const char *InstARM32ThreeAddrFP<InstARM32::Vmlap>::Opcode = "vmlap";
+template <> const char *InstARM32ThreeAddrFP<InstARM32::Vzip>::Opcode = "vzip";
 // Four-addr ops
 template <> const char *InstARM32Mla::Opcode = "mla";
 template <> const char *InstARM32Mls::Opcode = "mls";
@@ -2805,6 +2901,43 @@ void InstARM32Vstr1::dump(const Cfg *Func) const {
   getSrc(0)->dump(Func);
 }
 
+void InstARM32Vdup::emit(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+  Ostream &Str = Func->getContext()->getStrEmit();
+  assert(getSrcSize() == 2);
+  Type Ty = getSrc(0)->getType();
+  const char *Opcode = "vdup";
+  Str << "\t" << Opcode;
+  Str << getPredicate() << "." << getWidthString(Ty) << getVecElmtBitsize(Ty);
+  Str << "\t";
+  getSrc(0)->emit(Func);
+  Str << ", ";
+  getSrc(1)->emit(Func);
+  Str << ", " << Idx;
+}
+
+void InstARM32Vdup::emitIAS(const Cfg *Func) const {
+  assert(getSrcSize() == 1);
+  auto *Asm = Func->getAssembler<ARM32::AssemblerARM32>();
+  const Operand *Dest = getDest();
+  const Operand *Src = getSrc(0);
+  Type DestTy = Dest->getType();
+  Asm->vdup(typeElementType(DestTy), Dest, Src, Idx);
+}
+
+void InstARM32Vdup::dump(const Cfg *Func) const {
+  if (!BuildDefs::dump())
+    return;
+  Ostream &Str = Func->getContext()->getStrDump();
+  dumpDest(Func);
+  Str << " = ";
+  dumpOpcodePred(Str, "vdup", getDest()->getType());
+  Str << " ";
+  dumpSources(Func);
+  Str << ", " << Idx;
+}
+
 void InstARM32Trap::emit(const Cfg *Func) const {
   if (!BuildDefs::dump())
     return;
@@ -3386,6 +3519,7 @@ template class InstARM32LoadBase<InstARM32::Ldr>;
 template class InstARM32LoadBase<InstARM32::Ldrex>;
 template class InstARM32LoadBase<InstARM32::Vldr1d>;
 template class InstARM32LoadBase<InstARM32::Vldr1q>;
+template class InstARM32ThreeAddrFP<InstARM32::Vzip>;
 template class InstARM32TwoAddrGPR<InstARM32::Movt>;
 
 template class InstARM32UnaryopGPR<InstARM32::Movw, false>;

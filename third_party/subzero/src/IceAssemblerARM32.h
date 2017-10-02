@@ -546,6 +546,13 @@ public:
   void vmlap(Type ElmtTy, const Operand *OpQd, const Operand *OpQn,
              const Operand *OpQm);
 
+  // Vector element replication.
+  void vdup(Type ElmtTy, const Operand *OpQd, const Operand *OpQn, IValueT Idx);
+
+  // Vector interleave lower halves.
+  void vzip(Type ElmtTy, const Operand *OpQd, const Operand *OpQn,
+            const Operand *OpQm);
+
   // Float vector multiply.
   void vmulqf(const Operand *OpQd, const Operand *OpQn, const Operand *OpQm);
 
@@ -553,6 +560,11 @@ public:
              CondARM32::Cond Cond);
 
   void vmvnq(const Operand *OpQd, const Operand *OpQm);
+
+  void vmovlq(const Operand *OpQd, const Operand *OpQn, const Operand *OpQm);
+  void vmovhq(const Operand *OpQd, const Operand *OpQn, const Operand *OpQm);
+  void vmovhlq(const Operand *OpQd, const Operand *OpQn, const Operand *OpQm);
+  void vmovlhq(const Operand *OpQd, const Operand *OpQn, const Operand *OpQm);
 
   void vnegqs(const Operand *OpQd, const Operand *OpQm);
 

@@ -6304,22 +6304,22 @@ void TargetX86Base<TraitsType>::lowerShuffleVector(
       break;
     }
 
-    const SizeT Index0 = Instr->getIndex(0)->getValue();
-    const SizeT Index1 = Instr->getIndex(1)->getValue();
-    const SizeT Index2 = Instr->getIndex(2)->getValue();
-    const SizeT Index3 = Instr->getIndex(3)->getValue();
-    const SizeT Index4 = Instr->getIndex(4)->getValue();
-    const SizeT Index5 = Instr->getIndex(5)->getValue();
-    const SizeT Index6 = Instr->getIndex(6)->getValue();
-    const SizeT Index7 = Instr->getIndex(7)->getValue();
-    const SizeT Index8 = Instr->getIndex(8)->getValue();
-    const SizeT Index9 = Instr->getIndex(9)->getValue();
-    const SizeT Index10 = Instr->getIndex(10)->getValue();
-    const SizeT Index11 = Instr->getIndex(11)->getValue();
-    const SizeT Index12 = Instr->getIndex(12)->getValue();
-    const SizeT Index13 = Instr->getIndex(13)->getValue();
-    const SizeT Index14 = Instr->getIndex(14)->getValue();
-    const SizeT Index15 = Instr->getIndex(15)->getValue();
+    const SizeT Index0 = Instr->getIndexValue(0);
+    const SizeT Index1 = Instr->getIndexValue(1);
+    const SizeT Index2 = Instr->getIndexValue(2);
+    const SizeT Index3 = Instr->getIndexValue(3);
+    const SizeT Index4 = Instr->getIndexValue(4);
+    const SizeT Index5 = Instr->getIndexValue(5);
+    const SizeT Index6 = Instr->getIndexValue(6);
+    const SizeT Index7 = Instr->getIndexValue(7);
+    const SizeT Index8 = Instr->getIndexValue(8);
+    const SizeT Index9 = Instr->getIndexValue(9);
+    const SizeT Index10 = Instr->getIndexValue(10);
+    const SizeT Index11 = Instr->getIndexValue(11);
+    const SizeT Index12 = Instr->getIndexValue(12);
+    const SizeT Index13 = Instr->getIndexValue(13);
+    const SizeT Index14 = Instr->getIndexValue(14);
+    const SizeT Index15 = Instr->getIndexValue(15);
 
     lowerShuffleVector_UsingPshufb(Dest, Src0, Src1, Index0, Index1, Index2,
                                    Index3, Index4, Index5, Index6, Index7,
@@ -6376,14 +6376,14 @@ void TargetX86Base<TraitsType>::lowerShuffleVector(
       break;
     }
 
-    const SizeT Index0 = Instr->getIndex(0)->getValue();
-    const SizeT Index1 = Instr->getIndex(1)->getValue();
-    const SizeT Index2 = Instr->getIndex(2)->getValue();
-    const SizeT Index3 = Instr->getIndex(3)->getValue();
-    const SizeT Index4 = Instr->getIndex(4)->getValue();
-    const SizeT Index5 = Instr->getIndex(5)->getValue();
-    const SizeT Index6 = Instr->getIndex(6)->getValue();
-    const SizeT Index7 = Instr->getIndex(7)->getValue();
+    const SizeT Index0 = Instr->getIndexValue(0);
+    const SizeT Index1 = Instr->getIndexValue(1);
+    const SizeT Index2 = Instr->getIndexValue(2);
+    const SizeT Index3 = Instr->getIndexValue(3);
+    const SizeT Index4 = Instr->getIndexValue(4);
+    const SizeT Index5 = Instr->getIndexValue(5);
+    const SizeT Index6 = Instr->getIndexValue(6);
+    const SizeT Index7 = Instr->getIndexValue(7);
 
 #define TO_BYTE_INDEX(I) ((I) << 1)
     lowerShuffleVector_UsingPshufb(
@@ -6403,10 +6403,10 @@ void TargetX86Base<TraitsType>::lowerShuffleVector(
   case IceType_v4f32: {
     static constexpr SizeT ExpectedNumElements = 4;
     assert(ExpectedNumElements == Instr->getNumIndexes());
-    const SizeT Index0 = Instr->getIndex(0)->getValue();
-    const SizeT Index1 = Instr->getIndex(1)->getValue();
-    const SizeT Index2 = Instr->getIndex(2)->getValue();
-    const SizeT Index3 = Instr->getIndex(3)->getValue();
+    const SizeT Index0 = Instr->getIndexValue(0);
+    const SizeT Index1 = Instr->getIndexValue(1);
+    const SizeT Index2 = Instr->getIndexValue(2);
+    const SizeT Index3 = Instr->getIndexValue(3);
     Variable *T = nullptr;
     switch (makeSrcSwitchMask(Index0, Index1, Index2, Index3)) {
 #define CASE_SRCS_IN(S0, S1, S2, S3)                                           \
@@ -6611,8 +6611,7 @@ void TargetX86Base<TraitsType>::lowerShuffleVector(
           InstExtractElement::create(Func, ExtElmt, Src0, Index));
     } else {
       lowerExtractElement(InstExtractElement::create(
-          Func, ExtElmt, Src1,
-          Ctx->getConstantInt32(Index->getValue() - NumElements)));
+          Func, ExtElmt, Src1, Ctx->getConstantInt32(Elem - NumElements)));
     }
     auto *NewT = makeReg(DestTy);
     lowerInsertElement(InstInsertElement::create(Func, NewT, T, ExtElmt,

@@ -3418,6 +3418,97 @@ void AssemblerARM32::vmlap(Type ElmtTy, const Operand *OpQd,
   emitSIMDBase(VpaddOpcode, Dd, Dd, Dd + 1, UseQRegs, IsFloatTy);
 }
 
+void AssemblerARM32::vdup(Type ElmtTy, const Operand *OpQd, const Operand *OpQn,
+                          IValueT Idx) {
+  // VDUP (scalar) - ARMv7-A/R section A8.6.302, encoding A1:
+  //   VDUP<c>.<size> <Qd>, <Dm[x]>
+  //
+  // 111100111D11iiiiddd011000QM0mmmm where Dddd=<Qd>, Mmmmm=<Dm>, and
+  // iiii=imm4 encodes <size> and [x].
+  constexpr const char *Vdup = "vdup";
+
+  const IValueT VdupOpcode = B25 | B24 | B23 | B21 | B20 | B11 | B10;
+
+  const IValueT Dd = mapQRegToDReg(encodeQRegister(OpQd, "Qd", Vdup));
+  const IValueT Dn = mapQRegToDReg(encodeQRegister(OpQn, "Qn", Vdup));
+
+  constexpr bool UseQRegs = true;
+  constexpr bool IsFloatTy = false;
+
+  IValueT Imm4 = 0;
+  bool Lower = true;
+  switch (ElmtTy) {
+  case IceType_i8:
+    assert(Idx < 16);
+    Lower = Idx < 8;
+    Imm4 = 1 | ((Idx & 0x7) << 1);
+    break;
+  case IceType_i16:
+    assert(Idx < 8);
+    Lower = Idx < 4;
+    Imm4 = 2 | ((Idx & 0x3) << 2);
+    break;
+  case IceType_i32:
+  case IceType_f32:
+    assert(Idx < 4);
+    Lower = Idx < 2;
+    Imm4 = 4 | ((Idx & 0x1) << 3);
+    break;
+  default:
+    assert(false && "vdup only supports 8, 16, and 32-bit elements");
+    break;
+  }
+
+  emitSIMDBase(VdupOpcode, Dd, Imm4, Dn + (Lower ? 0 : 1), UseQRegs, IsFloatTy);
+}
+
+void AssemblerARM32::vzip(Type ElmtTy, const Operand *OpQd, const Operand *OpQn,
+                          const Operand *OpQm) {
+  // Pseudo-instruction which interleaves the elements of the lower halves of
+  // two quadword registers.
+
+  // Vzip - ARMv7-A/R section A8.6.410, encoding A1:
+  //   VZIP<c>.<size> <Dd>, <Dm>
+  //
+  // 111100111D11ss10dddd00011QM0mmmm where Ddddd=<Dd>, Mmmmm=<Dm>, and
+  // ss=<size>
+  assert(ElmtTy != IceType_i64 && "vzip on i64 vector not allowed");
+
+  constexpr const char *Vzip = "vzip";
+  const IValueT Dd = mapQRegToDReg(encodeQRegister(OpQd, "Qd", Vzip));
+  const IValueT Dn = mapQRegToDReg(encodeQRegister(OpQn, "Qn", Vzip));
+  const IValueT Dm = mapQRegToDReg(encodeQRegister(OpQm, "Qm", Vzip));
+
+  constexpr bool UseQRegs = false;
+  constexpr bool IsFloatTy = false;
+
+  // VMOV Dd, Dm
+  // 111100100D10mmmmdddd0001MQM1mmmm
+  constexpr IValueT VmovOpcode = B25 | B21 | B8 | B4;
+
+  // Copy lower half of second source to upper half of destination.
+  emitSIMDBase(VmovOpcode, Dd + 1, Dm, Dm, UseQRegs, IsFloatTy);
+
+  // Copy lower half of first source to lower half of destination.
+  if (Dd != Dn)
+    emitSIMDBase(VmovOpcode, Dd, Dn, Dn, UseQRegs, IsFloatTy);
+
+  constexpr IValueT ElmtShift = 18;
+  const IValueT ElmtSize = encodeElmtType(ElmtTy);
+  assert(Utils::IsUint(2, ElmtSize));
+
+  if (ElmtTy != IceType_i32 && ElmtTy != IceType_f32) {
+    constexpr IValueT VzipOpcode = B25 | B24 | B23 | B21 | B20 | B17 | B8 | B7;
+    // Zip the lower and upper half of destination.
+    emitSIMDBase(VzipOpcode | (ElmtSize << ElmtShift), Dd, 0, Dd + 1, UseQRegs,
+                 IsFloatTy);
+  } else {
+    constexpr IValueT VtrnOpcode = B25 | B24 | B23 | B21 | B20 | B17 | B7;
+    emitSIMDBase(VtrnOpcode | (ElmtSize << ElmtShift), Dd, 0, Dd + 1, UseQRegs,
+                 IsFloatTy);
+  }
+}
+
 void AssemblerARM32::vmulqf(const Operand *OpQd, const Operand *OpQn,
                             const Operand *OpQm) {
   // VMUL (floating-point) - ARM section A8.8.351, encoding A1:
@@ -3446,6 +3537,110 @@ void AssemblerARM32::vmvnq(const Operand *OpQd, const Operand *OpQm) {
   constexpr bool IsFloat = false;
   emitSIMDBase(VmvnOpcode, mapQRegToDReg(Qd), mapQRegToDReg(Qn),
                mapQRegToDReg(Qm), UseQRegs, IsFloat);
+}
+
+void AssemblerARM32::vmovlq(const Operand *OpQd, const Operand *OpQn,
+                            const Operand *OpQm) {
+  // Pseudo-instruction to copy the first source operand and insert the lower
+  // half of the second operand into the lower half of the destination.
+
+  // VMOV (register) - ARMv7-A/R section A8.6.327, encoding A1:
+  //   VMOV<c> <Dd>, <Dm>
+  //
+  // 111100111D110000ddd001011QM0mmm0 where Dddd=Qd, Mmmm=Qm, and Q=0.
+
+  constexpr const char *Vmov = "vmov";
+  const IValueT Dd = mapQRegToDReg(encodeQRegister(OpQd, "Qd", Vmov));
+  const IValueT Dn = mapQRegToDReg(encodeQRegister(OpQn, "Qn", Vmov));
+  const IValueT Dm = mapQRegToDReg(encodeQRegister(OpQm, "Qm", Vmov));
+
+  constexpr bool UseQRegs = false;
+  constexpr bool IsFloat = false;
+
+  const IValueT VmovOpcode = B25 | B21 | B8 | B4;
+
+  if (Dd != Dm)
+    emitSIMDBase(VmovOpcode, Dd, Dm, Dm, UseQRegs, IsFloat);
+  if (Dd + 1 != Dn + 1)
+    emitSIMDBase(VmovOpcode, Dd + 1, Dn + 1, Dn + 1, UseQRegs, IsFloat);
+}
+
+void AssemblerARM32::vmovhq(const Operand *OpQd, const Operand *OpQn,
+                            const Operand *OpQm) {
+  // Pseudo-instruction to copy the first source operand and insert the high
+  // half of the second operand into the high half of the destination.
+
+  // VMOV (register) - ARMv7-A/R section A8.6.327, encoding A1:
+  //   VMOV<c> <Dd>, <Dm>
+  //
+  // 111100111D110000ddd001011QM0mmm0 where Dddd=Qd, Mmmm=Qm, and Q=0.
+
+  constexpr const char *Vmov = "vmov";
+  const IValueT Dd = mapQRegToDReg(encodeQRegister(OpQd, "Qd", Vmov));
+  const IValueT Dn = mapQRegToDReg(encodeQRegister(OpQn, "Qn", Vmov));
+  const IValueT Dm = mapQRegToDReg(encodeQRegister(OpQm, "Qm", Vmov));
+
+  constexpr bool UseQRegs = false;
+  constexpr bool IsFloat = false;
+
+  const IValueT VmovOpcode = B25 | B21 | B8 | B4;
+
+  if (Dd != Dn)
+    emitSIMDBase(VmovOpcode, Dd, Dn, Dn, UseQRegs, IsFloat);
+  if (Dd + 1 != Dm + 1)
+    emitSIMDBase(VmovOpcode, Dd + 1, Dm + 1, Dm + 1, UseQRegs, IsFloat);
+}
+
+void AssemblerARM32::vmovhlq(const Operand *OpQd, const Operand *OpQn,
+                             const Operand *OpQm) {
+  // Pseudo-instruction to copy the first source operand and insert the high
+  // half of the second operand into the lower half of the destination.
+
+  // VMOV (register) - ARMv7-A/R section A8.6.327, encoding A1:
+  //   VMOV<c> <Dd>, <Dm>
+  //
+  // 111100111D110000ddd001011QM0mmm0 where Dddd=Qd, Mmmm=Qm, and Q=0.
+
+  constexpr const char *Vmov = "vmov";
+  const IValueT Dd = mapQRegToDReg(encodeQRegister(OpQd, "Qd", Vmov));
+  const IValueT Dn = mapQRegToDReg(encodeQRegister(OpQn, "Qn", Vmov));
+  const IValueT Dm = mapQRegToDReg(encodeQRegister(OpQm, "Qm", Vmov));
+
+  constexpr bool UseQRegs = false;
+  constexpr bool IsFloat = false;
+
+  const IValueT VmovOpcode = B25 | B21 | B8 | B4;
+
+  if (Dd != Dm + 1)
+    emitSIMDBase(VmovOpcode, Dd, Dm + 1, Dm + 1, UseQRegs, IsFloat);
+  if (Dd + 1 != Dn + 1)
+    emitSIMDBase(VmovOpcode, Dd + 1, Dn + 1, Dn + 1, UseQRegs, IsFloat);
+}
+
+void AssemblerARM32::vmovlhq(const Operand *OpQd, const Operand *OpQn,
+                             const Operand *OpQm) {
+  // Pseudo-instruction to copy the first source operand and insert the lower
+  // half of the second operand into the high half of the destination.
+
+  // VMOV (register) - ARMv7-A/R section A8.6.327, encoding A1:
+  //   VMOV<c> <Dd>, <Dm>
+  //
+  // 111100111D110000ddd001011QM0mmm0 where Dddd=Qd, Mmmm=Qm, and Q=0.
+
+  constexpr const char *Vmov = "vmov";
+  const IValueT Dd = mapQRegToDReg(encodeQRegister(OpQd, "Qd", Vmov));
+  const IValueT Dn = mapQRegToDReg(encodeQRegister(OpQn, "Qn", Vmov));
+  const IValueT Dm = mapQRegToDReg(encodeQRegister(OpQm, "Qm", Vmov));
+
+  constexpr bool UseQRegs = false;
+  constexpr bool IsFloat = false;
+
+  const IValueT VmovOpcode = B25 | B21 | B8 | B4;
+
+  if (Dd + 1 != Dm)
+    emitSIMDBase(VmovOpcode, Dd + 1, Dm, Dm, UseQRegs, IsFloat);
+  if (Dd != Dn)
+    emitSIMDBase(VmovOpcode, Dd, Dn, Dn, UseQRegs, IsFloat);
 }
 
 void AssemblerARM32::vnegqs(Type ElmtTy, const Operand *OpQd,
