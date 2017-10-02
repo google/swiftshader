@@ -5983,7 +5983,7 @@ namespace sw
 			RValue<Int4> sy = As<Int4>(y);
 			RValue<Int4> by = (sy & ~(sy >> 31)) - Int4(0x8000);
 
-			return PackUnsigned(bx, by) + UShort8(0x8000u);
+			return As<UShort8>(PackSigned(bx, by) + Short8(0x8000u));
 		}
 	}
 
