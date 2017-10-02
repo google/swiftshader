@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2a03ff1d_3dedab2d",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-10-02T17:53:53Z",
+      "side": 1,
+      "message": "Could you add that bug ID here as well?",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 9,
+        "endChar": 46
+      },
+      "revId": "242864b4b4395fb47c806d4b2cc1c8897b799005",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
