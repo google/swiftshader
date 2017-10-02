@@ -708,24 +708,27 @@ namespace sw
 
 	void ShaderCore::imod(Vector4f &dst, const Vector4f &src0, const Vector4f &src1)
 	{
-		cmp0i(dst.x, src1.x, src0.x, src1.x);
+		Float4 intMax(As<Float4>(Int4(INT_MAX)));
+		cmp0i(dst.x, src1.x, intMax, src1.x);
 		dst.x = As<Float4>(As<Int4>(src0.x) % As<Int4>(dst.x));
-		cmp0i(dst.y, src1.y, src0.y, src1.y);
+		cmp0i(dst.y, src1.y, intMax, src1.y);
 		dst.y = As<Float4>(As<Int4>(src0.y) % As<Int4>(dst.y));
-		cmp0i(dst.z, src1.z, src0.z, src1.z);
+		cmp0i(dst.z, src1.z, intMax, src1.z);
 		dst.z = As<Float4>(As<Int4>(src0.z) % As<Int4>(dst.z));
-		cmp0i(dst.w, src1.w, src0.w, src1.w);
+		cmp0i(dst.w, src1.w, intMax, src1.w);
 		dst.w = As<Float4>(As<Int4>(src0.w) % As<Int4>(dst.w));
 	}
+
 	void ShaderCore::umod(Vector4f &dst, const Vector4f &src0, const Vector4f &src1)
 	{
-		cmp0i(dst.x, src1.x, src0.x, src1.x);
+		Float4 uintMax(As<Float4>(UInt4(UINT_MAX)));
+		cmp0i(dst.x, src1.x, uintMax, src1.x);
 		dst.x = As<Float4>(As<UInt4>(src0.x) % As<UInt4>(dst.x));
-		cmp0i(dst.y, src1.y, src0.y, src1.y);
+		cmp0i(dst.y, src1.y, uintMax, src1.y);
 		dst.y = As<Float4>(As<UInt4>(src0.y) % As<UInt4>(dst.y));
-		cmp0i(dst.z, src1.z, src0.z, src1.z);
+		cmp0i(dst.z, src1.z, uintMax, src1.z);
 		dst.z = As<Float4>(As<UInt4>(src0.z) % As<UInt4>(dst.z));
-		cmp0i(dst.w, src1.w, src0.w, src1.w);
+		cmp0i(dst.w, src1.w, uintMax, src1.w);
 		dst.w = As<Float4>(As<UInt4>(src0.w) % As<UInt4>(dst.w));
 	}
 
