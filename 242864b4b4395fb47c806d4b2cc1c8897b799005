@@ -22,6 +22,30 @@
       "revId": "242864b4b4395fb47c806d4b2cc1c8897b799005",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "476c6528_21b85c31",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-10-02T18:00:03Z",
+      "side": 1,
+      "message": "Actually, I originally wrote it that way:\nhttps://swiftshader-review.googlesource.com/#/c/SwiftShader/+/3888/",
+      "parentUuid": "2a03ff1d_3dedab2d",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 9,
+        "endChar": 46
+      },
+      "revId": "242864b4b4395fb47c806d4b2cc1c8897b799005",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
