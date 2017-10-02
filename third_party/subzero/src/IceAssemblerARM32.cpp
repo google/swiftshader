@@ -3731,16 +3731,15 @@ void AssemblerARM32::vqmovn2(Type DestElmtTy, const Operand *OpQd,
   VqmovnOpcode |= (encodeElmtType(DestElmtTy) << ElmtShift);
 
   if (Qm != Qd) {
-    // Narrow first source operand to lower half of destination.
-    emitSIMDBase(VqmovnOpcode, Dd + 0, 0, Dm, UseQRegs, IsFloatTy);
     // Narrow second source operand to upper half of destination.
     emitSIMDBase(VqmovnOpcode, Dd + 1, 0, Dn, UseQRegs, IsFloatTy);
+    // Narrow first source operand to lower half of destination.
+    emitSIMDBase(VqmovnOpcode, Dd + 0, 0, Dm, UseQRegs, IsFloatTy);
   } else if (Qn != Qd) {
-    // Narrow second source operand to upper half of destination.
-    emitSIMDBase(VqmovnOpcode, Dd + 1, 0, Dn, UseQRegs, IsFloatTy);
     // Narrow first source operand to lower half of destination.
     emitSIMDBase(VqmovnOpcode, Dd + 0, 0, Dm, UseQRegs, IsFloatTy);
-
+    // Narrow second source operand to upper half of destination.
+    emitSIMDBase(VqmovnOpcode, Dd + 1, 0, Dn, UseQRegs, IsFloatTy);
   } else {
     // Narrow first source operand to lower half of destination.
     emitSIMDBase(VqmovnOpcode, Dd, 0, Dm, UseQRegs, IsFloatTy);
