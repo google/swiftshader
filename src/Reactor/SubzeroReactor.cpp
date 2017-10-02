@@ -2718,7 +2718,7 @@ namespace sw
 
 	RValue<Byte> SaturateUnsigned(RValue<Short> x)
 	{
-		return Byte(IfThenElse(Int(x) > 0xFF, Int(0xFF), Int(x)));
+		return Byte(IfThenElse(Int(x) > 0xFF, Int(0xFF), IfThenElse(Int(x) < 0, Int(0), Int(x))));
 	}
 
 	RValue<Byte8> AddSat(RValue<Byte8> x, RValue<Byte8> y)
@@ -3977,7 +3977,7 @@ namespace sw
 		return RValue<UShort4>(V(result));
 	}
 
-	RValue<UShort> SaturateUShort(RValue<Int> x)
+	RValue<UShort> SaturateUnsigned(RValue<Int> x)
 	{
 		return UShort(IfThenElse(x > 0xFFFF, Int(0xFFFF), IfThenElse(x < 0, Int(0), x)));
 	}
@@ -3987,10 +3987,10 @@ namespace sw
 		if(emulateIntrinsics)
 		{
 			UShort4 result;
-			result = Insert(result, SaturateUShort(Int(Extract(x, 0)) + Int(Extract(y, 0))), 0);
-			result = Insert(result, SaturateUShort(Int(Extract(x, 1)) + Int(Extract(y, 1))), 1);
-			result = Insert(result, SaturateUShort(Int(Extract(x, 2)) + Int(Extract(y, 2))), 2);
-			result = Insert(result, SaturateUShort(Int(Extract(x, 3)) + Int(Extract(y, 3))), 3);
+			result = Insert(result, SaturateUnsigned(Int(Extract(x, 0)) + Int(Extract(y, 0))), 0);
+			result = Insert(result, SaturateUnsigned(Int(Extract(x, 1)) + Int(Extract(y, 1))), 1);
+			result = Insert(result, SaturateUnsigned(Int(Extract(x, 2)) + Int(Extract(y, 2))), 2);
+			result = Insert(result, SaturateUnsigned(Int(Extract(x, 3)) + Int(Extract(y, 3))), 3);
 
 			return result;
 		}
@@ -4013,10 +4013,10 @@ namespace sw
 		if(emulateIntrinsics)
 		{
 			UShort4 result;
-			result = Insert(result, SaturateUShort(Int(Extract(x, 0)) - Int(Extract(y, 0))), 0);
-			result = Insert(result, SaturateUShort(Int(Extract(x, 1)) - Int(Extract(y, 1))), 1);
-			result = Insert(result, SaturateUShort(Int(Extract(x, 2)) - Int(Extract(y, 2))), 2);
-			result = Insert(result, SaturateUShort(Int(Extract(x, 3)) - Int(Extract(y, 3))), 3);
+			result = Insert(result, SaturateUnsigned(Int(Extract(x, 0)) - Int(Extract(y, 0))), 0);
+			result = Insert(result, SaturateUnsigned(Int(Extract(x, 1)) - Int(Extract(y, 1))), 1);
+			result = Insert(result, SaturateUnsigned(Int(Extract(x, 2)) - Int(Extract(y, 2))), 2);
+			result = Insert(result, SaturateUnsigned(Int(Extract(x, 3)) - Int(Extract(y, 3))), 3);
 
 			return result;
 		}
