@@ -288,6 +288,18 @@ TEST(SubzeroReactorTest, Swizzle)
 			*Pointer<Short4>(out + 16 * (512 + 4)) = UnpackLow(Byte8(1, 2, 3, 4, 5, 6, 7, 8), Byte8(9, 10, 11, 12, 13, 14, 15, 16));
 			*Pointer<Short4>(out + 16 * (512 + 5)) = UnpackHigh(Byte8(1, 2, 3, 4, 5, 6, 7, 8), Byte8(9, 10, 11, 12, 13, 14, 15, 16));
 
+			for(int i = 0; i < 256; i++)
+			{
+				*Pointer<Short4>(out + 16 * (512 + 6) + (8 * i)) =
+                                    Swizzle(Short4(1, 2, 3, 4), i);
+			}
+
+			for(int i = 0; i < 256; i++)
+			{
+				*Pointer<Int4>(out + 16 * (512 + 6 + i) + (8 * 256)) =
+                                    Swizzle(Int4(1, 2, 3, 4), i);
+			}
+
 			Return(0);
 		}
 
@@ -298,7 +310,7 @@ TEST(SubzeroReactorTest, Swizzle)
 			struct
 			{
 				float f[256 + 256 + 2][4];
-				int i[4][4];
+				int i[388][4];
 			} out;
 
 			memset(&out, 0, sizeof(out));
@@ -351,6 +363,26 @@ TEST(SubzeroReactorTest, Swizzle)
 			EXPECT_EQ(out.i[3][1], 0x10080F07);
 			EXPECT_EQ(out.i[3][2], 0x00000000);
 			EXPECT_EQ(out.i[3][3], 0x00000000);
+
+			for(int i = 0; i < 256; i++)
+			{
+				EXPECT_EQ(out.i[4 + i/2][0 + (i%2) * 2] & 0xFFFF,
+                                          ((i >> 0) & 0x03) + 1);
+				EXPECT_EQ(out.i[4 + i/2][0 + (i%2) * 2] >> 16,
+                                          ((i >> 2) & 0x03) + 1);
+				EXPECT_EQ(out.i[4 + i/2][1 + (i%2) * 2] & 0xFFFF,
+                                          ((i >> 4) & 0x03) + 1);
+				EXPECT_EQ(out.i[4 + i/2][1 + (i%2) * 2] >> 16,
+                                          ((i >> 6) & 0x03) + 1);
+			}
+
+			for(int i = 0; i < 256; i++)
+			{
+				EXPECT_EQ(out.i[132 + i][0], ((i >> 0) & 0x03) + 1);
+				EXPECT_EQ(out.i[132 + i][1], ((i >> 2) & 0x03) + 1);
+				EXPECT_EQ(out.i[132 + i][2], ((i >> 4) & 0x03) + 1);
+				EXPECT_EQ(out.i[132 + i][3], ((i >> 6) & 0x03) + 1);
+			}
 		}
 	}
 
