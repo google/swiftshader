@@ -843,7 +843,7 @@ namespace sw
 		int valueType = (int)reinterpret_cast<intptr_t>(type);
 		Ice::Variable *result = ::function->makeVariable(T(type));
 
-		if(valueType & EmulatedBits)
+		if((valueType & EmulatedBits) && (align != 0))   // Narrow vector not stored on stack.
 		{
 			if(emulateIntrinsics)
 			{
@@ -896,7 +896,7 @@ namespace sw
 	{
 		int valueType = (int)reinterpret_cast<intptr_t>(type);
 
-		if(valueType & EmulatedBits)
+		if((valueType & EmulatedBits) && (align != 0))   // Narrow vector not stored on stack.
 		{
 			if(emulateIntrinsics)
 			{
@@ -941,7 +941,7 @@ namespace sw
 		}
 		else
 		{
-			assert(T(value->getType()) == type);
+			assert(value->getType() == T(type));
 
 			auto store = Ice::InstStore::create(::function, value, ptr, align);
 			::basicBlock->appendInst(store);
