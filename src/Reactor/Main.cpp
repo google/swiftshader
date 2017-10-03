@@ -923,6 +923,41 @@ TEST(SubzeroReactorTest, MulHigh) {
 	delete routine;
 }
 
+TEST(SubzeroReactorTest, MulAdd) {
+	Routine *routine = nullptr;
+
+	{
+		Function<Int(Pointer<Byte>)> function;
+		{
+			Pointer<Byte> out = function.Arg<0>();
+
+			*Pointer<Int2>(out + 8 * 0) =
+				MulAdd(Short4(0x1aa, 0x2dd, 0x3ee, 0xF422),
+				       Short4(0x1bb, 0x2cc, 0x3ff, 0xF411));
+
+			// (U)Short8 variant is mentioned but unimplemented
+			Return(0);
+		}
+
+		routine = function(L"one");
+
+		if(routine)
+		{
+			int out[1][2];
+
+			memset(&out, 0, sizeof(out));
+
+			int(*callable)(void*) = (int(*)(void*))routine->getEntry();
+			callable(&out);
+
+			EXPECT_EQ((unsigned)out[0][0], 0x000ae34a);
+			EXPECT_EQ((unsigned)out[0][1], 0x009d5254);
+		}
+	}
+
+	delete routine;
+}
+
 int main(int argc, char **argv)
 {
 	::testing::InitGoogleTest(&argc, argv);
