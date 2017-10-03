@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "879aff85_794d9343",
+        "filename": "src/OpenGL/common/Image.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 678,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-10-03T03:04:24Z",
+      "side": 1,
+      "message": "It looks like some of these would map well to an X16B16G16R16F format, which we currently don\u0027t have but would be relatively straightforward to implement. x86 CPUs since Ivy Bridge (2012) have FP16 conversion support so they\u0027d perform better than FP32 internal formats. Anyway, no need to add it at this time.",
+      "range": {
+        "startLine": 666,
+        "startChar": 3,
+        "endLine": 678,
+        "endChar": 36
+      },
+      "revId": "560e6b99f4ce23d6576eec3c2e8d682bc3d14940",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
