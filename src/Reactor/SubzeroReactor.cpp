@@ -119,7 +119,7 @@ namespace
 
 	const bool CPUID::ARM = CPUID::detectARM();
 	const bool CPUID::SSE4_1 = CPUID::detectSSE4_1();
-	const bool emulateIntrinsics = CPUID::ARM;
+	const bool emulateIntrinsics = false;
 	const bool emulateMismatchedBitCast = CPUID::ARM;
 }
 
@@ -2847,7 +2847,7 @@ namespace sw
 
 	RValue<Int> SignMask(RValue<Byte8> x)
 	{
-		if(emulateIntrinsics)
+		if(emulateIntrinsics || CPUID::ARM)
 		{
 			Byte8 xx = As<Byte8>(As<SByte8>(x) >> 7) & Byte8(0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80);
 			return Int(Extract(xx, 0)) | Int(Extract(xx, 1)) | Int(Extract(xx, 2)) | Int(Extract(xx, 3)) | Int(Extract(xx, 4)) | Int(Extract(xx, 5)) | Int(Extract(xx, 6)) | Int(Extract(xx, 7));
@@ -3123,7 +3123,7 @@ namespace sw
 
 	RValue<Int> SignMask(RValue<SByte8> x)
 	{
-		if(emulateIntrinsics)
+		if(emulateIntrinsics || CPUID::ARM)
 		{
 			SByte8 xx = (x >> 7) & SByte8(0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80);
 			return Int(Extract(xx, 0)) | Int(Extract(xx, 1)) | Int(Extract(xx, 2)) | Int(Extract(xx, 3)) | Int(Extract(xx, 4)) | Int(Extract(xx, 5)) | Int(Extract(xx, 6)) | Int(Extract(xx, 7));
@@ -3754,7 +3754,15 @@ namespace sw
 		{
 			if(CPUID::SSE4_1)
 			{
-				Int4 int4(Min(cast, Float4(0xFFFF)));   // packusdw takes care of 0x0000 saturation
+				// x86 produces 0x80000000 on 32-bit integer overflow/underflow.
+				// PackUnsigned takes care of 0x0000 saturation.
+				Int4 int4(Min(cast, Float4(0xFFFF)));
+				*this = As<UShort4>(PackUnsigned(int4, int4));
+			}
+			else if(CPUID::ARM)
+			{
+				// ARM saturates the 32-bit integer result on overflow/undeflow.
+				Int4 int4(cast);
 				*this = As<UShort4>(PackUnsigned(int4, int4));
 			}
 			else
@@ -4670,7 +4678,7 @@ namespace sw
 
 	RValue<Int> RoundInt(RValue<Float> cast)
 	{
-		if(emulateIntrinsics)
+		if(emulateIntrinsics || CPUID::ARM)
 		{
 			// Push the fractional part off the mantissa. Accurate up to +/-2^22.
 			return Int((cast + Float(0x00C00000)) - Float(0x00C00000));
@@ -5913,7 +5921,7 @@ namespace sw
 
 	RValue<Int4> RoundInt(RValue<Float4> cast)
 	{
-		if(emulateIntrinsics)
+		if(emulateIntrinsics || CPUID::ARM)
 		{
 			// Push the fractional part off the mantissa. Accurate up to +/-2^22.
 			return Int4((cast + Float4(0x00C00000)) - Float4(0x00C00000));
@@ -5963,7 +5971,17 @@ namespace sw
 
 	RValue<UShort8> PackUnsigned(RValue<Int4> x, RValue<Int4> y)
 	{
-		if(CPUID::SSE4_1)
+		if(emulateIntrinsics || !(CPUID::SSE4_1 || CPUID::ARM))
+		{
+			RValue<Int4> sx = As<Int4>(x);
+			RValue<Int4> bx = (sx & ~(sx >> 31)) - Int4(0x8000);
+
+			RValue<Int4> sy = As<Int4>(y);
+			RValue<Int4> by = (sy & ~(sy >> 31)) - Int4(0x8000);
+
+			return As<UShort8>(PackSigned(bx, by) + Short8(0x8000u));
+		}
+		else
 		{
 			Ice::Variable *result = ::function->makeVariable(Ice::IceType_v8i16);
 			const Ice::Intrinsics::IntrinsicInfo intrinsic = {Ice::Intrinsics::VectorPackUnsigned, Ice::Intrinsics::SideEffects_F, Ice::Intrinsics::ReturnsTwice_F, Ice::Intrinsics::MemoryWrite_F};
@@ -5974,16 +5992,6 @@ namespace sw
 			::basicBlock->appendInst(pack);
 
 			return RValue<UShort8>(V(result));
-		}
-		else
-		{
-			RValue<Int4> sx = As<Int4>(x);
-			RValue<Int4> bx = (sx & ~(sx >> 31)) - Int4(0x8000);
-
-			RValue<Int4> sy = As<Int4>(y);
-			RValue<Int4> by = (sy & ~(sy >> 31)) - Int4(0x8000);
-
-			return As<UShort8>(PackSigned(bx, by) + Short8(0x8000u));
 		}
 	}
 
@@ -5999,7 +6007,7 @@ namespace sw
 
 	RValue<Int> SignMask(RValue<Int4> x)
 	{
-		if(emulateIntrinsics)
+		if(emulateIntrinsics || CPUID::ARM)
 		{
 			Int4 xx = (x >> 31) & Int4(0x00000001, 0x00000002, 0x00000004, 0x00000008);
 			return Extract(xx, 0) | Extract(xx, 1) | Extract(xx, 2) | Extract(xx, 3);
@@ -6837,7 +6845,7 @@ namespace sw
 
 	RValue<Float4> Sqrt(RValue<Float4> x)
 	{
-		if(emulateIntrinsics)
+		if(emulateIntrinsics || CPUID::ARM)
 		{
 			Float4 result;
 			result.x = Sqrt(Float(Float4(x).x));
@@ -6911,7 +6919,7 @@ namespace sw
 
 	RValue<Int> SignMask(RValue<Float4> x)
 	{
-		if(emulateIntrinsics)
+		if(emulateIntrinsics || CPUID::ARM)
 		{
 			Int4 xx = (As<Int4>(x) >> 31) & Int4(0x00000001, 0x00000002, 0x00000004, 0x00000008);
 			return Extract(xx, 0) | Extract(xx, 1) | Extract(xx, 2) | Extract(xx, 3);
@@ -6961,7 +6969,7 @@ namespace sw
 
 	RValue<Float4> Round(RValue<Float4> x)
 	{
-		if(emulateIntrinsics)
+		if(emulateIntrinsics || CPUID::ARM)
 		{
 			// Push the fractional part off the mantissa. Accurate up to +/-2^22.
 			return (x + Float4(0x00C00000)) - Float4(0x00C00000);
