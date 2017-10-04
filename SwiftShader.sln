@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.26730.16
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "LLVM", "LLVM", "{B408B98A-E888-4ECF-81E0-7A37A6854B17}"
 EndProject
@@ -825,5 +825,8 @@ Global
 		{9088FC9E-9843-4E0D-85D0-1B657AFC480A} = {B7E24D8E-6BE9-4DEF-A8B9-6A6E60CA60E9}
 		{4EC107AB-89E8-4A0B-8366-B3E81085AE07} = {ED25C308-5BDB-43A7-BED6-C2C059FC2D7D}
 		{CF8EBC89-8762-49DC-9440-6C82B3499913} = {ED25C308-5BDB-43A7-BED6-C2C059FC2D7D}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {4DF423D2-8425-48A7-9CEC-835C4C3CA957}
 	EndGlobalSection
 EndGlobal
