@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4a4a28ea_9f679b51",
+        "filename": "src/OpenGL/compiler/OutputASM.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-10-05T13:34:52Z",
+      "side": 1,
+      "message": "These are the values of the default constructor, so I think you could just use \u0027BlockMemberInfo()\u0027 wherever \u0027BlockMemberInfo::getDefaultBlockInfo()\u0027 is currently used, unless there\u0027s value in the extra verbosity?\n\nIt looks like this got copy-pasted from ANGLE, but it doesn\u0027t have a hasInstanceName member, which leads me to wonder how they\u0027ve dealt with this bug instead?",
+      "range": {
+        "startLine": 48,
+        "startChar": 2,
+        "endLine": 51,
+        "endChar": 3
+      },
+      "revId": "f5242ca66705058264f493bf38f0ec6f5492ad9a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
