@@ -49,7 +49,7 @@ namespace sw
 
 		bool interpolateZ() const;
 		bool interpolateW() const;
-		Float4 interpolate(Float4 &x, Float4 &D, Float4 &rhw, Pointer<Byte> planeEquation, bool flat, bool perspective);
+		Float4 interpolate(Float4 &x, Float4 &D, Float4 &rhw, Pointer<Byte> planeEquation, bool flat, bool perspective, bool clamp);
 
 		const PixelProcessor::State &state;
 		const PixelShader *const shader;
