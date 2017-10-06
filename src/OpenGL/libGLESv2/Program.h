@@ -144,6 +144,7 @@ namespace es2
 		GLuint getUniformBlockBinding(GLuint uniformBlockIndex) const;
 		void getActiveUniformBlockiv(GLuint uniformBlockIndex, GLenum pname, GLint *params) const;
 
+		bool isUniformDefined(const std::string &name) const;
 		GLint getUniformLocation(const std::string &name) const;
 		bool setUniform1fv(GLint location, GLsizei count, const GLfloat *v);
 		bool setUniform2fv(GLint location, GLsizei count, const GLfloat *v);

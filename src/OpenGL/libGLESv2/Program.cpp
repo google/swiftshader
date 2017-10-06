@@ -364,6 +364,26 @@ namespace es2
 		return TEXTURE_2D;
 	}
 
+	bool Program::isUniformDefined(const std::string &name) const
+	{
+		unsigned int subscript = GL_INVALID_INDEX;
+		std::string baseName = es2::ParseUniformName(name, &subscript);
+
+		size_t numUniforms = uniformIndex.size();
+		for(size_t location = 0; location < numUniforms; location++)
+		{
+			const unsigned int index = uniformIndex[location].index;
+			if((uniformIndex[location].name == baseName) && ((index == GL_INVALID_INDEX) ||
+			   ((uniforms[index]->isArray() && uniformIndex[location].element == subscript) ||
+			    (subscript == GL_INVALID_INDEX))))
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	GLint Program::getUniformLocation(const std::string &name) const
 	{
 		unsigned int subscript = GL_INVALID_INDEX;
@@ -372,11 +392,9 @@ namespace es2
 		size_t numUniforms = uniformIndex.size();
 		for(size_t location = 0; location < numUniforms; location++)
 		{
-			const int index = uniformIndex[location].index;
-			const bool isArray = uniforms[index]->isArray();
-
-			if(uniformIndex[location].name == baseName &&
-			   ((isArray && uniformIndex[location].element == subscript) ||
+			const unsigned int index = uniformIndex[location].index;
+			if((index != GL_INVALID_INDEX) && (uniformIndex[location].name == baseName) &&
+			   ((uniforms[index]->isArray() && uniformIndex[location].element == subscript) ||
 			    (subscript == GL_INVALID_INDEX)))
 			{
 				return (GLint)location;
@@ -494,7 +512,7 @@ namespace es2
 		static GLenum floatType[] = { GL_FLOAT, GL_FLOAT_VEC2, GL_FLOAT_VEC3, GL_FLOAT_VEC4 };
 		static GLenum boolType[] = { GL_BOOL, GL_BOOL_VEC2, GL_BOOL_VEC3, GL_BOOL_VEC4 };
 
-		if(location < 0 || location >= (int)uniformIndex.size())
+		if(location < 0 || location >= (int)uniformIndex.size() || (uniformIndex[location].index == GL_INVALID_INDEX))
 		{
 			return false;
 		}
@@ -584,7 +602,7 @@ namespace es2
 			return false;
 		}
 
-		if(location < 0 || location >= (int)uniformIndex.size())
+		if(location < 0 || location >= (int)uniformIndex.size() || (uniformIndex[location].index == GL_INVALID_INDEX))
 		{
 			return false;
 		}
@@ -681,7 +699,7 @@ namespace es2
 
 	bool Program::setUniform1iv(GLint location, GLsizei count, const GLint *v)
 	{
-		if(location < 0 || location >= (int)uniformIndex.size())
+		if(location < 0 || location >= (int)uniformIndex.size() || (uniformIndex[location].index == GL_INVALID_INDEX))
 		{
 			return false;
 		}
@@ -738,7 +756,7 @@ namespace es2
 		static GLenum uintType[] = { GL_UNSIGNED_INT, GL_UNSIGNED_INT_VEC2, GL_UNSIGNED_INT_VEC3, GL_UNSIGNED_INT_VEC4 };
 		static GLenum boolType[] = { GL_BOOL, GL_BOOL_VEC2, GL_BOOL_VEC3, GL_BOOL_VEC4 };
 
-		if(location < 0 || location >= (int)uniformIndex.size())
+		if(location < 0 || location >= (int)uniformIndex.size() || (uniformIndex[location].index == GL_INVALID_INDEX))
 		{
 			return false;
 		}
@@ -800,7 +818,7 @@ namespace es2
 
 	bool Program::setUniform1uiv(GLint location, GLsizei count, const GLuint *v)
 	{
-		if(location < 0 || location >= (int)uniformIndex.size())
+		if(location < 0 || location >= (int)uniformIndex.size() || (uniformIndex[location].index == GL_INVALID_INDEX))
 		{
 			return false;
 		}
@@ -857,7 +875,7 @@ namespace es2
 		static GLenum uintType[] = { GL_UNSIGNED_INT, GL_UNSIGNED_INT_VEC2, GL_UNSIGNED_INT_VEC3, GL_UNSIGNED_INT_VEC4 };
 		static GLenum boolType[] = { GL_BOOL, GL_BOOL_VEC2, GL_BOOL_VEC3, GL_BOOL_VEC4 };
 
-		if(location < 0 || location >= (int)uniformIndex.size())
+		if(location < 0 || location >= (int)uniformIndex.size() || (uniformIndex[location].index == GL_INVALID_INDEX))
 		{
 			return false;
 		}
@@ -919,7 +937,7 @@ namespace es2
 
 	bool Program::getUniformfv(GLint location, GLsizei *bufSize, GLfloat *params)
 	{
-		if(location < 0 || location >= (int)uniformIndex.size())
+		if(location < 0 || location >= (int)uniformIndex.size() || (uniformIndex[location].index == GL_INVALID_INDEX))
 		{
 			return false;
 		}
@@ -977,7 +995,7 @@ namespace es2
 
 	bool Program::getUniformiv(GLint location, GLsizei *bufSize, GLint *params)
 	{
-		if(location < 0 || location >= (int)uniformIndex.size())
+		if(location < 0 || location >= (int)uniformIndex.size() || (uniformIndex[location].index == GL_INVALID_INDEX))
 		{
 			return false;
 		}
@@ -1026,7 +1044,7 @@ namespace es2
 
 	bool Program::getUniformuiv(GLint location, GLsizei *bufSize, GLuint *params)
 	{
-		if(location < 0 || location >= (int)uniformIndex.size())
+		if(location < 0 || location >= (int)uniformIndex.size() || (uniformIndex[location].index == GL_INVALID_INDEX))
 		{
 			return false;
 		}
@@ -1088,7 +1106,7 @@ namespace es2
 		GLint numUniforms = static_cast<GLint>(uniformIndex.size());
 		for(GLint location = 0; location < numUniforms; location++)
 		{
-			if(uniformIndex[location].element != 0)
+			if((uniformIndex[location].element != 0) || (uniformIndex[location].index == GL_INVALID_INDEX))
 			{
 				continue;
 			}
@@ -1799,10 +1817,10 @@ namespace es2
 		}
 		else UNREACHABLE(shader);
 
-		if(location == -1)   // Not previously defined
+		if(!isUniformDefined(name))
 		{
 			uniforms.push_back(uniform);
-			unsigned int index = static_cast<unsigned int>(uniforms.size() - 1);
+			unsigned int index = (blockInfo.index == -1) ? static_cast<unsigned int>(uniforms.size() - 1) : GL_INVALID_INDEX;
 
 			for(int i = 0; i < uniform->size(); i++)
 			{
