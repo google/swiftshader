@@ -74,7 +74,7 @@ swiftshader_shared_library("swiftshader_libEGL") {
   } else if (is_linux) {
     sources += [ "../../Main/libX11.cpp" ]
     ldflags =
-        [ "-Wl,--version-script=" + rebase_path("exports.map", root_build_dir) ]
+        [ "-Wl,--version-script=" + rebase_path("libEGL.lds", root_build_dir) ]
   }
 
   configs = [ ":swiftshader_libEGL_private_config" ]

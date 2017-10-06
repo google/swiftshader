@@ -81,8 +81,8 @@ COMMON_C_INCLUDES += external/stlport/stlport
 endif
 
 COMMON_LDFLAGS := \
+	-Wl,--version-script=$(LOCAL_PATH)/libGLES_CM.lds \
 	-Wl,--gc-sections \
-	-Wl,--version-script=$(LOCAL_PATH)/exports.map \
 	-Wl,--hash-style=sysv
 
 include $(CLEAR_VARS)

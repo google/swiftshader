@@ -110,7 +110,8 @@ macro(set_target_export_map TARGET DIR)
         # hides all the others. Gc sections is used in combination
         # with each functions being in its section, to reduce the
         # binary size.
-        set_target_properties(${TARGET} PROPERTIES LINK_FLAGS "${LINKFLAGS} -Wl,--hash-style=both,--version-script=${DIR}/exports.map,--gc-sections,--no-undefined")
+        set_target_properties(${TARGET} PROPERTIES LINK_FLAGS "${LINKFLAGS} -Wl,--hash-style=both,--version-script=${DIR}/${TARGET}.lds,--gc-sections,--no-undefined")
+        set_target_properties(${TARGET} PROPERTIES LINK_DEPENDS "${DIR}/${TARGET}.lds")
     endif()
 endmacro()
 
