@@ -10,7 +10,13 @@ COMMON_CFLAGS := \
 	-DGL_API= \
 	-DGL_APICALL= \
 	-DGL_GLEXT_PROTOTYPES \
+	-Wall \
+	-Werror \
+	-Wno-format \
+	-Wno-sign-compare \
 	-Wno-unused-parameter \
+	-Wno-unused-private-field \
+	-Wno-unused-variable \
 	-Wno-implicit-exception-spec-mismatch \
 	-Wno-overloaded-virtual \
 	-Wno-attributes \

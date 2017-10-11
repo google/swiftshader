@@ -102,7 +102,14 @@ COMMON_SRC_FILES += \
 
 COMMON_CFLAGS := \
 	-DLOG_TAG=\"swiftshader\" \
+	-Wall \
+	-Werror \
+	-Wno-format \
+	-Wno-switch \
+	-Wno-unused-local-typedef \
 	-Wno-unused-parameter \
+	-Wno-unused-value \
+	-Wno-unused-variable \
 	-Wno-implicit-exception-spec-mismatch \
 	-Wno-overloaded-virtual \
 	-Wno-non-virtual-dtor \

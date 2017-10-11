@@ -5,6 +5,10 @@ COMMON_CFLAGS := \
 	-std=c++11 \
 	-DEGLAPI= \
 	-DEGL_EGLEXT_PROTOTYPES \
+	-Wall \
+	-Werror \
+	-Wno-format \
+	-Wno-unused-function \
 	-Wno-unused-parameter \
 	-Wno-implicit-exception-spec-mismatch \
 	-Wno-overloaded-virtual \
