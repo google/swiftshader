@@ -22,7 +22,7 @@
     <ProjectGuid>{4EC107AB-89E8-4A0B-8366-B3E81085AE07}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>SubzeroTest</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
