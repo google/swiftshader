@@ -50,17 +50,11 @@ config("swiftshader_libGLESv2_private_config") {
   }
 }
 
-swiftshader_shared_library("swiftshader_libGLESv2") {
-  if (!is_mac) {
-    output_name = "libGLESv2"
-    output_dir = "$root_out_dir/swiftshader"
-  }
-
+swiftshader_static_library("swiftshader_libGLESv2_static") {
   deps = [
     "../../OpenGL/compiler:swiftshader_opengl_compiler",
     "../../Reactor:swiftshader_reactor",
     "../../Renderer:swiftshader_renderer",
-    "//build/config:exe_and_shlib_deps",
   ]
 
   sources = [
@@ -80,12 +74,35 @@ swiftshader_shared_library("swiftshader_libGLESv2") {
     "VertexArray.cpp",
     "VertexDataManager.cpp",
     "libGLESv2.cpp",
-    "libGLESv2.def",
-    "libGLESv2.rc",
     "libGLESv3.cpp",
     "main.cpp",
     "resource.h",
     "utilities.cpp",
+  ]
+
+  configs = [ ":swiftshader_libGLESv2_private_config" ]
+
+  include_dirs = [
+    "../../../include",
+    "../..",
+    "..",
+  ]
+}
+
+swiftshader_shared_library("swiftshader_libGLESv2") {
+  if (!is_mac) {
+    output_name = "libGLESv2"
+    output_dir = "$root_out_dir/swiftshader"
+  }
+
+  deps = [
+    ":swiftshader_libGLESv2_static",
+    "//build/config:exe_and_shlib_deps",
+  ]
+
+  sources = [
+    "libGLESv2.def",
+    "libGLESv2.rc",
   ]
 
   if (is_win) {

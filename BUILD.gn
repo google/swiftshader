@@ -97,6 +97,18 @@ config("swiftshader_config") {
   }
 }
 
+source_set("vertex_routine_fuzzer") {
+  sources = [
+    "tests/fuzzers/VertexRoutineFuzzer.cpp"
+  ]
+  include_dirs = [
+    "src/",
+  ]
+  deps = [
+    "src/OpenGL/libGLESv2:swiftshader_libGLESv2_static",
+  ]
+}
+
 group("swiftshader") {
   data_deps = [
     "src/OpenGL/libGLESv2:swiftshader_libGLESv2",

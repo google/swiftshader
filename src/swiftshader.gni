@@ -45,3 +45,14 @@ template("swiftshader_shared_library") {
     }
   }
 }
+
+template("swiftshader_static_library") {
+  static_library(target_name) {
+    configs -= configs_to_delete
+    configs += configs_to_add
+    forward_variables_from(invoker, "*", [ "configs" ])
+    if (defined(invoker.configs)) {
+      configs += invoker.configs
+    }
+  }
+}
