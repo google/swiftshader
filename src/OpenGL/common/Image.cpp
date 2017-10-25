@@ -489,6 +489,26 @@ namespace egl
 			default: UNREACHABLE(type);
 			}
 			break;
+		case GL_RG:
+			switch(type)
+			{
+			case GL_UNSIGNED_BYTE:          return sw::FORMAT_G8R8;
+			case GL_HALF_FLOAT:             return sw::FORMAT_G16R16F;
+			case GL_HALF_FLOAT_OES:         return sw::FORMAT_G16R16F;
+			case GL_FLOAT:                  return sw::FORMAT_G32R32F;
+			default: UNREACHABLE(type);
+			}
+			break;
+		case GL_RED:
+			switch(type)
+			{
+			case GL_UNSIGNED_BYTE:          return sw::FORMAT_R8;
+			case GL_HALF_FLOAT:             return sw::FORMAT_R16F;
+			case GL_HALF_FLOAT_OES:         return sw::FORMAT_R16F;
+			case GL_FLOAT:                  return sw::FORMAT_R32F;
+			default: UNREACHABLE(type);
+			}
+			break;
 		case GL_ALPHA:
 			switch(type)
 			{

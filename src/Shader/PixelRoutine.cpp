@@ -1071,6 +1071,16 @@ namespace sw
 			pixel.y = Short4(0x0000);
 			pixel.z = Short4(0x0000);
 			break;
+		case FORMAT_R8:
+			buffer = cBuffer + 1 * x;
+			pixel.x = Insert(pixel.x, *Pointer<Short>(buffer), 0);
+			buffer += *Pointer<Int>(data + OFFSET(DrawData, colorPitchB[index]));
+			pixel.x = Insert(pixel.x, *Pointer<Short>(buffer), 1);
+			pixel.x = UnpackLow(As<Byte8>(pixel.x), As<Byte8>(pixel.x));
+			pixel.y = Short4(0x0000);
+			pixel.z = Short4(0x0000);
+			pixel.w = Short4(0xFFFFu);
+			break;
 		case FORMAT_X8R8G8B8:
 			buffer = cBuffer + 4 * x;
 			c01 = *Pointer<Short4>(buffer);
@@ -1753,7 +1763,6 @@ namespace sw
 				value = Insert(value, *Pointer<Short>(buffer), 0);
 				Int pitch = *Pointer<Int>(data + OFFSET(DrawData, colorPitchB[index]));
 				value = Insert(value, *Pointer<Short>(buffer + pitch), 1);
-				value = UnpackLow(As<Byte8>(value), As<Byte8>(value));
 
 				current.x &= *Pointer<Short4>(constants + OFFSET(Constants, maskB4Q) + 8 * xMask);
 				value &= *Pointer<Short4>(constants + OFFSET(Constants, invMaskB4Q) + 8 * xMask);
@@ -1771,7 +1780,6 @@ namespace sw
 				value = Insert(value, *Pointer<Short>(buffer), 0);
 				Int pitch = *Pointer<Int>(data + OFFSET(DrawData,colorPitchB[index]));
 				value = Insert(value, *Pointer<Short>(buffer + pitch), 1);
-				value = UnpackLow(As<Byte8>(value), As<Byte8>(value));
 
 				current.w &= *Pointer<Short4>(constants + OFFSET(Constants,maskB4Q) + 8 * xMask);
 				value &= *Pointer<Short4>(constants + OFFSET(Constants,invMaskB4Q) + 8 * xMask);
