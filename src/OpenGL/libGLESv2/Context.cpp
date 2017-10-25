@@ -2972,7 +2972,7 @@ GLenum Context::applyVertexBuffer(GLint base, GLint first, GLsizei count, GLsize
 // Applies the indices and element array bindings
 GLenum Context::applyIndexBuffer(const void *indices, GLuint start, GLuint end, GLsizei count, GLenum mode, GLenum type, TranslatedIndexData *indexInfo)
 {
-	GLenum err = mIndexDataManager->prepareIndexData(type, start, end, count, getCurrentVertexArray()->getElementArrayBuffer(), indices, indexInfo);
+	GLenum err = mIndexDataManager->prepareIndexData(mode, type, start, end, count, getCurrentVertexArray()->getElementArrayBuffer(), indices, indexInfo, isPrimitiveRestartFixedIndexEnabled());
 
 	if(err == GL_NO_ERROR)
 	{
@@ -3483,11 +3483,29 @@ void Context::drawElements(GLenum mode, GLuint start, GLuint end, GLsizei count,
 		return error(GL_INVALID_OPERATION);
 	}
 
+	GLenum internalMode = mode;
+	if(isPrimitiveRestartFixedIndexEnabled())
+	{
+		switch(mode)
+		{
+		case GL_TRIANGLE_FAN:
+		case GL_TRIANGLE_STRIP:
+			internalMode = GL_TRIANGLES;
+			break;
+		case GL_LINE_LOOP:
+		case GL_LINE_STRIP:
+			internalMode = GL_LINES;
+			break;
+		default:
+			break;
+		}
+	}
+
 	sw::DrawType primitiveType;
 	int primitiveCount;
 	int verticesPerPrimitive;
 
-	if(!es2sw::ConvertPrimitiveType(mode, count, type, primitiveType, primitiveCount, verticesPerPrimitive))
+	if(!es2sw::ConvertPrimitiveType(internalMode, count, type, primitiveType, primitiveCount, verticesPerPrimitive))
 		return error(GL_INVALID_ENUM);
 
 	if(primitiveCount <= 0)
@@ -3500,18 +3518,18 @@ void Context::drawElements(GLenum mode, GLuint start, GLuint end, GLsizei count,
 		return;
 	}
 
-	applyState(mode);
+	TranslatedIndexData indexInfo(primitiveCount);
+	GLenum err = applyIndexBuffer(indices, start, end, count, mode, type, &indexInfo);
+	if(err != GL_NO_ERROR)
+	{
+		return error(err);
+	}
+
+	applyState(internalMode);
 
 	for(int i = 0; i < instanceCount; ++i)
 	{
 		device->setInstanceID(i);
-
-		TranslatedIndexData indexInfo;
-		GLenum err = applyIndexBuffer(indices, start, end, count, mode, type, &indexInfo);
-		if(err != GL_NO_ERROR)
-		{
-			return error(err);
-		}
 
 		GLsizei vertexCount = indexInfo.maxIndex - indexInfo.minIndex + 1;
 		err = applyVertexBuffer(-(int)indexInfo.minIndex, indexInfo.minIndex, vertexCount, i);
@@ -3529,13 +3547,13 @@ void Context::drawElements(GLenum mode, GLuint start, GLuint end, GLsizei count,
 		}
 
 		TransformFeedback* transformFeedback = getTransformFeedback();
-		if(!cullSkipsDraw(mode) || (transformFeedback->isActive() && !transformFeedback->isPaused()))
+		if(!cullSkipsDraw(internalMode) || (transformFeedback->isActive() && !transformFeedback->isPaused()))
 		{
-			device->drawIndexedPrimitive(primitiveType, indexInfo.indexOffset, primitiveCount);
+			device->drawIndexedPrimitive(primitiveType, indexInfo.indexOffset, indexInfo.primitiveCount);
 		}
 		if(transformFeedback)
 		{
-			transformFeedback->addVertexOffset(primitiveCount * verticesPerPrimitive);
+			transformFeedback->addVertexOffset(indexInfo.primitiveCount * verticesPerPrimitive);
 		}
 	}
 }

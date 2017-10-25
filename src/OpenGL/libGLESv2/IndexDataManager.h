@@ -27,9 +27,12 @@ namespace es2
 
 struct TranslatedIndexData
 {
+	TranslatedIndexData(unsigned int primitiveCount) : primitiveCount(primitiveCount) {}
+
 	unsigned int minIndex;
 	unsigned int maxIndex;
 	unsigned int indexOffset;
+	unsigned int primitiveCount;
 
 	sw::Resource *indexBuffer;
 };
@@ -58,7 +61,7 @@ public:
 	IndexDataManager();
 	virtual ~IndexDataManager();
 
-	GLenum prepareIndexData(GLenum type, GLuint start, GLuint end, GLsizei count, Buffer *arrayElementBuffer, const void *indices, TranslatedIndexData *translated);
+	GLenum prepareIndexData(GLenum mode, GLenum type, GLuint start, GLuint end, GLsizei count, Buffer *arrayElementBuffer, const void *indices, TranslatedIndexData *translated, bool primitiveRestart);
 
 	static std::size_t typeSize(GLenum type);
 
