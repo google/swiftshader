@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f7e7ac84_277cf95b",
+        "filename": "src/OpenGL/libGLESv2/IndexDataManager.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 292,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-10-26T14:47:37Z",
+      "side": 1,
+      "message": "The construction and destruction of restartIndices adds needless overhead in case primitive restart isn\u0027t active, but can be avoided:\n\nif(primitiveRestart)\n{\n\tstd::vec\u003c\u003e restartIndices;\n\tcomputeRange(..., \u0026restartIndices);\n}\nelse\n{\n\tcomputeRange(..., nullptr);\n}",
+      "range": {
+        "startLine": 291,
+        "startChar": 1,
+        "endLine": 292,
+        "endChar": 128
+      },
+      "revId": "36ffa877370fdf0771274106dfafa6c89fcccf37",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
