@@ -61,8 +61,8 @@ namespace sw
 	extern bool precacheSetup;
 	extern bool precachePixel;
 
-	int batchSize = 128;
-	int threadCount = 1;
+	static const int batchSize = 128;
+	AtomicInt threadCount(1);
 	AtomicInt Renderer::unitCount(1);
 	AtomicInt Renderer::clusterCount(1);
 

@@ -37,9 +37,6 @@ namespace sw
 	class Renderer;
 	struct Constants;
 
-	extern int batchSize;
-	extern int threadCount;
-
 	enum TranscendentalPrecision
 	{
 		APPROXIMATE,
