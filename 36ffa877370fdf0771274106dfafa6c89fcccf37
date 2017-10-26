@@ -22,6 +22,30 @@
       "revId": "36ffa877370fdf0771274106dfafa6c89fcccf37",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "df292ce0_fc4c0ebc",
+        "filename": "src/OpenGL/libGLESv2/IndexDataManager.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 292,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-10-26T15:11:47Z",
+      "side": 1,
+      "message": "Done (in a different way).",
+      "parentUuid": "f7e7ac84_277cf95b",
+      "range": {
+        "startLine": 291,
+        "startChar": 1,
+        "endLine": 292,
+        "endChar": 128
+      },
+      "revId": "36ffa877370fdf0771274106dfafa6c89fcccf37",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
