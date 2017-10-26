@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d85587a6_9c4e56cc",
+        "filename": "src/OpenGL/libGLESv2/IndexDataManager.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 329,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-10-26T15:43:02Z",
+      "side": 1,
+      "message": "This delete and the one below can be handled a little more elegantly and less bug prone by checking early on that if there\u0027s a restartIndices vector, but it\u0027s empty, we delete it and set it to null.",
+      "range": {
+        "startLine": 329,
+        "startChar": 2,
+        "endLine": 329,
+        "endChar": 24
+      },
+      "revId": "c891cb9a7335093bea8d1ac717d8fe0e933feb86",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
