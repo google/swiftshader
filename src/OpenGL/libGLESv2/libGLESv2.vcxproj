@@ -344,6 +344,7 @@ copy "$(OutDir)libGLESv2.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\tr
     <ClCompile Include="Context.cpp" />
     <ClCompile Include="..\common\debug.cpp" />
     <ClCompile Include="Device.cpp" />
+    <ClCompile Include="entry_points.cpp" />
     <ClCompile Include="Fence.cpp" />
     <ClCompile Include="Framebuffer.cpp" />
     <ClCompile Include="IndexDataManager.cpp" />

@@ -101,6 +101,7 @@ swiftshader_shared_library("swiftshader_libGLESv2") {
   ]
 
   sources = [
+    "entry_points.cpp",
     "libGLESv2.def",
     "libGLESv2.rc",
   ]

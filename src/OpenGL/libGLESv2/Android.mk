@@ -35,6 +35,7 @@ COMMON_SRC_FILES := \
 	libGLESv2.cpp \
 	libGLESv3.cpp \
 	main.cpp \
+	entry_points.cpp \
 	Program.cpp \
 	Query.cpp \
 	Renderbuffer.cpp \
