@@ -14,13 +14,13 @@
 
 #include "SetupProcessor.hpp"
 
-#include "SetupRoutine.hpp"
 #include "Primitive.hpp"
 #include "Polygon.hpp"
 #include "Context.hpp"
 #include "Renderer.hpp"
-#include "Constants.hpp"
-#include "Debug.hpp"
+#include "Shader/SetupRoutine.hpp"
+#include "Shader/Constants.hpp"
+#include "Common/Debug.hpp"
 
 namespace sw
 {

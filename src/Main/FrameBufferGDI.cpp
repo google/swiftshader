@@ -14,7 +14,7 @@
 
 #include "FrameBufferGDI.hpp"
 
-#include "Debug.hpp"
+#include "Common/Debug.hpp"
 
 namespace sw
 {

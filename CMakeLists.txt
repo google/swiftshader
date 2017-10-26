@@ -688,11 +688,6 @@ endif()
 
 set(COMMON_INCLUDE_DIR
     ${SOURCE_DIR}
-    ${SOURCE_DIR}/Common
-    ${SOURCE_DIR}/Main
-    ${SOURCE_DIR}/Reactor
-    ${SOURCE_DIR}/Renderer
-    ${SOURCE_DIR}/Shader
     ${CMAKE_SOURCE_DIR}/include
     ${LLVM_INCLUDE_DIR}
 )

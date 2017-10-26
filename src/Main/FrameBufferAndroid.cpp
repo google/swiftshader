@@ -13,7 +13,8 @@
 // limitations under the License.
 
 #include "FrameBufferAndroid.hpp"
-#include "GrallocAndroid.hpp"
+
+#include "Common/GrallocAndroid.hpp"
 
 #include <system/window.h>
 #include <cutils/log.h>

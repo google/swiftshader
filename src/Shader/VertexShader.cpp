@@ -14,8 +14,8 @@
 
 #include "VertexShader.hpp"
 
-#include "Vertex.hpp"
-#include "Debug.hpp"
+#include "Renderer/Vertex.hpp"
+#include "Common/Debug.hpp"
 
 #include <string.h>
 

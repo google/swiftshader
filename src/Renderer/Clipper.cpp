@@ -16,7 +16,7 @@
 
 #include "Polygon.hpp"
 #include "Renderer.hpp"
-#include "Debug.hpp"
+#include "Common/Debug.hpp"
 
 namespace sw
 {

@@ -72,7 +72,6 @@ swiftshader_source_set("swiftshader_main") {
 
   include_dirs = [
     "..",
-    "../Common",
   ]
 
   if (is_mac) {

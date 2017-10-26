@@ -14,7 +14,7 @@
 
 #include "PixelShader.hpp"
 
-#include "Debug.hpp"
+#include "Common/Debug.hpp"
 
 #include <string.h>
 

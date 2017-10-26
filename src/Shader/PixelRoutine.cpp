@@ -14,13 +14,13 @@
 
 #include "PixelRoutine.hpp"
 
-#include "Renderer.hpp"
-#include "QuadRasterizer.hpp"
-#include "Surface.hpp"
-#include "Primitive.hpp"
 #include "SamplerCore.hpp"
 #include "Constants.hpp"
-#include "Debug.hpp"
+#include "Renderer/Renderer.hpp"
+#include "Renderer/QuadRasterizer.hpp"
+#include "Renderer/Surface.hpp"
+#include "Renderer/Primitive.hpp"
+#include "Common/Debug.hpp"
 
 namespace sw
 {

@@ -14,12 +14,12 @@
 
 #include "Context.hpp"
 
-#include "PixelShader.hpp"
-#include "VertexShader.hpp"
 #include "Primitive.hpp"
 #include "Surface.hpp"
-#include "Memory.hpp"
-#include "Debug.hpp"
+#include "Shader/PixelShader.hpp"
+#include "Shader/VertexShader.hpp"
+#include "Common/Memory.hpp"
+#include "Common/Debug.hpp"
 
 #include <string.h>
 

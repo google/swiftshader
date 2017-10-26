@@ -15,7 +15,7 @@
 #include "FrameBufferX11.hpp"
 
 #include "libX11.hpp"
-#include "Timer.hpp"
+#include "Common/Timer.hpp"
 
 #include <sys/ipc.h>
 #include <sys/shm.h>

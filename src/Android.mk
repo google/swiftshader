@@ -4,11 +4,7 @@ COMMON_C_INCLUDES += \
 	bionic \
 	$(LOCAL_PATH)/../include \
 	$(LOCAL_PATH)/OpenGL/ \
-	$(LOCAL_PATH) \
-	$(LOCAL_PATH)/Renderer/ \
-	$(LOCAL_PATH)/Common/ \
-	$(LOCAL_PATH)/Shader/ \
-	$(LOCAL_PATH)/Main/
+	$(LOCAL_PATH)
 
 ifdef use_subzero
 COMMON_C_INCLUDES += \

@@ -15,7 +15,7 @@
 #include "TextureStage.hpp"
 
 #include "Sampler.hpp"
-#include "Debug.hpp"
+#include "Common/Debug.hpp"
 
 #include <string.h>
 

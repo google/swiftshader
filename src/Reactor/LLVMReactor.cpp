@@ -32,10 +32,10 @@
 #include "LLVMRoutine.hpp"
 #include "LLVMRoutineManager.hpp"
 #include "x86.hpp"
-#include "CPUID.hpp"
-#include "Thread.hpp"
-#include "Memory.hpp"
-#include "MutexLock.hpp"
+#include "Common/CPUID.hpp"
+#include "Common/Thread.hpp"
+#include "Common/Memory.hpp"
+#include "Common/MutexLock.hpp"
 
 #include <fstream>
 

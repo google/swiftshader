@@ -13,8 +13,8 @@
 // limitations under the License.
 
 #include "PixelPipeline.hpp"
-#include "Renderer.hpp"
 #include "SamplerCore.hpp"
+#include "Renderer/Renderer.hpp"
 
 namespace sw
 {

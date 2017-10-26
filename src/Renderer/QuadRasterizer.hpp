@@ -16,10 +16,9 @@
 #define sw_QuadRasterizer_hpp
 
 #include "Rasterizer.hpp"
-#include "ShaderCore.hpp"
-#include "PixelShader.hpp"
-
-#include "Types.hpp"
+#include "Shader/ShaderCore.hpp"
+#include "Shader/PixelShader.hpp"
+#include "Common/Types.hpp"
 
 namespace sw
 {

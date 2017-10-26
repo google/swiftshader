@@ -15,11 +15,11 @@
 #include "VertexRoutine.hpp"
 
 #include "VertexShader.hpp"
-#include "Vertex.hpp"
-#include "Half.hpp"
-#include "Renderer.hpp"
 #include "Constants.hpp"
-#include "Debug.hpp"
+#include "Renderer/Vertex.hpp"
+#include "Renderer/Renderer.hpp"
+#include "Common/Half.hpp"
+#include "Common/Debug.hpp"
 
 namespace sw
 {

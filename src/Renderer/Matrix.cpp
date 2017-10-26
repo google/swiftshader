@@ -15,7 +15,7 @@
 #include "Matrix.hpp"
 
 #include "Point.hpp"
-#include "Math.hpp"
+#include "Common/Math.hpp"
 
 namespace sw
 {

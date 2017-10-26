@@ -13,9 +13,10 @@
 // limitations under the License.
 
 #include "PixelProgram.hpp"
-#include "Primitive.hpp"
-#include "Renderer.hpp"
+
 #include "SamplerCore.hpp"
+#include "Renderer/Primitive.hpp"
+#include "Renderer/Renderer.hpp"
 
 namespace sw
 {

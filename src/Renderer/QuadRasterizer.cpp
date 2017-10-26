@@ -14,11 +14,11 @@
 
 #include "QuadRasterizer.hpp"
 
-#include "Math.hpp"
 #include "Primitive.hpp"
 #include "Renderer.hpp"
-#include "Constants.hpp"
-#include "Debug.hpp"
+#include "Shader/Constants.hpp"
+#include "Common/Math.hpp"
+#include "Common/Debug.hpp"
 
 namespace sw
 {

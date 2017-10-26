@@ -16,8 +16,8 @@
 
 #include "VertexShader.hpp"
 #include "PixelShader.hpp"
-#include "Math.hpp"
-#include "Debug.hpp"
+#include "Common/Math.hpp"
+#include "Common/Debug.hpp"
 
 #include <set>
 #include <fstream>

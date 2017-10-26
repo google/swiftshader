@@ -14,10 +14,10 @@
 
 #include "SwiftConfig.hpp"
 
-#include "Configurator.hpp"
-#include "Debug.hpp"
 #include "Config.hpp"
-#include "Version.h"
+#include "Common/Configurator.hpp"
+#include "Common/Debug.hpp"
+#include "Common/Version.h"
 
 #include <sstream>
 #include <stdio.h>

@@ -15,7 +15,7 @@
 #ifndef sw_SetupRoutine_hpp
 #define sw_SetupRoutine_hpp
 
-#include "SetupProcessor.hpp"
+#include "Renderer/SetupProcessor.hpp"
 #include "Reactor/Reactor.hpp"
 
 namespace sw

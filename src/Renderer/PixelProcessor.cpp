@@ -14,13 +14,13 @@
 
 #include "PixelProcessor.hpp"
 
-#include "PixelPipeline.hpp"
-#include "PixelProgram.hpp"
-#include "PixelShader.hpp"
 #include "Surface.hpp"
 #include "Primitive.hpp"
-#include "Constants.hpp"
-#include "Debug.hpp"
+#include "Shader/PixelPipeline.hpp"
+#include "Shader/PixelProgram.hpp"
+#include "Shader/PixelShader.hpp"
+#include "Shader/Constants.hpp"
+#include "Common/Debug.hpp"
 
 #include <string.h>
 

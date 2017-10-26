@@ -15,9 +15,9 @@
 #ifndef sw_ShaderCore_hpp
 #define sw_ShaderCore_hpp
 
-#include "Debug.hpp"
 #include "Shader.hpp"
 #include "Reactor/Reactor.hpp"
+#include "Common/Debug.hpp"
 
 namespace sw
 {

@@ -55,8 +55,5 @@ swiftshader_source_set("swiftshader_shader") {
   include_dirs = [
     ".",
     "..",
-    "../Common",
-    "../Main",
-    "../Renderer",
   ]
 }

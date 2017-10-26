@@ -14,9 +14,9 @@
 
 #include "FrameBuffer.hpp"
 
-#include "Timer.hpp"
 #include "Renderer/Surface.hpp"
 #include "Reactor/Reactor.hpp"
+#include "Common/Timer.hpp"
 #include "Common/Debug.hpp"
 
 #include <stdio.h>
