@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "61dfec96_5a14b14c",
+        "filename": "src/Shader/VertexShader.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-10-27T18:45:07Z",
+      "side": 1,
+      "message": "Couldn\u0027t we use a test class as friend class instead of exposing private APIs?",
+      "range": {
+        "startLine": 60,
+        "startChar": 0,
+        "endLine": 60,
+        "endChar": 9
+      },
+      "revId": "d7144206706ad568e48ab522ed10773363b5d4ae",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
