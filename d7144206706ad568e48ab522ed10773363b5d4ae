@@ -22,6 +22,30 @@
       "revId": "d7144206706ad568e48ab522ed10773363b5d4ae",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "38d0dc5e_821d075d",
+        "filename": "src/Shader/VertexShader.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-10-27T20:40:13Z",
+      "side": 1,
+      "message": "Worked around it by copying the shader, which calls update(), and it\u0027s also closer to how things work in SwiftShader (copying the shader out of the compiler).",
+      "parentUuid": "61dfec96_5a14b14c",
+      "range": {
+        "startLine": 60,
+        "startChar": 0,
+        "endLine": 60,
+        "endChar": 9
+      },
+      "revId": "d7144206706ad568e48ab522ed10773363b5d4ae",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
