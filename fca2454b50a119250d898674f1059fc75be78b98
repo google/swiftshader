@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "181d6b60_339f24d3",
+        "filename": "tests/fuzzers/VertexRoutineFuzzer.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-10-27T15:13:02Z",
+      "side": 1,
+      "message": "Case sensitive on Linux.",
+      "range": {
+        "startLine": 15,
+        "startChar": 10,
+        "endLine": 15,
+        "endChar": 16
+      },
+      "revId": "fca2454b50a119250d898674f1059fc75be78b98",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
