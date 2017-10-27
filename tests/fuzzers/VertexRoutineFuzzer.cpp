@@ -70,6 +70,30 @@ class FakeVS : public glsl::Shader {
 
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+	// Data layout:
+	//
+	// byte: boolean states
+	// {
+	//   byte: stream type
+	//   byte: stream count and normalized
+	// } [MAX_VERTEX_INPUTS]
+	// {
+	//   byte[32]: reserved sampler state
+	// } [VERTEX_TEXTURE_IMAGE_UNITS]
+	//
+	// char source[] // null terminated
+	const size_t kHeaderSize = 1 + 2 * sw::MAX_VERTEX_INPUTS + 32 * sw::VERTEX_TEXTURE_IMAGE_UNITS;
+
+	if(size <= kHeaderSize)
+	{
+		return 0;
+	}
+
+	if (data[size -1] != 0)
+	{
+		return 0;
+	}
+
 	std::unique_ptr<ScopedPoolAllocatorAndTLS> allocatorAndTLS(new ScopedPoolAllocatorAndTLS);
 	std::unique_ptr<sw::VertexShader> shader(new sw::VertexShader);
 	std::unique_ptr<FakeVS> fakeVS(new FakeVS(shader.get()));
@@ -98,8 +122,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 
 	glslCompiler->Init(resources);
 
-	const char* glslSource = "void main() {gl_Position = vec4(1.0);}";
-	
+	const char* glslSource = reinterpret_cast<const char*>(data + kHeaderSize);
 	if (!glslCompiler->compile(&glslSource, 1, SH_OBJECT_CODE))
 	{
 		return 0;
@@ -108,24 +131,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 	std::unique_ptr<sw::VertexShader> bytecodeShader(new sw::VertexShader(fakeVS->getVertexShader()));
 
 	sw::VertexProcessor::State state;
-
-	// Data layout:
-	//
-	// byte: boolean states
-	// {
-	//   byte: stream type
-	//   byte: stream count and normalized
-	// } [MAX_VERTEX_INPUTS]
-	// {
-	//   byte[32]: reserved sampler state
-	// } [VERTEX_TEXTURE_IMAGE_UNITS]
-
-	const int state_size = 1 + 2 * sw::MAX_VERTEX_INPUTS + 32 * sw::VERTEX_TEXTURE_IMAGE_UNITS;
-
-	if(size < state_size)
-	{
-		return 0;
-	}
 
 	state.textureSampling = bytecodeShader->containsTextureSampling();
 	state.positionRegister = bytecodeShader->getPositionRegister();
