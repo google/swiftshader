@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e5409484_fbdeabb6",
+        "filename": "tests/fuzzers/VertexRoutineFuzzer.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-10-30T20:25:38Z",
+      "side": 1,
+      "message": "Did you mean \"4\", or really meant \"BITS(4)\"",
+      "range": {
+        "startLine": 155,
+        "startChar": 18,
+        "endLine": 155,
+        "endChar": 25
+      },
+      "revId": "0788a600cdc83c8500091797c850984a02c23324",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
