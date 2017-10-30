@@ -16,6 +16,24 @@
       "revId": "d14e17e40ff0bfe173256ea2ef2be5aa4c0d889b",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a814d4e1_2849f053",
+        "filename": "tests/fuzzers/VertexRoutineFuzzer.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 205,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-10-30T20:52:18Z",
+      "side": 1,
+      "message": "Yeah, the generate() method only records the operations (i.e. produces LLVM or Subzero IR).",
+      "parentUuid": "9300ac2a_aa675569",
+      "revId": "d14e17e40ff0bfe173256ea2ef2be5aa4c0d889b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
