@@ -76,13 +76,13 @@ bool Surface::initialize()
 {
 	ASSERT(!backBuffer && !depthStencil);
 
-	if(libGLES_CM)
-	{
-		backBuffer = libGLES_CM->createBackBuffer(width, height, config->mRenderTargetFormat, config->mSamples);
-	}
-	else if(libGLESv2)
+	if(libGLESv2)
 	{
 		backBuffer = libGLESv2->createBackBuffer(width, height, config->mRenderTargetFormat, config->mSamples);
+	}
+	else if(libGLES_CM)
+	{
+		backBuffer = libGLES_CM->createBackBuffer(width, height, config->mRenderTargetFormat, config->mSamples);
 	}
 
 	if(!backBuffer)
@@ -94,13 +94,13 @@ bool Surface::initialize()
 
 	if(config->mDepthStencilFormat != sw::FORMAT_NULL)
 	{
-		if(libGLES_CM)
-		{
-			depthStencil = libGLES_CM->createDepthStencil(width, height, config->mDepthStencilFormat, config->mSamples);
-		}
-		else if(libGLESv2)
+		if(libGLESv2)
 		{
 			depthStencil = libGLESv2->createDepthStencil(width, height, config->mDepthStencilFormat, config->mSamples);
+		}
+		else if(libGLES_CM)
+		{
+			depthStencil = libGLES_CM->createDepthStencil(width, height, config->mDepthStencilFormat, config->mSamples);
 		}
 
 		if(!depthStencil)
@@ -332,13 +332,13 @@ bool WindowSurface::reset(int backBufferWidth, int backBufferHeight)
 
 	if(window)
 	{
-		if(libGLES_CM)
-		{
-			frameBuffer = libGLES_CM->createFrameBuffer(display->getNativeDisplay(), window, width, height);
-		}
-		else if(libGLESv2)
+		if(libGLESv2)
 		{
 			frameBuffer = libGLESv2->createFrameBuffer(display->getNativeDisplay(), window, width, height);
+		}
+		else if(libGLES_CM)
+		{
+			frameBuffer = libGLES_CM->createFrameBuffer(display->getNativeDisplay(), window, width, height);
 		}
 
 		if(!frameBuffer)
