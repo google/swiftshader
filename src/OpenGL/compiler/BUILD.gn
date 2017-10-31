@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import("../../swiftshader.gni")
+import("//testing/libfuzzer/fuzzer_test.gni")
 
 # Need a separate config to ensure the warnings are added to the end.
 config("swiftshader_opengl_compiler_private_config") {
@@ -35,6 +36,10 @@ config("swiftshader_opengl_compiler_private_config") {
       cflags += [ "-Wno-unused-variable" ]  # local variable is initialized but not referenced (variables only used in ASSERTS)
     }
   }
+}
+
+config("swiftshader_translator_disable_pool_alloc") {
+    defines = [ "SWIFTSHADER_TRANSLATOR_DISABLE_POOL_ALLOC" ]
 }
 
 swiftshader_source_set("swiftshader_opengl_compiler") {
@@ -66,6 +71,10 @@ swiftshader_source_set("swiftshader_opengl_compiler") {
     "parseConst.cpp",
     "util.cpp",
   ]
+
+  if (use_fuzzing_engine) {
+    all_dependent_configs = [ ":swiftshader_translator_disable_pool_alloc" ]
+  }
 
   if (is_linux || is_mac) {
     sources += [ "ossource_posix.cpp" ]
