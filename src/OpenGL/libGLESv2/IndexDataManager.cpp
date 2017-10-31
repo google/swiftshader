@@ -261,7 +261,7 @@ int recomputePrimitiveCount(GLenum mode, GLsizei count, const std::vector<GLsize
 		}
 		return vertexPerPrimitive;
 	case GL_POINTS:
-		*primitiveCount = count - restartIndices.size();
+		*primitiveCount = static_cast<unsigned int>(count - restartIndices.size());
 		return 1;
 	default:
 		UNREACHABLE(mode);
