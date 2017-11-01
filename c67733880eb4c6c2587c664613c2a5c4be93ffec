@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f8dc4c4d_81808483",
+        "filename": "src/Shader/PixelPipeline.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1243,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-11-01T17:45:08Z",
+      "side": 1,
+      "message": "c \u003d",
+      "range": {
+        "startLine": 1243,
+        "startChar": 2,
+        "endLine": 1243,
+        "endChar": 3
+      },
+      "revId": "c67733880eb4c6c2587c664613c2a5c4be93ffec",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bb214ee2_6a940a0e",
+        "filename": "src/Shader/PixelPipeline.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1253,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-11-01T17:45:08Z",
+      "side": 1,
+      "message": "c \u003d",
+      "range": {
+        "startLine": 1253,
+        "startChar": 2,
+        "endLine": 1253,
+        "endChar": 3
+      },
+      "revId": "c67733880eb4c6c2587c664613c2a5c4be93ffec",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
