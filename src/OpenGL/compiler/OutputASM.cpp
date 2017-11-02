@@ -2755,6 +2755,28 @@ namespace glsl
 		return allocate(temporaries, temporary);
 	}
 
+	void OutputASM::setPixelShaderInputs(const TType& type, int var, bool flat)
+	{
+		if(type.isStruct())
+		{
+			const TFieldList &fields = type.getStruct()->fields();
+			int fieldVar = var;
+			for(size_t i = 0; i < fields.size(); i++)
+			{
+				const TType& fieldType = *(fields[i]->type());
+				setPixelShaderInputs(fieldType, fieldVar, flat);
+				fieldVar += fieldType.totalRegisterCount();
+			}
+		}
+		else
+		{
+			for(int i = 0; i < type.totalRegisterCount(); i++)
+			{
+				pixelShader->setInput(var + i, type.registerSize(), sw::Shader::Semantic(sw::Shader::USAGE_COLOR, var + i, flat));
+			}
+		}
+	}
+
 	int OutputASM::varyingRegister(TIntermTyped *varying)
 	{
 		int var = lookup(varyings, varying);
@@ -2762,7 +2784,6 @@ namespace glsl
 		if(var == -1)
 		{
 			var = allocate(varyings, varying);
-			int componentCount = varying->registerSize();
 			int registerCount = varying->totalRegisterCount();
 
 			if(pixelShader)
@@ -2776,16 +2797,11 @@ namespace glsl
 				if(varying->getQualifier() == EvqPointCoord)
 				{
 					ASSERT(varying->isRegister());
-					pixelShader->setInput(var, componentCount, sw::Shader::Semantic(sw::Shader::USAGE_TEXCOORD, var));
+					pixelShader->setInput(var, varying->registerSize(), sw::Shader::Semantic(sw::Shader::USAGE_TEXCOORD, var));
 				}
 				else
 				{
-					for(int i = 0; i < varying->totalRegisterCount(); i++)
-					{
-						bool flat = hasFlatQualifier(varying);
-
-						pixelShader->setInput(var + i, componentCount, sw::Shader::Semantic(sw::Shader::USAGE_COLOR, var + i, flat));
-					}
+					setPixelShaderInputs(varying->getType(), var, hasFlatQualifier(varying));
 				}
 			}
 			else if(vertexShader)
@@ -2823,26 +2839,50 @@ namespace glsl
 	{
 		if(varying->getQualifier() != EvqPointCoord)   // gl_PointCoord does not need linking
 		{
-			const TType &type = varying->getType();
-			const char *name = varying->getAsSymbolNode()->getSymbol().c_str();
-			VaryingList &activeVaryings = shaderObject->varyings;
+			TIntermSymbol *symbol = varying->getAsSymbolNode();
+			declareVarying(varying->getType(), symbol->getSymbol(), reg);
+		}
+	}
 
+	void OutputASM::declareVarying(const TType &type, const TString &varyingName, int registerIndex)
+	{
+		const char *name = varyingName.c_str();
+		VaryingList &activeVaryings = shaderObject->varyings;
+
+		TStructure* structure = type.getStruct();
+		if(structure)
+		{
+			int fieldRegisterIndex = registerIndex;
+
+			const TFieldList &fields = type.getStruct()->fields();
+			for(size_t i = 0; i < fields.size(); i++)
+			{
+				const TType& fieldType = *(fields[i]->type());
+				declareVarying(fieldType, varyingName + "." + fields[i]->name(), fieldRegisterIndex);
+				if(fieldRegisterIndex >= 0)
+				{
+					fieldRegisterIndex += fieldType.totalRegisterCount();
+				}
+			}
+		}
+		else
+		{
 			// Check if this varying has been declared before without having a register assigned
 			for(VaryingList::iterator v = activeVaryings.begin(); v != activeVaryings.end(); v++)
 			{
 				if(v->name == name)
 				{
-					if(reg >= 0)
+					if(registerIndex >= 0)
 					{
-						ASSERT(v->reg < 0 || v->reg == reg);
-						v->reg = reg;
+						ASSERT(v->reg < 0 || v->reg == registerIndex);
+						v->reg = registerIndex;
 					}
 
 					return;
 				}
 			}
 
-			activeVaryings.push_back(glsl::Varying(glVariableType(type), name, varying->getArraySize(), reg, 0));
+			activeVaryings.push_back(glsl::Varying(glVariableType(type), name, type.getArraySize(), registerIndex, 0));
 		}
 	}
 
