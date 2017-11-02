@@ -224,7 +224,9 @@ namespace sw
 
 				if(state.multiSample > 1)
 				{
-					Short x = Short((X[0] + 0xF) >> 4);
+					Int xMin = *Pointer<Int>(data + OFFSET(DrawData, scissorX0));
+					Int xMax = *Pointer<Int>(data + OFFSET(DrawData, scissorX1));
+					Short x = Short(Clamp((X[0] + 0xF) >> 4, xMin, xMax));
 
 					For(Int y = yMin - 1, y < yMax + 1, y++)
 					{
