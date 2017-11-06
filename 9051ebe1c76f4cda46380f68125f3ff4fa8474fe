@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f062a819_ee048e62",
+        "filename": "src/OpenGL/libGLESv2/Shader.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2017-11-06T17:31:47Z",
+      "side": 1,
+      "message": "nit: why the random? XXX is static so you won\u0027t have collision for a single run of dEQP. When creating the corpus each run should be done in a different corpus directory, and the corpii can be merged.",
+      "revId": "9051ebe1c76f4cda46380f68125f3ff4fa8474fe",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
