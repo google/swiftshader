@@ -16,6 +16,24 @@
       "revId": "9051ebe1c76f4cda46380f68125f3ff4fa8474fe",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3c1ac0d0_ac42c691",
+        "filename": "src/OpenGL/libGLESv2/Shader.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-11-06T18:01:14Z",
+      "side": 1,
+      "message": "When a dEQP test crashes, it reloads the library when resuming.",
+      "parentUuid": "f062a819_ee048e62",
+      "revId": "9051ebe1c76f4cda46380f68125f3ff4fa8474fe",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
