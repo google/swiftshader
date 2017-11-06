@@ -489,6 +489,15 @@ namespace sw
 		else ASSERT(false);
 	}
 
+	void PixelProcessor::setCompareFunc(unsigned int sampler, CompareFunc compFunc)
+	{
+		if(sampler < TEXTURE_IMAGE_UNITS)
+		{
+			context->sampler[sampler].setCompareFunc(compFunc);
+		}
+		else ASSERT(false);
+	}
+
 	void PixelProcessor::setBaseLevel(unsigned int sampler, int baseLevel)
 	{
 		if(sampler < TEXTURE_IMAGE_UNITS)

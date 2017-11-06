@@ -68,7 +68,7 @@ namespace sw
 	{
 		for(int i = 0; i < VERTEX_TEXTURE_IMAGE_UNITS; i++)
 		{
-			sampler[i] = new SamplerCore(constants, state.samplerState[i]);
+			sampler[i] = new SamplerCore(constants, state.sampler[i]);
 		}
 
 		if(!state.preTransformed)

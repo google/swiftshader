@@ -1374,6 +1374,32 @@ namespace es2sw
 		return sw::ADDRESSING_WRAP;
 	}
 
+	sw::CompareFunc ConvertCompareFunc(GLenum compareFunc, GLenum compareMode)
+	{
+		if(compareMode == GL_COMPARE_REF_TO_TEXTURE)
+		{
+			switch(compareFunc)
+			{
+			case GL_LEQUAL:   return sw::COMPARE_LESSEQUAL;
+			case GL_GEQUAL:   return sw::COMPARE_GREATEREQUAL;
+			case GL_LESS:     return sw::COMPARE_LESS;
+			case GL_GREATER:  return sw::COMPARE_GREATER;
+			case GL_EQUAL:    return sw::COMPARE_EQUAL;
+			case GL_NOTEQUAL: return sw::COMPARE_NOTEQUAL;
+			case GL_ALWAYS:   return sw::COMPARE_ALWAYS;
+			case GL_NEVER:    return sw::COMPARE_NEVER;
+			default: UNREACHABLE(compareFunc);
+			}
+		}
+		else if(compareMode == GL_NONE)
+		{
+			return sw::COMPARE_BYPASS;
+		}
+		else UNREACHABLE(compareMode);
+
+		return sw::COMPARE_BYPASS;
+	};
+
 	sw::SwizzleType ConvertSwizzleType(GLenum swizzleType)
 	{
 		switch(swizzleType)

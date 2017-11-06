@@ -647,6 +647,15 @@ namespace sw
 		else ASSERT(false);
 	}
 
+	void VertexProcessor::setCompareFunc(unsigned int sampler, CompareFunc compFunc)
+	{
+		if(sampler < VERTEX_TEXTURE_IMAGE_UNITS)
+		{
+			context->sampler[TEXTURE_IMAGE_UNITS + sampler].setCompareFunc(compFunc);
+		}
+		else ASSERT(false);
+	}
+
 	void VertexProcessor::setBaseLevel(unsigned int sampler, int baseLevel)
 	{
 		if(sampler < VERTEX_TEXTURE_IMAGE_UNITS)
@@ -986,7 +995,7 @@ namespace sw
 			{
 				if(context->vertexShader->usesSampler(i))
 				{
-					state.samplerState[i] = context->sampler[TEXTURE_IMAGE_UNITS + i].samplerState();
+					state.sampler[i] = context->sampler[TEXTURE_IMAGE_UNITS + i].samplerState();
 				}
 			}
 		}

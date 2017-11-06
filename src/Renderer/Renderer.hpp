@@ -348,6 +348,7 @@ namespace sw
 		void setSwizzleG(SamplerType type, int sampler, SwizzleType swizzleG);
 		void setSwizzleB(SamplerType type, int sampler, SwizzleType swizzleB);
 		void setSwizzleA(SamplerType type, int sampler, SwizzleType swizzleA);
+		void setCompareFunc(SamplerType type, int sampler, CompareFunc compare);
 		void setBaseLevel(SamplerType type, int sampler, int baseLevel);
 		void setMaxLevel(SamplerType type, int sampler, int maxLevel);
 		void setMinLod(SamplerType type, int sampler, float minLod);

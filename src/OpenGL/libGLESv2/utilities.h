@@ -74,6 +74,7 @@ namespace es2sw
 	sw::LogicalOperation ConvertLogicalOperation(GLenum logicalOperation);
 	sw::StencilOperation ConvertStencilOp(GLenum stencilOp);
 	sw::AddressingMode ConvertTextureWrap(GLenum wrap);
+	sw::CompareFunc ConvertCompareFunc(GLenum compareFunc, GLenum compareMode);
 	sw::SwizzleType ConvertSwizzleType(GLenum swizzleType);
 	sw::CullMode ConvertCullMode(GLenum cullFace, GLenum frontFace);
 	unsigned int ConvertColorMask(bool red, bool green, bool blue, bool alpha);

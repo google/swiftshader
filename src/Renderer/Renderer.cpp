@@ -420,7 +420,7 @@ namespace sw
 				{
 					for(int sampler = 0; sampler < VERTEX_TEXTURE_IMAGE_UNITS; sampler++)
 					{
-						if(vertexState.samplerState[sampler].textureType != TEXTURE_NULL)
+						if(vertexState.sampler[sampler].textureType != TEXTURE_NULL)
 						{
 							draw->texture[TEXTURE_IMAGE_UNITS + sampler] = context->texture[TEXTURE_IMAGE_UNITS + sampler];
 							draw->texture[TEXTURE_IMAGE_UNITS + sampler]->lock(PUBLIC, PRIVATE);
@@ -2385,6 +2385,18 @@ namespace sw
 		else
 		{
 			VertexProcessor::setSwizzleA(sampler, swizzleA);
+		}
+	}
+
+	void Renderer::setCompareFunc(SamplerType type, int sampler, CompareFunc compFunc)
+	{
+		if(type == SAMPLER_PIXEL)
+		{
+			PixelProcessor::setCompareFunc(sampler, compFunc);
+		}
+		else
+		{
+			VertexProcessor::setCompareFunc(sampler, compFunc);
 		}
 	}
 
