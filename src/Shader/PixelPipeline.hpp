@@ -59,8 +59,8 @@ namespace sw
 		void fogBlend(Vector4s &current, Float4 &fog);
 		void specularPixel(Vector4s &current, Vector4s &specular);
 
-		void sampleTexture(Vector4s &c, int coordinates, int sampler, bool project = false);
-		void sampleTexture(Vector4s &c, int sampler, Float4 &u, Float4 &v, Float4 &w, Float4 &q, bool project = false);
+		Vector4s sampleTexture(int coordinates, int sampler, bool project = false);
+		Vector4s sampleTexture(int sampler, Float4 &u, Float4 &v, Float4 &w, Float4 &q, bool project = false);
 
 		Short4 convertFixed12(RValue<Float4> cf);
 		void convertFixed12(Vector4s &cs, Vector4f &cf);
