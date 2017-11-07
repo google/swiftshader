@@ -56,12 +56,12 @@ namespace sw
 	{
 	}
 
-	Vector4s SamplerCore::sampleTexture(Pointer<Byte> &texture, Float4 &u, Float4 &v, Float4 &w, Float4 &q, Vector4f &dsx, Vector4f &dsy)
+	Vector4s SamplerCore::sampleTexture(Pointer<Byte> &texture, Float4 &u, Float4 &v, Float4 &w, Float4 &q, Float4 &bias, Vector4f &dsx, Vector4f &dsy)
 	{
-		return sampleTexture(texture, u, v, w, q, dsx, dsy, dsx, Implicit, true);
+		return sampleTexture(texture, u, v, w, q, q, dsx, dsy, (dsx), Implicit, true);
 	}
 
-	Vector4s SamplerCore::sampleTexture(Pointer<Byte> &texture, Float4 &u, Float4 &v, Float4 &w, Float4 &q, Vector4f &dsx, Vector4f &dsy, Vector4f &offset, SamplerFunction function, bool fixed12)
+	Vector4s SamplerCore::sampleTexture(Pointer<Byte> &texture, Float4 &u, Float4 &v, Float4 &w, Float4 &q, Float4 &bias, Vector4f &dsx, Vector4f &dsy, Vector4f &offset, SamplerFunction function, bool fixed12)
 	{
 		Vector4s c;
 
@@ -77,6 +77,7 @@ namespace sw
 		Float4 uuuu = u;
 		Float4 vvvv = v;
 		Float4 wwww = w;
+		Float4 qqqq = q;
 
 		if(state.textureType == TEXTURE_NULL)
 		{
@@ -109,22 +110,21 @@ namespace sw
 			Float anisotropy;
 			Float4 uDelta;
 			Float4 vDelta;
-			Float lodBias = (function == Fetch) ? Float4(As<Int4>(q)).x : q.x;
 
 			if(state.textureType != TEXTURE_3D)
 			{
 				if(state.textureType != TEXTURE_CUBE)
 				{
-					computeLod(texture, lod, anisotropy, uDelta, vDelta, uuuu, vvvv, lodBias, dsx, dsy, function);
+					computeLod(texture, lod, anisotropy, uDelta, vDelta, uuuu, vvvv, bias.x, dsx, dsy, function);
 				}
 				else
 				{
-					computeLodCube(texture, lod, lodX, lodY, lodZ, lodBias, dsx, dsy, function);
+					computeLodCube(texture, lod, lodX, lodY, lodZ, bias.x, dsx, dsy, function);
 				}
 			}
 			else
 			{
-				computeLod3D(texture, lod, uuuu, vvvv, wwww, lodBias, dsx, dsy, function);
+				computeLod3D(texture, lod, uuuu, vvvv, wwww, bias.x, dsx, dsy, function);
 			}
 
 			if(!hasFloatTexture())
@@ -133,7 +133,7 @@ namespace sw
 			}
 			else
 			{
-				Vector4f cf = sampleFloatFilter(texture, uuuu, vvvv, wwww, offset, lod, anisotropy, uDelta, vDelta, face, function);
+				Vector4f cf = sampleFloatFilter(texture, uuuu, vvvv, wwww, qqqq, offset, lod, anisotropy, uDelta, vDelta, face, function);
 
 				convertFixed12(c, cf);
 			}
@@ -299,7 +299,7 @@ namespace sw
 		return c;
 	}
 
-	Vector4f SamplerCore::sampleTexture(Pointer<Byte> &texture, Float4 &u, Float4 &v, Float4 &w, Float4 &q, Vector4f &dsx, Vector4f &dsy, Vector4f &offset, SamplerFunction function)
+	Vector4f SamplerCore::sampleTexture(Pointer<Byte> &texture, Float4 &u, Float4 &v, Float4 &w, Float4 &q, Float4 &bias, Vector4f &dsx, Vector4f &dsy, Vector4f &offset, SamplerFunction function)
 	{
 		Vector4f c;
 
@@ -328,6 +328,7 @@ namespace sw
 				Float4 uuuu = u;
 				Float4 vvvv = v;
 				Float4 wwww = w;
+				Float4 qqqq = q;
 
 				Int face[4];
 				Float4 lodX;
@@ -343,25 +344,24 @@ namespace sw
 				Float anisotropy;
 				Float4 uDelta;
 				Float4 vDelta;
-				Float lodBias = (function == Fetch) ? Float4(As<Int4>(q)).x : q.x;
 
 				if(state.textureType != TEXTURE_3D)
 				{
 					if(state.textureType != TEXTURE_CUBE)
 					{
-						computeLod(texture, lod, anisotropy, uDelta, vDelta, uuuu, vvvv, lodBias, dsx, dsy, function);
+						computeLod(texture, lod, anisotropy, uDelta, vDelta, uuuu, vvvv, bias.x, dsx, dsy, function);
 					}
 					else
 					{
-						computeLodCube(texture, lod, lodX, lodY, lodZ, lodBias, dsx, dsy, function);
+						computeLodCube(texture, lod, lodX, lodY, lodZ, bias.x, dsx, dsy, function);
 					}
 				}
 				else
 				{
-					computeLod3D(texture, lod, uuuu, vvvv, wwww, lodBias, dsx, dsy, function);
+					computeLod3D(texture, lod, uuuu, vvvv, wwww, bias.x, dsx, dsy, function);
 				}
 
-				c = sampleFloatFilter(texture, uuuu, vvvv, wwww, offset, lod, anisotropy, uDelta, vDelta, face, function);
+				c = sampleFloatFilter(texture, uuuu, vvvv, wwww, qqqq, offset, lod, anisotropy, uDelta, vDelta, face, function);
 
 				if(!hasFloatTexture() && !hasUnnormalizedIntegerTexture())
 				{
@@ -389,7 +389,7 @@ namespace sw
 			}
 			else
 			{
-				Vector4s cs = sampleTexture(texture, u, v, w, q, dsx, dsy, offset, function, false);
+				Vector4s cs = sampleTexture(texture, u, v, w, q, bias, dsx, dsy, offset, function, false);
 
 				if(has16bitTextureFormat())
 				{
@@ -1116,9 +1116,9 @@ namespace sw
 		return c_;
 	}
 
-	Vector4f SamplerCore::sampleFloatFilter(Pointer<Byte> &texture, Float4 &u, Float4 &v, Float4 &w, Vector4f &offset, Float &lod, Float &anisotropy, Float4 &uDelta, Float4 &vDelta, Int face[4], SamplerFunction function)
+	Vector4f SamplerCore::sampleFloatFilter(Pointer<Byte> &texture, Float4 &u, Float4 &v, Float4 &w, Float4 &q, Vector4f &offset, Float &lod, Float &anisotropy, Float4 &uDelta, Float4 &vDelta, Int face[4], SamplerFunction function)
 	{
-		Vector4f c = sampleFloatAniso(texture, u, v, w, offset, lod, anisotropy, uDelta, vDelta, face, false, function);
+		Vector4f c = sampleFloatAniso(texture, u, v, w, q, offset, lod, anisotropy, uDelta, vDelta, face, false, function);
 
 		if(function == Fetch)
 		{
@@ -1127,7 +1127,7 @@ namespace sw
 
 		if(state.mipmapFilter > MIPMAP_POINT)
 		{
-			Vector4f cc = sampleFloatAniso(texture, u, v, w, offset, lod, anisotropy, uDelta, vDelta, face, true, function);
+			Vector4f cc = sampleFloatAniso(texture, u, v, w, q, offset, lod, anisotropy, uDelta, vDelta, face, true, function);
 
 			Float4 lod4 = Float4(Frac(lod));
 
@@ -1196,13 +1196,13 @@ namespace sw
 		return c;
 	}
 
-	Vector4f SamplerCore::sampleFloatAniso(Pointer<Byte> &texture, Float4 &u, Float4 &v, Float4 &w, Vector4f &offset, Float &lod, Float &anisotropy, Float4 &uDelta, Float4 &vDelta, Int face[4], bool secondLOD, SamplerFunction function)
+	Vector4f SamplerCore::sampleFloatAniso(Pointer<Byte> &texture, Float4 &u, Float4 &v, Float4 &w, Float4 &q, Vector4f &offset, Float &lod, Float &anisotropy, Float4 &uDelta, Float4 &vDelta, Int face[4], bool secondLOD, SamplerFunction function)
 	{
 		Vector4f c;
 
 		if(state.textureFilter != FILTER_ANISOTROPIC || function == Lod || function == Fetch)
 		{
-			c = sampleFloat(texture, u, v, w, offset, lod, face, secondLOD, function);
+			c = sampleFloat(texture, u, v, w, q, offset, lod, face, secondLOD, function);
 		}
 		else
 		{
@@ -1231,7 +1231,7 @@ namespace sw
 
 			Do
 			{
-				c = sampleFloat(texture, u0, v0, w, offset, lod, face, secondLOD, function);
+				c = sampleFloat(texture, u0, v0, w, q, offset, lod, face, secondLOD, function);
 
 				u0 += du;
 				v0 += dv;
@@ -1254,11 +1254,11 @@ namespace sw
 		return c;
 	}
 
-	Vector4f SamplerCore::sampleFloat(Pointer<Byte> &texture, Float4 &u, Float4 &v, Float4 &w, Vector4f &offset, Float &lod, Int face[4], bool secondLOD, SamplerFunction function)
+	Vector4f SamplerCore::sampleFloat(Pointer<Byte> &texture, Float4 &u, Float4 &v, Float4 &w, Float4 &q, Vector4f &offset, Float &lod, Int face[4], bool secondLOD, SamplerFunction function)
 	{
 		if(state.textureType != TEXTURE_3D)
 		{
-			return sampleFloat2D(texture, u, v, w, offset, lod, face, secondLOD, function);
+			return sampleFloat2D(texture, u, v, w, q, offset, lod, face, secondLOD, function);
 		}
 		else
 		{
@@ -1266,7 +1266,7 @@ namespace sw
 		}
 	}
 
-	Vector4f SamplerCore::sampleFloat2D(Pointer<Byte> &texture, Float4 &u, Float4 &v, Float4 &w, Vector4f &offset, Float &lod, Int face[4], bool secondLOD, SamplerFunction function)
+	Vector4f SamplerCore::sampleFloat2D(Pointer<Byte> &texture, Float4 &u, Float4 &v, Float4 &w, Float4 &q, Vector4f &offset, Float &lod, Int face[4], bool secondLOD, SamplerFunction function)
 	{
 		Vector4f c;
 
@@ -1295,16 +1295,16 @@ namespace sw
 
 		if(state.textureFilter == FILTER_POINT || (function == Fetch))
 		{
-			c = sampleTexel(x0, y0, z0, w, mipmap, buffer, function);
+			c = sampleTexel(x0, y0, z0, q, mipmap, buffer, function);
 		}
 		else
 		{
 			y1 *= pitchP;
 
-			Vector4f c0 = sampleTexel(x0, y0, z0, w, mipmap, buffer, function);
-			Vector4f c1 = sampleTexel(x1, y0, z0, w, mipmap, buffer, function);
-			Vector4f c2 = sampleTexel(x0, y1, z0, w, mipmap, buffer, function);
-			Vector4f c3 = sampleTexel(x1, y1, z0, w, mipmap, buffer, function);
+			Vector4f c0 = sampleTexel(x0, y0, z0, q, mipmap, buffer, function);
+			Vector4f c1 = sampleTexel(x1, y0, z0, q, mipmap, buffer, function);
+			Vector4f c2 = sampleTexel(x0, y1, z0, q, mipmap, buffer, function);
+			Vector4f c3 = sampleTexel(x1, y1, z0, q, mipmap, buffer, function);
 
 			if(!gather)   // Blend
 			{
@@ -1481,10 +1481,20 @@ namespace sw
 				lod += lodBias;
 			}
 		}
-		else
+		else if(function == Lod)
 		{
 			lod = lodBias + Float(*Pointer<Int>(texture + OFFSET(Texture,baseLevel)));
 		}
+		else if(function == Fetch)
+		{
+			// TODO: Eliminate int-float-int conversion.
+			lod = Float(As<Int>(lodBias)) + Float(*Pointer<Int>(texture + OFFSET(Texture,baseLevel)));
+		}
+		else if(function == Base)
+		{
+			lod = Float(*Pointer<Int>(texture + OFFSET(Texture,baseLevel)));
+		}
+		else assert(false);
 
 		lod = Max(lod, *Pointer<Float>(texture + OFFSET(Texture, minLod)));
 		lod = Min(lod, *Pointer<Float>(texture + OFFSET(Texture, maxLod)));
@@ -1537,10 +1547,20 @@ namespace sw
 				lod += lodBias;
 			}
 		}
-		else
+		else if(function == Lod)
 		{
 			lod = lodBias + Float(*Pointer<Int>(texture + OFFSET(Texture,baseLevel)));
 		}
+		else if(function == Fetch)
+		{
+			// TODO: Eliminate int-float-int conversion.
+			lod = Float(As<Int>(lodBias)) + Float(*Pointer<Int>(texture + OFFSET(Texture,baseLevel)));
+		}
+		else if(function == Base)
+		{
+			lod = Float(*Pointer<Int>(texture + OFFSET(Texture,baseLevel)));
+		}
+		else assert(false);
 
 		lod = Max(lod, *Pointer<Float>(texture + OFFSET(Texture, minLod)));
 		lod = Min(lod, *Pointer<Float>(texture + OFFSET(Texture, maxLod)));
@@ -1555,9 +1575,7 @@ namespace sw
 		{
 			if(function != Lod && function != Fetch)
 			{
-				Float4 dudxy;
-				Float4 dvdxy;
-				Float4 dsdxy;
+				Float4 dudxy, dvdxy, dsdxy;
 
 				if(function != Grad)
 				{
@@ -1567,13 +1585,9 @@ namespace sw
 				}
 				else
 				{
-					dudxy = dsx.x;
-					dvdxy = dsx.y;
-					dsdxy = dsx.z;
-
-					dudxy = Float4(dudxy.xx, dsy.x.xx);
-					dvdxy = Float4(dvdxy.xx, dsy.y.xx);
-					dsdxy = Float4(dsdxy.xx, dsy.z.xx);
+					dudxy = Float4(dsx.x.xx, dsy.x.xx);
+					dvdxy = Float4(dsx.y.xx, dsy.y.xx);
+					dsdxy = Float4(dsx.z.xx, dsy.z.xx);
 
 					dudxy = Float4(dudxy.xz, dudxy.xz);
 					dvdxy = Float4(dvdxy.xz, dvdxy.xz);
@@ -1601,10 +1615,20 @@ namespace sw
 					lod += lodBias;
 				}
 			}
-			else
+			else if(function == Lod)
 			{
 				lod = lodBias + Float(*Pointer<Int>(texture + OFFSET(Texture,baseLevel)));
 			}
+			else if(function == Fetch)
+			{
+				// TODO: Eliminate int-float-int conversion.
+				lod = Float(As<Int>(lodBias)) + Float(*Pointer<Int>(texture + OFFSET(Texture,baseLevel)));
+			}
+			else if(function == Base)
+			{
+				lod = Float(*Pointer<Int>(texture + OFFSET(Texture,baseLevel)));
+			}
+			else assert(false);
 
 			lod = Max(lod, *Pointer<Float>(texture + OFFSET(Texture, minLod)));
 			lod = Min(lod, *Pointer<Float>(texture + OFFSET(Texture, maxLod)));

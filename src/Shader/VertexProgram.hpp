@@ -107,18 +107,18 @@ namespace sw
 		void SWITCH();
 		void RET();
 		void LEAVE();
-		void TEXLDL(Vector4f &dst, Vector4f &src, const Src&);
 		void TEX(Vector4f &dst, Vector4f &src, const Src&);
-		void TEXOFFSET(Vector4f &dst, Vector4f &src, const Src&, Vector4f &src2);
-		void TEXLDL(Vector4f &dst, Vector4f &src, const Src&, Vector4f &src2);
-		void TEXELFETCH(Vector4f &dst, Vector4f &src, const Src&);
-		void TEXELFETCH(Vector4f &dst, Vector4f &src, const Src&, Vector4f &src2);
-		void TEXGRAD(Vector4f &dst, Vector4f &src, const Src&, Vector4f &src2, Vector4f &src3);
-		void TEXGRAD(Vector4f &dst, Vector4f &src, const Src&, Vector4f &src2, Vector4f &src3, Vector4f &src4);
+		void TEXOFFSET(Vector4f &dst, Vector4f &src, const Src&, Vector4f &offset);
+		void TEXLOD(Vector4f &dst, Vector4f &src, const Src&, Float4 &lod);
+		void TEXLODOFFSET(Vector4f &dst, Vector4f &src, const Src&, Vector4f &offset, Float4 &lod);
+		void TEXELFETCH(Vector4f &dst, Vector4f &src, const Src&, Float4 &lod);
+		void TEXELFETCHOFFSET(Vector4f &dst, Vector4f &src, const Src&, Vector4f &offset, Float4 &lod);
+		void TEXGRAD(Vector4f &dst, Vector4f &src, const Src&, Vector4f &dsx, Vector4f &dsy);
+		void TEXGRADOFFSET(Vector4f &dst, Vector4f &src, const Src&, Vector4f &dsx, Vector4f &dsy, Vector4f &offset);
 		void TEXSIZE(Vector4f &dst, Float4 &lod, const Src&);
 
-		Vector4f sampleTexture(const Src &s, Vector4f &uvwq, Vector4f &dsx, Vector4f &dsy, Vector4f &offset, SamplerFunction function);
-		Vector4f sampleTexture(int sampler, Vector4f &uvwq, Vector4f &dsx, Vector4f &dsy, Vector4f &offset, SamplerFunction function);
+		Vector4f sampleTexture(const Src &s, Vector4f &uvwq, Float4 &lod, Vector4f &dsx, Vector4f &dsy, Vector4f &offset, SamplerFunction function);
+		Vector4f sampleTexture(int sampler, Vector4f &uvwq, Float4 &lod, Vector4f &dsx, Vector4f &dsy, Vector4f &offset, SamplerFunction function);
 
 		int ifDepth;
 		int loopRepDepth;

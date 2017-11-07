@@ -1233,6 +1233,7 @@ namespace glsl
 				else
 				{
 					const TextureFunction textureFunction(node->getName());
+					TIntermTyped *s = arg[0]->getAsTyped();
 					TIntermTyped *t = arg[1]->getAsTyped();
 
 					Temporary coord(this);
@@ -1245,73 +1246,88 @@ namespace glsl
 
 						Instruction *mul = emit(sw::Shader::OPCODE_MUL, &coord, arg[1], &coord);
 						mul->dst.mask = 0x7;
+
+						if(IsShadowSampler(s->getBasicType()))
+						{
+							ASSERT(s->getBasicType() == EbtSampler2DShadow);
+							Instruction *mov = emit(sw::Shader::OPCODE_MOV, &coord, &coord);
+							mov->src[0].swizzle = 0xA4;
+						}
 					}
 					else
 					{
-						emit(sw::Shader::OPCODE_MOV, &coord, arg[1]);
+						Instruction *mov = emit(sw::Shader::OPCODE_MOV, &coord, arg[1]);
+
+						if(IsShadowSampler(s->getBasicType()) && t->getNominalSize() == 3)
+						{
+							ASSERT(s->getBasicType() == EbtSampler2DShadow);
+							mov->src[0].swizzle = 0xA4;
+						}
 					}
 
 					switch(textureFunction.method)
 					{
 					case TextureFunction::IMPLICIT:
+						if(!textureFunction.offset)
 						{
-							TIntermNode* offset = textureFunction.offset ? arg[2] : 0;
-
-							if(argumentCount == 2 || (textureFunction.offset && argumentCount == 3))
+							if(argumentCount == 2)
 							{
-								emit(textureFunction.offset ? sw::Shader::OPCODE_TEXOFFSET : sw::Shader::OPCODE_TEX,
-								     result, &coord, arg[0], offset);
+								emit(sw::Shader::OPCODE_TEX, result, &coord, s);
 							}
-							else if(argumentCount == 3 || (textureFunction.offset && argumentCount == 4))   // bias
+							else if(argumentCount == 3)   // Bias
 							{
-								Instruction *bias = emit(sw::Shader::OPCODE_MOV, &coord, arg[textureFunction.offset ? 3 : 2]);
-								bias->dst.mask = 0x8;
-
-								Instruction *tex = emit(textureFunction.offset ? sw::Shader::OPCODE_TEXOFFSET : sw::Shader::OPCODE_TEX,
-								                        result, &coord, arg[0], offset); // FIXME: Implement an efficient TEXLDB instruction
-								tex->bias = true;
+								emit(sw::Shader::OPCODE_TEXBIAS, result, &coord, s, arg[2]);
+							}
+							else UNREACHABLE(argumentCount);
+						}
+						else   // Offset
+						{
+							if(argumentCount == 3)
+							{
+								emit(sw::Shader::OPCODE_TEXOFFSET, result, &coord, s, arg[2]);
+							}
+							else if(argumentCount == 4)   // Bias
+							{
+								emit(sw::Shader::OPCODE_TEXOFFSETBIAS, result, &coord, s, arg[2], arg[3]);
 							}
 							else UNREACHABLE(argumentCount);
 						}
 						break;
 					case TextureFunction::LOD:
+						if(!textureFunction.offset && argumentCount == 3)
 						{
-							Instruction *lod = emit(sw::Shader::OPCODE_MOV, &coord, arg[2]);
-							lod->dst.mask = 0x8;
-
-							emit(textureFunction.offset ? sw::Shader::OPCODE_TEXLDLOFFSET : sw::Shader::OPCODE_TEXLDL,
-							     result, &coord, arg[0], textureFunction.offset ? arg[3] : nullptr);
+							emit(sw::Shader::OPCODE_TEXLOD, result, &coord, s, arg[2]);
 						}
+						else if(argumentCount == 4)   // Offset
+						{
+							emit(sw::Shader::OPCODE_TEXLODOFFSET, result, &coord, s, arg[3], arg[2]);
+						}
+						else UNREACHABLE(argumentCount);
 						break;
 					case TextureFunction::FETCH:
+						if(!textureFunction.offset && argumentCount == 3)
 						{
-							if(argumentCount == 3 || (textureFunction.offset && argumentCount == 4))
-							{
-								Instruction *lod = emit(sw::Shader::OPCODE_MOV, &coord, arg[2]);
-								lod->dst.mask = 0x8;
-
-								TIntermNode *offset = textureFunction.offset ? arg[3] : nullptr;
-
-								emit(textureFunction.offset ? sw::Shader::OPCODE_TEXELFETCHOFFSET : sw::Shader::OPCODE_TEXELFETCH,
-								     result, &coord, arg[0], offset);
-							}
-							else UNREACHABLE(argumentCount);
+							emit(sw::Shader::OPCODE_TEXELFETCH, result, &coord, s, arg[2]);
 						}
+						else if(argumentCount == 4)   // Offset
+						{
+							emit(sw::Shader::OPCODE_TEXELFETCHOFFSET, result, &coord, s, arg[3], arg[2]);
+						}
+						else UNREACHABLE(argumentCount);
 						break;
 					case TextureFunction::GRAD:
+						if(!textureFunction.offset && argumentCount == 4)
 						{
-							if(argumentCount == 4 || (textureFunction.offset && argumentCount == 5))
-							{
-								TIntermNode *offset = textureFunction.offset ? arg[4] : nullptr;
-
-								emit(textureFunction.offset ? sw::Shader::OPCODE_TEXGRADOFFSET : sw::Shader::OPCODE_TEXGRAD,
-								     result, &coord, arg[0], arg[2], arg[3], offset);
-							}
-							else UNREACHABLE(argumentCount);
+							emit(sw::Shader::OPCODE_TEXGRAD, result, &coord, s, arg[2], arg[3]);
 						}
+						else if(argumentCount == 5)   // Offset
+						{
+							emit(sw::Shader::OPCODE_TEXGRADOFFSET, result, &coord, s, arg[2], arg[3], arg[4]);
+						}
+						else UNREACHABLE(argumentCount);
 						break;
 					case TextureFunction::SIZE:
-						emit(sw::Shader::OPCODE_TEXSIZE, result, arg[1], arg[0]);
+						emit(sw::Shader::OPCODE_TEXSIZE, result, arg[1], s);
 						break;
 					default:
 						UNREACHABLE(textureFunction.method);

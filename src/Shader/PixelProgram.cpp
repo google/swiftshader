@@ -281,17 +281,20 @@ namespace sw
 			case Shader::OPCODE_M3X4:       M3X4(d, s0, src1);                             break;
 			case Shader::OPCODE_M3X3:       M3X3(d, s0, src1);                             break;
 			case Shader::OPCODE_M3X2:       M3X2(d, s0, src1);                             break;
-			case Shader::OPCODE_TEX:        TEXLD(d, s0, src1, project, bias);             break;
-			case Shader::OPCODE_TEXLDD:     TEXLDD(d, s0, src1, s2, s3);                   break;
-			case Shader::OPCODE_TEXLDL:     TEXLDL(d, s0, src1);                           break;
+			case Shader::OPCODE_TEX:        TEX(d, s0, src1, project, bias);               break;
+			case Shader::OPCODE_TEXLDD:     TEXGRAD(d, s0, src1, s2, s3);                  break;
+			case Shader::OPCODE_TEXLDL:     TEXLOD(d, s0, src1, s0.w);                     break;
+			case Shader::OPCODE_TEXLOD:     TEXLOD(d, s0, src1, s2.x);                     break;
 			case Shader::OPCODE_TEXSIZE:    TEXSIZE(d, s0.x, src1);                        break;
 			case Shader::OPCODE_TEXKILL:    TEXKILL(cMask, d, dst.mask);                   break;
-			case Shader::OPCODE_TEXOFFSET:  TEXOFFSET(d, s0, src1, s2, bias);              break;
-			case Shader::OPCODE_TEXLDLOFFSET: TEXLDL(d, s0, src1, s2, bias);               break;
-			case Shader::OPCODE_TEXELFETCH: TEXELFETCH(d, s0, src1);                       break;
-			case Shader::OPCODE_TEXELFETCHOFFSET: TEXELFETCH(d, s0, src1, s2);             break;
+			case Shader::OPCODE_TEXOFFSET:  TEXOFFSET(d, s0, src1, s2);                    break;
+			case Shader::OPCODE_TEXLODOFFSET: TEXLODOFFSET(d, s0, src1, s2, s3.x);         break;
+			case Shader::OPCODE_TEXELFETCH: TEXELFETCH(d, s0, src1, s2.x);                 break;
+			case Shader::OPCODE_TEXELFETCHOFFSET: TEXELFETCHOFFSET(d, s0, src1, s2, s3.x); break;
 			case Shader::OPCODE_TEXGRAD:    TEXGRAD(d, s0, src1, s2, s3);                  break;
-			case Shader::OPCODE_TEXGRADOFFSET: TEXGRAD(d, s0, src1, s2, s3, s4);           break;
+			case Shader::OPCODE_TEXGRADOFFSET: TEXGRADOFFSET(d, s0, src1, s2, s3, s4);     break;
+			case Shader::OPCODE_TEXBIAS:    TEXBIAS(d, s0, src1, s2.x);                    break;
+			case Shader::OPCODE_TEXOFFSETBIAS: TEXOFFSETBIAS(d, s0, src1, s2, s3.x);       break;
 			case Shader::OPCODE_DISCARD:    DISCARD(cMask, instruction);                   break;
 			case Shader::OPCODE_DFDX:       DFDX(d, s0);                                   break;
 			case Shader::OPCODE_DFDY:       DFDY(d, s0);                                   break;
@@ -678,13 +681,13 @@ namespace sw
 		}
 	}
 
-	Vector4f PixelProgram::sampleTexture(const Src &sampler, Vector4f &uvwq, Vector4f &dsx, Vector4f &dsy, Vector4f &offset, SamplerFunction function)
+	Vector4f PixelProgram::sampleTexture(const Src &sampler, Vector4f &uvwq, Float4 &bias, Vector4f &dsx, Vector4f &dsy, Vector4f &offset, SamplerFunction function)
 	{
 		Vector4f tmp;
 
 		if(sampler.type == Shader::PARAMETER_SAMPLER && sampler.rel.type == Shader::PARAMETER_VOID)
 		{
-			tmp = sampleTexture(sampler.index, uvwq, dsx, dsy, offset, function);
+			tmp = sampleTexture(sampler.index, uvwq, bias, dsx, dsy, offset, function);
 		}
 		else
 		{
@@ -696,7 +699,7 @@ namespace sw
 				{
 					If(index == i)
 					{
-						tmp = sampleTexture(i, uvwq, dsx, dsy, offset, function);
+						tmp = sampleTexture(i, uvwq, bias, dsx, dsy, offset, function);
 						// FIXME: When the sampler states are the same, we could use one sampler and just index the texture
 					}
 				}
@@ -712,14 +715,14 @@ namespace sw
 		return c;
 	}
 
-	Vector4f PixelProgram::sampleTexture(int samplerIndex, Vector4f &uvwq, Vector4f &dsx, Vector4f &dsy, Vector4f &offset, SamplerFunction function)
+	Vector4f PixelProgram::sampleTexture(int samplerIndex, Vector4f &uvwq, Float4 &bias, Vector4f &dsx, Vector4f &dsy, Vector4f &offset, SamplerFunction function)
 	{
 		#if PERF_PROFILE
 			Long texTime = Ticks();
 		#endif
 
 		Pointer<Byte> texture = data + OFFSET(DrawData, mipmap) + samplerIndex * sizeof(Texture);
-		Vector4f c = SamplerCore(constants, state.sampler[samplerIndex]).sampleTexture(texture, uvwq.x, uvwq.y, uvwq.z, uvwq.w, dsx, dsy, offset, function);
+		Vector4f c = SamplerCore(constants, state.sampler[samplerIndex]).sampleTexture(texture, uvwq.x, uvwq.y, uvwq.z, uvwq.w, bias, dsx, dsy, offset, function);
 
 		#if PERF_PROFILE
 			cycles[PERF_TEX] += Ticks() - texTime;
@@ -1113,7 +1116,7 @@ namespace sw
 		dst.w = dot4(src0, row3);
 	}
 
-	void PixelProgram::TEXLD(Vector4f &dst, Vector4f &src0, const Src &src1, bool project, bool bias)
+	void PixelProgram::TEX(Vector4f &dst, Vector4f &src0, const Src &src1, bool project, bool bias)
 	{
 		if(project)
 		{
@@ -1123,52 +1126,57 @@ namespace sw
 			proj.y = src0.y * rw;
 			proj.z = src0.z * rw;
 
-			dst = sampleTexture(src1, proj, src0, src0, src0, Implicit);
+			dst = sampleTexture(src1, proj, src0.x, (src0), (src0), (src0), Implicit);
 		}
 		else
 		{
-			dst = sampleTexture(src1, src0, src0, src0, src0, bias ? Bias : Implicit);
+			dst = sampleTexture(src1, src0, src0.x, (src0), (src0), (src0), bias ? Bias : Implicit);
 		}
 	}
 
-	void PixelProgram::TEXOFFSET(Vector4f &dst, Vector4f &src0, const Src &src1, Vector4f &src2, bool bias)
+	void PixelProgram::TEXOFFSET(Vector4f &dst, Vector4f &src0, const Src &src1, Vector4f &offset)
 	{
-		dst = sampleTexture(src1, src0, src0, src0, src2, {bias ? Bias : Implicit, Offset});
+		dst = sampleTexture(src1, src0, (src0.x), (src0), (src0), offset, {Implicit, Offset});
 	}
 
-	void PixelProgram::TEXLDL(Vector4f &dst, Vector4f &src0, const Src &src1, Vector4f &offset, bool bias)
+	void PixelProgram::TEXLODOFFSET(Vector4f &dst, Vector4f &src0, const Src &src1, Vector4f &offset, Float4 &lod)
 	{
-		dst = sampleTexture(src1, src0, src0, src0, offset, {Lod, Offset});
+		dst = sampleTexture(src1, src0, lod, (src0), (src0), offset, {Lod, Offset});
 	}
 
-	void PixelProgram::TEXELFETCH(Vector4f &dst, Vector4f &src0, const Src& src1)
+	void PixelProgram::TEXBIAS(Vector4f &dst, Vector4f &src0, const Src &src1, Float4 &bias)
 	{
-		dst = sampleTexture(src1, src0, src0, src0, src0, Fetch);
+		dst = sampleTexture(src1, src0, bias, (src0), (src0), (src0), Bias);
+	}
+	
+	void PixelProgram::TEXOFFSETBIAS(Vector4f &dst, Vector4f &src0, const Src &src1, Vector4f &offset, Float4 &bias)
+	{
+		dst = sampleTexture(src1, src0, bias, (src0), (src0), offset, {Bias, Offset});
 	}
 
-	void PixelProgram::TEXELFETCH(Vector4f &dst, Vector4f &src0, const Src& src1, Vector4f &offset)
+	void PixelProgram::TEXELFETCH(Vector4f &dst, Vector4f &src0, const Src& src1, Float4 &lod)
 	{
-		dst = sampleTexture(src1, src0, src0, src0, offset, {Fetch, Offset});
+		dst = sampleTexture(src1, src0, lod, (src0), (src0), (src0), Fetch);
 	}
 
-	void PixelProgram::TEXGRAD(Vector4f &dst, Vector4f &src0, const Src& src1, Vector4f &src2, Vector4f &src3)
+	void PixelProgram::TEXELFETCHOFFSET(Vector4f &dst, Vector4f &src0, const Src& src1, Vector4f &offset, Float4 &lod)
 	{
-		dst = sampleTexture(src1, src0, src2, src3, src0, Grad);
+		dst = sampleTexture(src1, src0, lod, (src0), (src0), offset, {Fetch, Offset});
 	}
 
-	void PixelProgram::TEXGRAD(Vector4f &dst, Vector4f &src0, const Src& src1, Vector4f &src2, Vector4f &src3, Vector4f &offset)
+	void PixelProgram::TEXGRAD(Vector4f &dst, Vector4f &src0, const Src& src1, Vector4f &dsx, Vector4f &dsy)
 	{
-		dst = sampleTexture(src1, src0, src2, src3, offset, {Grad, Offset});
+		dst = sampleTexture(src1, src0, (src0.x), dsx, dsy, (src0), Grad);
 	}
 
-	void PixelProgram::TEXLDD(Vector4f &dst, Vector4f &src0, const Src &src1, Vector4f &src2, Vector4f &src3)
+	void PixelProgram::TEXGRADOFFSET(Vector4f &dst, Vector4f &src0, const Src& src1, Vector4f &dsx, Vector4f &dsy, Vector4f &offset)
 	{
-		dst = sampleTexture(src1, src0, src2, src3, src0, Grad);
+		dst = sampleTexture(src1, src0, (src0.x), dsx, dsy, offset, {Grad, Offset});
 	}
 
-	void PixelProgram::TEXLDL(Vector4f &dst, Vector4f &src0, const Src &src1)
+	void PixelProgram::TEXLOD(Vector4f &dst, Vector4f &src0, const Src &src1, Float4 &lod)
 	{
-		dst = sampleTexture(src1, src0, src0, src0, src0, Lod);
+		dst = sampleTexture(src1, src0, lod, (src0), (src0), (src0), Lod);
 	}
 
 	void PixelProgram::TEXSIZE(Vector4f &dst, Float4 &lod, const Src &src1)

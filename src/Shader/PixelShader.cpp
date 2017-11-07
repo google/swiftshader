@@ -314,8 +314,11 @@ namespace sw
 						case Shader::OPCODE_TEX:
 						case Shader::OPCODE_TEXLDD:
 						case Shader::OPCODE_TEXLDL:
+						case Shader::OPCODE_TEXLOD:
+						case Shader::OPCODE_TEXBIAS:
 						case Shader::OPCODE_TEXOFFSET:
-						case Shader::OPCODE_TEXLDLOFFSET:
+						case Shader::OPCODE_TEXOFFSETBIAS:
+						case Shader::OPCODE_TEXLODOFFSET:
 						case Shader::OPCODE_TEXELFETCH:
 						case Shader::OPCODE_TEXELFETCHOFFSET:
 						case Shader::OPCODE_TEXGRAD:
