@@ -1715,8 +1715,10 @@ namespace sw
 
 		if(hasOffset)
 		{
-			uuuu = applyOffset(uuuu, offset.x, Int4(*Pointer<UShort4>(mipmap + OFFSET(Mipmap, width))), texelFetch ? ADDRESSING_TEXELFETCH : state.addressingModeU);
-			vvvv = applyOffset(vvvv, offset.y, Int4(*Pointer<UShort4>(mipmap + OFFSET(Mipmap, height))), texelFetch ? ADDRESSING_TEXELFETCH : state.addressingModeV);
+			UShort4 w = *Pointer<UShort4>(mipmap + OFFSET(Mipmap, width));
+			uuuu = applyOffset(uuuu, offset.x, Int4(w), texelFetch ? ADDRESSING_TEXELFETCH : state.addressingModeU);
+			UShort4 h = *Pointer<UShort4>(mipmap + OFFSET(Mipmap, height));
+			vvvv = applyOffset(vvvv, offset.y, Int4(h), texelFetch ? ADDRESSING_TEXELFETCH : state.addressingModeV);
 		}
 
 		Short4 uuu2 = uuuu;
@@ -1736,7 +1738,8 @@ namespace sw
 
 				if(hasOffset)
 				{
-					wwww = applyOffset(wwww, offset.z, Int4(*Pointer<UShort4>(mipmap + OFFSET(Mipmap, depth))), texelFetch ? ADDRESSING_TEXELFETCH : state.addressingModeW);
+					UShort4 d = *Pointer<UShort4>(mipmap + OFFSET(Mipmap, depth));
+					wwww = applyOffset(wwww, offset.z, Int4(d), texelFetch ? ADDRESSING_TEXELFETCH : state.addressingModeW);
 				}
 			}
 
