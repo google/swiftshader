@@ -1647,11 +1647,6 @@ GL_APICALL void GL_APIENTRY glBindVertexArray(GLuint array)
 {
 	TRACE("(GLuint array = %d)", array);
 
-	if(array == 0)
-	{
-		return;
-	}
-
 	es2::Context *context = es2::getContext();
 
 	if(context)
