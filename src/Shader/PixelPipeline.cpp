@@ -1238,7 +1238,7 @@ namespace sw
 
 		if(!project)
 		{
-			sampler[stage]->sampleTexture(texture, c, u, v, w, q, dsx, dsy);
+			SamplerCore(constants, state.sampler[stage]).sampleTexture(texture, c, u, v, w, q, dsx, dsy);
 		}
 		else
 		{
@@ -1248,7 +1248,7 @@ namespace sw
 			Float4 v_q = v * rq;
 			Float4 w_q = w * rq;
 
-			sampler[stage]->sampleTexture(texture, c, u_q, v_q, w_q, q, dsx, dsy);
+			SamplerCore(constants, state.sampler[stage]).sampleTexture(texture, c, u_q, v_q, w_q, q, dsx, dsy);
 		}
 
 		#if PERF_PROFILE

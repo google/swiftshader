@@ -65,8 +65,6 @@ namespace sw
 		UShort4 convertFixed16(Float4 &cf, bool saturate = true);
 		void linearToSRGB12_16(Vector4s &c);
 
-		SamplerCore *sampler[TEXTURE_IMAGE_UNITS];
-
 	private:
 		Float4 interpolateCentroid(Float4 &x, Float4 &y, Float4 &rhw, Pointer<Byte> planeEquation, bool flat, bool perspective);
 		void stencilTest(Pointer<Byte> &sBuffer, int q, Int &x, Int &sMask, Int &cMask);

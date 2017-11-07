@@ -119,8 +119,6 @@ namespace sw
 
 		void sampleTexture(Vector4f &c, const Src &s, Vector4f &uvwq, Vector4f &dsx, Vector4f &dsy, Vector4f &offset, SamplerFunction function);
 
-		SamplerCore *sampler[VERTEX_TEXTURE_IMAGE_UNITS];
-
 		int ifDepth;
 		int loopRepDepth;
 		int breakDepth;

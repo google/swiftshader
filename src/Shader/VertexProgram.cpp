@@ -58,19 +58,10 @@ namespace sw
 
 	VertexProgram::~VertexProgram()
 	{
-		for(int i = 0; i < VERTEX_TEXTURE_IMAGE_UNITS; i++)
-		{
-			delete sampler[i];
-		}
 	}
 
 	void VertexProgram::pipeline(UInt& index)
 	{
-		for(int i = 0; i < VERTEX_TEXTURE_IMAGE_UNITS; i++)
-		{
-			sampler[i] = new SamplerCore(constants, state.sampler[i]);
-		}
-
 		if(!state.preTransformed)
 		{
 			program(index);
@@ -1610,7 +1601,7 @@ namespace sw
 	void VertexProgram::TEXSIZE(Vector4f &dst, Float4 &lod, const Src &src1)
 	{
 		Pointer<Byte> texture = data + OFFSET(DrawData, mipmap[16]) + src1.index * sizeof(Texture);
-		sampler[src1.index]->textureSize(texture, dst, lod);
+		SamplerCore::textureSize(texture, dst, lod);
 	}
 
 	void VertexProgram::sampleTexture(Vector4f &c, const Src &s, Vector4f &uvwq, Vector4f &dsx, Vector4f &dsy, Vector4f &offset, SamplerFunction function)
@@ -1620,7 +1611,7 @@ namespace sw
 		if(s.type == Shader::PARAMETER_SAMPLER && s.rel.type == Shader::PARAMETER_VOID)
 		{
 			Pointer<Byte> texture = data + OFFSET(DrawData, mipmap[TEXTURE_IMAGE_UNITS]) + s.index * sizeof(Texture);
-			sampler[s.index]->sampleTexture(texture, tmp, uvwq.x, uvwq.y, uvwq.z, uvwq.w, dsx, dsy, offset, function);
+			SamplerCore(constants, state.sampler[s.index]).sampleTexture(texture, tmp, uvwq.x, uvwq.y, uvwq.z, uvwq.w, dsx, dsy, offset, function);
 		}
 		else
 		{
@@ -1633,7 +1624,7 @@ namespace sw
 					If(index == i)
 					{
 						Pointer<Byte> texture = data + OFFSET(DrawData, mipmap[TEXTURE_IMAGE_UNITS]) + i * sizeof(Texture);
-						sampler[i]->sampleTexture(texture, tmp, uvwq.x, uvwq.y, uvwq.z, uvwq.w, dsx, dsy, offset, function);
+						SamplerCore(constants, state.sampler[i]).sampleTexture(texture, tmp, uvwq.x, uvwq.y, uvwq.z, uvwq.w, dsx, dsy, offset, function);
 						// FIXME: When the sampler states are the same, we could use one sampler and just index the texture
 					}
 				}

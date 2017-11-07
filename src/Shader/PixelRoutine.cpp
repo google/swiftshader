@@ -45,10 +45,6 @@ namespace sw
 
 	PixelRoutine::~PixelRoutine()
 	{
-		for(int i = 0; i < TEXTURE_IMAGE_UNITS; i++)
-		{
-			delete sampler[i];
-		}
 	}
 
 	void PixelRoutine::quad(Pointer<Byte> cBuffer[RENDERTARGETS], Pointer<Byte> &zBuffer, Pointer<Byte> &sBuffer, Int cMask[4], Int &x, Int &y)
@@ -56,11 +52,6 @@ namespace sw
 		#if PERF_PROFILE
 			Long pipeTime = Ticks();
 		#endif
-
-		for(int i = 0; i < TEXTURE_IMAGE_UNITS; i++)
-		{
-			sampler[i] = new SamplerCore(constants, state.sampler[i]);
-		}
 
 		const bool earlyDepthTest = !state.depthOverride && !state.alphaTestActive();
 

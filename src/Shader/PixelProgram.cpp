@@ -716,7 +716,7 @@ namespace sw
 		#endif
 
 		Pointer<Byte> texture = data + OFFSET(DrawData, mipmap) + samplerIndex * sizeof(Texture);
-		sampler[samplerIndex]->sampleTexture(texture, c, uvwq.x, uvwq.y, uvwq.z, uvwq.w, dsx, dsy, offset, function);
+		SamplerCore(constants, state.sampler[samplerIndex]).sampleTexture(texture, c, uvwq.x, uvwq.y, uvwq.z, uvwq.w, dsx, dsy, offset, function);
 
 		#if PERF_PROFILE
 			cycles[PERF_TEX] += Ticks() - texTime;
@@ -1169,7 +1169,7 @@ namespace sw
 	void PixelProgram::TEXSIZE(Vector4f &dst, Float4 &lod, const Src &src1)
 	{
 		Pointer<Byte> texture = data + OFFSET(DrawData, mipmap) + src1.index * sizeof(Texture);
-		sampler[src1.index]->textureSize(texture, dst, lod);
+		SamplerCore::textureSize(texture, dst, lod);
 	}
 
 	void PixelProgram::TEXKILL(Int cMask[4], Vector4f &src, unsigned char mask)
