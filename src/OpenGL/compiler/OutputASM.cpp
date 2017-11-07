@@ -1894,6 +1894,12 @@ namespace glsl
 			instruction->dst.integer = (dst->getBasicType() == EbtInt);
 		}
 
+		if(src0)
+		{
+			TIntermTyped* src = src0->getAsTyped();
+			instruction->dst.partialPrecision = src && (src->getPrecision() <= EbpLow);
+		}
+
 		argument(instruction->src[0], src0, index0);
 		argument(instruction->src[1], src1, index1);
 		argument(instruction->src[2], src2, index2);

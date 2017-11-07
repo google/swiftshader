@@ -287,6 +287,21 @@ namespace sw
 		Float4 y = x * Float4(1.59154943e-1f);   // 1/2pi
 		y = y - Round(y);
 
+		if(!pp)
+		{
+			// From the paper: "A Fast, Vectorizable Algorithm for Producing Single-Precision Sine-Cosine Pairs"
+			// This implementation passes OpenGL ES 3.0 precision requirements, at the cost of more operations:
+			// !pp : 17 mul, 7 add, 1 sub, 1 reciprocal
+			//  pp : 4 mul, 2 add, 2 abs
+
+			Float4 y2 = y * y;
+			Float4 c1 = y2 * (y2 * (y2 * Float4(-0.0204391631f) + Float4(0.2536086171f)) + Float4(-1.2336977925f)) + Float4(1.0f);
+			Float4 s1 = y * (y2 * (y2 * (y2 * Float4(-0.0046075748f) + Float4(0.0796819754f)) + Float4(-0.645963615f)) + Float4(1.5707963235f));
+			Float4 c2 = (c1 * c1) - (s1 * s1);
+			Float4 s2 = Float4(2.0f) * s1 * c1;
+			return Float4(2.0f) * s2 * c2 * reciprocal(s2 * s2 + c2 * c2, pp, true);
+		}
+
 		const Float4 A = Float4(-16.0f);
 		const Float4 B = Float4(8.0f);
 		const Float4 C = Float4(7.75160950e-1f);
