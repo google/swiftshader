@@ -2180,16 +2180,39 @@ namespace sw
 				c.x.y = *Pointer<Float>(buffer[f1] + index[1] * 4);
 				c.x.z = *Pointer<Float>(buffer[f2] + index[2] * 4);
 				c.x.w = *Pointer<Float>(buffer[f3] + index[3] * 4);
-
-				if(state.textureFormat == FORMAT_D32FS8_SHADOW && state.textureFilter != FILTER_GATHER)
-				{
-					Float4 d = Min(Max(z, Float4(0.0f)), Float4(1.0f));
-
-					c.x = As<Float4>(As<Int4>(CmpNLT(c.x, d)) & As<Int4>(Float4(1.0f)));   // FIXME: Only less-equal?
-				}
 				break;
 			default:
 				ASSERT(false);
+			}
+
+			if(state.compare != COMPARE_BYPASS)
+			{
+				Float4 ref = z;
+
+				if(!hasFloatTexture())
+				{
+					ref = Min(Max(ref, Float4(0.0f)), Float4(1.0f));
+				}
+
+				Int4 boolean;
+
+				switch(state.compare)
+				{
+				case COMPARE_LESSEQUAL:    boolean = CmpLE(ref, c.x);  break;
+				case COMPARE_GREATEREQUAL: boolean = CmpNLT(ref, c.x); break;
+				case COMPARE_LESS:         boolean = CmpLT(ref, c.x);  break;
+				case COMPARE_GREATER:      boolean = CmpNLE(ref, c.x); break;
+				case COMPARE_EQUAL:        boolean = CmpEQ(ref, c.x);  break;
+				case COMPARE_NOTEQUAL:     boolean = CmpNEQ(ref, c.x); break;
+				case COMPARE_ALWAYS:       boolean = Int4(-1);         break;
+				case COMPARE_NEVER:        boolean = Int4(0);          break;
+				default:                   ASSERT(false);
+				}
+
+				c.x = As<Float4>(boolean & As<Int4>(Float4(1.0f)));
+				c.y = Float4(0.0f);
+				c.z = Float4(0.0f);
+				c.w = Float4(1.0f);
 			}
 		}
 		else
