@@ -339,51 +339,95 @@ namespace sw
 
 	Float4 arcsin(RValue<Float4> x, bool pp)
 	{
-		// x*(pi/2-sqrt(1-x*x)*pi/5)
-		return x * (Float4(1.57079632e+0f) - Sqrt(Float4(1.0f) - x*x) * Float4(6.28318531e-1f));
+		if(false) // Simpler implementation fails even lowp precision tests
+		{
+			// x*(pi/2-sqrt(1-x*x)*pi/5)
+			return x * (Float4(1.57079632e+0f) - Sqrt(Float4(1.0f) - x*x) * Float4(6.28318531e-1f));
+		}
+		else
+		{
+			// From 4.4.45, page 81 of the Handbook of Mathematical Functions, by Milton Abramowitz and Irene Stegun
+			const Float4 half_pi(1.57079632f);
+			const Float4 a0(1.5707288f);
+			const Float4 a1(-0.2121144f);
+			const Float4 a2(0.0742610f);
+			const Float4 a3(-0.0187293f);
+			Float4 absx = Abs(x);
+			return As<Float4>(As<Int4>(half_pi - Sqrt(Float4(1.0f) - absx) * (a0 + absx * (a1 + absx * (a2 + absx * a3)))) ^
+			       (As<Int4>(x) & Int4(0x80000000)));
+		}
+	}
+
+	// Approximation of atan in [0..1]
+	Float4 arctan_01(Float4 x, bool pp)
+	{
+		if(pp)
+		{
+			return x * (Float4(-0.27f) * x + Float4(1.05539816f));
+		}
+		else
+		{
+			// From 4.4.49, page 81 of the Handbook of Mathematical Functions, by Milton Abramowitz and Irene Stegun
+			const Float4 a2(-0.3333314528f);
+			const Float4 a4(0.1999355085f);
+			const Float4 a6(-0.1420889944f);
+			const Float4 a8(0.1065626393f);
+			const Float4 a10(-0.0752896400f);
+			const Float4 a12(0.0429096138f);
+			const Float4 a14(-0.0161657367f);
+			const Float4 a16(0.0028662257f);
+			Float4 x2 = x * x;
+			return (x + x * (x2 * (a2 + x2 * (a4 + x2 * (a6 + x2 * (a8 + x2 * (a10 + x2 * (a12 + x2 * (a14 + x2 * a16)))))))));
+		}
 	}
 
 	Float4 arctan(RValue<Float4> x, bool pp)
 	{
-		Int4 O = CmpNLT(Abs(x), Float4(1.0f));
-		Float4 y = As<Float4>((O & As<Int4>(Float4(1.0f) / x)) | (~O & As<Int4>(x)));   // FIXME: Vector select
+		Float4 absx = Abs(x);
+		Int4 O = CmpNLT(absx, Float4(1.0f));
+		Float4 y = As<Float4>((O & As<Int4>(Float4(1.0f) / absx)) | (~O & As<Int4>(absx))); // FIXME: Vector select
 
-		// Approximation of atan in [-1..1]
-		Float4 theta = y * (Float4(-0.27f) * Abs(y) + Float4(1.05539816f));
-
-		// +/-pi/2 depending on sign of x
-		Float4 sgnPi_2 = As<Float4>(As<Int4>(Float4(1.57079632e+0f)) ^ (As<Int4>(x) & Int4(0x80000000)));
-
-		theta = As<Float4>((O & As<Int4>(sgnPi_2 - theta)) | (~O & As<Int4>(theta)));   // FIXME: Vector select
-
-		return theta;
+		const Float4 half_pi(1.57079632f);
+		Float4 theta = arctan_01(y, pp);
+		return As<Float4>(((O & As<Int4>(half_pi - theta)) | (~O & As<Int4>(theta))) ^ // FIXME: Vector select
+		       (As<Int4>(x) & Int4(0x80000000)));
 	}
 
 	Float4 arctan(RValue<Float4> y, RValue<Float4> x, bool pp)
 	{
+		const Float4 pi(3.14159265f);            // pi
+		const Float4 minus_pi(-3.14159265f);     // -pi
+		const Float4 half_pi(1.57079632f);       // pi/2
+		const Float4 quarter_pi(7.85398163e-1f); // pi/4
+
 		// Rotate to upper semicircle when in lower semicircle
 		Int4 S = CmpLT(y, Float4(0.0f));
-		Float4 theta = As<Float4>(S & As<Int4>(Float4(-3.14159265e+0f)));   // -pi
+		Float4 theta = As<Float4>(S & As<Int4>(minus_pi));
 		Float4 x0 = As<Float4>((As<Int4>(y) & Int4(0x80000000)) ^ As<Int4>(x));
 		Float4 y0 = Abs(y);
 
 		// Rotate to right quadrant when in left quadrant
-		Int4 Q = CmpLT(x0, Float4(0.0f));
-		theta += As<Float4>(Q & As<Int4>(Float4(1.57079632e+0f)));   // pi/2
-		Float4 x1 = As<Float4>((Q & As<Int4>(y0)) | (~Q & As<Int4>(x0)));    // FIXME: Vector select
-		Float4 y1 = As<Float4>((Q & As<Int4>(-x0)) | (~Q & As<Int4>(y0)));   // FIXME: Vector select
+		Int4 non_zero_y = CmpNEQ(y0, Float4(0.0f));
+		Int4 Q = CmpLT(x0, Float4(0.0f)) & non_zero_y;
+		theta += As<Float4>(Q & As<Int4>(half_pi));
+		Float4 x1 = As<Float4>((Q & As<Int4>(y0)) | (~Q & As<Int4>(x0)));  // FIXME: Vector select
+		Float4 y1 = As<Float4>((Q & As<Int4>(-x0)) | (~Q & As<Int4>(y0))); // FIXME: Vector select
 
-		// Rotate to first octant when in second octant
-		Int4 O = CmpNLT(y1, x1);
-		theta += As<Float4>(O & As<Int4>(Float4(7.85398163e-1f)));   // pi/4
-		Float4 x2 = As<Float4>((O & As<Int4>(Float4(7.07106781e-1f) * x1 + Float4(7.07106781e-1f) * y1)) | (~O & As<Int4>(x1)));   // sqrt(2)/2   // FIXME: Vector select
-		Float4 y2 = As<Float4>((O & As<Int4>(Float4(7.07106781e-1f) * y1 - Float4(7.07106781e-1f) * x1)) | (~O & As<Int4>(y1)));   // FIXME: Vector select
+		// Mirror to first octant when in second octant
+		Int4 O = CmpNLT(y1, x1) & non_zero_y;
+		Float4 x2 = As<Float4>((O & As<Int4>(y1)) | (~O & As<Int4>(x1))); // FIXME: Vector select
+		Float4 y2 = As<Float4>((O & As<Int4>(x1)) | (~O & As<Int4>(y1))); // FIXME: Vector select
 
 		// Approximation of atan in [0..1]
-		Float4 y_x = y2 / x2;
-		theta += y_x * (Float4(-0.27f) * y_x + Float4(1.05539816f));
+		Int4 zero_x = CmpEQ(x2, Float4(0.0f));
+		Int4 inf_y = IsInf(y2); // Since x2 >= y2, this means x2 == y2 == inf, so we use 45 degrees or pi/4
+		Float4 atan2_theta = arctan_01(y2 / x2, pp);
+		theta += As<Float4>((~zero_x & ~inf_y & non_zero_y & ((O & As<Int4>(half_pi - atan2_theta)) | (~O & (As<Int4>(atan2_theta))))) | // FIXME: Vector select
+		                    (inf_y & As<Int4>(quarter_pi)));
 
-		return theta;
+		// Recover loss of precision for tiny theta angles
+		Int4 precision_loss = S & Q & O & ~inf_y; // This combination results in (-pi + half_pi + half_pi - atan2_theta) which is equivalent to -atan2_theta
+		return As<Float4>((precision_loss & As<Int4>(-atan2_theta)) | (~precision_loss & As<Int4>(theta))); // FIXME: Vector select
 	}
 
 	Float4 sineh(RValue<Float4> x, bool pp)
