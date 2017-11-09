@@ -189,55 +189,6 @@ bool TParseContext::parseVectorFields(const TString& compString, int vecSize, TV
 	return true;
 }
 
-
-//
-// Look at a '.' field selector string and change it into offsets
-// for a matrix.
-//
-bool TParseContext::parseMatrixFields(const TString& compString, int matCols, int matRows, TMatrixFields& fields, const TSourceLoc &line)
-{
-	fields.wholeRow = false;
-	fields.wholeCol = false;
-	fields.row = -1;
-	fields.col = -1;
-
-	if (compString.size() != 2) {
-		error(line, "illegal length of matrix field selection", compString.c_str());
-		return false;
-	}
-
-	if (compString[0] == '_') {
-		if (compString[1] < '0' || compString[1] > '3') {
-			error(line, "illegal matrix field selection", compString.c_str());
-			return false;
-		}
-		fields.wholeCol = true;
-		fields.col = compString[1] - '0';
-	} else if (compString[1] == '_') {
-		if (compString[0] < '0' || compString[0] > '3') {
-			error(line, "illegal matrix field selection", compString.c_str());
-			return false;
-		}
-		fields.wholeRow = true;
-		fields.row = compString[0] - '0';
-	} else {
-		if (compString[0] < '0' || compString[0] > '3' ||
-			compString[1] < '0' || compString[1] > '3') {
-			error(line, "illegal matrix field selection", compString.c_str());
-			return false;
-		}
-		fields.row = compString[0] - '0';
-		fields.col = compString[1] - '0';
-	}
-
-	if (fields.row >= matRows || fields.col >= matCols) {
-		error(line, "matrix field selection out of range", compString.c_str());
-		return false;
-	}
-
-	return true;
-}
-
 ///////////////////////////////////////////////////////////////////////
 //
 // Errors
@@ -2708,41 +2659,6 @@ TIntermTyped *TParseContext::addFieldSelectionExpression(TIntermTyped *baseExpre
 				baseExpression->getQualifier() == EvqConstExpr ? EvqConstExpr : EvqTemporary, (unsigned char)vectorString.size()));
 		}
 	}
-	else if(baseExpression->isMatrix())
-	{
-		TMatrixFields fields;
-		if(!parseMatrixFields(fieldString, baseExpression->getNominalSize(), baseExpression->getSecondarySize(), fields, fieldLocation))
-		{
-			fields.wholeRow = false;
-			fields.wholeCol = false;
-			fields.row = 0;
-			fields.col = 0;
-			recover();
-		}
-
-		if(fields.wholeRow || fields.wholeCol)
-		{
-			error(dotLocation, " non-scalar fields not implemented yet", ".");
-			recover();
-			ConstantUnion *unionArray = new ConstantUnion[1];
-			unionArray->setIConst(0);
-			TIntermTyped *index = intermediate.addConstantUnion(unionArray, TType(EbtInt, EbpUndefined, EvqConstExpr),
-				fieldLocation);
-			indexedExpression = intermediate.addIndex(EOpIndexDirect, baseExpression, index, dotLocation);
-			indexedExpression->setType(TType(baseExpression->getBasicType(), baseExpression->getPrecision(),
-				EvqTemporary, static_cast<unsigned char>(baseExpression->getNominalSize()),
-				static_cast<unsigned char>(baseExpression->getSecondarySize())));
-		}
-		else
-		{
-			ConstantUnion *unionArray = new ConstantUnion[1];
-			unionArray->setIConst(fields.col * baseExpression->getSecondarySize() + fields.row);
-			TIntermTyped *index = intermediate.addConstantUnion(unionArray, TType(EbtInt, EbpUndefined, EvqConstExpr),
-				fieldLocation);
-			indexedExpression = intermediate.addIndex(EOpIndexDirect, baseExpression, index, dotLocation);
-			indexedExpression->setType(TType(baseExpression->getBasicType(), baseExpression->getPrecision()));
-		}
-	}
 	else if(baseExpression->getBasicType() == EbtStruct)
 	{
 		bool fieldFound = false;
@@ -2840,13 +2756,13 @@ TIntermTyped *TParseContext::addFieldSelectionExpression(TIntermTyped *baseExpre
 	{
 		if(mShaderVersion < 300)
 		{
-			error(dotLocation, " field selection requires structure, vector, or matrix on left hand side",
+			error(dotLocation, " field selection requires structure or vector on left hand side",
 				fieldString.c_str());
 		}
 		else
 		{
 			error(dotLocation,
-				" field selection requires structure, vector, matrix, or interface block on left hand side",
+				" field selection requires structure, vector, or interface block on left hand side",
 				fieldString.c_str());
 		}
 		recover();
