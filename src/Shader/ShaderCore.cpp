@@ -1030,6 +1030,22 @@ namespace sw
 		dst.w = src0.w * (src1.w - src2.w) + src2.w;
 	}
 
+	void ShaderCore::isinf(Vector4f &dst, const Vector4f &src)
+	{
+		dst.x = As<Float4>(IsInf(src.x));
+		dst.y = As<Float4>(IsInf(src.y));
+		dst.z = As<Float4>(IsInf(src.z));
+		dst.w = As<Float4>(IsInf(src.w));
+	}
+
+	void ShaderCore::isnan(Vector4f &dst, const Vector4f &src)
+	{
+		dst.x = As<Float4>(IsNan(src.x));
+		dst.y = As<Float4>(IsNan(src.y));
+		dst.z = As<Float4>(IsNan(src.z));
+		dst.w = As<Float4>(IsNan(src.w));
+	}
+
 	void ShaderCore::smooth(Vector4f &dst, const Vector4f &edge0, const Vector4f &edge1, const Vector4f &x)
 	{
 		Float4 tx = Min(Max((x.x - edge0.x) / (edge1.x - edge0.x), Float4(0.0f)), Float4(1.0f)); dst.x = tx * tx * (Float4(3.0f) - Float4(2.0f) * tx);

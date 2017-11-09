@@ -282,6 +282,8 @@ namespace sw
 		void lit(Vector4f &dst, const Vector4f &src);
 		void att(Vector4f &dst, const Vector4f &src0, const Vector4f &src1);
 		void lrp(Vector4f &dst, const Vector4f &src0, const Vector4f &src1, const Vector4f &src2);
+		void isinf(Vector4f &dst, const Vector4f &src);
+		void isnan(Vector4f &dst, const Vector4f &src);
 		void smooth(Vector4f &dst, const Vector4f &src0, const Vector4f &src1, const Vector4f &src2);
 		void packHalf2x16(Vector4f &dst, const Vector4f &src);
 		void unpackHalf2x16(Vector4f &dst, const Vector4f &src);

@@ -208,6 +208,8 @@ namespace sw
 			case Shader::OPCODE_LRP:        lrp(d, s0, s1, s2);             break;
 			case Shader::OPCODE_STEP:       step(d, s0, s1);                break;
 			case Shader::OPCODE_SMOOTH:     smooth(d, s0, s1, s2);          break;
+			case Shader::OPCODE_ISINF:      isinf(d, s0);                   break;
+			case Shader::OPCODE_ISNAN:      isnan(d, s0);                   break;
 			case Shader::OPCODE_FLOATBITSTOINT:
 			case Shader::OPCODE_FLOATBITSTOUINT:
 			case Shader::OPCODE_INTBITSTOFLOAT:

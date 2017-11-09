@@ -2110,6 +2110,8 @@ namespace sw
 	RValue<Int4> CmpNEQ(RValue<Float4> x, RValue<Float4> y);
 	RValue<Int4> CmpNLT(RValue<Float4> x, RValue<Float4> y);
 	RValue<Int4> CmpNLE(RValue<Float4> x, RValue<Float4> y);
+	RValue<Int4> IsInf(RValue<Float4> x);
+	RValue<Int4> IsNan(RValue<Float4> x);
 	RValue<Float4> Round(RValue<Float4> x);
 	RValue<Float4> Trunc(RValue<Float4> x);
 	RValue<Float4> Frac(RValue<Float4> x);

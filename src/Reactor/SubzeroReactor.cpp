@@ -6967,6 +6967,16 @@ namespace sw
 		return RValue<Int4>(Nucleus::createFCmpOGT(x.value, y.value));
 	}
 
+	RValue<Int4> IsInf(RValue<Float4> x)
+	{
+		return CmpEQ(As<Int4>(x) & Int4(0x7FFFFFFF), Int4(0x7F800000));
+	}
+
+	RValue<Int4> IsNan(RValue<Float4> x)
+	{
+		return ~CmpEQ(x, x);
+	}
+
 	RValue<Float4> Round(RValue<Float4> x)
 	{
 		if(emulateIntrinsics || CPUID::ARM)
