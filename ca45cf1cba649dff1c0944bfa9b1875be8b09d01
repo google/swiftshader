@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "0c13d2a2_10b6eb54",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-11-09T14:26:43Z",
+      "side": 1,
+      "message": "nit: Note that this can be shortened to \"Bug chromium:783135\"",
+      "range": {
+        "startLine": 16,
+        "startChar": 0,
+        "endLine": 16,
+        "endChar": 65
+      },
+      "revId": "ca45cf1cba649dff1c0944bfa9b1875be8b09d01",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "c5298f24_886c22eb",
         "filename": "src/Common/Thread.hpp",
         "patchSetId": 2
