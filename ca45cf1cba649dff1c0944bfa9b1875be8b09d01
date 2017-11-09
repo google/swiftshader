@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c5298f24_886c22eb",
+        "filename": "src/Common/Thread.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-11-09T14:18:23Z",
+      "side": 1,
+      "message": "nit: This is slightly confusing because this #endif doesn\u0027t end the #ifdef __clang__ but rather the #elif block about _MSC_VER. Since this is a short bit of code I don\u0027t think the comment adds much value to begin with, so personally I would just leave it out. I don\u0027t mind if you prefer to keep it though. Your call.",
+      "range": {
+        "startLine": 40,
+        "startChar": 8,
+        "endLine": 40,
+        "endChar": 20
+      },
+      "revId": "ca45cf1cba649dff1c0944bfa9b1875be8b09d01",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
