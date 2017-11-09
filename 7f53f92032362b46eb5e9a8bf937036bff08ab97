@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4b855c42_2ce7b90b",
+        "filename": "src/Shader/ShaderCore.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-11-09T21:00:53Z",
+      "side": 1,
+      "message": "This can be done faster by comparing x \u003d\u003d x, which is false for NaNs. 8-)",
+      "range": {
+        "startLine": 122,
+        "startChar": 2,
+        "endLine": 122,
+        "endChar": 79
+      },
+      "revId": "7f53f92032362b46eb5e9a8bf937036bff08ab97",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
