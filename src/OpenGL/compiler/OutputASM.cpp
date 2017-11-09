@@ -507,32 +507,30 @@ namespace glsl
 		switch(node->getOp())
 		{
 		case EOpAssign:
-			if(visit == PostVisit)
-			{
-				assignLvalue(left, right);
-				copy(result, right);
-			}
-			break;
+			assert(visit == PreVisit);
+			right->traverse(this);
+			assignLvalue(left, right);
+			copy(result, right);
+			return false;
 		case EOpInitialize:
-			if(visit == PostVisit)
-			{
-				copy(left, right);
-			}
-			break;
+			assert(visit == PreVisit);
+			right->traverse(this);
+			copy(left, right);
+			return false;
 		case EOpMatrixTimesScalarAssign:
-			if(visit == PostVisit)
+			assert(visit == PreVisit);
+			right->traverse(this);
+			for(int i = 0; i < leftType.getNominalSize(); i++)
 			{
-				for(int i = 0; i < leftType.getNominalSize(); i++)
-				{
-					emit(sw::Shader::OPCODE_MUL, result, i, left, i, right);
-				}
-
-				assignLvalue(left, result);
+				emit(sw::Shader::OPCODE_MUL, result, i, left, i, right);
 			}
-			break;
+
+			assignLvalue(left, result);
+			return false;
 		case EOpVectorTimesMatrixAssign:
-			if(visit == PostVisit)
+			assert(visit == PreVisit);
 			{
+				right->traverse(this);
 				int size = leftType.getNominalSize();
 
 				for(int i = 0; i < size; i++)
@@ -543,10 +541,11 @@ namespace glsl
 
 				assignLvalue(left, result);
 			}
-			break;
+			return false;
 		case EOpMatrixTimesMatrixAssign:
-			if(visit == PostVisit)
+			assert(visit == PreVisit);
 			{
+				right->traverse(this);
 				int dim = leftType.getNominalSize();
 
 				for(int i = 0; i < dim; i++)
@@ -563,7 +562,7 @@ namespace glsl
 
 				assignLvalue(left, result);
 			}
-			break;
+			return false;
 		case EOpIndexDirect:
 			if(visit == PostVisit)
 			{
@@ -2311,9 +2310,8 @@ namespace glsl
 
 	void OutputASM::assignLvalue(TIntermTyped *dst, TIntermTyped *src)
 	{
-		if(src &&
-			((src->isVector() && (!dst->isVector() || (src->getNominalSize() != dst->getNominalSize()))) ||
-			 (src->isMatrix() && (!dst->isMatrix() || (src->getNominalSize() != dst->getNominalSize()) || (src->getSecondarySize() != dst->getSecondarySize())))))
+		if((src->isVector() && (!dst->isVector() || (src->getNominalSize() != dst->getNominalSize()))) ||
+		   (src->isMatrix() && (!dst->isMatrix() || (src->getNominalSize() != dst->getNominalSize()) || (src->getSecondarySize() != dst->getSecondarySize()))))
 		{
 			return mContext.error(src->getLine(), "Result type should match the l-value type in compound assignment", src->isVector() ? "vector" : "matrix");
 		}
@@ -2337,21 +2335,25 @@ namespace glsl
 		}
 		else
 		{
-			for(int offset = 0; offset < dst->totalRegisterCount(); offset++)
+			Instruction *mov1 = new Instruction(sw::Shader::OPCODE_MOV);
+
+			Temporary address(this);
+			int swizzle = lvalue(mov1->dst, address, dst);
+
+			argument(mov1->src[0], src);
+			mov1->src[0].swizzle = swizzleSwizzle(mov1->src[0].swizzle, swizzle);
+
+			shader->append(mov1);
+
+			for(int offset = 1; offset < dst->totalRegisterCount(); offset++)
 			{
 				Instruction *mov = new Instruction(sw::Shader::OPCODE_MOV);
 
-				Temporary address(this);
-				int swizzle = lvalue(mov->dst, address, dst);
+				mov->dst = mov1->dst;
 				mov->dst.index += offset;
-
-				if(offset > 0)
-				{
-					mov->dst.mask = writeMask(dst, offset);
-				}
+				mov->dst.mask = writeMask(dst, offset);
 
 				argument(mov->src[0], src, offset);
-				mov->src[0].swizzle = swizzleSwizzle(mov->src[0].swizzle, swizzle);
 
 				shader->append(mov);
 			}
@@ -2402,6 +2404,8 @@ namespace glsl
 				break;
 			case EOpIndexIndirect:
 				{
+					right->traverse(this);
+
 					if(left->isRegister())
 					{
 						// Requires INSERT instruction (handled by calling function)
