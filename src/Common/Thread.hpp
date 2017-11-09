@@ -31,7 +31,9 @@
 #include <stdlib.h>
 
 #if defined(__clang__)
-#define USE_STD_ATOMIC __has_include(<atomic>) // clang has an explicit check for the availability of atomic
+#if __has_include(<atomic>) // clang has an explicit check for the availability of atomic
+#define USE_STD_ATOMIC 1
+#endif
 // atomic is available in C++11 or newer, and in Visual Studio 2012 or newer
 #elif (defined(_MSC_VER) && (_MSC_VER >= 1700)) || (__cplusplus >= 201103L)
 #define USE_STD_ATOMIC 1
