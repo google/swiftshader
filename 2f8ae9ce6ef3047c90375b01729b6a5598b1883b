@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0be541dd_a97a1d70",
+        "filename": "src/Shader/ShaderCore.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-11-09T21:24:58Z",
+      "side": 1,
+      "message": "We can do this in one operation using the \u0027unordered\u0027 comparison. Both LLVM and Subzero have these, but it\u0027s not exposed through Reactor yet. Should be straightforward to add.\n\nFor consistency I\u0027d also then move the IsInf implementation to Reactor.",
+      "range": {
+        "startLine": 122,
+        "startChar": 9,
+        "endLine": 122,
+        "endChar": 15
+      },
+      "revId": "2f8ae9ce6ef3047c90375b01729b6a5598b1883b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
