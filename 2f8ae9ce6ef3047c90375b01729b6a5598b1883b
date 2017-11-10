@@ -22,6 +22,30 @@
       "revId": "2f8ae9ce6ef3047c90375b01729b6a5598b1883b",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a7cb8d45_f1b105e6",
+        "filename": "src/Shader/ShaderCore.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-11-10T16:31:04Z",
+      "side": 1,
+      "message": "The IsInf and IsNan implementations were moved to Reactor, but, either due to me picking the wrong function or due to an LLVM bug , the unordered comparison (I tried createFCmpUEQ and other createFCmpU* functions) did not seem to work for every case.",
+      "parentUuid": "0be541dd_a97a1d70",
+      "range": {
+        "startLine": 122,
+        "startChar": 9,
+        "endLine": 122,
+        "endChar": 15
+      },
+      "revId": "2f8ae9ce6ef3047c90375b01729b6a5598b1883b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
