@@ -166,13 +166,14 @@ namespace sw
 
 		x1 += (x0 - Float4(1.0f)) * x2;
 
-		return x1;
+		Int4 pos_inf_x = CmpEQ(As<Int4>(x), Int4(0x7F800000));
+		return As<Float4>((pos_inf_x & As<Int4>(x)) | (~pos_inf_x & As<Int4>(x1)));
 	}
 
 	Float4 exponential(RValue<Float4> x, bool pp)
 	{
 		// FIXME: Propagate the constant
-		return exponential2(Float4(1.44269541f) * x, pp);   // 1/ln(2)
+		return exponential2(Float4(1.44269504f) * x, pp);   // 1/ln(2)
 	}
 
 	Float4 logarithm(RValue<Float4> x, bool absolute, bool pp)
