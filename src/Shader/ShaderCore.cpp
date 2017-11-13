@@ -227,7 +227,7 @@ namespace sw
 
 		Float4 rsq;
 
-		if(!pp && rsqPrecision >= IEEE)
+		if(!pp)
 		{
 			rsq = Float4(1.0f) / Sqrt(abs);
 		}
@@ -239,10 +239,9 @@ namespace sw
 			{
 				rsq = rsq * (Float4(3.0f) - rsq * rsq * abs) * Float4(0.5f);
 			}
-		}
 
-		int big = 0x7F7FFFFF;
-		rsq = Min(rsq, Float4((float&)big));
+			rsq = As<Float4>(CmpNEQ(As<Int4>(abs), Int4(0x7F800000)) & As<Int4>(rsq));
+		}
 
 		return rsq;
 	}
