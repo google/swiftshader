@@ -560,7 +560,7 @@ GL_APICALL void GL_APIENTRY glReadBuffer(GLenum src)
 			GLuint index = (src - GL_COLOR_ATTACHMENT0);
 			if(index >= MAX_COLOR_ATTACHMENTS)
 			{
-				return error(GL_INVALID_ENUM);
+				return error(GL_INVALID_OPERATION);
 			}
 			if(readFramebufferName == 0)
 			{
@@ -570,7 +570,7 @@ GL_APICALL void GL_APIENTRY glReadBuffer(GLenum src)
 		}
 			break;
 		default:
-			error(GL_INVALID_ENUM);
+			return error(GL_INVALID_ENUM);
 		}
 	}
 }
@@ -1096,6 +1096,12 @@ GL_APICALL GLboolean GL_APIENTRY glUnmapBuffer(GLenum target)
 			return error(GL_INVALID_OPERATION, GL_TRUE);
 		}
 
+		if(!buffer->isMapped())
+		{
+			// Already unmapped
+			return error(GL_INVALID_OPERATION, GL_TRUE);
+		}
+
 		return buffer->unmap() ? GL_TRUE : GL_FALSE;
 	}
 
@@ -1574,6 +1580,27 @@ GL_APICALL void *GL_APIENTRY glMapBufferRange(GLenum target, GLintptr offset, GL
 	TRACE("(GLenum target = 0x%X,  GLintptr offset = %d, GLsizeiptr length = %d, GLbitfield access = %X)",
 	      target, offset, length, access);
 
+	if((offset < 0) || (length < 0))
+	{
+		return error(GL_INVALID_VALUE, nullptr);
+	}
+
+	if(!(access & (GL_MAP_READ_BIT | GL_MAP_WRITE_BIT)))
+	{
+		// Must be able to read or write the buffer
+		return error(GL_INVALID_OPERATION, nullptr);
+	}
+	else if((access & GL_MAP_READ_BIT) && (access & (GL_MAP_INVALIDATE_RANGE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT | GL_MAP_UNSYNCHRONIZED_BIT)))
+	{
+		// GL_MAP_INVALIDATE_RANGE_BIT, GL_MAP_INVALIDATE_BUFFER_BIT and GL_MAP_UNSYNCHRONIZED_BIT can't be used with GL_MAP_READ_BIT
+		return error(GL_INVALID_OPERATION, nullptr);
+	}
+	else if((!(access & GL_MAP_WRITE_BIT)) && (access & GL_MAP_FLUSH_EXPLICIT_BIT))
+	{
+		// GL_MAP_FLUSH_EXPLICIT_BIT can't be used without GL_MAP_WRITE_BIT
+		return error(GL_INVALID_OPERATION, nullptr);
+	}
+
 	es2::Context *context = es2::getContext();
 
 	if(context)
@@ -1597,9 +1624,9 @@ GL_APICALL void *GL_APIENTRY glMapBufferRange(GLenum target, GLintptr offset, GL
 		}
 
 		GLsizeiptr bufferSize = buffer->size();
-		if((offset < 0) || (length < 0) || ((offset + length) > bufferSize))
+		if((offset + length) > bufferSize)
 		{
-			error(GL_INVALID_VALUE);
+			return error(GL_INVALID_VALUE, nullptr);
 		}
 
 		if((access & ~(GL_MAP_READ_BIT |
@@ -1609,7 +1636,7 @@ GL_APICALL void *GL_APIENTRY glMapBufferRange(GLenum target, GLintptr offset, GL
 		               GL_MAP_FLUSH_EXPLICIT_BIT |
 		               GL_MAP_UNSYNCHRONIZED_BIT)) != 0)
 		{
-			error(GL_INVALID_VALUE);
+			return error(GL_INVALID_VALUE, nullptr);
 		}
 
 		return buffer->mapRange(offset, length, access);
@@ -1622,6 +1649,11 @@ GL_APICALL void GL_APIENTRY glFlushMappedBufferRange(GLenum target, GLintptr off
 {
 	TRACE("(GLenum target = 0x%X,  GLintptr offset = %d, GLsizeiptr length = %d)",
 	      target, offset, length);
+
+	if((offset < 0) || (length < 0))
+	{
+		return error(GL_INVALID_VALUE);
+	}
 
 	es2::Context *context = es2::getContext();
 
@@ -1639,10 +1671,22 @@ GL_APICALL void GL_APIENTRY glFlushMappedBufferRange(GLenum target, GLintptr off
 			return error(GL_INVALID_OPERATION);
 		}
 
-		GLsizeiptr bufferSize = buffer->size();
-		if((offset < 0) || (length < 0) || ((offset + length) > bufferSize))
+		if(!buffer->isMapped())
 		{
-			error(GL_INVALID_VALUE);
+			// Buffer must be mapped
+			return error(GL_INVALID_OPERATION);
+		}
+
+		GLsizeiptr bufferSize = buffer->length();
+		if((offset + length) > bufferSize)
+		{
+			return error(GL_INVALID_VALUE);
+		}
+
+		if(!(buffer->usage() & GL_MAP_FLUSH_EXPLICIT_BIT))
+		{
+			// Flush must be explicitly allowed
+			return error(GL_INVALID_OPERATION);
 		}
 
 		buffer->flushMappedRange(offset, length);
@@ -3014,7 +3058,7 @@ GL_APICALL GLenum GL_APIENTRY glClientWaitSync(GLsync sync, GLbitfield flags, GL
 
 	if((flags & ~(GL_SYNC_FLUSH_COMMANDS_BIT)) != 0)
 	{
-		error(GL_INVALID_VALUE);
+		return error(GL_INVALID_VALUE, GL_FALSE);
 	}
 
 	es2::Context *context = es2::getContext();

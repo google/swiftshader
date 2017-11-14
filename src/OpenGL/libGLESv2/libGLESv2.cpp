@@ -649,6 +649,12 @@ void BufferSubData(GLenum target, GLintptr offset, GLsizeiptr size, const GLvoid
 			return error(GL_INVALID_OPERATION);
 		}
 
+		if(buffer->isMapped())
+		{
+			// It is an invalid operation to update an already mapped buffer
+			return error(GL_INVALID_OPERATION);
+		}
+
 		if((size_t)size + offset > buffer->size())
 		{
 			return error(GL_INVALID_VALUE);
