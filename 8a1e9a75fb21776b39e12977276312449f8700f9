@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ddbafd0e_bba418a7",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1883,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-11-14T18:18:25Z",
+      "side": 1,
+      "message": "Note that according to the spec: \"The precision used to internally evaluate an operation, and the precision qualification subsequently associated with any resulting intermediate values, must be at least as high as the highest precision qualification of the operands consumed by the operation.\"\n\nSo in theory more than just src0 should be taken into account. At a glance it appears that only a handful of operations could be affected: atan2, pow, mod, distance, div, inverse.\n\nAnyway, I think this is acceptable for now since it passes dEQP. I\u0027ll make a note about it in crbug.com/swiftshader/89 though to have another look.",
+      "range": {
+        "startLine": 1883,
+        "startChar": 23,
+        "endLine": 1883,
+        "endChar": 27
+      },
+      "revId": "8a1e9a75fb21776b39e12977276312449f8700f9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2c81e4d2_db4c6303",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1884,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-11-14T18:18:25Z",
+      "side": 1,
+      "message": "The spec states that: \"In other cases where operands do not have a precision qualifier, the precision qualification will come from the other operands. If no operands have a precision qualifier, then the precision qualifications of the operands of the next consuming operation in the expression will be used. This rule can be applied recursively until a precision qualified operand is found.\"\n\nNote that we have EbpUndefined \u003c EbpLow, so comparing for \u003c\u003d could produce too low precision.\n\nAgain, not something that appears to need immediate attention, but we\u0027ll want to follow up on this.",
+      "range": {
+        "startLine": 1884,
+        "startChar": 67,
+        "endLine": 1884,
+        "endChar": 69
+      },
+      "revId": "8a1e9a75fb21776b39e12977276312449f8700f9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1acdb4d1_52c90707",
+        "filename": "src/Shader/ShaderCore.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 292,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-11-14T18:18:25Z",
+      "side": 1,
+      "message": "Could you add a reference to where you got this from, or how it was derived?",
+      "range": {
+        "startLine": 292,
+        "startChar": 6,
+        "endLine": 292,
+        "endChar": 25
+      },
+      "revId": "8a1e9a75fb21776b39e12977276312449f8700f9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
