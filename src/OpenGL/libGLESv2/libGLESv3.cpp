@@ -1590,6 +1590,12 @@ GL_APICALL void *GL_APIENTRY glMapBufferRange(GLenum target, GLintptr offset, GL
 			return error(GL_INVALID_OPERATION, nullptr);
 		}
 
+		if(buffer->isMapped())
+		{
+			// It is an invalid operation to map an already mapped buffer
+			return error(GL_INVALID_OPERATION, nullptr);
+		}
+
 		GLsizeiptr bufferSize = buffer->size();
 		if((offset < 0) || (length < 0) || ((offset + length) > bufferSize))
 		{
