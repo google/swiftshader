@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "9077ceeb_b316572c",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1884,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-11-14T18:39:42Z",
+      "side": 1,
+      "message": "Note that temporaries are generally created with an EbpUndefined precision. We would need the precision to carry into temporary variables to fix this, otherwise we can miss some highp requirements.",
+      "parentUuid": "2c81e4d2_db4c6303",
+      "range": {
+        "startLine": 1884,
+        "startChar": 67,
+        "endLine": 1884,
+        "endChar": 69
+      },
+      "revId": "8a1e9a75fb21776b39e12977276312449f8700f9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "1acdb4d1_52c90707",
         "filename": "src/Shader/ShaderCore.cpp",
         "patchSetId": 1
@@ -68,6 +92,30 @@
       "revId": "8a1e9a75fb21776b39e12977276312449f8700f9",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "08faf644_62489330",
+        "filename": "src/Shader/ShaderCore.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 292,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-11-14T18:39:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1acdb4d1_52c90707",
+      "range": {
+        "startLine": 292,
+        "startChar": 6,
+        "endLine": 292,
+        "endChar": 25
+      },
+      "revId": "8a1e9a75fb21776b39e12977276312449f8700f9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
