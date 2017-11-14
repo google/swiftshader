@@ -22,6 +22,30 @@
       "revId": "c32672e86d073f295250ada763728fed6b3bf27f",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "49f4a833_b52eadf8",
+        "filename": "src/OpenGL/libGLESv2/libGLESv3.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 3007,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-11-14T22:29:43Z",
+      "side": 1,
+      "message": "Nothing happens, like a regular \"delete nullptr;\". It doesn\u0027t generate an invalid value error.",
+      "parentUuid": "0276af6e_8793d1bb",
+      "range": {
+        "startLine": 3007,
+        "startChar": 5,
+        "endLine": 3007,
+        "endChar": 10
+      },
+      "revId": "c32672e86d073f295250ada763728fed6b3bf27f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
