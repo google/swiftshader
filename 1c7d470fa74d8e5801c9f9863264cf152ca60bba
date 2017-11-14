@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7154b172_7f103776",
+        "filename": "src/Shader/ShaderCore.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 325,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-11-14T18:18:30Z",
+      "side": 1,
+      "message": "Can we keep the old implementation for partial precision? Or does it not pass lowp requirements either? In that case I would put it in an if(false) block with a comment.",
+      "range": {
+        "startLine": 325,
+        "startChar": 38,
+        "endLine": 325,
+        "endChar": 40
+      },
+      "revId": "1c7d470fa74d8e5801c9f9863264cf152ca60bba",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "53f3725b_4d411c35",
+        "filename": "src/Shader/ShaderCore.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 333,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-11-14T18:18:30Z",
+      "side": 1,
+      "message": "Can you quote a reference for this formula.",
+      "range": {
+        "startLine": 333,
+        "startChar": 2,
+        "endLine": 333,
+        "endChar": 8
+      },
+      "revId": "1c7d470fa74d8e5801c9f9863264cf152ca60bba",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "08ad704f_ef19fd6e",
+        "filename": "src/Shader/ShaderCore.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 338,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-11-14T18:18:30Z",
+      "side": 1,
+      "message": "I think arctan01 or similar would be a better name. \u0027theta\u0027 is just a symbol for an angle and doesn\u0027t clarify the range limitation.",
+      "range": {
+        "startLine": 338,
+        "startChar": 8,
+        "endLine": 338,
+        "endChar": 20
+      },
+      "revId": "1c7d470fa74d8e5801c9f9863264cf152ca60bba",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b6eab83d_d22b41ca",
+        "filename": "src/Shader/ShaderCore.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 355,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-11-14T18:18:30Z",
+      "side": 1,
+      "message": "Reference formula origin.",
+      "range": {
+        "startLine": 355,
+        "startChar": 3,
+        "endLine": 355,
+        "endChar": 9
+      },
+      "revId": "1c7d470fa74d8e5801c9f9863264cf152ca60bba",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3c702009_29c679fe",
+        "filename": "src/Shader/ShaderCore.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 363,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-11-14T18:18:30Z",
+      "side": 1,
+      "message": "Do you have a patch ready for these?",
+      "range": {
+        "startLine": 363,
+        "startChar": 89,
+        "endLine": 363,
+        "endChar": 109
+      },
+      "revId": "1c7d470fa74d8e5801c9f9863264cf152ca60bba",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cb847bbe_39881dd1",
+        "filename": "src/Shader/ShaderCore.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 391,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-11-14T18:18:30Z",
+      "side": 1,
+      "message": "Mirror",
+      "range": {
+        "startLine": 391,
+        "startChar": 5,
+        "endLine": 391,
+        "endChar": 11
+      },
+      "revId": "1c7d470fa74d8e5801c9f9863264cf152ca60bba",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
