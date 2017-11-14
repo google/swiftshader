@@ -632,6 +632,7 @@ public:
 	VertexArray *getCurrentVertexArray() const;
 	bool isVertexArray(GLuint array) const;
 	TransformFeedback *getTransformFeedback(GLuint transformFeedback) const;
+	bool isTransformFeedback(GLuint transformFeedback) const;
 	TransformFeedback *getTransformFeedback() const;
 	Sampler *getSampler(GLuint sampler) const;
 	bool isSampler(GLuint sampler) const;

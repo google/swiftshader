@@ -3487,6 +3487,11 @@ GL_APICALL void GL_APIENTRY glBindTransformFeedback(GLenum target, GLuint id)
 			return error(GL_INVALID_OPERATION);
 		}
 
+		if(!context->isTransformFeedback(id))
+		{
+			return error(GL_INVALID_OPERATION);
+		}
+
 		context->bindTransformFeedback(id);
 	}
 }
@@ -3508,6 +3513,13 @@ GL_APICALL void GL_APIENTRY glDeleteTransformFeedbacks(GLsizei n, const GLuint *
 		{
 			if(ids[i] != 0)
 			{
+				es2::TransformFeedback *transformFeedbackObject = context->getTransformFeedback(ids[i]);
+
+				if(transformFeedbackObject && transformFeedbackObject->isActive())
+				{
+					return error(GL_INVALID_OPERATION);
+				}
+
 				context->deleteTransformFeedback(ids[i]);
 			}
 		}

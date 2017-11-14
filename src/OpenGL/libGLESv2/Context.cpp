@@ -1511,6 +1511,11 @@ TransformFeedback *Context::getTransformFeedback(GLuint transformFeedback) const
 	return mTransformFeedbackNameSpace.find(transformFeedback);
 }
 
+bool Context::isTransformFeedback(GLuint array) const
+{
+	return mTransformFeedbackNameSpace.isReserved(array);
+}
+
 Sampler *Context::getSampler(GLuint sampler) const
 {
 	return mResourceManager->getSampler(sampler);
