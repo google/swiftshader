@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5efd427b_68c0fee9",
+        "filename": "src/Shader/ShaderCore.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 325,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-11-14T18:57:35Z",
+      "side": 1,
+      "message": "Yes, in this cl, when the old implementation is gone, it\u0027s because it was failing lowp precision.",
+      "parentUuid": "7154b172_7f103776",
+      "range": {
+        "startLine": 325,
+        "startChar": 38,
+        "endLine": 325,
+        "endChar": 40
+      },
+      "revId": "1c7d470fa74d8e5801c9f9863264cf152ca60bba",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "53f3725b_4d411c35",
         "filename": "src/Shader/ShaderCore.cpp",
         "patchSetId": 5
@@ -45,6 +69,30 @@
       "revId": "1c7d470fa74d8e5801c9f9863264cf152ca60bba",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "767e9aba_08b06a06",
+        "filename": "src/Shader/ShaderCore.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 333,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-11-14T18:57:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "53f3725b_4d411c35",
+      "range": {
+        "startLine": 333,
+        "startChar": 2,
+        "endLine": 333,
+        "endChar": 8
+      },
+      "revId": "1c7d470fa74d8e5801c9f9863264cf152ca60bba",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "33ce183f_5b2d1b7c",
+        "filename": "src/Shader/ShaderCore.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 338,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-11-14T18:57:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "08ad704f_ef19fd6e",
+      "range": {
+        "startLine": 338,
+        "startChar": 8,
+        "endLine": 338,
+        "endChar": 20
+      },
+      "revId": "1c7d470fa74d8e5801c9f9863264cf152ca60bba",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b6eab83d_d22b41ca",
         "filename": "src/Shader/ShaderCore.cpp",
         "patchSetId": 5
@@ -91,6 +163,30 @@
       "revId": "1c7d470fa74d8e5801c9f9863264cf152ca60bba",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a8f5d1a0_6c1d6b1f",
+        "filename": "src/Shader/ShaderCore.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 355,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-11-14T18:57:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b6eab83d_d22b41ca",
+      "range": {
+        "startLine": 355,
+        "startChar": 3,
+        "endLine": 355,
+        "endChar": 9
+      },
+      "revId": "1c7d470fa74d8e5801c9f9863264cf152ca60bba",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     },
     {
       "key": {
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "a8c59c3d_f32f6b0c",
+        "filename": "src/Shader/ShaderCore.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 363,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-11-14T18:57:35Z",
+      "side": 1,
+      "message": "Not yet, will do soon",
+      "parentUuid": "3c702009_29c679fe",
+      "range": {
+        "startLine": 363,
+        "startChar": 89,
+        "endLine": 363,
+        "endChar": 109
+      },
+      "revId": "1c7d470fa74d8e5801c9f9863264cf152ca60bba",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "cb847bbe_39881dd1",
         "filename": "src/Shader/ShaderCore.cpp",
         "patchSetId": 5
@@ -137,6 +257,30 @@
       "revId": "1c7d470fa74d8e5801c9f9863264cf152ca60bba",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dbfa3832_27ceaedc",
+        "filename": "src/Shader/ShaderCore.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 391,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-11-14T18:57:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cb847bbe_39881dd1",
+      "range": {
+        "startLine": 391,
+        "startChar": 5,
+        "endLine": 391,
+        "endChar": 11
+      },
+      "revId": "1c7d470fa74d8e5801c9f9863264cf152ca60bba",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
