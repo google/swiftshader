@@ -491,6 +491,7 @@ namespace es2
 		case GL_COMPRESSED_SRGB8_PUNCHTHROUGH_ALPHA1_ETC2:
 		case GL_COMPRESSED_RGBA8_ETC2_EAC:
 		case GL_COMPRESSED_SRGB8_ALPHA8_ETC2_EAC:
+			return (clientVersion >= 3) ? (expectCompressedFormats ? GL_NONE : GL_INVALID_OPERATION) : GL_INVALID_ENUM;
 		case GL_COMPRESSED_RGBA_ASTC_4x4_KHR:
 		case GL_COMPRESSED_RGBA_ASTC_5x4_KHR:
 		case GL_COMPRESSED_RGBA_ASTC_5x5_KHR:
@@ -519,7 +520,11 @@ namespace es2
 		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x10_KHR:
 		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_12x10_KHR:
 		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_12x12_KHR:
-			return (clientVersion >= 3) ? (expectCompressedFormats ? GL_NONE : GL_INVALID_OPERATION) : GL_INVALID_ENUM;
+#if(ASTC_SUPPORT)
+			return ((clientVersion >= 3) && ()) ? (expectCompressedFormats ? GL_NONE : GL_INVALID_OPERATION) : GL_INVALID_ENUM;
+#else
+			return GL_INVALID_ENUM;
+#endif
 		default:
 			return expectCompressedFormats ? GL_INVALID_ENUM : GL_NONE; // Not compressed format
 		}

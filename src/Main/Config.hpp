@@ -26,6 +26,8 @@
 #define S3TC_SUPPORT 0
 #endif
 
+#define ASTC_SUPPORT 0
+
 // Worker thread count when not set by SwiftConfig
 // 0 = process affinity count (recommended)
 // 1 = rendering on main thread (no worker threads), useful for debugging
