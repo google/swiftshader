@@ -1357,7 +1357,25 @@ void Context::beginQuery(GLenum target, GLuint query)
 	{
 		if(mState.activeQuery[i])
 		{
-			return error(GL_INVALID_OPERATION);
+			switch(mState.activeQuery[i]->getType())
+			{
+			case GL_ANY_SAMPLES_PASSED_EXT:
+			case GL_ANY_SAMPLES_PASSED_CONSERVATIVE_EXT:
+				if((target == GL_ANY_SAMPLES_PASSED_EXT) ||
+				   (target == GL_ANY_SAMPLES_PASSED_CONSERVATIVE_EXT))
+				{
+					return error(GL_INVALID_OPERATION);
+				}
+				break;
+			case GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN:
+				if(target == GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN)
+				{
+					return error(GL_INVALID_OPERATION);
+				}
+				break;
+			default:
+				break;
+			}
 		}
 	}
 
