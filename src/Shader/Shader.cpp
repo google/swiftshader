@@ -317,11 +317,6 @@ namespace sw
 
 		std::string modifierString;
 
-		if(integer)
-		{
-			modifierString += "_int";
-		}
-
 		if(saturate)
 		{
 			modifierString += "_sat";

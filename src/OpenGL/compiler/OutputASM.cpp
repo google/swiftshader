@@ -1891,7 +1891,6 @@ namespace glsl
 			instruction->dst.type = registerType(dst);
 			instruction->dst.index = registerIndex(dst) + dstIndex;
 			instruction->dst.mask = writeMask(dst);
-			instruction->dst.integer = (dst->getBasicType() == EbtInt);
 		}
 
 		if(src0)

@@ -339,21 +339,6 @@ namespace sw
 
 			if(dst.type != Shader::PARAMETER_VOID && dst.type != Shader::PARAMETER_LABEL && opcode != Shader::OPCODE_TEXKILL && opcode != Shader::OPCODE_NOP)
 			{
-				if(dst.integer)
-				{
-					switch(opcode)
-					{
-					case Shader::OPCODE_DIV:
-						if(dst.x) d.x = Trunc(d.x);
-						if(dst.y) d.y = Trunc(d.y);
-						if(dst.z) d.z = Trunc(d.z);
-						if(dst.w) d.w = Trunc(d.w);
-						break;
-					default:
-						break;   // No truncation to integer required when arguments are integer
-					}
-				}
-
 				if(dst.saturate)
 				{
 					if(dst.x) d.x = Max(d.x, Float4(0.0f));
