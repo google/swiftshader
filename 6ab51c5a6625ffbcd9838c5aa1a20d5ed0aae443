@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "eb630623_f1e36cc7",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-11-15T21:55:04Z",
+      "side": 1,
+      "message": "Added the code for non compressed textures.",
+      "parentUuid": "8b400c20_8334ac87",
+      "range": {
+        "startLine": 10,
+        "startChar": 35,
+        "endLine": 10,
+        "endChar": 62
+      },
+      "revId": "6ab51c5a6625ffbcd9838c5aa1a20d5ed0aae443",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "408642eb_a1ec71b0",
         "filename": "src/OpenGL/libGLESv2/Context.cpp",
         "patchSetId": 1
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "0d507f4c_fa203935",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1567,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-11-15T21:55:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "408642eb_a1ec71b0",
+      "range": {
+        "startLine": 1567,
+        "startChar": 42,
+        "endLine": 1567,
+        "endChar": 106
+      },
+      "revId": "6ab51c5a6625ffbcd9838c5aa1a20d5ed0aae443",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3cfa1bca_f06a9320",
         "filename": "src/OpenGL/libGLESv2/Context.h",
         "patchSetId": 1
@@ -68,6 +116,30 @@
       "revId": "6ab51c5a6625ffbcd9838c5aa1a20d5ed0aae443",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "96968fe4_ded67179",
+        "filename": "src/OpenGL/libGLESv2/Context.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 649,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-11-15T21:55:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3cfa1bca_f06a9320",
+      "range": {
+        "startLine": 649,
+        "startChar": 13,
+        "endLine": 649,
+        "endChar": 38
+      },
+      "revId": "6ab51c5a6625ffbcd9838c5aa1a20d5ed0aae443",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
