@@ -46,6 +46,30 @@
       "revId": "c32672e86d073f295250ada763728fed6b3bf27f",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8c43b4c0_4929f784",
+        "filename": "src/OpenGL/libGLESv2/libGLESv3.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 3007,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-11-15T14:52:07Z",
+      "side": 1,
+      "message": "Ok, let\u0027s early out then to make that a bit more explicit.",
+      "parentUuid": "49f4a833_b52eadf8",
+      "range": {
+        "startLine": 3007,
+        "startChar": 5,
+        "endLine": 3007,
+        "endChar": 10
+      },
+      "revId": "c32672e86d073f295250ada763728fed6b3bf27f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
