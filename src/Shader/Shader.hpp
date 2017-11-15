@@ -396,6 +396,15 @@ namespace sw
 			ANALYSIS_LEAVE    = 0x00000008,
 		};
 
+		struct Relative
+		{
+			ParameterType type : 8;
+			unsigned int index;
+			unsigned int swizzle : 8;
+			unsigned int scale;
+			bool deterministic;   // Equal accross shader instances run in lockstep (e.g. unrollable loop couters)
+		};
+
 		struct Parameter
 		{
 			union
@@ -404,14 +413,7 @@ namespace sw
 				{
 					unsigned int index;   // For registers types
 
-					struct
-					{
-						ParameterType type : 8;
-						unsigned int index;
-						unsigned int swizzle : 8;
-						unsigned int scale;
-						bool deterministic;   // Equal accross shader instances run in lockstep (e.g. unrollable loop couters)
-					} rel;
+					Relative rel;
 				};
 
 				float value[4];       // For float constants
