@@ -215,12 +215,18 @@ void Shader::compile()
 	if(false)
 	{
 		static int serial = 1;
-		char buffer[256];
-		sprintf(buffer, "shader-input-%d-%d.txt", getName(), serial);
-		FILE *file = fopen(buffer, "wt");
-		fprintf(file, "%s", mSource);
-		fclose(file);
+
+		if(false)
+		{
+			char buffer[256];
+			sprintf(buffer, "shader-input-%d-%d.txt", getName(), serial);
+			FILE *file = fopen(buffer, "wt");
+			fprintf(file, "%s", mSource);
+			fclose(file);
+		}
+
 		getShader()->print("shader-output-%d-%d.txt", getName(), serial);
+
 		serial++;
 	}
 

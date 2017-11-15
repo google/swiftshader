@@ -503,6 +503,24 @@ namespace sw
 		return "";
 	}
 
+	std::string Shader::SourceParameter::string(ShaderType shaderType, unsigned short version) const
+	{
+		if(type == PARAMETER_CONST && bufferIndex >= 0)
+		{
+			std::ostringstream buffer;
+			buffer << bufferIndex;
+
+			std::ostringstream offset;
+			offset << index;
+
+			return "cb" + buffer.str() + "[" + offset.str() + "]";
+		}
+		else
+		{
+			return Parameter::string(shaderType, version);
+		}
+	}
+
 	std::string Shader::SourceParameter::swizzleString() const
 	{
 		return Instruction::swizzleString(type, swizzle);

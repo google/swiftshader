@@ -476,6 +476,7 @@ namespace sw
 			{
 			}
 
+			std::string string(ShaderType shaderType, unsigned short version) const;
 			std::string swizzleString() const;
 			std::string preModifierString() const;
 			std::string postModifierString() const;
