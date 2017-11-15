@@ -26,6 +26,7 @@
 #include "Texture.h"
 #include "Query.h"
 #include "TransformFeedback.h"
+#include "VertexArray.h"
 #include "common/debug.h"
 #include "Common/Version.h"
 
@@ -6186,6 +6187,14 @@ void VertexAttribPointer(GLuint index, GLint size, GLenum type, GLboolean normal
 
 	if(context)
 	{
+		es2::VertexArray* vertexArray = context->getCurrentVertexArray();
+		if((context->getArrayBufferName() == 0) && vertexArray && (vertexArray->name != 0) && ptr)
+		{
+			// GL_INVALID_OPERATION is generated if a non-zero vertex array object is bound, zero is bound
+			// to the GL_ARRAY_BUFFER buffer object binding point and the pointer argument is not NULL.
+			return error(GL_INVALID_OPERATION);
+		}
+
 		context->setVertexAttribState(index, context->getArrayBuffer(), size, type, (normalized == GL_TRUE), stride, ptr);
 	}
 }
