@@ -678,7 +678,15 @@ GL_APICALL void GL_APIENTRY glTexImage3D(GLenum target, GLint level, GLint inter
 			return error(GL_INVALID_OPERATION);
 		}
 
-		texture->setImage(context, level, width, height, depth, GetSizedInternalFormat(internalformat, type), type, context->getUnpackInfo(), context->getPixels(data));
+		GLenum sizedInternalFormat = GetSizedInternalFormat(internalformat, type);
+
+		GLenum validationError = context->getPixels(&data, context->getRequiredBufferSize(width, height, depth, sizedInternalFormat, type));
+		if(validationError != GL_NONE)
+		{
+			return error(validationError);
+		}
+
+		texture->setImage(context, level, width, height, depth, sizedInternalFormat, type, context->getUnpackInfo(), data);
 	}
 }
 
@@ -724,7 +732,13 @@ GL_APICALL void GL_APIENTRY glTexSubImage3D(GLenum target, GLint level, GLint xo
 		GLenum validationError = ValidateSubImageParams(false, width, height, depth, xoffset, yoffset, zoffset, target, level, sizedInternalFormat, texture);
 		if(validationError == GL_NONE)
 		{
-			texture->subImage(context, level, xoffset, yoffset, zoffset, width, height, depth, sizedInternalFormat, type, context->getUnpackInfo(), context->getPixels(data));
+			GLenum validationError = context->getPixels(&data, context->getRequiredBufferSize(width, height, depth, sizedInternalFormat, type));
+			if(validationError != GL_NONE)
+			{
+				return error(validationError);
+			}
+
+			texture->subImage(context, level, xoffset, yoffset, zoffset, width, height, depth, sizedInternalFormat, type, context->getUnpackInfo(), data);
 		}
 		else
 		{
@@ -856,6 +870,12 @@ GL_APICALL void GL_APIENTRY glCompressedTexImage3D(GLenum target, GLint level, G
 			return error(GL_INVALID_OPERATION);
 		}
 
+		GLenum validationError = context->getPixels(&data, imageSize);
+		if(validationError != GL_NONE)
+		{
+			return error(validationError);
+		}
+
 		texture->setCompressedImage(level, internalformat, width, height, depth, imageSize, data);
 	}
 }
@@ -892,7 +912,7 @@ GL_APICALL void GL_APIENTRY glCompressedTexSubImage3D(GLenum target, GLint level
 		return error(validationError);
 	}
 
-	if(width == 0 || height == 0 || depth == 0 || !data)
+	if(width == 0 || height == 0 || depth == 0)
 	{
 		return;
 	}
@@ -908,7 +928,13 @@ GL_APICALL void GL_APIENTRY glCompressedTexSubImage3D(GLenum target, GLint level
 			return error(GL_INVALID_OPERATION);
 		}
 
-		texture->subImageCompressed(level, xoffset, yoffset, zoffset, width, height, depth, format, imageSize, context->getPixels(data));
+		GLenum validationError = context->getPixels(&data, imageSize);
+		if(validationError != GL_NONE)
+		{
+			return error(validationError);
+		}
+
+		texture->subImageCompressed(level, xoffset, yoffset, zoffset, width, height, depth, format, imageSize, data);
 	}
 }
 

@@ -1579,11 +1579,33 @@ Buffer *Context::getGenericUniformBuffer() const
 	return mState.genericUniformBuffer;
 }
 
-const GLvoid* Context::getPixels(const GLvoid* data) const
+GLsizei Context::getRequiredBufferSize(GLsizei width, GLsizei height, GLsizei depth, GLint internalformat, GLenum type) const
 {
-	es2::Buffer* unpackBuffer = getPixelUnpackBuffer();
-	const unsigned char* unpackBufferData = unpackBuffer ? static_cast<const unsigned char*>(unpackBuffer->data()) : nullptr;
-	return unpackBufferData ? unpackBufferData + (ptrdiff_t)(data) : data;
+	GLenum format = GetSizedInternalFormat(internalformat, type);
+	GLsizei inputWidth = (mState.unpackInfo.rowLength == 0) ? width : mState.unpackInfo.rowLength;
+	GLsizei inputPitch = egl::ComputePitch(inputWidth, format, type, mState.unpackInfo.alignment);
+	GLsizei inputHeight = (mState.unpackInfo.imageHeight == 0) ? height : mState.unpackInfo.imageHeight;
+	size_t offset = egl::ComputePackingOffset(format, type, inputWidth, inputHeight, mState.unpackInfo.alignment, mState.unpackInfo.skipImages, mState.unpackInfo.skipRows, mState.unpackInfo.skipPixels);
+	return inputPitch * inputHeight * depth + static_cast<GLsizei>(offset);
+}
+
+GLenum Context::getPixels(const GLvoid **data, GLsizei imageSize) const
+{
+	if(mState.pixelUnpackBuffer)
+	{
+		if(mState.pixelUnpackBuffer->name)
+		{
+			if(mState.pixelUnpackBuffer->isMapped() ||
+			   (mState.pixelUnpackBuffer->size() < imageSize) ||
+			   ((*data) && (imageSize % static_cast<GLsizei>((ptrdiff_t)(*data)))))
+			{
+				return GL_INVALID_OPERATION;
+			}
+		}
+
+		*data = static_cast<const unsigned char*>(mState.pixelUnpackBuffer->data()) + (ptrdiff_t)(*data);
+	}
+	return GL_NONE;
 }
 
 bool Context::getBuffer(GLenum target, es2::Buffer **buffer) const

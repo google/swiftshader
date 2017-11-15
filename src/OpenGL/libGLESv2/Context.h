@@ -646,7 +646,8 @@ public:
 	Buffer *getPixelPackBuffer() const;
 	Buffer *getPixelUnpackBuffer() const;
 	Buffer *getGenericUniformBuffer() const;
-	const GLvoid* getPixels(const GLvoid* data) const;
+	GLsizei getRequiredBufferSize(GLsizei width, GLsizei height, GLsizei depth, GLint internalformat, GLenum type) const;
+	GLenum getPixels(const GLvoid **data, GLsizei imageSize) const;
 	bool getBuffer(GLenum target, es2::Buffer **buffer) const;
 	Program *getCurrentProgram() const;
 	Texture2D *getTexture2D() const;
