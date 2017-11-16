@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "336ffbe5_b2f6c0bf",
+        "filename": "src/OpenGL/libGLESv2/Context.h",
+        "patchSetId": 3
+      },
+      "lineNbr": 649,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-11-16T15:48:04Z",
+      "side": 1,
+      "message": "The reason I added the \"required\" word here is that it isn\u0027t computing an actual size, it is computing a size + offset, which is the required buffer size.",
+      "parentUuid": "40ff77c2_323ca052",
+      "range": {
+        "startLine": 649,
+        "startChar": 9,
+        "endLine": 649,
+        "endChar": 24
+      },
+      "revId": "fb027e0072b6ddbeaeac589db5322821ee0b52e5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "1cf5c3bc_2f5c1cea",
         "filename": "src/OpenGL/libGLESv2/Context.h",
         "patchSetId": 3
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "17a4b9e6_d2afbc5b",
+        "filename": "src/OpenGL/libGLESv2/Context.h",
+        "patchSetId": 3
+      },
+      "lineNbr": 650,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-11-16T15:48:04Z",
+      "side": 1,
+      "message": "I have a slight preference towards having the API more granular, but I\u0027m open to it if you want this.",
+      "parentUuid": "1cf5c3bc_2f5c1cea",
+      "range": {
+        "startLine": 650,
+        "startChar": 15,
+        "endLine": 650,
+        "endChar": 24
+      },
+      "revId": "fb027e0072b6ddbeaeac589db5322821ee0b52e5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "007ca55f_63e71ad3",
         "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
         "patchSetId": 3
@@ -59,6 +107,30 @@
       "writtenOn": "2017-11-16T15:30:15Z",
       "side": 1,
       "message": "These calls, and especially the ones below that also call getRequiredSize() are making these lines really long. It seems sensible to split this over multiple lines.\n\nAlso, it appears that when getPixels() generates a GL_INVALID_OPERATION, we still continue to call setCompressedImage() and such. Shouldn\u0027t we early out instead and leave the image unspecified?",
+      "range": {
+        "startLine": 879,
+        "startChar": 80,
+        "endLine": 879,
+        "endChar": 115
+      },
+      "revId": "fb027e0072b6ddbeaeac589db5322821ee0b52e5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0a58a5f7_04dc6106",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 879,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-11-16T15:48:04Z",
+      "side": 1,
+      "message": "Will do the split and the early return.",
+      "parentUuid": "007ca55f_63e71ad3",
       "range": {
         "startLine": 879,
         "startChar": 80,
