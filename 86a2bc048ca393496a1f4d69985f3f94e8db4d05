@@ -22,6 +22,30 @@
       "revId": "86a2bc048ca393496a1f4d69985f3f94e8db4d05",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7bea2805_adad51b7",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 514,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-11-16T21:05:01Z",
+      "side": 1,
+      "message": "Yep, that\u0027s what the right-\u003etraverse() at #511 takes care of. Previously we were waiting until PostVisit, which means both left and right have been traversed, but we only need the right hand side to be explicitly traversed and then assign it to the lvalue of the left.",
+      "parentUuid": "8429ada7_1d21c331",
+      "range": {
+        "startLine": 514,
+        "startChar": 3,
+        "endLine": 514,
+        "endChar": 16
+      },
+      "revId": "86a2bc048ca393496a1f4d69985f3f94e8db4d05",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
