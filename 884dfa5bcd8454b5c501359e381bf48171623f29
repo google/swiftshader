@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3f8481ff_4cbf1096",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 2322,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-11-16T20:56:39Z",
+      "side": 1,
+      "message": "extra tabs",
+      "range": {
+        "startLine": 2322,
+        "startChar": 0,
+        "endLine": 2322,
+        "endChar": 3
+      },
+      "revId": "884dfa5bcd8454b5c501359e381bf48171623f29",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
