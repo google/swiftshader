@@ -22,6 +22,30 @@
       "revId": "41022df9253b3f47b30d37399176b9b9e4869e91",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e83b8737_652e2ffc",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 2291,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-11-16T21:07:41Z",
+      "side": 1,
+      "message": "This specific bit of code does not take care of that by itself. However, this entire CL is just a pure refactoring (in particular this bit replaces #1890) and the rest of lvalue() still takes care of nested struct assignment, yes.",
+      "parentUuid": "89ba096a_703dc3d2",
+      "range": {
+        "startLine": 2289,
+        "startChar": 0,
+        "endLine": 2291,
+        "endChar": 34
+      },
+      "revId": "41022df9253b3f47b30d37399176b9b9e4869e91",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
