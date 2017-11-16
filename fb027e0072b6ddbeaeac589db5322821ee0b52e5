@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "40ff77c2_323ca052",
+        "filename": "src/OpenGL/libGLESv2/Context.h",
+        "patchSetId": 3
+      },
+      "lineNbr": 649,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-11-16T15:30:15Z",
+      "side": 1,
+      "message": "nit: Consider renaming to clarify that this is about image data size. The \u0027Required\u0027 part doesn\u0027t seem necessary.",
+      "range": {
+        "startLine": 649,
+        "startChar": 9,
+        "endLine": 649,
+        "endChar": 24
+      },
+      "revId": "fb027e0072b6ddbeaeac589db5322821ee0b52e5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1cf5c3bc_2f5c1cea",
+        "filename": "src/OpenGL/libGLESv2/Context.h",
+        "patchSetId": 3
+      },
+      "lineNbr": 650,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-11-16T15:30:15Z",
+      "side": 1,
+      "message": "Would it make sense to fold the above new function into a second variant of this one, so we don\u0027t explicitly have to chain these calls? Just a thought.",
+      "range": {
+        "startLine": 650,
+        "startChar": 15,
+        "endLine": 650,
+        "endChar": 24
+      },
+      "revId": "fb027e0072b6ddbeaeac589db5322821ee0b52e5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "007ca55f_63e71ad3",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 879,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-11-16T15:30:15Z",
+      "side": 1,
+      "message": "These calls, and especially the ones below that also call getRequiredSize() are making these lines really long. It seems sensible to split this over multiple lines.\n\nAlso, it appears that when getPixels() generates a GL_INVALID_OPERATION, we still continue to call setCompressedImage() and such. Shouldn\u0027t we early out instead and leave the image unspecified?",
+      "range": {
+        "startLine": 879,
+        "startChar": 80,
+        "endLine": 879,
+        "endChar": 115
+      },
+      "revId": "fb027e0072b6ddbeaeac589db5322821ee0b52e5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
