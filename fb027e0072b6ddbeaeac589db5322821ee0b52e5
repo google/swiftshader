@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "f0c55126_d96a12b7",
+        "filename": "src/OpenGL/libGLESv2/Context.h",
+        "patchSetId": 3
+      },
+      "lineNbr": 649,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-11-16T20:51:35Z",
+      "side": 1,
+      "message": "Ah, ok, let\u0027s keep \"Required\" then. I still feel like there\u0027s a noun missing though. If any of us read this again several months from now, Context::getRequiredSize could be mistaken to mean many other things.\n\n\"getRequiredBufferSize\", maybe?",
+      "parentUuid": "336ffbe5_b2f6c0bf",
+      "range": {
+        "startLine": 649,
+        "startChar": 9,
+        "endLine": 649,
+        "endChar": 24
+      },
+      "revId": "fb027e0072b6ddbeaeac589db5322821ee0b52e5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "1cf5c3bc_2f5c1cea",
         "filename": "src/OpenGL/libGLESv2/Context.h",
         "patchSetId": 3
@@ -96,6 +120,30 @@
     },
     {
       "key": {
+        "uuid": "b126de8c_1a9dcfb9",
+        "filename": "src/OpenGL/libGLESv2/Context.h",
+        "patchSetId": 3
+      },
+      "lineNbr": 650,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-11-16T20:51:35Z",
+      "side": 1,
+      "message": "Looks fine now with the lines split up.",
+      "parentUuid": "17a4b9e6_d2afbc5b",
+      "range": {
+        "startLine": 650,
+        "startChar": 15,
+        "endLine": 650,
+        "endChar": 24
+      },
+      "revId": "fb027e0072b6ddbeaeac589db5322821ee0b52e5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "007ca55f_63e71ad3",
         "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
         "patchSetId": 3
@@ -140,6 +188,30 @@
       "revId": "fb027e0072b6ddbeaeac589db5322821ee0b52e5",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8ffcc48b_fe7dcb1b",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 879,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-11-16T20:51:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0a58a5f7_04dc6106",
+      "range": {
+        "startLine": 879,
+        "startChar": 80,
+        "endLine": 879,
+        "endChar": 115
+      },
+      "revId": "fb027e0072b6ddbeaeac589db5322821ee0b52e5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
