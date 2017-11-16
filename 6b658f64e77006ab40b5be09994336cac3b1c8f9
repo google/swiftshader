@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "967ab1bb_85b95997",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 525,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-11-16T22:00:48Z",
+      "side": 1,
+      "message": "The spec says that: \"Texture lookups involving textures with depth component data generate a texture base color Cb [...]. The resulting value Rt is then expanded to a color Cb \u003d (Rt, 0, 0, 1)\"",
+      "range": {
+        "startLine": 525,
+        "startChar": 18,
+        "endLine": 525,
+        "endChar": 22
+      },
+      "revId": "6b658f64e77006ab40b5be09994336cac3b1c8f9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
