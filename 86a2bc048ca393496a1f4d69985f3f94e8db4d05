@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8429ada7_1d21c331",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 514,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-11-16T20:46:25Z",
+      "side": 1,
+      "message": "These work with a \u003d b \u003d c, right?",
+      "range": {
+        "startLine": 514,
+        "startChar": 3,
+        "endLine": 514,
+        "endChar": 16
+      },
+      "revId": "86a2bc048ca393496a1f4d69985f3f94e8db4d05",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
