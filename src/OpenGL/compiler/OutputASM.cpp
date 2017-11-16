@@ -2288,7 +2288,7 @@ namespace glsl
 	{
 		parameter.type = registerType(arg);
 		parameter.index = registerIndex(arg) + index;
-		parameter.mask = writeMask(arg);
+		parameter.mask = writeMask(arg, index);
 	}
 
 	void OutputASM::copy(TIntermTyped *dst, TIntermNode *src, int offset)
@@ -2296,7 +2296,6 @@ namespace glsl
 		for(int index = 0; index < dst->totalRegisterCount(); index++)
 		{
 			Instruction *mov = emit(sw::Shader::OPCODE_MOV, dst, index, src, offset + index);
-			mov->dst.mask = writeMask(dst, index);
 		}
 	}
 
