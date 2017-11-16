@@ -2327,8 +2327,7 @@ namespace glsl
 		{
 			Instruction *insert = new Instruction(sw::Shader::OPCODE_INSERT);
 
-			Temporary address(this);
-			lvalue(insert->dst, address, dst);
+			lvalue(insert->dst, dst);
 
 			insert->src[0].type = insert->dst.type;
 			insert->src[0].index = insert->dst.index;
@@ -2342,8 +2341,7 @@ namespace glsl
 		{
 			Instruction *mov1 = new Instruction(sw::Shader::OPCODE_MOV);
 
-			Temporary address(this);
-			int swizzle = lvalue(mov1->dst, address, dst);
+			int swizzle = lvalue(mov1->dst, dst);
 
 			source(mov1->src[0], src);
 			mov1->src[0].swizzle = swizzleSwizzle(mov1->src[0].swizzle, swizzle);
@@ -2365,8 +2363,9 @@ namespace glsl
 		}
 	}
 
-	int OutputASM::lvalue(sw::Shader::DestinationParameter &dst, Temporary &address, TIntermTyped *node)
+	int OutputASM::lvalue(sw::Shader::DestinationParameter &dst, TIntermTyped *node)
 	{
+		Temporary address(this);
 		TIntermTyped *root = nullptr;
 		unsigned int offset = 0;
 		unsigned char mask = 0xF;
