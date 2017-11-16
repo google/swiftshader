@@ -58,6 +58,7 @@ namespace
 		D24,
 		D32,
 		D32F,
+		D32FS8,
 		S8,
 		S24_8,
 	};
@@ -377,13 +378,25 @@ namespace
 	template<>
 	void LoadImageRow<D32F>(const unsigned char *source, unsigned char *dest, GLint xoffset, GLsizei width)
 	{
+		const float *sourceF = reinterpret_cast<const float*>(source);
+		float *destF = reinterpret_cast<float*>(dest + xoffset * 4);
+
+		for(int x = 0; x < width; x++)
+		{
+			destF[x] = sw::clamp(sourceF[x], 0.0f, 1.0f);
+		}
+	}
+
+	template<>
+	void LoadImageRow<D32FS8>(const unsigned char *source, unsigned char *dest, GLint xoffset, GLsizei width)
+	{
 		struct D32FS8 { float depth32f; unsigned int stencil24_8; };
 		const D32FS8 *sourceD32FS8 = reinterpret_cast<const D32FS8*>(source);
 		float *destF = reinterpret_cast<float*>(dest + xoffset * 4);
 
 		for(int x = 0; x < width; x++)
 		{
-			destF[x] = sourceD32FS8[x].depth32f;
+			destF[x] = sw::clamp(sourceD32FS8[x].depth32f, 0.0f, 1.0f);
 		}
 	}
 
@@ -1538,7 +1551,7 @@ namespace egl
 						break;
 					case GL_DEPTH_COMPONENT:
 					case GL_DEPTH_COMPONENT32F:
-						LoadImageData<Bytes_4>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getHeight(), input, buffer);
+						LoadImageData<D32F>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getHeight(), input, buffer);
 						break;
 					default: UNREACHABLE(format);
 					}
@@ -1756,7 +1769,7 @@ namespace egl
 
 	void Image::loadD32FS8ImageData(GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, int inputPitch, int inputHeight, const void *input, void *buffer)
 	{
-		LoadImageData<D32F>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getHeight(), input, buffer);
+		LoadImageData<D32FS8>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getHeight(), input, buffer);
 
 		unsigned char *stencil = reinterpret_cast<unsigned char*>(lockStencil(0, 0, 0, sw::PUBLIC));
 
