@@ -274,6 +274,7 @@ namespace glsl
 		void destination(sw::Shader::DestinationParameter &parameter, TIntermTyped *argument, int index = 0);
 		void copy(TIntermTyped *dst, TIntermNode *src, int offset = 0);
 		void assignLvalue(TIntermTyped *dst, TIntermTyped *src);
+		void evaluateRvalue(TIntermTyped *node);
 		int lvalue(sw::Shader::DestinationParameter &dst, TIntermTyped *node);
 		int lvalue(TIntermTyped *&root, unsigned int &offset, sw::Shader::Relative &rel, unsigned char &mask, Temporary &address, TIntermTyped *node);
 		sw::Shader::ParameterType registerType(TIntermTyped *operand);

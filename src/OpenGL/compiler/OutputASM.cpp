@@ -564,92 +564,12 @@ namespace glsl
 			}
 			return false;
 		case EOpIndexDirect:
-			if(visit == PostVisit)
-			{
-				int index = right->getAsConstantUnion()->getIConst(0);
-
-				if(result->isMatrix() || result->isStruct() || result->isInterfaceBlock())
-				{
-					ASSERT(left->isArray());
-					copy(result, left, index * left->elementRegisterCount());
-				}
-				else if(result->isRegister())
-				{
-					int srcIndex = 0;
-					if(left->isRegister())
-					{
-						srcIndex = 0;
-					}
-					else if(left->isArray())
-					{
-						srcIndex = index * left->elementRegisterCount();
-					}
-					else if(left->isMatrix())
-					{
-						ASSERT(index < left->getNominalSize());   // FIXME: Report semantic error
-						srcIndex = index;
-					}
-					else UNREACHABLE(0);
-
-					Instruction *mov = emit(sw::Shader::OPCODE_MOV, result, 0, left, srcIndex);
-
-					if(left->isRegister())
-					{
-						mov->src[0].swizzle = index;
-					}
-				}
-				else UNREACHABLE(0);
-			}
-			break;
 		case EOpIndexIndirect:
-			if(visit == PostVisit)
-			{
-				if(left->isArray() || left->isMatrix())
-				{
-					for(int index = 0; index < result->totalRegisterCount(); index++)
-					{
-						Instruction *mov = emit(sw::Shader::OPCODE_MOV, result, index, left, index);
-						mov->dst.mask = writeMask(result, index);
-
-						if(left->totalRegisterCount() > 1)
-						{
-							sw::Shader::SourceParameter relativeRegister;
-							source(relativeRegister, right);
-
-							mov->src[0].rel.type = relativeRegister.type;
-							mov->src[0].rel.index = relativeRegister.index;
-							mov->src[0].rel.scale =	result->totalRegisterCount();
-							mov->src[0].rel.deterministic = !(vertexShader && left->getQualifier() == EvqUniform);
-						}
-					}
-				}
-				else if(left->isRegister())
-				{
-					emit(sw::Shader::OPCODE_EXTRACT, result, left, right);
-				}
-				else UNREACHABLE(0);
-			}
-			break;
 		case EOpIndexDirectStruct:
 		case EOpIndexDirectInterfaceBlock:
-			if(visit == PostVisit)
-			{
-				ASSERT(leftType.isStruct() || (leftType.isInterfaceBlock()));
-
-				const TFieldList& fields = (node->getOp() == EOpIndexDirectStruct) ?
-				                           leftType.getStruct()->fields() :
-				                           leftType.getInterfaceBlock()->fields();
-				int index = right->getAsConstantUnion()->getIConst(0);
-				int fieldOffset = 0;
-
-				for(int i = 0; i < index; i++)
-				{
-					fieldOffset += fields[i]->type()->totalRegisterCount();
-				}
-
-				copy(result, left, fieldOffset);
-			}
-			break;
+			assert(visit == PreVisit);
+			evaluateRvalue(node);
+			return false;
 		case EOpVectorSwizzle:
 			if(visit == PostVisit)
 			{
@@ -2358,6 +2278,54 @@ namespace glsl
 				source(mov->src[0], src, offset);
 
 				shader->append(mov);
+			}
+		}
+	}
+
+	void OutputASM::evaluateRvalue(TIntermTyped *node)
+	{
+		TIntermBinary *binary = node->getAsBinaryNode();
+
+		if(binary && binary->getOp() == EOpIndexIndirect && binary->getLeft()->isVector() && node->isScalar())
+		{
+			Instruction *insert = new Instruction(sw::Shader::OPCODE_EXTRACT);
+
+			destination(insert->dst, node);
+
+			Temporary address(this);
+			unsigned char mask;
+			TIntermTyped *root = nullptr;
+			unsigned int offset = 0;
+			int swizzle = lvalue(root, offset, insert->src[0].rel, mask, address, node);
+
+			source(insert->src[0], root, offset);
+			insert->src[0].swizzle = swizzleSwizzle(insert->src[0].swizzle, swizzle);
+
+			source(insert->src[1], binary->getRight());
+
+			shader->append(insert);
+		}
+		else
+		{
+			Instruction *mov1 = new Instruction(sw::Shader::OPCODE_MOV);
+
+			destination(mov1->dst, node, 0);
+
+			Temporary address(this);
+			unsigned char mask;
+			TIntermTyped *root = nullptr;
+			unsigned int offset = 0;
+			int swizzle = lvalue(root, offset, mov1->src[0].rel, mask, address, node);
+
+			source(mov1->src[0], root, offset);
+			mov1->src[0].swizzle = swizzleSwizzle(mov1->src[0].swizzle, swizzle);
+
+			shader->append(mov1);
+
+			for(int i = 1; i < node->totalRegisterCount(); i++)
+			{
+				Instruction *mov = emit(sw::Shader::OPCODE_MOV, node, i, root, offset + i);
+				mov->src[0].rel = mov1->src[0].rel;
 			}
 		}
 	}
