@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ebcb7bbc_d7c709e9",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 1599,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-11-17T14:41:33Z",
+      "side": 1,
+      "message": "1\u003eContext.cpp(1599): error C2220: warning treated as error - no \u0027object\u0027 file generated\n1\u003eContext.cpp(1599): warning C4018: \u0027\u003c\u0027: signed/unsigned mismatch\n\nhttps://ci.appveyor.com/project/c0d1f1ed/swiftshader/build/1.0.164",
+      "range": {
+        "startLine": 1599,
+        "startChar": 40,
+        "endLine": 1599,
+        "endChar": 42
+      },
+      "revId": "f97f6e0e2e473e93112fa48a2b675f3f63c10663",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
