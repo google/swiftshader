@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "17dac0bf_a1e0f498",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5545
+      },
+      "writtenOn": "2017-11-17T16:01:54Z",
+      "side": 1,
+      "message": "Awesome!\n\nThat should fix a TON of dEQP tests that use depth texture formats. Previously they were all gray, not red.",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 9,
+        "endChar": 57
+      },
+      "revId": "ab2dd50632c8fd728f92fab792c597e1965c93c5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
