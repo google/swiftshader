@@ -1596,7 +1596,7 @@ GLenum Context::getPixels(const GLvoid **data, GLsizei imageSize) const
 		if(mState.pixelUnpackBuffer->name)
 		{
 			if(mState.pixelUnpackBuffer->isMapped() ||
-			   (mState.pixelUnpackBuffer->size() < imageSize) ||
+			   (mState.pixelUnpackBuffer->size() < static_cast<size_t>(imageSize)) ||
 			   ((*data) && (imageSize % static_cast<GLsizei>((ptrdiff_t)(*data)))))
 			{
 				return GL_INVALID_OPERATION;
