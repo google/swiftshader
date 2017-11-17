@@ -876,7 +876,7 @@ void CompressedTexImage2D(GLenum target, GLint level, GLenum internalformat, GLs
 				return error(GL_INVALID_OPERATION);
 			}
 
-			GLenum validationError = context->getPixels(&data, imageSize);
+			GLenum validationError = context->getPixels(&data, texture->getType(target, level), imageSize);
 			if(validationError != GL_NONE)
 			{
 				return error(validationError);
@@ -903,7 +903,7 @@ void CompressedTexImage2D(GLenum target, GLint level, GLenum internalformat, GLs
 			case GL_TEXTURE_CUBE_MAP_NEGATIVE_Z:
 				{
 
-					GLenum validationError = context->getPixels(&data, imageSize);
+					GLenum validationError = context->getPixels(&data, texture->getType(target, level), imageSize);
 					if(validationError != GL_NONE)
 					{
 						return error(validationError);
@@ -977,7 +977,7 @@ void CompressedTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yo
 
 			if(validationError == GL_NONE)
 			{
-				validationError = context->getPixels(&data, imageSize);
+				validationError = context->getPixels(&data, texture->getType(target, level), imageSize);
 			}
 
 			if(validationError == GL_NONE)
@@ -997,7 +997,7 @@ void CompressedTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yo
 
 			if(validationError == GL_NONE)
 			{
-				validationError = context->getPixels(&data, imageSize);
+				validationError = context->getPixels(&data, texture->getType(target, level), imageSize);
 			}
 
 			if(validationError == GL_NONE)
@@ -5129,7 +5129,7 @@ void TexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width,
 
 		GLenum sizedInternalFormat = GetSizedInternalFormat(format, type);
 
-		validationError = context->getPixels(&data, context->getRequiredBufferSize(width, height, 1, sizedInternalFormat, type));
+		validationError = context->getPixels(&data, type, context->getRequiredBufferSize(width, height, 1, sizedInternalFormat, type));
 		if(validationError != GL_NONE)
 		{
 			return error(validationError);
@@ -5502,7 +5502,7 @@ void TexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLs
 	{
 		GLenum sizedInternalFormat = GetSizedInternalFormat(format, type);
 
-		GLenum validationError = context->getPixels(&data, context->getRequiredBufferSize(width, height, 1, sizedInternalFormat, type));
+		GLenum validationError = context->getPixels(&data, type, context->getRequiredBufferSize(width, height, 1, sizedInternalFormat, type));
 		if(validationError != GL_NONE)
 		{
 			return error(validationError);
@@ -6361,7 +6361,7 @@ void TexImage3DOES(GLenum target, GLint level, GLenum internalformat, GLsizei wi
 		}
 
 		GLenum sizedInternalFormat = GetSizedInternalFormat(internalformat, type);
-		GLenum validationError = context->getPixels(&data, context->getRequiredBufferSize(width, height, depth, sizedInternalFormat, type));
+		GLenum validationError = context->getPixels(&data, type, context->getRequiredBufferSize(width, height, depth, sizedInternalFormat, type));
 		if(validationError != GL_NONE)
 		{
 			return error(validationError);
@@ -6413,7 +6413,7 @@ void TexSubImage3DOES(GLenum target, GLint level, GLint xoffset, GLint yoffset, 
 
 		if(validationError == GL_NONE)
 		{
-			validationError = context->getPixels(&data, context->getRequiredBufferSize(width, height, depth, sizedInternalFormat, type));
+			validationError = context->getPixels(&data, type, context->getRequiredBufferSize(width, height, depth, sizedInternalFormat, type));
 		}
 
 		if(validationError == GL_NONE)
@@ -6536,7 +6536,7 @@ void CompressedTexImage3DOES(GLenum target, GLint level, GLenum internalformat, 
 			return error(GL_INVALID_OPERATION);
 		}
 
-		GLenum validationError = context->getPixels(&data, imageSize);
+		GLenum validationError = context->getPixels(&data, texture->getType(target, level), imageSize);
 
 		if(validationError != GL_NONE)
 		{
@@ -6594,7 +6594,7 @@ void CompressedTexSubImage3DOES(GLenum target, GLint level, GLint xoffset, GLint
 			return error(GL_INVALID_OPERATION);
 		}
 
-		GLenum validationError = context->getPixels(&data, imageSize);
+		GLenum validationError = context->getPixels(&data, texture->getType(target, level), imageSize);
 
 		if(validationError != GL_NONE)
 		{

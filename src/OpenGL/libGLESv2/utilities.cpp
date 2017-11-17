@@ -1045,6 +1045,38 @@ namespace es2
 		return true;
 	}
 
+	GLsizei GetTypeSize(GLenum type)
+	{
+		switch(type)
+		{
+		case GL_BYTE:
+		case GL_UNSIGNED_BYTE:
+			return 1;
+		case GL_UNSIGNED_SHORT_4_4_4_4:
+		case GL_UNSIGNED_SHORT_5_5_5_1:
+		case GL_UNSIGNED_SHORT_5_6_5:
+		case GL_HALF_FLOAT_OES:
+		case GL_UNSIGNED_SHORT:
+		case GL_SHORT:
+		case GL_HALF_FLOAT:
+			return 2;
+		case GL_FLOAT:
+		case GL_UNSIGNED_INT_24_8:
+		case GL_UNSIGNED_INT:
+		case GL_INT:
+		case GL_UNSIGNED_INT_2_10_10_10_REV:
+		case GL_UNSIGNED_INT_10F_11F_11F_REV:
+		case GL_UNSIGNED_INT_5_9_9_9_REV:
+		case GL_FLOAT_32_UNSIGNED_INT_24_8_REV:
+			return 4;
+		default:
+			UNREACHABLE(type);
+			break;
+		}
+
+		return 1;
+	}
+
 	bool IsColorRenderable(GLenum internalformat, GLint clientVersion, bool isTexture)
 	{
 		switch(internalformat)

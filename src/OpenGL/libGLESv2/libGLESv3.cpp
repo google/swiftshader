@@ -680,7 +680,7 @@ GL_APICALL void GL_APIENTRY glTexImage3D(GLenum target, GLint level, GLint inter
 
 		GLenum sizedInternalFormat = GetSizedInternalFormat(internalformat, type);
 
-		GLenum validationError = context->getPixels(&data, context->getRequiredBufferSize(width, height, depth, sizedInternalFormat, type));
+		GLenum validationError = context->getPixels(&data, type, context->getRequiredBufferSize(width, height, depth, sizedInternalFormat, type));
 		if(validationError != GL_NONE)
 		{
 			return error(validationError);
@@ -732,7 +732,7 @@ GL_APICALL void GL_APIENTRY glTexSubImage3D(GLenum target, GLint level, GLint xo
 		GLenum validationError = ValidateSubImageParams(false, width, height, depth, xoffset, yoffset, zoffset, target, level, sizedInternalFormat, texture);
 		if(validationError == GL_NONE)
 		{
-			GLenum validationError = context->getPixels(&data, context->getRequiredBufferSize(width, height, depth, sizedInternalFormat, type));
+			GLenum validationError = context->getPixels(&data, type, context->getRequiredBufferSize(width, height, depth, sizedInternalFormat, type));
 			if(validationError != GL_NONE)
 			{
 				return error(validationError);
@@ -870,7 +870,7 @@ GL_APICALL void GL_APIENTRY glCompressedTexImage3D(GLenum target, GLint level, G
 			return error(GL_INVALID_OPERATION);
 		}
 
-		GLenum validationError = context->getPixels(&data, imageSize);
+		GLenum validationError = context->getPixels(&data, texture->getType(target, level), imageSize);
 		if(validationError != GL_NONE)
 		{
 			return error(validationError);
@@ -928,7 +928,7 @@ GL_APICALL void GL_APIENTRY glCompressedTexSubImage3D(GLenum target, GLint level
 			return error(GL_INVALID_OPERATION);
 		}
 
-		GLenum validationError = context->getPixels(&data, imageSize);
+		GLenum validationError = context->getPixels(&data, texture->getType(target, level), imageSize);
 		if(validationError != GL_NONE)
 		{
 			return error(validationError);

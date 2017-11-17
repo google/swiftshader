@@ -1585,11 +1585,10 @@ GLsizei Context::getRequiredBufferSize(GLsizei width, GLsizei height, GLsizei de
 	GLsizei inputWidth = (mState.unpackInfo.rowLength == 0) ? width : mState.unpackInfo.rowLength;
 	GLsizei inputPitch = egl::ComputePitch(inputWidth, format, type, mState.unpackInfo.alignment);
 	GLsizei inputHeight = (mState.unpackInfo.imageHeight == 0) ? height : mState.unpackInfo.imageHeight;
-	size_t offset = egl::ComputePackingOffset(format, type, inputWidth, inputHeight, mState.unpackInfo.alignment, mState.unpackInfo.skipImages, mState.unpackInfo.skipRows, mState.unpackInfo.skipPixels);
-	return inputPitch * inputHeight * depth + static_cast<GLsizei>(offset);
+	return inputPitch * inputHeight * depth;
 }
 
-GLenum Context::getPixels(const GLvoid **data, GLsizei imageSize) const
+GLenum Context::getPixels(const GLvoid **data, GLenum type, GLsizei imageSize) const
 {
 	if(mState.pixelUnpackBuffer)
 	{
@@ -1597,7 +1596,7 @@ GLenum Context::getPixels(const GLvoid **data, GLsizei imageSize) const
 		{
 			if(mState.pixelUnpackBuffer->isMapped() ||
 			   (mState.pixelUnpackBuffer->size() < static_cast<size_t>(imageSize)) ||
-			   ((*data) && (imageSize % static_cast<GLsizei>((ptrdiff_t)(*data)))))
+			   (static_cast<GLsizei>((ptrdiff_t)(*data)) % GetTypeSize(type)))
 			{
 				return GL_INVALID_OPERATION;
 			}
