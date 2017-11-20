@@ -4111,6 +4111,52 @@ void Context::blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1
 			return error(GL_INVALID_OPERATION);
 		}
 
+		// The GL ES 3.0.2 spec (pg 193) states that:
+		// 1) If the read buffer is fixed point format, the draw buffer must be as well
+		// 2) If the read buffer is an unsigned integer format, the draw buffer must be
+		// as well
+		// 3) If the read buffer is a signed integer format, the draw buffer must be as
+		// well
+		es2::Renderbuffer *readRenderbuffer = readFramebuffer->getReadColorbuffer();
+		es2::Renderbuffer *drawRenderbuffer = drawFramebuffer->getColorbuffer(0);
+		sw::Format readFormat = readRenderbuffer->getInternalFormat();
+		sw::Format drawFormat = drawRenderbuffer->getInternalFormat();
+		GLenum readComponentType = sw2es::GetComponentType(readFormat, GL_COLOR_ATTACHMENT0);
+		GLenum drawComponentType = sw2es::GetComponentType(drawFormat, GL_COLOR_ATTACHMENT0);
+		bool readFixedPoint = ((readComponentType == GL_UNSIGNED_NORMALIZED) ||
+		                       (readComponentType == GL_SIGNED_NORMALIZED));
+		bool drawFixedPoint = ((drawComponentType == GL_UNSIGNED_NORMALIZED) ||
+		                       (drawComponentType == GL_SIGNED_NORMALIZED));
+		bool readFixedOrFloat = (readFixedPoint || (readComponentType == GL_FLOAT));
+		bool drawFixedOrFloat = (drawFixedPoint || (drawComponentType == GL_FLOAT));
+
+		if(readFixedOrFloat != drawFixedOrFloat)
+		{
+			return error(GL_INVALID_OPERATION);
+		}
+
+		if((readComponentType == GL_UNSIGNED_INT) && (drawComponentType != GL_UNSIGNED_INT))
+		{
+			return error(GL_INVALID_OPERATION);
+		}
+
+		if((readComponentType == GL_INT) && (drawComponentType != GL_INT))
+		{
+			return error(GL_INVALID_OPERATION);
+		}
+
+		// Cannot filter integer data
+		if(((readComponentType == GL_UNSIGNED_INT) || (readComponentType == GL_INT)) && filter)
+		{
+			return error(GL_INVALID_OPERATION);
+		}
+
+		if((readRenderbuffer->getSamples() > 0) &&
+		   (readRenderbuffer->getFormat() != drawRenderbuffer->getFormat()))
+		{
+			return error(GL_INVALID_OPERATION);
+		}
+
 		blitRenderTarget = true;
 	}
 
@@ -4134,6 +4180,11 @@ void Context::blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1
 				blitDepth = true;
 				readDSBuffer = readFramebuffer->getDepthbuffer();
 				drawDSBuffer = drawFramebuffer->getDepthbuffer();
+
+				if(readDSBuffer->getInternalFormat() != drawDSBuffer->getInternalFormat())
+				{
+					return error(GL_INVALID_OPERATION);
+				}
 			}
 		}
 
@@ -4152,6 +4203,11 @@ void Context::blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1
 				blitStencil = true;
 				readDSBuffer = readFramebuffer->getStencilbuffer();
 				drawDSBuffer = drawFramebuffer->getStencilbuffer();
+
+				if(readDSBuffer->getInternalFormat() != drawDSBuffer->getInternalFormat())
+				{
+					return error(GL_INVALID_OPERATION);
+				}
 			}
 		}
 

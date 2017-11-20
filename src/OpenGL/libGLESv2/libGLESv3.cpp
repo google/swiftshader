@@ -1498,7 +1498,12 @@ GL_APICALL void GL_APIENTRY glBlitFramebuffer(GLint srcX0, GLint srcY0, GLint sr
 	switch(filter)
 	{
 	case GL_NEAREST:
+		break;
 	case GL_LINEAR:
+		if((mask & GL_DEPTH_BUFFER_BIT) || (mask & GL_STENCIL_BUFFER_BIT))
+		{
+			return error(GL_INVALID_OPERATION);
+		}
 		break;
 	default:
 		return error(GL_INVALID_ENUM);
@@ -1547,7 +1552,7 @@ GL_APICALL void GL_APIENTRY glFramebufferTextureLayer(GLenum target, GLenum atta
 		{
 			if(!textureObject)
 			{
-				return error(GL_INVALID_VALUE);
+				return error(GL_INVALID_OPERATION);
 			}
 
 			textarget = textureObject->getTarget();
@@ -1575,9 +1580,17 @@ GL_APICALL void GL_APIENTRY glFramebufferTextureLayer(GLenum target, GLenum atta
 		{
 		case GL_DRAW_FRAMEBUFFER:
 		case GL_FRAMEBUFFER:
+			if(context->getDrawFramebufferName() == 0)
+			{
+				return error(GL_INVALID_OPERATION);
+			}
 			framebuffer = context->getDrawFramebuffer();
 			break;
 		case GL_READ_FRAMEBUFFER:
+			if(context->getReadFramebufferName() == 0)
+			{
+				return error(GL_INVALID_OPERATION);
+			}
 			framebuffer = context->getReadFramebuffer();
 			break;
 		default:

@@ -4726,22 +4726,23 @@ void RenderbufferStorageMultisample(GLenum target, GLsizei samples, GLenum inter
 		return error(GL_INVALID_ENUM);
 	}
 
-	if(width < 0 || height < 0 || samples < 0)
+	if(width < 0 || height < 0 || samples < 0 ||
+	   width > es2::IMPLEMENTATION_MAX_RENDERBUFFER_SIZE ||
+	   height > es2::IMPLEMENTATION_MAX_RENDERBUFFER_SIZE)
 	{
 		return error(GL_INVALID_VALUE);
+	}
+
+	if(samples > es2::IMPLEMENTATION_MAX_SAMPLES ||
+	   (sw::Surface::isNonNormalizedInteger(es2sw::ConvertRenderbufferFormat(internalformat)) && samples > 0))
+	{
+		return error(GL_INVALID_OPERATION);
 	}
 
 	es2::Context *context = es2::getContext();
 
 	if(context)
 	{
-		if(width > es2::IMPLEMENTATION_MAX_RENDERBUFFER_SIZE ||
-		   height > es2::IMPLEMENTATION_MAX_RENDERBUFFER_SIZE ||
-		   samples > es2::IMPLEMENTATION_MAX_SAMPLES)
-		{
-			return error(GL_INVALID_VALUE);
-		}
-
 		GLuint handle = context->getRenderbufferName();
 		if(handle == 0)
 		{
