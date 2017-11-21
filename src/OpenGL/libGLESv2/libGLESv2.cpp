@@ -947,9 +947,9 @@ void CompressedTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yo
 		return error(validationError);
 	}
 
-	if(width == 0 || height == 0)
+	if(imageSize != egl::ComputeCompressedSize(width, height, format))
 	{
-		return;
+		return error(GL_INVALID_VALUE);
 	}
 
 	es2::Context *context = es2::getContext();
@@ -6578,9 +6578,9 @@ void CompressedTexSubImage3DOES(GLenum target, GLint level, GLint xoffset, GLint
 		return error(validationError);
 	}
 
-	if(width == 0 || height == 0 || depth == 0)
+	if(imageSize != egl::ComputeCompressedSize(width, height, format) * depth)
 	{
-		return;
+		return error(GL_INVALID_VALUE);
 	}
 
 	es2::Context *context = es2::getContext();

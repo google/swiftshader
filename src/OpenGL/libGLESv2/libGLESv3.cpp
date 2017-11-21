@@ -912,9 +912,39 @@ GL_APICALL void GL_APIENTRY glCompressedTexSubImage3D(GLenum target, GLint level
 		return error(validationError);
 	}
 
-	if(width == 0 || height == 0 || depth == 0)
+	if(imageSize != egl::ComputeCompressedSize(width, height, format) * depth)
 	{
-		return;
+		return error(GL_INVALID_VALUE);
+	}
+
+	bool is_ETC2_EAC = false;
+	switch(format)
+	{
+	case GL_COMPRESSED_R11_EAC:
+	case GL_COMPRESSED_SIGNED_R11_EAC:
+	case GL_COMPRESSED_RG11_EAC:
+	case GL_COMPRESSED_SIGNED_RG11_EAC:
+	case GL_COMPRESSED_RGB8_ETC2:
+	case GL_COMPRESSED_SRGB8_ETC2:
+	case GL_COMPRESSED_RGB8_PUNCHTHROUGH_ALPHA1_ETC2:
+	case GL_COMPRESSED_SRGB8_PUNCHTHROUGH_ALPHA1_ETC2:
+	case GL_COMPRESSED_RGBA8_ETC2_EAC:
+	case GL_COMPRESSED_SRGB8_ALPHA8_ETC2_EAC:
+		if(target != GL_TEXTURE_2D_ARRAY)
+		{
+			return error(GL_INVALID_OPERATION);
+		}
+
+		if(((width  % 4) != 0) || ((height % 4) != 0) ||
+		   ((xoffset % 4) != 0) || ((yoffset % 4) != 0))
+		{
+			return error(GL_INVALID_OPERATION);
+		}
+
+		is_ETC2_EAC = true;
+		break;
+	default:
+		break;
 	}
 
 	es2::Context *context = es2::getContext();
@@ -932,6 +962,15 @@ GL_APICALL void GL_APIENTRY glCompressedTexSubImage3D(GLenum target, GLint level
 		if(validationError != GL_NONE)
 		{
 			return error(validationError);
+		}
+
+		if(is_ETC2_EAC)
+		{
+			if(((width + xoffset) != texture->getWidth(target, level)) ||
+			   ((height + yoffset) != texture->getHeight(target, level)))
+			{
+				return error(GL_INVALID_OPERATION);
+			}
 		}
 
 		texture->subImageCompressed(level, xoffset, yoffset, zoffset, width, height, depth, format, imageSize, data);
