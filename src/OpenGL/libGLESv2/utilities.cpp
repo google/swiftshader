@@ -1126,6 +1126,13 @@ namespace es2
 		case GL_RGBA32UI:
 		case GL_R11F_G11F_B10F:
 			return clientVersion >= 3;
+		case GL_R8_SNORM:
+		case GL_RG8_SNORM:
+		case GL_RGB8_SNORM:
+		case GL_RGBA8_SNORM:
+		case GL_ALPHA8_EXT:
+		case GL_LUMINANCE8_EXT:
+		case GL_LUMINANCE8_ALPHA8_EXT:
 		case GL_DEPTH_COMPONENT24:
 		case GL_DEPTH_COMPONENT32_OES:
 		case GL_DEPTH_COMPONENT32F:
@@ -1139,6 +1146,24 @@ namespace es2
 		}
 
 		return false;
+	}
+
+	bool IsMipmappable(GLenum internalformat, sw::Format internalFormat, GLint clientVersion)
+	{
+		if(sw::Surface::isNonNormalizedInteger(internalFormat))
+		{
+			return false;
+		}
+
+		switch(internalformat)
+		{
+			case GL_ALPHA8_EXT:
+			case GL_LUMINANCE8_EXT:
+			case GL_LUMINANCE8_ALPHA8_EXT:
+				return true;
+			default:
+				return IsColorRenderable(internalformat, clientVersion, true);
+		}
 	}
 
 	bool IsDepthRenderable(GLenum internalformat, GLint clientVersion)

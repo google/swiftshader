@@ -2306,8 +2306,7 @@ void GenerateMipmap(GLenum target)
 			return error(GL_INVALID_OPERATION);
 		}
 
-		if(!IsColorRenderable(texture->getFormat(target, 0), clientVersion, true) ||
-		   sw::Surface::isNonNormalizedInteger(texture->getInternalFormat(target, 0)))
+		if(!IsMipmappable(texture->getFormat(target, 0), texture->getInternalFormat(target, 0), clientVersion))
 		{
 			return error(GL_INVALID_OPERATION);
 		}
