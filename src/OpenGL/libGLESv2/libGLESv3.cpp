@@ -1762,7 +1762,7 @@ GL_APICALL void GL_APIENTRY glFlushMappedBufferRange(GLenum target, GLintptr off
 			return error(GL_INVALID_VALUE);
 		}
 
-		if(!(buffer->usage() & GL_MAP_FLUSH_EXPLICIT_BIT))
+		if(!(buffer->access() & GL_MAP_FLUSH_EXPLICIT_BIT))
 		{
 			// Flush must be explicitly allowed
 			return error(GL_INVALID_OPERATION);
