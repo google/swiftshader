@@ -4532,6 +4532,15 @@ void LinkProgram(GLuint program)
 			}
 		}
 
+		if(programObject == context->getCurrentProgram())
+		{
+			es2::TransformFeedback* transformFeedback = context->getTransformFeedback();
+			if(transformFeedback && transformFeedback->isActive())
+			{
+				return error(GL_INVALID_OPERATION);
+			}
+		}
+
 		programObject->link();
 	}
 }
@@ -5563,11 +5572,6 @@ void Uniform1fv(GLint location, GLsizei count, const GLfloat* v)
 		return error(GL_INVALID_VALUE);
 	}
 
-	if(location == -1)
-	{
-		return;
-	}
-
 	es2::Context *context = es2::getContext();
 
 	if(context)
@@ -5577,6 +5581,11 @@ void Uniform1fv(GLint location, GLsizei count, const GLfloat* v)
 		if(!program)
 		{
 			return error(GL_INVALID_OPERATION);
+		}
+
+		if(location == -1)
+		{
+			return;
 		}
 
 		if(!program->setUniform1fv(location, count, v))
@@ -5600,11 +5609,6 @@ void Uniform1iv(GLint location, GLsizei count, const GLint* v)
 		return error(GL_INVALID_VALUE);
 	}
 
-	if(location == -1)
-	{
-		return;
-	}
-
 	es2::Context *context = es2::getContext();
 
 	if(context)
@@ -5614,6 +5618,11 @@ void Uniform1iv(GLint location, GLsizei count, const GLint* v)
 		if(!program)
 		{
 			return error(GL_INVALID_OPERATION);
+		}
+
+		if(location == -1)
+		{
+			return;
 		}
 
 		if(!program->setUniform1iv(location, count, v))
@@ -5639,11 +5648,6 @@ void Uniform2fv(GLint location, GLsizei count, const GLfloat* v)
 		return error(GL_INVALID_VALUE);
 	}
 
-	if(location == -1)
-	{
-		return;
-	}
-
 	es2::Context *context = es2::getContext();
 
 	if(context)
@@ -5653,6 +5657,11 @@ void Uniform2fv(GLint location, GLsizei count, const GLfloat* v)
 		if(!program)
 		{
 			return error(GL_INVALID_OPERATION);
+		}
+
+		if(location == -1)
+		{
+			return;
 		}
 
 		if(!program->setUniform2fv(location, count, v))
@@ -5678,11 +5687,6 @@ void Uniform2iv(GLint location, GLsizei count, const GLint* v)
 		return error(GL_INVALID_VALUE);
 	}
 
-	if(location == -1)
-	{
-		return;
-	}
-
 	es2::Context *context = es2::getContext();
 
 	if(context)
@@ -5692,6 +5696,11 @@ void Uniform2iv(GLint location, GLsizei count, const GLint* v)
 		if(!program)
 		{
 			return error(GL_INVALID_OPERATION);
+		}
+
+		if(location == -1)
+		{
+			return;
 		}
 
 		if(!program->setUniform2iv(location, count, v))
@@ -5717,11 +5726,6 @@ void Uniform3fv(GLint location, GLsizei count, const GLfloat* v)
 		return error(GL_INVALID_VALUE);
 	}
 
-	if(location == -1)
-	{
-		return;
-	}
-
 	es2::Context *context = es2::getContext();
 
 	if(context)
@@ -5731,6 +5735,11 @@ void Uniform3fv(GLint location, GLsizei count, const GLfloat* v)
 		if(!program)
 		{
 			return error(GL_INVALID_OPERATION);
+		}
+
+		if(location == -1)
+		{
+			return;
 		}
 
 		if(!program->setUniform3fv(location, count, v))
@@ -5756,11 +5765,6 @@ void Uniform3iv(GLint location, GLsizei count, const GLint* v)
 		return error(GL_INVALID_VALUE);
 	}
 
-	if(location == -1)
-	{
-		return;
-	}
-
 	es2::Context *context = es2::getContext();
 
 	if(context)
@@ -5770,6 +5774,11 @@ void Uniform3iv(GLint location, GLsizei count, const GLint* v)
 		if(!program)
 		{
 			return error(GL_INVALID_OPERATION);
+		}
+
+		if(location == -1)
+		{
+			return;
 		}
 
 		if(!program->setUniform3iv(location, count, v))
@@ -5795,11 +5804,6 @@ void Uniform4fv(GLint location, GLsizei count, const GLfloat* v)
 		return error(GL_INVALID_VALUE);
 	}
 
-	if(location == -1)
-	{
-		return;
-	}
-
 	es2::Context *context = es2::getContext();
 
 	if(context)
@@ -5809,6 +5813,11 @@ void Uniform4fv(GLint location, GLsizei count, const GLfloat* v)
 		if(!program)
 		{
 			return error(GL_INVALID_OPERATION);
+		}
+
+		if(location == -1)
+		{
+			return;
 		}
 
 		if(!program->setUniform4fv(location, count, v))
@@ -5834,11 +5843,6 @@ void Uniform4iv(GLint location, GLsizei count, const GLint* v)
 		return error(GL_INVALID_VALUE);
 	}
 
-	if(location == -1)
-	{
-		return;
-	}
-
 	es2::Context *context = es2::getContext();
 
 	if(context)
@@ -5848,6 +5852,11 @@ void Uniform4iv(GLint location, GLsizei count, const GLint* v)
 		if(!program)
 		{
 			return error(GL_INVALID_OPERATION);
+		}
+
+		if(location == -1)
+		{
+			return;
 		}
 
 		if(!program->setUniform4iv(location, count, v))
@@ -5867,11 +5876,6 @@ void UniformMatrix2fv(GLint location, GLsizei count, GLboolean transpose, const 
 		return error(GL_INVALID_VALUE);
 	}
 
-	if(location == -1)
-	{
-		return;
-	}
-
 	es2::Context *context = es2::getContext();
 
 	if(context)
@@ -5886,6 +5890,11 @@ void UniformMatrix2fv(GLint location, GLsizei count, GLboolean transpose, const 
 		if(!program)
 		{
 			return error(GL_INVALID_OPERATION);
+		}
+
+		if(location == -1)
+		{
+			return;
 		}
 
 		if(!program->setUniformMatrix2fv(location, count, transpose, value))
@@ -5905,11 +5914,6 @@ void UniformMatrix3fv(GLint location, GLsizei count, GLboolean transpose, const 
 		return error(GL_INVALID_VALUE);
 	}
 
-	if(location == -1)
-	{
-		return;
-	}
-
 	es2::Context *context = es2::getContext();
 
 	if(context)
@@ -5924,6 +5928,11 @@ void UniformMatrix3fv(GLint location, GLsizei count, GLboolean transpose, const 
 		if(!program)
 		{
 			return error(GL_INVALID_OPERATION);
+		}
+
+		if(location == -1)
+		{
+			return;
 		}
 
 		if(!program->setUniformMatrix3fv(location, count, transpose, value))
@@ -5943,11 +5952,6 @@ void UniformMatrix4fv(GLint location, GLsizei count, GLboolean transpose, const 
 		return error(GL_INVALID_VALUE);
 	}
 
-	if(location == -1)
-	{
-		return;
-	}
-
 	es2::Context *context = es2::getContext();
 
 	if(context)
@@ -5962,6 +5966,11 @@ void UniformMatrix4fv(GLint location, GLsizei count, GLboolean transpose, const 
 		if(!program)
 		{
 			return error(GL_INVALID_OPERATION);
+		}
+
+		if(location == -1)
+		{
+			return;
 		}
 
 		if(!program->setUniformMatrix4fv(location, count, transpose, value))
@@ -5979,6 +5988,12 @@ void UseProgram(GLuint program)
 
 	if(context)
 	{
+		es2::TransformFeedback* transformFeedback = context->getTransformFeedback();
+		if(transformFeedback && transformFeedback->isActive() && !transformFeedback->isPaused())
+		{
+			return error(GL_INVALID_OPERATION);
+		}
+
 		es2::Program *programObject = context->getProgram(program);
 
 		if(!programObject && program != 0)

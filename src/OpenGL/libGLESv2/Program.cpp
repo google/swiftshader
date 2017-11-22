@@ -489,6 +489,11 @@ namespace es2
 
 	void Program::bindUniformBlock(GLuint uniformBlockIndex, GLuint uniformBlockBinding)
 	{
+		if(uniformBlockIndex >= getActiveUniformBlockCount())
+		{
+			return error(GL_INVALID_VALUE);
+		}
+
 		uniformBlockBindings[uniformBlockIndex] = uniformBlockBinding;
 	}
 
@@ -716,7 +721,7 @@ namespace es2
 
 		count = std::min(size - (int)uniformIndex[location].element, count);
 
-		if(targetUniform->type == GL_INT || targetUniform->type == GL_UNSIGNED_INT || IsSamplerUniform(targetUniform->type))
+		if(targetUniform->type == GL_INT || IsSamplerUniform(targetUniform->type))
 		{
 			memcpy(targetUniform->data + uniformIndex[location].element * sizeof(GLint),
 				   v, sizeof(GLint) * count);
@@ -753,7 +758,6 @@ namespace es2
 	bool Program::setUniformiv(GLint location, GLsizei count, const GLint *v, int numElements)
 	{
 		static GLenum intType[] = { GL_INT, GL_INT_VEC2, GL_INT_VEC3, GL_INT_VEC4 };
-		static GLenum uintType[] = { GL_UNSIGNED_INT, GL_UNSIGNED_INT_VEC2, GL_UNSIGNED_INT_VEC3, GL_UNSIGNED_INT_VEC4 };
 		static GLenum boolType[] = { GL_BOOL, GL_BOOL_VEC2, GL_BOOL_VEC3, GL_BOOL_VEC4 };
 
 		if(location < 0 || location >= (int)uniformIndex.size() || (uniformIndex[location].index == GL_INVALID_INDEX))
@@ -774,7 +778,7 @@ namespace es2
 		count = std::min(size - (int)uniformIndex[location].element, count);
 
 		int index = numElements - 1;
-		if(targetUniform->type == intType[index] || targetUniform->type == uintType[index])
+		if(targetUniform->type == intType[index])
 		{
 			memcpy(targetUniform->data + uniformIndex[location].element * sizeof(GLint)* numElements,
 				   v, numElements * sizeof(GLint)* count);
@@ -835,7 +839,7 @@ namespace es2
 
 		count = std::min(size - (int)uniformIndex[location].element, count);
 
-		if(targetUniform->type == GL_INT || targetUniform->type == GL_UNSIGNED_INT || IsSamplerUniform(targetUniform->type))
+		if(targetUniform->type == GL_UNSIGNED_INT)
 		{
 			memcpy(targetUniform->data + uniformIndex[location].element * sizeof(GLuint),
 				   v, sizeof(GLuint)* count);
@@ -871,7 +875,6 @@ namespace es2
 
 	bool Program::setUniformuiv(GLint location, GLsizei count, const GLuint *v, int numElements)
 	{
-		static GLenum intType[] = { GL_INT, GL_INT_VEC2, GL_INT_VEC3, GL_INT_VEC4 };
 		static GLenum uintType[] = { GL_UNSIGNED_INT, GL_UNSIGNED_INT_VEC2, GL_UNSIGNED_INT_VEC3, GL_UNSIGNED_INT_VEC4 };
 		static GLenum boolType[] = { GL_BOOL, GL_BOOL_VEC2, GL_BOOL_VEC3, GL_BOOL_VEC4 };
 
@@ -893,7 +896,7 @@ namespace es2
 		count = std::min(size - (int)uniformIndex[location].element, count);
 
 		int index = numElements - 1;
-		if(targetUniform->type == uintType[index] || targetUniform->type == intType[index])
+		if(targetUniform->type == uintType[index])
 		{
 			memcpy(targetUniform->data + uniformIndex[location].element * sizeof(GLuint)* numElements,
 				   v, numElements * sizeof(GLuint)* count);
