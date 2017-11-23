@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0dcbde28_870edf00",
+        "filename": "src/OpenGL/libGLESv2/utilities.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1086,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-11-23T16:26:50Z",
+      "side": 1,
+      "message": "These aren\u0027t color-renderable according to the spec: \"An internal format is color-renderable if it is one of the formats from table 3.13 noted as color-renderable or if it is unsized format RGBA or RGB. No other formats, including compressed internal formats, are color-renderable.\"\n\nInstead, GenerateMipmap() requires that \"If the levelbase array was not specified with an unsized internal format from table 3.3 or a sized internal format that is both color-renderable and texture-filterable according to table 3.13, an INVALID_OPERATION error is generated.\" This corresponds to CheckTextureFormatType() || IsColorRenderable().",
+      "range": {
+        "startLine": 1084,
+        "startChar": 2,
+        "endLine": 1086,
+        "endChar": 32
+      },
+      "revId": "f78fb85c4e4cf7646a8afee7f5930028c41bb6f0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
