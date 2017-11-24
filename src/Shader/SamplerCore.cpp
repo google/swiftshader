@@ -1421,7 +1421,7 @@ namespace sw
 		{
 			Float4 duvdxy;
 
-			if(function != Grad)
+			if(function != Grad)   // Implicit
 			{
 				duvdxy = Float4(uuuu.yz, vvvv.yz) - Float4(uuuu.xx, vvvv.xx);
 			}
@@ -1492,25 +1492,21 @@ namespace sw
 		{
 			Float4 dudxy, dvdxy, dsdxy;
 
-			if(function != Grad)
+			if(function != Grad)  // Implicit
 			{
 				Float4 U = u * M;
 				Float4 V = v * M;
 				Float4 W = w * M;
 
-				dudxy = U.ywyw - U;
-				dvdxy = V.ywyw - V;
-				dsdxy = W.ywyw - W;
+				dudxy = U - U.xxxx;
+				dvdxy = V - V.xxxx;
+				dsdxy = W - W.xxxx;
 			}
 			else
 			{
 				dudxy = Float4(dsx.x.xx, dsy.x.xx);
 				dvdxy = Float4(dsx.y.xx, dsy.y.xx);
 				dsdxy = Float4(dsx.z.xx, dsy.z.xx);
-
-				dudxy = Float4(dudxy.xz, dudxy.xz);
-				dvdxy = Float4(dvdxy.xz, dvdxy.xz);
-				dsdxy = Float4(dsdxy.xz, dsdxy.xz);
 
 				dudxy *= Float4(M.x);
 				dvdxy *= Float4(M.x);
@@ -1529,7 +1525,7 @@ namespace sw
 			dudxy += dvdxy;
 			dudxy += dsdxy;
 
-			lod = Max(Float(dudxy.x), Float(dudxy.y));   // FIXME: Max(dudxy.x, dudxy.y);
+			lod = Max(Float(dudxy.y), Float(dudxy.z));   // FIXME: Max(dudxy.y, dudxy.z);
 
 			lod = log2sqrt(lod);   // log2(sqrt(lod))
 
@@ -1568,21 +1564,17 @@ namespace sw
 			{
 				Float4 dudxy, dvdxy, dsdxy;
 
-				if(function != Grad)
+				if(function != Grad)   // Implicit
 				{
-					dudxy = uuuu.ywyw - uuuu;
-					dvdxy = vvvv.ywyw - vvvv;
-					dsdxy = wwww.ywyw - wwww;
+					dudxy = uuuu - uuuu.xxxx;
+					dvdxy = vvvv - vvvv.xxxx;
+					dsdxy = wwww - wwww.xxxx;
 				}
 				else
 				{
 					dudxy = Float4(dsx.x.xx, dsy.x.xx);
 					dvdxy = Float4(dsx.y.xx, dsy.y.xx);
 					dsdxy = Float4(dsx.z.xx, dsy.z.xx);
-
-					dudxy = Float4(dudxy.xz, dudxy.xz);
-					dvdxy = Float4(dvdxy.xz, dvdxy.xz);
-					dsdxy = Float4(dsdxy.xz, dsdxy.xz);
 				}
 
 				// Scale by texture dimensions and LOD
@@ -1597,7 +1589,7 @@ namespace sw
 				dudxy += dvdxy;
 				dudxy += dsdxy;
 
-				lod = Max(Float(dudxy.x), Float(dudxy.y));   // FIXME: Max(dudxy.x, dudxy.y);
+				lod = Max(Float(dudxy.y), Float(dudxy.z));   // FIXME: Max(dudxy.y, dudxy.z);
 
 				lod = log2sqrt(lod);   // log2(sqrt(lod))
 
