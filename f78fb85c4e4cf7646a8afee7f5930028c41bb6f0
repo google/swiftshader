@@ -22,6 +22,30 @@
       "revId": "f78fb85c4e4cf7646a8afee7f5930028c41bb6f0",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "992c394e_dc6d3557",
+        "filename": "src/OpenGL/libGLESv2/utilities.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1086,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-11-24T19:06:58Z",
+      "side": 1,
+      "message": "CheckTextureFormatType() doesn\u0027t exist in libGLESv2, so I assume this was ValidateTextureFormatType().\nWith this check, GenerateMipmap() attempts to generate mipmaps with the GL_RGB8_SNORM format, which isn\u0027t supposed to be allowed.",
+      "parentUuid": "0dcbde28_870edf00",
+      "range": {
+        "startLine": 1084,
+        "startChar": 2,
+        "endLine": 1086,
+        "endChar": 32
+      },
+      "revId": "f78fb85c4e4cf7646a8afee7f5930028c41bb6f0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
