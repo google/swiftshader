@@ -1267,9 +1267,9 @@ namespace sw
 		Int4 x0, x1, y0, y1, z0;
 		Float4 fu, fv;
 		Int4 filter = computeFilterOffset(lod);
-		address(w, z0, z0, fv, mipmap, offset.z, filter, OFFSET(Mipmap, depth), state.addressingModeW, function);
-		address(v, y0, y1, fv, mipmap, offset.y, filter, OFFSET(Mipmap, height), state.addressingModeV, function);
 		address(u, x0, x1, fu, mipmap, offset.x, filter, OFFSET(Mipmap, width), state.addressingModeU, function);
+		address(v, y0, y1, fv, mipmap, offset.y, filter, OFFSET(Mipmap, height), state.addressingModeV, function);
+		address(w, z0, z0, fv, mipmap, offset.z, filter, OFFSET(Mipmap, depth), state.addressingModeW, function);
 
 		Int4 pitchP = *Pointer<Int4>(mipmap + OFFSET(Mipmap, pitchP), 16);
 		y0 *= pitchP;
@@ -2304,20 +2304,25 @@ namespace sw
 
 	Int4 SamplerCore::computeFilterOffset(Float &lod)
 	{
-		Int4 filtering((state.textureFilter == FILTER_POINT) ? 0 : 1);
-		if(state.textureFilter == FILTER_MIN_LINEAR_MAG_POINT)
+		Int4 filter = -1;
+
+		if(state.textureFilter == FILTER_POINT)
 		{
-			filtering &= CmpNLE(Float4(lod), Float4(0.0f));
+			filter = 0;
+		}
+		else if(state.textureFilter == FILTER_MIN_LINEAR_MAG_POINT)
+		{
+			filter = CmpNLE(Float4(lod), Float4(0.0f));
 		}
 		else if(state.textureFilter == FILTER_MIN_POINT_MAG_LINEAR)
 		{
-			filtering &= CmpLE(Float4(lod), Float4(0.0f));
+			filter = CmpLE(Float4(lod), Float4(0.0f));
 		}
 
-		return filtering;
+		return filter;
 	}
 
-	Short4 SamplerCore::address(Float4 &uw, AddressingMode addressingMode, Pointer<Byte>& mipmap)
+	Short4 SamplerCore::address(Float4 &uw, AddressingMode addressingMode, Pointer<Byte> &mipmap)
 	{
 		if(addressingMode == ADDRESSING_LAYER && state.textureType != TEXTURE_2D_ARRAY)
 		{
@@ -2359,11 +2364,11 @@ namespace sw
 		}
 	}
 
-	void SamplerCore::address(Float4 &uvw, Int4& xyz0, Int4& xyz1, Float4& f, Pointer<Byte>& mipmap, Float4 &texOffset, Int4 &filter, int whd, AddressingMode addressingMode, SamplerFunction function)
+	void SamplerCore::address(Float4 &uvw, Int4 &xyz0, Int4 &xyz1, Float4 &f, Pointer<Byte> &mipmap, Float4 &texOffset, Int4 &filter, int whd, AddressingMode addressingMode, SamplerFunction function)
 	{
 		if(addressingMode == ADDRESSING_LAYER && state.textureType != TEXTURE_2D_ARRAY)
 		{
-			return; // Unused
+			return;   // Unused
 		}
 
 		Int4 dim = Int4(*Pointer<Short4>(mipmap + whd, 16));
@@ -2373,23 +2378,23 @@ namespace sw
 		{
 			xyz0 = Min(Max(((function.option == Offset) && (addressingMode != ADDRESSING_LAYER)) ? As<Int4>(uvw) + As<Int4>(texOffset) : As<Int4>(uvw), Int4(0)), maxXYZ);
 		}
-		else if(addressingMode == ADDRESSING_LAYER && state.textureType == TEXTURE_2D_ARRAY) // Note: Offset does not apply to array layers
+		else if(addressingMode == ADDRESSING_LAYER && state.textureType == TEXTURE_2D_ARRAY)   // Note: Offset does not apply to array layers
 		{
 			xyz0 = Min(Max(RoundInt(uvw), Int4(0)), maxXYZ);
 		}
 		else
 		{
-			const int halfBits = 0x3effffff; // Value just under 0.5f
-			const int oneBits  = 0x3f7fffff; // Value just under 1.0f
-			const int twoBits  = 0x3fffffff; // Value just under 2.0f
+			const int halfBits = 0x3EFFFFFF;   // Value just under 0.5f
+			const int oneBits  = 0x3F7FFFFF;   // Value just under 1.0f
+			const int twoBits  = 0x3FFFFFFF;   // Value just under 2.0f
 
-			Float4 coord = Float4(dim);
+			Float4 coord = uvw;
 			switch(addressingMode)
 			{
 			case ADDRESSING_CLAMP:
 				{
 					Float4 one = As<Float4>(Int4(oneBits));
-					coord *= Min(Max(uvw, Float4(0.0f)), one);
+					coord = Min(Max(coord, Float4(0.0f)), one);
 				}
 				break;
 			case ADDRESSING_MIRROR:
@@ -2397,7 +2402,7 @@ namespace sw
 					Float4 half = As<Float4>(Int4(halfBits));
 					Float4 one = As<Float4>(Int4(oneBits));
 					Float4 two = As<Float4>(Int4(twoBits));
-					coord *= one - Abs(two * Frac(uvw * half) - one);
+					coord = one - Abs(two * Frac(coord * half) - one);
 				}
 				break;
 			case ADDRESSING_MIRRORONCE:
@@ -2405,66 +2410,82 @@ namespace sw
 					Float4 half = As<Float4>(Int4(halfBits));
 					Float4 one = As<Float4>(Int4(oneBits));
 					Float4 two = As<Float4>(Int4(twoBits));
-					coord *= one - Abs(two * Frac(Min(Max(uvw, -one), two) * half) - one);
+					coord = one - Abs(two * Frac(Min(Max(coord, -one), two) * half) - one);
 				}
 				break;
 			default:   // Wrap (or border)
-				coord *= Frac(uvw);
+				coord = Frac(coord);
 				break;
 			}
 
-			xyz0 = Int4(coord);
+			coord = coord * Float4(dim);
+
+			if(state.textureFilter == FILTER_POINT ||
+               state.textureFilter == FILTER_GATHER)
+ 			{
+				xyz0 = Int4(coord);
+			}
+			else
+			{
+				if(state.textureFilter == FILTER_MIN_POINT_MAG_LINEAR ||
+            	   state.textureFilter == FILTER_MIN_LINEAR_MAG_POINT)
+				{
+					coord -= As<Float4>(As<Int4>(Float4(0.5f)) & filter);
+				}
+				else
+				{
+					coord -= Float4(0.5f);
+				}
+
+				Float4 floor = Floor(coord);
+				xyz0 = Int4(floor);
+				f = coord - floor;
+			}
 
 			if(function.option == Offset)
 			{
 				xyz0 += As<Int4>(texOffset);
+			}
+
+			xyz1 = xyz0 - filter;   // Increment
+
+			if(function.option == Offset)
+			{
 				switch(addressingMode)
 				{
 				case ADDRESSING_MIRROR:
 				case ADDRESSING_MIRRORONCE:
 				case ADDRESSING_BORDER:
-					// FIXME: Implement ADDRESSING_MIRROR, ADDRESSING_MIRRORONCE and ADDRESSING_BORDER. Fall through to Clamp.
+					// FIXME: Implement ADDRESSING_MIRROR, ADDRESSING_MIRRORONCE, and ADDRESSING_BORDER.
+					// Fall through to Clamp.
 				case ADDRESSING_CLAMP:
 					xyz0 = Min(Max(xyz0, Int4(0)), maxXYZ);
+					xyz1 = Min(Max(xyz1, Int4(0)), maxXYZ);
 					break;
 				default:   // Wrap
 					xyz0 = (xyz0 + dim * Int4(-MIN_PROGRAM_TEXEL_OFFSET)) % dim;
+					xyz1 = (xyz1 + dim * Int4(-MIN_PROGRAM_TEXEL_OFFSET)) % dim;
 					break;
 				}
 			}
-
-			if(state.textureFilter != FILTER_POINT) // Compute 2nd coordinate, if needed
+			else if(state.textureFilter != FILTER_POINT)
 			{
-				bool gather = state.textureFilter == FILTER_GATHER;
-
-				xyz1 = xyz0 + filter; // Increment
-
-				if(!gather)
-				{
-					Float4 frac = Frac(coord);
-					f = Abs(frac - Float4(0.5f));
-					xyz1 -= CmpLT(frac, Float4(0.5f)) & (filter + filter); // Decrement xyz if necessary
-				}
-
 				switch(addressingMode)
 				{
 				case ADDRESSING_MIRROR:
 				case ADDRESSING_MIRRORONCE:
 				case ADDRESSING_BORDER:
-					// FIXME: Implement ADDRESSING_MIRROR, ADDRESSING_MIRRORONCE and ADDRESSING_BORDER. Fall through to Clamp.
 				case ADDRESSING_CLAMP:
-					xyz1 = gather ? Min(xyz1, maxXYZ) : Min(Max(xyz1, Int4(0)), maxXYZ);
+					xyz0 = Max(xyz0, Int4(0));
+					xyz1 = Min(xyz1, maxXYZ);
 					break;
 				default:   // Wrap
 					{
-						// The coordinates overflow or underflow by at most 1
-						Int4 over = CmpNLT(xyz1, dim);
-						xyz1 = (over & Int4(0)) | (~over & xyz1); // xyz >= dim ? 0 : xyz
-						if(!gather)
-						{
-							Int4 under = CmpLT(xyz1, Int4(0));
-							xyz1 = (under & maxXYZ) | (~under & xyz1); // xyz < 0 ? dim - 1 : xyz
-						}
+						Int4 under = CmpLT(xyz0, Int4(0));
+						xyz0 = (under & maxXYZ) | (~under & xyz0);   // xyz < 0 ? dim - 1 : xyz   // FIXME: IfThenElse()
+
+						Int4 nover = CmpLT(xyz1, dim);
+						xyz1 = nover & xyz1;   // xyz >= dim ? 0 : xyz
 					}
 					break;
 				}

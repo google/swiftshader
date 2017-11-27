@@ -454,7 +454,7 @@ namespace sw
 
 	AddressingMode Sampler::getAddressingModeU() const
 	{
-		if(hasCubeTexture())
+		if(textureType == TEXTURE_CUBE)
 		{
 			return ADDRESSING_CLAMP;
 		}
@@ -464,7 +464,7 @@ namespace sw
 
 	AddressingMode Sampler::getAddressingModeV() const
 	{
-		if(hasCubeTexture())
+		if(textureType == TEXTURE_CUBE)
 		{
 			return ADDRESSING_CLAMP;
 		}
@@ -474,12 +474,9 @@ namespace sw
 
 	AddressingMode Sampler::getAddressingModeW() const
 	{
-		if(hasCubeTexture())
-		{
-			return ADDRESSING_CLAMP;
-		}
-
-		if(textureType == TEXTURE_2D_ARRAY || textureType == TEXTURE_2D)
+		if(textureType == TEXTURE_2D_ARRAY ||
+		   textureType == TEXTURE_2D ||
+		   textureType == TEXTURE_CUBE)
 		{
 			return ADDRESSING_LAYER;
 		}
