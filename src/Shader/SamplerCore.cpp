@@ -2332,7 +2332,7 @@ namespace sw
 		{
 			return Min(Max(Short4(RoundInt(uw)), Short4(0)), *Pointer<Short4>(mipmap + OFFSET(Mipmap, depth)) - Short4(1));
 		}
-		else if(addressingMode == ADDRESSING_CLAMP)
+		else if(addressingMode == ADDRESSING_CLAMP || addressingMode == ADDRESSING_BORDER)
 		{
 			Float4 clamp = Min(Max(uw, Float4(0.0f)), Float4(65535.0f / 65536.0f));
 
@@ -2358,7 +2358,7 @@ namespace sw
 
 			return As<Short4>(Int2(convert)) + Short4(0x8000u);
 		}
-		else   // Wrap (or border)
+		else   // Wrap
 		{
 			return Short4(Int4(uw * Float4(1 << 16)));
 		}
@@ -2392,6 +2392,7 @@ namespace sw
 			switch(addressingMode)
 			{
 			case ADDRESSING_CLAMP:
+			case ADDRESSING_BORDER:
 				{
 					Float4 one = As<Float4>(Int4(oneBits));
 					coord = Min(Max(coord, Float4(0.0f)), one);
@@ -2413,7 +2414,7 @@ namespace sw
 					coord = one - Abs(two * Frac(Min(Max(coord, -one), two) * half) - one);
 				}
 				break;
-			default:   // Wrap (or border)
+			default:   // Wrap
 				coord = Frac(coord);
 				break;
 			}
