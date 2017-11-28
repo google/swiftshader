@@ -1598,6 +1598,7 @@ namespace es2sw
 		case GL_RGB565:               return sw::FORMAT_R5G6B5;
 		case GL_RGB8_OES:             return sw::FORMAT_X8B8G8R8;
 		case GL_DEPTH_COMPONENT16:
+		case GL_DEPTH_COMPONENT24:
 		case GL_STENCIL_INDEX8:
 		case GL_DEPTH24_STENCIL8_OES: return sw::FORMAT_D24S8;
 		case GL_DEPTH_COMPONENT32_OES:return sw::FORMAT_D32;
