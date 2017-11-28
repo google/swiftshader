@@ -191,7 +191,7 @@ namespace D3D9
 
 		for(unsigned int face = 0; face < 6; face++)
 		{
-			if(!surfaceLevel[face][0]->hasDirtyMipmaps())
+			if(!surfaceLevel[face][0]->hasDirtyContents())
 			{
 				continue;
 			}
@@ -201,7 +201,7 @@ namespace D3D9
 				device->stretchRect(surfaceLevel[face][i], 0, surfaceLevel[face][i + 1], 0, GetAutoGenFilterType());
 			}
 
-			surfaceLevel[face][0]->cleanMipmaps();
+			surfaceLevel[face][0]->markContentsClean();
 		}
 
 		resource->unlock();

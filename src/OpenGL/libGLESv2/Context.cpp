@@ -3233,11 +3233,13 @@ void Context::applyTexture(sw::SamplerType type, int index, Texture *baseTexture
 		}
 		else if(baseTexture->getTarget() == GL_TEXTURE_CUBE_MAP)
 		{
-			for(int face = 0; face < 6; face++)
-			{
-				TextureCubeMap *cubeTexture = static_cast<TextureCubeMap*>(baseTexture);
+			TextureCubeMap *cubeTexture = static_cast<TextureCubeMap*>(baseTexture);
 
-				for(int mipmapLevel = 0; mipmapLevel < sw::MIPMAP_LEVELS; mipmapLevel++)
+			for(int mipmapLevel = 0; mipmapLevel < sw::MIPMAP_LEVELS; mipmapLevel++)
+			{
+				cubeTexture->updateBorders(mipmapLevel);
+
+				for(int face = 0; face < 6; face++)
 				{
 					int surfaceLevel = mipmapLevel;
 

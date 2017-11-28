@@ -174,7 +174,7 @@ namespace D3D9
 
 		TRACE("");
 
-		if(!(usage & D3DUSAGE_AUTOGENMIPMAP) || !volumeLevel[0]->hasDirtyMipmaps())
+		if(!(usage & D3DUSAGE_AUTOGENMIPMAP) || !volumeLevel[0]->hasDirtyContents())
 		{
 			return;
 		}
@@ -230,7 +230,7 @@ namespace D3D9
 			dest->unlockInternal();
 		}
 
-		volumeLevel[0]->cleanMipmaps();
+		volumeLevel[0]->markContentsClean();
 
 		resource->unlock();
 	}

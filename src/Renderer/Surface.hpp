@@ -248,7 +248,7 @@ namespace sw
 			Format format;
 			AtomicInt lock;
 
-			bool dirty;
+			bool dirty;   // Sibling internal/external buffer doesn't match.
 		};
 
 	protected:
@@ -326,8 +326,8 @@ namespace sw
 		bool hasPalette() const;
 		bool isRenderTarget() const;
 
-		bool hasDirtyMipmaps() const;
-		void cleanMipmaps();
+		bool hasDirtyContents() const;
+		void markContentsClean();
 		inline bool isExternalDirty() const;
 		Resource *getResource();
 
@@ -474,7 +474,7 @@ namespace sw
 		const bool lockable;
 		const bool renderTarget;
 
-		bool dirtyMipmaps;
+		bool dirtyContents;   // Sibling surfaces need updating (mipmaps / cube borders).
 		unsigned int paletteUsed;
 
 		static unsigned int *palette;   // FIXME: Not multi-device safe

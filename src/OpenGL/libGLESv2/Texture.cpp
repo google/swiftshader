@@ -1260,6 +1260,16 @@ void TextureCubeMap::updateBorders(int level)
 		return;
 	}
 
+	if(posX->getBorder() == 0)   // Non-seamless cube map.
+	{
+		return;
+	}
+
+	if(!posX->hasDirtyContents() || !posY->hasDirtyContents() || !posZ->hasDirtyContents() || !negX->hasDirtyContents() || !negY->hasDirtyContents() || !negY->hasDirtyContents())
+	{
+		return;
+	}
+
 	// Copy top / bottom first.
 	posX->copyCubeEdge(sw::Surface::BOTTOM, negY, sw::Surface::RIGHT);
 	posY->copyCubeEdge(sw::Surface::BOTTOM, posZ, sw::Surface::TOP);
@@ -1290,6 +1300,13 @@ void TextureCubeMap::updateBorders(int level)
 	negX->copyCubeEdge(sw::Surface::LEFT, negZ, sw::Surface::RIGHT);
 	negY->copyCubeEdge(sw::Surface::LEFT, negX, sw::Surface::BOTTOM);
 	negZ->copyCubeEdge(sw::Surface::LEFT, posX, sw::Surface::RIGHT);
+
+	posX->markContentsClean();
+	posY->markContentsClean();
+	posZ->markContentsClean();
+	negX->markContentsClean();
+	negY->markContentsClean();
+	negY->markContentsClean();
 }
 
 bool TextureCubeMap::isCompressed(GLenum target, GLint level) const

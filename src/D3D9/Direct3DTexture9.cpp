@@ -173,7 +173,7 @@ namespace D3D9
 
 		TRACE("");
 
-		if(!(usage & D3DUSAGE_AUTOGENMIPMAP) || !surfaceLevel[0]->hasDirtyMipmaps())
+		if(!(usage & D3DUSAGE_AUTOGENMIPMAP) || !surfaceLevel[0]->hasDirtyContents())
 		{
 			return;
 		}
@@ -185,7 +185,7 @@ namespace D3D9
 			device->stretchRect(surfaceLevel[i], 0, surfaceLevel[i + 1], 0, GetAutoGenFilterType());
 		}
 
-		surfaceLevel[0]->cleanMipmaps();
+		surfaceLevel[0]->markContentsClean();
 
 		resource->unlock();
 	}

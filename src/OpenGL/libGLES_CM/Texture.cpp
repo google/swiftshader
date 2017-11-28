@@ -720,10 +720,10 @@ void Texture2D::generateMipmaps()
 
 void Texture2D::autoGenerateMipmaps()
 {
-	if(generateMipmap && image[0]->hasDirtyMipmaps())
+	if(generateMipmap && image[0]->hasDirtyContents())
 	{
 		generateMipmaps();
-		image[0]->cleanMipmaps();
+		image[0]->markContentsClean();
 	}
 }
 

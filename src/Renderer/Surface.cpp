@@ -1249,7 +1249,7 @@ namespace sw
 		stencil.lock = LOCK_UNLOCKED;
 		stencil.dirty = false;
 
-		dirtyMipmaps = true;
+		dirtyContents = true;
 		paletteUsed = 0;
 	}
 
@@ -1302,7 +1302,7 @@ namespace sw
 		stencil.lock = LOCK_UNLOCKED;
 		stencil.dirty = false;
 
-		dirtyMipmaps = true;
+		dirtyContents = true;
 		paletteUsed = 0;
 	}
 
@@ -1367,7 +1367,7 @@ namespace sw
 		case LOCK_WRITEONLY:
 		case LOCK_READWRITE:
 		case LOCK_DISCARD:
-			dirtyMipmaps = true;
+			dirtyContents = true;
 			break;
 		default:
 			ASSERT(false);
@@ -1446,7 +1446,7 @@ namespace sw
 		case LOCK_WRITEONLY:
 		case LOCK_READWRITE:
 		case LOCK_DISCARD:
-			dirtyMipmaps = true;
+			dirtyContents = true;
 			break;
 		default:
 			ASSERT(false);
@@ -3649,14 +3649,14 @@ namespace sw
 		return renderTarget;
 	}
 
-	bool Surface::hasDirtyMipmaps() const
+	bool Surface::hasDirtyContents() const
 	{
-		return dirtyMipmaps;
+		return dirtyContents;
 	}
 
-	void Surface::cleanMipmaps()
+	void Surface::markContentsClean()
 	{
-		dirtyMipmaps = false;
+		dirtyContents = false;
 	}
 
 	Resource *Surface::getResource()
