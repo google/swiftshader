@@ -2367,7 +2367,7 @@ namespace pp {
 
 // TODO(alokp): Maximum token length should ideally be specified by
 // the preprocessor client, i.e., the compiler.
-const size_t Tokenizer::kMaxTokenLength = 256;
+const size_t Tokenizer::kMaxTokenLength = 1024;
 
 Tokenizer::Tokenizer(Diagnostics* diagnostics) : mHandle(0)
 {
