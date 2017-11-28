@@ -316,7 +316,8 @@ namespace sw
 		{
 			// FIXME: YUV and sRGB are not supported by the floating point path
 			bool forceFloatFiltering = state.highPrecisionFiltering && !state.sRGB && !hasYuvFormat() && (state.textureFilter != FILTER_POINT);
-			if(hasFloatTexture() || hasUnnormalizedIntegerTexture() || forceFloatFiltering)   // FIXME: Mostly identical to integer sampling
+			bool seamlessCube = (state.addressingModeU == ADDRESSING_SEAMLESS);
+			if(hasFloatTexture() || hasUnnormalizedIntegerTexture() || forceFloatFiltering || seamlessCube)   // FIXME: Mostly identical to integer sampling
 			{
 				Float4 uuuu = u;
 				Float4 vvvv = v;
@@ -1666,7 +1667,7 @@ namespace sw
 
 		M = Max(Max(absX, absY), absZ);
 
-		// U = xMajor ? (neg ^ -z) : (zMajor & neg) ^ x)
+		// U = xMajor ? (neg ^ -z) : ((zMajor & neg) ^ x)
 		U = As<Float4>((xMajor & (n ^ As<Int4>(-z))) | (~xMajor & ((zMajor & n) ^ As<Int4>(x))));
 
 		// V = !yMajor ? -y : (n ^ z)
@@ -1695,6 +1696,8 @@ namespace sw
 			break;
 		case ADDRESSING_TEXELFETCH:
 			break;
+		case AddressingMode::ADDRESSING_SEAMLESS:
+			ASSERT(false);   // Cube sampling doesn't support offset.
 		default:
 			ASSERT(false);
 		}
@@ -2388,11 +2391,20 @@ namespace sw
 			const int oneBits  = 0x3F7FFFFF;   // Value just under 1.0f
 			const int twoBits  = 0x3FFFFFFF;   // Value just under 2.0f
 
+			bool pointFilter = state.textureFilter == FILTER_POINT ||
+			                   state.textureFilter == FILTER_MIN_POINT_MAG_LINEAR ||
+			                   state.textureFilter == FILTER_MIN_LINEAR_MAG_POINT;
+
 			Float4 coord = uvw;
+
 			switch(addressingMode)
 			{
 			case ADDRESSING_CLAMP:
 			case ADDRESSING_BORDER:
+			case ADDRESSING_SEAMLESS:
+				// Linear filtering of cube doesn't require clamping because the coordinates
+				// are already in [0, 1] range and numerical imprecision is tolerated.
+				if(addressingMode != ADDRESSING_SEAMLESS || pointFilter)
 				{
 					Float4 one = As<Float4>(Int4(oneBits));
 					coord = Min(Max(coord, Float4(0.0f)), one);
@@ -2448,12 +2460,19 @@ namespace sw
 				xyz0 += As<Int4>(texOffset);
 			}
 
+			if(addressingMode == ADDRESSING_SEAMLESS)
+			{
+				xyz0 += Int4(1);
+			}
+
 			xyz1 = xyz0 - filter;   // Increment
 
 			if(function.option == Offset)
 			{
 				switch(addressingMode)
 				{
+				case ADDRESSING_SEAMLESS:
+					ASSERT(false);   // Cube sampling doesn't support offset.
 				case ADDRESSING_MIRROR:
 				case ADDRESSING_MIRRORONCE:
 				case ADDRESSING_BORDER:
@@ -2473,6 +2492,8 @@ namespace sw
 			{
 				switch(addressingMode)
 				{
+				case ADDRESSING_SEAMLESS:
+					break;
 				case ADDRESSING_MIRROR:
 				case ADDRESSING_MIRRORONCE:
 				case ADDRESSING_BORDER:

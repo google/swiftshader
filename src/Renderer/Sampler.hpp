@@ -103,7 +103,8 @@ namespace sw
 		ADDRESSING_CLAMP,
 		ADDRESSING_MIRROR,
 		ADDRESSING_MIRRORONCE,
-		ADDRESSING_BORDER,
+		ADDRESSING_BORDER,     // Single color
+		ADDRESSING_SEAMLESS,   // Border of pixels
 		ADDRESSING_LAYER,
 		ADDRESSING_TEXELFETCH,
 
@@ -224,6 +225,7 @@ namespace sw
 		bool sRGB;
 		bool gather;
 		bool highPrecisionFiltering;
+		int border;
 
 		SwizzleType swizzleR;
 		SwizzleType swizzleG;
