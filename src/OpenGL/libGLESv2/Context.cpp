@@ -3467,7 +3467,7 @@ void Context::drawArrays(GLenum mode, GLint first, GLsizei count, GLsizei instan
 {
 	if(!mState.currentProgram)
 	{
-		return error(GL_INVALID_OPERATION);
+		return;
 	}
 
 	sw::DrawType primitiveType;
@@ -3523,7 +3523,7 @@ void Context::drawElements(GLenum mode, GLuint start, GLuint end, GLsizei count,
 {
 	if(!mState.currentProgram)
 	{
-		return error(GL_INVALID_OPERATION);
+		return;
 	}
 
 	if(!indices && !getCurrentVertexArray()->getElementArrayBuffer())

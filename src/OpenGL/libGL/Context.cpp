@@ -2477,7 +2477,7 @@ void Context::drawElements(GLenum mode, GLsizei count, GLenum type, const void *
 {
 	if(!mState.currentProgram)
 	{
-		return error(GL_INVALID_OPERATION);
+		return;
 	}
 
 	if(!indices && !mState.elementArrayBuffer)
