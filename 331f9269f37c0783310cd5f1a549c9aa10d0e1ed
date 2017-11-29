@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "48d727dc_e4b0d18a",
+        "filename": "src/Renderer/Blitter.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 603,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-11-29T22:07:15Z",
+      "side": 1,
+      "message": "It\u0027s not really a bug per se. Anything \u003e1 is opaque anyway, so it doesn\u0027t really matter what value is used here. We could change all these values to 1 and it probably wouldn\u0027t change anything. This was just for consistency.",
+      "parentUuid": "429327be_0541a0cc",
+      "range": {
+        "startLine": 603,
+        "startChar": 53,
+        "endLine": 603,
+        "endChar": 59
+      },
+      "revId": "331f9269f37c0783310cd5f1a549c9aa10d0e1ed",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "261dfbe7_4ad02b03",
         "filename": "src/Renderer/Blitter.cpp",
         "patchSetId": 1
