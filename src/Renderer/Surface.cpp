@@ -42,14 +42,6 @@ namespace sw
 	unsigned int *Surface::palette = 0;
 	unsigned int Surface::paletteID = 0;
 
-	void Rect::clip(int minX, int minY, int maxX, int maxY)
-	{
-		x0 = clamp(x0, minX, maxX);
-		y0 = clamp(y0, minY, maxY);
-		x1 = clamp(x1, minX, maxX);
-		y1 = clamp(y1, minY, maxY);
-	}
-
 	void Surface::Buffer::write(int x, int y, int z, const Color<float> &color)
 	{
 		void *element = (unsigned char*)buffer + (x + border) * bytes + (y + border) * pitchB + z * sliceB;

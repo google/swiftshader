@@ -23,30 +23,42 @@ namespace sw
 {
 	class Resource;
 
-	struct Rect
+	template <typename T> struct RectT
 	{
-		Rect() {}
-		Rect(int x0i, int y0i, int x1i, int y1i) : x0(x0i), y0(y0i), x1(x1i), y1(y1i) {}
+		RectT() {}
+		RectT(T x0i, T y0i, T x1i, T y1i) : x0(x0i), y0(y0i), x1(x1i), y1(y1i) {}
 
-		void clip(int minX, int minY, int maxX, int maxY);
+		void clip(T minX, T minY, T maxX, T maxY)
+		{
+			x0 = clamp(x0, minX, maxX);
+			y0 = clamp(y0, minY, maxY);
+			x1 = clamp(x1, minX, maxX);
+			y1 = clamp(y1, minY, maxY);
+		}
 
-		int width() const  { return x1 - x0; }
-		int height() const { return y1 - y0; }
+		T width() const  { return x1 - x0; }
+		T height() const { return y1 - y0; }
 
-		int x0;   // Inclusive
-		int y0;   // Inclusive
-		int x1;   // Exclusive
-		int y1;   // Exclusive
+		T x0;   // Inclusive
+		T y0;   // Inclusive
+		T x1;   // Exclusive
+		T y1;   // Exclusive
 	};
 
-	struct SliceRect : public Rect
+	typedef RectT<int> Rect;
+	typedef RectT<float> RectF;
+
+	template <typename T> struct SliceRectT : public RectT<T>
 	{
-		SliceRect() : slice(0) {}
-		SliceRect(const Rect& rect) : Rect(rect), slice(0) {}
-		SliceRect(const Rect& rect, int s) : Rect(rect), slice(s) {}
-		SliceRect(int x0, int y0, int x1, int y1, int s) : Rect(x0, y0, x1, y1), slice(s) {}
+		SliceRectT() : slice(0) {}
+		SliceRectT(const RectT<T>& rect) : RectT<T>(rect), slice(0) {}
+		SliceRectT(const RectT<T>& rect, int s) : RectT<T>(rect), slice(s) {}
+		SliceRectT(T x0, T y0, T x1, T y1, int s) : RectT<T>(x0, y0, x1, y1), slice(s) {}
 		int slice;
 	};
+
+	typedef SliceRectT<int> SliceRect;
+	typedef SliceRectT<float> SliceRectF;
 
 	enum Format : unsigned char
 	{

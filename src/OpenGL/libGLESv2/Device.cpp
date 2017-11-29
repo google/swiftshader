@@ -537,12 +537,16 @@ namespace es2
 			flipY = (destRect->y0 > destRect->y1);
 		}
 
-		SliceRect sRect;
+		SliceRectF sRect;
 		SliceRect dRect;
 
 		if(sourceRect)
 		{
-			sRect = *sourceRect;
+			sRect.x0 = (float)(sourceRect->x0);
+			sRect.x1 = (float)(sourceRect->x1);
+			sRect.y0 = (float)(sourceRect->y0);
+			sRect.y1 = (float)(sourceRect->y1);
+			sRect.slice = sourceRect->slice;
 
 			if(sRect.x0 > sRect.x1)
 			{
@@ -556,10 +560,10 @@ namespace es2
 		}
 		else
 		{
-			sRect.y0 = 0;
-			sRect.x0 = 0;
-			sRect.y1 = sHeight;
-			sRect.x1 = sWidth;
+			sRect.y0 = 0.0f;
+			sRect.x0 = 0.0f;
+			sRect.y1 = (float)sHeight;
+			sRect.x1 = (float)sWidth;
 		}
 
 		if(destRect)
@@ -584,17 +588,131 @@ namespace es2
 			dRect.x1 = dWidth;
 		}
 
+		if(sRect.x0 < 0)
+		{
+			float ratio = static_cast<float>(dRect.width()) / sRect.width();
+			float offsetf = roundf(-sRect.x0 * ratio);
+			int offset = static_cast<int>(offsetf);
+			if(flipX)
+			{
+				dRect.x1 -= offset;
+			}
+			else
+			{
+				dRect.x0 += offset;
+			}
+			sRect.x0 += offsetf / ratio;
+		}
+		if(sRect.x1 > sWidth)
+		{
+			float ratio = static_cast<float>(dRect.width()) / sRect.width();
+			float offsetf = roundf((sRect.x1 - (float)sWidth) * ratio);
+			int offset = static_cast<int>(offsetf);
+			if(flipX)
+			{
+				dRect.x0 += offset;
+			}
+			else
+			{
+				dRect.x1 -= offset;
+			}
+			sRect.x1 -= offsetf / ratio;
+		}
+		if(sRect.y0 < 0)
+		{
+			float ratio = static_cast<float>(dRect.height()) / sRect.height();
+			float offsetf = roundf(-sRect.y0 * ratio);
+			int offset = static_cast<int>(offsetf);
+			if(flipY)
+			{
+				dRect.y1 -= offset;
+			}
+			else
+			{
+				dRect.y0 += offset;
+			}
+			sRect.y0 += offsetf / ratio;
+		}
+		if(sRect.y1 > sHeight)
+		{
+			float ratio = static_cast<float>(dRect.height()) / sRect.height();
+			float offsetf = roundf((sRect.y1 - (float)sHeight) * ratio);
+			int offset = static_cast<int>(offsetf);
+			if(flipY)
+			{
+				dRect.y0 += offset;
+			}
+			else
+			{
+				dRect.y1 -= offset;
+			}
+			sRect.y1 -= offsetf / ratio;
+		}
+
+		if(dRect.x0 < 0)
+		{
+			float offset = (static_cast<float>(-dRect.x0) / static_cast<float>(dRect.width())) * sRect.width();
+			if(flipX)
+			{
+				sRect.x1 -= offset;
+			}
+			else
+			{
+				sRect.x0 += offset;
+			}
+			dRect.x0 = 0;
+		}
+		if(dRect.x1 > dWidth)
+		{
+			float offset = (static_cast<float>(dRect.x1 - dWidth) / static_cast<float>(dRect.width())) * sRect.width();
+			if(flipX)
+			{
+				sRect.x0 += offset;
+			}
+			else
+			{
+				sRect.x1 -= offset;
+			}
+			dRect.x1 = dWidth;
+		}
+		if(dRect.y0 < 0)
+		{
+			float offset = (static_cast<float>(-dRect.y0) / static_cast<float>(dRect.height())) * sRect.height();
+			if(flipY)
+			{
+				sRect.y1 -= offset;
+			}
+			else
+			{
+				sRect.y0 += offset;
+			}
+			dRect.y0 = 0;
+		}
+		if(dRect.y1 > dHeight)
+		{
+			float offset = (static_cast<float>(dRect.y1 - dHeight) / static_cast<float>(dRect.height())) * sRect.height();
+			if(flipY)
+			{
+				sRect.y0 += offset;
+			}
+			else
+			{
+				sRect.y1 -= offset;
+			}
+			dRect.y1 = dHeight;
+		}
+
 		if(!validRectangle(&sRect, source) || !validRectangle(&dRect, dest))
 		{
 			ERR("Invalid parameters");
 			return false;
 		}
 
-		bool scaling = (sRect.x1 - sRect.x0 != dRect.x1 - dRect.x0) || (sRect.y1 - sRect.y0 != dRect.y1 - dRect.y0);
+		bool scaling = (sRect.width() != (float)dRect.width()) || (sRect.height() != (float)dRect.height());
 		bool equalFormats = source->getInternalFormat() == dest->getInternalFormat();
 		bool hasQuadLayout = Surface::hasQuadLayout(source->getInternalFormat()) || Surface::hasQuadLayout(dest->getInternalFormat());
-		bool fullCopy = (sRect.x0 == 0) && (sRect.y0 == 0) && (dRect.x0 == 0) && (dRect.y0 == 0) &&
-		                (sRect.x1 == sWidth) && (sRect.y1 == sHeight) && (dRect.x1 == dWidth) && (dRect.y0 == dHeight);
+		bool fullCopy = (sRect.x0 == 0.0f) && (sRect.y0 == 0.0f) && (dRect.x0 == 0) && (dRect.y0 == 0) &&
+		                (sRect.x1 == (float)sWidth) && (sRect.y1 == (float)sHeight) && (dRect.x1 == dWidth) && (dRect.y0 == dHeight);
 		bool isDepth = (flags & Device::DEPTH_BUFFER) && egl::Image::isDepth(source->getInternalFormat());
 		bool isStencil = (flags & Device::STENCIL_BUFFER) && (egl::Image::isDepth(source->getInternalFormat()) || egl::Image::isStencil(source->getInternalFormat()));
 		bool isColor = (flags & Device::COLOR_BUFFER) == Device::COLOR_BUFFER;
@@ -611,7 +729,7 @@ namespace es2
 		{
 			if(source->hasDepth() && isDepth)
 			{
-				sw::byte *sourceBuffer = (sw::byte*)source->lockInternal(sRect.x0, sRect.y0, 0, LOCK_READONLY, PUBLIC);
+				sw::byte *sourceBuffer = (sw::byte*)source->lockInternal((int)sRect.x0, (int)sRect.y0, 0, LOCK_READONLY, PUBLIC);
 				sw::byte *destBuffer = (sw::byte*)dest->lockInternal(dRect.x0, dRect.y0, 0, LOCK_DISCARD, PUBLIC);
 
 				copyBuffer(sourceBuffer, destBuffer, dRect.width(), dRect.height(), source->getInternalPitchB(), dest->getInternalPitchB(), egl::Image::bytes(source->getInternalFormat()), flipX, flipY);
@@ -622,7 +740,7 @@ namespace es2
 
 			if(source->hasStencil() && isStencil)
 			{
-				sw::byte *sourceBuffer = (sw::byte*)source->lockStencil(sRect.x0, sRect.y0, 0, PUBLIC);
+				sw::byte *sourceBuffer = (sw::byte*)source->lockStencil((int)sRect.x0, (int)sRect.y0, 0, PUBLIC);
 				sw::byte *destBuffer = (sw::byte*)dest->lockStencil(dRect.x0, dRect.y0, 0, PUBLIC);
 
 				copyBuffer(sourceBuffer, destBuffer, source->getWidth(), source->getHeight(), source->getStencilPitchB(), dest->getStencilPitchB(), egl::Image::bytes(source->getStencilFormat()), flipX, flipY);
@@ -633,7 +751,7 @@ namespace es2
 		}
 		else if((flags & Device::COLOR_BUFFER) && !scaling && equalFormats && (!hasQuadLayout || fullCopy))
 		{
-			unsigned char *sourceBytes = (unsigned char*)source->lockInternal(sRect.x0, sRect.y0, sourceRect->slice, LOCK_READONLY, PUBLIC);
+			unsigned char *sourceBytes = (unsigned char*)source->lockInternal((int)sRect.x0, (int)sRect.y0, sourceRect->slice, LOCK_READONLY, PUBLIC);
 			unsigned char *destBytes = (unsigned char*)dest->lockInternal(dRect.x0, dRect.y0, destRect->slice, LOCK_READWRITE, PUBLIC);
 			unsigned int sourcePitch = source->getInternalPitchB();
 			unsigned int destPitch = dest->getInternalPitchB();
@@ -667,7 +785,9 @@ namespace es2
 			{
 				swap(dRect.y0, dRect.y1);
 			}
-			blit(source, sRect, dest, dRect, scaling && (flags & Device::USE_FILTER), isStencil);
+
+			SliceRectF sRectF((float)sRect.x0, (float)sRect.y0, (float)sRect.x1, (float)sRect.y1, sRect.slice);
+			blit(source, sRectF, dest, dRect, scaling && (flags & Device::USE_FILTER), isStencil);
 		}
 		else
 		{
@@ -886,7 +1006,32 @@ namespace es2
 			return false;
 		}
 
-		if(rect->x1 > (int)surface->getWidth() || rect->y1 > (int)surface->getHeight())
+		if(rect->x1 >(int)surface->getWidth() || rect->y1 >(int)surface->getHeight())
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+	bool Device::validRectangle(const sw::RectF *rect, sw::Surface *surface)
+	{
+		if(!rect)
+		{
+			return true;
+		}
+
+		if(rect->x1 <= rect->x0 || rect->y1 <= rect->y0)
+		{
+			return false;
+		}
+
+		if(rect->x0 < 0 || rect->y0 < 0)
+		{
+			return false;
+		}
+
+		if(rect->x1 >(float)surface->getWidth() || rect->y1 >(float)surface->getHeight())
 		{
 			return false;
 		}

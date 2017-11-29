@@ -682,7 +682,7 @@ namespace sw
 		}
 	}
 
-	void Renderer::blit(Surface *source, const SliceRect &sRect, Surface *dest, const SliceRect &dRect, bool filter, bool isStencil)
+	void Renderer::blit(Surface *source, const SliceRectF &sRect, Surface *dest, const SliceRect &dRect, bool filter, bool isStencil)
 	{
 		blitter->blit(source, sRect, dest, dRect, filter, isStencil);
 	}

@@ -6323,7 +6323,8 @@ namespace D3D9
 		}
 		else
 		{
-			renderer->blit(source, sRect, dest, dRect, filter >= D3DTEXF_LINEAR);
+			sw::SliceRectF sRectF((float)sRect.x0, (float)sRect.y0, (float)sRect.x1, (float)sRect.y1, 0);
+			renderer->blit(source, sRectF, dest, dRect, filter >= D3DTEXF_LINEAR);
 		}
 	}
 

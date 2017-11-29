@@ -621,7 +621,8 @@ namespace gl
 		}
 		else
 		{
-			blit(source, sRect, dest, dRect, scaling && filter);
+			sw::SliceRectF sRectF((float)sRect.x0, (float)sRect.y0, (float)sRect.x1, (float)sRect.y1, sRect.slice);
+			blit(source, sRectF, dest, dRect, scaling && filter);
 		}
 
 		return true;

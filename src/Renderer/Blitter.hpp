@@ -76,7 +76,7 @@ namespace sw
 		virtual ~Blitter();
 
 		void clear(void* pixel, sw::Format format, Surface *dest, const SliceRect &dRect, unsigned int rgbaMask);
-		void blit(Surface *source, const SliceRect &sRect, Surface *dest, const SliceRect &dRect, bool filter, bool isStencil = false);
+		void blit(Surface *source, const SliceRectF &sRect, Surface *dest, const SliceRect &dRect, bool filter, bool isStencil = false);
 		void blit3D(Surface *source, Surface *dest);
 
 	private:
@@ -89,8 +89,8 @@ namespace sw
 		static bool GetScale(float4& scale, Format format);
 		static bool ApplyScaleAndClamp(Float4& value, const BlitState& state);
 		static Int ComputeOffset(Int& x, Int& y, Int& pitchB, int bytes, bool quadLayout);
-		void blit(Surface *source, const SliceRect &sRect, Surface *dest, const SliceRect &dRect, const Blitter::Options& options);
-		bool blitReactor(Surface *source, const SliceRect &sRect, Surface *dest, const SliceRect &dRect, const Blitter::Options& options);
+		void blit(Surface *source, const SliceRectF &sRect, Surface *dest, const SliceRect &dRect, const Blitter::Options& options);
+		bool blitReactor(Surface *source, const SliceRectF &sRect, Surface *dest, const SliceRect &dRect, const Blitter::Options& options);
 		Routine *generate(BlitState &state);
 
 		RoutineCache<BlitState> *blitCache;

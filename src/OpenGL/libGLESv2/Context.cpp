@@ -3331,12 +3331,12 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum
 		return error(GL_INVALID_OPERATION);
 	}
 
-	sw::Rect rect = {x, y, x + width, y + height};
-	sw::Rect dstRect = { 0, 0, width, height };
-	rect.clip(0, 0, renderTarget->getWidth(), renderTarget->getHeight());
+	sw::RectF rect((float)x, (float)y, (float)(x + width), (float)(y + height));
+	sw::Rect dstRect(0, 0, width, height);
+	rect.clip(0.0f, 0.0f, (float)renderTarget->getWidth(), (float)renderTarget->getHeight());
 
 	sw::Surface *externalSurface = sw::Surface::create(width, height, 1, egl::ConvertFormatType(format, type), pixels, outputPitch, outputPitch * outputHeight);
-	sw::SliceRect sliceRect(rect);
+	sw::SliceRectF sliceRect(rect);
 	sw::SliceRect dstSliceRect(dstRect);
 	device->blit(renderTarget, sliceRect, externalSurface, dstSliceRect, false);
 	delete externalSurface;
@@ -3628,7 +3628,8 @@ void Context::drawElements(GLenum mode, GLuint start, GLuint end, GLsizei count,
 
 void Context::blit(sw::Surface *source, const sw::SliceRect &sRect, sw::Surface *dest, const sw::SliceRect &dRect)
 {
-	device->blit(source, sRect, dest, dRect, false);
+	sw::SliceRectF sRectF((float)sRect.x0, (float)sRect.y0, (float)sRect.x1, (float)sRect.y1, sRect.slice);
+	device->blit(source, sRectF, dest, dRect, false);
 }
 
 void Context::finish()

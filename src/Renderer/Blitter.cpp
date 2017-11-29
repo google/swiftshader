@@ -39,8 +39,7 @@ namespace sw
 
 		sw::Surface *color = sw::Surface::create(1, 1, 1, format, pixel, sw::Surface::bytes(format), sw::Surface::bytes(format));
 		Blitter::Options clearOptions = static_cast<sw::Blitter::Options>((rgbaMask & 0xF) | CLEAR_OPERATION);
-		SliceRect sRect(dRect);
-		sRect.slice = 0;
+		SliceRectF sRect((float)dRect.x0, (float)dRect.y0, (float)dRect.x1, (float)dRect.y1, 0);
 		blit(color, sRect, dest, dRect, clearOptions);
 		delete color;
 	}
@@ -127,7 +126,7 @@ namespace sw
 		return true;
 	}
 
-	void Blitter::blit(Surface *source, const SliceRect &sRect, Surface *dest, const SliceRect &dRect, bool filter, bool isStencil)
+	void Blitter::blit(Surface *source, const SliceRectF &sRect, Surface *dest, const SliceRect &dRect, bool filter, bool isStencil)
 	{
 		Blitter::Options options = WRITE_RGBA;
 		if(filter)
@@ -141,7 +140,7 @@ namespace sw
 		blit(source, sRect, dest, dRect, options);
 	}
 
-	void Blitter::blit(Surface *source, const SliceRect &sourceRect, Surface *dest, const SliceRect &destRect, const Blitter::Options& options)
+	void Blitter::blit(Surface *source, const SliceRectF &sourceRect, Surface *dest, const SliceRect &destRect, const Blitter::Options& options)
 	{
 		if(dest->getInternalFormat() == FORMAT_NULL)
 		{
@@ -153,7 +152,7 @@ namespace sw
 			return;
 		}
 
-		SliceRect sRect = sourceRect;
+		SliceRectF sRect = sourceRect;
 		SliceRect dRect = destRect;
 
 		bool flipX = destRect.x0 > destRect.x1;
@@ -170,14 +169,14 @@ namespace sw
 			swap(sRect.y0, sRect.y1);
 		}
 
-		source->lockInternal(sRect.x0, sRect.y0, sRect.slice, sw::LOCK_READONLY, sw::PUBLIC);
+		source->lockInternal((int)sRect.x0, (int)sRect.y0, sRect.slice, sw::LOCK_READONLY, sw::PUBLIC);
 		dest->lockInternal(dRect.x0, dRect.y0, dRect.slice, sw::LOCK_WRITEONLY, sw::PUBLIC);
 
-		float w = static_cast<float>(sRect.x1 - sRect.x0) / static_cast<float>(dRect.x1 - dRect.x0);
-		float h = static_cast<float>(sRect.y1 - sRect.y0) / static_cast<float>(dRect.y1 - dRect.y0);
+		float w = sRect.width() / dRect.width();
+		float h = sRect.height() / dRect.height();
 
-		const float xStart = (float)sRect.x0 + 0.5f * w;
-		float y = (float)sRect.y0 + 0.5f * h;
+		const float xStart = sRect.x0 + 0.5f * w;
+		float y = sRect.y0 + 0.5f * h;
 
 		for(int j = dRect.y0; j < dRect.y1; j++)
 		{
@@ -1261,8 +1260,10 @@ namespace sw
 							Int X0 = Max(Int(x0), 0);
 							Int Y0 = Max(Int(y0), 0);
 
-							Int X1 = IfThenElse(X0 + 1 >= sWidth, X0, X0 + 1);
-							Int Y1 = IfThenElse(Y0 + 1 >= sHeight, Y0, Y0 + 1);
+							Int X1 = X0 + 1;
+							Int Y1 = Y0 + 1;
+							X1 = IfThenElse(X1 >= sWidth, X0, X1);
+							Y1 = IfThenElse(Y1 >= sHeight, Y0, Y1);
 
 							Pointer<Byte> s00 = source + ComputeOffset(X0, Y0, sPitchB, srcBytes, srcQuadLayout);
 							Pointer<Byte> s01 = source + ComputeOffset(X1, Y0, sPitchB, srcBytes, srcQuadLayout);
@@ -1276,11 +1277,11 @@ namespace sw
 
 							Float4 fx = Float4(x0 - Float(X0));
 							Float4 fy = Float4(y0 - Float(Y0));
+							Float4 ix = Float4(1.0f) - fx;
+							Float4 iy = Float4(1.0f) - fy;
 
-							color = c00 * (Float4(1.0f) - fx) * (Float4(1.0f) - fy) +
-							        c01 * fx * (Float4(1.0f) - fy) +
-							        c10 * (Float4(1.0f) - fx) * fy +
-							        c11 * fx * fy;
+							color = (c00 * ix + c01 * fx) * iy +
+							        (c10 * ix + c11 * fx) * fy;
 						}
 
 						if(!ApplyScaleAndClamp(color, state) || !write(color, d, state.destFormat, state.options))
@@ -1299,12 +1300,12 @@ namespace sw
 		return function(L"BlitRoutine");
 	}
 
-	bool Blitter::blitReactor(Surface *source, const SliceRect &sourceRect, Surface *dest, const SliceRect &destRect, const Blitter::Options& options)
+	bool Blitter::blitReactor(Surface *source, const SliceRectF &sourceRect, Surface *dest, const SliceRect &destRect, const Blitter::Options& options)
 	{
 		ASSERT(!(options & CLEAR_OPERATION) || ((source->getWidth() == 1) && (source->getHeight() == 1) && (source->getDepth() == 1)));
 
 		Rect dRect = destRect;
-		Rect sRect = sourceRect;
+		RectF sRect = sourceRect;
 		if(destRect.x0 > destRect.x1)
 		{
 			swap(dRect.x0, dRect.x1);
@@ -1358,10 +1359,10 @@ namespace sw
 		data.sPitchB = isStencil ? source->getStencilPitchB() : source->getPitchB(useSourceInternal);
 		data.dPitchB = isStencil ? dest->getStencilPitchB() : dest->getPitchB(useDestInternal);
 
-		data.w = 1.0f / (dRect.x1 - dRect.x0) * (sRect.x1 - sRect.x0);
-		data.h = 1.0f / (dRect.y1 - dRect.y0) * (sRect.y1 - sRect.y0);
-		data.x0 = (float)sRect.x0 + 0.5f * data.w;
-		data.y0 = (float)sRect.y0 + 0.5f * data.h;
+		data.w = sRect.width() / dRect.width();
+		data.h = sRect.height() / dRect.height();
+		data.x0 = sRect.x0 + 0.5f * data.w;
+		data.y0 = sRect.y0 + 0.5f * data.h;
 
 		data.x0d = dRect.x0;
 		data.x1d = dRect.x1;
