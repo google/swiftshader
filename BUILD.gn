@@ -21,12 +21,13 @@ config("swiftshader_config") {
     cflags = [
       "/GS",  # Detects some buffer overruns
       "/Zc:wchar_t",
-      "/EHsc",
+      "/EHs-c-",  # Disable C++ exceptions
       "/nologo",
       "/Gd",  # Default calling convention
     ]
 
     defines += [
+      "_HAS_EXCEPTIONS=0",  # Disable EH usage in STL headers
       "_CRT_SECURE_NO_DEPRECATE",
       "NOMINMAX",
       "_WINDLL",
