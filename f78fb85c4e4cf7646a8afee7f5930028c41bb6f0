@@ -46,6 +46,30 @@
       "revId": "f78fb85c4e4cf7646a8afee7f5930028c41bb6f0",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "477ae7ea_9dc1b194",
+        "filename": "src/OpenGL/libGLESv2/utilities.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1086,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-11-29T18:06:58Z",
+      "side": 1,
+      "message": "No, what I meant was that we need something equivalent to ES1\u0027s CheckTextureFormatType(), which is only for unsized formats, based on ES3\u0027s table 3.3. It should probably be named something different to avoid confusion though, e.g. ValidateUnsizedFormatType().",
+      "parentUuid": "992c394e_dc6d3557",
+      "range": {
+        "startLine": 1084,
+        "startChar": 2,
+        "endLine": 1086,
+        "endChar": 32
+      },
+      "revId": "f78fb85c4e4cf7646a8afee7f5930028c41bb6f0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
