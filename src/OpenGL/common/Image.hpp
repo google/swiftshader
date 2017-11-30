@@ -157,6 +157,11 @@ public:
 		return getExternalPitchB();
 	}
 
+	unsigned int getSlice() const
+	{
+		return getExternalSliceB();
+	}
+
 	virtual void unlock()
 	{
 		unlockExternal();
