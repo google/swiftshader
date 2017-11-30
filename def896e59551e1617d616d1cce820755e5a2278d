@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "aba3806a_d61c1ccb",
+        "filename": "src/OpenGL/libGLESv2/Texture.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 1263,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-11-30T21:05:56Z",
+      "side": 1,
+      "message": "Done.",
+      "parentUuid": "86a320ab_8ba99c0c",
+      "range": {
+        "startLine": 1263,
+        "startChar": 1,
+        "endLine": 1263,
+        "endChar": 27
+      },
+      "revId": "def896e59551e1617d616d1cce820755e5a2278d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0b043921_85a35be4",
         "filename": "src/OpenGL/libGLESv2/Texture.cpp",
         "patchSetId": 4
@@ -45,6 +69,30 @@
       "revId": "def896e59551e1617d616d1cce820755e5a2278d",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b1d4b705_f561e32c",
+        "filename": "src/OpenGL/libGLESv2/Texture.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 1268,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-11-30T21:05:56Z",
+      "side": 1,
+      "message": "Yes, good catch. Added.",
+      "parentUuid": "0b043921_85a35be4",
+      "range": {
+        "startLine": 1268,
+        "startChar": 1,
+        "endLine": 1268,
+        "endChar": 175
+      },
+      "revId": "def896e59551e1617d616d1cce820755e5a2278d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
