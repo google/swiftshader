@@ -22,6 +22,30 @@
       "revId": "bf920e855b9d69cc27dcf663fe8accea7d49d621",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9cb6367f_4ce65e7e",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 2460,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-11-30T21:32:06Z",
+      "side": 1,
+      "message": "No, the borders don\u0027t actually affect the integer texel coordinates that get generated, except that we allow overflow to -1 and \u0027width\u0027. But I add 1 here to keep them unsigned. The code below is skipped for the seamless case.",
+      "parentUuid": "4d442f12_aaff75ef",
+      "range": {
+        "startLine": 2460,
+        "startChar": 4,
+        "endLine": 2460,
+        "endChar": 20
+      },
+      "revId": "bf920e855b9d69cc27dcf663fe8accea7d49d621",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
