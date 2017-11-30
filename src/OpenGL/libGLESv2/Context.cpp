@@ -2423,6 +2423,20 @@ template bool Context::getUniformBufferiv<GLint64>(GLuint index, GLenum pname, G
 
 template<typename T> bool Context::getUniformBufferiv(GLuint index, GLenum pname, T *param) const
 {
+	switch(pname)
+	{
+	case GL_UNIFORM_BUFFER_BINDING:
+	case GL_UNIFORM_BUFFER_SIZE:
+	case GL_UNIFORM_BUFFER_START:
+		if(index >= MAX_UNIFORM_BUFFER_BINDINGS)
+		{
+			return error(GL_INVALID_VALUE, true);
+		}
+		break;
+	default:
+		break;
+	}
+
 	const BufferBinding& uniformBuffer = mState.uniformBuffers[index];
 
 	switch(pname)

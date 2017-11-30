@@ -499,6 +499,10 @@ namespace es2
 
 	GLuint Program::getUniformBlockBinding(GLuint uniformBlockIndex) const
 	{
+		if(uniformBlockIndex >= getActiveUniformBlockCount())
+		{
+			return error(GL_INVALID_VALUE, GL_INVALID_INDEX);
+		}
 		return uniformBlockBindings[uniformBlockIndex];
 	}
 
@@ -2776,7 +2780,10 @@ namespace es2
 
 	void Program::getActiveUniformBlockName(GLuint index, GLsizei bufSize, GLsizei *length, GLchar *name) const
 	{
-		ASSERT(index < getActiveUniformBlockCount());
+		if(index >= getActiveUniformBlockCount())
+		{
+			return error(GL_INVALID_VALUE);
+		}
 
 		const UniformBlock &uniformBlock = *uniformBlocks[index];
 

@@ -2382,19 +2382,21 @@ GL_APICALL void GL_APIENTRY glGetUniformuiv(GLuint program, GLint location, GLui
 
 	if(context)
 	{
-		if(program == 0)
-		{
-			return error(GL_INVALID_VALUE);
-		}
-
 		es2::Program *programObject = context->getProgram(program);
 
-		if(!programObject || !programObject->isLinked())
+		if(!programObject)
 		{
-			return error(GL_INVALID_OPERATION);
+			if(context->getShader(program))
+			{
+				return error(GL_INVALID_OPERATION);
+			}
+			else
+			{
+				return error(GL_INVALID_VALUE);
+			}
 		}
 
-		if(!programObject)
+		if(!programObject->isLinked())
 		{
 			return error(GL_INVALID_OPERATION);
 		}
@@ -2814,7 +2816,14 @@ GL_APICALL void GL_APIENTRY glGetUniformIndices(GLuint program, GLsizei uniformC
 
 		if(!programObject)
 		{
-			return error(GL_INVALID_OPERATION);
+			if(context->getShader(program))
+			{
+				return error(GL_INVALID_OPERATION);
+			}
+			else
+			{
+				return error(GL_INVALID_VALUE);
+			}
 		}
 
 		if(!programObject->isLinked())
@@ -2867,7 +2876,14 @@ GL_APICALL void GL_APIENTRY glGetActiveUniformsiv(GLuint program, GLsizei unifor
 
 		if(!programObject)
 		{
-			return error(GL_INVALID_OPERATION);
+			if(context->getShader(program))
+			{
+				return error(GL_INVALID_OPERATION);
+			}
+			else
+			{
+				return error(GL_INVALID_VALUE);
+			}
 		}
 
 		for(int uniformId = 0; uniformId < uniformCount; uniformId++)
@@ -2901,7 +2917,14 @@ GL_APICALL GLuint GL_APIENTRY glGetUniformBlockIndex(GLuint program, const GLcha
 
 		if(!programObject)
 		{
-			return error(GL_INVALID_OPERATION, GL_INVALID_INDEX);
+			if(context->getShader(program))
+			{
+				return error(GL_INVALID_OPERATION, GL_INVALID_INDEX);
+			}
+			else
+			{
+				return error(GL_INVALID_VALUE, GL_INVALID_INDEX);
+			}
 		}
 
 		return programObject->getUniformBlockIndex(uniformBlockName);
