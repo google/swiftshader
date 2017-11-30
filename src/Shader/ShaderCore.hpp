@@ -82,6 +82,7 @@ namespace sw
 	Float4 dot4(const Vector4f &v0, const Vector4f &v1);
 
 	void transpose4x4(Short4 &row0, Short4 &row1, Short4 &row2, Short4 &row3);
+	void transpose4x3(Short4 &row0, Short4 &row1, Short4 &row2, Short4 &row3);
 	void transpose4x4(Float4 &row0, Float4 &row1, Float4 &row2, Float4 &row3);
 	void transpose4x3(Float4 &row0, Float4 &row1, Float4 &row2, Float4 &row3);
 	void transpose4x2(Float4 &row0, Float4 &row1, Float4 &row2, Float4 &row3);

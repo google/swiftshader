@@ -490,6 +490,18 @@ namespace sw
 		row3 = UnpackHigh(tmp0, tmp1);
 	}
 
+	void transpose4x3(Short4 &row0, Short4 &row1, Short4 &row2, Short4 &row3)
+	{
+		Int2 tmp0 = UnpackHigh(row0, row1);
+		Int2 tmp1 = UnpackHigh(row2, row3);
+		Int2 tmp2 = UnpackLow(row0, row1);
+		Int2 tmp3 = UnpackLow(row2, row3);
+
+		row0 = UnpackLow(tmp2, tmp3);
+		row1 = UnpackHigh(tmp2, tmp3);
+		row2 = UnpackLow(tmp0, tmp1);
+	}
+
 	void transpose4x4(Float4 &row0, Float4 &row1, Float4 &row2, Float4 &row3)
 	{
 		Float4 tmp0 = UnpackLow(row0, row1);
