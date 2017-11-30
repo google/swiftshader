@@ -295,6 +295,7 @@ namespace sw
 		static const unsigned int min = 0x80000000 >> (32 - n);
 		static const unsigned int max = 0xFFFFFFFF >> (32 - n + 1);
 		static const float maxf = static_cast<float>(max);
+		static const float minf = static_cast<float>(min);
 		static const unsigned int range = 0xFFFFFFFF >> (32 - n);
 
 		if(x > 0.0f)
@@ -305,18 +306,18 @@ namespace sw
 			}
 			else
 			{
-				return static_cast<int>(maxf * x + 0.5f);
+				return static_cast<int>(x + 0.5f);
 			}
 		}
 		else
 		{
-			if(x <= -1.0f)
+			if(x <= -minf)
 			{
 				return min;
 			}
 			else
 			{
-				return static_cast<int>(maxf * x - 0.5f) & range;
+				return static_cast<int>(x - 0.5f) & range;
 			}
 		}
 	}
