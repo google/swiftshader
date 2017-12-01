@@ -3481,21 +3481,13 @@ void Context::clearStencilBuffer(const GLint value)
 
 void Context::drawArrays(GLenum mode, GLint first, GLsizei count, GLsizei instanceCount)
 {
-	if(!mState.currentProgram)
-	{
-		return;
-	}
-
 	sw::DrawType primitiveType;
 	int primitiveCount;
 	int verticesPerPrimitive;
 
 	if(!es2sw::ConvertPrimitiveType(mode, count, GL_NONE, primitiveType, primitiveCount, verticesPerPrimitive))
-		return error(GL_INVALID_ENUM);
-
-	if(primitiveCount <= 0)
 	{
-		return;
+		return error(GL_INVALID_ENUM);
 	}
 
 	if(!applyRenderTarget())
@@ -3515,12 +3507,22 @@ void Context::drawArrays(GLenum mode, GLint first, GLsizei count, GLsizei instan
 			return error(err);
 		}
 
+		if(!mState.currentProgram)
+		{
+			return;
+		}
+
 		applyShaders();
 		applyTextures();
 
 		if(!getCurrentProgram()->validateSamplers(false))
 		{
 			return error(GL_INVALID_OPERATION);
+		}
+
+		if(primitiveCount <= 0)
+		{
+			return;
 		}
 
 		TransformFeedback* transformFeedback = getTransformFeedback();
@@ -3537,11 +3539,6 @@ void Context::drawArrays(GLenum mode, GLint first, GLsizei count, GLsizei instan
 
 void Context::drawElements(GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const void *indices, GLsizei instanceCount)
 {
-	if(!mState.currentProgram)
-	{
-		return;
-	}
-
 	if(!indices && !getCurrentVertexArray()->getElementArrayBuffer())
 	{
 		return error(GL_INVALID_OPERATION);
@@ -3570,11 +3567,8 @@ void Context::drawElements(GLenum mode, GLuint start, GLuint end, GLsizei count,
 	int verticesPerPrimitive;
 
 	if(!es2sw::ConvertPrimitiveType(internalMode, count, type, primitiveType, primitiveCount, verticesPerPrimitive))
-		return error(GL_INVALID_ENUM);
-
-	if(primitiveCount <= 0)
 	{
-		return;
+		return error(GL_INVALID_ENUM);
 	}
 
 	if(!applyRenderTarget())
@@ -3602,12 +3596,22 @@ void Context::drawElements(GLenum mode, GLuint start, GLuint end, GLsizei count,
 			return error(err);
 		}
 
+		if(!mState.currentProgram)
+		{
+			return;
+		}
+
 		applyShaders();
 		applyTextures();
 
 		if(!getCurrentProgram()->validateSamplers(false))
 		{
 			return error(GL_INVALID_OPERATION);
+		}
+
+		if(primitiveCount <= 0)
+		{
+			return;
 		}
 
 		TransformFeedback* transformFeedback = getTransformFeedback();
