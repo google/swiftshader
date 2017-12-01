@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "58a88114_cfdf70b4",
+        "filename": "src/OpenGL/libGLESv2/libGLESv3.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2387,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-12-01T15:46:26Z",
+      "side": 1,
+      "message": "In many cases where shader name is passed instead of a program name, or vice-versa, we have to return GL_INVALID_OPERATION. See e.g. glAttachShader and glUseProgram. Is this not the case here?",
+      "range": {
+        "startLine": 2387,
+        "startChar": 16,
+        "endLine": 2387,
+        "endChar": 32
+      },
+      "revId": "f496e4af42ffa39b1d480f8133e7e3160b8a6816",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
