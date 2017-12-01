@@ -46,6 +46,30 @@
       "revId": "f496e4af42ffa39b1d480f8133e7e3160b8a6816",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "88b62ea8_07e48be9",
+        "filename": "src/OpenGL/libGLESv2/libGLESv3.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2387,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-12-01T16:12:35Z",
+      "side": 1,
+      "message": "You need to consult the spec in these cases instead of relying on dEQP. \n\nGetUniformuiv is part of section 6.1.12, which starts with:\n\n\"State stored in shader or program objects can be queried by commands that accept shader or program object names. These commands will generate the error INVALID_VALUE if the provided name is not the name of either a shader or program object, and INVALID_OPERATION if the provided name identifies an object\nof the other type.\"",
+      "parentUuid": "52d7b7fe_eeab9cf8",
+      "range": {
+        "startLine": 2387,
+        "startChar": 16,
+        "endLine": 2387,
+        "endChar": 32
+      },
+      "revId": "f496e4af42ffa39b1d480f8133e7e3160b8a6816",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
