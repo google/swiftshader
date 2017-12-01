@@ -19,8 +19,8 @@ namespace sw
 	FrameBufferOzone::FrameBufferOzone(intptr_t display, intptr_t window, int width, int height) : FrameBuffer(width, height, false, false)
 	{
 		buffer = sw::Surface::create(width, height, 1, format, nullptr,
-		                             sw::Surface::pitchB(width, format, true),
-		                             sw::Surface::sliceB(width, height, format, true));
+		                             sw::Surface::pitchB(width, 0, format, true),
+		                             sw::Surface::sliceB(width, height, 0, format, true));
 	}
 
 	FrameBufferOzone::~FrameBufferOzone()

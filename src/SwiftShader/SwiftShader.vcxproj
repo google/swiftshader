@@ -324,6 +324,7 @@
     <ClCompile Include="..\Common\Socket.cpp" />
     <ClCompile Include="..\Common\Thread.cpp" />
     <ClCompile Include="..\Main\Config.cpp" />
+    <ClCompile Include="..\Main\FrameBufferOzone.cpp" />
     <ClCompile Include="..\Main\FrameBufferWin.cpp" />
     <ClCompile Include="..\Renderer\ETC_Decoder.cpp" />
     <ClCompile Include="..\Shader\Constants.cpp" />

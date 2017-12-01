@@ -173,6 +173,9 @@
     <ClCompile Include="..\Renderer\ETC_Decoder.cpp">
       <Filter>Source Files\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="..\Main\FrameBufferOzone.cpp">
+      <Filter>Source Files\Main</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Shader\Constants.hpp">
