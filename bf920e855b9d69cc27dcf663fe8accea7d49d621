@@ -70,6 +70,30 @@
       "revId": "bf920e855b9d69cc27dcf663fe8accea7d49d621",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f86f3f66_67780b1b",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 2460,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-12-01T14:32:28Z",
+      "side": 1,
+      "message": "The 3D cube lookup coordinates are projected onto a face, so they become 2D coordinates in the [0, 1] range. So floor(coord - 0.5) can\u0027t be less than -1 or greater than width - 1 (or width for xyz1), when linear filtering. For point filtering I\u0027m doing an explicit clamp due to potential numerical imprecision in the projection onto the cube face, as noted in the comment above.",
+      "parentUuid": "73c8f2af_ecc1b09f",
+      "range": {
+        "startLine": 2460,
+        "startChar": 4,
+        "endLine": 2460,
+        "endChar": 20
+      },
+      "revId": "bf920e855b9d69cc27dcf663fe8accea7d49d621",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
