@@ -46,6 +46,30 @@
       "revId": "bf920e855b9d69cc27dcf663fe8accea7d49d621",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "73c8f2af_ecc1b09f",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 2460,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-12-01T12:58:44Z",
+      "side": 1,
+      "message": "Right, I understand that we allow the overflow, but I don\u0027t see where the overflow is limited to the [-1, width] range. If it overflows that, it\u0027s going to read memory out of bounds.",
+      "parentUuid": "9cb6367f_4ce65e7e",
+      "range": {
+        "startLine": 2460,
+        "startChar": 4,
+        "endLine": 2460,
+        "endChar": 20
+      },
+      "revId": "bf920e855b9d69cc27dcf663fe8accea7d49d621",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
