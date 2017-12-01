@@ -2149,7 +2149,7 @@ namespace D3D8
 		cursorBitmap->LockRect(&lock, 0, 0);
 
 		delete cursor;
-		cursor = sw::Surface::create(0, desc.Width, desc.Height, 1, sw::FORMAT_A8R8G8B8, false, false);
+		cursor = sw::Surface::create(0, desc.Width, desc.Height, 1, 0, sw::FORMAT_A8R8G8B8, false, false);
 
 		void *buffer = cursor->lockExternal(0, 0, 0, sw::LOCK_DISCARD, sw::PUBLIC);
 		memcpy(buffer, lock.pBits, desc.Width * desc.Height * sizeof(unsigned int));
