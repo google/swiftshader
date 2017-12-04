@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "aeae03e3_9528641b",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-12-04T18:48:53Z",
+      "side": 1,
+      "message": "New title",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 42
+      },
+      "revId": "df794101acfb9c2f250c31a7cc82d026aa5f970f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "83dbd57d_b3b9cd7c",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 2310,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-12-04T18:48:53Z",
+      "side": 1,
+      "message": "Call can be moved into IsMipmappable().",
+      "range": {
+        "startLine": 2310,
+        "startChar": 18,
+        "endLine": 2310,
+        "endChar": 40
+      },
+      "revId": "df794101acfb9c2f250c31a7cc82d026aa5f970f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "59157179_b2a82cc9",
+        "filename": "src/OpenGL/libGLESv2/utilities.h",
+        "patchSetId": 2
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-12-04T18:48:53Z",
+      "side": 1,
+      "message": "Always true for this call.",
+      "range": {
+        "startLine": 60,
+        "startChar": 61,
+        "endLine": 60,
+        "endChar": 70
+      },
+      "revId": "df794101acfb9c2f250c31a7cc82d026aa5f970f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0b1efe58_99f384a2",
+        "filename": "src/OpenGL/libGLESv2/utilities.h",
+        "patchSetId": 2
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-12-04T18:48:53Z",
+      "side": 1,
+      "message": "Consider renaming to IsMipmappable, since IsMipMappable could be misinterpreted as \"is MIP mappable\".",
+      "range": {
+        "startLine": 60,
+        "startChar": 6,
+        "endLine": 60,
+        "endChar": 19
+      },
+      "revId": "df794101acfb9c2f250c31a7cc82d026aa5f970f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
