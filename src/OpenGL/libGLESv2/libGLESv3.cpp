@@ -729,21 +729,19 @@ GL_APICALL void GL_APIENTRY glTexSubImage3D(GLenum target, GLint level, GLint xo
 
 		GLenum sizedInternalFormat = GetSizedInternalFormat(format, type);
 
-		GLenum validationError = ValidateSubImageParams(false, width, height, depth, xoffset, yoffset, zoffset, target, level, sizedInternalFormat, texture);
-		if(validationError == GL_NONE)
-		{
-			GLenum validationError = context->getPixels(&data, type, context->getRequiredBufferSize(width, height, depth, sizedInternalFormat, type));
-			if(validationError != GL_NONE)
-			{
-				return error(validationError);
-			}
-
-			texture->subImage(context, level, xoffset, yoffset, zoffset, width, height, depth, sizedInternalFormat, type, context->getUnpackInfo(), data);
-		}
-		else
+		GLenum validationError = ValidateSubImageParams(false, false, target, level, xoffset, yoffset, zoffset, width, height, depth, format, type, texture, context->getClientVersion());
+		if(validationError != GL_NONE)
 		{
 			return error(validationError);
 		}
+
+		validationError = context->getPixels(&data, type, context->getRequiredBufferSize(width, height, depth, sizedInternalFormat, type));
+		if(validationError != GL_NONE)
+		{
+			return error(validationError);
+		}
+
+		texture->subImage(context, level, xoffset, yoffset, zoffset, width, height, depth, sizedInternalFormat, type, context->getUnpackInfo(), data);
 	}
 }
 
@@ -793,7 +791,7 @@ GL_APICALL void GL_APIENTRY glCopyTexSubImage3D(GLenum target, GLint level, GLin
 		GLenum colorbufferFormat = source->getFormat();
 		es2::Texture3D *texture = (target == GL_TEXTURE_3D) ? context->getTexture3D() : context->getTexture2DArray();
 
-		GLenum validationError = ValidateSubImageParams(false, width, height, 1, xoffset, yoffset, zoffset, target, level, GL_NONE, texture);
+		GLenum validationError = ValidateSubImageParams(false, true, target, level, xoffset, yoffset, zoffset, width, height, 1, GL_NONE, GL_NONE, texture, context->getClientVersion());
 		if(validationError != GL_NONE)
 		{
 			return error(validationError);
@@ -935,7 +933,7 @@ GL_APICALL void GL_APIENTRY glCompressedTexSubImage3D(GLenum target, GLint level
 			return error(GL_INVALID_OPERATION);
 		}
 
-		if(((width  % 4) != 0) || ((height % 4) != 0) ||
+		if(((width % 4) != 0) || ((height % 4) != 0) ||
 		   ((xoffset % 4) != 0) || ((yoffset % 4) != 0))
 		{
 			return error(GL_INVALID_OPERATION);
@@ -967,7 +965,8 @@ GL_APICALL void GL_APIENTRY glCompressedTexSubImage3D(GLenum target, GLint level
 		if(is_ETC2_EAC)
 		{
 			if(((width + xoffset) != texture->getWidth(target, level)) ||
-			   ((height + yoffset) != texture->getHeight(target, level)))
+			   ((height + yoffset) != texture->getHeight(target, level)) ||
+			   ((depth + zoffset) != texture->getDepth(target, level)))
 			{
 				return error(GL_INVALID_OPERATION);
 			}
@@ -4085,7 +4084,7 @@ GL_APICALL void GL_APIENTRY glGetInternalformativ(GLenum target, GLenum internal
 		return;
 	}
 
-	if(!IsColorRenderable(internalformat, egl::getClientVersion(), false) &&
+	if(!IsColorRenderable(internalformat, egl::getClientVersion()) &&
 	   !IsDepthRenderable(internalformat, egl::getClientVersion()) &&
 	   !IsStencilRenderable(internalformat, egl::getClientVersion()))
 	{

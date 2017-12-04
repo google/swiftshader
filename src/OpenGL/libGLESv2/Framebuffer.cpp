@@ -328,7 +328,7 @@ GLenum Framebuffer::completeness(int &width, int &height, int &samples)
 
 			if(IsRenderbuffer(mColorbufferType[i]))
 			{
-				if(!IsColorRenderable(colorbuffer->getFormat(), egl::getClientVersion(), false))
+				if(!IsColorRenderable(colorbuffer->getFormat(), egl::getClientVersion()))
 				{
 					return GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
 				}
@@ -337,7 +337,7 @@ GLenum Framebuffer::completeness(int &width, int &height, int &samples)
 			{
 				GLenum format = colorbuffer->getFormat();
 
-				if(!IsColorRenderable(format, egl::getClientVersion(), true))
+				if(!IsColorRenderable(format, egl::getClientVersion()))
 				{
 					return GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
 				}

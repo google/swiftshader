@@ -45,21 +45,23 @@ namespace es2
 	bool IsCompressed(GLenum format, GLint clientVersion);
 	GLenum GetSizedInternalFormat(GLenum internalFormat, GLenum type);
 	GLenum ValidateCompressedFormat(GLenum format, GLint clientVersion, bool expectCompressedFormats);
-	GLenum ValidateSubImageParams(bool compressed, GLsizei width, GLsizei height, GLint xoffset, GLint yoffset, GLenum target, GLint level, GLenum sizedInternalFormat, Texture *texture);
-	GLenum ValidateSubImageParams(bool compressed, GLsizei width, GLsizei height, GLsizei depth, GLint xoffset, GLint yoffset, GLint zoffset, GLenum target, GLint level, GLenum sizedInternalFormat, Texture *texture);
+	GLenum ValidateSubImageParams(bool compressed, bool copy, GLenum target, GLint level, GLint xoffset, GLint yoffset,
+	                              GLsizei width, GLsizei height, GLenum format, GLenum type, Texture *texture, GLint clientVersion);
+	GLenum ValidateSubImageParams(bool compressed, bool copy, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset,
+	                              GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, Texture *texture, GLint clientVersion);
 	bool IsValidReadPixelsFormatType(const Framebuffer *framebuffer, GLenum format, GLenum type, GLint clientVersion);
 	bool IsDepthTexture(GLenum format);
 	bool IsStencilTexture(GLenum format);
 	bool IsCubemapTextureTarget(GLenum target);
 	int CubeFaceIndex(GLenum cubeTarget);
 	bool IsTextureTarget(GLenum target);
-	bool ValidateTextureFormatType(GLenum format, GLenum type, GLint internalformat, GLint clientVersion);
+	GLenum ValidateTextureFormatType(GLenum format, GLenum type, GLint internalformat, GLint clientVersion);
 	GLsizei GetTypeSize(GLenum type);
 
-	bool IsColorRenderable(GLenum internalformat, GLint clientVersion, bool isTexture);
-	bool IsMipmappable(GLenum format, sw::Format internalFormat, GLint clientVersion);
-	bool IsDepthRenderable(GLenum internalformat, GLint clientVersion);
-	bool IsStencilRenderable(GLenum internalformat, GLint clientVersion);
+	bool IsColorRenderable(GLint internalformat, GLint clientVersion);
+	bool IsDepthRenderable(GLint internalformat, GLint clientVersion);
+	bool IsStencilRenderable(GLint internalformat, GLint clientVersion);
+	bool IsMipmappable(GLint internalformat, sw::Format format, GLint clientVersion);
 
 	// Parse the base uniform name and array index.  Returns the base name of the uniform. outSubscript is
 	// set to GL_INVALID_INDEX if the provided name is not an array or the array index is invalid.
