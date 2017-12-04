@@ -4139,10 +4139,10 @@ void Context::blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1
 		// well
 		es2::Renderbuffer *readRenderbuffer = readFramebuffer->getReadColorbuffer();
 		es2::Renderbuffer *drawRenderbuffer = drawFramebuffer->getColorbuffer(0);
-		sw::Format readFormat = readRenderbuffer->getInternalFormat();
-		sw::Format drawFormat = drawRenderbuffer->getInternalFormat();
-		GLenum readComponentType = sw2es::GetComponentType(readFormat, GL_COLOR_ATTACHMENT0);
-		GLenum drawComponentType = sw2es::GetComponentType(drawFormat, GL_COLOR_ATTACHMENT0);
+		GLint readFormat = readRenderbuffer->getFormat();
+		GLint drawFormat = drawRenderbuffer->getFormat();
+		GLenum readComponentType = GetComponentType(readFormat, GL_COLOR_ATTACHMENT0);
+		GLenum drawComponentType = GetComponentType(drawFormat, GL_COLOR_ATTACHMENT0);
 		bool readFixedPoint = ((readComponentType == GL_UNSIGNED_NORMALIZED) ||
 		                       (readComponentType == GL_SIGNED_NORMALIZED));
 		bool drawFixedPoint = ((drawComponentType == GL_UNSIGNED_NORMALIZED) ||
@@ -4201,7 +4201,7 @@ void Context::blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1
 				readDSBuffer = readFramebuffer->getDepthbuffer();
 				drawDSBuffer = drawFramebuffer->getDepthbuffer();
 
-				if(readDSBuffer->getInternalFormat() != drawDSBuffer->getInternalFormat())
+				if(readDSBuffer->getFormat() != drawDSBuffer->getFormat())
 				{
 					return error(GL_INVALID_OPERATION);
 				}
@@ -4224,7 +4224,7 @@ void Context::blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1
 				readDSBuffer = readFramebuffer->getStencilbuffer();
 				drawDSBuffer = drawFramebuffer->getStencilbuffer();
 
-				if(readDSBuffer->getInternalFormat() != drawDSBuffer->getInternalFormat())
+				if(readDSBuffer->getFormat() != drawDSBuffer->getFormat())
 				{
 					return error(GL_INVALID_OPERATION);
 				}

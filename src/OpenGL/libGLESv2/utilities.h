@@ -43,7 +43,7 @@ namespace es2
 	int AllocateFirstFreeBits(unsigned int *bits, unsigned int allocationSize, unsigned int bitsSize);
 
 	bool IsCompressed(GLenum format, GLint clientVersion);
-	GLenum GetSizedInternalFormat(GLenum internalFormat, GLenum type);
+	GLint GetSizedInternalFormat(GLint internalFormat, GLenum type);
 	GLenum ValidateCompressedFormat(GLenum format, GLint clientVersion, bool expectCompressedFormats);
 	GLenum ValidateSubImageParams(bool compressed, bool copy, GLenum target, GLint level, GLint xoffset, GLint yoffset,
 	                              GLsizei width, GLsizei height, GLenum format, GLenum type, Texture *texture, GLint clientVersion);
@@ -61,7 +61,22 @@ namespace es2
 	bool IsColorRenderable(GLint internalformat, GLint clientVersion);
 	bool IsDepthRenderable(GLint internalformat, GLint clientVersion);
 	bool IsStencilRenderable(GLint internalformat, GLint clientVersion);
-	bool IsMipmappable(GLint internalformat, sw::Format format, GLint clientVersion);
+	bool IsMipmappable(GLint internalformat, GLint clientVersion);
+
+	GLuint GetAlphaSize(GLint internalformat);
+	GLuint GetRedSize(GLint internalformat);
+	GLuint GetGreenSize(GLint internalformat);
+	GLuint GetBlueSize(GLint internalformat);
+	GLuint GetDepthSize(GLint internalformat);
+	GLuint GetStencilSize(GLint internalformat);
+
+	GLenum GetColorComponentType(GLint internalformat);
+	GLenum GetComponentType(GLint internalformat, GLenum attachment);
+	bool IsNormalizedInteger(GLint internalformat);
+	bool IsNonNormalizedInteger(GLint internalformat);
+	bool IsFloatFormat(GLint internalformat);
+	bool IsSignedNonNormalizedInteger(GLint internalformat);
+	bool IsUnsignedNonNormalizedInteger(GLint internalformat);
 
 	// Parse the base uniform name and array index.  Returns the base name of the uniform. outSubscript is
 	// set to GL_INVALID_INDEX if the provided name is not an array or the array index is invalid.
@@ -90,14 +105,6 @@ namespace es2sw
 
 namespace sw2es
 {
-	GLuint GetAlphaSize(sw::Format colorFormat);
-	GLuint GetRedSize(sw::Format colorFormat);
-	GLuint GetGreenSize(sw::Format colorFormat);
-	GLuint GetBlueSize(sw::Format colorFormat);
-	GLuint GetDepthSize(sw::Format depthFormat);
-	GLuint GetStencilSize(sw::Format stencilFormat);
-	GLenum GetComponentType(sw::Format format, GLenum attachment);
-
 	GLenum ConvertBackBufferFormat(sw::Format format);
 	GLenum ConvertDepthStencilFormat(sw::Format format);
 }

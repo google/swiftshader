@@ -497,57 +497,54 @@ GLenum Framebuffer::getImplementationColorReadFormat() const
 
 	if(colorbuffer)
 	{
-		switch(colorbuffer->getInternalFormat())
+		switch(colorbuffer->getFormat())
 		{
-		case sw::FORMAT_A8B8G8R8I:       return GL_RGBA_INTEGER;
-		case sw::FORMAT_A8B8G8R8UI:      return GL_RGBA_INTEGER;
-		case sw::FORMAT_A16B16G16R16I:   return GL_RGBA_INTEGER;
-		case sw::FORMAT_A16B16G16R16UI:  return GL_RGBA_INTEGER;
-		case sw::FORMAT_A32B32G32R32I:   return GL_RGBA_INTEGER;
-		case sw::FORMAT_A32B32G32R32UI:  return GL_RGBA_INTEGER;
-		case sw::FORMAT_A2B10G10R10:     return GL_RGB10_A2;
-		case sw::FORMAT_A8B8G8R8I_SNORM: return GL_RGBA;
-		case sw::FORMAT_A8B8G8R8:        return GL_RGBA;
-		case sw::FORMAT_SRGB8_A8:        return GL_RGBA;
-		case sw::FORMAT_A8R8G8B8:        return GL_BGRA_EXT;
-		case sw::FORMAT_A1R5G5B5:        return GL_BGRA_EXT;
-		case sw::FORMAT_X8B8G8R8I:       return GL_RGBA_INTEGER;
-		case sw::FORMAT_X8B8G8R8UI:      return GL_RGBA_INTEGER;
-		case sw::FORMAT_X16B16G16R16I:   return GL_RGBA_INTEGER;
-		case sw::FORMAT_X16B16G16R16UI:  return GL_RGBA_INTEGER;
-		case sw::FORMAT_X32B32G32R32I:   return GL_RGBA_INTEGER;
-		case sw::FORMAT_X32B32G32R32UI:  return GL_RGBA_INTEGER;
-		case sw::FORMAT_X8B8G8R8I_SNORM: return GL_RGBA;
-		case sw::FORMAT_SRGB8_X8:        return GL_RGBA;
-		case sw::FORMAT_X8B8G8R8:        return GL_RGBA;
-		case sw::FORMAT_X8R8G8B8:        return GL_BGRA_EXT;
-		case sw::FORMAT_R5G6B5:          return GL_RGB;
-		case sw::FORMAT_G8R8I:           return GL_RG_INTEGER;
-		case sw::FORMAT_G8R8UI:          return GL_RG_INTEGER;
-		case sw::FORMAT_G16R16I:         return GL_RG_INTEGER;
-		case sw::FORMAT_G16R16UI:        return GL_RG_INTEGER;
-		case sw::FORMAT_G32R32I:         return GL_RG_INTEGER;
-		case sw::FORMAT_G32R32UI:        return GL_RG_INTEGER;
-		case sw::FORMAT_R8I:             return GL_RED_INTEGER;
-		case sw::FORMAT_R8UI:            return GL_RED_INTEGER;
-		case sw::FORMAT_R16I:            return GL_RED_INTEGER;
-		case sw::FORMAT_R16UI:           return GL_RED_INTEGER;
-		case sw::FORMAT_R32I:            return GL_RED_INTEGER;
-		case sw::FORMAT_R32UI:           return GL_RED_INTEGER;
-		case sw::FORMAT_R8:              return GL_RED;
-		case sw::FORMAT_R8I_SNORM:       return GL_RED;
-		case sw::FORMAT_R16F:            return GL_RED;
-		case sw::FORMAT_R32F:            return GL_RED;
-		case sw::FORMAT_G8R8:            return GL_RG;
-		case sw::FORMAT_G8R8I_SNORM:     return GL_RG;
-		case sw::FORMAT_G16R16F:         return GL_RG;
-		case sw::FORMAT_G32R32F:         return GL_RG;
-		case sw::FORMAT_B16G16R16F:      return GL_RGB;
-		case sw::FORMAT_X32B32G32R32F:   return GL_RGBA;
-		case sw::FORMAT_A16B16G16R16F:   return GL_RGBA;
-		case sw::FORMAT_A32B32G32R32F:   return GL_RGBA;
+		case GL_RGBA4:          return GL_RGBA;
+		case GL_RGB5_A1:        return GL_RGBA;
+		case GL_RGBA8:          return GL_RGBA;
+		case GL_RGB565:         return GL_RGBA;
+		case GL_RGB8:           return GL_RGB;
+		case GL_R8:             return GL_RED;
+		case GL_RG8:            return GL_RG;
+		case GL_R8I:            return GL_RED_INTEGER;
+		case GL_RG8I:           return GL_RG_INTEGER;
+		case GL_RGB8I:          return GL_RGB_INTEGER;
+		case GL_RGBA8I:         return GL_RGBA_INTEGER;
+		case GL_R8UI:           return GL_RED_INTEGER;
+		case GL_RG8UI:          return GL_RG_INTEGER;
+		case GL_RGB8UI:         return GL_RGB_INTEGER;
+		case GL_RGBA8UI:        return GL_RGBA_INTEGER;
+		case GL_R16I:           return GL_RED_INTEGER;
+		case GL_RG16I:          return GL_RG_INTEGER;
+		case GL_RGB16I:         return GL_RGB_INTEGER;
+		case GL_RGBA16I:        return GL_RGBA_INTEGER;
+		case GL_R16UI:          return GL_RED_INTEGER;
+		case GL_RG16UI:         return GL_RG_INTEGER;
+		case GL_RGB16UI:        return GL_RGB_INTEGER;
+		case GL_RGB10_A2UI:     return GL_RGBA_INTEGER;
+		case GL_RGBA16UI:       return GL_RGBA_INTEGER;
+		case GL_R32I:           return GL_RED_INTEGER;
+		case GL_RG32I:          return GL_RG_INTEGER;
+		case GL_RGB32I:         return GL_RGB_INTEGER;
+		case GL_RGBA32I:        return GL_RGBA_INTEGER;
+		case GL_R32UI:          return GL_RED_INTEGER;
+		case GL_RG32UI:         return GL_RG_INTEGER;
+		case GL_RGB32UI:        return GL_RGB_INTEGER;
+		case GL_RGBA32UI:       return GL_RGBA_INTEGER;
+		case GL_R16F:           return GL_RED;
+		case GL_RG16F:          return GL_RG;
+		case GL_R11F_G11F_B10F: return GL_RGB;
+		case GL_RGB16F:         return GL_RGB;
+		case GL_RGBA16F:        return GL_RGBA;
+		case GL_R32F:           return GL_RED;
+		case GL_RG32F:          return GL_RG;
+		case GL_RGB32F:         return GL_RGB;
+		case GL_RGBA32F:        return GL_RGBA;
+		case GL_RGB10_A2:       return GL_RGBA;
+		case GL_SRGB8:          return GL_RGB;
+		case GL_SRGB8_ALPHA8:   return GL_RGBA;
 		default:
-			UNREACHABLE(colorbuffer->getInternalFormat());
+			UNREACHABLE(colorbuffer->getFormat());
 		}
 	}
 
@@ -560,58 +557,54 @@ GLenum Framebuffer::getImplementationColorReadType() const
 
 	if(colorbuffer)
 	{
-		switch(colorbuffer->getInternalFormat())
+		switch(colorbuffer->getFormat())
 		{
-		case sw::FORMAT_R16F:            return GL_FLOAT;
-		case sw::FORMAT_G16R16F:         return GL_FLOAT;
-		case sw::FORMAT_B16G16R16F:      return GL_FLOAT;
-		case sw::FORMAT_A16B16G16R16F:   return GL_FLOAT;
-		case sw::FORMAT_R32F:            return GL_FLOAT;
-		case sw::FORMAT_G32R32F:         return GL_FLOAT;
-		case sw::FORMAT_B32G32R32F:      return GL_FLOAT;
-		case sw::FORMAT_X32B32G32R32F:   return GL_FLOAT;
-		case sw::FORMAT_A32B32G32R32F:   return GL_FLOAT;
-		case sw::FORMAT_R8I_SNORM:       return GL_BYTE;
-		case sw::FORMAT_G8R8I_SNORM:     return GL_BYTE;
-		case sw::FORMAT_X8B8G8R8I_SNORM: return GL_BYTE;
-		case sw::FORMAT_A8B8G8R8I_SNORM: return GL_BYTE;
-		case sw::FORMAT_R8:              return GL_UNSIGNED_BYTE;
-		case sw::FORMAT_G8R8:            return GL_UNSIGNED_BYTE;
-		case sw::FORMAT_SRGB8_X8:        return GL_UNSIGNED_BYTE;
-		case sw::FORMAT_SRGB8_A8:        return GL_UNSIGNED_BYTE;
-		case sw::FORMAT_A8R8G8B8:        return GL_UNSIGNED_BYTE;
-		case sw::FORMAT_A8B8G8R8:        return GL_UNSIGNED_BYTE;
-		case sw::FORMAT_X8R8G8B8:        return GL_UNSIGNED_BYTE;
-		case sw::FORMAT_X8B8G8R8:        return GL_UNSIGNED_BYTE;
-		case sw::FORMAT_R8I:             return GL_INT;
-		case sw::FORMAT_G8R8I:           return GL_INT;
-		case sw::FORMAT_X8B8G8R8I:       return GL_INT;
-		case sw::FORMAT_A8B8G8R8I:       return GL_INT;
-		case sw::FORMAT_R16I:            return GL_INT;
-		case sw::FORMAT_G16R16I:         return GL_INT;
-		case sw::FORMAT_X16B16G16R16I:   return GL_INT;
-		case sw::FORMAT_A16B16G16R16I:   return GL_INT;
-		case sw::FORMAT_R32I:            return GL_INT;
-		case sw::FORMAT_G32R32I:         return GL_INT;
-		case sw::FORMAT_X32B32G32R32I:   return GL_INT;
-		case sw::FORMAT_A32B32G32R32I:   return GL_INT;
-		case sw::FORMAT_R8UI:            return GL_UNSIGNED_INT;
-		case sw::FORMAT_G8R8UI:          return GL_UNSIGNED_INT;
-		case sw::FORMAT_X8B8G8R8UI:      return GL_UNSIGNED_INT;
-		case sw::FORMAT_A8B8G8R8UI:      return GL_UNSIGNED_INT;
-		case sw::FORMAT_R16UI:           return GL_UNSIGNED_INT;
-		case sw::FORMAT_G16R16UI:        return GL_UNSIGNED_INT;
-		case sw::FORMAT_X16B16G16R16UI:  return GL_UNSIGNED_INT;
-		case sw::FORMAT_A16B16G16R16UI:  return GL_UNSIGNED_INT;
-		case sw::FORMAT_R32UI:           return GL_UNSIGNED_INT;
-		case sw::FORMAT_G32R32UI:        return GL_UNSIGNED_INT;
-		case sw::FORMAT_X32B32G32R32UI:  return GL_UNSIGNED_INT;
-		case sw::FORMAT_A32B32G32R32UI:  return GL_UNSIGNED_INT;
-		case sw::FORMAT_A2B10G10R10:     return GL_UNSIGNED_INT_10_10_10_2_OES;
-		case sw::FORMAT_A1R5G5B5:        return GL_UNSIGNED_SHORT_1_5_5_5_REV_EXT;
-		case sw::FORMAT_R5G6B5:          return GL_UNSIGNED_SHORT_5_6_5;
+		case GL_RGBA4:          return GL_UNSIGNED_BYTE;
+		case GL_RGB5_A1:        return GL_UNSIGNED_SHORT_1_5_5_5_REV_EXT;
+		case GL_RGBA8:          return GL_UNSIGNED_BYTE;
+		case GL_RGB565:         return GL_UNSIGNED_SHORT_5_6_5;
+		case GL_RGB8:           return GL_UNSIGNED_BYTE;
+		case GL_R8:             return GL_UNSIGNED_BYTE;
+		case GL_RG8:            return GL_UNSIGNED_BYTE;
+		case GL_R8I:            return GL_INT;
+		case GL_RG8I:           return GL_INT;
+		case GL_RGB8I:          return GL_INT;
+		case GL_RGBA8I:         return GL_INT;
+		case GL_R8UI:           return GL_UNSIGNED_BYTE;
+		case GL_RG8UI:          return GL_UNSIGNED_BYTE;
+		case GL_RGB8UI:         return GL_UNSIGNED_BYTE;
+		case GL_RGBA8UI:        return GL_UNSIGNED_BYTE;
+		case GL_R16I:           return GL_INT;
+		case GL_RG16I:          return GL_INT;
+		case GL_RGB16I:         return GL_INT;
+		case GL_RGBA16I:        return GL_INT;
+		case GL_R16UI:          return GL_UNSIGNED_INT;
+		case GL_RG16UI:         return GL_UNSIGNED_INT;
+		case GL_RGB16UI:        return GL_UNSIGNED_INT;
+		case GL_RGB10_A2UI:     return GL_UNSIGNED_INT_10_10_10_2_OES;
+		case GL_RGBA16UI:       return GL_UNSIGNED_INT;
+		case GL_R32I:           return GL_INT;
+		case GL_RG32I:          return GL_INT;
+		case GL_RGB32I:         return GL_INT;
+		case GL_RGBA32I:        return GL_INT;
+		case GL_R32UI:          return GL_UNSIGNED_INT;
+		case GL_RG32UI:         return GL_UNSIGNED_INT;
+		case GL_RGB32UI:        return GL_UNSIGNED_INT;
+		case GL_RGBA32UI:       return GL_UNSIGNED_INT;
+		case GL_R16F:           return GL_FLOAT;
+		case GL_RG16F:          return GL_FLOAT;
+		case GL_R11F_G11F_B10F: return GL_FLOAT;
+		case GL_RGB16F:         return GL_FLOAT;
+		case GL_RGBA16F:        return GL_FLOAT;
+		case GL_R32F:           return GL_FLOAT;
+		case GL_RG32F:          return GL_FLOAT;
+		case GL_RGB32F:         return GL_FLOAT;
+		case GL_RGBA32F:        return GL_FLOAT;
+		case GL_RGB10_A2:       return GL_UNSIGNED_INT_10_10_10_2_OES;
+		case GL_SRGB8:          return GL_UNSIGNED_BYTE;
+		case GL_SRGB8_ALPHA8:   return GL_UNSIGNED_BYTE;
 		default:
-			UNREACHABLE(colorbuffer->getInternalFormat());
+			UNREACHABLE(colorbuffer->getFormat());
 		}
 	}
 
@@ -638,18 +631,16 @@ GLenum Framebuffer::getDepthReadType() const
 
 	if(depthbuffer)
 	{
-		switch(depthbuffer->getInternalFormat())
+		switch(depthbuffer->getFormat())
 		{
-		case sw::FORMAT_D16:                return GL_UNSIGNED_SHORT;
-		case sw::FORMAT_D24S8:              return GL_UNSIGNED_INT_24_8_OES;
-		case sw::FORMAT_D32:                return GL_UNSIGNED_INT;
-		case sw::FORMAT_D32F:
-		case sw::FORMAT_D32F_COMPLEMENTARY:
-		case sw::FORMAT_D32F_LOCKABLE:
-		case sw::FORMAT_D32FS8_TEXTURE:
-		case sw::FORMAT_D32FS8_SHADOW:      return GL_FLOAT;
+		case GL_DEPTH_COMPONENT16:     return GL_UNSIGNED_SHORT;
+		case GL_DEPTH_COMPONENT24:     return GL_UNSIGNED_INT;
+		case GL_DEPTH_COMPONENT32_OES: return GL_UNSIGNED_INT;
+		case GL_DEPTH_COMPONENT32F:    return GL_FLOAT;
+		case GL_DEPTH24_STENCIL8:      return GL_UNSIGNED_INT_24_8_OES;
+		case GL_DEPTH32F_STENCIL8:     return GL_FLOAT;
 		default:
-			UNREACHABLE(depthbuffer->getInternalFormat());
+			UNREACHABLE(depthbuffer->getFormat());
 		}
 	}
 

@@ -97,7 +97,6 @@ public:
 	virtual GLsizei getDepth(GLenum target, GLint level) const;
 	virtual GLenum getFormat(GLenum target, GLint level) const = 0;
 	virtual GLenum getType(GLenum target, GLint level) const = 0;
-	virtual sw::Format getInternalFormat(GLenum target, GLint level) const = 0;
 	virtual int getLevelCount() const = 0;
 
 	virtual bool isSamplerComplete() const = 0;
@@ -120,7 +119,7 @@ protected:
 	void setCompressedImage(GLsizei imageSize, const void *pixels, egl::Image *image);
 	void subImageCompressed(GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const void *pixels, egl::Image *image);
 
-	bool copy(egl::Image *source, const sw::SliceRect &sourceRect, GLenum destFormat, GLint xoffset, GLint yoffset, GLint zoffset, egl::Image *dest);
+	bool copy(egl::Image *source, const sw::SliceRect &sourceRect, GLint xoffset, GLint yoffset, GLint zoffset, egl::Image *dest);
 
 	bool isMipmapFiltered() const;
 
@@ -161,7 +160,6 @@ public:
 	GLsizei getHeight(GLenum target, GLint level) const override;
 	GLenum getFormat(GLenum target, GLint level) const override;
 	GLenum getType(GLenum target, GLint level) const override;
-	sw::Format getInternalFormat(GLenum target, GLint level) const override;
 	int getLevelCount() const override;
 
 	void setImage(egl::Context *context, GLint level, GLsizei width, GLsizei height, GLenum format, GLenum type, const egl::Image::UnpackInfo& unpackInfo, const void *pixels);
@@ -220,7 +218,6 @@ public:
 	GLsizei getHeight(GLenum target, GLint level) const override;
 	GLenum getFormat(GLenum target, GLint level) const override;
 	GLenum getType(GLenum target, GLint level) const override;
-	sw::Format getInternalFormat(GLenum target, GLint level) const override;
 	int getLevelCount() const override;
 
 	void setImage(egl::Context *context, GLenum target, GLint level, GLsizei width, GLsizei height, GLenum format, GLenum type, const egl::Image::UnpackInfo& unpackInfo, const void *pixels);
@@ -282,7 +279,6 @@ public:
 	GLsizei getDepth(GLenum target, GLint level) const override;
 	GLenum getFormat(GLenum target, GLint level) const override;
 	GLenum getType(GLenum target, GLint level) const override;
-	sw::Format getInternalFormat(GLenum target, GLint level) const override;
 	int getLevelCount() const override;
 
 	void setImage(egl::Context *context, GLint level, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const egl::Image::UnpackInfo& unpackInfo, const void *pixels);

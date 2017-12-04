@@ -2285,7 +2285,7 @@ void GenerateMipmap(GLenum target)
 			return error(GL_INVALID_OPERATION);
 		}
 
-		if(!IsMipmappable(texture->getFormat(target, 0), texture->getInternalFormat(target, 0), clientVersion))
+		if(!IsMipmappable(texture->getFormat(target, 0), clientVersion))
 		{
 			return error(GL_INVALID_OPERATION);
 		}
@@ -3019,7 +3019,7 @@ void GetFramebufferAttachmentParameteriv(GLenum target, GLenum attachment, GLenu
 					return error(GL_INVALID_OPERATION);
 				}
 
-				*params = sw2es::GetComponentType(renderbuffer->getInternalFormat(), attachment);
+				*params = GetComponentType(renderbuffer->getFormat(), attachment);
 				break;
 			case GL_FRAMEBUFFER_ATTACHMENT_COLOR_ENCODING:
 				if(clientVersion >= 3)
@@ -6319,7 +6319,7 @@ void TexImage3DOES(GLenum target, GLint level, GLenum internalformat, GLsizei wi
 		return error(GL_INVALID_ENUM);
 	}
 
-	if(internalformat != (GLint)format)
+	if(internalformat != format)
 	{
 		return error(GL_INVALID_OPERATION);
 	}

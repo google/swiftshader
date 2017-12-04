@@ -450,7 +450,7 @@ void Texture::subImageCompressed(GLint xoffset, GLint yoffset, GLint zoffset, GL
 	}
 }
 
-bool Texture::copy(egl::Image *source, const sw::SliceRect &sourceRect, GLenum destFormat, GLint xoffset, GLint yoffset, GLint zoffset, egl::Image *dest)
+bool Texture::copy(egl::Image *source, const sw::SliceRect &sourceRect, GLint xoffset, GLint yoffset, GLint zoffset, egl::Image *dest)
 {
 	Device *device = getDevice();
 
@@ -589,12 +589,6 @@ GLenum Texture2D::getType(GLenum target, GLint level) const
 	return image[level] ? image[level]->getType() : GL_NONE;
 }
 
-sw::Format Texture2D::getInternalFormat(GLenum target, GLint level) const
-{
-	ASSERT(target == GL_TEXTURE_2D);
-	return image[level] ? image[level]->getInternalFormat() : sw::FORMAT_NULL;
-}
-
 int Texture2D::getLevelCount() const
 {
 	ASSERT(isSamplerComplete());
@@ -673,7 +667,7 @@ void Texture2D::setCompressedImage(GLint level, GLenum format, GLsizei width, GL
 		image[level]->release();
 	}
 
-	GLenum sizedInternalFormat = GetSizedInternalFormat(format, GL_UNSIGNED_BYTE);
+	GLint sizedInternalFormat = GetSizedInternalFormat(format, GL_UNSIGNED_BYTE);
 	image[level] = egl::Image::create(this, width, height, sizedInternalFormat, GL_UNSIGNED_BYTE);
 
 	if(!image[level])
@@ -709,7 +703,7 @@ void Texture2D::copyImage(GLint level, GLenum format, GLint x, GLint y, GLsizei 
 		image[level]->release();
 	}
 
-	GLenum sizedInternalFormat = GetSizedInternalFormat(format, GL_UNSIGNED_BYTE);
+	GLint sizedInternalFormat = GetSizedInternalFormat(format, GL_UNSIGNED_BYTE);
 	image[level] = egl::Image::create(this, width, height, sizedInternalFormat, GL_UNSIGNED_BYTE);
 
 	if(!image[level])
@@ -730,7 +724,7 @@ void Texture2D::copyImage(GLint level, GLenum format, GLint x, GLint y, GLsizei 
 		sw::SliceRect sourceRect(x, y, x + width, y + height, 0);
 		sourceRect.clip(0, 0, renderbuffer->getWidth(), renderbuffer->getHeight());
 
-		copy(renderTarget, sourceRect, sizedInternalFormat, 0, 0, 0, image[level]);
+		copy(renderTarget, sourceRect, 0, 0, 0, image[level]);
 	}
 
 	renderTarget->release();
@@ -769,7 +763,7 @@ void Texture2D::copySubImage(GLenum target, GLint level, GLint xoffset, GLint yo
 		sw::SliceRect sourceRect(x, y, x + width, y + height, 0);
 		sourceRect.clip(0, 0, renderbuffer->getWidth(), renderbuffer->getHeight());
 
-		copy(renderTarget, sourceRect, image[level]->getFormat(), xoffset, yoffset, zoffset, image[level]);
+		copy(renderTarget, sourceRect, xoffset, yoffset, zoffset, image[level]);
 
 		renderTarget->release();
 	}
@@ -1077,12 +1071,6 @@ GLenum TextureCubeMap::getType(GLenum target, GLint level) const
 	return image[face][level] ? image[face][level]->getType() : 0;
 }
 
-sw::Format TextureCubeMap::getInternalFormat(GLenum target, GLint level) const
-{
-	int face = CubeFaceIndex(target);
-	return image[face][level] ? image[face][level]->getInternalFormat() : sw::FORMAT_NULL;
-}
-
 int TextureCubeMap::getLevelCount() const
 {
 	ASSERT(isSamplerComplete());
@@ -1105,7 +1093,7 @@ void TextureCubeMap::setCompressedImage(GLenum target, GLint level, GLenum forma
 		image[face][level]->release();
 	}
 
-	GLenum sizedInternalFormat = GetSizedInternalFormat(format, GL_UNSIGNED_BYTE);
+	GLint sizedInternalFormat = GetSizedInternalFormat(format, GL_UNSIGNED_BYTE);
 	int border = (egl::getClientVersion() >= 3) ? 1 : 0;
 	image[face][level] = egl::Image::create(this, width, height, 1, border, sizedInternalFormat, GL_UNSIGNED_BYTE);
 
@@ -1339,7 +1327,7 @@ void TextureCubeMap::copyImage(GLenum target, GLint level, GLenum format, GLint 
 		image[face][level]->release();
 	}
 
-	GLenum sizedInternalFormat = GetSizedInternalFormat(format, GL_UNSIGNED_BYTE);
+	GLint sizedInternalFormat = GetSizedInternalFormat(format, GL_UNSIGNED_BYTE);
 	int border = (egl::getClientVersion() >= 3) ? 1 : 0;
 	image[face][level] = egl::Image::create(this, width, height, 1, border, sizedInternalFormat, GL_UNSIGNED_BYTE);
 
@@ -1361,7 +1349,7 @@ void TextureCubeMap::copyImage(GLenum target, GLint level, GLenum format, GLint 
 		sw::SliceRect sourceRect(x, y, x + width, y + height, 0);
 		sourceRect.clip(0, 0, renderbuffer->getWidth(), renderbuffer->getHeight());
 
-		copy(renderTarget, sourceRect, sizedInternalFormat, 0, 0, 0, image[face][level]);
+		copy(renderTarget, sourceRect, 0, 0, 0, image[face][level]);
 	}
 
 	renderTarget->release();
@@ -1414,7 +1402,7 @@ void TextureCubeMap::copySubImage(GLenum target, GLint level, GLint xoffset, GLi
 		sw::SliceRect sourceRect(x, y, x + width, y + height, 0);
 		sourceRect.clip(0, 0, renderbuffer->getWidth(), renderbuffer->getHeight());
 
-		copy(renderTarget, sourceRect, image[face][level]->getFormat(), xoffset, yoffset, zoffset, image[face][level]);
+		copy(renderTarget, sourceRect, xoffset, yoffset, zoffset, image[face][level]);
 
 		renderTarget->release();
 	}
@@ -1614,12 +1602,6 @@ GLenum Texture3D::getType(GLenum target, GLint level) const
 	return image[level] ? image[level]->getType() : GL_NONE;
 }
 
-sw::Format Texture3D::getInternalFormat(GLenum target, GLint level) const
-{
-	ASSERT(target == getTarget());
-	return image[level] ? image[level]->getInternalFormat() : sw::FORMAT_NULL;
-}
-
 int Texture3D::getLevelCount() const
 {
 	ASSERT(isSamplerComplete());
@@ -1698,7 +1680,7 @@ void Texture3D::copyImage(GLint level, GLenum format, GLint x, GLint y, GLint z,
 		image[level]->release();
 	}
 
-	GLenum sizedInternalFormat = GetSizedInternalFormat(format, GL_UNSIGNED_BYTE);
+	GLint sizedInternalFormat = GetSizedInternalFormat(format, GL_UNSIGNED_BYTE);
 	image[level] = egl::Image::create(this, width, height, depth, 0, sizedInternalFormat, GL_UNSIGNED_BYTE);
 
 	if(!image[level])
@@ -1720,7 +1702,7 @@ void Texture3D::copyImage(GLint level, GLenum format, GLint x, GLint y, GLint z,
 		sourceRect.clip(0, 0, renderbuffer->getWidth(), renderbuffer->getHeight());
 		for(GLint sliceZ = 0; sliceZ < depth; ++sliceZ, ++sourceRect.slice)
 		{
-			copy(renderTarget, sourceRect, sizedInternalFormat, 0, 0, sliceZ, image[level]);
+			copy(renderTarget, sourceRect, 0, 0, sliceZ, image[level]);
 		}
 	}
 
@@ -1760,7 +1742,7 @@ void Texture3D::copySubImage(GLenum target, GLint level, GLint xoffset, GLint yo
 		sw::SliceRect sourceRect = {x, y, x + width, y + height, 0};
 		sourceRect.clip(0, 0, renderbuffer->getWidth(), renderbuffer->getHeight());
 
-		copy(renderTarget, sourceRect, image[level]->getFormat(), xoffset, yoffset, zoffset, image[level]);
+		copy(renderTarget, sourceRect, xoffset, yoffset, zoffset, image[level]);
 
 		renderTarget->release();
 	}
