@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5efa0957_69ac7a8d",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 6325,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-12-05T12:20:14Z",
+      "side": 1,
+      "message": "Is this an ES2 only function or is this also true in ES3?",
+      "range": {
+        "startLine": 6322,
+        "startChar": 0,
+        "endLine": 6325,
+        "endChar": 2
+      },
+      "revId": "ef31058760668e57874b0a39752ba239d43cd59a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
