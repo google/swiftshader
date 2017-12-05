@@ -77,6 +77,7 @@ namespace es2
 	bool IsFloatFormat(GLint internalformat);
 	bool IsSignedNonNormalizedInteger(GLint internalformat);
 	bool IsUnsignedNonNormalizedInteger(GLint internalformat);
+	GLenum GetColorEncoding(GLint internalformat);
 
 	// Parse the base uniform name and array index.  Returns the base name of the uniform. outSubscript is
 	// set to GL_INVALID_INDEX if the provided name is not an array or the array index is invalid.

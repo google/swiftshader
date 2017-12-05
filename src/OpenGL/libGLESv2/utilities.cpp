@@ -1719,6 +1719,21 @@ namespace es2
 		return GetColorComponentType(internalformat) == GL_UNSIGNED_INT;
 	}
 
+	GLenum GetColorEncoding(GLint internalformat)
+	{
+		switch(internalformat)
+		{
+		case GL_SRGB8:
+		case GL_SRGB8_ALPHA8:
+			return GL_SRGB;
+		default:
+			// [OpenGL ES 3.0.5] section 6.1.13 page 242:
+			// If attachment is not a color attachment, or no data storage or texture image
+			// has been specified for the attachment, params will contain the value LINEAR.
+			return GL_LINEAR;
+		}
+	}
+
 	std::string ParseUniformName(const std::string &name, unsigned int *outSubscript)
 	{
 		// Strip any trailing array operator and retrieve the subscript
