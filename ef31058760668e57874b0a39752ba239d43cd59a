@@ -22,6 +22,30 @@
       "revId": "ef31058760668e57874b0a39752ba239d43cd59a",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "00e5dd57_6335ddb0",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 6325,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-12-05T14:15:44Z",
+      "side": 1,
+      "message": "This is glTexImage3DOES(), which is part of an ES2 extension and specifies that internalformat must be equal to format. The glTexImage3D() from core ES3 doesn\u0027t have this restriction.",
+      "parentUuid": "5efa0957_69ac7a8d",
+      "range": {
+        "startLine": 6322,
+        "startChar": 0,
+        "endLine": 6325,
+        "endChar": 2
+      },
+      "revId": "ef31058760668e57874b0a39752ba239d43cd59a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
