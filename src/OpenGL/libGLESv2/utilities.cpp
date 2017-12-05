@@ -641,7 +641,7 @@ namespace es2
 			}
 		}
 
-		Renderbuffer *colorbuffer = framebuffer->getColorbuffer(0);
+		Renderbuffer *colorbuffer = framebuffer->getReadColorbuffer();
 
 		if(!colorbuffer)
 		{
