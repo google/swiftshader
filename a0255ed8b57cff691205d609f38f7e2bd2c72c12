@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "08bbef33_3f4bec68",
+        "filename": "src/OpenGL/libGLESv2/Program.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 290,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-12-05T21:36:01Z",
+      "side": 1,
+      "message": "You can use a range-based for loop here and below.",
+      "range": {
+        "startLine": 290,
+        "startChar": 3,
+        "endLine": 290,
+        "endChar": 26
+      },
+      "revId": "a0255ed8b57cff691205d609f38f7e2bd2c72c12",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
