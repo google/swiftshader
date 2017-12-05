@@ -402,7 +402,7 @@ RenderbufferStorage::RenderbufferStorage()
 {
 	mWidth = 0;
 	mHeight = 0;
-	format = GL_RGBA4;
+	format = GL_NONE;
 	mSamples = 0;
 }
 
