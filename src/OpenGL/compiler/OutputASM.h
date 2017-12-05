@@ -185,12 +185,14 @@ namespace glsl
 		virtual sw::Shader *getShader() const = 0;
 		virtual sw::PixelShader *getPixelShader() const;
 		virtual sw::VertexShader *getVertexShader() const;
+		int getShaderVersion() const { return shaderVersion; }
 
 	protected:
 		VaryingList varyings;
 		ActiveUniforms activeUniforms;
 		ActiveAttributes activeAttributes;
 		ActiveUniformBlocks activeUniformBlocks;
+		int shaderVersion;
 	};
 
 	struct Function
