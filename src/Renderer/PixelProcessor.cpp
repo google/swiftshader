@@ -1062,7 +1062,7 @@ namespace sw
 		const bool sprite = context->pointSpriteActive();
 		const bool flatShading = (context->shadingMode == SHADING_FLAT) || point;
 
-		if(context->pixelShaderVersion() < 0x0300)
+		if(context->pixelShaderModel() < 0x0300)
 		{
 			for(int coordinate = 0; coordinate < 8; coordinate++)
 			{
@@ -1079,7 +1079,7 @@ namespace sw
 					}
 				}
 
-				if(context->textureTransformProject[coordinate] && context->pixelShaderVersion() <= 0x0103)
+				if(context->textureTransformProject[coordinate] && context->pixelShaderModel() <= 0x0103)
 				{
 					if(context->textureTransformCount[coordinate] == 2)
 					{
@@ -1173,7 +1173,7 @@ namespace sw
 
 		if(!routine)
 		{
-			const bool integerPipeline = (context->pixelShaderVersion() <= 0x0104);
+			const bool integerPipeline = (context->pixelShaderModel() <= 0x0104);
 			QuadRasterizer *generator = nullptr;
 
 			if(integerPipeline)

@@ -183,7 +183,7 @@ namespace sw
 				}
 			}
 		}
-		else if(context->pixelShaderVersion() < 0x0300)
+		else if(context->pixelShaderModel() < 0x0300)
 		{
 			for(int coordinate = 0; coordinate < 8; coordinate++)
 			{

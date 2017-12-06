@@ -925,7 +925,7 @@ namespace sw
 			state.shaderID = 0;
 		}
 
-		state.fixedFunction = !context->vertexShader && context->pixelShaderVersion() < 0x0300;
+		state.fixedFunction = !context->vertexShader && context->pixelShaderModel() < 0x0300;
 		state.textureSampling = context->vertexShader ? context->vertexShader->containsTextureSampling() : false;
 		state.positionRegister = context->vertexShader ? context->vertexShader->getPositionRegister() : Pos;
 		state.pointSizeRegister = context->vertexShader ? context->vertexShader->getPointSizeRegister() : Pts;
@@ -1010,7 +1010,7 @@ namespace sw
 				state.output[i].wWrite = context->vertexShader->getOutput(i, 3).active();
 			}
 		}
-		else if(!context->preTransformed || context->pixelShaderVersion() < 0x0300)
+		else if(!context->preTransformed || context->pixelShaderModel() < 0x0300)
 		{
 			state.output[Pos].write = 0xF;
 
@@ -1068,7 +1068,7 @@ namespace sw
 			}
 		}
 
-		if(context->vertexShaderVersion() < 0x0300)
+		if(context->vertexShaderModel() < 0x0300)
 		{
 			state.output[C0].clamp = 0xF;
 			state.output[C1].clamp = 0xF;

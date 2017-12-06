@@ -31,7 +31,7 @@ namespace sw
 
 	PixelRoutine::PixelRoutine(const PixelProcessor::State &state, const PixelShader *shader) : QuadRasterizer(state, shader), v(shader && shader->dynamicallyIndexedInput)
 	{
-		if(!shader || shader->getVersion() < 0x0200 || forceClearRegisters)
+		if(!shader || shader->getShaderModel() < 0x0200 || forceClearRegisters)
 		{
 			for(int i = 0; i < MAX_FRAGMENT_INPUTS; i++)
 			{

@@ -334,8 +334,8 @@ namespace sw
 		void acosh(Vector4f &dst, const Vector4f &src, bool pp = false);
 		void asinh(Vector4f &dst, const Vector4f &src, bool pp = false);
 		void atanh(Vector4f &dst, const Vector4f &src, bool pp = false);
-		void expp(Vector4f &dst, const Vector4f &src, unsigned short version);
-		void logp(Vector4f &dst, const Vector4f &src, unsigned short version);
+		void expp(Vector4f &dst, const Vector4f &src, unsigned short shaderModel);
+		void logp(Vector4f &dst, const Vector4f &src, unsigned short shaderModel);
 		void cmp0(Vector4f &dst, const Vector4f &src0, const Vector4f &src1, const Vector4f &src2);
 		void cmp(Vector4f &dst, const Vector4f &src0, const Vector4f &src1, Control control);
 		void icmp(Vector4f &dst, const Vector4f &src0, const Vector4f &src1, Control control);

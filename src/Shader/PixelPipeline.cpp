@@ -88,7 +88,7 @@ namespace sw
 			const Src &src1 = instruction->src[1];
 			const Src &src2 = instruction->src[2];
 
-			unsigned short version = shader->getVersion();
+			unsigned short shaderModel = shader->getShaderModel();
 			bool pairing = i + 1 < shader->getLength() && shader->getInstruction(i + 1)->coissue;   // First instruction of pair
 			bool coissue = instruction->coissue;                                                              // Second instruction of pair
 
@@ -101,10 +101,10 @@ namespace sw
 			if(src1.type != Shader::PARAMETER_VOID) s1 = fetchRegister(src1);
 			if(src2.type != Shader::PARAMETER_VOID) s2 = fetchRegister(src2);
 
-			Float4 x = version < 0x0104 ? v[2 + dst.index].x : v[2 + src0.index].x;
-			Float4 y = version < 0x0104 ? v[2 + dst.index].y : v[2 + src0.index].y;
-			Float4 z = version < 0x0104 ? v[2 + dst.index].z : v[2 + src0.index].z;
-			Float4 w = version < 0x0104 ? v[2 + dst.index].w : v[2 + src0.index].w;
+			Float4 x = shaderModel < 0x0104 ? v[2 + dst.index].x : v[2 + src0.index].x;
+			Float4 y = shaderModel < 0x0104 ? v[2 + dst.index].y : v[2 + src0.index].y;
+			Float4 z = shaderModel < 0x0104 ? v[2 + dst.index].z : v[2 + src0.index].z;
+			Float4 w = shaderModel < 0x0104 ? v[2 + dst.index].w : v[2 + src0.index].w;
 
 			switch(opcode)
 			{
@@ -126,7 +126,7 @@ namespace sw
 			case Shader::OPCODE_DP4: DP4(d, s0, s1);     break;
 			case Shader::OPCODE_LRP: LRP(d, s0, s1, s2); break;
 			case Shader::OPCODE_TEXCOORD:
-				if(version < 0x0104)
+				if(shaderModel < 0x0104)
 				{
 					TEXCOORD(d, x, y, z, dst.index);
 			}
@@ -143,11 +143,11 @@ namespace sw
 				}
 				break;
 			case Shader::OPCODE_TEXKILL:
-				if(version < 0x0104)
+				if(shaderModel < 0x0104)
 				{
 					TEXKILL(cMask, x, y, z);
 				}
-				else if(version == 0x0104)
+				else if(shaderModel == 0x0104)
 				{
 					if(dst.type == Shader::PARAMETER_TEXTURE)
 					{
@@ -161,11 +161,11 @@ namespace sw
 				else ASSERT(false);
 				break;
 			case Shader::OPCODE_TEX:
-				if(version < 0x0104)
+				if(shaderModel < 0x0104)
 				{
 					TEX(d, x, y, z, dst.index, false);
 				}
-				else if(version == 0x0104)
+				else if(shaderModel == 0x0104)
 				{
 					if(src0.type == Shader::PARAMETER_TEXTURE)
 					{

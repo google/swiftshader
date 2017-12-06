@@ -1605,9 +1605,9 @@ namespace sw
 		dst.w = arctanh(src.w, pp);
 	}
 
-	void ShaderCore::expp(Vector4f &dst, const Vector4f &src, unsigned short version)
+	void ShaderCore::expp(Vector4f &dst, const Vector4f &src, unsigned short shaderModel)
 	{
-		if(version < 0x0200)
+		if(shaderModel < 0x0200)
 		{
 			Float4 frc = Frac(src.x);
 			Float4 floor = src.x - frc;
@@ -1623,9 +1623,9 @@ namespace sw
 		}
 	}
 
-	void ShaderCore::logp(Vector4f &dst, const Vector4f &src, unsigned short version)
+	void ShaderCore::logp(Vector4f &dst, const Vector4f &src, unsigned short shaderModel)
 	{
-		if(version < 0x0200)
+		if(shaderModel < 0x0200)
 		{
 			Float4 tmp0;
 			Float4 tmp1;

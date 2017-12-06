@@ -22,7 +22,7 @@ namespace sw
 {
 	PixelShader::PixelShader(const PixelShader *ps) : Shader()
 	{
-		version = 0x0300;
+		shaderModel = 0x0300;
 		vPosDeclared = false;
 		vFaceDeclared = false;
 		centroid = false;
@@ -198,7 +198,7 @@ namespace sw
 
 	void PixelShader::analyzeInterpolants()
 	{
-		if(version < 0x0300)
+		if(shaderModel < 0x0300)
 		{
 			// Set default mapping; disable unused interpolants below
 			input[0][0] = Semantic(Shader::USAGE_COLOR, 0);
@@ -288,7 +288,7 @@ namespace sw
 					case Shader::OPCODE_DCL:
 						break;   // Ignore
 					default:   // Arithmetic instruction
-						if(version >= 0x0104)
+						if(shaderModel >= 0x0104)
 						{
 							ASSERT(false);
 						}
@@ -329,7 +329,7 @@ namespace sw
 								switch(samplerType[sampler])
 								{
 								case Shader::SAMPLER_UNKNOWN:
-									if(version == 0x0104)
+									if(shaderModel == 0x0104)
 									{
 										if((inst->src[0].swizzle & 0x30) == 0x20)   // .xyz
 										{
@@ -380,7 +380,7 @@ namespace sw
 									interpolant[index][3] = true;
 								}
 
-								if(version == 0x0104 && inst->opcode == Shader::OPCODE_TEX)
+								if(shaderModel == 0x0104 && inst->opcode == Shader::OPCODE_TEX)
 								{
 									if(inst->src[0].modifier == Shader::MODIFIER_DZ)
 									{
@@ -717,7 +717,7 @@ namespace sw
 			}
 		}
 
-		if(version >= 0x0200)
+		if(shaderModel >= 0x0200)
 		{
 			for(const auto &inst : instruction)
 			{

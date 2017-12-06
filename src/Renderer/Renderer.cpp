@@ -401,7 +401,7 @@ namespace sw
 				}
 			}
 
-			if(context->pixelShaderVersion() <= 0x0104)
+			if(context->pixelShaderModel() <= 0x0104)
 			{
 				for(int stage = 0; stage < 8; stage++)
 				{
@@ -415,7 +415,7 @@ namespace sw
 
 			if(context->vertexShader)
 			{
-				if(context->vertexShader->getVersion() >= 0x0300)
+				if(context->vertexShader->getShaderModel() >= 0x0300)
 				{
 					for(int sampler = 0; sampler < VERTEX_TEXTURE_IMAGE_UNITS; sampler++)
 					{

@@ -76,7 +76,7 @@ namespace sw
 	{
 	//	shader->print("VertexShader-%0.8X.txt", state.shaderID);
 
-		unsigned short version = shader->getVersion();
+		unsigned short shaderModel = shader->getShaderModel();
 
 		enableIndex = 0;
 		stackIndex = 0;
@@ -192,7 +192,7 @@ namespace sw
 			case Shader::OPCODE_ATT:        att(d, s0, s1);                 break;
 			case Shader::OPCODE_EXP2X:      exp2x(d, s0, pp);               break;
 			case Shader::OPCODE_EXP2:       exp2(d, s0, pp);                break;
-			case Shader::OPCODE_EXPP:       expp(d, s0, version);           break;
+			case Shader::OPCODE_EXPP:       expp(d, s0, shaderModel);       break;
 			case Shader::OPCODE_EXP:        exp(d, s0, pp);                 break;
 			case Shader::OPCODE_FRC:        frc(d, s0);                     break;
 			case Shader::OPCODE_TRUNC:      trunc(d, s0);                   break;
@@ -203,7 +203,7 @@ namespace sw
 			case Shader::OPCODE_LIT:        lit(d, s0);                     break;
 			case Shader::OPCODE_LOG2X:      log2x(d, s0, pp);               break;
 			case Shader::OPCODE_LOG2:       log2(d, s0, pp);                break;
-			case Shader::OPCODE_LOGP:       logp(d, s0, version);           break;
+			case Shader::OPCODE_LOGP:       logp(d, s0, shaderModel);       break;
 			case Shader::OPCODE_LOG:        log(d, s0, pp);                 break;
 			case Shader::OPCODE_LRP:        lrp(d, s0, s1, s2);             break;
 			case Shader::OPCODE_STEP:       step(d, s0, s1);                break;
@@ -411,7 +411,7 @@ namespace sw
 						break;
 					case Shader::PARAMETER_TEXCRDOUT:
 				//	case Shader::PARAMETER_OUTPUT:
-						if(version < 0x0300)
+						if(shaderModel < 0x0300)
 						{
 							if(dst.x) pDst.x = o[T0 + dst.index].x;
 							if(dst.y) pDst.y = o[T0 + dst.index].y;
@@ -542,7 +542,7 @@ namespace sw
 					break;
 				case Shader::PARAMETER_TEXCRDOUT:
 			//	case Shader::PARAMETER_OUTPUT:
-					if(version < 0x0300)
+					if(shaderModel < 0x0300)
 					{
 						if(dst.x) o[T0 + dst.index].x = d.x;
 						if(dst.y) o[T0 + dst.index].y = d.y;

@@ -1183,12 +1183,12 @@ namespace sw
 
 	int Shader::size(unsigned long opcode) const
 	{
-		return size(opcode, version);
+		return size(opcode, shaderModel);
 	}
 
-	int Shader::size(unsigned long opcode, unsigned short version)
+	int Shader::size(unsigned long opcode, unsigned short shaderModel)
 	{
-		if(version > 0x0300)
+		if(shaderModel > 0x0300)
 		{
 			ASSERT(false);
 		}
@@ -1335,7 +1335,7 @@ namespace sw
 		   opcode != OPCODE_PHASE &&
 		   opcode != OPCODE_END)
 		{
-			if(version >= 0x0200)
+			if(shaderModel >= 0x0200)
 			{
 				length = (opcode & 0x0F000000) >> 24;
 			}
@@ -1350,7 +1350,7 @@ namespace sw
 			ASSERT(false);
 		}
 
-		if(version == 0x0104)
+		if(shaderModel == 0x0104)
 		{
 			switch(opcode & 0x0000FFFF)
 			{
@@ -1438,9 +1438,9 @@ namespace sw
 		return shaderType;
 	}
 
-	unsigned short Shader::getVersion() const
+	unsigned short Shader::getShaderModel() const
 	{
-		return version;
+		return shaderModel;
 	}
 
 	void Shader::print(const char *fileName, ...) const
@@ -1456,7 +1456,7 @@ namespace sw
 
 		for(const auto &inst : instruction)
 		{
-			file << inst->string(shaderType, version) << std::endl;
+			file << inst->string(shaderType, shaderModel) << std::endl;
 		}
 	}
 
@@ -1464,7 +1464,7 @@ namespace sw
 	{
 		std::ofstream file(fileName, std::ofstream::out | std::ofstream::app);
 
-		file << instruction[index]->string(shaderType, version) << std::endl;
+		file << instruction[index]->string(shaderType, shaderModel) << std::endl;
 	}
 
 	void Shader::append(Instruction *instruction)

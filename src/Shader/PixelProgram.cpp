@@ -27,7 +27,7 @@ namespace sw
 
 	void PixelProgram::setBuiltins(Int &x, Int &y, Float4(&z)[4], Float4 &w)
 	{
-		if(shader->getVersion() >= 0x0300)
+		if(shader->getShaderModel() >= 0x0300)
 		{
 			if(shader->isVPosDeclared())
 			{

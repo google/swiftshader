@@ -23,7 +23,7 @@ namespace sw
 {
 	VertexShader::VertexShader(const VertexShader *vs) : Shader()
 	{
-		version = 0x0300;
+		shaderModel = 0x0300;
 		positionRegister = Pos;
 		pointSizeRegister = Unused;
 		instanceIdDeclared = false;
@@ -226,7 +226,7 @@ namespace sw
 
 	void VertexShader::analyzeOutput()
 	{
-		if(version < 0x0300)
+		if(shaderModel < 0x0300)
 		{
 			output[Pos][0] = Semantic(Shader::USAGE_POSITION, 0);
 			output[Pos][1] = Semantic(Shader::USAGE_POSITION, 0);

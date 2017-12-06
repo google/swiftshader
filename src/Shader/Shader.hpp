@@ -560,14 +560,14 @@ namespace sw
 		int getSerialID() const;
 		size_t getLength() const;
 		ShaderType getShaderType() const;
-		unsigned short getVersion() const;
+		unsigned short getShaderModel() const;
 
 		void append(Instruction *instruction);
 		void declareSampler(int i);
 
 		const Instruction *getInstruction(size_t i) const;
 		int size(unsigned long opcode) const;
-		static int size(unsigned long opcode, unsigned short version);
+		static int size(unsigned long opcode, unsigned short shaderModel);
 
 		void print(const char *fileName, ...) const;
 		void printInstruction(int index, const char *fileName) const;
@@ -634,7 +634,7 @@ namespace sw
 
 		union
 		{
-			unsigned short version;
+			unsigned short shaderModel;
 
 			struct
 			{
