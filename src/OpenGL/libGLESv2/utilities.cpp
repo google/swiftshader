@@ -44,9 +44,6 @@ namespace es2
 
 	FormatMap BuildFormatMap()
 	{
-		static const GLint GL_BGRA4_ANGLEX = 0x6ABC;
-		static const GLint GL_BGR5_A1_ANGLEX = 0x6ABD;
-
 		FormatMap map;
 
 		//                       | Format | Type | Internal format |
@@ -123,8 +120,8 @@ namespace es2
 		InsertFormatMapping(&map, GL_ALPHA, GL_HALF_FLOAT_OES, GL_ALPHA16F_EXT);
 
 		InsertFormatMapping(&map, GL_BGRA_EXT, GL_UNSIGNED_BYTE, GL_BGRA8_EXT);
-		InsertFormatMapping(&map, GL_BGRA_EXT, GL_UNSIGNED_SHORT_4_4_4_4_REV_EXT, GL_BGRA4_ANGLEX);
-		InsertFormatMapping(&map, GL_BGRA_EXT, GL_UNSIGNED_SHORT_1_5_5_5_REV_EXT, GL_BGR5_A1_ANGLEX);
+		InsertFormatMapping(&map, GL_BGRA_EXT, GL_UNSIGNED_SHORT_4_4_4_4_REV_EXT, GL_BGRA4_ANGLE);
+		InsertFormatMapping(&map, GL_BGRA_EXT, GL_UNSIGNED_SHORT_1_5_5_5_REV_EXT, GL_BGR5_A1_ANGLE);
 
 		InsertFormatMapping(&map, GL_SRGB_EXT, GL_UNSIGNED_BYTE, GL_SRGB8);
 		InsertFormatMapping(&map, GL_SRGB_ALPHA_EXT, GL_UNSIGNED_BYTE, GL_SRGB8_ALPHA8);

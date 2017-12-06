@@ -2280,11 +2280,6 @@ void GenerateMipmap(GLenum target)
 			return error(GL_INVALID_ENUM);
 		}
 
-		if(texture->isCompressed(target, 0) || texture->isDepth(target, 0))
-		{
-			return error(GL_INVALID_OPERATION);
-		}
-
 		if(!IsMipmappable(texture->getFormat(target, 0), clientVersion))
 		{
 			return error(GL_INVALID_OPERATION);
@@ -4690,7 +4685,7 @@ void RenderbufferStorageMultisample(GLenum target, GLsizei samples, GLenum inter
 	}
 
 	if(samples > es2::IMPLEMENTATION_MAX_SAMPLES ||
-	   (sw::Surface::isNonNormalizedInteger(es2sw::ConvertRenderbufferFormat(internalformat)) && samples > 0))
+	   (IsNonNormalizedInteger(internalformat) && samples > 0))
 	{
 		return error(GL_INVALID_OPERATION);
 	}

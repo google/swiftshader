@@ -27,6 +27,11 @@
 
 namespace es2
 {
+// Sized internal formats corresponding to GL_BGRA_EXT/GL_UNSIGNED_SHORT_4_4_4_4_REV_EXT and
+// GL_BGRA_EXT/GL_UNSIGNED_SHORT_1_5_5_5_REV_EXT format/type combinations, respectively.
+const GLint GL_BGRA4_ANGLE = 0x6ABC;
+const GLint GL_BGR5_A1_ANGLE = 0x6ABD;
+
 class Texture2D;
 class Texture3D;
 class TextureCubeMap;
