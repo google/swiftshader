@@ -167,11 +167,11 @@ namespace sw
 	{
 		zOverride = false;
 
-		for(unsigned int i = 0; i < instruction.size(); i++)
+		for(const auto &inst : instruction)
 		{
-			if(instruction[i]->opcode == Shader::OPCODE_TEXM3X2DEPTH ||
-			   instruction[i]->opcode == Shader::OPCODE_TEXDEPTH ||
-			   instruction[i]->dst.type == Shader::PARAMETER_DEPTHOUT)
+			if(inst->opcode == Shader::OPCODE_TEXM3X2DEPTH ||
+			   inst->opcode == Shader::OPCODE_TEXDEPTH ||
+			   inst->dst.type == Shader::PARAMETER_DEPTHOUT)
 			{
 				zOverride = true;
 
@@ -184,10 +184,10 @@ namespace sw
 	{
 		kill = false;
 
-		for(unsigned int i = 0; i < instruction.size(); i++)
+		for(const auto &inst : instruction)
 		{
-			if(instruction[i]->opcode == Shader::OPCODE_TEXKILL ||
-			   instruction[i]->opcode == Shader::OPCODE_DISCARD)
+			if(inst->opcode == Shader::OPCODE_TEXKILL ||
+			   inst->opcode == Shader::OPCODE_DISCARD)
 			{
 				kill = true;
 
@@ -226,25 +226,25 @@ namespace sw
 				samplerType[i] = Shader::SAMPLER_UNKNOWN;
 			}
 
-			for(unsigned int i = 0; i < instruction.size(); i++)
+			for(const auto &inst : instruction)
 			{
-				if(instruction[i]->dst.type == Shader::PARAMETER_SAMPLER)
+				if(inst->dst.type == Shader::PARAMETER_SAMPLER)
 				{
-					int sampler = instruction[i]->dst.index;
+					int sampler = inst->dst.index;
 
-					samplerType[sampler] = instruction[i]->samplerType;
+					samplerType[sampler] = inst->samplerType;
 				}
 			}
 
 			bool interpolant[MAX_FRAGMENT_INPUTS][4] = {{false}};   // Interpolants in use
 
-			for(unsigned int i = 0; i < instruction.size(); i++)
+			for(const auto &inst : instruction)
 			{
-				if(instruction[i]->dst.type == Shader::PARAMETER_TEXTURE)
+				if(inst->dst.type == Shader::PARAMETER_TEXTURE)
 				{
-					int index = instruction[i]->dst.index + 2;
+					int index = inst->dst.index + 2;
 
-					switch(instruction[i]->opcode)
+					switch(inst->opcode)
 					{
 					case Shader::OPCODE_TEX:
 					case Shader::OPCODE_TEXBEM:
@@ -297,19 +297,19 @@ namespace sw
 
 				for(int argument = 0; argument < 4; argument++)
 				{
-					if(instruction[i]->src[argument].type == Shader::PARAMETER_INPUT ||
-					   instruction[i]->src[argument].type == Shader::PARAMETER_TEXTURE)
+					if(inst->src[argument].type == Shader::PARAMETER_INPUT ||
+					   inst->src[argument].type == Shader::PARAMETER_TEXTURE)
 					{
-						int index = instruction[i]->src[argument].index;
-						int swizzle = instruction[i]->src[argument].swizzle;
-						int mask = instruction[i]->dst.mask;
+						int index = inst->src[argument].index;
+						int swizzle = inst->src[argument].swizzle;
+						int mask = inst->dst.mask;
 
-						if(instruction[i]->src[argument].type == Shader::PARAMETER_TEXTURE)
+						if(inst->src[argument].type == Shader::PARAMETER_TEXTURE)
 						{
 							index += 2;
 						}
 
-						switch(instruction[i]->opcode)
+						switch(inst->opcode)
 						{
 						case Shader::OPCODE_TEX:
 						case Shader::OPCODE_TEXLDD:
@@ -324,14 +324,14 @@ namespace sw
 						case Shader::OPCODE_TEXGRAD:
 						case Shader::OPCODE_TEXGRADOFFSET:
 							{
-								int sampler = instruction[i]->src[1].index;
+								int sampler = inst->src[1].index;
 
 								switch(samplerType[sampler])
 								{
 								case Shader::SAMPLER_UNKNOWN:
 									if(version == 0x0104)
 									{
-										if((instruction[i]->src[0].swizzle & 0x30) == 0x20)   // .xyz
+										if((inst->src[0].swizzle & 0x30) == 0x20)   // .xyz
 										{
 											interpolant[index][0] = true;
 											interpolant[index][1] = true;
@@ -370,24 +370,24 @@ namespace sw
 									ASSERT(false);
 								}
 
-								if(instruction[i]->bias)
+								if(inst->bias)
 								{
 									interpolant[index][3] = true;
 								}
 
-								if(instruction[i]->project)
+								if(inst->project)
 								{
 									interpolant[index][3] = true;
 								}
 
-								if(version == 0x0104 && instruction[i]->opcode == Shader::OPCODE_TEX)
+								if(version == 0x0104 && inst->opcode == Shader::OPCODE_TEX)
 								{
-									if(instruction[i]->src[0].modifier == Shader::MODIFIER_DZ)
+									if(inst->src[0].modifier == Shader::MODIFIER_DZ)
 									{
 										interpolant[index][2] = true;
 									}
 
-									if(instruction[i]->src[0].modifier == Shader::MODIFIER_DW)
+									if(inst->src[0].modifier == Shader::MODIFIER_DW)
 									{
 										interpolant[index][3] = true;
 									}
@@ -683,25 +683,25 @@ namespace sw
 		}
 		else   // Shader Model 3.0 input declaration; v# indexable
 		{
-			for(unsigned int i = 0; i < instruction.size(); i++)
+			for(const auto &inst : instruction)
 			{
-				if(instruction[i]->opcode == Shader::OPCODE_DCL)
+				if(inst->opcode == Shader::OPCODE_DCL)
 				{
-					if(instruction[i]->dst.type == Shader::PARAMETER_INPUT)
+					if(inst->dst.type == Shader::PARAMETER_INPUT)
 					{
-						unsigned char usage = instruction[i]->usage;
-						unsigned char index = instruction[i]->usageIndex;
-						unsigned char mask = instruction[i]->dst.mask;
-						unsigned char reg = instruction[i]->dst.index;
+						unsigned char usage = inst->usage;
+						unsigned char index = inst->usageIndex;
+						unsigned char mask = inst->dst.mask;
+						unsigned char reg = inst->dst.index;
 
 						if(mask & 0x01)	input[reg][0] = Semantic(usage, index);
 						if(mask & 0x02) input[reg][1] = Semantic(usage, index);
 						if(mask & 0x04) input[reg][2] = Semantic(usage, index);
 						if(mask & 0x08)	input[reg][3] = Semantic(usage, index);
 					}
-					else if(instruction[i]->dst.type == Shader::PARAMETER_MISCTYPE)
+					else if(inst->dst.type == Shader::PARAMETER_MISCTYPE)
 					{
-						unsigned char index = instruction[i]->dst.index;
+						unsigned char index = inst->dst.index;
 
 						if(index == Shader::VPosIndex)
 						{
@@ -719,14 +719,14 @@ namespace sw
 
 		if(version >= 0x0200)
 		{
-			for(unsigned int i = 0; i < instruction.size(); i++)
+			for(const auto &inst : instruction)
 			{
-				if(instruction[i]->opcode == Shader::OPCODE_DCL)
+				if(inst->opcode == Shader::OPCODE_DCL)
 				{
-					bool centroid = instruction[i]->dst.centroid;
-					unsigned char reg = instruction[i]->dst.index;
+					bool centroid = inst->dst.centroid;
+					unsigned char reg = inst->dst.index;
 
-					switch(instruction[i]->dst.type)
+					switch(inst->dst.type)
 					{
 					case Shader::PARAMETER_INPUT:
 						input[reg][0].centroid = centroid;

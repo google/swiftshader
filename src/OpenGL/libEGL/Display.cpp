@@ -580,11 +580,11 @@ bool Display::isValidWindow(EGLNativeWindowType window)
 
 bool Display::hasExistingWindowSurface(EGLNativeWindowType window)
 {
-	for(SurfaceSet::iterator surface = mSurfaceSet.begin(); surface != mSurfaceSet.end(); surface++)
+	for(const auto &surface : mSurfaceSet)
 	{
-		if((*surface)->isWindowSurface())
+		if(surface->isWindowSurface())
 		{
-			if((*surface)->getWindowHandle() == window)
+			if(surface->getWindowHandle() == window)
 			{
 				return true;
 			}

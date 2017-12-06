@@ -309,13 +309,12 @@ namespace sw
 			{
 				draw->queries = new std::list<Query*>();
 				bool includePrimitivesWrittenQueries = vertexState.transformFeedbackQueryEnabled && vertexState.transformFeedbackEnabled;
-				for(std::list<Query*>::iterator query = queries.begin(); query != queries.end(); query++)
+				for(auto &query : queries)
 				{
-					Query* q = *query;
-					if(includePrimitivesWrittenQueries || (q->type != Query::TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN))
+					if(includePrimitivesWrittenQueries || (query->type != Query::TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN))
 					{
-						++q->reference; // Atomic
-						draw->queries->push_back(q);
+						++query->reference; // Atomic
+						draw->queries->push_back(query);
 					}
 				}
 			}
@@ -972,10 +971,8 @@ namespace sw
 
 				if(draw.queries)
 				{
-					for(std::list<Query*>::iterator q = draw.queries->begin(); q != draw.queries->end(); q++)
+					for(auto &query : *(draw.queries))
 					{
-						Query *query = *q;
-
 						switch(query->type)
 						{
 						case Query::FRAGMENTS_PASSED:

@@ -99,7 +99,7 @@ public:
 	~VertexShader();
 
 	virtual GLenum getType() const;
-	int getSemanticIndex(const std::string &attributeName);
+	int getSemanticIndex(const std::string &attributeName) const;
 
 	virtual sw::Shader *getShader() const;
 	virtual sw::VertexShader *getVertexShader() const;

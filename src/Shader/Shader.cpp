@@ -1136,10 +1136,10 @@ namespace sw
 
 	Shader::~Shader()
 	{
-		for(unsigned int i = 0; i < instruction.size(); i++)
+		for(auto &inst : instruction)
 		{
-			delete instruction[i];
-			instruction[i] = 0;
+			delete inst;
+			inst = 0;
 		}
 	}
 
@@ -1454,9 +1454,9 @@ namespace sw
 
 		std::ofstream file(fullName, std::ofstream::out);
 
-		for(unsigned int i = 0; i < instruction.size(); i++)
+		for(const auto &inst : instruction)
 		{
-			file << instruction[i]->string(shaderType, version) << std::endl;
+			file << inst->string(shaderType, version) << std::endl;
 		}
 	}
 
@@ -1517,11 +1517,11 @@ namespace sw
 			calledFunctions.clear();
 			rescan = false;
 
-			for(unsigned int i = 0; i < instruction.size(); i++)
+			for(const auto &inst : instruction)
 			{
-				if(instruction[i]->isCall())
+				if(inst->isCall())
 				{
-					calledFunctions.insert(instruction[i]->dst.label);
+					calledFunctions.insert(inst->dst.label);
 				}
 			}
 
@@ -1594,26 +1594,26 @@ namespace sw
 		dirtyConstantsI = 0;
 		dirtyConstantsB = 0;
 
-		for(unsigned int i = 0; i < instruction.size(); i++)
+		for(const auto &inst : instruction)
 		{
-			switch(instruction[i]->opcode)
+			switch(inst->opcode)
 			{
 			case OPCODE_DEF:
-				if(instruction[i]->dst.index + 1 > dirtyConstantsF)
+				if(inst->dst.index + 1 > dirtyConstantsF)
 				{
-					dirtyConstantsF = instruction[i]->dst.index + 1;
+					dirtyConstantsF = inst->dst.index + 1;
 				}
 				break;
 			case OPCODE_DEFI:
-				if(instruction[i]->dst.index + 1 > dirtyConstantsI)
+				if(inst->dst.index + 1 > dirtyConstantsI)
 				{
-					dirtyConstantsI = instruction[i]->dst.index + 1;
+					dirtyConstantsI = inst->dst.index + 1;
 				}
 				break;
 			case OPCODE_DEFB:
-				if(instruction[i]->dst.index + 1 > dirtyConstantsB)
+				if(inst->dst.index + 1 > dirtyConstantsB)
 				{
-					dirtyConstantsB = instruction[i]->dst.index + 1;
+					dirtyConstantsB = inst->dst.index + 1;
 				}
 				break;
 			default:
@@ -1631,9 +1631,9 @@ namespace sw
 		containsDefine = false;
 
 		// Determine global presence of branching instructions
-		for(unsigned int i = 0; i < instruction.size(); i++)
+		for(const auto &inst : instruction)
 		{
-			switch(instruction[i]->opcode)
+			switch(inst->opcode)
 			{
 			case OPCODE_CALLNZ:
 			case OPCODE_IF:
@@ -1644,22 +1644,22 @@ namespace sw
 			case OPCODE_BREAKP:
 			case OPCODE_LEAVE:
 			case OPCODE_CONTINUE:
-				if(instruction[i]->src[0].type != PARAMETER_CONSTBOOL)
+				if(inst->src[0].type != PARAMETER_CONSTBOOL)
 				{
 					dynamicBranching = true;
 				}
 
-				if(instruction[i]->opcode == OPCODE_LEAVE)
+				if(inst->opcode == OPCODE_LEAVE)
 				{
 					containsLeave = true;
 				}
 
-				if(instruction[i]->isBreak())
+				if(inst->isBreak())
 				{
 					containsBreak = true;
 				}
 
-				if(instruction[i]->opcode == OPCODE_CONTINUE)
+				if(inst->opcode == OPCODE_CONTINUE)
 				{
 					containsContinue = true;
 				}
@@ -1794,36 +1794,36 @@ namespace sw
 	void Shader::markFunctionAnalysis(unsigned int functionLabel, Analysis flag)
 	{
 		bool marker = false;
-		for(unsigned int i = 0; i < instruction.size(); i++)
+		for(auto &inst : instruction)
 		{
 			if(!marker)
 			{
-				if(instruction[i]->opcode == OPCODE_LABEL && instruction[i]->dst.label == functionLabel)
+				if(inst->opcode == OPCODE_LABEL && inst->dst.label == functionLabel)
 				{
 					marker = true;
 				}
 			}
 			else
 			{
-				if(instruction[i]->opcode == OPCODE_RET)
+				if(inst->opcode == OPCODE_RET)
 				{
 					break;
 				}
-				else if(instruction[i]->isCall())
+				else if(inst->isCall())
 				{
-					markFunctionAnalysis(instruction[i]->dst.label, flag);
+					markFunctionAnalysis(inst->dst.label, flag);
 				}
 
-				instruction[i]->analysis |= flag;
+				inst->analysis |= flag;
 			}
 		}
 	}
 
 	void Shader::analyzeSamplers()
 	{
-		for(unsigned int i = 0; i < instruction.size(); i++)
+		for(const auto &inst : instruction)
 		{
-			switch(instruction[i]->opcode)
+			switch(inst->opcode)
 			{
 			case OPCODE_TEX:
 			case OPCODE_TEXBEM:
@@ -1848,8 +1848,8 @@ namespace sw
 			case OPCODE_TEXGRAD:
 			case OPCODE_TEXGRADOFFSET:
 				{
-					Parameter &dst = instruction[i]->dst;
-					Parameter &src1 = instruction[i]->src[1];
+					Parameter &dst = inst->dst;
+					Parameter &src1 = inst->src[1];
 
 					if(majorVersion >= 2)
 					{
@@ -1873,13 +1873,13 @@ namespace sw
 	{
 		int callSiteIndex[2048] = {0};
 
-		for(unsigned int i = 0; i < instruction.size(); i++)
+		for(auto &inst : instruction)
 		{
-			if(instruction[i]->opcode == OPCODE_CALL || instruction[i]->opcode == OPCODE_CALLNZ)
+			if(inst->opcode == OPCODE_CALL || inst->opcode == OPCODE_CALLNZ)
 			{
-				int label = instruction[i]->dst.label;
+				int label = inst->dst.label;
 
-				instruction[i]->dst.callSite = callSiteIndex[label]++;
+				inst->dst.callSite = callSiteIndex[label]++;
 			}
 		}
 	}
@@ -1890,14 +1890,14 @@ namespace sw
 		dynamicallyIndexedInput = false;
 		dynamicallyIndexedOutput = false;
 
-		for(unsigned int i = 0; i < instruction.size(); i++)
+		for(const auto &inst : instruction)
 		{
-			if(instruction[i]->dst.rel.type == PARAMETER_ADDR ||
-			   instruction[i]->dst.rel.type == PARAMETER_LOOP ||
-			   instruction[i]->dst.rel.type == PARAMETER_TEMP ||
-			   instruction[i]->dst.rel.type == PARAMETER_CONST)
+			if(inst->dst.rel.type == PARAMETER_ADDR ||
+			   inst->dst.rel.type == PARAMETER_LOOP ||
+			   inst->dst.rel.type == PARAMETER_TEMP ||
+			   inst->dst.rel.type == PARAMETER_CONST)
 			{
-				switch(instruction[i]->dst.type)
+				switch(inst->dst.type)
 				{
 				case PARAMETER_TEMP:   dynamicallyIndexedTemporaries = true; break;
 				case PARAMETER_INPUT:  dynamicallyIndexedInput = true;       break;
@@ -1908,12 +1908,12 @@ namespace sw
 
 			for(int j = 0; j < 3; j++)
 			{
-				if(instruction[i]->src[j].rel.type == PARAMETER_ADDR ||
-				   instruction[i]->src[j].rel.type == PARAMETER_LOOP ||
-				   instruction[i]->src[j].rel.type == PARAMETER_TEMP ||
-				   instruction[i]->src[j].rel.type == PARAMETER_CONST)
+				if(inst->src[j].rel.type == PARAMETER_ADDR ||
+				   inst->src[j].rel.type == PARAMETER_LOOP ||
+				   inst->src[j].rel.type == PARAMETER_TEMP ||
+				   inst->src[j].rel.type == PARAMETER_CONST)
 				{
-					switch(instruction[i]->src[j].type)
+					switch(inst->src[j].type)
 					{
 					case PARAMETER_TEMP:   dynamicallyIndexedTemporaries = true; break;
 					case PARAMETER_INPUT:  dynamicallyIndexedInput = true;       break;
