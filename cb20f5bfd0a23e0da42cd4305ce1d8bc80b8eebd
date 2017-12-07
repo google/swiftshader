@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "f35504b7_53a3e023",
+        "filename": "src/D3D9/Direct3DDevice9.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 6326,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-12-07T15:13:09Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "5d4b9f10_cd494d48",
+      "range": {
+        "startLine": 6326,
+        "startChar": 7,
+        "endLine": 6326,
+        "endChar": 17
+      },
+      "revId": "cb20f5bfd0a23e0da42cd4305ce1d8bc80b8eebd",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "df076aa4_aa01c6bc",
         "filename": "src/OpenGL/libGLESv2/Device.hpp",
         "patchSetId": 2
@@ -45,6 +69,30 @@
       "revId": "cb20f5bfd0a23e0da42cd4305ce1d8bc80b8eebd",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0657b8d2_53eaa937",
+        "filename": "src/OpenGL/libGLESv2/Device.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-12-07T15:13:09Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "df076aa4_aa01c6bc",
+      "range": {
+        "startLine": 87,
+        "startChar": 2,
+        "endLine": 88,
+        "endChar": 67
+      },
+      "revId": "cb20f5bfd0a23e0da42cd4305ce1d8bc80b8eebd",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
