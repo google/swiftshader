@@ -1090,6 +1090,16 @@ namespace sw
 			pixel.z = UnpackLow(As<Byte8>(pixel.z), As<Byte8>(pixel.z));
 			pixel.w = Short4(0xFFFFu);
 			break;
+		case FORMAT_G8R8:
+			buffer = cBuffer + 2 * x;
+			c01 = As<Short4>(Insert(As<Int2>(c01), *Pointer<Int>(buffer), 0));
+			buffer += *Pointer<Int>(data + OFFSET(DrawData, colorPitchB[index]));
+			c01 = As<Short4>(Insert(As<Int2>(c01), *Pointer<Int>(buffer), 1));
+			pixel.x = (c01 & Short4(0x00FFu)) | (c01 << 8);
+			pixel.y = (c01 & Short4(0xFF00u)) | As<Short4>(As<UShort4>(c01) >> 8);
+			pixel.z = Short4(0x0000u);
+			pixel.w = Short4(0xFFFFu);
+			break;
 		case FORMAT_X8B8G8R8:
 		case FORMAT_SRGB8_X8:
 			buffer = cBuffer + 4 * x;
