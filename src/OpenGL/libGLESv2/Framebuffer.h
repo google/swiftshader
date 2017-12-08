@@ -61,6 +61,7 @@ public:
 	Renderbuffer *getDepthbuffer() const;
 	Renderbuffer *getStencilbuffer() const;
 
+	GLenum getReadBufferType();
 	GLenum getColorbufferType(GLuint index);
 	GLenum getDepthbufferType();
 	GLenum getStencilbufferType();
@@ -88,10 +89,13 @@ public:
 	static bool IsRenderbuffer(GLenum type);
 
 protected:
-	GLenum mColorbufferType[MAX_COLOR_ATTACHMENTS];
-	gl::BindingPointer<Renderbuffer> mColorbufferPointer[MAX_COLOR_ATTACHMENTS];
+	GLuint getReadBufferIndex() const;
+
 	GLenum readBuffer;
 	GLenum drawBuffer[MAX_COLOR_ATTACHMENTS];
+
+	GLenum mColorbufferType[MAX_COLOR_ATTACHMENTS];
+	gl::BindingPointer<Renderbuffer> mColorbufferPointer[MAX_COLOR_ATTACHMENTS];
 
 	GLenum mDepthbufferType;
 	gl::BindingPointer<Renderbuffer> mDepthbufferPointer;

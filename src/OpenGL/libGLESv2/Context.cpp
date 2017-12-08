@@ -769,20 +769,6 @@ void Context::setFramebufferDrawBuffers(GLsizei n, const GLenum *bufs)
 	}
 }
 
-GLuint Context::getReadFramebufferColorIndex() const
-{
-	GLenum buf = getReadFramebuffer()->getReadBuffer();
-	switch(buf)
-	{
-	case GL_BACK:
-		return 0;
-	case GL_NONE:
-		return GL_INVALID_INDEX;
-	default:
-		return buf - GL_COLOR_ATTACHMENT0;
-}
-}
-
 GLuint Context::getArrayBufferName() const
 {
 	return mState.arrayBuffer.name();
@@ -4118,7 +4104,7 @@ void Context::blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1
 
 	if(mask & GL_COLOR_BUFFER_BIT)
 	{
-		GLenum readColorbufferType = readFramebuffer->getColorbufferType(getReadFramebufferColorIndex());
+		GLenum readColorbufferType = readFramebuffer->getReadBufferType();
 		GLenum drawColorbufferType = drawFramebuffer->getColorbufferType(0);
 		const bool validReadType = readColorbufferType == GL_TEXTURE_2D || Framebuffer::IsRenderbuffer(readColorbufferType);
 		const bool validDrawType = drawColorbufferType == GL_TEXTURE_2D || Framebuffer::IsRenderbuffer(drawColorbufferType);

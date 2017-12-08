@@ -515,7 +515,6 @@ public:
 
 	void setFramebufferReadBuffer(GLenum buf);
 	void setFramebufferDrawBuffers(GLsizei n, const GLenum *bufs);
-	GLuint getReadFramebufferColorIndex() const;
 
 	GLuint getActiveQuery(GLenum target) const;
 
