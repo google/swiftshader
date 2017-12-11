@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b9d3c2f8_78d45aa5",
+        "filename": "src/OpenGL/libGLESv2/utilities.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1143,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-12-11T20:41:59Z",
+      "side": 1,
+      "message": "After the refactorings I\u0027ve done recently, this function should only be called for sized internal formats.  We might be missing a GetSizedInternalFormat() call somewhere?",
+      "range": {
+        "startLine": 1142,
+        "startChar": 2,
+        "endLine": 1143,
+        "endChar": 15
+      },
+      "revId": "fd5af29038df8bee3dbefe32ee061d79537f6691",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
