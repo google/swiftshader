@@ -22,6 +22,30 @@
       "revId": "bf3fc254f96e60ff38e55496c27ba057787a8e9c",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f25fe554_4e111b8b",
+        "filename": "src/OpenGL/compiler/ParseHelper.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1322,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-12-11T21:30:23Z",
+      "side": 0,
+      "message": "As far as I understand, calling clearArrayness() is sufficient, but since it causes an error anyways, maybe calling recover() wouldn\u0027t hurt. It doesn\u0027t seem to be called in Angle\u0027s equivalent code.",
+      "parentUuid": "7a598208_3fd03a8a",
+      "range": {
+        "startLine": 1322,
+        "startChar": 2,
+        "endLine": 1322,
+        "endChar": 12
+      },
+      "revId": "bf3fc254f96e60ff38e55496c27ba057787a8e9c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
