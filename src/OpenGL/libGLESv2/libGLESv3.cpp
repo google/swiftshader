@@ -2154,7 +2154,7 @@ GL_APICALL void GL_APIENTRY glVertexAttribIPointer(GLuint index, GLint size, GLe
 			return error(GL_INVALID_OPERATION);
 		}
 
-		context->setVertexAttribState(index, context->getArrayBuffer(), size, type, false, stride, pointer);
+		context->setVertexAttribState(index, context->getArrayBuffer(), size, type, false, true, stride, pointer);
 	}
 }
 
@@ -2204,22 +2204,7 @@ GL_APICALL void GL_APIENTRY glGetVertexAttribIiv(GLuint index, GLenum pname, GLi
 			}
 			break;
 		case GL_VERTEX_ATTRIB_ARRAY_INTEGER:
-			switch(attribState.mType)
-			{
-			case GL_BYTE:
-			case GL_UNSIGNED_BYTE:
-			case GL_SHORT:
-			case GL_UNSIGNED_SHORT:
-			case GL_INT:
-			case GL_INT_2_10_10_10_REV:
-			case GL_UNSIGNED_INT:
-			case GL_FIXED:
-				*params = GL_TRUE;
-				break;
-			default:
-				*params = GL_FALSE;
-				break;
-			}
+			*params = (attribState.mPureInteger ? GL_TRUE : GL_FALSE);
 			break;
 		case GL_VERTEX_ATTRIB_ARRAY_DIVISOR:
 			*params = attribState.mDivisor;
@@ -2275,22 +2260,7 @@ GL_APICALL void GL_APIENTRY glGetVertexAttribIuiv(GLuint index, GLenum pname, GL
 			}
 			break;
 		case GL_VERTEX_ATTRIB_ARRAY_INTEGER:
-			switch(attribState.mType)
-			{
-			case GL_BYTE:
-			case GL_UNSIGNED_BYTE:
-			case GL_SHORT:
-			case GL_UNSIGNED_SHORT:
-			case GL_INT:
-			case GL_INT_2_10_10_10_REV:
-			case GL_UNSIGNED_INT:
-			case GL_FIXED:
-				*params = GL_TRUE;
-				break;
-			default:
-				*params = GL_FALSE;
-				break;
-			}
+			*params = (attribState.mPureInteger ? GL_TRUE : GL_FALSE);
 			break;
 		case GL_VERTEX_ATTRIB_ARRAY_DIVISOR:
 			*params = attribState.mDivisor;

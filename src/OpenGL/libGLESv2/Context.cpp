@@ -822,10 +822,10 @@ const VertexAttribute &Context::getVertexAttribState(unsigned int attribNum) con
 	return getCurrentVertexArray()->getVertexAttribute(attribNum);
 }
 
-void Context::setVertexAttribState(unsigned int attribNum, Buffer *boundBuffer, GLint size, GLenum type, bool normalized,
-                                   GLsizei stride, const void *pointer)
+void Context::setVertexAttribState(unsigned int attribNum, Buffer *boundBuffer, GLint size, GLenum type,
+                                   bool normalized, bool pureInteger, GLsizei stride, const void *pointer)
 {
-	getCurrentVertexArray()->setAttributeState(attribNum, boundBuffer, size, type, normalized, stride, pointer);
+	getCurrentVertexArray()->setAttributeState(attribNum, boundBuffer, size, type, normalized, pureInteger, stride, pointer);
 }
 
 const void *Context::getVertexAttribPointer(unsigned int attribNum) const

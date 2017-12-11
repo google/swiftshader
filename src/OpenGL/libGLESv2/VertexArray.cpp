@@ -65,13 +65,14 @@ void VertexArray::enableAttribute(unsigned int attributeIndex, bool enabledState
 }
 
 void VertexArray::setAttributeState(unsigned int attributeIndex, Buffer *boundBuffer, GLint size, GLenum type,
-                                    bool normalized, GLsizei stride, const void *pointer)
+                                    bool normalized, bool pureInteger, GLsizei stride, const void *pointer)
 {
 	ASSERT(attributeIndex < MAX_VERTEX_ATTRIBS);
 	mVertexAttributes[attributeIndex].mBoundBuffer = boundBuffer;
 	mVertexAttributes[attributeIndex].mSize = size;
 	mVertexAttributes[attributeIndex].mType = type;
 	mVertexAttributes[attributeIndex].mNormalized = normalized;
+	mVertexAttributes[attributeIndex].mPureInteger = pureInteger;
 	mVertexAttributes[attributeIndex].mStride = stride;
 	mVertexAttributes[attributeIndex].mPointer = pointer;
 }

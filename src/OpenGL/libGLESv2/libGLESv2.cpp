@@ -4084,22 +4084,7 @@ void GetVertexAttribfv(GLuint index, GLenum pname, GLfloat* params)
 		case GL_VERTEX_ATTRIB_ARRAY_INTEGER:
 			if(clientVersion >= 3)
 			{
-				switch(attribState.mType)
-				{
-				case GL_BYTE:
-				case GL_UNSIGNED_BYTE:
-				case GL_SHORT:
-				case GL_UNSIGNED_SHORT:
-				case GL_INT:
-				case GL_INT_2_10_10_10_REV:
-				case GL_UNSIGNED_INT:
-				case GL_FIXED:
-					*params = (GLfloat)GL_TRUE;
-					break;
-				default:
-					*params = (GLfloat)GL_FALSE;
-					break;
-				}
+				*params = (GLfloat)(attribState.mPureInteger ? GL_TRUE : GL_FALSE);
 				break;
 			}
 			else return error(GL_INVALID_ENUM);
@@ -4158,22 +4143,7 @@ void GetVertexAttribiv(GLuint index, GLenum pname, GLint* params)
 		case GL_VERTEX_ATTRIB_ARRAY_INTEGER:
 			if(clientVersion >= 3)
 			{
-				switch(attribState.mType)
-				{
-				case GL_BYTE:
-				case GL_UNSIGNED_BYTE:
-				case GL_SHORT:
-				case GL_UNSIGNED_SHORT:
-				case GL_INT:
-				case GL_INT_2_10_10_10_REV:
-				case GL_UNSIGNED_INT:
-				case GL_FIXED:
-					*params = GL_TRUE;
-					break;
-				default:
-					*params = GL_FALSE;
-					break;
-				}
+				*params = (attribState.mPureInteger ? GL_TRUE : GL_FALSE);
 				break;
 			}
 			else return error(GL_INVALID_ENUM);
@@ -6187,7 +6157,7 @@ void VertexAttribPointer(GLuint index, GLint size, GLenum type, GLboolean normal
 			return error(GL_INVALID_OPERATION);
 		}
 
-		context->setVertexAttribState(index, context->getArrayBuffer(), size, type, (normalized == GL_TRUE), stride, ptr);
+		context->setVertexAttribState(index, context->getArrayBuffer(), size, type, (normalized == GL_TRUE), false, stride, ptr);
 	}
 }
 

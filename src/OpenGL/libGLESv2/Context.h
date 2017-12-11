@@ -194,7 +194,7 @@ struct Color
 class VertexAttribute
 {
 public:
-	VertexAttribute() : mType(GL_FLOAT), mSize(4), mNormalized(false), mStride(0), mDivisor(0), mPointer(nullptr), mArrayEnabled(false)
+	VertexAttribute() : mType(GL_FLOAT), mSize(4), mNormalized(false), mPureInteger(false), mStride(0), mDivisor(0), mPointer(nullptr), mArrayEnabled(false)
 	{
 		mCurrentValue[0].f = 0.0f;
 		mCurrentValue[1].f = 0.0f;
@@ -301,6 +301,7 @@ public:
 	GLenum mType;
 	GLint mSize;
 	bool mNormalized;
+	bool mPureInteger;
 	GLsizei mStride;   // 0 means natural stride
 	GLuint mDivisor;   // From glVertexAttribDivisor
 
@@ -525,7 +526,7 @@ public:
 	void setVertexAttribDivisor(unsigned int attribNum, GLuint divisor);
 	const VertexAttribute &getVertexAttribState(unsigned int attribNum) const;
 	void setVertexAttribState(unsigned int attribNum, Buffer *boundBuffer, GLint size, GLenum type,
-	                          bool normalized, GLsizei stride, const void *pointer);
+	                          bool normalized, bool pureInteger, GLsizei stride, const void *pointer);
 	const void *getVertexAttribPointer(unsigned int attribNum) const;
 
 	const VertexAttributeArray &getVertexArrayAttributes();

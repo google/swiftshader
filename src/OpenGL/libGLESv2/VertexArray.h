@@ -38,7 +38,7 @@ public:
 	void setVertexAttribDivisor(GLuint index, GLuint divisor);
 	void enableAttribute(unsigned int attributeIndex, bool enabledState);
 	void setAttributeState(unsigned int attributeIndex, Buffer *boundBuffer, GLint size, GLenum type,
-	                       bool normalized, GLsizei stride, const void *pointer);
+	                       bool normalized, bool pureInteger, GLsizei stride, const void *pointer);
 
 	Buffer *getElementArrayBuffer() const { return mElementArrayBuffer; }
 	void setElementArrayBuffer(Buffer *buffer);
