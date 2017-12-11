@@ -52,7 +52,7 @@ class [[clang::lto_visibility_public]] Image : public sw::Surface, public gl::Ob
 protected:
 	// 2D texture image
 	Image(Texture *parentTexture, GLsizei width, GLsizei height, GLenum format, GLenum type)
-		: sw::Surface(parentTexture->getResource(), width, height, 1, 0, SelectInternalFormat(format, type), true, true),
+		: sw::Surface(parentTexture->getResource(), width, height, 1, 0, 1, SelectInternalFormat(format, type), true, true),
 		  width(width), height(height), format(format), type(type), internalFormat(SelectInternalFormat(format, type)), depth(1),
 		  parentTexture(parentTexture)
 	{
@@ -63,7 +63,7 @@ protected:
 
 	// 3D/Cube texture image
 	Image(Texture *parentTexture, GLsizei width, GLsizei height, GLsizei depth, int border, GLenum format, GLenum type)
-		: sw::Surface(parentTexture->getResource(), width, height, depth, border, SelectInternalFormat(format, type), true, true),
+		: sw::Surface(parentTexture->getResource(), width, height, depth, border, 1, SelectInternalFormat(format, type), true, true),
 		  width(width), height(height), format(format), type(type), internalFormat(SelectInternalFormat(format, type)), depth(depth),
 		  parentTexture(parentTexture)
 	{
@@ -74,7 +74,7 @@ protected:
 
 	// Native EGL image
 	Image(GLsizei width, GLsizei height, GLenum format, GLenum type, int pitchP)
-		: sw::Surface(nullptr, width, height, 1, 0, SelectInternalFormat(format, type), true, true, pitchP),
+		: sw::Surface(nullptr, width, height, 1, 0, 1, SelectInternalFormat(format, type), true, true, pitchP),
 		  width(width), height(height), format(format), type(type), internalFormat(SelectInternalFormat(format, type)), depth(1),
 		  parentTexture(nullptr)
 	{
@@ -84,8 +84,9 @@ protected:
 
 	// Render target
 	Image(GLsizei width, GLsizei height, sw::Format internalFormat, int multiSampleDepth, bool lockable)
-		: sw::Surface(nullptr, width, height, multiSampleDepth, 0, internalFormat, lockable, true),
-		  width(width), height(height), format(0 /*GL_NONE*/), type(0 /*GL_NONE*/), internalFormat(internalFormat), depth(multiSampleDepth),
+		: sw::Surface(nullptr, width, height, 1, 0, multiSampleDepth, internalFormat, lockable, true),
+		  width(width), height(height), format(0 /*GL_NONE*/), type(0 /*GL_NONE*/), internalFormat(internalFormat),
+depth(multiSampleDepth),
 		  parentTexture(nullptr)
 	{
 		shared = false;

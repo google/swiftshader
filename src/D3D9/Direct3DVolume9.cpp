@@ -31,7 +31,7 @@ namespace D3D9
 	}
 
 	Direct3DVolume9::Direct3DVolume9(Direct3DDevice9 *device, Direct3DVolumeTexture9 *container, int width, int height, int depth, D3DFORMAT format, D3DPOOL pool, unsigned long usage)
-		: device(device), Surface(container->getResource(), width, height, depth, 0, translateFormat(format), isLockable(pool, usage), false), container(container), width(width), height(height), depth(depth), format(format), pool(pool), lockable(isLockable(pool, usage)), usage(usage)
+		: device(device), Surface(container->getResource(), width, height, depth, 0, 1, translateFormat(format), isLockable(pool, usage), false), container(container), width(width), height(height), depth(depth), format(format), pool(pool), lockable(isLockable(pool, usage)), usage(usage)
 	{
 		resource = new Direct3DResource9(device, D3DRTYPE_VOLUME, pool, memoryUsage(width, height, depth, format));
 		resource->bind();
@@ -230,6 +230,6 @@ namespace D3D9
 
 	unsigned int Direct3DVolume9::memoryUsage(int width, int height, int depth, D3DFORMAT format)
 	{
-		return Surface::size(width, height, depth, 0, translateFormat(format));
+		return Surface::size(width, height, depth, 0, 1, translateFormat(format));
 	}
 }

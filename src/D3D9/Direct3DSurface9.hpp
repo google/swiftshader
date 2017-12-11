@@ -64,7 +64,7 @@ namespace D3D9
 		static int bytes(D3DFORMAT format);
 
 	private:
-		static unsigned int memoryUsage(int width, int height, D3DFORMAT format);
+		static unsigned int memoryUsage(int width, int height, D3DMULTISAMPLE_TYPE multiSample, unsigned int quality, D3DFORMAT format);
 
 		// Creation parameters
 		Unknown *const container;

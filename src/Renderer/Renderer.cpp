@@ -606,7 +606,8 @@ namespace sw
 
 					if(draw->renderTarget[index])
 					{
-						data->colorBuffer[index] = (unsigned int*)context->renderTarget[index]->lockInternal(0, 0, q * ms, LOCK_READWRITE, MANAGED);
+						data->colorBuffer[index] = (unsigned int*)context->renderTarget[index]->lockInternal(0, 0, 0, LOCK_READWRITE, MANAGED);
+						data->colorBuffer[index] += q * ms * context->renderTarget[index]->getSliceB(true);
 						data->colorPitchB[index] = context->renderTarget[index]->getInternalPitchB();
 						data->colorSliceB[index] = context->renderTarget[index]->getInternalSliceB();
 					}
@@ -617,14 +618,16 @@ namespace sw
 
 				if(draw->depthBuffer)
 				{
-					data->depthBuffer = (float*)context->depthBuffer->lockInternal(0, 0, q * ms, LOCK_READWRITE, MANAGED);
+					data->depthBuffer = (float*)context->depthBuffer->lockInternal(0, 0, 0, LOCK_READWRITE, MANAGED);
+					data->depthBuffer += q * ms * context->depthBuffer->getSliceB(true);
 					data->depthPitchB = context->depthBuffer->getInternalPitchB();
 					data->depthSliceB = context->depthBuffer->getInternalSliceB();
 				}
 
 				if(draw->stencilBuffer)
 				{
-					data->stencilBuffer = (unsigned char*)context->stencilBuffer->lockStencil(0, 0, q * ms, MANAGED);
+					data->stencilBuffer = (unsigned char*)context->stencilBuffer->lockStencil(0, 0, 0, MANAGED);
+					data->stencilBuffer += q * ms * context->stencilBuffer->getSliceB(true);
 					data->stencilPitchB = context->stencilBuffer->getStencilPitchB();
 					data->stencilSliceB = context->stencilBuffer->getStencilSliceB();
 				}
@@ -673,13 +676,7 @@ namespace sw
 
 	void Renderer::clear(void *value, Format format, Surface *dest, const Rect &clearRect, unsigned int rgbaMask)
 	{
-		SliceRect rect = clearRect;
-		int samples = dest->getDepth();
-
-		for(rect.slice = 0; rect.slice < samples; rect.slice++)
-		{
-			blitter->clear(value, format, dest, rect, rgbaMask);
-		}
+		blitter->clear(value, format, dest, clearRect, rgbaMask);
 	}
 
 	void Renderer::blit(Surface *source, const SliceRectF &sRect, Surface *dest, const SliceRect &dRect, bool filter, bool isStencil)

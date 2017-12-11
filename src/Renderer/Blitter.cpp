@@ -30,7 +30,7 @@ namespace sw
 		delete blitCache;
 	}
 
-	void Blitter::clear(void* pixel, sw::Format format, Surface *dest, const SliceRect &dRect, unsigned int rgbaMask)
+	void Blitter::clear(void *pixel, sw::Format format, Surface *dest, const SliceRect &dRect, unsigned int rgbaMask)
 	{
 		if(fastClear(pixel, format, dest, dRect, rgbaMask))
 		{
@@ -44,7 +44,7 @@ namespace sw
 		delete color;
 	}
 
-	bool Blitter::fastClear(void* pixel, sw::Format format, Surface *dest, const SliceRect &dRect, unsigned int rgbaMask)
+	bool Blitter::fastClear(void *pixel, sw::Format format, Surface *dest, const SliceRect &dRect, unsigned int rgbaMask)
 	{
 		if(format != FORMAT_A32B32G32R32F)
 		{
@@ -99,26 +99,33 @@ namespace sw
 			return false;
 		}
 
-		uint8_t *d = (uint8_t*)dest->lockInternal(dRect.x0, dRect.y0, dRect.slice, sw::LOCK_WRITEONLY, sw::PUBLIC);
+		uint8_t *slice = (uint8_t*)dest->lockInternal(dRect.x0, dRect.y0, dRect.slice, sw::LOCK_WRITEONLY, sw::PUBLIC);
 
-		switch(Surface::bytes(dest->getFormat()))
+		for(int j = 0; j < dest->getSamples(); j++)
 		{
-		case 2:
-			for(int i = dRect.y0; i < dRect.y1; i++)
+			uint8_t *d = slice;
+
+			switch(Surface::bytes(dest->getFormat()))
 			{
-				sw::clear((uint16_t*)d, packed, dRect.x1 - dRect.x0);
-				d += dest->getInternalPitchB();
+			case 2:
+				for(int i = dRect.y0; i < dRect.y1; i++)
+				{
+					sw::clear((uint16_t*)d, packed, dRect.x1 - dRect.x0);
+					d += dest->getInternalPitchB();
+				}
+				break;
+			case 4:
+				for(int i = dRect.y0; i < dRect.y1; i++)
+				{
+					sw::clear((uint32_t*)d, packed, dRect.x1 - dRect.x0);
+					d += dest->getInternalPitchB();
+				}
+				break;
+			default:
+				assert(false);
 			}
-			break;
-		case 4:
-			for(int i = dRect.y0; i < dRect.y1; i++)
-			{
-				sw::clear((uint32_t*)d, packed, dRect.x1 - dRect.x0);
-				d += dest->getInternalPitchB();
-			}
-			break;
-		default:
-			assert(false);
+
+			slice += dest->getInternalSliceB();
 		}
 
 		dest->unlockInternal();
@@ -1201,6 +1208,7 @@ namespace sw
 				For(Int i = x0d, i < x1d, i++)
 				{
 					Pointer<Byte> d = destLine + (dstQuadLayout ? (((j & Int(1)) << 1) + (i * 2) - (i & Int(1))) : RValue<Int>(i)) * dstBytes;
+
 					if(hasConstantColorI)
 					{
 						if(!write(constantColorI, d, state.destFormat, state.options))
@@ -1281,9 +1289,19 @@ namespace sw
 							        (c10 * ix + c11 * fx) * fy;
 						}
 
-						if(!ApplyScaleAndClamp(color, state) || !write(color, d, state.destFormat, state.options))
+						if(!ApplyScaleAndClamp(color, state))
 						{
 							return nullptr;
+						}
+
+						for(int s = 0; s < state.destSamples; s++)
+						{
+							if(!write(color, d, state.destFormat, state.options))
+							{
+								return nullptr;
+							}
+
+							d += *Pointer<Int>(blit + OFFSET(BlitData,dSliceB));
 						}
 					}
 
@@ -1322,6 +1340,7 @@ namespace sw
 
 		state.sourceFormat = isStencil ? source->getStencilFormat() : source->getFormat(useSourceInternal);
 		state.destFormat = isStencil ? dest->getStencilFormat() : dest->getFormat(useDestInternal);
+		state.destSamples = dest->getSamples();
 		state.options = options;
 
 		criticalSection.lock();
@@ -1355,6 +1374,7 @@ namespace sw
 		                        dest->lock(0, 0, destRect.slice, isRGBA ? (isEntireDest ? sw::LOCK_DISCARD : sw::LOCK_WRITEONLY) : sw::LOCK_READWRITE, sw::PUBLIC, useDestInternal);
 		data.sPitchB = isStencil ? source->getStencilPitchB() : source->getPitchB(useSourceInternal);
 		data.dPitchB = isStencil ? dest->getStencilPitchB() : dest->getPitchB(useDestInternal);
+		data.dSliceB = isStencil ? dest->getStencilSliceB() : dest->getSliceB(useDestInternal);
 
 		data.w = sRect.width() / dRect.width();
 		data.h = sRect.height() / dRect.height();
