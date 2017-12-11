@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a598208_3fd03a8a",
+        "filename": "src/OpenGL/compiler/ParseHelper.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1322,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-12-11T20:43:27Z",
+      "side": 0,
+      "message": "Should this be added to the check below?",
+      "range": {
+        "startLine": 1322,
+        "startChar": 2,
+        "endLine": 1322,
+        "endChar": 12
+      },
+      "revId": "bf3fc254f96e60ff38e55496c27ba057787a8e9c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
