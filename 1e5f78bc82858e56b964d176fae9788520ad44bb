@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6eff5c48_cb93c865",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 4087,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-12-11T20:40:44Z",
+      "side": 1,
+      "message": "Do we still need this switch?",
+      "range": {
+        "startLine": 4087,
+        "startChar": 4,
+        "endLine": 4087,
+        "endChar": 29
+      },
+      "revId": "1e5f78bc82858e56b964d176fae9788520ad44bb",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bdcb4dc6_c78c76d9",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 4094,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-12-11T20:40:44Z",
+      "side": 1,
+      "message": "I think this type is interpreted a normalized integers.",
+      "range": {
+        "startLine": 4094,
+        "startChar": 9,
+        "endLine": 4094,
+        "endChar": 30
+      },
+      "revId": "1e5f78bc82858e56b964d176fae9788520ad44bb",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "57794e29_41e63b2f",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 4096,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-12-11T20:40:44Z",
+      "side": 1,
+      "message": "I don\u0027t think this is considered a non-normalized integer either.",
+      "range": {
+        "startLine": 4096,
+        "startChar": 9,
+        "endLine": 4096,
+        "endChar": 17
+      },
+      "revId": "1e5f78bc82858e56b964d176fae9788520ad44bb",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
