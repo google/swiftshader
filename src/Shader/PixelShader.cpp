@@ -694,10 +694,10 @@ namespace sw
 						unsigned char mask = inst->dst.mask;
 						unsigned char reg = inst->dst.index;
 
-						if(mask & 0x01)	input[reg][0] = Semantic(usage, index);
+						if(mask & 0x01) input[reg][0] = Semantic(usage, index);
 						if(mask & 0x02) input[reg][1] = Semantic(usage, index);
 						if(mask & 0x04) input[reg][2] = Semantic(usage, index);
-						if(mask & 0x08)	input[reg][3] = Semantic(usage, index);
+						if(mask & 0x08) input[reg][3] = Semantic(usage, index);
 					}
 					else if(inst->dst.type == Shader::PARAMETER_MISCTYPE)
 					{

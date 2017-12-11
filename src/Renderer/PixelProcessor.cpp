@@ -159,19 +159,22 @@ namespace sw
 		}
 	}
 
-	void PixelProcessor::setRenderTarget(int index, Surface *renderTarget)
+	void PixelProcessor::setRenderTarget(int index, Surface *renderTarget, unsigned int layer)
 	{
 		context->renderTarget[index] = renderTarget;
+		context->renderTargetLayer[index] = layer;
 	}
 
-	void PixelProcessor::setDepthBuffer(Surface *depthBuffer)
+	void PixelProcessor::setDepthBuffer(Surface *depthBuffer, unsigned int layer)
 	{
 		context->depthBuffer = depthBuffer;
+		context->depthBufferLayer = layer;
 	}
 
-	void PixelProcessor::setStencilBuffer(Surface *stencilBuffer)
+	void PixelProcessor::setStencilBuffer(Surface *stencilBuffer, unsigned int layer)
 	{
 		context->stencilBuffer = stencilBuffer;
+		context->stencilBufferLayer = layer;
 	}
 
 	void PixelProcessor::setTexCoordIndex(unsigned int stage, int texCoordIndex)

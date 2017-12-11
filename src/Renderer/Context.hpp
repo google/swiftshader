@@ -465,8 +465,11 @@ namespace sw
 		bool textureTransformProject[8];
 
 		Surface *renderTarget[RENDERTARGETS];
+		unsigned int renderTargetLayer[RENDERTARGETS];
 		Surface *depthBuffer;
+		unsigned int depthBufferLayer;
 		Surface *stencilBuffer;
+		unsigned int stencilBufferLayer;
 
 		// Fog
 		bool fogEnable;

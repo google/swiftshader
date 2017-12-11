@@ -606,7 +606,8 @@ namespace sw
 
 					if(draw->renderTarget[index])
 					{
-						data->colorBuffer[index] = (unsigned int*)context->renderTarget[index]->lockInternal(0, 0, 0, LOCK_READWRITE, MANAGED);
+						unsigned int layer = context->renderTargetLayer[index];
+						data->colorBuffer[index] = (unsigned int*)context->renderTarget[index]->lockInternal(0, 0, layer, LOCK_READWRITE, MANAGED);
 						data->colorBuffer[index] += q * ms * context->renderTarget[index]->getSliceB(true);
 						data->colorPitchB[index] = context->renderTarget[index]->getInternalPitchB();
 						data->colorSliceB[index] = context->renderTarget[index]->getInternalSliceB();
@@ -618,7 +619,8 @@ namespace sw
 
 				if(draw->depthBuffer)
 				{
-					data->depthBuffer = (float*)context->depthBuffer->lockInternal(0, 0, 0, LOCK_READWRITE, MANAGED);
+					unsigned int layer = context->depthBufferLayer;
+					data->depthBuffer = (float*)context->depthBuffer->lockInternal(0, 0, layer, LOCK_READWRITE, MANAGED);
 					data->depthBuffer += q * ms * context->depthBuffer->getSliceB(true);
 					data->depthPitchB = context->depthBuffer->getInternalPitchB();
 					data->depthSliceB = context->depthBuffer->getInternalSliceB();
@@ -626,7 +628,8 @@ namespace sw
 
 				if(draw->stencilBuffer)
 				{
-					data->stencilBuffer = (unsigned char*)context->stencilBuffer->lockStencil(0, 0, 0, MANAGED);
+					unsigned int layer = context->stencilBufferLayer;
+					data->stencilBuffer = (unsigned char*)context->stencilBuffer->lockStencil(0, 0, layer, MANAGED);
 					data->stencilBuffer += q * ms * context->stencilBuffer->getSliceB(true);
 					data->stencilPitchB = context->stencilBuffer->getStencilPitchB();
 					data->stencilSliceB = context->stencilBuffer->getStencilSliceB();

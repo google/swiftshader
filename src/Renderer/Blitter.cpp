@@ -214,13 +214,13 @@ namespace sw
 		float d = static_cast<float>(source->getDepth())  / static_cast<float>(dest->getDepth());
 
 		float z = 0.5f * d;
-		for(int k = 0; k < dest->getDepth(); ++k)
+		for(int k = 0; k < dest->getDepth(); k++)
 		{
 			float y = 0.5f * h;
-			for(int j = 0; j < dest->getHeight(); ++j)
+			for(int j = 0; j < dest->getHeight(); j++)
 			{
 				float x = 0.5f * w;
-				for(int i = 0; i < dest->getWidth(); ++i)
+				for(int i = 0; i < dest->getWidth(); i++)
 				{
 					dest->copyInternal(source, i, j, k, x, y, z, true);
 					x += w;

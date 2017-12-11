@@ -197,9 +197,9 @@ namespace sw
 		void setUniformBuffer(int index, sw::Resource* buffer, int offset);
 		void lockUniformBuffers(byte** u, sw::Resource* uniformBuffers[]);
 
-		void setRenderTarget(int index, Surface *renderTarget);
-		void setDepthBuffer(Surface *depthBuffer);
-		void setStencilBuffer(Surface *stencilBuffer);
+		void setRenderTarget(int index, Surface *renderTarget, unsigned int layer = 0);
+		void setDepthBuffer(Surface *depthBuffer, unsigned int layer = 0);
+		void setStencilBuffer(Surface *stencilBuffer, unsigned int layer = 0);
 
 		void setTexCoordIndex(unsigned int stage, int texCoordIndex);
 		void setStageOperation(unsigned int stage, TextureStage::StageOperation stageOperation);
