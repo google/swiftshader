@@ -3338,22 +3338,22 @@ namespace sw
 		const bool entire = x0 == 0 && y0 == 0 && width == internal.width && height == internal.height;
 		const Lock lock = entire ? LOCK_DISCARD : LOCK_WRITEONLY;
 
-		int width2 = (internal.width + 1) & ~1;
-
 		int x1 = x0 + width;
 		int y1 = y0 + height;
 
 		if(!hasQuadLayout(internal.format))
 		{
-			float *target = (float*)lockInternal(0, 0, 0, lock, PUBLIC) + x0 + width2 * y0;
+			float *target = (float*)lockInternal(x0, y0, 0, lock, PUBLIC);
 
 			for(int z = 0; z < internal.samples; z++)
 			{
+				float *row = target;
 				for(int y = y0; y < y1; y++)
 				{
-					memfill4(target, (int&)depth, 4 * width);
-					target += width2;
+					memfill4(row, (int&)depth, width * sizeof(float));
+					row += internal.pitchP;
 				}
+				target += internal.sliceP;
 			}
 
 			unlockInternal();
@@ -3376,7 +3376,7 @@ namespace sw
 			{
 				for(int y = y0; y < y1; y++)
 				{
-					float *target = buffer + (y & ~1) * width2 + (y & 1) * 2;
+					float *target = buffer + (y & ~1) * internal.pitchP + (y & 1) * 2;
 
 					if((y & 1) == 0 && y + 1 < y1)   // Fill quad line at once
 					{
@@ -3458,8 +3458,6 @@ namespace sw
 		if(y0 < 0) {height += y0; y0 = 0;}
 		if(y0 + height > internal.height) height = internal.height - y0;
 
-		int width2 = (internal.width + 1) & ~1;
-
 		int x1 = x0 + width;
 		int y1 = y0 + height;
 
@@ -3480,7 +3478,7 @@ namespace sw
 		{
 			for(int y = y0; y < y1; y++)
 			{
-				char *target = buffer + (y & ~1) * width2 + (y & 1) * 2;
+				char *target = buffer + (y & ~1) * stencil.pitchP + (y & 1) * 2;
 
 				if((y & 1) == 0 && y + 1 < y1 && mask == 0xFF)   // Fill quad line at once
 				{
@@ -3502,8 +3500,9 @@ namespace sw
 				}
 				else
 				{
-					for(int x = x0, i = oddX0; x < x1; x++, i = (x & ~1) * 2 + (x & 1))
+					for(int x = x0; x < x1; x++)
 					{
+						int i = (x & ~1) * 2 + (x & 1);
 						target[i] = maskedS | (target[i] & invMask);
 					}
 				}

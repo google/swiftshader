@@ -65,9 +65,9 @@ namespace es2
 		void setPixelShader(const sw::PixelShader *shader);
 		void setPixelShaderConstantF(unsigned int startRegister, const float *constantData, unsigned int count);
 		void setScissorEnable(bool enable);
-		void setRenderTarget(int index, egl::Image *renderTarget);
-		void setDepthBuffer(egl::Image *depthBuffer);
-		void setStencilBuffer(egl::Image *stencilBuffer);
+		void setRenderTarget(int index, egl::Image *renderTarget, unsigned int layer);
+		void setDepthBuffer(egl::Image *depthBuffer, unsigned int layer);
+		void setStencilBuffer(egl::Image *stencilBuffer, unsigned int layer);
 		void setScissorRect(const sw::Rect &rect);
 		void setVertexShader(const sw::VertexShader *shader);
 		void setVertexShaderConstantF(unsigned int startRegister, const float *constantData, unsigned int count);

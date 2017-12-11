@@ -96,15 +96,18 @@ protected:
 
 	GLenum mColorbufferType[MAX_COLOR_ATTACHMENTS];
 	gl::BindingPointer<Renderbuffer> mColorbufferPointer[MAX_COLOR_ATTACHMENTS];
+	GLint mColorbufferLayer[MAX_COLOR_ATTACHMENTS];
 
 	GLenum mDepthbufferType;
 	gl::BindingPointer<Renderbuffer> mDepthbufferPointer;
+	GLint mDepthbufferLayer;
 
 	GLenum mStencilbufferType;
 	gl::BindingPointer<Renderbuffer> mStencilbufferPointer;
+	GLint mStencilbufferLayer;
 
 private:
-	Renderbuffer *lookupRenderbuffer(GLenum type, GLuint handle, GLint level, GLint layer) const;
+	Renderbuffer *lookupRenderbuffer(GLenum type, GLuint handle, GLint level) const;
 };
 
 class DefaultFramebuffer : public Framebuffer

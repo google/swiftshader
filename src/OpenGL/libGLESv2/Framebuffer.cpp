@@ -32,19 +32,23 @@ bool Framebuffer::IsRenderbuffer(GLenum type)
 
 Framebuffer::Framebuffer()
 {
-	for(int i = 0; i < MAX_COLOR_ATTACHMENTS; i++)
-	{
-		mColorbufferType[i] = GL_NONE;
-	}
-	mDepthbufferType = GL_NONE;
-	mStencilbufferType = GL_NONE;
-
 	readBuffer = GL_COLOR_ATTACHMENT0;
 	drawBuffer[0] = GL_COLOR_ATTACHMENT0;
-	for(int i = 1; i < MAX_COLOR_ATTACHMENTS; ++i)
+	for(int i = 1; i < MAX_COLOR_ATTACHMENTS; i++)
 	{
 		drawBuffer[i] = GL_NONE;
 	}
+
+	for(int i = 0; i < MAX_COLOR_ATTACHMENTS; i++)
+	{
+		mColorbufferType[i] = GL_NONE;
+		mColorbufferLayer[i] = 0;
+	}
+
+	mDepthbufferType = GL_NONE;
+	mDepthbufferLayer = 0;
+	mStencilbufferType = GL_NONE;
+	mStencilbufferLayer = 0;
 }
 
 Framebuffer::~Framebuffer()
@@ -57,7 +61,7 @@ Framebuffer::~Framebuffer()
 	mStencilbufferPointer = nullptr;
 }
 
-Renderbuffer *Framebuffer::lookupRenderbuffer(GLenum type, GLuint handle, GLint level, GLint layer) const
+Renderbuffer *Framebuffer::lookupRenderbuffer(GLenum type, GLuint handle, GLint level) const
 {
 	Context *context = getContext();
 	Renderbuffer *buffer = nullptr;
@@ -72,7 +76,7 @@ Renderbuffer *Framebuffer::lookupRenderbuffer(GLenum type, GLuint handle, GLint 
 	}
 	else if(IsTextureTarget(type))
 	{
-		buffer = context->getTexture(handle)->getRenderbuffer(type, level, layer);
+		buffer = context->getTexture(handle)->getRenderbuffer(type, level);
 	}
 	else UNREACHABLE(type);
 
@@ -82,19 +86,22 @@ Renderbuffer *Framebuffer::lookupRenderbuffer(GLenum type, GLuint handle, GLint 
 void Framebuffer::setColorbuffer(GLenum type, GLuint colorbuffer, GLuint index, GLint level, GLint layer)
 {
 	mColorbufferType[index] = (colorbuffer != 0) ? type : GL_NONE;
-	mColorbufferPointer[index] = lookupRenderbuffer(type, colorbuffer, level, layer);
+	mColorbufferPointer[index] = lookupRenderbuffer(type, colorbuffer, level);
+	mColorbufferLayer[index] = layer;
 }
 
 void Framebuffer::setDepthbuffer(GLenum type, GLuint depthbuffer, GLint level, GLint layer)
 {
 	mDepthbufferType = (depthbuffer != 0) ? type : GL_NONE;
-	mDepthbufferPointer = lookupRenderbuffer(type, depthbuffer, level, layer);
+	mDepthbufferPointer = lookupRenderbuffer(type, depthbuffer, level);
+	mDepthbufferLayer = layer;
 }
 
 void Framebuffer::setStencilbuffer(GLenum type, GLuint stencilbuffer, GLint level, GLint layer)
 {
 	mStencilbufferType = (stencilbuffer != 0) ? type : GL_NONE;
-	mStencilbufferPointer = lookupRenderbuffer(type, stencilbuffer, level, layer);
+	mStencilbufferPointer = lookupRenderbuffer(type, stencilbuffer, level);
+	mStencilbufferLayer = layer;
 }
 
 void Framebuffer::setReadBuffer(GLenum buf)
@@ -277,18 +284,17 @@ GLuint Framebuffer::getStencilbufferName()
 
 GLint Framebuffer::getColorbufferLayer(GLuint index)
 {
-	Renderbuffer *colorbuffer = mColorbufferPointer[index];
-	return colorbuffer ? colorbuffer->getLayer() : 0;
+	return mColorbufferLayer[index];
 }
 
 GLint Framebuffer::getDepthbufferLayer()
 {
-	return mDepthbufferPointer ? mDepthbufferPointer->getLayer() : 0;
+	return mDepthbufferLayer;
 }
 
 GLint Framebuffer::getStencilbufferLayer()
 {
-	return mStencilbufferPointer ? mStencilbufferPointer->getLayer() : 0;
+	return mStencilbufferLayer;
 }
 
 bool Framebuffer::hasStencil()
@@ -332,7 +338,7 @@ GLenum Framebuffer::completeness(int &width, int &height, int &samples)
 				return GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
 			}
 
-			if(colorbuffer->getWidth() == 0 || colorbuffer->getHeight() == 0 || (colorbuffer->getDepth() <= colorbuffer->getLayer()))
+			if(colorbuffer->getWidth() == 0 || colorbuffer->getHeight() == 0 || (colorbuffer->getDepth() <= mColorbufferLayer[i]))
 			{
 				return GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
 			}
@@ -373,7 +379,7 @@ GLenum Framebuffer::completeness(int &width, int &height, int &samples)
 			}
 			else if(samples != colorbuffer->getSamples())
 			{
-				return GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE_ANGLE;
+				return GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE;
 			}
 		}
 	}
@@ -390,7 +396,7 @@ GLenum Framebuffer::completeness(int &width, int &height, int &samples)
 			return GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
 		}
 
-		if(depthbuffer->getWidth() == 0 || depthbuffer->getHeight() == 0)
+		if(depthbuffer->getWidth() == 0 || depthbuffer->getHeight() == 0 || (depthbuffer->getDepth() <= mDepthbufferLayer))
 		{
 			return GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
 		}
@@ -427,7 +433,7 @@ GLenum Framebuffer::completeness(int &width, int &height, int &samples)
 		}
 		else if(samples != depthbuffer->getSamples())
 		{
-			return GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE_ANGLE;
+			return GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE;
 		}
 	}
 
@@ -440,7 +446,7 @@ GLenum Framebuffer::completeness(int &width, int &height, int &samples)
 			return GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
 		}
 
-		if(stencilbuffer->getWidth() == 0 || stencilbuffer->getHeight() == 0)
+		if(stencilbuffer->getWidth() == 0 || stencilbuffer->getHeight() == 0 || (stencilbuffer->getDepth() <= mStencilbufferLayer))
 		{
 			return GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
 		}
@@ -479,7 +485,7 @@ GLenum Framebuffer::completeness(int &width, int &height, int &samples)
 		}
 		else if(samples != stencilbuffer->getSamples())
 		{
-			return GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE_ANGLE;
+			return GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE;
 		}
 	}
 

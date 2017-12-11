@@ -385,7 +385,7 @@ void BindTexture(GLenum target, GLuint texture)
 			}
 			context->bindTexture2DArray(texture);
 			break;
-		case GL_TEXTURE_3D_OES:
+		case GL_TEXTURE_3D:
 			context->bindTexture3D(texture);
 			break;
 		default:
@@ -2273,7 +2273,7 @@ void GenerateMipmap(GLenum target)
 				texture = context->getTexture2DArray();
 			}
 			break;
-		case GL_TEXTURE_3D_OES:
+		case GL_TEXTURE_3D:
 			texture = context->getTexture3D();
 			break;
 		default:
@@ -3356,7 +3356,7 @@ void GetRenderbufferParameteriv(GLenum target, GLenum pname, GLint* params)
 		case GL_RENDERBUFFER_ALPHA_SIZE:      *params = renderbuffer->getAlphaSize();   break;
 		case GL_RENDERBUFFER_DEPTH_SIZE:      *params = renderbuffer->getDepthSize();   break;
 		case GL_RENDERBUFFER_STENCIL_SIZE:    *params = renderbuffer->getStencilSize(); break;
-		case GL_RENDERBUFFER_SAMPLES_ANGLE:   *params = renderbuffer->getSamples();     break;
+		case GL_RENDERBUFFER_SAMPLES:         *params = renderbuffer->getSamples();     break;
 		default:
 			return error(GL_INVALID_ENUM);
 		}
@@ -3576,7 +3576,7 @@ void GetTexParameterfv(GLenum target, GLenum pname, GLfloat* params)
 				texture = context->getTexture2DArray();
 			}
 			break;
-		case GL_TEXTURE_3D_OES:
+		case GL_TEXTURE_3D:
 			texture = context->getTexture3D();
 			break;
 		default:
@@ -3729,7 +3729,7 @@ void GetTexParameteriv(GLenum target, GLenum pname, GLint* params)
 				texture = context->getTexture2DArray();
 			}
 			break;
-		case GL_TEXTURE_3D_OES:
+		case GL_TEXTURE_3D:
 			texture = context->getTexture3D();
 			break;
 		default:
@@ -4189,19 +4189,23 @@ void Hint(GLenum target, GLenum mode)
 	}
 
 	es2::Context *context = es2::getContext();
-	switch(target)
+
+	if(context)
 	{
-	case GL_GENERATE_MIPMAP_HINT:
-		if(context) context->setGenerateMipmapHint(mode);
-		break;
-	case GL_FRAGMENT_SHADER_DERIVATIVE_HINT_OES:
-		if(context) context->setFragmentShaderDerivativeHint(mode);
-		break;
-	case GL_TEXTURE_FILTERING_HINT_CHROMIUM:
-		if(context) context->setTextureFilteringHint(mode);
-		break;
-	default:
-		return error(GL_INVALID_ENUM);
+		switch(target)
+		{
+		case GL_GENERATE_MIPMAP_HINT:
+			context->setGenerateMipmapHint(mode);
+			break;
+		case GL_FRAGMENT_SHADER_DERIVATIVE_HINT_OES:
+			context->setFragmentShaderDerivativeHint(mode);
+			break;
+		case GL_TEXTURE_FILTERING_HINT_CHROMIUM:
+			context->setTextureFilteringHint(mode);
+			break;
+		default:
+			return error(GL_INVALID_ENUM);
+		}
 	}
 }
 
@@ -5116,7 +5120,7 @@ void TexParameterf(GLenum target, GLenum pname, GLfloat param)
 				texture = context->getTexture2DArray();
 			}
 			break;
-		case GL_TEXTURE_3D_OES:
+		case GL_TEXTURE_3D:
 			texture = context->getTexture3D();
 			break;
 		case GL_TEXTURE_CUBE_MAP:
@@ -5265,7 +5269,7 @@ void TexParameteri(GLenum target, GLenum pname, GLint param)
 				texture = context->getTexture2DArray();
 			}
 			break;
-		case GL_TEXTURE_3D_OES:
+		case GL_TEXTURE_3D:
 			texture = context->getTexture3D();
 			break;
 		case GL_TEXTURE_CUBE_MAP:
@@ -6239,7 +6243,7 @@ void TexImage3DOES(GLenum target, GLint level, GLenum internalformat, GLsizei wi
 
 	switch(target)
 	{
-	case GL_TEXTURE_3D_OES:
+	case GL_TEXTURE_3D:
 		switch(format)
 		{
 		case GL_DEPTH_COMPONENT:
@@ -6311,7 +6315,7 @@ void TexSubImage3DOES(GLenum target, GLint level, GLint xoffset, GLint yoffset, 
 
 	switch(target)
 	{
-	case GL_TEXTURE_3D_OES:
+	case GL_TEXTURE_3D:
 		break;
 	default:
 		return error(GL_INVALID_ENUM);
@@ -6364,7 +6368,7 @@ void CopyTexSubImage3DOES(GLenum target, GLint level, GLint xoffset, GLint yoffs
 
 	switch(target)
 	{
-	case GL_TEXTURE_3D_OES:
+	case GL_TEXTURE_3D:
 		break;
 	default:
 		return error(GL_INVALID_ENUM);
@@ -6413,7 +6417,7 @@ void CompressedTexImage3DOES(GLenum target, GLint level, GLenum internalformat, 
 
 	switch(target)
 	{
-	case GL_TEXTURE_3D_OES:
+	case GL_TEXTURE_3D:
 		break;
 	default:
 		return error(GL_INVALID_ENUM);
@@ -6484,7 +6488,7 @@ void CompressedTexSubImage3DOES(GLenum target, GLint level, GLint xoffset, GLint
 
 	switch(target)
 	{
-	case GL_TEXTURE_3D_OES:
+	case GL_TEXTURE_3D:
 		break;
 	default:
 		return error(GL_INVALID_ENUM);
@@ -6566,8 +6570,8 @@ void FramebufferTexture3DOES(GLenum target, GLenum attachment, GLenum textarget,
 
 			switch(textarget)
 			{
-			case GL_TEXTURE_3D_OES:
-				if(tex->getTarget() != GL_TEXTURE_3D_OES)
+			case GL_TEXTURE_3D:
+				if(tex->getTarget() != GL_TEXTURE_3D)
 				{
 					return error(GL_INVALID_OPERATION);
 				}
