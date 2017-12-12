@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1f317335_bb84c78a",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1216,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-12-12T21:55:38Z",
+      "side": 1,
+      "message": "Can we just add an if statement and call \u0027new DefaultFrameBuffer()\u0027 instead? That way the C++ object type reflects the GL object type, without requiring a boolean member.",
+      "range": {
+        "startLine": 1216,
+        "startChar": 44,
+        "endLine": 1216,
+        "endChar": 77
+      },
+      "revId": "3e3dccdde341602fd1e823abc9ee9156c0487b61",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5c374e25_ff82f108",
+        "filename": "src/OpenGL/libGLESv2/Framebuffer.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-12-12T21:55:38Z",
+      "side": 1,
+      "message": "Again looks to me like we can initalize them to GL_COLOR_ATTACHMENT0 here and to GL_BACK in DefaultFramebuffer.",
+      "range": {
+        "startLine": 42,
+        "startChar": 1,
+        "endLine": 43,
+        "endChar": 60
+      },
+      "revId": "3e3dccdde341602fd1e823abc9ee9156c0487b61",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "134908b7_a3a67e47",
+        "filename": "src/OpenGL/libGLESv2/Framebuffer.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-12-12T21:55:38Z",
+      "side": 1,
+      "message": "I\u0027d rather keep having DefaultFramebuffer represent a default framebuffer.",
+      "range": {
+        "startLine": 38,
+        "startChar": 13,
+        "endLine": 38,
+        "endChar": 27
+      },
+      "revId": "3e3dccdde341602fd1e823abc9ee9156c0487b61",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d1c3730d_76b60f45",
+        "filename": "src/OpenGL/libGLESv2/Framebuffer.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-12-12T21:55:38Z",
+      "side": 1,
+      "message": "Might have to reflect constructor parameter (if we keep it).",
+      "range": {
+        "startLine": 87,
+        "startChar": 45,
+        "endLine": 87,
+        "endChar": 57
+      },
+      "revId": "3e3dccdde341602fd1e823abc9ee9156c0487b61",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
