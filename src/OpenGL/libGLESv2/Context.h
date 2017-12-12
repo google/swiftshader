@@ -194,7 +194,7 @@ struct Color
 class VertexAttribute
 {
 public:
-	VertexAttribute() : mType(GL_FLOAT), mSize(0), mNormalized(false), mStride(0), mDivisor(0), mPointer(nullptr), mArrayEnabled(false)
+	VertexAttribute() : mType(GL_FLOAT), mSize(4), mNormalized(false), mStride(0), mDivisor(0), mPointer(nullptr), mArrayEnabled(false)
 	{
 		mCurrentValue[0].f = 0.0f;
 		mCurrentValue[1].f = 0.0f;
