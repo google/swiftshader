@@ -22,6 +22,30 @@
       "revId": "fd5af29038df8bee3dbefe32ee061d79537f6691",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5b29bbe3_98040d6d",
+        "filename": "src/OpenGL/libGLESv2/utilities.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1143,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-12-12T13:19:19Z",
+      "side": 1,
+      "message": "The spec does mention (OpenGL ES 3.0, section 4.4.4): \"An internal format is color-renderable if it is one of the formats from table 3.13 noted as color-renderable or if it is unsized format RGBA or RGB\", so this change makes the function spec compliant. In order to remove the unsized formats from Framebuffer\u0027s internal format checks, we could create a Framebuffer specific function that could look something like:\n\nFramebuffer::IsColorRenderable(GLint internalformat)\n{\n  switch(internalformat)\n  {\n  case GL_RGB:\n  case GL_RGBA:\n    return false;\n  default:\n    return es2::IsColorRenderable(internalformat, egl::getClientVersion());\n  }\n}\n\nI would prefer not creating 2 entirely separate functions, as it would be harder to keep track of changes to color-renderable formats if we need to update 2 functions every time.",
+      "parentUuid": "b9d3c2f8_78d45aa5",
+      "range": {
+        "startLine": 1142,
+        "startChar": 2,
+        "endLine": 1143,
+        "endChar": 15
+      },
+      "revId": "fd5af29038df8bee3dbefe32ee061d79537f6691",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
