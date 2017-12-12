@@ -110,6 +110,7 @@ private:
 class DefaultFramebuffer : public Framebuffer
 {
 public:
+	DefaultFramebuffer();
 	DefaultFramebuffer(Colorbuffer *colorbuffer, DepthStencilbuffer *depthStencil);
 
 	bool isDefaultFramebuffer() const override { return true; }
