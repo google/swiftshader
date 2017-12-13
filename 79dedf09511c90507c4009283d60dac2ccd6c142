@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "35682fa4_f1df5d71",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-12-13T18:59:41Z",
+      "side": 1,
+      "message": "in",
+      "range": {
+        "startLine": 13,
+        "startChar": 19,
+        "endLine": 13,
+        "endChar": 22
+      },
+      "revId": "79dedf09511c90507c4009283d60dac2ccd6c142",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bce95a6e_13b11700",
+        "filename": "src/OpenGL/libGLESv2/mathutil.h",
+        "patchSetId": 2
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-12-13T18:59:41Z",
+      "side": 1,
+      "message": "This is intended to match the definition of convert_float_int(x, 32) as defined in formula 2.4 of the OpenGL ES 3.0 spec.:\n\n\"convert float int(r, b) returns one of the two signed two’s complement\nbinary integer values with exactly b bits which are closest to the\nfloating-point value r (where rounding to nearest is preferred).\"\n\nSo let\u0027s avoid doing any scaling in here. Instead the scaling (by 0x7FFFFFFF) should be done before the call to convert_float_int().",
+      "range": {
+        "startLine": 75,
+        "startChar": 11,
+        "endLine": 75,
+        "endChar": 28
+      },
+      "revId": "79dedf09511c90507c4009283d60dac2ccd6c142",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
