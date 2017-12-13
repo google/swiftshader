@@ -90,6 +90,11 @@ inline int convert_float_int(float x)
 
 	return static_cast<int>(roundf(x));
 }
+
+inline int convert_float_fixed(float x)
+{
+	return convert_float_int(static_cast<float>(0x7FFFFFFF) * x);
+}
 }
 
 #endif   // LIBGLESV2_MATHUTIL_H_
