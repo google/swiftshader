@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9a063b5a_58fbf8ef",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1216,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-12-13T13:02:43Z",
+      "side": 1,
+      "message": "Note that DefaultFramebuffer currently has no default constructor. It requires a Colorbuffer object and a DepthStencilbuffer object to be passed as arguments, usually from an input surface. This information isn\u0027t available here.\n\nI can add a new default constructor to make this work.",
+      "parentUuid": "1f317335_bb84c78a",
+      "range": {
+        "startLine": 1216,
+        "startChar": 44,
+        "endLine": 1216,
+        "endChar": 77
+      },
+      "revId": "3e3dccdde341602fd1e823abc9ee9156c0487b61",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "5c374e25_ff82f108",
         "filename": "src/OpenGL/libGLESv2/Framebuffer.cpp",
         "patchSetId": 1
