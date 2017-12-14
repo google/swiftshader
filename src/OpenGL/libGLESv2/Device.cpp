@@ -261,6 +261,7 @@ namespace es2
 
 		switch(format)
 		{
+		case FORMAT_S8:
 	//	case FORMAT_D15S1:
 		case FORMAT_D24S8:
 		case FORMAT_D24X8:

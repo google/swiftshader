@@ -201,9 +201,12 @@ namespace sw
 		FORMAT_D24S8,
 		FORMAT_D24FS8,
 		FORMAT_D32F,                 // Quad layout
+		FORMAT_D32FS8,               // Quad layout
 		FORMAT_D32F_COMPLEMENTARY,   // Quad layout, 1 - z
+		FORMAT_D32FS8_COMPLEMENTARY, // Quad layout, 1 - z
 		FORMAT_D32F_LOCKABLE,        // Linear layout
 		FORMAT_D32FS8_TEXTURE,       // Linear layout, no PCF
+		FORMAT_D32F_SHADOW,          // Linear layout, PCF
 		FORMAT_D32FS8_SHADOW,        // Linear layout, PCF
 		FORMAT_DF24S8,
 		FORMAT_DF16S8,

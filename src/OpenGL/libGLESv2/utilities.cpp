@@ -2246,21 +2246,13 @@ namespace sw2es
 	{
 		switch(format)
 		{
-		case sw::FORMAT_D16:
-		case sw::FORMAT_D24X8:
-		case sw::FORMAT_D32:
-			return GL_DEPTH_COMPONENT16;
-		case sw::FORMAT_D24S8:
-			return GL_DEPTH24_STENCIL8_OES;
-		case sw::FORMAT_D32F:
-		case sw::FORMAT_D32F_COMPLEMENTARY:
-		case sw::FORMAT_D32F_LOCKABLE:
-			return GL_DEPTH_COMPONENT32F;
-		case sw::FORMAT_D32FS8_TEXTURE:
-		case sw::FORMAT_D32FS8_SHADOW:
-			return GL_DEPTH32F_STENCIL8;
-		case sw::FORMAT_S8:
-			return GL_STENCIL_INDEX8;
+		case sw::FORMAT_D16:    return GL_DEPTH_COMPONENT16;
+		case sw::FORMAT_D24X8:  return GL_DEPTH_COMPONENT24;
+		case sw::FORMAT_D32:    return GL_DEPTH_COMPONENT32_OES;
+		case sw::FORMAT_D24S8:  return GL_DEPTH24_STENCIL8_OES;
+		case sw::FORMAT_D32F:   return GL_DEPTH_COMPONENT32F;
+		case sw::FORMAT_D32FS8: return GL_DEPTH32F_STENCIL8;
+		case sw::FORMAT_S8:     return GL_STENCIL_INDEX8;
 		default:
 			UNREACHABLE(format);
 		}

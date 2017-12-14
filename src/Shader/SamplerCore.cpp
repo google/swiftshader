@@ -263,8 +263,10 @@ namespace sw
 				case FORMAT_A32B32G32R32F:
 					break;
 				case FORMAT_D32F:
+				case FORMAT_D32FS8:
 				case FORMAT_D32F_LOCKABLE:
 				case FORMAT_D32FS8_TEXTURE:
+				case FORMAT_D32F_SHADOW:
 				case FORMAT_D32FS8_SHADOW:
 					c.y = c.x;
 					c.z = c.x;
@@ -518,8 +520,10 @@ namespace sw
 				case FORMAT_A32B32G32R32F:
 					break;
 				case FORMAT_D32F:
+				case FORMAT_D32FS8:
 				case FORMAT_D32F_LOCKABLE:
 				case FORMAT_D32FS8_TEXTURE:
+				case FORMAT_D32F_SHADOW:
 				case FORMAT_D32FS8_SHADOW:
 					c.y = Float4(0.0f);
 					c.z = Float4(0.0f);
@@ -2657,8 +2661,10 @@ namespace sw
 		case FORMAT_L8:
 		case FORMAT_A8L8:
 		case FORMAT_D32F:
+		case FORMAT_D32FS8:
 		case FORMAT_D32F_LOCKABLE:
 		case FORMAT_D32FS8_TEXTURE:
+		case FORMAT_D32F_SHADOW:
 		case FORMAT_D32FS8_SHADOW:
 		case FORMAT_L16:
 		case FORMAT_G16R16:
@@ -2722,8 +2728,10 @@ namespace sw
 		case FORMAT_X32B32G32R32F:
 		case FORMAT_A32B32G32R32F:
 		case FORMAT_D32F:
+		case FORMAT_D32FS8:
 		case FORMAT_D32F_LOCKABLE:
 		case FORMAT_D32FS8_TEXTURE:
+		case FORMAT_D32F_SHADOW:
 		case FORMAT_D32FS8_SHADOW:
 		case FORMAT_L16:
 		case FORMAT_G16R16:
@@ -2802,8 +2810,10 @@ namespace sw
 		case FORMAT_L8:
 		case FORMAT_A8L8:
 		case FORMAT_D32F:
+		case FORMAT_D32FS8:
 		case FORMAT_D32F_LOCKABLE:
 		case FORMAT_D32FS8_TEXTURE:
+		case FORMAT_D32F_SHADOW:
 		case FORMAT_D32FS8_SHADOW:
 		case FORMAT_YV12_BT601:
 		case FORMAT_YV12_BT709:
@@ -2881,8 +2891,10 @@ namespace sw
 		case FORMAT_L8:
 		case FORMAT_A8L8:
 		case FORMAT_D32F:
+		case FORMAT_D32FS8:
 		case FORMAT_D32F_LOCKABLE:
 		case FORMAT_D32FS8_TEXTURE:
+		case FORMAT_D32F_SHADOW:
 		case FORMAT_D32FS8_SHADOW:
 		case FORMAT_YV12_BT601:
 		case FORMAT_YV12_BT709:
@@ -2952,8 +2964,10 @@ namespace sw
 		case FORMAT_L8:
 		case FORMAT_A8L8:
 		case FORMAT_D32F:
+		case FORMAT_D32FS8:
 		case FORMAT_D32F_LOCKABLE:
 		case FORMAT_D32FS8_TEXTURE:
+		case FORMAT_D32F_SHADOW:
 		case FORMAT_D32FS8_SHADOW:
 		case FORMAT_L16:
 		case FORMAT_G16R16:
@@ -3021,8 +3035,10 @@ namespace sw
 		case FORMAT_L8:             return component < 1;
 		case FORMAT_A8L8:           return component < 1;
 		case FORMAT_D32F:           return false;
+		case FORMAT_D32FS8:         return false;
 		case FORMAT_D32F_LOCKABLE:  return false;
 		case FORMAT_D32FS8_TEXTURE: return false;
+		case FORMAT_D32F_SHADOW:    return false;
 		case FORMAT_D32FS8_SHADOW:  return false;
 		case FORMAT_L16:            return component < 1;
 		case FORMAT_G16R16:         return component < 2;

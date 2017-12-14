@@ -318,12 +318,15 @@ namespace sw
 			((float*)element)[3] = color.a;
 			break;
 		case FORMAT_D32F:
+		case FORMAT_D32FS8:
 		case FORMAT_D32F_LOCKABLE:
 		case FORMAT_D32FS8_TEXTURE:
+		case FORMAT_D32F_SHADOW:
 		case FORMAT_D32FS8_SHADOW:
 			*((float*)element) = color.r;
 			break;
 		case FORMAT_D32F_COMPLEMENTARY:
+		case FORMAT_D32FS8_COMPLEMENTARY:
 			*((float*)element) = 1 - color.r;
 			break;
 		case FORMAT_S8:
@@ -962,8 +965,10 @@ namespace sw
 			a = ((float*)element)[3];
 			break;
 		case FORMAT_D32F:
+		case FORMAT_D32FS8:
 		case FORMAT_D32F_LOCKABLE:
 		case FORMAT_D32FS8_TEXTURE:
+		case FORMAT_D32F_SHADOW:
 		case FORMAT_D32FS8_SHADOW:
 			r = *(float*)element;
 			g = r;
@@ -971,6 +976,7 @@ namespace sw
 			a = r;
 			break;
 		case FORMAT_D32F_COMPLEMENTARY:
+		case FORMAT_D32FS8_COMPLEMENTARY:
 			r = 1.0f - *(float*)element;
 			g = r;
 			b = r;
@@ -1213,7 +1219,7 @@ namespace sw
 		external.lock = LOCK_UNLOCKED;
 		external.dirty = true;
 
-		internal.buffer = 0;
+		internal.buffer = nullptr;
 		internal.width = width;
 		internal.height = height;
 		internal.depth = depth;
@@ -1227,11 +1233,11 @@ namespace sw
 		internal.lock = LOCK_UNLOCKED;
 		internal.dirty = false;
 
-		stencil.buffer = 0;
+		stencil.buffer = nullptr;
 		stencil.width = width;
 		stencil.height = height;
 		stencil.depth = depth;
-		stencil.format = FORMAT_S8;
+		stencil.format = isStencil(format) ? FORMAT_S8 : FORMAT_NULL;
 		stencil.bytes = bytes(stencil.format);
 		stencil.pitchB = pitchB(stencil.width, 0, stencil.format, false);
 		stencil.pitchP = pitchP(stencil.width, 0, stencil.format, false);
@@ -1248,11 +1254,11 @@ namespace sw
 	Surface::Surface(Resource *texture, int width, int height, int depth, int border, Format format, bool lockable, bool renderTarget, int pitchPprovided) : lockable(lockable), renderTarget(renderTarget)
 	{
 		resource = texture ? texture : new Resource(0);
-		hasParent = texture != 0;
+		hasParent = texture != nullptr;
 		ownExternal = true;
 		depth = max(1, depth);
 
-		external.buffer = 0;
+		external.buffer = nullptr;
 		external.width = width;
 		external.height = height;
 		external.depth = depth;
@@ -1266,7 +1272,7 @@ namespace sw
 		external.lock = LOCK_UNLOCKED;
 		external.dirty = false;
 
-		internal.buffer = 0;
+		internal.buffer = nullptr;
 		internal.width = width;
 		internal.height = height;
 		internal.depth = depth;
@@ -1280,11 +1286,11 @@ namespace sw
 		internal.lock = LOCK_UNLOCKED;
 		internal.dirty = false;
 
-		stencil.buffer = 0;
+		stencil.buffer = nullptr;
 		stencil.width = width;
 		stencil.height = height;
 		stencil.depth = depth;
-		stencil.format = FORMAT_S8;
+		stencil.format = isStencil(format) ? FORMAT_S8 : FORMAT_NULL;
 		stencil.bytes = bytes(stencil.format);
 		stencil.pitchB = pitchB(stencil.width, 0, stencil.format, renderTarget);
 		stencil.pitchP = pitchP(stencil.width, 0, stencil.format, renderTarget);
@@ -1623,9 +1629,12 @@ namespace sw
 		case FORMAT_D24S8:				return 4;
 		case FORMAT_D24FS8:				return 4;
 		case FORMAT_D32F:				return 4;
+		case FORMAT_D32FS8:				return 4;
 		case FORMAT_D32F_COMPLEMENTARY:	return 4;
+		case FORMAT_D32FS8_COMPLEMENTARY: return 4;
 		case FORMAT_D32F_LOCKABLE:		return 4;
 		case FORMAT_D32FS8_TEXTURE:		return 4;
+		case FORMAT_D32F_SHADOW:		return 4;
 		case FORMAT_D32FS8_SHADOW:		return 4;
 		case FORMAT_DF24S8:				return 4;
 		case FORMAT_DF16S8:				return 2;
@@ -2672,6 +2681,7 @@ namespace sw
 		case FORMAT_D32F:
 		case FORMAT_D32F_COMPLEMENTARY:
 		case FORMAT_D32F_LOCKABLE:
+		case FORMAT_D32F_SHADOW:
 			return false;
 		case FORMAT_D24S8:
 		case FORMAT_D24FS8:
@@ -2680,6 +2690,8 @@ namespace sw
 		case FORMAT_DF16S8:
 		case FORMAT_D32FS8_TEXTURE:
 		case FORMAT_D32FS8_SHADOW:
+		case FORMAT_D32FS8:
+		case FORMAT_D32FS8_COMPLEMENTARY:
 		case FORMAT_INTZ:
 			return true;
 		default:
@@ -2697,11 +2709,14 @@ namespace sw
 		case FORMAT_D24S8:
 		case FORMAT_D24FS8:
 		case FORMAT_D32F:
+		case FORMAT_D32FS8:
 		case FORMAT_D32F_COMPLEMENTARY:
+		case FORMAT_D32FS8_COMPLEMENTARY:
 		case FORMAT_D32F_LOCKABLE:
 		case FORMAT_DF24S8:
 		case FORMAT_DF16S8:
 		case FORMAT_D32FS8_TEXTURE:
+		case FORMAT_D32F_SHADOW:
 		case FORMAT_D32FS8_SHADOW:
 		case FORMAT_INTZ:
 			return true;
@@ -2722,7 +2737,9 @@ namespace sw
 		case FORMAT_D24S8:
 		case FORMAT_D24FS8:
 		case FORMAT_D32F:
+		case FORMAT_D32FS8:
 		case FORMAT_D32F_COMPLEMENTARY:
+		case FORMAT_D32FS8_COMPLEMENTARY:
 		case FORMAT_DF24S8:
 		case FORMAT_DF16S8:
 		case FORMAT_INTZ:
@@ -2732,6 +2749,7 @@ namespace sw
 			return true;
 		case FORMAT_D32F_LOCKABLE:
 		case FORMAT_D32FS8_TEXTURE:
+		case FORMAT_D32F_SHADOW:
 		case FORMAT_D32FS8_SHADOW:
 		default:
 			break;
@@ -2823,9 +2841,12 @@ namespace sw
 		case FORMAT_X32B32G32R32F:
 		case FORMAT_A32B32G32R32F:
 		case FORMAT_D32F:
+		case FORMAT_D32FS8:
 		case FORMAT_D32F_COMPLEMENTARY:
+		case FORMAT_D32FS8_COMPLEMENTARY:
 		case FORMAT_D32F_LOCKABLE:
 		case FORMAT_D32FS8_TEXTURE:
+		case FORMAT_D32F_SHADOW:
 		case FORMAT_D32FS8_SHADOW:
 		case FORMAT_L16F:
 		case FORMAT_A16L16F:
@@ -2870,9 +2891,12 @@ namespace sw
 		case FORMAT_X8B8G8R8UI:
 		case FORMAT_A8B8G8R8UI:
 		case FORMAT_D32F:
+		case FORMAT_D32FS8:
 		case FORMAT_D32F_COMPLEMENTARY:
+		case FORMAT_D32FS8_COMPLEMENTARY:
 		case FORMAT_D32F_LOCKABLE:
 		case FORMAT_D32FS8_TEXTURE:
+		case FORMAT_D32F_SHADOW:
 		case FORMAT_D32FS8_SHADOW:
 		case FORMAT_A8:
 		case FORMAT_R8:
@@ -3135,8 +3159,10 @@ namespace sw
 		case FORMAT_X32B32G32R32F:  return 3;
 		case FORMAT_A32B32G32R32F:  return 4;
 		case FORMAT_D32F:           return 1;
+		case FORMAT_D32FS8:         return 1;
 		case FORMAT_D32F_LOCKABLE:  return 1;
 		case FORMAT_D32FS8_TEXTURE: return 1;
+		case FORMAT_D32F_SHADOW:    return 1;
 		case FORMAT_D32FS8_SHADOW:  return 1;
 		case FORMAT_A8:             return 1;
 		case FORMAT_R8I:            return 1;
@@ -3278,9 +3304,7 @@ namespace sw
 		int x1 = x0 + width;
 		int y1 = y0 + height;
 
-		if(internal.format == FORMAT_D32F_LOCKABLE ||
-		   internal.format == FORMAT_D32FS8_TEXTURE ||
-		   internal.format == FORMAT_D32FS8_SHADOW)
+		if(!hasQuadLayout(internal.format))
 		{
 			float *target = (float*)lockInternal(0, 0, 0, lock, PUBLIC) + x0 + width2 * y0;
 
@@ -3870,11 +3894,9 @@ namespace sw
 		case FORMAT_D16:
 		case FORMAT_D32:
 		case FORMAT_D24X8:
-		case FORMAT_D24S8:
-		case FORMAT_D24FS8:
 			if(hasParent)   // Texture
 			{
-				return FORMAT_D32FS8_SHADOW;
+				return FORMAT_D32F_SHADOW;
 			}
 			else if(complementaryDepthBuffer)
 			{
@@ -3884,12 +3906,29 @@ namespace sw
 			{
 				return FORMAT_D32F;
 			}
+		case FORMAT_D24S8:
+		case FORMAT_D24FS8:
+			if(hasParent)   // Texture
+			{
+				return FORMAT_D32FS8_SHADOW;
+			}
+			else if(complementaryDepthBuffer)
+			{
+				return FORMAT_D32FS8_COMPLEMENTARY;
+			}
+			else
+			{
+				return FORMAT_D32FS8;
+			}
 		case FORMAT_D32F:           return FORMAT_D32F;
+		case FORMAT_D32FS8:         return FORMAT_D32FS8;
 		case FORMAT_D32F_LOCKABLE:  return FORMAT_D32F_LOCKABLE;
 		case FORMAT_D32FS8_TEXTURE: return FORMAT_D32FS8_TEXTURE;
 		case FORMAT_INTZ:           return FORMAT_D32FS8_TEXTURE;
 		case FORMAT_DF24S8:         return FORMAT_D32FS8_SHADOW;
 		case FORMAT_DF16S8:         return FORMAT_D32FS8_SHADOW;
+		case FORMAT_S8:             return FORMAT_S8;
+		// YUV formats
 		case FORMAT_YV12_BT601:     return FORMAT_YV12_BT601;
 		case FORMAT_YV12_BT709:     return FORMAT_YV12_BT709;
 		case FORMAT_YV12_JFIF:      return FORMAT_YV12_JFIF;

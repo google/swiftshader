@@ -528,23 +528,13 @@ DepthStencilbuffer::DepthStencilbuffer(int width, int height, GLenum internalfor
 	sw::Format implementationFormat = sw::FORMAT_D24S8;
 	switch(internalformat)
 	{
-	case GL_STENCIL_INDEX8:
-	case GL_DEPTH_COMPONENT24:
-	case GL_DEPTH24_STENCIL8_OES:
-		implementationFormat = sw::FORMAT_D24S8;
-		break;
-	case GL_DEPTH32F_STENCIL8:
-		implementationFormat = sw::FORMAT_D32FS8_TEXTURE;
-		break;
-	case GL_DEPTH_COMPONENT16:
-		implementationFormat = sw::FORMAT_D16;
-		break;
-	case GL_DEPTH_COMPONENT32_OES:
-		implementationFormat = sw::FORMAT_D32;
-		break;
-	case GL_DEPTH_COMPONENT32F:
-		implementationFormat = sw::FORMAT_D32F;
-		break;
+	case GL_STENCIL_INDEX8:        implementationFormat = sw::FORMAT_S8;     break;
+	case GL_DEPTH_COMPONENT24:     implementationFormat = sw::FORMAT_D24X8;  break;
+	case GL_DEPTH24_STENCIL8_OES:  implementationFormat = sw::FORMAT_D24S8;  break;
+	case GL_DEPTH32F_STENCIL8:     implementationFormat = sw::FORMAT_D32FS8; break;
+	case GL_DEPTH_COMPONENT16:     implementationFormat = sw::FORMAT_D16;    break;
+	case GL_DEPTH_COMPONENT32_OES: implementationFormat = sw::FORMAT_D32;    break;
+	case GL_DEPTH_COMPONENT32F:    implementationFormat = sw::FORMAT_D32F;   break;
 	default:
 		UNREACHABLE(internalformat);
 		format = GL_DEPTH24_STENCIL8_OES;

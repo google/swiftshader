@@ -868,7 +868,7 @@ namespace egl
 				return sw::FORMAT_A16B16G16R16UI;
 			case GL_DEPTH_COMPONENT:
 			case GL_DEPTH_COMPONENT16:
-				return sw::FORMAT_D32FS8_TEXTURE;
+				return sw::FORMAT_D32F_LOCKABLE;
 			default:
 				UNREACHABLE(format);
 			}
@@ -909,7 +909,7 @@ namespace egl
 			case GL_DEPTH_COMPONENT16:
 			case GL_DEPTH_COMPONENT24:
 			case GL_DEPTH_COMPONENT32_OES:
-				return sw::FORMAT_D32FS8_TEXTURE;
+				return sw::FORMAT_D32F_LOCKABLE;
 			default:
 				UNREACHABLE(format);
 			}

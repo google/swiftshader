@@ -400,18 +400,15 @@ namespace sw
 		case FORMAT_D32:
 			c.x = Float(Int((*Pointer<UInt>(element))));
 			break;
-		case FORMAT_D32F:
-			c.x = *Pointer<Float>(element);
-			break;
 		case FORMAT_D32F_COMPLEMENTARY:
+		case FORMAT_D32FS8_COMPLEMENTARY:
 			c.x = 1.0f - *Pointer<Float>(element);
 			break;
+		case FORMAT_D32F:
+		case FORMAT_D32FS8:
 		case FORMAT_D32F_LOCKABLE:
-			c.x = *Pointer<Float>(element);
-			break;
 		case FORMAT_D32FS8_TEXTURE:
-			c.x = *Pointer<Float>(element);
-			break;
+		case FORMAT_D32F_SHADOW:
 		case FORMAT_D32FS8_SHADOW:
 			c.x = *Pointer<Float>(element);
 			break;
@@ -767,18 +764,15 @@ namespace sw
 		case FORMAT_D32:
 			*Pointer<UInt>(element) = UInt(RoundInt(Float(c.x)));
 			break;
-		case FORMAT_D32F:
-			*Pointer<Float>(element) = c.x;
-			break;
 		case FORMAT_D32F_COMPLEMENTARY:
+		case FORMAT_D32FS8_COMPLEMENTARY:
 			*Pointer<Float>(element) = 1.0f - c.x;
 			break;
+		case FORMAT_D32F:
+		case FORMAT_D32FS8:
 		case FORMAT_D32F_LOCKABLE:
-			*Pointer<Float>(element) = c.x;
-			break;
 		case FORMAT_D32FS8_TEXTURE:
-			*Pointer<Float>(element) = c.x;
-			break;
+		case FORMAT_D32F_SHADOW:
 		case FORMAT_D32FS8_SHADOW:
 			*Pointer<Float>(element) = c.x;
 			break;
@@ -1064,9 +1058,12 @@ namespace sw
 			scale = vector(static_cast<float>(0xFFFFFFFF), 0.0f, 0.0f, 0.0f);
 			break;
 		case FORMAT_D32F:
+		case FORMAT_D32FS8:
 		case FORMAT_D32F_COMPLEMENTARY:
+		case FORMAT_D32FS8_COMPLEMENTARY:
 		case FORMAT_D32F_LOCKABLE:
 		case FORMAT_D32FS8_TEXTURE:
+		case FORMAT_D32F_SHADOW:
 		case FORMAT_D32FS8_SHADOW:
 		case FORMAT_S8:
 			scale = vector(1.0f, 1.0f, 1.0f, 1.0f);
