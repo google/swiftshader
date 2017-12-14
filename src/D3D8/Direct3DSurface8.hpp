@@ -57,7 +57,7 @@ namespace D3D8
 		static int bytes(D3DFORMAT format);
 
 	private:
-		static unsigned int memoryUsage(int width, int height, D3DFORMAT format);   // FIXME: Surface::size
+		static unsigned int memoryUsage(int width, int height, D3DMULTISAMPLE_TYPE multiSample, D3DFORMAT format);   // FIXME: Surface::size
 
 		// Creation parameters
 		Direct3DDevice8 *const device;

@@ -24,7 +24,7 @@
 namespace D3D8
 {
 	Direct3DVolume8::Direct3DVolume8(Direct3DDevice8 *device, Direct3DVolumeTexture8 *container, int width, int height, int depth, D3DFORMAT format, D3DPOOL pool, bool lockable, unsigned long usage)
-		: Surface(container->getResource(), width, height, depth, 0, translateFormat(format), lockable, false), container(container), width(width), height(height), depth(depth), format(format), pool(pool), lockable(lockable), usage(usage)
+		: Surface(container->getResource(), width, height, depth, 0, 1, translateFormat(format), lockable, false), container(container), width(width), height(height), depth(depth), format(format), pool(pool), lockable(lockable), usage(usage)
 	{
 		resource = new Direct3DResource8(device, D3DRTYPE_VOLUME, memoryUsage(width, height, depth, format));
 	}
@@ -195,6 +195,6 @@ namespace D3D8
 
 	unsigned int Direct3DVolume8::memoryUsage(int width, int height, int depth, D3DFORMAT format)
 	{
-		return Surface::size(width, height, depth, 0, translateFormat(format));
+		return Surface::size(width, height, depth, 0, 1, translateFormat(format));
 	}
 }
