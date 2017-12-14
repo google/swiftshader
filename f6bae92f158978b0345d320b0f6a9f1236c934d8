@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "985a3ce8_1425ee0d",
+        "filename": "src/OpenGL/libGLESv2/Framebuffer.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 704,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-12-14T13:24:41Z",
+      "side": 1,
+      "message": "Nit: now duplicated in both constructors",
+      "range": {
+        "startLine": 704,
+        "startChar": 2,
+        "endLine": 704,
+        "endChar": 32
+      },
+      "revId": "f6bae92f158978b0345d320b0f6a9f1236c934d8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
