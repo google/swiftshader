@@ -2193,7 +2193,6 @@ namespace es2sw
 		case GL_R16UI:                return sw::FORMAT_R16UI;
 		case GL_RG16UI:               return sw::FORMAT_G16R16UI;
 		case GL_RGB16UI:              return sw::FORMAT_X16B16G16R16UI;
-		case GL_RGB10_A2UI:
 		case GL_RGBA16UI:             return sw::FORMAT_A16B16G16R16UI;
 		case GL_R32I:                 return sw::FORMAT_R32I;
 		case GL_RG32I:                return sw::FORMAT_G32R32I;
@@ -2213,6 +2212,7 @@ namespace es2sw
 		case GL_RGB32F:               return sw::FORMAT_B32G32R32F;
 		case GL_RGBA32F:              return sw::FORMAT_A32B32G32R32F;
 		case GL_RGB10_A2:             return sw::FORMAT_A2B10G10R10;
+		case GL_RGB10_A2UI:           return sw::FORMAT_A2B10G10R10UI;
 		case GL_SRGB8:                return sw::FORMAT_SRGB8_X8;
 		case GL_SRGB8_ALPHA8:         return sw::FORMAT_SRGB8_A8;
 		default: UNREACHABLE(format); return sw::FORMAT_NULL;

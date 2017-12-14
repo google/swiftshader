@@ -169,6 +169,7 @@ namespace sw
 			*(unsigned int*)element = (unorm<2>(color.a) << 30) | (unorm<10>(color.r) << 20) | (unorm<10>(color.g) << 10) | (unorm<10>(color.b) << 0);
 			break;
 		case FORMAT_A2B10G10R10:
+		case FORMAT_A2B10G10R10UI:
 			*(unsigned int*)element = (unorm<2>(color.a) << 30) | (unorm<10>(color.b) << 20) | (unorm<10>(color.g) << 10) | (unorm<10>(color.r) << 0);
 			break;
 		case FORMAT_G8R8I_SNORM:
@@ -699,6 +700,16 @@ namespace sw
 				b = (abgr & 0x3FF00000) * (1.0f / 0x3FF00000);
 				g = (abgr & 0x000FFC00) * (1.0f / 0x000FFC00);
 				r = (abgr & 0x000003FF) * (1.0f / 0x000003FF);
+			}
+			break;
+		case FORMAT_A2B10G10R10UI:
+			{
+				unsigned int abgr = *(unsigned int*)element;
+
+				a = static_cast<float>((abgr & 0xC0000000) >> 30);
+				b = static_cast<float>((abgr & 0x3FF00000) >> 20);
+				g = static_cast<float>((abgr & 0x000FFC00) >> 10);
+				r = static_cast<float>(abgr & 0x000003FF);
 			}
 			break;
 		case FORMAT_A16B16G16R16I:
@@ -1544,6 +1555,7 @@ namespace sw
 		case FORMAT_A8B8G8R8I_SNORM:	return 4;
 		case FORMAT_A2R10G10B10:		return 4;
 		case FORMAT_A2B10G10R10:		return 4;
+		case FORMAT_A2B10G10R10UI:		return 4;
 		case FORMAT_G8R8I:				return 2;
 		case FORMAT_G8R8:				return 2;
 		case FORMAT_G16R16I:			return 4;
@@ -2824,6 +2836,7 @@ namespace sw
 		case FORMAT_G8R8I:
 		case FORMAT_G8R8:
 		case FORMAT_A2B10G10R10:
+		case FORMAT_A2B10G10R10UI:
 		case FORMAT_R8I_SNORM:
 		case FORMAT_G8R8I_SNORM:
 		case FORMAT_X8B8G8R8I_SNORM:
@@ -2908,6 +2921,7 @@ namespace sw
 		case FORMAT_SRGB8_A8:
 		case FORMAT_G8R8:
 		case FORMAT_A2B10G10R10:
+		case FORMAT_A2B10G10R10UI:
 		case FORMAT_R16UI:
 		case FORMAT_G16R16:
 		case FORMAT_G16R16UI:
@@ -3021,6 +3035,18 @@ namespace sw
 		case FORMAT_SRGB8_X8:
 		case FORMAT_SRGB8_A8:
 		case FORMAT_R5G6B5:
+			return true;
+		default:
+			return false;
+		}
+	}
+
+	bool Surface::isSRGBformat(Format format)
+	{
+		switch(format)
+		{
+		case FORMAT_SRGB8_X8:
+		case FORMAT_SRGB8_A8:
 			return true;
 		default:
 			return false;
@@ -3166,6 +3192,7 @@ namespace sw
 		case FORMAT_X8B8G8R8UI:     return 3;
 		case FORMAT_A8B8G8R8UI:     return 4;
 		case FORMAT_A2B10G10R10:    return 4;
+		case FORMAT_A2B10G10R10UI:  return 4;
 		case FORMAT_G16R16I:        return 2;
 		case FORMAT_G16R16UI:       return 2;
 		case FORMAT_G16R16:         return 2;
@@ -3765,6 +3792,8 @@ namespace sw
 		case FORMAT_A2B10G10R10:
 		case FORMAT_A16B16G16R16:
 			return FORMAT_A16B16G16R16;
+		case FORMAT_A2B10G10R10UI:
+			return FORMAT_A16B16G16R16UI;
 		case FORMAT_X32B32G32R32I:
 			return FORMAT_X32B32G32R32I;
 		case FORMAT_A32B32G32R32I:

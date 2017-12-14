@@ -96,7 +96,7 @@ namespace sw
 			state.addressingModeV = getAddressingModeV();
 			state.addressingModeW = getAddressingModeW();
 			state.mipmapFilter = mipmapFilter();
-			state.sRGB = sRGB && Surface::isSRGBreadable(externalTextureFormat);
+			state.sRGB = (sRGB && Surface::isSRGBreadable(externalTextureFormat)) || Surface::isSRGBformat(internalTextureFormat);
 			state.swizzleR = swizzleR;
 			state.swizzleG = swizzleG;
 			state.swizzleB = swizzleB;

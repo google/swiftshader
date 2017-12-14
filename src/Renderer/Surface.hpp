@@ -107,6 +107,7 @@ namespace sw
 		FORMAT_G32R32UI,
 		FORMAT_A2R10G10B10,
 		FORMAT_A2B10G10R10,
+		FORMAT_A2B10G10R10UI,
 		FORMAT_A16B16G16R16, // D3D format
 		FORMAT_X16B16G16R16I,
 		FORMAT_X16B16G16R16UI,
@@ -368,6 +369,7 @@ namespace sw
 		static bool isUnsignedComponent(Format format, int component);
 		static bool isSRGBreadable(Format format);
 		static bool isSRGBwritable(Format format);
+		static bool isSRGBformat(Format format);
 		static bool isCompressed(Format format);
 		static bool isSignedNonNormalizedInteger(Format format);
 		static bool isUnsignedNonNormalizedInteger(Format format);

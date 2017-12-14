@@ -393,6 +393,7 @@ namespace sw
 			c.z = Float(Int(*Pointer<UShort>(element) & UShort(0x001F)));
 			break;
 		case FORMAT_A2B10G10R10:
+		case FORMAT_A2B10G10R10UI:
 			c.x = Float(Int((*Pointer<UInt>(element) & UInt(0x000003FF))));
 			c.y = Float(Int((*Pointer<UInt>(element) & UInt(0x000FFC00)) >> 10));
 			c.z = Float(Int((*Pointer<UInt>(element) & UInt(0x3FF00000)) >> 20));
@@ -741,6 +742,7 @@ namespace sw
 			}
 			break;
 		case FORMAT_A2B10G10R10:
+		case FORMAT_A2B10G10R10UI:
 			if(writeRGBA)
 			{
 				*Pointer<UInt>(element) = UInt(RoundInt(Float(c.x)) |
@@ -1047,6 +1049,7 @@ namespace sw
 		case FORMAT_B32G32R32F:
 		case FORMAT_G32R32F:
 		case FORMAT_R32F:
+		case FORMAT_A2B10G10R10UI:
 			scale = vector(1.0f, 1.0f, 1.0f, 1.0f);
 			break;
 		case FORMAT_R5G6B5:

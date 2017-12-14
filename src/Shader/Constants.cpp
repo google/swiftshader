@@ -264,17 +264,17 @@ namespace sw
 
 		for(int i = 0; i < 256; i++)
 		{
-			sRGBtoLinear8_12[i] = (unsigned short)(sw::sRGBtoLinear((float)i / 0xFF) * 0x1000 + 0.5f);
+			sRGBtoLinear8_16[i] = (unsigned short)(sw::sRGBtoLinear((float)i / 0xFF) * 0xFFFF + 0.5f);
 		}
 
 		for(int i = 0; i < 64; i++)
 		{
-			sRGBtoLinear6_12[i] = (unsigned short)(sw::sRGBtoLinear((float)i / 0x3F) * 0x1000 + 0.5f);
+			sRGBtoLinear6_16[i] = (unsigned short)(sw::sRGBtoLinear((float)i / 0x3F) * 0xFFFF + 0.5f);
 		}
 
 		for(int i = 0; i < 32; i++)
 		{
-			sRGBtoLinear5_12[i] = (unsigned short)(sw::sRGBtoLinear((float)i / 0x1F) * 0x1000 + 0.5f);
+			sRGBtoLinear5_16[i] = (unsigned short)(sw::sRGBtoLinear((float)i / 0x1F) * 0xFFFF + 0.5f);
 		}
 
 		for(int i = 0; i < 0x1000; i++)
