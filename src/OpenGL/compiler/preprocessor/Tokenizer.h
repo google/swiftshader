@@ -19,8 +19,6 @@
 #include "Lexer.h"
 #include "pp_utils.h"
 
-#include <algorithm>
-
 namespace pp
 {
 
@@ -31,7 +29,7 @@ class Tokenizer : public Lexer
 public:
 	struct Context
 	{
-		Diagnostics* diagnostics;
+		Diagnostics *diagnostics;
 
 		Input input;
 		// The location where yytext points to. Token location should track
@@ -42,25 +40,26 @@ public:
 		bool leadingSpace;
 		bool lineStart;
 	};
-	static const size_t kMaxTokenLength;
 
-	Tokenizer(Diagnostics* diagnostics);
-	~Tokenizer();
+	Tokenizer(Diagnostics *diagnostics);
+	~Tokenizer() override;
 
-	bool init(int count, const char* const string[], const int length[]);
+	bool init(size_t count, const char *const string[], const int length[]);
 
 	void setFileNumber(int file);
 	void setLineNumber(int line);
+	void setMaxTokenSize(size_t maxTokenSize);
 
-	virtual void lex(Token* token);
+	void lex(Token *token) override;
 
 private:
 	PP_DISALLOW_COPY_AND_ASSIGN(Tokenizer);
 	bool initScanner();
 	void destroyScanner();
 
-	void* mHandle;  // Scanner handle.
+	void *mHandle;  // Scanner handle.
 	Context mContext;  // Scanner extra.
+	size_t mMaxTokenSize;  // Maximum token size
 };
 
 }  // namespace pp

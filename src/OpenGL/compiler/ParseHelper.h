@@ -56,7 +56,7 @@ public:
 			mDefaultBlockStorage(EbsShared),
 			mDiagnostics(is),
 			mDirectiveHandler(ext, mDiagnostics, mShaderVersion),
-			mPreprocessor(&mDiagnostics, &mDirectiveHandler),
+			mPreprocessor(&mDiagnostics, &mDirectiveHandler, pp::PreprocessorSettings()),
 			mScanner(nullptr),
 			mUsesFragData(false),
 			mUsesFragColor(false) {  }
@@ -148,7 +148,7 @@ public:
 	void handleExtensionDirective(const TSourceLoc &line, const char* extName, const char* behavior);
 
 	const TPragma& pragma() const { return mDirectiveHandler.pragma(); }
-	void handlePragmaDirective(const TSourceLoc &line, const char* name, const char* value);
+	void handlePragmaDirective(const TSourceLoc &line, const char* name, const char* value, bool stdgl);
 
 	bool containsSampler(TType& type);
 	const TFunction* findFunction(const TSourceLoc &line, TFunction* pfnCall, bool *builtIn = 0);

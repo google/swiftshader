@@ -62,7 +62,7 @@ bool numeric_lex_float(const std::string& str, FloatType* value)
 	stream.imbue(std::locale::classic());
 
 	stream >> (*value);
-	return !stream.fail();
+	return !stream.fail() && std::isfinite(*value);
 }
 
 } // namespace pp.

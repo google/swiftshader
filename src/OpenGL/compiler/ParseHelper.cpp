@@ -1122,10 +1122,10 @@ void TParseContext::handleExtensionDirective(const TSourceLoc &line, const char*
 	mDirectiveHandler.handleExtension(loc, extName, behavior);
 }
 
-void TParseContext::handlePragmaDirective(const TSourceLoc &line, const char* name, const char* value)
+void TParseContext::handlePragmaDirective(const TSourceLoc &line, const char* name, const char* value, bool stdgl)
 {
 	pp::SourceLocation loc(line.first_file, line.first_line);
-	mDirectiveHandler.handlePragma(loc, name, value);
+	mDirectiveHandler.handlePragma(loc, name, value, stdgl);
 }
 
 /////////////////////////////////////////////////////////////////////////////////

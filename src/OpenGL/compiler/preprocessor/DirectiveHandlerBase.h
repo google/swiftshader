@@ -1,4 +1,4 @@
-// Copyright 2016 The SwiftShader Authors. All Rights Reserved.
+// Copyright 2017 The SwiftShader Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef COMPILER_PREPROCESSOR_DIRECTIVE_HANDLER_H_
-#define COMPILER_PREPROCESSOR_DIRECTIVE_HANDLER_H_
+#ifndef COMPILER_PREPROCESSOR_DIRECTIVEHANDLERBASE_H_
+#define COMPILER_PREPROCESSOR_DIRECTIVEHANDLERBASE_H_
 
 #include <string>
 
@@ -28,24 +28,24 @@ struct SourceLocation;
 // handling them in an appropriate manner.
 class DirectiveHandler
 {
-public:
+  public:
 	virtual ~DirectiveHandler();
 
-	virtual void handleError(const SourceLocation& loc,
-	                         const std::string& msg) = 0;
+	virtual void handleError(const SourceLocation &loc, const std::string &msg) = 0;
 
 	// Handle pragma of form: #pragma name[(value)]
-	virtual void handlePragma(const SourceLocation& loc,
-	                          const std::string& name,
-	                          const std::string& value) = 0;
+	virtual void handlePragma(const SourceLocation &loc,
+	                          const std::string &name,
+	                          const std::string &value,
+	                          bool stdgl) = 0;
 
-	virtual void handleExtension(const SourceLocation& loc,
-	                             const std::string& name,
-	                             const std::string& behavior) = 0;
+	virtual void handleExtension(const SourceLocation &loc,
+	                             const std::string &name,
+	                             const std::string &behavior) = 0;
 
-	virtual void handleVersion(const SourceLocation& loc,
-	                           int version) = 0;
+	virtual void handleVersion(const SourceLocation &loc, int version) = 0;
 };
 
 }  // namespace pp
-#endif  // COMPILER_PREPROCESSOR_DIRECTIVE_HANDLER_H_
+
+#endif  // COMPILER_PREPROCESSOR_DIRECTIVEHANDLERBASE_H_

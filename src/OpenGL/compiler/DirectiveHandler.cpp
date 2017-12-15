@@ -54,7 +54,8 @@ void TDirectiveHandler::handleError(const pp::SourceLocation& loc,
 
 void TDirectiveHandler::handlePragma(const pp::SourceLocation& loc,
                                      const std::string& name,
-                                     const std::string& value)
+                                     const std::string& value,
+                                     bool stdgl)
 {
 	static const std::string kSTDGL("STDGL");
 	static const std::string kOptimize("optimize");
@@ -63,7 +64,7 @@ void TDirectiveHandler::handlePragma(const pp::SourceLocation& loc,
 	static const std::string kOff("off");
 
 	bool invalidValue = false;
-	if (name == kSTDGL)
+	if (stdgl || (name == kSTDGL))
 	{
 		// The STDGL pragma is used to reserve pragmas for use by future
 		// revisions of GLSL. Ignore it.
@@ -83,7 +84,7 @@ void TDirectiveHandler::handlePragma(const pp::SourceLocation& loc,
 	}
 	else
 	{
-		mDiagnostics.report(pp::Diagnostics::UNRECOGNIZED_PRAGMA, loc, name);
+		mDiagnostics.report(pp::Diagnostics::PP_UNRECOGNIZED_PRAGMA, loc, name);
 		return;
 	}
 

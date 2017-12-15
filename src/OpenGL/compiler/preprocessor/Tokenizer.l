@@ -39,14 +39,27 @@ IF YOU MODIFY THIS FILE YOU ALSO NEED TO RUN generate_parser.sh.
 }
 
 %{
+#if defined(_MSC_VER)
+#pragma warning(disable: 4005)
+#endif
+
 #include "Tokenizer.h"
 
-#include "Diagnostics.h"
+#include "DiagnosticsBase.h"
 #include "Token.h"
 
 #if defined(__GNUC__)
 // Triggered by the auto-generated yy_fatal_error function.
 #pragma GCC diagnostic ignored "-Wmissing-noreturn"
+#elif defined(_MSC_VER)
+#pragma warning(disable: 4244)
+#endif
+
+// Workaround for flex using the register keyword, deprecated in C++11.
+#ifdef __cplusplus
+#if __cplusplus > 199711L
+#define register
+#endif
 #endif
 
 typedef std::string YYSTYPE;
@@ -80,7 +93,7 @@ typedef pp::SourceLocation YYLTYPE;
     } while(0);
 
 #define YY_INPUT(buf, result, maxSize) \
-    result = yyextra->input.read(buf, maxSize);
+    result = yyextra->input.read(buf, maxSize, &yylineno);
 
 %}
 
@@ -109,11 +122,18 @@ FRACTIONAL_CONSTANT  ({DIGIT}*"."{DIGIT}+)|({DIGIT}+".")
 
     /* Block comment */
     /* Line breaks are just counted - not returned. */
-    /* The comment is replaced by a single space. */ 
+    /* The comment is replaced by a single space. */
 "/*" { BEGIN(COMMENT); }
 <COMMENT>[^*\r\n]+
 <COMMENT>"*"
-<COMMENT>{NEWLINE} { ++yylineno; }
+<COMMENT>{NEWLINE} {
+    if (yylineno == INT_MAX)
+    {
+        *yylval = "Integer overflow on line number";
+        return pp::Token::GOT_ERROR;
+    }
+    ++yylineno;
+}
 <COMMENT>"*/" {
     yyextra->leadingSpace = true;
     BEGIN(INITIAL);
@@ -240,12 +260,15 @@ FRACTIONAL_CONSTANT  ({DIGIT}*"."{DIGIT}+)|({DIGIT}+".")
 [ \t\v\f]+   { yyextra->leadingSpace = true; }
 
 {NEWLINE} {
+    if (yylineno == INT_MAX)
+    {
+        *yylval = "Integer overflow on line number";
+        return pp::Token::GOT_ERROR;
+    }
     ++yylineno;
     yylval->assign(1, '\n');
     return '\n';
 }
-
-\\{NEWLINE} { ++yylineno; }
 
 . {
     yylval->assign(1, yytext[0]);
@@ -257,23 +280,30 @@ FRACTIONAL_CONSTANT  ({DIGIT}*"."{DIGIT}+)|({DIGIT}+".")
     // Set the location for EOF token manually.
     pp::Input* input = &yyextra->input;
     pp::Input::Location* scanLoc = &yyextra->scanLoc;
-    int sIndexMax = std::max(0, input->count() - 1);
+    yy_size_t sIndexMax = input->count() ? input->count() - 1 : 0;
     if (scanLoc->sIndex != sIndexMax)
     {
         // We can only reach here if there are empty strings at the
         // end of the input.
         scanLoc->sIndex = sIndexMax; scanLoc->cIndex = 0;
-        yyfileno = sIndexMax; yylineno = 1;
+        // FIXME: this is not 64-bit clean.
+        yyfileno = static_cast<int>(sIndexMax); yylineno = 1;
     }
     yylloc->file = yyfileno;
     yylloc->line = yylineno;
     yylval->clear();
 
-    if (YY_START == COMMENT)
+    // Line number overflows fake EOFs to exit early, check for this case.
+    if (yylineno == INT_MAX) {
+        yyextra->diagnostics->report(pp::Diagnostics::PP_TOKENIZER_ERROR,
+                pp::SourceLocation(yyfileno, yylineno),
+                "Integer overflow on line number");
+    }
+    else if (YY_START == COMMENT)
     {
-        yyextra->diagnostics->report(pp::Diagnostics::EOF_IN_COMMENT,
+        yyextra->diagnostics->report(pp::Diagnostics::PP_EOF_IN_COMMENT,
                                      pp::SourceLocation(yyfileno, yylineno),
-                                     "");
+                                     "EOF while in a comment");
     }
     yyterminate();
 }
@@ -282,11 +312,7 @@ FRACTIONAL_CONSTANT  ({DIGIT}*"."{DIGIT}+)|({DIGIT}+".")
 
 namespace pp {
 
-// TODO(alokp): Maximum token length should ideally be specified by
-// the preprocessor client, i.e., the compiler.
-const size_t Tokenizer::kMaxTokenLength = 1024;
-
-Tokenizer::Tokenizer(Diagnostics* diagnostics) : mHandle(0)
+Tokenizer::Tokenizer(Diagnostics *diagnostics) : mHandle(nullptr), mMaxTokenSize(1024)
 {
     mContext.diagnostics = diagnostics;
 }
@@ -296,10 +322,10 @@ Tokenizer::~Tokenizer()
     destroyScanner();
 }
 
-bool Tokenizer::init(int count, const char* const string[], const int length[])
+bool Tokenizer::init(size_t count, const char * const string[], const int length[])
 {
-    if (count < 0) return false;
-    if ((count > 0) && (string == 0)) return false;
+    if ((count > 0) && (string == 0))
+        return false;
 
     mContext.input = Input(count, string, length);
     return initScanner();
@@ -317,14 +343,30 @@ void Tokenizer::setLineNumber(int line)
     yyset_lineno(line, mHandle);
 }
 
-void Tokenizer::lex(Token* token)
+void Tokenizer::setMaxTokenSize(size_t maxTokenSize)
 {
-    token->type = yylex(&token->text, &token->location, mHandle);
-    if (token->text.size() > kMaxTokenLength)
+    mMaxTokenSize = maxTokenSize;
+}
+
+void Tokenizer::lex(Token *token)
+{
+    int tokenType = yylex(&token->text, &token->location, mHandle);
+
+    if (tokenType == Token::GOT_ERROR)
     {
-        mContext.diagnostics->report(Diagnostics::TOKEN_TOO_LONG,
+        mContext.diagnostics->report(Diagnostics::PP_TOKENIZER_ERROR, token->location, token->text);
+        token->type = Token::LAST;
+    }
+    else
+    {
+        token->type = tokenType;
+    }
+
+    if (token->text.size() > mMaxTokenSize)
+    {
+        mContext.diagnostics->report(Diagnostics::PP_TOKEN_TOO_LONG,
                                      token->location, token->text);
-        token->text.erase(kMaxTokenLength);
+        token->text.erase(mMaxTokenSize);
     }
 
     token->flags = 0;
@@ -338,7 +380,7 @@ void Tokenizer::lex(Token* token)
 
 bool Tokenizer::initScanner()
 {
-    if ((mHandle == NULL) && yylex_init_extra(&mContext, &mHandle))
+    if ((mHandle == nullptr) && yylex_init_extra(&mContext, &mHandle))
         return false;
 
     yyrestart(0, mHandle);
@@ -347,11 +389,11 @@ bool Tokenizer::initScanner()
 
 void Tokenizer::destroyScanner()
 {
-    if (mHandle == NULL)
+    if (mHandle == nullptr)
         return;
 
     yylex_destroy(mHandle);
-    mHandle = NULL;
+    mHandle = nullptr;
 }
 
 }  // namespace pp
