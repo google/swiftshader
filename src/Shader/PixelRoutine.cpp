@@ -991,7 +991,7 @@ namespace sw
 
 	bool PixelRoutine::isSRGB(int index) const
 	{
-		return state.targetFormat[index] == FORMAT_SRGB8_A8 || state.targetFormat[index] == FORMAT_SRGB8_X8;
+		return Surface::isSRGBformat(state.targetFormat[index]);
 	}
 
 	void PixelRoutine::readPixel(int index, Pointer<Byte> &cBuffer, Int &x, Vector4s &pixel)
@@ -2653,16 +2653,11 @@ namespace sw
 
 	void PixelRoutine::sRGBtoLinear16_12_16(Vector4s &c)
 	{
+		Pointer<Byte> LUT = constants + OFFSET(Constants,sRGBtoLinear12_16);
+
 		c.x = As<UShort4>(c.x) >> 4;
 		c.y = As<UShort4>(c.y) >> 4;
 		c.z = As<UShort4>(c.z) >> 4;
-
-		sRGBtoLinear12_16(c);
-	}
-
-	void PixelRoutine::sRGBtoLinear12_16(Vector4s &c)
-	{
-		Pointer<Byte> LUT = constants + OFFSET(Constants,sRGBtoLinear12_16);
 
 		c.x = Insert(c.x, *Pointer<Short>(LUT + 2 * Int(Extract(c.x, 0))), 0);
 		c.x = Insert(c.x, *Pointer<Short>(LUT + 2 * Int(Extract(c.x, 1))), 1);

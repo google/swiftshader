@@ -83,7 +83,6 @@ namespace sw
 		void writeDepth(Pointer<Byte> &zBuffer, int q, Int &x, Float4 &z, Int &zMask);
 
 		void sRGBtoLinear16_12_16(Vector4s &c);
-		void sRGBtoLinear12_16(Vector4s &c);
 		void linearToSRGB16_12_16(Vector4s &c);
 		Float4 sRGBtoLinear(const Float4 &x);
 
