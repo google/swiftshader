@@ -28,10 +28,10 @@ namespace sw
 		struct Options
 		{
 			Options() {}
-			Options(bool filter, bool useStencil)
-				: writeMask(0xF), clearOperation(false), filter(filter), useStencil(useStencil) {}
+			Options(bool filter, bool useStencil, bool convertSRGB)
+				: writeMask(0xF), clearOperation(false), filter(filter), useStencil(useStencil), convertSRGB(convertSRGB) {}
 			Options(unsigned int writeMask)
-				: writeMask(writeMask), clearOperation(true), filter(false), useStencil(false) {}
+				: writeMask(writeMask), clearOperation(true), filter(false), useStencil(false), convertSRGB(true) {}
 
 			union
 			{
@@ -49,6 +49,7 @@ namespace sw
 			bool clearOperation : 1;
 			bool filter : 1;
 			bool useStencil : 1;
+			bool convertSRGB : 1;
 		};
 
 		struct State : Options
@@ -106,6 +107,8 @@ namespace sw
 		static bool GetScale(float4& scale, Format format);
 		static bool ApplyScaleAndClamp(Float4 &value, const State &state);
 		static Int ComputeOffset(Int &x, Int &y, Int &pitchB, int bytes, bool quadLayout);
+		static Float4 LinearToSRGB(Float4 &color);
+		static Float4 sRGBtoLinear(Float4 &color);
 		bool blitReactor(Surface *source, const SliceRectF &sRect, Surface *dest, const SliceRect &dRect, const Options &options);
 		Routine *generate(const State &state);
 

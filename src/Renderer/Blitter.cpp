@@ -14,6 +14,7 @@
 
 #include "Blitter.hpp"
 
+#include "Shader/ShaderCore.hpp"
 #include "Reactor/Reactor.hpp"
 #include "Common/Memory.hpp"
 #include "Common/Debug.hpp"
@@ -1101,7 +1102,25 @@ namespace sw
 			return false;
 		}
 
-		if(unscale != scale)
+		bool srcSRGB = Surface::isSRGBformat(state.sourceFormat);
+		bool dstSRGB = Surface::isSRGBformat(state.destFormat);
+
+		if(state.convertSRGB && (srcSRGB ^ dstSRGB))   // One of the formats is sRGB encoded.
+		{
+			value = value * Float4(1.0f / unscale.x, 1.0f / unscale.y, 1.0f / unscale.z, 1.0f / unscale.w);
+
+			if(srcSRGB)
+			{
+				value = sRGBtoLinear(value);
+			}
+			else   // dstSRGB
+			{
+				value = LinearToSRGB(value);
+			}
+
+			value = value * Float4(scale.x, scale.y, scale.z, scale.w);
+		}
+		else if(unscale != scale)
 		{
 			value *= Float4(scale.x / unscale.x, scale.y / unscale.y, scale.z / unscale.z, scale.w / unscale.w);
 		}
@@ -1131,6 +1150,30 @@ namespace sw
 			return (y & Int(~1)) * pitchB +
 			       ((y & Int(1)) * 2 + x * 2 - (x & Int(1))) * bytes;
 		}
+	}
+
+	Float4 Blitter::LinearToSRGB(Float4 &c)
+	{
+		Float4 lc = Min(c, Float4(0.0031308f)) * Float4(12.92f);
+		Float4 ec = Float4(1.055f) * power(c, Float4(1.0f / 2.4f)) - Float4(0.055f);
+
+		Float4 s = c;
+		s.xyz = Max(lc, ec);
+
+		return s;
+	}
+
+	Float4 Blitter::sRGBtoLinear(Float4 &c)
+	{
+		Float4 lc = c * Float4(1.0f / 12.92f);
+		Float4 ec = power((c + Float4(0.055f)) * Float4(1.0f / 1.055f), Float4(2.4f));
+
+		Int4 linear = CmpLT(c, Float4(0.04045f));
+
+		Float4 s = c;
+		s.xyz = As<Float4>((linear & As<Int4>(lc)) | (~linear & As<Int4>(ec)));   // FIXME: IfThenElse()
+
+		return s;
 	}
 
 	Routine *Blitter::generate(const State &state)
