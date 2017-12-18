@@ -2584,36 +2584,29 @@ namespace sw
 	{
 		ASSERT(nbChannels == 1 || nbChannels == 2);
 
-		ETC_Decoder::Decode((const byte*)external.lockRect(0, 0, 0, LOCK_READONLY), (byte*)internal.lockRect(0, 0, 0, LOCK_WRITEONLY), external.width, external.height, internal.width, internal.height, internal.pitchB, internal.bytes,
+		byte *src = (byte*)internal.lockRect(0, 0, 0, LOCK_READWRITE);
+		ETC_Decoder::Decode((const byte*)external.lockRect(0, 0, 0, LOCK_READONLY), src, external.width, external.height, internal.width, internal.height, internal.pitchB, internal.bytes,
 		                    (nbChannels == 1) ? (isSigned ? ETC_Decoder::ETC_R_SIGNED : ETC_Decoder::ETC_R_UNSIGNED) : (isSigned ? ETC_Decoder::ETC_RG_SIGNED : ETC_Decoder::ETC_RG_UNSIGNED));
 		external.unlockRect();
-		internal.unlockRect();
 
-		// FIXME: We convert signed data to float, until signed integer internal formats are supported
-		//        This code can be removed if signed ETC2 images are decoded to internal 8 bit signed R/RG formats
-		if(isSigned)
+		// FIXME: We convert EAC data to float, until signed short internal formats are supported
+		//        This code can be removed if ETC2 images are decoded to internal 16 bit signed R/RG formats
+		const float normalization = isSigned ? (1.0f / (8.0f * 127.875f)) : (1.0f / (8.0f * 255.875f));
+		for(int y = 0; y < internal.height; y++)
 		{
-			sbyte *src = (sbyte*)internal.lockRect(0, 0, 0, LOCK_READWRITE);
-
-			for(int y = 0; y < internal.height; y++)
+			byte* srcRow = src + y * internal.pitchB;
+			for(int x = internal.width - 1; x >= 0; x--)
 			{
-				sbyte* srcRow = src + y * internal.pitchB;
-				for(int x = internal.width - 1; x >= 0; x--)
+				int* srcPix = reinterpret_cast<int*>(srcRow + x * internal.bytes);
+				float* dstPix = reinterpret_cast<float*>(srcPix);
+				for(int c = nbChannels - 1; c >= 0; c--)
 				{
-					int dx = x & 0xFFFFFFFC;
-					int mx = x - dx;
-					sbyte* srcPix = srcRow + dx * internal.bytes + mx * nbChannels;
-					float* dstPix = (float*)(srcRow + x * internal.bytes);
-					for(int c = nbChannels - 1; c >= 0; c--)
-					{
-						static const float normalization = 1.0f / 127.875f;
-						dstPix[c] = clamp(static_cast<float>(srcPix[c]) * normalization, -1.0f, 1.0f);
-					}
+					dstPix[c] = clamp(static_cast<float>(srcPix[c]) * normalization, -1.0f, 1.0f);
 				}
 			}
-
-			internal.unlockRect();
 		}
+
+		internal.unlockRect();
 	}
 
 	void Surface::decodeASTC(Buffer &internal, Buffer &external, int xBlockSize, int yBlockSize, int zBlockSize, bool isSRGB)
@@ -3887,13 +3880,13 @@ namespace sw
 			// ASTC supports HDR, so a floating point format is required to represent it properly
 			return FORMAT_A32B32G32R32F; // FIXME: 16FP is probably sufficient, but it's currently unsupported
 		case FORMAT_ATI1:
-		case FORMAT_R11_EAC:
 			return FORMAT_R8;
+		case FORMAT_R11_EAC:
 		case FORMAT_SIGNED_R11_EAC:
 			return FORMAT_R32F; // FIXME: Signed 8bit format would be sufficient
 		case FORMAT_ATI2:
-		case FORMAT_RG11_EAC:
 			return FORMAT_G8R8;
+		case FORMAT_RG11_EAC:
 		case FORMAT_SIGNED_RG11_EAC:
 			return FORMAT_G32R32F; // FIXME: Signed 8bit format would be sufficient
 		case FORMAT_ETC1:
