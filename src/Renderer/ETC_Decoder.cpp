@@ -89,9 +89,9 @@ namespace
 	struct ETC2
 	{
 		// Decodes unsigned single or dual channel block to bytes
-		static void DecodeBlock(const ETC2** sources, unsigned char *dest, int nbChannels, int x, int y, int w, int h, int pitch, bool isSigned)
+		static void DecodeBlock(const ETC2** sources, unsigned char *dest, int nbChannels, int x, int y, int w, int h, int pitch, bool isSigned, bool isEAC)
 		{
-			if(nbChannels <= 2) // EAC
+			if(isEAC)
 			{
 				for(int j = 0; j < 4 && (y + j) < h; j++)
 				{
@@ -690,7 +690,7 @@ bool ETC_Decoder::Decode(const unsigned char* src, unsigned char *dst, int w, in
 			unsigned char *dstRow = dst + (y * dstPitch);
 			for(int x = 0; x < w; x += 4, sources[0]++)
 			{
-				ETC2::DecodeBlock(sources, dstRow + (x * dstBpp), 1, x, y, dstW, dstH, dstPitch, inputType == ETC_R_SIGNED);
+				ETC2::DecodeBlock(sources, dstRow + (x * dstBpp), 1, x, y, dstW, dstH, dstPitch, inputType == ETC_R_SIGNED, true);
 			}
 		}
 		break;
@@ -702,7 +702,7 @@ bool ETC_Decoder::Decode(const unsigned char* src, unsigned char *dst, int w, in
 			unsigned char *dstRow = dst + (y * dstPitch);
 			for(int x = 0; x < w; x += 4, sources[0] += 2, sources[1] += 2)
 			{
-				ETC2::DecodeBlock(sources, dstRow + (x * dstBpp), 2, x, y, dstW, dstH, dstPitch, inputType == ETC_RG_SIGNED);
+				ETC2::DecodeBlock(sources, dstRow + (x * dstBpp), 2, x, y, dstW, dstH, dstPitch, inputType == ETC_RG_SIGNED, true);
 			}
 		}
 		break;
@@ -724,7 +724,7 @@ bool ETC_Decoder::Decode(const unsigned char* src, unsigned char *dst, int w, in
 			for(int x = 0; x < w; x += 4)
 			{
 				// Decode Alpha
-				ETC2::DecodeBlock(&sources[0], &(alphaValues[0][0]), 1, x, y, dstW, dstH, 4, false);
+				ETC2::DecodeBlock(&sources[0], &(alphaValues[0][0]), 1, x, y, dstW, dstH, 4, false, false);
 				sources[0]++; // RGBA packets are 128 bits, so move on to the next 64 bit packet to decode the RGB color
 
 				// Decode RGB
