@@ -2288,7 +2288,7 @@ void GenerateMipmap(GLenum target)
 			return error(GL_INVALID_ENUM);
 		}
 
-		if(!IsMipmappable(texture->getFormat(target, 0), clientVersion))
+		if(!IsMipmappable(texture->getFormat(target, texture->getBaseLevel()), clientVersion))
 		{
 			return error(GL_INVALID_OPERATION);
 		}

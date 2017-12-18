@@ -786,16 +786,16 @@ void Texture2D::setSharedImage(egl::Image *sharedImage)
 	image[0] = sharedImage;
 }
 
-// Tests for 2D texture sampling completeness. [OpenGL ES 2.0.24] section 3.8.2 page 85.
+// Tests for 2D texture sampling completeness. [OpenGL ES 3.0.5] section 3.8.13 page 160.
 bool Texture2D::isSamplerComplete() const
 {
-	if(!image[0])
+	if(!image[mBaseLevel])
 	{
 		return false;
 	}
 
-	GLsizei width = image[0]->getWidth();
-	GLsizei height = image[0]->getHeight();
+	GLsizei width = image[mBaseLevel]->getWidth();
+	GLsizei height = image[mBaseLevel]->getHeight();
 
 	if(width <= 0 || height <= 0)
 	{
@@ -813,13 +813,19 @@ bool Texture2D::isSamplerComplete() const
 	return true;
 }
 
-// Tests for 2D texture (mipmap) completeness. [OpenGL ES 2.0.24] section 3.7.10 page 81.
+// Tests for 2D texture (mipmap) completeness. [OpenGL ES 3.0.5] section 3.8.13 page 160.
 bool Texture2D::isMipmapComplete() const
 {
+	if(mBaseLevel > mMaxLevel)
+	{
+		return false;
+	}
+
 	GLsizei width = image[mBaseLevel]->getWidth();
 	GLsizei height = image[mBaseLevel]->getHeight();
-
-	int q = std::min(log2(std::max(width, height)), mMaxLevel);
+	int maxsize = std::max(width, height);
+	int p = log2(maxsize) + mBaseLevel;
+	int q = std::min(p, mMaxLevel);
 
 	for(int level = mBaseLevel + 1; level <= q; level++)
 	{
@@ -828,12 +834,12 @@ bool Texture2D::isMipmapComplete() const
 			return false;
 		}
 
-		if(image[level]->getFormat() != image[0]->getFormat())
+		if(image[level]->getFormat() != image[mBaseLevel]->getFormat())
 		{
 			return false;
 		}
 
-		if(image[level]->getType() != image[0]->getType())
+		if(image[level]->getType() != image[mBaseLevel]->getType())
 		{
 			return false;
 		}
@@ -864,21 +870,20 @@ bool Texture2D::isDepth(GLenum target, GLint level) const
 
 void Texture2D::generateMipmaps()
 {
-	if(!image[0])
-	{
-		return;   // FIXME: error?
-	}
+	ASSERT(image[mBaseLevel]);
 
-	unsigned int q = log2(std::max(image[0]->getWidth(), image[0]->getHeight()));
+	int maxsize = std::max(image[mBaseLevel]->getWidth(), image[mBaseLevel]->getHeight());
+	int p = log2(maxsize) + mBaseLevel;
+	int q = std::min(p, mMaxLevel);
 
-	for(unsigned int i = 1; i <= q; i++)
+	for(int i = mBaseLevel + 1; i <= q; i++)
 	{
 		if(image[i])
 		{
 			image[i]->release();
 		}
 
-		image[i] = egl::Image::create(this, std::max(image[0]->getWidth() >> i, 1), std::max(image[0]->getHeight() >> i, 1), image[0]->getFormat(), image[0]->getType());
+		image[i] = egl::Image::create(this, std::max(image[mBaseLevel]->getWidth() >> i, 1), std::max(image[mBaseLevel]->getHeight() >> i, 1), image[mBaseLevel]->getFormat(), image[mBaseLevel]->getType());
 
 		if(!image[i])
 		{
@@ -1115,18 +1120,18 @@ void TextureCubeMap::subImageCompressed(GLenum target, GLint level, GLint xoffse
 	Texture::subImageCompressed(xoffset, yoffset, 0, width, height, 1, format, imageSize, pixels, image[CubeFaceIndex(target)][level]);
 }
 
-// Tests for cube map sampling completeness. [OpenGL ES 2.0.24] section 3.8.2 page 86.
+// Tests for cube map sampling completeness. [OpenGL ES 3.0.5] section 3.8.13 page 161.
 bool TextureCubeMap::isSamplerComplete() const
 {
 	for(int face = 0; face < 6; face++)
 	{
-		if(!image[face][0])
+		if(!image[face][mBaseLevel])
 		{
 			return false;
 		}
 	}
 
-	int size = image[0][0]->getWidth();
+	int size = image[0][mBaseLevel]->getWidth();
 
 	if(size <= 0)
 	{
@@ -1151,7 +1156,7 @@ bool TextureCubeMap::isSamplerComplete() const
 	return true;
 }
 
-// Tests for cube texture completeness. [OpenGL ES 2.0.24] section 3.7.10 page 81.
+// Tests for cube texture completeness. [OpenGL ES 3.0.5] section 3.8.13 page 160.
 bool TextureCubeMap::isCubeComplete() const
 {
 	if(image[0][mBaseLevel]->getWidth() <= 0 || image[0][mBaseLevel]->getHeight() != image[0][mBaseLevel]->getWidth())
@@ -1175,13 +1180,19 @@ bool TextureCubeMap::isCubeComplete() const
 
 bool TextureCubeMap::isMipmapCubeComplete() const
 {
+	if(mBaseLevel > mMaxLevel)
+	{
+		return false;
+	}
+
 	if(!isCubeComplete())
 	{
 		return false;
 	}
 
 	GLsizei size = image[0][mBaseLevel]->getWidth();
-	int q = std::min(log2(size), mMaxLevel);
+	int p = log2(size) + mBaseLevel;
+	int q = std::min(p, mMaxLevel);
 
 	for(int face = 0; face < 6; face++)
 	{
@@ -1410,16 +1421,16 @@ void TextureCubeMap::copySubImage(GLenum target, GLint level, GLint xoffset, GLi
 
 void TextureCubeMap::generateMipmaps()
 {
-	if(!isCubeComplete())
-	{
-		return error(GL_INVALID_OPERATION);
-	}
+	ASSERT(isCubeComplete());
 
-	unsigned int q = log2(image[0][0]->getWidth());
+	int p = log2(image[0][mBaseLevel]->getWidth()) + mBaseLevel;
+	int q = std::min(p, mMaxLevel);
 
-	for(unsigned int f = 0; f < 6; f++)
+	for(int f = 0; f < 6; f++)
 	{
-		for(unsigned int i = 1; i <= q; i++)
+		ASSERT(image[f][mBaseLevel]);
+
+		for(int i = mBaseLevel + 1; i <= q; i++)
 		{
 			if(image[f][i])
 			{
@@ -1427,7 +1438,7 @@ void TextureCubeMap::generateMipmaps()
 			}
 
 			int border = (egl::getClientVersion() >= 3) ? 1 : 0;
-			image[f][i] = egl::Image::create(this, std::max(image[0][0]->getWidth() >> i, 1), std::max(image[0][0]->getHeight() >> i, 1), 1, border, image[0][0]->getFormat(), image[0][0]->getType());
+			image[f][i] = egl::Image::create(this, std::max(image[f][mBaseLevel]->getWidth() >> i, 1), std::max(image[f][mBaseLevel]->getHeight() >> i, 1), 1, border, image[f][mBaseLevel]->getFormat(), image[f][mBaseLevel]->getType());
 
 			if(!image[f][i])
 			{
@@ -1760,17 +1771,17 @@ void Texture3D::setSharedImage(egl::Image *sharedImage)
 	image[0] = sharedImage;
 }
 
-// Tests for 3D texture sampling completeness. [OpenGL ES 2.0.24] section 3.8.2 page 85.
+// Tests for 3D texture sampling completeness. [OpenGL ES 3.0.5] section 3.8.13 page 160.
 bool Texture3D::isSamplerComplete() const
 {
-	if(!image[0])
+	if(!image[mBaseLevel])
 	{
 		return false;
 	}
 
-	GLsizei width = image[0]->getWidth();
-	GLsizei height = image[0]->getHeight();
-	GLsizei depth = image[0]->getDepth();
+	GLsizei width = image[mBaseLevel]->getWidth();
+	GLsizei height = image[mBaseLevel]->getHeight();
+	GLsizei depth = image[mBaseLevel]->getDepth();
 
 	if(width <= 0 || height <= 0 || depth <= 0)
 	{
@@ -1788,16 +1799,22 @@ bool Texture3D::isSamplerComplete() const
 	return true;
 }
 
-// Tests for 3D texture (mipmap) completeness. [OpenGL ES 2.0.24] section 3.7.10 page 81.
+// Tests for 3D texture (mipmap) completeness. [OpenGL ES 3.0.5] section 3.8.13 page 160.
 bool Texture3D::isMipmapComplete() const
 {
+	if(mBaseLevel > mMaxLevel)
+	{
+		return false;
+	}
+
 	GLsizei width = image[mBaseLevel]->getWidth();
 	GLsizei height = image[mBaseLevel]->getHeight();
 	GLsizei depth = image[mBaseLevel]->getDepth();
 	bool isTexture2DArray = getTarget() == GL_TEXTURE_2D_ARRAY;
 
-	int q = isTexture2DArray ? std::min(log2(std::max(width, height)), mMaxLevel) :
-	        std::min(log2(std::max(std::max(width, height), depth)), mMaxLevel);
+	int maxsize = isTexture2DArray ? std::max(width, height) : std::max(std::max(width, height), depth);
+	int p = log2(maxsize) + mBaseLevel;
+	int q = std::min(p, mMaxLevel);
 
 	for(int level = mBaseLevel + 1; level <= q; level++)
 	{
@@ -1806,12 +1823,12 @@ bool Texture3D::isMipmapComplete() const
 			return false;
 		}
 
-		if(image[level]->getFormat() != image[0]->getFormat())
+		if(image[level]->getFormat() != image[mBaseLevel]->getFormat())
 		{
 			return false;
 		}
 
-		if(image[level]->getType() != image[0]->getType())
+		if(image[level]->getType() != image[mBaseLevel]->getType())
 		{
 			return false;
 		}
@@ -1848,21 +1865,20 @@ bool Texture3D::isDepth(GLenum target, GLint level) const
 
 void Texture3D::generateMipmaps()
 {
-	if(!image[0])
-	{
-		return;   // FIXME: error?
-	}
+	ASSERT(image[mBaseLevel]);
 
-	unsigned int q = log2(std::max(std::max(image[0]->getWidth(), image[0]->getHeight()), image[0]->getDepth()));
+	int maxsize = std::max(std::max(image[mBaseLevel]->getWidth(), image[mBaseLevel]->getHeight()), image[mBaseLevel]->getDepth());
+	int p = log2(maxsize) + mBaseLevel;
+	int q = std::min(p, mMaxLevel);
 
-	for(unsigned int i = 1; i <= q; i++)
+	for(int i = mBaseLevel + 1; i <= q; i++)
 	{
 		if(image[i])
 		{
 			image[i]->release();
 		}
 
-		image[i] = egl::Image::create(this, std::max(image[0]->getWidth() >> i, 1), std::max(image[0]->getHeight() >> i, 1), std::max(image[0]->getDepth() >> i, 1), 0, image[0]->getFormat(), image[0]->getType());
+		image[i] = egl::Image::create(this, std::max(image[mBaseLevel]->getWidth() >> i, 1), std::max(image[mBaseLevel]->getHeight() >> i, 1), std::max(image[mBaseLevel]->getDepth() >> i, 1), 0, image[mBaseLevel]->getFormat(), image[mBaseLevel]->getType());
 
 		if(!image[i])
 		{
@@ -1943,24 +1959,23 @@ GLenum Texture2DArray::getTarget() const
 
 void Texture2DArray::generateMipmaps()
 {
-	int depth = image[0] ? image[0]->getDepth() : 0;
-	if(!depth)
-	{
-		return;   // FIXME: error?
-	}
+	ASSERT(image[mBaseLevel]);
 
-	unsigned int q = log2(std::max(image[0]->getWidth(), image[0]->getHeight()));
+	int depth = image[mBaseLevel]->getDepth();
+	int maxsize = std::max(image[mBaseLevel]->getWidth(), image[mBaseLevel]->getHeight());
+	int p = log2(maxsize) + mBaseLevel;
+	int q = std::min(p, mMaxLevel);
 
-	for(unsigned int i = 1; i <= q; i++)
+	for(int i = mBaseLevel + 1; i <= q; i++)
 	{
 		if(image[i])
 		{
 			image[i]->release();
 		}
 
-		GLsizei w = std::max(image[0]->getWidth() >> i, 1);
-		GLsizei h = std::max(image[0]->getHeight() >> i, 1);
-		image[i] = egl::Image::create(this, w, h, depth, 0, image[0]->getFormat(), image[0]->getType());
+		GLsizei w = std::max(image[mBaseLevel]->getWidth() >> i, 1);
+		GLsizei h = std::max(image[mBaseLevel]->getHeight() >> i, 1);
+		image[i] = egl::Image::create(this, w, h, depth, 0, image[mBaseLevel]->getFormat(), image[mBaseLevel]->getType());
 
 		if(!image[i])
 		{
