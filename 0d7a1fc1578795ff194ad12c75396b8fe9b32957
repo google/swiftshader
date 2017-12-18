@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "8706e8bf_681d0ac6",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-12-18T20:53:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d52680e7_b688876e",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 19
+      },
+      "revId": "0d7a1fc1578795ff194ad12c75396b8fe9b32957",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0dbef003_93cd8611",
         "filename": "/COMMIT_MSG",
         "patchSetId": 1
@@ -45,6 +69,30 @@
       "revId": "0d7a1fc1578795ff194ad12c75396b8fe9b32957",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bc24aaee_a1deb315",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-12-18T20:53:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0dbef003_93cd8611",
+      "range": {
+        "startLine": 9,
+        "startChar": 33,
+        "endLine": 9,
+        "endChar": 53
+      },
+      "revId": "0d7a1fc1578795ff194ad12c75396b8fe9b32957",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "a579e54b_8144468d",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-12-18T20:53:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0f7d536b_b4e73f0f",
+      "range": {
+        "startLine": 10,
+        "startChar": 8,
+        "endLine": 10,
+        "endChar": 26
+      },
+      "revId": "0d7a1fc1578795ff194ad12c75396b8fe9b32957",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "cdf6664e_8d7e2ce7",
         "filename": "src/OpenGL/compiler/preprocessor/DiagnosticsBase.cpp",
         "patchSetId": 1
@@ -82,6 +154,30 @@
       "writtenOn": "2017-12-18T19:33:52Z",
       "side": 1,
       "message": "This file isn\u0027t available here, and is likely going to trigger warnings in license checking tools. Note that the ANGLE authors are mentioned in our AUTHORS.txt, and we\u0027ve previously replaced these ANGLE headers with our Apache 2.0 one, so I think we should do that again.",
+      "range": {
+        "startLine": 4,
+        "startChar": 16,
+        "endLine": 4,
+        "endChar": 24
+      },
+      "revId": "0d7a1fc1578795ff194ad12c75396b8fe9b32957",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e8dad2c2_c23330fb",
+        "filename": "src/OpenGL/compiler/preprocessor/DiagnosticsBase.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-12-18T20:53:52Z",
+      "side": 1,
+      "message": "Oh, yeah, I meant to replace that, just forgot. Done.",
+      "parentUuid": "cdf6664e_8d7e2ce7",
       "range": {
         "startLine": 4,
         "startChar": 16,
