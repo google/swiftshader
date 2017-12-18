@@ -26,7 +26,7 @@
 #include <string>
 #include <vector>
 #include <set>
-#include <unordered_map>
+#include <map>
 
 namespace es2
 {
@@ -280,8 +280,8 @@ namespace es2
 		sw::PixelShader *pixelBinary;
 		sw::VertexShader *vertexBinary;
 
-		std::unordered_map<std::string, GLuint> attributeBinding;
-		std::unordered_map<std::string, GLuint> linkedAttributeLocation;
+		std::map<std::string, GLuint> attributeBinding;
+		std::map<std::string, GLuint> linkedAttributeLocation;
 		std::vector<glsl::Attribute> linkedAttribute;
 		int attributeStream[MAX_VERTEX_ATTRIBS];
 
