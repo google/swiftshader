@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5c5db277_fe460801",
+        "filename": "src/OpenGL/libGLESv2/mathutil.h",
+        "patchSetId": 3
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-12-18T21:33:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "656842ba_a636b971",
+      "range": {
+        "startLine": 75,
+        "startChar": 29,
+        "endLine": 75,
+        "endChar": 36
+      },
+      "revId": "3f5127307e5d576f85b8a7fde5c5cce42c0cfbd9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "cead63bc_b1e29269",
         "filename": "src/OpenGL/libGLESv2/mathutil.h",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2017-12-18T19:54:20Z",
       "side": 1,
       "message": "We really need a round() here to return the closest representable int. It appears that the extra operations below (the - 1.0 and * 0.5) correct it for the cases dEQP cares about, but that makes both these functions fragile. So again I think the original code here was fine.",
+      "range": {
+        "startLine": 89,
+        "startChar": 8,
+        "endLine": 89,
+        "endChar": 24
+      },
+      "revId": "3f5127307e5d576f85b8a7fde5c5cce42c0cfbd9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6d85819e_e8cd1e06",
+        "filename": "src/OpenGL/libGLESv2/mathutil.h",
+        "patchSetId": 3
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-12-18T21:33:58Z",
+      "side": 1,
+      "message": "There\u0027s a round 12 lines earlier. This converts an int64 to an int.",
+      "parentUuid": "cead63bc_b1e29269",
       "range": {
         "startLine": 89,
         "startChar": 8,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "fa6e2ecb_39adb92b",
+        "filename": "src/OpenGL/libGLESv2/mathutil.h",
+        "patchSetId": 3
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-12-18T21:33:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3ac01fcc_61aca8a2",
+      "range": {
+        "startLine": 92,
+        "startChar": 11,
+        "endLine": 92,
+        "endChar": 39
+      },
+      "revId": "3f5127307e5d576f85b8a7fde5c5cce42c0cfbd9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b237cc95_d16e1641",
         "filename": "src/OpenGL/libGLESv2/mathutil.h",
         "patchSetId": 3
@@ -91,6 +163,30 @@
       "revId": "3f5127307e5d576f85b8a7fde5c5cce42c0cfbd9",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3b35f8d7_f627e9f2",
+        "filename": "src/OpenGL/libGLESv2/mathutil.h",
+        "patchSetId": 3
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-12-18T21:33:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b237cc95_d16e1641",
+      "range": {
+        "startLine": 94,
+        "startChar": 26,
+        "endLine": 94,
+        "endChar": 101
+      },
+      "revId": "3f5127307e5d576f85b8a7fde5c5cce42c0cfbd9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
