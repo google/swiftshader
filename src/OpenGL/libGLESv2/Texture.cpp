@@ -589,17 +589,17 @@ GLenum Texture2D::getType(GLenum target, GLint level) const
 	return image[level] ? image[level]->getType() : GL_NONE;
 }
 
-int Texture2D::getLevelCount() const
+int Texture2D::getTopLevel() const
 {
 	ASSERT(isSamplerComplete());
-	int levels = 0;
+	int level = mBaseLevel;
 
-	while(levels < IMPLEMENTATION_MAX_TEXTURE_LEVELS && image[levels])
+	while(level < IMPLEMENTATION_MAX_TEXTURE_LEVELS && image[level])
 	{
-		levels++;
+		level++;
 	}
 
-	return levels;
+	return level - 1;
 }
 
 void Texture2D::setImage(egl::Context *context, GLint level, GLsizei width, GLsizei height, GLenum format, GLenum type, const egl::Image::UnpackInfo& unpackInfo, const void *pixels)
@@ -1076,17 +1076,17 @@ GLenum TextureCubeMap::getType(GLenum target, GLint level) const
 	return image[face][level] ? image[face][level]->getType() : 0;
 }
 
-int TextureCubeMap::getLevelCount() const
+int TextureCubeMap::getTopLevel() const
 {
 	ASSERT(isSamplerComplete());
-	int levels = 0;
+	int level = mBaseLevel;
 
-	while(levels < IMPLEMENTATION_MAX_TEXTURE_LEVELS && image[0][levels])
+	while(level < IMPLEMENTATION_MAX_TEXTURE_LEVELS && image[0][level])
 	{
-		levels++;
+		level++;
 	}
 
-	return levels;
+	return level - 1;
 }
 
 void TextureCubeMap::setCompressedImage(GLenum target, GLint level, GLenum format, GLsizei width, GLsizei height, GLsizei imageSize, const void *pixels)
@@ -1613,17 +1613,17 @@ GLenum Texture3D::getType(GLenum target, GLint level) const
 	return image[level] ? image[level]->getType() : GL_NONE;
 }
 
-int Texture3D::getLevelCount() const
+int Texture3D::getTopLevel() const
 {
 	ASSERT(isSamplerComplete());
-	int levels = 0;
+	int level = mBaseLevel;
 
-	while(levels < IMPLEMENTATION_MAX_TEXTURE_LEVELS && image[levels])
+	while(level < IMPLEMENTATION_MAX_TEXTURE_LEVELS && image[level])
 	{
-		levels++;
+		level++;
 	}
 
-	return levels;
+	return level - 1;
 }
 
 void Texture3D::setImage(egl::Context *context, GLint level, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const egl::Image::UnpackInfo& unpackInfo, const void *pixels)

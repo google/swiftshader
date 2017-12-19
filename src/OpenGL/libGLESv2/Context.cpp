@@ -3183,7 +3183,7 @@ void Context::applyTexture(sw::SamplerType type, int index, Texture *baseTexture
 
 	if(baseTexture && textureUsed)
 	{
-		int levelCount = baseTexture->getLevelCount();
+		int topLevel = baseTexture->getTopLevel();
 
 		if(baseTexture->getTarget() == GL_TEXTURE_2D || baseTexture->getTarget() == GL_TEXTURE_EXTERNAL_OES)
 		{
@@ -3197,9 +3197,9 @@ void Context::applyTexture(sw::SamplerType type, int index, Texture *baseTexture
 				{
 					surfaceLevel = 0;
 				}
-				else if(surfaceLevel >= levelCount)
+				else if(surfaceLevel > topLevel)
 				{
-					surfaceLevel = levelCount - 1;
+					surfaceLevel = topLevel;
 				}
 
 				egl::Image *surface = texture->getImage(surfaceLevel);
@@ -3218,9 +3218,9 @@ void Context::applyTexture(sw::SamplerType type, int index, Texture *baseTexture
 				{
 					surfaceLevel = 0;
 				}
-				else if(surfaceLevel >= levelCount)
+				else if(surfaceLevel > topLevel)
 				{
-					surfaceLevel = levelCount - 1;
+					surfaceLevel = topLevel;
 				}
 
 				egl::Image *surface = texture->getImage(surfaceLevel);
@@ -3239,9 +3239,9 @@ void Context::applyTexture(sw::SamplerType type, int index, Texture *baseTexture
 				{
 					surfaceLevel = 0;
 				}
-				else if(surfaceLevel >= levelCount)
+				else if(surfaceLevel > topLevel)
 				{
-					surfaceLevel = levelCount - 1;
+					surfaceLevel = topLevel;
 				}
 
 				egl::Image *surface = texture->getImage(surfaceLevel);
@@ -3264,9 +3264,9 @@ void Context::applyTexture(sw::SamplerType type, int index, Texture *baseTexture
 					{
 						surfaceLevel = 0;
 					}
-					else if(surfaceLevel >= levelCount)
+					else if(surfaceLevel > topLevel)
 					{
-						surfaceLevel = levelCount - 1;
+						surfaceLevel = topLevel;
 					}
 
 					egl::Image *surface = cubeTexture->getImage(face, surfaceLevel);
@@ -4376,7 +4376,7 @@ EGLenum Context::validateSharedImage(EGLenum target, GLuint name, GLuint texture
 			return EGL_BAD_PARAMETER;
 		}
 
-		if(textureLevel == 0 && !(texture->isSamplerComplete() && texture->getLevelCount() == 1))
+		if(textureLevel == 0 && !(texture->isSamplerComplete() && texture->getTopLevel() == 0))
 		{
 			return EGL_BAD_PARAMETER;
 		}

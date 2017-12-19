@@ -79,7 +79,7 @@ public:
 	virtual GLenum getFormat(GLenum target, GLint level) const = 0;
 	virtual GLenum getType(GLenum target, GLint level) const = 0;
 	virtual sw::Format getInternalFormat(GLenum target, GLint level) const = 0;
-	virtual int getLevelCount() const = 0;
+	virtual int getTopLevel() const = 0;
 
 	virtual bool isSamplerComplete() const = 0;
 	virtual bool isCompressed(GLenum target, GLint level) const = 0;
@@ -137,7 +137,7 @@ public:
 	GLenum getFormat(GLenum target, GLint level) const override;
 	GLenum getType(GLenum target, GLint level) const override;
 	sw::Format getInternalFormat(GLenum target, GLint level) const override;
-	int getLevelCount() const override;
+	int getTopLevel() const override;
 
 	void setImage(egl::Context *context, GLint level, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint unpackAlignment, const void *pixels);
 	void setCompressedImage(GLint level, GLenum format, GLsizei width, GLsizei height, GLsizei imageSize, const void *pixels);

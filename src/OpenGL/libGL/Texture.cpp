@@ -353,7 +353,7 @@ sw::Format Texture2D::getInternalFormat(GLenum target, GLint level) const
 	return image[level] ? image[level]->getInternalFormat() : sw::FORMAT_NULL;
 }
 
-int Texture2D::getLevelCount() const
+int Texture2D::getTopLevel() const
 {
 	ASSERT(isSamplerComplete());
 	int levels = 0;
@@ -726,7 +726,7 @@ sw::Format TextureCubeMap::getInternalFormat(GLenum target, GLint level) const
 	return image[face][level] ? image[face][level]->getInternalFormat() : sw::FORMAT_NULL;
 }
 
-int TextureCubeMap::getLevelCount() const
+int TextureCubeMap::getTopLevel() const
 {
 	ASSERT(isSamplerComplete());
 	int levels = 0;
