@@ -1665,7 +1665,7 @@ namespace es2
 			return attribute.location;
 		}
 
-		std::unordered_map<std::string, GLuint>::const_iterator it = linkedAttributeLocation.find(attribute.name);
+		std::map<std::string, GLuint>::const_iterator it = linkedAttributeLocation.find(attribute.name);
 		if(it != linkedAttributeLocation.end())
 		{
 			return it->second;

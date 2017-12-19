@@ -14,6 +14,7 @@
 
 #include "ParseHelper.h"
 
+#include <limits>
 #include <stdarg.h>
 #include <stdio.h>
 

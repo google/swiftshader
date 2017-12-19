@@ -105,6 +105,7 @@
 #include <stdlib.h>
 #endif
 
+#include <limits>
 #include <cassert>
 #include <sstream>
 #include <stdint.h>

@@ -55,6 +55,7 @@ WHICH GENERATES THE GLSL ES preprocessor expression parser.
 #include <stdlib.h>
 #endif
 
+#include <limits>
 #include <cassert>
 #include <sstream>
 #include <stdint.h>
