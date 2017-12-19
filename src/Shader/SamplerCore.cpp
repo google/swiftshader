@@ -162,10 +162,10 @@ namespace sw
 
 				switch(state.textureFormat)
 				{
-				case FORMAT_R8I_SNORM:
-				case FORMAT_G8R8I_SNORM:
-				case FORMAT_X8B8G8R8I_SNORM:
-				case FORMAT_A8B8G8R8I_SNORM:
+				case FORMAT_R8_SNORM:
+				case FORMAT_G8R8_SNORM:
+				case FORMAT_X8B8G8R8_SNORM:
+				case FORMAT_A8B8G8R8_SNORM:
 				case FORMAT_R8:
 				case FORMAT_R5G6B5:
 				case FORMAT_G8R8:
@@ -414,10 +414,10 @@ namespace sw
 				case FORMAT_A32B32G32R32I:
 				case FORMAT_A32B32G32R32UI:
 					break;
-				case FORMAT_R8I_SNORM:
-				case FORMAT_G8R8I_SNORM:
-				case FORMAT_X8B8G8R8I_SNORM:
-				case FORMAT_A8B8G8R8I_SNORM:
+				case FORMAT_R8_SNORM:
+				case FORMAT_G8R8_SNORM:
+				case FORMAT_X8B8G8R8_SNORM:
+				case FORMAT_A8B8G8R8_SNORM:
 				case FORMAT_R8:
 				case FORMAT_R5G6B5:
 				case FORMAT_G8R8:
@@ -1800,7 +1800,7 @@ namespace sw
 						break;
 					case FORMAT_A8B8G8R8:
 					case FORMAT_A8B8G8R8I:
-					case FORMAT_A8B8G8R8I_SNORM:
+					case FORMAT_A8B8G8R8_SNORM:
 					case FORMAT_Q8W8V8U8:
 					case FORMAT_SRGB8_A8:
 						c.z = As<Short4>(UnpackHigh(c.x, c.y));
@@ -1854,7 +1854,7 @@ namespace sw
 						c.y = UnpackHigh(As<Byte8>(c.y), As<Byte8>(c.y));
 						c.x = UnpackLow(As<Byte8>(c.x), As<Byte8>(c.x));
 						break;
-					case FORMAT_X8B8G8R8I_SNORM:
+					case FORMAT_X8B8G8R8_SNORM:
 					case FORMAT_X8B8G8R8I:
 					case FORMAT_X8B8G8R8:
 					case FORMAT_X8L8V8U8:
@@ -1895,7 +1895,7 @@ namespace sw
 				switch(state.textureFormat)
 				{
 				case FORMAT_G8R8:
-				case FORMAT_G8R8I_SNORM:
+				case FORMAT_G8R8_SNORM:
 				case FORMAT_V8U8:
 				case FORMAT_A8L8:
 					c.y = (c.x & Short4(0xFF00u)) | As<Short4>(As<UShort4>(c.x) >> 8);
@@ -2590,10 +2590,10 @@ namespace sw
 		{
 		case FORMAT_R5G6B5:
 			return true;
-		case FORMAT_R8I_SNORM:
-		case FORMAT_G8R8I_SNORM:
-		case FORMAT_X8B8G8R8I_SNORM:
-		case FORMAT_A8B8G8R8I_SNORM:
+		case FORMAT_R8_SNORM:
+		case FORMAT_G8R8_SNORM:
+		case FORMAT_X8B8G8R8_SNORM:
+		case FORMAT_A8B8G8R8_SNORM:
 		case FORMAT_R8I:
 		case FORMAT_R8UI:
 		case FORMAT_G8R8I:
@@ -2677,10 +2677,10 @@ namespace sw
 		case FORMAT_R8:
 		case FORMAT_L8:
 		case FORMAT_A8L8:
-		case FORMAT_R8I_SNORM:
-		case FORMAT_G8R8I_SNORM:
-		case FORMAT_X8B8G8R8I_SNORM:
-		case FORMAT_A8B8G8R8I_SNORM:
+		case FORMAT_R8_SNORM:
+		case FORMAT_G8R8_SNORM:
+		case FORMAT_X8B8G8R8_SNORM:
+		case FORMAT_A8B8G8R8_SNORM:
 		case FORMAT_R8I:
 		case FORMAT_R8UI:
 		case FORMAT_G8R8I:
@@ -2739,10 +2739,10 @@ namespace sw
 		switch(state.textureFormat)
 		{
 		case FORMAT_R5G6B5:
-		case FORMAT_R8I_SNORM:
-		case FORMAT_G8R8I_SNORM:
-		case FORMAT_X8B8G8R8I_SNORM:
-		case FORMAT_A8B8G8R8I_SNORM:
+		case FORMAT_R8_SNORM:
+		case FORMAT_G8R8_SNORM:
+		case FORMAT_X8B8G8R8_SNORM:
+		case FORMAT_A8B8G8R8_SNORM:
 		case FORMAT_R8I:
 		case FORMAT_R8UI:
 		case FORMAT_G8R8I:
@@ -2814,10 +2814,10 @@ namespace sw
 		switch(state.textureFormat)
 		{
 		case FORMAT_R5G6B5:
-		case FORMAT_R8I_SNORM:
-		case FORMAT_G8R8I_SNORM:
-		case FORMAT_X8B8G8R8I_SNORM:
-		case FORMAT_A8B8G8R8I_SNORM:
+		case FORMAT_R8_SNORM:
+		case FORMAT_G8R8_SNORM:
+		case FORMAT_X8B8G8R8_SNORM:
+		case FORMAT_A8B8G8R8_SNORM:
 		case FORMAT_R8I:
 		case FORMAT_R8UI:
 		case FORMAT_G8R8I:
@@ -2893,10 +2893,10 @@ namespace sw
 		case FORMAT_YV12_JFIF:
 			return true;
 		case FORMAT_R5G6B5:
-		case FORMAT_R8I_SNORM:
-		case FORMAT_G8R8I_SNORM:
-		case FORMAT_X8B8G8R8I_SNORM:
-		case FORMAT_A8B8G8R8I_SNORM:
+		case FORMAT_R8_SNORM:
+		case FORMAT_G8R8_SNORM:
+		case FORMAT_X8B8G8R8_SNORM:
+		case FORMAT_A8B8G8R8_SNORM:
 		case FORMAT_R8I:
 		case FORMAT_R8UI:
 		case FORMAT_G8R8I:
@@ -2964,10 +2964,10 @@ namespace sw
 		switch(state.textureFormat)
 		{
 		case FORMAT_R5G6B5:         return component < 3;
-		case FORMAT_R8I_SNORM:      return component < 1;
-		case FORMAT_G8R8I_SNORM:    return component < 2;
-		case FORMAT_X8B8G8R8I_SNORM: return component < 3;
-		case FORMAT_A8B8G8R8I_SNORM: return component < 3;
+		case FORMAT_R8_SNORM:      return component < 1;
+		case FORMAT_G8R8_SNORM:    return component < 2;
+		case FORMAT_X8B8G8R8_SNORM: return component < 3;
+		case FORMAT_A8B8G8R8_SNORM: return component < 3;
 		case FORMAT_R8I:            return component < 1;
 		case FORMAT_R8UI:           return component < 1;
 		case FORMAT_G8R8I:          return component < 2;

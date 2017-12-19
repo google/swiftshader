@@ -83,7 +83,7 @@ namespace sw
 		case FORMAT_A8:
 			*(unsigned char*)element = unorm<8>(a);
 			break;
-		case FORMAT_R8I_SNORM:
+		case FORMAT_R8_SNORM:
 			*(char*)element = snorm<8>(r);
 			break;
 		case FORMAT_R8:
@@ -140,7 +140,7 @@ namespace sw
 		case FORMAT_X8R8G8B8:
 			*(unsigned int*)element = 0xFF000000 | (unorm<8>(r) << 16) | (unorm<8>(g) << 8) | (unorm<8>(b) << 0);
 			break;
-		case FORMAT_A8B8G8R8I_SNORM:
+		case FORMAT_A8B8G8R8_SNORM:
 			*(unsigned int*)element = (static_cast<unsigned int>(snorm<8>(a)) << 24) |
 			                          (static_cast<unsigned int>(snorm<8>(b)) << 16) |
 			                          (static_cast<unsigned int>(snorm<8>(g)) << 8) |
@@ -159,7 +159,7 @@ namespace sw
 		case FORMAT_A8B8G8R8UI:
 			*(unsigned int*)element = (ucast<8>(a) << 24) | (ucast<8>(b) << 16) | (ucast<8>(g) << 8) | (ucast<8>(r) << 0);
 			break;
-		case FORMAT_X8B8G8R8I_SNORM:
+		case FORMAT_X8B8G8R8_SNORM:
 			*(unsigned int*)element = 0x7F000000 |
 			                          (static_cast<unsigned int>(snorm<8>(b)) << 16) |
 			                          (static_cast<unsigned int>(snorm<8>(g)) << 8) |
@@ -184,7 +184,7 @@ namespace sw
 		case FORMAT_A2B10G10R10UI:
 			*(unsigned int*)element = (unorm<2>(a) << 30) | (unorm<10>(b) << 20) | (unorm<10>(g) << 10) | (unorm<10>(r) << 0);
 			break;
-		case FORMAT_G8R8I_SNORM:
+		case FORMAT_G8R8_SNORM:
 			*(unsigned short*)element = (static_cast<unsigned short>(snorm<8>(g)) << 8) |
 			                            (static_cast<unsigned short>(snorm<8>(r)) << 0);
 			break;
@@ -437,7 +437,7 @@ namespace sw
 			b = 0;
 			a = *(unsigned char*)element * (1.0f / 0xFF);
 			break;
-		case FORMAT_R8I_SNORM:
+		case FORMAT_R8_SNORM:
 			r = max((*(signed char*)element) * (1.0f / 0x7F), -1.0f);
 			break;
 		case FORMAT_R8:
@@ -554,7 +554,7 @@ namespace sw
 				b = (xrgb & 0x000000FF) * (1.0f / 0x000000FF);
 			}
 			break;
-		case FORMAT_A8B8G8R8I_SNORM:
+		case FORMAT_A8B8G8R8_SNORM:
 			{
 				signed char* abgr = (signed char*)element;
 
@@ -595,7 +595,7 @@ namespace sw
 				a = abgr[3];
 			}
 			break;
-		case FORMAT_X8B8G8R8I_SNORM:
+		case FORMAT_X8B8G8R8_SNORM:
 			{
 				signed char* bgr = (signed char*)element;
 
@@ -632,7 +632,7 @@ namespace sw
 				b = bgr[2];
 			}
 			break;
-		case FORMAT_G8R8I_SNORM:
+		case FORMAT_G8R8_SNORM:
 			{
 				signed char* gr = (signed char*)element;
 
@@ -1561,10 +1561,10 @@ namespace sw
 		case FORMAT_X8B8G8R8UI:			return 4;
 		case FORMAT_A8B8G8R8UI:			return 4;
 		case FORMAT_A8B8G8R8:			return 4;
-		case FORMAT_R8I_SNORM:			return 1;
-		case FORMAT_G8R8I_SNORM:		return 2;
-		case FORMAT_X8B8G8R8I_SNORM:	return 4;
-		case FORMAT_A8B8G8R8I_SNORM:	return 4;
+		case FORMAT_R8_SNORM:			return 1;
+		case FORMAT_G8R8_SNORM:		return 2;
+		case FORMAT_X8B8G8R8_SNORM:	return 4;
+		case FORMAT_A8B8G8R8_SNORM:	return 4;
 		case FORMAT_A2R10G10B10:		return 4;
 		case FORMAT_A2B10G10R10:		return 4;
 		case FORMAT_A2B10G10R10UI:		return 4;
@@ -2849,10 +2849,10 @@ namespace sw
 		case FORMAT_G8R8:
 		case FORMAT_A2B10G10R10:
 		case FORMAT_A2B10G10R10UI:
-		case FORMAT_R8I_SNORM:
-		case FORMAT_G8R8I_SNORM:
-		case FORMAT_X8B8G8R8I_SNORM:
-		case FORMAT_A8B8G8R8I_SNORM:
+		case FORMAT_R8_SNORM:
+		case FORMAT_G8R8_SNORM:
+		case FORMAT_X8B8G8R8_SNORM:
+		case FORMAT_A8B8G8R8_SNORM:
 		case FORMAT_R16I:
 		case FORMAT_R16UI:
 		case FORMAT_G16R16I:
@@ -2968,7 +2968,7 @@ namespace sw
 		case FORMAT_A8B8G8R8I:
 		case FORMAT_A16B16G16R16I:
 		case FORMAT_A32B32G32R32I:
-		case FORMAT_A8B8G8R8I_SNORM:
+		case FORMAT_A8B8G8R8_SNORM:
 		case FORMAT_Q8W8V8U8:
 		case FORMAT_Q16W16V16U16:
 		case FORMAT_A32B32G32R32F:
@@ -2977,7 +2977,7 @@ namespace sw
 		case FORMAT_R8I:
 		case FORMAT_R16I:
 		case FORMAT_R32I:
-		case FORMAT_R8I_SNORM:
+		case FORMAT_R8_SNORM:
 			return component >= 1;
 		case FORMAT_V8U8:
 		case FORMAT_X8L8V8U8:
@@ -2986,7 +2986,7 @@ namespace sw
 		case FORMAT_G8R8I:
 		case FORMAT_G16R16I:
 		case FORMAT_G32R32I:
-		case FORMAT_G8R8I_SNORM:
+		case FORMAT_G8R8_SNORM:
 			return component >= 2;
 		case FORMAT_A16W16V16U16:
 		case FORMAT_B32G32R32F:
@@ -2994,7 +2994,7 @@ namespace sw
 		case FORMAT_X8B8G8R8I:
 		case FORMAT_X16B16G16R16I:
 		case FORMAT_X32B32G32R32I:
-		case FORMAT_X8B8G8R8I_SNORM:
+		case FORMAT_X8B8G8R8_SNORM:
 			return component >= 3;
 		default:
 			ASSERT(false);
@@ -3195,10 +3195,10 @@ namespace sw
 		case FORMAT_A8B8G8R8:       return 4;
 		case FORMAT_G8R8I:          return 2;
 		case FORMAT_G8R8:           return 2;
-		case FORMAT_R8I_SNORM:      return 1;
-		case FORMAT_G8R8I_SNORM:    return 2;
-		case FORMAT_X8B8G8R8I_SNORM:return 3;
-		case FORMAT_A8B8G8R8I_SNORM:return 4;
+		case FORMAT_R8_SNORM:      return 1;
+		case FORMAT_G8R8_SNORM:    return 2;
+		case FORMAT_X8B8G8R8_SNORM:return 3;
+		case FORMAT_A8B8G8R8_SNORM:return 4;
 		case FORMAT_R8UI:           return 1;
 		case FORMAT_G8R8UI:         return 2;
 		case FORMAT_X8B8G8R8UI:     return 3;
@@ -3780,8 +3780,8 @@ namespace sw
 			return FORMAT_R8I;
 		case FORMAT_R8UI:
 			return FORMAT_R8UI;
-		case FORMAT_R8I_SNORM:
-			return FORMAT_R8I_SNORM;
+		case FORMAT_R8_SNORM:
+			return FORMAT_R8_SNORM;
 		case FORMAT_R8:
 			return FORMAT_R8;
 		case FORMAT_R16I:
@@ -3818,8 +3818,8 @@ namespace sw
 			return FORMAT_G8R8I;
 		case FORMAT_G8R8UI:
 			return FORMAT_G8R8UI;
-		case FORMAT_G8R8I_SNORM:
-			return FORMAT_G8R8I_SNORM;
+		case FORMAT_G8R8_SNORM:
+			return FORMAT_G8R8_SNORM;
 		case FORMAT_G8R8:
 			return FORMAT_G8R8;
 		case FORMAT_G16R16I:
@@ -3845,8 +3845,8 @@ namespace sw
 			return FORMAT_A8B8G8R8I;
 		case FORMAT_A8B8G8R8UI:
 			return FORMAT_A8B8G8R8UI;
-		case FORMAT_A8B8G8R8I_SNORM:
-			return FORMAT_A8B8G8R8I_SNORM;
+		case FORMAT_A8B8G8R8_SNORM:
+			return FORMAT_A8B8G8R8_SNORM;
 		case FORMAT_R5G5B5A1:
 		case FORMAT_R4G4B4A4:
 		case FORMAT_A8B8G8R8:
@@ -3870,8 +3870,8 @@ namespace sw
 			return FORMAT_X8B8G8R8I;
 		case FORMAT_X8B8G8R8UI:
 			return FORMAT_X8B8G8R8UI;
-		case FORMAT_X8B8G8R8I_SNORM:
-			return FORMAT_X8B8G8R8I_SNORM;
+		case FORMAT_X8B8G8R8_SNORM:
+			return FORMAT_X8B8G8R8_SNORM;
 		case FORMAT_B8G8R8:
 		case FORMAT_X8B8G8R8:
 			return FORMAT_X8B8G8R8;

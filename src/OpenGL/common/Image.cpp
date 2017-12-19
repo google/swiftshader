@@ -720,28 +720,28 @@ namespace egl
 			case GL_R8_SNORM:
 			case GL_R8:
 			case GL_RED:
-				return sw::FORMAT_R8I_SNORM;
+				return sw::FORMAT_R8_SNORM;
 			case GL_R8I:
 			case GL_RED_INTEGER:
 				return sw::FORMAT_R8I;
 			case GL_RG8_SNORM:
 			case GL_RG8:
 			case GL_RG:
-				return sw::FORMAT_G8R8I_SNORM;
+				return sw::FORMAT_G8R8_SNORM;
 			case GL_RG8I:
 			case GL_RG_INTEGER:
 				return sw::FORMAT_G8R8I;
 			case GL_RGB8_SNORM:
 			case GL_RGB8:
 			case GL_RGB:
-				return sw::FORMAT_X8B8G8R8I_SNORM;
+				return sw::FORMAT_X8B8G8R8_SNORM;
 			case GL_RGB8I:
 			case GL_RGB_INTEGER:
 				return sw::FORMAT_X8B8G8R8I;
 			case GL_RGBA8_SNORM:
 			case GL_RGBA8:
 			case GL_RGBA:
-				return sw::FORMAT_A8B8G8R8I_SNORM;
+				return sw::FORMAT_A8B8G8R8_SNORM;
 			case GL_RGBA8I:
 			case GL_RGBA_INTEGER:
 				return sw::FORMAT_A8B8G8R8I;

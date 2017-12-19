@@ -234,7 +234,7 @@ namespace sw
 			c.w = Float(Int(*Pointer<Byte>(element)));
 			break;
 		case FORMAT_R8I:
-		case FORMAT_R8I_SNORM:
+		case FORMAT_R8_SNORM:
 			c.x = Float(Int(*Pointer<SByte>(element)));
 			c.w = float(0x7F);
 			break;
@@ -263,7 +263,7 @@ namespace sw
 			c = Float4(*Pointer<Byte4>(element)).zyxw;
 			break;
 		case FORMAT_A8B8G8R8I:
-		case FORMAT_A8B8G8R8I_SNORM:
+		case FORMAT_A8B8G8R8_SNORM:
 			c = Float4(*Pointer<SByte4>(element));
 			break;
 		case FORMAT_A8B8G8R8:
@@ -288,7 +288,7 @@ namespace sw
 			c.w = float(0xFF);
 			break;
 		case FORMAT_X8B8G8R8I:
-		case FORMAT_X8B8G8R8I_SNORM:
+		case FORMAT_X8B8G8R8_SNORM:
 			c = Float4(*Pointer<SByte4>(element));
 			c.w = float(0x7F);
 			break;
@@ -328,7 +328,7 @@ namespace sw
 			c.w = float(0xFFFFFFFF);
 			break;
 		case FORMAT_G8R8I:
-		case FORMAT_G8R8I_SNORM:
+		case FORMAT_G8R8_SNORM:
 			c.x = Float(Int(*Pointer<SByte>(element + 0)));
 			c.y = Float(Int(*Pointer<SByte>(element + 1)));
 			c.w = float(0x7F);
@@ -535,20 +535,20 @@ namespace sw
 			if(writeR) { *Pointer<Float>(element) = c.x; }
 			break;
 		case FORMAT_A8B8G8R8I:
-		case FORMAT_A8B8G8R8I_SNORM:
+		case FORMAT_A8B8G8R8_SNORM:
 			if(writeA) { *Pointer<SByte>(element + 3) = SByte(RoundInt(Float(c.w))); }
 		case FORMAT_X8B8G8R8I:
-		case FORMAT_X8B8G8R8I_SNORM:
-			if(writeA && (state.destFormat == FORMAT_X8B8G8R8I || state.destFormat == FORMAT_X8B8G8R8I_SNORM))
+		case FORMAT_X8B8G8R8_SNORM:
+			if(writeA && (state.destFormat == FORMAT_X8B8G8R8I || state.destFormat == FORMAT_X8B8G8R8_SNORM))
 			{
 				*Pointer<SByte>(element + 3) = SByte(0x7F);
 			}
 			if(writeB) { *Pointer<SByte>(element + 2) = SByte(RoundInt(Float(c.z))); }
 		case FORMAT_G8R8I:
-		case FORMAT_G8R8I_SNORM:
+		case FORMAT_G8R8_SNORM:
 			if(writeG) { *Pointer<SByte>(element + 1) = SByte(RoundInt(Float(c.y))); }
 		case FORMAT_R8I:
-		case FORMAT_R8I_SNORM:
+		case FORMAT_R8_SNORM:
 			if(writeR) { *Pointer<SByte>(element) = SByte(RoundInt(Float(c.x))); }
 			break;
 		case FORMAT_A8B8G8R8UI:
@@ -996,10 +996,10 @@ namespace sw
 		case FORMAT_SRGB8_A8:
 			scale = vector(0xFF, 0xFF, 0xFF, 0xFF);
 			break;
-		case FORMAT_R8I_SNORM:
-		case FORMAT_G8R8I_SNORM:
-		case FORMAT_X8B8G8R8I_SNORM:
-		case FORMAT_A8B8G8R8I_SNORM:
+		case FORMAT_R8_SNORM:
+		case FORMAT_G8R8_SNORM:
+		case FORMAT_X8B8G8R8_SNORM:
+		case FORMAT_A8B8G8R8_SNORM:
 			scale = vector(0x7F, 0x7F, 0x7F, 0x7F);
 			break;
 		case FORMAT_A16B16G16R16:
