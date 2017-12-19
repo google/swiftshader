@@ -507,7 +507,7 @@ namespace es2
 		}
 	}
 
-	bool Device::stretchRect(sw::Surface *source, const sw::SliceRect *sourceRect, sw::Surface *dest, const sw::SliceRect *destRect, unsigned char flags)
+	bool Device::stretchRect(sw::Surface *source, const sw::SliceRectF *sourceRect, sw::Surface *dest, const sw::SliceRect *destRect, unsigned char flags)
 	{
 		if(!source || !dest)
 		{
@@ -543,10 +543,10 @@ namespace es2
 
 		if(sourceRect)
 		{
-			sRect.x0 = (float)(sourceRect->x0);
-			sRect.x1 = (float)(sourceRect->x1);
-			sRect.y0 = (float)(sourceRect->y0);
-			sRect.y1 = (float)(sourceRect->y1);
+			sRect.x0 = sourceRect->x0;
+			sRect.x1 = sourceRect->x1;
+			sRect.y0 = sourceRect->y0;
+			sRect.y1 = sourceRect->y1;
 			sRect.slice = sourceRect->slice;
 
 			if(sRect.x0 > sRect.x1)
@@ -589,118 +589,16 @@ namespace es2
 			dRect.x1 = dWidth;
 		}
 
-		if(sRect.x0 < 0)
-		{
-			float ratio = static_cast<float>(dRect.width()) / sRect.width();
-			float offsetf = roundf(-sRect.x0 * ratio);
-			int offset = static_cast<int>(offsetf);
-			if(flipX)
-			{
-				dRect.x1 -= offset;
-			}
-			else
-			{
-				dRect.x0 += offset;
-			}
-			sRect.x0 += offsetf / ratio;
-		}
-		if(sRect.x1 > sWidth)
-		{
-			float ratio = static_cast<float>(dRect.width()) / sRect.width();
-			float offsetf = roundf((sRect.x1 - (float)sWidth) * ratio);
-			int offset = static_cast<int>(offsetf);
-			if(flipX)
-			{
-				dRect.x0 += offset;
-			}
-			else
-			{
-				dRect.x1 -= offset;
-			}
-			sRect.x1 -= offsetf / ratio;
-		}
-		if(sRect.y0 < 0)
-		{
-			float ratio = static_cast<float>(dRect.height()) / sRect.height();
-			float offsetf = roundf(-sRect.y0 * ratio);
-			int offset = static_cast<int>(offsetf);
-			if(flipY)
-			{
-				dRect.y1 -= offset;
-			}
-			else
-			{
-				dRect.y0 += offset;
-			}
-			sRect.y0 += offsetf / ratio;
-		}
-		if(sRect.y1 > sHeight)
-		{
-			float ratio = static_cast<float>(dRect.height()) / sRect.height();
-			float offsetf = roundf((sRect.y1 - (float)sHeight) * ratio);
-			int offset = static_cast<int>(offsetf);
-			if(flipY)
-			{
-				dRect.y0 += offset;
-			}
-			else
-			{
-				dRect.y1 -= offset;
-			}
-			sRect.y1 -= offsetf / ratio;
-		}
+		sw::Rect srcClipRect(0, 0, sWidth, sHeight);
+		ClipSrcRect(sRect, dRect, srcClipRect, flipX, flipY);
 
-		if(dRect.x0 < 0)
+		sw::Rect dstClipRect(0, 0, dWidth, dHeight);
+		ClipDstRect(sRect, dRect, dstClipRect, flipX, flipY);
+
+		if((sRect.width() == 0) || (sRect.height() == 0) ||
+		   (dRect.width() == 0) || (dRect.height() == 0))
 		{
-			float offset = (static_cast<float>(-dRect.x0) / static_cast<float>(dRect.width())) * sRect.width();
-			if(flipX)
-			{
-				sRect.x1 -= offset;
-			}
-			else
-			{
-				sRect.x0 += offset;
-			}
-			dRect.x0 = 0;
-		}
-		if(dRect.x1 > dWidth)
-		{
-			float offset = (static_cast<float>(dRect.x1 - dWidth) / static_cast<float>(dRect.width())) * sRect.width();
-			if(flipX)
-			{
-				sRect.x0 += offset;
-			}
-			else
-			{
-				sRect.x1 -= offset;
-			}
-			dRect.x1 = dWidth;
-		}
-		if(dRect.y0 < 0)
-		{
-			float offset = (static_cast<float>(-dRect.y0) / static_cast<float>(dRect.height())) * sRect.height();
-			if(flipY)
-			{
-				sRect.y1 -= offset;
-			}
-			else
-			{
-				sRect.y0 += offset;
-			}
-			dRect.y0 = 0;
-		}
-		if(dRect.y1 > dHeight)
-		{
-			float offset = (static_cast<float>(dRect.y1 - dHeight) / static_cast<float>(dRect.height())) * sRect.height();
-			if(flipY)
-			{
-				sRect.y0 += offset;
-			}
-			else
-			{
-				sRect.y1 -= offset;
-			}
-			dRect.y1 = dHeight;
+			return true; // no work to do
 		}
 
 		if(!validRectangle(&sRect, source) || !validRectangle(&dRect, dest))
@@ -723,6 +621,7 @@ namespace es2
 		int sourcePitchB = isStencil ? source->getStencilPitchB() : source->getInternalPitchB();
 		int destPitchB = isStencil ? dest->getStencilPitchB() : dest->getInternalPitchB();
 
+		bool isOutOfBounds = (sRect.x0 < 0.0f) || (sRect.y0 < 0.0f) || (sRect.x1 > (float)sWidth) || (sRect.y1 > (float)sHeight);
 		bool scaling = (sRect.width() != (float)dRect.width()) || (sRect.height() != (float)dRect.height());
 		bool equalFormats = source->getInternalFormat() == dest->getInternalFormat();
 		bool hasQuadLayout = Surface::hasQuadLayout(source->getInternalFormat()) || Surface::hasQuadLayout(dest->getInternalFormat());
@@ -739,7 +638,7 @@ namespace es2
 			alpha0xFF = true;
 		}
 
-		if(fullCopy && !scaling && equalFormats && !alpha0xFF && equalSlice && smallMargin && !flipX && !flipY)
+		if(fullCopy && !scaling && !isOutOfBounds && equalFormats && !alpha0xFF && equalSlice && smallMargin && !flipX && !flipY)
 		{
 			byte *sourceBuffer = isStencil ? (byte*)source->lockStencil(0, 0, 0, PUBLIC) : (byte*)source->lockInternal(0, 0, 0, LOCK_READONLY, PUBLIC);
 			byte *destBuffer = isStencil ? (byte*)dest->lockStencil(0, 0, 0, PUBLIC) : (byte*)dest->lockInternal(0, 0, 0, LOCK_DISCARD, PUBLIC);
@@ -749,7 +648,7 @@ namespace es2
 			isStencil ? source->unlockStencil() : source->unlockInternal();
 			isStencil ? dest->unlockStencil() : dest->unlockInternal();
 		}
-		else if(isDepth && !scaling && equalFormats && !hasQuadLayout)
+		else if(isDepth && !scaling && !isOutOfBounds && equalFormats && !hasQuadLayout)
 		{
 			byte *sourceBuffer = (byte*)source->lockInternal((int)sRect.x0, (int)sRect.y0, 0, LOCK_READONLY, PUBLIC);
 			byte *destBuffer = (byte*)dest->lockInternal(dRect.x0, dRect.y0, 0, fullCopy ? LOCK_DISCARD : LOCK_WRITEONLY, PUBLIC);
@@ -759,7 +658,7 @@ namespace es2
 			source->unlockInternal();
 			dest->unlockInternal();
 		}
-		else if((flags & Device::COLOR_BUFFER) && !scaling && equalFormats && !hasQuadLayout)
+		else if((flags & Device::COLOR_BUFFER) && !scaling && !isOutOfBounds && equalFormats && !hasQuadLayout)
 		{
 			byte *sourceBytes = (byte*)source->lockInternal((int)sRect.x0, (int)sRect.y0, sourceRect->slice, LOCK_READONLY, PUBLIC);
 			byte *destBytes = (byte*)dest->lockInternal(dRect.x0, dRect.y0, destRect->slice, fullCopy ? LOCK_DISCARD : LOCK_WRITEONLY, PUBLIC);
@@ -796,8 +695,7 @@ namespace es2
 				swap(dRect.y0, dRect.y1);
 			}
 
-			SliceRectF sRectF((float)sRect.x0, (float)sRect.y0, (float)sRect.x1, (float)sRect.y1, sRect.slice);
-			blit(source, sRectF, dest, dRect, scaling && (flags & Device::USE_FILTER), isStencil);
+			blit(source, sRect, dest, dRect, scaling && (flags & Device::USE_FILTER), isStencil);
 		}
 		else UNREACHABLE(false);
 
@@ -1034,17 +932,127 @@ namespace es2
 			return false;
 		}
 
-		if(rect->x0 < 0 || rect->y0 < 0)
-		{
-			return false;
-		}
-
-		if(rect->x1 >(float)surface->getWidth() || rect->y1 >(float)surface->getHeight())
-		{
-			return false;
-		}
-
 		return true;
+	}
+
+	void Device::ClipDstRect(sw::RectF &srcRect, sw::Rect &dstRect, sw::Rect &clipRect, bool flipX, bool flipY)
+	{
+		if(dstRect.x0 < clipRect.x0)
+		{
+			float offset = (static_cast<float>(clipRect.x0 - dstRect.x0) / static_cast<float>(dstRect.width())) * srcRect.width();
+			if(flipX)
+			{
+				srcRect.x1 -= offset;
+			}
+			else
+			{
+				srcRect.x0 += offset;
+			}
+			dstRect.x0 = clipRect.x0;
+		}
+		if(dstRect.x1 > clipRect.x1)
+		{
+			float offset = (static_cast<float>(dstRect.x1 - clipRect.x1) / static_cast<float>(dstRect.width())) * srcRect.width();
+			if(flipX)
+			{
+				srcRect.x0 += offset;
+			}
+			else
+			{
+				srcRect.x1 -= offset;
+			}
+			dstRect.x1 = clipRect.x1;
+		}
+		if(dstRect.y0 < clipRect.y0)
+		{
+			float offset = (static_cast<float>(clipRect.y0 - dstRect.y0) / static_cast<float>(dstRect.height())) * srcRect.height();
+			if(flipY)
+			{
+				srcRect.y1 -= offset;
+			}
+			else
+			{
+				srcRect.y0 += offset;
+			}
+			dstRect.y0 = clipRect.y0;
+		}
+		if(dstRect.y1 > clipRect.y1)
+		{
+			float offset = (static_cast<float>(dstRect.y1 - clipRect.y1) / static_cast<float>(dstRect.height())) * srcRect.height();
+			if(flipY)
+			{
+				srcRect.y0 += offset;
+			}
+			else
+			{
+				srcRect.y1 -= offset;
+			}
+			dstRect.y1 = clipRect.y1;
+		}
+	}
+
+	void Device::ClipSrcRect(sw::RectF &srcRect, sw::Rect &dstRect, sw::Rect &clipRect, bool flipX, bool flipY)
+	{
+		if(srcRect.x0 < static_cast<float>(clipRect.x0))
+		{
+			float ratio = static_cast<float>(dstRect.width()) / srcRect.width();
+			float offsetf = roundf((static_cast<float>(clipRect.x0) - srcRect.x0) * ratio);
+			int offset = static_cast<int>(offsetf);
+			if(flipX)
+			{
+				dstRect.x1 -= offset;
+			}
+			else
+			{
+				dstRect.x0 += offset;
+			}
+			srcRect.x0 += offsetf / ratio;
+		}
+		if(srcRect.x1 > static_cast<float>(clipRect.x1))
+		{
+			float ratio = static_cast<float>(dstRect.width()) / srcRect.width();
+			float offsetf = roundf((srcRect.x1 - static_cast<float>(clipRect.x1)) * ratio);
+			int offset = static_cast<int>(offsetf);
+			if(flipX)
+			{
+				dstRect.x0 += offset;
+			}
+			else
+			{
+				dstRect.x1 -= offset;
+			}
+			srcRect.x1 -= offsetf / ratio;
+		}
+		if(srcRect.y0 < static_cast<float>(clipRect.y0))
+		{
+			float ratio = static_cast<float>(dstRect.height()) / srcRect.height();
+			float offsetf = roundf((static_cast<float>(clipRect.y0) - srcRect.y0) * ratio);
+			int offset = static_cast<int>(offsetf);
+			if(flipY)
+			{
+				dstRect.y1 -= offset;
+			}
+			else
+			{
+				dstRect.y0 += offset;
+			}
+			srcRect.y0 += offsetf / ratio;
+		}
+		if(srcRect.y1 > static_cast<float>(clipRect.y1))
+		{
+			float ratio = static_cast<float>(dstRect.height()) / srcRect.height();
+			float offsetf = roundf((srcRect.y1 - static_cast<float>(clipRect.y1)) * ratio);
+			int offset = static_cast<int>(offsetf);
+			if(flipY)
+			{
+				dstRect.y0 += offset;
+			}
+			else
+			{
+				dstRect.y1 -= offset;
+			}
+			srcRect.y1 -= offsetf / ratio;
+		}
 	}
 
 	void Device::finish()

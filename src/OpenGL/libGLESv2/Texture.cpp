@@ -460,7 +460,12 @@ bool Texture::copy(egl::Image *source, const sw::SliceRect &sourceRect, GLint xo
 	Device *device = getDevice();
 
 	sw::SliceRect destRect(xoffset, yoffset, xoffset + (sourceRect.x1 - sourceRect.x0), yoffset + (sourceRect.y1 - sourceRect.y0), zoffset);
-	bool success = device->stretchRect(source, &sourceRect, dest, &destRect, Device::ALL_BUFFERS);
+	sw::SliceRectF sourceRectF(static_cast<float>(sourceRect.x0),
+	                           static_cast<float>(sourceRect.y0),
+	                           static_cast<float>(sourceRect.x1),
+	                           static_cast<float>(sourceRect.y1),
+	                           sourceRect.slice);
+	bool success = device->stretchRect(source, &sourceRectF, dest, &destRect, Device::ALL_BUFFERS);
 
 	if(!success)
 	{
@@ -1997,7 +2002,7 @@ void Texture2DArray::generateMipmaps()
 		GLsizei srch = image[i - 1]->getHeight();
 		for(int z = 0; z < depth; ++z)
 		{
-			sw::SliceRect srcRect(0, 0, srcw, srch, z);
+			sw::SliceRectF srcRect(0.0f, 0.0f, static_cast<float>(srcw), static_cast<float>(srch), z);
 			sw::SliceRect dstRect(0, 0, w, h, z);
 			getDevice()->stretchRect(image[i - 1], &srcRect, image[i], &dstRect, Device::ALL_BUFFERS | Device::USE_FILTER);
 		}

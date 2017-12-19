@@ -73,9 +73,12 @@ namespace es2
 		void setVertexShaderConstantF(unsigned int startRegister, const float *constantData, unsigned int count);
 		void setViewport(const Viewport &viewport);
 
-		bool stretchRect(sw::Surface *sourceSurface, const sw::SliceRect *sourceRect, sw::Surface *destSurface, const sw::SliceRect *destRect, unsigned char flags);
+		bool stretchRect(sw::Surface *sourceSurface, const sw::SliceRectF *sourceRect, sw::Surface *destSurface, const sw::SliceRect *destRect, unsigned char flags);
 		bool stretchCube(sw::Surface *sourceSurface, sw::Surface *destSurface);
 		void finish();
+
+		static void ClipDstRect(sw::RectF &srcRect, sw::Rect &dstRect, sw::Rect &clipRect, bool flipX = false, bool flipY = false);
+		static void ClipSrcRect(sw::RectF &srcRect, sw::Rect &dstRect, sw::Rect &clipRect, bool flipX = false, bool flipY = false);
 
 	private:
 		sw::Context *const context;

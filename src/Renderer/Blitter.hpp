@@ -29,9 +29,9 @@ namespace sw
 		{
 			Options() = default;
 			Options(bool filter, bool useStencil, bool convertSRGB)
-				: writeMask(0xF), clearOperation(false), filter(filter), useStencil(useStencil), convertSRGB(convertSRGB) {}
+				: writeMask(0xF), clearOperation(false), filter(filter), useStencil(useStencil), convertSRGB(convertSRGB), clampToEdge(false) {}
 			Options(unsigned int writeMask)
-				: writeMask(writeMask), clearOperation(true), filter(false), useStencil(false), convertSRGB(true) {}
+				: writeMask(writeMask), clearOperation(true), filter(false), useStencil(false), convertSRGB(true), clampToEdge(false) {}
 
 			union
 			{
@@ -50,6 +50,7 @@ namespace sw
 			bool filter : 1;
 			bool useStencil : 1;
 			bool convertSRGB : 1;
+			bool clampToEdge : 1;
 		};
 
 		struct State : Options
