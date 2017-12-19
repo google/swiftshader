@@ -3771,7 +3771,8 @@ GL_APICALL void GL_APIENTRY glGetProgramBinary(GLuint program, GLsizei bufSize, 
 		}
 	}
 
-	UNIMPLEMENTED();
+	// SwiftShader doesn't return a program binary and sets the program binay size to 0, so any attempt at getting one is invalid.
+	return error(GL_INVALID_OPERATION);
 }
 
 GL_APICALL void GL_APIENTRY glProgramBinary(GLuint program, GLenum binaryFormat, const void *binary, GLsizei length)
@@ -3784,7 +3785,20 @@ GL_APICALL void GL_APIENTRY glProgramBinary(GLuint program, GLenum binaryFormat,
 		return error(GL_INVALID_VALUE);
 	}
 
-	UNIMPLEMENTED();
+	es2::Context *context = es2::getContext();
+
+	if(context)
+	{
+		es2::Program *programObject = context->getProgram(program);
+
+		if(!programObject)
+		{
+			return error(GL_INVALID_OPERATION);
+		}
+	}
+
+	// Regardless of what the binaryFormat is, it is unrecognized by SwiftShader, since it supports no format.
+	return error(GL_INVALID_ENUM);
 }
 
 GL_APICALL void GL_APIENTRY glProgramParameteri(GLuint program, GLenum pname, GLint value)
