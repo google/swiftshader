@@ -525,17 +525,17 @@ namespace sw
 		mask = As<Int4>(CmpLT(Abs(coordinates - Float4(0.5f)), Float4(0.5f)));
 	}
 
-	Short4 SamplerCore::offsetSample(Pointer<Byte> &texture, Short4 &uvw, Pointer<Byte> &mipmap, int halfOffset, bool wrap, int count, Float &lod)
+	Short4 SamplerCore::offsetSample(Short4 &uvw, Pointer<Byte> &mipmap, int halfOffset, bool wrap, int count, Float &lod)
 	{
 		Short4 offset = *Pointer<Short4>(mipmap + halfOffset);
 
 		if(state.textureFilter == FILTER_MIN_LINEAR_MAG_POINT)
 		{
-			offset &= Short4(CmpNLE(Float4(lod), Float4(Float(*Pointer<Int>(texture + OFFSET(Texture,baseLevel))))));
+			offset &= Short4(CmpNLE(Float4(lod), Float4(0.0f)));
 		}
 		else if(state.textureFilter == FILTER_MIN_POINT_MAG_LINEAR)
 		{
-			offset &= Short4(CmpLE(Float4(lod), Float4(Float(*Pointer<Int>(texture + OFFSET(Texture,baseLevel))))));
+			offset &= Short4(CmpLE(Float4(lod), Float4(0.0f)));
 		}
 
 		if(wrap)
@@ -759,10 +759,10 @@ namespace sw
 		}
 		else
 		{
-			Short4 uuuu0 = offsetSample(texture, uuuu, mipmap, OFFSET(Mipmap,uHalf), state.addressingModeU == ADDRESSING_WRAP, gather ? 0 : -1, lod);
-			Short4 vvvv0 = offsetSample(texture, vvvv, mipmap, OFFSET(Mipmap,vHalf), state.addressingModeV == ADDRESSING_WRAP, gather ? 0 : -1, lod);
-			Short4 uuuu1 = offsetSample(texture, uuuu, mipmap, OFFSET(Mipmap,uHalf), state.addressingModeU == ADDRESSING_WRAP, gather ? 2 : +1, lod);
-			Short4 vvvv1 = offsetSample(texture, vvvv, mipmap, OFFSET(Mipmap,vHalf), state.addressingModeV == ADDRESSING_WRAP, gather ? 2 : +1, lod);
+			Short4 uuuu0 = offsetSample(uuuu, mipmap, OFFSET(Mipmap,uHalf), state.addressingModeU == ADDRESSING_WRAP, gather ? 0 : -1, lod);
+			Short4 vvvv0 = offsetSample(vvvv, mipmap, OFFSET(Mipmap,vHalf), state.addressingModeV == ADDRESSING_WRAP, gather ? 0 : -1, lod);
+			Short4 uuuu1 = offsetSample(uuuu, mipmap, OFFSET(Mipmap,uHalf), state.addressingModeU == ADDRESSING_WRAP, gather ? 2 : +1, lod);
+			Short4 vvvv1 = offsetSample(vvvv, mipmap, OFFSET(Mipmap,vHalf), state.addressingModeV == ADDRESSING_WRAP, gather ? 2 : +1, lod);
 
 			Vector4s c0 = sampleTexel(uuuu0, vvvv0, wwww, offset, mipmap, buffer, function);
 			Vector4s c1 = sampleTexel(uuuu1, vvvv0, wwww, offset, mipmap, buffer, function);
@@ -966,9 +966,9 @@ namespace sw
 				{
 					for(int k = 0; k < 2; k++)
 					{
-						u[i][j][k] = offsetSample(texture, uuuu, mipmap, OFFSET(Mipmap,uHalf), state.addressingModeU == ADDRESSING_WRAP, i * 2 - 1, lod);
-						v[i][j][k] = offsetSample(texture, vvvv, mipmap, OFFSET(Mipmap,vHalf), state.addressingModeV == ADDRESSING_WRAP, j * 2 - 1, lod);
-						s[i][j][k] = offsetSample(texture, wwww, mipmap, OFFSET(Mipmap,wHalf), state.addressingModeW == ADDRESSING_WRAP, k * 2 - 1, lod);
+						u[i][j][k] = offsetSample(uuuu, mipmap, OFFSET(Mipmap,uHalf), state.addressingModeU == ADDRESSING_WRAP, i * 2 - 1, lod);
+						v[i][j][k] = offsetSample(vvvv, mipmap, OFFSET(Mipmap,vHalf), state.addressingModeV == ADDRESSING_WRAP, j * 2 - 1, lod);
+						s[i][j][k] = offsetSample(wwww, mipmap, OFFSET(Mipmap,wHalf), state.addressingModeW == ADDRESSING_WRAP, k * 2 - 1, lod);
 					}
 				}
 			}
@@ -1219,7 +1219,7 @@ namespace sw
 
 		Int4 x0, x1, y0, y1, z0;
 		Float4 fu, fv;
-		Int4 filter = computeFilterOffset(texture, lod);
+		Int4 filter = computeFilterOffset(lod);
 		address(u, x0, x1, fu, mipmap, offset.x, filter, OFFSET(Mipmap, width), state.addressingModeU, function);
 		address(v, y0, y1, fv, mipmap, offset.y, filter, OFFSET(Mipmap, height), state.addressingModeV, function);
 		address(w, z0, z0, fv, mipmap, offset.z, filter, OFFSET(Mipmap, depth), state.addressingModeW, function);
@@ -1288,7 +1288,7 @@ namespace sw
 
 		Int4 x0, x1, y0, y1, z0, z1;
 		Float4 fu, fv, fw;
-		Int4 filter = computeFilterOffset(texture, lod);
+		Int4 filter = computeFilterOffset(lod);
 		address(u, x0, x1, fu, mipmap, offset.x, filter, OFFSET(Mipmap, width), state.addressingModeU, function);
 		address(v, y0, y1, fv, mipmap, offset.y, filter, OFFSET(Mipmap, height), state.addressingModeV, function);
 		address(w, z0, z1, fw, mipmap, offset.z, filter, OFFSET(Mipmap, depth), state.addressingModeW, function);
@@ -1444,9 +1444,6 @@ namespace sw
 		}
 		else assert(false);
 
-		// TODO: Avoid float conversion.
-		lod += Float(*Pointer<Int>(texture + OFFSET(Texture,baseLevel)));
-
 		lod = Max(lod, *Pointer<Float>(texture + OFFSET(Texture, minLod)));
 		lod = Min(lod, *Pointer<Float>(texture + OFFSET(Texture, maxLod)));
 	}
@@ -1513,9 +1510,6 @@ namespace sw
 		}
 		else assert(false);
 
-		// TODO: Avoid float conversion.
-		lod += Float(*Pointer<Int>(texture + OFFSET(Texture,baseLevel)));
-
 		lod = Max(lod, *Pointer<Float>(texture + OFFSET(Texture, minLod)));
 		lod = Min(lod, *Pointer<Float>(texture + OFFSET(Texture, maxLod)));
 	}
@@ -1579,9 +1573,6 @@ namespace sw
 				lod = Float(0);
 			}
 			else assert(false);
-
-			// TODO: Avoid float conversion.
-			lod += Float(*Pointer<Int>(texture + OFFSET(Texture,baseLevel)));
 
 			lod = Max(lod, *Pointer<Float>(texture + OFFSET(Texture, minLod)));
 			lod = Min(lod, *Pointer<Float>(texture + OFFSET(Texture, maxLod)));
@@ -2286,7 +2277,7 @@ namespace sw
 		}
 	}
 
-	Int4 SamplerCore::computeFilterOffset(Pointer<Byte> &texture, Float &lod)
+	Int4 SamplerCore::computeFilterOffset(Float &lod)
 	{
 		Int4 filter = -1;
 
@@ -2296,11 +2287,11 @@ namespace sw
 		}
 		else if(state.textureFilter == FILTER_MIN_LINEAR_MAG_POINT)
 		{
-			filter = CmpNLE(Float4(lod), Float4(Float(*Pointer<Int>(texture + OFFSET(Texture,baseLevel)))));
+			filter = CmpNLE(Float4(lod), Float4(0.0f));
 		}
 		else if(state.textureFilter == FILTER_MIN_POINT_MAG_LINEAR)
 		{
-			filter = CmpLE(Float4(lod), Float4(Float(*Pointer<Int>(texture + OFFSET(Texture,baseLevel)))));
+			filter = CmpLE(Float4(lod), Float4(0.0f));
 		}
 
 		return filter;

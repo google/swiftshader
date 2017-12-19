@@ -3192,13 +3192,9 @@ void Context::applyTexture(sw::SamplerType type, int index, Texture *baseTexture
 
 			for(int mipmapLevel = 0; mipmapLevel < sw::MIPMAP_LEVELS; mipmapLevel++)
 			{
-				int surfaceLevel = mipmapLevel;
+				int surfaceLevel = mipmapLevel + baseLevel;
 
-				if(surfaceLevel < baseLevel)
-				{
-					surfaceLevel = baseLevel;
-				}
-				else if(surfaceLevel > maxLevel)
+				if(surfaceLevel > maxLevel)
 				{
 					surfaceLevel = maxLevel;
 				}
@@ -3213,13 +3209,9 @@ void Context::applyTexture(sw::SamplerType type, int index, Texture *baseTexture
 
 			for(int mipmapLevel = 0; mipmapLevel < sw::MIPMAP_LEVELS; mipmapLevel++)
 			{
-				int surfaceLevel = mipmapLevel;
+				int surfaceLevel = mipmapLevel + baseLevel;
 
-				if(surfaceLevel < baseLevel)
-				{
-					surfaceLevel = baseLevel;
-				}
-				else if(surfaceLevel > maxLevel)
+				if(surfaceLevel > maxLevel)
 				{
 					surfaceLevel = maxLevel;
 				}
@@ -3234,13 +3226,9 @@ void Context::applyTexture(sw::SamplerType type, int index, Texture *baseTexture
 
 			for(int mipmapLevel = 0; mipmapLevel < sw::MIPMAP_LEVELS; mipmapLevel++)
 			{
-				int surfaceLevel = mipmapLevel;
+				int surfaceLevel = mipmapLevel + baseLevel;
 
-				if(surfaceLevel < baseLevel)
-				{
-					surfaceLevel = baseLevel;
-				}
-				else if(surfaceLevel > maxLevel)
+				if(surfaceLevel > maxLevel)
 				{
 					surfaceLevel = maxLevel;
 				}
@@ -3259,13 +3247,9 @@ void Context::applyTexture(sw::SamplerType type, int index, Texture *baseTexture
 
 				for(int face = 0; face < 6; face++)
 				{
-					int surfaceLevel = mipmapLevel;
+					int surfaceLevel = mipmapLevel + baseLevel;
 
-					if(surfaceLevel < baseLevel)
-					{
-						surfaceLevel = baseLevel;
-					}
-					else if(surfaceLevel > maxLevel)
+					if(surfaceLevel > maxLevel)
 					{
 						surfaceLevel = maxLevel;
 					}
