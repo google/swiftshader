@@ -182,6 +182,11 @@ bool Texture::setMaxAnisotropy(float textureMaxAnisotropy)
 
 bool Texture::setBaseLevel(GLint baseLevel)
 {
+	if(baseLevel < 0)
+	{
+		return false;
+	}
+
 	mBaseLevel = baseLevel;
 	return true;
 }
@@ -844,12 +849,14 @@ bool Texture2D::isMipmapComplete() const
 			return false;
 		}
 
-		if(image[level]->getWidth() != std::max(1, width >> level))
+		int i = level - mBaseLevel;
+
+		if(image[level]->getWidth() != std::max(1, width >> i))
 		{
 			return false;
 		}
 
-		if(image[level]->getHeight() != std::max(1, height >> level))
+		if(image[level]->getHeight() != std::max(1, height >> i))
 		{
 			return false;
 		}
@@ -1213,7 +1220,9 @@ bool TextureCubeMap::isMipmapCubeComplete() const
 				return false;
 			}
 
-			if(image[face][level]->getWidth() != std::max(1, size >> level))
+			int i = level - mBaseLevel;
+
+			if(image[face][level]->getWidth() != std::max(1, size >> i))
 			{
 				return false;
 			}
@@ -1833,17 +1842,19 @@ bool Texture3D::isMipmapComplete() const
 			return false;
 		}
 
-		if(image[level]->getWidth() != std::max(1, width >> level))
+		int i = level - mBaseLevel;
+
+		if(image[level]->getWidth() != std::max(1, width >> i))
 		{
 			return false;
 		}
 
-		if(image[level]->getHeight() != std::max(1, height >> level))
+		if(image[level]->getHeight() != std::max(1, height >> i))
 		{
 			return false;
 		}
 
-		int levelDepth = isTexture2DArray ? depth : std::max(1, depth >> level);
+		int levelDepth = isTexture2DArray ? depth : std::max(1, depth >> i);
 		if(image[level]->getDepth() != levelDepth)
 		{
 			return false;

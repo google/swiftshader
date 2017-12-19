@@ -3172,7 +3172,7 @@ void Context::applyTexture(sw::SamplerType type, int index, Texture *baseTexture
 	}
 	else UNREACHABLE(type);
 
-	sw::Resource *resource = 0;
+	sw::Resource *resource = nullptr;
 
 	if(baseTexture && textureUsed)
 	{
@@ -3183,7 +3183,8 @@ void Context::applyTexture(sw::SamplerType type, int index, Texture *baseTexture
 
 	if(baseTexture && textureUsed)
 	{
-		int topLevel = baseTexture->getTopLevel();
+		int baseLevel = baseTexture->getBaseLevel();
+		int maxLevel = std::min(baseTexture->getTopLevel(), baseTexture->getMaxLevel());
 
 		if(baseTexture->getTarget() == GL_TEXTURE_2D || baseTexture->getTarget() == GL_TEXTURE_EXTERNAL_OES)
 		{
@@ -3193,13 +3194,13 @@ void Context::applyTexture(sw::SamplerType type, int index, Texture *baseTexture
 			{
 				int surfaceLevel = mipmapLevel;
 
-				if(surfaceLevel < 0)
+				if(surfaceLevel < baseLevel)
 				{
-					surfaceLevel = 0;
+					surfaceLevel = baseLevel;
 				}
-				else if(surfaceLevel > topLevel)
+				else if(surfaceLevel > maxLevel)
 				{
-					surfaceLevel = topLevel;
+					surfaceLevel = maxLevel;
 				}
 
 				egl::Image *surface = texture->getImage(surfaceLevel);
@@ -3214,13 +3215,13 @@ void Context::applyTexture(sw::SamplerType type, int index, Texture *baseTexture
 			{
 				int surfaceLevel = mipmapLevel;
 
-				if(surfaceLevel < 0)
+				if(surfaceLevel < baseLevel)
 				{
-					surfaceLevel = 0;
+					surfaceLevel = baseLevel;
 				}
-				else if(surfaceLevel > topLevel)
+				else if(surfaceLevel > maxLevel)
 				{
-					surfaceLevel = topLevel;
+					surfaceLevel = maxLevel;
 				}
 
 				egl::Image *surface = texture->getImage(surfaceLevel);
@@ -3235,13 +3236,13 @@ void Context::applyTexture(sw::SamplerType type, int index, Texture *baseTexture
 			{
 				int surfaceLevel = mipmapLevel;
 
-				if(surfaceLevel < 0)
+				if(surfaceLevel < baseLevel)
 				{
-					surfaceLevel = 0;
+					surfaceLevel = baseLevel;
 				}
-				else if(surfaceLevel > topLevel)
+				else if(surfaceLevel > maxLevel)
 				{
-					surfaceLevel = topLevel;
+					surfaceLevel = maxLevel;
 				}
 
 				egl::Image *surface = texture->getImage(surfaceLevel);
@@ -3260,13 +3261,13 @@ void Context::applyTexture(sw::SamplerType type, int index, Texture *baseTexture
 				{
 					int surfaceLevel = mipmapLevel;
 
-					if(surfaceLevel < 0)
+					if(surfaceLevel < baseLevel)
 					{
-						surfaceLevel = 0;
+						surfaceLevel = baseLevel;
 					}
-					else if(surfaceLevel > topLevel)
+					else if(surfaceLevel > maxLevel)
 					{
-						surfaceLevel = topLevel;
+						surfaceLevel = maxLevel;
 					}
 
 					egl::Image *surface = cubeTexture->getImage(face, surfaceLevel);
