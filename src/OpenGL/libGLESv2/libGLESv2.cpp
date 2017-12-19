@@ -2261,7 +2261,15 @@ void GenerateMipmap(GLenum target)
 			texture = context->getTexture2D();
 			break;
 		case GL_TEXTURE_CUBE_MAP:
-			texture = context->getTextureCubeMap();
+			{
+				TextureCubeMap *cube = context->getTextureCubeMap();
+				texture = cube;
+
+				if(!cube->isCubeComplete())
+				{
+					return error(GL_INVALID_OPERATION);
+				}
+			}
 			break;
 		case GL_TEXTURE_2D_ARRAY:
 			if(clientVersion < 3)

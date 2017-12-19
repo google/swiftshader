@@ -242,11 +242,12 @@ public:
 
 	egl::Image *getImage(int face, unsigned int level);
 
+	bool isCubeComplete() const;
+
 protected:
 	~TextureCubeMap() override;
 
 private:
-	bool isCubeComplete() const;
 	bool isMipmapCubeComplete() const;
 
 	// face is one of the GL_TEXTURE_CUBE_MAP_* enumerants. Returns nullptr on failure.
