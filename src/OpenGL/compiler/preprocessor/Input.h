@@ -17,6 +17,7 @@
 
 #include <cstddef>
 #include <vector>
+#include <climits>
 
 namespace pp
 {
