@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1de706cb_93447de1",
+        "filename": "src/OpenGL/libGLESv2/libGLESv3.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 3772,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-12-19T16:07:28Z",
+      "side": 0,
+      "message": "I think we can keep this code, even if we\u0027re always returning the same error code. A smart compiler probably eliminates it, and we may implement support for a binary format in the not too distant future.",
+      "range": {
+        "startLine": 3762,
+        "startChar": 1,
+        "endLine": 3772,
+        "endChar": 2
+      },
+      "revId": "f08be92d68e6c966fcc71dba8b77c5335eb2c963",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
