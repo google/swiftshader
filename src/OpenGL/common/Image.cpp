@@ -758,6 +758,7 @@ namespace egl
 			case GL_LUMINANCE8_ALPHA8_EXT:
 				return sw::FORMAT_A8L8;
 			case GL_R8_SNORM:
+				return sw::FORMAT_R8_SNORM;
 			case GL_R8:
 			case GL_RED:
 				return sw::FORMAT_R8;
