@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a19ab1c5_7c37e21e",
+        "filename": "src/OpenGL/libGLESv2/Device.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 726,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-12-19T22:10:29Z",
+      "side": 1,
+      "message": "I\u0027m not sure this acronym is going to be obvious in the future. I think it can just be spelled out in this case, or we can name it after the operation we want to be performed, e.g. \u0027clampToEdge\u0027.",
+      "range": {
+        "startLine": 726,
+        "startChar": 7,
+        "endLine": 726,
+        "endChar": 12
+      },
+      "revId": "7500380847531ebffc0a73a39b7c4f26d5c089a1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "74723dec_c5124838",
+        "filename": "src/OpenGL/libGLESv2/Device.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 727,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-12-19T22:10:29Z",
+      "side": 1,
+      "message": "This is entangling the clamping with the scaling in an non-obvious way. Doesn\u0027t it result in bilinear filtering even if we can copy pixels one-to-one?\n\nAlso note that the spec says that \"If a linear filter is selected and the rules of LINEAR sampling would require sampling outside the bounds of a source buffer, it is as though CLAMP_TO_EDGE texture sampling were being performed\".   Note in particular that we may sample out of bounds even if the source rectangle isn\u0027t out of bounds. I don\u0027t see that taken care of here.",
+      "range": {
+        "startLine": 727,
+        "startChar": 102,
+        "endLine": 727,
+        "endChar": 110
+      },
+      "revId": "7500380847531ebffc0a73a39b7c4f26d5c089a1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "550ada78_7e32f188",
+        "filename": "src/OpenGL/libGLESv2/Device.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 800,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-12-19T22:10:29Z",
+      "side": 1,
+      "message": "Can we avoid making this an extra parameter by doing the necessary checking in the Blitter itself?",
+      "range": {
+        "startLine": 800,
+        "startChar": 95,
+        "endLine": 800,
+        "endChar": 100
+      },
+      "revId": "7500380847531ebffc0a73a39b7c4f26d5c089a1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "13cc7c11_a19ac924",
+        "filename": "src/Renderer/Blitter.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1318,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-12-19T22:10:29Z",
+      "side": 1,
+      "message": "I\u0027m confused by this because we seem to already perform clamping with the Max() and IfThenElse() below. Also, when reading the spec\u0027s wording \"The actual region taken from the read framebuffer is limited to the intersection of the source buffers being transferred\" is seems that there can\u0027t be any reading out of bounds, except for the one caused by needing the neighboring pixels for bilinear filtering. So how come we need this?",
+      "range": {
+        "startLine": 1318,
+        "startChar": 18,
+        "endLine": 1318,
+        "endChar": 23
+      },
+      "revId": "7500380847531ebffc0a73a39b7c4f26d5c089a1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "847145e8_5ad43413",
+        "filename": "src/Renderer/Blitter.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1343,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-12-19T22:10:29Z",
+      "side": 1,
+      "message": "Let\u0027s leave this for another patch.",
+      "range": {
+        "startLine": 1343,
+        "startChar": 12,
+        "endLine": 1343,
+        "endChar": 31
+      },
+      "revId": "7500380847531ebffc0a73a39b7c4f26d5c089a1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cb410675_9fd674c4",
+        "filename": "src/Renderer/Blitter.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-12-19T22:10:29Z",
+      "side": 1,
+      "message": "clampToEdge ?",
+      "range": {
+        "startLine": 53,
+        "startChar": 8,
+        "endLine": 53,
+        "endChar": 28
+      },
+      "revId": "7500380847531ebffc0a73a39b7c4f26d5c089a1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
