@@ -37,8 +37,8 @@ COMMON_CFLAGS += -D__STDC_INT64__
 endif
 
 COMMON_SRC_FILES := \
-	preprocessor/Diagnostics.cpp \
-	preprocessor/DirectiveHandler.cpp \
+	preprocessor/DiagnosticsBase.cpp \
+	preprocessor/DirectiveHandlerBase.cpp \
 	preprocessor/DirectiveParser.cpp \
 	preprocessor/ExpressionParser.cpp \
 	preprocessor/Input.cpp \

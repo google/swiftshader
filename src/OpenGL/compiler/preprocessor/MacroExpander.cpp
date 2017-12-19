@@ -69,7 +69,7 @@ class MacroExpander::ScopedMacroReenabler final
 	~ScopedMacroReenabler();
 
   private:
-	PP_DISALLOW_COPY_AND_ASSIGN(MacroExpander::ScopedMacroReenabler);
+	PP_DISALLOW_COPY_AND_ASSIGN(ScopedMacroReenabler);
 
 	MacroExpander *mExpander;
 };

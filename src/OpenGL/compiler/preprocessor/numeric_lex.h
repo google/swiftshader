@@ -18,6 +18,7 @@
 #define COMPILER_PREPROCESSOR_NUMERIC_LEX_H_
 
 #include <sstream>
+#include <cmath>
 
 namespace pp {
 
