@@ -304,38 +304,9 @@ namespace es2
 		return attributeStream[attributeIndex];
 	}
 
-	// Returns the index of the texture image unit (0-19) corresponding to a sampler index (0-15 for the pixel shader and 0-3 for the vertex shader)
-	GLint Program::getSamplerMapping(sw::SamplerType type, unsigned int samplerIndex)
+	const std::map<int, es2::Program::Sampler>& Program::getSamplerMap(sw::SamplerType type) const
 	{
-		GLint logicalTextureUnit = -1;
-
-		switch(type)
-		{
-		case sw::SAMPLER_PIXEL:
-			ASSERT(samplerIndex < sizeof(samplersPS) / sizeof(samplersPS[0]));
-
-			if(samplersPS[samplerIndex].active)
-			{
-				logicalTextureUnit = samplersPS[samplerIndex].logicalTextureUnit;
-			}
-			break;
-		case sw::SAMPLER_VERTEX:
-			ASSERT(samplerIndex < sizeof(samplersVS) / sizeof(samplersVS[0]));
-
-			if(samplersVS[samplerIndex].active)
-			{
-				logicalTextureUnit = samplersVS[samplerIndex].logicalTextureUnit;
-			}
-			break;
-		default: UNREACHABLE(type);
-		}
-
-		if(logicalTextureUnit < MAX_COMBINED_TEXTURE_IMAGE_UNITS)
-		{
-			return logicalTextureUnit;
-		}
-
-		return -1;
+		return (type == sw::SAMPLER_PIXEL) ? samplersPS : samplersVS;
 	}
 
 	// Returns the texture type for a given sampler type and index (0-15 for the pixel shader and 0-3 for the vertex shader)
@@ -344,12 +315,8 @@ namespace es2
 		switch(type)
 		{
 		case sw::SAMPLER_PIXEL:
-			ASSERT(samplerIndex < sizeof(samplersPS)/sizeof(samplersPS[0]));
-			ASSERT(samplersPS[samplerIndex].active);
 			return samplersPS[samplerIndex].textureType;
 		case sw::SAMPLER_VERTEX:
-			ASSERT(samplerIndex < sizeof(samplersVS)/sizeof(samplersVS[0]));
-			ASSERT(samplersVS[samplerIndex].active);
 			return samplersVS[samplerIndex].textureType;
 		default: UNREACHABLE(type);
 		}
@@ -1709,10 +1676,8 @@ namespace es2
 			{
 				if(shader == GL_VERTEX_SHADER)
 				{
-					if(index < MAX_VERTEX_TEXTURE_IMAGE_UNITS)
+					if(samplersVS.size() < MAX_VERTEX_TEXTURE_IMAGE_UNITS)
 					{
-						samplersVS[index].active = true;
-
 						switch(type)
 						{
 						default:                      UNREACHABLE(type);
@@ -1744,10 +1709,8 @@ namespace es2
 				}
 				else if(shader == GL_FRAGMENT_SHADER)
 				{
-					if(index < MAX_TEXTURE_IMAGE_UNITS)
+					if(samplersPS.size() < MAX_TEXTURE_IMAGE_UNITS)
 					{
-						samplersPS[index].active = true;
-
 						switch(type)
 						{
 						default:                      UNREACHABLE(type);
@@ -2267,9 +2230,8 @@ namespace es2
 				{
 					unsigned int samplerIndex = targetUniform->psRegisterIndex + i;
 
-					if(samplerIndex < MAX_TEXTURE_IMAGE_UNITS)
+					if(samplersPS.find(samplerIndex) != samplersPS.end())
 					{
-						ASSERT(samplersPS[samplerIndex].active);
 						samplersPS[samplerIndex].logicalTextureUnit = v[i];
 					}
 				}
@@ -2281,9 +2243,8 @@ namespace es2
 				{
 					unsigned int samplerIndex = targetUniform->vsRegisterIndex + i;
 
-					if(samplerIndex < MAX_VERTEX_TEXTURE_IMAGE_UNITS)
+					if(samplersVS.find(samplerIndex) != samplersVS.end())
 					{
-						ASSERT(samplersVS[samplerIndex].active);
 						samplersVS[samplerIndex].logicalTextureUnit = v[i];
 					}
 				}
@@ -2369,9 +2330,8 @@ namespace es2
 				{
 					unsigned int samplerIndex = targetUniform->psRegisterIndex + i;
 
-					if(samplerIndex < MAX_TEXTURE_IMAGE_UNITS)
+					if(samplersPS.find(samplerIndex) != samplersPS.end())
 					{
-						ASSERT(samplersPS[samplerIndex].active);
 						samplersPS[samplerIndex].logicalTextureUnit = v[i];
 					}
 				}
@@ -2383,9 +2343,8 @@ namespace es2
 				{
 					unsigned int samplerIndex = targetUniform->vsRegisterIndex + i;
 
-					if(samplerIndex < MAX_VERTEX_TEXTURE_IMAGE_UNITS)
+					if(samplersVS.find(samplerIndex) != samplersVS.end())
 					{
-						ASSERT(samplersVS[samplerIndex].active);
 						samplersVS[samplerIndex].logicalTextureUnit = v[i];
 					}
 				}
@@ -2510,15 +2469,8 @@ namespace es2
 			attributeStream[index] = -1;
 		}
 
-		for(int index = 0; index < MAX_TEXTURE_IMAGE_UNITS; index++)
-		{
-			samplersPS[index].active = false;
-		}
-
-		for(int index = 0; index < MAX_VERTEX_TEXTURE_IMAGE_UNITS; index++)
-		{
-			samplersVS[index].active = false;
-		}
+		samplersPS.clear();
+		samplersVS.clear();
 
 		while(!uniforms.empty())
 		{
@@ -2934,73 +2886,67 @@ namespace es2
 			textureUnitType[i] = TEXTURE_UNKNOWN;
 		}
 
-		for(unsigned int i = 0; i < MAX_TEXTURE_IMAGE_UNITS; i++)
+		for(auto sampler : samplersPS)
 		{
-			if(samplersPS[i].active)
-			{
-				unsigned int unit = samplersPS[i].logicalTextureUnit;
+			unsigned int unit = sampler.second.logicalTextureUnit;
 
-				if(unit >= MAX_COMBINED_TEXTURE_IMAGE_UNITS)
+			if(unit >= MAX_COMBINED_TEXTURE_IMAGE_UNITS)
+			{
+				if(logErrors)
+				{
+					appendToInfoLog("Sampler uniform (%d) exceeds MAX_COMBINED_TEXTURE_IMAGE_UNITS (%d)", unit, MAX_COMBINED_TEXTURE_IMAGE_UNITS);
+				}
+
+				return false;
+			}
+
+			if(textureUnitType[unit] != TEXTURE_UNKNOWN)
+			{
+				if(sampler.second.textureType != textureUnitType[unit])
 				{
 					if(logErrors)
 					{
-						appendToInfoLog("Sampler uniform (%d) exceeds MAX_COMBINED_TEXTURE_IMAGE_UNITS (%d)", unit, MAX_COMBINED_TEXTURE_IMAGE_UNITS);
+						appendToInfoLog("Samplers of conflicting types refer to the same texture image unit (%d).", unit);
 					}
 
 					return false;
 				}
-
-				if(textureUnitType[unit] != TEXTURE_UNKNOWN)
-				{
-					if(samplersPS[i].textureType != textureUnitType[unit])
-					{
-						if(logErrors)
-						{
-							appendToInfoLog("Samplers of conflicting types refer to the same texture image unit (%d).", unit);
-						}
-
-						return false;
-					}
-				}
-				else
-				{
-					textureUnitType[unit] = samplersPS[i].textureType;
-				}
+			}
+			else
+			{
+				textureUnitType[unit] = sampler.second.textureType;
 			}
 		}
 
-		for(unsigned int i = 0; i < MAX_VERTEX_TEXTURE_IMAGE_UNITS; i++)
+		for(auto sampler : samplersVS)
 		{
-			if(samplersVS[i].active)
-			{
-				unsigned int unit = samplersVS[i].logicalTextureUnit;
+			unsigned int unit = sampler.second.logicalTextureUnit;
 
-				if(unit >= MAX_COMBINED_TEXTURE_IMAGE_UNITS)
+			if(unit >= MAX_COMBINED_TEXTURE_IMAGE_UNITS)
+			{
+				if(logErrors)
+				{
+					appendToInfoLog("Sampler uniform (%d) exceeds MAX_COMBINED_TEXTURE_IMAGE_UNITS (%d)", unit, MAX_COMBINED_TEXTURE_IMAGE_UNITS);
+				}
+
+				return false;
+			}
+
+			if(textureUnitType[unit] != TEXTURE_UNKNOWN)
+			{
+				if(sampler.second.textureType != textureUnitType[unit])
 				{
 					if(logErrors)
 					{
-						appendToInfoLog("Sampler uniform (%d) exceeds MAX_COMBINED_TEXTURE_IMAGE_UNITS (%d)", unit, MAX_COMBINED_TEXTURE_IMAGE_UNITS);
+						appendToInfoLog("Samplers of conflicting types refer to the same texture image unit (%d).", unit);
 					}
 
 					return false;
 				}
-
-				if(textureUnitType[unit] != TEXTURE_UNKNOWN)
-				{
-					if(samplersVS[i].textureType != textureUnitType[unit])
-					{
-						if(logErrors)
-						{
-							appendToInfoLog("Samplers of conflicting types refer to the same texture image unit (%d).", unit);
-						}
-
-						return false;
-					}
-				}
-				else
-				{
-					textureUnitType[unit] = samplersVS[i].textureType;
-				}
+			}
+			else
+			{
+				textureUnitType[unit] = sampler.second.textureType;
 			}
 		}
 

@@ -121,6 +121,12 @@ namespace es2
 	class Program
 	{
 	public:
+		struct Sampler
+		{
+			GLint logicalTextureUnit;
+			TextureType textureType;
+		};
+
 		Program(ResourceManager *manager, GLuint handle);
 
 		~Program();
@@ -136,7 +142,7 @@ namespace es2
 		GLint getAttributeLocation(const char *name);
 		int getAttributeStream(int attributeIndex);
 
-		GLint getSamplerMapping(sw::SamplerType type, unsigned int samplerIndex);
+		const std::map<int, es2::Program::Sampler>& getSamplerMap(sw::SamplerType type) const;
 		TextureType getSamplerTextureType(sw::SamplerType type, unsigned int samplerIndex);
 
 		GLuint getUniformIndex(const std::string &name) const;
@@ -291,15 +297,8 @@ namespace es2
 		GLenum transformFeedbackBufferMode;
 		size_t totalLinkedVaryingsComponents;
 
-		struct Sampler
-		{
-			bool active;
-			GLint logicalTextureUnit;
-			TextureType textureType;
-		};
-
-		Sampler samplersPS[MAX_TEXTURE_IMAGE_UNITS];
-		Sampler samplersVS[MAX_VERTEX_TEXTURE_IMAGE_UNITS];
+		std::map<int, Sampler> samplersPS;
+		std::map<int, Sampler> samplersVS;
 
 		typedef std::vector<Uniform*> UniformArray;
 		UniformArray uniforms;

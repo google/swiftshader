@@ -3074,15 +3074,16 @@ void Context::applyTextures(sw::SamplerType samplerType)
 {
 	Program *programObject = getCurrentProgram();
 
-	int samplerCount = (samplerType == sw::SAMPLER_PIXEL) ? MAX_TEXTURE_IMAGE_UNITS : MAX_VERTEX_TEXTURE_IMAGE_UNITS;   // Range of samplers of given sampler type
+	const std::map<int, es2::Program::Sampler> &samplerMap = programObject->getSamplerMap(samplerType);
 
-	for(int samplerIndex = 0; samplerIndex < samplerCount; samplerIndex++)
+	int samplerIndex = 0;
+	for(auto sampler : samplerMap)
 	{
-		int textureUnit = programObject->getSamplerMapping(samplerType, samplerIndex);   // OpenGL texture image unit index
+		int textureUnit = sampler.second.logicalTextureUnit;
 
 		if(textureUnit != -1)
 		{
-			TextureType textureType = programObject->getSamplerTextureType(samplerType, samplerIndex);
+			TextureType textureType = programObject->getSamplerTextureType(samplerType, sampler.first);
 
 			Texture *texture = getSamplerTexture(textureUnit, textureType);
 
@@ -3153,6 +3154,13 @@ void Context::applyTextures(sw::SamplerType samplerType)
 		{
 			applyTexture(samplerType, samplerIndex, nullptr);
 		}
+		++samplerIndex;
+	}
+
+	int samplerCount = (samplerType == sw::SAMPLER_PIXEL) ? MAX_TEXTURE_IMAGE_UNITS : MAX_VERTEX_TEXTURE_IMAGE_UNITS;
+	for(; samplerIndex < samplerCount; ++samplerIndex)
+	{
+		applyTexture(samplerType, samplerIndex, nullptr);
 	}
 }
 
