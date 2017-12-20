@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6967e431_3ff84b36",
+        "filename": "src/Renderer/Blitter.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1344,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-12-20T18:58:56Z",
+      "side": 1,
+      "message": "I don\u0027t think this is entirely correct. If both the source and destination format are sRGB, then we should unscale (i.e. normalize), linearize (i.e. sRGB to linear), filter, delinearize, scale.\n\nAnd if the source is sRGB but the dest is linear, we should still linearize before filter.",
+      "range": {
+        "startLine": 1344,
+        "startChar": 7,
+        "endLine": 1344,
+        "endChar": 9
+      },
+      "revId": "725dabe3616705b66c219ad7a60ff9b408952770",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
