@@ -20,6 +20,7 @@ namespace sw
 	class half
 	{
 	public:
+		half() = default;
 		explicit half(float f);
 
 		operator float() const;
@@ -29,6 +30,63 @@ namespace sw
 
 	private:
 		unsigned short fp16i;
+	};
+
+	inline half shortAsHalf(short s)
+	{
+		union
+		{
+			half h;
+			short s;
+		} hs;
+
+		hs.s = s;
+
+		return hs.h;
+	}
+
+	class RGB9E5
+	{
+		unsigned int R : 9;
+		unsigned int G : 9;
+		unsigned int B : 9;
+		unsigned int E : 5;
+
+	public:
+		void toRGB16F(half rgb[3]) const
+		{
+			constexpr int offset = 24;   // Exponent bias (15) + number of mantissa bits per component (9) = 24
+
+			const float factor = (1u << E) * (1.0f / (1 << offset));
+			rgb[0] = half(R * factor);
+			rgb[1] = half(G * factor);
+			rgb[2] = half(B * factor);
+		}
+	};
+
+	class R11G11B10F
+	{
+		unsigned int R : 11;
+		unsigned int G : 11;
+		unsigned int B : 10;
+
+		static inline half float11ToFloat16(unsigned short fp11)
+		{
+			return shortAsHalf(fp11 << 4);   // Sign bit 0
+		}
+
+		static inline half float10ToFloat16(unsigned short fp10)
+		{
+			return shortAsHalf(fp10 << 5);   // Sign bit 0
+		}
+
+	public:
+		void toRGB16F(half rgb[3]) const
+		{
+			rgb[0] = float11ToFloat16(R);
+			rgb[1] = float11ToFloat16(G);
+			rgb[2] = float10ToFloat16(B);
+		}
 	};
 }
 

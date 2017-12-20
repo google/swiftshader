@@ -304,6 +304,8 @@ namespace sw
 			((half*)element)[0] = (half)r;
 			((half*)element)[1] = (half)g;
 			break;
+		case FORMAT_X16B16G16R16F:
+			((half*)element)[3] = 1.0f;
 		case FORMAT_B16G16R16F:
 			((half*)element)[0] = (half)r;
 			((half*)element)[1] = (half)g;
@@ -962,6 +964,7 @@ namespace sw
 			r = ((half*)element)[0];
 			g = ((half*)element)[1];
 			break;
+		case FORMAT_X16B16G16R16F:
 		case FORMAT_B16G16R16F:
 			r = ((half*)element)[0];
 			g = ((half*)element)[1];
@@ -1654,6 +1657,7 @@ namespace sw
 		case FORMAT_R16F:				return 2;
 		case FORMAT_G16R16F:			return 4;
 		case FORMAT_B16G16R16F:			return 6;
+		case FORMAT_X16B16G16R16F:		return 8;
 		case FORMAT_A16B16G16R16F:		return 8;
 		case FORMAT_A32F:				return 4;
 		case FORMAT_R32F:				return 4;
@@ -2891,6 +2895,7 @@ namespace sw
 		case FORMAT_R16F:
 		case FORMAT_G16R16F:
 		case FORMAT_B16G16R16F:
+		case FORMAT_X16B16G16R16F:
 		case FORMAT_A16B16G16R16F:
 		case FORMAT_R32F:
 		case FORMAT_G32R32F:
@@ -3947,6 +3952,7 @@ namespace sw
 		case FORMAT_R16F:			return FORMAT_R32F;
 		case FORMAT_G16R16F:		return FORMAT_G32R32F;
 		case FORMAT_B16G16R16F:     return FORMAT_X32B32G32R32F;
+		case FORMAT_X16B16G16R16F:	return FORMAT_X32B32G32R32F;
 		case FORMAT_A16B16G16R16F:	return FORMAT_A32B32G32R32F;
 		case FORMAT_A32F:			return FORMAT_A32B32G32R32F;
 		case FORMAT_R32F:			return FORMAT_R32F;

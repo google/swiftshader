@@ -272,12 +272,12 @@ namespace
 	template<>
 	void LoadImageRow<R11G11B10F>(const unsigned char *source, unsigned char *dest, GLint xoffset, GLsizei width)
 	{
-		const sw::R11G11B10FData *sourceRGB = reinterpret_cast<const sw::R11G11B10FData*>(source);
-		float *destF = reinterpret_cast<float*>(dest + xoffset * 16);
+		const sw::R11G11B10F *sourceRGB = reinterpret_cast<const sw::R11G11B10F*>(source);
+		sw::half *destF = reinterpret_cast<sw::half*>(dest + xoffset * 8);
 
 		for(int x = 0; x < width; x++, sourceRGB++, destF+=4)
 		{
-			sourceRGB->toRGBFloats(destF);
+			sourceRGB->toRGB16F(destF);
 			destF[3] = 1.0f;
 		}
 	}
@@ -285,12 +285,12 @@ namespace
 	template<>
 	void LoadImageRow<RGB9E5>(const unsigned char *source, unsigned char *dest, GLint xoffset, GLsizei width)
 	{
-		const sw::RGB9E5Data *sourceRGB = reinterpret_cast<const sw::RGB9E5Data*>(source);
-		float *destF = reinterpret_cast<float*>(dest + xoffset * 16);
+		const sw::RGB9E5 *sourceRGB = reinterpret_cast<const sw::RGB9E5*>(source);
+		sw::half *destF = reinterpret_cast<sw::half*>(dest + xoffset * 8);
 
 		for(int x = 0; x < width; x++, sourceRGB++, destF += 4)
 		{
-			sourceRGB->toRGBFloats(destF);
+			sourceRGB->toRGB16F(destF);
 			destF[3] = 1.0f;
 		}
 	}
@@ -665,9 +665,10 @@ namespace egl
 				return sw::FORMAT_G32R32F;
 			case GL_RGB:
 			case GL_RGB32F:
+				return sw::FORMAT_X32B32G32R32F;
 			case GL_R11F_G11F_B10F:
 			case GL_RGB9_E5:
-				return sw::FORMAT_X32B32G32R32F;
+				return sw::FORMAT_X16B16G16R16F;
 			case GL_RGBA:
 			case GL_RGBA32F:
 				return sw::FORMAT_A32B32G32R32F;
@@ -676,6 +677,7 @@ namespace egl
 			case GL_RG16F:
 				return sw::FORMAT_G16R16F;
 			case GL_RGB16F:
+				return sw::FORMAT_X16B16G16R16F;
 			case GL_RGBA16F:
 				return sw::FORMAT_A16B16G16R16F;
 			case GL_DEPTH_COMPONENT:
@@ -703,14 +705,14 @@ namespace egl
 			case GL_RG:
 			case GL_RG16F:
 				return sw::FORMAT_G16R16F;
-			case GL_RGB:
-			case GL_RGB16F:
 			case GL_RGBA:
 			case GL_RGBA16F:
 				return sw::FORMAT_A16B16G16R16F;
+			case GL_RGB:
+			case GL_RGB16F:
 			case GL_R11F_G11F_B10F:
 			case GL_RGB9_E5:
-				return sw::FORMAT_X32B32G32R32F;
+				return sw::FORMAT_X16B16G16R16F;
 			default:
 				UNREACHABLE(format);
 			}
@@ -914,7 +916,7 @@ namespace egl
 			}
 		case GL_UNSIGNED_INT_10F_11F_11F_REV:
 		case GL_UNSIGNED_INT_5_9_9_9_REV:   // 5 is the exponent field, not alpha.
-			return sw::FORMAT_X32B32G32R32F;
+			return sw::FORMAT_X16B16G16R16F;
 		default:
 			UNREACHABLE(type);
 		}

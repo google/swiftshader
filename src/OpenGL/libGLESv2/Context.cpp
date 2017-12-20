@@ -3314,7 +3314,7 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum
 	egl::Image *renderTarget = nullptr;
 	switch(format)
 	{
-	case GL_DEPTH_COMPONENT:
+	case GL_DEPTH_COMPONENT:   // GL_NV_read_depth
 		renderTarget = framebuffer->getDepthBuffer();
 		break;
 	default:

@@ -281,7 +281,7 @@ namespace sw
 				setupPrimitives = &Renderer::setupPoints;
 			}
 
-			DrawCall *draw = 0;
+			DrawCall *draw = nullptr;
 
 			do
 			{

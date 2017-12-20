@@ -16,6 +16,7 @@
 #define sw_Math_hpp
 
 #include "Types.hpp"
+#include "Half.hpp"
 
 #include <cmath>
 #if defined(_MSC_VER)
@@ -360,122 +361,6 @@ namespace sw
 	{
 		return static_cast<int>(min(x, 0x7FFFFFFFu));
 	}
-
-	class RGB9E5Data
-	{
-		unsigned int R : 9;
-		unsigned int G : 9;
-		unsigned int B : 9;
-		unsigned int E : 5;
-
-	public:
-		void toRGBFloats(float* rgb) const
-		{
-			static const float Offset = -24.0f; // Exponent Bias (15) + Number of mantissa bits per component (9) = 24
-
-			const float factor = powf(2.0f, static_cast<float>(E) + Offset);
-			rgb[0] = static_cast<float>(R) * factor;
-			rgb[1] = static_cast<float>(G) * factor;
-			rgb[2] = static_cast<float>(B) * factor;
-		}
-	};
-
-	class R11G11B10FData
-	{
-		unsigned int R : 11;
-		unsigned int G : 11;
-		unsigned int B : 10;
-
-		static inline float float11ToFloat32(unsigned short fp11)
-		{
-			unsigned short exponent = (fp11 >> 6) & 0x1F;
-			unsigned short mantissa = fp11 & 0x3F;
-
-			unsigned int output;
-			if(exponent == 0x1F)
-			{
-				// INF or NAN
-				output = 0x7f800000 | (mantissa << 17);
-			}
-			else
-			{
-				if(exponent != 0)
-				{
-					// normalized
-				}
-				else if(mantissa != 0)
-				{
-					// The value is denormalized
-					exponent = 1;
-
-					do
-					{
-						exponent--;
-						mantissa <<= 1;
-					} while((mantissa & 0x40) == 0);
-
-					mantissa = mantissa & 0x3F;
-				}
-				else // The value is zero
-				{
-					exponent = static_cast<unsigned short>(-112);
-				}
-
-				output = ((exponent + 112) << 23) | (mantissa << 17);
-			}
-
-			return *(float*)(&output);
-		}
-
-		static inline float float10ToFloat32(unsigned short fp10)
-		{
-			unsigned short exponent = (fp10 >> 5) & 0x1F;
-			unsigned short mantissa = fp10 & 0x1F;
-
-			unsigned int output;
-			if(exponent == 0x1F)
-			{
-				// INF or NAN
-				output = 0x7f800000 | (mantissa << 17);
-			}
-			else
-			{
-				if(exponent != 0)
-				{
-					// normalized
-				}
-				else if(mantissa != 0)
-				{
-					// The value is denormalized
-					exponent = 1;
-
-					do
-					{
-						exponent--;
-						mantissa <<= 1;
-					} while((mantissa & 0x20) == 0);
-
-					mantissa = mantissa & 0x1F;
-				}
-				else // The value is zero
-				{
-					exponent = static_cast<unsigned short>(-112);
-				}
-
-				output = ((exponent + 112) << 23) | (mantissa << 18);
-			}
-
-			return *(float*)(&output);
-		}
-
-	public:
-		void toRGBFloats(float* rgb) const
-		{
-			rgb[0] = float11ToFloat32(R);
-			rgb[1] = float11ToFloat32(G);
-			rgb[2] = float10ToFloat32(B);
-		}
-	};
 }
 
 #endif   // sw_Math_hpp

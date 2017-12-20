@@ -27,7 +27,7 @@ namespace sw
 	{
 		struct Options
 		{
-			Options() {}
+			Options() = default;
 			Options(bool filter, bool useStencil, bool convertSRGB)
 				: writeMask(0xF), clearOperation(false), filter(filter), useStencil(useStencil), convertSRGB(convertSRGB) {}
 			Options(unsigned int writeMask)
@@ -54,7 +54,7 @@ namespace sw
 
 		struct State : Options
 		{
-			State() {}
+			State() = default;
 			State(const Options &options) : Options(options) {}
 
 			bool operator==(const State &state) const
