@@ -913,8 +913,8 @@ namespace egl
 				return sw::FORMAT_A2B10G10R10;
 			}
 		case GL_UNSIGNED_INT_10F_11F_11F_REV:
-		case GL_UNSIGNED_INT_5_9_9_9_REV:
-			return sw::FORMAT_A32B32G32R32F;
+		case GL_UNSIGNED_INT_5_9_9_9_REV:   // 5 is the exponent field, not alpha.
+			return sw::FORMAT_X32B32G32R32F;
 		default:
 			UNREACHABLE(type);
 		}
