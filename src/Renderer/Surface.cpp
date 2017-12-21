@@ -304,8 +304,12 @@ namespace sw
 			((half*)element)[0] = (half)r;
 			((half*)element)[1] = (half)g;
 			break;
+		case FORMAT_X16B16G16R16F_UNSIGNED:
+			r = max(r, 0.0f); g = max(g, 0.0f); b = max(b, 0.0f);
+			// Fall through to FORMAT_X16B16G16R16F.
 		case FORMAT_X16B16G16R16F:
 			((half*)element)[3] = 1.0f;
+			// Fall through to FORMAT_B16G16R16F.
 		case FORMAT_B16G16R16F:
 			((half*)element)[0] = (half)r;
 			((half*)element)[1] = (half)g;
@@ -327,8 +331,12 @@ namespace sw
 			((float*)element)[0] = r;
 			((float*)element)[1] = g;
 			break;
+		case FORMAT_X32B32G32R32F_UNSIGNED:
+			r = max(r, 0.0f); g = max(g, 0.0f); b = max(b, 0.0f);
+			// Fall through to FORMAT_X32B32G32R32F.
 		case FORMAT_X32B32G32R32F:
 			((float*)element)[3] = 1.0f;
+			// Fall through to FORMAT_B32G32R32F.
 		case FORMAT_B32G32R32F:
 			((float*)element)[0] = r;
 			((float*)element)[1] = g;
@@ -965,6 +973,7 @@ namespace sw
 			g = ((half*)element)[1];
 			break;
 		case FORMAT_X16B16G16R16F:
+		case FORMAT_X16B16G16R16F_UNSIGNED:
 		case FORMAT_B16G16R16F:
 			r = ((half*)element)[0];
 			g = ((half*)element)[1];
@@ -987,6 +996,7 @@ namespace sw
 			g = ((float*)element)[1];
 			break;
 		case FORMAT_X32B32G32R32F:
+		case FORMAT_X32B32G32R32F_UNSIGNED:
 		case FORMAT_B32G32R32F:
 			r = ((float*)element)[0];
 			g = ((float*)element)[1];
@@ -1659,12 +1669,14 @@ namespace sw
 		case FORMAT_B16G16R16F:			return 6;
 		case FORMAT_X16B16G16R16F:		return 8;
 		case FORMAT_A16B16G16R16F:		return 8;
+		case FORMAT_X16B16G16R16F_UNSIGNED: return 8;
 		case FORMAT_A32F:				return 4;
 		case FORMAT_R32F:				return 4;
 		case FORMAT_G32R32F:			return 8;
 		case FORMAT_B32G32R32F:			return 12;
 		case FORMAT_X32B32G32R32F:		return 16;
 		case FORMAT_A32B32G32R32F:		return 16;
+		case FORMAT_X32B32G32R32F_UNSIGNED: return 16;
 		// Depth/stencil formats
 		case FORMAT_D16:				return 2;
 		case FORMAT_D32:				return 4;
@@ -2897,11 +2909,13 @@ namespace sw
 		case FORMAT_B16G16R16F:
 		case FORMAT_X16B16G16R16F:
 		case FORMAT_A16B16G16R16F:
+		case FORMAT_X16B16G16R16F_UNSIGNED:
 		case FORMAT_R32F:
 		case FORMAT_G32R32F:
 		case FORMAT_B32G32R32F:
 		case FORMAT_X32B32G32R32F:
 		case FORMAT_A32B32G32R32F:
+		case FORMAT_X32B32G32R32F_UNSIGNED:
 		case FORMAT_D32F:
 		case FORMAT_D32FS8:
 		case FORMAT_D32F_COMPLEMENTARY:
@@ -2949,6 +2963,7 @@ namespace sw
 		case FORMAT_G32R32UI:
 		case FORMAT_X32B32G32R32UI:
 		case FORMAT_A32B32G32R32UI:
+		case FORMAT_X32B32G32R32F_UNSIGNED:
 		case FORMAT_R8UI:
 		case FORMAT_G8R8UI:
 		case FORMAT_X8B8G8R8UI:
@@ -3234,6 +3249,7 @@ namespace sw
 		case FORMAT_G32R32F:        return 2;
 		case FORMAT_X32B32G32R32F:  return 3;
 		case FORMAT_A32B32G32R32F:  return 4;
+		case FORMAT_X32B32G32R32F_UNSIGNED: return 3;
 		case FORMAT_D32F:           return 1;
 		case FORMAT_D32FS8:         return 1;
 		case FORMAT_D32F_LOCKABLE:  return 1;
@@ -3954,12 +3970,14 @@ namespace sw
 		case FORMAT_B16G16R16F:     return FORMAT_X32B32G32R32F;
 		case FORMAT_X16B16G16R16F:	return FORMAT_X32B32G32R32F;
 		case FORMAT_A16B16G16R16F:	return FORMAT_A32B32G32R32F;
+		case FORMAT_X16B16G16R16F_UNSIGNED: return FORMAT_X32B32G32R32F_UNSIGNED;
 		case FORMAT_A32F:			return FORMAT_A32B32G32R32F;
 		case FORMAT_R32F:			return FORMAT_R32F;
 		case FORMAT_G32R32F:		return FORMAT_G32R32F;
 		case FORMAT_B32G32R32F:     return FORMAT_X32B32G32R32F;
 		case FORMAT_X32B32G32R32F:  return FORMAT_X32B32G32R32F;
 		case FORMAT_A32B32G32R32F:	return FORMAT_A32B32G32R32F;
+		case FORMAT_X32B32G32R32F_UNSIGNED: return FORMAT_X32B32G32R32F_UNSIGNED;
 		// Luminance formats
 		case FORMAT_L8:				return FORMAT_L8;
 		case FORMAT_A4L4:			return FORMAT_A8L8;
@@ -5533,7 +5551,9 @@ namespace sw
 				else ASSERT(false);
 			}
 		}
-		else if(internal.format == FORMAT_A32B32G32R32F || internal.format == FORMAT_X32B32G32R32F)
+		else if(internal.format == FORMAT_A32B32G32R32F ||
+		        internal.format == FORMAT_X32B32G32R32F ||
+		        internal.format == FORMAT_X32B32G32R32F_UNSIGNED)
 		{
 			#if defined(__i386__) || defined(__x86_64__)
 				if(CPUID::supportsSSE())

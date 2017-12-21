@@ -2204,8 +2204,8 @@ namespace es2sw
 		case GL_RGBA32UI:             return sw::FORMAT_A32B32G32R32UI;
 		case GL_R16F:                 return sw::FORMAT_R16F;
 		case GL_RG16F:                return sw::FORMAT_G16R16F;
-		case GL_R11F_G11F_B10F:
-		case GL_RGB16F:               return sw::FORMAT_B16G16R16F;
+		case GL_R11F_G11F_B10F:       return sw::FORMAT_X16B16G16R16F_UNSIGNED;
+		case GL_RGB16F:               return sw::FORMAT_X16B16G16R16F;
 		case GL_RGBA16F:              return sw::FORMAT_A16B16G16R16F;
 		case GL_R32F:                 return sw::FORMAT_R32F;
 		case GL_RG32F:                return sw::FORMAT_G32R32F;

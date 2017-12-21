@@ -236,6 +236,7 @@ namespace sw
 				case FORMAT_G32R32F:
 					c.z = Short4(defaultColorValue);
 				case FORMAT_X32B32G32R32F:
+				case FORMAT_X32B32G32R32F_UNSIGNED:
 					c.w = Short4(0x1000);
 				case FORMAT_A32B32G32R32F:
 					break;
@@ -464,6 +465,7 @@ namespace sw
 				case FORMAT_G32R32F:
 					c.z = Float4(defaultColorValue);
 				case FORMAT_X32B32G32R32F:
+				case FORMAT_X32B32G32R32F_UNSIGNED:
 					c.w = Float4(1.0f);
 				case FORMAT_A32B32G32R32F:
 					break;
@@ -2624,6 +2626,7 @@ namespace sw
 		case FORMAT_G32R32F:
 		case FORMAT_X32B32G32R32F:
 		case FORMAT_A32B32G32R32F:
+		case FORMAT_X32B32G32R32F_UNSIGNED:
 		case FORMAT_A8:
 		case FORMAT_R8:
 		case FORMAT_L8:
@@ -2695,6 +2698,7 @@ namespace sw
 		case FORMAT_G32R32F:
 		case FORMAT_X32B32G32R32F:
 		case FORMAT_A32B32G32R32F:
+		case FORMAT_X32B32G32R32F_UNSIGNED:
 		case FORMAT_D32F:
 		case FORMAT_D32FS8:
 		case FORMAT_D32F_LOCKABLE:
@@ -2773,6 +2777,7 @@ namespace sw
 		case FORMAT_G32R32F:
 		case FORMAT_X32B32G32R32F:
 		case FORMAT_A32B32G32R32F:
+		case FORMAT_X32B32G32R32F_UNSIGNED:
 		case FORMAT_A8:
 		case FORMAT_R8:
 		case FORMAT_L8:
@@ -2854,6 +2859,7 @@ namespace sw
 		case FORMAT_G32R32F:
 		case FORMAT_X32B32G32R32F:
 		case FORMAT_A32B32G32R32F:
+		case FORMAT_X32B32G32R32F_UNSIGNED:
 		case FORMAT_A8:
 		case FORMAT_R8:
 		case FORMAT_L8:
@@ -2927,6 +2933,7 @@ namespace sw
 		case FORMAT_G32R32F:
 		case FORMAT_X32B32G32R32F:
 		case FORMAT_A32B32G32R32F:
+		case FORMAT_X32B32G32R32F_UNSIGNED:
 		case FORMAT_A8:
 		case FORMAT_R8:
 		case FORMAT_L8:
@@ -2998,6 +3005,7 @@ namespace sw
 		case FORMAT_G32R32F:        return component < 2;
 		case FORMAT_X32B32G32R32F:  return component < 3;
 		case FORMAT_A32B32G32R32F:  return component < 3;
+		case FORMAT_X32B32G32R32F_UNSIGNED: return component < 3;
 		case FORMAT_A8:             return false;
 		case FORMAT_R8:             return component < 1;
 		case FORMAT_L8:             return component < 1;

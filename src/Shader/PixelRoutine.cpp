@@ -2080,6 +2080,7 @@ namespace sw
 			break;
 		case FORMAT_X32B32G32R32F:
 		case FORMAT_A32B32G32R32F:
+		case FORMAT_X32B32G32R32F_UNSIGNED:
 		case FORMAT_A32B32G32R32I:
 		case FORMAT_A32B32G32R32UI:
 			buffer = cBuffer;
@@ -2089,7 +2090,8 @@ namespace sw
 			pixel.z = *Pointer<Float4>(buffer + 16 * x, 16);
 			pixel.w = *Pointer<Float4>(buffer + 16 * x + 16, 16);
 			transpose4x4(pixel.x, pixel.y, pixel.z, pixel.w);
-			if(state.targetFormat[index] == FORMAT_X32B32G32R32F)
+			if(state.targetFormat[index] == FORMAT_X32B32G32R32F ||
+			   state.targetFormat[index] == FORMAT_X32B32G32R32F_UNSIGNED)
 			{
 				pixel.w = Float4(1.0f);
 			}
@@ -2241,6 +2243,7 @@ namespace sw
 			break;
 		case FORMAT_X32B32G32R32F:
 		case FORMAT_A32B32G32R32F:
+		case FORMAT_X32B32G32R32F_UNSIGNED:
 		case FORMAT_A32B32G32R32I:
 		case FORMAT_A32B32G32R32UI:
 		case FORMAT_A16B16G16R16I:
@@ -2494,6 +2497,7 @@ namespace sw
 			break;
 		case FORMAT_X32B32G32R32F:
 		case FORMAT_A32B32G32R32F:
+		case FORMAT_X32B32G32R32F_UNSIGNED:
 		case FORMAT_A32B32G32R32I:
 		case FORMAT_A32B32G32R32UI:
 			buffer = cBuffer + 16 * x;

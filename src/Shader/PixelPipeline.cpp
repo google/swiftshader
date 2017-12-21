@@ -356,6 +356,7 @@ namespace sw
 		case FORMAT_G32R32F:
 		case FORMAT_X32B32G32R32F:
 		case FORMAT_A32B32G32R32F:
+	//	case FORMAT_X32B32G32R32F_UNSIGNED:   // Not renderable in any fixed-function API.
 			convertSigned12(oC, current);
 			PixelRoutine::fogBlend(oC, fog);
 

@@ -364,6 +364,7 @@ namespace sw
 			c = *Pointer<Float4>(element);
 			break;
 		case FORMAT_X32B32G32R32F:
+		case FORMAT_X32B32G32R32F_UNSIGNED:
 		case FORMAT_B32G32R32F:
 			c.z = *Pointer<Float>(element + 8);
 		case FORMAT_G32R32F:
@@ -514,6 +515,7 @@ namespace sw
 			}
 			break;
 		case FORMAT_X32B32G32R32F:
+		case FORMAT_X32B32G32R32F_UNSIGNED:
 			if(writeA) { *Pointer<Float>(element + 12) = 1.0f; }
 		case FORMAT_B32G32R32F:
 			if(writeR) { *Pointer<Float>(element) = c.x; }
@@ -1032,6 +1034,7 @@ namespace sw
 		case FORMAT_A32B32G32R32UI:
 		case FORMAT_A32B32G32R32F:
 		case FORMAT_X32B32G32R32F:
+		case FORMAT_X32B32G32R32F_UNSIGNED:
 		case FORMAT_B32G32R32F:
 		case FORMAT_G32R32F:
 		case FORMAT_R32F:
@@ -1125,7 +1128,11 @@ namespace sw
 			value *= Float4(scale.x / unscale.x, scale.y / unscale.y, scale.z / unscale.z, scale.w / unscale.w);
 		}
 
-		if(Surface::isFloatFormat(state.sourceFormat) && !Surface::isFloatFormat(state.destFormat))
+		if(state.destFormat == FORMAT_X32B32G32R32F_UNSIGNED)
+		{
+			value = Max(value, Float4(0.0f));  // TODO: Only necessary if source is signed.
+		}
+		else if(Surface::isFloatFormat(state.sourceFormat) && !Surface::isFloatFormat(state.destFormat))
 		{
 			value = Min(value, Float4(scale.x, scale.y, scale.z, scale.w));
 
@@ -1344,10 +1351,10 @@ namespace sw
 						}
 					}
 
-					if(!hasConstantColorI && !hasConstantColorF) { x += w; }
+					if(!state.clearOperation) { x += w; }
 				}
 
-				if(!hasConstantColorI && !hasConstantColorF) { y += h; }
+				if(!state.clearOperation) { y += h; }
 			}
 		}
 

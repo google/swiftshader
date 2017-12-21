@@ -668,7 +668,7 @@ namespace egl
 				return sw::FORMAT_X32B32G32R32F;
 			case GL_R11F_G11F_B10F:
 			case GL_RGB9_E5:
-				return sw::FORMAT_X16B16G16R16F;
+				return sw::FORMAT_X16B16G16R16F_UNSIGNED;
 			case GL_RGBA:
 			case GL_RGBA32F:
 				return sw::FORMAT_A32B32G32R32F;
@@ -710,9 +710,10 @@ namespace egl
 				return sw::FORMAT_A16B16G16R16F;
 			case GL_RGB:
 			case GL_RGB16F:
+				return sw::FORMAT_X16B16G16R16F;
 			case GL_R11F_G11F_B10F:
 			case GL_RGB9_E5:
-				return sw::FORMAT_X16B16G16R16F;
+				return sw::FORMAT_X16B16G16R16F_UNSIGNED;
 			default:
 				UNREACHABLE(format);
 			}
@@ -916,7 +917,7 @@ namespace egl
 			}
 		case GL_UNSIGNED_INT_10F_11F_11F_REV:
 		case GL_UNSIGNED_INT_5_9_9_9_REV:   // 5 is the exponent field, not alpha.
-			return sw::FORMAT_X16B16G16R16F;
+			return sw::FORMAT_X16B16G16R16F_UNSIGNED;
 		default:
 			UNREACHABLE(type);
 		}
