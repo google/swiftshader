@@ -1165,9 +1165,18 @@ namespace sw
 
 				for(unsigned int i = 0; i < triangleCount; i++)
 				{
-					batch[i][0] = index + 0;
-					batch[i][1] = index + (index & 1) + 1;
-					batch[i][2] = index + (~index & 1) + 1;
+					if(leadingVertexFirst)
+					{
+						batch[i][0] = index + 0;
+						batch[i][1] = index + (index & 1) + 1;
+						batch[i][2] = index + (~index & 1) + 1;
+					}
+					else
+					{
+						batch[i][0] = index + (index & 1);
+						batch[i][1] = index + (~index & 1);
+						batch[i][2] = index + 2;
+					}
 
 					index += 1;
 				}
@@ -1179,9 +1188,18 @@ namespace sw
 
 				for(unsigned int i = 0; i < triangleCount; i++)
 				{
-					batch[i][0] = index + 1;
-					batch[i][1] = index + 2;
-					batch[i][2] = 0;
+					if(leadingVertexFirst)
+					{
+						batch[i][0] = index + 1;
+						batch[i][1] = index + 2;
+						batch[i][2] = 0;
+					}
+					else
+					{
+						batch[i][0] = 0;
+						batch[i][1] = index + 1;
+						batch[i][2] = index + 2;
+					}
 
 					index += 1;
 				}
