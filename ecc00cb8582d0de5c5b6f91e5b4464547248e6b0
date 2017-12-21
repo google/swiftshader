@@ -1,0 +1,165 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5cded948_d3d1db75",
+        "filename": "src/OpenGL/libGLESv2/Device.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 726,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-12-21T19:16:21Z",
+      "side": 1,
+      "message": "nit: I think we can still avoid this by using the \u0027trimmed\u0027 rects from Context::blitFramebuffer() correctly.",
+      "range": {
+        "startLine": 726,
+        "startChar": 7,
+        "endLine": 726,
+        "endChar": 21
+      },
+      "revId": "ecc00cb8582d0de5c5b6f91e5b4464547248e6b0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9c1d6b6a_8688e637",
+        "filename": "src/OpenGL/libGLESv2/Device.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 800,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-12-21T19:16:21Z",
+      "side": 1,
+      "message": "nit: stray space",
+      "range": {
+        "startLine": 800,
+        "startChar": 75,
+        "endLine": 800,
+        "endChar": 76
+      },
+      "revId": "ecc00cb8582d0de5c5b6f91e5b4464547248e6b0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4a638c1e_016a5995",
+        "filename": "src/OpenGL/libGLESv2/Device.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 1025,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-12-21T19:16:21Z",
+      "side": 1,
+      "message": "nit: It looks like returning false from this has become unreachable, rendering this method useless. It should be replaced with asserts.\n\nSame for the one above.",
+      "range": {
+        "startLine": 1025,
+        "startChar": 14,
+        "endLine": 1025,
+        "endChar": 28
+      },
+      "revId": "ecc00cb8582d0de5c5b6f91e5b4464547248e6b0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5d5d09f4_d686bc08",
+        "filename": "src/Renderer/Blitter.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 1275,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-12-21T19:16:21Z",
+      "side": 1,
+      "message": "nit: According to the spec there shouldn\u0027t be any risk of out-of-bounds accesses here because the rectangles are limited to the source dimensions.",
+      "range": {
+        "startLine": 1271,
+        "startChar": 6,
+        "endLine": 1275,
+        "endChar": 7
+      },
+      "revId": "ecc00cb8582d0de5c5b6f91e5b4464547248e6b0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "36f87fb3_43fe0699",
+        "filename": "src/Renderer/Blitter.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 1302,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-12-21T19:16:21Z",
+      "side": 1,
+      "message": "nit: Same.",
+      "range": {
+        "startLine": 1298,
+        "startChar": 7,
+        "endLine": 1302,
+        "endChar": 8
+      },
+      "revId": "ecc00cb8582d0de5c5b6f91e5b4464547248e6b0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a77b57f5_152b970c",
+        "filename": "src/Renderer/Blitter.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 1331,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-12-21T19:16:21Z",
+      "side": 1,
+      "message": "nit: I think there\u0027s potential to simplify this, possibly by clamping the floating-point coordinates so that the integer ones can only overflow on one side. That would reduce it from four to three tests, and my gut feeling says there should only really be two...",
+      "range": {
+        "startLine": 1313,
+        "startChar": 7,
+        "endLine": 1331,
+        "endChar": 46
+      },
+      "revId": "ecc00cb8582d0de5c5b6f91e5b4464547248e6b0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "dcd72e6e_c10c21ad",
+        "filename": "src/Renderer/Blitter.hpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-12-21T19:16:21Z",
+      "side": 1,
+      "message": "Just found out that in-class initialization of bitfields isn\u0027t valid C++. Could have made this more elegant than a long, duplicated initializer list. Anyway, nothing we can do about it and no big deal.",
+      "range": {
+        "startLine": 32,
+        "startChar": 111,
+        "endLine": 32,
+        "endChar": 129
+      },
+      "revId": "ecc00cb8582d0de5c5b6f91e5b4464547248e6b0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
