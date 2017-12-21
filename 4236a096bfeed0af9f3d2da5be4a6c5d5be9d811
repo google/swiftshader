@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c778d11c_1a901a2f",
+        "filename": "src/Renderer/Blitter.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1108,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-12-21T19:54:34Z",
+      "side": 1,
+      "message": "I think this can just be srcSRGB || dstSRGB now. Obviously when neither is sRGB we don\u0027t take this path, but when both are then reverseConversion is true and we take this path.",
+      "range": {
+        "startLine": 1108,
+        "startChar": 26,
+        "endLine": 1108,
+        "endChar": 94
+      },
+      "revId": "4236a096bfeed0af9f3d2da5be4a6c5d5be9d811",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2fee404d_e0ab4ee1",
+        "filename": "src/Renderer/Blitter.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1351,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-12-21T19:54:34Z",
+      "side": 1,
+      "message": "This still looks inversed to me. If the destination format is sRGB, but the source is not, then we shouldn\u0027t convert prior to filtering (i.e. we\u0027d be filtering in the sRGB domain, which is wrong).",
+      "range": {
+        "startLine": 1351,
+        "startChar": 7,
+        "endLine": 1351,
+        "endChar": 84
+      },
+      "revId": "4236a096bfeed0af9f3d2da5be4a6c5d5be9d811",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f50ae1f3_5d52b87e",
+        "filename": "src/Renderer/Blitter.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1352,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-12-21T19:54:34Z",
+      "side": 1,
+      "message": "This is a confusing name. I think we need to discern three situations:\n- Call ApplyScaleAndClamp only before filtering.\n- Call it both before and after filtering.\n- Call it only after filtering.\n\nSo this could be done with a preConversion and postConversion boolean. In theory a preConversion and splitConversion would also work (i.e. !pre \u0026\u0026 split implies post), but that\u0027s likely less elegant.",
+      "range": {
+        "startLine": 1352,
+        "startChar": 7,
+        "endLine": 1352,
+        "endChar": 24
+      },
+      "revId": "4236a096bfeed0af9f3d2da5be4a6c5d5be9d811",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d3479996_1ca36114",
+        "filename": "src/Renderer/Blitter.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1370,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2017-12-21T19:54:34Z",
+      "side": 1,
+      "message": "This can always be true, which then just becomes an indication for the ApplyScaleAndClamp() function whether it\u0027s before or after filtering.",
+      "range": {
+        "startLine": 1370,
+        "startChar": 84,
+        "endLine": 1370,
+        "endChar": 101
+      },
+      "revId": "4236a096bfeed0af9f3d2da5be4a6c5d5be9d811",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
