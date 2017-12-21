@@ -22,6 +22,8 @@
 #include "Texture.h"
 #include "utilities.h"
 
+#include <algorithm>
+
 namespace es2
 {
 
@@ -327,6 +329,8 @@ GLenum Framebuffer::completeness(int &width, int &height, int &samples)
 	height = -1;
 	samples = -1;
 
+	GLint version = egl::getClientVersion();
+
 	for(int i = 0; i < MAX_COLOR_ATTACHMENTS; i++)
 	{
 		if(mColorbufferType[i] != GL_NONE)
@@ -345,7 +349,7 @@ GLenum Framebuffer::completeness(int &width, int &height, int &samples)
 
 			if(IsRenderbuffer(mColorbufferType[i]))
 			{
-				if(!IsColorRenderable(colorbuffer->getFormat(), egl::getClientVersion()))
+				if(!IsColorRenderable(colorbuffer->getFormat(), version))
 				{
 					return GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
 				}
@@ -354,7 +358,7 @@ GLenum Framebuffer::completeness(int &width, int &height, int &samples)
 			{
 				GLenum format = colorbuffer->getFormat();
 
-				if(!IsColorRenderable(format, egl::getClientVersion()))
+				if(!IsColorRenderable(format, version))
 				{
 					return GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
 				}
@@ -370,16 +374,26 @@ GLenum Framebuffer::completeness(int &width, int &height, int &samples)
 				return GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
 			}
 
-			width = colorbuffer->getWidth();
-			height = colorbuffer->getHeight();
-
-			if(samples == -1)
+			if(width == -1 || height == -1)
 			{
+				width = colorbuffer->getWidth();
+				height = colorbuffer->getHeight();
 				samples = colorbuffer->getSamples();
 			}
-			else if(samples != colorbuffer->getSamples())
+			else
 			{
-				return GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE;
+				if(version < 3 && (width != colorbuffer->getWidth() || height != colorbuffer->getHeight()))
+				{
+					return GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS;
+				}
+
+				if(samples != colorbuffer->getSamples())
+				{
+					return GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE;
+				}
+
+				width = std::min(width, colorbuffer->getWidth());
+				height = std::min(height, colorbuffer->getHeight());
 			}
 		}
 	}
@@ -403,7 +417,7 @@ GLenum Framebuffer::completeness(int &width, int &height, int &samples)
 
 		if(IsRenderbuffer(mDepthbufferType))
 		{
-			if(!es2::IsDepthRenderable(depthbuffer->getFormat(), egl::getClientVersion()))
+			if(!es2::IsDepthRenderable(depthbuffer->getFormat(), version))
 			{
 				return GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
 			}
@@ -427,13 +441,20 @@ GLenum Framebuffer::completeness(int &width, int &height, int &samples)
 			height = depthbuffer->getHeight();
 			samples = depthbuffer->getSamples();
 		}
-		else if(width != depthbuffer->getWidth() || height != depthbuffer->getHeight())
+		else
 		{
-			return GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS;
-		}
-		else if(samples != depthbuffer->getSamples())
-		{
-			return GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE;
+			if(version < 3 && (width != depthbuffer->getWidth() || height != depthbuffer->getHeight()))
+			{
+				return GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS;
+			}
+
+			if(samples != depthbuffer->getSamples())
+			{
+				return GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE;
+			}
+
+			width = std::min(width, depthbuffer->getWidth());
+			height = std::min(height, depthbuffer->getHeight());
 		}
 	}
 
@@ -453,7 +474,7 @@ GLenum Framebuffer::completeness(int &width, int &height, int &samples)
 
 		if(IsRenderbuffer(mStencilbufferType))
 		{
-			if(!es2::IsStencilRenderable(stencilbuffer->getFormat(), egl::getClientVersion()))
+			if(!es2::IsStencilRenderable(stencilbuffer->getFormat(), version))
 			{
 				return GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
 			}
@@ -479,17 +500,24 @@ GLenum Framebuffer::completeness(int &width, int &height, int &samples)
 			height = stencilbuffer->getHeight();
 			samples = stencilbuffer->getSamples();
 		}
-		else if(width != stencilbuffer->getWidth() || height != stencilbuffer->getHeight())
+		else
 		{
-			return GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS;
-		}
-		else if(samples != stencilbuffer->getSamples())
-		{
-			return GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE;
+			if(version < 3 && (width != stencilbuffer->getWidth() || height != stencilbuffer->getHeight()))
+			{
+				return GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS;
+			}
+
+			if(samples != stencilbuffer->getSamples())
+			{
+				return GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE;
+			}
+
+			width = std::min(width, stencilbuffer->getWidth());
+			height = std::min(height, stencilbuffer->getHeight());
 		}
 	}
 
-	if((egl::getClientVersion() >= 3) && depthbuffer && stencilbuffer && (depthbuffer != stencilbuffer))
+	if((version >= 3) && depthbuffer && stencilbuffer && (depthbuffer != stencilbuffer))
 	{
 		// In the GLES 3.0 spec, section 4.4.4, Framebuffer Completeness:
 		// "The framebuffer object target is said to be framebuffer complete if all the following conditions are true:
