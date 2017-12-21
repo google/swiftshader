@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "bd59abac_28fa022c",
+        "filename": "src/OpenGL/libGLESv2/Framebuffer.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 385,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2017-12-21T21:06:13Z",
+      "side": 1,
+      "message": "All other version checks in the project are \"(version \u003e\u003d 3)\" or \"(version \u003c 3)\".\nAny reason for the check against version 2? (same for following checks)",
+      "range": {
+        "startLine": 385,
+        "startChar": 7,
+        "endLine": 385,
+        "endChar": 20
+      },
+      "revId": "9ea2c769edce3773c02ffc24ce62f20a2359f40b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
