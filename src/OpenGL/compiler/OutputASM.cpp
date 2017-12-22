@@ -216,12 +216,12 @@ namespace glsl
 
 	sw::PixelShader *Shader::getPixelShader() const
 	{
-		return 0;
+		return nullptr;
 	}
 
 	sw::VertexShader *Shader::getVertexShader() const
 	{
-		return 0;
+		return nullptr;
 	}
 
 	OutputASM::TextureFunction::TextureFunction(const TString& nodeName) : method(IMPLICIT), proj(false), offset(false)
@@ -306,9 +306,9 @@ namespace glsl
 
 	OutputASM::OutputASM(TParseContext &context, Shader *shaderObject) : TIntermTraverser(true, true, true), shaderObject(shaderObject), mContext(context)
 	{
-		shader = 0;
-		pixelShader = 0;
-		vertexShader = 0;
+		shader = nullptr;
+		pixelShader = nullptr;
+		vertexShader = nullptr;
 
 		if(shaderObject)
 		{
@@ -317,9 +317,9 @@ namespace glsl
 			vertexShader = shaderObject->getVertexShader();
 		}
 
-		functionArray.push_back(Function(0, "main(", 0, 0));
+		functionArray.push_back(Function(0, "main(", nullptr, nullptr));
 		currentFunction = 0;
-		outputQualifier = EvqOutput; // Set outputQualifier to any value other than EvqFragColor or EvqFragData
+		outputQualifier = EvqOutput;   // Initialize outputQualifier to any value other than EvqFragColor or EvqFragData
 	}
 
 	OutputASM::~OutputASM()
@@ -514,8 +514,19 @@ namespace glsl
 			return false;
 		case EOpInitialize:
 			assert(visit == PreVisit);
-			right->traverse(this);
-			copy(left, right);
+			// Constant arrays go into the constant register file.
+			if(leftType.getQualifier() == EvqConstExpr && leftType.isArray() && leftType.getArraySize() > 1)
+			{
+				for(int i = 0; i < left->totalRegisterCount(); i++)
+				{
+					emit(sw::Shader::OPCODE_DEF, left, i, right, i);
+				}
+			}
+			else
+			{
+				right->traverse(this);
+				copy(left, right);
+			}
 			return false;
 		case EOpMatrixTimesScalarAssign:
 			assert(visit == PreVisit);
@@ -2544,7 +2555,15 @@ namespace glsl
 
 		if(qualifier == EvqConstExpr && (!operand->getAsConstantUnion() || !operand->getAsConstantUnion()->getUnionArrayPointer()))
 		{
-			return sw::Shader::PARAMETER_TEMP;
+			// Constant arrays are in the constant register file.
+			if(operand->isArray() && operand->getArraySize() > 1)
+			{
+				return sw::Shader::PARAMETER_CONST;
+			}
+			else
+			{
+				return sw::Shader::PARAMETER_TEMP;
+			}
 		}
 
 		switch(qualifier)

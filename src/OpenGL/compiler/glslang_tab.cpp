@@ -2373,8 +2373,9 @@ yyreduce:
         // don't delete $1.string, it's used by error recovery, and the pool
         // pop will reclaim the memory
 
+        // Constants which aren't indexable arrays can be propagated by value.
         ConstantUnion *constArray = variable->getConstPointer();
-        if (constArray) {
+        if (constArray && variable->getType().getArraySize() <= 1) {
             TType t(variable->getType());
             (yyval.interm.intermTypedNode) = context->intermediate.addConstantUnion(constArray, t, (yylsp[0]));
         } else
