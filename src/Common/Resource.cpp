@@ -38,7 +38,7 @@ namespace sw
 	{
 		criticalSection.lock();
 
-		while(count != 0 && accessor != claimer)
+		while(count > 0 && accessor != claimer)
 		{
 			blocked++;
 			criticalSection.unlock();
@@ -84,7 +84,7 @@ namespace sw
 		}
 
 		// Acquire
-		while(count != 0 && accessor != claimer)
+		while(count > 0 && accessor != claimer)
 		{
 			blocked++;
 			criticalSection.unlock();
