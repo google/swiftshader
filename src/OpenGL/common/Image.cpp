@@ -537,7 +537,7 @@ namespace egl
 			case GL_UNSIGNED_SHORT:        return sw::FORMAT_D16;
 			case GL_UNSIGNED_INT_24_8_OES: return sw::FORMAT_D24S8;
 			case GL_UNSIGNED_INT:          return sw::FORMAT_D32;
-			case GL_FLOAT:                 return sw::FORMAT_D32F;
+			case GL_FLOAT:                 return sw::FORMAT_D32F_LOCKABLE;
 			default: UNREACHABLE(type);
 			}
 			break;
