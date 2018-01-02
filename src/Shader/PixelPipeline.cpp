@@ -256,15 +256,15 @@ namespace sw
 				}
 			}
 		}
-	}
 
-	Bool PixelPipeline::alphaTest(Int cMask[4])
-	{
 		current.x = Min(current.x, Short4(0x0FFF)); current.x = Max(current.x, Short4(0x0000));
 		current.y = Min(current.y, Short4(0x0FFF)); current.y = Max(current.y, Short4(0x0000));
 		current.z = Min(current.z, Short4(0x0FFF)); current.z = Max(current.z, Short4(0x0000));
 		current.w = Min(current.w, Short4(0x0FFF)); current.w = Max(current.w, Short4(0x0000));
+	}
 
+	Bool PixelPipeline::alphaTest(Int cMask[4])
+	{
 		if(!state.alphaTestActive())
 		{
 			return true;

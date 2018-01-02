@@ -525,12 +525,17 @@ namespace sw
 				c[i] = oC[i];
 			}
 		}
+
+		clampColor(c);
+
+		if(state.depthOverride)
+		{
+			oDepth = Min(Max(oDepth, Float4(0.0f)), Float4(1.0f));
+		}
 	}
 
 	Bool PixelProgram::alphaTest(Int cMask[4])
 	{
-		clampColor(c);
-
 		if(!state.alphaTestActive())
 		{
 			return true;
