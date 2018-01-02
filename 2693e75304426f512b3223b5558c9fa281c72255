@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cf65f28f_b62a57c3",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1524,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-01-02T19:48:37Z",
+      "side": 0,
+      "message": "Removing this is the core of the change. The rest is just minor refactorings.",
+      "range": {
+        "startLine": 1521,
+        "startChar": 2,
+        "endLine": 1524,
+        "endChar": 7
+      },
+      "revId": "2693e75304426f512b3223b5558c9fa281c72255",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
