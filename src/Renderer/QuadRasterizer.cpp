@@ -159,7 +159,7 @@ namespace sw
 				}
 			}
 
-			if(veryEarlyDepthTest && state.multiSample == 1)
+			if(veryEarlyDepthTest && state.multiSample == 1 && !state.depthOverride)
 			{
 				if(!state.stencilActive && state.depthTestActive && (state.depthCompareMode == DEPTH_LESSEQUAL || state.depthCompareMode == DEPTH_LESS))   // FIXME: Both modes ok?
 				{
