@@ -573,7 +573,7 @@ namespace sw
 			return c;
 		}
 
-		if(state.mipmapFilter > MIPMAP_POINT)
+		if(state.mipmapFilter == MIPMAP_LINEAR)
 		{
 			Vector4s cc = sampleAniso(texture, u, v, w, offset, lod, anisotropy, uDelta, vDelta, face, true, function);
 
@@ -1066,7 +1066,7 @@ namespace sw
 			return c;
 		}
 
-		if(state.mipmapFilter > MIPMAP_POINT)
+		if(state.mipmapFilter == MIPMAP_LINEAR)
 		{
 			Vector4f cc = sampleFloatAniso(texture, u, v, w, q, offset, lod, anisotropy, uDelta, vDelta, face, true, function);
 
@@ -1518,67 +1518,61 @@ namespace sw
 
 	void SamplerCore::computeLod3D(Pointer<Byte> &texture, Float &lod, Float4 &uuuu, Float4 &vvvv, Float4 &wwww, const Float &lodBias, Vector4f &dsx, Vector4f &dsy, SamplerFunction function)
 	{
-		if(state.mipmapFilter == MIPMAP_NONE)
+		if(function != Lod && function != Fetch)
 		{
+			Float4 dudxy, dvdxy, dsdxy;
+
+			if(function != Grad)   // Implicit
+			{
+				dudxy = uuuu - uuuu.xxxx;
+				dvdxy = vvvv - vvvv.xxxx;
+				dsdxy = wwww - wwww.xxxx;
+			}
+			else
+			{
+				dudxy = Float4(dsx.x.xx, dsy.x.xx);
+				dvdxy = Float4(dsx.y.xx, dsy.y.xx);
+				dsdxy = Float4(dsx.z.xx, dsy.z.xx);
+			}
+
+			// Scale by texture dimensions and global LOD.
+			dudxy *= *Pointer<Float4>(texture + OFFSET(Texture,widthLOD));
+			dvdxy *= *Pointer<Float4>(texture + OFFSET(Texture,heightLOD));
+			dsdxy *= *Pointer<Float4>(texture + OFFSET(Texture,depthLOD));
+
+			dudxy *= dudxy;
+			dvdxy *= dvdxy;
+			dsdxy *= dsdxy;
+
+			dudxy += dvdxy;
+			dudxy += dsdxy;
+
+			lod = Max(Float(dudxy.y), Float(dudxy.z));   // FIXME: Max(dudxy.y, dudxy.z);
+
+			lod = log2sqrt(lod);   // log2(sqrt(lod))
+
+			if(function == Bias)
+			{
+				lod += lodBias;
+			}
 		}
-		else   // Point and linear filter
+		else if(function == Lod)
 		{
-			if(function != Lod && function != Fetch)
-			{
-				Float4 dudxy, dvdxy, dsdxy;
-
-				if(function != Grad)   // Implicit
-				{
-					dudxy = uuuu - uuuu.xxxx;
-					dvdxy = vvvv - vvvv.xxxx;
-					dsdxy = wwww - wwww.xxxx;
-				}
-				else
-				{
-					dudxy = Float4(dsx.x.xx, dsy.x.xx);
-					dvdxy = Float4(dsx.y.xx, dsy.y.xx);
-					dsdxy = Float4(dsx.z.xx, dsy.z.xx);
-				}
-
-				// Scale by texture dimensions and global LOD.
-				dudxy *= *Pointer<Float4>(texture + OFFSET(Texture,widthLOD));
-				dvdxy *= *Pointer<Float4>(texture + OFFSET(Texture,heightLOD));
-				dsdxy *= *Pointer<Float4>(texture + OFFSET(Texture,depthLOD));
-
-				dudxy *= dudxy;
-				dvdxy *= dvdxy;
-				dsdxy *= dsdxy;
-
-				dudxy += dvdxy;
-				dudxy += dsdxy;
-
-				lod = Max(Float(dudxy.y), Float(dudxy.z));   // FIXME: Max(dudxy.y, dudxy.z);
-
-				lod = log2sqrt(lod);   // log2(sqrt(lod))
-
-				if(function == Bias)
-				{
-					lod += lodBias;
-				}
-			}
-			else if(function == Lod)
-			{
-				lod = lodBias;
-			}
-			else if(function == Fetch)
-			{
-				// TODO: Eliminate int-float-int conversion.
-				lod = Float(As<Int>(lodBias));
-			}
-			else if(function == Base)
-			{
-				lod = Float(0);
-			}
-			else assert(false);
-
-			lod = Max(lod, *Pointer<Float>(texture + OFFSET(Texture, minLod)));
-			lod = Min(lod, *Pointer<Float>(texture + OFFSET(Texture, maxLod)));
+			lod = lodBias;
 		}
+		else if(function == Fetch)
+		{
+			// TODO: Eliminate int-float-int conversion.
+			lod = Float(As<Int>(lodBias));
+		}
+		else if(function == Base)
+		{
+			lod = Float(0);
+		}
+		else assert(false);
+
+		lod = Max(lod, *Pointer<Float>(texture + OFFSET(Texture, minLod)));
+		lod = Min(lod, *Pointer<Float>(texture + OFFSET(Texture, maxLod)));
 	}
 
 	void SamplerCore::cubeFace(Int face[4], Float4 &U, Float4 &V, Float4 &x, Float4 &y, Float4 &z, Float4 &M)
@@ -2240,7 +2234,7 @@ namespace sw
 
 	void SamplerCore::selectMipmap(Pointer<Byte> &texture, Pointer<Byte> buffer[4], Pointer<Byte> &mipmap, Float &lod, Int face[4], bool secondLOD)
 	{
-		if(state.mipmapFilter < MIPMAP_POINT)
+		if(state.mipmapFilter == MIPMAP_NONE)
 		{
 			mipmap = texture + OFFSET(Texture,mipmap[0]);
 		}
@@ -2252,7 +2246,7 @@ namespace sw
 			{
 				ilod = RoundInt(lod);
 			}
-			else   // Linear
+			else   // MIPMAP_LINEAR
 			{
 				ilod = Int(lod);
 			}

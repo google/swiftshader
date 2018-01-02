@@ -2057,15 +2057,12 @@ namespace es2sw
 		case GL_NEAREST:
 		case GL_LINEAR:
 			return sw::MIPMAP_NONE;
-			break;
 		case GL_NEAREST_MIPMAP_NEAREST:
 		case GL_LINEAR_MIPMAP_NEAREST:
 			return sw::MIPMAP_POINT;
-			break;
 		case GL_NEAREST_MIPMAP_LINEAR:
 		case GL_LINEAR_MIPMAP_LINEAR:
 			return sw::MIPMAP_LINEAR;
-			break;
 		default:
 			UNREACHABLE(minFilter);
 			return sw::MIPMAP_NONE;
@@ -2079,12 +2076,13 @@ namespace es2sw
 			return sw::FILTER_ANISOTROPIC;
 		}
 
-		sw::FilterType magFilterType = sw::FILTER_POINT;
 		switch(magFilter)
 		{
-		case GL_NEAREST: magFilterType = sw::FILTER_POINT;  break;
-		case GL_LINEAR:  magFilterType = sw::FILTER_LINEAR; break;
-		default: UNREACHABLE(magFilter);
+		case GL_NEAREST:
+		case GL_LINEAR:
+			break;
+		default:
+			UNREACHABLE(magFilter);
 		}
 
 		switch(minFilter)
@@ -2092,14 +2090,14 @@ namespace es2sw
 		case GL_NEAREST:
 		case GL_NEAREST_MIPMAP_NEAREST:
 		case GL_NEAREST_MIPMAP_LINEAR:
-			return (magFilterType == sw::FILTER_POINT) ? sw::FILTER_POINT : sw::FILTER_MIN_POINT_MAG_LINEAR;
+			return (magFilter == GL_NEAREST) ? sw::FILTER_POINT : sw::FILTER_MIN_POINT_MAG_LINEAR;
 		case GL_LINEAR:
 		case GL_LINEAR_MIPMAP_NEAREST:
 		case GL_LINEAR_MIPMAP_LINEAR:
-			return (magFilterType == sw::FILTER_POINT) ? sw::FILTER_MIN_LINEAR_MAG_POINT : sw::FILTER_LINEAR;
+			return (magFilter == GL_NEAREST) ? sw::FILTER_MIN_LINEAR_MAG_POINT : sw::FILTER_LINEAR;
 		default:
 			UNREACHABLE(minFilter);
-			return (magFilterType == sw::FILTER_POINT) ? sw::FILTER_POINT : sw::FILTER_MIN_POINT_MAG_LINEAR;
+			return sw::FILTER_POINT;
 		}
 	}
 
