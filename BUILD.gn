@@ -74,13 +74,16 @@ config("swiftshader_config") {
       cflags += [
         "-m64",
         "-fPIC",
-        "-march=core2",
+        "-march=x86-64",
+        "-mtune=generic",
       ]
     } else {  # 32 bit version
       cflags += [
         "-m32",
         "-msse2",
-        "-march=i686",
+        "-mfpmath=sse",
+        "-march=pentium4",
+        "-mtune=generic",
       ]
     }
 
