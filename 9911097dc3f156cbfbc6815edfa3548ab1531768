@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "482ac98a_a7dc96d1",
+        "filename": "src/Renderer/Blitter.cpp",
+        "patchSetId": 7
+      },
+      "lineNbr": 1110,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-01-03T21:23:43Z",
+      "side": 1,
+      "message": "Seems to have the same issues as my last comments in https://swiftshader-review.googlesource.com/c/SwiftShader/+/15409 I\u0027d really prefer to keep these sRGB changes separate from the out-of-bounds stuff. Minus that, this change looks ok to me.",
+      "range": {
+        "startLine": 1108,
+        "startChar": 2,
+        "endLine": 1110,
+        "endChar": 25
+      },
+      "revId": "9911097dc3f156cbfbc6815edfa3548ab1531768",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
