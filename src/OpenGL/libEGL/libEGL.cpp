@@ -29,6 +29,7 @@
 #include "Main/libX11.hpp"
 #endif
 
+#include <algorithm>
 #include <string.h>
 
 using namespace egl;
@@ -174,6 +175,7 @@ const char *QueryString(EGLDisplay dpy, EGLint name)
 	if(dpy == EGL_NO_DISPLAY && name == EGL_EXTENSIONS)
 	{
 		return success(
+			"EGL_KHR_client_get_all_proc_addresses "
 #if defined(__linux__) && !defined(__ANDROID__)
 			"EGL_KHR_platform_gbm "
 			"EGL_KHR_platform_x11 "
@@ -195,6 +197,7 @@ const char *QueryString(EGLDisplay dpy, EGLint name)
 		return success("OpenGL_ES");
 	case EGL_EXTENSIONS:
 		return success("EGL_KHR_create_context "
+		               "EGL_KHR_get_all_proc_addresses "
 		               "EGL_KHR_gl_texture_2D_image "
 		               "EGL_KHR_gl_texture_cubemap_image "
 		               "EGL_KHR_gl_renderbuffer_image "
@@ -1241,34 +1244,85 @@ __eglMustCastToProperFunctionPointerType GetProcAddress(const char *procname)
 {
 	TRACE("(const char *procname = \"%s\")", procname);
 
-	struct Extension
+	struct Function
 	{
 		const char *name;
 		__eglMustCastToProperFunctionPointerType address;
 	};
 
-	static const Extension eglExtensions[] =
+	struct CompareFunctor
 	{
-		#define EXTENSION(name) {#name, (__eglMustCastToProperFunctionPointerType)name}
-
-		EXTENSION(eglCreateImageKHR),
-		EXTENSION(eglDestroyImageKHR),
-		EXTENSION(eglGetPlatformDisplayEXT),
-		EXTENSION(eglCreatePlatformWindowSurfaceEXT),
-		EXTENSION(eglCreatePlatformPixmapSurfaceEXT),
-		EXTENSION(eglCreateSyncKHR),
-		EXTENSION(eglDestroySyncKHR),
-		EXTENSION(eglClientWaitSyncKHR),
-		EXTENSION(eglGetSyncAttribKHR),
-
-		#undef EXTENSION
+		bool operator()(const Function &a, const Function &b) const
+		{
+			return strcmp(a.name, b.name) < 0;
+		}
 	};
 
-	for(unsigned int ext = 0; ext < sizeof(eglExtensions) / sizeof(Extension); ext++)
+	// This array must be kept sorted with respect to strcmp(), so that binary search works correctly.
+	// The Unix command "LC_COLLATE=C sort" will generate the correct order.
+	static const Function eglFunctions[] =
 	{
-		if(strcmp(procname, eglExtensions[ext].name) == 0)
+		#define FUNCTION(name) {#name, (__eglMustCastToProperFunctionPointerType)name}
+
+		FUNCTION(eglBindAPI),
+		FUNCTION(eglBindTexImage),
+		FUNCTION(eglChooseConfig),
+		FUNCTION(eglClientWaitSyncKHR),
+		FUNCTION(eglCopyBuffers),
+		FUNCTION(eglCreateContext),
+		FUNCTION(eglCreateImageKHR),
+		FUNCTION(eglCreatePbufferFromClientBuffer),
+		FUNCTION(eglCreatePbufferSurface),
+		FUNCTION(eglCreatePixmapSurface),
+		FUNCTION(eglCreatePlatformPixmapSurfaceEXT),
+		FUNCTION(eglCreatePlatformWindowSurfaceEXT),
+		FUNCTION(eglCreateSyncKHR),
+		FUNCTION(eglCreateWindowSurface),
+		FUNCTION(eglDestroyContext),
+		FUNCTION(eglDestroyImageKHR),
+		FUNCTION(eglDestroySurface),
+		FUNCTION(eglDestroySyncKHR),
+		FUNCTION(eglGetConfigAttrib),
+		FUNCTION(eglGetConfigs),
+		FUNCTION(eglGetCurrentContext),
+		FUNCTION(eglGetCurrentDisplay),
+		FUNCTION(eglGetCurrentSurface),
+		FUNCTION(eglGetDisplay),
+		FUNCTION(eglGetError),
+		FUNCTION(eglGetPlatformDisplayEXT),
+		FUNCTION(eglGetProcAddress),
+		FUNCTION(eglGetSyncAttribKHR),
+		FUNCTION(eglInitialize),
+		FUNCTION(eglMakeCurrent),
+		FUNCTION(eglQueryAPI),
+		FUNCTION(eglQueryContext),
+		FUNCTION(eglQueryString),
+		FUNCTION(eglQuerySurface),
+		FUNCTION(eglReleaseTexImage),
+		FUNCTION(eglReleaseThread),
+		FUNCTION(eglSurfaceAttrib),
+		FUNCTION(eglSwapBuffers),
+		FUNCTION(eglSwapInterval),
+		FUNCTION(eglTerminate),
+		FUNCTION(eglWaitClient),
+		FUNCTION(eglWaitGL),
+		FUNCTION(eglWaitNative),
+
+		#undef FUNCTION
+	};
+
+	static const size_t numFunctions = sizeof eglFunctions / sizeof(Function);
+	static const Function *const eglFunctionsEnd = eglFunctions + numFunctions;
+
+	Function needle;
+	needle.name = procname;
+
+	if(procname && strncmp("egl", procname, 3) == 0)
+	{
+		const Function *result = std::lower_bound(eglFunctions, eglFunctionsEnd, needle, CompareFunctor());
+		if (result != eglFunctionsEnd && strcmp(procname, result->name) == 0)
 		{
-			return success((__eglMustCastToProperFunctionPointerType)eglExtensions[ext].address);
+			return success((__eglMustCastToProperFunctionPointerType)result->address);
 		}
 	}
 

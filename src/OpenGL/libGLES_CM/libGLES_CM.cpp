@@ -32,6 +32,7 @@
 #include <GLES/gl.h>
 #include <GLES/glext.h>
 
+#include <algorithm>
 #include <limits>
 
 namespace es1
@@ -4727,46 +4728,215 @@ void DrawTexfvOES(const GLfloat *coords)
 
 extern "C" __eglMustCastToProperFunctionPointerType es1GetProcAddress(const char *procname)
 {
-	struct Extension
+	struct Function
 	{
 		const char *name;
 		__eglMustCastToProperFunctionPointerType address;
 	};
 
-	static const Extension glExtensions[] =
+	struct CompareFunctor
 	{
-		#define EXTENSION(name) {#name, (__eglMustCastToProperFunctionPointerType)name}
-
-		EXTENSION(glEGLImageTargetTexture2DOES),
-		EXTENSION(glEGLImageTargetRenderbufferStorageOES),
-		EXTENSION(glIsRenderbufferOES),
-		EXTENSION(glBindRenderbufferOES),
-		EXTENSION(glDeleteRenderbuffersOES),
-		EXTENSION(glGenRenderbuffersOES),
-		EXTENSION(glRenderbufferStorageOES),
-		EXTENSION(glGetRenderbufferParameterivOES),
-		EXTENSION(glIsFramebufferOES),
-		EXTENSION(glBindFramebufferOES),
-		EXTENSION(glDeleteFramebuffersOES),
-		EXTENSION(glGenFramebuffersOES),
-		EXTENSION(glCheckFramebufferStatusOES),
-		EXTENSION(glFramebufferRenderbufferOES),
-		EXTENSION(glFramebufferTexture2DOES),
-		EXTENSION(glGetFramebufferAttachmentParameterivOES),
-		EXTENSION(glGenerateMipmapOES),
-		EXTENSION(glBlendEquationOES),
-		EXTENSION(glBlendEquationSeparateOES),
-		EXTENSION(glBlendFuncSeparateOES),
-		EXTENSION(glPointSizePointerOES),
-
-		#undef EXTENSION
+		bool operator()(const Function &a, const Function &b) const
+		{
+			return strcmp(a.name, b.name) < 0;
+		}
 	};
 
-	for(unsigned int ext = 0; ext < sizeof(glExtensions) / sizeof(Extension); ext++)
+	// This array must be kept sorted with respect to strcmp(), so that binary search works correctly.
+	// The Unix command "LC_COLLATE=C sort" will generate the correct order.
+	static const Function glFunctions[] =
 	{
-		if(strcmp(procname, glExtensions[ext].name) == 0)
+		#define FUNCTION(name) {#name, (__eglMustCastToProperFunctionPointerType)name}
+
+		FUNCTION(glActiveTexture),
+		FUNCTION(glAlphaFunc),
+		FUNCTION(glAlphaFuncx),
+		FUNCTION(glBindBuffer),
+		FUNCTION(glBindFramebufferOES),
+		FUNCTION(glBindRenderbufferOES),
+		FUNCTION(glBindTexture),
+		FUNCTION(glBlendEquationOES),
+		FUNCTION(glBlendEquationSeparateOES),
+		FUNCTION(glBlendFunc),
+		FUNCTION(glBlendFuncSeparateOES),
+		FUNCTION(glBufferData),
+		FUNCTION(glBufferSubData),
+		FUNCTION(glCheckFramebufferStatusOES),
+		FUNCTION(glClear),
+		FUNCTION(glClearColor),
+		FUNCTION(glClearColorx),
+		FUNCTION(glClearDepthf),
+		FUNCTION(glClearDepthx),
+		FUNCTION(glClearStencil),
+		FUNCTION(glClientActiveTexture),
+		FUNCTION(glClipPlanef),
+		FUNCTION(glClipPlanex),
+		FUNCTION(glColor4f),
+		FUNCTION(glColor4ub),
+		FUNCTION(glColor4x),
+		FUNCTION(glColorMask),
+		FUNCTION(glColorPointer),
+		FUNCTION(glCompressedTexImage2D),
+		FUNCTION(glCompressedTexSubImage2D),
+		FUNCTION(glCopyTexImage2D),
+		FUNCTION(glCopyTexSubImage2D),
+		FUNCTION(glCullFace),
+		FUNCTION(glDeleteBuffers),
+		FUNCTION(glDeleteFramebuffersOES),
+		FUNCTION(glDeleteRenderbuffersOES),
+		FUNCTION(glDeleteTextures),
+		FUNCTION(glDepthFunc),
+		FUNCTION(glDepthMask),
+		FUNCTION(glDepthRangef),
+		FUNCTION(glDepthRangex),
+		FUNCTION(glDisable),
+		FUNCTION(glDisableClientState),
+		FUNCTION(glDrawArrays),
+		FUNCTION(glDrawElements),
+		FUNCTION(glDrawTexfOES),
+		FUNCTION(glDrawTexfvOES),
+		FUNCTION(glDrawTexiOES),
+		FUNCTION(glDrawTexivOES),
+		FUNCTION(glDrawTexsOES),
+		FUNCTION(glDrawTexsvOES),
+		FUNCTION(glDrawTexxOES),
+		FUNCTION(glDrawTexxvOES),
+		FUNCTION(glEGLImageTargetRenderbufferStorageOES),
+		FUNCTION(glEGLImageTargetTexture2DOES),
+		FUNCTION(glEnable),
+		FUNCTION(glEnableClientState),
+		FUNCTION(glFinish),
+		FUNCTION(glFlush),
+		FUNCTION(glFogf),
+		FUNCTION(glFogfv),
+		FUNCTION(glFogx),
+		FUNCTION(glFogxv),
+		FUNCTION(glFramebufferRenderbufferOES),
+		FUNCTION(glFramebufferTexture2DOES),
+		FUNCTION(glFrontFace),
+		FUNCTION(glFrustumf),
+		FUNCTION(glFrustumx),
+		FUNCTION(glGenBuffers),
+		FUNCTION(glGenFramebuffersOES),
+		FUNCTION(glGenRenderbuffersOES),
+		FUNCTION(glGenTextures),
+		FUNCTION(glGenerateMipmapOES),
+		FUNCTION(glGetBooleanv),
+		FUNCTION(glGetBufferParameteriv),
+		FUNCTION(glGetClipPlanef),
+		FUNCTION(glGetClipPlanex),
+		FUNCTION(glGetError),
+		FUNCTION(glGetFixedv),
+		FUNCTION(glGetFloatv),
+		FUNCTION(glGetFramebufferAttachmentParameterivOES),
+		FUNCTION(glGetIntegerv),
+		FUNCTION(glGetLightfv),
+		FUNCTION(glGetLightxv),
+		FUNCTION(glGetMaterialfv),
+		FUNCTION(glGetMaterialxv),
+		FUNCTION(glGetPointerv),
+		FUNCTION(glGetRenderbufferParameterivOES),
+		FUNCTION(glGetString),
+		FUNCTION(glGetTexEnvfv),
+		FUNCTION(glGetTexEnviv),
+		FUNCTION(glGetTexEnvxv),
+		FUNCTION(glGetTexParameterfv),
+		FUNCTION(glGetTexParameteriv),
+		FUNCTION(glGetTexParameterxv),
+		FUNCTION(glHint),
+		FUNCTION(glIsBuffer),
+		FUNCTION(glIsEnabled),
+		FUNCTION(glIsFramebufferOES),
+		FUNCTION(glIsRenderbufferOES),
+		FUNCTION(glIsTexture),
+		FUNCTION(glLightModelf),
+		FUNCTION(glLightModelfv),
+		FUNCTION(glLightModelx),
+		FUNCTION(glLightModelxv),
+		FUNCTION(glLightf),
+		FUNCTION(glLightfv),
+		FUNCTION(glLightx),
+		FUNCTION(glLightxv),
+		FUNCTION(glLineWidth),
+		FUNCTION(glLineWidthx),
+		FUNCTION(glLoadIdentity),
+		FUNCTION(glLoadMatrixf),
+		FUNCTION(glLoadMatrixx),
+		FUNCTION(glLogicOp),
+		FUNCTION(glMaterialf),
+		FUNCTION(glMaterialfv),
+		FUNCTION(glMaterialx),
+		FUNCTION(glMaterialxv),
+		FUNCTION(glMatrixMode),
+		FUNCTION(glMultMatrixf),
+		FUNCTION(glMultMatrixx),
+		FUNCTION(glMultiTexCoord4f),
+		FUNCTION(glMultiTexCoord4x),
+		FUNCTION(glNormal3f),
+		FUNCTION(glNormal3x),
+		FUNCTION(glNormalPointer),
+		FUNCTION(glOrthof),
+		FUNCTION(glOrthox),
+		FUNCTION(glPixelStorei),
+		FUNCTION(glPointParameterf),
+		FUNCTION(glPointParameterfv),
+		FUNCTION(glPointParameterx),
+		FUNCTION(glPointParameterxv),
+		FUNCTION(glPointSize),
+		FUNCTION(glPointSizePointerOES),
+		FUNCTION(glPointSizex),
+		FUNCTION(glPolygonOffset),
+		FUNCTION(glPolygonOffsetx),
+		FUNCTION(glPopMatrix),
+		FUNCTION(glPushMatrix),
+		FUNCTION(glReadPixels),
+		FUNCTION(glRenderbufferStorageOES),
+		FUNCTION(glRotatef),
+		FUNCTION(glRotatex),
+		FUNCTION(glSampleCoverage),
+		FUNCTION(glSampleCoveragex),
+		FUNCTION(glScalef),
+		FUNCTION(glScalex),
+		FUNCTION(glScissor),
+		FUNCTION(glShadeModel),
+		FUNCTION(glStencilFunc),
+		FUNCTION(glStencilMask),
+		FUNCTION(glStencilOp),
+		FUNCTION(glTexCoordPointer),
+		FUNCTION(glTexEnvf),
+		FUNCTION(glTexEnvfv),
+		FUNCTION(glTexEnvi),
+		FUNCTION(glTexEnviv),
+		FUNCTION(glTexEnvx),
+		FUNCTION(glTexEnvxv),
+		FUNCTION(glTexImage2D),
+		FUNCTION(glTexParameterf),
+		FUNCTION(glTexParameterfv),
+		FUNCTION(glTexParameteri),
+		FUNCTION(glTexParameteriv),
+		FUNCTION(glTexParameterx),
+		FUNCTION(glTexParameterxv),
+		FUNCTION(glTexSubImage2D),
+		FUNCTION(glTranslatef),
+		FUNCTION(glTranslatex),
+		FUNCTION(glVertexPointer),
+		FUNCTION(glViewport),
+
+		#undef FUNCTION
+	};
+
+	static const size_t numFunctions = sizeof glFunctions / sizeof(Function);
+	static const Function *const glFunctionsEnd = glFunctions + numFunctions;
+
+	Function needle;
+	needle.name = procname;
+
+	if(procname && strncmp("gl", procname, 2) == 0)
+	{
+		const Function *result = std::lower_bound(glFunctions, glFunctionsEnd, needle, CompareFunctor());
+		if(result != glFunctionsEnd && strcmp(procname, result->name) == 0)
 		{
-			return (__eglMustCastToProperFunctionPointerType)glExtensions[ext].address;
+			return (__eglMustCastToProperFunctionPointerType)result->address;
 		}
 	}
 
