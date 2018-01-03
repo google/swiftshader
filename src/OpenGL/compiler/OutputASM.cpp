@@ -1946,9 +1946,9 @@ namespace glsl
 			const TFieldList& fields = type.getStruct() ? type.getStruct()->fields() : type.getInterfaceBlock()->fields();
 			int elements = 0;
 
-			for(TFieldList::const_iterator field = fields.begin(); field != fields.end(); field++)
+			for(const auto &field : fields)
 			{
-				const TType &fieldType = *((*field)->type());
+				const TType &fieldType = *(field->type());
 
 				if(fieldType.totalRegisterCount() <= registers)
 				{
@@ -1998,9 +1998,9 @@ namespace glsl
 			const TFieldList& fields = type.getStruct() ? type.getStruct()->fields() : type.getInterfaceBlock()->fields();
 			int elements = 0;
 
-			for(TFieldList::const_iterator field = fields.begin(); field != fields.end(); field++)
+			for(const auto &field : fields)
 			{
-				const TType &fieldType = *((*field)->type());
+				const TType &fieldType = *(field->type());
 
 				if(fieldType.totalRegisterCount() <= registers)
 				{
@@ -2800,9 +2800,9 @@ namespace glsl
 		{
 			const TFieldList &fields = type.getStruct()->fields();
 			int fieldVar = var;
-			for(size_t i = 0; i < fields.size(); i++)
+			for(const auto &field : fields)
 			{
-				const TType& fieldType = *(fields[i]->type());
+				const TType& fieldType = *(field->type());
 				setPixelShaderInputs(fieldType, fieldVar, flat);
 				fieldVar += fieldType.totalRegisterCount();
 			}
@@ -2894,10 +2894,10 @@ namespace glsl
 			int fieldRegisterIndex = registerIndex;
 
 			const TFieldList &fields = type.getStruct()->fields();
-			for(size_t i = 0; i < fields.size(); i++)
+			for(const auto &field : fields)
 			{
-				const TType& fieldType = *(fields[i]->type());
-				declareVarying(fieldType, varyingName + "." + fields[i]->name(), fieldRegisterIndex);
+				const TType& fieldType = *(field->type());
+				declareVarying(fieldType, varyingName + "." + field->name(), fieldRegisterIndex);
 				if(fieldRegisterIndex >= 0)
 				{
 					fieldRegisterIndex += fieldType.totalRegisterCount();
@@ -2951,7 +2951,7 @@ namespace glsl
 				int blockMemberIndex = blockMemberLookup(type, name, index);
 				if(blockMemberIndex == -1)
 				{
-					declareUniform(type, name, index);
+					declareUniform(type, name, index, false);
 				}
 				else
 				{
@@ -3052,7 +3052,7 @@ namespace glsl
 			{
 			case EOpIndexDirect:
 				ASSERT(left->isArray());
-				offset = index * leftType.elementRegisterCount();
+				offset = index * leftType.samplerRegisterCount();
 				break;
 			case EOpIndexDirectStruct:
 				ASSERT(leftType.isStruct());
@@ -3061,7 +3061,7 @@ namespace glsl
 
 					for(int i = 0; i < index; i++)
 					{
-						offset += fields[i]->type()->totalRegisterCount();
+						offset += fields[i]->type()->totalSamplerRegisterCount();
 					}
 				}
 				break;
@@ -3096,12 +3096,12 @@ namespace glsl
 
 		if(index == -1)
 		{
-			index = allocate(samplers, sampler);
+			index = allocate(samplers, sampler, true);
 
 			if(sampler->getQualifier() == EvqUniform)
 			{
 				const char *name = sampler->getSymbol().c_str();
-				declareUniform(type, name, index);
+				declareUniform(type, name, index, true);
 			}
 		}
 
@@ -3187,13 +3187,13 @@ namespace glsl
 		return -1;
 	}
 
-	int OutputASM::allocate(VariableArray &list, TIntermTyped *variable)
+	int OutputASM::allocate(VariableArray &list, TIntermTyped *variable, bool samplersOnly)
 	{
 		int index = lookup(list, variable);
 
 		if(index == -1)
 		{
-			unsigned int registerCount = variable->blockRegisterCount();
+			unsigned int registerCount = variable->blockRegisterCount(samplersOnly);
 
 			for(unsigned int i = 0; i < list.size(); i++)
 			{
@@ -3281,7 +3281,7 @@ namespace glsl
 		return -1;
 	}
 
-	void OutputASM::declareUniform(const TType &type, const TString &name, int registerIndex, int blockId, BlockLayoutEncoder* encoder)
+	void OutputASM::declareUniform(const TType &type, const TString &name, int registerIndex, bool samplersOnly, int blockId, BlockLayoutEncoder* encoder)
 	{
 		const TStructure *structure = type.getStruct();
 		const TInterfaceBlock *block = (type.isInterfaceBlock() || (blockId == -1)) ? type.getInterfaceBlock() : nullptr;
@@ -3296,14 +3296,18 @@ namespace glsl
 				shaderObject->activeUniformBlocks[blockId].fields.push_back(activeUniforms.size());
 			}
 			int fieldRegisterIndex = encoder ? shaderObject->activeUniformBlocks[blockId].registerIndex + BlockLayoutEncoder::getBlockRegister(blockInfo) : registerIndex;
-			activeUniforms.push_back(Uniform(glVariableType(type), glVariablePrecision(type), name.c_str(), type.getArraySize(),
-			                                 fieldRegisterIndex, blockId, blockInfo));
-			if(IsSampler(type.getBasicType()))
+			bool isSampler = IsSampler(type.getBasicType());
+			if(isSampler && samplersOnly)
 			{
 				for(int i = 0; i < type.totalRegisterCount(); i++)
 				{
 					shader->declareSampler(fieldRegisterIndex + i);
 				}
+			}
+			if(!isSampler || samplersOnly)
+			{
+				activeUniforms.push_back(Uniform(glVariableType(type), glVariablePrecision(type), name.c_str(), type.getArraySize(),
+				                                 fieldRegisterIndex, blockId, blockInfo));
 			}
 		}
 		else if(block)
@@ -3322,10 +3326,10 @@ namespace glsl
 
 			Std140BlockEncoder currentBlockEncoder(isRowMajor);
 			currentBlockEncoder.enterAggregateType();
-			for(size_t i = 0; i < fields.size(); i++)
+			for(const auto &field : fields)
 			{
-				const TType &fieldType = *(fields[i]->type());
-				const TString &fieldName = fields[i]->name();
+				const TType &fieldType = *(field->type());
+				const TString &fieldName = field->name();
 				if(isUniformBlockMember && (fieldName == name))
 				{
 					registerIndex = fieldRegisterIndex;
@@ -3333,7 +3337,7 @@ namespace glsl
 
 				const TString uniformName = block->hasInstanceName() ? blockName + "." + fieldName : fieldName;
 
-				declareUniform(fieldType, uniformName, fieldRegisterIndex, blockId, &currentBlockEncoder);
+				declareUniform(fieldType, uniformName, fieldRegisterIndex, samplersOnly, blockId, &currentBlockEncoder);
 				fieldRegisterIndex += fieldType.totalRegisterCount();
 			}
 			currentBlockEncoder.exitAggregateType();
@@ -3352,14 +3356,14 @@ namespace glsl
 					{
 						encoder->enterAggregateType();
 					}
-					for(size_t j = 0; j < fields.size(); j++)
+					for(const auto &field : fields)
 					{
-						const TType &fieldType = *(fields[j]->type());
-						const TString &fieldName = fields[j]->name();
+						const TType &fieldType = *(field->type());
+						const TString &fieldName = field->name();
 						const TString uniformName = name + "[" + str(i) + "]." + fieldName;
 
-						declareUniform(fieldType, uniformName, fieldRegisterIndex, blockId, encoder);
-						fieldRegisterIndex += fieldType.totalRegisterCount();
+						declareUniform(fieldType, uniformName, fieldRegisterIndex, samplersOnly, blockId, encoder);
+						fieldRegisterIndex += samplersOnly ? fieldType.totalSamplerRegisterCount() : fieldType.totalRegisterCount();
 					}
 					if(encoder)
 					{
@@ -3373,14 +3377,14 @@ namespace glsl
 				{
 					encoder->enterAggregateType();
 				}
-				for(size_t i = 0; i < fields.size(); i++)
+				for(const auto &field : fields)
 				{
-					const TType &fieldType = *(fields[i]->type());
-					const TString &fieldName = fields[i]->name();
+					const TType &fieldType = *(field->type());
+					const TString &fieldName = field->name();
 					const TString uniformName = name + "." + fieldName;
 
-					declareUniform(fieldType, uniformName, fieldRegisterIndex, blockId, encoder);
-					fieldRegisterIndex += fieldType.totalRegisterCount();
+					declareUniform(fieldType, uniformName, fieldRegisterIndex, samplersOnly, blockId, encoder);
+					fieldRegisterIndex += samplersOnly ? fieldType.totalSamplerRegisterCount() : fieldType.totalRegisterCount();
 				}
 				if(encoder)
 				{

@@ -1474,7 +1474,10 @@ namespace sw
 
 	void Shader::declareSampler(int i)
 	{
-		usedSamplers |= 1 << i;
+		if(i >= 0 && i < 16)
+		{
+			usedSamplers |= 1 << i;
+		}
 	}
 
 	const Shader::Instruction *Shader::getInstruction(size_t i) const

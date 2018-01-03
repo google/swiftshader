@@ -330,7 +330,7 @@ public:
 	TString getCompleteString() const { return type.getCompleteString(); }
 
 	int totalRegisterCount() const { return type.totalRegisterCount(); }
-	int blockRegisterCount() const { return type.blockRegisterCount(); }
+	int blockRegisterCount(bool samplersOnly) const { return samplersOnly ? type.totalSamplerRegisterCount() : type.blockRegisterCount(); }
 	int elementRegisterCount() const { return type.elementRegisterCount(); }
 	int registerSize() const { return type.registerSize(); }
 	int getArraySize() const { return type.getArraySize(); }

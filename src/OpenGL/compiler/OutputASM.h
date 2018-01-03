@@ -305,10 +305,10 @@ namespace glsl
 		int lookup(VariableArray &list, TIntermTyped *variable);
 		int lookup(VariableArray &list, TInterfaceBlock *block);
 		int blockMemberLookup(const TType &type, const TString &name, int registerIndex);
-		int allocate(VariableArray &list, TIntermTyped *variable);
+		int allocate(VariableArray &list, TIntermTyped *variable, bool samplersOnly = false);
 		void free(VariableArray &list, TIntermTyped *variable);
 
-		void declareUniform(const TType &type, const TString &name, int registerIndex, int blockId = -1, BlockLayoutEncoder* encoder = nullptr);
+		void declareUniform(const TType &type, const TString &name, int registerIndex, bool samplersOnly, int blockId = -1, BlockLayoutEncoder* encoder = nullptr);
 		GLenum glVariableType(const TType &type);
 		GLenum glVariablePrecision(const TType &type);
 

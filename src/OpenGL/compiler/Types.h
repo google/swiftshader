@@ -318,6 +318,24 @@ public:
 		}
 	}
 
+	int samplerRegisterCount() const
+	{
+		if(structure)
+		{
+			int registerCount = 0;
+
+			const TFieldList& fields = isInterfaceBlock() ? interfaceBlock->fields() : structure->fields();
+			for(size_t i = 0; i < fields.size(); i++)
+			{
+				registerCount += fields[i]->type()->totalSamplerRegisterCount();
+			}
+
+			return registerCount;
+		}
+
+		return IsSampler(getBasicType()) ? 1 : 0;
+	}
+
 	int elementRegisterCount() const
 	{
 		if(structure || isInterfaceBlock())
@@ -358,6 +376,18 @@ public:
 			return registerCount;
 		}
 		return totalRegisterCount();
+	}
+
+	int totalSamplerRegisterCount() const
+	{
+		if(array)
+		{
+			return arraySize * samplerRegisterCount();
+		}
+		else
+		{
+			return samplerRegisterCount();
+		}
 	}
 
 	int totalRegisterCount() const
