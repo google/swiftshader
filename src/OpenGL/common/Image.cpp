@@ -49,7 +49,6 @@ namespace
 		HalfFloatRGB,
 		RGBA4444,
 		RGBA5551,
-		RGB10A2UI,
 		R11G11B10F,
 		RGB9E5,
 		D16,
@@ -250,22 +249,6 @@ namespace
 			dest5551[4 * x + 1] = ((rgba & 0x07C0) >> 3) | ((rgba & 0x07C0) >> 8);
 			dest5551[4 * x + 2] = ((rgba & 0xF800) >> 8) | ((rgba & 0xF800) >> 13);
 			dest5551[4 * x + 3] = (rgba & 0x0001) ? 0xFF : 0;
-		}
-	}
-
-	template<>
-	void LoadImageRow<RGB10A2UI>(const unsigned char *source, unsigned char *dest, GLint xoffset, GLsizei width)
-	{
-		const unsigned int *source1010102U = reinterpret_cast<const unsigned int*>(source);
-		unsigned short *dest16U = reinterpret_cast<unsigned short*>(dest + xoffset * 8);
-
-		for(int x = 0; x < width; x++)
-		{
-			unsigned int rgba = source1010102U[x];
-			dest16U[4 * x + 0] = (rgba & 0x000003FF);
-			dest16U[4 * x + 1] = (rgba & 0x000FFC00) >> 10;
-			dest16U[4 * x + 2] = (rgba & 0x3FF00000) >> 20;
-			dest16U[4 * x + 3] = (rgba & 0xC0000000) >> 30;
 		}
 	}
 

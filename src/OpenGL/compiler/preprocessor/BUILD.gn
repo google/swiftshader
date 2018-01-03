@@ -27,8 +27,8 @@ config("swiftshader_opengl_preprocessor_private_config") {
 
 swiftshader_source_set("swiftshader_opengl_preprocessor") {
   sources = [
-    "Diagnostics.cpp",
-    "DirectiveHandler.cpp",
+    "DiagnosticsBase.cpp",
+    "DirectiveHandlerBase.cpp",
     "DirectiveParser.cpp",
     "ExpressionParser.cpp",
     "Input.cpp",
