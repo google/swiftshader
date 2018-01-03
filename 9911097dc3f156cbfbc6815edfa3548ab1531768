@@ -22,6 +22,30 @@
       "revId": "9911097dc3f156cbfbc6815edfa3548ab1531768",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4b9fce4a_bb7bf158",
+        "filename": "src/Renderer/Blitter.cpp",
+        "patchSetId": 7
+      },
+      "lineNbr": 1110,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2018-01-03T21:56:11Z",
+      "side": 1,
+      "message": "Removed",
+      "parentUuid": "482ac98a_a7dc96d1",
+      "range": {
+        "startLine": 1108,
+        "startChar": 2,
+        "endLine": 1110,
+        "endChar": 25
+      },
+      "revId": "9911097dc3f156cbfbc6815edfa3548ab1531768",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
