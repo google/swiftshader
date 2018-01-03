@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "506468ea_58a3a891",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-01-03T23:12:23Z",
+      "side": 1,
+      "message": "nit: Could add \"Bug b/20110899\" here.",
+      "revId": "1dd611371e81c218419be804e89612fd4eeb7f03",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
