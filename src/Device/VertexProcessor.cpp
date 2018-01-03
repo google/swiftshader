@@ -25,9 +25,9 @@ namespace sw
 {
 	void VertexCache::clear()
 	{
-		for(int i = 0; i < 16; i++)
+		for(uint32_t i = 0; i < SIZE; i++)
 		{
-			tag[i] = 0x80000000;
+			tag[i] = 0xFFFFFFFF;
 		}
 	}
 

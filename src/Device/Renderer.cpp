@@ -824,7 +824,7 @@ namespace sw
 			task->vertexCache.drawCall = primitiveDrawCall;
 		}
 
-		unsigned int batch[128][3];   // FIXME: Adjust to dynamic batch size
+		unsigned int batch[128 + 1][3];  // One extra for SIMD width overrun. TODO: Adjust to dynamic batch size.
 		VkPrimitiveTopology topology = static_cast<VkPrimitiveTopology>(static_cast<int>(draw->topology));
 
 		if(!indices)
@@ -861,6 +861,11 @@ namespace sw
 				return;
 			}
 		}
+
+		// Repeat the last index to allow for SIMD width overrun.
+		batch[triangleCount][0] = batch[triangleCount - 1][2];
+		batch[triangleCount][1] = batch[triangleCount - 1][2];
+		batch[triangleCount][2] = batch[triangleCount - 1][2];
 
 		task->primitiveStart = start;
 		task->vertexCount = triangleCount * 3;

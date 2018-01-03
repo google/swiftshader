@@ -73,17 +73,23 @@ namespace sw
 	{
 	}
 
-	void VertexProgram::program(UInt &index)
+	void VertexProgram::program(Pointer<UInt> &batch)
 	{
 		auto it = spirvShader->inputBuiltins.find(spv::BuiltInVertexIndex);
 		if (it != spirvShader->inputBuiltins.end())
 		{
 			assert(it->second.SizeInComponents == 1);
+
+			Int4 indices;
+			indices = Insert(indices, As<Int>(batch[0]), 0);
+			indices = Insert(indices, As<Int>(batch[1]), 1);
+			indices = Insert(indices, As<Int>(batch[2]), 2);
+			indices = Insert(indices, As<Int>(batch[3]), 3);
 			routine.getVariable(it->second.Id)[it->second.FirstComponent] =
-					As<Float4>(Int4(As<Int>(index) + *Pointer<Int>(data + OFFSET(DrawData, baseVertex))) + Int4(0, 1, 2, 3));
+					As<Float4>(indices + Int4(*Pointer<Int>(data + OFFSET(DrawData, baseVertex))));
 		}
 
-		auto activeLaneMask = SIMD::Int(0xFFFFFFFF); // TODO: Control this.
+		auto activeLaneMask = SIMD::Int(0xFFFFFFFF);
 		spirvShader->emit(&routine, activeLaneMask, descriptorSets);
 
 		spirvShader->emitEpilog(&routine);
