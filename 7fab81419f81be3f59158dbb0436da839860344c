@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "5cdbf67b_b1868c60",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-01-04T16:10:38Z",
+      "side": 1,
+      "message": "Bug chromium:797264",
+      "revId": "7fab81419f81be3f59158dbb0436da839860344c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "e4f52745_ab4e197b",
         "filename": "src/Shader/Shader.cpp",
         "patchSetId": 2
