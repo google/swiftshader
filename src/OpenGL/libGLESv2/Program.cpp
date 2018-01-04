@@ -1867,14 +1867,17 @@ namespace es2
 		// validate blocks for the same member types
 		if(block1.fields.size() != block2.fields.size())
 		{
+			appendToInfoLog("Types for interface block '%s' differ between vertex and fragment shaders", block1.name.c_str());
 			return false;
 		}
 		if(block1.arraySize != block2.arraySize)
 		{
+			appendToInfoLog("Array sizes differ for interface block '%s' between vertex and fragment shaders", block1.name.c_str());
 			return false;
 		}
 		if(block1.layout != block2.layout || block1.isRowMajorLayout != block2.isRowMajorLayout)
 		{
+			appendToInfoLog("Layout qualifiers differ for interface block '%s' between vertex and fragment shaders", block1.name.c_str());
 			return false;
 		}
 		const size_t numBlockMembers = block1.fields.size();
@@ -1882,11 +1885,30 @@ namespace es2
 		{
 			const glsl::Uniform& member1 = shader1->activeUniforms[block1.fields[blockMemberIndex]];
 			const glsl::Uniform& member2 = shader2->activeUniforms[block2.fields[blockMemberIndex]];
-			if(member1.name != member2.name ||
-			   member1.arraySize != member2.arraySize ||
-			   member1.precision != member2.precision ||
-			   member1.type != member2.type)
+			if(member1.name != member2.name)
 			{
+				appendToInfoLog("Name mismatch for field %d of interface block '%s': (in vertex: '%s', in fragment: '%s')",
+				                blockMemberIndex, block1.name.c_str(), member1.name.c_str(), member2.name.c_str());
+				return false;
+			}
+			if(member1.arraySize != member2.arraySize)
+			{
+				appendToInfoLog("Array sizes for %s differ between vertex and fragment shaders", member1.name.c_str());
+				return false;
+			}
+			if(member1.precision != member2.precision)
+			{
+				appendToInfoLog("Precisions for %s differ between vertex and fragment shaders", member1.name.c_str());
+				return false;
+			}
+			if(member1.type != member2.type)
+			{
+				appendToInfoLog("Types for %s differ between vertex and fragment shaders", member1.name.c_str());
+				return false;
+			}
+			if(member1.blockInfo.isRowMajorMatrix != member2.blockInfo.isRowMajorMatrix)
+			{
+				appendToInfoLog("Matrix packings for %s differ between vertex and fragment shaders", member1.name.c_str());
 				return false;
 			}
 		}

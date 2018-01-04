@@ -103,14 +103,20 @@ namespace glsl
 		int arrayStride;
 		int matrixStride;
 
-		getBlockLayoutInfo(type, type.getArraySize(), isRowMajor, &arrayStride, &matrixStride);
+		bool isVariableRowMajor = isRowMajor;
+		TLayoutMatrixPacking matrixPacking = type.getLayoutQualifier().matrixPacking;
+		if(matrixPacking != EmpUnspecified)
+		{
+			isVariableRowMajor = (matrixPacking == EmpRowMajor);
+		}
+		getBlockLayoutInfo(type, type.getArraySize(), isVariableRowMajor, &arrayStride, &matrixStride);
 
 		const BlockMemberInfo memberInfo(static_cast<int>(mCurrentOffset * BytesPerComponent),
 		                                 static_cast<int>(arrayStride * BytesPerComponent),
 		                                 static_cast<int>(matrixStride * BytesPerComponent),
-		                                 (matrixStride > 0) && isRowMajor);
+		                                 (matrixStride > 0) && isVariableRowMajor);
 
-		advanceOffset(type, type.getArraySize(), isRowMajor, arrayStride, matrixStride);
+		advanceOffset(type, type.getArraySize(), isVariableRowMajor, arrayStride, matrixStride);
 
 		return memberInfo;
 	}
