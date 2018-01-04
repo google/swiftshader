@@ -1330,6 +1330,13 @@ namespace es2
 						return false;
 					}
 
+					if((output.qualifier == EvqFlatOut) ^ (input.qualifier == EvqFlatIn))
+					{
+						appendToInfoLog("Interpolation qualifiers for %s differ between vertex and fragment shaders", output.name.c_str());
+
+						return false;
+					}
+
 					matched = true;
 					break;
 				}

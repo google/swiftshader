@@ -2921,7 +2921,7 @@ namespace glsl
 				}
 			}
 
-			activeVaryings.push_back(glsl::Varying(glVariableType(type), name, type.getArraySize(), registerIndex, 0));
+			activeVaryings.push_back(glsl::Varying(glVariableType(type), name, type.getArraySize(), type.getQualifier(), registerIndex, 0));
 		}
 	}
 

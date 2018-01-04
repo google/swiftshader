@@ -152,8 +152,8 @@ namespace glsl
 
 	struct Varying
 	{
-		Varying(GLenum type, const std::string &name, int arraySize, int reg = -1, int col = -1)
-			: type(type), name(name), arraySize(arraySize), reg(reg), col(col)
+		Varying(GLenum type, const std::string &name, int arraySize, TQualifier qualifier, int reg = -1, int col = -1)
+			: type(type), name(name), arraySize(arraySize), qualifier(qualifier), reg(reg), col(col)
 		{
 		}
 
@@ -170,6 +170,7 @@ namespace glsl
 		GLenum type;
 		std::string name;
 		int arraySize;
+		TQualifier qualifier;
 
 		int reg;    // First varying register, assigned during link
 		int col;    // First register element, assigned during link
