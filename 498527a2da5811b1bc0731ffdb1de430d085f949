@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9e8c5fc7_ef071348",
+        "filename": "src/OpenGL/libGLESv2/Program.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 1333,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-01-04T21:31:02Z",
+      "side": 1,
+      "message": "The GLSL ES 3.00 spec states that \"The type and presence of the interpolation qualifiers and storage qualifiers of variables with the same name declared in all linked shaders must match, otherwise the link command will fail.\"  This includes \u0027centroid\u0027, and is tested by dEQP-GLES3.functional.shaders.linkage.varying.rules.differing_interpolation_2, but surprisingly we already passed that one. Please check why.",
+      "range": {
+        "startLine": 1333,
+        "startChar": 32,
+        "endLine": 1333,
+        "endChar": 36
+      },
+      "revId": "498527a2da5811b1bc0731ffdb1de430d085f949",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a3beec24_22e75c0d",
+        "filename": "src/OpenGL/libGLESv2/Program.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 1335,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-01-04T21:31:02Z",
+      "side": 1,
+      "message": "nit: qualifiers",
+      "range": {
+        "startLine": 1335,
+        "startChar": 37,
+        "endLine": 1335,
+        "endChar": 42
+      },
+      "revId": "498527a2da5811b1bc0731ffdb1de430d085f949",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
