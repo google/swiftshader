@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "abe72ad9_773d99ce",
+        "filename": "src/OpenGL/libGLESv2/Texture.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 458,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-01-04T20:12:31Z",
+      "side": 1,
+      "message": "glCopyTexImage never performs any scaling, so this really should remain an integer SliceRect, and only be converted to a SliceRectF right before the stretchRect call.\n\nThis illustrates that we probably should even use stretchRect for this, but that\u0027s a problem for later (crbug.com/swiftshader/91).",
+      "range": {
+        "startLine": 458,
+        "startChar": 39,
+        "endLine": 458,
+        "endChar": 71
+      },
+      "revId": "a267a347db7c611dd438c32c0c0dbc906402bd0e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
