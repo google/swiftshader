@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0f520bfc_e29207d6",
+        "filename": "src/OpenGL/libGLESv2/Program.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1329,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-01-04T18:18:35Z",
+      "side": 1,
+      "message": "Let\u0027s separate the new check from the type check so we can have a more detailed error message about the interpolation qualifiers not matching.",
+      "range": {
+        "startLine": 1329,
+        "startChar": 23,
+        "endLine": 1329,
+        "endChar": 27
+      },
+      "revId": "89d3aa48743a5fd836f381abd5bb8229187df829",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
