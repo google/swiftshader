@@ -34,8 +34,8 @@ namespace sw
 
 			int shaderID;
 
-			bool depthOverride                        : 1;   // FIXME: Eliminate by querying shader.
-			bool shaderContainsKill                   : 1;   // FIXME: Eliminate by querying shader.
+			bool depthOverride                        : 1;   // TODO: Eliminate by querying shader.
+			bool shaderContainsKill                   : 1;   // TODO: Eliminate by querying shader.
 
 			DepthCompareMode depthCompareMode         : BITS(DEPTH_LAST);
 			AlphaCompareMode alphaCompareMode         : BITS(ALPHA_LAST);

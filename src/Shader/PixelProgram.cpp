@@ -1517,10 +1517,9 @@ namespace sw
 
 		BasicBlock *endBlock = loopRepEndBlock[loopRepDepth];
 
-		Nucleus::createBr(loopRepEndBlock[loopRepDepth]);
+		Nucleus::createBr(endBlock);
 		Nucleus::setInsertBlock(endBlock);
 
-		enableIndex--;
 		enableBreak = Int4(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF);
 	}
 
@@ -1725,9 +1724,6 @@ namespace sw
 
 	void PixelProgram::SWITCH()
 	{
-		enableIndex++;
-		enableStack[enableIndex] = Int4(0xFFFFFFFF);
-
 		BasicBlock *endBlock = Nucleus::createBasicBlock();
 
 		loopRepTestBlock[loopRepDepth] = nullptr;

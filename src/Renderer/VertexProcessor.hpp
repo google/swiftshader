@@ -50,10 +50,10 @@ namespace sw
 
 			uint64_t shaderID;
 
-			bool fixedFunction             : 1;
-			bool textureSampling           : 1;
-			unsigned int positionRegister  : BITS(MAX_VERTEX_OUTPUTS);
-			unsigned int pointSizeRegister : BITS(MAX_VERTEX_OUTPUTS);
+			bool fixedFunction             : 1;   // TODO: Eliminate by querying shader.
+			bool textureSampling           : 1;   // TODO: Eliminate by querying shader.
+			unsigned int positionRegister  : BITS(MAX_VERTEX_OUTPUTS);   // TODO: Eliminate by querying shader.
+			unsigned int pointSizeRegister : BITS(MAX_VERTEX_OUTPUTS);   // TODO: Eliminate by querying shader.
 
 			unsigned int vertexBlendMatrixCount               : 3;
 			bool indexedVertexBlendEnable                     : 1;
