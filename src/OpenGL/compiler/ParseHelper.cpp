@@ -2431,6 +2431,9 @@ TIntermAggregate* TParseContext::addInterfaceBlock(const TPublicType& typeQualif
 	}
 	else
 	{
+		if(reservedErrorCheck(nameLine, *instanceName))
+			recover();
+
 		// add a symbol for this interface block
 		TVariable* instanceTypeDef = new TVariable(instanceName, interfaceBlockType, false);
 		instanceTypeDef->setQualifier(typeQualifier.qualifier);
