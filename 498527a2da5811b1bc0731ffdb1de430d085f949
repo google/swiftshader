@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "ae6517fd_622d31b5",
+        "filename": "src/OpenGL/libGLESv2/Program.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 1333,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-01-05T15:55:16Z",
+      "side": 1,
+      "message": "Ok, I think this is simply unclear in the spec. The storage qualifiers are \"in\", \"centroid in\", \"out\", and \"centroid out\", so even for a simple \"out\" in the vertex shader and \"in\" in the pixel shader, they don\u0027t literally match, but are compatible.\n\nFWIW the GLSL 4.20 spec formulates it as:\n\n\"The type and presence of interpolation qualifiers of variables with the same name declared in all linked\nshaders for the same cross-stage interface must match, otherwise the link command will fail.\nWhen comparing an output from one stage to an input of a subsequent stage, the input and output don\u0027t\nmatch if their interpolation qualifiers (or lack thereof) are not the same.\"\n\nSo no mention of the storage qualifiers having to \"match\".",
+      "parentUuid": "4bd493ca_e6c8a34e",
+      "range": {
+        "startLine": 1333,
+        "startChar": 32,
+        "endLine": 1333,
+        "endChar": 36
+      },
+      "revId": "498527a2da5811b1bc0731ffdb1de430d085f949",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a3beec24_22e75c0d",
         "filename": "src/OpenGL/libGLESv2/Program.cpp",
         "patchSetId": 3
@@ -69,6 +93,30 @@
       "revId": "498527a2da5811b1bc0731ffdb1de430d085f949",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7b35ed80_5a2b92fc",
+        "filename": "src/OpenGL/libGLESv2/Program.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 1335,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-01-05T15:55:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a3beec24_22e75c0d",
+      "range": {
+        "startLine": 1335,
+        "startChar": 37,
+        "endLine": 1335,
+        "endChar": 42
+      },
+      "revId": "498527a2da5811b1bc0731ffdb1de430d085f949",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
