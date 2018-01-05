@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "eef2f18b_22dd93a7",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 203,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2018-01-05T20:53:23Z",
+      "side": 1,
+      "message": "Note: these functions were moved, but not modified.",
+      "range": {
+        "startLine": 31,
+        "startChar": 1,
+        "endLine": 203,
+        "endChar": 2
+      },
+      "revId": "d407309f3f1699c9445aef47a86f834b7d09f7bc",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5421bd25_574f455d",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 3503,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2018-01-05T20:53:23Z",
+      "side": 1,
+      "message": "Note: modified this to make sure no non-sampler uniform get declared when samplerOnly is set, since samplerOnly uses a different set of register indices.",
+      "range": {
+        "startLine": 3503,
+        "startChar": 3,
+        "endLine": 3503,
+        "endChar": 32
+      },
+      "revId": "d407309f3f1699c9445aef47a86f834b7d09f7bc",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
