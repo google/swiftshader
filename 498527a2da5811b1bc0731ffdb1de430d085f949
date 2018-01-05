@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "4bd493ca_e6c8a34e",
+        "filename": "src/OpenGL/libGLESv2/Program.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 1333,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2018-01-05T13:13:17Z",
+      "side": 1,
+      "message": "AFAIK:\n1) centroid is not an interpolation qualifier, it is a storage qualifier\n2) dEQP-GLES3.functional.shaders.linkage.varying.rules.differing_interpolation_2 passes because linking succeeds. The centroid qualifier is allowed to be only specified in the fragment shader. While it is allowed in a vertex shader, I don\u0027t think it has any effect in a vertex shader.",
+      "parentUuid": "9e8c5fc7_ef071348",
+      "range": {
+        "startLine": 1333,
+        "startChar": 32,
+        "endLine": 1333,
+        "endChar": 36
+      },
+      "revId": "498527a2da5811b1bc0731ffdb1de430d085f949",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "a3beec24_22e75c0d",
         "filename": "src/OpenGL/libGLESv2/Program.cpp",
         "patchSetId": 3
