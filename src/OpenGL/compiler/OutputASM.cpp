@@ -26,6 +26,183 @@
 
 #include <stdlib.h>
 
+namespace
+{
+	GLenum glVariableType(const TType &type)
+	{
+		switch(type.getBasicType())
+		{
+		case EbtFloat:
+			if(type.isScalar())
+			{
+				return GL_FLOAT;
+			}
+			else if(type.isVector())
+			{
+				switch(type.getNominalSize())
+				{
+				case 2: return GL_FLOAT_VEC2;
+				case 3: return GL_FLOAT_VEC3;
+				case 4: return GL_FLOAT_VEC4;
+				default: UNREACHABLE(type.getNominalSize());
+				}
+			}
+			else if(type.isMatrix())
+			{
+				switch(type.getNominalSize())
+				{
+				case 2:
+					switch(type.getSecondarySize())
+					{
+					case 2: return GL_FLOAT_MAT2;
+					case 3: return GL_FLOAT_MAT2x3;
+					case 4: return GL_FLOAT_MAT2x4;
+					default: UNREACHABLE(type.getSecondarySize());
+					}
+				case 3:
+					switch(type.getSecondarySize())
+					{
+					case 2: return GL_FLOAT_MAT3x2;
+					case 3: return GL_FLOAT_MAT3;
+					case 4: return GL_FLOAT_MAT3x4;
+					default: UNREACHABLE(type.getSecondarySize());
+					}
+				case 4:
+					switch(type.getSecondarySize())
+					{
+					case 2: return GL_FLOAT_MAT4x2;
+					case 3: return GL_FLOAT_MAT4x3;
+					case 4: return GL_FLOAT_MAT4;
+					default: UNREACHABLE(type.getSecondarySize());
+					}
+				default: UNREACHABLE(type.getNominalSize());
+				}
+			}
+			else UNREACHABLE(0);
+			break;
+		case EbtInt:
+			if(type.isScalar())
+			{
+				return GL_INT;
+			}
+			else if(type.isVector())
+			{
+				switch(type.getNominalSize())
+				{
+				case 2: return GL_INT_VEC2;
+				case 3: return GL_INT_VEC3;
+				case 4: return GL_INT_VEC4;
+				default: UNREACHABLE(type.getNominalSize());
+				}
+			}
+			else UNREACHABLE(0);
+			break;
+		case EbtUInt:
+			if(type.isScalar())
+			{
+				return GL_UNSIGNED_INT;
+			}
+			else if(type.isVector())
+			{
+				switch(type.getNominalSize())
+				{
+				case 2: return GL_UNSIGNED_INT_VEC2;
+				case 3: return GL_UNSIGNED_INT_VEC3;
+				case 4: return GL_UNSIGNED_INT_VEC4;
+				default: UNREACHABLE(type.getNominalSize());
+				}
+			}
+			else UNREACHABLE(0);
+			break;
+		case EbtBool:
+			if(type.isScalar())
+			{
+				return GL_BOOL;
+			}
+			else if(type.isVector())
+			{
+				switch(type.getNominalSize())
+				{
+				case 2: return GL_BOOL_VEC2;
+				case 3: return GL_BOOL_VEC3;
+				case 4: return GL_BOOL_VEC4;
+				default: UNREACHABLE(type.getNominalSize());
+				}
+			}
+			else UNREACHABLE(0);
+			break;
+		case EbtSampler2D:
+			return GL_SAMPLER_2D;
+		case EbtISampler2D:
+			return GL_INT_SAMPLER_2D;
+		case EbtUSampler2D:
+			return GL_UNSIGNED_INT_SAMPLER_2D;
+		case EbtSamplerCube:
+			return GL_SAMPLER_CUBE;
+		case EbtISamplerCube:
+			return GL_INT_SAMPLER_CUBE;
+		case EbtUSamplerCube:
+			return GL_UNSIGNED_INT_SAMPLER_CUBE;
+		case EbtSamplerExternalOES:
+			return GL_SAMPLER_EXTERNAL_OES;
+		case EbtSampler3D:
+			return GL_SAMPLER_3D_OES;
+		case EbtISampler3D:
+			return GL_INT_SAMPLER_3D;
+		case EbtUSampler3D:
+			return GL_UNSIGNED_INT_SAMPLER_3D;
+		case EbtSampler2DArray:
+			return GL_SAMPLER_2D_ARRAY;
+		case EbtISampler2DArray:
+			return GL_INT_SAMPLER_2D_ARRAY;
+		case EbtUSampler2DArray:
+			return GL_UNSIGNED_INT_SAMPLER_2D_ARRAY;
+		case EbtSampler2DShadow:
+			return GL_SAMPLER_2D_SHADOW;
+		case EbtSamplerCubeShadow:
+			return GL_SAMPLER_CUBE_SHADOW;
+		case EbtSampler2DArrayShadow:
+			return GL_SAMPLER_2D_ARRAY_SHADOW;
+		default:
+			UNREACHABLE(type.getBasicType());
+			break;
+		}
+
+		return GL_NONE;
+	}
+
+	GLenum glVariablePrecision(const TType &type)
+	{
+		if(type.getBasicType() == EbtFloat)
+		{
+			switch(type.getPrecision())
+			{
+			case EbpHigh:   return GL_HIGH_FLOAT;
+			case EbpMedium: return GL_MEDIUM_FLOAT;
+			case EbpLow:    return GL_LOW_FLOAT;
+			case EbpUndefined:
+				// Should be defined as the default precision by the parser
+			default: UNREACHABLE(type.getPrecision());
+			}
+		}
+		else if(type.getBasicType() == EbtInt)
+		{
+			switch(type.getPrecision())
+			{
+			case EbpHigh:   return GL_HIGH_INT;
+			case EbpMedium: return GL_MEDIUM_INT;
+			case EbpLow:    return GL_LOW_INT;
+			case EbpUndefined:
+				// Should be defined as the default precision by the parser
+			default: UNREACHABLE(type.getPrecision());
+			}
+		}
+
+		// Other types (boolean, sampler) don't have a precision
+		return GL_NONE;
+	}
+}
+
 namespace glsl
 {
 	// Integer to TString conversion
@@ -81,8 +258,21 @@ namespace glsl
 		ConstantUnion constants[4];
 	};
 
-	Uniform::Uniform(GLenum type, GLenum precision, const std::string &name, int arraySize, int registerIndex, int blockId, const BlockMemberInfo& blockMemberInfo) :
-		type(type), precision(precision), name(name), arraySize(arraySize), registerIndex(registerIndex), blockId(blockId), blockInfo(blockMemberInfo)
+	ShaderVariable::ShaderVariable(const TType& type, const std::string& name, int registerIndex) :
+		type(type.isStruct() ? GL_NONE : glVariableType(type)), precision(glVariablePrecision(type)),
+		name(name), arraySize(type.getArraySize()), registerIndex(registerIndex)
+	{
+		if(type.isStruct())
+		{
+			for(const auto& field : type.getStruct()->fields())
+			{
+				fields.push_back(ShaderVariable(*(field->type()), field->name().c_str(), -1));
+			}
+		}
+	}
+
+	Uniform::Uniform(const TType& type, const std::string &name, int registerIndex, int blockId, const BlockMemberInfo& blockMemberInfo) :
+		ShaderVariable(type, name, registerIndex), blockId(blockId), blockInfo(blockMemberInfo)
 	{
 	}
 
@@ -2925,15 +3115,15 @@ namespace glsl
 				{
 					if(registerIndex >= 0)
 					{
-						ASSERT(v->reg < 0 || v->reg == registerIndex);
-						v->reg = registerIndex;
+						ASSERT(v->registerIndex < 0 || v->registerIndex == registerIndex);
+						v->registerIndex = registerIndex;
 					}
 
 					return;
 				}
 			}
 
-			activeVaryings.push_back(glsl::Varying(glVariableType(type), name, type.getArraySize(), type.getQualifier(), registerIndex, 0));
+			activeVaryings.push_back(glsl::Varying(type, name, registerIndex, 0));
 		}
 	}
 
@@ -3316,10 +3506,9 @@ namespace glsl
 					shader->declareSampler(fieldRegisterIndex + i);
 				}
 			}
-			if(!isSampler || samplersOnly)
+			if(isSampler == samplersOnly)
 			{
-				activeUniforms.push_back(Uniform(glVariableType(type), glVariablePrecision(type), name.c_str(), type.getArraySize(),
-				                                 fieldRegisterIndex, blockId, blockInfo));
+				activeUniforms.push_back(Uniform(type, name.c_str(), fieldRegisterIndex, blockId, blockInfo));
 			}
 		}
 		else if(block)
@@ -3357,6 +3546,9 @@ namespace glsl
 		}
 		else
 		{
+			// Store struct for program link time validation
+			shaderObject->activeUniformStructs.push_back(Uniform(type, name.c_str(), registerIndex, -1, BlockMemberInfo::getDefaultBlockInfo()));
+
 			int fieldRegisterIndex = registerIndex;
 
 			const TFieldList& fields = structure->fields();
@@ -3404,180 +3596,6 @@ namespace glsl
 				}
 			}
 		}
-	}
-
-	GLenum OutputASM::glVariableType(const TType &type)
-	{
-		switch(type.getBasicType())
-		{
-		case EbtFloat:
-			if(type.isScalar())
-			{
-				return GL_FLOAT;
-			}
-			else if(type.isVector())
-			{
-				switch(type.getNominalSize())
-				{
-				case 2: return GL_FLOAT_VEC2;
-				case 3: return GL_FLOAT_VEC3;
-				case 4: return GL_FLOAT_VEC4;
-				default: UNREACHABLE(type.getNominalSize());
-				}
-			}
-			else if(type.isMatrix())
-			{
-				switch(type.getNominalSize())
-				{
-				case 2:
-					switch(type.getSecondarySize())
-					{
-					case 2: return GL_FLOAT_MAT2;
-					case 3: return GL_FLOAT_MAT2x3;
-					case 4: return GL_FLOAT_MAT2x4;
-					default: UNREACHABLE(type.getSecondarySize());
-					}
-				case 3:
-					switch(type.getSecondarySize())
-					{
-					case 2: return GL_FLOAT_MAT3x2;
-					case 3: return GL_FLOAT_MAT3;
-					case 4: return GL_FLOAT_MAT3x4;
-					default: UNREACHABLE(type.getSecondarySize());
-					}
-				case 4:
-					switch(type.getSecondarySize())
-					{
-					case 2: return GL_FLOAT_MAT4x2;
-					case 3: return GL_FLOAT_MAT4x3;
-					case 4: return GL_FLOAT_MAT4;
-					default: UNREACHABLE(type.getSecondarySize());
-					}
-				default: UNREACHABLE(type.getNominalSize());
-				}
-			}
-			else UNREACHABLE(0);
-			break;
-		case EbtInt:
-			if(type.isScalar())
-			{
-				return GL_INT;
-			}
-			else if(type.isVector())
-			{
-				switch(type.getNominalSize())
-				{
-				case 2: return GL_INT_VEC2;
-				case 3: return GL_INT_VEC3;
-				case 4: return GL_INT_VEC4;
-				default: UNREACHABLE(type.getNominalSize());
-				}
-			}
-			else UNREACHABLE(0);
-			break;
-		case EbtUInt:
-			if(type.isScalar())
-			{
-				return GL_UNSIGNED_INT;
-			}
-			else if(type.isVector())
-			{
-				switch(type.getNominalSize())
-				{
-				case 2: return GL_UNSIGNED_INT_VEC2;
-				case 3: return GL_UNSIGNED_INT_VEC3;
-				case 4: return GL_UNSIGNED_INT_VEC4;
-				default: UNREACHABLE(type.getNominalSize());
-				}
-			}
-			else UNREACHABLE(0);
-			break;
-		case EbtBool:
-			if(type.isScalar())
-			{
-				return GL_BOOL;
-			}
-			else if(type.isVector())
-			{
-				switch(type.getNominalSize())
-				{
-				case 2: return GL_BOOL_VEC2;
-				case 3: return GL_BOOL_VEC3;
-				case 4: return GL_BOOL_VEC4;
-				default: UNREACHABLE(type.getNominalSize());
-				}
-			}
-			else UNREACHABLE(0);
-			break;
-		case EbtSampler2D:
-			return GL_SAMPLER_2D;
-		case EbtISampler2D:
-			return GL_INT_SAMPLER_2D;
-		case EbtUSampler2D:
-			return GL_UNSIGNED_INT_SAMPLER_2D;
-		case EbtSamplerCube:
-			return GL_SAMPLER_CUBE;
-		case EbtISamplerCube:
-			return GL_INT_SAMPLER_CUBE;
-		case EbtUSamplerCube:
-			return GL_UNSIGNED_INT_SAMPLER_CUBE;
-		case EbtSamplerExternalOES:
-			return GL_SAMPLER_EXTERNAL_OES;
-		case EbtSampler3D:
-			return GL_SAMPLER_3D_OES;
-		case EbtISampler3D:
-			return GL_INT_SAMPLER_3D;
-		case EbtUSampler3D:
-			return GL_UNSIGNED_INT_SAMPLER_3D;
-		case EbtSampler2DArray:
-			return GL_SAMPLER_2D_ARRAY;
-		case EbtISampler2DArray:
-			return GL_INT_SAMPLER_2D_ARRAY;
-		case EbtUSampler2DArray:
-			return GL_UNSIGNED_INT_SAMPLER_2D_ARRAY;
-		case EbtSampler2DShadow:
-			return GL_SAMPLER_2D_SHADOW;
-		case EbtSamplerCubeShadow:
-			return GL_SAMPLER_CUBE_SHADOW;
-		case EbtSampler2DArrayShadow:
-			return GL_SAMPLER_2D_ARRAY_SHADOW;
-		default:
-			UNREACHABLE(type.getBasicType());
-			break;
-		}
-
-		return GL_NONE;
-	}
-
-	GLenum OutputASM::glVariablePrecision(const TType &type)
-	{
-		if(type.getBasicType() == EbtFloat)
-		{
-			switch(type.getPrecision())
-			{
-			case EbpHigh:   return GL_HIGH_FLOAT;
-			case EbpMedium: return GL_MEDIUM_FLOAT;
-			case EbpLow:    return GL_LOW_FLOAT;
-			case EbpUndefined:
-				// Should be defined as the default precision by the parser
-			default: UNREACHABLE(type.getPrecision());
-			}
-		}
-		else if(type.getBasicType() == EbtInt)
-		{
-			switch(type.getPrecision())
-			{
-			case EbpHigh:   return GL_HIGH_INT;
-			case EbpMedium: return GL_MEDIUM_INT;
-			case EbpLow:    return GL_LOW_INT;
-			case EbpUndefined:
-				// Should be defined as the default precision by the parser
-			default: UNREACHABLE(type.getPrecision());
-			}
-		}
-
-		// Other types (boolean, sampler) don't have a precision
-		return GL_NONE;
 	}
 
 	int OutputASM::dim(TIntermNode *v)

@@ -55,9 +55,9 @@ namespace glsl
 		bool isRowMajorMatrix;
 	};
 
-	struct Uniform
+	struct ShaderVariable
 	{
-		Uniform(GLenum type, GLenum precision, const std::string &name, int arraySize, int registerIndex, int blockId, const BlockMemberInfo& blockMemberInfo);
+		ShaderVariable(const TType& type, const std::string& name, int registerIndex);
 
 		GLenum type;
 		GLenum precision;
@@ -65,6 +65,13 @@ namespace glsl
 		int arraySize;
 
 		int registerIndex;
+
+		std::vector<ShaderVariable> fields;
+	};
+
+	struct Uniform : public ShaderVariable
+	{
+		Uniform(const TType& type, const std::string &name, int registerIndex, int blockId, const BlockMemberInfo& blockMemberInfo);
 
 		int blockId;
 		BlockMemberInfo blockInfo;
@@ -150,10 +157,10 @@ namespace glsl
 
 	typedef std::vector<Attribute> ActiveAttributes;
 
-	struct Varying
+	struct Varying : public ShaderVariable
 	{
-		Varying(GLenum type, const std::string &name, int arraySize, TQualifier qualifier, int reg = -1, int col = -1)
-			: type(type), name(name), arraySize(arraySize), qualifier(qualifier), reg(reg), col(col)
+		Varying(const TType& type, const std::string &name, int reg = -1, int col = -1)
+			: ShaderVariable(type, name, reg), qualifier(type.getQualifier()), col(col)
 		{
 		}
 
@@ -167,12 +174,7 @@ namespace glsl
 			return arraySize > 0 ? arraySize : 1;
 		}
 
-		GLenum type;
-		std::string name;
-		int arraySize;
 		TQualifier qualifier;
-
-		int reg;    // First varying register, assigned during link
 		int col;    // First register element, assigned during link
 	};
 
@@ -191,6 +193,7 @@ namespace glsl
 	protected:
 		VaryingList varyings;
 		ActiveUniforms activeUniforms;
+		ActiveUniforms activeUniformStructs;
 		ActiveAttributes activeAttributes;
 		ActiveUniformBlocks activeUniformBlocks;
 		int shaderVersion;
@@ -310,8 +313,6 @@ namespace glsl
 		void free(VariableArray &list, TIntermTyped *variable);
 
 		void declareUniform(const TType &type, const TString &name, int registerIndex, bool samplersOnly, int blockId = -1, BlockLayoutEncoder* encoder = nullptr);
-		GLenum glVariableType(const TType &type);
-		GLenum glVariablePrecision(const TType &type);
 
 		static int dim(TIntermNode *v);
 		static int dim2(TIntermNode *m);
