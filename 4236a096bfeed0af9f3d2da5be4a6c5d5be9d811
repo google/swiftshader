@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5fe176c5_d0ea3a29",
+        "filename": "src/Renderer/Blitter.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1108,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2018-01-08T22:25:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c778d11c_1a901a2f",
+      "range": {
+        "startLine": 1108,
+        "startChar": 26,
+        "endLine": 1108,
+        "endChar": 94
+      },
+      "revId": "4236a096bfeed0af9f3d2da5be4a6c5d5be9d811",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2fee404d_e0ab4ee1",
         "filename": "src/Renderer/Blitter.cpp",
         "patchSetId": 2
@@ -45,6 +69,30 @@
       "revId": "4236a096bfeed0af9f3d2da5be4a6c5d5be9d811",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3cfbc921_9827e5c4",
+        "filename": "src/Renderer/Blitter.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1351,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2018-01-08T22:25:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2fee404d_e0ab4ee1",
+      "range": {
+        "startLine": 1351,
+        "startChar": 7,
+        "endLine": 1351,
+        "endChar": 84
+      },
+      "revId": "4236a096bfeed0af9f3d2da5be4a6c5d5be9d811",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "b36df5d3_f5171fed",
+        "filename": "src/Renderer/Blitter.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1352,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2018-01-08T22:25:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f50ae1f3_5d52b87e",
+      "range": {
+        "startLine": 1352,
+        "startChar": 7,
+        "endLine": 1352,
+        "endChar": 24
+      },
+      "revId": "4236a096bfeed0af9f3d2da5be4a6c5d5be9d811",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d3479996_1ca36114",
         "filename": "src/Renderer/Blitter.cpp",
         "patchSetId": 2
@@ -91,6 +163,30 @@
       "revId": "4236a096bfeed0af9f3d2da5be4a6c5d5be9d811",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a270ac40_0628ddf8",
+        "filename": "src/Renderer/Blitter.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1370,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2018-01-08T22:25:08Z",
+      "side": 1,
+      "message": "This needs to know if the scaling was already performed in order to properly unscale, if required, so I this this requires knowledge of whether or not scaling was already performed.",
+      "parentUuid": "d3479996_1ca36114",
+      "range": {
+        "startLine": 1370,
+        "startChar": 84,
+        "endLine": 1370,
+        "endChar": 101
+      },
+      "revId": "4236a096bfeed0af9f3d2da5be4a6c5d5be9d811",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
