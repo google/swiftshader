@@ -251,42 +251,15 @@ namespace es2
 
 	egl::Image *Device::createDepthStencilSurface(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool discard)
 	{
+		ASSERT(sw::Surface::isDepth(format));
+
 		if(height > OUTLINE_RESOLUTION)
 		{
 			ERR("Invalid parameters: %dx%d", width, height);
 			return nullptr;
 		}
 
-		bool lockable = true;
-
-		switch(format)
-		{
-		case FORMAT_S8:
-	//	case FORMAT_D15S1:
-		case FORMAT_D24S8:
-		case FORMAT_D24X8:
-	//	case FORMAT_D24X4S4:
-		case FORMAT_D24FS8:
-		case FORMAT_D32:
-		case FORMAT_D16:
-		case FORMAT_D32F:
-		case FORMAT_D32F_COMPLEMENTARY:
-			lockable = false;
-			break;
-	//	case FORMAT_S8_LOCKABLE:
-	//	case FORMAT_D16_LOCKABLE:
-		case FORMAT_D32F_LOCKABLE:
-	//	case FORMAT_D32_LOCKABLE:
-		case FORMAT_DF24S8:
-		case FORMAT_DF16S8:
-		case FORMAT_D32FS8_TEXTURE:
-		case FORMAT_D32FS8_SHADOW:
-			lockable = true;
-			break;
-		default:
-			UNREACHABLE(format);
-		}
-
+		bool lockable = !sw::Surface::hasQuadLayout(format);
 		egl::Image *surface = egl::Image::create(width, height, format, multiSampleDepth, lockable);
 
 		if(!surface)
