@@ -59,7 +59,7 @@ namespace egl
 		bool getConfigs(EGLConfig *configs, const EGLint *attribList, EGLint configSize, EGLint *numConfig);
 		bool getConfigAttrib(EGLConfig config, EGLint attribute, EGLint *value);
 
-		EGLSurface createWindowSurface(EGLNativeWindowType window, EGLConfig config, const EGLint *attribList);
+		EGLSurface createWindowSurface(EGLNativeWindowType window, EGLConfig config, const EGLAttrib *attribList);
 		EGLSurface createPBufferSurface(EGLConfig config, const EGLint *attribList, EGLClientBuffer clientBuffer = nullptr);
 		EGLContext createContext(EGLConfig configHandle, const Context *shareContext, EGLint clientVersion);
 		EGLSyncKHR createSync(Context *context);

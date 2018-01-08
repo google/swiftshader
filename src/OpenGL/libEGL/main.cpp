@@ -368,14 +368,20 @@ EGLBoolean WaitNative(EGLint engine);
 EGLBoolean SwapBuffers(EGLDisplay dpy, EGLSurface surface);
 EGLBoolean CopyBuffers(EGLDisplay dpy, EGLSurface surface, EGLNativePixmapType target);
 EGLImageKHR CreateImageKHR(EGLDisplay dpy, EGLContext ctx, EGLenum target, EGLClientBuffer buffer, const EGLint *attrib_list);
+EGLImageKHR CreateImage(EGLDisplay dpy, EGLContext ctx, EGLenum target, EGLClientBuffer buffer, const EGLAttrib *attrib_list);
 EGLBoolean DestroyImageKHR(EGLDisplay dpy, EGLImageKHR image);
 EGLDisplay GetPlatformDisplayEXT(EGLenum platform, void *native_display, const EGLint *attrib_list);
+EGLDisplay GetPlatformDisplay(EGLenum platform, void *native_display, const EGLAttrib *attrib_list);
 EGLSurface CreatePlatformWindowSurfaceEXT(EGLDisplay dpy, EGLConfig config, void *native_window, const EGLint *attrib_list);
+EGLSurface CreatePlatformWindowSurface(EGLDisplay dpy, EGLConfig config, void *native_window, const EGLAttrib *attrib_list);
 EGLSurface CreatePlatformPixmapSurfaceEXT(EGLDisplay dpy, EGLConfig config, void *native_pixmap, const EGLint *attrib_list);
+EGLSurface CreatePlatformPixmapSurface(EGLDisplay dpy, EGLConfig config, void *native_pixmap, const EGLAttrib *attrib_list);
 EGLSyncKHR CreateSyncKHR(EGLDisplay dpy, EGLenum type, const EGLint *attrib_list);
+EGLSyncKHR CreateSync(EGLDisplay dpy, EGLenum type, const EGLAttrib *attrib_list);
 EGLBoolean DestroySyncKHR(EGLDisplay dpy, EGLSyncKHR sync);
 EGLint ClientWaitSyncKHR(EGLDisplay dpy, EGLSyncKHR sync, EGLint flags, EGLTimeKHR timeout);
 EGLBoolean GetSyncAttribKHR(EGLDisplay dpy, EGLSyncKHR sync, EGLint attribute, EGLint *value);
+EGLBoolean GetSyncAttrib(EGLDisplay dpy, EGLSyncKHR sync, EGLint attribute, EGLAttrib *value);
 __eglMustCastToProperFunctionPointerType GetProcAddress(const char *procname);
 }
 
@@ -551,7 +557,17 @@ EGLAPI EGLImageKHR EGLAPIENTRY eglCreateImageKHR(EGLDisplay dpy, EGLContext ctx,
 	return egl::CreateImageKHR(dpy, ctx, target, buffer, attrib_list);
 }
 
+EGLAPI EGLImageKHR EGLAPIENTRY eglCreateImage(EGLDisplay dpy, EGLContext ctx, EGLenum target, EGLClientBuffer buffer, const EGLAttrib *attrib_list)
+{
+	return egl::CreateImage(dpy, ctx, target, buffer, attrib_list);
+}
+
 EGLAPI EGLBoolean EGLAPIENTRY eglDestroyImageKHR(EGLDisplay dpy, EGLImageKHR image)
+{
+	return egl::DestroyImageKHR(dpy, image);
+}
+
+EGLAPI EGLBoolean EGLAPIENTRY eglDestroyImage(EGLDisplay dpy, EGLImageKHR image)
 {
 	return egl::DestroyImageKHR(dpy, image);
 }
@@ -561,9 +577,19 @@ EGLAPI EGLDisplay EGLAPIENTRY eglGetPlatformDisplayEXT(EGLenum platform, void *n
 	return egl::GetPlatformDisplayEXT(platform, native_display, attrib_list);
 }
 
+EGLAPI EGLDisplay EGLAPIENTRY eglGetPlatformDisplay(EGLenum platform, void *native_display, const EGLAttrib *attrib_list)
+{
+	return egl::GetPlatformDisplay(platform, native_display, attrib_list);
+}
+
 EGLAPI EGLSurface EGLAPIENTRY eglCreatePlatformWindowSurfaceEXT(EGLDisplay dpy, EGLConfig config, void *native_window, const EGLint *attrib_list)
 {
 	return egl::CreatePlatformWindowSurfaceEXT(dpy, config, native_window, attrib_list);
+}
+
+EGLAPI EGLSurface EGLAPIENTRY eglCreatePlatformWindowSurface(EGLDisplay dpy, EGLConfig config, void *native_window, const EGLAttrib *attrib_list)
+{
+	return egl::CreatePlatformWindowSurface(dpy, config, native_window, attrib_list);
 }
 
 EGLAPI EGLSurface EGLAPIENTRY eglCreatePlatformPixmapSurfaceEXT(EGLDisplay dpy, EGLConfig config, void *native_pixmap, const EGLint *attrib_list)
@@ -571,12 +597,27 @@ EGLAPI EGLSurface EGLAPIENTRY eglCreatePlatformPixmapSurfaceEXT(EGLDisplay dpy, 
 	return egl::CreatePlatformPixmapSurfaceEXT(dpy, config, native_pixmap, attrib_list);
 }
 
+EGLAPI EGLSurface EGLAPIENTRY eglCreatePlatformPixmapSurface(EGLDisplay dpy, EGLConfig config, void *native_pixmap, const EGLAttrib *attrib_list)
+{
+	return egl::CreatePlatformPixmapSurface(dpy, config, native_pixmap, attrib_list);
+}
+
 EGLAPI EGLSyncKHR EGLAPIENTRY eglCreateSyncKHR(EGLDisplay dpy, EGLenum type, const EGLint *attrib_list)
 {
 	return egl::CreateSyncKHR(dpy, type, attrib_list);
 }
 
+EGLAPI EGLSyncKHR EGLAPIENTRY eglCreateSync(EGLDisplay dpy, EGLenum type, const EGLAttrib *attrib_list)
+{
+	return egl::CreateSync(dpy, type, attrib_list);
+}
+
 EGLAPI EGLBoolean EGLAPIENTRY eglDestroySyncKHR(EGLDisplay dpy, EGLSyncKHR sync)
+{
+	return egl::DestroySyncKHR(dpy, sync);
+}
+
+EGLAPI EGLBoolean EGLAPIENTRY eglDestroySync(EGLDisplay dpy, EGLSyncKHR sync)
 {
 	return egl::DestroySyncKHR(dpy, sync);
 }
@@ -586,9 +627,29 @@ EGLAPI EGLint EGLAPIENTRY eglClientWaitSyncKHR(EGLDisplay dpy, EGLSyncKHR sync, 
 	return egl::ClientWaitSyncKHR(dpy, sync, flags, timeout);
 }
 
+EGLAPI EGLint EGLAPIENTRY eglClientWaitSync(EGLDisplay dpy, EGLSyncKHR sync, EGLint flags, EGLTimeKHR timeout)
+{
+	return egl::ClientWaitSyncKHR(dpy, sync, flags, timeout);
+}
+
 EGLAPI EGLBoolean EGLAPIENTRY eglGetSyncAttribKHR(EGLDisplay dpy, EGLSyncKHR sync, EGLint attribute, EGLint *value)
 {
 	return egl::GetSyncAttribKHR(dpy, sync, attribute, value);
+}
+
+EGLAPI EGLBoolean EGLAPIENTRY eglGetSyncAttrib(EGLDisplay dpy, EGLSyncKHR sync, EGLint attribute, EGLAttrib *value)
+{
+	return egl::GetSyncAttrib(dpy, sync, attribute, value);
+}
+
+EGLAPI EGLint EGLAPIENTRY eglWaitSyncKHR(EGLDisplay dpy, EGLSyncKHR sync, EGLint flags)
+{
+	return egl::ClientWaitSyncKHR(dpy, sync, flags, EGL_FOREVER_KHR);
+}
+
+EGLAPI EGLBoolean EGLAPIENTRY eglWaitSync(EGLDisplay dpy, EGLSync sync, EGLint flags)
+{
+	return egl::ClientWaitSyncKHR(dpy, sync, flags, EGL_FOREVER_KHR);
 }
 
 EGLAPI __eglMustCastToProperFunctionPointerType EGLAPIENTRY eglGetProcAddress(const char *procname)

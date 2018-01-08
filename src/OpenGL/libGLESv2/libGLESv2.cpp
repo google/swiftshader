@@ -6280,16 +6280,6 @@ extern "C" NO_SANITIZE_FUNCTION __eglMustCastToProperFunctionPointerType es2GetP
 		__eglMustCastToProperFunctionPointerType address;
 	};
 
-	struct CompareFunctor
-	{
-		bool operator()(const Function &a, const Function &b) const
-		{
-			return strcmp(a.name, b.name) < 0;
-		}
-	};
-
-	// This array must be kept sorted with respect to strcmp(), so that binary search works correctly.
-	// The Unix command "LC_COLLATE=C sort" will generate the correct order.
 	static const Function glFunctions[] =
 	{
 		#define FUNCTION(name) {#name, (__eglMustCastToProperFunctionPointerType)name}
@@ -6593,12 +6583,29 @@ extern "C" NO_SANITIZE_FUNCTION __eglMustCastToProperFunctionPointerType es2GetP
 	static const size_t numFunctions = sizeof glFunctions / sizeof(Function);
 	static const Function *const glFunctionsEnd = glFunctions + numFunctions;
 
-	Function needle;
-	needle.name = procname;
+	// The array must be kept sorted with respect to strcmp(), so that binary search works correctly.
+	// The Unix command "LC_COLLATE=C sort" will generate the correct order.
+	#ifndef NDEBUG
+		for(size_t i = 0; i < numFunctions - 1; i++)
+		{
+			ASSERT(strcmp(glFunctions[i].name, glFunctions[i + 1].name) < 0);
+		}
+	#endif
 
 	if(procname && strncmp("gl", procname, 2) == 0)
 	{
+		struct CompareFunctor
+		{
+			bool operator()(const Function &a, const Function &b) const
+			{
+				return strcmp(a.name, b.name) < 0;
+			}
+		};
+
+		Function needle;
+		needle.name = procname;
 		const Function *result = std::lower_bound(glFunctions, glFunctionsEnd, needle, CompareFunctor());
+
 		if(result != glFunctionsEnd && strcmp(procname, result->name) == 0)
 		{
 			return (__eglMustCastToProperFunctionPointerType)result->address;

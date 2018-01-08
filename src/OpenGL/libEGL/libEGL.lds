@@ -4,14 +4,21 @@ global:
 	eglBindAPI;
 	eglBindTexImage;
 	eglChooseConfig;
+	eglClientWaitSync;
 	eglCopyBuffers;
 	eglCreateContext;
+	eglCreateImage;
 	eglCreatePbufferFromClientBuffer;
 	eglCreatePbufferSurface;
 	eglCreatePixmapSurface;
+	eglCreatePlatformPixmapSurface;
+	eglCreatePlatformWindowSurface;
+	eglCreateSync;
 	eglCreateWindowSurface;
 	eglDestroyContext;
+	eglDestroyImage;
 	eglDestroySurface;
+	eglDestroySync;
 	eglGetConfigAttrib;
 	eglGetConfigs;
 	eglGetCurrentContext;
@@ -19,7 +26,9 @@ global:
 	eglGetCurrentSurface;
 	eglGetDisplay;
 	eglGetError;
+	eglGetPlatformDisplay;
 	eglGetProcAddress;
+	eglGetSyncAttrib;
 	eglInitialize;
 	eglMakeCurrent;
 	eglQueryAPI;
@@ -35,6 +44,7 @@ global:
 	eglWaitClient;
 	eglWaitGL;
 	eglWaitNative;
+	eglWaitSync;
 
 	# Extensions
 	eglCreateImageKHR;
