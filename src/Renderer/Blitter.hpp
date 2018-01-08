@@ -106,7 +106,7 @@ namespace sw
 		bool read(Int4 &color, Pointer<Byte> element, const State &state);
 		bool write(Int4 &color, Pointer<Byte> element, const State &state);
 		static bool GetScale(float4& scale, Format format);
-		static bool ApplyScaleAndClamp(Float4 &value, const State &state);
+		static bool ApplyScaleAndClamp(Float4 &value, const State &state, bool preScaled = false);
 		static Int ComputeOffset(Int &x, Int &y, Int &pitchB, int bytes, bool quadLayout);
 		static Float4 LinearToSRGB(Float4 &color);
 		static Float4 sRGBtoLinear(Float4 &color);
