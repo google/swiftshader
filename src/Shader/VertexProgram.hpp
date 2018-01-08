@@ -122,7 +122,6 @@ namespace sw
 
 		int ifDepth;
 		int loopRepDepth;
-		int breakDepth;
 		int currentLabel;
 		bool whileTest;
 

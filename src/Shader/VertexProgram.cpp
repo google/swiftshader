@@ -28,7 +28,6 @@ namespace sw
 	{
 		ifDepth = 0;
 		loopRepDepth = 0;
-		breakDepth = 0;
 		currentLabel = -1;
 		whileTest = false;
 
@@ -1011,25 +1010,7 @@ namespace sw
 
 	void VertexProgram::BREAK()
 	{
-		BasicBlock *deadBlock = Nucleus::createBasicBlock();
-		BasicBlock *endBlock = loopRepEndBlock[loopRepDepth - 1];
-
-		if(breakDepth == 0)
-		{
-			enableIndex = enableIndex - breakDepth;
-			Nucleus::createBr(endBlock);
-		}
-		else
-		{
-			enableBreak = enableBreak & ~enableStack[enableIndex];
-			Bool allBreak = SignMask(enableBreak) == 0x0;
-
-			enableIndex = enableIndex - breakDepth;
-			branch(allBreak, endBlock, deadBlock);
-		}
-
-		Nucleus::setInsertBlock(deadBlock);
-		enableIndex = enableIndex + breakDepth;
+		enableBreak = enableBreak & ~enableStack[enableIndex];
 	}
 
 	void VertexProgram::BREAKC(Vector4f &src0, Vector4f &src1, Control control)
@@ -1067,17 +1048,7 @@ namespace sw
 	{
 		condition &= enableStack[enableIndex];
 
-		BasicBlock *continueBlock = Nucleus::createBasicBlock();
-		BasicBlock *endBlock = loopRepEndBlock[loopRepDepth - 1];
-
 		enableBreak = enableBreak & ~condition;
-		Bool allBreak = SignMask(enableBreak) == 0x0;
-
-		enableIndex = enableIndex - breakDepth;
-		branch(allBreak, endBlock, continueBlock);
-
-		Nucleus::setInsertBlock(continueBlock);
-		enableIndex = enableIndex + breakDepth;
 	}
 
 	void VertexProgram::CONTINUE()
@@ -1221,7 +1192,6 @@ namespace sw
 
 		if(isConditionalIf[ifDepth])
 		{
-			breakDepth--;
 			enableIndex--;
 		}
 	}
@@ -1368,7 +1338,6 @@ namespace sw
 		ifFalseBlock[ifDepth] = falseBlock;
 
 		ifDepth++;
-		breakDepth++;
 	}
 
 	void VertexProgram::LABEL(int labelIndex)
@@ -1413,7 +1382,6 @@ namespace sw
 		iteration[loopDepth] = iteration[loopDepth] - 1;   // FIXME: --
 
 		loopRepDepth++;
-		breakDepth = 0;
 	}
 
 	void VertexProgram::REP(const Src &integerRegister)
@@ -1440,7 +1408,6 @@ namespace sw
 		iteration[loopDepth] = iteration[loopDepth] - 1;   // FIXME: --
 
 		loopRepDepth++;
-		breakDepth = 0;
 	}
 
 	void VertexProgram::WHILE(const Src &temporaryRegister)
@@ -1466,6 +1433,7 @@ namespace sw
 		Int4 condition = As<Int4>(src.x);
 		condition &= enableStack[enableIndex - 1];
 		if(shader->containsLeaveInstruction()) condition &= enableLeave;
+		if(shader->containsBreakInstruction()) condition &= enableBreak;
 		enableStack[enableIndex] = condition;
 
 		Bool notAllFalse = SignMask(condition) != 0;
@@ -1477,7 +1445,6 @@ namespace sw
 		Nucleus::setInsertBlock(loopBlock);
 
 		loopRepDepth++;
-		breakDepth = 0;
 	}
 
 	void VertexProgram::SWITCH()
@@ -1497,7 +1464,6 @@ namespace sw
 		Nucleus::setInsertBlock(currentBlock);
 
 		loopRepDepth++;
-		breakDepth = 0;
 	}
 
 	void VertexProgram::RET()
