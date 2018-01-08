@@ -1507,7 +1507,6 @@ namespace sw
 		Nucleus::setInsertBlock(endBlock);
 
 		enableIndex--;
-		enableBreak = Int4(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF);
 		whileTest = false;
 	}
 
@@ -1519,8 +1518,6 @@ namespace sw
 
 		Nucleus::createBr(endBlock);
 		Nucleus::setInsertBlock(endBlock);
-
-		enableBreak = Int4(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF);
 	}
 
 	void PixelProgram::IF(const Src &src)
@@ -1699,7 +1696,7 @@ namespace sw
 		Int4 restoreBreak = enableBreak;
 		Int4 restoreContinue = enableContinue;
 
-		// FIXME: jump(testBlock)
+		// TODO: jump(testBlock)
 		Nucleus::createBr(testBlock);
 		Nucleus::setInsertBlock(testBlock);
 		enableContinue = restoreContinue;
@@ -1728,6 +1725,15 @@ namespace sw
 
 		loopRepTestBlock[loopRepDepth] = nullptr;
 		loopRepEndBlock[loopRepDepth] = endBlock;
+
+		Int4 restoreBreak = enableBreak;
+
+		BasicBlock *currentBlock = Nucleus::getInsertBlock();
+
+		Nucleus::setInsertBlock(endBlock);
+		enableBreak = restoreBreak;
+
+		Nucleus::setInsertBlock(currentBlock);
 
 		loopRepDepth++;
 		breakDepth = 0;
