@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b3d2e016_8ea2227f",
+        "filename": "src/Renderer/Blitter.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1318,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-01-09T17:56:48Z",
+      "side": 1,
+      "message": "I\u0027m not sure this is correct. If somehow x \u003d -0.5 then X \u003d -0.5 and x0 \u003d -1.0, X0 \u003d 0, and fx \u003d -1.0.\n\nI don\u0027t think fx should ever be negative.",
+      "range": {
+        "startLine": 1318,
+        "startChar": 23,
+        "endLine": 1318,
+        "endChar": 28
+      },
+      "revId": "f1e8295271083165bda0fa289bd3dc8b47036994",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6944d0b9_fa09f432",
+        "filename": "src/Renderer/Blitter.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1332,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-01-09T17:56:48Z",
+      "side": 1,
+      "message": "This seems redundant. X can be at most width - 0.5, in which case x0 \u003d width - 1.0 and X0 \u003d width - 1\n\nNote that Int(x0) rounds toward zero so there\u0027s no risk of it rounding higher.",
+      "range": {
+        "startLine": 1328,
+        "startChar": 0,
+        "endLine": 1332,
+        "endChar": 8
+      },
+      "revId": "f1e8295271083165bda0fa289bd3dc8b47036994",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
