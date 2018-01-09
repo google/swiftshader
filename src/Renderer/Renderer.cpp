@@ -1743,7 +1743,7 @@ namespace sw
 			return false;
 		}
 
-		if(false)   // Rectangle
+		if(state.multiSample > 1)   // Rectangle
 		{
 			float4 P[4];
 			int C[4];
