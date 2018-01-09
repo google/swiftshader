@@ -1315,8 +1315,8 @@ namespace sw
 
 							if(state.clampToEdge)
 							{
-								X = Float(Clamp(Int(x), 0, sWidth - 1));
-								Y = Float(Clamp(Int(y), 0, sHeight - 1));
+								X = Min(Max(x, 0.5f), Float(sWidth) - 0.5f);
+								Y = Min(Max(y, 0.5f), Float(sHeight) - 0.5f);
 							}
 
 							Float x0 = X - 0.5f;
