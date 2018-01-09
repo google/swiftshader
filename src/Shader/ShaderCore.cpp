@@ -727,7 +727,7 @@ namespace sw
 
 	void ShaderCore::rcpx(Vector4f &dst, const Vector4f &src, bool pp)
 	{
-		Float4 rcp = reciprocal(src.x, pp, true);
+		Float4 rcp = reciprocal(src.x, pp, true, true);
 
 		dst.x = rcp;
 		dst.y = rcp;
