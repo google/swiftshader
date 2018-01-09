@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "aebd8c11_39737572",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 3509,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2018-01-09T20:45:39Z",
+      "side": 1,
+      "message": "Note: This fixed dEQP-GLES3.functional.uniform_api.random.8",
+      "range": {
+        "startLine": 3509,
+        "startChar": 3,
+        "endLine": 3509,
+        "endChar": 32
+      },
+      "revId": "924513cdde1271f47353b7945480ad2fb8100bb4",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
