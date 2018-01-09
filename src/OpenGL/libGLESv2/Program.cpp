@@ -1494,7 +1494,7 @@ namespace es2
 					{
 						reg += rowCount > 1 ? colCount * subscript : subscript;
 					}
-					int col = varying.col;
+					int col = varying.column;
 					if(tfVaryingName == "gl_PointSize")
 					{
 						// Point size is stored in the y element of the vector, not the x element
@@ -1952,7 +1952,7 @@ namespace es2
 			return false;
 		}
 
-		for(int i = 0; i < fields1.size(); ++i)
+		for(size_t i = 0; i < fields1.size(); ++i)
 		{
 			if(fields1[i].name != fields2[i].name)
 			{

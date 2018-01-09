@@ -160,7 +160,7 @@ namespace glsl
 	struct Varying : public ShaderVariable
 	{
 		Varying(const TType& type, const std::string &name, int reg = -1, int col = -1)
-			: ShaderVariable(type, name, reg), qualifier(type.getQualifier()), col(col)
+			: ShaderVariable(type, name, reg), qualifier(type.getQualifier()), column(col)
 		{
 		}
 
@@ -175,7 +175,7 @@ namespace glsl
 		}
 
 		TQualifier qualifier;
-		int col;    // First register element, assigned during link
+		int column;    // First register element, assigned during link
 	};
 
 	typedef std::list<Varying> VaryingList;

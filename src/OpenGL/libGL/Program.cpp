@@ -968,8 +968,8 @@ namespace gl
 
 					if(available)
 					{
-						varying->reg = r;
-						varying->col = 0;
+						varying->registerIndex = r;
+						varying->column = 0;
 
 						for(int y = 0; y < n; y++)
 						{
@@ -1002,8 +1002,8 @@ namespace gl
 
 						if(available)
 						{
-							varying->reg = r;
-							varying->col = 2;
+							varying->registerIndex = r;
+							varying->column = 2;
 
 							for(int y = 0; y < n; y++)
 							{
@@ -1046,7 +1046,7 @@ namespace gl
 					{
 						if(!packing[r][column])
 						{
-							varying->reg = r;
+							varying->registerIndex = r;
 
 							for(int y = r; y < r + n; y++)
 							{
@@ -1057,7 +1057,7 @@ namespace gl
 						}
 					}
 
-					varying->col = column;
+					varying->column = column;
 
 					success = true;
 				}
@@ -1125,8 +1125,8 @@ namespace gl
 			{
 				if(output->name == input->name)
 				{
-					int in = input->reg;
-					int out = output->reg;
+					int in = input->registerIndex;
+					int out = output->registerIndex;
 					int components = VariableColumnCount(output->type);
 					int registers = VariableRowCount(output->type) * output->size();
 
