@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9b5f55e4_f044e1d1",
+        "filename": "src/OpenGL/libGL/Program.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 972,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-01-09T21:49:24Z",
+      "side": 1,
+      "message": "Should we rename this to column, just like reg was made more verbose?",
+      "range": {
+        "startLine": 972,
+        "startChar": 15,
+        "endLine": 972,
+        "endChar": 18
+      },
+      "revId": "c8b19a2059dd43c9b079f051a5325bc71b506b4d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
