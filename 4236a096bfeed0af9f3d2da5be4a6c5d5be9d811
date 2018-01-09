@@ -187,6 +187,30 @@
       "revId": "4236a096bfeed0af9f3d2da5be4a6c5d5be9d811",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "cdfe7eb3_edb5d2a4",
+        "filename": "src/Renderer/Blitter.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1370,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-01-09T18:16:05Z",
+      "side": 1,
+      "message": "Not really. Note that in PS4, preScaled is set to true if (state.convertSRGB \u0026\u0026 Surface::isSRGBformat(state.sourceFormat)), and it\u0027s not used before that point. In other words you could directly initialize it to that. Furthermore, it\u0027s entirely computed from \u0027state\u0027, which is also available in ApplyScaleAndClamp(), so preScaled doesn\u0027t even have to be passed in as a parameter. The only information it doesn\u0027t have is whether it\u0027s being called before or after the filtering.\n\nI still think the code would look slightly simpler if you just move all the conditional logic to ApplyScaleAndClamp().\n\nAnother way to think about it is that there could be an ApplyScaleAndClampBeforeFiltering() and ApplyScaleAndClampAfterFiltering(), except they would have a lot of duplicate code. Either that could be factored out into more helper functions, or, we just pass the Before/After as a parameter to ApplyScaleAndClamp(). I think the latter would be most elegant.",
+      "parentUuid": "a270ac40_0628ddf8",
+      "range": {
+        "startLine": 1370,
+        "startChar": 84,
+        "endLine": 1370,
+        "endChar": 101
+      },
+      "revId": "4236a096bfeed0af9f3d2da5be4a6c5d5be9d811",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
