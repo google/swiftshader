@@ -661,14 +661,23 @@ namespace glsl
 
 	void OutputASM::visitSymbol(TIntermSymbol *symbol)
 	{
-		// Vertex varyings don't have to be actively used to successfully link
-		// against pixel shaders that use them. So make sure they're declared.
-		if(symbol->getQualifier() == EvqVaryingOut || symbol->getQualifier() == EvqInvariantVaryingOut || symbol->getQualifier() == EvqVertexOut)
+		// The type of vertex outputs and fragment inputs with the same name must match (validated at link time),
+		// so declare them but don't assign a register index yet (one will be assigned when referenced in reachable code).
+		switch(symbol->getQualifier())
 		{
+		case EvqVaryingIn:
+		case EvqVaryingOut:
+		case EvqInvariantVaryingIn:
+		case EvqInvariantVaryingOut:
+		case EvqVertexOut:
+		case EvqFragmentIn:
 			if(symbol->getBasicType() != EbtInvariant)   // Typeless declarations are not new varyings
 			{
 				declareVarying(symbol, -1);
 			}
+			break;
+		default:
+			break;
 		}
 
 		TInterfaceBlock* block = symbol->getType().getInterfaceBlock();

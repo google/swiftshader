@@ -208,10 +208,10 @@ public:
 
 	bool insert(TSymbol *symbol);
 
-    // Insert a function using its unmangled name as the key.
-    bool insertUnmangled(TFunction *function);
+	// Insert a function using its unmangled name as the key.
+	bool insertUnmangled(TFunction *function);
 
-    TSymbol *find(const TString &name) const;
+	TSymbol *find(const TString &name) const;
 
 	static int nextUniqueId()
 	{

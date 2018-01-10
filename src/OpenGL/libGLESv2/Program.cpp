@@ -1349,9 +1349,13 @@ namespace es2
 
 			if(!matched)
 			{
-				appendToInfoLog("Fragment varying %s does not match any vertex varying", input.name.c_str());
+				// If a fragment varying is declared but not statically used, it's not an error to not have a matching vertex varying.
+				if(input.registerIndex >= 0)
+				{
+					appendToInfoLog("Fragment varying %s does not match any vertex varying", input.name.c_str());
 
-				return false;
+					return false;
+				}
 			}
 		}
 
