@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3ecf6083_f632689f",
+        "filename": "src/OpenGL/libGLESv2/Program.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 1955,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2018-01-10T13:11:44Z",
+      "side": 1,
+      "message": "Fixes warning as error in 32 bit build.",
+      "range": {
+        "startLine": 1955,
+        "startChar": 6,
+        "endLine": 1955,
+        "endChar": 12
+      },
+      "revId": "e23087b745ce7a5d317bd933f628eedee0bd8392",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
