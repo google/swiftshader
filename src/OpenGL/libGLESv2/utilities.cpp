@@ -896,6 +896,7 @@ namespace es2
 			case GL_RGB565:
 			case GL_RGB8:
 			case GL_RGBA8:
+			case GL_BGRA8_EXT:   // GL_APPLE_texture_format_BGRA8888
 			case GL_R16F:
 			case GL_RG16F:
 			case GL_R11F_G11F_B10F:
