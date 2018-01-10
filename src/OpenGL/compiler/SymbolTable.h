@@ -206,27 +206,12 @@ public:
 	TSymbolTableLevel() { }
 	~TSymbolTableLevel();
 
-	bool insert(TSymbol &symbol)
-	{
-		symbol.setUniqueId(nextUniqueId());
+	bool insert(TSymbol *symbol);
 
-		//
-		// returning true means symbol was added to the table
-		//
-		tInsertResult result;
-		result = level.insert(tLevelPair(symbol.getMangledName(), &symbol));
+    // Insert a function using its unmangled name as the key.
+    bool insertUnmangled(TFunction *function);
 
-		return result.second;
-	}
-
-	TSymbol* find(const TString& name) const
-	{
-		tLevel::const_iterator it = level.find(name);
-		if (it == level.end())
-			return 0;
-		else
-			return (*it).second;
-	}
+    TSymbol *find(const TString &name) const;
 
 	static int nextUniqueId()
 	{
@@ -348,12 +333,12 @@ public:
 		precisionStack.pop_back();
 	}
 
-	bool declare(TSymbol &symbol)
+	bool declare(TSymbol *symbol)
 	{
 		return insert(currentLevel(), symbol);
 	}
 
-	bool insert(ESymbolLevel level, TSymbol &symbol)
+	bool insert(ESymbolLevel level, TSymbol *symbol)
 	{
 		return table[level]->insert(symbol);
 	}
@@ -362,7 +347,7 @@ public:
 	{
 		TVariable *constant = new TVariable(NewPoolTString(name), TType(EbtInt, EbpUndefined, EvqConstExpr, 1));
 		constant->getConstPointer()->setIConst(value);
-		return insert(level, *constant);
+		return insert(level, constant);
 	}
 
 	void insertBuiltIn(ESymbolLevel level, TOperator op, const char *ext, TType *rvalue, const char *name, TType *ptype1, TType *ptype2 = 0, TType *ptype3 = 0, TType *ptype4 = 0, TType *ptype5 = 0)
@@ -448,7 +433,7 @@ public:
 			}
 
 			ASSERT(hasUnmangledBuiltIn(name));
-			insert(level, *function);
+			insert(level, function);
 		}
 	}
 

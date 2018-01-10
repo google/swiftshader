@@ -1018,7 +1018,7 @@ bool TParseContext::declareVariable(const TSourceLoc &line, const TString &ident
 		return false;
 
 	(*variable) = new TVariable(&identifier, type);
-	if(!symbolTable.declare(**variable))
+	if(!symbolTable.declare(*variable))
 	{
 		error(line, "redefinition", identifier.c_str());
 		delete (*variable);
@@ -1186,7 +1186,7 @@ const TVariable *TParseContext::getNamedVariable(const TSourceLoc &location,
 	{
 		TType type(EbtFloat, EbpUndefined);
 		TVariable *fakeVariable = new TVariable(name, type);
-		symbolTable.declare(*fakeVariable);
+		symbolTable.declare(fakeVariable);
 		variable = fakeVariable;
 	}
 
@@ -1203,11 +1203,11 @@ const TFunction* TParseContext::findFunction(const TSourceLoc &line, TFunction* 
 	// First find by unmangled name to check whether the function name has been
 	// hidden by a variable name or struct typename.
 	const TSymbol* symbol = symbolTable.find(call->getName(), mShaderVersion, builtIn);
-	if (symbol == 0) {
+	if (!symbol || symbol->isFunction()) {
 		symbol = symbolTable.find(call->getMangledName(), mShaderVersion, builtIn);
 	}
 
-	if (symbol == 0) {
+	if (!symbol) {
 		error(line, "no matching overloaded function found", call->getName().c_str());
 		return nullptr;
 	}
@@ -1965,7 +1965,7 @@ void TParseContext::parseFunctionPrototype(const TSourceLoc &location, TFunction
 			//
 			// Insert the parameters with name in the symbol table.
 			//
-			if(!symbolTable.declare(*variable))
+			if(!symbolTable.declare(variable))
 			{
 				error(location, "redefinition", variable->getName().c_str());
 				recover();
@@ -2041,10 +2041,16 @@ TFunction *TParseContext::parseFunctionDeclarator(const TSourceLoc &location, TF
 			recover();
 		}
 	}
+	else
+	{
+		// Insert the unmangled name to detect potential future redefinition as a variable.
+		TFunction *unmangledFunction = new TFunction(NewPoolTString(function->getName().c_str()), function->getReturnType());
+		symbolTable.getOuterLevel()->insertUnmangled(unmangledFunction);
+	}
 
 	// We're at the inner scope level of the function's arguments and body statement.
 	// Add the function prototype to the surrounding scope instead.
-	symbolTable.getOuterLevel()->insert(*function);
+	symbolTable.getOuterLevel()->insert(function);
 
 	//
 	// If this is a redeclaration, it could also be a definition, in which case, we want to use the
@@ -2344,7 +2350,7 @@ TIntermAggregate* TParseContext::addInterfaceBlock(const TPublicType& typeQualif
 	}
 
 	TSymbol* blockNameSymbol = new TSymbol(&blockName);
-	if(!symbolTable.declare(*blockNameSymbol)) {
+	if(!symbolTable.declare(blockNameSymbol)) {
 		error(nameLine, "redefinition", blockName.c_str(), "interface block name");
 		recover();
 	}
@@ -2423,7 +2429,7 @@ TIntermAggregate* TParseContext::addInterfaceBlock(const TPublicType& typeQualif
 			TVariable* fieldVariable = new TVariable(&field->name(), *fieldType);
 			fieldVariable->setQualifier(typeQualifier.qualifier);
 
-			if(!symbolTable.declare(*fieldVariable)) {
+			if(!symbolTable.declare(fieldVariable)) {
 				error(field->line(), "redefinition", field->name().c_str(), "interface block member name");
 				recover();
 			}
@@ -2438,7 +2444,7 @@ TIntermAggregate* TParseContext::addInterfaceBlock(const TPublicType& typeQualif
 		TVariable* instanceTypeDef = new TVariable(instanceName, interfaceBlockType, false);
 		instanceTypeDef->setQualifier(typeQualifier.qualifier);
 
-		if(!symbolTable.declare(*instanceTypeDef)) {
+		if(!symbolTable.declare(instanceTypeDef)) {
 			error(instanceLine, "redefinition", instanceName->c_str(), "interface block instance name");
 			recover();
 		}
@@ -2972,7 +2978,7 @@ TPublicType TParseContext::addStructure(const TSourceLoc &structLine, const TSou
 			recover();
 		}
 		TVariable *userTypeDef = new TVariable(structName, *structureType, true);
-		if(!symbolTable.declare(*userTypeDef))
+		if(!symbolTable.declare(userTypeDef))
 		{
 			error(nameLine, "redefinition", structName->c_str(), "struct");
 			recover();

@@ -195,6 +195,35 @@ TSymbolTableLevel::~TSymbolTableLevel()
 		delete (*it).second;
 }
 
+bool TSymbolTableLevel::insert(TSymbol *symbol)
+{
+	symbol->setUniqueId(nextUniqueId());
+
+	// returning true means symbol was added to the table
+	tInsertResult result = level.insert(tLevelPair(symbol->getMangledName(), symbol));
+
+	return result.second;
+}
+
+bool TSymbolTableLevel::insertUnmangled(TFunction *function)
+{
+	function->setUniqueId(nextUniqueId());
+
+	// returning true means symbol was added to the table
+	tInsertResult result = level.insert(tLevelPair(function->getName(), function));
+
+	return result.second;
+}
+
+TSymbol *TSymbolTableLevel::find(const TString &name) const
+{
+	tLevel::const_iterator it = level.find(name);
+	if (it == level.end())
+		return 0;
+	else
+		return (*it).second;
+}
+
 TSymbol *TSymbolTable::find(const TString &name, int shaderVersion, bool *builtIn, bool *sameScope) const
 {
 	int level = currentLevel();
