@@ -996,12 +996,12 @@ namespace es2
 					return GL_INVALID_OPERATION;
 				}
 				break;
-		//	case GL_BGRA_EXT:
-		//		if(type != GL_UNSIGNED_BYTE)   // GL_APPLE_texture_format_BGRA8888
-		//		{
-		//			return GL_INVALID_OPERATION;
-		//		}
-		//		break;
+			case GL_BGRA_EXT:
+				if(type != GL_UNSIGNED_BYTE)   // GL_APPLE_texture_format_BGRA8888
+				{
+					return GL_INVALID_OPERATION;
+				}
+				break;
 			default:
 				UNREACHABLE(format);
 				return GL_INVALID_ENUM;
@@ -1696,6 +1696,7 @@ namespace es2
 		case GL_RGB8:
 		case GL_RGBA8:
 		case GL_SRGB8:
+		case GL_BGRA8_EXT:
 			return GL_UNSIGNED_NORMALIZED;
 		case GL_R8_SNORM:
 		case GL_RG8_SNORM:
