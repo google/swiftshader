@@ -294,6 +294,10 @@ bool WindowSurface::checkForResize()
 		int windowWidth;
 		int windowHeight;
 		sw::OSX::GetNativeWindowSize(window, windowWidth, windowHeight);
+	#elif defined(__Fuchsia__)
+		// TODO(crbug.com/800951): Integrate with Mozart.
+		int windowWidth = 100;
+		int windowHeight = 100;
 	#else
 		#error "WindowSurface::checkForResize unimplemented for this platform"
 	#endif

@@ -20,6 +20,7 @@
 	#include <unistd.h>
 	#include <netdb.h>
 	#include <netinet/in.h>
+	#include <sys/select.h>
 #endif
 
 namespace sw

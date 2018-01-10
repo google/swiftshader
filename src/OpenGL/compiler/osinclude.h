@@ -26,7 +26,7 @@
       defined(__FreeBSD__) || defined(__OpenBSD__) || \
       defined(__sun) || defined(ANDROID) || \
       defined(__GLIBC__) || defined(__GNU__) || \
-      defined(__QNX__)
+      defined(__QNX__) || defined(__Fuchsia__)
 #define ANGLE_OS_POSIX
 #else
 #error Unsupported platform.

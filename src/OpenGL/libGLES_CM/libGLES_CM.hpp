@@ -279,6 +279,8 @@ private:
 				#else
 					const char *libGLES_CM_lib[] = {"libGLES_CM_translator.dylib", "libGLES_CM.dylib"};
 				#endif
+			#elif defined(__Fuchsia__)
+				const char *libGLES_CM_lib[] = {"libGLES_CM.so"};
 			#else
 				#error "libGLES_CM::loadExports unimplemented for this platform"
 			#endif

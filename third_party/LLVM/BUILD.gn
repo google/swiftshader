@@ -463,6 +463,8 @@ swiftshader_source_set("swiftshader_llvm") {
     include_dirs += [ "include-linux" ]
   } else if (is_mac) {
     include_dirs += [ "include-osx" ]
+  } else if (is_fuchsia) {
+    include_dirs += [ "include-fuchsia" ]
   }
 
   include_dirs += [ "include" ]

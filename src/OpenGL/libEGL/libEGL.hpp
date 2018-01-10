@@ -118,6 +118,8 @@ private:
 				#else
 					const char *libEGL_lib[] = {"libEGL_translator.dylib", "libEGL.so", "libEGL.dylib", "libswiftshader_libEGL.dylib"};
 				#endif
+			#elif defined(__Fuchsia__)
+				const char *libEGL_lib[] = {"libEGL.so"};
 			#else
 				#error "libEGL::loadExports unimplemented for this platform"
 			#endif

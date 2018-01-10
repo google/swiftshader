@@ -77,6 +77,8 @@ size_t Process::GetMallocUsage() {
     return EndOfMemory - StartOfMemory;
   else
     return 0;
+#elif defined(__Fuchsia__)
+  return 0;
 #else
 #warning Cannot get malloc info on this platform
   return 0;
