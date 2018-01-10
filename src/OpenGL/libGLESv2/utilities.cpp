@@ -997,7 +997,7 @@ namespace es2
 				}
 				break;
 			case GL_BGRA_EXT:
-				if(type != GL_UNSIGNED_BYTE)   // GL_APPLE_texture_format_BGRA8888
+				if(type != GL_UNSIGNED_BYTE)   // GL_APPLE_texture_format_BGRA8888 / GL_EXT_texture_format_BGRA8888
 				{
 					return GL_INVALID_OPERATION;
 				}
@@ -1136,9 +1136,8 @@ namespace es2
 			switch(type)
 			{
 			case GL_UNSIGNED_BYTE:  VALIDATE_INTERNALFORMAT(GL_LUMINANCE8_ALPHA8_EXT)
-			case GL_HALF_FLOAT_OES:
-			case GL_FLOAT:
-				break;
+			case GL_HALF_FLOAT_OES: // Invalid, only exists as unsized.
+			case GL_FLOAT:          // Invalid, only exists as unsized.
 			default:
 				return GL_INVALID_OPERATION;
 			}
@@ -1147,9 +1146,8 @@ namespace es2
 			switch(type)
 			{
 			case GL_UNSIGNED_BYTE:  VALIDATE_INTERNALFORMAT(GL_LUMINANCE8_EXT)
-			case GL_HALF_FLOAT_OES:
-			case GL_FLOAT:
-				break;
+			case GL_HALF_FLOAT_OES: // Invalid, only exists as unsized.
+			case GL_FLOAT:          // Invalid, only exists as unsized.
 			default:
 				return GL_INVALID_OPERATION;
 			}
@@ -1158,17 +1156,17 @@ namespace es2
 			switch(type)
 			{
 			case GL_UNSIGNED_BYTE:  VALIDATE_INTERNALFORMAT(GL_ALPHA8_EXT)
-			case GL_HALF_FLOAT_OES:
-			case GL_FLOAT:
-				break;
+			case GL_HALF_FLOAT_OES: // Invalid, only exists as unsized.
+			case GL_FLOAT:          // Invalid, only exists as unsized.
 			default:
 				return GL_INVALID_OPERATION;
 			}
 			break;
-		case GL_BGRA_EXT:
-			if(type != GL_UNSIGNED_BYTE)
+		case GL_BGRA_EXT:   // GL_APPLE_texture_format_BGRA8888
+			switch(type)
 			{
-				return GL_INVALID_OPERATION;
+			case GL_UNSIGNED_BYTE: VALIDATE_INTERNALFORMAT(GL_BGRA8_EXT)
+			default:               return GL_INVALID_OPERATION;
 			}
 			break;
 		default:
@@ -1242,7 +1240,7 @@ namespace es2
 		case GL_RG32F:
 		case GL_RGB32F:
 		case GL_RGBA32F:
-		case GL_BGRA8_EXT:
+		case GL_BGRA8_EXT:   // GL_EXT_texture_format_BGRA8888
 			return true;
 		case GL_R8UI:
 		case GL_R8I:
