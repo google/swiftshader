@@ -139,7 +139,7 @@ namespace sw
 		x1 *= x0;
 		x1 += As<Float4>(Int4(0x3F31727B));   // 6.9315308e-1f
 		x1 *= x0;
-		x1 += As<Float4>(Int4(0x3F7FFFFF));   // 9.9999994e-1f
+		x1 += Float4(1.0f);
 		x1 *= As<Float4>(x2);
 
 		return x1;
