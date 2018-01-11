@@ -22,6 +22,30 @@
       "revId": "9a8b327ffa25e854ac18e12d967db6bf5530d23b",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f01c4e70_d8876f36",
+        "filename": "src/OpenGL/libGLESv2/Program.cpp",
+        "patchSetId": 7
+      },
+      "lineNbr": 270,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-01-11T17:35:58Z",
+      "side": 1,
+      "message": "This patch only affects declaring outputs of vertex shaders and inputs of fragment shaders, while FragData is a fragment shader output. So I think this is safe for now.\n\nFrom a cursory look it appears that we don\u0027t declare these fragment outputs unless referenced in non-dead code. I think that\u0027s OK, and would mean we never get -1 here, but it\u0027s worth double-checking the spec and putting an assert in place. In any case we should also probably rename \u0027input\u0027 to either \u0027varying\u0027 or \u0027output\u0027 in a follow-up patch.",
+      "parentUuid": "c0529f8d_cbf29910",
+      "range": {
+        "startLine": 270,
+        "startChar": 68,
+        "endLine": 270,
+        "endChar": 139
+      },
+      "revId": "9a8b327ffa25e854ac18e12d967db6bf5530d23b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
