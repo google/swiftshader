@@ -261,13 +261,24 @@ namespace es2
 			std::string baseName(name);
 			unsigned int subscript = GL_INVALID_INDEX;
 			baseName = ParseUniformName(baseName, &subscript);
-			for(auto const &input : fragmentShader->varyings)
+			for(auto const &varying : fragmentShader->varyings)
 			{
-				if(input.name == baseName)
+				if(varying.qualifier == EvqFragmentOut)
 				{
-					int rowCount = VariableRowCount(input.type);
-					int colCount = VariableColumnCount(input.type);
-					return (subscript == GL_INVALID_INDEX) ? input.registerIndex : input.registerIndex + (rowCount > 1 ? colCount * subscript : subscript);
+					if(varying.name == baseName)
+					{
+						ASSERT(varying.registerIndex >= 0);
+
+						if(subscript == GL_INVALID_INDEX)   // No subscript
+						{
+							return varying.registerIndex;
+						}
+
+						int rowCount = VariableRowCount(varying.type);
+						int colCount = VariableColumnCount(varying.type);
+
+						return varying.registerIndex + (rowCount > 1 ? colCount * subscript : subscript);
+					}
 				}
 			}
 		}
@@ -1372,9 +1383,12 @@ namespace es2
 					int components = VariableRegisterSize(output.type);
 					int registers = VariableRegisterCount(output.type) * output.size();
 
-					ASSERT(in >= 0);
+					if(in < 0)  // Fragment varying declared but not used
+					{
+						continue;
+					}
 
-					if(in + registers > MAX_VARYING_VECTORS)
+					if(in + registers >= MAX_VARYING_VECTORS)
 					{
 						appendToInfoLog("Too many varyings");
 						return false;
@@ -1382,7 +1396,7 @@ namespace es2
 
 					if(out >= 0)
 					{
-						if(out + registers > MAX_VARYING_VECTORS)
+						if(out + registers >= MAX_VARYING_VECTORS)
 						{
 							appendToInfoLog("Too many varyings");
 							return false;
@@ -1421,7 +1435,7 @@ namespace es2
 
 						if(out >= 0)
 						{
-							if(out + registers > MAX_VARYING_VECTORS)
+							if(out + registers >= MAX_VARYING_VECTORS)
 							{
 								appendToInfoLog("Too many varyings");
 								return false;
