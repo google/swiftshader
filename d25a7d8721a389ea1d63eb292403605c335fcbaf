@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5f14680e_83d34945",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 3152,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2018-01-11T13:06:42Z",
+      "side": 1,
+      "message": "This can probably also be applied to attributeRegister, samplerRegister, fragmentOutputRegister and temporaryRegister.\nI think we only care about varyingRegisters.",
+      "range": {
+        "startLine": 3148,
+        "startChar": 2,
+        "endLine": 3152,
+        "endChar": 0
+      },
+      "revId": "d25a7d8721a389ea1d63eb292403605c335fcbaf",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
