@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c0529f8d_cbf29910",
+        "filename": "src/OpenGL/libGLESv2/Program.cpp",
+        "patchSetId": 7
+      },
+      "lineNbr": 270,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2018-01-11T16:47:01Z",
+      "side": 1,
+      "message": "I think this should return -1 if registerIndex is -1",
+      "range": {
+        "startLine": 270,
+        "startChar": 68,
+        "endLine": 270,
+        "endChar": 139
+      },
+      "revId": "9a8b327ffa25e854ac18e12d967db6bf5530d23b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
