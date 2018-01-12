@@ -1649,7 +1649,19 @@ namespace glsl
 				emit(getOpcode(sw::Shader::OPCODE_MIN, result), result, result, arg[2]);
 			}
 			break;
-		case EOpMix:         if(visit == PostVisit) emit(sw::Shader::OPCODE_LRP, result, arg[2], arg[1], arg[0]); break;
+		case EOpMix:
+			if(visit == PostVisit)
+			{
+				if(arg[2]->getAsTyped()->getBasicType() == EbtBool)
+				{
+					emit(sw::Shader::OPCODE_SELECT, result, arg[2], arg[1], arg[0]);
+				}
+				else
+				{
+					emit(sw::Shader::OPCODE_LRP, result, arg[2], arg[1], arg[0]);
+				}
+			}
+			break;
 		case EOpStep:        if(visit == PostVisit) emit(sw::Shader::OPCODE_STEP, result, arg[0], arg[1]); break;
 		case EOpSmoothStep:  if(visit == PostVisit) emit(sw::Shader::OPCODE_SMOOTH, result, arg[0], arg[1], arg[2]); break;
 		case EOpDistance:    if(visit == PostVisit) emit(sw::Shader::OPCODE_DIST(dim(arg[0])), result, arg[0], arg[1]); break;
