@@ -114,35 +114,30 @@ namespace sw
 
 	Float4 exponential2(RValue<Float4> x, bool pp)
 	{
-		Float4 x0;
-		Float4 x1;
-		Int4 x2;
+		// This implementation is based on 2^(i + f) = 2^i * 2^f,
+		// where i is the integer part of x and f is the fraction.
 
-		x0 = x;
-
+		// For 2^i we can put the integer part directly in the exponent of
+		// the IEEE-754 floating-point number. Clamp to prevent overflow
+		// past the representation of infinity.
+		Float4 x0 = x;
 		x0 = Min(x0, As<Float4>(Int4(0x43010000)));   // 129.00000e+0f
 		x0 = Max(x0, As<Float4>(Int4(0xC2FDFFFF)));   // -126.99999e+0f
-		x1 = x0;
-		x1 -= Float4(0.5f);
-		x2 = RoundInt(x1);
-		x1 = Float4(x2);
-		x2 += Int4(0x0000007F);   // 127
-		x2 = x2 << 23;
-		x0 -= x1;
-		x1 = As<Float4>(Int4(0x3AF61905));   // 1.8775767e-3f
-		x1 *= x0;
-		x1 += As<Float4>(Int4(0x3C134806));   // 8.9893397e-3f
-		x1 *= x0;
-		x1 += As<Float4>(Int4(0x3D64AA23));   // 5.5826318e-2f
-		x1 *= x0;
-		x1 += As<Float4>(Int4(0x3E75EAD4));   // 2.4015361e-1f
-		x1 *= x0;
-		x1 += As<Float4>(Int4(0x3F31727B));   // 6.9315308e-1f
-		x1 *= x0;
-		x1 += Float4(1.0f);
-		x1 *= As<Float4>(x2);
 
-		return x1;
+		Int4 i = RoundInt(x0 - Float4(0.5f));
+		Float4 ii = As<Float4>((i + Int4(127)) << 23);   // Add single-precision bias, and shift into exponent.
+
+		// For the fractional part use a polynomial
+		// which approximates 2^f in the 0 to 1 range.
+		Float4 f = x0 - Float4(i);
+		Float4 ff = As<Float4>(Int4(0x3AF61905));     // 1.8775767e-3f
+		ff = ff * f + As<Float4>(Int4(0x3C134806));   // 8.9893397e-3f
+		ff = ff * f + As<Float4>(Int4(0x3D64AA23));   // 5.5826318e-2f
+		ff = ff * f + As<Float4>(Int4(0x3E75EAD4));   // 2.4015361e-1f
+		ff = ff * f + As<Float4>(Int4(0x3F31727B));   // 6.9315308e-1f
+		ff = ff * f + Float4(1.0f);
+
+		return ii * ff;
 	}
 
 	Float4 logarithm2(RValue<Float4> x, bool absolute, bool pp)
