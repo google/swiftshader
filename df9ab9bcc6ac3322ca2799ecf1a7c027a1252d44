@@ -22,6 +22,30 @@
       "revId": "df9ab9bcc6ac3322ca2799ecf1a7c027a1252d44",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "46c59eed_b876a52e",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1652,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2018-01-12T21:45:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c4ffee7d_b4b41222",
+      "range": {
+        "startLine": 1652,
+        "startChar": 100,
+        "endLine": 1652,
+        "endChar": 103
+      },
+      "revId": "df9ab9bcc6ac3322ca2799ecf1a7c027a1252d44",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
