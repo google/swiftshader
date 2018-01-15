@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fc040318_d8c5cabf",
+        "filename": "src/OpenGL/libEGL/libEGL.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 933,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-01-15T21:40:02Z",
+      "side": 1,
+      "message": "Currently the only expected value is EGL_CORE_NATIVE_ENGINE, so let\u0027s validate that.",
+      "range": {
+        "startLine": 933,
+        "startChar": 29,
+        "endLine": 933,
+        "endChar": 35
+      },
+      "revId": "4aa1e6d73a4e34fd39ed5a4c7db59d7e7a48c60c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "aac8de7b_86939b22",
+        "filename": "src/OpenGL/libEGL/libEGL.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 942,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-01-15T21:40:02Z",
+      "side": 1,
+      "message": "Actually this function should wait for the \u0027native\u0027 renderer to finish. This is e.g. GDI on Windows, or X11 on Linux. I\u0027m not sure about the GDI call, but for X11 it\u0027s XSync(). Given that there are only issues in Linux Debug for now, implementing the latter would suffice, but leave the other platforms UNIMPLEMENTED().",
+      "range": {
+        "startLine": 942,
+        "startChar": 11,
+        "endLine": 942,
+        "endChar": 17
+      },
+      "revId": "4aa1e6d73a4e34fd39ed5a4c7db59d7e7a48c60c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
