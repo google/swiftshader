@@ -227,7 +227,11 @@ bool TCompiler::validateCallDepth(TIntermNode *root, TInfoSink &infoSink)
 	else if(depth > maxCallStackDepth)
 	{
 		infoSink.info.prefix(EPrefixError);
-		infoSink.info << "Function call stack too deep";
+		infoSink.info << "Function call stack too deep (depth was ";
+		infoSink.info << depth;
+		infoSink.info << " while maximum call stack depth is ";
+		infoSink.info << maxCallStackDepth;
+		infoSink.info << ")";
 		return false;
 	}
 

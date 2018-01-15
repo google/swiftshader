@@ -181,7 +181,7 @@ TranslatorASM *Shader::createCompiler(GLenum shaderType)
 	resources.OES_fragment_precision_high = 1;
 	resources.OES_EGL_image_external = 1;
 	resources.EXT_draw_buffers = 1;
-	resources.MaxCallStackDepth = 16;
+	resources.MaxCallStackDepth = 64;
 	assembler->Init(resources);
 
 	return assembler;
