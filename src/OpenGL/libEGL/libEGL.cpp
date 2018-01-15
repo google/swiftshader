@@ -480,9 +480,15 @@ EGLBoolean WaitClient(void)
 {
 	TRACE("()");
 
-	UNIMPLEMENTED();   // FIXME
+	// eglWaitClient is ignored if there is no current EGL rendering context for the current rendering API.
+	egl::Context *context = egl::getCurrentContext();
 
-	return success(EGL_FALSE);
+	if(context)
+	{
+		context->finish();
+	}
+
+	return success(EGL_TRUE);
 }
 
 EGLBoolean ReleaseThread(void)
@@ -913,18 +919,46 @@ EGLBoolean WaitGL(void)
 {
 	TRACE("()");
 
-	UNIMPLEMENTED();   // FIXME
+	// glWaitGL is ignored if there is no current EGL rendering context for OpenGL ES.
+	egl::Context *context = egl::getCurrentContext();
 
-	return success(EGL_FALSE);
+	if(context)
+	{
+		context->finish();
+	}
+
+	return success(EGL_TRUE);
 }
 
 EGLBoolean WaitNative(EGLint engine)
 {
 	TRACE("(EGLint engine = %d)", engine);
 
-	UNIMPLEMENTED();   // FIXME
+	if(engine != EGL_CORE_NATIVE_ENGINE)
+	{
+		return error(EGL_BAD_PARAMETER, EGL_FALSE);
+	}
 
-	return success(EGL_FALSE);
+	// eglWaitNative is ignored if there is no current EGL rendering context.
+	egl::Context *context = egl::getCurrentContext();
+
+	if(context)
+	{
+		#if defined(__linux__)
+			egl::Display *display = context->getDisplay();
+
+			if(!display)
+			{
+				return error(EGL_BAD_DISPLAY, EGL_FALSE);
+			}
+
+			libX11->XSync((::Display*)display->getNativeDisplay(), False);
+		#else
+			UNIMPLEMENTED();
+		#endif
+	}
+
+	return success(EGL_TRUE);
 }
 
 EGLBoolean SwapBuffers(EGLDisplay dpy, EGLSurface surface)
