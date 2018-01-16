@@ -251,7 +251,7 @@ namespace es2
 
 	egl::Image *Device::createDepthStencilSurface(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool discard)
 	{
-		ASSERT(sw::Surface::isDepth(format));
+		ASSERT(sw::Surface::isDepth(format) || sw::Surface::isStencil(format));
 
 		if(height > OUTLINE_RESOLUTION)
 		{
