@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "d2c26a3a_24a33c5a",
+        "filename": "src/OpenGL/libGLESv2/Program.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 270,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-01-16T16:36:22Z",
+      "side": 1,
+      "message": "Note the (varying.qualifier \u003d\u003d EvqFragmentOut) check, so the name has to match a fragment output that\u0027s declared but doesn\u0027t have a register assigned to it. I don\u0027t think that\u0027s possible now, but if it is, we\u0027d have an issue.\n\nIn any case I don\u0027t think I\u0027m making things worse for glGetFragDataLocation() calls for existing variables (i.e. sane, validated calls).",
+      "parentUuid": "119baefc_503afb75",
+      "range": {
+        "startLine": 270,
+        "startChar": 6,
+        "endLine": 270,
+        "endChar": 41
+      },
+      "revId": "6a2505ac7b6b1f4857cffee583b198296becadd8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "42ea4ac7_d1667f33",
         "filename": "src/OpenGL/libGLESv2/Program.cpp",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2018-01-16T16:23:50Z",
       "side": 1,
       "message": "This skips \"matched \u003d true\" lower",
+      "range": {
+        "startLine": 1388,
+        "startChar": 0,
+        "endLine": 1388,
+        "endChar": 15
+      },
+      "revId": "6a2505ac7b6b1f4857cffee583b198296becadd8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "aa8a49a6_f6a8ffda",
+        "filename": "src/OpenGL/libGLESv2/Program.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1388,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-01-16T16:36:22Z",
+      "side": 1,
+      "message": "That\u0027s intentional. I don\u0027t consider a fragment input that\u0027s declared but not used to be matching any vertex output. Note that the only consequence of this interpretation is that the code below (line 1423+) has to explicitly enable the vertex output for transform feedback. And if we did set matched\u003dtrue, that would be skipped and we\u0027d lose the varying since it\u0027s not set at line 1407 either.",
+      "parentUuid": "42ea4ac7_d1667f33",
       "range": {
         "startLine": 1388,
         "startChar": 0,
