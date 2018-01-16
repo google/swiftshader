@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e79b4002_1b28c723",
+        "filename": "src/OpenGL/compiler/ParseHelper.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2126,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-01-16T18:13:38Z",
+      "side": 1,
+      "message": "We already have this exact error message in TParseContext::constructorErrorCheck(). Why are we not hitting that one? Or does it continue parsing and the constructor gets added anyway (in which case we probably generate the error twice)?",
+      "range": {
+        "startLine": 2126,
+        "startChar": 15,
+        "endLine": 2126,
+        "endChar": 95
+      },
+      "revId": "dd153a9fd1760a9aef2e75b2c6d13e59efa44a77",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
