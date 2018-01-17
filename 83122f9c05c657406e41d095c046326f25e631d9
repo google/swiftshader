@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "2d23d34c_8f99d1df",
+        "filename": "src/OpenGL/compiler/Compiler.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2018-01-17T16:39:15Z",
+      "side": 1,
+      "message": "Yeah, there were some conflicts. Might be doable, but not trivially.",
+      "parentUuid": "516e4996_69ad31cc",
+      "range": {
+        "startLine": 70,
+        "startChar": 3,
+        "endLine": 70,
+        "endChar": 82
+      },
+      "revId": "83122f9c05c657406e41d095c046326f25e631d9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "f20c91a4_5234f871",
         "filename": "src/OpenGL/compiler/Initialize.cpp",
         "patchSetId": 1
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "1b6de22c_41e6a2ed",
+        "filename": "src/OpenGL/compiler/Initialize.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 248,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2018-01-17T16:39:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f20c91a4_5234f871",
+      "range": {
+        "startLine": 246,
+        "startChar": 1,
+        "endLine": 248,
+        "endChar": 95
+      },
+      "revId": "83122f9c05c657406e41d095c046326f25e631d9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "cc7af114_8b24b36d",
         "filename": "src/OpenGL/compiler/glslang.y",
         "patchSetId": 1
@@ -68,6 +116,30 @@
       "revId": "83122f9c05c657406e41d095c046326f25e631d9",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7a7b964f_fe1dec21",
+        "filename": "src/OpenGL/compiler/glslang.y",
+        "patchSetId": 1
+      },
+      "lineNbr": 1239,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2018-01-17T16:39:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cc7af114_8b24b36d",
+      "range": {
+        "startLine": 1239,
+        "startChar": 13,
+        "endLine": 1239,
+        "endChar": 17
+      },
+      "revId": "83122f9c05c657406e41d095c046326f25e631d9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
