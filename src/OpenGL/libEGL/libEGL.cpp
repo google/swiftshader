@@ -944,7 +944,7 @@ EGLBoolean WaitNative(EGLint engine)
 
 	if(context)
 	{
-		#if defined(__linux__)
+		#if defined(__linux__) && !defined(__ANDROID__)
 			egl::Display *display = context->getDisplay();
 
 			if(!display)
