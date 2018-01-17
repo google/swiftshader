@@ -142,6 +142,7 @@ Context::Context(egl::Display *display, const Context *shareContext, EGLint clie
 	mTexture3DZero = new Texture3D(0);
 	mTexture2DArrayZero = new Texture2DArray(0);
 	mTextureCubeMapZero = new TextureCubeMap(0);
+	mTexture2DRectZero = new Texture2DRect(0);
 	mTextureExternalZero = new TextureExternal(0);
 
 	mState.activeSampler = 0;
@@ -262,6 +263,7 @@ Context::~Context()
 	mTexture3DZero = nullptr;
 	mTexture2DArrayZero = nullptr;
 	mTextureCubeMapZero = nullptr;
+	mTexture2DRectZero = nullptr;
 	mTextureExternalZero = nullptr;
 
 	delete mVertexDataManager;
@@ -1209,6 +1211,13 @@ void Context::bindTexture2DArray(GLuint texture)
 	mState.samplerTexture[TEXTURE_2D_ARRAY][mState.activeSampler] = getTexture(texture);
 }
 
+void Context::bindTexture2DRect(GLuint texture)
+{
+	mResourceManager->checkTextureAllocation(texture, TEXTURE_2D_RECT);
+
+	mState.samplerTexture[TEXTURE_2D_RECT][mState.activeSampler] = getTexture(texture);
+}
+
 void Context::bindReadFramebuffer(GLuint framebuffer)
 {
 	if(!getFramebuffer(framebuffer))
@@ -1681,6 +1690,19 @@ Texture2D *Context::getTexture2D() const
 	return static_cast<Texture2D*>(getSamplerTexture(mState.activeSampler, TEXTURE_2D));
 }
 
+Texture2D *Context::getTexture2D(GLenum target) const
+{
+	switch(target)
+	{
+	case GL_TEXTURE_2D:            return getTexture2D();
+	case GL_TEXTURE_RECTANGLE_ARB: return getTexture2DRect();
+	case GL_TEXTURE_EXTERNAL_OES:  return getTextureExternal();
+	default:                       UNREACHABLE(target);
+	}
+
+	return nullptr;
+}
+
 Texture3D *Context::getTexture3D() const
 {
 	return static_cast<Texture3D*>(getSamplerTexture(mState.activeSampler, TEXTURE_3D));
@@ -1694,6 +1716,11 @@ Texture2DArray *Context::getTexture2DArray() const
 TextureCubeMap *Context::getTextureCubeMap() const
 {
 	return static_cast<TextureCubeMap*>(getSamplerTexture(mState.activeSampler, TEXTURE_CUBE));
+}
+
+Texture2DRect *Context::getTexture2DRect() const
+{
+	return static_cast<Texture2DRect*>(getSamplerTexture(mState.activeSampler, TEXTURE_2D_RECT));
 }
 
 TextureExternal *Context::getTextureExternal() const
@@ -1713,6 +1740,7 @@ Texture *Context::getSamplerTexture(unsigned int sampler, TextureType type) cons
 		case TEXTURE_3D: return mTexture3DZero;
 		case TEXTURE_2D_ARRAY: return mTexture2DArrayZero;
 		case TEXTURE_CUBE: return mTextureCubeMapZero;
+		case TEXTURE_2D_RECT: return mTexture2DRectZero;
 		case TEXTURE_EXTERNAL: return mTextureExternalZero;
 		default: UNREACHABLE(type);
 		}
@@ -2112,6 +2140,15 @@ template<typename T> bool Context::getIntegerv(GLenum pname, T *params) const
 		}
 
 		*params = mState.samplerTexture[TEXTURE_CUBE][mState.activeSampler].name();
+		return true;
+	case GL_TEXTURE_BINDING_RECTANGLE_ARB:
+		if(mState.activeSampler > MAX_COMBINED_TEXTURE_IMAGE_UNITS - 1)
+		{
+			error(GL_INVALID_OPERATION);
+			return false;
+		}
+
+		*params = mState.samplerTexture[TEXTURE_2D_RECT][mState.activeSampler].name();
 		return true;
 	case GL_TEXTURE_BINDING_EXTERNAL_OES:
 		if(mState.activeSampler > MAX_COMBINED_TEXTURE_IMAGE_UNITS - 1)
@@ -2541,6 +2578,7 @@ bool Context::getQueryParameterInfo(GLenum pname, GLenum *type, unsigned int *nu
 	case GL_IMPLEMENTATION_COLOR_READ_FORMAT:
 	case GL_TEXTURE_BINDING_2D:
 	case GL_TEXTURE_BINDING_CUBE_MAP:
+	case GL_TEXTURE_BINDING_RECTANGLE_ARB:
 	case GL_TEXTURE_BINDING_EXTERNAL_OES:
 	case GL_TEXTURE_BINDING_3D_OES:
 	case GL_COPY_READ_BUFFER_BINDING:
@@ -3186,7 +3224,11 @@ void Context::applyTexture(sw::SamplerType type, int index, Texture *baseTexture
 		int baseLevel = baseTexture->getBaseLevel();
 		int maxLevel = std::min(baseTexture->getTopLevel(), baseTexture->getMaxLevel());
 
-		if(baseTexture->getTarget() == GL_TEXTURE_2D || baseTexture->getTarget() == GL_TEXTURE_EXTERNAL_OES)
+		switch(baseTexture->getTarget())
+		{
+		case GL_TEXTURE_2D:
+		case GL_TEXTURE_EXTERNAL_OES:
+		case GL_TEXTURE_RECTANGLE_ARB:
 		{
 			Texture2D *texture = static_cast<Texture2D*>(baseTexture);
 
@@ -3203,7 +3245,8 @@ void Context::applyTexture(sw::SamplerType type, int index, Texture *baseTexture
 				device->setTextureLevel(sampler, 0, mipmapLevel, surface, sw::TEXTURE_2D);
 			}
 		}
-		else if(baseTexture->getTarget() == GL_TEXTURE_3D)
+		break;
+		case GL_TEXTURE_3D:
 		{
 			Texture3D *texture = static_cast<Texture3D*>(baseTexture);
 
@@ -3220,7 +3263,8 @@ void Context::applyTexture(sw::SamplerType type, int index, Texture *baseTexture
 				device->setTextureLevel(sampler, 0, mipmapLevel, surface, sw::TEXTURE_3D);
 			}
 		}
-		else if(baseTexture->getTarget() == GL_TEXTURE_2D_ARRAY)
+		break;
+		case GL_TEXTURE_2D_ARRAY:
 		{
 			Texture2DArray *texture = static_cast<Texture2DArray*>(baseTexture);
 
@@ -3237,7 +3281,8 @@ void Context::applyTexture(sw::SamplerType type, int index, Texture *baseTexture
 				device->setTextureLevel(sampler, 0, mipmapLevel, surface, sw::TEXTURE_2D_ARRAY);
 			}
 		}
-		else if(baseTexture->getTarget() == GL_TEXTURE_CUBE_MAP)
+		break;
+		case GL_TEXTURE_CUBE_MAP:
 		{
 			TextureCubeMap *cubeTexture = static_cast<TextureCubeMap*>(baseTexture);
 
@@ -3259,7 +3304,11 @@ void Context::applyTexture(sw::SamplerType type, int index, Texture *baseTexture
 				}
 			}
 		}
-		else UNIMPLEMENTED();
+		break;
+		default:
+			UNIMPLEMENTED();
+			break;
+		}
 	}
 	else
 	{
@@ -4397,6 +4446,7 @@ const GLubyte *Context::getExtensions(GLuint index, GLuint *numExt) const
 		"GL_KHR_texture_compression_astc_hdr",
 		"GL_KHR_texture_compression_astc_ldr",
 #endif
+		"GL_ARB_texture_rectangle",
 		"GL_ANGLE_framebuffer_blit",
 		"GL_ANGLE_framebuffer_multisample",
 		"GL_ANGLE_instanced_arrays",

@@ -1153,6 +1153,7 @@ namespace es2
 				case GL_FLOAT_MAT4:   applyUniformMatrix4fv(device, location, size, f);   break;
 				case GL_SAMPLER_2D:
 				case GL_SAMPLER_CUBE:
+				case GL_SAMPLER_2D_RECT_ARB:
 				case GL_SAMPLER_EXTERNAL_OES:
 				case GL_SAMPLER_3D_OES:
 				case GL_SAMPLER_2D_ARRAY:
@@ -1761,6 +1762,7 @@ namespace es2
 						case GL_INT_SAMPLER_3D:
 						case GL_UNSIGNED_INT_SAMPLER_3D:
 						case GL_SAMPLER_3D_OES:       samplersVS[index].textureType = TEXTURE_3D;       break;
+						case GL_SAMPLER_2D_RECT_ARB:  samplersVS[index].textureType = TEXTURE_2D_RECT;  break;
 						case GL_SAMPLER_EXTERNAL_OES: samplersVS[index].textureType = TEXTURE_EXTERNAL; break;
 						case GL_INT_SAMPLER_2D_ARRAY:
 						case GL_UNSIGNED_INT_SAMPLER_2D_ARRAY:
@@ -1796,6 +1798,7 @@ namespace es2
 						case GL_INT_SAMPLER_3D:
 						case GL_UNSIGNED_INT_SAMPLER_3D:
 						case GL_SAMPLER_3D_OES:       samplersPS[index].textureType = TEXTURE_3D;       break;
+						case GL_SAMPLER_2D_RECT_ARB:  samplersPS[index].textureType = TEXTURE_2D_RECT;  break;
 						case GL_SAMPLER_EXTERNAL_OES: samplersPS[index].textureType = TEXTURE_EXTERNAL; break;
 						case GL_INT_SAMPLER_2D_ARRAY:
 						case GL_UNSIGNED_INT_SAMPLER_2D_ARRAY:

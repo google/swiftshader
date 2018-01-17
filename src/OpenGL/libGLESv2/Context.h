@@ -53,6 +53,7 @@ class Texture2D;
 class Texture3D;
 class Texture2DArray;
 class TextureCubeMap;
+class Texture2DRect;
 class TextureExternal;
 class Framebuffer;
 class Renderbuffer;
@@ -598,6 +599,7 @@ public:
 	void bindTextureExternal(GLuint texture);
 	void bindTexture3D(GLuint texture);
 	void bindTexture2DArray(GLuint texture);
+	void bindTexture2DRect(GLuint texture);
 	void bindReadFramebuffer(GLuint framebuffer);
 	void bindDrawFramebuffer(GLuint framebuffer);
 	void bindRenderbuffer(GLuint renderbuffer);
@@ -651,9 +653,11 @@ public:
 	bool getBuffer(GLenum target, es2::Buffer **buffer) const;
 	Program *getCurrentProgram() const;
 	Texture2D *getTexture2D() const;
+	Texture2D *getTexture2D(GLenum target) const;
 	Texture3D *getTexture3D() const;
 	Texture2DArray *getTexture2DArray() const;
 	TextureCubeMap *getTextureCubeMap() const;
+	Texture2DRect *getTexture2DRect() const;
 	TextureExternal *getTextureExternal() const;
 	Texture *getSamplerTexture(unsigned int sampler, TextureType type) const;
 	Framebuffer *getReadFramebuffer() const;
@@ -743,6 +747,7 @@ private:
 	gl::BindingPointer<Texture3D> mTexture3DZero;
 	gl::BindingPointer<Texture2DArray> mTexture2DArrayZero;
 	gl::BindingPointer<TextureCubeMap> mTextureCubeMapZero;
+	gl::BindingPointer<Texture2DRect> mTexture2DRectZero;
 	gl::BindingPointer<TextureExternal> mTextureExternalZero;
 
 	gl::NameSpace<Framebuffer> mFramebufferNameSpace;

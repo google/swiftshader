@@ -297,7 +297,8 @@ namespace sw
 			// FIXME: YUV is not supported by the floating point path
 			bool forceFloatFiltering = state.highPrecisionFiltering && !hasYuvFormat() && (state.textureFilter != FILTER_POINT);
 			bool seamlessCube = (state.addressingModeU == ADDRESSING_SEAMLESS);
-			if(hasFloatTexture() || hasUnnormalizedIntegerTexture() || forceFloatFiltering || seamlessCube)   // FIXME: Mostly identical to integer sampling
+			bool rectangleTexture = (function == Rectangle);
+			if(hasFloatTexture() || hasUnnormalizedIntegerTexture() || forceFloatFiltering || seamlessCube || rectangleTexture)   // FIXME: Mostly identical to integer sampling
 			{
 				Float4 uuuu = u;
 				Float4 vvvv = v;
@@ -2365,20 +2366,26 @@ namespace sw
 
 			Float4 coord = uvw;
 
-			switch(addressingMode)
+			if(function == Rectangle)
 			{
-			case ADDRESSING_CLAMP:
-			case ADDRESSING_BORDER:
-			case ADDRESSING_SEAMLESS:
-				// Linear filtering of cube doesn't require clamping because the coordinates
-				// are already in [0, 1] range and numerical imprecision is tolerated.
-				if(addressingMode != ADDRESSING_SEAMLESS || pointFilter)
+				coord = Min(Max(coord, Float4(0.0f)), Float4(dim - Int4(1)));
+			}
+			else
+			{
+				switch(addressingMode)
 				{
-					Float4 one = As<Float4>(Int4(oneBits));
-					coord = Min(Max(coord, Float4(0.0f)), one);
-				}
-				break;
-			case ADDRESSING_MIRROR:
+				case ADDRESSING_CLAMP:
+				case ADDRESSING_BORDER:
+				case ADDRESSING_SEAMLESS:
+					// Linear filtering of cube doesn't require clamping because the coordinates
+					// are already in [0, 1] range and numerical imprecision is tolerated.
+					if(addressingMode != ADDRESSING_SEAMLESS || pointFilter)
+					{
+						Float4 one = As<Float4>(Int4(oneBits));
+						coord = Min(Max(coord, Float4(0.0f)), one);
+					}
+					break;
+				case ADDRESSING_MIRROR:
 				{
 					Float4 half = As<Float4>(Int4(halfBits));
 					Float4 one = As<Float4>(Int4(oneBits));
@@ -2386,7 +2393,7 @@ namespace sw
 					coord = one - Abs(two * Frac(coord * half) - one);
 				}
 				break;
-			case ADDRESSING_MIRRORONCE:
+				case ADDRESSING_MIRRORONCE:
 				{
 					Float4 half = As<Float4>(Int4(halfBits));
 					Float4 one = As<Float4>(Int4(oneBits));
@@ -2394,22 +2401,23 @@ namespace sw
 					coord = one - Abs(two * Frac(Min(Max(coord, -one), two) * half) - one);
 				}
 				break;
-			default:   // Wrap
-				coord = Frac(coord);
-				break;
+				default:   // Wrap
+					coord = Frac(coord);
+					break;
+				}
+
+				coord = coord * Float4(dim);
 			}
 
-			coord = coord * Float4(dim);
-
 			if(state.textureFilter == FILTER_POINT ||
-               state.textureFilter == FILTER_GATHER)
- 			{
+			   state.textureFilter == FILTER_GATHER)
+			{
 				xyz0 = Int4(coord);
 			}
 			else
 			{
 				if(state.textureFilter == FILTER_MIN_POINT_MAG_LINEAR ||
-            	   state.textureFilter == FILTER_MIN_LINEAR_MAG_POINT)
+				   state.textureFilter == FILTER_MIN_LINEAR_MAG_POINT)
 				{
 					coord -= As<Float4>(As<Int4>(Float4(0.5f)) & filter);
 				}

@@ -22,6 +22,7 @@
 #include "mathutil.h"
 #include "Framebuffer.h"
 #include "Device.hpp"
+#include "Shader.h"
 #include "libEGL/Display.h"
 #include "common/Surface.hpp"
 #include "common/debug.h"
@@ -577,25 +578,25 @@ GLenum Texture2D::getTarget() const
 
 GLsizei Texture2D::getWidth(GLenum target, GLint level) const
 {
-	ASSERT(target == GL_TEXTURE_2D);
+	ASSERT(target == getTarget());
 	return image[level] ? image[level]->getWidth() : 0;
 }
 
 GLsizei Texture2D::getHeight(GLenum target, GLint level) const
 {
-	ASSERT(target == GL_TEXTURE_2D);
+	ASSERT(target == getTarget());
 	return image[level] ? image[level]->getHeight() : 0;
 }
 
 GLenum Texture2D::getFormat(GLenum target, GLint level) const
 {
-	ASSERT(target == GL_TEXTURE_2D);
+	ASSERT(target == getTarget());
 	return image[level] ? image[level]->getFormat() : GL_NONE;
 }
 
 GLenum Texture2D::getType(GLenum target, GLint level) const
 {
-	ASSERT(target == GL_TEXTURE_2D);
+	ASSERT(target == getTarget());
 	return image[level] ? image[level]->getType() : GL_NONE;
 }
 
@@ -913,7 +914,7 @@ egl::Image *Texture2D::getImage(unsigned int level)
 
 Renderbuffer *Texture2D::getRenderbuffer(GLenum target, GLint level)
 {
-	if(target != GL_TEXTURE_2D)
+	if(target != getTarget())
 	{
 		return error(GL_INVALID_OPERATION, (Renderbuffer*)nullptr);
 	}
@@ -932,7 +933,7 @@ Renderbuffer *Texture2D::getRenderbuffer(GLenum target, GLint level)
 
 egl::Image *Texture2D::getRenderTarget(GLenum target, unsigned int level)
 {
-	ASSERT(target == GL_TEXTURE_2D);
+	ASSERT(target == getTarget());
 	ASSERT(level < IMPLEMENTATION_MAX_TEXTURE_LEVELS);
 
 	if(image[level])
@@ -945,7 +946,7 @@ egl::Image *Texture2D::getRenderTarget(GLenum target, unsigned int level)
 
 bool Texture2D::isShared(GLenum target, unsigned int level) const
 {
-	ASSERT(target == GL_TEXTURE_2D);
+	ASSERT(target == getTarget());
 	ASSERT(level < IMPLEMENTATION_MAX_TEXTURE_LEVELS);
 
 	if(mSurface)   // Bound to an EGLSurface
@@ -959,6 +960,15 @@ bool Texture2D::isShared(GLenum target, unsigned int level) const
 	}
 
 	return image[level]->isShared();
+}
+
+Texture2DRect::Texture2DRect(GLuint name) : Texture2D(name)
+{
+}
+
+GLenum Texture2DRect::getTarget() const
+{
+	return GL_TEXTURE_RECTANGLE_ARB;
 }
 
 TextureCubeMap::TextureCubeMap(GLuint name) : Texture(name)

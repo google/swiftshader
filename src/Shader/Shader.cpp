@@ -904,6 +904,7 @@ namespace sw
 		case OPCODE_TEXELFETCHOFFSET: return "texelfetchoffset";
 		case OPCODE_TEXGRAD:         return "texgrad";
 		case OPCODE_TEXGRADOFFSET:   return "texgradoffset";
+		case OPCODE_TEXRECT:         return "texrect";
 		case OPCODE_BREAKP:          return "breakp";
 		case OPCODE_TEXSIZE:         return "texsize";
 		case OPCODE_PHASE:           return "phase";
@@ -1850,6 +1851,7 @@ namespace sw
 			case OPCODE_TEXELFETCHOFFSET:
 			case OPCODE_TEXGRAD:
 			case OPCODE_TEXGRADOFFSET:
+			case OPCODE_TEXRECT:
 				{
 					Parameter &dst = inst->dst;
 					Parameter &src1 = inst->src[1];

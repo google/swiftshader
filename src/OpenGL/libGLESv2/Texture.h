@@ -203,6 +203,14 @@ protected:
 	unsigned int mProxyRefs;
 };
 
+class Texture2DRect : public Texture2D
+{
+public:
+	explicit Texture2DRect(GLuint name);
+
+	GLenum getTarget() const override;
+};
+
 class TextureCubeMap : public Texture
 {
 public:

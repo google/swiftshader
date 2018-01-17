@@ -308,6 +308,10 @@ void ResourceManager::checkTextureAllocation(GLuint texture, TextureType type)
 		{
 			textureObject = new Texture2DArray(texture);
 		}
+		else if(type == TEXTURE_2D_RECT)
+		{
+			textureObject = new Texture2DRect(texture);
+		}
 		else
 		{
 			UNREACHABLE(type);

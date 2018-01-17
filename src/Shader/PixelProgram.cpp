@@ -297,6 +297,7 @@ namespace sw
 			case Shader::OPCODE_TEXGRADOFFSET: TEXGRADOFFSET(d, s0, src1, s2, s3, s4);     break;
 			case Shader::OPCODE_TEXBIAS:    TEXBIAS(d, s0, src1, s2.x);                    break;
 			case Shader::OPCODE_TEXOFFSETBIAS: TEXOFFSETBIAS(d, s0, src1, s2, s3.x);       break;
+			case Shader::OPCODE_TEXRECT:    TEXRECT(d, s0, src1);                          break;
 			case Shader::OPCODE_DISCARD:    DISCARD(cMask, instruction);                   break;
 			case Shader::OPCODE_DFDX:       DFDX(d, s0);                                   break;
 			case Shader::OPCODE_DFDY:       DFDY(d, s0);                                   break;
@@ -1176,6 +1177,11 @@ namespace sw
 	void PixelProgram::TEXLOD(Vector4f &dst, Vector4f &src0, const Src &src1, Float4 &lod)
 	{
 		dst = sampleTexture(src1, src0, lod, (src0), (src0), (src0), Lod);
+	}
+
+	void PixelProgram::TEXRECT(Vector4f &dst, Vector4f &src0, const Src &src1)
+	{
+		dst = sampleTexture(src1, src0, (src0.x), (src0), (src0), (src0), Rectangle);
 	}
 
 	void PixelProgram::TEXSIZE(Vector4f &dst, Float4 &lod, const Src &src1)

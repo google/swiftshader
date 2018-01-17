@@ -1222,7 +1222,7 @@ type_specifier_nonarray
         TQualifier qual = context->symbolTable.atGlobalLevel() ? EvqGlobal : EvqTemporary;
         $$.setBasic(EbtSamplerCube, qual, @1);
     }
-	| SAMPLER_EXTERNAL_OES {
+    | SAMPLER_EXTERNAL_OES {
         if (!context->supportsExtension("GL_OES_EGL_image_external")) {
             context->error(@1, "unsupported type", "samplerExternalOES", "");
             context->recover();
@@ -1230,6 +1230,15 @@ type_specifier_nonarray
         FRAG_VERT_ONLY("samplerExternalOES", @1);
         TQualifier qual = context->symbolTable.atGlobalLevel() ? EvqGlobal : EvqTemporary;
         $$.setBasic(EbtSamplerExternalOES, qual, @1);
+    }
+    | SAMPLER2DRECT {
+        if (!context->supportsExtension("GL_ARB_texture_rectangle")) {
+            context->error(@1, "unsupported type", "sampler2DRect", "");
+            context->recover();
+        }
+        FRAG_VERT_ONLY("sampler2DRect", @1);
+        TQualifier qual = context->symbolTable.atGlobalLevel() ? EvqGlobal : EvqTemporary;
+        $$.setBasic(EbtSampler2DRect, qual, @1);
     }
     | SAMPLER3D {
         FRAG_VERT_ONLY("sampler3D", @1);

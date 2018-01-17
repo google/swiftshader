@@ -20,6 +20,7 @@
 #include "main.h"
 #include "mathutil.h"
 #include "Context.h"
+#include "Shader.h"
 #include "common/debug.h"
 
 #include <limits>
@@ -183,6 +184,7 @@ namespace es2
 		case GL_UNSIGNED_INT:
 		case GL_SAMPLER_2D:
 		case GL_SAMPLER_CUBE:
+		case GL_SAMPLER_2D_RECT_ARB:
 		case GL_SAMPLER_EXTERNAL_OES:
 		case GL_SAMPLER_3D_OES:
 		case GL_SAMPLER_2D_ARRAY:
@@ -260,6 +262,7 @@ namespace es2
 		case GL_INT:
 		case GL_SAMPLER_2D:
 		case GL_SAMPLER_CUBE:
+		case GL_SAMPLER_2D_RECT_ARB:
 		case GL_SAMPLER_EXTERNAL_OES:
 		case GL_SAMPLER_3D_OES:
 		case GL_SAMPLER_2D_ARRAY:
@@ -309,6 +312,7 @@ namespace es2
 		{
 		case GL_SAMPLER_2D:
 		case GL_SAMPLER_CUBE:
+		case GL_SAMPLER_2D_RECT_ARB:
 		case GL_SAMPLER_EXTERNAL_OES:
 		case GL_SAMPLER_3D_OES:
 		case GL_SAMPLER_2D_ARRAY:
@@ -353,6 +357,7 @@ namespace es2
 		case GL_UNSIGNED_INT_VEC4:
 		case GL_SAMPLER_2D:
 		case GL_SAMPLER_CUBE:
+		case GL_SAMPLER_2D_RECT_ARB:
 		case GL_SAMPLER_EXTERNAL_OES:
 		case GL_SAMPLER_3D_OES:
 		case GL_SAMPLER_2D_ARRAY:
@@ -771,7 +776,7 @@ namespace es2
 
 	bool IsTextureTarget(GLenum target)
 	{
-		return target == GL_TEXTURE_2D || IsCubemapTextureTarget(target) || target == GL_TEXTURE_3D || target == GL_TEXTURE_2D_ARRAY;
+		return target == GL_TEXTURE_2D || IsCubemapTextureTarget(target) || target == GL_TEXTURE_3D || target == GL_TEXTURE_2D_ARRAY || target == GL_TEXTURE_RECTANGLE_ARB;
 	}
 
 	GLenum ValidateTextureFormatType(GLenum format, GLenum type, GLint internalformat, GLint clientVersion)

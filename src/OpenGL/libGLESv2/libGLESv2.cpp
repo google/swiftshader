@@ -389,6 +389,9 @@ void BindTexture(GLenum target, GLuint texture)
 		case GL_TEXTURE_3D:
 			context->bindTexture3D(texture);
 			break;
+		case GL_TEXTURE_RECTANGLE_ARB:
+			context->bindTexture2DRect(texture);
+			break;
 		default:
 			return error(GL_INVALID_ENUM);
 		}
@@ -836,6 +839,7 @@ void CompressedTexImage2D(GLenum target, GLint level, GLenum internalformat, GLs
 		switch(target)
 		{
 		case GL_TEXTURE_2D:
+		case GL_TEXTURE_RECTANGLE_ARB:
 			if(width > (es2::IMPLEMENTATION_MAX_TEXTURE_SIZE >> level) ||
 			   height > (es2::IMPLEMENTATION_MAX_TEXTURE_SIZE >> level))
 			{
@@ -868,9 +872,9 @@ void CompressedTexImage2D(GLenum target, GLint level, GLenum internalformat, GLs
 			return error(GL_INVALID_VALUE);
 		}
 
-		if(target == GL_TEXTURE_2D)
+		if(target == GL_TEXTURE_2D || target == GL_TEXTURE_RECTANGLE_ARB)
 		{
-			es2::Texture2D *texture = context->getTexture2D();
+			es2::Texture2D *texture = context->getTexture2D(target);
 
 			if(!texture)
 			{
@@ -958,9 +962,9 @@ void CompressedTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yo
 
 		GLenum sizedInternalFormat = GetSizedInternalFormat(format, GL_NONE);
 
-		if(target == GL_TEXTURE_2D)
+		if(target == GL_TEXTURE_2D || target == GL_TEXTURE_RECTANGLE_ARB)
 		{
-			es2::Texture2D *texture = context->getTexture2D();
+			es2::Texture2D *texture = context->getTexture2D(target);
 
 			GLenum validationError = ValidateSubImageParams(true, false, target, level, xoffset, yoffset, width, height, format, GL_NONE, texture, context->getClientVersion());
 			if(validationError != GL_NONE)
@@ -1021,6 +1025,7 @@ void CopyTexImage2D(GLenum target, GLint level, GLenum internalformat, GLint x, 
 		switch(target)
 		{
 		case GL_TEXTURE_2D:
+		case GL_TEXTURE_RECTANGLE_ARB:
 			if(width > (es2::IMPLEMENTATION_MAX_TEXTURE_SIZE >> level) ||
 			   height > (es2::IMPLEMENTATION_MAX_TEXTURE_SIZE >> level))
 			{
@@ -1069,9 +1074,9 @@ void CopyTexImage2D(GLenum target, GLint level, GLenum internalformat, GLint x, 
 			return;
 		}
 
-		if(target == GL_TEXTURE_2D)
+		if(target == GL_TEXTURE_2D || target == GL_TEXTURE_RECTANGLE_ARB)
 		{
-			es2::Texture2D *texture = context->getTexture2D();
+			es2::Texture2D *texture = context->getTexture2D(target);
 
 			if(!texture)
 			{
@@ -1141,9 +1146,9 @@ void CopyTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset,
 
 		es2::Texture *texture = nullptr;
 
-		if(target == GL_TEXTURE_2D)
+		if(target == GL_TEXTURE_2D || target == GL_TEXTURE_RECTANGLE_ARB)
 		{
-			texture = context->getTexture2D();
+			texture = context->getTexture2D(target);
 		}
 		else if(es2::IsCubemapTextureTarget(target))
 		{
@@ -2097,6 +2102,12 @@ void FramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, GL
 					return error(GL_INVALID_OPERATION);
 				}
 				break;
+			case GL_TEXTURE_RECTANGLE_ARB:
+				if(tex->getTarget() != GL_TEXTURE_RECTANGLE_ARB)
+				{
+					return error(GL_INVALID_OPERATION);
+				}
+				break;
 			case GL_TEXTURE_CUBE_MAP_POSITIVE_X:
 			case GL_TEXTURE_CUBE_MAP_NEGATIVE_X:
 			case GL_TEXTURE_CUBE_MAP_POSITIVE_Y:
@@ -2284,6 +2295,9 @@ void GenerateMipmap(GLenum target)
 			break;
 		case GL_TEXTURE_3D:
 			texture = context->getTexture3D();
+			break;
+		case GL_TEXTURE_RECTANGLE_ARB:
+			texture = context->getTexture2DRect();
 			break;
 		default:
 			return error(GL_INVALID_ENUM);
@@ -3588,6 +3602,9 @@ void GetTexParameterfv(GLenum target, GLenum pname, GLfloat* params)
 		case GL_TEXTURE_3D:
 			texture = context->getTexture3D();
 			break;
+		case GL_TEXTURE_RECTANGLE_ARB:
+			texture = context->getTexture2DRect();
+			break;
 		default:
 			return error(GL_INVALID_ENUM);
 		}
@@ -3740,6 +3757,9 @@ void GetTexParameteriv(GLenum target, GLenum pname, GLint* params)
 			break;
 		case GL_TEXTURE_3D:
 			texture = context->getTexture3D();
+			break;
+		case GL_TEXTURE_RECTANGLE_ARB:
+			texture = context->getTexture2DRect();
 			break;
 		default:
 			return error(GL_INVALID_ENUM);
@@ -5042,6 +5062,7 @@ void TexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width,
 		switch(target)
 		{
 		case GL_TEXTURE_2D:
+		case GL_TEXTURE_RECTANGLE_ARB:
 			if(width > (es2::IMPLEMENTATION_MAX_TEXTURE_SIZE >> level) ||
 			   height > (es2::IMPLEMENTATION_MAX_TEXTURE_SIZE >> level))
 			{
@@ -5077,9 +5098,9 @@ void TexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width,
 			return error(validationError);
 		}
 
-		if(target == GL_TEXTURE_2D)
+		if(target == GL_TEXTURE_2D || target == GL_TEXTURE_RECTANGLE_ARB)
 		{
-			es2::Texture2D *texture = context->getTexture2D();
+			es2::Texture2D *texture = context->getTexture2D(target);
 
 			if(!texture)
 			{
@@ -5137,6 +5158,9 @@ void TexParameterf(GLenum target, GLenum pname, GLfloat param)
 			break;
 		case GL_TEXTURE_EXTERNAL_OES:
 			texture = context->getTextureExternal();
+			break;
+		case GL_TEXTURE_RECTANGLE_ARB:
+			texture = context->getTexture2DRect();
 			break;
 		default:
 			return error(GL_INVALID_ENUM);
@@ -5287,6 +5311,9 @@ void TexParameteri(GLenum target, GLenum pname, GLint param)
 		case GL_TEXTURE_EXTERNAL_OES:
 			texture = context->getTextureExternal();
 			break;
+		case GL_TEXTURE_RECTANGLE_ARB:
+			texture = context->getTexture2DRect();
+			break;
 		default:
 			return error(GL_INVALID_ENUM);
 		}
@@ -5432,9 +5459,9 @@ void TexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLs
 
 	if(context)
 	{
-		if(target == GL_TEXTURE_2D)
+		if(target == GL_TEXTURE_2D || target == GL_TEXTURE_RECTANGLE_ARB)
 		{
-			es2::Texture2D *texture = context->getTexture2D();
+			es2::Texture2D *texture = context->getTexture2D(target);
 
 			GLenum validationError = ValidateSubImageParams(false, false, target, level, xoffset, yoffset, width, height, format, type, texture, context->getClientVersion());
 			if(validationError != GL_NONE)
@@ -6676,6 +6703,7 @@ void EGLImageTargetTexture2DOES(GLenum target, GLeglImageOES image)
 	switch(target)
 	{
 	case GL_TEXTURE_2D:
+	case GL_TEXTURE_RECTANGLE_ARB:
 	case GL_TEXTURE_EXTERNAL_OES:
 		break;
 	default:
@@ -6686,14 +6714,7 @@ void EGLImageTargetTexture2DOES(GLenum target, GLeglImageOES image)
 
 	if(context)
 	{
-		es2::Texture2D *texture = nullptr;
-
-		switch(target)
-		{
-		case GL_TEXTURE_2D:           texture = context->getTexture2D();       break;
-		case GL_TEXTURE_EXTERNAL_OES: texture = context->getTextureExternal(); break;
-		default:                      UNREACHABLE(target);
-		}
+		es2::Texture2D *texture = context->getTexture2D(target);
 
 		if(!texture)
 		{

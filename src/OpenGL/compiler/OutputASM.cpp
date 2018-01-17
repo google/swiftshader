@@ -139,6 +139,8 @@ namespace
 			return GL_UNSIGNED_INT_SAMPLER_2D;
 		case EbtSamplerCube:
 			return GL_SAMPLER_CUBE;
+		case EbtSampler2DRect:
+			return GL_SAMPLER_2D_RECT_ARB;
 		case EbtISamplerCube:
 			return GL_INT_SAMPLER_CUBE;
 		case EbtUSamplerCube:
@@ -496,6 +498,15 @@ namespace glsl
 			method = GRAD;
 			proj = true;
 			offset = true;
+		}
+		else if(name == "texture2DRect")
+		{
+			method = RECT;
+		}
+		else if(name == "texture2DRectProj")
+		{
+			method = RECT;
+			proj = true;
 		}
 		else UNREACHABLE(0);
 	}
@@ -1463,6 +1474,9 @@ namespace glsl
 							emit(sw::Shader::OPCODE_TEXGRADOFFSET, result, &coord, s, arg[2], arg[3], arg[4]);
 						}
 						else UNREACHABLE(argumentCount);
+						break;
+					case TextureFunction::RECT:
+						emit(sw::Shader::OPCODE_TEXRECT, result, &coord, s);
 						break;
 					case TextureFunction::SIZE:
 						emit(sw::Shader::OPCODE_TEXSIZE, result, arg[1], s);

@@ -64,6 +64,7 @@ enum TBasicType : unsigned char
 	EbtSampler3D,
 	EbtSamplerCube,
 	EbtSampler2DArray,
+	EbtSampler2DRect,       // Only valid if ARB_texture_rectangle exists.
 	EbtSamplerExternalOES,  // Only valid if OES_EGL_image_external exists.
 	EbtISampler2D,
 	EbtISampler3D,
@@ -113,6 +114,7 @@ inline const char *getBasicString(TBasicType type)
 	case EbtBool:               return "bool";
 	case EbtSampler2D:          return "sampler2D";
 	case EbtSamplerCube:        return "samplerCube";
+	case EbtSampler2DRect:      return "sampler2DRect";
 	case EbtSamplerExternalOES: return "samplerExternalOES";
 	case EbtSampler3D:			return "sampler3D";
 	case EbtStruct:             return "structure";
@@ -164,6 +166,7 @@ inline bool IsIntegerSampler(TBasicType type)
 	case EbtSampler2D:
 	case EbtSampler3D:
 	case EbtSamplerCube:
+	case EbtSampler2DRect:
 	case EbtSamplerExternalOES:
 	case EbtSampler2DArray:
 	case EbtSampler2DShadow:
@@ -187,6 +190,7 @@ inline bool IsSampler2D(TBasicType type)
 	case EbtSampler2DArray:
 	case EbtISampler2DArray:
 	case EbtUSampler2DArray:
+	case EbtSampler2DRect:
 	case EbtSamplerExternalOES:
 	case EbtSampler2DShadow:
 	case EbtSampler2DArrayShadow:
@@ -217,6 +221,7 @@ inline bool IsSamplerCube(TBasicType type)
 		return true;
 	case EbtSampler2D:
 	case EbtSampler3D:
+	case EbtSampler2DRect:
 	case EbtSamplerExternalOES:
 	case EbtSampler2DArray:
 	case EbtISampler2D:
@@ -245,6 +250,7 @@ inline bool IsSampler3D(TBasicType type)
 		return true;
 	case EbtSampler2D:
 	case EbtSamplerCube:
+	case EbtSampler2DRect:
 	case EbtSamplerExternalOES:
 	case EbtSampler2DArray:
 	case EbtISampler2D:
@@ -276,6 +282,7 @@ inline bool IsSamplerArray(TBasicType type)
 	case EbtSampler2D:
 	case EbtISampler2D:
 	case EbtUSampler2D:
+	case EbtSampler2DRect:
 	case EbtSamplerExternalOES:
 	case EbtSampler3D:
 	case EbtISampler3D:
@@ -312,6 +319,7 @@ inline bool IsShadowSampler(TBasicType type)
 	case EbtSampler2D:
 	case EbtSampler3D:
 	case EbtSamplerCube:
+	case EbtSampler2DRect:
 	case EbtSamplerExternalOES:
 	case EbtSampler2DArray:
 		return false;

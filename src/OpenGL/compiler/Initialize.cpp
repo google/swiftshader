@@ -243,6 +243,15 @@ void InsertBuiltInFunctions(GLenum type, const ShBuiltInResources &resources, TS
 	symbolTable.insertBuiltIn(ESSL1_BUILTINS, float4, "textureCube", samplerCube, float3);
 	symbolTable.insertBuiltIn(ESSL1_BUILTINS, float4, "texture3D", sampler3D, float3);
 
+	if(resources.ARB_texture_rectangle)
+	{
+		TType *sampler2DRect = new TType(EbtSampler2DRect);
+
+		symbolTable.insertBuiltIn(ESSL1_BUILTINS, float4, "texture2DRect", sampler2DRect, float2);
+		symbolTable.insertBuiltIn(ESSL1_BUILTINS, float4, "texture2DRectProj", sampler2DRect, float3);
+		symbolTable.insertBuiltIn(ESSL1_BUILTINS, float4, "texture2DRectProj", sampler2DRect, float4);
+	}
+
 	if(resources.OES_EGL_image_external)
 	{
 		TType *samplerExternalOES = new TType(EbtSamplerExternalOES);
@@ -503,4 +512,6 @@ void InitExtensionBehavior(const ShBuiltInResources& resources,
 		extBehavior["GL_OES_EGL_image_external"] = EBhUndefined;
 	if(resources.EXT_draw_buffers)
 		extBehavior["GL_EXT_draw_buffers"] = EBhUndefined;
+	if(resources.ARB_texture_rectangle)
+		extBehavior["GL_ARB_texture_rectangle"] = EBhUndefined;
 }
