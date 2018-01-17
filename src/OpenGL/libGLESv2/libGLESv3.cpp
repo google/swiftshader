@@ -3766,6 +3766,12 @@ GL_APICALL void GL_APIENTRY glGetInternalformativ(GLenum target, GLenum internal
 		return;
 	}
 
+	// OpenGL ES 3.0, section 4.4.4: "An internal format is color-renderable if it is one of the formats
+	// from table 3.13 noted as color-renderable or if it is unsized format RGBA or RGB."
+	// Since we only use sized formats internally, replace them here (assuming type = GL_UNSIGNED_BYTE).
+	if(internalformat == GL_RGB)  internalformat = GL_RGB8;
+	if(internalformat == GL_RGBA) internalformat = GL_RGBA8;
+
 	if(!IsColorRenderable(internalformat, egl::getClientVersion()) &&
 	   !IsDepthRenderable(internalformat, egl::getClientVersion()) &&
 	   !IsStencilRenderable(internalformat, egl::getClientVersion()))
