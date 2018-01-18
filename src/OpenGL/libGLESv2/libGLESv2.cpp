@@ -5086,7 +5086,7 @@ void TexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width,
 				return error(GL_INVALID_OPERATION);
 			}
 
-			texture->setImage(context, level, width, height, sizedInternalFormat, type, context->getUnpackInfo(), data);
+			texture->setImage(context, level, width, height, sizedInternalFormat, format, type, context->getUnpackInfo(), data);
 		}
 		else
 		{
@@ -5097,7 +5097,7 @@ void TexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width,
 				return error(GL_INVALID_OPERATION);
 			}
 
-			texture->setImage(context, target, level, width, height, sizedInternalFormat, type, context->getUnpackInfo(), data);
+			texture->setImage(context, target, level, width, height, sizedInternalFormat, format, type, context->getUnpackInfo(), data);
 		}
 	}
 }
@@ -6309,7 +6309,7 @@ void TexImage3DOES(GLenum target, GLint level, GLenum internalformat, GLsizei wi
 			return error(validationError);
 		}
 
-		texture->setImage(context, level, width, height, depth, sizedInternalFormat, type, context->getUnpackInfo(), data);
+		texture->setImage(context, level, width, height, depth, sizedInternalFormat, format, type, context->getUnpackInfo(), data);
 	}
 }
 
