@@ -1520,6 +1520,23 @@ namespace glsl
 
 						component += size;
 					}
+					else if(!result->isMatrix()) // Construct a non matrix from a matrix
+					{
+						Instruction *mov = emitCast(result, arrayIndex, argi, 0);
+						mov->dst.mask = (0xF << swizzle) & 0xF;
+						mov->src[0].swizzle = readSwizzle(argi, size) << (swizzle * 2);
+
+						// At most one more instruction when constructing a vec3 from a mat2 or a vec4 from a mat2/mat3
+						if(result->getNominalSize() > size)
+						{
+							Instruction *mov = emitCast(result, arrayIndex, argi, 1);
+							mov->dst.mask = (0xF << (swizzle + size)) & 0xF;
+							// mat2: xxxy (0x40), mat3: xxxx (0x00)
+							mov->src[0].swizzle = ((size == 2) ? 0x40 : 0x00) << (swizzle * 2);
+						}
+
+						component += size;
+					}
 					else   // Matrix
 					{
 						int column = 0;
