@@ -4964,7 +4964,8 @@ void TexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width,
 		GLint clientVersion = context->getClientVersion();
 		if(clientVersion < 3)
 		{
-			if(internalformat != (GLint)format)
+			if((internalformat != (GLint)format) &&
+			   !((type == GL_FLOAT) && (format == GL_RGBA) && (internalformat == GL_RGBA32F))) // CHROMIUM_color_buffer_float_rgba
 			{
 				return error(GL_INVALID_OPERATION);
 			}
