@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d6d648d6_fed42c98",
+        "filename": "extensions/EMU_get_tex.txt",
+        "patchSetId": 24
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5870
+      },
+      "writtenOn": "2018-01-19T19:12:42Z",
+      "side": 1,
+      "message": "2018 :)",
+      "revId": "2197c31219729a31b4976989a4e6ea5a6f47e614",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
