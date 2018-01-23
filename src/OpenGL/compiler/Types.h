@@ -137,6 +137,8 @@ public:
 
 	bool equals(const TStructure &other) const;
 
+	void setMatrixPackingIfUnspecified(TLayoutMatrixPacking matrixPacking);
+
 	void setUniqueId(int uniqueId)
 	{
 		mUniqueId = uniqueId;
@@ -281,6 +283,21 @@ public:
 
 	TLayoutQualifier getLayoutQualifier() const { return layoutQualifier; }
 	void setLayoutQualifier(TLayoutQualifier lq) { layoutQualifier = lq; }
+
+	void setMatrixPackingIfUnspecified(TLayoutMatrixPacking matrixPacking)
+	{
+		if(isStruct())
+		{
+			// If the structure's matrix packing is specified, it overrules the block's matrix packing
+			structure->setMatrixPackingIfUnspecified((layoutQualifier.matrixPacking == EmpUnspecified) ?
+			                                         matrixPacking : layoutQualifier.matrixPacking);
+		}
+		// If the member's matrix packing is specified, it overrules any higher level matrix packing
+		if(layoutQualifier.matrixPacking == EmpUnspecified)
+		{
+			layoutQualifier.matrixPacking = matrixPacking;
+		}
+	}
 
 	// One-dimensional size of single instance type
 	int getNominalSize() const { return primarySize; }

@@ -99,7 +99,7 @@ namespace glsl
 	class BlockLayoutEncoder
 	{
 	public:
-		BlockLayoutEncoder(bool rowMajor);
+		BlockLayoutEncoder();
 		virtual ~BlockLayoutEncoder() {}
 
 		BlockMemberInfo encodeType(const TType &type);
@@ -117,7 +117,6 @@ namespace glsl
 
 	protected:
 		size_t mCurrentOffset;
-		bool isRowMajor;
 
 		void nextRegister();
 
@@ -130,7 +129,7 @@ namespace glsl
 	class Std140BlockEncoder : public BlockLayoutEncoder
 	{
 	public:
-		Std140BlockEncoder(bool rowMajor);
+		Std140BlockEncoder();
 
 		void enterAggregateType() override;
 		void exitAggregateType() override;

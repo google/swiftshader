@@ -113,9 +113,9 @@ void TType::computeDeepestStructNesting()
 
 bool TStructure::containsArrays() const
 {
-	for(size_t i = 0; i < mFields->size(); ++i)
+	for(const auto& field : *mFields)
 	{
-		const TType *fieldType = (*mFields)[i]->type();
+		const TType *fieldType = field->type();
 		if(fieldType->isArray() || fieldType->isStructureContainingArrays())
 			return true;
 	}
@@ -124,9 +124,9 @@ bool TStructure::containsArrays() const
 
 bool TStructure::containsType(TBasicType type) const
 {
-	for(size_t i = 0; i < mFields->size(); ++i)
+	for(const auto& field : *mFields)
 	{
-		const TType *fieldType = (*mFields)[i]->type();
+		const TType *fieldType = field->type();
 		if(fieldType->getBasicType() == type || fieldType->isStructureContainingType(type))
 			return true;
 	}
@@ -135,23 +135,31 @@ bool TStructure::containsType(TBasicType type) const
 
 bool TStructure::containsSamplers() const
 {
-	for(size_t i = 0; i < mFields->size(); ++i)
+	for(const auto& field : *mFields)
 	{
-		const TType *fieldType = (*mFields)[i]->type();
+		const TType *fieldType = field->type();
 		if(IsSampler(fieldType->getBasicType()) || fieldType->isStructureContainingSamplers())
 			return true;
 	}
 	return false;
 }
 
+void TStructure::setMatrixPackingIfUnspecified(TLayoutMatrixPacking matrixPacking)
+{
+	for(auto& field : *mFields)
+	{
+		field->type()->setMatrixPackingIfUnspecified(matrixPacking);
+	}
+}
+
 TString TFieldListCollection::buildMangledName() const
 {
 	TString mangledName(mangledNamePrefix());
 	mangledName += *mName;
-	for(size_t i = 0; i < mFields->size(); ++i)
+	for(const auto& field : *mFields)
 	{
 		mangledName += '-';
-		mangledName += (*mFields)[i]->type()->getMangledName();
+		mangledName += field->type()->getMangledName();
 	}
 	return mangledName;
 }
@@ -159,9 +167,9 @@ TString TFieldListCollection::buildMangledName() const
 size_t TFieldListCollection::calculateObjectSize() const
 {
 	size_t size = 0;
-	for(size_t i = 0; i < mFields->size(); ++i)
+	for(const auto& field : *mFields)
 	{
-		size_t fieldSize = (*mFields)[i]->type()->getObjectSize();
+		size_t fieldSize = field->type()->getObjectSize();
 		if(fieldSize > INT_MAX - size)
 			size = INT_MAX;
 		else
@@ -173,8 +181,8 @@ size_t TFieldListCollection::calculateObjectSize() const
 int TStructure::calculateDeepestNesting() const
 {
 	int maxNesting = 0;
-	for(size_t i = 0; i < mFields->size(); ++i)
-		maxNesting = std::max(maxNesting, (*mFields)[i]->type()->getDeepestStructNesting());
+	for(const auto& field : *mFields)
+		maxNesting = std::max(maxNesting, field->type()->getDeepestStructNesting());
 	return 1 + maxNesting;
 }
 

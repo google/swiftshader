@@ -781,9 +781,8 @@ bool TParseContext::containsSampler(TType& type)
 		return true;
 
 	if (type.getBasicType() == EbtStruct || type.isInterfaceBlock()) {
-		const TFieldList& fields = type.getStruct()->fields();
-		for(unsigned int i = 0; i < fields.size(); ++i) {
-			if (containsSampler(*fields[i]->type()))
+		for(const auto &field : type.getStruct()->fields()) {
+			if (containsSampler(*(field->type())))
 				return true;
 		}
 	}
@@ -2296,11 +2295,11 @@ TIntermTyped* TParseContext::addConstStruct(const TString& identifier, TIntermTy
 	size_t instanceSize = 0;
 	TIntermConstantUnion *tempConstantNode = node->getAsConstantUnion();
 
-	for(size_t index = 0; index < fields.size(); ++index) {
-		if (fields[index]->name() == identifier) {
+	for(const auto &field : fields) {
+		if (field->name() == identifier) {
 			break;
 		} else {
-			instanceSize += fields[index]->type()->getObjectSize();
+			instanceSize += field->type()->getObjectSize();
 		}
 	}
 
@@ -2356,8 +2355,7 @@ TIntermAggregate* TParseContext::addInterfaceBlock(const TPublicType& typeQualif
 	}
 
 	// check for sampler types and apply layout qualifiers
-	for(size_t memberIndex = 0; memberIndex < fieldList->size(); ++memberIndex) {
-		TField* field = (*fieldList)[memberIndex];
+	for(const auto &field : *fieldList) {
 		TType* fieldType = field->type();
 		if(IsSampler(fieldType->getBasicType())) {
 			error(field->line(), "unsupported type", fieldType->getBasicString(), "sampler types are not allowed in interface blocks");
@@ -2399,6 +2397,9 @@ TIntermAggregate* TParseContext::addInterfaceBlock(const TPublicType& typeQualif
 		}
 
 		fieldType->setLayoutQualifier(fieldLayoutQualifier);
+
+		// Recursively propagate the matrix packing setting down to all block/structure members
+		fieldType->setMatrixPackingIfUnspecified(fieldLayoutQualifier.matrixPacking);
 	}
 
 	// add array index
@@ -2418,9 +2419,8 @@ TIntermAggregate* TParseContext::addInterfaceBlock(const TPublicType& typeQualif
 	if(!instanceName)
 	{
 		// define symbols for the members of the interface block
-		for(size_t memberIndex = 0; memberIndex < fieldList->size(); ++memberIndex)
+		for(const auto &field : *fieldList)
 		{
-			TField* field = (*fieldList)[memberIndex];
 			TType* fieldType = field->type();
 
 			// set parent pointer of the field variable
@@ -2925,12 +2925,12 @@ TFieldList *TParseContext::addStructDeclaratorList(const TPublicType &typeSpecif
 		recover();
 	}
 
-	for(unsigned int i = 0; i < fieldList->size(); ++i)
+	for(const auto &field : *fieldList)
 	{
 		//
 		// Careful not to replace already known aspects of type, like array-ness
 		//
-		TType *type = (*fieldList)[i]->type();
+		TType *type = field->type();
 		type->setBasicType(typeSpecifier.type);
 		type->setNominalSize(typeSpecifier.primarySize);
 		type->setSecondarySize(typeSpecifier.secondarySize);
@@ -2951,7 +2951,7 @@ TFieldList *TParseContext::addStructDeclaratorList(const TPublicType &typeSpecif
 			type->setStruct(typeSpecifier.userDef->getStruct());
 		}
 
-		if(structNestingErrorCheck(typeSpecifier.line, *(*fieldList)[i]))
+		if(structNestingErrorCheck(typeSpecifier.line, *field))
 		{
 			recover();
 		}
@@ -2986,17 +2986,16 @@ TPublicType TParseContext::addStructure(const TSourceLoc &structLine, const TSou
 	}
 
 	// ensure we do not specify any storage qualifiers on the struct members
-	for(unsigned int typeListIndex = 0; typeListIndex < fieldList->size(); typeListIndex++)
+	for(const auto &field : *fieldList)
 	{
-		const TField &field = *(*fieldList)[typeListIndex];
-		const TQualifier qualifier = field.type()->getQualifier();
+		const TQualifier qualifier = field->type()->getQualifier();
 		switch(qualifier)
 		{
 		case EvqGlobal:
 		case EvqTemporary:
 			break;
 		default:
-			error(field.line(), "invalid qualifier on struct member", getQualifierString(qualifier));
+			error(field->line(), "invalid qualifier on struct member", getQualifierString(qualifier));
 			recover();
 			break;
 		}
