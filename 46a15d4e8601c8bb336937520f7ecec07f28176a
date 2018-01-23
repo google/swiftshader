@@ -22,6 +22,30 @@
       "revId": "46a15d4e8601c8bb336937520f7ecec07f28176a",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "54621db1_e6e3f388",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-01-23T21:44:37Z",
+      "side": 1,
+      "message": "Probably not, for now, because that change handles both sized an unsized formats.\n\nI\u0027m working on correcting the proper distinction between the two though, and eventually the vast majority of formats could be handled with single memcpy() call and Image.cpp would be much smaller and easier to maintain.\n\nI think either we could update the android-emulator-current-release branch with the latest code and your patch merged in, so I can continue to refactor on the master branch until we have a simple glGetTexImage implementation, or we could land the patch in master and I\u0027ll refactor it together with the rest of the file (but potentially break something). It would be great if we had a proper extension spec for it and unit tests.",
+      "parentUuid": "41f0c460_e43e82d6",
+      "range": {
+        "startLine": 16,
+        "startChar": 0,
+        "endLine": 17,
+        "endChar": 52
+      },
+      "revId": "46a15d4e8601c8bb336937520f7ecec07f28176a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
