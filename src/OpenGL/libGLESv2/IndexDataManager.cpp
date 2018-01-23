@@ -65,7 +65,8 @@ void copyIndices(GLenum type, const void *input, GLsizei count, void *output)
 
 inline GLsizei getNumIndices(const std::vector<GLsizei>& restartIndices, size_t i, GLsizei count)
 {
-	return (i == 0) ? restartIndices[0] : ((i == restartIndices.size()) ? (count - restartIndices[i - 1] - 1) : (restartIndices[i] - restartIndices[i - 1] - 1));
+	return restartIndices.empty() ? count :
+	       ((i == 0) ? restartIndices[0] : ((i == restartIndices.size()) ? (count - restartIndices[i - 1] - 1) : (restartIndices[i] - restartIndices[i - 1] - 1)));
 }
 
 void copyIndices(GLenum mode, GLenum type, const std::vector<GLsizei>& restartIndices, const void *input, GLsizei count, void* output)
@@ -290,11 +291,6 @@ GLenum IndexDataManager::prepareIndexData(GLenum mode, GLenum type, GLuint start
 
 	std::vector<GLsizei>* restartIndices = primitiveRestart ? new std::vector<GLsizei>() : nullptr;
 	computeRange(type, indices, count, &translated->minIndex, &translated->maxIndex, restartIndices);
-	if(restartIndices && restartIndices->empty())
-	{
-		delete restartIndices;
-		restartIndices = nullptr;
-	}
 
 	StreamingIndexBuffer *streamingBuffer = mStreamingBuffer;
 
