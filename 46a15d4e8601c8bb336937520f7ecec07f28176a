@@ -46,6 +46,30 @@
       "revId": "46a15d4e8601c8bb336937520f7ecec07f28176a",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d35b927d_4b32c138",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5545
+      },
+      "writtenOn": "2018-01-23T22:39:57Z",
+      "side": 1,
+      "message": "I see, thanks for the clarification!\n\nI like the idea of updating (i guess by snapping) teh android-emulator-current-release to master ToT, then applying the not-so-simple glGetTexImage patch on it.\n\nYeah it would be cool if Swiftshader could eventually have glGetTexImage in its Final Form, maybe according to the GL 4.5 core spec. Let\u0027s catch up on that later after this format/type refactoring, I guess?",
+      "parentUuid": "54621db1_e6e3f388",
+      "range": {
+        "startLine": 16,
+        "startChar": 0,
+        "endLine": 17,
+        "endChar": 52
+      },
+      "revId": "46a15d4e8601c8bb336937520f7ecec07f28176a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
