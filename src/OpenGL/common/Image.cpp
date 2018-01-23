@@ -44,7 +44,6 @@ namespace
 		UShortRGB,
 		IntRGB,
 		UIntRGB,
-		RGB565,
 		FloatRGB,
 		HalfFloatRGB,
 		RGBA4444,
@@ -182,12 +181,6 @@ namespace
 			destI[4 * x + 2] = sourceI[x * 3 + 2];
 			destI[4 * x + 3] = 0xFFFFFFFF;
 		}
-	}
-
-	template<>
-	void LoadImageRow<RGB565>(const unsigned char *source, unsigned char *dest, GLint xoffset, GLsizei width)
-	{
-		memcpy(dest + xoffset * 2, source, width * 2);
 	}
 
 	template<>
@@ -1229,383 +1222,200 @@ namespace egl
 
 			if(buffer)
 			{
-				switch(type)
+				// OpenGL ES 3.0.5 table 3.2.
+				switch(format)
 				{
-				case GL_BYTE:
-					switch(format)
+				case GL_RED:
+				case GL_RED_INTEGER:
+				case GL_ALPHA:
+				case GL_LUMINANCE:
+					switch(type)
 					{
-					case GL_R8:
-					case GL_R8I:
-					case GL_R8_SNORM:
-					case GL_RED:
-					case GL_RED_INTEGER:
-					case GL_ALPHA:
-					case GL_ALPHA8_EXT:
-					case GL_LUMINANCE:
-					case GL_LUMINANCE8_EXT:
+					case GL_BYTE:
+					case GL_UNSIGNED_BYTE:
 						LoadImageData<Bytes_1>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
 						break;
-					case GL_RG8:
-					case GL_RG8I:
-					case GL_RG8_SNORM:
-					case GL_RG:
-					case GL_RG_INTEGER:
-					case GL_LUMINANCE_ALPHA:
-					case GL_LUMINANCE8_ALPHA8_EXT:
+					case GL_FLOAT:
+						ASSERT(format != GL_RED_INTEGER);
+						LoadImageData<Bytes_4>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
+						break;
+					case GL_HALF_FLOAT:
+					case GL_HALF_FLOAT_OES:
+						ASSERT(format != GL_RED_INTEGER);
 						LoadImageData<Bytes_2>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
 						break;
-					case GL_RGB8:
-					case GL_RGB8I:
-					case GL_RGB8_SNORM:
-					case GL_RGB:
-					case GL_RGB_INTEGER:
+					case GL_SHORT:
+					case GL_UNSIGNED_SHORT:
+						LoadImageData<Bytes_2>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
+						break;
+					case GL_INT:
+					case GL_UNSIGNED_INT:
+						LoadImageData<Bytes_4>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
+						break;
+					default:
+						UNREACHABLE(type);
+					}
+					break;
+				case GL_RG:
+				case GL_RG_INTEGER:
+				case GL_LUMINANCE_ALPHA:
+					switch(type)
+					{
+					case GL_BYTE:
+					case GL_UNSIGNED_BYTE:
+						LoadImageData<Bytes_2>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
+						break;
+					case GL_FLOAT:
+						ASSERT(format != GL_RG_INTEGER);
+						LoadImageData<Bytes_8>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
+						break;
+					case GL_HALF_FLOAT:
+					case GL_HALF_FLOAT_OES:
+						ASSERT(format != GL_RG_INTEGER);
+						LoadImageData<Bytes_4>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
+						break;
+					case GL_SHORT:
+					case GL_UNSIGNED_SHORT:
+						LoadImageData<Bytes_4>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
+						break;
+					case GL_INT:
+					case GL_UNSIGNED_INT:
+						LoadImageData<Bytes_8>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
+						break;
+					default:
+						UNREACHABLE(type);
+					}
+					break;
+				case GL_RGB:
+				case GL_RGB_INTEGER:
+					switch(type)
+					{
+					case GL_BYTE:
 						LoadImageData<ByteRGB>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
 						break;
-					case GL_RGBA8:
-					case GL_RGBA8I:
-					case GL_RGBA8_SNORM:
-					case GL_RGBA:
-					case GL_RGBA_INTEGER:
-					case GL_BGRA_EXT:
-					case GL_BGRA8_EXT:
-						LoadImageData<Bytes_4>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
-						break;
-					default: UNREACHABLE(format);
-					}
-					break;
-				case GL_UNSIGNED_BYTE:
-					switch(format)
-					{
-					case GL_R8:
-					case GL_R8UI:
-					case GL_R8_SNORM:
-					case GL_RED:
-					case GL_RED_INTEGER:
-					case GL_ALPHA:
-					case GL_ALPHA8_EXT:
-					case GL_LUMINANCE:
-					case GL_LUMINANCE8_EXT:
-						LoadImageData<Bytes_1>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
-						break;
-					case GL_RG8:
-					case GL_RG8UI:
-					case GL_RG8_SNORM:
-					case GL_RG:
-					case GL_RG_INTEGER:
-					case GL_LUMINANCE_ALPHA:
-					case GL_LUMINANCE8_ALPHA8_EXT:
-						LoadImageData<Bytes_2>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
-						break;
-					case GL_RGB8:
-					case GL_RGB8UI:
-					case GL_RGB8_SNORM:
-					case GL_RGB:
-					case GL_RGB_INTEGER:
-					case GL_SRGB8:
+					case GL_UNSIGNED_BYTE:
 						LoadImageData<UByteRGB>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
 						break;
-					case GL_RGBA8:
-					case GL_RGBA8UI:
-					case GL_RGBA8_SNORM:
-					case GL_RGBA:
-					case GL_RGBA_INTEGER:
-					case GL_BGRA_EXT:
-					case GL_BGRA8_EXT:
-					case GL_SRGB8_ALPHA8:
-						LoadImageData<Bytes_4>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
+					case GL_UNSIGNED_SHORT_5_6_5:
+						ASSERT(format == GL_RGB);
+						LoadImageData<Bytes_2>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
 						break;
-					default: UNREACHABLE(format);
-					}
-					break;
-				case GL_UNSIGNED_SHORT_5_6_5:
-					switch(format)
-					{
-					case GL_RGB565:
-					case GL_RGB:
-						LoadImageData<RGB565>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
-						break;
-					default: UNREACHABLE(format);
-					}
-					break;
-				case GL_UNSIGNED_SHORT_4_4_4_4:
-					switch(format)
-					{
-					case GL_RGBA4:
-					case GL_RGBA:
-						LoadImageData<RGBA4444>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
-						break;
-					default: UNREACHABLE(format);
-					}
-					break;
-				case GL_UNSIGNED_SHORT_5_5_5_1:
-					switch(format)
-					{
-					case GL_RGB5_A1:
-					case GL_RGBA:
-						LoadImageData<RGBA5551>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
-						break;
-					default: UNREACHABLE(format);
-					}
-					break;
-				case GL_UNSIGNED_INT_10F_11F_11F_REV:
-					switch(format)
-					{
-					case GL_R11F_G11F_B10F:
-					case GL_RGB:
+					case GL_UNSIGNED_INT_10F_11F_11F_REV:
+						ASSERT(format == GL_RGB);
 						LoadImageData<R11G11B10F>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
 						break;
-					default: UNREACHABLE(format);
-					}
-					break;
-				case GL_UNSIGNED_INT_5_9_9_9_REV:
-					switch(format)
-					{
-					case GL_RGB9_E5:
-					case GL_RGB:
+					case GL_UNSIGNED_INT_5_9_9_9_REV:
+						ASSERT(format == GL_RGB);
 						LoadImageData<RGB9E5>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
 						break;
-					default: UNREACHABLE(format);
-					}
-					break;
-				case GL_UNSIGNED_INT_2_10_10_10_REV:
-					switch(format)
-					{
-					case GL_RGB10_A2UI:
-					case GL_RGB10_A2:
-					case GL_RGBA:
-					case GL_RGBA_INTEGER:
-						LoadImageData<Bytes_4>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
-						break;
-					default: UNREACHABLE(format);
-					}
-					break;
-				case GL_FLOAT:
-					switch(format)
-					{
-					// float textures are converted to RGBA, not BGRA
-					case GL_ALPHA:
-					case GL_ALPHA32F_EXT:
-						LoadImageData<Bytes_4>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
-						break;
-					case GL_LUMINANCE:
-					case GL_LUMINANCE32F_EXT:
-						LoadImageData<Bytes_4>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
-						break;
-					case GL_LUMINANCE_ALPHA:
-					case GL_LUMINANCE_ALPHA32F_EXT:
-						LoadImageData<Bytes_8>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
-						break;
-					case GL_RED:
-					case GL_R32F:
-						LoadImageData<Bytes_4>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
-						break;
-					case GL_RG:
-					case GL_RG32F:
-						LoadImageData<Bytes_8>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
-						break;
-					case GL_RGB:
-					case GL_RGB32F:
+					case GL_FLOAT:
+						ASSERT(format == GL_RGB);
 						LoadImageData<FloatRGB>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
 						break;
-					case GL_RGBA:
-					case GL_RGBA32F:
-						LoadImageData<Bytes_16>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
-						break;
-					case GL_R11F_G11F_B10F:
-						LoadImageData<R11G11B10F>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
-						break;
-					case GL_RGB9_E5:
-						LoadImageData<RGB9E5>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
-						break;
-					case GL_DEPTH_COMPONENT:
-					case GL_DEPTH_COMPONENT32F:
-						LoadImageData<D32F>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
-						break;
-					default: UNREACHABLE(format);
-					}
-					break;
-				case GL_HALF_FLOAT:
-				case GL_HALF_FLOAT_OES:
-					switch(format)
-					{
-					case GL_ALPHA:
-					case GL_ALPHA16F_EXT:
-						LoadImageData<Bytes_2>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
-						break;
-					case GL_LUMINANCE:
-					case GL_LUMINANCE16F_EXT:
-						LoadImageData<Bytes_2>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
-						break;
-					case GL_LUMINANCE_ALPHA:
-					case GL_LUMINANCE_ALPHA16F_EXT:
-						LoadImageData<Bytes_4>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
-						break;
-					case GL_RED:
-					case GL_R16F:
-						LoadImageData<Bytes_2>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
-						break;
-					case GL_RG:
-					case GL_RG16F:
-						LoadImageData<Bytes_4>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
-						break;
-					case GL_RGB:
-					case GL_RGB16F:
+					case GL_HALF_FLOAT:
+					case GL_HALF_FLOAT_OES:
+						ASSERT(format == GL_RGB);
 						LoadImageData<HalfFloatRGB>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
 						break;
-					case GL_RGBA:
-					case GL_RGBA16F:
-						LoadImageData<Bytes_8>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
-						break;
-					case GL_R11F_G11F_B10F:
-						LoadImageData<R11G11B10F>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
-						break;
-					case GL_RGB9_E5:
-						LoadImageData<RGB9E5>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
-						break;
-					default: UNREACHABLE(format);
-					}
-					break;
-				case GL_SHORT:
-					switch(format)
-					{
-					case GL_R16I:
-					case GL_RED:
-					case GL_RED_INTEGER:
-					case GL_ALPHA:
-					case GL_LUMINANCE:
-						LoadImageData<Bytes_2>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
-						break;
-					case GL_RG16I:
-					case GL_RG:
-					case GL_RG_INTEGER:
-					case GL_LUMINANCE_ALPHA:
-						LoadImageData<Bytes_4>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
-						break;
-					case GL_RGB16I:
-					case GL_RGB:
-					case GL_RGB_INTEGER:
+					case GL_SHORT:
 						LoadImageData<ShortRGB>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
 						break;
-					case GL_RGBA16I:
-					case GL_RGBA:
-					case GL_RGBA_INTEGER:
-					case GL_BGRA_EXT:
-					case GL_BGRA8_EXT:
-						LoadImageData<Bytes_8>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
-						break;
-					default: UNREACHABLE(format);
-					}
-					break;
-				case GL_UNSIGNED_SHORT:
-					switch(format)
-					{
-					case GL_R16UI:
-					case GL_RED:
-					case GL_RED_INTEGER:
-					case GL_ALPHA:
-					case GL_LUMINANCE:
-						LoadImageData<Bytes_2>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
-						break;
-					case GL_RG16UI:
-					case GL_RG:
-					case GL_RG_INTEGER:
-					case GL_LUMINANCE_ALPHA:
-						LoadImageData<Bytes_4>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
-						break;
-					case GL_RGB16UI:
-					case GL_RGB:
-					case GL_RGB_INTEGER:
+					case GL_UNSIGNED_SHORT:
 						LoadImageData<UShortRGB>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
 						break;
-					case GL_RGBA16UI:
-					case GL_RGBA:
-					case GL_RGBA_INTEGER:
-					case GL_BGRA_EXT:
-					case GL_BGRA8_EXT:
-						LoadImageData<Bytes_8>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
-						break;
-					case GL_DEPTH_COMPONENT:
-					case GL_DEPTH_COMPONENT16:
-						LoadImageData<D16>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
-						break;
-					default: UNREACHABLE(format);
-					}
-					break;
-				case GL_INT:
-					switch(format)
-					{
-					case GL_R32I:
-					case GL_RED:
-					case GL_RED_INTEGER:
-					case GL_ALPHA:
-					case GL_LUMINANCE:
-						LoadImageData<Bytes_4>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
-						break;
-					case GL_RG32I:
-					case GL_RG:
-					case GL_RG_INTEGER:
-					case GL_LUMINANCE_ALPHA:
-						LoadImageData<Bytes_8>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
-						break;
-					case GL_RGB32I:
-					case GL_RGB:
-					case GL_RGB_INTEGER:
+					case GL_INT:
 						LoadImageData<IntRGB>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
 						break;
-					case GL_RGBA32I:
-					case GL_RGBA:
-					case GL_RGBA_INTEGER:
-					case GL_BGRA_EXT:
-					case GL_BGRA8_EXT:
-						LoadImageData<Bytes_16>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
-						break;
-					default: UNREACHABLE(format);
-					}
-					break;
-				case GL_UNSIGNED_INT:
-					switch(format)
-					{
-					case GL_R32UI:
-					case GL_RED:
-					case GL_RED_INTEGER:
-					case GL_ALPHA:
-					case GL_LUMINANCE:
-						LoadImageData<Bytes_4>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
-						break;
-					case GL_RG32UI:
-					case GL_RG:
-					case GL_RG_INTEGER:
-					case GL_LUMINANCE_ALPHA:
-						LoadImageData<Bytes_8>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
-						break;
-					case GL_RGB32UI:
-					case GL_RGB:
-					case GL_RGB_INTEGER:
+					case GL_UNSIGNED_INT:
 						LoadImageData<UIntRGB>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
 						break;
-					case GL_RGBA32UI:
-					case GL_RGBA:
-					case GL_RGBA_INTEGER:
-					case GL_BGRA_EXT:
-					case GL_BGRA8_EXT:
-						LoadImageData<Bytes_16>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
-						break;
-					case GL_DEPTH_COMPONENT16:
-					case GL_DEPTH_COMPONENT24:
-					case GL_DEPTH_COMPONENT32_OES:
-					case GL_DEPTH_COMPONENT:
-						LoadImageData<D32>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
-						break;
-					default: UNREACHABLE(format);
+					default:
+						UNREACHABLE(type);
 					}
 					break;
-				case GL_UNSIGNED_INT_24_8_OES:
-					loadD24S8ImageData(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, input, buffer);
+				case GL_RGBA:
+				case GL_RGBA_INTEGER:
+				case GL_BGRA_EXT:
+					switch(type)
+					{
+					case GL_BYTE:
+					case GL_UNSIGNED_BYTE:
+						LoadImageData<Bytes_4>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
+						break;
+					case GL_UNSIGNED_SHORT_4_4_4_4:
+						ASSERT(format == GL_RGBA);
+						LoadImageData<RGBA4444>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
+						break;
+				//	case GL_UNSIGNED_SHORT_4_4_4_4_REV_EXT:
+				//		ASSERT(format == GL_BGRA_EXT);
+				//		LoadImageData<ABGR4444>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
+				//		break;
+					case GL_UNSIGNED_SHORT_5_5_5_1:
+						ASSERT(format == GL_RGBA);
+						LoadImageData<RGBA5551>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
+						break;
+				//	case GL_UNSIGNED_SHORT_1_5_5_5_REV_EXT:
+				//		ASSERT(format == GL_BGRA_EXT);
+				//		LoadImageData<ABGR5551>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
+				//		break;
+					case GL_UNSIGNED_INT_2_10_10_10_REV:
+						ASSERT(format != GL_BGRA_EXT);
+						LoadImageData<Bytes_4>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
+						break;
+					case GL_FLOAT:
+						ASSERT(format == GL_RGBA);
+						LoadImageData<Bytes_16>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
+						break;
+					case GL_HALF_FLOAT:
+					case GL_HALF_FLOAT_OES:
+						ASSERT(format == GL_RGBA);
+						LoadImageData<Bytes_8>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
+						break;
+					case GL_SHORT:
+					case GL_UNSIGNED_SHORT:
+						ASSERT(format != GL_BGRA_EXT);
+						LoadImageData<Bytes_8>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
+						break;
+					case GL_INT:
+					case GL_UNSIGNED_INT:
+						ASSERT(format != GL_BGRA_EXT);
+						LoadImageData<Bytes_16>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
+						break;
+					default:
+						UNREACHABLE(type);
+					}
 					break;
-				case GL_FLOAT_32_UNSIGNED_INT_24_8_REV:
-					loadD32FS8ImageData(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, input, buffer);
+				case GL_DEPTH_COMPONENT:
+					switch(type)
+					{
+					case GL_FLOAT:
+						LoadImageData<D32F>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
+						break;
+					case GL_UNSIGNED_SHORT:
+						LoadImageData<D16>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
+						break;
+					case GL_UNSIGNED_INT:
+						LoadImageData<D32>(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, getPitch(), getSlice(), input, buffer);
+						break;
+					default:
+						UNREACHABLE(type);
+					}
 					break;
-				default: UNREACHABLE(type);
+				case GL_DEPTH_STENCIL:
+					switch(type)
+					{
+					case GL_UNSIGNED_INT_24_8:
+						loadD24S8ImageData(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, input, buffer);
+						break;
+					case GL_FLOAT_32_UNSIGNED_INT_24_8_REV:
+						loadD32FS8ImageData(xoffset, yoffset, zoffset, width, height, depth, inputPitch, inputHeight, input, buffer);
+						break;
+					default:
+						UNREACHABLE(type);
+					}
+					break;
+				default:
+					UNREACHABLE(format);
 				}
 			}
 
