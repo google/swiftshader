@@ -22,6 +22,30 @@
       "revId": "93f8cf89eeec379f9963189cc1083b1a6535ab31",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "792dac93_b27ff4f0",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2018-01-24T02:31:08Z",
+      "side": 1,
+      "message": "Because no dEQP-GLES3 test attempts to use a uniform buffer with no restart indices in it while primitive restart is enabled. In WebGL, primitive restart is always enabled, so the result image was actually correct even in WebGL, but the reference image of the test was produced by drawing each intermediate segment of the index buffer (between restart indices) while primitive restart was still enabled, which dEQP-GLES3 does not do.",
+      "parentUuid": "07052cb9_919fbefa",
+      "range": {
+        "startLine": 18,
+        "startChar": 4,
+        "endLine": 18,
+        "endChar": 8
+      },
+      "revId": "93f8cf89eeec379f9963189cc1083b1a6535ab31",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
