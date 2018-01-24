@@ -46,6 +46,30 @@
       "revId": "93f8cf89eeec379f9963189cc1083b1a6535ab31",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "03192bcd_0bdf3dd9",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2018-01-24T13:27:13Z",
+      "side": 1,
+      "message": "sorry, replace \"uniform buffer\" by \"index buffer\"",
+      "parentUuid": "792dac93_b27ff4f0",
+      "range": {
+        "startLine": 18,
+        "startChar": 4,
+        "endLine": 18,
+        "endChar": 8
+      },
+      "revId": "93f8cf89eeec379f9963189cc1083b1a6535ab31",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
