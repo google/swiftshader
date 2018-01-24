@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b9f482a5_ae6233ca",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-01-24T01:28:46Z",
+      "side": 1,
+      "message": "How come we\u0027re not failing any remaining native dEQP-GLES3 uniform buffer tests?",
+      "range": {
+        "startLine": 12,
+        "startChar": 0,
+        "endLine": 13,
+        "endChar": 37
+      },
+      "revId": "94c4aa454830b2ef72807fe7e2ab47d3b4f8a9f5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "19e9c766_a3adb1ed",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 2363,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-01-24T01:28:46Z",
+      "side": 1,
+      "message": "Could we handle this more elegantly in the parser by propagating the block\u0027s matrix packing to each member?",
+      "range": {
+        "startLine": 2362,
+        "startChar": 4,
+        "endLine": 2363,
+        "endChar": 83
+      },
+      "revId": "94c4aa454830b2ef72807fe7e2ab47d3b4f8a9f5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
