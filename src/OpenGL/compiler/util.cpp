@@ -32,3 +32,11 @@ bool atoi_clamp(const char *str, int *value)
 		*value = std::numeric_limits<int>::max();
 	return success;
 }
+
+bool atou_clamp(const char *str, unsigned int *value)
+{
+	bool success = pp::numeric_lex_int(str, value);
+	if(!success)
+		*value = std::numeric_limits<unsigned int>::max();
+	return success;
+}

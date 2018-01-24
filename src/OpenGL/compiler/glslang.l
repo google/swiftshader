@@ -492,7 +492,7 @@ int uint_constant(TParseContext *context)
         return 0;
     }
 
-    if (!atoi_clamp(yytext, &(yylval->lex.i)))
+    if (!atou_clamp(yytext, &(yylval->lex.u)))
         yyextra->warning(*yylloc, "Integer overflow", yytext, "");
 
     return UINTCONSTANT;

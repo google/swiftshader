@@ -74,6 +74,18 @@ namespace sw
 		b = t;
 	}
 
+	template <typename destType, typename sourceType>
+	destType bitCast(const sourceType &source)
+	{
+		union
+		{
+			sourceType s;
+			destType d;
+		} sd;
+		sd.s = source;
+		return sd.d;
+	}
+
 	inline int iround(float x)
 	{
 		return (int)floor(x + 0.5f);

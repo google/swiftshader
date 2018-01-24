@@ -21,13 +21,17 @@ extern "C" {
 
 // atof_clamp is like atof but
 //   1. it forces C locale, i.e. forcing '.' as decimal point.
-//   2. it clamps the value to -FLT_MAX or FLT_MAX if overflow happens.
+//   2. it sets the value to FLT_MAX if overflow happens.
 // Return false if overflow happens.
 bool atof_clamp(const char *str, float *value);
 
-// If overflow happens, clamp the value to INT_MIN or INT_MAX.
+// If overflow happens, value is set to INT_MAX.
 // Return false if overflow happens.
 bool atoi_clamp(const char *str, int *value);
+
+// If overflow happens, value is set to UINT_MAX.
+// Return false if overflow happens.
+bool atou_clamp(const char *str, unsigned int *value);
 
 #ifdef __cplusplus
 } // end extern "C"
