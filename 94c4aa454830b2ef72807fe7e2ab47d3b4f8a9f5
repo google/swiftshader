@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "282a97ca_6222232b",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2018-01-24T02:23:00Z",
+      "side": 1,
+      "message": "I assume dEQP-GLES3 tests verify the layout, but don\u0027t actually attempt to render something with a row_major matrix in a shader :/",
+      "parentUuid": "b9f482a5_ae6233ca",
+      "range": {
+        "startLine": 12,
+        "startChar": 0,
+        "endLine": 13,
+        "endChar": 37
+      },
+      "revId": "94c4aa454830b2ef72807fe7e2ab47d3b4f8a9f5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "19e9c766_a3adb1ed",
         "filename": "src/OpenGL/compiler/OutputASM.cpp",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2018-01-24T01:28:46Z",
       "side": 1,
       "message": "Could we handle this more elegantly in the parser by propagating the block\u0027s matrix packing to each member?",
+      "range": {
+        "startLine": 2362,
+        "startChar": 4,
+        "endLine": 2363,
+        "endChar": 83
+      },
+      "revId": "94c4aa454830b2ef72807fe7e2ab47d3b4f8a9f5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "98830c1e_6547db7a",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 2363,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2018-01-24T02:23:00Z",
+      "side": 1,
+      "message": "I\u0027d rather be on the safe side and make sure any layout qualifier can be properly queried.\n\nI think the member may know about the block, so if that\u0027s the case, this may be moved to a \"isRowMajor()\" function to make it prettier.",
+      "parentUuid": "19e9c766_a3adb1ed",
       "range": {
         "startLine": 2362,
         "startChar": 4,
@@ -68,6 +116,30 @@
       "revId": "94c4aa454830b2ef72807fe7e2ab47d3b4f8a9f5",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "76ff35db_52d5d0ea",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 2364,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2018-01-24T02:23:00Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "a8a6bc97_81d0f466",
+      "range": {
+        "startLine": 2364,
+        "startChar": 4,
+        "endLine": 2364,
+        "endChar": 5
+      },
+      "revId": "94c4aa454830b2ef72807fe7e2ab47d3b4f8a9f5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
