@@ -45,6 +45,29 @@
       "revId": "94c4aa454830b2ef72807fe7e2ab47d3b4f8a9f5",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a8a6bc97_81d0f466",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 2364,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-01-24T01:32:56Z",
+      "side": 1,
+      "message": "If I recall correctly, this code transposes row-major matrices on each access, and this has a performance impact. Please look into how to optimize it, or at least file a bug about it.",
+      "range": {
+        "startLine": 2364,
+        "startChar": 4,
+        "endLine": 2364,
+        "endChar": 5
+      },
+      "revId": "94c4aa454830b2ef72807fe7e2ab47d3b4f8a9f5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
