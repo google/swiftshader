@@ -22,6 +22,30 @@
       "revId": "c51beac58bf438cd1edf619dbcf25c07983cbe85",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "13bab748_535555f6",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2018-01-24T02:27:07Z",
+      "side": 1,
+      "message": "Oh, sorry, I didn\u0027t put the reference, but there\u0027s no mystery to it.\nSee https://www.khronos.org/registry/webgl/specs/latest/2.0/#5.39\n\n\"The value of UNIFORM_BUFFER_OFFSET_ALIGNMENT must be divisible by 4\"",
+      "parentUuid": "186690e0_e2dc1225",
+      "range": {
+        "startLine": 10,
+        "startChar": 25,
+        "endLine": 10,
+        "endChar": 57
+      },
+      "revId": "c51beac58bf438cd1edf619dbcf25c07983cbe85",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
