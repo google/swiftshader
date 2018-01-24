@@ -24,6 +24,7 @@
 #include <time.h>
 #include <sys/stat.h>
 #include <string.h>
+#include <algorithm>
 
 namespace sw
 {
@@ -247,7 +248,7 @@ namespace sw
 		html += "function request()\n";
 		html += "{\n";
 		html += "var xhr = new XMLHttpRequest();\n";
-		html += "xhr.open('POST', 'http://localhost:8080/swiftshader/profile', true);\n";
+		html += "xhr.open('POST', '/swiftshader/profile', true);\n";
 		html += "xhr.onreadystatechange = function()\n";
 		html += "{\n";
 		html += "if(xhr.readyState == 4 && xhr.status == 200)\n";
