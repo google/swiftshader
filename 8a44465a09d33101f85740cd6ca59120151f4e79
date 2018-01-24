@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e0487cbb_099a6491",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-01-24T21:51:35Z",
+      "side": 1,
+      "message": "Let\u0027s make sure a test gets added to dEQP.",
+      "range": {
+        "startLine": 21,
+        "startChar": 0,
+        "endLine": 21,
+        "endChar": 18
+      },
+      "revId": "8a44465a09d33101f85740cd6ca59120151f4e79",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "03c515ca_0881e5d4",
+        "filename": "src/Common/Math.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-01-24T21:51:35Z",
+      "side": 1,
+      "message": "This is better handled with a union.",
+      "range": {
+        "startLine": 82,
+        "startChar": 2,
+        "endLine": 82,
+        "endChar": 8
+      },
+      "revId": "8a44465a09d33101f85740cd6ca59120151f4e79",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f4ff1575_69cfef54",
+        "filename": "src/OpenGL/compiler/glslang_lex.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-01-24T21:51:35Z",
+      "side": 1,
+      "message": "Let\u0027s do the version upgrade in a separate CL. I think you can just manually change this \u0027generated\u0027 file for this case.",
+      "range": {
+        "startLine": 48,
+        "startChar": 33,
+        "endLine": 48,
+        "endChar": 34
+      },
+      "revId": "8a44465a09d33101f85740cd6ca59120151f4e79",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cd16c4dc_0d5ec1a1",
+        "filename": "src/OpenGL/compiler/util.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-01-24T21:51:35Z",
+      "side": 1,
+      "message": "The comment in the header says this clamps to INT_MIN on underflow. I don\u0027t see that being handled.",
+      "range": {
+        "startLine": 32,
+        "startChar": 37,
+        "endLine": 32,
+        "endChar": 40
+      },
+      "revId": "8a44465a09d33101f85740cd6ca59120151f4e79",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9fba478b_0e1a0d60",
+        "filename": "src/OpenGL/compiler/util.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-01-24T21:51:35Z",
+      "side": 1,
+      "message": "This is the same function as the one used in the signed case. I\u0027m not sure that\u0027s correct. Also note that it\u0027s used by both Token::iValue() and Token::uValue(), so there might be a similar issue there.",
+      "range": {
+        "startLine": 38,
+        "startChar": 20,
+        "endLine": 38,
+        "endChar": 35
+      },
+      "revId": "8a44465a09d33101f85740cd6ca59120151f4e79",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7f4b939b_8dafc428",
+        "filename": "src/OpenGL/compiler/util.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-01-24T21:51:35Z",
+      "side": 1,
+      "message": "Doesn\u0027t seem to clamp to 0 on underflow.",
+      "range": {
+        "startLine": 40,
+        "startChar": 46,
+        "endLine": 40,
+        "endChar": 49
+      },
+      "revId": "8a44465a09d33101f85740cd6ca59120151f4e79",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
