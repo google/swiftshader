@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "fca40e31_b386be2d",
+        "filename": "src/Common/Math.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2018-01-25T15:26:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "66be0752_f9e51087",
+      "range": {
+        "startLine": 82,
+        "startChar": 2,
+        "endLine": 82,
+        "endChar": 8
+      },
+      "revId": "8a44465a09d33101f85740cd6ca59120151f4e79",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f4ff1575_69cfef54",
         "filename": "src/OpenGL/compiler/glslang_lex.cpp",
         "patchSetId": 1
@@ -143,6 +167,30 @@
     },
     {
       "key": {
+        "uuid": "6a38fe68_9abcf5b9",
+        "filename": "src/OpenGL/compiler/glslang_lex.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2018-01-25T15:26:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8745b904_8d0c1035",
+      "range": {
+        "startLine": 48,
+        "startChar": 33,
+        "endLine": 48,
+        "endChar": 34
+      },
+      "revId": "8a44465a09d33101f85740cd6ca59120151f4e79",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "cd16c4dc_0d5ec1a1",
         "filename": "src/OpenGL/compiler/util.cpp",
         "patchSetId": 1
@@ -178,6 +226,30 @@
       "side": 1,
       "message": "Ack",
       "parentUuid": "cd16c4dc_0d5ec1a1",
+      "range": {
+        "startLine": 32,
+        "startChar": 37,
+        "endLine": 32,
+        "endChar": 40
+      },
+      "revId": "8a44465a09d33101f85740cd6ca59120151f4e79",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d3a0a6fe_6f370822",
+        "filename": "src/OpenGL/compiler/util.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2018-01-25T15:26:10Z",
+      "side": 1,
+      "message": "Fixed the comment",
+      "parentUuid": "d1dff60b_7c6a2f34",
       "range": {
         "startLine": 32,
         "startChar": 37,
@@ -272,6 +344,30 @@
       "side": 1,
       "message": "We\u0027d need numeric_lex_int() to return a state rather than a boolean in order to handle that case properly, unless it already handles underflow, not sure how the stream works. I don\u0027t think it handles it though, so we could retry using a long, but that could also overflow.",
       "parentUuid": "7f4b939b_8dafc428",
+      "range": {
+        "startLine": 40,
+        "startChar": 46,
+        "endLine": 40,
+        "endChar": 49
+      },
+      "revId": "8a44465a09d33101f85740cd6ca59120151f4e79",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cb104955_34fc72b9",
+        "filename": "src/OpenGL/compiler/util.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2018-01-25T15:26:10Z",
+      "side": 1,
+      "message": "Fixed the comment",
+      "parentUuid": "08d21bb8_354e4bd4",
       "range": {
         "startLine": 40,
         "startChar": 46,
