@@ -70,6 +70,53 @@
       "revId": "93f8cf89eeec379f9963189cc1083b1a6535ab31",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4533b522_49c5e078",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-01-25T12:20:04Z",
+      "side": 1,
+      "message": "Thanks, let\u0027s add a test to dEQP which exercises this, then. Or at least file a bug if it\u0027s not straightforward.",
+      "parentUuid": "03192bcd_0bdf3dd9",
+      "range": {
+        "startLine": 18,
+        "startChar": 4,
+        "endLine": 18,
+        "endChar": 8
+      },
+      "revId": "93f8cf89eeec379f9963189cc1083b1a6535ab31",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cc63243c_46a95146",
+        "filename": "src/OpenGL/libGLESv2/IndexDataManager.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 299,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-01-25T12:20:04Z",
+      "side": 1,
+      "message": "Can this bug be fixed by removing this code instead? It seems unnecessary since we\u0027ve already paid the cost of allocating the vector, and would mean it\u0027s guaranteed to exist when primitive restart is active so we don\u0027t need to check the pointer all the time.",
+      "range": {
+        "startLine": 295,
+        "startChar": 0,
+        "endLine": 299,
+        "endChar": 2
+      },
+      "revId": "93f8cf89eeec379f9963189cc1083b1a6535ab31",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
