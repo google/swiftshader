@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "2174ca6a_0bd7e702",
+        "filename": "BUILD.gn",
+        "patchSetId": 2
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 6680
+      },
+      "writtenOn": "2018-01-25T19:09:27Z",
+      "side": 1,
+      "message": "It uses the __has_feature macro:\nhttps://github.com/llvm-project/llvm-project-20170507/blob/master/libcxx/include/__config#L334\n\nIt is predefined by the compiler, so there\u0027s no need to define it here.",
+      "parentUuid": "d8b95a44_ec8f2c74",
+      "range": {
+        "startLine": 32,
+        "startChar": 8,
+        "endLine": 32,
+        "endChar": 75
+      },
+      "revId": "cb0c92aa5858b3829a7472ca03cf37ddf73ff9d9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "fcdf0bfd_a6a615ad",
         "filename": "BUILD.gn",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2018-01-25T10:44:05Z",
       "side": 1,
       "message": "Seems like this could be unintentional and might be fixable upstream?",
+      "range": {
+        "startLine": 34,
+        "startChar": 30,
+        "endLine": 35,
+        "endChar": 52
+      },
+      "revId": "cb0c92aa5858b3829a7472ca03cf37ddf73ff9d9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5bd4d56d_af7cb6ab",
+        "filename": "BUILD.gn",
+        "patchSetId": 2
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 6680
+      },
+      "writtenOn": "2018-01-25T19:09:27Z",
+      "side": 1,
+      "message": "Maybe. It might be worth opening a bug with MS, but I understand that their position is that setting _HAS_EXCEPTIONS to 0 is unsupported, so they might not do anything about it.",
+      "parentUuid": "fcdf0bfd_a6a615ad",
       "range": {
         "startLine": 34,
         "startChar": 30,
