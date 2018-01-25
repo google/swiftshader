@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e766ccca_7153c8f6",
+        "filename": "src/OpenGL/compiler/BaseTypes.h",
+        "patchSetId": 3
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-01-25T16:06:45Z",
+      "side": 1,
+      "message": "nit: Add a comment about the extension, like the one below.",
+      "range": {
+        "startLine": 67,
+        "startChar": 1,
+        "endLine": 67,
+        "endChar": 17
+      },
+      "revId": "addde2c08bad69591a59b18cd41a6d8d576c2b46",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "404f10e1_4b6c3a2e",
+        "filename": "src/OpenGL/compiler/glslang_lex.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-01-25T16:06:45Z",
+      "side": 1,
+      "message": "Let\u0027s do the version upgrade in a separate CL. I\u0027ve seen stuff break before.",
+      "range": {
+        "startLine": 48,
+        "startChar": 33,
+        "endLine": 48,
+        "endChar": 34
+      },
+      "revId": "bd58f4c51e07f383e407f0c25a2a1bc10c887b96",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bd39ae20_a48d3559",
+        "filename": "src/OpenGL/libGLESv2/Renderbuffer.h",
+        "patchSetId": 5
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-01-25T16:06:45Z",
+      "side": 1,
+      "message": "GL_ARB_texture_rectangle doesn\u0027t mention anything about renderability, nor framebuffers or renderbuffers. So I don\u0027t think there\u0027s a need to support this.",
+      "range": {
+        "startLine": 101,
+        "startChar": 6,
+        "endLine": 101,
+        "endChar": 31
+      },
+      "revId": "bd58f4c51e07f383e407f0c25a2a1bc10c887b96",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
