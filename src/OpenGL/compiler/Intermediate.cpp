@@ -402,7 +402,10 @@ TIntermTyped* TIntermediate::addBinaryMath(TOperator op, TIntermTyped* left, TIn
 	node->setLeft(left);
 	node->setRight(right);
 	if (!node->promote(infoSink))
+	{
+		delete node;
 		return 0;
+	}
 
 	//
 	// See if we can fold constants.
