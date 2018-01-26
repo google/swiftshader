@@ -22,6 +22,30 @@
       "revId": "0d7ad0623466e02fc58645dd368a365102dc1a9e",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "390b52bb_7d35a223",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-01-26T13:33:36Z",
+      "side": 1,
+      "message": "Yep. Static analysis performed by PVS-Studio found this and other issues.",
+      "parentUuid": "ebf66cee_0316c9d5",
+      "range": {
+        "startLine": 9,
+        "startChar": 4,
+        "endLine": 9,
+        "endChar": 19
+      },
+      "revId": "0d7ad0623466e02fc58645dd368a365102dc1a9e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
