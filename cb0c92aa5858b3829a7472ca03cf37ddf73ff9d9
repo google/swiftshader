@@ -141,6 +141,30 @@
       "revId": "cb0c92aa5858b3829a7472ca03cf37ddf73ff9d9",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f1824689_852e03e5",
+        "filename": "BUILD.gn",
+        "patchSetId": 2
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 6680
+      },
+      "writtenOn": "2018-01-26T19:39:19Z",
+      "side": 1,
+      "message": "I believe that they simply don\u0027t support building their STL without exceptions.\ni.e. it may happen to work sometimes, but they won\u0027t necessarily fix bugs that are caused by  setting _HAS_EXCEPTIONS to 0.\n\nThat said, they have fixed bugs before in some cases, e.g. https://connect.microsoft.com/VisualStudio/feedback/details/809962/has-exceptions-0-triggers-unreachable-code-warning-in-xtree\nI\u0027m not sure if this is one of those cases though.\n\nAs for __has_feature, there is another compiler-defined macro called _CPPUNWIND that can be used to tell if exceptions are enabled or not. It is supported by both compilers and most likely libc++ ought to be using it as an alternative in case __has_feature is not supported.",
+      "parentUuid": "d59ba211_b545d73b",
+      "range": {
+        "startLine": 34,
+        "startChar": 30,
+        "endLine": 35,
+        "endChar": 52
+      },
+      "revId": "cb0c92aa5858b3829a7472ca03cf37ddf73ff9d9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
