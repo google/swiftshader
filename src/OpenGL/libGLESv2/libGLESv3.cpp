@@ -3860,6 +3860,7 @@ GL_APICALL void GL_APIENTRY glInvalidateSubFramebuffer(GLenum target, GLsizei nu
 		case GL_DRAW_FRAMEBUFFER:
 		case GL_FRAMEBUFFER:
 			framebuffer = context->getDrawFramebuffer();
+			break;
 		case GL_READ_FRAMEBUFFER:
 			framebuffer = context->getReadFramebuffer();
 			break;

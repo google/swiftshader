@@ -1932,8 +1932,8 @@ template<typename T> bool Context::getIntegerv(GLenum pname, T *params) const
 	case GL_ARRAY_BUFFER_BINDING:             *params = getArrayBufferName();                 return true;
 	case GL_ELEMENT_ARRAY_BUFFER_BINDING:     *params = getElementArrayBufferName();          return true;
 //	case GL_FRAMEBUFFER_BINDING:            // now equivalent to GL_DRAW_FRAMEBUFFER_BINDING_ANGLE
-	case GL_DRAW_FRAMEBUFFER_BINDING_ANGLE:   *params = mState.drawFramebuffer;               return true;
-	case GL_READ_FRAMEBUFFER_BINDING_ANGLE:   *params = mState.readFramebuffer;               return true;
+	case GL_DRAW_FRAMEBUFFER_BINDING:         *params = mState.drawFramebuffer;               return true;
+	case GL_READ_FRAMEBUFFER_BINDING:         *params = mState.readFramebuffer;               return true;
 	case GL_RENDERBUFFER_BINDING:             *params = mState.renderbuffer.name();           return true;
 	case GL_CURRENT_PROGRAM:                  *params = mState.currentProgram;                return true;
 	case GL_PACK_ALIGNMENT:                   *params = mState.packAlignment;                 return true;
@@ -1968,7 +1968,7 @@ template<typename T> bool Context::getIntegerv(GLenum pname, T *params) const
 	case GL_MAX_TEXTURE_SIZE:                 *params = IMPLEMENTATION_MAX_TEXTURE_SIZE;          return true;
 	case GL_MAX_CUBE_MAP_TEXTURE_SIZE:        *params = IMPLEMENTATION_MAX_CUBE_MAP_TEXTURE_SIZE; return true;
 	case GL_NUM_COMPRESSED_TEXTURE_FORMATS:   *params = NUM_COMPRESSED_TEXTURE_FORMATS;           return true;
-	case GL_MAX_SAMPLES_ANGLE:                *params = IMPLEMENTATION_MAX_SAMPLES;               return true;
+	case GL_MAX_SAMPLES:                      *params = IMPLEMENTATION_MAX_SAMPLES;               return true;
 	case GL_SAMPLE_BUFFERS:
 	case GL_SAMPLES:
 		{
@@ -2491,8 +2491,8 @@ bool Context::getQueryParameterInfo(GLenum pname, GLenum *type, unsigned int *nu
 	case GL_NUM_SHADER_BINARY_FORMATS:
 	case GL_NUM_COMPRESSED_TEXTURE_FORMATS:
 	case GL_ARRAY_BUFFER_BINDING:
-	case GL_FRAMEBUFFER_BINDING: // Same as GL_DRAW_FRAMEBUFFER_BINDING_ANGLE
-	case GL_READ_FRAMEBUFFER_BINDING_ANGLE:
+	case GL_FRAMEBUFFER_BINDING:        // Same as GL_DRAW_FRAMEBUFFER_BINDING_ANGLE
+	case GL_READ_FRAMEBUFFER_BINDING:   // Same as GL_READ_FRAMEBUFFER_BINDING_ANGLE
 	case GL_RENDERBUFFER_BINDING:
 	case GL_CURRENT_PROGRAM:
 	case GL_PACK_ALIGNMENT:
@@ -2617,7 +2617,7 @@ bool Context::getQueryParameterInfo(GLenum pname, GLenum *type, unsigned int *nu
 			*numParams = 1;
 		}
 		break;
-	case GL_MAX_SAMPLES_ANGLE:
+	case GL_MAX_SAMPLES:
 		{
 			*type = GL_INT;
 			*numParams = 1;
