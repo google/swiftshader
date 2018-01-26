@@ -1256,7 +1256,7 @@ void TextureCubeMap::updateBorders(int level)
 		return;
 	}
 
-	if(!posX->hasDirtyContents() || !posY->hasDirtyContents() || !posZ->hasDirtyContents() || !negX->hasDirtyContents() || !negY->hasDirtyContents() || !negY->hasDirtyContents())
+	if(!posX->hasDirtyContents() || !posY->hasDirtyContents() || !posZ->hasDirtyContents() || !negX->hasDirtyContents() || !negY->hasDirtyContents() || !negZ->hasDirtyContents())
 	{
 		return;
 	}
