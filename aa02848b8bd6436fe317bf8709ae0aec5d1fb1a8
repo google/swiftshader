@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2107781a_830e69ef",
+        "filename": "src/OpenGL/compiler/Intermediate.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 399,
+      "author": {
+        "id": 6725
+      },
+      "writtenOn": "2018-01-26T15:44:34Z",
+      "side": 1,
+      "message": "More robust fix: Make this a std::unique_ptr, and write `return node.release()` at the end. Even better: Make the function return a std::unique_ptr so ownership is clear for callers (but that\u0027s more involved)",
+      "revId": "aa02848b8bd6436fe317bf8709ae0aec5d1fb1a8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
