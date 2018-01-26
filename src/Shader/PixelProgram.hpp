@@ -24,7 +24,7 @@ namespace sw
 	{
 	public:
 		PixelProgram(const PixelProcessor::State &state, const PixelShader *shader) :
-			PixelRoutine(state, shader), r(shader && shader->dynamicallyIndexedTemporaries),
+			PixelRoutine(state, shader), r(shader->dynamicallyIndexedTemporaries),
 			loopDepth(-1), ifDepth(0), loopRepDepth(0), currentLabel(-1), whileTest(false)
 		{
 			for(int i = 0; i < 2048; ++i)
@@ -34,12 +34,12 @@ namespace sw
 
 			enableStack[0] = Int4(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF);
 
-			if(shader && shader->containsBreakInstruction())
+			if(shader->containsBreakInstruction())
 			{
 				enableBreak = Int4(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF);
 			}
 
-			if(shader && shader->containsContinueInstruction())
+			if(shader->containsContinueInstruction())
 			{
 				enableContinue = Int4(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF);
 			}

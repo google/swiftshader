@@ -39,12 +39,12 @@ namespace sw
 		loopDepth = -1;
 		enableStack[0] = Int4(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF);
 
-		if(shader && shader->containsBreakInstruction())
+		if(shader->containsBreakInstruction())
 		{
 			enableBreak = Int4(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF);
 		}
 
-		if(shader && shader->containsContinueInstruction())
+		if(shader->containsContinueInstruction())
 		{
 			enableContinue = Int4(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF);
 		}
