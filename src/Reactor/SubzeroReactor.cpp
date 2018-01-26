@@ -709,7 +709,7 @@ namespace sw
 
 	static Value *createArithmetic(Ice::InstArithmetic::OpKind op, Value *lhs, Value *rhs)
 	{
-		assert(lhs->getType() == rhs->getType() || (llvm::isa<Ice::Constant>(rhs) && (op == Ice::InstArithmetic::Shl || Ice::InstArithmetic::Lshr || Ice::InstArithmetic::Ashr)));
+		assert(lhs->getType() == rhs->getType() || llvm::isa<Ice::Constant>(rhs));
 
 		bool swapOperands = llvm::isa<Ice::Constant>(lhs) && isCommutative(op);
 
