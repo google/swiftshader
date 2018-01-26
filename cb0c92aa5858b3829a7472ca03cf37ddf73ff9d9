@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "d726bb68_3890e921",
+        "filename": "BUILD.gn",
+        "patchSetId": 2
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-01-26T13:41:26Z",
+      "side": 1,
+      "message": "Thanks for the info. That\u0027s quite elegant.",
+      "parentUuid": "2174ca6a_0bd7e702",
+      "range": {
+        "startLine": 32,
+        "startChar": 8,
+        "endLine": 32,
+        "endChar": 75
+      },
+      "revId": "cb0c92aa5858b3829a7472ca03cf37ddf73ff9d9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fcdf0bfd_a6a615ad",
         "filename": "BUILD.gn",
         "patchSetId": 2
@@ -84,6 +108,30 @@
       "side": 1,
       "message": "Maybe. It might be worth opening a bug with MS, but I understand that their position is that setting _HAS_EXCEPTIONS to 0 is unsupported, so they might not do anything about it.",
       "parentUuid": "fcdf0bfd_a6a615ad",
+      "range": {
+        "startLine": 34,
+        "startChar": 30,
+        "endLine": 35,
+        "endChar": 52
+      },
+      "revId": "cb0c92aa5858b3829a7472ca03cf37ddf73ff9d9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d59ba211_b545d73b",
+        "filename": "BUILD.gn",
+        "patchSetId": 2
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-01-26T13:41:26Z",
+      "side": 1,
+      "message": "Microsoft is not in the habit of breaking backward compatibility, and I\u0027m sure plenty of projects desire to disable exceptions. Also, __has_feature() doesn\u0027t appear to be supported by Visual Studio, so what would be the alternative other than setting _HAS_EXCEPTIONS to 0 ? Doesn\u0027t bother me much either way, but I\u0027m just curious and ideally this should get fixed at the root.",
+      "parentUuid": "5bd4d56d_af7cb6ab",
       "range": {
         "startLine": 34,
         "startChar": 30,
