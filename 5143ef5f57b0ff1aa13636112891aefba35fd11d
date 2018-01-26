@@ -16,6 +16,24 @@
       "revId": "5143ef5f57b0ff1aa13636112891aefba35fd11d",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dc03d981_468700ff",
+        "filename": "src/OpenGL/libGLESv2/libGLESv3.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 3799,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-01-26T02:02:56Z",
+      "side": 1,
+      "message": "No, thanks for reporting this. https://swiftshader-review.googlesource.com/c/SwiftShader/+/16728",
+      "parentUuid": "73aa26fe_bb27d319",
+      "revId": "5143ef5f57b0ff1aa13636112891aefba35fd11d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
