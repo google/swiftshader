@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "ebd0404d_0e65b927",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 2363,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2018-01-29T17:35:10Z",
+      "side": 1,
+      "message": "Actually, I ended up trying this idea and it worked fine. The setting is now simply propagated at creation time from ParseHelper.",
+      "parentUuid": "98830c1e_6547db7a",
+      "range": {
+        "startLine": 2362,
+        "startChar": 4,
+        "endLine": 2363,
+        "endChar": 83
+      },
+      "revId": "94c4aa454830b2ef72807fe7e2ab47d3b4f8a9f5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "a8a6bc97_81d0f466",
         "filename": "src/OpenGL/compiler/OutputASM.cpp",
         "patchSetId": 2
