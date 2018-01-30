@@ -676,6 +676,9 @@ namespace glsl
 				declareVarying(symbol, -1);
 			}
 			break;
+		case EvqFragmentOut:
+			declareFragmentOutput(symbol);
+			break;
 		default:
 			break;
 		}
@@ -3145,6 +3148,34 @@ namespace glsl
 			}
 
 			activeVaryings.push_back(glsl::Varying(type, name, registerIndex, 0));
+		}
+	}
+
+	void OutputASM::declareFragmentOutput(TIntermTyped *fragmentOutput)
+	{
+		int requestedLocation = fragmentOutput->getType().getLayoutQualifier().location;
+		if((requestedLocation >= 0) && (requestedLocation < sw::RENDERTARGETS))
+		{
+			if(fragmentOutputs.size() <= requestedLocation)
+			{
+				while(fragmentOutputs.size() < requestedLocation)
+				{
+					fragmentOutputs.push_back(nullptr);
+				}
+				fragmentOutputs.push_back(fragmentOutput);
+			}
+			else if(!fragmentOutputs[requestedLocation])
+			{
+				fragmentOutputs[requestedLocation] = fragmentOutput;
+			}
+			else
+			{
+				mContext.error(fragmentOutput->getLine(), "Fragment output location aliasing", "fragment shader");
+			}
+		}
+		else if(requestedLocation >= sw::RENDERTARGETS)
+		{
+			mContext.error(fragmentOutput->getLine(), "Fragment output location larger or equal to MAX_DRAW_BUFFERS", "fragment shader");
 		}
 	}
 

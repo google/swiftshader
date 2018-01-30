@@ -297,6 +297,7 @@ namespace glsl
 		void setPixelShaderInputs(const TType& type, int var, bool flat);
 		void declareVarying(TIntermTyped *varying, int reg);
 		void declareVarying(const TType &type, const TString &name, int registerIndex);
+		void declareFragmentOutput(TIntermTyped *fragmentOutput);
 		int uniformRegister(TIntermTyped *uniform);
 		int attributeRegister(TIntermTyped *attribute);
 		int fragmentOutputRegister(TIntermTyped *fragmentOutput);
