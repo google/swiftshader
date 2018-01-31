@@ -16,6 +16,24 @@
       "revId": "aa02848b8bd6436fe317bf8709ae0aec5d1fb1a8",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "40a3c0cb_cee9f0fe",
+        "filename": "src/OpenGL/compiler/Intermediate.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 399,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-01-31T14:29:03Z",
+      "side": 1,
+      "message": "Unfortunately we don\u0027t have full C++11 support on some older Android versions that we still have to support.",
+      "parentUuid": "2107781a_830e69ef",
+      "revId": "aa02848b8bd6436fe317bf8709ae0aec5d1fb1a8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
