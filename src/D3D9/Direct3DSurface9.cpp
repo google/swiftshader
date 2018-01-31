@@ -344,7 +344,6 @@ namespace D3D9
 	{
 		switch(format)
 		{
-		#if S3TC_SUPPORT
 		case D3DFMT_NULL:			return sw::FORMAT_NULL;
 		case D3DFMT_DXT1:			return sw::FORMAT_DXT1;
 		case D3DFMT_DXT2:			return sw::FORMAT_DXT3;
@@ -353,7 +352,6 @@ namespace D3D9
 		case D3DFMT_DXT5:			return sw::FORMAT_DXT5;
 		case D3DFMT_ATI1:			return sw::FORMAT_ATI1;
 		case D3DFMT_ATI2:			return sw::FORMAT_ATI2;
-		#endif
 		case D3DFMT_R3G3B2:			return sw::FORMAT_R3G3B2;
 		case D3DFMT_A8R3G3B2:		return sw::FORMAT_A8R3G3B2;
 		case D3DFMT_X4R4G4B4:		return sw::FORMAT_X4R4G4B4;

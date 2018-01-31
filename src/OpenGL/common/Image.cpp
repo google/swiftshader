@@ -613,7 +613,6 @@ namespace egl
 			return sw::FORMAT_SRGB8_ALPHA8_ASTC_12x10_KHR;
 		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_12x12_KHR:
 			return sw::FORMAT_SRGB8_ALPHA8_ASTC_12x12_KHR;
-		#if S3TC_SUPPORT
 		case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
 		case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
 			return sw::FORMAT_DXT1;
@@ -621,7 +620,6 @@ namespace egl
 			return sw::FORMAT_DXT3;
 		case GL_COMPRESSED_RGBA_S3TC_DXT5_ANGLE:
 			return sw::FORMAT_DXT5;
-		#endif
 		default:
 			break;
 		}

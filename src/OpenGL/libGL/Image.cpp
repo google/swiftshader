@@ -152,10 +152,8 @@ namespace gl
 		{
 			return sw::FORMAT_NULL;
 		}
-		else
-		#if S3TC_SUPPORT
-		if(format == GL_COMPRESSED_RGB_S3TC_DXT1_EXT ||
-		   format == GL_COMPRESSED_RGBA_S3TC_DXT1_EXT)
+		else if(format == GL_COMPRESSED_RGB_S3TC_DXT1_EXT ||
+		        format == GL_COMPRESSED_RGBA_S3TC_DXT1_EXT)
 		{
 			return sw::FORMAT_DXT1;
 		}
@@ -167,9 +165,7 @@ namespace gl
 		{
 			return sw::FORMAT_DXT5;
 		}
-		else
-		#endif
-		if(type == GL_FLOAT)
+		else if(type == GL_FLOAT)
 		{
 			return sw::FORMAT_A32B32G32R32F;
 		}

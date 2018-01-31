@@ -480,7 +480,7 @@ namespace es2
 		case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
 		case GL_COMPRESSED_RGBA_S3TC_DXT3_ANGLE:
 		case GL_COMPRESSED_RGBA_S3TC_DXT5_ANGLE:
-			return S3TC_SUPPORT ? (expectCompressedFormats ? GL_NONE : GL_INVALID_OPERATION) : GL_INVALID_ENUM;
+			return expectCompressedFormats ? GL_NONE : GL_INVALID_OPERATION;
 		case GL_ETC1_RGB8_OES:
 			return expectCompressedFormats ? GL_NONE : GL_INVALID_OPERATION;
 		case GL_COMPRESSED_R11_EAC:

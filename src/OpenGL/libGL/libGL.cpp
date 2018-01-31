@@ -802,10 +802,6 @@ void APIENTRY glCompressedTexImage2D(GLenum target, GLint level, GLenum internal
 	case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
 	case GL_COMPRESSED_RGBA_S3TC_DXT3_EXT:
 	case GL_COMPRESSED_RGBA_S3TC_DXT5_EXT:
-		if(!S3TC_SUPPORT)
-		{
-			return error(GL_INVALID_ENUM);
-		}
 		break;
 	case GL_DEPTH_COMPONENT:
 	case GL_DEPTH_COMPONENT16:
@@ -931,10 +927,6 @@ void APIENTRY glCompressedTexSubImage2D(GLenum target, GLint level, GLint xoffse
 	case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
 	case GL_COMPRESSED_RGBA_S3TC_DXT3_EXT:
 	case GL_COMPRESSED_RGBA_S3TC_DXT5_EXT:
-		if(!S3TC_SUPPORT)
-		{
-			return error(GL_INVALID_ENUM);
-		}
 		break;
 	default:
 		return error(GL_INVALID_ENUM);
@@ -1101,14 +1093,7 @@ void APIENTRY glCopyTexImage2D(GLenum target, GLint level, GLenum internalformat
 		case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
 		case GL_COMPRESSED_RGBA_S3TC_DXT3_EXT:
 		case GL_COMPRESSED_RGBA_S3TC_DXT5_EXT:
-			if(S3TC_SUPPORT)
-			{
-				return error(GL_INVALID_OPERATION);
-			}
-			else
-			{
-				return error(GL_INVALID_ENUM);
-			}
+			return error(GL_INVALID_OPERATION);
 		default:
 			return error(GL_INVALID_ENUM);
 		}
@@ -3068,19 +3053,15 @@ const GLubyte* APIENTRY glGetString(GLenum name)
 			"GL_EXT_texture_npot "
 			"GL_EXT_occlusion_query_boolean "
 			"GL_EXT_read_format_bgra "
-			#if (S3TC_SUPPORT)
 			"GL_EXT_texture_compression_dxt1 "
-			#endif
 			"GL_EXT_blend_func_separate "
 			"GL_EXT_secondary_color "
 			"GL_EXT_texture_filter_anisotropic "
 			"GL_EXT_texture_format_BGRA8888 "
 			"GL_EXT_framebuffer_blit "
 			"GL_EXT_framebuffer_multisample "
-			#if (S3TC_SUPPORT)
 			"GL_EXT_texture_compression_dxt3 "
 			"GL_EXT_texture_compression_dxt5 "
-			#endif
 			"GL_NV_fence";
 	default:
 		return error(GL_INVALID_ENUM, (GLubyte*)nullptr);
@@ -4384,14 +4365,7 @@ void APIENTRY glTexImage2D(GLenum target, GLint level, GLint internalformat, GLs
 	   format == GL_COMPRESSED_RGBA_S3TC_DXT3_EXT ||
 	   format == GL_COMPRESSED_RGBA_S3TC_DXT5_EXT)
 	{
-		if(S3TC_SUPPORT)
-		{
-			return error(GL_INVALID_OPERATION);
-		}
-		else
-		{
-			return error(GL_INVALID_ENUM);
-		}
+		return error(GL_INVALID_OPERATION);
 	}
 
 	gl::Context *context = gl::getContext();

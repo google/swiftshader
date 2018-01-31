@@ -721,13 +721,8 @@ void CompressedTexImage2D(GLenum target, GLint level, GLenum internalformat, GLs
 	switch(internalformat)
 	{
 	case GL_ETC1_RGB8_OES:
-		break;
 	case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
 	case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
-		if(!S3TC_SUPPORT)
-		{
-			return error(GL_INVALID_ENUM);
-		}
 		break;
 	case GL_DEPTH_COMPONENT16_OES:
 	case GL_DEPTH_COMPONENT32_OES:
@@ -806,13 +801,8 @@ void CompressedTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yo
 	switch(format)
 	{
 	case GL_ETC1_RGB8_OES:
-		break;
 	case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
 	case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
-		if(!S3TC_SUPPORT)
-		{
-			return error(GL_INVALID_ENUM);
-		}
 		break;
 	default:
 		return error(GL_INVALID_ENUM);
@@ -936,17 +926,9 @@ void CopyTexImage2D(GLenum target, GLint level, GLenum internalformat, GLint x, 
 			}
 			break;
 		case GL_ETC1_RGB8_OES:
-			return error(GL_INVALID_OPERATION);
 		case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
 		case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
-			if(S3TC_SUPPORT)
-			{
-				return error(GL_INVALID_OPERATION);
-			}
-			else
-			{
-				return error(GL_INVALID_ENUM);
-			}
+			return error(GL_INVALID_OPERATION);
 		default:
 			return error(GL_INVALID_ENUM);
 		}
@@ -2301,11 +2283,9 @@ const GLubyte* GetString(GLenum name)
 			"GL_OES_texture_npot "
 			"GL_EXT_blend_minmax "
 			"GL_EXT_read_format_bgra "
-			#if (S3TC_SUPPORT)
 			"GL_EXT_texture_compression_dxt1 "
 			"GL_ANGLE_texture_compression_dxt3 "
 			"GL_ANGLE_texture_compression_dxt5 "
-			#endif
 			"GL_EXT_texture_filter_anisotropic "
 			"GL_EXT_texture_format_BGRA8888";
 	default:
@@ -4266,17 +4246,9 @@ void TexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width,
 		}
 		break;
 	case GL_ETC1_RGB8_OES:
-		return error(GL_INVALID_OPERATION);
 	case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
 	case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
-		if(S3TC_SUPPORT)
-		{
-			return error(GL_INVALID_OPERATION);
-		}
-		else
-		{
-			return error(GL_INVALID_ENUM);
-		}
+		return error(GL_INVALID_OPERATION);
 	case GL_DEPTH_STENCIL_OES:
 		switch(type)
 		{

@@ -1135,9 +1135,7 @@ namespace sw
 
 			switch(format)
 			{
-			#if S3TC_SUPPORT
 			case FORMAT_DXT1:
-			#endif
 			case FORMAT_ATI1:
 			case FORMAT_ETC1:
 			case FORMAT_R11_EAC:
@@ -1193,10 +1191,8 @@ namespace sw
 			case FORMAT_RGBA_ASTC_12x12_KHR:
 			case FORMAT_SRGB8_ALPHA8_ASTC_12x12_KHR:
 				return (unsigned char*)buffer + 16 * (x / 12) + (y / 12) * pitchB + z * sliceB;
-			#if S3TC_SUPPORT
 			case FORMAT_DXT3:
 			case FORMAT_DXT5:
-			#endif
 			case FORMAT_ATI2:
 				return (unsigned char*)buffer + 16 * (x / 4) + (y / 4) * pitchB + z * sliceB;
 			default:
@@ -1598,11 +1594,9 @@ namespace sw
 		case FORMAT_A32B32G32R32I:		return 16;
 		case FORMAT_A32B32G32R32UI:		return 16;
 		// Compressed formats
-		#if S3TC_SUPPORT
 		case FORMAT_DXT1:				return 2;   // Column of four pixels
 		case FORMAT_DXT3:				return 4;   // Column of four pixels
 		case FORMAT_DXT5:				return 4;   // Column of four pixels
-		#endif
 		case FORMAT_ATI1:				return 2;   // Column of four pixels
 		case FORMAT_ATI2:				return 4;   // Column of four pixels
 		case FORMAT_ETC1:				return 2;   // Column of four pixels
@@ -1716,9 +1710,7 @@ namespace sw
 
 		switch(format)
 		{
-		#if S3TC_SUPPORT
 		case FORMAT_DXT1:
-		#endif
 		case FORMAT_ETC1:
 		case FORMAT_R11_EAC:
 		case FORMAT_SIGNED_R11_EAC:
@@ -1765,11 +1757,9 @@ namespace sw
 		case FORMAT_RGBA_ASTC_12x12_KHR:
 		case FORMAT_SRGB8_ALPHA8_ASTC_12x12_KHR:
 			return 16 * ((width + 11) / 12);
-		#if S3TC_SUPPORT
 		case FORMAT_DXT3:
 		case FORMAT_DXT5:
 			return 16 * ((width + 3) / 4);   // 128 bit per 4x4 block, computed per 4 rows
-		#endif
 		case FORMAT_ATI1:
 			return 2 * ((width + 3) / 4);    // 64 bit per 4x4 block, computed per row
 		case FORMAT_ATI2:
@@ -1801,11 +1791,9 @@ namespace sw
 
 		switch(format)
 		{
-		#if S3TC_SUPPORT
 		case FORMAT_DXT1:
 		case FORMAT_DXT3:
 		case FORMAT_DXT5:
-		#endif
 		case FORMAT_ETC1:
 		case FORMAT_R11_EAC:
 		case FORMAT_SIGNED_R11_EAC:
@@ -1882,11 +1870,9 @@ namespace sw
 			case FORMAT_X4R4G4B4:	decodeX4R4G4B4(destination, source);	break;   // FIXME: Check destination format
 			case FORMAT_A4R4G4B4:	decodeA4R4G4B4(destination, source);	break;   // FIXME: Check destination format
 			case FORMAT_P8:			decodeP8(destination, source);			break;   // FIXME: Check destination format
-			#if S3TC_SUPPORT
 			case FORMAT_DXT1:		decodeDXT1(destination, source);		break;   // FIXME: Check destination format
 			case FORMAT_DXT3:		decodeDXT3(destination, source);		break;   // FIXME: Check destination format
 			case FORMAT_DXT5:		decodeDXT5(destination, source);		break;   // FIXME: Check destination format
-			#endif
 			case FORMAT_ATI1:		decodeATI1(destination, source);		break;   // FIXME: Check destination format
 			case FORMAT_ATI2:		decodeATI2(destination, source);		break;   // FIXME: Check destination format
 			case FORMAT_R11_EAC:         decodeEAC(destination, source, 1, false); break; // FIXME: Check destination format
@@ -2252,7 +2238,6 @@ namespace sw
 		destination.unlockRect();
 	}
 
-#if S3TC_SUPPORT
 	void Surface::decodeDXT1(Buffer &internal, Buffer &external)
 	{
 		unsigned int *destSlice = (unsigned int*)internal.lockRect(0, 0, 0, LOCK_WRITEONLY);
@@ -2441,7 +2426,6 @@ namespace sw
 		external.unlockRect();
 		internal.unlockRect();
 	}
-#endif
 
 	void Surface::decodeATI1(Buffer &internal, Buffer &external)
 	{
@@ -2664,9 +2648,7 @@ namespace sw
 
 		switch(format)
 		{
-		#if S3TC_SUPPORT
 		case FORMAT_DXT1:
-		#endif
 		case FORMAT_ATI1:
 		case FORMAT_ETC1:
 		case FORMAT_R11_EAC:
@@ -2676,10 +2658,8 @@ namespace sw
 		case FORMAT_RGB8_PUNCHTHROUGH_ALPHA1_ETC2:
 		case FORMAT_SRGB8_PUNCHTHROUGH_ALPHA1_ETC2:
 			return width4 * height4 * depth / 2;
-		#if S3TC_SUPPORT
 		case FORMAT_DXT3:
 		case FORMAT_DXT5:
-		#endif
 		case FORMAT_ATI2:
 		case FORMAT_RG11_EAC:
 		case FORMAT_SIGNED_RG11_EAC:
@@ -3041,11 +3021,9 @@ namespace sw
 		case FORMAT_X1R5G5B5:
 		case FORMAT_A1R5G5B5:
 		case FORMAT_A4R4G4B4:
-		#if S3TC_SUPPORT
 		case FORMAT_DXT1:
 		case FORMAT_DXT3:
 		case FORMAT_DXT5:
-		#endif
 		case FORMAT_ATI1:
 		case FORMAT_ATI2:
 			return true;
@@ -3089,11 +3067,9 @@ namespace sw
 	{
 		switch(format)
 		{
-		#if S3TC_SUPPORT
 		case FORMAT_DXT1:
 		case FORMAT_DXT3:
 		case FORMAT_DXT5:
-		#endif
 		case FORMAT_ATI1:
 		case FORMAT_ATI2:
 		case FORMAT_ETC1:
@@ -3901,11 +3877,9 @@ namespace sw
 		case FORMAT_SRGB8_A8:
 			return FORMAT_SRGB8_A8;
 		// Compressed formats
-		#if S3TC_SUPPORT
 		case FORMAT_DXT1:
 		case FORMAT_DXT3:
 		case FORMAT_DXT5:
-		#endif
 		case FORMAT_RGB8_PUNCHTHROUGH_ALPHA1_ETC2:
 		case FORMAT_SRGB8_PUNCHTHROUGH_ALPHA1_ETC2:
 		case FORMAT_RGBA8_ETC2_EAC:

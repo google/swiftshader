@@ -4438,9 +4438,7 @@ const GLubyte *Context::getExtensions(GLuint index, GLuint *numExt) const
 		"GL_EXT_instanced_arrays",
 		"GL_EXT_occlusion_query_boolean",
 		"GL_EXT_read_format_bgra",
-#if (S3TC_SUPPORT)
 		"GL_EXT_texture_compression_dxt1",
-#endif
 		"GL_EXT_texture_filter_anisotropic",
 		"GL_EXT_texture_format_BGRA8888",
 		"GL_EXT_texture_rg",
@@ -4452,10 +4450,8 @@ const GLubyte *Context::getExtensions(GLuint index, GLuint *numExt) const
 		"GL_ANGLE_framebuffer_blit",
 		"GL_ANGLE_framebuffer_multisample",
 		"GL_ANGLE_instanced_arrays",
-#if (S3TC_SUPPORT)
 		"GL_ANGLE_texture_compression_dxt3",
 		"GL_ANGLE_texture_compression_dxt5",
-#endif
 		//"GL_APPLE_texture_format_BGRA8888",
 		"GL_CHROMIUM_texture_filtering_hint",
 		"GL_NV_fence",
