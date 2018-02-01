@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f0e5b890_b0e75357",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-02-01T15:09:13Z",
+      "side": 1,
+      "message": "Please file a dEQP coverage bug.",
+      "range": {
+        "startLine": 15,
+        "startChar": 4,
+        "endLine": 15,
+        "endChar": 8
+      },
+      "revId": "33786ee8474b99bae1e33d43998e656cf784402a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f9bf8ff8_ec68e938",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 3157,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-02-01T15:09:13Z",
+      "side": 1,
+      "message": "This shouldn\u0027t fail silently. The spec states that \"It is an error if any of the following occur:\n• The location of any output or element of an array output, is greater or equal to the value of MAX_DRAW_BUFFERS.\"",
+      "range": {
+        "startLine": 3157,
+        "startChar": 33,
+        "endLine": 3157,
+        "endChar": 72
+      },
+      "revId": "33786ee8474b99bae1e33d43998e656cf784402a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "aedb5a7c_5320ebcc",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 3167,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-02-01T15:09:13Z",
+      "side": 1,
+      "message": "nit: nullptr, or use a !",
+      "range": {
+        "startLine": 3167,
+        "startChar": 49,
+        "endLine": 3167,
+        "endChar": 50
+      },
+      "revId": "33786ee8474b99bae1e33d43998e656cf784402a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
