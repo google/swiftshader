@@ -1993,6 +1993,7 @@ template<typename T> bool Context::getIntegerv(GLenum pname, T *params) const
 	case GL_STENCIL_BACK_WRITEMASK:           *params = sw::clampToSignedInt(mState.stencilBackWritemask); return true;
 	case GL_STENCIL_CLEAR_VALUE:              *params = mState.stencilClearValue;             return true;
 	case GL_SUBPIXEL_BITS:                    *params = 4;                                    return true;
+	case GL_MAX_RECTANGLE_TEXTURE_SIZE_ARB:
 	case GL_MAX_TEXTURE_SIZE:                 *params = IMPLEMENTATION_MAX_TEXTURE_SIZE;          return true;
 	case GL_MAX_CUBE_MAP_TEXTURE_SIZE:        *params = IMPLEMENTATION_MAX_CUBE_MAP_TEXTURE_SIZE; return true;
 	case GL_NUM_COMPRESSED_TEXTURE_FORMATS:   *params = NUM_COMPRESSED_TEXTURE_FORMATS;           return true;
@@ -2572,6 +2573,7 @@ bool Context::getQueryParameterInfo(GLenum pname, GLenum *type, unsigned int *nu
 	case GL_SUBPIXEL_BITS:
 	case GL_MAX_TEXTURE_SIZE:
 	case GL_MAX_CUBE_MAP_TEXTURE_SIZE:
+	case GL_MAX_RECTANGLE_TEXTURE_SIZE_ARB:
 	case GL_SAMPLE_BUFFERS:
 	case GL_SAMPLES:
 	case GL_IMPLEMENTATION_COLOR_READ_TYPE:
