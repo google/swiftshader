@@ -191,6 +191,30 @@
     },
     {
       "key": {
+        "uuid": "a411a4c0_9e13b487",
+        "filename": "src/OpenGL/compiler/glslang_lex.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-02-01T21:52:37Z",
+      "side": 1,
+      "message": "I meant regenerating this whole file in a separate CL.",
+      "parentUuid": "6a38fe68_9abcf5b9",
+      "range": {
+        "startLine": 48,
+        "startChar": 33,
+        "endLine": 48,
+        "endChar": 34
+      },
+      "revId": "8a44465a09d33101f85740cd6ca59120151f4e79",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "cd16c4dc_0d5ec1a1",
         "filename": "src/OpenGL/compiler/util.cpp",
         "patchSetId": 1
