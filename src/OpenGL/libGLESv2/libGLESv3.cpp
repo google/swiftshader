@@ -55,10 +55,9 @@ static bool validImageSize(GLint level, GLsizei width, GLsizei height)
 
 static bool validateColorBufferFormat(GLenum textureFormat, GLenum colorbufferFormat)
 {
-	GLenum validationError = ValidateCompressedFormat(textureFormat, egl::getClientVersion(), false);
-	if(validationError != GL_NONE)
+	if(IsCompressed(textureFormat, egl::getClientVersion()))
 	{
-		return error(validationError, false);
+		return error(GL_INVALID_OPERATION, false);
 	}
 
 	switch(textureFormat)
@@ -834,22 +833,9 @@ GL_APICALL void GL_APIENTRY glCompressedTexImage3D(GLenum target, GLint level, G
 		return error(GL_INVALID_VALUE);
 	}
 
-	switch(internalformat)
+	if(!IsCompressed(internalformat, egl::getClientVersion()))
 	{
-	case GL_DEPTH_COMPONENT:
-	case GL_DEPTH_COMPONENT16:
-	case GL_DEPTH_COMPONENT32_OES:
-	case GL_DEPTH_STENCIL:
-	case GL_DEPTH24_STENCIL8:
-		return error(GL_INVALID_OPERATION);
-	default:
-		{
-			GLenum validationError = ValidateCompressedFormat(internalformat, egl::getClientVersion(), true);
-			if(validationError != GL_NONE)
-			{
-				return error(validationError);
-			}
-		}
+		return error(GL_INVALID_ENUM);
 	}
 
 	if(imageSize != egl::ComputeCompressedSize(width, height, internalformat) * depth)
@@ -904,10 +890,9 @@ GL_APICALL void GL_APIENTRY glCompressedTexSubImage3D(GLenum target, GLint level
 		return error(GL_INVALID_VALUE);
 	}
 
-	GLenum validationError = ValidateCompressedFormat(format, egl::getClientVersion(), true);
-	if(validationError != GL_NONE)
+	if(!IsCompressed(format, egl::getClientVersion()))
 	{
-		return error(validationError);
+		return error(GL_INVALID_ENUM);
 	}
 
 	if(imageSize != egl::ComputeCompressedSize(width, height, format) * depth)

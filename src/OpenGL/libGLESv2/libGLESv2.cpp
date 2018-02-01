@@ -56,10 +56,9 @@ static bool validImageSize(GLint level, GLsizei width, GLsizei height)
 
 static bool validateColorBufferFormat(GLenum textureFormat, GLenum colorbufferFormat)
 {
-	GLenum validationError = ValidateCompressedFormat(textureFormat, egl::getClientVersion(), false);
-	if(validationError != GL_NONE)
+	if(IsCompressed(textureFormat, egl::getClientVersion()))
 	{
-		return error(validationError, false);
+		return error(GL_INVALID_OPERATION, false);
 	}
 
 	// [OpenGL ES 2.0.24] table 3.9
@@ -803,23 +802,9 @@ void CompressedTexImage2D(GLenum target, GLint level, GLenum internalformat, GLs
 		return error(GL_INVALID_VALUE);
 	}
 
-	switch(internalformat)
+	if(!IsCompressed(internalformat, egl::getClientVersion()))
 	{
-	case GL_DEPTH_COMPONENT:
-	case GL_DEPTH_COMPONENT16:
-	case GL_DEPTH_COMPONENT32_OES:
-	case GL_DEPTH_STENCIL_OES:
-	case GL_DEPTH24_STENCIL8_OES:
-		return error(GL_INVALID_OPERATION);
-	default:
-		{
-			GLenum validationError = ValidateCompressedFormat(internalformat, egl::getClientVersion(), true);
-			if(validationError != GL_NONE)
-			{
-				return error(validationError);
-			}
-		}
-		break;
+		return error(GL_INVALID_ENUM);
 	}
 
 	if(border != 0)
@@ -5042,13 +5027,7 @@ void TexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width,
 			}
 		}
 
-		GLenum validationError = ValidateCompressedFormat(format, clientVersion, false);
-		if(validationError != GL_NONE)
-		{
-			return error(validationError);
-		}
-
-		validationError = ValidateTextureFormatType(format, type, internalformat, context->getClientVersion());
+		GLenum validationError = ValidateTextureFormatType(format, type, internalformat, context->getClientVersion());
 		if(validationError != GL_NONE)
 		{
 			return error(validationError);
@@ -6466,22 +6445,9 @@ void CompressedTexImage3DOES(GLenum target, GLint level, GLenum internalformat, 
 		return error(GL_INVALID_VALUE);
 	}
 
-	switch(internalformat)
+	if(!IsCompressed(internalformat, egl::getClientVersion()))
 	{
-	case GL_DEPTH_COMPONENT:
-	case GL_DEPTH_COMPONENT16:
-	case GL_DEPTH_COMPONENT32_OES:
-	case GL_DEPTH_STENCIL_OES:
-	case GL_DEPTH24_STENCIL8_OES:
-		return error(GL_INVALID_OPERATION);
-	default:
-		{
-			GLenum validationError = ValidateCompressedFormat(internalformat, egl::getClientVersion(), true);
-			if(validationError != GL_NONE)
-			{
-				return error(validationError);
-			}
-		}
+		return error(GL_INVALID_ENUM);
 	}
 
 	if(imageSize != egl::ComputeCompressedSize(width, height, internalformat) * depth)
@@ -6536,10 +6502,9 @@ void CompressedTexSubImage3DOES(GLenum target, GLint level, GLint xoffset, GLint
 		return error(GL_INVALID_VALUE);
 	}
 
-	GLenum validationError = ValidateCompressedFormat(format, egl::getClientVersion(), true);
-	if(validationError != GL_NONE)
+	if(!IsCompressed(format, egl::getClientVersion()))
 	{
-		return error(validationError);
+		return error(GL_INVALID_ENUM);
 	}
 
 	if(imageSize != egl::ComputeCompressedSize(width, height, format) * depth)
