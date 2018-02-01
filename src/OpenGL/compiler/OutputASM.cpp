@@ -3182,9 +3182,9 @@ namespace glsl
 		int requestedLocation = fragmentOutput->getType().getLayoutQualifier().location;
 		if((requestedLocation >= 0) && (requestedLocation < sw::RENDERTARGETS))
 		{
-			if(fragmentOutputs.size() <= requestedLocation)
+			if(fragmentOutputs.size() <= (size_t)requestedLocation)
 			{
-				while(fragmentOutputs.size() < requestedLocation)
+				while(fragmentOutputs.size() < (size_t)requestedLocation)
 				{
 					fragmentOutputs.push_back(nullptr);
 				}
