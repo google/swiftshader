@@ -53,57 +53,6 @@ static bool validImageSize(GLint level, GLsizei width, GLsizei height)
 	return true;
 }
 
-static bool validateColorBufferFormat(GLenum textureFormat, GLenum colorbufferFormat)
-{
-	if(IsCompressed(textureFormat, egl::getClientVersion()))
-	{
-		return error(GL_INVALID_OPERATION, false);
-	}
-
-	switch(textureFormat)
-	{
-	case GL_ALPHA:
-		if(colorbufferFormat != GL_ALPHA &&
-		   colorbufferFormat != GL_RGBA &&
-		   colorbufferFormat != GL_RGBA4 &&
-		   colorbufferFormat != GL_RGB5_A1 &&
-		   colorbufferFormat != GL_RGBA8)
-		{
-			return error(GL_INVALID_OPERATION, false);
-		}
-		break;
-	case GL_LUMINANCE:
-	case GL_RGB:
-		if(colorbufferFormat != GL_RGB &&
-		   colorbufferFormat != GL_RGB565 &&
-		   colorbufferFormat != GL_RGB8 &&
-		   colorbufferFormat != GL_RGBA &&
-		   colorbufferFormat != GL_RGBA4 &&
-		   colorbufferFormat != GL_RGB5_A1 &&
-		   colorbufferFormat != GL_RGBA8)
-		{
-			return error(GL_INVALID_OPERATION, false);
-		}
-		break;
-	case GL_LUMINANCE_ALPHA:
-	case GL_RGBA:
-		if(colorbufferFormat != GL_RGBA &&
-		   colorbufferFormat != GL_RGBA4 &&
-		   colorbufferFormat != GL_RGB5_A1 &&
-		   colorbufferFormat != GL_RGBA8)
-		{
-			return error(GL_INVALID_OPERATION, false);
-		}
-		break;
-	case GL_DEPTH_COMPONENT:
-	case GL_DEPTH_STENCIL:
-		return error(GL_INVALID_OPERATION, false);
-	default:
-		return error(GL_INVALID_ENUM, false);
-	}
-	return true;
-}
-
 static FormatMap BuildFormatMap3D()
 {
 	FormatMap map;
@@ -798,7 +747,7 @@ GL_APICALL void GL_APIENTRY glCopyTexSubImage3D(GLenum target, GLint level, GLin
 
 		GLenum textureFormat = texture->getFormat(target, level);
 
-		if(!validateColorBufferFormat(textureFormat, colorbufferFormat))
+		if(!ValidateCopyFormats(textureFormat, colorbufferFormat))
 		{
 			return;
 		}

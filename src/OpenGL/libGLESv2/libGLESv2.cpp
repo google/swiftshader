@@ -54,69 +54,6 @@ static bool validImageSize(GLint level, GLsizei width, GLsizei height)
 	return true;
 }
 
-static bool validateColorBufferFormat(GLenum textureFormat, GLenum colorbufferFormat)
-{
-	if(IsCompressed(textureFormat, egl::getClientVersion()))
-	{
-		return error(GL_INVALID_OPERATION, false);
-	}
-
-	// [OpenGL ES 2.0.24] table 3.9
-	switch(textureFormat)
-	{
-	case GL_ALPHA:
-		if(colorbufferFormat != GL_ALPHA &&
-		   colorbufferFormat != GL_RGBA &&
-		   colorbufferFormat != GL_RGBA4 &&
-		   colorbufferFormat != GL_RGB5_A1 &&
-		   colorbufferFormat != GL_RGBA8_OES &&
-		   colorbufferFormat != GL_BGRA8_EXT &&
-		   colorbufferFormat != GL_RGBA16F_EXT &&
-		   colorbufferFormat != GL_RGBA32F_EXT)
-		{
-			return error(GL_INVALID_OPERATION, false);
-		}
-		break;
-	case GL_LUMINANCE:
-	case GL_RGB:
-		if(colorbufferFormat != GL_RGB &&
-		   colorbufferFormat != GL_RGB565 &&
-		   colorbufferFormat != GL_RGB8_OES &&
-		   colorbufferFormat != GL_RGBA &&
-		   colorbufferFormat != GL_RGBA4 &&
-		   colorbufferFormat != GL_RGB5_A1 &&
-		   colorbufferFormat != GL_RGBA8_OES &&
-		   colorbufferFormat != GL_RGB16F_EXT &&
-		   colorbufferFormat != GL_RGB32F_EXT &&
-		   colorbufferFormat != GL_BGRA8_EXT &&
-		   colorbufferFormat != GL_RGBA16F_EXT &&
-		   colorbufferFormat != GL_RGBA32F_EXT)
-		{
-			return error(GL_INVALID_OPERATION, false);
-		}
-		break;
-	case GL_LUMINANCE_ALPHA:
-	case GL_RGBA:
-		if(colorbufferFormat != GL_RGBA &&
-		   colorbufferFormat != GL_RGBA4 &&
-		   colorbufferFormat != GL_RGB5_A1 &&
-		   colorbufferFormat != GL_RGBA8_OES &&
-		   colorbufferFormat != GL_BGRA8_EXT &&
-		   colorbufferFormat != GL_RGBA16F_EXT &&
-		   colorbufferFormat != GL_RGBA32F_EXT)
-		{
-			return error(GL_INVALID_OPERATION, false);
-		}
-		break;
-	case GL_DEPTH_COMPONENT:
-	case GL_DEPTH_STENCIL_OES:
-		return error(GL_INVALID_OPERATION, false);
-	default:
-		return error(GL_INVALID_ENUM, false);
-	}
-	return true;
-}
-
 void ActiveTexture(GLenum texture)
 {
 	TRACE("(GLenum texture = 0x%X)", texture);
@@ -1054,7 +991,7 @@ void CopyTexImage2D(GLenum target, GLint level, GLenum internalformat, GLint x, 
 
 		GLenum colorbufferFormat = source->getFormat();
 
-		if(!validateColorBufferFormat(internalformat, colorbufferFormat))
+		if(!ValidateCopyFormats(internalformat, colorbufferFormat))
 		{
 			return;
 		}
