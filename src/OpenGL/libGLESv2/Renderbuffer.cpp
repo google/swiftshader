@@ -22,6 +22,8 @@
 #include "Texture.h"
 #include "utilities.h"
 
+#include "compiler/Compiler.h"
+
 namespace es2
 {
 RenderbufferInterface::RenderbufferInterface()
@@ -128,6 +130,69 @@ GLint RenderbufferTexture2D::getFormat() const
 }
 
 GLsizei RenderbufferTexture2D::getSamples() const
+{
+	return 0;   // Core OpenGL ES 3.0 does not support multisample textures.
+}
+
+///// RenderbufferTexture2DRect Implementation ////////
+
+RenderbufferTexture2DRect::RenderbufferTexture2DRect(Texture2DRect *texture)
+{
+	mTexture2DRect = texture;
+}
+
+RenderbufferTexture2DRect::~RenderbufferTexture2DRect()
+{
+	mTexture2DRect = NULL;
+}
+
+// Textures need to maintain their own reference count for references via
+// Renderbuffers acting as proxies. Here, we notify the texture of a reference.
+void RenderbufferTexture2DRect::addProxyRef(const Renderbuffer *proxy)
+{
+	mTexture2DRect->addProxyRef(proxy);
+}
+
+void RenderbufferTexture2DRect::releaseProxy(const Renderbuffer *proxy)
+{
+	mTexture2DRect->releaseProxy(proxy);
+}
+
+// Increments refcount on image.
+// caller must release() the returned image
+egl::Image *RenderbufferTexture2DRect::getRenderTarget()
+{
+	return mTexture2DRect->getRenderTarget(GL_TEXTURE_RECTANGLE_ARB, 0);
+}
+
+// Increments refcount on image.
+// caller must release() the returned image
+egl::Image *RenderbufferTexture2DRect::createSharedImage()
+{
+	return mTexture2DRect->createSharedImage(GL_TEXTURE_RECTANGLE_ARB, 0);
+}
+
+bool RenderbufferTexture2DRect::isShared() const
+{
+	return mTexture2DRect->isShared(GL_TEXTURE_RECTANGLE_ARB, 0);
+}
+
+GLsizei RenderbufferTexture2DRect::getWidth() const
+{
+	return mTexture2DRect->getWidth(GL_TEXTURE_RECTANGLE_ARB, 0);
+}
+
+GLsizei RenderbufferTexture2DRect::getHeight() const
+{
+	return mTexture2DRect->getHeight(GL_TEXTURE_RECTANGLE_ARB, 0);
+}
+
+GLint RenderbufferTexture2DRect::getFormat() const
+{
+	return mTexture2DRect->getFormat(GL_TEXTURE_RECTANGLE_ARB, 0);
+}
+
+GLsizei RenderbufferTexture2DRect::getSamples() const
 {
 	return 0;   // Core OpenGL ES 3.0 does not support multisample textures.
 }

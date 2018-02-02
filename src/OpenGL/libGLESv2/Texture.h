@@ -205,6 +205,8 @@ public:
 	explicit Texture2DRect(GLuint name);
 
 	GLenum getTarget() const override;
+
+	Renderbuffer *getRenderbuffer(GLenum target, GLint level) override;
 };
 
 class TextureCubeMap : public Texture

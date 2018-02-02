@@ -75,7 +75,7 @@ bool Texture::setMinFilter(GLenum filter)
 	case GL_LINEAR_MIPMAP_NEAREST:
 	case GL_NEAREST_MIPMAP_LINEAR:
 	case GL_LINEAR_MIPMAP_LINEAR:
-		if(getTarget() == GL_TEXTURE_EXTERNAL_OES)
+		if((getTarget() == GL_TEXTURE_EXTERNAL_OES) || (getTarget() == GL_TEXTURE_RECTANGLE_ARB))
 		{
 			return false;
 		}
@@ -110,7 +110,7 @@ bool Texture::setWrapS(GLenum wrap)
 	{
 	case GL_REPEAT:
 	case GL_MIRRORED_REPEAT:
-		if(getTarget() == GL_TEXTURE_EXTERNAL_OES)
+		if((getTarget() == GL_TEXTURE_EXTERNAL_OES) || (getTarget() == GL_TEXTURE_RECTANGLE_ARB))
 		{
 			return false;
 		}
@@ -130,7 +130,7 @@ bool Texture::setWrapT(GLenum wrap)
 	{
 	case GL_REPEAT:
 	case GL_MIRRORED_REPEAT:
-		if(getTarget() == GL_TEXTURE_EXTERNAL_OES)
+		if((getTarget() == GL_TEXTURE_EXTERNAL_OES) || (getTarget() == GL_TEXTURE_RECTANGLE_ARB))
 		{
 			return false;
 		}
@@ -150,7 +150,7 @@ bool Texture::setWrapR(GLenum wrap)
 	{
 	case GL_REPEAT:
 	case GL_MIRRORED_REPEAT:
-		if(getTarget() == GL_TEXTURE_EXTERNAL_OES)
+		if((getTarget() == GL_TEXTURE_EXTERNAL_OES) || (getTarget() == GL_TEXTURE_RECTANGLE_ARB))
 		{
 			return false;
 		}
@@ -844,11 +844,31 @@ bool Texture2D::isShared(GLenum target, unsigned int level) const
 
 Texture2DRect::Texture2DRect(GLuint name) : Texture2D(name)
 {
+	mMinFilter = GL_LINEAR;
+	mMagFilter = GL_LINEAR;
+	mWrapS = GL_CLAMP_TO_EDGE;
+	mWrapT = GL_CLAMP_TO_EDGE;
+	mWrapR = GL_CLAMP_TO_EDGE;
 }
 
 GLenum Texture2DRect::getTarget() const
 {
 	return GL_TEXTURE_RECTANGLE_ARB;
+}
+
+Renderbuffer *Texture2DRect::getRenderbuffer(GLenum target, GLint level)
+{
+	if((target != getTarget()) || (level != 0))
+	{
+		return error(GL_INVALID_OPERATION, (Renderbuffer*)nullptr);
+	}
+
+	if(!mColorbufferProxy)
+	{
+		mColorbufferProxy = new Renderbuffer(name, new RenderbufferTexture2DRect(this));
+	}
+
+	return mColorbufferProxy;
 }
 
 TextureCubeMap::TextureCubeMap(GLuint name) : Texture(name)
