@@ -255,7 +255,7 @@ void CLCompileServer::run() {
   }
 
   if (getFlags().getNumTranslationThreads() != 0) {
-    std::thread CompileThread([this, &Flags, &InputStream]() {
+    std::thread CompileThread([this, &InputStream]() {
       Ctx->initParserThread();
       getCompiler().run(Flags, *Ctx.get(), std::move(InputStream));
     });

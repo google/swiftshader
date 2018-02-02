@@ -5140,7 +5140,7 @@ void TargetARM32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
       _dmb();
       lowerLoadLinkedStoreExclusive(
           DestTy, Instr->getArg(0),
-          [this, Expected, New, Instr, DestTy, &LoadedValue](Variable *Tmp) {
+          [this, Expected, New, &LoadedValue](Variable *Tmp) {
             auto *ExpectedLoR = llvm::cast<Variable>(loOperand(Expected));
             auto *ExpectedHiR = llvm::cast<Variable>(hiOperand(Expected));
             auto *TmpLoR = llvm::cast<Variable>(loOperand(Tmp));
@@ -5171,7 +5171,7 @@ void TargetARM32::lowerIntrinsicCall(const InstIntrinsicCall *Instr) {
     _dmb();
     lowerLoadLinkedStoreExclusive(
         DestTy, Instr->getArg(0),
-        [this, Expected, New, Instr, DestTy, &LoadedValue](Variable *Tmp) {
+        [this, Expected, New, &LoadedValue](Variable *Tmp) {
           lowerIcmpCond(InstIcmp::Eq, Tmp, Expected);
           LoadedValue = Tmp;
           return New;
