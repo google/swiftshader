@@ -3180,28 +3180,54 @@ namespace glsl
 	void OutputASM::declareFragmentOutput(TIntermTyped *fragmentOutput)
 	{
 		int requestedLocation = fragmentOutput->getType().getLayoutQualifier().location;
-		if((requestedLocation >= 0) && (requestedLocation < sw::RENDERTARGETS))
+		int registerCount = fragmentOutput->totalRegisterCount();
+		if(requestedLocation < 0)
 		{
-			if(fragmentOutputs.size() <= (size_t)requestedLocation)
-			{
-				while(fragmentOutputs.size() < (size_t)requestedLocation)
-				{
-					fragmentOutputs.push_back(nullptr);
-				}
-				fragmentOutputs.push_back(fragmentOutput);
-			}
-			else if(!fragmentOutputs[requestedLocation])
-			{
-				fragmentOutputs[requestedLocation] = fragmentOutput;
-			}
-			else
-			{
-				mContext.error(fragmentOutput->getLine(), "Fragment output location aliasing", "fragment shader");
-			}
+			mContext.error(fragmentOutput->getLine(), "Invalid fragment output location", "fragment shader");
 		}
-		else if(requestedLocation >= sw::RENDERTARGETS)
+		else if((requestedLocation + registerCount) > sw::RENDERTARGETS)
 		{
 			mContext.error(fragmentOutput->getLine(), "Fragment output location larger or equal to MAX_DRAW_BUFFERS", "fragment shader");
+		}
+		else
+		{
+			int currentIndex = lookup(fragmentOutputs, fragmentOutput);
+			if(requestedLocation != currentIndex)
+			{
+				if(currentIndex != -1)
+				{
+					mContext.error(fragmentOutput->getLine(), "Multiple locations for fragment output", "fragment shader");
+				}
+				else
+				{
+					if(fragmentOutputs.size() <= (size_t)requestedLocation)
+					{
+						while(fragmentOutputs.size() < (size_t)requestedLocation)
+						{
+							fragmentOutputs.push_back(nullptr);
+						}
+						for(int i = 0; i < registerCount; i++)
+						{
+							fragmentOutputs.push_back(fragmentOutput);
+						}
+					}
+					else
+					{
+						for(int i = 0; i < registerCount; i++)
+						{
+							if(!fragmentOutputs[requestedLocation + i])
+							{
+								fragmentOutputs[requestedLocation + i] = fragmentOutput;
+							}
+							else
+							{
+								mContext.error(fragmentOutput->getLine(), "Fragment output location aliasing", "fragment shader");
+								return;
+							}
+						}
+					}
+				}
+			}
 		}
 	}
 
