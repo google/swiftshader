@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "805426de_69eb6ab5",
+        "filename": "src/OpenGL/libGLESv2/utilities.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 653,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-02-05T21:41:37Z",
+      "side": 1,
+      "message": "Can be removed now?",
+      "range": {
+        "startLine": 653,
+        "startChar": 2,
+        "endLine": 653,
+        "endChar": 16
+      },
+      "revId": "a941860d08d6c5e29c1cc7c8bece815bfe5db6c8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
