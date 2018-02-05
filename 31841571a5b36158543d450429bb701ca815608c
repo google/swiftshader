@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "93797fda_c1446522",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 3187,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-02-05T16:07:47Z",
+      "side": 1,
+      "message": "It looks like if requestedLocation is -1, we\u0027d return without an error. Likewise the code below doesn\u0027t seem to handle this.",
+      "range": {
+        "startLine": 3184,
+        "startChar": 2,
+        "endLine": 3187,
+        "endChar": 3
+      },
+      "revId": "31841571a5b36158543d450429bb701ca815608c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
