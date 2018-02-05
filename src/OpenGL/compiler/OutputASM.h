@@ -333,7 +333,6 @@ namespace glsl
 
 		struct TypedMemberInfo : public BlockMemberInfo
 		{
-			TypedMemberInfo() {}
 			TypedMemberInfo(const BlockMemberInfo& b, const TType& t) : BlockMemberInfo(b), type(t) {}
 			TType type;
 		};

@@ -3598,7 +3598,7 @@ namespace glsl
 			const BlockMemberInfo blockInfo = encoder ? encoder->encodeType(type) : BlockMemberInfo::getDefaultBlockInfo();
 			if(blockId >= 0)
 			{
-				blockDefinitions[blockId][registerIndex] = TypedMemberInfo(blockInfo, type);
+				blockDefinitions[blockId].insert(BlockDefinitionIndexMap::value_type(registerIndex, TypedMemberInfo(blockInfo, type)));
 				shaderObject->activeUniformBlocks[blockId].fields.push_back(activeUniforms.size());
 			}
 			int fieldRegisterIndex = encoder ? shaderObject->activeUniformBlocks[blockId].registerIndex + BlockLayoutEncoder::getBlockRegister(blockInfo) : registerIndex;

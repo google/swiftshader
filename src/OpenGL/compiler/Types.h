@@ -240,33 +240,32 @@ class TType
 {
 public:
 	POOL_ALLOCATOR_NEW_DELETE();
-	TType() {}
 	TType(TBasicType t, int s0 = 1, int s1 = 1) :
-		type(t), precision(EbpUndefined), qualifier(EvqGlobal), invariant(false), layoutQualifier(TLayoutQualifier::create()),
+		type(t), precision(EbpUndefined), qualifier(EvqGlobal), layoutQualifier(TLayoutQualifier::create()),
 		primarySize(s0), secondarySize(s1), array(false), arraySize(0), maxArraySize(0), arrayInformationType(0), interfaceBlock(0),
-		structure(0), deepestStructNesting(0), mangled(0)
+		structure(0), mangled(0)
 	{
 	}
 	TType(TBasicType t, TPrecision p, TQualifier q = EvqTemporary, int s0 = 1, int s1 = 1, bool a = false) :
-		type(t), precision(p), qualifier(q), invariant(false), layoutQualifier(TLayoutQualifier::create()),
+		type(t), precision(p), qualifier(q), layoutQualifier(TLayoutQualifier::create()),
 		primarySize(s0), secondarySize(s1), array(a), arraySize(0), maxArraySize(0), arrayInformationType(0), interfaceBlock(0),
-		structure(0), deepestStructNesting(0), mangled(0)
+		structure(0), mangled(0)
 	{
 	}
 	explicit TType(const TPublicType &p);
 	TType(TStructure* userDef, TPrecision p = EbpUndefined) :
-		type(EbtStruct), precision(p), qualifier(EvqTemporary), invariant(false), layoutQualifier(TLayoutQualifier::create()),
+		type(EbtStruct), precision(p), qualifier(EvqTemporary), layoutQualifier(TLayoutQualifier::create()),
 		primarySize(1), secondarySize(1), array(false), arraySize(0), maxArraySize(0), arrayInformationType(0), interfaceBlock(0),
-		structure(userDef), deepestStructNesting(0), mangled(0)
+		structure(userDef),mangled(0)
 	{
 	}
 
 	TType(TInterfaceBlock *interfaceBlockIn, TQualifier qualifierIn,
 		TLayoutQualifier layoutQualifierIn, int arraySizeIn)
 		: type(EbtInterfaceBlock), precision(EbpUndefined), qualifier(qualifierIn),
-		invariant(false), layoutQualifier(layoutQualifierIn),
+		layoutQualifier(layoutQualifierIn),
 		primarySize(1), secondarySize(1), array(arraySizeIn > 0), arraySize(arraySizeIn), maxArraySize(0), arrayInformationType(0),
-		interfaceBlock(interfaceBlockIn), structure(0), deepestStructNesting(0), mangled(0)
+		interfaceBlock(interfaceBlockIn), structure(0), mangled(0)
 	{
 	}
 
@@ -278,8 +277,6 @@ public:
 
 	TQualifier getQualifier() const { return qualifier; }
 	void setQualifier(TQualifier q) { qualifier = q; }
-
-	bool isInvariant() const { return invariant; }
 
 	TLayoutQualifier getLayoutQualifier() const { return layoutQualifier; }
 	void setLayoutQualifier(TLayoutQualifier lq) { layoutQualifier = lq; }
@@ -450,7 +447,7 @@ public:
 	bool isScalarInt() const { return isScalar() && IsInteger(type); }
 
 	TStructure* getStruct() const { return structure; }
-	void setStruct(TStructure* s) { structure = s; computeDeepestStructNesting(); }
+	void setStruct(TStructure* s) { structure = s; }
 
 	TString& getMangledName() {
 		if (!mangled) {
@@ -530,27 +527,24 @@ public:
 protected:
 	void buildMangledName(TString&);
 	size_t getStructSize() const;
-	void computeDeepestStructNesting();
 
-	TBasicType type;
-	TPrecision precision;
-	TQualifier qualifier;
-	bool invariant;
+	TBasicType type = EbtVoid;
+	TPrecision precision = EbpUndefined;
+	TQualifier qualifier = EvqTemporary;
+	unsigned char primarySize = 0;     // size of vector or matrix, not size of array
+	unsigned char secondarySize = 0;   // 1 for vectors, > 1 for matrices
+	bool array = false;
+	int arraySize = 0;
+	int maxArraySize = 0;
+	TType *arrayInformationType = nullptr;
+
+	// null unless this is an interface block, or interface block member variable
+	TInterfaceBlock *interfaceBlock = nullptr;
 	TLayoutQualifier layoutQualifier;
-	unsigned char primarySize;   // size of vector or matrix, not size of array
-	unsigned char secondarySize; // secondarySize: 1 for vectors, >1 for matrices
-	bool array;
-	int arraySize;
-	int maxArraySize;
-	TType *arrayInformationType;
 
-	// 0 unless this is an interface block, or interface block member variable
-	TInterfaceBlock *interfaceBlock;
+	TStructure *structure = nullptr;   // null unless this is a struct
 
-	TStructure *structure;      // 0 unless this is a struct
-	int deepestStructNesting;
-
-	TString *mangled;
+	TString *mangled = nullptr;
 };
 
 //
