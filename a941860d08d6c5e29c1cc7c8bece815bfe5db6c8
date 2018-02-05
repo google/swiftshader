@@ -22,6 +22,30 @@
       "revId": "a941860d08d6c5e29c1cc7c8bece815bfe5db6c8",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ce932cba_69f564de",
+        "filename": "src/OpenGL/libGLESv2/utilities.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 653,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-02-05T22:16:37Z",
+      "side": 1,
+      "message": "This actually isn\u0027t valid. glCopyTexImage allows dropping components but not adding any. The reason you have an RGB565 color buffer is because that\u0027s the format of the EGL config chosen by the test. Simply adding \"EGL_ALPHA_SIZE, 8,\" to the config attributes should address that.",
+      "parentUuid": "805426de_69eb6ab5",
+      "range": {
+        "startLine": 653,
+        "startChar": 2,
+        "endLine": 653,
+        "endChar": 16
+      },
+      "revId": "a941860d08d6c5e29c1cc7c8bece815bfe5db6c8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
