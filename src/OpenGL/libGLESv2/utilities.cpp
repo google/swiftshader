@@ -612,52 +612,48 @@ namespace es2
 
 	bool ValidateCopyFormats(GLenum textureFormat, GLenum colorbufferFormat)
 	{
-		if(IsCompressed(textureFormat, egl::getClientVersion()))
-		{
-			return error(GL_INVALID_OPERATION, false);
-		}
-
-		GLenum baseFormat = GetBaseInternalFormat(textureFormat);
+		GLenum baseTexureFormat = GetBaseInternalFormat(textureFormat);
+		GLenum baseColorbufferFormat = GetBaseInternalFormat(colorbufferFormat);
 
 		// [OpenGL ES 2.0.24] table 3.9
 		// [OpenGL ES 3.0.5] table 3.16
-		switch(baseFormat)
+		switch(baseTexureFormat)
 		{
 		case GL_ALPHA:
-			if(colorbufferFormat != GL_RGBA4 &&
-			   colorbufferFormat != GL_RGB5_A1 &&
-			   colorbufferFormat != GL_RGBA8 &&
-			   colorbufferFormat != GL_BGRA8_EXT &&
-			   colorbufferFormat != GL_RGBA16F_EXT &&
-			   colorbufferFormat != GL_RGBA32F_EXT)
-			{
-				return error(GL_INVALID_OPERATION, false);
-			}
-			break;
-		case GL_LUMINANCE:
-		case GL_RGB:
-			if(colorbufferFormat != GL_RGB565 &&
-			   colorbufferFormat != GL_RGB8 &&
-			   colorbufferFormat != GL_RGBA4 &&
-			   colorbufferFormat != GL_RGB5_A1 &&
-			   colorbufferFormat != GL_RGBA8 &&
-			   colorbufferFormat != GL_RGB16F_EXT &&
-			   colorbufferFormat != GL_RGB32F_EXT &&
-			   colorbufferFormat != GL_BGRA8_EXT &&
-			   colorbufferFormat != GL_RGBA16F_EXT &&
-			   colorbufferFormat != GL_RGBA32F_EXT)
+			if(baseColorbufferFormat != GL_ALPHA &&
+			   baseColorbufferFormat != GL_RGBA)
 			{
 				return error(GL_INVALID_OPERATION, false);
 			}
 			break;
 		case GL_LUMINANCE_ALPHA:
 		case GL_RGBA:
-			if(colorbufferFormat != GL_RGBA4 &&
-			   colorbufferFormat != GL_RGB5_A1 &&
-			   colorbufferFormat != GL_RGBA8 &&
-			   colorbufferFormat != GL_BGRA8_EXT &&
-			   colorbufferFormat != GL_RGBA16F_EXT &&
-			   colorbufferFormat != GL_RGBA32F_EXT)
+			if(baseColorbufferFormat != GL_RGBA)
+			{
+				return error(GL_INVALID_OPERATION, false);
+			}
+			break;
+		case GL_LUMINANCE:
+		case GL_RED:
+			if(baseColorbufferFormat != GL_RED &&
+			   baseColorbufferFormat != GL_RG &&
+			   baseColorbufferFormat != GL_RGB &&
+			   baseColorbufferFormat != GL_RGBA)
+			{
+				return error(GL_INVALID_OPERATION, false);
+			}
+			break;
+		case GL_RG:
+			if(baseColorbufferFormat != GL_RG &&
+			   baseColorbufferFormat != GL_RGB &&
+			   baseColorbufferFormat != GL_RGBA)
+			{
+				return error(GL_INVALID_OPERATION, false);
+			}
+			break;
+		case GL_RGB:
+			if(baseColorbufferFormat != GL_RGB &&
+			   baseColorbufferFormat != GL_RGBA)
 			{
 				return error(GL_INVALID_OPERATION, false);
 			}
@@ -1278,6 +1274,16 @@ namespace es2
 	{
 		switch(internalformat)
 		{
+		// Unsized internal formats which are valid as the <internalformat> parameter of CopyTexImage.
+		case GL_RGB:
+		case GL_RGBA:
+		case GL_ALPHA:
+		case GL_LUMINANCE:
+		case GL_LUMINANCE_ALPHA:
+		case GL_RED_EXT:           // GL_EXT_texture_rg
+		case GL_RG_EXT:            // GL_EXT_texture_rg
+			return internalformat;
+
 		// [OpenGL ES 3.0 Table 3.13]
 		case GL_R8:       return GL_RED;
 		case GL_R8_SNORM: return GL_RED;
