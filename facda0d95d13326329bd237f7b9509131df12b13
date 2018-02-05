@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c7614ce1_24fb24e5",
+        "filename": "src/OpenGL/libGLESv2/utilities.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 657,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2018-02-05T18:28:24Z",
+      "side": 1,
+      "message": "FYI, this should be fixed before landing this cl, if possible.",
+      "range": {
+        "startLine": 653,
+        "startChar": 0,
+        "endLine": 657,
+        "endChar": 39
+      },
+      "revId": "facda0d95d13326329bd237f7b9509131df12b13",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
