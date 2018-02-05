@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d0deb7be_a487792c",
+        "filename": "src/OpenGL/libGLESv2/libGLESv3.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 4096,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2018-02-05T15:08:18Z",
+      "side": 1,
+      "message": "Is it on purpose that signed normalized types have no multisampling? Just checking.",
+      "range": {
+        "startLine": 4096,
+        "startChar": 4,
+        "endLine": 4096,
+        "endChar": 54
+      },
+      "revId": "61b7e3a8b6024b274342d779661cc13a60f55c6e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
