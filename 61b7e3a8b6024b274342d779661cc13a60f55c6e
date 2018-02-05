@@ -22,6 +22,30 @@
       "revId": "61b7e3a8b6024b274342d779661cc13a60f55c6e",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c39cb5d6_8109f622",
+        "filename": "src/OpenGL/libGLESv2/libGLESv3.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 4096,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-02-05T15:37:40Z",
+      "side": 1,
+      "message": "They\u0027re not color-renderable in ES 3.0, nor in 3.2. SNORM formats were introduced in desktop OpenGL version 3.2, where they are color-renderable.\n\nMy best guess for why that\u0027s the case is because GPUs have dedicated raster-operation (ROP) units, color compression, and multi-sample resolve hardware, and every additional format they need to support costs precious transistors and a bit of power, which is especially critical on mobile.",
+      "parentUuid": "d0deb7be_a487792c",
+      "range": {
+        "startLine": 4096,
+        "startChar": 4,
+        "endLine": 4096,
+        "endChar": 54
+      },
+      "revId": "61b7e3a8b6024b274342d779661cc13a60f55c6e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
