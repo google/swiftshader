@@ -2826,7 +2826,7 @@ TLayoutQualifier TParseContext::parseLayoutQualifier(const TString &qualifierTyp
 {
 	TLayoutQualifier qualifier;
 
-	qualifier.location = -1;
+	qualifier.location = -1;  // -1 isn't a valid location, it means the value isn't set. Negative values are checked lower in this function.
 	qualifier.matrixPacking = EmpUnspecified;
 	qualifier.blockStorage = EbsUnspecified;
 

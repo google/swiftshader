@@ -3183,7 +3183,8 @@ namespace glsl
 		int registerCount = fragmentOutput->totalRegisterCount();
 		if(requestedLocation < 0)
 		{
-			mContext.error(fragmentOutput->getLine(), "Invalid fragment output location", "fragment shader");
+			ASSERT(requestedLocation == -1); // All other negative values would have been prevented in TParseContext::parseLayoutQualifier
+			return; // No requested location
 		}
 		else if((requestedLocation + registerCount) > sw::RENDERTARGETS)
 		{
