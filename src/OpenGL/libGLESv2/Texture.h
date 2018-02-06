@@ -71,24 +71,24 @@ public:
 	bool setSwizzleB(GLenum swizzleB);
 	bool setSwizzleA(GLenum swizzleA);
 
-	GLenum getMinFilter() const;
-	GLenum getMagFilter() const;
-	GLenum getWrapS() const;
-	GLenum getWrapT() const;
-	GLenum getWrapR() const;
-	GLfloat getMaxAnisotropy() const;
-	GLint getBaseLevel() const;
-	GLenum getCompareFunc() const;
-	GLenum getCompareMode() const;
-	GLboolean getImmutableFormat() const;
-	GLsizei getImmutableLevels() const;
-	GLint getMaxLevel() const;
-	GLfloat getMaxLOD() const;
-	GLfloat getMinLOD() const;
-	GLenum getSwizzleR() const;
-	GLenum getSwizzleG() const;
-	GLenum getSwizzleB() const;
-	GLenum getSwizzleA() const;
+	GLenum getMinFilter() const { return mMinFilter; }
+	GLenum getMagFilter() const { return mMagFilter; }
+	GLenum getWrapS() const { return mWrapS; }
+	GLenum getWrapT() const { return mWrapT; }
+	GLenum getWrapR() const { return mWrapR; }
+	GLfloat getMaxAnisotropy() const { return mMaxAnisotropy; }
+	GLint getBaseLevel() const { return mBaseLevel; }
+	GLenum getCompareFunc() const { return mCompareFunc; }
+	GLenum getCompareMode() const { return mCompareMode; }
+	GLboolean getImmutableFormat() const { return mImmutableFormat; }
+	GLsizei getImmutableLevels() const { return mImmutableLevels; }
+	GLint getMaxLevel() const { return mMaxLevel; }
+	GLfloat getMaxLOD() const { return mMaxLOD; }
+	GLfloat getMinLOD() const { return mMinLOD; }
+	GLenum getSwizzleR() const { return mSwizzleR; }
+	GLenum getSwizzleG() const { return mSwizzleG; }
+	GLenum getSwizzleB() const { return mSwizzleB; }
+	GLenum getSwizzleA() const { return mSwizzleA; }
 
 	virtual GLsizei getWidth(GLenum target, GLint level) const = 0;
 	virtual GLsizei getHeight(GLenum target, GLint level) const = 0;

@@ -882,8 +882,6 @@ void CompressedTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yo
 			return error(GL_INVALID_OPERATION);
 		}
 
-		GLenum sizedInternalFormat = GetSizedInternalFormat(format, GL_NONE);
-
 		if(target == GL_TEXTURE_2D || target == GL_TEXTURE_RECTANGLE_ARB)
 		{
 			es2::Texture2D *texture = context->getTexture2D(target);
@@ -900,7 +898,7 @@ void CompressedTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yo
 				return error(validationError);
 			}
 
-			texture->subImageCompressed(level, xoffset, yoffset, width, height, sizedInternalFormat, imageSize, data);
+			texture->subImageCompressed(level, xoffset, yoffset, width, height, format, imageSize, data);
 		}
 		else if(es2::IsCubemapTextureTarget(target))
 		{
@@ -918,7 +916,7 @@ void CompressedTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yo
 				return error(validationError);
 			}
 
-			texture->subImageCompressed(target, level, xoffset, yoffset, width, height, sizedInternalFormat, imageSize, data);
+			texture->subImageCompressed(target, level, xoffset, yoffset, width, height, format, imageSize, data);
 		}
 		else UNREACHABLE(target);
 	}
