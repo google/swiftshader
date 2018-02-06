@@ -22,6 +22,30 @@
       "revId": "faf9a87c49665836538e56417fd30fcd429a23d0",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "25682af5_62ad66c5",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 3188,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2018-02-06T16:30:24Z",
+      "side": 1,
+      "message": "Yeah, it\u0027s already checked while parsing, I\u0027ll remove the extra check here.",
+      "parentUuid": "cbceac7f_b672be49",
+      "range": {
+        "startLine": 3184,
+        "startChar": 2,
+        "endLine": 3188,
+        "endChar": 32
+      },
+      "revId": "faf9a87c49665836538e56417fd30fcd429a23d0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
