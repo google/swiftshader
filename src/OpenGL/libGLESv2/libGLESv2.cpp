@@ -1005,7 +1005,7 @@ void CopyTexImage2D(GLenum target, GLint level, GLenum internalformat, GLint x, 
 				return error(GL_INVALID_OPERATION);
 			}
 
-			texture->copyImage(level, internalformat, x, y, width, height, framebuffer);
+			texture->copyImage(level, internalformat, x, y, width, height, source);
 		}
 		else if(es2::IsCubemapTextureTarget(target))
 		{
@@ -1016,7 +1016,7 @@ void CopyTexImage2D(GLenum target, GLint level, GLenum internalformat, GLint x, 
 				return error(GL_INVALID_OPERATION);
 			}
 
-			texture->copyImage(target, level, internalformat, x, y, width, height, framebuffer);
+			texture->copyImage(target, level, internalformat, x, y, width, height, source);
 		}
 		else UNREACHABLE(target);
 	}
@@ -1084,7 +1084,7 @@ void CopyTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset,
 			return error(validationError);
 		}
 
-		texture->copySubImage(target, level, xoffset, yoffset, 0, x, y, width, height, framebuffer);
+		texture->copySubImage(target, level, xoffset, yoffset, 0, x, y, width, height, source);
 	}
 }
 
@@ -6353,7 +6353,7 @@ void CopyTexSubImage3DOES(GLenum target, GLint level, GLint xoffset, GLint yoffs
 			return error(validationError);
 		}
 
-		texture->copySubImage(target, level, xoffset, yoffset, zoffset, x, y, width, height, framebuffer);
+		texture->copySubImage(target, level, xoffset, yoffset, zoffset, x, y, width, height, source);
 	}
 }
 
