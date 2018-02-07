@@ -422,13 +422,8 @@ struct State
 	gl::BindingPointer<Texture> samplerTexture[TEXTURE_TYPE_COUNT][MAX_COMBINED_TEXTURE_IMAGE_UNITS];
 	gl::BindingPointer<Query> activeQuery[QUERY_TYPE_COUNT];
 
-	egl::Image::UnpackInfo unpackInfo;
-	GLint packAlignment;
-	GLint packRowLength;
-	GLint packImageHeight;
-	GLint packSkipPixels;
-	GLint packSkipRows;
-	GLint packSkipImages;
+	egl::PixelStorageModes unpackParameters;
+	egl::PixelStorageModes packParameters;
 };
 
 class [[clang::lto_visibility_public]] Context : public egl::Context
@@ -538,14 +533,12 @@ public:
 	void setUnpackSkipPixels(GLint skipPixels);
 	void setUnpackSkipRows(GLint skipRows);
 	void setUnpackSkipImages(GLint skipImages);
-	const egl::Image::UnpackInfo& getUnpackInfo() const;
+	const egl::PixelStorageModes &getUnpackParameters() const;
 
 	void setPackAlignment(GLint alignment);
 	void setPackRowLength(GLint rowLength);
-	void setPackImageHeight(GLint imageHeight);
 	void setPackSkipPixels(GLint skipPixels);
 	void setPackSkipRows(GLint skipRows);
-	void setPackSkipImages(GLint skipImages);
 
 	// These create and destroy methods are merely pass-throughs to
 	// ResourceManager, which owns these object types

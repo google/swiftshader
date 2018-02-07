@@ -333,12 +333,12 @@ egl::Image *Texture::createSharedImage(GLenum target, unsigned int level)
 	return image;
 }
 
-void Texture::setImage(egl::Context *context, GLenum format, GLenum type, const egl::Image::UnpackInfo& unpackInfo, const void *pixels, egl::Image *image)
+void Texture::setImage(egl::Context *context, GLenum format, GLenum type, const egl::PixelStorageModes &unpackParameters, const void *pixels, egl::Image *image)
 {
 	if(pixels && image)
 	{
 		GLsizei depth = (getTarget() == GL_TEXTURE_3D_OES || getTarget() == GL_TEXTURE_2D_ARRAY) ? image->getDepth() : 1;
-		image->loadImageData(context, 0, 0, 0, image->getWidth(), image->getHeight(), depth, format, type, unpackInfo, pixels);
+		image->loadImageData(context, 0, 0, 0, image->getWidth(), image->getHeight(), depth, format, type, unpackParameters, pixels);
 	}
 }
 
@@ -351,7 +351,7 @@ void Texture::setCompressedImage(GLsizei imageSize, const void *pixels, egl::Ima
 	}
 }
 
-void Texture::subImage(egl::Context *context, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const egl::Image::UnpackInfo& unpackInfo, const void *pixels, egl::Image *image)
+void Texture::subImage(egl::Context *context, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const egl::PixelStorageModes &unpackParameters, const void *pixels, egl::Image *image)
 {
 	if(!image)
 	{
@@ -360,7 +360,7 @@ void Texture::subImage(egl::Context *context, GLint xoffset, GLint yoffset, GLin
 
 	if(pixels && width > 0 && height > 0 && depth > 0)
 	{
-		image->loadImageData(context, xoffset, yoffset, zoffset, width, height, depth, format, type, unpackInfo, pixels);
+		image->loadImageData(context, xoffset, yoffset, zoffset, width, height, depth, format, type, unpackParameters, pixels);
 	}
 }
 
@@ -534,7 +534,7 @@ int Texture2D::getTopLevel() const
 	return level - 1;
 }
 
-void Texture2D::setImage(egl::Context *context, GLint level, GLsizei width, GLsizei height, GLint internalformat, GLenum format, GLenum type, const egl::Image::UnpackInfo& unpackInfo, const void *pixels)
+void Texture2D::setImage(egl::Context *context, GLint level, GLsizei width, GLsizei height, GLint internalformat, GLenum format, GLenum type, const egl::PixelStorageModes &unpackParameters, const void *pixels)
 {
 	if(image[level])
 	{
@@ -548,7 +548,7 @@ void Texture2D::setImage(egl::Context *context, GLint level, GLsizei width, GLsi
 		return error(GL_OUT_OF_MEMORY);
 	}
 
-	Texture::setImage(context, format, type, unpackInfo, pixels, image[level]);
+	Texture::setImage(context, format, type, unpackParameters, pixels, image[level]);
 }
 
 void Texture2D::bindTexImage(gl::Surface *surface)
@@ -610,9 +610,9 @@ void Texture2D::setCompressedImage(GLint level, GLenum format, GLsizei width, GL
 	Texture::setCompressedImage(imageSize, pixels, image[level]);
 }
 
-void Texture2D::subImage(egl::Context *context, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const egl::Image::UnpackInfo& unpackInfo, const void *pixels)
+void Texture2D::subImage(egl::Context *context, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const egl::PixelStorageModes &unpackParameters, const void *pixels)
 {
-	Texture::subImage(context, xoffset, yoffset, 0, width, height, 1, format, type, unpackInfo, pixels, image[level]);
+	Texture::subImage(context, xoffset, yoffset, 0, width, height, 1, format, type, unpackParameters, pixels, image[level]);
 }
 
 void Texture2D::subImageCompressed(GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const void *pixels)
@@ -1037,9 +1037,9 @@ void TextureCubeMap::setCompressedImage(GLenum target, GLint level, GLenum forma
 	Texture::setCompressedImage(imageSize, pixels, image[face][level]);
 }
 
-void TextureCubeMap::subImage(egl::Context *context, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const egl::Image::UnpackInfo& unpackInfo, const void *pixels)
+void TextureCubeMap::subImage(egl::Context *context, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const egl::PixelStorageModes &unpackParameters, const void *pixels)
 {
-	Texture::subImage(context, xoffset, yoffset, 0, width, height, 1, format, type, unpackInfo, pixels, image[CubeFaceIndex(target)][level]);
+	Texture::subImage(context, xoffset, yoffset, 0, width, height, 1, format, type, unpackParameters, pixels, image[CubeFaceIndex(target)][level]);
 }
 
 void TextureCubeMap::subImageCompressed(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const void *pixels)
@@ -1230,7 +1230,7 @@ void TextureCubeMap::releaseTexImage()
 	UNREACHABLE(0);   // Cube maps cannot have an EGL surface bound as an image
 }
 
-void TextureCubeMap::setImage(egl::Context *context, GLenum target, GLint level, GLsizei width, GLsizei height, GLint internalformat, GLenum format, GLenum type, const egl::Image::UnpackInfo& unpackInfo, const void *pixels)
+void TextureCubeMap::setImage(egl::Context *context, GLenum target, GLint level, GLsizei width, GLsizei height, GLint internalformat, GLenum format, GLenum type, const egl::PixelStorageModes &unpackParameters, const void *pixels)
 {
 	int face = CubeFaceIndex(target);
 
@@ -1247,7 +1247,7 @@ void TextureCubeMap::setImage(egl::Context *context, GLenum target, GLint level,
 		return error(GL_OUT_OF_MEMORY);
 	}
 
-	Texture::setImage(context, format, type, unpackInfo, pixels, image[face][level]);
+	Texture::setImage(context, format, type, unpackParameters, pixels, image[face][level]);
 }
 
 void TextureCubeMap::copyImage(GLenum target, GLint level, GLenum format, GLint x, GLint y, GLsizei width, GLsizei height, Renderbuffer *source)
@@ -1539,7 +1539,7 @@ int Texture3D::getTopLevel() const
 	return level - 1;
 }
 
-void Texture3D::setImage(egl::Context *context, GLint level, GLsizei width, GLsizei height, GLsizei depth, GLint internalformat, GLenum format, GLenum type, const egl::Image::UnpackInfo& unpackInfo, const void *pixels)
+void Texture3D::setImage(egl::Context *context, GLint level, GLsizei width, GLsizei height, GLsizei depth, GLint internalformat, GLenum format, GLenum type, const egl::PixelStorageModes &unpackParameters, const void *pixels)
 {
 	if(image[level])
 	{
@@ -1553,7 +1553,7 @@ void Texture3D::setImage(egl::Context *context, GLint level, GLsizei width, GLsi
 		return error(GL_OUT_OF_MEMORY);
 	}
 
-	Texture::setImage(context, format, type, unpackInfo, pixels, image[level]);
+	Texture::setImage(context, format, type, unpackParameters, pixels, image[level]);
 }
 
 void Texture3D::releaseTexImage()
@@ -1579,9 +1579,9 @@ void Texture3D::setCompressedImage(GLint level, GLenum format, GLsizei width, GL
 	Texture::setCompressedImage(imageSize, pixels, image[level]);
 }
 
-void Texture3D::subImage(egl::Context *context, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const egl::Image::UnpackInfo& unpackInfo, const void *pixels)
+void Texture3D::subImage(egl::Context *context, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const egl::PixelStorageModes &unpackParameters, const void *pixels)
 {
-	Texture::subImage(context, xoffset, yoffset, zoffset, width, height, depth, format, type, unpackInfo, pixels, image[level]);
+	Texture::subImage(context, xoffset, yoffset, zoffset, width, height, depth, format, type, unpackParameters, pixels, image[level]);
 }
 
 void Texture3D::subImageCompressed(GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const void *pixels)

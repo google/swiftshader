@@ -633,7 +633,7 @@ GL_APICALL void GL_APIENTRY glTexImage3D(GLenum target, GLint level, GLint inter
 		}
 
 		GLenum sizedInternalFormat = GetSizedInternalFormat(internalformat, type);
-		texture->setImage(context, level, width, height, depth, sizedInternalFormat, format, type, context->getUnpackInfo(), data);
+		texture->setImage(context, level, width, height, depth, sizedInternalFormat, format, type, context->getUnpackParameters(), data);
 	}
 }
 
@@ -686,7 +686,7 @@ GL_APICALL void GL_APIENTRY glTexSubImage3D(GLenum target, GLint level, GLint xo
 			return error(validationError);
 		}
 
-		texture->subImage(context, level, xoffset, yoffset, zoffset, width, height, depth, format, type, context->getUnpackInfo(), data);
+		texture->subImage(context, level, xoffset, yoffset, zoffset, width, height, depth, format, type, context->getUnpackParameters(), data);
 	}
 }
 
@@ -3869,41 +3869,41 @@ GL_APICALL void GL_APIENTRY glTexStorage2D(GLenum target, GLsizei levels, GLenum
 		{
 		case GL_TEXTURE_2D:
 		case GL_TEXTURE_RECTANGLE_ARB:
-		{
-			es2::Texture2D *texture = context->getTexture2D(target);
-			if(!texture || texture->name == 0 || texture->getImmutableFormat() == GL_TRUE)
 			{
-				return error(GL_INVALID_OPERATION);
-			}
-
+				es2::Texture2D *texture = context->getTexture2D(target);
+				if(!texture || texture->name == 0 || texture->getImmutableFormat() == GL_TRUE)
+				{
+					return error(GL_INVALID_OPERATION);
+				}
+	
 				for(int level = 0; level < levels; level++)
-			{
-					texture->setImage(context, level, width, height, sizedInternalFormat, sizedInternalFormat, type, context->getUnpackInfo(), nullptr);
-				width = std::max(1, (width / 2));
-				height = std::max(1, (height / 2));
+				{
+					texture->setImage(context, level, width, height, sizedInternalFormat, sizedInternalFormat, type, context->getUnpackParameters(), nullptr);
+					width = std::max(1, (width / 2));
+					height = std::max(1, (height / 2));
+				}
+				texture->makeImmutable(levels);
 			}
-			texture->makeImmutable(levels);
-		}
 			break;
 		case GL_TEXTURE_CUBE_MAP:
-		{
-			es2::TextureCubeMap *texture = context->getTextureCubeMap();
-			if(!texture || texture->name == 0 || texture->getImmutableFormat())
 			{
-				return error(GL_INVALID_OPERATION);
-			}
-
-				for(int level = 0; level < levels; level++)
-			{
-					for(int face = GL_TEXTURE_CUBE_MAP_POSITIVE_X; face <= GL_TEXTURE_CUBE_MAP_NEGATIVE_Z; face++)
+				es2::TextureCubeMap *texture = context->getTextureCubeMap();
+				if(!texture || texture->name == 0 || texture->getImmutableFormat())
 				{
-						texture->setImage(context, face, level, width, height, sizedInternalFormat, sizedInternalFormat, type, context->getUnpackInfo(), nullptr);
+					return error(GL_INVALID_OPERATION);
 				}
-				width = std::max(1, (width / 2));
-				height = std::max(1, (height / 2));
+	
+				for(int level = 0; level < levels; level++)
+				{
+					for(int face = GL_TEXTURE_CUBE_MAP_POSITIVE_X; face <= GL_TEXTURE_CUBE_MAP_NEGATIVE_Z; face++)
+					{
+							texture->setImage(context, face, level, width, height, sizedInternalFormat, sizedInternalFormat, type, context->getUnpackParameters(), nullptr);
+					}
+					width = std::max(1, (width / 2));
+					height = std::max(1, (height / 2));
+				}
+				texture->makeImmutable(levels);
 			}
-			texture->makeImmutable(levels);
-		}
 			break;
 		default:
 			return error(GL_INVALID_ENUM);
@@ -3935,52 +3935,52 @@ GL_APICALL void GL_APIENTRY glTexStorage3D(GLenum target, GLsizei levels, GLenum
 		switch(target)
 		{
 		case GL_TEXTURE_3D:
-		{
-			if(levels > es2::IMPLEMENTATION_MAX_TEXTURE_LEVELS || levels > (log2(std::max(std::max(width, height), depth)) + 1))
 			{
-				return error(GL_INVALID_OPERATION);
-			}
-
-			es2::Texture3D *texture = context->getTexture3D();
-			if(!texture || texture->name == 0 || texture->getImmutableFormat() == GL_TRUE)
-			{
-				return error(GL_INVALID_OPERATION);
-			}
-
+				if(levels > es2::IMPLEMENTATION_MAX_TEXTURE_LEVELS || levels > (log2(std::max(std::max(width, height), depth)) + 1))
+				{
+					return error(GL_INVALID_OPERATION);
+				}
+	
+				es2::Texture3D *texture = context->getTexture3D();
+				if(!texture || texture->name == 0 || texture->getImmutableFormat() == GL_TRUE)
+				{
+					return error(GL_INVALID_OPERATION);
+				}
+	
 				for(int level = 0; level < levels; level++)
-			{
-					texture->setImage(context, level, width, height, depth, sizedInternalFormat, sizedInternalFormat, type, context->getUnpackInfo(), nullptr);
-				width = std::max(1, (width / 2));
-				height = std::max(1, (height / 2));
-				depth = std::max(1, (depth / 2));
+				{
+					texture->setImage(context, level, width, height, depth, sizedInternalFormat, sizedInternalFormat, type, context->getUnpackParameters(), nullptr);
+					width = std::max(1, (width / 2));
+					height = std::max(1, (height / 2));
+					depth = std::max(1, (depth / 2));
+				}
+				texture->makeImmutable(levels);
 			}
-			texture->makeImmutable(levels);
-		}
 			break;
 		case GL_TEXTURE_2D_ARRAY:
-		{
-			if(levels > es2::IMPLEMENTATION_MAX_TEXTURE_LEVELS || levels > (log2(std::max(width, height)) + 1))
 			{
-				return error(GL_INVALID_OPERATION);
-			}
-
-			es2::Texture3D *texture = context->getTexture2DArray();
-			if(!texture || texture->name == 0 || texture->getImmutableFormat())
-			{
-				return error(GL_INVALID_OPERATION);
-			}
-
-				for(int level = 0; level < levels; level++)
-			{
-					for(int face = GL_TEXTURE_CUBE_MAP_POSITIVE_X; face <= GL_TEXTURE_CUBE_MAP_NEGATIVE_Z; face++)
+				if(levels > es2::IMPLEMENTATION_MAX_TEXTURE_LEVELS || levels > (log2(std::max(width, height)) + 1))
 				{
-						texture->setImage(context, level, width, height, depth, sizedInternalFormat, sizedInternalFormat, type, context->getUnpackInfo(), nullptr);
+					return error(GL_INVALID_OPERATION);
 				}
-				width = std::max(1, (width / 2));
-				height = std::max(1, (height / 2));
+	
+				es2::Texture3D *texture = context->getTexture2DArray();
+				if(!texture || texture->name == 0 || texture->getImmutableFormat())
+				{
+					return error(GL_INVALID_OPERATION);
+				}
+	
+				for(int level = 0; level < levels; level++)
+				{
+					for(int face = GL_TEXTURE_CUBE_MAP_POSITIVE_X; face <= GL_TEXTURE_CUBE_MAP_NEGATIVE_Z; face++)
+					{
+							texture->setImage(context, level, width, height, depth, sizedInternalFormat, sizedInternalFormat, type, context->getUnpackParameters(), nullptr);
+					}
+					width = std::max(1, (width / 2));
+					height = std::max(1, (height / 2));
+				}
+				texture->makeImmutable(levels);
 			}
-			texture->makeImmutable(levels);
-		}
 			break;
 		default:
 			return error(GL_INVALID_ENUM);

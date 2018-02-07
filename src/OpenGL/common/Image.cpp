@@ -1013,10 +1013,10 @@ namespace egl
 		return (rawPitch + alignment - 1) & ~(alignment - 1);
 	}
 
-	size_t ComputePackingOffset(GLenum format, GLenum type, GLsizei width, GLsizei height, GLint alignment, GLint skipImages, GLint skipRows, GLint skipPixels)
+	size_t ComputePackingOffset(GLenum format, GLenum type, GLsizei width, GLsizei height, const PixelStorageModes &storageModes)
 	{
-		GLsizei pitchB = ComputePitch(width, format, type, alignment);
-		return (skipImages * height + skipRows) * pitchB + skipPixels * ComputePixelSize(format, type);
+		GLsizei pitchB = ComputePitch(width, format, type, storageModes.alignment);
+		return (storageModes.skipImages * height + storageModes.skipRows) * pitchB + storageModes.skipPixels * ComputePixelSize(format, type);
 	}
 
 	inline GLsizei ComputeCompressedPitch(GLsizei width, GLenum format)
@@ -1200,7 +1200,7 @@ namespace egl
 		return parentTexture == parent;
 	}
 
-	void Image::loadImageData(Context *context, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const UnpackInfo& unpackInfo, const void *input)
+	void Image::loadImageData(Context *context, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const PixelStorageModes &unpackParameters, const void *pixels)
 	{
 		sw::Format uploadFormat = SelectInternalFormat(format, type);
 		if(uploadFormat == sw::FORMAT_NULL)
@@ -1208,10 +1208,10 @@ namespace egl
 			return;
 		}
 
-		GLsizei inputWidth = (unpackInfo.rowLength == 0) ? width : unpackInfo.rowLength;
-		GLsizei inputPitch = ComputePitch(inputWidth, format, type, unpackInfo.alignment);
-		GLsizei inputHeight = (unpackInfo.imageHeight == 0) ? height : unpackInfo.imageHeight;
-		input = ((char*)input) + ComputePackingOffset(format, type, inputWidth, inputHeight, unpackInfo.alignment, unpackInfo.skipImages, unpackInfo.skipRows, unpackInfo.skipPixels);
+		GLsizei inputWidth = (unpackParameters.rowLength == 0) ? width : unpackParameters.rowLength;
+		GLsizei inputPitch = ComputePitch(inputWidth, format, type, unpackParameters.alignment);
+		GLsizei inputHeight = (unpackParameters.imageHeight == 0) ? height : unpackParameters.imageHeight;
+		char *input = ((char*)pixels) + ComputePackingOffset(format, type, inputWidth, inputHeight, unpackParameters);
 
 		if(uploadFormat == internalFormat ||
 		   (uploadFormat == sw::FORMAT_A8B8G8R8 && internalFormat == sw::FORMAT_SRGB8_A8) ||
@@ -1423,7 +1423,7 @@ namespace egl
 		}
 		else
 		{
-			sw::Surface *source = sw::Surface::create(width, height, depth, ConvertFormatType(format, type), const_cast<void*>(input), inputPitch, inputPitch * inputHeight);
+			sw::Surface *source = sw::Surface::create(width, height, depth, ConvertFormatType(format, type), input, inputPitch, inputPitch * inputHeight);
 			sw::Rect sourceRect(0, 0, width, height);
 			sw::Rect destRect(xoffset, yoffset, xoffset + width, yoffset + height);
 			context->blit(source, sourceRect, this, destRect);
