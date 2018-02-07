@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b859a63f_b2f74bdd",
+        "filename": "src/OpenGL/common/Image.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1471,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2018-02-07T15:07:16Z",
+      "side": 1,
+      "message": "Is this supported properly?",
+      "range": {
+        "startLine": 1471,
+        "startChar": 40,
+        "endLine": 1471,
+        "endChar": 49
+      },
+      "revId": "8ef415de41b6ad3290f6e63dd557a4849b79cb4e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
