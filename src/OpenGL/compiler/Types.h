@@ -240,34 +240,37 @@ class TType
 {
 public:
 	POOL_ALLOCATOR_NEW_DELETE();
+
 	TType(TBasicType t, int s0 = 1, int s1 = 1) :
-		type(t), precision(EbpUndefined), qualifier(EvqGlobal), layoutQualifier(TLayoutQualifier::create()),
-		primarySize(s0), secondarySize(s1), array(false), arraySize(0), maxArraySize(0), arrayInformationType(0), interfaceBlock(0),
+		type(t), precision(EbpUndefined), qualifier(EvqGlobal),
+		primarySize(s0), secondarySize(s1), array(false), arraySize(0), maxArraySize(0), arrayInformationType(0), interfaceBlock(0), layoutQualifier(TLayoutQualifier::create()),
 		structure(0), mangled(0)
 	{
 	}
+
 	TType(TBasicType t, TPrecision p, TQualifier q = EvqTemporary, int s0 = 1, int s1 = 1, bool a = false) :
-		type(t), precision(p), qualifier(q), layoutQualifier(TLayoutQualifier::create()),
-		primarySize(s0), secondarySize(s1), array(a), arraySize(0), maxArraySize(0), arrayInformationType(0), interfaceBlock(0),
+		type(t), precision(p), qualifier(q),
+		primarySize(s0), secondarySize(s1), array(a), arraySize(0), maxArraySize(0), arrayInformationType(0), interfaceBlock(0), layoutQualifier(TLayoutQualifier::create()),
 		structure(0), mangled(0)
 	{
 	}
-	explicit TType(const TPublicType &p);
+
 	TType(TStructure* userDef, TPrecision p = EbpUndefined) :
-		type(EbtStruct), precision(p), qualifier(EvqTemporary), layoutQualifier(TLayoutQualifier::create()),
-		primarySize(1), secondarySize(1), array(false), arraySize(0), maxArraySize(0), arrayInformationType(0), interfaceBlock(0),
-		structure(userDef),mangled(0)
+		type(EbtStruct), precision(p), qualifier(EvqTemporary),
+		primarySize(1), secondarySize(1), array(false), arraySize(0), maxArraySize(0), arrayInformationType(0), interfaceBlock(0), layoutQualifier(TLayoutQualifier::create()),
+		structure(userDef), mangled(0)
 	{
 	}
 
 	TType(TInterfaceBlock *interfaceBlockIn, TQualifier qualifierIn,
 		TLayoutQualifier layoutQualifierIn, int arraySizeIn)
 		: type(EbtInterfaceBlock), precision(EbpUndefined), qualifier(qualifierIn),
-		layoutQualifier(layoutQualifierIn),
 		primarySize(1), secondarySize(1), array(arraySizeIn > 0), arraySize(arraySizeIn), maxArraySize(0), arrayInformationType(0),
-		interfaceBlock(interfaceBlockIn), structure(0), mangled(0)
+		interfaceBlock(interfaceBlockIn), layoutQualifier(layoutQualifierIn), structure(0), mangled(0)
 	{
 	}
+
+	explicit TType(const TPublicType &p);
 
 	TBasicType getBasicType() const { return type; }
 	void setBasicType(TBasicType t) { type = t; }

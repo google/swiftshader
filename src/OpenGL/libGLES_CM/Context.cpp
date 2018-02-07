@@ -2435,7 +2435,7 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height,
 	sw::Rect rect = {x, y, x + width, y + height};
 	rect.clip(0, 0, renderTarget->getWidth(), renderTarget->getHeight());
 
-	unsigned char *source = (unsigned char*)renderTarget->lock(rect.x0, rect.y0, sw::LOCK_READONLY);
+	unsigned char *source = (unsigned char*)renderTarget->lock(rect.x0, rect.y0, 0, sw::LOCK_READONLY);
 	unsigned char *dest = (unsigned char*)pixels;
 	int inputPitch = (int)renderTarget->getPitch();
 
