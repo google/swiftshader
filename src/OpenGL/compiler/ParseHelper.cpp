@@ -2206,7 +2206,9 @@ TIntermTyped* TParseContext::addConstVectorNode(TVectorFields& fields, TIntermTy
 		constArray[i] = unionArray[fields.offsets[i]];
 
 	}
-	typedNode = intermediate.addConstantUnion(constArray, node->getType(), line);
+
+	TType type(node->getType().getBasicType(), node->getType().getPrecision(), EvqConstExpr, fields.num);
+	typedNode = intermediate.addConstantUnion(constArray, type, line);
 	return typedNode;
 }
 
@@ -2651,11 +2653,6 @@ TIntermTyped *TParseContext::addFieldSelectionExpression(TIntermTyped *baseExpre
 			{
 				recover();
 				indexedExpression = baseExpression;
-			}
-			else
-			{
-				indexedExpression->setType(TType(baseExpression->getBasicType(), baseExpression->getPrecision(),
-					EvqConstExpr, (unsigned char)(fieldString).size()));
 			}
 		}
 		else
