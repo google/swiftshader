@@ -1461,20 +1461,22 @@ namespace egl
 
 	void Image::loadCompressedData(GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLsizei imageSize, const void *pixels)
 	{
-		if(depth != 1)
-		{
-			UNIMPLEMENTED();   // FIXME
-		}
-
 		int inputPitch = ComputeCompressedPitch(width, format);
-		int rows = imageSize / inputPitch;
+		int inputSlice = imageSize / depth;
+		int rows = inputSlice / inputPitch;
+
 		void *buffer = lock(xoffset, yoffset, zoffset, sw::LOCK_WRITEONLY);
 
 		if(buffer)
 		{
-			for(int i = 0; i < rows; i++)
+			for(int z = 0; z < depth; z++)
 			{
-				memcpy((void*)((GLbyte*)buffer + i * getPitch()), (void*)((GLbyte*)pixels + i * inputPitch), inputPitch);
+				for(int y = 0; y < rows; y++)
+				{
+					GLbyte *dest = (GLbyte*)buffer + y * getPitch() + z * getSlice();
+					GLbyte *source = (GLbyte*)pixels + y * inputPitch + z * inputSlice;
+					memcpy(dest, source, inputPitch);
+				}
 			}
 		}
 
