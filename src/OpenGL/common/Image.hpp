@@ -147,9 +147,9 @@ public:
 		shared = true;
 	}
 
-	virtual void *lock(unsigned int left, unsigned int top, sw::Lock lock)
+	virtual void *lock(int x, int y, int z, sw::Lock lock)
 	{
-		return lockExternal(left, top, 0, lock, sw::PUBLIC);
+		return lockExternal(x, y, z, lock, sw::PUBLIC);
 	}
 
 	unsigned int getPitch() const
@@ -325,10 +325,10 @@ private:
 		sw::Surface::unlockInternal();
 	}
 
-	void *lock(unsigned int left, unsigned int top, sw::Lock lock) override
+	void *lock(int x, int y, int z, sw::Lock lock) override
 	{
 		LOGLOCK("image=%p op=%s lock=%d", this, __FUNCTION__, lock);
-		(void)sw::Surface::lockExternal(left, top, 0, lock, sw::PUBLIC);
+		(void)sw::Surface::lockExternal(x, y, z, lock, sw::PUBLIC);
 
 		return lockNativeBuffer(GRALLOC_USAGE_SW_READ_OFTEN | GRALLOC_USAGE_SW_WRITE_OFTEN);
 	}
