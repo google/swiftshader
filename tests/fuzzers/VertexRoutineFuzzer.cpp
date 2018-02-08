@@ -119,6 +119,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 	resources.OES_fragment_precision_high = 1;
 	resources.OES_EGL_image_external = 1;
 	resources.EXT_draw_buffers = 1;
+	resources.ARB_texture_rectangle = 1;
 	resources.MaxCallStackDepth = 16;
 
 	glslCompiler->Init(resources);
