@@ -573,57 +573,57 @@ TEST(SubzeroReactorTest, NotNeg)
 
 		if(routine)
 		{
-			int out[10][4];
+			unsigned int out[10][4];
 
 			memset(&out, 0, sizeof(out));
 
 			int(*callable)(void*) = (int(*)(void*))routine->getEntry();
 			callable(&out);
 
-			EXPECT_EQ(out[0][0], 0xAAAAAAAA);
-			EXPECT_EQ(out[0][1], 0x00000000);
-			EXPECT_EQ(out[0][2], 0x00000000);
-			EXPECT_EQ(out[0][3], 0x00000000);
+			EXPECT_EQ(out[0][0], 0xAAAAAAAAu);
+			EXPECT_EQ(out[0][1], 0x00000000u);
+			EXPECT_EQ(out[0][2], 0x00000000u);
+			EXPECT_EQ(out[0][3], 0x00000000u);
 
-			EXPECT_EQ(out[1][0], 0x0000AAAA);
-			EXPECT_EQ(out[1][1], 0x00000000);
-			EXPECT_EQ(out[1][2], 0x00000000);
-			EXPECT_EQ(out[1][3], 0x00000000);
+			EXPECT_EQ(out[1][0], 0x0000AAAAu);
+			EXPECT_EQ(out[1][1], 0x00000000u);
+			EXPECT_EQ(out[1][2], 0x00000000u);
+			EXPECT_EQ(out[1][3], 0x00000000u);
 
-			EXPECT_EQ(out[2][0], 0xAAAAAAAA);
-			EXPECT_EQ(out[2][1], 0x55555555);
-			EXPECT_EQ(out[2][2], 0xFFFFFFFF);
-			EXPECT_EQ(out[2][3], 0x00000000);
+			EXPECT_EQ(out[2][0], 0xAAAAAAAAu);
+			EXPECT_EQ(out[2][1], 0x55555555u);
+			EXPECT_EQ(out[2][2], 0xFFFFFFFFu);
+			EXPECT_EQ(out[2][3], 0x00000000u);
 
-			EXPECT_EQ(out[3][0], 0x5555AAAA);
-			EXPECT_EQ(out[3][1], 0x0000FFFF);
-			EXPECT_EQ(out[3][2], 0x00000000);
-			EXPECT_EQ(out[3][3], 0x00000000);
+			EXPECT_EQ(out[3][0], 0x5555AAAAu);
+			EXPECT_EQ(out[3][1], 0x0000FFFFu);
+			EXPECT_EQ(out[3][2], 0x00000000u);
+			EXPECT_EQ(out[3][3], 0x00000000u);
 
-			EXPECT_EQ(out[4][0], 0xAAAAAAAB);
-			EXPECT_EQ(out[4][1], 0x00000000);
-			EXPECT_EQ(out[4][2], 0x00000000);
-			EXPECT_EQ(out[4][3], 0x00000000);
+			EXPECT_EQ(out[4][0], 0xAAAAAAABu);
+			EXPECT_EQ(out[4][1], 0x00000000u);
+			EXPECT_EQ(out[4][2], 0x00000000u);
+			EXPECT_EQ(out[4][3], 0x00000000u);
 
-			EXPECT_EQ(out[5][0], 0x0000AAAB);
-			EXPECT_EQ(out[5][1], 0x00000000);
-			EXPECT_EQ(out[5][2], 0x00000000);
-			EXPECT_EQ(out[5][3], 0x00000000);
+			EXPECT_EQ(out[5][0], 0x0000AAABu);
+			EXPECT_EQ(out[5][1], 0x00000000u);
+			EXPECT_EQ(out[5][2], 0x00000000u);
+			EXPECT_EQ(out[5][3], 0x00000000u);
 
-			EXPECT_EQ(out[6][0], 0xAAAAAAAB);
-			EXPECT_EQ(out[6][1], 0x55555556);
-			EXPECT_EQ(out[6][2], 0x00000000);
-			EXPECT_EQ(out[6][3], 0x00000001);
+			EXPECT_EQ(out[6][0], 0xAAAAAAABu);
+			EXPECT_EQ(out[6][1], 0x55555556u);
+			EXPECT_EQ(out[6][2], 0x00000000u);
+			EXPECT_EQ(out[6][3], 0x00000001u);
 
-			EXPECT_EQ(out[7][0], 0x5556AAAB);
-			EXPECT_EQ(out[7][1], 0x00010000);
-			EXPECT_EQ(out[7][2], 0x00000000);
-			EXPECT_EQ(out[7][3], 0x00000000);
+			EXPECT_EQ(out[7][0], 0x5556AAABu);
+			EXPECT_EQ(out[7][1], 0x00010000u);
+			EXPECT_EQ(out[7][2], 0x00000000u);
+			EXPECT_EQ(out[7][3], 0x00000000u);
 
-			EXPECT_EQ(out[8][0], 0xBF800000);
-			EXPECT_EQ(out[8][1], 0x3F800000);
-			EXPECT_EQ(out[8][2], 0x80000000);
-			EXPECT_EQ(out[8][3], 0x00000000);
+			EXPECT_EQ(out[8][0], 0xBF800000u);
+			EXPECT_EQ(out[8][1], 0x3F800000u);
+			EXPECT_EQ(out[8][2], 0x80000000u);
+			EXPECT_EQ(out[8][3], 0x00000000u);
 		}
 	}
 

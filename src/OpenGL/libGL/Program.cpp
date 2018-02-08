@@ -73,7 +73,7 @@ namespace gl
 	{
 	}
 
-	Program::Program(ResourceManager *manager, GLuint handle) : resourceManager(manager), handle(handle), serial(issueSerial())
+	Program::Program(ResourceManager *manager, GLuint handle) : serial(issueSerial()), resourceManager(manager), handle(handle)
 	{
 		device = getDevice();
 

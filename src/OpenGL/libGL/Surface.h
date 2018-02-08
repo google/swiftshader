@@ -74,8 +74,8 @@ private:
 
 	const NativeWindowType mWindow;   // Window that the surface is created for.
 	bool mWindowSubclassed;           // Indicates whether we successfully subclassed mWindow for WM_RESIZE hooking
-	GLint mHeight;                    // Height of surface
 	GLint mWidth;                     // Width of surface
+	GLint mHeight;                    // Height of surface
 	GLenum mTextureFormat;            // Format of texture: RGB, RGBA, or no texture
 	GLenum mTextureTarget;            // Type of texture: 2D or no texture
 	GLint mSwapInterval;

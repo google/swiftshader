@@ -96,6 +96,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)include\;$(SolutionDir)third_party\googletest\googletest\include\;$(SolutionDir)third_party\googletest\googletest\;$(SolutionDir)third_party\googletest\googlemock\include\;SubmoduleCheck;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>
       </ForcedIncludeFiles>
+      <TreatSpecificWarningsAsErrors>4018;5038</TreatSpecificWarningsAsErrors>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -113,6 +114,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)include\;$(SolutionDir)third_party\googletest\googletest\include\;$(SolutionDir)third_party\googletest\googletest\;$(SolutionDir)third_party\googletest\googlemock\include\;SubmoduleCheck;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>
       </ForcedIncludeFiles>
+      <TreatSpecificWarningsAsErrors>4018;5038</TreatSpecificWarningsAsErrors>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -132,6 +134,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)include\;$(SolutionDir)third_party\googletest\googletest\include\;$(SolutionDir)third_party\googletest\googletest\;$(SolutionDir)third_party\googletest\googlemock\include\;SubmoduleCheck;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>
       </ForcedIncludeFiles>
+      <TreatSpecificWarningsAsErrors>4018;5038</TreatSpecificWarningsAsErrors>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -153,6 +156,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)include\;$(SolutionDir)third_party\googletest\googletest\include\;$(SolutionDir)third_party\googletest\googletest\;$(SolutionDir)third_party\googletest\googlemock\include\;SubmoduleCheck;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>
       </ForcedIncludeFiles>
+      <TreatSpecificWarningsAsErrors>4018;5038</TreatSpecificWarningsAsErrors>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
