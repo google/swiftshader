@@ -63,6 +63,30 @@ size_t ComputePackingOffset(GLenum format, GLenum type, GLsizei width, GLsizei h
 namespace egl
 {
 
+class ClientBuffer
+{
+public:
+	ClientBuffer(int width, int height, sw::Format format, void* buffer, size_t plane)
+		: width(width), height(height), format(format), buffer(buffer), plane(plane)
+	{}
+
+	int getWidth() const;
+	int getHeight() const;
+	sw::Format getFormat() const;
+	int pitchP() const;
+	void retain();
+	void release();
+	void* lock(int x, int y, int z);
+	void unlock();
+
+private:
+	int width;
+	int height;
+	sw::Format format;
+	void* buffer;
+	size_t plane;
+};
+
 class [[clang::lto_visibility_public]] Image : public sw::Surface, public gl::Object
 {
 protected:
@@ -116,6 +140,9 @@ public:
 
 	// Render target
 	static Image *create(GLsizei width, GLsizei height, GLint internalformat, int multiSampleDepth, bool lockable);
+
+	// Back buffer from client buffer
+	static Image *create(const egl::ClientBuffer& clientBuffer);
 
 	GLsizei getWidth() const
 	{

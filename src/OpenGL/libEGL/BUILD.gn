@@ -67,6 +67,8 @@ swiftshader_shared_library("swiftshader_libEGL") {
     libs = [
       "Quartz.framework",
       "Cocoa.framework",
+      "CoreFoundation.framework",
+      "IOSurface.framework",
     ]
     ldflags = [ "-Wl,-install_name,@rpath/libswiftshader_libEGL.dylib" ]
   } else if (is_win) {

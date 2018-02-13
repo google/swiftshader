@@ -204,6 +204,7 @@ const char *QueryString(EGLDisplay dpy, EGLint name)
 		               "EGL_KHR_fence_sync "
 		               "EGL_KHR_image_base "
 		               "EGL_KHR_surfaceless_context "
+		               "EGL_ANGLE_iosurface_client_buffer "
 		               "EGL_ANDROID_framebuffer_target "
 		               "EGL_ANDROID_recordable");
 	case EGL_VENDOR:
@@ -507,9 +508,25 @@ EGLSurface CreatePbufferFromClientBuffer(EGLDisplay dpy, EGLenum buftype, EGLCli
 	      "EGLConfig config = %p, const EGLint *attrib_list = %p)",
 	      dpy, buftype, buffer, config, attrib_list);
 
-	UNIMPLEMENTED();
+	switch(buftype)
+	{
+	case EGL_IOSURFACE_ANGLE:
+	{
+		egl::Display *display = egl::Display::get(dpy);
 
-	return error(EGL_BAD_PARAMETER, EGL_NO_SURFACE);
+		if(!validateConfig(display, config))
+		{
+			return EGL_NO_SURFACE;
+		}
+
+		return display->createPBufferSurface(config, attrib_list, buffer);
+	}
+	case EGL_OPENVG_IMAGE:
+		UNIMPLEMENTED();
+		return error(EGL_BAD_PARAMETER, EGL_NO_SURFACE);
+	default:
+		return error(EGL_BAD_PARAMETER, EGL_NO_SURFACE);
+	};
 }
 
 EGLBoolean SurfaceAttrib(EGLDisplay dpy, EGLSurface surface, EGLint attribute, EGLint value)
@@ -808,6 +825,13 @@ EGLBoolean MakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLCont
 	   (read != EGL_NO_SURFACE && !validateSurface(display, readSurface)))
 	{
 		return EGL_FALSE;
+	}
+
+	if((draw != EGL_NO_SURFACE && drawSurface->hasClientBuffer()) ||
+	   (read != EGL_NO_SURFACE && readSurface->hasClientBuffer()))
+	{
+		// Make current is not supported on IOSurface pbuffers.
+		return error(EGL_BAD_SURFACE, EGL_FALSE);
 	}
 
 	if((draw != EGL_NO_SURFACE) ^ (read != EGL_NO_SURFACE))

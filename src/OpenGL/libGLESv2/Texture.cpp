@@ -1900,6 +1900,18 @@ NO_SANITIZE_FUNCTION egl::Image *createBackBuffer(int width, int height, sw::For
 	return egl::Image::create(width, height, internalformat, multiSampleDepth, false);
 }
 
+NO_SANITIZE_FUNCTION egl::Image *createBackBufferFromClientBuffer(const egl::ClientBuffer& clientBuffer)
+{
+	if(clientBuffer.getWidth() > es2::IMPLEMENTATION_MAX_RENDERBUFFER_SIZE ||
+	   clientBuffer.getHeight() > es2::IMPLEMENTATION_MAX_RENDERBUFFER_SIZE)
+	{
+		ERR("Invalid parameters: %dx%d", clientBuffer.getWidth(), clientBuffer.getHeight());
+		return nullptr;
+	}
+
+	return egl::Image::create(clientBuffer);
+}
+
 NO_SANITIZE_FUNCTION egl::Image *createDepthStencil(int width, int height, sw::Format format, int multiSampleDepth)
 {
 	if(width > es2::IMPLEMENTATION_MAX_RENDERBUFFER_SIZE || height > es2::IMPLEMENTATION_MAX_RENDERBUFFER_SIZE)

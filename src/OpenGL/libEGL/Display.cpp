@@ -34,6 +34,8 @@
 #include "Main/libX11.hpp"
 #elif defined(__APPLE__)
 #include "OSXUtils.hpp"
+#include <CoreFoundation/CoreFoundation.h>
+#include <IOSurface/IOSurface.h>
 #endif
 
 #include <algorithm>
@@ -338,11 +340,13 @@ EGLSurface Display::createWindowSurface(EGLNativeWindowType window, EGLConfig co
 	return success(surface);
 }
 
-EGLSurface Display::createPBufferSurface(EGLConfig config, const EGLint *attribList)
+EGLSurface Display::createPBufferSurface(EGLConfig config, const EGLint *attribList, EGLClientBuffer clientBuffer)
 {
-	EGLint width = 0, height = 0;
+	EGLint width = -1, height = -1, ioSurfacePlane = -1;
 	EGLenum textureFormat = EGL_NO_TEXTURE;
 	EGLenum textureTarget = EGL_NO_TEXTURE;
+	EGLenum clientBufferFormat = EGL_NO_TEXTURE;
+	EGLenum clientBufferType = EGL_NO_TEXTURE;
 	EGLBoolean largestPBuffer = EGL_FALSE;
 	const Config *configuration = mConfigSet.get(config);
 
@@ -373,11 +377,45 @@ EGLSurface Display::createPBufferSurface(EGLConfig config, const EGLint *attribL
 					return error(EGL_BAD_ATTRIBUTE, EGL_NO_SURFACE);
 				}
 				break;
+			case EGL_TEXTURE_INTERNAL_FORMAT_ANGLE:
+				switch(attribList[1])
+				{
+				case GL_RED:
+				case GL_R16UI:
+				case GL_RG:
+				case GL_BGRA_EXT:
+				case GL_RGBA:
+					clientBufferFormat = attribList[1];
+					break;
+				default:
+					return error(EGL_BAD_ATTRIBUTE, EGL_NO_SURFACE);
+				}
+				break;
+			case EGL_TEXTURE_TYPE_ANGLE:
+				switch(attribList[1])
+				{
+				case GL_UNSIGNED_BYTE:
+				case GL_UNSIGNED_SHORT:
+				case GL_HALF_FLOAT:
+					clientBufferType = attribList[1];
+					break;
+				default:
+					return error(EGL_BAD_ATTRIBUTE, EGL_NO_SURFACE);
+				}
+				break;
+			case EGL_IOSURFACE_PLANE_ANGLE:
+				if(attribList[1] < 0)
+				{
+					return error(EGL_BAD_ATTRIBUTE, EGL_NO_SURFACE);
+				}
+				ioSurfacePlane = attribList[1];
+				break;
 			case EGL_TEXTURE_TARGET:
 				switch(attribList[1])
 				{
 				case EGL_NO_TEXTURE:
 				case EGL_TEXTURE_2D:
+				case EGL_TEXTURE_RECTANGLE_ANGLE:
 					textureTarget = attribList[1];
 					break;
 				default:
@@ -423,13 +461,92 @@ EGLSurface Display::createPBufferSurface(EGLConfig config, const EGLint *attribL
 		return error(EGL_BAD_MATCH, EGL_NO_SURFACE);
 	}
 
-	if((textureFormat == EGL_TEXTURE_RGB && configuration->mBindToTextureRGB != EGL_TRUE) ||
-	   (textureFormat == EGL_TEXTURE_RGBA && configuration->mBindToTextureRGBA != EGL_TRUE))
+	if(clientBuffer)
 	{
-		return error(EGL_BAD_ATTRIBUTE, EGL_NO_SURFACE);
+		switch(clientBufferType)
+		{
+		case GL_UNSIGNED_BYTE:
+			switch(clientBufferFormat)
+			{
+			case GL_RED:
+			case GL_RG:
+			case GL_BGRA_EXT:
+				break;
+			case GL_R16UI:
+			case GL_RGBA:
+				return error(EGL_BAD_ATTRIBUTE, EGL_NO_SURFACE);
+			default:
+				return error(EGL_BAD_PARAMETER, EGL_NO_SURFACE);
+			}
+			break;
+		case GL_UNSIGNED_SHORT:
+			switch(clientBufferFormat)
+			{
+			case GL_R16UI:
+				break;
+			case GL_RED:
+			case GL_RG:
+			case GL_BGRA_EXT:
+			case GL_RGBA:
+				return error(EGL_BAD_ATTRIBUTE, EGL_NO_SURFACE);
+			default:
+				return error(EGL_BAD_PARAMETER, EGL_NO_SURFACE);
+			}
+			break;
+		case GL_HALF_FLOAT:
+			switch(clientBufferFormat)
+			{
+			case GL_RGBA:
+				break;
+			case GL_RED:
+			case GL_R16UI:
+			case GL_RG:
+			case GL_BGRA_EXT:
+				return error(EGL_BAD_ATTRIBUTE, EGL_NO_SURFACE);
+			default:
+				return error(EGL_BAD_PARAMETER, EGL_NO_SURFACE);
+			}
+			break;
+		default:
+			return error(EGL_BAD_PARAMETER, EGL_NO_SURFACE);
+		}
+
+		if(ioSurfacePlane < 0)
+		{
+			return error(EGL_BAD_PARAMETER, EGL_NO_SURFACE);
+		}
+
+		if(textureFormat != EGL_TEXTURE_RGBA)
+		{
+			return error(EGL_BAD_ATTRIBUTE, EGL_NO_SURFACE);
+		}
+
+		if(textureTarget != EGL_TEXTURE_RECTANGLE_ANGLE)
+		{
+			return error(EGL_BAD_ATTRIBUTE, EGL_NO_SURFACE);
+		}
+
+#if defined(__APPLE__)
+		IOSurfaceRef ioSurface = reinterpret_cast<IOSurfaceRef>(clientBuffer);
+		size_t planeCount = IOSurfaceGetPlaneCount(ioSurface);
+		if((static_cast<size_t>(width) > IOSurfaceGetWidthOfPlane(ioSurface, ioSurfacePlane)) ||
+		   (static_cast<size_t>(height) > IOSurfaceGetHeightOfPlane(ioSurface, ioSurfacePlane)) ||
+		   ((planeCount != 0) && static_cast<size_t>(ioSurfacePlane) >= planeCount))
+		{
+			return error(EGL_BAD_ATTRIBUTE, EGL_NO_SURFACE);
+		}
+#endif
+	}
+	else
+	{
+		if((textureFormat == EGL_TEXTURE_RGB && configuration->mBindToTextureRGB != EGL_TRUE) ||
+		   ((textureFormat == EGL_TEXTURE_RGBA && configuration->mBindToTextureRGBA != EGL_TRUE)))
+		{
+			return error(EGL_BAD_ATTRIBUTE, EGL_NO_SURFACE);
+		}
 	}
 
-	Surface *surface = new PBufferSurface(this, configuration, width, height, textureFormat, textureTarget, largestPBuffer);
+	Surface *surface = new PBufferSurface(this, configuration, width, height, textureFormat, textureTarget, clientBufferFormat, clientBufferType, largestPBuffer, clientBuffer, ioSurfacePlane);
 
 	if(!surface->initialize())
 	{

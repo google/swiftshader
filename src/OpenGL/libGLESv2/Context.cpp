@@ -4093,8 +4093,8 @@ void Context::blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1
 	{
 		GLenum readColorbufferType = readFramebuffer->getReadBufferType();
 		GLenum drawColorbufferType = drawFramebuffer->getColorbufferType(0);
-		const bool validReadType = readColorbufferType == GL_TEXTURE_2D || Framebuffer::IsRenderbuffer(readColorbufferType);
-		const bool validDrawType = drawColorbufferType == GL_TEXTURE_2D || Framebuffer::IsRenderbuffer(drawColorbufferType);
+		const bool validReadType = readColorbufferType == GL_TEXTURE_2D || readColorbufferType == GL_TEXTURE_RECTANGLE_ARB || Framebuffer::IsRenderbuffer(readColorbufferType);
+		const bool validDrawType = drawColorbufferType == GL_TEXTURE_2D || drawColorbufferType == GL_TEXTURE_RECTANGLE_ARB || Framebuffer::IsRenderbuffer(drawColorbufferType);
 		if(!validReadType || !validDrawType)
 		{
 			return error(GL_INVALID_OPERATION);
@@ -4145,8 +4145,10 @@ void Context::blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1
 			return error(GL_INVALID_OPERATION);
 		}
 
-		if((readRenderbuffer->getSamples() > 0) &&
-		   (readRenderbuffer->getFormat() != drawRenderbuffer->getFormat()))
+		// From the ANGLE_framebuffer_blit extension:
+		// "Calling BlitFramebufferANGLE will result in an INVALID_OPERATION error if <mask>
+		//  includes COLOR_BUFFER_BIT and the source and destination color formats to not match."
+		if((clientVersion < 3) && (readRenderbuffer->getSamples() > 0) && (readFormat != drawFormat))
 		{
 			return error(GL_INVALID_OPERATION);
 		}
@@ -4291,7 +4293,8 @@ void Context::blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1
 
 void Context::bindTexImage(gl::Surface *surface)
 {
-	es2::Texture2D *textureObject = getTexture2D();
+	bool isRect = (surface->getTextureTarget() == EGL_TEXTURE_RECTANGLE_ANGLE);
+	es2::Texture2D *textureObject = isRect ? getTexture2DRect() : getTexture2D();
 
 	if(textureObject)
 	{

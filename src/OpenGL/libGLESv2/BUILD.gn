@@ -109,6 +109,10 @@ swiftshader_shared_library("swiftshader_libGLESv2") {
   if (is_win) {
     ldflags = [ "/DEF:" + rebase_path("libGLESv2.def", root_build_dir) ]
   } else if (is_mac) {
+    libs = [
+      "CoreFoundation.framework",
+      "IOSurface.framework",
+    ]
     ldflags = [ "-Wl,-install_name,@rpath/libswiftshader_libGLESv2.dylib" ]
   } else if (is_linux) {
     ldflags =

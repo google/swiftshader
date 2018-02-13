@@ -46,6 +46,10 @@ test("swiftshader_unittests") {
       "-rpath",
       "@executable_path/",
     ]
+    libs = [
+      "CoreFoundation.framework",
+      "IOSurface.framework",
+    ]
   } else {
     ldflags = [ "-Wl,-rpath=\$ORIGIN/swiftshader" ]
   }
