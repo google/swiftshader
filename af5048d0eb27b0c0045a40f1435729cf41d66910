@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cbffe29b_de61bc84",
+        "filename": "src/OpenGL/common/Image.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 1149,
+      "author": {
+        "id": 5880
+      },
+      "writtenOn": "2018-02-14T20:03:08Z",
+      "side": 1,
+      "message": "The extension requires more formats to be supported than this and Chrome\u0027s code can actually use them (even if it doesn\u0027t in practice right now).",
+      "revId": "af5048d0eb27b0c0045a40f1435729cf41d66910",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b8c84630_b60dacb4",
+        "filename": "src/OpenGL/libEGL/Display.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 377,
+      "author": {
+        "id": 5880
+      },
+      "writtenOn": "2018-02-14T20:03:08Z",
+      "side": 1,
+      "message": "ditto.",
+      "revId": "af5048d0eb27b0c0045a40f1435729cf41d66910",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "57f7babb_aaa3ba7c",
+        "filename": "src/OpenGL/libEGL/Surface.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 239,
+      "author": {
+        "id": 5880
+      },
+      "writtenOn": "2018-02-14T20:03:08Z",
+      "side": 1,
+      "message": "Shouldn\u0027t this apple specific code be split off in its own subclass?",
+      "revId": "af5048d0eb27b0c0045a40f1435729cf41d66910",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d9637884_d793c5eb",
+        "filename": "tests/unittests/unittests.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 694,
+      "author": {
+        "id": 5880
+      },
+      "writtenOn": "2018-02-14T20:03:08Z",
+      "side": 1,
+      "message": "Can we remove the non-Apple code path here and in Surface.cpp? The extension is only exposed on Apple platforms.",
+      "revId": "af5048d0eb27b0c0045a40f1435729cf41d66910",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
