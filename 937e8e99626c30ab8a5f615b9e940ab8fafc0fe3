@@ -1,0 +1,211 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "518a5d4d_d65c9ca4",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-02-21T14:08:54Z",
+      "side": 1,
+      "message": "Can we do this in a separate patch?",
+      "range": {
+        "startLine": 12,
+        "startChar": 0,
+        "endLine": 12,
+        "endChar": 62
+      },
+      "revId": "937e8e99626c30ab8a5f615b9e940ab8fafc0fe3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c1788d51_bdbbacb5",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-02-21T14:08:54Z",
+      "side": 1,
+      "message": "Isn\u0027t there any (internal) bug describing this in a bit more detail? I\u0027d like to know why the profiling tools get \"confused\" and why the solution isn\u0027t to fix said profiling tools.",
+      "range": {
+        "startLine": 14,
+        "startChar": 5,
+        "endLine": 14,
+        "endChar": 9
+      },
+      "revId": "937e8e99626c30ab8a5f615b9e940ab8fafc0fe3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b3a1cedf_e3531186",
+        "filename": "src/Common/Memory.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-02-21T14:08:54Z",
+      "side": 1,
+      "message": "Please move to around line 32. We like to make sure our own headers don\u0027t implicitly depend on system level headers they\u0027re not including themselves.",
+      "range": {
+        "startLine": 17,
+        "startChar": 0,
+        "endLine": 17,
+        "endChar": 19
+      },
+      "revId": "937e8e99626c30ab8a5f615b9e940ab8fafc0fe3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9f2f6b3d_91bd7526",
+        "filename": "src/Common/Memory.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-02-21T14:08:54Z",
+      "side": 1,
+      "message": "nit: result",
+      "range": {
+        "startLine": 51,
+        "startChar": 5,
+        "endLine": 51,
+        "endChar": 8
+      },
+      "revId": "937e8e99626c30ab8a5f615b9e940ab8fafc0fe3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "28b7cf65_daeee77d",
+        "filename": "src/Common/Memory.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-02-21T14:08:54Z",
+      "side": 1,
+      "message": "Shouldn\u0027t we use the one defined by \u003csys/memfd.h\u003e instead?",
+      "range": {
+        "startLine": 58,
+        "startChar": 4,
+        "endLine": 58,
+        "endChar": 16
+      },
+      "revId": "937e8e99626c30ab8a5f615b9e940ab8fafc0fe3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a41a8585_8c2a6b45",
+        "filename": "src/Common/Memory.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-02-21T14:08:54Z",
+      "side": 1,
+      "message": "These hard-coded values look fragile. Is this documented anywhere?",
+      "range": {
+        "startLine": 59,
+        "startChar": 0,
+        "endLine": 68,
+        "endChar": 29
+      },
+      "revId": "937e8e99626c30ab8a5f615b9e940ab8fafc0fe3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "12f07daa_c4c2d9a5",
+        "filename": "src/Common/Memory.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-02-21T14:08:54Z",
+      "side": 1,
+      "message": "This is only called once. Why have a separate function for it?",
+      "range": {
+        "startLine": 79,
+        "startChar": 0,
+        "endLine": 84,
+        "endChar": 1
+      },
+      "revId": "937e8e99626c30ab8a5f615b9e940ab8fafc0fe3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b3eef7bc_aeb27b43",
+        "filename": "src/Common/Memory.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-02-21T14:08:54Z",
+      "side": 1,
+      "message": "This is only called once. Why have a separate function for it?",
+      "range": {
+        "startLine": 87,
+        "startChar": 0,
+        "endLine": 94,
+        "endChar": 1
+      },
+      "revId": "937e8e99626c30ab8a5f615b9e940ab8fafc0fe3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1b383fd8_b0aed363",
+        "filename": "src/Common/Memory.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-02-21T14:08:54Z",
+      "side": 1,
+      "message": "We can only change the access flags on a per-page basis, so we need to make sure this gets rounded up to the next multiple of the page size.",
+      "range": {
+        "startLine": 139,
+        "startChar": 17,
+        "endLine": 139,
+        "endChar": 22
+      },
+      "revId": "937e8e99626c30ab8a5f615b9e940ab8fafc0fe3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
