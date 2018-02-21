@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "123b6fc7_3f144547",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 6866
+      },
+      "writtenOn": "2018-02-21T18:25:12Z",
+      "side": 1,
+      "message": "The changes are somewhat intertwined. The switch to mmap means that struct Allocation and associated code are unnecessary, similarly posix_memalign makes it unnecessary. To do another CL means creating an intermediate state that is made redundant when transitioning to mmaps... So its possible to do this work in two CLs but not trivial as well as increasing the review/testing load. The intermediate state is not really any better for a roll-back than just rolling back this whole CL.",
+      "parentUuid": "518a5d4d_d65c9ca4",
+      "range": {
+        "startLine": 12,
+        "startChar": 0,
+        "endLine": 12,
+        "endChar": 62
+      },
+      "revId": "937e8e99626c30ab8a5f615b9e940ab8fafc0fe3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "c1788d51_bdbbacb5",
         "filename": "/COMMIT_MSG",
         "patchSetId": 2
@@ -45,6 +69,30 @@
       "revId": "937e8e99626c30ab8a5f615b9e940ab8fafc0fe3",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "991a7a54_fd4ad724",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 6866
+      },
+      "writtenOn": "2018-02-21T18:25:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c1788d51_bdbbacb5",
+      "range": {
+        "startLine": 14,
+        "startChar": 5,
+        "endLine": 14,
+        "endChar": 9
+      },
+      "revId": "937e8e99626c30ab8a5f615b9e940ab8fafc0fe3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "fbb6fa51_5618ba86",
+        "filename": "src/Common/Memory.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 6866
+      },
+      "writtenOn": "2018-02-21T18:25:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b3a1cedf_e3531186",
+      "range": {
+        "startLine": 17,
+        "startChar": 0,
+        "endLine": 17,
+        "endChar": 19
+      },
+      "revId": "937e8e99626c30ab8a5f615b9e940ab8fafc0fe3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9f2f6b3d_91bd7526",
         "filename": "src/Common/Memory.cpp",
         "patchSetId": 2
@@ -91,6 +163,30 @@
       "revId": "937e8e99626c30ab8a5f615b9e940ab8fafc0fe3",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0255b4c1_ace4f0d5",
+        "filename": "src/Common/Memory.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 6866
+      },
+      "writtenOn": "2018-02-21T18:25:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9f2f6b3d_91bd7526",
+      "range": {
+        "startLine": 51,
+        "startChar": 5,
+        "endLine": 51,
+        "endChar": 8
+      },
+      "revId": "937e8e99626c30ab8a5f615b9e940ab8fafc0fe3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     },
     {
       "key": {
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "e23b0513_35069029",
+        "filename": "src/Common/Memory.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 6866
+      },
+      "writtenOn": "2018-02-21T18:25:12Z",
+      "side": 1,
+      "message": "Sadly not, from \"man memfd_create\":\n\nNote: There is no glibc wrapper for this system call; see NOTES.\n...\nGlibc does not provide a wrapper for this system call; call it using syscall(2).",
+      "parentUuid": "28b7cf65_daeee77d",
+      "range": {
+        "startLine": 58,
+        "startChar": 4,
+        "endLine": 58,
+        "endChar": 16
+      },
+      "revId": "937e8e99626c30ab8a5f615b9e940ab8fafc0fe3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a41a8585_8c2a6b45",
         "filename": "src/Common/Memory.cpp",
         "patchSetId": 2
@@ -140,6 +260,30 @@
     },
     {
       "key": {
+        "uuid": "18b06ed5_d7d5c703",
+        "filename": "src/Common/Memory.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 6866
+      },
+      "writtenOn": "2018-02-21T18:25:12Z",
+      "side": 1,
+      "message": "Agreed. Sadly this is how it is done in Google 3, see: google_glibc_extensions.h",
+      "parentUuid": "a41a8585_8c2a6b45",
+      "range": {
+        "startLine": 59,
+        "startChar": 0,
+        "endLine": 68,
+        "endChar": 29
+      },
+      "revId": "937e8e99626c30ab8a5f615b9e940ab8fafc0fe3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "12f07daa_c4c2d9a5",
         "filename": "src/Common/Memory.cpp",
         "patchSetId": 2
@@ -151,6 +295,30 @@
       "writtenOn": "2018-02-21T14:08:54Z",
       "side": 1,
       "message": "This is only called once. Why have a separate function for it?",
+      "range": {
+        "startLine": 79,
+        "startChar": 0,
+        "endLine": 84,
+        "endChar": 1
+      },
+      "revId": "937e8e99626c30ab8a5f615b9e940ab8fafc0fe3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "34191308_dfda34b9",
+        "filename": "src/Common/Memory.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 6866
+      },
+      "writtenOn": "2018-02-21T18:25:12Z",
+      "side": 1,
+      "message": "Anonymous/static functions called once are trivially inlined by the compiler, so there\u0027s no performance reason not to do this. The intent was clarity of, and to reduce the scope of, the file descriptor. In the case below the fileSize static is only used on an else branch.",
+      "parentUuid": "12f07daa_c4c2d9a5",
       "range": {
         "startLine": 79,
         "startChar": 0,
@@ -186,6 +354,30 @@
     },
     {
       "key": {
+        "uuid": "286d1899_9fa8022b",
+        "filename": "src/Common/Memory.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 6866
+      },
+      "writtenOn": "2018-02-21T18:25:12Z",
+      "side": 1,
+      "message": "See above.",
+      "parentUuid": "b3eef7bc_aeb27b43",
+      "range": {
+        "startLine": 87,
+        "startChar": 0,
+        "endLine": 94,
+        "endChar": 1
+      },
+      "revId": "937e8e99626c30ab8a5f615b9e940ab8fafc0fe3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "1b383fd8_b0aed363",
         "filename": "src/Common/Memory.cpp",
         "patchSetId": 2
@@ -206,6 +398,30 @@
       "revId": "937e8e99626c30ab8a5f615b9e940ab8fafc0fe3",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c60e2375_9de99e33",
+        "filename": "src/Common/Memory.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 6866
+      },
+      "writtenOn": "2018-02-21T18:25:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1b383fd8_b0aed363",
+      "range": {
+        "startLine": 139,
+        "startChar": 17,
+        "endLine": 139,
+        "endChar": 22
+      },
+      "revId": "937e8e99626c30ab8a5f615b9e940ab8fafc0fe3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
