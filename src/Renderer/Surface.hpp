@@ -233,7 +233,8 @@ namespace sw
 		LOCK_READONLY,
 		LOCK_WRITEONLY,
 		LOCK_READWRITE,
-		LOCK_DISCARD
+		LOCK_DISCARD,
+		LOCK_UPDATE   // Write access which doesn't dirty the buffer, because it's being updated with the sibling's data.
 	};
 
 	class [[clang::lto_visibility_public]] Surface

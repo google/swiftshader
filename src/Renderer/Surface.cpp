@@ -1118,6 +1118,7 @@ namespace sw
 		{
 		case LOCK_UNLOCKED:
 		case LOCK_READONLY:
+		case LOCK_UPDATE:
 			break;
 		case LOCK_WRITEONLY:
 		case LOCK_READWRITE:
@@ -1514,6 +1515,11 @@ namespace sw
 
 	void *Surface::lockStencil(int x, int y, int front, Accessor client)
 	{
+		if(stencil.format == FORMAT_NULL)
+		{
+			return nullptr;
+		}
+
 		resource->lock(client);
 
 		if(!stencil.buffer)
@@ -1922,7 +1928,7 @@ namespace sw
 	void Surface::genericUpdate(Buffer &destination, Buffer &source)
 	{
 		unsigned char *sourceSlice = (unsigned char*)source.lockRect(0, 0, 0, sw::LOCK_READONLY);
-		unsigned char *destinationSlice = (unsigned char*)destination.lockRect(0, 0, 0, sw::LOCK_WRITEONLY);
+		unsigned char *destinationSlice = (unsigned char*)destination.lockRect(0, 0, 0, sw::LOCK_UPDATE);
 
 		int depth = min(destination.depth, source.depth);
 		int height = min(destination.height, source.height);
@@ -1970,7 +1976,7 @@ namespace sw
 	void Surface::decodeR8G8B8(Buffer &destination, Buffer &source)
 	{
 		unsigned char *sourceSlice = (unsigned char*)source.lockRect(0, 0, 0, sw::LOCK_READONLY);
-		unsigned char *destinationSlice = (unsigned char*)destination.lockRect(0, 0, 0, sw::LOCK_WRITEONLY);
+		unsigned char *destinationSlice = (unsigned char*)destination.lockRect(0, 0, 0, sw::LOCK_UPDATE);
 
 		int depth = min(destination.depth, source.depth);
 		int height = min(destination.height, source.height);
@@ -2013,7 +2019,7 @@ namespace sw
 	void Surface::decodeX1R5G5B5(Buffer &destination, Buffer &source)
 	{
 		unsigned char *sourceSlice = (unsigned char*)source.lockRect(0, 0, 0, sw::LOCK_READONLY);
-		unsigned char *destinationSlice = (unsigned char*)destination.lockRect(0, 0, 0, sw::LOCK_WRITEONLY);
+		unsigned char *destinationSlice = (unsigned char*)destination.lockRect(0, 0, 0, sw::LOCK_UPDATE);
 
 		int depth = min(destination.depth, source.depth);
 		int height = min(destination.height, source.height);
@@ -2058,7 +2064,7 @@ namespace sw
 	void Surface::decodeA1R5G5B5(Buffer &destination, Buffer &source)
 	{
 		unsigned char *sourceSlice = (unsigned char*)source.lockRect(0, 0, 0, sw::LOCK_READONLY);
-		unsigned char *destinationSlice = (unsigned char*)destination.lockRect(0, 0, 0, sw::LOCK_WRITEONLY);
+		unsigned char *destinationSlice = (unsigned char*)destination.lockRect(0, 0, 0, sw::LOCK_UPDATE);
 
 		int depth = min(destination.depth, source.depth);
 		int height = min(destination.height, source.height);
@@ -2104,7 +2110,7 @@ namespace sw
 	void Surface::decodeX4R4G4B4(Buffer &destination, Buffer &source)
 	{
 		unsigned char *sourceSlice = (unsigned char*)source.lockRect(0, 0, 0, sw::LOCK_READONLY);
-		unsigned char *destinationSlice = (unsigned char*)destination.lockRect(0, 0, 0, sw::LOCK_WRITEONLY);
+		unsigned char *destinationSlice = (unsigned char*)destination.lockRect(0, 0, 0, sw::LOCK_UPDATE);
 
 		int depth = min(destination.depth, source.depth);
 		int height = min(destination.height, source.height);
@@ -2149,7 +2155,7 @@ namespace sw
 	void Surface::decodeA4R4G4B4(Buffer &destination, Buffer &source)
 	{
 		unsigned char *sourceSlice = (unsigned char*)source.lockRect(0, 0, 0, sw::LOCK_READONLY);
-		unsigned char *destinationSlice = (unsigned char*)destination.lockRect(0, 0, 0, sw::LOCK_WRITEONLY);
+		unsigned char *destinationSlice = (unsigned char*)destination.lockRect(0, 0, 0, sw::LOCK_UPDATE);
 
 		int depth = min(destination.depth, source.depth);
 		int height = min(destination.height, source.height);
@@ -2195,7 +2201,7 @@ namespace sw
 	void Surface::decodeP8(Buffer &destination, Buffer &source)
 	{
 		unsigned char *sourceSlice = (unsigned char*)source.lockRect(0, 0, 0, sw::LOCK_READONLY);
-		unsigned char *destinationSlice = (unsigned char*)destination.lockRect(0, 0, 0, sw::LOCK_WRITEONLY);
+		unsigned char *destinationSlice = (unsigned char*)destination.lockRect(0, 0, 0, sw::LOCK_UPDATE);
 
 		int depth = min(destination.depth, source.depth);
 		int height = min(destination.height, source.height);
@@ -2240,7 +2246,7 @@ namespace sw
 
 	void Surface::decodeDXT1(Buffer &internal, Buffer &external)
 	{
-		unsigned int *destSlice = (unsigned int*)internal.lockRect(0, 0, 0, LOCK_WRITEONLY);
+		unsigned int *destSlice = (unsigned int*)internal.lockRect(0, 0, 0, LOCK_UPDATE);
 		const DXT1 *source = (const DXT1*)external.lockRect(0, 0, 0, LOCK_READONLY);
 
 		for(int z = 0; z < external.depth; z++)
@@ -2305,7 +2311,7 @@ namespace sw
 
 	void Surface::decodeDXT3(Buffer &internal, Buffer &external)
 	{
-		unsigned int *destSlice = (unsigned int*)internal.lockRect(0, 0, 0, LOCK_WRITEONLY);
+		unsigned int *destSlice = (unsigned int*)internal.lockRect(0, 0, 0, LOCK_UPDATE);
 		const DXT3 *source = (const DXT3*)external.lockRect(0, 0, 0, LOCK_READONLY);
 
 		for(int z = 0; z < external.depth; z++)
@@ -2355,7 +2361,7 @@ namespace sw
 
 	void Surface::decodeDXT5(Buffer &internal, Buffer &external)
 	{
-		unsigned int *destSlice = (unsigned int*)internal.lockRect(0, 0, 0, LOCK_WRITEONLY);
+		unsigned int *destSlice = (unsigned int*)internal.lockRect(0, 0, 0, LOCK_UPDATE);
 		const DXT5 *source = (const DXT5*)external.lockRect(0, 0, 0, LOCK_READONLY);
 
 		for(int z = 0; z < external.depth; z++)
@@ -2429,7 +2435,7 @@ namespace sw
 
 	void Surface::decodeATI1(Buffer &internal, Buffer &external)
 	{
-		byte *destSlice = (byte*)internal.lockRect(0, 0, 0, LOCK_WRITEONLY);
+		byte *destSlice = (byte*)internal.lockRect(0, 0, 0, LOCK_UPDATE);
 		const ATI1 *source = (const ATI1*)external.lockRect(0, 0, 0, LOCK_READONLY);
 
 		for(int z = 0; z < external.depth; z++)
@@ -2485,7 +2491,7 @@ namespace sw
 
 	void Surface::decodeATI2(Buffer &internal, Buffer &external)
 	{
-		word *destSlice = (word*)internal.lockRect(0, 0, 0, LOCK_WRITEONLY);
+		word *destSlice = (word*)internal.lockRect(0, 0, 0, LOCK_UPDATE);
 		const ATI2 *source = (const ATI2*)external.lockRect(0, 0, 0, LOCK_READONLY);
 
 		for(int z = 0; z < external.depth; z++)
@@ -2568,7 +2574,7 @@ namespace sw
 
 	void Surface::decodeETC2(Buffer &internal, Buffer &external, int nbAlphaBits, bool isSRGB)
 	{
-		ETC_Decoder::Decode((const byte*)external.lockRect(0, 0, 0, LOCK_READONLY), (byte*)internal.lockRect(0, 0, 0, LOCK_WRITEONLY), external.width, external.height, internal.width, internal.height, internal.pitchB, internal.bytes,
+		ETC_Decoder::Decode((const byte*)external.lockRect(0, 0, 0, LOCK_READONLY), (byte*)internal.lockRect(0, 0, 0, LOCK_UPDATE), external.width, external.height, internal.width, internal.height, internal.pitchB, internal.bytes,
 		                    (nbAlphaBits == 8) ? ETC_Decoder::ETC_RGBA : ((nbAlphaBits == 1) ? ETC_Decoder::ETC_RGB_PUNCHTHROUGH_ALPHA : ETC_Decoder::ETC_RGB));
 		external.unlockRect();
 		internal.unlockRect();
