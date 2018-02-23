@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1cb4219e_0404f497",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 3023,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-02-23T18:46:56Z",
+      "side": 1,
+      "message": "Should we even be making it this far when there\u0027s no program? What are the conditions that make this happen? Also, if this returns GL_NO_ERROR then the calling function is just going to continue (and assume the vertex buffers have been applied), which also seems fragile. So it seems to me that this check should happen earlier.",
+      "range": {
+        "startLine": 3020,
+        "startChar": 1,
+        "endLine": 3023,
+        "endChar": 2
+      },
+      "revId": "142f5ea0f2bc36260da7a326b6d531cc66a20392",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
