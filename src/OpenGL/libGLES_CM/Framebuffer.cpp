@@ -405,16 +405,16 @@ GLenum Framebuffer::getImplementationColorReadFormat()
 
 	if(colorbuffer)
 	{
-		switch(colorbuffer->getInternalFormat())
+		switch(colorbuffer->getFormat())
 		{
-		case sw::FORMAT_A8R8G8B8: return GL_BGRA_EXT;
-		case sw::FORMAT_A8B8G8R8: return GL_RGBA;
-		case sw::FORMAT_X8R8G8B8: return GL_BGRA_EXT;
-		case sw::FORMAT_X8B8G8R8: return GL_RGBA;
-		case sw::FORMAT_A1R5G5B5: return GL_BGRA_EXT;
-		case sw::FORMAT_R5G6B5:   return GL_RGB;
+		case GL_BGRA8_EXT:   return GL_BGRA_EXT;
+		case GL_RGBA4_OES:   return GL_RGBA;
+		case GL_RGB5_A1_OES: return GL_RGBA;
+		case GL_RGBA8_OES:   return GL_RGBA;
+		case GL_RGB565_OES:  return GL_RGBA;
+		case GL_RGB8_OES:    return GL_RGB;
 		default:
-			UNREACHABLE(colorbuffer->getInternalFormat());
+			UNREACHABLE(colorbuffer->getFormat());
 		}
 	}
 
@@ -427,16 +427,16 @@ GLenum Framebuffer::getImplementationColorReadType()
 
 	if(colorbuffer)
 	{
-		switch(colorbuffer->getInternalFormat())
+		switch(colorbuffer->getFormat())
 		{
-		case sw::FORMAT_A8R8G8B8: return GL_UNSIGNED_BYTE;
-		case sw::FORMAT_A8B8G8R8: return GL_UNSIGNED_BYTE;
-		case sw::FORMAT_X8R8G8B8: return GL_UNSIGNED_BYTE;
-		case sw::FORMAT_X8B8G8R8: return GL_UNSIGNED_BYTE;
-		case sw::FORMAT_A1R5G5B5: return GL_UNSIGNED_SHORT_1_5_5_5_REV_EXT;
-		case sw::FORMAT_R5G6B5:   return GL_UNSIGNED_SHORT_5_6_5;
+		case GL_BGRA8_EXT:   return GL_UNSIGNED_BYTE;
+		case GL_RGBA4_OES:   return GL_UNSIGNED_SHORT_4_4_4_4;
+		case GL_RGB5_A1_OES: return GL_UNSIGNED_SHORT_5_5_5_1;
+		case GL_RGBA8_OES:   return GL_UNSIGNED_BYTE;
+		case GL_RGB565_OES:  return GL_UNSIGNED_SHORT_5_6_5;
+		case GL_RGB8_OES:    return GL_UNSIGNED_BYTE;
 		default:
-			UNREACHABLE(colorbuffer->getInternalFormat());
+			UNREACHABLE(colorbuffer->getFormat());
 		}
 	}
 

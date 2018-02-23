@@ -45,7 +45,6 @@ public:
 
 	virtual EGLint getConfigID() const;
 	virtual EGLenum getSurfaceType() const;
-	sw::Format getInternalFormat() const override;
 
 	EGLint getWidth() const override;
 	EGLint getHeight() const override;

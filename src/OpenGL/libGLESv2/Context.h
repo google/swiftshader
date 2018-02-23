@@ -422,8 +422,8 @@ struct State
 	gl::BindingPointer<Texture> samplerTexture[TEXTURE_TYPE_COUNT][MAX_COMBINED_TEXTURE_IMAGE_UNITS];
 	gl::BindingPointer<Query> activeQuery[QUERY_TYPE_COUNT];
 
-	egl::PixelStorageModes unpackParameters;
-	egl::PixelStorageModes packParameters;
+	gl::PixelStorageModes unpackParameters;
+	gl::PixelStorageModes packParameters;
 };
 
 class [[clang::lto_visibility_public]] Context : public egl::Context
@@ -533,7 +533,7 @@ public:
 	void setUnpackSkipPixels(GLint skipPixels);
 	void setUnpackSkipRows(GLint skipRows);
 	void setUnpackSkipImages(GLint skipImages);
-	const egl::PixelStorageModes &getUnpackParameters() const;
+	const gl::PixelStorageModes &getUnpackParameters() const;
 
 	void setPackAlignment(GLint alignment);
 	void setPackRowLength(GLint rowLength);

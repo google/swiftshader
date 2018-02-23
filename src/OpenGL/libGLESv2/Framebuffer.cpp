@@ -545,8 +545,6 @@ GLenum Framebuffer::getImplementationColorReadFormat() const
 		switch(colorbuffer->getFormat())
 		{
 		case GL_BGRA8_EXT:      return GL_BGRA_EXT;
-		case GL_BGRA4_ANGLE:    return GL_BGRA_EXT;
-		case GL_BGR5_A1_ANGLE:  return GL_BGRA_EXT;
 		case GL_RGBA4:          return GL_RGBA;
 		case GL_RGB5_A1:        return GL_RGBA;
 		case GL_RGBA8:          return GL_RGBA;
@@ -608,8 +606,6 @@ GLenum Framebuffer::getImplementationColorReadType() const
 		switch(colorbuffer->getFormat())
 		{
 		case GL_BGRA8_EXT:      return GL_UNSIGNED_BYTE;
-		case GL_BGRA4_ANGLE:    return GL_UNSIGNED_SHORT_4_4_4_4_REV_EXT;
-		case GL_BGR5_A1_ANGLE:  return GL_UNSIGNED_SHORT_1_5_5_5_REV_EXT;
 		case GL_RGBA4:          return GL_UNSIGNED_SHORT_4_4_4_4;
 		case GL_RGB5_A1:        return GL_UNSIGNED_SHORT_5_5_5_1;
 		case GL_RGBA8:          return GL_UNSIGNED_BYTE;

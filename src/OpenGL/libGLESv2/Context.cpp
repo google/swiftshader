@@ -842,7 +842,7 @@ void Context::setUnpackAlignment(GLint alignment)
 	mState.unpackParameters.alignment = alignment;
 }
 
-const egl::PixelStorageModes &Context::getUnpackParameters() const
+const gl::PixelStorageModes &Context::getUnpackParameters() const
 {
 	return mState.unpackParameters;
 }
@@ -1568,7 +1568,7 @@ Buffer *Context::getGenericUniformBuffer() const
 GLsizei Context::getRequiredBufferSize(GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type) const
 {
 	GLsizei inputWidth = (mState.unpackParameters.rowLength == 0) ? width : mState.unpackParameters.rowLength;
-	GLsizei inputPitch = egl::ComputePitch(inputWidth, format, type, mState.unpackParameters.alignment);
+	GLsizei inputPitch = gl::ComputePitch(inputWidth, format, type, mState.unpackParameters.alignment);
 	GLsizei inputHeight = (mState.unpackParameters.imageHeight == 0) ? height : mState.unpackParameters.imageHeight;
 	return inputPitch * inputHeight * depth;
 }
@@ -3315,10 +3315,10 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum
 	}
 
 	GLsizei outputWidth = (mState.packParameters.rowLength > 0) ? mState.packParameters.rowLength : width;
-	GLsizei outputPitch = egl::ComputePitch(outputWidth, format, type, mState.packParameters.alignment);
+	GLsizei outputPitch = gl::ComputePitch(outputWidth, format, type, mState.packParameters.alignment);
 	GLsizei outputHeight = (mState.packParameters.imageHeight == 0) ? height : mState.packParameters.imageHeight;
 	pixels = getPixelPackBuffer() ? (unsigned char*)getPixelPackBuffer()->data() + (ptrdiff_t)pixels : (unsigned char*)pixels;
-	pixels = ((char*)pixels) + egl::ComputePackingOffset(format, type, outputWidth, outputHeight, mState.packParameters);
+	pixels = ((char*)pixels) + gl::ComputePackingOffset(format, type, outputWidth, outputHeight, mState.packParameters);
 
 	// Sized query sanity check
 	if(bufSize)
@@ -3350,7 +3350,7 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum
 	sw::Rect dstRect(0, 0, width, height);
 	rect.clip(0.0f, 0.0f, (float)renderTarget->getWidth(), (float)renderTarget->getHeight());
 
-	sw::Surface *externalSurface = sw::Surface::create(width, height, 1, egl::ConvertFormatType(format, type), pixels, outputPitch, outputPitch * outputHeight);
+	sw::Surface *externalSurface = sw::Surface::create(width, height, 1, gl::ConvertReadFormatType(format, type), pixels, outputPitch, outputPitch * outputHeight);
 	sw::SliceRectF sliceRect(rect);
 	sw::SliceRect dstSliceRect(dstRect);
 	device->blit(renderTarget, sliceRect, externalSurface, dstSliceRect, false, false, false);

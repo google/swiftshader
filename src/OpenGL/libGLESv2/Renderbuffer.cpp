@@ -422,25 +422,26 @@ Colorbuffer::Colorbuffer(egl::Image *renderTarget) : mRenderTarget(renderTarget)
 	{
 		renderTarget->addRef();
 
-		sw::Format implementationFormat = renderTarget->getInternalFormat();
-		format = sw2es::ConvertBackBufferFormat(implementationFormat);
-
 		mWidth = renderTarget->getWidth();
 		mHeight = renderTarget->getHeight();
+		format = renderTarget->getFormat();
 		mSamples = renderTarget->getDepth() & ~1;
 	}
 }
 
 Colorbuffer::Colorbuffer(int width, int height, GLenum internalformat, GLsizei samples) : mRenderTarget(nullptr)
 {
-	Device *device = getDevice();
-
-	sw::Format implementationFormat = es2sw::ConvertRenderbufferFormat(internalformat);
 	int supportedSamples = Context::getSupportedMultisampleCount(samples);
 
 	if(width > 0 && height > 0)
 	{
-		mRenderTarget = device->createRenderTarget(width, height, implementationFormat, supportedSamples, false);
+		if(height > sw::OUTLINE_RESOLUTION)
+		{
+			error(GL_OUT_OF_MEMORY);
+			return;
+		}
+
+		mRenderTarget = egl::Image::create(width, height, internalformat, supportedSamples, false);
 
 		if(!mRenderTarget)
 		{
@@ -499,41 +500,26 @@ DepthStencilbuffer::DepthStencilbuffer(egl::Image *depthStencil) : mDepthStencil
 	{
 		depthStencil->addRef();
 
-		sw::Format implementationFormat = depthStencil->getInternalFormat();
-		format = sw2es::ConvertDepthStencilFormat(implementationFormat);
-
 		mWidth = depthStencil->getWidth();
 		mHeight = depthStencil->getHeight();
+		format = depthStencil->getFormat();
 		mSamples = depthStencil->getDepth() & ~1;
 	}
 }
 
 DepthStencilbuffer::DepthStencilbuffer(int width, int height, GLenum internalformat, GLsizei samples) : mDepthStencil(nullptr)
 {
-	format = internalformat;
-	sw::Format implementationFormat = sw::FORMAT_D24S8;
-	switch(internalformat)
-	{
-	case GL_STENCIL_INDEX8:        implementationFormat = sw::FORMAT_S8;     break;
-	case GL_DEPTH_COMPONENT24:     implementationFormat = sw::FORMAT_D24X8;  break;
-	case GL_DEPTH24_STENCIL8_OES:  implementationFormat = sw::FORMAT_D24S8;  break;
-	case GL_DEPTH32F_STENCIL8:     implementationFormat = sw::FORMAT_D32FS8; break;
-	case GL_DEPTH_COMPONENT16:     implementationFormat = sw::FORMAT_D16;    break;
-	case GL_DEPTH_COMPONENT32_OES: implementationFormat = sw::FORMAT_D32;    break;
-	case GL_DEPTH_COMPONENT32F:    implementationFormat = sw::FORMAT_D32F;   break;
-	default:
-		UNREACHABLE(internalformat);
-		format = GL_DEPTH24_STENCIL8_OES;
-		implementationFormat = sw::FORMAT_D24S8;
-	}
-
-	Device *device = getDevice();
-
 	int supportedSamples = Context::getSupportedMultisampleCount(samples);
 
 	if(width > 0 && height > 0)
 	{
-		mDepthStencil = device->createDepthStencilSurface(width, height, implementationFormat, supportedSamples, false);
+		if(height > sw::OUTLINE_RESOLUTION)
+		{
+			error(GL_OUT_OF_MEMORY);
+			return;
+		}
+
+		mDepthStencil = egl::Image::create(width, height, internalformat, supportedSamples, false);
 
 		if(!mDepthStencil)
 		{
@@ -544,6 +530,7 @@ DepthStencilbuffer::DepthStencilbuffer(int width, int height, GLenum internalfor
 
 	mWidth = width;
 	mHeight = height;
+	format = internalformat;
 	mSamples = supportedSamples;
 }
 

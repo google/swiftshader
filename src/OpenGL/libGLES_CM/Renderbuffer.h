@@ -49,7 +49,6 @@ public:
 	virtual GLsizei getWidth() const = 0;
 	virtual GLsizei getHeight() const = 0;
 	virtual GLenum getFormat() const = 0;
-	virtual sw::Format getInternalFormat() const = 0;
 	virtual GLsizei getSamples() const = 0;
 
 	GLuint getRedSize() const;
@@ -77,7 +76,6 @@ public:
 	virtual GLsizei getWidth() const;
 	virtual GLsizei getHeight() const;
 	virtual GLenum getFormat() const;
-	virtual sw::Format getInternalFormat() const;
 	virtual GLsizei getSamples() const;
 
 private:
@@ -101,14 +99,12 @@ public:
 	virtual GLsizei getWidth() const;
 	virtual GLsizei getHeight() const;
 	virtual GLenum getFormat() const;
-	virtual sw::Format getInternalFormat() const;
 	virtual GLsizei getSamples() const;
 
 protected:
 	GLsizei mWidth;
 	GLsizei mHeight;
 	GLenum format;
-	sw::Format internalFormat;
 	GLsizei mSamples;
 };
 
@@ -136,7 +132,6 @@ public:
 	GLsizei getWidth() const;
 	GLsizei getHeight() const;
 	GLenum getFormat() const;
-	sw::Format getInternalFormat() const;
 	GLuint getRedSize() const;
 	GLuint getGreenSize() const;
 	GLuint getBlueSize() const;
@@ -155,7 +150,7 @@ class Colorbuffer : public RenderbufferStorage
 {
 public:
 	explicit Colorbuffer(egl::Image *renderTarget);
-	Colorbuffer(GLsizei width, GLsizei height, GLenum format, GLsizei samples);
+	Colorbuffer(GLsizei width, GLsizei height, GLenum internalformat, GLsizei samples);
 
 	virtual ~Colorbuffer();
 
@@ -171,7 +166,7 @@ class DepthStencilbuffer : public RenderbufferStorage
 {
 public:
 	explicit DepthStencilbuffer(egl::Image *depthStencil);
-	DepthStencilbuffer(GLsizei width, GLsizei height, GLsizei samples);
+	DepthStencilbuffer(GLsizei width, GLsizei height, GLenum internalformat, GLsizei samples);
 
 	~DepthStencilbuffer();
 
@@ -187,7 +182,7 @@ class Depthbuffer : public DepthStencilbuffer
 {
 public:
 	explicit Depthbuffer(egl::Image *depthStencil);
-	Depthbuffer(GLsizei width, GLsizei height, GLsizei samples);
+	Depthbuffer(GLsizei width, GLsizei height, GLenum internalformat, GLsizei samples);
 
 	virtual ~Depthbuffer();
 };

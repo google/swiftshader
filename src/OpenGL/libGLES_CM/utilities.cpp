@@ -163,6 +163,236 @@ namespace es1
 		return false;
 	}
 
+	GLuint GetAlphaSize(GLint internalformat)
+	{
+		switch(internalformat)
+		{
+		case GL_NONE:           return 0;
+		case GL_RGBA4:          return 4;
+		case GL_RGB5_A1:        return 1;
+		case GL_RGB565:         return 0;
+		case GL_R8:             return 0;
+		case GL_RG8:            return 0;
+		case GL_RGB8:           return 0;
+		case GL_RGBA8:          return 8;
+		case GL_R16F:           return 0;
+		case GL_RG16F:          return 0;
+		case GL_RGB16F:         return 0;
+		case GL_RGBA16F:        return 16;
+		case GL_R32F:           return 0;
+		case GL_RG32F:          return 0;
+		case GL_RGB32F:         return 0;
+		case GL_RGBA32F:        return 32;
+		case GL_BGRA8_EXT:      return 8;
+		case GL_R8UI:           return 0;
+		case GL_R8I:            return 0;
+		case GL_R16UI:          return 0;
+		case GL_R16I:           return 0;
+		case GL_R32UI:          return 0;
+		case GL_R32I:           return 0;
+		case GL_RG8UI:          return 0;
+		case GL_RG8I:           return 0;
+		case GL_RG16UI:         return 0;
+		case GL_RG16I:          return 0;
+		case GL_RG32UI:         return 0;
+		case GL_RG32I:          return 0;
+		case GL_SRGB8_ALPHA8:   return 8;
+		case GL_RGB10_A2:       return 2;
+		case GL_RGBA8UI:        return 8;
+		case GL_RGBA8I:         return 8;
+		case GL_RGB10_A2UI:     return 2;
+		case GL_RGBA16UI:       return 16;
+		case GL_RGBA16I:        return 16;
+		case GL_RGBA32I:        return 32;
+		case GL_RGBA32UI:       return 32;
+		case GL_R11F_G11F_B10F: return 0;
+		default:
+		//	UNREACHABLE(internalformat);
+			return 0;
+		}
+	}
+
+	GLuint GetRedSize(GLint internalformat)
+	{
+		switch(internalformat)
+		{
+		case GL_NONE:           return 0;
+		case GL_RGBA4:          return 4;
+		case GL_RGB5_A1:        return 5;
+		case GL_RGB565:         return 5;
+		case GL_R8:             return 8;
+		case GL_RG8:            return 8;
+		case GL_RGB8:           return 8;
+		case GL_RGBA8:          return 8;
+		case GL_R16F:           return 16;
+		case GL_RG16F:          return 16;
+		case GL_RGB16F:         return 16;
+		case GL_RGBA16F:        return 16;
+		case GL_R32F:           return 32;
+		case GL_RG32F:          return 32;
+		case GL_RGB32F:         return 32;
+		case GL_RGBA32F:        return 32;
+		case GL_BGRA8_EXT:      return 8;
+		case GL_R8UI:           return 8;
+		case GL_R8I:            return 8;
+		case GL_R16UI:          return 16;
+		case GL_R16I:           return 16;
+		case GL_R32UI:          return 32;
+		case GL_R32I:           return 32;
+		case GL_RG8UI:          return 8;
+		case GL_RG8I:           return 8;
+		case GL_RG16UI:         return 16;
+		case GL_RG16I:          return 16;
+		case GL_RG32UI:         return 32;
+		case GL_RG32I:          return 32;
+		case GL_SRGB8_ALPHA8:   return 8;
+		case GL_RGB10_A2:       return 10;
+		case GL_RGBA8UI:        return 8;
+		case GL_RGBA8I:         return 8;
+		case GL_RGB10_A2UI:     return 10;
+		case GL_RGBA16UI:       return 16;
+		case GL_RGBA16I:        return 16;
+		case GL_RGBA32I:        return 32;
+		case GL_RGBA32UI:       return 32;
+		case GL_R11F_G11F_B10F: return 11;
+		default:
+		//	UNREACHABLE(internalformat);
+			return 0;
+		}
+	}
+
+	GLuint GetGreenSize(GLint internalformat)
+	{
+		switch(internalformat)
+		{
+		case GL_NONE:           return 0;
+		case GL_RGBA4:          return 4;
+		case GL_RGB5_A1:        return 5;
+		case GL_RGB565:         return 6;
+		case GL_R8:             return 0;
+		case GL_RG8:            return 8;
+		case GL_RGB8:           return 8;
+		case GL_RGBA8:          return 8;
+		case GL_R16F:           return 0;
+		case GL_RG16F:          return 16;
+		case GL_RGB16F:         return 16;
+		case GL_RGBA16F:        return 16;
+		case GL_R32F:           return 0;
+		case GL_RG32F:          return 32;
+		case GL_RGB32F:         return 32;
+		case GL_RGBA32F:        return 32;
+		case GL_BGRA8_EXT:      return 8;
+		case GL_R8UI:           return 0;
+		case GL_R8I:            return 0;
+		case GL_R16UI:          return 0;
+		case GL_R16I:           return 0;
+		case GL_R32UI:          return 0;
+		case GL_R32I:           return 0;
+		case GL_RG8UI:          return 8;
+		case GL_RG8I:           return 8;
+		case GL_RG16UI:         return 16;
+		case GL_RG16I:          return 16;
+		case GL_RG32UI:         return 32;
+		case GL_RG32I:          return 32;
+		case GL_SRGB8_ALPHA8:   return 8;
+		case GL_RGB10_A2:       return 10;
+		case GL_RGBA8UI:        return 8;
+		case GL_RGBA8I:         return 8;
+		case GL_RGB10_A2UI:     return 10;
+		case GL_RGBA16UI:       return 16;
+		case GL_RGBA16I:        return 16;
+		case GL_RGBA32I:        return 32;
+		case GL_RGBA32UI:       return 32;
+		case GL_R11F_G11F_B10F: return 11;
+		default:
+		//	UNREACHABLE(internalformat);
+			return 0;
+		}
+	}
+
+	GLuint GetBlueSize(GLint internalformat)
+	{
+		switch(internalformat)
+		{
+		case GL_NONE:           return 0;
+		case GL_RGBA4:          return 4;
+		case GL_RGB5_A1:        return 5;
+		case GL_RGB565:         return 5;
+		case GL_R8:             return 0;
+		case GL_RG8:            return 0;
+		case GL_RGB8:           return 8;
+		case GL_RGBA8:          return 8;
+		case GL_R16F:           return 0;
+		case GL_RG16F:          return 0;
+		case GL_RGB16F:         return 16;
+		case GL_RGBA16F:        return 16;
+		case GL_R32F:           return 0;
+		case GL_RG32F:          return 0;
+		case GL_RGB32F:         return 32;
+		case GL_RGBA32F:        return 32;
+		case GL_BGRA8_EXT:      return 8;
+		case GL_R8UI:           return 0;
+		case GL_R8I:            return 0;
+		case GL_R16UI:          return 0;
+		case GL_R16I:           return 0;
+		case GL_R32UI:          return 0;
+		case GL_R32I:           return 0;
+		case GL_RG8UI:          return 0;
+		case GL_RG8I:           return 0;
+		case GL_RG16UI:         return 0;
+		case GL_RG16I:          return 0;
+		case GL_RG32UI:         return 0;
+		case GL_RG32I:          return 0;
+		case GL_SRGB8_ALPHA8:   return 8;
+		case GL_RGB10_A2:       return 10;
+		case GL_RGBA8UI:        return 8;
+		case GL_RGBA8I:         return 8;
+		case GL_RGB10_A2UI:     return 10;
+		case GL_RGBA16UI:       return 16;
+		case GL_RGBA16I:        return 16;
+		case GL_RGBA32I:        return 32;
+		case GL_RGBA32UI:       return 32;
+		case GL_R11F_G11F_B10F: return 10;
+		default:
+		//	UNREACHABLE(internalformat);
+			return 0;
+		}
+	}
+
+	GLuint GetDepthSize(GLint internalformat)
+	{
+		switch(internalformat)
+		{
+		case GL_STENCIL_INDEX8:        return 0;
+		case GL_DEPTH_COMPONENT16:     return 16;
+		case GL_DEPTH_COMPONENT24:     return 24;
+		case GL_DEPTH_COMPONENT32_OES: return 32;
+		case GL_DEPTH_COMPONENT32F:    return 32;
+		case GL_DEPTH24_STENCIL8:      return 24;
+		case GL_DEPTH32F_STENCIL8:     return 32;
+		default:
+		//	UNREACHABLE(internalformat);
+			return 0;
+		}
+	}
+
+	GLuint GetStencilSize(GLint internalformat)
+	{
+		switch(internalformat)
+		{
+		case GL_STENCIL_INDEX8:        return 8;
+		case GL_DEPTH_COMPONENT16:     return 0;
+		case GL_DEPTH_COMPONENT24:     return 0;
+		case GL_DEPTH_COMPONENT32_OES: return 0;
+		case GL_DEPTH_COMPONENT32F:    return 0;
+		case GL_DEPTH24_STENCIL8:      return 8;
+		case GL_DEPTH32F_STENCIL8:     return 8;
+		default:
+		//	UNREACHABLE(internalformat);
+			return 0;
+		}
+	}
+
 	bool IsAlpha(GLenum texFormat)
 	{
 		switch(texFormat)
@@ -549,145 +779,6 @@ namespace es2sw
 
 namespace sw2es
 {
-	unsigned int GetStencilSize(sw::Format stencilFormat)
-	{
-		switch(stencilFormat)
-		{
-		case sw::FORMAT_D24FS8:
-		case sw::FORMAT_D24S8:
-		case sw::FORMAT_D32FS8_TEXTURE:
-			return 8;
-	//	case sw::FORMAT_D24X4S4:
-	//		return 4;
-	//	case sw::FORMAT_D15S1:
-	//		return 1;
-	//	case sw::FORMAT_D16_LOCKABLE:
-		case sw::FORMAT_D32:
-		case sw::FORMAT_D24X8:
-		case sw::FORMAT_D32F_LOCKABLE:
-		case sw::FORMAT_D16:
-			return 0;
-	//	case sw::FORMAT_D32_LOCKABLE:  return 0;
-	//	case sw::FORMAT_S8_LOCKABLE:   return 8;
-		default:
-			return 0;
-		}
-	}
-
-	unsigned int GetAlphaSize(sw::Format colorFormat)
-	{
-		switch(colorFormat)
-		{
-		case sw::FORMAT_A16B16G16R16F:
-			return 16;
-		case sw::FORMAT_A32B32G32R32F:
-			return 32;
-		case sw::FORMAT_A2R10G10B10:
-			return 2;
-		case sw::FORMAT_A8R8G8B8:
-		case sw::FORMAT_A8B8G8R8:
-			return 8;
-		case sw::FORMAT_A1R5G5B5:
-			return 1;
-		case sw::FORMAT_X8R8G8B8:
-		case sw::FORMAT_X8B8G8R8:
-		case sw::FORMAT_R5G6B5:
-			return 0;
-		default:
-			return 0;
-		}
-	}
-
-	unsigned int GetRedSize(sw::Format colorFormat)
-	{
-		switch(colorFormat)
-		{
-		case sw::FORMAT_A16B16G16R16F:
-			return 16;
-		case sw::FORMAT_A32B32G32R32F:
-			return 32;
-		case sw::FORMAT_A2R10G10B10:
-			return 10;
-		case sw::FORMAT_A8R8G8B8:
-		case sw::FORMAT_A8B8G8R8:
-		case sw::FORMAT_X8R8G8B8:
-		case sw::FORMAT_X8B8G8R8:
-			return 8;
-		case sw::FORMAT_A1R5G5B5:
-		case sw::FORMAT_R5G6B5:
-			return 5;
-		default:
-			return 0;
-		}
-	}
-
-	unsigned int GetGreenSize(sw::Format colorFormat)
-	{
-		switch(colorFormat)
-		{
-		case sw::FORMAT_A16B16G16R16F:
-			return 16;
-		case sw::FORMAT_A32B32G32R32F:
-			return 32;
-		case sw::FORMAT_A2R10G10B10:
-			return 10;
-		case sw::FORMAT_A8R8G8B8:
-		case sw::FORMAT_A8B8G8R8:
-		case sw::FORMAT_X8R8G8B8:
-		case sw::FORMAT_X8B8G8R8:
-			return 8;
-		case sw::FORMAT_A1R5G5B5:
-			return 5;
-		case sw::FORMAT_R5G6B5:
-			return 6;
-		default:
-			return 0;
-		}
-	}
-
-	unsigned int GetBlueSize(sw::Format colorFormat)
-	{
-		switch(colorFormat)
-		{
-		case sw::FORMAT_A16B16G16R16F:
-			return 16;
-		case sw::FORMAT_A32B32G32R32F:
-			return 32;
-		case sw::FORMAT_A2R10G10B10:
-			return 10;
-		case sw::FORMAT_A8R8G8B8:
-		case sw::FORMAT_A8B8G8R8:
-		case sw::FORMAT_X8R8G8B8:
-		case sw::FORMAT_X8B8G8R8:
-			return 8;
-		case sw::FORMAT_A1R5G5B5:
-		case sw::FORMAT_R5G6B5:
-			return 5;
-		default:
-			return 0;
-		}
-	}
-
-	unsigned int GetDepthSize(sw::Format depthFormat)
-	{
-		switch(depthFormat)
-		{
-	//	case sw::FORMAT_D16_LOCKABLE:   return 16;
-		case sw::FORMAT_D32:            return 32;
-	//	case sw::FORMAT_D15S1:          return 15;
-		case sw::FORMAT_D24S8:          return 24;
-		case sw::FORMAT_D24X8:          return 24;
-	//	case sw::FORMAT_D24X4S4:        return 24;
-		case sw::FORMAT_D16:            return 16;
-		case sw::FORMAT_D32F_LOCKABLE:  return 32;
-		case sw::FORMAT_D24FS8:         return 24;
-	//	case sw::FORMAT_D32_LOCKABLE:   return 32;
-	//	case sw::FORMAT_S8_LOCKABLE:    return 0;
-		case sw::FORMAT_D32FS8_TEXTURE: return 32;
-		default:                        return 0;
-		}
-	}
-
 	GLenum ConvertBackBufferFormat(sw::Format format)
 	{
 		switch(format)

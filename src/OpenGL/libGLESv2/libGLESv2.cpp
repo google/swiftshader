@@ -789,9 +789,15 @@ void CompressedTexImage2D(GLenum target, GLint level, GLenum internalformat, GLs
 			return error(GL_INVALID_ENUM);
 		}
 
-		if(imageSize != egl::ComputeCompressedSize(width, height, internalformat))
+		if(imageSize != gl::ComputeCompressedSize(width, height, internalformat))
 		{
 			return error(GL_INVALID_VALUE);
+		}
+
+		GLenum validationError = context->getPixels(&data, GL_UNSIGNED_BYTE, imageSize);
+		if(validationError != GL_NONE)
+		{
+			return error(validationError);
 		}
 
 		if(target == GL_TEXTURE_2D || target == GL_TEXTURE_RECTANGLE_ARB)
@@ -803,15 +809,9 @@ void CompressedTexImage2D(GLenum target, GLint level, GLenum internalformat, GLs
 				return error(GL_INVALID_OPERATION);
 			}
 
-			GLenum validationError = context->getPixels(&data, texture->getType(target, level), imageSize);
-			if(validationError != GL_NONE)
-			{
-				return error(validationError);
-			}
-
 			texture->setCompressedImage(level, internalformat, width, height, imageSize, data);
 		}
-		else
+		else if(es2::IsCubemapTextureTarget(target))
 		{
 			es2::TextureCubeMap *texture = context->getTextureCubeMap();
 
@@ -820,27 +820,9 @@ void CompressedTexImage2D(GLenum target, GLint level, GLenum internalformat, GLs
 				return error(GL_INVALID_OPERATION);
 			}
 
-			switch(target)
-			{
-			case GL_TEXTURE_CUBE_MAP_POSITIVE_X:
-			case GL_TEXTURE_CUBE_MAP_NEGATIVE_X:
-			case GL_TEXTURE_CUBE_MAP_POSITIVE_Y:
-			case GL_TEXTURE_CUBE_MAP_NEGATIVE_Y:
-			case GL_TEXTURE_CUBE_MAP_POSITIVE_Z:
-			case GL_TEXTURE_CUBE_MAP_NEGATIVE_Z:
-				{
-					GLenum validationError = context->getPixels(&data, texture->getType(target, level), imageSize);
-					if(validationError != GL_NONE)
-					{
-						return error(validationError);
-					}
-
-					texture->setCompressedImage(target, level, internalformat, width, height, imageSize, data);
-				}
-				break;
-			default: UNREACHABLE(target);
-			}
+			texture->setCompressedImage(target, level, internalformat, width, height, imageSize, data);
 		}
+		else UNREACHABLE(target);
 	}
 }
 
@@ -867,7 +849,7 @@ void CompressedTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yo
 		return error(GL_INVALID_VALUE);
 	}
 
-	if(imageSize != egl::ComputeCompressedSize(width, height, format))
+	if(imageSize != gl::ComputeCompressedSize(width, height, format))
 	{
 		return error(GL_INVALID_VALUE);
 	}
@@ -882,17 +864,17 @@ void CompressedTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yo
 			return error(GL_INVALID_OPERATION);
 		}
 
+		GLenum validationError = context->getPixels(&data, GL_UNSIGNED_BYTE, imageSize);
+		if(validationError != GL_NONE)
+		{
+			return error(validationError);
+		}
+
 		if(target == GL_TEXTURE_2D || target == GL_TEXTURE_RECTANGLE_ARB)
 		{
 			es2::Texture2D *texture = context->getTexture2D(target);
 
 			GLenum validationError = ValidateSubImageParams(true, false, target, level, xoffset, yoffset, width, height, format, GL_NONE, texture, context->getClientVersion());
-			if(validationError != GL_NONE)
-			{
-				return error(validationError);
-			}
-
-			validationError = context->getPixels(&data, texture->getType(target, level), imageSize);
 			if(validationError != GL_NONE)
 			{
 				return error(validationError);
@@ -905,12 +887,6 @@ void CompressedTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yo
 			es2::TextureCubeMap *texture = context->getTextureCubeMap();
 
 			GLenum validationError = ValidateSubImageParams(true, false, target, level, xoffset, yoffset, width, height, format, GL_NONE, texture, context->getClientVersion());
-			if(validationError != GL_NONE)
-			{
-				return error(validationError);
-			}
-
-			validationError = context->getPixels(&data, texture->getType(target, level), imageSize);
 			if(validationError != GL_NONE)
 			{
 				return error(validationError);
@@ -988,6 +964,25 @@ void CopyTexImage2D(GLenum target, GLint level, GLenum internalformat, GLint x, 
 		}
 
 		GLenum colorbufferFormat = source->getFormat();
+
+		// Determine the sized internal format.
+		if(gl::IsUnsizedInternalFormat(internalformat))
+		{
+			if(gl::GetBaseInternalFormat(colorbufferFormat) == internalformat)
+			{
+				internalformat = colorbufferFormat;
+			}
+			else if(GetRedSize(colorbufferFormat) == 8)
+			{
+				internalformat = gl::GetSizedInternalFormat(internalformat, GL_UNSIGNED_BYTE);
+			}
+			else
+			{
+				UNIMPLEMENTED();
+
+				return error(GL_INVALID_OPERATION);
+			}
+		}
 
 		if(!ValidateCopyFormats(internalformat, colorbufferFormat))
 		{
@@ -4962,7 +4957,7 @@ void TexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width,
 			}
 		}
 
-		GLenum validationError = ValidateTextureFormatType(format, type, internalformat, context->getClientVersion());
+		GLenum validationError = ValidateTextureFormatType(format, type, internalformat, target, context->getClientVersion());
 		if(validationError != GL_NONE)
 		{
 			return error(validationError);
@@ -5004,7 +4999,7 @@ void TexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width,
 			return error(GL_INVALID_ENUM);
 		}
 
-		GLenum sizedInternalFormat = GetSizedInternalFormat(internalformat, type);
+		GLenum sizedInternalFormat = gl::GetSizedInternalFormat(internalformat, type);
 
 		validationError = context->getPixels(&data, type, context->getRequiredBufferSize(width, height, 1, format, type));
 		if(validationError != GL_NONE)
@@ -5021,7 +5016,7 @@ void TexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width,
 				return error(GL_INVALID_OPERATION);
 			}
 
-			texture->setImage(context, level, width, height, sizedInternalFormat, format, type, context->getUnpackParameters(), data);
+			texture->setImage(level, width, height, sizedInternalFormat, format, type, context->getUnpackParameters(), data);
 		}
 		else
 		{
@@ -5032,7 +5027,7 @@ void TexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width,
 				return error(GL_INVALID_OPERATION);
 			}
 
-			texture->setImage(context, target, level, width, height, sizedInternalFormat, format, type, context->getUnpackParameters(), data);
+			texture->setImage(target, level, width, height, sizedInternalFormat, format, type, context->getUnpackParameters(), data);
 		}
 	}
 }
@@ -5389,7 +5384,7 @@ void TexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLs
 				return error(validationError);
 			}
 
-			texture->subImage(context, level, xoffset, yoffset, width, height, format, type, context->getUnpackParameters(), data);
+			texture->subImage(level, xoffset, yoffset, width, height, format, type, context->getUnpackParameters(), data);
 		}
 		else if(es2::IsCubemapTextureTarget(target))
 		{
@@ -5407,7 +5402,7 @@ void TexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLs
 				return error(validationError);
 			}
 
-			texture->subImage(context, target, level, xoffset, yoffset, width, height, format, type, context->getUnpackParameters(), data);
+			texture->subImage(target, level, xoffset, yoffset, width, height, format, type, context->getUnpackParameters(), data);
 		}
 		else UNREACHABLE(target);
 	}
@@ -6210,7 +6205,7 @@ void TexImage3DOES(GLenum target, GLint level, GLenum internalformat, GLsizei wi
 		return error(GL_INVALID_OPERATION);
 	}
 
-	GLenum validationError = ValidateTextureFormatType(format, type, internalformat, egl::getClientVersion());
+	GLenum validationError = ValidateTextureFormatType(format, type, internalformat, target, egl::getClientVersion());
 	if(validationError != GL_NONE)
 	{
 		return error(validationError);
@@ -6249,8 +6244,8 @@ void TexImage3DOES(GLenum target, GLint level, GLenum internalformat, GLsizei wi
 			return error(validationError);
 		}
 
-		GLenum sizedInternalFormat = GetSizedInternalFormat(internalformat, type);
-		texture->setImage(context, level, width, height, depth, sizedInternalFormat, format, type, context->getUnpackParameters(), data);
+		GLenum sizedInternalFormat = gl::GetSizedInternalFormat(internalformat, type);
+		texture->setImage(level, width, height, depth, sizedInternalFormat, format, type, context->getUnpackParameters(), data);
 	}
 }
 
@@ -6267,11 +6262,6 @@ void TexSubImage3DOES(GLenum target, GLint level, GLint xoffset, GLint yoffset, 
 		break;
 	default:
 		return error(GL_INVALID_ENUM);
-	}
-
-	if(!ValidateTextureFormatType(format, type, format, egl::getClientVersion()))
-	{
-		return;
 	}
 
 	if((level < 0) || (level >= es2::IMPLEMENTATION_MAX_TEXTURE_LEVELS))
@@ -6302,7 +6292,7 @@ void TexSubImage3DOES(GLenum target, GLint level, GLint xoffset, GLint yoffset, 
 			return error(validationError);
 		}
 
-		texture->subImage(context, level, xoffset, yoffset, zoffset, width, height, depth, format, type, context->getUnpackParameters(), data);
+		texture->subImage(level, xoffset, yoffset, zoffset, width, height, depth, format, type, context->getUnpackParameters(), data);
 	}
 }
 
@@ -6385,7 +6375,7 @@ void CompressedTexImage3DOES(GLenum target, GLint level, GLenum internalformat, 
 		return error(GL_INVALID_ENUM);
 	}
 
-	if(imageSize != egl::ComputeCompressedSize(width, height, internalformat) * depth)
+	if(imageSize != gl::ComputeCompressedSize(width, height, internalformat) * depth)
 	{
 		return error(GL_INVALID_VALUE);
 	}
@@ -6401,7 +6391,7 @@ void CompressedTexImage3DOES(GLenum target, GLint level, GLenum internalformat, 
 			return error(GL_INVALID_OPERATION);
 		}
 
-		GLenum validationError = context->getPixels(&data, texture->getType(target, level), imageSize);
+		GLenum validationError = context->getPixels(&data, GL_UNSIGNED_BYTE, imageSize);
 
 		if(validationError != GL_NONE)
 		{
@@ -6442,7 +6432,7 @@ void CompressedTexSubImage3DOES(GLenum target, GLint level, GLint xoffset, GLint
 		return error(GL_INVALID_ENUM);
 	}
 
-	if(imageSize != egl::ComputeCompressedSize(width, height, format) * depth)
+	if(imageSize != gl::ComputeCompressedSize(width, height, format) * depth)
 	{
 		return error(GL_INVALID_VALUE);
 	}
@@ -6458,7 +6448,7 @@ void CompressedTexSubImage3DOES(GLenum target, GLint level, GLint xoffset, GLint
 			return error(GL_INVALID_OPERATION);
 		}
 
-		GLenum validationError = context->getPixels(&data, texture->getType(target, level), imageSize);
+		GLenum validationError = context->getPixels(&data, GL_UNSIGNED_BYTE, imageSize);
 		if(validationError != GL_NONE)
 		{
 			return error(validationError);

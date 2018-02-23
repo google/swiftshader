@@ -249,47 +249,6 @@ namespace es2
 		stencilBuffer->clearStencil(stencil, mask, clearRect.x0, clearRect.y0, clearRect.width(), clearRect.height());
 	}
 
-	egl::Image *Device::createDepthStencilSurface(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool discard)
-	{
-		ASSERT(sw::Surface::isDepth(format) || sw::Surface::isStencil(format));
-
-		if(height > OUTLINE_RESOLUTION)
-		{
-			ERR("Invalid parameters: %dx%d", width, height);
-			return nullptr;
-		}
-
-		bool lockable = !sw::Surface::hasQuadLayout(format);
-		egl::Image *surface = egl::Image::create(width, height, format, multiSampleDepth, lockable);
-
-		if(!surface)
-		{
-			ERR("Out of memory");
-			return nullptr;
-		}
-
-		return surface;
-	}
-
-	egl::Image *Device::createRenderTarget(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool lockable)
-	{
-		if(height > OUTLINE_RESOLUTION)
-		{
-			ERR("Invalid parameters: %dx%d", width, height);
-			return nullptr;
-		}
-
-		egl::Image *surface = egl::Image::create(width, height, format, multiSampleDepth, lockable);
-
-		if(!surface)
-		{
-			ERR("Out of memory");
-			return nullptr;
-		}
-
-		return surface;
-	}
-
 	void Device::drawIndexedPrimitive(sw::DrawType type, unsigned int indexOffset, unsigned int primitiveCount)
 	{
 		if(!bindResources() || !primitiveCount)

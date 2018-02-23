@@ -42,8 +42,8 @@ namespace es2
 
 	int AllocateFirstFreeBits(unsigned int *bits, unsigned int allocationSize, unsigned int bitsSize);
 
-	bool IsCompressed(GLenum format, GLint clientVersion);
-	GLint GetSizedInternalFormat(GLint internalFormat, GLenum type);
+	bool IsCompressed(GLint intenalformat, GLint clientVersion);
+	bool IsSizedInternalFormat(GLint internalformat);   // Not compressed.
 	GLenum ValidateSubImageParams(bool compressed, bool copy, GLenum target, GLint level, GLint xoffset, GLint yoffset,
 	                              GLsizei width, GLsizei height, GLenum format, GLenum type, Texture *texture, GLint clientVersion);
 	GLenum ValidateSubImageParams(bool compressed, bool copy, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset,
@@ -55,9 +55,8 @@ namespace es2
 	bool IsCubemapTextureTarget(GLenum target);
 	int CubeFaceIndex(GLenum cubeTarget);
 	bool IsTextureTarget(GLenum target);
-	GLenum ValidateTextureFormatType(GLenum format, GLenum type, GLint internalformat, GLint clientVersion);
+	GLenum ValidateTextureFormatType(GLenum format, GLenum type, GLint internalformat, GLenum target, GLint clientVersion);
 	GLsizei GetTypeSize(GLenum type);
-	GLenum GetBaseInternalFormat(GLint internalformat);
 
 	bool IsColorRenderable(GLint internalformat, GLint clientVersion);
 	bool IsDepthRenderable(GLint internalformat, GLint clientVersion);
@@ -102,7 +101,6 @@ namespace es2sw
 	sw::MipmapType ConvertMipMapFilter(GLenum minFilter);
 	sw::FilterType ConvertTextureFilter(GLenum minFilter, GLenum magFilter, float maxAnisotropy);
 	bool ConvertPrimitiveType(GLenum primitiveType, GLsizei elementCount,  GLenum elementType, sw::DrawType &swPrimitiveType, int &primitiveCount, int &verticesPerPrimitive);
-	sw::Format ConvertRenderbufferFormat(GLenum format);
 }
 
 namespace sw2es

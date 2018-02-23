@@ -94,7 +94,6 @@ public:
 	virtual GLsizei getHeight(GLenum target, GLint level) const = 0;
 	virtual GLsizei getDepth(GLenum target, GLint level) const;
 	virtual GLenum getFormat(GLenum target, GLint level) const = 0;
-	virtual GLenum getType(GLenum target, GLint level) const = 0;
 	virtual int getTopLevel() const = 0;
 
 	virtual bool isSamplerComplete() const = 0;
@@ -112,8 +111,8 @@ public:
 protected:
 	~Texture() override;
 
-	void setImage(egl::Context *context, GLenum format, GLenum type, const egl::PixelStorageModes &unpackParameters, const void *pixels, egl::Image *image);
-	void subImage(egl::Context *context, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const egl::PixelStorageModes &unpackParameters, const void *pixels, egl::Image *image);
+	void setImage(GLenum format, GLenum type, const gl::PixelStorageModes &unpackParameters, const void *pixels, egl::Image *image);
+	void subImage(GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const gl::PixelStorageModes &unpackParameters, const void *pixels, egl::Image *image);
 	void setCompressedImage(GLsizei imageSize, const void *pixels, egl::Image *image);
 	void subImageCompressed(GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const void *pixels, egl::Image *image);
 
@@ -157,14 +156,13 @@ public:
 	GLsizei getWidth(GLenum target, GLint level) const override;
 	GLsizei getHeight(GLenum target, GLint level) const override;
 	GLenum getFormat(GLenum target, GLint level) const override;
-	GLenum getType(GLenum target, GLint level) const override;
 	int getTopLevel() const override;
 
-	void setImage(egl::Context *context, GLint level, GLsizei width, GLsizei height, GLint internalformat, GLenum format, GLenum type, const egl::PixelStorageModes &unpackParameters, const void *pixels);
+	void setImage(GLint level, GLsizei width, GLsizei height, GLint internalformat, GLenum format, GLenum type, const gl::PixelStorageModes &unpackParameters, const void *pixels);
 	void setCompressedImage(GLint level, GLenum format, GLsizei width, GLsizei height, GLsizei imageSize, const void *pixels);
-	void subImage(egl::Context *context, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const egl::PixelStorageModes &unpackParameters, const void *pixels);
+	void subImage(GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const gl::PixelStorageModes &unpackParameters, const void *pixels);
 	void subImageCompressed(GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const void *pixels);
-	void copyImage(GLint level, GLenum format, GLint x, GLint y, GLsizei width, GLsizei height, Renderbuffer *source);
+	void copyImage(GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLsizei height, Renderbuffer *source);
 	void copySubImage(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height, Renderbuffer *source) override;
 
 	void setSharedImage(egl::Image *image);
@@ -223,15 +221,14 @@ public:
 	GLsizei getWidth(GLenum target, GLint level) const override;
 	GLsizei getHeight(GLenum target, GLint level) const override;
 	GLenum getFormat(GLenum target, GLint level) const override;
-	GLenum getType(GLenum target, GLint level) const override;
 	int getTopLevel() const override;
 
-	void setImage(egl::Context *context, GLenum target, GLint level, GLsizei width, GLsizei height, GLint internalformat, GLenum format, GLenum type, const egl::PixelStorageModes &unpackParameters, const void *pixels);
+	void setImage(GLenum target, GLint level, GLsizei width, GLsizei height, GLint internalformat, GLenum format, GLenum type, const gl::PixelStorageModes &unpackParameters, const void *pixels);
 	void setCompressedImage(GLenum target, GLint level, GLenum format, GLsizei width, GLsizei height, GLsizei imageSize, const void *pixels);
 
-	void subImage(egl::Context *context, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const egl::PixelStorageModes &unpackParameters, const void *pixels);
+	void subImage(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const gl::PixelStorageModes &unpackParameters, const void *pixels);
 	void subImageCompressed(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const void *pixels);
-	void copyImage(GLenum target, GLint level, GLenum format, GLint x, GLint y, GLsizei width, GLsizei height, Renderbuffer *source);
+	void copyImage(GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLsizei height, Renderbuffer *source);
 	void copySubImage(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height, Renderbuffer *source) override;
 
 	bool isSamplerComplete() const override;
@@ -285,14 +282,13 @@ public:
 	GLsizei getHeight(GLenum target, GLint level) const override;
 	GLsizei getDepth(GLenum target, GLint level) const override;
 	GLenum getFormat(GLenum target, GLint level) const override;
-	GLenum getType(GLenum target, GLint level) const override;
 	int getTopLevel() const override;
 
-	void setImage(egl::Context *context, GLint level, GLsizei width, GLsizei height, GLsizei depth, GLint internalformat, GLenum format, GLenum type, const egl::PixelStorageModes &unpackParameters, const void *pixels);
+	void setImage(GLint level, GLsizei width, GLsizei height, GLsizei depth, GLint internalformat, GLenum format, GLenum type, const gl::PixelStorageModes &unpackParameters, const void *pixels);
 	void setCompressedImage(GLint level, GLenum format, GLsizei width, GLsizei height, GLsizei depth, GLsizei imageSize, const void *pixels);
-	void subImage(egl::Context *context, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const egl::PixelStorageModes &unpackParameters, const void *pixels);
+	void subImage(GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const gl::PixelStorageModes &unpackParameters, const void *pixels);
 	void subImageCompressed(GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const void *pixels);
-	void copyImage(GLint level, GLenum format, GLint x, GLint y, GLint z, GLsizei width, GLsizei height, GLsizei depth, Renderbuffer *source);
+	void copyImage(GLint level, GLenum internalformat, GLint x, GLint y, GLint z, GLsizei width, GLsizei height, GLsizei depth, Renderbuffer *source);
 	void copySubImage(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height, Renderbuffer *source);
 
 	void setSharedImage(egl::Image *image);

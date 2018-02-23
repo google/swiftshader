@@ -42,6 +42,13 @@ namespace es1
 	bool IsDepthRenderable(GLenum internalformat);
 	bool IsStencilRenderable(GLenum internalformat);
 
+	GLuint GetAlphaSize(GLint internalformat);
+	GLuint GetRedSize(GLint internalformat);
+	GLuint GetGreenSize(GLint internalformat);
+	GLuint GetBlueSize(GLint internalformat);
+	GLuint GetDepthSize(GLint internalformat);
+	GLuint GetStencilSize(GLint internalformat);
+
 	bool IsAlpha(GLenum texFormat);
 	bool IsRGB(GLenum texFormat);
 	bool IsRGBA(GLenum texFormat);
@@ -63,7 +70,6 @@ namespace es2sw
 	sw::MipmapType ConvertMipMapFilter(GLenum minFilter);
 	sw::FilterType ConvertTextureFilter(GLenum minFilter, GLenum magFilter, float maxAnisotropy);
 	bool ConvertPrimitiveType(GLenum primitiveType, GLsizei elementCount,  GLenum elementType, sw::DrawType &swPrimitiveType, int &primitiveCount);
-	sw::Format ConvertRenderbufferFormat(GLenum format);
 	sw::TextureStage::StageOperation ConvertCombineOperation(GLenum operation);
 	sw::TextureStage::SourceArgument ConvertSourceArgument(GLenum argument);
 	sw::TextureStage::ArgumentModifier ConvertSourceOperand(GLenum operand);
@@ -71,13 +77,6 @@ namespace es2sw
 
 namespace sw2es
 {
-	GLuint GetAlphaSize(sw::Format colorFormat);
-	GLuint GetRedSize(sw::Format colorFormat);
-	GLuint GetGreenSize(sw::Format colorFormat);
-	GLuint GetBlueSize(sw::Format colorFormat);
-	GLuint GetDepthSize(sw::Format depthFormat);
-	GLuint GetStencilSize(sw::Format stencilFormat);
-
 	GLenum ConvertBackBufferFormat(sw::Format format);
 	GLenum ConvertDepthStencilFormat(sw::Format format);
 }

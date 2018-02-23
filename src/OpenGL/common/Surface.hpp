@@ -40,8 +40,6 @@ public:
 	virtual egl::Image *getRenderTarget() = 0;
 	virtual egl::Image *getDepthStencil() = 0;
 
-	virtual sw::Format getInternalFormat() const = 0;
-
 	virtual EGLint getWidth() const = 0;
 	virtual EGLint getHeight() const = 0;
 

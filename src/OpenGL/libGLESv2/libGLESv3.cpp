@@ -34,15 +34,6 @@
 
 using namespace es2;
 
-typedef std::pair<GLenum, GLenum> InternalFormatTypePair;
-typedef std::map<InternalFormatTypePair, GLenum> FormatMap;
-
-// A helper function to insert data into the format map with fewer characters.
-static void InsertFormatMapping(FormatMap& map, GLenum internalformat, GLenum format, GLenum type)
-{
-	map[InternalFormatTypePair(internalformat, type)] = format;
-}
-
 static bool validImageSize(GLint level, GLsizei width, GLsizei height)
 {
 	if(level < 0 || level >= es2::IMPLEMENTATION_MAX_TEXTURE_LEVELS || width < 0 || height < 0)
@@ -51,238 +42,6 @@ static bool validImageSize(GLint level, GLsizei width, GLsizei height)
 	}
 
 	return true;
-}
-
-static FormatMap BuildFormatMap3D()
-{
-	FormatMap map;
-
-	//                       Internal format | Format | Type
-	InsertFormatMapping(map, GL_RGB, GL_RGB, GL_UNSIGNED_BYTE);
-	InsertFormatMapping(map, GL_RGB, GL_RGB, GL_UNSIGNED_SHORT_5_6_5);
-	InsertFormatMapping(map, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE);
-	InsertFormatMapping(map, GL_RGBA, GL_RGBA, GL_UNSIGNED_SHORT_4_4_4_4);
-	InsertFormatMapping(map, GL_RGBA, GL_RGBA, GL_UNSIGNED_SHORT_5_5_5_1);
-	InsertFormatMapping(map, GL_LUMINANCE_ALPHA, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE);
-	InsertFormatMapping(map, GL_LUMINANCE, GL_LUMINANCE, GL_UNSIGNED_BYTE);
-	InsertFormatMapping(map, GL_ALPHA, GL_ALPHA, GL_UNSIGNED_BYTE);
-	InsertFormatMapping(map, GL_R8, GL_RED, GL_UNSIGNED_BYTE);
-	InsertFormatMapping(map, GL_R8_SNORM, GL_RED, GL_BYTE);
-	InsertFormatMapping(map, GL_R16F, GL_RED, GL_HALF_FLOAT);
-	InsertFormatMapping(map, GL_R16F, GL_RED, GL_FLOAT);
-	InsertFormatMapping(map, GL_R32F, GL_RED, GL_FLOAT);
-	InsertFormatMapping(map, GL_R8UI, GL_RED_INTEGER, GL_UNSIGNED_BYTE);
-	InsertFormatMapping(map, GL_R8I, GL_RED_INTEGER, GL_BYTE);
-	InsertFormatMapping(map, GL_R16UI, GL_RED_INTEGER, GL_UNSIGNED_SHORT);
-	InsertFormatMapping(map, GL_R16I, GL_RED_INTEGER, GL_SHORT);
-	InsertFormatMapping(map, GL_R32UI, GL_RED_INTEGER, GL_UNSIGNED_INT);
-	InsertFormatMapping(map, GL_R32I, GL_RED_INTEGER, GL_INT);
-	InsertFormatMapping(map, GL_RG8, GL_RG, GL_UNSIGNED_BYTE);
-	InsertFormatMapping(map, GL_RG8_SNORM, GL_RG, GL_BYTE);
-	InsertFormatMapping(map, GL_RG16F, GL_RG, GL_HALF_FLOAT);
-	InsertFormatMapping(map, GL_RG16F, GL_RG, GL_FLOAT);
-	InsertFormatMapping(map, GL_RG32F, GL_RG, GL_FLOAT);
-	InsertFormatMapping(map, GL_RG8UI, GL_RG_INTEGER, GL_UNSIGNED_BYTE);
-	InsertFormatMapping(map, GL_RG8I, GL_RG_INTEGER, GL_BYTE);
-	InsertFormatMapping(map, GL_RG16UI, GL_RG_INTEGER, GL_UNSIGNED_SHORT);
-	InsertFormatMapping(map, GL_RG16I, GL_RG_INTEGER, GL_SHORT);
-	InsertFormatMapping(map, GL_RG32UI, GL_RG_INTEGER, GL_UNSIGNED_INT);
-	InsertFormatMapping(map, GL_RG32I, GL_RG_INTEGER, GL_INT);
-	InsertFormatMapping(map, GL_RGB8, GL_RGB, GL_UNSIGNED_BYTE);
-	InsertFormatMapping(map, GL_SRGB8, GL_RGB, GL_UNSIGNED_BYTE);
-	InsertFormatMapping(map, GL_RGB565, GL_RGB, GL_UNSIGNED_BYTE);
-	InsertFormatMapping(map, GL_RGB565, GL_RGB, GL_UNSIGNED_SHORT_5_6_5);
-	InsertFormatMapping(map, GL_RGB8_SNORM, GL_RGB, GL_BYTE);
-	InsertFormatMapping(map, GL_R11F_G11F_B10F, GL_RGB, GL_UNSIGNED_INT_10F_11F_11F_REV);
-	InsertFormatMapping(map, GL_R11F_G11F_B10F, GL_RGB, GL_HALF_FLOAT);
-	InsertFormatMapping(map, GL_R11F_G11F_B10F, GL_RGB, GL_FLOAT);
-	InsertFormatMapping(map, GL_RGB9_E5, GL_RGB, GL_UNSIGNED_INT_5_9_9_9_REV);
-	InsertFormatMapping(map, GL_RGB9_E5, GL_RGB, GL_HALF_FLOAT);
-	InsertFormatMapping(map, GL_RGB9_E5, GL_RGB, GL_FLOAT);
-	InsertFormatMapping(map, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
-	InsertFormatMapping(map, GL_RGB16F, GL_RGB, GL_FLOAT);
-	InsertFormatMapping(map, GL_RGB32F, GL_RGB, GL_FLOAT);
-	InsertFormatMapping(map, GL_RGB8UI, GL_RGB_INTEGER, GL_UNSIGNED_BYTE);
-	InsertFormatMapping(map, GL_RGB8I, GL_RGB_INTEGER, GL_BYTE);
-	InsertFormatMapping(map, GL_RGB16UI, GL_RGB_INTEGER, GL_UNSIGNED_SHORT);
-	InsertFormatMapping(map, GL_RGB16I, GL_RGB_INTEGER, GL_SHORT);
-	InsertFormatMapping(map, GL_RGB32UI, GL_RGB_INTEGER, GL_UNSIGNED_INT);
-	InsertFormatMapping(map, GL_RGB32I, GL_RGB_INTEGER, GL_INT);
-	InsertFormatMapping(map, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
-	InsertFormatMapping(map, GL_SRGB8_ALPHA8, GL_RGBA, GL_UNSIGNED_BYTE);
-	InsertFormatMapping(map, GL_RGB5_A1, GL_RGBA, GL_UNSIGNED_BYTE);
-	InsertFormatMapping(map, GL_RGB5_A1, GL_RGBA, GL_UNSIGNED_SHORT_5_5_5_1);
-	InsertFormatMapping(map, GL_RGB5_A1, GL_RGBA, GL_UNSIGNED_INT_2_10_10_10_REV);
-	InsertFormatMapping(map, GL_RGBA8_SNORM, GL_RGBA, GL_BYTE);
-	InsertFormatMapping(map, GL_RGBA4, GL_RGBA, GL_UNSIGNED_BYTE);
-	InsertFormatMapping(map, GL_RGBA4, GL_RGBA, GL_UNSIGNED_SHORT_4_4_4_4);
-	InsertFormatMapping(map, GL_RGB10_A2, GL_RGBA, GL_UNSIGNED_INT_2_10_10_10_REV);
-	InsertFormatMapping(map, GL_RGBA16F, GL_RGBA, GL_HALF_FLOAT);
-	InsertFormatMapping(map, GL_RGBA16F, GL_RGBA, GL_FLOAT);
-	InsertFormatMapping(map, GL_RGBA32F, GL_RGBA, GL_FLOAT);
-	InsertFormatMapping(map, GL_RGBA8UI, GL_RGBA_INTEGER, GL_UNSIGNED_BYTE);
-	InsertFormatMapping(map, GL_RGBA8I, GL_RGBA_INTEGER, GL_BYTE);
-	InsertFormatMapping(map, GL_RGB10_A2UI, GL_RGBA_INTEGER, GL_UNSIGNED_INT_2_10_10_10_REV);
-	InsertFormatMapping(map, GL_RGBA16UI, GL_RGBA_INTEGER, GL_UNSIGNED_SHORT);
-	InsertFormatMapping(map, GL_RGBA16I, GL_RGBA_INTEGER, GL_SHORT);
-	InsertFormatMapping(map, GL_RGBA32UI, GL_RGBA_INTEGER, GL_UNSIGNED_INT);
-	InsertFormatMapping(map, GL_RGBA32I, GL_RGBA_INTEGER, GL_INT);
-
-	InsertFormatMapping(map, GL_DEPTH_COMPONENT16, GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT);
-	InsertFormatMapping(map, GL_DEPTH_COMPONENT16, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT);
-	InsertFormatMapping(map, GL_DEPTH_COMPONENT24, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT);
-	InsertFormatMapping(map, GL_DEPTH_COMPONENT32_OES, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT);
-	InsertFormatMapping(map, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT);
-	InsertFormatMapping(map, GL_DEPTH24_STENCIL8, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8);
-	InsertFormatMapping(map, GL_DEPTH32F_STENCIL8, GL_DEPTH_STENCIL, GL_FLOAT_32_UNSIGNED_INT_24_8_REV);
-
-	return map;
-}
-
-static bool ValidateType3D(GLenum type)
-{
-	switch(type)
-	{
-	case GL_UNSIGNED_BYTE:
-	case GL_BYTE:
-	case GL_UNSIGNED_SHORT:
-	case GL_SHORT:
-	case GL_UNSIGNED_INT:
-	case GL_INT:
-	case GL_HALF_FLOAT:
-	case GL_FLOAT:
-	case GL_UNSIGNED_SHORT_5_6_5:
-	case GL_UNSIGNED_SHORT_4_4_4_4:
-	case GL_UNSIGNED_SHORT_5_5_5_1:
-	case GL_UNSIGNED_INT_2_10_10_10_REV:
-	case GL_UNSIGNED_INT_10F_11F_11F_REV:
-	case GL_UNSIGNED_INT_5_9_9_9_REV:
-	case GL_UNSIGNED_INT_24_8:
-	case GL_FLOAT_32_UNSIGNED_INT_24_8_REV:
-		return true;
-	default:
-		break;
-	}
-	return false;
-}
-
-static bool ValidateFormat3D(GLenum format)
-{
-	switch(format)
-	{
-	case GL_RED:
-	case GL_RG:
-	case GL_RGB:
-	case GL_RGBA:
-	case GL_DEPTH_COMPONENT:
-	case GL_DEPTH_STENCIL:
-	case GL_LUMINANCE_ALPHA:
-	case GL_LUMINANCE:
-	case GL_ALPHA:
-	case GL_RED_INTEGER:
-	case GL_RG_INTEGER:
-	case GL_RGB_INTEGER:
-	case GL_RGBA_INTEGER:
-		return true;
-	default:
-		break;
-	}
-	return false;
-}
-
-static bool ValidateInternalFormat3D(GLenum internalformat, GLenum format, GLenum type)
-{
-	static const FormatMap formatMap = BuildFormatMap3D();
-	FormatMap::const_iterator iter = formatMap.find(InternalFormatTypePair(internalformat, type));
-	if(iter != formatMap.end())
-	{
-		return iter->second == format;
-	}
-	return false;
-}
-
-typedef std::map<GLenum, GLenum> FormatMapStorage;
-
-// A helper function to insert data into the format map with fewer characters.
-static void InsertFormatStorageMapping(FormatMapStorage& map, GLenum internalformat, GLenum type)
-{
-	map[internalformat] = type;
-}
-
-static FormatMapStorage BuildFormatMapStorage2D()
-{
-	FormatMapStorage map;
-
-	//                              Internal format | Type
-	InsertFormatStorageMapping(map, GL_R8, GL_UNSIGNED_BYTE);
-	InsertFormatStorageMapping(map, GL_R8_SNORM, GL_UNSIGNED_BYTE);
-	InsertFormatStorageMapping(map, GL_R16F, GL_HALF_FLOAT);
-	InsertFormatStorageMapping(map, GL_R32F, GL_FLOAT);
-	InsertFormatStorageMapping(map, GL_R8UI, GL_UNSIGNED_BYTE);
-	InsertFormatStorageMapping(map, GL_R8I, GL_BYTE);
-	InsertFormatStorageMapping(map, GL_R16UI, GL_UNSIGNED_SHORT);
-	InsertFormatStorageMapping(map, GL_R16I, GL_SHORT);
-	InsertFormatStorageMapping(map, GL_R32UI, GL_UNSIGNED_INT);
-	InsertFormatStorageMapping(map, GL_R32I, GL_INT);
-	InsertFormatStorageMapping(map, GL_RG8, GL_UNSIGNED_BYTE);
-	InsertFormatStorageMapping(map, GL_RG8_SNORM, GL_BYTE);
-	InsertFormatStorageMapping(map, GL_RG16F, GL_HALF_FLOAT);
-	InsertFormatStorageMapping(map, GL_RG32F, GL_FLOAT);
-	InsertFormatStorageMapping(map, GL_RG8UI, GL_UNSIGNED_BYTE);
-	InsertFormatStorageMapping(map, GL_RG8I, GL_BYTE);
-	InsertFormatStorageMapping(map, GL_RG16UI, GL_UNSIGNED_SHORT);
-	InsertFormatStorageMapping(map, GL_RG16I, GL_SHORT);
-	InsertFormatStorageMapping(map, GL_RG32UI, GL_UNSIGNED_INT);
-	InsertFormatStorageMapping(map, GL_RG32I, GL_INT);
-	InsertFormatStorageMapping(map, GL_RGB8, GL_UNSIGNED_BYTE);
-	InsertFormatStorageMapping(map, GL_SRGB8, GL_UNSIGNED_BYTE);
-	InsertFormatStorageMapping(map, GL_RGB565, GL_UNSIGNED_SHORT_5_6_5);
-	InsertFormatStorageMapping(map, GL_RGB8_SNORM, GL_BYTE);
-	InsertFormatStorageMapping(map, GL_R11F_G11F_B10F, GL_UNSIGNED_INT_10F_11F_11F_REV);
-	InsertFormatStorageMapping(map, GL_RGB9_E5, GL_UNSIGNED_INT_5_9_9_9_REV);
-	InsertFormatStorageMapping(map, GL_RGB16F, GL_HALF_FLOAT);
-	InsertFormatStorageMapping(map, GL_RGB32F, GL_FLOAT);
-	InsertFormatStorageMapping(map, GL_RGB8UI, GL_UNSIGNED_BYTE);
-	InsertFormatStorageMapping(map, GL_RGB8I, GL_BYTE);
-	InsertFormatStorageMapping(map, GL_RGB16UI, GL_UNSIGNED_SHORT);
-	InsertFormatStorageMapping(map, GL_RGB16I, GL_SHORT);
-	InsertFormatStorageMapping(map, GL_RGB32UI, GL_UNSIGNED_INT);
-	InsertFormatStorageMapping(map, GL_RGB32I, GL_INT);
-	InsertFormatStorageMapping(map, GL_RGBA8, GL_UNSIGNED_BYTE);
-	InsertFormatStorageMapping(map, GL_SRGB8_ALPHA8, GL_UNSIGNED_BYTE);
-	InsertFormatStorageMapping(map, GL_RGBA8_SNORM, GL_BYTE);
-	InsertFormatStorageMapping(map, GL_RGB5_A1, GL_UNSIGNED_SHORT_5_5_5_1);
-	InsertFormatStorageMapping(map, GL_RGBA4, GL_UNSIGNED_SHORT_4_4_4_4);
-	InsertFormatStorageMapping(map, GL_RGB10_A2, GL_UNSIGNED_INT_2_10_10_10_REV);
-	InsertFormatStorageMapping(map, GL_RGBA16F, GL_HALF_FLOAT);
-	InsertFormatStorageMapping(map, GL_RGBA32F, GL_FLOAT);
-	InsertFormatStorageMapping(map, GL_RGBA8UI, GL_UNSIGNED_BYTE);
-	InsertFormatStorageMapping(map, GL_RGBA8I, GL_BYTE);
-	InsertFormatStorageMapping(map, GL_RGB10_A2UI, GL_UNSIGNED_INT_2_10_10_10_REV);
-	InsertFormatStorageMapping(map, GL_RGBA16UI, GL_UNSIGNED_SHORT);
-	InsertFormatStorageMapping(map, GL_RGBA16I, GL_SHORT);
-	InsertFormatStorageMapping(map, GL_RGBA32UI, GL_UNSIGNED_INT);
-	InsertFormatStorageMapping(map, GL_RGBA32I, GL_INT);
-
-	InsertFormatStorageMapping(map, GL_DEPTH_COMPONENT16, GL_UNSIGNED_SHORT);
-	InsertFormatStorageMapping(map, GL_DEPTH_COMPONENT24, GL_UNSIGNED_INT);
-	InsertFormatStorageMapping(map, GL_DEPTH_COMPONENT32F, GL_FLOAT);
-	InsertFormatStorageMapping(map, GL_DEPTH24_STENCIL8, GL_UNSIGNED_INT_24_8);
-	InsertFormatStorageMapping(map, GL_DEPTH32F_STENCIL8, GL_FLOAT_32_UNSIGNED_INT_24_8_REV);
-
-	return map;
-}
-
-static bool GetStorageType(GLenum internalformat, GLenum& type)
-{
-	static const FormatMapStorage formatMap = BuildFormatMapStorage2D();
-	FormatMapStorage::const_iterator iter = formatMap.find(internalformat);
-	if(iter != formatMap.end())
-	{
-		type = iter->second;
-		return true;
-	}
-	return false;
 }
 
 static bool ValidateQueryTarget(GLenum target)
@@ -589,11 +348,6 @@ GL_APICALL void GL_APIENTRY glTexImage3D(GLenum target, GLint level, GLint inter
 		return error(GL_INVALID_ENUM);
 	}
 
-	if(!ValidateType3D(type) || !ValidateFormat3D(format))
-	{
-		return error(GL_INVALID_ENUM);
-	}
-
 	if((level < 0) || (level >= es2::IMPLEMENTATION_MAX_TEXTURE_LEVELS))
 	{
 		return error(GL_INVALID_VALUE);
@@ -610,15 +364,16 @@ GL_APICALL void GL_APIENTRY glTexImage3D(GLenum target, GLint level, GLint inter
 		return error(GL_INVALID_VALUE);
 	}
 
-	if(!ValidateInternalFormat3D(internalformat, format, type))
-	{
-		return error(GL_INVALID_OPERATION);
-	}
-
 	es2::Context *context = es2::getContext();
 
 	if(context)
 	{
+		GLenum validationError = ValidateTextureFormatType(format, type, internalformat, target, context->getClientVersion());
+		if(validationError != GL_NONE)
+		{
+			return error(validationError);
+		}
+
 		es2::Texture3D *texture = (target == GL_TEXTURE_3D) ? context->getTexture3D() : context->getTexture2DArray();
 
 		if(!texture)
@@ -626,14 +381,14 @@ GL_APICALL void GL_APIENTRY glTexImage3D(GLenum target, GLint level, GLint inter
 			return error(GL_INVALID_OPERATION);
 		}
 
-		GLenum validationError = context->getPixels(&data, type, context->getRequiredBufferSize(width, height, depth, format, type));
+		validationError = context->getPixels(&data, type, context->getRequiredBufferSize(width, height, depth, format, type));
 		if(validationError != GL_NONE)
 		{
 			return error(validationError);
 		}
 
-		GLenum sizedInternalFormat = GetSizedInternalFormat(internalformat, type);
-		texture->setImage(context, level, width, height, depth, sizedInternalFormat, format, type, context->getUnpackParameters(), data);
+		GLenum sizedInternalFormat = gl::GetSizedInternalFormat(internalformat, type);
+		texture->setImage(level, width, height, depth, sizedInternalFormat, format, type, context->getUnpackParameters(), data);
 	}
 }
 
@@ -653,11 +408,6 @@ GL_APICALL void GL_APIENTRY glTexSubImage3D(GLenum target, GLint level, GLint xo
 		return error(GL_INVALID_ENUM);
 	}
 
-	if(!ValidateType3D(type) || !ValidateFormat3D(format))
-	{
-		return error(GL_INVALID_ENUM);
-	}
-
 	if((level < 0) || (level >= es2::IMPLEMENTATION_MAX_TEXTURE_LEVELS))
 	{
 		return error(GL_INVALID_VALUE);
@@ -669,7 +419,7 @@ GL_APICALL void GL_APIENTRY glTexSubImage3D(GLenum target, GLint level, GLint xo
 	}
 
 	es2::Context *context = es2::getContext();
-
+	
 	if(context)
 	{
 		es2::Texture3D *texture = (target == GL_TEXTURE_3D) ? context->getTexture3D() : context->getTexture2DArray();
@@ -686,7 +436,7 @@ GL_APICALL void GL_APIENTRY glTexSubImage3D(GLenum target, GLint level, GLint xo
 			return error(validationError);
 		}
 
-		texture->subImage(context, level, xoffset, yoffset, zoffset, width, height, depth, format, type, context->getUnpackParameters(), data);
+		texture->subImage(level, xoffset, yoffset, zoffset, width, height, depth, format, type, context->getUnpackParameters(), data);
 	}
 }
 
@@ -784,7 +534,7 @@ GL_APICALL void GL_APIENTRY glCompressedTexImage3D(GLenum target, GLint level, G
 		return error(GL_INVALID_ENUM);
 	}
 
-	if(imageSize != egl::ComputeCompressedSize(width, height, internalformat) * depth)
+	if(imageSize != gl::ComputeCompressedSize(width, height, internalformat) * depth)
 	{
 		return error(GL_INVALID_VALUE);
 	}
@@ -800,7 +550,7 @@ GL_APICALL void GL_APIENTRY glCompressedTexImage3D(GLenum target, GLint level, G
 			return error(GL_INVALID_OPERATION);
 		}
 
-		GLenum validationError = context->getPixels(&data, texture->getType(target, level), imageSize);
+		GLenum validationError = context->getPixels(&data, GL_UNSIGNED_BYTE, imageSize);
 		if(validationError != GL_NONE)
 		{
 			return error(validationError);
@@ -841,7 +591,7 @@ GL_APICALL void GL_APIENTRY glCompressedTexSubImage3D(GLenum target, GLint level
 		return error(GL_INVALID_ENUM);
 	}
 
-	if(imageSize != egl::ComputeCompressedSize(width, height, format) * depth)
+	if(imageSize != gl::ComputeCompressedSize(width, height, format) * depth)
 	{
 		return error(GL_INVALID_VALUE);
 	}
@@ -887,7 +637,7 @@ GL_APICALL void GL_APIENTRY glCompressedTexSubImage3D(GLenum target, GLint level
 			return error(GL_INVALID_OPERATION);
 		}
 
-		GLenum validationError = context->getPixels(&data, texture->getType(target, level), imageSize);
+		GLenum validationError = context->getPixels(&data, GL_UNSIGNED_BYTE, imageSize);
 		if(validationError != GL_NONE)
 		{
 			return error(validationError);
@@ -3854,12 +3604,10 @@ GL_APICALL void GL_APIENTRY glTexStorage2D(GLenum target, GLsizei levels, GLenum
 		return error(GL_INVALID_OPERATION);
 	}
 
-	GLenum type;
-	if(!GetStorageType(internalformat, type))
+	if(!IsSizedInternalFormat(internalformat) && !IsCompressed(internalformat, egl::getClientVersion()))
 	{
 		return error(GL_INVALID_ENUM);
 	}
-	GLenum sizedInternalFormat = GetSizedInternalFormat(internalformat, type);
 
 	es2::Context *context = es2::getContext();
 
@@ -3875,10 +3623,10 @@ GL_APICALL void GL_APIENTRY glTexStorage2D(GLenum target, GLsizei levels, GLenum
 				{
 					return error(GL_INVALID_OPERATION);
 				}
-	
+
 				for(int level = 0; level < levels; level++)
 				{
-					texture->setImage(context, level, width, height, sizedInternalFormat, sizedInternalFormat, type, context->getUnpackParameters(), nullptr);
+					texture->setImage(level, width, height, internalformat, GL_NONE, GL_NONE, context->getUnpackParameters(), nullptr);
 					width = std::max(1, (width / 2));
 					height = std::max(1, (height / 2));
 				}
@@ -3892,12 +3640,12 @@ GL_APICALL void GL_APIENTRY glTexStorage2D(GLenum target, GLsizei levels, GLenum
 				{
 					return error(GL_INVALID_OPERATION);
 				}
-	
+
 				for(int level = 0; level < levels; level++)
 				{
 					for(int face = GL_TEXTURE_CUBE_MAP_POSITIVE_X; face <= GL_TEXTURE_CUBE_MAP_NEGATIVE_Z; face++)
 					{
-							texture->setImage(context, face, level, width, height, sizedInternalFormat, sizedInternalFormat, type, context->getUnpackParameters(), nullptr);
+						texture->setImage(face, level, width, height, internalformat, GL_NONE, GL_NONE, context->getUnpackParameters(), nullptr);
 					}
 					width = std::max(1, (width / 2));
 					height = std::max(1, (height / 2));
@@ -3921,12 +3669,10 @@ GL_APICALL void GL_APIENTRY glTexStorage3D(GLenum target, GLsizei levels, GLenum
 		return error(GL_INVALID_VALUE);
 	}
 
-	GLenum type;
-	if(!GetStorageType(internalformat, type))
+	if(!IsSizedInternalFormat(internalformat) && !IsCompressed(internalformat, egl::getClientVersion()))
 	{
 		return error(GL_INVALID_ENUM);
 	}
-	GLenum sizedInternalFormat = GetSizedInternalFormat(internalformat, type);
 
 	es2::Context *context = es2::getContext();
 
@@ -3940,16 +3686,16 @@ GL_APICALL void GL_APIENTRY glTexStorage3D(GLenum target, GLsizei levels, GLenum
 				{
 					return error(GL_INVALID_OPERATION);
 				}
-	
+
 				es2::Texture3D *texture = context->getTexture3D();
 				if(!texture || texture->name == 0 || texture->getImmutableFormat() == GL_TRUE)
 				{
 					return error(GL_INVALID_OPERATION);
 				}
-	
+
 				for(int level = 0; level < levels; level++)
 				{
-					texture->setImage(context, level, width, height, depth, sizedInternalFormat, sizedInternalFormat, type, context->getUnpackParameters(), nullptr);
+					texture->setImage(level, width, height, depth, internalformat, GL_NONE, GL_NONE, context->getUnpackParameters(), nullptr);
 					width = std::max(1, (width / 2));
 					height = std::max(1, (height / 2));
 					depth = std::max(1, (depth / 2));
@@ -3963,18 +3709,18 @@ GL_APICALL void GL_APIENTRY glTexStorage3D(GLenum target, GLsizei levels, GLenum
 				{
 					return error(GL_INVALID_OPERATION);
 				}
-	
+
 				es2::Texture3D *texture = context->getTexture2DArray();
 				if(!texture || texture->name == 0 || texture->getImmutableFormat())
 				{
 					return error(GL_INVALID_OPERATION);
 				}
-	
+
 				for(int level = 0; level < levels; level++)
 				{
 					for(int face = GL_TEXTURE_CUBE_MAP_POSITIVE_X; face <= GL_TEXTURE_CUBE_MAP_NEGATIVE_Z; face++)
 					{
-							texture->setImage(context, level, width, height, depth, sizedInternalFormat, sizedInternalFormat, type, context->getUnpackParameters(), nullptr);
+						texture->setImage(level, width, height, depth, internalformat, GL_NONE, GL_NONE, context->getUnpackParameters(), nullptr);
 					}
 					width = std::max(1, (width / 2));
 					height = std::max(1, (height / 2));

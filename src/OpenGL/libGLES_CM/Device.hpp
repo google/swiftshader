@@ -49,8 +49,6 @@ namespace es1
 		void clearColor(float red, float green, float blue, float alpha, unsigned int rgbaMask);
 		void clearDepth(float z);
 		void clearStencil(unsigned int stencil, unsigned int mask);
-		egl::Image *createDepthStencilSurface(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool discard);
-		egl::Image *createRenderTarget(unsigned int width, unsigned int height, sw::Format format, int multiSampleDepth, bool lockable);
 		void drawIndexedPrimitive(sw::DrawType type, unsigned int indexOffset, unsigned int primitiveCount);
 		void drawPrimitive(sw::DrawType type, unsigned int primiveCount);
 		void setScissorEnable(bool enable);

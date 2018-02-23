@@ -182,11 +182,6 @@ EGLenum Surface::getSurfaceType() const
 	return config->mSurfaceType;
 }
 
-sw::Format Surface::getInternalFormat() const
-{
-	return config->mRenderTargetFormat;
-}
-
 EGLint Surface::getWidth() const
 {
 	return width;

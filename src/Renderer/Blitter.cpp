@@ -465,7 +465,7 @@ namespace sw
 		case FORMAT_X8R8G8B8:
 			if(writeRGBA)
 			{
-				Short4 c0 = RoundShort4(c.zyxw) | Short4(0x0000, 0x0000, 0x0000, 0xFFFFu);
+				Short4 c0 = RoundShort4(c.zyxw) | Short4(0x0000, 0x0000, 0x0000, 0x00FF);
 				*Pointer<Byte4>(element) = Byte4(PackUnsigned(c0, c0));
 			}
 			else
@@ -480,7 +480,7 @@ namespace sw
 		case FORMAT_SRGB8_X8:
 			if(writeRGBA)
 			{
-				Short4 c0 = RoundShort4(c) | Short4(0x0000, 0x0000, 0x0000, 0xFFFFu);
+				Short4 c0 = RoundShort4(c) | Short4(0x0000, 0x0000, 0x0000, 0x00FF);
 				*Pointer<Byte4>(element) = Byte4(PackUnsigned(c0, c0));
 			}
 			else
