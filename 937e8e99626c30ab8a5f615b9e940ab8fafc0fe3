@@ -356,6 +356,30 @@
     },
     {
       "key": {
+        "uuid": "412d1027_f34ff3d2",
+        "filename": "src/Common/Memory.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 6866
+      },
+      "writtenOn": "2018-02-23T17:10:33Z",
+      "side": 1,
+      "message": "In the event the kernel doesn\u0027t support the system call the ENOSYS result is -1, so we get the intended behavior. Worth a comment :-)",
+      "parentUuid": "6a4981c4_6255ef34",
+      "range": {
+        "startLine": 59,
+        "startChar": 0,
+        "endLine": 68,
+        "endChar": 29
+      },
+      "revId": "937e8e99626c30ab8a5f615b9e940ab8fafc0fe3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "12f07daa_c4c2d9a5",
         "filename": "src/Common/Memory.cpp",
         "patchSetId": 2
@@ -427,6 +451,30 @@
     },
     {
       "key": {
+        "uuid": "f707934d_35b9229e",
+        "filename": "src/Common/Memory.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 6866
+      },
+      "writtenOn": "2018-02-23T17:10:33Z",
+      "side": 1,
+      "message": "The mappings are MAP_PRIVATE and not MAP_SHARED, so they don\u0027t share the same underlying pages. I\u0027ll add a comment and remove the unnecessary lambda.",
+      "parentUuid": "5f1f276a_5bcdf200",
+      "range": {
+        "startLine": 79,
+        "startChar": 0,
+        "endLine": 84,
+        "endChar": 1
+      },
+      "revId": "937e8e99626c30ab8a5f615b9e940ab8fafc0fe3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b3eef7bc_aeb27b43",
         "filename": "src/Common/Memory.cpp",
         "patchSetId": 2
@@ -495,6 +543,30 @@
       "revId": "937e8e99626c30ab8a5f615b9e940ab8fafc0fe3",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "df15de46_68f14fb9",
+        "filename": "src/Common/Memory.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 6866
+      },
+      "writtenOn": "2018-02-23T17:10:33Z",
+      "side": 1,
+      "message": "As the file is theoretically coming from TMPFS then without it having an fallocate/ftruncate mmaps beyond its size will fail.",
+      "parentUuid": "9161a3a8_dcc72d89",
+      "range": {
+        "startLine": 87,
+        "startChar": 0,
+        "endLine": 94,
+        "endChar": 1
+      },
+      "revId": "937e8e99626c30ab8a5f615b9e940ab8fafc0fe3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     },
     {
       "key": {
