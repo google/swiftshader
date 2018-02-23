@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "b963f146_e1b53277",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-02-23T16:33:54Z",
+      "side": 1,
+      "message": "posix_memalign() isn\u0027t available on Windows, so unfortunately this doesn\u0027t compile.",
+      "parentUuid": "123b6fc7_3f144547",
+      "range": {
+        "startLine": 12,
+        "startChar": 0,
+        "endLine": 12,
+        "endChar": 62
+      },
+      "revId": "937e8e99626c30ab8a5f615b9e940ab8fafc0fe3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "c1788d51_bdbbacb5",
         "filename": "/COMMIT_MSG",
         "patchSetId": 2
@@ -84,6 +108,30 @@
       "side": 1,
       "message": "Done",
       "parentUuid": "c1788d51_bdbbacb5",
+      "range": {
+        "startLine": 14,
+        "startChar": 5,
+        "endLine": 14,
+        "endChar": 9
+      },
+      "revId": "937e8e99626c30ab8a5f615b9e940ab8fafc0fe3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "eda4396a_4a8f1eb6",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-02-23T16:33:54Z",
+      "side": 1,
+      "message": "Thanks!",
+      "parentUuid": "991a7a54_fd4ad724",
       "range": {
         "startLine": 14,
         "startChar": 5,
@@ -284,6 +332,30 @@
     },
     {
       "key": {
+        "uuid": "6a4981c4_6255ef34",
+        "filename": "src/Common/Memory.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-02-23T16:33:54Z",
+      "side": 1,
+      "message": "Thanks for clarifying that. It looks like memfd_create() is relatively new and requires a kernel version of 3.17 or up. SwiftShader needs to support older kernels too (mainly for Android Emulator). So we\u0027re going to need a fallback for this. I\u0027d even recommend to restring the use of memfd_create() to google3, for now.",
+      "parentUuid": "18b06ed5_d7d5c703",
+      "range": {
+        "startLine": 59,
+        "startChar": 0,
+        "endLine": 68,
+        "endChar": 29
+      },
+      "revId": "937e8e99626c30ab8a5f615b9e940ab8fafc0fe3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "12f07daa_c4c2d9a5",
         "filename": "src/Common/Memory.cpp",
         "patchSetId": 2
@@ -331,6 +403,30 @@
     },
     {
       "key": {
+        "uuid": "5f1f276a_5bcdf200",
+        "filename": "src/Common/Memory.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-02-23T16:33:54Z",
+      "side": 1,
+      "message": "Oh, I see, the file descriptor is the same for all executable memory allocations. I\u0027m a bit confused by that though. Aren\u0027t you mapping all these allocations to the same physical memory? Or does this happen to work because it\u0027s never \u0027flushed\u0027 back to the \u0027file\u0027?\n\nOn another note, is the lambda necessary here?",
+      "parentUuid": "34191308_dfda34b9",
+      "range": {
+        "startLine": 79,
+        "startChar": 0,
+        "endLine": 84,
+        "endChar": 1
+      },
+      "revId": "937e8e99626c30ab8a5f615b9e940ab8fafc0fe3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b3eef7bc_aeb27b43",
         "filename": "src/Common/Memory.cpp",
         "patchSetId": 2
@@ -366,6 +462,30 @@
       "side": 1,
       "message": "See above.",
       "parentUuid": "b3eef7bc_aeb27b43",
+      "range": {
+        "startLine": 87,
+        "startChar": 0,
+        "endLine": 94,
+        "endChar": 1
+      },
+      "revId": "937e8e99626c30ab8a5f615b9e940ab8fafc0fe3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9161a3a8_dcc72d89",
+        "filename": "src/Common/Memory.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-02-23T16:33:54Z",
+      "side": 1,
+      "message": "If my interpretation above is correct, does it even matter if the file is large enough? I assume this just satisfied mmap()\u0027s checks, and ensures that a flush can\u0027t fail (at least not due to mapping size)?",
+      "parentUuid": "286d1899_9fa8022b",
       "range": {
         "startLine": 87,
         "startChar": 0,
