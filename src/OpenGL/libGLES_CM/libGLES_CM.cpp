@@ -920,7 +920,9 @@ void CopyTexImage2D(GLenum target, GLint level, GLenum internalformat, GLint x, 
 			if(colorbufferFormat != GL_RGBA &&
 			   colorbufferFormat != GL_RGBA4_OES &&
 			   colorbufferFormat != GL_RGB5_A1_OES &&
-			   colorbufferFormat != GL_RGBA8_OES)
+			   colorbufferFormat != GL_RGBA8_OES &&
+			   colorbufferFormat != GL_BGRA_EXT &&  // GL_EXT_texture_format_BGRA8888
+			   colorbufferFormat != GL_BGRA8_EXT)   // GL_EXT_texture_format_BGRA8888
 			{
 				return error(GL_INVALID_OPERATION);
 			}
@@ -929,6 +931,7 @@ void CopyTexImage2D(GLenum target, GLint level, GLenum internalformat, GLint x, 
 		case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
 		case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
 			return error(GL_INVALID_OPERATION);
+		case GL_BGRA_EXT:   // GL_EXT_texture_format_BGRA8888 doesn't mention the format to be accepted by glCopyTexImage2D.
 		default:
 			return error(GL_INVALID_ENUM);
 		}

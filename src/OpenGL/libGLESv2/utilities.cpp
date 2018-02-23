@@ -623,7 +623,8 @@ namespace es2
 			break;
 		case GL_LUMINANCE_ALPHA:
 		case GL_RGBA:
-			if(baseColorbufferFormat != GL_RGBA)
+			if(baseColorbufferFormat != GL_RGBA &&
+			   baseColorbufferFormat != GL_BGRA_EXT)   // GL_EXT_texture_format_BGRA8888 / GL_APPLE_texture_format_BGRA8888
 			{
 				return error(GL_INVALID_OPERATION, false);
 			}
@@ -656,6 +657,7 @@ namespace es2
 		case GL_DEPTH_COMPONENT:
 		case GL_DEPTH_STENCIL_OES:
 			return error(GL_INVALID_OPERATION, false);
+		case GL_BGRA_EXT:   // GL_EXT_texture_format_BGRA8888 nor GL_APPLE_texture_format_BGRA8888 mention the format to be accepted by glCopyTexImage2D.
 		default:
 			return error(GL_INVALID_ENUM, false);
 		}
