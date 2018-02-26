@@ -166,15 +166,9 @@ void BindRenderbufferOES(GLenum target, GLuint renderbuffer)
 
 	if(context)
 	{
-		if(renderbuffer != 0 && !context->getRenderbuffer(renderbuffer))
-		{
-			// [OpenGL ES 2.0.25] Section 4.4.3 page 112
-			// [OpenGL ES 3.0.2] Section 4.4.2 page 201
-			// 'renderbuffer' must be either zero or the name of an existing renderbuffer object of
-			// type 'renderbuffertarget', otherwise an INVALID_OPERATION error is generated.
-			return error(GL_INVALID_OPERATION);
-		}
-
+		// [GL_EXT_framebuffer_object]
+		// If <renderbuffer> is not zero, then the resulting renderbuffer object
+		// is a new state vector, initialized with a zero-sized memory buffer
 		context->bindRenderbuffer(renderbuffer);
 	}
 }
