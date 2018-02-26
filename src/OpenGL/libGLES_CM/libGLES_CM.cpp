@@ -48,41 +48,6 @@ static bool validImageSize(GLint level, GLsizei width, GLsizei height)
 	return true;
 }
 
-static bool validateSubImageParams(bool compressed, GLsizei width, GLsizei height, GLint xoffset, GLint yoffset, GLenum target, GLint level, GLenum format, es1::Texture *texture)
-{
-	if(!texture)
-	{
-		return error(GL_INVALID_OPERATION, false);
-	}
-
-	if(compressed != texture->isCompressed(target, level))
-	{
-		return error(GL_INVALID_OPERATION, false);
-	}
-
-	if(format != GL_NONE_OES && format != texture->getFormat(target, level))
-	{
-		return error(GL_INVALID_OPERATION, false);
-	}
-
-	if(compressed)
-	{
-		if((width % 4 != 0 && width != texture->getWidth(target, 0)) ||
-		   (height % 4 != 0 && height != texture->getHeight(target, 0)))
-		{
-			return error(GL_INVALID_OPERATION, false);
-		}
-	}
-
-	if(xoffset + width > texture->getWidth(target, level) ||
-	   yoffset + height > texture->getHeight(target, level))
-	{
-		return error(GL_INVALID_VALUE, false);
-	}
-
-	return true;
-}
-
 void ActiveTexture(GLenum texture)
 {
 	TRACE("(GLenum texture = 0x%X)", texture);
@@ -725,7 +690,6 @@ void CompressedTexImage2D(GLenum target, GLint level, GLenum internalformat, GLs
 	case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
 		break;
 	case GL_DEPTH_COMPONENT16_OES:
-	case GL_DEPTH_COMPONENT32_OES:
 	case GL_DEPTH_STENCIL_OES:
 	case GL_DEPTH24_STENCIL8_OES:
 		return error(GL_INVALID_OPERATION);
@@ -832,10 +796,13 @@ void CompressedTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yo
 		{
 			es1::Texture2D *texture = context->getTexture2D();
 
-			if(validateSubImageParams(true, width, height, xoffset, yoffset, target, level, format, texture))
+			GLenum validationError = ValidateSubImageParams(true, false, target, level, xoffset, yoffset, width, height, format, GL_NONE_OES, texture);
+			if(validationError != GL_NO_ERROR)
 			{
-				texture->subImageCompressed(level, xoffset, yoffset, width, height, format, imageSize, data);
+				return error(validationError);
 			}
+
+			texture->subImageCompressed(level, xoffset, yoffset, width, height, format, imageSize, data);
 		}
 		else UNREACHABLE(target);
 	}
@@ -1025,9 +992,10 @@ void CopyTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset,
 		}
 		else UNREACHABLE(target);
 
-		if(!validateSubImageParams(false, width, height, xoffset, yoffset, target, level, GL_NONE_OES, texture))
+		GLenum validationError = ValidateSubImageParams(false, true, target, level, xoffset, yoffset, width, height, GL_NONE_OES, GL_NONE_OES, texture);
+		if(validationError != GL_NO_ERROR)
 		{
-			return;
+			return error(validationError);
 		}
 
 		texture->copySubImage(target, level, xoffset, yoffset, x, y, width, height, framebuffer);
@@ -2292,7 +2260,6 @@ const GLubyte* GetString(GLenum name)
 			"GL_OES_blend_func_separate "
 			"GL_OES_blend_subtract "
 			"GL_OES_compressed_ETC1_RGB8_texture "
-			"GL_OES_depth_texture "
 			"GL_OES_EGL_image "
 			"GL_OES_EGL_image_external "
 			"GL_OES_EGL_sync "
@@ -4231,7 +4198,6 @@ void TexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width,
 		switch(type)
 		{
 		case GL_UNSIGNED_BYTE:
-		case GL_FLOAT:
 			break;
 		default:
 			return error(GL_INVALID_ENUM);
@@ -4242,7 +4208,6 @@ void TexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width,
 		{
 		case GL_UNSIGNED_BYTE:
 		case GL_UNSIGNED_SHORT_5_6_5:
-		case GL_FLOAT:
 			break;
 		default:
 			return error(GL_INVALID_ENUM);
@@ -4254,7 +4219,6 @@ void TexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width,
 		case GL_UNSIGNED_BYTE:
 		case GL_UNSIGNED_SHORT_4_4_4_4:
 		case GL_UNSIGNED_SHORT_5_5_5_1:
-		case GL_FLOAT:
 			break;
 		default:
 			return error(GL_INVALID_ENUM);
@@ -4536,11 +4500,6 @@ void TexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLs
 		return error(GL_INVALID_VALUE);
 	}
 
-	if(!es1::CheckTextureFormatType(format, type))
-	{
-		return error(GL_INVALID_ENUM);
-	}
-
 	if(width == 0 || height == 0 || !pixels)
 	{
 		return;
@@ -4554,10 +4513,13 @@ void TexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLs
 		{
 			es1::Texture2D *texture = context->getTexture2D();
 
-			if(validateSubImageParams(false, width, height, xoffset, yoffset, target, level, format, texture))
+			GLenum validationError = ValidateSubImageParams(false, false, target, level, xoffset, yoffset, width, height, format, type, texture);
+			if(validationError != GL_NO_ERROR)
 			{
-				texture->subImage(level, xoffset, yoffset, width, height, format, type, context->getUnpackAlignment(), pixels);
+				return error(validationError);
 			}
+
+			texture->subImage(level, xoffset, yoffset, width, height, format, type, context->getUnpackAlignment(), pixels);
 		}
 		else UNREACHABLE(target);
 	}

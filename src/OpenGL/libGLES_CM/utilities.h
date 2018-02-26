@@ -31,16 +31,18 @@ namespace es1
 	struct Color;
 
 	bool IsCompressed(GLenum format);
+	GLenum ValidateSubImageParams(bool compressed, bool copy, GLenum target, GLint level, GLint xoffset, GLint yoffset,
+	                              GLsizei width, GLsizei height, GLenum format, GLenum type, Texture *texture);
 	bool IsDepthTexture(GLenum format);
 	bool IsStencilTexture(GLenum format);
 	bool IsCubemapTextureTarget(GLenum target);
 	int CubeFaceIndex(GLenum cubeTarget);
 	bool IsTextureTarget(GLenum target);
-	bool CheckTextureFormatType(GLenum format, GLenum type);
+	GLenum ValidateTextureFormatType(GLenum format, GLenum type, GLint internalformat, GLenum target);
 
-	bool IsColorRenderable(GLenum internalformat);
-	bool IsDepthRenderable(GLenum internalformat);
-	bool IsStencilRenderable(GLenum internalformat);
+	bool IsColorRenderable(GLint internalformat);
+	bool IsDepthRenderable(GLint internalformat);
+	bool IsStencilRenderable(GLint internalformat);
 
 	GLuint GetAlphaSize(GLint internalformat);
 	GLuint GetRedSize(GLint internalformat);
@@ -49,9 +51,9 @@ namespace es1
 	GLuint GetDepthSize(GLint internalformat);
 	GLuint GetStencilSize(GLint internalformat);
 
-	bool IsAlpha(GLenum texFormat);
-	bool IsRGB(GLenum texFormat);
-	bool IsRGBA(GLenum texFormat);
+	bool IsAlpha(GLint texFormat);
+	bool IsRGB(GLint texFormat);
+	bool IsRGBA(GLint texFormat);
 }
 
 namespace es2sw

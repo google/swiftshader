@@ -48,7 +48,7 @@ public:
 
 	virtual GLsizei getWidth() const = 0;
 	virtual GLsizei getHeight() const = 0;
-	virtual GLenum getFormat() const = 0;
+	virtual GLint getFormat() const = 0;
 	virtual GLsizei getSamples() const = 0;
 
 	GLuint getRedSize() const;
@@ -75,7 +75,7 @@ public:
 
 	virtual GLsizei getWidth() const;
 	virtual GLsizei getHeight() const;
-	virtual GLenum getFormat() const;
+	virtual GLint getFormat() const;
 	virtual GLsizei getSamples() const;
 
 private:
@@ -98,7 +98,7 @@ public:
 
 	virtual GLsizei getWidth() const;
 	virtual GLsizei getHeight() const;
-	virtual GLenum getFormat() const;
+	virtual GLint getFormat() const;
 	virtual GLsizei getSamples() const;
 
 protected:

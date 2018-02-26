@@ -252,21 +252,6 @@ void Texture::subImage(GLint xoffset, GLint yoffset, GLsizei width, GLsizei heig
 		return error(GL_INVALID_OPERATION);
 	}
 
-	if(width + xoffset > image->getWidth() || height + yoffset > image->getHeight())
-	{
-		return error(GL_INVALID_VALUE);
-	}
-
-	if(IsCompressed(image->getFormat()))
-	{
-		return error(GL_INVALID_OPERATION);
-	}
-
-	if(format != image->getFormat())
-	{
-		return error(GL_INVALID_OPERATION);
-	}
-
 	if(pixels)
 	{
 		gl::PixelStorageModes unpackParameters;
@@ -278,16 +263,6 @@ void Texture::subImage(GLint xoffset, GLint yoffset, GLsizei width, GLsizei heig
 void Texture::subImageCompressed(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const void *pixels, egl::Image *image)
 {
 	if(!image)
-	{
-		return error(GL_INVALID_OPERATION);
-	}
-
-	if(width + xoffset > image->getWidth() || height + yoffset > image->getHeight())
-	{
-		return error(GL_INVALID_VALUE);
-	}
-
-	if(format != image->getFormat())
 	{
 		return error(GL_INVALID_OPERATION);
 	}
@@ -430,12 +405,6 @@ GLint Texture2D::getFormat(GLenum target, GLint level) const
 {
 	ASSERT(target == GL_TEXTURE_2D);
 	return image[level] ? image[level]->getFormat() : GL_NONE;
-}
-
-sw::Format Texture2D::getInternalFormat(GLenum target, GLint level) const
-{
-	ASSERT(target == GL_TEXTURE_2D);
-	return image[level] ? image[level]->getInternalFormat() : sw::FORMAT_NULL;
 }
 
 int Texture2D::getTopLevel() const
@@ -782,7 +751,9 @@ egl::Image *createBackBuffer(int width, int height, sw::Format format, int multi
 		return nullptr;
 	}
 
-	return egl::Image::create(width, height, format, multiSampleDepth, false);
+	GLenum internalformat = sw2es::ConvertBackBufferFormat(format);
+
+	return egl::Image::create(width, height, internalformat, multiSampleDepth, false);
 }
 
 egl::Image *createDepthStencil(int width, int height, sw::Format format, int multiSampleDepth)
@@ -818,7 +789,9 @@ egl::Image *createDepthStencil(int width, int height, sw::Format format, int mul
 		UNREACHABLE(format);
 	}
 
-	egl::Image *surface = egl::Image::create(width, height, format, multiSampleDepth, lockable);
+	GLenum internalformat = sw2es::ConvertDepthStencilFormat(format);
+
+	egl::Image *surface = egl::Image::create(width, height, internalformat, multiSampleDepth, lockable);
 
 	if(!surface)
 	{

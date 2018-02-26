@@ -122,7 +122,7 @@ GLsizei RenderbufferTexture2D::getHeight() const
 	return mTexture2D->getHeight(GL_TEXTURE_2D, 0);
 }
 
-GLenum RenderbufferTexture2D::getFormat() const
+GLint RenderbufferTexture2D::getFormat() const
 {
 	return mTexture2D->getFormat(GL_TEXTURE_2D, 0);
 }
@@ -260,7 +260,7 @@ GLsizei RenderbufferStorage::getHeight() const
 	return mHeight;
 }
 
-GLenum RenderbufferStorage::getFormat() const
+GLint RenderbufferStorage::getFormat() const
 {
 	return format;
 }

@@ -77,7 +77,6 @@ public:
 	virtual GLsizei getWidth(GLenum target, GLint level) const = 0;
 	virtual GLsizei getHeight(GLenum target, GLint level) const = 0;
 	virtual GLint getFormat(GLenum target, GLint level) const = 0;
-	virtual sw::Format getInternalFormat(GLenum target, GLint level) const = 0;
 	virtual int getTopLevel() const = 0;
 
 	virtual bool isSamplerComplete() const = 0;
@@ -134,7 +133,6 @@ public:
 	GLsizei getWidth(GLenum target, GLint level) const override;
 	GLsizei getHeight(GLenum target, GLint level) const override;
 	GLint getFormat(GLenum target, GLint level) const override;
-	sw::Format getInternalFormat(GLenum target, GLint level) const override;
 	int getTopLevel() const override;
 
 	void setImage(GLint level, GLsizei width, GLsizei height, GLint internalformat, GLenum format, GLenum type, GLint unpackAlignment, const void *pixels);
