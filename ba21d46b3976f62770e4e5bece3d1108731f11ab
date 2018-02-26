@@ -22,6 +22,30 @@
       "revId": "ba21d46b3976f62770e4e5bece3d1108731f11ab",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cc8ae631_942ddbfe",
+        "filename": "src/OpenGL/common/Image.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1355,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-02-26T17:40:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8949a5bf_212a404f",
+      "range": {
+        "startLine": 1355,
+        "startChar": 36,
+        "endLine": 1355,
+        "endChar": 38
+      },
+      "revId": "ba21d46b3976f62770e4e5bece3d1108731f11ab",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
