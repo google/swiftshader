@@ -1589,7 +1589,7 @@ GLenum Context::getPixels(const GLvoid **data, GLenum type, GLsizei imageSize) c
 
 		*data = static_cast<const unsigned char*>(mState.pixelUnpackBuffer->data()) + (ptrdiff_t)(*data);
 	}
-	return GL_NONE;
+	return GL_NO_ERROR;
 }
 
 bool Context::getBuffer(GLenum target, es2::Buffer **buffer) const

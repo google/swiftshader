@@ -369,7 +369,7 @@ GL_APICALL void GL_APIENTRY glTexImage3D(GLenum target, GLint level, GLint inter
 	if(context)
 	{
 		GLenum validationError = ValidateTextureFormatType(format, type, internalformat, target, context->getClientVersion());
-		if(validationError != GL_NONE)
+		if(validationError != GL_NO_ERROR)
 		{
 			return error(validationError);
 		}
@@ -382,7 +382,7 @@ GL_APICALL void GL_APIENTRY glTexImage3D(GLenum target, GLint level, GLint inter
 		}
 
 		validationError = context->getPixels(&data, type, context->getRequiredBufferSize(width, height, depth, format, type));
-		if(validationError != GL_NONE)
+		if(validationError != GL_NO_ERROR)
 		{
 			return error(validationError);
 		}
@@ -419,19 +419,19 @@ GL_APICALL void GL_APIENTRY glTexSubImage3D(GLenum target, GLint level, GLint xo
 	}
 
 	es2::Context *context = es2::getContext();
-	
+
 	if(context)
 	{
 		es2::Texture3D *texture = (target == GL_TEXTURE_3D) ? context->getTexture3D() : context->getTexture2DArray();
 
 		GLenum validationError = ValidateSubImageParams(false, false, target, level, xoffset, yoffset, zoffset, width, height, depth, format, type, texture, context->getClientVersion());
-		if(validationError != GL_NONE)
+		if(validationError != GL_NO_ERROR)
 		{
 			return error(validationError);
 		}
 
 		validationError = context->getPixels(&data, type, context->getRequiredBufferSize(width, height, depth, format, type));
-		if(validationError != GL_NONE)
+		if(validationError != GL_NO_ERROR)
 		{
 			return error(validationError);
 		}
@@ -487,7 +487,7 @@ GL_APICALL void GL_APIENTRY glCopyTexSubImage3D(GLenum target, GLint level, GLin
 		es2::Texture3D *texture = (target == GL_TEXTURE_3D) ? context->getTexture3D() : context->getTexture2DArray();
 
 		GLenum validationError = ValidateSubImageParams(false, true, target, level, xoffset, yoffset, zoffset, width, height, 1, GL_NONE, GL_NONE, texture, context->getClientVersion());
-		if(validationError != GL_NONE)
+		if(validationError != GL_NO_ERROR)
 		{
 			return error(validationError);
 		}
@@ -551,7 +551,7 @@ GL_APICALL void GL_APIENTRY glCompressedTexImage3D(GLenum target, GLint level, G
 		}
 
 		GLenum validationError = context->getPixels(&data, GL_UNSIGNED_BYTE, imageSize);
-		if(validationError != GL_NONE)
+		if(validationError != GL_NO_ERROR)
 		{
 			return error(validationError);
 		}
@@ -638,7 +638,7 @@ GL_APICALL void GL_APIENTRY glCompressedTexSubImage3D(GLenum target, GLint level
 		}
 
 		GLenum validationError = context->getPixels(&data, GL_UNSIGNED_BYTE, imageSize);
-		if(validationError != GL_NONE)
+		if(validationError != GL_NO_ERROR)
 		{
 			return error(validationError);
 		}

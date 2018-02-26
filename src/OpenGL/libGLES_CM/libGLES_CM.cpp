@@ -1882,7 +1882,7 @@ void GetRenderbufferParameterivOES(GLenum target, GLenum pname, GLint* params)
 		case GL_RENDERBUFFER_INTERNAL_FORMAT_OES:
 			{
 				GLint internalformat = renderbuffer->getFormat();
-				*params = (internalformat == GL_NONE) ? GL_RGBA4_OES : internalformat;
+				*params = (internalformat == GL_NONE_OES) ? GL_RGBA4_OES : internalformat;
 			}
 			break;
 		case GL_RENDERBUFFER_RED_SIZE_OES:        *params = renderbuffer->getRedSize();     break;

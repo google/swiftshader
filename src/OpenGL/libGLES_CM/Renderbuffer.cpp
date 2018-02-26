@@ -242,7 +242,7 @@ RenderbufferStorage::RenderbufferStorage()
 {
 	mWidth = 0;
 	mHeight = 0;
-	format = GL_NONE;
+	format = GL_NONE_OES;
 	mSamples = 0;
 }
 

@@ -468,7 +468,7 @@ namespace es2
 		else if(!copy)   // CopyTexSubImage doesn't have format/type parameters.
 		{
 			GLenum validationError = ValidateTextureFormatType(format, type, sizedInternalFormat, target, clientVersion);
-			if(validationError != GL_NONE)
+			if(validationError != GL_NO_ERROR)
 			{
 				return validationError;
 			}
@@ -489,7 +489,7 @@ namespace es2
 			return GL_INVALID_VALUE;
 		}
 
-		return GL_NONE;
+		return GL_NO_ERROR;
 	}
 
 	GLenum ValidateSubImageParams(bool compressed, bool copy, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset,
@@ -510,7 +510,7 @@ namespace es2
 			GLenum sizedInternalFormat = texture->getFormat(target, level);
 
 			GLenum validationError = ValidateTextureFormatType(format, type, sizedInternalFormat, target, clientVersion);
-			if(validationError != GL_NONE)
+			if(validationError != GL_NO_ERROR)
 			{
 				return validationError;
 			}
@@ -533,7 +533,7 @@ namespace es2
 			return GL_INVALID_VALUE;
 		}
 
-		return GL_NONE;
+		return GL_NO_ERROR;
 	}
 
 	bool ValidateCopyFormats(GLenum textureFormat, GLenum colorbufferFormat)
@@ -943,7 +943,7 @@ namespace es2
 				return GL_INVALID_ENUM;
 			}
 
-			return GL_NONE;
+			return GL_NO_ERROR;
 		}
 
 		// Validate format, type, and sized internalformat combinations [OpenGL ES 3.0 Table 3.2]
@@ -1117,7 +1117,7 @@ namespace es2
 			return GL_INVALID_OPERATION;
 		}
 
-		return GL_NONE;
+		return GL_NO_ERROR;
 	}
 
 	GLsizei GetTypeSize(GLenum type)
