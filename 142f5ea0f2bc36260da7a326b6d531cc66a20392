@@ -22,6 +22,30 @@
       "revId": "142f5ea0f2bc36260da7a326b6d531cc66a20392",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "47f9afde_eaa344c0",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 3023,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2018-02-26T11:56:49Z",
+      "side": 1,
+      "message": "AFAIK, we go this far in order to test for as many gl errors as possible before returning (negative API stuff), but we can most likely return earlier. The failing tests were dEQP-GLES3.performance.buffer.data_upload.function_call.",
+      "parentUuid": "1cb4219e_0404f497",
+      "range": {
+        "startLine": 3020,
+        "startChar": 1,
+        "endLine": 3023,
+        "endChar": 2
+      },
+      "revId": "142f5ea0f2bc36260da7a326b6d531cc66a20392",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
