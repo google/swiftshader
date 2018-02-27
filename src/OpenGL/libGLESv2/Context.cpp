@@ -3207,68 +3207,10 @@ void Context::applyTexture(sw::SamplerType type, int index, Texture *baseTexture
 		case GL_TEXTURE_2D:
 		case GL_TEXTURE_EXTERNAL_OES:
 		case GL_TEXTURE_RECTANGLE_ARB:
-		{
-			Texture2D *texture = static_cast<Texture2D*>(baseTexture);
-
-			for(int mipmapLevel = 0; mipmapLevel < sw::MIPMAP_LEVELS; mipmapLevel++)
 			{
-				int surfaceLevel = mipmapLevel + baseLevel;
+				Texture2D *texture = static_cast<Texture2D*>(baseTexture);
 
-				if(surfaceLevel > maxLevel)
-				{
-					surfaceLevel = maxLevel;
-				}
-
-				egl::Image *surface = texture->getImage(surfaceLevel);
-				device->setTextureLevel(sampler, 0, mipmapLevel, surface, sw::TEXTURE_2D);
-			}
-		}
-		break;
-		case GL_TEXTURE_3D:
-		{
-			Texture3D *texture = static_cast<Texture3D*>(baseTexture);
-
-			for(int mipmapLevel = 0; mipmapLevel < sw::MIPMAP_LEVELS; mipmapLevel++)
-			{
-				int surfaceLevel = mipmapLevel + baseLevel;
-
-				if(surfaceLevel > maxLevel)
-				{
-					surfaceLevel = maxLevel;
-				}
-
-				egl::Image *surface = texture->getImage(surfaceLevel);
-				device->setTextureLevel(sampler, 0, mipmapLevel, surface, sw::TEXTURE_3D);
-			}
-		}
-		break;
-		case GL_TEXTURE_2D_ARRAY:
-		{
-			Texture2DArray *texture = static_cast<Texture2DArray*>(baseTexture);
-
-			for(int mipmapLevel = 0; mipmapLevel < sw::MIPMAP_LEVELS; mipmapLevel++)
-			{
-				int surfaceLevel = mipmapLevel + baseLevel;
-
-				if(surfaceLevel > maxLevel)
-				{
-					surfaceLevel = maxLevel;
-				}
-
-				egl::Image *surface = texture->getImage(surfaceLevel);
-				device->setTextureLevel(sampler, 0, mipmapLevel, surface, sw::TEXTURE_2D_ARRAY);
-			}
-		}
-		break;
-		case GL_TEXTURE_CUBE_MAP:
-		{
-			TextureCubeMap *cubeTexture = static_cast<TextureCubeMap*>(baseTexture);
-
-			for(int mipmapLevel = 0; mipmapLevel < sw::MIPMAP_LEVELS; mipmapLevel++)
-			{
-				cubeTexture->updateBorders(mipmapLevel);
-
-				for(int face = 0; face < 6; face++)
+				for(int mipmapLevel = 0; mipmapLevel < sw::MIPMAP_LEVELS; mipmapLevel++)
 				{
 					int surfaceLevel = mipmapLevel + baseLevel;
 
@@ -3277,12 +3219,70 @@ void Context::applyTexture(sw::SamplerType type, int index, Texture *baseTexture
 						surfaceLevel = maxLevel;
 					}
 
-					egl::Image *surface = cubeTexture->getImage(face, surfaceLevel);
-					device->setTextureLevel(sampler, face, mipmapLevel, surface, sw::TEXTURE_CUBE);
+					egl::Image *surface = texture->getImage(surfaceLevel);
+					device->setTextureLevel(sampler, 0, mipmapLevel, surface, sw::TEXTURE_2D);
 				}
 			}
-		}
-		break;
+			break;
+		case GL_TEXTURE_3D:
+			{
+				Texture3D *texture = static_cast<Texture3D*>(baseTexture);
+
+				for(int mipmapLevel = 0; mipmapLevel < sw::MIPMAP_LEVELS; mipmapLevel++)
+				{
+					int surfaceLevel = mipmapLevel + baseLevel;
+
+					if(surfaceLevel > maxLevel)
+					{
+						surfaceLevel = maxLevel;
+					}
+
+					egl::Image *surface = texture->getImage(surfaceLevel);
+					device->setTextureLevel(sampler, 0, mipmapLevel, surface, sw::TEXTURE_3D);
+				}
+			}
+			break;
+		case GL_TEXTURE_2D_ARRAY:
+			{
+				Texture2DArray *texture = static_cast<Texture2DArray*>(baseTexture);
+
+				for(int mipmapLevel = 0; mipmapLevel < sw::MIPMAP_LEVELS; mipmapLevel++)
+				{
+					int surfaceLevel = mipmapLevel + baseLevel;
+
+					if(surfaceLevel > maxLevel)
+					{
+						surfaceLevel = maxLevel;
+					}
+
+					egl::Image *surface = texture->getImage(surfaceLevel);
+					device->setTextureLevel(sampler, 0, mipmapLevel, surface, sw::TEXTURE_2D_ARRAY);
+				}
+			}
+			break;
+		case GL_TEXTURE_CUBE_MAP:
+			{
+				TextureCubeMap *cubeTexture = static_cast<TextureCubeMap*>(baseTexture);
+
+				for(int mipmapLevel = 0; mipmapLevel < sw::MIPMAP_LEVELS; mipmapLevel++)
+				{
+					cubeTexture->updateBorders(mipmapLevel);
+
+					for(int face = 0; face < 6; face++)
+					{
+						int surfaceLevel = mipmapLevel + baseLevel;
+
+						if(surfaceLevel > maxLevel)
+						{
+							surfaceLevel = maxLevel;
+						}
+
+						egl::Image *surface = cubeTexture->getImage(face, surfaceLevel);
+						device->setTextureLevel(sampler, face, mipmapLevel, surface, sw::TEXTURE_CUBE);
+					}
+				}
+			}
+			break;
 		default:
 			UNIMPLEMENTED();
 			break;
