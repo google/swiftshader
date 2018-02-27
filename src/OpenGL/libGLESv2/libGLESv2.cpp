@@ -4953,6 +4953,14 @@ void TexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width,
 
 	if(context)
 	{
+		// Core OpenGL ES 2.0 requires format and internalformat to be equal (checked below),
+		// but GL_APPLE_texture_format_BGRA8888 allows (only) GL_BGRA_EXT / GL_RGBA, while
+		// GL_EXT_texture_format_BGRA8888 also allows GL_BGRA_EXT / GL_BGRA_EXT.
+		if(format == GL_BGRA_EXT && internalformat == GL_RGBA)
+		{
+			internalformat = GL_BGRA_EXT;
+		}
+
 		GLint clientVersion = context->getClientVersion();
 		if(clientVersion < 3)
 		{
