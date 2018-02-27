@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "68849d27_fc7d2f09",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 3210,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-02-27T19:34:01Z",
+      "side": 1,
+      "message": "No functional changes here. Just increasing the indentation for readability.",
+      "range": {
+        "startLine": 3210,
+        "startChar": 2,
+        "endLine": 3210,
+        "endChar": 4
+      },
+      "revId": "6e081c2305b1ffb4ebec6a243c60b27cdcfa0c1a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
