@@ -404,6 +404,30 @@
     },
     {
       "key": {
+        "uuid": "bdcdd3a5_e7a82a08",
+        "filename": "src/Common/Memory.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 6866
+      },
+      "writtenOn": "2018-02-28T19:58:25Z",
+      "side": 1,
+      "message": "We could make this defined __linux__? posix_memalign for unixs and _aligned_malloc on windows. Sound good?\nAsking others, the lack of a GNU wrapper is an indication that this is new but there are no known unresolved issues.",
+      "parentUuid": "57bea888_19f59e35",
+      "range": {
+        "startLine": 59,
+        "startChar": 0,
+        "endLine": 68,
+        "endChar": 29
+      },
+      "revId": "937e8e99626c30ab8a5f615b9e940ab8fafc0fe3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "12f07daa_c4c2d9a5",
         "filename": "src/Common/Memory.cpp",
         "patchSetId": 2

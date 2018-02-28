@@ -22,6 +22,30 @@
       "revId": "7d67f6fb2dd524269b361e05da0e08a5a0caac06",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7b7e5955_bf0f2d66",
+        "filename": "src/Common/Memory.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 6866
+      },
+      "writtenOn": "2018-02-28T19:58:25Z",
+      "side": 1,
+      "message": "Thanks for testing! Should we try _aligned_malloc?\nhttps://stackoverflow.com/questions/33696092/whats-the-correct-replacement-for-posix-memalign-in-windows",
+      "parentUuid": "7b6edd81_b4bfe577",
+      "range": {
+        "startLine": 51,
+        "startChar": 14,
+        "endLine": 51,
+        "endChar": 28
+      },
+      "revId": "7d67f6fb2dd524269b361e05da0e08a5a0caac06",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
