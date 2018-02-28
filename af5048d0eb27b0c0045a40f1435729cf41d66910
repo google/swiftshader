@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "a6a48e63_dbcbbb3f",
+        "filename": "src/OpenGL/common/Image.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 1149,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2018-02-28T13:23:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cbffe29b_de61bc84",
+      "revId": "af5048d0eb27b0c0045a40f1435729cf41d66910",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b8c84630_b60dacb4",
         "filename": "src/OpenGL/libEGL/Display.cpp",
         "patchSetId": 4
@@ -33,6 +51,24 @@
       "revId": "af5048d0eb27b0c0045a40f1435729cf41d66910",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "81e52e9a_b720ee1a",
+        "filename": "src/OpenGL/libEGL/Display.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 377,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2018-02-28T13:23:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b8c84630_b60dacb4",
+      "revId": "af5048d0eb27b0c0045a40f1435729cf41d66910",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     },
     {
       "key": {
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "b108bd71_4e6761fe",
+        "filename": "src/OpenGL/libEGL/Surface.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 239,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2018-02-28T13:23:34Z",
+      "side": 1,
+      "message": "Honestly, it\u0027s not a lot of code. Will do if Nicolas prefers it, but I find it easier to read this way (for now) since the added code is tiny.",
+      "parentUuid": "57f7babb_aaa3ba7c",
+      "revId": "af5048d0eb27b0c0045a40f1435729cf41d66910",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "d9637884_d793c5eb",
         "filename": "tests/unittests/unittests.cpp",
         "patchSetId": 4
@@ -64,6 +118,24 @@
       "writtenOn": "2018-02-14T20:03:08Z",
       "side": 1,
       "message": "Can we remove the non-Apple code path here and in Surface.cpp? The extension is only exposed on Apple platforms.",
+      "revId": "af5048d0eb27b0c0045a40f1435729cf41d66910",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ce3c8a9c_c80a0093",
+        "filename": "tests/unittests/unittests.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 694,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2018-02-28T13:23:34Z",
+      "side": 1,
+      "message": "Having a way to test on other platforms makes my life easier for debugging. If a test works on Windows and fails on MacOS, it really narrows down where the error could be.",
+      "parentUuid": "d9637884_d793c5eb",
       "revId": "af5048d0eb27b0c0045a40f1435729cf41d66910",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
