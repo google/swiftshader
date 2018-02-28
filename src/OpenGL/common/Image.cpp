@@ -1548,12 +1548,13 @@ namespace egl
 			case GL_FLOAT:
 				switch(internalformat)
 				{
-				case GL_RG32F: return Transfer<Bytes>(buffer, input, rect);
-				case GL_RG16F: return Transfer<RG32FtoRG16F>(buffer, input, rect);
+				case GL_LUMINANCE_ALPHA32F_EXT: return Transfer<Bytes>(buffer, input, rect);
+				case GL_LUMINANCE_ALPHA16F_EXT: return Transfer<RG32FtoRG16F>(buffer, input, rect);
 				default: UNREACHABLE(internalformat);
 				}
 			case GL_HALF_FLOAT:
 			case GL_HALF_FLOAT_OES:
+				ASSERT_OR_RETURN(internalformat == GL_LUMINANCE_ALPHA16F_EXT);
 				return Transfer<Bytes>(buffer, input, rect);
 			default:
 				UNREACHABLE(type);
@@ -1567,12 +1568,15 @@ namespace egl
 			case GL_FLOAT:
 				switch(internalformat)
 				{
-				case GL_R32F: return Transfer<Bytes>(buffer, input, rect);
-				case GL_R16F: return Transfer<R32FtoR16F>(buffer, input, rect);
+				case GL_LUMINANCE32F_EXT: return Transfer<Bytes>(buffer, input, rect);
+				case GL_LUMINANCE16F_EXT: return Transfer<R32FtoR16F>(buffer, input, rect);
+				case GL_ALPHA32F_EXT:     return Transfer<Bytes>(buffer, input, rect);
+				case GL_ALPHA16F_EXT:     return Transfer<R32FtoR16F>(buffer, input, rect);
 				default: UNREACHABLE(internalformat);
 				}
 			case GL_HALF_FLOAT:
 			case GL_HALF_FLOAT_OES:
+				ASSERT_OR_RETURN(internalformat == GL_LUMINANCE16F_EXT || internalformat == GL_ALPHA16F_EXT);
 				return Transfer<Bytes>(buffer, input, rect);
 			default:
 				UNREACHABLE(type);
