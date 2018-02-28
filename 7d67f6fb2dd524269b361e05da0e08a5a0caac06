@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7b6edd81_b4bfe577",
+        "filename": "src/Common/Memory.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-02-28T19:37:12Z",
+      "side": 1,
+      "message": "Still breaks the Windows build.",
+      "range": {
+        "startLine": 51,
+        "startChar": 14,
+        "endLine": 51,
+        "endChar": 28
+      },
+      "revId": "7d67f6fb2dd524269b361e05da0e08a5a0caac06",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}

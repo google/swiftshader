@@ -380,6 +380,30 @@
     },
     {
       "key": {
+        "uuid": "57bea888_19f59e35",
+        "filename": "src/Common/Memory.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-02-28T19:37:12Z",
+      "side": 1,
+      "message": "Good to know. Thanks for clarifying it in a comment. Still, at the risk of sounding overly cautious, I\u0027d feel better if we didn\u0027t use this code path unless necessary. We don\u0027t know if all the kernels of all the OS variants where we\u0027re using SwiftShader function properly both in the case where this functionality is or isn\u0027t supported. It feels like not having a GNU C wrapper for it is an indication that there might be unresolved issues.",
+      "parentUuid": "412d1027_f34ff3d2",
+      "range": {
+        "startLine": 59,
+        "startChar": 0,
+        "endLine": 68,
+        "endChar": 29
+      },
+      "revId": "937e8e99626c30ab8a5f615b9e940ab8fafc0fe3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "12f07daa_c4c2d9a5",
         "filename": "src/Common/Memory.cpp",
         "patchSetId": 2
@@ -463,6 +487,30 @@
       "side": 1,
       "message": "The mappings are MAP_PRIVATE and not MAP_SHARED, so they don\u0027t share the same underlying pages. I\u0027ll add a comment and remove the unnecessary lambda.",
       "parentUuid": "5f1f276a_5bcdf200",
+      "range": {
+        "startLine": 79,
+        "startChar": 0,
+        "endLine": 84,
+        "endChar": 1
+      },
+      "revId": "937e8e99626c30ab8a5f615b9e940ab8fafc0fe3",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "80c3a35e_f9ee0ae3",
+        "filename": "src/Common/Memory.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-02-28T19:37:12Z",
+      "side": 1,
+      "message": "I see. Thank you!",
+      "parentUuid": "f707934d_35b9229e",
       "range": {
         "startLine": 79,
         "startChar": 0,
