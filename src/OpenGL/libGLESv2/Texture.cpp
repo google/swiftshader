@@ -572,6 +572,12 @@ void Texture2D::releaseTexImage()
 			image[level] = nullptr;
 		}
 	}
+
+	if(mSurface)
+	{
+		mSurface->setBoundTexture(nullptr);
+		mSurface = nullptr;
+	}
 }
 
 void Texture2D::setCompressedImage(GLint level, GLenum format, GLsizei width, GLsizei height, GLsizei imageSize, const void *pixels)
