@@ -149,9 +149,14 @@ Context::Context(egl::Display *const display, const Context *shareContext, const
 	mTextureExternalZero = new TextureExternal(0);
 
 	mState.activeSampler = 0;
+
+	for(int type = 0; type < TEXTURE_TYPE_COUNT; type++)
+	{
+		bindTexture((TextureType)type, 0);
+	}
+
 	bindArrayBuffer(0);
 	bindElementArrayBuffer(0);
-	bindTexture2D(0);
 	bindFramebuffer(0);
 	bindRenderbuffer(0);
 
@@ -1012,18 +1017,11 @@ void Context::bindElementArrayBuffer(unsigned int buffer)
 	mState.elementArrayBuffer = getBuffer(buffer);
 }
 
-void Context::bindTexture2D(GLuint texture)
+void Context::bindTexture(TextureType type, GLuint texture)
 {
-	mResourceManager->checkTextureAllocation(texture, TEXTURE_2D);
+	mResourceManager->checkTextureAllocation(texture, type);
 
-	mState.samplerTexture[TEXTURE_2D][mState.activeSampler] = getTexture(texture);
-}
-
-void Context::bindTextureExternal(GLuint texture)
-{
-	mResourceManager->checkTextureAllocation(texture, TEXTURE_EXTERNAL);
-
-	mState.samplerTexture[TEXTURE_EXTERNAL][mState.activeSampler] = getTexture(texture);
+	mState.samplerTexture[type][mState.activeSampler] = getTexture(texture);
 }
 
 void Context::bindFramebuffer(GLuint framebuffer)
@@ -1368,7 +1366,6 @@ bool Context::getIntegerv(GLenum pname, GLint *params)
 		}
 		break;
 	case GL_TEXTURE_BINDING_2D:                  *params = mState.samplerTexture[TEXTURE_2D][mState.activeSampler].name();                   break;
-	case GL_TEXTURE_BINDING_CUBE_MAP_OES:        *params = mState.samplerTexture[TEXTURE_CUBE][mState.activeSampler].name();                 break;
 	case GL_TEXTURE_BINDING_EXTERNAL_OES:        *params = mState.samplerTexture[TEXTURE_EXTERNAL][mState.activeSampler].name();             break;
 	case GL_MAX_LIGHTS:                          *params = MAX_LIGHTS;                                                                       break;
 	case GL_MAX_MODELVIEW_STACK_DEPTH:           *params = MAX_MODELVIEW_STACK_DEPTH;                                                        break;

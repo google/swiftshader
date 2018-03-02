@@ -307,26 +307,26 @@ void BindTexture(GLenum target, GLuint texture)
 		switch(target)
 		{
 		case GL_TEXTURE_2D:
-			context->bindTexture2D(texture);
+			context->bindTexture(TEXTURE_2D, texture);
 			break;
 		case GL_TEXTURE_CUBE_MAP:
-			context->bindTextureCubeMap(texture);
+			context->bindTexture(TEXTURE_CUBE, texture);
 			break;
 		case GL_TEXTURE_EXTERNAL_OES:
-			context->bindTextureExternal(texture);
+			context->bindTexture(TEXTURE_EXTERNAL, texture);
 			break;
 		case GL_TEXTURE_2D_ARRAY:
 			if(clientVersion < 3)
 			{
 				return error(GL_INVALID_ENUM);
 			}
-			context->bindTexture2DArray(texture);
+			context->bindTexture(TEXTURE_2D_ARRAY, texture);
 			break;
 		case GL_TEXTURE_3D:
-			context->bindTexture3D(texture);
+			context->bindTexture(TEXTURE_3D, texture);
 			break;
 		case GL_TEXTURE_RECTANGLE_ARB:
-			context->bindTexture2DRect(texture);
+			context->bindTexture(TEXTURE_2D_RECT, texture);
 			break;
 		default:
 			return error(GL_INVALID_ENUM);

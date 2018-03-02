@@ -585,12 +585,7 @@ public:
 	void bindPixelPackBuffer(GLuint buffer);
 	void bindPixelUnpackBuffer(GLuint buffer);
 	void bindTransformFeedbackBuffer(GLuint buffer);
-	void bindTexture2D(GLuint texture);
-	void bindTextureCubeMap(GLuint texture);
-	void bindTextureExternal(GLuint texture);
-	void bindTexture3D(GLuint texture);
-	void bindTexture2DArray(GLuint texture);
-	void bindTexture2DRect(GLuint texture);
+	void bindTexture(TextureType type, GLuint texture);
 	void bindReadFramebuffer(GLuint framebuffer);
 	void bindDrawFramebuffer(GLuint framebuffer);
 	void bindRenderbuffer(GLuint renderbuffer);

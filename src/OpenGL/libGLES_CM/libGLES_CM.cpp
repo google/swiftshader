@@ -191,11 +191,11 @@ void BindTexture(GLenum target, GLuint texture)
 		switch(target)
 		{
 		case GL_TEXTURE_2D:
-			context->bindTexture2D(texture);
-			return;
+			context->bindTexture(TEXTURE_2D, texture);
+			break;
 		case GL_TEXTURE_EXTERNAL_OES:
-			context->bindTextureExternal(texture);
-			return;
+			context->bindTexture(TEXTURE_EXTERNAL, texture);
+			break;
 		default:
 			return error(GL_INVALID_ENUM);
 		}

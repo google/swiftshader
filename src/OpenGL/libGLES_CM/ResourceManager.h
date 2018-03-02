@@ -33,7 +33,6 @@ class Renderbuffer;
 enum TextureType
 {
 	TEXTURE_2D,
-	TEXTURE_CUBE,
 	TEXTURE_EXTERNAL,
 
 	TEXTURE_TYPE_COUNT,

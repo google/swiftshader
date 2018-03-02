@@ -454,7 +454,7 @@ public:
 
 	void bindArrayBuffer(GLuint buffer);
 	void bindElementArrayBuffer(GLuint buffer);
-	void bindTexture2D(GLuint texture);
+	void bindTexture(TextureType type, GLuint texture);
 	void bindTextureExternal(GLuint texture);
 	void bindFramebuffer(GLuint framebuffer);
 	void bindRenderbuffer(GLuint renderbuffer);

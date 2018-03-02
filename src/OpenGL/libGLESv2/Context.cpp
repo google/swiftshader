@@ -146,11 +146,15 @@ Context::Context(egl::Display *display, const Context *shareContext, EGLint clie
 	mTextureExternalZero = new TextureExternal(0);
 
 	mState.activeSampler = 0;
+
+	for(int type = 0; type < TEXTURE_TYPE_COUNT; type++)
+	{
+		bindTexture((TextureType)type, 0);
+	}
+
 	bindVertexArray(0);
 	bindArrayBuffer(0);
 	bindElementArrayBuffer(0);
-	bindTextureCubeMap(0);
-	bindTexture2D(0);
 	bindReadFramebuffer(0);
 	bindDrawFramebuffer(0);
 	bindRenderbuffer(0);
@@ -1153,46 +1157,11 @@ void Context::bindTransformFeedbackBuffer(GLuint buffer)
 	}
 }
 
-void Context::bindTexture2D(GLuint texture)
+void Context::bindTexture(TextureType type, GLuint texture)
 {
-	mResourceManager->checkTextureAllocation(texture, TEXTURE_2D);
+	mResourceManager->checkTextureAllocation(texture, type);
 
-	mState.samplerTexture[TEXTURE_2D][mState.activeSampler] = getTexture(texture);
-}
-
-void Context::bindTextureCubeMap(GLuint texture)
-{
-	mResourceManager->checkTextureAllocation(texture, TEXTURE_CUBE);
-
-	mState.samplerTexture[TEXTURE_CUBE][mState.activeSampler] = getTexture(texture);
-}
-
-void Context::bindTextureExternal(GLuint texture)
-{
-	mResourceManager->checkTextureAllocation(texture, TEXTURE_EXTERNAL);
-
-	mState.samplerTexture[TEXTURE_EXTERNAL][mState.activeSampler] = getTexture(texture);
-}
-
-void Context::bindTexture3D(GLuint texture)
-{
-	mResourceManager->checkTextureAllocation(texture, TEXTURE_3D);
-
-	mState.samplerTexture[TEXTURE_3D][mState.activeSampler] = getTexture(texture);
-}
-
-void Context::bindTexture2DArray(GLuint texture)
-{
-	mResourceManager->checkTextureAllocation(texture, TEXTURE_2D_ARRAY);
-
-	mState.samplerTexture[TEXTURE_2D_ARRAY][mState.activeSampler] = getTexture(texture);
-}
-
-void Context::bindTexture2DRect(GLuint texture)
-{
-	mResourceManager->checkTextureAllocation(texture, TEXTURE_2D_RECT);
-
-	mState.samplerTexture[TEXTURE_2D_RECT][mState.activeSampler] = getTexture(texture);
+	mState.samplerTexture[type][mState.activeSampler] = getTexture(texture);
 }
 
 void Context::bindReadFramebuffer(GLuint framebuffer)
