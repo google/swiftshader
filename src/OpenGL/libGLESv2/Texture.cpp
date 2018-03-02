@@ -1200,7 +1200,7 @@ void TextureCubeMap::updateBorders(int level)
 	posZ->markContentsClean();
 	negX->markContentsClean();
 	negY->markContentsClean();
-	negY->markContentsClean();
+	negZ->markContentsClean();
 }
 
 bool TextureCubeMap::isCompressed(GLenum target, GLint level) const
