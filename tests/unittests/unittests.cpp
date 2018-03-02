@@ -530,6 +530,99 @@ TEST_F(SwiftShaderTest, TextureRectangle_SamplingFromRectangle)
 	Uninitialize();
 }
 
+// Test sampling from a rectangle texture
+TEST_F(SwiftShaderTest, TextureRectangle_SamplingFromRectangleESSL3)
+{
+	Initialize(3, false);
+
+	GLuint tex = 1;
+	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, tex);
+	EXPECT_EQ(GL_NONE, glGetError());
+
+	unsigned char green[4] = { 0, 255, 0, 255 };
+	glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, green);
+	EXPECT_EQ(GL_NONE, glGetError());
+
+	const std::string vs =
+		"#version 300 es\n"
+		"in vec4 position;\n"
+		"void main()\n"
+		"{\n"
+		"    gl_Position = vec4(position.xy, 0.0, 1.0);\n"
+		"}\n";
+
+	const std::string fs =
+		"#version 300 es\n"
+		"#extension GL_ARB_texture_rectangle : require\n"
+		"precision mediump float;\n"
+		"uniform sampler2DRect tex;\n"
+		"out vec4 fragColor;\n"
+		"void main()\n"
+		"{\n"
+		"    fragColor = texture(tex, vec2(0, 0));\n"
+		"}\n";
+
+	GLuint program = glCreateProgram();
+	EXPECT_EQ(GL_NONE, glGetError());
+
+	GLuint vsShader = glCreateShader(GL_VERTEX_SHADER);
+	const char* vsSource[1] = { vs.c_str() };
+	glShaderSource(vsShader, 1, vsSource, nullptr);
+	glCompileShader(vsShader);
+	EXPECT_EQ(GL_NONE, glGetError());
+
+	GLuint fsShader = glCreateShader(GL_FRAGMENT_SHADER);
+	const char* fsSource[1] = { fs.c_str() };
+	glShaderSource(fsShader, 1, fsSource, nullptr);
+	glCompileShader(fsShader);
+	EXPECT_EQ(GL_NONE, glGetError());
+
+	glAttachShader(program, vsShader);
+	glAttachShader(program, fsShader);
+	glLinkProgram(program);
+	EXPECT_EQ(GL_NONE, glGetError());
+
+	glUseProgram(program);
+	GLint location = glGetUniformLocation(program, "tex");
+	ASSERT_NE(-1, location);
+	glUniform1i(location, 0);
+
+	glClearColor(0.0, 0.0, 0.0, 0.0);
+	glClear(GL_COLOR_BUFFER_BIT);
+	EXPECT_EQ(GL_NONE, glGetError());
+
+	GLint prevProgram = 0;
+	glGetIntegerv(GL_CURRENT_PROGRAM, &prevProgram);
+
+	glUseProgram(program);
+	EXPECT_EQ(GL_NONE, glGetError());
+
+	GLint posLoc = glGetAttribLocation(program, "position");
+	EXPECT_EQ(GL_NONE, glGetError());
+
+	float vertices[18] = { -1.0f,  1.0f, 0.5f,
+						   -1.0f, -1.0f, 0.5f,
+							1.0f, -1.0f, 0.5f,
+						   -1.0f,  1.0f, 0.5f,
+							1.0f, -1.0f, 0.5f,
+							1.0f,  1.0f, 0.5f };
+	glVertexAttribPointer(posLoc, 3, GL_FLOAT, GL_FALSE, 0, vertices);
+	glEnableVertexAttribArray(posLoc);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+	EXPECT_EQ(GL_NONE, glGetError());
+
+	glVertexAttribPointer(posLoc, 4, GL_FLOAT, GL_FALSE, 0, nullptr);
+	glDisableVertexAttribArray(posLoc);
+	glUseProgram(prevProgram);
+	EXPECT_EQ(GL_NONE, glGetError());
+
+	compareColor(green);
+
+	EXPECT_EQ(GL_NONE, glGetError());
+
+	Uninitialize();
+}
+
 // Test attaching a rectangle texture and rendering to it.
 TEST_F(SwiftShaderTest, TextureRectangle_RenderToRectangle)
 {

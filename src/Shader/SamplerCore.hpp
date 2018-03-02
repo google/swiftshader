@@ -27,7 +27,6 @@ namespace sw
 		Lod,       // Use provided LOD.
 		Grad,      // Use provided gradients.
 		Fetch,     // Use provided integer coordinates.
-		Rectangle, // Use non normalized texture coordinates.
 		Base       // Sample base level.
 	};
 

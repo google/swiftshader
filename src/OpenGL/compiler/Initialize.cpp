@@ -250,6 +250,9 @@ void InsertBuiltInFunctions(GLenum type, const ShBuiltInResources &resources, TS
 		symbolTable.insertBuiltIn(ESSL1_BUILTINS, float4, "texture2DRect", sampler2DRect, float2);
 		symbolTable.insertBuiltIn(ESSL1_BUILTINS, float4, "texture2DRectProj", sampler2DRect, float3);
 		symbolTable.insertBuiltIn(ESSL1_BUILTINS, float4, "texture2DRectProj", sampler2DRect, float4);
+		symbolTable.insertBuiltIn(ESSL3_BUILTINS, float4, "texture", sampler2DRect, float2);
+		symbolTable.insertBuiltIn(ESSL3_BUILTINS, float4, "textureProj", sampler2DRect, float3);
+		symbolTable.insertBuiltIn(ESSL3_BUILTINS, float4, "textureProj", sampler2DRect, float4);
 	}
 
 	if(resources.OES_EGL_image_external)

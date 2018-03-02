@@ -115,7 +115,6 @@ namespace sw
 		void TEXELFETCHOFFSET(Vector4f &dst, Vector4f &src, const Src&, Vector4f &offset, Float4 &lod);
 		void TEXGRAD(Vector4f &dst, Vector4f &src, const Src&, Vector4f &dsx, Vector4f &dsy);
 		void TEXGRADOFFSET(Vector4f &dst, Vector4f &src, const Src&, Vector4f &dsx, Vector4f &dsy, Vector4f &offset);
-		void TEXRECT(Vector4f &dst, Vector4f &src0, const Src &src1);
 		void TEXSIZE(Vector4f &dst, Float4 &lod, const Src&);
 
 		Vector4f sampleTexture(const Src &s, Vector4f &uvwq, Float4 &lod, Vector4f &dsx, Vector4f &dsy, Vector4f &offset, SamplerFunction function);

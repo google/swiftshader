@@ -118,7 +118,6 @@ namespace sw
 		void TEXELFETCHOFFSET(Vector4f &dst, Vector4f &src, const Src &, Vector4f &offset, Float4 &lod);
 		void TEXGRAD(Vector4f &dst, Vector4f &src0, const Src &src1, Vector4f &dsx, Vector4f &dsy);
 		void TEXGRADOFFSET(Vector4f &dst, Vector4f &src, const Src &, Vector4f &dsx, Vector4f &dsy, Vector4f &offset);
-		void TEXRECT(Vector4f &dst, Vector4f &src0, const Src &src1);
 		void DISCARD(Int cMask[4], const Shader::Instruction *instruction);
 		void DFDX(Vector4f &dst, Vector4f &src);
 		void DFDY(Vector4f &dst, Vector4f &src);

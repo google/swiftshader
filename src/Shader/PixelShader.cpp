@@ -323,7 +323,6 @@ namespace sw
 						case Shader::OPCODE_TEXELFETCHOFFSET:
 						case Shader::OPCODE_TEXGRAD:
 						case Shader::OPCODE_TEXGRADOFFSET:
-						case Shader::OPCODE_TEXRECT:
 							{
 								int sampler = inst->src[1].index;
 

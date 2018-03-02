@@ -421,11 +421,11 @@ namespace glsl
 	{
 		TString name = TFunction::unmangleName(nodeName);
 
-		if(name == "texture2D" || name == "textureCube" || name == "texture" || name == "texture3D")
+		if(name == "texture2D" || name == "textureCube" || name == "texture" || name == "texture3D" || name == "texture2DRect")
 		{
 			method = IMPLICIT;
 		}
-		else if(name == "texture2DProj" || name == "textureProj")
+		else if(name == "texture2DProj" || name == "textureProj" || name == "texture2DRectProj")
 		{
 			method = IMPLICIT;
 			proj = true;
@@ -493,15 +493,6 @@ namespace glsl
 			method = GRAD;
 			proj = true;
 			offset = true;
-		}
-		else if(name == "texture2DRect")
-		{
-			method = RECT;
-		}
-		else if(name == "texture2DRectProj")
-		{
-			method = RECT;
-			proj = true;
 		}
 		else UNREACHABLE(0);
 	}
@@ -1469,9 +1460,6 @@ namespace glsl
 							emit(sw::Shader::OPCODE_TEXGRADOFFSET, result, &coord, s, arg[2], arg[3], arg[4]);
 						}
 						else UNREACHABLE(argumentCount);
-						break;
-					case TextureFunction::RECT:
-						emit(sw::Shader::OPCODE_TEXRECT, result, &coord, s);
 						break;
 					case TextureFunction::SIZE:
 						emit(sw::Shader::OPCODE_TEXSIZE, result, arg[1], s);

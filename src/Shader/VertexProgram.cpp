@@ -336,7 +336,6 @@ namespace sw
 			case Shader::OPCODE_TEXELFETCHOFFSET: TEXELFETCHOFFSET(d, s0, src1, s2, s3.x); break;
 			case Shader::OPCODE_TEXGRAD:    TEXGRAD(d, s0, src1, s2, s3);   break;
 			case Shader::OPCODE_TEXGRADOFFSET: TEXGRADOFFSET(d, s0, src1, s2, s3, s4); break;
-			case Shader::OPCODE_TEXRECT:    TEXRECT(d, s0, src1);           break;
 			case Shader::OPCODE_TEXSIZE:    TEXSIZE(d, s0.x, src1);         break;
 			case Shader::OPCODE_END:                                        break;
 			default:
@@ -1551,11 +1550,6 @@ namespace sw
 	void VertexProgram::TEXGRADOFFSET(Vector4f &dst, Vector4f &src0, const Src& src1, Vector4f &dsx, Vector4f &dsy, Vector4f &offset)
 	{
 		dst = sampleTexture(src1, src0, (src0.x), dsx, dsy, offset, {Grad, Offset});
-	}
-
-	void VertexProgram::TEXRECT(Vector4f &dst, Vector4f &src0, const Src &src1)
-	{
-		dst = sampleTexture(src1, src0, (src0.x), (src0), (src0), (src0), Rectangle);
 	}
 
 	void VertexProgram::TEXSIZE(Vector4f &dst, Float4 &lod, const Src &src1)

@@ -246,7 +246,6 @@ namespace glsl
 				SIZE,   // textureSize()
 				FETCH,
 				GRAD,
-				RECT,
 			};
 
 			Method method;

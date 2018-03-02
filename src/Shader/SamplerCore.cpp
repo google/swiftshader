@@ -299,7 +299,7 @@ namespace sw
 			// FIXME: YUV is not supported by the floating point path
 			bool forceFloatFiltering = state.highPrecisionFiltering && !hasYuvFormat() && (state.textureFilter != FILTER_POINT);
 			bool seamlessCube = (state.addressingModeU == ADDRESSING_SEAMLESS);
-			bool rectangleTexture = (function == Rectangle);
+			bool rectangleTexture = (state.textureType == TEXTURE_RECTANGLE);
 			if(hasFloatTexture() || hasUnnormalizedIntegerTexture() || forceFloatFiltering || seamlessCube || rectangleTexture)   // FIXME: Mostly identical to integer sampling
 			{
 				Float4 uuuu = u;
@@ -2368,7 +2368,7 @@ namespace sw
 
 			Float4 coord = uvw;
 
-			if(function == Rectangle)
+			if(state.textureType == TEXTURE_RECTANGLE)
 			{
 				coord = Min(Max(coord, Float4(0.0f)), Float4(dim - Int4(1)));
 			}
