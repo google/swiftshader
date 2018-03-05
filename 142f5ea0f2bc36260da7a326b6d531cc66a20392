@@ -46,6 +46,30 @@
       "revId": "142f5ea0f2bc36260da7a326b6d531cc66a20392",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8caee221_f1671720",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 3023,
+      "author": {
+        "id": 5545
+      },
+      "writtenOn": "2018-03-05T19:25:09Z",
+      "side": 1,
+      "message": "Spec says this should not generate an error, and otherwise behavior is undefined.\n\nThe condition to make this happen is fairly easy to do in user apps; just bind program 0 and try to draw.",
+      "parentUuid": "47f9afde_eaa344c0",
+      "range": {
+        "startLine": 3020,
+        "startChar": 1,
+        "endLine": 3023,
+        "endChar": 2
+      },
+      "revId": "142f5ea0f2bc36260da7a326b6d531cc66a20392",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
