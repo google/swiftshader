@@ -70,6 +70,30 @@
       "revId": "142f5ea0f2bc36260da7a326b6d531cc66a20392",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d0fe312d_b82f0e1c",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 3023,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-03-06T14:54:30Z",
+      "side": 1,
+      "message": "This check can be moved to the start of the method, since the first thing VertexDataManager::prepareVertexData() does, in the new code, if there\u0027s no program, is return GL_NO_ERROR. Moving it then also allows to eliminate that check from VertexDataManager::prepareVertexData().",
+      "parentUuid": "8caee221_f1671720",
+      "range": {
+        "startLine": 3020,
+        "startChar": 1,
+        "endLine": 3023,
+        "endChar": 2
+      },
+      "revId": "142f5ea0f2bc36260da7a326b6d531cc66a20392",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
