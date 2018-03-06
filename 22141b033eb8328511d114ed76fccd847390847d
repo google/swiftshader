@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b0f9f597_b1aa1afb",
+        "filename": "src/Renderer/Sampler.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-03-06T14:25:34Z",
+      "side": 1,
+      "message": "nit: Can this be renamed to TEXTURE_RECTANGLE? It would match GL_TEXTURE_RECTANGLE_ARB, and make it clearer that we should treat it as a distinct type of texture. Plus they can only be 2D anyway (unlike the _ARRAY suffix; there\u0027s an extension for cube arrays).",
+      "range": {
+        "startLine": 72,
+        "startChar": 2,
+        "endLine": 72,
+        "endChar": 17
+      },
+      "revId": "22141b033eb8328511d114ed76fccd847390847d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
