@@ -3465,6 +3465,16 @@ void Context::clearStencilBuffer(const GLint value)
 
 void Context::drawArrays(GLenum mode, GLint first, GLsizei count, GLsizei instanceCount)
 {
+	if(!applyRenderTarget())
+	{
+		return;
+	}
+
+	if(mState.currentProgram == 0)
+	{
+		return;   // Nothing to process.
+	}
+
 	sw::DrawType primitiveType;
 	int primitiveCount;
 	int verticesPerPrimitive;
@@ -3472,11 +3482,6 @@ void Context::drawArrays(GLenum mode, GLint first, GLsizei count, GLsizei instan
 	if(!es2sw::ConvertPrimitiveType(mode, count, GL_NONE, primitiveType, primitiveCount, verticesPerPrimitive))
 	{
 		return error(GL_INVALID_ENUM);
-	}
-
-	if(!applyRenderTarget())
-	{
-		return;
 	}
 
 	applyState(mode);
@@ -3489,11 +3494,6 @@ void Context::drawArrays(GLenum mode, GLint first, GLsizei count, GLsizei instan
 		if(err != GL_NO_ERROR)
 		{
 			return error(err);
-		}
-
-		if(!mState.currentProgram)
-		{
-			return;
 		}
 
 		applyShaders();
@@ -3523,6 +3523,16 @@ void Context::drawArrays(GLenum mode, GLint first, GLsizei count, GLsizei instan
 
 void Context::drawElements(GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const void *indices, GLsizei instanceCount)
 {
+	if(!applyRenderTarget())
+	{
+		return;
+	}
+
+	if(mState.currentProgram == 0)
+	{
+		return;   // Nothing to process.
+	}
+
 	if(!indices && !getCurrentVertexArray()->getElementArrayBuffer())
 	{
 		return error(GL_INVALID_OPERATION);
@@ -3555,11 +3565,6 @@ void Context::drawElements(GLenum mode, GLuint start, GLuint end, GLsizei count,
 		return error(GL_INVALID_ENUM);
 	}
 
-	if(!applyRenderTarget())
-	{
-		return;
-	}
-
 	TranslatedIndexData indexInfo(primitiveCount);
 	GLenum err = applyIndexBuffer(indices, start, end, count, mode, type, &indexInfo);
 	if(err != GL_NO_ERROR)
@@ -3578,11 +3583,6 @@ void Context::drawElements(GLenum mode, GLuint start, GLuint end, GLsizei count,
 		if(err != GL_NO_ERROR)
 		{
 			return error(err);
-		}
-
-		if(!mState.currentProgram)
-		{
-			return;
 		}
 
 		applyShaders();
