@@ -1,0 +1,165 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "81193040_91fae5c2",
+        "filename": "src/OpenGL/libEGL/Display.cpp",
+        "patchSetId": 9
+      },
+      "lineNbr": 345,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-03-08T15:47:04Z",
+      "side": 1,
+      "message": "The spec states that \"The default values for EGL_WIDTH and EGL_HEIGHT are\nzero\"",
+      "range": {
+        "startLine": 345,
+        "startChar": 1,
+        "endLine": 345,
+        "endChar": 31
+      },
+      "revId": "ccb0e9065acadb8f824c257e396c53e76b54ee08",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "34687f70_ce966c77",
+        "filename": "src/OpenGL/libEGL/Display.h",
+        "patchSetId": 9
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-03-08T15:47:04Z",
+      "side": 1,
+      "message": "Please upstream the extension to https://github.com/KhronosGroup/EGL-Registry so we can obtain these enums from egl.h",
+      "range": {
+        "startLine": 29,
+        "startChar": 0,
+        "endLine": 36,
+        "endChar": 43
+      },
+      "revId": "ccb0e9065acadb8f824c257e396c53e76b54ee08",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e8993fd7_db5fcbed",
+        "filename": "src/OpenGL/libEGL/Surface.hpp",
+        "patchSetId": 9
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-03-08T15:47:04Z",
+      "side": 1,
+      "message": "nit: move it next to isPBufferSurface since it\u0027s a similar query.",
+      "range": {
+        "startLine": 59,
+        "startChar": 1,
+        "endLine": 59,
+        "endChar": 65
+      },
+      "revId": "ccb0e9065acadb8f824c257e396c53e76b54ee08",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a9fe6a5c_2b2dc0df",
+        "filename": "src/OpenGL/libEGL/libEGL.cpp",
+        "patchSetId": 9
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-03-08T15:47:04Z",
+      "side": 1,
+      "message": "nit: For very short conditional code I wouldn\u0027t add this comment as it\u0027s a bit distracting instead of clarifying. Likewise for other files.",
+      "range": {
+        "startLine": 33,
+        "startChar": 6,
+        "endLine": 33,
+        "endChar": 19
+      },
+      "revId": "ccb0e9065acadb8f824c257e396c53e76b54ee08",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c1831ed2_c9e05432",
+        "filename": "src/OpenGL/libEGL/libEGL.cpp",
+        "patchSetId": 9
+      },
+      "lineNbr": 209,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-03-08T15:47:04Z",
+      "side": 1,
+      "message": "I\u0027m not sure we have to make this platform specific. Note that the ANDROID extensions below are also unconditionally exposed. Most extensions state that if the platform doesn\u0027t support it, the operations become either a no-op or some error is returned. Similarly, even without this extension eglCreatePbufferFromClientBuffer is available and EGL_OPENVG_IMAGE is defined, but whether it actually accepts OpenVG images depends on the implementation.",
+      "range": {
+        "startLine": 209,
+        "startChar": 12,
+        "endLine": 209,
+        "endChar": 21
+      },
+      "revId": "ccb0e9065acadb8f824c257e396c53e76b54ee08",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7130b77b_f4f5e9db",
+        "filename": "src/OpenGL/libEGL/libEGL.cpp",
+        "patchSetId": 9
+      },
+      "lineNbr": 210,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-03-08T15:47:04Z",
+      "side": 1,
+      "message": "Please add the extension text to the extensions folder.",
+      "range": {
+        "startLine": 210,
+        "startChar": 18,
+        "endLine": 210,
+        "endChar": 52
+      },
+      "revId": "ccb0e9065acadb8f824c257e396c53e76b54ee08",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "af9f73b5_4474cf27",
+        "filename": "src/OpenGL/libEGL/libEGL.cpp",
+        "patchSetId": 9
+      },
+      "lineNbr": 515,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-03-08T15:47:04Z",
+      "side": 1,
+      "message": "Lets validate this properly now. INVALID_ENUM should be returned if buftype is neither EGL_OPENVG_IMAGE nor EGL_IOSURFACE_ANGLE, and we should still return error(EGL_BAD_PARAMETER, EGL_NO_SURFACE) for the former and leave the UNIMPLEMENTED() in place too to be notified when an app is attempting to use it.",
+      "range": {
+        "startLine": 515,
+        "startChar": 1,
+        "endLine": 515,
+        "endChar": 40
+      },
+      "revId": "ccb0e9065acadb8f824c257e396c53e76b54ee08",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}

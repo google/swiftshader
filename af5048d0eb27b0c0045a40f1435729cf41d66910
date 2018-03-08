@@ -72,6 +72,29 @@
     },
     {
       "key": {
+        "uuid": "0a86f8f6_9faea20a",
+        "filename": "src/OpenGL/libEGL/Surface.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 238,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-03-08T15:47:04Z",
+      "side": 1,
+      "message": "nit: I prefer to indent these blocks so it looks like regular conditional code and it\u0027s easier to follow the flow.",
+      "range": {
+        "startLine": 238,
+        "startChar": 0,
+        "endLine": 238,
+        "endChar": 22
+      },
+      "revId": "af5048d0eb27b0c0045a40f1435729cf41d66910",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "57f7babb_aaa3ba7c",
         "filename": "src/OpenGL/libEGL/Surface.cpp",
         "patchSetId": 4
@@ -101,6 +124,139 @@
       "side": 1,
       "message": "Honestly, it\u0027s not a lot of code. Will do if Nicolas prefers it, but I find it easier to read this way (for now) since the added code is tiny.",
       "parentUuid": "57f7babb_aaa3ba7c",
+      "revId": "af5048d0eb27b0c0045a40f1435729cf41d66910",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "19556ab2_65de36dd",
+        "filename": "src/OpenGL/libEGL/Surface.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 239,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-03-08T15:47:04Z",
+      "side": 1,
+      "message": "I prefer to have it here, indeed because it\u0027s a small amount of code and this makes it easy to compare platform-specific behavior. For larger code a subclass would be appropriate to avoid distractions in already non-trivial logic.",
+      "parentUuid": "b108bd71_4e6761fe",
+      "revId": "af5048d0eb27b0c0045a40f1435729cf41d66910",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fe547368_6ea3fb03",
+        "filename": "src/OpenGL/libEGL/Surface.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 243,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-03-08T15:47:04Z",
+      "side": 1,
+      "message": "Is it intentional this doesn\u0027t get called in the \u0027unbind\u0027 case below?",
+      "range": {
+        "startLine": 243,
+        "startChar": 3,
+        "endLine": 243,
+        "endChar": 47
+      },
+      "revId": "af5048d0eb27b0c0045a40f1435729cf41d66910",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e3c9bfb7_5734db05",
+        "filename": "src/OpenGL/libEGL/Surface.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 246,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-03-08T15:47:04Z",
+      "side": 1,
+      "message": "else if ?",
+      "range": {
+        "startLine": 246,
+        "startChar": 2,
+        "endLine": 246,
+        "endChar": 4
+      },
+      "revId": "af5048d0eb27b0c0045a40f1435729cf41d66910",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d499b2ce_178f4485",
+        "filename": "src/OpenGL/libEGL/Surface.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 394,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-03-08T15:47:04Z",
+      "side": 1,
+      "message": "nit: remove comment and indent block",
+      "range": {
+        "startLine": 394,
+        "startChar": 6,
+        "endLine": 394,
+        "endChar": 19
+      },
+      "revId": "af5048d0eb27b0c0045a40f1435729cf41d66910",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ba21299e_66e9278b",
+        "filename": "src/OpenGL/libEGL/Surface.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 424,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-03-08T15:47:04Z",
+      "side": 1,
+      "message": "same",
+      "range": {
+        "startLine": 424,
+        "startChar": 10,
+        "endLine": 424,
+        "endChar": 19
+      },
+      "revId": "af5048d0eb27b0c0045a40f1435729cf41d66910",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "94adee55_5b40aec7",
+        "filename": "src/Renderer/Surface.hpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 312,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-03-08T15:47:04Z",
+      "side": 1,
+      "message": "We have a constructor to create a Surface from an external raw buffer pointer. Can that be used instead?\n\nThis method allows to change the whole semantic of a Surface mid-way, and that could cause various issues (now or later). I\u0027d rather stick to RAII principles.",
+      "range": {
+        "startLine": 308,
+        "startChar": 2,
+        "endLine": 312,
+        "endChar": 3
+      },
       "revId": "af5048d0eb27b0c0045a40f1435729cf41d66910",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
