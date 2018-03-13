@@ -567,7 +567,7 @@ bool Display::isValidWindow(EGLNativeWindowType window)
 			XWindowAttributes windowAttributes;
 			Status status = libX11->XGetWindowAttributes((::Display*)nativeDisplay, window, &windowAttributes);
 
-			return status == True;
+			return status != 0;
 		}
 		return false;
 	#elif defined(__APPLE__)

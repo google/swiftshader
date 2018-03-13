@@ -269,7 +269,9 @@ bool WindowSurface::checkForResize()
 {
 	#if defined(_WIN32)
 		RECT client;
-		if(!GetClientRect(window, &client))
+		BOOL status = GetClientRect(window, &client);
+
+		if(status == 0)
 		{
 			return error(EGL_BAD_NATIVE_WINDOW, false);
 		}
@@ -281,7 +283,12 @@ bool WindowSurface::checkForResize()
 		int windowHeight; window->query(window, NATIVE_WINDOW_HEIGHT, &windowHeight);
 	#elif defined(__linux__)
 		XWindowAttributes windowAttributes;
-		libX11->XGetWindowAttributes((::Display*)display->getNativeDisplay(), window, &windowAttributes);
+		Status status = libX11->XGetWindowAttributes((::Display*)display->getNativeDisplay(), window, &windowAttributes);
+
+		if(status == 0)
+		{
+			return error(EGL_BAD_NATIVE_WINDOW, false);
+		}
 
 		int windowWidth = windowAttributes.width;
 		int windowHeight = windowAttributes.height;
