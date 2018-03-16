@@ -17,8 +17,8 @@ COMMON_C_INCLUDES += \
 	$(LOCAL_PATH)/../third_party/LLVM/include
 endif
 
-# Project Treble is introduced from Oreo
-ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 26 && echo Oreo),Oreo)
+# Project Treble is introduced from Oreo MR1
+ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 27 && echo OreoMR1),OreoMR1)
 COMMON_SHARED_LIBRARIES := libnativewindow liblog
 COMMON_HEADER_LIBRARIES := libhardware_headers libnativebase_headers
 COMMON_STATIC_LIBRARIES := libarect

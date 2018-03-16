@@ -79,8 +79,8 @@ COMMON_SRC_FILES := \
 	ValidateLimitations.cpp \
 	ValidateSwitch.cpp \
 
-# liblog_headers is introduced from O
-ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 26 && echo O),O)
+# liblog_headers is introduced from O MR1
+ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 27 && echo OMR1),OMR1)
 COMMON_HEADER_LIBRARIES := liblog_headers
 else
 COMMON_HEADER_LIBRARIES :=

@@ -66,8 +66,8 @@ COMMON_SHARED_LIBRARIES := \
 	libcutils \
 	libhardware
 
-# Project Treble is introduced from Oreo
-ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 26 && echo Oreo),Oreo)
+# Project Treble is introduced from Oreo MR1
+ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 27 && echo OreoMR1),OreoMR1)
 COMMON_SHARED_LIBRARIES += libnativewindow
 COMMON_STATIC_LIBRARIES += libarect
 COMMON_HEADER_LIBRARIES := libnativebase_headers
