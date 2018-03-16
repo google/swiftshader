@@ -69,12 +69,17 @@ COMMON_LDFLAGS := \
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := libEGL_swiftshader_debug
-ifdef TARGET_2ND_ARCH
+
 ifeq ($(TARGET_TRANSLATE_2ND_ARCH),true)
 LOCAL_MULTILIB := first
 endif
-endif
+
+ifeq (HasRelativePath,$(shell test $(PLATFORM_SDK_VERSION) -ge 21 && echo HasRelativePath))
 LOCAL_MODULE_RELATIVE_PATH := egl
+else
+LOCAL_MODULE_PATH := $(TARGET_OUT_SHARED_LIBRARIES)/egl
+endif
+
 LOCAL_VENDOR_MODULE := true
 LOCAL_MODULE_TAGS := optional
 LOCAL_CLANG := true
@@ -89,12 +94,17 @@ include $(BUILD_SHARED_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := libEGL_swiftshader
-ifdef TARGET_2ND_ARCH
+
 ifeq ($(TARGET_TRANSLATE_2ND_ARCH),true)
 LOCAL_MULTILIB := first
 endif
-endif
+
+ifeq (HasRelativePath,$(shell test $(PLATFORM_SDK_VERSION) -ge 21 && echo HasRelativePath))
 LOCAL_MODULE_RELATIVE_PATH := egl
+else
+LOCAL_MODULE_PATH := $(TARGET_OUT_SHARED_LIBRARIES)/egl
+endif
+
 LOCAL_VENDOR_MODULE := true
 LOCAL_MODULE_TAGS := optional
 LOCAL_CLANG := true
