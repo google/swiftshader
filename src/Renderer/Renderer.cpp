@@ -1758,30 +1758,26 @@ namespace sw
 			dx *= scale;
 			dy *= scale;
 
-			float dx0w = dx * P0.w / W;
-			float dy0h = dy * P0.w / H;
 			float dx0h = dx * P0.w / H;
 			float dy0w = dy * P0.w / W;
 
-			float dx1w = dx * P1.w / W;
-			float dy1h = dy * P1.w / H;
 			float dx1h = dx * P1.w / H;
 			float dy1w = dy * P1.w / W;
 
-			P[0].x += -dy0w + -dx0w;
-			P[0].y += -dx0h + +dy0h;
+			P[0].x += -dy0w;
+			P[0].y += +dx0h;
 			C[0] = clipper->computeClipFlags(P[0]);
 
-			P[1].x += -dy1w + +dx1w;
-			P[1].y += -dx1h + +dy1h;
+			P[1].x += -dy1w;
+			P[1].y += +dx1h;
 			C[1] = clipper->computeClipFlags(P[1]);
 
-			P[2].x += +dy1w + +dx1w;
-			P[2].y += +dx1h + -dy1h;
+			P[2].x += +dy1w;
+			P[2].y += -dx1h;
 			C[2] = clipper->computeClipFlags(P[2]);
 
-			P[3].x += +dy0w + -dx0w;
-			P[3].y += +dx0h + +dy0h;
+			P[3].x += +dy0w;
+			P[3].y += -dx0h;
 			C[3] = clipper->computeClipFlags(P[3]);
 
 			if((C[0] & C[1] & C[2] & C[3]) == Clipper::CLIP_FINITE)
