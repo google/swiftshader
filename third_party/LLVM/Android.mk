@@ -418,6 +418,11 @@ else
 LOCAL_CFLAGS += -D__STDC_INT64__
 endif
 
+ifeq (19,${PLATFORM_SDK_VERSION})
+# The compiler that shipped with K had false positives for missing sentinels
+LOCAL_CFLAGS += -Wno-sentinel
+endif
+
 LOCAL_CFLAGS += -fomit-frame-pointer -Os -ffunction-sections -fdata-sections
 LOCAL_CFLAGS += -fno-operator-names -msse2 -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS
 LOCAL_CFLAGS += -std=c++11
