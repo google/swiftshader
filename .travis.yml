@@ -30,5 +30,5 @@ deploy:
   bucket: swiftshader-binaries
   skip_cleanup: true
   acl: public-read
-  upload-dir: Linux
+  upload-dir: OpenGL_ES/Latest
   local-dir: $TRAVIS_BUILD_DIR/out
