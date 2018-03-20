@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2acc1df5_e4317528",
+        "filename": "src/OpenGL/common/NameSpace.hpp",
+        "patchSetId": 9
+      },
+      "lineNbr": 167,
+      "author": {
+        "id": 5200
+      },
+      "writtenOn": "2018-03-20T23:17:17Z",
+      "side": 1,
+      "message": "Using mapLock to protect both the map and any resources that were once in the map has two problems.\n\nThere is a potential race: The lock is dropped between findAtomic and the creation of the ScopedAtomic. However, the pointer is retained. I think that there is a race here: there\u0027s no way that findScopedAtomic can know that a remove didn\u0027t invalidate the pointer while the lock was dropped.\n\nThere is deadlock potential: any operations that involves multiple resources can deadlock if:\n* The operations acquire multiple resources of the same type\n* The operations acquire multiple resources of different types in different orders\n\nThe easiest way to close the race is to hold the lock through the construction of ScopedAtomic.\n\nI suspect that the answer to deadlock is to use a shared_ptr to reference count the objects.\n\nHaving said this, I do like the concept of namespaces. I\u0027d just like to clarify the design.",
+      "range": {
+        "startLine": 167,
+        "startChar": 0,
+        "endLine": 167,
+        "endChar": 47
+      },
+      "revId": "bc7224aa7050f5dcbf29b17ee69d96132ddbafba",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
