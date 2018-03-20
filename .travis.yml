@@ -31,4 +31,4 @@ deploy:
   skip_cleanup: true
   acl: public-read
   upload-dir: Linux
-  local-dir: out
+  local-dir: $TRAVIS_BUILD_DIR/out
