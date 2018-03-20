@@ -219,6 +219,9 @@ inline GLenum GLPixelFormatFromAndroid(int halFormat)
 #ifdef GRALLOC_MODULE_API_VERSION_0_2
 	case HAL_PIXEL_FORMAT_YCbCr_420_888: return SW_YV12_BT601;
 #endif
+#if PLATFORM_SDK_VERSION >= 26
+	case HAL_PIXEL_FORMAT_RGBA_FP16: return GL_RGBA16F;
+#endif
 	case HAL_PIXEL_FORMAT_RGB_888:   // Unsupported.
 	default:
 		ALOGE("Unsupported EGL image format %d", halFormat); ASSERT(false);
