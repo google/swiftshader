@@ -114,9 +114,9 @@ private:
 				#endif
 			#elif defined(__APPLE__)
 				#if defined(__LP64__)
-					const char *libEGL_lib[] = {"lib64EGL_translator.dylib", "libEGL.so", "libEGL.dylib", "libswiftshader_libEGL.dylib"};
+					const char *libEGL_lib[] = {"libswiftshader_libEGL.dylib", "lib64EGL_translator.dylib", "libEGL.so", "libEGL.dylib"};
 				#else
-					const char *libEGL_lib[] = {"libEGL_translator.dylib", "libEGL.so", "libEGL.dylib", "libswiftshader_libEGL.dylib"};
+					const char *libEGL_lib[] = {"libswiftshader_libEGL.dylib", "libEGL_translator.dylib", "libEGL.so", "libEGL.dylib"};
 				#endif
 			#elif defined(__Fuchsia__)
 				const char *libEGL_lib[] = {"libEGL.so"};

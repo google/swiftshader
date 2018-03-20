@@ -298,9 +298,9 @@ private:
 				#endif
 			#elif defined(__APPLE__)
 				#if defined(__LP64__)
-					const char *libGLESv2_lib[] = {"lib64GLES_V2_translator.dylib", "libGLESv2.dylib", "libswiftshader_libGLESv2.dylib"};
+					const char *libGLESv2_lib[] = {"libswiftshader_libGLESv2.dylib", "lib64GLES_V2_translator.dylib", "libGLESv2.dylib"};
 				#else
-					const char *libGLESv2_lib[] = {"libGLES_V2_translator.dylib", "libGLESv2.dylib", "libswiftshader_libGLESv2.dylib"};
+					const char *libGLESv2_lib[] = {"libswiftshader_libGLESv2.dylib", "libGLES_V2_translator.dylib", "libGLESv2.dylib"};
 				#endif
 			#elif defined(__Fuchsia__)
 				const char *libGLESv2_lib[] = {"libGLESv2.so"};
