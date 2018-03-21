@@ -23,6 +23,8 @@
 
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
+#include <GL/glcorearb.h>
+#include <GL/glext.h>
 
 #include <string>
 
