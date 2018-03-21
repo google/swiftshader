@@ -19,6 +19,8 @@
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
 #include <GLES3/gl3.h>
+#include <GL/glcorearb.h>
+#include <GL/glext.h>
 
 #if defined(_WIN32)
 #include <Windows.h>
@@ -635,29 +637,6 @@ TEST_F(SwiftShaderTest, OutOfMemory)
 		Uninitialize();
 	}
 }
-
-// Note: GL_ARB_texture_rectangle is part of gl2extchromium.h in the Chromium repo
-// GL_ARB_texture_rectangle
-#ifndef GL_ARB_texture_rectangle
-#define GL_ARB_texture_rectangle 1
-
-#ifndef GL_SAMPLER_2D_RECT_ARB
-#define GL_SAMPLER_2D_RECT_ARB 0x8B63
-#endif
-
-#ifndef GL_TEXTURE_BINDING_RECTANGLE_ARB
-#define GL_TEXTURE_BINDING_RECTANGLE_ARB 0x84F6
-#endif
-
-#ifndef GL_TEXTURE_RECTANGLE_ARB
-#define GL_TEXTURE_RECTANGLE_ARB 0x84F5
-#endif
-
-#ifndef GL_MAX_RECTANGLE_TEXTURE_SIZE_ARB
-#define GL_MAX_RECTANGLE_TEXTURE_SIZE_ARB 0x84F8
-#endif
-
-#endif  // GL_ARB_texture_rectangle
 
 // Test using TexImage2D to define a rectangle texture
 

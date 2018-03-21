@@ -67,29 +67,6 @@ typedef unsigned int GLenum;
 #define GL_FRAGMENT_SHADER                0x8B30
 #define GL_VERTEX_SHADER                  0x8B31
 
-// Note: GL_ARB_texture_rectangle is part of gl2extchromium.h in the Chromium repo
-// GL_ARB_texture_rectangle
-#ifndef GL_ARB_texture_rectangle
-#define GL_ARB_texture_rectangle 1
-
-#ifndef GL_SAMPLER_2D_RECT_ARB
-#define GL_SAMPLER_2D_RECT_ARB 0x8B63
-#endif
-
-#ifndef GL_TEXTURE_BINDING_RECTANGLE_ARB
-#define GL_TEXTURE_BINDING_RECTANGLE_ARB 0x84F6
-#endif
-
-#ifndef GL_TEXTURE_RECTANGLE_ARB
-#define GL_TEXTURE_RECTANGLE_ARB 0x84F5
-#endif
-
-#ifndef GL_MAX_RECTANGLE_TEXTURE_SIZE_ARB
-#define GL_MAX_RECTANGLE_TEXTURE_SIZE_ARB 0x84F8
-#endif
-
-#endif  // GL_ARB_texture_rectangle
-
 //
 // The base class for the machine dependent compiler to derive from
 // for managing object code from the compile.
