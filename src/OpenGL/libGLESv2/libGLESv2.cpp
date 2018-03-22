@@ -977,9 +977,24 @@ void CopyTexImage2D(GLenum target, GLint level, GLenum internalformat, GLint x, 
 			{
 				internalformat = colorbufferFormat;
 			}
-			else if(GetRedSize(colorbufferFormat) == 8)
+			else if(GetColorComponentType(colorbufferFormat) == GL_UNSIGNED_NORMALIZED && GetRedSize(colorbufferFormat) <= 8)
 			{
+				// TODO: Convert to the smallest format that fits all components.
+				// e.g. Copying RGBA4 to RGB should result in RGB565, not RGB8.
+
 				internalformat = gl::GetSizedInternalFormat(internalformat, GL_UNSIGNED_BYTE);
+			}
+			else if(GetColorComponentType(colorbufferFormat) == GL_INT)
+			{
+				internalformat = gl::GetSizedInternalFormat(internalformat, GL_INT);
+			}
+			else if(GetColorComponentType(colorbufferFormat) == GL_UNSIGNED_INT)
+			{
+				internalformat = gl::GetSizedInternalFormat(internalformat, GL_UNSIGNED_INT);
+			}
+			else if(GetColorComponentType(colorbufferFormat) == GL_FLOAT && GetRedSize(colorbufferFormat) == 16)   // GL_EXT_color_buffer_half_float
+			{
+				internalformat = gl::GetSizedInternalFormat(internalformat, GL_HALF_FLOAT_OES);
 			}
 			else
 			{

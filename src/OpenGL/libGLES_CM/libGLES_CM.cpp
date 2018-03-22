@@ -842,12 +842,13 @@ void CopyTexImage2D(GLenum target, GLint level, GLenum internalformat, GLint x, 
 			return error(GL_INVALID_FRAMEBUFFER_OPERATION_OES);
 		}
 
-		if(context->getFramebufferName() != 0 && framebuffer->getColorbuffer()->getSamples() > 1)
+		es1::Renderbuffer *source = framebuffer->getColorbuffer();
+
+		if(!source || source->getSamples() > 1)
 		{
 			return error(GL_INVALID_OPERATION);
 		}
 
-		es1::Renderbuffer *source = framebuffer->getColorbuffer();
 		GLenum colorbufferFormat = source->getFormat();
 
 		// [OpenGL ES 1.1.12] table 3.9
@@ -902,7 +903,7 @@ void CopyTexImage2D(GLenum target, GLint level, GLenum internalformat, GLint x, 
 		{
 			internalformat = colorbufferFormat;
 		}
-		else if(GetRedSize(colorbufferFormat) == 8)
+		else if(GetRedSize(colorbufferFormat) <= 8)
 		{
 			internalformat = gl::GetSizedInternalFormat(internalformat, GL_UNSIGNED_BYTE);
 		}
