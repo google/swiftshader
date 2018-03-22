@@ -1542,22 +1542,37 @@ GLsizei Context::getRequiredBufferSize(GLsizei width, GLsizei height, GLsizei de
 	return inputPitch * inputHeight * depth;
 }
 
-GLenum Context::getPixels(const GLvoid **data, GLenum type, GLsizei imageSize) const
+GLenum Context::getPixels(const GLvoid **pixels, GLenum type, GLsizei imageSize) const
 {
 	if(mState.pixelUnpackBuffer)
 	{
-		if(mState.pixelUnpackBuffer->name)
+		ASSERT(mState.pixelUnpackBuffer->name != 0);
+
+		if(mState.pixelUnpackBuffer->isMapped())
 		{
-			if(mState.pixelUnpackBuffer->isMapped() ||
-			   (mState.pixelUnpackBuffer->size() < static_cast<size_t>(imageSize)) ||
-			   (static_cast<GLsizei>((ptrdiff_t)(*data)) % GetTypeSize(type)))
-			{
-				return GL_INVALID_OPERATION;
-			}
+			return GL_INVALID_OPERATION;
 		}
 
-		*data = static_cast<const unsigned char*>(mState.pixelUnpackBuffer->data()) + (ptrdiff_t)(*data);
+		size_t offset = static_cast<size_t>((ptrdiff_t)(*pixels));
+
+		if(offset % GetTypeSize(type) != 0)
+		{
+			return GL_INVALID_OPERATION;
+		}
+
+		if(offset > mState.pixelUnpackBuffer->size())
+		{
+			return GL_INVALID_OPERATION;
+		}
+
+		if(mState.pixelUnpackBuffer->size() - offset < static_cast<size_t>(imageSize))
+		{
+			return GL_INVALID_OPERATION;
+		}
+
+		*pixels = static_cast<const unsigned char*>(mState.pixelUnpackBuffer->data()) + offset;
 	}
+
 	return GL_NO_ERROR;
 }
 

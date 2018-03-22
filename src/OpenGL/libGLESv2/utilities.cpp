@@ -1121,7 +1121,7 @@ namespace es2
 		return GL_NO_ERROR;
 	}
 
-	GLsizei GetTypeSize(GLenum type)
+	size_t GetTypeSize(GLenum type)
 	{
 		switch(type)
 		{
