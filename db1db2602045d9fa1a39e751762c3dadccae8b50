@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b264a455_ec03cf62",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-03-22T13:50:43Z",
+      "side": 1,
+      "message": "I don\u0027t think that\u0027s the case. It appears to be part of crbug.com/swiftshader/70 , which isn\u0027t about creating a surfaceless (valid) context.",
+      "range": {
+        "startLine": 9,
+        "startChar": 3,
+        "endLine": 9,
+        "endChar": 9
+      },
+      "revId": "db1db2602045d9fa1a39e751762c3dadccae8b50",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9626088c_191a743d",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 4375,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-03-22T13:50:43Z",
+      "side": 1,
+      "message": "Needs changes to glCheckFrameBufferStatus* to report GL_FRAMEBUFFER_UNDEFINED_OES",
+      "range": {
+        "startLine": 4375,
+        "startChar": 3,
+        "endLine": 4375,
+        "endChar": 29
+      },
+      "revId": "db1db2602045d9fa1a39e751762c3dadccae8b50",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
