@@ -4249,7 +4249,7 @@ void TexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width,
 		return error(GL_INVALID_VALUE);
 	}
 
-	GLenum sizedInternalFormat = gl::GetSizedInternalFormat(internalformat, type);
+	GLint sizedInternalFormat = gl::GetSizedInternalFormat(internalformat, type);
 
 	es1::Context *context = es1::getContext();
 

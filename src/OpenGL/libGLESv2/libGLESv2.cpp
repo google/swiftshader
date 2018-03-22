@@ -925,7 +925,7 @@ void CopyTexImage2D(GLenum target, GLint level, GLenum internalformat, GLint x, 
 			{
 				return error(GL_INVALID_VALUE);
 			}
-			// Fall through
+			// Fall through to GL_TEXTURE_2D case.
 		case GL_TEXTURE_2D:
 			if(width > (es2::IMPLEMENTATION_MAX_TEXTURE_SIZE >> level) ||
 			   height > (es2::IMPLEMENTATION_MAX_TEXTURE_SIZE >> level))
@@ -3463,24 +3463,24 @@ const GLubyte* GetString(GLenum name)
 	case GL_RENDERER:
 		return (GLubyte*)"Google SwiftShader";
 	case GL_VERSION:
-	{
-		es2::Context *context = es2::getContext();
-		return (context && (context->getClientVersion() >= 3)) ?
-		       (GLubyte*)"OpenGL ES 3.0 SwiftShader " VERSION_STRING :
-		       (GLubyte*)"OpenGL ES 2.0 SwiftShader " VERSION_STRING;
-	}
+		{
+			es2::Context *context = es2::getContext();
+			return (context && (context->getClientVersion() >= 3)) ?
+			       (GLubyte*)"OpenGL ES 3.0 SwiftShader " VERSION_STRING :
+			       (GLubyte*)"OpenGL ES 2.0 SwiftShader " VERSION_STRING;
+		}
 	case GL_SHADING_LANGUAGE_VERSION:
-	{
-		es2::Context *context = es2::getContext();
-		return (context && (context->getClientVersion() >= 3)) ?
-		       (GLubyte*)"OpenGL ES GLSL ES 3.00 SwiftShader " VERSION_STRING :
-		       (GLubyte*)"OpenGL ES GLSL ES 1.00 SwiftShader " VERSION_STRING;
-	}
+		{
+			es2::Context *context = es2::getContext();
+			return (context && (context->getClientVersion() >= 3)) ?
+			       (GLubyte*)"OpenGL ES GLSL ES 3.00 SwiftShader " VERSION_STRING :
+			       (GLubyte*)"OpenGL ES GLSL ES 1.00 SwiftShader " VERSION_STRING;
+		}
 	case GL_EXTENSIONS:
-	{
-		es2::Context *context = es2::getContext();
-		return context ? context->getExtensions(GL_INVALID_INDEX) : (GLubyte*)nullptr;
-	}
+		{
+			es2::Context *context = es2::getContext();
+			return context ? context->getExtensions(GL_INVALID_INDEX) : (GLubyte*)nullptr;
+		}
 	default:
 		return error(GL_INVALID_ENUM, (GLubyte*)nullptr);
 	}
@@ -4971,7 +4971,7 @@ void TexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width,
 			}
 		}
 
-		GLenum validationError = ValidateTextureFormatType(format, type, internalformat, target, context->getClientVersion());
+		GLenum validationError = ValidateTextureFormatType(format, type, internalformat, target, clientVersion);
 		if(validationError != GL_NO_ERROR)
 		{
 			return error(validationError);
@@ -4989,7 +4989,7 @@ void TexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width,
 			{
 				return error(GL_INVALID_VALUE); // Defining level other than 0 is not allowed
 			}
-			// Fall through
+			// Fall through to GL_TEXTURE_2D case.
 		case GL_TEXTURE_2D:
 			if(width > (es2::IMPLEMENTATION_MAX_TEXTURE_SIZE >> level) ||
 			   height > (es2::IMPLEMENTATION_MAX_TEXTURE_SIZE >> level))
@@ -5018,13 +5018,13 @@ void TexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width,
 			return error(GL_INVALID_ENUM);
 		}
 
-		GLenum sizedInternalFormat = gl::GetSizedInternalFormat(internalformat, type);
-
 		validationError = context->getPixels(&data, type, context->getRequiredBufferSize(width, height, 1, format, type));
 		if(validationError != GL_NO_ERROR)
 		{
 			return error(validationError);
 		}
+
+		GLint sizedInternalFormat = gl::GetSizedInternalFormat(internalformat, type);
 
 		if(target == GL_TEXTURE_2D || target == GL_TEXTURE_RECTANGLE_ARB)
 		{
@@ -6267,7 +6267,7 @@ void TexImage3DOES(GLenum target, GLint level, GLenum internalformat, GLsizei wi
 			return error(validationError);
 		}
 
-		GLenum sizedInternalFormat = gl::GetSizedInternalFormat(internalformat, type);
+		GLint sizedInternalFormat = gl::GetSizedInternalFormat(internalformat, type);
 		texture->setImage(level, width, height, depth, sizedInternalFormat, format, type, context->getUnpackParameters(), data);
 	}
 }

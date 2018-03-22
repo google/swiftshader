@@ -264,18 +264,18 @@ GL_APICALL void GL_APIENTRY glReadBuffer(GLenum src)
 		case GL_COLOR_ATTACHMENT29:
 		case GL_COLOR_ATTACHMENT30:
 		case GL_COLOR_ATTACHMENT31:
-		{
-			GLuint index = (src - GL_COLOR_ATTACHMENT0);
-			if(index >= MAX_COLOR_ATTACHMENTS)
 			{
-				return error(GL_INVALID_OPERATION);
+				GLuint index = (src - GL_COLOR_ATTACHMENT0);
+				if(index >= MAX_COLOR_ATTACHMENTS)
+				{
+					return error(GL_INVALID_OPERATION);
+				}
+				if(readFramebufferName == 0)
+				{
+					return error(GL_INVALID_OPERATION);
+				}
+				context->setFramebufferReadBuffer(src);
 			}
-			if(readFramebufferName == 0)
-			{
-				return error(GL_INVALID_OPERATION);
-			}
-			context->setFramebufferReadBuffer(src);
-		}
 			break;
 		default:
 			return error(GL_INVALID_ENUM);
@@ -387,7 +387,7 @@ GL_APICALL void GL_APIENTRY glTexImage3D(GLenum target, GLint level, GLint inter
 			return error(validationError);
 		}
 
-		GLenum sizedInternalFormat = gl::GetSizedInternalFormat(internalformat, type);
+		GLint sizedInternalFormat = gl::GetSizedInternalFormat(internalformat, type);
 		texture->setImage(level, width, height, depth, sizedInternalFormat, format, type, context->getUnpackParameters(), data);
 	}
 }
@@ -3621,6 +3621,7 @@ GL_APICALL void GL_APIENTRY glTexStorage2D(GLenum target, GLsizei levels, GLenum
 			{
 				return error(GL_INVALID_ENUM);
 			}
+			// Fall through to GL_TEXTURE_2D case.
 		case GL_TEXTURE_2D:
 			{
 				if((width > es2::IMPLEMENTATION_MAX_TEXTURE_SIZE) ||
@@ -3735,10 +3736,8 @@ GL_APICALL void GL_APIENTRY glTexStorage3D(GLenum target, GLsizei levels, GLenum
 
 				for(int level = 0; level < levels; level++)
 				{
-					for(int face = GL_TEXTURE_CUBE_MAP_POSITIVE_X; face <= GL_TEXTURE_CUBE_MAP_NEGATIVE_Z; face++)
-					{
-						texture->setImage(level, width, height, depth, internalformat, GL_NONE, GL_NONE, context->getUnpackParameters(), nullptr);
-					}
+					texture->setImage(level, width, height, depth, internalformat, GL_NONE, GL_NONE, context->getUnpackParameters(), nullptr);
+
 					width = std::max(1, (width / 2));
 					height = std::max(1, (height / 2));
 				}
