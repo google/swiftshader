@@ -292,20 +292,20 @@ void Context::makeCurrent(gl::Surface *surface)
 	{
 		mState.viewportX = 0;
 		mState.viewportY = 0;
-		mState.viewportWidth = surface->getWidth();
-		mState.viewportHeight = surface->getHeight();
+		mState.viewportWidth = surface ? surface->getWidth() : 0;
+		mState.viewportHeight = surface ? surface->getHeight() : 0;
 
 		mState.scissorX = 0;
 		mState.scissorY = 0;
-		mState.scissorWidth = surface->getWidth();
-		mState.scissorHeight = surface->getHeight();
+		mState.scissorWidth = surface ? surface->getWidth() : 0;
+		mState.scissorHeight = surface ? surface->getHeight() : 0;
 
 		mHasBeenCurrent = true;
 	}
 
 	// Wrap the existing resources into GL objects and assign them to the '0' names
-	egl::Image *defaultRenderTarget = surface->getRenderTarget();
-	egl::Image *depthStencil = surface->getDepthStencil();
+	egl::Image *defaultRenderTarget = surface ? surface->getRenderTarget() : nullptr;
+	egl::Image *depthStencil = surface ? surface->getDepthStencil() : nullptr;
 
 	Colorbuffer *colorbufferZero = new Colorbuffer(defaultRenderTarget);
 	DepthStencilbuffer *depthStencilbufferZero = new DepthStencilbuffer(depthStencil);
@@ -1245,7 +1245,7 @@ bool Context::getIntegerv(GLenum pname, GLint *params)
 			Framebuffer *framebuffer = getFramebuffer();
 			int width, height, samples;
 
-			if(framebuffer->completeness(width, height, samples) == GL_FRAMEBUFFER_COMPLETE_OES)
+			if(framebuffer && (framebuffer->completeness(width, height, samples) == GL_FRAMEBUFFER_COMPLETE_OES))
 			{
 				switch(pname)
 				{
@@ -1273,13 +1273,27 @@ bool Context::getIntegerv(GLenum pname, GLint *params)
 	case GL_IMPLEMENTATION_COLOR_READ_TYPE_OES:
 		{
 			Framebuffer *framebuffer = getFramebuffer();
-			*params = framebuffer->getImplementationColorReadType();
+			if(framebuffer)
+			{
+				*params = framebuffer->getImplementationColorReadType();
+			}
+			else
+			{
+				return error(GL_INVALID_OPERATION, true);
+			}
 		}
 		break;
 	case GL_IMPLEMENTATION_COLOR_READ_FORMAT_OES:
 		{
 			Framebuffer *framebuffer = getFramebuffer();
-			*params = framebuffer->getImplementationColorReadFormat();
+			if(framebuffer)
+			{
+				*params = framebuffer->getImplementationColorReadFormat();
+			}
+			else
+			{
+				return error(GL_INVALID_OPERATION, true);
+			}
 		}
 		break;
 	case GL_MAX_VIEWPORT_DIMS:
@@ -1317,7 +1331,7 @@ bool Context::getIntegerv(GLenum pname, GLint *params)
 	case GL_ALPHA_BITS:
 		{
 			Framebuffer *framebuffer = getFramebuffer();
-			Renderbuffer *colorbuffer = framebuffer->getColorbuffer();
+			Renderbuffer *colorbuffer = framebuffer ? framebuffer->getColorbuffer() : nullptr;
 
 			if(colorbuffer)
 			{
@@ -1338,7 +1352,7 @@ bool Context::getIntegerv(GLenum pname, GLint *params)
 	case GL_DEPTH_BITS:
 		{
 			Framebuffer *framebuffer = getFramebuffer();
-			Renderbuffer *depthbuffer = framebuffer->getDepthbuffer();
+			Renderbuffer *depthbuffer = framebuffer ? framebuffer->getDepthbuffer() : nullptr;
 
 			if(depthbuffer)
 			{
@@ -1353,7 +1367,7 @@ bool Context::getIntegerv(GLenum pname, GLint *params)
 	case GL_STENCIL_BITS:
 		{
 			Framebuffer *framebuffer = getFramebuffer();
-			Renderbuffer *stencilbuffer = framebuffer->getStencilbuffer();
+			Renderbuffer *stencilbuffer = framebuffer ? framebuffer->getStencilbuffer() : nullptr;
 
 			if(stencilbuffer)
 			{
@@ -2392,7 +2406,7 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height,
 	Framebuffer *framebuffer = getFramebuffer();
 	int framebufferWidth, framebufferHeight, framebufferSamples;
 
-	if(framebuffer->completeness(framebufferWidth, framebufferHeight, framebufferSamples) != GL_FRAMEBUFFER_COMPLETE_OES)
+	if(!framebuffer || (framebuffer->completeness(framebufferWidth, framebufferHeight, framebufferSamples) != GL_FRAMEBUFFER_COMPLETE_OES))
 	{
 		return error(GL_INVALID_FRAMEBUFFER_OPERATION_OES);
 	}
@@ -2787,7 +2801,12 @@ void Context::drawElements(GLenum mode, GLsizei count, GLenum type, const void *
 void Context::drawTexture(GLfloat x, GLfloat y, GLfloat z, GLfloat width, GLfloat height)
 {
 	es1::Framebuffer *framebuffer = getFramebuffer();
-	es1::Renderbuffer *renderbuffer = framebuffer->getColorbuffer();
+	es1::Renderbuffer *renderbuffer = framebuffer ? framebuffer->getColorbuffer() : nullptr;
+	if(!renderbuffer)
+	{
+		return;
+	}
+
 	float targetWidth = (float)renderbuffer->getWidth();
 	float targetHeight = (float)renderbuffer->getHeight();
 	float x0 = 2.0f * x / targetWidth - 1.0f;

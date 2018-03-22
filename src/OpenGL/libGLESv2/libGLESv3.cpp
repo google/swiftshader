@@ -471,7 +471,7 @@ GL_APICALL void GL_APIENTRY glCopyTexSubImage3D(GLenum target, GLint level, GLin
 	{
 		es2::Framebuffer *framebuffer = context->getReadFramebuffer();
 
-		if(framebuffer->completeness() != GL_FRAMEBUFFER_COMPLETE)
+		if(!framebuffer || (framebuffer->completeness() != GL_FRAMEBUFFER_COMPLETE))
 		{
 			return error(GL_INVALID_FRAMEBUFFER_OPERATION);
 		}

@@ -203,6 +203,7 @@ const char *QueryString(EGLDisplay dpy, EGLint name)
 		               "EGL_KHR_gl_renderbuffer_image "
 		               "EGL_KHR_fence_sync "
 		               "EGL_KHR_image_base "
+		               "EGL_KHR_surfaceless_context "
 		               "EGL_ANDROID_framebuffer_target "
 		               "EGL_ANDROID_recordable");
 	case EGL_VENDOR:
