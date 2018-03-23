@@ -678,7 +678,7 @@ egl::Image *Texture2D::getImage(unsigned int level)
 	return image[level];
 }
 
-Renderbuffer *Texture2D::getRenderbuffer(GLenum target)
+Renderbuffer *Texture2D::getRenderbuffer(GLenum target, GLint level)
 {
 	if(target != GL_TEXTURE_2D)
 	{
@@ -687,7 +687,11 @@ Renderbuffer *Texture2D::getRenderbuffer(GLenum target)
 
 	if(!mColorbufferProxy)
 	{
-		mColorbufferProxy = new Renderbuffer(name, new RenderbufferTexture2D(this));
+		mColorbufferProxy = new Renderbuffer(name, new RenderbufferTexture2D(this, level));
+	}
+	else
+	{
+		mColorbufferProxy->setLevel(level);
 	}
 
 	return mColorbufferProxy;

@@ -39,7 +39,7 @@ Framebuffer::~Framebuffer()
 	mStencilbufferPointer = nullptr;
 }
 
-Renderbuffer *Framebuffer::lookupRenderbuffer(GLenum type, GLuint handle) const
+Renderbuffer *Framebuffer::lookupRenderbuffer(GLenum type, GLuint handle, GLint level) const
 {
 	Context *context = getContext();
 	Renderbuffer *buffer = nullptr;
@@ -54,29 +54,29 @@ Renderbuffer *Framebuffer::lookupRenderbuffer(GLenum type, GLuint handle) const
 	}
 	else if(IsTextureTarget(type))
 	{
-		buffer = context->getTexture(handle)->getRenderbuffer(type);
+		buffer = context->getTexture(handle)->getRenderbuffer(type, level);
 	}
 	else UNREACHABLE(type);
 
 	return buffer;
 }
 
-void Framebuffer::setColorbuffer(GLenum type, GLuint colorbuffer)
+void Framebuffer::setColorbuffer(GLenum type, GLuint colorbuffer, GLint level)
 {
 	mColorbufferType = (colorbuffer != 0) ? type : GL_NONE_OES;
-	mColorbufferPointer = lookupRenderbuffer(type, colorbuffer);
+	mColorbufferPointer = lookupRenderbuffer(type, colorbuffer, level);
 }
 
-void Framebuffer::setDepthbuffer(GLenum type, GLuint depthbuffer)
+void Framebuffer::setDepthbuffer(GLenum type, GLuint depthbuffer, GLint level)
 {
 	mDepthbufferType = (depthbuffer != 0) ? type : GL_NONE_OES;
-	mDepthbufferPointer = lookupRenderbuffer(type, depthbuffer);
+	mDepthbufferPointer = lookupRenderbuffer(type, depthbuffer, level);
 }
 
-void Framebuffer::setStencilbuffer(GLenum type, GLuint stencilbuffer)
+void Framebuffer::setStencilbuffer(GLenum type, GLuint stencilbuffer, GLint level)
 {
 	mStencilbufferType = (stencilbuffer != 0) ? type : GL_NONE_OES;
-	mStencilbufferPointer = lookupRenderbuffer(type, stencilbuffer);
+	mStencilbufferPointer = lookupRenderbuffer(type, stencilbuffer, level);
 }
 
 void Framebuffer::detachTexture(GLuint texture)

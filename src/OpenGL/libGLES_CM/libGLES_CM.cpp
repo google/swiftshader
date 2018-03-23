@@ -1507,7 +1507,7 @@ void FramebufferTexture2DOES(GLenum target, GLenum attachment, GLenum textarget,
 				return error(GL_INVALID_ENUM);
 			}
 
-			if(level != 0)
+			if((level < 0) || (level >= es1::IMPLEMENTATION_MAX_TEXTURE_LEVELS))
 			{
 				return error(GL_INVALID_VALUE);
 			}
@@ -1528,9 +1528,9 @@ void FramebufferTexture2DOES(GLenum target, GLenum attachment, GLenum textarget,
 
 		switch(attachment)
 		{
-		case GL_COLOR_ATTACHMENT0_OES:  framebuffer->setColorbuffer(textarget, texture);   break;
-		case GL_DEPTH_ATTACHMENT_OES:   framebuffer->setDepthbuffer(textarget, texture);   break;
-		case GL_STENCIL_ATTACHMENT_OES: framebuffer->setStencilbuffer(textarget, texture); break;
+		case GL_COLOR_ATTACHMENT0_OES:  framebuffer->setColorbuffer(textarget, texture, level);   break;
+		case GL_DEPTH_ATTACHMENT_OES:   framebuffer->setDepthbuffer(textarget, texture, level);   break;
+		case GL_STENCIL_ATTACHMENT_OES: framebuffer->setStencilbuffer(textarget, texture, level); break;
 		}
 	}
 }
@@ -2082,19 +2082,23 @@ void GetFramebufferAttachmentParameterivOES(GLenum target, GLenum attachment, GL
 
 		GLenum attachmentType;
 		GLuint attachmentHandle;
+		Renderbuffer *renderbuffer = nullptr;
 		switch(attachment)
 		{
 		case GL_COLOR_ATTACHMENT0_OES:
 			attachmentType = framebuffer->getColorbufferType();
 			attachmentHandle = framebuffer->getColorbufferName();
+			renderbuffer = framebuffer->getColorbuffer();
 			break;
 		case GL_DEPTH_ATTACHMENT_OES:
 			attachmentType = framebuffer->getDepthbufferType();
 			attachmentHandle = framebuffer->getDepthbufferName();
+			renderbuffer = framebuffer->getDepthbuffer();
 			break;
 		case GL_STENCIL_ATTACHMENT_OES:
 			attachmentType = framebuffer->getStencilbufferType();
 			attachmentHandle = framebuffer->getStencilbufferName();
+			renderbuffer = framebuffer->getStencilbuffer();
 			break;
 		default:
 			return error(GL_INVALID_ENUM);
@@ -2129,7 +2133,7 @@ void GetFramebufferAttachmentParameterivOES(GLenum target, GLenum attachment, GL
 		case GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_LEVEL_OES:
 			if(attachmentObjectType == GL_TEXTURE)
 			{
-				*params = 0; // FramebufferTexture2D will not allow level to be set to anything else in GL ES 2.0
+				*params = renderbuffer->getLevel();
 			}
 			else
 			{
@@ -2268,6 +2272,7 @@ const GLubyte* GetString(GLenum name)
 			"GL_OES_EGL_image_external "
 			"GL_OES_EGL_sync "
 			"GL_OES_element_index_uint "
+			"GL_OES_fbo_render_mipmap "
 			"GL_OES_framebuffer_object "
 			"GL_OES_packed_depth_stencil "
 			"GL_OES_read_format "

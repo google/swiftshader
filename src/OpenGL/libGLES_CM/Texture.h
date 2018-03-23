@@ -83,7 +83,7 @@ public:
 	virtual bool isCompressed(GLenum target, GLint level) const = 0;
 	virtual bool isDepth(GLenum target, GLint level) const = 0;
 
-	virtual Renderbuffer *getRenderbuffer(GLenum target) = 0;
+	virtual Renderbuffer *getRenderbuffer(GLenum target, GLint level) = 0;
 	virtual egl::Image *getRenderTarget(GLenum target, unsigned int level) = 0;
 	egl::Image *createSharedImage(GLenum target, unsigned int level);
 	virtual bool isShared(GLenum target, unsigned int level) const = 0;
@@ -153,7 +153,7 @@ public:
 	void generateMipmaps() override;
 	void autoGenerateMipmaps() override;
 
-	Renderbuffer *getRenderbuffer(GLenum target) override;
+	Renderbuffer *getRenderbuffer(GLenum target, GLint level) override;
 	egl::Image *getRenderTarget(GLenum target, unsigned int level) override;
 	bool isShared(GLenum target, unsigned int level) const override;
 

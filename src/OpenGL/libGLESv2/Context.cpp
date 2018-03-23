@@ -4405,6 +4405,7 @@ const GLubyte *Context::getExtensions(GLuint index, GLuint *numExt) const
 		"GL_OES_EGL_image_external",
 		"GL_OES_EGL_sync",
 		"GL_OES_element_index_uint",
+		"GL_OES_fbo_render_mipmap",
 		"GL_OES_framebuffer_object",
 		"GL_OES_packed_depth_stencil",
 		"GL_OES_rgb8_rgba8",

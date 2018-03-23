@@ -71,7 +71,7 @@ GLuint RenderbufferInterface::getStencilSize() const
 
 ///// RenderbufferTexture2D Implementation ////////
 
-RenderbufferTexture2D::RenderbufferTexture2D(Texture2D *texture)
+RenderbufferTexture2D::RenderbufferTexture2D(Texture2D *texture, GLint level) : mLevel(level)
 {
 	mTexture2D = texture;
 }
@@ -190,6 +190,11 @@ GLsizei Renderbuffer::getHeight() const
 	return mInstance->getHeight();
 }
 
+GLint Renderbuffer::getLevel() const
+{
+	return mInstance->getLevel();
+}
+
 GLenum Renderbuffer::getFormat() const
 {
 	return mInstance->getFormat();
@@ -228,6 +233,11 @@ GLuint Renderbuffer::getStencilSize() const
 GLsizei Renderbuffer::getSamples() const
 {
 	return mInstance->getSamples();
+}
+
+void Renderbuffer::setLevel(GLint level)
+{
+	return mInstance->setLevel(level);
 }
 
 void Renderbuffer::setStorage(RenderbufferStorage *newStorage)
