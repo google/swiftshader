@@ -47,7 +47,7 @@ swiftshader_source_set("swiftshader_main") {
     "SwiftConfig.cpp",
   ]
 
-  if (use_ozone) {
+  if (use_ozone && !is_win) {
     sources += [ "FrameBufferOzone.cpp" ]
   } else if (is_linux) {
     sources += [
@@ -70,9 +70,7 @@ swiftshader_source_set("swiftshader_main") {
 
   configs = [ ":swiftshader_main_private_config" ]
 
-  include_dirs = [
-    "..",
-  ]
+  include_dirs = [ ".." ]
 
   if (is_mac) {
     include_dirs += [ "../../include" ]
