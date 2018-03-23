@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "036f6168_7258ecc3",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 997,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2018-03-23T01:12:16Z",
+      "side": 1,
+      "message": "Why use the OES format here?",
+      "range": {
+        "startLine": 997,
+        "startChar": 77,
+        "endLine": 997,
+        "endChar": 81
+      },
+      "revId": "1cdffa979043a3fea9bade3373849204827fb522",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
