@@ -1,0 +1,116 @@
+//
+// Copyright (C) 2018 The Android Open Source Project
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+
+cc_library_static {
+    name: "libsubzero",
+
+    defaults: [ "swiftshader_common_release", "swiftshader_subzero" ],
+
+    device_supported: false,
+    host_supported: true,
+
+    cflags: [
+        "-D_GNU_SOURCE",
+        "-D__STDC_LIMIT_MACROS",
+        "-D__STDC_CONSTANT_MACROS",
+        "-D__STDC_FORMAT_MACROS",
+        "-DLOG_TAG=\"libsubzero\"",
+        "-Wno-unused-parameter",
+        "-Wno-error=undefined-var-template",
+        "-Wno-error=unused-lambda-capture",
+    ],
+
+    cppflags: [
+        "-Wno-sign-promo",
+        "-Wno-non-virtual-dtor",
+    ],
+
+    srcs: [
+        "src/IceAssembler.cpp",
+        "src/IceCfg.cpp",
+        "src/IceCfgNode.cpp",
+        "src/IceClFlags.cpp",
+        "src/IceELFObjectWriter.cpp",
+        "src/IceELFSection.cpp",
+        "src/IceFixups.cpp",
+        "src/IceGlobalContext.cpp",
+        "src/IceGlobalInits.cpp",
+        "src/IceInst.cpp",
+        "src/IceInstrumentation.cpp",
+        "src/IceIntrinsics.cpp",
+        "src/IceLiveness.cpp",
+        "src/IceLoopAnalyzer.cpp",
+        "src/IceMangling.cpp",
+        "src/IceMemory.cpp",
+        "src/IceOperand.cpp",
+        "src/IceRangeSpec.cpp",
+        "src/IceRegAlloc.cpp",
+        "src/IceRevision.cpp",
+        "src/IceRNG.cpp",
+        "src/IceSwitchLowering.cpp",
+        "src/IceTargetLowering.cpp",
+        "src/IceThreading.cpp",
+        "src/IceTimerTree.cpp",
+        "src/IceTypes.cpp",
+        "src/IceVariableSplitting.cpp",
+    ],
+
+    arch: {
+        arm: {
+            cflags : [ "-DSZTARGET=ARM32" ],
+
+            srcs: [
+                "src/IceAssemblerARM32.cpp",
+                "src/IceTargetLoweringARM32.cpp",
+                "src/IceInstARM32.cpp",
+            ],
+        },
+
+        mips: {
+            cflags : [ "-DSZTARGET=MIPS32" ],
+
+            srcs: [
+                "src/IceAssemblerMIPS32.cpp",
+                "src/IceTargetLoweringMIPS32.cpp",
+                "src/IceInstMIPS32.cpp",
+            ],
+        },
+
+        x86: {
+            cflags : [ "-DSZTARGET=X8632" ],
+
+            srcs: [
+                "src/IceTargetLoweringX8632.cpp",
+                "src/IceInstX8632.cpp",
+            ],
+        },
+
+        x86_64: {
+            cflags : [ "-DSZTARGET=X8664" ],
+
+            srcs: [
+                "src/IceTargetLoweringX8664.cpp",
+                "src/IceInstX8664.cpp",
+            ],
+        },
+    },
+
+    // FIXME: The IceCfg.h interface needs to be exported correctly
+    // FIXME: Exporting the whole src tree is broken
+    export_include_dirs: [ "pnacl-llvm/include", "." ],
+
+    static_libs: [ "libLLVMSupport_subzero" ],
+}
