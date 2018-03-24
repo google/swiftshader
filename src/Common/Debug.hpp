@@ -15,7 +15,7 @@
 #ifndef Debug_hpp
 #define Debug_hpp
 
-#ifdef __ANDROID__
+#if defined(__ANDROID__) && !defined(ANDROID_HOST_BUILD)
 #include "DebugAndroid.hpp"
 #else
 

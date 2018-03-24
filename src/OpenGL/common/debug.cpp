@@ -26,8 +26,8 @@
 
 namespace es
 {
-#ifdef __ANDROID__
-	void output(const char *format, va_list vararg)
+#if defined(__ANDROID__) && !defined(ANDROID_HOST_BUILD)
+	static void output(const char *format, va_list vararg)
 	{
 		ALOGI("%s", android::String8::formatV(format, vararg).string());
 	}

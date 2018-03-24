@@ -668,12 +668,12 @@ bool Display::isValidWindow(EGLNativeWindowType window)
 	#elif defined(__ANDROID__)
 		if(!window)
 		{
-			ALOGE("%s called with window==NULL %s:%d", __FUNCTION__, __FILE__, __LINE__);
+			ERR("%s called with window==NULL %s:%d", __FUNCTION__, __FILE__, __LINE__);
 			return false;
 		}
 		if(static_cast<ANativeWindow*>(window)->common.magic != ANDROID_NATIVE_WINDOW_MAGIC)
 		{
-			ALOGE("%s called with window==%p bad magic %s:%d", __FUNCTION__, window, __FILE__, __LINE__);
+			ERR("%s called with window==%p bad magic %s:%d", __FUNCTION__, window, __FILE__, __LINE__);
 			return false;
 		}
 		return true;

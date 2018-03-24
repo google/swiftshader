@@ -37,10 +37,6 @@
 #include <algorithm>
 #include <limits>
 
-#ifdef __ANDROID__
-#include <cutils/log.h>
-#endif
-
 namespace es2
 {
 
@@ -2807,11 +2803,7 @@ void GetIntegerv(GLenum pname, GLint* params)
 	if(!context)
 	{
 		// Not strictly an error, but probably unintended or attempting to rely on non-compliant behavior
-		#ifdef __ANDROID__
-			ALOGI("expected_badness glGetIntegerv() called without current context.");
-		#else
-			ERR("glGetIntegerv() called without current context.");
-		#endif
+		ERR("glGetIntegerv() called without current context.");
 
 		// This is not spec compliant! When there is no current GL context, functions should
 		// have no side effects. Google Maps queries these values before creating a context,

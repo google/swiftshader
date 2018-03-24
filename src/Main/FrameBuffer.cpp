@@ -23,10 +23,6 @@
 #include <string.h>
 #include <time.h>
 
-#ifdef __ANDROID__
-#include <cutils/properties.h>
-#endif
-
 #define ASYNCHRONOUS_BLIT false   // FIXME: Currently leads to rare race conditions
 
 namespace sw

@@ -17,7 +17,6 @@
 #include "Common/GrallocAndroid.hpp"
 
 #include <system/window.h>
-#include <cutils/log.h>
 
 namespace sw
 {
@@ -88,14 +87,14 @@ namespace sw
 		                 GRALLOC_USAGE_SW_READ_OFTEN | GRALLOC_USAGE_SW_WRITE_OFTEN,
 		                 0, 0, buffer->width, buffer->height, &framebuffer) != 0)
 		{
-			ALOGE("%s failed to lock buffer %p", __FUNCTION__, buffer);
+			TRACE("%s failed to lock buffer %p", __FUNCTION__, buffer);
 			return nullptr;
 		}
 
 		if((buffer->width < width) || (buffer->height < height))
 		{
-			ALOGI("lock failed: buffer of %dx%d too small for window of %dx%d",
-				  buffer->width, buffer->height, width, height);
+			TRACE("lock failed: buffer of %dx%d too small for window of %dx%d",
+			      buffer->width, buffer->height, width, height);
 			return nullptr;
 		}
 
@@ -110,11 +109,11 @@ namespace sw
 		case HAL_PIXEL_FORMAT_BGRA_8888: format = FORMAT_A8R8G8B8; break;
 		case HAL_PIXEL_FORMAT_RGB_888:
 			// Frame buffers are expected to have 16-bit or 32-bit colors, not 24-bit.
-			ALOGE("Unsupported frame buffer format RGB_888"); ASSERT(false);
+			TRACE("Unsupported frame buffer format RGB_888"); ASSERT(false);
 			format = FORMAT_R8G8B8;   // Wrong component order.
 			break;
 		default:
-			ALOGE("Unsupported frame buffer format %d", buffer->format); ASSERT(false);
+			TRACE("Unsupported frame buffer format %d", buffer->format); ASSERT(false);
 			format = FORMAT_NULL;
 			break;
 		}
@@ -127,7 +126,7 @@ namespace sw
 	{
 		if(!buffer)
 		{
-			ALOGE("%s: badness unlock with no active buffer", __FUNCTION__);
+			TRACE("%s: badness unlock with no active buffer", __FUNCTION__);
 			return;
 		}
 
@@ -135,7 +134,7 @@ namespace sw
 
 		if(GrallocModule::getInstance()->unlock(buffer->handle) != 0)
 		{
-			ALOGE("%s: badness unlock failed", __FUNCTION__);
+			TRACE("%s: badness unlock failed", __FUNCTION__);
 		}
 	}
 }

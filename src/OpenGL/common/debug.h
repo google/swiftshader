@@ -17,7 +17,7 @@
 #ifndef COMMON_DEBUG_H_
 #define COMMON_DEBUG_H_
 
-#ifdef __ANDROID__
+#if defined(__ANDROID__) && !defined(ANDROID_HOST_BUILD)
 #include "../../Common/DebugAndroid.hpp"
 #else
 #include <stdio.h>

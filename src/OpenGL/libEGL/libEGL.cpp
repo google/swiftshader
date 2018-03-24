@@ -1172,7 +1172,7 @@ EGLImage CreateImage(EGLDisplay dpy, EGLContext ctx, EGLenum target, EGLClientBu
 
 			if(!nativeBuffer || GLPixelFormatFromAndroid(nativeBuffer->format) == GL_NONE)
 			{
-				ALOGW("%s badness unsupported HAL format=%x", __FUNCTION__, nativeBuffer ? nativeBuffer->format : 0);
+				ERR("%s badness unsupported HAL format=%x", __FUNCTION__, nativeBuffer ? nativeBuffer->format : 0);
 				return error(EGL_BAD_ATTRIBUTE, EGL_NO_IMAGE_KHR);
 			}
 

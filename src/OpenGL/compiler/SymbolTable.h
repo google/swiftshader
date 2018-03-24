@@ -38,10 +38,10 @@
 //   are tracked in the intermediate representation, not the symbol table.
 //
 
-#ifndef __ANDROID__
-#include <assert.h>
-#else
+#if defined(__ANDROID__) && !defined(ANDROID_HOST_BUILD)
 #include "../../Common/DebugAndroid.hpp"
+#else
+#include <assert.h>
 #endif
 
 #include "InfoSink.h"
