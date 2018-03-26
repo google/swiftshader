@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0fcb2aab_f68dc805",
+        "filename": "src/Renderer/Surface.cpp",
+        "patchSetId": 15
+      },
+      "lineNbr": 1229,
+      "author": {
+        "id": 5880
+      },
+      "writtenOn": "2018-03-26T19:13:48Z",
+      "side": 1,
+      "message": "The way the ANGLE extension is written in a way such that Swiftshader can lock only on eglBindTexImage and unlock on eglReleaseTexImage. This could make a bunch of the code simpler and also avoid work due to unnecessary lock-unlocks.",
+      "revId": "a365f9c2555865dde6b58a3662c6dbe42f7d4057",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
