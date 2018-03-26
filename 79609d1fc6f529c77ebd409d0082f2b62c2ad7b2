@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "7850a064_17376945",
+        "filename": "src/Common/Debug.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-03-26T17:47:46Z",
+      "side": 1,
+      "message": "Thanks for the clarification. Our assumption of X11 support on Linux isn\u0027t a strong one. SwiftShader will attempt to load libX11.so dynamically, but if not available it falls back to creating a \u0027headless\u0027 context.\n\nWould that work for you? It appears that a number of these android-but-not-really changes could be avoided by using a headless context, or dynamically detecting some other native display/window API.",
+      "parentUuid": "01a49105_8f29b86e",
+      "range": {
+        "startLine": 18,
+        "startChar": 37,
+        "endLine": 18,
+        "endChar": 55
+      },
+      "revId": "79609d1fc6f529c77ebd409d0082f2b62c2ad7b2",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "1e0756d5_c271651b",
         "filename": "src/Main/FrameBufferAndroid.cpp",
         "patchSetId": 1
