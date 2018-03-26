@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "8d843b0e_fa98287c",
+        "filename": "src/Common/Debug.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 6882
+      },
+      "writtenOn": "2018-03-26T18:05:12Z",
+      "side": 1,
+      "message": "No. We need to be able to pass Android-like objects into e.g. eglCreateWindowSurface() and eglCreateImageKHR(), and we can\u0027t do this right now because a lot of the code is #ifdef X \\ #elif Y. Though there\u0027s no reason both systems couldn\u0027t be supported at the same time, it isn\u0027t sufficiently dynamic right now.",
+      "parentUuid": "7850a064_17376945",
+      "range": {
+        "startLine": 18,
+        "startChar": 37,
+        "endLine": 18,
+        "endChar": 55
+      },
+      "revId": "79609d1fc6f529c77ebd409d0082f2b62c2ad7b2",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "1e0756d5_c271651b",
         "filename": "src/Main/FrameBufferAndroid.cpp",
         "patchSetId": 1
