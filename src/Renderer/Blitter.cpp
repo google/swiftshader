@@ -99,7 +99,8 @@ namespace sw
 			return false;
 		}
 
-		uint8_t *slice = (uint8_t*)dest->lockInternal(dRect.x0, dRect.y0, dRect.slice, sw::LOCK_WRITEONLY, sw::PUBLIC);
+		bool useDestInternal = !dest->isExternalDirty();
+		uint8_t *slice = (uint8_t*)dest->lock(dRect.x0, dRect.y0, dRect.slice, sw::LOCK_WRITEONLY, sw::PUBLIC, useDestInternal);
 
 		for(int j = 0; j < dest->getSamples(); j++)
 		{
@@ -111,24 +112,24 @@ namespace sw
 				for(int i = dRect.y0; i < dRect.y1; i++)
 				{
 					sw::clear((uint16_t*)d, packed, dRect.x1 - dRect.x0);
-					d += dest->getInternalPitchB();
+					d += dest->getPitchB(useDestInternal);
 				}
 				break;
 			case 4:
 				for(int i = dRect.y0; i < dRect.y1; i++)
 				{
 					sw::clear((uint32_t*)d, packed, dRect.x1 - dRect.x0);
-					d += dest->getInternalPitchB();
+					d += dest->getPitchB(useDestInternal);
 				}
 				break;
 			default:
 				assert(false);
 			}
 
-			slice += dest->getInternalSliceB();
+			slice += dest->getSliceB(useDestInternal);
 		}
 
-		dest->unlockInternal();
+		dest->unlock(useDestInternal);
 
 		return true;
 	}
