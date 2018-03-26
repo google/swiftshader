@@ -1256,9 +1256,14 @@ namespace sw
 					}
 					else if(hasConstantColorF)
 					{
-						if(!write(constantColorF, d, state))
+						for(int s = 0; s < state.destSamples; s++)
 						{
-							return nullptr;
+							if(!write(constantColorF, d, state))
+							{
+								return nullptr;
+							}
+
+							d += *Pointer<Int>(blit + OFFSET(BlitData, dSliceB));
 						}
 					}
 					else if(intBoth) // Integer types do not support filtering
