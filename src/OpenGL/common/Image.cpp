@@ -247,9 +247,15 @@ namespace gl
 		case GL_RGBA32UI: return GL_RGBA;
 
 		// GL_EXT_texture_storage
-		case GL_ALPHA8_EXT:            return GL_ALPHA;
-		case GL_LUMINANCE8_ALPHA8_EXT: return GL_LUMINANCE_ALPHA;
-		case GL_LUMINANCE8_EXT:        return GL_LUMINANCE;
+		case GL_ALPHA8_EXT:             return GL_ALPHA;
+		case GL_LUMINANCE8_EXT:         return GL_LUMINANCE;
+		case GL_LUMINANCE8_ALPHA8_EXT:  return GL_LUMINANCE_ALPHA;
+		case GL_ALPHA32F_EXT:           return GL_ALPHA;
+		case GL_LUMINANCE32F_EXT:       return GL_LUMINANCE;
+		case GL_LUMINANCE_ALPHA32F_EXT: return GL_LUMINANCE_ALPHA;
+		case GL_ALPHA16F_EXT:           return GL_ALPHA;
+		case GL_LUMINANCE16F_EXT:       return GL_LUMINANCE;
+		case GL_LUMINANCE_ALPHA16F_EXT: return GL_LUMINANCE_ALPHA;
 
 		case GL_BGRA8_EXT: return GL_BGRA_EXT;   // GL_APPLE_texture_format_BGRA8888
 

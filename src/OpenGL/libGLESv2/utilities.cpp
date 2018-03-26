@@ -383,8 +383,14 @@ namespace es2
 		switch(internalformat)
 		{
 		case GL_ALPHA8_EXT:
-		case GL_LUMINANCE8_ALPHA8_EXT:
 		case GL_LUMINANCE8_EXT:
+		case GL_LUMINANCE8_ALPHA8_EXT:
+		case GL_ALPHA32F_EXT:
+		case GL_LUMINANCE32F_EXT:
+		case GL_LUMINANCE_ALPHA32F_EXT:
+		case GL_ALPHA16F_EXT:
+		case GL_LUMINANCE16F_EXT:
+		case GL_LUMINANCE_ALPHA16F_EXT:
 		case GL_R8:
 		case GL_R8UI:
 		case GL_R8I:
@@ -1209,6 +1215,12 @@ namespace es2
 		case GL_ALPHA8_EXT:
 		case GL_LUMINANCE8_EXT:
 		case GL_LUMINANCE8_ALPHA8_EXT:
+		case GL_ALPHA32F_EXT:
+		case GL_LUMINANCE32F_EXT:
+		case GL_LUMINANCE_ALPHA32F_EXT:
+		case GL_ALPHA16F_EXT:
+		case GL_LUMINANCE16F_EXT:
+		case GL_LUMINANCE_ALPHA16F_EXT:
 		case GL_DEPTH_COMPONENT24:
 		case GL_DEPTH_COMPONENT32_OES:
 		case GL_DEPTH_COMPONENT32F:
@@ -1378,6 +1390,12 @@ namespace es2
 		case GL_ALPHA8_EXT:
 		case GL_LUMINANCE8_EXT:
 		case GL_LUMINANCE8_ALPHA8_EXT:
+		case GL_ALPHA32F_EXT:
+		case GL_LUMINANCE32F_EXT:
+		case GL_LUMINANCE_ALPHA32F_EXT:
+		case GL_ALPHA16F_EXT:
+		case GL_LUMINANCE16F_EXT:
+		case GL_LUMINANCE_ALPHA16F_EXT:
 			return true;
 		default:
 			return IsColorRenderable(internalformat, clientVersion);
@@ -1665,6 +1683,12 @@ namespace es2
 		case GL_RGBA16I:
 		case GL_RGBA32I:
 			return GL_INT;
+		case GL_ALPHA32F_EXT:
+		case GL_LUMINANCE32F_EXT:
+		case GL_LUMINANCE_ALPHA32F_EXT:
+		case GL_ALPHA16F_EXT:
+		case GL_LUMINANCE16F_EXT:
+		case GL_LUMINANCE_ALPHA16F_EXT:
 		case GL_R16F:
 		case GL_RG16F:
 		case GL_R11F_G11F_B10F:
