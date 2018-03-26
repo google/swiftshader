@@ -22,6 +22,30 @@
       "revId": "1cdffa979043a3fea9bade3373849204827fb522",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a5a0ab8a_59fcbc79",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 997,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-03-26T13:53:18Z",
+      "side": 1,
+      "message": "Floating-point formats are not renderable by default in OpenGL ES 3.0. Only with the GL_EXT_color_buffer_half_float extension is it renderable, and it uses the GL_HALF_FLOAT_OES enum, not GL_HALF_FLOAT.\n\nIt doesn\u0027t actually matter though. GetSizedInternalFormat maps it to the same sized internal format. But I think it helps clarify that this is only supported because of the extension.",
+      "parentUuid": "036f6168_7258ecc3",
+      "range": {
+        "startLine": 997,
+        "startChar": 77,
+        "endLine": 997,
+        "endChar": 81
+      },
+      "revId": "1cdffa979043a3fea9bade3373849204827fb522",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
