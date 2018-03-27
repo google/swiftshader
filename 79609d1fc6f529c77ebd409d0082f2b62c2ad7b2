@@ -121,6 +121,30 @@
     },
     {
       "key": {
+        "uuid": "e5c80631_a826b27d",
+        "filename": "src/Common/Debug.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5545
+      },
+      "writtenOn": "2018-03-27T15:50:13Z",
+      "side": 1,
+      "message": "We do that because it\u0027s the most portable option; if we want to run on hardware OpenGL / D3D drivers we can\u0027t assume that they support Android window objects.",
+      "parentUuid": "317a08fc_1046bed8",
+      "range": {
+        "startLine": 18,
+        "startChar": 37,
+        "endLine": 18,
+        "endChar": 55
+      },
+      "revId": "79609d1fc6f529c77ebd409d0082f2b62c2ad7b2",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "1e0756d5_c271651b",
         "filename": "src/Main/FrameBufferAndroid.cpp",
         "patchSetId": 1
