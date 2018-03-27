@@ -97,6 +97,30 @@
     },
     {
       "key": {
+        "uuid": "317a08fc_1046bed8",
+        "filename": "src/Common/Debug.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5545
+      },
+      "writtenOn": "2018-03-27T15:48:26Z",
+      "side": 1,
+      "message": "Ah, I see, so this use case is that Android userspace is running on the host, like we\u0027re passing a ANativeWindow to the EGL image functions. What the Android Emulator does is use goldfish-opengl and gralloc.ranchu in the guest to translate all EGL + ANativeWindow requests to plain GL texture ID\u0027s, so there\u0027s no need to deal with Android window / surface objects directly.",
+      "parentUuid": "8d843b0e_fa98287c",
+      "range": {
+        "startLine": 18,
+        "startChar": 37,
+        "endLine": 18,
+        "endChar": 55
+      },
+      "revId": "79609d1fc6f529c77ebd409d0082f2b62c2ad7b2",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "1e0756d5_c271651b",
         "filename": "src/Main/FrameBufferAndroid.cpp",
         "patchSetId": 1
