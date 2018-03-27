@@ -22,6 +22,8 @@
 #include "Texture.h"
 #include "utilities.h"
 
+#include "compiler/Compiler.h"
+
 namespace es2
 {
 RenderbufferInterface::RenderbufferInterface()
