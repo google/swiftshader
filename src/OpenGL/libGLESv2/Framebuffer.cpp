@@ -354,7 +354,7 @@ GLenum Framebuffer::completeness(int &width, int &height, int &samples)
 			}
 			else if(IsTextureTarget(mColorbufferType[i]))
 			{
-				GLenum format = colorbuffer->getFormat();
+				GLint format = colorbuffer->getFormat();
 
 				if(!IsColorRenderable(format))
 				{
@@ -668,7 +668,7 @@ GLenum Framebuffer::getDepthReadType() const
 		case GL_DEPTH_COMPONENT32_OES: return GL_UNSIGNED_INT;
 		case GL_DEPTH_COMPONENT32F:    return GL_FLOAT;
 		case GL_DEPTH24_STENCIL8:      return GL_UNSIGNED_INT_24_8_OES;
-		case GL_DEPTH32F_STENCIL8:     return GL_FLOAT;
+		case GL_DEPTH32F_STENCIL8:     return GL_FLOAT_32_UNSIGNED_INT_24_8_REV;
 		default:
 			UNREACHABLE(depthbuffer->getFormat());
 		}

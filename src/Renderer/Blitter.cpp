@@ -389,7 +389,8 @@ namespace sw
 			c.x = Float(Int((*Pointer<UShort>(element))));
 			break;
 		case FORMAT_D24S8:
-			c.x = Float(Int((*Pointer<UInt>(element))));
+		case FORMAT_D24X8:
+			c.x = Float(Int((*Pointer<UInt>(element) & UInt(0xFFFFFF00)) >> 8));
 			break;
 		case FORMAT_D32:
 			c.x = Float(Int((*Pointer<UInt>(element))));
@@ -755,7 +756,8 @@ namespace sw
 			*Pointer<UShort>(element) = UShort(RoundInt(Float(c.x)));
 			break;
 		case FORMAT_D24S8:
-			*Pointer<UInt>(element) = UInt(RoundInt(Float(c.x)));
+		case FORMAT_D24X8:
+			*Pointer<UInt>(element) = UInt(RoundInt(Float(c.x)) << 8);
 			break;
 		case FORMAT_D32:
 			*Pointer<UInt>(element) = UInt(RoundInt(Float(c.x)));
@@ -1050,6 +1052,7 @@ namespace sw
 			scale = vector(0xFFFF, 0.0f, 0.0f, 0.0f);
 			break;
 		case FORMAT_D24S8:
+		case FORMAT_D24X8:
 			scale = vector(0xFFFFFF, 0.0f, 0.0f, 0.0f);
 			break;
 		case FORMAT_D32:
