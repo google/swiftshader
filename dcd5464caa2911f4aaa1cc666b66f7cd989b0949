@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4e7cedde_c699cc80",
+        "filename": "src/OpenGL/libGLES_CM/Context.cpp",
+        "patchSetId": 7
+      },
+      "lineNbr": 1282,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-03-27T18:08:23Z",
+      "side": 1,
+      "message": "The spec states that \"If the generating command modifies values through a pointer argument, no change is made to these values\".",
+      "range": {
+        "startLine": 1282,
+        "startChar": 4,
+        "endLine": 1282,
+        "endChar": 16
+      },
+      "revId": "dcd5464caa2911f4aaa1cc666b66f7cd989b0949",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
