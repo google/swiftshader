@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9c67135e_8bff77cf",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-03-27T21:18:22Z",
+      "side": 1,
+      "message": "TODO",
+      "range": {
+        "startLine": 12,
+        "startChar": 10,
+        "endLine": 14,
+        "endChar": 40
+      },
+      "revId": "283f9ecf40aafa9bb529acd9bf5c4756215629e4",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
