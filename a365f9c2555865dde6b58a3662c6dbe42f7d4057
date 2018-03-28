@@ -16,6 +16,24 @@
       "revId": "a365f9c2555865dde6b58a3662c6dbe42f7d4057",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "27baedb5_5d63f9bf",
+        "filename": "src/Renderer/Surface.cpp",
+        "patchSetId": 15
+      },
+      "lineNbr": 1229,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2018-03-28T17:34:54Z",
+      "side": 1,
+      "message": "That doesn\u0027t work. If I do a single lock/unlock, animations don\u0027t work, they get stuck between 2 frames. Since SwiftShader renders to the CPU buffer, lock/unlock seems to be necessary to signal the ioSurface to update/upload itself to the GPU, apparently (hard to say since there\u0027s barely any documentation on ioSurfaces). Maybe Angle gets away with it by rendering directly to the texture held in GPU memory.\n\nNote that I haven\u0027t noticed any sort of performance issue with the current locking mechanism. I can still hit a solid 60 FPS in the blob WebGL sample.",
+      "parentUuid": "0fcb2aab_f68dc805",
+      "revId": "a365f9c2555865dde6b58a3662c6dbe42f7d4057",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
