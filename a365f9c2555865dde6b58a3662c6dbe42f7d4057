@@ -34,6 +34,24 @@
       "revId": "a365f9c2555865dde6b58a3662c6dbe42f7d4057",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4ef1b2a0_fa3fa78e",
+        "filename": "src/Renderer/Surface.cpp",
+        "patchSetId": 15
+      },
+      "lineNbr": 1229,
+      "author": {
+        "id": 5880
+      },
+      "writtenOn": "2018-03-28T17:48:24Z",
+      "side": 1,
+      "message": "The semantics of the extension are that you need to eglReleaseTexImage for the rest of the system to see the change. CGLTexImageIOSurface2D requires a glFlush and that\u0027s what we do internally in eglReleaseTexImage in ANGLE. That doing the correct thing in swiftshader doesn\u0027t work shows that something in Chromium is failing to call ReleaseTexImage on the GLImage interface, which is a bug and could cause subtle synchronization issues even with ANGLE.",
+      "parentUuid": "27baedb5_5d63f9bf",
+      "revId": "a365f9c2555865dde6b58a3662c6dbe42f7d4057",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
