@@ -649,6 +649,12 @@ namespace es2
 		int dHeight = dest->getHeight();
 		int dDepth  = dest->getDepth();
 
+		if((sWidth == 0) || (sHeight == 0) || (sDepth == 0) ||
+		   (dWidth == 0) || (dHeight == 0) || (dDepth == 0))
+		{
+			return true; // no work to do
+		}
+
 		bool scaling = (sWidth != dWidth) || (sHeight != dHeight) || (sDepth != dDepth);
 		bool equalFormats = source->getInternalFormat() == dest->getInternalFormat();
 		bool alpha0xFF = false;
