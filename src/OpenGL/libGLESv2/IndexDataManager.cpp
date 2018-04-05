@@ -318,7 +318,7 @@ GLenum IndexDataManager::prepareIndexData(GLenum mode, GLenum type, GLuint start
 			return GL_OUT_OF_MEMORY;
 		}
 
-		copyIndices(mode, type, *restartIndices, staticBuffer ? buffer->data() : indices, count, output);
+		copyIndices(mode, type, *restartIndices, indices, count, output);
 		streamingBuffer->unmap();
 
 		translated->indexBuffer = streamingBuffer->getResource();
