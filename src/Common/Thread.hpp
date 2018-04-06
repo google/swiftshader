@@ -65,7 +65,7 @@ namespace sw
 			typedef pthread_key_t LocalStorageKey;
 		#endif
 
-		static LocalStorageKey allocateLocalStorageKey();
+		static LocalStorageKey allocateLocalStorageKey(void (*destructor)(void *storage) = free);
 		static void freeLocalStorageKey(LocalStorageKey key);
 		static void *allocateLocalStorage(LocalStorageKey key, size_t size);
 		static void *getLocalStorage(LocalStorageKey key);
@@ -145,13 +145,13 @@ namespace sw
 		#endif
 	}
 
-	inline Thread::LocalStorageKey Thread::allocateLocalStorageKey()
+	inline Thread::LocalStorageKey Thread::allocateLocalStorageKey(void (*destructor)(void *storage))
 	{
 		#if defined(_WIN32)
 			return TlsAlloc();
 		#else
 			LocalStorageKey key;
-			pthread_key_create(&key, free);
+			pthread_key_create(&key, destructor);
 			return key;
 		#endif
 	}
