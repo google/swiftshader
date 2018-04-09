@@ -12,7 +12,10 @@ COMMON_C_INCLUDES := \
 
 # Marshmallow does not have stlport, but comes with libc++ by default
 ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 23 && echo PreMarshmallow),PreMarshmallow)
-COMMON_C_INCLUDES += external/stlport/stlport
+COMMON_C_INCLUDES += \
+	$(LOCAL_PATH)/../../../third_party/stlport-cpp11-extension/ \
+	external/stlport/stlport/ \
+	external/stlport/
 endif
 
 COMMON_CFLAGS := \
