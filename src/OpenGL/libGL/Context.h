@@ -41,6 +41,8 @@ namespace gl
 	class Surface;
 	class Config;
 
+	void APIENTRY glVertexAttribArray(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid* ptr);
+
 	class Command
 	{
 	public:
