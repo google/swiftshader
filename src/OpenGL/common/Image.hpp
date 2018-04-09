@@ -53,7 +53,6 @@ struct PixelStorageModes
 };
 
 GLint GetSizedInternalFormat(GLint internalFormat, GLenum type);
-sw::Format ConvertReadFormatType(GLenum format, GLenum type);
 sw::Format SelectInternalFormat(GLint format);
 bool IsUnsizedInternalFormat(GLint internalformat);
 GLenum GetBaseInternalFormat(GLint internalformat);

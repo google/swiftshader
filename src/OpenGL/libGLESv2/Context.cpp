@@ -3345,7 +3345,7 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum
 
 	if(format != GL_DEPTH_STENCIL_OES)   // The blitter only handles reading either depth or stencil.
 	{
-		sw::Surface *externalSurface = sw::Surface::create(width, height, 1, gl::ConvertReadFormatType(format, type), pixels, outputPitch, outputPitch  *  outputHeight);
+		sw::Surface *externalSurface = sw::Surface::create(width, height, 1, es2::ConvertReadFormatType(format, type), pixels, outputPitch, outputPitch  *  outputHeight);
 		device->blit(renderTarget, srcRect, externalSurface, dstRect, false, false, false);
 		externalSurface->lockExternal(0, 0, 0, sw::LOCK_READONLY, sw::PUBLIC);
 		externalSurface->unlockExternal();
