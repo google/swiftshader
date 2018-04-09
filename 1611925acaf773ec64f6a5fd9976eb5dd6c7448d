@@ -1,0 +1,182 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "49aa267c_69572137",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 19
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-04-09T15:26:19Z",
+      "side": 1,
+      "message": "Is there a plan to either incorporate that into the extension spec or deprecate it when we no longer need it?",
+      "range": {
+        "startLine": 10,
+        "startChar": 20,
+        "endLine": 11,
+        "endChar": 9
+      },
+      "revId": "1611925acaf773ec64f6a5fd9976eb5dd6c7448d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9c5bb7ce_8bd99837",
+        "filename": "src/OpenGL/common/Image.cpp",
+        "patchSetId": 19
+      },
+      "lineNbr": 1213,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-04-09T15:26:19Z",
+      "side": 1,
+      "message": "Move to ClientBuffer.cpp",
+      "range": {
+        "startLine": 1213,
+        "startChar": 5,
+        "endLine": 1213,
+        "endChar": 17
+      },
+      "revId": "1611925acaf773ec64f6a5fd9976eb5dd6c7448d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "28cc24e8_7c6b7316",
+        "filename": "src/OpenGL/common/Image.cpp",
+        "patchSetId": 19
+      },
+      "lineNbr": 1301,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-04-09T15:26:19Z",
+      "side": 1,
+      "message": "Move to ClientBuffer.cpp",
+      "range": {
+        "startLine": 1301,
+        "startChar": 7,
+        "endLine": 1301,
+        "endChar": 24
+      },
+      "revId": "1611925acaf773ec64f6a5fd9976eb5dd6c7448d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "24a94f7d_5a4f6329",
+        "filename": "src/OpenGL/common/Image.cpp",
+        "patchSetId": 19
+      },
+      "lineNbr": 1340,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-04-09T15:26:19Z",
+      "side": 1,
+      "message": "This macro only logs anything on Android to facilitate debugging. We probably have no use for it on desktops with decent debugging capabilities.",
+      "range": {
+        "startLine": 1340,
+        "startChar": 3,
+        "endLine": 1340,
+        "endChar": 10
+      },
+      "revId": "1611925acaf773ec64f6a5fd9976eb5dd6c7448d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "55a1aaab_955c7964",
+        "filename": "src/OpenGL/common/Image.hpp",
+        "patchSetId": 19
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-04-09T15:26:19Z",
+      "side": 1,
+      "message": "This could be put into a new header and source file so that we only need a forward declaration here.",
+      "range": {
+        "startLine": 66,
+        "startChar": 0,
+        "endLine": 66,
+        "endChar": 18
+      },
+      "revId": "1611925acaf773ec64f6a5fd9976eb5dd6c7448d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8ad80bc8_e1cd3d6a",
+        "filename": "src/OpenGL/common/Image.hpp",
+        "patchSetId": 19
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-04-09T15:26:19Z",
+      "side": 1,
+      "message": "I think this can just be an IOSurfaceRef when on __APPLE__ (using a typedef), so we can avoid explicit casts and get compile-time type safety?",
+      "range": {
+        "startLine": 86,
+        "startChar": 1,
+        "endLine": 86,
+        "endChar": 6
+      },
+      "revId": "1611925acaf773ec64f6a5fd9976eb5dd6c7448d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e04903c3_65ea98fa",
+        "filename": "src/OpenGL/libEGL/Display.h",
+        "patchSetId": 19
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-04-09T15:26:19Z",
+      "side": 1,
+      "message": "Still should be upstreamed.",
+      "range": {
+        "startLine": 29,
+        "startChar": 0,
+        "endLine": 36,
+        "endChar": 43
+      },
+      "revId": "1611925acaf773ec64f6a5fd9976eb5dd6c7448d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "41d5eca5_188c385c",
+        "filename": "src/OpenGL/libEGL/Surface.cpp",
+        "patchSetId": 19
+      },
+      "lineNbr": 274,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-04-09T15:26:19Z",
+      "side": 1,
+      "message": "Needs an UNREACHABLE() here to warn us in case new formats need to be added or we didn\u0027t validate properly.",
+      "revId": "1611925acaf773ec64f6a5fd9976eb5dd6c7448d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
