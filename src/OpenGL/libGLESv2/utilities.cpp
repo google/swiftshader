@@ -571,7 +571,8 @@ namespace es2
 		{
 		case GL_ALPHA:
 			if(baseColorbufferFormat != GL_ALPHA &&
-			   baseColorbufferFormat != GL_RGBA)
+			   baseColorbufferFormat != GL_RGBA &&
+			   baseColorbufferFormat != GL_BGRA_EXT)   // GL_EXT_texture_format_BGRA8888 / GL_APPLE_texture_format_BGRA8888
 			{
 				return error(GL_INVALID_OPERATION, false);
 			}
@@ -589,7 +590,8 @@ namespace es2
 			if(baseColorbufferFormat != GL_RED &&
 			   baseColorbufferFormat != GL_RG &&
 			   baseColorbufferFormat != GL_RGB &&
-			   baseColorbufferFormat != GL_RGBA)
+			   baseColorbufferFormat != GL_RGBA &&
+			   baseColorbufferFormat != GL_BGRA_EXT)   // GL_EXT_texture_format_BGRA8888 / GL_APPLE_texture_format_BGRA8888
 			{
 				return error(GL_INVALID_OPERATION, false);
 			}
@@ -597,14 +599,16 @@ namespace es2
 		case GL_RG:
 			if(baseColorbufferFormat != GL_RG &&
 			   baseColorbufferFormat != GL_RGB &&
-			   baseColorbufferFormat != GL_RGBA)
+			   baseColorbufferFormat != GL_RGBA &&
+			   baseColorbufferFormat != GL_BGRA_EXT)   // GL_EXT_texture_format_BGRA8888 / GL_APPLE_texture_format_BGRA8888
 			{
 				return error(GL_INVALID_OPERATION, false);
 			}
 			break;
 		case GL_RGB:
 			if(baseColorbufferFormat != GL_RGB &&
-			   baseColorbufferFormat != GL_RGBA)
+			   baseColorbufferFormat != GL_RGBA &&
+			   baseColorbufferFormat != GL_BGRA_EXT)   // GL_EXT_texture_format_BGRA8888 / GL_APPLE_texture_format_BGRA8888
 			{
 				return error(GL_INVALID_OPERATION, false);
 			}
