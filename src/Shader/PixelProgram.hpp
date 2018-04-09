@@ -55,7 +55,7 @@ namespace sw
 
 	private:
 		// Temporary registers
-		RegisterArray<4096> r;
+		RegisterArray<NUM_TEMPORARY_REGISTERS> r;
 
 		// Color outputs
 		Vector4f c[RENDERTARGETS];

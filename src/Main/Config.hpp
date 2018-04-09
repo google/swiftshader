@@ -96,6 +96,7 @@ namespace sw
 		MAX_PROGRAM_TEXEL_OFFSET = 7,
 		MAX_TEXTURE_LOD = MIPMAP_LEVELS - 2,   // Trilinear accesses lod+1
 		RENDERTARGETS = 8,
+		NUM_TEMPORARY_REGISTERS = 4096,
 	};
 }
 

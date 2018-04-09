@@ -37,7 +37,7 @@ namespace sw
 	private:
 		const VertexShader *const shader;
 
-		RegisterArray<4096> r;   // Temporary registers
+		RegisterArray<NUM_TEMPORARY_REGISTERS> r;   // Temporary registers
 		Vector4f a0;
 		Array<Int, 4> aL;
 		Vector4f p0;
