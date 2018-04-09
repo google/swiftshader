@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "877697be_2fdb5b12",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 3035,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-04-09T20:42:16Z",
+      "side": 1,
+      "message": "Let\u0027s make it a symbolic constant.",
+      "range": {
+        "startLine": 3035,
+        "startChar": 23,
+        "endLine": 3035,
+        "endChar": 73
+      },
+      "revId": "390e33732d6f562ffe86da09d3745864223e95de",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
