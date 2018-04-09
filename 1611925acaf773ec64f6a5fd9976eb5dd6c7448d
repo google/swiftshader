@@ -140,6 +140,23 @@
     },
     {
       "key": {
+        "uuid": "02fea391_d155f9af",
+        "filename": "src/OpenGL/libEGL/Display.cpp",
+        "patchSetId": 19
+      },
+      "lineNbr": 468,
+      "author": {
+        "id": 5880
+      },
+      "writtenOn": "2018-04-09T15:46:56Z",
+      "side": 1,
+      "message": "nit: you could this array https://cs.chromium.org/chromium/src/third_party/angle/src/libANGLE/renderer/gl/cgl/IOSurfaceSurfaceCGL.mm?sq\u003dpackage:chromium\u0026l\u003d43",
+      "revId": "1611925acaf773ec64f6a5fd9976eb5dd6c7448d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "e04903c3_65ea98fa",
         "filename": "src/OpenGL/libEGL/Display.h",
         "patchSetId": 19
