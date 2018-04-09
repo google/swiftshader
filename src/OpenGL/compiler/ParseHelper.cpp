@@ -802,6 +802,7 @@ bool TParseContext::arraySizeErrorCheck(const TSourceLoc &line, TIntermTyped* ex
 	if (expr->getQualifier() != EvqConstExpr || constant == 0 || !constant->isScalarInt())
 	{
 		error(line, "array size must be a constant integer expression", "");
+		size = 1;
 		return true;
 	}
 
@@ -1485,7 +1486,7 @@ TIntermAggregate *TParseContext::parseSingleArrayDeclaration(TPublicType &public
 
 	TType arrayType(publicType);
 
-	int size;
+	int size = 0;
 	if(arraySizeErrorCheck(identifierLocation, indexExpression, size))
 	{
 		recover();
@@ -1666,7 +1667,7 @@ TIntermAggregate *TParseContext::parseArrayDeclarator(TPublicType &publicType, T
 	else
 	{
 		TType arrayType = TType(publicType);
-		int size;
+		int size = 0;
 		if(arraySizeErrorCheck(arrayLocation, indexExpression, size))
 		{
 			recover();

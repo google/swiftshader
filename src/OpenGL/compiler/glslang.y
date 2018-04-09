@@ -728,7 +728,7 @@ parameter_declarator
         if (context->reservedErrorCheck(@2, *$2.string))
             context->recover();
 
-        int size;
+        int size = 0;
         if (context->arraySizeErrorCheck(@3, $4, size))
             context->recover();
         $1.setArray(true, size);
@@ -1069,7 +1069,7 @@ type_specifier_no_prec
         if (context->arrayTypeErrorCheck(@2, $1))
             context->recover();
         else {
-            int size;
+            int size = 0;
             if (context->arraySizeErrorCheck(@2, $3, size))
                 context->recover();
             $$.setArray(true, size);
@@ -1385,7 +1385,7 @@ struct_declarator
             context->recover();
 
         TType* type = new TType(EbtVoid, EbpUndefined);
-        int size;
+        int size = 0;
         if (context->arraySizeErrorCheck($3->getLine(), $3, size))
             context->recover();
         type->setArraySize(size);

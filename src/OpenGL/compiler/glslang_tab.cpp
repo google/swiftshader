@@ -3249,7 +3249,7 @@ yyreduce:
         if (context->reservedErrorCheck((yylsp[-3]), *(yyvsp[-3].lex).string))
             context->recover();
 
-        int size;
+        int size = 0;
         if (context->arraySizeErrorCheck((yylsp[-2]), (yyvsp[-1].interm.intermTypedNode), size))
             context->recover();
         (yyvsp[-4].interm.type).setArray(true, size);
@@ -3816,7 +3816,7 @@ yyreduce:
         if (context->arrayTypeErrorCheck((yylsp[-2]), (yyvsp[-3].interm.type)))
             context->recover();
         else {
-            int size;
+            int size = 0;
             if (context->arraySizeErrorCheck((yylsp[-2]), (yyvsp[-1].interm.intermTypedNode), size))
                 context->recover();
             (yyval.interm.type).setArray(true, size);
@@ -4401,7 +4401,7 @@ yyreduce:
             context->recover();
 
         TType* type = new TType(EbtVoid, EbpUndefined);
-        int size;
+        int size = 0;
         if (context->arraySizeErrorCheck((yyvsp[-1].interm.intermTypedNode)->getLine(), (yyvsp[-1].interm.intermTypedNode), size))
             context->recover();
         type->setArraySize(size);
