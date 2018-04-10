@@ -73,6 +73,7 @@ public:
 	int getWidth() const;
 	int getHeight() const;
 	sw::Format getFormat() const;
+	size_t getPlane() const;
 	int pitchP() const;
 	void retain();
 	void release();

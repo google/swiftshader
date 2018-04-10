@@ -1225,6 +1225,11 @@ namespace egl
 		return format;
 	}
 
+	size_t ClientBuffer::getPlane() const
+	{
+		return plane;
+	}
+
 	int ClientBuffer::pitchP() const
 	{
 #if defined(__APPLE__)
