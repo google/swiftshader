@@ -853,7 +853,9 @@ elseif(LINUX)
 elseif(APPLE)
     find_library(COCOA_FRAMEWORK Cocoa)
     find_library(QUARTZ_FRAMEWORK Quartz)
-    set(OS_LIBS "${COCOA_FRAMEWORK}" "${QUARTZ_FRAMEWORK}")
+    find_library(CORE_FOUNDATION_FRAMEWORK CoreFoundation)
+    find_library(IOSURFACE_FRAMEWORK IOSurface)
+    set(OS_LIBS "${COCOA_FRAMEWORK}" "${QUARTZ_FRAMEWORK}" "${CORE_FOUNDATION_FRAMEWORK}" "${IOSURFACE_FRAMEWORK}")
 endif()
 
 ###########################################################
