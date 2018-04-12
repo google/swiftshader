@@ -3356,7 +3356,15 @@ namespace sw
 
 	void Surface::clearDepth(float depth, int x0, int y0, int width, int height)
 	{
-		if(width == 0 || height == 0) return;
+		if(width == 0 || height == 0)
+		{
+			return;
+		}
+
+		if(internal.format == FORMAT_NULL)
+		{
+			return;
+		}
 
 		// Not overlapping
 		if(x0 > internal.width) return;
@@ -3479,7 +3487,15 @@ namespace sw
 
 	void Surface::clearStencil(unsigned char s, unsigned char mask, int x0, int y0, int width, int height)
 	{
-		if(mask == 0 || width == 0 || height == 0) return;
+		if(mask == 0 || width == 0 || height == 0)
+		{
+			return;
+		}
+
+		if(stencil.format == FORMAT_NULL)
+		{
+			return;
+		}
 
 		// Not overlapping
 		if(x0 > internal.width) return;
