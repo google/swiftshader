@@ -40,6 +40,8 @@ public:
 	egl::Image *getRenderTarget() override;
 	egl::Image *getDepthStencil() override;
 
+	void setMipmapLevel(EGLint mipmapLevel);
+	void setMultisampleResolve(EGLenum multisampleResolve);
 	void setSwapBehavior(EGLenum swapBehavior);
 	void setSwapInterval(EGLint interval);
 
@@ -49,6 +51,8 @@ public:
 	EGLint getWidth() const override;
 	EGLint getHeight() const override;
 	EGLenum getTextureTarget() const override;
+	virtual EGLint getMipmapLevel() const;
+	virtual EGLenum getMultisampleResolve() const;
 	virtual EGLint getPixelAspectRatio() const;
 	virtual EGLenum getRenderBuffer() const;
 	virtual EGLenum getSwapBehavior() const;
@@ -73,33 +77,38 @@ protected:
 	sw::Format getClientBufferFormat() const;
 
 	const Display *const display;
-	Image *depthStencil;
-	Image *backBuffer;
-	Texture *texture;
+	const Config *const config;
+
+	Image *depthStencil = nullptr;
+	Image *backBuffer = nullptr;
+	Texture *texture = nullptr;
 
 	bool reset(int backbufferWidth, int backbufferHeight);
 
-	const Config *const config;    // EGL config surface was created with
-	EGLint width;                  // Width of surface
-	EGLint height;                 // Height of surface
-//  EGLint horizontalResolution;   // Horizontal dot pitch
-//  EGLint verticalResolution;     // Vertical dot pitch
-	EGLBoolean largestPBuffer;     // If true, create largest pbuffer possible
-//  EGLBoolean mipmapTexture;      // True if texture has mipmaps
-//  EGLint mipmapLevel;            // Mipmap level to render to
-//  EGLenum multisampleResolve;    // Multisample resolve behavior
-	EGLint pixelAspectRatio;       // Display aspect ratio
-	EGLenum renderBuffer;          // Render buffer
-	EGLenum swapBehavior;          // Buffer swap behavior
-	EGLenum textureFormat;         // Format of texture: RGB, RGBA, or no texture
-	EGLenum textureTarget;         // Type of texture: 2D or no texture
+	// Surface attributes:
+	EGLint width = 0;                                // Width of surface
+	EGLint height= 0;                                // Height of surface
+//	EGLint horizontalResolution = EGL_UNKNOWN;       // Horizontal dot pitch
+//	EGLint verticalResolution = EGL_UNKNOWN;         // Vertical dot pitch
+	EGLBoolean largestPBuffer = EGL_FALSE;           // If true, create largest pbuffer possible
+//	EGLBoolean mipmapTexture = EGL_FALSE;            // True if texture has mipmaps
+	EGLint mipmapLevel = 0;                          // Mipmap level to render to
+	EGLenum multisampleResolve = EGL_MULTISAMPLE_RESOLVE_DEFAULT;   // Multisample resolve behavior
+	EGLint pixelAspectRatio = EGL_UNKNOWN;           // Display aspect ratio
+	EGLenum renderBuffer = EGL_BACK_BUFFER;          // Render buffer
+	EGLenum swapBehavior = EGL_BUFFER_PRESERVED;     // Buffer swap behavior (initial value chosen by implementation)
+	EGLenum textureFormat = EGL_NO_TEXTURE;          // Format of texture: RGB, RGBA, or no texture
+	EGLenum textureTarget = EGL_NO_TEXTURE;          // Type of texture: 2D or no texture
+//	EGLenum vgAlphaFormat = EGL_VG_ALPHA_FORMAT_NONPRE;   // Alpha format for OpenVG
+//	EGLenum vgColorSpace = EGL_VG_COLORSPACE_sRGB;   // Color space for OpenVG
+
+	EGLint swapInterval = 1;
+
+	// EGL_ANGLE_iosurface_client_buffer attributes:
+	EGLClientBuffer clientBuffer = nullptr;
+	EGLint clientBufferPlane;
 	EGLenum clientBufferFormat;    // Format of the client buffer
 	EGLenum clientBufferType;      // Type of the client buffer
-//  EGLenum vgAlphaFormat;         // Alpha format for OpenVG
-//  EGLenum vgColorSpace;          // Color space for OpenVG
-	EGLint swapInterval;
-	EGLClientBuffer clientBuffer;
-	EGLint clientBufferPlane;
 };
 
 class WindowSurface : public Surface
@@ -121,7 +130,7 @@ private:
 	bool reset(int backBufferWidth, int backBufferHeight);
 
 	const EGLNativeWindowType window;
-	sw::FrameBuffer *frameBuffer;
+	sw::FrameBuffer *frameBuffer = nullptr;
 };
 
 class PBufferSurface : public Surface

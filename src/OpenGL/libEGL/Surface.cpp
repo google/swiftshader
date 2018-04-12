@@ -51,24 +51,6 @@ namespace egl
 {
 Surface::Surface(const Display *display, const Config *config) : display(display), config(config)
 {
-	backBuffer = nullptr;
-	depthStencil = nullptr;
-	texture = nullptr;
-
-	width = 0;
-	height = 0;
-	largestPBuffer = EGL_FALSE;
-	pixelAspectRatio = (EGLint)(1.0 * EGL_DISPLAY_SCALING);   // FIXME: Determine actual pixel aspect ratio
-	renderBuffer = EGL_BACK_BUFFER;
-	swapBehavior = EGL_BUFFER_PRESERVED;
-	textureFormat = EGL_NO_TEXTURE;
-	textureTarget = EGL_NO_TEXTURE;
-	clientBufferFormat = EGL_NO_TEXTURE;
-	clientBufferType = EGL_NO_TEXTURE;
-	clientBuffer = nullptr;
-	clientBufferPlane = -1;
-	swapInterval = -1;
-	setSwapInterval(1);
 }
 
 Surface::~Surface()
@@ -167,6 +149,16 @@ egl::Image *Surface::getDepthStencil()
 	return depthStencil;
 }
 
+void Surface::setMipmapLevel(EGLint mipmapLevel)
+{
+	this->mipmapLevel = mipmapLevel;
+}
+
+void Surface::setMultisampleResolve(EGLenum multisampleResolve)
+{
+	this->multisampleResolve = multisampleResolve;
+}
+
 void Surface::setSwapBehavior(EGLenum swapBehavior)
 {
 	this->swapBehavior = swapBehavior;
@@ -202,6 +194,16 @@ EGLint Surface::getWidth() const
 EGLint Surface::getHeight() const
 {
 	return height;
+}
+
+EGLint Surface::getMipmapLevel() const
+{
+	return mipmapLevel;
+}
+
+EGLenum Surface::getMultisampleResolve() const
+{
+	return multisampleResolve;
 }
 
 EGLint Surface::getPixelAspectRatio() const
@@ -292,7 +294,7 @@ egl::Texture *Surface::getBoundTexture() const
 WindowSurface::WindowSurface(Display *display, const Config *config, EGLNativeWindowType window)
 	: Surface(display, config), window(window)
 {
-	frameBuffer = nullptr;
+	pixelAspectRatio = (EGLint)(1.0 * EGL_DISPLAY_SCALING);   // FIXME: Determine actual pixel aspect ratio
 }
 
 WindowSurface::~WindowSurface()

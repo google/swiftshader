@@ -181,7 +181,7 @@ Config::Config(sw::Format displayFormat, EGLint minInterval, EGLint maxInterval,
 	mRenderableType = EGL_OPENGL_ES_BIT | EGL_OPENGL_ES2_BIT | EGL_OPENGL_ES3_BIT;
 	mSampleBuffers = (multiSample > 0) ? 1 : 0;
 	mSamples = multiSample;
-	mSurfaceType = EGL_PBUFFER_BIT | EGL_WINDOW_BIT | EGL_SWAP_BEHAVIOR_PRESERVED_BIT;
+	mSurfaceType = EGL_PBUFFER_BIT | EGL_WINDOW_BIT | EGL_SWAP_BEHAVIOR_PRESERVED_BIT | EGL_MULTISAMPLE_RESOLVE_BOX_BIT;
 	mTransparentType = EGL_NONE;
 	mTransparentRedValue = 0;
 	mTransparentGreenValue = 0;
