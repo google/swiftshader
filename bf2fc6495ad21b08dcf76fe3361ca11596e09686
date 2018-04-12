@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1eb2efcb_1c409cc0",
+        "filename": "src/Shader/Shader.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 401,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-04-12T16:58:01Z",
+      "side": 1,
+      "message": "This belongs in Config.hpp instead (sw::Shader is just a container for the shader IR, so it\u0027s not responsible for the limitations of the ShaderCore it executes on).",
+      "range": {
+        "startLine": 401,
+        "startChar": 3,
+        "endLine": 401,
+        "endChar": 27
+      },
+      "revId": "bf2fc6495ad21b08dcf76fe3361ca11596e09686",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
