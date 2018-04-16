@@ -73,10 +73,8 @@ public:
 class LibEGL
 {
 public:
-	LibEGL()
+	LibEGL(const std::string libraryDirectory) : libraryDirectory(libraryDirectory)
 	{
-		libEGL = nullptr;
-		libEGLexports = nullptr;
 	}
 
 	~LibEGL()
@@ -124,7 +122,7 @@ private:
 				#error "libEGL::loadExports unimplemented for this platform"
 			#endif
 
-			libEGL = loadLibrary(libEGL_lib, "libEGL_swiftshader");
+			libEGL = loadLibrary(libraryDirectory, libEGL_lib, "libEGL_swiftshader");
 
 			if(libEGL)
 			{
@@ -136,8 +134,9 @@ private:
 		return libEGLexports;
 	}
 
-	void *libEGL;
-	LibEGLexports *libEGLexports;
+	void *libEGL = nullptr;
+	LibEGLexports *libEGLexports = nullptr;
+	const std::string libraryDirectory;
 };
 
 #endif   // libEGL_hpp
