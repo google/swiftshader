@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6cb21a3d_df08b8ec",
+        "filename": "src/OpenGL/libEGL/Display.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 424,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-04-18T13:25:37Z",
+      "side": 1,
+      "message": "This feature is only relevant to OpenGL ES 1.1, which is quickly becoming irrelevant and dEQP doesn\u0027t appear to test this so this should be OK to leave unimplemented.",
+      "range": {
+        "startLine": 424,
+        "startChar": 5,
+        "endLine": 424,
+        "endChar": 18
+      },
+      "revId": "4b5b5eefcdb7c8c19e2b1e2acdcc2983cbfad2fb",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
