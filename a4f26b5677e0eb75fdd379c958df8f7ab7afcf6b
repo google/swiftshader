@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "afadd313_350186f6",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-04-18T19:29:19Z",
+      "side": 1,
+      "message": "Could be more descriptive:\n\nLoad sibling libraries from the same directory.",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 30
+      },
+      "revId": "a4f26b5677e0eb75fdd379c958df8f7ab7afcf6b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8bfc172b_e973fd15",
+        "filename": "src/Common/SharedLibrary.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-04-18T19:29:19Z",
+      "side": 1,
+      "message": "I think we should first look for all possible library names in the provided directory (if any), before trying to load them with default search directories.\n\nOtherwise, we might have the situation where \"dir/libEGL.so\" isn\u0027t found but \"libEGL.so\" is loaded from some system directory but we should have tried \"dir/libEGL.so.1\" instead.",
+      "range": {
+        "startLine": 43,
+        "startChar": 2,
+        "endLine": 46,
+        "endChar": 3
+      },
+      "revId": "a4f26b5677e0eb75fdd379c958df8f7ab7afcf6b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
