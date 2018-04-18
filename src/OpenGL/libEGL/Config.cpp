@@ -367,7 +367,6 @@ bool ConfigSet::getConfigs(EGLConfig *configs, const EGLint *attribList, EGLint 
 				case EGL_CONFIG_ID:                  match = config->mConfigID == attribute[1];                             break;
 				case EGL_LEVEL:                      match = config->mLevel >= attribute[1];                                break;
 				case EGL_NATIVE_RENDERABLE:          match = config->mNativeRenderable == (EGLBoolean)attribute[1];         break;
-				case EGL_NATIVE_VISUAL_ID:           match = config->mNativeVisualID == attribute[1];                       break;
 				case EGL_NATIVE_VISUAL_TYPE:         match = config->mNativeVisualType == attribute[1];                     break;
 				case EGL_SAMPLES:                    match = config->mSamples >= attribute[1];                              break;
 				case EGL_SAMPLE_BUFFERS:             match = config->mSampleBuffers >= attribute[1];                        break;
@@ -386,11 +385,16 @@ bool ConfigSet::getConfigs(EGLConfig *configs, const EGLint *attribList, EGLint 
 				case EGL_RENDERABLE_TYPE:            match = (config->mRenderableType & attribute[1]) == attribute[1];      break;
 				case EGL_MATCH_NATIVE_PIXMAP:        match = false; UNIMPLEMENTED();                                        break;
 				case EGL_CONFORMANT:                 match = (config->mConformant & attribute[1]) == attribute[1];          break;
-				case EGL_MAX_PBUFFER_WIDTH:          match = config->mMaxPBufferWidth >= attribute[1];                      break;
-				case EGL_MAX_PBUFFER_HEIGHT:         match = config->mMaxPBufferHeight >= attribute[1];                     break;
-				case EGL_MAX_PBUFFER_PIXELS:         match = config->mMaxPBufferPixels >= attribute[1];                     break;
 				case EGL_RECORDABLE_ANDROID:         match = config->mRecordableAndroid == (EGLBoolean)attribute[1];        break;
 				case EGL_FRAMEBUFFER_TARGET_ANDROID: match = config->mFramebufferTargetAndroid == (EGLBoolean)attribute[1]; break;
+
+				// Ignored attributes
+				case EGL_MAX_PBUFFER_WIDTH:
+				case EGL_MAX_PBUFFER_HEIGHT:
+				case EGL_MAX_PBUFFER_PIXELS:
+				case EGL_NATIVE_VISUAL_ID:
+					break;
+
 				default:
 					*numConfig = 0;
 					return false;
