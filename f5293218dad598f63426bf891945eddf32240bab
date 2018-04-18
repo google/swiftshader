@@ -1,0 +1,113 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d44ca1ca_5c7130c4",
+        "filename": "src/Common/SharedLibrary.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-04-18T14:22:19Z",
+      "side": 1,
+      "message": "\u0027Path\u0027 can mean either a directory location or file location (i.e. directory + file name). So \u0027directory\u0027 is less confusing. Same elsewhere.",
+      "range": {
+        "startLine": 32,
+        "startChar": 44,
+        "endLine": 32,
+        "endChar": 48
+      },
+      "revId": "f5293218dad598f63426bf891945eddf32240bab",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "01b8903e_f7609af3",
+        "filename": "src/Common/SharedLibrary.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-04-18T14:22:19Z",
+      "side": 1,
+      "message": "This can be implemented using GetModuleHandleEx. Feel free to add that as a TODO comment and add an UNIMPLEMENTED assert if it\u0027s non-trivial.",
+      "revId": "f5293218dad598f63426bf891945eddf32240bab",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "37f461d9_13ae605c",
+        "filename": "src/Common/SharedLibrary.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-04-18T14:22:19Z",
+      "side": 1,
+      "message": "nit: Check explicitly for !\u003d 0",
+      "range": {
+        "startLine": 151,
+        "startChar": 29,
+        "endLine": 151,
+        "endChar": 30
+      },
+      "revId": "f5293218dad598f63426bf891945eddf32240bab",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4a02b328_00796d1d",
+        "filename": "src/OpenGL/libEGL/libEGL.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-04-18T14:22:19Z",
+      "side": 1,
+      "message": "Let\u0027s use in-class initialization instead.",
+      "range": {
+        "startLine": 77,
+        "startChar": 1,
+        "endLine": 78,
+        "endChar": 26
+      },
+      "revId": "f5293218dad598f63426bf891945eddf32240bab",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "de75358f_50b48ca9",
+        "filename": "src/OpenGL/libEGL/main.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 652,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-04-18T14:22:19Z",
+      "side": 1,
+      "message": "This is going to look very confusing to anyone reading this for the first time. Instead we could explicitly call the function to retrieve the directory from the symbol here.\n\nAlso, libEGL_swiftshader seems like a better candidate for the symbol, since that\u0027s already the symbol we use to validate that we\u0027ve loaded the right library. On some platforms eglGetProcAddress isn\u0027t even guaranteed to be *our* function (it can be hijacked by a shim library which then redirects to us, and so we definitely don\u0027t want to be using the directory of the shim).",
+      "range": {
+        "startLine": 652,
+        "startChar": 11,
+        "endLine": 652,
+        "endChar": 48
+      },
+      "revId": "f5293218dad598f63426bf891945eddf32240bab",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
