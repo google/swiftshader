@@ -45,6 +45,30 @@
       "revId": "a4f26b5677e0eb75fdd379c958df8f7ab7afcf6b",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "892bd85f_2dacda93",
+        "filename": "src/Common/SharedLibrary.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2018-04-19T12:16:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8bfc172b_e973fd15",
+      "range": {
+        "startLine": 43,
+        "startChar": 2,
+        "endLine": 46,
+        "endChar": 3
+      },
+      "revId": "a4f26b5677e0eb75fdd379c958df8f7ab7afcf6b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
