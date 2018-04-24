@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4af9e2bc_3a28d098",
+        "filename": "src/OpenGL/libEGL/libEGL.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2018-04-24T19:08:24Z",
+      "side": 1,
+      "message": "Local change for Windows. Can probably be replace by \"#include \u003cdrm/drm_fourcc.h\u003e\", ifdefed for Linux or ChromeOS.",
+      "range": {
+        "startLine": 25,
+        "startChar": 9,
+        "endLine": 25,
+        "endChar": 32
+      },
+      "revId": "6ecd7d815dc1d2b5a4e4fd04a07b2e64411cefcf",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "123510cc_0e55afa6",
+        "filename": "src/OpenGL/libEGL/libEGL.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1105,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2018-04-24T19:08:24Z",
+      "side": 1,
+      "message": "It is unclear why EGL_EXT_image_dma_buf_import assumes that these 2 parameters are allowed.\nSee https://www.khronos.org/registry/EGL/extensions/EXT/EGL_EXT_image_dma_buf_import.txt",
+      "range": {
+        "startLine": 1100,
+        "startChar": 0,
+        "endLine": 1105,
+        "endChar": 10
+      },
+      "revId": "6ecd7d815dc1d2b5a4e4fd04a07b2e64411cefcf",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
