@@ -2859,6 +2859,10 @@ namespace glsl
 		{
 			return samplerRegister(operand);
 		}
+		else if(operand->getType().totalSamplerRegisterCount() > 0) // Struct containing a sampler
+		{
+			samplerRegister(operand); // Make sure the sampler is declared
+		}
 
 		switch(operand->getQualifier())
 		{

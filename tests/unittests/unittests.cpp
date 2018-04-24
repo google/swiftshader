@@ -233,6 +233,10 @@ protected:
 		glLinkProgram(ph.program);
 		EXPECT_GLENUM_EQ(GL_NONE, glGetError());
 
+		GLint linkStatus = 0;
+		glGetProgramiv(ph.program, GL_LINK_STATUS, &linkStatus);
+		EXPECT_NE(linkStatus, 0);
+
 		return ph;
 	}
 
@@ -243,7 +247,7 @@ protected:
 		glDeleteProgram(ph.program);
 	}
 
-	void drawQuad(GLuint program)
+	void drawQuad(GLuint program, const char* textureName)
 	{
 		GLint prevProgram = 0;
 		glGetIntegerv(GL_CURRENT_PROGRAM, &prevProgram);
@@ -254,7 +258,7 @@ protected:
 		GLint posLoc = glGetAttribLocation(program, "position");
 		EXPECT_GLENUM_EQ(GL_NONE, glGetError());
 
-		GLint location = glGetUniformLocation(program, "tex");
+		GLint location = glGetUniformLocation(program, textureName);
 		ASSERT_NE(-1, location);
 		glUniform1i(location, 0);
 
@@ -302,6 +306,64 @@ TEST_F(SwiftShaderTest, Initalization)
 	const GLubyte *glVersion = glGetString(GL_VERSION);
 	EXPECT_GLENUM_EQ(GL_NO_ERROR, glGetError());
 	EXPECT_THAT((const char*)glVersion, testing::HasSubstr("OpenGL ES 2.0 SwiftShader "));
+
+	Uninitialize();
+}
+
+// Test sampling from a sampler in a struct as a function argument
+TEST_F(SwiftShaderTest, SamplerArrayInStructArrayAsFunctionArg)
+{
+	Initialize(3, false);
+
+	GLuint tex = 1;
+	glBindTexture(GL_TEXTURE_2D, tex);
+	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+
+	unsigned char green[4] = { 0, 255, 0, 255 };
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, green);
+	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+
+	const std::string vs =
+		"#version 300 es\n"
+		"in vec4 position;\n"
+		"void main()\n"
+		"{\n"
+		"	gl_Position = vec4(position.xy, 0.0, 1.0);\n"
+		"}\n";
+
+	const std::string fs =
+		"#version 300 es\n"
+		"precision mediump float;\n"
+		"struct SamplerStruct{ sampler2D tex[2]; };\n"
+		"vec4 doSample(in SamplerStruct s[2])\n"
+		"{\n"
+		"	return texture(s[1].tex[1], vec2(0.0));\n"
+		"}\n"
+		"uniform SamplerStruct samplerStruct[2];\n"
+		"out vec4 fragColor;\n"
+		"void main()\n"
+		"{\n"
+		"	fragColor = doSample(samplerStruct);\n"
+		"}\n";
+
+	const ProgramHandles ph = createProgram(vs, fs);
+
+	glUseProgram(ph.program);
+	GLint location = glGetUniformLocation(ph.program, "samplerStruct[1].tex[1]");
+	ASSERT_NE(-1, location);
+	glUniform1i(location, 0);
+
+	glClearColor(0.0, 0.0, 0.0, 0.0);
+	glClear(GL_COLOR_BUFFER_BIT);
+	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+
+	drawQuad(ph.program, "samplerStruct[1].tex[1]");
+
+	deleteProgram(ph);
+
+	compareColor(green);
+
+	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
 
 	Uninitialize();
 }
@@ -558,7 +620,7 @@ TEST_F(SwiftShaderTest, TextureRectangle_SamplingFromRectangle)
 	glClear(GL_COLOR_BUFFER_BIT);
 	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
 
-	drawQuad(ph.program);
+	drawQuad(ph.program, "tex");
 
 	deleteProgram(ph);
 
@@ -612,7 +674,7 @@ TEST_F(SwiftShaderTest, TextureRectangle_SamplingFromRectangleESSL3)
 	glClear(GL_COLOR_BUFFER_BIT);
 	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
 
-	drawQuad(ph.program);
+	drawQuad(ph.program, "tex");
 
 	deleteProgram(ph);
 
@@ -976,7 +1038,7 @@ protected:
 
 		const ProgramHandles ph = createProgram(vs, fs);
 
-		drawQuad(ph.program);
+		drawQuad(ph.program, "tex");
 
 		deleteProgram(ph);
 
