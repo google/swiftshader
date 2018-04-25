@@ -291,7 +291,7 @@ public:
 	void subImage(GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const gl::PixelStorageModes &unpackParameters, const void *pixels);
 	void subImageCompressed(GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const void *pixels);
 	void copyImage(GLint level, GLenum internalformat, GLint x, GLint y, GLint z, GLsizei width, GLsizei height, GLsizei depth, Renderbuffer *source);
-	void copySubImage(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height, Renderbuffer *source);
+	void copySubImage(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height, Renderbuffer *source) override;
 
 	void setSharedImage(egl::Image *image);
 
