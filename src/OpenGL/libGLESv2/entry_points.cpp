@@ -1420,7 +1420,7 @@ LibGLESv2exports::LibGLESv2exports()
 	this->createFrameBuffer = ::createFrameBuffer;
 }
 
-extern "C" GL_APICALL LibGLESv2exports *libGLESv2_swiftshader()
+extern "C" LibGLESv2exports *libGLESv2_swiftshader()
 {
 	static LibGLESv2exports libGLESv2;
 	return &libGLESv2;

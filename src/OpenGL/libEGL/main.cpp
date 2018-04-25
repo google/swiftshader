@@ -643,7 +643,7 @@ LibEGLexports::LibEGLexports()
 	this->clientGetCurrentContext = egl::getCurrentContext;
 }
 
-extern "C" EGLAPI LibEGLexports *libEGL_swiftshader()
+extern "C" LibEGLexports *libEGL_swiftshader()
 {
 	static LibEGLexports libEGL;
 	return &libEGL;

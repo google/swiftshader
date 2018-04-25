@@ -154,10 +154,6 @@ else()
     set_cpp_flag("-Werror=sign-compare")
     set_cpp_flag("-fno-exceptions")
 
-    # Don't allow symbols to be overridden by another module.
-    # This enables libGLES_CM and libGLESv2 to statically link LLVM.
-    set_cpp_flag("-fvisibility=protected")
-
     # Remove xor, and, or and friends from the list of keywords, they are used
     # by Reactor
     set_cpp_flag("-fno-operator-names")
