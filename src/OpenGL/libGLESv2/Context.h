@@ -214,6 +214,7 @@ public:
 		case GL_UNSIGNED_INT:   return mSize * sizeof(GLuint);
 		case GL_FIXED:          return mSize * sizeof(GLfixed);
 		case GL_FLOAT:          return mSize * sizeof(GLfloat);
+		case GL_HALF_FLOAT_OES:
 		case GL_HALF_FLOAT:     return mSize * sizeof(GLhalf);
 		case GL_INT_2_10_10_10_REV:          return sizeof(GLint);
 		case GL_UNSIGNED_INT_2_10_10_10_REV: return sizeof(GLuint);
