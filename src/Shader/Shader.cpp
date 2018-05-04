@@ -1856,7 +1856,10 @@ namespace sw
 
 					if(majorVersion >= 2)
 					{
-						usedSamplers |= 1 << src1.index;
+						if(src1.type == PARAMETER_SAMPLER)
+						{
+							usedSamplers |= 1 << src1.index;
+						}
 					}
 					else
 					{
