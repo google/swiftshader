@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7ddd699e_6353f4b7",
+        "filename": "src/Common/Memory.cpp",
+        "patchSetId": 9
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-05-07T17:53:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "28730d72_8fe290b7",
+      "range": {
+        "startLine": 68,
+        "startChar": 0,
+        "endLine": 68,
+        "endChar": 2
+      },
+      "revId": "f47639110bbbd3ea281116d1670cfbcf0c0557a9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "74efc80a_8da63e3a",
         "filename": "src/Common/Memory.cpp",
         "patchSetId": 9
@@ -45,6 +69,30 @@
       "revId": "f47639110bbbd3ea281116d1670cfbcf0c0557a9",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2631a236_adcb98fa",
+        "filename": "src/Common/Memory.cpp",
+        "patchSetId": 9
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-05-07T17:53:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "74efc80a_8da63e3a",
+      "range": {
+        "startLine": 73,
+        "startChar": 0,
+        "endLine": 73,
+        "endChar": 2
+      },
+      "revId": "f47639110bbbd3ea281116d1670cfbcf0c0557a9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "43e5bd11_ce36a719",
+        "filename": "src/Common/Memory.cpp",
+        "patchSetId": 9
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-05-07T17:53:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a1f67de_405566f2",
+      "range": {
+        "startLine": 77,
+        "startChar": 0,
+        "endLine": 77,
+        "endChar": 2
+      },
+      "revId": "f47639110bbbd3ea281116d1670cfbcf0c0557a9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "178bd893_e7a7c0cc",
         "filename": "src/Common/Memory.cpp",
         "patchSetId": 9
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "a2f6b3a2_55d543b5",
+        "filename": "src/Common/Memory.cpp",
+        "patchSetId": 9
+      },
+      "lineNbr": 229,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-05-07T17:53:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "178bd893_e7a7c0cc",
+      "range": {
+        "startLine": 229,
+        "startChar": 0,
+        "endLine": 229,
+        "endChar": 1
+      },
+      "revId": "f47639110bbbd3ea281116d1670cfbcf0c0557a9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ada7188c_b280ed8b",
         "filename": "src/Common/Memory.cpp",
         "patchSetId": 9
@@ -114,6 +210,30 @@
       "revId": "f47639110bbbd3ea281116d1670cfbcf0c0557a9",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cdb5af2b_321cc3f0",
+        "filename": "src/Common/Memory.cpp",
+        "patchSetId": 9
+      },
+      "lineNbr": 231,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-05-07T17:53:24Z",
+      "side": 1,
+      "message": "That was a bad edit of mine. Restored it to Ian\u0027s version in the new Patch Set, where deallocate is only called in the other cases (munmap already effectively frees the memory).",
+      "parentUuid": "ada7188c_b280ed8b",
+      "range": {
+        "startLine": 231,
+        "startChar": 2,
+        "endLine": 231,
+        "endChar": 21
+      },
+      "revId": "f47639110bbbd3ea281116d1670cfbcf0c0557a9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
