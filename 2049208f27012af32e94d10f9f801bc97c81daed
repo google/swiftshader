@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "8cf9ad11_9059bb20",
+        "filename": "src/Common/Memory.cpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-05-07T18:10:40Z",
+      "side": 1,
+      "message": "Doesn\u0027t seem necessary to me. It\u0027s just a trivial declaration that will remain unused in the named mmap case.",
+      "parentUuid": "299d1f10_9dd46460",
+      "range": {
+        "startLine": 46,
+        "startChar": 0,
+        "endLine": 46,
+        "endChar": 17
+      },
+      "revId": "2049208f27012af32e94d10f9f801bc97c81daed",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "87982bea_6fd2552e",
         "filename": "src/Common/Memory.cpp",
         "patchSetId": 10
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "a3534664_87e969e9",
+        "filename": "src/Common/Memory.cpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-05-07T18:10:40Z",
+      "side": 1,
+      "message": "Understood, I just wanted to preserve all the code you wrote for the named mmap case.\n\nI\u0027m pretty sure this isn\u0027t supported by old versions of Android, so explicitly enabling this with LINUX_ENABLE_NAMED_MMAP seems the most cautious to me. We can expand it to more cases and refactor it later.",
+      "parentUuid": "87982bea_6fd2552e",
+      "range": {
+        "startLine": 56,
+        "startChar": 0,
+        "endLine": 56,
+        "endChar": 37
+      },
+      "revId": "2049208f27012af32e94d10f9f801bc97c81daed",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "54d9c64e_5154b411",
         "filename": "src/Common/Memory.cpp",
         "patchSetId": 10
@@ -68,6 +116,30 @@
       "revId": "2049208f27012af32e94d10f9f801bc97c81daed",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "97bb6f25_420f1f92",
+        "filename": "src/Common/Memory.cpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-05-07T18:10:40Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "54d9c64e_5154b411",
+      "range": {
+        "startLine": 163,
+        "startChar": 13,
+        "endLine": 163,
+        "endChar": 36
+      },
+      "revId": "2049208f27012af32e94d10f9f801bc97c81daed",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
