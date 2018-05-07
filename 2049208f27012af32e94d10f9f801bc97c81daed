@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "299d1f10_9dd46460",
+        "filename": "src/Common/Memory.cpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 6866
+      },
+      "writtenOn": "2018-05-07T17:54:25Z",
+      "side": 1,
+      "message": "Make conditional on !LINUX_ENABLE_NAMED_MMAP ?",
+      "range": {
+        "startLine": 46,
+        "startChar": 0,
+        "endLine": 46,
+        "endChar": 17
+      },
+      "revId": "2049208f27012af32e94d10f9f801bc97c81daed",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "87982bea_6fd2552e",
+        "filename": "src/Common/Memory.cpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 6866
+      },
+      "writtenOn": "2018-05-07T17:54:25Z",
+      "side": 1,
+      "message": "technically this isn\u0027t the same as named mmap, it is just using existing aligned malloc implementation to avoid the Allocation struct above. You can make it conditional using:\n_POSIX_C_SOURCE \u003e\u003d 200112L || _XOPEN_SOURCE \u003e\u003d 600\nhttps://linux.die.net/man/3/memalign\nThis may of course have issues on Windows.",
+      "range": {
+        "startLine": 56,
+        "startChar": 0,
+        "endLine": 56,
+        "endChar": 37
+      },
+      "revId": "2049208f27012af32e94d10f9f801bc97c81daed",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "54d9c64e_5154b411",
+        "filename": "src/Common/Memory.cpp",
+        "patchSetId": 10
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 6866
+      },
+      "writtenOn": "2018-05-07T17:54:25Z",
+      "side": 1,
+      "message": "same #ifdef comment as above",
+      "range": {
+        "startLine": 163,
+        "startChar": 13,
+        "endLine": 163,
+        "endChar": 36
+      },
+      "revId": "2049208f27012af32e94d10f9f801bc97c81daed",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
