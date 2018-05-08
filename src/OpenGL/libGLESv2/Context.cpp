@@ -2218,7 +2218,7 @@ template<typename T> bool Context::getIntegerv(GLenum pname, T *params) const
 			*params = clientVersion;
 			return true;
 		case GL_MAX_3D_TEXTURE_SIZE:
-			*params = IMPLEMENTATION_MAX_TEXTURE_SIZE;
+			*params = IMPLEMENTATION_MAX_3D_TEXTURE_SIZE;
 			return true;
 		case GL_MAX_ARRAY_TEXTURE_LAYERS:
 			*params = IMPLEMENTATION_MAX_TEXTURE_SIZE;
