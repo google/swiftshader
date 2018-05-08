@@ -145,6 +145,8 @@ public:
 	// Back buffer from client buffer
 	static Image *create(const egl::ClientBuffer& clientBuffer);
 
+	static size_t size(int width, int height, int depth, int border, int samples, GLint internalformat);
+
 	GLsizei getWidth() const
 	{
 		return width;

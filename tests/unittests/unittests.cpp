@@ -204,7 +204,8 @@ protected:
 		EXPECT_EQ((EGLBoolean)EGL_TRUE, success);
 	}
 
-	struct ProgramHandles {
+	struct ProgramHandles
+	{
 		GLuint program;
 		GLuint vsShader;
 		GLuint fsShader;
@@ -287,6 +288,7 @@ protected:
 	EGLConfig getConfig() const { return config; }
 	EGLSurface getSurface() const { return surface; }
 	EGLContext getContext() const { return context; }
+
 private:
 	EGLDisplay display;
 	EGLConfig config;
@@ -423,6 +425,29 @@ TEST_F(SwiftShaderTest, AtanCornerCases)
 	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
 
 	Uninitialize();
+}
+
+// Test conditions that should result in a GL_OUT_OF_MEMORY and not crash
+TEST_F(SwiftShaderTest, OutOfMemory)
+{
+	// Image sizes are assumed to fit in a 32-bit signed integer by the renderer,
+	// so test that we can't create a 2+ GiB image.
+	{
+		Initialize(3, false);
+
+		GLuint tex = 1;
+		glBindTexture(GL_TEXTURE_3D, tex);
+
+		const int width = 0xC2;
+		const int height = 0x541;
+		const int depth = 0x404;
+		glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA32F, width, height, depth, 0, GL_RGBA, GL_FLOAT, nullptr);
+		EXPECT_GLENUM_EQ(GL_OUT_OF_MEMORY, glGetError());
+
+		// The spec states that the GL is in an undefined state when GL_OUT_OF_MEMORY
+		// is returned, and the context must be recreated before attempting more rendering.
+		Uninitialize();
+	}
 }
 
 // Note: GL_ARB_texture_rectangle is part of gl2extchromium.h in the Chromium repo

@@ -773,6 +773,10 @@ namespace gl
 
 namespace egl
 {
+	// We assume the data can be indexed with a signed 32-bit offset, including any padding,
+	// so we must keep the image size reasonable. 1 GiB ought to be enough for anybody.
+	enum { IMPLEMENTATION_MAX_IMAGE_SIZE_BYTES = 0x40000000 };
+
 	enum TransferType
 	{
 		Bytes,
@@ -1192,22 +1196,47 @@ namespace egl
 
 	Image *Image::create(Texture *parentTexture, GLsizei width, GLsizei height, GLint internalformat)
 	{
+		if(size(width, height, 1, 0, 1, internalformat) > IMPLEMENTATION_MAX_IMAGE_SIZE_BYTES)
+		{
+			return nullptr;
+		}
+
 		return new ImageImplementation(parentTexture, width, height, internalformat);
 	}
 
 	Image *Image::create(Texture *parentTexture, GLsizei width, GLsizei height, GLsizei depth, int border, GLint internalformat)
 	{
+		if(size(width, height, depth, border, 1, internalformat) > IMPLEMENTATION_MAX_IMAGE_SIZE_BYTES)
+		{
+			return nullptr;
+		}
+
 		return new ImageImplementation(parentTexture, width, height, depth, border, internalformat);
 	}
 
 	Image *Image::create(GLsizei width, GLsizei height, GLint internalformat, int pitchP)
 	{
+		if(size(pitchP, height, 1, 0, 1, internalformat) > IMPLEMENTATION_MAX_IMAGE_SIZE_BYTES)
+		{
+			return nullptr;
+		}
+
 		return new ImageImplementation(width, height, internalformat, pitchP);
 	}
 
 	Image *Image::create(GLsizei width, GLsizei height, GLint internalformat, int multiSampleDepth, bool lockable)
 	{
+		if(size(width, height, 1, 0, multiSampleDepth, internalformat) > IMPLEMENTATION_MAX_IMAGE_SIZE_BYTES)
+		{
+			return nullptr;
+		}
+
 		return new ImageImplementation(width, height, internalformat, multiSampleDepth, lockable);
+	}
+
+	size_t Image::size(int width, int height, int depth, int border, int samples, GLint internalformat)
+	{
+		return sw::Surface::size(width, height, depth, border, samples, gl::SelectInternalFormat(internalformat));
 	}
 
 	int ClientBuffer::getWidth() const

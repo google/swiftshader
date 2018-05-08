@@ -2648,14 +2648,23 @@ namespace sw
 
 	size_t Surface::size(int width, int height, int depth, int border, int samples, Format format)
 	{
+		samples = max(1, samples);
+
 		switch(format)
 		{
 		default:
-			// FIXME: Unpacking byte4 to short4 in the sampler currently involves reading 8 bytes,
-			// and stencil operations also read 8 bytes per four 8-bit stencil values,
-			// so we have to allocate 4 extra bytes to avoid buffer overruns.
-			return (size_t)sliceB(width, height, border, format, true) * depth * samples + 4;
+			{
+				uint64_t size = (uint64_t)sliceB(width, height, border, format, true) * depth * samples;
 
+				// FIXME: Unpacking byte4 to short4 in the sampler currently involves reading 8 bytes,
+				// and stencil operations also read 8 bytes per four 8-bit stencil values,
+				// so we have to allocate 4 extra bytes to avoid buffer overruns.
+				size += 4;
+
+				// We can only sample buffers smaller than 2 GiB.
+				// Force an out-of-memory if larger, or let the caller report an error.
+				return size < 0x80000000u ? (size_t)size : std::numeric_limits<size_t>::max();
+			}
 		case FORMAT_YV12_BT601:
 		case FORMAT_YV12_BT709:
 		case FORMAT_YV12_JFIF:
