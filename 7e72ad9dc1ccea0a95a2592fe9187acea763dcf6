@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "38b1e6f5_02825a72",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2341,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-05-08T19:06:12Z",
+      "side": 1,
+      "message": "Does the integer-based address() function also need fixing?",
+      "range": {
+        "startLine": 2341,
+        "startChar": 19,
+        "endLine": 2341,
+        "endChar": 26
+      },
+      "revId": "7e72ad9dc1ccea0a95a2592fe9187acea763dcf6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "24a24d43_d46cb5cf",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2378,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-05-08T19:06:12Z",
+      "side": 1,
+      "message": "This seems ok, but I\u0027m not sure if we\u0027ve gotten to the root cause, and this may be masking it. The code near the end always clamps (unless we\u0027re in the WRAP case).",
+      "range": {
+        "startLine": 2378,
+        "startChar": 4,
+        "endLine": 2378,
+        "endChar": 70
+      },
+      "revId": "7e72ad9dc1ccea0a95a2592fe9187acea763dcf6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
