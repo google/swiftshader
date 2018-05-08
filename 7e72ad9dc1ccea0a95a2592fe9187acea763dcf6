@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "41c4f485_3d9fb1d9",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 302,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2018-05-08T19:22:38Z",
+      "side": 1,
+      "message": "rectangle textures always use the floating point path",
+      "revId": "7e72ad9dc1ccea0a95a2592fe9187acea763dcf6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "38b1e6f5_02825a72",
         "filename": "src/Shader/SamplerCore.cpp",
         "patchSetId": 1
@@ -13,6 +30,30 @@
       "writtenOn": "2018-05-08T19:06:12Z",
       "side": 1,
       "message": "Does the integer-based address() function also need fixing?",
+      "range": {
+        "startLine": 2341,
+        "startChar": 19,
+        "endLine": 2341,
+        "endChar": 26
+      },
+      "revId": "7e72ad9dc1ccea0a95a2592fe9187acea763dcf6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2078911e_586644e9",
+        "filename": "src/Shader/SamplerCore.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2341,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2018-05-08T19:22:38Z",
+      "side": 1,
+      "message": "No, see other comment",
+      "parentUuid": "38b1e6f5_02825a72",
       "range": {
         "startLine": 2341,
         "startChar": 19,
