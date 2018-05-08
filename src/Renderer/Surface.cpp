@@ -1709,9 +1709,10 @@ namespace sw
 	{
 		width += 2 * border;
 
+		// Render targets require 2x2 quads
 		if(target || isDepth(format) || isStencil(format))
 		{
-			width = align(width, 2);
+			width = align<2>(width);
 		}
 
 		switch(format)
@@ -1773,7 +1774,7 @@ namespace sw
 		case FORMAT_YV12_BT601:
 		case FORMAT_YV12_BT709:
 		case FORMAT_YV12_JFIF:
-			return align(width, 16);
+			return align<16>(width);
 		default:
 			return bytes(format) * width;
 		}
@@ -1790,9 +1791,10 @@ namespace sw
 	{
 		height += 2 * border;
 
+		// Render targets require 2x2 quads
 		if(target || isDepth(format) || isStencil(format))
 		{
-			height = ((height + 1) & ~1);
+			height = align<2>(height);
 		}
 
 		switch(format)
@@ -1847,6 +1849,7 @@ namespace sw
 			return pitchB(width, border, format, target) * ((height + 11) / 12);   // Pitch computed per 12 rows
 		case FORMAT_ATI1:
 		case FORMAT_ATI2:
+			return pitchB(width, border, format, target) * align<4>(height);   // Pitch computed per row
 		default:
 			return pitchB(width, border, format, target) * height;   // Pitch computed per row
 		}
@@ -2643,89 +2646,30 @@ namespace sw
 	{
 	}
 
-	unsigned int Surface::size(int width, int height, int depth, int border, int samples, Format format)
+	size_t Surface::size(int width, int height, int depth, int border, int samples, Format format)
 	{
-		width += 2 * border;
-		height += 2 * border;
-
-		// Dimensions rounded up to multiples of 4, used for compressed formats
-		int width4 = align(width, 4);
-		int height4 = align(height, 4);
-
 		switch(format)
 		{
-		case FORMAT_DXT1:
-		case FORMAT_ATI1:
-		case FORMAT_ETC1:
-		case FORMAT_R11_EAC:
-		case FORMAT_SIGNED_R11_EAC:
-		case FORMAT_RGB8_ETC2:
-		case FORMAT_SRGB8_ETC2:
-		case FORMAT_RGB8_PUNCHTHROUGH_ALPHA1_ETC2:
-		case FORMAT_SRGB8_PUNCHTHROUGH_ALPHA1_ETC2:
-			return width4 * height4 * depth / 2;
-		case FORMAT_DXT3:
-		case FORMAT_DXT5:
-		case FORMAT_ATI2:
-		case FORMAT_RG11_EAC:
-		case FORMAT_SIGNED_RG11_EAC:
-		case FORMAT_RGBA8_ETC2_EAC:
-		case FORMAT_SRGB8_ALPHA8_ETC2_EAC:
-		case FORMAT_RGBA_ASTC_4x4_KHR:
-		case FORMAT_SRGB8_ALPHA8_ASTC_4x4_KHR:
-			return width4 * height4 * depth;
-		case FORMAT_RGBA_ASTC_5x4_KHR:
-		case FORMAT_SRGB8_ALPHA8_ASTC_5x4_KHR:
-			return align(width, 5) * height4 * depth;
-		case FORMAT_RGBA_ASTC_5x5_KHR:
-		case FORMAT_SRGB8_ALPHA8_ASTC_5x5_KHR:
-			return align(width, 5) * align(height, 5) * depth;
-		case FORMAT_RGBA_ASTC_6x5_KHR:
-		case FORMAT_SRGB8_ALPHA8_ASTC_6x5_KHR:
-			return align(width, 6) * align(height, 5) * depth;
-		case FORMAT_RGBA_ASTC_6x6_KHR:
-		case FORMAT_SRGB8_ALPHA8_ASTC_6x6_KHR:
-			return align(width, 6) * align(height, 6) * depth;
-		case FORMAT_RGBA_ASTC_8x5_KHR:
-		case FORMAT_SRGB8_ALPHA8_ASTC_8x5_KHR:
-			return align(width, 8) * align(height, 5) * depth;
-		case FORMAT_RGBA_ASTC_8x6_KHR:
-		case FORMAT_SRGB8_ALPHA8_ASTC_8x6_KHR:
-			return align(width, 8) * align(height, 6) * depth;
-		case FORMAT_RGBA_ASTC_8x8_KHR:
-		case FORMAT_SRGB8_ALPHA8_ASTC_8x8_KHR:
-			return align(width, 8) * align(height, 8) * depth;
-		case FORMAT_RGBA_ASTC_10x5_KHR:
-		case FORMAT_SRGB8_ALPHA8_ASTC_10x5_KHR:
-			return align(width, 10) * align(height, 5) * depth;
-		case FORMAT_RGBA_ASTC_10x6_KHR:
-		case FORMAT_SRGB8_ALPHA8_ASTC_10x6_KHR:
-			return align(width, 10) * align(height, 6) * depth;
-		case FORMAT_RGBA_ASTC_10x8_KHR:
-		case FORMAT_SRGB8_ALPHA8_ASTC_10x8_KHR:
-			return align(width, 10) * align(height, 8) * depth;
-		case FORMAT_RGBA_ASTC_10x10_KHR:
-		case FORMAT_SRGB8_ALPHA8_ASTC_10x10_KHR:
-			return align(width, 10) * align(height, 10) * depth;
-		case FORMAT_RGBA_ASTC_12x10_KHR:
-		case FORMAT_SRGB8_ALPHA8_ASTC_12x10_KHR:
-			return align(width, 12) * align(height, 10) * depth;
-		case FORMAT_RGBA_ASTC_12x12_KHR:
-		case FORMAT_SRGB8_ALPHA8_ASTC_12x12_KHR:
-			return align(width, 12) * align(height, 12) * depth;
+		default:
+			// FIXME: Unpacking byte4 to short4 in the sampler currently involves reading 8 bytes,
+			// and stencil operations also read 8 bytes per four 8-bit stencil values,
+			// so we have to allocate 4 extra bytes to avoid buffer overruns.
+			return (size_t)sliceB(width, height, border, format, true) * depth * samples + 4;
+
 		case FORMAT_YV12_BT601:
 		case FORMAT_YV12_BT709:
 		case FORMAT_YV12_JFIF:
 			{
-				unsigned int YStride = align(width, 16);
-				unsigned int YSize = YStride * height;
-				unsigned int CStride = align(YStride / 2, 16);
-				unsigned int CSize = CStride * height / 2;
+				width += 2 * border;
+				height += 2 * border;
+
+				size_t YStride = align<16>(width);
+				size_t YSize = YStride * height;
+				size_t CStride = align<16>(YStride / 2);
+				size_t CSize = CStride * height / 2;
 
 				return YSize + 2 * CSize;
 			}
-		default:
-			return bytes(format) * width * height * depth * samples;
 		}
 	}
 
@@ -3260,14 +3204,7 @@ namespace sw
 
 	void *Surface::allocateBuffer(int width, int height, int depth, int border, int samples, Format format)
 	{
-		// Render targets require 2x2 quads
-		int width2 = (width + 1) & ~1;
-		int height2 = (height + 1) & ~1;
-
-		// FIXME: Unpacking byte4 to short4 in the sampler currently involves reading 8 bytes,
-		// and stencil operations also read 8 bytes per four 8-bit stencil values,
-		// so we have to allocate 4 extra bytes to avoid buffer overruns.
-		return allocate(size(width2, height2, depth, border, samples, format) + 4);
+		return allocate(size(width, height, depth, border, samples, format));
 	}
 
 	void Surface::memfill4(void *buffer, int pattern, int bytes)

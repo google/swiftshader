@@ -228,7 +228,7 @@ namespace sw
 				{
 					unsigned int YStride = pitchP;
 					unsigned int YSize = YStride * height;
-					unsigned int CStride = align(YStride / 2, 16);
+					unsigned int CStride = align<16>(YStride / 2);
 					unsigned int CSize = CStride * height / 2;
 
 					mipmap.buffer[1] = (byte*)mipmap.buffer[0] + YSize;
