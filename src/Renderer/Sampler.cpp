@@ -478,7 +478,8 @@ namespace sw
 	{
 		if(textureType == TEXTURE_2D_ARRAY ||
 		   textureType == TEXTURE_2D ||
-		   textureType == TEXTURE_CUBE)
+		   textureType == TEXTURE_CUBE ||
+		   textureType == TEXTURE_RECTANGLE)
 		{
 			return ADDRESSING_LAYER;
 		}
