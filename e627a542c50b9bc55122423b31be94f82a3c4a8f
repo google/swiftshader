@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b3b3ee10_92123679",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-05-11T19:43:02Z",
+      "side": 1,
+      "message": "Explain this is relevant to apps making glTexSubImage2D calls assuming the image stride is that of the IOSurface.",
+      "range": {
+        "startLine": 10,
+        "startChar": 17,
+        "endLine": 10,
+        "endChar": 23
+      },
+      "revId": "e627a542c50b9bc55122423b31be94f82a3c4a8f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "79f5df7e_cdb48d48",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-05-11T19:43:02Z",
+      "side": 1,
+      "message": "Bug b/19979104",
+      "revId": "e627a542c50b9bc55122423b31be94f82a3c4a8f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
