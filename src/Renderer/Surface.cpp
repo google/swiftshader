@@ -1310,8 +1310,8 @@ namespace sw
 		external.samples = (short)samples;
 		external.format = format;
 		external.bytes = bytes(external.format);
-		external.pitchB = pitchB(external.width, 0, external.format, renderTarget && !texture);
-		external.pitchP = pitchP(external.width, 0, external.format, renderTarget && !texture);
+		external.pitchB = !pitchPprovided ? pitchB(external.width, 0, external.format, renderTarget && !texture) : pitchPprovided * external.bytes;
+		external.pitchP = !pitchPprovided ? pitchP(external.width, 0, external.format, renderTarget && !texture) : pitchPprovided;
 		external.sliceB = sliceB(external.width, external.height, 0, external.format, renderTarget && !texture);
 		external.sliceP = sliceP(external.width, external.height, 0, external.format, renderTarget && !texture);
 		external.border = 0;
