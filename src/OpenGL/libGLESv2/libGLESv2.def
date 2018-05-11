@@ -183,6 +183,10 @@ EXPORTS
 	glGetFramebufferAttachmentParameterivOES
 	glGenerateMipmapOES
 	glDrawBuffersEXT
+    glBindVertexArrayOES
+    glDeleteVertexArraysOES
+    glGenVertexArraysOES
+    glIsVertexArrayOES
 
     ; GLES 3.0 Functions
     glReadBuffer                    @211

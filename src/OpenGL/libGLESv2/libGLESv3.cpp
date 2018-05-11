@@ -1469,6 +1469,11 @@ GL_APICALL void GL_APIENTRY glBindVertexArray(GLuint array)
 	}
 }
 
+GL_APICALL void GL_APIENTRY glBindVertexArrayOES(GLuint array)
+{
+	glBindVertexArray(array);
+}
+
 GL_APICALL void GL_APIENTRY glDeleteVertexArrays(GLsizei n, const GLuint *arrays)
 {
 	TRACE("(GLsizei n = %d, const GLuint *arrays = %p)", n, arrays);
@@ -1489,6 +1494,11 @@ GL_APICALL void GL_APIENTRY glDeleteVertexArrays(GLsizei n, const GLuint *arrays
 	}
 }
 
+GL_APICALL void GL_APIENTRY glDeleteVertexArraysOES(GLsizei n, const GLuint *arrays)
+{
+	glDeleteVertexArrays(n, arrays);
+}
+
 GL_APICALL void GL_APIENTRY glGenVertexArrays(GLsizei n, GLuint *arrays)
 {
 	TRACE("(GLsizei n = %d, const GLuint *arrays = %p)", n, arrays);
@@ -1507,6 +1517,11 @@ GL_APICALL void GL_APIENTRY glGenVertexArrays(GLsizei n, GLuint *arrays)
 			arrays[i] = context->createVertexArray();
 		}
 	}
+}
+
+GL_APICALL void GL_APIENTRY glGenVertexArraysOES(GLsizei n, GLuint *arrays)
+{
+	glGenVertexArrays(n, arrays);
 }
 
 GL_APICALL GLboolean GL_APIENTRY glIsVertexArray(GLuint array)
@@ -1531,6 +1546,11 @@ GL_APICALL GLboolean GL_APIENTRY glIsVertexArray(GLuint array)
 	}
 
 	return GL_FALSE;
+}
+
+GL_APICALL GLboolean GL_APIENTRY glIsVertexArrayOES(GLuint array)
+{
+	return glIsVertexArray(array);
 }
 
 GL_APICALL void GL_APIENTRY glGetIntegeri_v(GLenum target, GLuint index, GLint *data)
