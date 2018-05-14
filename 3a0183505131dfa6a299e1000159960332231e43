@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "c34ab7be_ee4238f3",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 6842
+      },
+      "writtenOn": "2018-05-14T22:14:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3386d38c_497fe957",
+      "range": {
+        "startLine": 10,
+        "startChar": 0,
+        "endLine": 10,
+        "endChar": 5
+      },
+      "revId": "3a0183505131dfa6a299e1000159960332231e43",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1090a4a1_48147e1a",
         "filename": "src/Common/Version.h",
         "patchSetId": 4
