@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "68676bb7_9d48d185",
+        "filename": "src/Renderer/Surface.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 1773,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2018-05-15T23:13:23Z",
+      "side": 1,
+      "message": "Nit: Maybe a similar function to align\u003c\u003e (something like roundUp\u003cN\u003e(width), I can\u0027t think of a good name for it) would also make this code more readable.",
+      "range": {
+        "startLine": 1720,
+        "startChar": 0,
+        "endLine": 1773,
+        "endChar": 33
+      },
+      "revId": "bc70177fc21f2b524268512f3131fab662248986",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
