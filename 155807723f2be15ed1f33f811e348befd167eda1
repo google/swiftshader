@@ -22,6 +22,30 @@
       "revId": "155807723f2be15ed1f33f811e348befd167eda1",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a4784582_6f20f2fb",
+        "filename": "src/Shader/ShaderCore.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 414,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2018-05-15T23:38:15Z",
+      "side": 1,
+      "message": "Oh, right, I missed the 2nd pi/2 in the code at line 420. I\u0027ll try removing non_zero_y.",
+      "parentUuid": "89051ec9_dd936a26",
+      "range": {
+        "startLine": 404,
+        "startChar": 2,
+        "endLine": 414,
+        "endChar": 91
+      },
+      "revId": "155807723f2be15ed1f33f811e348befd167eda1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
