@@ -769,7 +769,15 @@ bool Texture2D::isDepth(GLenum target, GLint level) const
 
 void Texture2D::generateMipmaps()
 {
-	ASSERT(image[mBaseLevel]);
+	if(!image[mBaseLevel])
+	{
+		return;   // Image unspecified. Not an error.
+	}
+
+	if(image[mBaseLevel]->getWidth() == 0 || image[mBaseLevel]->getHeight() == 0)
+	{
+		return;   // Zero dimension. Not an error.
+	}
 
 	int maxsize = std::max(image[mBaseLevel]->getWidth(), image[mBaseLevel]->getHeight());
 	int p = log2(maxsize) + mBaseLevel;
@@ -1321,7 +1329,10 @@ void TextureCubeMap::copySubImage(GLenum target, GLint level, GLint xoffset, GLi
 
 void TextureCubeMap::generateMipmaps()
 {
-	ASSERT(isCubeComplete());
+	if(!isCubeComplete())
+	{
+		return error(GL_INVALID_OPERATION);
+	}
 
 	int p = log2(image[0][mBaseLevel]->getWidth()) + mBaseLevel;
 	int q = std::min(p, mMaxLevel);
@@ -1739,7 +1750,15 @@ bool Texture3D::isDepth(GLenum target, GLint level) const
 
 void Texture3D::generateMipmaps()
 {
-	ASSERT(image[mBaseLevel]);
+	if(!image[mBaseLevel])
+	{
+		return;   // Image unspecified. Not an error.
+	}
+
+	if(image[mBaseLevel]->getWidth() == 0 || image[mBaseLevel]->getHeight() == 0 || image[mBaseLevel]->getDepth() == 0)
+	{
+		return;   // Zero dimension. Not an error.
+	}
 
 	int maxsize = std::max(std::max(image[mBaseLevel]->getWidth(), image[mBaseLevel]->getHeight()), image[mBaseLevel]->getDepth());
 	int p = log2(maxsize) + mBaseLevel;
@@ -1833,7 +1852,15 @@ GLenum Texture2DArray::getTarget() const
 
 void Texture2DArray::generateMipmaps()
 {
-	ASSERT(image[mBaseLevel]);
+	if(!image[mBaseLevel])
+	{
+		return;   // Image unspecified. Not an error.
+	}
+
+	if(image[mBaseLevel]->getWidth() == 0 || image[mBaseLevel]->getHeight() == 0 || image[mBaseLevel]->getDepth() == 0)
+	{
+		return;   // Zero dimension. Not an error.
+	}
 
 	int depth = image[mBaseLevel]->getDepth();
 	int maxsize = std::max(image[mBaseLevel]->getWidth(), image[mBaseLevel]->getHeight());
