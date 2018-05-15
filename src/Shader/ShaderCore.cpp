@@ -402,14 +402,13 @@ namespace sw
 		Float4 y0 = Abs(y);
 
 		// Rotate to right quadrant when in left quadrant
-		Int4 non_zero_y = CmpNEQ(y0, Float4(0.0f));
-		Int4 Q = CmpLT(x0, Float4(0.0f)) & non_zero_y;
+		Int4 Q = CmpLT(x0, Float4(0.0f));
 		theta += As<Float4>(Q & As<Int4>(half_pi));
 		Float4 x1 = As<Float4>((Q & As<Int4>(y0)) | (~Q & As<Int4>(x0)));  // FIXME: Vector select
 		Float4 y1 = As<Float4>((Q & As<Int4>(-x0)) | (~Q & As<Int4>(y0))); // FIXME: Vector select
 
 		// Mirror to first octant when in second octant
-		Int4 O = CmpNLT(y1, x1) & non_zero_y;
+		Int4 O = CmpNLT(y1, x1);
 		Float4 x2 = As<Float4>((O & As<Int4>(y1)) | (~O & As<Int4>(x1))); // FIXME: Vector select
 		Float4 y2 = As<Float4>((O & As<Int4>(x1)) | (~O & As<Int4>(y1))); // FIXME: Vector select
 
@@ -417,7 +416,7 @@ namespace sw
 		Int4 zero_x = CmpEQ(x2, Float4(0.0f));
 		Int4 inf_y = IsInf(y2); // Since x2 >= y2, this means x2 == y2 == inf, so we use 45 degrees or pi/4
 		Float4 atan2_theta = arctan_01(y2 / x2, pp);
-		theta += As<Float4>((~zero_x & ~inf_y & non_zero_y & ((O & As<Int4>(half_pi - atan2_theta)) | (~O & (As<Int4>(atan2_theta))))) | // FIXME: Vector select
+		theta += As<Float4>((~zero_x & ~inf_y & ((O & As<Int4>(half_pi - atan2_theta)) | (~O & (As<Int4>(atan2_theta))))) | // FIXME: Vector select
 		                    (inf_y & As<Int4>(quarter_pi)));
 
 		// Recover loss of precision for tiny theta angles
