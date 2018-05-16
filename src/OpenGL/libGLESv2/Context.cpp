@@ -4145,12 +4145,14 @@ void Context::blitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1
 			return error(GL_INVALID_OPERATION);
 		}
 
-		// From the ANGLE_framebuffer_blit extension:
-		// "Calling BlitFramebufferANGLE will result in an INVALID_OPERATION error if <mask>
-		//  includes COLOR_BUFFER_BIT and the source and destination color formats to not match."
-		if((clientVersion < 3) && (readRenderbuffer->getSamples() > 0) && (readFormat != drawFormat))
+		if((readRenderbuffer->getSamples() > 0) && (readFormat != drawFormat))
 		{
-			return error(GL_INVALID_OPERATION);
+			// RGBA8 and BGRA8 should be interchangeable here
+			if(!(((readFormat == GL_RGBA8) && (drawFormat == GL_BGRA8_EXT)) ||
+				 ((readFormat == GL_BGRA8_EXT) && (drawFormat == GL_RGBA8))))
+			{
+				return error(GL_INVALID_OPERATION);
+			}
 		}
 
 		blitRenderTarget = true;
