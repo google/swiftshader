@@ -22,6 +22,30 @@
       "revId": "7d0bd8a647d3c74202867886e813b5419cb40f6b",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fe65999d_cdf689e6",
+        "filename": "tests/unittests/unittests.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1545,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-05-16T20:41:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ef91b0a6_fc7f35cf",
+      "range": {
+        "startLine": 1545,
+        "startChar": 0,
+        "endLine": 1545,
+        "endChar": 36
+      },
+      "revId": "7d0bd8a647d3c74202867886e813b5419cb40f6b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
