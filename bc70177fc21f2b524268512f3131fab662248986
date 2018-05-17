@@ -22,6 +22,30 @@
       "revId": "bc70177fc21f2b524268512f3131fab662248986",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b1e6b2e2_896d1446",
+        "filename": "src/Renderer/Surface.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 1773,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-05-17T13:54:23Z",
+      "side": 1,
+      "message": "Ack, but it risks being less clear than having the formula visible, unless the name is super-clear. Can\u0027t think of a good one either. However, it could also be written like align\u003c4\u003e(width) / 4, which I think is clear but potentially doesn\u0027t optimize well. I\u0027ll check.",
+      "parentUuid": "68676bb7_9d48d185",
+      "range": {
+        "startLine": 1720,
+        "startChar": 0,
+        "endLine": 1773,
+        "endChar": 33
+      },
+      "revId": "bc70177fc21f2b524268512f3131fab662248986",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
