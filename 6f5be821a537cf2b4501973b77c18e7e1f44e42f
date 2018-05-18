@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5fbafd2b_4c320c08",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 5
+      },
+      "lineNbr": 3130,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2018-05-18T14:56:10Z",
+      "side": 1,
+      "message": "This probably doesn\u0027t compile if you don\u0027t put \u0027maxAnisotropy\u0027 here, right?",
+      "range": {
+        "startLine": 3130,
+        "startChar": 26,
+        "endLine": 3130,
+        "endChar": 27
+      },
+      "revId": "6f5be821a537cf2b4501973b77c18e7e1f44e42f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
