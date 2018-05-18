@@ -11,12 +11,12 @@
 
 Google Inc.
  Nicolas Capens <capn@google.com>
- Alexis HÈtu <sugoi@google.com>
+ Alexis H√©tu <sugoi@google.com>
  Shannon Woods <shannonwoods@google.com>
  Corentin Wallez <cwallez@google.com>
  Greg Hartman <ghartman@google.com>
  Ping-Hao Wu <pinghao@google.com>
- Maxime GrÈgoire <mgregoire@google.com>
+ Maxime Gr√©goire <mgregoire@google.com>
  Veranika Liaukevich <veranika@google.com>
  John Bauman <jbauman@google.com>
  Keun Soo Yim <yim@google.com>
@@ -24,6 +24,7 @@ Google Inc.
  Philippe Hamel <hamelphi@google.com>
  Daniel Toyama <kenjitoyama@google.com>
  Meng-Lin Wu <marleymoo@google.com>
+ Krzysztof Kosi≈Ñski <krzysio@google.com>
 
 TransGaming Inc.
  Nicolas Capens
