@@ -61,7 +61,8 @@ Contact
 
 Public mailing list: [swiftshader@googlegroups.com](https://groups.google.com/forum/#!forum/swiftshader)
 
-Bug tracker: https://bugs.chromium.org/p/swiftshader
+General bug tracker:  https://issuetracker.google.com/issues?q=componentid:408190
+Chrome specific bugs: https://bugs.chromium.org/p/swiftshader
 
 License
 -------
