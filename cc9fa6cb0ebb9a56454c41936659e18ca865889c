@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "18eaf834_7cb2fa90",
+        "filename": "tests/fuzzers/VertexRoutineFuzzer.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 222,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2018-05-23T11:23:48Z",
+      "side": 1,
+      "message": "tab",
+      "range": {
+        "startLine": 222,
+        "startChar": 27,
+        "endLine": 222,
+        "endChar": 28
+      },
+      "revId": "cc9fa6cb0ebb9a56454c41936659e18ca865889c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9a03572d_4e12f814",
+        "filename": "tests/fuzzers/VertexRoutineFuzzer.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 223,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2018-05-23T11:23:48Z",
+      "side": 1,
+      "message": "tab",
+      "range": {
+        "startLine": 223,
+        "startChar": 63,
+        "endLine": 223,
+        "endChar": 64
+      },
+      "revId": "cc9fa6cb0ebb9a56454c41936659e18ca865889c",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
