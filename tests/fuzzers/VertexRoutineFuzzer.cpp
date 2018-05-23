@@ -90,7 +90,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 		return 0;
 	}
 
-	if (data[size -1] != 0)
+	if(data[size - 1] != 0)
 	{
 		return 0;
 	}
@@ -211,3 +211,26 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 
 	return 0;
 }
+
+#if defined(FUZZER_STANDALONE_REPRODUCE)
+int main(int argc, char *argv[])
+{
+	FILE *file = fopen("clusterfuzz-testcase", "r");
+
+	fseek(file, 0L, SEEK_END);
+	long numbytes = ftell(file);
+	fseek(file, 0L, SEEK_SET);
+	uint8_t *buffer = (uint8_t*)calloc(numbytes, sizeof(uint8_t));
+	fread(buffer, sizeof(char), numbytes, file);
+	fclose(file);
+
+	while(true)
+	{
+		LLVMFuzzerTestOneInput(buffer, numbytes);
+	}
+
+	free(buffer);
+
+	return 0;
+}
+#endif
