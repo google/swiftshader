@@ -24,7 +24,7 @@ namespace sw
 	{
 	public:
 		PixelProgram(const PixelProcessor::State &state, const PixelShader *shader) :
-			PixelRoutine(state, shader), r(shader->dynamicallyIndexedTemporaries),
+			PixelRoutine(state, shader), r(shader->indirectAddressableTemporaries),
 			loopDepth(-1), ifDepth(0), loopRepDepth(0), currentLabel(-1), whileTest(false)
 		{
 			for(int i = 0; i < 2048; ++i)

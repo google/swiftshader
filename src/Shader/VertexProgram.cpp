@@ -24,7 +24,7 @@
 namespace sw
 {
 	VertexProgram::VertexProgram(const VertexProcessor::State &state, const VertexShader *shader)
-		: VertexRoutine(state, shader), shader(shader), r(shader->dynamicallyIndexedTemporaries)
+		: VertexRoutine(state, shader), shader(shader), r(shader->indirectAddressableTemporaries)
 	{
 		ifDepth = 0;
 		loopRepDepth = 0;

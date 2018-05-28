@@ -160,7 +160,7 @@ namespace sw
 		analyzeDynamicBranching();
 		analyzeSamplers();
 		analyzeCallSites();
-		analyzeDynamicIndexing();
+		analyzeIndirectAddressing();
 	}
 
 	void PixelShader::analyzeZOverride()

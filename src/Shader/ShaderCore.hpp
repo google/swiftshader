@@ -147,31 +147,30 @@ namespace sw
 		Reference<Float4> w;
 	};
 
-	template<int S, bool D = false>
-	class RegisterArray
+	class RegisterFile
 	{
 	public:
-		RegisterArray(bool dynamic = D) : dynamic(dynamic)
+		RegisterFile(int size, bool indirectAddressable) : size(size), indirectAddressable(indirectAddressable)
 		{
-			if(dynamic)
+			if(indirectAddressable)
 			{
-				x = new Array<Float4>(S);
-				y = new Array<Float4>(S);
-				z = new Array<Float4>(S);
-				w = new Array<Float4>(S);
+				x = new Array<Float4>(size);
+				y = new Array<Float4>(size);
+				z = new Array<Float4>(size);
+				w = new Array<Float4>(size);
 			}
 			else
 			{
-				x = new Array<Float4>[S];
-				y = new Array<Float4>[S];
-				z = new Array<Float4>[S];
-				w = new Array<Float4>[S];
+				x = new Array<Float4>[size];
+				y = new Array<Float4>[size];
+				z = new Array<Float4>[size];
+				w = new Array<Float4>[size];
 			}
 		}
 
-		~RegisterArray()
+		~RegisterFile()
 		{
-			if(dynamic)
+			if(indirectAddressable)
 			{
 				delete x;
 				delete y;
@@ -189,7 +188,7 @@ namespace sw
 
 		Register operator[](int i)
 		{
-			if(dynamic)
+			if(indirectAddressable)
 			{
 				return Register(x[0][i], y[0][i], z[0][i], w[0][i]);
 			}
@@ -201,17 +200,34 @@ namespace sw
 
 		Register operator[](RValue<Int> i)
 		{
-			ASSERT(dynamic);
+			ASSERT(indirectAddressable);
 
 			return Register(x[0][i], y[0][i], z[0][i], w[0][i]);
 		}
 
-	private:
-		const bool dynamic;
+		const Vector4f operator[](RValue<Int4> i);   // Gather operation (read only).
+
+		void scatter_x(Int4 i, RValue<Float4> r);
+		void scatter_y(Int4 i, RValue<Float4> r);
+		void scatter_z(Int4 i, RValue<Float4> r);
+		void scatter_w(Int4 i, RValue<Float4> r);
+
+	protected:
+		const int size;
+		const bool indirectAddressable;
 		Array<Float4> *x;
 		Array<Float4> *y;
 		Array<Float4> *z;
 		Array<Float4> *w;
+	};
+
+	template<int S, bool I = false>
+	class RegisterArray : public RegisterFile
+	{
+	public:
+		RegisterArray(bool indirectAddressable = I) : RegisterFile(S, indirectAddressable)
+		{
+		}
 	};
 
 	class ShaderCore

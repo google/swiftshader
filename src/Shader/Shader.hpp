@@ -612,9 +612,9 @@ namespace sw
 		unsigned int dirtyConstantsI;
 		unsigned int dirtyConstantsB;
 
-		bool dynamicallyIndexedTemporaries;
-		bool dynamicallyIndexedInput;
-		bool dynamicallyIndexedOutput;
+		bool indirectAddressableTemporaries;
+		bool indirectAddressableInput;
+		bool indirectAddressableOutput;
 
 	protected:
 		void parse(const unsigned long *token);
@@ -627,7 +627,7 @@ namespace sw
 		void analyzeDynamicBranching();
 		void analyzeSamplers();
 		void analyzeCallSites();
-		void analyzeDynamicIndexing();
+		void analyzeIndirectAddressing();
 		void markFunctionAnalysis(unsigned int functionLabel, Analysis flag);
 
 		ShaderType shaderType;

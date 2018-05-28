@@ -176,7 +176,7 @@ namespace sw
 		setOutput(posReg, 4, sw::Shader::Semantic(sw::Shader::USAGE_POSITION, 0));
 		positionRegister = posReg;
 	}
-	
+
 	void VertexShader::setPointSizeRegister(int ptSizeReg)
 	{
 		setOutput(ptSizeReg, 4, sw::Shader::Semantic(sw::Shader::USAGE_PSIZE, 0));
@@ -207,7 +207,7 @@ namespace sw
 		analyzeDynamicBranching();
 		analyzeSamplers();
 		analyzeCallSites();
-		analyzeDynamicIndexing();
+		analyzeIndirectAddressing();
 	}
 
 	void VertexShader::analyzeInput()

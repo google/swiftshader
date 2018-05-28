@@ -27,8 +27,8 @@ namespace sw
 	extern bool symmetricNormalizedDepth;   // [-1, 1] instead of [0, 1]
 
 	VertexRoutine::VertexRoutine(const VertexProcessor::State &state, const VertexShader *shader)
-		: v(shader && shader->dynamicallyIndexedInput),
-		  o(shader && shader->dynamicallyIndexedOutput),
+		: v(shader && shader->indirectAddressableInput),
+		  o(shader && shader->indirectAddressableOutput),
 		  state(state)
 	{
 	}

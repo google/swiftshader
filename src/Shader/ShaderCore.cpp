@@ -560,6 +560,100 @@ namespace sw
 		}
 	}
 
+	const Vector4f RegisterFile::operator[](RValue<Int4> index)
+	{
+		ASSERT(indirectAddressable);
+
+		Int index0 = Extract(index, 0);
+		Int index1 = Extract(index, 1);
+		Int index2 = Extract(index, 2);
+		Int index3 = Extract(index, 3);
+
+		Vector4f r;
+
+		r.x.x = Extract(x[0][index0], 0);
+		r.x.y = Extract(x[0][index1], 1);
+		r.x.z = Extract(x[0][index2], 2);
+		r.x.w = Extract(x[0][index3], 3);
+
+		r.y.x = Extract(y[0][index0], 0);
+		r.y.y = Extract(y[0][index1], 1);
+		r.y.z = Extract(y[0][index2], 2);
+		r.y.w = Extract(y[0][index3], 3);
+
+		r.z.x = Extract(z[0][index0], 0);
+		r.z.y = Extract(z[0][index1], 1);
+		r.z.z = Extract(z[0][index2], 2);
+		r.z.w = Extract(z[0][index3], 3);
+
+		r.w.x = Extract(w[0][index0], 0);
+		r.w.y = Extract(w[0][index1], 1);
+		r.w.z = Extract(w[0][index2], 2);
+		r.w.w = Extract(w[0][index3], 3);
+
+		return r;
+	}
+
+	void RegisterFile::scatter_x(Int4 index, RValue<Float4> r)
+	{
+		ASSERT(indirectAddressable);
+
+		Int index0 = Extract(index, 0);
+		Int index1 = Extract(index, 1);
+		Int index2 = Extract(index, 2);
+		Int index3 = Extract(index, 3);
+
+		x[0][index0] = Insert(x[0][index0], Extract(r, 0), 0);
+		x[0][index1] = Insert(x[0][index1], Extract(r, 1), 1);
+		x[0][index2] = Insert(x[0][index2], Extract(r, 2), 2);
+		x[0][index3] = Insert(x[0][index3], Extract(r, 3), 3);
+	}
+
+	void RegisterFile::scatter_y(Int4 index, RValue<Float4> r)
+	{
+		ASSERT(indirectAddressable);
+
+		Int index0 = Extract(index, 0);
+		Int index1 = Extract(index, 1);
+		Int index2 = Extract(index, 2);
+		Int index3 = Extract(index, 3);
+
+		y[0][index0] = Insert(y[0][index0], Extract(r, 0), 0);
+		y[0][index1] = Insert(y[0][index1], Extract(r, 1), 1);
+		y[0][index2] = Insert(y[0][index2], Extract(r, 2), 2);
+		y[0][index3] = Insert(y[0][index3], Extract(r, 3), 3);
+	}
+
+	void RegisterFile::scatter_z(Int4 index, RValue<Float4> r)
+	{
+		ASSERT(indirectAddressable);
+
+		Int index0 = Extract(index, 0);
+		Int index1 = Extract(index, 1);
+		Int index2 = Extract(index, 2);
+		Int index3 = Extract(index, 3);
+
+		z[0][index0] = Insert(z[0][index0], Extract(r, 0), 0);
+		z[0][index1] = Insert(z[0][index1], Extract(r, 1), 1);
+		z[0][index2] = Insert(z[0][index2], Extract(r, 2), 2);
+		z[0][index3] = Insert(z[0][index3], Extract(r, 3), 3);
+	}
+
+	void RegisterFile::scatter_w(Int4 index, RValue<Float4> r)
+	{
+		ASSERT(indirectAddressable);
+
+		Int index0 = Extract(index, 0);
+		Int index1 = Extract(index, 1);
+		Int index2 = Extract(index, 2);
+		Int index3 = Extract(index, 3);
+
+		w[0][index0] = Insert(w[0][index0], Extract(r, 0), 0);
+		w[0][index1] = Insert(w[0][index1], Extract(r, 1), 1);
+		w[0][index2] = Insert(w[0][index2], Extract(r, 2), 2);
+		w[0][index3] = Insert(w[0][index3], Extract(r, 3), 3);
+	}
+
 	void ShaderCore::mov(Vector4f &dst, const Vector4f &src, bool integerDestination)
 	{
 		if(integerDestination)
