@@ -402,7 +402,7 @@ namespace sw
 			unsigned int index;
 			unsigned int swizzle : 8;
 			unsigned int scale;
-			bool deterministic;   // Equal accross shader instances run in lockstep (e.g. unrollable loop couters)
+			bool dynamic;   // Varies between concurrent shader instances
 		};
 
 		struct Parameter
@@ -433,7 +433,7 @@ namespace sw
 				rel.index = 0;
 				rel.swizzle = 0;
 				rel.scale = 1;
-				rel.deterministic = false;
+				rel.dynamic = true;
 			}
 
 			std::string string(ShaderType shaderType, unsigned short version) const;

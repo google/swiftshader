@@ -59,7 +59,7 @@ namespace sw
 	{
 	}
 
-	void VertexProgram::pipeline(UInt& index)
+	void VertexProgram::pipeline(UInt &index)
 	{
 		if(!state.preTransformed)
 		{
@@ -71,7 +71,7 @@ namespace sw
 		}
 	}
 
-	void VertexProgram::program(UInt& index)
+	void VertexProgram::program(UInt &index)
 	{
 	//	shader->print("VertexShader-%0.8X.txt", state.shaderID);
 
@@ -372,14 +372,23 @@ namespace sw
 							if(dst.z) pDst.z = r[dst.index].z;
 							if(dst.w) pDst.w = r[dst.index].w;
 						}
+						else if(!dst.rel.dynamic)
+						{
+							Int a = dst.index + relativeAddress(dst.rel);
+
+							if(dst.x) pDst.x = r[a].x;
+							if(dst.y) pDst.y = r[a].y;
+							if(dst.z) pDst.z = r[a].z;
+							if(dst.w) pDst.w = r[a].w;
+						}
 						else
 						{
-							Int a = relativeAddress(dst);
+							Int4 a = dst.index + dynamicAddress(dst.rel);
 
-							if(dst.x) pDst.x = r[dst.index + a].x;
-							if(dst.y) pDst.y = r[dst.index + a].y;
-							if(dst.z) pDst.z = r[dst.index + a].z;
-							if(dst.w) pDst.w = r[dst.index + a].w;
+							if(dst.x) pDst.x = r[a].x;
+							if(dst.y) pDst.y = r[a].y;
+							if(dst.z) pDst.z = r[a].z;
+							if(dst.w) pDst.w = r[a].w;
 						}
 						break;
 					case Shader::PARAMETER_ADDR: pDst = a0; break;
@@ -417,24 +426,30 @@ namespace sw
 							if(dst.z) pDst.z = o[T0 + dst.index].z;
 							if(dst.w) pDst.w = o[T0 + dst.index].w;
 						}
+						else if(dst.rel.type == Shader::PARAMETER_VOID)   // Not relative
+						{
+							if(dst.x) pDst.x = o[dst.index].x;
+							if(dst.y) pDst.y = o[dst.index].y;
+							if(dst.z) pDst.z = o[dst.index].z;
+							if(dst.w) pDst.w = o[dst.index].w;
+						}
+						else if(!dst.rel.dynamic)
+						{
+							Int a = dst.index + relativeAddress(dst.rel);
+
+							if(dst.x) pDst.x = o[a].x;
+							if(dst.y) pDst.y = o[a].y;
+							if(dst.z) pDst.z = o[a].z;
+							if(dst.w) pDst.w = o[a].w;
+						}
 						else
 						{
-							if(dst.rel.type == Shader::PARAMETER_VOID)   // Not relative
-							{
-								if(dst.x) pDst.x = o[dst.index].x;
-								if(dst.y) pDst.y = o[dst.index].y;
-								if(dst.z) pDst.z = o[dst.index].z;
-								if(dst.w) pDst.w = o[dst.index].w;
-							}
-							else
-							{
-								Int a = relativeAddress(dst);
+							Int4 a = dst.index + dynamicAddress(dst.rel);
 
-								if(dst.x) pDst.x = o[dst.index + a].x;
-								if(dst.y) pDst.y = o[dst.index + a].y;
-								if(dst.z) pDst.z = o[dst.index + a].z;
-								if(dst.w) pDst.w = o[dst.index + a].w;
-							}
+							if(dst.x) pDst.x = o[a].x;
+							if(dst.y) pDst.y = o[a].y;
+							if(dst.z) pDst.z = o[a].z;
+							if(dst.w) pDst.w = o[a].w;
 						}
 						break;
 					case Shader::PARAMETER_LABEL:                break;
@@ -499,14 +514,23 @@ namespace sw
 						if(dst.z) r[dst.index].z = d.z;
 						if(dst.w) r[dst.index].w = d.w;
 					}
+					else if(!dst.rel.dynamic)
+					{
+						Int a = dst.index + relativeAddress(dst.rel);
+
+						if(dst.x) r[a].x = d.x;
+						if(dst.y) r[a].y = d.y;
+						if(dst.z) r[a].z = d.z;
+						if(dst.w) r[a].w = d.w;
+					}
 					else
 					{
-						Int a = relativeAddress(dst);
+						Int4 a = dst.index + dynamicAddress(dst.rel);
 
-						if(dst.x) r[dst.index + a].x = d.x;
-						if(dst.y) r[dst.index + a].y = d.y;
-						if(dst.z) r[dst.index + a].z = d.z;
-						if(dst.w) r[dst.index + a].w = d.w;
+						if(dst.x) r.scatter_x(a, d.x);
+						if(dst.y) r.scatter_y(a, d.y);
+						if(dst.z) r.scatter_z(a, d.z);
+						if(dst.w) r.scatter_w(a, d.w);
 					}
 					break;
 				case Shader::PARAMETER_ADDR:
@@ -548,24 +572,30 @@ namespace sw
 						if(dst.z) o[T0 + dst.index].z = d.z;
 						if(dst.w) o[T0 + dst.index].w = d.w;
 					}
+					else if(dst.rel.type == Shader::PARAMETER_VOID)   // Not relative
+					{
+						if(dst.x) o[dst.index].x = d.x;
+						if(dst.y) o[dst.index].y = d.y;
+						if(dst.z) o[dst.index].z = d.z;
+						if(dst.w) o[dst.index].w = d.w;
+					}
+					else if(!dst.rel.dynamic)
+					{
+						Int a = dst.index + relativeAddress(dst.rel);
+
+						if(dst.x) o[a].x = d.x;
+						if(dst.y) o[a].y = d.y;
+						if(dst.z) o[a].z = d.z;
+						if(dst.w) o[a].w = d.w;
+					}
 					else
 					{
-						if(dst.rel.type == Shader::PARAMETER_VOID)   // Not relative
-						{
-							if(dst.x) o[dst.index].x = d.x;
-							if(dst.y) o[dst.index].y = d.y;
-							if(dst.z) o[dst.index].z = d.z;
-							if(dst.w) o[dst.index].w = d.w;
-						}
-						else
-						{
-							Int a = relativeAddress(dst);
+						Int4 a = dst.index + dynamicAddress(dst.rel);
 
-							if(dst.x) o[dst.index + a].x = d.x;
-							if(dst.y) o[dst.index + a].y = d.y;
-							if(dst.z) o[dst.index + a].z = d.z;
-							if(dst.w) o[dst.index + a].w = d.w;
-						}
+						if(dst.x) o.scatter_x(a, d.x);
+						if(dst.y) o.scatter_y(a, d.y);
+						if(dst.z) o.scatter_z(a, d.z);
+						if(dst.w) o.scatter_w(a, d.w);
 					}
 					break;
 				case Shader::PARAMETER_LABEL:             break;
@@ -663,9 +693,13 @@ namespace sw
 			{
 				reg = r[i];
 			}
+			else if(!src.rel.dynamic)
+			{
+				reg = r[i + relativeAddress(src.rel, src.bufferIndex)];
+			}
 			else
 			{
-				reg = r[i + relativeAddress(src, src.bufferIndex)];
+				reg = r[i + dynamicAddress(src.rel)];
 			}
 			break;
 		case Shader::PARAMETER_CONST:
@@ -676,9 +710,13 @@ namespace sw
 			{
 				reg = v[i];
 			}
+			else if(!src.rel.dynamic)
+			{
+				reg = v[i + relativeAddress(src.rel, src.bufferIndex)];
+			}
 			else
 			{
-				reg = v[i + relativeAddress(src, src.bufferIndex)];
+				reg = v[i + dynamicAddress(src.rel)];
 			}
 			break;
 		case Shader::PARAMETER_VOID: return r[0];   // Dummy
@@ -708,9 +746,13 @@ namespace sw
 			{
 				reg = o[i];
 			}
+			else if(!src.rel.dynamic)
+			{
+				reg = o[i + relativeAddress(src.rel, src.bufferIndex)];
+			}
 			else
 			{
-				reg = o[i + relativeAddress(src, src.bufferIndex)];
+				reg = o[i + dynamicAddress(src.rel)];
 			}
 			break;
 		case Shader::PARAMETER_MISCTYPE:
@@ -786,7 +828,7 @@ namespace sw
 		}
 	}
 
-	RValue<Pointer<Byte>> VertexProgram::uniformAddress(int bufferIndex, unsigned int index, Int& offset)
+	RValue<Pointer<Byte>> VertexProgram::uniformAddress(int bufferIndex, unsigned int index, Int &offset)
 	{
 		return uniformAddress(bufferIndex, index) + offset * sizeof(float4);
 	}
@@ -826,11 +868,11 @@ namespace sw
 				}
 			}
 		}
-		else if(src.rel.type == Shader::PARAMETER_LOOP)
+		else if(!src.rel.dynamic || src.rel.type == Shader::PARAMETER_LOOP)
 		{
-			Int loopCounter = aL[loopDepth];
+			Int a = relativeAddress(src.rel, src.bufferIndex);
 
-			c.x = c.y = c.z = c.w = *Pointer<Float4>(uniformAddress(src.bufferIndex, i, loopCounter));
+			c.x = c.y = c.z = c.w = *Pointer<Float4>(uniformAddress(src.bufferIndex, i, a));
 
 			c.x = c.x.xxxx;
 			c.y = c.y.yyyy;
@@ -839,91 +881,99 @@ namespace sw
 		}
 		else
 		{
-			if(src.rel.deterministic)
+			int component = src.rel.swizzle & 0x03;
+			Float4 a;
+
+			switch(src.rel.type)
 			{
-				Int a = relativeAddress(src, src.bufferIndex);
-
-				c.x = c.y = c.z = c.w = *Pointer<Float4>(uniformAddress(src.bufferIndex, i, a));
-
-				c.x = c.x.xxxx;
-				c.y = c.y.yyyy;
-				c.z = c.z.zzzz;
-				c.w = c.w.wwww;
-			}
-			else
-			{
-				int component = src.rel.swizzle & 0x03;
-				Float4 a;
-
-				switch(src.rel.type)
+			case Shader::PARAMETER_ADDR:     a = a0[component]; break;
+			case Shader::PARAMETER_TEMP:     a = r[src.rel.index][component]; break;
+			case Shader::PARAMETER_INPUT:    a = v[src.rel.index][component]; break;
+			case Shader::PARAMETER_OUTPUT:   a = o[src.rel.index][component]; break;
+			case Shader::PARAMETER_CONST:    a = *Pointer<Float>(uniformAddress(src.bufferIndex, src.rel.index) + component * sizeof(float)); break;
+			case Shader::PARAMETER_MISCTYPE:
+				switch(src.rel.index)
 				{
-				case Shader::PARAMETER_ADDR:     a = a0[component]; break;
-				case Shader::PARAMETER_TEMP:     a = r[src.rel.index][component]; break;
-				case Shader::PARAMETER_INPUT:    a = v[src.rel.index][component]; break;
-				case Shader::PARAMETER_OUTPUT:   a = o[src.rel.index][component]; break;
-				case Shader::PARAMETER_CONST:    a = *Pointer<Float>(uniformAddress(src.bufferIndex, src.rel.index) + component * sizeof(float)); break;
-				case Shader::PARAMETER_MISCTYPE:
-					if(src.rel.index == Shader::InstanceIDIndex)
-					{
-						a = As<Float4>(Int4(instanceID)); break;
-					}
-					else if(src.rel.index == Shader::VertexIDIndex)
-					{
-						a = As<Float4>(vertexID); break;
-					}
-					else ASSERT(false);
-					break;
+				case Shader::InstanceIDIndex: a = As<Float4>(Int4(instanceID)); break;
+				case Shader::VertexIDIndex:   a = As<Float4>(vertexID);         break;
 				default: ASSERT(false);
 				}
-
-				Int4 index = Int4(i) + As<Int4>(a) * Int4(src.rel.scale);
-
-				index = Min(As<UInt4>(index), UInt4(VERTEX_UNIFORM_VECTORS));   // Clamp to constant register range, c[VERTEX_UNIFORM_VECTORS] = {0, 0, 0, 0}
-
-				Int index0 = Extract(index, 0);
-				Int index1 = Extract(index, 1);
-				Int index2 = Extract(index, 2);
-				Int index3 = Extract(index, 3);
-
-				c.x = *Pointer<Float4>(uniformAddress(src.bufferIndex, 0, index0), 16);
-				c.y = *Pointer<Float4>(uniformAddress(src.bufferIndex, 0, index1), 16);
-				c.z = *Pointer<Float4>(uniformAddress(src.bufferIndex, 0, index2), 16);
-				c.w = *Pointer<Float4>(uniformAddress(src.bufferIndex, 0, index3), 16);
-
-				transpose4x4(c.x, c.y, c.z, c.w);
+				break;
+			default: ASSERT(false);
 			}
+
+			Int4 index = Int4(i) + As<Int4>(a) * Int4(src.rel.scale);
+
+			index = Min(As<UInt4>(index), UInt4(VERTEX_UNIFORM_VECTORS));   // Clamp to constant register range, c[VERTEX_UNIFORM_VECTORS] = {0, 0, 0, 0}
+
+			Int index0 = Extract(index, 0);
+			Int index1 = Extract(index, 1);
+			Int index2 = Extract(index, 2);
+			Int index3 = Extract(index, 3);
+
+			c.x = *Pointer<Float4>(uniformAddress(src.bufferIndex, 0, index0), 16);
+			c.y = *Pointer<Float4>(uniformAddress(src.bufferIndex, 0, index1), 16);
+			c.z = *Pointer<Float4>(uniformAddress(src.bufferIndex, 0, index2), 16);
+			c.w = *Pointer<Float4>(uniformAddress(src.bufferIndex, 0, index3), 16);
+
+			transpose4x4(c.x, c.y, c.z, c.w);
 		}
 
 		return c;
 	}
 
-	Int VertexProgram::relativeAddress(const Shader::Parameter &var, int bufferIndex)
+	Int VertexProgram::relativeAddress(const Shader::Relative &rel, int bufferIndex)
 	{
-		ASSERT(var.rel.deterministic);
+		ASSERT(!rel.dynamic);
 
-		if(var.rel.type == Shader::PARAMETER_TEMP)
+		if(rel.type == Shader::PARAMETER_TEMP)
 		{
-			return As<Int>(Extract(r[var.rel.index].x, 0)) * var.rel.scale;
+			return As<Int>(Extract(r[rel.index].x, 0)) * rel.scale;
 		}
-		else if(var.rel.type == Shader::PARAMETER_INPUT)
+		else if(rel.type == Shader::PARAMETER_INPUT)
 		{
-			return As<Int>(Extract(v[var.rel.index].x, 0)) * var.rel.scale;
+			return As<Int>(Extract(v[rel.index].x, 0)) * rel.scale;
 		}
-		else if(var.rel.type == Shader::PARAMETER_OUTPUT)
+		else if(rel.type == Shader::PARAMETER_OUTPUT)
 		{
-			return As<Int>(Extract(o[var.rel.index].x, 0)) * var.rel.scale;
+			return As<Int>(Extract(o[rel.index].x, 0)) * rel.scale;
 		}
-		else if(var.rel.type == Shader::PARAMETER_CONST)
+		else if(rel.type == Shader::PARAMETER_CONST)
 		{
-			return *Pointer<Int>(uniformAddress(bufferIndex, var.rel.index)) * var.rel.scale;
+			return *Pointer<Int>(uniformAddress(bufferIndex, rel.index)) * rel.scale;
 		}
-		else if(var.rel.type == Shader::PARAMETER_LOOP)
+		else if(rel.type == Shader::PARAMETER_LOOP)
 		{
 			return aL[loopDepth];
 		}
 		else ASSERT(false);
 
 		return 0;
+	}
+
+	Int4 VertexProgram::dynamicAddress(const Shader::Relative &rel)
+	{
+		int component = rel.swizzle & 0x03;
+		Float4 a;
+
+		switch(rel.type)
+		{
+		case Shader::PARAMETER_ADDR:     a = a0[component]; break;
+		case Shader::PARAMETER_TEMP:     a = r[rel.index][component]; break;
+		case Shader::PARAMETER_INPUT:    a = v[rel.index][component]; break;
+		case Shader::PARAMETER_OUTPUT:   a = o[rel.index][component]; break;
+		case Shader::PARAMETER_MISCTYPE:
+			switch(rel.index)
+			{
+			case Shader::InstanceIDIndex: a = As<Float>(instanceID); break;
+			case Shader::VertexIDIndex:   a = As<Float4>(vertexID);  break;
+			default: ASSERT(false);
+			}
+			break;
+		default: ASSERT(false);
+		}
+
+		return As<Int4>(a) * Int4(rel.scale);
 	}
 
 	Int4 VertexProgram::enableMask(const Shader::Instruction *instruction)

@@ -1822,6 +1822,16 @@ namespace sw
 //	RValue<Bool> operator!=(RValue<Int4> lhs, RValue<Int4> rhs);
 //	RValue<Bool> operator==(RValue<Int4> lhs, RValue<Int4> rhs);
 
+	inline RValue<Int4> operator+(RValue<Int> lhs, RValue<Int4> rhs)
+	{
+		return Int4(lhs) + rhs;
+	}
+
+	inline RValue<Int4> operator+(RValue<Int4> lhs, RValue<Int> rhs)
+	{
+		return lhs + Int4(rhs);
+	}
+
 	RValue<Int4> CmpEQ(RValue<Int4> x, RValue<Int4> y);
 	RValue<Int4> CmpLT(RValue<Int4> x, RValue<Int4> y);
 	RValue<Int4> CmpLE(RValue<Int4> x, RValue<Int4> y);

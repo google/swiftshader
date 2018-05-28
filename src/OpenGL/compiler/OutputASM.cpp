@@ -1831,6 +1831,11 @@ namespace glsl
 			return false;
 		}
 
+		if(loop.isDeterministic())
+		{
+			 deterministicVariables.insert(loop.index->getId());
+		}
+
 		bool unroll = (loop.iterations <= 4);
 
 		TIntermNode *init = node->getInit();
@@ -1914,6 +1919,11 @@ namespace glsl
 
 				emit(sw::Shader::OPCODE_ENDWHILE);
 			}
+		}
+
+		if(loop.isDeterministic())
+		{
+			 deterministicVariables.erase(loop.index->getId());
 		}
 
 		return false;
@@ -2651,10 +2661,12 @@ namespace glsl
 								sw::Shader::SourceParameter relativeRegister;
 								source(relativeRegister, right);
 
+								int indexId = right->getAsSymbolNode() ? right->getAsSymbolNode()->getId() : 0;
+
 								rel.index = relativeRegister.index;
 								rel.type = relativeRegister.type;
 								rel.scale = scale;
-								rel.deterministic = !(vertexShader && left->getQualifier() == EvqUniform);
+								rel.dynamic = (right->getQualifier() != EvqUniform) && (deterministicVariables.count(indexId) == 0);
 							}
 						}
 						else if(rel.index != registerIndex(&address))   // Move the previous index register to the address register
