@@ -24,6 +24,8 @@
 #include <Windows.h>
 #endif
 
+#include <string.h>
+
 #define EXPECT_GLENUM_EQ(expected, actual) EXPECT_EQ(static_cast<GLenum>(expected), static_cast<GLenum>(actual))
 
 class SwiftShaderTest : public testing::Test
@@ -207,8 +209,8 @@ protected:
 	struct ProgramHandles
 	{
 		GLuint program;
-		GLuint vsShader;
-		GLuint fsShader;
+		GLuint vertexShader;
+		GLuint fragmentShader;
 	};
 
 	ProgramHandles createProgram(const std::string& vs, const std::string& fs)
@@ -217,20 +219,20 @@ protected:
 		ph.program = glCreateProgram();
 		EXPECT_GLENUM_EQ(GL_NONE, glGetError());
 
-		ph.vsShader = glCreateShader(GL_VERTEX_SHADER);
+		ph.vertexShader = glCreateShader(GL_VERTEX_SHADER);
 		const char* vsSource[1] = { vs.c_str() };
-		glShaderSource(ph.vsShader, 1, vsSource, nullptr);
-		glCompileShader(ph.vsShader);
+		glShaderSource(ph.vertexShader, 1, vsSource, nullptr);
+		glCompileShader(ph.vertexShader);
 		EXPECT_GLENUM_EQ(GL_NONE, glGetError());
 
-		ph.fsShader = glCreateShader(GL_FRAGMENT_SHADER);
+		ph.fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
 		const char* fsSource[1] = { fs.c_str() };
-		glShaderSource(ph.fsShader, 1, fsSource, nullptr);
-		glCompileShader(ph.fsShader);
+		glShaderSource(ph.fragmentShader, 1, fsSource, nullptr);
+		glCompileShader(ph.fragmentShader);
 		EXPECT_GLENUM_EQ(GL_NONE, glGetError());
 
-		glAttachShader(ph.program, ph.vsShader);
-		glAttachShader(ph.program, ph.fsShader);
+		glAttachShader(ph.program, ph.vertexShader);
+		glAttachShader(ph.program, ph.fragmentShader);
 		glLinkProgram(ph.program);
 		EXPECT_GLENUM_EQ(GL_NONE, glGetError());
 
@@ -243,12 +245,12 @@ protected:
 
 	void deleteProgram(const ProgramHandles& ph)
 	{
-		glDeleteShader(ph.fsShader);
-		glDeleteShader(ph.vsShader);
+		glDeleteShader(ph.fragmentShader);
+		glDeleteShader(ph.vertexShader);
 		glDeleteProgram(ph.program);
 	}
 
-	void drawQuad(GLuint program, const char* textureName)
+	void drawQuad(GLuint program, const char* textureName = nullptr)
 	{
 		GLint prevProgram = 0;
 		glGetIntegerv(GL_CURRENT_PROGRAM, &prevProgram);
@@ -311,6 +313,190 @@ TEST_F(SwiftShaderTest, Initalization)
 	const GLubyte *glVersion = glGetString(GL_VERSION);
 	EXPECT_GLENUM_EQ(GL_NO_ERROR, glGetError());
 	EXPECT_THAT((const char*)glVersion, testing::HasSubstr("OpenGL ES 2.0 SwiftShader "));
+
+	Uninitialize();
+}
+
+// Test unrolling of a loop
+TEST_F(SwiftShaderTest, UnrollLoop)
+{
+	Initialize(3, false);
+
+	unsigned char green[4] = { 0, 255, 0, 255 };
+
+	const std::string vs =
+		"#version 300 es\n"
+		"in vec4 position;\n"
+		"out vec4 color;\n"
+		"void main()\n"
+		"{\n"
+		"   for(int i = 0; i < 4; i++)\n"
+		"   {\n"
+		"       color[i] = (i % 2 == 0) ? 0.0 : 1.0;\n"
+		"   }\n"
+		"	gl_Position = vec4(position.xy, 0.0, 1.0);\n"
+		"}\n";
+
+	const std::string fs =
+		"#version 300 es\n"
+		"precision mediump float;\n"
+		"in vec4 color;\n"
+		"out vec4 fragColor;\n"
+		"void main()\n"
+		"{\n"
+		"	fragColor = color;\n"
+		"}\n";
+
+	const ProgramHandles ph = createProgram(vs, fs);
+
+	// Expect the info log to contain "unrolled". This is not a spec requirement.
+	GLsizei length = 0;
+	glGetShaderiv(ph.vertexShader, GL_INFO_LOG_LENGTH, &length);
+	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_NE(length, 0);
+	char *log = new char[length];
+	GLsizei written = 0;
+	glGetShaderInfoLog(ph.vertexShader, length, &written, log);
+	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_EQ(length, written + 1);
+	EXPECT_NE(strstr(log, "unrolled"), nullptr);
+	delete log;
+
+	glUseProgram(ph.program);
+
+	glClearColor(0.0, 0.0, 0.0, 0.0);
+	glClear(GL_COLOR_BUFFER_BIT);
+	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+
+	drawQuad(ph.program);
+
+	deleteProgram(ph);
+
+	compareColor(green);
+
+	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+
+	Uninitialize();
+}
+
+// Test non-canonical or non-deterministic loops do not get unrolled
+TEST_F(SwiftShaderTest, DynamicLoop)
+{
+	Initialize(3, false);
+
+	unsigned char green[4] = { 0, 255, 0, 255 };
+
+	const std::string vs =
+		"#version 300 es\n"
+		"in vec4 position;\n"
+		"out vec4 color;\n"
+		"void main()\n"
+		"{\n"
+		"   for(int i = 0; i < 4; )\n"
+		"   {\n"
+		"       color[i] = (i % 2 == 0) ? 0.0 : 1.0;\n"
+		"       i++;"
+		"   }\n"
+		"	gl_Position = vec4(position.xy, 0.0, 1.0);\n"
+		"}\n";
+
+	const std::string fs =
+		"#version 300 es\n"
+		"precision mediump float;\n"
+		"in vec4 color;\n"
+		"out vec4 fragColor;\n"
+		"void main()\n"
+		"{\n"
+		"   vec4 temp;"
+		"   for(int i = 0; i < 4; i++)\n"
+		"   {\n"
+		"       if(color.x < 0.0) return;"
+		"       temp[i] = color[i];\n"
+		"   }\n"
+		"	fragColor = vec4(temp[0], temp[1], temp[2], temp[3]);\n"
+		"}\n";
+
+	const ProgramHandles ph = createProgram(vs, fs);
+
+	// Expect the info logs to be empty. This is not a spec requirement.
+	GLsizei length = 0;
+	glGetShaderiv(ph.vertexShader, GL_INFO_LOG_LENGTH, &length);
+	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_EQ(length, 0);
+	glGetShaderiv(ph.fragmentShader, GL_INFO_LOG_LENGTH, &length);
+	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_EQ(length, 0);
+
+	glUseProgram(ph.program);
+
+	glClearColor(0.0, 0.0, 0.0, 0.0);
+	glClear(GL_COLOR_BUFFER_BIT);
+	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+
+	drawQuad(ph.program);
+
+	deleteProgram(ph);
+
+	compareColor(green);
+
+	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+
+	Uninitialize();
+}
+
+// Test dynamic indexing
+TEST_F(SwiftShaderTest, DynamicIndexing)
+{
+	Initialize(3, false);
+
+	unsigned char green[4] = { 0, 255, 0, 255 };
+
+	const std::string vs =
+		"#version 300 es\n"
+		"in vec4 position;\n"
+		"out float color[4];\n"
+		"void main()\n"
+		"{\n"
+		"   for(int i = 0; i < 4; )\n"
+		"   {\n"
+		"       int j = (gl_VertexID + i) % 4;\n"
+		"       color[j] = (j % 2 == 0) ? 0.0 : 1.0;\n"
+		"       i++;"
+		"   }\n"
+		"	gl_Position = vec4(position.xy, 0.0, 1.0);\n"
+		"}\n";
+
+	const std::string fs =
+		"#version 300 es\n"
+		"precision mediump float;\n"
+		"in float color[4];\n"
+		"out vec4 fragColor;\n"
+		"void main()\n"
+		"{\n"
+		"   float temp[4];"
+		"   for(int i = 0; i < 4; )\n"
+		"   {\n"
+		"       temp[i] = color[i];\n"
+		"       i++;"
+		"   }\n"
+		"	fragColor = vec4(temp[0], temp[1], temp[2], temp[3]);\n"
+		"}\n";
+
+	const ProgramHandles ph = createProgram(vs, fs);
+
+	glUseProgram(ph.program);
+
+	glClearColor(0.0, 0.0, 0.0, 0.0);
+	glClear(GL_COLOR_BUFFER_BIT);
+	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+
+	drawQuad(ph.program);
+
+	deleteProgram(ph);
+
+	compareColor(green);
+
+	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
 
 	Uninitialize();
 }

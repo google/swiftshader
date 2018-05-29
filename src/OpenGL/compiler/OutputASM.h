@@ -382,19 +382,17 @@ namespace glsl
 	class LoopUnrollable : public TIntermTraverser
 	{
 	public:
-		bool traverse(TIntermNode *node, int loopIndexId);
+		bool traverse(TIntermLoop *loop, int loopIndexId);
 
 	private:
 		void visitSymbol(TIntermSymbol *node) override;
 		bool visitBinary(Visit visit, TIntermBinary *node) override;
 		bool visitUnary(Visit visit, TIntermUnary *node) override;
 		bool visitBranch(Visit visit, TIntermBranch *node) override;
-		bool visitLoop(Visit visit, TIntermLoop *loop) override;
 		bool visitAggregate(Visit visit, TIntermAggregate *node) override;
 
 		bool loopUnrollable;
 
-		int loopDepth;
 		int loopIndexId;
 	};
 }
