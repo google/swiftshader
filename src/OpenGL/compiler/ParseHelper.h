@@ -80,6 +80,8 @@ public:
 	           const char* extraInfo="");
 	void warning(const TSourceLoc &loc, const char* reason, const char* token,
 	             const char* extraInfo="");
+	void info(const TSourceLoc &loc, const char* reason, const char* token,
+	          const char* extraInfo="");
 	void trace(const char* str);
 	void recover();
 	TIntermNode *getTreeRoot() const { return mTreeRoot; }

@@ -30,6 +30,7 @@ inline float fractionalPart(float f) {
 //
 enum TPrefixType {
 	EPrefixNone,
+	EPrefixInfo,
 	EPrefixWarning,
 	EPrefixError,
 	EPrefixInternalError,

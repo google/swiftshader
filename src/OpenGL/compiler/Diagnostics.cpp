@@ -22,7 +22,8 @@ TDiagnostics::TDiagnostics(TInfoSink& infoSink) :
 	mShaderVersion(100),
 	mInfoSink(infoSink),
 	mNumErrors(0),
-	mNumWarnings(0)
+	mNumWarnings(0),
+	mNumInfos(0)
 {
 }
 
@@ -51,6 +52,10 @@ void TDiagnostics::writeInfo(Severity severity,
 	case PP_WARNING:
 		++mNumWarnings;
 		prefix = EPrefixWarning;
+		break;
+	case PP_INFO:
+		++mNumInfos;
+		prefix = EPrefixInfo;
 		break;
 	default:
 		UNREACHABLE(severity);

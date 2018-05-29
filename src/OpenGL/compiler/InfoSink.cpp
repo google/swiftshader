@@ -18,6 +18,9 @@ void TInfoSinkBase::prefix(TPrefixType message) {
 	switch(message) {
 		case EPrefixNone:
 			break;
+		case EPrefixInfo:
+			sink.append("INFO: ");
+			break;
 		case EPrefixWarning:
 			sink.append("WARNING: ");
 			break;

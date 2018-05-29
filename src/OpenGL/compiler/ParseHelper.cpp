@@ -224,6 +224,14 @@ void TParseContext::warning(const TSourceLoc& loc,
 						   srcLoc, reason, token, extraInfo);
 }
 
+void TParseContext::info(const TSourceLoc& loc,
+							const char* reason, const char* token,
+							const char* extraInfo) {
+	pp::SourceLocation srcLoc(loc.first_file, loc.first_line);
+	mDiagnostics.writeInfo(pp::Diagnostics::PP_INFO,
+						   srcLoc, reason, token, extraInfo);
+}
+
 void TParseContext::trace(const char* str)
 {
 	mDiagnostics.writeDebug(str);

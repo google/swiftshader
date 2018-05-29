@@ -240,11 +240,12 @@ void Shader::compile()
 		success = false;
 	}
 
+	infoLog += compiler->getInfoSink().info.c_str();
+
 	if(!success)
 	{
 		deleteShader();
 
-		infoLog += compiler->getInfoSink().info.c_str();
 		TRACE("\n%s", infoLog.c_str());
 	}
 
