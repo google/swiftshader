@@ -360,7 +360,7 @@ TEST_F(SwiftShaderTest, UnrollLoop)
 	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
 	EXPECT_EQ(length, written + 1);
 	EXPECT_NE(strstr(log, "unrolled"), nullptr);
-	delete log;
+	delete[] log;
 
 	glUseProgram(ph.program);
 
