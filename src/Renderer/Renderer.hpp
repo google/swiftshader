@@ -29,12 +29,12 @@
 namespace sw
 {
 	class Clipper;
+	struct DrawCall;
 	class PixelShader;
 	class VertexShader;
 	class SwiftConfig;
 	struct Task;
 	class Resource;
-	class Renderer;
 	struct Constants;
 
 	enum TranscendentalPrecision
@@ -200,55 +200,6 @@ namespace sw
 		float4 a2c1;
 		float4 a2c2;
 		float4 a2c3;
-	};
-
-	struct DrawCall
-	{
-		DrawCall();
-
-		~DrawCall();
-
-		AtomicInt drawType;
-		AtomicInt batchSize;
-
-		Routine *vertexRoutine;
-		Routine *setupRoutine;
-		Routine *pixelRoutine;
-
-		VertexProcessor::RoutinePointer vertexPointer;
-		SetupProcessor::RoutinePointer setupPointer;
-		PixelProcessor::RoutinePointer pixelPointer;
-
-		int (Renderer::*setupPrimitives)(int batch, int count);
-		SetupProcessor::State setupState;
-
-		Resource *vertexStream[MAX_VERTEX_INPUTS];
-		Resource *indexBuffer;
-		Surface *renderTarget[RENDERTARGETS];
-		Surface *depthBuffer;
-		Surface *stencilBuffer;
-		Resource *texture[TOTAL_IMAGE_UNITS];
-		Resource* pUniformBuffers[MAX_UNIFORM_BUFFER_BINDINGS];
-		Resource* vUniformBuffers[MAX_UNIFORM_BUFFER_BINDINGS];
-		Resource* transformFeedbackBuffers[MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS];
-
-		unsigned int vsDirtyConstF;
-		unsigned int vsDirtyConstI;
-		unsigned int vsDirtyConstB;
-
-		unsigned int psDirtyConstF;
-		unsigned int psDirtyConstI;
-		unsigned int psDirtyConstB;
-
-		std::list<Query*> *queries;
-
-		AtomicInt clipFlags;
-
-		AtomicInt primitive;    // Current primitive to enter pipeline
-		AtomicInt count;        // Number of primitives to render
-		AtomicInt references;   // Remaining references to this draw call, 0 when done drawing, -1 when resources unlocked and slot is free
-
-		DrawData *data;
 	};
 
 	struct Viewport
@@ -501,6 +452,55 @@ namespace sw
 		Routine *vertexRoutine;
 		Routine *setupRoutine;
 		Routine *pixelRoutine;
+	};
+
+	struct DrawCall
+	{
+		DrawCall();
+
+		~DrawCall();
+
+		AtomicInt drawType;
+		AtomicInt batchSize;
+
+		Routine *vertexRoutine;
+		Routine *setupRoutine;
+		Routine *pixelRoutine;
+
+		VertexProcessor::RoutinePointer vertexPointer;
+		SetupProcessor::RoutinePointer setupPointer;
+		PixelProcessor::RoutinePointer pixelPointer;
+
+		int (Renderer::*setupPrimitives)(int batch, int count);
+		SetupProcessor::State setupState;
+
+		Resource *vertexStream[MAX_VERTEX_INPUTS];
+		Resource *indexBuffer;
+		Surface *renderTarget[RENDERTARGETS];
+		Surface *depthBuffer;
+		Surface *stencilBuffer;
+		Resource *texture[TOTAL_IMAGE_UNITS];
+		Resource* pUniformBuffers[MAX_UNIFORM_BUFFER_BINDINGS];
+		Resource* vUniformBuffers[MAX_UNIFORM_BUFFER_BINDINGS];
+		Resource* transformFeedbackBuffers[MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS];
+
+		unsigned int vsDirtyConstF;
+		unsigned int vsDirtyConstI;
+		unsigned int vsDirtyConstB;
+
+		unsigned int psDirtyConstF;
+		unsigned int psDirtyConstI;
+		unsigned int psDirtyConstB;
+
+		std::list<Query*> *queries;
+
+		AtomicInt clipFlags;
+
+		AtomicInt primitive;    // Current primitive to enter pipeline
+		AtomicInt count;        // Number of primitives to render
+		AtomicInt references;   // Remaining references to this draw call, 0 when done drawing, -1 when resources unlocked and slot is free
+
+		DrawData *data;
 	};
 }
 
