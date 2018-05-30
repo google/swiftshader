@@ -22,6 +22,30 @@
       "revId": "4eb96237765644dac057d4dd9a346ba0d551e64e",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0a9ffcae_53a9e3e8",
+        "filename": "src/OpenGL/compiler/OutputASM.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 1875,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-05-30T15:41:12Z",
+      "side": 1,
+      "message": "Yes, I believe this is useful debugging information. I believe Microsoft\u0027s HLSL compiler also reports which loops it unrolled (or didn\u0027t).",
+      "parentUuid": "b0dc47c4_8f24ce62",
+      "range": {
+        "startLine": 1875,
+        "startChar": 4,
+        "endLine": 1875,
+        "endChar": 59
+      },
+      "revId": "4eb96237765644dac057d4dd9a346ba0d551e64e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
