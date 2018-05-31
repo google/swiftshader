@@ -28,7 +28,10 @@ config("swiftshader_libGLESv2_private_config") {
       "/wd5030",  # attribute is not recognized
     ]
 
-    defines += [ "GL_APICALL=" ]
+    defines += [
+      "GL_APICALL=",
+      "GLAPI=",
+    ]
 
     if (is_clang) {
       defines += [
@@ -46,6 +49,7 @@ config("swiftshader_libGLESv2_private_config") {
       "__STDC_CONSTANT_MACROS",
       "__STDC_LIMIT_MACROS",
       "GL_APICALL=__attribute__((visibility(\"default\"))) __attribute__((no_sanitize(\"function\")))",
+      "GLAPI=GL_APICALL",
     ]
   }
 }
