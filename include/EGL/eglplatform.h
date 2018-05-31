@@ -77,7 +77,7 @@ typedef HDC     EGLNativeDisplayType;
 typedef HBITMAP EGLNativePixmapType;
 typedef HWND    EGLNativeWindowType;
 
-#elif defined(__WINSCW__) || defined(__SYMBIAN32__)  /* Symbian */
+#elif defined(__APPLE__) || defined(__WINSCW__) || defined(__SYMBIAN32__)  /* Symbian */
 
 typedef int   EGLNativeDisplayType;
 typedef void *EGLNativeWindowType;
@@ -110,7 +110,7 @@ typedef intptr_t EGLNativeDisplayType;
 typedef intptr_t EGLNativeWindowType;
 typedef intptr_t EGLNativePixmapType;
 
-#elif defined(__unix__) || defined(__APPLE__)
+#elif defined(__unix__)
 
 /* X11 (tentative)  */
 #include <X11/Xlib.h>
