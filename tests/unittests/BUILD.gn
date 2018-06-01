@@ -31,7 +31,11 @@ test("swiftshader_unittests") {
 
   include_dirs = [ "../../include" ]  # Khronos headers
 
-  defines = [ "GL_GLEXT_PROTOTYPES" ]
+  defines = [
+    "GL_GLEXT_PROTOTYPES",
+    "GL_APICALL=",
+    "GLAPI=",
+  ]
 
   # Make sure we're loading SwiftShader's libraries, not ANGLE's or the system
   # provided ones. On Windows an explicit LoadLibrary("swiftshader\lib*.dll")
