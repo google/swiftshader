@@ -1237,12 +1237,12 @@ namespace sw
 
 			For(Int j = y0d, j < y1d, j++)
 			{
-				Float y = state.clearOperation ? y0 : y0 + Float(j) * h;
+				Float y = state.clearOperation ? RValue<Float>(y0) : y0 + Float(j) * h;
 				Pointer<Byte> destLine = dest + (dstQuadLayout ? j & Int(~1) : RValue<Int>(j)) * dPitchB;
 
 				For(Int i = x0d, i < x1d, i++)
 				{
-					Float x = state.clearOperation ? x0 : x0 + Float(i) * w;
+					Float x = state.clearOperation ? RValue<Float>(x0) : x0 + Float(i) * w;
 					Pointer<Byte> d = destLine + (dstQuadLayout ? (((j & Int(1)) << 1) + (i * 2) - (i & Int(1))) : RValue<Int>(i)) * dstBytes;
 
 					if(hasConstantColorI)
