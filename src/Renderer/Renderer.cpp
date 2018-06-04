@@ -224,6 +224,7 @@ namespace sw
 
 		int ss = context->getSuperSampleCount();
 		int ms = context->getMultiSampleCount();
+		bool targetRequiresSync = false;
 
 		for(int q = 0; q < ss; q++)
 		{
@@ -607,6 +608,7 @@ namespace sw
 					if(draw->renderTarget[index])
 					{
 						unsigned int layer = context->renderTargetLayer[index];
+						targetRequiresSync |= context->renderTarget[index]->targetRequiresSync();
 						data->colorBuffer[index] = (unsigned int*)context->renderTarget[index]->lockInternal(0, 0, layer, LOCK_READWRITE, MANAGED);
 						data->colorBuffer[index] += q * ms * context->renderTarget[index]->getSliceB(true);
 						data->colorPitchB[index] = context->renderTarget[index]->getInternalPitchB();
@@ -620,6 +622,7 @@ namespace sw
 				if(draw->depthBuffer)
 				{
 					unsigned int layer = context->depthBufferLayer;
+					targetRequiresSync |= context->depthBuffer->targetRequiresSync();
 					data->depthBuffer = (float*)context->depthBuffer->lockInternal(0, 0, layer, LOCK_READWRITE, MANAGED);
 					data->depthBuffer += q * ms * context->depthBuffer->getSliceB(true);
 					data->depthPitchB = context->depthBuffer->getInternalPitchB();
@@ -629,6 +632,7 @@ namespace sw
 				if(draw->stencilBuffer)
 				{
 					unsigned int layer = context->stencilBufferLayer;
+					targetRequiresSync |= context->stencilBuffer->targetRequiresSync();
 					data->stencilBuffer = (unsigned char*)context->stencilBuffer->lockStencil(0, 0, layer, MANAGED);
 					data->stencilBuffer += q * ms * context->stencilBuffer->getSliceB(true);
 					data->stencilPitchB = context->stencilBuffer->getStencilPitchB();
@@ -674,6 +678,12 @@ namespace sw
 					resume[0]->signal();
 				}
 			}
+		}
+
+		// TODO(sugoi): This is a temporary brute-force workaround to ensure IOSurface synchronization.
+		if(targetRequiresSync)
+		{
+			synchronize();
 		}
 	}
 

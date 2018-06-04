@@ -1332,6 +1332,15 @@ namespace egl
 #endif
 	}
 
+	bool ClientBuffer::targetRequiresSync() const
+	{
+#if defined(__APPLE__)
+		return true;
+#else
+		return false;
+#endif
+	}
+
 	class ClientBufferImage : public egl::Image
 	{
 	public:
@@ -1420,6 +1429,11 @@ namespace egl
 
 			LOGLOCK("image=%p op=%s.swsurface", this, __FUNCTION__);
 			sw::Surface::unlockExternal();
+		}
+
+		bool targetRequiresSync() const override
+		{
+			return clientBuffer.targetRequiresSync();
 		}
 
 		void release() override
