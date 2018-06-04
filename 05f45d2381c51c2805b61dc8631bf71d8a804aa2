@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e4ab2cfc_cb57d888",
+        "filename": "src/Renderer/Renderer.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 682,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-06-04T15:50:12Z",
+      "side": 1,
+      "message": "Let\u0027s add something like \"// TODO(sugoi): This is a temporary brute-force workaround to ensure IOSurface synchronization.\"",
+      "revId": "05f45d2381c51c2805b61dc8631bf71d8a804aa2",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
