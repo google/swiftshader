@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "46925a82_276fdf27",
+        "filename": "src/OpenGL/common/Image.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1337,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-06-04T18:03:08Z",
+      "side": 1,
+      "message": "Should this be pre-decrement? In any case it seems best to do the decrement on a separate line.",
+      "range": {
+        "startLine": 1337,
+        "startChar": 6,
+        "endLine": 1337,
+        "endChar": 19
+      },
+      "revId": "21e8284c0bee2a8ebf651cd5826383a69570afeb",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
