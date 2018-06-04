@@ -1028,3 +1028,27 @@ if(BUILD_TESTS AND ${REACTOR_BACKEND} STREQUAL "Subzero")
         target_link_libraries(SubzeroTest ReactorSubzero pthread dl)
     endif()
 endif()
+
+if(BUILD_TESTS)
+    set(UNITTESTS_LIST
+        ${CMAKE_SOURCE_DIR}/tests/unittests/main.cpp
+        ${CMAKE_SOURCE_DIR}/tests/unittests/unittests.cpp
+        ${CMAKE_SOURCE_DIR}/third_party/googletest/googletest/src/gtest-all.cc
+    )
+
+    set(UNITTESTS_INCLUDE_DIR
+        ${CMAKE_SOURCE_DIR}/third_party/googletest/googletest/include/
+        ${CMAKE_SOURCE_DIR}/third_party/googletest/googlemock/include/
+        ${CMAKE_SOURCE_DIR}/third_party/googletest/googletest/
+        ${CMAKE_SOURCE_DIR}/include/
+    )
+
+    add_executable(unittests ${UNITTESTS_LIST})
+    set_target_properties(unittests PROPERTIES
+        INCLUDE_DIRECTORIES "${UNITTESTS_INCLUDE_DIR}"
+        FOLDER "Tests"
+        COMPILE_DEFINITIONS "STANDALONE"
+    )
+
+    target_link_libraries(unittests libEGL libGLESv2 ${OS_LIBS})
+endif()
