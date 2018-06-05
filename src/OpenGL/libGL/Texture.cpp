@@ -412,14 +412,6 @@ void Texture2D::subImageCompressed(GLint level, GLint xoffset, GLint yoffset, GL
 
 void Texture2D::copyImage(GLint level, GLenum format, GLint x, GLint y, GLsizei width, GLsizei height, Framebuffer *source)
 {
-	Image *renderTarget = source->getRenderTarget();
-
-	if(!renderTarget)
-	{
-		ERR("Failed to retrieve the render target.");
-		return error(GL_OUT_OF_MEMORY);
-	}
-
 	if(image[level])
 	{
 		image[level]->unbind();
@@ -434,13 +426,21 @@ void Texture2D::copyImage(GLint level, GLenum format, GLint x, GLint y, GLsizei 
 
 	if(width != 0 && height != 0)
 	{
+		Image *renderTarget = source->getRenderTarget();
+
+		if(!renderTarget)
+		{
+			ERR("Failed to retrieve the render target.");
+			return error(GL_OUT_OF_MEMORY);
+		}
+
 		sw::Rect sourceRect = {x, y, x + width, y + height};
 		sourceRect.clip(0, 0, source->getColorbuffer()->getWidth(), source->getColorbuffer()->getHeight());
 
 		copy(renderTarget, sourceRect, format, 0, 0, image[level]);
-	}
 
-	renderTarget->release();
+		renderTarget->release();
+	}
 }
 
 void Texture2D::copySubImage(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height, Framebuffer *source)
@@ -896,14 +896,6 @@ void TextureCubeMap::setImage(GLenum target, GLint level, GLsizei width, GLsizei
 
 void TextureCubeMap::copyImage(GLenum target, GLint level, GLenum format, GLint x, GLint y, GLsizei width, GLsizei height, Framebuffer *source)
 {
-	Image *renderTarget = source->getRenderTarget();
-
-	if(!renderTarget)
-	{
-		ERR("Failed to retrieve the render target.");
-		return error(GL_OUT_OF_MEMORY);
-	}
-
 	int face = CubeFaceIndex(target);
 
 	if(image[face][level])
@@ -920,13 +912,21 @@ void TextureCubeMap::copyImage(GLenum target, GLint level, GLenum format, GLint 
 
 	if(width != 0 && height != 0)
 	{
+		Image *renderTarget = source->getRenderTarget();
+
+		if(!renderTarget)
+		{
+			ERR("Failed to retrieve the render target.");
+			return error(GL_OUT_OF_MEMORY);
+		}
+
 		sw::Rect sourceRect = {x, y, x + width, y + height};
 		sourceRect.clip(0, 0, source->getColorbuffer()->getWidth(), source->getColorbuffer()->getHeight());
 
 		copy(renderTarget, sourceRect, format, 0, 0, image[face][level]);
-	}
 
-	renderTarget->release();
+		renderTarget->release();
+	}
 }
 
 Image *TextureCubeMap::getImage(int face, unsigned int level)
