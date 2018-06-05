@@ -304,6 +304,7 @@ namespace sw
 		void setMaxLevel(SamplerType type, int sampler, int maxLevel);
 		void setMinLod(SamplerType type, int sampler, float minLod);
 		void setMaxLod(SamplerType type, int sampler, float maxLod);
+		void setSyncRequired(SamplerType type, int sampler, bool syncRequired);
 
 		void setPointSpriteEnable(bool pointSpriteEnable);
 		void setPointScaleEnable(bool pointScaleEnable);

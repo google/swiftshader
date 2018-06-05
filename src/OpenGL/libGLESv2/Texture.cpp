@@ -528,6 +528,19 @@ int Texture2D::getTopLevel() const
 	return level - 1;
 }
 
+bool Texture2D::requiresSync() const
+{
+	for(int level = 0; level < IMPLEMENTATION_MAX_TEXTURE_LEVELS; level++)
+	{
+		if(image[level] && image[level]->requiresSync())
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
 void Texture2D::setImage(GLint level, GLsizei width, GLsizei height, GLint internalformat, GLenum format, GLenum type, const gl::PixelStorageModes &unpackParameters, const void *pixels)
 {
 	if(image[level])
@@ -1017,6 +1030,22 @@ int TextureCubeMap::getTopLevel() const
 	}
 
 	return level - 1;
+}
+
+bool TextureCubeMap::requiresSync() const
+{
+	for(int level = 0; level < IMPLEMENTATION_MAX_TEXTURE_LEVELS; level++)
+	{
+		for(int face = 0; face < 6; face++)
+		{
+			if(image[face][level] && image[face][level]->requiresSync())
+			{
+				return true;
+			}
+		}
+	}
+
+	return false;
 }
 
 void TextureCubeMap::setCompressedImage(GLenum target, GLint level, GLenum format, GLsizei width, GLsizei height, GLsizei imageSize, const void *pixels)
@@ -1529,6 +1558,19 @@ int Texture3D::getTopLevel() const
 	}
 
 	return level - 1;
+}
+
+bool Texture3D::requiresSync() const
+{
+	for(int level = 0; level < IMPLEMENTATION_MAX_TEXTURE_LEVELS; level++)
+	{
+		if(image[level] && image[level]->requiresSync())
+		{
+			return true;
+		}
+	}
+
+	return false;
 }
 
 void Texture3D::setImage(GLint level, GLsizei width, GLsizei height, GLsizei depth, GLint internalformat, GLenum format, GLenum type, const gl::PixelStorageModes &unpackParameters, const void *pixels)

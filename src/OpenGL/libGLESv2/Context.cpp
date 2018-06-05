@@ -3180,6 +3180,7 @@ void Context::applyTextures(sw::SamplerType samplerType)
 				device->setMipmapFilter(samplerType, samplerIndex, es2sw::ConvertMipMapFilter(minFilter));
 				device->setMaxAnisotropy(samplerType, samplerIndex, maxAnisotropy);
 				device->setHighPrecisionFiltering(samplerType, samplerIndex, mState.textureFilteringHint == GL_NICEST);
+				device->setSyncRequired(samplerType, samplerIndex, texture->requiresSync());
 
 				applyTexture(samplerType, samplerIndex, texture);
 			}

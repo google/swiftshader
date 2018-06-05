@@ -321,7 +321,7 @@ namespace sw
 		inline int getStencilSliceB() const;
 
 		void sync();                      // Wait for lock(s) to be released.
-		virtual bool targetRequiresSync() const { return false; }
+		virtual bool requiresSync() const { return false; }
 		inline bool isUnlocked() const;   // Only reliable after sync().
 
 		inline int getSamples() const;

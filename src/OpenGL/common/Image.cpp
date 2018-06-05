@@ -1332,7 +1332,7 @@ namespace egl
 #endif
 	}
 
-	bool ClientBuffer::targetRequiresSync() const
+	bool ClientBuffer::requiresSync() const
 	{
 #if defined(__APPLE__)
 		return true;
@@ -1431,9 +1431,9 @@ namespace egl
 			sw::Surface::unlockExternal();
 		}
 
-		bool targetRequiresSync() const override
+		bool requiresSync() const override
 		{
-			return clientBuffer.targetRequiresSync();
+			return clientBuffer.requiresSync();
 		}
 
 		void release() override

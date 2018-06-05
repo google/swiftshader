@@ -537,6 +537,15 @@ namespace sw
 		else ASSERT(false);
 	}
 
+	void PixelProcessor::setSyncRequired(unsigned int sampler, bool isSincRequired)
+	{
+		if(sampler < TEXTURE_IMAGE_UNITS)
+		{
+			context->sampler[sampler].setSyncRequired(isSincRequired);
+		}
+		else ASSERT(false);
+	}
+
 	void PixelProcessor::setWriteSRGB(bool sRGB)
 	{
 		context->setWriteSRGB(sRGB);

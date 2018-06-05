@@ -692,6 +692,15 @@ namespace sw
 		else ASSERT(false);
 	}
 
+	void VertexProcessor::setSyncRequired(unsigned int sampler, bool isSincRequired)
+	{
+		if(sampler < TEXTURE_IMAGE_UNITS)
+		{
+			context->sampler[sampler].setSyncRequired(isSincRequired);
+		}
+		else ASSERT(false);
+	}
+
 	void VertexProcessor::setPointSize(float pointSize)
 	{
 		point.pointSize = replicate(pointSize);

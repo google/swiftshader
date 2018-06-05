@@ -242,6 +242,7 @@ namespace sw
 		void setMaxLevel(unsigned int sampler, int maxLevel);
 		void setMinLod(unsigned int sampler, float minLod);
 		void setMaxLod(unsigned int sampler, float maxLod);
+		void setSyncRequired(unsigned int sampler, bool isSincRequired);
 
 		void setWriteSRGB(bool sRGB);
 		void setDepthBufferEnable(bool depthBufferEnable);

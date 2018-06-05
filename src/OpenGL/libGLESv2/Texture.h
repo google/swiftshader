@@ -97,6 +97,7 @@ public:
 	virtual GLsizei getDepth(GLenum target, GLint level) const;
 	virtual GLint getFormat(GLenum target, GLint level) const = 0;
 	virtual int getTopLevel() const = 0;
+	virtual bool requiresSync() const = 0;
 
 	virtual bool isSamplerComplete() const = 0;
 	virtual bool isCompressed(GLenum target, GLint level) const = 0;
@@ -159,6 +160,7 @@ public:
 	GLsizei getHeight(GLenum target, GLint level) const override;
 	GLint getFormat(GLenum target, GLint level) const override;
 	int getTopLevel() const override;
+	bool requiresSync() const override;
 
 	void setImage(GLint level, GLsizei width, GLsizei height, GLint internalformat, GLenum format, GLenum type, const gl::PixelStorageModes &unpackParameters, const void *pixels);
 	void setCompressedImage(GLint level, GLenum format, GLsizei width, GLsizei height, GLsizei imageSize, const void *pixels);
@@ -226,6 +228,7 @@ public:
 	GLsizei getHeight(GLenum target, GLint level) const override;
 	GLint getFormat(GLenum target, GLint level) const override;
 	int getTopLevel() const override;
+	bool requiresSync() const override;
 
 	void setImage(GLenum target, GLint level, GLsizei width, GLsizei height, GLint internalformat, GLenum format, GLenum type, const gl::PixelStorageModes &unpackParameters, const void *pixels);
 	void setCompressedImage(GLenum target, GLint level, GLenum format, GLsizei width, GLsizei height, GLsizei imageSize, const void *pixels);
@@ -287,6 +290,7 @@ public:
 	GLsizei getDepth(GLenum target, GLint level) const override;
 	GLint getFormat(GLenum target, GLint level) const override;
 	int getTopLevel() const override;
+	bool requiresSync() const override;
 
 	void setImage(GLint level, GLsizei width, GLsizei height, GLsizei depth, GLint internalformat, GLenum format, GLenum type, const gl::PixelStorageModes &unpackParameters, const void *pixels);
 	void setCompressedImage(GLint level, GLenum format, GLsizei width, GLsizei height, GLsizei depth, GLsizei imageSize, const void *pixels);
