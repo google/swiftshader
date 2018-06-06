@@ -2574,7 +2574,7 @@ yyreduce:
         TParameter param = { 0, new TType((yyvsp[0].interm.intermTypedNode)->getType()) };
         (yyvsp[-1].interm.function)->addParameter(param);
         (yyval.interm).function = (yyvsp[-1].interm.function);
-        (yyval.interm).nodePair.node1 = (yyvsp[0].interm.intermTypedNode);
+        (yyval.interm).nodePair.node1 = context->intermediate.makeAggregate((yyvsp[0].interm.intermTypedNode), (yylsp[0]));
     }
 
     break;

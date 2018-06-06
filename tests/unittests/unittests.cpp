@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// OpenGL ES unit tests that provide coverage for functionality not tested by
+// the dEQP test suite. Also used as a smoke test.
+
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
@@ -226,12 +229,18 @@ protected:
 		glShaderSource(ph.vertexShader, 1, vsSource, nullptr);
 		glCompileShader(ph.vertexShader);
 		EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+		GLint vsCompileStatus = 0;
+		glGetShaderiv(ph.vertexShader, GL_COMPILE_STATUS, &vsCompileStatus);
+		EXPECT_EQ(vsCompileStatus, GL_TRUE);
 
 		ph.fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
 		const char* fsSource[1] = { fs.c_str() };
 		glShaderSource(ph.fragmentShader, 1, fsSource, nullptr);
 		glCompileShader(ph.fragmentShader);
 		EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+		GLint fsCompileStatus = 0;
+		glGetShaderiv(ph.fragmentShader, GL_COMPILE_STATUS, &fsCompileStatus);
+		EXPECT_EQ(fsCompileStatus, GL_TRUE);
 
 		glAttachShader(ph.program, ph.vertexShader);
 		glAttachShader(ph.program, ph.fragmentShader);
@@ -499,6 +508,36 @@ TEST_F(SwiftShaderTest, DynamicIndexing)
 	compareColor(green);
 
 	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+
+	Uninitialize();
+}
+
+// Tests construction of a structure containing a single matrix
+TEST_F(SwiftShaderTest, MatrixInStruct)
+{
+	Initialize(2, false);
+
+	const std::string fs =
+		"#version 100\n"
+		"precision mediump float;\n"
+		"struct S\n"
+		"{\n"
+		"	mat2 rotation;\n"
+		"};\n"
+		"void main(void)\n"
+		"{\n"
+		"	float angle = 1.0;\n"
+		"	S(mat2(1.0, angle, 1.0, 1.0));\n"
+		"}\n";
+
+	GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+	const char *fsSource[1] = { fs.c_str() };
+	glShaderSource(fragmentShader, 1, fsSource, nullptr);
+	glCompileShader(fragmentShader);
+	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	GLint compileStatus = 0;
+	glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &compileStatus);
+	EXPECT_NE(compileStatus, 0);
 
 	Uninitialize();
 }
