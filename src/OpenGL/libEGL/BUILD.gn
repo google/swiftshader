@@ -37,7 +37,7 @@ config("swiftshader_libEGL_private_config") {
 }
 
 swiftshader_shared_library("swiftshader_libEGL") {
-  if (!is_mac) {
+  if (!is_mac && !is_fuchsia) {
     output_name = "libEGL"
     output_dir = "$root_out_dir/swiftshader"
   }
