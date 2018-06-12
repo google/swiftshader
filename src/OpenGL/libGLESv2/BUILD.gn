@@ -101,7 +101,6 @@ swiftshader_shared_library("swiftshader_libGLESv2") {
 
   deps = [
     ":swiftshader_libGLESv2_static",
-    "//build/config:exe_and_shlib_deps",
   ]
 
   sources = [
