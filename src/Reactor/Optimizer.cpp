@@ -266,6 +266,22 @@ namespace
 	{
 		Ice::CfgNode *entryBlock = function->getEntryNode();
 
+		struct LoadStoreInst
+		{
+			LoadStoreInst(Ice::Inst* inst, bool isStore)
+			 : inst(inst),
+			   address(isStore ? storeAddress(inst) : loadAddress(inst)),
+			   isStore(isStore)
+			{
+			}
+
+			Ice::Inst* inst;
+			Ice::Operand *address;
+			bool isStore;
+		};
+
+		std::unordered_map<Ice::CfgNode*, std::vector<LoadStoreInst> > loadStoreMap;
+
 		for(Ice::Inst &alloca : entryBlock->getInsts())
 		{
 			if(alloca.isDeleted())
@@ -301,56 +317,65 @@ namespace
 
 			if(singleBasicBlock)
 			{
-				auto &insts = singleBasicBlock->getInsts();
-				Ice::Inst *store = nullptr;
-				Ice::Operand *storeValue = nullptr;
-				bool unmatchedLoads = false;
-
-				for(Ice::Inst &inst : insts)
+				if(loadStoreMap.find(singleBasicBlock) == loadStoreMap.end())
 				{
-					if(inst.isDeleted())
+					std::vector<LoadStoreInst> &loadStoreVector = loadStoreMap[singleBasicBlock];
+					for(Ice::Inst &inst : singleBasicBlock->getInsts())
 					{
-						continue;
-					}
-
-					if(isStore(inst))
-					{
-						if(storeAddress(&inst) != address)
+						if(inst.isDeleted())
 						{
 							continue;
 						}
 
+						bool isStoreInst = isStore(inst);
+						bool isLoadInst = isLoad(inst);
+
+						if(isStoreInst || isLoadInst)
+						{
+							loadStoreVector.push_back(LoadStoreInst(&inst, isStoreInst));
+						}
+					}
+				}
+
+				Ice::Inst *store = nullptr;
+				Ice::Operand *storeValue = nullptr;
+				bool unmatchedLoads = false;
+
+				for (auto& loadStoreInst : loadStoreMap[singleBasicBlock])
+				{
+					Ice::Inst* inst = loadStoreInst.inst;
+
+					if((loadStoreInst.address != address) || inst->isDeleted())
+					{
+						continue;
+					}
+
+					if(loadStoreInst.isStore)
+					{
 						// New store found. If we had a previous one, try to eliminate it.
 						if(store && !unmatchedLoads)
 						{
 							// If the previous store is wider than the new one, we can't eliminate it
 							// because there could be a wide load reading its non-overwritten data.
-							if(storeSize(&inst) >= storeSize(store))
+							if(storeSize(inst) >= storeSize(store))
 							{
 								deleteInstruction(store);
 							}
 						}
 
-						store = &inst;
+						store = inst;
 						storeValue = storeData(store);
 						unmatchedLoads = false;
 					}
-					else if(isLoad(inst))
+					else
 					{
-						Ice::Inst *load = &inst;
-
-						if(loadAddress(load) != address)
-						{
-							continue;
-						}
-
-						if(!loadTypeMatchesStore(load, store))
+						if(!loadTypeMatchesStore(inst, store))
 						{
 							unmatchedLoads = true;
 							continue;
 						}
 
-						replace(load, storeValue);
+						replace(inst, storeValue);
 					}
 				}
 			}
