@@ -118,7 +118,8 @@ LOCAL_CFLAGS += \
 	-Wno-implicit-exception-spec-mismatch \
 	-Wno-overloaded-virtual \
 	-Wno-non-virtual-dtor \
-	-Wno-unknown-warning-option
+	-Wno-unknown-warning-option \
+	-Wno-enum-compare-switch
 
 ifneq (16,${PLATFORM_SDK_VERSION})
 LOCAL_CFLAGS += -Xclang -fuse-init-array
