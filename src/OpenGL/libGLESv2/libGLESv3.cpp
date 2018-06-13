@@ -368,7 +368,7 @@ GL_APICALL void GL_APIENTRY glTexImage3D(GLenum target, GLint level, GLint inter
 
 	if(context)
 	{
-		GLenum validationError = ValidateTextureFormatType(format, type, internalformat, target, context->getClientVersion());
+		GLenum validationError = ValidateTextureFormatType(format, type, internalformat, target);
 		if(validationError != GL_NO_ERROR)
 		{
 			return error(validationError);
@@ -424,7 +424,7 @@ GL_APICALL void GL_APIENTRY glTexSubImage3D(GLenum target, GLint level, GLint xo
 	{
 		es2::Texture3D *texture = (target == GL_TEXTURE_3D) ? context->getTexture3D() : context->getTexture2DArray();
 
-		GLenum validationError = ValidateSubImageParams(false, false, target, level, xoffset, yoffset, zoffset, width, height, depth, format, type, texture, context->getClientVersion());
+		GLenum validationError = ValidateSubImageParams(false, false, target, level, xoffset, yoffset, zoffset, width, height, depth, format, type, texture);
 		if(validationError != GL_NO_ERROR)
 		{
 			return error(validationError);
@@ -486,7 +486,7 @@ GL_APICALL void GL_APIENTRY glCopyTexSubImage3D(GLenum target, GLint level, GLin
 		GLenum colorbufferFormat = source->getFormat();
 		es2::Texture3D *texture = (target == GL_TEXTURE_3D) ? context->getTexture3D() : context->getTexture2DArray();
 
-		GLenum validationError = ValidateSubImageParams(false, true, target, level, xoffset, yoffset, zoffset, width, height, 1, GL_NONE, GL_NONE, texture, context->getClientVersion());
+		GLenum validationError = ValidateSubImageParams(false, true, target, level, xoffset, yoffset, zoffset, width, height, 1, GL_NONE, GL_NONE, texture);
 		if(validationError != GL_NO_ERROR)
 		{
 			return error(validationError);
@@ -529,7 +529,7 @@ GL_APICALL void GL_APIENTRY glCompressedTexImage3D(GLenum target, GLint level, G
 		return error(GL_INVALID_VALUE);
 	}
 
-	if(!IsCompressed(internalformat, egl::getClientVersion()))
+	if(!IsCompressed(internalformat))
 	{
 		return error(GL_INVALID_ENUM);
 	}
@@ -586,7 +586,7 @@ GL_APICALL void GL_APIENTRY glCompressedTexSubImage3D(GLenum target, GLint level
 		return error(GL_INVALID_VALUE);
 	}
 
-	if(!IsCompressed(format, egl::getClientVersion()))
+	if(!IsCompressed(format))
 	{
 		return error(GL_INVALID_ENUM);
 	}
@@ -3634,7 +3634,7 @@ GL_APICALL void GL_APIENTRY glTexStorage2D(GLenum target, GLsizei levels, GLenum
 		return error(GL_INVALID_OPERATION);
 	}
 
-	bool isCompressed = IsCompressed(internalformat, egl::getClientVersion());
+	bool isCompressed = IsCompressed(internalformat);
 	if(!IsSizedInternalFormat(internalformat) && !isCompressed)
 	{
 		return error(GL_INVALID_ENUM);
@@ -3717,7 +3717,7 @@ GL_APICALL void GL_APIENTRY glTexStorage3D(GLenum target, GLsizei levels, GLenum
 		return error(GL_INVALID_VALUE);
 	}
 
-	if(!IsSizedInternalFormat(internalformat) && !IsCompressed(internalformat, egl::getClientVersion()))
+	if(!IsSizedInternalFormat(internalformat) && !IsCompressed(internalformat))
 	{
 		return error(GL_INVALID_ENUM);
 	}
@@ -3801,9 +3801,9 @@ GL_APICALL void GL_APIENTRY glGetInternalformativ(GLenum target, GLenum internal
 	if(internalformat == GL_RGB)  internalformat = GL_RGB8;
 	if(internalformat == GL_RGBA) internalformat = GL_RGBA8;
 
-	if(!IsColorRenderable(internalformat, egl::getClientVersion()) &&
-	   !IsDepthRenderable(internalformat, egl::getClientVersion()) &&
-	   !IsStencilRenderable(internalformat, egl::getClientVersion()))
+	if(!IsColorRenderable(internalformat) &&
+	   !IsDepthRenderable(internalformat) &&
+	   !IsStencilRenderable(internalformat))
 	{
 		return error(GL_INVALID_ENUM);
 	}

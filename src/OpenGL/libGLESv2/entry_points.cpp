@@ -1208,7 +1208,7 @@ void GL_APIENTRY Register(const char *licenseKey)
 }
 }
 
-egl::Context *es2CreateContext(egl::Display *display, const egl::Context *shareContext, int clientVersion, const egl::Config *config);
+egl::Context *es2CreateContext(egl::Display *display, const egl::Context *shareContext, const egl::Config *config);
 extern "C" __eglMustCastToProperFunctionPointerType es2GetProcAddress(const char *procname);
 egl::Image *createBackBuffer(int width, int height, sw::Format format, int multiSampleDepth);
 egl::Image *createBackBufferFromClientBuffer(const egl::ClientBuffer& clientBuffer);

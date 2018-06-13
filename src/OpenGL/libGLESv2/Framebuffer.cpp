@@ -329,8 +329,6 @@ GLenum Framebuffer::completeness(int &width, int &height, int &samples)
 	height = -1;
 	samples = -1;
 
-	GLint version = egl::getClientVersion();
-
 	for(int i = 0; i < MAX_COLOR_ATTACHMENTS; i++)
 	{
 		if(mColorbufferType[i] != GL_NONE)
@@ -349,7 +347,7 @@ GLenum Framebuffer::completeness(int &width, int &height, int &samples)
 
 			if(IsRenderbuffer(mColorbufferType[i]))
 			{
-				if(!IsColorRenderable(colorbuffer->getFormat(), version))
+				if(!IsColorRenderable(colorbuffer->getFormat()))
 				{
 					return GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
 				}
@@ -358,7 +356,7 @@ GLenum Framebuffer::completeness(int &width, int &height, int &samples)
 			{
 				GLenum format = colorbuffer->getFormat();
 
-				if(!IsColorRenderable(format, version))
+				if(!IsColorRenderable(format))
 				{
 					return GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
 				}
@@ -382,11 +380,6 @@ GLenum Framebuffer::completeness(int &width, int &height, int &samples)
 			}
 			else
 			{
-				if(version < 3 && (width != colorbuffer->getWidth() || height != colorbuffer->getHeight()))
-				{
-					return GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS;
-				}
-
 				if(samples != colorbuffer->getSamples())
 				{
 					return GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE;
@@ -417,7 +410,7 @@ GLenum Framebuffer::completeness(int &width, int &height, int &samples)
 
 		if(IsRenderbuffer(mDepthbufferType))
 		{
-			if(!es2::IsDepthRenderable(depthbuffer->getFormat(), version))
+			if(!es2::IsDepthRenderable(depthbuffer->getFormat()))
 			{
 				return GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
 			}
@@ -443,11 +436,6 @@ GLenum Framebuffer::completeness(int &width, int &height, int &samples)
 		}
 		else
 		{
-			if(version < 3 && (width != depthbuffer->getWidth() || height != depthbuffer->getHeight()))
-			{
-				return GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS;
-			}
-
 			if(samples != depthbuffer->getSamples())
 			{
 				return GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE;
@@ -474,7 +462,7 @@ GLenum Framebuffer::completeness(int &width, int &height, int &samples)
 
 		if(IsRenderbuffer(mStencilbufferType))
 		{
-			if(!es2::IsStencilRenderable(stencilbuffer->getFormat(), version))
+			if(!es2::IsStencilRenderable(stencilbuffer->getFormat()))
 			{
 				return GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
 			}
@@ -502,11 +490,6 @@ GLenum Framebuffer::completeness(int &width, int &height, int &samples)
 		}
 		else
 		{
-			if(version < 3 && (width != stencilbuffer->getWidth() || height != stencilbuffer->getHeight()))
-			{
-				return GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS;
-			}
-
 			if(samples != stencilbuffer->getSamples())
 			{
 				return GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE;
@@ -517,7 +500,7 @@ GLenum Framebuffer::completeness(int &width, int &height, int &samples)
 		}
 	}
 
-	if((version >= 3) && depthbuffer && stencilbuffer && (depthbuffer != stencilbuffer))
+	if(depthbuffer && stencilbuffer && (depthbuffer != stencilbuffer))
 	{
 		// In the GLES 3.0 spec, section 4.4.4, Framebuffer Completeness:
 		// "The framebuffer object target is said to be framebuffer complete if all the following conditions are true:
@@ -716,7 +699,7 @@ DefaultFramebuffer::DefaultFramebuffer()
 
 DefaultFramebuffer::DefaultFramebuffer(Colorbuffer *colorbuffer, DepthStencilbuffer *depthStencil)
 {
-	GLenum defaultRenderbufferType = egl::getClientVersion() < 3 ? GL_RENDERBUFFER : GL_FRAMEBUFFER_DEFAULT;
+	GLenum defaultRenderbufferType = GL_FRAMEBUFFER_DEFAULT;
 	mColorbufferPointer[0] = new Renderbuffer(0, colorbuffer);
 	mColorbufferType[0] = defaultRenderbufferType;
 
@@ -732,8 +715,8 @@ DefaultFramebuffer::DefaultFramebuffer(Colorbuffer *colorbuffer, DepthStencilbuf
 	mDepthbufferPointer = depthStencilRenderbuffer;
 	mStencilbufferPointer = depthStencilRenderbuffer;
 
-	mDepthbufferType = (depthStencilRenderbuffer->getDepthSize() != 0) ? defaultRenderbufferType : GL_NONE;
-	mStencilbufferType = (depthStencilRenderbuffer->getStencilSize() != 0) ? defaultRenderbufferType : GL_NONE;
+	mDepthbufferType = (depthStencilRenderbuffer->getDepthSize() != 0) ? GL_FRAMEBUFFER_DEFAULT : GL_NONE;
+	mStencilbufferType = (depthStencilRenderbuffer->getStencilSize() != 0) ? GL_FRAMEBUFFER_DEFAULT : GL_NONE;
 }
 
 }

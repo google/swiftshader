@@ -772,7 +772,7 @@ bool Texture2D::isMipmapComplete() const
 
 bool Texture2D::isCompressed(GLenum target, GLint level) const
 {
-	return IsCompressed(getFormat(target, level), egl::getClientVersion());
+	return IsCompressed(getFormat(target, level));
 }
 
 bool Texture2D::isDepth(GLenum target, GLint level) const
@@ -1057,8 +1057,7 @@ void TextureCubeMap::setCompressedImage(GLenum target, GLint level, GLenum forma
 		image[face][level]->release();
 	}
 
-	int border = (egl::getClientVersion() >= 3) ? 1 : 0;
-	image[face][level] = egl::Image::create(this, width, height, 1, border, format);
+	image[face][level] = egl::Image::create(this, width, height, 1, 1, format);
 
 	if(!image[face][level])
 	{
@@ -1242,7 +1241,7 @@ void TextureCubeMap::updateBorders(int level)
 
 bool TextureCubeMap::isCompressed(GLenum target, GLint level) const
 {
-	return IsCompressed(getFormat(target, level), egl::getClientVersion());
+	return IsCompressed(getFormat(target, level));
 }
 
 bool TextureCubeMap::isDepth(GLenum target, GLint level) const
@@ -1264,8 +1263,7 @@ void TextureCubeMap::setImage(GLenum target, GLint level, GLsizei width, GLsizei
 		image[face][level]->release();
 	}
 
-	int border = (egl::getClientVersion() >= 3) ? 1 : 0;
-	image[face][level] = egl::Image::create(this, width, height, 1, border, internalformat);
+	image[face][level] = egl::Image::create(this, width, height, 1, 1, internalformat);
 
 	if(!image[face][level])
 	{
@@ -1284,8 +1282,7 @@ void TextureCubeMap::copyImage(GLenum target, GLint level, GLenum internalformat
 		image[face][level]->release();
 	}
 
-	int border = (egl::getClientVersion() >= 3) ? 1 : 0;
-	image[face][level] = egl::Image::create(this, width, height, 1, border, internalformat);
+	image[face][level] = egl::Image::create(this, width, height, 1, 1, internalformat);
 
 	if(!image[face][level])
 	{
@@ -1377,8 +1374,7 @@ void TextureCubeMap::generateMipmaps()
 				image[f][i]->release();
 			}
 
-			int border = (egl::getClientVersion() >= 3) ? 1 : 0;
-			image[f][i] = egl::Image::create(this, std::max(image[f][mBaseLevel]->getWidth() >> i, 1), std::max(image[f][mBaseLevel]->getHeight() >> i, 1), 1, border, image[f][mBaseLevel]->getFormat());
+			image[f][i] = egl::Image::create(this, std::max(image[f][mBaseLevel]->getWidth() >> i, 1), std::max(image[f][mBaseLevel]->getHeight() >> i, 1), 1, 1, image[f][mBaseLevel]->getFormat());
 
 			if(!image[f][i])
 			{
@@ -1782,7 +1778,7 @@ bool Texture3D::isMipmapComplete() const
 
 bool Texture3D::isCompressed(GLenum target, GLint level) const
 {
-	return IsCompressed(getFormat(target, level), egl::getClientVersion());
+	return IsCompressed(getFormat(target, level));
 }
 
 bool Texture3D::isDepth(GLenum target, GLint level) const

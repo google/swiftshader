@@ -576,7 +576,7 @@ EGLContext Display::createContext(EGLConfig configHandle, const egl::Context *sh
 	{
 		if(libGLESv2)
 		{
-			context = libGLESv2->es2CreateContext(this, shareContext, clientVersion, config);
+			context = libGLESv2->es2CreateContext(this, shareContext, config);
 		}
 	}
 	else

@@ -45,8 +45,8 @@
 
 namespace es2
 {
-Context::Context(egl::Display *display, const Context *shareContext, EGLint clientVersion, const egl::Config *config)
-	: egl::Context(display), clientVersion(clientVersion), config(config)
+Context::Context(egl::Display *display, const Context *shareContext, const egl::Config *config)
+	: egl::Context(display), config(config)
 {
 	sw::Context *context = new sw::Context();
 	device = new es2::Device(context);
@@ -316,7 +316,7 @@ void Context::makeCurrent(gl::Surface *surface)
 
 EGLint Context::getClientVersion() const
 {
-	return clientVersion;
+	return 3;
 }
 
 EGLint Context::getConfigID() const
@@ -1603,48 +1603,26 @@ bool Context::getBuffer(GLenum target, es2::Buffer **buffer) const
 		*buffer = getElementArrayBuffer();
 		break;
 	case GL_COPY_READ_BUFFER:
-		if(clientVersion >= 3)
-		{
-			*buffer = getCopyReadBuffer();
-			break;
-		}
-		else return false;
+		*buffer = getCopyReadBuffer();
+		break;
 	case GL_COPY_WRITE_BUFFER:
-		if(clientVersion >= 3)
-		{
-			*buffer = getCopyWriteBuffer();
-			break;
-		}
-		else return false;
+		*buffer = getCopyWriteBuffer();
+		break;
 	case GL_PIXEL_PACK_BUFFER:
-		if(clientVersion >= 3)
-		{
-			*buffer = getPixelPackBuffer();
-			break;
-		}
-		else return false;
+		*buffer = getPixelPackBuffer();
+		break;
 	case GL_PIXEL_UNPACK_BUFFER:
-		if(clientVersion >= 3)
-		{
-			*buffer = getPixelUnpackBuffer();
-			break;
-		}
-		else return false;
+		*buffer = getPixelUnpackBuffer();
+		break;
 	case GL_TRANSFORM_FEEDBACK_BUFFER:
-		if(clientVersion >= 3)
 		{
 			TransformFeedback* transformFeedback = getTransformFeedback();
 			*buffer = transformFeedback ? static_cast<es2::Buffer*>(transformFeedback->getGenericBuffer()) : nullptr;
-			break;
 		}
-		else return false;
+		break;
 	case GL_UNIFORM_BUFFER:
-		if(clientVersion >= 3)
-		{
-			*buffer = getGenericUniformBuffer();
-			break;
-		}
-		else return false;
+		*buffer = getGenericUniformBuffer();
+		break;
 	default:
 		return false;
 	}
@@ -2195,214 +2173,205 @@ template<typename T> bool Context::getIntegerv(GLenum pname, T *params) const
 	case GL_MAX_COLOR_ATTACHMENTS: // Note: MAX_COLOR_ATTACHMENTS_EXT added by GL_EXT_draw_buffers
 		*params = MAX_COLOR_ATTACHMENTS;
 		return true;
-	default:
-		break;
-	}
-
-	if(clientVersion >= 3)
-	{
-		switch(pname)
+	case GL_TEXTURE_BINDING_2D_ARRAY:
+		if(mState.activeSampler > MAX_COMBINED_TEXTURE_IMAGE_UNITS - 1)
 		{
-		case GL_TEXTURE_BINDING_2D_ARRAY:
-			if(mState.activeSampler > MAX_COMBINED_TEXTURE_IMAGE_UNITS - 1)
+			error(GL_INVALID_OPERATION);
+			return false;
+		}
+
+		*params = mState.samplerTexture[TEXTURE_2D_ARRAY][mState.activeSampler].name();
+		return true;
+	case GL_COPY_READ_BUFFER_BINDING:
+		*params = mState.copyReadBuffer.name();
+		return true;
+	case GL_COPY_WRITE_BUFFER_BINDING:
+		*params = mState.copyWriteBuffer.name();
+		return true;
+	case GL_MAJOR_VERSION:
+		*params = 3;
+		return true;
+	case GL_MINOR_VERSION:
+		*params = 0;
+		return true;
+	case GL_MAX_3D_TEXTURE_SIZE:
+		*params = IMPLEMENTATION_MAX_3D_TEXTURE_SIZE;
+		return true;
+	case GL_MAX_ARRAY_TEXTURE_LAYERS:
+		*params = IMPLEMENTATION_MAX_TEXTURE_SIZE;
+		return true;
+	case GL_MAX_COMBINED_FRAGMENT_UNIFORM_COMPONENTS:
+		*params = MAX_COMBINED_FRAGMENT_UNIFORM_COMPONENTS;
+		return true;
+	case GL_MAX_COMBINED_UNIFORM_BLOCKS:
+		*params = MAX_VERTEX_UNIFORM_BLOCKS + MAX_FRAGMENT_UNIFORM_BLOCKS;
+		return true;
+	case GL_MAX_COMBINED_VERTEX_UNIFORM_COMPONENTS:
+		*params = MAX_COMBINED_VERTEX_UNIFORM_COMPONENTS;
+		return true;
+	case GL_MAX_ELEMENT_INDEX:
+		*params = MAX_ELEMENT_INDEX;
+		return true;
+	case GL_MAX_ELEMENTS_INDICES:
+		*params = MAX_ELEMENTS_INDICES;
+		return true;
+	case GL_MAX_ELEMENTS_VERTICES:
+		*params = MAX_ELEMENTS_VERTICES;
+		return true;
+	case GL_MAX_FRAGMENT_INPUT_COMPONENTS:
+		*params = MAX_FRAGMENT_INPUT_VECTORS * 4;
+		return true;
+	case GL_MAX_FRAGMENT_UNIFORM_BLOCKS:
+		*params = MAX_FRAGMENT_UNIFORM_BLOCKS;
+		return true;
+	case GL_MAX_FRAGMENT_UNIFORM_COMPONENTS:
+		*params = MAX_FRAGMENT_UNIFORM_COMPONENTS;
+		return true;
+	case GL_MAX_PROGRAM_TEXEL_OFFSET:
+		// Note: SwiftShader has no actual texel offset limit, so this limit can be modified if required.
+		// In any case, any behavior outside the specified range is valid since the spec mentions:
+		// (see OpenGL ES 3.0.5, 3.8.10.1 Scale Factor and Level of Detail, p.153)
+		// "If any of the offset values are outside the range of the  implementation-defined values
+		//  MIN_PROGRAM_TEXEL_OFFSET and MAX_PROGRAM_TEXEL_OFFSET, results of the texture lookup are
+		//  undefined."
+		*params = MAX_PROGRAM_TEXEL_OFFSET;
+		return true;
+	case GL_MAX_SERVER_WAIT_TIMEOUT:
+		*params = 0;
+		return true;
+	case GL_MAX_TEXTURE_LOD_BIAS:
+		*params = MAX_TEXTURE_LOD_BIAS;
+		return true;
+	case GL_MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS:
+		*params = sw::MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS;
+		return true;
+	case GL_MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS:
+		*params = MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS;
+		return true;
+	case GL_MAX_TRANSFORM_FEEDBACK_SEPARATE_COMPONENTS:
+		*params = sw::MAX_TRANSFORM_FEEDBACK_SEPARATE_COMPONENTS;
+		return true;
+	case GL_MAX_UNIFORM_BLOCK_SIZE:
+		*params = MAX_UNIFORM_BLOCK_SIZE;
+		return true;
+	case GL_MAX_UNIFORM_BUFFER_BINDINGS:
+		*params = MAX_UNIFORM_BUFFER_BINDINGS;
+		return true;
+	case GL_MAX_VARYING_COMPONENTS:
+		*params = MAX_VARYING_VECTORS * 4;
+		return true;
+	case GL_MAX_VERTEX_OUTPUT_COMPONENTS:
+		*params = MAX_VERTEX_OUTPUT_VECTORS * 4;
+		return true;
+	case GL_MAX_VERTEX_UNIFORM_BLOCKS:
+		*params = MAX_VERTEX_UNIFORM_BLOCKS;
+		return true;
+	case GL_MAX_VERTEX_UNIFORM_COMPONENTS:
+		*params = MAX_VERTEX_UNIFORM_COMPONENTS;
+		return true;
+	case GL_MIN_PROGRAM_TEXEL_OFFSET:
+		// Note: SwiftShader has no actual texel offset limit, so this limit can be modified if required.
+		// In any case, any behavior outside the specified range is valid since the spec mentions:
+		// (see OpenGL ES 3.0.5, 3.8.10.1 Scale Factor and Level of Detail, p.153)
+		// "If any of the offset values are outside the range of the  implementation-defined values
+		//  MIN_PROGRAM_TEXEL_OFFSET and MAX_PROGRAM_TEXEL_OFFSET, results of the texture lookup are
+		//  undefined."
+		*params = MIN_PROGRAM_TEXEL_OFFSET;
+		return true;
+	case GL_NUM_EXTENSIONS:
+		GLuint numExtensions;
+		getExtensions(0, &numExtensions);
+		*params = numExtensions;
+		return true;
+	case GL_NUM_PROGRAM_BINARY_FORMATS:
+		*params = NUM_PROGRAM_BINARY_FORMATS;
+		return true;
+	case GL_PACK_ROW_LENGTH:
+		*params = mState.packParameters.rowLength;
+		return true;
+	case GL_PACK_SKIP_PIXELS:
+		*params = mState.packParameters.skipPixels;
+		return true;
+	case GL_PACK_SKIP_ROWS:
+		*params = mState.packParameters.skipRows;
+		return true;
+	case GL_PIXEL_PACK_BUFFER_BINDING:
+		*params = mState.pixelPackBuffer.name();
+		return true;
+	case GL_PIXEL_UNPACK_BUFFER_BINDING:
+		*params = mState.pixelUnpackBuffer.name();
+		return true;
+	case GL_PROGRAM_BINARY_FORMATS:
+		// Since NUM_PROGRAM_BINARY_FORMATS is 0, the input
+		// should be a 0 sized array, so don't write to params
+		return true;
+	case GL_READ_BUFFER:
+		{
+			Framebuffer* framebuffer = getReadFramebuffer();
+			*params = framebuffer ? framebuffer->getReadBuffer() : GL_NONE;
+		}
+		return true;
+	case GL_SAMPLER_BINDING:
+		*params = mState.sampler[mState.activeSampler].name();
+		return true;
+	case GL_UNIFORM_BUFFER_BINDING:
+		*params = mState.genericUniformBuffer.name();
+		return true;
+	case GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT:
+		*params = UNIFORM_BUFFER_OFFSET_ALIGNMENT;
+		return true;
+	case GL_UNIFORM_BUFFER_SIZE:
+		*params = static_cast<T>(mState.genericUniformBuffer->size());
+		return true;
+	case GL_UNIFORM_BUFFER_START:
+		*params = static_cast<T>(mState.genericUniformBuffer->offset());
+		return true;
+	case GL_UNPACK_IMAGE_HEIGHT:
+		*params = mState.unpackParameters.imageHeight;
+		return true;
+	case GL_UNPACK_ROW_LENGTH:
+		*params = mState.unpackParameters.rowLength;
+		return true;
+	case GL_UNPACK_SKIP_IMAGES:
+		*params = mState.unpackParameters.skipImages;
+		return true;
+	case GL_UNPACK_SKIP_PIXELS:
+		*params = mState.unpackParameters.skipPixels;
+		return true;
+	case GL_UNPACK_SKIP_ROWS:
+		*params = mState.unpackParameters.skipRows;
+		return true;
+	case GL_VERTEX_ARRAY_BINDING:
+		*params = getCurrentVertexArray()->name;
+		return true;
+	case GL_TRANSFORM_FEEDBACK_BINDING:
+		{
+			TransformFeedback* transformFeedback = getTransformFeedback(mState.transformFeedback);
+			if(transformFeedback)
 			{
-				error(GL_INVALID_OPERATION);
+				*params = transformFeedback->name;
+			}
+			else
+			{
 				return false;
 			}
-
-			*params = mState.samplerTexture[TEXTURE_2D_ARRAY][mState.activeSampler].name();
-			return true;
-		case GL_COPY_READ_BUFFER_BINDING:
-			*params = mState.copyReadBuffer.name();
-			return true;
-		case GL_COPY_WRITE_BUFFER_BINDING:
-			*params = mState.copyWriteBuffer.name();
-			return true;
-		case GL_MAJOR_VERSION:
-			*params = clientVersion;
-			return true;
-		case GL_MAX_3D_TEXTURE_SIZE:
-			*params = IMPLEMENTATION_MAX_3D_TEXTURE_SIZE;
-			return true;
-		case GL_MAX_ARRAY_TEXTURE_LAYERS:
-			*params = IMPLEMENTATION_MAX_TEXTURE_SIZE;
-			return true;
-		case GL_MAX_COMBINED_FRAGMENT_UNIFORM_COMPONENTS:
-			*params = MAX_COMBINED_FRAGMENT_UNIFORM_COMPONENTS;
-			return true;
-		case GL_MAX_COMBINED_UNIFORM_BLOCKS:
-			*params = MAX_VERTEX_UNIFORM_BLOCKS + MAX_FRAGMENT_UNIFORM_BLOCKS;
-			return true;
-		case GL_MAX_COMBINED_VERTEX_UNIFORM_COMPONENTS:
-			*params = MAX_COMBINED_VERTEX_UNIFORM_COMPONENTS;
-			return true;
-		case GL_MAX_ELEMENT_INDEX:
-			*params = MAX_ELEMENT_INDEX;
-			return true;
-		case GL_MAX_ELEMENTS_INDICES:
-			*params = MAX_ELEMENTS_INDICES;
-			return true;
-		case GL_MAX_ELEMENTS_VERTICES:
-			*params = MAX_ELEMENTS_VERTICES;
-			return true;
-		case GL_MAX_FRAGMENT_INPUT_COMPONENTS:
-			*params = MAX_FRAGMENT_INPUT_VECTORS * 4;
-			return true;
-		case GL_MAX_FRAGMENT_UNIFORM_BLOCKS:
-			*params = MAX_FRAGMENT_UNIFORM_BLOCKS;
-			return true;
-		case GL_MAX_FRAGMENT_UNIFORM_COMPONENTS:
-			*params = MAX_FRAGMENT_UNIFORM_COMPONENTS;
-			return true;
-		case GL_MAX_PROGRAM_TEXEL_OFFSET:
-			// Note: SwiftShader has no actual texel offset limit, so this limit can be modified if required.
-			// In any case, any behavior outside the specified range is valid since the spec mentions:
-			// (see OpenGL ES 3.0.5, 3.8.10.1 Scale Factor and Level of Detail, p.153)
-			// "If any of the offset values are outside the range of the  implementation-defined values
-			//  MIN_PROGRAM_TEXEL_OFFSET and MAX_PROGRAM_TEXEL_OFFSET, results of the texture lookup are
-			//  undefined."
-			*params = MAX_PROGRAM_TEXEL_OFFSET;
-			return true;
-		case GL_MAX_SERVER_WAIT_TIMEOUT:
-			*params = 0;
-			return true;
-		case GL_MAX_TEXTURE_LOD_BIAS:
-			*params = MAX_TEXTURE_LOD_BIAS;
-			return true;
-		case GL_MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS:
-			*params = sw::MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS;
-			return true;
-		case GL_MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS:
-			*params = MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS;
-			return true;
-		case GL_MAX_TRANSFORM_FEEDBACK_SEPARATE_COMPONENTS:
-			*params = sw::MAX_TRANSFORM_FEEDBACK_SEPARATE_COMPONENTS;
-			return true;
-		case GL_MAX_UNIFORM_BLOCK_SIZE:
-			*params = MAX_UNIFORM_BLOCK_SIZE;
-			return true;
-		case GL_MAX_UNIFORM_BUFFER_BINDINGS:
-			*params = MAX_UNIFORM_BUFFER_BINDINGS;
-			return true;
-		case GL_MAX_VARYING_COMPONENTS:
-			*params = MAX_VARYING_VECTORS * 4;
-			return true;
-		case GL_MAX_VERTEX_OUTPUT_COMPONENTS:
-			*params = MAX_VERTEX_OUTPUT_VECTORS * 4;
-			return true;
-		case GL_MAX_VERTEX_UNIFORM_BLOCKS:
-			*params = MAX_VERTEX_UNIFORM_BLOCKS;
-			return true;
-		case GL_MAX_VERTEX_UNIFORM_COMPONENTS:
-			*params = MAX_VERTEX_UNIFORM_COMPONENTS;
-			return true;
-		case GL_MIN_PROGRAM_TEXEL_OFFSET:
-			// Note: SwiftShader has no actual texel offset limit, so this limit can be modified if required.
-			// In any case, any behavior outside the specified range is valid since the spec mentions:
-			// (see OpenGL ES 3.0.5, 3.8.10.1 Scale Factor and Level of Detail, p.153)
-			// "If any of the offset values are outside the range of the  implementation-defined values
-			//  MIN_PROGRAM_TEXEL_OFFSET and MAX_PROGRAM_TEXEL_OFFSET, results of the texture lookup are
-			//  undefined."
-			*params = MIN_PROGRAM_TEXEL_OFFSET;
-			return true;
-		case GL_MINOR_VERSION:
-			*params = 0;
-			return true;
-		case GL_NUM_EXTENSIONS:
-			GLuint numExtensions;
-			getExtensions(0, &numExtensions);
-			*params = numExtensions;
-			return true;
-		case GL_NUM_PROGRAM_BINARY_FORMATS:
-			*params = NUM_PROGRAM_BINARY_FORMATS;
-			return true;
-		case GL_PACK_ROW_LENGTH:
-			*params = mState.packParameters.rowLength;
-			return true;
-		case GL_PACK_SKIP_PIXELS:
-			*params = mState.packParameters.skipPixels;
-			return true;
-		case GL_PACK_SKIP_ROWS:
-			*params = mState.packParameters.skipRows;
-			return true;
-		case GL_PIXEL_PACK_BUFFER_BINDING:
-			*params = mState.pixelPackBuffer.name();
-			return true;
-		case GL_PIXEL_UNPACK_BUFFER_BINDING:
-			*params = mState.pixelUnpackBuffer.name();
-			return true;
-		case GL_PROGRAM_BINARY_FORMATS:
-			// Since NUM_PROGRAM_BINARY_FORMATS is 0, the input
-			// should be a 0 sized array, so don't write to params
-			return true;
-		case GL_READ_BUFFER:
-			{
-				Framebuffer* framebuffer = getReadFramebuffer();
-				*params = framebuffer ? framebuffer->getReadBuffer() : GL_NONE;
-			}
-			return true;
-		case GL_SAMPLER_BINDING:
-			*params = mState.sampler[mState.activeSampler].name();
-			return true;
-		case GL_UNIFORM_BUFFER_BINDING:
-			*params = mState.genericUniformBuffer.name();
-			return true;
-		case GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT:
-			*params = UNIFORM_BUFFER_OFFSET_ALIGNMENT;
-			return true;
-		case GL_UNIFORM_BUFFER_SIZE:
-			*params = static_cast<T>(mState.genericUniformBuffer->size());
-			return true;
-		case GL_UNIFORM_BUFFER_START:
-			*params = static_cast<T>(mState.genericUniformBuffer->offset());
-			return true;
-		case GL_UNPACK_IMAGE_HEIGHT:
-			*params = mState.unpackParameters.imageHeight;
-			return true;
-		case GL_UNPACK_ROW_LENGTH:
-			*params = mState.unpackParameters.rowLength;
-			return true;
-		case GL_UNPACK_SKIP_IMAGES:
-			*params = mState.unpackParameters.skipImages;
-			return true;
-		case GL_UNPACK_SKIP_PIXELS:
-			*params = mState.unpackParameters.skipPixels;
-			return true;
-		case GL_UNPACK_SKIP_ROWS:
-			*params = mState.unpackParameters.skipRows;
-			return true;
-		case GL_VERTEX_ARRAY_BINDING:
-			*params = getCurrentVertexArray()->name;
-			return true;
-		case GL_TRANSFORM_FEEDBACK_BINDING:
-			{
-				TransformFeedback* transformFeedback = getTransformFeedback(mState.transformFeedback);
-				if(transformFeedback)
-				{
-					*params = transformFeedback->name;
-				}
-				else
-				{
-					return false;
-				}
-			}
-			return true;
-		case GL_TRANSFORM_FEEDBACK_BUFFER_BINDING:
-			{
-				TransformFeedback* transformFeedback = getTransformFeedback(mState.transformFeedback);
-				if(transformFeedback)
-				{
-					*params = transformFeedback->getGenericBufferName();
-				}
-				else
-				{
-					return false;
-				}
-			}
-			return true;
-		default:
-			break;
 		}
+		return true;
+	case GL_TRANSFORM_FEEDBACK_BUFFER_BINDING:
+		{
+			TransformFeedback* transformFeedback = getTransformFeedback(mState.transformFeedback);
+			if(transformFeedback)
+			{
+				*params = transformFeedback->getGenericBufferName();
+			}
+			else
+			{
+				return false;
+			}
+		}
+		return true;
+	default:
+		break;
 	}
 
 	return false;
@@ -3335,7 +3304,7 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum
 		return error(GL_INVALID_OPERATION);
 	}
 
-	if(!IsValidReadPixelsFormatType(framebuffer, format, type, clientVersion))
+	if(!IsValidReadPixelsFormatType(framebuffer, format, type))
 	{
 		return error(GL_INVALID_OPERATION);
 	}
@@ -4429,7 +4398,7 @@ const GLubyte *Context::getExtensions(GLuint index, GLuint *numExt) const
 	// OES extensions
 	// EXT extensions
 	// Vendor extensions
-	static const char *es2extensions[] =
+	static const char *extensions[] =
 	{
 		"GL_OES_compressed_ETC1_RGB8_texture",
 		"GL_OES_depth24",
@@ -4454,6 +4423,7 @@ const GLubyte *Context::getExtensions(GLuint index, GLuint *numExt) const
 		"GL_OES_vertex_array_object",
 		"GL_OES_vertex_half_float",
 		"GL_EXT_blend_minmax",
+		"GL_EXT_color_buffer_float",   // OpenGL ES 3.0 specific.
 		"GL_EXT_color_buffer_half_float",
 		"GL_EXT_draw_buffers",
 		"GL_EXT_instanced_arrays",
@@ -4481,19 +4451,7 @@ const GLubyte *Context::getExtensions(GLuint index, GLuint *numExt) const
 		"GL_NV_read_depth",
 	};
 
-	// Extensions exclusive to OpenGL ES 3.0 and above.
-	static const char *es3extensions[] =
-	{
-		"GL_EXT_color_buffer_float",
-	};
-
-	GLuint numES2extensions = sizeof(es2extensions) / sizeof(es2extensions[0]);
-	GLuint numExtensions = numES2extensions;
-
-	if(clientVersion >= 3)
-	{
-		numExtensions += sizeof(es3extensions) / sizeof(es3extensions[0]);
-	}
+	GLuint numExtensions = sizeof(extensions) / sizeof(extensions[0]);
 
 	if(numExt)
 	{
@@ -4508,17 +4466,9 @@ const GLubyte *Context::getExtensions(GLuint index, GLuint *numExt) const
 
 		if(extensionsCat.empty() && (numExtensions > 0))
 		{
-			for(const char *extension : es2extensions)
+			for(const char *extension : extensions)
 			{
 				extensionsCat += std::string(extension) + " ";
-			}
-
-			if(clientVersion >= 3)
-			{
-				for(const char *extension : es3extensions)
-				{
-					extensionsCat += std::string(extension) + " ";
-				}
 			}
 		}
 
@@ -4530,20 +4480,12 @@ const GLubyte *Context::getExtensions(GLuint index, GLuint *numExt) const
 		return nullptr;
 	}
 
-	if(index < numES2extensions)
-	{
-		return (const GLubyte*)es2extensions[index];
-	}
-	else
-	{
-		return (const GLubyte*)es3extensions[index - numES2extensions];
-	}
+	return (const GLubyte*)extensions[index];
 }
 
 }
 
-NO_SANITIZE_FUNCTION egl::Context *es2CreateContext(egl::Display *display, const egl::Context *shareContext, int clientVersion, const egl::Config *config)
+NO_SANITIZE_FUNCTION egl::Context *es2CreateContext(egl::Display *display, const egl::Context *shareContext, const egl::Config *config)
 {
-	ASSERT(!shareContext || shareContext->getClientVersion() == clientVersion);   // Should be checked by eglCreateContext
-	return new es2::Context(display, static_cast<const es2::Context*>(shareContext), clientVersion, config);
+	return new es2::Context(display, static_cast<const es2::Context*>(shareContext), config);
 }

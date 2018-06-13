@@ -232,14 +232,6 @@ void Shader::compile()
 	}
 
 	shaderVersion = compiler->getShaderVersion();
-	int clientVersion = es2::getContext()->getClientVersion();
-
-	if(shaderVersion >= 300 && clientVersion < 3)
-	{
-		infoLog = "GLSL ES 3.00 is not supported by OpenGL ES 2.0 contexts";
-		success = false;
-	}
-
 	infoLog += compiler->getInfoSink().info.c_str();
 
 	if(!success)

@@ -323,7 +323,7 @@ namespace es2
 		return -1;
 	}
 
-	bool IsCompressed(GLint internalformat, GLint clientVersion)
+	bool IsCompressed(GLint internalformat)
 	{
 		switch(internalformat)
 		{
@@ -332,7 +332,6 @@ namespace es2
 		case GL_COMPRESSED_RGBA_S3TC_DXT3_ANGLE:
 		case GL_COMPRESSED_RGBA_S3TC_DXT5_ANGLE:
 		case GL_ETC1_RGB8_OES:
-			return true;
 		case GL_COMPRESSED_R11_EAC:
 		case GL_COMPRESSED_SIGNED_R11_EAC:
 		case GL_COMPRESSED_RG11_EAC:
@@ -343,7 +342,7 @@ namespace es2
 		case GL_COMPRESSED_SRGB8_PUNCHTHROUGH_ALPHA1_ETC2:
 		case GL_COMPRESSED_RGBA8_ETC2_EAC:
 		case GL_COMPRESSED_SRGB8_ALPHA8_ETC2_EAC:
-			return (clientVersion >= 3);
+			return true;
 		case GL_COMPRESSED_RGBA_ASTC_4x4_KHR:
 		case GL_COMPRESSED_RGBA_ASTC_5x4_KHR:
 		case GL_COMPRESSED_RGBA_ASTC_5x5_KHR:
@@ -372,7 +371,7 @@ namespace es2
 		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x10_KHR:
 		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_12x10_KHR:
 		case GL_COMPRESSED_SRGB8_ALPHA8_ASTC_12x12_KHR:
-			return ASTC_SUPPORT && (clientVersion >= 3);
+			return ASTC_SUPPORT;
 		default:
 			return false;
 		}
@@ -455,7 +454,7 @@ namespace es2
 	}
 
 	GLenum ValidateSubImageParams(bool compressed, bool copy, GLenum target, GLint level, GLint xoffset, GLint yoffset,
-	                              GLsizei width, GLsizei height, GLenum format, GLenum type, Texture *texture, GLint clientVersion)
+	                              GLsizei width, GLsizei height, GLenum format, GLenum type, Texture *texture)
 	{
 		if(!texture)
 		{
@@ -473,7 +472,7 @@ namespace es2
 		}
 		else if(!copy)   // CopyTexSubImage doesn't have format/type parameters.
 		{
-			GLenum validationError = ValidateTextureFormatType(format, type, sizedInternalFormat, target, clientVersion);
+			GLenum validationError = ValidateTextureFormatType(format, type, sizedInternalFormat, target);
 			if(validationError != GL_NO_ERROR)
 			{
 				return validationError;
@@ -499,7 +498,7 @@ namespace es2
 	}
 
 	GLenum ValidateSubImageParams(bool compressed, bool copy, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset,
-	                              GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, Texture *texture, GLint clientVersion)
+	                              GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, Texture *texture)
 	{
 		if(!texture)
 		{
@@ -515,7 +514,7 @@ namespace es2
 		{
 			GLenum sizedInternalFormat = texture->getFormat(target, level);
 
-			GLenum validationError = ValidateTextureFormatType(format, type, sizedInternalFormat, target, clientVersion);
+			GLenum validationError = ValidateTextureFormatType(format, type, sizedInternalFormat, target);
 			if(validationError != GL_NO_ERROR)
 			{
 				return validationError;
@@ -624,7 +623,7 @@ namespace es2
 		return true;
 	}
 
-	bool IsValidReadPixelsFormatType(const Framebuffer *framebuffer, GLenum format, GLenum type, GLint clientVersion)
+	bool IsValidReadPixelsFormatType(const Framebuffer *framebuffer, GLenum format, GLenum type)
 	{
 		// GL_NV_read_depth
 		if(format == GL_DEPTH_COMPONENT)
@@ -686,8 +685,6 @@ namespace es2
 		}
 		else if(IsSignedNonNormalizedInteger(internalformat))
 		{
-			ASSERT(clientVersion >= 3);
-
 			if(format == GL_RGBA_INTEGER && type == GL_INT)
 			{
 				return true;
@@ -695,8 +692,6 @@ namespace es2
 		}
 		else if(IsUnsignedNonNormalizedInteger(internalformat))
 		{
-			ASSERT(clientVersion >= 3);
-
 			if(format == GL_RGBA_INTEGER && type == GL_UNSIGNED_INT)
 			{
 				return true;
@@ -727,8 +722,6 @@ namespace es2
 		// Additional third combination accepted by OpenGL ES 3.0.
 		if(internalformat == GL_RGB10_A2)
 		{
-			ASSERT(clientVersion >= 3);
-
 			if(format == GL_RGBA && type == GL_UNSIGNED_INT_2_10_10_10_REV)
 			{
 				return true;
@@ -783,7 +776,7 @@ namespace es2
 		return target == GL_TEXTURE_2D || IsCubemapTextureTarget(target) || target == GL_TEXTURE_3D || target == GL_TEXTURE_2D_ARRAY || target == GL_TEXTURE_RECTANGLE_ARB;
 	}
 
-	GLenum ValidateTextureFormatType(GLenum format, GLenum type, GLint internalformat, GLenum target, GLint clientVersion)
+	GLenum ValidateTextureFormatType(GLenum format, GLenum type, GLint internalformat, GLenum target)
 	{
 		switch(type)
 		{
@@ -805,10 +798,6 @@ namespace es2
 		case GL_UNSIGNED_INT_10F_11F_11F_REV:
 		case GL_UNSIGNED_INT_5_9_9_9_REV:
 		case GL_FLOAT_32_UNSIGNED_INT_24_8_REV:
-			if(clientVersion < 3)
-			{
-				return GL_INVALID_ENUM;
-			}
 			break;
 		default:
 			return GL_INVALID_ENUM;
@@ -846,10 +835,6 @@ namespace es2
 		case GL_RG_INTEGER:
 		case GL_RGB_INTEGER:
 		case GL_RGBA_INTEGER:
-			if(clientVersion < 3)
-			{
-				return GL_INVALID_ENUM;
-			}
 			break;
 		default:
 			return GL_INVALID_ENUM;
@@ -1165,9 +1150,9 @@ namespace es2
 		return 1;
 	}
 
-	bool IsColorRenderable(GLint internalformat, GLint clientVersion)
+	bool IsColorRenderable(GLint internalformat)
 	{
-		if(IsCompressed(internalformat, clientVersion))
+		if(IsCompressed(internalformat))
 		{
 			return false;
 		}
@@ -1188,9 +1173,8 @@ namespace es2
 		case GL_R32F:
 		case GL_RG32F:
 		case GL_RGB32F:
-		case GL_RGBA32F:
+		case GL_RGBA32F:     // GL_EXT_color_buffer_float, OpenGL ES 3.0+ only.
 		case GL_BGRA8_EXT:   // GL_EXT_texture_format_BGRA8888
-			return true;
 		case GL_R8UI:
 		case GL_R8I:
 		case GL_R16UI:
@@ -1213,7 +1197,7 @@ namespace es2
 		case GL_RGBA32I:
 		case GL_RGBA32UI:
 		case GL_R11F_G11F_B10F:
-			return clientVersion >= 3;
+			return true;
 		case GL_R8_SNORM:
 		case GL_RG8_SNORM:
 		case GL_RGB8_SNORM:
@@ -1242,9 +1226,9 @@ namespace es2
 		return false;
 	}
 
-	bool IsDepthRenderable(GLint internalformat, GLint clientVersion)
+	bool IsDepthRenderable(GLint internalformat)
 	{
-		if(IsCompressed(internalformat, clientVersion))
+		if(IsCompressed(internalformat))
 		{
 			return false;
 		}
@@ -1255,10 +1239,9 @@ namespace es2
 		case GL_DEPTH_COMPONENT16:
 		case GL_DEPTH24_STENCIL8_OES:    // GL_OES_packed_depth_stencil
 		case GL_DEPTH_COMPONENT32_OES:   // GL_OES_depth32
-			return true;
 		case GL_DEPTH32F_STENCIL8:
 		case GL_DEPTH_COMPONENT32F:
-			return clientVersion >= 3;
+			return true;
 		case GL_STENCIL_INDEX8:
 		case GL_R8:
 		case GL_R8UI:
@@ -1313,9 +1296,9 @@ namespace es2
 		return false;
 	}
 
-	bool IsStencilRenderable(GLint internalformat, GLint clientVersion)
+	bool IsStencilRenderable(GLint internalformat)
 	{
-		if(IsCompressed(internalformat, clientVersion))
+		if(IsCompressed(internalformat))
 		{
 			return false;
 		}
@@ -1324,9 +1307,8 @@ namespace es2
 		{
 		case GL_STENCIL_INDEX8:
 		case GL_DEPTH24_STENCIL8_OES:
-			return true;
 		case GL_DEPTH32F_STENCIL8:
-			return clientVersion >= 3;
+			return true;
 		case GL_R8:
 		case GL_R8UI:
 		case GL_R8I:
@@ -1384,7 +1366,7 @@ namespace es2
 		return false;
 	}
 
-	bool IsMipmappable(GLint internalformat, GLint clientVersion)
+	bool IsMipmappable(GLint internalformat)
 	{
 		if(internalformat == GL_NONE)
 		{
@@ -1409,7 +1391,7 @@ namespace es2
 		case GL_LUMINANCE_ALPHA16F_EXT:
 			return true;
 		default:
-			return IsColorRenderable(internalformat, clientVersion);
+			return IsColorRenderable(internalformat);
 		}
 	}
 

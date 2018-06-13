@@ -136,7 +136,7 @@ protected:
 			EXPECT_TRUE(renderableType & EGL_OPENGL_ES2_BIT);
 
 			EGLint surfaceType = 0;
-			eglGetConfigAttrib(display, config, EGL_RENDERABLE_TYPE, &surfaceType);
+			eglGetConfigAttrib(display, config, EGL_SURFACE_TYPE, &surfaceType);
 			EXPECT_EQ(EGL_SUCCESS, eglGetError());
 			EXPECT_TRUE(surfaceType & EGL_WINDOW_BIT);
 		}
@@ -333,9 +333,10 @@ TEST_F(SwiftShaderTest, Initalization)
 	EXPECT_GLENUM_EQ(GL_NO_ERROR, glGetError());
 	EXPECT_STREQ("Google SwiftShader", (const char*)glRenderer);
 
+	// SwiftShader return an OpenGL ES 3.0 context when a 2.0 context is requested, as allowed by the spec.
 	const GLubyte *glVersion = glGetString(GL_VERSION);
 	EXPECT_GLENUM_EQ(GL_NO_ERROR, glGetError());
-	EXPECT_THAT((const char*)glVersion, testing::HasSubstr("OpenGL ES 2.0 SwiftShader "));
+	EXPECT_THAT((const char*)glVersion, testing::HasSubstr("OpenGL ES 3.0 SwiftShader "));
 
 	Uninitialize();
 }
