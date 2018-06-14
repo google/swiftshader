@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "36492233_e250fd75",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 6
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-06-14T16:11:08Z",
+      "side": 1,
+      "message": "went",
+      "range": {
+        "startLine": 17,
+        "startChar": 26,
+        "endLine": 17,
+        "endChar": 30
+      },
+      "revId": "d2cf71f6d06f963fdf49ed2727a5ca480c0973da",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6b5db7a5_343aca5b",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 6
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-06-14T16:11:08Z",
+      "side": 1,
+      "message": "nit: Bug b/67872293",
+      "range": {
+        "startLine": 19,
+        "startChar": 0,
+        "endLine": 19,
+        "endChar": 12
+      },
+      "revId": "d2cf71f6d06f963fdf49ed2727a5ca480c0973da",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6eef28df_1f3e18f2",
+        "filename": "src/Reactor/Optimizer.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 283,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-06-14T16:11:08Z",
+      "side": 1,
+      "message": "unordered_map\n\nSubzero already uses C++11 STL extensively, and we don\u0027t use it for older Android builds.",
+      "range": {
+        "startLine": 283,
+        "startChar": 7,
+        "endLine": 283,
+        "endChar": 10
+      },
+      "revId": "d2cf71f6d06f963fdf49ed2727a5ca480c0973da",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
