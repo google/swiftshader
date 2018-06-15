@@ -39,7 +39,7 @@ namespace sw
 		}
 
 		sw::Surface *color = sw::Surface::create(1, 1, 1, format, pixel, sw::Surface::bytes(format), sw::Surface::bytes(format));
-		SliceRectF sRect((float)dRect.x0, (float)dRect.y0, (float)dRect.x1, (float)dRect.y1, 0);
+		SliceRectF sRect(0.5f, 0.5f, 0.5f, 0.5f, 0);   // Sample from the middle.
 		blit(color, sRect, dest, dRect, {rgbaMask});
 		delete color;
 	}

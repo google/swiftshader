@@ -49,10 +49,22 @@ protected:
 		#endif
 	}
 
-	void compareColor(unsigned char referenceColor[4])
+	void expectFramebufferColor(const unsigned char referenceColor[4], GLint x = 0, GLint y = 0)
 	{
 		unsigned char color[4] = { 0 };
-		glReadPixels(0, 0, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, &color);
+		glReadPixels(x, y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, &color);
+		EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+		EXPECT_EQ(color[0], referenceColor[0]);
+		EXPECT_EQ(color[1], referenceColor[1]);
+		EXPECT_EQ(color[2], referenceColor[2]);
+		EXPECT_EQ(color[3], referenceColor[3]);
+	}
+
+	void expectFramebufferColor(const float referenceColor[4], GLint x = 0, GLint y = 0)
+	{
+		float color[4] = { 0 };
+		glReadPixels(x, y, 1, 1, GL_RGBA, GL_FLOAT, &color);
+		EXPECT_GLENUM_EQ(GL_NONE, glGetError());
 		EXPECT_EQ(color[0], referenceColor[0]);
 		EXPECT_EQ(color[1], referenceColor[1]);
 		EXPECT_EQ(color[2], referenceColor[2]);
@@ -383,7 +395,7 @@ TEST_F(SwiftShaderTest, UnrollLoop)
 
 	deleteProgram(ph);
 
-	compareColor(green);
+	expectFramebufferColor(green);
 
 	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
 
@@ -448,7 +460,7 @@ TEST_F(SwiftShaderTest, DynamicLoop)
 
 	deleteProgram(ph);
 
-	compareColor(green);
+	expectFramebufferColor(green);
 
 	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
 
@@ -505,9 +517,40 @@ TEST_F(SwiftShaderTest, DynamicIndexing)
 
 	deleteProgram(ph);
 
-	compareColor(green);
+	expectFramebufferColor(green);
 
 	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+
+	Uninitialize();
+}
+
+// Tests clearing of a texture with 'dirty' content.
+TEST_F(SwiftShaderTest, ClearDirtyTexture)
+{
+	Initialize(3, false);
+
+	GLuint tex = 1;
+	glBindTexture(GL_TEXTURE_2D, tex);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_R11F_G11F_B10F, 256, 256, 0, GL_RGB, GL_UNSIGNED_INT_10F_11F_11F_REV, nullptr);
+	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+
+	GLuint fbo = 1;
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex, 0);
+	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	EXPECT_GLENUM_EQ(GL_FRAMEBUFFER_COMPLETE, glCheckFramebufferStatus(GL_FRAMEBUFFER));
+
+	float dirty_color[3] = { 128 / 255.0f, 64 / 255.0f, 192 / 255.0f };
+	GLint dirty_x = 8;
+	GLint dirty_y = 12;
+	glTexSubImage2D(GL_TEXTURE_2D, 0, dirty_x, dirty_y, 1, 1, GL_RGB, GL_FLOAT, dirty_color);
+
+	const float clear_color[4] = { 1.0f, 32.0f, 0.5f, 1.0f };
+	glClearColor(clear_color[0], clear_color[1], clear_color[2], 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
+	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+
+	expectFramebufferColor(clear_color, dirty_x, dirty_y);
 
 	Uninitialize();
 }
@@ -593,7 +636,7 @@ TEST_F(SwiftShaderTest, SamplerArrayInStructArrayAsFunctionArg)
 
 	deleteProgram(ph);
 
-	compareColor(green);
+	expectFramebufferColor(green);
 
 	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
 
@@ -647,7 +690,7 @@ TEST_F(SwiftShaderTest, AtanCornerCases)
 	deleteProgram(ph);
 
 	unsigned char grey[4] = { 128, 128, 128, 128 };
-	compareColor(grey);
+	expectFramebufferColor(grey);
 
 	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
 
@@ -910,7 +953,7 @@ TEST_F(SwiftShaderTest, TextureRectangle_SamplingFromRectangle)
 
 	deleteProgram(ph);
 
-	compareColor(green);
+	expectFramebufferColor(green);
 
 	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
 
@@ -964,7 +1007,7 @@ TEST_F(SwiftShaderTest, TextureRectangle_SamplingFromRectangleESSL3)
 
 	deleteProgram(ph);
 
-	compareColor(green);
+	expectFramebufferColor(green);
 
 	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
 
@@ -992,7 +1035,7 @@ TEST_F(SwiftShaderTest, TextureRectangle_RenderToRectangle)
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	unsigned char green[4] = { 0, 255, 0, 255 };
-	compareColor(green);
+	expectFramebufferColor(green);
 	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
 
 	Uninitialize();
@@ -1046,7 +1089,7 @@ TEST_F(SwiftShaderTest, TextureRectangle_CopyTexImage)
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_RECTANGLE_ARB, tex, 0);
 
 	unsigned char green[4] = { 0, 255, 0, 255 };
-	compareColor(green);
+	expectFramebufferColor(green);
 	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
 
 	Uninitialize();
@@ -1080,7 +1123,7 @@ TEST_F(SwiftShaderTest, TextureRectangle_CopyTexSubImage)
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_RECTANGLE_ARB, tex, 0);
 
 	unsigned char green[4] = { 0, 255, 0, 255 };
-	compareColor(green);
+	expectFramebufferColor(green);
 	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
 
 	Uninitialize();

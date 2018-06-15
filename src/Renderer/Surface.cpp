@@ -44,6 +44,8 @@ namespace sw
 
 	void Surface::Buffer::write(int x, int y, int z, const Color<float> &color)
 	{
+		ASSERT(x < width && y < height && z < depth);
+
 		byte *element = (byte*)buffer + (x + border) * bytes + (y + border) * pitchB + z * samples * sliceB;
 
 		for(int i = 0; i < samples; i++)
@@ -55,6 +57,8 @@ namespace sw
 
 	void Surface::Buffer::write(int x, int y, const Color<float> &color)
 	{
+		ASSERT(x < width && y < height);
+
 		byte *element = (byte*)buffer + (x + border) * bytes + (y + border) * pitchB;
 
 		for(int i = 0; i < samples; i++)
@@ -396,6 +400,8 @@ namespace sw
 
 	Color<float> Surface::Buffer::read(int x, int y, int z) const
 	{
+		ASSERT(x < width && y < height && z < depth);
+
 		void *element = (unsigned char*)buffer + (x + border) * bytes + (y + border) * pitchB + z * samples * sliceB;
 
 		return read(element);
@@ -403,6 +409,8 @@ namespace sw
 
 	Color<float> Surface::Buffer::read(int x, int y) const
 	{
+		ASSERT(x < width && y < height);
+
 		void *element = (unsigned char*)buffer + (x + border) * bytes + (y + border) * pitchB;
 
 		return read(element);
