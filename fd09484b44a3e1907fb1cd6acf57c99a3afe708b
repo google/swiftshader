@@ -45,6 +45,54 @@
       "revId": "fd09484b44a3e1907fb1cd6acf57c99a3afe708b",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "40a47cf1_82b0fc1f",
+        "filename": "src/Renderer/Surface.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2018-06-18T19:44:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "36abb1de_f08236b6",
+      "range": {
+        "startLine": 47,
+        "startChar": 58,
+        "endLine": 47,
+        "endChar": 78
+      },
+      "revId": "fd09484b44a3e1907fb1cd6acf57c99a3afe708b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f187b987_98bb7979",
+        "filename": "src/Renderer/Surface.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2018-06-18T19:44:45Z",
+      "side": 1,
+      "message": "range is [-border, dim + border[",
+      "parentUuid": "0c052e39_0cbac7ae",
+      "range": {
+        "startLine": 47,
+        "startChar": 22,
+        "endLine": 47,
+        "endChar": 28
+      },
+      "revId": "fd09484b44a3e1907fb1cd6acf57c99a3afe708b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
