@@ -22,6 +22,29 @@
       "revId": "fd09484b44a3e1907fb1cd6acf57c99a3afe708b",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "36abb1de_f08236b6",
+        "filename": "src/Renderer/Surface.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-06-18T19:38:46Z",
+      "side": 1,
+      "message": "There\u0027s no border in the depth dimension.",
+      "range": {
+        "startLine": 47,
+        "startChar": 58,
+        "endLine": 47,
+        "endChar": 78
+      },
+      "revId": "fd09484b44a3e1907fb1cd6acf57c99a3afe708b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
