@@ -25,7 +25,7 @@
 
 #if defined(__ANDROID__)
 #include <system/window.h>
-#elif defined(__linux__)
+#elif defined(USE_X11)
 #include "Main/libX11.hpp"
 #endif
 
@@ -120,7 +120,9 @@ EGLDisplay GetDisplay(EGLNativeDisplayType display_id)
 	}
 
 	#if defined(__linux__) && !defined(__ANDROID__)
+		#if defined(USE_X11)
 		if(!libX11)
+		#endif  // Non X11 linux is headless only
 		{
 			return success(HEADLESS_DISPLAY);
 		}
@@ -178,6 +180,8 @@ const char *QueryString(EGLDisplay dpy, EGLint name)
 			"EGL_KHR_client_get_all_proc_addresses "
 #if defined(__linux__) && !defined(__ANDROID__)
 			"EGL_KHR_platform_gbm "
+#endif
+#if defined(USE_X11)
 			"EGL_KHR_platform_x11 "
 #endif
 			"EGL_EXT_client_extensions "
@@ -1002,7 +1006,7 @@ EGLBoolean WaitNative(EGLint engine)
 
 	if(context)
 	{
-		#if defined(__linux__) && !defined(__ANDROID__)
+		#if defined(USE_X11)
 			egl::Display *display = context->getDisplay();
 
 			if(!display)
@@ -1171,13 +1175,25 @@ EGLDisplay GetPlatformDisplayEXT(EGLenum platform, void *native_display, const E
 	#if defined(__linux__) && !defined(__ANDROID__)
 		switch(platform)
 		{
+		#if defined(USE_X11)
 		case EGL_PLATFORM_X11_EXT: break;
+		#endif
 		case EGL_PLATFORM_GBM_KHR: break;
 		default:
 			return error(EGL_BAD_PARAMETER, EGL_NO_DISPLAY);
 		}
 
-		if(platform == EGL_PLATFORM_X11_EXT)
+		if(platform == EGL_PLATFORM_GBM_KHR)
+		{
+			if(native_display != (void*)EGL_DEFAULT_DISPLAY || attrib_list != NULL)
+			{
+				return error(EGL_BAD_ATTRIBUTE, EGL_NO_DISPLAY);   // Unimplemented
+			}
+
+			return success(HEADLESS_DISPLAY);
+		}
+		#if defined(USE_X11)
+		else if(platform == EGL_PLATFORM_X11_EXT)
 		{
 			if(!libX11)
 			{
@@ -1189,15 +1205,7 @@ EGLDisplay GetPlatformDisplayEXT(EGLenum platform, void *native_display, const E
 				return error(EGL_BAD_ATTRIBUTE, EGL_NO_DISPLAY);   // Unimplemented
 			}
 		}
-		else if(platform == EGL_PLATFORM_GBM_KHR)
-		{
-			if(native_display != (void*)EGL_DEFAULT_DISPLAY || attrib_list != NULL)
-			{
-				return error(EGL_BAD_ATTRIBUTE, EGL_NO_DISPLAY);   // Unimplemented
-			}
-
-			return success(HEADLESS_DISPLAY);
-		}
+		#endif
 
 		return success(PRIMARY_DISPLAY);   // We only support the default display
 	#else

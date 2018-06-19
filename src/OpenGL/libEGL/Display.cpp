@@ -30,7 +30,7 @@
 #include <sys/ioctl.h>
 #include <linux/fb.h>
 #include <fcntl.h>
-#elif defined(__linux__)
+#elif defined(USE_X11)
 #include "Main/libX11.hpp"
 #elif defined(__APPLE__)
 #include "OSXUtils.hpp"
@@ -66,7 +66,7 @@ Display *Display::get(EGLDisplay dpy)
 
 	static void *nativeDisplay = nullptr;
 
-	#if defined(__linux__) && !defined(__ANDROID__)
+	#if defined(USE_X11)
 		// Even if the application provides a native display handle, we open (and close) our own connection
 		if(!nativeDisplay && dpy != HEADLESS_DISPLAY && libX11 && libX11->XOpenDisplay)
 		{
@@ -89,7 +89,7 @@ Display::~Display()
 {
 	terminate();
 
-	#if defined(__linux__) && !defined(__ANDROID__)
+	#if defined(USE_X11)
 		if(nativeDisplay && libX11->XCloseDisplay)
 		{
 			libX11->XCloseDisplay((::Display*)nativeDisplay);
@@ -677,7 +677,7 @@ bool Display::isValidWindow(EGLNativeWindowType window)
 			return false;
 		}
 		return true;
-	#elif defined(__linux__)
+	#elif defined(USE_X11)
 		if(nativeDisplay)
 		{
 			XWindowAttributes windowAttributes;
@@ -686,6 +686,8 @@ bool Display::isValidWindow(EGLNativeWindowType window)
 			return status != 0;
 		}
 		return false;
+	#elif defined(__linux__)
+		return false;  // Non X11 linux is headless only
 	#elif defined(__APPLE__)
 		return sw::OSX::IsValidWindow(window);
 	#elif defined(__Fuchsia__)
@@ -843,7 +845,7 @@ sw::Format Display::getDisplayFormat() const
 
 		// No framebuffer device found, or we're in user space
 		return sw::FORMAT_X8B8G8R8;
-	#elif defined(__linux__)
+	#elif defined(USE_X11)
 		if(nativeDisplay)
 		{
 			Screen *screen = libX11->XDefaultScreenOfDisplay((::Display*)nativeDisplay);
@@ -861,6 +863,8 @@ sw::Format Display::getDisplayFormat() const
 		{
 			return sw::FORMAT_X8R8G8B8;
 		}
+	#elif defined(__linux__)  // Non X11 linux is headless only
+		return sw::FORMAT_A8B8G8R8;
 	#elif defined(__APPLE__)
 		return sw::FORMAT_A8B8G8R8;
 	#elif defined(__Fuchsia__)

@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import("//build/config/ui.gni")
 import("../../swiftshader.gni")
 
 # Need a separate config to ensure the warnings are added to the end.
@@ -70,7 +71,9 @@ swiftshader_shared_library("swiftshader_libEGL") {
   } else if (is_win) {
     ldflags = [ "/DEF:" + rebase_path("libGLESv2.def", root_build_dir) ]
   } else if (is_linux) {
-    sources += [ "../../Main/libX11.cpp" ]
+    if (use_x11) {
+      sources += [ "../../Main/libX11.cpp" ]
+    }
     ldflags =
         [ "-Wl,--version-script=" + rebase_path("libEGL.lds", root_build_dir) ]
   }

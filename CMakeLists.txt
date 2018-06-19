@@ -174,6 +174,9 @@ else()
         set_cpp_flag("-march=x86-64")
         set_cpp_flag("-mtune=generic")
     endif()
+    if(LINUX)
+        set_cpp_flag("-DUSE_X11=1")
+    endif()
 
     # Use -g3 to have even more debug info
     set_cpp_flag("-g -g3" DEBUG)
