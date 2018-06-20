@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c67dd76a_e84e04e2",
+        "filename": "src/Reactor/Optimizer.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 427,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2018-06-20T19:38:12Z",
+      "side": 1,
+      "message": "This is probably not valid anymore.",
+      "range": {
+        "startLine": 414,
+        "startChar": 0,
+        "endLine": 427,
+        "endChar": 36
+      },
+      "revId": "e3e6afc7cdb6a85224b2b0db1af9a090b068b1e2",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "226b7cfb_21e6951d",
+        "filename": "src/Reactor/Optimizer.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 714,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2018-06-20T19:38:12Z",
+      "side": 1,
+      "message": "This should be used to delete all Uses objects in the end.",
+      "range": {
+        "startLine": 714,
+        "startChar": 3,
+        "endLine": 714,
+        "endChar": 39
+      },
+      "revId": "e3e6afc7cdb6a85224b2b0db1af9a090b068b1e2",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
