@@ -7133,6 +7133,8 @@ extern "C" NO_SANITIZE_FUNCTION __eglMustCastToProperFunctionPointerType es2GetP
 		FUNCTION(glVertexAttrib4f),
 		FUNCTION(glVertexAttrib4fv),
 		FUNCTION(glVertexAttribDivisor),
+		FUNCTION(glVertexAttribDivisorANGLE),
+		FUNCTION(glVertexAttribDivisorEXT),
 		FUNCTION(glVertexAttribI4i),
 		FUNCTION(glVertexAttribI4iv),
 		FUNCTION(glVertexAttribI4ui),
