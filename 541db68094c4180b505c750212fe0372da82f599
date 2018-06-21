@@ -16,6 +16,24 @@
       "revId": "541db68094c4180b505c750212fe0372da82f599",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9c6c8513_cf093512",
+        "filename": "CMakeLists.txt",
+        "patchSetId": 1
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-06-21T17:42:02Z",
+      "side": 1,
+      "message": "I\u0027m running into some issues building with UBSan due to having a very old version of LLVM, which has caused issues before: https://groups.google.com/a/chromium.org/d/topic/clang/EAafyhovhcs/discussion\n\nI\u0027ve made some progress fixing the LLVM code, but a few issues remain. I\u0027ll try some more, but if nothing works we can use -fsanitize-blacklist",
+      "parentUuid": "b069edcc_40c58ed0",
+      "revId": "541db68094c4180b505c750212fe0372da82f599",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
