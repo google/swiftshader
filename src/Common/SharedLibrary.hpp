@@ -31,28 +31,10 @@ void *getProcAddress(void *library, const char *name);
 template<int n>
 void *loadLibrary(const std::string &libraryDirectory, const char *(&names)[n], const char *mustContainSymbol = nullptr)
 {
-	if(!libraryDirectory.empty())
+	for(const char *libraryName : names)
 	{
-		for(int i = 0; i < n; i++)
-		{
-			std::string nameWithPath = libraryDirectory + names[i];
-			void *library = getLibraryHandle(nameWithPath.c_str());
-
-			if(library)
-			{
-				if(!mustContainSymbol || getProcAddress(library, mustContainSymbol))
-				{
-					return library;
-				}
-
-				freeLibrary(library);
-			}
-		}
-	}
-
-	for(int i = 0; i < n; i++)
-	{
-		void *library = getLibraryHandle(names[i]);
+		std::string libraryPath = libraryDirectory + libraryName;
+		void *library = getLibraryHandle(libraryPath.c_str());
 
 		if(library)
 		{
@@ -65,9 +47,10 @@ void *loadLibrary(const std::string &libraryDirectory, const char *(&names)[n], 
 		}
 	}
 
-	for(int i = 0; i < n; i++)
+	for(const char *libraryName : names)
 	{
-		void *library = loadLibrary(names[i]);
+		std::string libraryPath = libraryDirectory + libraryName;
+		void *library = loadLibrary(libraryPath.c_str());
 
 		if(library)
 		{
