@@ -51,6 +51,11 @@ option(USE_GROUP_SOURCES "Group the source files in a folder tree for Visual Stu
 option(BUILD_SAMPLES "Build sample programs" 1)
 option(BUILD_TESTS "Build test programs" 1)
 
+option (MSAN "Build with memory sanitizer" 0)
+option (ASAN "Build with address sanitizer" 0)
+option (TSAN "Build with thread sanitizer" 0)
+option (UBSAN "Build with undefined behavior sanitizer" 0)
+
 if(ARCH STREQUAL "arm")
     set(DEFAULT_REACTOR_BACKEND "Subzero")
 else()
@@ -110,8 +115,12 @@ macro(set_target_export_map TARGET DIR)
         # hides all the others. Gc sections is used in combination
         # with each functions being in its section, to reduce the
         # binary size.
-        set_target_properties(${TARGET} PROPERTIES LINK_FLAGS "${LINKFLAGS} -Wl,--hash-style=both,--version-script=${DIR}/${TARGET}.lds,--gc-sections,--no-undefined")
+        set_target_properties(${TARGET} PROPERTIES LINK_FLAGS "${LINKFLAGS} -Wl,--hash-style=both,--version-script=${DIR}/${TARGET}.lds,--gc-sections")
         set_target_properties(${TARGET} PROPERTIES LINK_DEPENDS "${DIR}/${TARGET}.lds")
+
+        if(NOT MSAN AND NOT ASAN AND NOT TSAN AND NOT UBSAN)
+            set_property(TARGET ${TARGET} APPEND_STRING PROPERTY LINK_FLAGS " -Wl,--no-undefined")
+        endif()
     endif()
 endmacro()
 
@@ -197,9 +206,21 @@ else()
     set_cpp_flag("-ffunction-sections" RELEASE)
     set_cpp_flag("-fdata-sections" RELEASE)
     set_cpp_flag("-fomit-frame-pointer" RELEASE)
+
+    if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+        if(MSAN)
+            set_cpp_flag("-fsanitize=memory")
+        elseif(ASAN)
+            set_cpp_flag("-fsanitize=address")
+        elseif(TSAN)
+            set_cpp_flag("-fsanitize=thread")
+        elseif(UBSAN)
+            set_cpp_flag("-fsanitize=undefined -fsanitize-blacklist=${CMAKE_SOURCE_DIR}/third_party/LLVM/ubsan_blacklist.txt")
+        endif()
+    endif()
 endif()
 
-if( WIN32 )
+if(WIN32)
     add_definitions(-DWINVER=0x501 -DNOMINMAX -DSTRICT)
     set(CMAKE_FIND_LIBRARY_PREFIXES ${CMAKE_FIND_LIBRARY_PREFIXES} "" "lib")
 endif()
