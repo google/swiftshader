@@ -150,14 +150,14 @@ namespace
 
 			if(!llvm::isa<Ice::InstAlloca>(alloca))
 			{
-				return;   // Allocas are all at the top
+				break;   // Allocas are all at the top
 			}
 
 			Ice::Operand *address = alloca.getDest();
 
 			if(!hasUses(address))
 			{
-				return;
+				continue;
 			}
 
 			const auto &addressUses = *getUses(address);
@@ -213,14 +213,14 @@ namespace
 
 			if(!llvm::isa<Ice::InstAlloca>(alloca))
 			{
-				return;   // Allocas are all at the top
+				break;   // Allocas are all at the top
 			}
 
 			Ice::Operand *address = alloca.getDest();
 
 			if(!hasUses(address))
 			{
-				return;
+				continue;
 			}
 
 			auto &addressUses = *getUses(address);
@@ -324,14 +324,14 @@ namespace
 
 			if(!llvm::isa<Ice::InstAlloca>(alloca))
 			{
-				return;   // Allocas are all at the top
+				break;   // Allocas are all at the top
 			}
 
 			Ice::Operand *address = alloca.getDest();
 
 			if(!hasUses(address))
 			{
-				return;
+				continue;
 			}
 
 			const auto &addressUses = *getUses(address);
