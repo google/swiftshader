@@ -190,6 +190,8 @@ protected:
 
 	void Uninitialize()
 	{
+		EXPECT_GLENUM_EQ(GL_NO_ERROR, glGetError());
+
 		EGLBoolean success = eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
 		EXPECT_EQ(EGL_SUCCESS, eglGetError());
 		EXPECT_EQ((EGLBoolean)EGL_TRUE, success);
@@ -552,6 +554,35 @@ TEST_F(SwiftShaderTest, ClearDirtyTexture)
 	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
 
 	expectFramebufferColor(clear_color, dirty_x, dirty_y);
+
+	Uninitialize();
+}
+
+// Tests copying between textures of different floating-point formats using a framebuffer object.
+TEST_F(SwiftShaderTest, CopyTexImage)
+{
+	Initialize(3, false);
+
+	GLuint tex1 = 1;
+	float green[4] = { 0.0f, 1.0f, 0.0f, 1.0f };
+	glBindTexture(GL_TEXTURE_2D, tex1);
+	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA32F, 16, 16);
+	glTexSubImage2D(GL_TEXTURE_2D, 0, 5, 10, 1, 1, GL_RGBA, GL_FLOAT, &green);
+	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+
+	GLuint fbo = 1;
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex1, 0);
+	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+
+	GLuint tex2 = 2;
+	glBindTexture(GL_TEXTURE_2D, tex2);
+	glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 2, 6, 8, 8, 0);
+	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex2, 0);
+	expectFramebufferColor(green, 3, 4);
+	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
 
 	Uninitialize();
 }
