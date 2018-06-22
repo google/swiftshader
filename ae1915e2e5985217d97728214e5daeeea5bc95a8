@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6a97c922_ff8638e7",
+        "filename": "src/Reactor/Optimizer.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-06-22T18:21:49Z",
+      "side": 1,
+      "message": "We can use std::unique_ptr here to not have to explicitly delete these. Anyway, no need to change this CL.",
+      "range": {
+        "startLine": 91,
+        "startChar": 29,
+        "endLine": 91,
+        "endChar": 30
+      },
+      "revId": "ae1915e2e5985217d97728214e5daeeea5bc95a8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9f771979_93c69785",
+        "filename": "src/Reactor/Optimizer.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 316,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-06-22T18:21:49Z",
+      "side": 1,
+      "message": "std::unique_ptr",
+      "range": {
+        "startLine": 316,
+        "startChar": 40,
+        "endLine": 316,
+        "endChar": 41
+      },
+      "revId": "ae1915e2e5985217d97728214e5daeeea5bc95a8",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
