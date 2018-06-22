@@ -1,0 +1,228 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cce66fbb_4726d7dd",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-06-22T15:41:13Z",
+      "side": 1,
+      "message": "There\u0027s a previous CL with the same description. Let\u0027s be a little more specific.",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 22
+      },
+      "revId": "f15833e62ab2d1d04934b6621eb6c0e45ad0faf5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "614aa440_13cf83c5",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-06-22T15:41:13Z",
+      "side": 1,
+      "message": "Please clarify that this was done by having the Subzero classes carry use-def information.",
+      "range": {
+        "startLine": 10,
+        "startChar": 57,
+        "endLine": 10,
+        "endChar": 58
+      },
+      "revId": "f15833e62ab2d1d04934b6621eb6c0e45ad0faf5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "02b8d8f7_febd7d59",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-06-22T15:41:13Z",
+      "side": 1,
+      "message": "Bug swiftshader:69\nBug b/67872293",
+      "revId": "f15833e62ab2d1d04934b6621eb6c0e45ad0faf5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "368e954f_dc3ba530",
+        "filename": "third_party/subzero/src/IceCfgNode.h",
+        "patchSetId": 2
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-06-22T15:41:13Z",
+      "side": 1,
+      "message": "node",
+      "range": {
+        "startLine": 153,
+        "startChar": 41,
+        "endLine": 153,
+        "endChar": 52
+      },
+      "revId": "f15833e62ab2d1d04934b6621eb6c0e45ad0faf5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "54b778e7_4263a775",
+        "filename": "third_party/subzero/src/IceCfgNode.h",
+        "patchSetId": 2
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-06-22T15:41:13Z",
+      "side": 1,
+      "message": "be",
+      "range": {
+        "startLine": 154,
+        "startChar": 33,
+        "endLine": 154,
+        "endChar": 34
+      },
+      "revId": "f15833e62ab2d1d04934b6621eb6c0e45ad0faf5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5b8fd3c0_5a310701",
+        "filename": "third_party/subzero/src/IceInst.h",
+        "patchSetId": 2
+      },
+      "lineNbr": 244,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-06-22T15:41:13Z",
+      "side": 1,
+      "message": "be",
+      "range": {
+        "startLine": 244,
+        "startChar": 33,
+        "endLine": 244,
+        "endChar": 34
+      },
+      "revId": "f15833e62ab2d1d04934b6621eb6c0e45ad0faf5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a4cc03ea_7f2d7427",
+        "filename": "third_party/subzero/src/IceOperand.h",
+        "patchSetId": 2
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-06-22T15:41:13Z",
+      "side": 1,
+      "message": "operand",
+      "range": {
+        "startLine": 125,
+        "startChar": 41,
+        "endLine": 125,
+        "endChar": 52
+      },
+      "revId": "f15833e62ab2d1d04934b6621eb6c0e45ad0faf5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a4a42fa1_db934abd",
+        "filename": "third_party/subzero/src/IceOperand.h",
+        "patchSetId": 2
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-06-22T15:41:13Z",
+      "side": 1,
+      "message": "be",
+      "range": {
+        "startLine": 126,
+        "startChar": 33,
+        "endLine": 126,
+        "endChar": 34
+      },
+      "revId": "f15833e62ab2d1d04934b6621eb6c0e45ad0faf5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e0832aec_a9fd9f3f",
+        "filename": "third_party/subzero/src/IceOperand.h",
+        "patchSetId": 2
+      },
+      "lineNbr": 910,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-06-22T15:41:13Z",
+      "side": 1,
+      "message": "variable",
+      "range": {
+        "startLine": 910,
+        "startChar": 41,
+        "endLine": 910,
+        "endChar": 52
+      },
+      "revId": "f15833e62ab2d1d04934b6621eb6c0e45ad0faf5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "04c32c6b_eedbe739",
+        "filename": "third_party/subzero/src/IceOperand.h",
+        "patchSetId": 2
+      },
+      "lineNbr": 911,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-06-22T15:41:13Z",
+      "side": 1,
+      "message": "be",
+      "range": {
+        "startLine": 911,
+        "startChar": 33,
+        "endLine": 911,
+        "endChar": 34
+      },
+      "revId": "f15833e62ab2d1d04934b6621eb6c0e45ad0faf5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
