@@ -714,7 +714,9 @@ namespace es2
 			break;
 		}
 
-		if(format == implementationReadFormat && type == implementationReadType)
+		GLenum coreType = (type == GL_HALF_FLOAT_OES) ? GL_HALF_FLOAT : type;
+
+		if(format == implementationReadFormat && coreType == implementationReadType)
 		{
 			return true;
 		}

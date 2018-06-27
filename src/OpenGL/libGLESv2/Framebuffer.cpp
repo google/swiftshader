@@ -621,11 +621,11 @@ GLenum Framebuffer::getImplementationColorReadType() const
 		case GL_RG32UI:         return GL_UNSIGNED_INT;
 		case GL_RGB32UI:        return GL_UNSIGNED_INT;
 		case GL_RGBA32UI:       return GL_UNSIGNED_INT;
-		case GL_R16F:           return GL_FLOAT;
-		case GL_RG16F:          return GL_FLOAT;
-		case GL_R11F_G11F_B10F: return GL_FLOAT;
-		case GL_RGB16F:         return GL_FLOAT;
-		case GL_RGBA16F:        return GL_FLOAT;
+		case GL_R16F:           return GL_HALF_FLOAT;
+		case GL_RG16F:          return GL_HALF_FLOAT;
+		case GL_R11F_G11F_B10F: return GL_HALF_FLOAT;
+		case GL_RGB16F:         return GL_HALF_FLOAT;
+		case GL_RGBA16F:        return GL_HALF_FLOAT;
 		case GL_R32F:           return GL_FLOAT;
 		case GL_RG32F:          return GL_FLOAT;
 		case GL_RGB32F:         return GL_FLOAT;

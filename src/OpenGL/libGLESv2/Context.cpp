@@ -3349,6 +3349,8 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum
 	sw::SliceRectF sliceRect(rect);
 	sw::SliceRect dstSliceRect(dstRect);
 	device->blit(renderTarget, sliceRect, externalSurface, dstSliceRect, false, false, false);
+	externalSurface->lockExternal(0, 0, 0, sw::LOCK_READONLY, sw::PUBLIC);
+	externalSurface->unlockExternal();
 	delete externalSurface;
 
 	renderTarget->release();
