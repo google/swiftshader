@@ -127,7 +127,7 @@
       <TreatWarningAsError>true</TreatWarningAsError>
       <DisableSpecificWarnings>5030;4005;</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <TreatSpecificWarningsAsErrors>4018;5038</TreatSpecificWarningsAsErrors>
+      <TreatSpecificWarningsAsErrors>4018;5038;4838</TreatSpecificWarningsAsErrors>
       <ErrorReporting>Queue</ErrorReporting>
     </ClCompile>
   </ItemDefinitionGroup>
@@ -146,7 +146,7 @@
       <TreatWarningAsError>true</TreatWarningAsError>
       <DisableSpecificWarnings>5030;4005;4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <TreatSpecificWarningsAsErrors>4018;5038</TreatSpecificWarningsAsErrors>
+      <TreatSpecificWarningsAsErrors>4018;5038;4838</TreatSpecificWarningsAsErrors>
       <ErrorReporting>Queue</ErrorReporting>
     </ClCompile>
   </ItemDefinitionGroup>
@@ -164,7 +164,7 @@
       <TreatWarningAsError>true</TreatWarningAsError>
       <DisableSpecificWarnings>5030;4005;</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <TreatSpecificWarningsAsErrors>4018;5038</TreatSpecificWarningsAsErrors>
+      <TreatSpecificWarningsAsErrors>4018;5038;4838</TreatSpecificWarningsAsErrors>
       <ErrorReporting>Queue</ErrorReporting>
     </ClCompile>
   </ItemDefinitionGroup>
@@ -182,7 +182,7 @@
       <TreatWarningAsError>true</TreatWarningAsError>
       <DisableSpecificWarnings>5030;4005;4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <TreatSpecificWarningsAsErrors>4018;5038</TreatSpecificWarningsAsErrors>
+      <TreatSpecificWarningsAsErrors>4018;5038;4838</TreatSpecificWarningsAsErrors>
       <ErrorReporting>Queue</ErrorReporting>
     </ClCompile>
   </ItemDefinitionGroup>
@@ -200,7 +200,7 @@
       <OmitFramePointers>false</OmitFramePointers>
       <TreatWarningAsError>true</TreatWarningAsError>
       <DisableSpecificWarnings>5030;4005;</DisableSpecificWarnings>
-      <TreatSpecificWarningsAsErrors>4018;5038</TreatSpecificWarningsAsErrors>
+      <TreatSpecificWarningsAsErrors>4018;5038;4838</TreatSpecificWarningsAsErrors>
       <ErrorReporting>Queue</ErrorReporting>
     </ClCompile>
   </ItemDefinitionGroup>
@@ -218,7 +218,7 @@
       <OmitFramePointers>false</OmitFramePointers>
       <TreatWarningAsError>true</TreatWarningAsError>
       <DisableSpecificWarnings>5030;4005;4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <TreatSpecificWarningsAsErrors>4018;5038</TreatSpecificWarningsAsErrors>
+      <TreatSpecificWarningsAsErrors>4018;5038;4838</TreatSpecificWarningsAsErrors>
       <ErrorReporting>Queue</ErrorReporting>
     </ClCompile>
   </ItemDefinitionGroup>

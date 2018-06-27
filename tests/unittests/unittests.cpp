@@ -609,14 +609,14 @@ TEST_F(SwiftShaderTest, ReadHalfFloat)
 	glClear(GL_COLOR_BUFFER_BIT);
 	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
 
-	int16_t pixel[3] = { 0x1234, 0x3F80, 0xAAAA };
+	uint16_t pixel[3] = { 0x1234, 0x3F80, 0xAAAA };
 	GLint x = 6;
 	GLint y = 3;
 	glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, 1, 1, GL_RGB, GL_HALF_FLOAT, pixel);
 
 	// This relies on GL_HALF_FLOAT being a valid type for read-back,
 	// which isn't guaranteed by the spec but is supported by SwiftShader.
-	int16_t read_color[3] = { 0, 0, 0 };
+	uint16_t read_color[3] = { 0, 0, 0 };
 	glReadPixels(x, y, 1, 1, GL_RGB, GL_HALF_FLOAT, &read_color);
 	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
 	EXPECT_EQ(read_color[0], pixel[0]);

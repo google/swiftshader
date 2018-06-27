@@ -95,7 +95,7 @@
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <AdditionalIncludeDirectories>$(SolutionDir)third_party\googletest\googletest\include\;$(SolutionDir)third_party\googletest\googletest\;$(SolutionDir)third_party\subzero\src\;$(SolutionDir)third_party\subzero\unittest\;$(SolutionDir)third_party\llvm-subzero\include\;$(SolutionDir)third_party\llvm-subzero\build\Windows\include;SubmoduleCheck;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>gtest/gtest.h</ForcedIncludeFiles>
-      <TreatSpecificWarningsAsErrors>5038</TreatSpecificWarningsAsErrors>
+      <TreatSpecificWarningsAsErrors>5038;4838</TreatSpecificWarningsAsErrors>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -112,7 +112,7 @@
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <AdditionalIncludeDirectories>$(SolutionDir)third_party\googletest\googletest\include\;$(SolutionDir)third_party\googletest\googletest\;$(SolutionDir)third_party\subzero\src\;$(SolutionDir)third_party\subzero\unittest\;$(SolutionDir)third_party\llvm-subzero\include\;$(SolutionDir)third_party\llvm-subzero\build\Windows\include;SubmoduleCheck;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>gtest/gtest.h</ForcedIncludeFiles>
-      <TreatSpecificWarningsAsErrors>5038</TreatSpecificWarningsAsErrors>
+      <TreatSpecificWarningsAsErrors>5038;4838</TreatSpecificWarningsAsErrors>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -131,7 +131,7 @@
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <AdditionalIncludeDirectories>$(SolutionDir)third_party\googletest\googletest\include\;$(SolutionDir)third_party\googletest\googletest\;$(SolutionDir)third_party\subzero\src\;$(SolutionDir)third_party\subzero\unittest\;$(SolutionDir)third_party\llvm-subzero\include\;$(SolutionDir)third_party\llvm-subzero\build\Windows\include;SubmoduleCheck;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>gtest/gtest.h</ForcedIncludeFiles>
-      <TreatSpecificWarningsAsErrors>5038</TreatSpecificWarningsAsErrors>
+      <TreatSpecificWarningsAsErrors>5038;4838</TreatSpecificWarningsAsErrors>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -152,7 +152,7 @@
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <AdditionalIncludeDirectories>$(SolutionDir)third_party\googletest\googletest\include\;$(SolutionDir)third_party\googletest\googletest\;$(SolutionDir)third_party\subzero\src\;$(SolutionDir)third_party\subzero\unittest\;$(SolutionDir)third_party\llvm-subzero\include\;$(SolutionDir)third_party\llvm-subzero\build\Windows\include;SubmoduleCheck;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>gtest/gtest.h</ForcedIncludeFiles>
-      <TreatSpecificWarningsAsErrors>5038</TreatSpecificWarningsAsErrors>
+      <TreatSpecificWarningsAsErrors>5038;4838</TreatSpecificWarningsAsErrors>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
