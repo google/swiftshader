@@ -1400,7 +1400,7 @@ namespace sw
 
 		if(!external.buffer)
 		{
-			if(internal.buffer && identicalFormats())
+			if(internal.buffer && identicalBuffers())
 			{
 				external.buffer = internal.buffer;
 			}
@@ -1452,7 +1452,7 @@ namespace sw
 
 		if(!internal.buffer)
 		{
-			if(external.buffer && identicalFormats())
+			if(external.buffer && identicalBuffers())
 			{
 				internal.buffer = external.buffer;
 			}
@@ -2311,7 +2311,7 @@ namespace sw
 					{
 						for(int i = 0; i < 4 && (x + i) < internal.width; i++)
 						{
-							dest[(x + i) + (y + j) * internal.width] = c[(unsigned int)(source->lut >> 2 * (i + j * 4)) % 4];
+							dest[(x + i) + (y + j) * internal.pitchP] = c[(unsigned int)(source->lut >> 2 * (i + j * 4)) % 4];
 						}
 					}
 
@@ -2361,7 +2361,7 @@ namespace sw
 							unsigned int a = (unsigned int)(source->a >> 4 * (i + j * 4)) & 0x0F;
 							unsigned int color = (c[(unsigned int)(source->lut >> 2 * (i + j * 4)) % 4] & 0x00FFFFFF) | ((a << 28) + (a << 24));
 
-							dest[(x + i) + (y + j) * internal.width] = color;
+							dest[(x + i) + (y + j) * internal.pitchP] = color;
 						}
 					}
 
@@ -2435,7 +2435,7 @@ namespace sw
 							unsigned int alpha = (unsigned int)a[(unsigned int)(source->alut >> (16 + 3 * (i + j * 4))) % 8] << 24;
 							unsigned int color = (c[(source->clut >> 2 * (i + j * 4)) % 4] & 0x00FFFFFF) | alpha;
 
-							dest[(x + i) + (y + j) * internal.width] = color;
+							dest[(x + i) + (y + j) * internal.pitchP] = color;
 						}
 					}
 
@@ -2491,7 +2491,7 @@ namespace sw
 					{
 						for(int i = 0; i < 4 && (x + i) < internal.width; i++)
 						{
-							dest[(x + i) + (y + j) * internal.width] = r[(unsigned int)(source->rlut >> (16 + 3 * (i + j * 4))) % 8];
+							dest[(x + i) + (y + j) * internal.pitchP] = r[(unsigned int)(source->rlut >> (16 + 3 * (i + j * 4))) % 8];
 						}
 					}
 
@@ -2574,7 +2574,7 @@ namespace sw
 							word r = X[(unsigned int)(source->xlut >> (16 + 3 * (i + j * 4))) % 8];
 							word g = Y[(unsigned int)(source->ylut >> (16 + 3 * (i + j * 4))) % 8];
 
-							dest[(x + i) + (y + j) * internal.width] = (g << 8) + r;
+							dest[(x + i) + (y + j) * internal.pitchP] = (g << 8) + r;
 						}
 					}
 
@@ -3729,7 +3729,7 @@ namespace sw
 		return resource;
 	}
 
-	bool Surface::identicalFormats() const
+	bool Surface::identicalBuffers() const
 	{
 		return external.format == internal.format &&
 		       external.width  == internal.width &&

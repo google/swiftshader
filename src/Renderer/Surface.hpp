@@ -486,7 +486,7 @@ namespace sw
 		static void *allocateBuffer(int width, int height, int depth, int border, int samples, Format format);
 		static void memfill4(void *buffer, int pattern, int bytes);
 
-		bool identicalFormats() const;
+		bool identicalBuffers() const;
 		Format selectInternalFormat(Format format) const;
 
 		void resolve();
