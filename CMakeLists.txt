@@ -110,6 +110,9 @@ macro(set_shared_library_export_map TARGET DIR)
         set_property(TARGET ${TARGET} APPEND_STRING PROPERTY LINK_FLAGS " -Wl,--version-script=${DIR}/${TARGET}.lds")
         set_property(TARGET ${TARGET} APPEND_STRING PROPERTY LINK_DEPENDS "${DIR}/${TARGET}.lds;")
 
+        # Don't allow symbols to be overridden by another module.
+        set_property(TARGET ${TARGET} APPEND_STRING PROPERTY COMPILE_FLAGS " -fvisibility=protected")
+
         # Both hash-style are needed, because we want both gold and
         # GNU ld to be able to read our libraries.
         set_property(TARGET ${TARGET} APPEND_STRING PROPERTY LINK_FLAGS " -Wl,--hash-style=both")
