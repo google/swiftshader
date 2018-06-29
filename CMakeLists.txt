@@ -101,23 +101,24 @@ endmacro()
 # Takes target library and a directory where the export map is
 # and add the linker options so that only the API symbols are
 # exported.
-macro(set_target_export_map TARGET DIR)
-    get_target_property(LINKFLAGS ${TARGET} LINK_FLAGS)
-    if(LINKFLAGS MATCHES "NOTFOUND")
-        set(LINKFLAGS "")
-    endif()
+macro(set_shared_library_export_map TARGET DIR)
     if(MSVC)
-        set_target_properties(${TARGET} PROPERTIES LINK_FLAGS "/DEF:\"${DIR}/${TARGET}.def\"")
+        set_property(TARGET ${TARGET} APPEND_STRING PROPERTY LINK_FLAGS " /DEF:\"${DIR}/${TARGET}.def\"")
     elseif(LINUX)
-        # Both hash-style are needed, because we want both gold and
-        # GNU ld to be able to read our libraries (maybe?).
         # The version script only exports the API functions and
-        # hides all the others. Gc sections is used in combination
-        # with each functions being in its section, to reduce the
-        # binary size.
-        set_target_properties(${TARGET} PROPERTIES LINK_FLAGS "${LINKFLAGS} -Wl,--hash-style=both,--version-script=${DIR}/${TARGET}.lds,--gc-sections")
-        set_target_properties(${TARGET} PROPERTIES LINK_DEPENDS "${DIR}/${TARGET}.lds")
+        # hides all the others.
+        set_property(TARGET ${TARGET} APPEND_STRING PROPERTY LINK_FLAGS " -Wl,--version-script=${DIR}/${TARGET}.lds")
+        set_property(TARGET ${TARGET} APPEND_STRING PROPERTY LINK_DEPENDS "${DIR}/${TARGET}.lds;")
 
+        # Both hash-style are needed, because we want both gold and
+        # GNU ld to be able to read our libraries.
+        set_property(TARGET ${TARGET} APPEND_STRING PROPERTY LINK_FLAGS " -Wl,--hash-style=both")
+
+        # Gc sections is used in combination with each functions being
+        # in its own section, to reduce the binary size.
+        set_property(TARGET ${TARGET} APPEND_STRING PROPERTY LINK_FLAGS " -Wl,--gc-sections")
+
+        # Don't allow undefined symbols, unless it's a Sanitizer build.
         if(NOT MSAN AND NOT ASAN AND NOT TSAN AND NOT UBSAN)
             set_property(TARGET ${TARGET} APPEND_STRING PROPERTY LINK_FLAGS " -Wl,--no-undefined")
         endif()
@@ -170,19 +171,20 @@ else()
     # LLVM headers requires these flags to be set
     set_cpp_flag("-D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS")
 
-    if(ARCH EQUAL "x86")
+    if(ARCH STREQUAL "x86")
         set_cpp_flag("-m32")
         set_cpp_flag("-msse2")
         set_cpp_flag("-mfpmath=sse")
         set_cpp_flag("-march=pentium4")
         set_cpp_flag("-mtune=generic")
     endif()
-    if(ARCH EQUAL "x86_64")
+    if(ARCH STREQUAL "x86_64")
         set_cpp_flag("-m64")
         set_cpp_flag("-fPIC")
         set_cpp_flag("-march=x86-64")
         set_cpp_flag("-mtune=generic")
     endif()
+
     if(LINUX)
         set_cpp_flag("-DUSE_X11=1")
     endif()
@@ -929,7 +931,7 @@ if(BUILD_EGL)
         COMPILE_DEFINITIONS "EGL_EGLEXT_PROTOTYPES; EGLAPI=; NO_SANITIZE_FUNCTION=;"
         PREFIX ""
     )
-    set_target_export_map(libEGL ${SOURCE_DIR}/OpenGL/libEGL)
+    set_shared_library_export_map(libEGL ${SOURCE_DIR}/OpenGL/libEGL)
     target_link_libraries(libEGL ${OS_LIBS})
     add_custom_command(
         TARGET libEGL
@@ -949,7 +951,7 @@ if(BUILD_GL32)
         COMPILE_DEFINITIONS "GL_GLEXT_PROTOTYPES"
         PREFIX ""
     )
-    set_target_export_map(libGL ${SOURCE_DIR}/OpenGL/libGL)
+    set_shared_library_export_map(libGL ${SOURCE_DIR}/OpenGL/libGL)
     target_link_libraries(libGL SwiftShader ${Reactor} GLCompiler ${OS_LIBS})
 endif()
 
@@ -961,7 +963,7 @@ if(BUILD_GLESv2)
         COMPILE_DEFINITIONS "GL_GLEXT_PROTOTYPES; GL_API=; GL_APICALL=; GLAPI=; NO_SANITIZE_FUNCTION=;"
         PREFIX ""
     )
-    set_target_export_map(libGLESv2 ${SOURCE_DIR}/OpenGL/libGLESv2)
+    set_shared_library_export_map(libGLESv2 ${SOURCE_DIR}/OpenGL/libGLESv2)
     target_link_libraries(libGLESv2 SwiftShader ${Reactor} GLCompiler ${OS_LIBS})
     add_custom_command(
         TARGET libGLESv2
@@ -981,7 +983,7 @@ if(BUILD_GLES_CM)
         COMPILE_DEFINITIONS "GL_GLEXT_PROTOTYPES; EGLAPI=; GL_API=; GL_APICALL=; GLAPI=;"
         PREFIX ""
     )
-    set_target_export_map(libGLES_CM ${SOURCE_DIR}/OpenGL/libGLES_CM)
+    set_shared_library_export_map(libGLES_CM ${SOURCE_DIR}/OpenGL/libGLES_CM)
     target_link_libraries(libGLES_CM SwiftShader ${Reactor} GLCompiler ${OS_LIBS})
     add_custom_command(
         TARGET libGLES_CM
