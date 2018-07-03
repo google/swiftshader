@@ -24,7 +24,7 @@ namespace sw
 
 namespace egl
 {
-class Texture : public gl::NamedObject
+class [[clang::lto_visibility_public]] Texture : public gl::NamedObject
 {
 public:
 	Texture(GLuint name) : NamedObject(name) {}
