@@ -48,9 +48,15 @@ config("swiftshader_libGLESv2_private_config") {
     defines += [
       "__STDC_CONSTANT_MACROS",
       "__STDC_LIMIT_MACROS",
-      "GL_APICALL=__attribute__((visibility(\"default\"))) __attribute__((no_sanitize(\"function\")))",
       "GLAPI=GL_APICALL",
     ]
+
+    if (is_mac) {
+      cflags += [ "-fvisibility=protected" ]
+      defines += [ "GL_APICALL=__attribute__((no_sanitize(\"function\")))" ]
+    } else {
+      defines += [ "GL_APICALL=__attribute__((visibility(\"protected\"))) __attribute__((no_sanitize(\"function\")))" ]
+    }
   }
 }
 

@@ -33,7 +33,12 @@ config("swiftshader_libEGL_private_config") {
       cflags += [ "-Wno-unused-but-set-variable" ]
     }
 
-    defines += [ "EGLAPI=__attribute__((visibility(\"default\"))) __attribute__((no_sanitize(\"function\")))" ]
+    if (is_mac) {
+      cflags += [ "-fvisibility=protected" ]
+      defines += [ "EGLAPI=__attribute__((no_sanitize(\"function\")))" ]
+    } else {
+      defines += [ "EGLAPI=__attribute__((visibility(\"protected\"))) __attribute__((no_sanitize(\"function\")))" ]
+    }
   }
 }
 
