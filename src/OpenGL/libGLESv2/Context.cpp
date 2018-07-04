@@ -2320,12 +2320,6 @@ template<typename T> bool Context::getIntegerv(GLenum pname, T *params) const
 	case GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT:
 		*params = UNIFORM_BUFFER_OFFSET_ALIGNMENT;
 		return true;
-	case GL_UNIFORM_BUFFER_SIZE:
-		*params = static_cast<T>(mState.genericUniformBuffer->size());
-		return true;
-	case GL_UNIFORM_BUFFER_START:
-		*params = static_cast<T>(mState.genericUniformBuffer->offset());
-		return true;
 	case GL_UNPACK_IMAGE_HEIGHT:
 		*params = mState.unpackParameters.imageHeight;
 		return true;
@@ -2413,7 +2407,7 @@ template<typename T> bool Context::getTransformFeedbackiv(GLuint index, GLenum p
 		if(transformFeedback->getBuffer(index))
 		{
 			*param = transformFeedback->getOffset(index);
-		break;
+			break;
 		}
 		else return false;
 	default:
@@ -2433,13 +2427,14 @@ template<typename T> bool Context::getUniformBufferiv(GLuint index, GLenum pname
 	case GL_UNIFORM_BUFFER_BINDING:
 	case GL_UNIFORM_BUFFER_SIZE:
 	case GL_UNIFORM_BUFFER_START:
-		if(index >= MAX_UNIFORM_BUFFER_BINDINGS)
-		{
-			return error(GL_INVALID_VALUE, true);
-		}
 		break;
 	default:
-		break;
+		return false;
+	}
+
+	if(index >= MAX_UNIFORM_BUFFER_BINDINGS)
+	{
+		return error(GL_INVALID_VALUE, true);
 	}
 
 	const BufferBinding& uniformBuffer = mState.uniformBuffers[index];
@@ -2609,8 +2604,6 @@ bool Context::getQueryParameterInfo(GLenum pname, GLenum *type, unsigned int *nu
 	case GL_TEXTURE_BINDING_2D_ARRAY:
 	case GL_UNIFORM_BUFFER_BINDING:
 	case GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT:
-	case GL_UNIFORM_BUFFER_SIZE:
-	case GL_UNIFORM_BUFFER_START:
 	case GL_UNPACK_IMAGE_HEIGHT:
 	case GL_UNPACK_ROW_LENGTH:
 	case GL_UNPACK_SKIP_IMAGES:
