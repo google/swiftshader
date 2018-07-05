@@ -38,6 +38,8 @@ namespace sw
 		void unlock() override;
 
 	private:
+		bool validateWindow();
+
 		bool ownX11;
 		Display *x_display;
 		Window x_window;
@@ -47,8 +49,6 @@ namespace sw
 
 		bool mit_shm;
 		XShmSegmentInfo shminfo;
-
-		char *buffer;
 	};
 }
 

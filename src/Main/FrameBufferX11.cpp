@@ -21,6 +21,7 @@
 #include <sys/shm.h>
 #include <string.h>
 #include <assert.h>
+#include <stdlib.h>
 
 namespace sw
 {
@@ -46,7 +47,10 @@ namespace sw
 		if(!x_display)
 		{
 			x_display = libX11->XOpenDisplay(0);
+			assert(x_display);
 		}
+
+		validateWindow();
 
 		int screen = DefaultScreen(x_display);
 		x_gc = libX11->XDefaultGC(x_display, screen);
@@ -63,7 +67,7 @@ namespace sw
 			x_image = libX11->XShmCreateImage(x_display, visual, depth, ZPixmap, 0, &shminfo, width, height);
 
 			shminfo.shmid = shmget(IPC_PRIVATE, x_image->bytes_per_line * x_image->height, IPC_CREAT | SHM_R | SHM_W);
-			shminfo.shmaddr = x_image->data = buffer = (char*)shmat(shminfo.shmid, 0, 0);
+			shminfo.shmaddr = x_image->data = (char*)shmat(shminfo.shmid, 0, 0);
 			shminfo.readOnly = False;
 
 			PreviousXErrorHandler = libX11->XSetErrorHandler(XShmErrorHandler);
@@ -87,9 +91,16 @@ namespace sw
 		{
 			int bytes_per_line = width * 4;
 			int bytes_per_image = height * bytes_per_line;
-			buffer = new char[bytes_per_image];
+			char *buffer = (char*)malloc(bytes_per_image);
 			memset(buffer, 0, bytes_per_image);
+
 			x_image = libX11->XCreateImage(x_display, visual, depth, ZPixmap, 0, buffer, width, height, 32, bytes_per_line);
+			assert(x_image);
+
+			if(!x_image)
+			{
+				free(buffer);
+			}
 		}
 	}
 
@@ -97,11 +108,7 @@ namespace sw
 	{
 		if(!mit_shm)
 		{
-			x_image->data = 0;
 			XDestroyImage(x_image);
-
-			delete[] buffer;
-			buffer = 0;
 		}
 		else
 		{
@@ -111,6 +118,9 @@ namespace sw
 			shmctl(shminfo.shmid, IPC_RMID, 0);
 		}
 
+		// Last chance to check the window before we close the display.
+		validateWindow();
+
 		if(ownX11)
 		{
 			libX11->XCloseDisplay(x_display);
@@ -119,8 +129,11 @@ namespace sw
 
 	void *FrameBufferX11::lock()
 	{
-		stride = x_image->bytes_per_line;
-		framebuffer = buffer;
+		if(x_image)
+		{
+			stride = x_image->bytes_per_line;
+			framebuffer = x_image->data;
+		}
 
 		return framebuffer;
 	}
@@ -133,6 +146,8 @@ namespace sw
 	void FrameBufferX11::blit(sw::Surface *source, const Rect *sourceRect, const Rect *destRect)
 	{
 		copy(source);
+
+		assert(validateWindow());
 
 		if(!mit_shm)
 		{
@@ -174,6 +189,21 @@ namespace sw
 			sprintf(string, "FPS: %.2f (max: %.2f)", FPS, maxFPS);
 			libX11->XDrawString(x_display, x_window, x_gc, 50, 50, string, strlen(string));
 		}
+	}
+
+	bool FrameBufferX11::validateWindow()
+	{
+		// Since we don't own the window, it is the external client code's responsibility
+		// to not destroy it until we're done with it. We help out by validating it.
+		XWindowAttributes windowAttributes;
+		Status status = libX11->XGetWindowAttributes(x_display, x_window, &windowAttributes);
+
+		if(status != True)
+		{
+			abort();   // Fail hard if we can't obtain the window's attributes.
+		}
+
+		return true;
 	}
 }
 
