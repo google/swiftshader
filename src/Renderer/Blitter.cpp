@@ -141,10 +141,13 @@ namespace sw
 			return;
 		}
 
-		if(blitReactor(source, sourceRect, dest, destRect, options))
-		{
-			return;
-		}
+		// The memory sanitizer doesn't work with JIT compiled code
+		#if !defined(MEMORY_SANITIZER)
+			if(blitReactor(source, sourceRect, dest, destRect, options))
+			{
+				return;
+			}
+		#endif
 
 		SliceRectF sRect = sourceRect;
 		SliceRect dRect = destRect;
