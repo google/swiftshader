@@ -930,6 +930,13 @@ void CopyTexImage2D(GLenum target, GLint level, GLenum internalformat, GLint x, 
 		// Determine the sized internal format.
 		if(gl::IsUnsizedInternalFormat(internalformat))
 		{
+			if(colorbufferFormat == GL_RGB10_A2)
+			{
+				// Not supported with unsized internalformat.
+				// https://www.khronos.org/members/login/bugzilla/show_bug.cgi?id=9807#c56
+				return error(GL_INVALID_OPERATION);
+			}
+
 			if(gl::GetBaseInternalFormat(colorbufferFormat) == internalformat)
 			{
 				internalformat = colorbufferFormat;
@@ -959,6 +966,7 @@ void CopyTexImage2D(GLenum target, GLint level, GLenum internalformat, GLint x, 
 			}
 			else
 			{
+				printf("internalformat = %x, colorbufferFormat = %X\n", internalformat, colorbufferFormat);
 				UNIMPLEMENTED();
 
 				return error(GL_INVALID_OPERATION);
