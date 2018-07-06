@@ -1,0 +1,84 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "05bce72d_f5d8154b",
+        "filename": "src/Main/FrameBufferX11.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2018-07-06T10:36:56Z",
+      "side": 1,
+      "message": "nit: x_image is asserted on then checked for non-null. One of these two should be deleted.",
+      "range": {
+        "startLine": 98,
+        "startChar": 0,
+        "endLine": 103,
+        "endChar": 4
+      },
+      "revId": "e2c16e5cea2f94f45580fe2b7e56f0d6434a33c9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "33bc70e2_7e6b1d68",
+        "filename": "src/Main/FrameBufferX11.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2018-07-06T10:36:56Z",
+      "side": 1,
+      "message": "This is what\u0027s referenced in the commit message right?",
+      "revId": "e2c16e5cea2f94f45580fe2b7e56f0d6434a33c9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "733a4df5_68a81320",
+        "filename": "src/Main/FrameBufferX11.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2018-07-06T10:36:56Z",
+      "side": 1,
+      "message": "nit: no need for assert since validateWindow aborts on its own.",
+      "revId": "e2c16e5cea2f94f45580fe2b7e56f0d6434a33c9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "47d8cb58_05295bf1",
+        "filename": "src/Main/FrameBufferX11.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2018-07-06T10:36:56Z",
+      "side": 1,
+      "message": "checkWindowExists?",
+      "range": {
+        "startLine": 194,
+        "startChar": 22,
+        "endLine": 194,
+        "endChar": 36
+      },
+      "revId": "e2c16e5cea2f94f45580fe2b7e56f0d6434a33c9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
