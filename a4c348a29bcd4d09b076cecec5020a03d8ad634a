@@ -22,6 +22,30 @@
       "revId": "a4c348a29bcd4d09b076cecec5020a03d8ad634a",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "47e76237_d6cf4386",
+        "filename": "src/Renderer/Blitter.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2018-07-06T11:08:37Z",
+      "side": 1,
+      "message": "MEMORY_SANITIZER is defined in Chromium\u0027s build files",
+      "parentUuid": "6ad8a730_4c6b13eb",
+      "range": {
+        "startLine": 144,
+        "startChar": 5,
+        "endLine": 144,
+        "endChar": 15
+      },
+      "revId": "a4c348a29bcd4d09b076cecec5020a03d8ad634a",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
