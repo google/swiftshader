@@ -26,6 +26,11 @@
 
 #include "llvm/Support/FileSystem.h"
 #include "llvm/Support/raw_os_ostream.h"
+#include "llvm/Support/Compiler.h"
+
+#if __has_feature(memory_sanitizer)
+#include <sanitizer/msan_interface.h>
+#endif
 
 #if defined(_WIN32)
 #ifndef WIN32_LEAN_AND_MEAN
@@ -894,6 +899,17 @@ namespace sw
 
 	Value *Nucleus::createStore(Value *value, Value *ptr, Type *type, bool isVolatile, unsigned int align)
 	{
+		#if __has_feature(memory_sanitizer)
+			// Mark all (non-stack) memory writes as initialized by calling __msan_unpoison
+			if(align != 0)
+			{
+				auto call = Ice::InstCall::create(::function, 2, nullptr, ::context->getConstantInt64(reinterpret_cast<intptr_t>(__msan_unpoison)), false);
+				call->addArg(ptr);
+				call->addArg(::context->getConstantInt64(typeSize(type)));
+				::basicBlock->appendInst(call);
+			}
+		#endif
+
 		int valueType = (int)reinterpret_cast<intptr_t>(type);
 
 		if((valueType & EmulatedBits) && (align != 0))   // Narrow vector not stored on stack.

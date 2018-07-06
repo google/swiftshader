@@ -234,9 +234,9 @@ void deallocateExecutable(void *memory, size_t bytes)
 
 void clear(uint16_t *memory, uint16_t element, size_t count)
 {
-	#if defined(_MSC_VER) && defined(__x86__)
+	#if defined(_MSC_VER) && defined(__x86__) && !defined(MEMORY_SANITIZER)
 		__stosw(memory, element, count);
-	#elif defined(__GNUC__) && defined(__x86__)
+	#elif defined(__GNUC__) && defined(__x86__) && !defined(MEMORY_SANITIZER)
 		__asm__("rep stosw" : : "D"(memory), "a"(element), "c"(count));
 	#else
 		for(size_t i = 0; i < count; i++)
@@ -248,9 +248,9 @@ void clear(uint16_t *memory, uint16_t element, size_t count)
 
 void clear(uint32_t *memory, uint32_t element, size_t count)
 {
-	#if defined(_MSC_VER) && defined(__x86__)
+	#if defined(_MSC_VER) && defined(__x86__) && !defined(MEMORY_SANITIZER)
 		__stosd((unsigned long*)memory, element, count);
-	#elif defined(__GNUC__) && defined(__x86__)
+	#elif defined(__GNUC__) && defined(__x86__) && !defined(MEMORY_SANITIZER)
 		__asm__("rep stosl" : : "D"(memory), "a"(element), "c"(count));
 	#else
 		for(size_t i = 0; i < count; i++)
