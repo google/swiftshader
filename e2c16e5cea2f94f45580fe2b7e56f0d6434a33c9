@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "bd61ae54_00e23113",
+        "filename": "src/Main/FrameBufferX11.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-07-06T13:41:12Z",
+      "side": 1,
+      "message": "The assert is for alerting us in a debug build. The free is for preventing leaks in release builds.",
+      "parentUuid": "05bce72d_f5d8154b",
+      "range": {
+        "startLine": 98,
+        "startChar": 0,
+        "endLine": 103,
+        "endChar": 4
+      },
+      "revId": "e2c16e5cea2f94f45580fe2b7e56f0d6434a33c9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "33bc70e2_7e6b1d68",
         "filename": "src/Main/FrameBufferX11.cpp",
         "patchSetId": 2
@@ -42,6 +66,24 @@
     },
     {
       "key": {
+        "uuid": "3f58c271_db23ef95",
+        "filename": "src/Main/FrameBufferX11.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-07-06T13:41:12Z",
+      "side": 1,
+      "message": "Yes, this and setting x_image-\u003edata to null at line 100. XDestroyImage frees the data itself. Just had to use malloc instead of new.",
+      "parentUuid": "33bc70e2_7e6b1d68",
+      "revId": "e2c16e5cea2f94f45580fe2b7e56f0d6434a33c9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "733a4df5_68a81320",
         "filename": "src/Main/FrameBufferX11.cpp",
         "patchSetId": 2
@@ -56,6 +98,24 @@
       "revId": "e2c16e5cea2f94f45580fe2b7e56f0d6434a33c9",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9fe767b2_fee0b36a",
+        "filename": "src/Main/FrameBufferX11.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-07-06T13:41:12Z",
+      "side": 1,
+      "message": "The intention is that this doesn\u0027t get executed in release builds. It\u0027s enough to cause an abort in the destructor if the window became invalid, and then the developer can use a debug build to be notified earlier.",
+      "parentUuid": "733a4df5_68a81320",
+      "revId": "e2c16e5cea2f94f45580fe2b7e56f0d6434a33c9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     },
     {
       "key": {
@@ -79,6 +139,30 @@
       "revId": "e2c16e5cea2f94f45580fe2b7e56f0d6434a33c9",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "985081c0_63043803",
+        "filename": "src/Main/FrameBufferX11.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-07-06T13:41:12Z",
+      "side": 1,
+      "message": "That could be misinterpreted as whether the window is visible.",
+      "parentUuid": "47d8cb58_05295bf1",
+      "range": {
+        "startLine": 194,
+        "startChar": 22,
+        "endLine": 194,
+        "endChar": 36
+      },
+      "revId": "e2c16e5cea2f94f45580fe2b7e56f0d6434a33c9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
