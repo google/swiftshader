@@ -7997,9 +7997,8 @@ Operand *TargetX86Base<TraitsType>::legalize(Operand *From, LegalMask Allowed,
     // - Mem is not allowed and Var isn't guaranteed a physical register, or
     // - RegNum is required and Var->getRegNum() doesn't match, or
     // - Var is a rematerializable variable and rematerializable pass-through is
-    //   not allowed (in which case we need an lea instruction).
+    //   not allowed (in which case we need a lea instruction).
     if (MustRematerialize) {
-      assert(Ty == IceType_i32);
       Variable *NewVar = makeReg(Ty, RegNum);
       // Since Var is rematerializable, the offset will be added when the lea is
       // emitted.
