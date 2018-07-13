@@ -50,12 +50,11 @@ namespace sw
 			assert(x_display);
 		}
 
-		validateWindow();
-
 		int screen = DefaultScreen(x_display);
 		x_gc = libX11->XDefaultGC(x_display, screen);
 		int depth = libX11->XDefaultDepth(x_display, screen);
 
+		XVisualInfo x_visual;
 		Status status = libX11->XMatchVisualInfo(x_display, screen, 32, TrueColor, &x_visual);
 		bool match = (status != 0 && x_visual.blue_mask == 0xFF);   // Prefer X8R8G8B8
 		Visual *visual = match ? x_visual.visual : libX11->XDefaultVisual(x_display, screen);
@@ -118,9 +117,6 @@ namespace sw
 			shmctl(shminfo.shmid, IPC_RMID, 0);
 		}
 
-		// Last chance to check the window before we close the display.
-		validateWindow();
-
 		if(ownX11)
 		{
 			libX11->XCloseDisplay(x_display);
@@ -146,8 +142,6 @@ namespace sw
 	void FrameBufferX11::blit(sw::Surface *source, const Rect *sourceRect, const Rect *destRect)
 	{
 		copy(source);
-
-		assert(validateWindow());
 
 		if(!mit_shm)
 		{
@@ -189,21 +183,6 @@ namespace sw
 			sprintf(string, "FPS: %.2f (max: %.2f)", FPS, maxFPS);
 			libX11->XDrawString(x_display, x_window, x_gc, 50, 50, string, strlen(string));
 		}
-	}
-
-	bool FrameBufferX11::validateWindow()
-	{
-		// Since we don't own the window, it is the external client code's responsibility
-		// to not destroy it until we're done with it. We help out by validating it.
-		XWindowAttributes windowAttributes;
-		Status status = libX11->XGetWindowAttributes(x_display, x_window, &windowAttributes);
-
-		if(status != True)
-		{
-			abort();   // Fail hard if we can't obtain the window's attributes.
-		}
-
-		return true;
 	}
 }
 
