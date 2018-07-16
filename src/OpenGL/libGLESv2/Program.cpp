@@ -71,14 +71,6 @@ namespace es2
 			data = new unsigned char[bytes];
 			memset(data, 0, bytes);
 		}
-		else
-		{
-			data = nullptr;
-		}
-		dirty = true;
-
-		psRegisterIndex = -1;
-		vsRegisterIndex = -1;
 	}
 
 	Uniform::~Uniform()
@@ -368,24 +360,20 @@ namespace es2
 		return TEXTURE_2D;
 	}
 
-	bool Program::isUniformDefined(const std::string &name) const
+	Uniform *Program::getUniform(const std::string &name) const
 	{
 		unsigned int subscript = GL_INVALID_INDEX;
 		std::string baseName = es2::ParseUniformName(name, &subscript);
 
-		size_t numUniforms = uniformIndex.size();
-		for(size_t location = 0; location < numUniforms; location++)
+		for(size_t index = 0; index < uniforms.size(); index++)
 		{
-			const unsigned int index = uniformIndex[location].index;
-			if((uniformIndex[location].name == baseName) && ((index == GL_INVALID_INDEX) ||
-			   ((uniforms[index]->isArray() && uniformIndex[location].element == subscript) ||
-			    (subscript == GL_INVALID_INDEX))))
+			if(uniforms[index]->name == baseName)
 			{
-				return true;
+				return uniforms[index];
 			}
 		}
 
-		return false;
+		return nullptr;
 	}
 
 	GLint Program::getUniformLocation(const std::string &name) const
@@ -393,15 +381,26 @@ namespace es2
 		unsigned int subscript = GL_INVALID_INDEX;
 		std::string baseName = es2::ParseUniformName(name, &subscript);
 
-		size_t numUniforms = uniformIndex.size();
-		for(size_t location = 0; location < numUniforms; location++)
+		for(size_t location = 0; location < uniformIndex.size(); location++)
 		{
-			const unsigned int index = uniformIndex[location].index;
-			if((index != GL_INVALID_INDEX) && (uniformIndex[location].name == baseName) &&
-			   ((uniforms[index]->isArray() && uniformIndex[location].element == subscript) ||
-			    (subscript == GL_INVALID_INDEX)))
+			if(uniformIndex[location].name == baseName)
 			{
-				return (GLint)location;
+				const unsigned int index = uniformIndex[location].index;
+
+				if(index != GL_INVALID_INDEX)
+				{
+					if(subscript == GL_INVALID_INDEX)
+					{
+						return (GLint)location;
+					}
+					else if(uniforms[index]->isArray())
+					{
+						if(uniformIndex[location].element == subscript)
+						{
+							return (GLint)location;
+						}
+					}
+				}
 			}
 		}
 
@@ -1717,6 +1716,7 @@ namespace es2
 				blockIndex = getUniformBlockIndex(activeUniformBlocks[uniform.blockId].name);
 				ASSERT(blockIndex != GL_INVALID_INDEX);
 			}
+
 			if(!defineUniform(shader->getType(), uniform, Uniform::BlockInfo(uniform, blockIndex)))
 			{
 				return false;
@@ -1737,7 +1737,7 @@ namespace es2
 	bool Program::defineUniform(GLenum shader, const glsl::Uniform &glslUniform, const Uniform::BlockInfo& blockInfo)
 	{
 		if(IsSamplerUniform(glslUniform.type))
-	    {
+		{
 			int index = glslUniform.registerIndex;
 
 			do
@@ -1819,15 +1819,24 @@ namespace es2
 				index++;
 			}
 			while(index < glslUniform.registerIndex + static_cast<int>(glslUniform.arraySize));
-	    }
+		}
 
-		Uniform *uniform = 0;
-		GLint location = getUniformLocation(glslUniform.name);
+		Uniform *uniform = getUniform(glslUniform.name);
 
-		if(location >= 0)   // Previously defined, types must match
+		if(!uniform)
 		{
-			uniform = uniforms[uniformIndex[location].index];
+			uniform = new Uniform(glslUniform, blockInfo);
+			uniforms.push_back(uniform);
 
+			unsigned int index = (blockInfo.index == -1) ? static_cast<unsigned int>(uniforms.size() - 1) : GL_INVALID_INDEX;
+
+			for(int i = 0; i < uniform->size(); i++)
+			{
+				uniformIndex.push_back(UniformLocation(glslUniform.name, i, index));
+			}
+		}
+		else   // Previously defined, types must match
+		{
 			if(uniform->type != glslUniform.type)
 			{
 				appendToInfoLog("Types for uniform %s do not match between the vertex and fragment shader", uniform->name.c_str());
@@ -1845,15 +1854,6 @@ namespace es2
 				return false;
 			}
 		}
-		else
-		{
-			uniform = new Uniform(glslUniform, blockInfo);
-		}
-
-		if(!uniform)
-		{
-			return false;
-		}
 
 		if(shader == GL_VERTEX_SHADER)
 		{
@@ -1864,17 +1864,6 @@ namespace es2
 			uniform->psRegisterIndex = glslUniform.registerIndex;
 		}
 		else UNREACHABLE(shader);
-
-		if(!isUniformDefined(glslUniform.name))
-		{
-			uniforms.push_back(uniform);
-			unsigned int index = (blockInfo.index == -1) ? static_cast<unsigned int>(uniforms.size() - 1) : GL_INVALID_INDEX;
-
-			for(int i = 0; i < uniform->size(); i++)
-			{
-				uniformIndex.push_back(UniformLocation(glslUniform.name, i, index));
-			}
-		}
 
 		if(shader == GL_VERTEX_SHADER)
 		{

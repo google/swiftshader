@@ -64,11 +64,11 @@ namespace es2
 		const BlockInfo blockInfo;
 		std::vector<glsl::ShaderVariable> fields;
 
-		unsigned char *data;
-		bool dirty;
+		unsigned char *data = nullptr;
+		bool dirty = true;
 
-		short psRegisterIndex;
-		short vsRegisterIndex;
+		short psRegisterIndex = -1;
+		short vsRegisterIndex = -1;
 	};
 
 	// Helper struct representing a single shader uniform block
@@ -145,7 +145,6 @@ namespace es2
 		GLuint getUniformBlockBinding(GLuint uniformBlockIndex) const;
 		void getActiveUniformBlockiv(GLuint uniformBlockIndex, GLenum pname, GLint *params) const;
 
-		bool isUniformDefined(const std::string &name) const;
 		GLint getUniformLocation(const std::string &name) const;
 		bool setUniform1fv(GLint location, GLsizei count, const GLfloat *v);
 		bool setUniform2fv(GLint location, GLsizei count, const GLfloat *v);
@@ -231,6 +230,7 @@ namespace es2
 		bool linkAttributes();
 		int getAttributeBinding(const glsl::Attribute &attribute);
 
+		Uniform *getUniform(const std::string &name) const;
 		bool linkUniforms(const Shader *shader);
 		bool linkUniformBlocks(const Shader *vertexShader, const Shader *fragmentShader);
 		bool areMatchingUniformBlocks(const glsl::UniformBlock &block1, const glsl::UniformBlock &block2, const Shader *shader1, const Shader *shader2);
@@ -275,7 +275,6 @@ namespace es2
 
 		static unsigned int issueSerial();
 
-	private:
 		FragmentShader *fragmentShader;
 		VertexShader *vertexShader;
 
