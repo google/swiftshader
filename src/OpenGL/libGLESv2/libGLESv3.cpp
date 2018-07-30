@@ -2629,6 +2629,11 @@ GL_APICALL void GL_APIENTRY glGetActiveUniformBlockiv(GLuint program, GLuint uni
 			return error(GL_INVALID_OPERATION);
 		}
 
+		if(uniformBlockIndex >= programObject->getActiveUniformBlockCount())
+		{
+			return error(GL_INVALID_VALUE);
+		}
+
 		switch(pname)
 		{
 		case GL_UNIFORM_BLOCK_BINDING:
@@ -2669,6 +2674,11 @@ GL_APICALL void GL_APIENTRY glGetActiveUniformBlockName(GLuint program, GLuint u
 			return error(GL_INVALID_OPERATION);
 		}
 
+		if(uniformBlockIndex >= programObject->getActiveUniformBlockCount())
+		{
+			return error(GL_INVALID_VALUE);
+		}
+
 		programObject->getActiveUniformBlockName(uniformBlockIndex, bufSize, length, uniformBlockName);
 	}
 }
@@ -2690,6 +2700,11 @@ GL_APICALL void GL_APIENTRY glUniformBlockBinding(GLuint program, GLuint uniform
 		es2::Program *programObject = context->getProgram(program);
 
 		if(!programObject)
+		{
+			return error(GL_INVALID_VALUE);
+		}
+
+		if(uniformBlockIndex >= programObject->getActiveUniformBlockCount())
 		{
 			return error(GL_INVALID_VALUE);
 		}

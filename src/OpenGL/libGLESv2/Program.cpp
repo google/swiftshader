@@ -51,14 +51,6 @@ namespace es2
 			matrixStride = uniform.blockInfo.matrixStride;
 			isRowMajorMatrix = uniform.blockInfo.isRowMajorMatrix;
 		}
-		else
-		{
-			index = -1;
-			offset = -1;
-			arrayStride = -1;
-			matrixStride = -1;
-			isRowMajorMatrix = false;
-		}
 	}
 
 	Uniform::Uniform(const glsl::Uniform &uniform, const BlockInfo &blockInfo)
@@ -492,20 +484,15 @@ namespace es2
 
 	void Program::bindUniformBlock(GLuint uniformBlockIndex, GLuint uniformBlockBinding)
 	{
-		if(uniformBlockIndex >= getActiveUniformBlockCount())
-		{
-			return error(GL_INVALID_VALUE);
-		}
+		ASSERT(uniformBlockIndex < getActiveUniformBlockCount());
 
 		uniformBlockBindings[uniformBlockIndex] = uniformBlockBinding;
 	}
 
 	GLuint Program::getUniformBlockBinding(GLuint uniformBlockIndex) const
 	{
-		if(uniformBlockIndex >= getActiveUniformBlockCount())
-		{
-			return error(GL_INVALID_VALUE, GL_INVALID_INDEX);
-		}
+		ASSERT(uniformBlockIndex < getActiveUniformBlockCount());
+
 		return uniformBlockBindings[uniformBlockIndex];
 	}
 
@@ -1713,8 +1700,24 @@ namespace es2
 			{
 				const glsl::ActiveUniformBlocks &activeUniformBlocks = shader->activeUniformBlocks;
 				ASSERT(static_cast<size_t>(uniform.blockId) < activeUniformBlocks.size());
-				blockIndex = getUniformBlockIndex(activeUniformBlocks[uniform.blockId].name);
+				const std::string &uniformBlockName = activeUniformBlocks[uniform.blockId].name;
+				blockIndex = getUniformBlockIndex(uniformBlockName);
 				ASSERT(blockIndex != GL_INVALID_INDEX);
+
+				if(activeUniformBlocks[uniform.blockId].dataSize > MAX_UNIFORM_BLOCK_SIZE)
+				{
+					if(shader->getType() == GL_VERTEX_SHADER)
+					{
+						appendToInfoLog("Vertex shader active uniform block (%s) exceeds GL_MAX_UNIFORM_BLOCK_SIZE (%d)", uniformBlockName.c_str(), MAX_UNIFORM_BLOCK_SIZE);
+						return false;
+					}
+					else if(shader->getType() == GL_FRAGMENT_SHADER)
+					{
+						appendToInfoLog("Fragment shader active uniform block (%s) exceeds GL_MAX_UNIFORM_BLOCK_SIZE (%d)", uniformBlockName.c_str(), MAX_UNIFORM_BLOCK_SIZE);
+						return false;
+					}
+					else UNREACHABLE(shader->getType());
+				}
 			}
 
 			if(!defineUniform(shader->getType(), uniform, Uniform::BlockInfo(uniform, blockIndex)))
@@ -1865,23 +1868,26 @@ namespace es2
 		}
 		else UNREACHABLE(shader);
 
-		if(shader == GL_VERTEX_SHADER)
+		if(uniform->blockInfo.index < 0)
 		{
-			if(glslUniform.registerIndex + uniform->registerCount() > MAX_VERTEX_UNIFORM_VECTORS)
+			if(shader == GL_VERTEX_SHADER)
 			{
-				appendToInfoLog("Vertex shader active uniforms exceed GL_MAX_VERTEX_UNIFORM_VECTORS (%d)", MAX_VERTEX_UNIFORM_VECTORS);
-				return false;
+				if(glslUniform.registerIndex + uniform->registerCount() > MAX_VERTEX_UNIFORM_VECTORS)
+				{
+					appendToInfoLog("Vertex shader active uniforms exceed GL_MAX_VERTEX_UNIFORM_VECTORS (%d)", MAX_VERTEX_UNIFORM_VECTORS);
+					return false;
+				}
 			}
-		}
-		else if(shader == GL_FRAGMENT_SHADER)
-		{
-			if(glslUniform.registerIndex + uniform->registerCount() > MAX_FRAGMENT_UNIFORM_VECTORS)
+			else if(shader == GL_FRAGMENT_SHADER)
 			{
-				appendToInfoLog("Fragment shader active uniforms exceed GL_MAX_FRAGMENT_UNIFORM_VECTORS (%d)", MAX_FRAGMENT_UNIFORM_VECTORS);
-				return false;
+				if(glslUniform.registerIndex + uniform->registerCount() > MAX_FRAGMENT_UNIFORM_VECTORS)
+				{
+					appendToInfoLog("Fragment shader active uniforms exceed GL_MAX_FRAGMENT_UNIFORM_VECTORS (%d)", MAX_FRAGMENT_UNIFORM_VECTORS);
+					return false;
+				}
 			}
+			else UNREACHABLE(shader);
 		}
-		else UNREACHABLE(shader);
 
 		return true;
 	}
@@ -2859,10 +2865,7 @@ namespace es2
 
 	void Program::getActiveUniformBlockName(GLuint index, GLsizei bufSize, GLsizei *length, GLchar *name) const
 	{
-		if(index >= getActiveUniformBlockCount())
-		{
-			return error(GL_INVALID_VALUE);
-		}
+		ASSERT(index < getActiveUniformBlockCount());
 
 		const UniformBlock &uniformBlock = *uniformBlocks[index];
 

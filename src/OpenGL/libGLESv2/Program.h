@@ -42,11 +42,11 @@ namespace es2
 		{
 			BlockInfo(const glsl::Uniform& uniform, int blockIndex);
 
-			int index;
-			int offset;
-			int arrayStride;
-			int matrixStride;
-			bool isRowMajorMatrix;
+			int index = -1;
+			int offset = -1;
+			int arrayStride = -1;
+			int matrixStride = -1;
+			bool isRowMajorMatrix = false;
 		};
 
 		Uniform(const glsl::Uniform &uniform, const BlockInfo &blockInfo);
