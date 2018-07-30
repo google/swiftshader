@@ -72,6 +72,24 @@ namespace sw
 	TranscendentalPrecision rsqPrecision = ACCURATE;
 	bool perspectiveCorrection = true;
 
+	static void setGlobalRenderingSettings(Conventions conventions, bool exactColorRounding)
+	{
+		static bool initialized = false;
+
+		if(!initialized)
+		{
+			sw::halfIntegerCoordinates = conventions.halfIntegerCoordinates;
+			sw::symmetricNormalizedDepth = conventions.symmetricNormalizedDepth;
+			sw::booleanFaceRegister = conventions.booleanFaceRegister;
+			sw::fullPixelPositionRegister = conventions.fullPixelPositionRegister;
+			sw::leadingVertexFirst = conventions.leadingVertexFirst;
+			sw::secondaryColor = conventions.secondaryColor;
+			sw::colorsDefaultToZero = conventions.colorsDefaultToZero;
+			sw::exactColorRounding = exactColorRounding;
+			initialized = true;
+		}
+	}
+
 	struct Parameters
 	{
 		Renderer *renderer;
@@ -105,14 +123,7 @@ namespace sw
 
 	Renderer::Renderer(Context *context, Conventions conventions, bool exactColorRounding) : VertexProcessor(context), PixelProcessor(context), SetupProcessor(context), context(context), viewport()
 	{
-		sw::halfIntegerCoordinates = conventions.halfIntegerCoordinates;
-		sw::symmetricNormalizedDepth = conventions.symmetricNormalizedDepth;
-		sw::booleanFaceRegister = conventions.booleanFaceRegister;
-		sw::fullPixelPositionRegister = conventions.fullPixelPositionRegister;
-		sw::leadingVertexFirst = conventions.leadingVertexFirst;
-		sw::secondaryColor = conventions.secondaryColor;
-		sw::colorsDefaultToZero = conventions.colorsDefaultToZero;
-		sw::exactColorRounding = exactColorRounding;
+		setGlobalRenderingSettings(conventions, exactColorRounding);
 
 		setRenderTarget(0, 0);
 		clipper = new Clipper(symmetricNormalizedDepth);
