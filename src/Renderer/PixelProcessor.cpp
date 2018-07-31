@@ -586,9 +586,10 @@ namespace sw
 		context->alphaTestEnable = alphaTestEnable;
 	}
 
-	void PixelProcessor::setCullMode(CullMode cullMode)
+	void PixelProcessor::setCullMode(CullMode cullMode, bool frontFacingCCW)
 	{
 		context->cullMode = cullMode;
+		context->frontFacingCCW = frontFacingCCW;
 	}
 
 	void PixelProcessor::setColorWriteMask(int index, int rgbaMask)
@@ -1040,6 +1041,8 @@ namespace sw
 		{
 			state.centroid = context->pixelShader->containsCentroid();
 		}
+
+		state.frontFaceCCW = context->frontFacingCCW;
 
 		if(!context->pixelShader)
 		{

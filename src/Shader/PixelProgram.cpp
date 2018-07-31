@@ -51,8 +51,12 @@ namespace sw
 
 			if(shader->isVFaceDeclared())
 			{
-				Float4 area = *Pointer<Float>(primitive + OFFSET(Primitive, area));
-				Float4 face = booleanFaceRegister ? Float4(As<Float4>(CmpNLT(area, Float4(0.0f)))) : area;
+				Float4 face = *Pointer<Float>(primitive + OFFSET(Primitive, area));
+
+				if(booleanFaceRegister)
+				{
+					face = As<Float4>(state.frontFaceCCW ? CmpNLT(face, Float4(0.0f)) : CmpLT(face, Float4(0.0f)));
+				}
 
 				vFace.x = face;
 				vFace.y = face;

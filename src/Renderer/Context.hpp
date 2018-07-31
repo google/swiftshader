@@ -432,6 +432,7 @@ namespace sw
 		ShadingMode shadingMode;
 
 		CullMode cullMode;
+		bool frontFacingCCW;
 		float alphaReference;
 
 		float depthBias;

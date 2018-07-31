@@ -46,7 +46,7 @@ namespace es1
 		setAlphaTestEnable(false);
 		setSourceBlendFactor(BLEND_ONE);
 		setDestBlendFactor(BLEND_ZERO);
-		setCullMode(CULL_COUNTERCLOCKWISE);
+		setCullMode(CULL_COUNTERCLOCKWISE, true);
 		setDepthCompare(DEPTH_LESSEQUAL);
 		setAlphaReference(0.0f);
 		setAlphaCompare(ALPHA_ALWAYS);

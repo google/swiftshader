@@ -83,6 +83,7 @@ namespace sw
 			unsigned int multiSampleMask                      : 4;
 			TransparencyAntialiasing transparencyAntialiasing : BITS(TRANSPARENCY_LAST);
 			bool centroid                                     : 1;
+			bool frontFaceCCW                                 : 1;
 
 			LogicalOperation logicalOperation : BITS(LOGICALOP_LAST);
 
@@ -250,7 +251,7 @@ namespace sw
 		void setAlphaCompare(AlphaCompareMode alphaCompareMode);
 		void setDepthWriteEnable(bool depthWriteEnable);
 		void setAlphaTestEnable(bool alphaTestEnable);
-		void setCullMode(CullMode cullMode);
+		void setCullMode(CullMode cullMode, bool frontFacingCCW);
 		void setColorWriteMask(int index, int rgbaMask);
 
 		void setColorLogicOpEnabled(bool colorLogicOpEnabled);

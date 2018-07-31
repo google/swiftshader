@@ -3207,13 +3207,13 @@ namespace D3D9
 				switch(value)
 				{
 				case D3DCULL_NONE:
-					renderer->setCullMode(sw::CULL_NONE);
+					renderer->setCullMode(sw::CULL_NONE, true);
 					break;
 				case D3DCULL_CCW:
-					renderer->setCullMode(sw::CULL_COUNTERCLOCKWISE);
+					renderer->setCullMode(sw::CULL_COUNTERCLOCKWISE, true);
 					break;
 				case D3DCULL_CW:
-					renderer->setCullMode(sw::CULL_CLOCKWISE);
+					renderer->setCullMode(sw::CULL_CLOCKWISE, true);
 					break;
 				default:
 					ASSERT(false);
