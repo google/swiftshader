@@ -386,6 +386,7 @@ copy "$(OutDir)libGLESv2.dll" "$(SolutionDir)out\$(Configuration)_$(Platform)\tr
     <ClInclude Include="Buffer.h" />
     <ClInclude Include="Context.h" />
     <ClInclude Include="Device.hpp" />
+    <ClInclude Include="entry_points.h" />
     <ClInclude Include="Fence.h" />
     <ClInclude Include="Framebuffer.h" />
     <ClInclude Include="IndexDataManager.h" />

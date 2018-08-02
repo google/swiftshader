@@ -302,8 +302,6 @@ global:
 	_ZTS*;
 	_ZTI*;
 
-	Register;
-
 local:
 	*;
 };

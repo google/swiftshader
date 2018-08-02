@@ -42,13 +42,20 @@ namespace es2
 
 static bool validImageSize(GLint level, GLsizei width, GLsizei height)
 {
-	if(level < 0 || level >= es2::IMPLEMENTATION_MAX_TEXTURE_LEVELS || width < 0 || height < 0)
+	if(level < 0 || level >= IMPLEMENTATION_MAX_TEXTURE_LEVELS || width < 0 || height < 0)
 	{
 		return false;
 	}
 
 	return true;
 }
+
+}
+
+namespace gl
+{
+
+using namespace es2;
 
 void ActiveTexture(GLenum texture)
 {
@@ -311,11 +318,6 @@ void BlendColor(GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha)
 	}
 }
 
-void BlendEquation(GLenum mode)
-{
-	glBlendEquationSeparate(mode, mode);
-}
-
 void BlendEquationSeparate(GLenum modeRGB, GLenum modeAlpha)
 {
 	TRACE("(GLenum modeRGB = 0x%X, GLenum modeAlpha = 0x%X)", modeRGB, modeAlpha);
@@ -352,9 +354,9 @@ void BlendEquationSeparate(GLenum modeRGB, GLenum modeAlpha)
 	}
 }
 
-void BlendFunc(GLenum sfactor, GLenum dfactor)
+void BlendEquation(GLenum mode)
 {
-	glBlendFuncSeparate(sfactor, dfactor, sfactor, dfactor);
+	BlendEquationSeparate(mode, mode);
 }
 
 void BlendFuncSeparate(GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha)
@@ -458,6 +460,11 @@ void BlendFuncSeparate(GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dst
 	{
 		context->setBlendFactors(srcRGB, dstRGB, srcAlpha, dstAlpha);
 	}
+}
+
+void BlendFunc(GLenum sfactor, GLenum dfactor)
+{
+	BlendFuncSeparate(sfactor, dfactor, sfactor, dfactor);
 }
 
 void BufferData(GLenum target, GLsizeiptr size, const GLvoid* data, GLenum usage)
@@ -4331,11 +4338,6 @@ void ShaderSource(GLuint shader, GLsizei count, const GLchar *const *string, con
 	}
 }
 
-void StencilFunc(GLenum func, GLint ref, GLuint mask)
-{
-	glStencilFuncSeparate(GL_FRONT_AND_BACK, func, ref, mask);
-}
-
 void StencilFuncSeparate(GLenum face, GLenum func, GLint ref, GLuint mask)
 {
 	TRACE("(GLenum face = 0x%X, GLenum func = 0x%X, GLint ref = %d, GLuint mask = %d)", face, func, ref, mask);
@@ -4381,9 +4383,9 @@ void StencilFuncSeparate(GLenum face, GLenum func, GLint ref, GLuint mask)
 	}
 }
 
-void StencilMask(GLuint mask)
+void StencilFunc(GLenum func, GLint ref, GLuint mask)
 {
-	glStencilMaskSeparate(GL_FRONT_AND_BACK, mask);
+	StencilFuncSeparate(GL_FRONT_AND_BACK, func, ref, mask);
 }
 
 void StencilMaskSeparate(GLenum face, GLuint mask)
@@ -4416,9 +4418,9 @@ void StencilMaskSeparate(GLenum face, GLuint mask)
 	}
 }
 
-void StencilOp(GLenum fail, GLenum zfail, GLenum zpass)
+void StencilMask(GLuint mask)
 {
-	glStencilOpSeparate(GL_FRONT_AND_BACK, fail, zfail, zpass);
+	StencilMaskSeparate(GL_FRONT_AND_BACK, mask);
 }
 
 void StencilOpSeparate(GLenum face, GLenum fail, GLenum zfail, GLenum zpass)
@@ -4495,6 +4497,11 @@ void StencilOpSeparate(GLenum face, GLenum fail, GLenum zfail, GLenum zpass)
 			context->setStencilBackOperations(fail, zfail, zpass);
 		}
 	}
+}
+
+void StencilOp(GLenum fail, GLenum zfail, GLenum zpass)
+{
+	StencilOpSeparate(GL_FRONT_AND_BACK, fail, zfail, zpass);
 }
 
 GLboolean TestFenceNV(GLuint fence)
@@ -4749,7 +4756,7 @@ void TexParameterf(GLenum target, GLenum pname, GLfloat param)
 
 void TexParameterfv(GLenum target, GLenum pname, const GLfloat* params)
 {
-	glTexParameterf(target, pname, *params);
+	TexParameterf(target, pname, *params);
 }
 
 void TexParameteri(GLenum target, GLenum pname, GLint param)
@@ -4884,7 +4891,7 @@ void TexParameteri(GLenum target, GLenum pname, GLint param)
 
 void TexParameteriv(GLenum target, GLenum pname, const GLint* params)
 {
-	glTexParameteri(target, pname, *params);
+	TexParameteri(target, pname, *params);
 }
 
 void TexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height,
@@ -4959,11 +4966,6 @@ void TexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLs
 	}
 }
 
-void Uniform1f(GLint location, GLfloat x)
-{
-	glUniform1fv(location, 1, &x);
-}
-
 void Uniform1fv(GLint location, GLsizei count, const GLfloat* v)
 {
 	TRACE("(GLint location = %d, GLsizei count = %d, const GLfloat* v = %p)", location, count, v);
@@ -4996,9 +4998,9 @@ void Uniform1fv(GLint location, GLsizei count, const GLfloat* v)
 	}
 }
 
-void Uniform1i(GLint location, GLint x)
+void Uniform1f(GLint location, GLfloat x)
 {
-	glUniform1iv(location, 1, &x);
+	Uniform1fv(location, 1, &x);
 }
 
 void Uniform1iv(GLint location, GLsizei count, const GLint* v)
@@ -5033,11 +5035,9 @@ void Uniform1iv(GLint location, GLsizei count, const GLint* v)
 	}
 }
 
-void Uniform2f(GLint location, GLfloat x, GLfloat y)
+void Uniform1i(GLint location, GLint x)
 {
-	GLfloat xy[2] = {x, y};
-
-	glUniform2fv(location, 1, (GLfloat*)&xy);
+	Uniform1iv(location, 1, &x);
 }
 
 void Uniform2fv(GLint location, GLsizei count, const GLfloat* v)
@@ -5072,11 +5072,11 @@ void Uniform2fv(GLint location, GLsizei count, const GLfloat* v)
 	}
 }
 
-void Uniform2i(GLint location, GLint x, GLint y)
+void Uniform2f(GLint location, GLfloat x, GLfloat y)
 {
-	GLint xy[4] = {x, y};
+	GLfloat xy[2] = {x, y};
 
-	glUniform2iv(location, 1, (GLint*)&xy);
+	Uniform2fv(location, 1, (GLfloat*)&xy);
 }
 
 void Uniform2iv(GLint location, GLsizei count, const GLint* v)
@@ -5111,11 +5111,11 @@ void Uniform2iv(GLint location, GLsizei count, const GLint* v)
 	}
 }
 
-void Uniform3f(GLint location, GLfloat x, GLfloat y, GLfloat z)
+void Uniform2i(GLint location, GLint x, GLint y)
 {
-	GLfloat xyz[3] = {x, y, z};
+	GLint xy[4] = {x, y};
 
-	glUniform3fv(location, 1, (GLfloat*)&xyz);
+	Uniform2iv(location, 1, (GLint*)&xy);
 }
 
 void Uniform3fv(GLint location, GLsizei count, const GLfloat* v)
@@ -5150,11 +5150,11 @@ void Uniform3fv(GLint location, GLsizei count, const GLfloat* v)
 	}
 }
 
-void Uniform3i(GLint location, GLint x, GLint y, GLint z)
+void Uniform3f(GLint location, GLfloat x, GLfloat y, GLfloat z)
 {
-	GLint xyz[3] = {x, y, z};
+	GLfloat xyz[3] = {x, y, z};
 
-	glUniform3iv(location, 1, (GLint*)&xyz);
+	Uniform3fv(location, 1, (GLfloat*)&xyz);
 }
 
 void Uniform3iv(GLint location, GLsizei count, const GLint* v)
@@ -5189,11 +5189,11 @@ void Uniform3iv(GLint location, GLsizei count, const GLint* v)
 	}
 }
 
-void Uniform4f(GLint location, GLfloat x, GLfloat y, GLfloat z, GLfloat w)
+void Uniform3i(GLint location, GLint x, GLint y, GLint z)
 {
-	GLfloat xyzw[4] = {x, y, z, w};
+	GLint xyz[3] = {x, y, z};
 
-	glUniform4fv(location, 1, (GLfloat*)&xyzw);
+	Uniform3iv(location, 1, (GLint*)&xyz);
 }
 
 void Uniform4fv(GLint location, GLsizei count, const GLfloat* v)
@@ -5228,11 +5228,11 @@ void Uniform4fv(GLint location, GLsizei count, const GLfloat* v)
 	}
 }
 
-void Uniform4i(GLint location, GLint x, GLint y, GLint z, GLint w)
+void Uniform4f(GLint location, GLfloat x, GLfloat y, GLfloat z, GLfloat w)
 {
-	GLint xyzw[4] = {x, y, z, w};
+	GLfloat xyzw[4] = {x, y, z, w};
 
-	glUniform4iv(location, 1, (GLint*)&xyzw);
+	Uniform4fv(location, 1, (GLfloat*)&xyzw);
 }
 
 void Uniform4iv(GLint location, GLsizei count, const GLint* v)
@@ -5265,6 +5265,13 @@ void Uniform4iv(GLint location, GLsizei count, const GLint* v)
 			return error(GL_INVALID_OPERATION);
 		}
 	}
+}
+
+void Uniform4i(GLint location, GLint x, GLint y, GLint z, GLint w)
+{
+	GLint xyzw[4] = {x, y, z, w};
+
+	Uniform4iv(location, 1, (GLint*)&xyzw);
 }
 
 void UniformMatrix2fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat* value)
@@ -5650,7 +5657,7 @@ void Viewport(GLint x, GLint y, GLsizei width, GLsizei height)
 	}
 }
 
-static void BlitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter, bool allowPartialDepthStencilBlit)
+static void BlitFramebufferSW(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter, bool allowPartialDepthStencilBlit)
 {
 	TRACE("(GLint srcX0 = %d, GLint srcY0 = %d, GLint srcX1 = %d, GLint srcY1 = %d, "
 	      "GLint dstX0 = %d, GLint dstY0 = %d, GLint dstX1 = %d, GLint dstY1 = %d, "
@@ -5686,7 +5693,7 @@ static void BlitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, 
 
 void BlitFramebufferNV(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter)
 {
-	BlitFramebuffer(srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter, true);
+	BlitFramebufferSW(srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter, true);
 }
 
 void BlitFramebufferANGLE(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1,
@@ -5698,7 +5705,7 @@ void BlitFramebufferANGLE(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GL
 		return error(GL_INVALID_OPERATION);
 	}
 
-	BlitFramebuffer(srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter, false);
+	BlitFramebufferSW(srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter, false);
 }
 
 void TexImage3DOES(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth,
@@ -6267,6 +6274,8 @@ void DrawBuffersEXT(GLsizei n, const GLenum *bufs)
 
 }
 
+#include "entry_points.h"
+
 extern "C" NO_SANITIZE_FUNCTION __eglMustCastToProperFunctionPointerType es2GetProcAddress(const char *procname)
 {
 	struct Function
@@ -6277,300 +6286,299 @@ extern "C" NO_SANITIZE_FUNCTION __eglMustCastToProperFunctionPointerType es2GetP
 
 	static const Function glFunctions[] =
 	{
-		#define FUNCTION(name) {#name, (__eglMustCastToProperFunctionPointerType)name}
+		#define FUNCTION(name) {"gl" #name, (__eglMustCastToProperFunctionPointerType)gl::name}
 
-		FUNCTION(glActiveTexture),
-		FUNCTION(glAttachShader),
-		FUNCTION(glBeginQuery),
-		FUNCTION(glBeginQueryEXT),
-		FUNCTION(glBeginTransformFeedback),
-		FUNCTION(glBindAttribLocation),
-		FUNCTION(glBindBuffer),
-		FUNCTION(glBindBufferBase),
-		FUNCTION(glBindBufferRange),
-		FUNCTION(glBindFramebuffer),
-		FUNCTION(glBindFramebufferOES),
-		FUNCTION(glBindRenderbuffer),
-		FUNCTION(glBindRenderbufferOES),
-		FUNCTION(glBindSampler),
-		FUNCTION(glBindTexture),
-		FUNCTION(glBindTransformFeedback),
-		FUNCTION(glBindVertexArray),
-		FUNCTION(glBindVertexArrayOES),
-		FUNCTION(glBlendColor),
-		FUNCTION(glBlendEquation),
-		FUNCTION(glBlendEquationSeparate),
-		FUNCTION(glBlendFunc),
-		FUNCTION(glBlendFuncSeparate),
-		FUNCTION(glBlitFramebuffer),
-		FUNCTION(glBlitFramebufferANGLE),
-		FUNCTION(glBufferData),
-		FUNCTION(glBufferSubData),
-		FUNCTION(glCheckFramebufferStatus),
-		FUNCTION(glCheckFramebufferStatusOES),
-		FUNCTION(glClear),
-		FUNCTION(glClearBufferfi),
-		FUNCTION(glClearBufferfv),
-		FUNCTION(glClearBufferiv),
-		FUNCTION(glClearBufferuiv),
-		FUNCTION(glClearColor),
-		FUNCTION(glClearDepthf),
-		FUNCTION(glClearStencil),
-		FUNCTION(glClientWaitSync),
-		FUNCTION(glColorMask),
-		FUNCTION(glCompileShader),
-		FUNCTION(glCompressedTexImage2D),
-		FUNCTION(glCompressedTexImage3D),
-		FUNCTION(glCompressedTexSubImage2D),
-		FUNCTION(glCompressedTexSubImage3D),
-		FUNCTION(glCopyBufferSubData),
-		FUNCTION(glCopyTexImage2D),
-		FUNCTION(glCopyTexSubImage2D),
-		FUNCTION(glCopyTexSubImage3D),
-		FUNCTION(glCreateProgram),
-		FUNCTION(glCreateShader),
-		FUNCTION(glCullFace),
-		FUNCTION(glDeleteBuffers),
-		FUNCTION(glDeleteFencesNV),
-		FUNCTION(glDeleteFramebuffers),
-		FUNCTION(glDeleteFramebuffersOES),
-		FUNCTION(glDeleteProgram),
-		FUNCTION(glDeleteQueries),
-		FUNCTION(glDeleteQueriesEXT),
-		FUNCTION(glDeleteRenderbuffers),
-		FUNCTION(glDeleteRenderbuffersOES),
-		FUNCTION(glDeleteSamplers),
-		FUNCTION(glDeleteShader),
-		FUNCTION(glDeleteSync),
-		FUNCTION(glDeleteTextures),
-		FUNCTION(glDeleteTransformFeedbacks),
-		FUNCTION(glDeleteVertexArrays),
-		FUNCTION(glDeleteVertexArraysOES),
-		FUNCTION(glDepthFunc),
-		//FUNCTION(DepthFunc),
-		FUNCTION(glDepthMask),
-		FUNCTION(glDepthRangef),
-		FUNCTION(glDetachShader),
-		FUNCTION(glDisable),
-		FUNCTION(glDisableVertexAttribArray),
-		FUNCTION(glDrawArrays),
-		FUNCTION(glDrawArraysInstanced),
-		FUNCTION(glDrawBuffers),
-		FUNCTION(glDrawBuffersEXT),
-		FUNCTION(glDrawElements),
-		FUNCTION(glDrawElementsInstanced),
-		FUNCTION(glDrawRangeElements),
-		FUNCTION(glEGLImageTargetRenderbufferStorageOES),
-		FUNCTION(glEGLImageTargetTexture2DOES),
-		FUNCTION(glEnable),
-		FUNCTION(glEnableVertexAttribArray),
-		FUNCTION(glEndQuery),
-		FUNCTION(glEndQueryEXT),
-		FUNCTION(glEndTransformFeedback),
-		FUNCTION(glFenceSync),
-		FUNCTION(glFinish),
-		FUNCTION(glFinishFenceNV),
-		FUNCTION(glFlush),
-		FUNCTION(glFlushMappedBufferRange),
-		FUNCTION(glFramebufferRenderbuffer),
-		FUNCTION(glFramebufferRenderbufferOES),
-		FUNCTION(glFramebufferTexture2D),
-		FUNCTION(glFramebufferTexture2DOES),
-		FUNCTION(glFramebufferTextureLayer),
-		FUNCTION(glFrontFace),
-		FUNCTION(glGenBuffers),
-		FUNCTION(glGenFencesNV),
-		FUNCTION(glGenFramebuffers),
-		FUNCTION(glGenFramebuffersOES),
-		FUNCTION(glGenQueries),
-		FUNCTION(glGenQueriesEXT),
-		FUNCTION(glGenRenderbuffers),
-		FUNCTION(glGenRenderbuffersOES),
-		FUNCTION(glGenSamplers),
-		FUNCTION(glGenTextures),
-		FUNCTION(glGenTransformFeedbacks),
-		FUNCTION(glGenVertexArrays),
-		FUNCTION(glGenVertexArraysOES),
-		FUNCTION(glGenerateMipmap),
-		FUNCTION(glGenerateMipmapOES),
-		FUNCTION(glGetActiveAttrib),
-		FUNCTION(glGetActiveUniform),
-		FUNCTION(glGetActiveUniformBlockName),
-		FUNCTION(glGetActiveUniformBlockiv),
-		FUNCTION(glGetActiveUniformsiv),
-		FUNCTION(glGetAttachedShaders),
-		FUNCTION(glGetAttribLocation),
-		FUNCTION(glGetBooleanv),
-		FUNCTION(glGetBufferParameteri64v),
-		FUNCTION(glGetBufferParameteriv),
-		FUNCTION(glGetBufferPointerv),
-		FUNCTION(glGetError),
-		FUNCTION(glGetFenceivNV),
-		FUNCTION(glGetFloatv),
-		FUNCTION(glGetFragDataLocation),
-		FUNCTION(glGetFramebufferAttachmentParameteriv),
-		FUNCTION(glGetFramebufferAttachmentParameterivOES),
-		FUNCTION(glGetGraphicsResetStatusEXT),
-		FUNCTION(glGetInteger64i_v),
-		FUNCTION(glGetInteger64v),
-		FUNCTION(glGetIntegeri_v),
-		FUNCTION(glGetIntegerv),
-		FUNCTION(glGetInternalformativ),
-		FUNCTION(glGetProgramBinary),
-		FUNCTION(glGetProgramInfoLog),
-		FUNCTION(glGetProgramiv),
-		FUNCTION(glGetQueryObjectuiv),
-		FUNCTION(glGetQueryObjectuivEXT),
-		FUNCTION(glGetQueryiv),
-		FUNCTION(glGetQueryivEXT),
-		FUNCTION(glGetRenderbufferParameteriv),
-		FUNCTION(glGetRenderbufferParameterivOES),
-		FUNCTION(glGetSamplerParameterfv),
-		FUNCTION(glGetSamplerParameteriv),
-		FUNCTION(glGetShaderInfoLog),
-		FUNCTION(glGetShaderPrecisionFormat),
-		FUNCTION(glGetShaderSource),
-		FUNCTION(glGetShaderiv),
-		FUNCTION(glGetString),
-		FUNCTION(glGetStringi),
-		FUNCTION(glGetSynciv),
-		FUNCTION(glGetTexParameterfv),
-		FUNCTION(glGetTexParameteriv),
-		FUNCTION(glGetTransformFeedbackVarying),
-		FUNCTION(glGetUniformBlockIndex),
-		FUNCTION(glGetUniformIndices),
-		FUNCTION(glGetUniformLocation),
-		FUNCTION(glGetUniformfv),
-		FUNCTION(glGetUniformiv),
-		FUNCTION(glGetUniformuiv),
-		FUNCTION(glGetVertexAttribIiv),
-		FUNCTION(glGetVertexAttribIuiv),
-		FUNCTION(glGetVertexAttribPointerv),
-		FUNCTION(glGetVertexAttribfv),
-		FUNCTION(glGetVertexAttribiv),
-		FUNCTION(glGetnUniformfvEXT),
-		FUNCTION(glGetnUniformivEXT),
-		FUNCTION(glHint),
-		FUNCTION(glInvalidateFramebuffer),
-		FUNCTION(glInvalidateSubFramebuffer),
-		FUNCTION(glIsBuffer),
-		FUNCTION(glIsEnabled),
-		FUNCTION(glIsFenceNV),
-		FUNCTION(glIsFramebuffer),
-		FUNCTION(glIsFramebufferOES),
-		FUNCTION(glIsProgram),
-		FUNCTION(glIsQuery),
-		FUNCTION(glIsQueryEXT),
-		FUNCTION(glIsRenderbuffer),
-		FUNCTION(glIsRenderbufferOES),
-		FUNCTION(glIsSampler),
-		FUNCTION(glIsShader),
-		FUNCTION(glIsSync),
-		FUNCTION(glIsTexture),
-		FUNCTION(glIsTransformFeedback),
-		FUNCTION(glIsVertexArray),
-		FUNCTION(glIsVertexArrayOES),
-		FUNCTION(glLineWidth),
-		FUNCTION(glLinkProgram),
-		FUNCTION(glMapBufferRange),
-		FUNCTION(glPauseTransformFeedback),
-		FUNCTION(glPixelStorei),
-		FUNCTION(glPolygonOffset),
-		FUNCTION(glProgramBinary),
-		FUNCTION(glProgramParameteri),
-		FUNCTION(glReadBuffer),
-		FUNCTION(glReadPixels),
-		FUNCTION(glReadnPixelsEXT),
-		FUNCTION(glReleaseShaderCompiler),
-		FUNCTION(glRenderbufferStorage),
-		FUNCTION(glRenderbufferStorageMultisample),
-		FUNCTION(glRenderbufferStorageMultisampleANGLE),
-		FUNCTION(glRenderbufferStorageOES),
-		FUNCTION(glResumeTransformFeedback),
-		FUNCTION(glSampleCoverage),
-		FUNCTION(glSamplerParameterf),
-		FUNCTION(glSamplerParameterfv),
-		FUNCTION(glSamplerParameteri),
-		FUNCTION(glSamplerParameteriv),
-		FUNCTION(glScissor),
-		FUNCTION(glSetFenceNV),
-		FUNCTION(glShaderBinary),
-		FUNCTION(glShaderSource),
-		FUNCTION(glStencilFunc),
-		FUNCTION(glStencilFuncSeparate),
-		FUNCTION(glStencilMask),
-		FUNCTION(glStencilMaskSeparate),
-		FUNCTION(glStencilOp),
-		FUNCTION(glStencilOpSeparate),
-		FUNCTION(glTestFenceNV),
-		FUNCTION(glTexImage2D),
-		FUNCTION(glTexImage3D),
-		FUNCTION(glTexImage3DOES),
-		FUNCTION(glTexParameterf),
-		FUNCTION(glTexParameterfv),
-		FUNCTION(glTexParameteri),
-		FUNCTION(glTexParameteriv),
-		FUNCTION(glTexStorage2D),
-		FUNCTION(glTexStorage3D),
-		FUNCTION(glTexSubImage2D),
-		FUNCTION(glTexSubImage3D),
-		FUNCTION(glTransformFeedbackVaryings),
-		FUNCTION(glUniform1f),
-		FUNCTION(glUniform1fv),
-		FUNCTION(glUniform1i),
-		FUNCTION(glUniform1iv),
-		FUNCTION(glUniform1ui),
-		FUNCTION(glUniform1uiv),
-		FUNCTION(glUniform2f),
-		FUNCTION(glUniform2fv),
-		FUNCTION(glUniform2i),
-		FUNCTION(glUniform2iv),
-		FUNCTION(glUniform2ui),
-		FUNCTION(glUniform2uiv),
-		FUNCTION(glUniform3f),
-		FUNCTION(glUniform3fv),
-		FUNCTION(glUniform3i),
-		FUNCTION(glUniform3iv),
-		FUNCTION(glUniform3ui),
-		FUNCTION(glUniform3uiv),
-		FUNCTION(glUniform4f),
-		FUNCTION(glUniform4fv),
-		FUNCTION(glUniform4i),
-		FUNCTION(glUniform4iv),
-		FUNCTION(glUniform4ui),
-		FUNCTION(glUniform4uiv),
-		FUNCTION(glUniformBlockBinding),
-		FUNCTION(glUniformMatrix2fv),
-		FUNCTION(glUniformMatrix2x3fv),
-		FUNCTION(glUniformMatrix2x4fv),
-		FUNCTION(glUniformMatrix3fv),
-		FUNCTION(glUniformMatrix3x2fv),
-		FUNCTION(glUniformMatrix3x4fv),
-		FUNCTION(glUniformMatrix4fv),
-		FUNCTION(glUniformMatrix4x2fv),
-		FUNCTION(glUniformMatrix4x3fv),
-		FUNCTION(glUnmapBuffer),
-		FUNCTION(glUseProgram),
-		FUNCTION(glValidateProgram),
-		FUNCTION(glVertexAttrib1f),
-		FUNCTION(glVertexAttrib1fv),
-		FUNCTION(glVertexAttrib2f),
-		FUNCTION(glVertexAttrib2fv),
-		FUNCTION(glVertexAttrib3f),
-		FUNCTION(glVertexAttrib3fv),
-		FUNCTION(glVertexAttrib4f),
-		FUNCTION(glVertexAttrib4fv),
-		FUNCTION(glVertexAttribDivisor),
-		FUNCTION(glVertexAttribDivisorANGLE),
-		FUNCTION(glVertexAttribDivisorEXT),
-		FUNCTION(glVertexAttribI4i),
-		FUNCTION(glVertexAttribI4iv),
-		FUNCTION(glVertexAttribI4ui),
-		FUNCTION(glVertexAttribI4uiv),
-		FUNCTION(glVertexAttribIPointer),
-		FUNCTION(glVertexAttribPointer),
-		FUNCTION(glViewport),
-		FUNCTION(glWaitSync),
+		FUNCTION(ActiveTexture),
+		FUNCTION(AttachShader),
+		FUNCTION(BeginQuery),
+		FUNCTION(BeginQueryEXT),
+		FUNCTION(BeginTransformFeedback),
+		FUNCTION(BindAttribLocation),
+		FUNCTION(BindBuffer),
+		FUNCTION(BindBufferBase),
+		FUNCTION(BindBufferRange),
+		FUNCTION(BindFramebuffer),
+		FUNCTION(BindFramebufferOES),
+		FUNCTION(BindRenderbuffer),
+		FUNCTION(BindRenderbufferOES),
+		FUNCTION(BindSampler),
+		FUNCTION(BindTexture),
+		FUNCTION(BindTransformFeedback),
+		FUNCTION(BindVertexArray),
+		FUNCTION(BindVertexArrayOES),
+		FUNCTION(BlendColor),
+		FUNCTION(BlendEquation),
+		FUNCTION(BlendEquationSeparate),
+		FUNCTION(BlendFunc),
+		FUNCTION(BlendFuncSeparate),
+		FUNCTION(BlitFramebuffer),
+		FUNCTION(BlitFramebufferANGLE),
+		FUNCTION(BufferData),
+		FUNCTION(BufferSubData),
+		FUNCTION(CheckFramebufferStatus),
+		FUNCTION(CheckFramebufferStatusOES),
+		FUNCTION(Clear),
+		FUNCTION(ClearBufferfi),
+		FUNCTION(ClearBufferfv),
+		FUNCTION(ClearBufferiv),
+		FUNCTION(ClearBufferuiv),
+		FUNCTION(ClearColor),
+		FUNCTION(ClearDepthf),
+		FUNCTION(ClearStencil),
+		FUNCTION(ClientWaitSync),
+		FUNCTION(ColorMask),
+		FUNCTION(CompileShader),
+		FUNCTION(CompressedTexImage2D),
+		FUNCTION(CompressedTexImage3D),
+		FUNCTION(CompressedTexSubImage2D),
+		FUNCTION(CompressedTexSubImage3D),
+		FUNCTION(CopyBufferSubData),
+		FUNCTION(CopyTexImage2D),
+		FUNCTION(CopyTexSubImage2D),
+		FUNCTION(CopyTexSubImage3D),
+		FUNCTION(CreateProgram),
+		FUNCTION(CreateShader),
+		FUNCTION(CullFace),
+		FUNCTION(DeleteBuffers),
+		FUNCTION(DeleteFencesNV),
+		FUNCTION(DeleteFramebuffers),
+		FUNCTION(DeleteFramebuffersOES),
+		FUNCTION(DeleteProgram),
+		FUNCTION(DeleteQueries),
+		FUNCTION(DeleteQueriesEXT),
+		FUNCTION(DeleteRenderbuffers),
+		FUNCTION(DeleteRenderbuffersOES),
+		FUNCTION(DeleteSamplers),
+		FUNCTION(DeleteShader),
+		FUNCTION(DeleteSync),
+		FUNCTION(DeleteTextures),
+		FUNCTION(DeleteTransformFeedbacks),
+		FUNCTION(DeleteVertexArrays),
+		FUNCTION(DeleteVertexArraysOES),
+		FUNCTION(DepthFunc),
+		FUNCTION(DepthMask),
+		FUNCTION(DepthRangef),
+		FUNCTION(DetachShader),
+		FUNCTION(Disable),
+		FUNCTION(DisableVertexAttribArray),
+		FUNCTION(DrawArrays),
+		FUNCTION(DrawArraysInstanced),
+		FUNCTION(DrawBuffers),
+		FUNCTION(DrawBuffersEXT),
+		FUNCTION(DrawElements),
+		FUNCTION(DrawElementsInstanced),
+		FUNCTION(DrawRangeElements),
+		FUNCTION(EGLImageTargetRenderbufferStorageOES),
+		FUNCTION(EGLImageTargetTexture2DOES),
+		FUNCTION(Enable),
+		FUNCTION(EnableVertexAttribArray),
+		FUNCTION(EndQuery),
+		FUNCTION(EndQueryEXT),
+		FUNCTION(EndTransformFeedback),
+		FUNCTION(FenceSync),
+		FUNCTION(Finish),
+		FUNCTION(FinishFenceNV),
+		FUNCTION(Flush),
+		FUNCTION(FlushMappedBufferRange),
+		FUNCTION(FramebufferRenderbuffer),
+		FUNCTION(FramebufferRenderbufferOES),
+		FUNCTION(FramebufferTexture2D),
+		FUNCTION(FramebufferTexture2DOES),
+		FUNCTION(FramebufferTextureLayer),
+		FUNCTION(FrontFace),
+		FUNCTION(GenBuffers),
+		FUNCTION(GenFencesNV),
+		FUNCTION(GenFramebuffers),
+		FUNCTION(GenFramebuffersOES),
+		FUNCTION(GenQueries),
+		FUNCTION(GenQueriesEXT),
+		FUNCTION(GenRenderbuffers),
+		FUNCTION(GenRenderbuffersOES),
+		FUNCTION(GenSamplers),
+		FUNCTION(GenTextures),
+		FUNCTION(GenTransformFeedbacks),
+		FUNCTION(GenVertexArrays),
+		FUNCTION(GenVertexArraysOES),
+		FUNCTION(GenerateMipmap),
+		FUNCTION(GenerateMipmapOES),
+		FUNCTION(GetActiveAttrib),
+		FUNCTION(GetActiveUniform),
+		FUNCTION(GetActiveUniformBlockName),
+		FUNCTION(GetActiveUniformBlockiv),
+		FUNCTION(GetActiveUniformsiv),
+		FUNCTION(GetAttachedShaders),
+		FUNCTION(GetAttribLocation),
+		FUNCTION(GetBooleanv),
+		FUNCTION(GetBufferParameteri64v),
+		FUNCTION(GetBufferParameteriv),
+		FUNCTION(GetBufferPointerv),
+		FUNCTION(GetError),
+		FUNCTION(GetFenceivNV),
+		FUNCTION(GetFloatv),
+		FUNCTION(GetFragDataLocation),
+		FUNCTION(GetFramebufferAttachmentParameteriv),
+		FUNCTION(GetFramebufferAttachmentParameterivOES),
+		FUNCTION(GetGraphicsResetStatusEXT),
+		FUNCTION(GetInteger64i_v),
+		FUNCTION(GetInteger64v),
+		FUNCTION(GetIntegeri_v),
+		FUNCTION(GetIntegerv),
+		FUNCTION(GetInternalformativ),
+		FUNCTION(GetProgramBinary),
+		FUNCTION(GetProgramInfoLog),
+		FUNCTION(GetProgramiv),
+		FUNCTION(GetQueryObjectuiv),
+		FUNCTION(GetQueryObjectuivEXT),
+		FUNCTION(GetQueryiv),
+		FUNCTION(GetQueryivEXT),
+		FUNCTION(GetRenderbufferParameteriv),
+		FUNCTION(GetRenderbufferParameterivOES),
+		FUNCTION(GetSamplerParameterfv),
+		FUNCTION(GetSamplerParameteriv),
+		FUNCTION(GetShaderInfoLog),
+		FUNCTION(GetShaderPrecisionFormat),
+		FUNCTION(GetShaderSource),
+		FUNCTION(GetShaderiv),
+		FUNCTION(GetString),
+		FUNCTION(GetStringi),
+		FUNCTION(GetSynciv),
+		FUNCTION(GetTexParameterfv),
+		FUNCTION(GetTexParameteriv),
+		FUNCTION(GetTransformFeedbackVarying),
+		FUNCTION(GetUniformBlockIndex),
+		FUNCTION(GetUniformIndices),
+		FUNCTION(GetUniformLocation),
+		FUNCTION(GetUniformfv),
+		FUNCTION(GetUniformiv),
+		FUNCTION(GetUniformuiv),
+		FUNCTION(GetVertexAttribIiv),
+		FUNCTION(GetVertexAttribIuiv),
+		FUNCTION(GetVertexAttribPointerv),
+		FUNCTION(GetVertexAttribfv),
+		FUNCTION(GetVertexAttribiv),
+		FUNCTION(GetnUniformfvEXT),
+		FUNCTION(GetnUniformivEXT),
+		FUNCTION(Hint),
+		FUNCTION(InvalidateFramebuffer),
+		FUNCTION(InvalidateSubFramebuffer),
+		FUNCTION(IsBuffer),
+		FUNCTION(IsEnabled),
+		FUNCTION(IsFenceNV),
+		FUNCTION(IsFramebuffer),
+		FUNCTION(IsFramebufferOES),
+		FUNCTION(IsProgram),
+		FUNCTION(IsQuery),
+		FUNCTION(IsQueryEXT),
+		FUNCTION(IsRenderbuffer),
+		FUNCTION(IsRenderbufferOES),
+		FUNCTION(IsSampler),
+		FUNCTION(IsShader),
+		FUNCTION(IsSync),
+		FUNCTION(IsTexture),
+		FUNCTION(IsTransformFeedback),
+		FUNCTION(IsVertexArray),
+		FUNCTION(IsVertexArrayOES),
+		FUNCTION(LineWidth),
+		FUNCTION(LinkProgram),
+		FUNCTION(MapBufferRange),
+		FUNCTION(PauseTransformFeedback),
+		FUNCTION(PixelStorei),
+		FUNCTION(PolygonOffset),
+		FUNCTION(ProgramBinary),
+		FUNCTION(ProgramParameteri),
+		FUNCTION(ReadBuffer),
+		FUNCTION(ReadPixels),
+		FUNCTION(ReadnPixelsEXT),
+		FUNCTION(ReleaseShaderCompiler),
+		FUNCTION(RenderbufferStorage),
+		FUNCTION(RenderbufferStorageMultisample),
+		FUNCTION(RenderbufferStorageMultisampleANGLE),
+		FUNCTION(RenderbufferStorageOES),
+		FUNCTION(ResumeTransformFeedback),
+		FUNCTION(SampleCoverage),
+		FUNCTION(SamplerParameterf),
+		FUNCTION(SamplerParameterfv),
+		FUNCTION(SamplerParameteri),
+		FUNCTION(SamplerParameteriv),
+		FUNCTION(Scissor),
+		FUNCTION(SetFenceNV),
+		FUNCTION(ShaderBinary),
+		FUNCTION(ShaderSource),
+		FUNCTION(StencilFunc),
+		FUNCTION(StencilFuncSeparate),
+		FUNCTION(StencilMask),
+		FUNCTION(StencilMaskSeparate),
+		FUNCTION(StencilOp),
+		FUNCTION(StencilOpSeparate),
+		FUNCTION(TestFenceNV),
+		FUNCTION(TexImage2D),
+		FUNCTION(TexImage3D),
+		FUNCTION(TexImage3DOES),
+		FUNCTION(TexParameterf),
+		FUNCTION(TexParameterfv),
+		FUNCTION(TexParameteri),
+		FUNCTION(TexParameteriv),
+		FUNCTION(TexStorage2D),
+		FUNCTION(TexStorage3D),
+		FUNCTION(TexSubImage2D),
+		FUNCTION(TexSubImage3D),
+		FUNCTION(TransformFeedbackVaryings),
+		FUNCTION(Uniform1f),
+		FUNCTION(Uniform1fv),
+		FUNCTION(Uniform1i),
+		FUNCTION(Uniform1iv),
+		FUNCTION(Uniform1ui),
+		FUNCTION(Uniform1uiv),
+		FUNCTION(Uniform2f),
+		FUNCTION(Uniform2fv),
+		FUNCTION(Uniform2i),
+		FUNCTION(Uniform2iv),
+		FUNCTION(Uniform2ui),
+		FUNCTION(Uniform2uiv),
+		FUNCTION(Uniform3f),
+		FUNCTION(Uniform3fv),
+		FUNCTION(Uniform3i),
+		FUNCTION(Uniform3iv),
+		FUNCTION(Uniform3ui),
+		FUNCTION(Uniform3uiv),
+		FUNCTION(Uniform4f),
+		FUNCTION(Uniform4fv),
+		FUNCTION(Uniform4i),
+		FUNCTION(Uniform4iv),
+		FUNCTION(Uniform4ui),
+		FUNCTION(Uniform4uiv),
+		FUNCTION(UniformBlockBinding),
+		FUNCTION(UniformMatrix2fv),
+		FUNCTION(UniformMatrix2x3fv),
+		FUNCTION(UniformMatrix2x4fv),
+		FUNCTION(UniformMatrix3fv),
+		FUNCTION(UniformMatrix3x2fv),
+		FUNCTION(UniformMatrix3x4fv),
+		FUNCTION(UniformMatrix4fv),
+		FUNCTION(UniformMatrix4x2fv),
+		FUNCTION(UniformMatrix4x3fv),
+		FUNCTION(UnmapBuffer),
+		FUNCTION(UseProgram),
+		FUNCTION(ValidateProgram),
+		FUNCTION(VertexAttrib1f),
+		FUNCTION(VertexAttrib1fv),
+		FUNCTION(VertexAttrib2f),
+		FUNCTION(VertexAttrib2fv),
+		FUNCTION(VertexAttrib3f),
+		FUNCTION(VertexAttrib3fv),
+		FUNCTION(VertexAttrib4f),
+		FUNCTION(VertexAttrib4fv),
+		FUNCTION(VertexAttribDivisor),
+		FUNCTION(VertexAttribDivisorANGLE),
+		FUNCTION(VertexAttribDivisorEXT),
+		FUNCTION(VertexAttribI4i),
+		FUNCTION(VertexAttribI4iv),
+		FUNCTION(VertexAttribI4ui),
+		FUNCTION(VertexAttribI4uiv),
+		FUNCTION(VertexAttribIPointer),
+		FUNCTION(VertexAttribPointer),
+		FUNCTION(Viewport),
+		FUNCTION(WaitSync),
 
 		#undef FUNCTION
 	};
