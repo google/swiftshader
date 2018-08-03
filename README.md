@@ -2,7 +2,28 @@
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) [![Build Status](https://travis-ci.org/google/swiftshader.svg?branch=master)](https://travis-ci.org/google/swiftshader) [![Build status](https://ci.appveyor.com/api/projects/status/yrmyvb34j22jg1uj?svg=true)](https://ci.appveyor.com/project/c0d1f1ed/swiftshader)
 
+Introduction
+------------
+
 SwiftShader is a high-performance CPU-based implementation of the OpenGL ES and Direct3D 9 graphics APIs<sup>1</sup><sup>2</sup>. Its goal is to provide hardware independence for advanced 3D graphics.
+
+Building
+--------
+
+SwiftShader libraries can be built for Windows, Linux, and Mac OS X.  
+Android and Chrome (OS) build environments are also supported.
+
+* **Visual Studio**
+  
+  On Windows, open the [SwiftShader.sln](SwiftShader.sln) file using [Visual Studio Community](https://visualstudio.microsoft.com/vs/community/) or compatible version, and build the solution. Output DLLs will be placed in the _lib_ subfolder. Sample executables such as _OGLES3ColourGrading_ can be found under the Tests solution folder and can be run from the IDE.
+
+* **CMake**
+
+  [Install CMake](https://cmake.org/download/) for Linux, Mac OS X, or Windows and use either [the IDE](https://cmake.org/runningcmake/) or run the following terminal commands:
+
+      mkdir build && cd build
+      cmake ..
+      make --jobs=8
 
 Usage
 -----
@@ -10,8 +31,6 @@ Usage
 The SwiftShader libraries act as drop-in replacements for graphics drivers.
 
 On Windows, most applications can be made to use SwiftShader's DLLs by placing them in the same folder as the executable. On Linux, the LD\_LIBRARY\_PATH environment variable or -rpath linker option can be used to direct applications to search for shared libraries in the indicated directory first.
-
-Prebuilt binaries can be found at: https://goo.gl/5MOcdb
 
 Contributing
 ------------
@@ -32,9 +51,16 @@ https://gerrit-review.googlesource.com/tools/hooks/commit-msg. To clone the repo
 
     git clone https://swiftshader.googlesource.com/SwiftShader && (cd SwiftShader && curl -Lo `git rev-parse --git-dir`/hooks/commit-msg https://gerrit-review.googlesource.com/tools/hooks/commit-msg ; chmod +x `git rev-parse --git-dir`/hooks/commit-msg)
 
-Changes are uploaded to Gerrit by performing:
+Changes are uploaded to Gerrit by executing:
 
     git push origin HEAD:refs/for/master
+
+Testing
+-------
+
+SwiftShader's OpenGL ES implementation can be tested using the [dEQP](https://source.android.com/devices/graphics/testing) test suite.
+
+See [docs/dEQP.md](docs/dEQP.md) for details.
 
 Third-Party Dependencies
 ------------------------
@@ -61,7 +87,7 @@ Contact
 
 Public mailing list: [swiftshader@googlegroups.com](https://groups.google.com/forum/#!forum/swiftshader)
 
-General bug tracker:  https://issuetracker.google.com/issues?q=componentid:408190
+General bug tracker:  https://issuetracker.google.com/issues?q=componentid:408190  
 Chrome specific bugs: https://bugs.chromium.org/p/swiftshader
 
 License

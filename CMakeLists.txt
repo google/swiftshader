@@ -81,6 +81,19 @@ endif()
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 ###########################################################
+# Initialize submodules
+###########################################################
+
+if(NOT EXISTS ${CMAKE_SOURCE_DIR}/third_party/googletest)
+    message(WARNING "
+  third_party/googletest submodule missing.
+  Running 'git submodule update --init' to download it:
+    ")
+
+    execute_process(COMMAND git submodule update --init)
+endif()
+
+###########################################################
 # Convenience macros
 ###########################################################
 
