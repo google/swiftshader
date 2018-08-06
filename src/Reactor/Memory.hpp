@@ -12,36 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "Routine.hpp"
+#ifndef rr_Memory_hpp
+#define rr_Memory_hpp
 
-#include "Thread.hpp"
-
-#include <cassert>
+#include <stddef.h>
+#include <stdint.h>
 
 namespace rr
 {
-	Routine::Routine()
-	{
-		bindCount = 0;
-	}
+size_t memoryPageSize();
 
-	void Routine::bind()
-	{
-		atomicIncrement(&bindCount);
-	}
+void *allocate(size_t bytes, size_t alignment = 16);
+void deallocate(void *memory);
 
-	void Routine::unbind()
-	{
-		long count = atomicDecrement(&bindCount);
+void *allocateExecutable(size_t bytes);   // Allocates memory that can be made executable using markExecutable()
+void markExecutable(void *memory, size_t bytes);
+void deallocateExecutable(void *memory, size_t bytes);
 
-		if(count == 0)
-		{
-			delete this;
-		}
-	}
-
-	Routine::~Routine()
-	{
-		assert(bindCount == 0);
-	}
+void clear(uint16_t *memory, uint16_t element, size_t count);
+void clear(uint32_t *memory, uint32_t element, size_t count);
 }
+
+#endif   // rr_Memory_hpp

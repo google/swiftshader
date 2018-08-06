@@ -21,7 +21,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{CF8EBC89-8762-49DC-9440-6C82B3499913}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>unittests</RootNamespace>
+    <RootNamespace>GLESUnitTests</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />

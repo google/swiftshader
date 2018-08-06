@@ -60,17 +60,22 @@ COMMON_SRC_FILES += \
 	Main/FrameBufferAndroid.cpp \
 	Main/SwiftConfig.cpp
 
+COMMON_SRC_FILES += \
+	Reactor/Routine.cpp \
+	Reactor/Debug.cpp \
+	Reactor/DebugAndroid.cpp \
+	Reactor/Memory.cpp
+
 ifdef SWIFTSHADER_USE_SUBZERO
 COMMON_SRC_FILES += \
 	Reactor/SubzeroReactor.cpp \
-	Reactor/Routine.cpp \
 	Reactor/Optimizer.cpp
 else
 COMMON_SRC_FILES += \
 	Reactor/LLVMReactor.cpp \
-	Reactor/Routine.cpp \
 	Reactor/LLVMRoutine.cpp \
-	Reactor/LLVMRoutineManager.cpp
+	Reactor/LLVMRoutineManager.cpp \
+	Reactor/CPUID.cpp
 endif
 
 COMMON_SRC_FILES += \

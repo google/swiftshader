@@ -15,8 +15,7 @@
 #include "Reactor.hpp"
 
 #include "Optimizer.hpp"
-
-#include "Common/Memory.hpp"
+#include "Memory.hpp"
 
 #include "src/IceTypes.h"
 #include "src/IceCfg.h"
@@ -49,7 +48,7 @@
 #endif
 #endif
 
-//#include <mutex>
+#include <mutex>
 #include <limits>
 #include <iostream>
 #include <cassert>
@@ -427,12 +426,12 @@ namespace rr
 
 		T *allocate(size_type n)
 		{
-			return (T*)sw::allocateExecutable(sizeof(T) * n);
+			return (T*)allocateExecutable(sizeof(T) * n);
 		}
 
 		void deallocate(T *p, size_type n)
 		{
-			sw::deallocateExecutable(p, sizeof(T) * n);
+			deallocateExecutable(p, sizeof(T) * n);
 		}
 	};
 

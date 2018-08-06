@@ -18,9 +18,9 @@
 
 #include "LLVMRoutine.hpp"
 #include "llvm/Function.h"
-#include "Common/Memory.hpp"
-#include "Common/Thread.hpp"
-#include "Common/Debug.hpp"
+#include "Memory.hpp"
+#include "Thread.hpp"
+#include "Debug.hpp"
 
 namespace rr
 {
@@ -63,11 +63,11 @@ namespace rr
 		}
 		else   // Estimate was too low
 		{
-			sw::atomicIncrement(&averageInstructionSize);
+			atomicIncrement(&averageInstructionSize);
 		}
 
 		// Round up to the next page size
-		size_t pageSize = sw::memoryPageSize();
+		size_t pageSize = memoryPageSize();
 		actualSize = (actualSize + pageSize - 1) & ~(pageSize - 1);
 
 		delete routine;
@@ -130,7 +130,7 @@ namespace rr
 
 	void LLVMRoutineManager::setMemoryExecutable()
 	{
-		sw::markExecutable(routine->buffer, routine->bufferSize);
+		markExecutable(routine->buffer, routine->bufferSize);
 	}
 
 	void LLVMRoutineManager::setPoisonMemory(bool poison)

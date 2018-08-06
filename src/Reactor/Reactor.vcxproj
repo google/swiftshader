@@ -277,17 +277,27 @@
     </ProjectReference>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CPUID.cpp" />
+    <ClCompile Include="Debug.cpp" />
     <ClCompile Include="LLVMRoutine.cpp" />
     <ClCompile Include="LLVMRoutineManager.cpp" />
     <ClCompile Include="LLVMReactor.cpp" />
+    <ClCompile Include="Memory.cpp" />
     <ClCompile Include="Routine.cpp" />
+    <ClCompile Include="Thread.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CPUID.hpp" />
+    <ClInclude Include="Debug.hpp" />
     <ClInclude Include="LLVMRoutine.hpp" />
     <ClInclude Include="LLVMRoutineManager.hpp" />
+    <ClInclude Include="Memory.hpp" />
+    <ClInclude Include="MutexLock.hpp" />
     <ClInclude Include="Nucleus.hpp" />
     <ClInclude Include="Reactor.hpp" />
     <ClInclude Include="Routine.hpp" />
+    <ClInclude Include="Thread.hpp" />
+    <ClInclude Include="Types.hpp" />
     <ClInclude Include="x86.hpp" />
   </ItemGroup>
   <ItemGroup>

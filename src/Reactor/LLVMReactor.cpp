@@ -14,6 +14,15 @@
 
 #include "Reactor.hpp"
 
+#include "x86.hpp"
+#include "CPUID.hpp"
+#include "Thread.hpp"
+#include "Memory.hpp"
+#include "MutexLock.hpp"
+
+#undef min
+#undef max
+
 #if SWIFTSHADER_LLVM_VERSION < 7
 	#include "llvm/Analysis/LoopPass.h"
 	#include "llvm/Constants.h"
@@ -69,12 +78,6 @@
 	#include <unordered_map>
 #endif
 
-#include "x86.hpp"
-#include "Common/CPUID.hpp"
-#include "Common/Thread.hpp"
-#include "Common/Memory.hpp"
-#include "Common/MutexLock.hpp"
-
 #include <numeric>
 #include <fstream>
 
@@ -120,7 +123,7 @@ namespace
 	llvm::Module *module = nullptr;
 	llvm::Function *function = nullptr;
 
-	sw::MutexLock codegenMutex;
+	rr::MutexLock codegenMutex;
 
 #if SWIFTSHADER_LLVM_VERSION >= 7
 	llvm::Value *lowerPAVG(llvm::Value *x, llvm::Value *y)
@@ -443,8 +446,6 @@ namespace
 
 namespace rr
 {
-	using namespace sw;
-
 #if SWIFTSHADER_LLVM_VERSION < 7
 	class LLVMReactorJIT
 	{

@@ -33,7 +33,7 @@ int reference(int *p, int y)
 	return sum;
 }
 
-TEST(SubzeroReactorTest, Sample)
+TEST(ReactorUnitTests, Sample)
 {
 	Routine *routine = nullptr;
 
@@ -73,7 +73,7 @@ TEST(SubzeroReactorTest, Sample)
 	delete routine;
 }
 
-TEST(SubzeroReactorTest, Uninitialized)
+TEST(ReactorUnitTests, Uninitialized)
 {
 	Routine *routine = nullptr;
 
@@ -110,7 +110,7 @@ TEST(SubzeroReactorTest, Uninitialized)
 	delete routine;
 }
 
-TEST(SubzeroReactorTest, SubVectorLoadStore)
+TEST(ReactorUnitTests, SubVectorLoadStore)
 {
 	Routine *routine = nullptr;
 
@@ -170,7 +170,7 @@ TEST(SubzeroReactorTest, SubVectorLoadStore)
 	delete routine;
 }
 
-TEST(SubzeroReactorTest, VectorConstant)
+TEST(ReactorUnitTests, VectorConstant)
 {
 	Routine *routine = nullptr;
 
@@ -219,7 +219,7 @@ TEST(SubzeroReactorTest, VectorConstant)
 	delete routine;
 }
 
-TEST(SubzeroReactorTest, Concatenate)
+TEST(ReactorUnitTests, Concatenate)
 {
 	Routine *routine = nullptr;
 
@@ -262,7 +262,7 @@ TEST(SubzeroReactorTest, Concatenate)
 	delete routine;
 }
 
-TEST(SubzeroReactorTest, Swizzle)
+TEST(ReactorUnitTests, Swizzle)
 {
 	Routine *routine = nullptr;
 
@@ -389,7 +389,7 @@ TEST(SubzeroReactorTest, Swizzle)
 	delete routine;
 }
 
-TEST(SubzeroReactorTest, Branching)
+TEST(ReactorUnitTests, Branching)
 {
 	Routine *routine = nullptr;
 
@@ -454,7 +454,7 @@ TEST(SubzeroReactorTest, Branching)
 	delete routine;
 }
 
-TEST(SubzeroReactorTest, MinMax)
+TEST(ReactorUnitTests, MinMax)
 {
 	Routine *routine = nullptr;
 
@@ -545,7 +545,7 @@ TEST(SubzeroReactorTest, MinMax)
 	delete routine;
 }
 
-TEST(SubzeroReactorTest, NotNeg)
+TEST(ReactorUnitTests, NotNeg)
 {
 	Routine *routine = nullptr;
 
@@ -630,7 +630,7 @@ TEST(SubzeroReactorTest, NotNeg)
 	delete routine;
 }
 
-TEST(SubzeroReactorTest, VectorCompare)
+TEST(ReactorUnitTests, VectorCompare)
 {
 	Routine *routine = nullptr;
 
@@ -692,7 +692,7 @@ TEST(SubzeroReactorTest, VectorCompare)
 	delete routine;
 }
 
-TEST(SubzeroReactorTest, SaturatedAddAndSubtract)
+TEST(ReactorUnitTests, SaturatedAddAndSubtract)
 {
 	Routine *routine = nullptr;
 
@@ -805,7 +805,7 @@ TEST(SubzeroReactorTest, SaturatedAddAndSubtract)
 	delete routine;
 }
 
-TEST(SubzeroReactorTest, Unpack)
+TEST(ReactorUnitTests, Unpack)
 {
 	Routine *routine = nullptr;
 
@@ -852,7 +852,7 @@ TEST(SubzeroReactorTest, Unpack)
 	delete routine;
 }
 
-TEST(SubzeroReactorTest, Pack)
+TEST(ReactorUnitTests, Pack)
 {
 	Routine *routine = nullptr;
 
@@ -914,7 +914,7 @@ TEST(SubzeroReactorTest, Pack)
 	delete routine;
 }
 
-TEST(SubzeroReactorTest, MulHigh)
+TEST(ReactorUnitTests, MulHigh)
 {
 	Routine *routine = nullptr;
 
@@ -956,7 +956,7 @@ TEST(SubzeroReactorTest, MulHigh)
 	delete routine;
 }
 
-TEST(SubzeroReactorTest, MulAdd)
+TEST(ReactorUnitTests, MulAdd)
 {
 	Routine *routine = nullptr;
 

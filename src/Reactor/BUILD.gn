@@ -267,6 +267,8 @@ swiftshader_source_set("swiftshader_reactor") {
 
   sources = [
     "Routine.cpp",
+    "Debug.cpp",
+    "Memory.cpp",
   ]
 
   if (use_swiftshader_with_subzero) {
@@ -283,7 +285,6 @@ swiftshader_source_set("swiftshader_reactor") {
     ]
 
     include_dirs = [
-      "..",
     ]
   } else {
     deps += [ "../../third_party/LLVM:swiftshader_llvm" ]
@@ -292,13 +293,12 @@ swiftshader_source_set("swiftshader_reactor") {
       "LLVMReactor.cpp",
       "LLVMRoutine.cpp",
       "LLVMRoutineManager.cpp",
+      "CPUID.cpp",
     ]
 
     configs = [ ":swiftshader_reactor_private_config" ]
 
     include_dirs = [
-      "..",
-      "../Common",
       "../../third_party/LLVM/include/",
     ]
   }

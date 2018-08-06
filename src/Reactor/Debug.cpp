@@ -12,36 +12,28 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "Routine.hpp"
+#include "Debug.hpp"
 
-#include "Thread.hpp"
-
-#include <cassert>
+#include <stdio.h>
+#include <stdarg.h>
 
 namespace rr
 {
-	Routine::Routine()
+void trace(const char *format, ...)
+{
+	if(false)
 	{
-		bindCount = 0;
-	}
+		FILE *file = fopen("debug.txt", "a");
 
-	void Routine::bind()
-	{
-		atomicIncrement(&bindCount);
-	}
-
-	void Routine::unbind()
-	{
-		long count = atomicDecrement(&bindCount);
-
-		if(count == 0)
+		if(file)
 		{
-			delete this;
+			va_list vararg;
+			va_start(vararg, format);
+			vfprintf(file, format, vararg);
+			va_end(vararg);
+
+			fclose(file);
 		}
 	}
-
-	Routine::~Routine()
-	{
-		assert(bindCount == 0);
-	}
+}
 }
