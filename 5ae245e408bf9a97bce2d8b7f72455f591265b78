@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4e9a60a3_fc4e9007",
+        "filename": "src/OpenGL/libEGL/libEGL.lds",
+        "patchSetId": 4
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2018-08-06T14:41:58Z",
+      "side": 1,
+      "message": "Nit: indentation is different",
+      "range": {
+        "startLine": 38,
+        "startChar": 0,
+        "endLine": 48,
+        "endChar": 12
+      },
+      "revId": "5ae245e408bf9a97bce2d8b7f72455f591265b78",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
