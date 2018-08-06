@@ -22,7 +22,7 @@
 #include "Common/Thread.hpp"
 #include "Common/Debug.hpp"
 
-namespace sw
+namespace rr
 {
 	using namespace llvm;
 
@@ -67,7 +67,7 @@ namespace sw
 		}
 
 		// Round up to the next page size
-		size_t pageSize = memoryPageSize();
+		size_t pageSize = sw::memoryPageSize();
 		actualSize = (actualSize + pageSize - 1) & ~(pageSize - 1);
 
 		delete routine;
@@ -130,7 +130,7 @@ namespace sw
 
 	void LLVMRoutineManager::setMemoryExecutable()
 	{
-		markExecutable(routine->buffer, routine->bufferSize);
+		sw::markExecutable(routine->buffer, routine->bufferSize);
 	}
 
 	void LLVMRoutineManager::setPoisonMemory(bool poison)

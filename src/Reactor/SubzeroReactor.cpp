@@ -60,7 +60,7 @@ namespace
 	Ice::Cfg *function = nullptr;
 	Ice::CfgNode *basicBlock = nullptr;
 	Ice::CfgLocalAllocatorScope *allocator = nullptr;
-	sw::Routine *routine = nullptr;
+	rr::Routine *routine = nullptr;
 
 	std::mutex codegenMutex;
 
@@ -130,7 +130,7 @@ namespace
 	const bool emulateMismatchedBitCast = CPUID::ARM;
 }
 
-namespace sw
+namespace rr
 {
 	enum EmulatedType
 	{
@@ -427,12 +427,12 @@ namespace sw
 
 		T *allocate(size_type n)
 		{
-			return (T*)allocateExecutable(sizeof(T) * n);
+			return (T*)sw::allocateExecutable(sizeof(T) * n);
 		}
 
 		void deallocate(T *p, size_type n)
 		{
-			deallocateExecutable(p, sizeof(T) * n);
+			sw::deallocateExecutable(p, sizeof(T) * n);
 		}
 	};
 
@@ -612,7 +612,7 @@ namespace sw
 
 	void Nucleus::optimize()
 	{
-		sw::optimize(::function);
+		rr::optimize(::function);
 	}
 
 	Value *Nucleus::allocateStackVariable(Type *t, int arraySize)

@@ -21,6 +21,8 @@
 
 namespace sw
 {
+	using namespace rr;
+
 	template<class State>
 	class RoutineCache : public LRUCache<State, Routine>
 	{

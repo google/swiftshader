@@ -21,11 +21,13 @@
 
 namespace sw
 {
+	using namespace rr;
+
 	template<class State>
 	class RoutineCache : public LRUCache<State, Routine>
 	{
 	public:
-		RoutineCache(int n, const char *precache = 0);
+		RoutineCache(int n, const char *precache = nullptr);
 		~RoutineCache();
 
 	private:

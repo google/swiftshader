@@ -172,7 +172,7 @@ namespace sw
 	using MutexLock = BackoffLock;
 }
 
-#endif   // !__ANDROID__
+#endif   // !__linux__
 
 class LockGuard
 {

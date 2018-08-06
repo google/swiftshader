@@ -48,7 +48,7 @@ namespace sw
 			bool enableSSE3;
 			bool enableSSSE3;
 			bool enableSSE4_1;
-			Optimization optimization[10];
+			rr::Optimization optimization[10];
 			bool disableServer;
 			bool keepSystemCursor;
 			bool forceWindowed;

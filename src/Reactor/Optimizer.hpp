@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef sw_Optimizer_hpp
-#define sw_Optimizer_hpp
+#ifndef rr_Optimizer_hpp
+#define rr_Optimizer_hpp
 
 #include "src/IceCfg.h"
 
-namespace sw
+namespace rr
 {
 	void optimize(Ice::Cfg *function);
 }
 
-#endif   // sw_Optimizer_hpp
+#endif   // rr_Optimizer_hpp

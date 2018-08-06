@@ -107,14 +107,14 @@ namespace llvm
 }
 #endif
 
-namespace sw
+namespace rr
 {
 	class LLVMReactorJIT;
 }
 
 namespace
 {
-	sw::LLVMReactorJIT *reactorJIT = nullptr;
+	rr::LLVMReactorJIT *reactorJIT = nullptr;
 	llvm::IRBuilder<> *builder = nullptr;
 	llvm::LLVMContext *context = nullptr;
 	llvm::Module *module = nullptr;
@@ -441,24 +441,26 @@ namespace
 #endif  // SWIFTSHADER_LLVM_VERSION >= 7
 }
 
-namespace sw
+namespace rr
 {
+	using namespace sw;
+
 #if SWIFTSHADER_LLVM_VERSION < 7
 	class LLVMReactorJIT
 	{
 	private:
 		std::string arch;
 		llvm::SmallVector<std::string, 16> mattrs;
-		sw::LLVMRoutineManager *routineManager;
 		llvm::ExecutionEngine *executionEngine;
+		LLVMRoutineManager *routineManager;
 
 	public:
 		LLVMReactorJIT(const std::string &arch_,
 		               const llvm::SmallVectorImpl<std::string> &mattrs_) :
 			arch(arch_),
 			mattrs(mattrs_.begin(), mattrs_.end()),
-			routineManager(nullptr),
-			executionEngine(nullptr)
+			executionEngine(nullptr),
+			routineManager(nullptr)
 		{
 		}
 
@@ -6910,7 +6912,7 @@ namespace sw
 	}
 }
 
-namespace sw
+namespace rr
 {
 #if defined(__i386__) || defined(__x86_64__)
 	namespace x86

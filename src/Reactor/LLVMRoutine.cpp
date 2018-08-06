@@ -18,12 +18,12 @@
 #include "Common/Thread.hpp"
 #include "Common/Types.hpp"
 
-namespace sw
+namespace rr
 {
 #if SWIFTSHADER_LLVM_VERSION < 7
 	LLVMRoutine::LLVMRoutine(int bufferSize) : bufferSize(bufferSize)
 	{
-		void *memory = allocateExecutable(bufferSize);
+		void *memory = sw::allocateExecutable(bufferSize);
 
 		buffer = memory;
 		entry = memory;
@@ -32,7 +32,7 @@ namespace sw
 
 	LLVMRoutine::~LLVMRoutine()
 	{
-		deallocateExecutable(buffer, bufferSize);
+		sw::deallocateExecutable(buffer, bufferSize);
 	}
 
 	const void *LLVMRoutine::getEntry()

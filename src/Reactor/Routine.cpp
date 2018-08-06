@@ -18,7 +18,7 @@
 
 #include <cassert>
 
-namespace sw
+namespace rr
 {
 	Routine::Routine()
 	{
@@ -27,12 +27,12 @@ namespace sw
 
 	void Routine::bind()
 	{
-		atomicIncrement(&bindCount);
+		sw::atomicIncrement(&bindCount);
 	}
 
 	void Routine::unbind()
 	{
-		long count = atomicDecrement(&bindCount);
+		long count = sw::atomicDecrement(&bindCount);
 
 		if(count == 0)
 		{

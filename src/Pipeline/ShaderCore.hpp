@@ -21,6 +21,8 @@
 
 namespace sw
 {
+	using namespace rr;
+
 	class Vector4s
 	{
 	public:

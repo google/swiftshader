@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef sw_Routine_hpp
-#define sw_Routine_hpp
+#ifndef rr_Routine_hpp
+#define rr_Routine_hpp
 
-namespace sw
+namespace rr
 {
 	class Routine
 	{
@@ -35,4 +35,4 @@ namespace sw
 	};
 }
 
-#endif   // sw_Routine_hpp
+#endif   // rr_Routine_hpp

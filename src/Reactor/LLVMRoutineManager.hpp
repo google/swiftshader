@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef sw_LLVMRoutineManager_hpp
-#define sw_LLVMRoutineManager_hpp
+#ifndef rr_LLVMRoutineManager_hpp
+#define rr_LLVMRoutineManager_hpp
 
 #if SWIFTSHADER_LLVM_VERSION < 7
 
 #include "llvm/ExecutionEngine/JITMemoryManager.h"
 #include "llvm/GlobalValue.h"
 
-namespace sw
+namespace rr
 {
 	class LLVMRoutine;
 
@@ -58,4 +58,4 @@ namespace sw
 
 #endif  // SWIFTSHADER_LLVM_VERSION < 7
 
-#endif   // sw_LLVMRoutineManager_hpp
+#endif   // rr_LLVMRoutineManager_hpp

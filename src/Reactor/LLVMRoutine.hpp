@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef sw_LLVMRoutine_hpp
-#define sw_LLVMRoutine_hpp
+#ifndef rr_LLVMRoutine_hpp
+#define rr_LLVMRoutine_hpp
 
 #include "Routine.hpp"
 
 #include <cstdint>
 
-namespace sw
+namespace rr
 {
 #if SWIFTSHADER_LLVM_VERSION < 7
 	class LLVMRoutineManager;
@@ -79,4 +79,4 @@ namespace sw
 #endif  // SWIFTSHADER_LLVM_VERSION < 7
 }
 
-#endif   // sw_LLVMRoutine_hpp
+#endif   // rr_LLVMRoutine_hpp

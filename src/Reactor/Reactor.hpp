@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef sw_Reactor_hpp
-#define sw_Reactor_hpp
+#ifndef rr_Reactor_hpp
+#define rr_Reactor_hpp
 
 #include "Nucleus.hpp"
 #include "Routine.hpp"
@@ -23,7 +23,7 @@
 #include <cwchar>
 #undef Bool
 
-namespace sw
+namespace rr
 {
 	class Bool;
 	class Byte;
@@ -2268,7 +2268,7 @@ namespace sw
 	RValue<Long> Ticks();
 }
 
-namespace sw
+namespace rr
 {
 	template<class T>
 	LValue<T>::LValue(int arraySize)
@@ -2944,4 +2944,4 @@ namespace sw
 	else   // ELSE_BLOCK__
 }
 
-#endif   // sw_Reactor_hpp
+#endif   // rr_Reactor_hpp

@@ -652,7 +652,7 @@ namespace sw
 			}
 			else if(sscanf(post, "optimization%d=%d", &index, &integer))
 			{
-				config.optimization[index - 1] = (Optimization)integer;
+				config.optimization[index - 1] = (rr::Optimization)integer;
 			}
 			else if(strstr(post, "disableServer=on"))
 			{
@@ -739,7 +739,7 @@ namespace sw
 
 		for(int pass = 0; pass < 10; pass++)
 		{
-			config.optimization[pass] = (Optimization)ini.getInteger("Optimization", "OptimizationPass" + itoa(pass + 1), pass == 0 ? InstructionCombining : Disabled);
+			config.optimization[pass] = (rr::Optimization)ini.getInteger("Optimization", "OptimizationPass" + itoa(pass + 1), pass == 0 ? rr::InstructionCombining : rr::Disabled);
 		}
 
 		config.disableServer = ini.getBoolean("Testing", "DisableServer", false);
