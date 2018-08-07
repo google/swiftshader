@@ -115,7 +115,7 @@ public:
 		attrib.push_back(EGL_NONE);
 	}
 
-	operator const EGLAttrib*() const
+	const EGLAttrib *operator&() const
 	{
 		return &attrib[0];
 	}
@@ -356,7 +356,7 @@ EGLSurface CreatePlatformWindowSurfaceEXT(EGLDisplay dpy, EGLConfig config, void
 	      "const EGLint *attrib_list = %p)", dpy, config, native_window, attrib_list);
 
 	EGLAttribs attribs(attrib_list);
-	return CreatePlatformWindowSurface(dpy, config, native_window, attribs);
+	return CreatePlatformWindowSurface(dpy, config, native_window, &attribs);
 }
 
 EGLSurface CreateWindowSurface(EGLDisplay dpy, EGLConfig config, EGLNativeWindowType window, const EGLint *attrib_list)
@@ -365,7 +365,7 @@ EGLSurface CreateWindowSurface(EGLDisplay dpy, EGLConfig config, EGLNativeWindow
 	      "const EGLint *attrib_list = %p)", dpy, config, window, attrib_list);
 
 	EGLAttribs attribs(attrib_list);
-	return CreatePlatformWindowSurface(dpy, config, (void*)window, attribs);
+	return CreatePlatformWindowSurface(dpy, config, (void*)window, &attribs);
 }
 
 EGLSurface CreatePbufferSurface(EGLDisplay dpy, EGLConfig config, const EGLint *attrib_list)
@@ -406,7 +406,7 @@ EGLSurface CreatePlatformPixmapSurfaceEXT(EGLDisplay dpy, EGLConfig config, void
 	      "const EGLint *attrib_list = %p)", dpy, config, native_pixmap, attrib_list);
 
 	EGLAttribs attribs(attrib_list);
-	return CreatePlatformPixmapSurface(dpy, config, native_pixmap, attribs);
+	return CreatePlatformPixmapSurface(dpy, config, native_pixmap, &attribs);
 }
 
 EGLSurface CreatePixmapSurface(EGLDisplay dpy, EGLConfig config, EGLNativePixmapType pixmap, const EGLint *attrib_list)
@@ -415,7 +415,7 @@ EGLSurface CreatePixmapSurface(EGLDisplay dpy, EGLConfig config, EGLNativePixmap
 	      "const EGLint *attrib_list = %p)", dpy, config, pixmap, attrib_list);
 
 	EGLAttribs attribs(attrib_list);
-	return CreatePlatformPixmapSurface(dpy, config, (void*)pixmap, attribs);
+	return CreatePlatformPixmapSurface(dpy, config, (void*)pixmap, &attribs);
 }
 
 EGLBoolean DestroySurface(EGLDisplay dpy, EGLSurface surface)
@@ -1219,7 +1219,7 @@ EGLImageKHR CreateImageKHR(EGLDisplay dpy, EGLContext ctx, EGLenum target, EGLCl
 	TRACE("(EGLDisplay dpy = %p, EGLContext ctx = %p, EGLenum target = 0x%X, buffer = %p, const EGLint attrib_list = %p)", dpy, ctx, target, buffer, attrib_list);
 
 	EGLAttribs attribs(attrib_list);
-	return CreateImage(dpy, ctx, target, buffer, attribs);
+	return CreateImage(dpy, ctx, target, buffer, &attribs);
 }
 
 EGLBoolean DestroyImageKHR(EGLDisplay dpy, EGLImageKHR image)
@@ -1259,17 +1259,27 @@ EGLDisplay GetPlatformDisplay(EGLenum platform, void *native_display, const EGLA
 		{
 			if(!libX11)
 			{
-				return error(EGL_BAD_ATTRIBUTE, EGL_NO_DISPLAY);
+				return error(EGL_BAD_PARAMETER, EGL_NO_DISPLAY);
 			}
 
-			if(native_display != (void*)EGL_DEFAULT_DISPLAY || attrib_list != NULL)
+			if(native_display != (void*)EGL_DEFAULT_DISPLAY)
+			{
+				return error(EGL_BAD_PARAMETER, EGL_NO_DISPLAY);   // Unimplemented
+			}
+
+			if(attrib_list && attrib_list[0] != EGL_NONE)
 			{
 				return error(EGL_BAD_ATTRIBUTE, EGL_NO_DISPLAY);   // Unimplemented
 			}
 		}
 		else if(platform == EGL_PLATFORM_GBM_KHR)
 		{
-			if(native_display != (void*)EGL_DEFAULT_DISPLAY || attrib_list != NULL)
+			if(native_display != (void*)EGL_DEFAULT_DISPLAY)
+			{
+				return error(EGL_BAD_PARAMETER, EGL_NO_DISPLAY);   // Unimplemented
+			}
+
+			if(attrib_list && attrib_list[0] != EGL_NONE)
 			{
 				return error(EGL_BAD_ATTRIBUTE, EGL_NO_DISPLAY);   // Unimplemented
 			}
@@ -1288,7 +1298,7 @@ EGLDisplay GetPlatformDisplayEXT(EGLenum platform, void *native_display, const E
 	TRACE("(EGLenum platform = 0x%X, void *native_display = %p, const EGLint *attrib_list = %p)", platform, native_display, attrib_list);
 
 	EGLAttribs attribs(attrib_list);
-	return GetPlatformDisplay(platform, native_display, attribs);
+	return GetPlatformDisplay(platform, native_display, &attribs);
 }
 
 EGLSync CreateSync(EGLDisplay dpy, EGLenum type, const EGLAttrib *attrib_list)
@@ -1329,7 +1339,7 @@ EGLSyncKHR CreateSyncKHR(EGLDisplay dpy, EGLenum type, const EGLint *attrib_list
 	TRACE("(EGLDisplay dpy = %p, EGLunum type = %x, EGLint *attrib_list=%p)", dpy, type, attrib_list);
 
 	EGLAttribs attribs(attrib_list);
-	return CreateSync(dpy, type, attribs);
+	return CreateSync(dpy, type, &attribs);
 }
 
 EGLBoolean DestroySyncKHR(EGLDisplay dpy, EGLSyncKHR sync)
