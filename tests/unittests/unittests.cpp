@@ -266,6 +266,8 @@ protected:
 		glGetProgramiv(ph.program, GL_LINK_STATUS, &linkStatus);
 		EXPECT_NE(linkStatus, 0);
 
+		EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+
 		return ph;
 	}
 
@@ -274,6 +276,8 @@ protected:
 		glDeleteShader(ph.fragmentShader);
 		glDeleteShader(ph.vertexShader);
 		glDeleteProgram(ph.program);
+
+		EXPECT_GLENUM_EQ(GL_NONE, glGetError());
 	}
 
 	void drawQuad(GLuint program, const char* textureName = nullptr)
@@ -411,8 +415,6 @@ TEST_F(SwiftShaderTest, DynamicLoop)
 {
 	Initialize(3, false);
 
-	unsigned char green[4] = { 0, 255, 0, 255 };
-
 	const std::string vs =
 		"#version 300 es\n"
 		"in vec4 position;\n"
@@ -464,6 +466,7 @@ TEST_F(SwiftShaderTest, DynamicLoop)
 
 	deleteProgram(ph);
 
+	unsigned char green[4] = { 0, 255, 0, 255 };
 	expectFramebufferColor(green);
 
 	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
@@ -475,8 +478,6 @@ TEST_F(SwiftShaderTest, DynamicLoop)
 TEST_F(SwiftShaderTest, DynamicIndexing)
 {
 	Initialize(3, false);
-
-	unsigned char green[4] = { 0, 255, 0, 255 };
 
 	const std::string vs =
 		"#version 300 es\n"
@@ -521,6 +522,160 @@ TEST_F(SwiftShaderTest, DynamicIndexing)
 
 	deleteProgram(ph);
 
+	unsigned char green[4] = { 0, 255, 0, 255 };
+	expectFramebufferColor(green);
+
+	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+
+	Uninitialize();
+}
+
+// Test vertex attribute location linking
+TEST_F(SwiftShaderTest, AttributeLocation)
+{
+	Initialize(3, false);
+
+	const std::string vs =
+		"#version 300 es\n"
+		"layout(location = 0) in vec4 a0;\n"   // Explicitly bound in GLSL
+		"layout(location = 2) in vec4 a2;\n"   // Explicitly bound in GLSL
+		"in vec4 a5;\n"                        // Bound to location 5 by API
+		"in mat2 a3;\n"                        // Implicit location
+		"in vec4 a1;\n"                        // Implicit location
+		"in vec4 a6;\n"                        // Implicit location
+		"out vec4 color;\n"
+		"void main()\n"
+		"{\n"
+		"   vec4 a34 = vec4(a3[0], a3[1]);\n"
+		"	gl_Position = a0;\n"
+		"   color = (a2 == vec4(1.0, 2.0, 3.0, 4.0) &&\n"
+		"            a34 == vec4(5.0, 6.0, 7.0, 8.0) &&\n"
+		"            a5 == vec4(9.0, 10.0, 11.0, 12.0) &&\n"
+		"            a1 == vec4(13.0, 14.0, 15.0, 16.0) &&\n"
+		"            a6 == vec4(17.0, 18.0, 19.0, 20.0)) ?\n"
+		"           vec4(0.0, 1.0, 0.0, 1.0) :\n"
+		"           vec4(1.0, 0.0, 0.0, 1.0);"
+		"}\n";
+
+	const std::string fs =
+		"#version 300 es\n"
+		"precision mediump float;\n"
+		"in vec4 color;\n"
+		"out vec4 fragColor;\n"
+		"void main()\n"
+		"{\n"
+		"	fragColor = color;\n"
+		"}\n";
+
+	ProgramHandles ph;
+	ph.program = glCreateProgram();
+	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+
+	ph.vertexShader = glCreateShader(GL_VERTEX_SHADER);
+	const char* vsSource[1] = { vs.c_str() };
+	glShaderSource(ph.vertexShader, 1, vsSource, nullptr);
+	glCompileShader(ph.vertexShader);
+	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	GLint vsCompileStatus = 0;
+	glGetShaderiv(ph.vertexShader, GL_COMPILE_STATUS, &vsCompileStatus);
+	EXPECT_EQ(vsCompileStatus, GL_TRUE);
+
+	ph.fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+	const char* fsSource[1] = { fs.c_str() };
+	glShaderSource(ph.fragmentShader, 1, fsSource, nullptr);
+	glCompileShader(ph.fragmentShader);
+	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+	GLint fsCompileStatus = 0;
+	glGetShaderiv(ph.fragmentShader, GL_COMPILE_STATUS, &fsCompileStatus);
+	EXPECT_EQ(fsCompileStatus, GL_TRUE);
+
+	// Not assigned a layout location in GLSL. Bind it explicitly with the API.
+	glBindAttribLocation(ph.program, 5, "a5");
+	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+
+	// Should not override GLSL layout location qualifier
+	glBindAttribLocation(ph.program, 8, "a2");
+	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+
+	glAttachShader(ph.program, ph.vertexShader);
+	glAttachShader(ph.program, ph.fragmentShader);
+	glLinkProgram(ph.program);
+	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+
+	// Changes after linking should have no effect
+	glBindAttribLocation(ph.program, 0, "a1");
+	glBindAttribLocation(ph.program, 6, "a2");
+	glBindAttribLocation(ph.program, 2, "a6");
+
+	GLint linkStatus = 0;
+	glGetProgramiv(ph.program, GL_LINK_STATUS, &linkStatus);
+	EXPECT_NE(linkStatus, 0);
+	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+
+	float vertices[18] = { -1.0f,  1.0f, 0.5f,
+	                       -1.0f, -1.0f, 0.5f,
+	                        1.0f, -1.0f, 0.5f,
+	                       -1.0f,  1.0f, 0.5f,
+	                        1.0f, -1.0f, 0.5f,
+	                        1.0f,  1.0f, 0.5f };
+
+	float attributes[5][4] = { 1.0f, 2.0f, 3.0f, 4.0f,
+	                           5.0f, 6.0f, 7.0f, 8.0f,
+	                           9.0f, 10.0f, 11.0f, 12.0f,
+	                           13.0f, 14.0f, 15.0f, 16.0f,
+	                           17.0f, 18.0f, 19.0f, 20.0f };
+
+	GLint a0 = glGetAttribLocation(ph.program, "a0");
+	EXPECT_EQ(a0, 0);
+	glVertexAttribPointer(a0, 3, GL_FLOAT, GL_FALSE, 0, vertices);
+	glEnableVertexAttribArray(a0);
+	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+
+	GLint a2 = glGetAttribLocation(ph.program, "a2");
+	EXPECT_EQ(a2, 2);
+	glVertexAttribPointer(a2, 4, GL_FLOAT, GL_FALSE, 0, attributes[0]);
+	glVertexAttribDivisor(a2, 1);
+	glEnableVertexAttribArray(a2);
+	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+
+	GLint a3 = glGetAttribLocation(ph.program, "a3");
+	EXPECT_EQ(a3, 3);   // Note: implementation specific
+	glVertexAttribPointer(a3 + 0, 2, GL_FLOAT, GL_FALSE, 0, &attributes[1][0]);
+	glVertexAttribPointer(a3 + 1, 2, GL_FLOAT, GL_FALSE, 0, &attributes[1][2]);
+	glVertexAttribDivisor(a3 + 0, 1);
+	glVertexAttribDivisor(a3 + 1, 1);
+	glEnableVertexAttribArray(a3 + 0);
+	glEnableVertexAttribArray(a3 + 1);
+	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+
+	GLint a5 = glGetAttribLocation(ph.program, "a5");
+	EXPECT_EQ(a5, 5);
+	glVertexAttribPointer(a5, 4, GL_FLOAT, GL_FALSE, 0, attributes[2]);
+	glVertexAttribDivisor(a5, 1);
+	glEnableVertexAttribArray(a5);
+	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+
+	GLint a1 = glGetAttribLocation(ph.program, "a1");
+	EXPECT_EQ(a1, 1);   // Note: implementation specific
+	glVertexAttribPointer(a1, 4, GL_FLOAT, GL_FALSE, 0, attributes[3]);
+	glVertexAttribDivisor(a1, 1);
+	glEnableVertexAttribArray(a1);
+	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+
+	GLint a6 = glGetAttribLocation(ph.program, "a6");
+	EXPECT_EQ(a6, 6);   // Note: implementation specific
+	glVertexAttribPointer(a6, 4, GL_FLOAT, GL_FALSE, 0, attributes[4]);
+	glVertexAttribDivisor(a6, 1);
+	glEnableVertexAttribArray(a6);
+	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+
+	glUseProgram(ph.program);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+
+	deleteProgram(ph);
+
+	unsigned char green[4] = { 0, 255, 0, 255 };
 	expectFramebufferColor(green);
 
 	EXPECT_GLENUM_EQ(GL_NONE, glGetError());

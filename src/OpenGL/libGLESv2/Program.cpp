@@ -277,19 +277,7 @@ namespace es2
 
 	GLint Program::getAttributeLocation(const char *name)
 	{
-		if(name)
-		{
-			std::string strName(name);
-			for(auto const &it : linkedAttribute)
-			{
-				if(it.name == strName)
-				{
-					return getAttributeBinding(it);
-				}
-			}
-		}
-
-		return -1;
+		return name ? getAttributeLocation(std::string(name)) : -1;
 	}
 
 	int Program::getAttributeStream(int attributeIndex)
@@ -1591,80 +1579,55 @@ namespace es2
 	// Determines the mapping between GL attributes and vertex stream usage indices
 	bool Program::linkAttributes()
 	{
+		static_assert(MAX_VERTEX_ATTRIBS <= 32, "attribute count exceeds bitfield count");
 		unsigned int usedLocations = 0;
 
-		// Link attributes that have a binding location
+		// Link attributes that have a GLSL layout location qualifier
 		for(auto const &attribute : vertexShader->activeAttributes)
 		{
-			int location = (attributeBinding.find(attribute.name) != attributeBinding.end()) ? attributeBinding[attribute.name] : -1;
-
-			if(location != -1)   // Set by glBindAttribLocation
+			if(attribute.layoutLocation != -1)
 			{
-				int rows = VariableRegisterCount(attribute.type);
-
-				if(rows + location > MAX_VERTEX_ATTRIBS)
+				if(!linkAttribute(attribute, attribute.layoutLocation, usedLocations))
 				{
-					appendToInfoLog("Active attribute (%s) at location %d is too big to fit", attribute.name.c_str(), location);
 					return false;
 				}
-
-				// In GLSL 3.00, attribute aliasing produces a link error
-				// In GLSL 1.00, attribute aliasing is allowed
-				if(vertexShader->getShaderVersion() >= 300)
-				{
-					for(auto const &it : linkedAttribute)
-					{
-						int itLocStart = getAttributeBinding(it);
-						ASSERT(itLocStart >= 0);
-						int itLocEnd = itLocStart + VariableRegisterCount(it.type);
-						for(int i = 0; i < rows; i++)
-						{
-							int loc = location + i;
-							if((loc >= itLocStart) && (loc < itLocEnd))
-							{
-								appendToInfoLog("Attribute '%s' aliases attribute '%s' at location %d", attribute.name.c_str(), it.name.c_str(), location);
-								return false;
-							}
-						}
-					}
-				}
-
-				linkedAttributeLocation[attribute.name] = location;
-				linkedAttribute.push_back(attribute);
-				for(int i = 0; i < rows; i++)
-				{
-					usedLocations |= 1 << (location + i);
-				}
 			}
 		}
 
-		// Link attributes that don't have a binding location
+		// Link attributes that have an API provided binding location but no GLSL layout location
 		for(auto const &attribute : vertexShader->activeAttributes)
 		{
-			int location = (attributeBinding.find(attribute.name) != attributeBinding.end()) ? attributeBinding[attribute.name] : -1;
+			int bindingLocation = (attributeBinding.find(attribute.name) != attributeBinding.end()) ? attributeBinding[attribute.name] : -1;
 
-			if(location == -1)   // Not set by glBindAttribLocation
+			if(attribute.layoutLocation == -1 && bindingLocation != -1)
 			{
-				int rows = VariableRegisterCount(attribute.type);
-				int availableIndex = AllocateFirstFreeBits(&usedLocations, rows, MAX_VERTEX_ATTRIBS);
-
-				if(availableIndex == -1 || availableIndex + rows > MAX_VERTEX_ATTRIBS)
+				if(!linkAttribute(attribute, bindingLocation, usedLocations))
 				{
-					appendToInfoLog("Too many active attributes (%s)", attribute.name.c_str());
-					return false;   // Fail to link
+					return false;
 				}
-
-				linkedAttributeLocation[attribute.name] = availableIndex;
-				linkedAttribute.push_back(attribute);
 			}
 		}
 
-		for(auto const &it : linkedAttribute)
+		// Link attributes that don't have a binding location nor a layout location
+		for(auto const &attribute : vertexShader->activeAttributes)
 		{
-			int location = getAttributeBinding(it);
+			if(attribute.layoutLocation == -1 && attributeBinding.find(attribute.name) == attributeBinding.end())
+			{
+				if(!linkAttribute(attribute, -1, usedLocations))
+				{
+					return false;
+				}
+			}
+		}
+
+		ASSERT(linkedAttribute.size() == vertexShader->activeAttributes.size());
+
+		for(auto const &attribute : linkedAttribute)
+		{
+			int location = getAttributeLocation(attribute.name);
 			ASSERT(location >= 0);
-			int index = vertexShader->getSemanticIndex(it.name);
-			int rows = std::max(VariableRegisterCount(it.type), 1);
+			int index = vertexShader->getSemanticIndex(attribute.name);
+			int rows = VariableRegisterCount(attribute.type);
 
 			for(int r = 0; r < rows; r++)
 			{
@@ -1675,17 +1638,69 @@ namespace es2
 		return true;
 	}
 
-	int Program::getAttributeBinding(const glsl::Attribute &attribute)
+	bool Program::linkAttribute(const glsl::Attribute &attribute, int location, unsigned int &usedLocations)
 	{
-		if(attribute.location != -1)
+		int rows = VariableRegisterCount(attribute.type);
+
+		if(location == -1)
 		{
-			return attribute.location;
+			location = AllocateFirstFreeBits(&usedLocations, rows, MAX_VERTEX_ATTRIBS);
+
+			if(location == -1 || location + rows > MAX_VERTEX_ATTRIBS)
+			{
+				appendToInfoLog("Too many active attributes (%s)", attribute.name.c_str());
+				return false;   // Fail to link
+			}
+		}
+		else
+		{
+			if(rows + location > MAX_VERTEX_ATTRIBS)
+			{
+				appendToInfoLog("Active attribute (%s) at location %d is too big to fit", attribute.name.c_str(), location);
+				return false;
+			}
+
+			// In GLSL 3.00, attribute aliasing produces a link error
+			// In GLSL 1.00, attribute aliasing is allowed
+			if(vertexShader->getShaderVersion() >= 300)
+			{
+				for(auto const &previousAttrib : linkedAttribute)
+				{
+					int previousLocation = getAttributeLocation(previousAttrib.name);
+					int previousRows = VariableRegisterCount(previousAttrib.type);
+
+					if(location >= previousLocation && location < previousLocation + previousRows)
+					{
+						appendToInfoLog("Attribute '%s' aliases attribute '%s' at location %d", attribute.name.c_str(), previousAttrib.name.c_str(), location);
+						return false;
+					}
+
+					if(location <= previousLocation && location + rows > previousLocation)
+					{
+						appendToInfoLog("Attribute '%s' aliases attribute '%s' at location %d", attribute.name.c_str(), previousAttrib.name.c_str(), previousLocation);
+						return false;
+					}
+				}
+			}
+
+			for(int i = 0; i < rows; i++)
+			{
+				usedLocations |= 1 << (location + i);
+			}
 		}
 
-		std::map<std::string, GLuint>::const_iterator it = linkedAttributeLocation.find(attribute.name);
-		if(it != linkedAttributeLocation.end())
+		linkedAttributeLocation[attribute.name] = location;
+		linkedAttribute.push_back(attribute);
+
+		return true;
+	}
+
+	int Program::getAttributeLocation(const std::string &name)
+	{
+		std::map<std::string, GLuint>::const_iterator attribute = linkedAttributeLocation.find(name);
+		if(attribute != linkedAttributeLocation.end())
 		{
-			return it->second;
+			return attribute->second;
 		}
 
 		return -1;

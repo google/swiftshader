@@ -400,12 +400,12 @@ namespace glsl
 		registerIndex = 0;
 	}
 
-	Attribute::Attribute(GLenum type, const std::string &name, int arraySize, int location, int registerIndex)
+	Attribute::Attribute(GLenum type, const std::string &name, int arraySize, int layoutLocation, int registerIndex)
 	{
 		this->type = type;
 		this->name = name;
 		this->arraySize = arraySize;
-		this->location = location;
+		this->layoutLocation = layoutLocation;
 		this->registerIndex = registerIndex;
 	}
 

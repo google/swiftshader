@@ -2345,7 +2345,6 @@ int GetAttribLocation(GLuint program, const GLchar* name)
 
 	if(context)
 	{
-
 		es2::Program *programObject = context->getProgram(program);
 
 		if(!programObject)
