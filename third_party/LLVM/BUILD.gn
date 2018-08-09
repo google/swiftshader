@@ -50,6 +50,10 @@ config("swiftshader_llvm_private_config") {
     }
   }
 
+  if (is_fuchsia) {
+    cflags += [ "-Wno-error" ]
+  }
+
   if (is_clang) {
     cflags += [
       "-msse2",

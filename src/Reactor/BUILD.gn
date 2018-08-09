@@ -15,9 +15,7 @@
 import("../swiftshader.gni")
 
 declare_args() {
-  # Currently, Subzero is not used by default
-  # LLVM is still the default backend
-  use_swiftshader_with_subzero = is_win || is_linux || is_mac || is_chromeos
+  use_swiftshader_with_subzero = true
 }
 
 # Need a separate config to ensure the warnings are added to the end.
@@ -59,6 +57,8 @@ config("swiftshader_subzero_common_private_config") {
     include_dirs += [ "../../third_party/llvm-subzero/build/Windows/include/" ]
   } else if (is_linux) {
     include_dirs += [ "../../third_party/llvm-subzero/build/Linux/include/" ]
+  } else if (is_fuchsia) {
+    include_dirs += [ "../../third_party/llvm-subzero/build/Fuchsia/include/" ]
   } else if (is_mac) {
     include_dirs += [ "../../third_party/llvm-subzero/build/MacOS/include/" ]
   }
@@ -95,12 +95,16 @@ config("swiftshader_subzero_private_config") {
         cflags += [ "-Wno-sign-compare" ]
       }
     }
-  } else if (is_linux || is_mac) {
+  } else if (is_linux || is_mac || is_fuchsia) {
     cflags += [ "-Wno-macro-redefined" ]
   }
 
   if (is_clang) {
     cflags += [ "-Wno-header-hygiene" ]
+  }
+
+  if (is_fuchsia) {
+    cflags += [ "-Wno-error" ]
   }
 }
 
@@ -135,6 +139,10 @@ config("swiftshader_reactor_with_subzero_private_config") {
 
   if (is_clang) {
     cflags += [ "-Wno-header-hygiene" ]
+  }
+
+  if (is_fuchsia) {
+    cflags += [ "-Wno-error" ]
   }
 }
 

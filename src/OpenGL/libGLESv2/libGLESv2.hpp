@@ -299,7 +299,7 @@ private:
 					const char *libGLESv2_lib[] = {"libswiftshader_libGLESv2.dylib", "libGLES_V2_translator.dylib", "libGLESv2.dylib"};
 				#endif
 			#elif defined(__Fuchsia__)
-				const char *libGLESv2_lib[] = {"libGLESv2.so"};
+				const char *libGLESv2_lib[] = {"libswiftshader_libGLESv2.so", "libGLESv2.so"};
 			#else
 				#error "libGLESv2::loadExports unimplemented for this platform"
 			#endif
