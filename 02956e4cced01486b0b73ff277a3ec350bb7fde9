@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "97a622ab_6576b489",
+        "filename": "src/OpenGL/libEGL/libEGL.cpp",
+        "patchSetId": 7
+      },
+      "lineNbr": 1195,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2018-08-10T15:36:52Z",
+      "side": 0,
+      "message": "Removing this line while still using libX11 below breaks all non X11 platforms.\nI\u0027ll write a quick fix.",
+      "range": {
+        "startLine": 1195,
+        "startChar": 2,
+        "endLine": 1195,
+        "endChar": 22
+      },
+      "revId": "02956e4cced01486b0b73ff277a3ec350bb7fde9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
