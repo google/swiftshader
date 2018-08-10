@@ -1248,14 +1248,30 @@ EGLDisplay GetPlatformDisplay(EGLenum platform, void *native_display, const EGLA
 	#if defined(__linux__) && !defined(__ANDROID__)
 		switch(platform)
 		{
-		case EGL_PLATFORM_X11_EXT:
-		case EGL_PLATFORM_GBM_KHR:
-			break;
+		#if defined(USE_X11)
+		case EGL_PLATFORM_X11_EXT: break;
+		#endif
+		case EGL_PLATFORM_GBM_KHR: break;
 		default:
 			return error(EGL_BAD_PARAMETER, EGL_NO_DISPLAY);
 		}
 
-		if(platform == EGL_PLATFORM_X11_EXT)
+		if(platform == EGL_PLATFORM_GBM_KHR)
+		{
+			if(native_display != (void*)EGL_DEFAULT_DISPLAY)
+			{
+				return error(EGL_BAD_PARAMETER, EGL_NO_DISPLAY);   // Unimplemented
+			}
+
+			if(attrib_list && attrib_list[0] != EGL_NONE)
+			{
+				return error(EGL_BAD_ATTRIBUTE, EGL_NO_DISPLAY);   // Unimplemented
+			}
+
+			return success(HEADLESS_DISPLAY);
+		}
+		#if defined(USE_X11)
+		else if(platform == EGL_PLATFORM_X11_EXT)
 		{
 			if(!libX11)
 			{
@@ -1272,20 +1288,7 @@ EGLDisplay GetPlatformDisplay(EGLenum platform, void *native_display, const EGLA
 				return error(EGL_BAD_ATTRIBUTE, EGL_NO_DISPLAY);   // Unimplemented
 			}
 		}
-		else if(platform == EGL_PLATFORM_GBM_KHR)
-		{
-			if(native_display != (void*)EGL_DEFAULT_DISPLAY)
-			{
-				return error(EGL_BAD_PARAMETER, EGL_NO_DISPLAY);   // Unimplemented
-			}
-
-			if(attrib_list && attrib_list[0] != EGL_NONE)
-			{
-				return error(EGL_BAD_ATTRIBUTE, EGL_NO_DISPLAY);   // Unimplemented
-			}
-
-			return success(HEADLESS_DISPLAY);
-		}
+		#endif
 
 		return success(PRIMARY_DISPLAY);   // We only support the default display
 	#else
