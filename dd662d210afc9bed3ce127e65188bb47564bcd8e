@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "036bde1d_69dcf029",
+        "filename": "src/OpenGL/libEGL/libEGL.hpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-08-13T15:00:52Z",
+      "side": 1,
+      "message": "Not a big deal, but this has \"lib\" in the name twice. I notice it\u0027s the same for Apple. Since it\u0027s probably a requirement to start the name with \"lib\", perhaps \"libEGL_swiftshader\" would have been more elegant. \u003c/bikeshedding\u003e",
+      "range": {
+        "startLine": 116,
+        "startChar": 33,
+        "endLine": 116,
+        "endChar": 54
+      },
+      "revId": "dd662d210afc9bed3ce127e65188bb47564bcd8e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1d3de800_0e576613",
+        "filename": "src/Reactor/BUILD.gn",
+        "patchSetId": 4
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-08-13T15:00:52Z",
+      "side": 1,
+      "message": "Note: Subzero has very few real dependencies on these LLVM headers, so at some point we should distill them to the essentials, make it platform independent, and make Subzero self-contained.",
+      "range": {
+        "startLine": 56,
+        "startChar": 2,
+        "endLine": 64,
+        "endChar": 3
+      },
+      "revId": "dd662d210afc9bed3ce127e65188bb47564bcd8e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b4e66606_55757c85",
+        "filename": "src/Reactor/BUILD.gn",
+        "patchSetId": 4
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-08-13T15:00:52Z",
+      "side": 1,
+      "message": "This seems like a big hammer. Can we just disable the affected warnings instead, or figure out how to fix them? Or is it common practice for Fuchsia to compile without warnings treated as error?",
+      "range": {
+        "startLine": 107,
+        "startChar": 17,
+        "endLine": 107,
+        "endChar": 27
+      },
+      "revId": "dd662d210afc9bed3ce127e65188bb47564bcd8e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "20c65d88_f945acce",
+        "filename": "src/Reactor/BUILD.gn",
+        "patchSetId": 4
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-08-13T15:00:52Z",
+      "side": 1,
+      "message": "This seems like a big hammer. Can we just disable the affected warnings instead, or figure out how to fix them? Or is it common practice for Fuchsia to compile without warnings treated as error?",
+      "range": {
+        "startLine": 107,
+        "startChar": 17,
+        "endLine": 107,
+        "endChar": 27
+      },
+      "revId": "dd662d210afc9bed3ce127e65188bb47564bcd8e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1b13a17f_7215ea08",
+        "filename": "third_party/LLVM/BUILD.gn",
+        "patchSetId": 4
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-08-13T15:00:52Z",
+      "side": 1,
+      "message": "Are we not using Subzero for Fuchsia? Why is a change to an LLVM build file required? Or is this just to support both?",
+      "range": {
+        "startLine": 53,
+        "startChar": 2,
+        "endLine": 55,
+        "endChar": 3
+      },
+      "revId": "dd662d210afc9bed3ce127e65188bb47564bcd8e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
