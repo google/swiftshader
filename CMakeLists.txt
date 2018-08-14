@@ -165,6 +165,7 @@ else()
     set_cpp_flag("-Wall")
     set_cpp_flag("-Werror=reorder")
     set_cpp_flag("-Werror=sign-compare")
+    set_cpp_flag("-Werror=missing-braces")
     set_cpp_flag("-fno-exceptions")
 
     # Remove xor, and, or and friends from the list of keywords, they are used

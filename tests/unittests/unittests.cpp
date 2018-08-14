@@ -612,18 +612,18 @@ TEST_F(SwiftShaderTest, AttributeLocation)
 	EXPECT_NE(linkStatus, 0);
 	EXPECT_GLENUM_EQ(GL_NONE, glGetError());
 
-	float vertices[18] = { -1.0f,  1.0f, 0.5f,
-	                       -1.0f, -1.0f, 0.5f,
-	                        1.0f, -1.0f, 0.5f,
-	                       -1.0f,  1.0f, 0.5f,
-	                        1.0f, -1.0f, 0.5f,
-	                        1.0f,  1.0f, 0.5f };
+	float vertices[6][3] = { { -1.0f,  1.0f, 0.5f },
+	                         { -1.0f, -1.0f, 0.5f },
+	                         {  1.0f, -1.0f, 0.5f },
+	                         { -1.0f,  1.0f, 0.5f },
+	                         {  1.0f, -1.0f, 0.5f },
+	                         {  1.0f,  1.0f, 0.5f } };
 
-	float attributes[5][4] = { 1.0f, 2.0f, 3.0f, 4.0f,
-	                           5.0f, 6.0f, 7.0f, 8.0f,
-	                           9.0f, 10.0f, 11.0f, 12.0f,
-	                           13.0f, 14.0f, 15.0f, 16.0f,
-	                           17.0f, 18.0f, 19.0f, 20.0f };
+	float attributes[5][4] = { { 1.0f, 2.0f, 3.0f, 4.0f },
+	                           { 5.0f, 6.0f, 7.0f, 8.0f },
+	                           { 9.0f, 10.0f, 11.0f, 12.0f },
+	                           { 13.0f, 14.0f, 15.0f, 16.0f },
+	                           { 17.0f, 18.0f, 19.0f, 20.0f } };
 
 	GLint a0 = glGetAttribLocation(ph.program, "a0");
 	EXPECT_EQ(a0, 0);
