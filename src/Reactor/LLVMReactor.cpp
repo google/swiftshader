@@ -14,36 +14,71 @@
 
 #include "Reactor.hpp"
 
-#include "llvm/Support/IRBuilder.h"
-#include "llvm/Function.h"
-#include "llvm/GlobalVariable.h"
-#include "llvm/Module.h"
-#include "llvm/LLVMContext.h"
-#include "llvm/Constants.h"
-#include "llvm/Intrinsics.h"
-#include "llvm/PassManager.h"
-#include "llvm/Analysis/LoopPass.h"
-#include "llvm/Transforms/Scalar.h"
-#include "llvm/Target/TargetData.h"
-#include "llvm/Target/TargetOptions.h"
-#include "llvm/Support/TargetSelect.h"
-#include "../lib/ExecutionEngine/JIT/JIT.h"
+#if SWIFTSHADER_LLVM_VERSION < 7
+	#include "llvm/Analysis/LoopPass.h"
+	#include "llvm/Constants.h"
+	#include "llvm/Function.h"
+	#include "llvm/GlobalVariable.h"
+	#include "llvm/Intrinsics.h"
+	#include "llvm/LLVMContext.h"
+	#include "llvm/Module.h"
+	#include "llvm/PassManager.h"
+	#include "llvm/Support/IRBuilder.h"
+	#include "llvm/Support/TargetSelect.h"
+	#include "llvm/Target/TargetData.h"
+	#include "llvm/Target/TargetOptions.h"
+	#include "llvm/Transforms/Scalar.h"
+	#include "../lib/ExecutionEngine/JIT/JIT.h"
 
-#include "LLVMRoutine.hpp"
-#include "LLVMRoutineManager.hpp"
+	#include "LLVMRoutine.hpp"
+	#include "LLVMRoutineManager.hpp"
+
+	#define ARGS(...) __VA_ARGS__
+#else
+	#include "llvm/Analysis/LoopPass.h"
+	#include "llvm/ExecutionEngine/ExecutionEngine.h"
+	#include "llvm/ExecutionEngine/JITSymbol.h"
+	#include "llvm/ExecutionEngine/Orc/CompileUtils.h"
+	#include "llvm/ExecutionEngine/Orc/IRCompileLayer.h"
+	#include "llvm/ExecutionEngine/Orc/LambdaResolver.h"
+	#include "llvm/ExecutionEngine/Orc/RTDyldObjectLinkingLayer.h"
+	#include "llvm/ExecutionEngine/RTDyldMemoryManager.h"
+	#include "llvm/ExecutionEngine/SectionMemoryManager.h"
+	#include "llvm/IR/Constants.h"
+	#include "llvm/IR/DataLayout.h"
+	#include "llvm/IR/Function.h"
+	#include "llvm/IR/GlobalVariable.h"
+	#include "llvm/IR/IRBuilder.h"
+	#include "llvm/IR/Intrinsics.h"
+	#include "llvm/IR/LLVMContext.h"
+	#include "llvm/IR/LegacyPassManager.h"
+	#include "llvm/IR/Module.h"
+	#include "llvm/Support/Error.h"
+	#include "llvm/Support/TargetSelect.h"
+	#include "llvm/Target/TargetOptions.h"
+	#include "llvm/Transforms/InstCombine/InstCombine.h"
+	#include "llvm/Transforms/Scalar.h"
+	#include "llvm/Transforms/Scalar/GVN.h"
+
+	#include "LLVMRoutine.hpp"
+
+	#define ARGS(...) {__VA_ARGS__}
+	#define CreateCall2 CreateCall
+	#define CreateCall3 CreateCall
+#endif
+
 #include "x86.hpp"
 #include "Common/CPUID.hpp"
 #include "Common/Thread.hpp"
 #include "Common/Memory.hpp"
 #include "Common/MutexLock.hpp"
 
+#include <numeric>
 #include <fstream>
 
 #if defined(__i386__) || defined(__x86_64__)
 #include <xmmintrin.h>
 #endif
-
-#define ARGS(...) __VA_ARGS__
 
 #if defined(__x86_64__) && defined(_WIN32)
 extern "C" void X86CompilationCallback()
@@ -52,17 +87,21 @@ extern "C" void X86CompilationCallback()
 }
 #endif
 
+#if defined(_WIN32)
 extern "C"
 {
 	bool (*CodeAnalystInitialize)() = 0;
 	void (*CodeAnalystCompleteJITLog)() = 0;
 	bool (*CodeAnalystLogJITCode)(const void *jitCodeStartAddr, unsigned int jitCodeSize, const wchar_t *functionName) = 0;
 }
+#endif
 
+#if SWIFTSHADER_LLVM_VERSION < 7
 namespace llvm
 {
 	extern bool JITEmitDebugInfo;
 }
+#endif
 
 namespace sw
 {
@@ -78,10 +117,66 @@ namespace
 	llvm::Function *function = nullptr;
 
 	sw::MutexLock codegenMutex;
+
+#if SWIFTSHADER_LLVM_VERSION >= 7
+#if defined(__i386__) || defined(__x86_64__)
+	llvm::Value *lowerPAVG(llvm::Value *x, llvm::Value *y)
+	{
+		llvm::VectorType *ty = llvm::cast<llvm::VectorType>(x->getType());
+
+		llvm::VectorType *extTy =
+			llvm::VectorType::getExtendedElementVectorType(ty);
+		x = ::builder->CreateZExt(x, extTy);
+		y = ::builder->CreateZExt(y, extTy);
+
+		// (x + y + 1) >> 1
+		llvm::Constant *one = llvm::ConstantInt::get(extTy, 1);
+		llvm::Value *res = ::builder->CreateAdd(x, y);
+		res = ::builder->CreateAdd(res, one);
+		res = ::builder->CreateLShr(res, one);
+		return ::builder->CreateTrunc(res, ty);
+	}
+
+	llvm::Value *lowerPMINMAX(llvm::Value *x, llvm::Value *y,
+							  llvm::ICmpInst::Predicate pred)
+	{
+		return ::builder->CreateSelect(::builder->CreateICmp(pred, x, y), x, y);
+	}
+
+	llvm::Value *lowerPCMP(llvm::ICmpInst::Predicate pred, llvm::Value *x,
+						   llvm::Value *y, llvm::Type *dstTy)
+	{
+		return ::builder->CreateSExt(::builder->CreateICmp(pred, x, y), dstTy, "");
+	}
+
+	llvm::Value *lowerPMOV(llvm::Value *op, llvm::Type *dstType, bool sext)
+	{
+		llvm::VectorType *srcTy = llvm::cast<llvm::VectorType>(op->getType());
+		llvm::VectorType *dstTy = llvm::cast<llvm::VectorType>(dstType);
+
+		llvm::Value *undef = llvm::UndefValue::get(srcTy);
+		llvm::SmallVector<uint32_t, 16> mask(dstTy->getNumElements());
+		std::iota(mask.begin(), mask.end(), 0);
+		llvm::Value *v = ::builder->CreateShuffleVector(op, undef, mask);
+
+		return sext ? ::builder->CreateSExt(v, dstTy)
+					: ::builder->CreateZExt(v, dstTy);
+	}
+
+	llvm::Value *lowerPABS(llvm::Value *v)
+	{
+		llvm::Value *zero = llvm::Constant::getNullValue(v->getType());
+		llvm::Value *cmp = ::builder->CreateICmp(llvm::ICmpInst::ICMP_SGT, v, zero);
+		llvm::Value *neg = ::builder->CreateNeg(v);
+		return ::builder->CreateSelect(cmp, v, neg);
+	}
+#endif  // defined(__i386__) || defined(__x86_64__)
+#endif  // SWIFTSHADER_LLVM_VERSION >= 7
 }
 
 namespace sw
 {
+#if SWIFTSHADER_LLVM_VERSION < 7
 	class LLVMReactorJIT
 	{
 	private:
@@ -168,6 +263,132 @@ namespace sw
 			passManager->run(*::module);
 		}
 	};
+#else
+	class LLVMReactorJIT
+	{
+	private:
+		using ObjLayer = llvm::orc::RTDyldObjectLinkingLayer;
+		using CompileLayer = llvm::orc::IRCompileLayer<ObjLayer, llvm::orc::SimpleCompiler>;
+
+		llvm::orc::ExecutionSession session;
+		std::shared_ptr<llvm::orc::SymbolResolver> resolver;
+		std::unique_ptr<llvm::TargetMachine> targetMachine;
+		const llvm::DataLayout dataLayout;
+		ObjLayer objLayer;
+		CompileLayer compileLayer;
+		size_t emittedFunctionsNum;
+
+	public:
+		LLVMReactorJIT(const char *arch, const llvm::SmallVectorImpl<std::string>& mattrs,
+					   const llvm::TargetOptions &targetOpts):
+			resolver(createLegacyLookupResolver(
+				session,
+				[this](const std::string &name) {
+					return objLayer.findSymbol(name, true);
+				},
+				[](llvm::Error err) {
+					if (err)
+					{
+						// TODO: Log the symbol resolution errors.
+						return;
+					}
+				})),
+			targetMachine(llvm::EngineBuilder()
+				.setMArch(arch)
+				.setMAttrs(mattrs)
+				.setTargetOptions(targetOpts)
+				.selectTarget()),
+			dataLayout(targetMachine->createDataLayout()),
+			objLayer(
+				session,
+				[this](llvm::orc::VModuleKey) {
+					return ObjLayer::Resources{
+						std::make_shared<llvm::SectionMemoryManager>(),
+						resolver};
+				}),
+			compileLayer(objLayer, llvm::orc::SimpleCompiler(*targetMachine)),
+			emittedFunctionsNum(0)
+		{
+		}
+
+		void startSession()
+		{
+			::module = new llvm::Module("", *::context);
+		}
+
+		void endSession()
+		{
+			::function = nullptr;
+			::module = nullptr;
+		}
+
+		LLVMRoutine *acquireRoutine(llvm::Function *func)
+		{
+			std::string name = "f" + llvm::Twine(emittedFunctionsNum++).str();
+			func->setName(name);
+			func->setLinkage(llvm::GlobalValue::ExternalLinkage);
+			func->setDoesNotThrow();
+
+			std::unique_ptr<llvm::Module> mod(::module);
+			::module = nullptr;
+			mod->setDataLayout(dataLayout);
+
+			auto moduleKey = session.allocateVModule();
+			llvm::cantFail(compileLayer.addModule(moduleKey, std::move(mod)));
+
+			llvm::JITSymbol symbol = compileLayer.findSymbolIn(moduleKey, name, false);
+
+			llvm::Expected<llvm::JITTargetAddress> expectAddr = symbol.getAddress();
+			if (!expectAddr)
+			{
+				return nullptr;
+			}
+
+			void *addr = reinterpret_cast<void *>(static_cast<intptr_t>(expectAddr.get()));
+			return new LLVMRoutine(addr, releaseRoutineCallback, this, moduleKey);
+		}
+
+		void optimize(llvm::Module *module)
+		{
+			std::unique_ptr<llvm::legacy::PassManager> passManager(
+				new llvm::legacy::PassManager());
+
+			passManager->add(llvm::createSROAPass());
+
+			for(int pass = 0; pass < 10 && optimization[pass] != Disabled; pass++)
+			{
+				switch(optimization[pass])
+				{
+				case Disabled:                                                                       break;
+				case CFGSimplification:    passManager->add(llvm::createCFGSimplificationPass());    break;
+				case LICM:                 passManager->add(llvm::createLICMPass());                 break;
+				case AggressiveDCE:        passManager->add(llvm::createAggressiveDCEPass());        break;
+				case GVN:                  passManager->add(llvm::createGVNPass());                  break;
+				case InstructionCombining: passManager->add(llvm::createInstructionCombiningPass()); break;
+				case Reassociate:          passManager->add(llvm::createReassociatePass());          break;
+				case DeadStoreElimination: passManager->add(llvm::createDeadStoreEliminationPass()); break;
+				case SCCP:                 passManager->add(llvm::createSCCPPass());                 break;
+				case ScalarReplAggregates: passManager->add(llvm::createSROAPass());                 break;
+				default:
+										   assert(false);
+				}
+			}
+
+			passManager->run(*::module);
+		}
+
+	private:
+		void releaseRoutineModule(llvm::orc::VModuleKey moduleKey)
+		{
+			llvm::cantFail(compileLayer.removeModule(moduleKey));
+		}
+
+		static void releaseRoutineCallback(LLVMReactorJIT *jit, uint64_t moduleKey)
+		{
+			jit->releaseRoutineModule(moduleKey);
+		}
+	};
+#endif
 
 	Optimization optimization[10] = {InstructionCombining, Disabled};
 
@@ -284,6 +505,11 @@ namespace sw
 
 		llvm::InitializeNativeTarget();
 
+#if SWIFTSHADER_LLVM_VERSION >= 7
+		llvm::InitializeNativeTargetAsmPrinter();
+		llvm::InitializeNativeTargetAsmParser();
+#endif
+
 		if(!::context)
 		{
 			::context = new llvm::LLVMContext();
@@ -296,22 +522,37 @@ namespace sw
 		#endif
 
 		llvm::SmallVector<std::string, 1> mattrs;
-		mattrs.push_back(CPUID::supportsMMX()    ? "+mmx"   : "-mmx");
-		mattrs.push_back(CPUID::supportsCMOV()   ? "+cmov"  : "-cmov");
-		mattrs.push_back(CPUID::supportsSSE()    ? "+sse"   : "-sse");
-		mattrs.push_back(CPUID::supportsSSE2()   ? "+sse2"  : "-sse2");
-		mattrs.push_back(CPUID::supportsSSE3()   ? "+sse3"  : "-sse3");
-		mattrs.push_back(CPUID::supportsSSSE3()  ? "+ssse3" : "-ssse3");
-		mattrs.push_back(CPUID::supportsSSE4_1() ? "+sse41" : "-sse41");
+		mattrs.push_back(CPUID::supportsMMX()    ? "+mmx"    : "-mmx");
+		mattrs.push_back(CPUID::supportsCMOV()   ? "+cmov"   : "-cmov");
+		mattrs.push_back(CPUID::supportsSSE()    ? "+sse"    : "-sse");
+		mattrs.push_back(CPUID::supportsSSE2()   ? "+sse2"   : "-sse2");
+		mattrs.push_back(CPUID::supportsSSE3()   ? "+sse3"   : "-sse3");
+		mattrs.push_back(CPUID::supportsSSSE3()  ? "+ssse3"  : "-ssse3");
+#if SWIFTSHADER_LLVM_VERSION < 7
+		mattrs.push_back(CPUID::supportsSSE4_1() ? "+sse41"  : "-sse41");
+#else
+		mattrs.push_back(CPUID::supportsSSE4_1() ? "+sse4.1" : "-sse4.1");
+#endif
 
+#if SWIFTSHADER_LLVM_VERSION < 7
 		llvm::JITEmitDebugInfo = false;
 		llvm::UnsafeFPMath = true;
 		// llvm::NoInfsFPMath = true;
 		// llvm::NoNaNsFPMath = true;
+#else
+		llvm::TargetOptions targetOpts;
+		targetOpts.UnsafeFPMath = true;
+		// targetOpts.NoInfsFPMath = true;
+		// targetOpts.NoNaNsFPMath = true;
+#endif
 
 		if(!::reactorJIT)
 		{
+#if SWIFTSHADER_LLVM_VERSION < 7
 			::reactorJIT = new LLVMReactorJIT(arch, mattrs);
+#else
+			::reactorJIT = new LLVMReactorJIT(arch, mattrs, targetOpts);
+#endif
 		}
 
 		::reactorJIT->startSession();
@@ -320,7 +561,7 @@ namespace sw
 		{
 			::builder = new llvm::IRBuilder<>(*::context);
 
-			#if defined(_WIN32)
+			#if defined(_WIN32) && SWIFTSHADER_LLVM_VERSION < 7
 				HMODULE CodeAnalyst = LoadLibrary("CAJitNtfyLib.dll");
 				if(CodeAnalyst)
 				{
@@ -359,7 +600,11 @@ namespace sw
 
 		if(false)
 		{
+#if SWIFTSHADER_LLVM_VERSION < 7
 			std::string error;
+#else
+			std::error_code error;
+#endif
 			llvm::raw_fd_ostream file("llvm-dump-unopt.txt", error);
 			::module->print(file, 0);
 		}
@@ -371,17 +616,23 @@ namespace sw
 
 		if(false)
 		{
+#if SWIFTSHADER_LLVM_VERSION < 7
 			std::string error;
+#else
+			std::error_code error;
+#endif
 			llvm::raw_fd_ostream file("llvm-dump-opt.txt", error);
 			::module->print(file, 0);
 		}
 
 		LLVMRoutine *routine = ::reactorJIT->acquireRoutine(::function);
 
+#if defined(_WIN32) && SWIFTSHADER_LLVM_VERSION < 7
 		if(CodeAnalystLogJITCode)
 		{
 			CodeAnalystLogJITCode(routine->getEntry(), routine->getCodeSize(), name);
 		}
+#endif
 
 		return routine;
 	}
@@ -400,11 +651,19 @@ namespace sw
 
 		if(arraySize)
 		{
+#if SWIFTSHADER_LLVM_VERSION < 7
 			declaration = new llvm::AllocaInst(T(type), V(Nucleus::createConstantInt(arraySize)));
+#else
+			declaration = new llvm::AllocaInst(T(type), 0, V(Nucleus::createConstantInt(arraySize)));
+#endif
 		}
 		else
 		{
+#if SWIFTSHADER_LLVM_VERSION < 7
 			declaration = new llvm::AllocaInst(T(type), (llvm::Value*)nullptr);
+#else
+			declaration = new llvm::AllocaInst(T(type), 0, (llvm::Value*)nullptr);
+#endif
 		}
 
 		entryBlock.getInstList().push_front(declaration);
@@ -6082,11 +6341,15 @@ namespace sw
 
 		RValue<Float> sqrtss(RValue<Float> val)
 		{
+#if SWIFTSHADER_LLVM_VERSION < 7
 			llvm::Function *sqrtss = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse_sqrt_ss);
-
 			Value *vector = Nucleus::createInsertElement(V(llvm::UndefValue::get(T(Float4::getType()))), val.value, 0);
 
 			return RValue<Float>(Nucleus::createExtractElement(V(::builder->CreateCall(sqrtss, ARGS(V(vector)))), Float::getType(), 0));
+#else
+			llvm::Function *sqrt = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::sqrt, {V(val.value)->getType()});
+			return RValue<Float>(V(::builder->CreateCall(sqrt, ARGS(V(val.value)))));
+#endif
 		}
 
 		RValue<Float> rsqrtss(RValue<Float> val)
@@ -6107,7 +6370,11 @@ namespace sw
 
 		RValue<Float4> sqrtps(RValue<Float4> val)
 		{
+#if SWIFTSHADER_LLVM_VERSION < 7
 			llvm::Function *sqrtps = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse_sqrt_ps);
+#else
+			llvm::Function *sqrtps = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::sqrt, {V(val.value)->getType()});
+#endif
 
 			return RValue<Float4>(V(::builder->CreateCall(sqrtps, ARGS(V(val.value)))));
 		}
@@ -6172,9 +6439,13 @@ namespace sw
 
 		RValue<Int4> pabsd(RValue<Int4> x)
 		{
+#if SWIFTSHADER_LLVM_VERSION < 7
 			llvm::Function *pabsd = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_ssse3_pabs_d_128);
 
 			return RValue<Int4>(V(::builder->CreateCall(pabsd, ARGS(V(x.value)))));
+#else
+			return RValue<Int4>(V(lowerPABS(V(x.value))));
+#endif
 		}
 
 		RValue<Short4> paddsw(RValue<Short4> x, RValue<Short4> y)
@@ -6235,51 +6506,79 @@ namespace sw
 
 		RValue<UShort4> pavgw(RValue<UShort4> x, RValue<UShort4> y)
 		{
+#if SWIFTSHADER_LLVM_VERSION < 7
 			llvm::Function *pavgw = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse2_pavg_w);
 
 			return As<UShort4>(V(::builder->CreateCall2(pavgw, ARGS(V(x.value), V(y.value)))));
+#else
+			return As<UShort4>(V(lowerPAVG(V(x.value), V(y.value))));
+#endif
 		}
 
 		RValue<Short4> pmaxsw(RValue<Short4> x, RValue<Short4> y)
 		{
+#if SWIFTSHADER_LLVM_VERSION < 7
 			llvm::Function *pmaxsw = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse2_pmaxs_w);
 
 			return As<Short4>(V(::builder->CreateCall2(pmaxsw, ARGS(V(x.value), V(y.value)))));
+#else
+			return As<Short4>(V(lowerPMINMAX(V(x.value), V(y.value), llvm::ICmpInst::ICMP_SGT)));
+#endif
 		}
 
 		RValue<Short4> pminsw(RValue<Short4> x, RValue<Short4> y)
 		{
+#if SWIFTSHADER_LLVM_VERSION < 7
 			llvm::Function *pminsw = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse2_pmins_w);
 
 			return As<Short4>(V(::builder->CreateCall2(pminsw, ARGS(V(x.value), V(y.value)))));
+#else
+			return As<Short4>(V(lowerPMINMAX(V(x.value), V(y.value), llvm::ICmpInst::ICMP_SLT)));
+#endif
 		}
 
 		RValue<Short4> pcmpgtw(RValue<Short4> x, RValue<Short4> y)
 		{
+#if SWIFTSHADER_LLVM_VERSION < 7
 			llvm::Function *pcmpgtw = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse2_pcmpgt_w);
 
 			return As<Short4>(V(::builder->CreateCall2(pcmpgtw, ARGS(V(x.value), V(y.value)))));
+#else
+			return As<Short4>(V(lowerPCMP(llvm::ICmpInst::ICMP_SGT, V(x.value), V(y.value), T(Short4::getType()))));
+#endif
 		}
 
 		RValue<Short4> pcmpeqw(RValue<Short4> x, RValue<Short4> y)
 		{
+#if SWIFTSHADER_LLVM_VERSION < 7
 			llvm::Function *pcmpeqw = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse2_pcmpeq_w);
 
 			return As<Short4>(V(::builder->CreateCall2(pcmpeqw, ARGS(V(x.value), V(y.value)))));
+#else
+			return As<Short4>(V(lowerPCMP(llvm::ICmpInst::ICMP_EQ, V(x.value), V(y.value), T(Short4::getType()))));
+#endif
 		}
 
 		RValue<Byte8> pcmpgtb(RValue<SByte8> x, RValue<SByte8> y)
 		{
+#if SWIFTSHADER_LLVM_VERSION < 7
 			llvm::Function *pcmpgtb = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse2_pcmpgt_b);
 
 			return As<Byte8>(V(::builder->CreateCall2(pcmpgtb, ARGS(V(x.value), V(y.value)))));
+#else
+			return As<Byte8>(V(lowerPCMP(llvm::ICmpInst::ICMP_SGT, V(x.value), V(y.value), T(Byte8::getType()))));
+#endif
 		}
 
 		RValue<Byte8> pcmpeqb(RValue<Byte8> x, RValue<Byte8> y)
 		{
+#if SWIFTSHADER_LLVM_VERSION < 7
 			llvm::Function *pcmpeqb = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse2_pcmpeq_b);
 
 			return As<Byte8>(V(::builder->CreateCall2(pcmpeqb, ARGS(V(x.value), V(y.value)))));
+#else
+			return As<Byte8>(V(lowerPCMP(llvm::ICmpInst::ICMP_EQ, V(x.value), V(y.value), T(Byte8::getType()))));
+#endif
 		}
 
 		RValue<Short4> packssdw(RValue<Int2> x, RValue<Int2> y)
@@ -6413,30 +6712,46 @@ namespace sw
 
 		RValue<Int4> pmaxsd(RValue<Int4> x, RValue<Int4> y)
 		{
+#if SWIFTSHADER_LLVM_VERSION < 7
 			llvm::Function *pmaxsd = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse41_pmaxsd);
 
 			return RValue<Int4>(V(::builder->CreateCall2(pmaxsd, ARGS(V(x.value), V(y.value)))));
+#else
+			return RValue<Int4>(V(lowerPMINMAX(V(x.value), V(y.value), llvm::ICmpInst::ICMP_SGT)));
+#endif
 		}
 
 		RValue<Int4> pminsd(RValue<Int4> x, RValue<Int4> y)
 		{
+#if SWIFTSHADER_LLVM_VERSION < 7
 			llvm::Function *pminsd = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse41_pminsd);
 
 			return RValue<Int4>(V(::builder->CreateCall2(pminsd, ARGS(V(x.value), V(y.value)))));
+#else
+			return RValue<Int4>(V(lowerPMINMAX(V(x.value), V(y.value), llvm::ICmpInst::ICMP_SLT)));
+#endif
 		}
 
 		RValue<UInt4> pmaxud(RValue<UInt4> x, RValue<UInt4> y)
 		{
+#if SWIFTSHADER_LLVM_VERSION < 7
 			llvm::Function *pmaxud = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse41_pmaxud);
 
 			return RValue<UInt4>(V(::builder->CreateCall2(pmaxud, ARGS(V(x.value), V(y.value)))));
+#else
+			return RValue<UInt4>(V(lowerPMINMAX(V(x.value), V(y.value), llvm::ICmpInst::ICMP_UGT)));
+#endif
 		}
 
 		RValue<UInt4> pminud(RValue<UInt4> x, RValue<UInt4> y)
 		{
+#if SWIFTSHADER_LLVM_VERSION < 7
 			llvm::Function *pminud = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse41_pminud);
 
 			return RValue<UInt4>(V(::builder->CreateCall2(pminud, ARGS(V(x.value), V(y.value)))));
+#else
+			return RValue<UInt4>(V(lowerPMINMAX(V(x.value), V(y.value), llvm::ICmpInst::ICMP_ULT)));
+#endif
 		}
 
 		RValue<Short4> pmulhw(RValue<Short4> x, RValue<Short4> y)
@@ -6497,30 +6812,46 @@ namespace sw
 
 		RValue<Int4> pmovzxbd(RValue<Byte16> x)
 		{
+#if SWIFTSHADER_LLVM_VERSION < 7
 			llvm::Function *pmovzxbd = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse41_pmovzxbd);
 
 			return RValue<Int4>(V(::builder->CreateCall(pmovzxbd, ARGS(V(x.value)))));
+#else
+			return RValue<Int4>(V(lowerPMOV(V(x.value), T(Int4::getType()), false)));
+#endif
 		}
 
 		RValue<Int4> pmovsxbd(RValue<SByte16> x)
 		{
+#if SWIFTSHADER_LLVM_VERSION < 7
 			llvm::Function *pmovsxbd = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse41_pmovsxbd);
 
 			return RValue<Int4>(V(::builder->CreateCall(pmovsxbd, ARGS(V(x.value)))));
+#else
+			return RValue<Int4>(V(lowerPMOV(V(x.value), T(Int4::getType()), true)));
+#endif
 		}
 
 		RValue<Int4> pmovzxwd(RValue<UShort8> x)
 		{
+#if SWIFTSHADER_LLVM_VERSION < 7
 			llvm::Function *pmovzxwd = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse41_pmovzxwd);
 
 			return RValue<Int4>(V(::builder->CreateCall(pmovzxwd, ARGS(V(x.value)))));
+#else
+			return RValue<Int4>(V(lowerPMOV(V(x.value), T(Int4::getType()), false)));
+#endif
 		}
 
 		RValue<Int4> pmovsxwd(RValue<Short8> x)
 		{
+#if SWIFTSHADER_LLVM_VERSION < 7
 			llvm::Function *pmovsxwd = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse41_pmovsxwd);
 
 			return RValue<Int4>(V(::builder->CreateCall(pmovsxwd, ARGS(V(x.value)))));
+#else
+			return RValue<Int4>(V(lowerPMOV(V(x.value), T(Int4::getType()), true)));
+#endif
 		}
 	}
 }

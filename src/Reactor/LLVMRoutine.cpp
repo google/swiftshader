@@ -20,6 +20,7 @@
 
 namespace sw
 {
+#if SWIFTSHADER_LLVM_VERSION < 7
 	LLVMRoutine::LLVMRoutine(int bufferSize) : bufferSize(bufferSize)
 	{
 		void *memory = allocateExecutable(bufferSize);
@@ -43,4 +44,10 @@ namespace sw
 	{
 		return functionSize - static_cast<int>((uintptr_t)entry - (uintptr_t)buffer);
 	}
+#else
+	LLVMRoutine::~LLVMRoutine()
+	{
+		dtor(reactorJIT, moduleKey);
+	}
+#endif
 }

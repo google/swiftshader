@@ -15,8 +15,10 @@
 #ifndef sw_LLVMRoutineManager_hpp
 #define sw_LLVMRoutineManager_hpp
 
-#include "llvm/GlobalValue.h"
+#if SWIFTSHADER_LLVM_VERSION < 7
+
 #include "llvm/ExecutionEngine/JITMemoryManager.h"
+#include "llvm/GlobalValue.h"
 
 namespace sw
 {
@@ -53,5 +55,7 @@ namespace sw
 		static volatile int averageInstructionSize;
 	};
 }
+
+#endif  // SWIFTSHADER_LLVM_VERSION < 7
 
 #endif   // sw_LLVMRoutineManager_hpp
