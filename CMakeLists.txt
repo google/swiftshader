@@ -1295,6 +1295,114 @@ set(LLVM_LIST
     ${LLVM_DIR}/lib/Target/TargetLoweringObjectFile.cpp
     ${LLVM_DIR}/lib/Target/TargetMachine.cpp
     ${LLVM_DIR}/lib/Target/TargetMachineC.cpp
+    ${LLVM_DIR}/lib/Target/AArch64/MCTargetDesc/AArch64ELFObjectWriter.cpp
+    ${LLVM_DIR}/lib/Target/AArch64/MCTargetDesc/AArch64MCTargetDesc.cpp
+    ${LLVM_DIR}/lib/Target/AArch64/MCTargetDesc/AArch64WinCOFFStreamer.cpp
+    ${LLVM_DIR}/lib/Target/AArch64/MCTargetDesc/AArch64WinCOFFObjectWriter.cpp
+    ${LLVM_DIR}/lib/Target/AArch64/MCTargetDesc/AArch64TargetStreamer.cpp
+    ${LLVM_DIR}/lib/Target/AArch64/MCTargetDesc/AArch64MachObjectWriter.cpp
+    ${LLVM_DIR}/lib/Target/AArch64/MCTargetDesc/AArch64MCCodeEmitter.cpp
+    ${LLVM_DIR}/lib/Target/AArch64/MCTargetDesc/AArch64MCAsmInfo.cpp
+    ${LLVM_DIR}/lib/Target/AArch64/MCTargetDesc/AArch64ELFStreamer.cpp
+    ${LLVM_DIR}/lib/Target/AArch64/MCTargetDesc/AArch64AsmBackend.cpp
+    ${LLVM_DIR}/lib/Target/AArch64/MCTargetDesc/AArch64MCExpr.cpp
+    ${LLVM_DIR}/lib/Target/AArch64/AArch64ISelLowering.cpp
+    ${LLVM_DIR}/lib/Target/AArch64/AArch64A57FPLoadBalancing.cpp
+    ${LLVM_DIR}/lib/Target/AArch64/AArch64FastISel.cpp
+    ${LLVM_DIR}/lib/Target/AArch64/AArch64InstrInfo.cpp
+    ${LLVM_DIR}/lib/Target/AArch64/AArch64PromoteConstant.cpp
+    ${LLVM_DIR}/lib/Target/AArch64/AArch64FalkorHWPFFix.cpp
+    ${LLVM_DIR}/lib/Target/AArch64/Utils/AArch64BaseInfo.cpp
+    ${LLVM_DIR}/lib/Target/AArch64/AArch64InstructionSelector.cpp
+    ${LLVM_DIR}/lib/Target/AArch64/AArch64SelectionDAGInfo.cpp
+    ${LLVM_DIR}/lib/Target/AArch64/AArch64A53Fix835769.cpp
+    ${LLVM_DIR}/lib/Target/AArch64/AArch64TargetMachine.cpp
+    ${LLVM_DIR}/lib/Target/AArch64/AArch64CallLowering.cpp
+    ${LLVM_DIR}/lib/Target/AArch64/AArch64SIMDInstrOpt.cpp
+    ${LLVM_DIR}/lib/Target/AArch64/AArch64Subtarget.cpp
+    ${LLVM_DIR}/lib/Target/AArch64/AArch64TargetObjectFile.cpp
+    ${LLVM_DIR}/lib/Target/AArch64/AArch64RegisterInfo.cpp
+    ${LLVM_DIR}/lib/Target/AArch64/AArch64ConditionOptimizer.cpp
+    ${LLVM_DIR}/lib/Target/AArch64/Disassembler/AArch64Disassembler.cpp
+    ${LLVM_DIR}/lib/Target/AArch64/Disassembler/AArch64ExternalSymbolizer.cpp
+    ${LLVM_DIR}/lib/Target/AArch64/TargetInfo/AArch64TargetInfo.cpp
+    ${LLVM_DIR}/lib/Target/AArch64/AArch64AdvSIMDScalarPass.cpp
+    ${LLVM_DIR}/lib/Target/AArch64/AArch64ConditionalCompares.cpp
+    ${LLVM_DIR}/lib/Target/AArch64/AArch64DeadRegisterDefinitionsPass.cpp
+    ${LLVM_DIR}/lib/Target/AArch64/AArch64LegalizerInfo.cpp
+    ${LLVM_DIR}/lib/Target/AArch64/AArch64StorePairSuppress.cpp
+    ${LLVM_DIR}/lib/Target/AArch64/AArch64PBQPRegAlloc.cpp
+    ${LLVM_DIR}/lib/Target/AArch64/InstPrinter/AArch64InstPrinter.cpp
+    ${LLVM_DIR}/lib/Target/AArch64/AArch64CleanupLocalDynamicTLSPass.cpp
+    ${LLVM_DIR}/lib/Target/AArch64/AsmParser/AArch64AsmParser.cpp
+    ${LLVM_DIR}/lib/Target/AArch64/AArch64MCInstLower.cpp
+    ${LLVM_DIR}/lib/Target/AArch64/AArch64TargetTransformInfo.cpp
+    ${LLVM_DIR}/lib/Target/AArch64/AArch64RedundantCopyElimination.cpp
+    ${LLVM_DIR}/lib/Target/AArch64/AArch64ExpandPseudoInsts.cpp
+    ${LLVM_DIR}/lib/Target/AArch64/AArch64CollectLOH.cpp
+    ${LLVM_DIR}/lib/Target/AArch64/AArch64AsmPrinter.cpp
+    ${LLVM_DIR}/lib/Target/AArch64/AArch64LoadStoreOptimizer.cpp
+    ${LLVM_DIR}/lib/Target/AArch64/AArch64RegisterBankInfo.cpp
+    ${LLVM_DIR}/lib/Target/AArch64/AArch64CondBrTuning.cpp
+    ${LLVM_DIR}/lib/Target/AArch64/AArch64ISelDAGToDAG.cpp
+    ${LLVM_DIR}/lib/Target/AArch64/AArch64FrameLowering.cpp
+    ${LLVM_DIR}/lib/Target/AArch64/AArch64MacroFusion.cpp
+    ${LLVM_DIR}/lib/Target/ARM/ARMConstantIslandPass.cpp
+    ${LLVM_DIR}/lib/Target/ARM/MCTargetDesc/ARMMachObjectWriter.cpp
+    ${LLVM_DIR}/lib/Target/ARM/MCTargetDesc/ARMWinCOFFObjectWriter.cpp
+    ${LLVM_DIR}/lib/Target/ARM/MCTargetDesc/ARMMCAsmInfo.cpp
+    ${LLVM_DIR}/lib/Target/ARM/MCTargetDesc/ARMMCCodeEmitter.cpp
+    ${LLVM_DIR}/lib/Target/ARM/MCTargetDesc/ARMTargetStreamer.cpp
+    ${LLVM_DIR}/lib/Target/ARM/MCTargetDesc/ARMMachORelocationInfo.cpp
+    ${LLVM_DIR}/lib/Target/ARM/MCTargetDesc/ARMMCExpr.cpp
+    ${LLVM_DIR}/lib/Target/ARM/MCTargetDesc/ARMELFObjectWriter.cpp
+    ${LLVM_DIR}/lib/Target/ARM/MCTargetDesc/ARMAsmBackend.cpp
+    ${LLVM_DIR}/lib/Target/ARM/MCTargetDesc/ARMWinCOFFStreamer.cpp
+    ${LLVM_DIR}/lib/Target/ARM/MCTargetDesc/ARMELFStreamer.cpp
+    ${LLVM_DIR}/lib/Target/ARM/MCTargetDesc/ARMMCTargetDesc.cpp
+    ${LLVM_DIR}/lib/Target/ARM/MCTargetDesc/ARMUnwindOpAsm.cpp
+    ${LLVM_DIR}/lib/Target/ARM/ThumbRegisterInfo.cpp
+    ${LLVM_DIR}/lib/Target/ARM/ARMMachineFunctionInfo.cpp
+    ${LLVM_DIR}/lib/Target/ARM/ARMFrameLowering.cpp
+    ${LLVM_DIR}/lib/Target/ARM/ARMBaseRegisterInfo.cpp
+    ${LLVM_DIR}/lib/Target/ARM/ARMCallLowering.cpp
+    ${LLVM_DIR}/lib/Target/ARM/ARMTargetMachine.cpp
+    ${LLVM_DIR}/lib/Target/ARM/ARMBaseInstrInfo.cpp
+    ${LLVM_DIR}/lib/Target/ARM/Thumb1FrameLowering.cpp
+    ${LLVM_DIR}/lib/Target/ARM/ARMRegisterBankInfo.cpp
+    ${LLVM_DIR}/lib/Target/ARM/Utils/ARMBaseInfo.cpp
+    ${LLVM_DIR}/lib/Target/ARM/ARMComputeBlockSize.cpp
+    ${LLVM_DIR}/lib/Target/ARM/ARMSelectionDAGInfo.cpp
+    ${LLVM_DIR}/lib/Target/ARM/ARMInstructionSelector.cpp
+    ${LLVM_DIR}/lib/Target/ARM/ARMLoadStoreOptimizer.cpp
+    ${LLVM_DIR}/lib/Target/ARM/ARMTargetObjectFile.cpp
+    ${LLVM_DIR}/lib/Target/ARM/ARMISelLowering.cpp
+    ${LLVM_DIR}/lib/Target/ARM/Disassembler/ARMDisassembler.cpp
+    ${LLVM_DIR}/lib/Target/ARM/ARMExpandPseudoInsts.cpp
+    ${LLVM_DIR}/lib/Target/ARM/TargetInfo/ARMTargetInfo.cpp
+    ${LLVM_DIR}/lib/Target/ARM/ARMInstrInfo.cpp
+    ${LLVM_DIR}/lib/Target/ARM/MLxExpansionPass.cpp
+    ${LLVM_DIR}/lib/Target/ARM/Thumb2SizeReduction.cpp
+    ${LLVM_DIR}/lib/Target/ARM/ARMConstantPoolValue.cpp
+    ${LLVM_DIR}/lib/Target/ARM/Thumb2InstrInfo.cpp
+    ${LLVM_DIR}/lib/Target/ARM/ARMRegisterInfo.cpp
+    ${LLVM_DIR}/lib/Target/ARM/InstPrinter/ARMInstPrinter.cpp
+    ${LLVM_DIR}/lib/Target/ARM/ARMSubtarget.cpp
+    ${LLVM_DIR}/lib/Target/ARM/AsmParser/ARMAsmParser.cpp
+    ${LLVM_DIR}/lib/Target/ARM/ARMParallelDSP.cpp
+    ${LLVM_DIR}/lib/Target/ARM/ARMISelDAGToDAG.cpp
+    ${LLVM_DIR}/lib/Target/ARM/A15SDOptimizer.cpp
+    ${LLVM_DIR}/lib/Target/ARM/Thumb2ITBlockPass.cpp
+    ${LLVM_DIR}/lib/Target/ARM/ARMFastISel.cpp
+    ${LLVM_DIR}/lib/Target/ARM/ARMMacroFusion.cpp
+    ${LLVM_DIR}/lib/Target/ARM/ARMAsmPrinter.cpp
+    ${LLVM_DIR}/lib/Target/ARM/ARMMCInstLower.cpp
+    ${LLVM_DIR}/lib/Target/ARM/ARMHazardRecognizer.cpp
+    ${LLVM_DIR}/lib/Target/ARM/ARMCodeGenPrepare.cpp
+    ${LLVM_DIR}/lib/Target/ARM/ARMTargetTransformInfo.cpp
+    ${LLVM_DIR}/lib/Target/ARM/Thumb1InstrInfo.cpp
+    ${LLVM_DIR}/lib/Target/ARM/ARMLegalizerInfo.cpp
+    ${LLVM_DIR}/lib/Target/ARM/ARMOptimizeBarriersPass.cpp
     ${LLVM_DIR}/lib/Target/X86/AsmParser/X86AsmInstrumentation.cpp
     ${LLVM_DIR}/lib/Target/X86/AsmParser/X86AsmParser.cpp
     ${LLVM_DIR}/lib/Target/X86/InstPrinter/X86ATTInstPrinter.cpp
@@ -1510,9 +1618,13 @@ endif()
 
 list(APPEND LLVM_INCLUDE_DIR
     ${LLVM_DIR}/include
+    ${LLVM_DIR}/lib/Target/AArch64
+    ${LLVM_DIR}/lib/Target/ARM
     ${LLVM_DIR}/lib/Target/X86
     ${LLVM_CONFIG_DIR}/common/include
     ${LLVM_CONFIG_DIR}/common/lib/IR
+    ${LLVM_CONFIG_DIR}/common/lib/Target/AArch64
+    ${LLVM_CONFIG_DIR}/common/lib/Target/ARM
     ${LLVM_CONFIG_DIR}/common/lib/Target/X86
     ${LLVM_CONFIG_DIR}/common/lib/Transforms/InstCombine
 )
