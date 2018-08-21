@@ -1,3 +1,6 @@
 [submodule "third_party/googletest"]
 	path = third_party/googletest
 	url = https://github.com/google/googletest.git
+[submodule "third_party/llvm-7.0/llvm"]
+	path = third_party/llvm-7.0/llvm
+	url = https://git.llvm.org/git/llvm.git
