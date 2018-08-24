@@ -119,7 +119,6 @@ namespace
 	sw::MutexLock codegenMutex;
 
 #if SWIFTSHADER_LLVM_VERSION >= 7
-#if defined(__i386__) || defined(__x86_64__)
 	llvm::Value *lowerPAVG(llvm::Value *x, llvm::Value *y)
 	{
 		llvm::VectorType *ty = llvm::cast<llvm::VectorType>(x->getType());
@@ -149,6 +148,7 @@ namespace
 		return ::builder->CreateSExt(::builder->CreateICmp(pred, x, y), dstTy, "");
 	}
 
+#if defined(__i386__) || defined(__x86_64__)
 	llvm::Value *lowerPMOV(llvm::Value *op, llvm::Type *dstType, bool sext)
 	{
 		llvm::VectorType *srcTy = llvm::cast<llvm::VectorType>(op->getType());
@@ -171,6 +171,217 @@ namespace
 		return ::builder->CreateSelect(cmp, v, neg);
 	}
 #endif  // defined(__i386__) || defined(__x86_64__)
+
+#if !defined(__i386__) && !defined(__x86_64__)
+	llvm::Value *lowerPFMINMAX(llvm::Value *x, llvm::Value *y,
+							   llvm::FCmpInst::Predicate pred)
+	{
+		return ::builder->CreateSelect(::builder->CreateFCmp(pred, x, y), x, y);
+	}
+
+	// Packed add/sub saturatation
+	llvm::Value *lowerPSAT(llvm::Intrinsic::ID intrinsic, llvm::Value *x, llvm::Value *y)
+	{
+		llvm::Function *func = llvm::Intrinsic::getDeclaration(
+			::module, intrinsic, {x->getType(), y->getType()});
+		llvm::Value *ret = ::builder->CreateCall(func, ARGS(x, y));
+		return ::builder->CreateExtractValue(ret, {0});
+	}
+
+	llvm::Value *lowerPUADDSAT(llvm::Value *x, llvm::Value *y)
+	{
+		return lowerPSAT(llvm::Intrinsic::uadd_with_overflow, x, y);
+	}
+
+	llvm::Value *lowerPSADDSAT(llvm::Value *x, llvm::Value *y)
+	{
+		return lowerPSAT(llvm::Intrinsic::sadd_with_overflow, x, y);
+	}
+
+	llvm::Value *lowerPUSUBSAT(llvm::Value *x, llvm::Value *y)
+	{
+		return lowerPSAT(llvm::Intrinsic::usub_with_overflow, x, y);
+	}
+
+	llvm::Value *lowerPSSUBSAT(llvm::Value *x, llvm::Value *y)
+	{
+		return lowerPSAT(llvm::Intrinsic::ssub_with_overflow, x, y);
+	}
+
+	llvm::Value *lowerSQRT(llvm::Value *x)
+	{
+		llvm::Function *sqrt = llvm::Intrinsic::getDeclaration(
+			::module, llvm::Intrinsic::sqrt, {x->getType()});
+		return ::builder->CreateCall(sqrt, ARGS(x));
+	}
+
+	llvm::Value *lowerRCP(llvm::Value *x)
+	{
+		llvm::Type *ty = x->getType();
+		llvm::Constant *one;
+		if (llvm::VectorType *vectorTy = llvm::dyn_cast<llvm::VectorType>(ty))
+		{
+			one = llvm::ConstantVector::getSplat(
+				vectorTy->getNumElements(),
+				llvm::ConstantFP::get(vectorTy->getElementType(), 1));
+		}
+		else
+		{
+			one = llvm::ConstantFP::get(ty, 1);
+		}
+		return ::builder->CreateFDiv(one, x);
+	}
+
+	llvm::Value *lowerRSQRT(llvm::Value *x)
+	{
+		return lowerRCP(lowerSQRT(x));
+	}
+
+	llvm::Value *lowerVectorShl(llvm::Value *x, uint64_t scalarY)
+	{
+		llvm::VectorType *ty = llvm::cast<llvm::VectorType>(x->getType());
+		llvm::Value *y = llvm::ConstantVector::getSplat(
+			ty->getNumElements(),
+			llvm::ConstantInt::get(ty->getElementType(), scalarY));
+		return ::builder->CreateShl(x, y);
+	}
+
+	llvm::Value *lowerVectorAShr(llvm::Value *x, uint64_t scalarY)
+	{
+		llvm::VectorType *ty = llvm::cast<llvm::VectorType>(x->getType());
+		llvm::Value *y = llvm::ConstantVector::getSplat(
+			ty->getNumElements(),
+			llvm::ConstantInt::get(ty->getElementType(), scalarY));
+		return ::builder->CreateAShr(x, y);
+	}
+
+	llvm::Value *lowerVectorLShr(llvm::Value *x, uint64_t scalarY)
+	{
+		llvm::VectorType *ty = llvm::cast<llvm::VectorType>(x->getType());
+		llvm::Value *y = llvm::ConstantVector::getSplat(
+			ty->getNumElements(),
+			llvm::ConstantInt::get(ty->getElementType(), scalarY));
+		return ::builder->CreateLShr(x, y);
+	}
+
+	llvm::Value *lowerMulAdd(llvm::Value *x, llvm::Value *y)
+	{
+		llvm::VectorType *ty = llvm::cast<llvm::VectorType>(x->getType());
+		llvm::VectorType *extTy = llvm::VectorType::getExtendedElementVectorType(ty);
+
+		llvm::Value *extX = ::builder->CreateSExt(x, extTy);
+		llvm::Value *extY = ::builder->CreateSExt(y, extTy);
+		llvm::Value *mult = ::builder->CreateMul(extX, extY);
+
+		llvm::Value *undef = llvm::UndefValue::get(extTy);
+
+		llvm::SmallVector<uint32_t, 16> evenIdx;
+		llvm::SmallVector<uint32_t, 16> oddIdx;
+		for (uint64_t i = 0, n = ty->getNumElements(); i < n; i += 2)
+		{
+			evenIdx.push_back(i);
+			oddIdx.push_back(i + 1);
+		}
+
+		llvm::Value *lhs = ::builder->CreateShuffleVector(mult, undef, evenIdx);
+		llvm::Value *rhs = ::builder->CreateShuffleVector(mult, undef, oddIdx);
+		return ::builder->CreateAdd(lhs, rhs);
+	}
+
+	llvm::Value *lowerMulHigh(llvm::Value *x, llvm::Value *y, bool sext)
+	{
+		llvm::VectorType *ty = llvm::cast<llvm::VectorType>(x->getType());
+		llvm::VectorType *extTy = llvm::VectorType::getExtendedElementVectorType(ty);
+
+		llvm::Value *extX, *extY;
+		if (sext)
+		{
+			extX = ::builder->CreateSExt(x, extTy);
+			extY = ::builder->CreateSExt(y, extTy);
+		}
+		else
+		{
+			extX = ::builder->CreateZExt(x, extTy);
+			extY = ::builder->CreateZExt(y, extTy);
+		}
+
+		llvm::Value *mult = ::builder->CreateMul(extX, extY);
+
+		llvm::IntegerType *intTy = llvm::cast<llvm::IntegerType>(ty->getElementType());
+		llvm::Value *mulh = ::builder->CreateAShr(mult, intTy->getIntegerBitWidth());
+		return ::builder->CreateTrunc(mulh, ty);
+	}
+
+	llvm::Value *lowerPack(llvm::Value *x, llvm::Value *y, bool isSigned)
+	{
+		llvm::VectorType *srcTy = llvm::cast<llvm::VectorType>(x->getType());
+		llvm::VectorType *dstTy = llvm::VectorType::getTruncatedElementVectorType(srcTy);
+
+		llvm::IntegerType *dstElemTy =
+			llvm::cast<llvm::IntegerType>(dstTy->getElementType());
+
+		uint64_t truncNumBits = dstElemTy->getIntegerBitWidth();
+		assert(truncNumBits < 64 && "shift 64 must be handled separately");
+		llvm::Constant *max, *min;
+		if (isSigned)
+		{
+			max = llvm::ConstantInt::get(srcTy, (1LL << (truncNumBits - 1)) - 1, true);
+			min = llvm::ConstantInt::get(srcTy, (-1LL << (truncNumBits - 1)), true);
+		}
+		else
+		{
+			max = llvm::ConstantInt::get(srcTy, (1ULL << truncNumBits) - 1, false);
+			min = llvm::ConstantInt::get(srcTy, 0, false);
+		}
+
+		x = lowerPMINMAX(x, min, llvm::ICmpInst::ICMP_SGT);
+		x = lowerPMINMAX(x, max, llvm::ICmpInst::ICMP_SLT);
+		y = lowerPMINMAX(y, min, llvm::ICmpInst::ICMP_SGT);
+		y = lowerPMINMAX(y, max, llvm::ICmpInst::ICMP_SLT);
+
+		x = ::builder->CreateTrunc(x, dstTy);
+		y = ::builder->CreateTrunc(y, dstTy);
+
+		llvm::SmallVector<uint32_t, 16> index(srcTy->getNumElements() * 2);
+		std::iota(index.begin(), index.end(), 0);
+
+		return ::builder->CreateShuffleVector(x, y, index);
+	}
+
+	llvm::Value *lowerSignMask(llvm::Value *x, llvm::Type *retTy)
+	{
+		llvm::VectorType *ty = llvm::cast<llvm::VectorType>(x->getType());
+		llvm::Constant *zero = llvm::ConstantInt::get(ty, 0);
+		llvm::Value *cmp = ::builder->CreateICmpSLT(x, zero);
+
+		llvm::Value *ret = ::builder->CreateZExt(
+			::builder->CreateExtractElement(cmp, static_cast<uint64_t>(0)), retTy);
+		for (uint64_t i = 1, n = ty->getNumElements(); i < n; ++i)
+		{
+			llvm::Value *elem = ::builder->CreateZExt(
+				::builder->CreateExtractElement(cmp, i), retTy);
+			ret = ::builder->CreateOr(ret, ::builder->CreateShl(elem, i));
+		}
+		return ret;
+	}
+
+	llvm::Value *lowerFPSignMask(llvm::Value *x, llvm::Type *retTy)
+	{
+		llvm::VectorType *ty = llvm::cast<llvm::VectorType>(x->getType());
+		llvm::Constant *zero = llvm::ConstantFP::get(ty, 0);
+		llvm::Value *cmp = ::builder->CreateFCmpULT(x, zero);
+
+		llvm::Value *ret = ::builder->CreateZExt(
+			::builder->CreateExtractElement(cmp, static_cast<uint64_t>(0)), retTy);
+		for (uint64_t i = 1, n = ty->getNumElements(); i < n; ++i)
+		{
+			llvm::Value *elem = ::builder->CreateZExt(
+				::builder->CreateExtractElement(cmp, i), retTy);
+			ret = ::builder->CreateOr(ret, ::builder->CreateShl(elem, i));
+		}
+		return ret;
+	}
+#endif  // !defined(__i386__) && !defined(__x86_64__)
 #endif  // SWIFTSHADER_LLVM_VERSION >= 7
 }
 
@@ -517,11 +728,18 @@ namespace sw
 
 		#if defined(__x86_64__)
 			static const char arch[] = "x86-64";
-		#else
+		#elif defined(__i386__)
 			static const char arch[] = "x86";
+		#elif defined(__aarch64__)
+			static const char arch[] = "arm64";
+		#elif defined(__arm__)
+			static const char arch[] = "arm";
+		#else
+		#error "unknown architecture"
 		#endif
 
 		llvm::SmallVector<std::string, 1> mattrs;
+#if defined(__i386__) || defined(__x86_64__)
 		mattrs.push_back(CPUID::supportsMMX()    ? "+mmx"    : "-mmx");
 		mattrs.push_back(CPUID::supportsCMOV()   ? "+cmov"   : "-cmov");
 		mattrs.push_back(CPUID::supportsSSE()    ? "+sse"    : "-sse");
@@ -532,6 +750,14 @@ namespace sw
 		mattrs.push_back(CPUID::supportsSSE4_1() ? "+sse41"  : "-sse41");
 #else
 		mattrs.push_back(CPUID::supportsSSE4_1() ? "+sse4.1" : "-sse4.1");
+#endif
+#elif defined(__arm__)
+#if __ARM_ARCH >= 8
+		mattrs.push_back("+armv8-a");
+#else
+		// armv7-a requires compiler-rt routines; otherwise, compiled kernel
+		// might fail to link.
+#endif
 #endif
 
 #if SWIFTSHADER_LLVM_VERSION < 7
@@ -2556,12 +2782,20 @@ namespace sw
 
 	RValue<Byte8> AddSat(RValue<Byte8> x, RValue<Byte8> y)
 	{
+#if defined(__i386__) || defined(__x86_64__)
 		return x86::paddusb(x, y);
+#else
+		return As<Byte8>(V(lowerPUADDSAT(V(x.value), V(y.value))));
+#endif
 	}
 
 	RValue<Byte8> SubSat(RValue<Byte8> x, RValue<Byte8> y)
 	{
+#if defined(__i386__) || defined(__x86_64__)
 		return x86::psubusb(x, y);
+#else
+		return As<Byte8>(V(lowerPUSUBSAT(V(x.value), V(y.value))));
+#endif
 	}
 
 	RValue<Short4> Unpack(RValue<Byte4> x)
@@ -2590,17 +2824,29 @@ namespace sw
 
 	RValue<Int> SignMask(RValue<Byte8> x)
 	{
+#if defined(__i386__) || defined(__x86_64__)
 		return x86::pmovmskb(x);
+#else
+		return As<Int>(V(lowerSignMask(V(x.value), T(Int::getType()))));
+#endif
 	}
 
 //	RValue<Byte8> CmpGT(RValue<Byte8> x, RValue<Byte8> y)
 //	{
+//#if defined(__i386__) || defined(__x86_64__)
 //		return x86::pcmpgtb(x, y);   // FIXME: Signedness
+//#else
+//		return As<Byte8>(V(lowerPCMP(llvm::ICmpInst::ICMP_SGT, V(x.value), V(y.value), T(Byte8::getType()))));
+//#endif
 //	}
 
 	RValue<Byte8> CmpEQ(RValue<Byte8> x, RValue<Byte8> y)
 	{
+#if defined(__i386__) || defined(__x86_64__)
 		return x86::pcmpeqb(x, y);
+#else
+		return As<Byte8>(V(lowerPCMP(llvm::ICmpInst::ICMP_EQ, V(x.value), V(y.value), T(Byte8::getType()))));
+#endif
 	}
 
 	Type *Byte8::getType()
@@ -2773,12 +3019,20 @@ namespace sw
 
 	RValue<SByte8> AddSat(RValue<SByte8> x, RValue<SByte8> y)
 	{
+#if defined(__i386__) || defined(__x86_64__)
 		return x86::paddsb(x, y);
+#else
+		return As<SByte8>(V(lowerPSADDSAT(V(x.value), V(y.value))));
+#endif
 	}
 
 	RValue<SByte8> SubSat(RValue<SByte8> x, RValue<SByte8> y)
 	{
+#if defined(__i386__) || defined(__x86_64__)
 		return x86::psubsb(x, y);
+#else
+		return As<SByte8>(V(lowerPSSUBSAT(V(x.value), V(y.value))));
+#endif
 	}
 
 	RValue<Short4> UnpackLow(RValue<SByte8> x, RValue<SByte8> y)
@@ -2796,17 +3050,29 @@ namespace sw
 
 	RValue<Int> SignMask(RValue<SByte8> x)
 	{
+#if defined(__i386__) || defined(__x86_64__)
 		return x86::pmovmskb(As<Byte8>(x));
+#else
+		return As<Int>(V(lowerSignMask(V(x.value), T(Int::getType()))));
+#endif
 	}
 
 	RValue<Byte8> CmpGT(RValue<SByte8> x, RValue<SByte8> y)
 	{
+#if defined(__i386__) || defined(__x86_64__)
 		return x86::pcmpgtb(x, y);
+#else
+		return As<Byte8>(V(lowerPCMP(llvm::ICmpInst::ICMP_SGT, V(x.value), V(y.value), T(Byte8::getType()))));
+#endif
 	}
 
 	RValue<Byte8> CmpEQ(RValue<SByte8> x, RValue<SByte8> y)
 	{
+#if defined(__i386__) || defined(__x86_64__)
 		return x86::pcmpeqb(As<Byte8>(x), As<Byte8>(y));
+#else
+		return As<Byte8>(V(lowerPCMP(llvm::ICmpInst::ICMP_EQ, V(x.value), V(y.value), T(Byte8::getType()))));
+#endif
 	}
 
 	Type *SByte8::getType()
@@ -2912,7 +3178,12 @@ namespace sw
 	Short4::Short4(RValue<Float4> cast)
 	{
 		Int4 v4i32 = Int4(cast);
+#if defined(__i386__) || defined(__x86_64__)
 		v4i32 = As<Int4>(x86::packssdw(v4i32, v4i32));
+#else
+		Value *v = v4i32.loadValue();
+		v4i32 = As<Int4>(V(lowerPack(V(v), V(v), true)));
+#endif
 
 		storeValue(As<Short4>(Int2(v4i32)).value);
 	}
@@ -3049,16 +3320,22 @@ namespace sw
 
 	RValue<Short4> operator<<(RValue<Short4> lhs, unsigned char rhs)
 	{
+#if defined(__i386__) || defined(__x86_64__)
 	//	return RValue<Short4>(Nucleus::createShl(lhs.value, rhs.value));
 
 		return x86::psllw(lhs, rhs);
+#else
+		return As<Short4>(V(lowerVectorShl(V(lhs.value), rhs)));
+#endif
 	}
 
 	RValue<Short4> operator>>(RValue<Short4> lhs, unsigned char rhs)
 	{
-	//	return RValue<Short4>(Nucleus::createAShr(lhs.value, rhs.value));
-
+#if defined(__i386__) || defined(__x86_64__)
 		return x86::psraw(lhs, rhs);
+#else
+		return As<Short4>(V(lowerVectorAShr(V(lhs.value), rhs)));
+#endif
 	}
 
 	RValue<Short4> operator+=(Short4 &lhs, RValue<Short4> rhs)
@@ -3134,45 +3411,75 @@ namespace sw
 
 	RValue<Short4> Max(RValue<Short4> x, RValue<Short4> y)
 	{
+#if defined(__i386__) || defined(__x86_64__)
 		return x86::pmaxsw(x, y);
+#else
+		return RValue<Short4>(V(lowerPMINMAX(V(x.value), V(y.value), llvm::ICmpInst::ICMP_SGT)));
+#endif
 	}
 
 	RValue<Short4> Min(RValue<Short4> x, RValue<Short4> y)
 	{
+#if defined(__i386__) || defined(__x86_64__)
 		return x86::pminsw(x, y);
+#else
+		return RValue<Short4>(V(lowerPMINMAX(V(x.value), V(y.value), llvm::ICmpInst::ICMP_SLT)));
+#endif
 	}
 
 	RValue<Short4> AddSat(RValue<Short4> x, RValue<Short4> y)
 	{
+#if defined(__i386__) || defined(__x86_64__)
 		return x86::paddsw(x, y);
+#else
+		return As<Short4>(V(lowerPSADDSAT(V(x.value), V(y.value))));
+#endif
 	}
 
 	RValue<Short4> SubSat(RValue<Short4> x, RValue<Short4> y)
 	{
+#if defined(__i386__) || defined(__x86_64__)
 		return x86::psubsw(x, y);
+#else
+		return As<Short4>(V(lowerPSSUBSAT(V(x.value), V(y.value))));
+#endif
 	}
 
 	RValue<Short4> MulHigh(RValue<Short4> x, RValue<Short4> y)
 	{
+#if defined(__i386__) || defined(__x86_64__)
 		return x86::pmulhw(x, y);
+#else
+		return As<Short4>(V(lowerMulHigh(V(x.value), V(y.value), true)));
+#endif
 	}
 
 	RValue<Int2> MulAdd(RValue<Short4> x, RValue<Short4> y)
 	{
+#if defined(__i386__) || defined(__x86_64__)
 		return x86::pmaddwd(x, y);
+#else
+		return As<Int2>(V(lowerMulAdd(V(x.value), V(y.value))));
+#endif
 	}
 
 	RValue<SByte8> PackSigned(RValue<Short4> x, RValue<Short4> y)
 	{
+#if defined(__i386__) || defined(__x86_64__)
 		auto result = x86::packsswb(x, y);
-
+#else
+		auto result = V(lowerPack(V(x.value), V(y.value), true));
+#endif
 		return As<SByte8>(Swizzle(As<Int4>(result), 0x88));
 	}
 
 	RValue<Byte8> PackUnsigned(RValue<Short4> x, RValue<Short4> y)
 	{
+#if defined(__i386__) || defined(__x86_64__)
 		auto result = x86::packuswb(x, y);
-
+#else
+		auto result = V(lowerPack(V(x.value), V(y.value), false));
+#endif
 		return As<Byte8>(Swizzle(As<Int4>(result), 0x88));
 	}
 
@@ -3219,12 +3526,20 @@ namespace sw
 
 	RValue<Short4> CmpGT(RValue<Short4> x, RValue<Short4> y)
 	{
+#if defined(__i386__) || defined(__x86_64__)
 		return x86::pcmpgtw(x, y);
+#else
+		return As<Short4>(V(lowerPCMP(llvm::ICmpInst::ICMP_SGT, V(x.value), V(y.value), T(Short4::getType()))));
+#endif
 	}
 
 	RValue<Short4> CmpEQ(RValue<Short4> x, RValue<Short4> y)
 	{
+#if defined(__i386__) || defined(__x86_64__)
 		return x86::pcmpeqw(x, y);
+#else
+		return As<Short4>(V(lowerPCMP(llvm::ICmpInst::ICMP_EQ, V(x.value), V(y.value), T(Short4::getType()))));
+#endif
 	}
 
 	Type *Short4::getType()
@@ -3381,16 +3696,24 @@ namespace sw
 
 	RValue<UShort4> operator<<(RValue<UShort4> lhs, unsigned char rhs)
 	{
+#if defined(__i386__) || defined(__x86_64__)
 	//	return RValue<Short4>(Nucleus::createShl(lhs.value, rhs.value));
 
 		return As<UShort4>(x86::psllw(As<Short4>(lhs), rhs));
+#else
+		return As<UShort4>(V(lowerVectorShl(V(lhs.value), rhs)));
+#endif
 	}
 
 	RValue<UShort4> operator>>(RValue<UShort4> lhs, unsigned char rhs)
 	{
+#if defined(__i386__) || defined(__x86_64__)
 	//	return RValue<Short4>(Nucleus::createLShr(lhs.value, rhs.value));
 
 		return x86::psrlw(lhs, rhs);
+#else
+		return As<UShort4>(V(lowerVectorLShr(V(lhs.value), rhs)));
+#endif
 	}
 
 	RValue<UShort4> operator<<=(UShort4 &lhs, unsigned char rhs)
@@ -3420,22 +3743,38 @@ namespace sw
 
 	RValue<UShort4> AddSat(RValue<UShort4> x, RValue<UShort4> y)
 	{
+#if defined(__i386__) || defined(__x86_64__)
 		return x86::paddusw(x, y);
+#else
+		return As<UShort4>(V(lowerPUADDSAT(V(x.value), V(y.value))));
+#endif
 	}
 
 	RValue<UShort4> SubSat(RValue<UShort4> x, RValue<UShort4> y)
 	{
+#if defined(__i386__) || defined(__x86_64__)
 		return x86::psubusw(x, y);
+#else
+		return As<UShort4>(V(lowerPUSUBSAT(V(x.value), V(y.value))));
+#endif
 	}
 
 	RValue<UShort4> MulHigh(RValue<UShort4> x, RValue<UShort4> y)
 	{
+#if defined(__i386__) || defined(__x86_64__)
 		return x86::pmulhuw(x, y);
+#else
+		return As<UShort4>(V(lowerMulHigh(V(x.value), V(y.value), false)));
+#endif
 	}
 
 	RValue<UShort4> Average(RValue<UShort4> x, RValue<UShort4> y)
 	{
+#if defined(__i386__) || defined(__x86_64__)
 		return x86::pavgw(x, y);
+#else
+		return As<UShort4>(V(lowerPAVG(V(x.value), V(y.value))));
+#endif
 	}
 
 	Type *UShort4::getType()
@@ -3486,17 +3825,29 @@ namespace sw
 
 	RValue<Short8> operator<<(RValue<Short8> lhs, unsigned char rhs)
 	{
-		return x86::psllw(lhs, rhs);   // FIXME: Fallback required
+#if defined(__i386__) || defined(__x86_64__)
+		return x86::psllw(lhs, rhs);
+#else
+		return As<Short8>(V(lowerVectorShl(V(lhs.value), rhs)));
+#endif
 	}
 
 	RValue<Short8> operator>>(RValue<Short8> lhs, unsigned char rhs)
 	{
-		return x86::psraw(lhs, rhs);   // FIXME: Fallback required
+#if defined(__i386__) || defined(__x86_64__)
+		return x86::psraw(lhs, rhs);
+#else
+		return As<Short8>(V(lowerVectorAShr(V(lhs.value), rhs)));
+#endif
 	}
 
 	RValue<Int4> MulAdd(RValue<Short8> x, RValue<Short8> y)
 	{
-		return x86::pmaddwd(x, y);   // FIXME: Fallback required
+#if defined(__i386__) || defined(__x86_64__)
+		return x86::pmaddwd(x, y);
+#else
+		return As<Int4>(V(lowerMulAdd(V(x.value), V(y.value))));
+#endif
 	}
 
 	RValue<Int4> Abs(RValue<Int4> x)
@@ -3507,7 +3858,11 @@ namespace sw
 
 	RValue<Short8> MulHigh(RValue<Short8> x, RValue<Short8> y)
 	{
-		return x86::pmulhw(x, y);   // FIXME: Fallback required
+#if defined(__i386__) || defined(__x86_64__)
+		return x86::pmulhw(x, y);
+#else
+		return As<Short8>(V(lowerMulHigh(V(x.value), V(y.value), true)));
+#endif
 	}
 
 	Type *Short8::getType()
@@ -3576,12 +3931,20 @@ namespace sw
 
 	RValue<UShort8> operator<<(RValue<UShort8> lhs, unsigned char rhs)
 	{
-		return As<UShort8>(x86::psllw(As<Short8>(lhs), rhs));   // FIXME: Fallback required
+#if defined(__i386__) || defined(__x86_64__)
+		return As<UShort8>(x86::psllw(As<Short8>(lhs), rhs));
+#else
+		return As<UShort8>(V(lowerVectorShl(V(lhs.value), rhs)));
+#endif
 	}
 
 	RValue<UShort8> operator>>(RValue<UShort8> lhs, unsigned char rhs)
 	{
+#if defined(__i386__) || defined(__x86_64__)
 		return x86::psrlw(lhs, rhs);   // FIXME: Fallback required
+#else
+		return As<UShort8>(V(lowerVectorLShr(V(lhs.value), rhs)));
+#endif
 	}
 
 	RValue<UShort8> operator+(RValue<UShort8> lhs, RValue<UShort8> rhs)
@@ -3635,7 +3998,11 @@ namespace sw
 
 	RValue<UShort8> MulHigh(RValue<UShort8> x, RValue<UShort8> y)
 	{
-		return x86::pmulhuw(x, y);   // FIXME: Fallback required
+#if defined(__i386__) || defined(__x86_64__)
+		return x86::pmulhuw(x, y);
+#else
+		return As<UShort8>(V(lowerMulHigh(V(x.value), V(y.value), false)));
+#endif
 	}
 
 	Type *UShort8::getType()
@@ -3983,9 +4350,11 @@ namespace sw
 
 	RValue<Int> RoundInt(RValue<Float> cast)
 	{
+#if defined(__i386__) || defined(__x86_64__)
 		return x86::cvtss2si(cast);
-
-	//	return IfThenElse(val > 0.0f, Int(val + 0.5f), Int(val - 0.5f));
+#else
+		return IfThenElse(cast > 0.0f, Int(cast + 0.5f), Int(cast - 0.5f));
+#endif
 	}
 
 	Type *Int::getType()
@@ -4401,9 +4770,11 @@ namespace sw
 
 //	RValue<UInt> RoundUInt(RValue<Float> cast)
 //	{
+//#if defined(__i386__) || defined(__x86_64__)
 //		return x86::cvtss2si(val);   // FIXME: Unsigned
-//
-//	//	return IfThenElse(val > 0.0f, Int(val + 0.5f), Int(val - 0.5f));
+//#else
+//		return IfThenElse(cast > 0.0f, Int(cast + 0.5f), Int(cast - 0.5f));
+//#endif
 //	}
 
 	Type *UInt::getType()
@@ -4523,16 +4894,24 @@ namespace sw
 
 	RValue<Int2> operator<<(RValue<Int2> lhs, unsigned char rhs)
 	{
+#if defined(__i386__) || defined(__x86_64__)
 	//	return RValue<Int2>(Nucleus::createShl(lhs.value, rhs.value));
 
 		return x86::pslld(lhs, rhs);
+#else
+		return As<Int2>(V(lowerVectorShl(V(lhs.value), rhs)));
+#endif
 	}
 
 	RValue<Int2> operator>>(RValue<Int2> lhs, unsigned char rhs)
 	{
+#if defined(__i386__) || defined(__x86_64__)
 	//	return RValue<Int2>(Nucleus::createAShr(lhs.value, rhs.value));
 
 		return x86::psrad(lhs, rhs);
+#else
+		return As<Int2>(V(lowerVectorAShr(V(lhs.value), rhs)));
+#endif
 	}
 
 	RValue<Int2> operator+=(Int2 &lhs, RValue<Int2> rhs)
@@ -4716,16 +5095,24 @@ namespace sw
 
 	RValue<UInt2> operator<<(RValue<UInt2> lhs, unsigned char rhs)
 	{
+#if defined(__i386__) || defined(__x86_64__)
 	//	return RValue<UInt2>(Nucleus::createShl(lhs.value, rhs.value));
 
 		return As<UInt2>(x86::pslld(As<Int2>(lhs), rhs));
+#else
+		return As<UInt2>(V(lowerVectorShl(V(lhs.value), rhs)));
+#endif
 	}
 
 	RValue<UInt2> operator>>(RValue<UInt2> lhs, unsigned char rhs)
 	{
+#if defined(__i386__) || defined(__x86_64__)
 	//	return RValue<UInt2>(Nucleus::createLShr(lhs.value, rhs.value));
 
 		return x86::psrld(lhs, rhs);
+#else
+		return As<UInt2>(V(lowerVectorLShr(V(lhs.value), rhs)));
+#endif
 	}
 
 	RValue<UInt2> operator+=(UInt2 &lhs, RValue<UInt2> rhs)
@@ -4804,11 +5191,13 @@ namespace sw
 
 	Int4::Int4(RValue<Byte4> cast) : XYZW(this)
 	{
+#if defined(__i386__) || defined(__x86_64__)
 		if(CPUID::supportsSSE4_1())
 		{
 			*this = x86::pmovzxbd(As<Byte16>(cast));
 		}
 		else
+#endif
 		{
 			int swizzle[16] = {0, 16, 1, 17, 2, 18, 3, 19, 4, 20, 5, 21, 6, 22, 7, 23};
 			Value *a = Nucleus::createBitCast(cast.value, Byte16::getType());
@@ -4824,11 +5213,13 @@ namespace sw
 
 	Int4::Int4(RValue<SByte4> cast) : XYZW(this)
 	{
+#if defined(__i386__) || defined(__x86_64__)
 		if(CPUID::supportsSSE4_1())
 		{
 			*this = x86::pmovsxbd(As<SByte16>(cast));
 		}
 		else
+#endif
 		{
 			int swizzle[16] = {0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7};
 			Value *a = Nucleus::createBitCast(cast.value, Byte16::getType());
@@ -4851,11 +5242,13 @@ namespace sw
 
 	Int4::Int4(RValue<Short4> cast) : XYZW(this)
 	{
+#if defined(__i386__) || defined(__x86_64__)
 		if(CPUID::supportsSSE4_1())
 		{
 			*this = x86::pmovsxwd(As<Short8>(cast));
 		}
 		else
+#endif
 		{
 			int swizzle[8] = {0, 0, 1, 1, 2, 2, 3, 3};
 			Value *c = Nucleus::createShuffleVector(cast.value, cast.value, swizzle);
@@ -4865,11 +5258,13 @@ namespace sw
 
 	Int4::Int4(RValue<UShort4> cast) : XYZW(this)
 	{
+#if defined(__i386__) || defined(__x86_64__)
 		if(CPUID::supportsSSE4_1())
 		{
 			*this = x86::pmovzxwd(As<UShort8>(cast));
 		}
 		else
+#endif
 		{
 			int swizzle[8] = {0, 8, 1, 9, 2, 10, 3, 11};
 			Value *c = Nucleus::createShuffleVector(cast.value, Short8(0, 0, 0, 0, 0, 0, 0, 0).loadValue(), swizzle);
@@ -5031,12 +5426,20 @@ namespace sw
 
 	RValue<Int4> operator<<(RValue<Int4> lhs, unsigned char rhs)
 	{
+#if defined(__i386__) || defined(__x86_64__)
 		return x86::pslld(lhs, rhs);
+#else
+		return As<Int4>(V(lowerVectorShl(V(lhs.value), rhs)));
+#endif
 	}
 
 	RValue<Int4> operator>>(RValue<Int4> lhs, unsigned char rhs)
 	{
+#if defined(__i386__) || defined(__x86_64__)
 		return x86::psrad(lhs, rhs);
+#else
+		return As<Int4>(V(lowerVectorAShr(V(lhs.value), rhs)));
+#endif
 	}
 
 	RValue<Int4> operator<<(RValue<Int4> lhs, RValue<Int4> rhs)
@@ -5164,11 +5567,13 @@ namespace sw
 
 	RValue<Int4> Max(RValue<Int4> x, RValue<Int4> y)
 	{
+#if defined(__i386__) || defined(__x86_64__)
 		if(CPUID::supportsSSE4_1())
 		{
 			return x86::pmaxsd(x, y);
 		}
 		else
+#endif
 		{
 			RValue<Int4> greater = CmpNLE(x, y);
 			return (x & greater) | (y & ~greater);
@@ -5177,11 +5582,13 @@ namespace sw
 
 	RValue<Int4> Min(RValue<Int4> x, RValue<Int4> y)
 	{
+#if defined(__i386__) || defined(__x86_64__)
 		if(CPUID::supportsSSE4_1())
 		{
 			return x86::pminsd(x, y);
 		}
 		else
+#endif
 		{
 			RValue<Int4> less = CmpLT(x, y);
 			return (x & less) | (y & ~less);
@@ -5190,17 +5597,29 @@ namespace sw
 
 	RValue<Int4> RoundInt(RValue<Float4> cast)
 	{
+#if defined(__i386__) || defined(__x86_64__)
 		return x86::cvtps2dq(cast);
+#else
+		return As<Int4>(V(::builder->CreateFPToSI(V(cast.value), T(Int4::getType()))));
+#endif
 	}
 
 	RValue<Short8> PackSigned(RValue<Int4> x, RValue<Int4> y)
 	{
+#if defined(__i386__) || defined(__x86_64__)
 		return x86::packssdw(x, y);
+#else
+		return As<Short8>(V(lowerPack(V(x.value), V(y.value), true)));
+#endif
 	}
 
 	RValue<UShort8> PackUnsigned(RValue<Int4> x, RValue<Int4> y)
 	{
+#if defined(__i386__) || defined(__x86_64__)
 		return x86::packusdw(x, y);
+#else
+		return As<UShort8>(V(lowerPack(V(x.value), V(y.value), false)));
+#endif
 	}
 
 	RValue<Int> Extract(RValue<Int4> x, int i)
@@ -5215,7 +5634,11 @@ namespace sw
 
 	RValue<Int> SignMask(RValue<Int4> x)
 	{
+#if defined(__i386__) || defined(__x86_64__)
 		return x86::movmskps(As<Float4>(x));
+#else
+		return As<Int>(V(lowerSignMask(V(x.value), T(Int::getType()))));
+#endif
 	}
 
 	RValue<Int4> Swizzle(RValue<Int4> x, unsigned char select)
@@ -5384,12 +5807,20 @@ namespace sw
 
 	RValue<UInt4> operator<<(RValue<UInt4> lhs, unsigned char rhs)
 	{
+#if defined(__i386__) || defined(__x86_64__)
 		return As<UInt4>(x86::pslld(As<Int4>(lhs), rhs));
+#else
+		return As<UInt4>(V(lowerVectorShl(V(lhs.value), rhs)));
+#endif
 	}
 
 	RValue<UInt4> operator>>(RValue<UInt4> lhs, unsigned char rhs)
 	{
+#if defined(__i386__) || defined(__x86_64__)
 		return x86::psrld(lhs, rhs);
+#else
+		return As<UInt4>(V(lowerVectorLShr(V(lhs.value), rhs)));
+#endif
 	}
 
 	RValue<UInt4> operator<<(RValue<UInt4> lhs, RValue<UInt4> rhs)
@@ -5508,11 +5939,13 @@ namespace sw
 
 	RValue<UInt4> Max(RValue<UInt4> x, RValue<UInt4> y)
 	{
+#if defined(__i386__) || defined(__x86_64__)
 		if(CPUID::supportsSSE4_1())
 		{
 			return x86::pmaxud(x, y);
 		}
 		else
+#endif
 		{
 			RValue<UInt4> greater = CmpNLE(x, y);
 			return (x & greater) | (y & ~greater);
@@ -5521,11 +5954,13 @@ namespace sw
 
 	RValue<UInt4> Min(RValue<UInt4> x, RValue<UInt4> y)
 	{
+#if defined(__i386__) || defined(__x86_64__)
 		if(CPUID::supportsSSE4_1())
 		{
 			return x86::pminud(x, y);
 		}
 		else
+#endif
 		{
 			RValue<UInt4> less = CmpLT(x, y);
 			return (x & less) | (y & ~less);
@@ -5694,35 +6129,46 @@ namespace sw
 
 	RValue<Float> Rcp_pp(RValue<Float> x, bool exactAtPow2)
 	{
-		#if defined(__i386__) || defined(__x86_64__)
-			if(exactAtPow2)
-			{
-				// rcpss uses a piecewise-linear approximation which minimizes the relative error
-				// but is not exact at power-of-two values. Rectify by multiplying by the inverse.
-				return x86::rcpss(x) * Float(1.0f / _mm_cvtss_f32(_mm_rcp_ss(_mm_set_ps1(1.0f))));
-			}
-		#endif
-
+#if defined(__i386__) || defined(__x86_64__)
+		if(exactAtPow2)
+		{
+			// rcpss uses a piecewise-linear approximation which minimizes the relative error
+			// but is not exact at power-of-two values. Rectify by multiplying by the inverse.
+			return x86::rcpss(x) * Float(1.0f / _mm_cvtss_f32(_mm_rcp_ss(_mm_set_ps1(1.0f))));
+		}
 		return x86::rcpss(x);
+#else
+		return As<Float>(V(lowerRCP(V(x.value))));
+#endif
 	}
 
 	RValue<Float> RcpSqrt_pp(RValue<Float> x)
 	{
+#if defined(__i386__) || defined(__x86_64__)
 		return x86::rsqrtss(x);
+#else
+		return As<Float>(V(lowerRSQRT(V(x.value))));
+#endif
 	}
 
 	RValue<Float> Sqrt(RValue<Float> x)
 	{
+#if defined(__i386__) || defined(__x86_64__)
 		return x86::sqrtss(x);
+#else
+		return As<Float>(V(lowerSQRT(V(x.value))));
+#endif
 	}
 
 	RValue<Float> Round(RValue<Float> x)
 	{
+#if defined(__i386__) || defined(__x86_64__)
 		if(CPUID::supportsSSE4_1())
 		{
 			return x86::roundss(x, 0);
 		}
 		else
+#endif
 		{
 			return Float4(Round(Float4(x))).x;
 		}
@@ -5730,11 +6176,13 @@ namespace sw
 
 	RValue<Float> Trunc(RValue<Float> x)
 	{
+#if defined(__i386__) || defined(__x86_64__)
 		if(CPUID::supportsSSE4_1())
 		{
 			return x86::roundss(x, 3);
 		}
 		else
+#endif
 		{
 			return Float(Int(x));   // Rounded toward zero
 		}
@@ -5742,11 +6190,13 @@ namespace sw
 
 	RValue<Float> Frac(RValue<Float> x)
 	{
+#if defined(__i386__) || defined(__x86_64__)
 		if(CPUID::supportsSSE4_1())
 		{
 			return x - x86::floorss(x);
 		}
 		else
+#endif
 		{
 			return Float4(Frac(Float4(x))).x;
 		}
@@ -5754,11 +6204,13 @@ namespace sw
 
 	RValue<Float> Floor(RValue<Float> x)
 	{
+#if defined(__i386__) || defined(__x86_64__)
 		if(CPUID::supportsSSE4_1())
 		{
 			return x86::floorss(x);
 		}
 		else
+#endif
 		{
 			return Float4(Floor(Float4(x))).x;
 		}
@@ -5766,11 +6218,13 @@ namespace sw
 
 	RValue<Float> Ceil(RValue<Float> x)
 	{
+#if defined(__i386__) || defined(__x86_64__)
 		if(CPUID::supportsSSE4_1())
 		{
 			return x86::ceilss(x);
 		}
 		else
+#endif
 		{
 			return Float4(Ceil(Float4(x))).x;
 		}
@@ -6016,36 +6470,53 @@ namespace sw
 
 	RValue<Float4> Max(RValue<Float4> x, RValue<Float4> y)
 	{
+#if defined(__i386__) || defined(__x86_64__)
 		return x86::maxps(x, y);
+#else
+		return As<Float4>(V(lowerPFMINMAX(V(x.value), V(y.value), llvm::FCmpInst::FCMP_OGT)));
+#endif
 	}
 
 	RValue<Float4> Min(RValue<Float4> x, RValue<Float4> y)
 	{
+#if defined(__i386__) || defined(__x86_64__)
 		return x86::minps(x, y);
+#else
+		return As<Float4>(V(lowerPFMINMAX(V(x.value), V(y.value), llvm::FCmpInst::FCMP_OLT)));
+#endif
 	}
 
 	RValue<Float4> Rcp_pp(RValue<Float4> x, bool exactAtPow2)
 	{
-		#if defined(__i386__) || defined(__x86_64__)
-			if(exactAtPow2)
-			{
-				// rcpps uses a piecewise-linear approximation which minimizes the relative error
-				// but is not exact at power-of-two values. Rectify by multiplying by the inverse.
-				return x86::rcpps(x) * Float4(1.0f / _mm_cvtss_f32(_mm_rcp_ss(_mm_set_ps1(1.0f))));
-			}
-		#endif
-
+#if defined(__i386__) || defined(__x86_64__)
+		if(exactAtPow2)
+		{
+			// rcpps uses a piecewise-linear approximation which minimizes the relative error
+			// but is not exact at power-of-two values. Rectify by multiplying by the inverse.
+			return x86::rcpps(x) * Float4(1.0f / _mm_cvtss_f32(_mm_rcp_ss(_mm_set_ps1(1.0f))));
+		}
 		return x86::rcpps(x);
+#else
+		return As<Float4>(V(lowerRCP(V(x.value))));
+#endif
 	}
 
 	RValue<Float4> RcpSqrt_pp(RValue<Float4> x)
 	{
+#if defined(__i386__) || defined(__x86_64__)
 		return x86::rsqrtps(x);
+#else
+		return As<Float4>(V(lowerRSQRT(V(x.value))));
+#endif
 	}
 
 	RValue<Float4> Sqrt(RValue<Float4> x)
 	{
+#if defined(__i386__) || defined(__x86_64__)
 		return x86::sqrtps(x);
+#else
+		return As<Float4>(V(lowerSQRT(V(x.value))));
+#endif
 	}
 
 	RValue<Float4> Insert(RValue<Float4> x, RValue<Float> element, int i)
@@ -6099,7 +6570,11 @@ namespace sw
 
 	RValue<Int> SignMask(RValue<Float4> x)
 	{
+#if defined(__i386__) || defined(__x86_64__)
 		return x86::movmskps(x);
+#else
+		return As<Int>(V(lowerFPSignMask(V(x.value), T(Int::getType()))));
+#endif
 	}
 
 	RValue<Int4> CmpEQ(RValue<Float4> x, RValue<Float4> y)
@@ -6150,11 +6625,13 @@ namespace sw
 
 	RValue<Float4> Round(RValue<Float4> x)
 	{
+#if defined(__i386__) || defined(__x86_64__)
 		if(CPUID::supportsSSE4_1())
 		{
 			return x86::roundps(x, 0);
 		}
 		else
+#endif
 		{
 			return Float4(RoundInt(x));
 		}
@@ -6162,11 +6639,13 @@ namespace sw
 
 	RValue<Float4> Trunc(RValue<Float4> x)
 	{
+#if defined(__i386__) || defined(__x86_64__)
 		if(CPUID::supportsSSE4_1())
 		{
 			return x86::roundps(x, 3);
 		}
 		else
+#endif
 		{
 			return Float4(Int4(x));
 		}
@@ -6194,11 +6673,13 @@ namespace sw
 
 	RValue<Float4> Floor(RValue<Float4> x)
 	{
+#if defined(__i386__) || defined(__x86_64__)
 		if(CPUID::supportsSSE4_1())
 		{
 			return x86::floorps(x);
 		}
 		else
+#endif
 		{
 			return x - Frac(x);
 		}
@@ -6206,11 +6687,13 @@ namespace sw
 
 	RValue<Float4> Ceil(RValue<Float4> x)
 	{
+#if defined(__i386__) || defined(__x86_64__)
 		if(CPUID::supportsSSE4_1())
 		{
 			return x86::ceilps(x);
 		}
 		else
+#endif
 		{
 			return -Floor(-x);
 		}
@@ -6311,6 +6794,7 @@ namespace sw
 
 namespace sw
 {
+#if defined(__i386__) || defined(__x86_64__)
 	namespace x86
 	{
 		RValue<Int> cvtss2si(RValue<Float> val)
@@ -6854,4 +7338,5 @@ namespace sw
 #endif
 		}
 	}
+#endif  // defined(__i386__) || defined(__x86_64__)
 }
