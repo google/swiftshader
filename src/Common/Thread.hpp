@@ -114,9 +114,9 @@ namespace sw
 
 	#if PERF_PROFILE
 	int64_t atomicExchange(int64_t volatile *target, int64_t value);
+	int atomicExchange(int volatile *target, int value);
 	#endif
 
-	int atomicExchange(int volatile *target, int value);
 	int atomicIncrement(int volatile *value);
 	int atomicDecrement(int volatile *value);
 	int atomicAdd(int volatile *target, int value);
@@ -245,7 +245,6 @@ namespace sw
 			return ret;
 		#endif
 	}
-	#endif
 
 	inline int atomicExchange(volatile int *target, int value)
 	{
@@ -257,6 +256,7 @@ namespace sw
 			return ret;
 		#endif
 	}
+	#endif
 
 	inline int atomicIncrement(volatile int *value)
 	{
