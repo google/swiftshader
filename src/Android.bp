@@ -188,6 +188,7 @@ cc_defaults {
     name: "libswiftshader_subzero_defaults",
 
     defaults: [ "libswiftshader_common_defaults", "swiftshader_subzero" ],
+    device_supported: false,
 
     srcs: [
         "Reactor/SubzeroReactor.cpp",
@@ -219,10 +220,12 @@ cc_library_static {
     name: "libswiftshader_llvm",
 
     defaults: [ "libswiftshader_common", "libswiftshader_llvm_defaults" ],
+    device_supported: false,
 }
 
 cc_library_static {
     name: "libswiftshader_llvm_debug",
+    device_supported: false,
 
     defaults: [ "libswiftshader_common_debug", "libswiftshader_llvm_defaults" ],
 }
@@ -231,10 +234,12 @@ cc_library_static {
     name: "libswiftshader_subzero",
 
     defaults: [ "libswiftshader_common", "libswiftshader_subzero_defaults" ],
+    device_supported: false,
 }
 
 cc_library_static {
     name: "libswiftshader_subzero_debug",
+    device_supported: false,
 
     defaults: [ "libswiftshader_common_debug", "libswiftshader_subzero_defaults" ],
 }
@@ -392,6 +397,7 @@ cc_library_shared {
         "libEGL_swiftshader_defaults",
         "swiftshader_client_libraries_subzero_or_llvm",
     ],
+    device_supported: false,
 }
 
 cc_library_shared {
@@ -401,6 +407,7 @@ cc_library_shared {
         "libEGL_swiftshader_defaults",
         "swiftshader_client_libraries_subzero_or_llvm_debug",
     ],
+    device_supported: false,
 }
 
 // libGLESv1_CM libraries
@@ -444,6 +451,7 @@ cc_library_shared {
         "libGLESv1_CM_swiftshader_defaults",
         "swiftshader_client_libraries_subzero_or_llvm",
     ],
+    device_supported: false,
 }
 
 cc_library_shared {
@@ -453,6 +461,7 @@ cc_library_shared {
         "libGLESv1_CM_swiftshader_defaults",
         "swiftshader_client_libraries_subzero_or_llvm_debug",
     ],
+    device_supported: false,
 }
 
 // libGLESv2 libraries
@@ -461,6 +470,7 @@ cc_defaults {
     name: "libGLESv2_swiftshader_defaults",
 
     defaults: [ "libswiftshader" ],
+    device_supported: false,
 
     cflags: [
         "-DLOG_TAG=\"libGLESv2_swiftshader\"",
@@ -504,6 +514,7 @@ cc_library_shared {
         "libGLESv2_swiftshader_defaults",
         "swiftshader_client_libraries_subzero_or_llvm",
     ],
+    device_supported: false,
 
     static_libs: [ "libswiftshader_compiler" ],
 }
@@ -515,6 +526,7 @@ cc_library_shared {
         "libGLESv2_swiftshader_defaults",
         "swiftshader_client_libraries_subzero_or_llvm_debug",
     ],
+    device_supported: false,
 
     static_libs: [ "libswiftshader_compiler_debug" ],
 }
