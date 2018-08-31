@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f28e5349_cbe89efe",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 32
+      },
+      "lineNbr": 3493,
+      "author": {
+        "id": 5545
+      },
+      "writtenOn": "2018-08-31T16:48:08Z",
+      "side": 1,
+      "message": "Not sure if both need to be early or just one",
+      "range": {
+        "startLine": 3484,
+        "startChar": 0,
+        "endLine": 3493,
+        "endChar": 0
+      },
+      "revId": "9a40df633fa6f74c9975891e7b863a2edb2a6109",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
