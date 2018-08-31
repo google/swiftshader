@@ -865,7 +865,10 @@ EGLContext CreateContext(EGLDisplay dpy, EGLConfig config, EGLContext share_cont
 		return EGL_NO_CONTEXT;
 	}
 
-	if(shareContext && shareContext->getClientVersion() != majorVersion)
+	// Allow sharing between different context versions >= 2.0, but isolate 1.x
+	// contexts from 2.0+. Strict matching between context versions >= 2.0 is
+	// confusing for apps to navigate because of version promotion.
+	if(shareContext && ((shareContext->getClientVersion() >= 2) ^ (majorVersion >= 2)))
 	{
 		return error(EGL_BAD_CONTEXT, EGL_NO_CONTEXT);
 	}
