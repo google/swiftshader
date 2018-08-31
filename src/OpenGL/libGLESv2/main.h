@@ -30,7 +30,8 @@
 
 namespace es2
 {
-	Context *getContext();
+	Context *getContextLocked();
+	ContextPtr getContext();
 	Device *getDevice();
 
 	void error(GLenum errorCode);

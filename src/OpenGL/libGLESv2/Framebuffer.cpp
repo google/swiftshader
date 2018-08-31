@@ -65,7 +65,7 @@ Framebuffer::~Framebuffer()
 
 Renderbuffer *Framebuffer::lookupRenderbuffer(GLenum type, GLuint handle, GLint level) const
 {
-	Context *context = getContext();
+	Context *context = getContextLocked();
 	Renderbuffer *buffer = nullptr;
 
 	if(type == GL_NONE)

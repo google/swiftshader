@@ -54,7 +54,7 @@ void ActiveTexture(GLenum texture)
 {
 	TRACE("(GLenum texture = 0x%X)", texture);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -71,7 +71,7 @@ void AttachShader(GLuint program, GLuint shader)
 {
 	TRACE("(GLuint program = %d, GLuint shader = %d)", program, shader);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -127,7 +127,7 @@ void BeginQueryEXT(GLenum target, GLuint name)
 		return error(GL_INVALID_OPERATION);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -144,7 +144,7 @@ void BindAttribLocation(GLuint program, GLuint index, const GLchar* name)
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -175,7 +175,7 @@ void BindBuffer(GLenum target, GLuint buffer)
 {
 	TRACE("(GLenum target = 0x%X, GLuint buffer = %d)", target, buffer);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -220,7 +220,7 @@ void BindFramebuffer(GLenum target, GLuint framebuffer)
 		return error(GL_INVALID_ENUM);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -245,7 +245,7 @@ void BindRenderbuffer(GLenum target, GLuint renderbuffer)
 		return error(GL_INVALID_ENUM);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -261,7 +261,7 @@ void BindTexture(GLenum target, GLuint texture)
 {
 	TRACE("(GLenum target = 0x%X, GLuint texture = %d)", target, texture);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -303,7 +303,7 @@ void BlendColor(GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha)
 	TRACE("(GLclampf red = %f, GLclampf green = %f, GLclampf blue = %f, GLclampf alpha = %f)",
 		red, green, blue, alpha);
 
-	es2::Context* context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -344,7 +344,7 @@ void BlendEquationSeparate(GLenum modeRGB, GLenum modeAlpha)
 		return error(GL_INVALID_ENUM);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -452,7 +452,7 @@ void BlendFuncSeparate(GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dst
 		return error(GL_INVALID_ENUM);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -489,7 +489,7 @@ void BufferData(GLenum target, GLsizeiptr size, const GLvoid* data, GLenum usage
 		return error(GL_INVALID_ENUM);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -522,7 +522,7 @@ void BufferSubData(GLenum target, GLintptr offset, GLsizeiptr size, const GLvoid
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -562,7 +562,7 @@ GLenum CheckFramebufferStatus(GLenum target)
 		return error(GL_INVALID_ENUM, 0);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -596,7 +596,7 @@ void Clear(GLbitfield mask)
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -609,7 +609,7 @@ void ClearColor(GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha)
 	TRACE("(GLclampf red = %f, GLclampf green = %f, GLclampf blue = %f, GLclampf alpha = %f)",
 	      red, green, blue, alpha);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -621,7 +621,7 @@ void ClearDepthf(GLclampf depth)
 {
 	TRACE("(GLclampf depth = %f)", depth);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -633,7 +633,7 @@ void ClearStencil(GLint s)
 {
 	TRACE("(GLint s = %d)", s);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -646,7 +646,7 @@ void ColorMask(GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha)
 	TRACE("(GLboolean red = %d, GLboolean green = %d, GLboolean blue = %d, GLboolean alpha = %d)",
 	      red, green, blue, alpha);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -658,7 +658,7 @@ void CompileShader(GLuint shader)
 {
 	TRACE("(GLuint shader = %d)", shader);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -702,7 +702,7 @@ void CompressedTexImage2D(GLenum target, GLint level, GLenum internalformat, GLs
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -807,7 +807,7 @@ void CompressedTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yo
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -867,7 +867,7 @@ void CopyTexImage2D(GLenum target, GLint level, GLenum internalformat, GLint x, 
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -1026,7 +1026,7 @@ void CopyTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset,
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -1070,7 +1070,7 @@ GLuint CreateProgram(void)
 {
 	TRACE("()");
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -1084,7 +1084,7 @@ GLuint CreateShader(GLenum type)
 {
 	TRACE("(GLenum type = 0x%X)", type);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -1111,7 +1111,7 @@ void CullFace(GLenum mode)
 	case GL_BACK:
 	case GL_FRONT_AND_BACK:
 		{
-			es2::Context *context = es2::getContext();
+			auto context = es2::getContext();
 
 			if(context)
 			{
@@ -1133,7 +1133,7 @@ void DeleteBuffers(GLsizei n, const GLuint* buffers)
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -1153,7 +1153,7 @@ void DeleteFencesNV(GLsizei n, const GLuint* fences)
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -1173,7 +1173,7 @@ void DeleteFramebuffers(GLsizei n, const GLuint* framebuffers)
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -1196,7 +1196,7 @@ void DeleteProgram(GLuint program)
 		return;
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -1225,7 +1225,7 @@ void DeleteQueriesEXT(GLsizei n, const GLuint *ids)
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -1245,7 +1245,7 @@ void DeleteRenderbuffers(GLsizei n, const GLuint* renderbuffers)
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -1265,7 +1265,7 @@ void DeleteShader(GLuint shader)
 		return;
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -1294,7 +1294,7 @@ void DeleteTextures(GLsizei n, const GLuint* textures)
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -1327,7 +1327,7 @@ void DepthFunc(GLenum func)
 		return error(GL_INVALID_ENUM);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -1339,7 +1339,7 @@ void DepthMask(GLboolean flag)
 {
 	TRACE("(GLboolean flag = %d)", flag);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -1351,7 +1351,7 @@ void DepthRangef(GLclampf zNear, GLclampf zFar)
 {
 	TRACE("(GLclampf zNear = %f, GLclampf zFar = %f)", zNear, zFar);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -1363,7 +1363,7 @@ void DetachShader(GLuint program, GLuint shader)
 {
 	TRACE("(GLuint program = %d, GLuint shader = %d)", program, shader);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -1409,7 +1409,7 @@ void Disable(GLenum cap)
 {
 	TRACE("(GLenum cap = 0x%X)", cap);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -1441,7 +1441,7 @@ void DisableVertexAttribArray(GLuint index)
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -1472,7 +1472,7 @@ void DrawArrays(GLenum mode, GLint first, GLsizei count)
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -1510,7 +1510,7 @@ void DrawElements(GLenum mode, GLsizei count, GLenum type, const GLvoid* indices
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -1558,7 +1558,7 @@ void DrawArraysInstancedEXT(GLenum mode, GLint first, GLsizei count, GLsizei ins
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -1606,7 +1606,7 @@ void DrawElementsInstancedEXT(GLenum mode, GLsizei count, GLenum type, const voi
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -1624,7 +1624,7 @@ void VertexAttribDivisorEXT(GLuint index, GLuint divisor)
 {
 	TRACE("(GLuint index = %d, GLuint divisor = %d)", index, divisor);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -1661,7 +1661,7 @@ void DrawArraysInstancedANGLE(GLenum mode, GLint first, GLsizei count, GLsizei i
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -1714,7 +1714,7 @@ void DrawElementsInstancedANGLE(GLenum mode, GLsizei count, GLenum type, const v
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -1737,7 +1737,7 @@ void VertexAttribDivisorANGLE(GLuint index, GLuint divisor)
 {
 	TRACE("(GLuint index = %d, GLuint divisor = %d)", index, divisor);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -1754,7 +1754,7 @@ void Enable(GLenum cap)
 {
 	TRACE("(GLenum cap = 0x%X)", cap);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -1786,7 +1786,7 @@ void EnableVertexAttribArray(GLuint index)
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -1807,7 +1807,7 @@ void EndQueryEXT(GLenum target)
 		return error(GL_INVALID_ENUM);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -1819,7 +1819,7 @@ void FinishFenceNV(GLuint fence)
 {
 	TRACE("(GLuint fence = %d)", fence);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -1838,7 +1838,7 @@ void Finish(void)
 {
 	TRACE("()");
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -1850,7 +1850,7 @@ void Flush(void)
 {
 	TRACE("()");
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -1869,7 +1869,7 @@ void FramebufferRenderbuffer(GLenum target, GLenum attachment, GLenum renderbuff
 		return error(GL_INVALID_ENUM);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -1936,7 +1936,7 @@ void FramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, GL
 		return error(GL_INVALID_ENUM);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -2044,7 +2044,7 @@ void FrontFace(GLenum mode)
 	case GL_CW:
 	case GL_CCW:
 		{
-			es2::Context *context = es2::getContext();
+			auto context = es2::getContext();
 
 			if(context)
 			{
@@ -2066,7 +2066,7 @@ void GenBuffers(GLsizei n, GLuint* buffers)
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -2081,7 +2081,7 @@ void GenerateMipmap(GLenum target)
 {
 	TRACE("(GLenum target = 0x%X)", target);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -2134,7 +2134,7 @@ void GenFencesNV(GLsizei n, GLuint* fences)
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -2154,7 +2154,7 @@ void GenFramebuffers(GLsizei n, GLuint* framebuffers)
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -2174,7 +2174,7 @@ void GenQueriesEXT(GLsizei n, GLuint* ids)
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -2194,7 +2194,7 @@ void GenRenderbuffers(GLsizei n, GLuint* renderbuffers)
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -2214,7 +2214,7 @@ void GenTextures(GLsizei n, GLuint* textures)
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -2236,7 +2236,7 @@ void GetActiveAttrib(GLuint program, GLuint index, GLsizei bufsize, GLsizei *len
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -2274,7 +2274,7 @@ void GetActiveUniform(GLuint program, GLuint index, GLsizei bufsize, GLsizei* le
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -2311,7 +2311,7 @@ void GetAttachedShaders(GLuint program, GLsizei maxcount, GLsizei* count, GLuint
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -2337,7 +2337,7 @@ int GetAttribLocation(GLuint program, const GLchar* name)
 {
 	TRACE("(GLuint program = %d, const GLchar* name = %s)", program, name);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -2370,7 +2370,7 @@ void GetBooleanv(GLenum pname, GLboolean* params)
 {
 	TRACE("(GLenum pname = 0x%X, GLboolean* params = %p)",  pname, params);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -2426,7 +2426,7 @@ void GetBufferParameteriv(GLenum target, GLenum pname, GLint* params)
 {
 	TRACE("(GLenum target = 0x%X, GLenum pname = 0x%X, GLint* params = %p)", target, pname, params);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -2472,7 +2472,7 @@ GLenum GetError(void)
 {
 	TRACE("()");
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -2486,7 +2486,7 @@ void GetFenceivNV(GLuint fence, GLenum pname, GLint *params)
 {
 	TRACE("(GLuint fence = %d, GLenum pname = 0x%X, GLint *params = %p)", fence, pname, params);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -2505,7 +2505,7 @@ void GetFloatv(GLenum pname, GLfloat* params)
 {
 	TRACE("(GLenum pname = 0x%X, GLfloat* params = %p)", pname, params);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -2559,7 +2559,7 @@ void GetFramebufferAttachmentParameteriv(GLenum target, GLenum attachment, GLenu
 	TRACE("(GLenum target = 0x%X, GLenum attachment = 0x%X, GLenum pname = 0x%X, GLint* params = %p)",
 	      target, attachment, pname, params);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -2798,7 +2798,7 @@ void GetIntegerv(GLenum pname, GLint* params)
 {
 	TRACE("(GLenum pname = 0x%X, GLint* params = %p)", pname, params);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(!context)
 	{
@@ -2876,7 +2876,7 @@ void GetProgramiv(GLuint program, GLenum pname, GLint* params)
 {
 	TRACE("(GLuint program = %d, GLenum pname = 0x%X, GLint* params = %p)", program, pname, params);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -2960,7 +2960,7 @@ void GetProgramInfoLog(GLuint program, GLsizei bufsize, GLsizei* length, GLchar*
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -2994,7 +2994,7 @@ void GetQueryivEXT(GLenum target, GLenum pname, GLint *params)
 		return error(GL_INVALID_ENUM);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -3015,7 +3015,7 @@ void GetQueryObjectuivEXT(GLuint name, GLenum pname, GLuint *params)
 		return error(GL_INVALID_ENUM);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -3049,7 +3049,7 @@ void GetRenderbufferParameteriv(GLenum target, GLenum pname, GLint* params)
 {
 	TRACE("(GLenum target = 0x%X, GLenum pname = 0x%X, GLint* params = %p)", target, pname, params);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -3092,7 +3092,7 @@ void GetShaderiv(GLuint shader, GLenum pname, GLint* params)
 {
 	TRACE("(GLuint shader = %d, GLenum pname = %d, GLint* params = %p)", shader, pname, params);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -3143,7 +3143,7 @@ void GetShaderInfoLog(GLuint shader, GLsizei bufsize, GLsizei* length, GLchar* i
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -3212,7 +3212,7 @@ void GetShaderSource(GLuint shader, GLsizei bufsize, GLsizei* length, GLchar* so
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -3250,7 +3250,7 @@ const GLubyte* GetString(GLenum name)
 		return (GLubyte*)"OpenGL ES GLSL ES 3.00 SwiftShader " VERSION_STRING;
 	case GL_EXTENSIONS:
 		{
-			es2::Context *context = es2::getContext();
+			auto context = es2::getContext();
 			return context ? context->getExtensions(GL_INVALID_INDEX) : (GLubyte*)nullptr;
 		}
 	default:
@@ -3262,7 +3262,7 @@ void GetTexParameterfv(GLenum target, GLenum pname, GLfloat* params)
 {
 	TRACE("(GLenum target = 0x%X, GLenum pname = 0x%X, GLfloat* params = %p)", target, pname, params);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -3349,7 +3349,7 @@ void GetTexParameteriv(GLenum target, GLenum pname, GLint* params)
 {
 	TRACE("(GLenum target = 0x%X, GLenum pname = 0x%X, GLint* params = %p)", target, pname, params);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -3442,7 +3442,7 @@ void GetnUniformfvEXT(GLuint program, GLint location, GLsizei bufSize, GLfloat* 
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -3476,7 +3476,7 @@ void GetUniformfv(GLuint program, GLint location, GLfloat* params)
 {
 	TRACE("(GLuint program = %d, GLint location = %d, GLfloat* params = %p)", program, location, params);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -3516,7 +3516,7 @@ void GetnUniformivEXT(GLuint program, GLint location, GLsizei bufSize, GLint* pa
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -3550,7 +3550,7 @@ void GetUniformiv(GLuint program, GLint location, GLint* params)
 {
 	TRACE("(GLuint program = %d, GLint location = %d, GLint* params = %p)", program, location, params);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -3584,7 +3584,7 @@ int GetUniformLocation(GLuint program, const GLchar* name)
 {
 	TRACE("(GLuint program = %d, const GLchar* name = %s)", program, name);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(strstr(name, "gl_") == name)
 	{
@@ -3622,7 +3622,7 @@ void GetVertexAttribfv(GLuint index, GLenum pname, GLfloat* params)
 {
 	TRACE("(GLuint index = %d, GLenum pname = 0x%X, GLfloat* params = %p)", index, pname, params);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -3675,7 +3675,7 @@ void GetVertexAttribiv(GLuint index, GLenum pname, GLint* params)
 {
 	TRACE("(GLuint index = %d, GLenum pname = 0x%X, GLint* params = %p)", index, pname, params);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -3729,7 +3729,7 @@ void GetVertexAttribPointerv(GLuint index, GLenum pname, GLvoid** pointer)
 {
 	TRACE("(GLuint index = %d, GLenum pname = 0x%X, GLvoid** pointer = %p)", index, pname, pointer);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -3761,7 +3761,7 @@ void Hint(GLenum target, GLenum mode)
 		return error(GL_INVALID_ENUM);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -3786,7 +3786,7 @@ GLboolean IsBuffer(GLuint buffer)
 {
 	TRACE("(GLuint buffer = %d)", buffer);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context && buffer)
 	{
@@ -3805,7 +3805,7 @@ GLboolean IsEnabled(GLenum cap)
 {
 	TRACE("(GLenum cap = 0x%X)", cap);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -3834,7 +3834,7 @@ GLboolean IsFenceNV(GLuint fence)
 {
 	TRACE("(GLuint fence = %d)", fence);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -3855,7 +3855,7 @@ GLboolean IsFramebuffer(GLuint framebuffer)
 {
 	TRACE("(GLuint framebuffer = %d)", framebuffer);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context && framebuffer)
 	{
@@ -3874,7 +3874,7 @@ GLboolean IsProgram(GLuint program)
 {
 	TRACE("(GLuint program = %d)", program);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context && program)
 	{
@@ -3898,7 +3898,7 @@ GLboolean IsQueryEXT(GLuint name)
 		return GL_FALSE;
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -3917,7 +3917,7 @@ GLboolean IsRenderbuffer(GLuint renderbuffer)
 {
 	TRACE("(GLuint renderbuffer = %d)", renderbuffer);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context && renderbuffer)
 	{
@@ -3936,7 +3936,7 @@ GLboolean IsShader(GLuint shader)
 {
 	TRACE("(GLuint shader = %d)", shader);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context && shader)
 	{
@@ -3955,7 +3955,7 @@ GLboolean IsTexture(GLuint texture)
 {
 	TRACE("(GLuint texture = %d)", texture);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context && texture)
 	{
@@ -3979,7 +3979,7 @@ void LineWidth(GLfloat width)
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -3991,7 +3991,7 @@ void LinkProgram(GLuint program)
 {
 	TRACE("(GLuint program = %d)", program);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -4026,7 +4026,7 @@ void PixelStorei(GLenum pname, GLint param)
 {
 	TRACE("(GLenum pname = 0x%X, GLint param = %d)", pname, param);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -4112,7 +4112,7 @@ void PolygonOffset(GLfloat factor, GLfloat units)
 {
 	TRACE("(GLfloat factor = %f, GLfloat units = %f)", factor, units);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -4132,7 +4132,7 @@ void ReadnPixelsEXT(GLint x, GLint y, GLsizei width, GLsizei height,
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -4151,7 +4151,7 @@ void ReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, 
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -4192,7 +4192,7 @@ void RenderbufferStorageMultisample(GLenum target, GLsizei samples, GLenum inter
 		return error(GL_INVALID_OPERATION);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -4236,7 +4236,7 @@ void SampleCoverage(GLclampf value, GLboolean invert)
 {
 	TRACE("(GLclampf value = %f, GLboolean invert = %d)", value, invert);
 
-	es2::Context* context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -4253,7 +4253,7 @@ void SetFenceNV(GLuint fence, GLenum condition)
 		return error(GL_INVALID_ENUM);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -4277,7 +4277,7 @@ void Scissor(GLint x, GLint y, GLsizei width, GLsizei height)
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context* context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -4305,7 +4305,7 @@ void ShaderSource(GLuint shader, GLsizei count, const GLchar *const *string, con
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -4361,7 +4361,7 @@ void StencilFuncSeparate(GLenum face, GLenum func, GLint ref, GLuint mask)
 		return error(GL_INVALID_ENUM);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -4396,7 +4396,7 @@ void StencilMaskSeparate(GLenum face, GLuint mask)
 		return error(GL_INVALID_ENUM);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -4477,7 +4477,7 @@ void StencilOpSeparate(GLenum face, GLenum fail, GLenum zfail, GLenum zpass)
 		return error(GL_INVALID_ENUM);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -4497,7 +4497,7 @@ GLboolean TestFenceNV(GLuint fence)
 {
 	TRACE("(GLuint fence = %d)", fence);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -4526,7 +4526,7 @@ void TexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width,
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -4621,7 +4621,7 @@ void TexParameterf(GLenum target, GLenum pname, GLfloat param)
 {
 	TRACE("(GLenum target = 0x%X, GLenum pname = 0x%X, GLfloat param = %f)", target, pname, param);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -4752,7 +4752,7 @@ void TexParameteri(GLenum target, GLenum pname, GLint param)
 {
 	TRACE("(GLenum target = 0x%X, GLenum pname = 0x%X, GLint param = %d)", target, pname, param);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -4911,7 +4911,7 @@ void TexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLs
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -4969,7 +4969,7 @@ void Uniform1fv(GLint location, GLsizei count, const GLfloat* v)
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -5006,7 +5006,7 @@ void Uniform1iv(GLint location, GLsizei count, const GLint* v)
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -5045,7 +5045,7 @@ void Uniform2fv(GLint location, GLsizei count, const GLfloat* v)
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -5084,7 +5084,7 @@ void Uniform2iv(GLint location, GLsizei count, const GLint* v)
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -5123,7 +5123,7 @@ void Uniform3fv(GLint location, GLsizei count, const GLfloat* v)
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -5162,7 +5162,7 @@ void Uniform3iv(GLint location, GLsizei count, const GLint* v)
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -5201,7 +5201,7 @@ void Uniform4fv(GLint location, GLsizei count, const GLfloat* v)
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -5240,7 +5240,7 @@ void Uniform4iv(GLint location, GLsizei count, const GLint* v)
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -5273,7 +5273,7 @@ void UniformMatrix2fv(GLint location, GLsizei count, GLboolean transpose, const 
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -5306,7 +5306,7 @@ void UniformMatrix3fv(GLint location, GLsizei count, GLboolean transpose, const 
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -5339,7 +5339,7 @@ void UniformMatrix4fv(GLint location, GLsizei count, GLboolean transpose, const 
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -5366,7 +5366,7 @@ void UseProgram(GLuint program)
 {
 	TRACE("(GLuint program = %d)", program);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -5403,7 +5403,7 @@ void ValidateProgram(GLuint program)
 {
 	TRACE("(GLuint program = %d)", program);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -5434,7 +5434,7 @@ void VertexAttrib1f(GLuint index, GLfloat x)
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -5452,7 +5452,7 @@ void VertexAttrib1fv(GLuint index, const GLfloat* values)
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -5470,7 +5470,7 @@ void VertexAttrib2f(GLuint index, GLfloat x, GLfloat y)
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -5488,7 +5488,7 @@ void VertexAttrib2fv(GLuint index, const GLfloat* values)
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -5506,7 +5506,7 @@ void VertexAttrib3f(GLuint index, GLfloat x, GLfloat y, GLfloat z)
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -5524,7 +5524,7 @@ void VertexAttrib3fv(GLuint index, const GLfloat* values)
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -5542,7 +5542,7 @@ void VertexAttrib4f(GLuint index, GLfloat x, GLfloat y, GLfloat z, GLfloat w)
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -5560,7 +5560,7 @@ void VertexAttrib4fv(GLuint index, const GLfloat* values)
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -5613,7 +5613,7 @@ void VertexAttribPointer(GLuint index, GLint size, GLenum type, GLboolean normal
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -5638,7 +5638,7 @@ void Viewport(GLint x, GLint y, GLsizei width, GLsizei height)
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -5666,7 +5666,7 @@ static void BlitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, 
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -5748,7 +5748,7 @@ void TexImage3DOES(GLenum target, GLint level, GLenum internalformat, GLsizei wi
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -5795,7 +5795,7 @@ void TexSubImage3DOES(GLenum target, GLint level, GLint xoffset, GLint yoffset, 
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -5836,7 +5836,7 @@ void CopyTexSubImage3DOES(GLenum target, GLint level, GLint xoffset, GLint yoffs
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -5901,7 +5901,7 @@ void CompressedTexImage3DOES(GLenum target, GLint level, GLenum internalformat, 
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -5958,7 +5958,7 @@ void CompressedTexSubImage3DOES(GLenum target, GLint level, GLint xoffset, GLint
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -5989,7 +5989,7 @@ void FramebufferTexture3DOES(GLenum target, GLenum attachment, GLenum textarget,
 		return error(GL_INVALID_ENUM);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -6081,7 +6081,7 @@ void EGLImageTargetTexture2DOES(GLenum target, GLeglImageOES image)
 		return error(GL_INVALID_ENUM);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -6194,7 +6194,7 @@ void DrawBuffersEXT(GLsizei n, const GLenum *bufs)
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{

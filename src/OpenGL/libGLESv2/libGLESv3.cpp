@@ -214,7 +214,7 @@ GL_APICALL void GL_APIENTRY glReadBuffer(GLenum src)
 {
 	TRACE("(GLenum src = 0x%X)", src);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -318,7 +318,7 @@ GL_APICALL void GL_APIENTRY glDrawRangeElements(GLenum mode, GLuint start, GLuin
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -364,7 +364,7 @@ GL_APICALL void GL_APIENTRY glTexImage3D(GLenum target, GLint level, GLint inter
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -418,7 +418,7 @@ GL_APICALL void GL_APIENTRY glTexSubImage3D(GLenum target, GLint level, GLint xo
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -465,7 +465,7 @@ GL_APICALL void GL_APIENTRY glCopyTexSubImage3D(GLenum target, GLint level, GLin
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -539,7 +539,7 @@ GL_APICALL void GL_APIENTRY glCompressedTexImage3D(GLenum target, GLint level, G
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -626,7 +626,7 @@ GL_APICALL void GL_APIENTRY glCompressedTexSubImage3D(GLenum target, GLint level
 		break;
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -666,7 +666,7 @@ GL_APICALL void GL_APIENTRY glGenQueries(GLsizei n, GLuint *ids)
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -686,7 +686,7 @@ GL_APICALL void GL_APIENTRY glDeleteQueries(GLsizei n, const GLuint *ids)
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -706,7 +706,7 @@ GL_APICALL GLboolean GL_APIENTRY glIsQuery(GLuint id)
 		return GL_FALSE;
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -735,7 +735,7 @@ GL_APICALL void GL_APIENTRY glBeginQuery(GLenum target, GLuint id)
 		return error(GL_INVALID_OPERATION);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -752,7 +752,7 @@ GL_APICALL void GL_APIENTRY glEndQuery(GLenum target)
 		return error(GL_INVALID_ENUM);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -770,7 +770,7 @@ GL_APICALL void GL_APIENTRY glGetQueryiv(GLenum target, GLenum pname, GLint *par
 		return error(GL_INVALID_ENUM);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -792,7 +792,7 @@ GL_APICALL void GL_APIENTRY glGetQueryObjectuiv(GLuint id, GLenum pname, GLuint 
 		return error(GL_INVALID_ENUM);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -826,7 +826,7 @@ GL_APICALL GLboolean GL_APIENTRY glUnmapBuffer(GLenum target)
 {
 	TRACE("(GLenum target = 0x%X)", target);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -864,7 +864,7 @@ GL_APICALL void GL_APIENTRY glGetBufferPointerv(GLenum target, GLenum pname, voi
 		return error(GL_INVALID_ENUM);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -893,7 +893,7 @@ GL_APICALL void GL_APIENTRY glDrawBuffers(GLsizei n, const GLenum *bufs)
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -985,7 +985,7 @@ GL_APICALL void GL_APIENTRY glUniformMatrix2x3fv(GLint location, GLsizei count, 
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -1017,7 +1017,7 @@ GL_APICALL void GL_APIENTRY glUniformMatrix3x2fv(GLint location, GLsizei count, 
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -1049,7 +1049,7 @@ GL_APICALL void GL_APIENTRY glUniformMatrix2x4fv(GLint location, GLsizei count, 
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -1081,7 +1081,7 @@ GL_APICALL void GL_APIENTRY glUniformMatrix4x2fv(GLint location, GLsizei count, 
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -1113,7 +1113,7 @@ GL_APICALL void GL_APIENTRY glUniformMatrix3x4fv(GLint location, GLsizei count, 
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -1145,7 +1145,7 @@ GL_APICALL void GL_APIENTRY glUniformMatrix4x3fv(GLint location, GLsizei count, 
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -1194,7 +1194,7 @@ GL_APICALL void GL_APIENTRY glBlitFramebuffer(GLint srcX0, GLint srcY0, GLint sr
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -1222,7 +1222,7 @@ GL_APICALL void GL_APIENTRY glFramebufferTextureLayer(GLenum target, GLenum atta
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -1370,7 +1370,7 @@ GL_APICALL void *GL_APIENTRY glMapBufferRange(GLenum target, GLintptr offset, GL
 		return error(GL_INVALID_OPERATION, nullptr);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -1424,7 +1424,7 @@ GL_APICALL void GL_APIENTRY glFlushMappedBufferRange(GLenum target, GLintptr off
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -1466,7 +1466,7 @@ GL_APICALL void GL_APIENTRY glBindVertexArray(GLuint array)
 {
 	TRACE("(GLuint array = %d)", array);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -1493,7 +1493,7 @@ GL_APICALL void GL_APIENTRY glDeleteVertexArrays(GLsizei n, const GLuint *arrays
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -1518,7 +1518,7 @@ GL_APICALL void GL_APIENTRY glGenVertexArrays(GLsizei n, GLuint *arrays)
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -1543,7 +1543,7 @@ GL_APICALL GLboolean GL_APIENTRY glIsVertexArray(GLuint array)
 		return GL_FALSE;
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -1568,7 +1568,7 @@ GL_APICALL void GL_APIENTRY glGetIntegeri_v(GLenum target, GLuint index, GLint *
 	TRACE("(GLenum target = 0x%X, GLuint index = %d, GLint* data = %p)",
 	      target, index, data);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -1637,7 +1637,7 @@ GL_APICALL void GL_APIENTRY glBeginTransformFeedback(GLenum primitiveMode)
 		return error(GL_INVALID_ENUM);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -1662,7 +1662,7 @@ GL_APICALL void GL_APIENTRY glEndTransformFeedback(void)
 {
 	TRACE("()");
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -1693,7 +1693,7 @@ GL_APICALL void GL_APIENTRY glBindBufferRange(GLenum target, GLuint index, GLuin
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -1734,7 +1734,7 @@ GL_APICALL void GL_APIENTRY glBindBufferBase(GLenum target, GLuint index, GLuint
 	TRACE("(GLenum target = 0x%X, GLuint index = %d, GLuint buffer = %d)",
 	      target, index, buffer);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -1780,7 +1780,7 @@ GL_APICALL void GL_APIENTRY glTransformFeedbackVaryings(GLuint program, GLsizei 
 		return error(GL_INVALID_ENUM);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -1805,7 +1805,7 @@ GL_APICALL void GL_APIENTRY glGetTransformFeedbackVarying(GLuint program, GLuint
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -1853,7 +1853,7 @@ GL_APICALL void GL_APIENTRY glVertexAttribIPointer(GLuint index, GLint size, GLe
 		return error(GL_INVALID_ENUM);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -1874,7 +1874,7 @@ GL_APICALL void GL_APIENTRY glGetVertexAttribIiv(GLuint index, GLenum pname, GLi
 	TRACE("(GLuint index = %d, GLenum pname = 0x%X, GLint *params = %p)",
 	      index, pname, params);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -1930,7 +1930,7 @@ GL_APICALL void GL_APIENTRY glGetVertexAttribIuiv(GLuint index, GLenum pname, GL
 	TRACE("(GLuint index = %d, GLenum pname = 0x%X, GLuint *params = %p)",
 		index, pname, params);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -1991,7 +1991,7 @@ GL_APICALL void GL_APIENTRY glVertexAttribI4i(GLuint index, GLint x, GLint y, GL
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -2010,7 +2010,7 @@ GL_APICALL void GL_APIENTRY glVertexAttribI4ui(GLuint index, GLuint x, GLuint y,
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -2028,7 +2028,7 @@ GL_APICALL void GL_APIENTRY glVertexAttribI4iv(GLuint index, const GLint *v)
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -2045,7 +2045,7 @@ GL_APICALL void GL_APIENTRY glVertexAttribI4uiv(GLuint index, const GLuint *v)
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -2058,7 +2058,7 @@ GL_APICALL void GL_APIENTRY glGetUniformuiv(GLuint program, GLint location, GLui
 	TRACE("(GLuint program = %d, GLint location = %d, GLuint *params = %p)",
 	      program, location, params);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -2092,7 +2092,7 @@ GL_APICALL GLint GL_APIENTRY glGetFragDataLocation(GLuint program, const GLchar 
 {
 	TRACE("(GLuint program = %d, const GLchar *name = %p)", program, name);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -2157,7 +2157,7 @@ GL_APICALL void GL_APIENTRY glUniform1uiv(GLint location, GLsizei count, const G
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -2190,7 +2190,7 @@ GL_APICALL void GL_APIENTRY glUniform2uiv(GLint location, GLsizei count, const G
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -2223,7 +2223,7 @@ GL_APICALL void GL_APIENTRY glUniform3uiv(GLint location, GLsizei count, const G
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -2256,7 +2256,7 @@ GL_APICALL void GL_APIENTRY glUniform4uiv(GLint location, GLsizei count, const G
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -2284,7 +2284,7 @@ GL_APICALL void GL_APIENTRY glClearBufferiv(GLenum buffer, GLint drawbuffer, con
 	TRACE("(GLenum buffer = 0x%X, GLint drawbuffer = %d, const GLint *value = %p)",
 	      buffer, drawbuffer, value);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -2321,7 +2321,7 @@ GL_APICALL void GL_APIENTRY glClearBufferuiv(GLenum buffer, GLint drawbuffer, co
 	TRACE("(GLenum buffer = 0x%X, GLint drawbuffer = %d, const GLuint *value = %p)",
 	      buffer, drawbuffer, value);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -2348,7 +2348,7 @@ GL_APICALL void GL_APIENTRY glClearBufferfv(GLenum buffer, GLint drawbuffer, con
 	TRACE("(GLenum buffer = 0x%X, GLint drawbuffer = %d, const GLfloat *value = %p)",
 	      buffer, drawbuffer, value);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -2385,7 +2385,7 @@ GL_APICALL void GL_APIENTRY glClearBufferfi(GLenum buffer, GLint drawbuffer, GLf
 	TRACE("(GLenum buffer = 0x%X, GLint drawbuffer = %d, GLfloat depth = %f, GLint stencil = %d)",
 	      buffer, drawbuffer, depth, stencil);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -2412,7 +2412,7 @@ GL_APICALL const GLubyte *GL_APIENTRY glGetStringi(GLenum name, GLuint index)
 {
 	TRACE("(GLenum name = 0x%X, GLuint index = %d)", name, index);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 	if(context)
 	{
 		GLuint numExtensions;
@@ -2445,7 +2445,7 @@ GL_APICALL void GL_APIENTRY glCopyBufferSubData(GLenum readTarget, GLenum writeT
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -2488,7 +2488,7 @@ GL_APICALL void GL_APIENTRY glGetUniformIndices(GLuint program, GLsizei uniformC
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -2548,7 +2548,7 @@ GL_APICALL void GL_APIENTRY glGetActiveUniformsiv(GLuint program, GLsizei unifor
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -2589,7 +2589,7 @@ GL_APICALL GLuint GL_APIENTRY glGetUniformBlockIndex(GLuint program, const GLcha
 	TRACE("(GLuint program = %d, const GLchar *uniformBlockName = %p)",
 	      program, uniformBlockName);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -2618,7 +2618,7 @@ GL_APICALL void GL_APIENTRY glGetActiveUniformBlockiv(GLuint program, GLuint uni
 	TRACE("(GLuint program = %d, GLuint uniformBlockIndex = %d, GLenum pname = 0x%X, GLint *params = %p)",
 	      program, uniformBlockIndex, pname, params);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -2663,7 +2663,7 @@ GL_APICALL void GL_APIENTRY glGetActiveUniformBlockName(GLuint program, GLuint u
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -2693,7 +2693,7 @@ GL_APICALL void GL_APIENTRY glUniformBlockBinding(GLuint program, GLuint uniform
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -2737,7 +2737,7 @@ GL_APICALL void GL_APIENTRY glDrawArraysInstanced(GLenum mode, GLint first, GLsi
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -2785,7 +2785,7 @@ GL_APICALL void GL_APIENTRY glDrawElementsInstanced(GLenum mode, GLsizei count, 
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -2816,7 +2816,7 @@ GL_APICALL GLsync GL_APIENTRY glFenceSync(GLenum condition, GLbitfield flags)
 		return error(GL_INVALID_VALUE, nullptr);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -2830,7 +2830,7 @@ GL_APICALL GLboolean GL_APIENTRY glIsSync(GLsync sync)
 {
 	TRACE("(GLsync sync = %p)", sync);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -2854,7 +2854,7 @@ GL_APICALL void GL_APIENTRY glDeleteSync(GLsync sync)
 		return;
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -2876,7 +2876,7 @@ GL_APICALL GLenum GL_APIENTRY glClientWaitSync(GLsync sync, GLbitfield flags, GL
 		return error(GL_INVALID_VALUE, GL_FALSE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -2909,7 +2909,7 @@ GL_APICALL void GL_APIENTRY glWaitSync(GLsync sync, GLbitfield flags, GLuint64 t
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -2930,7 +2930,7 @@ GL_APICALL void GL_APIENTRY glGetInteger64v(GLenum pname, GLint64 *data)
 {
 	TRACE("(GLenum pname = 0x%X, GLint64 *data = %p)", pname, data);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -2993,7 +2993,7 @@ GL_APICALL void GL_APIENTRY glGetSynciv(GLsync sync, GLenum pname, GLsizei bufSi
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -3011,7 +3011,7 @@ GL_APICALL void GL_APIENTRY glGetInteger64i_v(GLenum target, GLuint index, GLint
 {
 	TRACE("(GLenum target = 0x%X, GLuint index = %d, GLint64 *data = %p)", target, index, data);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -3070,7 +3070,7 @@ GL_APICALL void GL_APIENTRY glGetBufferParameteri64v(GLenum target, GLenum pname
 {
 	TRACE("(GLenum target = 0x%X, GLenum pname = 0x%X, GLint64 *params = %p)", target, pname, params);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -3122,7 +3122,7 @@ GL_APICALL void GL_APIENTRY glGenSamplers(GLsizei count, GLuint *samplers)
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -3142,7 +3142,7 @@ GL_APICALL void GL_APIENTRY glDeleteSamplers(GLsizei count, const GLuint *sample
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -3162,7 +3162,7 @@ GL_APICALL GLboolean GL_APIENTRY glIsSampler(GLuint sampler)
 		return GL_FALSE;
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -3184,7 +3184,7 @@ GL_APICALL void GL_APIENTRY glBindSampler(GLuint unit, GLuint sampler)
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -3220,7 +3220,7 @@ GL_APICALL void GL_APIENTRY glSamplerParameteriv(GLuint sampler, GLenum pname, c
 		return;
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -3251,7 +3251,7 @@ GL_APICALL void GL_APIENTRY glSamplerParameterfv(GLuint sampler, GLenum pname, c
 		return error(GL_INVALID_ENUM);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -3277,7 +3277,7 @@ GL_APICALL void GL_APIENTRY glGetSamplerParameteriv(GLuint sampler, GLenum pname
 		return error(GL_INVALID_ENUM);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -3300,7 +3300,7 @@ GL_APICALL void GL_APIENTRY glGetSamplerParameterfv(GLuint sampler, GLenum pname
 		return error(GL_INVALID_ENUM);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -3317,7 +3317,7 @@ GL_APICALL void GL_APIENTRY glVertexAttribDivisor(GLuint index, GLuint divisor)
 {
 	TRACE("(GLuint index = %d, GLuint divisor = %d)", index, divisor);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -3339,7 +3339,7 @@ GL_APICALL void GL_APIENTRY glBindTransformFeedback(GLenum target, GLuint id)
 		return error(GL_INVALID_ENUM);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -3368,7 +3368,7 @@ GL_APICALL void GL_APIENTRY glDeleteTransformFeedbacks(GLsizei n, const GLuint *
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -3398,7 +3398,7 @@ GL_APICALL void GL_APIENTRY glGenTransformFeedbacks(GLsizei n, GLuint *ids)
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -3418,7 +3418,7 @@ GL_APICALL GLboolean GL_APIENTRY glIsTransformFeedback(GLuint id)
 		return GL_FALSE;
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -3437,7 +3437,7 @@ GL_APICALL void GL_APIENTRY glPauseTransformFeedback(void)
 {
 	TRACE("()");
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -3458,7 +3458,7 @@ GL_APICALL void GL_APIENTRY glResumeTransformFeedback(void)
 {
 	TRACE("()");
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -3485,7 +3485,7 @@ GL_APICALL void GL_APIENTRY glGetProgramBinary(GLuint program, GLsizei bufSize, 
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -3511,7 +3511,7 @@ GL_APICALL void GL_APIENTRY glProgramBinary(GLuint program, GLenum binaryFormat,
 		return error(GL_INVALID_VALUE);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -3532,7 +3532,7 @@ GL_APICALL void GL_APIENTRY glProgramParameteri(GLuint program, GLenum pname, GL
 	TRACE("(GLuint program = %d, GLenum pname = 0x%X, GLint value = %d)",
 	      program, pname, value);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -3571,7 +3571,7 @@ GL_APICALL void GL_APIENTRY glInvalidateSubFramebuffer(GLenum target, GLsizei nu
 	TRACE("(GLenum target = 0x%X, GLsizei numAttachments = %d, const GLenum *attachments = %p, GLint x = %d, GLint y = %d, GLsizei width = %d, GLsizei height = %d)",
 	      target, numAttachments, attachments, x, y, width, height);
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -3655,7 +3655,7 @@ GL_APICALL void GL_APIENTRY glTexStorage2D(GLenum target, GLsizei levels, GLenum
 		return error(GL_INVALID_ENUM);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
@@ -3737,7 +3737,7 @@ GL_APICALL void GL_APIENTRY glTexStorage3D(GLenum target, GLsizei levels, GLenum
 		return error(GL_INVALID_ENUM);
 	}
 
-	es2::Context *context = es2::getContext();
+	auto context = es2::getContext();
 
 	if(context)
 	{
