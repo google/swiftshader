@@ -25,6 +25,7 @@ Google Inc.
  Daniel Toyama <kenjitoyama@google.com>
  Meng-Lin Wu <marleymoo@google.com>
  Krzysztof Kosiński <krzysio@google.com>
+ Chris Forbes <chrisforbes@google.com>
 
 TransGaming Inc.
  Nicolas Capens
