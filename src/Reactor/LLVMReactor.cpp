@@ -64,10 +64,14 @@ namespace llvm
 	extern bool JITEmitDebugInfo;
 }
 
+namespace sw
+{
+	class LLVMReactorJIT;
+}
+
 namespace
 {
-	sw::LLVMRoutineManager *routineManager = nullptr;
-	llvm::ExecutionEngine *executionEngine = nullptr;
+	sw::LLVMReactorJIT *reactorJIT = nullptr;
 	llvm::IRBuilder<> *builder = nullptr;
 	llvm::LLVMContext *context = nullptr;
 	llvm::Module *module = nullptr;
@@ -78,6 +82,93 @@ namespace
 
 namespace sw
 {
+	class LLVMReactorJIT
+	{
+	private:
+		std::string arch;
+		llvm::SmallVector<std::string, 16> mattrs;
+		sw::LLVMRoutineManager *routineManager;
+		llvm::ExecutionEngine *executionEngine;
+
+	public:
+		LLVMReactorJIT(const std::string &arch_,
+					   const llvm::SmallVectorImpl<std::string> &mattrs_) :
+			arch(arch_),
+			mattrs(mattrs_.begin(), mattrs_.end()),
+			routineManager(nullptr),
+			executionEngine(nullptr)
+		{
+		}
+
+		void startSession()
+		{
+			std::string error;
+
+			::module = new llvm::Module("", *::context);
+
+			routineManager = new LLVMRoutineManager();
+
+			llvm::TargetMachine *targetMachine =
+				llvm::EngineBuilder::selectTarget(
+					::module, arch, "", mattrs, llvm::Reloc::Default,
+					llvm::CodeModel::JITDefault, &error);
+
+			executionEngine = llvm::JIT::createJIT(
+				::module, &error, routineManager, llvm::CodeGenOpt::Aggressive,
+				true, targetMachine);
+		}
+
+		void endSession()
+		{
+			delete executionEngine;
+			executionEngine = nullptr;
+			routineManager = nullptr;
+
+			::function = nullptr;
+			::module = nullptr;
+		}
+
+		LLVMRoutine *acquireRoutine(llvm::Function *func)
+		{
+			void *entry = executionEngine->getPointerToFunction(::function);
+			return routineManager->acquireRoutine(entry);
+		}
+
+		void optimize(llvm::Module *module)
+		{
+			static llvm::PassManager *passManager = nullptr;
+
+			if(!passManager)
+			{
+				passManager = new llvm::PassManager();
+
+				passManager->add(new llvm::TargetData(*executionEngine->getTargetData()));
+				passManager->add(llvm::createScalarReplAggregatesPass());
+
+				for(int pass = 0; pass < 10 && optimization[pass] != Disabled; pass++)
+				{
+					switch(optimization[pass])
+					{
+					case Disabled:                                                                       break;
+					case CFGSimplification:    passManager->add(llvm::createCFGSimplificationPass());    break;
+					case LICM:                 passManager->add(llvm::createLICMPass());                 break;
+					case AggressiveDCE:        passManager->add(llvm::createAggressiveDCEPass());        break;
+					case GVN:                  passManager->add(llvm::createGVNPass());                  break;
+					case InstructionCombining: passManager->add(llvm::createInstructionCombiningPass()); break;
+					case Reassociate:          passManager->add(llvm::createReassociatePass());          break;
+					case DeadStoreElimination: passManager->add(llvm::createDeadStoreEliminationPass()); break;
+					case SCCP:                 passManager->add(llvm::createSCCPPass());                 break;
+					case ScalarReplAggregates: passManager->add(llvm::createScalarReplAggregatesPass()); break;
+					default:
+						assert(false);
+					}
+				}
+			}
+
+			passManager->run(*::module);
+		}
+	};
+
 	Optimization optimization[10] = {InstructionCombining, Disabled};
 
 	enum EmulatedType
@@ -192,34 +283,38 @@ namespace sw
 		::codegenMutex.lock();   // Reactor and LLVM are currently not thread safe
 
 		llvm::InitializeNativeTarget();
-		llvm::JITEmitDebugInfo = false;
 
 		if(!::context)
 		{
 			::context = new llvm::LLVMContext();
 		}
 
-		::module = new llvm::Module("", *::context);
-		::routineManager = new LLVMRoutineManager();
-
 		#if defined(__x86_64__)
-			const char *architecture = "x86-64";
+			static const char arch[] = "x86-64";
 		#else
-			const char *architecture = "x86";
+			static const char arch[] = "x86";
 		#endif
 
-		llvm::SmallVector<std::string, 1> MAttrs;
-		MAttrs.push_back(CPUID::supportsMMX()    ? "+mmx"   : "-mmx");
-		MAttrs.push_back(CPUID::supportsCMOV()   ? "+cmov"  : "-cmov");
-		MAttrs.push_back(CPUID::supportsSSE()    ? "+sse"   : "-sse");
-		MAttrs.push_back(CPUID::supportsSSE2()   ? "+sse2"  : "-sse2");
-		MAttrs.push_back(CPUID::supportsSSE3()   ? "+sse3"  : "-sse3");
-		MAttrs.push_back(CPUID::supportsSSSE3()  ? "+ssse3" : "-ssse3");
-		MAttrs.push_back(CPUID::supportsSSE4_1() ? "+sse41" : "-sse41");
+		llvm::SmallVector<std::string, 1> mattrs;
+		mattrs.push_back(CPUID::supportsMMX()    ? "+mmx"   : "-mmx");
+		mattrs.push_back(CPUID::supportsCMOV()   ? "+cmov"  : "-cmov");
+		mattrs.push_back(CPUID::supportsSSE()    ? "+sse"   : "-sse");
+		mattrs.push_back(CPUID::supportsSSE2()   ? "+sse2"  : "-sse2");
+		mattrs.push_back(CPUID::supportsSSE3()   ? "+sse3"  : "-sse3");
+		mattrs.push_back(CPUID::supportsSSSE3()  ? "+ssse3" : "-ssse3");
+		mattrs.push_back(CPUID::supportsSSE4_1() ? "+sse41" : "-sse41");
 
-		std::string error;
-		llvm::TargetMachine *targetMachine = llvm::EngineBuilder::selectTarget(::module, architecture, "", MAttrs, llvm::Reloc::Default, llvm::CodeModel::JITDefault, &error);
-		::executionEngine = llvm::JIT::createJIT(::module, 0, ::routineManager, llvm::CodeGenOpt::Aggressive, true, targetMachine);
+		llvm::JITEmitDebugInfo = false;
+		llvm::UnsafeFPMath = true;
+		// llvm::NoInfsFPMath = true;
+		// llvm::NoNaNsFPMath = true;
+
+		if(!::reactorJIT)
+		{
+			::reactorJIT = new LLVMReactorJIT(arch, mattrs);
+		}
+
+		::reactorJIT->startSession();
 
 		if(!::builder)
 		{
@@ -241,12 +336,7 @@ namespace sw
 
 	Nucleus::~Nucleus()
 	{
-		delete ::executionEngine;
-		::executionEngine = nullptr;
-
-		::routineManager = nullptr;
-		::function = nullptr;
-		::module = nullptr;
+		::reactorJIT->endSession();
 
 		::codegenMutex.unlock();
 	}
@@ -286,8 +376,7 @@ namespace sw
 			::module->print(file, 0);
 		}
 
-		void *entry = ::executionEngine->getPointerToFunction(::function);
-		LLVMRoutine *routine = ::routineManager->acquireRoutine(entry);
+		LLVMRoutine *routine = ::reactorJIT->acquireRoutine(::function);
 
 		if(CodeAnalystLogJITCode)
 		{
@@ -299,40 +388,7 @@ namespace sw
 
 	void Nucleus::optimize()
 	{
-		static llvm::PassManager *passManager = nullptr;
-
-		if(!passManager)
-		{
-			passManager = new llvm::PassManager();
-
-			llvm::UnsafeFPMath = true;
-		//	llvm::NoInfsFPMath = true;
-		//	llvm::NoNaNsFPMath = true;
-
-			passManager->add(new llvm::TargetData(*::executionEngine->getTargetData()));
-			passManager->add(llvm::createScalarReplAggregatesPass());
-
-			for(int pass = 0; pass < 10 && optimization[pass] != Disabled; pass++)
-			{
-				switch(optimization[pass])
-				{
-				case Disabled:                                                                       break;
-				case CFGSimplification:    passManager->add(llvm::createCFGSimplificationPass());    break;
-				case LICM:                 passManager->add(llvm::createLICMPass());                 break;
-				case AggressiveDCE:        passManager->add(llvm::createAggressiveDCEPass());        break;
-				case GVN:                  passManager->add(llvm::createGVNPass());                  break;
-				case InstructionCombining: passManager->add(llvm::createInstructionCombiningPass()); break;
-				case Reassociate:          passManager->add(llvm::createReassociatePass());          break;
-				case DeadStoreElimination: passManager->add(llvm::createDeadStoreEliminationPass()); break;
-				case SCCP:                 passManager->add(llvm::createSCCPPass());                 break;
-				case ScalarReplAggregates: passManager->add(llvm::createScalarReplAggregatesPass()); break;
-				default:
-					assert(false);
-				}
-			}
-		}
-
-		passManager->run(*::module);
+		::reactorJIT->optimize(::module);
 	}
 
 	Value *Nucleus::allocateStackVariable(Type *type, int arraySize)
