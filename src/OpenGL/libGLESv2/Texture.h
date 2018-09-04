@@ -45,6 +45,54 @@ enum
 	IMPLEMENTATION_MAX_RENDERBUFFER_SIZE = sw::OUTLINE_RESOLUTION,
 };
 
+class ImageLevels
+{
+public:
+	inline const egl::Image* operator[](size_t index) const
+	{
+		return (index < IMPLEMENTATION_MAX_TEXTURE_LEVELS) ? image[index] : nullptr;
+	}
+
+	inline egl::Image*& operator[](size_t index)
+	{
+		if(index < IMPLEMENTATION_MAX_TEXTURE_LEVELS)
+		{
+			return image[index];
+		}
+
+		static egl::Image* nullImage;
+		nullImage = nullptr;
+		return nullImage;
+	}
+
+	inline void release()
+	{
+		for(int i = 0; i < IMPLEMENTATION_MAX_TEXTURE_LEVELS; i++)
+		{
+			if(image[i])
+			{
+				image[i]->release();
+				image[i] = nullptr;
+			}
+		}
+	}
+
+	inline void unbind(const egl::Texture* texture)
+	{
+		for(int i = 0; i < IMPLEMENTATION_MAX_TEXTURE_LEVELS; i++)
+		{
+			if(image[i])
+			{
+				image[i]->unbind(texture);
+				image[i] = nullptr;
+			}
+		}
+	}
+
+private:
+	egl::Image *image[IMPLEMENTATION_MAX_TEXTURE_LEVELS] = {};
+};
+
 class Texture : public egl::Texture
 {
 public:
@@ -192,7 +240,7 @@ protected:
 
 	bool isMipmapComplete() const;
 
-	egl::Image *image[IMPLEMENTATION_MAX_TEXTURE_LEVELS];
+	ImageLevels image;
 
 	gl::Surface *mSurface;
 
@@ -265,7 +313,7 @@ private:
 	// face is one of the GL_TEXTURE_CUBE_MAP_* enumerants. Returns nullptr on failure.
 	egl::Image *getImage(GLenum face, unsigned int level);
 
-	egl::Image *image[6][IMPLEMENTATION_MAX_TEXTURE_LEVELS];
+	ImageLevels image[6];
 
 	// A specific internal reference count is kept for colorbuffer proxy references,
 	// because, as the renderbuffer acting as proxy will maintain a binding pointer
@@ -321,7 +369,7 @@ protected:
 
 	bool isMipmapComplete() const;
 
-	egl::Image *image[IMPLEMENTATION_MAX_TEXTURE_LEVELS];
+	ImageLevels image;
 
 	gl::Surface *mSurface;
 

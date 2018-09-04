@@ -420,11 +420,6 @@ bool Texture::isMipmapFiltered(Sampler *sampler) const
 
 Texture2D::Texture2D(GLuint name) : Texture(name)
 {
-	for(int i = 0; i < IMPLEMENTATION_MAX_TEXTURE_LEVELS; i++)
-	{
-		image[i] = nullptr;
-	}
-
 	mSurface = nullptr;
 
 	mColorbufferProxy = nullptr;
@@ -433,14 +428,7 @@ Texture2D::Texture2D(GLuint name) : Texture(name)
 
 Texture2D::~Texture2D()
 {
-	for(int i = 0; i < IMPLEMENTATION_MAX_TEXTURE_LEVELS; i++)
-	{
-		if(image[i])
-		{
-			image[i]->unbind(this);
-			image[i] = nullptr;
-		}
-	}
+	image.unbind(this);
 
 	if(mSurface)
 	{
@@ -562,14 +550,7 @@ void Texture2D::setImage(GLint level, GLsizei width, GLsizei height, GLint inter
 
 void Texture2D::bindTexImage(gl::Surface *surface)
 {
-	for(int level = 0; level < IMPLEMENTATION_MAX_TEXTURE_LEVELS; level++)
-	{
-		if(image[level])
-		{
-			image[level]->release();
-			image[level] = nullptr;
-		}
-	}
+	image.release();
 
 	image[0] = surface->getRenderTarget();
 
@@ -579,14 +560,7 @@ void Texture2D::bindTexImage(gl::Surface *surface)
 
 void Texture2D::releaseTexImage()
 {
-	for(int level = 0; level < IMPLEMENTATION_MAX_TEXTURE_LEVELS; level++)
-	{
-		if(image[level])
-		{
-			image[level]->release();
-			image[level] = nullptr;
-		}
-	}
+	image.release();
 
 	if(mSurface)
 	{
@@ -904,14 +878,6 @@ TextureCubeMap::TextureCubeMap(GLuint name) : Texture(name)
 {
 	for(int f = 0; f < 6; f++)
 	{
-		for(int i = 0; i < IMPLEMENTATION_MAX_TEXTURE_LEVELS; i++)
-		{
-			image[f][i] = nullptr;
-		}
-	}
-
-	for(int f = 0; f < 6; f++)
-	{
 		mFaceProxies[f] = nullptr;
 		mFaceProxyRefs[f] = 0;
 	}
@@ -919,20 +885,9 @@ TextureCubeMap::TextureCubeMap(GLuint name) : Texture(name)
 
 TextureCubeMap::~TextureCubeMap()
 {
-	for(int f = 0; f < 6; f++)
-	{
-		for(int i = 0; i < IMPLEMENTATION_MAX_TEXTURE_LEVELS; i++)
-		{
-			if(image[f][i])
-			{
-				image[f][i]->unbind(this);
-				image[f][i] = nullptr;
-			}
-		}
-	}
-
 	for(int i = 0; i < 6; i++)
 	{
+		image[i].unbind(this);
 		mFaceProxies[i] = nullptr;
 	}
 }
@@ -1440,11 +1395,6 @@ bool TextureCubeMap::isShared(GLenum target, unsigned int level) const
 
 Texture3D::Texture3D(GLuint name) : Texture(name)
 {
-	for(int i = 0; i < IMPLEMENTATION_MAX_TEXTURE_LEVELS; i++)
-	{
-		image[i] = nullptr;
-	}
-
 	mSurface = nullptr;
 
 	mColorbufferProxy = nullptr;
@@ -1453,14 +1403,7 @@ Texture3D::Texture3D(GLuint name) : Texture(name)
 
 Texture3D::~Texture3D()
 {
-	for(int i = 0; i < IMPLEMENTATION_MAX_TEXTURE_LEVELS; i++)
-	{
-		if(image[i])
-		{
-			image[i]->unbind(this);
-			image[i] = nullptr;
-		}
-	}
+	image.unbind(this);
 
 	if(mSurface)
 	{
