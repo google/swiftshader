@@ -16,6 +16,8 @@
 
 #include "Optimizer.hpp"
 
+#include "Common/Memory.hpp"
+
 #include "src/IceTypes.h"
 #include "src/IceCfg.h"
 #include "src/IceELFStreamer.h"
@@ -423,20 +425,12 @@ namespace sw
 
 		T *allocate(size_type n)
 		{
-			#if defined(_WIN32)
-				return (T*)VirtualAlloc(NULL, sizeof(T) * n, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
-			#else
-				return (T*)mmap(nullptr, sizeof(T) * n, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-			#endif
+			return (T*)allocateExecutable(sizeof(T) * n);
 		}
 
 		void deallocate(T *p, size_type n)
 		{
-			#if defined(_WIN32)
-				VirtualFree(p, 0, MEM_RELEASE);
-			#else
-				munmap(p, sizeof(T) * n);
-			#endif
+			deallocateExecutable(p, sizeof(T) * n);
 		}
 	};
 

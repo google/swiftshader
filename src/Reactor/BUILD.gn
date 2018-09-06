@@ -281,6 +281,10 @@ swiftshader_source_set("swiftshader_reactor") {
       ":swiftshader_subzero_common_private_config",
       ":swiftshader_reactor_with_subzero_private_config",
     ]
+
+    include_dirs = [
+      "..",
+    ]
   } else {
     deps += [ "../../third_party/LLVM:swiftshader_llvm" ]
 
