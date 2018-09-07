@@ -152,7 +152,7 @@ config("swiftshader_reactor_private_config") {
       "/wd4201",  # nameless struct/union
       "/wd4245",  # conversion from int to unsigned int (llvm)
     ]
-  } else {
+  } else if (target_cpu == "x86" || target_cpu == "x64") {
     cflags = [
       "-Wno-unused-local-typedef",
       "-msse2",

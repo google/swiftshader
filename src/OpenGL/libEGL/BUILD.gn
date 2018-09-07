@@ -28,7 +28,10 @@ config("swiftshader_libEGL_private_config") {
 
     defines += [ "EGLAPI=" ]
   } else {
-    cflags = [ "-Wno-sign-compare" ]
+    cflags = [
+      "-Wno-sign-compare",
+      "-Wno-unused-function",
+    ]
     if (!is_clang) {
       cflags += [ "-Wno-unused-but-set-variable" ]
     }

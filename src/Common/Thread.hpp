@@ -241,7 +241,7 @@ namespace sw
 			return InterlockedExchange64(target, value);
 		#else
 			int ret;
-			__asm__ __volatile__("lock; xchg8 %0,(%1)" : "=r" (ret) :"r" (target), "0" (value) : "memory" );
+			__asm__ __volatile__("lock; xchg8 %x0,(%x1)" : "=r" (ret) :"r" (target), "0" (value) : "memory" );
 			return ret;
 		#endif
 	}
@@ -252,7 +252,7 @@ namespace sw
 			return InterlockedExchange((volatile long*)target, (long)value);
 		#else
 			int ret;
-			__asm__ __volatile__("lock; xchgl %0,(%1)" : "=r" (ret) :"r" (target), "0" (value) : "memory" );
+			__asm__ __volatile__("lock; xchgl %x0,(%x1)" : "=r" (ret) :"r" (target), "0" (value) : "memory" );
 			return ret;
 		#endif
 	}

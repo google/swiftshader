@@ -54,7 +54,7 @@ config("swiftshader_llvm_private_config") {
     cflags += [ "-Wno-error" ]
   }
 
-  if (is_clang) {
+  if (is_clang && (target_cpu == "x86" || target_cpu == "x64")) {
     cflags += [
       "-msse2",
       "-Wno-header-hygiene",

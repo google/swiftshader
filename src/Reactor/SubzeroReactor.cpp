@@ -103,7 +103,7 @@ namespace
 
 		static bool detectARM()
 		{
-			#if defined(__arm__)
+			#if defined(__arm__) || defined(__aarch64__)
 				return true;
 			#elif defined(__i386__) || defined(__x86_64__)
 				return false;
@@ -372,6 +372,8 @@ namespace sw
 			assert(sizeof(void*) == 8 && elfHeader->e_machine == EM_X86_64);
 		#elif defined(__arm__)
 			assert(sizeof(void*) == 4 && elfHeader->e_machine == EM_ARM);
+		#elif defined(__aarch64__)
+			assert(sizeof(void*) == 8 && elfHeader->e_machine == EM_AARCH64);
 		#else
 			#error "Unsupported platform"
 		#endif
