@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9530388d_5d524661",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 4380,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-09-07T04:16:14Z",
+      "side": 1,
+      "message": "This code is for eglCreateImage() validation. The spec mentions \"texture complete\" but doesn\u0027t specify whether that\u0027s mipmap completeness or sampler completeness. In theory when not specified it\u0027s the latter, but I suspect they mean the former. In any case, I\u0027m keeping the old behavior for now.",
+      "range": {
+        "startLine": 4375,
+        "startChar": 2,
+        "endLine": 4380,
+        "endChar": 96
+      },
+      "revId": "4bef4a05cd370653125d4b5699dfe6723a872570",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
