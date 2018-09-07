@@ -208,6 +208,8 @@
     <ClCompile Include="$(SolutionDir)third_party\subzero\src\IceTimerTree.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\subzero\src\IceTypes.cpp" />
     <ClCompile Include="$(SolutionDir)third_party\subzero\src\IceVariableSplitting.cpp" />
+    <ClCompile Include="..\Common\Debug.cpp" />
+    <ClCompile Include="..\Common\Memory.cpp" />
     <ClCompile Include="Optimizer.cpp" />
     <ClCompile Include="Routine.cpp" />
     <ClCompile Include="SubzeroReactor.cpp" />
