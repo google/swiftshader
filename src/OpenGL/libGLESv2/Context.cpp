@@ -3086,13 +3086,13 @@ void Context::applyTextures(sw::SamplerType samplerType)
 			TextureType textureType = programObject->getSamplerTextureType(samplerType, samplerIndex);
 
 			Texture *texture = getSamplerTexture(textureUnit, textureType);
+			Sampler *samplerObject = mState.sampler[textureUnit];
 
-			if(texture->isSamplerComplete())
+			if(texture->isSamplerComplete(samplerObject))
 			{
 				GLenum wrapS, wrapT, wrapR, minFilter, magFilter, compFunc, compMode;
 				GLfloat minLOD, maxLOD, maxAnisotropy;
 
-				Sampler *samplerObject = mState.sampler[textureUnit];
 				if(samplerObject)
 				{
 					wrapS = samplerObject->getWrapS();
@@ -4372,12 +4372,12 @@ EGLenum Context::validateSharedImage(EGLenum target, GLuint name, GLuint texture
 			return EGL_BAD_ACCESS;
 		}
 
-		if(textureLevel != 0 && !texture->isSamplerComplete())
+		if(textureLevel != 0 && !texture->isSamplerComplete(nullptr))
 		{
 			return EGL_BAD_PARAMETER;
 		}
 
-		if(textureLevel == 0 && !(texture->isSamplerComplete() && texture->getTopLevel() == 0))
+		if(textureLevel == 0 && !(texture->isSamplerComplete(nullptr) && texture->getTopLevel() == 0))
 		{
 			return EGL_BAD_PARAMETER;
 		}

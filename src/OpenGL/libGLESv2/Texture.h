@@ -33,6 +33,8 @@ namespace gl { class Surface; }
 
 namespace es2
 {
+class Sampler;
+
 enum
 {
 	IMPLEMENTATION_MAX_TEXTURE_LEVELS = sw::MIPMAP_LEVELS,
@@ -99,7 +101,7 @@ public:
 	virtual int getTopLevel() const = 0;
 	virtual bool requiresSync() const = 0;
 
-	virtual bool isSamplerComplete() const = 0;
+	virtual bool isSamplerComplete(Sampler *sampler) const = 0;
 	virtual bool isCompressed(GLenum target, GLint level) const = 0;
 	virtual bool isDepth(GLenum target, GLint level) const = 0;
 
@@ -121,7 +123,7 @@ protected:
 
 	bool copy(egl::Image *source, const sw::SliceRect &sourceRect, GLint xoffset, GLint yoffset, GLint zoffset, egl::Image *dest);
 
-	bool isMipmapFiltered() const;
+	bool isMipmapFiltered(Sampler *sampler) const;
 
 	GLenum mMinFilter;
 	GLenum mMagFilter;
@@ -171,7 +173,7 @@ public:
 
 	void setSharedImage(egl::Image *image);
 
-	bool isSamplerComplete() const override;
+	bool isSamplerComplete(Sampler *sampler) const override;
 	bool isCompressed(GLenum target, GLint level) const override;
 	bool isDepth(GLenum target, GLint level) const override;
 	void bindTexImage(gl::Surface *surface);
@@ -238,7 +240,7 @@ public:
 	void copyImage(GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLsizei height, Renderbuffer *source);
 	void copySubImage(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height, Renderbuffer *source) override;
 
-	bool isSamplerComplete() const override;
+	bool isSamplerComplete(Sampler *sampler) const override;
 	bool isCompressed(GLenum target, GLint level) const override;
 	bool isDepth(GLenum target, GLint level) const override;
 	void releaseTexImage() override;
@@ -301,7 +303,7 @@ public:
 
 	void setSharedImage(egl::Image *image);
 
-	bool isSamplerComplete() const override;
+	bool isSamplerComplete(Sampler *sampler) const override;
 	bool isCompressed(GLenum target, GLint level) const override;
 	bool isDepth(GLenum target, GLint level) const override;
 	void releaseTexImage() override;
