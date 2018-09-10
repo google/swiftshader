@@ -24,13 +24,13 @@ ifeq ($(SWIFTSHADER_LLVM_VERSION),3)
 # Reactor with LLVM 3.0 doesn't support ARM.  Use Subzero as the Reactor JIT
 # back-end on ARM.
 ifeq ($(TARGET_ARCH),$(filter $(TARGET_ARCH),arm))
-use_subzero := true
+SWIFTSHADER_USE_SUBZERO := true
 endif
 endif
 
 
 # Check whether SwiftShader requires full C++ 11 support.
-ifdef use_subzero
+ifdef SWIFTSHADER_USE_SUBZERO
 SWIFTSHADER_REQUIRES_CXX11 := true
 endif
 
@@ -41,7 +41,7 @@ endif
 ifeq ($(SWIFTSHADER_REQUIRES_CXX11),true)
 # Full C++ 11 support is only available from Marshmallow and up.
 ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 23 && echo PreMarshmallow),PreMarshmallow)
-unsupported_build := true
+SWIFTSHADER_UNSUPPORTED_BUILD := true
 endif
 endif
 
@@ -49,17 +49,17 @@ endif
 # Check whether $(TARGET_ARCH) is supported.
 ifeq ($(SWIFTSHADER_LLVM_VERSION),3)
 ifneq ($(TARGET_ARCH),$(filter $(TARGET_ARCH),x86 x86_64 arm))
-unsupported_build := true
+SWIFTSHADER_UNSUPPORTED_BUILD := true
 endif
 endif
 
 ifeq ($(SWIFTSHADER_LLVM_VERSION),7)
 ifneq ($(TARGET_ARCH),$(filter $(TARGET_ARCH),x86 x86_64 arm arm64))
-unsupported_build := true
+SWIFTSHADER_UNSUPPORTED_BUILD := true
 endif
 endif
 
 
-ifndef unsupported_build
+ifndef SWIFTSHADER_UNSUPPORTED_BUILD
 include $(call all-makefiles-under,$(LOCAL_PATH))
 endif
