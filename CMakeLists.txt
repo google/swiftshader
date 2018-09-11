@@ -30,6 +30,13 @@ endif()
 
 set(CMAKE_MACOSX_RPATH ON)
 
+if ((CMAKE_GENERATOR MATCHES "Visual Studio") AND (CMAKE_GENERATOR_TOOLSET STREQUAL ""))
+  message(WARNING "Visual Studio generators use the x86 host compiler by "
+                  "default, even for 64-bit targets. This can result in linker "
+                  "instability and out of memory errors. To use the 64-bit "
+                  "host compiler, pass -Thost=x64 on the CMake command line.")
+endif()
+
 ###########################################################
 # Options
 ###########################################################
@@ -1609,7 +1616,7 @@ set(LLVM_LIST
 set(LLVM_INCLUDE_DIR "")
 
 if(WIN32)
-    # list(APPEND LLVM_INCLUDE_DIR ${LLVM_CONFIG_DIR}/include)
+    list(APPEND LLVM_INCLUDE_DIR ${LLVM_CONFIG_DIR}/windows/include)
 elseif(LINUX)
     list(APPEND LLVM_INCLUDE_DIR ${LLVM_CONFIG_DIR}/linux/include)
 elseif(APPLE)
