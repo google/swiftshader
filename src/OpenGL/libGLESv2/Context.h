@@ -776,12 +776,17 @@ class ContextPtr {
 public:
 	explicit ContextPtr(Context *context) : ptr(context)
 	{
-		if (ptr) ptr->getResourceLock()->lock();
-    }
+		if (ptr) { ptr->getResourceLock()->lock(); }
+	}
 
 	~ContextPtr() {
-		if (ptr) ptr->getResourceLock()->unlock();
+		if (ptr) { ptr->getResourceLock()->unlock(); }
 	}
+
+	ContextPtr(ContextPtr const &) = delete;
+	ContextPtr & operator=(ContextPtr const &) = delete;
+	ContextPtr(ContextPtr && other) : ptr(other.ptr) { other.ptr = nullptr; }
+	ContextPtr & operator=(ContextPtr && other) { ptr = other.ptr; other.ptr = nullptr; return *this; }
 
 	Context *operator ->() { return ptr; }
 	operator bool() const { return ptr != nullptr; }

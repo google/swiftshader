@@ -598,7 +598,6 @@ EGLContext Display::createContext(EGLConfig configHandle, const egl::Context *sh
 EGLSyncKHR Display::createSync(Context *context)
 {
 	FenceSync *fenceSync = new egl::FenceSync(context);
-	LockGuard lock(mSyncSetMutex);
 	mSyncSet.insert(fenceSync);
 	return fenceSync;
 }
@@ -635,7 +634,6 @@ void Display::destroyContext(egl::Context *context)
 void Display::destroySync(FenceSync *sync)
 {
 	{
-		LockGuard lock(mSyncSetMutex);
 		mSyncSet.erase(sync);
 	}
 	delete sync;
@@ -717,7 +715,6 @@ bool Display::hasExistingWindowSurface(EGLNativeWindowType window)
 
 bool Display::isValidSync(FenceSync *sync)
 {
-	LockGuard lock(mSyncSetMutex);
 	return mSyncSet.find(sync) != mSyncSet.end();
 }
 

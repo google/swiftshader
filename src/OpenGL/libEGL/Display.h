@@ -86,6 +86,8 @@ namespace egl
 		bool destroySharedImage(EGLImageKHR);
 		virtual Image *getSharedImage(EGLImageKHR name) = 0;
 
+		sw::MutexLock *getLock() { return &mApiMutex; }
+
 	private:
 		sw::Format getDisplayFormat() const;
 
@@ -104,10 +106,10 @@ namespace egl
 		ContextSet mContextSet;
 
 		typedef std::set<FenceSync*> SyncSet;
-		sw::MutexLock mSyncSetMutex;
 		SyncSet mSyncSet;
 
 		gl::NameSpace<Image> mSharedImageNameSpace;
+		sw::MutexLock mApiMutex;
 	};
 }
 
