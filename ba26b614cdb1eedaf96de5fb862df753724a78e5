@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b579f5fe_04caba2a",
+        "filename": "src/Reactor/LLVMReactor.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 765,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-09-13T21:46:56Z",
+      "side": 1,
+      "message": "Note: even though disabling this too might appear safer, we\u0027re leaving this as-is to not alter the LLVM 3.0 behavior in any way since it seemed fine with this setting for many years and might have unexpected consequences if changed.",
+      "range": {
+        "startLine": 765,
+        "startChar": 23,
+        "endLine": 765,
+        "endChar": 27
+      },
+      "revId": "ba26b614cdb1eedaf96de5fb862df753724a78e5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
