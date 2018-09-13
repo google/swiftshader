@@ -919,6 +919,17 @@ namespace sw
 		::function = llvm::Function::Create(functionType, llvm::GlobalValue::InternalLinkage, "", ::module);
 		::function->setCallingConv(llvm::CallingConv::C);
 
+		#if defined(_WIN32) && SWIFTSHADER_LLVM_VERSION >= 7
+			// FIXME(capn):
+			// On Windows, stack memory is committed in increments of 4 kB pages, with the last page
+			// having a trap which allows the OS to grow the stack. For functions with a stack frame
+			// larger than 4 kB this can cause an issue when a variable is accessed beyond the guard
+			// page. Therefore the compiler emits a call to __chkstk in the function prolog to probe
+			// the stack and ensure all pages have been committed. This is currently broken in LLVM
+			// JIT, but we can prevent emitting the stack probe call:
+			::function->addFnAttr("stack-probe-size", "1048576");
+		#endif
+
 		::builder->SetInsertPoint(llvm::BasicBlock::Create(*::context, "", ::function));
 	}
 
