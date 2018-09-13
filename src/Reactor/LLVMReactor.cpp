@@ -767,7 +767,7 @@ namespace sw
 		// llvm::NoNaNsFPMath = true;
 #else
 		llvm::TargetOptions targetOpts;
-		targetOpts.UnsafeFPMath = true;
+		targetOpts.UnsafeFPMath = false;
 		// targetOpts.NoInfsFPMath = true;
 		// targetOpts.NoNaNsFPMath = true;
 #endif
