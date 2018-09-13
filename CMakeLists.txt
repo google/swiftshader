@@ -255,6 +255,7 @@ endif()
 
 if(WIN32)
     add_definitions(-DWINVER=0x501 -DNOMINMAX -DSTRICT)
+    set_cpp_flag("-DDEBUGGER_WAIT_DIALOG" DEBUG)
     set(CMAKE_FIND_LIBRARY_PREFIXES ${CMAKE_FIND_LIBRARY_PREFIXES} "" "lib")
 endif()
 

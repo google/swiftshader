@@ -15,6 +15,8 @@
 #ifndef sw_Routine_hpp
 #define sw_Routine_hpp
 
+#include "../Common/Thread.hpp"
+
 namespace sw
 {
 	class Routine
@@ -31,7 +33,7 @@ namespace sw
 		void unbind();
 
 	private:
-		volatile int bindCount;
+		AtomicInt bindCount;
 	};
 }
 

@@ -550,10 +550,7 @@ namespace sw
 			llvm::JITSymbol symbol = compileLayer.findSymbolIn(moduleKey, name, false);
 
 			llvm::Expected<llvm::JITTargetAddress> expectAddr = symbol.getAddress();
-			if (!expectAddr)
-			{
-				return nullptr;
-			}
+			assert(expectAddr);
 
 			void *addr = reinterpret_cast<void *>(static_cast<intptr_t>(expectAddr.get()));
 			return new LLVMRoutine(addr, releaseRoutineCallback, this, moduleKey);
@@ -767,7 +764,7 @@ namespace sw
 		// llvm::NoNaNsFPMath = true;
 #else
 		llvm::TargetOptions targetOpts;
-		targetOpts.UnsafeFPMath = true;
+		targetOpts.UnsafeFPMath = false;
 		// targetOpts.NoInfsFPMath = true;
 		// targetOpts.NoNaNsFPMath = true;
 #endif
@@ -920,6 +917,11 @@ namespace sw
 		::function->setCallingConv(llvm::CallingConv::C);
 
 		::builder->SetInsertPoint(llvm::BasicBlock::Create(*::context, "", ::function));
+
+#if SWIFTSHADER_LLVM_VERSION >= 7
+	// This fixes the "__chkstk not found" error
+	::function->addFnAttr("stack-probe-size", "1048576");
+#endif
 	}
 
 	Value *Nucleus::getArgument(unsigned int index)

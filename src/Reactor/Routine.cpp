@@ -14,25 +14,22 @@
 
 #include "Routine.hpp"
 
-#include "../Common/Thread.hpp"
-
 #include <cassert>
 
 namespace sw
 {
-	Routine::Routine()
+	Routine::Routine() : bindCount(0)
 	{
-		bindCount = 0;
 	}
 
 	void Routine::bind()
 	{
-		atomicIncrement(&bindCount);
+		++bindCount;
 	}
 
 	void Routine::unbind()
 	{
-		long count = atomicDecrement(&bindCount);
+		int count = bindCount--;
 
 		if(count == 0)
 		{
