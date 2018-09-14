@@ -1721,6 +1721,7 @@ if(${REACTOR_BACKEND} STREQUAL "Subzero")
     )
 
     set(SUBZERO_INCLUDE_DIR
+        ${SOURCE_DIR}/
         ${SUBZERO_DIR}/
         ${SUBZERO_LLVM_DIR}/include/
         ${SUBZERO_DIR}/pnacl-llvm/include/

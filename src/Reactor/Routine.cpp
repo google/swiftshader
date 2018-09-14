@@ -14,7 +14,7 @@
 
 #include "Routine.hpp"
 
-#include "../Common/Thread.hpp"
+#include "Common/Thread.hpp"
 
 #include <cassert>
 

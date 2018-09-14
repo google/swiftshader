@@ -18,9 +18,9 @@
 
 #include "LLVMRoutine.hpp"
 #include "llvm/Function.h"
-#include "../Common/Memory.hpp"
-#include "../Common/Thread.hpp"
-#include "../Common/Debug.hpp"
+#include "Common/Memory.hpp"
+#include "Common/Thread.hpp"
+#include "Common/Debug.hpp"
 
 namespace sw
 {
