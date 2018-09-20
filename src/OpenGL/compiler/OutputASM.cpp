@@ -748,6 +748,11 @@ namespace glsl
 		case EOpVectorTimesMatrixAssign:
 			assert(visit == PreVisit);
 			{
+				// The left operand may contain a swizzle serving double-duty as
+				// swizzle and writemask, so it's important that we traverse it
+				// first. Otherwise we may end up never setting up our left
+				// operand correctly.
+				left->traverse(this);
 				right->traverse(this);
 				int size = leftType.getNominalSize();
 
