@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26730.16
+VisualStudioVersion = 15.0.27004.2002
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "LLVM", "LLVM", "{B408B98A-E888-4ECF-81E0-7A37A6854B17}"
 EndProject
@@ -264,6 +264,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VertexRoutineFuzzer", "test
 		{7B02CB19-4CDF-4F79-BC9B-7F3F6164A003} = {7B02CB19-4CDF-4F79-BC9B-7F3F6164A003}
 		{5B3A6DB8-1E7E-40D7-92B9-DA8AAE619FAD} = {5B3A6DB8-1E7E-40D7-92B9-DA8AAE619FAD}
 	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Vulkan", "src\Vulkan\vulkan.vcxproj", "{E1C34B66-C942-4B9A-B8C3-9A12625650D3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -800,6 +802,18 @@ Global
 		{FBDCFF88-0CE1-43C3-B694-8F45946FAFE3}.Release|Win32.Build.0 = Release|Win32
 		{FBDCFF88-0CE1-43C3-B694-8F45946FAFE3}.Release|x64.ActiveCfg = Release|x64
 		{FBDCFF88-0CE1-43C3-B694-8F45946FAFE3}.Release|x64.Build.0 = Release|x64
+		{E1C34B66-C942-4B9A-B8C3-9A12625650D3}.Debug|Win32.ActiveCfg = Debug|Win32
+		{E1C34B66-C942-4B9A-B8C3-9A12625650D3}.Debug|Win32.Build.0 = Debug|Win32
+		{E1C34B66-C942-4B9A-B8C3-9A12625650D3}.Debug|x64.ActiveCfg = Debug|x64
+		{E1C34B66-C942-4B9A-B8C3-9A12625650D3}.Debug|x64.Build.0 = Debug|x64
+		{E1C34B66-C942-4B9A-B8C3-9A12625650D3}.Profile|Win32.ActiveCfg = Release|Win32
+		{E1C34B66-C942-4B9A-B8C3-9A12625650D3}.Profile|Win32.Build.0 = Release|Win32
+		{E1C34B66-C942-4B9A-B8C3-9A12625650D3}.Profile|x64.ActiveCfg = Release|x64
+		{E1C34B66-C942-4B9A-B8C3-9A12625650D3}.Profile|x64.Build.0 = Release|x64
+		{E1C34B66-C942-4B9A-B8C3-9A12625650D3}.Release|Win32.ActiveCfg = Release|Win32
+		{E1C34B66-C942-4B9A-B8C3-9A12625650D3}.Release|Win32.Build.0 = Release|Win32
+		{E1C34B66-C942-4B9A-B8C3-9A12625650D3}.Release|x64.ActiveCfg = Release|x64
+		{E1C34B66-C942-4B9A-B8C3-9A12625650D3}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
