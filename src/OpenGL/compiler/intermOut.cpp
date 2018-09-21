@@ -321,6 +321,8 @@ bool TOutputTraverser::visitAggregate(Visit visit, TIntermAggregate* node)
 	case EOpMul:           out << "component-wise multiply"; break;
 	case EOpOuterProduct:  out << "outer product";           break;
 
+	case EOpDeclaration:   out << "Declaration"; break;
+
 	default: out.message(EPrefixError, "Bad aggregation op");
 	}
 
