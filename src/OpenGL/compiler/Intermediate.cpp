@@ -1600,18 +1600,18 @@ TIntermTyped* TIntermConstantUnion::fold(TOperator op, TIntermTyped* constantNod
 					infoSink.info.message(EPrefixInternalError, "Constant Folding cannot be done for matrix times vector", getLine());
 					return 0;
 				}
-				tempConstArray = new ConstantUnion[getNominalSize()];
+				tempConstArray = new ConstantUnion[getSecondarySize()];
 
 				{// support MSVC++6.0
-					for (int size = getNominalSize(), i = 0; i < size; i++) {
+					for (int rows = getSecondarySize(), i = 0; i < rows; i++) {
 						tempConstArray[i].setFConst(0.0f);
-						for (int j = 0; j < size; j++) {
-							tempConstArray[i].setFConst(tempConstArray[i].getFConst() + ((unionArray[j*size + i].getFConst()) * rightUnionArray[j].getFConst()));
+						for (int cols = getNominalSize(), j = 0; j < cols; j++) {
+							tempConstArray[i].setFConst(tempConstArray[i].getFConst() + ((unionArray[j*rows + i].getFConst()) * rightUnionArray[j].getFConst()));
 						}
 					}
 				}
 
-				tempNode = new TIntermConstantUnion(tempConstArray, node->getType());
+				tempNode = new TIntermConstantUnion(tempConstArray, TType(EbtFloat, EbpUndefined, EvqConstExpr, getSecondarySize()));
 				tempNode->setLine(getLine());
 
 				return tempNode;
@@ -1622,16 +1622,19 @@ TIntermTyped* TIntermConstantUnion::fold(TOperator op, TIntermTyped* constantNod
 					return 0;
 				}
 
-				tempConstArray = new ConstantUnion[getNominalSize()];
+				tempConstArray = new ConstantUnion[node->getNominalSize()];
 				{// support MSVC++6.0
-					for (int size = getNominalSize(), i = 0; i < size; i++) {
+					for (int cols = node->getNominalSize(), i = 0; i < cols; i++) {
 						tempConstArray[i].setFConst(0.0f);
-						for (int j = 0; j < size; j++) {
-							tempConstArray[i].setFConst(tempConstArray[i].getFConst() + ((unionArray[j].getFConst()) * rightUnionArray[i*size + j].getFConst()));
+						for (int rows = node->getSecondarySize(), j = 0; j < rows; j++) {
+							tempConstArray[i].setFConst(tempConstArray[i].getFConst() + ((unionArray[j].getFConst()) * rightUnionArray[i*rows + j].getFConst()));
 						}
 					}
 				}
-				break;
+
+				tempNode = new TIntermConstantUnion(tempConstArray, TType(EbtFloat, EbpUndefined, EvqConstExpr, node->getNominalSize()));
+				tempNode->setLine(getLine());
+				return tempNode;
 
 			case EOpLogicalAnd: // this code is written for possible future use, will not get executed currently
 				tempConstArray = new ConstantUnion[objectSize];
