@@ -30,7 +30,7 @@ public:
 		  infoSink(sink),
 		  size(0),
 		  isMatrix(false),
-		  matrixSize(0) {
+		  matrixRows(0) {
 	}
 
 	bool error;
@@ -53,7 +53,7 @@ protected:
 	TInfoSink& infoSink;
 	size_t size; // size of the constructor ( 4 for vec4)
 	bool isMatrix;
-	int matrixSize; // dimension of the matrix (nominal size and not the instance size)
+	int matrixRows; // number of rows in the matrix (nominal size and not the instance size)
 };
 
 //
@@ -124,7 +124,7 @@ bool TConstTraverser::visitAggregate(Visit visit, TIntermAggregate* node)
 
 		if (node->getType().isMatrix()) {
 			isMatrix = true;
-			matrixSize = node->getType().getNominalSize();
+			matrixRows = node->getType().getSecondarySize();
 		}
 	}
 
@@ -142,7 +142,7 @@ bool TConstTraverser::visitAggregate(Visit visit, TIntermAggregate* node)
 		constructorType = EOpNull;
 		size = 0;
 		isMatrix = false;
-		matrixSize = 0;
+		matrixRows = 0;
 	}
 	return false;
 }
@@ -203,7 +203,7 @@ void TConstTraverser::visitConstantUnion(TIntermConstantUnion* node)
 			for(size_t i = index; i < totalSize; i++) {
 				if (i >= instanceSize)
 					return;
-				if (element - i == 0 || (i - element) % (matrixSize + 1) == 0 )
+				if (element - i == 0 || (i - element) % (matrixRows + 1) == 0 )
 					leftUnionArray[i].cast(basicType, rightUnionArray[0]);
 				else
 					leftUnionArray[i].setFConst(0.0f);
