@@ -1569,9 +1569,19 @@ namespace glsl
 					for(int i = 0; i < outCols; i++)
 					{
 						emit(sw::Shader::OPCODE_MOV, result, i, &zero);
-						Instruction *mov = emitCast(result, i, arg0, 0);
-						mov->dst.mask = 1 << i;
-						ASSERT(mov->src[0].swizzle == 0x00);
+						if (i < outRows)
+						{
+							// Insert the scalar value on the main diagonal.
+							// For non-square matrices, Avoid emitting in
+							// a column which doesn't /have/ a main diagonal
+							// element, even though it would be fairly benign --
+							// it's not necessarily trivial for downstream
+							// passes to see that this is redundant and strip it
+							// out.
+							Instruction *mov = emitCast(result, i, arg0, 0);
+							mov->dst.mask = 1 << i;
+							ASSERT(mov->src[0].swizzle == 0x00);
+						}
 					}
 				}
 				else if(arg0->isMatrix())
