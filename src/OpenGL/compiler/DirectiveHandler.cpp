@@ -21,10 +21,10 @@
 
 static TBehavior getBehavior(const std::string& str)
 {
-	static const std::string kRequire("require");
-	static const std::string kEnable("enable");
-	static const std::string kDisable("disable");
-	static const std::string kWarn("warn");
+	static const char kRequire[] = "require";
+	static const char kEnable[] = "enable";
+	static const char kDisable[] = "disable";
+	static const char kWarn[] = "warn";
 
 	if (str == kRequire) return EBhRequire;
 	else if (str == kEnable) return EBhEnable;
@@ -57,11 +57,11 @@ void TDirectiveHandler::handlePragma(const pp::SourceLocation& loc,
                                      const std::string& value,
                                      bool stdgl)
 {
-	static const std::string kSTDGL("STDGL");
-	static const std::string kOptimize("optimize");
-	static const std::string kDebug("debug");
-	static const std::string kOn("on");
-	static const std::string kOff("off");
+	static const char kSTDGL[] = "STDGL";
+	static const char kOptimize[] = "optimize";
+	static const char kDebug[] = "debug";
+	static const char kOn[] = "on";
+	static const char kOff[] = "off";
 
 	bool invalidValue = false;
 	if (stdgl || (name == kSTDGL))
@@ -98,7 +98,7 @@ void TDirectiveHandler::handleExtension(const pp::SourceLocation& loc,
                                         const std::string& name,
                                         const std::string& behavior)
 {
-	static const std::string kExtAll("all");
+	static const char kExtAll[] = "all";
 
 	TBehavior behaviorVal = getBehavior(behavior);
 	if (behaviorVal == EBhUndefined)

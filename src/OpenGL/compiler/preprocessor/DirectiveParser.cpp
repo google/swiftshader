@@ -48,19 +48,19 @@ enum DirectiveType
 
 static DirectiveType getDirective(const pp::Token *token)
 {
-	static const std::string kDirectiveDefine("define");
-	static const std::string kDirectiveUndef("undef");
-	static const std::string kDirectiveIf("if");
-	static const std::string kDirectiveIfdef("ifdef");
-	static const std::string kDirectiveIfndef("ifndef");
-	static const std::string kDirectiveElse("else");
-	static const std::string kDirectiveElif("elif");
-	static const std::string kDirectiveEndif("endif");
-	static const std::string kDirectiveError("error");
-	static const std::string kDirectivePragma("pragma");
-	static const std::string kDirectiveExtension("extension");
-	static const std::string kDirectiveVersion("version");
-	static const std::string kDirectiveLine("line");
+	static const char kDirectiveDefine[] = "define";
+	static const char kDirectiveUndef[] = "undef";
+	static const char kDirectiveIf[] = "if";
+	static const char kDirectiveIfdef[] = "ifdef";
+	static const char kDirectiveIfndef[] = "ifndef";
+	static const char kDirectiveElse[] = "else";
+	static const char kDirectiveElif[] = "elif";
+	static const char kDirectiveEndif[] = "endif";
+	static const char kDirectiveError[] = "error";
+	static const char kDirectivePragma[] = "pragma";
+	static const char kDirectiveExtension[] = "extension";
+	static const char kDirectiveVersion[] = "version";
+	static const char kDirectiveLine[] = "line";
 
 	if (token->type != pp::Token::IDENTIFIER)
 		return DIRECTIVE_NONE;
