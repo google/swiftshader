@@ -31,17 +31,17 @@ endif
 
 # Check whether SwiftShader requires full C++ 11 support.
 ifdef SWIFTSHADER_USE_SUBZERO
-SWIFTSHADER_REQUIRES_CXX11 := true
+swiftshader_requires_cxx11 := true
 endif
 
 ifeq ($(SWIFTSHADER_LLVM_VERSION),7)
-SWIFTSHADER_REQUIRES_CXX11 := true
+swiftshader_requires_cxx11 := true
 endif
 
-ifeq ($(SWIFTSHADER_REQUIRES_CXX11),true)
+ifeq ($(swiftshader_requires_cxx11),true)
 # Full C++ 11 support is only available from Marshmallow and up.
 ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 23 && echo PreMarshmallow),PreMarshmallow)
-SWIFTSHADER_UNSUPPORTED_BUILD := true
+swiftshader_unsupported_build := true
 endif
 endif
 
@@ -49,17 +49,17 @@ endif
 # Check whether $(TARGET_ARCH) is supported.
 ifeq ($(SWIFTSHADER_LLVM_VERSION),3)
 ifneq ($(TARGET_ARCH),$(filter $(TARGET_ARCH),x86 x86_64 arm))
-SWIFTSHADER_UNSUPPORTED_BUILD := true
+swiftshader_unsupported_build := true
 endif
 endif
 
 ifeq ($(SWIFTSHADER_LLVM_VERSION),7)
 ifneq ($(TARGET_ARCH),$(filter $(TARGET_ARCH),x86 x86_64 arm arm64))
-SWIFTSHADER_UNSUPPORTED_BUILD := true
+swiftshader_unsupported_build := true
 endif
 endif
 
 
-ifndef SWIFTSHADER_UNSUPPORTED_BUILD
+ifndef swiftshader_unsupported_build
 include $(call all-makefiles-under,$(LOCAL_PATH))
 endif
