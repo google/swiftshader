@@ -190,6 +190,11 @@ namespace
 		return ::builder->CreateCall(nearbyint, ARGS(x));
 	}
 
+	llvm::Value *lowerRoundInt(llvm::Value *x, llvm::Type *ty)
+	{
+		return ::builder->CreateFPToSI(lowerRound(x), ty);
+	}
+
 	llvm::Value *lowerFloor(llvm::Value *x)
 	{
 		llvm::Function *floor = llvm::Intrinsic::getDeclaration(
@@ -4438,7 +4443,7 @@ namespace sw
 #if defined(__i386__) || defined(__x86_64__)
 		return x86::cvtss2si(cast);
 #else
-		return IfThenElse(cast > 0.0f, Int(cast + 0.5f), Int(cast - 0.5f));
+		return RValue<Int>(V(lowerRoundInt(V(cast.value), T(Int::getType()))));
 #endif
 	}
 
@@ -5685,7 +5690,7 @@ namespace sw
 #if defined(__i386__) || defined(__x86_64__)
 		return x86::cvtps2dq(cast);
 #else
-		return As<Int4>(V(::builder->CreateFPToSI(V(cast.value), T(Int4::getType()))));
+		return As<Int4>(V(lowerRoundInt(V(cast.value), T(Int4::getType()))));
 #endif
 	}
 
