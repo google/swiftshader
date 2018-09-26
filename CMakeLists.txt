@@ -52,6 +52,7 @@ if(WIN32)
 endif()
 option(BUILD_GLESv2 "Build the OpenGL ES 2 library" 1)
 option(BUILD_GLES_CM "Build the OpenGL ES 1.1 library" 1)
+option(BUILD_VULKAN "Build the Vulkan library" 1)
 
 option(USE_GROUP_SOURCES "Group the source files in a folder tree for Visual Studio" 1)
 
@@ -161,6 +162,7 @@ endif()
 set(SOURCE_DIR ${CMAKE_SOURCE_DIR}/src)
 set(OPENGL_DIR ${SOURCE_DIR}/OpenGL)
 set(OPENGL_COMPILER_DIR ${OPENGL_DIR}/compiler)
+set(VULKAN_DIR ${SOURCE_DIR}/Vulkan)
 if(SWIFTSHADER_LLVM_VERSION EQUAL 3)
     set(LLVM_DIR ${CMAKE_SOURCE_DIR}/third_party/LLVM)
 else()
@@ -1767,6 +1769,12 @@ set(OPENGL_INCLUDE_DIR
     ${COMMON_INCLUDE_DIR}
 )
 
+set(VULKAN_INCLUDE_DIR
+    ${VULKAN_DIR}
+    ${COMMON_INCLUDE_DIR}
+)
+
+
 ###########################################################
 # File Lists
 ###########################################################
@@ -1863,6 +1871,12 @@ file(GLOB_RECURSE OPENGL_COMPILER_OS_SPECIFIC_LIST
     ${OPENGL_COMPILER_DIR}/ossource*.hpp
 )
 list(REMOVE_ITEM OPENGL_COMPILER_LIST ${OPENGL_COMPILER_OS_SPECIFIC_LIST})
+
+file(GLOB_RECURSE VULKAN_LIST
+    ${VULKAN_DIR}/*.cpp
+    ${VULKAN_DIR}/*.h
+    ${CMAKE_SOURCE_DIR}/include/vulkan/*.h}
+)
 
 ###########################################################
 # Append OS specific files to lists
@@ -2034,6 +2048,26 @@ if(BUILD_GLES_CM)
         POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:libGLES_CM>/translator
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:libGLES_CM> $<TARGET_FILE_DIR:libGLES_CM>/translator/${LIB_PREFIX}GLES_CM_translator${CMAKE_SHARED_LIBRARY_SUFFIX}
+    )
+endif()
+
+if(BUILD_VULKAN)
+    add_library(libvk_swiftshader SHARED ${VULKAN_LIST})
+    set_target_properties(libvk_swiftshader PROPERTIES
+        INCLUDE_DIRECTORIES "${VULKAN_INCLUDE_DIR}"
+        FOLDER "Vulkan"
+        COMPILE_DEFINITIONS "NO_SANITIZE_FUNCTION=;"
+        PREFIX ""
+    )
+    set_shared_library_export_map(libvk_swiftshader ${SOURCE_DIR}/Vulkan)
+    target_link_libraries(libvk_swiftshader ${OS_LIBS})
+    add_custom_command(
+        TARGET libvk_swiftshader
+        POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:libvk_swiftshader>/translator
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:libvk_swiftshader> $<TARGET_FILE_DIR:libvk_swiftshader>/translator/${LIB_PREFIX}Vulkan_translator${CMAKE_SHARED_LIBRARY_SUFFIX}
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_SOURCE_DIR}/out/${CMAKE_SYSTEM_NAME}/
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:libvk_swiftshader> ${CMAKE_SOURCE_DIR}/out/${CMAKE_SYSTEM_NAME}/
     )
 endif()
 

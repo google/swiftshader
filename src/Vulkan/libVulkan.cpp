@@ -15,7 +15,7 @@
 #include "VkDebug.hpp"
 #include "VkGetProcAddress.h"
 #include <vulkan/vulkan.h>
-#include <string>
+#include <cstring>
 
 extern "C"
 {

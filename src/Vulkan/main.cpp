@@ -14,10 +14,10 @@
 
 // main.cpp: DLL entry point.
 
+#if defined(_WIN32)
 #include "resource.h"
 #include <windows.h>
 
-#if defined(_WIN32)
 #ifdef DEBUGGER_WAIT_DIALOG
 static INT_PTR CALLBACK DebuggerWaitDialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
