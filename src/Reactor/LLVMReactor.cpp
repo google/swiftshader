@@ -6288,10 +6288,14 @@ namespace sw
 			return x - x86::floorss(x);
 		}
 		else
-#endif
 		{
 			return Float4(Frac(Float4(x))).x;
 		}
+#else
+		// x - floor(x) can be 1.0 for very small negative x.
+		// Clamp against the value just below 1.0.
+		return Min(x - Floor(x), As<Float>(Int(0x3F7FFFFF)));
+#endif
 	}
 
 	RValue<Float> Floor(RValue<Float> x)
@@ -6757,12 +6761,14 @@ namespace sw
 			frc = x - Floor(x);
 		}
 		else
-#endif
 		{
 			frc = x - Float4(Int4(x));   // Signed fractional part.
 
 			frc += As<Float4>(As<Int4>(CmpNLE(Float4(0.0f), frc)) & As<Int4>(Float4(1.0f)));   // Add 1.0 if negative.
 		}
+#else
+		frc = x - Floor(x);
+#endif
 
 		// x - floor(x) can be 1.0 for very small negative x.
 		// Clamp against the value just below 1.0.
