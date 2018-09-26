@@ -171,6 +171,17 @@ copy "$(OutDir)vk_swiftshader.dll" "$(SolutionDir)out\$(Configuration)_$(Platfor
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="libVulkan.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="VkCommandBuffer.cpp" />
+    <ClCompile Include="VkDebug.cpp" />
+    <ClCompile Include="VkDevice.cpp" />
+    <ClCompile Include="VkGetProcAddress.cpp" />
+    <ClCompile Include="VkInstance.cpp" />
+    <ClCompile Include="VkMemory.cpp" />
+    <ClCompile Include="VkPhysicalDevice.cpp" />
+    <ClCompile Include="VkPromotedExtensions.cpp" />
+    <ClCompile Include="VkQueue.cpp" />
     <ClCompile Include="..\Device\Blitter.cpp" />
     <ClCompile Include="..\Device\Clipper.cpp" />
     <ClCompile Include="..\Device\Color.cpp" />
@@ -253,13 +264,19 @@ copy "$(OutDir)vk_swiftshader.dll" "$(SolutionDir)out\$(Configuration)_$(Platfor
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="libVulkan.cpp" />
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="VkDebug.cpp" />
-    <ClCompile Include="VkGetProcAddress.cpp" />
-    <ClCompile Include="VkPromotedExtensions.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="VkCommandBuffer.hpp" />
+    <ClInclude Include="VkConfig.h" />
+    <ClInclude Include="VkDebug.hpp" />
+    <ClInclude Include="VkDevice.hpp" />
+    <ClInclude Include="VkGetProcAddress.h" />
+    <ClInclude Include="VkInstance.hpp" />
+    <ClInclude Include="VkMemory.h" />
+    <ClInclude Include="VkObject.hpp" />
+    <ClInclude Include="VkPhysicalDevice.hpp" />
+    <ClInclude Include="VkQueue.hpp" />
     <ClInclude Include="..\Device\Blitter.hpp" />
     <ClInclude Include="..\Device\Clipper.hpp" />
     <ClInclude Include="..\Device\Color.hpp" />
@@ -359,9 +376,6 @@ copy "$(OutDir)vk_swiftshader.dll" "$(SolutionDir)out\$(Configuration)_$(Platfor
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClInclude>
-    <ClInclude Include="VkDebug.hpp" />
-    <ClInclude Include="resource.h" />
-    <ClInclude Include="VkGetProcAddress.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\WSI\FrameBufferOSX.mm">

@@ -12,10 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "VkConfig.h"
+#include "VkCommandBuffer.hpp"
 #include "VkDebug.hpp"
+#include "VkDevice.hpp"
 #include "VkGetProcAddress.h"
-#include <vulkan/vulkan.h>
+#include "VkInstance.hpp"
+#include "VkPhysicalDevice.hpp"
+#include "VkQueue.hpp"
 #include <cstring>
+#include <string>
 
 extern "C"
 {
@@ -29,16 +35,62 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateInstance(const VkInstanceCreateInfo* pCre
 	TRACE("(const VkInstanceCreateInfo* pCreateInfo = 0x%X, const VkAllocationCallbacks* pAllocator = 0x%X, VkInstance* pInstance = 0x%X)",
 			pCreateInfo, pAllocator, pInstance);
 
-	UNIMPLEMENTED();
+	if(pCreateInfo->enabledLayerCount)
+	{
+		UNIMPLEMENTED();
+	}
 
-	return VK_SUCCESS;
+	if(pCreateInfo->enabledExtensionCount)
+	{
+		UNIMPLEMENTED();
+	}
+
+	if(pCreateInfo->pNext)
+	{
+		switch(*reinterpret_cast<const VkStructureType*>(pCreateInfo->pNext))
+		{
+		case VK_STRUCTURE_TYPE_LOADER_INSTANCE_CREATE_INFO:
+			// According to the Vulkan spec, section 2.7.2. Implicit Valid Usage:
+			// "The values VK_STRUCTURE_TYPE_LOADER_INSTANCE_CREATE_INFO and
+			//  VK_STRUCTURE_TYPE_LOADER_DEVICE_CREATE_INFO are reserved for
+			//  internal use by the loader, and do not have corresponding
+			//  Vulkan structures in this Specification."
+			break;
+		default:
+			UNIMPLEMENTED();
+		}
+	}
+
+	*pInstance = VK_NULL_HANDLE;
+	VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+
+	VkResult result = vk::DispatchablePhysicalDevice::Create(pAllocator, pCreateInfo, &physicalDevice);
+	if(result != VK_SUCCESS)
+	{
+		return result;
+	}
+
+	vk::Instance::CreateInfo info =
+	{
+		pCreateInfo,
+		physicalDevice
+	};
+
+	result = vk::DispatchableInstance::Create(pAllocator, &info, pInstance);
+	if(result != VK_SUCCESS)
+	{
+		vk::destroy(physicalDevice, pAllocator);
+		return result;
+	}
+
+	return result;
 }
 
 VKAPI_ATTR void VKAPI_CALL vkDestroyInstance(VkInstance instance, const VkAllocationCallbacks* pAllocator)
 {
 	TRACE("(VkInstance instance = 0x%X, const VkAllocationCallbacks* pAllocator = 0x%X)", instance, pAllocator);
 
-	UNIMPLEMENTED();
+	vk::destroy(instance, pAllocator);
 }
 
 VKAPI_ATTR VkResult VKAPI_CALL vkEnumeratePhysicalDevices(VkInstance instance, uint32_t* pPhysicalDeviceCount, VkPhysicalDevice* pPhysicalDevices)
@@ -46,7 +98,14 @@ VKAPI_ATTR VkResult VKAPI_CALL vkEnumeratePhysicalDevices(VkInstance instance, u
 	TRACE("(VkInstance instance = 0x%X, uint32_t* pPhysicalDeviceCount = 0x%X, VkPhysicalDevice* pPhysicalDevices = 0x%X)",
 		    instance, pPhysicalDeviceCount, pPhysicalDevices);
 
-	UNIMPLEMENTED();
+	if(!pPhysicalDevices)
+	{
+		*pPhysicalDeviceCount = vk::Cast(instance)->getPhysicalDeviceCount();
+	}
+	else
+	{
+		vk::Cast(instance)->getPhysicalDevices(*pPhysicalDeviceCount, pPhysicalDevices);
+	}
 
 	return VK_SUCCESS;
 }
@@ -56,7 +115,7 @@ VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceFeatures(VkPhysicalDevice physical
 	TRACE("(VkPhysicalDevice physicalDevice = 0x%X, VkPhysicalDeviceFeatures* pFeatures = 0x%X)",
 			physicalDevice, pFeatures);
 
-	UNIMPLEMENTED();
+	*pFeatures = vk::Cast(physicalDevice)->getFeatures();
 }
 
 VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceFormatProperties(VkPhysicalDevice physicalDevice, VkFormat format, VkFormatProperties* pFormatProperties)
@@ -64,7 +123,7 @@ VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceFormatProperties(VkPhysicalDevice 
 	TRACE("GetPhysicalDeviceFormatProperties(VkPhysicalDevice physicalDevice = 0x%X, VkFormat format = %d, VkFormatProperties* pFormatProperties = 0x%X)",
 			physicalDevice, (int)format, pFormatProperties);
 
-	UNIMPLEMENTED();
+	vk::Cast(physicalDevice)->getFormatProperties(format, pFormatProperties);
 }
 
 VKAPI_ATTR VkResult VKAPI_CALL vkGetPhysicalDeviceImageFormatProperties(VkPhysicalDevice physicalDevice, VkFormat format, VkImageType type, VkImageTiling tiling, VkImageUsageFlags usage, VkImageCreateFlags flags, VkImageFormatProperties* pImageFormatProperties)
@@ -72,7 +131,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkGetPhysicalDeviceImageFormatProperties(VkPhysic
 	TRACE("(VkPhysicalDevice physicalDevice = 0x%X, VkFormat format = %d, VkImageType type = %d, VkImageTiling tiling = %d, VkImageUsageFlags usage = %d, VkImageCreateFlags flags = %d, VkImageFormatProperties* pImageFormatProperties = 0x%X)",
 			physicalDevice, (int)format, (int)type, (int)tiling, usage, flags, pImageFormatProperties);
 
-	UNIMPLEMENTED();
+	vk::Cast(physicalDevice)->getImageFormatProperties(format, type, tiling, usage, flags, pImageFormatProperties);
 
 	return VK_SUCCESS;
 }
@@ -82,38 +141,39 @@ VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceProperties(VkPhysicalDevice physic
 	TRACE("(VkPhysicalDevice physicalDevice = 0x%X, VkPhysicalDeviceProperties* pProperties = 0x%X)",
 		    physicalDevice, pProperties);
 
-	UNIMPLEMENTED();
+	*pProperties = vk::Cast(physicalDevice)->getProperties();
 }
 
 VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceQueueFamilyProperties(VkPhysicalDevice physicalDevice, uint32_t* pQueueFamilyPropertyCount, VkQueueFamilyProperties* pQueueFamilyProperties)
 {
 	TRACE("(VkPhysicalDevice physicalDevice = 0x%X, uint32_t* pQueueFamilyPropertyCount = 0x%X, VkQueueFamilyProperties* pQueueFamilyProperties = 0x%X))", physicalDevice, pQueueFamilyPropertyCount, pQueueFamilyProperties);
 
-	UNIMPLEMENTED();
+	if(!pQueueFamilyProperties)
+	{
+		*pQueueFamilyPropertyCount = vk::Cast(physicalDevice)->getQueueFamilyPropertyCount();
+	}
+	else
+	{
+		vk::Cast(physicalDevice)->getQueueFamilyProperties(*pQueueFamilyPropertyCount, pQueueFamilyProperties);
+	}
 }
 
 VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceMemoryProperties(VkPhysicalDevice physicalDevice, VkPhysicalDeviceMemoryProperties* pMemoryProperties)
 {
 	TRACE("(VkPhysicalDevice physicalDevice = 0x%X, VkPhysicalDeviceMemoryProperties* pMemoryProperties = 0x%X)", physicalDevice, pMemoryProperties);
 
-	UNIMPLEMENTED();
+	*pMemoryProperties = vk::Cast(physicalDevice)->getMemoryProperties();
 }
 
 VKAPI_ATTR PFN_vkVoidFunction VKAPI_CALL vkGetInstanceProcAddr(VkInstance instance, const char* pName)
 {
 	TRACE("(VkInstance instance = 0x%X, const char* pName = 0x%X)", instance, pName);
-
-	UNIMPLEMENTED();
-
 	return vk::GetProcAddr(pName);
 }
 
 VKAPI_ATTR PFN_vkVoidFunction VKAPI_CALL vkGetDeviceProcAddr(VkDevice device, const char* pName)
 {
 	TRACE("(VkDevice device = 0x%X, const char* pName = 0x%X)", device, pName);
-
-	UNIMPLEMENTED();
-
 	return vk::GetProcAddr(pName);
 }
 
@@ -122,16 +182,62 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDevice(VkPhysicalDevice physicalDevice, c
 	TRACE("(VkPhysicalDevice physicalDevice = 0x%X, const VkDeviceCreateInfo* pCreateInfo = 0x%X, const VkAllocationCallbacks* pAllocator = 0x%X, VkDevice* pDevice = 0x%X)",
 		physicalDevice, pCreateInfo, pAllocator, pDevice);
 
-	UNIMPLEMENTED();
+	if(pCreateInfo->enabledLayerCount || pCreateInfo->enabledExtensionCount)
+	{
+		UNIMPLEMENTED();
+	}
 
-	return VK_SUCCESS;
+	if(pCreateInfo->pNext)
+	{
+		switch(*reinterpret_cast<const VkStructureType*>(pCreateInfo->pNext))
+		{
+		case VK_STRUCTURE_TYPE_LOADER_DEVICE_CREATE_INFO:
+			// According to the Vulkan spec, section 2.7.2. Implicit Valid Usage:
+			// "The values VK_STRUCTURE_TYPE_LOADER_INSTANCE_CREATE_INFO and
+			//  VK_STRUCTURE_TYPE_LOADER_DEVICE_CREATE_INFO are reserved for
+			//  internal use by the loader, and do not have corresponding
+			//  Vulkan structures in this Specification."
+			break;
+		default:
+			UNIMPLEMENTED();
+		}
+	}
+
+	ASSERT(pCreateInfo->queueCreateInfoCount > 0);
+
+	if(pCreateInfo->pEnabledFeatures &&
+	   !vk::Cast(physicalDevice)->hasFeatures(*(pCreateInfo->pEnabledFeatures)))
+	{
+		return VK_ERROR_FEATURE_NOT_PRESENT;
+	}
+
+	uint32_t queueFamilyPropertyCount = vk::Cast(physicalDevice)->getQueueFamilyPropertyCount();
+
+	for(uint32_t i = 0; i < pCreateInfo->queueCreateInfoCount; i++)
+	{
+		const VkDeviceQueueCreateInfo& queueCreateInfo = pCreateInfo->pQueueCreateInfos[i];
+		if(queueCreateInfo.pNext || queueCreateInfo.flags)
+		{
+			UNIMPLEMENTED();
+		}
+
+		ASSERT(queueCreateInfo.queueFamilyIndex < queueFamilyPropertyCount);
+	}
+
+	vk::Device::CreateInfo deviceCreateInfo =
+	{
+		pCreateInfo,
+		physicalDevice
+	};
+
+	return vk::DispatchableDevice::Create(pAllocator, &deviceCreateInfo, pDevice);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkDestroyDevice(VkDevice device, const VkAllocationCallbacks* pAllocator)
 {
 	TRACE("(VkDevice device = 0x%X, const VkAllocationCallbacks* pAllocator = 0x%X)", device, pAllocator);
 
-	UNIMPLEMENTED();
+	vk::destroy(device, pAllocator);
 }
 
 VKAPI_ATTR VkResult VKAPI_CALL vkEnumerateInstanceExtensionProperties(const char* pLayerName, uint32_t* pPropertyCount, VkExtensionProperties* pProperties)
@@ -194,7 +300,11 @@ VKAPI_ATTR VkResult VKAPI_CALL vkEnumerateDeviceExtensionProperties(VkPhysicalDe
 {
 	TRACE("(VkPhysicalDevice physicalDevice = 0x%X, const char* pLayerName, uint32_t* pPropertyCount = 0x%X, VkExtensionProperties* pProperties = 0x%X)", physicalDevice, pPropertyCount, pProperties);
 
-	UNIMPLEMENTED();
+	if(!pProperties)
+	{
+		*pPropertyCount = 0;
+		return VK_SUCCESS;
+	}
 
 	return VK_SUCCESS;
 }
@@ -203,7 +313,11 @@ VKAPI_ATTR VkResult VKAPI_CALL vkEnumerateInstanceLayerProperties(uint32_t* pPro
 {
 	TRACE("(uint32_t* pPropertyCount = 0x%X, VkLayerProperties* pProperties = 0x%X)", pPropertyCount, pProperties);
 
-	UNIMPLEMENTED();
+	if(!pProperties)
+	{
+		*pPropertyCount = 0;
+		return VK_SUCCESS;
+	}
 
 	return VK_SUCCESS;
 }
@@ -212,7 +326,11 @@ VKAPI_ATTR VkResult VKAPI_CALL vkEnumerateDeviceLayerProperties(VkPhysicalDevice
 {
 	TRACE("(VkPhysicalDevice physicalDevice = 0x%X, uint32_t* pPropertyCount = 0x%X, VkLayerProperties* pProperties = 0x%X)", physicalDevice, pPropertyCount, pProperties);
 
-	UNIMPLEMENTED();
+	if(!pProperties)
+	{
+		*pPropertyCount = 0;
+		return VK_SUCCESS;
+	}
 
 	return VK_SUCCESS;
 }
@@ -222,7 +340,7 @@ VKAPI_ATTR void VKAPI_CALL vkGetDeviceQueue(VkDevice device, uint32_t queueFamil
 	TRACE("(VkDevice device = 0x%X, uint32_t queueFamilyIndex = %d, uint32_t queueIndex = %d, VkQueue* pQueue = 0x%X)",
 		    device, queueFamilyIndex, queueIndex, pQueue);
 
-	UNIMPLEMENTED();
+	*pQueue = vk::Cast(device)->getQueue(queueFamilyIndex, queueIndex);
 }
 
 VKAPI_ATTR VkResult VKAPI_CALL vkQueueSubmit(VkQueue queue, uint32_t submitCount, const VkSubmitInfo* pSubmits, VkFence fence)
@@ -376,7 +494,7 @@ VKAPI_ATTR void VKAPI_CALL vkDestroyFence(VkDevice device, VkFence fence, const 
 {
 	TRACE("(VkDevice device = 0x%X, VkFence fence = 0x%X, const VkAllocationCallbacks* pAllocator = 0x%X)",
 		    device, fence, pAllocator);
-	
+
 	UNIMPLEMENTED();
 }
 
@@ -1163,14 +1281,24 @@ VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceFeatures2(VkPhysicalDevice physica
 {
 	TRACE("(VkPhysicalDevice physicalDevice = 0x%X, VkPhysicalDeviceFeatures2* pFeatures = 0x%X)", physicalDevice, pFeatures);
 
-	UNIMPLEMENTED();
+	if(pFeatures->pNext)
+	{
+		UNIMPLEMENTED();
+	}
+
+	vkGetPhysicalDeviceFeatures(physicalDevice, &(pFeatures->features));
 }
 
 VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceProperties2(VkPhysicalDevice physicalDevice, VkPhysicalDeviceProperties2* pProperties)
 {
 	TRACE("(VkPhysicalDevice physicalDevice = 0x%X, VkPhysicalDeviceProperties2* pProperties = 0x%X)", physicalDevice, pProperties);
 
-	UNIMPLEMENTED();
+	if(pProperties->pNext)
+	{
+		UNIMPLEMENTED();
+	}
+
+	vkGetPhysicalDeviceProperties(physicalDevice, &(pProperties->properties));
 }
 
 VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceFormatProperties2(VkPhysicalDevice physicalDevice, VkFormat format, VkFormatProperties2* pFormatProperties)
@@ -1178,7 +1306,12 @@ VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceFormatProperties2(VkPhysicalDevice
 	TRACE("(VkPhysicalDevice physicalDevice = 0x%X, VkFormat format = %d, VkFormatProperties2* pFormatProperties = 0x%X)",
 		    physicalDevice, format, pFormatProperties);
 
-	UNIMPLEMENTED();
+	if(pFormatProperties->pNext)
+	{
+		UNIMPLEMENTED();
+	}
+
+	vkGetPhysicalDeviceFormatProperties(physicalDevice, format, &(pFormatProperties->formatProperties));
 }
 
 VKAPI_ATTR VkResult VKAPI_CALL vkGetPhysicalDeviceImageFormatProperties2(VkPhysicalDevice physicalDevice, const VkPhysicalDeviceImageFormatInfo2* pImageFormatInfo, VkImageFormatProperties2* pImageFormatProperties)
@@ -1186,9 +1319,18 @@ VKAPI_ATTR VkResult VKAPI_CALL vkGetPhysicalDeviceImageFormatProperties2(VkPhysi
 	TRACE("(VkPhysicalDevice physicalDevice = 0x%X, const VkPhysicalDeviceImageFormatInfo2* pImageFormatInfo = 0x%X, VkImageFormatProperties2* pImageFormatProperties = 0x%X)",
 		    physicalDevice, pImageFormatInfo, pImageFormatProperties);
 
-	UNIMPLEMENTED();
+	if(pImageFormatProperties->pNext)
+	{
+		UNIMPLEMENTED();
+	}
 
-	return VK_SUCCESS;
+	return vkGetPhysicalDeviceImageFormatProperties(physicalDevice,
+		                                            pImageFormatInfo->format,
+		                                            pImageFormatInfo->type,
+		                                            pImageFormatInfo->tiling,
+		                                            pImageFormatInfo->usage,
+		                                            pImageFormatInfo->flags,
+		                                            &(pImageFormatProperties->imageFormatProperties));
 }
 
 VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceQueueFamilyProperties2(VkPhysicalDevice physicalDevice, uint32_t* pQueueFamilyPropertyCount, VkQueueFamilyProperties2* pQueueFamilyProperties)
@@ -1196,20 +1338,53 @@ VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceQueueFamilyProperties2(VkPhysicalD
 	TRACE("(VkPhysicalDevice physicalDevice = 0x%X, uint32_t* pQueueFamilyPropertyCount = 0x%X, VkQueueFamilyProperties2* pQueueFamilyProperties = 0x%X)",
 		physicalDevice, pQueueFamilyPropertyCount, pQueueFamilyProperties);
 
-	UNIMPLEMENTED();
+	if(!pQueueFamilyProperties)
+	{
+		*pQueueFamilyPropertyCount = 1;
+	}
+	else
+	{
+		if(pQueueFamilyProperties->pNext)
+		{
+			UNIMPLEMENTED();
+		}
+
+		vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, pQueueFamilyPropertyCount, &(pQueueFamilyProperties->queueFamilyProperties));
+	}
 }
 
 VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceMemoryProperties2(VkPhysicalDevice physicalDevice, VkPhysicalDeviceMemoryProperties2* pMemoryProperties)
 {
 	TRACE("(VkPhysicalDevice physicalDevice = 0x%X, VkPhysicalDeviceMemoryProperties2* pMemoryProperties = 0x%X)", physicalDevice, pMemoryProperties);
 
-	UNIMPLEMENTED();
+	if(pMemoryProperties->pNext)
+	{
+		UNIMPLEMENTED();
+	}
+
+	vkGetPhysicalDeviceMemoryProperties(physicalDevice, &(pMemoryProperties->memoryProperties));
 }
 
 VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceSparseImageFormatProperties2(VkPhysicalDevice physicalDevice, const VkPhysicalDeviceSparseImageFormatInfo2* pFormatInfo, uint32_t* pPropertyCount, VkSparseImageFormatProperties2* pProperties)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
+	TRACE("(VkPhysicalDevice physicalDevice = 0x%X, const VkPhysicalDeviceSparseImageFormatInfo2* pFormatInfo = 0x%X, uint32_t* pPropertyCount = 0x%X, VkSparseImageFormatProperties2* pProperties = 0x%X)",
+	     physicalDevice, pFormatInfo, pPropertyCount, pProperties);
+
+	if(!pProperties)
+	{
+		*pPropertyCount = 1;
+	}
+	else
+	{
+		if(pProperties->pNext)
+		{
+			UNIMPLEMENTED();
+		}
+
+		vkGetPhysicalDeviceSparseImageFormatProperties(physicalDevice, pFormatInfo->format, pFormatInfo->type,
+		                                               pFormatInfo->samples, pFormatInfo->usage, pFormatInfo->tiling,
+		                                               pPropertyCount, &(pProperties->properties));
+	}
 }
 
 VKAPI_ATTR void VKAPI_CALL vkTrimCommandPool(VkDevice device, VkCommandPool commandPool, VkCommandPoolTrimFlags flags)

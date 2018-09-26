@@ -22,6 +22,12 @@
     <Filter Include="Header Files\Pipeline">
       <UniqueIdentifier>{ab31f9cb-85bf-4ad3-8ee0-1810977a5944}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Vulkan">
+      <UniqueIdentifier>{eae937f9-88b4-4bd4-ba7b-bb4a4dcdaf52}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Device">
+      <UniqueIdentifier>{31e80f94-e9d4-42cf-97b1-58bda4d1ab31}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source Files\System">
       <UniqueIdentifier>{c9884906-cd72-4adb-9641-d72660051aa3}</UniqueIdentifier>
     </Filter>
@@ -37,29 +43,8 @@
     <Filter Include="Source Files\Device">
       <UniqueIdentifier>{3fd774af-dfbe-40e2-9944-a85206cf00ee}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Vulkan">
-      <UniqueIdentifier>{eae937f9-88b4-4bd4-ba7b-bb4a4dcdaf52}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Device">
-      <UniqueIdentifier>{31e80f94-e9d4-42cf-97b1-58bda4d1ab31}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="libVulkan.cpp">
-      <Filter>Source Files\Vulkan</Filter>
-    </ClCompile>
-    <ClCompile Include="main.cpp">
-      <Filter>Source Files\Vulkan</Filter>
-    </ClCompile>
-    <ClCompile Include="VkDebug.cpp">
-      <Filter>Source Files\Vulkan</Filter>
-    </ClCompile>
-    <ClCompile Include="VkGetProcAddress.cpp">
-      <Filter>Source Files\Vulkan</Filter>
-    </ClCompile>
-    <ClCompile Include="VkPromotedExtensions.cpp">
-      <Filter>Source Files\Vulkan</Filter>
-    </ClCompile>
     <ClCompile Include="..\Device\VertexProcessor.cpp">
       <Filter>Source Files\Device</Filter>
     </ClCompile>
@@ -216,15 +201,69 @@
     <ClCompile Include="..\System\Timer.cpp">
       <Filter>Source Files\System</Filter>
     </ClCompile>
+    <ClCompile Include="libVulkan.cpp">
+      <Filter>Source Files\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>Source Files\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="VkCommandBuffer.cpp">
+      <Filter>Source Files\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="VkDebug.cpp">
+      <Filter>Source Files\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="VkDevice.cpp">
+      <Filter>Source Files\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="VkGetProcAddress.cpp">
+      <Filter>Source Files\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="VkInstance.cpp">
+      <Filter>Source Files\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="VkMemory.cpp">
+      <Filter>Source Files\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="VkPhysicalDevice.cpp">
+      <Filter>Source Files\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="VkPromotedExtensions.cpp">
+      <Filter>Source Files\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="VkQueue.cpp">
+      <Filter>Source Files\Vulkan</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h">
       <Filter>Header Files\Vulkan</Filter>
     </ClInclude>
-    <ClInclude Include="VkDebug.hpp">
+    <ClInclude Include="VkCommandBuffer.hpp">
+      <Filter>Header Files\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="VkConfig.h">
+      <Filter>Header Files\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="VkDevice.hpp">
       <Filter>Header Files\Vulkan</Filter>
     </ClInclude>
     <ClInclude Include="VkGetProcAddress.h">
+      <Filter>Header Files\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="VkInstance.hpp">
+      <Filter>Header Files\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="VkMemory.h">
+      <Filter>Header Files\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="VkObject.hpp">
+      <Filter>Header Files\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="VkPhysicalDevice.hpp">
+      <Filter>Header Files\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="VkQueue.hpp">
       <Filter>Header Files\Vulkan</Filter>
     </ClInclude>
     <ClInclude Include="..\Device\VertexProcessor.hpp">
@@ -418,6 +457,9 @@
     </ClInclude>
     <ClInclude Include="..\System\Types.hpp">
       <Filter>Header Files\System</Filter>
+    </ClInclude>
+    <ClInclude Include="VkDebug.hpp">
+      <Filter>Header Files\Vulkan</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
