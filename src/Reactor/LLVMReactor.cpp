@@ -65,6 +65,8 @@
 	#define ARGS(...) {__VA_ARGS__}
 	#define CreateCall2 CreateCall
 	#define CreateCall3 CreateCall
+
+	#include <unordered_map>
 #endif
 
 #include "x86.hpp"
@@ -79,6 +81,8 @@
 #if defined(__i386__) || defined(__x86_64__)
 #include <xmmintrin.h>
 #endif
+
+#include <math.h>
 
 #if defined(__x86_64__) && defined(_WIN32)
 extern "C" void X86CompilationCallback()
@@ -177,6 +181,13 @@ namespace
 	                           llvm::FCmpInst::Predicate pred)
 	{
 		return ::builder->CreateSelect(::builder->CreateFCmp(pred, x, y), x, y);
+	}
+
+	llvm::Value *lowerFloor(llvm::Value *x)
+	{
+		llvm::Function *floor = llvm::Intrinsic::getDeclaration(
+			::module, llvm::Intrinsic::floor, {x->getType()});
+		return ::builder->CreateCall(floor, ARGS(x));
 	}
 
 	// Packed add/sub saturatation
@@ -501,6 +512,25 @@ namespace sw
 		}
 	};
 #else
+	class ExternalFunctionSymbolResolver
+	{
+	private:
+		using FunctionMap = std::unordered_map<std::string, void *>;
+		FunctionMap func_;
+
+	public:
+		ExternalFunctionSymbolResolver()
+		{
+			func_.emplace("floorf", reinterpret_cast<void*>(floorf));
+		}
+
+		void *findSymbol(const std::string &name) const
+		{
+			FunctionMap::const_iterator it = func_.find(name);
+			return (it != func_.end()) ? it->second : nullptr;
+		}
+	};
+
 	class LLVMReactorJIT
 	{
 	private:
@@ -508,6 +538,7 @@ namespace sw
 		using CompileLayer = llvm::orc::IRCompileLayer<ObjLayer, llvm::orc::SimpleCompiler>;
 
 		llvm::orc::ExecutionSession session;
+		ExternalFunctionSymbolResolver externalSymbolResolver;
 		std::shared_ptr<llvm::orc::SymbolResolver> resolver;
 		std::unique_ptr<llvm::TargetMachine> targetMachine;
 		const llvm::DataLayout dataLayout;
@@ -521,6 +552,13 @@ namespace sw
 			resolver(createLegacyLookupResolver(
 				session,
 				[this](const std::string &name) {
+					void *func = externalSymbolResolver.findSymbol(name);
+					if (func != nullptr)
+					{
+						return llvm::JITSymbol(
+							reinterpret_cast<uintptr_t>(func), llvm::JITSymbolFlags::Absolute);
+					}
+
 					return objLayer.findSymbol(name, true);
 				},
 				[](llvm::Error err) {
@@ -6247,10 +6285,12 @@ namespace sw
 			return x86::floorss(x);
 		}
 		else
-#endif
 		{
 			return Float4(Floor(Float4(x))).x;
 		}
+#else
+		return RValue<Float>(V(lowerFloor(V(x.value))));
+#endif
 	}
 
 	RValue<Float> Ceil(RValue<Float> x)
@@ -6692,11 +6732,13 @@ namespace sw
 	{
 		Float4 frc;
 
+#if defined(__i386__) || defined(__x86_64__)
 		if(CPUID::supportsSSE4_1())
 		{
 			frc = x - Floor(x);
 		}
 		else
+#endif
 		{
 			frc = x - Float4(Int4(x));   // Signed fractional part.
 
@@ -6716,10 +6758,12 @@ namespace sw
 			return x86::floorps(x);
 		}
 		else
-#endif
 		{
 			return x - Frac(x);
 		}
+#else
+		return RValue<Float4>(V(lowerFloor(V(x.value))));
+#endif
 	}
 
 	RValue<Float4> Ceil(RValue<Float4> x)
