@@ -183,6 +183,13 @@ namespace
 		return ::builder->CreateSelect(::builder->CreateFCmp(pred, x, y), x, y);
 	}
 
+	llvm::Value *lowerRound(llvm::Value *x)
+	{
+		llvm::Function *nearbyint = llvm::Intrinsic::getDeclaration(
+			::module, llvm::Intrinsic::nearbyint, {x->getType()});
+		return ::builder->CreateCall(nearbyint, ARGS(x));
+	}
+
 	llvm::Value *lowerFloor(llvm::Value *x)
 	{
 		llvm::Function *floor = llvm::Intrinsic::getDeclaration(
@@ -522,6 +529,7 @@ namespace sw
 		ExternalFunctionSymbolResolver()
 		{
 			func_.emplace("floorf", reinterpret_cast<void*>(floorf));
+			func_.emplace("nearbyintf", reinterpret_cast<void*>(nearbyintf));
 		}
 
 		void *findSymbol(const std::string &name) const
@@ -6245,10 +6253,12 @@ namespace sw
 			return x86::roundss(x, 0);
 		}
 		else
-#endif
 		{
 			return Float4(Round(Float4(x))).x;
 		}
+#else
+		return RValue<Float>(V(lowerRound(V(x.value))));
+#endif
 	}
 
 	RValue<Float> Trunc(RValue<Float> x)
@@ -6710,10 +6720,12 @@ namespace sw
 			return x86::roundps(x, 0);
 		}
 		else
-#endif
 		{
 			return Float4(RoundInt(x));
 		}
+#else
+		return RValue<Float4>(V(lowerRound(V(x.value))));
+#endif
 	}
 
 	RValue<Float4> Trunc(RValue<Float4> x)
