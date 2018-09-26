@@ -3631,12 +3631,14 @@ namespace sw
 	{
 		if(saturate)
 		{
+#if defined(__i386__) || defined(__x86_64__)
 			if(CPUID::supportsSSE4_1())
 			{
 				Int4 int4(Min(cast, Float4(0xFFFF)));   // packusdw takes care of 0x0000 saturation
 				*this = As<Short4>(PackUnsigned(int4, int4));
 			}
 			else
+#endif
 			{
 				*this = Short4(Int4(Max(Min(cast, Float4(0xFFFF)), Float4(0x0000))));
 			}
