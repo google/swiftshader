@@ -180,32 +180,58 @@ namespace
 	}
 
 	// Packed add/sub saturatation
-	llvm::Value *lowerPSAT(llvm::Intrinsic::ID intrinsic, llvm::Value *x, llvm::Value *y)
+	llvm::Value *lowerPSAT(llvm::Value *x, llvm::Value *y, bool isAdd, bool isSigned)
 	{
-		llvm::Function *func = llvm::Intrinsic::getDeclaration(
-			::module, intrinsic, {x->getType(), y->getType()});
-		llvm::Value *ret = ::builder->CreateCall(func, ARGS(x, y));
-		return ::builder->CreateExtractValue(ret, {0});
+		llvm::VectorType *ty = llvm::cast<llvm::VectorType>(x->getType());
+		llvm::VectorType *extTy = llvm::VectorType::getExtendedElementVectorType(ty);
+
+		unsigned numBits = ty->getScalarSizeInBits();
+
+		llvm::Value *max, *min, *extX, *extY;
+		if (isSigned)
+		{
+			max = llvm::ConstantInt::get(extTy, (1LL << (numBits - 1)) - 1, true);
+			min = llvm::ConstantInt::get(extTy, (-1LL << (numBits - 1)), true);
+			extX = ::builder->CreateSExt(x, extTy);
+			extY = ::builder->CreateSExt(y, extTy);
+		}
+		else
+		{
+			assert(numBits <= 64);
+			uint64_t maxVal = (numBits == 64) ? ~0ULL : (1ULL << numBits) - 1;
+			max = llvm::ConstantInt::get(extTy, maxVal, false);
+			min = llvm::ConstantInt::get(extTy, 0, false);
+			extX = ::builder->CreateZExt(x, extTy);
+			extY = ::builder->CreateZExt(y, extTy);
+		}
+
+		llvm::Value *res = isAdd ? ::builder->CreateAdd(extX, extY)
+		                         : ::builder->CreateSub(extX, extY);
+
+		res = lowerPMINMAX(res, min, llvm::ICmpInst::ICMP_SGT);
+		res = lowerPMINMAX(res, max, llvm::ICmpInst::ICMP_SLT);
+
+		return ::builder->CreateTrunc(res, ty);
 	}
 
 	llvm::Value *lowerPUADDSAT(llvm::Value *x, llvm::Value *y)
 	{
-		return lowerPSAT(llvm::Intrinsic::uadd_with_overflow, x, y);
+		return lowerPSAT(x, y, true, false);
 	}
 
 	llvm::Value *lowerPSADDSAT(llvm::Value *x, llvm::Value *y)
 	{
-		return lowerPSAT(llvm::Intrinsic::sadd_with_overflow, x, y);
+		return lowerPSAT(x, y, true, true);
 	}
 
 	llvm::Value *lowerPUSUBSAT(llvm::Value *x, llvm::Value *y)
 	{
-		return lowerPSAT(llvm::Intrinsic::usub_with_overflow, x, y);
+		return lowerPSAT(x, y, false, false);
 	}
 
 	llvm::Value *lowerPSSUBSAT(llvm::Value *x, llvm::Value *y)
 	{
-		return lowerPSAT(llvm::Intrinsic::ssub_with_overflow, x, y);
+		return lowerPSAT(x, y, false, true);
 	}
 
 	llvm::Value *lowerSQRT(llvm::Value *x)
