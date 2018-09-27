@@ -202,6 +202,13 @@ namespace
 		return ::builder->CreateCall(floor, ARGS(x));
 	}
 
+	llvm::Value *lowerTrunc(llvm::Value *x)
+	{
+		llvm::Function *trunc = llvm::Intrinsic::getDeclaration(
+			::module, llvm::Intrinsic::trunc, {x->getType()});
+		return ::builder->CreateCall(trunc, ARGS(x));
+	}
+
 	// Packed add/sub saturatation
 	llvm::Value *lowerPSAT(llvm::Value *x, llvm::Value *y, bool isAdd, bool isSigned)
 	{
@@ -535,6 +542,7 @@ namespace sw
 		{
 			func_.emplace("floorf", reinterpret_cast<void*>(floorf));
 			func_.emplace("nearbyintf", reinterpret_cast<void*>(nearbyintf));
+			func_.emplace("truncf", reinterpret_cast<void*>(truncf));
 		}
 
 		void *findSymbol(const std::string &name) const
@@ -6274,10 +6282,12 @@ namespace sw
 			return x86::roundss(x, 3);
 		}
 		else
-#endif
 		{
 			return Float(Int(x));   // Rounded toward zero
 		}
+#else
+		return RValue<Float>(V(lowerTrunc(V(x.value))));
+#endif
 	}
 
 	RValue<Float> Frac(RValue<Float> x)
@@ -6745,10 +6755,12 @@ namespace sw
 			return x86::roundps(x, 3);
 		}
 		else
-#endif
 		{
 			return Float4(Int4(x));
 		}
+#else
+		return RValue<Float4>(V(lowerTrunc(V(x.value))));
+#endif
 	}
 
 	RValue<Float4> Frac(RValue<Float4> x)
