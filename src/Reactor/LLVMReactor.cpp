@@ -137,13 +137,13 @@ namespace
 	}
 
 	llvm::Value *lowerPMINMAX(llvm::Value *x, llvm::Value *y,
-							  llvm::ICmpInst::Predicate pred)
+	                          llvm::ICmpInst::Predicate pred)
 	{
 		return ::builder->CreateSelect(::builder->CreateICmp(pred, x, y), x, y);
 	}
 
 	llvm::Value *lowerPCMP(llvm::ICmpInst::Predicate pred, llvm::Value *x,
-						   llvm::Value *y, llvm::Type *dstTy)
+	                       llvm::Value *y, llvm::Type *dstTy)
 	{
 		return ::builder->CreateSExt(::builder->CreateICmp(pred, x, y), dstTy, "");
 	}
@@ -160,7 +160,7 @@ namespace
 		llvm::Value *v = ::builder->CreateShuffleVector(op, undef, mask);
 
 		return sext ? ::builder->CreateSExt(v, dstTy)
-					: ::builder->CreateZExt(v, dstTy);
+		            : ::builder->CreateZExt(v, dstTy);
 	}
 
 	llvm::Value *lowerPABS(llvm::Value *v)
@@ -174,7 +174,7 @@ namespace
 
 #if !defined(__i386__) && !defined(__x86_64__)
 	llvm::Value *lowerPFMINMAX(llvm::Value *x, llvm::Value *y,
-							   llvm::FCmpInst::Predicate pred)
+	                           llvm::FCmpInst::Predicate pred)
 	{
 		return ::builder->CreateSelect(::builder->CreateFCmp(pred, x, y), x, y);
 	}
@@ -398,7 +398,7 @@ namespace sw
 
 	public:
 		LLVMReactorJIT(const std::string &arch_,
-					   const llvm::SmallVectorImpl<std::string> &mattrs_) :
+		               const llvm::SmallVectorImpl<std::string> &mattrs_) :
 			arch(arch_),
 			mattrs(mattrs_.begin(), mattrs_.end()),
 			routineManager(nullptr),
@@ -581,7 +581,7 @@ namespace sw
 				case SCCP:                 passManager->add(llvm::createSCCPPass());                 break;
 				case ScalarReplAggregates: passManager->add(llvm::createSROAPass());                 break;
 				default:
-										   assert(false);
+				                           assert(false);
 				}
 			}
 

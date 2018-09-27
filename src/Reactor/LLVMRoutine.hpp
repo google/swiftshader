@@ -58,7 +58,7 @@ namespace sw
 	{
 	public:
 		LLVMRoutine(void *ent, void (*callback)(LLVMReactorJIT *, uint64_t),
-					LLVMReactorJIT *jit, uint64_t key)
+		            LLVMReactorJIT *jit, uint64_t key)
 			: entry(ent), dtor(callback), reactorJIT(jit), moduleKey(key)
 		{ }
 
