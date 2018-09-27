@@ -1499,7 +1499,10 @@ GL_APICALL void GL_APIENTRY glDeleteVertexArrays(GLsizei n, const GLuint *arrays
 	{
 		for(int i = 0; i < n; i++)
 		{
-			context->deleteVertexArray(arrays[i]);
+			if(arrays[i] != 0)   // Attempts to delete default vertex array silently ignored.
+			{
+				context->deleteVertexArray(arrays[i]);
+			}
 		}
 	}
 }
@@ -3374,7 +3377,7 @@ GL_APICALL void GL_APIENTRY glDeleteTransformFeedbacks(GLsizei n, const GLuint *
 	{
 		for(int i = 0; i < n; i++)
 		{
-			if(ids[i] != 0)
+			if(ids[i] != 0)   // Attempts to delete default transform feedback silently ignored.
 			{
 				es2::TransformFeedback *transformFeedbackObject = context->getTransformFeedback(ids[i]);
 

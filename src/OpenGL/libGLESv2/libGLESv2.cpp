@@ -1179,7 +1179,7 @@ void DeleteFramebuffers(GLsizei n, const GLuint* framebuffers)
 	{
 		for(int i = 0; i < n; i++)
 		{
-			if(framebuffers[i] != 0)
+			if(framebuffers[i] != 0)   // Attempts to delete default framebuffer silently ignored.
 			{
 				context->deleteFramebuffer(framebuffers[i]);
 			}
@@ -1300,7 +1300,7 @@ void DeleteTextures(GLsizei n, const GLuint* textures)
 	{
 		for(int i = 0; i < n; i++)
 		{
-			if(textures[i] != 0)
+			if(textures[i] != 0)   // Attempts to delete default texture silently ignored.
 			{
 				context->deleteTexture(textures[i]);
 			}
