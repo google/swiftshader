@@ -23,6 +23,13 @@ script:
   - make
   - ./unittests
 
+notifications:
+  email:
+    recipients:
+      - swiftshader-team@google.com
+    on_success: never
+    on_failure: always
+
 deploy:
   provider: gcs
   access_key_id: GOOGUX6FX5STNWQ5LHZ5
