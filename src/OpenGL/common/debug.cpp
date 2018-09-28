@@ -18,7 +18,13 @@
 
 #ifdef  __ANDROID__
 #include <utils/String8.h>
+#if ANDROID_PLATFORM_SDK_VERSION < 27
 #include <cutils/log.h>
+#elif ANDROID_PLATFORM_SDK_VERSION >= 27
+#include <log/log.h>
+#else
+#error "ANDROID_PLATFORM_SDK_VERSION is not defined"
+#endif
 #endif
 
 #include <stdio.h>

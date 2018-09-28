@@ -15,7 +15,14 @@
 #ifndef DebugAndroid_hpp
 #define DebugAndroid_hpp
 
+#if ANDROID_PLATFORM_SDK_VERSION < 27
 #include <cutils/log.h>
+#elif ANDROID_PLATFORM_SDK_VERSION >= 27
+#include <log/log.h>
+#else
+#error "ANDROID_PLATFORM_SDK_VERSION is not defined"
+#endif
+
 #include <cassert>
 
 // On Android Virtual Devices we heavily depend on logging, even in
