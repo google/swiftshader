@@ -1,4 +1,5 @@
-LOCAL_PATH:= $(call my-dir)
+LOCAL_PATH := $(call my-dir)
+swiftshader_src_root := $(LOCAL_PATH)
 
 COMMON_C_INCLUDES += \
 	bionic \
@@ -186,4 +187,8 @@ LOCAL_HEADER_LIBRARIES := $(COMMON_HEADER_LIBRARIES)
 LOCAL_STATIC_LIBRARIES := $(COMMON_STATIC_LIBRARIES)
 include $(BUILD_STATIC_LIBRARY)
 
-include $(call all-makefiles-under,$(LOCAL_PATH))
+include $(swiftshader_src_root)/Reactor/Android.mk
+include $(swiftshader_src_root)/OpenGL/libGLESv2/Android.mk
+include $(swiftshader_src_root)/OpenGL/libGLES_CM/Android.mk
+include $(swiftshader_src_root)/OpenGL/libEGL/Android.mk
+include $(swiftshader_src_root)/OpenGL/compiler/Android.mk

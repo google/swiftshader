@@ -15,6 +15,7 @@
 #
 
 LOCAL_PATH := $(call my-dir)
+swiftshader_root := $(LOCAL_PATH)
 
 # LLVM version for SwiftShader
 SWIFTSHADER_LLVM_VERSION ?= 3
@@ -60,6 +61,12 @@ endif
 endif
 
 
-ifndef swiftshader_unsupported_build
-include $(call all-makefiles-under,$(LOCAL_PATH))
+ifneq ($(swiftshader_unsupported_build),true)
+include $(swiftshader_root)/src/Android.mk
+include $(swiftshader_root)/tests/unittests/Android.mk
+ifeq ($(SWIFTSHADER_LLVM_VERSION),3)
+include $(swiftshader_root)/third_party/LLVM/Android.mk
+else
+include $(swiftshader_root)/third_party/llvm-7.0/Android.mk
+endif
 endif
