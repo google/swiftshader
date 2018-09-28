@@ -34,7 +34,7 @@ namespace es
 #else
 	static void output(const char *format, va_list vararg)
 	{
-		if(false)
+		if(true)
 		{
 			static FILE* file = nullptr;
 			if(!file)
@@ -45,6 +45,7 @@ namespace es
 			if(file)
 			{
 				vfprintf(file, format, vararg);
+				fflush(file);
 			}
 		}
 	}

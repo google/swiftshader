@@ -30,42 +30,37 @@
 #endif  // _DEBUG
 
 // Outputs text to the debug log
+namespace sh {
 #ifdef TRACE_ENABLED
-
-#ifdef  __cplusplus
-extern "C" {
-#endif  // __cplusplus
 void Trace(const char* format, ...);
-#ifdef  __cplusplus
+#else
+inline void Trace(const char* format, ...) {}
+#endif
+inline void Trace() {}
 }
-#endif  // __cplusplus
-
-#else   // TRACE_ENABLED
-
-#define Trace(...) ((void)0)
-
-#endif  // TRACE_ENABLED
 
 // A macro asserting a condition and outputting failures to the debug log
 #undef ASSERT
 #define ASSERT(expression) do { \
 	if(!(expression)) \
-		Trace("Assert failed: %s(%d): "#expression"\n", __FUNCTION__, __LINE__); \
+		sh::Trace("Assert failed: %s(%d): "#expression"\n", __FUNCTION__, __LINE__); \
 	assert(expression); \
 } while(0)
 
 #undef UNIMPLEMENTED
-#define UNIMPLEMENTED() do { \
-	Trace("Unimplemented invoked: %s(%d)\n", __FUNCTION__, __LINE__); \
+#define UNIMPLEMENTED(...) do { \
+	sh::Trace("Unimplemented invoked: %s(%d): ", __FUNCTION__, __LINE__); \
+	sh::Trace(##__VA_ARGS__); \
+	sh::Trace("\n"); \
 	assert(false); \
 } while(0)
 
 #undef UNREACHABLE
 #define UNREACHABLE(value) do { \
-	Trace("Unreachable reached: %s(%d). %s: %d\n", __FUNCTION__, __LINE__, #value, value); \
+	sh::Trace("Unreachable reached: %s(%d). %s: %d\n", __FUNCTION__, __LINE__, #value, value); \
 	assert(false); \
 } while(0)
 
-#endif   // __ANDROID__
+#endif   // !__ANDROID__
 #endif   // COMPILER_DEBUG_H_
 

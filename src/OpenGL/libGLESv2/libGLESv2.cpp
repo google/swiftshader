@@ -962,8 +962,7 @@ void CopyTexImage2D(GLenum target, GLint level, GLenum internalformat, GLint x, 
 			}
 			else
 			{
-				printf("internalformat = %x, colorbufferFormat = %X\n", internalformat, colorbufferFormat);
-				UNIMPLEMENTED();
+				UNIMPLEMENTED("internalformat = %x, colorbufferFormat = %X", internalformat, colorbufferFormat);
 
 				return error(GL_INVALID_OPERATION);
 			}

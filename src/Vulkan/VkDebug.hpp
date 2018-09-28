@@ -28,6 +28,7 @@ namespace vk
 {
 // Outputs text to the debugging log
 void trace(const char *format, ...);
+inline void trace() {}
 }
 
 // A macro to output a trace of a function call and its arguments to the debugging log
@@ -66,8 +67,10 @@ void trace(const char *format, ...);
 // A macro to indicate unimplemented functionality
 #undef UNIMPLEMENTED
 #if !defined(NDEBUG) || defined(DCHECK_ALWAYS_ON)
-#define UNIMPLEMENTED() do { \
-	FIXME("\t! Unimplemented: %s(%d)\n", __FUNCTION__, __LINE__); \
+#define UNIMPLEMENTED(...) do { \
+	vk::trace("\t! Unimplemented: %s(%d): ", __FUNCTION__, __LINE__); \
+	vk::trace(##__VA_ARGS__); \
+	vk::trace("\n"); \
 	assert(false); \
 	} while(0)
 #else

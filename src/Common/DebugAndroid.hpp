@@ -66,7 +66,8 @@ void AndroidEnterDebugger();
 		AndroidEnterDebugger();											\
 	} while(0)
 
-#define UNIMPLEMENTED() do {						\
+// TODO: Handle __VA_ARGS__ (can be empty)
+#define UNIMPLEMENTED(...) do {						\
 		ALOGE("badness: unimplemented: %s %s:%d",	\
 			  __FUNCTION__, __FILE__, __LINE__);	\
 		AndroidEnterDebugger();						\

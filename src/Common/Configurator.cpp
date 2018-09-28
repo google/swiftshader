@@ -66,7 +66,7 @@ namespace sw
 
 				if(!isprint(line[0]))
 				{
-					printf("Failing on char %d\n", line[0]);
+				//	printf("Failing on char %d\n", line[0]);
 					file.close();
 					return false;
 				}

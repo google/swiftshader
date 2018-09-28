@@ -25,25 +25,34 @@
 #undef min
 #undef max
 
+namespace sw
+{
 void trace(const char *format, ...);
+inline void trace() {}
+}
 
 #if !defined(NDEBUG) || defined(DCHECK_ALWAYS_ON)
-	#define TRACE(format, ...) trace("[0x%0.8X]%s(" format ")\n", this, __FUNCTION__, ##__VA_ARGS__)
+	#define TRACE(format, ...) sw::trace("[0x%0.8X]%s(" format ")\n", this, __FUNCTION__, ##__VA_ARGS__)
 #else
 	#define TRACE(...) ((void)0)
 #endif
 
 #if !defined(NDEBUG) || defined(DCHECK_ALWAYS_ON)
-	#define UNIMPLEMENTED() {trace("\t! Unimplemented: %s(%d)\n", __FUNCTION__, __LINE__); ASSERT(false);}
+	#define UNIMPLEMENTED(...) do { \
+		sw::trace("\t! Unimplemented: %s(%d): ", __FUNCTION__, __LINE__); \
+		sw::trace(##__VA_ARGS__); \
+		sw::trace("\n"); \
+		ASSERT(false); \
+	} while(0)
 #else
-	#define UNIMPLEMENTED() ((void)0)
+	#define UNIMPLEMENTED(...) ((void)0)
 #endif
 
 #if !defined(NDEBUG) || defined(DCHECK_ALWAYS_ON)
-	#define ASSERT(expression) {if(!(expression)) trace("\t! Assert failed in %s(%d): " #expression "\n", __FUNCTION__, __LINE__); assert(expression);}
+	#define ASSERT(expression) {if(!(expression)) sw::trace("\t! Assert failed in %s(%d): " #expression "\n", __FUNCTION__, __LINE__); assert(expression);}
 #else
 	#define ASSERT assert
 #endif
 
-#endif   // __ANDROID__
+#endif   // !__ANDROID__
 #endif   // Debug_hpp
