@@ -15,6 +15,7 @@
 #include "Resource.hpp"
 
 #include "Memory.hpp"
+#include "Debug.hpp"
 
 namespace sw
 {
@@ -106,6 +107,7 @@ namespace sw
 	void Resource::unlock()
 	{
 		criticalSection.lock();
+		ASSERT(count > 0);
 
 		count--;
 
@@ -131,6 +133,7 @@ namespace sw
 	void Resource::unlock(Accessor relinquisher)
 	{
 		criticalSection.lock();
+		ASSERT(count > 0);
 
 		while(count > 0 && accessor == relinquisher)
 		{

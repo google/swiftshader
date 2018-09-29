@@ -1389,9 +1389,9 @@ namespace sw
 
 		deallocate(stencil.buffer);
 
-		external.buffer = 0;
-		internal.buffer = 0;
-		stencil.buffer = 0;
+		external.buffer = nullptr;
+		internal.buffer = nullptr;
+		stencil.buffer = nullptr;
 	}
 
 	void *Surface::lockExternal(int x, int y, int z, Lock lock, Accessor client)
@@ -1529,12 +1529,12 @@ namespace sw
 
 	void *Surface::lockStencil(int x, int y, int front, Accessor client)
 	{
+		resource->lock(client);
+
 		if(stencil.format == FORMAT_NULL)
 		{
 			return nullptr;
 		}
-
-		resource->lock(client);
 
 		if(!stencil.buffer)
 		{
