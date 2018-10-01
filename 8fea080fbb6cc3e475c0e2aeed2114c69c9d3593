@@ -22,6 +22,30 @@
       "revId": "8fea080fbb6cc3e475c0e2aeed2114c69c9d3593",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a582b1a0_e76c0a7e",
+        "filename": "src/Common/Configurator.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-10-01T19:02:21Z",
+      "side": 1,
+      "message": "Yes it\u0027s intended. It was meant for debugging only but somehow remained in the code. Also, this code is for an old .ini file parser, and hasn\u0027t had any meaningful changes in 4 years, so I\u0027m confident we don\u0027t need to debug it any more.\n\nBut thanks for double-checking. :)",
+      "parentUuid": "5a4c035e_47385d3e",
+      "range": {
+        "startLine": 69,
+        "startChar": 4,
+        "endLine": 69,
+        "endChar": 47
+      },
+      "revId": "8fea080fbb6cc3e475c0e2aeed2114c69c9d3593",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
