@@ -666,7 +666,6 @@ LOCAL_SRC_FILES := \
 	llvm/lib/Support/raw_ostream.cpp \
 	llvm/lib/Support/regcomp.c \
 	llvm/lib/Support/regerror.c \
-	llvm/lib/Support/regerror.c \
 	llvm/lib/Support/regexec.c \
 	llvm/lib/Support/regfree.c \
 	llvm/lib/Support/regstrlcpy.c \

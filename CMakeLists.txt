@@ -1294,7 +1294,6 @@ set(LLVM_LIST
     ${LLVM_DIR}/lib/Support/raw_ostream.cpp
     ${LLVM_DIR}/lib/Support/regcomp.c
     ${LLVM_DIR}/lib/Support/regerror.c
-    ${LLVM_DIR}/lib/Support/regerror.c
     ${LLVM_DIR}/lib/Support/regexec.c
     ${LLVM_DIR}/lib/Support/regfree.c
     ${LLVM_DIR}/lib/Support/regstrlcpy.c
