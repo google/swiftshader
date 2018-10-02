@@ -103,7 +103,7 @@
       <AdditionalDependencies>%(AdditionalDependencies);opengl32.lib</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>XCOPY /Y "$(SolutionDir)lib\$(Configuration)_$(Platform)\opengl32.dll" "$(SolutionDir)src\$(Configuration)\$(Platform)\" /Q /E /I</Command>
+      <Command>XCOPY /Y "$(SolutionDir)out\$(Configuration)_$(Platform)\opengl32.dll" "$(SolutionDir)src\$(Configuration)\$(Platform)\" /Q /E /I</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -122,7 +122,7 @@
       <AdditionalDependencies>%(AdditionalDependencies);opengl32.lib</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>XCOPY /Y "$(SolutionDir)lib\$(Configuration)_$(Platform)\opengl32.dll" "$(SolutionDir)src\$(Configuration)\$(Platform)\" /Q /E /I</Command>
+      <Command>XCOPY /Y "$(SolutionDir)out\$(Configuration)_$(Platform)\opengl32.dll" "$(SolutionDir)src\$(Configuration)\$(Platform)\" /Q /E /I</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -145,7 +145,7 @@
       <AdditionalDependencies>%(AdditionalDependencies);opengl32.lib</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>XCOPY /Y "$(SolutionDir)lib\$(Configuration)_$(Platform)\opengl32.dll" "$(SolutionDir)src\$(Configuration)\$(Platform)\" /Q /E /I</Command>
+      <Command>XCOPY /Y "$(SolutionDir)out\$(Configuration)_$(Platform)\opengl32.dll" "$(SolutionDir)src\$(Configuration)\$(Platform)\" /Q /E /I</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -168,7 +168,7 @@
       <AdditionalDependencies>%(AdditionalDependencies);opengl32.lib</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>XCOPY /Y "$(SolutionDir)lib\$(Configuration)_$(Platform)\opengl32.dll" "$(SolutionDir)src\$(Configuration)\$(Platform)\" /Q /E /I</Command>
+      <Command>XCOPY /Y "$(SolutionDir)out\$(Configuration)_$(Platform)\opengl32.dll" "$(SolutionDir)src\$(Configuration)\$(Platform)\" /Q /E /I</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

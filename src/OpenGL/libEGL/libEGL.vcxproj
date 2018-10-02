@@ -143,10 +143,10 @@
       <TargetMachine>MachineX86</TargetMachine>
     </Link>
     <PostBuildEvent>
-      <Command>mkdir "$(SolutionDir)lib\$(Configuration)_$(Platform)\"
-copy "$(OutDir)libEGL.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\"
-mkdir "$(SolutionDir)lib\$(Configuration)_$(Platform)\translator\"
-copy "$(OutDir)libEGL.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\translator\libEGL_translator.dll"</Command>
+      <Command>mkdir "$(SolutionDir)out\$(Configuration)_$(Platform)\"
+copy "$(OutDir)libEGL.dll" "$(SolutionDir)out\$(Configuration)_$(Platform)\"
+mkdir "$(SolutionDir)out\$(Configuration)_$(Platform)\translator\"
+copy "$(OutDir)libEGL.dll" "$(SolutionDir)out\$(Configuration)_$(Platform)\translator\libEGL_translator.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -174,10 +174,10 @@ copy "$(OutDir)libEGL.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\trans
       <SubSystem>Windows</SubSystem>
     </Link>
     <PostBuildEvent>
-      <Command>mkdir "$(SolutionDir)lib\$(Configuration)_$(Platform)\"
-copy "$(OutDir)libEGL.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\"
-mkdir "$(SolutionDir)lib\$(Configuration)_$(Platform)\translator\"
-copy "$(OutDir)libEGL.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\translator\libEGL_translator.dll"</Command>
+      <Command>mkdir "$(SolutionDir)out\$(Configuration)_$(Platform)\"
+copy "$(OutDir)libEGL.dll" "$(SolutionDir)out\$(Configuration)_$(Platform)\"
+mkdir "$(SolutionDir)out\$(Configuration)_$(Platform)\translator\"
+copy "$(OutDir)libEGL.dll" "$(SolutionDir)out\$(Configuration)_$(Platform)\translator\libEGL_translator.dll"</Command>
     </PostBuildEvent>
     <ResourceCompile>
       <PreprocessorDefinitions>WIN64</PreprocessorDefinitions>
@@ -210,10 +210,10 @@ copy "$(OutDir)libEGL.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\trans
       <TargetMachine>MachineX86</TargetMachine>
     </Link>
     <PostBuildEvent>
-      <Command>mkdir "$(SolutionDir)lib\$(Configuration)_$(Platform)\"
-copy "$(OutDir)libEGL.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\"
-mkdir "$(SolutionDir)lib\$(Configuration)_$(Platform)\translator\"
-copy "$(OutDir)libEGL.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\translator\libEGL_translator.dll"</Command>
+      <Command>mkdir "$(SolutionDir)out\$(Configuration)_$(Platform)\"
+copy "$(OutDir)libEGL.dll" "$(SolutionDir)out\$(Configuration)_$(Platform)\"
+mkdir "$(SolutionDir)out\$(Configuration)_$(Platform)\translator\"
+copy "$(OutDir)libEGL.dll" "$(SolutionDir)out\$(Configuration)_$(Platform)\translator\libEGL_translator.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -242,10 +242,10 @@ copy "$(OutDir)libEGL.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\trans
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
     </Link>
     <PostBuildEvent>
-      <Command>mkdir "$(SolutionDir)lib\$(Configuration)_$(Platform)\"
-copy "$(OutDir)libEGL.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\"
-mkdir "$(SolutionDir)lib\$(Configuration)_$(Platform)\translator\"
-copy "$(OutDir)libEGL.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\translator\libEGL_translator.dll"</Command>
+      <Command>mkdir "$(SolutionDir)out\$(Configuration)_$(Platform)\"
+copy "$(OutDir)libEGL.dll" "$(SolutionDir)out\$(Configuration)_$(Platform)\"
+mkdir "$(SolutionDir)out\$(Configuration)_$(Platform)\translator\"
+copy "$(OutDir)libEGL.dll" "$(SolutionDir)out\$(Configuration)_$(Platform)\translator\libEGL_translator.dll"</Command>
     </PostBuildEvent>
     <ResourceCompile>
       <PreprocessorDefinitions>WIN64</PreprocessorDefinitions>
@@ -278,10 +278,10 @@ copy "$(OutDir)libEGL.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\trans
       <TargetMachine>MachineX86</TargetMachine>
     </Link>
     <PostBuildEvent>
-      <Command>mkdir "$(SolutionDir)lib\$(Configuration)_$(Platform)\"
-copy "$(OutDir)libEGL.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\"
-mkdir "$(SolutionDir)lib\$(Configuration)_$(Platform)\translator\"
-copy "$(OutDir)libEGL.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\translator\libEGL_translator.dll"</Command>
+      <Command>mkdir "$(SolutionDir)out\$(Configuration)_$(Platform)\"
+copy "$(OutDir)libEGL.dll" "$(SolutionDir)out\$(Configuration)_$(Platform)\"
+mkdir "$(SolutionDir)out\$(Configuration)_$(Platform)\translator\"
+copy "$(OutDir)libEGL.dll" "$(SolutionDir)out\$(Configuration)_$(Platform)\translator\libEGL_translator.dll"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">
@@ -310,10 +310,10 @@ copy "$(OutDir)libEGL.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\trans
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
     </Link>
     <PostBuildEvent>
-      <Command>mkdir "$(SolutionDir)lib\$(Configuration)_$(Platform)\"
-copy "$(OutDir)libEGL.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\"
-mkdir "$(SolutionDir)lib\$(Configuration)_$(Platform)\translator\"
-copy "$(OutDir)libEGL.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\translator\libEGL_translator.dll"</Command>
+      <Command>mkdir "$(SolutionDir)out\$(Configuration)_$(Platform)\"
+copy "$(OutDir)libEGL.dll" "$(SolutionDir)out\$(Configuration)_$(Platform)\"
+mkdir "$(SolutionDir)out\$(Configuration)_$(Platform)\translator\"
+copy "$(OutDir)libEGL.dll" "$(SolutionDir)out\$(Configuration)_$(Platform)\translator\libEGL_translator.dll"</Command>
     </PostBuildEvent>
     <ResourceCompile>
       <PreprocessorDefinitions>WIN64</PreprocessorDefinitions>

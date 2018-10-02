@@ -15,7 +15,7 @@ Android and Chrome (OS) build environments are also supported.
 
 * **Visual Studio**
   
-  On Windows, open the [SwiftShader.sln](SwiftShader.sln) file using [Visual Studio Community](https://visualstudio.microsoft.com/vs/community/) or compatible version, and build the solution. Output DLLs will be placed in the _lib_ subfolder. Sample executables such as _OGLES3ColourGrading_ can be found under the Tests solution folder and can be run from the IDE.
+  On Windows, open the [SwiftShader.sln](SwiftShader.sln) file using [Visual Studio Community](https://visualstudio.microsoft.com/vs/community/) or compatible version, and build the solution. Output DLLs will be placed in the _out_ subfolder. Sample executables such as _OGLES3ColourGrading_ can be found under the Tests solution folder and can be run from the IDE.
 
 * **CMake**
 
@@ -24,6 +24,9 @@ Android and Chrome (OS) build environments are also supported.
       mkdir build && cd build
       cmake ..
       make --jobs=8
+
+      ./unittests
+      ./OGLES2HelloAPI
 
 Usage
 -----

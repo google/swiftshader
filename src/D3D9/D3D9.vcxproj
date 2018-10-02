@@ -162,8 +162,8 @@
       <OutputFile>$(OutDir)d3d9.dll</OutputFile>
     </Link>
     <PostBuildEvent>
-      <Command>mkdir "$(SolutionDir)lib\$(Configuration)_$(Platform)\"
-copy "$(OutDir)d3d9.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\"</Command>
+      <Command>mkdir "$(SolutionDir)out\$(Configuration)_$(Platform)\"
+copy "$(OutDir)d3d9.dll" "$(SolutionDir)out\$(Configuration)_$(Platform)\"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -201,8 +201,8 @@ copy "$(OutDir)d3d9.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\"</Comm
       <OutputFile>$(OutDir)d3d9.dll</OutputFile>
     </Link>
     <PostBuildEvent>
-      <Command>mkdir "$(SolutionDir)lib\$(Configuration)_$(Platform)\"
-copy "$(OutDir)d3d9.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\"</Command>
+      <Command>mkdir "$(SolutionDir)out\$(Configuration)_$(Platform)\"
+copy "$(OutDir)d3d9.dll" "$(SolutionDir)out\$(Configuration)_$(Platform)\"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -247,8 +247,8 @@ copy "$(OutDir)d3d9.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\"</Comm
       <OutputFile>$(OutDir)d3d9.dll</OutputFile>
     </Link>
     <PostBuildEvent>
-      <Command>mkdir "$(SolutionDir)lib\$(Configuration)_$(Platform)\"
-copy "$(OutDir)d3d9.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\"</Command>
+      <Command>mkdir "$(SolutionDir)out\$(Configuration)_$(Platform)\"
+copy "$(OutDir)d3d9.dll" "$(SolutionDir)out\$(Configuration)_$(Platform)\"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">
@@ -291,8 +291,8 @@ copy "$(OutDir)d3d9.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\"</Comm
       <OutputFile>$(OutDir)d3d9.dll</OutputFile>
     </Link>
     <PostBuildEvent>
-      <Command>mkdir "$(SolutionDir)lib\$(Configuration)_$(Platform)\"
-copy "$(OutDir)d3d9.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\"</Command>
+      <Command>mkdir "$(SolutionDir)out\$(Configuration)_$(Platform)\"
+copy "$(OutDir)d3d9.dll" "$(SolutionDir)out\$(Configuration)_$(Platform)\"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -341,8 +341,8 @@ copy "$(OutDir)d3d9.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\"</Comm
       <OutputFile>$(OutDir)d3d9.dll</OutputFile>
     </Link>
     <PostBuildEvent>
-      <Command>mkdir "$(SolutionDir)lib\$(Configuration)_$(Platform)\"
-copy "$(OutDir)d3d9.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\"</Command>
+      <Command>mkdir "$(SolutionDir)out\$(Configuration)_$(Platform)\"
+copy "$(OutDir)d3d9.dll" "$(SolutionDir)out\$(Configuration)_$(Platform)\"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">
@@ -389,8 +389,8 @@ copy "$(OutDir)d3d9.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\"</Comm
       <OutputFile>$(OutDir)d3d9.dll</OutputFile>
     </Link>
     <PostBuildEvent>
-      <Command>mkdir "$(SolutionDir)lib\$(Configuration)_$(Platform)\"
-copy "$(OutDir)d3d9.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\"</Command>
+      <Command>mkdir "$(SolutionDir)out\$(Configuration)_$(Platform)\"
+copy "$(OutDir)d3d9.dll" "$(SolutionDir)out\$(Configuration)_$(Platform)\"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

@@ -96,8 +96,8 @@ Testing OpenGL ES
 
     From:
 
-    `<path to SwiftShader>\lib\Release_x64` or  
-    `<path to SwiftShader>\lib\Debug_x64`
+    `<path to SwiftShader>\out\Release_x64` or  
+    `<path to SwiftShader>\out\Debug_x64`
 
     To:
 

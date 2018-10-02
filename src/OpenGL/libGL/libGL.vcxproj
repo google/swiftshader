@@ -164,8 +164,8 @@
       <TargetMachine>MachineX86</TargetMachine>
     </Link>
     <PostBuildEvent>
-      <Command>mkdir "$(SolutionDir)lib\$(Configuration)_$(Platform)\"
-copy "$(OutDir)opengl32.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\"</Command>
+      <Command>mkdir "$(SolutionDir)out\$(Configuration)_$(Platform)\"
+copy "$(OutDir)opengl32.dll" "$(SolutionDir)out\$(Configuration)_$(Platform)\"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -190,8 +190,8 @@ copy "$(OutDir)opengl32.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\"</
       <SubSystem>Windows</SubSystem>
     </Link>
     <PostBuildEvent>
-      <Command>mkdir "$(SolutionDir)lib\$(Configuration)_$(Platform)\"
-copy "$(OutDir)opengl32.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\"</Command>
+      <Command>mkdir "$(SolutionDir)out\$(Configuration)_$(Platform)\"
+copy "$(OutDir)opengl32.dll" "$(SolutionDir)out\$(Configuration)_$(Platform)\"</Command>
     </PostBuildEvent>
     <ResourceCompile>
       <PreprocessorDefinitions>WIN64</PreprocessorDefinitions>
@@ -228,8 +228,8 @@ copy "$(OutDir)opengl32.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\"</
       <TargetMachine>MachineX86</TargetMachine>
     </Link>
     <PostBuildEvent>
-      <Command>mkdir "$(SolutionDir)lib\$(Configuration)_$(Platform)\"
-copy "$(OutDir)opengl32.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\"</Command>
+      <Command>mkdir "$(SolutionDir)out\$(Configuration)_$(Platform)\"
+copy "$(OutDir)opengl32.dll" "$(SolutionDir)out\$(Configuration)_$(Platform)\"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -262,8 +262,8 @@ copy "$(OutDir)opengl32.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\"</
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
     </Link>
     <PostBuildEvent>
-      <Command>mkdir "$(SolutionDir)lib\$(Configuration)_$(Platform)\"
-copy "$(OutDir)opengl32.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\"</Command>
+      <Command>mkdir "$(SolutionDir)out\$(Configuration)_$(Platform)\"
+copy "$(OutDir)opengl32.dll" "$(SolutionDir)out\$(Configuration)_$(Platform)\"</Command>
     </PostBuildEvent>
     <ResourceCompile>
       <PreprocessorDefinitions>WIN64</PreprocessorDefinitions>
@@ -298,8 +298,8 @@ copy "$(OutDir)opengl32.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\"</
       <TargetMachine>MachineX86</TargetMachine>
     </Link>
     <PostBuildEvent>
-      <Command>mkdir "$(SolutionDir)lib\$(Configuration)_$(Platform)\"
-copy "$(OutDir)opengl32.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\"</Command>
+      <Command>mkdir "$(SolutionDir)out\$(Configuration)_$(Platform)\"
+copy "$(OutDir)opengl32.dll" "$(SolutionDir)out\$(Configuration)_$(Platform)\"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Profile|x64'">
@@ -330,8 +330,8 @@ copy "$(OutDir)opengl32.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\"</
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
     </Link>
     <PostBuildEvent>
-      <Command>mkdir "$(SolutionDir)lib\$(Configuration)_$(Platform)\"
-copy "$(OutDir)opengl32.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\"</Command>
+      <Command>mkdir "$(SolutionDir)out\$(Configuration)_$(Platform)\"
+copy "$(OutDir)opengl32.dll" "$(SolutionDir)out\$(Configuration)_$(Platform)\"</Command>
     </PostBuildEvent>
     <ResourceCompile>
       <PreprocessorDefinitions>WIN64</PreprocessorDefinitions>

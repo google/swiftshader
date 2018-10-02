@@ -102,8 +102,8 @@
       <ModuleDefinitionFile>swiftshader_icd.def</ModuleDefinitionFile>
     </Link>
     <PostBuildEvent>
-      <Command>mkdir "$(SolutionDir)lib\$(Configuration)_$(Platform)\"
-copy "$(OutDir)vk_swiftshader.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\"</Command>
+      <Command>mkdir "$(SolutionDir)out\$(Configuration)_$(Platform)\"
+copy "$(OutDir)vk_swiftshader.dll" "$(SolutionDir)out\$(Configuration)_$(Platform)\"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -118,8 +118,8 @@ copy "$(OutDir)vk_swiftshader.dll" "$(SolutionDir)lib\$(Configuration)_$(Platfor
       <ModuleDefinitionFile>swiftshader_icd.def</ModuleDefinitionFile>
     </Link>
     <PostBuildEvent>
-      <Command>mkdir "$(SolutionDir)lib\$(Configuration)_$(Platform)\"
-copy "$(OutDir)vk_swiftshader.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\"</Command>
+      <Command>mkdir "$(SolutionDir)out\$(Configuration)_$(Platform)\"
+copy "$(OutDir)vk_swiftshader.dll" "$(SolutionDir)out\$(Configuration)_$(Platform)\"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -134,8 +134,8 @@ copy "$(OutDir)vk_swiftshader.dll" "$(SolutionDir)lib\$(Configuration)_$(Platfor
       <ModuleDefinitionFile>swiftshader_icd.def</ModuleDefinitionFile>
     </Link>
     <PostBuildEvent>
-      <Command>mkdir "$(SolutionDir)lib\$(Configuration)_$(Platform)\"
-copy "$(OutDir)vk_swiftshader.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\"</Command>
+      <Command>mkdir "$(SolutionDir)out\$(Configuration)_$(Platform)\"
+copy "$(OutDir)vk_swiftshader.dll" "$(SolutionDir)out\$(Configuration)_$(Platform)\"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -154,8 +154,8 @@ copy "$(OutDir)vk_swiftshader.dll" "$(SolutionDir)lib\$(Configuration)_$(Platfor
       <ModuleDefinitionFile>swiftshader_icd.def</ModuleDefinitionFile>
     </Link>
     <PostBuildEvent>
-      <Command>mkdir "$(SolutionDir)lib\$(Configuration)_$(Platform)\"
-copy "$(OutDir)vk_swiftshader.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\"</Command>
+      <Command>mkdir "$(SolutionDir)out\$(Configuration)_$(Platform)\"
+copy "$(OutDir)vk_swiftshader.dll" "$(SolutionDir)out\$(Configuration)_$(Platform)\"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

@@ -110,8 +110,8 @@
       <TargetMachine>MachineX86</TargetMachine>
     </Link>
     <PostBuildEvent>
-      <Command>mkdir "$(SolutionDir)lib\$(Configuration)_$(Platform)\"
-copy "$(OutDir)d3d8.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\"</Command>
+      <Command>mkdir "$(SolutionDir)out\$(Configuration)_$(Platform)\"
+copy "$(OutDir)d3d8.dll" "$(SolutionDir)out\$(Configuration)_$(Platform)\"</Command>
     </PostBuildEvent>
     <ProjectReference>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
@@ -158,8 +158,8 @@ copy "$(OutDir)d3d8.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\"</Comm
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
     </Link>
     <PostBuildEvent>
-      <Command>mkdir "$(SolutionDir)lib\$(Configuration)_$(Platform)\"
-copy "$(OutDir)d3d8.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\"</Command>
+      <Command>mkdir "$(SolutionDir)out\$(Configuration)_$(Platform)\"
+copy "$(OutDir)d3d8.dll" "$(SolutionDir)out\$(Configuration)_$(Platform)\"</Command>
     </PostBuildEvent>
     <ProjectReference>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
@@ -204,8 +204,8 @@ copy "$(OutDir)d3d8.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\"</Comm
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
     </Link>
     <PostBuildEvent>
-      <Command>mkdir "$(SolutionDir)lib\$(Configuration)_$(Platform)\"
-copy "$(OutDir)d3d8.dll" "$(SolutionDir)lib\$(Configuration)_$(Platform)\"</Command>
+      <Command>mkdir "$(SolutionDir)out\$(Configuration)_$(Platform)\"
+copy "$(OutDir)d3d8.dll" "$(SolutionDir)out\$(Configuration)_$(Platform)\"</Command>
     </PostBuildEvent>
     <ProjectReference>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
