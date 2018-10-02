@@ -1682,6 +1682,11 @@ if(${REACTOR_BACKEND} STREQUAL "Subzero")
         ${SUBZERO_DIR}/src/IceVariableSplitting.cpp
     )
 
+    # FIXME: Shouldn't depend on external source files directly.
+    list(APPEND SUBZERO_LIST
+        ${SOURCE_DIR}/Common/Memory.cpp
+    )
+
     if(ARCH STREQUAL "x86_64")
         list(APPEND SUBZERO_LIST
             ${SUBZERO_DIR}/src/IceTargetLoweringX86.cpp
@@ -1772,7 +1777,6 @@ set(VULKAN_INCLUDE_DIR
     ${VULKAN_DIR}
     ${COMMON_INCLUDE_DIR}
 )
-
 
 ###########################################################
 # File Lists
