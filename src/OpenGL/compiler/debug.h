@@ -50,7 +50,7 @@ inline void Trace() {}
 #undef UNIMPLEMENTED
 #define UNIMPLEMENTED(...) do { \
 	sh::Trace("Unimplemented invoked: %s(%d): ", __FUNCTION__, __LINE__); \
-	sh::Trace(##__VA_ARGS__); \
+	sh::Trace(__VA_ARGS__); \
 	sh::Trace("\n"); \
 	assert(false); \
 } while(0)

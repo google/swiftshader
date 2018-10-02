@@ -72,7 +72,7 @@ inline void trace() {}
 #if !defined(NDEBUG) || defined(DCHECK_ALWAYS_ON)
 #define UNIMPLEMENTED(...) do { \
 	es::trace("\t! Unimplemented: %s(%d): ", __FUNCTION__, __LINE__); \
-	es::trace(##__VA_ARGS__); \
+	es::trace(__VA_ARGS__); \
 	es::trace("\n"); \
 	assert(false); \
 	} while(0)

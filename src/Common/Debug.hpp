@@ -40,7 +40,7 @@ inline void trace() {}
 #if !defined(NDEBUG) || defined(DCHECK_ALWAYS_ON)
 	#define UNIMPLEMENTED(...) do { \
 		sw::trace("\t! Unimplemented: %s(%d): ", __FUNCTION__, __LINE__); \
-		sw::trace(##__VA_ARGS__); \
+		sw::trace(__VA_ARGS__); \
 		sw::trace("\n"); \
 		ASSERT(false); \
 	} while(0)

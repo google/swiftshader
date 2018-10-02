@@ -69,7 +69,7 @@ inline void trace() {}
 #if !defined(NDEBUG) || defined(DCHECK_ALWAYS_ON)
 #define UNIMPLEMENTED(...) do { \
 	vk::trace("\t! Unimplemented: %s(%d): ", __FUNCTION__, __LINE__); \
-	vk::trace(##__VA_ARGS__); \
+	vk::trace(__VA_ARGS__); \
 	vk::trace("\n"); \
 	assert(false); \
 	} while(0)
