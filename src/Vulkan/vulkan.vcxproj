@@ -37,13 +37,13 @@
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>NotSet</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>NotSet</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
@@ -95,11 +95,13 @@
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(SolutionDir)include;$(SolutionDir)src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;EGLAPI=;EGL_EGLEXT_PROTOTYPES;NO_SANITIZE_FUNCTION=;NDEBUG;_WINDOWS;_USRDLL;_CRT_SECURE_NO_DEPRECATE;NOMINMAX;_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <ModuleDefinitionFile>swiftshader_icd.def</ModuleDefinitionFile>
+      <AdditionalDependencies>dxguid.lib;WS2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>mkdir "$(SolutionDir)out\$(Configuration)_$(Platform)\"
@@ -113,9 +115,11 @@ copy "$(OutDir)vk_swiftshader.dll" "$(SolutionDir)out\$(Configuration)_$(Platfor
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(SolutionDir)include;$(SolutionDir)src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;EGLAPI=;EGL_EGLEXT_PROTOTYPES;NO_SANITIZE_FUNCTION=;_DEBUG;_WINDOWS;_USRDLL;_CRT_SECURE_NO_DEPRECATE;NOMINMAX;DEBUGGER_WAIT_DIALOG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <ModuleDefinitionFile>swiftshader_icd.def</ModuleDefinitionFile>
+      <AdditionalDependencies>dxguid.lib;WS2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>mkdir "$(SolutionDir)out\$(Configuration)_$(Platform)\"
@@ -129,9 +133,11 @@ copy "$(OutDir)vk_swiftshader.dll" "$(SolutionDir)out\$(Configuration)_$(Platfor
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(SolutionDir)include;$(SolutionDir)src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;EGLAPI=;EGL_EGLEXT_PROTOTYPES;NO_SANITIZE_FUNCTION=;_DEBUG;_WINDOWS;_USRDLL;_CRT_SECURE_NO_DEPRECATE;NOMINMAX;DEBUGGER_WAIT_DIALOG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <ModuleDefinitionFile>swiftshader_icd.def</ModuleDefinitionFile>
+      <AdditionalDependencies>dxguid.lib;WS2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>mkdir "$(SolutionDir)out\$(Configuration)_$(Platform)\"
@@ -147,11 +153,13 @@ copy "$(OutDir)vk_swiftshader.dll" "$(SolutionDir)out\$(Configuration)_$(Platfor
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(SolutionDir)include;$(SolutionDir)src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;EGLAPI=;EGL_EGLEXT_PROTOTYPES;NO_SANITIZE_FUNCTION=;NDEBUG;_WINDOWS;_USRDLL;_CRT_SECURE_NO_DEPRECATE;NOMINMAX;_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <ModuleDefinitionFile>swiftshader_icd.def</ModuleDefinitionFile>
+      <AdditionalDependencies>dxguid.lib;WS2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>mkdir "$(SolutionDir)out\$(Configuration)_$(Platform)\"
@@ -159,6 +167,88 @@ copy "$(OutDir)vk_swiftshader.dll" "$(SolutionDir)out\$(Configuration)_$(Platfor
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\Device\Blitter.cpp" />
+    <ClCompile Include="..\Device\Clipper.cpp" />
+    <ClCompile Include="..\Device\Color.cpp" />
+    <ClCompile Include="..\Device\Config.cpp" />
+    <ClCompile Include="..\Device\Context.cpp" />
+    <ClCompile Include="..\Device\ETC_Decoder.cpp" />
+    <ClCompile Include="..\Device\Matrix.cpp" />
+    <ClCompile Include="..\Device\PixelProcessor.cpp" />
+    <ClCompile Include="..\Device\Plane.cpp" />
+    <ClCompile Include="..\Device\Point.cpp" />
+    <ClCompile Include="..\Device\QuadRasterizer.cpp" />
+    <ClCompile Include="..\Device\Renderer.cpp" />
+    <ClCompile Include="..\Device\Sampler.cpp" />
+    <ClCompile Include="..\Device\SetupProcessor.cpp" />
+    <ClCompile Include="..\Device\Surface.cpp" />
+    <ClCompile Include="..\Device\SwiftConfig.cpp" />
+    <ClCompile Include="..\Device\TextureStage.cpp" />
+    <ClCompile Include="..\Device\Vector.cpp" />
+    <ClCompile Include="..\Device\VertexProcessor.cpp" />
+    <ClCompile Include="..\Pipeline\Constants.cpp" />
+    <ClCompile Include="..\Pipeline\PixelPipeline.cpp" />
+    <ClCompile Include="..\Pipeline\PixelProgram.cpp" />
+    <ClCompile Include="..\Pipeline\PixelRoutine.cpp" />
+    <ClCompile Include="..\Pipeline\PixelShader.cpp" />
+    <ClCompile Include="..\Pipeline\SamplerCore.cpp" />
+    <ClCompile Include="..\Pipeline\SetupRoutine.cpp" />
+    <ClCompile Include="..\Pipeline\Shader.cpp" />
+    <ClCompile Include="..\Pipeline\ShaderCore.cpp" />
+    <ClCompile Include="..\Pipeline\VertexPipeline.cpp" />
+    <ClCompile Include="..\Pipeline\VertexProgram.cpp" />
+    <ClCompile Include="..\Pipeline\VertexRoutine.cpp" />
+    <ClCompile Include="..\Pipeline\VertexShader.cpp" />
+    <ClCompile Include="..\System\Configurator.cpp" />
+    <ClCompile Include="..\System\CPUID.cpp" />
+    <ClCompile Include="..\System\Debug.cpp" />
+    <ClCompile Include="..\System\DebugAndroid.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\System\GrallocAndroid.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\System\Half.cpp" />
+    <ClCompile Include="..\System\Math.cpp" />
+    <ClCompile Include="..\System\Memory.cpp" />
+    <ClCompile Include="..\System\Resource.cpp" />
+    <ClCompile Include="..\System\Socket.cpp" />
+    <ClCompile Include="..\System\Thread.cpp" />
+    <ClCompile Include="..\System\Timer.cpp" />
+    <ClCompile Include="..\WSI\FrameBuffer.cpp" />
+    <ClCompile Include="..\WSI\FrameBufferAndroid.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\WSI\FrameBufferDD.cpp" />
+    <ClCompile Include="..\WSI\FrameBufferGDI.cpp" />
+    <ClCompile Include="..\WSI\FrameBufferOzone.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\WSI\FrameBufferWin.cpp" />
+    <ClCompile Include="..\WSI\FrameBufferX11.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\WSI\libX11.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="libVulkan.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="VkDebug.cpp" />
@@ -166,12 +256,125 @@ copy "$(OutDir)vk_swiftshader.dll" "$(SolutionDir)out\$(Configuration)_$(Platfor
     <ClCompile Include="VkPromotedExtensions.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\Device\Blitter.hpp" />
+    <ClInclude Include="..\Device\Clipper.hpp" />
+    <ClInclude Include="..\Device\Color.hpp" />
+    <ClInclude Include="..\Device\Config.hpp" />
+    <ClInclude Include="..\Device\Context.hpp" />
+    <ClInclude Include="..\Device\ETC_Decoder.hpp" />
+    <ClInclude Include="..\Device\LRUCache.hpp" />
+    <ClInclude Include="..\Device\Matrix.hpp" />
+    <ClInclude Include="..\Device\PixelProcessor.hpp" />
+    <ClInclude Include="..\Device\Plane.hpp" />
+    <ClInclude Include="..\Device\Point.hpp" />
+    <ClInclude Include="..\Device\Polygon.hpp" />
+    <ClInclude Include="..\Device\Primitive.hpp" />
+    <ClInclude Include="..\Device\QuadRasterizer.hpp" />
+    <ClInclude Include="..\Device\Rasterizer.hpp" />
+    <ClInclude Include="..\Device\Renderer.hpp" />
+    <ClInclude Include="..\Device\RoutineCache.hpp" />
+    <ClInclude Include="..\Device\Sampler.hpp" />
+    <ClInclude Include="..\Device\SetupProcessor.hpp" />
+    <ClInclude Include="..\Device\Stream.hpp" />
+    <ClInclude Include="..\Device\Surface.hpp" />
+    <ClInclude Include="..\Device\SwiftConfig.hpp" />
+    <ClInclude Include="..\Device\TextureStage.hpp" />
+    <ClInclude Include="..\Device\Triangle.hpp" />
+    <ClInclude Include="..\Device\Vector.hpp" />
+    <ClInclude Include="..\Device\Vertex.hpp" />
+    <ClInclude Include="..\Device\VertexProcessor.hpp" />
+    <ClInclude Include="..\Pipeline\Constants.hpp" />
+    <ClInclude Include="..\Pipeline\PixelPipeline.hpp" />
+    <ClInclude Include="..\Pipeline\PixelProgram.hpp" />
+    <ClInclude Include="..\Pipeline\PixelRoutine.hpp" />
+    <ClInclude Include="..\Pipeline\PixelShader.hpp" />
+    <ClInclude Include="..\Pipeline\SamplerCore.hpp" />
+    <ClInclude Include="..\Pipeline\SetupRoutine.hpp" />
+    <ClInclude Include="..\Pipeline\Shader.hpp" />
+    <ClInclude Include="..\Pipeline\ShaderCore.hpp" />
+    <ClInclude Include="..\Pipeline\VertexPipeline.hpp" />
+    <ClInclude Include="..\Pipeline\VertexProgram.hpp" />
+    <ClInclude Include="..\Pipeline\VertexRoutine.hpp" />
+    <ClInclude Include="..\Pipeline\VertexShader.hpp" />
+    <ClInclude Include="..\System\Configurator.hpp" />
+    <ClInclude Include="..\System\CPUID.hpp" />
+    <ClInclude Include="..\System\Debug.hpp" />
+    <ClInclude Include="..\System\DebugAndroid.hpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="..\System\GrallocAndroid.hpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="..\System\Half.hpp" />
+    <ClInclude Include="..\System\Math.hpp" />
+    <ClInclude Include="..\System\Memory.hpp" />
+    <ClInclude Include="..\System\MutexLock.hpp" />
+    <ClInclude Include="..\System\Resource.hpp" />
+    <ClInclude Include="..\System\SharedLibrary.hpp" />
+    <ClInclude Include="..\System\Socket.hpp" />
+    <ClInclude Include="..\System\Thread.hpp" />
+    <ClInclude Include="..\System\Timer.hpp" />
+    <ClInclude Include="..\System\Types.hpp" />
+    <ClInclude Include="..\WSI\FrameBuffer.hpp" />
+    <ClInclude Include="..\WSI\FrameBufferAndroid.hpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="..\WSI\FrameBufferDD.hpp" />
+    <ClInclude Include="..\WSI\FrameBufferGDI.hpp" />
+    <ClInclude Include="..\WSI\FrameBufferOSX.hpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="..\WSI\FrameBufferOzone.hpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="..\WSI\FrameBufferWin.hpp" />
+    <ClInclude Include="..\WSI\FrameBufferX11.hpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="..\WSI\libX11.hpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="VkDebug.hpp" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="VkGetProcAddress.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\WSI\FrameBufferOSX.mm">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </None>
     <None Include="swiftshader_icd.def" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Vulkan.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Reactor\Reactor.vcxproj">
+      <Project>{28fd076d-10b5-4bd8-a4cf-f44c7002a803}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

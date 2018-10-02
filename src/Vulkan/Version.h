@@ -1,4 +1,4 @@
-// Copyright 2016 The SwiftShader Authors. All Rights Reserved.
+// Copyright 2018 The SwiftShader Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#define MAJOR_VERSION 4
-#define MINOR_VERSION 1
+#define MAJOR_VERSION 5
+#define MINOR_VERSION 0
 #define BUILD_VERSION 0
-#define BUILD_REVISION 2
+#define BUILD_REVISION 0
 
 #define STRINGIFY(x) #x
 #define MACRO_STRINGIFY(x) STRINGIFY(x)
