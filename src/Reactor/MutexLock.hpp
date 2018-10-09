@@ -18,7 +18,7 @@
 #include "Thread.hpp"
 
 #if defined(__linux__)
-// Use a pthread mutex on Linux. Since many processes may use SwiftShader
+// Use a pthread mutex on Linux. Since many processes may use Reactor
 // at the same time it's best to just have the scheduler overhead.
 #include <pthread.h>
 

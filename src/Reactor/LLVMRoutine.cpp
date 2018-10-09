@@ -16,7 +16,6 @@
 
 #include "Memory.hpp"
 #include "Thread.hpp"
-#include "Types.hpp"
 
 namespace rr
 {
