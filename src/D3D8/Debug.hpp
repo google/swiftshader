@@ -24,22 +24,58 @@
 #include <guiddef.h>
 #include <assert.h>
 
-void trace(const char *format, ...);
+#define APPEND(x, y) x ## y
+#define MACRO_APPEND(x, y) APPEND(x, y)
+#define UNIQUE_IDENTIFIER(prefix) MACRO_APPEND(prefix, __COUNTER__)
+
+struct Trace
+{
+	Trace(const char *format, ...)
+	{
+		if(false)
+		{
+			FILE *file = fopen("debug.txt", "a");
+
+			if(file)
+			{
+				for(int i = 0; i < indent; i++) fprintf(file, " ");
+
+				va_list vararg;
+				va_start(vararg, format);
+				vfprintf(file, format, vararg);
+				va_end(vararg);
+
+				fclose(file);
+			}
+		}
+
+		indent++;
+	}
+
+	~Trace()
+	{
+		indent--;
+	}
+
+	static int indent;
+};
 
 #ifndef NDEBUG
-	#define TRACE(format, ...) trace("[0x%0.8X]%s("format")\n", this, __FUNCTION__, ##__VA_ARGS__)
+	#define TRACE(format, ...) Trace UNIQUE_IDENTIFIER(_tracer_)("[0x%0.8X]%s("format")\n", this, __FUNCTION__, __VA_ARGS__)
+	#define GTRACE(format, ...) Trace("%s("format")\n", __FUNCTION__, __VA_ARGS__)
 #else
 	#define TRACE(...) ((void)0)
+	#define GTRACE(...) ((void)0)
 #endif
 
 #ifndef NDEBUG
-	#define ASSERT(expression) {if(!(expression)) trace("\t! Assert failed in %s(%d): "#expression"\n", __FUNCTION__, __LINE__); assert(expression);}
+	#define ASSERT(expression) {if(!(expression)) Trace("\t! Assert failed in %s(%d): "#expression"\n", __FUNCTION__, __LINE__); assert(expression);}
 #else
 	#define ASSERT assert
 #endif
 
 #ifndef NDEBUG
-	#define UNIMPLEMENTED() {trace("\t! Unimplemented: %s(%d)\n", __FUNCTION__, __LINE__); ASSERT(false);}
+	#define UNIMPLEMENTED() {Trace("\t! Unimplemented: %s(%d)\n", __FUNCTION__, __LINE__); ASSERT(false);}
 #else
 	#define UNIMPLEMENTED() ((void)0)
 #endif
@@ -49,9 +85,9 @@ void trace(const char *format, ...);
 
 	inline long _NOINTERFACE(const char *function, const IID &iid)
 	{
-		trace("\t! No interface {0x%0.8X, 0x%0.4X, 0x%0.4X, 0x%0.2X, 0x%0.2X, 0x%0.2X, 0x%0.2X, 0x%0.2X, 0x%0.2X, 0x%0.2X, 0x%0.2X} for %s\n", iid.Data1, iid.Data2, iid.Data3, iid.Data4[0], iid.Data4[1], iid.Data4[2], iid.Data4[3], iid.Data4[4], iid.Data4[5], iid.Data4[6], iid.Data4[7], function);
+		Trace("\t! No interface {0x%0.8X, 0x%0.4X, 0x%0.4X, 0x%0.2X, 0x%0.2X, 0x%0.2X, 0x%0.2X, 0x%0.2X, 0x%0.2X, 0x%0.2X, 0x%0.2X} for %s\n", iid.Data1, iid.Data2, iid.Data3, iid.Data4[0], iid.Data4[1], iid.Data4[2], iid.Data4[3], iid.Data4[4], iid.Data4[5], iid.Data4[6], iid.Data4[7], function);
 
-		return  E_NOINTERFACE;
+		return E_NOINTERFACE;
 	}
 #else
 	#define NOINTERFACE(iid) E_NOINTERFACE
@@ -60,7 +96,7 @@ void trace(const char *format, ...);
 #ifndef NDEBUG
 	inline long INVALIDCALL()
 	{
-		trace("\t! D3DERR_INVALIDCALL\n");
+		Trace("\t! D3DERR_INVALIDCALL\n");
 
 		return D3DERR_INVALIDCALL;
 	}
@@ -71,7 +107,7 @@ void trace(const char *format, ...);
 #ifndef NDEBUG
 	inline long OUTOFMEMORY()
 	{
-		trace("\t! E_OUTOFMEMORY\n");
+		Trace("\t! E_OUTOFMEMORY\n");
 
 		return E_OUTOFMEMORY;
 	}
@@ -82,7 +118,7 @@ void trace(const char *format, ...);
 #ifndef NDEBUG
 	inline long OUTOFVIDEOMEMORY()
 	{
-		trace("\t! D3DERR_OUTOFVIDEOMEMORY\n");
+		Trace("\t! D3DERR_OUTOFVIDEOMEMORY\n");
 
 		return D3DERR_OUTOFVIDEOMEMORY;
 	}
@@ -93,7 +129,7 @@ void trace(const char *format, ...);
 #ifndef NDEBUG
 	inline long NOTAVAILABLE()
 	{
-		trace("\t! D3DERR_NOTAVAILABLE\n");
+		Trace("\t! D3DERR_NOTAVAILABLE\n");
 
 		return D3DERR_NOTAVAILABLE;
 	}
@@ -104,7 +140,7 @@ void trace(const char *format, ...);
 #ifndef NDEBUG
 	inline long NOTFOUND()
 	{
-		trace("\t! D3DERR_NOTFOUND\n");
+		Trace("\t! D3DERR_NOTFOUND\n");
 
 		return D3DERR_NOTFOUND;
 	}
@@ -115,12 +151,23 @@ void trace(const char *format, ...);
 #ifndef NDEBUG
 	inline long MOREDATA()
 	{
-		trace("\t! D3DERR_MOREDATA\n");
+		Trace("\t! D3DERR_MOREDATA\n");
 
 		return D3DERR_MOREDATA;
 	}
 #else
 	#define MOREDATA() D3DERR_MOREDATA
+#endif
+
+#ifndef NDEBUG
+	inline long FAIL()
+	{
+		Trace("\t! E_FAIL\n");
+
+		return E_FAIL;
+	}
+#else
+	#define FAIL() E_FAIL
 #endif
 
 #endif   // Debug_hpp

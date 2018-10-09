@@ -73,18 +73,22 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(SolutionDir)bin\$(MSBuildProjectName)\$(Platform)\$(Configuration)\</OutDir>
     <TargetName>vk_swiftshader</TargetName>
+    <IntDir>$(SolutionDir)obj\$(MSBuildProjectName)\$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <OutDir>$(SolutionDir)bin\$(MSBuildProjectName)\$(Platform)\$(Configuration)\</OutDir>
     <TargetName>vk_swiftshader</TargetName>
+    <IntDir>$(SolutionDir)obj\$(MSBuildProjectName)\$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>$(SolutionDir)bin\$(MSBuildProjectName)\$(Platform)\$(Configuration)\</OutDir>
     <TargetName>vk_swiftshader</TargetName>
+    <IntDir>$(SolutionDir)obj\$(MSBuildProjectName)\$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(SolutionDir)bin\$(MSBuildProjectName)\$(Platform)\$(Configuration)\</OutDir>
     <TargetName>vk_swiftshader</TargetName>
+    <IntDir>$(SolutionDir)obj\$(MSBuildProjectName)\$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
