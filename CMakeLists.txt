@@ -47,9 +47,6 @@ endif()
 set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Debug Release MinSizeRel RelWithDebInfo)
 
 option(BUILD_EGL "Build the EGL library" 1)
-if(WIN32)
-    option(BUILD_GL32 "Build the OpenGL32 library" 1)
-endif()
 option(BUILD_GLESv2 "Build the OpenGL ES 2 library" 1)
 option(BUILD_GLES_CM "Build the OpenGL ES 1.1 library" 1)
 option(BUILD_VULKAN "Build the Vulkan library" 1)
@@ -1839,16 +1836,6 @@ file(GLOB_RECURSE EGL_LIST
     ${CMAKE_SOURCE_DIR}/include/*.h
 )
 
-file(GLOB_RECURSE GL32_LIST
-    ${OPENGL_DIR}/libGL/*.cpp
-    ${OPENGL_DIR}/libGL/*.h
-    ${OPENGL_DIR}/libGL/*.hpp
-    ${OPENGL_DIR}/common/*.cpp
-    ${OPENGL_DIR}/common/*.h
-    ${OPENGL_DIR}/common/*.hpp
-    ${CMAKE_SOURCE_DIR}/include/GL/*.h
-)
-
 file(GLOB_RECURSE GLES2_LIST
     ${OPENGL_DIR}/libGLESv2/*.cpp
     ${OPENGL_DIR}/libGLESv2/*.h
@@ -1905,7 +1892,6 @@ if(WIN32)
     )
     list(APPEND OPENGL_COMPILER_LIST ${OPENGL_COMPILER_DIR}/ossource_win.cpp)
     list(APPEND EGL_LIST ${OPENGL_DIR}/libEGL/libEGL.rc)
-    list(APPEND GL32_LIST ${OPENGL_DIR}/libGL/libGL.rc)
     list(APPEND GLES2_LIST ${OPENGL_DIR}/libGLESv2/libGLESv2.rc)
     list(APPEND GLES_CM_LIST ${OPENGL_DIR}/libGLES_CM/libGLES_CM.rc)
 elseif(LINUX)
@@ -2011,18 +1997,6 @@ if(BUILD_EGL)
         COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_SOURCE_DIR}/out/${CMAKE_SYSTEM_NAME}/
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:libEGL> ${CMAKE_SOURCE_DIR}/out/${CMAKE_SYSTEM_NAME}/
     )
-endif()
-
-if(BUILD_GL32)
-    add_library(libGL SHARED ${GL32_LIST})
-    set_target_properties(libGL PROPERTIES
-        INCLUDE_DIRECTORIES "${OPENGL_INCLUDE_DIR}"
-        FOLDER "OpenGL"
-        COMPILE_DEFINITIONS "GL_GLEXT_PROTOTYPES"
-        PREFIX ""
-    )
-    set_shared_library_export_map(libGL ${SOURCE_DIR}/OpenGL/libGL)
-    target_link_libraries(libGL SwiftShader ${Reactor} GLCompiler ${OS_LIBS})
 endif()
 
 if(BUILD_GLESv2)
