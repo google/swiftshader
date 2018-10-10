@@ -73,7 +73,7 @@ endif()
 set(REACTOR_BACKEND DEFAULT_REACTOR_BACKEND CACHE STRING "JIT compiler back-end used by Reactor")
 set_property(CACHE REACTOR_BACKEND PROPERTY STRINGS LLVM Subzero)
 
-set(SWIFTSHADER_LLVM_VERSION "3" CACHE STRING "LLVM version used by Reactor")
+set(REACTOR_LLVM_VERSION "3" CACHE STRING "LLVM version used by Reactor")
 
 # LLVM disallows calling cmake . from the main LLVM dir, the reason is that
 # it builds header files that could overwrite the orignal ones. Here we
@@ -163,7 +163,7 @@ set(SOURCE_DIR ${CMAKE_SOURCE_DIR}/src)
 set(OPENGL_DIR ${SOURCE_DIR}/OpenGL)
 set(OPENGL_COMPILER_DIR ${OPENGL_DIR}/compiler)
 set(VULKAN_DIR ${SOURCE_DIR}/Vulkan)
-if(SWIFTSHADER_LLVM_VERSION EQUAL 3)
+if(REACTOR_LLVM_VERSION EQUAL 3)
     set(LLVM_DIR ${CMAKE_SOURCE_DIR}/third_party/LLVM)
 else()
     set(LLVM_DIR ${CMAKE_SOURCE_DIR}/third_party/llvm-7.0/llvm)
@@ -265,9 +265,9 @@ endif()
 # LLVM
 ###########################################################
 
-add_definitions(-DSWIFTSHADER_LLVM_VERSION=${SWIFTSHADER_LLVM_VERSION})
+add_definitions(-DREACTOR_LLVM_VERSION=${REACTOR_LLVM_VERSION})
 
-if(SWIFTSHADER_LLVM_VERSION EQUAL 3)
+if(REACTOR_LLVM_VERSION EQUAL 3)
 
 set(LLVM_LIST
     ${LLVM_DIR}/lib/Analysis/AliasAnalysis.cpp
@@ -633,7 +633,7 @@ list(APPEND LLVM_INCLUDE_DIR
     ${LLVM_DIR}/lib/Target/X86
 )
 
-elseif(SWIFTSHADER_LLVM_VERSION EQUAL 7)
+elseif(REACTOR_LLVM_VERSION EQUAL 7)
 
 set(LLVM_LIST
     ${LLVM_DIR}/lib/Analysis/AliasAnalysis.cpp
@@ -1637,7 +1637,7 @@ list(APPEND LLVM_INCLUDE_DIR
     ${LLVM_CONFIG_DIR}/common/lib/Transforms/InstCombine
 )
 
-endif()  # SWIFTSHADER_LLVM_VERSION
+endif()  # REACTOR_LLVM_VERSION
 
 add_library(llvm STATIC ${LLVM_LIST})
 set_target_properties(llvm PROPERTIES

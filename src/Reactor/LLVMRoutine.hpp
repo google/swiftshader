@@ -21,7 +21,7 @@
 
 namespace rr
 {
-#if SWIFTSHADER_LLVM_VERSION < 7
+#if REACTOR_LLVM_VERSION < 7
 	class LLVMRoutineManager;
 
 	class LLVMRoutine : public Routine
@@ -76,7 +76,7 @@ namespace rr
 		LLVMReactorJIT *reactorJIT;
 		uint64_t moduleKey;
 	};
-#endif  // SWIFTSHADER_LLVM_VERSION < 7
+#endif  // REACTOR_LLVM_VERSION < 7
 }
 
 #endif   // rr_LLVMRoutine_hpp

@@ -15,7 +15,7 @@
 #ifndef rr_LLVMRoutineManager_hpp
 #define rr_LLVMRoutineManager_hpp
 
-#if SWIFTSHADER_LLVM_VERSION < 7
+#if REACTOR_LLVM_VERSION < 7
 
 #include "llvm/ExecutionEngine/JITMemoryManager.h"
 #include "llvm/GlobalValue.h"
@@ -56,6 +56,6 @@ namespace rr
 	};
 }
 
-#endif  // SWIFTSHADER_LLVM_VERSION < 7
+#endif  // REACTOR_LLVM_VERSION < 7
 
 #endif   // rr_LLVMRoutineManager_hpp

@@ -18,10 +18,10 @@ LOCAL_PATH := $(call my-dir)
 swiftshader_root := $(LOCAL_PATH)
 
 # LLVM version for SwiftShader
-SWIFTSHADER_LLVM_VERSION ?= 3
+REACTOR_LLVM_VERSION ?= 3
 
 
-ifeq ($(SWIFTSHADER_LLVM_VERSION),3)
+ifeq ($(REACTOR_LLVM_VERSION),3)
 # Reactor with LLVM 3.0 doesn't support ARM.  Use Subzero as the Reactor JIT
 # back-end on ARM.
 ifeq ($(TARGET_ARCH),$(filter $(TARGET_ARCH),arm))
@@ -35,7 +35,7 @@ ifdef SWIFTSHADER_USE_SUBZERO
 swiftshader_requires_cxx11 := true
 endif
 
-ifeq ($(SWIFTSHADER_LLVM_VERSION),7)
+ifeq ($(REACTOR_LLVM_VERSION),7)
 swiftshader_requires_cxx11 := true
 endif
 
@@ -48,13 +48,13 @@ endif
 
 
 # Check whether $(TARGET_ARCH) is supported.
-ifeq ($(SWIFTSHADER_LLVM_VERSION),3)
+ifeq ($(REACTOR_LLVM_VERSION),3)
 ifneq ($(TARGET_ARCH),$(filter $(TARGET_ARCH),x86 x86_64 arm))
 swiftshader_unsupported_build := true
 endif
 endif
 
-ifeq ($(SWIFTSHADER_LLVM_VERSION),7)
+ifeq ($(REACTOR_LLVM_VERSION),7)
 ifneq ($(TARGET_ARCH),$(filter $(TARGET_ARCH),x86 x86_64 arm arm64))
 swiftshader_unsupported_build := true
 endif
@@ -64,7 +64,7 @@ endif
 ifneq ($(swiftshader_unsupported_build),true)
 include $(swiftshader_root)/src/Android.mk
 include $(swiftshader_root)/tests/unittests/Android.mk
-ifeq ($(SWIFTSHADER_LLVM_VERSION),3)
+ifeq ($(REACTOR_LLVM_VERSION),3)
 include $(swiftshader_root)/third_party/LLVM/Android.mk
 else
 include $(swiftshader_root)/third_party/llvm-7.0/Android.mk

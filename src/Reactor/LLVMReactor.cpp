@@ -23,7 +23,7 @@
 #undef min
 #undef max
 
-#if SWIFTSHADER_LLVM_VERSION < 7
+#if REACTOR_LLVM_VERSION < 7
 	#include "llvm/Analysis/LoopPass.h"
 	#include "llvm/Constants.h"
 	#include "llvm/Function.h"
@@ -103,7 +103,7 @@ extern "C"
 }
 #endif
 
-#if SWIFTSHADER_LLVM_VERSION < 7
+#if REACTOR_LLVM_VERSION < 7
 namespace llvm
 {
 	extern bool JITEmitDebugInfo;
@@ -125,7 +125,7 @@ namespace
 
 	rr::MutexLock codegenMutex;
 
-#if SWIFTSHADER_LLVM_VERSION >= 7
+#if REACTOR_LLVM_VERSION >= 7
 	llvm::Value *lowerPAVG(llvm::Value *x, llvm::Value *y)
 	{
 		llvm::VectorType *ty = llvm::cast<llvm::VectorType>(x->getType());
@@ -441,12 +441,12 @@ namespace
 		return ret;
 	}
 #endif  // !defined(__i386__) && !defined(__x86_64__)
-#endif  // SWIFTSHADER_LLVM_VERSION >= 7
+#endif  // REACTOR_LLVM_VERSION >= 7
 }
 
 namespace rr
 {
-#if SWIFTSHADER_LLVM_VERSION < 7
+#if REACTOR_LLVM_VERSION < 7
 	class LLVMReactorJIT
 	{
 	private:
@@ -804,7 +804,7 @@ namespace rr
 
 		llvm::InitializeNativeTarget();
 
-#if SWIFTSHADER_LLVM_VERSION >= 7
+#if REACTOR_LLVM_VERSION >= 7
 		llvm::InitializeNativeTargetAsmPrinter();
 		llvm::InitializeNativeTargetAsmParser();
 #endif
@@ -834,7 +834,7 @@ namespace rr
 		mattrs.push_back(CPUID::supportsSSE2()   ? "+sse2"   : "-sse2");
 		mattrs.push_back(CPUID::supportsSSE3()   ? "+sse3"   : "-sse3");
 		mattrs.push_back(CPUID::supportsSSSE3()  ? "+ssse3"  : "-ssse3");
-#if SWIFTSHADER_LLVM_VERSION < 7
+#if REACTOR_LLVM_VERSION < 7
 		mattrs.push_back(CPUID::supportsSSE4_1() ? "+sse41"  : "-sse41");
 #else
 		mattrs.push_back(CPUID::supportsSSE4_1() ? "+sse4.1" : "-sse4.1");
@@ -848,7 +848,7 @@ namespace rr
 #endif
 #endif
 
-#if SWIFTSHADER_LLVM_VERSION < 7
+#if REACTOR_LLVM_VERSION < 7
 		llvm::JITEmitDebugInfo = false;
 		llvm::UnsafeFPMath = true;
 		// llvm::NoInfsFPMath = true;
@@ -862,7 +862,7 @@ namespace rr
 
 		if(!::reactorJIT)
 		{
-#if SWIFTSHADER_LLVM_VERSION < 7
+#if REACTOR_LLVM_VERSION < 7
 			::reactorJIT = new LLVMReactorJIT(arch, mattrs);
 #else
 			::reactorJIT = new LLVMReactorJIT(arch, mattrs, targetOpts);
@@ -875,7 +875,7 @@ namespace rr
 		{
 			::builder = new llvm::IRBuilder<>(*::context);
 
-			#if defined(_WIN32) && SWIFTSHADER_LLVM_VERSION < 7
+			#if defined(_WIN32) && REACTOR_LLVM_VERSION < 7
 				HMODULE CodeAnalyst = LoadLibrary("CAJitNtfyLib.dll");
 				if(CodeAnalyst)
 				{
@@ -914,7 +914,7 @@ namespace rr
 
 		if(false)
 		{
-#if SWIFTSHADER_LLVM_VERSION < 7
+#if REACTOR_LLVM_VERSION < 7
 			std::string error;
 #else
 			std::error_code error;
@@ -930,7 +930,7 @@ namespace rr
 
 		if(false)
 		{
-#if SWIFTSHADER_LLVM_VERSION < 7
+#if REACTOR_LLVM_VERSION < 7
 			std::string error;
 #else
 			std::error_code error;
@@ -941,7 +941,7 @@ namespace rr
 
 		LLVMRoutine *routine = ::reactorJIT->acquireRoutine(::function);
 
-#if defined(_WIN32) && SWIFTSHADER_LLVM_VERSION < 7
+#if defined(_WIN32) && REACTOR_LLVM_VERSION < 7
 		if(CodeAnalystLogJITCode)
 		{
 			CodeAnalystLogJITCode(routine->getEntry(), routine->getCodeSize(), name);
@@ -965,7 +965,7 @@ namespace rr
 
 		if(arraySize)
 		{
-#if SWIFTSHADER_LLVM_VERSION < 7
+#if REACTOR_LLVM_VERSION < 7
 			declaration = new llvm::AllocaInst(T(type), V(Nucleus::createConstantInt(arraySize)));
 #else
 			declaration = new llvm::AllocaInst(T(type), 0, V(Nucleus::createConstantInt(arraySize)));
@@ -973,7 +973,7 @@ namespace rr
 		}
 		else
 		{
-#if SWIFTSHADER_LLVM_VERSION < 7
+#if REACTOR_LLVM_VERSION < 7
 			declaration = new llvm::AllocaInst(T(type), (llvm::Value*)nullptr);
 #else
 			declaration = new llvm::AllocaInst(T(type), 0, (llvm::Value*)nullptr);
@@ -1007,7 +1007,7 @@ namespace rr
 		::function = llvm::Function::Create(functionType, llvm::GlobalValue::InternalLinkage, "", ::module);
 		::function->setCallingConv(llvm::CallingConv::C);
 
-		#if defined(_WIN32) && SWIFTSHADER_LLVM_VERSION >= 7
+		#if defined(_WIN32) && REACTOR_LLVM_VERSION >= 7
 			// FIXME(capn):
 			// On Windows, stack memory is committed in increments of 4 kB pages, with the last page
 			// having a trap which allows the OS to grow the stack. For functions with a stack frame
@@ -6946,7 +6946,7 @@ namespace rr
 
 		RValue<Float> sqrtss(RValue<Float> val)
 		{
-#if SWIFTSHADER_LLVM_VERSION < 7
+#if REACTOR_LLVM_VERSION < 7
 			llvm::Function *sqrtss = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse_sqrt_ss);
 			Value *vector = Nucleus::createInsertElement(V(llvm::UndefValue::get(T(Float4::getType()))), val.value, 0);
 
@@ -6975,7 +6975,7 @@ namespace rr
 
 		RValue<Float4> sqrtps(RValue<Float4> val)
 		{
-#if SWIFTSHADER_LLVM_VERSION < 7
+#if REACTOR_LLVM_VERSION < 7
 			llvm::Function *sqrtps = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse_sqrt_ps);
 #else
 			llvm::Function *sqrtps = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::sqrt, {V(val.value)->getType()});
@@ -7044,7 +7044,7 @@ namespace rr
 
 		RValue<Int4> pabsd(RValue<Int4> x)
 		{
-#if SWIFTSHADER_LLVM_VERSION < 7
+#if REACTOR_LLVM_VERSION < 7
 			llvm::Function *pabsd = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_ssse3_pabs_d_128);
 
 			return RValue<Int4>(V(::builder->CreateCall(pabsd, ARGS(V(x.value)))));
@@ -7111,7 +7111,7 @@ namespace rr
 
 		RValue<UShort4> pavgw(RValue<UShort4> x, RValue<UShort4> y)
 		{
-#if SWIFTSHADER_LLVM_VERSION < 7
+#if REACTOR_LLVM_VERSION < 7
 			llvm::Function *pavgw = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse2_pavg_w);
 
 			return As<UShort4>(V(::builder->CreateCall2(pavgw, ARGS(V(x.value), V(y.value)))));
@@ -7122,7 +7122,7 @@ namespace rr
 
 		RValue<Short4> pmaxsw(RValue<Short4> x, RValue<Short4> y)
 		{
-#if SWIFTSHADER_LLVM_VERSION < 7
+#if REACTOR_LLVM_VERSION < 7
 			llvm::Function *pmaxsw = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse2_pmaxs_w);
 
 			return As<Short4>(V(::builder->CreateCall2(pmaxsw, ARGS(V(x.value), V(y.value)))));
@@ -7133,7 +7133,7 @@ namespace rr
 
 		RValue<Short4> pminsw(RValue<Short4> x, RValue<Short4> y)
 		{
-#if SWIFTSHADER_LLVM_VERSION < 7
+#if REACTOR_LLVM_VERSION < 7
 			llvm::Function *pminsw = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse2_pmins_w);
 
 			return As<Short4>(V(::builder->CreateCall2(pminsw, ARGS(V(x.value), V(y.value)))));
@@ -7144,7 +7144,7 @@ namespace rr
 
 		RValue<Short4> pcmpgtw(RValue<Short4> x, RValue<Short4> y)
 		{
-#if SWIFTSHADER_LLVM_VERSION < 7
+#if REACTOR_LLVM_VERSION < 7
 			llvm::Function *pcmpgtw = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse2_pcmpgt_w);
 
 			return As<Short4>(V(::builder->CreateCall2(pcmpgtw, ARGS(V(x.value), V(y.value)))));
@@ -7155,7 +7155,7 @@ namespace rr
 
 		RValue<Short4> pcmpeqw(RValue<Short4> x, RValue<Short4> y)
 		{
-#if SWIFTSHADER_LLVM_VERSION < 7
+#if REACTOR_LLVM_VERSION < 7
 			llvm::Function *pcmpeqw = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse2_pcmpeq_w);
 
 			return As<Short4>(V(::builder->CreateCall2(pcmpeqw, ARGS(V(x.value), V(y.value)))));
@@ -7166,7 +7166,7 @@ namespace rr
 
 		RValue<Byte8> pcmpgtb(RValue<SByte8> x, RValue<SByte8> y)
 		{
-#if SWIFTSHADER_LLVM_VERSION < 7
+#if REACTOR_LLVM_VERSION < 7
 			llvm::Function *pcmpgtb = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse2_pcmpgt_b);
 
 			return As<Byte8>(V(::builder->CreateCall2(pcmpgtb, ARGS(V(x.value), V(y.value)))));
@@ -7177,7 +7177,7 @@ namespace rr
 
 		RValue<Byte8> pcmpeqb(RValue<Byte8> x, RValue<Byte8> y)
 		{
-#if SWIFTSHADER_LLVM_VERSION < 7
+#if REACTOR_LLVM_VERSION < 7
 			llvm::Function *pcmpeqb = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse2_pcmpeq_b);
 
 			return As<Byte8>(V(::builder->CreateCall2(pcmpeqb, ARGS(V(x.value), V(y.value)))));
@@ -7317,7 +7317,7 @@ namespace rr
 
 		RValue<Int4> pmaxsd(RValue<Int4> x, RValue<Int4> y)
 		{
-#if SWIFTSHADER_LLVM_VERSION < 7
+#if REACTOR_LLVM_VERSION < 7
 			llvm::Function *pmaxsd = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse41_pmaxsd);
 
 			return RValue<Int4>(V(::builder->CreateCall2(pmaxsd, ARGS(V(x.value), V(y.value)))));
@@ -7328,7 +7328,7 @@ namespace rr
 
 		RValue<Int4> pminsd(RValue<Int4> x, RValue<Int4> y)
 		{
-#if SWIFTSHADER_LLVM_VERSION < 7
+#if REACTOR_LLVM_VERSION < 7
 			llvm::Function *pminsd = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse41_pminsd);
 
 			return RValue<Int4>(V(::builder->CreateCall2(pminsd, ARGS(V(x.value), V(y.value)))));
@@ -7339,7 +7339,7 @@ namespace rr
 
 		RValue<UInt4> pmaxud(RValue<UInt4> x, RValue<UInt4> y)
 		{
-#if SWIFTSHADER_LLVM_VERSION < 7
+#if REACTOR_LLVM_VERSION < 7
 			llvm::Function *pmaxud = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse41_pmaxud);
 
 			return RValue<UInt4>(V(::builder->CreateCall2(pmaxud, ARGS(V(x.value), V(y.value)))));
@@ -7350,7 +7350,7 @@ namespace rr
 
 		RValue<UInt4> pminud(RValue<UInt4> x, RValue<UInt4> y)
 		{
-#if SWIFTSHADER_LLVM_VERSION < 7
+#if REACTOR_LLVM_VERSION < 7
 			llvm::Function *pminud = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse41_pminud);
 
 			return RValue<UInt4>(V(::builder->CreateCall2(pminud, ARGS(V(x.value), V(y.value)))));
@@ -7417,7 +7417,7 @@ namespace rr
 
 		RValue<Int4> pmovzxbd(RValue<Byte16> x)
 		{
-#if SWIFTSHADER_LLVM_VERSION < 7
+#if REACTOR_LLVM_VERSION < 7
 			llvm::Function *pmovzxbd = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse41_pmovzxbd);
 
 			return RValue<Int4>(V(::builder->CreateCall(pmovzxbd, ARGS(V(x.value)))));
@@ -7428,7 +7428,7 @@ namespace rr
 
 		RValue<Int4> pmovsxbd(RValue<SByte16> x)
 		{
-#if SWIFTSHADER_LLVM_VERSION < 7
+#if REACTOR_LLVM_VERSION < 7
 			llvm::Function *pmovsxbd = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse41_pmovsxbd);
 
 			return RValue<Int4>(V(::builder->CreateCall(pmovsxbd, ARGS(V(x.value)))));
@@ -7439,7 +7439,7 @@ namespace rr
 
 		RValue<Int4> pmovzxwd(RValue<UShort8> x)
 		{
-#if SWIFTSHADER_LLVM_VERSION < 7
+#if REACTOR_LLVM_VERSION < 7
 			llvm::Function *pmovzxwd = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse41_pmovzxwd);
 
 			return RValue<Int4>(V(::builder->CreateCall(pmovzxwd, ARGS(V(x.value)))));
@@ -7450,7 +7450,7 @@ namespace rr
 
 		RValue<Int4> pmovsxwd(RValue<Short8> x)
 		{
-#if SWIFTSHADER_LLVM_VERSION < 7
+#if REACTOR_LLVM_VERSION < 7
 			llvm::Function *pmovsxwd = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse41_pmovsxwd);
 
 			return RValue<Int4>(V(::builder->CreateCall(pmovsxwd, ARGS(V(x.value)))));

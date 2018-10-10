@@ -19,7 +19,7 @@
 
 namespace rr
 {
-#if SWIFTSHADER_LLVM_VERSION < 7
+#if REACTOR_LLVM_VERSION < 7
 	LLVMRoutine::LLVMRoutine(int bufferSize) : bufferSize(bufferSize)
 	{
 		void *memory = allocateExecutable(bufferSize);

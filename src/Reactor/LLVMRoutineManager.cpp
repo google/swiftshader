@@ -14,7 +14,7 @@
 
 #include "LLVMRoutineManager.hpp"
 
-#if SWIFTSHADER_LLVM_VERSION < 7
+#if REACTOR_LLVM_VERSION < 7
 
 #include "LLVMRoutine.hpp"
 #include "llvm/Function.h"
@@ -149,4 +149,4 @@ namespace rr
 	}
 }
 
-#endif  // SWIFTSHADER_LLVM_VERSION < 7
+#endif  // REACTOR_LLVM_VERSION < 7
