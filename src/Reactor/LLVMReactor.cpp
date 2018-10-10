@@ -17,7 +17,7 @@
 #include "x86.hpp"
 #include "CPUID.hpp"
 #include "Thread.hpp"
-#include "Memory.hpp"
+#include "ExecutableMemory.hpp"
 #include "MutexLock.hpp"
 
 #undef min

@@ -33,7 +33,7 @@
     <ClCompile Include="Debug.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Memory.cpp">
+    <ClCompile Include="ExecutableMemory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Thread.cpp">
@@ -65,7 +65,7 @@
     <ClInclude Include="Debug.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Memory.hpp">
+    <ClInclude Include="ExecutableMemory.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="MutexLock.hpp">

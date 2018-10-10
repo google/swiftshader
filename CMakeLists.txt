@@ -1726,8 +1726,8 @@ if(${REACTOR_BACKEND} STREQUAL "Subzero")
         ${SOURCE_DIR}/Reactor/Routine.hpp
         ${SOURCE_DIR}/Reactor/Debug.cpp
         ${SOURCE_DIR}/Reactor/Debug.hpp
-        ${SOURCE_DIR}/Reactor/Memory.cpp
-        ${SOURCE_DIR}/Reactor/Memory.hpp
+        ${SOURCE_DIR}/Reactor/ExecutableMemory.cpp
+        ${SOURCE_DIR}/Reactor/ExecutableMemory.hpp
     )
 
     set(SUBZERO_INCLUDE_DIR
@@ -1824,8 +1824,8 @@ set(REACTOR_LLVM_LIST
     ${SOURCE_DIR}/Reactor/CPUID.hpp
     ${SOURCE_DIR}/Reactor/Debug.cpp
     ${SOURCE_DIR}/Reactor/Debug.hpp
-    ${SOURCE_DIR}/Reactor/Memory.cpp
-    ${SOURCE_DIR}/Reactor/Memory.hpp
+    ${SOURCE_DIR}/Reactor/ExecutableMemory.cpp
+    ${SOURCE_DIR}/Reactor/ExecutableMemory.hpp
 )
 
 file(GLOB_RECURSE EGL_LIST

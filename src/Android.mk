@@ -64,7 +64,7 @@ COMMON_SRC_FILES += \
 	Reactor/Routine.cpp \
 	Reactor/Debug.cpp \
 	Reactor/DebugAndroid.cpp \
-	Reactor/Memory.cpp
+	Reactor/ExecutableMemory.cpp
 
 ifdef SWIFTSHADER_USE_SUBZERO
 COMMON_SRC_FILES += \

@@ -15,7 +15,7 @@
 #include "Reactor.hpp"
 
 #include "Optimizer.hpp"
-#include "Memory.hpp"
+#include "ExecutableMemory.hpp"
 
 #include "src/IceTypes.h"
 #include "src/IceCfg.h"

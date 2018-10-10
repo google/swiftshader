@@ -14,7 +14,7 @@
 
 #include "LLVMRoutine.hpp"
 
-#include "Memory.hpp"
+#include "ExecutableMemory.hpp"
 #include "Thread.hpp"
 
 namespace rr

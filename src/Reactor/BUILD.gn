@@ -268,7 +268,7 @@ swiftshader_source_set("swiftshader_reactor") {
   sources = [
     "Routine.cpp",
     "Debug.cpp",
-    "Memory.cpp",
+    "ExecutableMemory.cpp",
   ]
 
   if (use_swiftshader_with_subzero) {

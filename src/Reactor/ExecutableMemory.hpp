@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef rr_Memory_hpp
-#define rr_Memory_hpp
+#ifndef rr_ExecutableMemory_hpp
+#define rr_ExecutableMemory_hpp
 
 #include <stddef.h>
 #include <stdint.h>
@@ -27,4 +27,4 @@ void markExecutable(void *memory, size_t bytes);
 void deallocateExecutable(void *memory, size_t bytes);
 }
 
-#endif   // rr_Memory_hpp
+#endif   // rr_ExecutableMemory_hpp

@@ -18,7 +18,7 @@
 
 #include "LLVMRoutine.hpp"
 #include "llvm/Function.h"
-#include "Memory.hpp"
+#include "ExecutableMemory.hpp"
 #include "Thread.hpp"
 #include "Debug.hpp"
 
