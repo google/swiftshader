@@ -114,9 +114,9 @@ namespace rr
 
 	#if PERF_PROFILE
 	int64_t atomicExchange(int64_t volatile *target, int64_t value);
+	int atomicExchange(int volatile *target, int value);
 	#endif
 
-	int atomicExchange(int volatile *target, int value);
 	int atomicIncrement(int volatile *value);
 	int atomicDecrement(int volatile *value);
 	int atomicAdd(int volatile *target, int value);
@@ -241,11 +241,10 @@ namespace rr
 			return InterlockedExchange64(target, value);
 		#else
 			int ret;
-			__asm__ __volatile__("lock; xchg8 %0,(%1)" : "=r" (ret) :"r" (target), "0" (value) : "memory" );
+			__asm__ __volatile__("lock; xchg8 %x0,(%x1)" : "=r" (ret) :"r" (target), "0" (value) : "memory" );
 			return ret;
 		#endif
 	}
-	#endif
 
 	inline int atomicExchange(volatile int *target, int value)
 	{
@@ -253,10 +252,11 @@ namespace rr
 			return InterlockedExchange((volatile long*)target, (long)value);
 		#else
 			int ret;
-			__asm__ __volatile__("lock; xchgl %0,(%1)" : "=r" (ret) :"r" (target), "0" (value) : "memory" );
+			__asm__ __volatile__("lock; xchgl %x0,(%x1)" : "=r" (ret) :"r" (target), "0" (value) : "memory" );
 			return ret;
 		#endif
 	}
+	#endif
 
 	inline int atomicIncrement(volatile int *value)
 	{

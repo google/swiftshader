@@ -15,7 +15,8 @@
 import("../swiftshader.gni")
 
 declare_args() {
-  use_swiftshader_with_subzero = true
+  # Subzero produces smaller binaries, but doesn't support ARM64.
+  use_swiftshader_with_subzero = (target_cpu != "arm64")
 }
 
 # Need a separate config to ensure the warnings are added to the end.
@@ -287,7 +288,11 @@ swiftshader_source_set("swiftshader_reactor") {
     include_dirs = [
     ]
   } else {
-    deps += [ "../../third_party/LLVM:swiftshader_llvm" ]
+    llvm7_dir = "../../third_party/llvm-7.0"
+
+    deps += [ "$llvm7_dir:swiftshader_llvm" ]
+
+    defines = [ "REACTOR_LLVM_VERSION=7" ]
 
     sources += [
       "LLVMReactor.cpp",
@@ -299,7 +304,18 @@ swiftshader_source_set("swiftshader_reactor") {
     configs = [ ":swiftshader_reactor_private_config" ]
 
     include_dirs = [
-      "../../third_party/LLVM/include/",
+      "$llvm7_dir/llvm/include/",
+      "$llvm7_dir/configs/common/include/",
     ]
+
+    if (is_linux) {
+      include_dirs += [ "$llvm7_dir/configs/linux/include/" ]
+    } else if (is_windows) {
+      include_dirs += [ "$llvm7_dir/configs/windows/include/" ]
+    } else if (is_android) {
+      include_dirs += [ "$llvm7_dir/configs/android/include/" ]
+    } else {
+      assert(false, "llvm-7.0 not configured for target platform")
+    }
   }
 }
