@@ -655,6 +655,7 @@ namespace es2
 					UNREACHABLE(internalformat);
 					return error(GL_INVALID_OPERATION, false);
 				}
+				break;
 			case GL_FLOAT:
 				switch(internalformat)
 				{
@@ -670,6 +671,7 @@ namespace es2
 					UNREACHABLE(internalformat);
 					return error(GL_INVALID_OPERATION, false);
 				}
+				break;
 			default:
 				return error(GL_INVALID_ENUM, false);
 			}
@@ -702,6 +704,7 @@ namespace es2
 					UNREACHABLE(internalformat);
 					return error(GL_INVALID_OPERATION, false);
 				}
+				break;
 			case GL_FLOAT_32_UNSIGNED_INT_24_8_REV:
 				switch(internalformat)
 				{
@@ -713,6 +716,7 @@ namespace es2
 					UNREACHABLE(internalformat);
 					return error(GL_INVALID_OPERATION, false);
 				}
+				break;
 			default:
 				return error(GL_INVALID_ENUM, false);
 			}
