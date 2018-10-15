@@ -95,7 +95,9 @@ llvm_include_dirs = [
 
 if (is_linux) {
   llvm_include_dirs += [ "configs/linux/include/" ]
-} else if (is_windows) {
+} else if (is_fuchsia) {
+  llvm_include_dirs += [ "configs/fuchsia/include/" ]
+} else if (is_win) {
   llvm_include_dirs += [ "configs/windows/include/" ]
 } else if (is_android) {
   llvm_include_dirs += [ "configs/android/include/" ]

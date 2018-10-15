@@ -310,7 +310,9 @@ swiftshader_source_set("swiftshader_reactor") {
 
     if (is_linux) {
       include_dirs += [ "$llvm7_dir/configs/linux/include/" ]
-    } else if (is_windows) {
+    } else if (is_fuchsia) {
+      include_dirs += [ "$llvm7_dir/configs/fuchsia/include/" ]
+    } else if (is_win) {
       include_dirs += [ "$llvm7_dir/configs/windows/include/" ]
     } else if (is_android) {
       include_dirs += [ "$llvm7_dir/configs/android/include/" ]
