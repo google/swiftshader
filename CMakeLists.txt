@@ -73,10 +73,10 @@ else()
     set(DEFAULT_REACTOR_BACKEND "LLVM")
 endif()
 
-set(REACTOR_BACKEND DEFAULT_REACTOR_BACKEND CACHE STRING "JIT compiler back-end used by Reactor")
+set(REACTOR_BACKEND ${DEFAULT_REACTOR_BACKEND} CACHE STRING "JIT compiler back-end used by Reactor")
 set_property(CACHE REACTOR_BACKEND PROPERTY STRINGS LLVM Subzero)
 
-set(REACTOR_LLVM_VERSION "3" CACHE STRING "LLVM version used by Reactor")
+set(REACTOR_LLVM_VERSION "7" CACHE STRING "LLVM version used by Reactor")
 
 # LLVM disallows calling cmake . from the main LLVM dir, the reason is that
 # it builds header files that could overwrite the orignal ones. Here we
