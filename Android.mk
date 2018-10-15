@@ -17,35 +17,27 @@
 LOCAL_PATH := $(call my-dir)
 swiftshader_root := $(LOCAL_PATH)
 
-# LLVM version for SwiftShader
-REACTOR_LLVM_VERSION ?= 3
+# Default LLVM version for SwiftShader's JIT compiler (Reactor).
+REACTOR_LLVM_VERSION ?= 7
 
+# Subzero is an alternative JIT compiler. It is smaller and generally slower.
+REACTOR_USE_SUBZERO := false
 
 ifeq ($(REACTOR_LLVM_VERSION),3)
 # Reactor with LLVM 3.0 doesn't support ARM.  Use Subzero as the Reactor JIT
 # back-end on ARM.
 ifeq ($(TARGET_ARCH),$(filter $(TARGET_ARCH),arm))
-SWIFTSHADER_USE_SUBZERO := true
+REACTOR_USE_SUBZERO := true
 endif
 endif
 
-
-# Check whether SwiftShader requires full C++ 11 support.
-ifdef SWIFTSHADER_USE_SUBZERO
-swiftshader_requires_cxx11 := true
-endif
-
-ifeq ($(REACTOR_LLVM_VERSION),7)
-swiftshader_requires_cxx11 := true
-endif
-
-ifeq ($(swiftshader_requires_cxx11),true)
-# Full C++ 11 support is only available from Marshmallow and up.
+# Subzero and LLVM 7.0 require C++11.
+# Full C++11 support is only available from Marshmallow and up.
 ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 23 && echo PreMarshmallow),PreMarshmallow)
-swiftshader_unsupported_build := true
+# Fall back to LLVM 3.0.
+REACTOR_USE_SUBZERO := false
+REACTOR_LLVM_VERSION := 3
 endif
-endif
-
 
 # Check whether $(TARGET_ARCH) is supported.
 ifeq ($(REACTOR_LLVM_VERSION),3)
@@ -59,7 +51,6 @@ ifneq ($(TARGET_ARCH),$(filter $(TARGET_ARCH),x86 x86_64 arm arm64))
 swiftshader_unsupported_build := true
 endif
 endif
-
 
 ifneq ($(swiftshader_unsupported_build),true)
 include $(swiftshader_root)/src/Android.mk

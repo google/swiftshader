@@ -7,7 +7,7 @@ COMMON_C_INCLUDES += \
 	$(LOCAL_PATH)/OpenGL/ \
 	$(LOCAL_PATH)
 
-ifdef SWIFTSHADER_USE_SUBZERO
+ifdef REACTOR_USE_SUBZERO
 
 COMMON_C_INCLUDES += \
 	$(LOCAL_PATH)/../third_party/subzero/ \
@@ -66,7 +66,7 @@ COMMON_SRC_FILES += \
 	Reactor/DebugAndroid.cpp \
 	Reactor/ExecutableMemory.cpp
 
-ifdef SWIFTSHADER_USE_SUBZERO
+ifdef REACTOR_USE_SUBZERO
 COMMON_SRC_FILES += \
 	Reactor/SubzeroReactor.cpp \
 	Reactor/Optimizer.cpp
