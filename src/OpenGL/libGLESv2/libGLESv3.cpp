@@ -3679,7 +3679,7 @@ GL_APICALL void GL_APIENTRY glTexStorage2D(GLenum target, GLsizei levels, GLenum
 				}
 
 				es2::Texture2D *texture = context->getTexture2D(target);
-				if(!texture || texture->name == 0 || texture->getImmutableFormat() == GL_TRUE)
+				if(!texture || texture->name == 0 || texture->getImmutableFormat() != GL_FALSE)
 				{
 					return error(GL_INVALID_OPERATION);
 				}
@@ -3754,7 +3754,7 @@ GL_APICALL void GL_APIENTRY glTexStorage3D(GLenum target, GLsizei levels, GLenum
 				}
 
 				es2::Texture3D *texture = context->getTexture3D();
-				if(!texture || texture->name == 0 || texture->getImmutableFormat() == GL_TRUE)
+				if(!texture || texture->name == 0 || texture->getImmutableFormat() != GL_FALSE)
 				{
 					return error(GL_INVALID_OPERATION);
 				}

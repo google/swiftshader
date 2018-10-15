@@ -650,7 +650,7 @@ void ColorMask(GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha)
 
 	if(context)
 	{
-		context->setColorMask(red == GL_TRUE, green == GL_TRUE, blue == GL_TRUE, alpha == GL_TRUE);
+		context->setColorMask(red != GL_FALSE, green != GL_FALSE, blue != GL_FALSE, alpha != GL_FALSE);
 	}
 }
 
@@ -4239,7 +4239,7 @@ void SampleCoverage(GLclampf value, GLboolean invert)
 
 	if(context)
 	{
-		context->setSampleCoverageParams(es2::clamp01(value), invert == GL_TRUE);
+		context->setSampleCoverageParams(es2::clamp01(value), invert != GL_FALSE);
 	}
 }
 
@@ -5624,7 +5624,7 @@ void VertexAttribPointer(GLuint index, GLint size, GLenum type, GLboolean normal
 			return error(GL_INVALID_OPERATION);
 		}
 
-		context->setVertexAttribState(index, context->getArrayBuffer(), size, type, (normalized == GL_TRUE), false, stride, ptr);
+		context->setVertexAttribState(index, context->getArrayBuffer(), size, type, (normalized != GL_FALSE), false, stride, ptr);
 	}
 }
 
