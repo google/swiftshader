@@ -52,6 +52,7 @@ swiftshader_shared_library("swiftshader_libEGL") {
   }
 
   sources = [
+    "../common/debug.cpp",
     "../common/Object.cpp",
     "Config.cpp",
     "Display.cpp",
@@ -62,10 +63,6 @@ swiftshader_shared_library("swiftshader_libEGL") {
     "main.cpp",
     "resource.h",
   ]
-
-  if (is_debug) {
-    sources += [ "../common/debug.cpp" ]
-  }
 
   if (is_mac) {
     sources += [ "OSXUtils.mm" ]
