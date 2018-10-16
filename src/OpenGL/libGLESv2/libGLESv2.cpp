@@ -802,6 +802,11 @@ void CompressedTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yo
 		return error(GL_INVALID_VALUE);
 	}
 
+	if(!IsCompressed(format))
+	{
+		return error(GL_INVALID_ENUM);
+	}
+
 	if(imageSize != gl::ComputeCompressedSize(width, height, format))
 	{
 		return error(GL_INVALID_VALUE);
