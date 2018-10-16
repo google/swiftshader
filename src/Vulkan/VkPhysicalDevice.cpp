@@ -87,6 +87,44 @@ const VkPhysicalDeviceFeatures& PhysicalDevice::getFeatures() const
 	return features;
 }
 
+void PhysicalDevice::getFeatures(VkPhysicalDeviceSamplerYcbcrConversionFeatures* features) const
+{
+	features->samplerYcbcrConversion = VK_FALSE;
+}
+
+void PhysicalDevice::getFeatures(VkPhysicalDevice16BitStorageFeatures* features) const
+{
+	features->storageBuffer16BitAccess = VK_FALSE;
+	features->storageInputOutput16 = VK_FALSE;
+	features->storagePushConstant16 = VK_FALSE;
+	features->uniformAndStorageBuffer16BitAccess = VK_FALSE;
+}
+
+void PhysicalDevice::getFeatures(VkPhysicalDeviceVariablePointerFeatures* features) const
+{
+	features->variablePointersStorageBuffer = VK_FALSE;
+	features->variablePointers = VK_FALSE;
+}
+
+void PhysicalDevice::getFeatures(VkPhysicalDevice8BitStorageFeaturesKHR* features) const
+{
+	features->storageBuffer8BitAccess = VK_FALSE;
+	features->uniformAndStorageBuffer8BitAccess = VK_FALSE;
+	features->storagePushConstant8 = VK_FALSE;
+}
+
+void PhysicalDevice::getFeatures(VkPhysicalDeviceMultiviewFeatures* features) const
+{
+	features->multiview = VK_FALSE;
+	features->multiviewGeometryShader = VK_FALSE;
+	features->multiviewTessellationShader = VK_FALSE;
+}
+
+void PhysicalDevice::getFeatures(VkPhysicalDeviceProtectedMemoryFeatures* features) const
+{
+	features->protectedMemory = VK_FALSE;
+}
+
 VkSampleCountFlags PhysicalDevice::getSampleCounts() const
 {
 	return VK_SAMPLE_COUNT_1_BIT | VK_SAMPLE_COUNT_4_BIT;
@@ -231,6 +269,46 @@ const VkPhysicalDeviceProperties& PhysicalDevice::getProperties() const
 	};
 
 	return properties;
+}
+
+void PhysicalDevice::getProperties(VkPhysicalDeviceIDProperties* properties) const
+{
+	memcpy(properties->deviceUUID, SWIFTSHADER_UUID, VK_UUID_SIZE);
+	memset(properties->deviceLUID, 0, VK_LUID_SIZE);
+	memset(properties->driverUUID, 0, VK_UUID_SIZE);
+	*((uint64_t*)properties->driverUUID) = DRIVER_VERSION;
+	properties->deviceNodeMask = 0;
+	properties->deviceLUIDValid = VK_FALSE;
+}
+
+void PhysicalDevice::getProperties(VkPhysicalDeviceMaintenance3Properties* properties) const
+{
+	properties->maxMemoryAllocationSize = 1 << 31;
+	properties->maxPerSetDescriptors = 1024;
+}
+
+void PhysicalDevice::getProperties(VkPhysicalDeviceMultiviewProperties* properties) const
+{
+	properties->maxMultiviewInstanceIndex = (1 << 27) - 1;
+	properties->maxMultiviewViewCount = 6;
+}
+
+void PhysicalDevice::getProperties(VkPhysicalDevicePointClippingProperties* properties) const
+{
+	properties->pointClippingBehavior = VK_POINT_CLIPPING_BEHAVIOR_ALL_CLIP_PLANES;
+}
+
+void PhysicalDevice::getProperties(VkPhysicalDeviceProtectedMemoryProperties* properties) const
+{
+	properties->protectedNoFault = VK_FALSE;
+}
+
+void PhysicalDevice::getProperties(VkPhysicalDeviceSubgroupProperties* properties) const
+{
+	properties->subgroupSize = 1;
+	properties->supportedStages = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT;
+	properties->supportedOperations = VK_SUBGROUP_FEATURE_BASIC_BIT;
+	properties->quadOperationsInAllStages = VK_FALSE;
 }
 
 bool PhysicalDevice::hasFeatures(const VkPhysicalDeviceFeatures& requestedFeatures) const
@@ -381,6 +459,36 @@ const VkPhysicalDeviceMemoryProperties& PhysicalDevice::getMemoryProperties() co
 	};
 
 	return properties;
+}
+
+void PhysicalDevice::getExternalBufferProperties(const VkPhysicalDeviceExternalBufferInfo* pExternalBufferInfo,
+                                                 VkExternalBufferProperties* pExternalBufferProperties) const
+{
+	// FIXME: currently ignoring pExternalBufferInfo
+
+	pExternalBufferProperties->externalMemoryProperties.compatibleHandleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT;
+	pExternalBufferProperties->externalMemoryProperties.exportFromImportedHandleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT;
+	pExternalBufferProperties->externalMemoryProperties.externalMemoryFeatures = VK_EXTERNAL_MEMORY_FEATURE_DEDICATED_ONLY_BIT;
+}
+
+void PhysicalDevice::getExternalFenceProperties(const VkPhysicalDeviceExternalFenceInfo* pExternalFenceInfo,
+                                                VkExternalFenceProperties* pExternalFenceProperties) const
+{
+	// FIXME: currently ignoring pExternalFenceInfo
+
+	pExternalFenceProperties->compatibleHandleTypes = VK_EXTERNAL_FENCE_HANDLE_TYPE_OPAQUE_FD_BIT;
+	pExternalFenceProperties->exportFromImportedHandleTypes = VK_EXTERNAL_FENCE_HANDLE_TYPE_OPAQUE_FD_BIT;
+	pExternalFenceProperties->externalFenceFeatures = VK_EXTERNAL_FENCE_FEATURE_EXPORTABLE_BIT;
+}
+
+void PhysicalDevice::getExternalSemaphoreProperties(const VkPhysicalDeviceExternalSemaphoreInfo* pExternalSemaphoreInfo,
+                                                    VkExternalSemaphoreProperties* pExternalSemaphoreProperties) const
+{
+	// FIXME: currently ignoring pExternalSemaphoreInfo
+
+	pExternalSemaphoreProperties->compatibleHandleTypes = VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_FD_BIT;
+	pExternalSemaphoreProperties->exportFromImportedHandleTypes = VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_FD_BIT;
+	pExternalSemaphoreProperties->externalSemaphoreFeatures = VK_EXTERNAL_SEMAPHORE_FEATURE_EXPORTABLE_BIT;
 }
 
 } // namespace vk

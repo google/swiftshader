@@ -468,8 +468,10 @@ VKAPI_ATTR void VKAPI_CALL vkGetImageMemoryRequirements(VkDevice device, VkImage
 
 VKAPI_ATTR void VKAPI_CALL vkGetImageSparseMemoryRequirements(VkDevice device, VkImage image, uint32_t* pSparseMemoryRequirementCount, VkSparseImageMemoryRequirements* pSparseMemoryRequirements)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
+	TRACE("(VkDevice device, VkImage image, uint32_t* pSparseMemoryRequirementCount, VkSparseImageMemoryRequirements* pSparseMemoryRequirements)",
+	      device, image, pSparseMemoryRequirementCount, pSparseMemoryRequirements);
+
+	vk::Cast(device)->getImageSparseMemoryRequirements(image, pSparseMemoryRequirementCount, pSparseMemoryRequirements);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceSparseImageFormatProperties(VkPhysicalDevice physicalDevice, VkFormat format, VkImageType type, VkSampleCountFlagBits samples, VkImageUsageFlags usage, VkImageTiling tiling, uint32_t* pPropertyCount, VkSparseImageFormatProperties* pProperties)
@@ -1349,8 +1351,10 @@ VKAPI_ATTR VkResult VKAPI_CALL vkBindImageMemory2(VkDevice device, uint32_t bind
 
 VKAPI_ATTR void VKAPI_CALL vkGetDeviceGroupPeerMemoryFeatures(VkDevice device, uint32_t heapIndex, uint32_t localDeviceIndex, uint32_t remoteDeviceIndex, VkPeerMemoryFeatureFlags* pPeerMemoryFeatures)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
+	TRACE("(VkDevice device = 0x%X, uint32_t heapIndex = %d, uint32_t localDeviceIndex = %d, uint32_t remoteDeviceIndex = %d, VkPeerMemoryFeatureFlags* pPeerMemoryFeatures = 0x%X)",
+	      device, heapIndex, localDeviceIndex, remoteDeviceIndex, pPeerMemoryFeatures);
+
+	vk::Cast(device)->getGroupPeerMemoryFeatures(heapIndex, localDeviceIndex, remoteDeviceIndex, pPeerMemoryFeatures);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkCmdSetDeviceMask(VkCommandBuffer commandBuffer, uint32_t deviceMask)
@@ -1367,36 +1371,115 @@ VKAPI_ATTR void VKAPI_CALL vkCmdDispatchBase(VkCommandBuffer commandBuffer, uint
 
 VKAPI_ATTR VkResult VKAPI_CALL vkEnumeratePhysicalDeviceGroups(VkInstance instance, uint32_t* pPhysicalDeviceGroupCount, VkPhysicalDeviceGroupProperties* pPhysicalDeviceGroupProperties)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
+	TRACE("VkInstance instance = 0x%X, uint32_t* pPhysicalDeviceGroupCount = 0x%X, VkPhysicalDeviceGroupProperties* pPhysicalDeviceGroupProperties = 0x%X",
+	      instance, pPhysicalDeviceGroupCount, pPhysicalDeviceGroupProperties);
+
+	if(!pPhysicalDeviceGroupProperties)
+	{
+		*pPhysicalDeviceGroupCount = vk::Cast(instance)->getPhysicalDeviceGroupCount();
+	}
+	else
+	{
+		vk::Cast(instance)->getPhysicalDeviceGroups(*pPhysicalDeviceGroupCount, pPhysicalDeviceGroupProperties);
+	}
+
 	return VK_SUCCESS;
 }
 
 VKAPI_ATTR void VKAPI_CALL vkGetImageMemoryRequirements2(VkDevice device, const VkImageMemoryRequirementsInfo2* pInfo, VkMemoryRequirements2* pMemoryRequirements)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
+	TRACE("(VkDevice device = 0x%X, const VkImageMemoryRequirementsInfo2* pInfo = 0x%X, VkMemoryRequirements2* pMemoryRequirements = 0x%X)",
+	      device, pInfo, pMemoryRequirements);
+
+	if(pInfo->pNext || pMemoryRequirements->pNext)
+	{
+		UNIMPLEMENTED();
+	}
+
+	vkGetImageMemoryRequirements(device, pInfo->image, &(pMemoryRequirements->memoryRequirements));
 }
 
 VKAPI_ATTR void VKAPI_CALL vkGetBufferMemoryRequirements2(VkDevice device, const VkBufferMemoryRequirementsInfo2* pInfo, VkMemoryRequirements2* pMemoryRequirements)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
+	TRACE("(VkDevice device = 0x%X, const VkBufferMemoryRequirementsInfo2* pInfo = 0x%X, VkMemoryRequirements2* pMemoryRequirements = 0x%X)",
+	      device, pInfo, pMemoryRequirements);
+
+	if(pInfo->pNext || pMemoryRequirements->pNext)
+	{
+		UNIMPLEMENTED();
+	}
+
+	vkGetBufferMemoryRequirements(device, pInfo->buffer, &(pMemoryRequirements->memoryRequirements));
 }
 
 VKAPI_ATTR void VKAPI_CALL vkGetImageSparseMemoryRequirements2(VkDevice device, const VkImageSparseMemoryRequirementsInfo2* pInfo, uint32_t* pSparseMemoryRequirementCount, VkSparseImageMemoryRequirements2* pSparseMemoryRequirements)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
+	TRACE("(VkDevice device = 0x%X, const VkImageSparseMemoryRequirementsInfo2* pInfo = 0x%X, uint32_t* pSparseMemoryRequirementCount = 0x%X, VkSparseImageMemoryRequirements2* pSparseMemoryRequirements = 0x%X)",
+	      device, pInfo, pSparseMemoryRequirementCount, pSparseMemoryRequirements);
+
+	if(pInfo->pNext || pSparseMemoryRequirements->pNext)
+	{
+		UNIMPLEMENTED();
+	}
+
+	vkGetImageSparseMemoryRequirements(device, pInfo->image, pSparseMemoryRequirementCount, &(pSparseMemoryRequirements->memoryRequirements));
 }
 
 VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceFeatures2(VkPhysicalDevice physicalDevice, VkPhysicalDeviceFeatures2* pFeatures)
 {
 	TRACE("(VkPhysicalDevice physicalDevice = 0x%X, VkPhysicalDeviceFeatures2* pFeatures = 0x%X)", physicalDevice, pFeatures);
 
-	if(pFeatures->pNext)
+	void* pNext = pFeatures->pNext;
+	while(pNext)
 	{
-		UNIMPLEMENTED();
+		switch(*reinterpret_cast<const VkStructureType*>(pNext))
+		{
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SAMPLER_YCBCR_CONVERSION_FEATURES:
+			{
+				auto& features = *reinterpret_cast<VkPhysicalDeviceSamplerYcbcrConversionFeatures*>(pNext);
+				vk::Cast(physicalDevice)->getFeatures(&features);
+				pNext = features.pNext;
+			}
+			break;
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_16BIT_STORAGE_FEATURES:
+			{
+				auto& features = *reinterpret_cast<VkPhysicalDevice16BitStorageFeatures*>(pNext);
+				vk::Cast(physicalDevice)->getFeatures(&features);
+				pNext = features.pNext;
+			}
+			break;
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VARIABLE_POINTER_FEATURES:
+			{
+				auto& features = *reinterpret_cast<VkPhysicalDeviceVariablePointerFeatures*>(pNext);
+				vk::Cast(physicalDevice)->getFeatures(&features);
+				pNext = features.pNext;
+			}
+			break;
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_8BIT_STORAGE_FEATURES_KHR:
+			{
+				auto& features = *reinterpret_cast<VkPhysicalDevice8BitStorageFeaturesKHR*>(pNext);
+				vk::Cast(physicalDevice)->getFeatures(&features);
+				pNext = features.pNext;
+			}
+			break;
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_FEATURES:
+			{
+				auto& features = *reinterpret_cast<VkPhysicalDeviceMultiviewFeatures*>(pNext);
+				vk::Cast(physicalDevice)->getFeatures(&features);
+				pNext = features.pNext;
+			}
+			break;
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROTECTED_MEMORY_FEATURES:
+			{
+				auto& features = *reinterpret_cast<VkPhysicalDeviceProtectedMemoryFeatures*>(pNext);
+				vk::Cast(physicalDevice)->getFeatures(&features);
+				pNext = features.pNext;
+			}
+			break;
+		default:
+			// FIXME: We will eventually simply ignore unsupported pNext structures
+			UNIMPLEMENTED();
+		}
 	}
 
 	vkGetPhysicalDeviceFeatures(physicalDevice, &(pFeatures->features));
@@ -1406,9 +1489,57 @@ VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceProperties2(VkPhysicalDevice physi
 {
 	TRACE("(VkPhysicalDevice physicalDevice = 0x%X, VkPhysicalDeviceProperties2* pProperties = 0x%X)", physicalDevice, pProperties);
 
-	if(pProperties->pNext)
+	void* pNext = pProperties->pNext;
+	while(pNext)
 	{
-		UNIMPLEMENTED();
+		switch(*reinterpret_cast<const VkStructureType*>(pNext))
+		{
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ID_PROPERTIES:
+			{
+				auto& properties = *reinterpret_cast<VkPhysicalDeviceIDProperties*>(pNext);
+				vk::Cast(physicalDevice)->getProperties(&properties);
+				pNext = properties.pNext;
+			}
+			break;
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_3_PROPERTIES:
+			{
+				auto& properties = *reinterpret_cast<VkPhysicalDeviceMaintenance3Properties*>(pNext);
+				vk::Cast(physicalDevice)->getProperties(&properties);
+				pNext = properties.pNext;
+			}
+			break;
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_PROPERTIES:
+			{
+				auto& properties = *reinterpret_cast<VkPhysicalDeviceMultiviewProperties*>(pNext);
+				vk::Cast(physicalDevice)->getProperties(&properties);
+				pNext = properties.pNext;
+			}
+			break;
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_POINT_CLIPPING_PROPERTIES:
+			{
+				auto& properties = *reinterpret_cast<VkPhysicalDevicePointClippingProperties*>(pNext);
+				vk::Cast(physicalDevice)->getProperties(&properties);
+				pNext = properties.pNext;
+			}
+			break;
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROTECTED_MEMORY_PROPERTIES:
+			{
+				auto& properties = *reinterpret_cast<VkPhysicalDeviceProtectedMemoryProperties*>(pNext);
+				vk::Cast(physicalDevice)->getProperties(&properties);
+				pNext = properties.pNext;
+			}
+			break;
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SUBGROUP_PROPERTIES:
+			{
+				auto& properties = *reinterpret_cast<VkPhysicalDeviceSubgroupProperties*>(pNext);
+				vk::Cast(physicalDevice)->getProperties(&properties);
+				pNext = properties.pNext;
+			}
+			break;
+		default:
+			// FIXME: We will eventually simply ignore unsupported pNext structures
+			UNIMPLEMENTED();
+		}
 	}
 
 	vkGetPhysicalDeviceProperties(physicalDevice, &(pProperties->properties));
@@ -1432,7 +1563,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkGetPhysicalDeviceImageFormatProperties2(VkPhysi
 	TRACE("(VkPhysicalDevice physicalDevice = 0x%X, const VkPhysicalDeviceImageFormatInfo2* pImageFormatInfo = 0x%X, VkImageFormatProperties2* pImageFormatProperties = 0x%X)",
 		    physicalDevice, pImageFormatInfo, pImageFormatProperties);
 
-	if(pImageFormatProperties->pNext)
+	if(pImageFormatInfo->pNext || pImageFormatProperties->pNext)
 	{
 		UNIMPLEMENTED();
 	}
@@ -1451,19 +1582,13 @@ VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceQueueFamilyProperties2(VkPhysicalD
 	TRACE("(VkPhysicalDevice physicalDevice = 0x%X, uint32_t* pQueueFamilyPropertyCount = 0x%X, VkQueueFamilyProperties2* pQueueFamilyProperties = 0x%X)",
 		physicalDevice, pQueueFamilyPropertyCount, pQueueFamilyProperties);
 
-	if(!pQueueFamilyProperties)
+	if(pQueueFamilyProperties && pQueueFamilyProperties->pNext)
 	{
-		*pQueueFamilyPropertyCount = 1;
+		UNIMPLEMENTED();
 	}
-	else
-	{
-		if(pQueueFamilyProperties->pNext)
-		{
-			UNIMPLEMENTED();
-		}
 
-		vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, pQueueFamilyPropertyCount, &(pQueueFamilyProperties->queueFamilyProperties));
-	}
+	vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, pQueueFamilyPropertyCount,
+		pQueueFamilyProperties ? &(pQueueFamilyProperties->queueFamilyProperties) : nullptr);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceMemoryProperties2(VkPhysicalDevice physicalDevice, VkPhysicalDeviceMemoryProperties2* pMemoryProperties)
@@ -1483,21 +1608,14 @@ VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceSparseImageFormatProperties2(VkPhy
 	TRACE("(VkPhysicalDevice physicalDevice = 0x%X, const VkPhysicalDeviceSparseImageFormatInfo2* pFormatInfo = 0x%X, uint32_t* pPropertyCount = 0x%X, VkSparseImageFormatProperties2* pProperties = 0x%X)",
 	     physicalDevice, pFormatInfo, pPropertyCount, pProperties);
 
-	if(!pProperties)
+	if(pProperties && pProperties->pNext)
 	{
-		*pPropertyCount = 1;
+		UNIMPLEMENTED();
 	}
-	else
-	{
-		if(pProperties->pNext)
-		{
-			UNIMPLEMENTED();
-		}
 
-		vkGetPhysicalDeviceSparseImageFormatProperties(physicalDevice, pFormatInfo->format, pFormatInfo->type,
-		                                               pFormatInfo->samples, pFormatInfo->usage, pFormatInfo->tiling,
-		                                               pPropertyCount, &(pProperties->properties));
-	}
+	vkGetPhysicalDeviceSparseImageFormatProperties(physicalDevice, pFormatInfo->format, pFormatInfo->type,
+	                                               pFormatInfo->samples, pFormatInfo->usage, pFormatInfo->tiling,
+	                                               pPropertyCount, pProperties ? &(pProperties->properties) : nullptr);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkTrimCommandPool(VkDevice device, VkCommandPool commandPool, VkCommandPoolTrimFlags flags)
@@ -1508,8 +1626,27 @@ VKAPI_ATTR void VKAPI_CALL vkTrimCommandPool(VkDevice device, VkCommandPool comm
 
 VKAPI_ATTR void VKAPI_CALL vkGetDeviceQueue2(VkDevice device, const VkDeviceQueueInfo2* pQueueInfo, VkQueue* pQueue)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
+	TRACE("(VkDevice device = 0x%X, const VkDeviceQueueInfo2* pQueueInfo = 0x%X, VkQueue* pQueue = 0x%X)",
+	      device, pQueueInfo, pQueue);
+
+	if(pQueueInfo->pNext)
+	{
+		UNIMPLEMENTED();
+	}
+
+	// The only flag that can be set here is VK_DEVICE_QUEUE_CREATE_PROTECTED_BIT 
+	// According to the Vulkan spec, 4.3.1. Queue Family Properties:
+	// "VK_DEVICE_QUEUE_CREATE_PROTECTED_BIT specifies that the device queue is a
+	//  protected-capable queue. If the protected memory feature is not enabled,
+	//  the VK_DEVICE_QUEUE_CREATE_PROTECTED_BIT bit of flags must not be set."
+	if(pQueueInfo->flags)
+	{
+		*pQueue = VK_NULL_HANDLE;
+	}
+	else
+	{
+		vkGetDeviceQueue(device, pQueueInfo->queueFamilyIndex, pQueueInfo->queueIndex, pQueue);
+	}
 }
 
 VKAPI_ATTR VkResult VKAPI_CALL vkCreateSamplerYcbcrConversion(VkDevice device, const VkSamplerYcbcrConversionCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkSamplerYcbcrConversion* pYcbcrConversion)
@@ -1546,26 +1683,34 @@ VKAPI_ATTR void VKAPI_CALL vkUpdateDescriptorSetWithTemplate(VkDevice device, Vk
 
 VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceExternalBufferProperties(VkPhysicalDevice physicalDevice, const VkPhysicalDeviceExternalBufferInfo* pExternalBufferInfo, VkExternalBufferProperties* pExternalBufferProperties)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
+	TRACE("(VkPhysicalDevice physicalDevice = 0x%X, const VkPhysicalDeviceExternalBufferInfo* pExternalBufferInfo = 0x%X, VkExternalBufferProperties* pExternalBufferProperties = 0x%X)",
+	      physicalDevice, pExternalBufferInfo, pExternalBufferProperties);
+
+	vk::Cast(physicalDevice)->getExternalBufferProperties(pExternalBufferInfo, pExternalBufferProperties);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceExternalFenceProperties(VkPhysicalDevice physicalDevice, const VkPhysicalDeviceExternalFenceInfo* pExternalFenceInfo, VkExternalFenceProperties* pExternalFenceProperties)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
+	TRACE("(VkPhysicalDevice physicalDevice = 0x%X, const VkPhysicalDeviceExternalFenceInfo* pExternalFenceInfo = 0x%X, VkExternalFenceProperties* pExternalFenceProperties = 0x%X)",
+	      physicalDevice, pExternalFenceInfo, pExternalFenceProperties);
+
+	vk::Cast(physicalDevice)->getExternalFenceProperties(pExternalFenceInfo, pExternalFenceProperties);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceExternalSemaphoreProperties(VkPhysicalDevice physicalDevice, const VkPhysicalDeviceExternalSemaphoreInfo* pExternalSemaphoreInfo, VkExternalSemaphoreProperties* pExternalSemaphoreProperties)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
+	TRACE("(VkPhysicalDevice physicalDevice = 0x%X, const VkPhysicalDeviceExternalSemaphoreInfo* pExternalSemaphoreInfo = 0x%X, VkExternalSemaphoreProperties* pExternalSemaphoreProperties = 0x%X)",
+	      physicalDevice, pExternalSemaphoreInfo, pExternalSemaphoreProperties);
+
+	vk::Cast(physicalDevice)->getExternalSemaphoreProperties(pExternalSemaphoreInfo, pExternalSemaphoreProperties);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkGetDescriptorSetLayoutSupport(VkDevice device, const VkDescriptorSetLayoutCreateInfo* pCreateInfo, VkDescriptorSetLayoutSupport* pSupport)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
+	TRACE("(VkDevice device, const VkDescriptorSetLayoutCreateInfo* pCreateInfo, VkDescriptorSetLayoutSupport* pSupport)",
+	      device, pCreateInfo, pSupport);
+
+	vk::Cast(device)->getDescriptorSetLayoutSupport(pCreateInfo, pSupport);
 }
 
 }

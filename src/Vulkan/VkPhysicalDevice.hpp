@@ -31,8 +31,22 @@ public:
 	static size_t ComputeRequiredAllocationSize(const void*) { return 0; }
 
 	const VkPhysicalDeviceFeatures& getFeatures() const;
+	void getFeatures(VkPhysicalDeviceSamplerYcbcrConversionFeatures* features) const;
+	void getFeatures(VkPhysicalDevice16BitStorageFeatures* features) const;
+	void getFeatures(VkPhysicalDeviceVariablePointerFeatures* features) const;
+	void getFeatures(VkPhysicalDevice8BitStorageFeaturesKHR* features) const;
+	void getFeatures(VkPhysicalDeviceMultiviewFeatures* features) const;
+	void getFeatures(VkPhysicalDeviceProtectedMemoryFeatures* features) const;
 	bool hasFeatures(const VkPhysicalDeviceFeatures& requestedFeatures) const;
+
 	const VkPhysicalDeviceProperties& getProperties() const;
+	void getProperties(VkPhysicalDeviceIDProperties* properties) const;
+	void getProperties(VkPhysicalDeviceMaintenance3Properties* properties) const;
+	void getProperties(VkPhysicalDeviceMultiviewProperties* properties) const;
+	void getProperties(VkPhysicalDevicePointClippingProperties* properties) const;
+	void getProperties(VkPhysicalDeviceProtectedMemoryProperties* properties) const;
+	void getProperties(VkPhysicalDeviceSubgroupProperties* properties) const;
+
 	void getFormatProperties(VkFormat format, VkFormatProperties* pFormatProperties) const;
 	void getImageFormatProperties(VkFormat format, VkImageType type, VkImageTiling tiling,
 	                              VkImageUsageFlags usage, VkImageCreateFlags flags,
@@ -41,6 +55,12 @@ public:
 	void getQueueFamilyProperties(uint32_t pQueueFamilyPropertyCount,
 	                              VkQueueFamilyProperties* pQueueFamilyProperties) const;
 	const VkPhysicalDeviceMemoryProperties& getMemoryProperties() const;
+	void getExternalBufferProperties(const VkPhysicalDeviceExternalBufferInfo* pExternalBufferInfo,
+	                                 VkExternalBufferProperties* pExternalBufferProperties) const;
+	void getExternalFenceProperties(const VkPhysicalDeviceExternalFenceInfo* pExternalFenceInfo,
+	                                VkExternalFenceProperties* pExternalFenceProperties) const;
+	void getExternalSemaphoreProperties(const VkPhysicalDeviceExternalSemaphoreInfo* pExternalSemaphoreInfo,
+	                                    VkExternalSemaphoreProperties* pExternalSemaphoreProperties) const;
 
 private:
 	const VkPhysicalDeviceLimits& getLimits() const;

@@ -15,6 +15,7 @@
 #include "VkConfig.h"
 #include "VkDebug.hpp"
 #include "VkDevice.hpp"
+#include "VkQueue.hpp"
 #include <new> // Must #include this to use "placement new"
 
 namespace vk
@@ -63,6 +64,32 @@ VkQueue Device::getQueue(uint32_t queueFamilyIndex, uint32_t queueIndex) const
 	ASSERT(queueFamilyIndex == 0);
 
 	return queues[queueIndex];
+}
+
+void Device::getImageSparseMemoryRequirements(VkImage pImage, uint32_t* pSparseMemoryRequirementCount,
+	                                          VkSparseImageMemoryRequirements* pSparseMemoryRequirements) const
+{
+	if(!pSparseMemoryRequirements)
+	{
+		*pSparseMemoryRequirementCount = 1;
+	}
+	else
+	{
+		UNIMPLEMENTED();
+	}
+}
+
+void Device::getGroupPeerMemoryFeatures(uint32_t heapIndex, uint32_t localDeviceIndex, uint32_t remoteDeviceIndex,
+                                        VkPeerMemoryFeatureFlags* pPeerMemoryFeatures) const
+{
+	UNIMPLEMENTED();
+}
+
+void Device::getDescriptorSetLayoutSupport(const VkDescriptorSetLayoutCreateInfo* pCreateInfo,
+                                           VkDescriptorSetLayoutSupport* pSupport) const
+{
+	// Mark everything as unsupported
+	pSupport->supported = VK_FALSE;
 }
 
 } // namespace vk
