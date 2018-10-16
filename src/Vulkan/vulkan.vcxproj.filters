@@ -248,6 +248,12 @@
     <ClInclude Include="VkDevice.hpp">
       <Filter>Header Files\Vulkan</Filter>
     </ClInclude>
+    <ClInclude Include="VkEvent.hpp">
+      <Filter>Header Files\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="VkFence.hpp">
+      <Filter>Header Files\Vulkan</Filter>
+    </ClInclude>
     <ClInclude Include="VkGetProcAddress.h">
       <Filter>Header Files\Vulkan</Filter>
     </ClInclude>
@@ -264,6 +270,9 @@
       <Filter>Header Files\Vulkan</Filter>
     </ClInclude>
     <ClInclude Include="VkQueue.hpp">
+      <Filter>Header Files\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="VkSemaphore.hpp">
       <Filter>Header Files\Vulkan</Filter>
     </ClInclude>
     <ClInclude Include="..\Device\VertexProcessor.hpp">

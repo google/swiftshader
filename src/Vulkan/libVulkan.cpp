@@ -17,10 +17,13 @@
 #include "VkDebug.hpp"
 #include "VkDestroy.h"
 #include "VkDevice.hpp"
+#include "VkEvent.hpp"
+#include "VkFence.hpp"
 #include "VkGetProcAddress.h"
 #include "VkInstance.hpp"
 #include "VkPhysicalDevice.hpp"
 #include "VkQueue.hpp"
+#include "VkSemaphore.hpp"
 #include <cstring>
 #include <string>
 
@@ -487,9 +490,12 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateFence(VkDevice device, const VkFenceCreat
 	TRACE("(VkDevice device = 0x%X, const VkFenceCreateInfo* pCreateInfo = 0x%X, const VkAllocationCallbacks* pAllocator = 0x%X, VkFence* pFence = 0x%X)",
 		    device, pCreateInfo, pAllocator, pFence);
 
-	UNIMPLEMENTED();
+	if(pCreateInfo->pNext)
+	{
+		UNIMPLEMENTED();
+	}
 
-	return VK_SUCCESS;
+	return vk::Fence::Create(pAllocator, pCreateInfo, pFence);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkDestroyFence(VkDevice device, VkFence fence, const VkAllocationCallbacks* pAllocator)
@@ -497,21 +503,28 @@ VKAPI_ATTR void VKAPI_CALL vkDestroyFence(VkDevice device, VkFence fence, const 
 	TRACE("(VkDevice device = 0x%X, VkFence fence = 0x%X, const VkAllocationCallbacks* pAllocator = 0x%X)",
 		    device, fence, pAllocator);
 
-	UNIMPLEMENTED();
+
+	vk::destroy(fence, pAllocator);
 }
 
 VKAPI_ATTR VkResult VKAPI_CALL vkResetFences(VkDevice device, uint32_t fenceCount, const VkFence* pFences)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
+	TRACE("(VkDevice device = 0x%X, uint32_t fenceCount = %d, const VkFence* pFences = 0x%X)",
+	      device, fenceCount, pFences);
+
+	for(uint32_t i = 0; i < fenceCount; i++)
+	{
+		vk::Cast(pFences[i])->reset();
+	}
+
 	return VK_SUCCESS;
 }
 
 VKAPI_ATTR VkResult VKAPI_CALL vkGetFenceStatus(VkDevice device, VkFence fence)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
-	return VK_SUCCESS;
+	TRACE("(VkDevice device = 0x%X, VkFence fence = 0x%X)", device, fence);
+
+	return vk::Cast(fence)->getStatus();
 }
 
 VKAPI_ATTR VkResult VKAPI_CALL vkWaitForFences(VkDevice device, uint32_t fenceCount, const VkFence* pFences, VkBool32 waitAll, uint64_t timeout)
@@ -523,48 +536,68 @@ VKAPI_ATTR VkResult VKAPI_CALL vkWaitForFences(VkDevice device, uint32_t fenceCo
 
 VKAPI_ATTR VkResult VKAPI_CALL vkCreateSemaphore(VkDevice device, const VkSemaphoreCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkSemaphore* pSemaphore)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
-	return VK_SUCCESS;
+	TRACE("(VkDevice device = 0x%X, const VkSemaphoreCreateInfo* pCreateInfo = 0x%X, const VkAllocationCallbacks* pAllocator = 0x%X, VkSemaphore* pSemaphore = 0x%X)",
+	      device, pCreateInfo, pAllocator, pSemaphore);
+
+	if(pCreateInfo->pNext || pCreateInfo->flags)
+	{
+		UNIMPLEMENTED();
+	}
+
+	return vk::Semaphore::Create(pAllocator, pCreateInfo, pSemaphore);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkDestroySemaphore(VkDevice device, VkSemaphore semaphore, const VkAllocationCallbacks* pAllocator)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
+	TRACE("(VkDevice device = 0x%X, VkSemaphore semaphore = 0x%X, const VkAllocationCallbacks* pAllocator = 0x%X)",
+	      device, semaphore, pAllocator);
+
+	vk::destroy(semaphore, pAllocator);
 }
 
 VKAPI_ATTR VkResult VKAPI_CALL vkCreateEvent(VkDevice device, const VkEventCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkEvent* pEvent)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
-	return VK_SUCCESS;
+	TRACE("(VkDevice device = 0x%X, const VkEventCreateInfo* pCreateInfo = 0x%X, const VkAllocationCallbacks* pAllocator = 0x%X, VkEvent* pEvent = 0x%X)",
+	      device, pCreateInfo, pAllocator, pEvent);
+
+	if(pCreateInfo->pNext || pCreateInfo->flags)
+	{
+		UNIMPLEMENTED();
+	}
+
+	return vk::Event::Create(pAllocator, pCreateInfo, pEvent);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkDestroyEvent(VkDevice device, VkEvent event, const VkAllocationCallbacks* pAllocator)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
+	TRACE("(VkDevice device = 0x%X, VkEvent event = 0x%X, const VkAllocationCallbacks* pAllocator = 0x%X)",
+	      device, event, pAllocator);
+
+	vk::destroy(event, pAllocator);
 }
 
 VKAPI_ATTR VkResult VKAPI_CALL vkGetEventStatus(VkDevice device, VkEvent event)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
-	return VK_SUCCESS;
+	TRACE("(VkDevice device = 0x%X, VkEvent event = 0x%X)", device, event);
+
+	return vk::Cast(event)->getStatus();
 }
 
 VKAPI_ATTR VkResult VKAPI_CALL vkSetEvent(VkDevice device, VkEvent event)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
+	TRACE("(VkDevice device = 0x%X, VkEvent event = 0x%X)", device, event);
+
+	vk::Cast(event)->signal();
+
 	return VK_SUCCESS;
 }
 
 VKAPI_ATTR VkResult VKAPI_CALL vkResetEvent(VkDevice device, VkEvent event)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
+	TRACE("(VkDevice device = 0x%X, VkEvent event = 0x%X)", device, event);
+
+	vk::Cast(event)->reset();
+
 	return VK_SUCCESS;
 }
 

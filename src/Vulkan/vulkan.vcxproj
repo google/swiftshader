@@ -276,12 +276,15 @@ copy "$(OutDir)vk_swiftshader.dll" "$(SolutionDir)out\$(Configuration)_$(Platfor
     <ClInclude Include="VkDebug.hpp" />
     <ClInclude Include="VkDestroy.h" />
     <ClInclude Include="VkDevice.hpp" />
+    <ClInclude Include="VkEvent.hpp" />
+    <ClInclude Include="VkFence.hpp" />
     <ClInclude Include="VkGetProcAddress.h" />
     <ClInclude Include="VkInstance.hpp" />
     <ClInclude Include="VkMemory.h" />
     <ClInclude Include="VkObject.hpp" />
     <ClInclude Include="VkPhysicalDevice.hpp" />
     <ClInclude Include="VkQueue.hpp" />
+    <ClInclude Include="VkSemaphore.hpp" />
     <ClInclude Include="..\Device\Blitter.hpp" />
     <ClInclude Include="..\Device\Clipper.hpp" />
     <ClInclude Include="..\Device\Color.hpp" />

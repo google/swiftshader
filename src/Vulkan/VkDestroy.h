@@ -14,9 +14,12 @@
 
 #include "VkCommandBuffer.hpp"
 #include "VkDevice.hpp"
+#include "VkEvent.hpp"
+#include "VkFence.hpp"
 #include "VkInstance.hpp"
 #include "VkPhysicalDevice.hpp"
 #include "VkQueue.hpp"
+#include "VkSemaphore.hpp"
 
 namespace vk
 {
