@@ -943,25 +943,26 @@ VKAPI_ATTR VkResult VKAPI_CALL vkBeginCommandBuffer(VkCommandBuffer commandBuffe
 	TRACE("(VkCommandBuffer commandBuffer = 0x%X, const VkCommandBufferBeginInfo* pBeginInfo = 0x%X)",
 		    commandBuffer, pBeginInfo);
 
-	UNIMPLEMENTED();
+	if(pBeginInfo->pNext)
+	{
+		UNIMPLEMENTED();
+	}
 
-	return VK_SUCCESS;
+	return vk::Cast(commandBuffer)->begin(pBeginInfo->flags, pBeginInfo->pInheritanceInfo);
 }
 
 VKAPI_ATTR VkResult VKAPI_CALL vkEndCommandBuffer(VkCommandBuffer commandBuffer)
 {
 	TRACE("(VkCommandBuffer commandBuffer = 0x%X)", commandBuffer);
 
-	UNIMPLEMENTED();
-
-	return VK_SUCCESS;
+	return vk::Cast(commandBuffer)->end();
 }
 
 VKAPI_ATTR VkResult VKAPI_CALL vkResetCommandBuffer(VkCommandBuffer commandBuffer, VkCommandBufferResetFlags flags)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
-	return VK_SUCCESS;
+	TRACE("VkCommandBuffer commandBuffer = 0x%X, VkCommandBufferResetFlags flags = %d", commandBuffer, flags);
+
+	return vk::Cast(commandBuffer)->reset(flags);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkCmdBindPipeline(VkCommandBuffer commandBuffer, VkPipelineBindPoint pipelineBindPoint, VkPipeline pipeline)
@@ -969,73 +970,94 @@ VKAPI_ATTR void VKAPI_CALL vkCmdBindPipeline(VkCommandBuffer commandBuffer, VkPi
 	TRACE("(VkCommandBuffer commandBuffer = 0x%X, VkPipelineBindPoint pipelineBindPoint = %d, VkPipeline pipeline = 0x%X)",
 		    commandBuffer, pipelineBindPoint, pipeline);
 
-	UNIMPLEMENTED();
+	vk::Cast(commandBuffer)->bindPipeline(pipelineBindPoint, pipeline);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkCmdSetViewport(VkCommandBuffer commandBuffer, uint32_t firstViewport, uint32_t viewportCount, const VkViewport* pViewports)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
+	TRACE("(VkCommandBuffer commandBuffer = 0x%X, uint32_t firstViewport = %d, uint32_t viewportCount = %d, const VkViewport* pViewports = 0x%X)",
+	      commandBuffer, firstViewport, viewportCount, pViewports);
+
+	vk::Cast(commandBuffer)->setViewport(firstViewport, viewportCount, pViewports);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkCmdSetScissor(VkCommandBuffer commandBuffer, uint32_t firstScissor, uint32_t scissorCount, const VkRect2D* pScissors)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
+	TRACE("(VkCommandBuffer commandBuffer = 0x%X, uint32_t firstScissor = %d, uint32_t scissorCount = %d, const VkRect2D* pScissors = 0x%X)",
+	      commandBuffer, firstScissor, scissorCount, pScissors);
+
+	vk::Cast(commandBuffer)->setScissor(firstScissor, scissorCount, pScissors);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkCmdSetLineWidth(VkCommandBuffer commandBuffer, float lineWidth)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
+	TRACE("(VkCommandBuffer commandBuffer = 0x%X, float lineWidth = %f)", commandBuffer, lineWidth);
+
+	vk::Cast(commandBuffer)->setLineWidth(lineWidth);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkCmdSetDepthBias(VkCommandBuffer commandBuffer, float depthBiasConstantFactor, float depthBiasClamp, float depthBiasSlopeFactor)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
+	TRACE("(VkCommandBuffer commandBuffer = 0x%X, float depthBiasConstantFactor = %f, float depthBiasClamp = %f, float depthBiasSlopeFactor = %f)",
+	      commandBuffer, depthBiasConstantFactor, depthBiasClamp, depthBiasSlopeFactor);
+
+	vk::Cast(commandBuffer)->setDepthBias(depthBiasConstantFactor, depthBiasClamp, depthBiasSlopeFactor);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkCmdSetBlendConstants(VkCommandBuffer commandBuffer, const float blendConstants[4])
 {
-	TRACE("()");
-	UNIMPLEMENTED();
+	TRACE("(VkCommandBuffer commandBuffer = 0x%X, const float blendConstants[4] = {%f, %f, %f, %f})",
+	      commandBuffer, blendConstants[0], blendConstants[1], blendConstants[2], blendConstants[3]);
+
+	vk::Cast(commandBuffer)->setBlendConstants(blendConstants);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkCmdSetDepthBounds(VkCommandBuffer commandBuffer, float minDepthBounds, float maxDepthBounds)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
+	TRACE("(VkCommandBuffer commandBuffer = 0x%X, float minDepthBounds = %f, float maxDepthBounds = %f)",
+	      commandBuffer, minDepthBounds, maxDepthBounds);
+
+	vk::Cast(commandBuffer)->setDepthBounds(minDepthBounds, maxDepthBounds);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkCmdSetStencilCompareMask(VkCommandBuffer commandBuffer, VkStencilFaceFlags faceMask, uint32_t compareMask)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
+	TRACE("(VkCommandBuffer commandBuffer = 0x%X, VkStencilFaceFlags faceMask = %d, uint32_t compareMask = %d)",
+	      commandBuffer, faceMask, compareMask);
+
+	vk::Cast(commandBuffer)->setStencilCompareMask(faceMask, compareMask);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkCmdSetStencilWriteMask(VkCommandBuffer commandBuffer, VkStencilFaceFlags faceMask, uint32_t writeMask)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
+	TRACE("(VkCommandBuffer commandBuffer = 0x%X, VkStencilFaceFlags faceMask = %d, uint32_t writeMask = %d)",
+	      commandBuffer, faceMask, writeMask);
+
+	vk::Cast(commandBuffer)->setStencilWriteMask(faceMask, writeMask);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkCmdSetStencilReference(VkCommandBuffer commandBuffer, VkStencilFaceFlags faceMask, uint32_t reference)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
+	TRACE("(VkCommandBuffer commandBuffer = 0x%X, VkStencilFaceFlags faceMask = %d, uint32_t reference = %d)",
+	      commandBuffer, faceMask, reference);
+
+	vk::Cast(commandBuffer)->setStencilReference(faceMask, reference);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkCmdBindDescriptorSets(VkCommandBuffer commandBuffer, VkPipelineBindPoint pipelineBindPoint, VkPipelineLayout layout, uint32_t firstSet, uint32_t descriptorSetCount, const VkDescriptorSet* pDescriptorSets, uint32_t dynamicOffsetCount, const uint32_t* pDynamicOffsets)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
+	TRACE("(VkCommandBuffer commandBuffer = 0x%X, VkPipelineBindPoint pipelineBindPoint = %d, VkPipelineLayout layout = 0x%X, uint32_t firstSet = %d, uint32_t descriptorSetCount = %d, const VkDescriptorSet* pDescriptorSets = 0x%X, uint32_t dynamicOffsetCount = %d, const uint32_t* pDynamicOffsets = 0x%X)",
+	      commandBuffer, pipelineBindPoint, layout, firstSet, descriptorSetCount, pDescriptorSets, dynamicOffsetCount, pDynamicOffsets);
+
+	vk::Cast(commandBuffer)->bindDescriptorSets(pipelineBindPoint, layout, firstSet, descriptorSetCount, pDescriptorSets, dynamicOffsetCount, pDynamicOffsets);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkCmdBindIndexBuffer(VkCommandBuffer commandBuffer, VkBuffer buffer, VkDeviceSize offset, VkIndexType indexType)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
+	TRACE("(VkCommandBuffer commandBuffer = 0x%X, VkBuffer buffer = 0x%X, VkDeviceSize offset = %d, VkIndexType indexType = %d)",
+	      commandBuffer, buffer, offset, indexType);
+
+	vk::Cast(commandBuffer)->bindIndexBuffer(buffer, offset, indexType);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkCmdBindVertexBuffers(VkCommandBuffer commandBuffer, uint32_t firstBinding, uint32_t bindingCount, const VkBuffer* pBuffers, const VkDeviceSize* pOffsets)
@@ -1043,7 +1065,7 @@ VKAPI_ATTR void VKAPI_CALL vkCmdBindVertexBuffers(VkCommandBuffer commandBuffer,
 	TRACE("(VkCommandBuffer commandBuffer = 0x%X, uint32_t firstBinding = %d, uint32_t bindingCount = %d, const VkBuffer* pBuffers = 0x%X, const VkDeviceSize* pOffsets = 0x%X)",
 		    commandBuffer, firstBinding, bindingCount, pBuffers, pOffsets);
 
-	UNIMPLEMENTED();
+	vk::Cast(commandBuffer)->bindVertexBuffers(firstBinding, bindingCount, pBuffers, pOffsets);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkCmdDraw(VkCommandBuffer commandBuffer, uint32_t vertexCount, uint32_t instanceCount, uint32_t firstVertex, uint32_t firstInstance)
@@ -1051,7 +1073,7 @@ VKAPI_ATTR void VKAPI_CALL vkCmdDraw(VkCommandBuffer commandBuffer, uint32_t ver
 	TRACE("(VkCommandBuffer commandBuffer = 0x%X, uint32_t vertexCount = %d, uint32_t instanceCount = %d, uint32_t firstVertex = %d, uint32_t firstInstance = %d)",
 		    commandBuffer, vertexCount, instanceCount, firstVertex, firstInstance);
 
-	UNIMPLEMENTED();
+	vk::Cast(commandBuffer)->draw(vertexCount, instanceCount, firstVertex, firstInstance);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkCmdDrawIndexed(VkCommandBuffer commandBuffer, uint32_t indexCount, uint32_t instanceCount, uint32_t firstIndex, int32_t vertexOffset, uint32_t firstInstance)
@@ -1059,7 +1081,7 @@ VKAPI_ATTR void VKAPI_CALL vkCmdDrawIndexed(VkCommandBuffer commandBuffer, uint3
 	TRACE("(VkCommandBuffer commandBuffer = 0x%X, uint32_t indexCount = %d, uint32_t instanceCount = %d, uint32_t firstIndex = %d, int32_t vertexOffset = %d, uint32_t firstInstance = %d)",
 		    commandBuffer, indexCount, instanceCount, firstIndex, vertexOffset, firstInstance);
 
-	UNIMPLEMENTED();
+	vk::Cast(commandBuffer)->drawIndexed(indexCount, instanceCount, firstIndex, vertexOffset, firstInstance);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkCmdDrawIndirect(VkCommandBuffer commandBuffer, VkBuffer buffer, VkDeviceSize offset, uint32_t drawCount, uint32_t stride)
@@ -1067,7 +1089,7 @@ VKAPI_ATTR void VKAPI_CALL vkCmdDrawIndirect(VkCommandBuffer commandBuffer, VkBu
 	TRACE("(VkCommandBuffer commandBuffer = 0x%X, VkBuffer buffer = 0x%X, VkDeviceSize offset = %d, uint32_t drawCount = %d, uint32_t stride = %d)",
 		    commandBuffer, buffer, offset, drawCount, stride);
 
-	UNIMPLEMENTED();
+	vk::Cast(commandBuffer)->drawIndirect(buffer, offset, drawCount, stride);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkCmdDrawIndexedIndirect(VkCommandBuffer commandBuffer, VkBuffer buffer, VkDeviceSize offset, uint32_t drawCount, uint32_t stride)
@@ -1075,43 +1097,55 @@ VKAPI_ATTR void VKAPI_CALL vkCmdDrawIndexedIndirect(VkCommandBuffer commandBuffe
 	TRACE("(VkCommandBuffer commandBuffer = 0x%X, VkBuffer buffer = 0x%X, VkDeviceSize offset = %d, uint32_t drawCount = %d, uint32_t stride = %d)",
 		    commandBuffer, buffer, offset, drawCount, stride);
 
-	UNIMPLEMENTED();
+	vk::Cast(commandBuffer)->drawIndexedIndirect(buffer, offset, drawCount, stride);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkCmdDispatch(VkCommandBuffer commandBuffer, uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
+	TRACE("(VkCommandBuffer commandBuffer = 0x%X, uint32_t groupCountX = %d, uint32_t groupCountY = %d, uint32_t groupCountZ = %d)",
+	      commandBuffer, groupCountX, groupCountY, groupCountZ);
+
+	vk::Cast(commandBuffer)->dispatch(groupCountX, groupCountY, groupCountZ);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkCmdDispatchIndirect(VkCommandBuffer commandBuffer, VkBuffer buffer, VkDeviceSize offset)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
+	TRACE("(VkCommandBuffer commandBuffer = 0x%X, VkBuffer buffer = 0x%X, VkDeviceSize offset = %d)",
+	      commandBuffer, buffer, offset);
+
+	vk::Cast(commandBuffer)->dispatchIndirect(buffer, offset);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkCmdCopyBuffer(VkCommandBuffer commandBuffer, VkBuffer srcBuffer, VkBuffer dstBuffer, uint32_t regionCount, const VkBufferCopy* pRegions)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
+	TRACE("(VkCommandBuffer commandBuffer = 0x%X, VkBuffer srcBuffer = 0x%X, VkBuffer dstBuffer = 0x%X, uint32_t regionCount = %d, const VkBufferCopy* pRegions = 0x%X)",
+	      commandBuffer, srcBuffer, dstBuffer, regionCount, pRegions);
+
+	vk::Cast(commandBuffer)->copyBuffer(srcBuffer, dstBuffer, regionCount, pRegions);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkCmdCopyImage(VkCommandBuffer commandBuffer, VkImage srcImage, VkImageLayout srcImageLayout, VkImage dstImage, VkImageLayout dstImageLayout, uint32_t regionCount, const VkImageCopy* pRegions)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
+	TRACE("(VkCommandBuffer commandBuffer = 0x%X, VkImage srcImage = 0x%X, VkImageLayout srcImageLayout = %d, VkImage dstImage = 0x%X, VkImageLayout dstImageLayout = %d, uint32_t regionCount = %d, const VkImageCopy* pRegions = 0x%X)",
+	      commandBuffer, srcImage, srcImageLayout, dstImage, dstImageLayout, regionCount, pRegions);
+
+	vk::Cast(commandBuffer)->copyImage(srcImage, srcImageLayout, dstImage, dstImageLayout, regionCount, pRegions);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkCmdBlitImage(VkCommandBuffer commandBuffer, VkImage srcImage, VkImageLayout srcImageLayout, VkImage dstImage, VkImageLayout dstImageLayout, uint32_t regionCount, const VkImageBlit* pRegions, VkFilter filter)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
+	TRACE("(VkCommandBuffer commandBuffer = 0x%X, VkImage srcImage = 0x%X, VkImageLayout srcImageLayout = %d, VkImage dstImage = 0x%X, VkImageLayout dstImageLayout = %d, uint32_t regionCount = %d, const VkImageBlit* pRegions = 0x%X, VkFilter filter = %d)",
+	      commandBuffer, srcImage, srcImageLayout, dstImage, dstImageLayout, regionCount, pRegions, filter);
+
+	vk::Cast(commandBuffer)->blitImage(srcImage, srcImageLayout, dstImage, dstImageLayout, regionCount, pRegions, filter);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkCmdCopyBufferToImage(VkCommandBuffer commandBuffer, VkBuffer srcBuffer, VkImage dstImage, VkImageLayout dstImageLayout, uint32_t regionCount, const VkBufferImageCopy* pRegions)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
+	TRACE("(VkCommandBuffer commandBuffer = 0x%X, VkBuffer srcBuffer = 0x%X, VkImage dstImage = 0x%X, VkImageLayout dstImageLayout = %d, uint32_t regionCount = %d, const VkBufferImageCopy* pRegions = 0x%X)",
+	      commandBuffer, srcBuffer, dstImage, dstImageLayout, regionCount, pRegions);
+
+	vk::Cast(commandBuffer)->copyBufferToImage(srcBuffer, dstImage, dstImageLayout, regionCount, pRegions);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkCmdCopyImageToBuffer(VkCommandBuffer commandBuffer, VkImage srcImage, VkImageLayout srcImageLayout, VkBuffer dstBuffer, uint32_t regionCount, const VkBufferImageCopy* pRegions)
@@ -1119,61 +1153,79 @@ VKAPI_ATTR void VKAPI_CALL vkCmdCopyImageToBuffer(VkCommandBuffer commandBuffer,
 	TRACE("(VkCommandBuffer commandBuffer = 0x%X, VkImage srcImage = 0x%X, VkImageLayout srcImageLayout = %d, VkBuffer dstBuffer = 0x%X, uint32_t regionCount = %d, const VkBufferImageCopy* pRegions = 0x%X)",
 		    commandBuffer, srcImage, srcImageLayout, dstBuffer, regionCount, pRegions);
 
-	UNIMPLEMENTED();
+	vk::Cast(commandBuffer)->copyImageToBuffer(srcImage, srcImageLayout, dstBuffer, regionCount, pRegions);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkCmdUpdateBuffer(VkCommandBuffer commandBuffer, VkBuffer dstBuffer, VkDeviceSize dstOffset, VkDeviceSize dataSize, const void* pData)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
+	TRACE("(VkCommandBuffer commandBuffer = 0x%X, VkBuffer dstBuffer = 0x%X, VkDeviceSize dstOffset = %d, VkDeviceSize dataSize = %d, const void* pData = 0x%X)",
+	      commandBuffer, dstBuffer, dstOffset, dataSize, pData);
+
+	vk::Cast(commandBuffer)->updateBuffer(dstBuffer, dstOffset, dataSize, pData);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkCmdFillBuffer(VkCommandBuffer commandBuffer, VkBuffer dstBuffer, VkDeviceSize dstOffset, VkDeviceSize size, uint32_t data)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
+	TRACE("(VkCommandBuffer commandBuffer = 0x%X, VkBuffer dstBuffer = 0x%X, VkDeviceSize dstOffset = %d, VkDeviceSize size = %d, uint32_t data = %d)",
+	      commandBuffer, dstBuffer, dstOffset, size, data);
+
+	vk::Cast(commandBuffer)->fillBuffer(dstBuffer, dstOffset, size, data);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkCmdClearColorImage(VkCommandBuffer commandBuffer, VkImage image, VkImageLayout imageLayout, const VkClearColorValue* pColor, uint32_t rangeCount, const VkImageSubresourceRange* pRanges)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
+	TRACE("(VkCommandBuffer commandBuffer = 0x%X, VkImage image = 0x%X, VkImageLayout imageLayout = %d, const VkClearColorValue* pColor = 0x%X, uint32_t rangeCount = %d, const VkImageSubresourceRange* pRanges = 0x%X)",
+	      commandBuffer, image, imageLayout, pColor, rangeCount, pRanges);
+
+	vk::Cast(commandBuffer)->clearColorImage(image, imageLayout, pColor, rangeCount, pRanges);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkCmdClearDepthStencilImage(VkCommandBuffer commandBuffer, VkImage image, VkImageLayout imageLayout, const VkClearDepthStencilValue* pDepthStencil, uint32_t rangeCount, const VkImageSubresourceRange* pRanges)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
+	TRACE("(VkCommandBuffer commandBuffer = 0x%X, VkImage image = 0x%X, VkImageLayout imageLayout = %d, const VkClearDepthStencilValue* pDepthStencil = 0x%X, uint32_t rangeCount = %d, const VkImageSubresourceRange* pRanges = 0x%X)",
+	      commandBuffer, image, imageLayout, pDepthStencil, rangeCount, pRanges);
+
+	vk::Cast(commandBuffer)->clearDepthStencilImage(image, imageLayout, pDepthStencil, rangeCount, pRanges);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkCmdClearAttachments(VkCommandBuffer commandBuffer, uint32_t attachmentCount, const VkClearAttachment* pAttachments, uint32_t rectCount, const VkClearRect* pRects)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
+	TRACE("(VkCommandBuffer commandBuffer = 0x%X, uint32_t attachmentCount = %d, const VkClearAttachment* pAttachments = 0x%X, uint32_t rectCount = %d, const VkClearRect* pRects = 0x%X)",
+	      commandBuffer, attachmentCount, pAttachments, rectCount,  pRects);
+
+	vk::Cast(commandBuffer)->clearAttachments(attachmentCount, pAttachments, rectCount, pRects);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkCmdResolveImage(VkCommandBuffer commandBuffer, VkImage srcImage, VkImageLayout srcImageLayout, VkImage dstImage, VkImageLayout dstImageLayout, uint32_t regionCount, const VkImageResolve* pRegions)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
+	TRACE("(VkCommandBuffer commandBuffer = 0x%X, VkImage srcImage = 0x%X, VkImageLayout srcImageLayout = %d, VkImage dstImage = 0x%X, VkImageLayout dstImageLayout = %d, uint32_t regionCount = %d, const VkImageResolve* pRegions = 0x%X)",
+	      commandBuffer, srcImage, srcImageLayout, dstImage, dstImageLayout, regionCount, pRegions);
+
+	vk::Cast(commandBuffer)->resolveImage(srcImage, srcImageLayout, dstImage, dstImageLayout, regionCount, pRegions);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkCmdSetEvent(VkCommandBuffer commandBuffer, VkEvent event, VkPipelineStageFlags stageMask)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
+	TRACE("(VkCommandBuffer commandBuffer = 0x%X, VkEvent event = 0x%X, VkPipelineStageFlags stageMask = %d)",
+	      commandBuffer, event, stageMask);
+
+	vk::Cast(commandBuffer)->setEvent(event, stageMask);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkCmdResetEvent(VkCommandBuffer commandBuffer, VkEvent event, VkPipelineStageFlags stageMask)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
+	TRACE("(VkCommandBuffer commandBuffer = 0x%X, VkEvent event = 0x%X, VkPipelineStageFlags stageMask = %d)",
+	      commandBuffer, event, stageMask);
+
+	vk::Cast(commandBuffer)->resetEvent(event, stageMask);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkCmdWaitEvents(VkCommandBuffer commandBuffer, uint32_t eventCount, const VkEvent* pEvents, VkPipelineStageFlags srcStageMask, VkPipelineStageFlags dstStageMask, uint32_t memoryBarrierCount, const VkMemoryBarrier* pMemoryBarriers, uint32_t bufferMemoryBarrierCount, const VkBufferMemoryBarrier* pBufferMemoryBarriers, uint32_t imageMemoryBarrierCount, const VkImageMemoryBarrier* pImageMemoryBarriers)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
+	TRACE("(VkCommandBuffer commandBuffer = 0x%X, uint32_t eventCount = %d, const VkEvent* pEvents = 0x%X, VkPipelineStageFlags srcStageMask = %d, VkPipelineStageFlags dstStageMask = %d, uint32_t memoryBarrierCount = %d, const VkMemoryBarrier* pMemoryBarriers = 0x%X, uint32_t bufferMemoryBarrierCount = %d, const VkBufferMemoryBarrier* pBufferMemoryBarriers = 0x%X, uint32_t imageMemoryBarrierCount = %d, const VkImageMemoryBarrier* pImageMemoryBarriers = 0x%X)",
+	      commandBuffer, eventCount, pEvents, srcStageMask, dstStageMask, memoryBarrierCount, pMemoryBarriers, bufferMemoryBarrierCount, pBufferMemoryBarriers, imageMemoryBarrierCount, pImageMemoryBarriers);
+
+	vk::Cast(commandBuffer)->waitEvents(eventCount, pEvents, srcStageMask, dstStageMask, memoryBarrierCount, pMemoryBarriers, bufferMemoryBarrierCount, pBufferMemoryBarriers, imageMemoryBarrierCount, pImageMemoryBarriers);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkCmdPipelineBarrier(VkCommandBuffer commandBuffer, VkPipelineStageFlags srcStageMask, VkPipelineStageFlags dstStageMask, VkDependencyFlags dependencyFlags, uint32_t memoryBarrierCount, const VkMemoryBarrier* pMemoryBarriers, uint32_t bufferMemoryBarrierCount, const VkBufferMemoryBarrier* pBufferMemoryBarriers, uint32_t imageMemoryBarrierCount, const VkImageMemoryBarrier* pImageMemoryBarriers)
@@ -1182,43 +1234,58 @@ VKAPI_ATTR void VKAPI_CALL vkCmdPipelineBarrier(VkCommandBuffer commandBuffer, V
 		    " uint32_t bufferMemoryBarrierCount = %d, const VkBufferMemoryBarrier* pBufferMemoryBarriers = 0x%X, uint32_t imageMemoryBarrierCount = %d, const VkImageMemoryBarrier* pImageMemoryBarriers = 0x%X)",
 		    commandBuffer, srcStageMask, dstStageMask, dependencyFlags, memoryBarrierCount, pMemoryBarriers, bufferMemoryBarrierCount, pBufferMemoryBarriers, imageMemoryBarrierCount, pImageMemoryBarriers);
 
-	UNIMPLEMENTED();
+	vk::Cast(commandBuffer)->pipelineBarrier(srcStageMask, dstStageMask, dependencyFlags,
+	                                         memoryBarrierCount, pMemoryBarriers,
+	                                         bufferMemoryBarrierCount, pBufferMemoryBarriers,
+	                                         imageMemoryBarrierCount, pImageMemoryBarriers);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkCmdBeginQuery(VkCommandBuffer commandBuffer, VkQueryPool queryPool, uint32_t query, VkQueryControlFlags flags)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
+	TRACE("(VkCommandBuffer commandBuffer = 0x%X, VkQueryPool queryPool = 0x%X, uint32_t query = %d, VkQueryControlFlags flags = %d)",
+	      commandBuffer, queryPool, query, flags);
+
+	vk::Cast(commandBuffer)->beginQuery(queryPool, query, flags);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkCmdEndQuery(VkCommandBuffer commandBuffer, VkQueryPool queryPool, uint32_t query)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
+	TRACE("(VkCommandBuffer commandBuffer = 0x%X, VkQueryPool queryPool = 0x%X, uint32_t query = %d)",
+	      commandBuffer, queryPool, query);
+
+	vk::Cast(commandBuffer)->endQuery(queryPool, query);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkCmdResetQueryPool(VkCommandBuffer commandBuffer, VkQueryPool queryPool, uint32_t firstQuery, uint32_t queryCount)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
+	TRACE("(VkCommandBuffer commandBuffer = 0x%X, VkQueryPool queryPool = 0x%X, uint32_t firstQuery = %d, uint32_t queryCount = %d)",
+	      commandBuffer, queryPool, firstQuery, queryCount);
+
+	vk::Cast(commandBuffer)->resetQueryPool(queryPool, firstQuery, queryCount);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkCmdWriteTimestamp(VkCommandBuffer commandBuffer, VkPipelineStageFlagBits pipelineStage, VkQueryPool queryPool, uint32_t query)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
+	TRACE("(VkCommandBuffer commandBuffer = 0x%X, VkPipelineStageFlagBits pipelineStage = %d, VkQueryPool queryPool = 0x%X, uint32_t query = %d)",
+	      commandBuffer, pipelineStage, queryPool, query);
+
+	vk::Cast(commandBuffer)->writeTimestamp(pipelineStage, queryPool, query);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkCmdCopyQueryPoolResults(VkCommandBuffer commandBuffer, VkQueryPool queryPool, uint32_t firstQuery, uint32_t queryCount, VkBuffer dstBuffer, VkDeviceSize dstOffset, VkDeviceSize stride, VkQueryResultFlags flags)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
+	TRACE("(VkCommandBuffer commandBuffer = 0x%X, VkQueryPool queryPool = 0x%X, uint32_t firstQuery = %d, uint32_t queryCount = %d, VkBuffer dstBuffer = 0x%X, VkDeviceSize dstOffset = %d, VkDeviceSize stride = %d, VkQueryResultFlags flags = %d)",
+	      commandBuffer, queryPool, firstQuery, queryCount, dstBuffer, dstOffset, stride, flags);
+
+	vk::Cast(commandBuffer)->copyQueryPoolResults(queryPool, firstQuery, queryCount, dstBuffer, dstOffset, stride, flags);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkCmdPushConstants(VkCommandBuffer commandBuffer, VkPipelineLayout layout, VkShaderStageFlags stageFlags, uint32_t offset, uint32_t size, const void* pValues)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
+	TRACE("(VkCommandBuffer commandBuffer = 0x%X, VkPipelineLayout layout = 0x%X, VkShaderStageFlags stageFlags = %d, uint32_t offset = %d, uint32_t size = %d, const void* pValues = 0x%X)",
+	      commandBuffer, layout, stageFlags, offset, size, pValues);
+
+	vk::Cast(commandBuffer)->pushConstants(layout, stageFlags, offset, size, pValues);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkCmdBeginRenderPass(VkCommandBuffer commandBuffer, const VkRenderPassBeginInfo* pRenderPassBegin, VkSubpassContents contents)
@@ -1226,26 +1293,37 @@ VKAPI_ATTR void VKAPI_CALL vkCmdBeginRenderPass(VkCommandBuffer commandBuffer, c
 	TRACE("(VkCommandBuffer commandBuffer = 0x%X, const VkRenderPassBeginInfo* pRenderPassBegin = 0x%X, VkSubpassContents contents = %d)",
 		    commandBuffer, pRenderPassBegin, contents);
 
-	UNIMPLEMENTED();
+	if(pRenderPassBegin->pNext)
+	{
+		UNIMPLEMENTED();
+	}
+
+	vk::Cast(commandBuffer)->beginRenderPass(pRenderPassBegin->renderPass, pRenderPassBegin->framebuffer,
+	                                         pRenderPassBegin->renderArea, pRenderPassBegin->clearValueCount,
+	                                         pRenderPassBegin->pClearValues, contents);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkCmdNextSubpass(VkCommandBuffer commandBuffer, VkSubpassContents contents)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
+	TRACE("(VkCommandBuffer commandBuffer = 0x%X, VkSubpassContents contents = %d)",
+	      commandBuffer, contents);
+
+	vk::Cast(commandBuffer)->nextSubpass(contents);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkCmdEndRenderPass(VkCommandBuffer commandBuffer)
 {
 	TRACE("(VkCommandBuffer commandBuffer = 0x%X)", commandBuffer);
 
-	UNIMPLEMENTED();
+	vk::Cast(commandBuffer)->endRenderPass();
 }
 
 VKAPI_ATTR void VKAPI_CALL vkCmdExecuteCommands(VkCommandBuffer commandBuffer, uint32_t commandBufferCount, const VkCommandBuffer* pCommandBuffers)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
+	TRACE("(VkCommandBuffer commandBuffer = 0x%X, uint32_t commandBufferCount = %d, const VkCommandBuffer* pCommandBuffers = 0x%X)",
+	      commandBuffer, commandBufferCount, pCommandBuffers);
+
+	vk::Cast(commandBuffer)->executeCommands(commandBufferCount, pCommandBuffers);
 }
 
 VKAPI_ATTR VkResult VKAPI_CALL vkEnumerateInstanceVersion(uint32_t* pApiVersion)
