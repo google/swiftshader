@@ -1071,6 +1071,12 @@ void Context::deleteTransformFeedback(GLuint transformFeedback)
 {
 	TransformFeedback *transformFeedbackObject = mTransformFeedbackNameSpace.remove(transformFeedback);
 
+	// Detach if currently bound.
+	if(mState.transformFeedback == transformFeedback)
+	{
+		mState.transformFeedback = 0;
+	}
+
 	if(transformFeedbackObject)
 	{
 		delete transformFeedbackObject;
