@@ -17,6 +17,7 @@
 
 #include "VkConfig.h"
 #include "VkMemory.h"
+#include "System/Memory.hpp"
 
 namespace vk
 {

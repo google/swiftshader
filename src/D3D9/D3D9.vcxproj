@@ -149,6 +149,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <ForcedIncludeFiles>%(ForcedIncludeFiles)</ForcedIncludeFiles>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalOptions>/MP /permissive- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>dxguid.lib;WS2_32.lib;comctl32.lib;user32.lib;gdi32.lib;Psapi.lib;Psapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -188,6 +189,7 @@ copy "$(OutDir)d3d9.dll" "$(SolutionDir)out\$(Configuration)_$(Platform)\"</Comm
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <ForcedIncludeFiles>%(ForcedIncludeFiles)</ForcedIncludeFiles>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalOptions>/MP /permissive- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>dxguid.lib;WS2_32.lib;comctl32.lib;user32.lib;gdi32.lib;Psapi.lib;Psapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -231,6 +233,7 @@ copy "$(OutDir)d3d9.dll" "$(SolutionDir)out\$(Configuration)_$(Platform)\"</Comm
       <StringPooling>true</StringPooling>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalOptions>/MP /permissive- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>dxguid.lib;WS2_32.lib;comctl32.lib;user32.lib;gdi32.lib;Psapi.lib;Psapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -275,6 +278,7 @@ copy "$(OutDir)d3d9.dll" "$(SolutionDir)out\$(Configuration)_$(Platform)\"</Comm
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <StringPooling>true</StringPooling>
       <FloatingPointExceptions>false</FloatingPointExceptions>
+      <AdditionalOptions>/MP /permissive- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>dxguid.lib;WS2_32.lib;comctl32.lib;user32.lib;gdi32.lib;Psapi.lib;Psapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -300,7 +304,7 @@ copy "$(OutDir)d3d9.dll" "$(SolutionDir)out\$(Configuration)_$(Platform)\"</Comm
       <TargetEnvironment>X64</TargetEnvironment>
     </Midl>
     <ClCompile>
-      <AdditionalOptions>/MP %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/MP /permissive- %(AdditionalOptions)</AdditionalOptions>
       <Optimization>Full</Optimization>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>false</IntrinsicFunctions>
@@ -350,7 +354,7 @@ copy "$(OutDir)d3d9.dll" "$(SolutionDir)out\$(Configuration)_$(Platform)\"</Comm
       <TargetEnvironment>X64</TargetEnvironment>
     </Midl>
     <ClCompile>
-      <AdditionalOptions>/MP %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/MP /permissive- %(AdditionalOptions)</AdditionalOptions>
       <Optimization>Full</Optimization>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>false</IntrinsicFunctions>

@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "VkInstance.hpp"
+#include "VkDestroy.h"
 
 namespace vk
 {

@@ -215,6 +215,7 @@ const VkPhysicalDeviceProperties& PhysicalDevice::getProperties() const
 	uint32_t apiVersion;
 	VkResult result = vkEnumerateInstanceVersion(&apiVersion);
 	ASSERT(result == VK_SUCCESS);
+	(void)result; // Slence unused variable warning
 
 	static const VkPhysicalDeviceProperties properties
 	{

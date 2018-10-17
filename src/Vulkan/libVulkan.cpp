@@ -15,6 +15,7 @@
 #include "VkConfig.h"
 #include "VkCommandBuffer.hpp"
 #include "VkDebug.hpp"
+#include "VkDestroy.h"
 #include "VkDevice.hpp"
 #include "VkGetProcAddress.h"
 #include "VkInstance.hpp"
@@ -222,6 +223,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDevice(VkPhysicalDevice physicalDevice, c
 		}
 
 		ASSERT(queueCreateInfo.queueFamilyIndex < queueFamilyPropertyCount);
+		(void)queueFamilyPropertyCount; // Slence unused variable warning
 	}
 
 	vk::Device::CreateInfo deviceCreateInfo =

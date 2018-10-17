@@ -27,7 +27,7 @@ Device::Device(const Device::CreateInfo* info, void* mem)
 	for(uint32_t i = 0; i < pCreateInfo->queueCreateInfoCount; i++)
 	{
 		const VkDeviceQueueCreateInfo& queueCreateInfo = pCreateInfo->pQueueCreateInfos[i];
-		queueCount += info->pCreateInfo->pQueueCreateInfos[i].queueCount;
+		queueCount += queueCreateInfo.queueCount;
 	}
 
 	uint32_t queueID = 0;

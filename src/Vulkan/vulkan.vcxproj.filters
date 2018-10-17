@@ -461,6 +461,9 @@
     <ClInclude Include="VkDebug.hpp">
       <Filter>Header Files\Vulkan</Filter>
     </ClInclude>
+    <ClInclude Include="VkDestroy.h">
+      <Filter>Header Files\Vulkan</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="swiftshader_icd.def" />

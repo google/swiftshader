@@ -15,7 +15,7 @@
 #ifndef VK_INSTANCE_HPP_
 #define VK_INSTANCE_HPP_
 
-#include "VkPhysicalDevice.hpp"
+#include "VkObject.hpp"
 
 namespace vk
 {

@@ -16,6 +16,7 @@
 #define VK_QUEUE_HPP_
 
 #include "VkObject.hpp"
+#include <vulkan/vk_icd.h>
 
 namespace vk
 {

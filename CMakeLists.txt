@@ -1874,6 +1874,9 @@ list(REMOVE_ITEM OPENGL_COMPILER_LIST ${OPENGL_COMPILER_OS_SPECIFIC_LIST})
 file(GLOB_RECURSE VULKAN_LIST
     ${VULKAN_DIR}/*.cpp
     ${VULKAN_DIR}/*.h
+    ${VULKAN_DIR}/*.hpp
+    ${SOURCE_DIR}/System/Memory.cpp
+    ${SOURCE_DIR}/System/Memory.hpp
     ${CMAKE_SOURCE_DIR}/include/vulkan/*.h}
 )
 
