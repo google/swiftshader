@@ -63,7 +63,7 @@ endif
 
 ifneq ($(swiftshader_unsupported_build),true)
 include $(swiftshader_root)/src/Android.mk
-include $(swiftshader_root)/tests/unittests/Android.mk
+include $(swiftshader_root)/tests/GLESUnitTests/Android.mk
 ifeq ($(REACTOR_LLVM_VERSION),3)
 include $(swiftshader_root)/third_party/LLVM/Android.mk
 else

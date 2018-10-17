@@ -2125,8 +2125,8 @@ endif()
 
 if(BUILD_TESTS)
     set(UNITTESTS_LIST
-        ${CMAKE_SOURCE_DIR}/tests/unittests/main.cpp
-        ${CMAKE_SOURCE_DIR}/tests/unittests/unittests.cpp
+        ${CMAKE_SOURCE_DIR}/tests/GLESUnitTests/main.cpp
+        ${CMAKE_SOURCE_DIR}/tests/GLESUnitTests/unittests.cpp
         ${CMAKE_SOURCE_DIR}/third_party/googletest/googletest/src/gtest-all.cc
     )
 

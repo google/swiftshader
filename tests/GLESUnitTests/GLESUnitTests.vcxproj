@@ -105,6 +105,7 @@
       <ForcedIncludeFiles>
       </ForcedIncludeFiles>
       <TreatSpecificWarningsAsErrors>4018;5038;4838</TreatSpecificWarningsAsErrors>
+      <AdditionalOptions>/permissive- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -123,6 +124,7 @@
       <ForcedIncludeFiles>
       </ForcedIncludeFiles>
       <TreatSpecificWarningsAsErrors>4018;5038;4838</TreatSpecificWarningsAsErrors>
+      <AdditionalOptions>/permissive- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -143,6 +145,7 @@
       <ForcedIncludeFiles>
       </ForcedIncludeFiles>
       <TreatSpecificWarningsAsErrors>4018;5038;4838</TreatSpecificWarningsAsErrors>
+      <AdditionalOptions>/permissive- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -165,6 +168,7 @@
       <ForcedIncludeFiles>
       </ForcedIncludeFiles>
       <TreatSpecificWarningsAsErrors>4018;5038;4838</TreatSpecificWarningsAsErrors>
+      <AdditionalOptions>/permissive- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

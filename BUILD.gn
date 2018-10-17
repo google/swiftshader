@@ -142,6 +142,6 @@ group("swiftshader_tests") {
   testonly = true
 
   data_deps = [
-    "tests/unittests:swiftshader_unittests",
+    "tests/GLESUnitTests:swiftshader_unittests",
   ]
 }

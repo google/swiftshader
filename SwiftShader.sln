@@ -248,7 +248,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Subzero", "src\Reactor\Subz
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SubzeroLLVMDependencies", "src\Reactor\SubzeroLLVMDependencies.vcxproj", "{E3BBD7DA-45C1-43EF-9C87-3F411031BDE4}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GLESUnitTests", "tests\unittests\GLESUnitTests.vcxproj", "{CF8EBC89-8762-49DC-9440-6C82B3499913}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GLESUnitTests", "tests\GLESUnitTests\GLESUnitTests.vcxproj", "{CF8EBC89-8762-49DC-9440-6C82B3499913}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VertexRoutineFuzzer", "tests\fuzzers\VertexRoutineFuzzer.vcxproj", "{FBDCFF88-0CE1-43C3-B694-8F45946FAFE3}"
 	ProjectSection(ProjectDependencies) = postProject
