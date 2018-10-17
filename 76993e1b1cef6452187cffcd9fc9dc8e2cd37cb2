@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9908ad57_00b83566",
+        "filename": "src/OpenGL/libGLESv2/libGLESv2.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 3935,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2018-10-17T17:50:55Z",
+      "side": 1,
+      "message": "uppercase first letter isn\u0027t really consistent with the rest of the file",
+      "range": {
+        "startLine": 3935,
+        "startChar": 21,
+        "endLine": 3935,
+        "endChar": 22
+      },
+      "revId": "76993e1b1cef6452187cffcd9fc9dc8e2cd37cb2",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
