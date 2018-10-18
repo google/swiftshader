@@ -22,13 +22,9 @@
 
 /* Target triple LLVM will generate code for by default */
 #if defined(__x86_64__)
-#define LLVM_DEFAULT_TARGET_TRIPLE "x86_64-unknown-linux-gnu"
-#elif defined(__i386__)
-#define LLVM_DEFAULT_TARGET_TRIPLE "i686-pc-linux-gnu"
-#elif defined(__arm__)
-#define LLVM_DEFAULT_TARGET_TRIPLE "armv7-linux-gnueabihf"
+#define LLVM_DEFAULT_TARGET_TRIPLE "x86_64-unknown-fuchsia"
 #elif defined(__aarch64__)
-#define LLVM_DEFAULT_TARGET_TRIPLE "aarch64-linux-gnu"
+#define LLVM_DEFAULT_TARGET_TRIPLE "aarch64-unknown-fuchsia"
 #else
 #error "unknown architecture"
 #endif
@@ -41,13 +37,9 @@
 
 /* Host triple LLVM will be executed on */
 #if defined(__x86_64__)
-#define LLVM_HOST_TRIPLE "x86_64-unknown-linux-gnu"
-#elif defined(__i386__)
-#define LLVM_HOST_TRIPLE "i686-pc-linux-gnu"
-#elif defined(__arm__)
-#define LLVM_HOST_TRIPLE "armv7-linux-gnueabihf"
+#define LLVM_HOST_TRIPLE "x86_64-unknown-fuchsia"
 #elif defined(__aarch64__)
-#define LLVM_HOST_TRIPLE "aarch64-linux-gnu"
+#define LLVM_HOST_TRIPLE "aarch64-unknown-fuchsia"
 #else
 #error "unknown architecture"
 #endif
@@ -55,9 +47,7 @@
 /* LLVM architecture name for the native architecture, if available */
 #if defined(__aarch64__)
 #define LLVM_NATIVE_ARCH AArch64
-#elif defined(__arm__)
-#define LLVM_NATIVE_ARCH ARM
-#elif defined(__i386__) || defined(__x86_64__)
+#elif defined(__x86_64__)
 #define LLVM_NATIVE_ARCH X86
 #else
 #error "unknown architecture"
@@ -66,9 +56,7 @@
 /* LLVM name for the native AsmParser init function, if available */
 #if defined(__aarch64__)
 #define LLVM_NATIVE_ASMPARSER LLVMInitializeAArch64AsmParser
-#elif defined(__arm__)
-#define LLVM_NATIVE_ASMPARSER LLVMInitializeARMAsmParser
-#elif defined(__i386__) || defined(__x86_64__)
+#elif defined(__x86_64__)
 #define LLVM_NATIVE_ASMPARSER LLVMInitializeX86AsmParser
 #else
 #error "unknown architecture"
@@ -79,7 +67,7 @@
 #define LLVM_NATIVE_ASMPRINTER LLVMInitializeAArch64AsmPrinter
 #elif defined(__arm__)
 #define LLVM_NATIVE_ASMPRINTER LLVMInitializeARMAsmPrinter
-#elif defined(__i386__) || defined(__x86_64__)
+#elif defined(__x86_64__)
 #define LLVM_NATIVE_ASMPRINTER LLVMInitializeX86AsmPrinter
 #else
 #error "unknown architecture"
@@ -88,9 +76,7 @@
 /* LLVM name for the native Disassembler init function, if available */
 #if defined(__aarch64__)
 #define LLVM_NATIVE_DISASSEMBLER LLVMInitializeAArch64Disassembler
-#elif defined(__arm__)
-#define LLVM_NATIVE_DISASSEMBLER LLVMInitializeARMDisassembler
-#elif defined(__i386__) || defined(__x86_64__)
+#elif defined(__x86_64__)
 #define LLVM_NATIVE_DISASSEMBLER LLVMInitializeX86Disassembler
 #else
 #error "unknown architecture"
@@ -99,9 +85,7 @@
 /* LLVM name for the native Target init function, if available */
 #if defined(__aarch64__)
 #define LLVM_NATIVE_TARGET LLVMInitializeAArch64Target
-#elif defined(__arm__)
-#define LLVM_NATIVE_TARGET LLVMInitializeARMTarget
-#elif defined(__i386__) || defined(__x86_64__)
+#elif defined(__x86_64__)
 #define LLVM_NATIVE_TARGET LLVMInitializeX86Target
 #else
 #error "unknown architecture"
@@ -110,9 +94,7 @@
 /* LLVM name for the native TargetInfo init function, if available */
 #if defined(__aarch64__)
 #define LLVM_NATIVE_TARGETINFO LLVMInitializeAArch64TargetInfo
-#elif defined(__arm__)
-#define LLVM_NATIVE_TARGETINFO LLVMInitializeARMTargetInfo
-#elif defined(__i386__) || defined(__x86_64__)
+#elif defined(__x86_64__)
 #define LLVM_NATIVE_TARGETINFO LLVMInitializeX86TargetInfo
 #else
 #error "unknown architecture"
@@ -121,9 +103,7 @@
 /* LLVM name for the native target MC init function, if available */
 #if defined(__aarch64__)
 #define LLVM_NATIVE_TARGETMC LLVMInitializeAArch64TargetMC
-#elif defined(__arm__)
-#define LLVM_NATIVE_TARGETMC LLVMInitializeARMTargetMC
-#elif defined(__i386__) || defined(__x86_64__)
+#elif defined(__x86_64__)
 #define LLVM_NATIVE_TARGETMC LLVMInitializeX86TargetMC
 #else
 #error "unknown architecture"
