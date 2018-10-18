@@ -75,7 +75,7 @@ namespace sw
 	}
 
 	template <typename destType, typename sourceType>
-	destType bitCast(const sourceType &source)
+	destType bit_cast(const sourceType &source)
 	{
 		union
 		{
@@ -194,6 +194,26 @@ namespace sw
 	inline float clamp01(float x)
 	{
 		return clamp(x, 0.0f, 1.0f);
+	}
+
+	// Bit-cast of a floating-point value into a two's complement integer representation.
+	// This makes floating-point values comparable as integers.
+	inline int32_t float_as_twos_complement(float f)
+	{
+		// IEEE-754 floating-point numbers are sorted by magnitude in the same way as integers,
+		// except negative values are like one's complement integers. Convert them to two's complement.
+		int32_t i = bit_cast<int32_t>(f);
+		return (i < 0) ? (0x7FFFFFFF - i) : i;
+	}
+
+	// 'Safe' clamping operation which always returns a value between min and max (inclusive).
+	inline float clamp_s(float x, float min, float max)
+	{
+		// NaN values can't be compared directly
+		if(float_as_twos_complement(x) < float_as_twos_complement(min)) x = min;
+		if(float_as_twos_complement(x) > float_as_twos_complement(max)) x = max;
+
+		return x;
 	}
 
 	inline int ceilPow2(int x)

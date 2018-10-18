@@ -1974,7 +1974,7 @@ TIntermTyped* TIntermConstantUnion::fold(TOperator op, TIntermTyped* constantNod
 				case EOpFloatBitsToInt:
 					switch(basicType) {
 					case EbtFloat:
-						tempConstArray[i].setIConst(sw::bitCast<int>(unionArray[i].getFConst()));
+						tempConstArray[i].setIConst(sw::bit_cast<int>(unionArray[i].getFConst()));
 						type.setBasicType(EbtInt);
 						break;
 					default:
@@ -1986,7 +1986,7 @@ TIntermTyped* TIntermConstantUnion::fold(TOperator op, TIntermTyped* constantNod
 				case EOpFloatBitsToUint:
 					switch(basicType) {
 					case EbtFloat:
-						tempConstArray[i].setUConst(sw::bitCast<unsigned int>(unionArray[i].getFConst()));
+						tempConstArray[i].setUConst(sw::bit_cast<unsigned int>(unionArray[i].getFConst()));
 						type.setBasicType(EbtUInt);
 						break;
 					default:
@@ -1997,7 +1997,7 @@ TIntermTyped* TIntermConstantUnion::fold(TOperator op, TIntermTyped* constantNod
 				case EOpIntBitsToFloat:
 					switch(basicType) {
 					case EbtInt:
-						tempConstArray[i].setFConst(sw::bitCast<float>(unionArray[i].getIConst()));
+						tempConstArray[i].setFConst(sw::bit_cast<float>(unionArray[i].getIConst()));
 						type.setBasicType(EbtFloat);
 						break;
 					default:
@@ -2008,7 +2008,7 @@ TIntermTyped* TIntermConstantUnion::fold(TOperator op, TIntermTyped* constantNod
 				case EOpUintBitsToFloat:
 					switch(basicType) {
 					case EbtUInt:
-						tempConstArray[i].setFConst(sw::bitCast<float>(unionArray[i].getUConst()));
+						tempConstArray[i].setFConst(sw::bit_cast<float>(unionArray[i].getUConst()));
 						type.setBasicType(EbtFloat);
 						break;
 					default:
