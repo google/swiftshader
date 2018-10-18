@@ -45,6 +45,7 @@ public:
 	                                VkPeerMemoryFeatureFlags* pPeerMemoryFeatures) const;
 	void getDescriptorSetLayoutSupport(const VkDescriptorSetLayoutCreateInfo* pCreateInfo,
 	                                   VkDescriptorSetLayoutSupport* pSupport) const;
+	VkPhysicalDevice getPhysicalDevice() const { return physicalDevice; }
 
 private:
 	VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;

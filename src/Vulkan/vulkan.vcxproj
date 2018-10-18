@@ -98,9 +98,11 @@ copy "$(OutDir)vk_swiftshader.dll" "$(SolutionDir)out\$(Configuration)_$(Platfor
   <ItemGroup>
     <ClCompile Include="libVulkan.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="VkBuffer.cpp" />
     <ClCompile Include="VkCommandBuffer.cpp" />
     <ClCompile Include="VkDebug.cpp" />
     <ClCompile Include="VkDevice.cpp" />
+    <ClCompile Include="VkDeviceMemory.cpp" />
     <ClCompile Include="VkGetProcAddress.cpp" />
     <ClCompile Include="VkInstance.cpp" />
     <ClCompile Include="VkMemory.cpp" />
@@ -180,11 +182,14 @@ copy "$(OutDir)vk_swiftshader.dll" "$(SolutionDir)out\$(Configuration)_$(Platfor
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h" />
+    <ClInclude Include="VkBuffer.hpp" />
+    <ClInclude Include="VkBufferView.hpp" />
     <ClInclude Include="VkCommandBuffer.hpp" />
     <ClInclude Include="VkConfig.h" />
     <ClInclude Include="VkDebug.hpp" />
     <ClInclude Include="VkDestroy.h" />
     <ClInclude Include="VkDevice.hpp" />
+    <ClInclude Include="VkDeviceMemory.hpp" />
     <ClInclude Include="VkEvent.hpp" />
     <ClInclude Include="VkFence.hpp" />
     <ClInclude Include="VkGetProcAddress.h" />

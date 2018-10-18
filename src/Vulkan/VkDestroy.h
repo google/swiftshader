@@ -12,8 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "VkBuffer.hpp"
+#include "VkBufferView.hpp"
 #include "VkCommandBuffer.hpp"
 #include "VkDevice.hpp"
+#include "VkDeviceMemory.hpp"
 #include "VkEvent.hpp"
 #include "VkFence.hpp"
 #include "VkInstance.hpp"

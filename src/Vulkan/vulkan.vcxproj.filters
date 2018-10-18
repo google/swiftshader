@@ -207,6 +207,9 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files\Vulkan</Filter>
     </ClCompile>
+    <ClCompile Include="VkBuffer.cpp">
+      <Filter>Source Files\Vulkan</Filter>
+    </ClCompile>
     <ClCompile Include="VkCommandBuffer.cpp">
       <Filter>Source Files\Vulkan</Filter>
     </ClCompile>
@@ -214,6 +217,9 @@
       <Filter>Source Files\Vulkan</Filter>
     </ClCompile>
     <ClCompile Include="VkDevice.cpp">
+      <Filter>Source Files\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="VkDeviceMemory.cpp">
       <Filter>Source Files\Vulkan</Filter>
     </ClCompile>
     <ClCompile Include="VkGetProcAddress.cpp">
@@ -239,6 +245,12 @@
     <ClInclude Include="resource.h">
       <Filter>Header Files\Vulkan</Filter>
     </ClInclude>
+    <ClInclude Include="VkBuffer.hpp">
+      <Filter>Header Files\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="VkBufferView.hpp">
+      <Filter>Header Files\Vulkan</Filter>
+    </ClInclude>
     <ClInclude Include="VkCommandBuffer.hpp">
       <Filter>Header Files\Vulkan</Filter>
     </ClInclude>
@@ -246,6 +258,9 @@
       <Filter>Header Files\Vulkan</Filter>
     </ClInclude>
     <ClInclude Include="VkDevice.hpp">
+      <Filter>Header Files\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="VkDeviceMemory.hpp">
       <Filter>Header Files\Vulkan</Filter>
     </ClInclude>
     <ClInclude Include="VkEvent.hpp">
