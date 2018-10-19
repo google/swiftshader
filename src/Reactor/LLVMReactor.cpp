@@ -822,6 +822,8 @@ namespace rr
 			static const char arch[] = "arm64";
 		#elif defined(__arm__)
 			static const char arch[] = "arm";
+		#elif defined(__mips__)
+			static const char arch[] = "mipsel";
 		#else
 		#error "unknown architecture"
 		#endif

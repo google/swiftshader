@@ -106,6 +106,8 @@ namespace
 				return true;
 			#elif defined(__i386__) || defined(__x86_64__)
 				return false;
+			#elif defined(__mips__)
+				return false;
 			#else
 				#error "Unknown architecture"
 			#endif
@@ -373,6 +375,8 @@ namespace rr
 			assert(sizeof(void*) == 4 && elfHeader->e_machine == EM_ARM);
 		#elif defined(__aarch64__)
 			assert(sizeof(void*) == 8 && elfHeader->e_machine == EM_AARCH64);
+		#elif defined(__mips__)
+			assert(sizeof(void*) == 4 && elfHeader->e_machine == EM_MIPS);
 		#else
 			#error "Unsupported platform"
 		#endif
@@ -526,6 +530,9 @@ namespace rr
 		#if defined(__arm__)
 			Flags.setTargetArch(Ice::Target_ARM32);
 			Flags.setTargetInstructionSet(Ice::ARM32InstructionSet_HWDivArm);
+		#elif defined(__mips__)
+			Flags.setTargetArch(Ice::Target_MIPS32);
+			Flags.setTargetInstructionSet(Ice::BaseInstructionSet);
 		#else   // x86
 			Flags.setTargetArch(sizeof(void*) == 8 ? Ice::Target_X8664 : Ice::Target_X8632);
 			Flags.setTargetInstructionSet(CPUID::SSE4_1 ? Ice::X86InstructionSet_SSE4_1 : Ice::X86InstructionSet_SSE2);

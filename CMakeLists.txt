@@ -20,6 +20,12 @@ if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm" OR CMAKE_SYSTEM_PROCESSOR MATCHES "aarch
     else()
         set(ARCH "arm")
     endif()
+elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "mips*")
+    if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+        set(ARCH "mips64el")
+    else()
+        set(ARCH "mipsel")
+    endif()
 else()
     if(CMAKE_SIZEOF_VOID_P EQUAL 8)
         set(ARCH "x86_64")
@@ -133,9 +139,14 @@ macro(set_shared_library_export_map TARGET DIR)
         # Don't allow symbols to be overridden by another module.
         set_property(TARGET ${TARGET} APPEND_STRING PROPERTY COMPILE_FLAGS " -fvisibility=protected")
 
-        # Both hash-style are needed, because we want both gold and
-        # GNU ld to be able to read our libraries.
-        set_property(TARGET ${TARGET} APPEND_STRING PROPERTY LINK_FLAGS " -Wl,--hash-style=both")
+        if(ARCH STREQUAL "mipsel")
+          # MIPS supports sysv hash-style only.
+          set_property(TARGET ${TARGET} APPEND_STRING PROPERTY LINK_FLAGS " -Wl,--hash-style=sysv")
+        else()
+          # Both hash-style are needed, because we want both gold and
+          # GNU ld to be able to read our libraries.
+          set_property(TARGET ${TARGET} APPEND_STRING PROPERTY LINK_FLAGS " -Wl,--hash-style=both")
+        endif()
 
         # Gc sections is used in combination with each functions being
         # in its own section, to reduce the binary size.
@@ -213,6 +224,12 @@ else()
         set_cpp_flag("-fPIC")
         set_cpp_flag("-march=x86-64")
         set_cpp_flag("-mtune=generic")
+    endif()
+    if(ARCH STREQUAL "mipsel")
+        set_cpp_flag("-march=mips32r2")
+        set_cpp_flag("-fPIC")
+        set_cpp_flag("-mhard-float")
+        set_cpp_flag("-mfp32")
     endif()
 
     if(LINUX)
@@ -1408,6 +1425,59 @@ set(LLVM_LIST
     ${LLVM_DIR}/lib/Target/ARM/Thumb1InstrInfo.cpp
     ${LLVM_DIR}/lib/Target/ARM/ARMLegalizerInfo.cpp
     ${LLVM_DIR}/lib/Target/ARM/ARMOptimizeBarriersPass.cpp
+    ${LLVM_DIR}/lib/Target/Mips/AsmParser/MipsAsmParser.cpp
+    ${LLVM_DIR}/lib/Target/Mips/InstPrinter/MipsInstPrinter.cpp
+    ${LLVM_DIR}/lib/Target/Mips/MCTargetDesc/MipsABIFlagsSection.cpp
+    ${LLVM_DIR}/lib/Target/Mips/MCTargetDesc/MipsABIInfo.cpp
+    ${LLVM_DIR}/lib/Target/Mips/MCTargetDesc/MipsAsmBackend.cpp
+    ${LLVM_DIR}/lib/Target/Mips/MCTargetDesc/MipsELFStreamer.cpp
+    ${LLVM_DIR}/lib/Target/Mips/MCTargetDesc/MipsMCAsmInfo.cpp
+    ${LLVM_DIR}/lib/Target/Mips/MCTargetDesc/MipsMCCodeEmitter.cpp
+    ${LLVM_DIR}/lib/Target/Mips/MCTargetDesc/MipsMCTargetDesc.cpp
+    ${LLVM_DIR}/lib/Target/Mips/MCTargetDesc/MipsOptionRecord.cpp
+    ${LLVM_DIR}/lib/Target/Mips/MCTargetDesc/MipsTargetStreamer.cpp
+    ${LLVM_DIR}/lib/Target/Mips/MCTargetDesc/MipsELFObjectWriter.cpp
+    ${LLVM_DIR}/lib/Target/Mips/MCTargetDesc/MipsMCExpr.cpp
+    ${LLVM_DIR}/lib/Target/Mips/MCTargetDesc/MipsNaClELFStreamer.cpp
+    ${LLVM_DIR}/lib/Target/Mips/Mips16FrameLowering.cpp
+    ${LLVM_DIR}/lib/Target/Mips/Mips16HardFloat.cpp
+    ${LLVM_DIR}/lib/Target/Mips/Mips16HardFloatInfo.cpp
+    ${LLVM_DIR}/lib/Target/Mips/Mips16InstrInfo.cpp
+    ${LLVM_DIR}/lib/Target/Mips/Mips16ISelDAGToDAG.cpp
+    ${LLVM_DIR}/lib/Target/Mips/Mips16ISelLowering.cpp
+    ${LLVM_DIR}/lib/Target/Mips/Mips16RegisterInfo.cpp
+    ${LLVM_DIR}/lib/Target/Mips/MipsAnalyzeImmediate.cpp
+    ${LLVM_DIR}/lib/Target/Mips/MipsAsmPrinter.cpp
+    ${LLVM_DIR}/lib/Target/Mips/MipsCallLowering.cpp
+    ${LLVM_DIR}/lib/Target/Mips/MipsCCState.cpp
+    ${LLVM_DIR}/lib/Target/Mips/MipsConstantIslandPass.cpp
+    ${LLVM_DIR}/lib/Target/Mips/MipsDelaySlotFiller.cpp
+    ${LLVM_DIR}/lib/Target/Mips/MipsExpandPseudo.cpp
+    ${LLVM_DIR}/lib/Target/Mips/MipsFastISel.cpp
+    ${LLVM_DIR}/lib/Target/Mips/MipsInstrInfo.cpp
+    ${LLVM_DIR}/lib/Target/Mips/MipsInstructionSelector.cpp
+    ${LLVM_DIR}/lib/Target/Mips/MipsISelDAGToDAG.cpp
+    ${LLVM_DIR}/lib/Target/Mips/MipsISelLowering.cpp
+    ${LLVM_DIR}/lib/Target/Mips/MipsFrameLowering.cpp
+    ${LLVM_DIR}/lib/Target/Mips/MipsLegalizerInfo.cpp
+    ${LLVM_DIR}/lib/Target/Mips/MipsBranchExpansion.cpp
+    ${LLVM_DIR}/lib/Target/Mips/MipsMCInstLower.cpp
+    ${LLVM_DIR}/lib/Target/Mips/MipsMachineFunction.cpp
+    ${LLVM_DIR}/lib/Target/Mips/MipsModuleISelDAGToDAG.cpp
+    ${LLVM_DIR}/lib/Target/Mips/MipsOptimizePICCall.cpp
+    ${LLVM_DIR}/lib/Target/Mips/MipsOs16.cpp
+    ${LLVM_DIR}/lib/Target/Mips/MipsRegisterBankInfo.cpp
+    ${LLVM_DIR}/lib/Target/Mips/MipsRegisterInfo.cpp
+    ${LLVM_DIR}/lib/Target/Mips/MipsSEFrameLowering.cpp
+    ${LLVM_DIR}/lib/Target/Mips/MipsSEInstrInfo.cpp
+    ${LLVM_DIR}/lib/Target/Mips/MipsSEISelDAGToDAG.cpp
+    ${LLVM_DIR}/lib/Target/Mips/MipsSEISelLowering.cpp
+    ${LLVM_DIR}/lib/Target/Mips/MipsSERegisterInfo.cpp
+    ${LLVM_DIR}/lib/Target/Mips/MipsSubtarget.cpp
+    ${LLVM_DIR}/lib/Target/Mips/MipsTargetMachine.cpp
+    ${LLVM_DIR}/lib/Target/Mips/MipsTargetObjectFile.cpp
+    ${LLVM_DIR}/lib/Target/Mips/MicroMipsSizeReduction.cpp
+    ${LLVM_DIR}/lib/Target/Mips/TargetInfo/MipsTargetInfo.cpp
     ${LLVM_DIR}/lib/Target/X86/AsmParser/X86AsmInstrumentation.cpp
     ${LLVM_DIR}/lib/Target/X86/AsmParser/X86AsmParser.cpp
     ${LLVM_DIR}/lib/Target/X86/InstPrinter/X86ATTInstPrinter.cpp
@@ -1625,11 +1695,13 @@ list(APPEND LLVM_INCLUDE_DIR
     ${LLVM_DIR}/include
     ${LLVM_DIR}/lib/Target/AArch64
     ${LLVM_DIR}/lib/Target/ARM
+    ${LLVM_DIR}/lib/Target/Mips
     ${LLVM_DIR}/lib/Target/X86
     ${LLVM_CONFIG_DIR}/common/include
     ${LLVM_CONFIG_DIR}/common/lib/IR
     ${LLVM_CONFIG_DIR}/common/lib/Target/AArch64
     ${LLVM_CONFIG_DIR}/common/lib/Target/ARM
+    ${LLVM_CONFIG_DIR}/common/lib/Target/Mips
     ${LLVM_CONFIG_DIR}/common/lib/Target/X86
     ${LLVM_CONFIG_DIR}/common/lib/Transforms/InstCombine
 )
@@ -1705,6 +1777,13 @@ if(${REACTOR_BACKEND} STREQUAL "Subzero")
             ${SUBZERO_DIR}/src/IceTargetLoweringARM32.cpp
         )
         set(SUBZERO_TARGET ARM32)
+    elseif(ARCH STREQUAL "mipsel")
+        list(APPEND SUBZERO_LIST
+            ${SUBZERO_DIR}/src/IceAssemblerMIPS32.cpp
+            ${SUBZERO_DIR}/src/IceInstMIPS32.cpp
+            ${SUBZERO_DIR}/src/IceTargetLoweringMIPS32.cpp
+        )
+        set(SUBZERO_TARGET MIPS32)
     else()
         message(FATAL_ERROR "Architecture '${ARCH}' not supported by Subzero")
     endif()

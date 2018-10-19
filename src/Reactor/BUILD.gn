@@ -41,10 +41,15 @@ config("swiftshader_subzero_common_private_config") {
       "SZTARGET=X8664",
       "SUBZERO_TARGET=X8664",
     ]
-  } else {
+  } else if (target_cpu == "x86") {
     defines += [
       "SZTARGET=X8632",
       "SUBZERO_TARGET=X8632",
+    ]
+  } else if (target_cpu == "mipsel") {
+    defines += [
+      "SZTARGET=MIPS32",
+      "SUBZERO_TARGET=MIPS32",
     ]
   }
 
@@ -153,16 +158,16 @@ config("swiftshader_reactor_private_config") {
       "/wd4201",  # nameless struct/union
       "/wd4245",  # conversion from int to unsigned int (llvm)
     ]
-  } else if (target_cpu == "x86" || target_cpu == "x64") {
-    cflags = [
-      "-Wno-unused-local-typedef",
-      "-msse2",
-    ]
-
+  } else {
+    cflags = [ "-Wno-unused-local-typedef" ]
     defines = [
       "__STDC_CONSTANT_MACROS",
       "__STDC_LIMIT_MACROS",
     ]
+
+    if (target_cpu == "x86" || target_cpu == "x64") {
+        cflags += [ "-msse2" ]
+    }
   }
 }
 
@@ -247,10 +252,16 @@ if (use_swiftshader_with_subzero) {
         "$subzero_dir/src/IceInstX8664.cpp",
         "$subzero_dir/src/IceTargetLoweringX8664.cpp",
       ]
-    } else {
+    } else if (target_cpu == "x86") {
       sources += [
         "$subzero_dir/src/IceInstX8632.cpp",
         "$subzero_dir/src/IceTargetLoweringX8632.cpp",
+      ]
+    } else if (target_cpu == "mipsel") {
+      sources += [
+        "$subzero_dir/src/IceAssemblerMIPS32.cpp",
+        "$subzero_dir/src/IceInstMIPS32.cpp",
+        "$subzero_dir/src/IceTargetLoweringMIPS32.cpp",
       ]
     }
 
