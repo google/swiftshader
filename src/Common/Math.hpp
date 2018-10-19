@@ -203,7 +203,7 @@ namespace sw
 		// IEEE-754 floating-point numbers are sorted by magnitude in the same way as integers,
 		// except negative values are like one's complement integers. Convert them to two's complement.
 		int32_t i = bit_cast<int32_t>(f);
-		return (i < 0) ? (0x7FFFFFFF - i) : i;
+		return (i < 0) ? (0x7FFFFFFFu - i) : i;
 	}
 
 	// 'Safe' clamping operation which always returns a value between min and max (inclusive).
