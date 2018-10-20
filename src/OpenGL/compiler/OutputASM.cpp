@@ -1848,11 +1848,6 @@ namespace glsl
 			return false;
 		}
 
-		if(loop.isDeterministic())
-		{
-			 deterministicVariables.insert(loop.index->getId());
-		}
-
 		bool unroll = (loop.iterations <= 4);
 
 		TIntermNode *init = node->getInit();
@@ -1860,6 +1855,13 @@ namespace glsl
 		TIntermTyped *expression = node->getExpression();
 		TIntermNode *body = node->getBody();
 		Constant True(true);
+
+		if(loop.isDeterministic())
+		{
+			 deterministicVariables.insert(loop.index->getId());
+
+			 emit(sw::Shader::OPCODE_TEST);
+		}
 
 		if(node->getType() == ELoopDoWhile)
 		{
@@ -1924,7 +1926,10 @@ namespace glsl
 					body->traverse(this);
 				}
 
-				emit(sw::Shader::OPCODE_TEST);
+				if(loop.isDeterministic())
+				{
+					emit(sw::Shader::OPCODE_TEST);
+				}
 
 				if(expression)
 				{

@@ -832,24 +832,26 @@ namespace sw
 
 	Int4 PixelProgram::enableMask(const Shader::Instruction *instruction)
 	{
+		if(whileTest)
+		{
+			return Int4(0xFFFFFFFF);
+		}
+
 		Int4 enable = instruction->analysisBranch ? Int4(enableStack[enableIndex]) : Int4(0xFFFFFFFF);
 
-		if(!whileTest)
+		if(shader->containsBreakInstruction() && instruction->analysisBreak)
 		{
-			if(shader->containsBreakInstruction() && instruction->analysisBreak)
-			{
-				enable &= enableBreak;
-			}
+			enable &= enableBreak;
+		}
 
-			if(shader->containsContinueInstruction() && instruction->analysisContinue)
-			{
-				enable &= enableContinue;
-			}
+		if(shader->containsContinueInstruction() && instruction->analysisContinue)
+		{
+			enable &= enableContinue;
+		}
 
-			if(shader->containsLeaveInstruction() && instruction->analysisLeave)
-			{
-				enable &= enableLeave;
-			}
+		if(shader->containsLeaveInstruction() && instruction->analysisLeave)
+		{
+			enable &= enableLeave;
 		}
 
 		return enable;
@@ -1781,6 +1783,7 @@ namespace sw
 		Nucleus::setInsertBlock(loopBlock);
 
 		loopRepDepth++;
+		whileTest = false;
 	}
 
 	void PixelProgram::SWITCH()
