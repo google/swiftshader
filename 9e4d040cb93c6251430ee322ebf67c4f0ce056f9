@@ -1,0 +1,106 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "97df1a6a_06ea3af9",
+        "filename": "src/Vulkan/VkDevice.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2018-10-21T09:27:29Z",
+      "side": 1,
+      "message": "nit: we don\u0027t implement this so we can always return 0 even at the entry-point level.",
+      "revId": "9e4d040cb93c6251430ee322ebf67c4f0ce056f9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a450e953_a1a38aec",
+        "filename": "src/Vulkan/VkPhysicalDevice.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 290,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2018-10-21T09:27:29Z",
+      "side": 1,
+      "message": "We don\u0027t implement this, so AFAIK we can just return a bunch of 0s since there is nothing specified in the Unsupported limit.",
+      "revId": "9e4d040cb93c6251430ee322ebf67c4f0ce056f9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f883e6f7_2937c5cc",
+        "filename": "src/Vulkan/VkPhysicalDevice.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 309,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2018-10-21T09:27:29Z",
+      "side": 1,
+      "message": "This only requires COMPUTE.",
+      "revId": "9e4d040cb93c6251430ee322ebf67c4f0ce056f9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "242acb35_4e77af78",
+        "filename": "src/Vulkan/VkPhysicalDevice.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 467,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2018-10-21T09:27:29Z",
+      "side": 1,
+      "message": "We could just ignore external resources for now and leave unimplemented at the entry-point level.",
+      "revId": "9e4d040cb93c6251430ee322ebf67c4f0ce056f9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c8a1ca43_c6d1d6b4",
+        "filename": "src/Vulkan/libVulkan.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 1357,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2018-10-21T09:27:29Z",
+      "side": 1,
+      "message": "We don\u0027t implement this, so we can just write 0 to pPeerMemoryFeatures",
+      "revId": "9e4d040cb93c6251430ee322ebf67c4f0ce056f9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "182c188d_5b9da68f",
+        "filename": "src/Vulkan/libVulkan.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 1379,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2018-10-21T09:27:29Z",
+      "side": 1,
+      "message": "I think we can always report 0 device groups. The spec isn\u0027t clear whether the driver should advertise device groups for single devices or not so we can just not expose any.",
+      "revId": "9e4d040cb93c6251430ee322ebf67c4f0ce056f9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
