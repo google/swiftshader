@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d9c77976_9c5ff188",
+        "filename": "tests/VulkanUnitTests/unittests.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2018-10-21T09:32:17Z",
+      "side": 1,
+      "message": "Can\u0027t this just be vk_swiftshader.dll without all the paths? Same for other paths.",
+      "revId": "0b3d56aa8983950a3f6f1e648f6032b56ff696a7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b8055ed3_17ba68ff",
+        "filename": "tests/VulkanUnitTests/unittests.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 287,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2018-10-21T09:32:17Z",
+      "side": 1,
+      "message": "nit: we could have a loader helper class. You could use this one or make your own https://dawn.googlesource.com/dawn/+/master/src/dawn_native/vulkan/VulkanFunctions.h",
+      "revId": "0b3d56aa8983950a3f6f1e648f6032b56ff696a7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
