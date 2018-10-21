@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b6b5e65a_41314c68",
+        "filename": "src/Vulkan/VkCommandBuffer.hpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2018-10-21T09:13:11Z",
+      "side": 1,
+      "message": "I don\u0027t think we need to store the pipelines not the vertex input bindings at command buffer recording time. The obvious way to implement command buffer and submission in Swiftshader would be to store the relevant data of Vulkan commands in some sort of linear allocator, then play them back on vkQueueSubmit. This state of the \"current pipeline\" and \"current vertex buffers\" would only be useful during playback, not here during recording.",
+      "revId": "a9999ce938be0091c60827258c58e252521f251f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
