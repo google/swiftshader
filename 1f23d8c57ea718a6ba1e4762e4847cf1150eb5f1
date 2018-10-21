@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f92da6be_b9969664",
+        "filename": "src/Vulkan/VkDestroy.h",
+        "patchSetId": 5
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2018-10-21T09:34:28Z",
+      "side": 1,
+      "message": "nit: I don\u0027t think we need these headers, we only need them where the template will be instantiated.",
+      "revId": "1f23d8c57ea718a6ba1e4762e4847cf1150eb5f1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
