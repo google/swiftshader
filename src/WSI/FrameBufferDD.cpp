@@ -106,8 +106,7 @@ namespace sw
 
 			switch(ddsd.ddpfPixelFormat.dwRGBBitCount)
 			{
-			case 32: format = FORMAT_X8R8G8B8; break;
-			case 24: format = FORMAT_R8G8B8;   break;
+			case 32: format = FORMAT_A8R8G8B8; break;
 			case 16: format = FORMAT_R5G6B5;   break;
 			default: format = FORMAT_NULL;     break;
 			}
@@ -202,27 +201,21 @@ namespace sw
 
 		directDraw->SetCooperativeLevel(windowHandle, DDSCL_EXCLUSIVE | DDSCL_FULLSCREEN);
 
-		long result;
+		long result = DD_FALSE;
 
 		do
 		{
-			format = FORMAT_X8R8G8B8;
+			format = FORMAT_A8R8G8B8;
 			result = directDraw->SetDisplayMode(width, height, 32);
 
 			if(result == DDERR_INVALIDMODE)
 			{
-				format = FORMAT_R8G8B8;
-				result = directDraw->SetDisplayMode(width, height, 24);
+				format = FORMAT_R5G6B5;
+				result = directDraw->SetDisplayMode(width, height, 16);
 
 				if(result == DDERR_INVALIDMODE)
 				{
-					format = FORMAT_R5G6B5;
-					result = directDraw->SetDisplayMode(width, height, 16);
-
-					if(result == DDERR_INVALIDMODE)
-					{
-						assert(!"Failed to initialize graphics: Display mode not supported.");
-					}
+					assert(!"Failed to initialize graphics: Display mode not supported.");
 				}
 			}
 

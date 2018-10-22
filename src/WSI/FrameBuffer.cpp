@@ -40,7 +40,7 @@ namespace sw
 
 		this->width = width;
 		this->height = height;
-		format = FORMAT_X8R8G8B8;
+		format = FORMAT_A8R8G8B8;
 		stride = 0;
 
 		windowed = !fullscreen || forceWindowed;
@@ -187,14 +187,12 @@ namespace sw
 
 				switch(state.destFormat)
 				{
-				case FORMAT_X8R8G8B8:
 				case FORMAT_A8R8G8B8:
 					{
 						Int x = x0;
 
 						switch(state.sourceFormat)
 						{
-						case FORMAT_X8R8G8B8:
 						case FORMAT_A8R8G8B8:
 							For(, x < width - 3, x += 4)
 							{
@@ -204,7 +202,6 @@ namespace sw
 								d += 4 * dBytes;
 							}
 							break;
-						case FORMAT_X8B8G8R8:
 						case FORMAT_A8B8G8R8:
 							For(, x < width - 3, x += 4)
 							{
@@ -252,11 +249,9 @@ namespace sw
 						{
 							switch(state.sourceFormat)
 							{
-							case FORMAT_X8R8G8B8:
 							case FORMAT_A8R8G8B8:
 								*Pointer<Int>(d) = *Pointer<Int>(s);
 								break;
-							case FORMAT_X8B8G8R8:
 							case FORMAT_A8B8G8R8:
 								{
 									Int rgba = *Pointer<Int>(s);
@@ -293,16 +288,13 @@ namespace sw
 						}
 					}
 					break;
-				case FORMAT_X8B8G8R8:
 				case FORMAT_A8B8G8R8:
-				case FORMAT_SRGB8_X8:
 				case FORMAT_SRGB8_A8:
 					{
 						Int x = x0;
 
 						switch(state.sourceFormat)
 						{
-						case FORMAT_X8B8G8R8:
 						case FORMAT_A8B8G8R8:
 							For(, x < width - 3, x += 4)
 							{
@@ -312,7 +304,6 @@ namespace sw
 								d += 4 * dBytes;
 							}
 							break;
-						case FORMAT_X8R8G8B8:
 						case FORMAT_A8R8G8B8:
 							For(, x < width - 3, x += 4)
 							{
@@ -361,11 +352,9 @@ namespace sw
 						{
 							switch(state.sourceFormat)
 							{
-							case FORMAT_X8B8G8R8:
 							case FORMAT_A8B8G8R8:
 								*Pointer<Int>(d) = *Pointer<Int>(s);
 								break;
-							case FORMAT_X8R8G8B8:
 							case FORMAT_A8R8G8B8:
 								{
 									Int bgra = *Pointer<Int>(s);
@@ -401,55 +390,12 @@ namespace sw
 						}
 					}
 					break;
-				case FORMAT_R8G8B8:
-					{
-						For(Int x = x0, x < width, x++)
-						{
-							switch(state.sourceFormat)
-							{
-							case FORMAT_X8R8G8B8:
-							case FORMAT_A8R8G8B8:
-								*Pointer<Byte>(d + 0) = *Pointer<Byte>(s + 0);
-								*Pointer<Byte>(d + 1) = *Pointer<Byte>(s + 1);
-								*Pointer<Byte>(d + 2) = *Pointer<Byte>(s + 2);
-								break;
-							case FORMAT_X8B8G8R8:
-							case FORMAT_A8B8G8R8:
-								*Pointer<Byte>(d + 0) = *Pointer<Byte>(s + 2);
-								*Pointer<Byte>(d + 1) = *Pointer<Byte>(s + 1);
-								*Pointer<Byte>(d + 2) = *Pointer<Byte>(s + 0);
-								break;
-							case FORMAT_A16B16G16R16:
-								*Pointer<Byte>(d + 0) = *Pointer<Byte>(s + 5);
-								*Pointer<Byte>(d + 1) = *Pointer<Byte>(s + 3);
-								*Pointer<Byte>(d + 2) = *Pointer<Byte>(s + 1);
-								break;
-							case FORMAT_R5G6B5:
-								{
-									Int rgb = Int(*Pointer<Short>(s));
-
-									*Pointer<Byte>(d + 0) = Byte(((rgb & 0x001F) << 3) | ((rgb & 0x001C) >> 2));
-									*Pointer<Byte>(d + 1) = Byte(((rgb & 0x07E0) << 5) | ((rgb & 0x0600) >> 1));
-									*Pointer<Byte>(d + 2) = Byte(((rgb & 0xF800) << 8) | ((rgb & 0xE000) << 3));
-								}
-								break;
-							default:
-								ASSERT(false);
-								break;
-							}
-
-							s += sBytes;
-							d += dBytes;
-						}
-					}
-					break;
 				case FORMAT_R5G6B5:
 					{
 						For(Int x = x0, x < width, x++)
 						{
 							switch(state.sourceFormat)
 							{
-							case FORMAT_X8R8G8B8:
 							case FORMAT_A8R8G8B8:
 								{
 									Int c = *Pointer<Int>(s);
@@ -459,7 +405,6 @@ namespace sw
 									                           (c & 0x000000F8) >> 3);
 								}
 								break;
-							case FORMAT_X8B8G8R8:
 							case FORMAT_A8B8G8R8:
 								{
 									Int c = *Pointer<Int>(s);
@@ -543,11 +488,9 @@ namespace sw
 
 		switch(state.sourceFormat)
 		{
-		case FORMAT_X8R8G8B8:
 		case FORMAT_A8R8G8B8:
 			c2 = Unpack(*Pointer<Byte4>(s));
 			break;
-		case FORMAT_X8B8G8R8:
 		case FORMAT_A8B8G8R8:
 			c2 = Swizzle(Unpack(*Pointer<Byte4>(s)), 0xC6);
 			break;
@@ -581,27 +524,15 @@ namespace sw
 
 		switch(state.destFormat)
 		{
-		case FORMAT_X8R8G8B8:
 		case FORMAT_A8R8G8B8:
 			*Pointer<Byte4>(d) = Byte4(PackUnsigned(c1, c1));
 			break;
-		case FORMAT_X8B8G8R8:
 		case FORMAT_A8B8G8R8:
-		case FORMAT_SRGB8_X8:
 		case FORMAT_SRGB8_A8:
 			{
 				c1 = Swizzle(c1, 0xC6);
 
 				*Pointer<Byte4>(d) = Byte4(PackUnsigned(c1, c1));
-			}
-			break;
-		case FORMAT_R8G8B8:
-			{
-				Int c = Int(As<Int2>(PackUnsigned(c1, c1)));
-
-				*Pointer<Byte>(d + 0) = Byte(c >> 0);
-				*Pointer<Byte>(d + 1) = Byte(c >> 8);
-				*Pointer<Byte>(d + 2) = Byte(c >> 16);
 			}
 			break;
 		case FORMAT_R5G6B5:

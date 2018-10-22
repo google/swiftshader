@@ -494,11 +494,6 @@ namespace sw
 			return COMPARE_BYPASS;
 		}
 
-		if(internalTextureFormat == FORMAT_D32FS8_SHADOW)
-		{
-			return COMPARE_LESSEQUAL;
-		}
-
 		return compare;
 	}
 }

@@ -630,15 +630,11 @@ namespace sw
 			switch(state.targetFormat[index])
 			{
 			case FORMAT_R5G6B5:
-			case FORMAT_X8R8G8B8:
-			case FORMAT_X8B8G8R8:
 			case FORMAT_A8R8G8B8:
 			case FORMAT_A8B8G8R8:
-			case FORMAT_SRGB8_X8:
 			case FORMAT_SRGB8_A8:
 			case FORMAT_G8R8:
 			case FORMAT_R8:
-			case FORMAT_A8:
 			case FORMAT_G16R16:
 			case FORMAT_A16B16G16R16:
 				for(unsigned int q = 0; q < state.multiSample; q++)
@@ -671,9 +667,7 @@ namespace sw
 				break;
 			case FORMAT_R32F:
 			case FORMAT_G32R32F:
-			case FORMAT_X32B32G32R32F:
 			case FORMAT_A32B32G32R32F:
-			case FORMAT_X32B32G32R32F_UNSIGNED:
 			case FORMAT_R32I:
 			case FORMAT_G32R32I:
 			case FORMAT_A32B32G32R32I:
@@ -776,13 +770,9 @@ namespace sw
 			case FORMAT_R5G6B5:
 			case FORMAT_A8R8G8B8:
 			case FORMAT_A8B8G8R8:
-			case FORMAT_X8R8G8B8:
-			case FORMAT_X8B8G8R8:
-			case FORMAT_SRGB8_X8:
 			case FORMAT_SRGB8_A8:
 			case FORMAT_G8R8:
 			case FORMAT_R8:
-			case FORMAT_A8:
 			case FORMAT_G16R16:
 			case FORMAT_A16B16G16R16:
 				oC[index].x = Max(oC[index].x, Float4(0.0f)); oC[index].x = Min(oC[index].x, Float4(1.0f));
@@ -792,7 +782,6 @@ namespace sw
 				break;
 			case FORMAT_R32F:
 			case FORMAT_G32R32F:
-			case FORMAT_X32B32G32R32F:
 			case FORMAT_A32B32G32R32F:
 			case FORMAT_R32I:
 			case FORMAT_G32R32I:
@@ -812,12 +801,6 @@ namespace sw
 			case FORMAT_R8UI:
 			case FORMAT_G8R8UI:
 			case FORMAT_A8B8G8R8UI:
-				break;
-			case FORMAT_X32B32G32R32F_UNSIGNED:
-				oC[index].x = Max(oC[index].x, Float4(0.0f));
-				oC[index].y = Max(oC[index].y, Float4(0.0f));
-				oC[index].z = Max(oC[index].z, Float4(0.0f));
-				oC[index].w = Max(oC[index].w, Float4(0.0f));
 				break;
 			default:
 				ASSERT(false);
