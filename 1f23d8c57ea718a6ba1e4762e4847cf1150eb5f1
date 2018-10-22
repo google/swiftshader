@@ -16,6 +16,24 @@
       "revId": "1f23d8c57ea718a6ba1e4762e4847cf1150eb5f1",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "21770edf_fb8ea82e",
+        "filename": "src/Vulkan/VkDestroy.h",
+        "patchSetId": 5
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2018-10-22T15:12:02Z",
+      "side": 1,
+      "message": "Unfortunately, it turns out that clang on Linux doesn\u0027t allow the Cast() function used below not to be defined before the destroy() template function is defined, for some reason (same with the /permissive- option in Visual Studio). It was working in Visual Studio properly without the /permissive- option. Another option would be to define only the Cast functions in a separate header file and include it here and everywhere the Cast function is used. The dispatchable objects\u0027 Cast functions have a different behavior, though, so these headers would probably still need to be included here.",
+      "parentUuid": "f92da6be_b9969664",
+      "revId": "1f23d8c57ea718a6ba1e4762e4847cf1150eb5f1",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
