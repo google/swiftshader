@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "940732c3_9717114a",
+        "filename": "tests/VulkanUnitTests/unittests.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2018-10-22T15:03:14Z",
+      "side": 1,
+      "message": "Noted. I\u0027ll need to adapt it anyway to be more cross-platform friendly when I add more tests, we just wanted to get a simple framework to get vulkan unittests working ASAP so we can add more as we add more features.",
+      "parentUuid": "d9c77976_9c5ff188",
+      "revId": "0b3d56aa8983950a3f6f1e648f6032b56ff696a7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b8055ed3_17ba68ff",
         "filename": "tests/VulkanUnitTests/unittests.cpp",
         "patchSetId": 3
@@ -33,6 +51,24 @@
       "revId": "0b3d56aa8983950a3f6f1e648f6032b56ff696a7",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1e79101d_bae27ff4",
+        "filename": "tests/VulkanUnitTests/unittests.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 287,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2018-10-22T15:03:14Z",
+      "side": 1,
+      "message": "Yes, I\u0027m planning on eventually making the API_Check test above actually part of the Setup() function (at least the function loading part, not necessarily the exhaustive null pointer checking part), so that other tests will have a simpler interface going forward. Thanks for the suggestion.",
+      "parentUuid": "b8055ed3_17ba68ff",
+      "revId": "0b3d56aa8983950a3f6f1e648f6032b56ff696a7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
