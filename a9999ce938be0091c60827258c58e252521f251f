@@ -16,6 +16,24 @@
       "revId": "a9999ce938be0091c60827258c58e252521f251f",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8745ed4e_0c6dec91",
+        "filename": "src/Vulkan/VkCommandBuffer.hpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2018-10-22T14:52:50Z",
+      "side": 1,
+      "message": "Noted, so IIUC, we need to treat the bindings like any other commands, as these are \"local\" to the current commands, not \"global\" to the command buffer. I\u0027ll fix this when command recording gets implemented.",
+      "parentUuid": "b6b5e65a_41314c68",
+      "revId": "a9999ce938be0091c60827258c58e252521f251f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
