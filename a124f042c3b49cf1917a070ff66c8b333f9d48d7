@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "13c359be_2b1d36ac",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 9
+      },
+      "lineNbr": 1291,
+      "author": {
+        "id": 5545
+      },
+      "writtenOn": "2018-10-23T21:55:47Z",
+      "side": 0,
+      "message": "just checking this again: are we still thread safe in ToT with respect to these repeated calls to getProgram()?",
+      "range": {
+        "startLine": 1276,
+        "startChar": 0,
+        "endLine": 1291,
+        "endChar": 2
+      },
+      "revId": "a124f042c3b49cf1917a070ff66c8b333f9d48d7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}

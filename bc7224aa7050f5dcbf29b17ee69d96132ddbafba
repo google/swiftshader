@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "72ea3056_aadac3e2",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 9
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5545
+      },
+      "writtenOn": "2018-10-23T21:55:47Z",
+      "side": 1,
+      "message": "explanation here",
+      "range": {
+        "startLine": 18,
+        "startChar": 0,
+        "endLine": 22,
+        "endChar": 20
+      },
+      "revId": "bc7224aa7050f5dcbf29b17ee69d96132ddbafba",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "2acc1df5_e4317528",
         "filename": "src/OpenGL/common/NameSpace.hpp",
         "patchSetId": 9
