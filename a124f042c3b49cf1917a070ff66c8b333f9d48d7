@@ -22,6 +22,30 @@
       "revId": "a124f042c3b49cf1917a070ff66c8b333f9d48d7",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "962aadc0_05fc6233",
+        "filename": "src/OpenGL/libGLESv2/Context.cpp",
+        "patchSetId": 9
+      },
+      "lineNbr": 1291,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-10-24T18:21:06Z",
+      "side": 0,
+      "message": "Yes, every entry function now obtains an exclusive lock on the resource manager, so it\u0027s not possible for programs (and other shared GL objects) to get deleted during a glUseProgram call.",
+      "parentUuid": "13c359be_2b1d36ac",
+      "range": {
+        "startLine": 1276,
+        "startChar": 0,
+        "endLine": 1291,
+        "endChar": 2
+      },
+      "revId": "a124f042c3b49cf1917a070ff66c8b333f9d48d7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
