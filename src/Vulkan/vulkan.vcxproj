@@ -109,6 +109,8 @@ copy "$(OutDir)vk_swiftshader.dll" "$(SolutionDir)out\$(Configuration)_$(Platfor
     <ClCompile Include="VkInstance.cpp" />
     <ClCompile Include="VkMemory.cpp" />
     <ClCompile Include="VkPhysicalDevice.cpp" />
+    <ClCompile Include="VkPipeline.cpp" />
+    <ClCompile Include="VkPipelineLayout.cpp" />
     <ClCompile Include="VkPromotedExtensions.cpp" />
     <ClCompile Include="VkQueue.cpp" />
     <ClCompile Include="..\Device\Blitter.cpp" />
@@ -197,6 +199,8 @@ copy "$(OutDir)vk_swiftshader.dll" "$(SolutionDir)out\$(Configuration)_$(Platfor
     <ClInclude Include="VkMemory.h" />
     <ClInclude Include="VkObject.hpp" />
     <ClInclude Include="VkPhysicalDevice.hpp" />
+    <ClInclude Include="VkPipeline.hpp" />
+    <ClInclude Include="VkPipelineLayout.hpp" />
     <ClInclude Include="VkQueue.hpp" />
     <ClInclude Include="VkSemaphore.hpp" />
     <ClInclude Include="..\Device\Blitter.hpp" />

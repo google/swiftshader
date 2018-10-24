@@ -20,6 +20,8 @@
 #include "VkEvent.hpp"
 #include "VkFence.hpp"
 #include "VkInstance.hpp"
+#include "VkPipeline.hpp"
+#include "VkPipelineLayout.hpp"
 #include "VkPhysicalDevice.hpp"
 #include "VkQueue.hpp"
 #include "VkSemaphore.hpp"
