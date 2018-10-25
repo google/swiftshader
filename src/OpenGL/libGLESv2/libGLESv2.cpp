@@ -1927,10 +1927,16 @@ void FramebufferRenderbuffer(GLenum target, GLenum attachment, GLenum renderbuff
 			framebuffer->setStencilbuffer(GL_RENDERBUFFER, renderbuffer);
 			break;
 		default:
-			if((attachment - GL_COLOR_ATTACHMENT0) >= MAX_COLOR_ATTACHMENTS)
+			if(attachment < GL_COLOR_ATTACHMENT0 || attachment > GL_COLOR_ATTACHMENT31)
 			{
 				return error(GL_INVALID_ENUM);
 			}
+
+			if((attachment - GL_COLOR_ATTACHMENT0) >= MAX_COLOR_ATTACHMENTS)
+			{
+				return error(GL_INVALID_OPERATION);
+			}
+
 			framebuffer->setColorbuffer(GL_RENDERBUFFER, renderbuffer, attachment - GL_COLOR_ATTACHMENT0);
 			break;
 		}
@@ -2036,10 +2042,16 @@ void FramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, GL
 			framebuffer->setStencilbuffer(textarget, texture, level);
 			break;
 		default:
-			if((attachment - GL_COLOR_ATTACHMENT0) >= MAX_COLOR_ATTACHMENTS)
+			if(attachment < GL_COLOR_ATTACHMENT0 || attachment > GL_COLOR_ATTACHMENT31)
 			{
 				return error(GL_INVALID_ENUM);
 			}
+
+			if((attachment - GL_COLOR_ATTACHMENT0) >= MAX_COLOR_ATTACHMENTS)
+			{
+				return error(GL_INVALID_OPERATION);
+			}
+
 			framebuffer->setColorbuffer(textarget, texture, attachment - GL_COLOR_ATTACHMENT0, level);
 			break;
 		}
@@ -2614,14 +2626,21 @@ void GetFramebufferAttachmentParameteriv(GLenum target, GLenum attachment, GLenu
 			}
 			break;
 		default:
-			if((unsigned int)(attachment - GL_COLOR_ATTACHMENT0) < MAX_COLOR_ATTACHMENTS)
+			if(framebufferName == 0)
 			{
-				if(framebufferName == 0)
-				{
-					return error(GL_INVALID_OPERATION);
-				}
+				return error(GL_INVALID_OPERATION);
 			}
-			else return error(GL_INVALID_ENUM);
+
+			if(attachment < GL_COLOR_ATTACHMENT0 || attachment > GL_COLOR_ATTACHMENT31)
+			{
+				return error(GL_INVALID_ENUM);
+			}
+
+			if((attachment - GL_COLOR_ATTACHMENT0) >= MAX_COLOR_ATTACHMENTS)
+			{
+				return error(GL_INVALID_OPERATION);
+			}
+			break;
 		}
 
 		es2::Framebuffer *framebuffer = context->getFramebuffer(framebufferName);
@@ -6063,10 +6082,16 @@ void FramebufferTexture3DOES(GLenum target, GLenum attachment, GLenum textarget,
 		case GL_DEPTH_ATTACHMENT:   framebuffer->setDepthbuffer(textarget, texture, level);   break;
 		case GL_STENCIL_ATTACHMENT: framebuffer->setStencilbuffer(textarget, texture, level); break;
 		default:
-			if((attachment - GL_COLOR_ATTACHMENT0) >= MAX_COLOR_ATTACHMENTS)
+			if(attachment < GL_COLOR_ATTACHMENT0 || attachment > GL_COLOR_ATTACHMENT31)
 			{
 				return error(GL_INVALID_ENUM);
 			}
+
+			if((attachment - GL_COLOR_ATTACHMENT0) >= MAX_COLOR_ATTACHMENTS)
+			{
+				return error(GL_INVALID_OPERATION);
+			}
+
 			framebuffer->setColorbuffer(textarget, texture, attachment - GL_COLOR_ATTACHMENT0, level);
 			break;
 		}
