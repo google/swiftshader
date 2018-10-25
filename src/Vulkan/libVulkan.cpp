@@ -250,68 +250,71 @@ VKAPI_ATTR VkResult VKAPI_CALL vkEnumerateInstanceExtensionProperties(const char
 	TRACE("(const char* pLayerName = 0x%X, uint32_t* pPropertyCount = 0x%X, VkExtensionProperties* pProperties = 0x%X)",
 	      pLayerName, pPropertyCount, pProperties);
 
-	static const char *extensions[] =
+	static VkExtensionProperties extensionProperties[] =
 	{
-		"VK_KHR_16bit_storage",
-		"VK_KHR_bind_memory2",
-		"VK_KHR_dedicated_allocation",
-		"VK_KHR_descriptor_update_template",
-		"VK_KHR_device_group",
-		"VK_KHR_device_group_creation",
-		"VK_KHR_external_fence",
-		"VK_KHR_external_fence_capabilities",
-		"VK_KHR_external_memory",
-		"VK_KHR_external_memory_capabilities",
-		"VK_KHR_external_semaphore",
-		"VK_KHR_external_semaphore_capabilities",
-		"VK_KHR_get_memory_requirements2",
-		"VK_KHR_get_physical_device_properties2",
-		"VK_KHR_maintenance1",
-		"VK_KHR_maintenance2",
-		"VK_KHR_maintenance3",
-		"VK_KHR_multiview",
-		"VK_KHR_relaxed_block_layout",
-		"VK_KHR_sampler_ycbcr_conversion",
-		"VK_KHR_shader_draw_parameters",
-		"VK_KHR_storage_buffer_storage_class",
-		"VK_KHR_variable_pointers",
+		{ VK_KHR_DEVICE_GROUP_CREATION_EXTENSION_NAME, VK_KHR_DEVICE_GROUP_CREATION_SPEC_VERSION },
+		{ VK_KHR_EXTERNAL_FENCE_CAPABILITIES_EXTENSION_NAME, VK_KHR_EXTERNAL_FENCE_CAPABILITIES_SPEC_VERSION },
+		{ VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME, VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_SPEC_VERSION },
+		{ VK_KHR_EXTERNAL_SEMAPHORE_CAPABILITIES_EXTENSION_NAME, VK_KHR_EXTERNAL_SEMAPHORE_CAPABILITIES_SPEC_VERSION },
+		{ VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME, VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_SPEC_VERSION },
 	};
+
+	uint32_t extensionPropertiesCount = sizeof(extensionProperties) / sizeof(extensionProperties[0]);
 
 	if(!pProperties)
 	{
-		*pPropertyCount = sizeof(extensions) / sizeof(extensions[0]);
+		*pPropertyCount = extensionPropertiesCount;
 		return VK_SUCCESS;
 	}
 
-	uint32_t apiVersion = 0;
-	VkResult result = vkEnumerateInstanceVersion(&apiVersion);
-	if(result != VK_SUCCESS)
+	for(uint32_t i = 0; i < std::min(*pPropertyCount, extensionPropertiesCount); i++)
 	{
-		return result;
+		pProperties[i] = extensionProperties[i];
 	}
 
-	for(uint32_t i = 0; i < *pPropertyCount; i++)
-	{
-		size_t len = strlen(extensions[i]);
-		memcpy(pProperties[i].extensionName, extensions[i], len);
-		pProperties[i].extensionName[len] = '\0';
-		pProperties[i].specVersion = apiVersion;
-	}
-
-	return VK_SUCCESS;
+	return (*pPropertyCount < extensionPropertiesCount) ? VK_INCOMPLETE : VK_SUCCESS;
 }
 
 VKAPI_ATTR VkResult VKAPI_CALL vkEnumerateDeviceExtensionProperties(VkPhysicalDevice physicalDevice, const char* pLayerName, uint32_t* pPropertyCount, VkExtensionProperties* pProperties)
 {
 	TRACE("(VkPhysicalDevice physicalDevice = 0x%X, const char* pLayerName, uint32_t* pPropertyCount = 0x%X, VkExtensionProperties* pProperties = 0x%X)", physicalDevice, pPropertyCount, pProperties);
 
+	static VkExtensionProperties extensionProperties[] =
+	{
+		{ VK_KHR_16BIT_STORAGE_EXTENSION_NAME, VK_KHR_16BIT_STORAGE_SPEC_VERSION },
+		{ VK_KHR_BIND_MEMORY_2_EXTENSION_NAME, VK_KHR_BIND_MEMORY_2_SPEC_VERSION },
+		{ VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME, VK_KHR_DEDICATED_ALLOCATION_SPEC_VERSION },
+		{ VK_KHR_DESCRIPTOR_UPDATE_TEMPLATE_EXTENSION_NAME, VK_KHR_DESCRIPTOR_UPDATE_TEMPLATE_SPEC_VERSION },
+		{ VK_KHR_DEVICE_GROUP_EXTENSION_NAME,  VK_KHR_DEVICE_GROUP_SPEC_VERSION },
+		{ VK_KHR_EXTERNAL_FENCE_EXTENSION_NAME, VK_KHR_EXTERNAL_FENCE_SPEC_VERSION },
+		{ VK_KHR_EXTERNAL_MEMORY_EXTENSION_NAME, VK_KHR_EXTERNAL_MEMORY_SPEC_VERSION },
+		{ VK_KHR_EXTERNAL_SEMAPHORE_EXTENSION_NAME, VK_KHR_EXTERNAL_SEMAPHORE_SPEC_VERSION },
+		{ VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME, VK_KHR_GET_MEMORY_REQUIREMENTS_2_SPEC_VERSION },
+		{ VK_KHR_MAINTENANCE1_EXTENSION_NAME, VK_KHR_MAINTENANCE1_SPEC_VERSION },
+		{ VK_KHR_MAINTENANCE2_EXTENSION_NAME, VK_KHR_MAINTENANCE2_SPEC_VERSION },
+		{ VK_KHR_MAINTENANCE3_EXTENSION_NAME, VK_KHR_MAINTENANCE3_SPEC_VERSION },
+		{ VK_KHR_MULTIVIEW_EXTENSION_NAME, VK_KHR_MULTIVIEW_SPEC_VERSION },
+		{ VK_KHR_RELAXED_BLOCK_LAYOUT_EXTENSION_NAME, VK_KHR_RELAXED_BLOCK_LAYOUT_SPEC_VERSION },
+		{ VK_KHR_SAMPLER_YCBCR_CONVERSION_EXTENSION_NAME, VK_KHR_SAMPLER_YCBCR_CONVERSION_SPEC_VERSION },
+		{ VK_KHR_SHADER_DRAW_PARAMETERS_EXTENSION_NAME, VK_KHR_SHADER_DRAW_PARAMETERS_SPEC_VERSION },
+		{ VK_KHR_STORAGE_BUFFER_STORAGE_CLASS_EXTENSION_NAME, VK_KHR_STORAGE_BUFFER_STORAGE_CLASS_SPEC_VERSION },
+		{ VK_KHR_VARIABLE_POINTERS_EXTENSION_NAME, VK_KHR_VARIABLE_POINTERS_SPEC_VERSION },
+	};
+
+	uint32_t extensionPropertiesCount = sizeof(extensionProperties) / sizeof(extensionProperties[0]);
+
 	if(!pProperties)
 	{
-		*pPropertyCount = 0;
+		*pPropertyCount = extensionPropertiesCount;
 		return VK_SUCCESS;
 	}
 
-	return VK_SUCCESS;
+	for(uint32_t i = 0; i < std::min(*pPropertyCount, extensionPropertiesCount); i++)
+	{
+		pProperties[i] = extensionProperties[i];
+	}
+
+	return (*pPropertyCount < extensionPropertiesCount) ? VK_INCOMPLETE : VK_SUCCESS;
 }
 
 VKAPI_ATTR VkResult VKAPI_CALL vkEnumerateInstanceLayerProperties(uint32_t* pPropertyCount, VkLayerProperties* pProperties)
