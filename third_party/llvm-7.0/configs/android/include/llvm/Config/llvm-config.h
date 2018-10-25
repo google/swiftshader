@@ -59,6 +59,8 @@
 #define LLVM_NATIVE_ARCH ARM
 #elif defined(__i386__) || defined(__x86_64__)
 #define LLVM_NATIVE_ARCH X86
+#elif defined(__mips__)
+#define LLVM_NATIVE_ARCH Mips
 #else
 #error "unknown architecture"
 #endif
@@ -70,6 +72,8 @@
 #define LLVM_NATIVE_ASMPARSER LLVMInitializeARMAsmParser
 #elif defined(__i386__) || defined(__x86_64__)
 #define LLVM_NATIVE_ASMPARSER LLVMInitializeX86AsmParser
+#elif defined(__mips__)
+#define LLVM_NATIVE_ASMPARSER LLVMInitializeMipsAsmParser
 #else
 #error "unknown architecture"
 #endif
@@ -81,6 +85,8 @@
 #define LLVM_NATIVE_ASMPRINTER LLVMInitializeARMAsmPrinter
 #elif defined(__i386__) || defined(__x86_64__)
 #define LLVM_NATIVE_ASMPRINTER LLVMInitializeX86AsmPrinter
+#elif defined(__mips__)
+#define LLVM_NATIVE_ASMPRINTER LLVMInitializeMipsAsmPrinter
 #else
 #error "unknown architecture"
 #endif
@@ -92,6 +98,8 @@
 #define LLVM_NATIVE_DISASSEMBLER LLVMInitializeARMDisassembler
 #elif defined(__i386__) || defined(__x86_64__)
 #define LLVM_NATIVE_DISASSEMBLER LLVMInitializeX86Disassembler
+#elif defined(__mips__)
+#define LLVM_NATIVE_DISASSEMBLER LLVMInitializeMipsDisassembler
 #else
 #error "unknown architecture"
 #endif
@@ -103,6 +111,8 @@
 #define LLVM_NATIVE_TARGET LLVMInitializeARMTarget
 #elif defined(__i386__) || defined(__x86_64__)
 #define LLVM_NATIVE_TARGET LLVMInitializeX86Target
+#elif defined(__mips__)
+#define LLVM_NATIVE_TARGET LLVMInitializeMipsTarget
 #else
 #error "unknown architecture"
 #endif
@@ -114,6 +124,8 @@
 #define LLVM_NATIVE_TARGETINFO LLVMInitializeARMTargetInfo
 #elif defined(__i386__) || defined(__x86_64__)
 #define LLVM_NATIVE_TARGETINFO LLVMInitializeX86TargetInfo
+#elif defined(__mips__)
+#define LLVM_NATIVE_TARGETINFO LLVMInitializeMipsTargetInfo
 #else
 #error "unknown architecture"
 #endif
@@ -125,6 +137,8 @@
 #define LLVM_NATIVE_TARGETMC LLVMInitializeARMTargetMC
 #elif defined(__i386__) || defined(__x86_64__)
 #define LLVM_NATIVE_TARGETMC LLVMInitializeX86TargetMC
+#elif defined(__mips__)
+#define LLVM_NATIVE_TARGETMC LLVMInitializeMipsTargetMC
 #else
 #error "unknown architecture"
 #endif
