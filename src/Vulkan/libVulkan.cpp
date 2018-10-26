@@ -27,8 +27,10 @@
 #include "VkPhysicalDevice.hpp"
 #include "VkQueue.hpp"
 #include "VkSemaphore.hpp"
+
 #include <cstring>
 #include <string>
+#include <algorithm>
 
 extern "C"
 {
@@ -1688,7 +1690,7 @@ VKAPI_ATTR void VKAPI_CALL vkGetDeviceQueue2(VkDevice device, const VkDeviceQueu
 		UNIMPLEMENTED();
 	}
 
-	// The only flag that can be set here is VK_DEVICE_QUEUE_CREATE_PROTECTED_BIT 
+	// The only flag that can be set here is VK_DEVICE_QUEUE_CREATE_PROTECTED_BIT
 	// According to the Vulkan spec, 4.3.1. Queue Family Properties:
 	// "VK_DEVICE_QUEUE_CREATE_PROTECTED_BIT specifies that the device queue is a
 	//  protected-capable queue. If the protected memory feature is not enabled,
