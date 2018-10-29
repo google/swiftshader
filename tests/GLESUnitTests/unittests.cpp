@@ -348,6 +348,33 @@ TEST_F(SwiftShaderTest, Initalization)
 	Uninitialize();
 }
 
+// Test attempting to clear an incomplete framebuffer
+TEST_F(SwiftShaderTest, ClearIncomplete)
+{
+	Initialize(3, false);
+
+	GLfloat zero_float = 0;
+	GLuint renderbuffer;
+	glGenRenderbuffers(1, &renderbuffer);
+	GLuint framebuffer;
+	glGenFramebuffers(1, &framebuffer);
+
+	glBindRenderbuffer(GL_RENDERBUFFER, renderbuffer);
+	EXPECT_GLENUM_EQ(GL_NO_ERROR, glGetError());
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_R8I, 43, 27);
+	EXPECT_GLENUM_EQ(GL_NO_ERROR, glGetError());
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer);
+	EXPECT_GLENUM_EQ(GL_NO_ERROR, glGetError());
+	glFramebufferRenderbuffer(GL_READ_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, renderbuffer);
+	EXPECT_GLENUM_EQ(GL_NO_ERROR, glGetError());
+	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+	EXPECT_GLENUM_EQ(GL_NO_ERROR, glGetError());
+	glClearBufferfv(GL_DEPTH, 0, &zero_float);
+	EXPECT_GLENUM_EQ(GL_INVALID_FRAMEBUFFER_OPERATION, glGetError());
+
+	Uninitialize();
+}
+
 // Test unrolling of a loop
 TEST_F(SwiftShaderTest, UnrollLoop)
 {

@@ -3465,7 +3465,7 @@ void Context::clearColorBuffer(GLint drawbuffer, void *value, sw::Format format)
 	if(rgbaMask && !mState.rasterizerDiscardEnabled)
 	{
 		Framebuffer *framebuffer = getDrawFramebuffer();
-		if(!framebuffer)
+		if(!framebuffer || (framebuffer->completeness() != GL_FRAMEBUFFER_COMPLETE))
 		{
 			return error(GL_INVALID_FRAMEBUFFER_OPERATION);
 		}
@@ -3507,7 +3507,7 @@ void Context::clearDepthBuffer(const GLfloat value)
 	if(mState.depthMask && !mState.rasterizerDiscardEnabled)
 	{
 		Framebuffer *framebuffer = getDrawFramebuffer();
-		if(!framebuffer)
+		if(!framebuffer || (framebuffer->completeness() != GL_FRAMEBUFFER_COMPLETE))
 		{
 			return error(GL_INVALID_FRAMEBUFFER_OPERATION);
 		}
@@ -3535,7 +3535,7 @@ void Context::clearStencilBuffer(const GLint value)
 	if(mState.stencilWritemask && !mState.rasterizerDiscardEnabled)
 	{
 		Framebuffer *framebuffer = getDrawFramebuffer();
-		if(!framebuffer)
+		if(!framebuffer || (framebuffer->completeness() != GL_FRAMEBUFFER_COMPLETE))
 		{
 			return error(GL_INVALID_FRAMEBUFFER_OPERATION);
 		}
