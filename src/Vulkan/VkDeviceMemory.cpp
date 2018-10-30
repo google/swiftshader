@@ -12,14 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "VkConfig.h"
 #include "VkDeviceMemory.hpp"
+
+#include "VkConfig.h"
 
 namespace vk
 {
 
 DeviceMemory::DeviceMemory(const VkMemoryAllocateInfo* pCreateInfo, void* mem) :
-	size(pCreateInfo->allocationSize), buffer(nullptr), memoryTypeIndex(pCreateInfo->memoryTypeIndex)
+	size(pCreateInfo->allocationSize), memoryTypeIndex(pCreateInfo->memoryTypeIndex)
 {
 	ASSERT(size);
 }
@@ -53,7 +54,7 @@ VkResult DeviceMemory::allocate()
 VkResult DeviceMemory::map(VkDeviceSize pOffset, VkDeviceSize pSize, void** ppData)
 {
 	*ppData = getOffsetPointer(pOffset);
-	
+
 	return VK_SUCCESS;
 }
 
