@@ -50,6 +50,9 @@ LLVM_TRIPLES = {
         ('__aarch64__', 'aarch64-linux-gnu'),
         ('__mips__', 'mipsel-linux-gnu'),
     ],
+    'darwin': [
+        ('__x86_64__', 'x86_64-apple-darwin'),
+    ],
 }
 
 LLVM_OPTIONS = [
@@ -66,7 +69,7 @@ LLVM_OPTIONS = [
 def _parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('name', help='destination name',
-                        choices=['android', 'linux'])
+                        choices=['android', 'linux', 'darwin'])
     parser.add_argument('-j', '--jobs', help='parallel compilation', type=int)
     return parser.parse_args()
 

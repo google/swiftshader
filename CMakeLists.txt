@@ -1688,7 +1688,7 @@ if(WIN32)
 elseif(LINUX)
     list(APPEND LLVM_INCLUDE_DIR ${LLVM_CONFIG_DIR}/linux/include)
 elseif(APPLE)
-    # list(APPEND LLVM_INCLUDE_DIR ${LLVM_CONFIG_DIR}/include-osx)
+    list(APPEND LLVM_INCLUDE_DIR ${LLVM_CONFIG_DIR}/darwin/include)
 endif()
 
 list(APPEND LLVM_INCLUDE_DIR
