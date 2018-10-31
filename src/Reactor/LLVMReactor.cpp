@@ -61,6 +61,7 @@
 	#include "llvm/IR/Intrinsics.h"
 	#include "llvm/IR/LLVMContext.h"
 	#include "llvm/IR/LegacyPassManager.h"
+	#include "llvm/IR/Mangler.h"
 	#include "llvm/IR/Module.h"
 	#include "llvm/Support/Error.h"
 	#include "llvm/Support/TargetSelect.h"
@@ -635,10 +636,16 @@ namespace rr
 			auto moduleKey = session.allocateVModule();
 			llvm::cantFail(compileLayer.addModule(moduleKey, std::move(mod)));
 
-			llvm::JITSymbol symbol = compileLayer.findSymbolIn(moduleKey, name, false);
+			std::string mangledName;
+			{
+				llvm::raw_string_ostream mangledNameStream(mangledName);
+				llvm::Mangler::getNameWithPrefix(mangledNameStream, name, dataLayout);
+			}
+
+			llvm::JITSymbol symbol = compileLayer.findSymbolIn(moduleKey, mangledName, false);
 
 			llvm::Expected<llvm::JITTargetAddress> expectAddr = symbol.getAddress();
-			if (!expectAddr)
+			if(!expectAddr)
 			{
 				return nullptr;
 			}
