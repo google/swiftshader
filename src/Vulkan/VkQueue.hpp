@@ -34,6 +34,8 @@ public:
 		return reinterpret_cast<VkQueue>(this);
 	}
 
+	void submit(uint32_t submitCount, const VkSubmitInfo* pSubmits, VkFence fence);
+
 private:
 	uint32_t familyIndex = 0;
 	float    priority = 0.0f;

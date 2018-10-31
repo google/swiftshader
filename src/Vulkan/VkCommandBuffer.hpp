@@ -17,6 +17,8 @@
 
 #include "VkConfig.h"
 #include "VkObject.hpp"
+#include <memory>
+#include <vector>
 
 namespace vk
 {
@@ -109,7 +111,10 @@ public:
 
 	void submit();
 
+	class Command;
 private:
+	void deleteCommands();
+
 	enum State { INITIAL, RECORDING, EXECUTABLE, PENDING, INVALID };
 	State state = INITIAL;
 	VkCommandBufferLevel level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
@@ -121,6 +126,9 @@ private:
 		VkDeviceSize offset;
 	};
 	VertexInputBindings vertexInputBindings[MAX_VERTEX_INPUT_BINDINGS];
+
+	// FIXME (b/119409619): replace this vector by an allocator so we can control all memory allocations
+	std::vector<std::unique_ptr<Command>>* commands;
 };
 
 using DispatchableCommandBuffer = DispatchableObject<CommandBuffer, VkCommandBuffer>;
