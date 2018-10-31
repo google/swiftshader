@@ -401,16 +401,6 @@ namespace sw
 		return textureType == TEXTURE_3D || textureType == TEXTURE_2D_ARRAY;
 	}
 
-	void Sampler::setSyncRequired(bool isSyncRequired)
-	{
-		syncRequired = isSyncRequired;
-	}
-
-	bool Sampler::requiresSync() const
-	{
-		return syncRequired;
-	}
-
 	const Texture &Sampler::getTextureData()
 	{
 		return texture;

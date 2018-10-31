@@ -135,29 +135,23 @@ namespace sw
 
 		struct PS
 		{
-			word4 cW[8][4];
 			float4 c[FRAGMENT_UNIFORM_VECTORS];
 			byte* u[MAX_UNIFORM_BUFFER_BINDINGS];
 			int4 i[16];
 			bool b[16];
 		};
 
-		union
-		{
-			VS vs;
-			VertexProcessor::FixedFunction ff;
-		};
-
+		VS vs;
 		PS ps;
 
 		int instanceID;
 
-		VertexProcessor::PointSprite point;
+		float pointSizeMin;
+		float pointSizeMax;
 		float lineWidth;
 
 		PixelProcessor::Stencil stencil[2];   // clockwise, counterclockwise
 		PixelProcessor::Stencil stencilCCW;
-		PixelProcessor::Fog fog;
 		PixelProcessor::Factor factor;
 		unsigned int occlusion[16];   // Number of pixels passing depth test
 
@@ -165,14 +159,10 @@ namespace sw
 			int64_t cycles[PERF_TIMERS][16];
 		#endif
 
-		TextureStage::Uniforms textureStage[8];
-
 		float4 Wx16;
 		float4 Hx16;
 		float4 X0x16;
 		float4 Y0x16;
-		float4 XXXX;
-		float4 YYYY;
 		float4 halfPixelX;
 		float4 halfPixelY;
 		float viewportHeight;
@@ -304,10 +294,7 @@ namespace sw
 		void setMaxLevel(SamplerType type, int sampler, int maxLevel);
 		void setMinLod(SamplerType type, int sampler, float minLod);
 		void setMaxLod(SamplerType type, int sampler, float maxLod);
-		void setSyncRequired(SamplerType type, int sampler, bool syncRequired);
 
-		void setPointSpriteEnable(bool pointSpriteEnable);
-		void setPointScaleEnable(bool pointScaleEnable);
 		void setLineWidth(float width);
 
 		void setDepthBias(float bias);
@@ -366,9 +353,7 @@ namespace sw
 
 		void processPrimitiveVertices(int unit, unsigned int start, unsigned int count, unsigned int loop, int thread);
 
-		int setupSolidTriangles(int batch, int count);
-		int setupWireframeTriangle(int batch, int count);
-		int setupVertexTriangle(int batch, int count);
+		int setupTriangles(int batch, int count);
 		int setupLines(int batch, int count);
 		int setupPoints(int batch, int count);
 

@@ -47,10 +47,8 @@ namespace sw
 			Pointer<Byte> constants = *Pointer<Pointer<Byte> >(data + OFFSET(DrawData,constants));
 
 			const bool point = state.isDrawPoint;
-			const bool sprite = state.pointSprite;
 			const bool line = state.isDrawLine;
-			const bool triangle = state.isDrawSolidTriangle || sprite;
-			const bool solidTriangle = state.isDrawSolidTriangle;
+			const bool triangle = state.isDrawTriangle;
 
 			const int V0 = OFFSET(Triangle,v0);
 			const int V1 = (triangle || line) ? OFFSET(Triangle,v1) : OFFSET(Triangle,v0);
@@ -76,7 +74,7 @@ namespace sw
 			Int d = 1;     // Winding direction
 
 			// Culling
-			if(solidTriangle)
+			if(triangle)
 			{
 				Float x0 = Float(X[0]);
 				Float x1 = Float(X[1]);
@@ -141,7 +139,7 @@ namespace sw
 			Int n = *Pointer<Int>(polygon + OFFSET(Polygon,n));
 			Int m = *Pointer<Int>(polygon + OFFSET(Polygon,i));
 
-			If(m != 0 || Bool(!solidTriangle))   // Clipped triangle; reproject
+			If(m != 0 || Bool(!triangle))   // Clipped triangle; reproject
 			{
 				Pointer<Byte> V = polygon + OFFSET(Polygon,P) + m * sizeof(void*) * 16;
 
@@ -279,7 +277,7 @@ namespace sw
 			*Pointer<Int>(primitive + OFFSET(Primitive,yMax)) = yMax;
 
 			// Sort by minimum y
-			if(solidTriangle && logPrecision >= WHQL)
+			if(triangle)
 			{
 				Float y0 = *Pointer<Float>(v0 + pos * 16 + 4);
 				Float y1 = *Pointer<Float>(v1 + pos * 16 + 4);
@@ -292,7 +290,7 @@ namespace sw
 			}
 
 			// Sort by maximum w
-			if(solidTriangle)
+			if(triangle)
 			{
 				Float w0 = *Pointer<Float>(v0 + pos * 16 + 12);
 				Float w1 = *Pointer<Float>(v1 + pos * 16 + 12);
@@ -463,14 +461,9 @@ namespace sw
 
 					if(attribute != Unused)
 					{
-						setupGradient(primitive, tri, w012, M, v0, v1, v2, OFFSET(Vertex,v[attribute][component]), OFFSET(Primitive,V[interpolant][component]), flat, sprite, state.perspective, wrap, component);
+						setupGradient(primitive, tri, w012, M, v0, v1, v2, OFFSET(Vertex,v[attribute][component]), OFFSET(Primitive,V[interpolant][component]), flat, point, state.perspective, wrap, component);
 					}
 				}
-			}
-
-			if(state.fog.attribute == Fog)
-			{
-				setupGradient(primitive, tri, w012, M, v0, v1, v2, OFFSET(Vertex,f), OFFSET(Primitive,f), state.fog.flat, false, state.perspective, false, 0);
 			}
 
 			Return(true);
@@ -521,7 +514,7 @@ namespace sw
 				m = Max(m, *Pointer<Float>(v2 + attribute));
 				m -= 0.5f;
 
-				// FIXME: Vectorize
+				// TODO: Vectorize
 				If(Float(i.x) < m) i.x = i.x + 1.0f;
 				If(Float(i.y) < m) i.y = i.y + 1.0f;
 				If(Float(i.z) < m) i.z = i.z + 1.0f;

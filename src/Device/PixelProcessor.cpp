@@ -16,7 +16,6 @@
 
 #include "Surface.hpp"
 #include "Primitive.hpp"
-#include "Pipeline/PixelPipeline.hpp"
 #include "Pipeline/PixelProgram.hpp"
 #include "Pipeline/PixelShader.hpp"
 #include "Pipeline/Constants.hpp"
@@ -68,18 +67,14 @@ namespace sw
 
 	PixelProcessor::PixelProcessor(Context *context) : context(context)
 	{
-		setGlobalMipmapBias(0.0f);   // Round to highest LOD [0.5, 1.0]: -0.5
-		                             // Round to nearest LOD [0.7, 1.4]:  0.0
-		                             // Round to lowest LOD  [1.0, 2.0]:  0.5
-
-		routineCache = 0;
+		routineCache = nullptr;
 		setRoutineCacheSize(1024);
 	}
 
 	PixelProcessor::~PixelProcessor()
 	{
 		delete routineCache;
-		routineCache = 0;
+		routineCache = nullptr;
 	}
 
 	void PixelProcessor::setFloatConstant(unsigned int index, const float value[4])
@@ -92,35 +87,6 @@ namespace sw
 			c[index][3] = value[3];
 		}
 		else ASSERT(false);
-
-		if(index < 8)   // ps_1_x constants
-		{
-			// FIXME: Compact into generic function
-			short x = iround(4095 * clamp(value[0], -1.0f, 1.0f));
-			short y = iround(4095 * clamp(value[1], -1.0f, 1.0f));
-			short z = iround(4095 * clamp(value[2], -1.0f, 1.0f));
-			short w = iround(4095 * clamp(value[3], -1.0f, 1.0f));
-
-			cW[index][0][0] = x;
-			cW[index][0][1] = x;
-			cW[index][0][2] = x;
-			cW[index][0][3] = x;
-
-			cW[index][1][0] = y;
-			cW[index][1][1] = y;
-			cW[index][1][2] = y;
-			cW[index][1][3] = y;
-
-			cW[index][2][0] = z;
-			cW[index][2][1] = z;
-			cW[index][2][2] = z;
-			cW[index][2][3] = z;
-
-			cW[index][3][0] = w;
-			cW[index][3][1] = w;
-			cW[index][3][2] = w;
-			cW[index][3][3] = w;
-		}
 	}
 
 	void PixelProcessor::setIntegerConstant(unsigned int index, const int value[4])
@@ -175,186 +141,6 @@ namespace sw
 	{
 		context->stencilBuffer = stencilBuffer;
 		context->stencilBufferLayer = layer;
-	}
-
-	void PixelProcessor::setTexCoordIndex(unsigned int stage, int texCoordIndex)
-	{
-		if(stage < 8)
-		{
-			context->textureStage[stage].setTexCoordIndex(texCoordIndex);
-		}
-		else ASSERT(false);
-	}
-
-	void PixelProcessor::setStageOperation(unsigned int stage, TextureStage::StageOperation stageOperation)
-	{
-		if(stage < 8)
-		{
-			context->textureStage[stage].setStageOperation(stageOperation);
-		}
-		else ASSERT(false);
-	}
-
-	void PixelProcessor::setFirstArgument(unsigned int stage, TextureStage::SourceArgument firstArgument)
-	{
-		if(stage < 8)
-		{
-			context->textureStage[stage].setFirstArgument(firstArgument);
-		}
-		else ASSERT(false);
-	}
-
-	void PixelProcessor::setSecondArgument(unsigned int stage, TextureStage::SourceArgument secondArgument)
-	{
-		if(stage < 8)
-		{
-			context->textureStage[stage].setSecondArgument(secondArgument);
-		}
-		else ASSERT(false);
-	}
-
-	void PixelProcessor::setThirdArgument(unsigned int stage, TextureStage::SourceArgument thirdArgument)
-	{
-		if(stage < 8)
-		{
-			context->textureStage[stage].setThirdArgument(thirdArgument);
-		}
-		else ASSERT(false);
-	}
-
-	void PixelProcessor::setStageOperationAlpha(unsigned int stage, TextureStage::StageOperation stageOperationAlpha)
-	{
-		if(stage < 8)
-		{
-			context->textureStage[stage].setStageOperationAlpha(stageOperationAlpha);
-		}
-		else ASSERT(false);
-	}
-
-	void PixelProcessor::setFirstArgumentAlpha(unsigned int stage, TextureStage::SourceArgument firstArgumentAlpha)
-	{
-		if(stage < 8)
-		{
-			context->textureStage[stage].setFirstArgumentAlpha(firstArgumentAlpha);
-		}
-		else ASSERT(false);
-	}
-
-	void PixelProcessor::setSecondArgumentAlpha(unsigned int stage, TextureStage::SourceArgument secondArgumentAlpha)
-	{
-		if(stage < 8)
-		{
-			context->textureStage[stage].setSecondArgumentAlpha(secondArgumentAlpha);
-		}
-		else ASSERT(false);
-	}
-
-	void PixelProcessor::setThirdArgumentAlpha(unsigned int stage, TextureStage::SourceArgument thirdArgumentAlpha)
-	{
-		if(stage < 8)
-		{
-			context->textureStage[stage].setThirdArgumentAlpha(thirdArgumentAlpha);
-		}
-		else ASSERT(false);
-	}
-
-	void PixelProcessor::setFirstModifier(unsigned int stage, TextureStage::ArgumentModifier firstModifier)
-	{
-		if(stage < 8)
-		{
-			context->textureStage[stage].setFirstModifier(firstModifier);
-		}
-		else ASSERT(false);
-	}
-
-	void PixelProcessor::setSecondModifier(unsigned int stage, TextureStage::ArgumentModifier secondModifier)
-	{
-		if(stage < 8)
-		{
-			context->textureStage[stage].setSecondModifier(secondModifier);
-		}
-		else ASSERT(false);
-	}
-
-	void PixelProcessor::setThirdModifier(unsigned int stage, TextureStage::ArgumentModifier thirdModifier)
-	{
-		if(stage < 8)
-		{
-			context->textureStage[stage].setThirdModifier(thirdModifier);
-		}
-		else ASSERT(false);
-	}
-
-	void PixelProcessor::setFirstModifierAlpha(unsigned int stage, TextureStage::ArgumentModifier firstModifierAlpha)
-	{
-		if(stage < 8)
-		{
-			context->textureStage[stage].setFirstModifierAlpha(firstModifierAlpha);
-		}
-		else ASSERT(false);
-	}
-
-	void PixelProcessor::setSecondModifierAlpha(unsigned int stage, TextureStage::ArgumentModifier secondModifierAlpha)
-	{
-		if(stage < 8)
-		{
-			context->textureStage[stage].setSecondModifierAlpha(secondModifierAlpha);
-		}
-		else ASSERT(false);
-	}
-
-	void PixelProcessor::setThirdModifierAlpha(unsigned int stage, TextureStage::ArgumentModifier thirdModifierAlpha)
-	{
-		if(stage < 8)
-		{
-			context->textureStage[stage].setThirdModifierAlpha(thirdModifierAlpha);
-		}
-		else ASSERT(false);
-	}
-
-	void PixelProcessor::setDestinationArgument(unsigned int stage, TextureStage::DestinationArgument destinationArgument)
-	{
-		if(stage < 8)
-		{
-			context->textureStage[stage].setDestinationArgument(destinationArgument);
-		}
-		else ASSERT(false);
-	}
-
-	void PixelProcessor::setConstantColor(unsigned int stage, const Color<float> &constantColor)
-	{
-		if(stage < 8)
-		{
-			context->textureStage[stage].setConstantColor(constantColor);
-		}
-		else ASSERT(false);
-	}
-
-	void PixelProcessor::setBumpmapMatrix(unsigned int stage, int element, float value)
-	{
-		if(stage < 8)
-		{
-			context->textureStage[stage].setBumpmapMatrix(element, value);
-		}
-		else ASSERT(false);
-	}
-
-	void PixelProcessor::setLuminanceScale(unsigned int stage, float value)
-	{
-		if(stage < 8)
-		{
-			context->textureStage[stage].setLuminanceScale(value);
-		}
-		else ASSERT(false);
-	}
-
-	void PixelProcessor::setLuminanceOffset(unsigned int stage, float value)
-	{
-		if(stage < 8)
-		{
-			context->textureStage[stage].setLuminanceOffset(value);
-		}
-		else ASSERT(false);
 	}
 
 	void PixelProcessor::setTextureFilter(unsigned int sampler, FilterType textureFilter)
@@ -537,15 +323,6 @@ namespace sw
 		else ASSERT(false);
 	}
 
-	void PixelProcessor::setSyncRequired(unsigned int sampler, bool isSincRequired)
-	{
-		if(sampler < TEXTURE_IMAGE_UNITS)
-		{
-			context->sampler[sampler].setSyncRequired(isSincRequired);
-		}
-		else ASSERT(false);
-	}
-
 	void PixelProcessor::setWriteSRGB(bool sRGB)
 	{
 		context->setWriteSRGB(sRGB);
@@ -683,35 +460,6 @@ namespace sw
 		context->stencilZFailOperationCCW = stencilZFailOperation;
 	}
 
-	void PixelProcessor::setTextureFactor(const Color<float> &textureFactor)
-	{
-		// FIXME: Compact into generic function   // FIXME: Clamp
-		short textureFactorR = iround(4095 * textureFactor.r);
-		short textureFactorG = iround(4095 * textureFactor.g);
-		short textureFactorB = iround(4095 * textureFactor.b);
-		short textureFactorA = iround(4095 * textureFactor.a);
-
-		factor.textureFactor4[0][0] = textureFactorR;
-		factor.textureFactor4[0][1] = textureFactorR;
-		factor.textureFactor4[0][2] = textureFactorR;
-		factor.textureFactor4[0][3] = textureFactorR;
-
-		factor.textureFactor4[1][0] = textureFactorG;
-		factor.textureFactor4[1][1] = textureFactorG;
-		factor.textureFactor4[1][2] = textureFactorG;
-		factor.textureFactor4[1][3] = textureFactorG;
-
-		factor.textureFactor4[2][0] = textureFactorB;
-		factor.textureFactor4[2][1] = textureFactorB;
-		factor.textureFactor4[2][2] = textureFactorB;
-		factor.textureFactor4[2][3] = textureFactorB;
-
-		factor.textureFactor4[3][0] = textureFactorA;
-		factor.textureFactor4[3][1] = textureFactorA;
-		factor.textureFactor4[3][2] = textureFactorA;
-		factor.textureFactor4[3][3] = textureFactorA;
-	}
-
 	void PixelProcessor::setBlendConstant(const Color<float> &blendConstant)
 	{
 		// FIXME: Compact into generic function   // FIXME: Clamp
@@ -807,16 +555,6 @@ namespace sw
 		factor.invBlendConstant4F[3][3] = 1 - blendConstant.a;
 	}
 
-	void PixelProcessor::setFillMode(FillMode fillMode)
-	{
-		context->fillMode = fillMode;
-	}
-
-	void PixelProcessor::setShadingMode(ShadingMode shadingMode)
-	{
-		context->shadingMode = shadingMode;
-	}
-
 	void PixelProcessor::setAlphaBlendEnable(bool alphaBlendEnable)
 	{
 		context->setAlphaBlendEnable(alphaBlendEnable);
@@ -867,59 +605,6 @@ namespace sw
 		factor.alphaReference4[3] = (word)iround(alphaReference * 0x1000 / 0xFF);
 	}
 
-	void PixelProcessor::setGlobalMipmapBias(float bias)
-	{
-		context->setGlobalMipmapBias(bias);
-	}
-
-	void PixelProcessor::setFogStart(float start)
-	{
-		setFogRanges(start, context->fogEnd);
-	}
-
-	void PixelProcessor::setFogEnd(float end)
-	{
-		setFogRanges(context->fogStart, end);
-	}
-
-	void PixelProcessor::setFogColor(Color<float> fogColor)
-	{
-		// TODO: Compact into generic function
-		word fogR = (unsigned short)(65535 * fogColor.r);
-		word fogG = (unsigned short)(65535 * fogColor.g);
-		word fogB = (unsigned short)(65535 * fogColor.b);
-
-		fog.color4[0][0] = fogR;
-		fog.color4[0][1] = fogR;
-		fog.color4[0][2] = fogR;
-		fog.color4[0][3] = fogR;
-
-		fog.color4[1][0] = fogG;
-		fog.color4[1][1] = fogG;
-		fog.color4[1][2] = fogG;
-		fog.color4[1][3] = fogG;
-
-		fog.color4[2][0] = fogB;
-		fog.color4[2][1] = fogB;
-		fog.color4[2][2] = fogB;
-		fog.color4[2][3] = fogB;
-
-		fog.colorF[0] = replicate(fogColor.r);
-		fog.colorF[1] = replicate(fogColor.g);
-		fog.colorF[2] = replicate(fogColor.b);
-	}
-
-	void PixelProcessor::setFogDensity(float fogDensity)
-	{
-		fog.densityE = replicate(-fogDensity * 1.442695f);   // 1/e^x = 2^(-x*1.44)
-		fog.density2E = replicate(-fogDensity * fogDensity * 1.442695f);
-	}
-
-	void PixelProcessor::setPixelFogMode(FogMode fogMode)
-	{
-		context->pixelFogMode = fogMode;
-	}
-
 	void PixelProcessor::setPerspectiveCorrection(bool perspectiveEnable)
 	{
 		perspectiveCorrection = perspectiveEnable;
@@ -934,23 +619,6 @@ namespace sw
 	{
 		delete routineCache;
 		routineCache = new RoutineCache<State>(clamp(cacheSize, 1, 65536), precachePixel ? "sw-pixel" : 0);
-	}
-
-	void PixelProcessor::setFogRanges(float start, float end)
-	{
-		context->fogStart = start;
-		context->fogEnd = end;
-
-		if(start == end)
-		{
-			end += 0.001f;   // Hack: ensure there is a small range
-		}
-
-		float fogScale = -1.0f / (end - start);
-		float fogOffset = end * -fogScale;
-
-		fog.scale = replicate(fogScale);
-		fog.offset = replicate(fogOffset);
 	}
 
 	const PixelProcessor::State PixelProcessor::update() const
@@ -1008,9 +676,6 @@ namespace sw
 
 		state.occlusionEnabled = context->occlusionEnabled;
 
-		state.fogActive = context->fogActive();
-		state.pixelFogMode = context->pixelFogActive();
-		state.wBasedFog = context->wBasedFog && context->pixelFogActive() != FOG_NONE;
 		state.perspective = context->perspectiveActive();
 		state.depthClamp = (context->depthBias != 0.0f) || (context->slopeDepthBias != 0.0f);
 
@@ -1044,15 +709,6 @@ namespace sw
 
 		state.frontFaceCCW = context->frontFacingCCW;
 
-		if(!context->pixelShader)
-		{
-			for(unsigned int i = 0; i < 8; i++)
-			{
-				state.textureStage[i] = context->textureStage[i].textureStageState();
-			}
-
-			state.specularAdd = context->specularActive() && context->specularEnable;
-		}
 
 		for(unsigned int i = 0; i < 16; i++)
 		{
@@ -1063,104 +719,31 @@ namespace sw
 					state.sampler[i] = context->sampler[i].samplerState();
 				}
 			}
-			else
-			{
-				if(i < 8 && state.textureStage[i].stageOperation != TextureStage::STAGE_DISABLE)
-				{
-					state.sampler[i] = context->sampler[i].samplerState();
-				}
-				else break;
-			}
 		}
 
-		const bool point = context->isDrawPoint(true);
-		const bool sprite = context->pointSpriteActive();
-		const bool flatShading = (context->shadingMode == SHADING_FLAT) || point;
+		const bool point = context->isDrawPoint();
 
-		if(context->pixelShaderModel() < 0x0300)
+		for(int interpolant = 0; interpolant < MAX_FRAGMENT_INPUTS; interpolant++)
 		{
-			for(int coordinate = 0; coordinate < 8; coordinate++)
+			for(int component = 0; component < 4; component++)
 			{
-				for(int component = 0; component < 4; component++)
+				const Shader::Semantic &semantic = context->pixelShader->getInput(interpolant, component);
+
+				if(semantic.active())
 				{
-					if(context->textureActive(coordinate, component))
-					{
-						state.texture[coordinate].component |= 1 << component;
+					bool flat = point;
 
-						if(point && !sprite)
-						{
-							state.texture[coordinate].flat |= 1 << component;
-						}
+					switch(semantic.usage)
+					{
+					case Shader::USAGE_TEXCOORD: flat = false;                  break;
+					case Shader::USAGE_COLOR:    flat = semantic.flat || point; break;
 					}
-				}
 
-				if(context->textureTransformProject[coordinate] && context->pixelShaderModel() <= 0x0103)
-				{
-					if(context->textureTransformCount[coordinate] == 2)
+					state.interpolant[interpolant].component |= 1 << component;
+
+					if(flat)
 					{
-						state.texture[coordinate].project = 1;
-					}
-					else if(context->textureTransformCount[coordinate] == 3)
-					{
-						state.texture[coordinate].project = 2;
-					}
-					else if(context->textureTransformCount[coordinate] == 4 || context->textureTransformCount[coordinate] == 0)
-					{
-						state.texture[coordinate].project = 3;
-					}
-				}
-			}
-
-			for(int color = 0; color < 2; color++)
-			{
-				for(int component = 0; component < 4; component++)
-				{
-					if(context->colorActive(color, component))
-					{
-						state.color[color].component |= 1 << component;
-
-						if(point || flatShading)
-						{
-							state.color[color].flat |= 1 << component;
-						}
-					}
-				}
-			}
-
-			if(context->fogActive())
-			{
-				state.fog.component = true;
-
-				if(point)
-				{
-					state.fog.flat = true;
-				}
-			}
-		}
-		else
-		{
-			for(int interpolant = 0; interpolant < MAX_FRAGMENT_INPUTS; interpolant++)
-			{
-				for(int component = 0; component < 4; component++)
-				{
-					const Shader::Semantic &semantic = context->pixelShader->getInput(interpolant, component);
-
-					if(semantic.active())
-					{
-						bool flat = point;
-
-						switch(semantic.usage)
-						{
-						case Shader::USAGE_TEXCOORD: flat = point && !sprite;             break;
-						case Shader::USAGE_COLOR:    flat = semantic.flat || flatShading; break;
-						}
-
-						state.interpolant[interpolant].component |= 1 << component;
-
-						if(flat)
-						{
-							state.interpolant[interpolant].flat |= 1 << component;
-						}
+						state.interpolant[interpolant].flat |= 1 << component;
 					}
 				}
 			}
@@ -1189,17 +772,7 @@ namespace sw
 		if(!routine)
 		{
 			const bool integerPipeline = (context->pixelShaderModel() <= 0x0104);
-			QuadRasterizer *generator = nullptr;
-
-			if(integerPipeline)
-			{
-				generator = new PixelPipeline(state, context->pixelShader);
-			}
-			else
-			{
-				generator = new PixelProgram(state, context->pixelShader);
-			}
-
+			QuadRasterizer *generator = new PixelProgram(state, context->pixelShader);
 			generator->generate();
 			routine = (*generator)(L"PixelRoutine_%0.8X", state.shaderID);
 			delete generator;

@@ -455,8 +455,6 @@ namespace sw
 		float fogStart;
 		float fogEnd;
 
-		void computeIllumination();
-
 		bool textureWrapActive;
 		unsigned char textureWrap[TEXTURE_IMAGE_UNITS];
 		TexGen texGen[8];

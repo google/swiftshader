@@ -40,11 +40,9 @@ namespace sw
 			bool isDrawPoint               : 1;
 			bool isDrawLine                : 1;
 			bool isDrawTriangle            : 1;
-			bool isDrawSolidTriangle       : 1;
 			bool interpolateZ              : 1;
 			bool interpolateW              : 1;
 			bool perspective               : 1;
-			bool pointSprite               : 1;
 			unsigned int positionRegister  : BITS(VERTEX_OUTPUT_LAST);
 			unsigned int pointSizeRegister : BITS(VERTEX_OUTPUT_LAST);
 			CullMode cullMode              : BITS(CULL_LAST);
@@ -61,17 +59,7 @@ namespace sw
 				bool wrap               : 1;
 			};
 
-			union
-			{
-				struct
-				{
-					Gradient color[2][4];
-					Gradient texture[8][4];
-					Gradient fog;
-				};
-
-				Gradient gradient[MAX_FRAGMENT_INPUTS][4];
-			};
+			Gradient gradient[MAX_FRAGMENT_INPUTS][4];
 		};
 
 		struct State : States

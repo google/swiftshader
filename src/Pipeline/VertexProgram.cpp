@@ -59,21 +59,9 @@ namespace sw
 	{
 	}
 
-	void VertexProgram::pipeline(UInt &index)
-	{
-		if(!state.preTransformed)
-		{
-			program(index);
-		}
-		else
-		{
-			passThrough();
-		}
-	}
-
 	void VertexProgram::program(UInt &index)
 	{
-	//	shader->print("VertexShader-%0.8X.txt", state.shaderID);
+		//	shader->print("VertexShader-%0.8X.txt", state.shaderID);
 
 		unsigned short shaderModel = shader->getShaderModel();
 
@@ -418,7 +406,7 @@ namespace sw
 						if(dst.w) pDst.w = o[C0 + dst.index].w;
 						break;
 					case Shader::PARAMETER_TEXCRDOUT:
-				//	case Shader::PARAMETER_OUTPUT:
+						//	case Shader::PARAMETER_OUTPUT:
 						if(shaderModel < 0x0300)
 						{
 							if(dst.x) pDst.x = o[T0 + dst.index].x;
@@ -564,7 +552,7 @@ namespace sw
 					if(dst.w) o[C0 + dst.index].w = d.w;
 					break;
 				case Shader::PARAMETER_TEXCRDOUT:
-			//	case Shader::PARAMETER_OUTPUT:
+					//	case Shader::PARAMETER_OUTPUT:
 					if(shaderModel < 0x0300)
 					{
 						if(dst.x) o[T0 + dst.index].x = d.x;
@@ -610,74 +598,6 @@ namespace sw
 		if(currentLabel != -1)
 		{
 			Nucleus::setInsertBlock(returnBlock);
-		}
-	}
-
-	void VertexProgram::passThrough()
-	{
-		if(shader)
-		{
-			for(int i = 0; i < MAX_VERTEX_OUTPUTS; i++)
-			{
-				unsigned char usage = shader->getOutput(i, 0).usage;
-
-				switch(usage)
-				{
-				case 0xFF:
-					continue;
-				case Shader::USAGE_PSIZE:
-					o[i].y = v[i].x;
-					break;
-				case Shader::USAGE_TEXCOORD:
-					o[i].x = v[i].x;
-					o[i].y = v[i].y;
-					o[i].z = v[i].z;
-					o[i].w = v[i].w;
-					break;
-				case Shader::USAGE_POSITION:
-					o[i].x = v[i].x;
-					o[i].y = v[i].y;
-					o[i].z = v[i].z;
-					o[i].w = v[i].w;
-					break;
-				case Shader::USAGE_COLOR:
-					o[i].x = v[i].x;
-					o[i].y = v[i].y;
-					o[i].z = v[i].z;
-					o[i].w = v[i].w;
-					break;
-				case Shader::USAGE_FOG:
-					o[i].x = v[i].x;
-					break;
-				default:
-					ASSERT(false);
-				}
-			}
-		}
-		else
-		{
-			o[Pos].x = v[PositionT].x;
-			o[Pos].y = v[PositionT].y;
-			o[Pos].z = v[PositionT].z;
-			o[Pos].w = v[PositionT].w;
-
-			for(int i = 0; i < 2; i++)
-			{
-				o[C0 + i].x = v[Color0 + i].x;
-				o[C0 + i].y = v[Color0 + i].y;
-				o[C0 + i].z = v[Color0 + i].z;
-				o[C0 + i].w = v[Color0 + i].w;
-			}
-
-			for(int i = 0; i < 8; i++)
-			{
-				o[T0 + i].x = v[TexCoord0 + i].x;
-				o[T0 + i].y = v[TexCoord0 + i].y;
-				o[T0 + i].z = v[TexCoord0 + i].z;
-				o[T0 + i].w = v[TexCoord0 + i].w;
-			}
-
-			o[Pts].y = v[PointSize].x;
 		}
 	}
 

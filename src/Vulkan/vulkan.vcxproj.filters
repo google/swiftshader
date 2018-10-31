@@ -51,9 +51,6 @@
     <ClCompile Include="..\Device\Vector.cpp">
       <Filter>Source Files\Device</Filter>
     </ClCompile>
-    <ClCompile Include="..\Device\TextureStage.cpp">
-      <Filter>Source Files\Device</Filter>
-    </ClCompile>
     <ClCompile Include="..\Device\SwiftConfig.cpp">
       <Filter>Source Files\Device</Filter>
     </ClCompile>
@@ -111,9 +108,6 @@
     <ClCompile Include="..\Pipeline\VertexProgram.cpp">
       <Filter>Source Files\Pipeline</Filter>
     </ClCompile>
-    <ClCompile Include="..\Pipeline\VertexPipeline.cpp">
-      <Filter>Source Files\Pipeline</Filter>
-    </ClCompile>
     <ClCompile Include="..\Pipeline\ShaderCore.cpp">
       <Filter>Source Files\Pipeline</Filter>
     </ClCompile>
@@ -133,9 +127,6 @@
       <Filter>Source Files\Pipeline</Filter>
     </ClCompile>
     <ClCompile Include="..\Pipeline\PixelProgram.cpp">
-      <Filter>Source Files\Pipeline</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Pipeline\PixelPipeline.cpp">
       <Filter>Source Files\Pipeline</Filter>
     </ClCompile>
     <ClCompile Include="..\Pipeline\Constants.cpp">
@@ -302,9 +293,6 @@
     <ClInclude Include="..\Device\Triangle.hpp">
       <Filter>Header Files\Device</Filter>
     </ClInclude>
-    <ClInclude Include="..\Device\TextureStage.hpp">
-      <Filter>Header Files\Device</Filter>
-    </ClInclude>
     <ClInclude Include="..\Device\SwiftConfig.hpp">
       <Filter>Header Files\Device</Filter>
     </ClInclude>
@@ -429,9 +417,6 @@
       <Filter>Header Files\Pipeline</Filter>
     </ClInclude>
     <ClInclude Include="..\Pipeline\PixelProgram.hpp">
-      <Filter>Header Files\Pipeline</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Pipeline\PixelPipeline.hpp">
       <Filter>Header Files\Pipeline</Filter>
     </ClInclude>
     <ClInclude Include="..\Pipeline\Constants.hpp">

@@ -627,11 +627,6 @@ namespace sw
 				c[index].z = linearToSRGB(c[index].z);
 			}
 
-			if(index == 0)
-			{
-				fogBlend(c[index], fog);
-			}
-
 			switch(state.targetFormat[index])
 			{
 			case FORMAT_R5G6B5:

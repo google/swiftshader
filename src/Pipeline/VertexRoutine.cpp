@@ -62,7 +62,7 @@ namespace sw
 				*Pointer<UInt>(tagCache + tagIndex) = indexQ;
 
 				readInput(indexQ);
-				pipeline(indexQ);
+				program(indexQ);
 				postTransform();
 				computeClipFlags();
 
@@ -130,11 +130,6 @@ namespace sw
 
 		Int4 finiteXYZ = finiteX & finiteY & finiteZ;
 		clipFlags |= *Pointer<Int>(constants + OFFSET(Constants,fini) + SignMask(finiteXYZ) * 4);
-
-		if(state.preTransformed)
-		{
-			clipFlags &= 0xFBFBFBFB;   // Don't clip against far clip plane
-		}
 	}
 
 	Vector4f VertexRoutine::readStream(Pointer<Byte> &buffer, UInt &stride, const Stream &stream, const UInt &index)
@@ -612,32 +607,10 @@ namespace sw
 	{
 		int pos = state.positionRegister;
 
-		// Backtransform
-		if(state.preTransformed)
-		{
-			Float4 rhw = Float4(1.0f) / o[pos].w;
-
-			Float4 W = *Pointer<Float4>(data + OFFSET(DrawData,Wx16)) * Float4(1.0f / 16.0f);
-			Float4 H = *Pointer<Float4>(data + OFFSET(DrawData,Hx16)) * Float4(1.0f / 16.0f);
-			Float4 L = *Pointer<Float4>(data + OFFSET(DrawData,X0x16)) * Float4(1.0f / 16.0f);
-			Float4 T = *Pointer<Float4>(data + OFFSET(DrawData,Y0x16)) * Float4(1.0f / 16.0f);
-
-			o[pos].x = (o[pos].x - L) / W * rhw;
-			o[pos].y = (o[pos].y - T) / H * rhw;
-			o[pos].z = o[pos].z * rhw;
-			o[pos].w = rhw;
-		}
-
-		if(!halfIntegerCoordinates && !state.preTransformed)
+		if(!halfIntegerCoordinates)
 		{
 			o[pos].x = o[pos].x + *Pointer<Float4>(data + OFFSET(DrawData,halfPixelX)) * o[pos].w;
 			o[pos].y = o[pos].y + *Pointer<Float4>(data + OFFSET(DrawData,halfPixelY)) * o[pos].w;
-		}
-
-		if(state.superSampling)
-		{
-			o[pos].x = o[pos].x + *Pointer<Float4>(data + OFFSET(DrawData,XXXX)) * o[pos].w;
-			o[pos].y = o[pos].y + *Pointer<Float4>(data + OFFSET(DrawData,YYYY)) * o[pos].w;
 		}
 	}
 

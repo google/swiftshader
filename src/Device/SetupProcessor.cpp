@@ -59,14 +59,14 @@ namespace sw
 
 	SetupProcessor::SetupProcessor(Context *context) : context(context)
 	{
-		routineCache = 0;
+		routineCache = nullptr;
 		setRoutineCacheSize(1024);
 	}
 
 	SetupProcessor::~SetupProcessor()
 	{
 		delete routineCache;
-		routineCache = 0;
+		routineCache = nullptr;
 	}
 
 	SetupProcessor::State SetupProcessor::update() const
@@ -75,14 +75,12 @@ namespace sw
 
 		bool vPosZW = (context->pixelShader && context->pixelShader->isVPosDeclared() && fullPixelPositionRegister);
 
-		state.isDrawPoint = context->isDrawPoint(true);
-		state.isDrawLine = context->isDrawLine(true);
-		state.isDrawTriangle = context->isDrawTriangle(false);
-		state.isDrawSolidTriangle = context->isDrawTriangle(true);
-		state.interpolateZ = context->depthBufferActive() || context->pixelFogActive() != FOG_NONE || vPosZW;
+		state.isDrawPoint = context->isDrawPoint();
+		state.isDrawLine = context->isDrawLine();
+		state.isDrawTriangle = context->isDrawTriangle();
+		state.interpolateZ = context->depthBufferActive() || vPosZW;
 		state.interpolateW = context->perspectiveActive() || vPosZW;
 		state.perspective = context->perspectiveActive();
-		state.pointSprite = context->pointSpriteActive();
 		state.cullMode = context->cullMode;
 		state.twoSidedStencil = context->stencilActive() && context->twoSidedStencil;
 		state.slopeDepthBias = context->slopeDepthBias != 0.0f;
@@ -94,15 +92,8 @@ namespace sw
 		state.multiSample = context->getMultiSampleCount();
 		state.rasterizerDiscard = context->rasterizerDiscard;
 
-		if(context->vertexShader)
-		{
-			state.positionRegister = context->vertexShader->getPositionRegister();
-			state.pointSizeRegister = context->vertexShader->getPointSizeRegister();
-		}
-		else if(context->pointSizeActive())
-		{
-			state.pointSizeRegister = Pts;
-		}
+		state.positionRegister = context->vertexShader->getPositionRegister();
+		state.pointSizeRegister = context->vertexShader->getPointSizeRegister();
 
 		for(int interpolant = 0; interpolant < MAX_FRAGMENT_INPUTS; interpolant++)
 		{
@@ -114,108 +105,38 @@ namespace sw
 			}
 		}
 
-		state.fog.attribute = Unused;
-		state.fog.flat = false;
-		state.fog.wrap = false;
+		const bool point = context->isDrawPoint();
 
-		const bool point = context->isDrawPoint(true);
-		const bool sprite = context->pointSpriteActive();
-		const bool flatShading = (context->shadingMode == SHADING_FLAT) || point;
-
-		if(context->vertexShader && context->pixelShader)
+		for(int interpolant = 0; interpolant < MAX_FRAGMENT_INPUTS; interpolant++)
 		{
-			for(int interpolant = 0; interpolant < MAX_FRAGMENT_INPUTS; interpolant++)
+			for(int component = 0; component < 4; component++)
 			{
-				for(int component = 0; component < 4; component++)
-				{
-					int project = context->isProjectionComponent(interpolant - 2, component) ? 1 : 0;
-					const Shader::Semantic& semantic = context->pixelShader->getInput(interpolant, component - project);
+				const Shader::Semantic& semantic = context->pixelShader->getInput(interpolant, component);
 
-					if(semantic.active())
+				if(semantic.active())
+				{
+					int input = interpolant;
+					for(int i = 0; i < MAX_VERTEX_OUTPUTS; i++)
 					{
-						int input = interpolant;
-						for(int i = 0; i < MAX_VERTEX_OUTPUTS; i++)
+						if(semantic == context->vertexShader->getOutput(i, component))
 						{
-							if(semantic == context->vertexShader->getOutput(i, component - project))
-							{
-								input = i;
-								break;
-							}
+							input = i;
+							break;
 						}
-
-						bool flat = point;
-
-						switch(semantic.usage)
-						{
-						case Shader::USAGE_TEXCOORD: flat = point && !sprite;             break;
-						case Shader::USAGE_COLOR:    flat = semantic.flat || flatShading; break;
-						}
-
-						state.gradient[interpolant][component].attribute = input;
-						state.gradient[interpolant][component].flat = flat;
 					}
-				}
-			}
-		}
-		else if(context->preTransformed && context->pixelShader)
-		{
-			for(int interpolant = 0; interpolant < MAX_FRAGMENT_INPUTS; interpolant++)
-			{
-				for(int component = 0; component < 4; component++)
-				{
-					const Shader::Semantic& semantic = context->pixelShader->getInput(interpolant, component);
+
+					bool flat = point;
 
 					switch(semantic.usage)
 					{
-					case 0xFF:
-						break;
-					case Shader::USAGE_TEXCOORD:
-						state.gradient[interpolant][component].attribute = T0 + semantic.index;
-						state.gradient[interpolant][component].flat = semantic.flat || (point && !sprite);
-						break;
-					case Shader::USAGE_COLOR:
-						state.gradient[interpolant][component].attribute = C0 + semantic.index;
-						state.gradient[interpolant][component].flat = semantic.flat || flatShading;
-						break;
-					default:
-						ASSERT(false);
+					case Shader::USAGE_TEXCOORD: flat = false;                  break;
+					case Shader::USAGE_COLOR:    flat = semantic.flat || point; break;
 					}
-				}
-			}
-		}
-		else if(context->pixelShaderModel() < 0x0300)
-		{
-			for(int coordinate = 0; coordinate < 8; coordinate++)
-			{
-				for(int component = 0; component < 4; component++)
-				{
-					if(context->textureActive(coordinate, component))
-					{
-						state.texture[coordinate][component].attribute = T0 + coordinate;
-						state.texture[coordinate][component].flat = point && !sprite;
-						state.texture[coordinate][component].wrap = (context->textureWrap[coordinate] & (1 << component)) != 0;
-					}
-				}
-			}
 
-			for(int color = 0; color < 2; color++)
-			{
-				for(int component = 0; component < 4; component++)
-				{
-					if(context->colorActive(color, component))
-					{
-						state.color[color][component].attribute = C0 + color;
-						state.color[color][component].flat = flatShading;
-					}
+					state.gradient[interpolant][component].attribute = input;
+					state.gradient[interpolant][component].flat = flat;
 				}
 			}
-		}
-		else ASSERT(false);
-
-		if(context->fogActive())
-		{
-			state.fog.attribute = Fog;
-			state.fog.flat = point;
 		}
 
 		state.hash = state.computeHash();

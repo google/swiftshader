@@ -127,11 +127,9 @@ copy "$(OutDir)vk_swiftshader.dll" "$(SolutionDir)out\$(Configuration)_$(Platfor
     <ClCompile Include="..\Device\SetupProcessor.cpp" />
     <ClCompile Include="..\Device\Surface.cpp" />
     <ClCompile Include="..\Device\SwiftConfig.cpp" />
-    <ClCompile Include="..\Device\TextureStage.cpp" />
     <ClCompile Include="..\Device\Vector.cpp" />
     <ClCompile Include="..\Device\VertexProcessor.cpp" />
     <ClCompile Include="..\Pipeline\Constants.cpp" />
-    <ClCompile Include="..\Pipeline\PixelPipeline.cpp" />
     <ClCompile Include="..\Pipeline\PixelProgram.cpp" />
     <ClCompile Include="..\Pipeline\PixelRoutine.cpp" />
     <ClCompile Include="..\Pipeline\PixelShader.cpp" />
@@ -139,7 +137,6 @@ copy "$(OutDir)vk_swiftshader.dll" "$(SolutionDir)out\$(Configuration)_$(Platfor
     <ClCompile Include="..\Pipeline\SetupRoutine.cpp" />
     <ClCompile Include="..\Pipeline\Shader.cpp" />
     <ClCompile Include="..\Pipeline\ShaderCore.cpp" />
-    <ClCompile Include="..\Pipeline\VertexPipeline.cpp" />
     <ClCompile Include="..\Pipeline\VertexProgram.cpp" />
     <ClCompile Include="..\Pipeline\VertexRoutine.cpp" />
     <ClCompile Include="..\Pipeline\VertexShader.cpp" />
@@ -224,13 +221,11 @@ copy "$(OutDir)vk_swiftshader.dll" "$(SolutionDir)out\$(Configuration)_$(Platfor
     <ClInclude Include="..\Device\Stream.hpp" />
     <ClInclude Include="..\Device\Surface.hpp" />
     <ClInclude Include="..\Device\SwiftConfig.hpp" />
-    <ClInclude Include="..\Device\TextureStage.hpp" />
     <ClInclude Include="..\Device\Triangle.hpp" />
     <ClInclude Include="..\Device\Vector.hpp" />
     <ClInclude Include="..\Device\Vertex.hpp" />
     <ClInclude Include="..\Device\VertexProcessor.hpp" />
     <ClInclude Include="..\Pipeline\Constants.hpp" />
-    <ClInclude Include="..\Pipeline\PixelPipeline.hpp" />
     <ClInclude Include="..\Pipeline\PixelProgram.hpp" />
     <ClInclude Include="..\Pipeline\PixelRoutine.hpp" />
     <ClInclude Include="..\Pipeline\PixelShader.hpp" />
