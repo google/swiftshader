@@ -1859,8 +1859,6 @@ namespace glsl
 		if(loop.isDeterministic())
 		{
 			 deterministicVariables.insert(loop.index->getId());
-
-			 emit(sw::Shader::OPCODE_TEST);
 		}
 
 		if(node->getType() == ELoopDoWhile)
@@ -1926,10 +1924,7 @@ namespace glsl
 					body->traverse(this);
 				}
 
-				if(loop.isDeterministic())
-				{
-					emit(sw::Shader::OPCODE_TEST);
-				}
+				emit(sw::Shader::OPCODE_TEST);
 
 				if(expression)
 				{

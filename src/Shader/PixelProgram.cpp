@@ -832,11 +832,6 @@ namespace sw
 
 	Int4 PixelProgram::enableMask(const Shader::Instruction *instruction)
 	{
-		if(whileTest)
-		{
-			return Int4(0xFFFFFFFF);
-		}
-
 		Int4 enable = instruction->analysisBranch ? Int4(enableStack[enableIndex]) : Int4(0xFFFFFFFF);
 
 		if(shader->containsBreakInstruction() && instruction->analysisBreak)
@@ -1397,7 +1392,8 @@ namespace sw
 
 	void PixelProgram::TEST()
 	{
-		whileTest = true;
+		enableContinue = restoreContinue.back();
+		restoreContinue.pop_back();
 	}
 
 	void PixelProgram::CALL(int labelIndex, int callSiteIndex)
@@ -1576,7 +1572,6 @@ namespace sw
 		Nucleus::setInsertBlock(endBlock);
 
 		enableIndex--;
-		whileTest = false;
 	}
 
 	void PixelProgram::ENDSWITCH()
@@ -1760,12 +1755,11 @@ namespace sw
 		loopRepEndBlock[loopRepDepth] = endBlock;
 
 		Int4 restoreBreak = enableBreak;
-		Int4 restoreContinue = enableContinue;
+		restoreContinue.push_back(enableContinue);
 
 		// TODO: jump(testBlock)
 		Nucleus::createBr(testBlock);
 		Nucleus::setInsertBlock(testBlock);
-		enableContinue = restoreContinue;
 
 		const Vector4f &src = fetchRegister(temporaryRegister);
 		Int4 condition = As<Int4>(src.x);
@@ -1783,7 +1777,6 @@ namespace sw
 		Nucleus::setInsertBlock(loopBlock);
 
 		loopRepDepth++;
-		whileTest = false;
 	}
 
 	void PixelProgram::SWITCH()

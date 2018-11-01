@@ -25,7 +25,7 @@ namespace sw
 	public:
 		PixelProgram(const PixelProcessor::State &state, const PixelShader *shader) :
 			PixelRoutine(state, shader), r(shader->indirectAddressableTemporaries),
-			loopDepth(-1), ifDepth(0), loopRepDepth(0), currentLabel(-1), whileTest(false)
+			loopDepth(-1), ifDepth(0), loopRepDepth(0), currentLabel(-1)
 		{
 			for(int i = 0; i < 2048; ++i)
 			{
@@ -155,7 +155,6 @@ namespace sw
 		int ifDepth;
 		int loopRepDepth;
 		int currentLabel;
-		bool whileTest;
 
 		BasicBlock *ifFalseBlock[24 + 24];
 		BasicBlock *loopRepTestBlock[4];
@@ -164,6 +163,7 @@ namespace sw
 		std::vector<BasicBlock*> callRetBlock[2048];
 		BasicBlock *returnBlock;
 		bool isConditionalIf[24 + 24];
+		std::vector<Int4> restoreContinue;
 	};
 }
 

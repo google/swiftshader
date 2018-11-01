@@ -124,7 +124,6 @@ namespace sw
 		int ifDepth;
 		int loopRepDepth;
 		int currentLabel;
-		bool whileTest;
 
 		BasicBlock *ifFalseBlock[24 + 24];
 		BasicBlock *loopRepTestBlock[4];
@@ -133,6 +132,7 @@ namespace sw
 		std::vector<BasicBlock*> callRetBlock[2048];
 		BasicBlock *returnBlock;
 		bool isConditionalIf[24 + 24];
+		std::vector<Int4> restoreContinue;
 	};
 }
 
