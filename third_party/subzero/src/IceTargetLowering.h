@@ -530,8 +530,8 @@ protected:
     for (SizeT I = 0; I < NumElements; ++I) {
       auto *Index = Ctx->getConstantInt32(I);
 
-      auto makeExtractThunk = [this, Index](Operand *Src) {
-        return [this, Index, Src]() {
+      auto makeExtractThunk = [this, Index, NumElements](Operand *Src) {
+        return [this, Index, NumElements, Src]() {
           assert(typeNumElements(Src->getType()) == NumElements);
 
           const auto ElementTy = typeElementType(Src->getType());
