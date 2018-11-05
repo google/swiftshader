@@ -104,6 +104,13 @@ config("swiftshader_config") {
         "-mhard-float",
         "-mfp32",
       ]
+    } else if (target_cpu == "mips64el" && current_cpu == target_cpu) {
+      cflags += [
+        "-march=mips64el",
+        "-mcpu=mips64r2",
+        "-mabi=64",
+        "-fPIC",
+      ]
     }
 
     if (is_linux) {
@@ -113,6 +120,11 @@ config("swiftshader_config") {
         ldflags += [
           "-Wl,--hash-style=sysv",
           "-mips32r2",
+        ]
+      } else if (target_cpu == "mips64el") {
+        ldflags += [
+          "-Wl,--hash-style=sysv",
+          "-mips64r2",
         ]
       } else {
         ldflags += [ "-Wl,--hash-style=both" ]

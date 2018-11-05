@@ -31,6 +31,8 @@
 #define LLVM_DEFAULT_TARGET_TRIPLE "aarch64-linux-gnu"
 #elif defined(__mips__)
 #define LLVM_DEFAULT_TARGET_TRIPLE "mipsel-linux-gnu"
+#elif defined(__mips64)
+#define LLVM_DEFAULT_TARGET_TRIPLE "mips64el-linux-gnuabi64"
 #else
 #error "unknown architecture"
 #endif
@@ -52,6 +54,8 @@
 #define LLVM_HOST_TRIPLE "aarch64-linux-gnu"
 #elif defined(__mips__)
 #define LLVM_HOST_TRIPLE "mipsel-linux-gnu"
+#elif defined(__mips64)
+#define LLVM_HOST_TRIPLE "mips64el-linux-gnuabi64"
 #else
 #error "unknown architecture"
 #endif

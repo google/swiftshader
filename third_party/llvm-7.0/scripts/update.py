@@ -49,6 +49,7 @@ LLVM_TRIPLES = {
         ('__arm__', 'armv7-linux-gnueabihf'),
         ('__aarch64__', 'aarch64-linux-gnu'),
         ('__mips__', 'mipsel-linux-gnu'),
+        ('__mips64', 'mips64el-linux-gnuabi64'),
     ],
     'darwin': [
         ('__x86_64__', 'x86_64-apple-darwin'),

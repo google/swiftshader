@@ -15,8 +15,9 @@
 import("../swiftshader.gni")
 
 declare_args() {
-  # Subzero produces smaller binaries, but doesn't support ARM64.
-  use_swiftshader_with_subzero = (target_cpu != "arm64")
+  # Subzero produces smaller binaries, but doesn't support ARM64 and MIPS64.
+  use_swiftshader_with_subzero =
+      target_cpu != "arm64" && target_cpu != "mips64el"
 }
 
 # Need a separate config to ensure the warnings are added to the end.

@@ -139,7 +139,7 @@ macro(set_shared_library_export_map TARGET DIR)
         # Don't allow symbols to be overridden by another module.
         set_property(TARGET ${TARGET} APPEND_STRING PROPERTY COMPILE_FLAGS " -fvisibility=protected")
 
-        if(ARCH STREQUAL "mipsel")
+        if(ARCH STREQUAL "mipsel" OR ARCH STREQUAL "mips64el")
           # MIPS supports sysv hash-style only.
           set_property(TARGET ${TARGET} APPEND_STRING PROPERTY LINK_FLAGS " -Wl,--hash-style=sysv")
         else()
@@ -230,6 +230,11 @@ else()
         set_cpp_flag("-fPIC")
         set_cpp_flag("-mhard-float")
         set_cpp_flag("-mfp32")
+    endif()
+    if(ARCH STREQUAL "mips64el")
+        set_cpp_flag("-march=mips64r2")
+        set_cpp_flag("-mabi=64")
+        set_cpp_flag("-fPIC")
     endif()
 
     if(LINUX)
