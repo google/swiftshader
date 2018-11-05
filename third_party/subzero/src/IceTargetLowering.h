@@ -532,6 +532,7 @@ protected:
 
       auto makeExtractThunk = [this, Index, NumElements](Operand *Src) {
         return [this, Index, NumElements, Src]() {
+          (void)NumElements;
           assert(typeNumElements(Src->getType()) == NumElements);
 
           const auto ElementTy = typeElementType(Src->getType());
