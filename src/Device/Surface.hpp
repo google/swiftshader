@@ -16,8 +16,8 @@
 #define sw_Surface_hpp
 
 #include "Color.hpp"
-#include "Main/Config.hpp"
-#include "Common/Resource.hpp"
+#include "Device/Config.hpp"
+#include "System/Resource.hpp"
 
 namespace sw
 {

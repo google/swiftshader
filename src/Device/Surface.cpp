@@ -18,11 +18,11 @@
 #include "Context.hpp"
 #include "ETC_Decoder.hpp"
 #include "Renderer.hpp"
-#include "Common/Half.hpp"
-#include "Common/Memory.hpp"
-#include "Common/CPUID.hpp"
-#include "Common/Resource.hpp"
-#include "Common/Debug.hpp"
+#include "System/Half.hpp"
+#include "System/Memory.hpp"
+#include "System/CPUID.hpp"
+#include "System/Resource.hpp"
+#include "System/Debug.hpp"
 #include "Reactor/Reactor.hpp"
 
 #if defined(__i386__) || defined(__x86_64__)

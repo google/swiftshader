@@ -16,10 +16,10 @@
 
 #include "VertexShader.hpp"
 #include "SamplerCore.hpp"
-#include "Renderer/Renderer.hpp"
-#include "Renderer/Vertex.hpp"
-#include "Common/Half.hpp"
-#include "Common/Debug.hpp"
+#include "Device/Renderer.hpp"
+#include "Device/Vertex.hpp"
+#include "System/Half.hpp"
+#include "System/Debug.hpp"
 
 namespace sw
 {

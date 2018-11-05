@@ -15,8 +15,8 @@
 #ifndef sw_Color_hpp
 #define sw_Color_hpp
 
-#include "Common/Types.hpp"
-#include "Common/Math.hpp"
+#include "System/Types.hpp"
+#include "System/Math.hpp"
 
 namespace sw
 {
@@ -71,7 +71,7 @@ namespace sw
 	};
 }
 
-#include "Common/Math.hpp"
+#include "System/Math.hpp"
 
 namespace sw
 {

@@ -16,8 +16,8 @@
 #define	sw_FrameBuffer_hpp
 
 #include "Reactor/Reactor.hpp"
-#include "Renderer/Surface.hpp"
-#include "Common/Thread.hpp"
+#include "Device/Surface.hpp"
+#include "System/Thread.hpp"
 
 namespace sw
 {

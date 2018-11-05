@@ -15,7 +15,7 @@
 #ifndef sw_Config_hpp
 #define sw_Config_hpp
 
-#include "Common/Types.hpp"
+#include "System/Types.hpp"
 
 #define PERF_HUD 0       // Display time spent on vertex, setup and pixel processing for each thread
 #define PERF_PROFILE 0   // Profile various pipeline stages and display the timing in SwiftConfig

@@ -15,7 +15,7 @@
 #ifndef sw_Constants_hpp
 #define sw_Constants_hpp
 
-#include "Common/Types.hpp"
+#include "System/Types.hpp"
 
 namespace sw
 {

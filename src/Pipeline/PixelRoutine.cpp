@@ -16,11 +16,11 @@
 
 #include "SamplerCore.hpp"
 #include "Constants.hpp"
-#include "Renderer/Renderer.hpp"
-#include "Renderer/QuadRasterizer.hpp"
-#include "Renderer/Surface.hpp"
-#include "Renderer/Primitive.hpp"
-#include "Common/Debug.hpp"
+#include "Device/Renderer.hpp"
+#include "Device/QuadRasterizer.hpp"
+#include "Device/Surface.hpp"
+#include "Device/Primitive.hpp"
+#include "System/Debug.hpp"
 
 namespace sw
 {

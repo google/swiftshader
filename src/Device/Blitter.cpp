@@ -14,10 +14,10 @@
 
 #include "Blitter.hpp"
 
-#include "Shader/ShaderCore.hpp"
+#include "Pipeline/ShaderCore.hpp"
 #include "Reactor/Reactor.hpp"
-#include "Common/Memory.hpp"
-#include "Common/Debug.hpp"
+#include "System/Memory.hpp"
+#include "System/Debug.hpp"
 
 namespace sw
 {

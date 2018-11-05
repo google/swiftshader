@@ -15,9 +15,9 @@
 #ifndef sw_TextureStage_hpp
 #define sw_TextureStage_hpp
 
-#include "Common/Types.hpp"
-#include "Common/Math.hpp"
-#include "Renderer/Color.hpp"
+#include "System/Types.hpp"
+#include "System/Math.hpp"
+#include "Device/Color.hpp"
 
 namespace sw
 {

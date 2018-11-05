@@ -53,7 +53,7 @@ namespace sw
 
 #include "FrameBufferDD.hpp"
 #include "FrameBufferGDI.hpp"
-#include "Common/Configurator.hpp"
+#include "System/Configurator.hpp"
 
 sw::FrameBufferWin *createFrameBufferWin(HWND windowHandle, int width, int height, bool fullscreen, bool topLeftOrigin)
 {

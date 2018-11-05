@@ -15,7 +15,7 @@
 #ifndef sw_PixelRoutine_hpp
 #define sw_PixelRoutine_hpp
 
-#include "Renderer/QuadRasterizer.hpp"
+#include "Device/QuadRasterizer.hpp"
 
 namespace sw
 {

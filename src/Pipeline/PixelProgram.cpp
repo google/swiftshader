@@ -15,8 +15,8 @@
 #include "PixelProgram.hpp"
 
 #include "SamplerCore.hpp"
-#include "Renderer/Primitive.hpp"
-#include "Renderer/Renderer.hpp"
+#include "Device/Primitive.hpp"
+#include "Device/Renderer.hpp"
 
 namespace sw
 {

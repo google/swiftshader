@@ -14,7 +14,7 @@
 
 #include "FrameBufferAndroid.hpp"
 
-#include "Common/GrallocAndroid.hpp"
+#include "System/GrallocAndroid.hpp"
 
 #include <system/window.h>
 

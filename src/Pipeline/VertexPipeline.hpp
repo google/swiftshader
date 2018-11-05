@@ -17,8 +17,8 @@
 
 #include "VertexRoutine.hpp"
 
-#include "Renderer/Context.hpp"
-#include "Renderer/VertexProcessor.hpp"
+#include "Device/Context.hpp"
+#include "Device/VertexProcessor.hpp"
 
 namespace sw
 {

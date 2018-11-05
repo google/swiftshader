@@ -15,7 +15,7 @@
 #ifndef sw_Shader_hpp
 #define sw_Shader_hpp
 
-#include "Common/Types.hpp"
+#include "System/Types.hpp"
 
 #include <string>
 #include <vector>

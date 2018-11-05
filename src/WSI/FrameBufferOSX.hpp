@@ -15,7 +15,7 @@
 #ifndef sw_FrameBufferOSX_hpp
 #define sw_FrameBufferOSX_hpp
 
-#include "Main/FrameBuffer.hpp"
+#include "WSI/FrameBuffer.hpp"
 
 #import <Cocoa/Cocoa.h>
 

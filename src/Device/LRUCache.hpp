@@ -15,7 +15,7 @@
 #ifndef sw_LRUCache_hpp
 #define sw_LRUCache_hpp
 
-#include "Common/Math.hpp"
+#include "System/Math.hpp"
 
 namespace sw
 {

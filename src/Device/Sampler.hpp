@@ -15,9 +15,9 @@
 #ifndef sw_Sampler_hpp
 #define sw_Sampler_hpp
 
-#include "Main/Config.hpp"
-#include "Renderer/Surface.hpp"
-#include "Common/Types.hpp"
+#include "Device/Config.hpp"
+#include "Device/Surface.hpp"
+#include "System/Types.hpp"
 
 namespace sw
 {

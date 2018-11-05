@@ -17,9 +17,9 @@
 
 #include "Context.hpp"
 #include "RoutineCache.hpp"
-#include "Shader/VertexShader.hpp"
-#include "Shader/PixelShader.hpp"
-#include "Common/Types.hpp"
+#include "Pipeline/VertexShader.hpp"
+#include "Pipeline/PixelShader.hpp"
+#include "System/Types.hpp"
 
 namespace sw
 {

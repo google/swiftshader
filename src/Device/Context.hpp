@@ -20,7 +20,7 @@
 #include "Stream.hpp"
 #include "Point.hpp"
 #include "Vertex.hpp"
-#include "Common/Types.hpp"
+#include "System/Types.hpp"
 
 namespace sw
 {

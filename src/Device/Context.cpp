@@ -16,10 +16,10 @@
 
 #include "Primitive.hpp"
 #include "Surface.hpp"
-#include "Shader/PixelShader.hpp"
-#include "Shader/VertexShader.hpp"
-#include "Common/Memory.hpp"
-#include "Common/Debug.hpp"
+#include "Pipeline/PixelShader.hpp"
+#include "Pipeline/VertexShader.hpp"
+#include "System/Memory.hpp"
+#include "System/Debug.hpp"
 
 #include <string.h>
 

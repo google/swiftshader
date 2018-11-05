@@ -20,9 +20,9 @@
 #include "SetupProcessor.hpp"
 #include "Plane.hpp"
 #include "Blitter.hpp"
-#include "Common/MutexLock.hpp"
-#include "Common/Thread.hpp"
-#include "Main/Config.hpp"
+#include "System/MutexLock.hpp"
+#include "System/Thread.hpp"
+#include "Device/Config.hpp"
 
 #include <list>
 

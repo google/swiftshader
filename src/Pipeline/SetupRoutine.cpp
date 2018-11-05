@@ -15,9 +15,9 @@
 #include "SetupRoutine.hpp"
 
 #include "Constants.hpp"
-#include "Renderer/Primitive.hpp"
-#include "Renderer/Polygon.hpp"
-#include "Renderer/Renderer.hpp"
+#include "Device/Primitive.hpp"
+#include "Device/Polygon.hpp"
+#include "Device/Renderer.hpp"
 #include "Reactor/Reactor.hpp"
 
 namespace sw

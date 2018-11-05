@@ -16,7 +16,7 @@
 #define sw_Clipper_hpp
 
 #include "Plane.hpp"
-#include "Common/Types.hpp"
+#include "System/Types.hpp"
 
 namespace sw
 {

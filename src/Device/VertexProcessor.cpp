@@ -14,13 +14,13 @@
 
 #include "VertexProcessor.hpp"
 
-#include "Shader/VertexPipeline.hpp"
-#include "Shader/VertexProgram.hpp"
-#include "Shader/VertexShader.hpp"
-#include "Shader/PixelShader.hpp"
-#include "Shader/Constants.hpp"
-#include "Common/Math.hpp"
-#include "Common/Debug.hpp"
+#include "Pipeline/VertexPipeline.hpp"
+#include "Pipeline/VertexProgram.hpp"
+#include "Pipeline/VertexShader.hpp"
+#include "Pipeline/PixelShader.hpp"
+#include "Pipeline/Constants.hpp"
+#include "System/Math.hpp"
+#include "System/Debug.hpp"
 
 #include <string.h>
 

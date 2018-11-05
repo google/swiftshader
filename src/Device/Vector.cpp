@@ -15,7 +15,7 @@
 #include "Vector.hpp"
 
 #include "Matrix.hpp"
-#include "Common/Math.hpp"
+#include "System/Math.hpp"
 
 namespace sw
 {

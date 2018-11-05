@@ -16,7 +16,7 @@
 #define sw_Primitive_hpp
 
 #include "Vertex.hpp"
-#include "Main/Config.hpp"
+#include "Device/Config.hpp"
 
 namespace sw
 {

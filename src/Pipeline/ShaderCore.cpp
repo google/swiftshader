@@ -14,8 +14,8 @@
 
 #include "ShaderCore.hpp"
 
-#include "Renderer/Renderer.hpp"
-#include "Common/Debug.hpp"
+#include "Device/Renderer.hpp"
+#include "System/Debug.hpp"
 
 #include <limits.h>
 

@@ -14,10 +14,10 @@
 
 #include "FrameBuffer.hpp"
 
-#include "Renderer/Surface.hpp"
+#include "Device/Surface.hpp"
 #include "Reactor/Reactor.hpp"
-#include "Common/Timer.hpp"
-#include "Common/Debug.hpp"
+#include "System/Timer.hpp"
+#include "System/Debug.hpp"
 
 #include <stdio.h>
 #include <string.h>

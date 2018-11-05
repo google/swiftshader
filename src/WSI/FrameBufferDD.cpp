@@ -14,7 +14,7 @@
 
 #include "FrameBufferDD.hpp"
 
-#include "Common/Debug.hpp"
+#include "System/Debug.hpp"
 
 namespace sw
 {

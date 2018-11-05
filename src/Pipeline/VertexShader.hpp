@@ -16,7 +16,7 @@
 #define sw_VertexShader_hpp
 
 #include "Shader.hpp"
-#include "Main/Config.hpp"
+#include "Device/Config.hpp"
 
 namespace sw
 {

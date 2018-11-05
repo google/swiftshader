@@ -14,7 +14,7 @@
 
 #include "FrameBufferOSX.hpp"
 
-#include "Common/Debug.hpp"
+#include "System/Debug.hpp"
 
 #include <EGL/egl.h>
 #import <QuartzCore/QuartzCore.h>

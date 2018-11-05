@@ -15,7 +15,7 @@
 #include "SamplerCore.hpp"
 
 #include "Constants.hpp"
-#include "Common/Debug.hpp"
+#include "System/Debug.hpp"
 
 namespace
 {

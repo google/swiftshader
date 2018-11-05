@@ -15,7 +15,7 @@
 #ifndef sw_FrameBufferOzone_hpp
 #define sw_FrameBufferOzone_hpp
 
-#include "Main/FrameBuffer.hpp"
+#include "WSI/FrameBuffer.hpp"
 
 namespace sw
 {

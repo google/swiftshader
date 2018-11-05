@@ -16,9 +16,9 @@
 
 #include "Primitive.hpp"
 #include "Renderer.hpp"
-#include "Shader/Constants.hpp"
-#include "Common/Math.hpp"
-#include "Common/Debug.hpp"
+#include "Pipeline/Constants.hpp"
+#include "System/Math.hpp"
+#include "System/Debug.hpp"
 
 namespace sw
 {
@@ -340,7 +340,7 @@ namespace sw
 
 	bool QuadRasterizer::interpolateZ() const
 	{
-		return state.depthTestActive || state.pixelFogActive() || (shader && shader->isVPosDeclared() && fullPixelPositionRegister);
+		return state.depthTestActive || (shader && shader->isVPosDeclared() && fullPixelPositionRegister);
 	}
 
 	bool QuadRasterizer::interpolateW() const

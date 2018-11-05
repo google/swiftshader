@@ -18,7 +18,7 @@
 #include "Matrix.hpp"
 #include "Context.hpp"
 #include "RoutineCache.hpp"
-#include "Shader/VertexShader.hpp"
+#include "Pipeline/VertexShader.hpp"
 
 namespace sw
 {

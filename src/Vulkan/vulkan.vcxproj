@@ -184,6 +184,7 @@ copy "$(OutDir)vk_swiftshader.dll" "$(SolutionDir)out\$(Configuration)_$(Platfor
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h" />
+    <ClInclude Include="Version.h" />
     <ClInclude Include="VkBuffer.hpp" />
     <ClInclude Include="VkBufferView.hpp" />
     <ClInclude Include="VkCommandBuffer.hpp" />

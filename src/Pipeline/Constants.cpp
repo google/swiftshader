@@ -14,8 +14,8 @@
 
 #include "Constants.hpp"
 
-#include "Common/Math.hpp"
-#include "Common/Half.hpp"
+#include "System/Math.hpp"
+#include "System/Half.hpp"
 
 #include <memory.h>
 

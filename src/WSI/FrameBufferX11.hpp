@@ -15,8 +15,8 @@
 #ifndef sw_FrameBufferX11_hpp
 #define sw_FrameBufferX11_hpp
 
-#include "Main/FrameBuffer.hpp"
-#include "Common/Debug.hpp"
+#include "WSI/FrameBuffer.hpp"
+#include "System/Debug.hpp"
 
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>

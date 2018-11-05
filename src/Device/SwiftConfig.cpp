@@ -15,9 +15,9 @@
 #include "SwiftConfig.hpp"
 
 #include "Config.hpp"
-#include "Common/Configurator.hpp"
-#include "Common/Debug.hpp"
-#include "Common/Version.h"
+#include "System/Configurator.hpp"
+#include "System/Debug.hpp"
+#include "Vulkan/Version.h"
 
 #include <sstream>
 #include <stdio.h>

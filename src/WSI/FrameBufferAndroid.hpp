@@ -15,8 +15,8 @@
 #ifndef sw_FrameBufferAndroid_hpp
 #define sw_FrameBufferAndroid_hpp
 
-#include "Main/FrameBuffer.hpp"
-#include "Common/Debug.hpp"
+#include "WSI/FrameBuffer.hpp"
+#include "System/Debug.hpp"
 
 struct ANativeWindow;
 struct ANativeWindowBuffer;

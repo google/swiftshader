@@ -16,8 +16,8 @@
 
 #include "Context.hpp"
 #include "Surface.hpp"
-#include "Shader/PixelRoutine.hpp"
-#include "Common/Debug.hpp"
+#include "Pipeline/PixelRoutine.hpp"
+#include "System/Debug.hpp"
 
 #include <memory.h>
 #include <string.h>

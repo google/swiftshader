@@ -17,9 +17,9 @@
 
 #include "Reactor/Nucleus.hpp"
 
-#include "Common/Thread.hpp"
-#include "Common/MutexLock.hpp"
-#include "Common/Socket.hpp"
+#include "System/Thread.hpp"
+#include "System/MutexLock.hpp"
+#include "System/Socket.hpp"
 
 #include <string>
 

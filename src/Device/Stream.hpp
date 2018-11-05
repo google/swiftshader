@@ -15,7 +15,7 @@
 #ifndef sw_Stream_hpp
 #define sw_Stream_hpp
 
-#include "Common/Types.hpp"
+#include "System/Types.hpp"
 
 namespace sw
 {

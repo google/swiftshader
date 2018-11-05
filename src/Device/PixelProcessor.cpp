@@ -16,11 +16,11 @@
 
 #include "Surface.hpp"
 #include "Primitive.hpp"
-#include "Shader/PixelPipeline.hpp"
-#include "Shader/PixelProgram.hpp"
-#include "Shader/PixelShader.hpp"
-#include "Shader/Constants.hpp"
-#include "Common/Debug.hpp"
+#include "Pipeline/PixelPipeline.hpp"
+#include "Pipeline/PixelProgram.hpp"
+#include "Pipeline/PixelShader.hpp"
+#include "Pipeline/Constants.hpp"
+#include "System/Debug.hpp"
 
 #include <string.h>
 

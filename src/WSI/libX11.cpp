@@ -14,7 +14,7 @@
 
 #include "libX11.hpp"
 
-#include "Common/SharedLibrary.hpp"
+#include "System/SharedLibrary.hpp"
 
 #define Bool int
 

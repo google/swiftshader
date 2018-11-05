@@ -18,9 +18,9 @@
 #include "Polygon.hpp"
 #include "Context.hpp"
 #include "Renderer.hpp"
-#include "Shader/SetupRoutine.hpp"
-#include "Shader/Constants.hpp"
-#include "Common/Debug.hpp"
+#include "Pipeline/SetupRoutine.hpp"
+#include "Pipeline/Constants.hpp"
+#include "System/Debug.hpp"
 
 namespace sw
 {
