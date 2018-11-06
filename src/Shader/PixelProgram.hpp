@@ -24,14 +24,14 @@ namespace sw
 	{
 	public:
 		PixelProgram(const PixelProcessor::State &state, const PixelShader *shader) :
-			PixelRoutine(state, shader), r(shader->indirectAddressableTemporaries),
-			loopDepth(-1), ifDepth(0), loopRepDepth(0), currentLabel(-1)
+			PixelRoutine(state, shader), r(shader->indirectAddressableTemporaries)
 		{
 			for(int i = 0; i < 2048; ++i)
 			{
 				labelBlock[i] = 0;
 			}
 
+			loopDepth = -1;
 			enableStack[0] = Int4(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF);
 
 			if(shader->containsBreakInstruction())
@@ -129,6 +129,7 @@ namespace sw
 		void BREAK(Int4 &condition);
 		void CONTINUE();
 		void TEST();
+		void SCALAR();
 		void CALL(int labelIndex, int callSiteIndex);
 		void CALLNZ(int labelIndex, int callSiteIndex, const Src &src);
 		void CALLNZb(int labelIndex, int callSiteIndex, const Src &boolRegister);
@@ -152,9 +153,10 @@ namespace sw
 		void RET();
 		void LEAVE();
 
-		int ifDepth;
-		int loopRepDepth;
-		int currentLabel;
+		int ifDepth = 0;
+		int loopRepDepth = 0;
+		int currentLabel = -1;
+		bool scalar = false;
 
 		BasicBlock *ifFalseBlock[24 + 24];
 		BasicBlock *loopRepTestBlock[4];

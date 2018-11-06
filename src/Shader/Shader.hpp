@@ -244,9 +244,10 @@ namespace sw
 			OPCODE_INSERT,
 			OPCODE_DISCARD,
 			OPCODE_FWIDTH,
-			OPCODE_LEAVE,   // Return before the end of the function
+			OPCODE_LEAVE,    // Return before the end of the function
 			OPCODE_CONTINUE,
-			OPCODE_TEST,   // Marks the end of the code that can be skipped by 'continue'
+			OPCODE_TEST,     // Marks the end of the code that can be skipped by 'continue'
+			OPCODE_SCALAR,   // Marks the start of code not subject to SIMD lane masking. Ends at WHILE and ENDWHILE.
 			OPCODE_SWITCH,
 			OPCODE_ENDSWITCH,
 

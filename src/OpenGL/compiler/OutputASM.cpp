@@ -1859,6 +1859,11 @@ namespace glsl
 		if(loop.isDeterministic())
 		{
 			 deterministicVariables.insert(loop.index->getId());
+
+			 if(!unroll)
+			 {
+				 emit(sw::Shader::OPCODE_SCALAR);   // Unrolled loops don't have an ENDWHILE to disable scalar mode.
+			 }
 		}
 
 		if(node->getType() == ELoopDoWhile)
@@ -1925,6 +1930,11 @@ namespace glsl
 				}
 
 				emit(sw::Shader::OPCODE_TEST);
+
+				if(loop.isDeterministic())
+				{
+					emit(sw::Shader::OPCODE_SCALAR);
+				}
 
 				if(expression)
 				{

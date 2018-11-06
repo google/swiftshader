@@ -26,10 +26,6 @@ namespace sw
 	VertexProgram::VertexProgram(const VertexProcessor::State &state, const VertexShader *shader)
 		: VertexRoutine(state, shader), shader(shader), r(shader->indirectAddressableTemporaries)
 	{
-		ifDepth = 0;
-		loopRepDepth = 0;
-		currentLabel = -1;
-
 		for(int i = 0; i < 2048; i++)
 		{
 			labelBlock[i] = 0;
@@ -295,6 +291,7 @@ namespace sw
 			case Shader::OPCODE_BREAKP:     BREAKP(src0);                   break;
 			case Shader::OPCODE_CONTINUE:   CONTINUE();                     break;
 			case Shader::OPCODE_TEST:       TEST();                         break;
+			case Shader::OPCODE_SCALAR:     SCALAR();                       break;
 			case Shader::OPCODE_CALL:       CALL(dst.label, dst.callSite);  break;
 			case Shader::OPCODE_CALLNZ:     CALLNZ(dst.label, dst.callSite, src0); break;
 			case Shader::OPCODE_ELSE:       ELSE();                         break;
@@ -977,6 +974,11 @@ namespace sw
 
 	Int4 VertexProgram::enableMask(const Shader::Instruction *instruction)
 	{
+		if(scalar)
+		{
+			return Int4(0xFFFFFFFF);
+		}
+
 		Int4 enable = instruction->analysisBranch ? Int4(enableStack[enableIndex]) : Int4(0xFFFFFFFF);
 
 		if(shader->containsBreakInstruction() && instruction->analysisBreak)
@@ -1106,6 +1108,11 @@ namespace sw
 	{
 		enableContinue = restoreContinue.back();
 		restoreContinue.pop_back();
+	}
+
+	void VertexProgram::SCALAR()
+	{
+		scalar = true;
 	}
 
 	void VertexProgram::CALL(int labelIndex, int callSiteIndex)
@@ -1284,6 +1291,7 @@ namespace sw
 		Nucleus::setInsertBlock(endBlock);
 
 		enableIndex--;
+		scalar = false;
 	}
 
 	void VertexProgram::ENDSWITCH()
@@ -1490,6 +1498,7 @@ namespace sw
 		Nucleus::setInsertBlock(loopBlock);
 
 		loopRepDepth++;
+		scalar = false;
 	}
 
 	void VertexProgram::SWITCH()
