@@ -203,8 +203,11 @@ else()
     set_cpp_flag("-Werror=reorder")
     set_cpp_flag("-Werror=sign-compare")
     set_cpp_flag("-Werror=missing-braces")
-    set_cpp_flag("-Werror=unused-lambda-capture")
     set_cpp_flag("-fno-exceptions")
+
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+        set_cpp_flag("-Werror=unused-lambda-capture")
+    endif()
 
     # Remove xor, and, or and friends from the list of keywords, they are used
     # by Reactor
