@@ -37,7 +37,7 @@ namespace sw
 		int cursorHeight;
 	};
 
-	class [[clang::lto_visibility_public]] FrameBuffer
+	class FrameBuffer
 	{
 	public:
 		FrameBuffer(int width, int height, bool fullscreen, bool topLeftOrigin);
