@@ -90,7 +90,7 @@ public:
 private:
 	LibEGLexports *loadExports()
 	{
-		if(!libEGL)
+		if(!loadLibraryAttempted && !libEGL)
 		{
 			#if defined(_WIN32)
 				#if defined(__LP64__)
@@ -126,6 +126,8 @@ private:
 				auto libEGL_swiftshader = (LibEGLexports *(*)())getProcAddress(libEGL, "libEGL_swiftshader");
 				libEGLexports = libEGL_swiftshader();
 			}
+
+			loadLibraryAttempted = true;
 		}
 
 		return libEGLexports;
@@ -133,6 +135,7 @@ private:
 
 	void *libEGL = nullptr;
 	LibEGLexports *libEGLexports = nullptr;
+	bool loadLibraryAttempted = false;
 };
 
 #endif   // libEGL_hpp

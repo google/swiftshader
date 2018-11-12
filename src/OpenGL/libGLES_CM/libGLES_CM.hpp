@@ -251,7 +251,7 @@ public:
 private:
 	LibGLES_CMexports *loadExports()
 	{
-		if(!libGLES_CM)
+		if(!loadLibraryAttempted && !libGLES_CM)
 		{
 			#if defined(_WIN32)
 				#if defined(__LP64__)
@@ -287,6 +287,8 @@ private:
 				auto libGLES_CM_swiftshader = (LibGLES_CMexports *(*)())getProcAddress(libGLES_CM, "libGLES_CM_swiftshader");
 				libGLES_CMexports = libGLES_CM_swiftshader();
 			}
+
+			loadLibraryAttempted = true;
 		}
 
 		return libGLES_CMexports;
@@ -294,6 +296,7 @@ private:
 
 	void *libGLES_CM = nullptr;
 	LibGLES_CMexports *libGLES_CMexports = nullptr;
+	bool loadLibraryAttempted = false;
 };
 
 #endif   // libGLES_CM_hpp
