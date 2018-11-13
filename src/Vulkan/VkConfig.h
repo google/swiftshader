@@ -38,7 +38,7 @@ enum
 enum
 {
 	REQUIRED_MEMORY_ALIGNMENT = 8, // For 64 bit formats on ARM64
-	REQUIRED_MEMORY_TYPE_BITS = 1,
+	MEMORY_TYPE_GENERIC_BIT = 0x1, // Generic system memory.
 };
 
 enum

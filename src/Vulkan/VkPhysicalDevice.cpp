@@ -446,13 +446,23 @@ const VkPhysicalDeviceMemoryProperties& PhysicalDevice::getMemoryProperties() co
 	static const VkPhysicalDeviceMemoryProperties properties
 	{
 		1, // memoryTypeCount
-		{{VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT |
-		  VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-		  VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-		  0}}, // heapIndex
+		{
+			// vk::MEMORY_TYPE_GENERIC_BIT
+			{
+				VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT |
+				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+				VK_MEMORY_PROPERTY_HOST_COHERENT_BIT |
+				VK_MEMORY_PROPERTY_HOST_CACHED_BIT, // propertyFlags
+				0 // heapIndex
+			},
+		},
 		1, // memoryHeapCount
-		{{1ull << 31, // size, FIXME(sugoi): This could be configurable based on available RAM
-		  VK_MEMORY_HEAP_DEVICE_LOCAL_BIT}},
+		{
+			{
+				1ull << 31, // size, FIXME(sugoi): This should be configurable based on available RAM
+				VK_MEMORY_HEAP_DEVICE_LOCAL_BIT // flags
+			},
+		}
 	};
 
 	return properties;

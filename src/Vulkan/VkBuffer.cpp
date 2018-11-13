@@ -43,7 +43,7 @@ const VkMemoryRequirements Buffer::getMemoryRequirements() const
 {
 	VkMemoryRequirements memoryRequirements = {};
 	memoryRequirements.alignment = vk::REQUIRED_MEMORY_ALIGNMENT;
-	memoryRequirements.memoryTypeBits = vk::REQUIRED_MEMORY_TYPE_BITS;
+	memoryRequirements.memoryTypeBits = vk::MEMORY_TYPE_GENERIC_BIT;
 	memoryRequirements.size = size; // TODO: also reserve space for a header containing
 		                            // the size of the buffer (for robust buffer access)
 	return memoryRequirements;
