@@ -234,9 +234,9 @@ const VkPhysicalDeviceLimits& PhysicalDevice::getLimits() const
 		8, // maxCombinedClipAndCullDistances
 		2, // discreteQueuePriorities
 		{ 1.0, 64.0 }, // pointSizeRange[2]
-		{ 0.0, 8.0 }, // lineWidthRange[2]
-		1.0, // pointSizeGranularity
-		1.0, // lineWidthGranularity
+		{ 1.0, 1.0 }, // lineWidthRange[2] (unsupported)
+		0.0, // pointSizeGranularity (unsupported)
+		0.0, // lineWidthGranularity (unsupported)
 		false, // strictLines
 		true, // standardSampleLocations
 		64, // optimalBufferCopyOffsetAlignment
