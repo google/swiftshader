@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "2b9e82ff_2bfb190d",
+        "filename": "src/Vulkan/VkDevice.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-11-13T20:47:48Z",
+      "side": 1,
+      "message": "https://swiftshader-review.googlesource.com/22509",
+      "parentUuid": "97df1a6a_06ea3af9",
+      "revId": "9e4d040cb93c6251430ee322ebf67c4f0ce056f9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a450e953_a1a38aec",
         "filename": "src/Vulkan/VkPhysicalDevice.cpp",
         "patchSetId": 8
@@ -33,6 +51,24 @@
       "revId": "9e4d040cb93c6251430ee322ebf67c4f0ce056f9",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8ad64dc9_e1b18604",
+        "filename": "src/Vulkan/VkPhysicalDevice.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 290,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-11-13T20:47:48Z",
+      "side": 1,
+      "message": "https://swiftshader-review.googlesource.com/22509",
+      "parentUuid": "a450e953_a1a38aec",
+      "revId": "9e4d040cb93c6251430ee322ebf67c4f0ce056f9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     },
     {
       "key": {
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "4e39583d_300fc23a",
+        "filename": "src/Vulkan/VkPhysicalDevice.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 309,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-11-13T20:47:48Z",
+      "side": 1,
+      "message": "https://swiftshader-review.googlesource.com/22509",
+      "parentUuid": "f883e6f7_2937c5cc",
+      "revId": "9e4d040cb93c6251430ee322ebf67c4f0ce056f9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "242acb35_4e77af78",
         "filename": "src/Vulkan/VkPhysicalDevice.cpp",
         "patchSetId": 8
@@ -67,6 +121,24 @@
       "revId": "9e4d040cb93c6251430ee322ebf67c4f0ce056f9",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c2829d9e_37d0df77",
+        "filename": "src/Vulkan/VkPhysicalDevice.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 467,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-11-13T20:47:48Z",
+      "side": 1,
+      "message": "https://swiftshader-review.googlesource.com/22509",
+      "parentUuid": "242acb35_4e77af78",
+      "revId": "9e4d040cb93c6251430ee322ebf67c4f0ce056f9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     },
     {
       "key": {
@@ -87,6 +159,24 @@
     },
     {
       "key": {
+        "uuid": "baaddd93_d8f44083",
+        "filename": "src/Vulkan/libVulkan.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 1357,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-11-13T20:47:48Z",
+      "side": 1,
+      "message": "https://swiftshader-review.googlesource.com/22509",
+      "parentUuid": "c8a1ca43_c6d1d6b4",
+      "revId": "9e4d040cb93c6251430ee322ebf67c4f0ce056f9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "182c188d_5b9da68f",
         "filename": "src/Vulkan/libVulkan.cpp",
         "patchSetId": 8
@@ -101,6 +191,24 @@
       "revId": "9e4d040cb93c6251430ee322ebf67c4f0ce056f9",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3986ee74_57b4b3aa",
+        "filename": "src/Vulkan/libVulkan.cpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 1379,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-11-13T20:47:48Z",
+      "side": 1,
+      "message": "https://swiftshader-review.googlesource.com/22509",
+      "parentUuid": "182c188d_5b9da68f",
+      "revId": "9e4d040cb93c6251430ee322ebf67c4f0ce056f9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
