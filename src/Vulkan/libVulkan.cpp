@@ -214,10 +214,12 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDevice(VkPhysicalDevice physicalDevice, c
 
 	ASSERT(pCreateInfo->queueCreateInfoCount > 0);
 
-	if(pCreateInfo->pEnabledFeatures &&
-	   !vk::Cast(physicalDevice)->hasFeatures(*(pCreateInfo->pEnabledFeatures)))
+	if(pCreateInfo->pEnabledFeatures)
 	{
-		return VK_ERROR_FEATURE_NOT_PRESENT;
+		if(!vk::Cast(physicalDevice)->hasFeatures(*(pCreateInfo->pEnabledFeatures)))
+		{
+			return VK_ERROR_FEATURE_NOT_PRESENT;
+		}
 	}
 
 	uint32_t queueFamilyPropertyCount = vk::Cast(physicalDevice)->getQueueFamilyPropertyCount();
