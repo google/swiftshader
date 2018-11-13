@@ -1376,7 +1376,7 @@ VKAPI_ATTR void VKAPI_CALL vkCmdExecuteCommands(VkCommandBuffer commandBuffer, u
 VKAPI_ATTR VkResult VKAPI_CALL vkEnumerateInstanceVersion(uint32_t* pApiVersion)
 {
 	TRACE("(uint32_t* pApiVersion = 0x%X)", pApiVersion);
-	*pApiVersion = VK_API_VERSION_1_1;
+	*pApiVersion = vk::API_VERSION;
 	return VK_SUCCESS;
 }
 

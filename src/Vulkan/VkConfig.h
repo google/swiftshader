@@ -15,17 +15,22 @@
 #ifndef VK_CONFIG_HPP_
 #define VK_CONFIG_HPP_
 
+#include "Version.h"
+
+#include <vulkan/vulkan_core.h>
+
 namespace vk
 {
 
 // Note: Constant array initialization requires a string literal.
 //       constexpr char* or char[] does not work for that purpose.
 #define SWIFTSHADER_DEVICE_NAME "SwiftShader Device" // Max length: VK_MAX_PHYSICAL_DEVICE_NAME_SIZE
-#define SWIFTSHADER_UUID "SwiftShaderUUID" // Max length: VK_UUID_SIZE
+#define SWIFTSHADER_UUID "SwiftShaderUUID" // Max length: VK_UUID_SIZE (16)
 
 enum
 {
-	DRIVER_VERSION = 1,
+	API_VERSION = VK_API_VERSION_1_1,
+	DRIVER_VERSION = VK_MAKE_VERSION(MAJOR_VERSION, MINOR_VERSION, PATCH_VERSION),
 	VENDOR_ID = 0x1AE0, // Google
 	DEVICE_ID = 0xC0DE, // SwiftShader
 };
@@ -45,8 +50,9 @@ enum
 	MAX_IMAGE_ARRAY_LAYERS = 11,
 };
 
-enum {
-	MaxVertexInputBindings = 16,
+enum
+{
+	MAX_VERTEX_INPUT_BINDINGS = 16,
 };
 
 }

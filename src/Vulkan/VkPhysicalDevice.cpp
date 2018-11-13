@@ -166,7 +166,7 @@ const VkPhysicalDeviceLimits& PhysicalDevice::getLimits() const
 		24, // maxDescriptorSetStorageImages
 		4, // maxDescriptorSetInputAttachments
 		16, // maxVertexInputAttributes
-		vk::MaxVertexInputBindings, // maxVertexInputBindings
+		vk::MAX_VERTEX_INPUT_BINDINGS, // maxVertexInputBindings
 		2047, // maxVertexInputAttributeOffset
 		2048, // maxVertexInputBindingStride
 		64, // maxVertexOutputComponents
@@ -247,17 +247,11 @@ const VkPhysicalDeviceLimits& PhysicalDevice::getLimits() const
 	return limits;
 }
 
-
 const VkPhysicalDeviceProperties& PhysicalDevice::getProperties() const
 {
-	uint32_t apiVersion;
-	VkResult result = vkEnumerateInstanceVersion(&apiVersion);
-	ASSERT(result == VK_SUCCESS);
-	(void)result; // Slence unused variable warning
-
 	static const VkPhysicalDeviceProperties properties
 	{
-		apiVersion,
+		API_VERSION,
 		DRIVER_VERSION,
 		VENDOR_ID,
 		DEVICE_ID,
@@ -273,10 +267,13 @@ const VkPhysicalDeviceProperties& PhysicalDevice::getProperties() const
 
 void PhysicalDevice::getProperties(VkPhysicalDeviceIDProperties* properties) const
 {
-	memcpy(properties->deviceUUID, SWIFTSHADER_UUID, VK_UUID_SIZE);
-	memset(properties->deviceLUID, 0, VK_LUID_SIZE);
+	memset(properties->deviceUUID, 0, VK_UUID_SIZE);
 	memset(properties->driverUUID, 0, VK_UUID_SIZE);
+	memset(properties->deviceLUID, 0, VK_LUID_SIZE);
+
+	memcpy(properties->deviceUUID, SWIFTSHADER_UUID, VK_UUID_SIZE);
 	*((uint64_t*)properties->driverUUID) = DRIVER_VERSION;
+
 	properties->deviceNodeMask = 0;
 	properties->deviceLUIDValid = VK_FALSE;
 }

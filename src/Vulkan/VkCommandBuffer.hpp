@@ -120,7 +120,7 @@ private:
 		VkBuffer buffer;
 		VkDeviceSize offset;
 	};
-	VertexInputBindings vertexInputBindings[MaxVertexInputBindings];
+	VertexInputBindings vertexInputBindings[MAX_VERTEX_INPUT_BINDINGS];
 };
 
 using DispatchableCommandBuffer = DispatchableObject<CommandBuffer, VkCommandBuffer>;
