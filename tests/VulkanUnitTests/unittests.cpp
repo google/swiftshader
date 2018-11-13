@@ -1,4 +1,4 @@
-// Copyright 2017 The SwiftShader Authors. All Rights Reserved.
+// Copyright 2018 The SwiftShader Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// OpenGL ES unit tests that provide coverage for functionality not tested by
+// Vulkan unit tests that provide coverage for functionality not tested by
 // the dEQP test suite. Also used as a smoke test.
 
 #include "gtest/gtest.h"
@@ -39,16 +39,12 @@ protected:
 
 		#if defined(_WIN64)
 			#if defined(NDEBUG)
-				libVulkanName = "..\\..\\..\\vulkan\\x64\\Release\\vk_swiftshader.dll";
+				libVulkanName = "../../out/Release_x64/vk_swiftshader.dll";
 			#else
-				libVulkanName = "..\\..\\..\\vulkan\\x64\\Debug\\vk_swiftshader.dll";
+				libVulkanName = "../../out/Debug_x64/vk_swiftshader.dll";
 			#endif
-		#elif defined(_WIN32)
-			#if defined(NDEBUG)
-				libVulkanName = "..\\..\\..\\vulkan\\Win32\\Release\\vk_swiftshader.dll";
-			#else
-				libVulkanName = "..\\..\\..\\vulkan\\Win32\\Debug\\vk_swiftshader.dll";
-			#endif
+		#else
+			#error Unimplemented platform
 		#endif
 
 		#if defined(_WIN32)
@@ -282,48 +278,36 @@ TEST_F(SwiftShaderVulkanTest, API_Check)
 
 TEST_F(SwiftShaderVulkanTest, Version)
 {
-	if(vk_icdGetInstanceProcAddr)
+	const VkInstanceCreateInfo createInfo =
 	{
-		auto vkCreateInstance = (PFN_vkCreateInstance)vk_icdGetInstanceProcAddr(VK_NULL_HANDLE, "vkCreateInstance");
-		EXPECT_NE(vkCreateInstance, nullptr);
+		VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO, // sType
+		nullptr, // pNext
+		0,       // flags
+		nullptr, // pApplicationInfo
+		0,       // enabledLayerCount
+		nullptr, // ppEnabledLayerNames
+		0,       // enabledExtensionCount
+		nullptr, // ppEnabledExtensionNames
+	};
+	VkInstance instance;
+	VkResult result = vkCreateInstance(&createInfo, nullptr, &instance);
+	EXPECT_EQ(result, VK_SUCCESS);
 
-		const VkInstanceCreateInfo createInfo = 
-		{
-				VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO, // sType
-				nullptr, // pNext
-				0, // flags
-				nullptr, // pApplicationInfo
-				0, // enabledLayerCount
-				nullptr, // ppEnabledLayerNames
-				0, // enabledExtensionCount
-				nullptr, // ppEnabledExtensionNames
-		};
-		VkInstance instance;
-		VkResult result = vkCreateInstance(&createInfo, nullptr, &instance);
-		EXPECT_EQ(result, VK_SUCCESS);
+	uint32_t pPhysicalDeviceCount = 0;
+	result = vkEnumeratePhysicalDevices(instance, &pPhysicalDeviceCount, nullptr);
+	EXPECT_EQ(result, VK_SUCCESS);
+	EXPECT_EQ(pPhysicalDeviceCount, 1);
 
-		auto vkEnumeratePhysicalDevices = (PFN_vkEnumeratePhysicalDevices)vk_icdGetInstanceProcAddr(VK_NULL_HANDLE, "vkEnumeratePhysicalDevices");
-		EXPECT_NE(vkEnumeratePhysicalDevices, nullptr);
+	VkPhysicalDevice pPhysicalDevice = VK_NULL_HANDLE;
+	result = vkEnumeratePhysicalDevices(instance, &pPhysicalDeviceCount, &pPhysicalDevice);
+	EXPECT_EQ(result, VK_SUCCESS);
+	EXPECT_NE(pPhysicalDevice, (VkPhysicalDevice)VK_NULL_HANDLE);
 
-		uint32_t pPhysicalDeviceCount = 0;
-		result = vkEnumeratePhysicalDevices(instance, &pPhysicalDeviceCount, nullptr);
-		EXPECT_EQ(result, VK_SUCCESS);
-		EXPECT_EQ(pPhysicalDeviceCount, 1);
+	VkPhysicalDeviceProperties physicalDeviceProperties;
+	vkGetPhysicalDeviceProperties(pPhysicalDevice, &physicalDeviceProperties);
+	EXPECT_EQ(physicalDeviceProperties.apiVersion, VK_API_VERSION_1_1);
+	EXPECT_EQ(physicalDeviceProperties.deviceID, 0xC0DE);
+	EXPECT_EQ(physicalDeviceProperties.deviceType, VK_PHYSICAL_DEVICE_TYPE_CPU);
 
-		VkPhysicalDevice pPhysicalDevice = VK_NULL_HANDLE;
-		result = vkEnumeratePhysicalDevices(instance, &pPhysicalDeviceCount, &pPhysicalDevice);
-		EXPECT_EQ(result, VK_SUCCESS);
-		EXPECT_NE(pPhysicalDevice, (VkPhysicalDevice)VK_NULL_HANDLE);
-
-		auto vkGetPhysicalDeviceProperties = (PFN_vkGetPhysicalDeviceProperties)vk_icdGetInstanceProcAddr(VK_NULL_HANDLE, "vkGetPhysicalDeviceProperties");
-		EXPECT_NE(vkEnumeratePhysicalDevices, nullptr);
-
-		VkPhysicalDeviceProperties physicalDeviceProperties;
-		vkGetPhysicalDeviceProperties(pPhysicalDevice, &physicalDeviceProperties);
-		EXPECT_EQ(physicalDeviceProperties.apiVersion, VK_API_VERSION_1_1);
-		EXPECT_EQ(physicalDeviceProperties.deviceID, 0xC0DE);
-		EXPECT_EQ(physicalDeviceProperties.deviceType, VK_PHYSICAL_DEVICE_TYPE_CPU);
-
-		EXPECT_EQ(strncmp(physicalDeviceProperties.deviceName, "SwiftShader Device", VK_MAX_PHYSICAL_DEVICE_NAME_SIZE), 0);
-	}
+	EXPECT_EQ(strncmp(physicalDeviceProperties.deviceName, "SwiftShader Device", VK_MAX_PHYSICAL_DEVICE_NAME_SIZE), 0);
 }
