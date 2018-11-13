@@ -66,25 +66,6 @@ VkQueue Device::getQueue(uint32_t queueFamilyIndex, uint32_t queueIndex) const
 	return queues[queueIndex];
 }
 
-void Device::getImageSparseMemoryRequirements(VkImage pImage, uint32_t* pSparseMemoryRequirementCount,
-	                                          VkSparseImageMemoryRequirements* pSparseMemoryRequirements) const
-{
-	if(!pSparseMemoryRequirements)
-	{
-		*pSparseMemoryRequirementCount = 1;
-	}
-	else
-	{
-		UNIMPLEMENTED();
-	}
-}
-
-void Device::getGroupPeerMemoryFeatures(uint32_t heapIndex, uint32_t localDeviceIndex, uint32_t remoteDeviceIndex,
-                                        VkPeerMemoryFeatureFlags* pPeerMemoryFeatures) const
-{
-	UNIMPLEMENTED();
-}
-
 void Device::getDescriptorSetLayoutSupport(const VkDescriptorSetLayoutCreateInfo* pCreateInfo,
                                            VkDescriptorSetLayoutSupport* pSupport) const
 {

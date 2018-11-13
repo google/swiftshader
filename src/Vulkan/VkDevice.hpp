@@ -39,10 +39,6 @@ public:
 	static size_t ComputeRequiredAllocationSize(const CreateInfo* info);
 
 	VkQueue getQueue(uint32_t queueFamilyIndex, uint32_t queueIndex) const;
-	void getImageSparseMemoryRequirements(VkImage image, uint32_t* pSparseMemoryRequirementCount,
-	                                      VkSparseImageMemoryRequirements* pSparseMemoryRequirements) const;
-	void getGroupPeerMemoryFeatures(uint32_t heapIndex, uint32_t localDeviceIndex, uint32_t remoteDeviceIndex,
-	                                VkPeerMemoryFeatureFlags* pPeerMemoryFeatures) const;
 	void getDescriptorSetLayoutSupport(const VkDescriptorSetLayoutCreateInfo* pCreateInfo,
 	                                   VkDescriptorSetLayoutSupport* pSupport) const;
 	VkPhysicalDevice getPhysicalDevice() const { return physicalDevice; }

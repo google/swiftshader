@@ -505,7 +505,9 @@ VKAPI_ATTR void VKAPI_CALL vkGetImageSparseMemoryRequirements(VkDevice device, V
 	TRACE("(VkDevice device, VkImage image, uint32_t* pSparseMemoryRequirementCount, VkSparseImageMemoryRequirements* pSparseMemoryRequirements)",
 	      device, image, pSparseMemoryRequirementCount, pSparseMemoryRequirements);
 
-	vk::Cast(device)->getImageSparseMemoryRequirements(image, pSparseMemoryRequirementCount, pSparseMemoryRequirements);
+	// The 'sparseBinding' feature is not supported, so images can not be created with the VK_IMAGE_CREATE_SPARSE_RESIDENCY_BIT flag.
+	// "If the image was not created with VK_IMAGE_CREATE_SPARSE_RESIDENCY_BIT then pSparseMemoryRequirementCount will be set to zero and pSparseMemoryRequirements will not be written to."
+	*pSparseMemoryRequirementCount = 0;
 }
 
 VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceSparseImageFormatProperties(VkPhysicalDevice physicalDevice, VkFormat format, VkImageType type, VkSampleCountFlagBits samples, VkImageUsageFlags usage, VkImageTiling tiling, uint32_t* pPropertyCount, VkSparseImageFormatProperties* pProperties)
@@ -1410,7 +1412,8 @@ VKAPI_ATTR void VKAPI_CALL vkGetDeviceGroupPeerMemoryFeatures(VkDevice device, u
 	TRACE("(VkDevice device = 0x%X, uint32_t heapIndex = %d, uint32_t localDeviceIndex = %d, uint32_t remoteDeviceIndex = %d, VkPeerMemoryFeatureFlags* pPeerMemoryFeatures = 0x%X)",
 	      device, heapIndex, localDeviceIndex, remoteDeviceIndex, pPeerMemoryFeatures);
 
-	vk::Cast(device)->getGroupPeerMemoryFeatures(heapIndex, localDeviceIndex, remoteDeviceIndex, pPeerMemoryFeatures);
+	ASSERT(localDeviceIndex != remoteDeviceIndex); // "localDeviceIndex must not equal remoteDeviceIndex"
+	UNREACHABLE(remoteDeviceIndex);   // Only one physical device is supported, and since the device indexes can't be equal, this should never be called.
 }
 
 VKAPI_ATTR void VKAPI_CALL vkCmdSetDeviceMask(VkCommandBuffer commandBuffer, uint32_t deviceMask)
@@ -1742,7 +1745,7 @@ VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceExternalBufferProperties(VkPhysica
 	TRACE("(VkPhysicalDevice physicalDevice = 0x%X, const VkPhysicalDeviceExternalBufferInfo* pExternalBufferInfo = 0x%X, VkExternalBufferProperties* pExternalBufferProperties = 0x%X)",
 	      physicalDevice, pExternalBufferInfo, pExternalBufferProperties);
 
-	vk::Cast(physicalDevice)->getExternalBufferProperties(pExternalBufferInfo, pExternalBufferProperties);
+	UNIMPLEMENTED();
 }
 
 VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceExternalFenceProperties(VkPhysicalDevice physicalDevice, const VkPhysicalDeviceExternalFenceInfo* pExternalFenceInfo, VkExternalFenceProperties* pExternalFenceProperties)
@@ -1750,7 +1753,7 @@ VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceExternalFenceProperties(VkPhysical
 	TRACE("(VkPhysicalDevice physicalDevice = 0x%X, const VkPhysicalDeviceExternalFenceInfo* pExternalFenceInfo = 0x%X, VkExternalFenceProperties* pExternalFenceProperties = 0x%X)",
 	      physicalDevice, pExternalFenceInfo, pExternalFenceProperties);
 
-	vk::Cast(physicalDevice)->getExternalFenceProperties(pExternalFenceInfo, pExternalFenceProperties);
+	UNIMPLEMENTED();
 }
 
 VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceExternalSemaphoreProperties(VkPhysicalDevice physicalDevice, const VkPhysicalDeviceExternalSemaphoreInfo* pExternalSemaphoreInfo, VkExternalSemaphoreProperties* pExternalSemaphoreProperties)
@@ -1758,7 +1761,7 @@ VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceExternalSemaphoreProperties(VkPhys
 	TRACE("(VkPhysicalDevice physicalDevice = 0x%X, const VkPhysicalDeviceExternalSemaphoreInfo* pExternalSemaphoreInfo = 0x%X, VkExternalSemaphoreProperties* pExternalSemaphoreProperties = 0x%X)",
 	      physicalDevice, pExternalSemaphoreInfo, pExternalSemaphoreProperties);
 
-	vk::Cast(physicalDevice)->getExternalSemaphoreProperties(pExternalSemaphoreInfo, pExternalSemaphoreProperties);
+	UNIMPLEMENTED();
 }
 
 VKAPI_ATTR void VKAPI_CALL vkGetDescriptorSetLayoutSupport(VkDevice device, const VkDescriptorSetLayoutCreateInfo* pCreateInfo, VkDescriptorSetLayoutSupport* pSupport)

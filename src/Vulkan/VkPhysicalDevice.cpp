@@ -286,8 +286,8 @@ void PhysicalDevice::getProperties(VkPhysicalDeviceMaintenance3Properties* prope
 
 void PhysicalDevice::getProperties(VkPhysicalDeviceMultiviewProperties* properties) const
 {
-	properties->maxMultiviewInstanceIndex = (1 << 27) - 1;
-	properties->maxMultiviewViewCount = 6;
+	properties->maxMultiviewViewCount = 0;
+	properties->maxMultiviewInstanceIndex = 0;
 }
 
 void PhysicalDevice::getProperties(VkPhysicalDevicePointClippingProperties* properties) const
@@ -466,36 +466,6 @@ const VkPhysicalDeviceMemoryProperties& PhysicalDevice::getMemoryProperties() co
 	};
 
 	return properties;
-}
-
-void PhysicalDevice::getExternalBufferProperties(const VkPhysicalDeviceExternalBufferInfo* pExternalBufferInfo,
-                                                 VkExternalBufferProperties* pExternalBufferProperties) const
-{
-	// FIXME: currently ignoring pExternalBufferInfo
-
-	pExternalBufferProperties->externalMemoryProperties.compatibleHandleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT;
-	pExternalBufferProperties->externalMemoryProperties.exportFromImportedHandleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT;
-	pExternalBufferProperties->externalMemoryProperties.externalMemoryFeatures = VK_EXTERNAL_MEMORY_FEATURE_DEDICATED_ONLY_BIT;
-}
-
-void PhysicalDevice::getExternalFenceProperties(const VkPhysicalDeviceExternalFenceInfo* pExternalFenceInfo,
-                                                VkExternalFenceProperties* pExternalFenceProperties) const
-{
-	// FIXME: currently ignoring pExternalFenceInfo
-
-	pExternalFenceProperties->compatibleHandleTypes = VK_EXTERNAL_FENCE_HANDLE_TYPE_OPAQUE_FD_BIT;
-	pExternalFenceProperties->exportFromImportedHandleTypes = VK_EXTERNAL_FENCE_HANDLE_TYPE_OPAQUE_FD_BIT;
-	pExternalFenceProperties->externalFenceFeatures = VK_EXTERNAL_FENCE_FEATURE_EXPORTABLE_BIT;
-}
-
-void PhysicalDevice::getExternalSemaphoreProperties(const VkPhysicalDeviceExternalSemaphoreInfo* pExternalSemaphoreInfo,
-                                                    VkExternalSemaphoreProperties* pExternalSemaphoreProperties) const
-{
-	// FIXME: currently ignoring pExternalSemaphoreInfo
-
-	pExternalSemaphoreProperties->compatibleHandleTypes = VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_FD_BIT;
-	pExternalSemaphoreProperties->exportFromImportedHandleTypes = VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_FD_BIT;
-	pExternalSemaphoreProperties->externalSemaphoreFeatures = VK_EXTERNAL_SEMAPHORE_FEATURE_EXPORTABLE_BIT;
 }
 
 } // namespace vk

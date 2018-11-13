@@ -55,12 +55,6 @@ public:
 	void getQueueFamilyProperties(uint32_t pQueueFamilyPropertyCount,
 	                              VkQueueFamilyProperties* pQueueFamilyProperties) const;
 	const VkPhysicalDeviceMemoryProperties& getMemoryProperties() const;
-	void getExternalBufferProperties(const VkPhysicalDeviceExternalBufferInfo* pExternalBufferInfo,
-	                                 VkExternalBufferProperties* pExternalBufferProperties) const;
-	void getExternalFenceProperties(const VkPhysicalDeviceExternalFenceInfo* pExternalFenceInfo,
-	                                VkExternalFenceProperties* pExternalFenceProperties) const;
-	void getExternalSemaphoreProperties(const VkPhysicalDeviceExternalSemaphoreInfo* pExternalSemaphoreInfo,
-	                                    VkExternalSemaphoreProperties* pExternalSemaphoreProperties) const;
 
 private:
 	const VkPhysicalDeviceLimits& getLimits() const;
