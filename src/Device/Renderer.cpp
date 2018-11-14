@@ -598,7 +598,7 @@ namespace sw
 		}
 	}
 
-	void Renderer::clear(void *value, Format format, Surface *dest, const Rect &clearRect, unsigned int rgbaMask)
+	void Renderer::clear(void *value, VkFormat format, Surface *dest, const Rect &clearRect, unsigned int rgbaMask)
 	{
 		blitter->clear(value, format, dest, clearRect, rgbaMask);
 	}

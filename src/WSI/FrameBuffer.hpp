@@ -29,8 +29,8 @@ namespace sw
 	{
 		int width;
 		int height;
-		Format destFormat;
-		Format sourceFormat;
+		VkFormat destFormat;
+		VkFormat sourceFormat;
 		int destStride;
 		int sourceStride;
 		int cursorWidth;
@@ -65,7 +65,7 @@ namespace sw
 		int width;
 		int height;
 		int stride;
-		Format format;
+		VkFormat format;
 
 	private:
 		void copyLocked();

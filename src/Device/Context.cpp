@@ -740,7 +740,7 @@ namespace sw
 		return renderTarget[0] ? renderTarget[0]->getMultiSampleCount() : 1;
 	}
 
-	Format Context::renderTargetInternalFormat(int index)
+	VkFormat Context::renderTargetInternalFormat(int index)
 	{
 		if(renderTarget[index])
 		{
@@ -748,7 +748,7 @@ namespace sw
 		}
 		else
 		{
-			return FORMAT_NULL;
+			return VK_FORMAT_UNDEFINED;
 		}
 	}
 
@@ -759,7 +759,7 @@ namespace sw
 
 	int Context::colorWriteActive(int index)
 	{
-		if(!renderTarget[index] || renderTarget[index]->getInternalFormat() == FORMAT_NULL)
+		if(!renderTarget[index] || renderTarget[index]->getInternalFormat() == VK_FORMAT_UNDEFINED)
 		{
 			return 0;
 		}

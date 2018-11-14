@@ -78,7 +78,7 @@ namespace sw
 
 		for(int i = 0; i < RENDERTARGETS; i++)
 		{
-			if(state.targetFormat[i] != FORMAT_NULL)
+			if(state.targetFormat[i] != VK_FORMAT_UNDEFINED)
 			{
 				oC[i] = Vector4f(0.0f, 0.0f, 0.0f, 0.0f);
 			}
@@ -629,20 +629,20 @@ namespace sw
 
 			switch(state.targetFormat[index])
 			{
-			case FORMAT_R5G6B5:
-			case FORMAT_A8R8G8B8:
-			case FORMAT_A8B8G8R8:
-			case FORMAT_SRGB8_A8:
-			case FORMAT_G8R8:
-			case FORMAT_R8:
-			case FORMAT_G16R16:
-			case FORMAT_A16B16G16R16:
+			case VK_FORMAT_R5G6B5_UNORM_PACK16:
+			case VK_FORMAT_B8G8R8A8_UNORM:
+			case VK_FORMAT_R8G8B8A8_UNORM:
+			case VK_FORMAT_R8G8B8A8_SRGB:
+			case VK_FORMAT_R8G8_UNORM:
+			case VK_FORMAT_R8_UNORM:
+			case VK_FORMAT_R16G16_UNORM:
+			case VK_FORMAT_R16G16B16A16_UNORM:
 				for(unsigned int q = 0; q < state.multiSample; q++)
 				{
 					Pointer<Byte> buffer = cBuffer[index] + q * *Pointer<Int>(data + OFFSET(DrawData, colorSliceB[index]));
 					Vector4s color;
 
-					if(state.targetFormat[index] == FORMAT_R5G6B5)
+					if(state.targetFormat[index] == VK_FORMAT_R5G6B5_UNORM_PACK16)
 					{
 						color.x = UShort4(c[index].x * Float4(0xFBFF), false);
 						color.y = UShort4(c[index].y * Float4(0xFDFF), false);
@@ -665,27 +665,27 @@ namespace sw
 					}
 				}
 				break;
-			case FORMAT_R32F:
-			case FORMAT_G32R32F:
-			case FORMAT_A32B32G32R32F:
-			case FORMAT_R32I:
-			case FORMAT_G32R32I:
-			case FORMAT_A32B32G32R32I:
-			case FORMAT_R32UI:
-			case FORMAT_G32R32UI:
-			case FORMAT_A32B32G32R32UI:
-			case FORMAT_R16I:
-			case FORMAT_G16R16I:
-			case FORMAT_A16B16G16R16I:
-			case FORMAT_R16UI:
-			case FORMAT_G16R16UI:
-			case FORMAT_A16B16G16R16UI:
-			case FORMAT_R8I:
-			case FORMAT_G8R8I:
-			case FORMAT_A8B8G8R8I:
-			case FORMAT_R8UI:
-			case FORMAT_G8R8UI:
-			case FORMAT_A8B8G8R8UI:
+			case VK_FORMAT_R32_SFLOAT:
+			case VK_FORMAT_R32G32_SFLOAT:
+			case VK_FORMAT_R32G32B32A32_SFLOAT:
+			case VK_FORMAT_R32_SINT:
+			case VK_FORMAT_R32G32_SINT:
+			case VK_FORMAT_R32G32B32A32_SINT:
+			case VK_FORMAT_R32_UINT:
+			case VK_FORMAT_R32G32_UINT:
+			case VK_FORMAT_R32G32B32A32_UINT:
+			case VK_FORMAT_R16_SINT:
+			case VK_FORMAT_R16G16_SINT:
+			case VK_FORMAT_R16G16B16A16_SINT:
+			case VK_FORMAT_R16_UINT:
+			case VK_FORMAT_R16G16_UINT:
+			case VK_FORMAT_R16G16B16A16_UINT:
+			case VK_FORMAT_R8_SINT:
+			case VK_FORMAT_R8G8_SINT:
+			case VK_FORMAT_R8G8B8A8_SINT:
+			case VK_FORMAT_R8_UINT:
+			case VK_FORMAT_R8G8_UINT:
+			case VK_FORMAT_R8G8B8A8_UINT:
 				for(unsigned int q = 0; q < state.multiSample; q++)
 				{
 					Pointer<Byte> buffer = cBuffer[index] + q * *Pointer<Int>(data + OFFSET(DrawData, colorSliceB[index]));
@@ -765,42 +765,42 @@ namespace sw
 
 			switch(state.targetFormat[index])
 			{
-			case FORMAT_NULL:
+			case VK_FORMAT_UNDEFINED:
 				break;
-			case FORMAT_R5G6B5:
-			case FORMAT_A8R8G8B8:
-			case FORMAT_A8B8G8R8:
-			case FORMAT_SRGB8_A8:
-			case FORMAT_G8R8:
-			case FORMAT_R8:
-			case FORMAT_G16R16:
-			case FORMAT_A16B16G16R16:
+			case VK_FORMAT_R5G6B5_UNORM_PACK16:
+			case VK_FORMAT_B8G8R8A8_UNORM:
+			case VK_FORMAT_R8G8B8A8_UNORM:
+			case VK_FORMAT_R8G8B8A8_SRGB:
+			case VK_FORMAT_R8G8_UNORM:
+			case VK_FORMAT_R8_UNORM:
+			case VK_FORMAT_R16G16_UNORM:
+			case VK_FORMAT_R16G16B16A16_UNORM:
 				oC[index].x = Max(oC[index].x, Float4(0.0f)); oC[index].x = Min(oC[index].x, Float4(1.0f));
 				oC[index].y = Max(oC[index].y, Float4(0.0f)); oC[index].y = Min(oC[index].y, Float4(1.0f));
 				oC[index].z = Max(oC[index].z, Float4(0.0f)); oC[index].z = Min(oC[index].z, Float4(1.0f));
 				oC[index].w = Max(oC[index].w, Float4(0.0f)); oC[index].w = Min(oC[index].w, Float4(1.0f));
 				break;
-			case FORMAT_R32F:
-			case FORMAT_G32R32F:
-			case FORMAT_A32B32G32R32F:
-			case FORMAT_R32I:
-			case FORMAT_G32R32I:
-			case FORMAT_A32B32G32R32I:
-			case FORMAT_R32UI:
-			case FORMAT_G32R32UI:
-			case FORMAT_A32B32G32R32UI:
-			case FORMAT_R16I:
-			case FORMAT_G16R16I:
-			case FORMAT_A16B16G16R16I:
-			case FORMAT_R16UI:
-			case FORMAT_G16R16UI:
-			case FORMAT_A16B16G16R16UI:
-			case FORMAT_R8I:
-			case FORMAT_G8R8I:
-			case FORMAT_A8B8G8R8I:
-			case FORMAT_R8UI:
-			case FORMAT_G8R8UI:
-			case FORMAT_A8B8G8R8UI:
+			case VK_FORMAT_R32_SFLOAT:
+			case VK_FORMAT_R32G32_SFLOAT:
+			case VK_FORMAT_R32G32B32A32_SFLOAT:
+			case VK_FORMAT_R32_SINT:
+			case VK_FORMAT_R32G32_SINT:
+			case VK_FORMAT_R32G32B32A32_SINT:
+			case VK_FORMAT_R32_UINT:
+			case VK_FORMAT_R32G32_UINT:
+			case VK_FORMAT_R32G32B32A32_UINT:
+			case VK_FORMAT_R16_SINT:
+			case VK_FORMAT_R16G16_SINT:
+			case VK_FORMAT_R16G16B16A16_SINT:
+			case VK_FORMAT_R16_UINT:
+			case VK_FORMAT_R16G16_UINT:
+			case VK_FORMAT_R16G16B16A16_UINT:
+			case VK_FORMAT_R8_SINT:
+			case VK_FORMAT_R8G8_SINT:
+			case VK_FORMAT_R8G8B8A8_SINT:
+			case VK_FORMAT_R8_UINT:
+			case VK_FORMAT_R8G8_UINT:
+			case VK_FORMAT_R8G8B8A8_UINT:
 				break;
 			default:
 				ASSERT(false);

@@ -100,13 +100,13 @@ namespace sw
 
 		switch(buffer->format)
 		{
-		case HAL_PIXEL_FORMAT_RGB_565:   format = FORMAT_R5G6B5; break;
-		case HAL_PIXEL_FORMAT_RGBA_8888: format = FORMAT_A8B8G8R8; break;
+		case HAL_PIXEL_FORMAT_RGB_565:   format = VK_FORMAT_R5G6B5_UNORM_PACK16; break;
+		case HAL_PIXEL_FORMAT_RGBA_8888: format = VK_FORMAT_R8G8B8A8_UNORM; break;
 #if ANDROID_PLATFORM_SDK_VERSION > 16
 		case HAL_PIXEL_FORMAT_IMPLEMENTATION_DEFINED: format = FORMAT_X8B8G8R8; break;
 #endif
 		case HAL_PIXEL_FORMAT_RGBX_8888: format = FORMAT_X8B8G8R8; break;
-		case HAL_PIXEL_FORMAT_BGRA_8888: format = FORMAT_A8R8G8B8; break;
+		case HAL_PIXEL_FORMAT_BGRA_8888: format = VK_FORMAT_B8G8R8A8_UNORM; break;
 		case HAL_PIXEL_FORMAT_RGB_888:
 			// Frame buffers are expected to have 16-bit or 32-bit colors, not 24-bit.
 			TRACE("Unsupported frame buffer format RGB_888"); ASSERT(false);
@@ -114,7 +114,7 @@ namespace sw
 			break;
 		default:
 			TRACE("Unsupported frame buffer format %d", buffer->format); ASSERT(false);
-			format = FORMAT_NULL;
+			format = VK_FORMAT_UNDEFINED;
 			break;
 		}
 

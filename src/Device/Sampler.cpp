@@ -49,8 +49,8 @@ namespace sw
 			}
 		}
 
-		externalTextureFormat = FORMAT_NULL;
-		internalTextureFormat = FORMAT_NULL;
+		externalTextureFormat = VK_FORMAT_UNDEFINED;
+		internalTextureFormat = VK_FORMAT_UNDEFINED;
 		textureType = TEXTURE_NULL;
 
 		textureFilter = FILTER_LINEAR;
@@ -222,9 +222,7 @@ namespace sw
 				mipmap.sliceP[2] = sliceP;
 				mipmap.sliceP[3] = sliceP;
 
-				if(internalTextureFormat == FORMAT_YV12_BT601 ||
-				   internalTextureFormat == FORMAT_YV12_BT709 ||
-				   internalTextureFormat == FORMAT_YV12_JFIF)
+				if(internalTextureFormat == VK_FORMAT_G8_B8R8_2PLANE_420_UNORM)
 				{
 					unsigned int YStride = pitchP;
 					unsigned int YSize = YStride * height;

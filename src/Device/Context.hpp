@@ -305,7 +305,7 @@ namespace sw
 
 		Sampler sampler[TOTAL_IMAGE_UNITS];
 
-		Format renderTargetInternalFormat(int index);
+		VkFormat renderTargetInternalFormat(int index);
 		int colorWriteActive();
 		int colorWriteActive(int index);
 		bool colorUsed();

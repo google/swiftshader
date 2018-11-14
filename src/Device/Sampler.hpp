@@ -147,7 +147,7 @@ namespace sw
 			State();
 
 			TextureType textureType        : BITS(TEXTURE_LAST);
-			Format textureFormat           : BITS(FORMAT_LAST);
+			VkFormat textureFormat         : BITS(VK_FORMAT_END_RANGE);
 			FilterType textureFilter       : BITS(FILTER_LAST);
 			AddressingMode addressingModeU : BITS(ADDRESSING_LAST);
 			AddressingMode addressingModeV : BITS(ADDRESSING_LAST);
@@ -214,8 +214,8 @@ namespace sw
 		AddressingMode getAddressingModeW() const;
 		CompareFunc getCompareFunc() const;
 
-		Format externalTextureFormat;
-		Format internalTextureFormat;
+		VkFormat externalTextureFormat;
+		VkFormat internalTextureFormat;
 		TextureType textureType;
 
 		FilterType textureFilter;

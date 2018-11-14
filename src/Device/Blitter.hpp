@@ -63,8 +63,8 @@ namespace sw
 				return memcmp(this, &state, sizeof(State)) == 0;
 			}
 
-			Format sourceFormat;
-			Format destFormat;
+			VkFormat sourceFormat;
+			VkFormat destFormat;
 			int destSamples;
 		};
 
@@ -94,18 +94,18 @@ namespace sw
 		Blitter();
 		virtual ~Blitter();
 
-		void clear(void *pixel, sw::Format format, Surface *dest, const SliceRect &dRect, unsigned int rgbaMask);
+		void clear(void *pixel, VkFormat format, Surface *dest, const SliceRect &dRect, unsigned int rgbaMask);
 		void blit(Surface *source, const SliceRectF &sRect, Surface *dest, const SliceRect &dRect, const Options &options);
 		void blit3D(Surface *source, Surface *dest);
 
 	private:
-		bool fastClear(void *pixel, sw::Format format, Surface *dest, const SliceRect &dRect, unsigned int rgbaMask);
+		bool fastClear(void *pixel, VkFormat format, Surface *dest, const SliceRect &dRect, unsigned int rgbaMask);
 
 		bool read(Float4 &color, Pointer<Byte> element, const State &state);
 		bool write(Float4 &color, Pointer<Byte> element, const State &state);
 		bool read(Int4 &color, Pointer<Byte> element, const State &state);
 		bool write(Int4 &color, Pointer<Byte> element, const State &state);
-		static bool GetScale(float4& scale, Format format);
+		static bool GetScale(float4& scale, VkFormat format);
 		static bool ApplyScaleAndClamp(Float4 &value, const State &state, bool preScaled = false);
 		static Int ComputeOffset(Int &x, Int &y, Int &pitchB, int bytes, bool quadLayout);
 		static Float4 LinearToSRGB(Float4 &color);

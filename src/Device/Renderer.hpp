@@ -262,7 +262,7 @@ namespace sw
 
 		void draw(DrawType drawType, unsigned int indexOffset, unsigned int count, bool update = true);
 
-		void clear(void *value, Format format, Surface *dest, const Rect &rect, unsigned int rgbaMask);
+		void clear(void *value, VkFormat format, Surface *dest, const Rect &rect, unsigned int rgbaMask);
 		void blit(Surface *source, const SliceRectF &sRect, Surface *dest, const SliceRect &dRect, bool filter, bool isStencil = false, bool sRGBconversion = true);
 		void blit3D(Surface *source, Surface *dest);
 

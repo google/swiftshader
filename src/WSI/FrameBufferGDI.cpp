@@ -37,7 +37,7 @@ namespace sw
 
 		init(this->windowHandle);
 
-		format = FORMAT_A8R8G8B8;
+		format = VK_FORMAT_B8G8R8A8_UNORM;
 	}
 
 	FrameBufferGDI::~FrameBufferGDI()

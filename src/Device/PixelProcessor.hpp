@@ -73,7 +73,7 @@ namespace sw
 			BlendOperation blendOperationAlpha        : BITS(BLENDOP_LAST);
 
 			unsigned int colorWriteMask                       : RENDERTARGETS * 4;   // Four component bit masks
-			Format targetFormat[RENDERTARGETS];
+			VkFormat targetFormat[RENDERTARGETS];
 			bool writeSRGB                                    : 1;
 			unsigned int multiSample                          : 3;
 			unsigned int multiSampleMask                      : 4;
