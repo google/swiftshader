@@ -41,7 +41,7 @@ namespace D3D9
 		{
 			device->removeQuery(query);
 
-			delete query;
+			query->release();
 		}
 	}
 
@@ -202,7 +202,7 @@ namespace D3D9
 			return INVALIDCALL();
 		}
 
-		bool signaled = !query || query->reference == 0;
+		bool signaled = !query || query->isReady();
 
 		if(size && signaled)
 		{
