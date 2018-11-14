@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "d9f6630c_2b065e11",
+        "filename": "src/Vulkan/VkPhysicalDevice.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 316,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-11-14T15:39:13Z",
+      "side": 1,
+      "message": "rant: A little known fact about sizeof() is that it doesn\u0027t \"return\" a size_t variable. It gets substituted by a literal which is guaranteed to fit into a size_t. Because of this, it\u0027s valid to write \"auto x \u003d sizeof(T)\" without having included any header to define size_t. Also note that it may be a 32-bit literal even on 64-bit targets. Hence storing it in a size_t may incur a teensy performance hit.\n\nWriting \"constexpr auto\" pretty much guarantees that we can give the literal a name and use it later, while behaving exactly as if the expression was written inline at the place we use the name.",
+      "parentUuid": "b1d3ca81_e2a9c85f",
+      "range": {
+        "startLine": 316,
+        "startChar": 11,
+        "endLine": 316,
+        "endChar": 15
+      },
+      "revId": "ae2fb8a49bc0099959964c5edaa5f41b5506c089",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c25c91ce_91f98f3f",
         "filename": "src/Vulkan/VkPhysicalDevice.cpp",
         "patchSetId": 3
@@ -45,6 +69,30 @@
       "revId": "ae2fb8a49bc0099959964c5edaa5f41b5506c089",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dd98701a_7630bf7a",
+        "filename": "src/Vulkan/VkPhysicalDevice.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 318,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-11-14T15:39:13Z",
+      "side": 1,
+      "message": "rant: Using 32-bit types on x86 may prevent the need for a RAX byte, thus keeping the code a tad bit more compact. Of course this comes with the significant caveat that if \u0027featureCount\u0027 was larger than a 32-bit value we\u0027d loop infinitely, but we\u0027d have a big problem if we indexed anywhere close to 2^32 elements anyway. So I think uint is fine here.",
+      "parentUuid": "c25c91ce_91f98f3f",
+      "range": {
+        "startLine": 318,
+        "startChar": 5,
+        "endLine": 318,
+        "endChar": 17
+      },
+      "revId": "ae2fb8a49bc0099959964c5edaa5f41b5506c089",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
