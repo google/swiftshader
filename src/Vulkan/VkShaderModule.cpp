@@ -34,4 +34,10 @@ size_t ShaderModule::ComputeRequiredAllocationSize(const VkShaderModuleCreateInf
 	return pCreateInfo->codeSize;
 }
 
+rr::Routine* ShaderModule::compile(const VkAllocationCallbacks* pAllocator)
+{
+	// FIXME: Compile the code here
+	return nullptr;
+}
+
 } // namespace vk

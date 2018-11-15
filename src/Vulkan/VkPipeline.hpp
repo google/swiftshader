@@ -16,6 +16,7 @@
 #define VK_PIPELINE_HPP_
 
 #include "VkObject.hpp"
+#include "Device/Renderer.hpp"
 
 namespace vk
 {
@@ -44,6 +45,21 @@ public:
 #endif
 
 	static size_t ComputeRequiredAllocationSize(const VkGraphicsPipelineCreateInfo* pCreateInfo);
+
+	void compileShaders(const VkAllocationCallbacks* pAllocator, const VkGraphicsPipelineCreateInfo* pCreateInfo);
+
+	const sw::Context& getContext() const;
+	const sw::Rect& getScissor() const;
+	const VkViewport& getViewport() const;
+	const sw::Color<float>& getBlendConstants() const;
+
+private:
+	rr::Routine* vertexRoutine;
+	rr::Routine* fragmentRoutine;
+	sw::Context context;
+	sw::Rect scissor;
+	VkViewport viewport;
+	sw::Color<float> blendConstants;
 };
 
 class ComputePipeline : public Pipeline, public Object<ComputePipeline, VkPipeline>

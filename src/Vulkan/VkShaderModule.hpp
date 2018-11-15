@@ -17,6 +17,11 @@
 
 #include "VkObject.hpp"
 
+namespace rr
+{
+	class Routine;
+}
+
 namespace vk
 {
 
@@ -26,6 +31,8 @@ public:
 	ShaderModule(const VkShaderModuleCreateInfo* pCreateInfo, void* mem);
 	~ShaderModule() = delete;
 	void destroy(const VkAllocationCallbacks* pAllocator);
+
+	rr::Routine* compile(const VkAllocationCallbacks* pAllocator);
 
 	static size_t ComputeRequiredAllocationSize(const VkShaderModuleCreateInfo* pCreateInfo);
 

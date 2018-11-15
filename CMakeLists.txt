@@ -1977,10 +1977,30 @@ file(GLOB_RECURSE VULKAN_LIST
     ${VULKAN_DIR}/*.cpp
     ${VULKAN_DIR}/*.h
     ${VULKAN_DIR}/*.hpp
-    ${SOURCE_DIR}/System/Memory.cpp
-    ${SOURCE_DIR}/System/Memory.hpp
+    ${SOURCE_DIR}/System/CPUID.cpp
+    ${SOURCE_DIR}/System/CPUID.hpp
+    ${SOURCE_DIR}/System/Configurator.cpp
+    ${SOURCE_DIR}/System/Configurator.hpp
     ${SOURCE_DIR}/System/Debug.cpp
     ${SOURCE_DIR}/System/Debug.hpp
+    ${SOURCE_DIR}/System/Half.cpp
+    ${SOURCE_DIR}/System/Half.hpp
+    ${SOURCE_DIR}/System/Math.cpp
+    ${SOURCE_DIR}/System/Math.hpp
+    ${SOURCE_DIR}/System/Memory.cpp
+    ${SOURCE_DIR}/System/Memory.hpp
+    ${SOURCE_DIR}/System/Resource.cpp
+    ${SOURCE_DIR}/System/Resource.hpp
+    ${SOURCE_DIR}/System/Socket.cpp
+    ${SOURCE_DIR}/System/Socket.hpp
+    ${SOURCE_DIR}/System/Thread.cpp
+    ${SOURCE_DIR}/System/Thread.hpp
+    ${SOURCE_DIR}/System/Timer.cpp
+    ${SOURCE_DIR}/System/Timer.hpp
+    ${SOURCE_DIR}/Device/*.cpp
+    ${SOURCE_DIR}/Device/*.hpp
+    ${SOURCE_DIR}/Pipeline/*.cpp
+    ${SOURCE_DIR}/Pipeline/*.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/include/vulkan/*.h}
 )
 
@@ -2153,7 +2173,7 @@ if(BUILD_VULKAN)
         PREFIX ""
     )
     set_shared_library_export_map(libvk_swiftshader ${SOURCE_DIR}/Vulkan)
-    target_link_libraries(libvk_swiftshader ${OS_LIBS})
+    target_link_libraries(libvk_swiftshader ${Reactor} ${OS_LIBS})
     add_custom_command(
         TARGET libvk_swiftshader
         POST_BUILD

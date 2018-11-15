@@ -896,6 +896,10 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateGraphicsPipelines(VkDevice device, VkPipe
 			pPipelines[i] = VK_NULL_HANDLE;
 			errorResult = result;
 		}
+		else
+		{
+			static_cast<vk::GraphicsPipeline*>(vk::Cast(pPipelines[i]))->compileShaders(pAllocator, &pCreateInfos[i]);
+		}
 	}
 
 	return errorResult;
