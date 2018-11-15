@@ -231,6 +231,9 @@
     <ClCompile Include="VkPipelineLayout.cpp">
       <Filter>Source Files\Vulkan</Filter>
     </ClCompile>
+    <ClCompile Include="VkImage.cpp">
+      <Filter>Source Files\Vulkan</Filter>
+    </ClCompile>
     <ClCompile Include="VkPromotedExtensions.cpp">
       <Filter>Source Files\Vulkan</Filter>
     </ClCompile>
@@ -270,6 +273,9 @@
       <Filter>Header Files\Vulkan</Filter>
     </ClInclude>
     <ClInclude Include="VkGetProcAddress.h">
+      <Filter>Header Files\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="VkImage.hpp">
       <Filter>Header Files\Vulkan</Filter>
     </ClInclude>
     <ClInclude Include="VkInstance.hpp">

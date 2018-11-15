@@ -19,6 +19,7 @@
 #include "VkDeviceMemory.hpp"
 #include "VkEvent.hpp"
 #include "VkFence.hpp"
+#include "VkImage.hpp"
 #include "VkInstance.hpp"
 #include "VkPipeline.hpp"
 #include "VkPipelineLayout.hpp"

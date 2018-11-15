@@ -23,6 +23,7 @@
 #include "VkEvent.hpp"
 #include "VkFence.hpp"
 #include "VkGetProcAddress.h"
+#include "VkImage.hpp"
 #include "VkInstance.hpp"
 #include "VkPhysicalDevice.hpp"
 #include "VkPipeline.hpp"
@@ -711,9 +712,12 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateImage(VkDevice device, const VkImageCreat
 	TRACE("(VkDevice device = 0x%X, const VkImageCreateInfo* pCreateInfo = 0x%X, const VkAllocationCallbacks* pAllocator = 0x%X, VkImage* pImage = 0x%X)",
 		    device, pCreateInfo, pAllocator, pImage);
 
-	UNIMPLEMENTED();
+	if(pCreateInfo->pNext)
+	{
+		UNIMPLEMENTED();
+	}
 
-	return VK_SUCCESS;
+	return vk::Image::Create(pAllocator, pCreateInfo, pImage);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkDestroyImage(VkDevice device, VkImage image, const VkAllocationCallbacks* pAllocator)
@@ -721,7 +725,7 @@ VKAPI_ATTR void VKAPI_CALL vkDestroyImage(VkDevice device, VkImage image, const 
 	TRACE("(VkDevice device = 0x%X, VkImage image = 0x%X, const VkAllocationCallbacks* pAllocator = 0x%X)",
 		    device, image, pAllocator);
 
-	UNIMPLEMENTED();
+	vk::destroy(image, pAllocator);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkGetImageSubresourceLayout(VkDevice device, VkImage image, const VkImageSubresource* pSubresource, VkSubresourceLayout* pLayout)
