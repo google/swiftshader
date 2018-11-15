@@ -28,6 +28,7 @@
 #include "VkQueue.hpp"
 #include "VkSemaphore.hpp"
 #include "VkShaderModule.hpp"
+#include "VkRenderPass.hpp"
 
 namespace vk
 {
