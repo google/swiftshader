@@ -22,6 +22,7 @@
 #include "VkDeviceMemory.hpp"
 #include "VkEvent.hpp"
 #include "VkFence.hpp"
+#include "VkFramebuffer.hpp"
 #include "VkGetProcAddress.h"
 #include "VkImage.hpp"
 #include "VkInstance.hpp"
@@ -967,16 +968,19 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateFramebuffer(VkDevice device, const VkFram
 	TRACE("(VkDevice device = 0x%X, const VkFramebufferCreateInfo* pCreateInfo = 0x%X, const VkAllocationCallbacks* pAllocator = 0x%X, VkFramebuffer* pFramebuffer = 0x%X)",
 		    device, pCreateInfo, pAllocator, pFramebuffer);
 
-	UNIMPLEMENTED();
+	if(pCreateInfo->pNext || pCreateInfo->flags)
+	{
+		UNIMPLEMENTED();
+	}
 
-	return VK_SUCCESS;
+	return vk::Framebuffer::Create(pAllocator, pCreateInfo, pFramebuffer);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkDestroyFramebuffer(VkDevice device, VkFramebuffer framebuffer, const VkAllocationCallbacks* pAllocator)
 {
 	TRACE("(VkDevice device = 0x%X, VkFramebuffer framebuffer = 0x%X, const VkAllocationCallbacks* pAllocator = 0x%X)");
 
-	UNIMPLEMENTED();
+	vk::destroy(framebuffer, pAllocator);
 }
 
 VKAPI_ATTR VkResult VKAPI_CALL vkCreateRenderPass(VkDevice device, const VkRenderPassCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkRenderPass* pRenderPass)
