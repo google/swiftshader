@@ -29,6 +29,7 @@
 #include "VkPipelineLayout.hpp"
 #include "VkQueue.hpp"
 #include "VkSemaphore.hpp"
+#include "VkShaderModule.hpp"
 
 #include <algorithm>
 #include <cstring>
@@ -748,19 +749,22 @@ VKAPI_ATTR void VKAPI_CALL vkDestroyImageView(VkDevice device, VkImageView image
 VKAPI_ATTR VkResult VKAPI_CALL vkCreateShaderModule(VkDevice device, const VkShaderModuleCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkShaderModule* pShaderModule)
 {
 	TRACE("(VkDevice device = 0x%X, const VkShaderModuleCreateInfo* pCreateInfo = 0x%X, const VkAllocationCallbacks* pAllocator = 0x%X, VkShaderModule* pShaderModule = 0x%X)",
-		    device, pCreateInfo, pAllocator, pShaderModule);
+	      device, pCreateInfo, pAllocator, pShaderModule);
 
-	UNIMPLEMENTED();
+	if(pCreateInfo->pNext || pCreateInfo->flags)
+	{
+		UNIMPLEMENTED();
+	}
 
-	return VK_SUCCESS;
+	return vk::ShaderModule::Create(pAllocator, pCreateInfo, pShaderModule);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkDestroyShaderModule(VkDevice device, VkShaderModule shaderModule, const VkAllocationCallbacks* pAllocator)
 {
 	TRACE("(VkDevice device = 0x%X, VkShaderModule shaderModule = 0x%X, const VkAllocationCallbacks* pAllocator = 0x%X)",
-		    device, shaderModule, pAllocator);
+	      device, shaderModule, pAllocator);
 
-	UNIMPLEMENTED();
+	vk::destroy(shaderModule, pAllocator);
 }
 
 VKAPI_ATTR VkResult VKAPI_CALL vkCreatePipelineCache(VkDevice device, const VkPipelineCacheCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkPipelineCache* pPipelineCache)
