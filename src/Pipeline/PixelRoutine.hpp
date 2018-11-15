@@ -66,9 +66,9 @@ namespace sw
 	private:
 		Float4 interpolateCentroid(Float4 &x, Float4 &y, Float4 &rhw, Pointer<Byte> planeEquation, bool flat, bool perspective);
 		void stencilTest(Pointer<Byte> &sBuffer, int q, Int &x, Int &sMask, Int &cMask);
-		void stencilTest(Byte8 &value, StencilCompareMode stencilCompareMode, bool CCW);
-		void stencilOperation(Byte8 &newValue, Byte8 &bufferValue, StencilOperation stencilPassOperation, StencilOperation stencilZFailOperation, StencilOperation stencilFailOperation, bool CCW, Int &zMask, Int &sMask);
-		void stencilOperation(Byte8 &output, Byte8 &bufferValue, StencilOperation operation, bool CCW);
+		void stencilTest(Byte8 &value, VkCompareOp stencilCompareMode, bool CCW);
+		void stencilOperation(Byte8 &newValue, Byte8 &bufferValue, VkStencilOp stencilPassOperation, VkStencilOp stencilZFailOperation, VkStencilOp stencilFailOperation, bool CCW, Int &zMask, Int &sMask);
+		void stencilOperation(Byte8 &output, Byte8 &bufferValue, VkStencilOp operation, bool CCW);
 		Bool depthTest(Pointer<Byte> &zBuffer, int q, Int &x, Float4 &z, Int &sMask, Int &zMask, Int &cMask);
 
 		// Raster operations

@@ -161,7 +161,7 @@ namespace sw
 
 			if(veryEarlyDepthTest && state.multiSample == 1 && !state.depthOverride)
 			{
-				if(!state.stencilActive && state.depthTestActive && (state.depthCompareMode == DEPTH_LESSEQUAL || state.depthCompareMode == DEPTH_LESS))   // FIXME: Both modes ok?
+				if(!state.stencilActive && state.depthTestActive && (state.depthCompareMode == VK_COMPARE_OP_LESS_OR_EQUAL || state.depthCompareMode == VK_COMPARE_OP_LESS))   // FIXME: Both modes ok?
 				{
 					Float4 xxxx = Float4(Float(x0)) + *Pointer<Float4>(primitive + OFFSET(Primitive,xQuad), 16);
 

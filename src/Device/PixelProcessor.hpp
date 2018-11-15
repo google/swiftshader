@@ -37,24 +37,24 @@ namespace sw
 			bool depthOverride                        : 1;   // TODO: Eliminate by querying shader.
 			bool shaderContainsKill                   : 1;   // TODO: Eliminate by querying shader.
 
-			DepthCompareMode depthCompareMode         : BITS(DEPTH_LAST);
-			AlphaCompareMode alphaCompareMode         : BITS(ALPHA_LAST);
+			VkCompareOp depthCompareMode              : BITS(VK_COMPARE_OP_END_RANGE);
+			VkCompareOp alphaCompareMode              : BITS(VK_COMPARE_OP_END_RANGE);
 			bool depthWriteEnable                     : 1;
 			bool quadLayoutDepthBuffer                : 1;
 
 			bool stencilActive                        : 1;
-			StencilCompareMode stencilCompareMode     : BITS(STENCIL_LAST);
-			StencilOperation stencilFailOperation     : BITS(OPERATION_LAST);
-			StencilOperation stencilPassOperation     : BITS(OPERATION_LAST);
-			StencilOperation stencilZFailOperation    : BITS(OPERATION_LAST);
+			VkCompareOp stencilCompareMode            : BITS(VK_COMPARE_OP_END_RANGE);
+			VkStencilOp stencilFailOperation          : BITS(VK_STENCIL_OP_END_RANGE);
+			VkStencilOp stencilPassOperation          : BITS(VK_STENCIL_OP_END_RANGE);
+			VkStencilOp stencilZFailOperation         : BITS(VK_STENCIL_OP_END_RANGE);
 			bool noStencilMask                        : 1;
 			bool noStencilWriteMask                   : 1;
 			bool stencilWriteMasked                   : 1;
 			bool twoSidedStencil                      : 1;
-			StencilCompareMode stencilCompareModeCCW  : BITS(STENCIL_LAST);
-			StencilOperation stencilFailOperationCCW  : BITS(OPERATION_LAST);
-			StencilOperation stencilPassOperationCCW  : BITS(OPERATION_LAST);
-			StencilOperation stencilZFailOperationCCW : BITS(OPERATION_LAST);
+			VkCompareOp stencilCompareModeCCW         : BITS(VK_COMPARE_OP_END_RANGE);
+			VkStencilOp stencilFailOperationCCW       : BITS(VK_STENCIL_OP_END_RANGE);
+			VkStencilOp stencilPassOperationCCW       : BITS(VK_STENCIL_OP_END_RANGE);
+			VkStencilOp stencilZFailOperationCCW      : BITS(VK_STENCIL_OP_END_RANGE);
 			bool noStencilMaskCCW                     : 1;
 			bool noStencilWriteMaskCCW                : 1;
 			bool stencilWriteMaskedCCW                : 1;
@@ -119,7 +119,7 @@ namespace sw
 
 			bool alphaTestActive() const
 			{
-				return (alphaCompareMode != ALPHA_ALWAYS) || (transparencyAntialiasing != TRANSPARENCY_NONE);
+				return (alphaCompareMode != VK_COMPARE_OP_ALWAYS) || (transparencyAntialiasing != TRANSPARENCY_NONE);
 			}
 
 			unsigned int hash;
@@ -209,8 +209,8 @@ namespace sw
 
 		void setWriteSRGB(bool sRGB);
 		void setDepthBufferEnable(bool depthBufferEnable);
-		void setDepthCompare(DepthCompareMode depthCompareMode);
-		void setAlphaCompare(AlphaCompareMode alphaCompareMode);
+		void setDepthCompare(VkCompareOp depthCompareMode);
+		void setAlphaCompare(VkCompareOp alphaCompareMode);
 		void setDepthWriteEnable(bool depthWriteEnable);
 		void setAlphaTestEnable(bool alphaTestEnable);
 		void setCullMode(CullMode cullMode, bool frontFacingCCW);
@@ -220,20 +220,20 @@ namespace sw
 		void setLogicalOperation(LogicalOperation logicalOperation);
 
 		void setStencilEnable(bool stencilEnable);
-		void setStencilCompare(StencilCompareMode stencilCompareMode);
+		void setStencilCompare(VkCompareOp stencilCompareMode);
 		void setStencilReference(int stencilReference);
 		void setStencilMask(int stencilMask);
-		void setStencilFailOperation(StencilOperation stencilFailOperation);
-		void setStencilPassOperation(StencilOperation stencilPassOperation);
-		void setStencilZFailOperation(StencilOperation stencilZFailOperation);
+		void setStencilFailOperation(VkStencilOp stencilFailOperation);
+		void setStencilPassOperation(VkStencilOp stencilPassOperation);
+		void setStencilZFailOperation(VkStencilOp stencilZFailOperation);
 		void setStencilWriteMask(int stencilWriteMask);
 		void setTwoSidedStencil(bool enable);
-		void setStencilCompareCCW(StencilCompareMode stencilCompareMode);
+		void setStencilCompareCCW(VkCompareOp stencilCompareMode);
 		void setStencilReferenceCCW(int stencilReference);
 		void setStencilMaskCCW(int stencilMask);
-		void setStencilFailOperationCCW(StencilOperation stencilFailOperation);
-		void setStencilPassOperationCCW(StencilOperation stencilPassOperation);
-		void setStencilZFailOperationCCW(StencilOperation stencilZFailOperation);
+		void setStencilFailOperationCCW(VkStencilOp stencilFailOperation);
+		void setStencilPassOperationCCW(VkStencilOp stencilPassOperation);
+		void setStencilZFailOperationCCW(VkStencilOp stencilZFailOperation);
 		void setStencilWriteMaskCCW(int stencilWriteMask);
 
 		void setBlendConstant(const Color<float> &blendConstant);

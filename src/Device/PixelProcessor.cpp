@@ -343,12 +343,12 @@ namespace sw
 		context->setDepthBufferEnable(depthBufferEnable);
 	}
 
-	void PixelProcessor::setDepthCompare(DepthCompareMode depthCompareMode)
+	void PixelProcessor::setDepthCompare(VkCompareOp depthCompareMode)
 	{
 		context->depthCompareMode = depthCompareMode;
 	}
 
-	void PixelProcessor::setAlphaCompare(AlphaCompareMode alphaCompareMode)
+	void PixelProcessor::setAlphaCompare(VkCompareOp alphaCompareMode)
 	{
 		context->alphaCompareMode = alphaCompareMode;
 	}
@@ -379,7 +379,7 @@ namespace sw
 		context->stencilEnable = stencilEnable;
 	}
 
-	void PixelProcessor::setStencilCompare(StencilCompareMode stencilCompareMode)
+	void PixelProcessor::setStencilCompare(VkCompareOp stencilCompareMode)
 	{
 		context->stencilCompareMode = stencilCompareMode;
 	}
@@ -408,17 +408,17 @@ namespace sw
 		stencilCCW.set(context->stencilReferenceCCW, stencilMaskCCW, context->stencilWriteMaskCCW);
 	}
 
-	void PixelProcessor::setStencilFailOperation(StencilOperation stencilFailOperation)
+	void PixelProcessor::setStencilFailOperation(VkStencilOp stencilFailOperation)
 	{
 		context->stencilFailOperation = stencilFailOperation;
 	}
 
-	void PixelProcessor::setStencilPassOperation(StencilOperation stencilPassOperation)
+	void PixelProcessor::setStencilPassOperation(VkStencilOp stencilPassOperation)
 	{
 		context->stencilPassOperation = stencilPassOperation;
 	}
 
-	void PixelProcessor::setStencilZFailOperation(StencilOperation stencilZFailOperation)
+	void PixelProcessor::setStencilZFailOperation(VkStencilOp stencilZFailOperation)
 	{
 		context->stencilZFailOperation = stencilZFailOperation;
 	}
@@ -440,22 +440,22 @@ namespace sw
 		context->twoSidedStencil = enable;
 	}
 
-	void PixelProcessor::setStencilCompareCCW(StencilCompareMode stencilCompareMode)
+	void PixelProcessor::setStencilCompareCCW(VkCompareOp stencilCompareMode)
 	{
 		context->stencilCompareModeCCW = stencilCompareMode;
 	}
 
-	void PixelProcessor::setStencilFailOperationCCW(StencilOperation stencilFailOperation)
+	void PixelProcessor::setStencilFailOperationCCW(VkStencilOp stencilFailOperation)
 	{
 		context->stencilFailOperationCCW = stencilFailOperation;
 	}
 
-	void PixelProcessor::setStencilPassOperationCCW(StencilOperation stencilPassOperation)
+	void PixelProcessor::setStencilPassOperationCCW(VkStencilOp stencilPassOperation)
 	{
 		context->stencilPassOperationCCW = stencilPassOperation;
 	}
 
-	void PixelProcessor::setStencilZFailOperationCCW(StencilOperation stencilZFailOperation)
+	void PixelProcessor::setStencilZFailOperationCCW(VkStencilOp stencilZFailOperation)
 	{
 		context->stencilZFailOperationCCW = stencilZFailOperation;
 	}

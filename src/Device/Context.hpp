@@ -84,62 +84,6 @@ namespace sw
 		DRAW_LAST = DRAW_INDEXEDTRIANGLEFAN32
 	};
 
-	enum DepthCompareMode ENUM_UNDERLYING_TYPE_UNSIGNED_INT
-	{
-		DEPTH_ALWAYS,
-		DEPTH_NEVER,
-		DEPTH_EQUAL,
-		DEPTH_NOTEQUAL,
-		DEPTH_LESS,
-		DEPTH_LESSEQUAL,
-		DEPTH_GREATER,
-		DEPTH_GREATEREQUAL,
-
-		DEPTH_LAST = DEPTH_GREATEREQUAL
-	};
-
-	enum StencilCompareMode ENUM_UNDERLYING_TYPE_UNSIGNED_INT
-	{
-		STENCIL_ALWAYS,
-		STENCIL_NEVER,
-		STENCIL_EQUAL,
-		STENCIL_NOTEQUAL,
-		STENCIL_LESS,
-		STENCIL_LESSEQUAL,
-		STENCIL_GREATER,
-		STENCIL_GREATEREQUAL,
-
-		STENCIL_LAST = STENCIL_GREATEREQUAL
-	};
-
-	enum StencilOperation ENUM_UNDERLYING_TYPE_UNSIGNED_INT
-	{
-		OPERATION_KEEP,
-		OPERATION_ZERO,
-		OPERATION_REPLACE,
-		OPERATION_INCRSAT,
-		OPERATION_DECRSAT,
-		OPERATION_INVERT,
-		OPERATION_INCR,
-		OPERATION_DECR,
-
-		OPERATION_LAST = OPERATION_DECR
-	};
-
-	enum AlphaCompareMode ENUM_UNDERLYING_TYPE_UNSIGNED_INT
-	{
-		ALPHA_ALWAYS,
-		ALPHA_NEVER,
-		ALPHA_EQUAL,
-		ALPHA_NOTEQUAL,
-		ALPHA_LESS,
-		ALPHA_LESSEQUAL,
-		ALPHA_GREATER,
-		ALPHA_GREATEREQUAL,
-
-		ALPHA_LAST = ALPHA_GREATEREQUAL
-	};
-
 	enum CullMode ENUM_UNDERLYING_TYPE_UNSIGNED_INT
 	{
 		CULL_NONE,
@@ -275,25 +219,25 @@ namespace sw
 		DrawType drawType;
 
 		bool stencilEnable;
-		StencilCompareMode stencilCompareMode;
+		VkCompareOp stencilCompareMode;
 		int stencilReference;
 		int stencilMask;
-		StencilOperation stencilFailOperation;
-		StencilOperation stencilPassOperation;
-		StencilOperation stencilZFailOperation;
+		VkStencilOp stencilFailOperation;
+		VkStencilOp stencilPassOperation;
+		VkStencilOp stencilZFailOperation;
 		int stencilWriteMask;
 
 		bool twoSidedStencil;
-		StencilCompareMode stencilCompareModeCCW;
+		VkCompareOp stencilCompareModeCCW;
 		int stencilReferenceCCW;
 		int stencilMaskCCW;
-		StencilOperation stencilFailOperationCCW;
-		StencilOperation stencilPassOperationCCW;
-		StencilOperation stencilZFailOperationCCW;
+		VkStencilOp stencilFailOperationCCW;
+		VkStencilOp stencilPassOperationCCW;
+		VkStencilOp stencilZFailOperationCCW;
 		int stencilWriteMaskCCW;
 
 		// Pixel processor states
-		AlphaCompareMode alphaCompareMode;
+		VkCompareOp alphaCompareMode;
 		bool alphaTestEnable;
 
 		CullMode cullMode;
@@ -335,7 +279,7 @@ namespace sw
 		// Pixel processor states
 		bool rasterizerDiscard;
 		bool depthBufferEnable;
-		DepthCompareMode depthCompareMode;
+		VkCompareOp depthCompareMode;
 		bool depthWriteEnable;
 
 		bool alphaBlendEnable;

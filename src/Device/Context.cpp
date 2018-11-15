@@ -175,29 +175,29 @@ namespace sw
 		stencilBuffer = nullptr;
 
 		stencilEnable = false;
-		stencilCompareMode = STENCIL_ALWAYS;
+		stencilCompareMode = VK_COMPARE_OP_ALWAYS;
 		stencilReference = 0;
 		stencilMask = 0xFFFFFFFF;
-		stencilFailOperation = OPERATION_KEEP;
-		stencilPassOperation = OPERATION_KEEP;
-		stencilZFailOperation = OPERATION_KEEP;
+		stencilFailOperation = VK_STENCIL_OP_KEEP;
+		stencilPassOperation = VK_STENCIL_OP_KEEP;
+		stencilZFailOperation = VK_STENCIL_OP_KEEP;
 		stencilWriteMask = 0xFFFFFFFF;
 
 		twoSidedStencil = false;
-		stencilCompareModeCCW = STENCIL_ALWAYS;
+		stencilCompareModeCCW = VK_COMPARE_OP_ALWAYS;
 		stencilReferenceCCW = 0;
 		stencilMaskCCW = 0xFFFFFFFF;
-		stencilFailOperationCCW = OPERATION_KEEP;
-		stencilPassOperationCCW = OPERATION_KEEP;
-		stencilZFailOperationCCW = OPERATION_KEEP;
+		stencilFailOperationCCW = VK_STENCIL_OP_KEEP;
+		stencilPassOperationCCW = VK_STENCIL_OP_KEEP;
+		stencilZFailOperationCCW = VK_STENCIL_OP_KEEP;
 		stencilWriteMaskCCW = 0xFFFFFFFF;
 
-		alphaCompareMode = ALPHA_ALWAYS;
+		alphaCompareMode = VK_COMPARE_OP_ALWAYS;
 		alphaTestEnable = false;
 
 		rasterizerDiscard = false;
 
-		depthCompareMode = DEPTH_LESS;
+		depthCompareMode = VK_COMPARE_OP_LESS;
 		depthBufferEnable = true;
 		depthWriteEnable = true;
 
@@ -343,8 +343,8 @@ namespace sw
 	{
 		if(transparencyAntialiasing != TRANSPARENCY_NONE) return true;
 		if(!alphaTestEnable) return false;
-		if(alphaCompareMode == ALPHA_ALWAYS) return false;
-		if(alphaReference == 0.0f && alphaCompareMode == ALPHA_GREATEREQUAL) return false;
+		if(alphaCompareMode == VK_COMPARE_OP_ALWAYS) return false;
+		if(alphaReference == 0.0f && alphaCompareMode == VK_COMPARE_OP_GREATER_OR_EQUAL) return false;
 
 		return true;
 	}
