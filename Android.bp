@@ -30,6 +30,7 @@ cc_defaults {
     cppflags: [
         "-Woverloaded-virtual",
     ],
+    cpp_std: "c++11",
 
     target: {
         host: {
