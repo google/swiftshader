@@ -362,6 +362,14 @@ void PhysicalDevice::getProperties(const VkPhysicalDeviceExternalSemaphoreInfo* 
 	pExternalSemaphoreProperties->externalSemaphoreFeatures = 0;
 }
 
+void PhysicalDevice::getProperties(VkPhysicalDeviceDriverPropertiesKHR* properties) const
+{
+	properties->driverID = VK_DRIVER_ID_GOOGLE_SWIFTSHADER_KHR;
+	strcpy(properties->driverName, "SwiftShader driver");
+	strcpy(properties->driverInfo, "");
+	properties->conformanceVersion = {0, 0, 0, 0};
+}
+
 bool PhysicalDevice::hasFeatures(const VkPhysicalDeviceFeatures& requestedFeatures) const
 {
 	const VkPhysicalDeviceFeatures& supportedFeatures = getFeatures();
