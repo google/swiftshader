@@ -30,7 +30,7 @@
 	#include <unistd.h>
 #endif
 
-#include <memory.h>
+#include <cstring>
 
 #undef allocate
 #undef deallocate

@@ -14,7 +14,8 @@
 
 #include "VkPhysicalDevice.hpp"
 #include "VkConfig.h"
-#include <memory.h>
+
+#include <cstring>
 
 namespace vk
 {

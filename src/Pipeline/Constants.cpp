@@ -17,7 +17,7 @@
 #include "System/Math.hpp"
 #include "System/Half.hpp"
 
-#include <memory.h>
+#include <cstring>
 
 namespace sw
 {

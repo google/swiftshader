@@ -13,7 +13,8 @@
 // limitations under the License.
 
 #include "VkShaderModule.hpp"
-#include <memory.h>
+
+#include <cstring>
 
 namespace vk
 {

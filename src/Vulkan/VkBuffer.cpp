@@ -15,7 +15,8 @@
 #include "VkBuffer.hpp"
 #include "VkConfig.h"
 #include "VkDeviceMemory.hpp"
-#include <memory.h>
+
+#include <cstring>
 
 namespace vk
 {

@@ -19,8 +19,7 @@
 #include "Pipeline/PixelRoutine.hpp"
 #include "System/Debug.hpp"
 
-#include <memory.h>
-#include <string.h>
+#include <cstring>
 
 namespace sw
 {
