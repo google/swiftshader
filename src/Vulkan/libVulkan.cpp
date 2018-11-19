@@ -26,6 +26,7 @@
 #include "VkFramebuffer.hpp"
 #include "VkGetProcAddress.h"
 #include "VkImage.hpp"
+#include "VkImageView.hpp"
 #include "VkInstance.hpp"
 #include "VkPhysicalDevice.hpp"
 #include "VkPipeline.hpp"
@@ -808,21 +809,26 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateImageView(VkDevice device, const VkImageV
 	TRACE("(VkDevice device = 0x%X, const VkImageViewCreateInfo* pCreateInfo = 0x%X, const VkAllocationCallbacks* pAllocator = 0x%X, VkImageView* pView = 0x%X)",
 		    device, pCreateInfo, pAllocator, pView);
 
-	UNIMPLEMENTED();
+	if(pCreateInfo->pNext || pCreateInfo->flags)
+	{
+		UNIMPLEMENTED();
+	}
 
-	return VK_SUCCESS;
+	return vk::ImageView::Create(pAllocator, pCreateInfo, pView);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkDestroyImageView(VkDevice device, VkImageView imageView, const VkAllocationCallbacks* pAllocator)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
+	TRACE("(VkDevice device = 0x%X, VkImageView imageView = 0x%X, const VkAllocationCallbacks* pAllocator = 0x%X)",
+	      device, imageView, pAllocator);
+
+	vk::destroy(imageView, pAllocator);
 }
 
 VKAPI_ATTR VkResult VKAPI_CALL vkCreateShaderModule(VkDevice device, const VkShaderModuleCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkShaderModule* pShaderModule)
 {
 	TRACE("(VkDevice device = 0x%X, const VkShaderModuleCreateInfo* pCreateInfo = 0x%X, const VkAllocationCallbacks* pAllocator = 0x%X, VkShaderModule* pShaderModule = 0x%X)",
-	      device, pCreateInfo, pAllocator, pShaderModule);
+		    device, pCreateInfo, pAllocator, pShaderModule);
 
 	if(pCreateInfo->pNext || pCreateInfo->flags)
 	{

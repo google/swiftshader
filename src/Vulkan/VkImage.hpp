@@ -41,6 +41,11 @@ public:
 	void copyTo(VkBuffer dstBuffer, const VkBufferImageCopy& pRegion);
 	void copyFrom(VkBuffer srcBuffer, const VkBufferImageCopy& pRegion);
 
+	void clear(const VkClearValue& clearValue, const VkRect2D& renderArea, const VkImageSubresourceRange& subresourceRange);
+
+	VkImageType              getImageType() const { return imageType; }
+	VkFormat                 getFormat() const { return format; }
+
 private:
 	void* getTexelPointer(const VkOffset3D& offset) const;
 	VkDeviceSize texelOffsetBytesInStorage(const VkOffset3D& offset) const;

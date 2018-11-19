@@ -22,6 +22,7 @@
 #include "VkFence.hpp"
 #include "VkFramebuffer.hpp"
 #include "VkImage.hpp"
+#include "VkImageView.hpp"
 #include "VkInstance.hpp"
 #include "VkPipeline.hpp"
 #include "VkPipelineCache.hpp"

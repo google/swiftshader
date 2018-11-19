@@ -221,4 +221,18 @@ VkDeviceSize Image::getStorageSize() const
 	return extent.depth * slicePitchBytes();
 }
 
+void Image::clear(const VkClearValue& clearValue, const VkRect2D& renderArea, const VkImageSubresourceRange& subresourceRange)
+{
+	if((subresourceRange.aspectMask != VK_IMAGE_ASPECT_COLOR_BIT) ||
+	   (subresourceRange.baseMipLevel != 0) ||
+	   (subresourceRange.levelCount != 1) ||
+	   (subresourceRange.baseArrayLayer != 0) ||
+	   (subresourceRange.layerCount != 1))
+	{
+		UNIMPLEMENTED();
+	}
+
+	UNIMPLEMENTED();
+}
+
 } // namespace vk
