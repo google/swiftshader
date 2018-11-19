@@ -45,7 +45,9 @@ extern "C"
 {
 VKAPI_ATTR PFN_vkVoidFunction VKAPI_CALL vk_icdGetInstanceProcAddr(VkInstance instance, const char* pName)
 {
-	return vk::GetProcAddr(pName);
+	TRACE("(VkInstance instance = 0x%X, const char* pName = 0x%X)", instance, pName);
+
+	return vk::GetInstanceProcAddr(instance, pName);
 }
 
 VKAPI_ATTR VkResult VKAPI_CALL vkCreateInstance(const VkInstanceCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkInstance* pInstance)
@@ -186,13 +188,15 @@ VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceMemoryProperties(VkPhysicalDevice 
 VKAPI_ATTR PFN_vkVoidFunction VKAPI_CALL vkGetInstanceProcAddr(VkInstance instance, const char* pName)
 {
 	TRACE("(VkInstance instance = 0x%X, const char* pName = 0x%X)", instance, pName);
-	return vk::GetProcAddr(pName);
+
+	return vk::GetInstanceProcAddr(instance, pName);
 }
 
 VKAPI_ATTR PFN_vkVoidFunction VKAPI_CALL vkGetDeviceProcAddr(VkDevice device, const char* pName)
 {
 	TRACE("(VkDevice device = 0x%X, const char* pName = 0x%X)", device, pName);
-	return vk::GetProcAddr(pName);
+
+	return vk::GetDeviceProcAddr(device, pName);
 }
 
 VKAPI_ATTR VkResult VKAPI_CALL vkCreateDevice(VkPhysicalDevice physicalDevice, const VkDeviceCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDevice* pDevice)
