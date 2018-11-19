@@ -311,6 +311,9 @@
     <ClInclude Include="VkRenderPass.hpp">
       <Filter>Header Files\Vulkan</Filter>
     </ClInclude>
+    <ClInclude Include="VkSampler.hpp">
+      <Filter>Header Files\Vulkan</Filter>
+    </ClInclude>
     <ClInclude Include="VkSemaphore.hpp">
       <Filter>Header Files\Vulkan</Filter>
     </ClInclude>
