@@ -12,10 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "VkDevice.hpp"
+
 #include "VkConfig.h"
 #include "VkDebug.hpp"
-#include "VkDevice.hpp"
 #include "VkQueue.hpp"
+
 #include <new> // Must #include this to use "placement new"
 
 namespace vk
@@ -38,8 +40,19 @@ Device::Device(const Device::CreateInfo* info, void* mem)
 
 		for(uint32_t j = 0; j < queueCreateInfo.queueCount; j++, queueID++)
 		{
-			new (queues + queueID) Queue(queueCreateInfo.queueFamilyIndex, queueCreateInfo.pQueuePriorities[j]);
+			new (&queues[queueID]) Queue(queueCreateInfo.queueFamilyIndex, queueCreateInfo.pQueuePriorities[j]);
 		}
+	}
+
+	if(pCreateInfo->enabledLayerCount)
+	{
+		// "The ppEnabledLayerNames and enabledLayerCount members of VkDeviceCreateInfo are deprecated and their values must be ignored by implementations."
+		UNIMPLEMENTED();   // TODO(b/119321052): UNIMPLEMENTED() should be used only for features that must still be implemented. Use a more informational macro here.
+	}
+
+	if(pCreateInfo->enabledExtensionCount)
+	{
+		UNIMPLEMENTED();
 	}
 }
 

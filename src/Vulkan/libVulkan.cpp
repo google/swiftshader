@@ -204,14 +204,17 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDevice(VkPhysicalDevice physicalDevice, c
 	TRACE("(VkPhysicalDevice physicalDevice = 0x%X, const VkDeviceCreateInfo* pCreateInfo = 0x%X, const VkAllocationCallbacks* pAllocator = 0x%X, VkDevice* pDevice = 0x%X)",
 		physicalDevice, pCreateInfo, pAllocator, pDevice);
 
-	if(pCreateInfo->enabledLayerCount || pCreateInfo->enabledExtensionCount)
+	if(pCreateInfo->enabledLayerCount)
 	{
-		UNIMPLEMENTED();
+		// "The ppEnabledLayerNames and enabledLayerCount members of VkDeviceCreateInfo are deprecated and their values must be ignored by implementations."
+		UNIMPLEMENTED();   // TODO(b/119321052): UNIMPLEMENTED() should be used only for features that must still be implemented. Use a more informational macro here.
 	}
 
-	if(pCreateInfo->pNext)
+	const VkBaseInStructure* extensionCreateInfo = reinterpret_cast<const VkBaseInStructure*>(pCreateInfo->pNext);
+
+	while(extensionCreateInfo)
 	{
-		switch(*reinterpret_cast<const VkStructureType*>(pCreateInfo->pNext))
+		switch(extensionCreateInfo->sType)
 		{
 		case VK_STRUCTURE_TYPE_LOADER_DEVICE_CREATE_INFO:
 			// According to the Vulkan spec, section 2.7.2. Implicit Valid Usage:
@@ -220,9 +223,59 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDevice(VkPhysicalDevice physicalDevice, c
 			//  internal use by the loader, and do not have corresponding
 			//  Vulkan structures in this Specification."
 			break;
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2:
+			{
+				ASSERT(!pCreateInfo->pEnabledFeatures);   // "If the pNext chain includes a VkPhysicalDeviceFeatures2 structure, then pEnabledFeatures must be NULL"
+
+				const VkPhysicalDeviceFeatures2* physicalDeviceFeatures2 = reinterpret_cast<const VkPhysicalDeviceFeatures2*>(extensionCreateInfo);
+
+				if(!vk::Cast(physicalDevice)->hasFeatures(physicalDeviceFeatures2->features))
+				{
+					return VK_ERROR_FEATURE_NOT_PRESENT;
+				}
+			}
+			break;
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SAMPLER_YCBCR_CONVERSION_FEATURES:
+			{
+				const VkPhysicalDeviceSamplerYcbcrConversionFeatures* samplerYcbcrConversionFeatures = reinterpret_cast<const VkPhysicalDeviceSamplerYcbcrConversionFeatures*>(extensionCreateInfo);
+
+				if(samplerYcbcrConversionFeatures->samplerYcbcrConversion == VK_TRUE)
+				{
+					return VK_ERROR_FEATURE_NOT_PRESENT;
+				}
+			}
+			break;
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_16BIT_STORAGE_FEATURES:
+			{
+				const VkPhysicalDevice16BitStorageFeatures* storage16BitFeatures = reinterpret_cast<const VkPhysicalDevice16BitStorageFeatures*>(extensionCreateInfo);
+
+				if(storage16BitFeatures->storageBuffer16BitAccess == VK_TRUE ||
+				   storage16BitFeatures->uniformAndStorageBuffer16BitAccess == VK_TRUE ||
+				   storage16BitFeatures->storagePushConstant16 == VK_TRUE ||
+				   storage16BitFeatures->storageInputOutput16 == VK_TRUE)
+				{
+					return VK_ERROR_FEATURE_NOT_PRESENT;
+				}
+			}
+			break;
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VARIABLE_POINTER_FEATURES:
+			{
+				const VkPhysicalDeviceVariablePointerFeatures* variablePointerFeatures = reinterpret_cast<const VkPhysicalDeviceVariablePointerFeatures*>(extensionCreateInfo);
+
+				if(variablePointerFeatures->variablePointersStorageBuffer == VK_TRUE ||
+				   variablePointerFeatures->variablePointers == VK_TRUE)
+				{
+					return VK_ERROR_FEATURE_NOT_PRESENT;
+				}
+			}
+			break;
 		default:
-			UNIMPLEMENTED();
+			// "the [driver] must skip over, without processing (other than reading the sType and pNext members) any structures in the chain with sType values not defined by [supported extenions]"
+			UNIMPLEMENTED();   // TODO(b/119321052): UNIMPLEMENTED() should be used only for features that must still be implemented. Use a more informational macro here.
+			break;
 		}
+
+		extensionCreateInfo = extensionCreateInfo->pNext;
 	}
 
 	ASSERT(pCreateInfo->queueCreateInfoCount > 0);
@@ -231,6 +284,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDevice(VkPhysicalDevice physicalDevice, c
 	{
 		if(!vk::Cast(physicalDevice)->hasFeatures(*(pCreateInfo->pEnabledFeatures)))
 		{
+			UNIMPLEMENTED();
 			return VK_ERROR_FEATURE_NOT_PRESENT;
 		}
 	}
@@ -246,7 +300,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDevice(VkPhysicalDevice physicalDevice, c
 		}
 
 		ASSERT(queueCreateInfo.queueFamilyIndex < queueFamilyPropertyCount);
-		(void)queueFamilyPropertyCount; // Slence unused variable warning
+		(void)queueFamilyPropertyCount; // Silence unused variable warning
 	}
 
 	vk::Device::CreateInfo deviceCreateInfo =
