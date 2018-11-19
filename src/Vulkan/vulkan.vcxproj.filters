@@ -305,6 +305,9 @@
     <ClInclude Include="VkPipeline.hpp">
       <Filter>Header Files\Vulkan</Filter>
     </ClInclude>
+    <ClInclude Include="VkPipelineCache.hpp">
+      <Filter>Header Files\Vulkan</Filter>
+    </ClInclude>
     <ClInclude Include="VkPipelineLayout.hpp">
       <Filter>Header Files\Vulkan</Filter>
     </ClInclude>

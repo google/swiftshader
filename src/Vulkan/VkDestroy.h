@@ -24,6 +24,7 @@
 #include "VkImage.hpp"
 #include "VkInstance.hpp"
 #include "VkPipeline.hpp"
+#include "VkPipelineCache.hpp"
 #include "VkPipelineLayout.hpp"
 #include "VkPhysicalDevice.hpp"
 #include "VkQueue.hpp"

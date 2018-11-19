@@ -208,6 +208,7 @@ copy "$(OutDir)vk_swiftshader.dll" "$(SolutionDir)out\$(Configuration)_$(Platfor
     <ClInclude Include="VkObject.hpp" />
     <ClInclude Include="VkPhysicalDevice.hpp" />
     <ClInclude Include="VkPipeline.hpp" />
+    <ClInclude Include="VkPipelineCache.hpp" />
     <ClInclude Include="VkPipelineLayout.hpp" />
     <ClInclude Include="VkQueue.hpp" />
     <ClInclude Include="VkRenderPass.hpp" />
