@@ -13,21 +13,70 @@
 // limitations under the License.
 
 #include "VkCommandPool.hpp"
+#include "VkDestroy.h"
+#include <algorithm>
 
 namespace vk
 {
 
 CommandPool::CommandPool(const VkCommandPoolCreateInfo* pCreateInfo, void* mem)
 {
+	// FIXME (b/119409619): use an allocator here so we can control all memory allocations
+	commandBuffers = new std::set<VkCommandBuffer>();
 }
 
 void CommandPool::destroy(const VkAllocationCallbacks* pAllocator)
 {
+	// Free command Buffers allocated in allocateCommandBuffers
+	for(auto commandBuffer : *commandBuffers)
+	{
+		vk::destroy(commandBuffer, DEVICE_MEMORY);
+	}
+
+	// FIXME (b/119409619): use an allocator here so we can control all memory allocations
+	delete commandBuffers;
 }
 
 size_t CommandPool::ComputeRequiredAllocationSize(const VkCommandPoolCreateInfo* pCreateInfo)
 {
 	return 0;
+}
+
+VkResult CommandPool::allocateCommandBuffers(VkCommandBufferLevel level, uint32_t commandBufferCount, VkCommandBuffer* pCommandBuffers)
+{
+	for(uint32_t i = 0; i < commandBufferCount; i++)
+	{
+		DispatchableCommandBuffer* commandBuffer = new (DEVICE_MEMORY) DispatchableCommandBuffer(level);
+		if(commandBuffer)
+		{
+			pCommandBuffers[i] = *commandBuffer;
+		}
+		else
+		{
+			for(uint32_t j = 0; j < i; j++)
+			{
+				vk::destroy(pCommandBuffers[j], DEVICE_MEMORY);
+			}
+			for(uint32_t j = 0; j < commandBufferCount; j++)
+			{
+				pCommandBuffers[j] = VK_NULL_HANDLE;
+			}
+			return VK_ERROR_OUT_OF_DEVICE_MEMORY;
+		}
+	}
+
+	commandBuffers->insert(pCommandBuffers, pCommandBuffers + commandBufferCount);
+
+	return VK_SUCCESS;
+}
+
+void CommandPool::freeCommandBuffers(uint32_t commandBufferCount, const VkCommandBuffer* pCommandBuffers)
+{
+	for(uint32_t i = 0; i < commandBufferCount; ++i)
+	{
+		commandBuffers->erase(pCommandBuffers[i]);
+		vk::destroy(pCommandBuffers[i], DEVICE_MEMORY);
+	}
 }
 
 } // namespace vk
