@@ -143,6 +143,27 @@ private:
 	const VkBufferImageCopy region;
 };
 
+struct PipelineBarrier : public CommandBuffer::Command
+{
+	PipelineBarrier()
+	{
+	}
+
+	void play(CommandBuffer* commandBuffer)
+	{
+		// This can currently be a noop. The sw::Surface locking/unlocking mechanism used by the renderer already takes care of
+		// making sure the read/writes always happen in order. Eventually, if we remove this synchronization mechanism, we can
+		// have a very simple implementation that simply calls sw::Renderer::sync(), since the driver is free to move the source
+		// stage towards the bottom of the pipe and the target stage towards the top, so a full pipeline sync is spec compliant.
+
+		// Right now all buffers are read-only in drawcalls but a similar mechanism will be required once we support SSBOs.
+
+		// Also note that this would be a good moment to update cube map borders or decompress compressed textures, if necessary.
+	}
+
+private:
+};
+
 CommandBuffer::CommandBuffer(VkCommandBufferLevel pLevel) : level(pLevel)
 {
 	// FIXME (b/119409619): replace this vector by an allocator so we can control all memory allocations
@@ -242,7 +263,7 @@ void CommandBuffer::pipelineBarrier(VkPipelineStageFlags srcStageMask, VkPipelin
                                     uint32_t bufferMemoryBarrierCount, const VkBufferMemoryBarrier* pBufferMemoryBarriers,
                                     uint32_t imageMemoryBarrierCount, const VkImageMemoryBarrier* pImageMemoryBarriers)
 {
-	UNIMPLEMENTED();
+	commands->push_back(std::make_unique<PipelineBarrier>());
 }
 
 void CommandBuffer::bindPipeline(VkPipelineBindPoint pipelineBindPoint, VkPipeline pipeline)
