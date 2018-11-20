@@ -15,6 +15,7 @@
 #include "VkBuffer.hpp"
 #include "VkBufferView.hpp"
 #include "VkCommandBuffer.hpp"
+#include "VkCommandPool.hpp"
 #include "VkConfig.h"
 #include "VkDebug.hpp"
 #include "VkDestroy.h"
@@ -1020,9 +1021,12 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateCommandPool(VkDevice device, const VkComm
 	TRACE("(VkDevice device = 0x%X, const VkCommandPoolCreateInfo* pCreateInfo = 0x%X, const VkAllocationCallbacks* pAllocator = 0x%X, VkCommandPool* pCommandPool = 0x%X)",
 		    device, pCreateInfo, pAllocator, pCommandPool);
 
-	UNIMPLEMENTED();
+	if(pCreateInfo->pNext)
+	{
+		UNIMPLEMENTED();
+	}
 
-	return VK_SUCCESS;
+	return vk::CommandPool::Create(pAllocator, pCreateInfo, pCommandPool);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkDestroyCommandPool(VkDevice device, VkCommandPool commandPool, const VkAllocationCallbacks* pAllocator)
@@ -1030,7 +1034,7 @@ VKAPI_ATTR void VKAPI_CALL vkDestroyCommandPool(VkDevice device, VkCommandPool c
 	TRACE("(VkDevice device = 0x%X, VkCommandPool commandPool = 0x%X, const VkAllocationCallbacks* pAllocator = 0x%X)",
 		    device, commandPool, pAllocator);
 
-	UNIMPLEMENTED();
+	vk::destroy(commandPool, pAllocator);
 }
 
 VKAPI_ATTR VkResult VKAPI_CALL vkResetCommandPool(VkDevice device, VkCommandPool commandPool, VkCommandPoolResetFlags flags)

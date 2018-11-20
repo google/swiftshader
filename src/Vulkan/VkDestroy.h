@@ -15,6 +15,7 @@
 #include "VkBuffer.hpp"
 #include "VkBufferView.hpp"
 #include "VkCommandBuffer.hpp"
+#include "VkCommandPool.hpp"
 #include "VkDevice.hpp"
 #include "VkDeviceMemory.hpp"
 #include "VkEvent.hpp"
