@@ -82,12 +82,12 @@ set(REACTOR_LLVM_VERSION "7" CACHE STRING "LLVM version used by Reactor")
 # it builds header files that could overwrite the orignal ones. Here we
 # want to include LLVM as a subdirectory and even though it wouldn't cause
 # the problem, if cmake . is called from the main dir, the condition that
-# LLVM checkes, "CMAKE_SOURCE_DIR == CMAKE_BINARY_DIR" will be true. So we
+# LLVM checkes, "CMAKE_CURRENT_SOURCE_DIR == CMAKE_CURRENT_BINARY_DIR" will be true. So we
 # disallow it ourselves too to. In addition if there are remining CMakeFiles
 # and CMakeCache in the directory, cmake .. from a subdirectory will still
 # try to build from the main directory so we instruct users to delete these
 # files when they get the error.
-if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
+if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_CURRENT_BINARY_DIR)
     message(FATAL_ERROR "In source builds are not allowed by LLVM, please create a build/ directory and build from there. You may have to delete the CMakeCache.txt file and CMakeFiles directory that are next to the CMakeLists.txt.")
 endif()
 
@@ -97,7 +97,7 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 # Initialize submodules
 ###########################################################
 
-if(NOT EXISTS ${CMAKE_SOURCE_DIR}/third_party/googletest)
+if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/googletest)
     message(WARNING "
   third_party/googletest submodule missing.
   Running 'git submodule update --init' to download it:
@@ -113,13 +113,13 @@ endif()
 # Recursively calls source_group on the files of the directory
 # so that Visual Studio has the files in a folder tree
 macro(group_all_sources directory)
-    file(GLOB files RELATIVE ${CMAKE_SOURCE_DIR}/${directory} ${CMAKE_SOURCE_DIR}/${directory}/*)
+    file(GLOB files RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}/${directory} ${CMAKE_CURRENT_SOURCE_DIR}/${directory}/*)
     foreach(file ${files})
-        if(IS_DIRECTORY ${CMAKE_SOURCE_DIR}/${directory}/${file})
+        if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/${directory}/${file})
             group_all_sources(${directory}/${file})
         else()
             string(REPLACE "/" "\\" groupname ${directory})
-            source_group(${groupname} FILES ${CMAKE_SOURCE_DIR}/${directory}/${file})
+            source_group(${groupname} FILES ${CMAKE_CURRENT_SOURCE_DIR}/${directory}/${file})
         endif()
     endforeach()
 endmacro()
@@ -167,20 +167,20 @@ endif()
 # Directories
 ###########################################################
 
-set(SOURCE_DIR ${CMAKE_SOURCE_DIR}/src)
+set(SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 set(OPENGL_DIR ${SOURCE_DIR}/OpenGL)
 set(OPENGL_COMPILER_DIR ${OPENGL_DIR}/compiler)
 set(VULKAN_DIR ${SOURCE_DIR}/Vulkan)
 if(REACTOR_LLVM_VERSION EQUAL 3)
-    set(LLVM_DIR ${CMAKE_SOURCE_DIR}/third_party/LLVM)
+    set(LLVM_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/LLVM)
 else()
-    set(LLVM_DIR ${CMAKE_SOURCE_DIR}/third_party/llvm-7.0/llvm)
-    set(LLVM_CONFIG_DIR ${CMAKE_SOURCE_DIR}/third_party/llvm-7.0/configs)
+    set(LLVM_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/llvm-7.0/llvm)
+    set(LLVM_CONFIG_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/llvm-7.0/configs)
 endif()
-set(SUBZERO_DIR ${CMAKE_SOURCE_DIR}/third_party/subzero)
-set(SUBZERO_LLVM_DIR ${CMAKE_SOURCE_DIR}/third_party/llvm-subzero)
-set(TESTS_DIR ${CMAKE_SOURCE_DIR}/tests)
-set(HELLO2_DIR ${CMAKE_SOURCE_DIR}/third_party/PowerVR_SDK/Examples/Beginner/01_HelloAPI/OGLES2)
+set(SUBZERO_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/subzero)
+set(SUBZERO_LLVM_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/llvm-subzero)
+set(TESTS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/tests)
+set(HELLO2_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/PowerVR_SDK/Examples/Beginner/01_HelloAPI/OGLES2)
 
 ###########################################################
 # Compile flags
@@ -273,7 +273,7 @@ else()
         elseif(TSAN)
             set_cpp_flag("-fsanitize=thread")
         elseif(UBSAN)
-            set_cpp_flag("-fsanitize=undefined -fsanitize-blacklist=${CMAKE_SOURCE_DIR}/third_party/LLVM/ubsan_blacklist.txt")
+            set_cpp_flag("-fsanitize=undefined -fsanitize-blacklist=${CMAKE_CURRENT_SOURCE_DIR}/third_party/LLVM/ubsan_blacklist.txt")
         endif()
     endif()
 endif()
@@ -1867,7 +1867,7 @@ endif()
 
 set(COMMON_INCLUDE_DIR
     ${SOURCE_DIR}
-    ${CMAKE_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${LLVM_INCLUDE_DIR}
 )
 set(OPENGL_INCLUDE_DIR
@@ -1935,7 +1935,7 @@ file(GLOB_RECURSE EGL_LIST
     ${OPENGL_DIR}/common/Object.hpp
     ${OPENGL_DIR}/common/debug.cpp
     ${OPENGL_DIR}/common/debug.h
-    ${CMAKE_SOURCE_DIR}/include/*.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/*.h
 )
 
 file(GLOB_RECURSE GLES2_LIST
@@ -1945,9 +1945,9 @@ file(GLOB_RECURSE GLES2_LIST
     ${OPENGL_DIR}/common/*.cpp
     ${OPENGL_DIR}/common/*.h
     ${OPENGL_DIR}/common/*.hpp
-    ${CMAKE_SOURCE_DIR}/include/KHR/*.h
-    ${CMAKE_SOURCE_DIR}/include/GLES2/*.h
-    ${CMAKE_SOURCE_DIR}/include/GLES3/*.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/KHR/*.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/GLES2/*.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/GLES3/*.h
 )
 
 file(GLOB_RECURSE GLES_CM_LIST
@@ -1957,8 +1957,8 @@ file(GLOB_RECURSE GLES_CM_LIST
     ${OPENGL_DIR}/common/*.cpp
     ${OPENGL_DIR}/common/*.h
     ${OPENGL_DIR}/common/*.hpp
-    ${CMAKE_SOURCE_DIR}/include/KHR/*.h
-    ${CMAKE_SOURCE_DIR}/include/GLES/*.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/KHR/*.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/GLES/*.h
 )
 
 file(GLOB_RECURSE OPENGL_COMPILER_LIST
@@ -1979,7 +1979,7 @@ file(GLOB_RECURSE VULKAN_LIST
     ${VULKAN_DIR}/*.hpp
     ${SOURCE_DIR}/System/Memory.cpp
     ${SOURCE_DIR}/System/Memory.hpp
-    ${CMAKE_SOURCE_DIR}/include/vulkan/*.h}
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/vulkan/*.h}
 )
 
 ###########################################################
@@ -2099,8 +2099,8 @@ if(BUILD_EGL)
         POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:libEGL>/translator
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:libEGL> $<TARGET_FILE_DIR:libEGL>/translator/${LIB_PREFIX}EGL_translator${CMAKE_SHARED_LIBRARY_SUFFIX}
-        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_SOURCE_DIR}/out/${CMAKE_SYSTEM_NAME}/
-        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:libEGL> ${CMAKE_SOURCE_DIR}/out/${CMAKE_SYSTEM_NAME}/
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_SOURCE_DIR}/out/${CMAKE_SYSTEM_NAME}/
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:libEGL> ${CMAKE_CURRENT_SOURCE_DIR}/out/${CMAKE_SYSTEM_NAME}/
     )
 endif()
 
@@ -2119,8 +2119,8 @@ if(BUILD_GLESv2)
         POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:libGLESv2>/translator
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:libGLESv2> $<TARGET_FILE_DIR:libGLESv2>/translator/${LIB_PREFIX}GLES_V2_translator${CMAKE_SHARED_LIBRARY_SUFFIX}
-        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_SOURCE_DIR}/out/${CMAKE_SYSTEM_NAME}/
-        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:libGLESv2> ${CMAKE_SOURCE_DIR}/out/${CMAKE_SYSTEM_NAME}/
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_SOURCE_DIR}/out/${CMAKE_SYSTEM_NAME}/
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:libGLESv2> ${CMAKE_CURRENT_SOURCE_DIR}/out/${CMAKE_SYSTEM_NAME}/
     )
 endif()
 
@@ -2157,8 +2157,8 @@ if(BUILD_VULKAN)
         POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:libvk_swiftshader>/translator
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:libvk_swiftshader> $<TARGET_FILE_DIR:libvk_swiftshader>/translator/${LIB_PREFIX}Vulkan_translator${CMAKE_SHARED_LIBRARY_SUFFIX}
-        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_SOURCE_DIR}/out/${CMAKE_SYSTEM_NAME}/
-        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:libvk_swiftshader> ${CMAKE_SOURCE_DIR}/out/${CMAKE_SYSTEM_NAME}/
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_SOURCE_DIR}/out/${CMAKE_SYSTEM_NAME}/
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:libvk_swiftshader> ${CMAKE_CURRENT_SOURCE_DIR}/out/${CMAKE_SYSTEM_NAME}/
     )
 endif()
 
@@ -2170,7 +2170,7 @@ if(BUILD_SAMPLES)
     if(WIN32)
         add_executable(OGLES2HelloAPI ${HELLO2_DIR}/OGLES2HelloAPI_Windows.cpp)
         set_target_properties(OGLES2HelloAPI PROPERTIES
-            INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/include"
+            INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/include"
             COMPILE_DEFINITIONS "GL_GLEXT_PROTOTYPES"
             FOLDER "Samples"
         )
@@ -2180,7 +2180,7 @@ if(BUILD_SAMPLES)
     elseif(LINUX)
         add_executable(OGLES2HelloAPI ${HELLO2_DIR}/OGLES2HelloAPI_LinuxX11.cpp)
         set_target_properties(OGLES2HelloAPI PROPERTIES
-            INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/include"
+            INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/include"
             COMPILE_DEFINITIONS "GL_GLEXT_PROTOTYPES"
         )
         target_link_libraries(OGLES2HelloAPI dl X11 libEGL libGLESv2)   # Explicitly link our "lib*" targets, not the platform provided "EGL" and "GLESv2"
@@ -2190,7 +2190,7 @@ if(BUILD_SAMPLES)
             ${HELLO2_DIR}/Build/OSX/en.lproj/MainMenu.xib
         )
         set_target_properties(OGLES2HelloAPI PROPERTIES
-            INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/include"
+            INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/include"
             COMPILE_DEFINITIONS "GL_GLEXT_PROTOTYPES"
             MACOSX_BUNDLE_INFO_PLIST "${HELLO2_DIR}/Build/OSX/Info.plist"
         )
@@ -2204,12 +2204,12 @@ endif()
 if(BUILD_TESTS)
     set(REACTOR_UNIT_TESTS_LIST
         ${SOURCE_DIR}/Reactor/ReactorUnitTests.cpp
-        ${CMAKE_SOURCE_DIR}/third_party/googletest/googletest/src/gtest-all.cc
+        ${CMAKE_CURRENT_SOURCE_DIR}/third_party/googletest/googletest/src/gtest-all.cc
     )
 
     set(REACTOR_UNIT_TESTS_INCLUDE_DIR
-        ${CMAKE_SOURCE_DIR}/third_party/googletest/googletest/include
-        ${CMAKE_SOURCE_DIR}/third_party/googletest/googletest/
+        ${CMAKE_CURRENT_SOURCE_DIR}/third_party/googletest/googletest/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/third_party/googletest/googletest/
     )
 
     add_executable(ReactorUnitTests ${REACTOR_UNIT_TESTS_LIST})
@@ -2227,16 +2227,16 @@ endif()
 
 if(BUILD_TESTS)
     set(UNITTESTS_LIST
-        ${CMAKE_SOURCE_DIR}/tests/GLESUnitTests/main.cpp
-        ${CMAKE_SOURCE_DIR}/tests/GLESUnitTests/unittests.cpp
-        ${CMAKE_SOURCE_DIR}/third_party/googletest/googletest/src/gtest-all.cc
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests/GLESUnitTests/main.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests/GLESUnitTests/unittests.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/third_party/googletest/googletest/src/gtest-all.cc
     )
 
     set(UNITTESTS_INCLUDE_DIR
-        ${CMAKE_SOURCE_DIR}/third_party/googletest/googletest/include/
-        ${CMAKE_SOURCE_DIR}/third_party/googletest/googlemock/include/
-        ${CMAKE_SOURCE_DIR}/third_party/googletest/googletest/
-        ${CMAKE_SOURCE_DIR}/include/
+        ${CMAKE_CURRENT_SOURCE_DIR}/third_party/googletest/googletest/include/
+        ${CMAKE_CURRENT_SOURCE_DIR}/third_party/googletest/googlemock/include/
+        ${CMAKE_CURRENT_SOURCE_DIR}/third_party/googletest/googletest/
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/
     )
 
     add_executable(unittests ${UNITTESTS_LIST})
