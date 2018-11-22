@@ -560,17 +560,17 @@ namespace sw
 		context->setAlphaBlendEnable(alphaBlendEnable);
 	}
 
-	void PixelProcessor::setSourceBlendFactor(BlendFactor sourceBlendFactor)
+	void PixelProcessor::setSourceBlendFactor(VkBlendFactor sourceBlendFactor)
 	{
 		context->setSourceBlendFactor(sourceBlendFactor);
 	}
 
-	void PixelProcessor::setDestBlendFactor(BlendFactor destBlendFactor)
+	void PixelProcessor::setDestBlendFactor(VkBlendFactor destBlendFactor)
 	{
 		context->setDestBlendFactor(destBlendFactor);
 	}
 
-	void PixelProcessor::setBlendOperation(BlendOperation blendOperation)
+	void PixelProcessor::setBlendOperation(VkBlendOp blendOperation)
 	{
 		context->setBlendOperation(blendOperation);
 	}
@@ -580,17 +580,17 @@ namespace sw
 		context->setSeparateAlphaBlendEnable(separateAlphaBlendEnable);
 	}
 
-	void PixelProcessor::setSourceBlendFactorAlpha(BlendFactor sourceBlendFactorAlpha)
+	void PixelProcessor::setSourceBlendFactorAlpha(VkBlendFactor sourceBlendFactorAlpha)
 	{
 		context->setSourceBlendFactorAlpha(sourceBlendFactorAlpha);
 	}
 
-	void PixelProcessor::setDestBlendFactorAlpha(BlendFactor destBlendFactorAlpha)
+	void PixelProcessor::setDestBlendFactorAlpha(VkBlendFactor destBlendFactorAlpha)
 	{
 		context->setDestBlendFactorAlpha(destBlendFactorAlpha);
 	}
 
-	void PixelProcessor::setBlendOperationAlpha(BlendOperation blendOperationAlpha)
+	void PixelProcessor::setBlendOperationAlpha(VkBlendOp blendOperationAlpha)
 	{
 		context->setBlendOperationAlpha(blendOperationAlpha);
 	}

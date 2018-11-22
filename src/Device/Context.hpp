@@ -93,42 +93,6 @@ namespace sw
 		CULL_LAST = CULL_COUNTERCLOCKWISE
 	};
 
-	enum BlendFactor ENUM_UNDERLYING_TYPE_UNSIGNED_INT
-	{
-		BLEND_ZERO,
-		BLEND_ONE,
-		BLEND_SOURCE,
-		BLEND_INVSOURCE,
-		BLEND_DEST,
-		BLEND_INVDEST,
-		BLEND_SOURCEALPHA,
-		BLEND_INVSOURCEALPHA,
-		BLEND_DESTALPHA,
-		BLEND_INVDESTALPHA,
-		BLEND_SRCALPHASAT,
-		BLEND_CONSTANT,
-		BLEND_INVCONSTANT,
-		BLEND_CONSTANTALPHA,
-		BLEND_INVCONSTANTALPHA,
-
-		BLEND_LAST = BLEND_INVCONSTANTALPHA
-	};
-
-	enum BlendOperation ENUM_UNDERLYING_TYPE_UNSIGNED_INT
-	{
-		BLENDOP_ADD,
-		BLENDOP_SUB,
-		BLENDOP_INVSUB,
-		BLENDOP_MIN,
-		BLENDOP_MAX,
-
-		BLENDOP_SOURCE,   // Copy source
-		BLENDOP_DEST,     // Copy dest
-		BLENDOP_NULL,     // Nullify result
-
-		BLENDOP_LAST = BLENDOP_NULL
-	};
-
 	enum TransparencyAntialiasing ENUM_UNDERLYING_TYPE_UNSIGNED_INT
 	{
 		TRANSPARENCY_NONE,
@@ -156,14 +120,14 @@ namespace sw
 		bool setDepthBufferEnable(bool depthBufferEnable);
 
 		bool setAlphaBlendEnable(bool alphaBlendEnable);
-		bool setSourceBlendFactor(BlendFactor sourceBlendFactor);
-		bool setDestBlendFactor(BlendFactor destBlendFactor);
-		bool setBlendOperation(BlendOperation blendOperation);
+		bool setSourceBlendFactor(VkBlendFactor sourceBlendFactor);
+		bool setDestBlendFactor(VkBlendFactor destBlendFactor);
+		bool setBlendOperation(VkBlendOp blendOperation);
 
 		bool setSeparateAlphaBlendEnable(bool separateAlphaBlendEnable);
-		bool setSourceBlendFactorAlpha(BlendFactor sourceBlendFactorAlpha);
-		bool setDestBlendFactorAlpha(BlendFactor destBlendFactorAlpha);
-		bool setBlendOperationAlpha(BlendOperation blendOperationAlpha);
+		bool setSourceBlendFactorAlpha(VkBlendFactor sourceBlendFactorAlpha);
+		bool setDestBlendFactorAlpha(VkBlendFactor destBlendFactorAlpha);
+		bool setBlendOperationAlpha(VkBlendOp blendOperationAlpha);
 
 		bool setColorWriteMask(int index, int colorWriteMask);
 		bool setWriteSRGB(bool sRGB);
@@ -179,13 +143,13 @@ namespace sw
 		bool perspectiveActive();
 
 		bool alphaBlendActive();
-		BlendFactor sourceBlendFactor();
-		BlendFactor destBlendFactor();
-		BlendOperation blendOperation();
+		VkBlendFactor sourceBlendFactor();
+		VkBlendFactor destBlendFactor();
+		VkBlendOp blendOperation();
 
-		BlendFactor sourceBlendFactorAlpha();
-		BlendFactor destBlendFactorAlpha();
-		BlendOperation blendOperationAlpha();
+		VkBlendFactor sourceBlendFactorAlpha();
+		VkBlendFactor destBlendFactorAlpha();
+		VkBlendOp blendOperationAlpha();
 
 		VkLogicOp colorLogicOp();
 
@@ -261,14 +225,14 @@ namespace sw
 		bool depthWriteEnable;
 
 		bool alphaBlendEnable;
-		BlendFactor sourceBlendFactorState;
-		BlendFactor destBlendFactorState;
-		BlendOperation blendOperationState;
+		VkBlendFactor sourceBlendFactorState;
+		VkBlendFactor destBlendFactorState;
+		VkBlendOp blendOperationState;
 
 		bool separateAlphaBlendEnable;
-		BlendFactor sourceBlendFactorStateAlpha;
-		BlendFactor destBlendFactorStateAlpha;
-		BlendOperation blendOperationStateAlpha;
+		VkBlendFactor sourceBlendFactorStateAlpha;
+		VkBlendFactor destBlendFactorStateAlpha;
+		VkBlendOp blendOperationStateAlpha;
 
 		float lineWidth;
 

@@ -786,78 +786,78 @@ namespace sw
 		}
 	}
 
-	void PixelRoutine::blendFactor(Vector4s &blendFactor, const Vector4s &current, const Vector4s &pixel, BlendFactor blendFactorActive)
+	void PixelRoutine::blendFactor(Vector4s &blendFactor, const Vector4s &current, const Vector4s &pixel, VkBlendFactor blendFactorActive)
 	{
 		switch(blendFactorActive)
 		{
-		case BLEND_ZERO:
+		case VK_BLEND_FACTOR_ZERO:
 			// Optimized
 			break;
-		case BLEND_ONE:
+		case VK_BLEND_FACTOR_ONE:
 			// Optimized
 			break;
-		case BLEND_SOURCE:
+		case VK_BLEND_FACTOR_SRC_COLOR:
 			blendFactor.x = current.x;
 			blendFactor.y = current.y;
 			blendFactor.z = current.z;
 			break;
-		case BLEND_INVSOURCE:
+		case VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR:
 			blendFactor.x = Short4(0xFFFFu) - current.x;
 			blendFactor.y = Short4(0xFFFFu) - current.y;
 			blendFactor.z = Short4(0xFFFFu) - current.z;
 			break;
-		case BLEND_DEST:
+		case VK_BLEND_FACTOR_DST_COLOR:
 			blendFactor.x = pixel.x;
 			blendFactor.y = pixel.y;
 			blendFactor.z = pixel.z;
 			break;
-		case BLEND_INVDEST:
+		case VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR:
 			blendFactor.x = Short4(0xFFFFu) - pixel.x;
 			blendFactor.y = Short4(0xFFFFu) - pixel.y;
 			blendFactor.z = Short4(0xFFFFu) - pixel.z;
 			break;
-		case BLEND_SOURCEALPHA:
+		case VK_BLEND_FACTOR_SRC_ALPHA:
 			blendFactor.x = current.w;
 			blendFactor.y = current.w;
 			blendFactor.z = current.w;
 			break;
-		case BLEND_INVSOURCEALPHA:
+		case VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA:
 			blendFactor.x = Short4(0xFFFFu) - current.w;
 			blendFactor.y = Short4(0xFFFFu) - current.w;
 			blendFactor.z = Short4(0xFFFFu) - current.w;
 			break;
-		case BLEND_DESTALPHA:
+		case VK_BLEND_FACTOR_DST_ALPHA:
 			blendFactor.x = pixel.w;
 			blendFactor.y = pixel.w;
 			blendFactor.z = pixel.w;
 			break;
-		case BLEND_INVDESTALPHA:
+		case VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA:
 			blendFactor.x = Short4(0xFFFFu) - pixel.w;
 			blendFactor.y = Short4(0xFFFFu) - pixel.w;
 			blendFactor.z = Short4(0xFFFFu) - pixel.w;
 			break;
-		case BLEND_SRCALPHASAT:
+		case VK_BLEND_FACTOR_SRC_ALPHA_SATURATE:
 			blendFactor.x = Short4(0xFFFFu) - pixel.w;
 			blendFactor.x = Min(As<UShort4>(blendFactor.x), As<UShort4>(current.w));
 			blendFactor.y = blendFactor.x;
 			blendFactor.z = blendFactor.x;
 			break;
-		case BLEND_CONSTANT:
+		case VK_BLEND_FACTOR_CONSTANT_COLOR:
 			blendFactor.x = *Pointer<Short4>(data + OFFSET(DrawData,factor.blendConstant4W[0]));
 			blendFactor.y = *Pointer<Short4>(data + OFFSET(DrawData,factor.blendConstant4W[1]));
 			blendFactor.z = *Pointer<Short4>(data + OFFSET(DrawData,factor.blendConstant4W[2]));
 			break;
-		case BLEND_INVCONSTANT:
+		case VK_BLEND_FACTOR_ONE_MINUS_CONSTANT_COLOR:
 			blendFactor.x = *Pointer<Short4>(data + OFFSET(DrawData,factor.invBlendConstant4W[0]));
 			blendFactor.y = *Pointer<Short4>(data + OFFSET(DrawData,factor.invBlendConstant4W[1]));
 			blendFactor.z = *Pointer<Short4>(data + OFFSET(DrawData,factor.invBlendConstant4W[2]));
 			break;
-		case BLEND_CONSTANTALPHA:
+		case VK_BLEND_FACTOR_CONSTANT_ALPHA:
 			blendFactor.x = *Pointer<Short4>(data + OFFSET(DrawData,factor.blendConstant4W[3]));
 			blendFactor.y = *Pointer<Short4>(data + OFFSET(DrawData,factor.blendConstant4W[3]));
 			blendFactor.z = *Pointer<Short4>(data + OFFSET(DrawData,factor.blendConstant4W[3]));
 			break;
-		case BLEND_INVCONSTANTALPHA:
+		case VK_BLEND_FACTOR_ONE_MINUS_CONSTANT_ALPHA:
 			blendFactor.x = *Pointer<Short4>(data + OFFSET(DrawData,factor.invBlendConstant4W[3]));
 			blendFactor.y = *Pointer<Short4>(data + OFFSET(DrawData,factor.invBlendConstant4W[3]));
 			blendFactor.z = *Pointer<Short4>(data + OFFSET(DrawData,factor.invBlendConstant4W[3]));
@@ -867,49 +867,49 @@ namespace sw
 		}
 	}
 
-	void PixelRoutine::blendFactorAlpha(Vector4s &blendFactor, const Vector4s &current, const Vector4s &pixel, BlendFactor blendFactorAlphaActive)
+	void PixelRoutine::blendFactorAlpha(Vector4s &blendFactor, const Vector4s &current, const Vector4s &pixel, VkBlendFactor blendFactorAlphaActive)
 	{
 		switch(blendFactorAlphaActive)
 		{
-		case BLEND_ZERO:
+		case VK_BLEND_FACTOR_ZERO:
 			// Optimized
 			break;
-		case BLEND_ONE:
+		case VK_BLEND_FACTOR_ONE:
 			// Optimized
 			break;
-		case BLEND_SOURCE:
+		case VK_BLEND_FACTOR_SRC_COLOR:
 			blendFactor.w = current.w;
 			break;
-		case BLEND_INVSOURCE:
+		case VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR:
 			blendFactor.w = Short4(0xFFFFu) - current.w;
 			break;
-		case BLEND_DEST:
+		case VK_BLEND_FACTOR_DST_COLOR:
 			blendFactor.w = pixel.w;
 			break;
-		case BLEND_INVDEST:
+		case VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR:
 			blendFactor.w = Short4(0xFFFFu) - pixel.w;
 			break;
-		case BLEND_SOURCEALPHA:
+		case VK_BLEND_FACTOR_SRC_ALPHA:
 			blendFactor.w = current.w;
 			break;
-		case BLEND_INVSOURCEALPHA:
+		case VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA:
 			blendFactor.w = Short4(0xFFFFu) - current.w;
 			break;
-		case BLEND_DESTALPHA:
+		case VK_BLEND_FACTOR_DST_ALPHA:
 			blendFactor.w = pixel.w;
 			break;
-		case BLEND_INVDESTALPHA:
+		case VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA:
 			blendFactor.w = Short4(0xFFFFu) - pixel.w;
 			break;
-		case BLEND_SRCALPHASAT:
+		case VK_BLEND_FACTOR_SRC_ALPHA_SATURATE:
 			blendFactor.w = Short4(0xFFFFu);
 			break;
-		case BLEND_CONSTANT:
-		case BLEND_CONSTANTALPHA:
+		case VK_BLEND_FACTOR_CONSTANT_COLOR:
+		case VK_BLEND_FACTOR_CONSTANT_ALPHA:
 			blendFactor.w = *Pointer<Short4>(data + OFFSET(DrawData,factor.blendConstant4W[3]));
 			break;
-		case BLEND_INVCONSTANT:
-		case BLEND_INVCONSTANTALPHA:
+		case VK_BLEND_FACTOR_ONE_MINUS_CONSTANT_COLOR:
+		case VK_BLEND_FACTOR_ONE_MINUS_CONSTANT_ALPHA:
 			blendFactor.w = *Pointer<Short4>(data + OFFSET(DrawData,factor.invBlendConstant4W[3]));
 			break;
 		default:
@@ -1050,14 +1050,14 @@ namespace sw
 		blendFactor(sourceFactor, current, pixel, state.sourceBlendFactor);
 		blendFactor(destFactor, current, pixel, state.destBlendFactor);
 
-		if(state.sourceBlendFactor != BLEND_ONE && state.sourceBlendFactor != BLEND_ZERO)
+		if(state.sourceBlendFactor != VK_BLEND_FACTOR_ONE && state.sourceBlendFactor != VK_BLEND_FACTOR_ZERO)
 		{
 			current.x = MulHigh(As<UShort4>(current.x), As<UShort4>(sourceFactor.x));
 			current.y = MulHigh(As<UShort4>(current.y), As<UShort4>(sourceFactor.y));
 			current.z = MulHigh(As<UShort4>(current.z), As<UShort4>(sourceFactor.z));
 		}
 
-		if(state.destBlendFactor != BLEND_ONE && state.destBlendFactor != BLEND_ZERO)
+		if(state.destBlendFactor != VK_BLEND_FACTOR_ONE && state.destBlendFactor != VK_BLEND_FACTOR_ZERO)
 		{
 			pixel.x = MulHigh(As<UShort4>(pixel.x), As<UShort4>(destFactor.x));
 			pixel.y = MulHigh(As<UShort4>(pixel.y), As<UShort4>(destFactor.y));
@@ -1066,40 +1066,40 @@ namespace sw
 
 		switch(state.blendOperation)
 		{
-		case BLENDOP_ADD:
+		case VK_BLEND_OP_ADD:
 			current.x = AddSat(As<UShort4>(current.x), As<UShort4>(pixel.x));
 			current.y = AddSat(As<UShort4>(current.y), As<UShort4>(pixel.y));
 			current.z = AddSat(As<UShort4>(current.z), As<UShort4>(pixel.z));
 			break;
-		case BLENDOP_SUB:
+		case VK_BLEND_OP_SUBTRACT:
 			current.x = SubSat(As<UShort4>(current.x), As<UShort4>(pixel.x));
 			current.y = SubSat(As<UShort4>(current.y), As<UShort4>(pixel.y));
 			current.z = SubSat(As<UShort4>(current.z), As<UShort4>(pixel.z));
 			break;
-		case BLENDOP_INVSUB:
+		case VK_BLEND_OP_REVERSE_SUBTRACT:
 			current.x = SubSat(As<UShort4>(pixel.x), As<UShort4>(current.x));
 			current.y = SubSat(As<UShort4>(pixel.y), As<UShort4>(current.y));
 			current.z = SubSat(As<UShort4>(pixel.z), As<UShort4>(current.z));
 			break;
-		case BLENDOP_MIN:
+		case VK_BLEND_OP_MIN:
 			current.x = Min(As<UShort4>(current.x), As<UShort4>(pixel.x));
 			current.y = Min(As<UShort4>(current.y), As<UShort4>(pixel.y));
 			current.z = Min(As<UShort4>(current.z), As<UShort4>(pixel.z));
 			break;
-		case BLENDOP_MAX:
+		case VK_BLEND_OP_MAX:
 			current.x = Max(As<UShort4>(current.x), As<UShort4>(pixel.x));
 			current.y = Max(As<UShort4>(current.y), As<UShort4>(pixel.y));
 			current.z = Max(As<UShort4>(current.z), As<UShort4>(pixel.z));
 			break;
-		case BLENDOP_SOURCE:
+		case VK_BLEND_OP_SRC_EXT:
 			// No operation
 			break;
-		case BLENDOP_DEST:
+		case VK_BLEND_OP_DST_EXT:
 			current.x = pixel.x;
 			current.y = pixel.y;
 			current.z = pixel.z;
 			break;
-		case BLENDOP_NULL:
+		case VK_BLEND_OP_ZERO_EXT:
 			current.x = Short4(0x0000);
 			current.y = Short4(0x0000);
 			current.z = Short4(0x0000);
@@ -1111,40 +1111,40 @@ namespace sw
 		blendFactorAlpha(sourceFactor, current, pixel, state.sourceBlendFactorAlpha);
 		blendFactorAlpha(destFactor, current, pixel, state.destBlendFactorAlpha);
 
-		if(state.sourceBlendFactorAlpha != BLEND_ONE && state.sourceBlendFactorAlpha != BLEND_ZERO)
+		if(state.sourceBlendFactorAlpha != VK_BLEND_FACTOR_ONE && state.sourceBlendFactorAlpha != VK_BLEND_FACTOR_ZERO)
 		{
 			current.w = MulHigh(As<UShort4>(current.w), As<UShort4>(sourceFactor.w));
 		}
 
-		if(state.destBlendFactorAlpha != BLEND_ONE && state.destBlendFactorAlpha != BLEND_ZERO)
+		if(state.destBlendFactorAlpha != VK_BLEND_FACTOR_ONE && state.destBlendFactorAlpha != VK_BLEND_FACTOR_ZERO)
 		{
 			pixel.w = MulHigh(As<UShort4>(pixel.w), As<UShort4>(destFactor.w));
 		}
 
 		switch(state.blendOperationAlpha)
 		{
-		case BLENDOP_ADD:
+		case VK_BLEND_OP_ADD:
 			current.w = AddSat(As<UShort4>(current.w), As<UShort4>(pixel.w));
 			break;
-		case BLENDOP_SUB:
+		case VK_BLEND_OP_SUBTRACT:
 			current.w = SubSat(As<UShort4>(current.w), As<UShort4>(pixel.w));
 			break;
-		case BLENDOP_INVSUB:
+		case VK_BLEND_OP_REVERSE_SUBTRACT:
 			current.w = SubSat(As<UShort4>(pixel.w), As<UShort4>(current.w));
 			break;
-		case BLENDOP_MIN:
+		case VK_BLEND_OP_MIN:
 			current.w = Min(As<UShort4>(current.w), As<UShort4>(pixel.w));
 			break;
-		case BLENDOP_MAX:
+		case VK_BLEND_OP_MAX:
 			current.w = Max(As<UShort4>(current.w), As<UShort4>(pixel.w));
 			break;
-		case BLENDOP_SOURCE:
+		case VK_BLEND_OP_SRC_EXT:
 			// No operation
 			break;
-		case BLENDOP_DEST:
+		case VK_BLEND_OP_DST_EXT:
 			current.w = pixel.w;
 			break;
-		case BLENDOP_NULL:
+		case VK_BLEND_OP_ZERO_EXT:
 			current.w = Short4(0x0000);
 			break;
 		default:
@@ -1679,68 +1679,68 @@ namespace sw
 		}
 	}
 
-	void PixelRoutine::blendFactor(Vector4f &blendFactor, const Vector4f &oC, const Vector4f &pixel, BlendFactor blendFactorActive)
+	void PixelRoutine::blendFactor(Vector4f &blendFactor, const Vector4f &oC, const Vector4f &pixel, VkBlendFactor blendFactorActive)
 	{
 		switch(blendFactorActive)
 		{
-		case BLEND_ZERO:
+		case VK_BLEND_FACTOR_ZERO:
 			// Optimized
 			break;
-		case BLEND_ONE:
+		case VK_BLEND_FACTOR_ONE:
 			// Optimized
 			break;
-		case BLEND_SOURCE:
+		case VK_BLEND_FACTOR_SRC_COLOR:
 			blendFactor.x = oC.x;
 			blendFactor.y = oC.y;
 			blendFactor.z = oC.z;
 			break;
-		case BLEND_INVSOURCE:
+		case VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR:
 			blendFactor.x = Float4(1.0f) - oC.x;
 			blendFactor.y = Float4(1.0f) - oC.y;
 			blendFactor.z = Float4(1.0f) - oC.z;
 			break;
-		case BLEND_DEST:
+		case VK_BLEND_FACTOR_DST_COLOR:
 			blendFactor.x = pixel.x;
 			blendFactor.y = pixel.y;
 			blendFactor.z = pixel.z;
 			break;
-		case BLEND_INVDEST:
+		case VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR:
 			blendFactor.x = Float4(1.0f) - pixel.x;
 			blendFactor.y = Float4(1.0f) - pixel.y;
 			blendFactor.z = Float4(1.0f) - pixel.z;
 			break;
-		case BLEND_SOURCEALPHA:
+		case VK_BLEND_FACTOR_SRC_ALPHA:
 			blendFactor.x = oC.w;
 			blendFactor.y = oC.w;
 			blendFactor.z = oC.w;
 			break;
-		case BLEND_INVSOURCEALPHA:
+		case VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA:
 			blendFactor.x = Float4(1.0f) - oC.w;
 			blendFactor.y = Float4(1.0f) - oC.w;
 			blendFactor.z = Float4(1.0f) - oC.w;
 			break;
-		case BLEND_DESTALPHA:
+		case VK_BLEND_FACTOR_DST_ALPHA:
 			blendFactor.x = pixel.w;
 			blendFactor.y = pixel.w;
 			blendFactor.z = pixel.w;
 			break;
-		case BLEND_INVDESTALPHA:
+		case VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA:
 			blendFactor.x = Float4(1.0f) - pixel.w;
 			blendFactor.y = Float4(1.0f) - pixel.w;
 			blendFactor.z = Float4(1.0f) - pixel.w;
 			break;
-		case BLEND_SRCALPHASAT:
+		case VK_BLEND_FACTOR_SRC_ALPHA_SATURATE:
 			blendFactor.x = Float4(1.0f) - pixel.w;
 			blendFactor.x = Min(blendFactor.x, oC.w);
 			blendFactor.y = blendFactor.x;
 			blendFactor.z = blendFactor.x;
 			break;
-		case BLEND_CONSTANT:
+		case VK_BLEND_FACTOR_CONSTANT_COLOR:
 			blendFactor.x = *Pointer<Float4>(data + OFFSET(DrawData,factor.blendConstant4F[0]));
 			blendFactor.y = *Pointer<Float4>(data + OFFSET(DrawData,factor.blendConstant4F[1]));
 			blendFactor.z = *Pointer<Float4>(data + OFFSET(DrawData,factor.blendConstant4F[2]));
 			break;
-		case BLEND_INVCONSTANT:
+		case VK_BLEND_FACTOR_ONE_MINUS_CONSTANT_COLOR:
 			blendFactor.x = *Pointer<Float4>(data + OFFSET(DrawData,factor.invBlendConstant4F[0]));
 			blendFactor.y = *Pointer<Float4>(data + OFFSET(DrawData,factor.invBlendConstant4F[1]));
 			blendFactor.z = *Pointer<Float4>(data + OFFSET(DrawData,factor.invBlendConstant4F[2]));
@@ -1750,47 +1750,47 @@ namespace sw
 		}
 	}
 
-	void PixelRoutine::blendFactorAlpha(Vector4f &blendFactor, const Vector4f &oC, const Vector4f &pixel, BlendFactor blendFactorAlphaActive)
+	void PixelRoutine::blendFactorAlpha(Vector4f &blendFactor, const Vector4f &oC, const Vector4f &pixel, VkBlendFactor blendFactorAlphaActive)
 	{
 		switch(blendFactorAlphaActive)
 		{
-		case BLEND_ZERO:
+		case VK_BLEND_FACTOR_ZERO:
 			// Optimized
 			break;
-		case BLEND_ONE:
+		case VK_BLEND_FACTOR_ONE:
 			// Optimized
 			break;
-		case BLEND_SOURCE:
+		case VK_BLEND_FACTOR_SRC_COLOR:
 			blendFactor.w = oC.w;
 			break;
-		case BLEND_INVSOURCE:
+		case VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR:
 			blendFactor.w = Float4(1.0f) - oC.w;
 			break;
-		case BLEND_DEST:
+		case VK_BLEND_FACTOR_DST_COLOR:
 			blendFactor.w = pixel.w;
 			break;
-		case BLEND_INVDEST:
+		case VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR:
 			blendFactor.w = Float4(1.0f) - pixel.w;
 			break;
-		case BLEND_SOURCEALPHA:
+		case VK_BLEND_FACTOR_SRC_ALPHA:
 			blendFactor.w = oC.w;
 			break;
-		case BLEND_INVSOURCEALPHA:
+		case VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA:
 			blendFactor.w = Float4(1.0f) - oC.w;
 			break;
-		case BLEND_DESTALPHA:
+		case VK_BLEND_FACTOR_DST_ALPHA:
 			blendFactor.w = pixel.w;
 			break;
-		case BLEND_INVDESTALPHA:
+		case VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA:
 			blendFactor.w = Float4(1.0f) - pixel.w;
 			break;
-		case BLEND_SRCALPHASAT:
+		case VK_BLEND_FACTOR_SRC_ALPHA_SATURATE:
 			blendFactor.w = Float4(1.0f);
 			break;
-		case BLEND_CONSTANT:
+		case VK_BLEND_FACTOR_CONSTANT_COLOR:
 			blendFactor.w = *Pointer<Float4>(data + OFFSET(DrawData,factor.blendConstant4F[3]));
 			break;
-		case BLEND_INVCONSTANT:
+		case VK_BLEND_FACTOR_ONE_MINUS_CONSTANT_COLOR:
 			blendFactor.w = *Pointer<Float4>(data + OFFSET(DrawData,factor.invBlendConstant4F[3]));
 			break;
 		default:
@@ -1879,14 +1879,14 @@ namespace sw
 		blendFactor(sourceFactor, oC, pixel, state.sourceBlendFactor);
 		blendFactor(destFactor, oC, pixel, state.destBlendFactor);
 
-		if(state.sourceBlendFactor != BLEND_ONE && state.sourceBlendFactor != BLEND_ZERO)
+		if(state.sourceBlendFactor != VK_BLEND_FACTOR_ONE && state.sourceBlendFactor != VK_BLEND_FACTOR_ZERO)
 		{
 			oC.x *= sourceFactor.x;
 			oC.y *= sourceFactor.y;
 			oC.z *= sourceFactor.z;
 		}
 
-		if(state.destBlendFactor != BLEND_ONE && state.destBlendFactor != BLEND_ZERO)
+		if(state.destBlendFactor != VK_BLEND_FACTOR_ONE && state.destBlendFactor != VK_BLEND_FACTOR_ZERO)
 		{
 			pixel.x *= destFactor.x;
 			pixel.y *= destFactor.y;
@@ -1895,40 +1895,40 @@ namespace sw
 
 		switch(state.blendOperation)
 		{
-		case BLENDOP_ADD:
+		case VK_BLEND_OP_ADD:
 			oC.x += pixel.x;
 			oC.y += pixel.y;
 			oC.z += pixel.z;
 			break;
-		case BLENDOP_SUB:
+		case VK_BLEND_OP_SUBTRACT:
 			oC.x -= pixel.x;
 			oC.y -= pixel.y;
 			oC.z -= pixel.z;
 			break;
-		case BLENDOP_INVSUB:
+		case VK_BLEND_OP_REVERSE_SUBTRACT:
 			oC.x = pixel.x - oC.x;
 			oC.y = pixel.y - oC.y;
 			oC.z = pixel.z - oC.z;
 			break;
-		case BLENDOP_MIN:
+		case VK_BLEND_OP_MIN:
 			oC.x = Min(oC.x, pixel.x);
 			oC.y = Min(oC.y, pixel.y);
 			oC.z = Min(oC.z, pixel.z);
 			break;
-		case BLENDOP_MAX:
+		case VK_BLEND_OP_MAX:
 			oC.x = Max(oC.x, pixel.x);
 			oC.y = Max(oC.y, pixel.y);
 			oC.z = Max(oC.z, pixel.z);
 			break;
-		case BLENDOP_SOURCE:
+		case VK_BLEND_OP_SRC_EXT:
 			// No operation
 			break;
-		case BLENDOP_DEST:
+		case VK_BLEND_OP_DST_EXT:
 			oC.x = pixel.x;
 			oC.y = pixel.y;
 			oC.z = pixel.z;
 			break;
-		case BLENDOP_NULL:
+		case VK_BLEND_OP_ZERO_EXT:
 			oC.x = Float4(0.0f);
 			oC.y = Float4(0.0f);
 			oC.z = Float4(0.0f);
@@ -1940,41 +1940,41 @@ namespace sw
 		blendFactorAlpha(sourceFactor, oC, pixel, state.sourceBlendFactorAlpha);
 		blendFactorAlpha(destFactor, oC, pixel, state.destBlendFactorAlpha);
 
-		if(state.sourceBlendFactorAlpha != BLEND_ONE && state.sourceBlendFactorAlpha != BLEND_ZERO)
+		if(state.sourceBlendFactorAlpha != VK_BLEND_FACTOR_ONE && state.sourceBlendFactorAlpha != VK_BLEND_FACTOR_ZERO)
 		{
 			oC.w *= sourceFactor.w;
 		}
 
-		if(state.destBlendFactorAlpha != BLEND_ONE && state.destBlendFactorAlpha != BLEND_ZERO)
+		if(state.destBlendFactorAlpha != VK_BLEND_FACTOR_ONE && state.destBlendFactorAlpha != VK_BLEND_FACTOR_ZERO)
 		{
 			pixel.w *= destFactor.w;
 		}
 
 		switch(state.blendOperationAlpha)
 		{
-		case BLENDOP_ADD:
+		case VK_BLEND_OP_ADD:
 			oC.w += pixel.w;
 			break;
-		case BLENDOP_SUB:
+		case VK_BLEND_OP_SUBTRACT:
 			oC.w -= pixel.w;
 			break;
-		case BLENDOP_INVSUB:
+		case VK_BLEND_OP_REVERSE_SUBTRACT:
 			pixel.w -= oC.w;
 			oC.w = pixel.w;
 			break;
-		case BLENDOP_MIN:
+		case VK_BLEND_OP_MIN:
 			oC.w = Min(oC.w, pixel.w);
 			break;
-		case BLENDOP_MAX:
+		case VK_BLEND_OP_MAX:
 			oC.w = Max(oC.w, pixel.w);
 			break;
-		case BLENDOP_SOURCE:
+		case VK_BLEND_OP_SRC_EXT:
 			// No operation
 			break;
-		case BLENDOP_DEST:
+		case VK_BLEND_OP_DST_EXT:
 			oC.w = pixel.w;
 			break;
-		case BLENDOP_NULL:
+		case VK_BLEND_OP_ZERO_EXT:
 			oC.w = Float4(0.0f);
 			break;
 		default:

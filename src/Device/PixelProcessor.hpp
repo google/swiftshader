@@ -65,12 +65,12 @@ namespace sw
 			bool depthClamp                           : 1;
 
 			bool alphaBlendActive                     : 1;
-			BlendFactor sourceBlendFactor             : BITS(BLEND_LAST);
-			BlendFactor destBlendFactor               : BITS(BLEND_LAST);
-			BlendOperation blendOperation             : BITS(BLENDOP_LAST);
-			BlendFactor sourceBlendFactorAlpha        : BITS(BLEND_LAST);
-			BlendFactor destBlendFactorAlpha          : BITS(BLEND_LAST);
-			BlendOperation blendOperationAlpha        : BITS(BLENDOP_LAST);
+			VkBlendFactor sourceBlendFactor           : BITS(VK_BLEND_FACTOR_END_RANGE);
+			VkBlendFactor destBlendFactor             : BITS(VK_BLEND_FACTOR_END_RANGE);
+			VkBlendOp blendOperation                  : BITS(VK_BLEND_OP_BLUE_EXT);
+			VkBlendFactor sourceBlendFactorAlpha      : BITS(VK_BLEND_FACTOR_END_RANGE);
+			VkBlendFactor destBlendFactorAlpha        : BITS(VK_BLEND_FACTOR_END_RANGE);
+			VkBlendOp blendOperationAlpha             : BITS(VK_BLEND_OP_BLUE_EXT);
 
 			unsigned int colorWriteMask                       : RENDERTARGETS * 4;   // Four component bit masks
 			VkFormat targetFormat[RENDERTARGETS];
@@ -239,14 +239,14 @@ namespace sw
 		void setBlendConstant(const Color<float> &blendConstant);
 
 		void setAlphaBlendEnable(bool alphaBlendEnable);
-		void setSourceBlendFactor(BlendFactor sourceBlendFactor);
-		void setDestBlendFactor(BlendFactor destBlendFactor);
-		void setBlendOperation(BlendOperation blendOperation);
+		void setSourceBlendFactor(VkBlendFactor sourceBlendFactor);
+		void setDestBlendFactor(VkBlendFactor destBlendFactor);
+		void setBlendOperation(VkBlendOp blendOperation);
 
 		void setSeparateAlphaBlendEnable(bool separateAlphaBlendEnable);
-		void setSourceBlendFactorAlpha(BlendFactor sourceBlendFactorAlpha);
-		void setDestBlendFactorAlpha(BlendFactor destBlendFactorAlpha);
-		void setBlendOperationAlpha(BlendOperation blendOperationAlpha);
+		void setSourceBlendFactorAlpha(VkBlendFactor sourceBlendFactorAlpha);
+		void setDestBlendFactorAlpha(VkBlendFactor destBlendFactorAlpha);
+		void setBlendOperationAlpha(VkBlendOp blendOperationAlpha);
 
 		void setAlphaReference(float alphaReference);
 
