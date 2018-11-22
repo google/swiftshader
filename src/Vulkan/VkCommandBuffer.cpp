@@ -318,15 +318,11 @@ struct DrawBase : public CommandBuffer::Command
 		}
 
 		context.pushConstants = executionState.pushConstants;
-		auto drawType = context.drawType;
 
 		if (indexed)
 		{
 			context.indexBuffer = Cast(executionState.indexBufferBinding.buffer)->getOffsetPointer(
 					executionState.indexBufferBinding.offset + first * bytesPerIndex(executionState));
-
-			drawType = static_cast<sw::DrawType>(executionState.indexType == VK_INDEX_TYPE_UINT16
-					   ? (context.drawType | sw::DRAW_INDEXED16) : (context.drawType | sw::DRAW_INDEXED32));
 		}
 
 		executionState.renderer->setContext(context);
@@ -340,7 +336,7 @@ struct DrawBase : public CommandBuffer::Command
 		for(uint32_t instance = firstInstance; instance != firstInstance + instanceCount; instance++)
 		{
 			executionState.renderer->setInstanceID(instance);
-			executionState.renderer->draw(drawType, primitiveCount);
+			executionState.renderer->draw(context.topology, executionState.indexType, primitiveCount);
 			executionState.renderer->advanceInstanceAttributes();
 		}
 	}

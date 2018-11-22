@@ -25,40 +25,6 @@
 namespace
 {
 
-sw::DrawType Convert(VkPrimitiveTopology topology)
-{
-	switch(topology)
-	{
-	case VK_PRIMITIVE_TOPOLOGY_POINT_LIST:
-		return sw::DRAW_POINTLIST;
-	case VK_PRIMITIVE_TOPOLOGY_LINE_LIST:
-		return sw::DRAW_LINELIST;
-	case VK_PRIMITIVE_TOPOLOGY_LINE_STRIP:
-		return sw::DRAW_LINESTRIP;
-	case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST:
-		return sw::DRAW_TRIANGLELIST;
-	case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP:
-		return sw::DRAW_TRIANGLESTRIP;
-	case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN:
-		return sw::DRAW_TRIANGLEFAN;
-	case VK_PRIMITIVE_TOPOLOGY_LINE_LIST_WITH_ADJACENCY:
-	case VK_PRIMITIVE_TOPOLOGY_LINE_STRIP_WITH_ADJACENCY:
-	case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST_WITH_ADJACENCY:
-	case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP_WITH_ADJACENCY:
-		// geometry shader specific
-		ASSERT(false);
-		break;
-	case VK_PRIMITIVE_TOPOLOGY_PATCH_LIST:
-		// tesselation shader specific
-		ASSERT(false);
-		break;
-	default:
-		UNIMPLEMENTED("topology");
-	}
-
-	return sw::DRAW_TRIANGLELIST;
-}
-
 sw::StreamType getStreamType(VkFormat format)
 {
 	switch(format)
@@ -311,7 +277,7 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 		UNIMPLEMENTED("pCreateInfo->pInputAssemblyState settings");
 	}
 
-	context.drawType = Convert(assemblyState->topology);
+	context.topology = assemblyState->topology;
 
 	const VkPipelineViewportStateCreateInfo* viewportState = pCreateInfo->pViewportState;
 	if(viewportState)
@@ -473,22 +439,22 @@ void GraphicsPipeline::compileShaders(const VkAllocationCallbacks* pAllocator, c
 
 uint32_t GraphicsPipeline::computePrimitiveCount(uint32_t vertexCount) const
 {
-	switch(context.drawType)
+	switch(context.topology)
 	{
-	case sw::DRAW_POINTLIST:
+	case VK_PRIMITIVE_TOPOLOGY_POINT_LIST:
 		return vertexCount;
-	case sw::DRAW_LINELIST:
+	case VK_PRIMITIVE_TOPOLOGY_LINE_LIST:
 		return vertexCount / 2;
-	case sw::DRAW_LINESTRIP:
+	case VK_PRIMITIVE_TOPOLOGY_LINE_STRIP:
 		return vertexCount - 1;
-	case sw::DRAW_TRIANGLELIST:
+	case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST:
 		return vertexCount / 3;
-	case sw::DRAW_TRIANGLESTRIP:
+	case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP:
 		return vertexCount - 2;
-	case sw::DRAW_TRIANGLEFAN:
+	case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN:
 		return vertexCount - 2;
 	default:
-		UNIMPLEMENTED("drawType");
+		UNIMPLEMENTED("context.topology %d", int(context.topology));
 	}
 
 	return 0;

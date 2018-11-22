@@ -225,7 +225,7 @@ namespace sw
 		void *operator new(size_t size);
 		void operator delete(void * mem);
 
-		void draw(DrawType drawType, unsigned int count, bool update = true);
+		void draw(VkPrimitiveTopology topology, VkIndexType indexType, unsigned int count, bool update = true);
 
 		void setContext(const sw::Context& context);
 
@@ -359,7 +359,8 @@ namespace sw
 
 		~DrawCall();
 
-		AtomicInt drawType;
+		AtomicInt topology;
+		AtomicInt indexType;
 		AtomicInt batchSize;
 
 		Routine *vertexRoutine;
