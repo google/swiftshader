@@ -333,7 +333,7 @@ namespace sw
 		context->setColorLogicOpEnabled(colorLogicOpEnabled);
 	}
 
-	void PixelProcessor::setLogicalOperation(LogicalOperation logicalOperation)
+	void PixelProcessor::setLogicalOperation(VkLogicOp logicalOperation)
 	{
 		context->setLogicalOperation(logicalOperation);
 	}

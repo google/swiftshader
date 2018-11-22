@@ -1154,7 +1154,7 @@ namespace sw
 
 	void PixelRoutine::logicOperation(int index, Pointer<Byte> &cBuffer, Vector4s &current, Int &x)
 	{
-		if(state.logicalOperation == LOGICALOP_COPY)
+		if(state.logicalOperation == VK_LOGIC_OP_COPY)
 		{
 			return;
 		}
@@ -1164,80 +1164,80 @@ namespace sw
 
 		switch(state.logicalOperation)
 		{
-		case LOGICALOP_CLEAR:
+		case VK_LOGIC_OP_CLEAR:
 			current.x = UShort4(0);
 			current.y = UShort4(0);
 			current.z = UShort4(0);
 			break;
-		case LOGICALOP_SET:
+		case VK_LOGIC_OP_SET:
 			current.x = UShort4(0xFFFFu);
 			current.y = UShort4(0xFFFFu);
 			current.z = UShort4(0xFFFFu);
 			break;
-		case LOGICALOP_COPY:
+		case VK_LOGIC_OP_COPY:
 			ASSERT(false);   // Optimized out
 			break;
-		case LOGICALOP_COPY_INVERTED:
+		case VK_LOGIC_OP_COPY_INVERTED:
 			current.x = ~current.x;
 			current.y = ~current.y;
 			current.z = ~current.z;
 			break;
-		case LOGICALOP_NOOP:
+		case VK_LOGIC_OP_NO_OP:
 			current.x = pixel.x;
 			current.y = pixel.y;
 			current.z = pixel.z;
 			break;
-		case LOGICALOP_INVERT:
+		case VK_LOGIC_OP_INVERT:
 			current.x = ~pixel.x;
 			current.y = ~pixel.y;
 			current.z = ~pixel.z;
 			break;
-		case LOGICALOP_AND:
+		case VK_LOGIC_OP_AND:
 			current.x = pixel.x & current.x;
 			current.y = pixel.y & current.y;
 			current.z = pixel.z & current.z;
 			break;
-		case LOGICALOP_NAND:
+		case VK_LOGIC_OP_NAND:
 			current.x = ~(pixel.x & current.x);
 			current.y = ~(pixel.y & current.y);
 			current.z = ~(pixel.z & current.z);
 			break;
-		case LOGICALOP_OR:
+		case VK_LOGIC_OP_OR:
 			current.x = pixel.x | current.x;
 			current.y = pixel.y | current.y;
 			current.z = pixel.z | current.z;
 			break;
-		case LOGICALOP_NOR:
+		case VK_LOGIC_OP_NOR:
 			current.x = ~(pixel.x | current.x);
 			current.y = ~(pixel.y | current.y);
 			current.z = ~(pixel.z | current.z);
 			break;
-		case LOGICALOP_XOR:
+		case VK_LOGIC_OP_XOR:
 			current.x = pixel.x ^ current.x;
 			current.y = pixel.y ^ current.y;
 			current.z = pixel.z ^ current.z;
 			break;
-		case LOGICALOP_EQUIV:
+		case VK_LOGIC_OP_EQUIVALENT:
 			current.x = ~(pixel.x ^ current.x);
 			current.y = ~(pixel.y ^ current.y);
 			current.z = ~(pixel.z ^ current.z);
 			break;
-		case LOGICALOP_AND_REVERSE:
+		case VK_LOGIC_OP_AND_REVERSE:
 			current.x = ~pixel.x & current.x;
 			current.y = ~pixel.y & current.y;
 			current.z = ~pixel.z & current.z;
 			break;
-		case LOGICALOP_AND_INVERTED:
+		case VK_LOGIC_OP_AND_INVERTED:
 			current.x = pixel.x & ~current.x;
 			current.y = pixel.y & ~current.y;
 			current.z = pixel.z & ~current.z;
 			break;
-		case LOGICALOP_OR_REVERSE:
+		case VK_LOGIC_OP_OR_REVERSE:
 			current.x = ~pixel.x | current.x;
 			current.y = ~pixel.y | current.y;
 			current.z = ~pixel.z | current.z;
 			break;
-		case LOGICALOP_OR_INVERTED:
+		case VK_LOGIC_OP_OR_INVERTED:
 			current.x = pixel.x | ~current.x;
 			current.y = pixel.y | ~current.y;
 			current.z = pixel.z | ~current.z;

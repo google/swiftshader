@@ -81,7 +81,7 @@ namespace sw
 			bool centroid                                     : 1;
 			bool frontFaceCCW                                 : 1;
 
-			LogicalOperation logicalOperation : BITS(LOGICALOP_LAST);
+			VkLogicOp logicalOperation : BITS(VK_LOGIC_OP_END_RANGE);
 
 			Sampler::State sampler[TEXTURE_IMAGE_UNITS];
 
@@ -217,7 +217,7 @@ namespace sw
 		void setColorWriteMask(int index, int rgbaMask);
 
 		void setColorLogicOpEnabled(bool colorLogicOpEnabled);
-		void setLogicalOperation(LogicalOperation logicalOperation);
+		void setLogicalOperation(VkLogicOp logicalOperation);
 
 		void setStencilEnable(bool stencilEnable);
 		void setStencilCompare(VkCompareOp stencilCompareMode);

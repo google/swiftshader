@@ -129,28 +129,6 @@ namespace sw
 		BLENDOP_LAST = BLENDOP_NULL
 	};
 
-	enum LogicalOperation ENUM_UNDERLYING_TYPE_UNSIGNED_INT
-	{
-		LOGICALOP_CLEAR,
-		LOGICALOP_SET,
-		LOGICALOP_COPY,
-		LOGICALOP_COPY_INVERTED,
-		LOGICALOP_NOOP,
-		LOGICALOP_INVERT,
-		LOGICALOP_AND,
-		LOGICALOP_NAND,
-		LOGICALOP_OR,
-		LOGICALOP_NOR,
-		LOGICALOP_XOR,
-		LOGICALOP_EQUIV,
-		LOGICALOP_AND_REVERSE,
-		LOGICALOP_AND_INVERTED,
-		LOGICALOP_OR_REVERSE,
-		LOGICALOP_OR_INVERTED,
-
-		LOGICALOP_LAST = LOGICALOP_OR_INVERTED
-	};
-
 	enum TransparencyAntialiasing ENUM_UNDERLYING_TYPE_UNSIGNED_INT
 	{
 		TRANSPARENCY_NONE,
@@ -191,7 +169,7 @@ namespace sw
 		bool setWriteSRGB(bool sRGB);
 
 		bool setColorLogicOpEnabled(bool colorLogicOpEnabled);
-		bool setLogicalOperation(LogicalOperation logicalOperation);
+		bool setLogicalOperation(VkLogicOp logicalOperation);
 
 		bool depthWriteActive();
 		bool alphaTestActive();
@@ -209,7 +187,7 @@ namespace sw
 		BlendFactor destBlendFactorAlpha();
 		BlendOperation blendOperationAlpha();
 
-		LogicalOperation colorLogicOp();
+		VkLogicOp colorLogicOp();
 
 		unsigned short pixelShaderModel() const;
 		unsigned short vertexShaderModel() const;
@@ -300,7 +278,7 @@ namespace sw
 		unsigned int multiSampleMask;
 
 		bool colorLogicOpEnabled;
-		LogicalOperation logicalOperation;
+		VkLogicOp logicalOperation;
 	};
 }
 

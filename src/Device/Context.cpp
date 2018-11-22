@@ -238,7 +238,7 @@ namespace sw
 		sampleMask = 0xFFFFFFFF;
 
 		colorLogicOpEnabled = false;
-		logicalOperation = LOGICALOP_COPY;
+		logicalOperation = VK_LOGIC_OP_COPY;
 	}
 
 	bool Context::setDepthBufferEnable(bool depthBufferEnable)
@@ -325,7 +325,7 @@ namespace sw
 		return modified;
 	}
 
-	bool Context::setLogicalOperation(LogicalOperation logicalOperation)
+	bool Context::setLogicalOperation(VkLogicOp logicalOperation)
 	{
 		bool modified = (Context::logicalOperation != logicalOperation);
 		Context::logicalOperation = logicalOperation;
@@ -377,9 +377,9 @@ namespace sw
 		return colorBlend || alphaBlend;
 	}
 
-	LogicalOperation Context::colorLogicOp()
+	VkLogicOp Context::colorLogicOp()
 	{
-		return colorLogicOpEnabled ? logicalOperation : LOGICALOP_COPY;
+		return colorLogicOpEnabled ? logicalOperation : VK_LOGIC_OP_COPY;
 	}
 
 	BlendFactor Context::sourceBlendFactor()
