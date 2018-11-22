@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9392f45e_a9d617c0",
+        "filename": "src/Vulkan/VkSampler.hpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2018-11-22T09:06:42Z",
+      "side": 1,
+      "message": "nit: initializers aren\u0027t needed because all members are in the initializer list in the constructor.",
+      "range": {
+        "startLine": 52,
+        "startChar": 8,
+        "endLine": 68,
+        "endChar": 2
+      },
+      "revId": "5174c572fe1be0b65770bb9db9fa4d08ffca658f",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
