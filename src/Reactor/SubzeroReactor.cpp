@@ -217,8 +217,6 @@ namespace rr
 	{
 		const SectionHeader *target = elfSection(elfHeader, relocationTable.sh_info);
 
-		intptr_t address = (intptr_t)elfHeader + target->sh_offset;
-		int32_t *patchSite = (int*)(address + relocation.r_offset);
 		uint32_t index = relocation.getSymbol();
 		int table = relocationTable.sh_link;
 		void *symbolValue = nullptr;
@@ -249,6 +247,9 @@ namespace rr
 				return nullptr;
 			}
 		}
+
+		intptr_t address = (intptr_t)elfHeader + target->sh_offset;
+		unaligned_ptr<int32_t> patchSite = (int32_t*)(address + relocation.r_offset);
 
 		if(CPUID::ARM)
 		{
@@ -301,8 +302,6 @@ namespace rr
 	{
 		const SectionHeader *target = elfSection(elfHeader, relocationTable.sh_info);
 
-		intptr_t address = (intptr_t)elfHeader + target->sh_offset;
-		int32_t *patchSite = (int*)(address + relocation.r_offset);
 		uint32_t index = relocation.getSymbol();
 		int table = relocationTable.sh_link;
 		void *symbolValue = nullptr;
@@ -334,19 +333,23 @@ namespace rr
 			}
 		}
 
+		intptr_t address = (intptr_t)elfHeader + target->sh_offset;
+		unaligned_ptr<int32_t> patchSite32 = (int32_t*)(address + relocation.r_offset);
+		unaligned_ptr<int64_t> patchSite64 = (int64_t*)(address + relocation.r_offset);
+
 		switch(relocation.getType())
 		{
 		case R_X86_64_NONE:
 			// No relocation
 			break;
 		case R_X86_64_64:
-			*(int64_t*)patchSite = (int64_t)((intptr_t)symbolValue + *(int64_t*)patchSite) + relocation.r_addend;
+			*patchSite64 = (int64_t)((intptr_t)symbolValue + *patchSite64 + relocation.r_addend);
 			break;
 		case R_X86_64_PC32:
-			*patchSite = (int32_t)((intptr_t)symbolValue + *patchSite - (intptr_t)patchSite) + relocation.r_addend;
+			*patchSite32 = (int32_t)((intptr_t)symbolValue + *patchSite32 - (intptr_t)patchSite32 + relocation.r_addend);
 			break;
 		case R_X86_64_32S:
-			*patchSite = (int32_t)((intptr_t)symbolValue + *patchSite) + relocation.r_addend;
+			*patchSite32 = (int32_t)((intptr_t)symbolValue + *patchSite32 + relocation.r_addend);
 			break;
 		default:
 			assert(false && "Unsupported relocation type");

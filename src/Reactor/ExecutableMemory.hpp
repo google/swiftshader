@@ -15,8 +15,9 @@
 #ifndef rr_ExecutableMemory_hpp
 #define rr_ExecutableMemory_hpp
 
-#include <stddef.h>
-#include <stdint.h>
+#include <cstddef>
+#include <cstdint>
+#include <cstring>
 
 namespace rr
 {
@@ -25,6 +26,67 @@ size_t memoryPageSize();
 void *allocateExecutable(size_t bytes);   // Allocates memory that can be made executable using markExecutable()
 void markExecutable(void *memory, size_t bytes);
 void deallocateExecutable(void *memory, size_t bytes);
+
+template<typename P>
+P unaligned_read(P *address)
+{
+	P value;
+	memcpy(&value, address, sizeof(P));
+	return value;
+}
+
+template<typename P, typename V>
+void unaligned_write(P *address, V value)
+{
+	static_assert(sizeof(V) == sizeof(P), "value size must match pointee size");
+	memcpy(address, &value, sizeof(P));
+}
+
+template<typename P>
+class unaligned_ref
+{
+public:
+	explicit unaligned_ref(void *ptr) : ptr((P*)ptr) {}
+
+	template<typename V>
+	P operator=(V value)
+	{
+		unaligned_write(ptr, value);
+		return value;
+	}
+
+	operator P()
+	{
+		return unaligned_read((P*)ptr);
+	}
+
+private:
+	P *ptr;
+};
+
+template<typename P>
+class unaligned_ptr
+{
+	template<typename S>
+	friend class unaligned_ptr;
+
+public:
+	unaligned_ptr(P *ptr) : ptr(ptr) {}
+
+	unaligned_ref<P> operator*()
+	{
+		return unaligned_ref<P>(ptr);
+	}
+
+	template<typename S>
+	operator S()
+	{
+		return S(ptr);
+	}
+
+private:
+	void *ptr;
+};
 }
 
 #endif   // rr_ExecutableMemory_hpp
