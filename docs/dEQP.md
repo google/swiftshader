@@ -6,12 +6,10 @@ These steps are specifically for testing SwiftShader's OpenGL ES 3.0 implementat
 Prerequisites
 -------------
 
-1. Install the latest [Python 2.X](https://www.python.org/downloads/
-)
+1. Install the latest [Python 2.X](https://www.python.org/downloads/)
 2. Install [Visual Studio](https://visualstudio.microsoft.com/vs/community/)
 3. Install [CMake](https://cmake.org/download/)
-4. Install [Go](https://golang.org/doc/install
-) 32-bit (Important: must be 32 bit)
+4. Install [Go](https://golang.org/doc/install) 32-bit (Important: must be 32 bit)
 5. Install [MinGW](http://www.mingw.org/)
 6. Install [Git](https://git-scm.com/download/win)
 7. Install [Android Studio](https://developer.android.com/studio/index.html)
@@ -82,17 +80,17 @@ Preparing the server
 --------------------
 
 19. Edit `<path to cherry>\cherry\data.go`
-*  Search for `../candy-build/deqp-wgl` and replace that by `<path to deqp>/build`
+* Search for `../candy-build/deqp-wgl` and replace that by `<path to deqp>/build`
 * Just above, add an option to CommandLine: `--deqp-gl-context-type=egl`
 * Just below, modify the BinaryPath from 'Debug' to 'Release' if you did a Release build at step 17
 
 Testing OpenGL ES
 -----------------
 
-20) Assuming you already built SwiftShader, copy these two files:
+20. a) Assuming you already built SwiftShader, copy these two files:
 
-    libEGL.dll  
-    libGLESv2.dll
+    `libEGL.dll`  
+    `libGLESv2.dll`
 
     From:
 
@@ -102,6 +100,25 @@ Testing OpenGL ES
     To:
 
     `<path to dEQP>\build\modules\gles3\Release` (Again, assuming you did a Release build at step 17)
+
+Testing Vulkan
+--------------
+
+20. b) Assuming you already built SwiftShader, copy and rename this file:
+
+    `<path to SwiftShader>\out\Release_x64\vk_swiftshader.dll` or  
+    `<path to SwiftShader>\out\Debug_x64\vk_swiftshader.dll`
+
+    To:
+
+    `<path to dEQP>\build\external\vulkancts\modules\vulkan\vulkan-1.dll`
+
+    This will cause dEQP to load SwiftShader's Vulkan implementatin directly, without going through a system-provided [loader](https://github.com/KhronosGroup/Vulkan-Loader/blob/master/loader/LoaderAndLayerInterface.md#the-loader) library or any layers.
+
+    To use SwiftShader as an [Installable Client Driver](https://github.com/KhronosGroup/Vulkan-Loader/blob/master/loader/LoaderAndLayerInterface.md#installable-client-drivers) (ICD) instead:
+    * Edit environment variables:
+      * Define VK_ICD_FILENAMES to `<path to SwiftShader>\src\Vulkan\vk_swiftshader_icd.json`
+    * If the location of `vk_swiftshader.dll` you're using is different than the one specified in `src\Vulkan\vk_swiftshader_icd.json`, modify it to point to the `vk_swiftshader.dll` file you want to use.
 
 Running the tests
 -----------------
