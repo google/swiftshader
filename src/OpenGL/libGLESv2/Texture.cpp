@@ -33,6 +33,13 @@
 namespace es2
 {
 
+egl::Image*& ImageLevels::getNullImage()
+{
+    static egl::Image* nullImage;
+    nullImage = nullptr;
+    return nullImage;
+}
+
 Texture::Texture(GLuint name) : egl::Texture(name)
 {
 	mMinFilter = GL_NEAREST_MIPMAP_LINEAR;

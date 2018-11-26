@@ -31,7 +31,8 @@ COMMON_SRC_FILES := \
 	Display.cpp \
 	Surface.cpp \
 	libEGL.cpp \
-	main.cpp
+	main.cpp \
+	../../Common/SharedLibrary.cpp
 
 COMMON_C_INCLUDES := \
 	bionic \

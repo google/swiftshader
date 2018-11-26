@@ -54,6 +54,7 @@ COMMON_SRC_FILES := \
 	utilities.cpp \
 	VertexArray.cpp \
 	VertexDataManager.cpp \
+	../../Common/SharedLibrary.cpp
 
 COMMON_C_INCLUDES := \
 	bionic \

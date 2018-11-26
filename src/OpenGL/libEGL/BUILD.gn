@@ -52,6 +52,7 @@ swiftshader_shared_library("swiftshader_libEGL") {
   }
 
   sources = [
+    "../../Common/SharedLibrary.cpp",
     "../common/debug.cpp",
     "../common/Object.cpp",
     "Config.cpp",

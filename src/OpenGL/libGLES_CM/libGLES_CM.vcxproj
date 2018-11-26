@@ -338,6 +338,7 @@ copy "$(OutDir)libGLES_CM.dll" "$(SolutionDir)out\$(Configuration)_$(Platform)\t
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Common\SharedLibrary.cpp" />
     <ClCompile Include="..\common\Image.cpp" />
     <ClCompile Include="..\common\MatrixStack.cpp" />
     <ClCompile Include="..\common\Object.cpp" />

@@ -68,6 +68,7 @@ swiftshader_static_library("swiftshader_libGLESv2_static") {
   ]
 
   sources = [
+    "../../Common/SharedLibrary.cpp",
     "Buffer.cpp",
     "Context.cpp",
     "Device.cpp",

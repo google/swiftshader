@@ -60,9 +60,7 @@ public:
 			return image[index];
 		}
 
-		static egl::Image* nullImage;
-		nullImage = nullptr;
-		return nullImage;
+		return getNullImage();
 	}
 
 	inline void release()
@@ -91,6 +89,7 @@ public:
 
 private:
 	egl::Image *image[IMPLEMENTATION_MAX_TEXTURE_LEVELS] = {};
+    static egl::Image*& getNullImage();
 };
 
 class Texture : public egl::Texture

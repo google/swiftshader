@@ -326,6 +326,7 @@ copy "$(OutDir)libEGL.dll" "$(SolutionDir)out\$(Configuration)_$(Platform)\trans
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Common\SharedLibrary.cpp" />
     <ClCompile Include="..\common\Object.cpp" />
     <ClCompile Include="Config.cpp" />
     <ClCompile Include="..\Common\debug.cpp" />
