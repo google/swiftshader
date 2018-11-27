@@ -1254,7 +1254,10 @@ namespace sw
 
 	void PixelProgram::TEXSIZE(Vector4f &dst, Float4 &lod, const Src &src1)
 	{
-		Pointer<Byte> texture = data + OFFSET(DrawData, mipmap) + src1.index * sizeof(Texture);
+		bool uniformSampler = (src1.type == Shader::PARAMETER_SAMPLER && src1.rel.type == Shader::PARAMETER_VOID);
+		Int index = uniformSampler ? src1.index : As<Int>(Float(fetchRegister(src1).x.x));
+		Pointer<Byte> texture = data + OFFSET(DrawData, mipmap) + index * sizeof(Texture);
+
 		dst = SamplerCore::textureSize(texture, lod);
 	}
 
