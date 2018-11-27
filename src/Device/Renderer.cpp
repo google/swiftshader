@@ -483,10 +483,10 @@ namespace sw
 		{
 			float W = 0.5f * viewport.width;
 			float H = 0.5f * viewport.height;
-			float X0 = viewport.x0 + W;
-			float Y0 = viewport.y0 + H;
-			float N = viewport.minZ;
-			float F = viewport.maxZ;
+			float X0 = viewport.x + W;
+			float Y0 = viewport.y + H;
+			float N = viewport.minDepth;
+			float F = viewport.maxDepth;
 			float Z = F - N;
 
 			if(context->isDrawTriangle())
@@ -2291,7 +2291,7 @@ namespace sw
 		}
 	#endif
 
-	void Renderer::setViewport(const Viewport &viewport)
+	void Renderer::setViewport(const VkViewport &viewport)
 	{
 		this->viewport = viewport;
 	}

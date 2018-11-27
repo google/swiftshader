@@ -192,16 +192,6 @@ namespace sw
 		float4 a2c3;
 	};
 
-	struct Viewport
-	{
-		float x0;
-		float y0;
-		float width;
-		float height;
-		float minZ;
-		float maxZ;
-	};
-
 	class Renderer : public VertexProcessor, public PixelProcessor, public SetupProcessor
 	{
 		struct Task
@@ -315,7 +305,7 @@ namespace sw
 		void setVertexShaderConstantB(unsigned int index, const int *boolean, unsigned int count = 1);
 
 		// Viewport & Clipper
-		void setViewport(const Viewport &viewport);
+		void setViewport(const VkViewport &viewport);
 		void setScissor(const Rect &scissor);
 		void setClipFlags(int flags);
 		void setClipPlane(unsigned int index, const float plane[4]);
@@ -372,7 +362,7 @@ namespace sw
 		Context *context;
 		Clipper *clipper;
 		Blitter *blitter;
-		Viewport viewport;
+		VkViewport viewport;
 		Rect scissor;
 		int clipFlags;
 
