@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "4711a7a7_6a7629da",
+        "filename": "src/Vulkan/VkPhysicalDevice.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 384,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2018-11-27T17:52:11Z",
+      "side": 1,
+      "message": "Done. See b/120080166",
+      "parentUuid": "2dfa8159_c30b0529",
+      "range": {
+        "startLine": 384,
+        "startChar": 46,
+        "endLine": 384,
+        "endChar": 82
+      },
+      "revId": "81479e79e2fb91e4413d6d7f01e5197976b01ac0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d7e591ee_162d6a6e",
         "filename": "src/Vulkan/VkPhysicalDevice.cpp",
         "patchSetId": 1
