@@ -1525,8 +1525,8 @@ namespace sw
 	void VertexProgram::TEXSIZE(Vector4f &dst, Float4 &lod, const Src &src1)
 	{
 		bool uniformSampler = (src1.type == Shader::PARAMETER_SAMPLER && src1.rel.type == Shader::PARAMETER_VOID);
-		Int index = uniformSampler ? src1.index : As<Int>(Float(fetchRegister(src1).x.x));
-		Pointer<Byte> texture = data + OFFSET(DrawData, mipmap[TEXTURE_IMAGE_UNITS]) + index * sizeof(Texture);
+		Int offset = uniformSampler ? src1.index * sizeof(Texture) : As<Int>(Float(fetchRegister(src1).x.x)) * sizeof(Texture);
+		Pointer<Byte> texture = data + OFFSET(DrawData, mipmap[TEXTURE_IMAGE_UNITS]) + offset;
 
 		dst = SamplerCore::textureSize(texture, lod);
 	}
