@@ -52,6 +52,11 @@ config("swiftshader_subzero_common_private_config") {
       "SZTARGET=MIPS32",
       "SUBZERO_TARGET=MIPS32",
     ]
+  } else if (target_cpu == "arm") {
+    defines += [
+      "SZTARGET=ARM32",
+      "SUBZERO_TARGET=ARM32",
+    ]
   }
 
   include_dirs = [
@@ -107,7 +112,11 @@ config("swiftshader_subzero_private_config") {
   }
 
   if (is_clang) {
-    cflags += [ "-Wno-header-hygiene" ]
+    cflags += [
+      "-Wno-header-hygiene",
+      "-Wno-enum-compare-switch",
+      "-Wno-unused-lambda-capture",
+    ]
   }
 
   if (is_fuchsia) {
@@ -263,6 +272,12 @@ if (use_swiftshader_with_subzero) {
         "$subzero_dir/src/IceAssemblerMIPS32.cpp",
         "$subzero_dir/src/IceInstMIPS32.cpp",
         "$subzero_dir/src/IceTargetLoweringMIPS32.cpp",
+      ]
+    } else if (target_cpu == "arm") {
+      sources += [
+        "$subzero_dir/src/IceAssemblerARM32.cpp",
+        "$subzero_dir/src/IceInstARM32.cpp",
+        "$subzero_dir/src/IceTargetLoweringARM32.cpp",
       ]
     }
 
