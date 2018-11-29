@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ad78d339_3a474cf1",
+        "filename": "src/Pipeline/PixelProgram.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1258,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2018-11-29T14:53:10Z",
+      "side": 1,
+      "message": "Nit: Could\u0027ve been:\n(uniformSampler ? src1.index : As\u003cInt\u003e(Float(fetchRegister(src1).x.x))) * sizeof(Texture);",
+      "range": {
+        "startLine": 1258,
+        "startChar": 15,
+        "endLine": 1258,
+        "endChar": 121
+      },
+      "revId": "a972758d6e10df761631daf1f33a2ef2a17cb699",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
