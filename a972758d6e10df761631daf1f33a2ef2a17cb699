@@ -22,6 +22,30 @@
       "revId": "a972758d6e10df761631daf1f33a2ef2a17cb699",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c56cd250_b319a5dd",
+        "filename": "src/Pipeline/PixelProgram.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1258,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2018-11-29T16:00:16Z",
+      "side": 1,
+      "message": "No, that would convert it to an Int first (or rather RValue\u003cInt\u003e), before multiplying by the constant, meaning that it results in a Reactor multiplication instruction, instead of folding it at static C++ compile time (or even at run-time, but before passing it to Reactor).\n\nUnfortunately this is a nasty issue that could bite us again, and shouldn\u0027t be worked around at the routine code level. It needs a proper fix so that we can revert this CL. I\u0027ll file another bug with the details, since http://crbug.com/swiftshader/14 is about optimization.",
+      "parentUuid": "ad78d339_3a474cf1",
+      "range": {
+        "startLine": 1258,
+        "startChar": 15,
+        "endLine": 1258,
+        "endChar": 121
+      },
+      "revId": "a972758d6e10df761631daf1f33a2ef2a17cb699",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
