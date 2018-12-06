@@ -198,7 +198,7 @@ if(MSVC)
     set_cpp_flag("/MP")
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 else()
-    set_cpp_flag("--std=c++11")
+    set_cpp_flag("--std=c++14")
     set_cpp_flag("-Wall")
     set_cpp_flag("-Werror=reorder")
     set_cpp_flag("-Werror=sign-compare")
@@ -1935,6 +1935,8 @@ file(GLOB_RECURSE EGL_LIST
     ${OPENGL_DIR}/common/Object.hpp
     ${OPENGL_DIR}/common/debug.cpp
     ${OPENGL_DIR}/common/debug.h
+    ${SOURCE_DIR}/Common/SharedLibrary.cpp
+    ${SOURCE_DIR}/Common/SharedLibrary.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/include/*.h
 )
 
@@ -1945,6 +1947,8 @@ file(GLOB_RECURSE GLES2_LIST
     ${OPENGL_DIR}/common/*.cpp
     ${OPENGL_DIR}/common/*.h
     ${OPENGL_DIR}/common/*.hpp
+    ${SOURCE_DIR}/Common/SharedLibrary.cpp
+    ${SOURCE_DIR}/Common/SharedLibrary.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/include/KHR/*.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/GLES2/*.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/GLES3/*.h
@@ -1957,6 +1961,8 @@ file(GLOB_RECURSE GLES_CM_LIST
     ${OPENGL_DIR}/common/*.cpp
     ${OPENGL_DIR}/common/*.h
     ${OPENGL_DIR}/common/*.hpp
+    ${SOURCE_DIR}/Common/SharedLibrary.cpp
+    ${SOURCE_DIR}/Common/SharedLibrary.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/include/KHR/*.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/GLES/*.h
 )

@@ -14,6 +14,8 @@
 
 #include "VkCommandBuffer.hpp"
 
+#include <cstring>
+
 namespace vk
 {
 
