@@ -1979,6 +1979,8 @@ file(GLOB_RECURSE VULKAN_LIST
     ${VULKAN_DIR}/*.hpp
     ${SOURCE_DIR}/System/Memory.cpp
     ${SOURCE_DIR}/System/Memory.hpp
+    ${SOURCE_DIR}/System/Debug.cpp
+    ${SOURCE_DIR}/System/Debug.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/include/vulkan/*.h}
 )
 
