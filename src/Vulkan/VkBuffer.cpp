@@ -55,4 +55,23 @@ void Buffer::bind(VkDeviceMemory pDeviceMemory, VkDeviceSize pMemoryOffset)
 	memory = Cast(pDeviceMemory)->getOffsetPointer(pMemoryOffset);
 }
 
+void Buffer::copyFrom(const void* srcMemory, VkDeviceSize pSize, VkDeviceSize pOffset)
+{
+	ASSERT((pSize + pOffset) <= size);
+
+	memcpy(map(pOffset), srcMemory, pSize);
+}
+
+void Buffer::copyTo(void* dstMemory, VkDeviceSize pSize, VkDeviceSize pOffset) const
+{
+	ASSERT((pSize + pOffset) <= size);
+
+	memcpy(dstMemory, map(pOffset), pSize);
+}
+
+void* Buffer::map(VkDeviceSize offset) const
+{
+	return reinterpret_cast<char*>(memory) + offset;
+}
+
 } // namespace vk
