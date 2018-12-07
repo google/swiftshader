@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "VkCommandBuffer.hpp"
+#include "VkFence.hpp"
 #include "VkQueue.hpp"
 #include "VkSemaphore.hpp"
 
@@ -25,11 +26,6 @@ Queue::Queue(uint32_t pFamilyIndex, float pPriority) : familyIndex(pFamilyIndex)
 
 void Queue::submit(uint32_t submitCount, const VkSubmitInfo* pSubmits, VkFence fence)
 {
-	if(fence != VK_NULL_HANDLE)
-	{
-		UNIMPLEMENTED();
-	}
-
 	for(uint32_t i = 0; i < submitCount; i++)
 	{
 		auto& submitInfo = pSubmits[i];
@@ -47,6 +43,12 @@ void Queue::submit(uint32_t submitCount, const VkSubmitInfo* pSubmits, VkFence f
 		{
 			vk::Cast(submitInfo.pSignalSemaphores[j])->signal();
 		}
+	}
+
+	// FIXME (b\117835459): signal the fence only once the work is completed
+	if(fence != VK_NULL_HANDLE)
+	{
+		vk::Cast(fence)->signal();
 	}
 }
 

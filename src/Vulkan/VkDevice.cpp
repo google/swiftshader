@@ -79,6 +79,11 @@ VkQueue Device::getQueue(uint32_t queueFamilyIndex, uint32_t queueIndex) const
 	return queues[queueIndex];
 }
 
+void Device::waitForFences(uint32_t fenceCount, const VkFence* pFences, VkBool32 waitAll, uint64_t timeout)
+{
+	// FIXME(b/117835459) : noop
+}
+
 void Device::getDescriptorSetLayoutSupport(const VkDescriptorSetLayoutCreateInfo* pCreateInfo,
                                            VkDescriptorSetLayoutSupport* pSupport) const
 {
