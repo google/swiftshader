@@ -30,4 +30,14 @@ size_t RenderPass::ComputeRequiredAllocationSize(const VkRenderPassCreateInfo* p
 	return 0;
 }
 
+void RenderPass::begin()
+{
+	// FIXME (b/119620965): noop
+}
+
+void RenderPass::end()
+{
+	// FIXME (b/119620965): noop
+}
+
 } // namespace vk

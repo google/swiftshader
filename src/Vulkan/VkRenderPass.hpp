@@ -29,6 +29,9 @@ public:
 
 	static size_t ComputeRequiredAllocationSize(const VkRenderPassCreateInfo* pCreateInfo);
 
+	void begin();
+	void end();
+
 private:
 };
 
