@@ -203,7 +203,9 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 	const VkPipelineShaderStageCreateInfo& vertexStage = pCreateInfo->pStages[0];
 	if((vertexStage.stage != VK_SHADER_STAGE_VERTEX_BIT) ||
 	   (vertexStage.flags != 0) ||
-	   (vertexStage.pSpecializationInfo != nullptr))
+	   !((vertexStage.pSpecializationInfo == nullptr) ||
+	     ((vertexStage.pSpecializationInfo->mapEntryCount == 0) &&
+	      (vertexStage.pSpecializationInfo->dataSize == 0))))
 	{
 		UNIMPLEMENTED();
 	}
@@ -211,7 +213,9 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 	const VkPipelineShaderStageCreateInfo& fragmentStage = pCreateInfo->pStages[1];
 	if((fragmentStage.stage != VK_SHADER_STAGE_FRAGMENT_BIT) ||
 	   (fragmentStage.flags != 0) ||
-	   (fragmentStage.pSpecializationInfo != nullptr))
+	   !((fragmentStage.pSpecializationInfo == nullptr) ||
+	     ((fragmentStage.pSpecializationInfo->mapEntryCount == 0) &&
+	      (fragmentStage.pSpecializationInfo->dataSize == 0))))
 	{
 		UNIMPLEMENTED();
 	}
@@ -287,7 +291,8 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 	if((multisampleState->flags != 0) ||
 	   (multisampleState->rasterizationSamples != VK_SAMPLE_COUNT_1_BIT) ||
 	   (multisampleState->sampleShadingEnable != 0) ||
-	   (multisampleState->pSampleMask != nullptr) ||
+	   !((multisampleState->pSampleMask == nullptr) ||
+	     (*(multisampleState->pSampleMask) == 0xFFFFFFFFu)) ||
 	   (multisampleState->alphaToCoverageEnable != 0) ||
 	   (multisampleState->alphaToOneEnable != 0))
 	{
@@ -363,7 +368,7 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 	}
 }
 
-void GraphicsPipeline::destroy(const VkAllocationCallbacks* pAllocator)
+void GraphicsPipeline::destroyPipeline(const VkAllocationCallbacks* pAllocator)
 {
 }
 
@@ -402,10 +407,9 @@ ComputePipeline::ComputePipeline(const VkComputePipelineCreateInfo* pCreateInfo,
 {
 }
 
-void ComputePipeline::destroy(const VkAllocationCallbacks* pAllocator)
+void ComputePipeline::destroyPipeline(const VkAllocationCallbacks* pAllocator)
 {
 }
-
 
 size_t ComputePipeline::ComputeRequiredAllocationSize(const VkComputePipelineCreateInfo* pCreateInfo)
 {
