@@ -383,6 +383,29 @@ void GraphicsPipeline::compileShaders(const VkAllocationCallbacks* pAllocator, c
 	fragmentRoutine = Cast(pCreateInfo->pStages[1].module)->compile(pAllocator);
 }
 
+uint32_t GraphicsPipeline::computePrimitiveCount(uint32_t vertexCount) const
+{
+	switch(context.drawType)
+	{
+	case sw::DRAW_POINTLIST:
+		return vertexCount;
+	case sw::DRAW_LINELIST:
+		return vertexCount / 2;
+	case sw::DRAW_LINESTRIP:
+		return vertexCount - 1;
+	case sw::DRAW_TRIANGLELIST:
+		return vertexCount / 3;
+	case sw::DRAW_TRIANGLESTRIP:
+		return vertexCount - 2;
+	case sw::DRAW_TRIANGLEFAN:
+		return vertexCount - 2;
+	default:
+		UNIMPLEMENTED();
+	}
+
+	return 0;
+}
+
 const sw::Context& GraphicsPipeline::getContext() const
 {
 	return context;

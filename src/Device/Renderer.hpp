@@ -256,6 +256,7 @@ namespace sw
 		void blit(Surface *source, const SliceRectF &sRect, Surface *dest, const SliceRect &dRect, bool filter, bool isStencil = false, bool sRGBconversion = true);
 		void blit3D(Surface *source, Surface *dest);
 
+		void setContext(const sw::Context& context);
 		void setIndexBuffer(Resource *indexBuffer);
 
 		void setMultiSampleMask(unsigned int mask);

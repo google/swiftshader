@@ -2291,6 +2291,11 @@ namespace sw
 		}
 	#endif
 
+	void Renderer::setContext(const sw::Context& context)
+	{
+		*(this->context) = context;
+	}
+
 	void Renderer::setViewport(const VkViewport &viewport)
 	{
 		this->viewport = viewport;

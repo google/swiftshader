@@ -16,6 +16,7 @@
 #define VK_QUEUE_HPP_
 
 #include "VkObject.hpp"
+#include "Device/Renderer.hpp"
 #include <vulkan/vk_icd.h>
 
 namespace vk
@@ -37,6 +38,8 @@ public:
 	void submit(uint32_t submitCount, const VkSubmitInfo* pSubmits, VkFence fence);
 
 private:
+	sw::Context context;
+	sw::Renderer renderer;
 	uint32_t familyIndex = 0;
 	float    priority = 0.0f;
 };

@@ -58,6 +58,7 @@ public:
 
 	void compileShaders(const VkAllocationCallbacks* pAllocator, const VkGraphicsPipelineCreateInfo* pCreateInfo);
 
+	uint32_t computePrimitiveCount(uint32_t vertexCount) const;
 	const sw::Context& getContext() const;
 	const sw::Rect& getScissor() const;
 	const VkViewport& getViewport() const;

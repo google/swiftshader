@@ -20,6 +20,11 @@
 #include <memory>
 #include <vector>
 
+namespace sw
+{
+	class Renderer;
+}
+
 namespace vk
 {
 
@@ -112,6 +117,7 @@ public:
 	// TODO(sugoi): Move ExecutionState out of CommandBuffer (possibly into Device)
 	struct ExecutionState
 	{
+		sw::Renderer* renderer = nullptr;
 		VkRenderPass renderpass = VK_NULL_HANDLE;
 		VkPipeline pipelines[VK_PIPELINE_BIND_POINT_RANGE_SIZE] = {};
 

@@ -16,11 +16,12 @@
 #include "VkFence.hpp"
 #include "VkQueue.hpp"
 #include "VkSemaphore.hpp"
+#include "Device/Renderer.hpp"
 
 namespace vk
 {
 
-Queue::Queue(uint32_t pFamilyIndex, float pPriority) : familyIndex(pFamilyIndex), priority(pPriority)
+Queue::Queue(uint32_t pFamilyIndex, float pPriority) : context(), renderer(&context, sw::OpenGL, true), familyIndex(pFamilyIndex), priority(pPriority)
 {
 }
 
@@ -36,6 +37,7 @@ void Queue::submit(uint32_t submitCount, const VkSubmitInfo* pSubmits, VkFence f
 
 		{
 			CommandBuffer::ExecutionState executionState;
+			executionState.renderer = &renderer;
 			for(uint32_t j = 0; j < submitInfo.commandBufferCount; j++)
 			{
 				vk::Cast(submitInfo.pCommandBuffers[j])->submit(executionState);
