@@ -15,6 +15,7 @@
 #include "VkDeviceMemory.hpp"
 #include "VkBuffer.hpp"
 #include "VkImage.hpp"
+#include "Device/Blitter.hpp"
 #include "Device/Surface.hpp"
 #include <cstring>
 
@@ -232,7 +233,28 @@ void Image::clear(const VkClearValue& clearValue, const VkRect2D& renderArea, co
 		UNIMPLEMENTED();
 	}
 
-	UNIMPLEMENTED();
+	// Set the proper format for the clear value, as described here:
+	// https://www.khronos.org/registry/vulkan/specs/1.1-extensions/html/vkspec.html#clears-values
+	VkFormat clearFormat = VK_FORMAT_R32G32B32A32_SFLOAT;
+	if(sw::Surface::isSignedNonNormalizedInteger(format))
+	{
+		clearFormat = VK_FORMAT_R32G32B32A32_SINT;
+	}
+	else if(sw::Surface::isUnsignedNonNormalizedInteger(format))
+	{
+		clearFormat = VK_FORMAT_R32G32B32A32_UINT;
+	}
+
+	const sw::Rect rect(renderArea.offset.x, renderArea.offset.y,
+	                    renderArea.offset.x + renderArea.extent.width,
+	                    renderArea.offset.y + renderArea.extent.height);
+	const sw::SliceRect dRect(rect);
+
+	sw::Surface* surface = sw::Surface::create(extent.width, extent.height, extent.depth, format,
+		Cast(deviceMemory)->getOffsetPointer(memoryOffset), rowPitchBytes(), slicePitchBytes());
+	sw::Blitter blitter;
+	blitter.clear((void*)clearValue.color.float32, clearFormat, surface, dRect, 0xF);
+	delete surface;
 }
 
 } // namespace vk
