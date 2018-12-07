@@ -17,6 +17,11 @@
 
 #include "VkObject.hpp"
 
+namespace sw
+{
+	class Surface;
+};
+
 namespace vk
 {
 
@@ -29,7 +34,31 @@ public:
 
 	static size_t ComputeRequiredAllocationSize(const VkImageCreateInfo* pCreateInfo);
 
+	VkDeviceSize getStorageSize() const;
+	const VkMemoryRequirements getMemoryRequirements() const;
+	void bind(VkDeviceMemory pDeviceMemory, VkDeviceSize pMemoryOffset);
+	void copyTo(VkImage dstImage, const VkImageCopy& pRegion);
+	void copyTo(VkBuffer dstBuffer, const VkBufferImageCopy& pRegion);
+	void copyFrom(VkBuffer srcBuffer, const VkBufferImageCopy& pRegion);
+
 private:
+	void* getTexelPointer(const VkOffset3D& offset) const;
+	VkDeviceSize texelOffsetBytesInStorage(const VkOffset3D& offset) const;
+	int rowPitchBytes() const;
+	int slicePitchBytes() const;
+	int bytesPerTexel() const;
+	int getBorder() const;
+
+	VkDeviceMemory           deviceMemory = nullptr;
+	VkDeviceSize             memoryOffset = 0;
+	VkImageCreateFlags       flags = 0;
+	VkImageType              imageType = VK_IMAGE_TYPE_2D;
+	VkFormat                 format = VK_FORMAT_UNDEFINED;
+	VkExtent3D               extent = {0, 0, 0};
+	uint32_t                 mipLevels = 0;
+	uint32_t                 arrayLayers = 0;
+	VkSampleCountFlagBits    samples = VK_SAMPLE_COUNT_1_BIT;
+	VkImageTiling            tiling = VK_IMAGE_TILING_OPTIMAL;
 };
 
 static inline Image* Cast(VkImage object)

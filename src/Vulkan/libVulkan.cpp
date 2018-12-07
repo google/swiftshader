@@ -551,7 +551,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkBindImageMemory(VkDevice device, VkImage image,
 	TRACE("(VkDevice device = 0x%X, VkImage image = 0x%X, VkDeviceMemory memory = 0x%X, VkDeviceSize memoryOffset = %d)",
 		    device, image, memory, memoryOffset);
 
-	UNIMPLEMENTED();
+	vk::Cast(image)->bind(memory, memoryOffset);
 
 	return VK_SUCCESS;
 }
@@ -569,7 +569,7 @@ VKAPI_ATTR void VKAPI_CALL vkGetImageMemoryRequirements(VkDevice device, VkImage
 	TRACE("(VkDevice device = 0x%X, VkImage image = 0x%X, VkMemoryRequirements* pMemoryRequirements = 0x%X)",
 		    device, image, pMemoryRequirements);
 
-	UNIMPLEMENTED();
+	*pMemoryRequirements = vk::Cast(image)->getMemoryRequirements();
 }
 
 VKAPI_ATTR void VKAPI_CALL vkGetImageSparseMemoryRequirements(VkDevice device, VkImage image, uint32_t* pSparseMemoryRequirementCount, VkSparseImageMemoryRequirements* pSparseMemoryRequirements)
