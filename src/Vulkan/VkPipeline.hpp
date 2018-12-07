@@ -18,6 +18,8 @@
 #include "VkObject.hpp"
 #include "Device/Renderer.hpp"
 
+namespace sw { class SpirvShader; }
+
 namespace vk
 {
 
@@ -65,8 +67,12 @@ public:
 	const sw::Color<float>& getBlendConstants() const;
 
 private:
+	sw::SpirvShader *vertexShader = nullptr;
+	sw::SpirvShader *fragmentShader = nullptr;
+
 	rr::Routine* vertexRoutine;
 	rr::Routine* fragmentRoutine;
+
 	sw::Context context;
 	sw::Rect scissor;
 	VkViewport viewport;

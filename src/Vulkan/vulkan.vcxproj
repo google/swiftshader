@@ -145,6 +145,7 @@ copy "$(OutDir)vk_swiftshader.dll" "$(SolutionDir)out\$(Configuration)_$(Platfor
     <ClCompile Include="..\Pipeline\SetupRoutine.cpp" />
     <ClCompile Include="..\Pipeline\Shader.cpp" />
     <ClCompile Include="..\Pipeline\ShaderCore.cpp" />
+    <ClCompile Include="..\Pipeline\SpirvShader.cpp" />
     <ClCompile Include="..\Pipeline\VertexProgram.cpp" />
     <ClCompile Include="..\Pipeline\VertexRoutine.cpp" />
     <ClCompile Include="..\Pipeline\VertexShader.cpp" />
@@ -251,6 +252,7 @@ copy "$(OutDir)vk_swiftshader.dll" "$(SolutionDir)out\$(Configuration)_$(Platfor
     <ClInclude Include="..\Pipeline\SetupRoutine.hpp" />
     <ClInclude Include="..\Pipeline\Shader.hpp" />
     <ClInclude Include="..\Pipeline\ShaderCore.hpp" />
+    <ClInclude Include="..\Pipeline\SpirvShader.hpp" />
     <ClInclude Include="..\Pipeline\VertexPipeline.hpp" />
     <ClInclude Include="..\Pipeline\VertexProgram.hpp" />
     <ClInclude Include="..\Pipeline\VertexRoutine.hpp" />

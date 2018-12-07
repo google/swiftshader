@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <Pipeline/SpirvShader.hpp>
 #include "VkPipeline.hpp"
 #include "VkShaderModule.hpp"
 
@@ -370,6 +371,8 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 
 void GraphicsPipeline::destroyPipeline(const VkAllocationCallbacks* pAllocator)
 {
+	delete vertexShader;
+	delete fragmentShader;
 }
 
 size_t GraphicsPipeline::ComputeRequiredAllocationSize(const VkGraphicsPipelineCreateInfo* pCreateInfo)
@@ -379,8 +382,30 @@ size_t GraphicsPipeline::ComputeRequiredAllocationSize(const VkGraphicsPipelineC
 
 void GraphicsPipeline::compileShaders(const VkAllocationCallbacks* pAllocator, const VkGraphicsPipelineCreateInfo* pCreateInfo)
 {
-	vertexRoutine = Cast(pCreateInfo->pStages[0].module)->compile(pAllocator);
-	fragmentRoutine = Cast(pCreateInfo->pStages[1].module)->compile(pAllocator);
+	for (auto pStage = pCreateInfo->pStages; pStage != pCreateInfo->pStages + pCreateInfo->stageCount; pStage++) {
+		auto module = Cast(pStage->module);
+
+		// TODO: apply prep passes using SPIRV-Opt here.
+		// - Apply and freeze specializations, etc.
+		auto code = module->getCode();
+
+		// TODO: pass in additional information here:
+		// - any NOS from pCreateInfo which we'll actually need
+		auto spirvShader = new sw::SpirvShader{code};
+
+		switch (pStage->stage) {
+			case VK_SHADER_STAGE_VERTEX_BIT:
+				vertexShader = spirvShader;
+				break;
+
+			case VK_SHADER_STAGE_FRAGMENT_BIT:
+				fragmentShader = spirvShader;
+				break;
+
+			default:
+				UNIMPLEMENTED("Unsupported stage");
+		}
+	}
 }
 
 uint32_t GraphicsPipeline::computePrimitiveCount(uint32_t vertexCount) const
