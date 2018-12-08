@@ -401,6 +401,7 @@ LOCAL_CFLAGS += \
 	-Wall \
 	-Werror \
 	-Wno-implicit-exception-spec-mismatch \
+	-Wno-implicit-fallthrough \
 	-Wno-overloaded-virtual \
 	-Wno-undefined-var-template \
 	-Wno-unneeded-internal-declaration \

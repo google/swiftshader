@@ -29,6 +29,7 @@ COMMON_CFLAGS := \
 	-Wno-unused-parameter \
 	-Wno-unused-variable \
 	-Wno-implicit-exception-spec-mismatch \
+	-Wno-implicit-fallthrough \
 	-Wno-overloaded-virtual \
 	-Wno-attributes \
 	-Wno-unknown-attributes \

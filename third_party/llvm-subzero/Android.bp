@@ -28,6 +28,7 @@ cc_library_static {
         "-D__STDC_CONSTANT_MACROS",
         "-D__STDC_FORMAT_MACROS",
         "-DLOG_TAG=\"libsubzero\"",
+        "-Wno-implicit-fallthrough",
         "-Wno-unused-parameter",
     ],
 

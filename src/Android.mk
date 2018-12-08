@@ -128,6 +128,7 @@ COMMON_CFLAGS := \
 	-Wno-unused-value \
 	-Wno-unused-variable \
 	-Wno-implicit-exception-spec-mismatch \
+	-Wno-implicit-fallthrough \
 	-Wno-overloaded-virtual \
 	-Wno-non-virtual-dtor \
 	-Wno-attributes \

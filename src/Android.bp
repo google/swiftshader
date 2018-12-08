@@ -32,6 +32,7 @@ cc_defaults {
         "-DNO_SANITIZE_FUNCTION=",
         // FIXME: Use <android/api-level.h> instead?
         "-DANDROID_PLATFORM_SDK_VERSION=10000",
+        "-Wno-implicit-fallthrough",
         "-Wno-unused-parameter",
         "-Wno-unused-local-typedef",
     ],

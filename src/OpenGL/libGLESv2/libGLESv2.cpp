@@ -5624,6 +5624,8 @@ void VertexAttribPointer(GLuint index, GLint size, GLenum type, GLboolean normal
 	case GL_FLOAT:
 	case GL_HALF_FLOAT_OES:   // GL_OES_vertex_half_float
 	case GL_HALF_FLOAT:
+	case GL_INT:
+	case GL_UNSIGNED_INT:
 		break;
 	case GL_INT_2_10_10_10_REV:
 	case GL_UNSIGNED_INT_2_10_10_10_REV:
@@ -5631,8 +5633,6 @@ void VertexAttribPointer(GLuint index, GLint size, GLenum type, GLboolean normal
 		{
 			return error(GL_INVALID_OPERATION);
 		}
-	case GL_INT:
-	case GL_UNSIGNED_INT:
 		break;
 	default:
 		return error(GL_INVALID_ENUM);

@@ -59,6 +59,7 @@ cc_library_static {
         "-D__STDC_CONSTANT_MACROS",
         "-D__STDC_FORMAT_MACROS",
         "-DLOG_TAG=\"libLLVM_swiftshader\"",
+        "-Wno-implicit-fallthrough",
         "-Wno-unused-result",
         "-Wno-unused-function",
         "-Wno-unused-variable",

@@ -116,6 +116,7 @@ LOCAL_CFLAGS += \
 	-Wno-unused-lambda-capture \
 	-Wno-unused-parameter \
 	-Wno-implicit-exception-spec-mismatch \
+	-Wno-implicit-fallthrough \
 	-Wno-overloaded-virtual \
 	-Wno-non-virtual-dtor \
 	-Wno-unknown-warning-option \
