@@ -56,6 +56,7 @@ namespace sw
 				auto &object = defs[resultId];
 				object.kind = Object::Kind::Type;
 				object.definition = insn;
+				object.sizeInComponents = ComputeTypeSize(insn);
 				break;
 			}
 
@@ -71,6 +72,7 @@ namespace sw
 				object.kind = Object::Kind::Variable;
 				object.definition = insn;
 				object.storageClass = storageClass;
+				object.sizeInComponents = defs[typeId].sizeInComponents;
 				break;
 			}
 
@@ -110,6 +112,62 @@ namespace sw
 			break;
 		default:
 			UNIMPLEMENTED("No other execution modes are permitted");
+		}
+	}
+
+	uint32_t SpirvShader::ComputeTypeSize(sw::SpirvShader::InsnIterator insn)
+	{
+		// Types are always built from the bottom up (with the exception of forward ptrs, which
+		// don't appear in Vulkan shaders. Therefore, we can always assume our component parts have
+		// already been described (and so their sizes determined)
+		switch (insn.opcode())
+		{
+		case spv::OpTypeVoid:
+		case spv::OpTypeSampler:
+		case spv::OpTypeImage:
+		case spv::OpTypeSampledImage:
+		case spv::OpTypeFunction:
+		case spv::OpTypeRuntimeArray:
+			// Objects that don't consume any space.
+			// Descriptor-backed objects currently only need exist at compile-time.
+			// Runtime arrays don't appear in places where their size would be interesting
+			return 0;
+
+		case spv::OpTypeBool:
+		case spv::OpTypeFloat:
+		case spv::OpTypeInt:
+			// All the fundamental types are 1 component. If we ever add support for 8/16/64-bit components,
+			// we might need to change this, but only 32 bit components are required for Vulkan 1.1.
+			return 1;
+
+		case spv::OpTypeVector:
+		case spv::OpTypeMatrix:
+			// Vectors and matrices both consume element count * element size.
+			return defs[insn.word(2)].sizeInComponents * insn.word(3);
+
+		case spv::OpTypeArray:
+			// This should be the element count * element size. Array sizes come from constant ids,
+			// which we haven't yet implemented.
+			UNIMPLEMENTED("Need constant support to get array size");
+			return 1;
+
+		case spv::OpTypeStruct:
+		{
+			uint32_t size = 0;
+			for (uint32_t i = 2u; i < insn.wordCount(); i++)
+			{
+				size += defs[insn.word(i)].sizeInComponents;
+			}
+			return size;
+		}
+
+		case spv::OpTypePointer:
+			// Pointer 'size' is just pointee size
+			return defs[insn.word(3)].sizeInComponents;
+
+		default:
+			// Some other random insn.
+			UNIMPLEMENTED("Only types are supported");
 		}
 	}
 }
