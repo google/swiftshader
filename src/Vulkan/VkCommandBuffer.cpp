@@ -17,7 +17,7 @@
 #include "VkFramebuffer.hpp"
 #include "VkImage.hpp"
 #include "VkPipeline.hpp"
-#include "VkRenderpass.hpp"
+#include "VkRenderPass.hpp"
 #include "Device/Renderer.hpp"
 
 #include <cstring>
