@@ -113,7 +113,7 @@ public:
 
 	class Command;
 private:
-	void deleteCommands();
+	void resetState();
 
 	enum State { INITIAL, RECORDING, EXECUTABLE, PENDING, INVALID };
 	State state = INITIAL;

@@ -175,22 +175,30 @@ CommandBuffer::CommandBuffer(VkCommandBufferLevel pLevel) : level(pLevel)
 
 void CommandBuffer::destroy(const VkAllocationCallbacks* pAllocator)
 {
-	deleteCommands();
+	delete commands;
 }
 
-void CommandBuffer::deleteCommands()
+void CommandBuffer::resetState()
 {
 	// FIXME (b/119409619): replace this vector by an allocator so we can control all memory allocations
-	delete commands;
+	commands->clear();
+
+	state = INITIAL;
 }
 
 VkResult CommandBuffer::begin(VkCommandBufferUsageFlags flags, const VkCommandBufferInheritanceInfo* pInheritanceInfo)
 {
 	ASSERT((state != RECORDING) && (state != PENDING));
 
-	if((flags != VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT) || pInheritanceInfo)
+	if(!((flags == 0) || (flags == VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT)) || pInheritanceInfo)
 	{
 		UNIMPLEMENTED();
+	}
+
+	if(state != INITIAL)
+	{
+		// Implicit reset
+		resetState();
 	}
 
 	state = RECORDING;
@@ -211,9 +219,7 @@ VkResult CommandBuffer::reset(VkCommandPoolResetFlags flags)
 {
 	ASSERT(state != PENDING);
 
-	deleteCommands();
-
-	state = INITIAL;
+	resetState();
 
 	return VK_SUCCESS;
 }
