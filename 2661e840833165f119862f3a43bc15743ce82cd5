@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "910525d6_5611b382",
+        "filename": "src/Vulkan/VkBuffer.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5065
+      },
+      "writtenOn": "2018-12-10T09:51:48Z",
+      "side": 1,
+      "message": "I\u0027m not 100% about calling this map because it was as if we had a vkMapBuffer when it is vkMapMemory instead.",
+      "revId": "2661e840833165f119862f3a43bc15743ce82cd5",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
