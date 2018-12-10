@@ -143,6 +143,7 @@ namespace sw
 			ATTRIBTYPE_FLOAT,
 			ATTRIBTYPE_INT,
 			ATTRIBTYPE_UINT,
+			ATTRIBTYPE_UNUSED,
 
 			ATTRIBTYPE_LAST = ATTRIBTYPE_UINT
 		};
@@ -151,6 +152,38 @@ namespace sw
 		{
 			return inputBuiltins.find(b) != inputBuiltins.end();
 		}
+
+		struct Decorations
+		{
+			int32_t Location;
+			int32_t Component;
+			spv::BuiltIn BuiltIn;
+			bool HasLocation : 1;
+			bool HasComponent : 1;
+			bool HasBuiltIn : 1;
+			bool Flat : 1;
+			bool Centroid : 1;
+			bool Noperspective : 1;
+			bool Block : 1;
+			bool BufferBlock : 1;
+
+			Decorations()
+					: Location{-1}, Component{0}, BuiltIn{}, HasLocation{false}, HasComponent{false}, HasBuiltIn{false},
+					  Flat{false},
+					  Centroid{false}, Noperspective{false}, Block{false},
+					  BufferBlock{false}
+			{
+			}
+
+			Decorations(Decorations const &) = default;
+
+			void Apply(Decorations const &src);
+
+			void Apply(spv::Decoration decoration, uint32_t arg);
+		};
+
+		std::unordered_map<uint32_t, Decorations> decorations;
+		std::unordered_map<uint32_t, std::vector<Decorations>> memberDecorations;
 
 	private:
 		const int serialID;

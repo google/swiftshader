@@ -37,6 +37,60 @@ namespace sw
 				ProcessExecutionMode(insn);
 				break;
 
+			case spv::OpDecorate:
+			{
+				auto targetId = insn.word(1);
+				decorations[targetId].Apply(
+						static_cast<spv::Decoration>(insn.word(2)),
+						insn.wordCount() > 3 ? insn.word(3) : 0);
+				break;
+			}
+
+			case spv::OpMemberDecorate:
+			{
+				auto targetId = insn.word(1);
+				auto memberIndex = insn.word(2);
+				auto &d = memberDecorations[targetId];
+				if (memberIndex >= d.size())
+					d.resize(memberIndex + 1);    // on demand; exact size would require another pass...
+				d[memberIndex].Apply(
+						static_cast<spv::Decoration>(insn.word(3)),
+						insn.wordCount() > 4 ? insn.word(4) : 0);
+				break;
+			}
+
+			case spv::OpDecorationGroup:
+				// Nothing to do here. We don't need to record the definition of the group; we'll just have
+				// the bundle of decorations float around. If we were to ever walk the decorations directly,
+				// we might think about introducing this as a real Object.
+				break;
+
+			case spv::OpGroupDecorate:
+			{
+				auto const &srcDecorations = decorations[insn.word(1)];
+				for (auto i = 2u; i < insn.wordCount(); i++)
+				{
+					// remaining operands are targets to apply the group to.
+					decorations[insn.word(i)].Apply(srcDecorations);
+				}
+				break;
+			}
+
+			case spv::OpGroupMemberDecorate:
+			{
+				auto const &srcDecorations = decorations[insn.word(1)];
+				for (auto i = 2u; i < insn.wordCount(); i += 2)
+				{
+					// remaining operands are pairs of <id>, literal for members to apply to.
+					auto &d = memberDecorations[insn.word(i)];
+					auto memberIndex = insn.word(i + 1);
+					if (memberIndex >= d.size())
+						d.resize(memberIndex + 1);    // on demand resize, see above...
+					d[memberIndex].Apply(srcDecorations);
+				}
+				break;
+			}
+
 			case spv::OpTypeVoid:
 			case spv::OpTypeBool:
 			case spv::OpTypeInt:
@@ -73,6 +127,17 @@ namespace sw
 				object.definition = insn;
 				object.storageClass = storageClass;
 				object.sizeInComponents = defs[typeId].sizeInComponents;
+
+				// Register builtins
+				auto &d = decorations[resultId];
+				if (d.HasBuiltIn && storageClass == spv::StorageClassInput)
+				{
+					inputBuiltins[d.BuiltIn] = resultId;
+				}
+				if (d.HasBuiltIn && storageClass == spv::StorageClassOutput)
+				{
+					outputBuiltins[d.BuiltIn] = resultId;
+				}
 				break;
 			}
 
@@ -169,5 +234,70 @@ namespace sw
 			// Some other random insn.
 			UNIMPLEMENTED("Only types are supported");
 		}
+	}
+
+	void SpirvShader::Decorations::Apply(spv::Decoration decoration, uint32_t arg)
+	{
+		switch (decoration)
+		{
+		case spv::DecorationLocation:
+			HasLocation = true;
+			Location = static_cast<int32_t>(arg);
+			break;
+		case spv::DecorationComponent:
+			HasComponent = true;
+			Component = arg;
+			break;
+		case spv::DecorationBuiltIn:
+			HasBuiltIn = true;
+			BuiltIn = static_cast<spv::BuiltIn>(arg);
+			break;
+		case spv::DecorationFlat:
+			Flat = true;
+			break;
+		case spv::DecorationNoPerspective:
+			Noperspective = true;
+			break;
+		case spv::DecorationCentroid:
+			Centroid = true;
+			break;
+		case spv::DecorationBlock:
+			Block = true;
+			break;
+		case spv::DecorationBufferBlock:
+			BufferBlock = true;
+			break;
+		default:
+			// Intentionally partial, there are many decorations we just don't care about.
+			break;
+		}
+	}
+
+	void SpirvShader::Decorations::Apply(const sw::SpirvShader::Decorations &src)
+	{
+		// Apply a decoration group to this set of decorations
+		if (src.HasBuiltIn)
+		{
+			HasBuiltIn = true;
+			BuiltIn = src.BuiltIn;
+		}
+
+		if (src.HasLocation)
+		{
+			HasLocation = true;
+			Location = src.Location;
+		}
+
+		if (src.HasComponent)
+		{
+			HasComponent = true;
+			Component = src.Component;
+		}
+
+		Flat |= src.Flat;
+		Noperspective |= src.Noperspective;
+		Centroid |= src.Centroid;
+		Block |= src.Block;
+		BufferBlock |= src.BufferBlock;
 	}
 }
