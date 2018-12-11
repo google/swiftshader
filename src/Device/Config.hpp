@@ -97,6 +97,7 @@ namespace sw
 		MAX_TEXTURE_LOD = MIPMAP_LEVELS - 2,   // Trilinear accesses lod+1
 		RENDERTARGETS = 8,
 		NUM_TEMPORARY_REGISTERS = 4096,
+		MAX_INTERFACE_COMPONENTS = 32 * 4,
 	};
 }
 

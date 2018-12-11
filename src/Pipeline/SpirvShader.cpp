@@ -22,11 +22,16 @@ namespace sw
 {
 	volatile int SpirvShader::serialCounter = 1;    // Start at 1, 0 is invalid shader.
 
-	SpirvShader::SpirvShader(InsnStore const &insns) : insns{insns}, serialID{serialCounter++}, modes{}
+	SpirvShader::SpirvShader(InsnStore const &insns)
+			: insns{insns}, inputs{MAX_INTERFACE_COMPONENTS},
+			  outputs{MAX_INTERFACE_COMPONENTS},
+			  serialID{serialCounter++}, modes{}
 	{
 		// Simplifying assumptions (to be satisfied by earlier transformations)
 		// - There is exactly one extrypoint in the module, and it's the one we want
-		// - Input / Output interface blocks, builtin or otherwise, have been split.
+		// - Builtin interface blocks have been split. [Splitting user-defined interface blocks
+		//   without changing layout is impossible in the general case because splitting an array
+		//   of structs produces a weirdly-strided array, which SPIRV can't represent.
 		// - The only input/output OpVariables present are those used by the entrypoint
 
 		for (auto insn : *this)
@@ -129,14 +134,28 @@ namespace sw
 				object.sizeInComponents = defs[typeId].sizeInComponents;
 
 				// Register builtins
+
+				// TODO: detect the builtin block!
 				auto &d = decorations[resultId];
-				if (d.HasBuiltIn && storageClass == spv::StorageClassInput)
+				if (storageClass == spv::StorageClassInput)
 				{
-					inputBuiltins[d.BuiltIn] = resultId;
+					if (d.HasBuiltIn)
+					{
+						inputBuiltins[d.BuiltIn] = resultId;
+					} else
+					{
+						PopulateInterface(&inputs, resultId);
+					}
 				}
-				if (d.HasBuiltIn && storageClass == spv::StorageClassOutput)
+				if (storageClass == spv::StorageClassOutput)
 				{
-					outputBuiltins[d.BuiltIn] = resultId;
+					if (d.HasBuiltIn)
+					{
+						outputBuiltins[d.BuiltIn] = resultId;
+					} else
+					{
+						PopulateInterface(&outputs, resultId);
+					}
 				}
 				break;
 			}
@@ -236,6 +255,96 @@ namespace sw
 		}
 	}
 
+	void SpirvShader::PopulateInterfaceSlot(std::vector<InterfaceComponent> *iface, Decorations const &d, AttribType type)
+	{
+		// Populate a single scalar slot in the interface from a collection of decorations and the intended component type.
+		auto scalarSlot = (d.Location << 2) | d.Component;
+
+		auto &slot = (*iface)[scalarSlot];
+		slot.Type = type;
+		slot.Flat = d.Flat;
+		slot.NoPerspective = d.NoPerspective;
+		slot.Centroid = d.Centroid;
+	}
+
+	int SpirvShader::PopulateInterfaceInner(std::vector<InterfaceComponent> *iface, uint32_t id, Decorations d)
+	{
+		// Recursively walks variable definition and its type tree, taking into account
+		// any explicit Location or Component decorations encountered; where explicit
+		// Locations or Components are not specified, assigns them sequentially.
+		// Collected decorations are carried down toward the leaves and across
+		// siblings; Effect of decorations intentionally does not flow back up the tree.
+		//
+		// Returns the next available location.
+
+		// This covers the rules in Vulkan 1.1 spec, 14.1.4 Location Assignment.
+
+		auto const it = decorations.find(id);
+		if (it != decorations.end())
+		{
+			d.Apply(it->second);
+		}
+
+		auto const &obj = defs[id];
+		switch (obj.definition.opcode())
+		{
+		case spv::OpVariable:
+			return PopulateInterfaceInner(iface, obj.definition.word(1), d);
+		case spv::OpTypePointer:
+			return PopulateInterfaceInner(iface, obj.definition.word(3), d);
+		case spv::OpTypeMatrix:
+			for (auto i = 0u; i < obj.definition.word(3); i++, d.Location++)
+			{
+				// consumes same components of N consecutive locations
+				PopulateInterfaceInner(iface, obj.definition.word(2), d);
+			}
+			return d.Location;
+		case spv::OpTypeVector:
+			for (auto i = 0u; i < obj.definition.word(3); i++, d.Component++)
+			{
+				// consumes N consecutive components in the same location
+				PopulateInterfaceInner(iface, obj.definition.word(2), d);
+			}
+			return d.Location + 1;
+		case spv::OpTypeFloat:
+			PopulateInterfaceSlot(iface, d, ATTRIBTYPE_FLOAT);
+			return d.Location + 1;
+		case spv::OpTypeInt:
+			PopulateInterfaceSlot(iface, d, obj.definition.word(3) ? ATTRIBTYPE_INT : ATTRIBTYPE_UINT);
+			return d.Location + 1;
+		case spv::OpTypeBool:
+			PopulateInterfaceSlot(iface, d, ATTRIBTYPE_UINT);
+			return d.Location + 1;
+		case spv::OpTypeStruct:
+		{
+			auto const memberDecorationsIt = memberDecorations.find(id);
+			// iterate over members, which may themselves have Location/Component decorations
+			for (auto i = 0u; i < obj.definition.wordCount() - 2; i++)
+			{
+				// Apply any member decorations for this member to the carried state.
+				if (memberDecorationsIt != memberDecorations.end() && i < memberDecorationsIt->second.size())
+				{
+					d.Apply(memberDecorationsIt->second[i]);
+				}
+				d.Location = PopulateInterfaceInner(iface, obj.definition.word(i + 2), d);
+				d.Component = 0;    // Implicit locations always have component=0
+			}
+			return d.Location;
+		}
+			// TODO: array
+		default:
+			// Intentionally partial; most opcodes do not participate in type hierarchies
+			return 0;
+		}
+	}
+
+	void SpirvShader::PopulateInterface(std::vector<InterfaceComponent> *iface, uint32_t id)
+	{
+		// Walk a variable definition and populate the interface from it.
+		Decorations d{};
+		PopulateInterfaceInner(iface, id, d);
+	}
+
 	void SpirvShader::Decorations::Apply(spv::Decoration decoration, uint32_t arg)
 	{
 		switch (decoration)
@@ -256,7 +365,7 @@ namespace sw
 			Flat = true;
 			break;
 		case spv::DecorationNoPerspective:
-			Noperspective = true;
+			NoPerspective = true;
 			break;
 		case spv::DecorationCentroid:
 			Centroid = true;
@@ -295,7 +404,7 @@ namespace sw
 		}
 
 		Flat |= src.Flat;
-		Noperspective |= src.Noperspective;
+		NoPerspective |= src.NoPerspective;
 		Centroid |= src.Centroid;
 		Block |= src.Block;
 		BufferBlock |= src.BufferBlock;

@@ -163,14 +163,14 @@ namespace sw
 			bool HasBuiltIn : 1;
 			bool Flat : 1;
 			bool Centroid : 1;
-			bool Noperspective : 1;
+			bool NoPerspective : 1;
 			bool Block : 1;
 			bool BufferBlock : 1;
 
 			Decorations()
 					: Location{-1}, Component{0}, BuiltIn{}, HasLocation{false}, HasComponent{false}, HasBuiltIn{false},
 					  Flat{false},
-					  Centroid{false}, Noperspective{false}, Block{false},
+					  Centroid{false}, NoPerspective{false}, Block{false},
 					  BufferBlock{false}
 			{
 			}
@@ -185,6 +185,22 @@ namespace sw
 		std::unordered_map<uint32_t, Decorations> decorations;
 		std::unordered_map<uint32_t, std::vector<Decorations>> memberDecorations;
 
+		struct InterfaceComponent
+		{
+			AttribType Type;
+			bool Flat : 1;
+			bool Centroid : 1;
+			bool NoPerspective : 1;
+
+			InterfaceComponent()
+					: Type{ATTRIBTYPE_UNUSED}, Flat{false}, Centroid{false}, NoPerspective{false}
+			{
+			}
+		};
+
+		std::vector<InterfaceComponent> inputs;
+		std::vector<InterfaceComponent> outputs;
+
 	private:
 		const int serialID;
 		static volatile int serialCounter;
@@ -196,6 +212,12 @@ namespace sw
 		void ProcessExecutionMode(InsnIterator it);
 
 		uint32_t ComputeTypeSize(InsnIterator insn);
+
+		void PopulateInterfaceSlot(std::vector<InterfaceComponent> *iface, Decorations const &d, AttribType type);
+
+		int PopulateInterfaceInner(std::vector<InterfaceComponent> *iface, uint32_t id, Decorations d);
+
+		void PopulateInterface(std::vector<InterfaceComponent> *iface, uint32_t id);
 	};
 }
 
