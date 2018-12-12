@@ -21,8 +21,16 @@
 namespace vk
 {
 
-Queue::Queue(uint32_t pFamilyIndex, float pPriority) : context(), renderer(&context, sw::OpenGL, true), familyIndex(pFamilyIndex), priority(pPriority)
+Queue::Queue(uint32_t pFamilyIndex, float pPriority) : familyIndex(pFamilyIndex), priority(pPriority)
 {
+	context = new sw::Context();
+	renderer = new sw::Renderer(context, sw::OpenGL, true);
+}
+
+void Queue::destroy()
+{
+	delete context;
+	delete renderer;
 }
 
 void Queue::submit(uint32_t submitCount, const VkSubmitInfo* pSubmits, VkFence fence)
@@ -37,7 +45,7 @@ void Queue::submit(uint32_t submitCount, const VkSubmitInfo* pSubmits, VkFence f
 
 		{
 			CommandBuffer::ExecutionState executionState;
-			executionState.renderer = &renderer;
+			executionState.renderer = renderer;
 			for(uint32_t j = 0; j < submitInfo.commandBufferCount; j++)
 			{
 				vk::Cast(submitInfo.pCommandBuffers[j])->submit(executionState);

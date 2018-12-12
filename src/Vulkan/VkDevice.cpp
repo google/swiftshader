@@ -58,6 +58,11 @@ Device::Device(const Device::CreateInfo* info, void* mem)
 
 void Device::destroy(const VkAllocationCallbacks* pAllocator)
 {
+	for(uint32_t i = 0; i < queueCount; i++)
+	{
+		queues[i].destroy();
+	}
+
 	vk::deallocate(queues, pAllocator);
 }
 
