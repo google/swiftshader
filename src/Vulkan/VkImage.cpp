@@ -48,7 +48,7 @@ const VkMemoryRequirements Image::getMemoryRequirements() const
 	VkMemoryRequirements memoryRequirements;
 	memoryRequirements.alignment = vk::REQUIRED_MEMORY_ALIGNMENT;
 	memoryRequirements.memoryTypeBits = vk::MEMORY_TYPE_GENERIC_BIT;
-	memoryRequirements.size = getStorageSize();
+	memoryRequirements.size = getStorageSize(flags);
 	return memoryRequirements;
 }
 
@@ -63,8 +63,8 @@ void Image::copyTo(VkImage dstImage, const VkImageCopy& pRegion)
 	// Image copy does not perform any conversion, it simply copies memory from
 	// an image to another image that has the same number of bytes per pixel.
 	Image* dst = Cast(dstImage);
-	int srcBytesPerTexel = bytesPerTexel();
-	ASSERT(srcBytesPerTexel == dst->bytesPerTexel());
+	int srcBytesPerTexel = bytesPerTexel(pRegion.srcSubresource.aspectMask);
+	ASSERT(srcBytesPerTexel == dst->bytesPerTexel(pRegion.dstSubresource.aspectMask));
 
 	if(!((pRegion.srcSubresource.aspectMask == VK_IMAGE_ASPECT_COLOR_BIT) ||
 		 (pRegion.srcSubresource.aspectMask == VK_IMAGE_ASPECT_DEPTH_BIT) ||
@@ -82,13 +82,15 @@ void Image::copyTo(VkImage dstImage, const VkImageCopy& pRegion)
 		UNIMPLEMENTED();
 	}
 
-	const char* srcMem = static_cast<const char*>(getTexelPointer(pRegion.srcOffset, pRegion.srcSubresource.baseArrayLayer));
-	char* dstMem = static_cast<char*>(dst->getTexelPointer(pRegion.dstOffset, pRegion.dstSubresource.baseArrayLayer));
+	const char* srcMem = static_cast<const char*>(
+		getTexelPointer(pRegion.srcOffset, pRegion.srcSubresource.baseArrayLayer, pRegion.srcSubresource.aspectMask));
+	char* dstMem = static_cast<char*>(
+		dst->getTexelPointer(pRegion.dstOffset, pRegion.dstSubresource.baseArrayLayer, pRegion.dstSubresource.aspectMask));
 
-	int srcRowPitchBytes = rowPitchBytes();
-	int srcSlicePitchBytes = slicePitchBytes();
-	int dstRowPitchBytes = dst->rowPitchBytes();
-	int dstSlicePitchBytes = dst->slicePitchBytes();
+	int srcRowPitchBytes = rowPitchBytes(pRegion.srcSubresource.aspectMask);
+	int srcSlicePitchBytes = slicePitchBytes(pRegion.srcSubresource.aspectMask);
+	int dstRowPitchBytes = dst->rowPitchBytes(pRegion.dstSubresource.aspectMask);
+	int dstSlicePitchBytes = dst->slicePitchBytes(pRegion.dstSubresource.aspectMask);
 
 	bool isSinglePlane = (pRegion.extent.depth == 1);
 	bool isSingleLine  = (pRegion.extent.height == 1) && isSinglePlane;
@@ -131,96 +133,138 @@ void Image::copyTo(VkImage dstImage, const VkImageCopy& pRegion)
 	}
 }
 
-void Image::copyTo(VkBuffer dstBuffer, const VkBufferImageCopy& pRegion)
+void Image::copy(VkBuffer buffer, const VkBufferImageCopy& region, bool bufferIsSource)
 {
-	if((pRegion.imageExtent.width != extent.width) ||
-	   (pRegion.imageExtent.height != extent.height) ||
-	   (pRegion.imageExtent.depth != extent.depth) ||
-	   !((pRegion.imageSubresource.aspectMask == VK_IMAGE_ASPECT_COLOR_BIT) ||
-	     (pRegion.imageSubresource.aspectMask == VK_IMAGE_ASPECT_DEPTH_BIT) ||
-	     (pRegion.imageSubresource.aspectMask == VK_IMAGE_ASPECT_STENCIL_BIT)) ||
-	   (pRegion.imageSubresource.mipLevel != 0) ||
-	   (pRegion.imageOffset.x != 0) ||
-	   (pRegion.imageOffset.y != 0) ||
-	   (pRegion.imageOffset.z != 0) ||
-	   (pRegion.bufferRowLength != extent.width) ||
-	   (pRegion.bufferImageHeight != extent.height))
+	if((region.imageExtent.width != extent.width) ||
+	   (region.imageExtent.height != extent.height) ||
+	   (region.imageExtent.depth != extent.depth) ||
+	   !((region.imageSubresource.aspectMask == VK_IMAGE_ASPECT_COLOR_BIT) ||
+	     (region.imageSubresource.aspectMask == VK_IMAGE_ASPECT_DEPTH_BIT) ||
+	     (region.imageSubresource.aspectMask == VK_IMAGE_ASPECT_STENCIL_BIT)) ||
+	   (region.imageSubresource.mipLevel != 0) ||
+	   (region.imageOffset.x != 0) ||
+	   (region.imageOffset.y != 0) ||
+	   (region.imageOffset.z != 0) ||
+	   (region.bufferRowLength != extent.width) ||
+	   (region.bufferImageHeight != extent.height))
 	{
 		UNIMPLEMENTED();
 	}
 
-	Buffer* dst = Cast(dstBuffer);
-	VkDeviceSize copySize = slicePitchBytes() * pRegion.imageExtent.depth;
-	VkDeviceSize layerSize = slicePitchBytes() * extent.depth;
-	VkDeviceSize srcOffset = memoryOffset;
-	VkDeviceSize dstOffset = pRegion.bufferOffset;
+	VkDeviceSize copySize = slicePitchBytes(region.imageSubresource.aspectMask) * region.imageExtent.depth;
+	VkDeviceSize layerSize = slicePitchBytes(region.imageSubresource.aspectMask) * extent.depth;
+	char* bufferMemory = static_cast<char*>(Cast(buffer)->getOffsetPointer(region.bufferOffset));
+	char* imageMemory = static_cast<char*>(deviceMemory->getOffsetPointer(getMemoryOffset(region.imageSubresource.aspectMask)));
+	char* srcMemory = bufferIsSource ? bufferMemory : imageMemory;
+	char* dstMemory = bufferIsSource ? imageMemory : bufferMemory;
 
-	uint32_t firstLayer = pRegion.imageSubresource.baseArrayLayer;
-	uint32_t lastLayer = firstLayer + pRegion.imageSubresource.layerCount - 1;
+	uint32_t firstLayer = region.imageSubresource.baseArrayLayer;
+	uint32_t lastLayer = firstLayer + region.imageSubresource.layerCount - 1;
 	for(uint32_t layer = firstLayer; layer <= lastLayer; layer++)
 	{
-		dst->copyFrom(deviceMemory->getOffsetPointer(srcOffset), copySize, dstOffset);
-		srcOffset += layerSize;
-		dstOffset += layerSize;
+		memcpy(dstMemory, srcMemory, copySize);
+		srcMemory += layerSize;
+		dstMemory += layerSize;
 	}
 }
 
-void Image::copyFrom(VkBuffer srcBuffer, const VkBufferImageCopy& pRegion)
+void Image::copyTo(VkBuffer dstBuffer, const VkBufferImageCopy& region)
 {
-	if((pRegion.imageExtent.width != extent.width) ||
-	   (pRegion.imageExtent.height != extent.height) ||
-	   (pRegion.imageExtent.depth != extent.depth) ||
-	   !((pRegion.imageSubresource.aspectMask == VK_IMAGE_ASPECT_COLOR_BIT) ||
-	     (pRegion.imageSubresource.aspectMask == VK_IMAGE_ASPECT_DEPTH_BIT) ||
-	     (pRegion.imageSubresource.aspectMask == VK_IMAGE_ASPECT_STENCIL_BIT)) ||
-	   (pRegion.imageSubresource.mipLevel != 0) ||
-	   (pRegion.imageOffset.x != 0) ||
-	   (pRegion.imageOffset.y != 0) ||
-	   (pRegion.imageOffset.z != 0) ||
-	   (pRegion.bufferRowLength != extent.width) ||
-	   (pRegion.bufferImageHeight != extent.height))
+	copy(dstBuffer, region, false);
+}
+
+void Image::copyFrom(VkBuffer srcBuffer, const VkBufferImageCopy& region)
+{
+	copy(srcBuffer, region, true);
+}
+
+void* Image::getTexelPointer(const VkOffset3D& offset, uint32_t baseArrayLayer, const VkImageAspectFlags& flags) const
+{
+	return deviceMemory->getOffsetPointer(texelOffsetBytesInStorage(offset, baseArrayLayer, flags) + getMemoryOffset(flags));
+}
+
+VkDeviceSize Image::texelOffsetBytesInStorage(const VkOffset3D& offset, uint32_t baseArrayLayer, const VkImageAspectFlags& flags) const
+{
+	return (baseArrayLayer * extent.depth + offset.z) * slicePitchBytes(flags) + offset.y * rowPitchBytes(flags) + offset.x * bytesPerTexel(flags);
+}
+
+VkDeviceSize Image::getMemoryOffset(const VkImageAspectFlags& flags) const
+{
+	switch(format)
 	{
-		UNIMPLEMENTED();
+	case VK_FORMAT_D16_UNORM_S8_UINT:
+	case VK_FORMAT_D24_UNORM_S8_UINT:
+	case VK_FORMAT_D32_SFLOAT_S8_UINT:
+		if(flags == VK_IMAGE_ASPECT_STENCIL_BIT)
+		{
+			// Offset by depth buffer to get to stencil buffer
+			return memoryOffset + getStorageSize(VK_IMAGE_ASPECT_DEPTH_BIT);
+		}
+		break;
+	default:
+		break;
 	}
 
-	Buffer* src = Cast(srcBuffer);
-	VkDeviceSize copySize = slicePitchBytes() * pRegion.imageExtent.depth;
-	VkDeviceSize layerSize = slicePitchBytes() * extent.depth;
-	VkDeviceSize srcOffset = pRegion.bufferOffset;
-	VkDeviceSize dstOffset = memoryOffset;
+	return memoryOffset;
+}
 
-	uint32_t lastLayer = pRegion.imageSubresource.baseArrayLayer + pRegion.imageSubresource.layerCount - 1;
-	for(uint32_t layer = pRegion.imageSubresource.baseArrayLayer; layer <= lastLayer; layer++)
+int Image::rowPitchBytes(const VkImageAspectFlags& flags) const
+{
+	// Depth and Stencil pitch should be computed separately
+	ASSERT((flags & (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT)) !=
+	                (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT));
+	return sw::Surface::pitchB(extent.width, getBorder(), getFormat(flags), false);
+}
+
+int Image::slicePitchBytes(const VkImageAspectFlags& flags) const
+{
+	// Depth and Stencil slice should be computed separately
+	ASSERT((flags & (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT)) !=
+	                (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT));
+	return sw::Surface::sliceB(extent.width, extent.height, getBorder(), getFormat(flags), false);
+}
+
+int Image::bytesPerTexel(const VkImageAspectFlags& flags) const
+{
+	// Depth and Stencil bytes should be computed separately
+	ASSERT((flags & (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT)) !=
+	                (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT));
+	return sw::Surface::bytes(getFormat(flags));
+}
+
+VkFormat Image::getFormat(const VkImageAspectFlags& flags) const
+{
+	switch(flags)
 	{
-		src->copyTo(deviceMemory->getOffsetPointer(dstOffset), copySize, srcOffset);
-		srcOffset += layerSize;
-		dstOffset += layerSize;
+	case VK_IMAGE_ASPECT_DEPTH_BIT:
+		switch(format)
+		{
+		case VK_FORMAT_D16_UNORM_S8_UINT:
+			return VK_FORMAT_D16_UNORM;
+		case VK_FORMAT_D24_UNORM_S8_UINT:
+			return VK_FORMAT_X8_D24_UNORM_PACK32; // FIXME: This will allocate an extra byte per pixel
+		case VK_FORMAT_D32_SFLOAT_S8_UINT:
+			return VK_FORMAT_D32_SFLOAT;
+		default:
+			break;
+		}
+		break;
+	case VK_IMAGE_ASPECT_STENCIL_BIT:
+		switch(format)
+		{
+		case VK_FORMAT_D16_UNORM_S8_UINT:
+		case VK_FORMAT_D24_UNORM_S8_UINT:
+		case VK_FORMAT_D32_SFLOAT_S8_UINT:
+			return VK_FORMAT_S8_UINT;
+		default:
+			break;
+		}
+		break;
+	default:
+		break;
 	}
-}
 
-void* Image::getTexelPointer(const VkOffset3D& offset, uint32_t baseArrayLayer) const
-{
-	return deviceMemory->getOffsetPointer(texelOffsetBytesInStorage(offset, baseArrayLayer) + memoryOffset);
-}
-
-VkDeviceSize Image::texelOffsetBytesInStorage(const VkOffset3D& offset, uint32_t baseArrayLayer) const
-{
-	return (baseArrayLayer * extent.depth + offset.z) * slicePitchBytes() + offset.y * rowPitchBytes() + offset.x * bytesPerTexel();
-}
-
-int Image::rowPitchBytes() const
-{
-	return sw::Surface::pitchB(extent.width, getBorder(), format, false);
-}
-
-int Image::slicePitchBytes() const
-{
-	return sw::Surface::sliceB(extent.width, extent.height, getBorder(), format, false);
-}
-
-int Image::bytesPerTexel() const
-{
-	return sw::Surface::bytes(format);
+	return format;
 }
 
 int Image::getBorder() const
@@ -228,19 +272,41 @@ int Image::getBorder() const
 	return ((flags & VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT) && (imageType == VK_IMAGE_TYPE_2D)) ? 1 : 0;
 }
 
-VkDeviceSize Image::getStorageSize() const
+VkDeviceSize Image::getStorageSize(const VkImageAspectFlags& flags) const
 {
 	if(mipLevels > 1)
 	{
 		UNIMPLEMENTED();
 	}
 
-	return arrayLayers * extent.depth * slicePitchBytes();
+	int slicePitchB = 0;
+	if(sw::Surface::isDepth(format) && sw::Surface::isStencil(format))
+	{
+		switch(flags)
+		{
+		case VK_IMAGE_ASPECT_DEPTH_BIT:
+		case VK_IMAGE_ASPECT_STENCIL_BIT:
+			slicePitchB = slicePitchBytes(flags);
+			break;
+		default:
+			// Allow allocating both depth and stencil contiguously
+			slicePitchB = (slicePitchBytes(VK_IMAGE_ASPECT_DEPTH_BIT) + slicePitchBytes(VK_IMAGE_ASPECT_STENCIL_BIT));
+			break;
+		}
+	}
+	else
+	{
+		slicePitchB = slicePitchBytes(flags);
+	}
+
+	return arrayLayers * extent.depth * slicePitchB;
 }
 
 void Image::clear(const VkClearValue& clearValue, const VkRect2D& renderArea, const VkImageSubresourceRange& subresourceRange)
 {
-	if((subresourceRange.aspectMask != VK_IMAGE_ASPECT_COLOR_BIT) ||
+	if(!((subresourceRange.aspectMask == VK_IMAGE_ASPECT_COLOR_BIT) ||
+		 (subresourceRange.aspectMask == VK_IMAGE_ASPECT_DEPTH_BIT) ||
+		 (subresourceRange.aspectMask == VK_IMAGE_ASPECT_STENCIL_BIT)) ||
 	   (subresourceRange.baseMipLevel != 0) ||
 	   (subresourceRange.levelCount != 1) ||
 	   (subresourceRange.baseArrayLayer != 0) ||
@@ -266,8 +332,9 @@ void Image::clear(const VkClearValue& clearValue, const VkRect2D& renderArea, co
 	                    renderArea.offset.y + renderArea.extent.height);
 	const sw::SliceRect dRect(rect);
 
-	sw::Surface* surface = sw::Surface::create(extent.width, extent.height, extent.depth, format,
-		deviceMemory->getOffsetPointer(memoryOffset), rowPitchBytes(), slicePitchBytes());
+	sw::Surface* surface = sw::Surface::create(extent.width, extent.height, extent.depth,
+		getFormat(subresourceRange.aspectMask), deviceMemory->getOffsetPointer(memoryOffset),
+		rowPitchBytes(subresourceRange.aspectMask), slicePitchBytes(subresourceRange.aspectMask));
 	sw::Blitter blitter;
 	blitter.clear((void*)clearValue.color.float32, clearFormat, surface, dRect, 0xF);
 	delete surface;

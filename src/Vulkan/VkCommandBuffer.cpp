@@ -134,7 +134,7 @@ struct Draw : public CommandBuffer::Command
 		{
 			const auto& vertexInput = executionState.vertexInputBindings[i];
 			Buffer* buffer = Cast(vertexInput.buffer);
-			context.input[i].buffer = buffer ? buffer->map(vertexInput.offset) : nullptr;
+			context.input[i].buffer = buffer ? buffer->getOffsetPointer(vertexInput.offset) : nullptr;
 		}
 
 		executionState.renderer->setContext(context);
