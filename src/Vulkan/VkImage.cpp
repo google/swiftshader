@@ -94,25 +94,31 @@ void Image::copyTo(VkImage dstImage, const VkImageCopy& pRegion)
 
 	bool isSinglePlane = (pRegion.extent.depth == 1);
 	bool isSingleLine  = (pRegion.extent.height == 1) && isSinglePlane;
+	// In order to copy multiple lines using a single memcpy call, we
+	// have to make sure that we need to copy the entire line and that
+	// both source and destination lines have the same length in bytes
 	bool isEntireLine  = (pRegion.extent.width == extent.width) &&
 	                     (pRegion.extent.width == dst->extent.width) &&
 	                     (srcRowPitchBytes == dstRowPitchBytes);
+	// In order to copy multiple planes using a single memcpy call, we
+	// have to make sure that we need to copy the entire plane and that
+	// both source and destination planes have the same length in bytes
 	bool isEntirePlane = isEntireLine &&
 	                     (pRegion.extent.height == extent.height) &&
 	                     (pRegion.extent.height == dst->extent.height) &&
 	                     (srcSlicePitchBytes == dstSlicePitchBytes);
 
-	if(isSingleLine)
+	if(isSingleLine) // Copy one line
 	{
-		memcpy(dstMem, srcMem, pRegion.extent.width * srcBytesPerTexel); // Copy one line
+		memcpy(dstMem, srcMem, pRegion.extent.width * srcBytesPerTexel);
 	}
-	else if(isEntireLine && isSinglePlane)
+	else if(isEntireLine && isSinglePlane) // Copy one plane
 	{
-		memcpy(dstMem, srcMem, pRegion.extent.height * srcRowPitchBytes); // Copy one plane
+		memcpy(dstMem, srcMem, pRegion.extent.height * srcRowPitchBytes);
 	}
-	else if(isEntirePlane)
+	else if(isEntirePlane) // Copy multiple planes
 	{
-		memcpy(dstMem, srcMem, pRegion.extent.depth * srcSlicePitchBytes); // Copy multiple planes
+		memcpy(dstMem, srcMem, pRegion.extent.depth * srcSlicePitchBytes);
 	}
 	else if(isEntireLine) // Copy plane by plane
 	{
@@ -135,34 +141,94 @@ void Image::copyTo(VkImage dstImage, const VkImageCopy& pRegion)
 
 void Image::copy(VkBuffer buffer, const VkBufferImageCopy& region, bool bufferIsSource)
 {
-	if((region.imageExtent.width != extent.width) ||
-	   (region.imageExtent.height != extent.height) ||
-	   (region.imageExtent.depth != extent.depth) ||
-	   !((region.imageSubresource.aspectMask == VK_IMAGE_ASPECT_COLOR_BIT) ||
+	if(!((region.imageSubresource.aspectMask == VK_IMAGE_ASPECT_COLOR_BIT) ||
 	     (region.imageSubresource.aspectMask == VK_IMAGE_ASPECT_DEPTH_BIT) ||
 	     (region.imageSubresource.aspectMask == VK_IMAGE_ASPECT_STENCIL_BIT)) ||
-	   (region.imageSubresource.mipLevel != 0) ||
-	   (region.imageOffset.x != 0) ||
-	   (region.imageOffset.y != 0) ||
-	   (region.imageOffset.z != 0) ||
-	   (region.bufferRowLength != extent.width) ||
-	   (region.bufferImageHeight != extent.height))
+	   (region.imageSubresource.mipLevel != 0))
 	{
 		UNIMPLEMENTED();
 	}
 
-	VkDeviceSize copySize = slicePitchBytes(region.imageSubresource.aspectMask) * region.imageExtent.depth;
+	int imageBytesPerTexel = bytesPerTexel(region.imageSubresource.aspectMask);
+	int imageRowPitchBytes = rowPitchBytes(region.imageSubresource.aspectMask);
+	int imageSlicePitchBytes = slicePitchBytes(region.imageSubresource.aspectMask);
+	int bufferRowPitchBytes = ((region.bufferRowLength == 0) ? region.imageExtent.width : region.bufferRowLength) *
+	                          imageBytesPerTexel;
+	int bufferSlicePitchBytes = (((region.bufferImageHeight == 0) || (region.bufferRowLength == 0)) ?
+                                region.imageExtent.height : (region.bufferImageHeight * region.bufferRowLength)) *
+	                            imageBytesPerTexel;
+
+	int srcSlicePitchBytes = bufferIsSource ? bufferSlicePitchBytes : imageSlicePitchBytes;
+	int dstSlicePitchBytes = bufferIsSource ? imageSlicePitchBytes : bufferSlicePitchBytes;
+	int srcRowPitchBytes = bufferIsSource ? bufferRowPitchBytes : imageRowPitchBytes;
+	int dstRowPitchBytes = bufferIsSource ? imageRowPitchBytes : bufferRowPitchBytes;
+
+	bool isSinglePlane = (region.imageExtent.depth == 1);
+	bool isSingleLine  = (region.imageExtent.height == 1) && isSinglePlane;
+	bool isEntireLine  = (region.imageExtent.width == extent.width) &&
+	                     (imageRowPitchBytes == bufferRowPitchBytes);
+	bool isEntirePlane = isEntireLine && (region.imageExtent.height == extent.height) &&
+	                     (imageSlicePitchBytes == bufferSlicePitchBytes);
+
 	VkDeviceSize layerSize = slicePitchBytes(region.imageSubresource.aspectMask) * extent.depth;
 	char* bufferMemory = static_cast<char*>(Cast(buffer)->getOffsetPointer(region.bufferOffset));
-	char* imageMemory = static_cast<char*>(deviceMemory->getOffsetPointer(getMemoryOffset(region.imageSubresource.aspectMask)));
+	char* imageMemory = static_cast<char*>(deviceMemory->getOffsetPointer(getMemoryOffset(region.imageSubresource.aspectMask) +
+	                    texelOffsetBytesInStorage(region.imageOffset, region.imageSubresource.baseArrayLayer, region.imageSubresource.aspectMask)));
 	char* srcMemory = bufferIsSource ? bufferMemory : imageMemory;
 	char* dstMemory = bufferIsSource ? imageMemory : bufferMemory;
+
+	VkDeviceSize copySize = 0;
+	if(isSingleLine)
+	{
+		copySize = region.imageExtent.width * imageBytesPerTexel;
+	}
+	else if(isEntireLine && isSinglePlane)
+	{
+		copySize = region.imageExtent.height * imageRowPitchBytes;
+	}
+	else if(isEntirePlane)
+	{
+		copySize = region.imageExtent.depth * imageSlicePitchBytes; // Copy multiple planes
+	}
+	else if(isEntireLine) // Copy plane by plane
+	{
+		copySize = region.imageExtent.height * imageRowPitchBytes;
+	}
+	else // Copy line by line
+	{
+		copySize = region.imageExtent.width * imageBytesPerTexel;
+	}
 
 	uint32_t firstLayer = region.imageSubresource.baseArrayLayer;
 	uint32_t lastLayer = firstLayer + region.imageSubresource.layerCount - 1;
 	for(uint32_t layer = firstLayer; layer <= lastLayer; layer++)
 	{
-		memcpy(dstMemory, srcMemory, copySize);
+		if(isSingleLine || (isEntireLine && isSinglePlane) || isEntirePlane)
+		{
+			memcpy(dstMemory, srcMemory, copySize);
+		}
+		else if(isEntireLine) // Copy plane by plane
+		{
+			for(uint32_t z = 0; z < region.imageExtent.depth; z++)
+			{
+				memcpy(dstMemory, srcMemory, copySize);
+				srcMemory += srcSlicePitchBytes;
+				dstMemory += dstSlicePitchBytes;
+			}
+		}
+		else // Copy line by line
+		{
+			for(uint32_t z = 0; z < region.imageExtent.depth; z++)
+			{
+				for(uint32_t y = 0; y < region.imageExtent.height; y++)
+				{
+					memcpy(dstMemory, srcMemory, copySize);
+					srcMemory += srcRowPitchBytes;
+					dstMemory += dstRowPitchBytes;
+				}
+			}
+		}
+
 		srcMemory += layerSize;
 		dstMemory += layerSize;
 	}
