@@ -166,6 +166,24 @@ private:
 	const VkImageCopy region;
 };
 
+struct BufferToBufferCopy : public CommandBuffer::Command
+{
+	BufferToBufferCopy(VkBuffer pSrcBuffer, VkBuffer pDstBuffer, const VkBufferCopy& pRegion) :
+		srcBuffer(pSrcBuffer), dstBuffer(pDstBuffer), region(pRegion)
+	{
+	}
+
+	void play(CommandBuffer::ExecutionState& executionState)
+	{
+		Cast(srcBuffer)->copyTo(Cast(dstBuffer), region);
+	}
+
+private:
+	VkBuffer srcBuffer;
+	VkBuffer dstBuffer;
+	const VkBufferCopy region;
+};
+
 struct ImageToBufferCopy : public CommandBuffer::Command
 {
 	ImageToBufferCopy(VkImage pSrcImage, VkBuffer pDstBuffer, const VkBufferImageCopy& pRegion) :
@@ -486,7 +504,12 @@ void CommandBuffer::dispatchIndirect(VkBuffer buffer, VkDeviceSize offset)
 
 void CommandBuffer::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, uint32_t regionCount, const VkBufferCopy* pRegions)
 {
-	UNIMPLEMENTED();
+	ASSERT(state == RECORDING);
+
+	for(uint32_t i = 0; i < regionCount; i++)
+	{
+		commands->push_back(std::make_unique<BufferToBufferCopy>(srcBuffer, dstBuffer, pRegions[i]));
+	}
 }
 
 void CommandBuffer::copyImage(VkImage srcImage, VkImageLayout srcImageLayout, VkImage dstImage, VkImageLayout dstImageLayout,
