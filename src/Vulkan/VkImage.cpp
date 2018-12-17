@@ -368,6 +368,54 @@ VkDeviceSize Image::getStorageSize(const VkImageAspectFlags& flags) const
 	return arrayLayers * extent.depth * slicePitchB;
 }
 
+sw::Surface* Image::asSurface(const VkImageAspectFlags& flags) const
+{
+	return sw::Surface::create(extent.width, extent.height, extent.depth, getFormat(flags),
+	                           deviceMemory->getOffsetPointer(memoryOffset),
+	                           rowPitchBytes(flags), slicePitchBytes(flags));
+}
+
+void Image::blit(VkImage dstImage, const VkImageBlit& region, VkFilter filter)
+{
+	VkImageAspectFlags srcFlags = region.srcSubresource.aspectMask;
+	VkImageAspectFlags dstFlags = region.dstSubresource.aspectMask;
+	if((region.srcSubresource.baseArrayLayer != 0) ||
+	   (region.dstSubresource.baseArrayLayer != 0) ||
+	   (region.srcSubresource.layerCount != 1) ||
+	   (region.dstSubresource.layerCount != 1) ||
+	   (region.srcSubresource.mipLevel != 0) ||
+	   (region.dstSubresource.mipLevel != 0) ||
+	   (srcFlags != dstFlags))
+	{
+		UNIMPLEMENTED();
+	}
+
+	int32_t numSlices = (region.srcOffsets[1].z - region.srcOffsets[0].z);
+	ASSERT(numSlices == (region.dstOffsets[1].z - region.dstOffsets[0].z));
+
+	sw::Surface* srcSurface = asSurface(srcFlags);
+	sw::Surface* dstSurface = Cast(dstImage)->asSurface(dstFlags);
+
+	sw::SliceRectF sRect(static_cast<float>(region.srcOffsets[0].x), static_cast<float>(region.srcOffsets[0].y),
+	                     static_cast<float>(region.srcOffsets[1].x), static_cast<float>(region.srcOffsets[1].y),
+	                     region.srcOffsets[0].z);
+
+	sw::SliceRect dRect(region.dstOffsets[0].x, region.dstOffsets[0].y,
+	                    region.dstOffsets[1].x, region.dstOffsets[1].y, region.dstOffsets[0].z);
+
+	sw::Blitter blitter;
+	for(int i = 0; i < numSlices; i++)
+	{
+		blitter.blit(srcSurface, sRect, dstSurface, dRect,
+		             {filter != VK_FILTER_NEAREST, srcFlags == VK_IMAGE_ASPECT_STENCIL_BIT, false});
+		sRect.slice++;
+		dRect.slice++;
+	}
+
+	delete srcSurface;
+	delete dstSurface;
+}
+
 void Image::clear(const VkClearValue& clearValue, const VkRect2D& renderArea, const VkImageSubresourceRange& subresourceRange)
 {
 	if(!((subresourceRange.aspectMask == VK_IMAGE_ASPECT_COLOR_BIT) ||
@@ -398,9 +446,7 @@ void Image::clear(const VkClearValue& clearValue, const VkRect2D& renderArea, co
 	                    renderArea.offset.y + renderArea.extent.height);
 	const sw::SliceRect dRect(rect);
 
-	sw::Surface* surface = sw::Surface::create(extent.width, extent.height, extent.depth,
-		getFormat(subresourceRange.aspectMask), deviceMemory->getOffsetPointer(memoryOffset),
-		rowPitchBytes(subresourceRange.aspectMask), slicePitchBytes(subresourceRange.aspectMask));
+	sw::Surface* surface = asSurface(subresourceRange.aspectMask);
 	sw::Blitter blitter;
 	blitter.clear((void*)clearValue.color.float32, clearFormat, surface, dRect, 0xF);
 	delete surface;

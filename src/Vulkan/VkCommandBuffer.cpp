@@ -220,6 +220,25 @@ private:
 	const VkBufferImageCopy region;
 };
 
+struct BlitImage : public CommandBuffer::Command
+{
+	BlitImage(VkImage srcImage, VkImage dstImage, const VkImageBlit& region, VkFilter filter) :
+		srcImage(srcImage), dstImage(dstImage), region(region), filter(filter)
+	{
+	}
+
+	void play(CommandBuffer::ExecutionState& executionState)
+	{
+		Cast(srcImage)->blit(dstImage, region, filter);
+	}
+
+private:
+	VkImage srcImage;
+	VkImage dstImage;
+	const VkImageBlit& region;
+	VkFilter filter;
+};
+
 struct PipelineBarrier : public CommandBuffer::Command
 {
 	PipelineBarrier()
@@ -530,7 +549,16 @@ void CommandBuffer::copyImage(VkImage srcImage, VkImageLayout srcImageLayout, Vk
 void CommandBuffer::blitImage(VkImage srcImage, VkImageLayout srcImageLayout, VkImage dstImage, VkImageLayout dstImageLayout,
 	uint32_t regionCount, const VkImageBlit* pRegions, VkFilter filter)
 {
-	UNIMPLEMENTED();
+	ASSERT(state == RECORDING);
+	ASSERT(srcImageLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL ||
+	       srcImageLayout == VK_IMAGE_LAYOUT_GENERAL);
+	ASSERT(dstImageLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL ||
+	       dstImageLayout == VK_IMAGE_LAYOUT_GENERAL);
+
+	for(uint32_t i = 0; i < regionCount; i++)
+	{
+		commands->push_back(std::make_unique<BlitImage>(srcImage, dstImage, pRegions[i], filter));
+	}
 }
 
 void CommandBuffer::copyBufferToImage(VkBuffer srcBuffer, VkImage dstImage, VkImageLayout dstImageLayout,

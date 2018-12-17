@@ -42,6 +42,7 @@ public:
 	void copyTo(VkBuffer dstBuffer, const VkBufferImageCopy& region);
 	void copyFrom(VkBuffer srcBuffer, const VkBufferImageCopy& region);
 
+	void blit(VkImage dstImage, const VkImageBlit& region, VkFilter filter);
 	void clear(const VkClearValue& clearValue, const VkRect2D& renderArea, const VkImageSubresourceRange& subresourceRange);
 
 	VkImageType              getImageType() const { return imageType; }
@@ -58,6 +59,7 @@ private:
 	int bytesPerTexel(const VkImageAspectFlags& flags) const;
 	VkFormat getFormat(const VkImageAspectFlags& flags) const;
 	int getBorder() const;
+	sw::Surface* asSurface(const VkImageAspectFlags& flags) const;
 
 	DeviceMemory*            deviceMemory = nullptr;
 	VkDeviceSize             memoryOffset = 0;
