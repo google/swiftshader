@@ -14,6 +14,7 @@
 
 import("//build/config/c++/c++.gni")
 import("//build/config/compiler/compiler.gni")
+import("//build/config/mips.gni")
 
 config("swiftshader_config") {
   defines = []
@@ -99,11 +100,19 @@ config("swiftshader_config") {
     } else if (target_cpu == "mipsel" && current_cpu == target_cpu) {
       cflags += [
         "-march=mipsel",
-        "-mcpu=mips32r2",
         "-fPIC",
         "-mhard-float",
         "-mfp32",
       ]
+      if (mips_arch_variant == "r1") {
+        cflags += [
+          "-mcpu=mips32",
+        ]
+      } else {
+        cflags += [
+          "-mcpu=mips32r2",
+        ]
+      }
     } else if (target_cpu == "mips64el" && current_cpu == target_cpu) {
       cflags += [
         "-march=mips64el",
@@ -119,8 +128,16 @@ config("swiftshader_config") {
       if (target_cpu == "mipsel") {
         ldflags += [
           "-Wl,--hash-style=sysv",
-          "-mips32r2",
         ]
+        if (mips_arch_variant == "r1") {
+          ldflags += [
+            "-mips32",
+          ]
+        } else {
+          ldflags += [
+            "-mips32r2",
+          ]
+        }
       } else if (target_cpu == "mips64el") {
         ldflags += [
           "-Wl,--hash-style=sysv",
