@@ -324,6 +324,12 @@ namespace sw
 			c.y = Float(Int((*Pointer<UShort>(element) & UShort(0x07E0)) >> UShort(5)));
 			c.z = Float(Int(*Pointer<UShort>(element) & UShort(0x001F)));
 			break;
+		case VK_FORMAT_A1R5G5B5_UNORM_PACK16:
+			c.w = Float(Int((*Pointer<UShort>(element) & UShort(0x8000)) >> UShort(15)));
+			c.x = Float(Int((*Pointer<UShort>(element) & UShort(0x7C00)) >> UShort(10)));
+			c.y = Float(Int((*Pointer<UShort>(element) & UShort(0x03E0)) >> UShort(5)));
+			c.z = Float(Int(*Pointer<UShort>(element) & UShort(0x001F)));
+			break;
 		case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
 		case VK_FORMAT_A2B10G10R10_UINT_PACK32:
 			c.x = Float(Int((*Pointer<UInt>(element) & UInt(0x000003FF))));
@@ -574,6 +580,28 @@ namespace sw
 				                            (UShort(RoundInt(Float(c.z)) |
 				                                   (RoundInt(Float(c.y)) << Int(5)) |
 				                                   (RoundInt(Float(c.x)) << Int(11))) & UShort(mask));
+			}
+			break;
+		case VK_FORMAT_A1R5G5B5_UNORM_PACK16:
+			if(writeRGBA)
+			{
+				*Pointer<UShort>(element) = UShort(RoundInt(Float(c.z)) |
+				                                  (RoundInt(Float(c.y)) << Int(5)) |
+				                                  (RoundInt(Float(c.x)) << Int(10)) |
+				                                  (RoundInt(Float(c.w)) << Int(15)));
+			}
+			else
+			{
+				unsigned short mask = (writeA ? 0x8000 : 0x0000) |
+				                      (writeR ? 0x7C00 : 0x0000) |
+				                      (writeG ? 0x03E0 : 0x0000) |
+				                      (writeB ? 0x001F : 0x0000);
+				unsigned short unmask = ~mask;
+				*Pointer<UShort>(element) = (*Pointer<UShort>(element) & UShort(unmask)) |
+				                            (UShort(RoundInt(Float(c.z)) |
+				                                   (RoundInt(Float(c.y)) << Int(5)) |
+				                                   (RoundInt(Float(c.x)) << Int(10)) |
+				                                   (RoundInt(Float(c.w)) << Int(15))) & UShort(mask));
 			}
 			break;
 		case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
@@ -843,6 +871,9 @@ namespace sw
 		case VK_FORMAT_R32_SFLOAT:
 		case VK_FORMAT_A2B10G10R10_UINT_PACK32:
 			scale = vector(1.0f, 1.0f, 1.0f, 1.0f);
+			break;
+		case VK_FORMAT_A1R5G5B5_UNORM_PACK16:
+			scale = vector(0x1F, 0x1F, 0x1F, 0x01);
 			break;
 		case VK_FORMAT_R5G6B5_UNORM_PACK16:
 			scale = vector(0x1F, 0x3F, 0x1F, 1.0f);
