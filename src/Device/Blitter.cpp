@@ -319,6 +319,15 @@ namespace sw
 		case VK_FORMAT_R32_SFLOAT:
 			c.x = *Pointer<Float>(element);
 			break;
+		case VK_FORMAT_R16G16B16A16_SFLOAT:
+			c.w = Float(*Pointer<Half>(element + 6));
+		case VK_FORMAT_R16G16B16_SFLOAT:
+			c.z = Float(*Pointer<Half>(element + 4));
+		case VK_FORMAT_R16G16_SFLOAT:
+			c.y = Float(*Pointer<Half>(element + 2));
+		case VK_FORMAT_R16_SFLOAT:
+			c.x = Float(*Pointer<Half>(element));
+			break;
 		case VK_FORMAT_R5G6B5_UNORM_PACK16:
 			c.x = Float(Int((*Pointer<UShort>(element) & UShort(0xF800)) >> UShort(11)));
 			c.y = Float(Int((*Pointer<UShort>(element) & UShort(0x07E0)) >> UShort(5)));
@@ -448,6 +457,15 @@ namespace sw
 			break;
 		case VK_FORMAT_R32_SFLOAT:
 			if(writeR) { *Pointer<Float>(element) = c.x; }
+			break;
+		case VK_FORMAT_R16G16B16A16_SFLOAT:
+			if(writeA) { *Pointer<Half>(element + 6) = Half(c.w); }
+		case VK_FORMAT_R16G16B16_SFLOAT:
+			if(writeB) { *Pointer<Half>(element + 4) = Half(c.z); }
+		case VK_FORMAT_R16G16_SFLOAT:
+			if(writeG) { *Pointer<Half>(element + 2) = Half(c.y); }
+		case VK_FORMAT_R16_SFLOAT:
+			if(writeR) { *Pointer<Half>(element) = Half(c.x); }
 			break;
 		case VK_FORMAT_A8B8G8R8_SINT_PACK32:
 		case VK_FORMAT_R8G8B8A8_SINT:
@@ -869,6 +887,10 @@ namespace sw
 		case VK_FORMAT_R32G32B32A32_SFLOAT:
 		case VK_FORMAT_R32G32_SFLOAT:
 		case VK_FORMAT_R32_SFLOAT:
+		case VK_FORMAT_R16G16B16A16_SFLOAT:
+		case VK_FORMAT_R16G16B16_SFLOAT:
+		case VK_FORMAT_R16G16_SFLOAT:
+		case VK_FORMAT_R16_SFLOAT:
 		case VK_FORMAT_A2B10G10R10_UINT_PACK32:
 			scale = vector(1.0f, 1.0f, 1.0f, 1.0f);
 			break;
