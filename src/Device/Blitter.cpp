@@ -328,6 +328,38 @@ namespace sw
 		case VK_FORMAT_R16_SFLOAT:
 			c.x = Float(*Pointer<Half>(element));
 			break;
+		case VK_FORMAT_B10G11R11_UFLOAT_PACK32:
+			// 10 (or 11) bit float formats are unsigned formats with a 5 bit exponent and a 5 (or 6) bit mantissa.
+			// Since the Half float format also has a 5 bit exponent, we can convert these formats to half by
+			// copy/pasting the bits so the the exponent bits and top mantissa bits are aligned to the half format.
+			// In this case, we have:
+			//              B B B B B B B B B B G G G G G G G G G G G R R R R R R R R R R R
+			// 1st Short:                                  |xxxxxxxxxx---------------------|
+			// 2nd Short:                  |xxxx---------------------xxxxxx|
+			// 3rd Short: |--------------------xxxxxxxxxxxx|
+			// These memory reads overlap, but each of them contains an entire channel, so we can read this without
+			// any int -> short conversion.
+			c.x = Float(As<Half>((*Pointer<UShort>(element + 0) & UShort(0x07FF)) << UShort(4)));
+			c.y = Float(As<Half>((*Pointer<UShort>(element + 1) & UShort(0x3FF8)) << UShort(1)));
+			c.z = Float(As<Half>((*Pointer<UShort>(element + 2) & UShort(0xFFC0)) >> UShort(1)));
+			break;
+		case VK_FORMAT_E5B9G9R9_UFLOAT_PACK32:
+			// This type contains a common 5 bit exponent (E) and a 9 bit the mantissa for R, G and B.
+			c.x = Float(*Pointer<UInt>(element) & UInt(0x000001FF));         // R's mantissa (bits 0-8)
+			c.y = Float((*Pointer<UInt>(element) & UInt(0x0003FE00)) >> 9);  // G's mantissa (bits 9-17)
+			c.z = Float((*Pointer<UInt>(element) & UInt(0x07FC0000)) >> 18); // B's mantissa (bits 18-26)
+			c *= Float4(
+				// 2^E, using the exponent (bits 27-31) and treating it as an unsigned integer value
+				Float(UInt(1) << ((*Pointer<UInt>(element) & UInt(0xF8000000)) >> 27)) *
+				// Since the 9 bit mantissa values currently stored in RGB were converted straight
+				// from int to float (in the [0, 1<<9] range instead of the [0, 1] range), they
+				// are (1 << 9) times too high.
+				// Also, the exponent has 5 bits and we compute the exponent bias of floating point
+				// formats using "2^(k-1) - 1", so, in this case, the exponent bias is 2^(5-1)-1 = 15
+				// Exponent bias (15) + number of mantissa bits per component (9) = 24
+				Float(1.0f / (1 << 24)));
+			c.w = 1.0f;
+			break;
 		case VK_FORMAT_R5G6B5_UNORM_PACK16:
 			c.x = Float(Int((*Pointer<UShort>(element) & UShort(0xF800)) >> UShort(11)));
 			c.y = Float(Int((*Pointer<UShort>(element) & UShort(0x07E0)) >> UShort(5)));
@@ -891,6 +923,8 @@ namespace sw
 		case VK_FORMAT_R16G16B16_SFLOAT:
 		case VK_FORMAT_R16G16_SFLOAT:
 		case VK_FORMAT_R16_SFLOAT:
+		case VK_FORMAT_B10G11R11_UFLOAT_PACK32:
+		case VK_FORMAT_E5B9G9R9_UFLOAT_PACK32:
 		case VK_FORMAT_A2B10G10R10_UINT_PACK32:
 			scale = vector(1.0f, 1.0f, 1.0f, 1.0f);
 			break;
