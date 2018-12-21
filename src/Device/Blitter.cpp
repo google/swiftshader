@@ -771,6 +771,37 @@ namespace sw
 
 		switch(state.destFormat)
 		{
+		case VK_FORMAT_A2B10G10R10_UINT_PACK32:
+			c = Min(As<UInt4>(c), UInt4(0x03FF, 0x03FF, 0x03FF, 0x0003));
+			break;
+		case VK_FORMAT_A8B8G8R8_UINT_PACK32:
+		case VK_FORMAT_R8G8B8A8_UINT:
+		case VK_FORMAT_R8G8_UINT:
+		case VK_FORMAT_R8_UINT:
+			c = Min(As<UInt4>(c), UInt4(0xFF));
+			break;
+		case VK_FORMAT_R16G16B16A16_UINT:
+		case VK_FORMAT_R16G16_UINT:
+		case VK_FORMAT_R16_UINT:
+			c = Min(As<UInt4>(c), UInt4(0xFFFF));
+			break;
+		case VK_FORMAT_A8B8G8R8_SINT_PACK32:
+		case VK_FORMAT_R8G8B8A8_SINT:
+		case VK_FORMAT_R8G8_SINT:
+		case VK_FORMAT_R8_SINT:
+			c = Min(Max(c, Int4(-0x80)), Int4(0x7F));
+			break;
+		case VK_FORMAT_R16G16B16A16_SINT:
+		case VK_FORMAT_R16G16_SINT:
+		case VK_FORMAT_R16_SINT:
+			c = Min(Max(c, Int4(-0x8000)), Int4(0x7FFF));
+			break;
+		default:
+			break;
+		}
+
+		switch(state.destFormat)
+		{
 		case VK_FORMAT_A8B8G8R8_SINT_PACK32:
 		case VK_FORMAT_R8G8B8A8_SINT:
 			if(writeA) { *Pointer<SByte>(element + 3) = SByte(Extract(c, 3)); }
