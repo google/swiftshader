@@ -1809,37 +1809,37 @@ namespace sw
 	{
 		switch(control)
 		{
-		case Shader::CONTROL_GT:
+		case CONTROL_GT:
 			dst.x = As<Float4>(CmpNLE(src0.x, src1.x));
 			dst.y = As<Float4>(CmpNLE(src0.y, src1.y));
 			dst.z = As<Float4>(CmpNLE(src0.z, src1.z));
 			dst.w = As<Float4>(CmpNLE(src0.w, src1.w));
 			break;
-		case Shader::CONTROL_EQ:
+		case CONTROL_EQ:
 			dst.x = As<Float4>(CmpEQ(src0.x, src1.x));
 			dst.y = As<Float4>(CmpEQ(src0.y, src1.y));
 			dst.z = As<Float4>(CmpEQ(src0.z, src1.z));
 			dst.w = As<Float4>(CmpEQ(src0.w, src1.w));
 			break;
-		case Shader::CONTROL_GE:
+		case CONTROL_GE:
 			dst.x = As<Float4>(CmpNLT(src0.x, src1.x));
 			dst.y = As<Float4>(CmpNLT(src0.y, src1.y));
 			dst.z = As<Float4>(CmpNLT(src0.z, src1.z));
 			dst.w = As<Float4>(CmpNLT(src0.w, src1.w));
 			break;
-		case Shader::CONTROL_LT:
+		case CONTROL_LT:
 			dst.x = As<Float4>(CmpLT(src0.x, src1.x));
 			dst.y = As<Float4>(CmpLT(src0.y, src1.y));
 			dst.z = As<Float4>(CmpLT(src0.z, src1.z));
 			dst.w = As<Float4>(CmpLT(src0.w, src1.w));
 			break;
-		case Shader::CONTROL_NE:
+		case CONTROL_NE:
 			dst.x = As<Float4>(CmpNEQ(src0.x, src1.x));
 			dst.y = As<Float4>(CmpNEQ(src0.y, src1.y));
 			dst.z = As<Float4>(CmpNEQ(src0.z, src1.z));
 			dst.w = As<Float4>(CmpNEQ(src0.w, src1.w));
 			break;
-		case Shader::CONTROL_LE:
+		case CONTROL_LE:
 			dst.x = As<Float4>(CmpLE(src0.x, src1.x));
 			dst.y = As<Float4>(CmpLE(src0.y, src1.y));
 			dst.z = As<Float4>(CmpLE(src0.z, src1.z));
@@ -1854,37 +1854,37 @@ namespace sw
 	{
 		switch(control)
 		{
-		case Shader::CONTROL_GT:
+		case CONTROL_GT:
 			dst.x = As<Float4>(CmpNLE(As<Int4>(src0.x), As<Int4>(src1.x)));
 			dst.y = As<Float4>(CmpNLE(As<Int4>(src0.y), As<Int4>(src1.y)));
 			dst.z = As<Float4>(CmpNLE(As<Int4>(src0.z), As<Int4>(src1.z)));
 			dst.w = As<Float4>(CmpNLE(As<Int4>(src0.w), As<Int4>(src1.w)));
 			break;
-		case Shader::CONTROL_EQ:
+		case CONTROL_EQ:
 			dst.x = As<Float4>(CmpEQ(As<Int4>(src0.x), As<Int4>(src1.x)));
 			dst.y = As<Float4>(CmpEQ(As<Int4>(src0.y), As<Int4>(src1.y)));
 			dst.z = As<Float4>(CmpEQ(As<Int4>(src0.z), As<Int4>(src1.z)));
 			dst.w = As<Float4>(CmpEQ(As<Int4>(src0.w), As<Int4>(src1.w)));
 			break;
-		case Shader::CONTROL_GE:
+		case CONTROL_GE:
 			dst.x = As<Float4>(CmpNLT(As<Int4>(src0.x), As<Int4>(src1.x)));
 			dst.y = As<Float4>(CmpNLT(As<Int4>(src0.y), As<Int4>(src1.y)));
 			dst.z = As<Float4>(CmpNLT(As<Int4>(src0.z), As<Int4>(src1.z)));
 			dst.w = As<Float4>(CmpNLT(As<Int4>(src0.w), As<Int4>(src1.w)));
 			break;
-		case Shader::CONTROL_LT:
+		case CONTROL_LT:
 			dst.x = As<Float4>(CmpLT(As<Int4>(src0.x), As<Int4>(src1.x)));
 			dst.y = As<Float4>(CmpLT(As<Int4>(src0.y), As<Int4>(src1.y)));
 			dst.z = As<Float4>(CmpLT(As<Int4>(src0.z), As<Int4>(src1.z)));
 			dst.w = As<Float4>(CmpLT(As<Int4>(src0.w), As<Int4>(src1.w)));
 			break;
-		case Shader::CONTROL_NE:
+		case CONTROL_NE:
 			dst.x = As<Float4>(CmpNEQ(As<Int4>(src0.x), As<Int4>(src1.x)));
 			dst.y = As<Float4>(CmpNEQ(As<Int4>(src0.y), As<Int4>(src1.y)));
 			dst.z = As<Float4>(CmpNEQ(As<Int4>(src0.z), As<Int4>(src1.z)));
 			dst.w = As<Float4>(CmpNEQ(As<Int4>(src0.w), As<Int4>(src1.w)));
 			break;
-		case Shader::CONTROL_LE:
+		case CONTROL_LE:
 			dst.x = As<Float4>(CmpLE(As<Int4>(src0.x), As<Int4>(src1.x)));
 			dst.y = As<Float4>(CmpLE(As<Int4>(src0.y), As<Int4>(src1.y)));
 			dst.z = As<Float4>(CmpLE(As<Int4>(src0.z), As<Int4>(src1.z)));
@@ -1899,37 +1899,37 @@ namespace sw
 	{
 		switch(control)
 		{
-		case Shader::CONTROL_GT:
+		case CONTROL_GT:
 			dst.x = As<Float4>(CmpNLE(As<UInt4>(src0.x), As<UInt4>(src1.x)));
 			dst.y = As<Float4>(CmpNLE(As<UInt4>(src0.y), As<UInt4>(src1.y)));
 			dst.z = As<Float4>(CmpNLE(As<UInt4>(src0.z), As<UInt4>(src1.z)));
 			dst.w = As<Float4>(CmpNLE(As<UInt4>(src0.w), As<UInt4>(src1.w)));
 			break;
-		case Shader::CONTROL_EQ:
+		case CONTROL_EQ:
 			dst.x = As<Float4>(CmpEQ(As<UInt4>(src0.x), As<UInt4>(src1.x)));
 			dst.y = As<Float4>(CmpEQ(As<UInt4>(src0.y), As<UInt4>(src1.y)));
 			dst.z = As<Float4>(CmpEQ(As<UInt4>(src0.z), As<UInt4>(src1.z)));
 			dst.w = As<Float4>(CmpEQ(As<UInt4>(src0.w), As<UInt4>(src1.w)));
 			break;
-		case Shader::CONTROL_GE:
+		case CONTROL_GE:
 			dst.x = As<Float4>(CmpNLT(As<UInt4>(src0.x), As<UInt4>(src1.x)));
 			dst.y = As<Float4>(CmpNLT(As<UInt4>(src0.y), As<UInt4>(src1.y)));
 			dst.z = As<Float4>(CmpNLT(As<UInt4>(src0.z), As<UInt4>(src1.z)));
 			dst.w = As<Float4>(CmpNLT(As<UInt4>(src0.w), As<UInt4>(src1.w)));
 			break;
-		case Shader::CONTROL_LT:
+		case CONTROL_LT:
 			dst.x = As<Float4>(CmpLT(As<UInt4>(src0.x), As<UInt4>(src1.x)));
 			dst.y = As<Float4>(CmpLT(As<UInt4>(src0.y), As<UInt4>(src1.y)));
 			dst.z = As<Float4>(CmpLT(As<UInt4>(src0.z), As<UInt4>(src1.z)));
 			dst.w = As<Float4>(CmpLT(As<UInt4>(src0.w), As<UInt4>(src1.w)));
 			break;
-		case Shader::CONTROL_NE:
+		case CONTROL_NE:
 			dst.x = As<Float4>(CmpNEQ(As<UInt4>(src0.x), As<UInt4>(src1.x)));
 			dst.y = As<Float4>(CmpNEQ(As<UInt4>(src0.y), As<UInt4>(src1.y)));
 			dst.z = As<Float4>(CmpNEQ(As<UInt4>(src0.z), As<UInt4>(src1.z)));
 			dst.w = As<Float4>(CmpNEQ(As<UInt4>(src0.w), As<UInt4>(src1.w)));
 			break;
-		case Shader::CONTROL_LE:
+		case CONTROL_LE:
 			dst.x = As<Float4>(CmpLE(As<UInt4>(src0.x), As<UInt4>(src1.x)));
 			dst.y = As<Float4>(CmpLE(As<UInt4>(src0.y), As<UInt4>(src1.y)));
 			dst.z = As<Float4>(CmpLE(As<UInt4>(src0.z), As<UInt4>(src1.z)));

@@ -294,28 +294,14 @@ namespace sw
 		void setRasterizerDiscard(bool rasterizerDiscard);
 
 		// Programmable pipelines
-		void setPixelShader(const PixelShader *shader);
-		void setVertexShader(const VertexShader *shader);
-
-		void setPixelShaderConstantF(unsigned int index, const float value[4], unsigned int count = 1);
-		void setPixelShaderConstantI(unsigned int index, const int value[4], unsigned int count = 1);
-		void setPixelShaderConstantB(unsigned int index, const int *boolean, unsigned int count = 1);
-
-		void setVertexShaderConstantF(unsigned int index, const float value[4], unsigned int count = 1);
-		void setVertexShaderConstantI(unsigned int index, const int value[4], unsigned int count = 1);
-		void setVertexShaderConstantB(unsigned int index, const int *boolean, unsigned int count = 1);
+		void setPixelShader(const SpirvShader *shader);
+		void setVertexShader(const SpirvShader *shader);
 
 		// Viewport & Clipper
 		void setViewport(const VkViewport &viewport);
 		void setScissor(const Rect &scissor);
 		void setClipFlags(int flags);
 		void setClipPlane(unsigned int index, const float plane[4]);
-
-		// Partial transform
-		void setModelMatrix(const Matrix &M, int i = 0);
-		void setViewMatrix(const Matrix &V);
-		void setBaseMatrix(const Matrix &B);
-		void setProjectionMatrix(const Matrix &P);
 
 		void addQuery(Query *query);
 		void removeQuery(Query *query);
@@ -356,9 +342,6 @@ namespace sw
 		void updateConfiguration(bool initialUpdate = false);
 		void initializeThreads();
 		void terminateThreads();
-
-		void loadConstants(const VertexShader *vertexShader);
-		void loadConstants(const PixelShader *pixelShader);
 
 		Context *context;
 		Clipper *clipper;
@@ -459,15 +442,6 @@ namespace sw
 		Resource *texture[TOTAL_IMAGE_UNITS];
 		Resource* pUniformBuffers[MAX_UNIFORM_BUFFER_BINDINGS];
 		Resource* vUniformBuffers[MAX_UNIFORM_BUFFER_BINDINGS];
-		Resource* transformFeedbackBuffers[MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS];
-
-		unsigned int vsDirtyConstF;
-		unsigned int vsDirtyConstI;
-		unsigned int vsDirtyConstB;
-
-		unsigned int psDirtyConstF;
-		unsigned int psDirtyConstI;
-		unsigned int psDirtyConstB;
 
 		std::list<Query*> *queries;
 

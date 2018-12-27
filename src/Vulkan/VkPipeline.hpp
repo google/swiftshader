@@ -70,9 +70,6 @@ private:
 	sw::SpirvShader *vertexShader = nullptr;
 	sw::SpirvShader *fragmentShader = nullptr;
 
-	rr::Routine* vertexRoutine;
-	rr::Routine* fragmentRoutine;
-
 	sw::Context context;
 	sw::Rect scissor;
 	VkViewport viewport;

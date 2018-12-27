@@ -21,6 +21,7 @@
 #include "Pipeline/SetupRoutine.hpp"
 #include "Pipeline/Constants.hpp"
 #include "Vulkan/VkDebug.hpp"
+#include "Pipeline/SpirvShader.hpp"
 
 namespace sw
 {
@@ -73,7 +74,7 @@ namespace sw
 	{
 		State state;
 
-		bool vPosZW = (context->pixelShader && context->pixelShader->isVPosDeclared() && fullPixelPositionRegister);
+		bool vPosZW = (context->pixelShader && context->pixelShader->hasBuiltinInput(spv::BuiltInPosition));
 
 		state.isDrawPoint = context->isDrawPoint();
 		state.isDrawLine = context->isDrawLine();
@@ -84,7 +85,7 @@ namespace sw
 		state.cullMode = context->cullMode;
 		state.twoSidedStencil = context->stencilActive() && context->twoSidedStencil;
 		state.slopeDepthBias = context->slopeDepthBias != 0.0f;
-		state.vFace = context->pixelShader && context->pixelShader->isVFaceDeclared();
+		state.vFace = context->pixelShader && context->pixelShader->hasBuiltinInput(spv::BuiltInFrontFacing);
 
 		state.positionRegister = Pos;
 		state.pointSizeRegister = Unused;
@@ -92,8 +93,9 @@ namespace sw
 		state.multiSample = context->getMultiSampleCount();
 		state.rasterizerDiscard = context->rasterizerDiscard;
 
-		state.positionRegister = context->vertexShader->getPositionRegister();
-		state.pointSizeRegister = context->vertexShader->getPointSizeRegister();
+		//TODO: route properly
+		state.positionRegister = 0;//context->vertexShader->getPositionRegister();
+		state.pointSizeRegister = 1;//context->vertexShader->getPointSizeRegister();
 
 		for(int interpolant = 0; interpolant < MAX_FRAGMENT_INPUTS; interpolant++)
 		{
@@ -107,37 +109,37 @@ namespace sw
 
 		const bool point = context->isDrawPoint();
 
-		for(int interpolant = 0; interpolant < MAX_FRAGMENT_INPUTS; interpolant++)
-		{
-			for(int component = 0; component < 4; component++)
-			{
-				const Shader::Semantic& semantic = context->pixelShader->getInput(interpolant, component);
-
-				if(semantic.active())
-				{
-					int input = interpolant;
-					for(int i = 0; i < MAX_VERTEX_OUTPUTS; i++)
-					{
-						if(semantic == context->vertexShader->getOutput(i, component))
-						{
-							input = i;
-							break;
-						}
-					}
-
-					bool flat = point;
-
-					switch(semantic.usage)
-					{
-					case Shader::USAGE_TEXCOORD: flat = false;                  break;
-					case Shader::USAGE_COLOR:    flat = semantic.flat || point; break;
-					}
-
-					state.gradient[interpolant][component].attribute = input;
-					state.gradient[interpolant][component].flat = flat;
-				}
-			}
-		}
+//		for(int interpolant = 0; interpolant < MAX_FRAGMENT_INPUTS; interpolant++)
+//		{
+//			for(int component = 0; component < 4; component++)
+//			{
+//				const Shader::Semantic& semantic = context->pixelShader->getInput(interpolant, component);
+//
+//				if(semantic.active())
+//				{
+//					int input = interpolant;
+//					for(int i = 0; i < MAX_VERTEX_OUTPUTS; i++)
+//					{
+//						if(semantic == context->vertexShader->getOutput(i, component))
+//						{
+//							input = i;
+//							break;
+//						}
+//					}
+//
+//					bool flat = point;
+//
+//					switch(semantic.usage)
+//					{
+//					case Shader::USAGE_TEXCOORD: flat = false;                  break;
+//					case Shader::USAGE_COLOR:    flat = semantic.flat || point; break;
+//					}
+//
+//					state.gradient[interpolant][component].attribute = input;
+//					state.gradient[interpolant][component].flat = flat;
+//				}
+//			}
+//		}
 
 		state.hash = state.computeHash();
 

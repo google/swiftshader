@@ -30,6 +30,7 @@
 #include "System/Math.hpp"
 #include "System/Timer.hpp"
 #include "Vulkan/VkDebug.hpp"
+#include "Pipeline/SpirvShader.hpp"
 
 #undef max
 
@@ -42,7 +43,6 @@ unsigned int maxPrimitives = 1 << 21;
 
 namespace sw
 {
-	extern bool halfIntegerCoordinates;     // Pixel centers are not at integer coordinates
 	extern bool booleanFaceRegister;
 	extern bool fullPixelPositionRegister;
 	extern bool leadingVertexFirst;         // Flat shading uses first vertex, else last
@@ -77,7 +77,6 @@ namespace sw
 
 		if(!initialized)
 		{
-			sw::halfIntegerCoordinates = conventions.halfIntegerCoordinates;
 			sw::booleanFaceRegister = conventions.booleanFaceRegister;
 			sw::fullPixelPositionRegister = conventions.fullPixelPositionRegister;
 			sw::leadingVertexFirst = conventions.leadingVertexFirst;
@@ -97,14 +96,6 @@ namespace sw
 	DrawCall::DrawCall()
 	{
 		queries = 0;
-
-		vsDirtyConstF = VERTEX_UNIFORM_VECTORS + 1;
-		vsDirtyConstI = 16;
-		vsDirtyConstB = 16;
-
-		psDirtyConstF = FRAGMENT_UNIFORM_VECTORS;
-		psDirtyConstI = 16;
-		psDirtyConstB = 16;
 
 		references = -1;
 
@@ -294,14 +285,10 @@ namespace sw
 		if(queries.size() != 0)
 		{
 			draw->queries = new std::list<Query*>();
-			bool includePrimitivesWrittenQueries = vertexState.transformFeedbackQueryEnabled && vertexState.transformFeedbackEnabled;
 			for(auto &query : queries)
 			{
-				if(includePrimitivesWrittenQueries || (query->type != Query::TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN))
-				{
-					++query->reference; // Atomic
-					draw->queries->push_back(query);
-				}
+				++query->reference; // Atomic
+				draw->queries->push_back(query);
 			}
 		}
 
@@ -358,24 +345,6 @@ namespace sw
 
 		if(context->pixelShader)
 		{
-			if(draw->psDirtyConstF)
-			{
-				memcpy(&data->ps.c, PixelProcessor::c, sizeof(float4) * draw->psDirtyConstF);
-				draw->psDirtyConstF = 0;
-			}
-
-			if(draw->psDirtyConstI)
-			{
-				memcpy(&data->ps.i, PixelProcessor::i, sizeof(int4) * draw->psDirtyConstI);
-				draw->psDirtyConstI = 0;
-			}
-
-			if(draw->psDirtyConstB)
-			{
-				memcpy(&data->ps.b, PixelProcessor::b, sizeof(bool) * draw->psDirtyConstB);
-				draw->psDirtyConstB = 0;
-			}
-
 			PixelProcessor::lockUniformBuffers(data->ps.u, draw->pUniformBuffers);
 		}
 		else
@@ -397,31 +366,12 @@ namespace sw
 			}
 		}
 
-		if(draw->vsDirtyConstF)
-		{
-			memcpy(&data->vs.c, VertexProcessor::c, sizeof(float4) * draw->vsDirtyConstF);
-			draw->vsDirtyConstF = 0;
-		}
-
-		if(draw->vsDirtyConstI)
-		{
-			memcpy(&data->vs.i, VertexProcessor::i, sizeof(int4) * draw->vsDirtyConstI);
-			draw->vsDirtyConstI = 0;
-		}
-
-		if(draw->vsDirtyConstB)
-		{
-			memcpy(&data->vs.b, VertexProcessor::b, sizeof(bool) * draw->vsDirtyConstB);
-			draw->vsDirtyConstB = 0;
-		}
-
-		if(context->vertexShader->isInstanceIdDeclared())
+		if(context->vertexShader->hasBuiltinInput(spv::BuiltInInstanceId))
 		{
 			data->instanceID = context->instanceID;
 		}
 
 		VertexProcessor::lockUniformBuffers(data->vs.u, draw->vUniformBuffers);
-		VertexProcessor::lockTransformFeedbackBuffers(data->vs.t, data->vs.reg, data->vs.row, data->vs.col, data->vs.str, draw->transformFeedbackBuffers);
 
 		if(pixelState.stencilActive)
 		{
@@ -962,14 +912,6 @@ namespace sw
 					if(draw.vUniformBuffers[i])
 					{
 						draw.vUniformBuffers[i]->unlock();
-					}
-				}
-
-				for(int i = 0; i < MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS; i++)
-				{
-					if(draw.transformFeedbackBuffers[i])
-					{
-						draw.transformFeedbackBuffers[i]->unlock();
 					}
 				}
 
@@ -1723,92 +1665,6 @@ namespace sw
 		}
 	}
 
-	void Renderer::loadConstants(const VertexShader *vertexShader)
-	{
-		size_t count = vertexShader->getLength();
-
-		for(size_t i = 0; i < count; i++)
-		{
-			const Shader::Instruction *instruction = vertexShader->getInstruction(i);
-
-			if(instruction->opcode == Shader::OPCODE_DEF)
-			{
-				int index = instruction->dst.index;
-				float value[4];
-
-				value[0] = instruction->src[0].value[0];
-				value[1] = instruction->src[0].value[1];
-				value[2] = instruction->src[0].value[2];
-				value[3] = instruction->src[0].value[3];
-
-				setVertexShaderConstantF(index, value);
-			}
-			else if(instruction->opcode == Shader::OPCODE_DEFI)
-			{
-				int index = instruction->dst.index;
-				int integer[4];
-
-				integer[0] = instruction->src[0].integer[0];
-				integer[1] = instruction->src[0].integer[1];
-				integer[2] = instruction->src[0].integer[2];
-				integer[3] = instruction->src[0].integer[3];
-
-				setVertexShaderConstantI(index, integer);
-			}
-			else if(instruction->opcode == Shader::OPCODE_DEFB)
-			{
-				int index = instruction->dst.index;
-				int boolean = instruction->src[0].boolean[0];
-
-				setVertexShaderConstantB(index, &boolean);
-			}
-		}
-	}
-
-	void Renderer::loadConstants(const PixelShader *pixelShader)
-	{
-		if(!pixelShader) return;
-
-		size_t count = pixelShader->getLength();
-
-		for(size_t i = 0; i < count; i++)
-		{
-			const Shader::Instruction *instruction = pixelShader->getInstruction(i);
-
-			if(instruction->opcode == Shader::OPCODE_DEF)
-			{
-				int index = instruction->dst.index;
-				float value[4];
-
-				value[0] = instruction->src[0].value[0];
-				value[1] = instruction->src[0].value[1];
-				value[2] = instruction->src[0].value[2];
-				value[3] = instruction->src[0].value[3];
-
-				setPixelShaderConstantF(index, value);
-			}
-			else if(instruction->opcode == Shader::OPCODE_DEFI)
-			{
-				int index = instruction->dst.index;
-				int integer[4];
-
-				integer[0] = instruction->src[0].integer[0];
-				integer[1] = instruction->src[0].integer[1];
-				integer[2] = instruction->src[0].integer[2];
-				integer[3] = instruction->src[0].integer[3];
-
-				setPixelShaderConstantI(index, integer);
-			}
-			else if(instruction->opcode == Shader::OPCODE_DEFB)
-			{
-				int index = instruction->dst.index;
-				int boolean = instruction->src[0].boolean[0];
-
-				setPixelShaderConstantB(index, &boolean);
-			}
-		}
-	}
-
 	void Renderer::setIndexBuffer(Resource *indexBuffer)
 	{
 		context->indexBuffer = indexBuffer;
@@ -2131,120 +1987,14 @@ namespace sw
 		context->rasterizerDiscard = rasterizerDiscard;
 	}
 
-	void Renderer::setPixelShader(const PixelShader *shader)
+	void Renderer::setPixelShader(const SpirvShader *shader)
 	{
 		context->pixelShader = shader;
-
-		loadConstants(shader);
 	}
 
-	void Renderer::setVertexShader(const VertexShader *shader)
+	void Renderer::setVertexShader(const SpirvShader *shader)
 	{
 		context->vertexShader = shader;
-
-		loadConstants(shader);
-	}
-
-	void Renderer::setPixelShaderConstantF(unsigned int index, const float value[4], unsigned int count)
-	{
-		for(unsigned int i = 0; i < DRAW_COUNT; i++)
-		{
-			if(drawCall[i]->psDirtyConstF < index + count)
-			{
-				drawCall[i]->psDirtyConstF = index + count;
-			}
-		}
-
-		for(unsigned int i = 0; i < count; i++)
-		{
-			PixelProcessor::setFloatConstant(index + i, value);
-			value += 4;
-		}
-	}
-
-	void Renderer::setPixelShaderConstantI(unsigned int index, const int value[4], unsigned int count)
-	{
-		for(unsigned int i = 0; i < DRAW_COUNT; i++)
-		{
-			if(drawCall[i]->psDirtyConstI < index + count)
-			{
-				drawCall[i]->psDirtyConstI = index + count;
-			}
-		}
-
-		for(unsigned int i = 0; i < count; i++)
-		{
-			PixelProcessor::setIntegerConstant(index + i, value);
-			value += 4;
-		}
-	}
-
-	void Renderer::setPixelShaderConstantB(unsigned int index, const int *boolean, unsigned int count)
-	{
-		for(unsigned int i = 0; i < DRAW_COUNT; i++)
-		{
-			if(drawCall[i]->psDirtyConstB < index + count)
-			{
-				drawCall[i]->psDirtyConstB = index + count;
-			}
-		}
-
-		for(unsigned int i = 0; i < count; i++)
-		{
-			PixelProcessor::setBooleanConstant(index + i, *boolean);
-			boolean++;
-		}
-	}
-
-	void Renderer::setVertexShaderConstantF(unsigned int index, const float value[4], unsigned int count)
-	{
-		for(unsigned int i = 0; i < DRAW_COUNT; i++)
-		{
-			if(drawCall[i]->vsDirtyConstF < index + count)
-			{
-				drawCall[i]->vsDirtyConstF = index + count;
-			}
-		}
-
-		for(unsigned int i = 0; i < count; i++)
-		{
-			VertexProcessor::setFloatConstant(index + i, value);
-			value += 4;
-		}
-	}
-
-	void Renderer::setVertexShaderConstantI(unsigned int index, const int value[4], unsigned int count)
-	{
-		for(unsigned int i = 0; i < DRAW_COUNT; i++)
-		{
-			if(drawCall[i]->vsDirtyConstI < index + count)
-			{
-				drawCall[i]->vsDirtyConstI = index + count;
-			}
-		}
-
-		for(unsigned int i = 0; i < count; i++)
-		{
-			VertexProcessor::setIntegerConstant(index + i, value);
-			value += 4;
-		}
-	}
-
-	void Renderer::setVertexShaderConstantB(unsigned int index, const int *boolean, unsigned int count)
-	{
-		for(unsigned int i = 0; i < DRAW_COUNT; i++)
-		{
-			if(drawCall[i]->vsDirtyConstB < index + count)
-			{
-				drawCall[i]->vsDirtyConstB = index + count;
-			}
-		}
-
-		for(unsigned int i = 0; i < count; i++)
-		{
-			VertexProcessor::setBooleanConstant(index + i, *boolean);
-			boolean++;
-		}
 	}
 
 	void Renderer::addQuery(Query *query)

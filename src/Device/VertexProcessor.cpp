@@ -15,8 +15,6 @@
 #include "VertexProcessor.hpp"
 
 #include "Pipeline/VertexProgram.hpp"
-#include "Pipeline/VertexShader.hpp"
-#include "Pipeline/PixelShader.hpp"
 #include "Pipeline/Constants.hpp"
 #include "System/Math.hpp"
 #include "Vulkan/VkDebug.hpp"
@@ -61,16 +59,6 @@ namespace sw
 		}
 
 		return memcmp(static_cast<const States*>(this), static_cast<const States*>(&state), sizeof(States)) == 0;
-	}
-
-	VertexProcessor::TransformFeedbackInfo::TransformFeedbackInfo()
-	{
-		buffer = nullptr;
-		offset = 0;
-		reg = 0;
-		row = 0;
-		col = 0;
-		stride = 0;
 	}
 
 	VertexProcessor::UniformBufferInfo::UniformBufferInfo()
@@ -149,29 +137,6 @@ namespace sw
 		{
 			u[i] = uniformBufferInfo[i].buffer ? static_cast<byte*>(uniformBufferInfo[i].buffer->lock(PUBLIC, PRIVATE)) + uniformBufferInfo[i].offset : nullptr;
 			uniformBuffers[i] = uniformBufferInfo[i].buffer;
-		}
-	}
-
-	void VertexProcessor::setTransformFeedbackBuffer(int index, sw::Resource* buffer, int offset, unsigned int reg, unsigned int row, unsigned int col, unsigned int stride)
-	{
-		transformFeedbackInfo[index].buffer = buffer;
-		transformFeedbackInfo[index].offset = offset;
-		transformFeedbackInfo[index].reg = reg;
-		transformFeedbackInfo[index].row = row;
-		transformFeedbackInfo[index].col = col;
-		transformFeedbackInfo[index].stride = stride;
-	}
-
-	void VertexProcessor::lockTransformFeedbackBuffers(byte** t, unsigned int* v, unsigned int* r, unsigned int* c, unsigned int* s, sw::Resource* transformFeedbackBuffers[])
-	{
-		for(int i = 0; i < MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS; ++i)
-		{
-			t[i] = transformFeedbackInfo[i].buffer ? static_cast<byte*>(transformFeedbackInfo[i].buffer->lock(PUBLIC, PRIVATE)) + transformFeedbackInfo[i].offset : nullptr;
-			transformFeedbackBuffers[i] = transformFeedbackInfo[i].buffer;
-			v[i] = transformFeedbackInfo[i].reg;
-			r[i] = transformFeedbackInfo[i].row;
-			c[i] = transformFeedbackInfo[i].col;
-			s[i] = transformFeedbackInfo[i].stride;
 		}
 	}
 
@@ -370,16 +335,6 @@ namespace sw
 		this->pointSizeMax = pointSizeMax;
 	}
 
-	void VertexProcessor::setTransformFeedbackQueryEnabled(bool enable)
-	{
-		context->transformFeedbackQueryEnabled = enable;
-	}
-
-	void VertexProcessor::enableTransformFeedback(uint64_t enable)
-	{
-		context->transformFeedbackEnabled = enable;
-	}
-
 	void VertexProcessor::setRoutineCacheSize(int cacheSize)
 	{
 		delete routineCache;
@@ -391,48 +346,12 @@ namespace sw
 		State state;
 
 		state.shaderID = context->vertexShader->getSerialID();
-
-		state.fixedFunction = !context->vertexShader && context->pixelShaderModel() < 0x0300;
-		state.textureSampling = context->vertexShader ? context->vertexShader->containsTextureSampling() : false;
-		state.positionRegister = context->vertexShader ? context->vertexShader->getPositionRegister() : Pos;
-		state.pointSizeRegister = context->vertexShader ? context->vertexShader->getPointSizeRegister() : Pts;
-
 		state.multiSampling = context->getMultiSampleCount() > 1;
-
-		state.transformFeedbackQueryEnabled = context->transformFeedbackQueryEnabled;
-		state.transformFeedbackEnabled = context->transformFeedbackEnabled;
 
 		// Note: Quads aren't handled for verticesPerPrimitive, but verticesPerPrimitive is used for transform feedback,
 		//       which is an OpenGL ES 3.0 feature, and OpenGL ES 3.0 doesn't support quads as a primitive type.
 		DrawType type = static_cast<DrawType>(static_cast<unsigned int>(drawType) & 0xF);
 		state.verticesPerPrimitive = 1 + (type >= DRAW_LINELIST) + (type >= DRAW_TRIANGLELIST);
-
-		for(int i = 0; i < MAX_VERTEX_INPUTS; i++)
-		{
-			state.input[i].type = context->input[i].type;
-			state.input[i].count = context->input[i].count;
-			state.input[i].normalized = context->input[i].normalized;
-			state.input[i].attribType = context->vertexShader ? context->vertexShader->getAttribType(i) : SpirvShader::ATTRIBTYPE_FLOAT;
-		}
-
-		for(unsigned int i = 0; i < VERTEX_TEXTURE_IMAGE_UNITS; i++)
-		{
-			if(context->vertexShader->usesSampler(i))
-			{
-				state.sampler[i] = context->sampler[TEXTURE_IMAGE_UNITS + i].samplerState();
-			}
-		}
-
-		if(context->vertexShader)   // FIXME: Also when pre-transformed?
-		{
-			for(int i = 0; i < MAX_VERTEX_OUTPUTS; i++)
-			{
-				state.output[i].xWrite = context->vertexShader->getOutput(i, 0).active();
-				state.output[i].yWrite = context->vertexShader->getOutput(i, 1).active();
-				state.output[i].zWrite = context->vertexShader->getOutput(i, 2).active();
-				state.output[i].wWrite = context->vertexShader->getOutput(i, 3).active();
-			}
-		}
 
 		state.hash = state.computeHash();
 

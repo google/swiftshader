@@ -28,7 +28,7 @@ namespace sw
 
 	extern int clusterCount;
 
-	QuadRasterizer::QuadRasterizer(const PixelProcessor::State &state, const PixelShader *pixelShader) : state(state), shader(pixelShader)
+	QuadRasterizer::QuadRasterizer(const PixelProcessor::State &state, SpirvShader const *spirvShader) : state(state), spirvShader{spirvShader}
 	{
 	}
 
@@ -340,11 +340,11 @@ namespace sw
 
 	bool QuadRasterizer::interpolateZ() const
 	{
-		return state.depthTestActive || (shader && shader->isVPosDeclared() && fullPixelPositionRegister);
+		return state.depthTestActive || (spirvShader && spirvShader->hasBuiltinInput(spv::BuiltInPosition));
 	}
 
 	bool QuadRasterizer::interpolateW() const
 	{
-		return state.perspective || (shader && shader->isVPosDeclared() && fullPixelPositionRegister);
+		return state.perspective || (spirvShader && spirvShader->hasBuiltinInput(spv::BuiltInPosition));
 	}
 }

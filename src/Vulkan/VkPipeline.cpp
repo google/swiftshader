@@ -395,11 +395,11 @@ void GraphicsPipeline::compileShaders(const VkAllocationCallbacks* pAllocator, c
 
 		switch (pStage->stage) {
 			case VK_SHADER_STAGE_VERTEX_BIT:
-				vertexShader = spirvShader;
+				context.vertexShader = vertexShader = spirvShader;
 				break;
 
 			case VK_SHADER_STAGE_FRAGMENT_BIT:
-				fragmentShader = spirvShader;
+				context.pixelShader = fragmentShader = spirvShader;
 				break;
 
 			default:

@@ -27,6 +27,7 @@ namespace sw
 	class Surface;
 	class PixelShader;
 	class VertexShader;
+	class SpirvShader;
 	struct Triangle;
 	struct Primitive;
 	struct Vertex;
@@ -153,9 +154,6 @@ namespace sw
 
 		VkLogicOp colorLogicOp();
 
-		unsigned short pixelShaderModel() const;
-		unsigned short vertexShaderModel() const;
-
 		int getMultiSampleCount() const;
 
 		DrawType drawType;
@@ -208,8 +206,8 @@ namespace sw
 		unsigned int stencilBufferLayer;
 
 		// Shaders
-		const PixelShader *pixelShader;
-		const VertexShader *vertexShader;
+		const SpirvShader *pixelShader;
+		const SpirvShader *vertexShader;
 
 		// Instancing
 		int instanceID;

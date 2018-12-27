@@ -15,7 +15,6 @@
 #ifndef sw_ShaderCore_hpp
 #define sw_ShaderCore_hpp
 
-#include "Shader.hpp"
 #include "Reactor/Reactor.hpp"
 #include "Vulkan/VkDebug.hpp"
 
@@ -234,7 +233,18 @@ namespace sw
 
 	class ShaderCore
 	{
-		typedef Shader::Control Control;
+		enum Control
+		{
+			CONTROL_RESERVED0,
+			CONTROL_GT,
+			CONTROL_EQ,
+			CONTROL_GE,
+			CONTROL_LT,
+			CONTROL_NE,
+			CONTROL_LE,
+			CONTROL_RESERVED1
+		};
+
 
 	public:
 		void mov(Vector4f &dst, const Vector4f &src, bool integerDestination = false);

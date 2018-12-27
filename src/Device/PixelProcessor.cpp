@@ -17,7 +17,6 @@
 #include "Surface.hpp"
 #include "Primitive.hpp"
 #include "Pipeline/PixelProgram.hpp"
-#include "Pipeline/PixelShader.hpp"
 #include "Pipeline/Constants.hpp"
 #include "Vulkan/VkDebug.hpp"
 
@@ -634,8 +633,7 @@ namespace sw
 			state.shaderID = 0;
 		}
 
-		state.depthOverride = context->pixelShader && context->pixelShader->depthOverride();
-		state.shaderContainsKill = context->pixelShader ? context->pixelShader->containsKill() : false;
+		state.depthOverride = context->pixelShader ? context->pixelShader->getModes().DepthReplacing : false;
 
 		if(context->alphaTestActive())
 		{
@@ -704,61 +702,50 @@ namespace sw
 
 		if(state.multiSample > 1 && context->pixelShader)
 		{
-			state.centroid = context->pixelShader->containsCentroid();
+			state.centroid = false;//context->pixelShader->containsCentroid();
 		}
 
 		state.frontFaceCCW = context->frontFacingCCW;
 
-
-		for(unsigned int i = 0; i < 16; i++)
-		{
-			if(context->pixelShader)
-			{
-				if(context->pixelShader->usesSampler(i))
-				{
-					state.sampler[i] = context->sampler[i].samplerState();
-				}
-			}
-		}
-
 		const bool point = context->isDrawPoint();
 
-		for(int interpolant = 0; interpolant < MAX_FRAGMENT_INPUTS; interpolant++)
-		{
-			for(int component = 0; component < 4; component++)
-			{
-				const Shader::Semantic &semantic = context->pixelShader->getInput(interpolant, component);
-
-				if(semantic.active())
-				{
-					bool flat = point;
-
-					switch(semantic.usage)
-					{
-					case Shader::USAGE_TEXCOORD: flat = false;                  break;
-					case Shader::USAGE_COLOR:    flat = semantic.flat || point; break;
-					}
-
-					state.interpolant[interpolant].component |= 1 << component;
-
-					if(flat)
-					{
-						state.interpolant[interpolant].flat |= 1 << component;
-					}
-				}
-			}
-		}
-
-		if(state.centroid)
-		{
-			for(int interpolant = 0; interpolant < MAX_FRAGMENT_INPUTS; interpolant++)
-			{
-				for(int component = 0; component < 4; component++)
-				{
-					state.interpolant[interpolant].centroid = context->pixelShader->getInput(interpolant, 0).centroid;
-				}
-			}
-		}
+		/* TODO: bring back interpolants by some mechanism */
+//		for(int interpolant = 0; interpolant < MAX_FRAGMENT_INPUTS; interpolant++)
+//		{
+//			for(int component = 0; component < 4; component++)
+//			{
+//				const Shader::Semantic &semantic = context->pixelShader->getInput(interpolant, component);
+//
+//				if(semantic.active())
+//				{
+//					bool flat = point;
+//
+//					switch(semantic.usage)
+//					{
+//					case Shader::USAGE_TEXCOORD: flat = false;                  break;
+//					case Shader::USAGE_COLOR:    flat = semantic.flat || point; break;
+//					}
+//
+//					state.interpolant[interpolant].component |= 1 << component;
+//
+//					if(flat)
+//					{
+//						state.interpolant[interpolant].flat |= 1 << component;
+//					}
+//				}
+//			}
+//		}
+//
+//		if(state.centroid)
+//		{
+//			for(int interpolant = 0; interpolant < MAX_FRAGMENT_INPUTS; interpolant++)
+//			{
+//				for(int component = 0; component < 4; component++)
+//				{
+//					state.interpolant[interpolant].centroid = context->pixelShader->getInput(interpolant, 0).centroid;
+//				}
+//			}
+//		}
 
 		state.hash = state.computeHash();
 
@@ -771,7 +758,6 @@ namespace sw
 
 		if(!routine)
 		{
-			const bool integerPipeline = (context->pixelShaderModel() <= 0x0104);
 			QuadRasterizer *generator = new PixelProgram(state, context->pixelShader);
 			generator->generate();
 			routine = (*generator)("PixelRoutine_%0.8X", state.shaderID);

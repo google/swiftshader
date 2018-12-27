@@ -29,10 +29,10 @@ namespace sw
 	extern bool exactColorRounding;
 	extern bool forceClearRegisters;
 
-	PixelRoutine::PixelRoutine(const PixelProcessor::State &state, const PixelShader *shader)
-		: QuadRasterizer(state, shader), v(shader && shader->indirectAddressableInput)
+	PixelRoutine::PixelRoutine(const PixelProcessor::State &state, SpirvShader const *spirvShader)
+		: QuadRasterizer(state, spirvShader), v(true)	/* addressing */
 	{
-		if(!shader || shader->getShaderModel() < 0x0200 || forceClearRegisters)
+		if(forceClearRegisters)
 		{
 			for(int i = 0; i < MAX_FRAGMENT_INPUTS; i++)
 			{
@@ -142,6 +142,7 @@ namespace sw
 				}
 			}
 
+			// TODO: rethink what we want to do here for pull-mode interpolation
 			for(int interpolant = 0; interpolant < MAX_FRAGMENT_INPUTS; interpolant++)
 			{
 				for(int component = 0; component < 4; component++)
@@ -210,7 +211,7 @@ namespace sw
 
 				alphaPass = alphaTest(cMask);
 
-				if((shader && shader->containsKill()) || state.alphaTestActive())
+				if((spirvShader && spirvShader->getModes().ContainsKill) || state.alphaTestActive())
 				{
 					for(unsigned int q = 0; q < state.multiSample; q++)
 					{
@@ -394,7 +395,7 @@ namespace sw
 
 		Float4 Z = z;
 
-		if(shader && shader->depthOverride())
+		if(spirvShader && spirvShader->getModes().DepthReplacing)
 		{
 			if(complementaryDepthBuffer)
 			{
@@ -592,7 +593,7 @@ namespace sw
 
 		Float4 Z = z;
 
-		if(shader && shader->depthOverride())
+		if(spirvShader && spirvShader->getModes().DepthReplacing)
 		{
 			if(complementaryDepthBuffer)
 			{
@@ -2479,6 +2480,6 @@ namespace sw
 
 	bool PixelRoutine::colorUsed()
 	{
-		return state.colorWriteMask || state.alphaTestActive() || state.shaderContainsKill;
+		return state.colorWriteMask || state.alphaTestActive() || (spirvShader && spirvShader->getModes().ContainsKill);
 	}
 }
