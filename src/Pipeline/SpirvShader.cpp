@@ -35,6 +35,41 @@ namespace sw
 					ProcessExecutionMode(insn);
 					break;
 
+				case spv::OpTypeVoid:
+				case spv::OpTypeBool:
+				case spv::OpTypeInt:
+				case spv::OpTypeFloat:
+				case spv::OpTypeVector:
+				case spv::OpTypeMatrix:
+				case spv::OpTypeImage:
+				case spv::OpTypeSampler:
+				case spv::OpTypeSampledImage:
+				case spv::OpTypeArray:
+				case spv::OpTypeRuntimeArray:
+				case spv::OpTypeStruct:
+				case spv::OpTypePointer:
+				case spv::OpTypeFunction: {
+					auto resultId = insn.word(1);
+					auto &object = defs[resultId];
+					object.kind = Object::Kind::Type;
+					object.definition = insn;
+					break;
+				}
+
+				case spv::OpVariable: {
+					auto typeId = insn.word(1);
+					auto resultId = insn.word(2);
+					auto storageClass = static_cast<spv::StorageClass>(insn.word(3));
+					if (insn.wordCount() > 4)
+						UNIMPLEMENTED("Variable initializers not yet supported");
+
+					auto &object = defs[resultId];
+					object.kind = Object::Kind::Variable;
+					object.definition = insn;
+					object.storageClass = storageClass;
+					break;
+				}
+
 				default:
 					break;    // This is OK, these passes are intentionally partial
 			}
