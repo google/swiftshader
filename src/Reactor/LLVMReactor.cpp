@@ -911,7 +911,7 @@ namespace rr
 #else
 			std::error_code error;
 #endif
-			llvm::raw_fd_ostream file("llvm-dump-unopt.txt", error);
+			llvm::raw_fd_ostream file(std::string(name) + "-llvm-dump-unopt.txt", error);
 			::module->print(file, 0);
 		}
 
@@ -927,7 +927,7 @@ namespace rr
 #else
 			std::error_code error;
 #endif
-			llvm::raw_fd_ostream file("llvm-dump-opt.txt", error);
+			llvm::raw_fd_ostream file(std::string(name) + "-llvm-dump-opt.txt", error);
 			::module->print(file, 0);
 		}
 
