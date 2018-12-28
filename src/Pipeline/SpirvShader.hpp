@@ -103,6 +103,7 @@ namespace sw
 			InsnIterator definition;
 			spv::StorageClass storageClass;
 			uint32_t sizeInComponents = 0;
+			bool isBuiltInBlock = false;
 
 			enum class Kind
 			{
@@ -199,6 +200,13 @@ namespace sw
 			}
 		};
 
+		struct BuiltinMapping
+		{
+			uint32_t Id;
+			uint32_t FirstComponent;
+			uint32_t SizeInComponents;
+		};
+
 		std::vector<InterfaceComponent> inputs;
 		std::vector<InterfaceComponent> outputs;
 
@@ -207,8 +215,8 @@ namespace sw
 		static volatile int serialCounter;
 		Modes modes;
 		std::unordered_map<uint32_t, Object> defs;
-		std::unordered_map<spv::BuiltIn, uint32_t> inputBuiltins;
-		std::unordered_map<spv::BuiltIn, uint32_t> outputBuiltins;
+		std::unordered_map<spv::BuiltIn, BuiltinMapping> inputBuiltins;
+		std::unordered_map<spv::BuiltIn, BuiltinMapping> outputBuiltins;
 
 		void ProcessExecutionMode(InsnIterator it);
 
@@ -221,6 +229,8 @@ namespace sw
 		void PopulateInterface(std::vector<InterfaceComponent> *iface, uint32_t id);
 
 		uint32_t GetConstantInt(uint32_t id);
+
+		void ProcessInterfaceVariable(Object const &object);
 	};
 }
 
