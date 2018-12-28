@@ -109,6 +109,7 @@ namespace sw
 				Unknown,        /* for paranoia -- if we get left with an object in this state, the module was broken */
 				Type,
 				Variable,
+				Constant,
 				Value,
 			} kind = Kind::Unknown;
 		};
@@ -218,6 +219,8 @@ namespace sw
 		int PopulateInterfaceInner(std::vector<InterfaceComponent> *iface, uint32_t id, Decorations d);
 
 		void PopulateInterface(std::vector<InterfaceComponent> *iface, uint32_t id);
+
+		uint32_t GetConstantInt(uint32_t id);
 	};
 }
 

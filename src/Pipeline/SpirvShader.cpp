@@ -160,6 +160,21 @@ namespace sw
 				break;
 			}
 
+			case spv::OpConstant:
+			case spv::OpConstantComposite:
+			case spv::OpConstantFalse:
+			case spv::OpConstantTrue:
+			case spv::OpConstantNull:
+			{
+				auto typeId = insn.word(1);
+				auto resultId = insn.word(2);
+				auto &object = defs[resultId];
+				object.kind = Object::Kind::Constant;
+				object.definition = insn;
+				object.sizeInComponents = defs[typeId].sizeInComponents;
+				break;
+			}
+
 			default:
 				break;    // This is OK, these passes are intentionally partial
 			}
@@ -408,5 +423,19 @@ namespace sw
 		Centroid |= src.Centroid;
 		Block |= src.Block;
 		BufferBlock |= src.BufferBlock;
+	}
+
+	uint32_t SpirvShader::GetConstantInt(uint32_t id)
+	{
+		// Slightly hackish access to constants very early in translation.
+		// General consumption of constants by other instructions should
+		// probably be just lowered to Reactor.
+
+		// TODO: not encountered yet since we only use this for array sizes etc,
+		// but is possible to construct integer constant 0 via OpConstantNull.
+		auto insn = defs[id].definition;
+		assert(insn.opcode() == spv::OpConstant);
+		assert(defs[insn.word(1)].definition.opcode() == spv::OpTypeInt);
+		return insn.word(3);
 	}
 }
