@@ -48,7 +48,7 @@ public:
 
 	~BeginRenderPass() override
 	{
-		delete clearValues;
+		delete [] clearValues;
 	}
 
 protected:
