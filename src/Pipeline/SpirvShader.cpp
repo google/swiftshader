@@ -190,6 +190,7 @@ namespace sw
 				break;
 
 			default:
+				printf("Warning: ignored opcode %u\n", insn.opcode());
 				break;    // This is OK, these passes are intentionally partial
 			}
 		}
@@ -336,6 +337,7 @@ namespace sw
 	{
 		// Populate a single scalar slot in the interface from a collection of decorations and the intended component type.
 		auto scalarSlot = (d.Location << 2) | d.Component;
+		assert(scalarSlot >= 0 && scalarSlot < static_cast<int32_t>(iface->size()));
 
 		auto &slot = (*iface)[scalarSlot];
 		slot.Type = type;
