@@ -196,6 +196,9 @@ swiftshader_source_set("swiftshader_llvm") {
     "llvm/lib/Analysis/ValueLatticeUtils.cpp",
     "llvm/lib/Analysis/ValueTracking.cpp",
     "llvm/lib/Analysis/VectorUtils.cpp",
+    "llvm/lib/AsmParser/LLLexer.cpp",
+    "llvm/lib/AsmParser/LLParser.cpp",
+    "llvm/lib/AsmParser/Parser.cpp",
     "llvm/lib/BinaryFormat/Dwarf.cpp",
     "llvm/lib/BinaryFormat/Magic.cpp",
     "llvm/lib/BinaryFormat/Wasm.cpp",
@@ -407,7 +410,10 @@ swiftshader_source_set("swiftshader_llvm") {
   }
 
   if (target_cpu != current_cpu &&
-      (current_cpu == "x86" || current_cpu == "x64")) {
+      (current_cpu == "x86" || current_cpu == "x64") ||
+      # Windows ARM64 does cross compilation on Windows x64 host, and requires native
+      # x86 target.
+      (is_win && target_cpu == "arm64")) {
     deps += [ ":swiftshader_llvm_x86" ]
   }
 }

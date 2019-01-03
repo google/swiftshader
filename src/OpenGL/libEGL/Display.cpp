@@ -105,6 +105,7 @@ Display::~Display()
 	#define __x86_64__ 1
 #endif
 
+#if defined(__i386__) || defined(__x86_64__)
 static void cpuid(int registers[4], int info)
 {
 	#if defined(__i386__) || defined(__x86_64__)
@@ -127,6 +128,7 @@ static bool detectSSE()
 	cpuid(registers, 1);
 	return (registers[3] & 0x02000000) != 0;
 }
+#endif
 
 bool Display::initialize()
 {
