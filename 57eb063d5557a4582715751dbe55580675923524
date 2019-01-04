@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "aee39c3e_fb6438a9",
+        "filename": "src/OpenGL/libGLESv2/BUILD.gn",
+        "patchSetId": 4
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 6725
+      },
+      "writtenOn": "2019-01-04T19:43:59Z",
+      "side": 1,
+      "message": "You can remove this line now, having the .def file in sources makes gn add this ldflag for you. Doing both is redundant, and the ldflags variant is worse since ninja doesn\u0027t know about the dep on the def file that way.",
+      "revId": "57eb063d5557a4582715751dbe55580675923524",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
