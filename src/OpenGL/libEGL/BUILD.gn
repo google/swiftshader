@@ -53,8 +53,8 @@ swiftshader_shared_library("swiftshader_libEGL") {
 
   sources = [
     "../../Common/SharedLibrary.cpp",
-    "../common/debug.cpp",
     "../common/Object.cpp",
+    "../common/debug.cpp",
     "Config.cpp",
     "Display.cpp",
     "Surface.cpp",
@@ -74,8 +74,6 @@ swiftshader_shared_library("swiftshader_libEGL") {
       "IOSurface.framework",
     ]
     ldflags = [ "-Wl,-install_name,@rpath/libswiftshader_libEGL.dylib" ]
-  } else if (is_win) {
-    ldflags = [ "/DEF:" + rebase_path("libGLESv2.def", root_build_dir) ]
   } else if (is_linux) {
     if (use_x11) {
       sources += [ "../../Main/libX11.cpp" ]
