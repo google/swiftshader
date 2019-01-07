@@ -134,6 +134,7 @@ public:
 	class Command;
 private:
 	void resetState();
+	template<typename T, typename... Args> void addCommand(Args&&... args);
 
 	enum State { INITIAL, RECORDING, EXECUTABLE, PENDING, INVALID };
 	State state = INITIAL;
