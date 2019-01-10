@@ -26,7 +26,7 @@ namespace sw
 		PixelProgram(const PixelProcessor::State &state, const PixelShader *shader) :
 			PixelRoutine(state, shader), r(shader->indirectAddressableTemporaries)
 		{
-			for(int i = 0; i < 2048; ++i)
+			for(int i = 0; i < MAX_SHADER_CALL_SITES; ++i)
 			{
 				labelBlock[i] = 0;
 			}
@@ -67,17 +67,17 @@ namespace sw
 
 		// DX9 specific variables
 		Vector4f p0;
-		Array<Int, 4> aL;
-		Array<Int, 4> increment;
-		Array<Int, 4> iteration;
+		Array<Int, MAX_SHADER_NESTED_LOOPS> aL;
+		Array<Int, MAX_SHADER_NESTED_LOOPS> increment;
+		Array<Int, MAX_SHADER_NESTED_LOOPS> iteration;
 
 		Int loopDepth;    // FIXME: Add support for switch
 		Int stackIndex;   // FIXME: Inc/decrement callStack
-		Array<UInt, 16> callStack;
+		Array<UInt, MAX_SHADER_CALL_STACK_SIZE> callStack;
 
 		// Per pixel based on conditions reached
 		Int enableIndex;
-		Array<Int4, 1 + 24> enableStack;
+		Array<Int4, MAX_SHADER_ENABLE_STACK_SIZE> enableStack;
 		Int4 enableBreak;
 		Int4 enableContinue;
 		Int4 enableLeave;
@@ -153,18 +153,18 @@ namespace sw
 		void RET();
 		void LEAVE();
 
-		int ifDepth = 0;
-		int loopRepDepth = 0;
-		int currentLabel = -1;
+		BoundedIndex<MAX_SHADER_NESTED_IFS> ifDepth = 0;
+		BoundedIndex<MAX_SHADER_NESTED_LOOPS> loopRepDepth = 0;
+		BoundedIndex<MAX_SHADER_CALL_SITES> currentLabel = -1;
 		bool scalar = false;
 
-		BasicBlock *ifFalseBlock[24 + 24];
-		BasicBlock *loopRepTestBlock[4];
-		BasicBlock *loopRepEndBlock[4];
-		BasicBlock *labelBlock[2048];
-		std::vector<BasicBlock*> callRetBlock[2048];
+		BasicBlock *ifFalseBlock[MAX_SHADER_NESTED_IFS];
+		BasicBlock *loopRepTestBlock[MAX_SHADER_NESTED_LOOPS];
+		BasicBlock *loopRepEndBlock[MAX_SHADER_NESTED_LOOPS];
+		BasicBlock *labelBlock[MAX_SHADER_CALL_SITES];
+		std::vector<BasicBlock*> callRetBlock[MAX_SHADER_CALL_SITES];
 		BasicBlock *returnBlock;
-		bool isConditionalIf[24 + 24];
+		bool isConditionalIf[MAX_SHADER_NESTED_IFS];
 		std::vector<Int4> restoreContinue;
 	};
 }

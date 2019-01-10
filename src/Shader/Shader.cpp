@@ -1877,13 +1877,13 @@ namespace sw
 	// This is used to know what basic block to return to.
 	void Shader::analyzeCallSites()
 	{
-		int callSiteIndex[2048] = {0};
+		int callSiteIndex[MAX_SHADER_CALL_SITES] = {0};
 
 		for(auto &inst : instruction)
 		{
 			if(inst->opcode == OPCODE_CALL || inst->opcode == OPCODE_CALLNZ)
 			{
-				int label = inst->dst.label;
+				int label = sw::min(inst->dst.label, unsigned int(MAX_SHADER_CALL_SITES));
 
 				inst->dst.callSite = callSiteIndex[label]++;
 			}

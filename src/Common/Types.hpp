@@ -15,6 +15,7 @@
 #ifndef sw_Types_hpp
 #define sw_Types_hpp
 
+#include <assert.h>
 #include <limits>
 #include <type_traits>
 
@@ -150,6 +151,46 @@ namespace sw
 
 		return v;
 	}
+
+	template <int limit> class BoundedIndex
+	{
+	public:
+		BoundedIndex(int index) : index(index) {}
+
+		inline int operator++(int) { return index++; }
+		inline int operator--(int) { return index--; }
+		inline void operator=(int i) { index = i; }
+
+		inline bool operator==(int i) { return index == i; }
+		inline bool operator!=(int i) { return index != i; }
+		inline bool operator<(int i) { return index < i; }
+		inline bool operator>(int i) { return index > i; }
+		inline bool operator<=(int i) { return index <= i; }
+		inline bool operator>=(int i) { return index >= i; }
+
+		inline operator int()
+		{
+			if(index < 0)
+			{
+#if !defined(NDEBUG) || defined(DCHECK_ALWAYS_ON)
+				assert(false);
+#endif
+				return 0;
+			}
+			else if(index >= limit)
+			{
+#if !defined(NDEBUG) || defined(DCHECK_ALWAYS_ON)
+				assert(false);
+#endif
+				return limit - 1;
+			}
+
+			return index;
+		}
+
+	private:
+		int index = 0;
+	};
 
 	// The OFFSET macro is a generalization of the offsetof() macro defined in <cstddef>.
 	// It allows e.g. getting the offset of array elements, even when indexed dynamically.
