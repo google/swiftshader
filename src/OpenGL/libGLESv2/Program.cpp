@@ -1261,10 +1261,14 @@ namespace es2
 			// In INTERLEAVED_ATTRIBS mode, the values of one or more output variables
 			// written by a vertex shader are written, interleaved, into the buffer object
 			// bound to the first transform feedback binding point (index = 0).
-			sw::Resource* resource = transformFeedbackBuffers[0].get()->getResource();
+			sw::Resource* resource = transformFeedbackBuffers[0].get() ?
+			                         transformFeedbackBuffers[0].get()->getResource() :
+			                         nullptr;
 			int componentStride = static_cast<int>(totalLinkedVaryingsComponents);
 			int baseOffset = transformFeedbackBuffers[0].getOffset() + (transformFeedback->vertexOffset() * componentStride * sizeof(float));
 			maxVaryings = sw::min(maxVaryings, (unsigned int)sw::MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS);
+			ASSERT(resource || (maxVaryings == 0));
+
 			int totalComponents = 0;
 			for(unsigned int index = 0; index < maxVaryings; ++index)
 			{

@@ -950,6 +950,50 @@ TEST_F(SwiftShaderTest, AtanCornerCases)
 	Uninitialize();
 }
 
+TEST_F(SwiftShaderTest, TransformFeedback_DrawArraysInstanced)
+{
+	Initialize(3, false);
+
+	const char * data0[] =
+	{
+		"#version 300 es\n"
+		"in mediump vec2 vary;"
+		"out mediump vec4 color;"
+		"void main()"
+		"{\t"
+			"color = vec4(vary, 0.0, 1.0);"
+		"}"
+	};
+	const char * data1[] =
+	{
+		"#version 300 es\n"
+		"layout(location=0) in mediump vec2 pos;"
+		"out mediump vec2 vary;"
+		"void main()"
+		"{\t"
+			"vary = pos;\t"
+			"gl_Position = vec4(pos, 0.0, 1.0);"
+		"}"
+	};
+
+	GLuint vert = glCreateShader(GL_VERTEX_SHADER);
+	GLuint frag = glCreateShader(GL_FRAGMENT_SHADER);
+	GLuint program = glCreateProgram();
+
+	glShaderSource(frag, 1, data0, (const GLint *)0);
+	glAttachShader(program, vert);
+	glCompileShader(frag);
+	glAttachShader(program, frag);
+	glShaderSource(vert, 1, data1, (const GLint *)0);
+	glCompileShader(vert);
+	glLinkProgram(program);
+	glUseProgram(program);
+	glBeginTransformFeedback(GL_POINTS);
+	glDrawArraysInstanced(GL_POINTS, 0, 1, 1);
+
+	Uninitialize();
+}
+
 // Test conditions that should result in a GL_OUT_OF_MEMORY and not crash
 TEST_F(SwiftShaderTest, OutOfMemory)
 {
