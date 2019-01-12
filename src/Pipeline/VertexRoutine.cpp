@@ -115,7 +115,7 @@ namespace sw
 		Int4 maxZ = CmpLT(o[pos].w, o[pos].z);
 		Int4 minX = CmpNLE(-o[pos].w, o[pos].x);
 		Int4 minY = CmpNLE(-o[pos].w, o[pos].y);
-		Int4 minZ = symmetricNormalizedDepth ? CmpNLE(-o[pos].w, o[pos].z) : CmpNLE(Float4(0.0f), o[pos].z);
+		Int4 minZ = CmpNLE(Float4(0.0f), o[pos].z);
 
 		clipFlags = *Pointer<Int>(constants + OFFSET(Constants,maxX) + SignMask(maxX) * 4);   // FIXME: Array indexing
 		clipFlags |= *Pointer<Int>(constants + OFFSET(Constants,maxY) + SignMask(maxY) * 4);
@@ -689,11 +689,6 @@ namespace sw
 		v.y = o[pos].y;
 		v.z = o[pos].z;
 		v.w = o[pos].w;
-
-		if(symmetricNormalizedDepth)
-		{
-			v.z = (v.z + v.w) * Float4(0.5f);   // [-1, 1] -> [0, 1]
-		}
 
 		Float4 w = As<Float4>(As<Int4>(v.w) | (As<Int4>(CmpEQ(v.w, Float4(0.0f))) & As<Int4>(Float4(1.0f))));
 		Float4 rhw = Float4(1.0f) / w;

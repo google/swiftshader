@@ -52,10 +52,6 @@ namespace sw
 			CLIP_USER = 0x3F00
 		};
 
-		Clipper(bool symmetricNormalizedDepth);
-
-		~Clipper();
-
 		unsigned int computeClipFlags(const float4 &v);
 		bool clip(Polygon &polygon, int clipFlagsOr, const DrawCall &draw);
 
@@ -69,8 +65,6 @@ namespace sw
 		void clipPlane(Polygon &polygon, const Plane &plane);
 
 		void clipEdge(float4 &Vo, const float4 &Vi, const float4 &Vj, float di, float dj) const;
-
-		float n;   // Near clip plane distance
 	};
 }
 

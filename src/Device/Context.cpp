@@ -28,7 +28,6 @@ namespace sw
 	extern bool perspectiveCorrection;
 
 	bool halfIntegerCoordinates = false;     // Pixel centers are not at integer coordinates
-	bool symmetricNormalizedDepth = false;   // [-1, 1] instead of [0, 1]
 	bool booleanFaceRegister = false;
 	bool fullPixelPositionRegister = false;
 	bool leadingVertexFirst = false;         // Flat shading uses first vertex, else last
