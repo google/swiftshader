@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "2ac13015_b90bb7b1",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2019-01-14T15:01:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f21821eb_477e78de",
+      "revId": "fcacee69d599170f9b4151633740b9fac5842491",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0c12ecc8_7ebb804f",
         "filename": "src/Common/Types.hpp",
         "patchSetId": 1
