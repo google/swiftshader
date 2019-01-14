@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "f21821eb_477e78de",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-01-14T14:18:54Z",
+      "side": 1,
+      "message": "Also b/116373662",
+      "revId": "fcacee69d599170f9b4151633740b9fac5842491",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "0c12ecc8_7ebb804f",
         "filename": "src/Common/Types.hpp",
         "patchSetId": 1
