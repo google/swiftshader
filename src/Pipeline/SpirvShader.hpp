@@ -214,9 +214,17 @@ namespace sw
 		const int serialID;
 		static volatile int serialCounter;
 		Modes modes;
+		std::unordered_map<uint32_t, Object> types;
 		std::unordered_map<uint32_t, Object> defs;
 		std::unordered_map<spv::BuiltIn, BuiltinMapping> inputBuiltins;
 		std::unordered_map<spv::BuiltIn, BuiltinMapping> outputBuiltins;
+
+		Object const &getType(uint32_t id) const
+		{
+			auto it = types.find(id);
+			assert(it != types.end());
+			return it->second;
+		}
 
 		void ProcessExecutionMode(InsnIterator it);
 
