@@ -34,7 +34,9 @@ public:
 	void clear(const VkClearValue& clearValues, const VkRect2D& renderArea);
 
 private:
-	VkImage                    image = VK_NULL_HANDLE;
+	bool                       imageTypesMatch(VkImageType imageType) const;
+
+	Image*                     image = nullptr;
 	VkImageViewType            viewType = VK_IMAGE_VIEW_TYPE_2D;
 	VkFormat                   format = VK_FORMAT_UNDEFINED;
 	VkComponentMapping         components = {};

@@ -47,6 +47,8 @@ public:
 
 	VkImageType              getImageType() const { return imageType; }
 	VkFormat                 getFormat() const { return format; }
+	uint32_t                 getArrayLayers() const { return arrayLayers; }
+	bool                     isCube() const;
 
 private:
 	void copy(VkBuffer buffer, const VkBufferImageCopy& region, bool bufferIsSource);
@@ -58,7 +60,6 @@ private:
 	int slicePitchBytes(const VkImageAspectFlags& flags) const;
 	int bytesPerTexel(const VkImageAspectFlags& flags) const;
 	VkFormat getFormat(const VkImageAspectFlags& flags) const;
-	int getBorder() const;
 	sw::Surface* asSurface(const VkImageAspectFlags& flags) const;
 
 	DeviceMemory*            deviceMemory = nullptr;

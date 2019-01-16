@@ -279,7 +279,7 @@ int Image::rowPitchBytes(const VkImageAspectFlags& flags) const
 	// Depth and Stencil pitch should be computed separately
 	ASSERT((flags & (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT)) !=
 	                (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT));
-	return sw::Surface::pitchB(extent.width, getBorder(), getFormat(flags), false);
+	return sw::Surface::pitchB(extent.width, isCube() ? 1 : 0, getFormat(flags), false);
 }
 
 int Image::slicePitchBytes(const VkImageAspectFlags& flags) const
@@ -287,7 +287,7 @@ int Image::slicePitchBytes(const VkImageAspectFlags& flags) const
 	// Depth and Stencil slice should be computed separately
 	ASSERT((flags & (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT)) !=
 	                (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT));
-	return sw::Surface::sliceB(extent.width, extent.height, getBorder(), getFormat(flags), false);
+	return sw::Surface::sliceB(extent.width, extent.height, isCube() ? 1 : 0, getFormat(flags), false);
 }
 
 int Image::bytesPerTexel(const VkImageAspectFlags& flags) const
@@ -333,9 +333,9 @@ VkFormat Image::getFormat(const VkImageAspectFlags& flags) const
 	return format;
 }
 
-int Image::getBorder() const
+bool Image::isCube() const
 {
-	return ((flags & VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT) && (imageType == VK_IMAGE_TYPE_2D)) ? 1 : 0;
+	return (flags & VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT) && (imageType == VK_IMAGE_TYPE_2D);
 }
 
 VkDeviceSize Image::getStorageSize(const VkImageAspectFlags& flags) const

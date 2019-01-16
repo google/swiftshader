@@ -19,7 +19,7 @@ namespace vk
 {
 
 ImageView::ImageView(const VkImageViewCreateInfo* pCreateInfo, void* mem) :
-	image(pCreateInfo->image), viewType(pCreateInfo->viewType), format(pCreateInfo->format),
+	image(Cast(pCreateInfo->image)), viewType(pCreateInfo->viewType), format(pCreateInfo->format),
 	components(pCreateInfo->components), subresourceRange(pCreateInfo->subresourceRange)
 {
 }
@@ -33,23 +33,60 @@ void ImageView::destroy(const VkAllocationCallbacks* pAllocator)
 {
 }
 
+bool ImageView::imageTypesMatch(VkImageType imageType) const
+{
+	bool isCube = image->isCube();
+
+	switch(imageType)
+	{
+	case VK_IMAGE_TYPE_1D:
+		switch(viewType)
+		{
+		case VK_IMAGE_VIEW_TYPE_1D:
+		case VK_IMAGE_VIEW_TYPE_1D_ARRAY:
+			return true;
+		}
+		break;
+	case VK_IMAGE_TYPE_2D:
+		switch(viewType)
+		{
+		case VK_IMAGE_VIEW_TYPE_2D:
+		case VK_IMAGE_VIEW_TYPE_2D_ARRAY:
+			return !isCube;
+		case VK_IMAGE_VIEW_TYPE_CUBE:
+		case VK_IMAGE_VIEW_TYPE_CUBE_ARRAY:
+			return isCube;
+		}
+		break;
+	case VK_IMAGE_TYPE_3D:
+		switch(viewType)
+		{
+		case VK_IMAGE_VIEW_TYPE_3D:
+			return true;
+		}
+		break;
+	default:
+		break;
+	}
+
+	return false;
+}
+
 void ImageView::clear(const VkClearValue& clearValue, const VkRect2D& renderArea)
 {
 	// Note: clearing ignores swizzling, so components is ignored.
 
-	auto imageObject = Cast(image);
-
-	if(imageObject->getImageType() != viewType)
+	if(!imageTypesMatch(image->getImageType()))
 	{
 		UNIMPLEMENTED();
 	}
 
-	if(imageObject->getFormat() != format)
+	if(image->getFormat() != format)
 	{
 		UNIMPLEMENTED();
 	}
 
-	imageObject->clear(clearValue, renderArea, subresourceRange);
+	image->clear(clearValue, renderArea, subresourceRange);
 }
 
 }
