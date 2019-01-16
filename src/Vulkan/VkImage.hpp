@@ -19,6 +19,7 @@
 
 namespace sw
 {
+	class Blitter;
 	class Surface;
 };
 
@@ -44,6 +45,7 @@ public:
 
 	void blit(VkImage dstImage, const VkImageBlit& region, VkFilter filter);
 	void clear(const VkClearValue& clearValue, const VkRect2D& renderArea, const VkImageSubresourceRange& subresourceRange);
+	void clear(const VkClearColorValue& color, const VkImageSubresourceRange& subresourceRange);
 
 	VkImageType              getImageType() const { return imageType; }
 	VkFormat                 getFormat() const { return format; }
@@ -53,14 +55,22 @@ public:
 private:
 	void copy(VkBuffer buffer, const VkBufferImageCopy& region, bool bufferIsSource);
 	VkDeviceSize getStorageSize(const VkImageAspectFlags& flags) const;
-	void* getTexelPointer(const VkOffset3D& offset, uint32_t baseArrayLayer, const VkImageAspectFlags& flags) const;
-	VkDeviceSize texelOffsetBytesInStorage(const VkOffset3D& offset, uint32_t baseArrayLayer, const VkImageAspectFlags& flags) const;
+	VkDeviceSize getMipLevelSize(const VkImageAspectFlags& flags, uint32_t mipLevel) const;
+	VkDeviceSize getLayerSize(const VkImageAspectFlags& flags) const;
+	VkDeviceSize getMemoryOffset(const VkImageAspectFlags& flags, uint32_t mipLevel) const;
+	VkDeviceSize getMemoryOffset(const VkImageAspectFlags& flags, uint32_t mipLevel, uint32_t layer) const;
+	void* getTexelPointer(const VkOffset3D& offset, const VkImageSubresourceLayers& subresource) const;
+	VkDeviceSize texelOffsetBytesInStorage(const VkOffset3D& offset, const VkImageSubresourceLayers& subresource) const;
 	VkDeviceSize getMemoryOffset(const VkImageAspectFlags& flags) const;
-	int rowPitchBytes(const VkImageAspectFlags& flags) const;
-	int slicePitchBytes(const VkImageAspectFlags& flags) const;
+	int rowPitchBytes(const VkImageAspectFlags& flags, uint32_t mipLevel) const;
+	int slicePitchBytes(const VkImageAspectFlags& flags, uint32_t mipLevel) const;
 	int bytesPerTexel(const VkImageAspectFlags& flags) const;
+	VkExtent3D getMipLevelExtent(uint32_t mipLevel) const;
 	VkFormat getFormat(const VkImageAspectFlags& flags) const;
-	sw::Surface* asSurface(const VkImageAspectFlags& flags) const;
+	uint32_t getLastLayerIndex(const VkImageSubresourceRange& subresourceRange) const;
+	uint32_t getLastMipLevel(const VkImageSubresourceRange& subresourceRange) const;
+	VkFormat getClearFormat() const;
+	sw::Surface* asSurface(const VkImageAspectFlags& flags, uint32_t mipLevel, uint32_t layer) const;
 
 	DeviceMemory*            deviceMemory = nullptr;
 	VkDeviceSize             memoryOffset = 0;
@@ -72,6 +82,7 @@ private:
 	uint32_t                 arrayLayers = 0;
 	VkSampleCountFlagBits    samples = VK_SAMPLE_COUNT_1_BIT;
 	VkImageTiling            tiling = VK_IMAGE_TILING_OPTIMAL;
+	sw::Blitter*             blitter = nullptr;
 };
 
 static inline Image* Cast(VkImage object)
