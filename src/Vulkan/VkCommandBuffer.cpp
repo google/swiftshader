@@ -220,6 +220,24 @@ private:
 	const VkBufferImageCopy region;
 };
 
+struct ClearImage : public CommandBuffer::Command
+{
+	ClearImage(VkImage image, const VkClearColorValue& color, const VkImageSubresourceRange& range) :
+		image(image), color(color), range(range)
+	{
+	}
+
+	void play(CommandBuffer::ExecutionState& executionState)
+	{
+		Cast(image)->clear(color, range);
+	}
+
+private:
+	VkImage image;
+	const VkClearColorValue color;
+	const VkImageSubresourceRange range;
+};
+
 struct BlitImage : public CommandBuffer::Command
 {
 	BlitImage(VkImage srcImage, VkImage dstImage, const VkImageBlit& region, VkFilter filter) :
@@ -597,7 +615,12 @@ void CommandBuffer::fillBuffer(VkBuffer dstBuffer, VkDeviceSize dstOffset, VkDev
 void CommandBuffer::clearColorImage(VkImage image, VkImageLayout imageLayout, const VkClearColorValue* pColor,
 	uint32_t rangeCount, const VkImageSubresourceRange* pRanges)
 {
-	UNIMPLEMENTED();
+	ASSERT(state == RECORDING);
+
+	for(uint32_t i = 0; i < rangeCount; i++)
+	{
+		commands->push_back(std::make_unique<ClearImage>(image, pColor[i], pRanges[i]));
+	}
 }
 
 void CommandBuffer::clearDepthStencilImage(VkImage image, VkImageLayout imageLayout, const VkClearDepthStencilValue* pDepthStencil,
