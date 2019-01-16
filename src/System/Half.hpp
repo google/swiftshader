@@ -15,6 +15,8 @@
 #ifndef sw_Half_hpp
 #define sw_Half_hpp
 
+#include <algorithm>
+
 namespace sw
 {
 	class half
@@ -53,6 +55,48 @@ namespace sw
 		unsigned int E : 5;
 
 	public:
+		RGB9E5(float rgb[3])
+		{
+			// B is the exponent bias (15)
+			constexpr int g_sharedexp_bias = 15;
+
+			// N is the number of mantissa bits per component (9)
+			constexpr int g_sharedexp_mantissabits = 9;
+
+			// Emax is the maximum allowed biased exponent value (31)
+			constexpr int g_sharedexp_maxexponent = 31;
+
+			constexpr float g_sharedexp_max =
+				((static_cast<float>(1 << g_sharedexp_mantissabits) - 1) /
+					static_cast<float>(1 << g_sharedexp_mantissabits)) *
+				static_cast<float>(1 << (g_sharedexp_maxexponent - g_sharedexp_bias));
+
+			const float red_c = std::max<float>(0, std::min(g_sharedexp_max, rgb[0]));
+			const float green_c = std::max<float>(0, std::min(g_sharedexp_max, rgb[1]));
+			const float blue_c = std::max<float>(0, std::min(g_sharedexp_max, rgb[2]));
+
+			const float max_c = std::max<float>(std::max<float>(red_c, green_c), blue_c);
+			const float exp_p =
+				std::max<float>(-g_sharedexp_bias - 1, floor(log(max_c))) + 1 + g_sharedexp_bias;
+			const int max_s = static_cast<int>(
+				floor((max_c / (pow(2.0f, exp_p - g_sharedexp_bias - g_sharedexp_mantissabits))) + 0.5f));
+			const int exp_s =
+				static_cast<int>((max_s < pow(2.0f, g_sharedexp_mantissabits)) ? exp_p : exp_p + 1);
+
+			R = static_cast<unsigned int>(
+				floor((red_c / (pow(2.0f, exp_s - g_sharedexp_bias - g_sharedexp_mantissabits))) + 0.5f));
+			G = static_cast<unsigned int>(
+				floor((green_c / (pow(2.0f, exp_s - g_sharedexp_bias - g_sharedexp_mantissabits))) + 0.5f));
+			B = static_cast<unsigned int>(
+				floor((blue_c / (pow(2.0f, exp_s - g_sharedexp_bias - g_sharedexp_mantissabits))) + 0.5f));
+			E = exp_s;
+		}
+
+		operator unsigned int() const
+		{
+			return *reinterpret_cast<const unsigned int*>(this);
+		}
+
 		void toRGB16F(half rgb[3]) const
 		{
 			constexpr int offset = 24;   // Exponent bias (15) + number of mantissa bits per component (9) = 24
@@ -80,7 +124,165 @@ namespace sw
 			return shortAsHalf(fp10 << 5);   // Sign bit 0
 		}
 
+		inline unsigned short float32ToFloat11(float fp32)
+		{
+			const unsigned int float32MantissaMask = 0x7FFFFF;
+			const unsigned int float32ExponentMask = 0x7F800000;
+			const unsigned int float32SignMask = 0x80000000;
+			const unsigned int float32ValueMask = ~float32SignMask;
+			const unsigned int float32ExponentFirstBit = 23;
+			const unsigned int float32ExponentBias = 127;
+
+			const unsigned short float11Max = 0x7BF;
+			const unsigned short float11MantissaMask = 0x3F;
+			const unsigned short float11ExponentMask = 0x7C0;
+			const unsigned short float11BitMask = 0x7FF;
+			const unsigned int float11ExponentBias = 14;
+
+			const unsigned int float32Maxfloat11 = 0x477E0000;
+			const unsigned int float32Minfloat11 = 0x38800000;
+
+			const unsigned int float32Bits = *reinterpret_cast<unsigned int*>(&fp32);
+			const bool float32Sign = (float32Bits & float32SignMask) == float32SignMask;
+
+			unsigned int float32Val = float32Bits & float32ValueMask;
+
+			if((float32Val & float32ExponentMask) == float32ExponentMask)
+			{
+				// INF or NAN
+				if((float32Val & float32MantissaMask) != 0)
+				{
+					return float11ExponentMask |
+						(((float32Val >> 17) | (float32Val >> 11) | (float32Val >> 6) | (float32Val)) &
+							float11MantissaMask);
+				}
+				else if(float32Sign)
+				{
+					// -INF is clamped to 0 since float11 is positive only
+					return 0;
+				}
+				else
+				{
+					return float11ExponentMask;
+				}
+			}
+			else if(float32Sign)
+			{
+				// float11 is positive only, so clamp to zero
+				return 0;
+			}
+			else if(float32Val > float32Maxfloat11)
+			{
+				// The number is too large to be represented as a float11, set to max
+				return float11Max;
+			}
+			else
+			{
+				if(float32Val < float32Minfloat11)
+				{
+					// The number is too small to be represented as a normalized float11
+					// Convert it to a denormalized value.
+					const unsigned int shift = (float32ExponentBias - float11ExponentBias) -
+						(float32Val >> float32ExponentFirstBit);
+					float32Val =
+						((1 << float32ExponentFirstBit) | (float32Val & float32MantissaMask)) >> shift;
+				}
+				else
+				{
+					// Rebias the exponent to represent the value as a normalized float11
+					float32Val += 0xC8000000;
+				}
+
+				return ((float32Val + 0xFFFF + ((float32Val >> 17) & 1)) >> 17) & float11BitMask;
+			}
+		}
+
+		inline unsigned short float32ToFloat10(float fp32)
+		{
+			const unsigned int float32MantissaMask = 0x7FFFFF;
+			const unsigned int float32ExponentMask = 0x7F800000;
+			const unsigned int float32SignMask = 0x80000000;
+			const unsigned int float32ValueMask = ~float32SignMask;
+			const unsigned int float32ExponentFirstBit = 23;
+			const unsigned int float32ExponentBias = 127;
+
+			const unsigned short float10Max = 0x3DF;
+			const unsigned short float10MantissaMask = 0x1F;
+			const unsigned short float10ExponentMask = 0x3E0;
+			const unsigned short float10BitMask = 0x3FF;
+			const unsigned int float10ExponentBias = 14;
+
+			const unsigned int float32Maxfloat10 = 0x477C0000;
+			const unsigned int float32Minfloat10 = 0x38800000;
+
+			const unsigned int float32Bits = *reinterpret_cast<unsigned int*>(&fp32);
+			const bool float32Sign = (float32Bits & float32SignMask) == float32SignMask;
+
+			unsigned int float32Val = float32Bits & float32ValueMask;
+
+			if((float32Val & float32ExponentMask) == float32ExponentMask)
+			{
+				// INF or NAN
+				if((float32Val & float32MantissaMask) != 0)
+				{
+					return float10ExponentMask |
+						(((float32Val >> 18) | (float32Val >> 13) | (float32Val >> 3) | (float32Val)) &
+							float10MantissaMask);
+				}
+				else if(float32Sign)
+				{
+					// -INF is clamped to 0 since float11 is positive only
+					return 0;
+				}
+				else
+				{
+					return float10ExponentMask;
+				}
+			}
+			else if(float32Sign)
+			{
+				// float10 is positive only, so clamp to zero
+				return 0;
+			}
+			else if(float32Val > float32Maxfloat10)
+			{
+				// The number is too large to be represented as a float11, set to max
+				return float10Max;
+			}
+			else
+			{
+				if(float32Val < float32Minfloat10)
+				{
+					// The number is too small to be represented as a normalized float11
+					// Convert it to a denormalized value.
+					const unsigned int shift = (float32ExponentBias - float10ExponentBias) -
+						(float32Val >> float32ExponentFirstBit);
+					float32Val =
+						((1 << float32ExponentFirstBit) | (float32Val & float32MantissaMask)) >> shift;
+				}
+				else
+				{
+					// Rebias the exponent to represent the value as a normalized float11
+					float32Val += 0xC8000000;
+				}
+
+				return ((float32Val + 0x1FFFF + ((float32Val >> 18) & 1)) >> 18) & float10BitMask;
+			}
+		}
+
 	public:
+		R11G11B10F(float rgb[3])
+		{
+			R = float32ToFloat11(rgb[0]);
+			G = float32ToFloat11(rgb[1]);
+			B = float32ToFloat10(rgb[2]);
+		}
+
+		operator unsigned int() const
+		{
+			return *reinterpret_cast<const unsigned int*>(this);
+		}
+
 		void toRGB16F(half rgb[3]) const
 		{
 			rgb[0] = float11ToFloat16(R);

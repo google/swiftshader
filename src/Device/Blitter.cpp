@@ -89,6 +89,14 @@ namespace sw
 			         ((uint32_t)(255 * g + 0.5f) << 8) |
 			         ((uint32_t)(255 * b + 0.5f) << 0);
 			break;
+		case VK_FORMAT_B10G11R11_UFLOAT_PACK32:
+			if((rgbaMask & 0x7) != 0x7) return false;
+			packed = R11G11B10F(color);
+			break;
+		case VK_FORMAT_E5B9G9R9_UFLOAT_PACK32:
+			if((rgbaMask & 0x7) != 0x7) return false;
+			packed = RGB9E5(color);
+			break;
 		default:
 			return false;
 		}
