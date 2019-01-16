@@ -15,7 +15,7 @@
 #include "ShaderCore.hpp"
 
 #include "Device/Renderer.hpp"
-#include "System/Debug.hpp"
+#include "Vulkan/VkDebug.hpp"
 
 #include <limits.h>
 

@@ -15,7 +15,7 @@
 #include "SamplerCore.hpp"
 
 #include "Constants.hpp"
-#include "System/Debug.hpp"
+#include "Vulkan/VkDebug.hpp"
 
 namespace
 {

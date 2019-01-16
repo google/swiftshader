@@ -15,7 +15,7 @@
 #include "VertexShader.hpp"
 
 #include "Device/Vertex.hpp"
-#include "System/Debug.hpp"
+#include "Vulkan/VkDebug.hpp"
 
 #include <string.h>
 

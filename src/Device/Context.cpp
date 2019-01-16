@@ -19,7 +19,7 @@
 #include "Pipeline/PixelShader.hpp"
 #include "Pipeline/VertexShader.hpp"
 #include "System/Memory.hpp"
-#include "System/Debug.hpp"
+#include "Vulkan/VkDebug.hpp"
 
 #include <string.h>
 

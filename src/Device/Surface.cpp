@@ -22,7 +22,7 @@
 #include "System/Memory.hpp"
 #include "System/CPUID.hpp"
 #include "System/Resource.hpp"
-#include "System/Debug.hpp"
+#include "Vulkan/VkDebug.hpp"
 #include "Reactor/Reactor.hpp"
 
 #if defined(__i386__) || defined(__x86_64__)

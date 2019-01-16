@@ -17,7 +17,7 @@
 #include "Context.hpp"
 #include "Surface.hpp"
 #include "Pipeline/PixelRoutine.hpp"
-#include "System/Debug.hpp"
+#include "Vulkan/VkDebug.hpp"
 
 #include <cstring>
 

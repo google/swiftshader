@@ -19,7 +19,7 @@
 #include "Device/Vertex.hpp"
 #include "Device/Renderer.hpp"
 #include "System/Half.hpp"
-#include "System/Debug.hpp"
+#include "Vulkan/VkDebug.hpp"
 
 namespace sw
 {

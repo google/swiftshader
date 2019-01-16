@@ -16,7 +16,7 @@
 
 #include "Polygon.hpp"
 #include "Renderer.hpp"
-#include "System/Debug.hpp"
+#include "Vulkan/VkDebug.hpp"
 
 namespace sw
 {

@@ -29,7 +29,7 @@
 #include "System/Half.hpp"
 #include "System/Math.hpp"
 #include "System/Timer.hpp"
-#include "System/Debug.hpp"
+#include "Vulkan/VkDebug.hpp"
 
 #undef max
 

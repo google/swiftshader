@@ -14,7 +14,7 @@
 
 #include "PixelShader.hpp"
 
-#include "System/Debug.hpp"
+#include "Vulkan/VkDebug.hpp"
 
 #include <string.h>
 

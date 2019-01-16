@@ -16,7 +16,7 @@
 
 #include "Config.hpp"
 #include "System/Configurator.hpp"
-#include "System/Debug.hpp"
+#include "Vulkan/VkDebug.hpp"
 #include "Vulkan/Version.h"
 
 #include <sstream>

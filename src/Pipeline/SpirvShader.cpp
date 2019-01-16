@@ -15,7 +15,7 @@
 #include <spirv/unified1/spirv.hpp>
 #include "SpirvShader.hpp"
 #include "System/Math.hpp"
-#include "System/Debug.hpp"
+#include "Vulkan/VkDebug.hpp"
 #include "Device/Config.hpp"
 
 namespace sw

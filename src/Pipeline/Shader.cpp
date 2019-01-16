@@ -17,7 +17,7 @@
 #include "VertexShader.hpp"
 #include "PixelShader.hpp"
 #include "System/Math.hpp"
-#include "System/Debug.hpp"
+#include "Vulkan/VkDebug.hpp"
 
 #include <set>
 #include <fstream>

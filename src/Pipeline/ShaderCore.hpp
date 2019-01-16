@@ -17,7 +17,7 @@
 
 #include "Shader.hpp"
 #include "Reactor/Reactor.hpp"
-#include "System/Debug.hpp"
+#include "Vulkan/VkDebug.hpp"
 
 namespace sw
 {
