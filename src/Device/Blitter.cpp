@@ -67,6 +67,12 @@ namespace sw
 			         ((uint16_t)(63 * g + 0.5f) << 5) |
 			         ((uint16_t)(31 * r + 0.5f) << 11);
 			break;
+		case VK_FORMAT_B5G6R5_UNORM_PACK16:
+			if((rgbaMask & 0x7) != 0x7) return false;
+			packed = ((uint16_t)(31 * r + 0.5f) << 0) |
+			         ((uint16_t)(63 * g + 0.5f) << 5) |
+			         ((uint16_t)(31 * b + 0.5f) << 11);
+			break;
 		case VK_FORMAT_A8B8G8R8_UINT_PACK32:
 		case VK_FORMAT_A8B8G8R8_UNORM_PACK32:
 		case VK_FORMAT_R8G8B8A8_UNORM:
@@ -409,6 +415,39 @@ namespace sw
 
 		switch(state.destFormat)
 		{
+		case VK_FORMAT_R4G4_UNORM_PACK8:
+			if(writeR | writeG)
+			{
+				if(!writeR)
+				{
+					*Pointer<Byte>(element) = (Byte(RoundInt(Float(c.y))) & Byte(0xF)) |
+				                              (*Pointer<Byte>(element) & Byte(0xF0));
+				}
+				else if(!writeG)
+				{
+					*Pointer<Byte>(element) = (*Pointer<Byte>(element) & Byte(0xF)) |
+				                              (Byte(RoundInt(Float(c.x))) << Byte(4));
+				}
+				else
+				{
+					*Pointer<Byte>(element) = (Byte(RoundInt(Float(c.y))) & Byte(0xF)) |
+				                              (Byte(RoundInt(Float(c.x))) << Byte(4));
+				}
+			}
+			break;
+		case VK_FORMAT_R4G4B4A4_UNORM_PACK16:
+			if(writeR || writeG || writeB || writeA)
+			{
+				*Pointer<UShort>(element) = (writeR ? ((UShort(RoundInt(Float(c.x))) & UShort(0xF)) << UShort(12)) :
+				                                      (*Pointer<UShort>(element) & UShort(0x000F))) |
+				                            (writeG ? ((UShort(RoundInt(Float(c.y))) & UShort(0xF)) << UShort(8)) :
+				                                      (*Pointer<UShort>(element) & UShort(0x00F0))) |
+				                            (writeB ? ((UShort(RoundInt(Float(c.z))) & UShort(0xF)) << UShort(4)) :
+			                                          (*Pointer<UShort>(element) & UShort(0x0F00))) |
+			                                (writeA ? (UShort(RoundInt(Float(c.w))) & UShort(0xF)) :
+			                                          (*Pointer<UShort>(element) & UShort(0xF000)));
+			}
+			break;
 		case VK_FORMAT_B4G4R4A4_UNORM_PACK16:
 			if(writeRGBA)
 			{
@@ -446,10 +485,25 @@ namespace sw
 				if(writeA) { *Pointer<Byte>(element + 3) = Byte(RoundInt(Float(c.w))); }
 			}
 			break;
+		case VK_FORMAT_B8G8R8_SNORM:
+			if(writeB) { *Pointer<SByte>(element + 0) = SByte(RoundInt(Float(c.z))); }
+			if(writeG) { *Pointer<SByte>(element + 1) = SByte(RoundInt(Float(c.y))); }
+			if(writeR) { *Pointer<SByte>(element + 2) = SByte(RoundInt(Float(c.x))); }
+			break;
+		case VK_FORMAT_B8G8R8_UNORM:
+		case VK_FORMAT_B8G8R8_SRGB:
+			if(writeB) { *Pointer<Byte>(element + 0) = Byte(RoundInt(Float(c.z))); }
+			if(writeG) { *Pointer<Byte>(element + 1) = Byte(RoundInt(Float(c.y))); }
+			if(writeR) { *Pointer<Byte>(element + 2) = Byte(RoundInt(Float(c.x))); }
+			break;
 		case VK_FORMAT_A8B8G8R8_UNORM_PACK32:
 		case VK_FORMAT_R8G8B8A8_UNORM:
 		case VK_FORMAT_A8B8G8R8_SRGB_PACK32:
 		case VK_FORMAT_R8G8B8A8_SRGB:
+		case VK_FORMAT_A8B8G8R8_UINT_PACK32:
+		case VK_FORMAT_R8G8B8A8_UINT:
+		case VK_FORMAT_R8G8B8A8_USCALED:
+		case VK_FORMAT_A8B8G8R8_USCALED_PACK32:
 			if(writeRGBA)
 			{
 				Short4 c0 = RoundShort4(c);
@@ -476,6 +530,11 @@ namespace sw
 				if(writeA) { *Pointer<Float>(element + 12) = c.w; }
 			}
 			break;
+		case VK_FORMAT_R32G32B32_SFLOAT:
+			if(writeR) { *Pointer<Float>(element) = c.x; }
+			if(writeG) { *Pointer<Float>(element + 4) = c.y; }
+			if(writeB) { *Pointer<Float>(element + 8) = c.z; }
+			break;
 		case VK_FORMAT_R32G32_SFLOAT:
 			if(writeR && writeG)
 			{
@@ -499,31 +558,51 @@ namespace sw
 		case VK_FORMAT_R16_SFLOAT:
 			if(writeR) { *Pointer<Half>(element) = Half(c.x); }
 			break;
+		case VK_FORMAT_B8G8R8A8_SNORM:
+			if(writeB) { *Pointer<SByte>(element) = SByte(RoundInt(Float(c.z))); }
+			if(writeG) { *Pointer<SByte>(element + 1) = SByte(RoundInt(Float(c.y))); }
+			if(writeR) { *Pointer<SByte>(element + 2) = SByte(RoundInt(Float(c.x))); }
+			if(writeA) { *Pointer<SByte>(element + 3) = SByte(RoundInt(Float(c.w))); }
+			break;
 		case VK_FORMAT_A8B8G8R8_SINT_PACK32:
 		case VK_FORMAT_R8G8B8A8_SINT:
 		case VK_FORMAT_A8B8G8R8_SNORM_PACK32:
 		case VK_FORMAT_R8G8B8A8_SNORM:
+		case VK_FORMAT_R8G8B8A8_SSCALED:
+		case VK_FORMAT_A8B8G8R8_SSCALED_PACK32:
 			if(writeA) { *Pointer<SByte>(element + 3) = SByte(RoundInt(Float(c.w))); }
+		case VK_FORMAT_R8G8B8_SINT:
+		case VK_FORMAT_R8G8B8_SNORM:
+		case VK_FORMAT_R8G8B8_SSCALED:
+		case VK_FORMAT_R8G8B8_SRGB:
 			if(writeB) { *Pointer<SByte>(element + 2) = SByte(RoundInt(Float(c.z))); }
 		case VK_FORMAT_R8G8_SINT:
 		case VK_FORMAT_R8G8_SNORM:
+		case VK_FORMAT_R8G8_SSCALED:
+		case VK_FORMAT_R8G8_SRGB:
 			if(writeG) { *Pointer<SByte>(element + 1) = SByte(RoundInt(Float(c.y))); }
 		case VK_FORMAT_R8_SINT:
 		case VK_FORMAT_R8_SNORM:
+		case VK_FORMAT_R8_SSCALED:
+		case VK_FORMAT_R8_SRGB:
 			if(writeR) { *Pointer<SByte>(element) = SByte(RoundInt(Float(c.x))); }
 			break;
-		case VK_FORMAT_A8B8G8R8_UINT_PACK32:
-		case VK_FORMAT_R8G8B8A8_UINT:
-			if(writeA) { *Pointer<Byte>(element + 3) = Byte(RoundInt(Float(c.w))); }
+		case VK_FORMAT_R8G8B8_UINT:
+		case VK_FORMAT_R8G8B8_UNORM:
+		case VK_FORMAT_R8G8B8_USCALED:
 			if(writeB) { *Pointer<Byte>(element + 2) = Byte(RoundInt(Float(c.z))); }
 		case VK_FORMAT_R8G8_UINT:
 		case VK_FORMAT_R8G8_UNORM:
+		case VK_FORMAT_R8G8_USCALED:
 			if(writeG) { *Pointer<Byte>(element + 1) = Byte(RoundInt(Float(c.y))); }
 		case VK_FORMAT_R8_UINT:
 		case VK_FORMAT_R8_UNORM:
+		case VK_FORMAT_R8_USCALED:
 			if(writeR) { *Pointer<Byte>(element) = Byte(RoundInt(Float(c.x))); }
 			break;
 		case VK_FORMAT_R16G16B16A16_SINT:
+		case VK_FORMAT_R16G16B16A16_SNORM:
+		case VK_FORMAT_R16G16B16A16_SSCALED:
 			if(writeRGBA)
 			{
 				*Pointer<Short4>(element) = Short4(RoundInt(c));
@@ -536,7 +615,16 @@ namespace sw
 				if(writeA) { *Pointer<Short>(element + 6) = Short(RoundInt(Float(c.w))); }
 			}
 			break;
+		case VK_FORMAT_R16G16B16_SINT:
+		case VK_FORMAT_R16G16B16_SNORM:
+		case VK_FORMAT_R16G16B16_SSCALED:
+			if(writeR) { *Pointer<Short>(element) = Short(RoundInt(Float(c.x))); }
+			if(writeG) { *Pointer<Short>(element + 2) = Short(RoundInt(Float(c.y))); }
+			if(writeB) { *Pointer<Short>(element + 4) = Short(RoundInt(Float(c.z))); }
+			break;
 		case VK_FORMAT_R16G16_SINT:
+		case VK_FORMAT_R16G16_SNORM:
+		case VK_FORMAT_R16G16_SSCALED:
 			if(writeR && writeG)
 			{
 				*Pointer<Short2>(element) = Short2(Short4(RoundInt(c)));
@@ -548,10 +636,13 @@ namespace sw
 			}
 			break;
 		case VK_FORMAT_R16_SINT:
+		case VK_FORMAT_R16_SNORM:
+		case VK_FORMAT_R16_SSCALED:
 			if(writeR) { *Pointer<Short>(element) = Short(RoundInt(Float(c.x))); }
 			break;
 		case VK_FORMAT_R16G16B16A16_UINT:
 		case VK_FORMAT_R16G16B16A16_UNORM:
+		case VK_FORMAT_R16G16B16A16_USCALED:
 			if(writeRGBA)
 			{
 				*Pointer<UShort4>(element) = UShort4(RoundInt(c));
@@ -564,8 +655,16 @@ namespace sw
 				if(writeA) { *Pointer<UShort>(element + 6) = UShort(RoundInt(Float(c.w))); }
 			}
 			break;
+		case VK_FORMAT_R16G16B16_UINT:
+		case VK_FORMAT_R16G16B16_UNORM:
+		case VK_FORMAT_R16G16B16_USCALED:
+			if(writeR) { *Pointer<UShort>(element) = UShort(RoundInt(Float(c.x))); }
+			if(writeG) { *Pointer<UShort>(element + 2) = UShort(RoundInt(Float(c.y))); }
+			if(writeB) { *Pointer<UShort>(element + 4) = UShort(RoundInt(Float(c.z))); }
+			break;
 		case VK_FORMAT_R16G16_UINT:
 		case VK_FORMAT_R16G16_UNORM:
+		case VK_FORMAT_R16G16_USCALED:
 			if(writeR && writeG)
 			{
 				*Pointer<UShort2>(element) = UShort2(UShort4(RoundInt(c)));
@@ -577,6 +676,8 @@ namespace sw
 			}
 			break;
 		case VK_FORMAT_R16_UINT:
+		case VK_FORMAT_R16_UNORM:
+		case VK_FORMAT_R16_USCALED:
 			if(writeR) { *Pointer<UShort>(element) = UShort(RoundInt(Float(c.x))); }
 			break;
 		case VK_FORMAT_R32G32B32A32_SINT:
@@ -592,6 +693,8 @@ namespace sw
 				if(writeA) { *Pointer<Int>(element + 12) = RoundInt(Float(c.w)); }
 			}
 			break;
+		case VK_FORMAT_R32G32B32_SINT:
+			if(writeB) { *Pointer<Int>(element + 8) = RoundInt(Float(c.z)); }
 		case VK_FORMAT_R32G32_SINT:
 			if(writeG) { *Pointer<Int>(element + 4) = RoundInt(Float(c.y)); }
 		case VK_FORMAT_R32_SINT:
@@ -610,6 +713,8 @@ namespace sw
 				if(writeA) { *Pointer<UInt>(element + 12) = As<UInt>(RoundInt(Float(c.w))); }
 			}
 			break;
+		case VK_FORMAT_R32G32B32_UINT:
+			if(writeB) { *Pointer<UInt>(element + 8) = As<UInt>(RoundInt(Float(c.z))); }
 		case VK_FORMAT_R32G32_UINT:
 			if(writeG) { *Pointer<UInt>(element + 4) = As<UInt>(RoundInt(Float(c.y))); }
 		case VK_FORMAT_R32_UINT:
@@ -630,6 +735,50 @@ namespace sw
 				                            (UShort(RoundInt(Float(c.z)) |
 				                                   (RoundInt(Float(c.y)) << Int(5)) |
 				                                   (RoundInt(Float(c.x)) << Int(11))) & UShort(mask));
+			}
+			break;
+		case VK_FORMAT_R5G5B5A1_UNORM_PACK16:
+			if(writeRGBA)
+			{
+				*Pointer<UShort>(element) = UShort(RoundInt(Float(c.w)) |
+				                                  (RoundInt(Float(c.z)) << Int(1)) |
+				                                  (RoundInt(Float(c.y)) << Int(6)) |
+				                                  (RoundInt(Float(c.x)) << Int(11)));
+			}
+			else
+			{
+				unsigned short mask = (writeA ? 0x8000 : 0x0000) |
+				                      (writeR ? 0x7C00 : 0x0000) |
+				                      (writeG ? 0x03E0 : 0x0000) |
+				                      (writeB ? 0x001F : 0x0000);
+				unsigned short unmask = ~mask;
+				*Pointer<UShort>(element) = (*Pointer<UShort>(element) & UShort(unmask)) |
+				                            (UShort(RoundInt(Float(c.w)) |
+				                                   (RoundInt(Float(c.z)) << Int(1)) |
+				                                   (RoundInt(Float(c.y)) << Int(6)) |
+				                                   (RoundInt(Float(c.x)) << Int(11))) & UShort(mask));
+			}
+			break;
+		case VK_FORMAT_B5G5R5A1_UNORM_PACK16:
+			if(writeRGBA)
+			{
+				*Pointer<UShort>(element) = UShort(RoundInt(Float(c.w)) |
+				                                  (RoundInt(Float(c.x)) << Int(1)) |
+				                                  (RoundInt(Float(c.y)) << Int(6)) |
+				                                  (RoundInt(Float(c.z)) << Int(11)));
+			}
+			else
+			{
+				unsigned short mask = (writeA ? 0x8000 : 0x0000) |
+				                      (writeR ? 0x7C00 : 0x0000) |
+				                      (writeG ? 0x03E0 : 0x0000) |
+				                      (writeB ? 0x001F : 0x0000);
+				unsigned short unmask = ~mask;
+				*Pointer<UShort>(element) = (*Pointer<UShort>(element) & UShort(unmask)) |
+				                            (UShort(RoundInt(Float(c.w)) |
+				                                   (RoundInt(Float(c.x)) << Int(1)) |
+				                                   (RoundInt(Float(c.y)) << Int(6)) |
+				                                   (RoundInt(Float(c.z)) << Int(11))) & UShort(mask));
 			}
 			break;
 		case VK_FORMAT_A1R5G5B5_UNORM_PACK16:
@@ -656,6 +805,7 @@ namespace sw
 			break;
 		case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
 		case VK_FORMAT_A2B10G10R10_UINT_PACK32:
+		case VK_FORMAT_A2B10G10R10_SNORM_PACK32:
 			if(writeRGBA)
 			{
 				*Pointer<UInt>(element) = UInt(RoundInt(Float(c.x)) |
@@ -674,6 +824,30 @@ namespace sw
 				                            (UInt(RoundInt(Float(c.x)) |
 				                                 (RoundInt(Float(c.y)) << 10) |
 				                                 (RoundInt(Float(c.z)) << 20) |
+				                                 (RoundInt(Float(c.w)) << 30)) & UInt(mask));
+			}
+			break;
+		case VK_FORMAT_A2R10G10B10_UNORM_PACK32:
+		case VK_FORMAT_A2R10G10B10_UINT_PACK32:
+		case VK_FORMAT_A2R10G10B10_SNORM_PACK32:
+			if(writeRGBA)
+			{
+				*Pointer<UInt>(element) = UInt(RoundInt(Float(c.z)) |
+				                              (RoundInt(Float(c.y)) << 10) |
+				                              (RoundInt(Float(c.x)) << 20) |
+				                              (RoundInt(Float(c.w)) << 30));
+			}
+			else
+			{
+				unsigned int mask = (writeA ? 0xC0000000 : 0x0000) |
+				                    (writeR ? 0x3FF00000 : 0x0000) |
+				                    (writeG ? 0x000FFC00 : 0x0000) |
+				                    (writeB ? 0x000003FF : 0x0000);
+				unsigned int unmask = ~mask;
+				*Pointer<UInt>(element) = (*Pointer<UInt>(element) & UInt(unmask)) |
+				                            (UInt(RoundInt(Float(c.z)) |
+				                                 (RoundInt(Float(c.y)) << 10) |
+				                                 (RoundInt(Float(c.x)) << 20) |
 				                                 (RoundInt(Float(c.w)) << 30)) & UInt(mask));
 			}
 			break;
@@ -776,24 +950,43 @@ namespace sw
 			break;
 		case VK_FORMAT_A8B8G8R8_UINT_PACK32:
 		case VK_FORMAT_R8G8B8A8_UINT:
+		case VK_FORMAT_R8G8B8_UINT:
 		case VK_FORMAT_R8G8_UINT:
 		case VK_FORMAT_R8_UINT:
+		case VK_FORMAT_R8G8B8A8_USCALED:
+		case VK_FORMAT_R8G8B8_USCALED:
+		case VK_FORMAT_R8G8_USCALED:
+		case VK_FORMAT_R8_USCALED:
 			c = Min(As<UInt4>(c), UInt4(0xFF));
 			break;
 		case VK_FORMAT_R16G16B16A16_UINT:
+		case VK_FORMAT_R16G16B16_UINT:
 		case VK_FORMAT_R16G16_UINT:
 		case VK_FORMAT_R16_UINT:
+		case VK_FORMAT_R16G16B16A16_USCALED:
+		case VK_FORMAT_R16G16B16_USCALED:
+		case VK_FORMAT_R16G16_USCALED:
+		case VK_FORMAT_R16_USCALED:
 			c = Min(As<UInt4>(c), UInt4(0xFFFF));
 			break;
 		case VK_FORMAT_A8B8G8R8_SINT_PACK32:
 		case VK_FORMAT_R8G8B8A8_SINT:
 		case VK_FORMAT_R8G8_SINT:
 		case VK_FORMAT_R8_SINT:
+		case VK_FORMAT_R8G8B8A8_SSCALED:
+		case VK_FORMAT_R8G8B8_SSCALED:
+		case VK_FORMAT_R8G8_SSCALED:
+		case VK_FORMAT_R8_SSCALED:
 			c = Min(Max(c, Int4(-0x80)), Int4(0x7F));
 			break;
 		case VK_FORMAT_R16G16B16A16_SINT:
+		case VK_FORMAT_R16G16B16_SINT:
 		case VK_FORMAT_R16G16_SINT:
 		case VK_FORMAT_R16_SINT:
+		case VK_FORMAT_R16G16B16A16_SSCALED:
+		case VK_FORMAT_R16G16B16_SSCALED:
+		case VK_FORMAT_R16G16_SSCALED:
+		case VK_FORMAT_R16_SSCALED:
 			c = Min(Max(c, Int4(-0x8000)), Int4(0x7FFF));
 			break;
 		default:
@@ -802,16 +995,35 @@ namespace sw
 
 		switch(state.destFormat)
 		{
+		case VK_FORMAT_B8G8R8A8_SINT:
+		case VK_FORMAT_B8G8R8A8_SSCALED:
+			if(writeA) { *Pointer<SByte>(element + 3) = SByte(Extract(c, 3)); }
+		case VK_FORMAT_B8G8R8_SINT:
+		case VK_FORMAT_B8G8R8_SRGB:
+		case VK_FORMAT_B8G8R8_SSCALED:
+			if(writeB) { *Pointer<SByte>(element) = SByte(Extract(c, 2)); }
+			if(writeG) { *Pointer<SByte>(element + 1) = SByte(Extract(c, 1)); }
+			if(writeR) { *Pointer<SByte>(element + 2) = SByte(Extract(c, 0)); }
+			break;
 		case VK_FORMAT_A8B8G8R8_SINT_PACK32:
 		case VK_FORMAT_R8G8B8A8_SINT:
+		case VK_FORMAT_R8G8B8A8_SSCALED:
+		case VK_FORMAT_A8B8G8R8_SSCALED_PACK32:
 			if(writeA) { *Pointer<SByte>(element + 3) = SByte(Extract(c, 3)); }
+		case VK_FORMAT_R8G8B8_SINT:
+		case VK_FORMAT_R8G8B8_SSCALED:
 			if(writeB) { *Pointer<SByte>(element + 2) = SByte(Extract(c, 2)); }
 		case VK_FORMAT_R8G8_SINT:
+		case VK_FORMAT_R8G8_SSCALED:
 			if(writeG) { *Pointer<SByte>(element + 1) = SByte(Extract(c, 1)); }
 		case VK_FORMAT_R8_SINT:
+		case VK_FORMAT_R8_SSCALED:
 			if(writeR) { *Pointer<SByte>(element) = SByte(Extract(c, 0)); }
 			break;
 		case VK_FORMAT_A2B10G10R10_UINT_PACK32:
+		case VK_FORMAT_A2B10G10R10_SINT_PACK32:
+		case VK_FORMAT_A2B10G10R10_USCALED_PACK32:
+		case VK_FORMAT_A2B10G10R10_SSCALED_PACK32:
 			if(writeRGBA)
 			{
 				*Pointer<UInt>(element) =
@@ -828,29 +1040,74 @@ namespace sw
 					(UInt(Extract(c, 0) | (Extract(c, 1) << 10) | (Extract(c, 2) << 20) | (Extract(c, 3) << 30)) & UInt(mask));
 			}
 			break;
+		case VK_FORMAT_A2R10G10B10_UINT_PACK32:
+		case VK_FORMAT_A2R10G10B10_SINT_PACK32:
+		case VK_FORMAT_A2R10G10B10_USCALED_PACK32:
+		case VK_FORMAT_A2R10G10B10_SSCALED_PACK32:
+			if(writeRGBA)
+			{
+				*Pointer<UInt>(element) =
+					UInt((Extract(c, 2)) | (Extract(c, 1) << 10) | (Extract(c, 0) << 20) | (Extract(c, 3) << 30));
+			}
+			else
+			{
+				unsigned int mask = (writeA ? 0xC0000000 : 0x0000) |
+				                    (writeR ? 0x3FF00000 : 0x0000) |
+				                    (writeG ? 0x000FFC00 : 0x0000) |
+				                    (writeB ? 0x000003FF : 0x0000);
+				unsigned int unmask = ~mask;
+				*Pointer<UInt>(element) = (*Pointer<UInt>(element) & UInt(unmask)) |
+					(UInt(Extract(c, 2) | (Extract(c, 1) << 10) | (Extract(c, 0) << 20) | (Extract(c, 3) << 30)) & UInt(mask));
+			}
+			break;
+		case VK_FORMAT_B8G8R8A8_UINT:
+		case VK_FORMAT_B8G8R8A8_USCALED:
+			if(writeA) { *Pointer<Byte>(element + 3) = Byte(Extract(c, 3)); }
+		case VK_FORMAT_B8G8R8_UINT:
+		case VK_FORMAT_B8G8R8_USCALED:
+			if(writeB) { *Pointer<Byte>(element) = Byte(Extract(c, 2)); }
+			if(writeG) { *Pointer<Byte>(element + 1) = Byte(Extract(c, 1)); }
+			if(writeR) { *Pointer<Byte>(element + 2) = Byte(Extract(c, 0)); }
+			break;
 		case VK_FORMAT_A8B8G8R8_UINT_PACK32:
 		case VK_FORMAT_R8G8B8A8_UINT:
+		case VK_FORMAT_R8G8B8A8_USCALED:
+		case VK_FORMAT_A8B8G8R8_USCALED_PACK32:
 			if(writeA) { *Pointer<Byte>(element + 3) = Byte(Extract(c, 3)); }
+		case VK_FORMAT_R8G8B8_UINT:
+		case VK_FORMAT_R8G8B8_USCALED:
 			if(writeB) { *Pointer<Byte>(element + 2) = Byte(Extract(c, 2)); }
 		case VK_FORMAT_R8G8_UINT:
+		case VK_FORMAT_R8G8_USCALED:
 			if(writeG) { *Pointer<Byte>(element + 1) = Byte(Extract(c, 1)); }
 		case VK_FORMAT_R8_UINT:
+		case VK_FORMAT_R8_USCALED:
 			if(writeR) { *Pointer<Byte>(element) = Byte(Extract(c, 0)); }
 			break;
 		case VK_FORMAT_R16G16B16A16_SINT:
+		case VK_FORMAT_R16G16B16A16_SSCALED:
 			if(writeA) { *Pointer<Short>(element + 6) = Short(Extract(c, 3)); }
+		case VK_FORMAT_R16G16B16_SINT:
+		case VK_FORMAT_R16G16B16_SSCALED:
 			if(writeB) { *Pointer<Short>(element + 4) = Short(Extract(c, 2)); }
 		case VK_FORMAT_R16G16_SINT:
+		case VK_FORMAT_R16G16_SSCALED:
 			if(writeG) { *Pointer<Short>(element + 2) = Short(Extract(c, 1)); }
 		case VK_FORMAT_R16_SINT:
+		case VK_FORMAT_R16_SSCALED:
 			if(writeR) { *Pointer<Short>(element) = Short(Extract(c, 0)); }
 			break;
 		case VK_FORMAT_R16G16B16A16_UINT:
+		case VK_FORMAT_R16G16B16A16_USCALED:
 			if(writeA) { *Pointer<UShort>(element + 6) = UShort(Extract(c, 3)); }
+		case VK_FORMAT_R16G16B16_UINT:
+		case VK_FORMAT_R16G16B16_USCALED:
 			if(writeB) { *Pointer<UShort>(element + 4) = UShort(Extract(c, 2)); }
 		case VK_FORMAT_R16G16_UINT:
+		case VK_FORMAT_R16G16_USCALED:
 			if(writeG) { *Pointer<UShort>(element + 2) = UShort(Extract(c, 1)); }
 		case VK_FORMAT_R16_UINT:
+		case VK_FORMAT_R16_USCALED:
 			if(writeR) { *Pointer<UShort>(element) = UShort(Extract(c, 0)); }
 			break;
 		case VK_FORMAT_R32G32B32A32_SINT:
@@ -865,6 +1122,11 @@ namespace sw
 				if(writeB) { *Pointer<Int>(element + 8) = Extract(c, 2); }
 				if(writeA) { *Pointer<Int>(element + 12) = Extract(c, 3); }
 			}
+			break;
+		case VK_FORMAT_R32G32B32_SINT:
+			if(writeR) { *Pointer<Int>(element) = Extract(c, 0); }
+			if(writeG) { *Pointer<Int>(element + 4) = Extract(c, 1); }
+			if(writeB) { *Pointer<Int>(element + 8) = Extract(c, 2); }
 			break;
 		case VK_FORMAT_R32G32_SINT:
 			if(writeR) { *Pointer<Int>(element) = Extract(c, 0); }
@@ -886,10 +1148,10 @@ namespace sw
 				if(writeA) { *Pointer<UInt>(element + 12) = As<UInt>(Extract(c, 3)); }
 			}
 			break;
+		case VK_FORMAT_R32G32B32_UINT:
+			if(writeB) { *Pointer<UInt>(element + 8) = As<UInt>(Extract(c, 2)); }
 		case VK_FORMAT_R32G32_UINT:
-			if(writeR) { *Pointer<UInt>(element) = As<UInt>(Extract(c, 0)); }
 			if(writeG) { *Pointer<UInt>(element + 4) = As<UInt>(Extract(c, 1)); }
-			break;
 		case VK_FORMAT_R32_UINT:
 			if(writeR) { *Pointer<UInt>(element) = As<UInt>(Extract(c, 0)); }
 			break;
@@ -904,14 +1166,22 @@ namespace sw
 	{
 		switch(format)
 		{
+		case VK_FORMAT_R4G4_UNORM_PACK8:
+		case VK_FORMAT_R4G4B4A4_UNORM_PACK16:
 		case VK_FORMAT_B4G4R4A4_UNORM_PACK16:
 			scale = vector(0xF, 0xF, 0xF, 0xF);
 			break;
-		case VK_FORMAT_B8G8R8A8_UNORM:
 		case VK_FORMAT_R8_UNORM:
 		case VK_FORMAT_R8G8_UNORM:
+		case VK_FORMAT_R8G8B8_UNORM:
+		case VK_FORMAT_B8G8R8_UNORM:
 		case VK_FORMAT_A8B8G8R8_UNORM_PACK32:
 		case VK_FORMAT_R8G8B8A8_UNORM:
+		case VK_FORMAT_B8G8R8A8_UNORM:
+		case VK_FORMAT_R8_SRGB:
+		case VK_FORMAT_R8G8_SRGB:
+		case VK_FORMAT_R8G8B8_SRGB:
+		case VK_FORMAT_B8G8R8_SRGB:
 		case VK_FORMAT_A8B8G8R8_SRGB_PACK32:
 		case VK_FORMAT_R8G8B8A8_SRGB:
 		case VK_FORMAT_B8G8R8A8_SRGB:
@@ -919,35 +1189,77 @@ namespace sw
 			break;
 		case VK_FORMAT_R8_SNORM:
 		case VK_FORMAT_R8G8_SNORM:
+		case VK_FORMAT_R8G8B8_SNORM:
+		case VK_FORMAT_B8G8R8_SNORM:
 		case VK_FORMAT_A8B8G8R8_SNORM_PACK32:
 		case VK_FORMAT_R8G8B8A8_SNORM:
+		case VK_FORMAT_B8G8R8A8_SNORM:
 			scale = vector(0x7F, 0x7F, 0x7F, 0x7F);
 			break;
+		case VK_FORMAT_R16_UNORM:
+		case VK_FORMAT_R16G16_UNORM:
+		case VK_FORMAT_R16G16B16_UNORM:
 		case VK_FORMAT_R16G16B16A16_UNORM:
 			scale = vector(0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF);
+			break;
+		case VK_FORMAT_R16_SNORM:
+		case VK_FORMAT_R16G16_SNORM:
+		case VK_FORMAT_R16G16B16_SNORM:
+		case VK_FORMAT_R16G16B16A16_SNORM:
+			scale = vector(0x7FFF, 0x7FFF, 0x7FFF, 0x7FFF);
 			break;
 		case VK_FORMAT_R8_SINT:
 		case VK_FORMAT_R8_UINT:
 		case VK_FORMAT_R8G8_SINT:
 		case VK_FORMAT_R8G8_UINT:
+		case VK_FORMAT_R8G8B8_SINT:
+		case VK_FORMAT_R8G8B8_UINT:
+		case VK_FORMAT_B8G8R8_SINT:
+		case VK_FORMAT_B8G8R8_UINT:
 		case VK_FORMAT_R8G8B8A8_SINT:
 		case VK_FORMAT_R8G8B8A8_UINT:
 		case VK_FORMAT_A8B8G8R8_SINT_PACK32:
 		case VK_FORMAT_A8B8G8R8_UINT_PACK32:
+		case VK_FORMAT_B8G8R8A8_SINT:
+		case VK_FORMAT_B8G8R8A8_UINT:
+		case VK_FORMAT_R8_USCALED:
+		case VK_FORMAT_R8G8_USCALED:
+		case VK_FORMAT_R8G8B8_USCALED:
+		case VK_FORMAT_B8G8R8_USCALED:
+		case VK_FORMAT_R8G8B8A8_USCALED:
+		case VK_FORMAT_B8G8R8A8_USCALED:
+		case VK_FORMAT_A8B8G8R8_USCALED_PACK32:
+		case VK_FORMAT_R8_SSCALED:
+		case VK_FORMAT_R8G8_SSCALED:
+		case VK_FORMAT_R8G8B8_SSCALED:
+		case VK_FORMAT_B8G8R8_SSCALED:
+		case VK_FORMAT_R8G8B8A8_SSCALED:
+		case VK_FORMAT_B8G8R8A8_SSCALED:
+		case VK_FORMAT_A8B8G8R8_SSCALED_PACK32:
 		case VK_FORMAT_R16_SINT:
 		case VK_FORMAT_R16_UINT:
-		case VK_FORMAT_R16G16_UNORM:
 		case VK_FORMAT_R16G16_SINT:
 		case VK_FORMAT_R16G16_UINT:
 		case VK_FORMAT_R16G16B16A16_SINT:
 		case VK_FORMAT_R16G16B16A16_UINT:
+		case VK_FORMAT_R16_SSCALED:
+		case VK_FORMAT_R16G16_SSCALED:
+		case VK_FORMAT_R16G16B16_SSCALED:
+		case VK_FORMAT_R16G16B16A16_SSCALED:
+		case VK_FORMAT_R16_USCALED:
+		case VK_FORMAT_R16G16_USCALED:
+		case VK_FORMAT_R16G16B16_USCALED:
+		case VK_FORMAT_R16G16B16A16_USCALED:
 		case VK_FORMAT_R32_SINT:
 		case VK_FORMAT_R32_UINT:
 		case VK_FORMAT_R32G32_SINT:
 		case VK_FORMAT_R32G32_UINT:
+		case VK_FORMAT_R32G32B32_SINT:
+		case VK_FORMAT_R32G32B32_UINT:
 		case VK_FORMAT_R32G32B32A32_SINT:
 		case VK_FORMAT_R32G32B32A32_UINT:
 		case VK_FORMAT_R32G32B32A32_SFLOAT:
+		case VK_FORMAT_R32G32B32_SFLOAT:
 		case VK_FORMAT_R32G32_SFLOAT:
 		case VK_FORMAT_R32_SFLOAT:
 		case VK_FORMAT_R16G16B16A16_SFLOAT:
@@ -956,17 +1268,32 @@ namespace sw
 		case VK_FORMAT_R16_SFLOAT:
 		case VK_FORMAT_B10G11R11_UFLOAT_PACK32:
 		case VK_FORMAT_E5B9G9R9_UFLOAT_PACK32:
+		case VK_FORMAT_A2R10G10B10_USCALED_PACK32:
+		case VK_FORMAT_A2R10G10B10_SSCALED_PACK32:
+		case VK_FORMAT_A2R10G10B10_UINT_PACK32:
+		case VK_FORMAT_A2R10G10B10_SINT_PACK32:
+		case VK_FORMAT_A2B10G10R10_USCALED_PACK32:
+		case VK_FORMAT_A2B10G10R10_SSCALED_PACK32:
 		case VK_FORMAT_A2B10G10R10_UINT_PACK32:
+		case VK_FORMAT_A2B10G10R10_SINT_PACK32:
 			scale = vector(1.0f, 1.0f, 1.0f, 1.0f);
 			break;
+		case VK_FORMAT_R5G5B5A1_UNORM_PACK16:
+		case VK_FORMAT_B5G5R5A1_UNORM_PACK16:
 		case VK_FORMAT_A1R5G5B5_UNORM_PACK16:
 			scale = vector(0x1F, 0x1F, 0x1F, 0x01);
 			break;
 		case VK_FORMAT_R5G6B5_UNORM_PACK16:
+		case VK_FORMAT_B5G6R5_UNORM_PACK16:
 			scale = vector(0x1F, 0x3F, 0x1F, 1.0f);
 			break;
+		case VK_FORMAT_A2R10G10B10_UNORM_PACK32:
 		case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
 			scale = vector(0x3FF, 0x3FF, 0x3FF, 0x03);
+			break;
+		case VK_FORMAT_A2R10G10B10_SNORM_PACK32:
+		case VK_FORMAT_A2B10G10R10_SNORM_PACK32:
+			scale = vector(0x1FF, 0x1FF, 0x1FF, 0x01);
 			break;
 		case VK_FORMAT_D16_UNORM:
 			scale = vector(0xFFFF, 0.0f, 0.0f, 0.0f);
