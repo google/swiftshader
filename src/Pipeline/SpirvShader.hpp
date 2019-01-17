@@ -44,7 +44,9 @@ namespace sw
 			}
 
 			uint32_t wordCount() const
-			{ return *iter >> spv::WordCountShift; }
+			{
+				return *iter >> spv::WordCountShift;
+			}
 
 			uint32_t word(uint32_t n) const
 			{
@@ -58,7 +60,9 @@ namespace sw
 			}
 
 			InsnIterator operator*() const
-			{ return *this; }
+			{
+				return *this;
+			}
 
 			InsnIterator &operator++()
 			{
@@ -78,15 +82,20 @@ namespace sw
 			InsnIterator() = default;
 
 			explicit InsnIterator(InsnStore::const_iterator iter) : iter{iter}
-			{}
+			{
+			}
 		};
 
 		/* range-based-for interface */
 		InsnIterator begin() const
-		{ return InsnIterator{insns.cbegin() + 5}; }
+		{
+			return InsnIterator{insns.cbegin() + 5};
+		}
 
 		InsnIterator end() const
-		{ return InsnIterator{insns.cend()}; }
+		{
+			return InsnIterator{insns.cend()};
+		}
 
 		class Object
 		{
@@ -104,7 +113,9 @@ namespace sw
 		};
 
 		int getSerialID() const
-		{ return serialID; }
+		{
+			return serialID;
+		}
 
 		explicit SpirvShader(InsnStore const &insns);
 
@@ -121,7 +132,9 @@ namespace sw
 		};
 
 		Modes const &getModes() const
-		{ return modes; }
+		{
+			return modes;
+		}
 
 	private:
 		const int serialID;
