@@ -16,6 +16,7 @@
 #define sw_Half_hpp
 
 #include <algorithm>
+#include <cmath>
 
 namespace sw
 {
