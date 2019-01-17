@@ -14,12 +14,14 @@
 
 #include "VkFramebuffer.hpp"
 #include "VkImageView.hpp"
+#include "VkRenderPass.hpp"
 #include <memory.h>
 
 namespace vk
 {
 
 Framebuffer::Framebuffer(const VkFramebufferCreateInfo* pCreateInfo, void* mem) :
+	renderPass(Cast(pCreateInfo->renderPass)),
 	attachmentCount(pCreateInfo->attachmentCount),
 	attachments(reinterpret_cast<ImageView**>(mem))
 {
@@ -41,6 +43,31 @@ void Framebuffer::clear(uint32_t clearValueCount, const VkClearValue* pClearValu
 	for(uint32_t i = 0; i < attachmentCount; i++)
 	{
 		attachments[i]->clear(pClearValues[i], renderArea);
+	}
+}
+
+void Framebuffer::clear(const VkClearAttachment& attachment, const VkClearRect& rect)
+{
+	if(attachment.aspectMask == VK_IMAGE_ASPECT_COLOR_BIT)
+	{
+		if(attachment.colorAttachment != VK_ATTACHMENT_UNUSED)
+		{
+			VkSubpassDescription subpass = renderPass->getCurrentSubpass();
+
+			ASSERT(attachment.colorAttachment < subpass.colorAttachmentCount);
+			ASSERT(subpass.pColorAttachments[attachment.colorAttachment].attachment < attachmentCount);
+
+			attachments[subpass.pColorAttachments[attachment.colorAttachment].attachment]->clear(
+				attachment.clearValue, attachment.aspectMask, rect);
+		}
+	}
+	else if(attachment.aspectMask & (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT))
+	{
+		VkSubpassDescription subpass = renderPass->getCurrentSubpass();
+
+		ASSERT(subpass.pDepthStencilAttachment->attachment < attachmentCount);
+
+		attachments[subpass.pDepthStencilAttachment->attachment]->clear(attachment.clearValue, attachment.aspectMask, rect);
 	}
 }
 

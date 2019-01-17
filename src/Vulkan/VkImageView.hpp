@@ -32,6 +32,7 @@ public:
 	static size_t ComputeRequiredAllocationSize(const VkImageViewCreateInfo* pCreateInfo);
 
 	void clear(const VkClearValue& clearValues, const VkRect2D& renderArea);
+	void clear(const VkClearValue& clearValue, const VkImageAspectFlags aspectMask, const VkClearRect& renderArea);
 
 private:
 	bool                       imageTypesMatch(VkImageType imageType) const;

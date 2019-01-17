@@ -89,4 +89,28 @@ void ImageView::clear(const VkClearValue& clearValue, const VkRect2D& renderArea
 	image->clear(clearValue, renderArea, subresourceRange);
 }
 
+void ImageView::clear(const VkClearValue& clearValue, const VkImageAspectFlags aspectMask, const VkClearRect& renderArea)
+{
+	// Note: clearing ignores swizzling, so components is ignored.
+
+	if(!imageTypesMatch(image->getImageType()))
+	{
+		UNIMPLEMENTED();
+	}
+
+	if(image->getFormat() != format)
+	{
+		UNIMPLEMENTED();
+	}
+
+	VkImageSubresourceRange sr;
+	sr.aspectMask = aspectMask;
+	sr.baseMipLevel = subresourceRange.baseMipLevel;
+	sr.levelCount = subresourceRange.levelCount;
+	sr.baseArrayLayer = renderArea.baseArrayLayer + subresourceRange.baseArrayLayer;
+	sr.layerCount = renderArea.layerCount;
+
+	image->clear(clearValue, renderArea.rect, sr);
+}
+
 }
