@@ -137,6 +137,15 @@ namespace sw
 			return modes;
 		}
 
+		enum AttribType : unsigned char
+		{
+			ATTRIBTYPE_FLOAT,
+			ATTRIBTYPE_INT,
+			ATTRIBTYPE_UINT,
+
+			ATTRIBTYPE_LAST = ATTRIBTYPE_UINT
+		};
+
 	private:
 		const int serialID;
 		static volatile int serialCounter;

@@ -33,7 +33,7 @@ namespace sw
 		for(int i = 0; i < MAX_VERTEX_INPUTS; i++)
 		{
 			input[i] = Semantic();
-			attribType[i] = ATTRIBTYPE_FLOAT;
+			attribType[i] = SpirvShader::ATTRIBTYPE_FLOAT;
 		}
 
 		if(vs)   // Make a copy
@@ -70,7 +70,7 @@ namespace sw
 		for(int i = 0; i < MAX_VERTEX_INPUTS; i++)
 		{
 			input[i] = Semantic();
-			attribType[i] = ATTRIBTYPE_FLOAT;
+			attribType[i] = SpirvShader::ATTRIBTYPE_FLOAT;
 		}
 
 		optimize();
@@ -157,7 +157,7 @@ namespace sw
 		return textureSampling;
 	}
 
-	void VertexShader::setInput(int inputIdx, const sw::Shader::Semantic& semantic, AttribType aType)
+	void VertexShader::setInput(int inputIdx, const sw::Shader::Semantic& semantic, SpirvShader::AttribType aType)
 	{
 		input[inputIdx] = semantic;
 		attribType[inputIdx] = aType;
@@ -188,7 +188,7 @@ namespace sw
 		return input[inputIdx];
 	}
 
-	VertexShader::AttribType VertexShader::getAttribType(int inputIdx) const
+	SpirvShader::AttribType VertexShader::getAttribType(int inputIdx) const
 	{
 		return attribType[inputIdx];
 	}
