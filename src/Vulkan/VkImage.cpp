@@ -501,13 +501,8 @@ uint32_t Image::getLastMipLevel(const VkImageSubresourceRange& subresourceRange)
 	        mipLevels : (subresourceRange.baseMipLevel + subresourceRange.levelCount)) - 1;
 }
 
-void Image::clear(const VkClearColorValue& color, const VkImageSubresourceRange& subresourceRange)
+void Image::clear(void* pixelData, VkFormat format, const VkImageSubresourceRange& subresourceRange, VkImageAspectFlags aspectMask)
 {
-	if(!(subresourceRange.aspectMask == VK_IMAGE_ASPECT_COLOR_BIT))
-	{
-		UNIMPLEMENTED();
-	}
-
 	uint32_t firstLayer = subresourceRange.baseArrayLayer;
 	uint32_t lastLayer = getLastLayerIndex(subresourceRange);
 	for(uint32_t layer = firstLayer; layer <= lastLayer; ++layer)
@@ -519,17 +514,48 @@ void Image::clear(const VkClearColorValue& color, const VkImageSubresourceRange&
 			for(uint32_t s = 0; s < mipLevelExtent.depth; ++s)
 			{
 				const sw::SliceRect dRect(0, 0, mipLevelExtent.width, mipLevelExtent.height, s);
-				sw::Surface* surface = asSurface(subresourceRange.aspectMask, mipLevel, layer);
-				blitter->clear((void*)color.float32, getClearFormat(), surface, dRect, 0xF);
+				sw::Surface* surface = asSurface(aspectMask, mipLevel, layer);
+				blitter->clear(pixelData, format, surface, dRect, 0xF);
 				delete surface;
 			}
 		}
 	}
 }
 
+void Image::clear(const VkClearColorValue& color, const VkImageSubresourceRange& subresourceRange)
+{
+	if(!(subresourceRange.aspectMask == VK_IMAGE_ASPECT_COLOR_BIT))
+	{
+		UNIMPLEMENTED();
+	}
+
+	clear((void*)color.float32, getClearFormat(), subresourceRange, VK_IMAGE_ASPECT_COLOR_BIT);
+}
+
+void Image::clear(const VkClearDepthStencilValue& color, const VkImageSubresourceRange& subresourceRange)
+{
+	if((subresourceRange.aspectMask & ~(VK_IMAGE_ASPECT_DEPTH_BIT |
+	                                    VK_IMAGE_ASPECT_STENCIL_BIT)) != 0)
+	{
+		UNIMPLEMENTED();
+	}
+
+	if(subresourceRange.aspectMask & VK_IMAGE_ASPECT_DEPTH_BIT)
+	{
+		clear((void*)(&color.depth), VK_FORMAT_D32_SFLOAT, subresourceRange, VK_IMAGE_ASPECT_DEPTH_BIT);
+	}
+
+	if(subresourceRange.aspectMask & VK_IMAGE_ASPECT_STENCIL_BIT)
+	{
+		clear((void*)(&color.stencil), VK_FORMAT_S8_UINT, subresourceRange, VK_IMAGE_ASPECT_STENCIL_BIT);
+	}
+}
+
 void Image::clear(const VkClearValue& clearValue, const VkRect2D& renderArea, const VkImageSubresourceRange& subresourceRange)
 {
-	if((subresourceRange.aspectMask != VK_IMAGE_ASPECT_COLOR_BIT) ||
+	if(!((subresourceRange.aspectMask == VK_IMAGE_ASPECT_COLOR_BIT) ||
+	     (subresourceRange.aspectMask & (VK_IMAGE_ASPECT_DEPTH_BIT |
+	                                     VK_IMAGE_ASPECT_STENCIL_BIT))) ||
 	   (subresourceRange.baseMipLevel != 0) ||
 	   (subresourceRange.levelCount != 1) ||
 	   (renderArea.offset.x != 0) ||
@@ -540,7 +566,14 @@ void Image::clear(const VkClearValue& clearValue, const VkRect2D& renderArea, co
 		UNIMPLEMENTED();
 	}
 
-	clear(clearValue.color, subresourceRange);
+	if(subresourceRange.aspectMask == VK_IMAGE_ASPECT_COLOR_BIT)
+	{
+		clear(clearValue.color, subresourceRange);
+	}
+	else
+	{
+		clear(clearValue.depthStencil, subresourceRange);
+	}
 }
 
 } // namespace vk

@@ -472,9 +472,22 @@ VKAPI_ATTR VkResult VKAPI_CALL vkAllocateMemory(VkDevice device, const VkMemoryA
 	TRACE("(VkDevice device = 0x%X, const VkMemoryAllocateInfo* pAllocateInfo = 0x%X, const VkAllocationCallbacks* pAllocator = 0x%X, VkDeviceMemory* pMemory = 0x%X)",
 		    device, pAllocateInfo, pAllocator, pMemory);
 
-	if(pAllocateInfo->pNext)
+	const VkBaseOutStructure* allocationInfo = reinterpret_cast<const VkBaseOutStructure*>(pAllocateInfo->pNext);
+	while(allocationInfo)
 	{
-		UNIMPLEMENTED();
+		switch(allocationInfo->sType)
+		{
+		case VK_STRUCTURE_TYPE_MEMORY_DEDICATED_ALLOCATE_INFO:
+			// This can safely be ignored, as the Vulkan spec mentions:
+			// "If the pNext chain includes a VkMemoryDedicatedAllocateInfo structure, then that structure
+			//  includes a handle of the sole buffer or image resource that the memory *can* be bound to."
+			break;
+		default:
+			UNIMPLEMENTED();
+			break;
+		}
+
+		allocationInfo = allocationInfo->pNext;
 	}
 
 	VkResult result = vk::DeviceMemory::Create(pAllocator, pAllocateInfo, pMemory);

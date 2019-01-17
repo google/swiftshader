@@ -220,9 +220,9 @@ private:
 	const VkBufferImageCopy region;
 };
 
-struct ClearImage : public CommandBuffer::Command
+struct ClearColorImage : public CommandBuffer::Command
 {
-	ClearImage(VkImage image, const VkClearColorValue& color, const VkImageSubresourceRange& range) :
+	ClearColorImage(VkImage image, const VkClearColorValue& color, const VkImageSubresourceRange& range) :
 		image(image), color(color), range(range)
 	{
 	}
@@ -235,6 +235,24 @@ struct ClearImage : public CommandBuffer::Command
 private:
 	VkImage image;
 	const VkClearColorValue color;
+	const VkImageSubresourceRange range;
+};
+
+struct ClearDepthStencilImage : public CommandBuffer::Command
+{
+	ClearDepthStencilImage(VkImage image, const VkClearDepthStencilValue& depthStencil, const VkImageSubresourceRange& range) :
+		image(image), depthStencil(depthStencil), range(range)
+	{
+	}
+
+	void play(CommandBuffer::ExecutionState& executionState)
+	{
+		Cast(image)->clear(depthStencil, range);
+	}
+
+private:
+	VkImage image;
+	const VkClearDepthStencilValue depthStencil;
 	const VkImageSubresourceRange range;
 };
 
@@ -619,14 +637,19 @@ void CommandBuffer::clearColorImage(VkImage image, VkImageLayout imageLayout, co
 
 	for(uint32_t i = 0; i < rangeCount; i++)
 	{
-		commands->push_back(std::make_unique<ClearImage>(image, pColor[i], pRanges[i]));
+		commands->push_back(std::make_unique<ClearColorImage>(image, pColor[i], pRanges[i]));
 	}
 }
 
 void CommandBuffer::clearDepthStencilImage(VkImage image, VkImageLayout imageLayout, const VkClearDepthStencilValue* pDepthStencil,
 	uint32_t rangeCount, const VkImageSubresourceRange* pRanges)
 {
-	UNIMPLEMENTED();
+	ASSERT(state == RECORDING);
+
+	for(uint32_t i = 0; i < rangeCount; i++)
+	{
+		commands->push_back(std::make_unique<ClearDepthStencilImage>(image, pDepthStencil[i], pRanges[i]));
+	}
 }
 
 void CommandBuffer::clearAttachments(uint32_t attachmentCount, const VkClearAttachment* pAttachments,

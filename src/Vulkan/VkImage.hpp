@@ -46,6 +46,7 @@ public:
 	void blit(VkImage dstImage, const VkImageBlit& region, VkFilter filter);
 	void clear(const VkClearValue& clearValue, const VkRect2D& renderArea, const VkImageSubresourceRange& subresourceRange);
 	void clear(const VkClearColorValue& color, const VkImageSubresourceRange& subresourceRange);
+	void clear(const VkClearDepthStencilValue& color, const VkImageSubresourceRange& subresourceRange);
 
 	VkImageType              getImageType() const { return imageType; }
 	VkFormat                 getFormat() const { return format; }
@@ -70,6 +71,7 @@ private:
 	uint32_t getLastLayerIndex(const VkImageSubresourceRange& subresourceRange) const;
 	uint32_t getLastMipLevel(const VkImageSubresourceRange& subresourceRange) const;
 	VkFormat getClearFormat() const;
+	void clear(void* pixelData, VkFormat format, const VkImageSubresourceRange& subresourceRange, VkImageAspectFlags aspectMask);
 	sw::Surface* asSurface(const VkImageAspectFlags& flags, uint32_t mipLevel, uint32_t layer) const;
 
 	DeviceMemory*            deviceMemory = nullptr;
