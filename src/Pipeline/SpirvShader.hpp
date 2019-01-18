@@ -22,6 +22,7 @@
 #include <vector>
 #include <unordered_map>
 #include <cstdint>
+#include <type_traits>
 #include <spirv/unified1/spirv.hpp>
 
 namespace sw
@@ -216,8 +217,10 @@ namespace sw
 		Modes modes;
 		std::unordered_map<uint32_t, Object> types;
 		std::unordered_map<uint32_t, Object> defs;
-		std::unordered_map<spv::BuiltIn, BuiltinMapping> inputBuiltins;
-		std::unordered_map<spv::BuiltIn, BuiltinMapping> outputBuiltins;
+
+		using BuiltInHash = std::hash<std::underlying_type<spv::BuiltIn>::type>;
+		std::unordered_map<spv::BuiltIn, BuiltinMapping, BuiltInHash> inputBuiltins;
+		std::unordered_map<spv::BuiltIn, BuiltinMapping, BuiltInHash> outputBuiltins;
 
 		Object const &getType(uint32_t id) const
 		{
