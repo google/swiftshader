@@ -532,6 +532,32 @@ void Image::clear(void* pixelData, VkFormat format, const VkImageSubresourceRang
 	}
 }
 
+void Image::clear(void* pixelData, VkFormat format, const VkRect2D& renderArea, const VkImageSubresourceRange& subresourceRange, VkImageAspectFlags aspectMask)
+{
+	if((subresourceRange.baseMipLevel != 0) ||
+	   (subresourceRange.levelCount != 1))
+	{
+		UNIMPLEMENTED();
+	}
+
+	sw::SliceRect dRect(renderArea.offset.x, renderArea.offset.y,
+			            renderArea.offset.x + renderArea.extent.width,
+			            renderArea.offset.y + renderArea.extent.height, 0);
+
+	uint32_t firstLayer = subresourceRange.baseArrayLayer;
+	uint32_t lastLayer = getLastLayerIndex(subresourceRange);
+	for(uint32_t layer = firstLayer; layer <= lastLayer; ++layer)
+	{
+		for(uint32_t s = 0; s < extent.depth; ++s)
+		{
+			dRect.slice = s;
+			sw::Surface* surface = asSurface(aspectMask, 0, layer);
+			blitter->clear(pixelData, format, surface, dRect, 0xF);
+			delete surface;
+		}
+	}
+}
+
 void Image::clear(const VkClearColorValue& color, const VkImageSubresourceRange& subresourceRange)
 {
 	if(!(subresourceRange.aspectMask == VK_IMAGE_ASPECT_COLOR_BIT))
@@ -567,22 +593,26 @@ void Image::clear(const VkClearValue& clearValue, const VkRect2D& renderArea, co
 	     (subresourceRange.aspectMask & (VK_IMAGE_ASPECT_DEPTH_BIT |
 	                                     VK_IMAGE_ASPECT_STENCIL_BIT))) ||
 	   (subresourceRange.baseMipLevel != 0) ||
-	   (subresourceRange.levelCount != 1) ||
-	   (renderArea.offset.x != 0) ||
-	   (renderArea.offset.y != 0) ||
-	   (renderArea.extent.width != extent.width) ||
-	   (renderArea.extent.height != extent.height))
+	   (subresourceRange.levelCount != 1))
 	{
 		UNIMPLEMENTED();
 	}
 
 	if(subresourceRange.aspectMask == VK_IMAGE_ASPECT_COLOR_BIT)
 	{
-		clear(clearValue.color, subresourceRange);
+		clear((void*)(clearValue.color.float32), getClearFormat(), renderArea, subresourceRange, VK_IMAGE_ASPECT_COLOR_BIT);
 	}
 	else
 	{
-		clear(clearValue.depthStencil, subresourceRange);
+		if(subresourceRange.aspectMask & VK_IMAGE_ASPECT_DEPTH_BIT)
+		{
+			clear((void*)(&clearValue.depthStencil.depth), VK_FORMAT_D32_SFLOAT, renderArea, subresourceRange, VK_IMAGE_ASPECT_DEPTH_BIT);
+		}
+
+		if(subresourceRange.aspectMask & VK_IMAGE_ASPECT_STENCIL_BIT)
+		{
+			clear((void*)(&clearValue.depthStencil.stencil), VK_FORMAT_S8_UINT, renderArea, subresourceRange, VK_IMAGE_ASPECT_STENCIL_BIT);
+		}
 	}
 }
 

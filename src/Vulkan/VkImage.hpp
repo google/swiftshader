@@ -73,6 +73,7 @@ private:
 	uint32_t getLastMipLevel(const VkImageSubresourceRange& subresourceRange) const;
 	VkFormat getClearFormat() const;
 	void clear(void* pixelData, VkFormat format, const VkImageSubresourceRange& subresourceRange, VkImageAspectFlags aspectMask);
+	void clear(void* pixelData, VkFormat format, const VkRect2D& renderArea, const VkImageSubresourceRange& subresourceRange, VkImageAspectFlags aspectMask);
 	sw::Surface* asSurface(const VkImageAspectFlags& flags, uint32_t mipLevel, uint32_t layer) const;
 
 	DeviceMemory*            deviceMemory = nullptr;
