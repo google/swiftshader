@@ -74,7 +74,7 @@ inline void trace() {}
 	assert(false); \
 	} while(0)
 #else
-	#define UNIMPLEMENTED() FIXME("\t! Unimplemented: %s(%d)\n", __FUNCTION__, __LINE__)
+	#define UNIMPLEMENTED(...) FIXME("\t! Unimplemented: %s(%d)\n", __FUNCTION__, __LINE__)
 #endif
 
 // A macro for code which is not expected to be reached under valid assumptions
