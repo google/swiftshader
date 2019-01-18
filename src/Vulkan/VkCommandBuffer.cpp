@@ -643,7 +643,7 @@ void CommandBuffer::clearColorImage(VkImage image, VkImageLayout imageLayout, co
 
 	for(uint32_t i = 0; i < rangeCount; i++)
 	{
-		commands->push_back(std::make_unique<ClearColorImage>(image, pColor[i], pRanges[i]));
+		addCommand<ClearColorImage>(image, pColor[i], pRanges[i]);
 	}
 }
 
@@ -654,7 +654,7 @@ void CommandBuffer::clearDepthStencilImage(VkImage image, VkImageLayout imageLay
 
 	for(uint32_t i = 0; i < rangeCount; i++)
 	{
-		commands->push_back(std::make_unique<ClearDepthStencilImage>(image, pDepthStencil[i], pRanges[i]));
+		addCommand<ClearDepthStencilImage>(image, pDepthStencil[i], pRanges[i]);
 	}
 }
 
