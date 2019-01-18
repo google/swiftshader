@@ -1883,7 +1883,7 @@ namespace sw
 		{
 			if(inst->opcode == OPCODE_CALL || inst->opcode == OPCODE_CALLNZ)
 			{
-				int label = sw::min(inst->dst.label, unsigned int(MAX_SHADER_CALL_SITES));
+				int label = sw::min(inst->dst.label, static_cast<unsigned int>(MAX_SHADER_CALL_SITES));
 
 				inst->dst.callSite = callSiteIndex[label]++;
 			}
