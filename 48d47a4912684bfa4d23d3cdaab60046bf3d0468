@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "90111ca8_d3f6fd8e",
+        "filename": "src/Shader/Shader.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 1886,
+      "author": {
+        "id": 7164
+      },
+      "writtenOn": "2019-01-18T16:45:09Z",
+      "side": 1,
+      "message": "This isn\u0027t compiling for me.\n\n    ..../swiftshader/src/Shader/Shader.cpp:1886:51: error: expected \u0027(\u0027 for function-style cast or type construction\n               int label \u003d sw::min(inst-\u003edst.label, unsigned int(MAX_SHADER_CALL_SITES));\n\nDid you mean \n\n               int label \u003d sw::min(inst-\u003edst.label, (unsigned int)(MAX_SHADER_CALL_SITES));",
+      "revId": "48d47a4912684bfa4d23d3cdaab60046bf3d0468",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
