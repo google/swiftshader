@@ -57,6 +57,7 @@ struct ShBuiltInResources
 	int OES_standard_derivatives;
 	int OES_fragment_precision_high;
 	int OES_EGL_image_external;
+	int OES_EGL_image_external_essl3;
 	int EXT_draw_buffers;
 	int ARB_texture_rectangle;
 

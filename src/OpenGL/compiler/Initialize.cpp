@@ -265,6 +265,18 @@ void InsertBuiltInFunctions(GLenum type, const ShBuiltInResources &resources, TS
 		symbolTable.insertBuiltIn(ESSL1_BUILTINS, float4, "texture3D", samplerExternalOES, float3);
 	}
 
+	if(resources.OES_EGL_image_external_essl3)
+    {
+        TType *samplerExternalOES = new TType(EbtSamplerExternalOES);
+
+        symbolTable.insertBuiltIn(ESSL3_BUILTINS, float4, "texture", samplerExternalOES, float2);
+        symbolTable.insertBuiltIn(ESSL3_BUILTINS, float4, "textureProj", samplerExternalOES, float3);
+        symbolTable.insertBuiltIn(ESSL3_BUILTINS, float4, "textureProj", samplerExternalOES, float4);
+
+        symbolTable.insertBuiltIn(ESSL3_BUILTINS, int2, "textureSize", samplerExternalOES, int1);
+        symbolTable.insertBuiltIn(ESSL3_BUILTINS, float4, "texelFetch", samplerExternalOES, int2, int1);
+    }
+
 	if(type == GL_FRAGMENT_SHADER)
 	{
 		symbolTable.insertBuiltIn(ESSL1_BUILTINS, float4, "texture2D", sampler2D, float2, float1);
@@ -513,6 +525,8 @@ void InitExtensionBehavior(const ShBuiltInResources& resources,
 		extBehavior["GL_FRAGMENT_PRECISION_HIGH"] = EBhUndefined;
 	if(resources.OES_EGL_image_external)
 		extBehavior["GL_OES_EGL_image_external"] = EBhUndefined;
+	if(resources.OES_EGL_image_external_essl3)
+		extBehavior["GL_OES_EGL_image_external_essl3"] = EBhUndefined;
 	if(resources.EXT_draw_buffers)
 		extBehavior["GL_EXT_draw_buffers"] = EBhUndefined;
 	if(resources.ARB_texture_rectangle)

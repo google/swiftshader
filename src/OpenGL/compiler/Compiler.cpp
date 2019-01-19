@@ -66,6 +66,7 @@ ShBuiltInResources::ShBuiltInResources()
 	OES_standard_derivatives = 0;
 	OES_fragment_precision_high = 0;
 	OES_EGL_image_external = 0;
+	OES_EGL_image_external_essl3 = 0;
 
 	MaxCallStackDepth = UINT_MAX;
 }

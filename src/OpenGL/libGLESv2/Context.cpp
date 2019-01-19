@@ -4464,6 +4464,7 @@ const GLubyte *Context::getExtensions(GLuint index, GLuint *numExt) const
 		"GL_OES_depth_texture_cube_map",
 		"GL_OES_EGL_image",
 		"GL_OES_EGL_image_external",
+		"GL_OES_EGL_image_external_essl3", // client version is always 3, so this is fine
 		"GL_OES_EGL_sync",
 		"GL_OES_element_index_uint",
 		"GL_OES_fbo_render_mipmap",
