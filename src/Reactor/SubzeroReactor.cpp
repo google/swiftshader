@@ -578,16 +578,14 @@ namespace rr
 		::codegenMutex.unlock();
 	}
 
-	Routine *Nucleus::acquireRoutine(const wchar_t *name, bool runOptimizations)
+	Routine *Nucleus::acquireRoutine(const char *name, bool runOptimizations)
 	{
 		if(basicBlock->getInsts().empty() || basicBlock->getInsts().back().getKind() != Ice::Inst::Ret)
 		{
 			createRetVoid();
 		}
 
-		std::wstring wideName(name);
-		std::string asciiName(wideName.begin(), wideName.end());
-		::function->setFunctionName(Ice::GlobalString::createWithString(::context, asciiName));
+		::function->setFunctionName(Ice::GlobalString::createWithString(::context, name));
 
 		optimize();
 

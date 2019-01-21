@@ -61,7 +61,7 @@ The braces are superfluous. They just make the syntax look more like regular C++
 The Routine is obtained and materialized by "calling" the ```Function<>``` object to give it a name:
 
 ```C++
-Routine *routine = function(L"one");
+Routine *routine = function("one");
 ```
 
 Finally, we can obtain the function pointer to the entry point of the routine, and call it:

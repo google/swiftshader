@@ -59,7 +59,7 @@ TEST(ReactorUnitTests, Sample)
 			Return(sum);
 		}
 
-		routine = function(L"one");
+		routine = function("one");
 
 		if(routine)
 		{
@@ -97,7 +97,7 @@ TEST(ReactorUnitTests, Uninitialized)
 			Return(a + z + q + c);
 		}
 
-		routine = function(L"one");
+		routine = function("one");
 
 		if(routine)
 		{
@@ -129,7 +129,7 @@ TEST(ReactorUnitTests, SubVectorLoadStore)
 			Return(0);
 		}
 
-		routine = function(L"one");
+		routine = function("one");
 
 		if(routine)
 		{
@@ -187,7 +187,7 @@ TEST(ReactorUnitTests, VectorConstant)
 			Return(0);
 		}
 
-		routine = function(L"one");
+		routine = function("one");
 
 		if(routine)
 		{
@@ -234,7 +234,7 @@ TEST(ReactorUnitTests, Concatenate)
 			Return(0);
 		}
 
-		routine = function(L"one");
+		routine = function("one");
 
 		if(routine)
 		{
@@ -303,7 +303,7 @@ TEST(ReactorUnitTests, Swizzle)
 			Return(0);
 		}
 
-		routine = function(L"one");
+		routine = function("one");
 
 		if(routine)
 		{
@@ -440,7 +440,7 @@ TEST(ReactorUnitTests, Branching)
 			Return(x);
 		}
 
-		routine = function(L"one");
+		routine = function("one");
 
 		if(routine)
 		{
@@ -479,7 +479,7 @@ TEST(ReactorUnitTests, MinMax)
 			Return(0);
 		}
 
-		routine = function(L"one");
+		routine = function("one");
 
 		if(routine)
 		{
@@ -569,7 +569,7 @@ TEST(ReactorUnitTests, NotNeg)
 			Return(0);
 		}
 
-		routine = function(L"one");
+		routine = function("one");
 
 		if(routine)
 		{
@@ -650,7 +650,7 @@ TEST(ReactorUnitTests, VectorCompare)
 			Return(0);
 		}
 
-		routine = function(L"one");
+		routine = function("one");
 
 		if(routine)
 		{
@@ -747,7 +747,7 @@ TEST(ReactorUnitTests, SaturatedAddAndSubtract)
 			Return(0);
 		}
 
-		routine = function(L"one");
+		routine = function("one");
 
 		if(routine)
 		{
@@ -826,7 +826,7 @@ TEST(ReactorUnitTests, Unpack)
 			Return(0);
 		}
 
-		routine = function(L"one");
+		routine = function("one");
 
 		if(routine)
 		{
@@ -880,7 +880,7 @@ TEST(ReactorUnitTests, Pack)
 			Return(0);
 		}
 
-		routine = function(L"one");
+		routine = function("one");
 
 		if(routine)
 		{
@@ -934,7 +934,7 @@ TEST(ReactorUnitTests, MulHigh)
 			Return(0);
 		}
 
-		routine = function(L"one");
+		routine = function("one");
 
 		if(routine)
 		{
@@ -973,7 +973,7 @@ TEST(ReactorUnitTests, MulAdd)
 			Return(0);
 		}
 
-		routine = function(L"one");
+		routine = function("one");
 
 		if(routine)
 		{

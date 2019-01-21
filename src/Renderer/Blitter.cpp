@@ -1385,7 +1385,7 @@ namespace sw
 			}
 		}
 
-		return function(L"BlitRoutine");
+		return function("BlitRoutine");
 	}
 
 	bool Blitter::blitReactor(Surface *source, const SliceRectF &sourceRect, Surface *dest, const SliceRect &destRect, const Blitter::Options &options)

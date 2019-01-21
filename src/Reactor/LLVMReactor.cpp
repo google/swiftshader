@@ -95,15 +95,6 @@ extern "C" void X86CompilationCallback()
 }
 #endif
 
-#if defined(_WIN32)
-extern "C"
-{
-	bool (*CodeAnalystInitialize)() = 0;
-	void (*CodeAnalystCompleteJITLog)() = 0;
-	bool (*CodeAnalystLogJITCode)(const void *jitCodeStartAddr, unsigned int jitCodeSize, const wchar_t *functionName) = 0;
-}
-#endif
-
 #if REACTOR_LLVM_VERSION < 7
 namespace llvm
 {
@@ -887,18 +878,6 @@ namespace rr
 		if(!::builder)
 		{
 			::builder = new llvm::IRBuilder<>(*::context);
-
-			#if defined(_WIN32) && REACTOR_LLVM_VERSION < 7
-				HMODULE CodeAnalyst = LoadLibrary("CAJitNtfyLib.dll");
-				if(CodeAnalyst)
-				{
-					CodeAnalystInitialize = (bool(*)())GetProcAddress(CodeAnalyst, "CAJIT_Initialize");
-					CodeAnalystCompleteJITLog = (void(*)())GetProcAddress(CodeAnalyst, "CAJIT_CompleteJITLog");
-					CodeAnalystLogJITCode = (bool(*)(const void*, unsigned int, const wchar_t*))GetProcAddress(CodeAnalyst, "CAJIT_LogJITCode");
-
-					CodeAnalystInitialize();
-				}
-			#endif
 		}
 	}
 
@@ -909,7 +888,7 @@ namespace rr
 		::codegenMutex.unlock();
 	}
 
-	Routine *Nucleus::acquireRoutine(const wchar_t *name, bool runOptimizations)
+	Routine *Nucleus::acquireRoutine(const char *name, bool runOptimizations)
 	{
 		if(::builder->GetInsertBlock()->empty() || !::builder->GetInsertBlock()->back().isTerminator())
 		{
@@ -953,13 +932,6 @@ namespace rr
 		}
 
 		LLVMRoutine *routine = ::reactorJIT->acquireRoutine(::function);
-
-#if defined(_WIN32) && REACTOR_LLVM_VERSION < 7
-		if(CodeAnalystLogJITCode)
-		{
-			CodeAnalystLogJITCode(routine->getEntry(), routine->getCodeSize(), name);
-		}
-#endif
 
 		return routine;
 	}

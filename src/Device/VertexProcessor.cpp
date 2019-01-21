@@ -447,7 +447,7 @@ namespace sw
 		{
 			VertexRoutine *generator = new VertexProgram(state, context->vertexShader);
 			generator->generate();
-			routine = (*generator)(L"VertexRoutine_%0.8X", state.shaderID);
+			routine = (*generator)("VertexRoutine_%0.8X", state.shaderID);
 			delete generator;
 
 			routineCache->add(state, routine);

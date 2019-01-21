@@ -53,7 +53,7 @@ namespace rr
 
 		virtual ~Nucleus();
 
-		Routine *acquireRoutine(const wchar_t *name, bool runOptimizations = true);
+		Routine *acquireRoutine(const char *name, bool runOptimizations = true);
 
 		static Value *allocateStackVariable(Type *type, int arraySize = 0);
 		static BasicBlock *createBasicBlock();
