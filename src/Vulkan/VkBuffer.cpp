@@ -43,7 +43,22 @@ size_t Buffer::ComputeRequiredAllocationSize(const VkBufferCreateInfo* pCreateIn
 const VkMemoryRequirements Buffer::getMemoryRequirements() const
 {
 	VkMemoryRequirements memoryRequirements = {};
-	memoryRequirements.alignment = vk::REQUIRED_MEMORY_ALIGNMENT;
+	if(usage & (VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT | VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT))
+	{
+		memoryRequirements.alignment = vk::MIN_TEXEL_BUFFER_OFFSET_ALIGNMENT;
+	}
+	else if(usage & VK_BUFFER_USAGE_STORAGE_BUFFER_BIT)
+	{
+		memoryRequirements.alignment = vk::MIN_STORAGE_BUFFER_OFFSET_ALIGNMENT;
+	}
+	else if(usage & VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT)
+	{
+		memoryRequirements.alignment = vk::MIN_UNIFORM_BUFFER_OFFSET_ALIGNMENT;
+	}
+	else
+	{
+		memoryRequirements.alignment = REQUIRED_MEMORY_ALIGNMENT;
+	}
 	memoryRequirements.memoryTypeBits = vk::MEMORY_TYPE_GENERIC_BIT;
 	memoryRequirements.size = size; // TODO: also reserve space for a header containing
 		                            // the size of the buffer (for robust buffer access)

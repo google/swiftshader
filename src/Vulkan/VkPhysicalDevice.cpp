@@ -204,9 +204,9 @@ const VkPhysicalDeviceLimits& PhysicalDevice::getLimits() const
 		{ -8192, 8191 }, // viewportBoundsRange[2]
 		0, // viewportSubPixelBits
 		64, // minMemoryMapAlignment
-		256, // minTexelBufferOffsetAlignment
-		256, // minUniformBufferOffsetAlignment
-		256, // minStorageBufferOffsetAlignment
+		vk::MIN_TEXEL_BUFFER_OFFSET_ALIGNMENT, // minTexelBufferOffsetAlignment
+		vk::MIN_UNIFORM_BUFFER_OFFSET_ALIGNMENT, // minUniformBufferOffsetAlignment
+		vk::MIN_STORAGE_BUFFER_OFFSET_ALIGNMENT, // minStorageBufferOffsetAlignment
 		-8, // minTexelOffset
 		7, // maxTexelOffset
 		-8, // minTexelGatherOffset
