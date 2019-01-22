@@ -116,6 +116,7 @@ copy "$(OutDir)vk_swiftshader.dll" "$(SolutionDir)out\$(Configuration)_$(Platfor
     <ClCompile Include="VkPipeline.cpp" />
     <ClCompile Include="VkPipelineLayout.cpp" />
     <ClCompile Include="VkPromotedExtensions.cpp" />
+    <ClCompile Include="VkQueryPool.cpp" />
     <ClCompile Include="VkQueue.cpp" />
     <ClCompile Include="VkRenderPass.cpp" />
     <ClCompile Include="VkShaderModule.cpp" />
@@ -213,6 +214,7 @@ copy "$(OutDir)vk_swiftshader.dll" "$(SolutionDir)out\$(Configuration)_$(Platfor
     <ClInclude Include="VkPipeline.hpp" />
     <ClInclude Include="VkPipelineCache.hpp" />
     <ClInclude Include="VkPipelineLayout.hpp" />
+    <ClInclude Include="VkQueryPool.hpp" />
     <ClInclude Include="VkQueue.hpp" />
     <ClInclude Include="VkRenderPass.hpp" />
     <ClInclude Include="VkSampler.hpp" />

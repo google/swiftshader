@@ -28,6 +28,7 @@
 #include "VkPipelineCache.hpp"
 #include "VkPipelineLayout.hpp"
 #include "VkPhysicalDevice.hpp"
+#include "VkQueryPool.hpp"
 #include "VkQueue.hpp"
 #include "VkSampler.hpp"
 #include "VkSemaphore.hpp"

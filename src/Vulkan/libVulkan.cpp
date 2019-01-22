@@ -32,6 +32,7 @@
 #include "VkPipeline.hpp"
 #include "VkPipelineCache.hpp"
 #include "VkPipelineLayout.hpp"
+#include "VkQueryPool.hpp"
 #include "VkQueue.hpp"
 #include "VkSampler.hpp"
 #include "VkSemaphore.hpp"
@@ -747,21 +748,32 @@ VKAPI_ATTR VkResult VKAPI_CALL vkResetEvent(VkDevice device, VkEvent event)
 
 VKAPI_ATTR VkResult VKAPI_CALL vkCreateQueryPool(VkDevice device, const VkQueryPoolCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkQueryPool* pQueryPool)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
-	return VK_SUCCESS;
+	TRACE("(VkDevice device = 0x%X, const VkQueryPoolCreateInfo* pCreateInfo = 0x%X, const VkAllocationCallbacks* pAllocator = 0x%X, VkQueryPool* pQueryPool = 0x%X)",
+	      device, pCreateInfo, pAllocator, pQueryPool);
+
+	if(pCreateInfo->pNext || pCreateInfo->flags)
+	{
+		UNIMPLEMENTED();
+	}
+
+	return vk::QueryPool::Create(pAllocator, pCreateInfo, pQueryPool);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkDestroyQueryPool(VkDevice device, VkQueryPool queryPool, const VkAllocationCallbacks* pAllocator)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
+	TRACE("(VkDevice device = 0x%X, VkQueryPool queryPool = 0x%X, const VkAllocationCallbacks* pAllocator = 0x%X)",
+	      device, queryPool, pAllocator);
+
+	vk::destroy(queryPool, pAllocator);
 }
 
 VKAPI_ATTR VkResult VKAPI_CALL vkGetQueryPoolResults(VkDevice device, VkQueryPool queryPool, uint32_t firstQuery, uint32_t queryCount, size_t dataSize, void* pData, VkDeviceSize stride, VkQueryResultFlags flags)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
+	TRACE("(VkDevice device = 0x%X, VkQueryPool queryPool = 0x%X, uint32_t firstQuery = %d, uint32_t queryCount = %d, size_t dataSize = %d, void* pData = 0x%X, VkDeviceSize stride = 0x%X, VkQueryResultFlags flags = %d)",
+	      device, queryPool, firstQuery, queryCount, dataSize, pData, stride, flags);
+
+	vk::Cast(queryPool)->getResults(firstQuery, queryCount, dataSize, pData, stride, flags);
+
 	return VK_SUCCESS;
 }
 
