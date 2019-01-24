@@ -89,6 +89,14 @@ void Device::waitForFences(uint32_t fenceCount, const VkFence* pFences, VkBool32
 	// FIXME(b/117835459) : noop
 }
 
+void Device::waitIdle()
+{
+	for(uint32_t i = 0; i < queueCount; i++)
+	{
+		queues[i].waitIdle();
+	}
+}
+
 void Device::getDescriptorSetLayoutSupport(const VkDescriptorSetLayoutCreateInfo* pCreateInfo,
                                            VkDescriptorSetLayoutSupport* pSupport) const
 {

@@ -42,6 +42,7 @@ public:
 
 	void destroy();
 	void submit(uint32_t submitCount, const VkSubmitInfo* pSubmits, VkFence fence);
+	void waitIdle();
 
 private:
 	sw::Context* context = nullptr;

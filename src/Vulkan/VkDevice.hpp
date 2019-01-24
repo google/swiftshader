@@ -40,6 +40,7 @@ public:
 
 	VkQueue getQueue(uint32_t queueFamilyIndex, uint32_t queueIndex) const;
 	void waitForFences(uint32_t fenceCount, const VkFence* pFences, VkBool32 waitAll, uint64_t timeout);
+	void waitIdle();
 	void getDescriptorSetLayoutSupport(const VkDescriptorSetLayoutCreateInfo* pCreateInfo,
 	                                   VkDescriptorSetLayoutSupport* pSupport) const;
 	VkPhysicalDevice getPhysicalDevice() const { return physicalDevice; }

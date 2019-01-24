@@ -456,15 +456,19 @@ VKAPI_ATTR VkResult VKAPI_CALL vkQueueSubmit(VkQueue queue, uint32_t submitCount
 
 VKAPI_ATTR VkResult VKAPI_CALL vkQueueWaitIdle(VkQueue queue)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
+	TRACE("(VkQueue queue = 0x%X)", queue);
+
+	vk::Cast(queue)->waitIdle();
+
 	return VK_SUCCESS;
 }
 
 VKAPI_ATTR VkResult VKAPI_CALL vkDeviceWaitIdle(VkDevice device)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
+	TRACE("(VkDevice device = 0x%X)", device);
+
+	vk::Cast(device)->waitIdle();
+
 	return VK_SUCCESS;
 }
 

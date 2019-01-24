@@ -58,11 +58,19 @@ void Queue::submit(uint32_t submitCount, const VkSubmitInfo* pSubmits, VkFence f
 		}
 	}
 
-	// FIXME (b\117835459): signal the fence only once the work is completed
+	// FIXME (b/117835459): signal the fence only once the work is completed
 	if(fence != VK_NULL_HANDLE)
 	{
 		vk::Cast(fence)->signal();
 	}
+}
+
+void Queue::waitIdle()
+{
+	// equivalent to submitting a fence to a queue and waiting
+	// with an infinite timeout for that fence to signal
+
+	// FIXME (b/117835459): implement once we have working fences
 }
 
 } // namespace vk
