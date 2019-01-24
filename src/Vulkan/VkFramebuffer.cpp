@@ -15,6 +15,8 @@
 #include "VkFramebuffer.hpp"
 #include "VkImageView.hpp"
 #include "VkRenderPass.hpp"
+#include "Device/Surface.hpp"
+#include <algorithm>
 #include <memory.h>
 
 namespace vk
@@ -38,11 +40,32 @@ void Framebuffer::destroy(const VkAllocationCallbacks* pAllocator)
 
 void Framebuffer::clear(uint32_t clearValueCount, const VkClearValue* pClearValues, const VkRect2D& renderArea)
 {
-	ASSERT(clearValueCount >= attachmentCount);
+	ASSERT(attachmentCount == renderPass->getAttachmentCount());
 
-	for(uint32_t i = 0; i < attachmentCount; i++)
+	const uint32_t count = std::min(clearValueCount, attachmentCount);
+	for(uint32_t i = 0; i < count; i++)
 	{
-		attachments[i]->clear(pClearValues[i], renderArea);
+		const VkAttachmentDescription attachment = renderPass->getAttachment(i);
+		bool isDepth = sw::Surface::isDepth(attachment.format);
+		bool isStencil = sw::Surface::isStencil(attachment.format);
+
+		if(isDepth || isStencil)
+		{
+			bool clearDepth = (isDepth && (attachment.loadOp == VK_ATTACHMENT_LOAD_OP_CLEAR));
+			bool clearStencil = (isStencil && (attachment.stencilLoadOp == VK_ATTACHMENT_LOAD_OP_CLEAR));
+
+			if(clearDepth || clearStencil)
+			{
+				attachments[i]->clear(pClearValues[i],
+				                      (clearDepth ? VK_IMAGE_ASPECT_DEPTH_BIT : 0) |
+				                      (clearStencil ? VK_IMAGE_ASPECT_STENCIL_BIT : 0),
+				                      renderArea);
+			}
+		}
+		else if(attachment.loadOp == VK_ATTACHMENT_LOAD_OP_CLEAR)
+		{
+			attachments[i]->clear(pClearValues[i], VK_IMAGE_ASPECT_COLOR_BIT, renderArea);
+		}
 	}
 }
 

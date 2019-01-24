@@ -72,7 +72,7 @@ bool ImageView::imageTypesMatch(VkImageType imageType) const
 	return false;
 }
 
-void ImageView::clear(const VkClearValue& clearValue, const VkRect2D& renderArea)
+void ImageView::clear(const VkClearValue& clearValue, const VkImageAspectFlags aspectMask, const VkRect2D& renderArea)
 {
 	// Note: clearing ignores swizzling, so components is ignored.
 
@@ -86,6 +86,8 @@ void ImageView::clear(const VkClearValue& clearValue, const VkRect2D& renderArea
 		UNIMPLEMENTED();
 	}
 
+	VkImageSubresourceRange sr = subresourceRange;
+	sr.aspectMask = aspectMask;
 	image->clear(clearValue, renderArea, subresourceRange);
 }
 
