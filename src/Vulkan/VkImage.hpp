@@ -38,6 +38,7 @@ public:
 	static size_t ComputeRequiredAllocationSize(const VkImageCreateInfo* pCreateInfo);
 
 	const VkMemoryRequirements getMemoryRequirements() const;
+	void getSubresourceLayout(const VkImageSubresource* pSubresource, VkSubresourceLayout* pLayout) const;
 	void bind(VkDeviceMemory pDeviceMemory, VkDeviceSize pMemoryOffset);
 	void copyTo(VkImage dstImage, const VkImageCopy& pRegion);
 	void copyTo(VkBuffer dstBuffer, const VkBufferImageCopy& region);

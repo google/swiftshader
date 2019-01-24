@@ -60,6 +60,16 @@ void Image::bind(VkDeviceMemory pDeviceMemory, VkDeviceSize pMemoryOffset)
 	memoryOffset = pMemoryOffset;
 }
 
+void Image::getSubresourceLayout(const VkImageSubresource* pSubresource, VkSubresourceLayout* pLayout) const
+{
+	uint32_t bpp = bytesPerTexel(flags);
+	pLayout->offset = getMemoryOffset(flags, pSubresource->mipLevel, pSubresource->arrayLayer);
+	pLayout->size = getMipLevelSize(flags, pSubresource->mipLevel);
+	pLayout->rowPitch = rowPitchBytes(flags, pSubresource->mipLevel);
+	pLayout->depthPitch = slicePitchBytes(flags, pSubresource->mipLevel);
+	pLayout->arrayPitch = getLayerSize(flags);
+}
+
 void Image::copyTo(VkImage dstImage, const VkImageCopy& pRegion)
 {
 	// Image copy does not perform any conversion, it simply copies memory from
