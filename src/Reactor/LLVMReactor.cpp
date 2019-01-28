@@ -906,12 +906,14 @@ namespace rr
 
 		if(false)
 		{
-#if REACTOR_LLVM_VERSION < 7
-			std::string error;
-#else
-			std::error_code error;
-#endif
-			llvm::raw_fd_ostream file(std::string(name) + "-llvm-dump-unopt.txt", error);
+			#if REACTOR_LLVM_VERSION < 7
+				std::string error;
+				llvm::raw_fd_ostream file((std::string(name) + "-llvm-dump-unopt.txt").c_str(), error);
+			#else
+				std::error_code error;
+				llvm::raw_fd_ostream file(std::string(name) + "-llvm-dump-unopt.txt", error);
+			#endif
+
 			::module->print(file, 0);
 		}
 
@@ -922,12 +924,14 @@ namespace rr
 
 		if(false)
 		{
-#if REACTOR_LLVM_VERSION < 7
-			std::string error;
-#else
-			std::error_code error;
-#endif
-			llvm::raw_fd_ostream file(std::string(name) + "-llvm-dump-opt.txt", error);
+			#if REACTOR_LLVM_VERSION < 7
+				std::string error;
+				llvm::raw_fd_ostream file((std::string(name) + "-llvm-dump-opt.txt").c_str(), error);
+			#else
+				std::error_code error;
+				llvm::raw_fd_ostream file(std::string(name) + "-llvm-dump-opt.txt", error);
+			#endif
+
 			::module->print(file, 0);
 		}
 
