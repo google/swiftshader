@@ -20,6 +20,7 @@
 #include "VkDebug.hpp"
 #include "VkDescriptorPool.hpp"
 #include "VkDescriptorSetLayout.hpp"
+#include "VkDescriptorUpdateTemplate.hpp"
 #include "VkDestroy.h"
 #include "VkDevice.hpp"
 #include "VkDeviceMemory.hpp"
@@ -2032,21 +2033,31 @@ VKAPI_ATTR void VKAPI_CALL vkDestroySamplerYcbcrConversion(VkDevice device, VkSa
 
 VKAPI_ATTR VkResult VKAPI_CALL vkCreateDescriptorUpdateTemplate(VkDevice device, const VkDescriptorUpdateTemplateCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDescriptorUpdateTemplate* pDescriptorUpdateTemplate)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
-	return VK_SUCCESS;
+	TRACE("(VkDevice device = 0x%X, const VkDescriptorUpdateTemplateCreateInfo* pCreateInfo = 0x%X, const VkAllocationCallbacks* pAllocator = 0x%X, VkDescriptorUpdateTemplate* pDescriptorUpdateTemplate = 0x%X)",
+	      device, pCreateInfo, pAllocator, pDescriptorUpdateTemplate);
+
+	if(pCreateInfo->pNext || pCreateInfo->flags || (pCreateInfo->templateType != VK_DESCRIPTOR_UPDATE_TEMPLATE_TYPE_DESCRIPTOR_SET))
+	{
+		UNIMPLEMENTED();
+	}
+
+	return vk::DescriptorUpdateTemplate::Create(pAllocator, pCreateInfo, pDescriptorUpdateTemplate);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkDestroyDescriptorUpdateTemplate(VkDevice device, VkDescriptorUpdateTemplate descriptorUpdateTemplate, const VkAllocationCallbacks* pAllocator)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
+	TRACE("(VkDevice device = 0x%X, VkDescriptorUpdateTemplate descriptorUpdateTemplate = 0x%X, const VkAllocationCallbacks* pAllocator = 0x%X)",
+	      device, descriptorUpdateTemplate, pAllocator);
+
+	vk::destroy(descriptorUpdateTemplate, pAllocator);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkUpdateDescriptorSetWithTemplate(VkDevice device, VkDescriptorSet descriptorSet, VkDescriptorUpdateTemplate descriptorUpdateTemplate, const void* pData)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
+	TRACE("(VkDevice device = 0x%X, VkDescriptorSet descriptorSet = 0x%X, VkDescriptorUpdateTemplate descriptorUpdateTemplate = 0x%X, const void* pData = 0x%X)",
+	      device, descriptorSet, descriptorUpdateTemplate, pData);
+
+	vk::Cast(descriptorUpdateTemplate)->updateDescriptorSet(descriptorSet, pData);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceExternalBufferProperties(VkPhysicalDevice physicalDevice, const VkPhysicalDeviceExternalBufferInfo* pExternalBufferInfo, VkExternalBufferProperties* pExternalBufferProperties)

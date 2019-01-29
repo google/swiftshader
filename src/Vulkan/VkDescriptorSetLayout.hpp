@@ -36,10 +36,10 @@ public:
 	void initialize(VkDescriptorSet descriptorSet);
 	size_t getSize() const;
 	size_t getBindingOffset(uint32_t binding) const;
+	uint8_t* getOffsetPointer(VkDescriptorSet descriptorSet, uint32_t binding, uint32_t arrayElement, uint32_t count, size_t* typeSize) const;
 
 private:
 	uint32_t getBindingIndex(uint32_t binding) const;
-	uint8_t* getOffsetPointer(VkDescriptorSet descriptorSet, uint32_t binding, uint32_t arrayElement, uint32_t count, size_t* typeSize) const;
 	static const uint8_t* GetInputData(const VkWriteDescriptorSet& descriptorWrites);
 
 	VkDescriptorSetLayoutCreateFlags flags;
