@@ -108,6 +108,30 @@
     },
     {
       "key": {
+        "uuid": "b57bedc8_0bf0c4ed",
+        "filename": "kokoro/gcp_ubuntu/continuous.cfg",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-01-29T10:57:51Z",
+      "side": 1,
+      "message": "Thanks for the clarification!",
+      "parentUuid": "b302ee94_64dbb0b7",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 52
+      },
+      "revId": "bb590f442ba60e11bb8412c7fecd9bdb01676846",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f143f002_efe90e12",
         "filename": "kokoro/gcp_ubuntu/continuous.sh",
         "patchSetId": 5
