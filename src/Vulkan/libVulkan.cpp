@@ -930,10 +930,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateGraphicsPipelines(VkDevice device, VkPipe
 	TRACE("(VkDevice device = 0x%X, VkPipelineCache pipelineCache = 0x%X, uint32_t createInfoCount = %d, const VkGraphicsPipelineCreateInfo* pCreateInfos, const VkAllocationCallbacks* pAllocator = 0x%X, VkPipeline* pPipelines = 0x%X)",
 		    device, pipelineCache, createInfoCount, pCreateInfos, pAllocator, pPipelines);
 
-	if(pipelineCache != VK_NULL_HANDLE)
-	{
-		UNIMPLEMENTED();
-	}
+	// TODO (b/123588002): Optimize based on pipelineCache.
 
 	VkResult errorResult = VK_SUCCESS;
 	for(uint32_t i = 0; i < createInfoCount; i++)
@@ -966,10 +963,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateComputePipelines(VkDevice device, VkPipel
 	TRACE("(VkDevice device = 0x%X, VkPipelineCache pipelineCache = 0x%X, uint32_t createInfoCount = %d, const VkComputePipelineCreateInfo* pCreateInfos, const VkAllocationCallbacks* pAllocator = 0x%X, VkPipeline* pPipelines = 0x%X)",
 		device, pipelineCache, createInfoCount, pCreateInfos, pAllocator, pPipelines);
 
-	if(pipelineCache != VK_NULL_HANDLE)
-	{
-		UNIMPLEMENTED();
-	}
+	// TODO (b/123588002): Optimize based on pipelineCache.
 
 	VkResult errorResult = VK_SUCCESS;
 	for(uint32_t i = 0; i < createInfoCount; i++)
