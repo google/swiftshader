@@ -170,9 +170,6 @@ config("swiftshader_reactor_private_config") {
     ]
   } else {
     cflags = [ "-Wno-unused-local-typedef" ]
-    if(target_cpu == "arm64") {
-      cflags += [ "-Wno-defaulted-function-deleted" ]
-    }
     defines = [
       "__STDC_CONSTANT_MACROS",
       "__STDC_LIMIT_MACROS",

@@ -61,10 +61,6 @@ config("swiftshader_llvm_private_config") {
     }
   }
 
-  if(target_cpu == "arm64") {
-    cflags += [ "-Wno-defaulted-function-deleted" ]
-  }
-
   cflags += [
     "-Wno-attributes",
     "-Wno-deprecated-declarations",
