@@ -214,6 +214,9 @@ void *allocateExecutable(size_t bytes)
 		if (zx_vmo_create(length, ZX_VMO_NON_RESIZABLE, &vmo) != ZX_OK) {
 			return nullptr;
 		}
+		if (zx_vmo_replace_as_executable(vmo, ZX_HANDLE_INVALID, &vmo) != ZX_OK) {
+			return nullptr;
+		}
 		zx_vaddr_t reservation;
 		zx_status_t status = zx_vmar_map(
 			zx_vmar_root_self(), ZX_VM_PERM_READ | ZX_VM_PERM_WRITE,
