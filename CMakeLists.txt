@@ -2180,6 +2180,10 @@ if(BUILD_GLES_CM)
 endif()
 
 if(BUILD_VULKAN)
+    # This variable is also used by SPIRV-Tools to locate SPIRV-Headers
+    set(SPIRV-Headers_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/third_party/SPIRV-Headers")
+    list(APPEND VULKAN_INCLUDE_DIR "${SPIRV-Headers_SOURCE_DIR}/include")
+
     add_library(libvk_swiftshader SHARED ${VULKAN_LIST})
     set_target_properties(libvk_swiftshader PROPERTIES
         INCLUDE_DIRECTORIES "${VULKAN_INCLUDE_DIR}"

@@ -258,6 +258,9 @@
     <ClCompile Include="VkQueryPool.cpp">
       <Filter>Source Files\Vulkan</Filter>
     </ClCompile>
+    <ClCompile Include="..\Pipeline\SpirvShader.cpp">
+      <Filter>Source Files\Pipeline</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h">
@@ -534,6 +537,9 @@
       <Filter>Header Files\Vulkan</Filter>
     </ClInclude>
     <ClInclude Include="Version.h" />
+    <ClInclude Include="..\Pipeline\SpirvShader.hpp">
+      <Filter>Header Files\Pipeline</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="swiftshader_icd.def" />
