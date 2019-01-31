@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ff37cf6b_4e216b35",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-01-31T04:13:45Z",
+      "side": 1,
+      "message": "Could you elaborate a bit on this? Is this a documented GCC bug, or change in behavior?",
+      "range": {
+        "startLine": 9,
+        "startChar": 32,
+        "endLine": 9,
+        "endChar": 59
+      },
+      "revId": "787f953343b0cd97e946682cc28be5d9900f2e49",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "abaef776_a7bb1565",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-01-31T04:13:45Z",
+      "side": 1,
+      "message": "Associating this with a Buganizer issue would have been useful to centralize the discussion around this.",
+      "revId": "787f953343b0cd97e946682cc28be5d9900f2e49",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0bcef984_1646b5a5",
+        "filename": "CMakeLists.txt",
+        "patchSetId": 3
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-01-31T04:13:45Z",
+      "side": 1,
+      "message": "How was this determined?\n\nAccording to https://wiki.ubuntu.com/ToolChain/CompilerFlags#Flags_passed_to_the_linker, -Wl,--as-needed is passed to the linker by default since Ubuntu 11.10. This seems to imply we might need to use --no-as-needed as a workaround for higher versions, not lower ones?",
+      "range": {
+        "startLine": 161,
+        "startChar": 68,
+        "endLine": 161,
+        "endChar": 84
+      },
+      "revId": "787f953343b0cd97e946682cc28be5d9900f2e49",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "316a243f_142781c7",
+        "filename": "CMakeLists.txt",
+        "patchSetId": 3
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-01-31T04:13:45Z",
+      "side": 1,
+      "message": "The documentation for --as-needed seems to consider it a generally good thing to avoid unnecessary dependencies. Having to disable it altogether with --no-as-needed may indicate a root issue that should be fixed in a different way, as it might mask other future dependency issues.\n\nPotentially relevant:\nhttps://wiki.ubuntu.com/NattyNarwhal/ToolchainTransition\nhttps://wiki.debian.org/ToolChain/DSOLinking",
+      "range": {
+        "startLine": 162,
+        "startChar": 82,
+        "endLine": 162,
+        "endChar": 96
+      },
+      "revId": "787f953343b0cd97e946682cc28be5d9900f2e49",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
