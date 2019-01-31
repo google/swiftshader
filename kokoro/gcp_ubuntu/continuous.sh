@@ -12,4 +12,4 @@ git submodule update --init
 mkdir -p build && cd build
 
 cmake ..
-make --jobs=$(nproc)
+make --jobs=$(nproc) VERBOSE=1

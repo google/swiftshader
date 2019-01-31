@@ -156,6 +156,11 @@ macro(set_shared_library_export_map TARGET DIR)
         if(NOT MSAN AND NOT ASAN AND NOT TSAN AND NOT UBSAN)
             set_property(TARGET ${TARGET} APPEND_STRING PROPERTY LINK_FLAGS " -Wl,--no-undefined")
         endif()
+
+        # Older version of GCC have problem linking libdl when --as-needed is set.
+        if (CMAKE_COMPILER_IS_GNUCXX AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 5.0)
+            set_property(TARGET ${TARGET} APPEND_STRING PROPERTY LINK_FLAGS " -Wl,--no-as-needed")
+        endif()
     endif()
 endmacro()
 
