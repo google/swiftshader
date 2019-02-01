@@ -98,6 +98,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\third_party\googletest\googletest\src\gtest-all.cc" />
+    <ClCompile Include="Driver.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="unittests.cpp" />
   </ItemGroup>
@@ -105,6 +106,11 @@
     <ProjectReference Include="..\..\src\Vulkan\vulkan.vcxproj">
       <Project>{e1c34b66-c942-4b9a-b8c3-9a12625650d3}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Driver.hpp" />
+    <ClInclude Include="VkGlobalFuncs.hpp" />
+    <ClInclude Include="VkInstanceFuncs.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

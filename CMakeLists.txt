@@ -2326,6 +2326,7 @@ if(BUILD_TESTS)
     endif()
 endif()
 
+# GLES unit tests. TODO: Rename 'unittests' to 'gles-unittests'?
 if(BUILD_TESTS)
     set(UNITTESTS_LIST
         ${CMAKE_CURRENT_SOURCE_DIR}/tests/GLESUnitTests/main.cpp
@@ -2348,4 +2349,29 @@ if(BUILD_TESTS)
     )
 
     target_link_libraries(unittests libEGL libGLESv2 ${OS_LIBS})
+endif()
+
+if(BUILD_TESTS AND BUILD_VULKAN)
+    set(UNITTESTS_LIST
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests/VulkanUnitTests/Driver.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests/VulkanUnitTests/main.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests/VulkanUnitTests/unittests.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/third_party/googletest/googletest/src/gtest-all.cc
+    )
+
+    set(UNITTESTS_INCLUDE_DIR
+        ${CMAKE_CURRENT_SOURCE_DIR}/third_party/googletest/googletest/include/
+        ${CMAKE_CURRENT_SOURCE_DIR}/third_party/googletest/googlemock/include/
+        ${CMAKE_CURRENT_SOURCE_DIR}/third_party/googletest/googletest/
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/
+    )
+
+    add_executable(vk-unittests ${UNITTESTS_LIST})
+    set_target_properties(vk-unittests PROPERTIES
+        INCLUDE_DIRECTORIES "${UNITTESTS_INCLUDE_DIR}"
+        FOLDER "Tests"
+        COMPILE_DEFINITIONS "STANDALONE"
+    )
+
+    target_link_libraries(vk-unittests ${OS_LIBS})
 endif()
