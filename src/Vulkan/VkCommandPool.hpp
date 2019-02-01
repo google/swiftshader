@@ -32,6 +32,8 @@ public:
 
 	VkResult allocateCommandBuffers(VkCommandBufferLevel level, uint32_t commandBufferCount, VkCommandBuffer* pCommandBuffers);
 	void freeCommandBuffers(uint32_t commandBufferCount, const VkCommandBuffer* pCommandBuffers);
+	VkResult reset(VkCommandPoolResetFlags flags);
+	void trim(VkCommandPoolTrimFlags flags);
 
 private:
 	std::set<VkCommandBuffer>* commandBuffers;

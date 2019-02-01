@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "VkCommandPool.hpp"
+#include "VkCommandBuffer.hpp"
 #include "VkDestroy.h"
 #include <algorithm>
 
@@ -77,6 +78,30 @@ void CommandPool::freeCommandBuffers(uint32_t commandBufferCount, const VkComman
 		commandBuffers->erase(pCommandBuffers[i]);
 		vk::destroy(pCommandBuffers[i], DEVICE_MEMORY);
 	}
+}
+
+VkResult CommandPool::reset(VkCommandPoolResetFlags flags)
+{
+	// According the Vulkan 1.1 spec:
+	// "All command buffers that have been allocated from
+	//  the command pool are put in the initial state."
+	for(auto commandBuffer : *commandBuffers)
+	{
+		Cast(commandBuffer)->reset(flags);
+	}
+
+	// According the Vulkan 1.1 spec:
+	// "Resetting a command pool recycles all of the
+	//  resources from all of the command buffers allocated
+	//  from the command pool back to the command pool."
+	commandBuffers->clear();
+
+	return VK_SUCCESS;
+}
+
+void CommandPool::trim(VkCommandPoolTrimFlags flags)
+{
+	// TODO (b/119827933): Optimize memory usage here
 }
 
 } // namespace vk

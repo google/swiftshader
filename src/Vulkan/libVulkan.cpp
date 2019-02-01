@@ -1175,9 +1175,10 @@ VKAPI_ATTR void VKAPI_CALL vkDestroyCommandPool(VkDevice device, VkCommandPool c
 
 VKAPI_ATTR VkResult VKAPI_CALL vkResetCommandPool(VkDevice device, VkCommandPool commandPool, VkCommandPoolResetFlags flags)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
-	return VK_SUCCESS;
+	TRACE("(VkDevice device = 0x%X, VkCommandPool commandPool = 0x%X, VkCommandPoolResetFlags flags = %d )",
+		device, commandPool, flags);
+
+	return vk::Cast(commandPool)->reset(flags);
 }
 
 VKAPI_ATTR VkResult VKAPI_CALL vkAllocateCommandBuffers(VkDevice device, const VkCommandBufferAllocateInfo* pAllocateInfo, VkCommandBuffer* pCommandBuffers)
@@ -1888,8 +1889,10 @@ VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceSparseImageFormatProperties2(VkPhy
 
 VKAPI_ATTR void VKAPI_CALL vkTrimCommandPool(VkDevice device, VkCommandPool commandPool, VkCommandPoolTrimFlags flags)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
+	TRACE("(VkDevice device = 0x%X, VkCommandPool commandPool = 0x%X, VkCommandPoolTrimFlags flags = %d)",
+	      device, commandPool, flags);
+
+	vk::Cast(commandPool)->trim(flags);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkGetDeviceQueue2(VkDevice device, const VkDeviceQueueInfo2* pQueueInfo, VkQueue* pQueue)
