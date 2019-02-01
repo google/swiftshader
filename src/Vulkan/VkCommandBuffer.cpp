@@ -14,6 +14,7 @@
 
 #include "VkCommandBuffer.hpp"
 #include "VkBuffer.hpp"
+#include "VkEvent.hpp"
 #include "VkFramebuffer.hpp"
 #include "VkImage.hpp"
 #include "VkPipeline.hpp"
@@ -341,6 +342,38 @@ struct PipelineBarrier : public CommandBuffer::Command
 	}
 
 private:
+};
+
+struct SignalEvent : public CommandBuffer::Command
+{
+	SignalEvent(VkEvent ev, VkPipelineStageFlags stageMask) : ev(ev), stageMask(stageMask)
+	{
+	}
+
+	void play(CommandBuffer::ExecutionState& executionState)
+	{
+		Cast(ev)->signal();
+	}
+
+private:
+	VkEvent ev;
+	VkPipelineStageFlags stageMask; // FIXME(b/117835459) : We currently ignore the flags and signal the event at the last stage
+};
+
+struct ResetEvent : public CommandBuffer::Command
+{
+	ResetEvent(VkEvent ev, VkPipelineStageFlags stageMask) : ev(ev), stageMask(stageMask)
+	{
+	}
+
+	void play(CommandBuffer::ExecutionState& executionState)
+	{
+		Cast(ev)->reset();
+	}
+
+private:
+	VkEvent ev;
+	VkPipelineStageFlags stageMask; // FIXME(b/117835459) : We currently ignore the flags and reset the event at the last stage
 };
 
 CommandBuffer::CommandBuffer(VkCommandBufferLevel pLevel) : level(pLevel)
@@ -729,12 +762,16 @@ void CommandBuffer::resolveImage(VkImage srcImage, VkImageLayout srcImageLayout,
 
 void CommandBuffer::setEvent(VkEvent event, VkPipelineStageFlags stageMask)
 {
-	UNIMPLEMENTED();
+	ASSERT(state == RECORDING);
+
+	addCommand<SignalEvent>(event, stageMask);
 }
 
 void CommandBuffer::resetEvent(VkEvent event, VkPipelineStageFlags stageMask)
 {
-	UNIMPLEMENTED();
+	ASSERT(state == RECORDING);
+
+	addCommand<ResetEvent>(event, stageMask);
 }
 
 void CommandBuffer::waitEvents(uint32_t eventCount, const VkEvent* pEvents, VkPipelineStageFlags srcStageMask,
