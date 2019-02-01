@@ -1,0 +1,444 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="$(SolutionDir)src\Device\Blitter.cpp">
+      <Filter>src\Device</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\Device\Clipper.cpp">
+      <Filter>src\Device</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\Device\Color.cpp">
+      <Filter>src\Device</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\Device\Config.cpp">
+      <Filter>src\Device</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\Device\Context.cpp">
+      <Filter>src\Device</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\Device\ETC_Decoder.cpp">
+      <Filter>src\Device</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\Device\Matrix.cpp">
+      <Filter>src\Device</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\Device\PixelProcessor.cpp">
+      <Filter>src\Device</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\Device\Plane.cpp">
+      <Filter>src\Device</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\Device\Point.cpp">
+      <Filter>src\Device</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\Device\QuadRasterizer.cpp">
+      <Filter>src\Device</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\Device\Renderer.cpp">
+      <Filter>src\Device</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\Device\Sampler.cpp">
+      <Filter>src\Device</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\Device\SetupProcessor.cpp">
+      <Filter>src\Device</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\Device\Surface.cpp">
+      <Filter>src\Device</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\Device\SwiftConfig.cpp">
+      <Filter>src\Device</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\Device\Vector.cpp">
+      <Filter>src\Device</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\Device\VertexProcessor.cpp">
+      <Filter>src\Device</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\Pipeline\Constants.cpp">
+      <Filter>src\Pipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\Pipeline\PixelProgram.cpp">
+      <Filter>src\Pipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\Pipeline\PixelRoutine.cpp">
+      <Filter>src\Pipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\Pipeline\PixelShader.cpp">
+      <Filter>src\Pipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\Pipeline\SamplerCore.cpp">
+      <Filter>src\Pipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\Pipeline\SetupRoutine.cpp">
+      <Filter>src\Pipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\Pipeline\Shader.cpp">
+      <Filter>src\Pipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\Pipeline\ShaderCore.cpp">
+      <Filter>src\Pipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\Pipeline\SpirvShader.cpp">
+      <Filter>src\Pipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\Pipeline\VertexProgram.cpp">
+      <Filter>src\Pipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\Pipeline\VertexRoutine.cpp">
+      <Filter>src\Pipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\Pipeline\VertexShader.cpp">
+      <Filter>src\Pipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\System\CPUID.cpp">
+      <Filter>src\System</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\System\Configurator.cpp">
+      <Filter>src\System</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\System\Debug.cpp">
+      <Filter>src\System</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\System\Half.cpp">
+      <Filter>src\System</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\System\Math.cpp">
+      <Filter>src\System</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\System\Memory.cpp">
+      <Filter>src\System</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\System\Resource.cpp">
+      <Filter>src\System</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\System\Socket.cpp">
+      <Filter>src\System</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\System\Thread.cpp">
+      <Filter>src\System</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\System\Timer.cpp">
+      <Filter>src\System</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\Vulkan\VkBuffer.cpp">
+      <Filter>src\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\Vulkan\VkCommandBuffer.cpp">
+      <Filter>src\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\Vulkan\VkCommandPool.cpp">
+      <Filter>src\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\Vulkan\VkDebug.cpp">
+      <Filter>src\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\Vulkan\VkDevice.cpp">
+      <Filter>src\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\Vulkan\VkDeviceMemory.cpp">
+      <Filter>src\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\Vulkan\VkFramebuffer.cpp">
+      <Filter>src\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\Vulkan\VkGetProcAddress.cpp">
+      <Filter>src\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\Vulkan\VkImage.cpp">
+      <Filter>src\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\Vulkan\VkImageView.cpp">
+      <Filter>src\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\Vulkan\VkInstance.cpp">
+      <Filter>src\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\Vulkan\VkMemory.cpp">
+      <Filter>src\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\Vulkan\VkPhysicalDevice.cpp">
+      <Filter>src\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\Vulkan\VkPipeline.cpp">
+      <Filter>src\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\Vulkan\VkPipelineLayout.cpp">
+      <Filter>src\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\Vulkan\VkPromotedExtensions.cpp">
+      <Filter>src\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\Vulkan\VkQueryPool.cpp">
+      <Filter>src\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\Vulkan\VkQueue.cpp">
+      <Filter>src\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\Vulkan\VkRenderPass.cpp">
+      <Filter>src\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\Vulkan\VkShaderModule.cpp">
+      <Filter>src\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\Vulkan\libVulkan.cpp">
+      <Filter>src\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\Vulkan\main.cpp">
+      <Filter>src\Vulkan</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(SolutionDir)src\Device\Blitter.hpp">
+      <Filter>src\Device</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Device\Clipper.hpp">
+      <Filter>src\Device</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Device\Color.hpp">
+      <Filter>src\Device</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Device\Config.hpp">
+      <Filter>src\Device</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Device\Context.hpp">
+      <Filter>src\Device</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Device\ETC_Decoder.hpp">
+      <Filter>src\Device</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Device\LRUCache.hpp">
+      <Filter>src\Device</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Device\Matrix.hpp">
+      <Filter>src\Device</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Device\PixelProcessor.hpp">
+      <Filter>src\Device</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Device\Plane.hpp">
+      <Filter>src\Device</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Device\Point.hpp">
+      <Filter>src\Device</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Device\Polygon.hpp">
+      <Filter>src\Device</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Device\Primitive.hpp">
+      <Filter>src\Device</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Device\QuadRasterizer.hpp">
+      <Filter>src\Device</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Device\Rasterizer.hpp">
+      <Filter>src\Device</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Device\Renderer.hpp">
+      <Filter>src\Device</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Device\RoutineCache.hpp">
+      <Filter>src\Device</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Device\Sampler.hpp">
+      <Filter>src\Device</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Device\SetupProcessor.hpp">
+      <Filter>src\Device</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Device\Stream.hpp">
+      <Filter>src\Device</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Device\Surface.hpp">
+      <Filter>src\Device</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Device\SwiftConfig.hpp">
+      <Filter>src\Device</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Device\Triangle.hpp">
+      <Filter>src\Device</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Device\Vector.hpp">
+      <Filter>src\Device</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Device\Vertex.hpp">
+      <Filter>src\Device</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Device\VertexProcessor.hpp">
+      <Filter>src\Device</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Pipeline\Constants.hpp">
+      <Filter>src\Pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Pipeline\PixelProgram.hpp">
+      <Filter>src\Pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Pipeline\PixelRoutine.hpp">
+      <Filter>src\Pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Pipeline\PixelShader.hpp">
+      <Filter>src\Pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Pipeline\SamplerCore.hpp">
+      <Filter>src\Pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Pipeline\SetupRoutine.hpp">
+      <Filter>src\Pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Pipeline\Shader.hpp">
+      <Filter>src\Pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Pipeline\ShaderCore.hpp">
+      <Filter>src\Pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Pipeline\SpirvShader.hpp">
+      <Filter>src\Pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Pipeline\VertexProgram.hpp">
+      <Filter>src\Pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Pipeline\VertexRoutine.hpp">
+      <Filter>src\Pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Pipeline\VertexShader.hpp">
+      <Filter>src\Pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\System\CPUID.hpp">
+      <Filter>src\System</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\System\Configurator.hpp">
+      <Filter>src\System</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\System\Debug.hpp">
+      <Filter>src\System</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\System\Half.hpp">
+      <Filter>src\System</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\System\Math.hpp">
+      <Filter>src\System</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\System\Memory.hpp">
+      <Filter>src\System</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\System\Resource.hpp">
+      <Filter>src\System</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\System\Socket.hpp">
+      <Filter>src\System</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\System\Thread.hpp">
+      <Filter>src\System</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\System\Timer.hpp">
+      <Filter>src\System</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Vulkan\Version.h">
+      <Filter>src\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Vulkan\VkBuffer.hpp">
+      <Filter>src\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Vulkan\VkBufferView.hpp">
+      <Filter>src\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Vulkan\VkCommandBuffer.hpp">
+      <Filter>src\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Vulkan\VkCommandPool.hpp">
+      <Filter>src\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Vulkan\VkConfig.h">
+      <Filter>src\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Vulkan\VkDebug.hpp">
+      <Filter>src\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Vulkan\VkDestroy.h">
+      <Filter>src\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Vulkan\VkDevice.hpp">
+      <Filter>src\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Vulkan\VkDeviceMemory.hpp">
+      <Filter>src\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Vulkan\VkEvent.hpp">
+      <Filter>src\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Vulkan\VkFence.hpp">
+      <Filter>src\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Vulkan\VkFramebuffer.hpp">
+      <Filter>src\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Vulkan\VkGetProcAddress.h">
+      <Filter>src\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Vulkan\VkImage.hpp">
+      <Filter>src\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Vulkan\VkImageView.hpp">
+      <Filter>src\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Vulkan\VkInstance.hpp">
+      <Filter>src\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Vulkan\VkMemory.h">
+      <Filter>src\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Vulkan\VkObject.hpp">
+      <Filter>src\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Vulkan\VkPhysicalDevice.hpp">
+      <Filter>src\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Vulkan\VkPipeline.hpp">
+      <Filter>src\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Vulkan\VkPipelineCache.hpp">
+      <Filter>src\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Vulkan\VkPipelineLayout.hpp">
+      <Filter>src\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Vulkan\VkQueryPool.hpp">
+      <Filter>src\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Vulkan\VkQueue.hpp">
+      <Filter>src\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Vulkan\VkRenderPass.hpp">
+      <Filter>src\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Vulkan\VkSampler.hpp">
+      <Filter>src\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Vulkan\VkSemaphore.hpp">
+      <Filter>src\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Vulkan\VkShaderModule.hpp">
+      <Filter>src\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Vulkan\resource.h">
+      <Filter>src\Vulkan</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="src">
+      <UniqueIdentifier>{96A3A3C5-1BBA-3A3D-ADF6-3F1639D231D2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Device">
+      <UniqueIdentifier>{C049C9D4-3CBA-39A2-9759-8821E28E66E1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Pipeline">
+      <UniqueIdentifier>{38C47849-2E64-3D36-854E-9C6B0DEAC5E1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\System">
+      <UniqueIdentifier>{0F6FA2A9-D62B-351D-AAED-2100514E0D67}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Vulkan">
+      <UniqueIdentifier>{6A487737-5343-3862-800E-F0B7A5CB0903}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

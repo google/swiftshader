@@ -1,0 +1,233 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="$(SolutionDir)src\Common\SharedLibrary.cpp">
+      <Filter>src\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\OpenGL\common\Object.cpp">
+      <Filter>src\OpenGL\common</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\OpenGL\common\debug.cpp">
+      <Filter>src\OpenGL\common</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\OpenGL\libEGL\Config.cpp">
+      <Filter>src\OpenGL\libEGL</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\OpenGL\libEGL\Display.cpp">
+      <Filter>src\OpenGL\libEGL</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\OpenGL\libEGL\Surface.cpp">
+      <Filter>src\OpenGL\libEGL</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\OpenGL\libEGL\libEGL.cpp">
+      <Filter>src\OpenGL\libEGL</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\OpenGL\libEGL\main.cpp">
+      <Filter>src\OpenGL\libEGL</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(SolutionDir)include\Android\android\api-level.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)include\Android\android\sync.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)include\Android\cutils\native_handle.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)include\Android\hardware\gralloc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)include\Android\hardware\gralloc1.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)include\Android\hardware\hardware.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)include\Android\nativebase\nativebase.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)include\Android\sync\sync.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)include\Android\system\graphics.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)include\Android\system\window.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)include\Direct3D\d3d8.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)include\Direct3D\d3d8caps.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)include\Direct3D\d3d8types.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)include\EGL\egl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)include\EGL\eglext.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)include\EGL\eglplatform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)include\GL\glcorearb.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)include\GL\glext.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)include\GL\glxext.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)include\GL\wglext.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)include\GLES\gl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)include\GLES\glext.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)include\GLES\glplatform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)include\GLES2\gl2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)include\GLES2\gl2ext.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)include\GLES2\gl2platform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)include\GLES3\gl3.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)include\GLES3\gl3platform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)include\KHR\khrplatform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)include\vulkan\vk_icd.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)include\vulkan\vk_layer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)include\vulkan\vk_platform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)include\vulkan\vk_sdk_platform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)include\vulkan\vulkan.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)include\vulkan\vulkan_android.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)include\vulkan\vulkan_core.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)include\vulkan\vulkan_fuchsia.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)include\vulkan\vulkan_ios.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)include\vulkan\vulkan_macos.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)include\vulkan\vulkan_mir.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)include\vulkan\vulkan_vi.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)include\vulkan\vulkan_wayland.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)include\vulkan\vulkan_win32.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)include\vulkan\vulkan_xcb.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)include\vulkan\vulkan_xlib.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)include\vulkan\vulkan_xlib_xrandr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Common\SharedLibrary.hpp">
+      <Filter>src\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\OpenGL\common\Object.hpp">
+      <Filter>src\OpenGL\common</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\OpenGL\common\debug.h">
+      <Filter>src\OpenGL\common</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libEGL\Config.h">
+      <Filter>src\OpenGL\libEGL</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libEGL\Context.hpp">
+      <Filter>src\OpenGL\libEGL</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libEGL\Display.h">
+      <Filter>src\OpenGL\libEGL</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libEGL\OSXUtils.hpp">
+      <Filter>src\OpenGL\libEGL</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libEGL\Surface.hpp">
+      <Filter>src\OpenGL\libEGL</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libEGL\Sync.hpp">
+      <Filter>src\OpenGL\libEGL</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libEGL\Texture.hpp">
+      <Filter>src\OpenGL\libEGL</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libEGL\libEGL.hpp">
+      <Filter>src\OpenGL\libEGL</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libEGL\main.h">
+      <Filter>src\OpenGL\libEGL</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libEGL\resource.h">
+      <Filter>src\OpenGL\libEGL</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="$(SolutionDir)src\OpenGL\libEGL\libEGL.rc">
+      <Filter>src\OpenGL\libEGL</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{10CFD05B-A1B8-3F4E-B3C8-F65676382140}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src">
+      <UniqueIdentifier>{96A3A3C5-1BBA-3A3D-ADF6-3F1639D231D2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Common">
+      <UniqueIdentifier>{8C957365-805D-3B54-ACD9-62917A45452A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\OpenGL">
+      <UniqueIdentifier>{B51EB8AA-BF83-3BC6-A1FF-13DAC5584B2A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\OpenGL\common">
+      <UniqueIdentifier>{FF3E87F8-2C8F-3E0C-A988-554EE10FA42E}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\OpenGL\libEGL">
+      <UniqueIdentifier>{12020D63-AB7C-3712-9006-C7176144D96A}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

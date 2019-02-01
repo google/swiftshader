@@ -2,6 +2,16 @@ cmake_minimum_required(VERSION 2.8)
 
 project(SwiftShader C CXX)
 
+# On Windows we use custom solution and project files, except for certain third-
+# party projects which use CMake-generated ones. They are manually (re)generated
+# and made path relative using build/cmake.sh, so they can be checked into the
+# repository. Therefore they should not be auto-regenerated and left using
+# absolute paths by CMake's ZERO_CHECK.
+if(WIN32)
+    # Disable automatically regenerating project files on CMakeLists.txt changes.
+    set(CMAKE_SUPPRESS_REGENERATION true)
+endif()
+
 ###########################################################
 # Detect system
 ###########################################################
@@ -197,6 +207,7 @@ endmacro()
 if(MSVC)
     set_cpp_flag("/MP")
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+    add_definitions(-D_SBCS)  # Single Byte Character Set (ASCII)
 else()
     set_cpp_flag("--std=c++11")
     set_cpp_flag("-Wall")
@@ -2183,6 +2194,8 @@ if(BUILD_VULKAN)
     # This variable is also used by SPIRV-Tools to locate SPIRV-Headers
     set(SPIRV-Headers_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/third_party/SPIRV-Headers")
     list(APPEND VULKAN_INCLUDE_DIR "${SPIRV-Headers_SOURCE_DIR}/include")
+
+    add_subdirectory(third_party/SPIRV-Tools)
 
     add_library(libvk_swiftshader SHARED ${VULKAN_LIST})
     set_target_properties(libvk_swiftshader PROPERTIES

@@ -1,0 +1,212 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="$(SolutionDir)src\Common\SharedLibrary.cpp">
+      <Filter>src\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\OpenGL\common\Image.cpp">
+      <Filter>src\OpenGL\common</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\OpenGL\common\MatrixStack.cpp">
+      <Filter>src\OpenGL\common</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\OpenGL\common\Object.cpp">
+      <Filter>src\OpenGL\common</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\OpenGL\common\debug.cpp">
+      <Filter>src\OpenGL\common</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLESv2\Buffer.cpp">
+      <Filter>src\OpenGL\libGLESv2</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLESv2\Context.cpp">
+      <Filter>src\OpenGL\libGLESv2</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLESv2\Device.cpp">
+      <Filter>src\OpenGL\libGLESv2</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLESv2\Fence.cpp">
+      <Filter>src\OpenGL\libGLESv2</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLESv2\Framebuffer.cpp">
+      <Filter>src\OpenGL\libGLESv2</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLESv2\IndexDataManager.cpp">
+      <Filter>src\OpenGL\libGLESv2</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLESv2\Program.cpp">
+      <Filter>src\OpenGL\libGLESv2</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLESv2\Query.cpp">
+      <Filter>src\OpenGL\libGLESv2</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLESv2\Renderbuffer.cpp">
+      <Filter>src\OpenGL\libGLESv2</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLESv2\ResourceManager.cpp">
+      <Filter>src\OpenGL\libGLESv2</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLESv2\Shader.cpp">
+      <Filter>src\OpenGL\libGLESv2</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLESv2\Texture.cpp">
+      <Filter>src\OpenGL\libGLESv2</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLESv2\TransformFeedback.cpp">
+      <Filter>src\OpenGL\libGLESv2</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLESv2\VertexArray.cpp">
+      <Filter>src\OpenGL\libGLESv2</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLESv2\VertexDataManager.cpp">
+      <Filter>src\OpenGL\libGLESv2</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLESv2\entry_points.cpp">
+      <Filter>src\OpenGL\libGLESv2</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLESv2\libGLESv2.cpp">
+      <Filter>src\OpenGL\libGLESv2</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLESv2\libGLESv3.cpp">
+      <Filter>src\OpenGL\libGLESv2</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLESv2\main.cpp">
+      <Filter>src\OpenGL\libGLESv2</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLESv2\utilities.cpp">
+      <Filter>src\OpenGL\libGLESv2</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(SolutionDir)include\GLES2\gl2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)include\GLES2\gl2ext.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)include\GLES2\gl2platform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)include\GLES3\gl3.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)include\GLES3\gl3platform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)include\KHR\khrplatform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Common\SharedLibrary.hpp">
+      <Filter>src\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\OpenGL\common\Image.hpp">
+      <Filter>src\OpenGL\common</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\OpenGL\common\MatrixStack.hpp">
+      <Filter>src\OpenGL\common</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\OpenGL\common\NameSpace.hpp">
+      <Filter>src\OpenGL\common</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\OpenGL\common\Object.hpp">
+      <Filter>src\OpenGL\common</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\OpenGL\common\Surface.hpp">
+      <Filter>src\OpenGL\common</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\OpenGL\common\debug.h">
+      <Filter>src\OpenGL\common</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\Buffer.h">
+      <Filter>src\OpenGL\libGLESv2</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\Context.h">
+      <Filter>src\OpenGL\libGLESv2</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\Device.hpp">
+      <Filter>src\OpenGL\libGLESv2</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\Fence.h">
+      <Filter>src\OpenGL\libGLESv2</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\Framebuffer.h">
+      <Filter>src\OpenGL\libGLESv2</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\IndexDataManager.h">
+      <Filter>src\OpenGL\libGLESv2</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\Program.h">
+      <Filter>src\OpenGL\libGLESv2</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\Query.h">
+      <Filter>src\OpenGL\libGLESv2</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\Renderbuffer.h">
+      <Filter>src\OpenGL\libGLESv2</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\ResourceManager.h">
+      <Filter>src\OpenGL\libGLESv2</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\Sampler.h">
+      <Filter>src\OpenGL\libGLESv2</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\Shader.h">
+      <Filter>src\OpenGL\libGLESv2</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\Texture.h">
+      <Filter>src\OpenGL\libGLESv2</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\TransformFeedback.h">
+      <Filter>src\OpenGL\libGLESv2</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\VertexArray.h">
+      <Filter>src\OpenGL\libGLESv2</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\VertexDataManager.h">
+      <Filter>src\OpenGL\libGLESv2</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\entry_points.h">
+      <Filter>src\OpenGL\libGLESv2</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\libGLESv2.hpp">
+      <Filter>src\OpenGL\libGLESv2</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\main.h">
+      <Filter>src\OpenGL\libGLESv2</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\mathutil.h">
+      <Filter>src\OpenGL\libGLESv2</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\resource.h">
+      <Filter>src\OpenGL\libGLESv2</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\utilities.h">
+      <Filter>src\OpenGL\libGLESv2</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="$(SolutionDir)src\OpenGL\libGLESv2\libGLESv2.rc">
+      <Filter>src\OpenGL\libGLESv2</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{10CFD05B-A1B8-3F4E-B3C8-F65676382140}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src">
+      <UniqueIdentifier>{96A3A3C5-1BBA-3A3D-ADF6-3F1639D231D2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Common">
+      <UniqueIdentifier>{8C957365-805D-3B54-ACD9-62917A45452A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\OpenGL">
+      <UniqueIdentifier>{B51EB8AA-BF83-3BC6-A1FF-13DAC5584B2A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\OpenGL\common">
+      <UniqueIdentifier>{FF3E87F8-2C8F-3E0C-A988-554EE10FA42E}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\OpenGL\libGLESv2">
+      <UniqueIdentifier>{27666A0E-6133-37AF-9D87-9DAFC77D92F5}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
