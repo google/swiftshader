@@ -64,7 +64,7 @@ namespace sw
 		//	}
 		//}
 
-		// Actually emit code here
+		spirvShader->emit(&routine);
 
 		if(currentLabel != -1)
 		{

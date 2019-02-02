@@ -50,6 +50,7 @@ namespace sw
 
 		RegisterArray<MAX_VERTEX_INPUTS> v;    // Input registers
 		RegisterArray<MAX_VERTEX_OUTPUTS> o;   // Output registers
+		SpirvRoutine routine;
 
 		const VertexProcessor::State &state;
 		SpirvShader const * const spirvShader;

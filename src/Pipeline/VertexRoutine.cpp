@@ -19,6 +19,7 @@
 #include "Device/Renderer.hpp"
 #include "System/Half.hpp"
 #include "Vulkan/VkDebug.hpp"
+#include "SpirvShader.hpp"
 
 namespace sw
 {
@@ -28,6 +29,7 @@ namespace sw
 		  state(state),
 		  spirvShader(spirvShader)
 	{
+	  	spirvShader->emitEarly(&routine);
 	}
 
 	VertexRoutine::~VertexRoutine()

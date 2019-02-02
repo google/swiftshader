@@ -17,16 +17,24 @@
 
 #include "System/Types.hpp"
 #include "Vulkan/VkDebug.hpp"
+#include "ShaderCore.hpp"
 
 #include <string>
 #include <vector>
 #include <unordered_map>
 #include <cstdint>
 #include <type_traits>
+#include <memory>
 #include <spirv/unified1/spirv.hpp>
 
 namespace sw
 {
+	class SpirvRoutine
+	{
+	public:
+		std::unordered_map<uint32_t, std::unique_ptr<Array<Float4>>> lvalues;
+	};
+
 	class SpirvShader
 	{
 	public:
@@ -212,12 +220,9 @@ namespace sw
 		std::vector<InterfaceComponent> inputs;
 		std::vector<InterfaceComponent> outputs;
 
-	private:
-		const int serialID;
-		static volatile int serialCounter;
-		Modes modes;
-		std::unordered_map<uint32_t, Object> types;
-		std::unordered_map<uint32_t, Object> defs;
+		void emitEarly(SpirvRoutine *routine) const;
+
+		void emit(SpirvRoutine *routine) const;
 
 		using BuiltInHash = std::hash<std::underlying_type<spv::BuiltIn>::type>;
 		std::unordered_map<spv::BuiltIn, BuiltinMapping, BuiltInHash> inputBuiltins;
@@ -230,11 +235,19 @@ namespace sw
 			return it->second;
 		}
 
-		Object const &getObject(uint32_t id) const {
+		Object const &getObject(uint32_t id) const
+		{
 			auto it = defs.find(id);
 			assert(it != defs.end());
 			return it->second;
 		}
+
+	private:
+		const int serialID;
+		static volatile int serialCounter;
+		Modes modes;
+		std::unordered_map<uint32_t, Object> types;
+		std::unordered_map<uint32_t, Object> defs;
 
 		void ProcessExecutionMode(InsnIterator it);
 

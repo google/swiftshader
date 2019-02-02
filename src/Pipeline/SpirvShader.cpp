@@ -517,4 +517,47 @@ namespace sw
 		assert(getType(insn.word(1)).definition.opcode() == spv::OpTypeInt);
 		return insn.word(3);
 	}
+
+	// emit-time
+
+	void SpirvShader::emitEarly(SpirvRoutine *routine) const
+	{
+		for (auto insn : *this)
+		{
+			switch (insn.opcode())
+			{
+			case spv::OpVariable:
+			{
+				auto &object = getObject(insn.word(2));
+				// Want to exclude: location-oriented interface variables; special things that consume zero slots.
+				// TODO: what to do about zero-slot objects?
+				if (object.kind != Object::Kind::InterfaceVariable && object.sizeInComponents > 0)
+				{
+					// any variable not in a location-oriented interface
+					routine->lvalues.emplace(insn.word(2), std::unique_ptr<Array<Float4>>(
+							new Array<Float4>(object.sizeInComponents)));
+				}
+				break;
+			}
+			default:
+				printf("emitEarly: ignoring opcode %d\n", insn.opcode());
+				break;
+			}
+		}
+	}
+
+	void SpirvShader::emit(SpirvRoutine *routine) const
+	{
+		(void) routine;
+
+		for (auto insn : *this)
+		{
+			switch (insn.opcode())
+			{
+			default:
+				printf("emit: ignoring opcode %d\n", insn.opcode());
+				break;
+			}
+		}
+	}
 }
