@@ -21,75 +21,25 @@
 
 namespace sw
 {
-	enum Out
-	{
-		// Default vertex output semantics
-		Pos = 0,
-		C0 = 1,   // Diffuse
-		C1 = 2,   // Specular
-		T0 = 3,
-		T1 = 4,
-		T2 = 5,
-		T3 = 6,
-		T4 = 7,
-		T5 = 8,
-		T6 = 9,
-		T7 = 10,
-		Fog = 11,    // x component
-		Pts = Fog,   // y component
-
-		// Variable semantics
-		V0 = 0,
-		Vn_1 = MAX_VERTEX_OUTPUTS - 1,
-
-		Unused,
-		VERTEX_OUTPUT_LAST = Unused,
-	};
-
-	struct UVWQ
-	{
-		float u;
-		float v;
-		float w;
-		float q;
-
-		float &operator[](int i)
-		{
-			return (&u)[i];
-		}
-	};
-
 	ALIGN(16, struct Vertex
 	{
-		union
+		float v[MAX_INTERFACE_COMPONENTS];
+
+		struct
 		{
-			struct   // Fixed semantics
-			{
-				// Position
-				float x;
-				float y;
-				float z;
-				float w;
-
-				float4 C[2];   // Diffuse and specular color
-
-				UVWQ T[8];           // Texture coordinates
-
-				float f;             // Fog
-				float pSize;         // Point size
-			};
-
-			float4 v[MAX_VERTEX_OUTPUTS];   // Generic components using semantic declaration
-		};
-
-		// Projected coordinates
-		int X;
-		int Y;
-		float Z;
-		float W;
+			float4 position;
+			float pointSize;
+		} builtins;
+		struct
+		{
+			int x;
+			int y;
+			float z;
+			float w;
+		} projected;
 
 		int clipFlags;
-		int padding[3];
+		int padding[2];
 	});
 
 	static_assert((sizeof(Vertex) & 0x0000000F) == 0, "Vertex size not a multiple of 16 bytes (alignment requirement)");

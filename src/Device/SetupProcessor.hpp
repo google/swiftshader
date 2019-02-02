@@ -15,6 +15,7 @@
 #ifndef sw_SetupProcessor_hpp
 #define sw_SetupProcessor_hpp
 
+#include <Pipeline/SpirvShader.hpp>
 #include "Context.hpp"
 #include "RoutineCache.hpp"
 #include "System/Types.hpp"
@@ -41,8 +42,6 @@ namespace sw
 			bool interpolateZ              : 1;
 			bool interpolateW              : 1;
 			bool perspective               : 1;
-			unsigned int positionRegister  : BITS(VERTEX_OUTPUT_LAST);
-			unsigned int pointSizeRegister : BITS(VERTEX_OUTPUT_LAST);
 			CullMode cullMode              : BITS(CULL_LAST);
 			bool twoSidedStencil           : 1;
 			bool slopeDepthBias            : 1;
@@ -50,14 +49,7 @@ namespace sw
 			unsigned int multiSample       : 3;   // 1, 2 or 4
 			bool rasterizerDiscard         : 1;
 
-			struct Gradient
-			{
-				unsigned char attribute : BITS(VERTEX_OUTPUT_LAST);
-				bool flat               : 1;
-				bool wrap               : 1;
-			};
-
-			Gradient gradient[MAX_FRAGMENT_INPUTS][4];
+			SpirvShader::InterfaceComponent gradient[MAX_INTERFACE_COMPONENTS];
 		};
 
 		struct State : States

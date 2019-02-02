@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <Device/Vertex.hpp>
 #include "VertexRoutine.hpp"
 
 #include "Constants.hpp"
@@ -94,14 +95,21 @@ namespace sw
 
 	void VertexRoutine::computeClipFlags()
 	{
-		int pos = state.positionRegister;
+		auto it = spirvShader->outputBuiltins.find(spv::BuiltInPosition);
+		assert(it != spirvShader->outputBuiltins.end());
+		assert(it->second.SizeInComponents == 4);
+		auto &pos = (*routine.lvalues[it->second.Id]);
+		auto posX = pos[it->second.FirstComponent];
+		auto posY = pos[it->second.FirstComponent + 1];
+		auto posZ = pos[it->second.FirstComponent + 2];
+		auto posW = pos[it->second.FirstComponent + 3];
 
-		Int4 maxX = CmpLT(o[pos].w, o[pos].x);
-		Int4 maxY = CmpLT(o[pos].w, o[pos].y);
-		Int4 maxZ = CmpLT(o[pos].w, o[pos].z);
-		Int4 minX = CmpNLE(-o[pos].w, o[pos].x);
-		Int4 minY = CmpNLE(-o[pos].w, o[pos].y);
-		Int4 minZ = CmpNLE(Float4(0.0f), o[pos].z);
+		Int4 maxX = CmpLT(posW, posX);
+		Int4 maxY = CmpLT(posW, posY);
+		Int4 maxZ = CmpLT(posW, posZ);
+		Int4 minX = CmpNLE(-posW, posX);
+		Int4 minY = CmpNLE(-posW, posY);
+		Int4 minZ = CmpNLE(Float4(0.0f), posZ);
 
 		clipFlags = *Pointer<Int>(constants + OFFSET(Constants,maxX) + SignMask(maxX) * 4);   // FIXME: Array indexing
 		clipFlags |= *Pointer<Int>(constants + OFFSET(Constants,maxY) + SignMask(maxY) * 4);
@@ -110,9 +118,9 @@ namespace sw
 		clipFlags |= *Pointer<Int>(constants + OFFSET(Constants,minY) + SignMask(minY) * 4);
 		clipFlags |= *Pointer<Int>(constants + OFFSET(Constants,minZ) + SignMask(minZ) * 4);
 
-		Int4 finiteX = CmpLE(Abs(o[pos].x), *Pointer<Float4>(constants + OFFSET(Constants,maxPos)));
-		Int4 finiteY = CmpLE(Abs(o[pos].y), *Pointer<Float4>(constants + OFFSET(Constants,maxPos)));
-		Int4 finiteZ = CmpLE(Abs(o[pos].z), *Pointer<Float4>(constants + OFFSET(Constants,maxPos)));
+		Int4 finiteX = CmpLE(Abs(posX), *Pointer<Float4>(constants + OFFSET(Constants,maxPos)));
+		Int4 finiteY = CmpLE(Abs(posY), *Pointer<Float4>(constants + OFFSET(Constants,maxPos)));
+		Int4 finiteZ = CmpLE(Abs(posZ), *Pointer<Float4>(constants + OFFSET(Constants,maxPos)));
 
 		Int4 finiteXYZ = finiteX & finiteY & finiteZ;
 		clipFlags |= *Pointer<Int>(constants + OFFSET(Constants,fini) + SignMask(finiteXYZ) * 4);
@@ -658,12 +666,28 @@ namespace sw
 		*Pointer<Int>(cacheLine + OFFSET(Vertex,clipFlags) + sizeof(Vertex) * 3) = (clipFlags >> 24) & 0x0000000FF;
 
 		// Viewport transform
-		int pos = state.positionRegister;
+		auto it = spirvShader->outputBuiltins.find(spv::BuiltInPosition);
+		assert(it != spirvShader->outputBuiltins.end());
+		assert(it->second.SizeInComponents == 4);
+		auto &pos = (*routine.lvalues[it->second.Id]);
+		auto posX = pos[it->second.FirstComponent];
+		auto posY = pos[it->second.FirstComponent + 1];
+		auto posZ = pos[it->second.FirstComponent + 2];
+		auto posW = pos[it->second.FirstComponent + 3];
 
-		v.x = o[pos].x;
-		v.y = o[pos].y;
-		v.z = o[pos].z;
-		v.w = o[pos].w;
+		v.x = posX;
+		v.y = posY;
+		v.z = posZ;
+		v.w = posW;
+
+		// Write the builtin pos into the vertex; it's not going to be consumed by the FS, but may need to reproject if we have to clip.
+		Vector4f v2 = v;
+		transpose4x4(v2.x, v2.y, v2.z, v2.w);
+
+		*Pointer<Float4>(cacheLine + OFFSET(Vertex,builtins.position) + sizeof(Vertex) * 0, 16) = v2.x;
+		*Pointer<Float4>(cacheLine + OFFSET(Vertex,builtins.position) + sizeof(Vertex) * 1, 16) = v2.y;
+		*Pointer<Float4>(cacheLine + OFFSET(Vertex,builtins.position) + sizeof(Vertex) * 2, 16) = v2.z;
+		*Pointer<Float4>(cacheLine + OFFSET(Vertex,builtins.position) + sizeof(Vertex) * 3, 16) = v2.w;
 
 		Float4 w = As<Float4>(As<Int4>(v.w) | (As<Int4>(CmpEQ(v.w, Float4(0.0f))) & As<Int4>(Float4(1.0f))));
 		Float4 rhw = Float4(1.0f) / w;
@@ -675,23 +699,26 @@ namespace sw
 
 		transpose4x4(v.x, v.y, v.z, v.w);
 
-		*Pointer<Float4>(cacheLine + OFFSET(Vertex,X) + sizeof(Vertex) * 0, 16) = v.x;
-		*Pointer<Float4>(cacheLine + OFFSET(Vertex,X) + sizeof(Vertex) * 1, 16) = v.y;
-		*Pointer<Float4>(cacheLine + OFFSET(Vertex,X) + sizeof(Vertex) * 2, 16) = v.z;
-		*Pointer<Float4>(cacheLine + OFFSET(Vertex,X) + sizeof(Vertex) * 3, 16) = v.w;
+		*Pointer<Float4>(cacheLine + OFFSET(Vertex,projected) + sizeof(Vertex) * 0, 16) = v.x;
+		*Pointer<Float4>(cacheLine + OFFSET(Vertex,projected) + sizeof(Vertex) * 1, 16) = v.y;
+		*Pointer<Float4>(cacheLine + OFFSET(Vertex,projected) + sizeof(Vertex) * 2, 16) = v.z;
+		*Pointer<Float4>(cacheLine + OFFSET(Vertex,projected) + sizeof(Vertex) * 3, 16) = v.w;
 	}
 
 	void VertexRoutine::writeVertex(const Pointer<Byte> &vertex, Pointer<Byte> &cache)
 	{
-		for(int i = 0; i < MAX_VERTEX_OUTPUTS; i++)
+		for(int i = 0; i < MAX_INTERFACE_COMPONENTS; i++)
 		{
-			if(state.output[i].write)
+			if(spirvShader->outputs[i].Type != SpirvShader::ATTRIBTYPE_UNUSED)
 			{
-				*Pointer<Int4>(vertex + OFFSET(Vertex,v[i]), 16) = *Pointer<Int4>(cache + OFFSET(Vertex,v[i]), 16);
+				*Pointer<Int>(vertex + OFFSET(Vertex, v[i]), 4) = *Pointer<Int>(cache + OFFSET(Vertex, v[i]), 4);
 			}
 		}
 
-		*Pointer<Int4>(vertex + OFFSET(Vertex,X)) = *Pointer<Int4>(cache + OFFSET(Vertex,X));
+		*Pointer<Int4>(vertex + OFFSET(Vertex,projected)) = *Pointer<Int4>(cache + OFFSET(Vertex,projected));
 		*Pointer<Int>(vertex + OFFSET(Vertex,clipFlags)) = *Pointer<Int>(cache + OFFSET(Vertex,clipFlags));
+		*Pointer<Int4>(vertex + OFFSET(Vertex,builtins.position)) = *Pointer<Int4>(cache + OFFSET(Vertex,builtins.position));
+		*Pointer<Int>(vertex + OFFSET(Vertex,builtins.pointSize)) = *Pointer<Int>(cache + OFFSET(Vertex,builtins.pointSize));
+
 	}
 }

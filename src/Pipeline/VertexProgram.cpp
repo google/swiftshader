@@ -32,11 +32,14 @@ namespace sw
 
 		enableStack[0] = Int4(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF);
 
-		// TODO: wire up builtins
-		//if(shader->isInstanceIdDeclared())
-		//{
-		//	instanceID = *Pointer<Int>(data + OFFSET(DrawData,instanceID));
-		//}
+		auto it = spirvShader->inputBuiltins.find(spv::BuiltInInstanceIndex);
+		if (it != spirvShader->inputBuiltins.end())
+		{
+			// TODO: we could do better here; we know InstanceIndex is uniform across all lanes
+			assert(it->second.SizeInComponents == 1);
+			(*routine.lvalues[it->second.Id])[it->second.FirstComponent] =
+					As<Float4>(Int4((*Pointer<Int>(data + OFFSET(DrawData, instanceID)))));
+		}
 	}
 
 	VertexProgram::~VertexProgram()

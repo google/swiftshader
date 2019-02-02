@@ -31,6 +31,7 @@
 #include "System/Timer.hpp"
 #include "Vulkan/VkDebug.hpp"
 #include "Pipeline/SpirvShader.hpp"
+#include "Vertex.hpp"
 
 #undef max
 
@@ -1236,7 +1237,6 @@ namespace sw
 		const SetupProcessor::RoutinePointer &setupRoutine = draw.setupPointer;
 
 		int ms = state.multiSample;
-		int pos = state.positionRegister;
 		const DrawData *data = draw.data;
 		int visible = 0;
 
@@ -1248,7 +1248,7 @@ namespace sw
 
 			if((v0.clipFlags & v1.clipFlags & v2.clipFlags) == Clipper::CLIP_FINITE)
 			{
-				Polygon polygon(&v0.v[pos], &v1.v[pos], &v2.v[pos]);
+				Polygon polygon(&v0.builtins.position, &v1.builtins.position, &v2.builtins.position);
 
 				int clipFlagsOr = v0.clipFlags | v1.clipFlags | v2.clipFlags | draw.clipFlags;
 
@@ -1332,10 +1332,8 @@ namespace sw
 		Vertex &v0 = triangle.v0;
 		Vertex &v1 = triangle.v1;
 
-		int pos = state.positionRegister;
-
-		const float4 &P0 = v0.v[pos];
-		const float4 &P1 = v1.v[pos];
+		const float4 &P0 = v0.builtins.position;
+		const float4 &P1 = v1.builtins.position;
 
 		if(P0.w <= 0 && P1.w <= 0)
 		{
@@ -1525,30 +1523,17 @@ namespace sw
 
 		Vertex &v = triangle.v0;
 
-		float pSize;
-
-		int pts = state.pointSizeRegister;
-
-		if(state.pointSizeRegister != Unused)
-		{
-			pSize = v.v[pts].y;
-		}
-		else
-		{
-			pSize = 1.0f;
-		}
+		float pSize = v.builtins.pointSize;
 
 		pSize = clamp(pSize, data.pointSizeMin, data.pointSizeMax);
 
 		float4 P[4];
 		int C[4];
 
-		int pos = state.positionRegister;
-
-		P[0] = v.v[pos];
-		P[1] = v.v[pos];
-		P[2] = v.v[pos];
-		P[3] = v.v[pos];
+		P[0] = v.builtins.position;
+		P[1] = v.builtins.position;
+		P[2] = v.builtins.position;
+		P[3] = v.builtins.position;
 
 		const float X = pSize * P[0].w * data.halfPixelX[0];
 		const float Y = pSize * P[0].w * data.halfPixelY[0];
@@ -1572,8 +1557,8 @@ namespace sw
 		triangle.v1 = triangle.v0;
 		triangle.v2 = triangle.v0;
 
-		triangle.v1.X += iround(16 * 0.5f * pSize);
-		triangle.v2.Y -= iround(16 * 0.5f * pSize) * (data.Hx16[0] > 0.0f ? 1 : -1);   // Both Direct3D and OpenGL expect (0, 0) in the top-left corner
+		triangle.v1.projected.x += iround(16 * 0.5f * pSize);
+		triangle.v2.projected.y -= iround(16 * 0.5f * pSize) * (data.Hx16[0] > 0.0f ? 1 : -1);   // Both Direct3D and OpenGL expect (0, 0) in the top-left corner
 
 		Polygon polygon(P, 4);
 
