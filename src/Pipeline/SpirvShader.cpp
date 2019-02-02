@@ -195,7 +195,7 @@ namespace sw
 		}
 	}
 
-	void SpirvShader::ProcessInterfaceVariable(Object const &object)
+	void SpirvShader::ProcessInterfaceVariable(Object &object)
 	{
 		assert(object.storageClass == spv::StorageClassInput || object.storageClass == spv::StorageClassOutput);
 
@@ -236,6 +236,7 @@ namespace sw
 		}
 		else
 		{
+			object.kind = Object::Kind::InterfaceVariable;
 			PopulateInterface(&userDefinedInterface, resultId);
 		}
 	}

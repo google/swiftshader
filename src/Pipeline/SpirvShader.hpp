@@ -111,6 +111,7 @@ namespace sw
 				Unknown,        /* for paranoia -- if we get left with an object in this state, the module was broken */
 				Type,
 				Variable,
+				InterfaceVariable,
 				Constant,
 				Value,
 			} kind = Kind::Unknown;
@@ -247,7 +248,7 @@ namespace sw
 
 		uint32_t GetConstantInt(uint32_t id);
 
-		void ProcessInterfaceVariable(Object const &object);
+		void ProcessInterfaceVariable(Object &object);
 	};
 }
 
