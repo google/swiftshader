@@ -229,6 +229,12 @@ namespace sw
 			return it->second;
 		}
 
+		Object const &getObject(uint32_t id) const {
+			auto it = defs.find(id);
+			assert(it != defs.end());
+			return it->second;
+		}
+
 		void ProcessExecutionMode(InsnIterator it);
 
 		uint32_t ComputeTypeSize(InsnIterator insn);

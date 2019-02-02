@@ -364,8 +364,6 @@ namespace sw
 		auto const &obj = getType(id);
 		switch (obj.definition.opcode())
 		{
-		case spv::OpVariable:
-			return PopulateInterfaceInner(iface, obj.definition.word(1), d);
 		case spv::OpTypePointer:
 			return PopulateInterfaceInner(iface, obj.definition.word(3), d);
 		case spv::OpTypeMatrix:
@@ -426,7 +424,16 @@ namespace sw
 	{
 		// Walk a variable definition and populate the interface from it.
 		Decorations d{};
-		PopulateInterfaceInner(iface, id, d);
+
+		auto const it = decorations.find(id);
+		if (it != decorations.end())
+		{
+			d.Apply(it->second);
+		}
+
+		auto def = getObject(id).definition;
+		assert(def.opcode() == spv::OpVariable);
+		PopulateInterfaceInner(iface, def.word(1), d);
 	}
 
 	void SpirvShader::Decorations::Apply(spv::Decoration decoration, uint32_t arg)
