@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e25bef9e_93652bbe",
+        "filename": "src/Vulkan/VkConfig.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 6982
+      },
+      "writtenOn": "2019-02-04T12:02:28Z",
+      "side": 1,
+      "message": "Patch looks correct, but why are we requiring 256 byte alignment?",
+      "revId": "343d785075956e4080f009fbb1017a2d414322bf",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
