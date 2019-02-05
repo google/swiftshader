@@ -34,6 +34,24 @@
       "revId": "24f3d30cdec3c7473762405bde1c85b7c26f7941",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "673d6613_22e81c90",
+        "filename": "third_party/llvm-7.0/BUILD.gn",
+        "patchSetId": 2
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 6725
+      },
+      "writtenOn": "2019-02-05T15:37:23Z",
+      "side": 1,
+      "message": "I think removing it should not have an effect.\n\nAlso, -Wheader-hygiene is not on by default, it\u0027s enabled here: https://cs.chromium.org/chromium/src/build/config/clang/BUILD.gn?q\u003dwheader-hygiene\u0026sq\u003dpackage:chromium\u0026g\u003d0\u0026l\u003d35\n\nIf you use chromium\u0027s build files and don\u0027t want that warning, you can disable that config like so: https://cs.chromium.org/chromium/src/third_party/openh264/BUILD.gn?type\u003dcs\u0026q\u003dextra_warnings\u0026sq\u003dpackage:chromium\u0026g\u003d0\u0026l\u003d185 (If you want the other warnings in that config, you could add them back manually.)\n\n\nIf you use Chromium\u0027s build files, you currently get:\n\n-Wheader-hygiene (turn on warning header-hygiene) -Werror (turn all warnings into errors) -Wno-header-hygiene (from there, disable warning header-hygiene) -Wno-error\u003dheader-hygiene (don\u0027t treat warning header-hygiene as error).\n\nSince header-hygiene is disabled, it\u0027s never emitted and it doesn\u0027t make a difference if it\u0027s emitted as a warning or a header.\n\nAnd, as I said, if you remove the config then you won\u0027t enable the warning in the first place rather than enabling and then disabling it later on the same compile command line.\n\nFor all build files that get used as part of the chrome build, we require that -Wno-error\u003d is never used -- if a build target doesn\u0027t want some warning, it should turn it off, not map it from an error to a warning. (But these build targets might not be part of chrome\u0027s build, in which case this is all only advisory.)\n\n(Or, you could fix the warning and just leave it on :-) ).",
+      "parentUuid": "9df04a93_86299f1a",
+      "revId": "24f3d30cdec3c7473762405bde1c85b7c26f7941",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
