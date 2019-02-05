@@ -248,7 +248,10 @@ else()
     # Use -g3 to have even more debug info
     set_cpp_flag("-g -g3" DEBUG)
     set_cpp_flag("-g -g3" RELWITHDEBINFO)
-    set_cpp_flag("-s" RELEASE)
+    if(NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+        # Treated as an unused argument with clang
+        set_cpp_flag("-s" RELEASE)
+    endif()
 
     # For distribution it is more important to be slim than super optimized
     set_cpp_flag("-Os" RELEASE)
