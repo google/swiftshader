@@ -205,7 +205,8 @@ else()
     set_cpp_flag("-Werror=missing-braces")
     set_cpp_flag("-fno-exceptions")
 
-    if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND
+       CLANG_VERSION_STRING VERSION_GREATER_EQUAL 5)
         set_cpp_flag("-Werror=unused-lambda-capture")
     endif()
 
