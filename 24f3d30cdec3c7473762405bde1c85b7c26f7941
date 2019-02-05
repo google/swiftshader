@@ -16,6 +16,24 @@
       "revId": "24f3d30cdec3c7473762405bde1c85b7c26f7941",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9df04a93_86299f1a",
+        "filename": "third_party/llvm-7.0/BUILD.gn",
+        "patchSetId": 2
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2019-02-05T15:28:00Z",
+      "side": 1,
+      "message": "Didn\u0027t realize that. Thanks Nico.\nIf this line can safely be removed, we\u0027ll remove it.",
+      "parentUuid": "3f656ca6_a28c2181",
+      "revId": "24f3d30cdec3c7473762405bde1c85b7c26f7941",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
