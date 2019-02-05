@@ -55,7 +55,9 @@ config("swiftshader_llvm_private_config") {
   }
 
   if (is_clang) {
-    cflags += [ "-Wno-header-hygiene" ]
+    cflags += [ "-Wno-header-hygiene",
+                "-Wno-error=header-hygiene"
+    ]
     if (target_cpu == "x86" || target_cpu == "x64") {
       cflags += [ "-msse2" ]
     }
@@ -70,7 +72,6 @@ config("swiftshader_llvm_private_config") {
     "-Wno-unused-private-field",
     "-Wno-unused-result",
     "-Wno-unused-variable",
-    "-Wno-error=header-hygiene",
   ]
 
   defines = [
