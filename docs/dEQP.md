@@ -17,7 +17,7 @@ Prerequisites
 9. Set environment variables: Config Panel -> System and Security -> System -> Advanced system settigns -> Environment Variables
   * Add `<path to python>` to your PATH environment variable
   * Add `<path to MinGW>\bin` to your PATH environment variable
-  * Add `<path to adb>` to your PATH environment variable 
+  * Add `<path to adb>` to your PATH environment variable
 
     Note: abd is in the Android SDK, typically in `C:\Users\<username>\AppData\Local\Android\sdk\platform-tools`
 
@@ -53,7 +53,7 @@ Building the code
 
 16. Build dEQP's Visual Studio files using the CMake GUI, or, in the dEQP root dir, run:
     ```
-    mkdir build 
+    mkdir build
     cd build
     cmake ..
     ```
@@ -89,12 +89,12 @@ Testing OpenGL ES
 
 20. a) Assuming you already built SwiftShader, copy these two files:
 
-    `libEGL.dll`  
+    `libEGL.dll`\
     `libGLESv2.dll`
 
     From:
 
-    `<path to SwiftShader>\out\Release_x64` or  
+    `<path to SwiftShader>\out\Release_x64` or\
     `<path to SwiftShader>\out\Debug_x64`
 
     To:
@@ -106,7 +106,7 @@ Testing Vulkan
 
 20. b) Assuming you already built SwiftShader, copy and rename this file:
 
-    `<path to SwiftShader>\out\Release_x64\vk_swiftshader.dll` or  
+    `<path to SwiftShader>\out\Release_x64\vk_swiftshader.dll` or\
     `<path to SwiftShader>\out\Debug_x64\vk_swiftshader.dll`
 
     To:
@@ -144,3 +144,45 @@ Differences to the steps above:
 1. Instead of copying the .dll files, you need to set LD_LIBRARY_PATH to point to SwiftShader's build directory.
 2. Use `make` instead of Visual Studio.
 3. There are no Debug/Release directories or .exe suffixes, so remove them from DeviceConfig in data.go.
+
+Running dEQP Vulkan tests on Linux
+----------------------------------
+
+1. Get dEQP source code:
+
+   `git clone https://android.googlesource.com/platform/external/deqp`
+
+2. Fetch dEQP's dependencies:
+
+   `cd deqp`\
+   `python external/fetch_sources.py`
+
+3. Run cmake and generate Makefiles:
+
+   `mkdir build`\
+   `cd build`\
+   `cmake ..`
+
+4. Build dEQP:
+
+   `make`
+
+5. Configure dEQP to use SwiftShader's Vulkan driver:
+
+   We do this by setting the `VK_ICD_FILENAMES` environment variable to point to SwiftShader's `vk_swiftshader_icd.json` file. Replace (or `export`) `$SWIFTSHADER_ROOT` to the root checkout directory of SwiftShader, and type:
+
+   `export VK_ICD_FILENAMES=$SWIFTSHADER_ROOT/out/Linux/vk_swiftshader_icd.json`
+
+6. Run the tests:
+
+   Assuming the current working directory is still `$DEQP_ROOT/build`, type:
+
+   `external/vulkancts/modules/vulkan/deqp-vk`
+
+   If `deqp-vk` returns an error similar to:
+
+     `libVulkan.cpp:69: VkResult vkCreateInstance(const VkInstanceCreateInfo*, const VkAllocationCallbacks*, VkInstance_T**): Assertion 'false' failed.`
+
+   Then it is likely that your system is using a broken Vulkan loader. [Grab the Vulkan SDK from here](https://vulkan.lunarg.com/), and update `LD_LIBRARY_PATH` to search the SDK's `libs` directory:
+
+   `export LD_LIBRARY_PATH=$VULKAN_SDK_PATH/x86_64/lib:$LD_LIBRARY_PATH`
