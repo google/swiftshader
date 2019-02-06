@@ -1,7 +1,6 @@
 {
     // See https://go.microsoft.com/fwlink/?LinkId=733558
     // for the documentation about the tasks.json format
-
     // Available variables which can be used inside of strings.
     // ${workspaceRoot}: the root folder of the team
     // ${file}: the current opened file
@@ -9,25 +8,45 @@
     // ${fileDirname}: the current opened file's dirname
     // ${fileExtname}: the current opened file's extension
     // ${cwd}: the current working directory of the spawned process
-
-    "version": "0.1.0",
-    "command": "sh",
-    "isShellCommand": true,
-    "args": ["-c"],
-    "showOutput": "always",
-    "suppressTaskName": true,
-    "options": {
-        "cwd": "${workspaceRoot}/debug"
-    },
+    "version": "2.0.0",
     "tasks": [
         {
-            "taskName": "cmake",
-            "args": ["cmake ."]
-        },
-        {
-            "taskName": "make",
-            "args" : ["make -j4"],
-            "isBuildCommand": true,
+            "label": "make",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "type": "shell",
+            "command": "sh",
+            "osx": {
+                "args": [
+                    "-c",
+                    "make -j$(sysctl -n hw.logicalcpu)"
+                ]
+            },
+            "linux": {
+                "args": [
+                    "-c",
+                    "make -j$(nproc)"
+                ]
+            },
+            "windows": {
+                "args": [
+                    "-c",
+                    "make"
+                ]
+            },
+            "options": {
+                "cwd": "${workspaceRoot}/build",
+            },
+            "presentation": {
+                "echo": false,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": false,
+                "clear": true,
+            },
             "problemMatcher": {
                 "owner": "cpp",
                 "fileLocation": "absolute",
@@ -40,6 +59,47 @@
                     "message": 5
                 }
             }
+        },
+        {
+            "label": "cmake",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "..",
+                "-DCMAKE_BUILD_TYPE=${input:buildType}"
+            ],
+            "options": {
+                "cwd": "${workspaceRoot}/build"
+            },
+            "problemMatcher": [],
+        },
+        {
+            "label": "Push branch for review",
+            "type": "shell",
+            "command": "git",
+            "args": [
+                "push",
+                "origin",
+                "HEAD:refs/for/master"
+            ],
+            "options": {
+                "cwd": "${workspaceRoot}"
+            },
+            "problemMatcher": [],
         }
+    ],
+    "inputs": [
+        {
+            "id": "buildType",
+            "type": "pickString",
+            "options": [
+                "Debug",
+                "Release",
+                "MinSizeRel",
+                "RelWithDebInfo",
+            ],
+            "default": "Debug",
+            "description": "The type of build",
+        },
     ]
 }
