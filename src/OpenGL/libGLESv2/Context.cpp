@@ -3628,6 +3628,11 @@ void Context::drawElements(GLenum mode, GLuint start, GLuint end, GLsizei count,
 		return;   // Nothing to process.
 	}
 
+	if(count == 0)
+	{
+		return;
+	}
+
 	if(!indices && !getCurrentVertexArray()->getElementArrayBuffer())
 	{
 		return error(GL_INVALID_OPERATION);
