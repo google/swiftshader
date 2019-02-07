@@ -89,6 +89,20 @@ void Buffer::copyTo(Buffer* dstBuffer, const VkBufferCopy& pRegion) const
 	copyTo(dstBuffer->getOffsetPointer(pRegion.dstOffset), pRegion.size, pRegion.srcOffset);
 }
 
+void Buffer::fill(VkDeviceSize dstOffset, VkDeviceSize fillSize, uint32_t data)
+{
+	ASSERT((fillSize + dstOffset) <= size);
+
+	memset(getOffsetPointer(dstOffset), data, fillSize);
+}
+
+void Buffer::update(VkDeviceSize dstOffset, VkDeviceSize dataSize, const void* pData)
+{
+	ASSERT((dataSize + dstOffset) <= size);
+
+	memcpy(getOffsetPointer(dstOffset), pData, dataSize);
+}
+
 void* Buffer::getOffsetPointer(VkDeviceSize offset) const
 {
 	return reinterpret_cast<char*>(memory) + offset;

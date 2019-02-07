@@ -251,6 +251,44 @@ private:
 	const VkBufferImageCopy region;
 };
 
+struct FillBuffer : public CommandBuffer::Command
+{
+	FillBuffer(VkBuffer dstBuffer, VkDeviceSize dstOffset, VkDeviceSize size, uint32_t data) :
+		dstBuffer(dstBuffer), dstOffset(dstOffset), size(size), data(data)
+	{
+	}
+
+	void play(CommandBuffer::ExecutionState& executionState)
+	{
+		Cast(dstBuffer)->fill(dstOffset, size, data);
+	}
+
+private:
+	VkBuffer dstBuffer;
+	VkDeviceSize dstOffset;
+	VkDeviceSize size;
+	uint32_t data;
+};
+
+struct UpdateBuffer : public CommandBuffer::Command
+{
+	UpdateBuffer(VkBuffer dstBuffer, VkDeviceSize dstOffset, VkDeviceSize dataSize, const void* pData) :
+		dstBuffer(dstBuffer), dstOffset(dstOffset), dataSize(dataSize), pData(pData)
+	{
+	}
+
+	void play(CommandBuffer::ExecutionState& executionState)
+	{
+		Cast(dstBuffer)->update(dstOffset, dataSize, pData);
+	}
+
+private:
+	VkBuffer dstBuffer;
+	VkDeviceSize dstOffset;
+	VkDeviceSize dataSize;
+	const void* pData;
+};
+
 struct ClearColorImage : public CommandBuffer::Command
 {
 	ClearColorImage(VkImage image, const VkClearColorValue& color, const VkImageSubresourceRange& range) :
@@ -710,12 +748,16 @@ void CommandBuffer::copyImageToBuffer(VkImage srcImage, VkImageLayout srcImageLa
 
 void CommandBuffer::updateBuffer(VkBuffer dstBuffer, VkDeviceSize dstOffset, VkDeviceSize dataSize, const void* pData)
 {
-	UNIMPLEMENTED();
+	ASSERT(state == RECORDING);
+
+	addCommand<UpdateBuffer>(dstBuffer, dstOffset, dataSize, pData);
 }
 
 void CommandBuffer::fillBuffer(VkBuffer dstBuffer, VkDeviceSize dstOffset, VkDeviceSize size, uint32_t data)
 {
-	UNIMPLEMENTED();
+	ASSERT(state == RECORDING);
+
+	addCommand<FillBuffer>(dstBuffer, dstOffset, size, data);
 }
 
 void CommandBuffer::clearColorImage(VkImage image, VkImageLayout imageLayout, const VkClearColorValue* pColor,
