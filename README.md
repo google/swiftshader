@@ -10,18 +10,18 @@ SwiftShader is a high-performance CPU-based implementation of the OpenGL ES and 
 Building
 --------
 
-SwiftShader libraries can be built for Windows, Linux, and Mac OS X.  
+SwiftShader libraries can be built for Windows, Linux, and Mac OS X.\
 Android and Chrome (OS) build environments are also supported.
 
 * **Visual Studio**
-  
+\
   On Windows, open the [SwiftShader.sln](SwiftShader.sln) file using [Visual Studio Community](https://visualstudio.microsoft.com/vs/community/) or compatible version, and build the solution. Output DLLs will be placed in the _out_ subfolder. Sample executables such as _OGLES3ColourGrading_ can be found under the Tests solution folder and can be run from the IDE.
 
 * **CMake**
 
   [Install CMake](https://cmake.org/download/) for Linux, Mac OS X, or Windows and use either [the IDE](https://cmake.org/runningcmake/) or run the following terminal commands:
 
-      mkdir build && cd build
+      cd build
       cmake ..
       make --jobs=8
 
@@ -50,7 +50,7 @@ Authenticate your account here:
 https://swiftshader-review.googlesource.com/new-password
 
 All changes require a [Change-ID](https://gerrit-review.googlesource.com/Documentation/user-changeid.html) tag in the commit message. A commit hook may be used to add this tag automatically, and can be found at:
-https://gerrit-review.googlesource.com/tools/hooks/commit-msg. To clone the repository and install the commit hook in one go: 
+https://gerrit-review.googlesource.com/tools/hooks/commit-msg. To clone the repository and install the commit hook in one go:
 
     git clone https://swiftshader.googlesource.com/SwiftShader && (cd SwiftShader && curl -Lo `git rev-parse --git-dir`/hooks/commit-msg https://gerrit-review.googlesource.com/tools/hooks/commit-msg ; chmod +x `git rev-parse --git-dir`/hooks/commit-msg)
 
@@ -90,7 +90,7 @@ Contact
 
 Public mailing list: [swiftshader@googlegroups.com](https://groups.google.com/forum/#!forum/swiftshader)
 
-General bug tracker:  https://g.co/swiftshaderbugs  
+General bug tracker:  https://g.co/swiftshaderbugs\
 Chrome specific bugs: https://bugs.chromium.org/p/swiftshader
 
 License
