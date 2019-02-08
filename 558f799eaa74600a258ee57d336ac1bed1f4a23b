@@ -16,6 +16,29 @@
       "revId": "558f799eaa74600a258ee57d336ac1bed1f4a23b",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "61ab9b20_c8275c78",
+        "filename": "project.config",
+        "patchSetId": 3
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-02-08T05:02:39Z",
+      "side": 1,
+      "message": "Should this be false instead? Rebases, even trivial ones, could cause a build or test failure.",
+      "range": {
+        "startLine": 43,
+        "startChar": 32,
+        "endLine": 43,
+        "endChar": 36
+      },
+      "revId": "558f799eaa74600a258ee57d336ac1bed1f4a23b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
