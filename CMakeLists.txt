@@ -255,6 +255,7 @@ else()
 
     if(LINUX)
         set_cpp_flag("-DUSE_X11=1")
+        set_cpp_flag("-DVK_USE_PLATFORM_XLIB_KHR")
     endif()
 
     # Use -g3 to have even more debug info
@@ -297,7 +298,6 @@ if(WIN32)
     add_definitions(-DWINVER=0x501 -DNOMINMAX -DSTRICT)
     set(CMAKE_FIND_LIBRARY_PREFIXES ${CMAKE_FIND_LIBRARY_PREFIXES} "" "lib")
 endif()
-
 
 ###########################################################
 # LLVM
