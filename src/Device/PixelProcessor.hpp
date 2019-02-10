@@ -34,8 +34,6 @@ namespace sw
 
 			int shaderID;
 
-			bool depthOverride                        : 1;   // TODO: Eliminate by querying shader.
-
 			VkCompareOp depthCompareMode              : BITS(VK_COMPARE_OP_END_RANGE);
 			VkCompareOp alphaCompareMode              : BITS(VK_COMPARE_OP_END_RANGE);
 			bool depthWriteEnable                     : 1;

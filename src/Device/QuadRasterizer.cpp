@@ -159,7 +159,7 @@ namespace sw
 				}
 			}
 
-			if(veryEarlyDepthTest && state.multiSample == 1 && !state.depthOverride)
+			if(veryEarlyDepthTest && state.multiSample == 1 && !spirvShader->getModes().DepthReplacing)
 			{
 				if(!state.stencilActive && state.depthTestActive && (state.depthCompareMode == VK_COMPARE_OP_LESS_OR_EQUAL || state.depthCompareMode == VK_COMPARE_OP_LESS))   // FIXME: Both modes ok?
 				{

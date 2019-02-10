@@ -633,8 +633,6 @@ namespace sw
 			state.shaderID = 0;
 		}
 
-		state.depthOverride = context->pixelShader ? context->pixelShader->getModes().DepthReplacing : false;
-
 		if(context->alphaTestActive())
 		{
 			state.alphaCompareMode = context->alphaCompareMode;

@@ -50,7 +50,7 @@ namespace sw
 
 		clampColor(c);
 
-		if(state.depthOverride)
+		if(spirvShader->getModes().DepthReplacing)
 		{
 			oDepth = Min(Max(oDepth, Float4(0.0f)), Float4(1.0f));
 		}

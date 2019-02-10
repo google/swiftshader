@@ -53,7 +53,7 @@ namespace sw
 			Long pipeTime = Ticks();
 		#endif
 
-		const bool earlyDepthTest = !state.depthOverride && !state.alphaTestActive();
+		const bool earlyDepthTest = !spirvShader->getModes().DepthReplacing && !state.alphaTestActive();
 
 		Int zMask[4];   // Depth mask
 		Int sMask[4];   // Stencil mask
