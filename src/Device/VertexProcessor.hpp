@@ -91,10 +91,6 @@ namespace sw
 		void setInputStream(int index, const Stream &stream);
 		void resetInputStreams();
 
-		void setFloatConstant(unsigned int index, const float value[4]);
-		void setIntegerConstant(unsigned int index, const int integer[4]);
-		void setBooleanConstant(unsigned int index, int boolean);
-
 		void setUniformBuffer(int index, sw::Resource* uniformBuffer, int offset);
 		void lockUniformBuffers(byte** u, sw::Resource* uniformBuffers[]);
 
@@ -132,11 +128,6 @@ namespace sw
 		Routine *routine(const State &state);
 
 		void setRoutineCacheSize(int cacheSize);
-
-		// Shader constants
-		float4 c[VERTEX_UNIFORM_VECTORS + 1];   // One extra for indices out of range, c[VERTEX_UNIFORM_VECTORS] = {0, 0, 0, 0}
-		int4 i[16];
-		bool b[16];
 
 		float pointSizeMin;
 		float pointSizeMax;
