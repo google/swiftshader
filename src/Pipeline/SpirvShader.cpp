@@ -215,6 +215,27 @@ namespace sw
 				UNIMPLEMENTED("These instructions should have already been lowered.");
 				break;
 
+			case spv::OpLoad:
+			case spv::OpAccessChain:
+				// Instructions that yield an ssavalue.
+			{
+				auto typeId = insn.word(1);
+				auto resultId = insn.word(2);
+				auto &object = defs[resultId];
+				object.kind = Object::Kind::Value;
+				object.definition = insn;
+				object.sizeInComponents = getType(typeId).sizeInComponents;
+
+				if (insn.opcode() == spv::OpAccessChain)
+				{
+					// interior ptr has two parts:
+					// - logical base ptr, common across all lanes and known at compile time
+					// - per-lane offset
+					object.pointerBase = insn.word(3);
+				}
+				break;
+			}
+
 			case spv::OpStore:
 			case spv::OpReturn:
 				// Don't need to do anything during analysis pass

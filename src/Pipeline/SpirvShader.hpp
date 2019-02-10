@@ -116,6 +116,7 @@ namespace sw
 			spv::StorageClass storageClass;
 			uint32_t sizeInComponents = 0;
 			bool isBuiltInBlock = false;
+			uint32_t pointerBase = 0;
 
 			enum class Kind
 			{
