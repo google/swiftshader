@@ -161,8 +161,10 @@ namespace sw
 				object.storageClass = storageClass;
 
 				auto &type = getType(typeId);
+				auto &pointeeType = getType(type.definition.word(3));
 
-				object.sizeInComponents = type.sizeInComponents;
+				// OpVariable's "size" is the size of the allocation required (the size of the pointee)
+				object.sizeInComponents = pointeeType.sizeInComponents;
 				object.isBuiltInBlock = type.isBuiltInBlock;
 
 				// Register builtins
@@ -379,9 +381,9 @@ namespace sw
 		}
 
 		case spv::OpTypePointer:
-			// Pointer 'size' is just pointee size
-			// TODO: this isn't really correct. we should look through pointers as appropriate.
-			return getType(insn.word(3)).sizeInComponents;
+			// Runtime representation of a pointer is a per-lane index.
+			// Note: clients are expected to look through the pointer if they want the pointee size instead.
+			return 1;
 
 		default:
 			// Some other random insn.
