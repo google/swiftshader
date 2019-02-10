@@ -41,7 +41,7 @@ namespace sw
 			}
 		}
 
-		// TODO: Emit code for the actual shader here.
+		spirvShader->emit(&routine);
 
 		for(int i = 0; i < RENDERTARGETS; i++)
 		{

@@ -42,6 +42,8 @@ namespace sw
 				v[i].w = Float4(0.0f);
 			}
 		}
+
+		spirvShader->emitEarly(&routine);
 	}
 
 	PixelRoutine::~PixelRoutine()

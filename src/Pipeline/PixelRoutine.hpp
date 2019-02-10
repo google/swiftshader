@@ -35,6 +35,7 @@ namespace sw
 		Float4 rhw;  // Reciprocal w
 
 		RegisterArray<MAX_FRAGMENT_INPUTS> v;   // Varying registers
+		SpirvRoutine routine;
 
 		// Depth output
 		Float4 oDepth;
