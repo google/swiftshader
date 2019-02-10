@@ -236,11 +236,6 @@ namespace sw
 		Routine *routine(const State &state);
 		void setRoutineCacheSize(int routineCacheSize);
 
-		// Shader constants
-		float4 c[FRAGMENT_UNIFORM_VECTORS];
-		int4 i[16];
-		bool b[16];
-
 		// Other semi-constants
 		Stencil stencil;
 		Stencil stencilCCW;
@@ -255,8 +250,6 @@ namespace sw
 			int offset;
 		};
 		UniformBufferInfo uniformBufferInfo[MAX_UNIFORM_BUFFER_BINDINGS];
-
-		void setFogRanges(float start, float end);
 
 		Context *const context;
 

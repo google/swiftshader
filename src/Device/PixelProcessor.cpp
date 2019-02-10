@@ -76,39 +76,6 @@ namespace sw
 		routineCache = nullptr;
 	}
 
-	void PixelProcessor::setFloatConstant(unsigned int index, const float value[4])
-	{
-		if(index < FRAGMENT_UNIFORM_VECTORS)
-		{
-			c[index][0] = value[0];
-			c[index][1] = value[1];
-			c[index][2] = value[2];
-			c[index][3] = value[3];
-		}
-		else ASSERT(false);
-	}
-
-	void PixelProcessor::setIntegerConstant(unsigned int index, const int value[4])
-	{
-		if(index < 16)
-		{
-			i[index][0] = value[0];
-			i[index][1] = value[1];
-			i[index][2] = value[2];
-			i[index][3] = value[3];
-		}
-		else ASSERT(false);
-	}
-
-	void PixelProcessor::setBooleanConstant(unsigned int index, int boolean)
-	{
-		if(index < 16)
-		{
-			b[index] = boolean != 0;
-		}
-		else ASSERT(false);
-	}
-
 	void PixelProcessor::setUniformBuffer(int index, sw::Resource* buffer, int offset)
 	{
 		uniformBufferInfo[index].buffer = buffer;
@@ -704,8 +671,6 @@ namespace sw
 		}
 
 		state.frontFaceCCW = context->frontFacingCCW;
-
-		const bool point = context->isDrawPoint();
 
 		state.hash = state.computeHash();
 
