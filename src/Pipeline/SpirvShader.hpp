@@ -26,6 +26,7 @@
 #include <type_traits>
 #include <memory>
 #include <spirv/unified1/spirv.hpp>
+#include <Device/Config.hpp>
 
 namespace sw
 {
@@ -33,6 +34,8 @@ namespace sw
 	{
 	public:
 		std::unordered_map<uint32_t, std::unique_ptr<Array<Float4>>> lvalues;
+		std::unique_ptr<Array<Float4>> inputs = std::unique_ptr<Array<Float4>>(new Array<Float4>(MAX_INTERFACE_COMPONENTS));
+		std::unique_ptr<Array<Float4>> outputs = std::unique_ptr<Array<Float4>>(new Array<Float4>(MAX_INTERFACE_COMPONENTS));
 	};
 
 	class SpirvShader

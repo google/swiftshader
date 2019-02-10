@@ -51,8 +51,6 @@ namespace sw
 			uint64_t shaderID;
 
 			bool textureSampling           : 1;   // TODO: Eliminate by querying shader.
-			unsigned int positionRegister  : BITS(MAX_VERTEX_OUTPUTS);   // TODO: Eliminate by querying shader.
-			unsigned int pointSizeRegister : BITS(MAX_VERTEX_OUTPUTS);   // TODO: Eliminate by querying shader.
 			unsigned char verticesPerPrimitive                : 2; // 1 (points), 2 (lines) or 3 (triangles)
 
 			bool multiSampling  : 1;
@@ -72,37 +70,7 @@ namespace sw
 				unsigned int attribType : BITS(SpirvShader::ATTRIBTYPE_LAST);
 			};
 
-			struct Output
-			{
-				union
-				{
-					unsigned char write : 4;
-
-					struct
-					{
-						unsigned char xWrite : 1;
-						unsigned char yWrite : 1;
-						unsigned char zWrite : 1;
-						unsigned char wWrite : 1;
-					};
-				};
-
-				union
-				{
-					unsigned char clamp : 4;
-
-					struct
-					{
-						unsigned char xClamp : 1;
-						unsigned char yClamp : 1;
-						unsigned char zClamp : 1;
-						unsigned char wClamp : 1;
-					};
-				};
-			};
-
 			Input input[MAX_VERTEX_INPUTS];
-			Output output[MAX_VERTEX_OUTPUTS];
 		};
 
 		struct State : States
