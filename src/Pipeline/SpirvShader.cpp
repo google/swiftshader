@@ -194,7 +194,34 @@ namespace sw
 			case spv::OpMemoryModel:
 				// Memory model does not affect our code generation until we decide to do Vulkan Memory Model support.
 			case spv::OpEntryPoint:
-				// Due to preprocessing, the entrypoint provides no value.
+			case spv::OpFunction:
+			case spv::OpFunctionEnd:
+				// Due to preprocessing, the entrypoint and its function provide no value.
+				break;
+			case spv::OpExtInstImport:
+				// We will only support the GLSL 450 extended instruction set, so no point in tracking the ID we assign it.
+				// Valid shaders will not attempt to import any other instruction sets.
+				break;
+
+			case spv::OpFunctionParameter:
+			case spv::OpFunctionCall:
+			case spv::OpSpecConstant:
+			case spv::OpSpecConstantComposite:
+			case spv::OpSpecConstantFalse:
+			case spv::OpSpecConstantOp:
+			case spv::OpSpecConstantTrue:
+				// These should have all been removed by preprocessing passes. If we see them here,
+				// our assumptions are wrong and we will probably generate wrong code.
+				UNIMPLEMENTED("These instructions should have already been lowered.");
+				break;
+
+			case spv::OpStore:
+			case spv::OpReturn:
+				// Don't need to do anything during analysis pass
+				break;
+
+			case spv::OpKill:
+				modes.ContainsKill = true;
 				break;
 
 			default:
