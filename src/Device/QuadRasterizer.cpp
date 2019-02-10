@@ -254,16 +254,6 @@ namespace sw
 					}
 				}
 
-				if(state.fog.component)
-				{
-					Df = *Pointer<Float4>(primitive + OFFSET(Primitive,f.C), 16);
-
-					if(!state.fog.flat)
-					{
-						Df += yyyy * *Pointer<Float4>(primitive + OFFSET(Primitive,f.B), 16);
-					}
-				}
-
 				Short4 xLeft[4];
 				Short4 xRight[4];
 

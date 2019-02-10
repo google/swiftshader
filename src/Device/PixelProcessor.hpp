@@ -88,21 +88,10 @@ namespace sw
 			{
 				unsigned char component : 4;
 				unsigned char flat : 4;
-				unsigned char project : 2;
 				bool centroid : 1;
 			};
 
-			union
-			{
-				struct
-				{
-					Interpolant color[2];
-					Interpolant texture[8];
-					Interpolant fog;
-				};
-
-				Interpolant interpolant[MAX_FRAGMENT_INPUTS];
-			};
+			Interpolant interpolant[MAX_FRAGMENT_INPUTS];
 		};
 
 		struct State : States

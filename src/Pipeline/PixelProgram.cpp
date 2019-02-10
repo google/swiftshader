@@ -92,7 +92,7 @@ namespace sw
 		return pass != 0x0;
 	}
 
-	void PixelProgram::rasterOperation(Float4 &fog, Pointer<Byte> cBuffer[4], Int &x, Int sMask[4], Int zMask[4], Int cMask[4])
+	void PixelProgram::rasterOperation(Pointer<Byte> cBuffer[4], Int &x, Int sMask[4], Int zMask[4], Int cMask[4])
 	{
 		for(int index = 0; index < RENDERTARGETS; index++)
 		{

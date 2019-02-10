@@ -159,34 +159,6 @@ namespace sw
 						}
 					}
 				}
-
-				Float4 rcp;
-
-				switch(state.interpolant[interpolant].project)
-				{
-				case 0:
-					break;
-				case 1:
-					rcp = reciprocal(v[interpolant].y);
-					v[interpolant].x = v[interpolant].x * rcp;
-					break;
-				case 2:
-					rcp = reciprocal(v[interpolant].z);
-					v[interpolant].x = v[interpolant].x * rcp;
-					v[interpolant].y = v[interpolant].y * rcp;
-					break;
-				case 3:
-					rcp = reciprocal(v[interpolant].w);
-					v[interpolant].x = v[interpolant].x * rcp;
-					v[interpolant].y = v[interpolant].y * rcp;
-					v[interpolant].z = v[interpolant].z * rcp;
-					break;
-				}
-			}
-
-			if(state.fog.component)
-			{
-				f = interpolate(xxxx, Df, rhw, primitive + OFFSET(Primitive,f), state.fog.flat & 0x01, state.perspective, false);
 			}
 
 			setBuiltins(x, y, z, w);
@@ -256,7 +228,7 @@ namespace sw
 							AddAtomic(Pointer<Long>(&profiler.ropOperations), 4);
 						#endif
 
-						rasterOperation(f, cBuffer, x, sMask, zMask, cMask);
+						rasterOperation(cBuffer, x, sMask, zMask, cMask);
 					}
 				}
 

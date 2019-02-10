@@ -42,7 +42,7 @@ namespace sw
 		virtual void setBuiltins(Int &x, Int &y, Float4(&z)[4], Float4 &w) = 0;
 		virtual void applyShader(Int cMask[4]) = 0;
 		virtual Bool alphaTest(Int cMask[4]) = 0;
-		virtual void rasterOperation(Float4 &fog, Pointer<Byte> cBuffer[4], Int &x, Int sMask[4], Int zMask[4], Int cMask[4]) = 0;
+		virtual void rasterOperation(Pointer<Byte> cBuffer[4], Int &x, Int sMask[4], Int zMask[4], Int cMask[4]) = 0;
 
 		virtual void quad(Pointer<Byte> cBuffer[4], Pointer<Byte> &zBuffer, Pointer<Byte> &sBuffer, Int cMask[4], Int &x, Int &y);
 
