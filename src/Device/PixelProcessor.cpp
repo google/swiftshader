@@ -702,7 +702,7 @@ namespace sw
 
 		if(state.multiSample > 1 && context->pixelShader)
 		{
-			state.centroid = false;//context->pixelShader->containsCentroid();
+			state.centroid = context->pixelShader->getModes().NeedsCentroid;
 		}
 
 		state.frontFaceCCW = context->frontFacingCCW;

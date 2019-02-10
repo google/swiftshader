@@ -143,6 +143,7 @@ namespace sw
 			bool DepthLess : 1;
 			bool DepthUnchanged : 1;
 			bool ContainsKill : 1;
+			bool NeedsCentroid : 1;
 
 			// Compute workgroup dimensions
 			int LocalSizeX, LocalSizeY, LocalSizeZ;

@@ -42,9 +42,13 @@ namespace sw
 			case spv::OpDecorate:
 			{
 				auto targetId = insn.word(1);
+				auto decoration = static_cast<spv::Decoration>(insn.word(2));
 				decorations[targetId].Apply(
-						static_cast<spv::Decoration>(insn.word(2)),
+						decoration,
 						insn.wordCount() > 3 ? insn.word(3) : 0);
+
+				if (decoration == spv::DecorationCentroid)
+					modes.NeedsCentroid = true;
 				break;
 			}
 
@@ -55,9 +59,13 @@ namespace sw
 				auto &d = memberDecorations[targetId];
 				if (memberIndex >= d.size())
 					d.resize(memberIndex + 1);    // on demand; exact size would require another pass...
+				auto decoration = static_cast<spv::Decoration>(insn.word(3));
 				d[memberIndex].Apply(
-						static_cast<spv::Decoration>(insn.word(3)),
+						decoration,
 						insn.wordCount() > 4 ? insn.word(4) : 0);
+
+				if (decoration == spv::DecorationCentroid)
+					modes.NeedsCentroid = true;
 				break;
 			}
 
