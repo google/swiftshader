@@ -83,15 +83,6 @@ namespace sw
 			VkLogicOp logicalOperation : BITS(VK_LOGIC_OP_END_RANGE);
 
 			Sampler::State sampler[TEXTURE_IMAGE_UNITS];
-
-			struct Interpolant
-			{
-				unsigned char component : 4;
-				unsigned char flat : 4;
-				bool centroid : 1;
-			};
-
-			Interpolant interpolant[MAX_FRAGMENT_INPUTS];
 		};
 
 		struct State : States

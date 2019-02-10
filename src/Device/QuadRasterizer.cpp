@@ -238,19 +238,15 @@ namespace sw
 					Dw = *Pointer<Float4>(primitive + OFFSET(Primitive,w.C), 16) + yyyy * *Pointer<Float4>(primitive + OFFSET(Primitive,w.B), 16);
 				}
 
-				for(int interpolant = 0; interpolant < MAX_FRAGMENT_INPUTS; interpolant++)
+				for (int interpolant = 0; interpolant < MAX_INTERFACE_COMPONENTS; interpolant++)
 				{
-					for(int component = 0; component < 4; component++)
-					{
-						if(state.interpolant[interpolant].component & (1 << component))
-						{
-							Dv[interpolant][component] = *Pointer<Float4>(primitive + OFFSET(Primitive,V[interpolant][component].C), 16);
+					if (spirvShader->inputs[interpolant].Type == SpirvShader::ATTRIBTYPE_UNUSED)
+						continue;
 
-							if(!(state.interpolant[interpolant].flat & (1 << component)))
-							{
-								Dv[interpolant][component] += yyyy * *Pointer<Float4>(primitive + OFFSET(Primitive,V[interpolant][component].B), 16);
-							}
-						}
+					Dv[interpolant] = *Pointer<Float4>(primitive + OFFSET(Primitive, V[interpolant].C), 16);
+					if (!spirvShader->inputs[interpolant].Flat)
+					{
+						Dv[interpolant] += yyyy * *Pointer<Float4>(primitive + OFFSET(Primitive, V[interpolant].B), 16);
 					}
 				}
 

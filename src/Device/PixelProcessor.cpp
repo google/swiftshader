@@ -709,44 +709,6 @@ namespace sw
 
 		const bool point = context->isDrawPoint();
 
-		/* TODO: bring back interpolants by some mechanism */
-//		for(int interpolant = 0; interpolant < MAX_FRAGMENT_INPUTS; interpolant++)
-//		{
-//			for(int component = 0; component < 4; component++)
-//			{
-//				const Shader::Semantic &semantic = context->pixelShader->getInput(interpolant, component);
-//
-//				if(semantic.active())
-//				{
-//					bool flat = point;
-//
-//					switch(semantic.usage)
-//					{
-//					case Shader::USAGE_TEXCOORD: flat = false;                  break;
-//					case Shader::USAGE_COLOR:    flat = semantic.flat || point; break;
-//					}
-//
-//					state.interpolant[interpolant].component |= 1 << component;
-//
-//					if(flat)
-//					{
-//						state.interpolant[interpolant].flat |= 1 << component;
-//					}
-//				}
-//			}
-//		}
-//
-//		if(state.centroid)
-//		{
-//			for(int interpolant = 0; interpolant < MAX_FRAGMENT_INPUTS; interpolant++)
-//			{
-//				for(int component = 0; component < 4; component++)
-//				{
-//					state.interpolant[interpolant].centroid = context->pixelShader->getInput(interpolant, 0).centroid;
-//				}
-//			}
-//		}
-
 		state.hash = state.computeHash();
 
 		return state;
