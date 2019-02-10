@@ -37,9 +37,6 @@ namespace sw
 		Int enableIndex;
 		Array<Int4, 1 + 24> enableStack;
 
-		Int instanceID;
-		Int4 vertexID;
-
 		void program(UInt &index) override;
 		RValue<Pointer<Byte>> uniformAddress(int bufferIndex, unsigned int index);
 		RValue<Pointer<Byte>> uniformAddress(int bufferIndex, unsigned int index, Int &offset);

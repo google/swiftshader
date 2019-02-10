@@ -52,20 +52,13 @@ namespace sw
 
 		enableIndex = 0;
 
-		//if(shader->isVertexIdDeclared())
-		//{
-		//	if(state.textureSampling)
-		//	{
-		//		vertexID = Int4(index);
-		//	}
-		//	else
-		//	{
-		//		vertexID = Insert(vertexID, As<Int>(index), 0);
-		//		vertexID = Insert(vertexID, As<Int>(index + 1), 1);
-		//		vertexID = Insert(vertexID, As<Int>(index + 2), 2);
-		//		vertexID = Insert(vertexID, As<Int>(index + 3), 3);
-		//	}
-		//}
+		auto it = spirvShader->inputBuiltins.find(spv::BuiltInVertexIndex);
+		if (it != spirvShader->inputBuiltins.end())
+		{
+			assert(it->second.SizeInComponents == 1);
+			(*routine.lvalues[it->second.Id])[it->second.FirstComponent] =
+					As<Float4>(Int4(index) + Int4(0, 1, 2, 3));
+		}
 
 		spirvShader->emit(&routine);
 
