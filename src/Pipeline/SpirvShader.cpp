@@ -166,6 +166,7 @@ namespace sw
 				// OpVariable's "size" is the size of the allocation required (the size of the pointee)
 				object.sizeInComponents = pointeeType.sizeInComponents;
 				object.isBuiltInBlock = type.isBuiltInBlock;
+				object.pointerBase = insn.word(2);	// base is itself
 
 				// Register builtins
 
@@ -233,7 +234,7 @@ namespace sw
 					// interior ptr has two parts:
 					// - logical base ptr, common across all lanes and known at compile time
 					// - per-lane offset
-					object.pointerBase = insn.word(3);
+					object.pointerBase = getObject(insn.word(3)).pointerBase;
 				}
 				break;
 			}
@@ -597,13 +598,12 @@ namespace sw
 				if (object.kind != Object::Kind::InterfaceVariable && object.sizeInComponents > 0)
 				{
 					// any variable not in a location-oriented interface
-					routine->lvalues.emplace(insn.word(2), std::unique_ptr<Array<Float4>>(
-							new Array<Float4>(object.sizeInComponents)));
+					routine->createLvalue(insn.word(2), object.sizeInComponents);
 				}
 				break;
 			}
 			default:
-				printf("emitEarly: ignoring opcode %d\n", insn.opcode());
+				// Nothing else produces interface variables, so can all be safely ignored.
 				break;
 			}
 		}
@@ -611,12 +611,55 @@ namespace sw
 
 	void SpirvShader::emit(SpirvRoutine *routine) const
 	{
-		(void) routine;
-
 		for (auto insn : *this)
 		{
 			switch (insn.opcode())
 			{
+			case spv::OpLoad:
+			{
+				auto &object = getObject(insn.word(2));
+				auto &type = getType(insn.word(1));
+				auto &pointer = getObject(insn.word(3));
+				routine->createLvalue(insn.word(2), type.sizeInComponents);		// TODO: this should be an ssavalue!
+				auto &pointerBase = getObject(pointer.pointerBase);
+
+				if (pointerBase.kind == Object::Kind::InterfaceVariable)
+				{
+					UNIMPLEMENTED("Location-based load not yet implemented");
+				}
+
+				if (pointerBase.storageClass == spv::StorageClassImage ||
+					pointerBase.storageClass == spv::StorageClassUniform ||
+					pointerBase.storageClass == spv::StorageClassUniformConstant)
+				{
+					UNIMPLEMENTED("Descriptor-backed load not yet implemented");
+				}
+
+				SpirvRoutine::Value& ptrBase = *(routine->lvalues)[pointer.pointerBase];
+				auto & dst = *(routine->lvalues)[insn.word(2)];
+
+				if (pointer.kind == Object::Kind::Value)
+				{
+					auto offsets = As<Int4>(*(routine->lvalues)[insn.word(3)]);
+					for (auto i = 0u; i < object.sizeInComponents; i++)
+					{
+						// i wish i had a Float,Float,Float,Float constructor here..
+						Float4 v;
+						for (int j = 0; j < 4; j++)
+							v = Insert(v, Extract(ptrBase[Int(i) + Extract(offsets, j)], j), j);
+						dst[i] = v;
+					}
+				}
+				else
+				{
+					// no divergent offsets to worry about
+					for (auto i = 0u; i < object.sizeInComponents; i++)
+					{
+						dst[i] = ptrBase[i];
+					}
+				}
+				break;
+			}
 			default:
 				printf("emit: ignoring opcode %d\n", insn.opcode());
 				break;

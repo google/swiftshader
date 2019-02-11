@@ -33,9 +33,15 @@ namespace sw
 	class SpirvRoutine
 	{
 	public:
-		std::unordered_map<uint32_t, std::unique_ptr<Array<Float4>>> lvalues;
-		std::unique_ptr<Array<Float4>> inputs = std::unique_ptr<Array<Float4>>(new Array<Float4>(MAX_INTERFACE_COMPONENTS));
-		std::unique_ptr<Array<Float4>> outputs = std::unique_ptr<Array<Float4>>(new Array<Float4>(MAX_INTERFACE_COMPONENTS));
+		using Value = Array<Float4>;
+		std::unordered_map<uint32_t, std::unique_ptr<Value>> lvalues;
+		std::unique_ptr<Value> inputs = std::unique_ptr<Value>(new Value(MAX_INTERFACE_COMPONENTS));
+		std::unique_ptr<Value> outputs = std::unique_ptr<Value>(new Value(MAX_INTERFACE_COMPONENTS));
+
+		void createLvalue(uint32_t id, uint32_t size)
+		{
+			lvalues.emplace(id, std::unique_ptr<Value>(new Value(size)));
+		}
 	};
 
 	class SpirvShader
