@@ -24,12 +24,24 @@
 namespace sw
 {
 	VertexProgram::VertexProgram(const VertexProcessor::State &state, const VertexShader *shader)
-		: VertexRoutine(state, shader), shader(shader), r(shader->indirectAddressableTemporaries)
+		: VertexRoutine(state, shader),
+		  shader(shader),
+		  r(shader->indirectAddressableTemporaries),
+		  aL(shader->getLimits().loops),
+		  increment(shader->getLimits().loops),
+		  iteration(shader->getLimits().loops),
+		  callStack(shader->getLimits().stack)
 	{
-		for(int i = 0; i < MAX_SHADER_CALL_SITES; i++)
-		{
-			labelBlock[i] = 0;
-		}
+		auto limits = shader->getLimits();
+		ifDepth.setLimit(limits.ifs);
+		loopRepDepth.setLimit(limits.loops);
+		currentLabel.setLimit(limits.functions);
+
+		ifFalseBlock.resize(limits.ifs);
+		loopRepTestBlock.resize(limits.loops);
+		loopRepEndBlock.resize(limits.loops);
+		labelBlock.resize(limits.functions);
+		isConditionalIf.resize(limits.ifs);
 
 		loopDepth = -1;
 		enableStack[0] = Int4(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF);

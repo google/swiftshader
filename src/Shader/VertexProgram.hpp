@@ -22,6 +22,8 @@
 #include "Renderer/Stream.hpp"
 #include "Common/Types.hpp"
 
+#include <unordered_map>
+
 namespace sw
 {
 	struct Stream;
@@ -39,15 +41,15 @@ namespace sw
 
 		RegisterArray<NUM_TEMPORARY_REGISTERS> r;   // Temporary registers
 		Vector4f a0;
-		Array<Int, MAX_SHADER_NESTED_LOOPS> aL;
+		Array<Int> aL; // loop counter register
 		Vector4f p0;
 
-		Array<Int, MAX_SHADER_NESTED_LOOPS> increment;
-		Array<Int, MAX_SHADER_NESTED_LOOPS> iteration;
+		Array<Int> increment;
+		Array<Int> iteration;
 
 		Int loopDepth;
 		Int stackIndex;   // FIXME: Inc/decrement callStack
-		Array<UInt, MAX_SHADER_CALL_STACK_SIZE> callStack;
+		Array<UInt> callStack;
 
 		Int enableIndex;
 		Array<Int4, MAX_SHADER_ENABLE_STACK_SIZE> enableStack;
@@ -122,18 +124,18 @@ namespace sw
 		Vector4f sampleTexture(const Src &s, Vector4f &uvwq, Float4 &lod, Vector4f &dsx, Vector4f &dsy, Vector4f &offset, SamplerFunction function);
 		Vector4f sampleTexture(int sampler, Vector4f &uvwq, Float4 &lod, Vector4f &dsx, Vector4f &dsy, Vector4f &offset, SamplerFunction function);
 
-		BoundedIndex<MAX_SHADER_NESTED_IFS> ifDepth = 0;
-		BoundedIndex<MAX_SHADER_NESTED_LOOPS> loopRepDepth = 0;
-		BoundedIndex<MAX_SHADER_CALL_SITES> currentLabel = -1;
+		BoundedIndex ifDepth = 0;
+		BoundedIndex loopRepDepth = 0;
+		BoundedIndex currentLabel = -1;
 		bool scalar = false;
 
-		BasicBlock *ifFalseBlock[MAX_SHADER_NESTED_IFS];
-		BasicBlock *loopRepTestBlock[MAX_SHADER_NESTED_LOOPS];
-		BasicBlock *loopRepEndBlock[MAX_SHADER_NESTED_LOOPS];
-		BasicBlock *labelBlock[MAX_SHADER_CALL_SITES];
-		std::vector<BasicBlock*> callRetBlock[MAX_SHADER_CALL_SITES];
+		std::vector<BasicBlock*> ifFalseBlock;
+		std::vector<BasicBlock*> loopRepTestBlock;
+		std::vector<BasicBlock*> loopRepEndBlock;
+		std::vector<BasicBlock*> labelBlock;
+		std::unordered_map<unsigned int, std::vector<BasicBlock*>> callRetBlock; // label -> list of call sites
 		BasicBlock *returnBlock;
-		bool isConditionalIf[MAX_SHADER_NESTED_IFS];
+		std::vector<bool> isConditionalIf;
 		std::vector<Int4> restoreContinue;
 	};
 }

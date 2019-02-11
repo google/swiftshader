@@ -152,10 +152,12 @@ namespace sw
 		return v;
 	}
 
-	template <int limit> class BoundedIndex
+	class BoundedIndex
 	{
 	public:
 		BoundedIndex(int index) : index(index) {}
+
+		inline void setLimit(int limit) { this->limit = limit; }
 
 		inline int operator++(int) { return index++; }
 		inline int operator--(int) { return index--; }
@@ -190,6 +192,7 @@ namespace sw
 
 	private:
 		int index = 0;
+		int limit = 0;
 	};
 
 	// The OFFSET macro is a generalization of the offsetof() macro defined in <cstddef>.

@@ -25,6 +25,39 @@ namespace sw
 	extern bool halfIntegerCoordinates;     // Pixel centers are not at integer coordinates
 	extern bool fullPixelPositionRegister;
 
+	PixelProgram::PixelProgram(const PixelProcessor::State &state, const PixelShader *shader) :
+			PixelRoutine(state, shader),
+			r(shader->indirectAddressableTemporaries),
+			aL(shader->getLimits().loops),
+			increment(shader->getLimits().loops),
+			iteration(shader->getLimits().loops),
+			callStack(shader->getLimits().stack)
+	{
+		auto limits = shader->getLimits();
+		ifDepth.setLimit(limits.ifs);
+		loopRepDepth.setLimit(limits.loops);
+		currentLabel.setLimit(limits.functions);
+
+		ifFalseBlock.resize(limits.ifs);
+		loopRepTestBlock.resize(limits.loops);
+		loopRepEndBlock.resize(limits.loops);
+		labelBlock.resize(limits.functions);
+		isConditionalIf.resize(limits.ifs);
+
+		loopDepth = -1;
+		enableStack[0] = Int4(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF);
+
+		if(shader->containsBreakInstruction())
+		{
+			enableBreak = Int4(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF);
+		}
+
+		if(shader->containsContinueInstruction())
+		{
+			enableContinue = Int4(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF);
+		}
+	}
+
 	void PixelProgram::setBuiltins(Int &x, Int &y, Float4(&z)[4], Float4 &w)
 	{
 		if(shader->getShaderModel() >= 0x0300)

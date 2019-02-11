@@ -161,6 +161,7 @@ namespace sw
 		analyzeSamplers();
 		analyzeCallSites();
 		analyzeIndirectAddressing();
+		analyzeLimits();
 	}
 
 	void PixelShader::analyzeZOverride()

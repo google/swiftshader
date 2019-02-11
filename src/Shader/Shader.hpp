@@ -35,6 +35,7 @@ namespace sw
 		enum Opcode
 		{
 			// Matches order in d3d9types.h
+			// See https://docs.microsoft.com/en-us/windows-hardware/drivers/ddi/content/d3d9types/ne-d3d9types-_d3dshader_instruction_opcode_type
 			OPCODE_NOP = 0,
 			OPCODE_MOV,
 			OPCODE_ADD,
@@ -554,6 +555,15 @@ namespace sw
 			};
 		};
 
+		// Limits holds the maximum nested counts for the shader.
+		struct Limits
+		{
+			uint32_t loops = 0; // maximum nested loop and reps.
+			uint32_t ifs = 0; // maximum nested if statements.
+			uint32_t stack = 0; // maximum call depth.
+			uint32_t functions = 0; // total number of functions.
+		};
+
 		Shader();
 
 		virtual ~Shader();
@@ -562,6 +572,7 @@ namespace sw
 		size_t getLength() const;
 		ShaderType getShaderType() const;
 		unsigned short getShaderModel() const;
+		inline const Limits& getLimits() const { return limits; }
 
 		void append(Instruction *instruction);
 		void declareSampler(int i);
@@ -629,7 +640,10 @@ namespace sw
 		void analyzeSamplers();
 		void analyzeCallSites();
 		void analyzeIndirectAddressing();
+		void analyzeLimits();
 		void markFunctionAnalysis(unsigned int functionLabel, Analysis flag);
+
+		Limits limits; // Calculated in analyzeLimits().
 
 		ShaderType shaderType;
 
