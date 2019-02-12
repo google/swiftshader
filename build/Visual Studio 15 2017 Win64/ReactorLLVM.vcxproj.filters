@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)src\Reactor\LLVMReactor.cpp">
@@ -47,11 +47,11 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Filter Include="src">
-      <UniqueIdentifier>{96A3A3C5-1BBA-3A3D-ADF6-3F1639D231D2}</UniqueIdentifier>
-    </Filter>
     <Filter Include="src\Reactor">
-      <UniqueIdentifier>{F2392387-E52C-34BB-A090-3378F8B608C0}</UniqueIdentifier>
+      <UniqueIdentifier>{01629916-7B58-386F-9C49-915800FE4A05}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src">
+      <UniqueIdentifier>{13574A07-B880-3431-8401-B66983F72A05}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

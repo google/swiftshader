@@ -12,10 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <Pipeline/SpirvShader.hpp>
-#include <spirv-tools/optimizer.hpp>
 #include "VkPipeline.hpp"
 #include "VkShaderModule.hpp"
+#include "Pipeline/SpirvShader.hpp"
+
+#include "spirv-tools/optimizer.hpp"
 
 namespace
 {

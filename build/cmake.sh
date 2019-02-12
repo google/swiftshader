@@ -48,4 +48,6 @@ find . -type f \( -name \*.vcxproj -o -name \*.vcxproj.filters -o -name \*.sln \
      -execdir sed --in-place --binary --expression="s?$CD?\$(SolutionDir)?g" {} \
                                       --expression="s?$CD2?\$(SolutionDir)?g" {} \
                                       --expression="s?$PYTHON?python?g" {} \
-                                      --expression="s?$CMAKE?cmake?g" {} \;
+                                      --expression="s?$CMAKE?cmake?g" {} \
+                                      --expression="s?MultiThreadedDebugDLL?MultiThreadedDebug?g" {} \
+                                      --expression="s?MultiThreadedDLL?MultiThreaded?g" {} \;

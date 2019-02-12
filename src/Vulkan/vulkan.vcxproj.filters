@@ -99,9 +99,6 @@
     <ClCompile Include="..\Device\Blitter.cpp">
       <Filter>Source Files\Device</Filter>
     </ClCompile>
-    <ClCompile Include="..\Pipeline\VertexShader.cpp">
-      <Filter>Source Files\Pipeline</Filter>
-    </ClCompile>
     <ClCompile Include="..\Pipeline\VertexRoutine.cpp">
       <Filter>Source Files\Pipeline</Filter>
     </ClCompile>
@@ -111,16 +108,10 @@
     <ClCompile Include="..\Pipeline\ShaderCore.cpp">
       <Filter>Source Files\Pipeline</Filter>
     </ClCompile>
-    <ClCompile Include="..\Pipeline\Shader.cpp">
-      <Filter>Source Files\Pipeline</Filter>
-    </ClCompile>
     <ClCompile Include="..\Pipeline\SetupRoutine.cpp">
       <Filter>Source Files\Pipeline</Filter>
     </ClCompile>
     <ClCompile Include="..\Pipeline\SamplerCore.cpp">
-      <Filter>Source Files\Pipeline</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Pipeline\PixelShader.cpp">
       <Filter>Source Files\Pipeline</Filter>
     </ClCompile>
     <ClCompile Include="..\Pipeline\PixelRoutine.cpp">
@@ -461,9 +452,6 @@
     <ClInclude Include="..\WSI\libX11.hpp">
       <Filter>Header Files\WSI</Filter>
     </ClInclude>
-    <ClInclude Include="..\Pipeline\VertexShader.hpp">
-      <Filter>Header Files\Pipeline</Filter>
-    </ClInclude>
     <ClInclude Include="..\Pipeline\VertexRoutine.hpp">
       <Filter>Header Files\Pipeline</Filter>
     </ClInclude>
@@ -476,16 +464,10 @@
     <ClInclude Include="..\Pipeline\ShaderCore.hpp">
       <Filter>Header Files\Pipeline</Filter>
     </ClInclude>
-    <ClInclude Include="..\Pipeline\Shader.hpp">
-      <Filter>Header Files\Pipeline</Filter>
-    </ClInclude>
     <ClInclude Include="..\Pipeline\SetupRoutine.hpp">
       <Filter>Header Files\Pipeline</Filter>
     </ClInclude>
     <ClInclude Include="..\Pipeline\SamplerCore.hpp">
-      <Filter>Header Files\Pipeline</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Pipeline\PixelShader.hpp">
       <Filter>Header Files\Pipeline</Filter>
     </ClInclude>
     <ClInclude Include="..\Pipeline\PixelRoutine.hpp">
