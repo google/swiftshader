@@ -209,7 +209,10 @@ namespace sw
 
 	Renderer::~Renderer()
 	{
+		sync->lock(EXCLUSIVE);
 		sync->destruct();
+		terminateThreads();
+		sync->unlock();
 
 		delete clipper;
 		clipper = nullptr;
@@ -217,15 +220,17 @@ namespace sw
 		delete blitter;
 		blitter = nullptr;
 
-		terminateThreads();
 		delete resumeApp;
+		resumeApp = nullptr;
 
 		for(int draw = 0; draw < DRAW_COUNT; draw++)
 		{
 			delete drawCall[draw];
+			drawCall[draw] = nullptr;
 		}
 
 		delete swiftConfig;
+		swiftConfig = nullptr;
 	}
 
 	// This object has to be mem aligned
