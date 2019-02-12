@@ -18,7 +18,7 @@
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_core.h>
 #include <vulkan/vk_icd.h>
 
 #include <cstring>

@@ -18,7 +18,7 @@
 #include "Color.hpp"
 #include "Device/Config.hpp"
 #include "System/Resource.hpp"
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_core.h>
 
 namespace sw
 {
