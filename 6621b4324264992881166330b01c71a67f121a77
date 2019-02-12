@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "38536cd3_2e7e327e",
+        "filename": "src/Pipeline/SpirvShader.hpp",
+        "patchSetId": 17
+      },
+      "lineNbr": 223,
+      "author": {
+        "id": 7183
+      },
+      "writtenOn": "2019-02-12T20:30:16Z",
+      "side": 1,
+      "message": "Please can we start sprinkling a few comments on functions? Without looking at the code, it\u0027s hard to know what \u0027emitEarly\u0027 does that \u0027emit\u0027 doesn\u0027t.",
+      "range": {
+        "startLine": 223,
+        "startChar": 7,
+        "endLine": 223,
+        "endChar": 16
+      },
+      "revId": "6621b4324264992881166330b01c71a67f121a77",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
