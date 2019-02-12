@@ -107,7 +107,7 @@ namespace sw
 		auto it = spirvShader->outputBuiltins.find(spv::BuiltInPosition);
 		assert(it != spirvShader->outputBuiltins.end());
 		assert(it->second.SizeInComponents == 4);
-		auto &pos = (*routine.lvalues[it->second.Id]);
+		auto &pos = routine.getValue(it->second.Id);
 		auto posX = pos[it->second.FirstComponent];
 		auto posY = pos[it->second.FirstComponent + 1];
 		auto posZ = pos[it->second.FirstComponent + 2];
@@ -640,7 +640,7 @@ namespace sw
 		auto it = spirvShader->outputBuiltins.find(spv::BuiltInPosition);
 		assert(it != spirvShader->outputBuiltins.end());
 		assert(it->second.SizeInComponents == 4);
-		auto &pos = (*routine.lvalues[it->second.Id]);
+		auto &pos = routine.getValue(it->second.Id);
 		auto posX = pos[it->second.FirstComponent];
 		auto posY = pos[it->second.FirstComponent + 1];
 		auto posZ = pos[it->second.FirstComponent + 2];

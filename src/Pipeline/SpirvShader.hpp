@@ -42,6 +42,13 @@ namespace sw
 		{
 			lvalues.emplace(id, std::unique_ptr<Value>(new Value(size)));
 		}
+
+		Value& getValue(uint32_t id)
+		{
+			auto it = lvalues.find(id);
+			assert(it != lvalues.end());
+			return *it->second;
+		}
 	};
 
 	class SpirvShader
