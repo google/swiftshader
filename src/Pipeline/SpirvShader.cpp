@@ -416,11 +416,7 @@ namespace sw
 
 		// This covers the rules in Vulkan 1.1 spec, 14.1.4 Location Assignment.
 
-		auto const it = decorations.find(id);
-		if (it != decorations.end())
-		{
-			d.Apply(it->second);
-		}
+		ApplyDecorationsForId(&d, id);
 
 		auto const &obj = getType(id);
 		switch (obj.definition.opcode())
@@ -452,15 +448,10 @@ namespace sw
 			return d.Location + 1;
 		case spv::OpTypeStruct:
 		{
-			auto const memberDecorationsIt = memberDecorations.find(id);
 			// iterate over members, which may themselves have Location/Component decorations
 			for (auto i = 0u; i < obj.definition.wordCount() - 2; i++)
 			{
-				// Apply any member decorations for this member to the carried state.
-				if (memberDecorationsIt != memberDecorations.end() && i < memberDecorationsIt->second.size())
-				{
-					d.Apply(memberDecorationsIt->second[i]);
-				}
+				ApplyDecorationsForIdMember(&d, id, i);
 				d.Location = PopulateInterfaceInner(iface, obj.definition.word(i + 2), d);
 				d.Component = 0;    // Implicit locations always have component=0
 			}
@@ -485,12 +476,7 @@ namespace sw
 	{
 		// Walk a variable definition and populate the interface from it.
 		Decorations d{};
-
-		auto const it = decorations.find(id);
-		if (it != decorations.end())
-		{
-			d.Apply(it->second);
-		}
+		ApplyDecorationsForId(&d, id);
 
 		auto def = getObject(id).definition;
 		assert(def.opcode() == spv::OpVariable);
@@ -560,6 +546,22 @@ namespace sw
 		Centroid |= src.Centroid;
 		Block |= src.Block;
 		BufferBlock |= src.BufferBlock;
+	}
+
+	void SpirvShader::ApplyDecorationsForId(Decorations *d, uint32_t id) const
+	{
+		auto it = decorations.find(id);
+		if (it != decorations.end())
+			d->Apply(it->second);
+	}
+
+	void SpirvShader::ApplyDecorationsForIdMember(Decorations *d, uint32_t id, uint32_t member) const
+	{
+		auto it = memberDecorations.find(id);
+		if (it != memberDecorations.end() && member < it->second.size())
+		{
+			d->Apply(it->second[member]);
+		}
 	}
 
 	uint32_t SpirvShader::GetConstantInt(uint32_t id)
