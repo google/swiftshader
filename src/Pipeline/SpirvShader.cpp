@@ -660,6 +660,50 @@ namespace sw
 				}
 				break;
 			}
+			case spv::OpStore:
+			{
+				auto &object = getObject(insn.word(2));
+				auto &pointer = getObject(insn.word(1));
+				auto &pointerBase = getObject(pointer.pointerBase);
+
+				if (pointerBase.kind == Object::Kind::InterfaceVariable)
+				{
+					UNIMPLEMENTED("Location-based store not yet implemented");
+				}
+
+				if (pointerBase.storageClass == spv::StorageClassImage ||
+					pointerBase.storageClass == spv::StorageClassUniform ||
+					pointerBase.storageClass == spv::StorageClassUniformConstant)
+				{
+					UNIMPLEMENTED("Descriptor-backed store not yet implemented");
+				}
+
+				SpirvRoutine::Value& ptrBase = *(routine->lvalues)[pointer.pointerBase];
+				auto & src = *(routine->lvalues)[insn.word(2)];
+
+				if (pointer.kind == Object::Kind::Value)
+				{
+					auto offsets = As<Int4>(*(routine->lvalues)[insn.word(1)]);
+					for (auto i = 0u; i < object.sizeInComponents; i++)
+					{
+						// Scattered store
+						for (int j = 0; j < 4; j++)
+						{
+							auto dst = ptrBase[Int(i) + Extract(offsets, j)];
+							dst = Insert(dst, Extract(src[i], j), j);
+						}
+					}
+				}
+				else
+				{
+					// no divergent offsets
+					for (auto i = 0u; i < object.sizeInComponents; i++)
+					{
+						ptrBase[i] = src[i];
+					}
+				}
+				break;
+			}
 			default:
 				printf("emit: ignoring opcode %d\n", insn.opcode());
 				break;
