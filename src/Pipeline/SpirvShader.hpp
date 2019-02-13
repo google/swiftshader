@@ -260,13 +260,13 @@ namespace sw
 		void ApplyDecorationsForId(Decorations *d, uint32_t id) const;
 		void ApplyDecorationsForIdMember(Decorations *d, uint32_t id, uint32_t member) const;
 
-		void PopulateInterfaceSlot(std::vector<InterfaceComponent> *iface, Decorations const &d, AttribType type);
+		template<typename F>
+		int VisitInterfaceInner(uint32_t id, Decorations d, F f) const;
 
-		int PopulateInterfaceInner(std::vector<InterfaceComponent> *iface, uint32_t id, Decorations d);
+		template<typename F>
+		void VisitInterface(uint32_t id, F f) const;
 
-		void PopulateInterface(std::vector<InterfaceComponent> *iface, uint32_t id);
-
-		uint32_t GetConstantInt(uint32_t id);
+		uint32_t GetConstantInt(uint32_t id) const;
 
 		void ProcessInterfaceVariable(Object &object);
 	};

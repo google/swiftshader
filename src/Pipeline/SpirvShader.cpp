@@ -296,7 +296,19 @@ namespace sw
 		else
 		{
 			object.kind = Object::Kind::InterfaceVariable;
-			PopulateInterface(&userDefinedInterface, resultId);
+			VisitInterface(resultId,
+						   [&userDefinedInterface](Decorations const &d, AttribType type) {
+							   // Populate a single scalar slot in the interface from a collection of decorations and the intended component type.
+							   auto scalarSlot = (d.Location << 2) | d.Component;
+							   assert(scalarSlot >= 0 &&
+									  scalarSlot < static_cast<int32_t>(userDefinedInterface.size()));
+
+							   auto &slot = userDefinedInterface[scalarSlot];
+							   slot.Type = type;
+							   slot.Flat = d.Flat;
+							   slot.NoPerspective = d.NoPerspective;
+							   slot.Centroid = d.Centroid;
+						   });
 		}
 	}
 
@@ -391,20 +403,8 @@ namespace sw
 		}
 	}
 
-	void SpirvShader::PopulateInterfaceSlot(std::vector<InterfaceComponent> *iface, Decorations const &d, AttribType type)
-	{
-		// Populate a single scalar slot in the interface from a collection of decorations and the intended component type.
-		auto scalarSlot = (d.Location << 2) | d.Component;
-		assert(scalarSlot >= 0 && scalarSlot < static_cast<int32_t>(iface->size()));
-
-		auto &slot = (*iface)[scalarSlot];
-		slot.Type = type;
-		slot.Flat = d.Flat;
-		slot.NoPerspective = d.NoPerspective;
-		slot.Centroid = d.Centroid;
-	}
-
-	int SpirvShader::PopulateInterfaceInner(std::vector<InterfaceComponent> *iface, uint32_t id, Decorations d)
+	template<typename F>
+	int SpirvShader::VisitInterfaceInner(uint32_t id, Decorations d, F f) const
 	{
 		// Recursively walks variable definition and its type tree, taking into account
 		// any explicit Location or Component decorations encountered; where explicit
@@ -412,7 +412,9 @@ namespace sw
 		// Collected decorations are carried down toward the leaves and across
 		// siblings; Effect of decorations intentionally does not flow back up the tree.
 		//
-		// Returns the next available location.
+		// F is a functor to be called with the effective decoration set for every component.
+		//
+		// Returns the next available location, and calls f().
 
 		// This covers the rules in Vulkan 1.1 spec, 14.1.4 Location Assignment.
 
@@ -422,29 +424,29 @@ namespace sw
 		switch (obj.definition.opcode())
 		{
 		case spv::OpTypePointer:
-			return PopulateInterfaceInner(iface, obj.definition.word(3), d);
+			return VisitInterfaceInner<F>(obj.definition.word(3), d, f);
 		case spv::OpTypeMatrix:
 			for (auto i = 0u; i < obj.definition.word(3); i++, d.Location++)
 			{
 				// consumes same components of N consecutive locations
-				PopulateInterfaceInner(iface, obj.definition.word(2), d);
+				VisitInterfaceInner<F>(obj.definition.word(2), d, f);
 			}
 			return d.Location;
 		case spv::OpTypeVector:
 			for (auto i = 0u; i < obj.definition.word(3); i++, d.Component++)
 			{
 				// consumes N consecutive components in the same location
-				PopulateInterfaceInner(iface, obj.definition.word(2), d);
+				VisitInterfaceInner<F>(obj.definition.word(2), d, f);
 			}
 			return d.Location + 1;
 		case spv::OpTypeFloat:
-			PopulateInterfaceSlot(iface, d, ATTRIBTYPE_FLOAT);
+			f(d, ATTRIBTYPE_FLOAT);
 			return d.Location + 1;
 		case spv::OpTypeInt:
-			PopulateInterfaceSlot(iface, d, obj.definition.word(3) ? ATTRIBTYPE_INT : ATTRIBTYPE_UINT);
+			f(d, obj.definition.word(3) ? ATTRIBTYPE_INT : ATTRIBTYPE_UINT);
 			return d.Location + 1;
 		case spv::OpTypeBool:
-			PopulateInterfaceSlot(iface, d, ATTRIBTYPE_UINT);
+			f(d, ATTRIBTYPE_UINT);
 			return d.Location + 1;
 		case spv::OpTypeStruct:
 		{
@@ -452,7 +454,7 @@ namespace sw
 			for (auto i = 0u; i < obj.definition.wordCount() - 2; i++)
 			{
 				ApplyDecorationsForIdMember(&d, id, i);
-				d.Location = PopulateInterfaceInner(iface, obj.definition.word(i + 2), d);
+				d.Location = VisitInterfaceInner<F>(obj.definition.word(i + 2), d, f);
 				d.Component = 0;    // Implicit locations always have component=0
 			}
 			return d.Location;
@@ -462,7 +464,7 @@ namespace sw
 			auto arraySize = GetConstantInt(obj.definition.word(3));
 			for (auto i = 0u; i < arraySize; i++)
 			{
-				d.Location = PopulateInterfaceInner(iface, obj.definition.word(2), d);
+				d.Location = VisitInterfaceInner<F>(obj.definition.word(2), d, f);
 			}
 			return d.Location;
 		}
@@ -472,15 +474,16 @@ namespace sw
 		}
 	}
 
-	void SpirvShader::PopulateInterface(std::vector<InterfaceComponent> *iface, uint32_t id)
+	template<typename F>
+	void SpirvShader::VisitInterface(uint32_t id, F f) const
 	{
-		// Walk a variable definition and populate the interface from it.
+		// Walk a variable definition and call f for each component in it.
 		Decorations d{};
 		ApplyDecorationsForId(&d, id);
 
 		auto def = getObject(id).definition;
 		assert(def.opcode() == spv::OpVariable);
-		PopulateInterfaceInner(iface, def.word(1), d);
+		VisitInterfaceInner<F>(def.word(1), d, f);
 	}
 
 	void SpirvShader::Decorations::Apply(spv::Decoration decoration, uint32_t arg)
@@ -564,7 +567,7 @@ namespace sw
 		}
 	}
 
-	uint32_t SpirvShader::GetConstantInt(uint32_t id)
+	uint32_t SpirvShader::GetConstantInt(uint32_t id) const
 	{
 		// Slightly hackish access to constants very early in translation.
 		// General consumption of constants by other instructions should
@@ -572,7 +575,7 @@ namespace sw
 
 		// TODO: not encountered yet since we only use this for array sizes etc,
 		// but is possible to construct integer constant 0 via OpConstantNull.
-		auto insn = defs[id].definition;
+		auto insn = getObject(id).definition;
 		assert(insn.opcode() == spv::OpConstant);
 		assert(getType(insn.word(1)).definition.opcode() == spv::OpTypeInt);
 		return insn.word(3);
