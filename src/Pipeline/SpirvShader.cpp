@@ -642,12 +642,11 @@ namespace sw
 			{
 			case spv::OpVariable:
 			{
-				auto &object = getObject(insn.word(2));
-				// Want to exclude: location-oriented interface variables; special things that consume zero slots.
+				auto resultId = insn.word(2);
+				auto &object = getObject(resultId);
 				// TODO: what to do about zero-slot objects?
-				if (object.kind != Object::Kind::InterfaceVariable && object.sizeInComponents > 0)
+				if (object.sizeInComponents > 0)
 				{
-					// any variable not in a location-oriented interface
 					routine->createLvalue(insn.word(2), object.sizeInComponents);
 				}
 				break;
@@ -665,6 +664,22 @@ namespace sw
 		{
 			switch (insn.opcode())
 			{
+			case spv::OpVariable:
+			{
+				auto resultId = insn.word(2);
+				auto &object = getObject(resultId);
+				if (object.kind == Object::Kind::InterfaceVariable && object.storageClass == spv::StorageClassInput)
+				{
+					auto &dst = routine->getValue(resultId);
+					int offset = 0;
+					VisitInterface(resultId,
+								   [&](Decorations const &d, AttribType type) {
+									   auto scalarSlot = d.Location << 2 | d.Component;
+									   dst[offset++] = (*routine->inputs)[scalarSlot];
+								   });
+				}
+				break;
+			}
 			case spv::OpLoad:
 			{
 				auto &object = getObject(insn.word(2));
@@ -672,11 +687,6 @@ namespace sw
 				auto &pointer = getObject(insn.word(3));
 				routine->createLvalue(insn.word(2), type.sizeInComponents);		// TODO: this should be an ssavalue!
 				auto &pointerBase = getObject(pointer.pointerBase);
-
-				if (pointerBase.kind == Object::Kind::InterfaceVariable)
-				{
-					UNIMPLEMENTED("Location-based load not yet implemented");
-				}
 
 				if (pointerBase.storageClass == spv::StorageClassImage ||
 					pointerBase.storageClass == spv::StorageClassUniform ||
@@ -720,11 +730,6 @@ namespace sw
 				assert(type.sizeInComponents == 1);
 				assert(base.pointerBase == object.pointerBase);
 
-				if (pointerBase.kind == Object::Kind::InterfaceVariable)
-				{
-					UNIMPLEMENTED("Location-based OpAccessChain not yet implemented");
-				}
-
 				if (pointerBase.storageClass == spv::StorageClassImage ||
 					pointerBase.storageClass == spv::StorageClassUniform ||
 					pointerBase.storageClass == spv::StorageClassUniformConstant)
@@ -741,11 +746,6 @@ namespace sw
 				auto &object = getObject(insn.word(2));
 				auto &pointer = getObject(insn.word(1));
 				auto &pointerBase = getObject(pointer.pointerBase);
-
-				if (pointerBase.kind == Object::Kind::InterfaceVariable)
-				{
-					UNIMPLEMENTED("Location-based store not yet implemented");
-				}
 
 				if (pointerBase.storageClass == spv::StorageClassImage ||
 					pointerBase.storageClass == spv::StorageClassUniform ||
