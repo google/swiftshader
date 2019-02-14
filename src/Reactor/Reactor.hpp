@@ -21,7 +21,14 @@
 #include <cassert>
 #include <cstddef>
 #include <cstdio>
+
+#include <string>
+
 #undef Bool
+
+#if !defined(NDEBUG) && (REACTOR_LLVM_VERSION >= 7)
+#define ENABLE_RR_PRINT 1 // Enables RR_PRINT(), RR_WATCH()
+#endif // !defined(NDEBUG) && (REACTOR_LLVM_VERSION >= 7)
 
 namespace rr
 {
@@ -74,6 +81,7 @@ namespace rr
 	class Variable
 	{
 	protected:
+		friend class PrintValue;
 		Value *address;
 	};
 
@@ -2812,6 +2820,299 @@ namespace rr
 	{
 		return ReinterpretCast<T>(val);
 	}
+
+#ifdef ENABLE_RR_PRINT
+	// PrintValue holds the printf format and value(s) for a single argument
+	// to Print(). A single argument can be expanded into multiple printf
+	// values - for example a Float4 will expand to "%f %f %f %f" and four
+	// scalar values.
+	// The PrintValue constructor accepts the following:
+	//   * Reactor LValues, RValues, Pointers.
+	//   * Standard Plain-Old-Value types (int, float, bool, etc)
+	//   * Custom types that specialize the PrintValue::Ty template struct.
+	//   * Static arrays in the form T[N] where T can be any of the above.
+	class PrintValue
+	{
+		// Ty is a template that can be specialized for printing type T.
+		// Each specialization must expose:
+		//  * A 'static constexpr const char* fmt' field that provides the
+		//    printf format specifier.
+		//  * A 'static std::vector<rr::Value*> val(const T& v)' method that
+		//    returns all the printf format values.
+		template <typename T> struct Ty
+		{
+			// static constexpr const char* fmt;
+			// static std::vector<rr::Value*> val(const T& v)
+		};
+
+		// returns the printf value(s) for the given LValue.
+		template <typename T>
+		static std::vector<Value*> val(const LValue<T>& v) { return val(RValue<T>(v.loadValue())); };
+
+		// returns the printf value(s) for the given RValue.
+		template <typename T>
+		static std::vector<Value*> val(const RValue<T>& v) { return Ty<T>::val(v); };
+
+		// returns the printf value from for the given type with a
+		// PrintValue::Ty<T> specialization.
+		template <typename T>
+		static std::vector<Value*> val(const T& v) { return Ty<T>::val(v); };
+
+		// returns the printf values for all the values in the given array.
+		template <typename T>
+		static std::vector<Value*> val(const T* list, int count) {
+			std::vector<Value*> values;
+			values.reserve(count);
+			for (int i = 0; i < count; i++)
+			{
+				auto v = val(list[i]);
+				values.insert(values.end(), v.begin(), v.end());
+			}
+			return values;
+		};
+
+		// fmt returns a comma-delimited list of the string el repeated count
+		// times enclosed in square brackets.
+		static std::string fmt(const char* el, int count)
+		{
+			std::string out = "[";
+			for (int i = 0; i < count; i++)
+			{
+				if (i > 0) { out += ", "; }
+				out += el;
+			}
+			return out + "]";
+		}
+
+	public:
+		const std::string format;
+		const std::vector<Value*> values;
+
+		// Constructs a PrintValue for the given value.
+		template <typename T>
+		PrintValue(const T& v) : format(Ty<T>::fmt), values(val(v)) {}
+
+		// Constructs a PrintValue for the given static array.
+		template <typename T, int N>
+		PrintValue(const T (&v)[N]) : format(fmt(Ty<T>::fmt, N)), values(val(&v[0], N)) {}
+
+		// Constructs a PrintValue for the given array starting at arr of length
+		// len.
+		template <typename T>
+		PrintValue(const T* arr, int len) : format(fmt(Ty<T>::fmt, len)), values(val(arr, len)) {}
+
+
+		// PrintValue constructors for plain-old-data values.
+		PrintValue(bool v) : format(v ? "true" : "false") {}
+		PrintValue(int8_t v) : format(std::to_string(v)) {}
+		PrintValue(uint8_t v) : format(std::to_string(v)) {}
+		PrintValue(int16_t v) : format(std::to_string(v)) {}
+		PrintValue(uint16_t v) : format(std::to_string(v)) {}
+		PrintValue(int32_t v) : format(std::to_string(v)) {}
+		PrintValue(uint32_t v) : format(std::to_string(v)) {}
+		PrintValue(int64_t v) : format(std::to_string(v)) {}
+		PrintValue(uint64_t v) : format(std::to_string(v)) {}
+		PrintValue(float v) : format(std::to_string(v)) {}
+		PrintValue(double v) : format(std::to_string(v)) {}
+		PrintValue(const char* v) : format(v) {}
+		PrintValue(const std::string& v) : format(v) {}
+
+		// vals is a helper to build composite value lists.
+		// vals returns the full, sequential list of printf argument values used
+		// to print all the provided variadic values.
+		// vals() is intended to be used by implementations of
+		// PrintValue::Ty<>::vals() to help declare aggregate types.
+		// For example, if you were declaring a PrintValue::Ty<> specialization
+		// for a custom Mat4x4 matrix formed from four Vector4 values, you'd
+		// write:
+		//
+		// namespace rr
+		// {
+		//		template <> struct PrintValue::Ty<Mat4x4>
+		//		{
+		//			static constexpr const char* fmt =
+		//				"[a: <%f, %f, %f, %f>,"
+		//				" b: <%f, %f, %f, %f>,"
+		//				" c: <%f, %f, %f, %f>,"
+		//				" d: <%f, %f, %f, %f>]";
+		//			static std::vector<rr::Value*> val(const Mat4x4& v)
+		//			{
+		//				return PrintValue::vals(v.a, v.b, v.c, v.d);
+		//			}
+		//		};
+		//	}
+		template<typename ... ARGS>
+		static std::vector<Value*> vals(ARGS... v)
+		{
+			std::vector< std::vector<Value*> > lists = {val(v)...};
+			std::vector<Value*> joined;
+			for (const auto& list : lists)
+			{
+				joined.insert(joined.end(), list.begin(), list.end());
+			}
+			return joined;
+		}
+	};
+
+	// PrintValue::Ty<T> specializations for standard Reactor types.
+	template <> struct PrintValue::Ty<Byte>
+	{
+		static constexpr const char* fmt = "%d";
+		static std::vector<Value*> val(const RValue<Byte>& v) { return {v.value}; }
+	};
+	template <> struct PrintValue::Ty<Byte4>
+	{
+		static constexpr const char* fmt = "[%d, %d, %d, %d]";
+		static std::vector<Value*> val(const RValue<Byte4>& v);
+	};
+	template <> struct PrintValue::Ty<Int>
+	{
+		static constexpr const char* fmt = "%d";
+		static std::vector<Value*> val(const RValue<Int>& v) { return {v.value}; }
+	};
+	template <> struct PrintValue::Ty<Int4>
+	{
+		static constexpr const char* fmt = "[%d, %d, %d, %d]";
+		static std::vector<Value*> val(const RValue<Int4>& v);
+	};
+	template <> struct PrintValue::Ty<UInt>
+	{
+		static constexpr const char* fmt = "%u";
+		static std::vector<Value*> val(const RValue<UInt>& v) { return {v.value}; }
+	};
+	template <> struct PrintValue::Ty<UInt4>
+	{
+		static constexpr const char* fmt = "[%u, %u, %u, %u]";
+		static std::vector<Value*> val(const RValue<UInt4>& v);
+	};
+	template <> struct PrintValue::Ty<Short>
+	{
+		static constexpr const char* fmt = "%d";
+		static std::vector<Value*> val(const RValue<Short>& v) { return {v.value}; }
+	};
+	template <> struct PrintValue::Ty<Short4>
+	{
+		static constexpr const char* fmt = "[%d, %d, %d, %d]";
+		static std::vector<Value*> val(const RValue<Short4>& v);
+	};
+	template <> struct PrintValue::Ty<UShort>
+	{
+		static constexpr const char* fmt = "%u";
+		static std::vector<Value*> val(const RValue<UShort>& v) { return {v.value}; }
+	};
+	template <> struct PrintValue::Ty<UShort4>
+	{
+		static constexpr const char* fmt = "[%u, %u, %u, %u]";
+		static std::vector<Value*> val(const RValue<UShort4>& v);
+	};
+	template <> struct PrintValue::Ty<Float>
+	{
+		static constexpr const char* fmt = "[%f]";
+		static std::vector<Value*> val(const RValue<Float>& v);
+	};
+	template <> struct PrintValue::Ty<Float4>
+	{
+		static constexpr const char* fmt = "[%f, %f, %f, %f]";
+		static std::vector<Value*> val(const RValue<Float4>& v);
+	};
+	template <typename T> struct PrintValue::Ty< Pointer<T> >
+	{
+		static constexpr const char* fmt = "%p";
+		static std::vector<Value*> val(const RValue<Pointer<T>>& v) { return {v.value}; }
+	};
+	template <typename T> struct PrintValue::Ty< Reference<T> >
+	{
+		static constexpr const char* fmt = PrintValue::Ty<T>::fmt;
+		static std::vector<Value*> val(const Reference<T>& v) { return PrintValue::Ty<T>::val(v); }
+	};
+	template <typename T> struct PrintValue::Ty< RValue<T> >
+	{
+		static constexpr const char* fmt = PrintValue::Ty<T>::fmt;
+		static std::vector<Value*> val(const RValue<T>& v) { return PrintValue::Ty<T>::val(v); }
+	};
+
+	// Printv emits a call to printf() using the function, file and line,
+	// message and optional values.
+	// See Printv below.
+	void Printv(const char* function, const char* file, int line, const char* msg, std::initializer_list<PrintValue> vals);
+
+	// Printv emits a call to printf() using the provided message and optional
+	// values.
+	// Printf replaces any bracketed indices in the message with string
+	// representations of the corresponding value in vals.
+	// For example:
+	//   Printv("{0} and {1}", "red", "green");
+	// Would print the string:
+	//   "red and green"
+	// Arguments can be indexed in any order.
+	// Invalid indices are not substituted.
+	inline void Printv(const char* msg, std::initializer_list<PrintValue> vals)
+	{
+		Printv(nullptr, nullptr, 0, msg, vals);
+	}
+
+	// Print is a wrapper over Printv that wraps the variadic arguments into an
+	// initializer_list before calling Printv.
+	template <typename ... ARGS>
+	void Print(const char* msg, const ARGS& ... vals) { Printv(msg, {vals...}); }
+
+	// Print is a wrapper over Printv that wraps the variadic arguments into an
+	// initializer_list before calling Printv.
+	template <typename ... ARGS>
+	void Print(const char* function, const char* file, int line, const char* msg, const ARGS& ... vals)
+	{
+		Printv(function, file, line, msg, {vals...});
+	}
+
+	// RR_LOG is a macro that calls Print(), automatically populating the
+	// function, file and line parameters and appending a newline to the string.
+	//
+	// RR_LOG() is intended to be used for debugging JIT compiled code, and is
+	// not intended for production use.
+	#define RR_LOG(msg, ...) Print(__PRETTY_FUNCTION__, __FILE__, __LINE__, msg "\n", ##__VA_ARGS__)
+
+	// Macro magic to perform variadic dispatch.
+	// See: https://renenyffenegger.ch/notes/development/languages/C-C-plus-plus/preprocessor/macros/__VA_ARGS__/count-arguments
+	// Note, this doesn't attempt to use the ##__VA_ARGS__ trick to handle 0
+	// args as this appears to still be broken on certain compilers.
+	#define RR_GET_NTH_ARG(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, N, ...) N
+	#define RR_COUNT_ARGUMENTS(...) RR_GET_NTH_ARG(__VA_ARGS__, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0)
+	static_assert(1 == RR_COUNT_ARGUMENTS(a)); // Sanity checks.
+	static_assert(2 == RR_COUNT_ARGUMENTS(a, b));
+	static_assert(3 == RR_COUNT_ARGUMENTS(a, b, c));
+
+	// RR_WATCH_FMT(...) resolves to a string literal that lists all the
+	// arguments by name. This string can be passed to LOG() to print each of
+	// the arguments with their name and value.
+	//
+	// RR_WATCH_FMT(...) uses the RR_COUNT_ARGUMENTS helper macro to delegate to a
+	// corresponding RR_WATCH_FMT_n specialization macro below.
+	#define RR_WATCH_CONCAT(a, b) a ## b
+	#define RR_WATCH_CONCAT2(a, b) RR_WATCH_CONCAT(a, b)
+	#define RR_WATCH_FMT(...) RR_WATCH_CONCAT2(RR_WATCH_FMT_, RR_COUNT_ARGUMENTS(__VA_ARGS__))(__VA_ARGS__)
+	#define RR_WATCH_FMT_1(_1) "\n  " #_1 ": {0}"
+	#define RR_WATCH_FMT_2(_1, _2)                                   RR_WATCH_FMT_1(_1) "\n  " #_2 ": {1}"
+	#define RR_WATCH_FMT_3(_1, _2, _3)                               RR_WATCH_FMT_2(_1, _2) "\n  " #_3 ": {2}"
+	#define RR_WATCH_FMT_4(_1, _2, _3, _4)                           RR_WATCH_FMT_3(_1, _2, _3) "\n  " #_4 ": {3}"
+	#define RR_WATCH_FMT_5(_1, _2, _3, _4, _5)                       RR_WATCH_FMT_4(_1, _2, _3, _4) "\n  " #_5 ": {4}"
+	#define RR_WATCH_FMT_6(_1, _2, _3, _4, _5, _6)                   RR_WATCH_FMT_5(_1, _2, _3, _4, _5) "\n  " #_6 ": {5}"
+	#define RR_WATCH_FMT_7(_1, _2, _3, _4, _5, _6, _7)               RR_WATCH_FMT_6(_1, _2, _3, _4, _5, _6) "\n  " #_7 ": {6}"
+	#define RR_WATCH_FMT_8(_1, _2, _3, _4, _5, _6, _7, _8)           RR_WATCH_FMT_7(_1, _2, _3, _4, _5, _6, _7) "\n  " #_8 ": {7}"
+	#define RR_WATCH_FMT_9(_1, _2, _3, _4, _5, _6, _7, _8, _9)       RR_WATCH_FMT_8(_1, _2, _3, _4, _5, _6, _7, _8) "\n  " #_9 ": {8}"
+	#define RR_WATCH_FMT_10(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10) RR_WATCH_FMT_9(_1, _2, _3, _4, _5, _6, _7, _8, _9) "\n  " #_10 ": {9}"
+
+	// RR_WATCH() is a helper that prints the name and value of all the supplied
+	// arguments.
+	// For example, if you had the Int and bool variables 'foo' and 'bar' that
+	// you want to print, you can simply write:
+	//    RR_WATCH(foo, bar)
+	// When this JIT compiled code is executed, it will print the string
+	// "foo: 1, bar: true" to stdout.
+	//
+	// RR_WATCH() is intended to be used for debugging JIT compiled code, and
+	// is not intended for production use.
+	#define RR_WATCH(...) RR_LOG(RR_WATCH_FMT(__VA_ARGS__), __VA_ARGS__)
+#endif // ENABLE_RR_PRINT
 
 	class ForData
 	{

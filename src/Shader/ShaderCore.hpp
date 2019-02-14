@@ -381,4 +381,35 @@ namespace sw
 	};
 }
 
+#ifdef ENABLE_RR_PRINT
+namespace rr {
+	template <> struct PrintValue::Ty<sw::Vector4f>
+	{
+		static constexpr const char* fmt =
+			"[x: <%f, %f, %f, %f>,"
+			" y: <%f, %f, %f, %f>,"
+			" z: <%f, %f, %f, %f>,"
+			" w: <%f, %f, %f, %f>]";
+
+		static std::vector<rr::Value*> val(const sw::Vector4f& v)
+		{
+			return PrintValue::vals(v.x, v.y, v.z, v.w);
+		}
+	};
+	template <> struct PrintValue::Ty<sw::Vector4s>
+	{
+		static constexpr const char* fmt =
+			"[x: <%d, %d, %d, %d>,"
+			" y: <%d, %d, %d, %d>,"
+			" z: <%d, %d, %d, %d>,"
+			" w: <%d, %d, %d, %d>]";
+
+		static std::vector<rr::Value*> val(const sw::Vector4s& v)
+		{
+			return PrintValue::vals(v.x, v.y, v.z, v.w);
+		}
+	};
+}
+#endif // ENABLE_RR_PRINT
+
 #endif   // sw_ShaderCore_hpp
