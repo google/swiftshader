@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c1ac21f4_b2c150a6",
+        "filename": "src/Reactor/LLVMReactor.cpp",
+        "patchSetId": 21
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-02-15T18:15:49Z",
+      "side": 1,
+      "message": "I\u0027d rather not make this a run-time switch. LLVM\u0027s IR printing functionality pulls in a ton of dependencies. If we eliminate the print calls at compile time for non-debug builds then builds with link-time-optimization eliminate all of the string processing functionality and huge tables that it would otherwise use.\n\nInstead we can do something similar to Subzero\u0027s mandatory ALLOW_DUMP preprocessor definition (defaulting to 0). With CMake you can make it toggleable based on a cache variable or an environment variable (or both).",
+      "range": {
+        "startLine": 123,
+        "startChar": 22,
+        "endLine": 123,
+        "endChar": 28
+      },
+      "revId": "7f6f38239b53524f770d60ca715677d9f276e16d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
