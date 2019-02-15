@@ -267,15 +267,18 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 	context.drawType = Convert(assemblyState->topology);
 
 	const VkPipelineViewportStateCreateInfo* viewportState = pCreateInfo->pViewportState;
-	if((viewportState->flags != 0) ||
-	   (viewportState->viewportCount != 1) ||
-	   (viewportState->scissorCount	!= 1))
+	if(viewportState)
 	{
-		UNIMPLEMENTED();
-	}
+		if((viewportState->flags != 0) ||
+			(viewportState->viewportCount != 1) ||
+			(viewportState->scissorCount != 1))
+		{
+			UNIMPLEMENTED();
+		}
 
-	scissor = Convert(viewportState->pScissors[0]);
-	viewport = viewportState->pViewports[0];
+		scissor = Convert(viewportState->pScissors[0]);
+		viewport = viewportState->pViewports[0];
+	}
 
 	const VkPipelineRasterizationStateCreateInfo* rasterizationState = pCreateInfo->pRasterizationState;
 	if((rasterizationState->flags != 0) ||
@@ -291,83 +294,92 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 	context.slopeDepthBias = (rasterizationState->depthBiasEnable ? rasterizationState->depthBiasSlopeFactor : 0.0f);
 
 	const VkPipelineMultisampleStateCreateInfo* multisampleState = pCreateInfo->pMultisampleState;
-	if((multisampleState->flags != 0) ||
-	   (multisampleState->rasterizationSamples != VK_SAMPLE_COUNT_1_BIT) ||
-	   (multisampleState->sampleShadingEnable != 0) ||
-	   !((multisampleState->pSampleMask == nullptr) ||
-	     (*(multisampleState->pSampleMask) == 0xFFFFFFFFu)) ||
-	   (multisampleState->alphaToCoverageEnable != 0) ||
-	   (multisampleState->alphaToOneEnable != 0))
+	if(multisampleState)
 	{
-		UNIMPLEMENTED();
+		if((multisampleState->flags != 0) ||
+			(multisampleState->rasterizationSamples != VK_SAMPLE_COUNT_1_BIT) ||
+			(multisampleState->sampleShadingEnable != 0) ||
+			!((multisampleState->pSampleMask == nullptr) ||
+			(*(multisampleState->pSampleMask) == 0xFFFFFFFFu)) ||
+				(multisampleState->alphaToCoverageEnable != 0) ||
+			(multisampleState->alphaToOneEnable != 0))
+		{
+			UNIMPLEMENTED();
+		}
 	}
 
 	const VkPipelineDepthStencilStateCreateInfo* depthStencilState = pCreateInfo->pDepthStencilState;
-	if((depthStencilState->flags != 0) ||
-	   (depthStencilState->depthBoundsTestEnable != 0) ||
-	   (depthStencilState->minDepthBounds != 0.0f) ||
-	   (depthStencilState->maxDepthBounds != 1.0f))
+	if(depthStencilState)
 	{
-		UNIMPLEMENTED();
-	}
-
-	context.depthBufferEnable = depthStencilState->depthTestEnable;
-	context.depthWriteEnable = depthStencilState->depthWriteEnable;
-	context.depthCompareMode = depthStencilState->depthCompareOp;
-
-	context.stencilEnable = context.twoSidedStencil = depthStencilState->stencilTestEnable;
-	if(context.stencilEnable)
-	{
-		context.stencilMask = depthStencilState->front.compareMask;
-		context.stencilCompareMode = depthStencilState->front.compareOp;
-		context.stencilZFailOperation = depthStencilState->front.depthFailOp;
-		context.stencilFailOperation = depthStencilState->front.failOp;
-		context.stencilPassOperation = depthStencilState->front.passOp;
-		context.stencilReference = depthStencilState->front.reference;
-		context.stencilWriteMask = depthStencilState->front.writeMask;
-
-		context.stencilMaskCCW = depthStencilState->back.compareMask;
-		context.stencilCompareModeCCW = depthStencilState->back.compareOp;
-		context.stencilZFailOperationCCW = depthStencilState->back.depthFailOp;
-		context.stencilFailOperationCCW = depthStencilState->back.failOp;
-		context.stencilPassOperationCCW = depthStencilState->back.passOp;
-		context.stencilReferenceCCW = depthStencilState->back.reference;
-		context.stencilWriteMaskCCW = depthStencilState->back.writeMask;
-	}
-
-	const VkPipelineColorBlendStateCreateInfo* colorBlendState = pCreateInfo->pColorBlendState;
-	if((colorBlendState->flags != 0) ||
-	   ((colorBlendState->logicOpEnable != 0) &&
-	    (colorBlendState->attachmentCount > 1)))
-	{
-		UNIMPLEMENTED();
-	}
-
-	context.colorLogicOpEnabled = colorBlendState->logicOpEnable;
-	context.logicalOperation = colorBlendState->logicOp;
-	blendConstants.r = colorBlendState->blendConstants[0];
-	blendConstants.g = colorBlendState->blendConstants[1];
-	blendConstants.b = colorBlendState->blendConstants[2];
-	blendConstants.a = colorBlendState->blendConstants[3];
-
-	if(colorBlendState->attachmentCount == 1)
-	{
-		const VkPipelineColorBlendAttachmentState& attachment = colorBlendState->pAttachments[0];
-		if(attachment.colorWriteMask != (VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT))
+		if((depthStencilState->flags != 0) ||
+		   (depthStencilState->depthBoundsTestEnable != 0) ||
+		   (depthStencilState->minDepthBounds != 0.0f) ||
+		   (depthStencilState->maxDepthBounds != 1.0f))
 		{
 			UNIMPLEMENTED();
 		}
 
-		context.alphaBlendEnable = attachment.blendEnable;
-		context.separateAlphaBlendEnable = (attachment.alphaBlendOp != attachment.colorBlendOp) ||
-		                                   (attachment.dstAlphaBlendFactor != attachment.dstColorBlendFactor) ||
-		                                   (attachment.srcAlphaBlendFactor != attachment.srcColorBlendFactor);
-		context.blendOperationStateAlpha = attachment.alphaBlendOp;
-		context.blendOperationState = attachment.colorBlendOp;
-		context.destBlendFactorStateAlpha = attachment.dstAlphaBlendFactor;
-		context.destBlendFactorState = attachment.dstColorBlendFactor;
-		context.sourceBlendFactorStateAlpha = attachment.srcAlphaBlendFactor;
-		context.sourceBlendFactorState = attachment.srcColorBlendFactor;
+		context.depthBufferEnable = depthStencilState->depthTestEnable;
+		context.depthWriteEnable = depthStencilState->depthWriteEnable;
+		context.depthCompareMode = depthStencilState->depthCompareOp;
+
+		context.stencilEnable = context.twoSidedStencil = depthStencilState->stencilTestEnable;
+		if(context.stencilEnable)
+		{
+			context.stencilMask = depthStencilState->front.compareMask;
+			context.stencilCompareMode = depthStencilState->front.compareOp;
+			context.stencilZFailOperation = depthStencilState->front.depthFailOp;
+			context.stencilFailOperation = depthStencilState->front.failOp;
+			context.stencilPassOperation = depthStencilState->front.passOp;
+			context.stencilReference = depthStencilState->front.reference;
+			context.stencilWriteMask = depthStencilState->front.writeMask;
+
+			context.stencilMaskCCW = depthStencilState->back.compareMask;
+			context.stencilCompareModeCCW = depthStencilState->back.compareOp;
+			context.stencilZFailOperationCCW = depthStencilState->back.depthFailOp;
+			context.stencilFailOperationCCW = depthStencilState->back.failOp;
+			context.stencilPassOperationCCW = depthStencilState->back.passOp;
+			context.stencilReferenceCCW = depthStencilState->back.reference;
+			context.stencilWriteMaskCCW = depthStencilState->back.writeMask;
+		}
+	}
+
+	const VkPipelineColorBlendStateCreateInfo* colorBlendState = pCreateInfo->pColorBlendState;
+	if(colorBlendState)
+	{
+		if((colorBlendState->flags != 0) ||
+		   ((colorBlendState->logicOpEnable != 0) &&
+			(colorBlendState->attachmentCount > 1)))
+		{
+			UNIMPLEMENTED();
+		}
+
+		context.colorLogicOpEnabled = colorBlendState->logicOpEnable;
+		context.logicalOperation = colorBlendState->logicOp;
+		blendConstants.r = colorBlendState->blendConstants[0];
+		blendConstants.g = colorBlendState->blendConstants[1];
+		blendConstants.b = colorBlendState->blendConstants[2];
+		blendConstants.a = colorBlendState->blendConstants[3];
+
+		if(colorBlendState->attachmentCount == 1)
+		{
+			const VkPipelineColorBlendAttachmentState& attachment = colorBlendState->pAttachments[0];
+			if(attachment.colorWriteMask != (VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT))
+			{
+				UNIMPLEMENTED();
+			}
+
+			context.alphaBlendEnable = attachment.blendEnable;
+			context.separateAlphaBlendEnable = (attachment.alphaBlendOp != attachment.colorBlendOp) ||
+											   (attachment.dstAlphaBlendFactor != attachment.dstColorBlendFactor) ||
+											   (attachment.srcAlphaBlendFactor != attachment.srcColorBlendFactor);
+			context.blendOperationStateAlpha = attachment.alphaBlendOp;
+			context.blendOperationState = attachment.colorBlendOp;
+			context.destBlendFactorStateAlpha = attachment.dstAlphaBlendFactor;
+			context.destBlendFactorState = attachment.dstColorBlendFactor;
+			context.sourceBlendFactorStateAlpha = attachment.srcAlphaBlendFactor;
+			context.sourceBlendFactorState = attachment.srcColorBlendFactor;
+		}
 	}
 }
 
