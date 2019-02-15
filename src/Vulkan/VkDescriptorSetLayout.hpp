@@ -30,13 +30,21 @@ public:
 	static size_t ComputeRequiredAllocationSize(const VkDescriptorSetLayoutCreateInfo* pCreateInfo);
 
 	static size_t GetDescriptorSize(VkDescriptorType type);
+	static void WriteDescriptorSet(const VkWriteDescriptorSet& descriptorWrites);
+	static void CopyDescriptorSet(const VkCopyDescriptorSet& descriptorCopies);
 
+	void initialize(VkDescriptorSet descriptorSet);
 	size_t getSize() const;
 
 private:
+	uint32_t getBindingIndex(uint32_t binding) const;
+	uint8_t* getOffsetPointer(VkDescriptorSet descriptorSet, uint32_t binding, uint32_t arrayElement, uint32_t count, size_t* typeSize) const;
+	static const uint8_t* GetInputData(const VkWriteDescriptorSet& descriptorWrites);
+
 	VkDescriptorSetLayoutCreateFlags flags;
 	uint32_t                         bindingCount;
 	VkDescriptorSetLayoutBinding*    bindings;
+	size_t*                          bindingOffsets;
 };
 
 static inline DescriptorSetLayout* Cast(VkDescriptorSetLayout object)

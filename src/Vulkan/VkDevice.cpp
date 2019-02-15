@@ -16,6 +16,7 @@
 
 #include "VkConfig.h"
 #include "VkDebug.hpp"
+#include "VkDescriptorSetLayout.hpp"
 #include "VkQueue.hpp"
 
 #include <new> // Must #include this to use "placement new"
@@ -97,6 +98,20 @@ void Device::getDescriptorSetLayoutSupport(const VkDescriptorSetLayoutCreateInfo
 {
 	// Mark everything as unsupported
 	pSupport->supported = VK_FALSE;
+}
+
+void Device::updateDescriptorSets(uint32_t descriptorWriteCount, const VkWriteDescriptorSet* pDescriptorWrites,
+                                  uint32_t descriptorCopyCount, const VkCopyDescriptorSet* pDescriptorCopies)
+{
+	for(uint32_t i = 0; i < descriptorWriteCount; i++)
+	{
+		DescriptorSetLayout::WriteDescriptorSet(pDescriptorWrites[i]);
+	}
+
+	for(uint32_t i = 0; i < descriptorCopyCount; i++)
+	{
+		DescriptorSetLayout::CopyDescriptorSet(pDescriptorCopies[i]);
+	}
 }
 
 } // namespace vk

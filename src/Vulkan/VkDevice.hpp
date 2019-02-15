@@ -44,6 +44,8 @@ public:
 	void getDescriptorSetLayoutSupport(const VkDescriptorSetLayoutCreateInfo* pCreateInfo,
 	                                   VkDescriptorSetLayoutSupport* pSupport) const;
 	VkPhysicalDevice getPhysicalDevice() const { return physicalDevice; }
+	void updateDescriptorSets(uint32_t descriptorWriteCount, const VkWriteDescriptorSet* pDescriptorWrites,
+	                          uint32_t descriptorCopyCount, const VkCopyDescriptorSet* pDescriptorCopies);
 
 private:
 	VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;

@@ -13,10 +13,22 @@
 // limitations under the License.
 
 #include "VkDescriptorSetLayout.hpp"
+#include <algorithm>
 #include <cstring>
 
 namespace
 {
+
+struct DescriptorSet
+{
+	vk::DescriptorSetLayout* layout;
+	uint8_t data[];
+};
+
+static inline DescriptorSet* Cast(VkDescriptorSet object)
+{
+	return reinterpret_cast<DescriptorSet*>(object);
+}
 
 static bool UsesImmutableSamplers(const VkDescriptorSetLayoutBinding& binding)
 {
@@ -33,16 +45,19 @@ namespace vk
 DescriptorSetLayout::DescriptorSetLayout(const VkDescriptorSetLayoutCreateInfo* pCreateInfo, void* mem) :
 	flags(pCreateInfo->flags), bindingCount(pCreateInfo->bindingCount), bindings(reinterpret_cast<VkDescriptorSetLayoutBinding*>(mem))
 {
-	char* host_memory = static_cast<char*>(mem) + bindingCount * sizeof(VkDescriptorSetLayoutBinding);
+	uint8_t* hostMemory = static_cast<uint8_t*>(mem) + bindingCount * sizeof(VkDescriptorSetLayoutBinding);
+	bindingOffsets = reinterpret_cast<size_t*>(hostMemory);
+	hostMemory += bindingCount * sizeof(size_t);
 
+	size_t offset = 0;
 	for(uint32_t i = 0; i < bindingCount; i++)
 	{
 		bindings[i] = pCreateInfo->pBindings[i];
 		if(UsesImmutableSamplers(bindings[i]))
 		{
 			size_t immutableSamplersSize = bindings[i].descriptorCount * sizeof(VkSampler);
-			bindings[i].pImmutableSamplers = reinterpret_cast<const VkSampler*>(host_memory);
-			host_memory += immutableSamplersSize;
+			bindings[i].pImmutableSamplers = reinterpret_cast<const VkSampler*>(hostMemory);
+			hostMemory += immutableSamplersSize;
 			memcpy(const_cast<VkSampler*>(bindings[i].pImmutableSamplers),
 			       pCreateInfo->pBindings[i].pImmutableSamplers,
 			       immutableSamplersSize);
@@ -51,6 +66,8 @@ DescriptorSetLayout::DescriptorSetLayout(const VkDescriptorSetLayoutCreateInfo* 
 		{
 			bindings[i].pImmutableSamplers = nullptr;
 		}
+		bindingOffsets[i] = offset;
+		offset += bindings[i].descriptorCount * GetDescriptorSize(bindings[i].descriptorType);
 	}
 }
 
@@ -71,7 +88,7 @@ void DescriptorSetLayout::destroy(const VkAllocationCallbacks* pAllocator)
 
 size_t DescriptorSetLayout::ComputeRequiredAllocationSize(const VkDescriptorSetLayoutCreateInfo* pCreateInfo)
 {
-	size_t allocationSize = pCreateInfo->bindingCount * sizeof(VkDescriptorSetLayoutBinding);
+	size_t allocationSize = pCreateInfo->bindingCount * (sizeof(VkDescriptorSetLayoutBinding) + sizeof(size_t));
 
 	for(uint32_t i = 0; i < pCreateInfo->bindingCount; i++)
 	{
@@ -92,14 +109,16 @@ size_t DescriptorSetLayout::GetDescriptorSize(VkDescriptorType type)
 	case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
 	case VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE:
 	case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
+	case VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT:
+		return sizeof(VkDescriptorImageInfo);
 	case VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER:
 	case VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER:
+		return sizeof(VkBufferView);
 	case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
 	case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER:
 	case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:
 	case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC:
-	case VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT:
-		return sizeof(void*); // FIXME(b/123244275) : Compute actual required size for each desciptor type
+		return sizeof(VkDescriptorBufferInfo);
 	default:
 		UNIMPLEMENTED("Unsupported Descriptor Type");
 	}
@@ -115,6 +134,121 @@ size_t DescriptorSetLayout::getSize() const
 		size += bindings[i].descriptorCount * GetDescriptorSize(bindings[i].descriptorType);
 	}
 	return size;
+}
+
+uint32_t DescriptorSetLayout::getBindingIndex(uint32_t binding) const
+{
+	for(uint32_t i = 0; i < bindingCount; i++)
+	{
+		if(binding == bindings[i].binding)
+		{
+			return i;
+		}
+	}
+
+	ASSERT(false); // Bindings should always be found
+	return 0;
+}
+
+void DescriptorSetLayout::initialize(VkDescriptorSet vkDescriptorSet)
+{
+	// Use a pointer to this descriptor set layout as the descriptor set's header
+	DescriptorSet* descriptorSet = ::Cast(vkDescriptorSet);
+	descriptorSet->layout = this;
+	uint8_t* mem = descriptorSet->data;
+
+	for(uint32_t i = 0; i < bindingCount; i++)
+	{
+		size_t typeSize = GetDescriptorSize(bindings[i].descriptorType);
+		if(UsesImmutableSamplers(bindings[i]))
+		{
+			for(uint32_t j = 0; j < bindings[i].descriptorCount; j++)
+			{
+				VkDescriptorImageInfo* imageInfo = reinterpret_cast<VkDescriptorImageInfo*>(mem);
+				imageInfo->sampler = bindings[i].pImmutableSamplers[j];
+				mem += typeSize;
+			}
+		}
+		else
+		{
+			mem += bindings[i].descriptorCount * typeSize;
+		}
+	}
+}
+
+uint8_t* DescriptorSetLayout::getOffsetPointer(VkDescriptorSet descriptorSet, uint32_t binding, uint32_t arrayElement, uint32_t count, size_t* typeSize) const
+{
+	uint32_t index = getBindingIndex(binding);
+	*typeSize = GetDescriptorSize(bindings[index].descriptorType);
+	size_t byteOffset = bindingOffsets[index] + (*typeSize * arrayElement);
+	ASSERT(((*typeSize * count) + byteOffset) <= getSize()); // Make sure the operation will not go out of bounds
+	return &(::Cast(descriptorSet)->data[byteOffset]);
+}
+
+const uint8_t* DescriptorSetLayout::GetInputData(const VkWriteDescriptorSet& descriptorWrites)
+{
+	switch(descriptorWrites.descriptorType)
+	{
+	case VK_DESCRIPTOR_TYPE_SAMPLER:
+	case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
+	case VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE:
+	case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
+	case VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT:
+		return reinterpret_cast<const uint8_t*>(descriptorWrites.pImageInfo);
+	case VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER:
+	case VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER:
+		return reinterpret_cast<const uint8_t*>(descriptorWrites.pTexelBufferView);
+		break;
+	case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
+	case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER:
+	case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:
+	case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC:
+		return reinterpret_cast<const uint8_t*>(descriptorWrites.pBufferInfo);
+		break;
+	default:
+		UNIMPLEMENTED();
+		return nullptr;
+	}
+}
+
+void DescriptorSetLayout::WriteDescriptorSet(const VkWriteDescriptorSet& descriptorWrites)
+{
+	DescriptorSet* dstSet = ::Cast(descriptorWrites.dstSet);
+	DescriptorSetLayout* dstLayout = dstSet->layout;
+	ASSERT(dstLayout);
+
+	size_t typeSize = 0;
+	uint8_t* memToWrite = dstLayout->getOffsetPointer(descriptorWrites.dstSet, descriptorWrites.dstBinding, descriptorWrites.dstArrayElement, descriptorWrites.descriptorCount, &typeSize);
+
+	// If the dstBinding has fewer than descriptorCount array elements remaining
+	// starting from dstArrayElement, then the remainder will be used to update
+	// the subsequent binding - dstBinding+1 starting at array element zero. If
+	// a binding has a descriptorCount of zero, it is skipped. This behavior
+	// applies recursively, with the update affecting consecutive bindings as
+	// needed to update all descriptorCount descriptors.
+	size_t writeSize = typeSize * descriptorWrites.descriptorCount;
+	memcpy(memToWrite, DescriptorSetLayout::GetInputData(descriptorWrites), writeSize);
+}
+
+void DescriptorSetLayout::CopyDescriptorSet(const VkCopyDescriptorSet& descriptorCopies)
+{
+	DescriptorSet* srcSet = ::Cast(descriptorCopies.srcSet);
+	DescriptorSetLayout* srcLayout = srcSet->layout;
+	ASSERT(srcLayout);
+
+	DescriptorSet* dstSet = ::Cast(descriptorCopies.dstSet);
+	DescriptorSetLayout* dstLayout = dstSet->layout;
+	ASSERT(dstLayout);
+
+	size_t srcTypeSize = 0;
+	uint8_t* memToRead = srcLayout->getOffsetPointer(descriptorCopies.srcSet, descriptorCopies.srcBinding, descriptorCopies.srcArrayElement, descriptorCopies.descriptorCount, &srcTypeSize);
+
+	size_t dstTypeSize = 0;
+	uint8_t* memToWrite = dstLayout->getOffsetPointer(descriptorCopies.dstSet, descriptorCopies.dstBinding, descriptorCopies.dstArrayElement, descriptorCopies.descriptorCount, &dstTypeSize);
+
+	ASSERT(srcTypeSize == dstTypeSize);
+	size_t writeSize = dstTypeSize * descriptorCopies.descriptorCount;
+	memcpy(memToWrite, memToRead, writeSize);
 }
 
 } // namespace vk
