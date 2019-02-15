@@ -150,7 +150,7 @@ const VkPhysicalDeviceLimits& PhysicalDevice::getLimits() const
 		4000, // maxSamplerAllocationCount
 		131072, // bufferImageGranularity
 		0, // sparseAddressSpaceSize (unsupported)
-		4, // maxBoundDescriptorSets
+		MAX_BOUND_DESCRIPTOR_SETS, // maxBoundDescriptorSets
 		16, // maxPerStageDescriptorSamplers
 		12, // maxPerStageDescriptorUniformBuffers
 		4, // maxPerStageDescriptorStorageBuffers

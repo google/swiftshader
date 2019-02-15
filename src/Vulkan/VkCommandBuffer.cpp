@@ -430,6 +430,25 @@ private:
 	VkPipelineStageFlags stageMask; // FIXME(b/117835459) : We currently ignore the flags and reset the event at the last stage
 };
 
+struct BindDescriptorSet : public CommandBuffer::Command
+{
+	BindDescriptorSet(VkPipelineBindPoint pipelineBindPoint, uint32_t set, const VkDescriptorSet& descriptorSet)
+		: pipelineBindPoint(pipelineBindPoint), set(set), descriptorSet(descriptorSet)
+	{
+	}
+
+	void play(CommandBuffer::ExecutionState& executionState)
+	{
+		ASSERT((pipelineBindPoint < VK_PIPELINE_BIND_POINT_RANGE_SIZE) && (set < MAX_BOUND_DESCRIPTOR_SETS));
+		executionState.boundDescriptorSets[pipelineBindPoint][set] = descriptorSet;
+	}
+
+private:
+	VkPipelineBindPoint pipelineBindPoint;
+	uint32_t set;
+	const VkDescriptorSet descriptorSet;
+};
+
 CommandBuffer::CommandBuffer(VkCommandBufferLevel pLevel) : level(pLevel)
 {
 	// FIXME (b/119409619): replace this vector by an allocator so we can control all memory allocations
@@ -681,7 +700,17 @@ void CommandBuffer::bindDescriptorSets(VkPipelineBindPoint pipelineBindPoint, Vk
 	uint32_t firstSet, uint32_t descriptorSetCount, const VkDescriptorSet* pDescriptorSets,
 	uint32_t dynamicOffsetCount, const uint32_t* pDynamicOffsets)
 {
-	UNIMPLEMENTED();
+	ASSERT(state == RECORDING);
+
+	if(dynamicOffsetCount > 0)
+	{
+		UNIMPLEMENTED();
+	}
+
+	for(uint32_t i = 0; i < descriptorSetCount; i++)
+	{
+		addCommand<BindDescriptorSet>(pipelineBindPoint, firstSet + i, pDescriptorSets[i]);
+	}
 }
 
 void CommandBuffer::bindIndexBuffer(VkBuffer buffer, VkDeviceSize offset, VkIndexType indexType)

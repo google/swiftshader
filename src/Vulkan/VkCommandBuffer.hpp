@@ -125,6 +125,7 @@ public:
 		RenderPass* renderPass = nullptr;
 		Framebuffer* renderPassFramebuffer = nullptr;
 		Pipeline* pipelines[VK_PIPELINE_BIND_POINT_RANGE_SIZE] = {};
+		VkDescriptorSet boundDescriptorSets[VK_PIPELINE_BIND_POINT_RANGE_SIZE][MAX_BOUND_DESCRIPTOR_SETS] = { { VK_NULL_HANDLE } };
 
 		struct VertexInputBinding
 		{

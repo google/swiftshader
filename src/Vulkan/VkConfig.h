@@ -55,6 +55,7 @@ enum
 
 enum
 {
+	MAX_BOUND_DESCRIPTOR_SETS = 4,
 	MAX_VERTEX_INPUT_BINDINGS = 16,
 };
 
