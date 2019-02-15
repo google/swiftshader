@@ -239,25 +239,25 @@
     NO_ALIASES())                                                              \
   X(Reg_xmm5,   5, "xmm5",  Reg_xmm5,  1,0,0,0,0, 0,0,0,0,0, 1, 0,0,0,0,0,     \
     NO_ALIASES())                                                              \
-  X(Reg_xmm6,   6, "xmm6",  Reg_xmm6,  1,0,0,0,0, 0,0,0,0,0, 1, 0,0,0,0,0,     \
+  X(Reg_xmm6,   6, "xmm6",  Reg_xmm6,  0,0,0,0,0, 0,0,0,0,0, 1, 0,0,0,0,0,     \
     NO_ALIASES())                                                              \
-  X(Reg_xmm7,   7, "xmm7",  Reg_xmm7,  1,0,0,0,0, 0,0,0,0,0, 1, 0,0,0,0,0,     \
+  X(Reg_xmm7,   7, "xmm7",  Reg_xmm7,  0,0,0,0,0, 0,0,0,0,0, 1, 0,0,0,0,0,     \
     NO_ALIASES())                                                              \
-  X(Reg_xmm8,   8, "xmm8",  Reg_xmm8,  1,0,0,0,0, 0,0,0,0,0, 1, 0,0,0,0,0,     \
+  X(Reg_xmm8,   8, "xmm8",  Reg_xmm8,  0,0,0,0,0, 0,0,0,0,0, 1, 0,0,0,0,0,     \
     NO_ALIASES())                                                              \
-  X(Reg_xmm9,   9, "xmm9",  Reg_xmm9,  1,0,0,0,0, 0,0,0,0,0, 1, 0,0,0,0,0,     \
+  X(Reg_xmm9,   9, "xmm9",  Reg_xmm9,  0,0,0,0,0, 0,0,0,0,0, 1, 0,0,0,0,0,     \
     NO_ALIASES())                                                              \
-  X(Reg_xmm10, 10, "xmm10", Reg_xmm10, 1,0,0,0,0, 0,0,0,0,0, 1, 0,0,0,0,0,     \
+  X(Reg_xmm10, 10, "xmm10", Reg_xmm10, 0,0,0,0,0, 0,0,0,0,0, 1, 0,0,0,0,0,     \
     NO_ALIASES())                                                              \
-  X(Reg_xmm11, 11, "xmm11", Reg_xmm11, 1,0,0,0,0, 0,0,0,0,0, 1, 0,0,0,0,0,     \
+  X(Reg_xmm11, 11, "xmm11", Reg_xmm11, 0,0,0,0,0, 0,0,0,0,0, 1, 0,0,0,0,0,     \
     NO_ALIASES())                                                              \
-  X(Reg_xmm12, 12, "xmm12", Reg_xmm12, 1,0,0,0,0, 0,0,0,0,0, 1, 0,0,0,0,0,     \
+  X(Reg_xmm12, 12, "xmm12", Reg_xmm12, 0,0,0,0,0, 0,0,0,0,0, 1, 0,0,0,0,0,     \
     NO_ALIASES())                                                              \
-  X(Reg_xmm13, 13, "xmm13", Reg_xmm13, 1,0,0,0,0, 0,0,0,0,0, 1, 0,0,0,0,0,     \
+  X(Reg_xmm13, 13, "xmm13", Reg_xmm13, 0,0,0,0,0, 0,0,0,0,0, 1, 0,0,0,0,0,     \
     NO_ALIASES())                                                              \
-  X(Reg_xmm14, 14, "xmm14", Reg_xmm14, 1,0,0,0,0, 0,0,0,0,0, 1, 0,0,0,0,0,     \
+  X(Reg_xmm14, 14, "xmm14", Reg_xmm14, 0,0,0,0,0, 0,0,0,0,0, 1, 0,0,0,0,0,     \
     NO_ALIASES())                                                              \
-  X(Reg_xmm15, 15, "xmm15", Reg_xmm15, 1,0,0,0,0, 0,0,0,0,0, 1, 0,0,0,0,0,     \
+  X(Reg_xmm15, 15, "xmm15", Reg_xmm15, 0,0,0,0,0, 0,0,0,0,0, 1, 0,0,0,0,0,     \
     NO_ALIASES())                                                              \
   /* End of xmm register set */
 //#define X(val, encode, name, base, scratch, preserved, stackptr, frameptr,
