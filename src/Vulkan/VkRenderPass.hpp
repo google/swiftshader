@@ -29,6 +29,8 @@ public:
 
 	static size_t ComputeRequiredAllocationSize(const VkRenderPassCreateInfo* pCreateInfo);
 
+	void getRenderAreaGranularity(VkExtent2D* pGranularity) const;
+
 	void begin();
 	void nextSubpass();
 	void end();

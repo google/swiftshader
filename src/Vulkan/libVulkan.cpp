@@ -1202,8 +1202,10 @@ VKAPI_ATTR void VKAPI_CALL vkDestroyRenderPass(VkDevice device, VkRenderPass ren
 
 VKAPI_ATTR void VKAPI_CALL vkGetRenderAreaGranularity(VkDevice device, VkRenderPass renderPass, VkExtent2D* pGranularity)
 {
-	TRACE("()");
-	UNIMPLEMENTED();
+	TRACE("(VkDevice device = 0x%X, VkRenderPass renderPass = 0x%X, VkExtent2D* pGranularity = 0x%X)",
+	      device, renderPass, pGranularity);
+
+	vk::Cast(renderPass)->getRenderAreaGranularity(pGranularity);
 }
 
 VKAPI_ATTR VkResult VKAPI_CALL vkCreateCommandPool(VkDevice device, const VkCommandPoolCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkCommandPool* pCommandPool)
