@@ -1,0 +1,15 @@
+[
+    {
+        "name": "vulkan",
+        "api": "vulkan",
+        "tests": "vk-master.txt"
+    }, {
+        "name": "gles3",
+        "api": "gles3",
+        "tests": "gles3-master.txt"
+    }, {
+        "name": "vulkan-wsi",
+        "api": "vulkan",
+        "tests": "vk-wsi.txt"
+    }
+]
