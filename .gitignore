@@ -1,4 +1,5 @@
 # Ignored folders #
+/cache/
 /lib/
 /obj/
 /bin/
