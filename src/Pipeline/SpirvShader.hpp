@@ -30,24 +30,85 @@
 
 namespace sw
 {
+	// Incrementally constructed complex bundle of rvalues
+	// Effectively a restricted vector, supporting only:
+	// - allocation to a (runtime-known) fixed size
+	// - in-place construction of elements
+	// - const operator[]
+	class Intermediate
+	{
+	public:
+		using Scalar = RValue<Float4>;
+
+		Intermediate(uint32_t size) : contents(new ContentsType[size]), size(size) {}
+
+		~Intermediate()
+		{
+			for (auto i = 0u; i < size; i++)
+				reinterpret_cast<Scalar *>(&contents[i])->~Scalar();
+			delete [] contents;
+		}
+
+		void emplace(uint32_t n, Scalar&& value)
+		{
+			assert(n < size);
+			new (&contents[n]) Scalar(value);
+		}
+
+		Scalar const & operator[](uint32_t n) const
+		{
+			assert(n < size);
+			return *reinterpret_cast<Scalar const *>(&contents[n]);
+		}
+
+		// No copy/move construction or assignment
+		Intermediate(Intermediate const &) = delete;
+		Intermediate(Intermediate &&) = delete;
+		Intermediate & operator=(Intermediate const &) = delete;
+		Intermediate & operator=(Intermediate &&) = delete;
+
+	private:
+		using ContentsType = std::aligned_storage<sizeof(Scalar), alignof(Scalar)>::type;
+
+		ContentsType *contents;
+		uint32_t size;
+	};
+
 	class SpirvRoutine
 	{
 	public:
 		using Value = Array<Float4>;
-		std::unordered_map<uint32_t, std::unique_ptr<Value>> lvalues;
-		std::unique_ptr<Value> inputs = std::unique_ptr<Value>(new Value(MAX_INTERFACE_COMPONENTS));
-		std::unique_ptr<Value> outputs = std::unique_ptr<Value>(new Value(MAX_INTERFACE_COMPONENTS));
+		std::unordered_map<uint32_t, Value> lvalues;
+
+		std::unordered_map<uint32_t, Intermediate> intermediates;
+
+		std::unique_ptr<Value> const inputs = std::unique_ptr<Value>(new Value(MAX_INTERFACE_COMPONENTS));
+		std::unique_ptr<Value> const outputs = std::unique_ptr<Value>(new Value(MAX_INTERFACE_COMPONENTS));
 
 		void createLvalue(uint32_t id, uint32_t size)
 		{
-			lvalues.emplace(id, std::unique_ptr<Value>(new Value(size)));
+			lvalues.emplace(id, Value(size));
+		}
+
+		void createIntermediate(uint32_t id, uint32_t size)
+		{
+			intermediates.emplace(std::piecewise_construct,
+					std::forward_as_tuple(id),
+					std::forward_as_tuple(size));
 		}
 
 		Value& getValue(uint32_t id)
 		{
 			auto it = lvalues.find(id);
 			assert(it != lvalues.end());
-			return *it->second;
+			return it->second;
+		}
+
+		Intermediate& getIntermediate(uint32_t id)
+		{
+			auto it = intermediates.find(id);
+			assert(it != intermediates.end());
+			return it->second;
 		}
 	};
 

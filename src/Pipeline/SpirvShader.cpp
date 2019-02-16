@@ -488,7 +488,6 @@ namespace sw
 
 	Int4 SpirvShader::WalkAccessChain(uint32_t id, uint32_t numIndexes, uint32_t const *indexIds, SpirvRoutine *routine) const
 	{
-		// TODO: think about decorations, to make this work on location based interfaces
 		// TODO: think about explicit layout (UBO/SSBO) storage classes
 		// TODO: avoid doing per-lane work in some cases if we can?
 
@@ -497,8 +496,10 @@ namespace sw
 		auto & baseObject = getObject(id);
 		auto typeId = baseObject.definition.word(1);
 
+		// The <base> operand is an intermediate value itself, ie produced by a previous OpAccessChain.
+		// Start with its offset and build from there.
 		if (baseObject.kind == Object::Kind::Value)
-			dynamicOffset += As<Int4>(routine->getValue(id)[0]);
+			dynamicOffset += As<Int4>(routine->getIntermediate(id)[0]);
 
 		for (auto i = 0u; i < numIndexes; i++)
 		{
@@ -525,7 +526,7 @@ namespace sw
 				if (obj.kind == Object::Kind::Constant)
 					constantOffset += stride * GetConstantInt(indexIds[i]);
 				else
-					dynamicOffset += Int4(stride) * As<Int4>(routine->getValue(indexIds[i])[0]);
+					dynamicOffset += Int4(stride) * As<Int4>(routine->getIntermediate(indexIds[i])[0]);
 				break;
 			}
 
@@ -685,7 +686,7 @@ namespace sw
 				auto &object = getObject(insn.word(2));
 				auto &type = getType(insn.word(1));
 				auto &pointer = getObject(insn.word(3));
-				routine->createLvalue(insn.word(2), type.sizeInComponents);		// TODO: this should be an ssavalue!
+				routine->createIntermediate(insn.word(2), type.sizeInComponents);
 				auto &pointerBase = getObject(pointer.pointerBase);
 
 				if (pointerBase.storageClass == spv::StorageClassImage ||
@@ -696,18 +697,18 @@ namespace sw
 				}
 
 				SpirvRoutine::Value& ptrBase = routine->getValue(pointer.pointerBase);
-				auto & dst = routine->getValue(insn.word(2));
+				auto & dst = routine->getIntermediate(insn.word(2));
 
 				if (pointer.kind == Object::Kind::Value)
 				{
-					auto offsets = As<Int4>(routine->getValue(insn.word(3)));
+					auto offsets = As<Int4>(routine->getIntermediate(insn.word(3))[0]);
 					for (auto i = 0u; i < object.sizeInComponents; i++)
 					{
 						// i wish i had a Float,Float,Float,Float constructor here..
 						Float4 v;
 						for (int j = 0; j < 4; j++)
 							v = Insert(v, Extract(ptrBase[Int(i) + Extract(offsets, j)], j), j);
-						dst[i] = v;
+						dst.emplace(i, v);
 					}
 				}
 				else
@@ -715,7 +716,7 @@ namespace sw
 					// no divergent offsets to worry about
 					for (auto i = 0u; i < object.sizeInComponents; i++)
 					{
-						dst[i] = ptrBase[i];
+						dst.emplace(i, ptrBase[i]);
 					}
 				}
 				break;
@@ -725,7 +726,7 @@ namespace sw
 				auto &object = getObject(insn.word(2));
 				auto &type = getType(insn.word(1));
 				auto &base = getObject(insn.word(3));
-				routine->createLvalue(insn.word(2), type.sizeInComponents);		// TODO: this should be an ssavalue!
+				routine->createIntermediate(insn.word(2), type.sizeInComponents);
 				auto &pointerBase = getObject(object.pointerBase);
 				assert(type.sizeInComponents == 1);
 				assert(base.pointerBase == object.pointerBase);
@@ -737,8 +738,8 @@ namespace sw
 					UNIMPLEMENTED("Descriptor-backed OpAccessChain not yet implemented");
 				}
 
-				auto & dst = routine->getValue(insn.word(2));
-				dst[0] = As<Float4>(WalkAccessChain(insn.word(3), insn.wordCount() - 4, insn.wordPointer(4), routine));
+				auto & dst = routine->getIntermediate(insn.word(2));
+				dst.emplace(0, As<Float4>(WalkAccessChain(insn.word(3), insn.wordCount() - 4, insn.wordPointer(4), routine)));
 				break;
 			}
 			case spv::OpStore:
@@ -755,11 +756,11 @@ namespace sw
 				}
 
 				SpirvRoutine::Value& ptrBase = routine->getValue(pointer.pointerBase);
-				auto & src = routine->getValue(insn.word(2));;
+				auto & src = routine->getIntermediate(insn.word(2));;
 
 				if (pointer.kind == Object::Kind::Value)
 				{
-					auto offsets = As<Int4>(routine->getValue(insn.word(1)));
+					auto offsets = As<Int4>(routine->getIntermediate(insn.word(1))[0]);
 					for (auto i = 0u; i < object.sizeInComponents; i++)
 					{
 						// Scattered store
