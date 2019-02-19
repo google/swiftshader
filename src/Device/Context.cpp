@@ -513,7 +513,7 @@ namespace sw
 			}
 			else
 			{
-				if(destBlendFactor() == VK_BLEND_OP_ZERO_EXT)
+				if(destBlendFactor() == VK_BLEND_FACTOR_ZERO)
 				{
 					return VK_BLEND_OP_ZERO_EXT;   // Negative, clamped to zero
 				}
@@ -681,7 +681,7 @@ namespace sw
 				}
 				else
 				{
-					if(destBlendFactorAlpha() == VK_BLEND_OP_ZERO_EXT)
+					if(destBlendFactorAlpha() == VK_BLEND_FACTOR_ZERO)
 					{
 						return VK_BLEND_OP_ZERO_EXT;   // Negative, clamped to zero
 					}
