@@ -22,6 +22,30 @@
       "revId": "7f6f38239b53524f770d60ca715677d9f276e16d",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3b474628_e04f94b2",
+        "filename": "src/Reactor/LLVMReactor.cpp",
+        "patchSetId": 21
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-02-19T19:55:16Z",
+      "side": 1,
+      "message": "Considering that you don\u0027t want to re-flash an Android device to toggle this on and off, how about enabling this code only when NDEBUG isn\u0027t defined, or when SWIFTSHADER_DUMP_LLVM_IR is defined at compile time (to enable it in optimized builds - debug builds can be really slow) *and* it\u0027s defined as an environment variable set to non-0.\n\nI think that would satisfy all the requirements/desires.",
+      "parentUuid": "c1ac21f4_b2c150a6",
+      "range": {
+        "startLine": 123,
+        "startChar": 22,
+        "endLine": 123,
+        "endChar": 28
+      },
+      "revId": "7f6f38239b53524f770d60ca715677d9f276e16d",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
