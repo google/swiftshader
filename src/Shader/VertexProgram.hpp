@@ -124,9 +124,9 @@ namespace sw
 		Vector4f sampleTexture(const Src &s, Vector4f &uvwq, Float4 &lod, Vector4f &dsx, Vector4f &dsy, Vector4f &offset, SamplerFunction function);
 		Vector4f sampleTexture(int sampler, Vector4f &uvwq, Float4 &lod, Vector4f &dsx, Vector4f &dsy, Vector4f &offset, SamplerFunction function);
 
-		BoundedIndex ifDepth = 0;
-		BoundedIndex loopRepDepth = 0;
-		BoundedIndex currentLabel = -1;
+		int ifDepth = 0;
+		int loopRepDepth = 0;
+		int currentLabel = -1;
 		bool scalar = false;
 
 		std::vector<BasicBlock*> ifFalseBlock;

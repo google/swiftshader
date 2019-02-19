@@ -34,10 +34,6 @@ namespace sw
 			callStack(shader->getLimits().stack)
 	{
 		auto limits = shader->getLimits();
-		ifDepth.setLimit(limits.ifs);
-		loopRepDepth.setLimit(limits.loops);
-		currentLabel.setLimit(limits.functions);
-
 		ifFalseBlock.resize(limits.ifs);
 		loopRepTestBlock.resize(limits.loops);
 		loopRepEndBlock.resize(limits.loops);

@@ -134,9 +134,9 @@ namespace sw
 		void RET();
 		void LEAVE();
 
-		BoundedIndex ifDepth = 0;
-		BoundedIndex loopRepDepth = 0;
-		BoundedIndex currentLabel = -1;
+		int ifDepth = 0;
+		int loopRepDepth = 0;
+		int currentLabel = -1;
 		bool scalar = false;
 
 		std::vector<BasicBlock*> ifFalseBlock;
