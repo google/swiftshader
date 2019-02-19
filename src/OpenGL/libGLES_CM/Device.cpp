@@ -374,7 +374,6 @@ namespace es1
 				sw::byte *sourceBuffer = (sw::byte*)source->lockInternal(0, 0, sRect.slice, LOCK_READONLY, PUBLIC);
 				sw::byte *destBuffer = (sw::byte*)dest->lockInternal(0, 0, dRect.slice, LOCK_DISCARD, PUBLIC);
 
-				unsigned int width = source->getWidth();
 				unsigned int height = source->getHeight();
 				unsigned int pitch = source->getInternalPitchB();
 
@@ -395,7 +394,6 @@ namespace es1
 				sw::byte *sourceBuffer = (sw::byte*)source->lockStencil(0, 0, 0, PUBLIC);
 				sw::byte *destBuffer = (sw::byte*)dest->lockStencil(0, 0, 0, PUBLIC);
 
-				unsigned int width = source->getWidth();
 				unsigned int height = source->getHeight();
 				unsigned int pitch = source->getStencilPitchB();
 

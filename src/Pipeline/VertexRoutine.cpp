@@ -44,8 +44,6 @@ namespace sw
 		Pointer<Byte> tagCache = cache + OFFSET(VertexCache,tag);
 
 		UInt vertexCount = *Pointer<UInt>(task + OFFSET(VertexTask,vertexCount));
-		UInt primitiveNumber = *Pointer<UInt>(task + OFFSET(VertexTask, primitiveStart));
-		UInt indexInPrimitive = 0;
 
 		constants = *Pointer<Pointer<Byte>>(data + OFFSET(DrawData,constants));
 

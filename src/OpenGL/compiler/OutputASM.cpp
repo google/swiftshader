@@ -2499,7 +2499,7 @@ namespace glsl
 	{
 		for(int index = 0; index < dst->totalRegisterCount(); index++)
 		{
-			Instruction *mov = emit(sw::Shader::OPCODE_MOV, dst, index, src, offset + index);
+			emit(sw::Shader::OPCODE_MOV, dst, index, src, offset + index);
 		}
 	}
 

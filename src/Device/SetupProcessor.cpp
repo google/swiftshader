@@ -95,8 +95,6 @@ namespace sw
 			state.gradient[interpolant] = context->pixelShader->inputs[interpolant];
 		}
 
-		const bool point = context->isDrawPoint();
-
 		state.hash = state.computeHash();
 
 		return state;

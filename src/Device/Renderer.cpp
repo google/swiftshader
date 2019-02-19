@@ -1518,7 +1518,6 @@ namespace sw
 	bool Renderer::setupPoint(Primitive &primitive, Triangle &triangle, const DrawCall &draw)
 	{
 		const SetupProcessor::RoutinePointer &setupRoutine = draw.setupPointer;
-		const SetupProcessor::State &state = draw.setupState;
 		const DrawData &data = *draw.data;
 
 		Vertex &v = triangle.v0;

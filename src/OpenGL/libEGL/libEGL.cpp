@@ -1148,6 +1148,8 @@ EGLImage CreateImage(EGLDisplay dpy, EGLContext ctx, EGLenum target, EGLClientBu
 	}
 
 	EGLenum imagePreserved = EGL_FALSE;
+	(void)imagePreserved; // currently unused
+
 	GLuint textureLevel = 0;
 	if(attrib_list)
 	{

@@ -2358,10 +2358,6 @@ namespace sw
 			const int oneBits  = 0x3F7FFFFF;   // Value just under 1.0f
 			const int twoBits  = 0x3FFFFFFF;   // Value just under 2.0f
 
-			bool pointFilter = state.textureFilter == FILTER_POINT ||
-			                   state.textureFilter == FILTER_MIN_POINT_MAG_LINEAR ||
-			                   state.textureFilter == FILTER_MIN_LINEAR_MAG_POINT;
-
 			Float4 coord = uvw;
 
 			if(state.textureType == TEXTURE_RECTANGLE)
