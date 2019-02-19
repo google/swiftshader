@@ -403,6 +403,8 @@ void PhysicalDevice::getFormatProperties(VkFormat format, VkFormatProperties* pF
 		pFormatProperties->optimalTilingFeatures |=
 			VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT;
 		break;
+	default:
+		break;
 	}
 
 	switch(format)
@@ -437,6 +439,8 @@ void PhysicalDevice::getFormatProperties(VkFormat format, VkFormatProperties* pF
 	case VK_FORMAT_A8B8G8R8_SINT_PACK32:
 		pFormatProperties->bufferFeatures |=
 			VK_FORMAT_FEATURE_STORAGE_TEXEL_BUFFER_BIT;
+		break;
+	default:
 		break;
 	}
 
@@ -493,6 +497,8 @@ void PhysicalDevice::getFormatProperties(VkFormat format, VkFormatProperties* pF
 		pFormatProperties->optimalTilingFeatures |=
 			VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT;
 		break;
+	default:
+		break;
 	}
 
 	switch(format)
@@ -545,6 +551,8 @@ void PhysicalDevice::getFormatProperties(VkFormat format, VkFormatProperties* pF
 		pFormatProperties->bufferFeatures |=
 			VK_FORMAT_FEATURE_VERTEX_BUFFER_BIT;
 		break;
+	default:
+		break;
 	}
 
 	switch(format)
@@ -589,6 +597,8 @@ void PhysicalDevice::getFormatProperties(VkFormat format, VkFormatProperties* pF
 	case VK_FORMAT_B10G11R11_UFLOAT_PACK32:
 		pFormatProperties->bufferFeatures |=
 			VK_FORMAT_FEATURE_UNIFORM_TEXEL_BUFFER_BIT;
+		break;
+	default:
 		break;
 	}
 }
