@@ -357,7 +357,7 @@ struct BlitImage : public CommandBuffer::Command
 private:
 	VkImage srcImage;
 	VkImage dstImage;
-	const VkImageBlit& region;
+	VkImageBlit region;
 	VkFilter filter;
 };
 
