@@ -76,6 +76,7 @@ option (MSAN "Build with memory sanitizer" 0)
 option (ASAN "Build with address sanitizer" 0)
 option (TSAN "Build with thread sanitizer" 0)
 option (UBSAN "Build with undefined behavior sanitizer" 0)
+option (WARNINGS_AS_ERRORS "Treat all warnings as errors" 0)
 
 if(ARCH STREQUAL "arm")
     set(DEFAULT_REACTOR_BACKEND "Subzero")
@@ -264,6 +265,10 @@ else()
     if(NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang")
         # Treated as an unused argument with clang
         set_cpp_flag("-s" RELEASE)
+    endif()
+
+    if(WARNINGS_AS_ERRORS)
+        set_cpp_flag("-Werror") # Treat all warnings as errors
     endif()
 
     # Disable pedanitc warnings

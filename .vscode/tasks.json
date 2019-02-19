@@ -66,7 +66,8 @@
             "command": "cmake",
             "args": [
                 "..",
-                "-DCMAKE_BUILD_TYPE=${input:buildType}"
+                "-DCMAKE_BUILD_TYPE=${input:buildType}",
+                "-DWARNINGS_AS_ERRORS=1"
             ],
             "options": {
                 "cwd": "${workspaceRoot}/build"
