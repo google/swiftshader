@@ -266,6 +266,17 @@ else()
         set_cpp_flag("-s" RELEASE)
     endif()
 
+    # Disable pedanitc warnings
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+        set_cpp_flag("-Wno-ignored-attributes") # ignoring attributes on template argument 'X'
+        set_cpp_flag("-Wno-attributes")         # 'X' attribute ignored
+        set_cpp_flag("-Wno-comment")            # multi-line comment
+        set_cpp_flag("-Wno-noexcept-type")      # mangled name for ‘X’ will change in C++17 because the exception specification is part of a function type
+    elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+        set_cpp_flag("-Wno-unneeded-internal-declaration") # function 'X' is not needed and will not be emitted
+        set_cpp_flag("-Wno-unused-private-field")          # private field 'offset' is not used - TODO: Consider enabling this once Vulkan is further implemented.
+    endif()
+
     # For distribution it is more important to be slim than super optimized
     set_cpp_flag("-Os" RELEASE)
     set_cpp_flag("-Os" RELWITHDEBINFO)
@@ -2249,6 +2260,7 @@ if(BUILD_SAMPLES)
         set_target_properties(OGLES2HelloAPI PROPERTIES
             INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/include"
             COMPILE_DEFINITIONS "GL_GLEXT_PROTOTYPES"
+            COMPILE_FLAGS "-Wno-deprecated-declarations" # 'NSTitledWindowMask', 'NSClosableWindowMask' is deprecated
             MACOSX_BUNDLE_INFO_PLIST "${HELLO2_DIR}/Build/OSX/Info.plist"
         )
         target_link_libraries(OGLES2HelloAPI libEGL libGLESv2 ${OS_LIBS})
