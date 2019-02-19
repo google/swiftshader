@@ -146,23 +146,23 @@ namespace sw
 		{
 			State();
 
-			TextureType textureType        : BITS(TEXTURE_LAST);
-			VkFormat textureFormat         : BITS(VK_FORMAT_END_RANGE);
-			FilterType textureFilter       : BITS(FILTER_LAST);
-			AddressingMode addressingModeU : BITS(ADDRESSING_LAST);
-			AddressingMode addressingModeV : BITS(ADDRESSING_LAST);
-			AddressingMode addressingModeW : BITS(ADDRESSING_LAST);
-			MipmapType mipmapFilter        : BITS(FILTER_LAST);
-			bool sRGB                      : 1;
-			SwizzleType swizzleR           : BITS(SWIZZLE_LAST);
-			SwizzleType swizzleG           : BITS(SWIZZLE_LAST);
-			SwizzleType swizzleB           : BITS(SWIZZLE_LAST);
-			SwizzleType swizzleA           : BITS(SWIZZLE_LAST);
-			bool highPrecisionFiltering    : 1;
-			CompareFunc compare            : BITS(COMPARE_LAST);
+			TextureType textureType;
+			VkFormat textureFormat;
+			FilterType textureFilter;
+			AddressingMode addressingModeU;
+			AddressingMode addressingModeV;
+			AddressingMode addressingModeW;
+			MipmapType mipmapFilter;
+			bool sRGB;
+			SwizzleType swizzleR;
+			SwizzleType swizzleG;
+			SwizzleType swizzleB;
+			SwizzleType swizzleA;
+			bool highPrecisionFiltering;
+			CompareFunc compare;
 
 			#if PERF_PROFILE
-			bool compressedFormat          : 1;
+			bool compressedFormat;
 			#endif
 		};
 

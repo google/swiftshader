@@ -34,51 +34,51 @@ namespace sw
 
 			int shaderID;
 
-			VkCompareOp depthCompareMode              : BITS(VK_COMPARE_OP_END_RANGE);
-			VkCompareOp alphaCompareMode              : BITS(VK_COMPARE_OP_END_RANGE);
-			bool depthWriteEnable                     : 1;
-			bool quadLayoutDepthBuffer                : 1;
+			VkCompareOp depthCompareMode;
+			VkCompareOp alphaCompareMode;
+			bool depthWriteEnable;
+			bool quadLayoutDepthBuffer;
 
-			bool stencilActive                        : 1;
-			VkCompareOp stencilCompareMode            : BITS(VK_COMPARE_OP_END_RANGE);
-			VkStencilOp stencilFailOperation          : BITS(VK_STENCIL_OP_END_RANGE);
-			VkStencilOp stencilPassOperation          : BITS(VK_STENCIL_OP_END_RANGE);
-			VkStencilOp stencilZFailOperation         : BITS(VK_STENCIL_OP_END_RANGE);
-			bool noStencilMask                        : 1;
-			bool noStencilWriteMask                   : 1;
-			bool stencilWriteMasked                   : 1;
-			bool twoSidedStencil                      : 1;
-			VkCompareOp stencilCompareModeCCW         : BITS(VK_COMPARE_OP_END_RANGE);
-			VkStencilOp stencilFailOperationCCW       : BITS(VK_STENCIL_OP_END_RANGE);
-			VkStencilOp stencilPassOperationCCW       : BITS(VK_STENCIL_OP_END_RANGE);
-			VkStencilOp stencilZFailOperationCCW      : BITS(VK_STENCIL_OP_END_RANGE);
-			bool noStencilMaskCCW                     : 1;
-			bool noStencilWriteMaskCCW                : 1;
-			bool stencilWriteMaskedCCW                : 1;
+			bool stencilActive;
+			VkCompareOp stencilCompareMode;
+			VkStencilOp stencilFailOperation;
+			VkStencilOp stencilPassOperation;
+			VkStencilOp stencilZFailOperation;
+			bool noStencilMask;
+			bool noStencilWriteMask;
+			bool stencilWriteMasked;
+			bool twoSidedStencil;
+			VkCompareOp stencilCompareModeCCW;
+			VkStencilOp stencilFailOperationCCW;
+			VkStencilOp stencilPassOperationCCW;
+			VkStencilOp stencilZFailOperationCCW;
+			bool noStencilMaskCCW;
+			bool noStencilWriteMaskCCW;
+			bool stencilWriteMaskedCCW;
 
-			bool depthTestActive                      : 1;
-			bool occlusionEnabled                     : 1;
-			bool perspective                          : 1;
-			bool depthClamp                           : 1;
+			bool depthTestActive;
+			bool occlusionEnabled;
+			bool perspective;
+			bool depthClamp;
 
-			bool alphaBlendActive                     : 1;
-			VkBlendFactor sourceBlendFactor           : BITS(VK_BLEND_FACTOR_END_RANGE);
-			VkBlendFactor destBlendFactor             : BITS(VK_BLEND_FACTOR_END_RANGE);
-			VkBlendOp blendOperation                  : BITS(VK_BLEND_OP_BLUE_EXT);
-			VkBlendFactor sourceBlendFactorAlpha      : BITS(VK_BLEND_FACTOR_END_RANGE);
-			VkBlendFactor destBlendFactorAlpha        : BITS(VK_BLEND_FACTOR_END_RANGE);
-			VkBlendOp blendOperationAlpha             : BITS(VK_BLEND_OP_BLUE_EXT);
+			bool alphaBlendActive;
+			VkBlendFactor sourceBlendFactor;
+			VkBlendFactor destBlendFactor;
+			VkBlendOp blendOperation;
+			VkBlendFactor sourceBlendFactorAlpha;
+			VkBlendFactor destBlendFactorAlpha;
+			VkBlendOp blendOperationAlpha;
 
-			unsigned int colorWriteMask                       : RENDERTARGETS * 4;   // Four component bit masks
+			unsigned int colorWriteMask;
 			VkFormat targetFormat[RENDERTARGETS];
-			bool writeSRGB                                    : 1;
-			unsigned int multiSample                          : 3;
-			unsigned int multiSampleMask                      : 4;
-			TransparencyAntialiasing transparencyAntialiasing : BITS(TRANSPARENCY_LAST);
-			bool centroid                                     : 1;
-			bool frontFaceCCW                                 : 1;
+			bool writeSRGB;
+			unsigned int multiSample;
+			unsigned int multiSampleMask;
+			TransparencyAntialiasing transparencyAntialiasing;
+			bool centroid;
+			bool frontFaceCCW;
 
-			VkLogicOp logicalOperation : BITS(VK_LOGIC_OP_END_RANGE);
+			VkLogicOp logicalOperation;
 
 			Sampler::State sampler[TEXTURE_IMAGE_UNITS];
 		};
