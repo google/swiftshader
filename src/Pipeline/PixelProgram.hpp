@@ -39,7 +39,6 @@ namespace sw
 	private:
 		// Color outputs
 		Vector4f c[RENDERTARGETS];
-		RegisterArray<RENDERTARGETS, true> oC;
 
 		// Per pixel based on conditions reached
 		Int enableIndex;

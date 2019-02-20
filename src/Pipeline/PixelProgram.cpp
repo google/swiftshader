@@ -31,22 +31,15 @@ namespace sw
 	{
 		enableIndex = 0;
 
-		// For our own sanity, ensure color outputs are written,
-		// even if the shader neglects to write them.
-		for(int i = 0; i < RENDERTARGETS; i++)
-		{
-			if(state.targetFormat[i] != VK_FORMAT_UNDEFINED)
-			{
-				oC[i] = Vector4f(0.0f, 0.0f, 0.0f, 0.0f);
-			}
-		}
-
 		spirvShader->emit(&routine);
 		spirvShader->emitEpilog(&routine);
 
 		for(int i = 0; i < RENDERTARGETS; i++)
 		{
-			c[i] = oC[i];
+			c[i].x = routine.outputs[i * 4];
+			c[i].y = routine.outputs[i * 4 + 1];
+			c[i].z = routine.outputs[i * 4 + 2];
+			c[i].w = routine.outputs[i * 4 + 3];
 		}
 
 		clampColor(c);
