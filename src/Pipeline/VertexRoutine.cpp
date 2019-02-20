@@ -92,10 +92,10 @@ namespace sw
 				UInt stride = *Pointer<UInt>(data + OFFSET(DrawData, stride) + sizeof(unsigned int) * i);
 
 				auto value = readStream(input, stride, state.input[i], index);
-				(*routine.inputs)[i] = value.x;
-				(*routine.inputs)[i+1] = value.y;
-				(*routine.inputs)[i+2] = value.z;
-				(*routine.inputs)[i+3] = value.w;
+				routine.inputs[i] = value.x;
+				routine.inputs[i+1] = value.y;
+				routine.inputs[i+2] = value.z;
+				routine.inputs[i+3] = value.w;
 			}
 		}
 	}
@@ -615,10 +615,10 @@ namespace sw
 				spirvShader->outputs[i+2].Type != SpirvShader::ATTRIBTYPE_UNUSED ||
 				spirvShader->outputs[i+3].Type != SpirvShader::ATTRIBTYPE_UNUSED)
 			{
-				v.x = (*routine.outputs)[i];
-				v.y = (*routine.outputs)[i+1];
-				v.z = (*routine.outputs)[i+2];
-				v.w = (*routine.outputs)[i+3];
+				v.x = routine.outputs[i];
+				v.y = routine.outputs[i+1];
+				v.z = routine.outputs[i+2];
+				v.w = routine.outputs[i+3];
 
 				transpose4x4(v.x, v.y, v.z, v.w);
 

@@ -82,8 +82,8 @@ namespace sw
 
 		std::unordered_map<uint32_t, Intermediate> intermediates;
 
-		std::unique_ptr<Value> const inputs = std::unique_ptr<Value>(new Value(MAX_INTERFACE_COMPONENTS));
-		std::unique_ptr<Value> const outputs = std::unique_ptr<Value>(new Value(MAX_INTERFACE_COMPONENTS));
+		Value inputs = Value{MAX_INTERFACE_COMPONENTS};
+		Value outputs = Value{MAX_INTERFACE_COMPONENTS};
 
 		void createLvalue(uint32_t id, uint32_t size)
 		{

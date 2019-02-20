@@ -676,7 +676,7 @@ namespace sw
 					VisitInterface(resultId,
 								   [&](Decorations const &d, AttribType type) {
 									   auto scalarSlot = d.Location << 2 | d.Component;
-									   dst[offset++] = (*routine->inputs)[scalarSlot];
+									   dst[offset++] = routine->inputs[scalarSlot];
 								   });
 				}
 				break;

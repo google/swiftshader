@@ -38,7 +38,7 @@ namespace sw
 		{
 			for (int i = 0; i < MAX_INTERFACE_COMPONENTS; i++)
 			{
-				(*routine.inputs)[i] = Float4(0.0f);
+				routine.inputs[i] = Float4(0.0f);
 			}
 		}
 	}
@@ -148,14 +148,14 @@ namespace sw
 				{
 					if (input.Centroid)
 					{
-						(*routine.inputs)[interpolant] =
+						routine.inputs[interpolant] =
 								interpolateCentroid(XXXX, YYYY, rhwCentroid,
 													primitive + OFFSET(Primitive, V[interpolant]),
 													input.Flat, state.perspective);
 					}
 					else
 					{
-						(*routine.inputs)[interpolant] =
+						routine.inputs[interpolant] =
 								interpolate(xxxx, Dv[interpolant], rhw,
 											primitive + OFFSET(Primitive, V[interpolant]),
 											input.Flat, state.perspective, false);
