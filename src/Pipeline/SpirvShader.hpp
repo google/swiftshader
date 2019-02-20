@@ -128,6 +128,15 @@ namespace sw
 			return InsnIterator{insns.cend()};
 		}
 
+		class Type
+		{
+		public:
+			InsnIterator definition;
+			spv::StorageClass storageClass;
+			uint32_t sizeInComponents = 0;
+			bool isBuiltInBlock = false;
+		};
+
 		class Object
 		{
 		public:
@@ -140,7 +149,6 @@ namespace sw
 			enum class Kind
 			{
 				Unknown,        /* for paranoia -- if we get left with an object in this state, the module was broken */
-				Type,
 				Variable,
 				InterfaceVariable,
 				Constant,
@@ -252,7 +260,7 @@ namespace sw
 		std::unordered_map<spv::BuiltIn, BuiltinMapping, BuiltInHash> inputBuiltins;
 		std::unordered_map<spv::BuiltIn, BuiltinMapping, BuiltInHash> outputBuiltins;
 
-		Object const &getType(uint32_t id) const
+		Type const &getType(uint32_t id) const
 		{
 			auto it = types.find(id);
 			assert(it != types.end());
@@ -270,7 +278,7 @@ namespace sw
 		const int serialID;
 		static volatile int serialCounter;
 		Modes modes;
-		std::unordered_map<uint32_t, Object> types;
+		std::unordered_map<uint32_t, Type> types;
 		std::unordered_map<uint32_t, Object> defs;
 
 		void ProcessExecutionMode(InsnIterator it);

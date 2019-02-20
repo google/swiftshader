@@ -117,10 +117,9 @@ namespace sw
 			case spv::OpTypeFunction:
 			{
 				auto resultId = insn.word(1);
-				auto &object = types[resultId];
-				object.kind = Object::Kind::Type;
-				object.definition = insn;
-				object.sizeInComponents = ComputeTypeSize(insn);
+				auto &type = types[resultId];
+				type.definition = insn;
+				type.sizeInComponents = ComputeTypeSize(insn);
 
 				// A structure is a builtin block if it has a builtin
 				// member. All members of such a structure are builtins.
@@ -133,7 +132,7 @@ namespace sw
 						{
 							if (m.HasBuiltIn)
 							{
-								object.isBuiltInBlock = true;
+								type.isBuiltInBlock = true;
 								break;
 							}
 						}
@@ -142,7 +141,7 @@ namespace sw
 				else if (insn.opcode() == spv::OpTypePointer)
 				{
 					auto pointeeType = insn.word(3);
-					object.isBuiltInBlock = getType(pointeeType).isBuiltInBlock;
+					type.isBuiltInBlock = getType(pointeeType).isBuiltInBlock;
 				}
 				break;
 			}
