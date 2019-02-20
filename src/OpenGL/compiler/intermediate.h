@@ -260,7 +260,7 @@ class TIntermCase;
 //
 class TIntermNode {
 public:
-	POOL_ALLOCATOR_NEW_DELETE();
+	POOL_ALLOCATOR_NEW_DELETE()
 
 	TIntermNode()
 	{
@@ -693,14 +693,14 @@ enum Visit
 class TIntermTraverser
 {
 public:
-	POOL_ALLOCATOR_NEW_DELETE();
+	POOL_ALLOCATOR_NEW_DELETE()
 	TIntermTraverser(bool preVisit = true, bool inVisit = false, bool postVisit = false, bool rightToLeft = false) :
 			preVisit(preVisit),
 			inVisit(inVisit),
 			postVisit(postVisit),
 			rightToLeft(rightToLeft),
 			mDepth(0) {}
-	virtual ~TIntermTraverser() {};
+	virtual ~TIntermTraverser() {}
 
 	virtual void visitSymbol(TIntermSymbol*) {}
 	virtual void visitConstantUnion(TIntermConstantUnion*) {}

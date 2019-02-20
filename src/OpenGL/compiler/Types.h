@@ -27,7 +27,7 @@ struct TPublicType;
 class TField
 {
 public:
-	POOL_ALLOCATOR_NEW_DELETE();
+	POOL_ALLOCATOR_NEW_DELETE()
 	TField(TType *type, TString *name, const TSourceLoc &line)
 		: mType(type),
 		mName(name),
@@ -92,7 +92,7 @@ public:
 		if(mObjectSize == 0)
 			mObjectSize = calculateObjectSize();
 		return mObjectSize;
-	};
+	}
 
 protected:
 	TFieldListCollection(const TString *name, TFieldList *fields)
@@ -116,7 +116,7 @@ protected:
 class TStructure : public TFieldListCollection
 {
 public:
-	POOL_ALLOCATOR_NEW_DELETE();
+	POOL_ALLOCATOR_NEW_DELETE()
 	TStructure(const TString *name, TFieldList *fields)
 		: TFieldListCollection(name, fields),
 		mDeepestNesting(0),
@@ -185,7 +185,7 @@ private:
 class TInterfaceBlock : public TFieldListCollection
 {
 public:
-	POOL_ALLOCATOR_NEW_DELETE();
+	POOL_ALLOCATOR_NEW_DELETE()
 	TInterfaceBlock(const TString *name, TFieldList *fields, const TString *instanceName,
 		int arraySize, const TLayoutQualifier &layoutQualifier)
 		: TFieldListCollection(name, fields),
@@ -239,7 +239,7 @@ private:
 class TType
 {
 public:
-	POOL_ALLOCATOR_NEW_DELETE();
+	POOL_ALLOCATOR_NEW_DELETE()
 
 	TType(TBasicType t, int s0 = 1, int s1 = 1) :
 		type(t), precision(EbpUndefined), qualifier(EvqGlobal),

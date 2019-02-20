@@ -54,7 +54,7 @@
 class TSymbol
 {
 public:
-	POOL_ALLOCATOR_NEW_DELETE();
+	POOL_ALLOCATOR_NEW_DELETE()
 	TSymbol(const TString *n) :  name(n) { }
 	virtual ~TSymbol() { /* don't delete name, it's from the pool */ }
 
@@ -202,7 +202,7 @@ public:
 	typedef const tLevel::value_type tLevelPair;
 	typedef std::pair<tLevel::iterator, bool> tInsertResult;
 
-	POOL_ALLOCATOR_NEW_DELETE();
+	POOL_ALLOCATOR_NEW_DELETE()
 	TSymbolTableLevel() { }
 	~TSymbolTableLevel();
 

@@ -183,7 +183,7 @@ namespace glsl
 	{
 		friend class OutputASM;
 	public:
-		virtual ~Shader() {};
+		virtual ~Shader() {}
 		virtual sw::Shader *getShader() const = 0;
 		virtual sw::PixelShader *getPixelShader() const;
 		virtual sw::VertexShader *getVertexShader() const;

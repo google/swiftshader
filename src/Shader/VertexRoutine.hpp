@@ -26,7 +26,7 @@ namespace sw
 	{
 	public:
 		VertexRoutinePrototype() : vertex(Arg<0>()), batch(Arg<1>()), task(Arg<2>()), data(Arg<3>()) {}
-		virtual ~VertexRoutinePrototype() {};
+		virtual ~VertexRoutinePrototype() {}
 
 	protected:
 		Pointer<Byte> vertex;
