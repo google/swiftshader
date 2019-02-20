@@ -53,7 +53,7 @@ public:
 	}
 
 protected:
-	void play(CommandBuffer::ExecutionState& executionState)
+	void play(CommandBuffer::ExecutionState& executionState) override
 	{
 		executionState.renderPass = renderPass;
 		executionState.renderPassFramebuffer = framebuffer;
@@ -77,7 +77,7 @@ public:
 	}
 
 protected:
-	void play(CommandBuffer::ExecutionState& executionState)
+	void play(CommandBuffer::ExecutionState& executionState) override
 	{
 		executionState.renderPass->nextSubpass();
 	}
@@ -93,7 +93,7 @@ public:
 	}
 
 protected:
-	void play(CommandBuffer::ExecutionState& executionState)
+	void play(CommandBuffer::ExecutionState& executionState) override
 	{
 		executionState.renderPass->end();
 		executionState.renderPass = nullptr;
@@ -112,7 +112,7 @@ public:
 	}
 
 protected:
-	void play(CommandBuffer::ExecutionState& executionState)
+	void play(CommandBuffer::ExecutionState& executionState) override
 	{
 		executionState.pipelines[pipelineBindPoint] = Cast(pipeline);
 	}
@@ -129,7 +129,7 @@ struct VertexBufferBind : public CommandBuffer::Command
 	{
 	}
 
-	void play(CommandBuffer::ExecutionState& executionState)
+	void play(CommandBuffer::ExecutionState& executionState) override
 	{
 		executionState.vertexInputBindings[binding] = { buffer, offset };
 	}
@@ -146,7 +146,7 @@ struct Draw : public CommandBuffer::Command
 	{
 	}
 
-	void play(CommandBuffer::ExecutionState& executionState)
+	void play(CommandBuffer::ExecutionState& executionState) override
 	{
 		GraphicsPipeline* pipeline = static_cast<GraphicsPipeline*>(
 			executionState.pipelines[VK_PIPELINE_BIND_POINT_GRAPHICS]);
@@ -186,7 +186,7 @@ struct ImageToImageCopy : public CommandBuffer::Command
 	{
 	}
 
-	void play(CommandBuffer::ExecutionState& executionState)
+	void play(CommandBuffer::ExecutionState& executionState) override
 	{
 		Cast(srcImage)->copyTo(dstImage, region);
 	}
@@ -204,7 +204,7 @@ struct BufferToBufferCopy : public CommandBuffer::Command
 	{
 	}
 
-	void play(CommandBuffer::ExecutionState& executionState)
+	void play(CommandBuffer::ExecutionState& executionState) override
 	{
 		Cast(srcBuffer)->copyTo(Cast(dstBuffer), region);
 	}
@@ -222,7 +222,7 @@ struct ImageToBufferCopy : public CommandBuffer::Command
 	{
 	}
 
-	void play(CommandBuffer::ExecutionState& executionState)
+	void play(CommandBuffer::ExecutionState& executionState) override
 	{
 		Cast(srcImage)->copyTo(dstBuffer, region);
 	}
@@ -240,7 +240,7 @@ struct BufferToImageCopy : public CommandBuffer::Command
 	{
 	}
 
-	void play(CommandBuffer::ExecutionState& executionState)
+	void play(CommandBuffer::ExecutionState& executionState) override
 	{
 		Cast(dstImage)->copyFrom(srcBuffer, region);
 	}
@@ -258,7 +258,7 @@ struct FillBuffer : public CommandBuffer::Command
 	{
 	}
 
-	void play(CommandBuffer::ExecutionState& executionState)
+	void play(CommandBuffer::ExecutionState& executionState) override
 	{
 		Cast(dstBuffer)->fill(dstOffset, size, data);
 	}
@@ -277,7 +277,7 @@ struct UpdateBuffer : public CommandBuffer::Command
 	{
 	}
 
-	void play(CommandBuffer::ExecutionState& executionState)
+	void play(CommandBuffer::ExecutionState& executionState) override
 	{
 		Cast(dstBuffer)->update(dstOffset, dataSize, pData);
 	}
@@ -296,7 +296,7 @@ struct ClearColorImage : public CommandBuffer::Command
 	{
 	}
 
-	void play(CommandBuffer::ExecutionState& executionState)
+	void play(CommandBuffer::ExecutionState& executionState) override
 	{
 		Cast(image)->clear(color, range);
 	}
@@ -314,7 +314,7 @@ struct ClearDepthStencilImage : public CommandBuffer::Command
 	{
 	}
 
-	void play(CommandBuffer::ExecutionState& executionState)
+	void play(CommandBuffer::ExecutionState& executionState) override
 	{
 		Cast(image)->clear(depthStencil, range);
 	}
@@ -332,7 +332,7 @@ struct ClearAttachment : public CommandBuffer::Command
 	{
 	}
 
-	void play(CommandBuffer::ExecutionState& executionState)
+	void play(CommandBuffer::ExecutionState& executionState) override
 	{
 		executionState.renderPassFramebuffer->clear(attachment, rect);
 	}
@@ -349,7 +349,7 @@ struct BlitImage : public CommandBuffer::Command
 	{
 	}
 
-	void play(CommandBuffer::ExecutionState& executionState)
+	void play(CommandBuffer::ExecutionState& executionState) override
 	{
 		Cast(srcImage)->blit(dstImage, region, filter);
 	}
@@ -367,7 +367,7 @@ struct PipelineBarrier : public CommandBuffer::Command
 	{
 	}
 
-	void play(CommandBuffer::ExecutionState& executionState)
+	void play(CommandBuffer::ExecutionState& executionState) override
 	{
 		// This can currently be a noop. The sw::Surface locking/unlocking mechanism used by the renderer already takes care of
 		// making sure the read/writes always happen in order. Eventually, if we remove this synchronization mechanism, we can
@@ -388,7 +388,7 @@ struct SignalEvent : public CommandBuffer::Command
 	{
 	}
 
-	void play(CommandBuffer::ExecutionState& executionState)
+	void play(CommandBuffer::ExecutionState& executionState) override
 	{
 		Cast(ev)->signal();
 	}
@@ -404,7 +404,7 @@ struct ResetEvent : public CommandBuffer::Command
 	{
 	}
 
-	void play(CommandBuffer::ExecutionState& executionState)
+	void play(CommandBuffer::ExecutionState& executionState) override
 	{
 		Cast(ev)->reset();
 	}

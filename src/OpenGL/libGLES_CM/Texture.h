@@ -48,7 +48,7 @@ class Texture : public egl::Texture
 public:
 	explicit Texture(GLuint name);
 
-	sw::Resource *getResource() const;
+	sw::Resource *getResource() const override;
 
 	virtual void addProxyRef(const Renderbuffer *proxy) = 0;
 	virtual void releaseProxy(const Renderbuffer *proxy) = 0;
@@ -140,7 +140,7 @@ public:
 	void subImage(GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, GLint unpackAlignment, const void *pixels);
 	void subImageCompressed(GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const void *pixels);
 	void copyImage(GLint level, GLenum format, GLint x, GLint y, GLsizei width, GLsizei height, Framebuffer *source);
-	void copySubImage(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height, Framebuffer *source);
+	void copySubImage(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height, Framebuffer *source) override;
 
 	void setSharedImage(egl::Image *image);
 
