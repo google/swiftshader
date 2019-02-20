@@ -450,6 +450,8 @@ void Texture2D::bindTexImage(gl::Surface *surface)
 
 	image[0] = surface->getRenderTarget();
 
+	assert(!mSurface); // eglBindTexImage called before eglReleaseTexImage
+
 	mSurface = surface;
 	mSurface->setBoundTexture(this);
 }
