@@ -28,7 +28,7 @@ namespace sw
 		: state(state),
 		  spirvShader(spirvShader)
 	{
-	  	spirvShader->emitEarly(&routine);
+	  	spirvShader->emitProlog(&routine);
 	}
 
 	VertexRoutine::~VertexRoutine()

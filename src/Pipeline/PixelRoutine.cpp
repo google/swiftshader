@@ -32,7 +32,7 @@ namespace sw
 	PixelRoutine::PixelRoutine(const PixelProcessor::State &state, SpirvShader const *spirvShader)
 		: QuadRasterizer(state, spirvShader)	/* addressing */
 	{
-		spirvShader->emitEarly(&routine);
+		spirvShader->emitProlog(&routine);
 
 		if (forceClearRegisters)
 		{

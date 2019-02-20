@@ -643,7 +643,7 @@ namespace sw
 
 	// emit-time
 
-	void SpirvShader::emitEarly(SpirvRoutine *routine) const
+	void SpirvShader::emitProlog(SpirvRoutine *routine) const
 	{
 		for (auto insn : *this)
 		{
@@ -791,6 +791,34 @@ namespace sw
 			}
 			default:
 				printf("emit: ignoring opcode %d\n", insn.opcode());
+				break;
+			}
+		}
+	}
+
+	void SpirvShader::emitEpilog(SpirvRoutine *routine) const
+	{
+		for (auto insn : *this)
+		{
+			switch (insn.opcode())
+			{
+			case spv::OpVariable:
+			{
+				auto resultId = insn.word(2);
+				auto &object = getObject(resultId);
+				if (object.kind == Object::Kind::InterfaceVariable && object.storageClass == spv::StorageClassOutput)
+				{
+					auto &dst = routine->getValue(resultId);
+					int offset = 0;
+					VisitInterface(resultId,
+								   [&](Decorations const &d, AttribType type) {
+									   auto scalarSlot = d.Location << 2 | d.Component;
+									   routine->outputs[scalarSlot] = dst[offset++];
+								   });
+				}
+				break;
+			}
+			default:
 				break;
 			}
 		}

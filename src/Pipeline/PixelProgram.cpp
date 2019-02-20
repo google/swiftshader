@@ -42,6 +42,7 @@ namespace sw
 		}
 
 		spirvShader->emit(&routine);
+		spirvShader->emitEpilog(&routine);
 
 		for(int i = 0; i < RENDERTARGETS; i++)
 		{
