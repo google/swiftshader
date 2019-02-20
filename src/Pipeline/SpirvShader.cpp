@@ -177,17 +177,34 @@ namespace sw
 			}
 
 			case spv::OpConstant:
-			case spv::OpConstantComposite:
+				CreateConstant(insn).constantValue[0] = insn.word(3);
+				break;
 			case spv::OpConstantFalse:
+				CreateConstant(insn).constantValue[0] = 0;		// represent boolean false as zero
+				break;
 			case spv::OpConstantTrue:
+				CreateConstant(insn).constantValue[0] = ~0u;	// represent boolean true as all bits set
+				break;
 			case spv::OpConstantNull:
 			{
-				auto typeId = insn.word(1);
-				auto resultId = insn.word(2);
-				auto &object = defs[resultId];
-				object.kind = Object::Kind::Constant;
-				object.definition = insn;
-				object.sizeInComponents = getType(typeId).sizeInComponents;
+				// OpConstantNull forms a constant of arbitrary type, all zeros.
+				auto & object = CreateConstant(insn);
+				for (auto i = 0u; i < object.sizeInComponents; i++)
+				{
+					object.constantValue[i] = 0;
+				}
+				break;
+			}
+			case spv::OpConstantComposite:
+			{
+				auto &object = CreateConstant(insn);
+				auto offset = 0u;
+				for (auto i = 0u; i < insn.wordCount() - 3; i++)
+				{
+					auto & constituent = getObject(insn.word(i + 3));
+					for (auto j = 0u; j < constituent.sizeInComponents; j++)
+						object.constantValue[offset++] = constituent.constantValue[j];
+				}
 				break;
 			}
 
@@ -252,6 +269,18 @@ namespace sw
 				break;    // This is OK, these passes are intentionally partial
 			}
 		}
+	}
+
+	SpirvShader::Object& SpirvShader::CreateConstant(InsnIterator insn)
+	{
+		auto typeId = insn.word(1);
+		auto resultId = insn.word(2);
+		auto &object = defs[resultId];
+		object.kind = Object::Kind::Constant;
+		object.definition = insn;
+		object.sizeInComponents = getType(typeId).sizeInComponents;
+		object.constantValue = std::unique_ptr<uint32_t[]>(new uint32_t[object.sizeInComponents]);
+		return object;
 	}
 
 	void SpirvShader::ProcessInterfaceVariable(Object &object)
@@ -764,27 +793,57 @@ namespace sw
 				}
 
 				SpirvRoutine::Value& ptrBase = routine->getValue(pointer.pointerBase);
-				auto & src = routine->getIntermediate(insn.word(2));;
 
-				if (pointer.kind == Object::Kind::Value)
+				if (object.kind == Object::Kind::Constant)
 				{
-					auto offsets = As<Int4>(routine->getIntermediate(insn.word(1))[0]);
-					for (auto i = 0u; i < object.sizeInComponents; i++)
+					auto src = reinterpret_cast<float *>(object.constantValue.get());
+
+					if (pointer.kind == Object::Kind::Value)
 					{
-						// Scattered store
-						for (int j = 0; j < 4; j++)
+						auto offsets = As<Int4>(routine->getIntermediate(insn.word(1))[0]);
+						for (auto i = 0u; i < object.sizeInComponents; i++)
 						{
-							auto dst = ptrBase[Int(i) + Extract(offsets, j)];
-							dst = Insert(dst, Extract(src[i], j), j);
+							// Scattered store
+							for (int j = 0; j < 4; j++)
+							{
+								auto dst = ptrBase[Int(i) + Extract(offsets, j)];
+								dst = Insert(dst, Float(src[i]), j);
+							}
+						}
+					}
+					else
+					{
+						// no divergent offsets
+						for (auto i = 0u; i < object.sizeInComponents; i++)
+						{
+							ptrBase[i] = RValue<Float4>(src[i]);
 						}
 					}
 				}
 				else
 				{
-					// no divergent offsets
-					for (auto i = 0u; i < object.sizeInComponents; i++)
+					auto &src = routine->getIntermediate(insn.word(2));
+
+					if (pointer.kind == Object::Kind::Value)
 					{
-						ptrBase[i] = src[i];
+						auto offsets = As<Int4>(routine->getIntermediate(insn.word(1))[0]);
+						for (auto i = 0u; i < object.sizeInComponents; i++)
+						{
+							// Scattered store
+							for (int j = 0; j < 4; j++)
+							{
+								auto dst = ptrBase[Int(i) + Extract(offsets, j)];
+								dst = Insert(dst, Extract(src[i], j), j);
+							}
+						}
+					}
+					else
+					{
+						// no divergent offsets
+						for (auto i = 0u; i < object.sizeInComponents; i++)
+						{
+							ptrBase[i] = src[i];
+						}
 					}
 				}
 				break;

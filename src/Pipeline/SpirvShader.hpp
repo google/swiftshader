@@ -206,6 +206,7 @@ namespace sw
 			uint32_t sizeInComponents = 0;
 			bool isBuiltInBlock = false;
 			uint32_t pointerBase = 0;
+			std::unique_ptr<uint32_t[]> constantValue = nullptr;
 
 			enum class Kind
 			{
@@ -355,6 +356,7 @@ namespace sw
 		void VisitInterface(uint32_t id, F f) const;
 
 		uint32_t GetConstantInt(uint32_t id) const;
+		Object& CreateConstant(InsnIterator it);
 
 		void ProcessInterfaceVariable(Object &object);
 
