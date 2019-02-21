@@ -13,3 +13,6 @@ mkdir -p build && cd build
 
 cmake ..
 make --jobs=$(nproc) VERBOSE=1
+
+# Run the GLES unit tests.
+./unittests
