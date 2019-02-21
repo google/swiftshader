@@ -237,7 +237,7 @@ static const std::unordered_map<std::string, PFN_vkVoidFunction> deviceFunctionP
 	MAKE_VULKAN_DEVICE_ENTRY(vkGetBufferMemoryRequirements2KHR),
 	MAKE_VULKAN_DEVICE_ENTRY(vkGetImageSparseMemoryRequirements2KHR),
 	// VK_KHR_maintenance3
-	MAKE_VULKAN_INSTANCE_ENTRY(vkGetDescriptorSetLayoutSupportKHR),
+	MAKE_VULKAN_DEVICE_ENTRY(vkGetDescriptorSetLayoutSupportKHR),
 };
 #undef MAKE_VULKAN_DEVICE_ENTRY
 
