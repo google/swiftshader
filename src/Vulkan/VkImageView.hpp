@@ -34,6 +34,8 @@ public:
 	void clear(const VkClearValue& clearValues, const VkImageAspectFlags aspectMask, const VkRect2D& renderArea);
 	void clear(const VkClearValue& clearValue, const VkImageAspectFlags aspectMask, const VkClearRect& renderArea);
 
+	sw::Surface *asSurface();
+
 private:
 	bool                       imageTypesMatch(VkImageType imageType) const;
 

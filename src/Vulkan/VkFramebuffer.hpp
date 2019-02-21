@@ -34,6 +34,7 @@ public:
 	void clear(const VkClearAttachment& attachment, const VkClearRect& rect);
 
 	static size_t ComputeRequiredAllocationSize(const VkFramebufferCreateInfo* pCreateInfo);
+	ImageView *getAttachment(uint32_t index) const;
 
 private:
 	RenderPass* renderPass;

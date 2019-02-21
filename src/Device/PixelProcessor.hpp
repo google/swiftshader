@@ -153,6 +153,7 @@ namespace sw
 		void lockUniformBuffers(byte** u, sw::Resource* uniformBuffers[]);
 
 		void setRenderTarget(int index, Surface *renderTarget, unsigned int layer = 0);
+		Surface *getRenderTarget(int index);
 		void setDepthBuffer(Surface *depthBuffer, unsigned int layer = 0);
 		void setStencilBuffer(Surface *stencilBuffer, unsigned int layer = 0);
 

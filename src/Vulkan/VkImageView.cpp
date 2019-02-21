@@ -119,4 +119,9 @@ void ImageView::clear(const VkClearValue& clearValue, const VkImageAspectFlags a
 	image->clear(clearValue, renderArea.rect, sr);
 }
 
+sw::Surface *ImageView::asSurface()
+{
+	return image->asSurface(subresourceRange.aspectMask, subresourceRange.baseArrayLayer, subresourceRange.baseMipLevel);
+}
+
 }

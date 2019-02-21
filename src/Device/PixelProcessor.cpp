@@ -97,6 +97,11 @@ namespace sw
 		context->renderTargetLayer[index] = layer;
 	}
 
+	Surface *PixelProcessor::getRenderTarget(int index)
+	{
+		return context->renderTarget[index];
+	}
+
 	void PixelProcessor::setDepthBuffer(Surface *depthBuffer, unsigned int layer)
 	{
 		context->depthBuffer = depthBuffer;

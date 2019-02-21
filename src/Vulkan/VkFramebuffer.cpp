@@ -94,6 +94,11 @@ void Framebuffer::clear(const VkClearAttachment& attachment, const VkClearRect& 
 	}
 }
 
+ImageView *Framebuffer::getAttachment(uint32_t index) const
+{
+	return attachments[index];
+}
+
 size_t Framebuffer::ComputeRequiredAllocationSize(const VkFramebufferCreateInfo* pCreateInfo)
 {
 	return pCreateInfo->attachmentCount * sizeof(void*);
