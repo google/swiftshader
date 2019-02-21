@@ -1957,32 +1957,47 @@ namespace sw
 			bool reachable; // Is this function reachable?
 		};
 
-		// Begin by doing a pass over the instructions to identify all the
-		// labels that denote the start of a function.
 		std::unordered_map<FunctionID, FunctionInfo> functions;
 
-		for(auto &inst : instruction)
-		{
-			if (inst->isCall())
-			{
-				FunctionID id = inst->dst.label;
-				ASSERT(id != MAIN_ID); // If this fires, we're going to have to represent main with something else.
-				functions[id] = FunctionInfo();
-			}
-		}
+		uint32_t maxLabel = 0; // Highest label found
 
 		// Add a definition for the main entry point.
 		// This starts at the beginning of the instructions and does not have
 		// its own label.
 		functions[MAIN_ID] = FunctionInfo();
 		functions[MAIN_ID].reachable = true;
+
+		// Begin by doing a pass over the instructions to identify all the
+		// functions. These start with a label and end with a ret. Note that
+		// functions can have labels within them.
 		FunctionID currentFunc = MAIN_ID;
+		for(auto &inst : instruction)
+		{
+			switch (inst->opcode)
+			{
+				case OPCODE_LABEL:
+					if (currentFunc == INVALID_ID)
+					{
+						// Start of a function.
+						FunctionID id = inst->dst.label;
+						ASSERT(id != MAIN_ID); // If this fires, we're going to have to represent main with something else.
+						functions[id] = FunctionInfo();
+					}
+					break;
+				case OPCODE_RET:
+					currentFunc = INVALID_ID;
+					break;
+				default:
+					break;
+			}
+		}
 
 		// Limits for the currently analyzed function.
 		FunctionLimits currentLimits;
 
 		// Now loop over the instructions gathering the limits of each of the
 		// functions.
+		currentFunc = MAIN_ID;
 		for(size_t i = 0; i < instruction.size(); i++)
 		{
 			const auto& inst = instruction[i];
@@ -1990,15 +2005,14 @@ namespace sw
 			{
 				case OPCODE_LABEL:
 				{
-					FunctionID id = inst->dst.label;
-					auto it = functions.find(id);
-					if (it == functions.end())
+					maxLabel = std::max(maxLabel, inst->dst.label);
+					if (currentFunc == INVALID_ID)
 					{
-						// Label does not start a new function.
-						continue;
+						// Start of a function.
+						FunctionID id = inst->dst.label;
+						ASSERT(functions.find(id) != functions.end()); // Sanity check
+						currentFunc = id;
 					}
-					ASSERT(currentFunc == INVALID_ID); // Functions overlap
-					currentFunc = id;
 					break;
 				}
 				case OPCODE_CALL:
@@ -2006,6 +2020,7 @@ namespace sw
 				{
 					ASSERT(currentFunc != INVALID_ID);
 					FunctionID id = inst->dst.label;
+					ASSERT(functions.find(id) != functions.end());
 					functions[currentFunc].calls.emplace(id);
 					functions[id].reachable = true;
 					break;
@@ -2067,6 +2082,9 @@ namespace sw
 		// stripped in earlier stages). Unreachable functions may be code
 		// generated, but their own limits are not considered below, potentially
 		// causing OOB indexing in later stages.
+		// If we ever find cases where there are unreachable functions, we can
+		// replace this assert with NO-OPing or stripping out the dead
+		// functions.
 		for (auto it : functions) { ASSERT(it.second.reachable); }
 
 		// We have now gathered all the information about each of the functions
@@ -2097,6 +2115,6 @@ namespace sw
 		};
 
 		limits = traverse(MAIN_ID);
-		limits.functions = (uint32_t)functions.size();
+		limits.maxLabel = maxLabel;
 	}
 }

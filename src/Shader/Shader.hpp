@@ -561,7 +561,7 @@ namespace sw
 			uint32_t loops = 0; // maximum nested loop and reps.
 			uint32_t ifs = 0; // maximum nested if statements.
 			uint32_t stack = 0; // maximum call depth.
-			uint32_t functions = 0; // total number of functions.
+			uint32_t maxLabel = 0; // highest label in use.
 		};
 
 		Shader();

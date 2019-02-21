@@ -36,7 +36,7 @@ namespace sw
 		ifFalseBlock.resize(limits.ifs);
 		loopRepTestBlock.resize(limits.loops);
 		loopRepEndBlock.resize(limits.loops);
-		labelBlock.resize(limits.functions);
+		labelBlock.resize(limits.maxLabel + 1);
 		isConditionalIf.resize(limits.ifs);
 
 		loopDepth = -1;
