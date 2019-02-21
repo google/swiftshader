@@ -320,6 +320,16 @@ namespace sw
 		DrawType type = static_cast<DrawType>(static_cast<unsigned int>(drawType) & 0xF);
 		state.verticesPerPrimitive = 1 + (type >= DRAW_LINELIST) + (type >= DRAW_TRIANGLELIST);
 
+		for(int i = 0; i < MAX_VERTEX_INPUTS; i++)
+		{
+			state.input[i].type = context->input[i].type;
+			state.input[i].count = context->input[i].count;
+			state.input[i].normalized = context->input[i].normalized;
+			// TODO: get rid of attribType -- just keep the VK format all the way through, this fully determines
+			// how to handle the attribute.
+			state.input[i].attribType = context->vertexShader->inputs[i*4].Type;
+		}
+
 		state.hash = state.computeHash();
 
 		return state;
