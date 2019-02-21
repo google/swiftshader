@@ -1578,6 +1578,22 @@ TEST_F(SwiftShaderTest, CompilerLimits_DeepNestedCallsInUnusedFunction)
 	);
 }
 
+// Test that the compiler correctly handles functions being stripped.
+// The frontend will strip the Dead functions, but may keep the their function
+// labels reserved. This produces labels that are greater than the number of
+// live functions.
+TEST_F(SwiftShaderTest, CompilerLimits_SparseLabels)
+{
+	checkCompiles(
+		"void Dead1() {}\n"
+		"void Dead2() {}\n"
+		"void Dead3() {}\n"
+		"void Dead4() {}\n"
+		"void Dead5() { Dead1(); Dead2(); Dead3(); Dead4(); }\n"
+		"float F(float f) { for(int i = 0; i < -1; ++i) { Dead5(); } return f; }\n"
+	);
+}
+
 #ifndef EGL_ANGLE_iosurface_client_buffer
 #define EGL_ANGLE_iosurface_client_buffer 1
 #define EGL_IOSURFACE_ANGLE 0x3454
