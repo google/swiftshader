@@ -54,6 +54,12 @@ VKAPI_ATTR PFN_vkVoidFunction VKAPI_CALL vk_icdGetInstanceProcAddr(VkInstance in
 	return vk::GetInstanceProcAddr(instance, pName);
 }
 
+VKAPI_ATTR VkResult VKAPI_CALL vk_icdNegotiateLoaderICDInterfaceVersion(uint32_t* pSupportedVersion)
+{
+	*pSupportedVersion = 3;
+	return VK_SUCCESS;
+}
+
 static const VkExtensionProperties instanceExtensionProperties[] =
 {
 	{ VK_KHR_DEVICE_GROUP_CREATION_EXTENSION_NAME, VK_KHR_DEVICE_GROUP_CREATION_SPEC_VERSION },
