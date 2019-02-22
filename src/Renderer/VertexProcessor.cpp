@@ -970,7 +970,6 @@ namespace sw
 
 		state.preTransformed = context->preTransformed;
 		state.superSampling = context->getSuperSampleCount() > 1;
-		state.multiSampling = context->getMultiSampleCount() > 1;
 
 		state.transformFeedbackQueryEnabled = context->transformFeedbackQueryEnabled;
 		state.transformFeedbackEnabled = context->transformFeedbackEnabled;

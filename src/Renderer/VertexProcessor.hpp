@@ -80,7 +80,6 @@ namespace sw
 
 			bool preTransformed : 1;
 			bool superSampling  : 1;
-			bool multiSampling  : 1;
 
 			struct TextureState
 			{

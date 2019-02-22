@@ -53,8 +53,6 @@ namespace sw
 			bool textureSampling           : 1;   // TODO: Eliminate by querying shader.
 			unsigned char verticesPerPrimitive                : 2; // 1 (points), 2 (lines) or 3 (triangles)
 
-			bool multiSampling  : 1;
-
 			Sampler::State sampler[VERTEX_TEXTURE_IMAGE_UNITS];
 
 			struct Input

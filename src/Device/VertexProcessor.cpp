@@ -292,7 +292,6 @@ namespace sw
 		State state;
 
 		state.shaderID = context->vertexShader->getSerialID();
-		state.multiSampling = context->getMultiSampleCount() > 1;
 
 		// Note: Quads aren't handled for verticesPerPrimitive, but verticesPerPrimitive is used for transform feedback,
 		//       which is an OpenGL ES 3.0 feature, and OpenGL ES 3.0 doesn't support quads as a primitive type.
