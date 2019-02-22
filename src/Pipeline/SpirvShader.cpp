@@ -259,6 +259,7 @@ namespace sw
 
 			case spv::OpLoad:
 			case spv::OpAccessChain:
+			case spv::OpCompositeConstruct:
 				// Instructions that yield an ssavalue.
 			{
 				TypeID typeId = insn.word(1);
@@ -924,6 +925,24 @@ namespace sw
 							ptrBase[i] = src[i];
 						}
 					}
+				}
+				break;
+			}
+			case spv::OpCompositeConstruct:
+			{
+				auto &type = getType(insn.word(1));
+				auto &dst = routine->createIntermediate(insn.word(2), type.sizeInComponents);
+				auto offset = 0u;
+
+				for (auto i = 0u; i < insn.wordCount() - 3; i++)
+				{
+					ObjectID srcObjectId = insn.word(3u + i);
+					auto & srcObject = getObject(srcObjectId);
+					auto & srcObjectTy = getType(srcObject.type);
+					GenericValue srcObjectAccess(this, routine, srcObjectId);
+
+					for (auto j = 0u; j < srcObjectTy.sizeInComponents; j++)
+						dst.emplace(offset++, srcObjectAccess[j]);
 				}
 				break;
 			}
