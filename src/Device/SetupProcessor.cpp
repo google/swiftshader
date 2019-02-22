@@ -82,6 +82,7 @@ namespace sw
 		state.interpolateZ = context->depthBufferActive() || vPosZW;
 		state.interpolateW = context->perspectiveActive() || vPosZW;
 		state.perspective = context->perspectiveActive();
+		state.frontFacingCCW = context->frontFacingCCW;
 		state.cullMode = context->cullMode;
 		state.twoSidedStencil = context->stencilActive() && context->twoSidedStencil;
 		state.slopeDepthBias = context->slopeDepthBias != 0.0f;

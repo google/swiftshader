@@ -42,7 +42,8 @@ namespace sw
 			bool interpolateZ              : 1;
 			bool interpolateW              : 1;
 			bool perspective               : 1;
-			CullMode cullMode              : BITS(CULL_LAST);
+			bool frontFacingCCW            : 1;
+			VkCullModeFlags cullMode       : BITS(VK_CULL_MODE_FLAG_BITS_MAX_ENUM);
 			bool twoSidedStencil           : 1;
 			bool slopeDepthBias            : 1;
 			bool vFace                     : 1;

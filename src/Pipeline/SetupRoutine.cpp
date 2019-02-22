@@ -96,20 +96,22 @@ namespace sw
 
 				A = IfThenElse(w0w1w2 < 0, -A, A);
 
-				if(state.cullMode == CULL_CLOCKWISE)
+				Bool frontFacing = state.frontFacingCCW ? A > 0.0f : A < 0.0f;
+
+				if(state.cullMode & VK_CULL_MODE_FRONT_BIT)
 				{
-					If(A >= 0.0f) Return(false);
+					If(frontFacing) Return(false);
 				}
-				else if(state.cullMode == CULL_COUNTERCLOCKWISE)
+				if(state.cullMode & VK_CULL_MODE_BACK_BIT)
 				{
-					If(A <= 0.0f) Return(false);
+					If(!frontFacing) Return(false);
 				}
 
 				d = IfThenElse(A < 0.0f, d, Int(0));
 
 				if(state.twoSidedStencil)
 				{
-					If(A > 0.0f)
+					If(frontFacing)
 					{
 						*Pointer<Byte8>(primitive + OFFSET(Primitive,clockwiseMask)) = Byte8(0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF);
 						*Pointer<Byte8>(primitive + OFFSET(Primitive,invClockwiseMask)) = Byte8(0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00);
