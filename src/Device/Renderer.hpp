@@ -258,30 +258,6 @@ namespace sw
 		void setMultiSampleMask(unsigned int mask);
 		void setTransparencyAntialiasing(TransparencyAntialiasing transparencyAntialiasing);
 
-		void setTextureResource(unsigned int sampler, vk::ImageView *resource);
-		void setTextureLevel(unsigned int sampler, unsigned int face, unsigned int level, Surface *surface, TextureType type);
-
-		void setTextureFilter(SamplerType type, int sampler, FilterType textureFilter);
-		void setMipmapFilter(SamplerType type, int sampler, MipmapType mipmapFilter);
-		void setGatherEnable(SamplerType type, int sampler, bool enable);
-		void setAddressingModeU(SamplerType type, int sampler, AddressingMode addressingMode);
-		void setAddressingModeV(SamplerType type, int sampler, AddressingMode addressingMode);
-		void setAddressingModeW(SamplerType type, int sampler, AddressingMode addressingMode);
-		void setReadSRGB(SamplerType type, int sampler, bool sRGB);
-		void setMipmapLOD(SamplerType type, int sampler, float bias);
-		void setBorderColor(SamplerType type, int sampler, const Color<float> &borderColor);
-		void setMaxAnisotropy(SamplerType type, int sampler, float maxAnisotropy);
-		void setHighPrecisionFiltering(SamplerType type, int sampler, bool highPrecisionFiltering);
-		void setSwizzleR(SamplerType type, int sampler, SwizzleType swizzleR);
-		void setSwizzleG(SamplerType type, int sampler, SwizzleType swizzleG);
-		void setSwizzleB(SamplerType type, int sampler, SwizzleType swizzleB);
-		void setSwizzleA(SamplerType type, int sampler, SwizzleType swizzleA);
-		void setCompareFunc(SamplerType type, int sampler, CompareFunc compare);
-		void setBaseLevel(SamplerType type, int sampler, int baseLevel);
-		void setMaxLevel(SamplerType type, int sampler, int maxLevel);
-		void setMinLod(SamplerType type, int sampler, float minLod);
-		void setMaxLod(SamplerType type, int sampler, float maxLod);
-
 		void setLineWidth(float width);
 
 		void setDepthBias(float bias);
@@ -331,7 +307,6 @@ namespace sw
 		bool setupLine(Primitive &primitive, Triangle &triangle, const DrawCall &draw);
 		bool setupPoint(Primitive &primitive, Triangle &triangle, const DrawCall &draw);
 
-		bool isReadWriteTexture(int sampler);
 		void updateConfiguration(bool initialUpdate = false);
 		void initializeThreads();
 		void terminateThreads();
@@ -425,7 +400,6 @@ namespace sw
 		vk::ImageView *renderTarget[RENDERTARGETS];
 		vk::ImageView *depthBuffer;
 		vk::ImageView *stencilBuffer;
-		vk::ImageView *texture[TOTAL_IMAGE_UNITS];
 
 		std::list<Query*> *queries;
 

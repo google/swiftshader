@@ -91,27 +91,6 @@ namespace sw
 
 		void setInstanceID(int instanceID);
 
-		void setTextureFilter(unsigned int sampler, FilterType textureFilter);
-		void setMipmapFilter(unsigned int sampler, MipmapType mipmapFilter);
-		void setGatherEnable(unsigned int sampler, bool enable);
-		void setAddressingModeU(unsigned int sampler, AddressingMode addressingMode);
-		void setAddressingModeV(unsigned int sampler, AddressingMode addressingMode);
-		void setAddressingModeW(unsigned int sampler, AddressingMode addressingMode);
-		void setReadSRGB(unsigned int sampler, bool sRGB);
-		void setMipmapLOD(unsigned int sampler, float bias);
-		void setBorderColor(unsigned int sampler, const Color<float> &borderColor);
-		void setMaxAnisotropy(unsigned int stage, float maxAnisotropy);
-		void setHighPrecisionFiltering(unsigned int sampler, bool highPrecisionFiltering);
-		void setSwizzleR(unsigned int sampler, SwizzleType swizzleR);
-		void setSwizzleG(unsigned int sampler, SwizzleType swizzleG);
-		void setSwizzleB(unsigned int sampler, SwizzleType swizzleB);
-		void setSwizzleA(unsigned int sampler, SwizzleType swizzleA);
-		void setCompareFunc(unsigned int sampler, CompareFunc compare);
-		void setBaseLevel(unsigned int sampler, int baseLevel);
-		void setMaxLevel(unsigned int sampler, int maxLevel);
-		void setMinLod(unsigned int sampler, float minLod);
-		void setMaxLod(unsigned int sampler, float maxLod);
-
 	protected:
 		const State update(DrawType drawType);
 		Routine *routine(const State &state);
