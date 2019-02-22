@@ -223,8 +223,6 @@ namespace sw
 		instanceID = 0;
 
 		occlusionEnabled = false;
-		transformFeedbackQueryEnabled = false;
-		transformFeedbackEnabled = 0;
 
 		lineWidth = 1.0f;
 

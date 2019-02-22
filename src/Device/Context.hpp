@@ -210,8 +210,6 @@ namespace sw
 		int instanceID;
 
 		bool occlusionEnabled;
-		bool transformFeedbackQueryEnabled;
-		uint64_t transformFeedbackEnabled;
 
 		// Pixel processor states
 		bool rasterizerDiscard;

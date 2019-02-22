@@ -94,9 +94,6 @@ namespace sw
 		void setUniformBuffer(int index, sw::Resource* uniformBuffer, int offset);
 		void lockUniformBuffers(byte** u, sw::Resource* uniformBuffers[]);
 
-		void setTransformFeedbackBuffer(int index, sw::Resource* transformFeedbackBuffer, int offset, unsigned int reg, unsigned int row, unsigned int col, unsigned int stride);
-		void lockTransformFeedbackBuffers(byte** t, unsigned int* v, unsigned int* r, unsigned int* c, unsigned int* s, sw::Resource* transformFeedbackBuffers[]);
-
 		void setInstanceID(int instanceID);
 
 		void setTextureFilter(unsigned int sampler, FilterType textureFilter);
