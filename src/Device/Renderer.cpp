@@ -346,18 +346,6 @@ namespace sw
 			}
 		}
 
-		if(context->pixelShader)
-		{
-			PixelProcessor::lockUniformBuffers(data->ps.u, draw->pUniformBuffers);
-		}
-		else
-		{
-			for(int i = 0; i < MAX_UNIFORM_BUFFER_BINDINGS; i++)
-			{
-				draw->pUniformBuffers[i] = nullptr;
-			}
-		}
-
 		for(int sampler = 0; sampler < VERTEX_TEXTURE_IMAGE_UNITS; sampler++)
 		{
 			if(vertexState.sampler[sampler].textureType != TEXTURE_NULL)
@@ -373,8 +361,6 @@ namespace sw
 		{
 			data->instanceID = context->instanceID;
 		}
-
-		VertexProcessor::lockUniformBuffers(data->vs.u, draw->vUniformBuffers);
 
 		if(pixelState.stencilActive)
 		{
@@ -893,18 +879,6 @@ namespace sw
 				if(draw.indexBuffer)
 				{
 					draw.indexBuffer->unlock();
-				}
-
-				for(int i = 0; i < MAX_UNIFORM_BUFFER_BINDINGS; i++)
-				{
-					if(draw.pUniformBuffers[i])
-					{
-						draw.pUniformBuffers[i]->unlock();
-					}
-					if(draw.vUniformBuffers[i])
-					{
-						draw.vUniformBuffers[i]->unlock();
-					}
 				}
 
 				draw.vertexRoutine->unbind();

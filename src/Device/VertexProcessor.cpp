@@ -61,12 +61,6 @@ namespace sw
 		return memcmp(static_cast<const States*>(this), static_cast<const States*>(&state), sizeof(States)) == 0;
 	}
 
-	VertexProcessor::UniformBufferInfo::UniformBufferInfo()
-	{
-		buffer = nullptr;
-		offset = 0;
-	}
-
 	VertexProcessor::VertexProcessor(Context *context) : context(context)
 	{
 		routineCache = nullptr;
@@ -89,21 +83,6 @@ namespace sw
 		for(int i = 0; i < MAX_VERTEX_INPUTS; i++)
 		{
 			context->input[i].defaults();
-		}
-	}
-
-	void VertexProcessor::setUniformBuffer(int index, sw::Resource* buffer, int offset)
-	{
-		uniformBufferInfo[index].buffer = buffer;
-		uniformBufferInfo[index].offset = offset;
-	}
-
-	void VertexProcessor::lockUniformBuffers(byte** u, sw::Resource* uniformBuffers[])
-	{
-		for(int i = 0; i < MAX_UNIFORM_BUFFER_BINDINGS; ++i)
-		{
-			u[i] = uniformBufferInfo[i].buffer ? static_cast<byte*>(uniformBufferInfo[i].buffer->lock(PUBLIC, PRIVATE)) + uniformBufferInfo[i].offset : nullptr;
-			uniformBuffers[i] = uniformBufferInfo[i].buffer;
 		}
 	}
 

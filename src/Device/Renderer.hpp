@@ -432,8 +432,6 @@ namespace sw
 		Surface *depthBuffer;
 		Surface *stencilBuffer;
 		Resource *texture[TOTAL_IMAGE_UNITS];
-		Resource* pUniformBuffers[MAX_UNIFORM_BUFFER_BINDINGS];
-		Resource* vUniformBuffers[MAX_UNIFORM_BUFFER_BINDINGS];
 
 		std::list<Query*> *queries;
 

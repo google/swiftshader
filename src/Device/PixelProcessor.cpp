@@ -58,12 +58,6 @@ namespace sw
 		return memcmp(static_cast<const States*>(this), static_cast<const States*>(&state), sizeof(States)) == 0;
 	}
 
-	PixelProcessor::UniformBufferInfo::UniformBufferInfo()
-	{
-		buffer = nullptr;
-		offset = 0;
-	}
-
 	PixelProcessor::PixelProcessor(Context *context) : context(context)
 	{
 		routineCache = nullptr;
@@ -74,21 +68,6 @@ namespace sw
 	{
 		delete routineCache;
 		routineCache = nullptr;
-	}
-
-	void PixelProcessor::setUniformBuffer(int index, sw::Resource* buffer, int offset)
-	{
-		uniformBufferInfo[index].buffer = buffer;
-		uniformBufferInfo[index].offset = offset;
-	}
-
-	void PixelProcessor::lockUniformBuffers(byte** u, sw::Resource* uniformBuffers[])
-	{
-		for(int i = 0; i < MAX_UNIFORM_BUFFER_BINDINGS; ++i)
-		{
-			u[i] = uniformBufferInfo[i].buffer ? static_cast<byte*>(uniformBufferInfo[i].buffer->lock(PUBLIC, PRIVATE)) + uniformBufferInfo[i].offset : nullptr;
-			uniformBuffers[i] = uniformBufferInfo[i].buffer;
-		}
 	}
 
 	void PixelProcessor::setRenderTarget(int index, Surface *renderTarget, unsigned int layer)

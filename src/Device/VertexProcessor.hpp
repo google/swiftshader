@@ -91,9 +91,6 @@ namespace sw
 		void setInputStream(int index, const Stream &stream);
 		void resetInputStreams();
 
-		void setUniformBuffer(int index, sw::Resource* uniformBuffer, int offset);
-		void lockUniformBuffers(byte** u, sw::Resource* uniformBuffers[]);
-
 		void setInstanceID(int instanceID);
 
 		void setTextureFilter(unsigned int sampler, FilterType textureFilter);
@@ -130,15 +127,6 @@ namespace sw
 		float pointSizeMax;
 
 	private:
-		struct UniformBufferInfo
-		{
-			UniformBufferInfo();
-
-			Resource* buffer;
-			int offset;
-		};
-		UniformBufferInfo uniformBufferInfo[MAX_UNIFORM_BUFFER_BINDINGS];
-
 		Context *const context;
 
 		RoutineCache<State> *routineCache;
