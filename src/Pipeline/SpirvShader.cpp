@@ -702,6 +702,39 @@ namespace sw
 		{
 			switch (insn.opcode())
 			{
+			case spv::OpTypeVoid:
+			case spv::OpTypeInt:
+			case spv::OpTypeFloat:
+			case spv::OpTypeBool:
+			case spv::OpTypeVector:
+			case spv::OpTypeArray:
+			case spv::OpTypeRuntimeArray:
+			case spv::OpTypeMatrix:
+			case spv::OpTypeStruct:
+			case spv::OpTypePointer:
+			case spv::OpTypeFunction:
+			case spv::OpExecutionMode:
+			case spv::OpMemoryModel:
+			case spv::OpFunction:
+			case spv::OpFunctionEnd:
+			case spv::OpConstant:
+			case spv::OpConstantNull:
+			case spv::OpConstantTrue:
+			case spv::OpConstantFalse:
+			case spv::OpConstantComposite:
+			case spv::OpExtension:
+			case spv::OpCapability:
+			case spv::OpEntryPoint:
+			case spv::OpExtInstImport:
+			case spv::OpDecorate:
+			case spv::OpMemberDecorate:
+			case spv::OpGroupDecorate:
+			case spv::OpGroupMemberDecorate:
+			case spv::OpDecorationGroup:
+				// Nothing to do at emit time. These are either fully handled at analysis time,
+				// or don't require any work at all.
+				break;
+
 			case spv::OpVariable:
 			{
 				auto resultId = insn.word(2);
