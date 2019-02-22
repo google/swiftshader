@@ -41,6 +41,10 @@
 #include "VkShaderModule.hpp"
 #include "VkRenderPass.hpp"
 
+#ifdef VK_USE_PLATFORM_XLIB_KHR
+#include "WSI/XlibSurfaceKHR.hpp"
+#endif
+
 #include <algorithm>
 #include <cstring>
 #include <string>
@@ -2044,6 +2048,71 @@ VKAPI_ATTR void VKAPI_CALL vkGetDescriptorSetLayoutSupport(VkDevice device, cons
 	      device, pCreateInfo, pSupport);
 
 	vk::Cast(device)->getDescriptorSetLayoutSupport(pCreateInfo, pSupport);
+}
+
+VKAPI_ATTR void VKAPI_CALL vkDestroySurfaceKHR(VkInstance instance, VkSurfaceKHR surface, const VkAllocationCallbacks* pAllocator)
+{
+    TRACE("(VkInstance instance = 0x%X, VkSurfaceKHR surface = 0x%X, const VkAllocationCallbacks* pAllocator = 0x%X)",
+            instance, surface, pAllocator);
+
+    vk::destroy(surface, pAllocator);
+}
+
+#ifdef VK_USE_PLATFORM_XLIB_KHR
+VKAPI_ATTR VkResult VKAPI_CALL vkCreateXlibSurfaceKHR(VkInstance instance, const VkXlibSurfaceCreateInfoKHR* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkSurfaceKHR* pSurface)
+{
+	TRACE("(VkInstance instance = 0x%X, VkXlibSurfaceCreateInfoKHR* pCreateInfo = 0x%X, VkAllocationCallbacks* pAllocator = 0x%X, VkSurface* pSurface = 0x%X)",
+			instance, pCreateInfo, pAllocator, pSurface);
+
+	return vk::XlibSurfaceKHR::Create(pAllocator, pCreateInfo, pSurface);
+}
+#endif
+
+VKAPI_ATTR VkResult VKAPI_CALL vkGetPhysicalDeviceSurfaceSupportKHR(VkPhysicalDevice physicalDevice, uint32_t queueFamilyIndex, VkSurfaceKHR surface, VkBool32* pSupported)
+{
+	TRACE("(VkPhysicalDevice physicalDevice = 0x%X, uint32_t queueFamilyIndex = 0x%X, VkSurface surface = 0x%X, VKBool32* pSupported = 0x%X)",
+			physicalDevice, queueFamilyIndex, surface, pSupported);
+
+	*pSupported =  VK_TRUE;
+	return VK_SUCCESS;
+}
+
+
+VKAPI_ATTR VkResult VKAPI_CALL vkGetPhysicalDeviceSurfaceCapabilitiesKHR(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, VkSurfaceCapabilitiesKHR* pSurfaceCapabilities)
+{
+	TRACE("(VkPhysicalDevice physicalDevice = 0x%X, VkSurfaceKHR surface = 0x%X, VkSurfaceCapabilitiesKHR* pSurfaceCapabilities = 0x%X)",
+			physicalDevice, surface, pSurfaceCapabilities);
+
+	vk::Cast(surface)->getSurfaceCapabilities(pSurfaceCapabilities);
+	return VK_SUCCESS;
+}
+
+VKAPI_ATTR VkResult VKAPI_CALL vkGetPhysicalDeviceSurfaceFormatsKHR(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, uint32_t* pSurfaceFormatCount, VkSurfaceFormatKHR* pSurfaceFormats)
+{
+	TRACE("(VkPhysicalDevice physicalDevice = 0x%X, VkSurfaceKHR surface = 0x%X. uint32_t* pSurfaceFormatCount = 0x%X, VkSurfaceFormatKHR* pSurfaceFormats)",
+			physicalDevice, surface, pSurfaceFormatCount, pSurfaceFormats);
+
+	if(!pSurfaceFormats)
+	{
+		*pSurfaceFormatCount = vk::Cast(surface)->getSurfaceFormatsCount();
+		return VK_SUCCESS;
+	}
+
+	return vk::Cast(surface)->getSurfaceFormats(pSurfaceFormatCount, pSurfaceFormats);
+}
+
+VKAPI_ATTR VkResult VKAPI_CALL vkGetPhysicalDeviceSurfacePresentModesKHR(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, uint32_t* pPresentModeCount, VkPresentModeKHR* pPresentModes)
+{
+	TRACE("(VkPhysicalDevice physicalDevice = 0x%X, VkSurfaceKHR surface = 0x%X uint32_t* pPresentModeCount = 0x%X, VkPresentModeKHR* pPresentModes = 0x%X)",
+			physicalDevice, surface, pPresentModeCount, pPresentModes);
+
+	if(!pPresentModes)
+	{
+		*pPresentModeCount = vk::Cast(surface)->getPresentModeCount();
+		return VK_SUCCESS;
+	}
+
+	return vk::Cast(surface)->getPresentModes(pPresentModeCount, pPresentModes);
 }
 
 }

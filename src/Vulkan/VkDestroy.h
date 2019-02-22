@@ -34,6 +34,7 @@
 #include "VkSemaphore.hpp"
 #include "VkShaderModule.hpp"
 #include "VkRenderPass.hpp"
+#include "WSI/VkSurfaceKHR.hpp"
 
 namespace vk
 {

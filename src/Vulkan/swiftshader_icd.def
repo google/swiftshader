@@ -207,3 +207,9 @@ EXPORTS
 	; VK_KHR_sampler_ycbcr_conversion
 	vkCreateSamplerYcbcrConversionKHR
 	vkDestroySamplerYcbcrConversionKHR
+	; VK_KHR_surface
+	vkDestroySurfaceKHR
+	vkGetPhysicalDeviceSurfaceSupportKHR
+	vkGetPhysicalDeviceSurfaceCapabilitiesKHR
+	vkGetPhysicalDeviceSurfaceFormatsKHR
+	vkGetPhysicalDeviceSurfacePresentModesKHR

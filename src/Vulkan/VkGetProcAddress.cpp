@@ -17,6 +17,8 @@
 #include <unordered_map>
 #include <string>
 
+#include <vulkan/vulkan.h>
+
 namespace vk
 {
 
@@ -72,6 +74,14 @@ static const std::unordered_map<std::string, PFN_vkVoidFunction> instanceFunctio
 	MAKE_VULKAN_INSTANCE_ENTRY(vkGetPhysicalDeviceQueueFamilyProperties2KHR),
 	MAKE_VULKAN_INSTANCE_ENTRY(vkGetPhysicalDeviceMemoryProperties2KHR),
 	MAKE_VULKAN_INSTANCE_ENTRY(vkGetPhysicalDeviceSparseImageFormatProperties2KHR),
+	MAKE_VULKAN_INSTANCE_ENTRY(vkDestroySurfaceKHR),
+#ifdef VK_USE_PLATFORM_XLIB_KHR
+	MAKE_VULKAN_INSTANCE_ENTRY(vkCreateXlibSurfaceKHR),
+#endif
+	MAKE_VULKAN_INSTANCE_ENTRY(vkGetPhysicalDeviceSurfaceSupportKHR),
+	MAKE_VULKAN_INSTANCE_ENTRY(vkGetPhysicalDeviceSurfaceCapabilitiesKHR),
+	MAKE_VULKAN_INSTANCE_ENTRY(vkGetPhysicalDeviceSurfaceFormatsKHR),
+	MAKE_VULKAN_INSTANCE_ENTRY(vkGetPhysicalDeviceSurfacePresentModesKHR),
 };
 #undef MAKE_VULKAN_INSTANCE_ENTRY
 
