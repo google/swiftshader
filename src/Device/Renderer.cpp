@@ -119,8 +119,6 @@ namespace sw
 		clipper = new Clipper;
 		blitter = new Blitter;
 
-		updateClipPlanes = true;
-
 		#if PERF_HUD
 			resetTimers();
 		#endif
@@ -223,7 +221,6 @@ namespace sw
 		context->drawType = drawType;
 
 		updateConfiguration();
-		updateClipper();
 
 		int ms = context->getMultiSampleCount();
 		unsigned int oldMultiSampleMask = context->multiSampleMask;
@@ -464,17 +461,6 @@ namespace sw
 			data->slopeDepthBias = context->slopeDepthBias;
 			data->depthRange = Z;
 			data->depthNear = N;
-			draw->clipFlags = clipFlags;
-
-			if(clipFlags)
-			{
-				if(clipFlags & Clipper::CLIP_PLANE0) data->clipPlane[0] = clipPlane[0];
-				if(clipFlags & Clipper::CLIP_PLANE1) data->clipPlane[1] = clipPlane[1];
-				if(clipFlags & Clipper::CLIP_PLANE2) data->clipPlane[2] = clipPlane[2];
-				if(clipFlags & Clipper::CLIP_PLANE3) data->clipPlane[3] = clipPlane[3];
-				if(clipFlags & Clipper::CLIP_PLANE4) data->clipPlane[4] = clipPlane[4];
-				if(clipFlags & Clipper::CLIP_PLANE5) data->clipPlane[5] = clipPlane[5];
-			}
 		}
 
 		// Target
@@ -1255,7 +1241,7 @@ namespace sw
 			{
 				Polygon polygon(&v0.builtins.position, &v1.builtins.position, &v2.builtins.position);
 
-				int clipFlagsOr = v0.clipFlags | v1.clipFlags | v2.clipFlags | draw.clipFlags;
+				int clipFlagsOr = v0.clipFlags | v1.clipFlags | v2.clipFlags;
 
 				if(clipFlagsOr != Clipper::CLIP_FINITE)
 				{
@@ -1397,7 +1383,7 @@ namespace sw
 			{
 				Polygon polygon(P, 4);
 
-				int clipFlagsOr = C[0] | C[1] | C[2] | C[3] | draw.clipFlags;
+				int clipFlagsOr = C[0] | C[1] | C[2] | C[3];
 
 				if(clipFlagsOr != Clipper::CLIP_FINITE)
 				{
@@ -1503,7 +1489,7 @@ namespace sw
 
 				Polygon polygon(L, 6);
 
-				int clipFlagsOr = C[0] | C[1] | C[2] | C[3] | C[4] | C[5] | C[6] | C[7] | draw.clipFlags;
+				int clipFlagsOr = C[0] | C[1] | C[2] | C[3] | C[4] | C[5] | C[6] | C[7];
 
 				if(clipFlagsOr != Clipper::CLIP_FINITE)
 				{
@@ -1568,7 +1554,7 @@ namespace sw
 
 		if((C[0] & C[1] & C[2] & C[3]) == Clipper::CLIP_FINITE)
 		{
-			int clipFlagsOr = C[0] | C[1] | C[2] | C[3] | draw.clipFlags;
+			int clipFlagsOr = C[0] | C[1] | C[2] | C[3];
 
 			if(clipFlagsOr != Clipper::CLIP_FINITE)
 			{
@@ -1685,21 +1671,6 @@ namespace sw
 		}
 
 		return false;
-	}
-
-	void Renderer::updateClipper()
-	{
-		if(updateClipPlanes)
-		{
-			if(clipFlags & Clipper::CLIP_PLANE0) clipPlane[0] = userPlane[0];
-			if(clipFlags & Clipper::CLIP_PLANE1) clipPlane[1] = userPlane[1];
-			if(clipFlags & Clipper::CLIP_PLANE2) clipPlane[2] = userPlane[2];
-			if(clipFlags & Clipper::CLIP_PLANE3) clipPlane[3] = userPlane[3];
-			if(clipFlags & Clipper::CLIP_PLANE4) clipPlane[4] = userPlane[4];
-			if(clipFlags & Clipper::CLIP_PLANE5) clipPlane[5] = userPlane[5];
-
-			updateClipPlanes = false;
-		}
 	}
 
 	void Renderer::setTextureResource(unsigned int sampler, Resource *resource)
@@ -2041,22 +2012,6 @@ namespace sw
 	void Renderer::setScissor(const Rect &scissor)
 	{
 		this->scissor = scissor;
-	}
-
-	void Renderer::setClipFlags(int flags)
-	{
-		clipFlags = flags << 8;   // Bottom 8 bits used by legacy frustum
-	}
-
-	void Renderer::setClipPlane(unsigned int index, const float plane[4])
-	{
-		if(index < MAX_CLIP_PLANES)
-		{
-			userPlane[index] = plane;
-		}
-		else ASSERT(false);
-
-		updateClipPlanes = true;
 	}
 
 	void Renderer::updateConfiguration(bool initialUpdate)

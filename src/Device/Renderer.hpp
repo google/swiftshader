@@ -300,8 +300,6 @@ namespace sw
 		// Viewport & Clipper
 		void setViewport(const VkViewport &viewport);
 		void setScissor(const Rect &scissor);
-		void setClipFlags(int flags);
-		void setClipPlane(unsigned int index, const float plane[4]);
 
 		void addQuery(Query *query);
 		void removeQuery(Query *query);
@@ -338,7 +336,6 @@ namespace sw
 		bool setupPoint(Primitive &primitive, Triangle &triangle, const DrawCall &draw);
 
 		bool isReadWriteTexture(int sampler);
-		void updateClipper();
 		void updateConfiguration(bool initialUpdate = false);
 		void initializeThreads();
 		void terminateThreads();
@@ -352,11 +349,6 @@ namespace sw
 
 		Triangle *triangleBatch[16];
 		Primitive *primitiveBatch[16];
-
-		// User-defined clipping planes
-		Plane userPlane[MAX_CLIP_PLANES];
-		Plane clipPlane[MAX_CLIP_PLANES];   // Tranformed to clip space
-		bool updateClipPlanes;
 
 		AtomicInt exitThreads;
 		AtomicInt threadsAwake;
@@ -444,8 +436,6 @@ namespace sw
 		Resource* vUniformBuffers[MAX_UNIFORM_BUFFER_BINDINGS];
 
 		std::list<Query*> *queries;
-
-		AtomicInt clipFlags;
 
 		AtomicInt primitive;    // Current primitive to enter pipeline
 		AtomicInt count;        // Number of primitives to render
