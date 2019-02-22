@@ -57,20 +57,7 @@ namespace sw
 			return true;
 		}
 
-		Int aMask;
-
-		if(state.transparencyAntialiasing == TRANSPARENCY_NONE)
-		{
-			Short4 alpha = RoundShort4(c[0].w * Float4(0x1000));
-
-			PixelRoutine::alphaTest(aMask, alpha);
-
-			for(unsigned int q = 0; q < state.multiSample; q++)
-			{
-				cMask[q] &= aMask;
-			}
-		}
-		else if(state.transparencyAntialiasing == TRANSPARENCY_ALPHA_TO_COVERAGE)
+		if(state.transparencyAntialiasing == TRANSPARENCY_ALPHA_TO_COVERAGE)
 		{
 			alphaToCoverage(cMask, c[0].w);
 		}

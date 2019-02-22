@@ -35,7 +35,6 @@ namespace sw
 			int shaderID;
 
 			VkCompareOp depthCompareMode;
-			VkCompareOp alphaCompareMode;
 			bool depthWriteEnable;
 			bool quadLayoutDepthBuffer;
 
@@ -96,7 +95,7 @@ namespace sw
 
 			bool alphaTestActive() const
 			{
-				return (alphaCompareMode != VK_COMPARE_OP_ALWAYS) || (transparencyAntialiasing != TRANSPARENCY_NONE);
+				return transparencyAntialiasing != TRANSPARENCY_NONE;
 			}
 
 			unsigned int hash;
@@ -187,9 +186,7 @@ namespace sw
 		void setWriteSRGB(bool sRGB);
 		void setDepthBufferEnable(bool depthBufferEnable);
 		void setDepthCompare(VkCompareOp depthCompareMode);
-		void setAlphaCompare(VkCompareOp alphaCompareMode);
 		void setDepthWriteEnable(bool depthWriteEnable);
-		void setAlphaTestEnable(bool alphaTestEnable);
 		void setCullMode(CullMode cullMode, bool frontFacingCCW);
 		void setColorWriteMask(int index, int rgbaMask);
 
@@ -224,8 +221,6 @@ namespace sw
 		void setSourceBlendFactorAlpha(VkBlendFactor sourceBlendFactorAlpha);
 		void setDestBlendFactorAlpha(VkBlendFactor destBlendFactorAlpha);
 		void setBlendOperationAlpha(VkBlendOp blendOperationAlpha);
-
-		void setAlphaReference(float alphaReference);
 
 		void setPerspectiveCorrection(bool perspectiveCorrection);
 

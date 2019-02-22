@@ -189,9 +189,6 @@ namespace sw
 		stencilZFailOperationCCW = VK_STENCIL_OP_KEEP;
 		stencilWriteMaskCCW = 0xFFFFFFFF;
 
-		alphaCompareMode = VK_COMPARE_OP_ALWAYS;
-		alphaTestEnable = false;
-
 		rasterizerDiscard = false;
 
 		depthCompareMode = VK_COMPARE_OP_LESS;
@@ -338,12 +335,7 @@ namespace sw
 
 	bool Context::alphaTestActive()
 	{
-		if(transparencyAntialiasing != TRANSPARENCY_NONE) return true;
-		if(!alphaTestEnable) return false;
-		if(alphaCompareMode == VK_COMPARE_OP_ALWAYS) return false;
-		if(alphaReference == 0.0f && alphaCompareMode == VK_COMPARE_OP_GREATER_OR_EQUAL) return false;
-
-		return true;
+		return transparencyAntialiasing != TRANSPARENCY_NONE;
 	}
 
 	bool Context::depthBufferActive()

@@ -314,19 +314,9 @@ namespace sw
 		context->depthCompareMode = depthCompareMode;
 	}
 
-	void PixelProcessor::setAlphaCompare(VkCompareOp alphaCompareMode)
-	{
-		context->alphaCompareMode = alphaCompareMode;
-	}
-
 	void PixelProcessor::setDepthWriteEnable(bool depthWriteEnable)
 	{
 		context->depthWriteEnable = depthWriteEnable;
-	}
-
-	void PixelProcessor::setAlphaTestEnable(bool alphaTestEnable)
-	{
-		context->alphaTestEnable = alphaTestEnable;
 	}
 
 	void PixelProcessor::setCullMode(CullMode cullMode, bool frontFacingCCW)
@@ -561,16 +551,6 @@ namespace sw
 		context->setBlendOperationAlpha(blendOperationAlpha);
 	}
 
-	void PixelProcessor::setAlphaReference(float alphaReference)
-	{
-		context->alphaReference = alphaReference;
-
-		factor.alphaReference4[0] = (word)iround(alphaReference * 0x1000 / 0xFF);
-		factor.alphaReference4[1] = (word)iround(alphaReference * 0x1000 / 0xFF);
-		factor.alphaReference4[2] = (word)iround(alphaReference * 0x1000 / 0xFF);
-		factor.alphaReference4[3] = (word)iround(alphaReference * 0x1000 / 0xFF);
-	}
-
 	void PixelProcessor::setPerspectiveCorrection(bool perspectiveEnable)
 	{
 		perspectiveCorrection = perspectiveEnable;
@@ -602,8 +582,6 @@ namespace sw
 
 		if(context->alphaTestActive())
 		{
-			state.alphaCompareMode = context->alphaCompareMode;
-
 			state.transparencyAntialiasing = context->getMultiSampleCount() > 1 ? transparencyAntialiasing : TRANSPARENCY_NONE;
 		}
 

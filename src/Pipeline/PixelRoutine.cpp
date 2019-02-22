@@ -496,50 +496,6 @@ namespace sw
 		return zMask != 0;
 	}
 
-	void PixelRoutine::alphaTest(Int &aMask, Short4 &alpha)
-	{
-		Short4 cmp;
-		Short4 equal;
-
-		switch(state.alphaCompareMode)
-		{
-		case VK_COMPARE_OP_ALWAYS:
-			aMask = 0xF;
-			break;
-		case VK_COMPARE_OP_NEVER:
-			aMask = 0x0;
-			break;
-		case VK_COMPARE_OP_EQUAL:
-			cmp = CmpEQ(alpha, *Pointer<Short4>(data + OFFSET(DrawData,factor.alphaReference4)));
-			aMask = SignMask(PackSigned(cmp, Short4(0x0000)));
-			break;
-		case VK_COMPARE_OP_NOT_EQUAL:       // a != b ~ !(a == b)
-			cmp = CmpEQ(alpha, *Pointer<Short4>(data + OFFSET(DrawData,factor.alphaReference4))) ^ Short4(0xFFFFu);   // FIXME
-			aMask = SignMask(PackSigned(cmp, Short4(0x0000)));
-			break;
-		case VK_COMPARE_OP_LESS:           // a < b ~ b > a
-			cmp = CmpGT(*Pointer<Short4>(data + OFFSET(DrawData,factor.alphaReference4)), alpha);
-			aMask = SignMask(PackSigned(cmp, Short4(0x0000)));
-			break;
-		case VK_COMPARE_OP_GREATER_OR_EQUAL:   // a >= b ~ (a > b) || (a == b) ~ !(b > a)   // TODO: Approximate
-			equal = CmpEQ(alpha, *Pointer<Short4>(data + OFFSET(DrawData,factor.alphaReference4)));
-			cmp = CmpGT(alpha, *Pointer<Short4>(data + OFFSET(DrawData,factor.alphaReference4)));
-			cmp |= equal;
-			aMask = SignMask(PackSigned(cmp, Short4(0x0000)));
-			break;
-		case VK_COMPARE_OP_LESS_OR_EQUAL:      // a <= b ~ !(a > b)
-			cmp = CmpGT(alpha, *Pointer<Short4>(data + OFFSET(DrawData,factor.alphaReference4))) ^ Short4(0xFFFFu);   // FIXME
-			aMask = SignMask(PackSigned(cmp, Short4(0x0000)));
-			break;
-		case VK_COMPARE_OP_GREATER:        // a > b
-			cmp = CmpGT(alpha, *Pointer<Short4>(data + OFFSET(DrawData,factor.alphaReference4)));
-			aMask = SignMask(PackSigned(cmp, Short4(0x0000)));
-			break;
-		default:
-			ASSERT(false);
-		}
-	}
-
 	void PixelRoutine::alphaToCoverage(Int cMask[4], Float4 &alpha)
 	{
 		Int4 coverage0 = CmpNLT(alpha, *Pointer<Float4>(data + OFFSET(DrawData,a2c0)));
