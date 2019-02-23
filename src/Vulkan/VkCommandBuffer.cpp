@@ -155,9 +155,14 @@ struct Draw : public CommandBuffer::Command
 		sw::Context context = pipeline->getContext();
 		for(uint32_t i = 0; i < MAX_VERTEX_INPUT_BINDINGS; i++)
 		{
-			const auto& vertexInput = executionState.vertexInputBindings[i];
-			Buffer* buffer = Cast(vertexInput.buffer);
-			context.input[i].buffer = buffer ? buffer->getOffsetPointer(vertexInput.offset + context.input[i].stride * firstVertex) : nullptr;
+			auto &attrib = context.input[i];
+			if (attrib.count)
+			{
+				const auto &vertexInput = executionState.vertexInputBindings[attrib.binding];
+				Buffer *buffer = Cast(vertexInput.buffer);
+				attrib.buffer = buffer ? buffer->getOffsetPointer(
+						attrib.offset + vertexInput.offset + attrib.stride * firstVertex) : nullptr;
+			}
 		}
 
 		executionState.renderer->setContext(context);
@@ -567,9 +572,9 @@ void CommandBuffer::bindPipeline(VkPipelineBindPoint pipelineBindPoint, VkPipeli
 void CommandBuffer::bindVertexBuffers(uint32_t firstBinding, uint32_t bindingCount,
                                       const VkBuffer* pBuffers, const VkDeviceSize* pOffsets)
 {
-	for(uint32_t i = firstBinding; i < (firstBinding + bindingCount); ++i)
+	for(uint32_t i = 0; i < bindingCount; ++i)
 	{
-		addCommand<VertexBufferBind>(i, pBuffers[i], pOffsets[i]);
+		addCommand<VertexBufferBind>(i + firstBinding, pBuffers[i], pOffsets[i]);
 	}
 }
 

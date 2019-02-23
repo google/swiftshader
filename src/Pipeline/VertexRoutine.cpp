@@ -88,10 +88,10 @@ namespace sw
 				spirvShader->inputs[i + 3].Type != SpirvShader::ATTRIBTYPE_UNUSED)
 			{
 
-				Pointer<Byte> input = *Pointer<Pointer<Byte>>(data + OFFSET(DrawData, input) + sizeof(void *) * i);
-				UInt stride = *Pointer<UInt>(data + OFFSET(DrawData, stride) + sizeof(unsigned int) * i);
+				Pointer<Byte> input = *Pointer<Pointer<Byte>>(data + OFFSET(DrawData, input) + sizeof(void *) * (i/4));
+				UInt stride = *Pointer<UInt>(data + OFFSET(DrawData, stride) + sizeof(unsigned int) * (i/4));
 
-				auto value = readStream(input, stride, state.input[i], index);
+				auto value = readStream(input, stride, state.input[i/4], index);
 				routine.inputs[i] = value.x;
 				routine.inputs[i+1] = value.y;
 				routine.inputs[i+2] = value.z;

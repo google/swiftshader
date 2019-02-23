@@ -87,6 +87,8 @@ namespace sw
 			type = STREAMTYPE_FLOAT;
 			count = 0;
 			normalized = false;
+			offset = 0;
+			binding = 0;
 
 			return *this;
 		}
@@ -99,6 +101,8 @@ namespace sw
 		StreamType type;
 		unsigned char count;
 		bool normalized;
+		unsigned int offset;
+		unsigned int binding;
 	};
 }
 

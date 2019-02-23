@@ -229,11 +229,14 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 		UNIMPLEMENTED();
 	}
 
+	// Temporary in-binding-order representation of buffer strides, to be consumed below
+	// when considering attributes. TODO: unfuse buffers from attributes in backend, is old GL model.
+	uint32_t bufferStrides[MAX_VERTEX_INPUT_BINDINGS];
 	for(uint32_t i = 0; i < vertexInputState->vertexBindingDescriptionCount; i++)
 	{
-		const VkVertexInputBindingDescription* vertexBindingDescription = vertexInputState->pVertexBindingDescriptions;
-		context.input[vertexBindingDescription->binding].stride = vertexBindingDescription->stride;
-		if(vertexBindingDescription->inputRate != VK_VERTEX_INPUT_RATE_VERTEX)
+		auto const & desc = vertexInputState->pVertexBindingDescriptions[i];
+		bufferStrides[desc.binding] = desc.stride;
+		if(desc.inputRate != VK_VERTEX_INPUT_RATE_VERTEX)
 		{
 			UNIMPLEMENTED();
 		}
@@ -241,20 +244,14 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 
 	for(uint32_t i = 0; i < vertexInputState->vertexAttributeDescriptionCount; i++)
 	{
-		const VkVertexInputAttributeDescription* vertexAttributeDescriptions = vertexInputState->pVertexAttributeDescriptions;
-		sw::Stream& input = context.input[vertexAttributeDescriptions->binding];
-		input.count = getNumberOfChannels(vertexAttributeDescriptions->format);
-		input.type = getStreamType(vertexAttributeDescriptions->format);
-		input.normalized = !sw::Surface::isNonNormalizedInteger(vertexAttributeDescriptions->format);
-
-		if(vertexAttributeDescriptions->location != vertexAttributeDescriptions->binding)
-		{
-			UNIMPLEMENTED();
-		}
-		if(vertexAttributeDescriptions->offset != 0)
-		{
-			UNIMPLEMENTED();
-		}
+		auto const & desc = vertexInputState->pVertexAttributeDescriptions[i];
+		sw::Stream& input = context.input[desc.location];
+		input.count = getNumberOfChannels(desc.format);
+		input.type = getStreamType(desc.format);
+		input.normalized = !sw::Surface::isNonNormalizedInteger(desc.format);
+		input.offset = desc.offset;
+		input.binding = desc.binding;
+		input.stride = bufferStrides[desc.binding];
 	}
 
 	const VkPipelineInputAssemblyStateCreateInfo* assemblyState = pCreateInfo->pInputAssemblyState;
