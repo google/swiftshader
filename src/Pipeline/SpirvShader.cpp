@@ -220,6 +220,12 @@ namespace sw
 			case spv::OpExtInstImport:
 				// We will only support the GLSL 450 extended instruction set, so no point in tracking the ID we assign it.
 				// Valid shaders will not attempt to import any other instruction sets.
+			case spv::OpName:
+			case spv::OpMemberName:
+			case spv::OpSource:
+			case spv::OpSourceContinued:
+			case spv::OpSourceExtension:
+				// No semantic impact
 				break;
 
 			case spv::OpFunctionParameter:
@@ -731,6 +737,11 @@ namespace sw
 			case spv::OpGroupDecorate:
 			case spv::OpGroupMemberDecorate:
 			case spv::OpDecorationGroup:
+			case spv::OpName:
+			case spv::OpMemberName:
+			case spv::OpSource:
+			case spv::OpSourceContinued:
+			case spv::OpSourceExtension:
 				// Nothing to do at emit time. These are either fully handled at analysis time,
 				// or don't require any work at all.
 				break;
