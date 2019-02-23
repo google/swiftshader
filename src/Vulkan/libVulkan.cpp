@@ -107,7 +107,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateInstance(const VkInstanceCreateInfo* pCre
 
 	for (uint32_t i = 0; i < pCreateInfo->enabledExtensionCount; ++i)
 	{
-		const char* currentExtensionName = *(pCreateInfo->ppEnabledExtensionNames);
+		const char* currentExtensionName = pCreateInfo->ppEnabledExtensionNames[i];
 		uint32_t extensionPropertiesCount = sizeof(instanceExtensionProperties) / sizeof(instanceExtensionProperties[0]);
 		bool foundExtension = false;
 
