@@ -271,16 +271,6 @@ namespace sw
 		else ASSERT(false);
 	}
 
-	void VertexProcessor::setPointSizeMin(float pointSizeMin)
-	{
-		this->pointSizeMin = pointSizeMin;
-	}
-
-	void VertexProcessor::setPointSizeMax(float pointSizeMax)
-	{
-		this->pointSizeMax = pointSizeMax;
-	}
-
 	void VertexProcessor::setRoutineCacheSize(int cacheSize)
 	{
 		delete routineCache;

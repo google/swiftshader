@@ -112,17 +112,11 @@ namespace sw
 		void setMinLod(unsigned int sampler, float minLod);
 		void setMaxLod(unsigned int sampler, float maxLod);
 
-		void setPointSizeMin(float pointSizeMin);
-		void setPointSizeMax(float pointSizeMax);
-
 	protected:
 		const State update(DrawType drawType);
 		Routine *routine(const State &state);
 
 		void setRoutineCacheSize(int cacheSize);
-
-		float pointSizeMin;
-		float pointSizeMax;
 
 	private:
 		Context *const context;

@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <VkConfig.h>
 #include "Renderer.hpp"
 
 #include "Clipper.hpp"
@@ -363,12 +364,6 @@ namespace sw
 		{
 			data->stencil[0] = stencil;
 			data->stencil[1] = stencilCCW;
-		}
-
-		if(setupState.isDrawPoint)
-		{
-			data->pointSizeMin = pointSizeMin;
-			data->pointSizeMax = pointSizeMax;
 		}
 
 		data->lineWidth = context->lineWidth;
@@ -1455,7 +1450,7 @@ namespace sw
 
 		float pSize = v.builtins.pointSize;
 
-		pSize = clamp(pSize, data.pointSizeMin, data.pointSizeMax);
+		pSize = clamp(pSize, 1.0f, static_cast<float>(vk::MAX_POINT_SIZE));
 
 		float4 P[4];
 		int C[4];

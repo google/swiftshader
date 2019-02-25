@@ -145,9 +145,6 @@ namespace sw
 		PS ps;
 
 		int instanceID;
-
-		float pointSizeMin;
-		float pointSizeMax;
 		float lineWidth;
 
 		PixelProcessor::Stencil stencil[2];   // clockwise, counterclockwise
