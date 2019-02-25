@@ -123,7 +123,9 @@ namespace sw
 
 				// A structure is a builtin block if it has a builtin
 				// member. All members of such a structure are builtins.
-				if (insn.opcode() == spv::OpTypeStruct)
+				switch (insn.opcode())
+				{
+				case spv::OpTypeStruct:
 				{
 					auto d = memberDecorations.find(resultId);
 					if (d != memberDecorations.end())
@@ -137,11 +139,27 @@ namespace sw
 							}
 						}
 					}
+					break;
 				}
-				else if (insn.opcode() == spv::OpTypePointer)
+				case spv::OpTypePointer:
 				{
-					TypeID pointeeType = insn.word(3);
-					type.isBuiltInBlock = getType(pointeeType).isBuiltInBlock;
+					TypeID elementTypeId = insn.word(3);
+					type.element = elementTypeId;
+					type.isBuiltInBlock = getType(elementTypeId).isBuiltInBlock;
+					type.storageClass = static_cast<spv::StorageClass>(insn.word(2));
+					break;
+				}
+				case spv::OpTypeVector:
+				case spv::OpTypeMatrix:
+				case spv::OpTypeArray:
+				case spv::OpTypeRuntimeArray:
+				{
+					TypeID elementTypeId = insn.word(2);
+					type.element = elementTypeId;
+					break;
+				}
+				default:
+					break;
 				}
 				break;
 			}
@@ -157,21 +175,18 @@ namespace sw
 				auto &object = defs[resultId];
 				object.kind = Object::Kind::Variable;
 				object.definition = insn;
-				object.storageClass = storageClass;
-
-				auto &type = getType(typeId);
-				auto &pointeeType = getType(type.definition.word(3));
-
-				// OpVariable's "size" is the size of the allocation required (the size of the pointee)
-				object.sizeInComponents = pointeeType.sizeInComponents;
-				object.isBuiltInBlock = type.isBuiltInBlock;
+				object.type = typeId;
 				object.pointerBase = insn.word(2);	// base is itself
 
 				// Register builtins
-
-				if (storageClass == spv::StorageClassInput || storageClass == spv::StorageClassOutput)
+				switch (storageClass)
 				{
-					ProcessInterfaceVariable(object);
+					case spv::StorageClassInput:
+					case spv::StorageClassOutput:
+						ProcessInterfaceVariable(object);
+						break;
+					default:
+						UNIMPLEMENTED("Unhandled storage class %d for OpVariable", (int)storageClass);
 				}
 				break;
 			}
@@ -188,8 +203,9 @@ namespace sw
 			case spv::OpConstantNull:
 			{
 				// OpConstantNull forms a constant of arbitrary type, all zeros.
-				auto & object = CreateConstant(insn);
-				for (auto i = 0u; i < object.sizeInComponents; i++)
+				auto &object = CreateConstant(insn);
+				auto &objectTy = getType(object.type);
+				for (auto i = 0u; i < objectTy.sizeInComponents; i++)
 				{
 					object.constantValue[i] = 0;
 				}
@@ -201,8 +217,9 @@ namespace sw
 				auto offset = 0u;
 				for (auto i = 0u; i < insn.wordCount() - 3; i++)
 				{
-					auto & constituent = getObject(insn.word(i + 3));
-					for (auto j = 0u; j < constituent.sizeInComponents; j++)
+					auto &constituent = getObject(insn.word(i + 3));
+					auto &constituentTy = getType(constituent.type);
+					for (auto j = 0u; j < constituentTy.sizeInComponents; j++)
 						object.constantValue[offset++] = constituent.constantValue[j];
 				}
 				break;
@@ -247,16 +264,17 @@ namespace sw
 				TypeID typeId = insn.word(1);
 				ObjectID resultId = insn.word(2);
 				auto &object = defs[resultId];
+				object.type = typeId;
 				object.kind = Object::Kind::Value;
 				object.definition = insn;
-				object.sizeInComponents = getType(typeId).sizeInComponents;
 
 				if (insn.opcode() == spv::OpAccessChain)
 				{
 					// interior ptr has two parts:
 					// - logical base ptr, common across all lanes and known at compile time
 					// - per-lane offset
-					object.pointerBase = getObject(insn.word(3)).pointerBase;
+					ObjectID baseId = insn.word(3);
+					object.pointerBase = getObject(baseId).pointerBase;
 				}
 				break;
 			}
@@ -282,30 +300,34 @@ namespace sw
 		TypeID typeId = insn.word(1);
 		ObjectID resultId = insn.word(2);
 		auto &object = defs[resultId];
+		auto &objectTy = getType(typeId);
+		object.type = typeId;
 		object.kind = Object::Kind::Constant;
 		object.definition = insn;
-		object.sizeInComponents = getType(typeId).sizeInComponents;
-		object.constantValue = std::unique_ptr<uint32_t[]>(new uint32_t[object.sizeInComponents]);
+		object.constantValue = std::unique_ptr<uint32_t[]>(new uint32_t[objectTy.sizeInComponents]);
 		return object;
 	}
 
 	void SpirvShader::ProcessInterfaceVariable(Object &object)
 	{
-		assert(object.storageClass == spv::StorageClassInput || object.storageClass == spv::StorageClassOutput);
+		auto &objectTy = getType(object.type);
+		assert(objectTy.storageClass == spv::StorageClassInput || objectTy.storageClass == spv::StorageClassOutput);
 
-		auto &builtinInterface = (object.storageClass == spv::StorageClassInput) ? inputBuiltins : outputBuiltins;
-		auto &userDefinedInterface = (object.storageClass == spv::StorageClassInput) ? inputs : outputs;
+		assert(objectTy.definition.opcode() == spv::OpTypePointer);
+		auto pointeeTy = getType(objectTy.element);
 
+		auto &builtinInterface = (objectTy.storageClass == spv::StorageClassInput) ? inputBuiltins : outputBuiltins;
+		auto &userDefinedInterface = (objectTy.storageClass == spv::StorageClassInput) ? inputs : outputs;
+
+		assert(object.definition.opcode() == spv::OpVariable);
 		ObjectID resultId = object.definition.word(2);
-		if (object.isBuiltInBlock)
+
+		if (objectTy.isBuiltInBlock)
 		{
 			// walk the builtin block, registering each of its members separately.
-			auto ptrType = getType(object.definition.word(1)).definition;
-			assert(ptrType.opcode() == spv::OpTypePointer);
-			TypeID pointeeType = ptrType.word(3);
-			auto m = memberDecorations.find(pointeeType);
+			auto m = memberDecorations.find(objectTy.element);
 			assert(m != memberDecorations.end());        // otherwise we wouldn't have marked the type chain
-			auto &structType = getType(pointeeType).definition;
+			auto &structType = pointeeTy.definition;
 			auto offset = 0u;
 			auto word = 2u;
 			for (auto &member : m->second)
@@ -326,7 +348,7 @@ namespace sw
 		auto d = decorations.find(resultId);
 		if (d != decorations.end() && d->second.HasBuiltIn)
 		{
-			builtinInterface[d->second.BuiltIn] = {resultId, 0, object.sizeInComponents};
+			builtinInterface[d->second.BuiltIn] = {resultId, 0, pointeeTy.sizeInComponents};
 		}
 		else
 		{
@@ -528,8 +550,8 @@ namespace sw
 
 		int constantOffset = 0;
 		Int4 dynamicOffset = Int4(0);
-		auto & baseObject = getObject(id);
-		TypeID typeId = baseObject.definition.word(1);
+		auto &baseObject = getObject(id);
+		TypeID typeId = getType(baseObject.type).element;
 
 		// The <base> operand is an intermediate value itself, ie produced by a previous OpAccessChain.
 		// Start with its offset and build from there.
@@ -558,19 +580,18 @@ namespace sw
 			case spv::OpTypeMatrix:
 			case spv::OpTypeArray:
 			{
-				auto elementType = type.definition.word(2);
-				auto stride = getType(elementType).sizeInComponents;
+				auto stride = getType(type.element).sizeInComponents;
 				auto & obj = getObject(indexIds[i]);
 				if (obj.kind == Object::Kind::Constant)
 					constantOffset += stride * GetConstantInt(indexIds[i]);
 				else
 					dynamicOffset += Int4(stride) * As<Int4>(routine->getIntermediate(indexIds[i])[0]);
-				typeId = elementType;
+				typeId = type.element;
 				break;
 			}
 
 			case spv::OpTypePointer:
-				typeId = type.definition.word(3);
+				typeId = type.element;
 				break;
 
 			default:
@@ -688,10 +709,12 @@ namespace sw
 			{
 				ObjectID resultId = insn.word(2);
 				auto &object = getObject(resultId);
+				auto &objectTy = getType(object.type);
+				auto &pointeeTy = getType(objectTy.element);
 				// TODO: what to do about zero-slot objects?
-				if (object.sizeInComponents > 0)
+				if (pointeeTy.sizeInComponents > 0)
 				{
-					routine->createLvalue(insn.word(2), object.sizeInComponents);
+					routine->createLvalue(insn.word(2), pointeeTy.sizeInComponents);
 				}
 				break;
 			}
@@ -750,7 +773,8 @@ namespace sw
 			{
 				ObjectID resultId = insn.word(2);
 				auto &object = getObject(resultId);
-				if (object.kind == Object::Kind::InterfaceVariable && object.storageClass == spv::StorageClassInput)
+				auto &objectTy = getType(object.type);
+				if (object.kind == Object::Kind::InterfaceVariable && objectTy.storageClass == spv::StorageClassInput)
 				{
 					auto &dst = routine->getValue(resultId);
 					int offset = 0;
@@ -764,38 +788,48 @@ namespace sw
 			}
 			case spv::OpLoad:
 			{
-				auto &object = getObject(insn.word(2));
-				auto &type = getType(insn.word(1));
-				auto &pointer = getObject(insn.word(3));
-				routine->createIntermediate(insn.word(2), type.sizeInComponents);
+				ObjectID objectId = insn.word(2);
+				ObjectID pointerId = insn.word(3);
+				auto &object = getObject(objectId);
+				auto &objectTy = getType(object.type);
+				auto &pointer = getObject(pointerId);
+				auto &pointerTy = getType(pointer.type);
+				routine->createIntermediate(objectId, objectTy.sizeInComponents);
 				auto &pointerBase = getObject(pointer.pointerBase);
+				auto &pointerBaseTy = getType(pointerBase.type);
 
-				if (pointerBase.storageClass == spv::StorageClassImage ||
-					pointerBase.storageClass == spv::StorageClassUniform ||
-					pointerBase.storageClass == spv::StorageClassUniformConstant)
+				assert(pointerTy.element == object.type);
+				assert(TypeID(insn.word(1)) == object.type);
+
+				if (pointerBaseTy.storageClass == spv::StorageClassImage ||
+					pointerBaseTy.storageClass == spv::StorageClassUniform ||
+					pointerBaseTy.storageClass == spv::StorageClassUniformConstant)
 				{
 					UNIMPLEMENTED("Descriptor-backed load not yet implemented");
 				}
 
-				SpirvRoutine::Value& ptrBase = routine->getValue(pointer.pointerBase);
-				auto & dst = routine->getIntermediate(insn.word(2));
+				auto &ptrBase = routine->getValue(pointer.pointerBase);
+				auto &dst = routine->getIntermediate(objectId);
 
 				if (pointer.kind == Object::Kind::Value)
 				{
 					auto offsets = As<Int4>(routine->getIntermediate(insn.word(3))[0]);
-					for (auto i = 0u; i < object.sizeInComponents; i++)
+					for (auto i = 0u; i < objectTy.sizeInComponents; i++)
 					{
 						// i wish i had a Float,Float,Float,Float constructor here..
 						Float4 v;
 						for (int j = 0; j < 4; j++)
-							v = Insert(v, Extract(ptrBase[Int(i) + Extract(offsets, j)], j), j);
+						{
+							Int offset = Int(i) + Extract(offsets, j);
+							v = Insert(v, Extract(ptrBase[offset], j), j);
+						}
 						dst.emplace(i, v);
 					}
 				}
 				else
 				{
 					// no divergent offsets to worry about
-					for (auto i = 0u; i < object.sizeInComponents; i++)
+					for (auto i = 0u; i < objectTy.sizeInComponents; i++)
 					{
 						dst.emplace(i, ptrBase[i]);
 					}
@@ -804,39 +838,47 @@ namespace sw
 			}
 			case spv::OpAccessChain:
 			{
-				auto &object = getObject(insn.word(2));
-				auto &type = getType(insn.word(1));
-				auto &base = getObject(insn.word(3));
-				routine->createIntermediate(insn.word(2), type.sizeInComponents);
+				TypeID typeId = insn.word(1);
+				ObjectID objectId = insn.word(2);
+				ObjectID baseId = insn.word(3);
+				auto &object = getObject(objectId);
+				auto &type = getType(typeId);
+				auto &base = getObject(baseId);
+				routine->createIntermediate(objectId, type.sizeInComponents);
 				auto &pointerBase = getObject(object.pointerBase);
+				auto &pointerBaseTy = getType(pointerBase.type);
 				assert(type.sizeInComponents == 1);
 				assert(base.pointerBase == object.pointerBase);
 
-				if (pointerBase.storageClass == spv::StorageClassImage ||
-					pointerBase.storageClass == spv::StorageClassUniform ||
-					pointerBase.storageClass == spv::StorageClassUniformConstant)
+				if (pointerBaseTy.storageClass == spv::StorageClassImage ||
+					pointerBaseTy.storageClass == spv::StorageClassUniform ||
+					pointerBaseTy.storageClass == spv::StorageClassUniformConstant)
 				{
 					UNIMPLEMENTED("Descriptor-backed OpAccessChain not yet implemented");
 				}
-
-				auto & dst = routine->getIntermediate(insn.word(2));
-				dst.emplace(0, As<Float4>(WalkAccessChain(insn.word(3), insn.wordCount() - 4, insn.wordPointer(4), routine)));
+				auto &dst = routine->getIntermediate(objectId);
+				dst.emplace(0, As<Float4>(WalkAccessChain(baseId, insn.wordCount() - 4, insn.wordPointer(4), routine)));
 				break;
 			}
 			case spv::OpStore:
 			{
-				auto &object = getObject(insn.word(2));
-				auto &pointer = getObject(insn.word(1));
+				ObjectID pointerId = insn.word(1);
+				ObjectID objectId = insn.word(2);
+				auto &object = getObject(objectId);
+				auto &pointer = getObject(pointerId);
+				auto &pointerTy = getType(pointer.type);
+				auto &elementTy = getType(pointerTy.element);
 				auto &pointerBase = getObject(pointer.pointerBase);
+				auto &pointerBaseTy = getType(pointerBase.type);
 
-				if (pointerBase.storageClass == spv::StorageClassImage ||
-					pointerBase.storageClass == spv::StorageClassUniform ||
-					pointerBase.storageClass == spv::StorageClassUniformConstant)
+				if (pointerBaseTy.storageClass == spv::StorageClassImage ||
+					pointerBaseTy.storageClass == spv::StorageClassUniform ||
+					pointerBaseTy.storageClass == spv::StorageClassUniformConstant)
 				{
 					UNIMPLEMENTED("Descriptor-backed store not yet implemented");
 				}
 
-				SpirvRoutine::Value& ptrBase = routine->getValue(pointer.pointerBase);
+				auto &ptrBase = routine->getValue(pointer.pointerBase);
 
 				if (object.kind == Object::Kind::Constant)
 				{
@@ -844,8 +886,8 @@ namespace sw
 
 					if (pointer.kind == Object::Kind::Value)
 					{
-						auto offsets = As<Int4>(routine->getIntermediate(insn.word(1))[0]);
-						for (auto i = 0u; i < object.sizeInComponents; i++)
+						auto offsets = As<Int4>(routine->getIntermediate(pointerId)[0]);
+						for (auto i = 0u; i < elementTy.sizeInComponents; i++)
 						{
 							// Scattered store
 							for (int j = 0; j < 4; j++)
@@ -858,7 +900,7 @@ namespace sw
 					else
 					{
 						// no divergent offsets
-						for (auto i = 0u; i < object.sizeInComponents; i++)
+						for (auto i = 0u; i < elementTy.sizeInComponents; i++)
 						{
 							ptrBase[i] = RValue<Float4>(src[i]);
 						}
@@ -866,12 +908,12 @@ namespace sw
 				}
 				else
 				{
-					auto &src = routine->getIntermediate(insn.word(2));
+					auto &src = routine->getIntermediate(objectId);
 
 					if (pointer.kind == Object::Kind::Value)
 					{
-						auto offsets = As<Int4>(routine->getIntermediate(insn.word(1))[0]);
-						for (auto i = 0u; i < object.sizeInComponents; i++)
+						auto offsets = As<Int4>(routine->getIntermediate(pointerId)[0]);
+						for (auto i = 0u; i < elementTy.sizeInComponents; i++)
 						{
 							// Scattered store
 							for (int j = 0; j < 4; j++)
@@ -884,7 +926,7 @@ namespace sw
 					else
 					{
 						// no divergent offsets
-						for (auto i = 0u; i < object.sizeInComponents; i++)
+						for (auto i = 0u; i < elementTy.sizeInComponents; i++)
 						{
 							ptrBase[i] = src[i];
 						}
@@ -909,7 +951,8 @@ namespace sw
 			{
 				ObjectID resultId = insn.word(2);
 				auto &object = getObject(resultId);
-				if (object.kind == Object::Kind::InterfaceVariable && object.storageClass == spv::StorageClassOutput)
+				auto &objectTy = getType(object.type);
+				if (object.kind == Object::Kind::InterfaceVariable && objectTy.storageClass == spv::StorageClassOutput)
 				{
 					auto &dst = routine->getValue(resultId);
 					int offset = 0;
