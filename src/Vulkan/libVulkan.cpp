@@ -97,6 +97,7 @@ static const VkExtensionProperties deviceExtensionProperties[] =
 	{ VK_KHR_SHADER_DRAW_PARAMETERS_EXTENSION_NAME, VK_KHR_SHADER_DRAW_PARAMETERS_SPEC_VERSION },
 	{ VK_KHR_STORAGE_BUFFER_STORAGE_CLASS_EXTENSION_NAME, VK_KHR_STORAGE_BUFFER_STORAGE_CLASS_SPEC_VERSION },
 	{ VK_KHR_VARIABLE_POINTERS_EXTENSION_NAME, VK_KHR_VARIABLE_POINTERS_SPEC_VERSION },
+	{ VK_KHR_SWAPCHAIN_EXTENSION_NAME, VK_KHR_SWAPCHAIN_SPEC_VERSION },
 };
 
 VKAPI_ATTR VkResult VKAPI_CALL vkCreateInstance(const VkInstanceCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkInstance* pInstance)
@@ -291,6 +292,29 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDevice(VkPhysicalDevice physicalDevice, c
 		// "The ppEnabledLayerNames and enabledLayerCount members of VkDeviceCreateInfo are deprecated and their values must be ignored by implementations."
 		UNIMPLEMENTED();   // TODO(b/119321052): UNIMPLEMENTED() should be used only for features that must still be implemented. Use a more informational macro here.
 	}
+
+
+	for (uint32_t i = 0; i < pCreateInfo->enabledExtensionCount; ++i)
+	{
+		const char* currentExtensionName = pCreateInfo->ppEnabledExtensionNames[i];
+		uint32_t extensionPropertiesCount = sizeof(deviceExtensionProperties) / sizeof(deviceExtensionProperties[0]);
+		bool foundExtension = false;
+
+		for (uint32_t j = 0; j < extensionPropertiesCount; ++j)
+		{
+			if (strcmp(currentExtensionName, deviceExtensionProperties[j].extensionName) == 0)
+			{
+				foundExtension = true;
+				break;
+			}
+		}
+
+		if (!foundExtension)
+		{
+			return VK_ERROR_EXTENSION_NOT_PRESENT;
+		}
+	}
+
 
 	const VkBaseInStructure* extensionCreateInfo = reinterpret_cast<const VkBaseInStructure*>(pCreateInfo->pNext);
 
