@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "77e95007_3d7dada1",
+        "filename": "src/Vulkan/VkGetProcAddress.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-02-25T05:17:35Z",
+      "side": 1,
+      "message": "It looks like this was supposed to read MAKE_VULKAN_INSTANCE_ENTRY, which would have helped prevent this bug. Could you fix this too? Thanks!",
+      "range": {
+        "startLine": 76,
+        "startChar": 7,
+        "endLine": 76,
+        "endChar": 31
+      },
+      "revId": "b607bc8800c1a13d80e4c79be73172fa7d785017",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
