@@ -590,10 +590,6 @@ namespace sw
 				break;
 			}
 
-			case spv::OpTypePointer:
-				typeId = type.element;
-				break;
-
 			default:
 				UNIMPLEMENTED("Unexpected type in WalkAccessChain");
 			}
