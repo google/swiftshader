@@ -35,6 +35,7 @@ public:
 
 	void initialize(VkDescriptorSet descriptorSet);
 	size_t getSize() const;
+	size_t getBindingOffset(uint32_t binding) const;
 
 private:
 	uint32_t getBindingIndex(uint32_t binding) const;

@@ -20,6 +20,11 @@
 #include "ShaderCore.hpp"
 #include "SpirvShader.hpp"
 
+namespace vk
+{
+	class PipelineLayout;
+} // namespace vk
+
 namespace sw
 {
 	class VertexRoutinePrototype : public Function<Void(Pointer<Byte>, Pointer<Byte>, Pointer<Byte>, Pointer<Byte>)>
@@ -38,7 +43,10 @@ namespace sw
 	class VertexRoutine : public VertexRoutinePrototype
 	{
 	public:
-		VertexRoutine(const VertexProcessor::State &state, SpirvShader const *spirvShader);
+		VertexRoutine(
+			const VertexProcessor::State &state,
+			vk::PipelineLayout const *pipelineLayout,
+			SpirvShader const *spirvShader);
 		virtual ~VertexRoutine();
 
 		void generate();

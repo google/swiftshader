@@ -24,7 +24,8 @@
 namespace vk
 {
 	class ImageView;
-};
+	class PipelineLayout;
+} // namespace vk
 
 namespace sw
 {
@@ -197,6 +198,8 @@ namespace sw
 		unsigned int depthBufferLayer;
 		vk::ImageView *stencilBuffer;
 		unsigned int stencilBufferLayer;
+
+		vk::PipelineLayout const *pipelineLayout;
 
 		// Shaders
 		const SpirvShader *pixelShader;

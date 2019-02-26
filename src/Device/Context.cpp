@@ -218,6 +218,8 @@ namespace sw
 			colorWriteMask[i] = 0x0000000F;
 		}
 
+		pipelineLayout = nullptr;
+
 		pixelShader = nullptr;
 		vertexShader = nullptr;
 

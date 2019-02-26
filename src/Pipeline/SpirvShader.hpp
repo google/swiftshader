@@ -15,11 +15,13 @@
 #ifndef sw_SpirvShader_hpp
 #define sw_SpirvShader_hpp
 
-#include "System/Types.hpp"
-#include "Vulkan/VkDebug.hpp"
 #include "ShaderCore.hpp"
 #include "SpirvID.hpp"
+#include "System/Types.hpp"
+#include "Vulkan/VkDebug.hpp"
+#include "Vulkan/VkConfig.h"
 
+#include <array>
 #include <cstring>
 #include <string>
 #include <vector>
@@ -29,6 +31,11 @@
 #include <memory>
 #include <spirv/unified1/spirv.hpp>
 #include <Device/Config.hpp>
+
+namespace vk
+{
+	class PipelineLayout;
+} // namespace vk
 
 namespace sw
 {
@@ -412,7 +419,11 @@ namespace sw
 	class SpirvRoutine
 	{
 	public:
+		SpirvRoutine(vk::PipelineLayout const *pipelineLayout);
+
 		using Value = Array<SIMD::Float>;
+
+		vk::PipelineLayout const * const pipelineLayout;
 
 		std::unordered_map<SpirvShader::ObjectID, Value> lvalues;
 
@@ -420,6 +431,8 @@ namespace sw
 
 		Value inputs = Value{MAX_INTERFACE_COMPONENTS};
 		Value outputs = Value{MAX_INTERFACE_COMPONENTS};
+
+		std::array<Pointer<Byte>, vk::MAX_BOUND_DESCRIPTOR_SETS> descriptorSets;
 
 		void createLvalue(SpirvShader::ObjectID id, uint32_t size)
 		{

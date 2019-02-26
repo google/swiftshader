@@ -25,7 +25,9 @@ namespace sw
 	class PixelRoutine : public sw::QuadRasterizer, public ShaderCore
 	{
 	public:
-		PixelRoutine(const PixelProcessor::State &state, SpirvShader const *spirvShader);
+		PixelRoutine(const PixelProcessor::State &state,
+			vk::PipelineLayout const *pipelineLayout,
+			SpirvShader const *spirvShader);
 
 		virtual ~PixelRoutine();
 

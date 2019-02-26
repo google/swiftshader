@@ -29,8 +29,12 @@ namespace sw
 	extern bool exactColorRounding;
 	extern bool forceClearRegisters;
 
-	PixelRoutine::PixelRoutine(const PixelProcessor::State &state, SpirvShader const *spirvShader)
-		: QuadRasterizer(state, spirvShader)	/* addressing */
+	PixelRoutine::PixelRoutine(
+			const PixelProcessor::State &state,
+			vk::PipelineLayout const *pipelineLayout,
+			SpirvShader const *spirvShader)
+		: QuadRasterizer(state, spirvShader),
+		  routine(pipelineLayout)
 	{
 		spirvShader->emitProlog(&routine);
 

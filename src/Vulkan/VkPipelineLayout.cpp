@@ -44,4 +44,15 @@ size_t PipelineLayout::ComputeRequiredAllocationSize(const VkPipelineLayoutCreat
 	       (pCreateInfo->pushConstantRangeCount * sizeof(VkPushConstantRange));
 }
 
+size_t PipelineLayout::getNumDescriptorSets() const
+{
+	return setLayoutCount;
+}
+
+size_t PipelineLayout::getBindingOffset(size_t descriptorSet, size_t binding) const
+{
+	ASSERT(descriptorSet < setLayoutCount);
+	return setLayouts[descriptorSet]->getBindingOffset(binding);
+}
+
 } // namespace vk

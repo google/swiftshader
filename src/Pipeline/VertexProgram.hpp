@@ -29,7 +29,10 @@ namespace sw
 	class VertexProgram : public VertexRoutine, public ShaderCore
 	{
 	public:
-		VertexProgram(const VertexProcessor::State &state, SpirvShader const *spirvShader);
+		VertexProgram(
+			const VertexProcessor::State &state,
+			vk::PipelineLayout const *pipelineLayout,
+			SpirvShader const *spirvShader);
 
 		virtual ~VertexProgram();
 

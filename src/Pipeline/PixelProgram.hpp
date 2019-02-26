@@ -23,8 +23,11 @@ namespace sw
 	class PixelProgram : public PixelRoutine
 	{
 	public:
-		PixelProgram(const PixelProcessor::State &state, SpirvShader const *spirvShader) :
-			PixelRoutine(state, spirvShader)
+		PixelProgram(
+				const PixelProcessor::State &state,
+				vk::PipelineLayout const *pipelineLayout,
+				SpirvShader const *spirvShader) :
+			PixelRoutine(state, pipelineLayout, spirvShader)
 		{
 		}
 

@@ -22,8 +22,11 @@
 
 namespace sw
 {
-	VertexProgram::VertexProgram(const VertexProcessor::State &state, SpirvShader const *spirvShader)
-		: VertexRoutine(state, spirvShader)
+	VertexProgram::VertexProgram(
+			const VertexProcessor::State &state,
+			vk::PipelineLayout const *pipelineLayout,
+			SpirvShader const *spirvShader)
+		: VertexRoutine(state, pipelineLayout, spirvShader)
 	{
 		ifDepth = 0;
 		loopRepDepth = 0;

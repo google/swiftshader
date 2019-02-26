@@ -13,6 +13,8 @@
 // limitations under the License.
 
 #include "VkDescriptorSetLayout.hpp"
+#include "System/Types.hpp"
+
 #include <algorithm>
 #include <cstring>
 
@@ -174,6 +176,12 @@ void DescriptorSetLayout::initialize(VkDescriptorSet vkDescriptorSet)
 			mem += bindings[i].descriptorCount * typeSize;
 		}
 	}
+}
+
+size_t DescriptorSetLayout::getBindingOffset(uint32_t binding) const
+{
+	uint32_t index = getBindingIndex(binding);
+	return bindingOffsets[index] + OFFSET(DescriptorSet, data[0]);
 }
 
 uint8_t* DescriptorSetLayout::getOffsetPointer(VkDescriptorSet descriptorSet, uint32_t binding, uint32_t arrayElement, uint32_t count, size_t* typeSize) const

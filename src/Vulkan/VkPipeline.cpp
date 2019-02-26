@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "VkPipeline.hpp"
+#include "VkPipelineLayout.hpp"
 #include "VkShaderModule.hpp"
 #include "Pipeline/SpirvShader.hpp"
 
@@ -191,7 +192,10 @@ uint32_t getNumberOfChannels(VkFormat format)
 namespace vk
 {
 
+Pipeline::Pipeline(PipelineLayout const *layout) : layout(layout) {}
+
 GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateInfo, void* mem)
+	: Pipeline(Cast(pCreateInfo->layout))
 {
 	if((pCreateInfo->flags != 0) ||
 	   (pCreateInfo->stageCount != 2) ||
@@ -229,6 +233,9 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 	{
 		UNIMPLEMENTED();
 	}
+
+	// Context must always have a PipelineLayout set.
+	context.pipelineLayout = layout;
 
 	// Temporary in-binding-order representation of buffer strides, to be consumed below
 	// when considering attributes. TODO: unfuse buffers from attributes in backend, is old GL model.
@@ -499,6 +506,7 @@ const sw::Color<float>& GraphicsPipeline::getBlendConstants() const
 }
 
 ComputePipeline::ComputePipeline(const VkComputePipelineCreateInfo* pCreateInfo, void* mem)
+	: Pipeline(Cast(pCreateInfo->layout))
 {
 }
 

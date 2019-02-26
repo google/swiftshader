@@ -23,9 +23,13 @@ namespace sw { class SpirvShader; }
 namespace vk
 {
 
+class PipelineLayout;
+
 class Pipeline
 {
 public:
+	Pipeline(PipelineLayout const *layout);
+
 	operator VkPipeline()
 	{
 		return reinterpret_cast<VkPipeline>(this);
@@ -40,6 +44,11 @@ public:
 #ifndef NDEBUG
 	virtual VkPipelineBindPoint bindPoint() const = 0;
 #endif
+
+	PipelineLayout const * getLayout() const { return layout; }
+
+protected:
+	PipelineLayout const *layout = nullptr;
 };
 
 class GraphicsPipeline : public Pipeline, public ObjectBase<GraphicsPipeline, VkPipeline>
