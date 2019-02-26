@@ -271,9 +271,13 @@ namespace sw
 		{
 			int32_t Location;
 			int32_t Component;
+			int32_t DescriptorSet;
+			int32_t Binding;
 			spv::BuiltIn BuiltIn;
 			bool HasLocation : 1;
 			bool HasComponent : 1;
+			bool HasDescriptorSet : 1;
+			bool HasBinding : 1;
 			bool HasBuiltIn : 1;
 			bool Flat : 1;
 			bool Centroid : 1;
@@ -282,10 +286,12 @@ namespace sw
 			bool BufferBlock : 1;
 
 			Decorations()
-					: Location{-1}, Component{0}, BuiltIn{}, HasLocation{false}, HasComponent{false}, HasBuiltIn{false},
-					  Flat{false},
-					  Centroid{false}, NoPerspective{false}, Block{false},
-					  BufferBlock{false}
+					: Location{-1}, Component{0}, DescriptorSet{-1}, Binding{-1},
+					  BuiltIn{static_cast<spv::BuiltIn>(-1)},
+					  HasLocation{false}, HasComponent{false},
+					  HasDescriptorSet{false}, HasBinding{false},
+					  HasBuiltIn{false}, Flat{false}, Centroid{false},
+					  NoPerspective{false}, Block{false}, BufferBlock{false}
 			{
 			}
 

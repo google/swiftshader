@@ -656,6 +656,14 @@ namespace sw
 			HasComponent = true;
 			Component = arg;
 			break;
+		case spv::DecorationDescriptorSet:
+			HasDescriptorSet = true;
+			DescriptorSet = arg;
+			break;
+		case spv::DecorationBinding:
+			HasBinding = true;
+			Binding = arg;
+			break;
 		case spv::DecorationBuiltIn:
 			HasBuiltIn = true;
 			BuiltIn = static_cast<spv::BuiltIn>(arg);
@@ -700,6 +708,18 @@ namespace sw
 		{
 			HasComponent = true;
 			Component = src.Component;
+		}
+
+		if (src.HasDescriptorSet)
+		{
+			HasDescriptorSet = true;
+			DescriptorSet = src.DescriptorSet;
+		}
+
+		if (src.HasBinding)
+		{
+			HasBinding = true;
+			Binding = src.Binding;
 		}
 
 		Flat |= src.Flat;
