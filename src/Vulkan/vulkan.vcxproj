@@ -169,6 +169,7 @@ copy "$(OutDir)vk_swiftshader.dll" "$(SolutionDir)out\$(Configuration)_$(Platfor
     <ClCompile Include="..\System\Thread.cpp" />
     <ClCompile Include="..\System\Timer.cpp" />
     <ClCompile Include="..\WSI\VkSurfaceKHR.cpp" />
+    <ClCompile Include="..\WSI\VkSwapchainKHR.cpp" />
     <ClCompile Include="..\WSI\FrameBuffer.cpp" />
     <ClCompile Include="..\WSI\FrameBufferAndroid.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
@@ -281,6 +282,7 @@ copy "$(OutDir)vk_swiftshader.dll" "$(SolutionDir)out\$(Configuration)_$(Platfor
     <ClInclude Include="..\System\Timer.hpp" />
     <ClInclude Include="..\System\Types.hpp" />
     <ClInclude Include="..\WSI\VkSurfaceKHR.hpp" />
+    <ClInclude Include="..\WSI\VkSwapchainKHR.hpp" />
     <ClInclude Include="..\WSI\FrameBuffer.hpp" />
     <ClInclude Include="..\WSI\FrameBufferAndroid.hpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>

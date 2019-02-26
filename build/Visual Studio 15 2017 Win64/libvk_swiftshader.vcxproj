@@ -318,6 +318,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)src\Pipeline\SpirvShader.hpp" />
     <ClInclude Include="$(SolutionDir)src\Pipeline\VertexProgram.hpp" />
     <ClInclude Include="$(SolutionDir)src\Pipeline\VertexRoutine.hpp" />
+    <ClCompile Include="$(SolutionDir)src\WSI\VkSurfaceKHR.cpp" />
+    <ClInclude Include="$(SolutionDir)src\WSI\VkSurfaceKHR.hpp" />
+    <ClCompile Include="$(SolutionDir)src\WSI\VkSwapchainKHR.cpp" />
+    <ClInclude Include="$(SolutionDir)src\WSI\VkSwapchainKHR.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\ReactorLLVM.vcxproj">

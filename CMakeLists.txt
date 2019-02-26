@@ -2061,6 +2061,8 @@ file(GLOB_RECURSE VULKAN_LIST
     ${SOURCE_DIR}/Pipeline/*.hpp
     ${SOURCE_DIR}/WSI/VkSurfaceKHR.cpp
     ${SOURCE_DIR}/WSI/VkSurfaceKHR.hpp
+    ${SOURCE_DIR}/WSI/VkSwapchainKHR.cpp
+    ${SOURCE_DIR}/WSI/VkSwapchainKHR.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/include/vulkan/*.h}
 )
 

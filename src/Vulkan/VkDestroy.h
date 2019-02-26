@@ -35,6 +35,7 @@
 #include "VkShaderModule.hpp"
 #include "VkRenderPass.hpp"
 #include "WSI/VkSurfaceKHR.hpp"
+#include "WSI/VkSwapchainKHR.hpp"
 
 namespace vk
 {
