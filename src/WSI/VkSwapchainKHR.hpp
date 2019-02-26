@@ -15,7 +15,9 @@
 #ifndef SWIFTSHADER_VKSWAPCHAINKHR_HPP
 #define SWIFTSHADER_VKSWAPCHAINKHR_HPP
 
+
 #include "Vulkan/VkObject.hpp"
+#include "Vulkan/VkImage.hpp"
 
 #include <vector>
 
@@ -49,10 +51,12 @@ public:
 
 	VkResult createImages(VkDevice device);
 
+	uint32_t getImageCount() const;
+	VkResult getImages(uint32_t *pSwapchainImageCount, VkImage *pSwapchainImages) const;
+
 private:
 	VkSwapchainCreateInfoKHR createInfo;
 	std::vector<PresentImage> images;
-	uint32_t imageCount;
 
 	void resetImages();
 };

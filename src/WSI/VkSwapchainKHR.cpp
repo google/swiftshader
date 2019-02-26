@@ -18,12 +18,13 @@
 #include "Vulkan/VkDeviceMemory.hpp"
 #include "Vulkan/VkDestroy.h"
 
+#include <algorithm>
+
 namespace vk
 {
 
 SwapchainKHR::SwapchainKHR(const VkSwapchainCreateInfoKHR *pCreateInfo, void *mem) :
-	createInfo(*pCreateInfo),
-	imageCount(0)
+	createInfo(*pCreateInfo)
 {
 	images.resize(pCreateInfo->minImageCount);
 	resetImages();
@@ -115,6 +116,31 @@ VkResult SwapchainKHR::createImages(VkDevice device)
 		vkBindImageMemory(device, currentImage.image, currentImage.imageMemory, 0);
 
 		currentImage.imageStatus = AVAILABLE;
+	}
+
+	return VK_SUCCESS;
+}
+
+uint32_t SwapchainKHR::getImageCount() const
+{
+	return static_cast<uint32_t >(images.size());
+}
+
+VkResult SwapchainKHR::getImages(uint32_t *pSwapchainImageCount, VkImage *pSwapchainImages) const
+{
+	uint32_t count = getImageCount();
+
+	uint32_t i;
+	for (i = 0; i < std::min(*pSwapchainImageCount, count); i++)
+	{
+		pSwapchainImages[i] = images[i].image;
+	}
+
+	*pSwapchainImageCount = i;
+
+	if (*pSwapchainImageCount < count)
+	{
+		return VK_INCOMPLETE;
 	}
 
 	return VK_SUCCESS;

@@ -250,6 +250,7 @@ static const std::unordered_map<std::string, PFN_vkVoidFunction> deviceFunctionP
 	MAKE_VULKAN_DEVICE_ENTRY(vkGetDescriptorSetLayoutSupportKHR),
 	MAKE_VULKAN_DEVICE_ENTRY(vkCreateSwapchainKHR),
 	MAKE_VULKAN_DEVICE_ENTRY(vkDestroySwapchainKHR),
+	MAKE_VULKAN_DEVICE_ENTRY(vkGetSwapchainImagesKHR),
 };
 #undef MAKE_VULKAN_DEVICE_ENTRY
 

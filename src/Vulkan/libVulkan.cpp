@@ -2168,10 +2168,24 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateSwapchainKHR(VkDevice device, const VkSwa
 
 VKAPI_ATTR void VKAPI_CALL vkDestroySwapchainKHR(VkDevice device, VkSwapchainKHR swapchain, const VkAllocationCallbacks* pAllocator)
 {
-	TRACE("(VkDevice device, VkSwapchainKHR swapchain, const VkAllocationCallbacks* pAllocator)",
+	TRACE("(VkDevice device = 0x%X, VkSwapchainKHR swapchain = 0x%X, const VkAllocationCallbacks* pAllocator = 0x%X)",
 			device, swapchain, pAllocator);
 
 	vk::destroy(swapchain, pAllocator);
+}
+
+VKAPI_ATTR VkResult VKAPI_CALL vkGetSwapchainImagesKHR(VkDevice device, VkSwapchainKHR swapchain, uint32_t* pSwapchainImageCount, VkImage* pSwapchainImages)
+{
+	TRACE("(VkDevice device = 0x%X, VkSwapchainKHR swapchain = 0x%X, uint32_t* pSwapchainImageCount = 0x%X, VkImage* pSwapchainImages = 0x%X)",
+			device, swapchain, pSwapchainImageCount, pSwapchainImages);
+
+	if(!pSwapchainImages)
+	{
+		*pSwapchainImageCount = vk::Cast(swapchain)->getImageCount();
+		return VK_SUCCESS;
+	}
+
+	return vk::Cast(swapchain)->getImages(pSwapchainImageCount, pSwapchainImages);
 }
 
 }
