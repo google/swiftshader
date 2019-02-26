@@ -2510,10 +2510,10 @@ void Context::readPixels(GLint x, GLint y, GLsizei width, GLsizei height,
 		{
 			for(int i = 0; i < rect.x1 - rect.x0; i++)
 			{
-				float r;
-				float g;
-				float b;
-				float a;
+				float r = 0.f;
+				float g = 0.f;
+				float b = 0.f;
+				float a = 0.f;
 
 				switch(renderTarget->getExternalFormat())
 				{

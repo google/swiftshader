@@ -3077,9 +3077,9 @@ namespace rr
 	// args as this appears to still be broken on certain compilers.
 	#define RR_GET_NTH_ARG(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, N, ...) N
 	#define RR_COUNT_ARGUMENTS(...) RR_GET_NTH_ARG(__VA_ARGS__, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0)
-	static_assert(1 == RR_COUNT_ARGUMENTS(a)); // Sanity checks.
-	static_assert(2 == RR_COUNT_ARGUMENTS(a, b));
-	static_assert(3 == RR_COUNT_ARGUMENTS(a, b, c));
+	static_assert(1 == RR_COUNT_ARGUMENTS(a), "RR_COUNT_ARGUMENTS broken"); // Sanity checks.
+	static_assert(2 == RR_COUNT_ARGUMENTS(a, b), "RR_COUNT_ARGUMENTS broken");
+	static_assert(3 == RR_COUNT_ARGUMENTS(a, b, c), "RR_COUNT_ARGUMENTS broken");
 
 	// RR_WATCH_FMT(...) resolves to a string literal that lists all the
 	// arguments by name. This string can be passed to LOG() to print each of

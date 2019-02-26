@@ -118,6 +118,7 @@ namespace
 
 	rr::MutexLock codegenMutex;
 
+#ifdef ENABLE_RR_PRINT
 	std::string replace(std::string str, const std::string& substr, const std::string& replacement)
 	{
 		size_t pos = 0;
@@ -127,6 +128,7 @@ namespace
 		}
 		return str;
 	}
+#endif // ENABLE_RR_PRINT
 
 #if REACTOR_LLVM_VERSION >= 7
 	llvm::Value *lowerPAVG(llvm::Value *x, llvm::Value *y)
@@ -7532,7 +7534,7 @@ namespace rr
 	}
 #endif  // defined(__i386__) || defined(__x86_64__)
 
-#if ENABLE_RR_PRINT
+#ifdef ENABLE_RR_PRINT
 	// extractAll returns a vector containing the extracted n scalar value of
 	// the vector vec.
 	static std::vector<Value*> extractAll(Value* vec, int n)

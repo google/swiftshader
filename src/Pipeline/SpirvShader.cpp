@@ -457,6 +457,7 @@ namespace sw
 		default:
 			// Some other random insn.
 			UNIMPLEMENTED("Only types are supported");
+			return 0;
 		}
 	}
 
@@ -789,12 +790,11 @@ namespace sw
 				auto &object = getObject(objectId);
 				auto &objectTy = getType(object.type);
 				auto &pointer = getObject(pointerId);
-				auto &pointerTy = getType(pointer.type);
 				auto &pointerBase = getObject(pointer.pointerBase);
 				auto &pointerBaseTy = getType(pointerBase.type);
 
-				assert(pointerTy.element == object.type);
-				assert(TypeID(insn.word(1)) == object.type);
+				ASSERT(getType(pointer.type).element == object.type);
+				ASSERT(TypeID(insn.word(1)) == object.type);
 
 				if (pointerBaseTy.storageClass == spv::StorageClassImage ||
 					pointerBaseTy.storageClass == spv::StorageClassUniform ||
@@ -838,11 +838,10 @@ namespace sw
 				ObjectID baseId = insn.word(3);
 				auto &object = getObject(objectId);
 				auto &type = getType(typeId);
-				auto &base = getObject(baseId);
 				auto &pointerBase = getObject(object.pointerBase);
 				auto &pointerBaseTy = getType(pointerBase.type);
-				assert(type.sizeInComponents == 1);
-				assert(base.pointerBase == object.pointerBase);
+				ASSERT(type.sizeInComponents == 1);
+				ASSERT(getObject(baseId).pointerBase == object.pointerBase);
 
 				if (pointerBaseTy.storageClass == spv::StorageClassImage ||
 					pointerBaseTy.storageClass == spv::StorageClassUniform ||
