@@ -836,251 +836,291 @@ namespace sw
 				break;
 
 			case spv::OpVariable:
-			{
-				ObjectID resultId = insn.word(2);
-				auto &object = getObject(resultId);
-				auto &objectTy = getType(object.type);
-				if (object.kind == Object::Kind::InterfaceVariable && objectTy.storageClass == spv::StorageClassInput)
-				{
-					auto &dst = routine->getValue(resultId);
-					int offset = 0;
-					VisitInterface(resultId,
-								   [&](Decorations const &d, AttribType type) {
-									   auto scalarSlot = d.Location << 2 | d.Component;
-									   dst[offset++] = routine->inputs[scalarSlot];
-								   });
-				}
+				EmitVariable(insn, routine);
 				break;
-			}
+
 			case spv::OpLoad:
-			{
-				ObjectID objectId = insn.word(2);
-				ObjectID pointerId = insn.word(3);
-				auto &object = getObject(objectId);
-				auto &objectTy = getType(object.type);
-				auto &pointer = getObject(pointerId);
-				auto &pointerBase = getObject(pointer.pointerBase);
-				auto &pointerBaseTy = getType(pointerBase.type);
-
-				ASSERT(getType(pointer.type).element == object.type);
-				ASSERT(TypeID(insn.word(1)) == object.type);
-
-				if (pointerBaseTy.storageClass == spv::StorageClassImage ||
-					pointerBaseTy.storageClass == spv::StorageClassUniform ||
-					pointerBaseTy.storageClass == spv::StorageClassUniformConstant)
-				{
-					UNIMPLEMENTED("Descriptor-backed load not yet implemented");
-				}
-
-				auto &ptrBase = routine->getValue(pointer.pointerBase);
-				auto &dst = routine->createIntermediate(objectId, objectTy.sizeInComponents);
-
-				if (pointer.kind == Object::Kind::Value)
-				{
-					auto offsets = As<SIMD::Int>(routine->getIntermediate(insn.word(3))[0]);
-					for (auto i = 0u; i < objectTy.sizeInComponents; i++)
-					{
-						// i wish i had a Float,Float,Float,Float constructor here..
-						SIMD::Float v;
-						for (int j = 0; j < SIMD::Width; j++)
-						{
-							Int offset = Int(i) + Extract(offsets, j);
-							v = Insert(v, Extract(ptrBase[offset], j), j);
-						}
-						dst.emplace(i, v);
-					}
-				}
-				else
-				{
-					// no divergent offsets to worry about
-					for (auto i = 0u; i < objectTy.sizeInComponents; i++)
-					{
-						dst.emplace(i, ptrBase[i]);
-					}
-				}
+				EmitLoad(insn, routine);
 				break;
-			}
-			case spv::OpAccessChain:
-			{
-				TypeID typeId = insn.word(1);
-				ObjectID objectId = insn.word(2);
-				ObjectID baseId = insn.word(3);
-				auto &object = getObject(objectId);
-				auto &type = getType(typeId);
-				auto &pointerBase = getObject(object.pointerBase);
-				auto &pointerBaseTy = getType(pointerBase.type);
-				ASSERT(type.sizeInComponents == 1);
-				ASSERT(getObject(baseId).pointerBase == object.pointerBase);
 
-				if (pointerBaseTy.storageClass == spv::StorageClassImage ||
-					pointerBaseTy.storageClass == spv::StorageClassUniform ||
-					pointerBaseTy.storageClass == spv::StorageClassUniformConstant)
-				{
-					UNIMPLEMENTED("Descriptor-backed OpAccessChain not yet implemented");
-				}
-				auto &dst = routine->createIntermediate(objectId, type.sizeInComponents);
-				dst.emplace(0, As<SIMD::Float>(WalkAccessChain(baseId, insn.wordCount() - 4, insn.wordPointer(4), routine)));
-				break;
-			}
 			case spv::OpStore:
-			{
-				ObjectID pointerId = insn.word(1);
-				ObjectID objectId = insn.word(2);
-				auto &object = getObject(objectId);
-				auto &pointer = getObject(pointerId);
-				auto &pointerTy = getType(pointer.type);
-				auto &elementTy = getType(pointerTy.element);
-				auto &pointerBase = getObject(pointer.pointerBase);
-				auto &pointerBaseTy = getType(pointerBase.type);
-
-				if (pointerBaseTy.storageClass == spv::StorageClassImage ||
-					pointerBaseTy.storageClass == spv::StorageClassUniform ||
-					pointerBaseTy.storageClass == spv::StorageClassUniformConstant)
-				{
-					UNIMPLEMENTED("Descriptor-backed store not yet implemented");
-				}
-
-				auto &ptrBase = routine->getValue(pointer.pointerBase);
-
-				if (object.kind == Object::Kind::Constant)
-				{
-					auto src = reinterpret_cast<float *>(object.constantValue.get());
-
-					if (pointer.kind == Object::Kind::Value)
-					{
-						auto offsets = As<SIMD::Int>(routine->getIntermediate(pointerId)[0]);
-						for (auto i = 0u; i < elementTy.sizeInComponents; i++)
-						{
-							// Scattered store
-							for (int j = 0; j < SIMD::Width; j++)
-							{
-								auto dst = ptrBase[Int(i) + Extract(offsets, j)];
-								dst = Insert(dst, Float(src[i]), j);
-							}
-						}
-					}
-					else
-					{
-						// no divergent offsets
-						for (auto i = 0u; i < elementTy.sizeInComponents; i++)
-						{
-							ptrBase[i] = RValue<SIMD::Float>(src[i]);
-						}
-					}
-				}
-				else
-				{
-					auto &src = routine->getIntermediate(objectId);
-
-					if (pointer.kind == Object::Kind::Value)
-					{
-						auto offsets = As<SIMD::Int>(routine->getIntermediate(pointerId)[0]);
-						for (auto i = 0u; i < elementTy.sizeInComponents; i++)
-						{
-							// Scattered store
-							for (int j = 0; j < SIMD::Width; j++)
-							{
-								auto dst = ptrBase[Int(i) + Extract(offsets, j)];
-								dst = Insert(dst, Extract(src[i], j), j);
-							}
-						}
-					}
-					else
-					{
-						// no divergent offsets
-						for (auto i = 0u; i < elementTy.sizeInComponents; i++)
-						{
-							ptrBase[i] = src[i];
-						}
-					}
-				}
+				EmitStore(insn, routine);
 				break;
-			}
+
+			case spv::OpAccessChain:
+				EmitAccessChain(insn, routine);
+				break;
+
 			case spv::OpCompositeConstruct:
-			{
-				auto &type = getType(insn.word(1));
-				auto &dst = routine->createIntermediate(insn.word(2), type.sizeInComponents);
-				auto offset = 0u;
-
-				for (auto i = 0u; i < insn.wordCount() - 3; i++)
-				{
-					ObjectID srcObjectId = insn.word(3u + i);
-					auto & srcObject = getObject(srcObjectId);
-					auto & srcObjectTy = getType(srcObject.type);
-					GenericValue srcObjectAccess(this, routine, srcObjectId);
-
-					for (auto j = 0u; j < srcObjectTy.sizeInComponents; j++)
-						dst.emplace(offset++, srcObjectAccess[j]);
-				}
+				EmitCompositeConstruct(insn, routine);
 				break;
-			}
+
 			case spv::OpCompositeInsert:
-			{
-				TypeID resultTypeId = insn.word(1);
-				auto &type = getType(resultTypeId);
-				auto &dst = routine->createIntermediate(insn.word(2), type.sizeInComponents);
-				auto &newPartObject = getObject(insn.word(3));
-				auto &newPartObjectTy = getType(newPartObject.type);
-				auto firstNewComponent = WalkLiteralAccessChain(resultTypeId, insn.wordCount() - 5, insn.wordPointer(5));
-
-				GenericValue srcObjectAccess(this, routine, insn.word(4));
-				GenericValue newPartObjectAccess(this, routine, insn.word(3));
-
-				// old components before
-				for (auto i = 0u; i < firstNewComponent; i++)
-					dst.emplace(i, srcObjectAccess[i]);
-				// new part
-				for (auto i = 0u; i < newPartObjectTy.sizeInComponents; i++)
-					dst.emplace(firstNewComponent + i, newPartObjectAccess[i]);
-				// old components after
-				for (auto i = firstNewComponent + newPartObjectTy.sizeInComponents; i < type.sizeInComponents; i++)
-					dst.emplace(i, srcObjectAccess[i]);
+				EmitCompositeInsert(insn, routine);
 				break;
-			}
+
 			case spv::OpCompositeExtract:
-			{
-				auto &type = getType(insn.word(1));
-				auto &dst = routine->createIntermediate(insn.word(2), type.sizeInComponents);
-				auto &compositeObject = getObject(insn.word(3));
-				TypeID compositeTypeId = compositeObject.definition.word(1);
-				auto firstComponent = WalkLiteralAccessChain(compositeTypeId, insn.wordCount() - 4, insn.wordPointer(4));
-
-				GenericValue compositeObjectAccess(this, routine, insn.word(3));
-				for (auto i = 0u; i < type.sizeInComponents; i++)
-					dst.emplace(i, compositeObjectAccess[firstComponent + i]);
+				EmitCompositeExtract(insn, routine);
 				break;
-			}
+
 			case spv::OpVectorShuffle:
-			{
-				auto &type = getType(insn.word(1));
-				auto &dst = routine->createIntermediate(insn.word(2), type.sizeInComponents);
-
-				GenericValue firstHalfAccess(this, routine, insn.word(3));
-				GenericValue secondHalfAccess(this, routine, insn.word(4));
-
-				for (auto i = 0u; i < type.sizeInComponents; i++)
-				{
-					auto selector = insn.word(5 + i);
-					if (selector == static_cast<uint32_t>(-1))
-					{
-						// Undefined value. Until we decide to do real undef values, zero is as good
-						// a value as any
-						dst.emplace(i, RValue<SIMD::Float>(0.0f));
-					}
-					else if (selector < type.sizeInComponents)
-					{
-						dst.emplace(i, firstHalfAccess[selector]);
-					}
-					else
-					{
-						dst.emplace(i, secondHalfAccess[selector - type.sizeInComponents]);
-					}
-				}
+				EmitVectorShuffle(insn, routine);
 				break;
-			}
+
 			default:
 				printf("emit: ignoring opcode %s\n", OpcodeName(insn.opcode()).c_str());
 				break;
+			}
+		}
+	}
+
+	void SpirvShader::EmitVariable(InsnIterator insn, SpirvRoutine *routine) const
+	{
+		ObjectID resultId = insn.word(2);
+		auto &object = getObject(resultId);
+		auto &objectTy = getType(object.type);
+		if (object.kind == Object::Kind::InterfaceVariable && objectTy.storageClass == spv::StorageClassInput)
+		{
+			auto &dst = routine->getValue(resultId);
+			int offset = 0;
+			VisitInterface(resultId,
+							[&](Decorations const &d, AttribType type) {
+								auto scalarSlot = d.Location << 2 | d.Component;
+								dst[offset++] = routine->inputs[scalarSlot];
+							});
+		}
+	}
+
+	void SpirvShader::EmitLoad(InsnIterator insn, SpirvRoutine *routine) const
+	{
+		ObjectID objectId = insn.word(2);
+		ObjectID pointerId = insn.word(3);
+		auto &object = getObject(objectId);
+		auto &objectTy = getType(object.type);
+		auto &pointer = getObject(pointerId);
+		auto &pointerBase = getObject(pointer.pointerBase);
+		auto &pointerBaseTy = getType(pointerBase.type);
+
+		ASSERT(getType(pointer.type).element == object.type);
+		ASSERT(TypeID(insn.word(1)) == object.type);
+
+		if (pointerBaseTy.storageClass == spv::StorageClassImage ||
+			pointerBaseTy.storageClass == spv::StorageClassUniform ||
+			pointerBaseTy.storageClass == spv::StorageClassUniformConstant)
+		{
+			UNIMPLEMENTED("Descriptor-backed load not yet implemented");
+		}
+
+		auto &ptrBase = routine->getValue(pointer.pointerBase);
+		auto &dst = routine->createIntermediate(objectId, objectTy.sizeInComponents);
+
+		if (pointer.kind == Object::Kind::Value)
+		{
+			auto offsets = As<SIMD::Int>(routine->getIntermediate(insn.word(3))[0]);
+			for (auto i = 0u; i < objectTy.sizeInComponents; i++)
+			{
+				// i wish i had a Float,Float,Float,Float constructor here..
+				SIMD::Float v;
+				for (int j = 0; j < SIMD::Width; j++)
+				{
+					Int offset = Int(i) + Extract(offsets, j);
+					v = Insert(v, Extract(ptrBase[offset], j), j);
+				}
+				dst.emplace(i, v);
+			}
+		}
+		else
+		{
+			// no divergent offsets to worry about
+			for (auto i = 0u; i < objectTy.sizeInComponents; i++)
+			{
+				dst.emplace(i, ptrBase[i]);
+			}
+		}
+	}
+
+	void SpirvShader::EmitAccessChain(InsnIterator insn, SpirvRoutine *routine) const
+	{
+		TypeID typeId = insn.word(1);
+		ObjectID objectId = insn.word(2);
+		ObjectID baseId = insn.word(3);
+		auto &object = getObject(objectId);
+		auto &type = getType(typeId);
+		auto &pointerBase = getObject(object.pointerBase);
+		auto &pointerBaseTy = getType(pointerBase.type);
+		ASSERT(type.sizeInComponents == 1);
+		ASSERT(getObject(baseId).pointerBase == object.pointerBase);
+
+		if (pointerBaseTy.storageClass == spv::StorageClassImage ||
+			pointerBaseTy.storageClass == spv::StorageClassUniform ||
+			pointerBaseTy.storageClass == spv::StorageClassUniformConstant)
+		{
+			UNIMPLEMENTED("Descriptor-backed OpAccessChain not yet implemented");
+		}
+		auto &dst = routine->createIntermediate(objectId, type.sizeInComponents);
+		dst.emplace(0, As<SIMD::Float>(WalkAccessChain(baseId, insn.wordCount() - 4, insn.wordPointer(4), routine)));
+	}
+
+	void SpirvShader::EmitStore(InsnIterator insn, SpirvRoutine *routine) const
+	{
+		ObjectID pointerId = insn.word(1);
+		ObjectID objectId = insn.word(2);
+		auto &object = getObject(objectId);
+		auto &pointer = getObject(pointerId);
+		auto &pointerTy = getType(pointer.type);
+		auto &elementTy = getType(pointerTy.element);
+		auto &pointerBase = getObject(pointer.pointerBase);
+		auto &pointerBaseTy = getType(pointerBase.type);
+
+		if (pointerBaseTy.storageClass == spv::StorageClassImage ||
+			pointerBaseTy.storageClass == spv::StorageClassUniform ||
+			pointerBaseTy.storageClass == spv::StorageClassUniformConstant)
+		{
+			UNIMPLEMENTED("Descriptor-backed store not yet implemented");
+		}
+
+		auto &ptrBase = routine->getValue(pointer.pointerBase);
+
+		if (object.kind == Object::Kind::Constant)
+		{
+			auto src = reinterpret_cast<float *>(object.constantValue.get());
+
+			if (pointer.kind == Object::Kind::Value)
+			{
+				auto offsets = As<SIMD::Int>(routine->getIntermediate(pointerId)[0]);
+				for (auto i = 0u; i < elementTy.sizeInComponents; i++)
+				{
+					// Scattered store
+					for (int j = 0; j < SIMD::Width; j++)
+					{
+						auto dst = ptrBase[Int(i) + Extract(offsets, j)];
+						dst = Insert(dst, Float(src[i]), j);
+					}
+				}
+			}
+			else
+			{
+				// no divergent offsets
+				for (auto i = 0u; i < elementTy.sizeInComponents; i++)
+				{
+					ptrBase[i] = RValue<SIMD::Float>(src[i]);
+				}
+			}
+		}
+		else
+		{
+			auto &src = routine->getIntermediate(objectId);
+
+			if (pointer.kind == Object::Kind::Value)
+			{
+				auto offsets = As<SIMD::Int>(routine->getIntermediate(pointerId)[0]);
+				for (auto i = 0u; i < elementTy.sizeInComponents; i++)
+				{
+					// Scattered store
+					for (int j = 0; j < SIMD::Width; j++)
+					{
+						auto dst = ptrBase[Int(i) + Extract(offsets, j)];
+						dst = Insert(dst, Extract(src[i], j), j);
+					}
+				}
+			}
+			else
+			{
+				// no divergent offsets
+				for (auto i = 0u; i < elementTy.sizeInComponents; i++)
+				{
+					ptrBase[i] = src[i];
+				}
+			}
+		}
+	}
+
+	void SpirvShader::EmitCompositeConstruct(InsnIterator insn, SpirvRoutine *routine) const
+	{
+		auto &type = getType(insn.word(1));
+		auto &dst = routine->createIntermediate(insn.word(2), type.sizeInComponents);
+		auto offset = 0u;
+
+		for (auto i = 0u; i < insn.wordCount() - 3; i++)
+		{
+			ObjectID srcObjectId = insn.word(3u + i);
+			auto & srcObject = getObject(srcObjectId);
+			auto & srcObjectTy = getType(srcObject.type);
+			GenericValue srcObjectAccess(this, routine, srcObjectId);
+
+			for (auto j = 0u; j < srcObjectTy.sizeInComponents; j++)
+				dst.emplace(offset++, srcObjectAccess[j]);
+		}
+	}
+
+	void SpirvShader::EmitCompositeInsert(InsnIterator insn, SpirvRoutine *routine) const
+	{
+		TypeID resultTypeId = insn.word(1);
+		auto &type = getType(resultTypeId);
+		auto &dst = routine->createIntermediate(insn.word(2), type.sizeInComponents);
+		auto &newPartObject = getObject(insn.word(3));
+		auto &newPartObjectTy = getType(newPartObject.type);
+		auto firstNewComponent = WalkLiteralAccessChain(resultTypeId, insn.wordCount() - 5, insn.wordPointer(5));
+
+		GenericValue srcObjectAccess(this, routine, insn.word(4));
+		GenericValue newPartObjectAccess(this, routine, insn.word(3));
+
+		// old components before
+		for (auto i = 0u; i < firstNewComponent; i++)
+		{
+			dst.emplace(i, srcObjectAccess[i]);
+		}
+		// new part
+		for (auto i = 0u; i < newPartObjectTy.sizeInComponents; i++)
+		{
+			dst.emplace(firstNewComponent + i, newPartObjectAccess[i]);
+		}
+		// old components after
+		for (auto i = firstNewComponent + newPartObjectTy.sizeInComponents; i < type.sizeInComponents; i++)
+		{
+			dst.emplace(i, srcObjectAccess[i]);
+		}
+	}
+
+	void SpirvShader::EmitCompositeExtract(InsnIterator insn, SpirvRoutine *routine) const
+	{
+		auto &type = getType(insn.word(1));
+		auto &dst = routine->createIntermediate(insn.word(2), type.sizeInComponents);
+		auto &compositeObject = getObject(insn.word(3));
+		TypeID compositeTypeId = compositeObject.definition.word(1);
+		auto firstComponent = WalkLiteralAccessChain(compositeTypeId, insn.wordCount() - 4, insn.wordPointer(4));
+
+		GenericValue compositeObjectAccess(this, routine, insn.word(3));
+		for (auto i = 0u; i < type.sizeInComponents; i++)
+		{
+			dst.emplace(i, compositeObjectAccess[firstComponent + i]);
+		}
+	}
+
+	void SpirvShader::EmitVectorShuffle(InsnIterator insn, SpirvRoutine *routine) const
+	{
+		auto &type = getType(insn.word(1));
+		auto &dst = routine->createIntermediate(insn.word(2), type.sizeInComponents);
+
+		GenericValue firstHalfAccess(this, routine, insn.word(3));
+		GenericValue secondHalfAccess(this, routine, insn.word(4));
+
+		for (auto i = 0u; i < type.sizeInComponents; i++)
+		{
+			auto selector = insn.word(5 + i);
+			if (selector == static_cast<uint32_t>(-1))
+			{
+				// Undefined value. Until we decide to do real undef values, zero is as good
+				// a value as any
+				dst.emplace(i, RValue<SIMD::Float>(0.0f));
+			}
+			else if (selector < type.sizeInComponents)
+			{
+				dst.emplace(i, firstHalfAccess[selector]);
+			}
+			else
+			{
+				dst.emplace(i, secondHalfAccess[selector - type.sizeInComponents]);
 			}
 		}
 	}

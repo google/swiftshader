@@ -381,6 +381,16 @@ namespace sw
 		SIMD::Int WalkAccessChain(ObjectID id, uint32_t numIndexes, uint32_t const *indexIds, SpirvRoutine *routine) const;
 		uint32_t WalkLiteralAccessChain(TypeID id, uint32_t numIndexes, uint32_t const *indexes) const;
 
+		// Emit pass instructions:
+		void EmitVariable(InsnIterator insn, SpirvRoutine *routine) const;
+		void EmitLoad(InsnIterator insn, SpirvRoutine *routine) const;
+		void EmitStore(InsnIterator insn, SpirvRoutine *routine) const;
+		void EmitAccessChain(InsnIterator insn, SpirvRoutine *routine) const;
+		void EmitCompositeConstruct(InsnIterator insn, SpirvRoutine *routine) const;
+		void EmitCompositeInsert(InsnIterator insn, SpirvRoutine *routine) const;
+		void EmitCompositeExtract(InsnIterator insn, SpirvRoutine *routine) const;
+		void EmitVectorShuffle(InsnIterator insn, SpirvRoutine *routine) const;
+
 		// OpcodeName returns the name of the opcode op.
 		// If NDEBUG is defined, then OpcodeName will only return the numerical code.
 		static std::string OpcodeName(spv::Op op);
