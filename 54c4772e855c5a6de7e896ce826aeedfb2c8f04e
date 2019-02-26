@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "df33ce57_36242d01",
+        "filename": "src/Device/Renderer.cpp",
+        "patchSetId": 7
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2019-02-26T21:28:50Z",
+      "side": 1,
+      "message": "This doesn\u0027t compile in VS",
+      "range": {
+        "startLine": 15,
+        "startChar": 0,
+        "endLine": 15,
+        "endChar": 21
+      },
+      "revId": "54c4772e855c5a6de7e896ce826aeedfb2c8f04e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
