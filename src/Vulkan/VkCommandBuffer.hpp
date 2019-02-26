@@ -133,6 +133,8 @@ public:
 			VkDeviceSize offset;
 		};
 		VertexInputBinding vertexInputBindings[MAX_VERTEX_INPUT_BINDINGS] = {};
+		VertexInputBinding indexBufferBinding;
+		VkIndexType indexType;
 	};
 
 	void submit(CommandBuffer::ExecutionState& executionState);

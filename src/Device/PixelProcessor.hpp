@@ -146,7 +146,6 @@ namespace sw
 		virtual ~PixelProcessor();
 
 		void setRenderTarget(int index, vk::ImageView *renderTarget, unsigned int layer = 0);
-		vk::ImageView *getRenderTarget(int index);
 		void setDepthBuffer(vk::ImageView *depthBuffer, unsigned int layer = 0);
 		void setStencilBuffer(vk::ImageView *stencilBuffer, unsigned int layer = 0);
 

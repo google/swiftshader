@@ -197,7 +197,7 @@ namespace sw
 
 		vk::ImageView *texture[TOTAL_IMAGE_UNITS];
 		Stream input[MAX_VERTEX_INPUTS];
-		uint8_t *indexBuffer;
+		void *indexBuffer;
 
 		vk::ImageView *renderTarget[RENDERTARGETS];
 		unsigned int renderTargetLayer[RENDERTARGETS];

@@ -211,7 +211,7 @@ namespace sw
 		sw::deallocate(mem);
 	}
 
-	void Renderer::draw(DrawType drawType, unsigned int indexOffset, unsigned int count, bool update)
+	void Renderer::draw(DrawType drawType, unsigned int count, bool update)
 	{
 		#ifndef NDEBUG
 			if(count < minPrimitives || count > maxPrimitives)
@@ -315,22 +315,14 @@ namespace sw
 
 		for(int i = 0; i < MAX_VERTEX_INPUTS; i++)
 		{
-			draw->vertexStream[i] = context->input[i].resource;
 			data->input[i] = context->input[i].buffer;
 			data->stride[i] = context->input[i].stride;
-
-			if(draw->vertexStream[i])
-			{
-				draw->vertexStream[i]->lock(PUBLIC, PRIVATE);
-			}
 		}
 
 		if(context->indexBuffer)
 		{
-			data->indices = &context->indexBuffer[indexOffset];
+			data->indices = context->indexBuffer;
 		}
-
-		draw->indexBuffer = context->indexBuffer;
 
 		for(int sampler = 0; sampler < TOTAL_IMAGE_UNITS; sampler++)
 		{
@@ -832,14 +824,6 @@ namespace sw
 
 					delete draw.queries;
 					draw.queries = 0;
-				}
-
-				for(int i = 0; i < MAX_VERTEX_INPUTS; i++)
-				{
-					if(draw.vertexStream[i])
-					{
-						draw.vertexStream[i]->unlock();
-					}
 				}
 
 				draw.vertexRoutine->unbind();
@@ -1573,11 +1557,6 @@ namespace sw
 			deallocate(primitiveBatch[i]);
 			primitiveBatch[i] = 0;
 		}
-	}
-
-	void Renderer::setIndexBuffer(uint8_t *indexBuffer)
-	{
-		context->indexBuffer = indexBuffer;
 	}
 
 	void Renderer::setMultiSampleMask(unsigned int mask)

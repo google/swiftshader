@@ -140,6 +140,25 @@ struct VertexBufferBind : public CommandBuffer::Command
 	const VkDeviceSize offset;
 };
 
+struct IndexBufferBind : public CommandBuffer::Command
+{
+	IndexBufferBind(const VkBuffer buffer, const VkDeviceSize offset, const VkIndexType indexType) :
+		buffer(buffer), offset(offset), indexType(indexType)
+	{
+
+	}
+
+	void play(CommandBuffer::ExecutionState& executionState) override
+	{
+		executionState.indexBufferBinding = {buffer, offset};
+		executionState.indexType = indexType;
+	}
+
+	const VkBuffer buffer;
+	const VkDeviceSize offset;
+	const VkIndexType indexType;
+};
+
 struct Draw : public CommandBuffer::Command
 {
 	Draw(uint32_t vertexCount, uint32_t instanceCount, uint32_t firstVertex, uint32_t firstInstance)
@@ -185,13 +204,75 @@ struct Draw : public CommandBuffer::Command
 		for(uint32_t instance = firstInstance; instance <= lastInstance; instance++)
 		{
 			executionState.renderer->setInstanceID(instance);
-			executionState.renderer->draw(context.drawType, 0, primitiveCount);
+			executionState.renderer->draw(context.drawType, primitiveCount);
 		}
 	}
 
 	uint32_t vertexCount;
 	uint32_t instanceCount;
 	uint32_t firstVertex;
+	uint32_t firstInstance;
+};
+
+struct DrawIndexed : public CommandBuffer::Command
+{
+	DrawIndexed(uint32_t indexCount, uint32_t instanceCount, uint32_t firstIndex, int32_t vertexOffset, uint32_t firstInstance)
+			: indexCount(indexCount), instanceCount(instanceCount), firstIndex(firstIndex), vertexOffset(vertexOffset), firstInstance(firstInstance)
+	{
+	}
+
+	void play(CommandBuffer::ExecutionState& executionState) override
+	{
+		GraphicsPipeline* pipeline = static_cast<GraphicsPipeline*>(
+				executionState.pipelines[VK_PIPELINE_BIND_POINT_GRAPHICS]);
+
+		sw::Context context = pipeline->getContext();
+		for(uint32_t i = 0; i < MAX_VERTEX_INPUT_BINDINGS; i++)
+		{
+			auto &attrib = context.input[i];
+			if (attrib.count)
+			{
+				const auto &vertexInput = executionState.vertexInputBindings[attrib.binding];
+				Buffer *buffer = Cast(vertexInput.buffer);
+				attrib.buffer = buffer ? buffer->getOffsetPointer(
+						attrib.offset + vertexInput.offset + attrib.stride * vertexOffset) : nullptr;
+			}
+		}
+
+		context.indexBuffer = Cast(executionState.indexBufferBinding.buffer)->getOffsetPointer(
+				executionState.indexBufferBinding.offset + firstIndex * (executionState.indexType == VK_INDEX_TYPE_UINT16 ? 2 : 4));
+
+		executionState.renderer->setContext(context);
+		executionState.renderer->setScissor(pipeline->getScissor());
+		executionState.renderer->setViewport(pipeline->getViewport());
+		executionState.renderer->setBlendConstant(pipeline->getBlendConstants());
+
+		for (auto i = 0u; i < executionState.renderPass->getCurrentSubpass().colorAttachmentCount; i++)
+		{
+			auto attachmentReference = executionState.renderPass->getCurrentSubpass().pColorAttachments[i];
+			if (attachmentReference.attachment != VK_ATTACHMENT_UNUSED)
+			{
+				auto attachment = executionState.renderPassFramebuffer->getAttachment(attachmentReference.attachment);
+				executionState.renderer->setRenderTarget(i, attachment, 0);
+			}
+		}
+
+		auto drawType = executionState.indexType == VK_INDEX_TYPE_UINT16
+				? (context.drawType | sw::DRAW_INDEXED16) : (context.drawType | sw::DRAW_INDEXED32);
+
+		const uint32_t primitiveCount = pipeline->computePrimitiveCount(indexCount);
+		const uint32_t lastInstance = firstInstance + instanceCount - 1;
+		for(uint32_t instance = firstInstance; instance <= lastInstance; instance++)
+		{
+			executionState.renderer->setInstanceID(instance);
+			executionState.renderer->draw(static_cast<sw::DrawType>(drawType), primitiveCount);
+		}
+	}
+
+	uint32_t indexCount;
+	uint32_t instanceCount;
+	uint32_t firstIndex;
+	int32_t vertexOffset;
 	uint32_t firstInstance;
 };
 
@@ -715,7 +796,7 @@ void CommandBuffer::bindDescriptorSets(VkPipelineBindPoint pipelineBindPoint, Vk
 
 void CommandBuffer::bindIndexBuffer(VkBuffer buffer, VkDeviceSize offset, VkIndexType indexType)
 {
-	UNIMPLEMENTED();
+	addCommand<IndexBufferBind>(buffer, offset, indexType);
 }
 
 void CommandBuffer::dispatch(uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ)
@@ -876,7 +957,7 @@ void CommandBuffer::draw(uint32_t vertexCount, uint32_t instanceCount, uint32_t 
 
 void CommandBuffer::drawIndexed(uint32_t indexCount, uint32_t instanceCount, uint32_t firstIndex, int32_t vertexOffset, uint32_t firstInstance)
 {
-	UNIMPLEMENTED();
+	addCommand<DrawIndexed>(indexCount, instanceCount, firstIndex, vertexOffset, firstInstance);
 }
 
 void CommandBuffer::drawIndirect(VkBuffer buffer, VkDeviceSize offset, uint32_t drawCount, uint32_t stride)

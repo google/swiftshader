@@ -77,11 +77,6 @@ namespace sw
 		context->renderTargetLayer[index] = layer;
 	}
 
-	vk::ImageView* PixelProcessor::getRenderTarget(int index)
-	{
-		return context->renderTarget[index];
-	}
-
 	void PixelProcessor::setDepthBuffer(vk::ImageView *depthBuffer, unsigned int layer)
 	{
 		context->depthBuffer = depthBuffer;

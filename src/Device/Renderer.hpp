@@ -247,14 +247,13 @@ namespace sw
 		void *operator new(size_t size);
 		void operator delete(void * mem);
 
-		void draw(DrawType drawType, unsigned int indexOffset, unsigned int count, bool update = true);
+		void draw(DrawType drawType, unsigned int count, bool update = true);
 
 		void clear(void *value, VkFormat format, Surface *dest, const Rect &rect, unsigned int rgbaMask);
 		void blit(Surface *source, const SliceRectF &sRect, Surface *dest, const SliceRect &dRect, bool filter, bool isStencil = false, bool sRGBconversion = true);
 		void blit3D(Surface *source, Surface *dest);
 
 		void setContext(const sw::Context& context);
-		void setIndexBuffer(uint8_t *indexBuffer);
 
 		void setMultiSampleMask(unsigned int mask);
 		void setTransparencyAntialiasing(TransparencyAntialiasing transparencyAntialiasing);
@@ -423,8 +422,6 @@ namespace sw
 		int (Renderer::*setupPrimitives)(int batch, int count);
 		SetupProcessor::State setupState;
 
-		Resource *vertexStream[MAX_VERTEX_INPUTS];
-		uint8_t *indexBuffer;
 		vk::ImageView *renderTarget[RENDERTARGETS];
 		vk::ImageView *depthBuffer;
 		vk::ImageView *stencilBuffer;
