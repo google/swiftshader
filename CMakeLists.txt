@@ -273,10 +273,9 @@ else()
 
     # Disable pedanitc warnings
     if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-        set_cpp_flag("-Wno-ignored-attributes") # ignoring attributes on template argument 'X'
-        set_cpp_flag("-Wno-attributes")         # 'X' attribute ignored
-        set_cpp_flag("-Wno-comment")            # multi-line comment
-        set_cpp_flag("-Wno-noexcept-type")      # mangled name for ‘X’ will change in C++17 because the exception specification is part of a function type
+        set_cpp_flag("-Wno-ignored-attributes")  # ignoring attributes on template argument 'X'
+        set_cpp_flag("-Wno-attributes")          # 'X' attribute ignored
+        set_cpp_flag("-Wno-strict-aliasing")     # dereferencing type-punned pointer will break strict-aliasing rules
     elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
         set_cpp_flag("-Wno-unneeded-internal-declaration") # function 'X' is not needed and will not be emitted
         set_cpp_flag("-Wno-unused-private-field")          # private field 'offset' is not used - TODO: Consider enabling this once Vulkan is further implemented.
@@ -1762,10 +1761,23 @@ list(APPEND LLVM_INCLUDE_DIR
 
 endif()  # REACTOR_LLVM_VERSION
 
+# Suppress known LLVM warnings
+set(LLVM_COMPILE_FLAGS)
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+    list(APPEND LLVM_COMPILE_FLAGS
+        "-Wno-comment"                 # multi-line comment
+        "-Wno-noexcept-type"           # mangled name for ‘X’ will change in C++17 because the exception specification is part of a function type
+        "-Wno-maybe-uninitialized"     # ‘X’ may be used uninitialized in this function
+        "-Wno-unused-but-set-variable" # variable ‘X’ set but not used
+    )
+endif()
+string (REPLACE ";" " " LLVM_COMPILE_FLAGS "${LLVM_COMPILE_FLAGS}")
+
 add_library(llvm STATIC ${LLVM_LIST})
 set_target_properties(llvm PROPERTIES
     POSITION_INDEPENDENT_CODE 1
     INCLUDE_DIRECTORIES "${LLVM_INCLUDE_DIR}"
+    COMPILE_FLAGS "${LLVM_COMPILE_FLAGS}"
     COMPILE_DEFINITIONS "__STDC_CONSTANT_MACROS; __STDC_LIMIT_MACROS;"
     FOLDER "LLVM"
 )
