@@ -1017,6 +1017,7 @@ LOCAL_CFLAGS += -fomit-frame-pointer -ffunction-sections -fdata-sections
 LOCAL_CFLAGS += -fno-operator-names -msse2 -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS
 LOCAL_CFLAGS += -DANDROID_PLATFORM_SDK_VERSION=$(PLATFORM_SDK_VERSION)
 LOCAL_CFLAGS += -U_FORTIFY_SOURCE
+LOCAL_CFLAGS += -Wno-implicit-fallthrough
 
 LOCAL_CPPFLAGS += -std=c++11
 
