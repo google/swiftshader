@@ -67,7 +67,8 @@
             "args": [
                 "..",
                 "-DCMAKE_BUILD_TYPE=${input:buildType}",
-                "-DWARNINGS_AS_ERRORS=1"
+                "-DWARNINGS_AS_ERRORS=1",
+                "-DDCHECK_ALWAYS_ON=1"
             ],
             "options": {
                 "cwd": "${workspaceRoot}/build"

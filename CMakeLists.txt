@@ -77,6 +77,7 @@ option (ASAN "Build with address sanitizer" 0)
 option (TSAN "Build with thread sanitizer" 0)
 option (UBSAN "Build with undefined behavior sanitizer" 0)
 option (WARNINGS_AS_ERRORS "Treat all warnings as errors" 0)
+option (DCHECK_ALWAYS_ON "Check validation macros even in release builds" 0)
 
 if(ARCH STREQUAL "arm")
     set(DEFAULT_REACTOR_BACKEND "Subzero")
@@ -269,6 +270,10 @@ else()
 
     if(WARNINGS_AS_ERRORS)
         set_cpp_flag("-Werror") # Treat all warnings as errors
+    endif()
+
+    if(DCHECK_ALWAYS_ON)
+        set_cpp_flag("-DDCHECK_ALWAYS_ON")
     endif()
 
     # Disable pedanitc warnings
