@@ -145,10 +145,10 @@ namespace sw
 
 		virtual ~PixelProcessor();
 
-		void setRenderTarget(int index, Surface *renderTarget, unsigned int layer = 0);
-		Surface *getRenderTarget(int index);
-		void setDepthBuffer(Surface *depthBuffer, unsigned int layer = 0);
-		void setStencilBuffer(Surface *stencilBuffer, unsigned int layer = 0);
+		void setRenderTarget(int index, vk::ImageView *renderTarget, unsigned int layer = 0);
+		vk::ImageView *getRenderTarget(int index);
+		void setDepthBuffer(vk::ImageView *depthBuffer, unsigned int layer = 0);
+		void setStencilBuffer(vk::ImageView *stencilBuffer, unsigned int layer = 0);
 
 		void setTexCoordIndex(unsigned int stage, int texCoordIndex);
 		void setConstantColor(unsigned int stage, const Color<float> &constantColor);

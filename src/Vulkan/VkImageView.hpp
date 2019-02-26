@@ -34,7 +34,13 @@ public:
 	void clear(const VkClearValue& clearValues, const VkImageAspectFlags aspectMask, const VkRect2D& renderArea);
 	void clear(const VkClearValue& clearValue, const VkImageAspectFlags aspectMask, const VkClearRect& renderArea);
 
-	sw::Surface *asSurface();
+	VkFormat getFormat() const { return format; }
+	int rowPitchBytes() const { return image->rowPitchBytes(subresourceRange.aspectMask, subresourceRange.baseMipLevel); }
+	int slicePitchBytes() const { return image->slicePitchBytes(subresourceRange.aspectMask, subresourceRange.baseMipLevel); }
+	int getSampleCount() const { return image->getSampleCountFlagBits(); }
+
+	void *getPointer() const;
+	void *getOffsetPointer(const VkOffset3D& offset) const;
 
 private:
 	bool                       imageTypesMatch(VkImageType imageType) const;

@@ -257,12 +257,12 @@ namespace sw
 		void blit3D(Surface *source, Surface *dest);
 
 		void setContext(const sw::Context& context);
-		void setIndexBuffer(Resource *indexBuffer);
+		void setIndexBuffer(uint8_t *indexBuffer);
 
 		void setMultiSampleMask(unsigned int mask);
 		void setTransparencyAntialiasing(TransparencyAntialiasing transparencyAntialiasing);
 
-		void setTextureResource(unsigned int sampler, Resource *resource);
+		void setTextureResource(unsigned int sampler, vk::ImageView *resource);
 		void setTextureLevel(unsigned int sampler, unsigned int face, unsigned int level, Surface *surface, TextureType type);
 
 		void setTextureFilter(SamplerType type, int sampler, FilterType textureFilter);
@@ -427,11 +427,11 @@ namespace sw
 		SetupProcessor::State setupState;
 
 		Resource *vertexStream[MAX_VERTEX_INPUTS];
-		Resource *indexBuffer;
-		Surface *renderTarget[RENDERTARGETS];
-		Surface *depthBuffer;
-		Surface *stencilBuffer;
-		Resource *texture[TOTAL_IMAGE_UNITS];
+		uint8_t *indexBuffer;
+		vk::ImageView *renderTarget[RENDERTARGETS];
+		vk::ImageView *depthBuffer;
+		vk::ImageView *stencilBuffer;
+		vk::ImageView *texture[TOTAL_IMAGE_UNITS];
 
 		std::list<Query*> *queries;
 

@@ -30,6 +30,7 @@
 #include "System/Math.hpp"
 #include "System/Timer.hpp"
 #include "Vulkan/VkDebug.hpp"
+#include "Vulkan/VkImageView.hpp"
 #include "Pipeline/SpirvShader.hpp"
 #include "Vertex.hpp"
 
@@ -325,7 +326,7 @@ namespace sw
 
 		if(context->indexBuffer)
 		{
-			data->indices = (unsigned char*)context->indexBuffer->lock(PUBLIC, PRIVATE) + indexOffset;
+			data->indices = &context->indexBuffer[indexOffset];
 		}
 
 		draw->indexBuffer = context->indexBuffer;
@@ -340,8 +341,6 @@ namespace sw
 			if(pixelState.sampler[sampler].textureType != TEXTURE_NULL)
 			{
 				draw->texture[sampler] = context->texture[sampler];
-				draw->texture[sampler]->lock(PUBLIC, isReadWriteTexture(sampler) ? MANAGED : PRIVATE);   // If the texure is both read and written, use the same read/write lock as render targets
-
 				data->mipmap[sampler] = context->sampler[sampler].getTextureData();
 			}
 		}
@@ -351,8 +350,6 @@ namespace sw
 			if(vertexState.sampler[sampler].textureType != TEXTURE_NULL)
 			{
 				draw->texture[TEXTURE_IMAGE_UNITS + sampler] = context->texture[TEXTURE_IMAGE_UNITS + sampler];
-				draw->texture[TEXTURE_IMAGE_UNITS + sampler]->lock(PUBLIC, PRIVATE);
-
 				data->mipmap[TEXTURE_IMAGE_UNITS + sampler] = context->sampler[TEXTURE_IMAGE_UNITS + sampler].getTextureData();
 			}
 		}
@@ -457,10 +454,10 @@ namespace sw
 
 				if(draw->renderTarget[index])
 				{
-					unsigned int layer = context->renderTargetLayer[index];
-					data->colorBuffer[index] = (unsigned int*)context->renderTarget[index]->lockInternal(0, 0, layer, LOCK_READWRITE, MANAGED);
-					data->colorPitchB[index] = context->renderTarget[index]->getInternalPitchB();
-					data->colorSliceB[index] = context->renderTarget[index]->getInternalSliceB();
+					VkOffset3D offset = { 0, 0, static_cast<int32_t>(context->renderTargetLayer[index]) };
+					data->colorBuffer[index] = (unsigned int*)context->renderTarget[index]->getOffsetPointer(offset);
+					data->colorPitchB[index] = context->renderTarget[index]->rowPitchBytes();
+					data->colorSliceB[index] = context->renderTarget[index]->slicePitchBytes();
 				}
 			}
 
@@ -469,18 +466,18 @@ namespace sw
 
 			if(draw->depthBuffer)
 			{
-				unsigned int layer = context->depthBufferLayer;
-				data->depthBuffer = (float*)context->depthBuffer->lockInternal(0, 0, layer, LOCK_READWRITE, MANAGED);
-				data->depthPitchB = context->depthBuffer->getInternalPitchB();
-				data->depthSliceB = context->depthBuffer->getInternalSliceB();
+				VkOffset3D offset = { 0, 0, static_cast<int32_t>(context->depthBufferLayer) };
+				data->depthBuffer = (float*)context->depthBuffer->getOffsetPointer(offset);
+				data->depthPitchB = context->depthBuffer->rowPitchBytes();
+				data->depthSliceB = context->depthBuffer->slicePitchBytes();
 			}
 
 			if(draw->stencilBuffer)
 			{
-				unsigned int layer = context->stencilBufferLayer;
-				data->stencilBuffer = (unsigned char*)context->stencilBuffer->lockStencil(0, 0, layer, MANAGED);
-				data->stencilPitchB = context->stencilBuffer->getStencilPitchB();
-				data->stencilSliceB = context->stencilBuffer->getStencilSliceB();
+				VkOffset3D offset = { 0, 0, static_cast<int32_t>(context->stencilBufferLayer) };
+				data->stencilBuffer = (unsigned char*)context->stencilBuffer->getOffsetPointer(offset);
+				data->stencilPitchB = context->stencilBuffer->rowPitchBytes();
+				data->stencilSliceB = context->stencilBuffer->slicePitchBytes();
 			}
 		}
 
@@ -842,43 +839,12 @@ namespace sw
 					draw.queries = 0;
 				}
 
-				for(int i = 0; i < RENDERTARGETS; i++)
-				{
-					if(draw.renderTarget[i])
-					{
-						draw.renderTarget[i]->unlockInternal();
-					}
-				}
-
-				if(draw.depthBuffer)
-				{
-					draw.depthBuffer->unlockInternal();
-				}
-
-				if(draw.stencilBuffer)
-				{
-					draw.stencilBuffer->unlockStencil();
-				}
-
-				for(int i = 0; i < TOTAL_IMAGE_UNITS; i++)
-				{
-					if(draw.texture[i])
-					{
-						draw.texture[i]->unlock();
-					}
-				}
-
 				for(int i = 0; i < MAX_VERTEX_INPUTS; i++)
 				{
 					if(draw.vertexStream[i])
 					{
 						draw.vertexStream[i]->unlock();
 					}
-				}
-
-				if(draw.indexBuffer)
-				{
-					draw.indexBuffer->unlock();
 				}
 
 				draw.vertexRoutine->unbind();
@@ -1614,7 +1580,7 @@ namespace sw
 		}
 	}
 
-	void Renderer::setIndexBuffer(Resource *indexBuffer)
+	void Renderer::setIndexBuffer(uint8_t *indexBuffer)
 	{
 		context->indexBuffer = indexBuffer;
 	}
@@ -1633,13 +1599,13 @@ namespace sw
 	{
 		for(int index = 0; index < RENDERTARGETS; index++)
 		{
-			if(context->renderTarget[index] && context->texture[sampler] == context->renderTarget[index]->getResource())
+			if(context->renderTarget[index] && context->texture[sampler] == context->renderTarget[index])
 			{
 				return true;
 			}
 		}
 
-		if(context->depthBuffer && context->texture[sampler] == context->depthBuffer->getResource())
+		if(context->depthBuffer && context->texture[sampler] == context->depthBuffer)
 		{
 			return true;
 		}
@@ -1647,7 +1613,7 @@ namespace sw
 		return false;
 	}
 
-	void Renderer::setTextureResource(unsigned int sampler, Resource *resource)
+	void Renderer::setTextureResource(unsigned int sampler, vk::ImageView *resource)
 	{
 		ASSERT(sampler < TOTAL_IMAGE_UNITS);
 

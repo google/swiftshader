@@ -48,25 +48,26 @@ public:
 	void clear(const VkClearValue& clearValue, const VkRect2D& renderArea, const VkImageSubresourceRange& subresourceRange);
 	void clear(const VkClearColorValue& color, const VkImageSubresourceRange& subresourceRange);
 	void clear(const VkClearDepthStencilValue& color, const VkImageSubresourceRange& subresourceRange);
-	sw::Surface* asSurface(const VkImageAspectFlags& flags, uint32_t mipLevel, uint32_t layer) const;
 
 	VkImageType              getImageType() const { return imageType; }
 	VkFormat                 getFormat() const { return format; }
 	uint32_t                 getArrayLayers() const { return arrayLayers; }
+	VkSampleCountFlagBits    getSampleCountFlagBits() const { return samples; }
+	int                      rowPitchBytes(const VkImageAspectFlags& flags, uint32_t mipLevel) const;
+	int                      slicePitchBytes(const VkImageAspectFlags& flags, uint32_t mipLevel) const;
+	void*                    getTexelPointer(const VkOffset3D& offset, const VkImageSubresourceLayers& subresource) const;
 	bool                     isCube() const;
 
 private:
+	sw::Surface* asSurface(const VkImageAspectFlags& flags, uint32_t mipLevel, uint32_t layer) const;
 	void copy(VkBuffer buffer, const VkBufferImageCopy& region, bool bufferIsSource);
 	VkDeviceSize getStorageSize(const VkImageAspectFlags& flags) const;
 	VkDeviceSize getMipLevelSize(const VkImageAspectFlags& flags, uint32_t mipLevel) const;
 	VkDeviceSize getLayerSize(const VkImageAspectFlags& flags) const;
 	VkDeviceSize getMemoryOffset(const VkImageAspectFlags& flags, uint32_t mipLevel) const;
 	VkDeviceSize getMemoryOffset(const VkImageAspectFlags& flags, uint32_t mipLevel, uint32_t layer) const;
-	void* getTexelPointer(const VkOffset3D& offset, const VkImageSubresourceLayers& subresource) const;
 	VkDeviceSize texelOffsetBytesInStorage(const VkOffset3D& offset, const VkImageSubresourceLayers& subresource) const;
 	VkDeviceSize getMemoryOffset(const VkImageAspectFlags& flags) const;
-	int rowPitchBytes(const VkImageAspectFlags& flags, uint32_t mipLevel) const;
-	int slicePitchBytes(const VkImageAspectFlags& flags, uint32_t mipLevel) const;
 	int bytesPerTexel(const VkImageAspectFlags& flags) const;
 	VkExtent3D getMipLevelExtent(uint32_t mipLevel) const;
 	VkFormat getFormat(const VkImageAspectFlags& flags) const;

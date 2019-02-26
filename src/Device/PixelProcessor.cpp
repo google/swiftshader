@@ -19,6 +19,7 @@
 #include "Pipeline/PixelProgram.hpp"
 #include "Pipeline/Constants.hpp"
 #include "Vulkan/VkDebug.hpp"
+#include "Vulkan/VkImageView.hpp"
 
 #include <string.h>
 
@@ -70,24 +71,24 @@ namespace sw
 		routineCache = nullptr;
 	}
 
-	void PixelProcessor::setRenderTarget(int index, Surface *renderTarget, unsigned int layer)
+	void PixelProcessor::setRenderTarget(int index, vk::ImageView* renderTarget, unsigned int layer)
 	{
 		context->renderTarget[index] = renderTarget;
 		context->renderTargetLayer[index] = layer;
 	}
 
-	Surface *PixelProcessor::getRenderTarget(int index)
+	vk::ImageView* PixelProcessor::getRenderTarget(int index)
 	{
 		return context->renderTarget[index];
 	}
 
-	void PixelProcessor::setDepthBuffer(Surface *depthBuffer, unsigned int layer)
+	void PixelProcessor::setDepthBuffer(vk::ImageView *depthBuffer, unsigned int layer)
 	{
 		context->depthBuffer = depthBuffer;
 		context->depthBufferLayer = layer;
 	}
 
-	void PixelProcessor::setStencilBuffer(Surface *stencilBuffer, unsigned int layer)
+	void PixelProcessor::setStencilBuffer(vk::ImageView *stencilBuffer, unsigned int layer)
 	{
 		context->stencilBuffer = stencilBuffer;
 		context->stencilBufferLayer = layer;
@@ -596,7 +597,7 @@ namespace sw
 		{
 			state.depthTestActive = true;
 			state.depthCompareMode = context->depthCompareMode;
-			state.quadLayoutDepthBuffer = Surface::hasQuadLayout(context->depthBuffer->getInternalFormat());
+			state.quadLayoutDepthBuffer = Surface::hasQuadLayout(context->depthBuffer->getFormat());
 		}
 
 		state.occlusionEnabled = context->occlusionEnabled;
@@ -623,7 +624,7 @@ namespace sw
 			state.targetFormat[i] = context->renderTargetInternalFormat(i);
 		}
 
-		state.writeSRGB	= context->writeSRGB && context->renderTarget[0] && Surface::isSRGBwritable(context->renderTarget[0]->getExternalFormat());
+		state.writeSRGB	= context->writeSRGB && context->renderTarget[0] && Surface::isSRGBwritable(context->renderTarget[0]->getFormat());
 		state.multiSample = context->getMultiSampleCount();
 		state.multiSampleMask = context->multiSampleMask;
 

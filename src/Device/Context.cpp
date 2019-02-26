@@ -18,6 +18,7 @@
 #include "Surface.hpp"
 #include "System/Memory.hpp"
 #include "Vulkan/VkDebug.hpp"
+#include "Vulkan/VkImageView.hpp"
 #include "Pipeline/SpirvShader.hpp"
 
 #include <string.h>
@@ -714,14 +715,14 @@ namespace sw
 
 	int Context::getMultiSampleCount() const
 	{
-		return renderTarget[0] ? renderTarget[0]->getMultiSampleCount() : 1;
+		return renderTarget[0] ? renderTarget[0]->getSampleCount() : 1;
 	}
 
 	VkFormat Context::renderTargetInternalFormat(int index)
 	{
 		if(renderTarget[index])
 		{
-			return renderTarget[index]->getInternalFormat();
+			return renderTarget[index]->getFormat();
 		}
 		else
 		{
@@ -736,7 +737,7 @@ namespace sw
 
 	int Context::colorWriteActive(int index)
 	{
-		if(!renderTarget[index] || renderTarget[index]->getInternalFormat() == VK_FORMAT_UNDEFINED)
+		if(!renderTarget[index] || renderTarget[index]->getFormat() == VK_FORMAT_UNDEFINED)
 		{
 			return 0;
 		}

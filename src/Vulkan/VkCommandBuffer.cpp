@@ -176,7 +176,7 @@ struct Draw : public CommandBuffer::Command
 			if (attachmentReference.attachment != VK_ATTACHMENT_UNUSED)
 			{
 				auto attachment = executionState.renderPassFramebuffer->getAttachment(attachmentReference.attachment);
-				executionState.renderer->setRenderTarget(i, attachment->asSurface(), 0);
+				executionState.renderer->setRenderTarget(i, attachment, 0);
 			}
 		}
 
@@ -190,19 +190,6 @@ struct Draw : public CommandBuffer::Command
 
 		// Wait for completion. We should be able to get rid of this eventually.
 		executionState.renderer->synchronize();
-
-		// Renderer has finished touching the color attachments; destroy the temporary Surface objects.
-		// We shouldn't need to do any of this at draw time.
-		for (auto i = 0u; i < executionState.renderPass->getCurrentSubpass().colorAttachmentCount; i++)
-		{
-			auto attachmentReference = executionState.renderPass->getCurrentSubpass().pColorAttachments[i];
-			if (attachmentReference.attachment != VK_ATTACHMENT_UNUSED)
-			{
-				auto surface = executionState.renderer->getRenderTarget(i);
-				executionState.renderer->setRenderTarget(i, nullptr, 0);
-				delete surface;
-			}
-		}
 	}
 
 	uint32_t vertexCount;

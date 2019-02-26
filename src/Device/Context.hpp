@@ -21,10 +21,14 @@
 #include "Vertex.hpp"
 #include "System/Types.hpp"
 
+namespace vk
+{
+	class ImageView;
+};
+
 namespace sw
 {
 	class Sampler;
-	class Surface;
 	class PixelShader;
 	class VertexShader;
 	class SpirvShader;
@@ -191,15 +195,15 @@ namespace sw
 		int colorWriteActive(int index);
 		bool colorUsed();
 
-		Resource *texture[TOTAL_IMAGE_UNITS];
+		vk::ImageView *texture[TOTAL_IMAGE_UNITS];
 		Stream input[MAX_VERTEX_INPUTS];
-		Resource *indexBuffer;
+		uint8_t *indexBuffer;
 
-		Surface *renderTarget[RENDERTARGETS];
+		vk::ImageView *renderTarget[RENDERTARGETS];
 		unsigned int renderTargetLayer[RENDERTARGETS];
-		Surface *depthBuffer;
+		vk::ImageView *depthBuffer;
 		unsigned int depthBufferLayer;
-		Surface *stencilBuffer;
+		vk::ImageView *stencilBuffer;
 		unsigned int stencilBufferLayer;
 
 		// Shaders

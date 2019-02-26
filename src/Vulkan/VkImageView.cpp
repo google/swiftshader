@@ -119,9 +119,22 @@ void ImageView::clear(const VkClearValue& clearValue, const VkImageAspectFlags a
 	image->clear(clearValue, renderArea.rect, sr);
 }
 
-sw::Surface *ImageView::asSurface()
+void *ImageView::getPointer() const
 {
-	return image->asSurface(subresourceRange.aspectMask, subresourceRange.baseArrayLayer, subresourceRange.baseMipLevel);
+	VkOffset3D noOffset = { 0, 0, 0 };
+	return getOffsetPointer(noOffset);
+}
+
+void *ImageView::getOffsetPointer(const VkOffset3D& offset) const
+{
+	VkImageSubresourceLayers imageSubresourceLayers =
+	{
+		subresourceRange.aspectMask,
+		subresourceRange.baseMipLevel,
+		subresourceRange.baseArrayLayer,
+		subresourceRange.layerCount
+	};
+	return image->getTexelPointer(offset, imageSubresourceLayers);
 }
 
 }
