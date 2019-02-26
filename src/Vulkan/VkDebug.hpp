@@ -17,6 +17,7 @@
 #ifndef VK_DEBUG_H_
 #define VK_DEBUG_H_
 
+#include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
 
@@ -42,14 +43,14 @@ inline void trace() {}
 #if defined(SWIFTSHADER_DISABLE_TRACE)
 #define FIXME(message, ...) (void(0))
 #else
-#define FIXME(message, ...) do {vk::trace("fixme: %s(%d): " message "\n", __FUNCTION__, __LINE__, ##__VA_ARGS__); assert(false);} while(false)
+#define FIXME(message, ...) do {vk::trace("fixme: %s(%d): " message "\n", __FUNCTION__, __LINE__, ##__VA_ARGS__); assert(false); abort();} while(false)
 #endif
 
 // A macro to output a function call and its arguments to the debugging log, in case of error.
 #if defined(SWIFTSHADER_DISABLE_TRACE)
 #define ERR(message, ...) (void(0))
 #else
-#define ERR(message, ...) do {vk::trace("err: %s(%d): " message "\n", __FUNCTION__, __LINE__, ##__VA_ARGS__); assert(false);} while(false)
+#define ERR(message, ...) do {vk::trace("err: %s(%d): " message "\n", __FUNCTION__, __LINE__, ##__VA_ARGS__); assert(false); abort();} while(false)
 #endif
 
 // A macro asserting a condition and outputting failures to the debug log
@@ -59,6 +60,7 @@ inline void trace() {}
 	if(!(expression)) { \
 		ERR("\t! Assert failed in %s(%d): "#expression"\n", __FUNCTION__, __LINE__); \
 		assert(expression); \
+		abort(); \
 	} } while(0)
 #else
 #define ASSERT(expression) (void(0))
@@ -72,6 +74,7 @@ inline void trace() {}
 	vk::trace(__VA_ARGS__); \
 	vk::trace("\n"); \
 	assert(false); \
+	abort(); \
 	} while(0)
 #else
 	#define UNIMPLEMENTED(...) FIXME("\t! Unimplemented: %s(%d)\n", __FUNCTION__, __LINE__)
@@ -83,6 +86,7 @@ inline void trace() {}
 #define UNREACHABLE(value) do { \
 	ERR("\t! Unreachable case reached: %s(%d). %s: %d\n", __FUNCTION__, __LINE__, #value, value); \
 	assert(false); \
+	abort(); \
 	} while(0)
 #else
 	#define UNREACHABLE(value) ERR("\t! Unreachable reached: %s(%d). %s: %d\n", __FUNCTION__, __LINE__, #value, value)
