@@ -67,7 +67,7 @@ COMMON_C_INCLUDES := \
 	$(LOCAL_PATH)/../../Shader/ \
 	$(LOCAL_PATH)/../../Main/
 
-ifdef REACTOR_USE_SUBZERO
+ifeq ($(REACTOR_USE_SUBZERO),true)
 COMMON_STATIC_LIBRARIES := libsubzero
 else
 COMMON_STATIC_LIBRARIES := libLLVM_swiftshader
