@@ -187,9 +187,6 @@ struct Draw : public CommandBuffer::Command
 			executionState.renderer->setInstanceID(instance);
 			executionState.renderer->draw(context.drawType, 0, primitiveCount);
 		}
-
-		// Wait for completion. We should be able to get rid of this eventually.
-		executionState.renderer->synchronize();
 	}
 
 	uint32_t vertexCount;
@@ -388,10 +385,10 @@ struct PipelineBarrier : public CommandBuffer::Command
 
 	void play(CommandBuffer::ExecutionState& executionState) override
 	{
-		// This can currently be a noop. The sw::Surface locking/unlocking mechanism used by the renderer already takes care of
-		// making sure the read/writes always happen in order. Eventually, if we remove this synchronization mechanism, we can
-		// have a very simple implementation that simply calls sw::Renderer::sync(), since the driver is free to move the source
-		// stage towards the bottom of the pipe and the target stage towards the top, so a full pipeline sync is spec compliant.
+		// This is a very simple implementation that simply calls sw::Renderer::synchronize(),
+		// since the driver is free to move the source stage towards the bottom of the pipe
+		// and the target stage towards the top, so a full pipeline sync is spec compliant.
+		executionState.renderer->synchronize();
 
 		// Right now all buffers are read-only in drawcalls but a similar mechanism will be required once we support SSBOs.
 
