@@ -98,7 +98,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 	std::unique_ptr<ScopedPoolAllocatorAndTLS> allocatorAndTLS(new ScopedPoolAllocatorAndTLS);
 	std::unique_ptr<sw::VertexShader> shader(new sw::VertexShader);
 	std::unique_ptr<FakeVS> fakeVS(new FakeVS(shader.get()));
-	
+
 	std::unique_ptr<TranslatorASM> glslCompiler(new TranslatorASM(fakeVS.get(), GL_VERTEX_SHADER));
 
 	// TODO(cwallez@google.com): have a function to init to default values somewhere
@@ -141,7 +141,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 
 	state.preTransformed = (data[0] & 0x01) != 0;
 	state.superSampling = (data[0] & 0x02) != 0;
-	state.multiSampling = (data[0] & 0x04) != 0;
 
 	state.transformFeedbackQueryEnabled = (data[0] & 0x08) != 0;
 	state.transformFeedbackEnabled = (data[0] & 0x10) != 0;
