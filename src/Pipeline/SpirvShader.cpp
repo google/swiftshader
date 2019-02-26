@@ -115,54 +115,8 @@ namespace sw
 			case spv::OpTypeStruct:
 			case spv::OpTypePointer:
 			case spv::OpTypeFunction:
-			{
-				TypeID resultId = insn.word(1);
-				auto &type = types[resultId];
-				type.definition = insn;
-				type.sizeInComponents = ComputeTypeSize(insn);
-
-				// A structure is a builtin block if it has a builtin
-				// member. All members of such a structure are builtins.
-				switch (insn.opcode())
-				{
-				case spv::OpTypeStruct:
-				{
-					auto d = memberDecorations.find(resultId);
-					if (d != memberDecorations.end())
-					{
-						for (auto &m : d->second)
-						{
-							if (m.HasBuiltIn)
-							{
-								type.isBuiltInBlock = true;
-								break;
-							}
-						}
-					}
-					break;
-				}
-				case spv::OpTypePointer:
-				{
-					TypeID elementTypeId = insn.word(3);
-					type.element = elementTypeId;
-					type.isBuiltInBlock = getType(elementTypeId).isBuiltInBlock;
-					type.storageClass = static_cast<spv::StorageClass>(insn.word(2));
-					break;
-				}
-				case spv::OpTypeVector:
-				case spv::OpTypeMatrix:
-				case spv::OpTypeArray:
-				case spv::OpTypeRuntimeArray:
-				{
-					TypeID elementTypeId = insn.word(2);
-					type.element = elementTypeId;
-					break;
-				}
-				default:
-					break;
-				}
+				DeclareType(insn);
 				break;
-			}
 
 			case spv::OpVariable:
 			{
@@ -296,6 +250,56 @@ namespace sw
 				printf("Warning: ignored opcode %u\n", insn.opcode());
 				break;    // This is OK, these passes are intentionally partial
 			}
+		}
+	}
+
+	void SpirvShader::DeclareType(InsnIterator insn)
+	{
+		TypeID resultId = insn.word(1);
+
+		auto &type = types[resultId];
+		type.definition = insn;
+		type.sizeInComponents = ComputeTypeSize(insn);
+
+		// A structure is a builtin block if it has a builtin
+		// member. All members of such a structure are builtins.
+		switch (insn.opcode())
+		{
+		case spv::OpTypeStruct:
+		{
+			auto d = memberDecorations.find(resultId);
+			if (d != memberDecorations.end())
+			{
+				for (auto &m : d->second)
+				{
+					if (m.HasBuiltIn)
+					{
+						type.isBuiltInBlock = true;
+						break;
+					}
+				}
+			}
+			break;
+		}
+		case spv::OpTypePointer:
+		{
+			TypeID elementTypeId = insn.word(3);
+			type.element = elementTypeId;
+			type.isBuiltInBlock = getType(elementTypeId).isBuiltInBlock;
+			type.storageClass = static_cast<spv::StorageClass>(insn.word(2));
+			break;
+		}
+		case spv::OpTypeVector:
+		case spv::OpTypeMatrix:
+		case spv::OpTypeArray:
+		case spv::OpTypeRuntimeArray:
+		{
+			TypeID elementTypeId = insn.word(2);
+			type.element = elementTypeId;
+			break;
+		}
+		default:
+			break;
 		}
 	}
 

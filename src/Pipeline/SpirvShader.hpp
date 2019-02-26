@@ -357,6 +357,10 @@ namespace sw
 		HandleMap<Type> types;
 		HandleMap<Object> defs;
 
+		// DeclareType creates a Type for the given OpTypeX instruction, storing
+		// it into the types map. It is called from the analysis pass (constructor).
+		void DeclareType(InsnIterator insn);
+
 		void ProcessExecutionMode(InsnIterator it);
 
 		uint32_t ComputeTypeSize(InsnIterator insn);
