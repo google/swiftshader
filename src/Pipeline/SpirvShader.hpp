@@ -31,6 +31,22 @@
 
 namespace sw
 {
+	// Forward declarations.
+	class SpirvRoutine;
+
+	// SIMD contains types that represent multiple scalars packed into a single
+	// vector data type. Types in the SIMD namespace provide a semantic hint
+	// that the data should be treated as a per-execution-lane scalar instead of
+	// a typical euclidean-style vector type.
+	namespace SIMD
+	{
+		// Width is the number of per-lane scalars packed into each SIMD vector.
+		static constexpr int Width = 4;
+
+		using Float = rr::Float4;
+		using Int = rr::Int4;
+	}
+
 	// Incrementally constructed complex bundle of rvalues
 	// Effectively a restricted vector, supporting only:
 	// - allocation to a (runtime-known) fixed size
@@ -39,7 +55,7 @@ namespace sw
 	class Intermediate
 	{
 	public:
-		using Scalar = RValue<Float4>;
+		using Scalar = RValue<SIMD::Float>;
 
 		Intermediate(uint32_t size) : contents(new ContentsType[size]), size(size) {}
 
@@ -51,6 +67,12 @@ namespace sw
 		}
 
 		void emplace(uint32_t n, Scalar&& value)
+		{
+			assert(n < size);
+			new (&contents[n]) Scalar(value);
+		}
+
+		void emplace(uint32_t n, const Scalar& value)
 		{
 			assert(n < size);
 			new (&contents[n]) Scalar(value);
@@ -74,8 +96,6 @@ namespace sw
 		ContentsType *contents;
 		uint32_t size;
 	};
-
-	class SpirvRoutine;
 
 	class SpirvShader
 	{
@@ -348,14 +368,15 @@ namespace sw
 
 		void ProcessInterfaceVariable(Object &object);
 
-		Int4 WalkAccessChain(ObjectID id, uint32_t numIndexes, uint32_t const *indexIds, SpirvRoutine *routine) const;
+		SIMD::Int WalkAccessChain(ObjectID id, uint32_t numIndexes, uint32_t const *indexIds, SpirvRoutine *routine) const;
 		uint32_t WalkLiteralAccessChain(TypeID id, uint32_t numIndexes, uint32_t const *indexes) const;
 	};
 
 	class SpirvRoutine
 	{
 	public:
-		using Value = Array<Float4>;
+		using Value = Array<SIMD::Float>;
+
 		std::unordered_map<SpirvShader::ObjectID, Value> lvalues;
 
 		std::unordered_map<SpirvShader::ObjectID, Intermediate> intermediates;
@@ -406,13 +427,13 @@ namespace sw
 				obj(shader->getObject(objId)),
 				intermediate(obj.kind == SpirvShader::Object::Kind::Value ? &routine->getIntermediate(objId) : nullptr) {}
 
-		RValue<Float4> operator[](uint32_t i) const
+		RValue<SIMD::Float> operator[](uint32_t i) const
 		{
 			if (intermediate)
 				return (*intermediate)[i];
 
 			auto constantValue = reinterpret_cast<float *>(obj.constantValue.get());
-			return RValue<Float4>(constantValue[i]);
+			return RValue<SIMD::Float>(constantValue[i]);
 		}
 	};
 

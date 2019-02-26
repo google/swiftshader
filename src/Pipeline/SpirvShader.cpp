@@ -548,20 +548,20 @@ namespace sw
 		VisitInterfaceInner<F>(def.word(1), d, f);
 	}
 
-	Int4 SpirvShader::WalkAccessChain(ObjectID id, uint32_t numIndexes, uint32_t const *indexIds, SpirvRoutine *routine) const
+	SIMD::Int SpirvShader::WalkAccessChain(ObjectID id, uint32_t numIndexes, uint32_t const *indexIds, SpirvRoutine *routine) const
 	{
 		// TODO: think about explicit layout (UBO/SSBO) storage classes
 		// TODO: avoid doing per-lane work in some cases if we can?
 
 		int constantOffset = 0;
-		Int4 dynamicOffset = Int4(0);
+		SIMD::Int dynamicOffset = SIMD::Int(0);
 		auto &baseObject = getObject(id);
 		TypeID typeId = getType(baseObject.type).element;
 
 		// The <base> operand is an intermediate value itself, ie produced by a previous OpAccessChain.
 		// Start with its offset and build from there.
 		if (baseObject.kind == Object::Kind::Value)
-			dynamicOffset += As<Int4>(routine->getIntermediate(id)[0]);
+			dynamicOffset += As<SIMD::Int>(routine->getIntermediate(id)[0]);
 
 		for (auto i = 0u; i < numIndexes; i++)
 		{
@@ -590,7 +590,7 @@ namespace sw
 				if (obj.kind == Object::Kind::Constant)
 					constantOffset += stride * GetConstantInt(indexIds[i]);
 				else
-					dynamicOffset += Int4(stride) * As<Int4>(routine->getIntermediate(indexIds[i])[0]);
+					dynamicOffset += SIMD::Int(stride) * As<SIMD::Int>(routine->getIntermediate(indexIds[i])[0]);
 				typeId = type.element;
 				break;
 			}
@@ -600,7 +600,7 @@ namespace sw
 			}
 		}
 
-		return dynamicOffset + Int4(constantOffset);
+		return dynamicOffset + SIMD::Int(constantOffset);
 	}
 
 	uint32_t SpirvShader::WalkLiteralAccessChain(TypeID typeId, uint32_t numIndexes, uint32_t const *indexes) const
@@ -853,12 +853,12 @@ namespace sw
 
 				if (pointer.kind == Object::Kind::Value)
 				{
-					auto offsets = As<Int4>(routine->getIntermediate(insn.word(3))[0]);
+					auto offsets = As<SIMD::Int>(routine->getIntermediate(insn.word(3))[0]);
 					for (auto i = 0u; i < objectTy.sizeInComponents; i++)
 					{
 						// i wish i had a Float,Float,Float,Float constructor here..
-						Float4 v;
-						for (int j = 0; j < 4; j++)
+						SIMD::Float v;
+						for (int j = 0; j < SIMD::Width; j++)
 						{
 							Int offset = Int(i) + Extract(offsets, j);
 							v = Insert(v, Extract(ptrBase[offset], j), j);
@@ -895,7 +895,7 @@ namespace sw
 					UNIMPLEMENTED("Descriptor-backed OpAccessChain not yet implemented");
 				}
 				auto &dst = routine->createIntermediate(objectId, type.sizeInComponents);
-				dst.emplace(0, As<Float4>(WalkAccessChain(baseId, insn.wordCount() - 4, insn.wordPointer(4), routine)));
+				dst.emplace(0, As<SIMD::Float>(WalkAccessChain(baseId, insn.wordCount() - 4, insn.wordPointer(4), routine)));
 				break;
 			}
 			case spv::OpStore:
@@ -924,11 +924,11 @@ namespace sw
 
 					if (pointer.kind == Object::Kind::Value)
 					{
-						auto offsets = As<Int4>(routine->getIntermediate(pointerId)[0]);
+						auto offsets = As<SIMD::Int>(routine->getIntermediate(pointerId)[0]);
 						for (auto i = 0u; i < elementTy.sizeInComponents; i++)
 						{
 							// Scattered store
-							for (int j = 0; j < 4; j++)
+							for (int j = 0; j < SIMD::Width; j++)
 							{
 								auto dst = ptrBase[Int(i) + Extract(offsets, j)];
 								dst = Insert(dst, Float(src[i]), j);
@@ -940,7 +940,7 @@ namespace sw
 						// no divergent offsets
 						for (auto i = 0u; i < elementTy.sizeInComponents; i++)
 						{
-							ptrBase[i] = RValue<Float4>(src[i]);
+							ptrBase[i] = RValue<SIMD::Float>(src[i]);
 						}
 					}
 				}
@@ -950,11 +950,11 @@ namespace sw
 
 					if (pointer.kind == Object::Kind::Value)
 					{
-						auto offsets = As<Int4>(routine->getIntermediate(pointerId)[0]);
+						auto offsets = As<SIMD::Int>(routine->getIntermediate(pointerId)[0]);
 						for (auto i = 0u; i < elementTy.sizeInComponents; i++)
 						{
 							// Scattered store
-							for (int j = 0; j < 4; j++)
+							for (int j = 0; j < SIMD::Width; j++)
 							{
 								auto dst = ptrBase[Int(i) + Extract(offsets, j)];
 								dst = Insert(dst, Extract(src[i], j), j);
@@ -1041,7 +1041,7 @@ namespace sw
 					{
 						// Undefined value. Until we decide to do real undef values, zero is as good
 						// a value as any
-						dst.emplace(i, RValue<Float4>(0.0f));
+						dst.emplace(i, RValue<SIMD::Float>(0.0f));
 					}
 					else if (selector < type.sizeInComponents)
 					{
