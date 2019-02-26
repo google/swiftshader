@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <VkConfig.h>
 #include "Renderer.hpp"
 
 #include "Clipper.hpp"
@@ -30,6 +29,7 @@
 #include "System/Half.hpp"
 #include "System/Math.hpp"
 #include "System/Timer.hpp"
+#include "Vulkan/VkConfig.h"
 #include "Vulkan/VkDebug.hpp"
 #include "Vulkan/VkImageView.hpp"
 #include "Pipeline/SpirvShader.hpp"
