@@ -230,7 +230,13 @@ void TargetX8632::_unlink_bp() {
   _pop(ebp);
 }
 
-void TargetX8632::_push_reg(Variable *Reg) { _push(Reg); }
+void TargetX8632::_push_reg(RegNumT RegNum) {
+  _push(getPhysicalRegister(RegNum, Traits::WordType));
+}
+
+void TargetX8632::_pop_reg(RegNumT RegNum) {
+  _pop(getPhysicalRegister(RegNum, Traits::WordType));
+}
 
 void TargetX8632::emitGetIP(CfgNode *Node) {
   // If there is a non-deleted InstX86GetIP instruction, we need to move it to

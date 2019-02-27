@@ -693,8 +693,11 @@ protected:
     Context.insert<typename Traits::Insts::Lea>(Dest, Src0);
   }
   void _link_bp() { dispatchToConcrete(&Traits::ConcreteTarget::_link_bp); }
-  void _push_reg(Variable *Reg) {
-    dispatchToConcrete(&Traits::ConcreteTarget::_push_reg, std::move(Reg));
+  void _push_reg(RegNumT RegNum) {
+    dispatchToConcrete(&Traits::ConcreteTarget::_push_reg, std::move(RegNum));
+  }
+  void _pop_reg(RegNumT RegNum) {
+    dispatchToConcrete(&Traits::ConcreteTarget::_pop_reg, std::move(RegNum));
   }
   void _mfence() { Context.insert<typename Traits::Insts::Mfence>(); }
   /// Moves can be used to redefine registers, creating "partial kills" for

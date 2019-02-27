@@ -992,6 +992,94 @@ TEST(ReactorUnitTests, MulAdd)
 	delete routine;
 }
 
+// Check that a complex generated function which utilizes all 8 or 16 XMM
+// registers computes the correct result.
+// (Note that due to MSC's lack of support for inline assembly in x64,
+// this test does not actually check that the register contents are 
+// preserved, just that the generated function computes the correct value.
+// It's necessary to inspect the registers in a debugger to actually verify.)
+TEST(ReactorUnitTests, PreserveXMMRegisters)
+{
+    Routine *routine = nullptr;
+
+    {
+        Function<Void(Pointer<Byte>, Pointer<Byte>)> function;
+        {
+            Pointer<Byte> in = function.Arg<0>();
+            Pointer<Byte> out = function.Arg<1>();
+
+            Float4 a = *Pointer<Float4>(in + 16 * 0);
+            Float4 b = *Pointer<Float4>(in + 16 * 1);
+            Float4 c = *Pointer<Float4>(in + 16 * 2);
+            Float4 d = *Pointer<Float4>(in + 16 * 3);
+            Float4 e = *Pointer<Float4>(in + 16 * 4);
+            Float4 f = *Pointer<Float4>(in + 16 * 5);
+            Float4 g = *Pointer<Float4>(in + 16 * 6);
+            Float4 h = *Pointer<Float4>(in + 16 * 7);
+            Float4 i = *Pointer<Float4>(in + 16 * 8);
+            Float4 j = *Pointer<Float4>(in + 16 * 9);
+            Float4 k = *Pointer<Float4>(in + 16 * 10);
+            Float4 l = *Pointer<Float4>(in + 16 * 11);
+            Float4 m = *Pointer<Float4>(in + 16 * 12);
+            Float4 n = *Pointer<Float4>(in + 16 * 13);
+            Float4 o = *Pointer<Float4>(in + 16 * 14);
+            Float4 p = *Pointer<Float4>(in + 16 * 15);
+
+            Float4 ab = a + b;
+            Float4 cd = c + d;
+            Float4 ef = e + f;
+            Float4 gh = g + h;
+            Float4 ij = i + j;
+            Float4 kl = k + l;
+            Float4 mn = m + n;
+            Float4 op = o + p;
+
+            Float4 abcd = ab + cd;
+            Float4 efgh = ef + gh;
+            Float4 ijkl = ij + kl;
+            Float4 mnop = mn + op;
+
+            Float4 abcdefgh = abcd + efgh;
+            Float4 ijklmnop = ijkl + mnop;
+            Float4 sum = abcdefgh + ijklmnop;
+            *Pointer<Float4>(out) = sum;
+            Return();
+        }
+
+        routine = function("one");
+        assert(routine);
+
+        float input[64] = { 1.0f,  0.0f,   0.0f, 0.0f,
+                           -1.0f,  1.0f,  -1.0f, 0.0f,
+                            1.0f,  2.0f,  -2.0f, 0.0f,
+                           -1.0f,  3.0f,  -3.0f, 0.0f,
+                            1.0f,  4.0f,  -4.0f, 0.0f,
+                           -1.0f,  5.0f,  -5.0f, 0.0f,
+                            1.0f,  6.0f,  -6.0f, 0.0f,
+                           -1.0f,  7.0f,  -7.0f, 0.0f,
+                            1.0f,  8.0f,  -8.0f, 0.0f,
+                           -1.0f,  9.0f,  -9.0f, 0.0f,
+                            1.0f, 10.0f, -10.0f, 0.0f,
+                           -1.0f, 11.0f, -11.0f, 0.0f,
+                            1.0f, 12.0f, -12.0f, 0.0f,
+                           -1.0f, 13.0f, -13.0f, 0.0f,
+                            1.0f, 14.0f, -14.0f, 0.0f,
+                           -1.0f, 15.0f, -15.0f, 0.0f };
+
+        float result[4];
+        void (*callable)(float*, float*) = (void(*)(float*,float*))routine->getEntry();
+
+        callable(input, result);
+
+        EXPECT_EQ(result[0], 0.0f);
+        EXPECT_EQ(result[1], 120.0f);
+        EXPECT_EQ(result[2], -120.0f);
+        EXPECT_EQ(result[3], 0.0f);
+    }
+
+    delete routine;
+}
+
 int main(int argc, char **argv)
 {
 	::testing::InitGoogleTest(&argc, argv);

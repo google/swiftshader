@@ -222,7 +222,7 @@
 // Note: It would be more appropriate to list the xmm register aliases as
 // REGLIST0(), but the corresponding empty initializer gives a syntax error, so
 // we use REGLIST1() to redundantly assign the register itself as an alias.
-#define REGX8664_XMM_TABLE                                                     \
+#define REGX8664_XMM_TABLE2(U, W)                                              \
   /* val, encode, name, base, scratch,preserved,stackptr,frameptr,sboxres,     \
      isGPR,is64,is32,is16,is8, isXmm,                                          \
      is64To8,is32To8,is16To8,isTrunc8Rcvr,isAhRcvr, aliases */                 \
@@ -239,30 +239,36 @@
     NO_ALIASES())                                                              \
   X(Reg_xmm5,   5, "xmm5",  Reg_xmm5,  1,0,0,0,0, 0,0,0,0,0, 1, 0,0,0,0,0,     \
     NO_ALIASES())                                                              \
-  X(Reg_xmm6,   6, "xmm6",  Reg_xmm6,  0,0,0,0,0, 0,0,0,0,0, 1, 0,0,0,0,0,     \
+  X(Reg_xmm6,   6, "xmm6",  Reg_xmm6,  U,W,0,0,0, 0,0,0,0,0, 1, 0,0,0,0,0,     \
     NO_ALIASES())                                                              \
-  X(Reg_xmm7,   7, "xmm7",  Reg_xmm7,  0,0,0,0,0, 0,0,0,0,0, 1, 0,0,0,0,0,     \
+  X(Reg_xmm7,   7, "xmm7",  Reg_xmm7,  U,W,0,0,0, 0,0,0,0,0, 1, 0,0,0,0,0,     \
     NO_ALIASES())                                                              \
-  X(Reg_xmm8,   8, "xmm8",  Reg_xmm8,  0,0,0,0,0, 0,0,0,0,0, 1, 0,0,0,0,0,     \
+  X(Reg_xmm8,   8, "xmm8",  Reg_xmm8,  U,W,0,0,0, 0,0,0,0,0, 1, 0,0,0,0,0,     \
     NO_ALIASES())                                                              \
-  X(Reg_xmm9,   9, "xmm9",  Reg_xmm9,  0,0,0,0,0, 0,0,0,0,0, 1, 0,0,0,0,0,     \
+  X(Reg_xmm9,   9, "xmm9",  Reg_xmm9,  U,W,0,0,0, 0,0,0,0,0, 1, 0,0,0,0,0,     \
     NO_ALIASES())                                                              \
-  X(Reg_xmm10, 10, "xmm10", Reg_xmm10, 0,0,0,0,0, 0,0,0,0,0, 1, 0,0,0,0,0,     \
+  X(Reg_xmm10, 10, "xmm10", Reg_xmm10, U,W,0,0,0, 0,0,0,0,0, 1, 0,0,0,0,0,     \
     NO_ALIASES())                                                              \
-  X(Reg_xmm11, 11, "xmm11", Reg_xmm11, 0,0,0,0,0, 0,0,0,0,0, 1, 0,0,0,0,0,     \
+  X(Reg_xmm11, 11, "xmm11", Reg_xmm11, U,W,0,0,0, 0,0,0,0,0, 1, 0,0,0,0,0,     \
     NO_ALIASES())                                                              \
-  X(Reg_xmm12, 12, "xmm12", Reg_xmm12, 0,0,0,0,0, 0,0,0,0,0, 1, 0,0,0,0,0,     \
+  X(Reg_xmm12, 12, "xmm12", Reg_xmm12, U,W,0,0,0, 0,0,0,0,0, 1, 0,0,0,0,0,     \
     NO_ALIASES())                                                              \
-  X(Reg_xmm13, 13, "xmm13", Reg_xmm13, 0,0,0,0,0, 0,0,0,0,0, 1, 0,0,0,0,0,     \
+  X(Reg_xmm13, 13, "xmm13", Reg_xmm13, U,W,0,0,0, 0,0,0,0,0, 1, 0,0,0,0,0,     \
     NO_ALIASES())                                                              \
-  X(Reg_xmm14, 14, "xmm14", Reg_xmm14, 0,0,0,0,0, 0,0,0,0,0, 1, 0,0,0,0,0,     \
+  X(Reg_xmm14, 14, "xmm14", Reg_xmm14, U,W,0,0,0, 0,0,0,0,0, 1, 0,0,0,0,0,     \
     NO_ALIASES())                                                              \
-  X(Reg_xmm15, 15, "xmm15", Reg_xmm15, 0,0,0,0,0, 0,0,0,0,0, 1, 0,0,0,0,0,     \
+  X(Reg_xmm15, 15, "xmm15", Reg_xmm15, U,W,0,0,0, 0,0,0,0,0, 1, 0,0,0,0,0,     \
     NO_ALIASES())                                                              \
   /* End of xmm register set */
 //#define X(val, encode, name, base, scratch, preserved, stackptr, frameptr,
 //          sboxres, isGPR, is64, is32, is16, is8, isXmm, is64To8, is32To8,
 //          is16To8, isTrunc8Rcvr, isAhRcvr, aliases)
+
+#if defined(SUBZERO_USE_MICROSOFT_ABI)  // Microsoft x86-64 ABI
+#define REGX8664_XMM_TABLE REGX8664_XMM_TABLE2(0, 1)
+#else  // System V AMD64 ABI
+#define REGX8664_XMM_TABLE REGX8664_XMM_TABLE2(1, 0)
+#endif
 
 // We also provide a combined table, so that there is a namespace where
 // all of the registers are considered and have distinct numberings.
