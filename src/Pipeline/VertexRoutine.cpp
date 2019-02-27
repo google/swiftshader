@@ -376,115 +376,6 @@ namespace sw
 				transpose4xN(v.x, v.y, v.z, v.w, stream.count);
 			}
 			break;
-		case STREAMTYPE_UDEC3:
-			{
-				// FIXME: Vectorize
-				{
-					Int x, y, z;
-
-					x = y = z = *Pointer<Int>(source0);
-
-					v.x.x = Float(x & 0x000003FF);
-					v.x.y = Float(y & 0x000FFC00);
-					v.x.z = Float(z & 0x3FF00000);
-				}
-
-				{
-					Int x, y, z;
-
-					x = y = z = *Pointer<Int>(source1);
-
-					v.y.x = Float(x & 0x000003FF);
-					v.y.y = Float(y & 0x000FFC00);
-					v.y.z = Float(z & 0x3FF00000);
-				}
-
-				{
-					Int x, y, z;
-
-					x = y = z = *Pointer<Int>(source2);
-
-					v.z.x = Float(x & 0x000003FF);
-					v.z.y = Float(y & 0x000FFC00);
-					v.z.z = Float(z & 0x3FF00000);
-				}
-
-				{
-					Int x, y, z;
-
-					x = y = z = *Pointer<Int>(source3);
-
-					v.w.x = Float(x & 0x000003FF);
-					v.w.y = Float(y & 0x000FFC00);
-					v.w.z = Float(z & 0x3FF00000);
-				}
-
-				transpose4x3(v.x, v.y, v.z, v.w);
-
-				v.y *= Float4(1.0f / 0x00000400);
-				v.z *= Float4(1.0f / 0x00100000);
-			}
-			break;
-		case STREAMTYPE_DEC3N:
-			{
-				// FIXME: Vectorize
-				{
-					Int x, y, z;
-
-					x = y = z = *Pointer<Int>(source0);
-
-					v.x.x = Float((x << 22) & 0xFFC00000);
-					v.x.y = Float((y << 12) & 0xFFC00000);
-					v.x.z = Float((z << 2)  & 0xFFC00000);
-				}
-
-				{
-					Int x, y, z;
-
-					x = y = z = *Pointer<Int>(source1);
-
-					v.y.x = Float((x << 22) & 0xFFC00000);
-					v.y.y = Float((y << 12) & 0xFFC00000);
-					v.y.z = Float((z << 2)  & 0xFFC00000);
-				}
-
-				{
-					Int x, y, z;
-
-					x = y = z = *Pointer<Int>(source2);
-
-					v.z.x = Float((x << 22) & 0xFFC00000);
-					v.z.y = Float((y << 12) & 0xFFC00000);
-					v.z.z = Float((z << 2)  & 0xFFC00000);
-				}
-
-				{
-					Int x, y, z;
-
-					x = y = z = *Pointer<Int>(source3);
-
-					v.w.x = Float((x << 22) & 0xFFC00000);
-					v.w.y = Float((y << 12) & 0xFFC00000);
-					v.w.z = Float((z << 2)  & 0xFFC00000);
-				}
-
-				transpose4x3(v.x, v.y, v.z, v.w);
-
-				v.x *= Float4(1.0f / 0x00400000 / 511.0f);
-				v.y *= Float4(1.0f / 0x00400000 / 511.0f);
-				v.z *= Float4(1.0f / 0x00400000 / 511.0f);
-			}
-			break;
-		case STREAMTYPE_FIXED:
-			{
-				v.x = Float4(*Pointer<Int4>(source0)) * *Pointer<Float4>(constants + OFFSET(Constants,unscaleFixed));
-				v.y = Float4(*Pointer<Int4>(source1)) * *Pointer<Float4>(constants + OFFSET(Constants,unscaleFixed));
-				v.z = Float4(*Pointer<Int4>(source2)) * *Pointer<Float4>(constants + OFFSET(Constants,unscaleFixed));
-				v.w = Float4(*Pointer<Int4>(source3)) * *Pointer<Float4>(constants + OFFSET(Constants,unscaleFixed));
-
-				transpose4xN(v.x, v.y, v.z, v.w, stream.count);
-			}
-			break;
 		case STREAMTYPE_HALF:
 			{
 				if(stream.count >= 1)
@@ -538,14 +429,6 @@ namespace sw
 					v.w.z = *Pointer<Float>(constants + OFFSET(Constants,half2float) + Int(w2) * 4);
 					v.w.w = *Pointer<Float>(constants + OFFSET(Constants,half2float) + Int(w3) * 4);
 				}
-			}
-			break;
-		case STREAMTYPE_INDICES:
-			{
-				v.x.x = *Pointer<Float>(source0);
-				v.x.y = *Pointer<Float>(source1);
-				v.x.z = *Pointer<Float>(source2);
-				v.x.w = *Pointer<Float>(source3);
 			}
 			break;
 		case STREAMTYPE_2_10_10_10_INT:
