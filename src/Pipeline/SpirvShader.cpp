@@ -262,6 +262,7 @@ namespace sw
 			case spv::OpCompositeConstruct:
 			case spv::OpCompositeInsert:
 			case spv::OpCompositeExtract:
+			case spv::OpVectorShuffle:
 				// Instructions that yield an ssavalue.
 			{
 				TypeID typeId = insn.word(1);
@@ -1023,6 +1024,34 @@ namespace sw
 				GenericValue compositeObjectAccess(this, routine, insn.word(3));
 				for (auto i = 0u; i < type.sizeInComponents; i++)
 					dst.emplace(i, compositeObjectAccess[firstComponent + i]);
+				break;
+			}
+			case spv::OpVectorShuffle:
+			{
+				auto &type = getType(insn.word(1));
+				auto &dst = routine->createIntermediate(insn.word(2), type.sizeInComponents);
+
+				GenericValue firstHalfAccess(this, routine, insn.word(3));
+				GenericValue secondHalfAccess(this, routine, insn.word(4));
+
+				for (auto i = 0u; i < type.sizeInComponents; i++)
+				{
+					auto selector = insn.word(5 + i);
+					if (selector == static_cast<uint32_t>(-1))
+					{
+						// Undefined value. Until we decide to do real undef values, zero is as good
+						// a value as any
+						dst.emplace(i, RValue<Float4>(0.0f));
+					}
+					else if (selector < type.sizeInComponents)
+					{
+						dst.emplace(i, firstHalfAccess[selector]);
+					}
+					else
+					{
+						dst.emplace(i, secondHalfAccess[selector - type.sizeInComponents]);
+					}
+				}
 				break;
 			}
 			default:
