@@ -23,6 +23,7 @@
 #include <cstdio>
 
 #include <string>
+#include <tuple>
 
 #undef Bool // b/127920555
 
@@ -2274,21 +2275,6 @@ namespace rr
 	template<class T>
 	void Return(RValue<Pointer<T>> ret);
 
-	template<unsigned int index, typename... Arguments>
-	struct ArgI;
-
-	template<typename Arg0, typename... Arguments>
-	struct ArgI<0, Arg0, Arguments...>
-	{
-		typedef Arg0 Type;
-	};
-
-	template<unsigned int index, typename Arg0, typename... Arguments>
-	struct ArgI<index, Arg0, Arguments...>
-	{
-		typedef typename ArgI<index - 1, Arguments...>::Type Type;
-	};
-
 	// Generic template, leave undefined!
 	template<typename FunctionType>
 	class Function;
@@ -2303,10 +2289,10 @@ namespace rr
 		virtual ~Function();
 
 		template<int index>
-		Argument<typename ArgI<index, Arguments...>::Type> Arg() const
+		Argument<typename std::tuple_element<index, std::tuple<Arguments...>>::type> Arg() const
 		{
 			Value *arg = Nucleus::getArgument(index);
-			return Argument<typename ArgI<index, Arguments...>::Type>(arg);
+			return Argument<typename std::tuple_element<index, std::tuple<Arguments...>>::type>(arg);
 		}
 
 		Routine *operator()(const char *name, ...);
@@ -2320,12 +2306,6 @@ namespace rr
 	class Function<Return()> : public Function<Return(Void)>
 	{
 	};
-
-	template<int index, typename Return, typename... Arguments>
-	Argument<typename ArgI<index, Arguments...>::Type> Arg(Function<Return(Arguments...)> &function)
-	{
-		return Argument<typename ArgI<index, Arguments...>::Type>(function.arg(index));
-	}
 
 	RValue<Long> Ticks();
 }
