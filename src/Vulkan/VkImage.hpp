@@ -19,23 +19,29 @@
 
 namespace sw
 {
-	class Blitter;
 	class Surface;
 };
 
 namespace vk
 {
 
+class Device;
 class DeviceMemory;
 
 class Image : public Object<Image, VkImage>
 {
 public:
-	Image(const VkImageCreateInfo* pCreateInfo, void* mem);
+	struct CreateInfo
+	{
+		const VkImageCreateInfo* pCreateInfo;
+		const VkDevice device;
+	};
+
+	Image(const CreateInfo* pCreateInfo, void* mem);
 	~Image() = delete;
 	void destroy(const VkAllocationCallbacks* pAllocator);
 
-	static size_t ComputeRequiredAllocationSize(const VkImageCreateInfo* pCreateInfo);
+	static size_t ComputeRequiredAllocationSize(const CreateInfo* pCreateInfo);
 
 	const VkMemoryRequirements getMemoryRequirements() const;
 	void getSubresourceLayout(const VkImageSubresource* pSubresource, VkSubresourceLayout* pLayout) const;
@@ -77,6 +83,7 @@ private:
 	void clear(void* pixelData, VkFormat format, const VkImageSubresourceRange& subresourceRange, VkImageAspectFlagBits aspect);
 	void clear(void* pixelData, VkFormat format, const VkRect2D& renderArea, const VkImageSubresourceRange& subresourceRange, VkImageAspectFlagBits aspect);
 
+	const Device *const      device = nullptr;
 	DeviceMemory*            deviceMemory = nullptr;
 	VkDeviceSize             memoryOffset = 0;
 	VkImageCreateFlags       flags = 0;
@@ -87,7 +94,6 @@ private:
 	uint32_t                 arrayLayers = 0;
 	VkSampleCountFlagBits    samples = VK_SAMPLE_COUNT_1_BIT;
 	VkImageTiling            tiling = VK_IMAGE_TILING_OPTIMAL;
-	sw::Blitter*             blitter = nullptr;
 };
 
 static inline Image* Cast(VkImage object)

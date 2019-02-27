@@ -17,6 +17,11 @@
 
 #include "VkObject.hpp"
 
+namespace sw
+{
+	class Blitter;
+};
+
 namespace vk
 {
 
@@ -46,11 +51,13 @@ public:
 	VkPhysicalDevice getPhysicalDevice() const { return physicalDevice; }
 	void updateDescriptorSets(uint32_t descriptorWriteCount, const VkWriteDescriptorSet* pDescriptorWrites,
 	                          uint32_t descriptorCopyCount, const VkCopyDescriptorSet* pDescriptorCopies);
+	sw::Blitter* getBlitter() const { return blitter; }
 
 private:
 	VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
 	Queue* queues = nullptr;
 	uint32_t queueCount = 0;
+	sw::Blitter* blitter = nullptr;
 };
 
 using DispatchableDevice = DispatchableObject<Device, VkDevice>;

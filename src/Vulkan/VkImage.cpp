@@ -14,6 +14,7 @@
 
 #include "VkDeviceMemory.hpp"
 #include "VkBuffer.hpp"
+#include "VkDevice.hpp"
 #include "VkImage.hpp"
 #include "Device/Blitter.hpp"
 #include "Device/Surface.hpp"
@@ -41,18 +42,17 @@ namespace
 namespace vk
 {
 
-Image::Image(const VkImageCreateInfo* pCreateInfo, void* mem) :
-	flags(pCreateInfo->flags),
-	imageType(pCreateInfo->imageType),
-	format(pCreateInfo->format),
-	extent(pCreateInfo->extent),
-	mipLevels(pCreateInfo->mipLevels),
-	arrayLayers(pCreateInfo->arrayLayers),
-	samples(pCreateInfo->samples),
-	tiling(pCreateInfo->tiling)
+Image::Image(const Image::CreateInfo* pCreateInfo, void* mem) :
+	device(Cast(pCreateInfo->device)),
+	flags(pCreateInfo->pCreateInfo->flags),
+	imageType(pCreateInfo->pCreateInfo->imageType),
+	format(pCreateInfo->pCreateInfo->format),
+	extent(pCreateInfo->pCreateInfo->extent),
+	mipLevels(pCreateInfo->pCreateInfo->mipLevels),
+	arrayLayers(pCreateInfo->pCreateInfo->arrayLayers),
+	samples(pCreateInfo->pCreateInfo->samples),
+	tiling(pCreateInfo->pCreateInfo->tiling)
 {
-	blitter = new sw::Blitter();
-
 	if (samples != VK_SAMPLE_COUNT_1_BIT)
 	{
 		UNIMPLEMENTED("Multisample images not yet supported");
@@ -61,10 +61,9 @@ Image::Image(const VkImageCreateInfo* pCreateInfo, void* mem) :
 
 void Image::destroy(const VkAllocationCallbacks* pAllocator)
 {
-	delete blitter;
 }
 
-size_t Image::ComputeRequiredAllocationSize(const VkImageCreateInfo* pCreateInfo)
+size_t Image::ComputeRequiredAllocationSize(const Image::CreateInfo* pCreateInfo)
 {
 	return 0;
 }
@@ -495,7 +494,7 @@ void Image::blit(VkImage dstImage, const VkImageBlit& region, VkFilter filter)
 
 	for(int i = 0; i < numSlices; i++)
 	{
-		blitter->blit(srcSurface, sRect, dstSurface, dRect,
+		device->getBlitter()->blit(srcSurface, sRect, dstSurface, dRect,
 		              {filter != VK_FILTER_NEAREST, srcAspect == VK_IMAGE_ASPECT_STENCIL_BIT, false});
 		sRect.slice++;
 		dRect.slice++;
@@ -547,7 +546,7 @@ void Image::clear(void* pixelData, VkFormat format, const VkImageSubresourceRang
 			{
 				const sw::SliceRect dRect(0, 0, mipLevelExtent.width, mipLevelExtent.height, s);
 				sw::Surface* surface = asSurface(aspect, mipLevel, layer);
-				blitter->clear(pixelData, format, surface, dRect, 0xF);
+				device->getBlitter()->clear(pixelData, format, surface, dRect, 0xF);
 				delete surface;
 			}
 		}
@@ -574,7 +573,7 @@ void Image::clear(void* pixelData, VkFormat format, const VkRect2D& renderArea, 
 		{
 			dRect.slice = s;
 			sw::Surface* surface = asSurface(aspect, 0, layer);
-			blitter->clear(pixelData, format, surface, dRect, 0xF);
+			device->getBlitter()->clear(pixelData, format, surface, dRect, 0xF);
 			delete surface;
 		}
 	}

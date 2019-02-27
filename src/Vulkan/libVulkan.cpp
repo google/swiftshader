@@ -906,7 +906,13 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateImage(VkDevice device, const VkImageCreat
 		UNIMPLEMENTED();
 	}
 
-	return vk::Image::Create(pAllocator, pCreateInfo, pImage);
+	vk::Image::CreateInfo imageCreateInfo =
+	{
+		pCreateInfo,
+		device
+	};
+
+	return vk::Image::Create(pAllocator, &imageCreateInfo, pImage);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkDestroyImage(VkDevice device, VkImage image, const VkAllocationCallbacks* pAllocator)
