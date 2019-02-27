@@ -382,11 +382,36 @@ namespace sw
 			return it->second;
 		}
 
-		Intermediate& getIntermediate(SpirvShader::ObjectID id)
+		Intermediate const& getIntermediate(SpirvShader::ObjectID id) const
 		{
 			auto it = intermediates.find(id);
 			assert(it != intermediates.end());
 			return it->second;
+		}
+	};
+
+	class GenericValue
+	{
+		// Generic wrapper over either per-lane intermediate value, or a constant.
+		// Constants are transparently widened to per-lane values in operator[].
+		// This is appropriate in most cases -- if we're not going to do something
+		// significantly different based on whether the value is uniform across lanes.
+
+		SpirvShader::Object const &obj;
+		Intermediate const *intermediate;
+
+	public:
+		GenericValue(SpirvShader const *shader, SpirvRoutine const *routine, SpirvShader::ObjectID objId) :
+				obj(shader->getObject(objId)),
+				intermediate(obj.kind == SpirvShader::Object::Kind::Value ? &routine->getIntermediate(objId) : nullptr) {}
+
+		RValue<Float4> operator[](uint32_t i) const
+		{
+			if (intermediate)
+				return (*intermediate)[i];
+
+			auto constantValue = reinterpret_cast<float *>(obj.constantValue.get());
+			return RValue<Float4>(constantValue[i]);
 		}
 	};
 
