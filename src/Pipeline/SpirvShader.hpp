@@ -220,10 +220,11 @@ namespace sw
 			enum class Kind
 			{
 				Unknown,        /* for paranoia -- if we get left with an object in this state, the module was broken */
-				Variable,
-				InterfaceVariable,
-				Constant,
-				Value,
+				Variable,          // TODO: Document
+				InterfaceVariable, // TODO: Document
+				Constant,          // Values held by Object::constantValue
+				Value,             // Values held by SpirvRoutine::intermediates
+				PhysicalPointer,   // Pointer held by SpirvRoutine::physicalPointers
 			} kind = Kind::Unknown;
 		};
 
@@ -384,6 +385,34 @@ namespace sw
 		void ApplyDecorationsForId(Decorations *d, TypeOrObjectID id) const;
 		void ApplyDecorationsForIdMember(Decorations *d, TypeID id, uint32_t member) const;
 
+		// Returns true if data in the given storage class is word-interleaved
+		// by each SIMD vector lane, otherwise data is linerally stored.
+		//
+		// A 'lane' is a component of a SIMD vector register.
+		// Given 4 consecutive loads/stores of 4 SIMD vector registers:
+		//
+		// "StorageInterleavedByLane":
+		//
+		//  Ptr+0:Reg0.x | Ptr+1:Reg0.y | Ptr+2:Reg0.z | Ptr+3:Reg0.w
+		// --------------+--------------+--------------+--------------
+		//  Ptr+4:Reg1.x | Ptr+5:Reg1.y | Ptr+6:Reg1.z | Ptr+7:Reg1.w
+		// --------------+--------------+--------------+--------------
+		//  Ptr+8:Reg2.x | Ptr+9:Reg2.y | Ptr+a:Reg2.z | Ptr+b:Reg2.w
+		// --------------+--------------+--------------+--------------
+		//  Ptr+c:Reg3.x | Ptr+d:Reg3.y | Ptr+e:Reg3.z | Ptr+f:Reg3.w
+		//
+		// Not "StorageInterleavedByLane":
+		//
+		//  Ptr+0:Reg0.x | Ptr+0:Reg0.y | Ptr+0:Reg0.z | Ptr+0:Reg0.w
+		// --------------+--------------+--------------+--------------
+		//  Ptr+1:Reg1.x | Ptr+1:Reg1.y | Ptr+1:Reg1.z | Ptr+1:Reg1.w
+		// --------------+--------------+--------------+--------------
+		//  Ptr+2:Reg2.x | Ptr+2:Reg2.y | Ptr+2:Reg2.z | Ptr+2:Reg2.w
+		// --------------+--------------+--------------+--------------
+		//  Ptr+3:Reg3.x | Ptr+3:Reg3.y | Ptr+3:Reg3.z | Ptr+3:Reg3.w
+		//
+		static bool IsStorageInterleavedByLane(spv::StorageClass storageClass);
+
 		template<typename F>
 		int VisitInterfaceInner(TypeID id, Decorations d, F f) const;
 
@@ -430,6 +459,8 @@ namespace sw
 
 		std::unordered_map<SpirvShader::ObjectID, Intermediate> intermediates;
 
+		std::unordered_map<SpirvShader::ObjectID, Pointer<Byte> > physicalPointers;
+
 		Value inputs = Value{MAX_INTERFACE_COMPONENTS};
 		Value outputs = Value{MAX_INTERFACE_COMPONENTS};
 
@@ -459,6 +490,13 @@ namespace sw
 		{
 			auto it = intermediates.find(id);
 			ASSERT(it != intermediates.end());
+			return it->second;
+		}
+
+		Pointer<Byte>& getPhysicalPointer(SpirvShader::ObjectID id)
+		{
+			auto it = physicalPointers.find(id);
+			assert(it != physicalPointers.end());
 			return it->second;
 		}
 	};
