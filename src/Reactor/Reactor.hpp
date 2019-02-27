@@ -114,6 +114,8 @@ namespace rr
 
 		RValue<T> operator+=(RValue<T> rhs) const;
 
+		RValue<Pointer<T>> operator&() const { return RValue<Pointer<T>>(address); }
+
 		Value *loadValue() const;
 		int getAlignment() const;
 
