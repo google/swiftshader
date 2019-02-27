@@ -367,11 +367,12 @@ namespace sw
 			lvalues.emplace(id, Value(size));
 		}
 
-		void createIntermediate(SpirvShader::ObjectID id, uint32_t size)
+		Intermediate& createIntermediate(SpirvShader::ObjectID id, uint32_t size)
 		{
-			intermediates.emplace(std::piecewise_construct,
+			auto it = intermediates.emplace(std::piecewise_construct,
 					std::forward_as_tuple(id),
 					std::forward_as_tuple(size));
+			return it.first->second;
 		}
 
 		Value& getValue(SpirvShader::ObjectID id)

@@ -790,7 +790,6 @@ namespace sw
 				auto &objectTy = getType(object.type);
 				auto &pointer = getObject(pointerId);
 				auto &pointerTy = getType(pointer.type);
-				routine->createIntermediate(objectId, objectTy.sizeInComponents);
 				auto &pointerBase = getObject(pointer.pointerBase);
 				auto &pointerBaseTy = getType(pointerBase.type);
 
@@ -805,7 +804,7 @@ namespace sw
 				}
 
 				auto &ptrBase = routine->getValue(pointer.pointerBase);
-				auto &dst = routine->getIntermediate(objectId);
+				auto &dst = routine->createIntermediate(objectId, objectTy.sizeInComponents);
 
 				if (pointer.kind == Object::Kind::Value)
 				{
@@ -840,7 +839,6 @@ namespace sw
 				auto &object = getObject(objectId);
 				auto &type = getType(typeId);
 				auto &base = getObject(baseId);
-				routine->createIntermediate(objectId, type.sizeInComponents);
 				auto &pointerBase = getObject(object.pointerBase);
 				auto &pointerBaseTy = getType(pointerBase.type);
 				assert(type.sizeInComponents == 1);
@@ -852,7 +850,7 @@ namespace sw
 				{
 					UNIMPLEMENTED("Descriptor-backed OpAccessChain not yet implemented");
 				}
-				auto &dst = routine->getIntermediate(objectId);
+				auto &dst = routine->createIntermediate(objectId, type.sizeInComponents);
 				dst.emplace(0, As<Float4>(WalkAccessChain(baseId, insn.wordCount() - 4, insn.wordPointer(4), routine)));
 				break;
 			}
