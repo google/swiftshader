@@ -1246,25 +1246,37 @@ namespace rr
 
 	Value *Nucleus::createGEP(Value *ptr, Type *type, Value *index, bool unsignedIndex)
 	{
+		assert(V(ptr)->getType()->getContainedType(0) == T(type));
+
 		if(sizeof(void*) == 8)
 		{
-			if(unsignedIndex)
-			{
-				index = createZExt(index, Long::getType());
-			}
-			else
-			{
-				index = createSExt(index, Long::getType());
-			}
-
-			index = createMul(index, createConstantLong((int64_t)typeSize(type)));
+			// LLVM manual: "When indexing into an array, pointer or vector,
+			// integers of any width are allowed, and they are not required to
+			// be constant. These integers are treated as signed values where
+			// relevant."
+			//
+			// Thus if we want indexes to be treated as unsigned we have to
+			// zero-extend them ourselves.
+			//
+			// Note that this is not because we want to address anywhere near
+			// 4 GB of data. Instead this is important for performance because
+			// x86 supports automatic zero-extending of 32-bit registers to
+			// 64-bit. Thus when indexing into an array using a uint32 is
+			// actually faster than an int32.
+			index = unsignedIndex ?
+				createZExt(index, Long::getType()) :
+				createSExt(index, Long::getType());
 		}
-		else
+
+		if (reinterpret_cast<uintptr_t>(type) >= EmulatedTypeCount)
 		{
-			index = createMul(index, createConstantInt((int)typeSize(type)));
+			return V(::builder->CreateGEP(V(ptr), V(index)));
 		}
 
-		assert(V(ptr)->getType()->getContainedType(0) == T(type));
+		index = (sizeof(void*) == 8) ?
+			createMul(index, createConstantLong((int64_t)typeSize(type))) :
+			createMul(index, createConstantInt((int)typeSize(type)));
+
 		return createBitCast(
 			V(::builder->CreateGEP(V(createBitCast(ptr, T(llvm::PointerType::get(T(Byte::getType()), 0)))), V(index))),
 			T(llvm::PointerType::get(T(type), 0)));

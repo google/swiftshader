@@ -16,6 +16,8 @@
 
 #include "gtest/gtest.h"
 
+#include <tuple>
+
 using namespace rr;
 
 int reference(int *p, int y)
@@ -995,7 +997,7 @@ TEST(ReactorUnitTests, MulAdd)
 // Check that a complex generated function which utilizes all 8 or 16 XMM
 // registers computes the correct result.
 // (Note that due to MSC's lack of support for inline assembly in x64,
-// this test does not actually check that the register contents are 
+// this test does not actually check that the register contents are
 // preserved, just that the generated function computes the correct value.
 // It's necessary to inspect the registers in a debugger to actually verify.)
 TEST(ReactorUnitTests, PreserveXMMRegisters)
@@ -1078,6 +1080,94 @@ TEST(ReactorUnitTests, PreserveXMMRegisters)
     }
 
     delete routine;
+}
+
+template <typename T>
+class GEPTest : public ::testing::Test {
+public:
+	using CType = typename std::tuple_element<0, T>::type;
+	using ReactorType = typename std::tuple_element<1, T>::type;
+};
+
+using GEPTestTypes = ::testing::Types
+	<
+		std::pair<int8_t,      Bool>,
+		std::pair<int8_t,      Byte>,
+		std::pair<int8_t,      SByte>,
+		std::pair<int8_t[4],   Byte4>,
+		std::pair<int8_t[4],   SByte4>,
+		std::pair<int8_t[8],   Byte8>,
+		std::pair<int8_t[8],   SByte8>,
+		std::pair<int8_t[16],  Byte16>,
+		std::pair<int8_t[16],  SByte16>,
+		std::pair<int16_t,     Short>,
+		std::pair<int16_t,     UShort>,
+		std::pair<int16_t[2],  Short2>,
+		std::pair<int16_t[2],  UShort2>,
+		std::pair<int16_t[4],  Short4>,
+		std::pair<int16_t[4],  UShort4>,
+		std::pair<int16_t[8],  Short8>,
+		std::pair<int16_t[8],  UShort8>,
+		std::pair<int,         Int>,
+		std::pair<int,         UInt>,
+		std::pair<int[2],      Int2>,
+		std::pair<int[2],      UInt2>,
+		std::pair<int[4],      Int4>,
+		std::pair<int[4],      UInt4>,
+		std::pair<int64_t,     Long>,
+		std::pair<int16_t,     Half>,
+		std::pair<float,       Float>,
+		std::pair<float[2],    Float2>,
+		std::pair<float[4],    Float4>
+	>;
+
+TYPED_TEST_CASE(GEPTest, GEPTestTypes);
+
+TYPED_TEST(GEPTest, PtrOffsets) {
+	using CType = typename TestFixture::CType;
+	using ReactorType = typename TestFixture::ReactorType;
+
+	Routine *routine = nullptr;
+
+	{
+		Function< Pointer<ReactorType>(Pointer<ReactorType>, Int) > function;
+		{
+			Pointer<ReactorType> pointer = function.template Arg<0>();
+			Int index = function.template Arg<1>();
+			Return(&pointer[index]);
+		}
+
+		routine = function("one");
+
+		if(routine)
+		{
+			auto callable = (CType*(*)(CType*, unsigned int))routine->getEntry();
+
+			union PtrInt {
+				CType* p;
+				size_t i;
+			};
+
+			PtrInt base;
+			base.i = 0x10000;
+
+			for (int i = 0; i < 5; i++)
+			{
+				PtrInt reference;
+				reference.p = &base.p[i];
+
+				PtrInt result;
+				result.p = callable(base.p, i);
+
+				auto expect = reference.i - base.i;
+				auto got = result.i - base.i;
+
+				EXPECT_EQ(got, expect) << "i:" << i;
+			}
+		}
+	}
+
+	delete routine;
 }
 
 int main(int argc, char **argv)
