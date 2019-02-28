@@ -142,6 +142,30 @@
       "revId": "bec227713cda80eada9c36a68f12e7818eb0d050",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ef7730ca_fb0c2d92",
+        "filename": "src/Pipeline/SpirvShader.hpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-02-28T18:34:11Z",
+      "side": 1,
+      "message": "@Chris, sorry, just now found your comment in my e-mail backlog. There\u0027s definitely something aesthetically pleasing about that. Added to post-1.0 doc for future consideration. Thanks!",
+      "parentUuid": "863d786a_b8adb42b",
+      "range": {
+        "startLine": 40,
+        "startChar": 2,
+        "endLine": 41,
+        "endChar": 37
+      },
+      "revId": "bec227713cda80eada9c36a68f12e7818eb0d050",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
