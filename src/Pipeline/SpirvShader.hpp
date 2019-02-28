@@ -20,6 +20,7 @@
 #include "ShaderCore.hpp"
 #include "SpirvID.hpp"
 
+#include <cstring>
 #include <string>
 #include <vector>
 #include <unordered_map>
@@ -58,7 +59,11 @@ namespace sw
 	public:
 		using Scalar = RValue<SIMD::Float>;
 
-		Intermediate(uint32_t size) : contents(new ContentsType[size]), size(size) {}
+		Intermediate(uint32_t size) : contents(new ContentsType[size]), size(size) {
+#if !defined(NDEBUG) || defined(DCHECK_ALWAYS_ON)
+			memset(contents, 0, sizeof(ContentsType[size]));
+#endif
+		}
 
 		~Intermediate()
 		{
@@ -69,20 +74,24 @@ namespace sw
 
 		void emplace(uint32_t n, Scalar&& value)
 		{
-			assert(n < size);
+			ASSERT(n < size);
+			ASSERT(reinterpret_cast<Scalar const *>(&contents[n])->value == nullptr);
 			new (&contents[n]) Scalar(value);
 		}
 
 		void emplace(uint32_t n, const Scalar& value)
 		{
-			assert(n < size);
+			ASSERT(n < size);
+			ASSERT(reinterpret_cast<Scalar const *>(&contents[n])->value == nullptr);
 			new (&contents[n]) Scalar(value);
 		}
 
 		Scalar const & operator[](uint32_t n) const
 		{
-			assert(n < size);
-			return *reinterpret_cast<Scalar const *>(&contents[n]);
+			ASSERT(n < size);
+			auto scalar = reinterpret_cast<Scalar const *>(&contents[n]);
+			ASSERT(scalar->value != nullptr);
+			return *scalar;
 		}
 
 		// No copy/move construction or assignment
@@ -340,14 +349,14 @@ namespace sw
 		Type const &getType(TypeID id) const
 		{
 			auto it = types.find(id);
-			assert(it != types.end());
+			ASSERT(it != types.end());
 			return it->second;
 		}
 
 		Object const &getObject(ObjectID id) const
 		{
 			auto it = defs.find(id);
-			assert(it != defs.end());
+			ASSERT(it != defs.end());
 			return it->second;
 		}
 
@@ -427,14 +436,14 @@ namespace sw
 		Value& getValue(SpirvShader::ObjectID id)
 		{
 			auto it = lvalues.find(id);
-			assert(it != lvalues.end());
+			ASSERT(it != lvalues.end());
 			return it->second;
 		}
 
 		Intermediate const& getIntermediate(SpirvShader::ObjectID id) const
 		{
 			auto it = intermediates.find(id);
-			assert(it != intermediates.end());
+			ASSERT(it != intermediates.end());
 			return it->second;
 		}
 	};

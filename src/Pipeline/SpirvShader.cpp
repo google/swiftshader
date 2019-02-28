@@ -335,22 +335,22 @@ namespace sw
 	void SpirvShader::ProcessInterfaceVariable(Object &object)
 	{
 		auto &objectTy = getType(object.type);
-		assert(objectTy.storageClass == spv::StorageClassInput || objectTy.storageClass == spv::StorageClassOutput);
+		ASSERT(objectTy.storageClass == spv::StorageClassInput || objectTy.storageClass == spv::StorageClassOutput);
 
-		assert(objectTy.definition.opcode() == spv::OpTypePointer);
+		ASSERT(objectTy.definition.opcode() == spv::OpTypePointer);
 		auto pointeeTy = getType(objectTy.element);
 
 		auto &builtinInterface = (objectTy.storageClass == spv::StorageClassInput) ? inputBuiltins : outputBuiltins;
 		auto &userDefinedInterface = (objectTy.storageClass == spv::StorageClassInput) ? inputs : outputs;
 
-		assert(object.definition.opcode() == spv::OpVariable);
+		ASSERT(object.definition.opcode() == spv::OpVariable);
 		ObjectID resultId = object.definition.word(2);
 
 		if (objectTy.isBuiltInBlock)
 		{
 			// walk the builtin block, registering each of its members separately.
 			auto m = memberDecorations.find(objectTy.element);
-			assert(m != memberDecorations.end());        // otherwise we wouldn't have marked the type chain
+			ASSERT(m != memberDecorations.end());        // otherwise we wouldn't have marked the type chain
 			auto &structType = pointeeTy.definition;
 			auto offset = 0u;
 			auto word = 2u;
@@ -381,7 +381,7 @@ namespace sw
 						   [&userDefinedInterface](Decorations const &d, AttribType type) {
 							   // Populate a single scalar slot in the interface from a collection of decorations and the intended component type.
 							   auto scalarSlot = (d.Location << 2) | d.Component;
-							   assert(scalarSlot >= 0 &&
+							   ASSERT(scalarSlot >= 0 &&
 									  scalarSlot < static_cast<int32_t>(userDefinedInterface.size()));
 
 							   auto &slot = userDefinedInterface[scalarSlot];
@@ -564,7 +564,7 @@ namespace sw
 		ApplyDecorationsForId(&d, id);
 
 		auto def = getObject(id).definition;
-		assert(def.opcode() == spv::OpVariable);
+		ASSERT(def.opcode() == spv::OpVariable);
 		VisitInterfaceInner<F>(def.word(1), d, f);
 	}
 
@@ -774,8 +774,8 @@ namespace sw
 		// TODO: not encountered yet since we only use this for array sizes etc,
 		// but is possible to construct integer constant 0 via OpConstantNull.
 		auto insn = getObject(id).definition;
-		assert(insn.opcode() == spv::OpConstant);
-		assert(getType(insn.word(1)).definition.opcode() == spv::OpTypeInt);
+		ASSERT(insn.opcode() == spv::OpConstant);
+		ASSERT(getType(insn.word(1)).definition.opcode() == spv::OpTypeInt);
 		return insn.word(3);
 	}
 
