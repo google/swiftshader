@@ -122,7 +122,6 @@ namespace sw
 					if(state.multiSampleMask & (1 << q))
 					{
 						alphaBlend(index, buffer, color, x);
-						logicOperation(index, buffer, color, x);
 						writeColor(index, buffer, x, color, sMask[q], zMask[q], cMask[q]);
 					}
 				}

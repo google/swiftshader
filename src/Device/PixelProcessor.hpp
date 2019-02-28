@@ -77,8 +77,6 @@ namespace sw
 			bool centroid;
 			bool frontFaceCCW;
 
-			VkLogicOp logicalOperation;
-
 			Sampler::State sampler[TEXTURE_IMAGE_UNITS];
 		};
 

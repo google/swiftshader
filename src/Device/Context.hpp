@@ -137,9 +137,6 @@ namespace sw
 		bool setColorWriteMask(int index, int colorWriteMask);
 		bool setWriteSRGB(bool sRGB);
 
-		bool setColorLogicOpEnabled(bool colorLogicOpEnabled);
-		bool setLogicalOperation(VkLogicOp logicalOperation);
-
 		bool depthWriteActive();
 		bool alphaTestActive();
 		bool depthBufferActive();
@@ -233,9 +230,6 @@ namespace sw
 		unsigned int sampleMask;
 		unsigned int multiSampleMask;
 		int sampleCount;
-
-		bool colorLogicOpEnabled;
-		VkLogicOp logicalOperation;
 	};
 }
 

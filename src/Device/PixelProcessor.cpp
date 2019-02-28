@@ -94,16 +94,6 @@ namespace sw
 		context->setWriteSRGB(sRGB);
 	}
 
-	void PixelProcessor::setColorLogicOpEnabled(bool colorLogicOpEnabled)
-	{
-		context->setColorLogicOpEnabled(colorLogicOpEnabled);
-	}
-
-	void PixelProcessor::setLogicalOperation(VkLogicOp logicalOperation)
-	{
-		context->setLogicalOperation(logicalOperation);
-	}
-
 	void PixelProcessor::setDepthBufferEnable(bool depthBufferEnable)
 	{
 		context->setDepthBufferEnable(depthBufferEnable);
@@ -430,8 +420,6 @@ namespace sw
 			state.destBlendFactorAlpha = context->destBlendFactorAlpha();
 			state.blendOperationAlpha = context->blendOperationAlpha();
 		}
-
-		state.logicalOperation = context->colorLogicOp();
 
 		for(int i = 0; i < RENDERTARGETS; i++)
 		{

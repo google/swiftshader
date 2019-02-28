@@ -229,9 +229,6 @@ namespace sw
 
 		writeSRGB = false;
 		sampleMask = 0xFFFFFFFF;
-
-		colorLogicOpEnabled = false;
-		logicalOperation = VK_LOGIC_OP_COPY;
 	}
 
 	bool Context::setDepthBufferEnable(bool depthBufferEnable)
@@ -311,20 +308,6 @@ namespace sw
 		return modified;
 	}
 
-	bool Context::setColorLogicOpEnabled(bool enabled)
-	{
-		bool modified = (Context::colorLogicOpEnabled != enabled);
-		Context::colorLogicOpEnabled = enabled;
-		return modified;
-	}
-
-	bool Context::setLogicalOperation(VkLogicOp logicalOperation)
-	{
-		bool modified = (Context::logicalOperation != logicalOperation);
-		Context::logicalOperation = logicalOperation;
-		return modified;
-	}
-
 	bool Context::depthWriteActive()
 	{
 		if(!depthBufferActive()) return false;
@@ -363,11 +346,6 @@ namespace sw
 		bool alphaBlend = separateAlphaBlendEnable ? !(blendOperationAlpha() == VK_BLEND_OP_SRC_EXT && sourceBlendFactorAlpha() == VK_BLEND_FACTOR_ONE) : colorBlend;
 
 		return colorBlend || alphaBlend;
-	}
-
-	VkLogicOp Context::colorLogicOp()
-	{
-		return colorLogicOpEnabled ? logicalOperation : VK_LOGIC_OP_COPY;
 	}
 
 	VkBlendFactor Context::sourceBlendFactor()

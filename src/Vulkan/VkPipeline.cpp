@@ -366,8 +366,6 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 			UNIMPLEMENTED();
 		}
 
-		context.colorLogicOpEnabled = colorBlendState->logicOpEnable;
-		context.logicalOperation = colorBlendState->logicOp;
 		blendConstants.r = colorBlendState->blendConstants[0];
 		blendConstants.g = colorBlendState->blendConstants[1];
 		blendConstants.b = colorBlendState->blendConstants[2];
