@@ -45,6 +45,7 @@ namespace sw
 
 		using Float = rr::Float4;
 		using Int = rr::Int4;
+		using UInt = rr::UInt4;
 	}
 
 	// Incrementally constructed complex bundle of rvalues
@@ -390,6 +391,8 @@ namespace sw
 		void EmitCompositeInsert(InsnIterator insn, SpirvRoutine *routine) const;
 		void EmitCompositeExtract(InsnIterator insn, SpirvRoutine *routine) const;
 		void EmitVectorShuffle(InsnIterator insn, SpirvRoutine *routine) const;
+		void EmitUnaryOp(InsnIterator insn, SpirvRoutine *routine) const;
+		void EmitBinaryOp(InsnIterator insn, SpirvRoutine *routine) const;
 
 		// OpcodeName returns the name of the opcode op.
 		// If NDEBUG is defined, then OpcodeName will only return the numerical code.

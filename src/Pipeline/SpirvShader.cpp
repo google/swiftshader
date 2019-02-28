@@ -212,6 +212,27 @@ namespace sw
 			case spv::OpCompositeInsert:
 			case spv::OpCompositeExtract:
 			case spv::OpVectorShuffle:
+			case spv::OpNot: // Unary ops
+			case spv::OpSNegate:
+			case spv::OpFNegate:
+			case spv::OpLogicalNot:
+			case spv::OpIAdd: // Binary ops
+			case spv::OpISub:
+			case spv::OpIMul:
+			case spv::OpSDiv:
+			case spv::OpUDiv:
+			case spv::OpFAdd:
+			case spv::OpFSub:
+			case spv::OpFDiv:
+			case spv::OpUMod:
+			case spv::OpShiftRightLogical:
+			case spv::OpShiftRightArithmetic:
+			case spv::OpShiftLeftLogical:
+			case spv::OpBitwiseOr:
+			case spv::OpBitwiseXor:
+			case spv::OpBitwiseAnd:
+			case spv::OpLogicalOr:
+			case spv::OpLogicalAnd:
 				// Instructions that yield an ssavalue.
 			{
 				TypeID typeId = insn.word(1);
@@ -862,6 +883,33 @@ namespace sw
 				EmitVectorShuffle(insn, routine);
 				break;
 
+			case spv::OpNot:
+			case spv::OpSNegate:
+			case spv::OpFNegate:
+			case spv::OpLogicalNot:
+				EmitUnaryOp(insn, routine);
+				break;
+
+			case spv::OpIAdd:
+			case spv::OpISub:
+			case spv::OpIMul:
+			case spv::OpSDiv:
+			case spv::OpUDiv:
+			case spv::OpFAdd:
+			case spv::OpFSub:
+			case spv::OpFDiv:
+			case spv::OpUMod:
+			case spv::OpShiftRightLogical:
+			case spv::OpShiftRightArithmetic:
+			case spv::OpShiftLeftLogical:
+			case spv::OpBitwiseOr:
+			case spv::OpBitwiseXor:
+			case spv::OpBitwiseAnd:
+			case spv::OpLogicalOr:
+			case spv::OpLogicalAnd:
+				EmitBinaryOp(insn, routine);
+				break;
+
 			default:
 				printf("emit: ignoring opcode %s\n", OpcodeName(insn.opcode()).c_str());
 				break;
@@ -1116,6 +1164,101 @@ namespace sw
 			else
 			{
 				dst.emplace(i, secondHalfAccess[selector - type.sizeInComponents]);
+			}
+		}
+	}
+
+	void SpirvShader::EmitUnaryOp(InsnIterator insn, SpirvRoutine *routine) const
+	{
+		auto &type = getType(insn.word(1));
+		auto &dst = routine->createIntermediate(insn.word(2), type.sizeInComponents);
+		auto src = GenericValue(this, routine, insn.word(3));
+
+		for (auto i = 0u; i < type.sizeInComponents; i++)
+		{
+			auto val = src[i];
+
+			switch (insn.opcode())
+			{
+			case spv::OpNot:
+			case spv::OpLogicalNot:		// logical not == bitwise not due to all-bits boolean representation
+				dst.emplace(i, As<SIMD::Float>(~As<SIMD::UInt>(val)));
+				break;
+			case spv::OpSNegate:
+				dst.emplace(i, As<SIMD::Float>(-As<SIMD::Int>(val)));
+				break;
+			case spv::OpFNegate:
+				dst.emplace(i, -val);
+				break;
+			default:
+				UNIMPLEMENTED("Unhandled unary operator %s", OpcodeName(insn.opcode()).c_str());
+			}
+		}
+	}
+
+	void SpirvShader::EmitBinaryOp(InsnIterator insn, SpirvRoutine *routine) const
+	{
+		auto &type = getType(insn.word(1));
+		auto &dst = routine->createIntermediate(insn.word(2), type.sizeInComponents);
+		auto srcLHS = GenericValue(this, routine, insn.word(3));
+		auto srcRHS = GenericValue(this, routine, insn.word(4));
+
+		for (auto i = 0u; i < type.sizeInComponents; i++)
+		{
+			auto lhs = srcLHS[i];
+			auto rhs = srcRHS[i];
+
+			switch (insn.opcode())
+			{
+			case spv::OpIAdd:
+				dst.emplace(i, As<SIMD::Float>(As<SIMD::Int>(lhs) + As<SIMD::Int>(rhs)));
+				break;
+			case spv::OpISub:
+				dst.emplace(i, As<SIMD::Float>(As<SIMD::Int>(lhs) - As<SIMD::Int>(rhs)));
+				break;
+			case spv::OpIMul:
+				dst.emplace(i, As<SIMD::Float>(As<SIMD::Int>(lhs) * As<SIMD::Int>(rhs)));
+				break;
+			case spv::OpSDiv:
+				dst.emplace(i, As<SIMD::Float>(As<SIMD::Int>(lhs) / As<SIMD::Int>(rhs)));
+				break;
+			case spv::OpUDiv:
+				dst.emplace(i, As<SIMD::Float>(As<SIMD::UInt>(lhs) / As<SIMD::UInt>(rhs)));
+				break;
+			case spv::OpUMod:
+				dst.emplace(i, As<SIMD::Float>(As<SIMD::UInt>(lhs) % As<SIMD::UInt>(rhs)));
+				break;
+			case spv::OpFAdd:
+				dst.emplace(i, lhs + rhs);
+				break;
+			case spv::OpFSub:
+				dst.emplace(i, lhs - rhs);
+				break;
+			case spv::OpFDiv:
+				dst.emplace(i, lhs / rhs);
+				break;
+			case spv::OpShiftRightLogical:
+				dst.emplace(i, As<SIMD::Float>(As<SIMD::UInt>(lhs) >> As<SIMD::UInt>(rhs)));
+				break;
+			case spv::OpShiftRightArithmetic:
+				dst.emplace(i, As<SIMD::Float>(As<SIMD::Int>(lhs) >> As<SIMD::Int>(rhs)));
+				break;
+			case spv::OpShiftLeftLogical:
+				dst.emplace(i, As<SIMD::Float>(As<SIMD::UInt>(lhs) << As<SIMD::UInt>(rhs)));
+				break;
+			case spv::OpBitwiseOr:
+			case spv::OpLogicalOr:
+				dst.emplace(i, As<SIMD::Float>(As<SIMD::UInt>(lhs) | As<SIMD::UInt>(rhs)));
+				break;
+			case spv::OpBitwiseXor:
+				dst.emplace(i, As<SIMD::Float>(As<SIMD::UInt>(lhs) ^ As<SIMD::UInt>(rhs)));
+				break;
+			case spv::OpBitwiseAnd:
+			case spv::OpLogicalAnd:
+				dst.emplace(i, As<SIMD::Float>(As<SIMD::UInt>(lhs) & As<SIMD::UInt>(rhs)));
+				break;
+			default:
+				UNIMPLEMENTED("Unhandled binary operator %s", OpcodeName(insn.opcode()).c_str());
 			}
 		}
 	}
