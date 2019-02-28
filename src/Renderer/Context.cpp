@@ -1468,9 +1468,17 @@ namespace sw
 		}
 	}
 
-	int Context::colorWriteActive()
+	bool Context::colorWriteActive()
 	{
-		return colorWriteActive(0) | colorWriteActive(1) | colorWriteActive(2) | colorWriteActive(3);
+		for (int i = 0; i < RENDERTARGETS; i++)
+		{
+			if (colorWriteActive(i))
+			{
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	int Context::colorWriteActive(int index)

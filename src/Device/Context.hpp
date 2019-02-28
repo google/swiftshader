@@ -189,7 +189,7 @@ namespace sw
 		float slopeDepthBias;
 
 		VkFormat renderTargetInternalFormat(int index);
-		int colorWriteActive();
+		bool colorWriteActive();
 		int colorWriteActive(int index);
 		bool colorUsed();
 
