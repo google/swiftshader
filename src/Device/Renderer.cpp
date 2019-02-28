@@ -224,7 +224,7 @@ namespace sw
 
 		updateConfiguration();
 
-		int ms = context->getMultiSampleCount();
+		int ms = context->sampleCount;
 		unsigned int oldMultiSampleMask = context->multiSampleMask;
 		context->multiSampleMask = context->sampleMask & ((unsigned)0xFFFFFFFF >> (32 - ms));
 

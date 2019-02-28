@@ -713,11 +713,6 @@ namespace sw
 		return true;
 	}
 
-	int Context::getMultiSampleCount() const
-	{
-		return renderTarget[0] ? renderTarget[0]->getSampleCount() : 1;
-	}
-
 	VkFormat Context::renderTargetInternalFormat(int index)
 	{
 		if(renderTarget[index])

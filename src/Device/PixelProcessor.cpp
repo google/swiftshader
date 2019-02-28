@@ -382,7 +382,7 @@ namespace sw
 
 		if(context->alphaTestActive())
 		{
-			state.transparencyAntialiasing = context->getMultiSampleCount() > 1 ? transparencyAntialiasing : TRANSPARENCY_NONE;
+			state.transparencyAntialiasing = context->sampleCount > 1 ? transparencyAntialiasing : TRANSPARENCY_NONE;
 		}
 
 		state.depthWriteEnable = context->depthWriteActive();
@@ -440,7 +440,7 @@ namespace sw
 		}
 
 		state.writeSRGB	= context->writeSRGB && context->renderTarget[0] && Surface::isSRGBwritable(context->renderTarget[0]->getFormat());
-		state.multiSample = context->getMultiSampleCount();
+		state.multiSample = context->sampleCount;
 		state.multiSampleMask = context->multiSampleMask;
 
 		if(state.multiSample > 1 && context->pixelShader)

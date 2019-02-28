@@ -88,7 +88,7 @@ namespace sw
 		state.slopeDepthBias = context->slopeDepthBias != 0.0f;
 		state.vFace = context->pixelShader && context->pixelShader->hasBuiltinInput(spv::BuiltInFrontFacing);
 
-		state.multiSample = context->getMultiSampleCount();
+		state.multiSample = context->sampleCount;
 		state.rasterizerDiscard = context->rasterizerDiscard;
 
 		for (int interpolant = 0; interpolant < MAX_INTERFACE_COMPONENTS; interpolant++)

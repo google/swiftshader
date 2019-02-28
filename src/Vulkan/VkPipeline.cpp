@@ -294,8 +294,18 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 	const VkPipelineMultisampleStateCreateInfo* multisampleState = pCreateInfo->pMultisampleState;
 	if(multisampleState)
 	{
+		switch (multisampleState->rasterizationSamples) {
+		case VK_SAMPLE_COUNT_1_BIT:
+			context.sampleCount = 1;
+			break;
+		case VK_SAMPLE_COUNT_4_BIT:
+			context.sampleCount = 4;
+			break;
+		default:
+			UNIMPLEMENTED("Unsupported sample count");
+		}
+
 		if((multisampleState->flags != 0) ||
-			(multisampleState->rasterizationSamples != VK_SAMPLE_COUNT_1_BIT) ||
 			(multisampleState->sampleShadingEnable != 0) ||
 			!((multisampleState->pSampleMask == nullptr) ||
 			(*(multisampleState->pSampleMask) == 0xFFFFFFFFu)) ||
@@ -304,6 +314,10 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 		{
 			UNIMPLEMENTED();
 		}
+	}
+	else
+	{
+		context.sampleCount = 1;
 	}
 
 	const VkPipelineDepthStencilStateCreateInfo* depthStencilState = pCreateInfo->pDepthStencilState;

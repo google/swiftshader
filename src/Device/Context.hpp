@@ -158,8 +158,6 @@ namespace sw
 
 		VkLogicOp colorLogicOp();
 
-		int getMultiSampleCount() const;
-
 		DrawType drawType;
 
 		bool stencilEnable;
@@ -234,6 +232,7 @@ namespace sw
 		bool writeSRGB;
 		unsigned int sampleMask;
 		unsigned int multiSampleMask;
+		int sampleCount;
 
 		bool colorLogicOpEnabled;
 		VkLogicOp logicalOperation;
