@@ -133,14 +133,9 @@ namespace sw
 				object.pointerBase = insn.word(2);	// base is itself
 
 				// Register builtins
-				switch (storageClass)
+				if (storageClass == spv::StorageClassInput || storageClass == spv::StorageClassOutput)
 				{
-					case spv::StorageClassInput:
-					case spv::StorageClassOutput:
-						ProcessInterfaceVariable(object);
-						break;
-					default:
-						UNIMPLEMENTED("Unhandled storage class %d for OpVariable", (int)storageClass);
+					ProcessInterfaceVariable(object);
 				}
 				break;
 			}
