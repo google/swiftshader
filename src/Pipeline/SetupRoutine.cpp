@@ -83,7 +83,7 @@ namespace sw
 				Float y1 = Float(Y[1]);
 				Float y2 = Float(Y[2]);
 
-				Float A = (y2 - y0) * x1 + (y1 - y2) * x0 + (y0 - y1) * x2;   // Area
+				Float A = (y0 - y2) * x1 + (y2 - y1) * x0 + (y1 - y0) * x2;   // Area
 
 				If(A == 0.0f)
 				{
