@@ -235,6 +235,7 @@ namespace sw
 			case spv::OpLogicalAnd:
 			case spv::OpUMulExtended:
 			case spv::OpSMulExtended:
+			case spv::OpDot:
 				// Instructions that yield an intermediate value
 			{
 				TypeID typeId = insn.word(1);
@@ -914,6 +915,10 @@ namespace sw
 				EmitBinaryOp(insn, routine);
 				break;
 
+			case spv::OpDot:
+				EmitDot(insn, routine);
+				break;
+
 			default:
 				printf("emit: ignoring opcode %s\n", OpcodeName(insn.opcode()).c_str());
 				break;
@@ -1277,6 +1282,25 @@ namespace sw
 				UNIMPLEMENTED("Unhandled binary operator %s", OpcodeName(insn.opcode()).c_str());
 			}
 		}
+	}
+
+	void SpirvShader::EmitDot(InsnIterator insn, SpirvRoutine *routine) const
+	{
+		auto &type = getType(insn.word(1));
+		assert(type.sizeInComponents == 1);
+		auto &dst = routine->createIntermediate(insn.word(2), type.sizeInComponents);
+		auto &lhsType = getType(getObject(insn.word(3)).type);
+		auto srcLHS = GenericValue(this, routine, insn.word(3));
+		auto srcRHS = GenericValue(this, routine, insn.word(4));
+
+		SIMD::Float result = srcLHS[0] * srcRHS[0];
+
+		for (auto i = 1u; i < lhsType.sizeInComponents; i++)
+		{
+			result += srcLHS[i] * srcRHS[i];
+		}
+
+		dst.emplace(0, result);
 	}
 
 	void SpirvShader::emitEpilog(SpirvRoutine *routine) const
