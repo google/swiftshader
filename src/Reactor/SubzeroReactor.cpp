@@ -4087,6 +4087,52 @@ namespace rr
 		}
 	}
 
+	RValue<Int4> MulHigh(RValue<Int4> x, RValue<Int4> y)
+	{
+		// TODO: For x86, build an intrinsics version of this which uses shuffles + pmuludq.
+
+		// Scalarized implementation.
+		Int4 result;
+		result = Insert(result, Int((Long(Extract(x, 0)) * Long(Extract(y, 0))) >> Long(Int(32))), 0);
+		result = Insert(result, Int((Long(Extract(x, 1)) * Long(Extract(y, 1))) >> Long(Int(32))), 1);
+		result = Insert(result, Int((Long(Extract(x, 2)) * Long(Extract(y, 2))) >> Long(Int(32))), 2);
+		result = Insert(result, Int((Long(Extract(x, 3)) * Long(Extract(y, 3))) >> Long(Int(32))), 3);
+
+		return result;
+	}
+
+	RValue<UInt4> MulHigh(RValue<UInt4> x, RValue<UInt4> y)
+	{
+		// TODO: For x86, build an intrinsics version of this which uses shuffles + pmuludq.
+
+		if(false)  // Partial product based implementation.
+		{
+			auto xh = x >> 16;
+			auto yh = y >> 16;
+			auto xl = x & UInt4(0x0000FFFF);
+			auto yl = y & UInt4(0x0000FFFF);
+			auto xlyh = xl * yh;
+			auto xhyl = xh * yl;
+			auto xlyhh = xlyh >> 16;
+			auto xhylh = xhyl >> 16;
+			auto xlyhl = xlyh & UInt4(0x0000FFFF);
+			auto xhyll = xhyl & UInt4(0x0000FFFF);
+			auto xlylh = (xl * yl) >> 16;
+			auto oflow = (xlyhl + xhyll + xlylh) >> 16;
+
+			return (xh * yh) + (xlyhh + xhylh) + oflow;
+		}
+
+		// Scalarized implementation.
+		Int4 result;
+		result = Insert(result, Int((Long(UInt(Extract(As<Int4>(x), 0))) * Long(UInt(Extract(As<Int4>(y), 0)))) >> Long(Int(32))), 0);
+		result = Insert(result, Int((Long(UInt(Extract(As<Int4>(x), 1))) * Long(UInt(Extract(As<Int4>(y), 1)))) >> Long(Int(32))), 1);
+		result = Insert(result, Int((Long(UInt(Extract(As<Int4>(x), 2))) * Long(UInt(Extract(As<Int4>(y), 2)))) >> Long(Int(32))), 2);
+		result = Insert(result, Int((Long(UInt(Extract(As<Int4>(x), 3))) * Long(UInt(Extract(As<Int4>(y), 3)))) >> Long(Int(32))), 3);
+
+		return As<UInt4>(result);
+	}
+
 	RValue<UShort4> Average(RValue<UShort4> x, RValue<UShort4> y)
 	{
 		assert(false && "UNIMPLEMENTED"); return RValue<UShort4>(V(nullptr));
@@ -4775,6 +4821,16 @@ namespace rr
 	RValue<Long> operator-(RValue<Long> lhs, RValue<Long> rhs)
 	{
 		return RValue<Long>(Nucleus::createSub(lhs.value, rhs.value));
+	}
+
+	RValue<Long> operator*(RValue<Long> lhs, RValue<Long> rhs)
+	{
+		return RValue<Long>(Nucleus::createMul(lhs.value, rhs.value));
+	}
+
+	RValue<Long> operator>>(RValue<Long> lhs, RValue<Long> rhs)
+	{
+		return RValue<Long>(Nucleus::createAShr(lhs.value, rhs.value));
 	}
 
 	RValue<Long> operator+=(Long &lhs, RValue<Long> rhs)

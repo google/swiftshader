@@ -925,14 +925,29 @@ TEST(ReactorUnitTests, MulHigh)
 		{
 			Pointer<Byte> out = function.Arg<0>();
 
-			*Pointer<Short4>(out + 8 * 0) =
-				MulHigh(Short4(0x1aa, 0x2dd, 0x3ee, 0xF422),
-					Short4(0x1bb, 0x2cc, 0x3ff, 0xF411));
-			*Pointer<UShort4>(out + 8 * 1) =
-				MulHigh(UShort4(0x1aa, 0x2dd, 0x3ee, 0xF422),
-					UShort4(0x1bb, 0x2cc, 0x3ff, 0xF411));
+			*Pointer<Short4>(out + 16 * 0) =
+				MulHigh(Short4(0x01AA, 0x02DD, 0x03EE, 0xF422),
+				        Short4(0x01BB, 0x02CC, 0x03FF, 0xF411));
+			*Pointer<UShort4>(out + 16 * 1) =
+				MulHigh(UShort4(0x01AA, 0x02DD, 0x03EE, 0xF422),
+				        UShort4(0x01BB, 0x02CC, 0x03FF, 0xF411));
 
-			// (U)Short8 variants are mentioned but unimplemented
+			*Pointer<Int4>(out + 16 * 2) =
+				MulHigh(Int4(0x000001AA, 0x000002DD, 0xC8000000, 0xF8000000),
+				        Int4(0x000001BB, 0x84000000, 0x000003EE, 0xD7000000));
+			*Pointer<UInt4>(out + 16 * 3) =
+				MulHigh(UInt4(0x000001AAu, 0x000002DDu, 0xC8000000u, 0xD8000000u),
+				        UInt4(0x000001BBu, 0x84000000u, 0x000003EEu, 0xD7000000u));
+
+			*Pointer<Int4>(out + 16 * 4) =
+				MulHigh(Int4(0x7FFFFFFF, 0x7FFFFFFF, 0x80008000, 0xFFFFFFFF),
+				        Int4(0x7FFFFFFF, 0x80000000, 0x80008000, 0xFFFFFFFF));
+			*Pointer<UInt4>(out + 16 * 5) =
+				MulHigh(UInt4(0x7FFFFFFFu, 0x7FFFFFFFu, 0x80008000u, 0xFFFFFFFFu),
+				        UInt4(0x7FFFFFFFu, 0x80000000u, 0x80008000u, 0xFFFFFFFFu));
+
+			// (U)Short8 variants currently unimplemented.
+
 			Return(0);
 		}
 
@@ -940,7 +955,7 @@ TEST(ReactorUnitTests, MulHigh)
 
 		if(routine)
 		{
-			unsigned int out[2][2];
+			unsigned int out[6][4];
 
 			memset(&out, 0, sizeof(out));
 
@@ -948,10 +963,30 @@ TEST(ReactorUnitTests, MulHigh)
 			callable(&out);
 
 			EXPECT_EQ(out[0][0], 0x00080002u);
-			EXPECT_EQ(out[0][1], 0x008D000fu);
+			EXPECT_EQ(out[0][1], 0x008D000Fu);
 
 			EXPECT_EQ(out[1][0], 0x00080002u);
-			EXPECT_EQ(out[1][1], 0xe8C0000Fu);
+			EXPECT_EQ(out[1][1], 0xE8C0000Fu);
+
+			EXPECT_EQ(out[2][0], 0x00000000u);
+			EXPECT_EQ(out[2][1], 0xFFFFFE9Cu);
+			EXPECT_EQ(out[2][2], 0xFFFFFF23u);
+			EXPECT_EQ(out[2][3], 0x01480000u);
+
+			EXPECT_EQ(out[3][0], 0x00000000u);
+			EXPECT_EQ(out[3][1], 0x00000179u);
+			EXPECT_EQ(out[3][2], 0x00000311u);
+			EXPECT_EQ(out[3][3], 0xB5680000u);
+
+			EXPECT_EQ(out[4][0], 0x3FFFFFFFu);
+			EXPECT_EQ(out[4][1], 0xC0000000u);
+			EXPECT_EQ(out[4][2], 0x3FFF8000u);
+			EXPECT_EQ(out[4][3], 0x00000000u);
+
+			EXPECT_EQ(out[5][0], 0x3FFFFFFFu);
+			EXPECT_EQ(out[5][1], 0x3FFFFFFFu);
+			EXPECT_EQ(out[5][2], 0x40008000u);
+			EXPECT_EQ(out[5][3], 0xFFFFFFFEu);
 		}
 	}
 
