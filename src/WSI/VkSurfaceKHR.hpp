@@ -15,7 +15,7 @@
 #ifndef SWIFTSHADER_VKSURFACEKHR_HPP_
 #define SWIFTSHADER_VKSURFACEKHR_HPP_
 
-#include "VkObject.hpp"
+#include "Vulkan/VkObject.hpp"
 #include <vulkan/vulkan.h>
 #include <vector>
 

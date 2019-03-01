@@ -15,7 +15,7 @@
 #ifndef SWIFTSHADER_XLIBSURFACEKHR_HPP
 #define SWIFTSHADER_XLIBSURFACEKHR_HPP
 
-#include "VkObject.hpp"
+#include "Vulkan/VkObject.hpp"
 #include "libX11.hpp"
 #include "VkSurfaceKHR.hpp"
 
