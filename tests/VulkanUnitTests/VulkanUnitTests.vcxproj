@@ -98,6 +98,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\third_party\googletest\googletest\src\gtest-all.cc" />
+    <ClCompile Include="Device.cpp" />
     <ClCompile Include="Driver.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="unittests.cpp" />
@@ -108,6 +109,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Device.hpp" />
     <ClInclude Include="Driver.hpp" />
     <ClInclude Include="VkGlobalFuncs.hpp" />
     <ClInclude Include="VkInstanceFuncs.hpp" />
