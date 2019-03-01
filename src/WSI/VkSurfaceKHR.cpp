@@ -59,7 +59,7 @@ VkResult SurfaceKHR::getSurfaceFormats(uint32_t *pSurfaceFormatCount, VkSurfaceF
 
 uint32_t SurfaceKHR::getPresentModeCount() const
 {
-	return presentModes.size();
+	return static_cast<uint32_t>(presentModes.size());
 }
 
 

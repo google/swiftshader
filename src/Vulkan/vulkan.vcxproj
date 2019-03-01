@@ -147,6 +147,7 @@ copy "$(OutDir)vk_swiftshader.dll" "$(SolutionDir)out\$(Configuration)_$(Platfor
     <ClCompile Include="..\Pipeline\SetupRoutine.cpp" />
     <ClCompile Include="..\Pipeline\ShaderCore.cpp" />
     <ClCompile Include="..\Pipeline\SpirvShader.cpp" />
+    <ClCompile Include="..\Pipeline\SpirvShader_dbg.cpp" />
     <ClCompile Include="..\Pipeline\VertexProgram.cpp" />
     <ClCompile Include="..\Pipeline\VertexRoutine.cpp" />
     <ClCompile Include="..\System\Configurator.cpp" />
@@ -167,6 +168,7 @@ copy "$(OutDir)vk_swiftshader.dll" "$(SolutionDir)out\$(Configuration)_$(Platfor
     <ClCompile Include="..\System\Socket.cpp" />
     <ClCompile Include="..\System\Thread.cpp" />
     <ClCompile Include="..\System\Timer.cpp" />
+    <ClCompile Include="..\WSI\VkSurfaceKHR.cpp" />
     <ClCompile Include="..\WSI\FrameBuffer.cpp" />
     <ClCompile Include="..\WSI\FrameBufferAndroid.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
@@ -278,6 +280,7 @@ copy "$(OutDir)vk_swiftshader.dll" "$(SolutionDir)out\$(Configuration)_$(Platfor
     <ClInclude Include="..\System\Thread.hpp" />
     <ClInclude Include="..\System\Timer.hpp" />
     <ClInclude Include="..\System\Types.hpp" />
+    <ClInclude Include="..\WSI\VkSurfaceKHR.hpp" />
     <ClInclude Include="..\WSI\FrameBuffer.hpp" />
     <ClInclude Include="..\WSI\FrameBufferAndroid.hpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>

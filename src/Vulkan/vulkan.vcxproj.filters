@@ -147,6 +147,9 @@
     <ClCompile Include="..\WSI\libX11.cpp">
       <Filter>Source Files\WSI</Filter>
     </ClCompile>
+    <ClCompile Include="..\WSI\VkSurfaceKHR.cpp">
+      <Filter>Source Files\WSI</Filter>
+    </ClCompile>
     <ClCompile Include="..\System\Configurator.cpp">
       <Filter>Source Files\System</Filter>
     </ClCompile>
@@ -256,6 +259,9 @@
       <Filter>Source Files\Vulkan</Filter>
     </ClCompile>
     <ClCompile Include="..\Pipeline\SpirvShader.cpp">
+      <Filter>Source Files\Pipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Pipeline\SpirvShader_dbg.cpp">
       <Filter>Source Files\Pipeline</Filter>
     </ClCompile>
   </ItemGroup>
@@ -450,6 +456,9 @@
       <Filter>Header Files\WSI</Filter>
     </ClInclude>
     <ClInclude Include="..\WSI\libX11.hpp">
+      <Filter>Header Files\WSI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\WSI\VkSurfaceKHR.hpp">
       <Filter>Header Files\WSI</Filter>
     </ClInclude>
     <ClInclude Include="..\Pipeline\VertexRoutine.hpp">
