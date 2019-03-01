@@ -33,10 +33,13 @@ public:
 
 	void getSurfaceCapabilities(VkSurfaceCapabilitiesKHR *pSurfaceCapabilities) const override;
 
+	void present(VkImage image, VkDeviceMemory imageData) override;
+
 private:
 	Display *pDisplay;
 	Window window;
-
+	GC gc;
+	XImage *xImage = nullptr;
 };
 
 }

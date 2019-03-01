@@ -45,6 +45,8 @@ public:
 	uint32_t getPresentModeCount() const;
 	VkResult getPresentModes(uint32_t* pPresentModeCount, VkPresentModeKHR* pPresentModes) const;
 
+	virtual void present(VkImage image, VkDeviceMemory imageData) = 0;
+
 private:
 	const std::vector<VkSurfaceFormatKHR> surfaceFormats =
 	{

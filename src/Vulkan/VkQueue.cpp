@@ -17,6 +17,7 @@
 #include "VkQueue.hpp"
 #include "VkSemaphore.hpp"
 #include "Device/Renderer.hpp"
+#include "WSI/VkSwapchainKHR.hpp"
 
 namespace vk
 {
@@ -71,6 +72,14 @@ void Queue::waitIdle()
 	// with an infinite timeout for that fence to signal
 
 	// FIXME (b/117835459): implement once we have working fences
+}
+
+void Queue::present(const VkPresentInfoKHR* presentInfo)
+{
+	for(uint32_t i = 0; i < presentInfo->swapchainCount; i++)
+	{
+		vk::Cast(presentInfo->pSwapchains[i])->present(presentInfo->pImageIndices[i]);
+	}
 }
 
 } // namespace vk

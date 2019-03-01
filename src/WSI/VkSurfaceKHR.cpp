@@ -83,6 +83,4 @@ VkResult SurfaceKHR::getPresentModes(uint32_t *pPresentModeCount, VkPresentModeK
 	return VK_SUCCESS;
 }
 
-
-
 }

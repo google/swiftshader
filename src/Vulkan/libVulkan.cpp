@@ -2212,4 +2212,22 @@ VKAPI_ATTR VkResult VKAPI_CALL vkGetSwapchainImagesKHR(VkDevice device, VkSwapch
 	return vk::Cast(swapchain)->getImages(pSwapchainImageCount, pSwapchainImages);
 }
 
+VKAPI_ATTR VkResult VKAPI_CALL vkAcquireNextImageKHR(VkDevice device, VkSwapchainKHR swapchain, uint64_t timeout, VkSemaphore semaphore, VkFence fence, uint32_t* pImageIndex)
+{
+	TRACE("(VkDevice device = 0x%X, VkSwapchainKHR swapchain = 0x%X, uint64_t timeout = 0x%X, VkSemaphore semaphore = 0x%X, VkFence fence = 0x%X, uint32_t* pImageIndex = 0x%X)",
+			device, swapchain, timeout, semaphore, fence, pImageIndex);
+
+	return vk::Cast(swapchain)->getNextImage(timeout, semaphore, fence, pImageIndex);
+}
+
+VKAPI_ATTR VkResult VKAPI_CALL vkQueuePresentKHR(VkQueue queue, const VkPresentInfoKHR* pPresentInfo)
+{
+	TRACE("(VkQueue queue = 0x%X, const VkPresentInfoKHR* pPresentInfo = 0x%X)",
+			queue, pPresentInfo);
+
+	vk::Cast(queue)->present(pPresentInfo);
+
+	return VK_SUCCESS;
+}
+
 }

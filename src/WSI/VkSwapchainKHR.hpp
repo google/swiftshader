@@ -54,6 +54,10 @@ public:
 	uint32_t getImageCount() const;
 	VkResult getImages(uint32_t *pSwapchainImageCount, VkImage *pSwapchainImages) const;
 
+	VkResult getNextImage(uint64_t timeout, VkSemaphore semaphore, VkFence fence, uint32_t* pImageIndex);
+
+	void present(uint32_t index);
+
 private:
 	VkSwapchainCreateInfoKHR createInfo;
 	std::vector<PresentImage> images;
