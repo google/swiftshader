@@ -233,7 +233,9 @@ namespace sw
 			case spv::OpBitwiseAnd:
 			case spv::OpLogicalOr:
 			case spv::OpLogicalAnd:
-				// Instructions that yield an ssavalue.
+			case spv::OpUMulExtended:
+			case spv::OpSMulExtended:
+				// Instructions that yield an intermediate value
 			{
 				TypeID typeId = insn.word(1);
 				ObjectID resultId = insn.word(2);
@@ -907,6 +909,8 @@ namespace sw
 			case spv::OpBitwiseAnd:
 			case spv::OpLogicalOr:
 			case spv::OpLogicalAnd:
+			case spv::OpUMulExtended:
+			case spv::OpSMulExtended:
 				EmitBinaryOp(insn, routine);
 				break;
 
@@ -1200,10 +1204,11 @@ namespace sw
 	{
 		auto &type = getType(insn.word(1));
 		auto &dst = routine->createIntermediate(insn.word(2), type.sizeInComponents);
+		auto &lhsType = getType(getObject(insn.word(3)).type);
 		auto srcLHS = GenericValue(this, routine, insn.word(3));
 		auto srcRHS = GenericValue(this, routine, insn.word(4));
 
-		for (auto i = 0u; i < type.sizeInComponents; i++)
+		for (auto i = 0u; i < lhsType.sizeInComponents; i++)
 		{
 			auto lhs = srcLHS[i];
 			auto rhs = srcRHS[i];
@@ -1256,6 +1261,17 @@ namespace sw
 			case spv::OpBitwiseAnd:
 			case spv::OpLogicalAnd:
 				dst.emplace(i, As<SIMD::Float>(As<SIMD::UInt>(lhs) & As<SIMD::UInt>(rhs)));
+				break;
+			case spv::OpSMulExtended:
+				// Extended ops: result is a structure containing two members of the same type as lhs & rhs.
+				// In our flat view then, component i is the i'th component of the first member;
+				// component i + N is the i'th component of the second member.
+				dst.emplace(i, As<SIMD::Float>(As<SIMD::Int>(lhs) * As<SIMD::Int>(rhs)));
+				dst.emplace(i + lhsType.sizeInComponents, As<SIMD::Float>(MulHigh(As<SIMD::Int>(lhs), As<SIMD::Int>(rhs))));
+				break;
+			case spv::OpUMulExtended:
+				dst.emplace(i, As<SIMD::Float>(As<SIMD::UInt>(lhs) * As<SIMD::UInt>(rhs)));
+				dst.emplace(i + lhsType.sizeInComponents, As<SIMD::Float>(MulHigh(As<SIMD::UInt>(lhs), As<SIMD::UInt>(rhs))));
 				break;
 			default:
 				UNIMPLEMENTED("Unhandled binary operator %s", OpcodeName(insn.opcode()).c_str());

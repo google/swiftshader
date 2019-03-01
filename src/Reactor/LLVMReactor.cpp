@@ -352,30 +352,6 @@ namespace
 		return ::builder->CreateAdd(lhs, rhs);
 	}
 
-	llvm::Value *lowerMulHigh(llvm::Value *x, llvm::Value *y, bool sext)
-	{
-		llvm::VectorType *ty = llvm::cast<llvm::VectorType>(x->getType());
-		llvm::VectorType *extTy = llvm::VectorType::getExtendedElementVectorType(ty);
-
-		llvm::Value *extX, *extY;
-		if (sext)
-		{
-			extX = ::builder->CreateSExt(x, extTy);
-			extY = ::builder->CreateSExt(y, extTy);
-		}
-		else
-		{
-			extX = ::builder->CreateZExt(x, extTy);
-			extY = ::builder->CreateZExt(y, extTy);
-		}
-
-		llvm::Value *mult = ::builder->CreateMul(extX, extY);
-
-		llvm::IntegerType *intTy = llvm::cast<llvm::IntegerType>(ty->getElementType());
-		llvm::Value *mulh = ::builder->CreateAShr(mult, intTy->getIntegerBitWidth());
-		return ::builder->CreateTrunc(mulh, ty);
-	}
-
 	llvm::Value *lowerPack(llvm::Value *x, llvm::Value *y, bool isSigned)
 	{
 		llvm::VectorType *srcTy = llvm::cast<llvm::VectorType>(x->getType());
@@ -447,6 +423,30 @@ namespace
 	}
 #endif  // !defined(__i386__) && !defined(__x86_64__)
 #endif  // REACTOR_LLVM_VERSION >= 7
+
+	llvm::Value *lowerMulHigh(llvm::Value *x, llvm::Value *y, bool sext)
+	{
+		llvm::VectorType *ty = llvm::cast<llvm::VectorType>(x->getType());
+		llvm::VectorType *extTy = llvm::VectorType::getExtendedElementVectorType(ty);
+
+		llvm::Value *extX, *extY;
+		if (sext)
+		{
+			extX = ::builder->CreateSExt(x, extTy);
+			extY = ::builder->CreateSExt(y, extTy);
+		}
+		else
+		{
+			extX = ::builder->CreateZExt(x, extTy);
+			extY = ::builder->CreateZExt(y, extTy);
+		}
+
+		llvm::Value *mult = ::builder->CreateMul(extX, extY);
+
+		llvm::IntegerType *intTy = llvm::cast<llvm::IntegerType>(ty->getElementType());
+		llvm::Value *mulh = ::builder->CreateAShr(mult, intTy->getBitWidth());
+		return ::builder->CreateTrunc(mulh, ty);
+	}
 }
 
 namespace rr
@@ -5713,6 +5713,18 @@ namespace rr
 #else
 		return As<Int4>(V(lowerRoundInt(V(cast.value), T(Int4::getType()))));
 #endif
+	}
+
+	RValue<Int4> MulHigh(RValue<Int4> x, RValue<Int4> y)
+	{
+		// TODO: For x86, build an intrinsics version of this which uses shuffles + pmuludq.
+		return As<Int4>(V(lowerMulHigh(V(x.value), V(y.value), true)));
+	}
+
+	RValue<UInt4> MulHigh(RValue<UInt4> x, RValue<UInt4> y)
+	{
+		// TODO: For x86, build an intrinsics version of this which uses shuffles + pmuludq.
+		return As<UInt4>(V(lowerMulHigh(V(x.value), V(y.value), false)));
 	}
 
 	RValue<Short8> PackSigned(RValue<Int4> x, RValue<Int4> y)
