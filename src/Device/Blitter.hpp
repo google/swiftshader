@@ -21,6 +21,11 @@
 
 #include <string.h>
 
+namespace vk
+{
+	class Image;
+}
+
 namespace sw
 {
 	class Blitter
@@ -57,6 +62,8 @@ namespace sw
 		{
 			State() = default;
 			State(const Options &options) : Options(options) {}
+			State(VkFormat sourceFormat, VkFormat destFormat, int destSamples, const Options &options) :
+				Options(options), sourceFormat(sourceFormat), destFormat(destFormat), destSamples(destSamples) {}
 
 			bool operator==(const State &state) const
 			{
@@ -95,11 +102,15 @@ namespace sw
 		virtual ~Blitter();
 
 		void clear(void *pixel, VkFormat format, Surface *dest, const SliceRect &dRect, unsigned int rgbaMask);
+		void clear(void *pixel, VkFormat format, vk::Image *dest, const VkImageSubresourceRange& subresourceRange, const VkRect2D* renderArea = nullptr);
+
 		void blit(Surface *source, const SliceRectF &sRect, Surface *dest, const SliceRect &dRect, const Options &options);
+		void blit(vk::Image *src, vk::Image *dst, VkImageBlit region, VkFilter filter);
 		void blit3D(Surface *source, Surface *dest);
 
 	private:
 		bool fastClear(void *pixel, VkFormat format, Surface *dest, const SliceRect &dRect, unsigned int rgbaMask);
+		bool fastClear(void *pixel, VkFormat format, vk::Image *dest, const VkImageSubresourceRange& subresourceRange, const VkRect2D* renderArea);
 
 		bool read(Float4 &color, Pointer<Byte> element, const State &state);
 		bool write(Float4 &color, Pointer<Byte> element, const State &state);
@@ -111,6 +122,7 @@ namespace sw
 		static Float4 LinearToSRGB(Float4 &color);
 		static Float4 sRGBtoLinear(Float4 &color);
 		bool blitReactor(Surface *source, const SliceRectF &sRect, Surface *dest, const SliceRect &dRect, const Options &options);
+		Routine *getRoutine(const State &state);
 		Routine *generate(const State &state);
 
 		RoutineCache<State> *blitCache;

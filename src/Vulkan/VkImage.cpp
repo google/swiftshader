@@ -458,50 +458,9 @@ VkDeviceSize Image::getStorageSize(VkImageAspectFlags aspectMask) const
 	return arrayLayers * getLayerSize(static_cast<VkImageAspectFlagBits>(aspectMask));
 }
 
-sw::Surface* Image::asSurface(VkImageAspectFlagBits aspect, uint32_t mipLevel, uint32_t layer) const
-{
-	VkExtent3D mipLevelExtent = getMipLevelExtent(mipLevel);
-	return sw::Surface::create(mipLevelExtent.width, mipLevelExtent.height, mipLevelExtent.depth, getFormat(aspect),
-	                           deviceMemory->getOffsetPointer(getMemoryOffset(aspect, mipLevel, layer)),
-	                           rowPitchBytes(aspect, mipLevel), slicePitchBytes(aspect, mipLevel));
-}
-
 void Image::blit(VkImage dstImage, const VkImageBlit& region, VkFilter filter)
 {
-	VkImageAspectFlagBits srcAspect = static_cast<VkImageAspectFlagBits>(region.srcSubresource.aspectMask);
-	VkImageAspectFlagBits dstAspect = static_cast<VkImageAspectFlagBits>(region.dstSubresource.aspectMask);
-	if((region.srcSubresource.baseArrayLayer != 0) ||
-	   (region.dstSubresource.baseArrayLayer != 0) ||
-	   (region.srcSubresource.layerCount != 1) ||
-	   (region.dstSubresource.layerCount != 1) ||
-	   (srcAspect != dstAspect))
-	{
-		UNIMPLEMENTED();
-	}
-
-	int32_t numSlices = (region.srcOffsets[1].z - region.srcOffsets[0].z);
-	ASSERT(numSlices == (region.dstOffsets[1].z - region.dstOffsets[0].z));
-
-	sw::Surface* srcSurface = asSurface(srcAspect, region.srcSubresource.mipLevel, 0);
-	sw::Surface* dstSurface = Cast(dstImage)->asSurface(dstAspect, region.dstSubresource.mipLevel, 0);
-
-	sw::SliceRectF sRect(static_cast<float>(region.srcOffsets[0].x), static_cast<float>(region.srcOffsets[0].y),
-	                     static_cast<float>(region.srcOffsets[1].x), static_cast<float>(region.srcOffsets[1].y),
-	                     region.srcOffsets[0].z);
-
-	sw::SliceRect dRect(region.dstOffsets[0].x, region.dstOffsets[0].y,
-	                    region.dstOffsets[1].x, region.dstOffsets[1].y, region.dstOffsets[0].z);
-
-	for(int i = 0; i < numSlices; i++)
-	{
-		device->getBlitter()->blit(srcSurface, sRect, dstSurface, dRect,
-		              {filter != VK_FILTER_NEAREST, srcAspect == VK_IMAGE_ASPECT_STENCIL_BIT, false});
-		sRect.slice++;
-		dRect.slice++;
-	}
-
-	delete srcSurface;
-	delete dstSurface;
+	device->getBlitter()->blit(this, Cast(dstImage), region, filter);
 }
 
 VkFormat Image::getClearFormat() const
@@ -532,28 +491,7 @@ uint32_t Image::getLastMipLevel(const VkImageSubresourceRange& subresourceRange)
 	        mipLevels : (subresourceRange.baseMipLevel + subresourceRange.levelCount)) - 1;
 }
 
-void Image::clear(void* pixelData, VkFormat format, const VkImageSubresourceRange& subresourceRange, VkImageAspectFlagBits aspect)
-{
-	uint32_t firstLayer = subresourceRange.baseArrayLayer;
-	uint32_t lastLayer = getLastLayerIndex(subresourceRange);
-	for(uint32_t layer = firstLayer; layer <= lastLayer; ++layer)
-	{
-		uint32_t lastLevel = getLastMipLevel(subresourceRange);
-		for(uint32_t mipLevel = subresourceRange.baseMipLevel; mipLevel <= lastLevel; ++mipLevel)
-		{
-			VkExtent3D mipLevelExtent = getMipLevelExtent(mipLevel);
-			for(uint32_t s = 0; s < mipLevelExtent.depth; ++s)
-			{
-				const sw::SliceRect dRect(0, 0, mipLevelExtent.width, mipLevelExtent.height, s);
-				sw::Surface* surface = asSurface(aspect, mipLevel, layer);
-				device->getBlitter()->clear(pixelData, format, surface, dRect, 0xF);
-				delete surface;
-			}
-		}
-	}
-}
-
-void Image::clear(void* pixelData, VkFormat format, const VkRect2D& renderArea, const VkImageSubresourceRange& subresourceRange, VkImageAspectFlagBits aspect)
+void Image::clear(void* pixelData, VkFormat format, const VkImageSubresourceRange& subresourceRange, const VkRect2D& renderArea)
 {
 	if((subresourceRange.baseMipLevel != 0) ||
 	   (subresourceRange.levelCount != 1))
@@ -561,22 +499,7 @@ void Image::clear(void* pixelData, VkFormat format, const VkRect2D& renderArea, 
 		UNIMPLEMENTED();
 	}
 
-	sw::SliceRect dRect(renderArea.offset.x, renderArea.offset.y,
-			            renderArea.offset.x + renderArea.extent.width,
-			            renderArea.offset.y + renderArea.extent.height, 0);
-
-	uint32_t firstLayer = subresourceRange.baseArrayLayer;
-	uint32_t lastLayer = getLastLayerIndex(subresourceRange);
-	for(uint32_t layer = firstLayer; layer <= lastLayer; ++layer)
-	{
-		for(uint32_t s = 0; s < extent.depth; ++s)
-		{
-			dRect.slice = s;
-			sw::Surface* surface = asSurface(aspect, 0, layer);
-			device->getBlitter()->clear(pixelData, format, surface, dRect, 0xF);
-			delete surface;
-		}
-	}
+	device->getBlitter()->clear(pixelData, format, this, subresourceRange, &renderArea);
 }
 
 void Image::clear(const VkClearColorValue& color, const VkImageSubresourceRange& subresourceRange)
@@ -586,7 +509,7 @@ void Image::clear(const VkClearColorValue& color, const VkImageSubresourceRange&
 		UNIMPLEMENTED();
 	}
 
-	clear((void*)color.float32, getClearFormat(), subresourceRange, VK_IMAGE_ASPECT_COLOR_BIT);
+	device->getBlitter()->clear((void*)color.float32, getClearFormat(), this, subresourceRange);
 }
 
 void Image::clear(const VkClearDepthStencilValue& color, const VkImageSubresourceRange& subresourceRange)
@@ -599,12 +522,16 @@ void Image::clear(const VkClearDepthStencilValue& color, const VkImageSubresourc
 
 	if(subresourceRange.aspectMask & VK_IMAGE_ASPECT_DEPTH_BIT)
 	{
-		clear((void*)(&color.depth), VK_FORMAT_D32_SFLOAT, subresourceRange, VK_IMAGE_ASPECT_DEPTH_BIT);
+		VkImageSubresourceRange depthSubresourceRange = subresourceRange;
+		depthSubresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+		device->getBlitter()->clear((void*)(&color.depth), VK_FORMAT_D32_SFLOAT, this, depthSubresourceRange);
 	}
 
 	if(subresourceRange.aspectMask & VK_IMAGE_ASPECT_STENCIL_BIT)
 	{
-		clear((void*)(&color.stencil), VK_FORMAT_S8_UINT, subresourceRange, VK_IMAGE_ASPECT_STENCIL_BIT);
+		VkImageSubresourceRange stencilSubresourceRange = subresourceRange;
+		stencilSubresourceRange.aspectMask = VK_IMAGE_ASPECT_STENCIL_BIT;
+		device->getBlitter()->clear((void*)(&color.stencil), VK_FORMAT_S8_UINT, this, stencilSubresourceRange);
 	}
 }
 
@@ -621,18 +548,22 @@ void Image::clear(const VkClearValue& clearValue, const VkRect2D& renderArea, co
 
 	if(subresourceRange.aspectMask == VK_IMAGE_ASPECT_COLOR_BIT)
 	{
-		clear((void*)(clearValue.color.float32), getClearFormat(), renderArea, subresourceRange, VK_IMAGE_ASPECT_COLOR_BIT);
+		clear((void*)(clearValue.color.float32), getClearFormat(), subresourceRange, renderArea);
 	}
 	else
 	{
 		if(subresourceRange.aspectMask & VK_IMAGE_ASPECT_DEPTH_BIT)
 		{
-			clear((void*)(&clearValue.depthStencil.depth), VK_FORMAT_D32_SFLOAT, renderArea, subresourceRange, VK_IMAGE_ASPECT_DEPTH_BIT);
+			VkImageSubresourceRange depthSubresourceRange = subresourceRange;
+			depthSubresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+			clear((void*)(&clearValue.depthStencil.depth), VK_FORMAT_D32_SFLOAT, depthSubresourceRange, renderArea);
 		}
 
 		if(subresourceRange.aspectMask & VK_IMAGE_ASPECT_STENCIL_BIT)
 		{
-			clear((void*)(&clearValue.depthStencil.stencil), VK_FORMAT_S8_UINT, renderArea, subresourceRange, VK_IMAGE_ASPECT_STENCIL_BIT);
+			VkImageSubresourceRange stencilSubresourceRange = subresourceRange;
+			stencilSubresourceRange.aspectMask = VK_IMAGE_ASPECT_STENCIL_BIT;
+			clear((void*)(&clearValue.depthStencil.stencil), VK_FORMAT_S8_UINT, stencilSubresourceRange, renderArea);
 		}
 	}
 }

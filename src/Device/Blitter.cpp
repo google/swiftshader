@@ -18,6 +18,7 @@
 #include "Reactor/Reactor.hpp"
 #include "System/Memory.hpp"
 #include "Vulkan/VkDebug.hpp"
+#include "Vulkan/VkImage.hpp"
 
 namespace sw
 {
@@ -42,6 +43,203 @@ namespace sw
 		SliceRectF sRect(0.5f, 0.5f, 0.5f, 0.5f, 0);   // Sample from the middle.
 		blit(color, sRect, dest, dRect, {rgbaMask});
 		delete color;
+	}
+
+	void Blitter::clear(void *pixel, VkFormat format, vk::Image *dest, const VkImageSubresourceRange& subresourceRange, const VkRect2D* renderArea)
+	{
+		VkImageAspectFlagBits aspect = static_cast<VkImageAspectFlagBits>(subresourceRange.aspectMask);
+		if(dest->getFormat(aspect) == VK_FORMAT_UNDEFINED)
+		{
+			return;
+		}
+
+		if(fastClear(pixel, format, dest, subresourceRange, renderArea))
+		{
+			return;
+		}
+
+		State state(format, dest->getFormat(aspect), dest->getSampleCountFlagBits(), { 0xF });
+		Routine *blitRoutine = getRoutine(state);
+		if(!blitRoutine)
+		{
+			return;
+		}
+
+		void(*blitFunction)(const BlitData *data) = (void(*)(const BlitData*))blitRoutine->getEntry();
+
+		VkImageSubresourceLayers subresLayers =
+		{
+			subresourceRange.aspectMask,
+			subresourceRange.baseMipLevel,
+			subresourceRange.baseArrayLayer,
+			1
+		};
+
+		uint32_t lastMipLevel = dest->getLastMipLevel(subresourceRange);
+		uint32_t lastLayer = dest->getLastLayerIndex(subresourceRange);
+
+		VkRect2D area = { { 0, 0 }, { 0, 0 } };
+		if(renderArea)
+		{
+			ASSERT(subresourceRange.levelCount == 1);
+			area = *renderArea;
+		}
+
+		for(; subresLayers.mipLevel <= lastMipLevel; subresLayers.mipLevel++)
+		{
+			VkExtent3D extent = dest->getMipLevelExtent(subresLayers.mipLevel);
+			if(!renderArea)
+			{
+				area.extent.width = extent.width;
+				area.extent.height = extent.height;
+			}
+
+			BlitData data =
+			{
+				pixel, nullptr, // source, dest
+
+				sw::Surface::bytes(format),                           // sPitchB
+				dest->rowPitchBytes(aspect, subresLayers.mipLevel),   // dPitchB
+				dest->slicePitchBytes(aspect, subresLayers.mipLevel), // dSliceB
+
+				0.5f, 0.5f, 0.0f, 0.0f, // x0, y0, w, h
+
+				area.offset.y, static_cast<int>(area.offset.y + area.extent.height), // y0d, y1d
+				area.offset.x, static_cast<int>(area.offset.x + area.extent.width),  // x0d, x1d
+
+				0, 0, // sWidth, sHeight
+			};
+
+			for(subresLayers.baseArrayLayer = subresourceRange.baseArrayLayer; subresLayers.baseArrayLayer <= lastLayer; subresLayers.baseArrayLayer++)
+			{
+				for(uint32_t depth = 0; depth < extent.depth; depth++)
+				{
+					data.dest = dest->getTexelPointer({ 0, 0, static_cast<int32_t>(depth) }, subresLayers);
+
+					blitFunction(&data);
+				}
+			}
+		}
+	}
+
+	bool Blitter::fastClear(void *pixel, VkFormat format, vk::Image *dest, const VkImageSubresourceRange& subresourceRange, const VkRect2D* renderArea)
+	{
+		if(format != VK_FORMAT_R32G32B32A32_SFLOAT)
+		{
+			return false;
+		}
+
+		float *color = (float*)pixel;
+		float r = color[0];
+		float g = color[1];
+		float b = color[2];
+		float a = color[3];
+
+		uint32_t packed;
+
+		VkImageAspectFlagBits aspect = static_cast<VkImageAspectFlagBits>(subresourceRange.aspectMask);
+		switch(dest->getFormat(aspect))
+		{
+		case VK_FORMAT_R5G6B5_UNORM_PACK16:
+			packed = ((uint16_t)(31 * b + 0.5f) << 0) |
+			         ((uint16_t)(63 * g + 0.5f) << 5) |
+			         ((uint16_t)(31 * r + 0.5f) << 11);
+			break;
+		case VK_FORMAT_B5G6R5_UNORM_PACK16:
+			packed = ((uint16_t)(31 * r + 0.5f) << 0) |
+			         ((uint16_t)(63 * g + 0.5f) << 5) |
+			         ((uint16_t)(31 * b + 0.5f) << 11);
+			break;
+		case VK_FORMAT_A8B8G8R8_UINT_PACK32:
+		case VK_FORMAT_A8B8G8R8_UNORM_PACK32:
+		case VK_FORMAT_R8G8B8A8_UNORM:
+			packed = ((uint32_t)(255 * a + 0.5f) << 24) |
+			         ((uint32_t)(255 * b + 0.5f) << 16) |
+			         ((uint32_t)(255 * g + 0.5f) << 8) |
+			         ((uint32_t)(255 * r + 0.5f) << 0);
+			break;
+		case VK_FORMAT_B8G8R8A8_UNORM:
+			packed = ((uint32_t)(255 * a + 0.5f) << 24) |
+			         ((uint32_t)(255 * r + 0.5f) << 16) |
+			         ((uint32_t)(255 * g + 0.5f) << 8) |
+			         ((uint32_t)(255 * b + 0.5f) << 0);
+			break;
+		case VK_FORMAT_B10G11R11_UFLOAT_PACK32:
+			packed = R11G11B10F(color);
+			break;
+		case VK_FORMAT_E5B9G9R9_UFLOAT_PACK32:
+			packed = RGB9E5(color);
+			break;
+		default:
+			return false;
+		}
+
+		VkImageSubresourceLayers subresLayers = 
+		{
+			subresourceRange.aspectMask,
+			subresourceRange.baseMipLevel,
+			subresourceRange.baseArrayLayer,
+			1
+		};
+		uint32_t lastMipLevel = dest->getLastMipLevel(subresourceRange);
+		uint32_t lastLayer = dest->getLastLayerIndex(subresourceRange);
+
+		VkRect2D area = { { 0, 0 }, { 0, 0 } };
+		if(renderArea)
+		{
+			ASSERT(subresourceRange.levelCount == 1);
+			area = *renderArea;
+		}
+
+		for(; subresLayers.mipLevel <= lastMipLevel; subresLayers.mipLevel++)
+		{
+			int rowPitchBytes = dest->rowPitchBytes(aspect, subresLayers.mipLevel);
+			int slicePitchBytes = dest->slicePitchBytes(aspect, subresLayers.mipLevel);
+			VkExtent3D extent = dest->getMipLevelExtent(subresLayers.mipLevel);
+			if(!renderArea)
+			{
+				area.extent.width = extent.width;
+				area.extent.height = extent.height;
+			}
+
+			for(subresLayers.baseArrayLayer = subresourceRange.baseArrayLayer; subresLayers.baseArrayLayer <= lastLayer; subresLayers.baseArrayLayer++)
+			{
+				for(uint32_t depth = 0; depth < extent.depth; depth++)
+				{
+					uint8_t *slice = (uint8_t*)dest->getTexelPointer(
+						{ area.offset.x, area.offset.y, static_cast<int32_t>(depth) }, subresLayers);
+
+					for(int j = 0; j < dest->getSampleCountFlagBits(); j++)
+					{
+						uint8_t *d = slice;
+
+						switch(Surface::bytes(dest->getFormat(aspect)))
+						{
+						case 2:
+							for(uint32_t i = 0; i < area.extent.height; i++)
+							{
+								sw::clear((uint16_t*)d, packed, area.extent.width);
+								d += rowPitchBytes;
+							}
+							break;
+						case 4:
+							for(uint32_t i = 0; i < area.extent.height; i++)
+							{
+								sw::clear((uint32_t*)d, packed, area.extent.width);
+								d += rowPitchBytes;
+							}
+							break;
+						default:
+							assert(false);
+						}
+
+						slice += slicePitchBytes;
+					}
+				}
+			}
+		}
+
+		return true;
 	}
 
 	bool Blitter::fastClear(void *pixel, VkFormat format, Surface *dest, const SliceRect &dRect, unsigned int rgbaMask)
@@ -1628,6 +1826,30 @@ namespace sw
 		return function("BlitRoutine");
 	}
 
+	Routine *Blitter::getRoutine(const State &state)
+	{
+		criticalSection.lock();
+		Routine *blitRoutine = blitCache->query(state);
+
+		if(!blitRoutine)
+		{
+			blitRoutine = generate(state);
+
+			if(!blitRoutine)
+			{
+				criticalSection.unlock();
+				UNIMPLEMENTED();
+				return nullptr;
+			}
+
+			blitCache->add(state, blitRoutine);
+		}
+
+		criticalSection.unlock();
+
+		return blitRoutine;
+	}
+
 	bool Blitter::blitReactor(Surface *source, const SliceRectF &sourceRect, Surface *dest, const SliceRect &destRect, const Blitter::Options &options)
 	{
 		ASSERT(!options.clearOperation || ((source->getWidth() == 1) && (source->getHeight() == 1) && (source->getDepth() == 1)));
@@ -1659,23 +1881,11 @@ namespace sw
 		state.destFormat = isStencil ? dest->getStencilFormat() : dest->getFormat(useDestInternal);
 		state.destSamples = dest->getSamples();
 
-		criticalSection.lock();
-		Routine *blitRoutine = blitCache->query(state);
-
+		Routine *blitRoutine = getRoutine(state);
 		if(!blitRoutine)
 		{
-			blitRoutine = generate(state);
-
-			if(!blitRoutine)
-			{
-				criticalSection.unlock();
-				return false;
-			}
-
-			blitCache->add(state, blitRoutine);
+			return false;
 		}
-
-		criticalSection.unlock();
 
 		void (*blitFunction)(const BlitData *data) = (void(*)(const BlitData*))blitRoutine->getEntry();
 
@@ -1719,5 +1929,91 @@ namespace sw
 		}
 
 		return true;
+	}
+
+	void Blitter::blit(vk::Image *src, vk::Image *dst, VkImageBlit region, VkFilter filter)
+	{
+		if(dst->getFormat() == VK_FORMAT_UNDEFINED)
+		{
+			return;
+		}
+
+		if((region.srcSubresource.baseArrayLayer != 0) ||
+		   (region.dstSubresource.baseArrayLayer != 0) ||
+		   (region.srcSubresource.layerCount != 1) ||
+		   (region.dstSubresource.layerCount != 1) ||
+		   (region.srcSubresource.aspectMask != region.dstSubresource.aspectMask))
+		{
+			UNIMPLEMENTED();
+		}
+
+		if(region.dstOffsets[0].x > region.dstOffsets[1].x)
+		{
+			swap(region.srcOffsets[0].x, region.srcOffsets[1].x);
+			swap(region.dstOffsets[0].x, region.dstOffsets[1].x);
+		}
+
+		if(region.dstOffsets[0].y > region.dstOffsets[1].y)
+		{
+			swap(region.srcOffsets[0].y, region.srcOffsets[1].y);
+			swap(region.dstOffsets[0].y, region.dstOffsets[1].y);
+		}
+
+		VkExtent3D srcExtent = src->getMipLevelExtent(region.srcSubresource.mipLevel);
+		VkExtent3D dstExtent = dst->getMipLevelExtent(region.dstSubresource.mipLevel);
+
+		int32_t numSlices = (region.srcOffsets[1].z - region.srcOffsets[0].z);
+		ASSERT(numSlices == (region.dstOffsets[1].z - region.dstOffsets[0].z));
+
+		VkImageAspectFlagBits srcAspect = static_cast<VkImageAspectFlagBits>(region.srcSubresource.aspectMask);
+		VkImageAspectFlagBits dstAspect = static_cast<VkImageAspectFlagBits>(region.dstSubresource.aspectMask);
+
+		State state(src->getFormat(srcAspect), dst->getFormat(dstAspect), dst->getSampleCountFlagBits(),
+		            { filter != VK_FILTER_NEAREST, region.srcSubresource.aspectMask == VK_IMAGE_ASPECT_STENCIL_BIT, false });
+		state.clampToEdge = (region.srcOffsets[0].x < 0) ||
+		                    (region.srcOffsets[0].y < 0) ||
+		                    (static_cast<uint32_t>(region.srcOffsets[1].x) > srcExtent.width) ||
+		                    (static_cast<uint32_t>(region.srcOffsets[1].y) > srcExtent.height);
+
+		Routine *blitRoutine = getRoutine(state);
+		if(!blitRoutine)
+		{
+			return;
+		}
+
+		void(*blitFunction)(const BlitData *data) = (void(*)(const BlitData*))blitRoutine->getEntry();
+
+		BlitData data;
+
+		data.sPitchB = src->rowPitchBytes(srcAspect, region.srcSubresource.mipLevel);
+		data.dPitchB = dst->rowPitchBytes(dstAspect, region.dstSubresource.mipLevel);
+		data.dSliceB = dst->slicePitchBytes(dstAspect, region.dstSubresource.mipLevel);
+
+		data.w = static_cast<float>(region.srcOffsets[1].x - region.srcOffsets[0].x) /
+		         static_cast<float>(region.dstOffsets[1].x - region.dstOffsets[0].x);
+		data.h = static_cast<float>(region.srcOffsets[1].y - region.srcOffsets[0].y) /
+		         static_cast<float>(region.dstOffsets[1].y - region.dstOffsets[0].y);
+		data.x0 = region.srcOffsets[0].x + (0.5f - region.dstOffsets[0].x) * data.w;
+		data.y0 = region.srcOffsets[0].y + (0.5f - region.dstOffsets[0].y) * data.h;
+
+		data.x0d = region.dstOffsets[0].x;
+		data.x1d = region.dstOffsets[1].x;
+		data.y0d = region.dstOffsets[0].y;
+		data.y1d = region.dstOffsets[1].y;
+
+		data.sWidth = srcExtent.width;
+		data.sHeight = srcExtent.height;
+
+		VkOffset3D srcOffset = { 0, 0, region.srcOffsets[0].z };
+		VkOffset3D dstOffset = { 0, 0, region.dstOffsets[0].z };
+
+		for(int i = 0; i < numSlices; i++)
+		{
+			data.source = src->getTexelPointer(srcOffset, region.srcSubresource);
+			data.dest = dst->getTexelPointer(dstOffset, region.dstSubresource);
+			blitFunction(&data);
+			srcOffset.z++;
+			dstOffset.z++;
+		}
 	}
 }

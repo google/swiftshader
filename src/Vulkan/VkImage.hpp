@@ -17,11 +17,6 @@
 
 #include "VkObject.hpp"
 
-namespace sw
-{
-	class Surface;
-};
-
 namespace vk
 {
 
@@ -57,15 +52,19 @@ public:
 
 	VkImageType              getImageType() const { return imageType; }
 	VkFormat                 getFormat() const { return format; }
+	VkFormat                 getFormat(VkImageAspectFlagBits aspect) const;
 	uint32_t                 getArrayLayers() const { return arrayLayers; }
+	uint32_t                 getMipLevels() const { return mipLevels; }
+	uint32_t                 getLastLayerIndex(const VkImageSubresourceRange& subresourceRange) const;
+	uint32_t                 getLastMipLevel(const VkImageSubresourceRange& subresourceRange) const;
 	VkSampleCountFlagBits    getSampleCountFlagBits() const { return samples; }
+	VkExtent3D               getMipLevelExtent(uint32_t mipLevel) const;
 	int                      rowPitchBytes(VkImageAspectFlagBits aspect, uint32_t mipLevel) const;
 	int                      slicePitchBytes(VkImageAspectFlagBits aspect, uint32_t mipLevel) const;
 	void*                    getTexelPointer(const VkOffset3D& offset, const VkImageSubresourceLayers& subresource) const;
 	bool                     isCube() const;
 
 private:
-	sw::Surface* asSurface(VkImageAspectFlagBits aspect, uint32_t mipLevel, uint32_t layer) const;
 	void copy(VkBuffer buffer, const VkBufferImageCopy& region, bool bufferIsSource);
 	VkDeviceSize getStorageSize(VkImageAspectFlags flags) const;
 	VkDeviceSize getMipLevelSize(VkImageAspectFlagBits aspect, uint32_t mipLevel) const;
@@ -75,13 +74,8 @@ private:
 	VkDeviceSize texelOffsetBytesInStorage(const VkOffset3D& offset, const VkImageSubresourceLayers& subresource) const;
 	VkDeviceSize getMemoryOffset(VkImageAspectFlagBits aspect) const;
 	int bytesPerTexel(VkImageAspectFlagBits flags) const;
-	VkExtent3D getMipLevelExtent(uint32_t mipLevel) const;
-	VkFormat getFormat(VkImageAspectFlagBits flags) const;
-	uint32_t getLastLayerIndex(const VkImageSubresourceRange& subresourceRange) const;
-	uint32_t getLastMipLevel(const VkImageSubresourceRange& subresourceRange) const;
 	VkFormat getClearFormat() const;
-	void clear(void* pixelData, VkFormat format, const VkImageSubresourceRange& subresourceRange, VkImageAspectFlagBits aspect);
-	void clear(void* pixelData, VkFormat format, const VkRect2D& renderArea, const VkImageSubresourceRange& subresourceRange, VkImageAspectFlagBits aspect);
+	void clear(void* pixelData, VkFormat format, const VkImageSubresourceRange& subresourceRange, const VkRect2D& renderArea);
 
 	const Device *const      device = nullptr;
 	DeviceMemory*            deviceMemory = nullptr;
