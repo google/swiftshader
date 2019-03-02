@@ -31,16 +31,17 @@ public:
 
 	static size_t ComputeRequiredAllocationSize(const VkImageViewCreateInfo* pCreateInfo);
 
-	void clear(const VkClearValue& clearValues, const VkImageAspectFlags aspectMask, const VkRect2D& renderArea);
-	void clear(const VkClearValue& clearValue, const VkImageAspectFlags aspectMask, const VkClearRect& renderArea);
+	void clear(const VkClearValue& clearValues, VkImageAspectFlags aspectMask, const VkRect2D& renderArea);
+	void clear(const VkClearValue& clearValue, VkImageAspectFlags aspectMask, const VkClearRect& renderArea);
 
 	VkFormat getFormat() const { return format; }
-	int rowPitchBytes() const { return image->rowPitchBytes(subresourceRange.aspectMask, subresourceRange.baseMipLevel); }
-	int slicePitchBytes() const { return image->slicePitchBytes(subresourceRange.aspectMask, subresourceRange.baseMipLevel); }
 	int getSampleCount() const { return image->getSampleCountFlagBits(); }
+	int rowPitchBytes(VkImageAspectFlagBits aspect) const { return image->rowPitchBytes(aspect, subresourceRange.baseMipLevel); }
+	int slicePitchBytes(VkImageAspectFlagBits aspect) const { return image->slicePitchBytes(aspect, subresourceRange.baseMipLevel); }
 
-	void *getPointer() const;
-	void *getOffsetPointer(const VkOffset3D& offset) const;
+	void *getOffsetPointer(const VkOffset3D& offset, VkImageAspectFlagBits aspect) const;
+	bool hasDepthAspect() const { return (subresourceRange.aspectMask & VK_IMAGE_ASPECT_DEPTH_BIT) != 0; }
+	bool hasStencilAspect() const { return (subresourceRange.aspectMask & VK_IMAGE_ASPECT_STENCIL_BIT) != 0; }
 
 private:
 	bool                       imageTypesMatch(VkImageType imageType) const;

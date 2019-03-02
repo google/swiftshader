@@ -193,8 +193,8 @@ namespace sw
 		rasterizerDiscard = false;
 
 		depthCompareMode = VK_COMPARE_OP_LESS;
-		depthBufferEnable = true;
-		depthWriteEnable = true;
+		depthBufferEnable = false;
+		depthWriteEnable = false;
 
 		alphaBlendEnable = false;
 		sourceBlendFactorState = VK_BLEND_FACTOR_ONE;

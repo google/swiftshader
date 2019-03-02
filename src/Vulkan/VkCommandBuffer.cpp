@@ -159,6 +159,38 @@ struct IndexBufferBind : public CommandBuffer::Command
 	const VkIndexType indexType;
 };
 
+void CommandBuffer::ExecutionState::bindAttachments()
+{
+	// Binds all the attachments for the current subpass
+	// Ideally this would be performed by BeginRenderPass and NextSubpass, but
+	// there is too much stomping of the renderer's state by setContext() in
+	// draws.
+
+	for (auto i = 0u; i < renderPass->getCurrentSubpass().colorAttachmentCount; i++)
+	{
+		auto attachmentReference = renderPass->getCurrentSubpass().pColorAttachments[i];
+		if (attachmentReference.attachment != VK_ATTACHMENT_UNUSED)
+		{
+			auto attachment = renderPassFramebuffer->getAttachment(attachmentReference.attachment);
+			renderer->setRenderTarget(i, attachment, 0);
+		}
+	}
+
+	auto attachmentReference = renderPass->getCurrentSubpass().pDepthStencilAttachment;
+	if (attachmentReference && attachmentReference->attachment != VK_ATTACHMENT_UNUSED)
+	{
+		auto attachment = renderPassFramebuffer->getAttachment(attachmentReference->attachment);
+		if (attachment->hasDepthAspect())
+		{
+			renderer->setDepthBuffer(attachment, 0);
+		}
+		if (attachment->hasStencilAspect())
+		{
+			renderer->setStencilBuffer(attachment, 0);
+		}
+	}
+}
+
 struct Draw : public CommandBuffer::Command
 {
 	Draw(uint32_t vertexCount, uint32_t instanceCount, uint32_t firstVertex, uint32_t firstInstance)
@@ -189,15 +221,7 @@ struct Draw : public CommandBuffer::Command
 		executionState.renderer->setViewport(pipeline->getViewport());
 		executionState.renderer->setBlendConstant(pipeline->getBlendConstants());
 
-		for (auto i = 0u; i < executionState.renderPass->getCurrentSubpass().colorAttachmentCount; i++)
-		{
-			auto attachmentReference = executionState.renderPass->getCurrentSubpass().pColorAttachments[i];
-			if (attachmentReference.attachment != VK_ATTACHMENT_UNUSED)
-			{
-				auto attachment = executionState.renderPassFramebuffer->getAttachment(attachmentReference.attachment);
-				executionState.renderer->setRenderTarget(i, attachment, 0);
-			}
-		}
+		executionState.bindAttachments();
 
 		const uint32_t primitiveCount = pipeline->computePrimitiveCount(vertexCount);
 		const uint32_t lastInstance = firstInstance + instanceCount - 1;
@@ -247,15 +271,7 @@ struct DrawIndexed : public CommandBuffer::Command
 		executionState.renderer->setViewport(pipeline->getViewport());
 		executionState.renderer->setBlendConstant(pipeline->getBlendConstants());
 
-		for (auto i = 0u; i < executionState.renderPass->getCurrentSubpass().colorAttachmentCount; i++)
-		{
-			auto attachmentReference = executionState.renderPass->getCurrentSubpass().pColorAttachments[i];
-			if (attachmentReference.attachment != VK_ATTACHMENT_UNUSED)
-			{
-				auto attachment = executionState.renderPassFramebuffer->getAttachment(attachmentReference.attachment);
-				executionState.renderer->setRenderTarget(i, attachment, 0);
-			}
-		}
+		executionState.bindAttachments();
 
 		auto drawType = executionState.indexType == VK_INDEX_TYPE_UINT16
 				? (context.drawType | sw::DRAW_INDEXED16) : (context.drawType | sw::DRAW_INDEXED32);

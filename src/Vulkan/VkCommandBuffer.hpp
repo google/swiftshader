@@ -135,6 +135,8 @@ public:
 		VertexInputBinding vertexInputBindings[MAX_VERTEX_INPUT_BINDINGS] = {};
 		VertexInputBinding indexBufferBinding;
 		VkIndexType indexType;
+
+		void bindAttachments();
 	};
 
 	void submit(CommandBuffer::ExecutionState& executionState);

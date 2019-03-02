@@ -119,17 +119,11 @@ void ImageView::clear(const VkClearValue& clearValue, const VkImageAspectFlags a
 	image->clear(clearValue, renderArea.rect, sr);
 }
 
-void *ImageView::getPointer() const
-{
-	VkOffset3D noOffset = { 0, 0, 0 };
-	return getOffsetPointer(noOffset);
-}
-
-void *ImageView::getOffsetPointer(const VkOffset3D& offset) const
+void *ImageView::getOffsetPointer(const VkOffset3D& offset, VkImageAspectFlagBits aspect) const
 {
 	VkImageSubresourceLayers imageSubresourceLayers =
 	{
-		subresourceRange.aspectMask,
+		aspect,
 		subresourceRange.baseMipLevel,
 		subresourceRange.baseArrayLayer,
 		subresourceRange.layerCount

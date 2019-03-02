@@ -19,6 +19,25 @@
 #include "Device/Surface.hpp"
 #include <cstring>
 
+namespace
+{
+	VkImageAspectFlags GetAspects(VkFormat format)
+	{
+		// TODO: probably just flatten this out to a full format list, and alter
+		// isDepth / isStencil etc to check for their aspect
+
+		VkImageAspectFlags aspects = 0;
+		if (sw::Surface::isDepth(format)) aspects |= VK_IMAGE_ASPECT_DEPTH_BIT;
+		if (sw::Surface::isStencil(format)) aspects |= VK_IMAGE_ASPECT_STENCIL_BIT;
+
+		// TODO: YCbCr planar formats have different aspects
+
+		// Anything else is "color".
+		if (!aspects) aspects |= VK_IMAGE_ASPECT_COLOR_BIT;
+		return aspects;
+	}
+}
+
 namespace vk
 {
 
@@ -55,7 +74,7 @@ const VkMemoryRequirements Image::getMemoryRequirements() const
 	VkMemoryRequirements memoryRequirements;
 	memoryRequirements.alignment = vk::REQUIRED_MEMORY_ALIGNMENT;
 	memoryRequirements.memoryTypeBits = vk::MEMORY_TYPE_GENERIC_BIT;
-	memoryRequirements.size = getStorageSize(flags);
+	memoryRequirements.size = getStorageSize(GetAspects(format));
 	return memoryRequirements;
 }
 
@@ -67,11 +86,19 @@ void Image::bind(VkDeviceMemory pDeviceMemory, VkDeviceSize pMemoryOffset)
 
 void Image::getSubresourceLayout(const VkImageSubresource* pSubresource, VkSubresourceLayout* pLayout) const
 {
-	pLayout->offset = getMemoryOffset(flags, pSubresource->mipLevel, pSubresource->arrayLayer);
-	pLayout->size = getMipLevelSize(flags, pSubresource->mipLevel);
-	pLayout->rowPitch = rowPitchBytes(flags, pSubresource->mipLevel);
-	pLayout->depthPitch = slicePitchBytes(flags, pSubresource->mipLevel);
-	pLayout->arrayPitch = getLayerSize(flags);
+	// By spec, aspectMask has a single bit set.
+	if (!((pSubresource->aspectMask == VK_IMAGE_ASPECT_COLOR_BIT) ||
+		  (pSubresource->aspectMask == VK_IMAGE_ASPECT_DEPTH_BIT) ||
+		  (pSubresource->aspectMask == VK_IMAGE_ASPECT_STENCIL_BIT)))
+	{
+		UNIMPLEMENTED();
+	}
+	auto aspect = static_cast<VkImageAspectFlagBits>(pSubresource->aspectMask);
+	pLayout->offset = getMemoryOffset(aspect, pSubresource->mipLevel, pSubresource->arrayLayer);
+	pLayout->size = getMipLevelSize(aspect, pSubresource->mipLevel);
+	pLayout->rowPitch = rowPitchBytes(aspect, pSubresource->mipLevel);
+	pLayout->depthPitch = slicePitchBytes(aspect, pSubresource->mipLevel);
+	pLayout->arrayPitch = getLayerSize(aspect);
 }
 
 void Image::copyTo(VkImage dstImage, const VkImageCopy& pRegion)
@@ -79,8 +106,6 @@ void Image::copyTo(VkImage dstImage, const VkImageCopy& pRegion)
 	// Image copy does not perform any conversion, it simply copies memory from
 	// an image to another image that has the same number of bytes per pixel.
 	Image* dst = Cast(dstImage);
-	int srcBytesPerTexel = bytesPerTexel(pRegion.srcSubresource.aspectMask);
-	ASSERT(srcBytesPerTexel == dst->bytesPerTexel(pRegion.dstSubresource.aspectMask));
 
 	if(!((pRegion.srcSubresource.aspectMask == VK_IMAGE_ASPECT_COLOR_BIT) ||
 		 (pRegion.srcSubresource.aspectMask == VK_IMAGE_ASPECT_DEPTH_BIT) ||
@@ -100,13 +125,19 @@ void Image::copyTo(VkImage dstImage, const VkImageCopy& pRegion)
 		UNIMPLEMENTED();
 	}
 
+	VkImageAspectFlagBits srcAspect = static_cast<VkImageAspectFlagBits>(pRegion.srcSubresource.aspectMask);
+	VkImageAspectFlagBits dstAspect = static_cast<VkImageAspectFlagBits>(pRegion.dstSubresource.aspectMask);
+
+	int srcBytesPerTexel = bytesPerTexel(srcAspect);
+	ASSERT(srcBytesPerTexel == dst->bytesPerTexel(dstAspect));
+
 	const char* srcMem = static_cast<const char*>(getTexelPointer(pRegion.srcOffset, pRegion.srcSubresource));
 	char* dstMem = static_cast<char*>(dst->getTexelPointer(pRegion.dstOffset, pRegion.dstSubresource));
 
-	int srcRowPitchBytes = rowPitchBytes(pRegion.srcSubresource.aspectMask, pRegion.srcSubresource.mipLevel);
-	int srcSlicePitchBytes = slicePitchBytes(pRegion.srcSubresource.aspectMask, pRegion.srcSubresource.mipLevel);
-	int dstRowPitchBytes = dst->rowPitchBytes(pRegion.dstSubresource.aspectMask, pRegion.dstSubresource.mipLevel);
-	int dstSlicePitchBytes = dst->slicePitchBytes(pRegion.dstSubresource.aspectMask, pRegion.dstSubresource.mipLevel);
+	int srcRowPitchBytes = rowPitchBytes(srcAspect, pRegion.srcSubresource.mipLevel);
+	int srcSlicePitchBytes = slicePitchBytes(srcAspect, pRegion.srcSubresource.mipLevel);
+	int dstRowPitchBytes = dst->rowPitchBytes(dstAspect, pRegion.dstSubresource.mipLevel);
+	int dstSlicePitchBytes = dst->slicePitchBytes(dstAspect, pRegion.dstSubresource.mipLevel);
 
 	VkExtent3D srcExtent = getMipLevelExtent(pRegion.srcSubresource.mipLevel);
 	VkExtent3D dstExtent = dst->getMipLevelExtent(pRegion.dstSubresource.mipLevel);
@@ -167,10 +198,12 @@ void Image::copy(VkBuffer buffer, const VkBufferImageCopy& region, bool bufferIs
 		UNIMPLEMENTED();
 	}
 
+	VkImageAspectFlagBits aspect = static_cast<VkImageAspectFlagBits>(region.imageSubresource.aspectMask);
+
 	VkExtent3D mipLevelExtent = getMipLevelExtent(region.imageSubresource.mipLevel);
-	int imageBytesPerTexel = bytesPerTexel(region.imageSubresource.aspectMask);
-	int imageRowPitchBytes = rowPitchBytes(region.imageSubresource.aspectMask, region.imageSubresource.mipLevel);
-	int imageSlicePitchBytes = slicePitchBytes(region.imageSubresource.aspectMask, region.imageSubresource.mipLevel);
+	int imageBytesPerTexel = bytesPerTexel(aspect);
+	int imageRowPitchBytes = rowPitchBytes(aspect, region.imageSubresource.mipLevel);
+	int imageSlicePitchBytes = slicePitchBytes(aspect, region.imageSubresource.mipLevel);
 	int bufferRowPitchBytes = ((region.bufferRowLength == 0) ? region.imageExtent.width : region.bufferRowLength) *
 	                          imageBytesPerTexel;
 	int bufferSlicePitchBytes = (((region.bufferImageHeight == 0) || (region.bufferRowLength == 0))) ?
@@ -189,10 +222,10 @@ void Image::copy(VkBuffer buffer, const VkBufferImageCopy& region, bool bufferIs
 	bool isEntirePlane = isEntireLine && (region.imageExtent.height == mipLevelExtent.height) &&
 	                     (imageSlicePitchBytes == bufferSlicePitchBytes);
 
-	VkDeviceSize layerSize = getLayerSize(flags);
+	VkDeviceSize layerSize = getLayerSize(aspect);
 	char* bufferMemory = static_cast<char*>(Cast(buffer)->getOffsetPointer(region.bufferOffset));
 	char* imageMemory = static_cast<char*>(deviceMemory->getOffsetPointer(
-	                    getMemoryOffset(region.imageSubresource.aspectMask, region.imageSubresource.mipLevel,
+	                    getMemoryOffset(aspect, region.imageSubresource.mipLevel,
 	                                    region.imageSubresource.baseArrayLayer) +
 	                    texelOffsetBytesInStorage(region.imageOffset, region.imageSubresource)));
 	char* srcMemory = bufferIsSource ? bufferMemory : imageMemory;
@@ -265,15 +298,17 @@ void Image::copyFrom(VkBuffer srcBuffer, const VkBufferImageCopy& region)
 
 void* Image::getTexelPointer(const VkOffset3D& offset, const VkImageSubresourceLayers& subresource) const
 {
+	VkImageAspectFlagBits aspect = static_cast<VkImageAspectFlagBits>(subresource.aspectMask);
 	return deviceMemory->getOffsetPointer(texelOffsetBytesInStorage(offset, subresource) +
-	       getMemoryOffset(flags, subresource.mipLevel, subresource.baseArrayLayer));
+	       getMemoryOffset(aspect, subresource.mipLevel, subresource.baseArrayLayer));
 }
 
 VkDeviceSize Image::texelOffsetBytesInStorage(const VkOffset3D& offset, const VkImageSubresourceLayers& subresource) const
 {
-	return offset.z * slicePitchBytes(flags, subresource.mipLevel) +
-	       offset.y * rowPitchBytes(flags, subresource.mipLevel) +
-	       offset.x * bytesPerTexel(flags);
+	VkImageAspectFlagBits aspect = static_cast<VkImageAspectFlagBits>(subresource.aspectMask);
+	return offset.z * slicePitchBytes(aspect, subresource.mipLevel) +
+	       offset.y * rowPitchBytes(aspect, subresource.mipLevel) +
+	       offset.x * bytesPerTexel(aspect);
 }
 
 VkExtent3D Image::getMipLevelExtent(uint32_t mipLevel) const
@@ -298,34 +333,34 @@ VkExtent3D Image::getMipLevelExtent(uint32_t mipLevel) const
 	return mipLevelExtent;
 }
 
-int Image::rowPitchBytes(const VkImageAspectFlags& flags, uint32_t mipLevel) const
+int Image::rowPitchBytes(VkImageAspectFlagBits aspect, uint32_t mipLevel) const
 {
 	// Depth and Stencil pitch should be computed separately
-	ASSERT((flags & (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT)) !=
+	ASSERT((aspect & (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT)) !=
 	                (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT));
-	return sw::Surface::pitchB(getMipLevelExtent(mipLevel).width, isCube() ? 1 : 0, getFormat(flags), false);
+	return sw::Surface::pitchB(getMipLevelExtent(mipLevel).width, isCube() ? 1 : 0, getFormat(aspect), false);
 }
 
-int Image::slicePitchBytes(const VkImageAspectFlags& flags, uint32_t mipLevel) const
+int Image::slicePitchBytes(VkImageAspectFlagBits aspect, uint32_t mipLevel) const
 {
 	// Depth and Stencil slice should be computed separately
-	ASSERT((flags & (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT)) !=
+	ASSERT((aspect & (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT)) !=
 	                (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT));
 	VkExtent3D mipLevelExtent = getMipLevelExtent(mipLevel);
-	return sw::Surface::sliceB(mipLevelExtent.width, mipLevelExtent.height, isCube() ? 1 : 0, getFormat(flags), false);
+	return sw::Surface::sliceB(mipLevelExtent.width, mipLevelExtent.height, isCube() ? 1 : 0, getFormat(aspect), false);
 }
 
-int Image::bytesPerTexel(const VkImageAspectFlags& flags) const
+int Image::bytesPerTexel(VkImageAspectFlagBits aspect) const
 {
 	// Depth and Stencil bytes should be computed separately
-	ASSERT((flags & (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT)) !=
+	ASSERT((aspect & (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT)) !=
 	                (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT));
-	return sw::Surface::bytes(getFormat(flags));
+	return sw::Surface::bytes(getFormat(aspect));
 }
 
-VkFormat Image::getFormat(const VkImageAspectFlags& flags) const
+VkFormat Image::getFormat(VkImageAspectFlagBits aspect) const
 {
-	switch(flags)
+	switch(aspect)
 	{
 	case VK_IMAGE_ASPECT_DEPTH_BIT:
 		switch(format)
@@ -363,14 +398,14 @@ bool Image::isCube() const
 	return (flags & VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT) && (imageType == VK_IMAGE_TYPE_2D);
 }
 
-VkDeviceSize Image::getMemoryOffset(const VkImageAspectFlags& flags) const
+VkDeviceSize Image::getMemoryOffset(VkImageAspectFlagBits aspect) const
 {
 	switch(format)
 	{
 	case VK_FORMAT_D16_UNORM_S8_UINT:
 	case VK_FORMAT_D24_UNORM_S8_UINT:
 	case VK_FORMAT_D32_SFLOAT_S8_UINT:
-		if(flags == VK_IMAGE_ASPECT_STENCIL_BIT)
+		if(aspect == VK_IMAGE_ASPECT_STENCIL_BIT)
 		{
 			// Offset by depth buffer to get to stencil buffer
 			return memoryOffset + getStorageSize(VK_IMAGE_ASPECT_DEPTH_BIT);
@@ -383,81 +418,64 @@ VkDeviceSize Image::getMemoryOffset(const VkImageAspectFlags& flags) const
 	return memoryOffset;
 }
 
-VkDeviceSize Image::getMemoryOffset(const VkImageAspectFlags& flags, uint32_t mipLevel) const
+VkDeviceSize Image::getMemoryOffset(VkImageAspectFlagBits aspect, uint32_t mipLevel) const
 {
-	VkDeviceSize offset = getMemoryOffset(flags);
+	VkDeviceSize offset = getMemoryOffset(aspect);
 	for(uint32_t i = 0; i < mipLevel; ++i)
 	{
-		offset += getMipLevelSize(flags, i);
+		offset += getMipLevelSize(aspect, i);
 	}
 	return offset;
 }
 
-VkDeviceSize Image::getMemoryOffset(const VkImageAspectFlags& flags, uint32_t mipLevel, uint32_t layer) const
+VkDeviceSize Image::getMemoryOffset(VkImageAspectFlagBits aspect, uint32_t mipLevel, uint32_t layer) const
 {
-	return layer * getLayerSize(flags) + getMemoryOffset(flags, mipLevel);
+	return layer * getLayerSize(aspect) + getMemoryOffset(aspect, mipLevel);
 }
 
-VkDeviceSize Image::getMipLevelSize(const VkImageAspectFlags& flags, uint32_t mipLevel) const
+VkDeviceSize Image::getMipLevelSize(VkImageAspectFlagBits aspect, uint32_t mipLevel) const
 {
-	int slicePitchB = 0;
-	if(sw::Surface::isDepth(format) && sw::Surface::isStencil(format))
-	{
-		switch(flags)
-		{
-		case VK_IMAGE_ASPECT_DEPTH_BIT:
-		case VK_IMAGE_ASPECT_STENCIL_BIT:
-			slicePitchB = slicePitchBytes(flags, mipLevel);
-			break;
-		default:
-			// Allow allocating both depth and stencil contiguously
-			slicePitchB = (slicePitchBytes(VK_IMAGE_ASPECT_DEPTH_BIT, mipLevel) +
-			               slicePitchBytes(VK_IMAGE_ASPECT_STENCIL_BIT, mipLevel));
-			break;
-		}
-	}
-	else
-	{
-		slicePitchB = slicePitchBytes(flags, mipLevel);
-	}
-
-	return getMipLevelExtent(mipLevel).depth * slicePitchB;
+	return getMipLevelExtent(mipLevel).depth * slicePitchBytes(aspect, mipLevel);
 }
 
-VkDeviceSize Image::getLayerSize(const VkImageAspectFlags& flags) const
+VkDeviceSize Image::getLayerSize(VkImageAspectFlagBits aspect) const
 {
 	VkDeviceSize layerSize = 0;
 
 	for(uint32_t mipLevel = 0; mipLevel < mipLevels; ++mipLevel)
 	{
-		layerSize += getMipLevelSize(flags, mipLevel);
+		layerSize += getMipLevelSize(aspect, mipLevel);
 	}
 
 	return layerSize;
 }
 
-VkDeviceSize Image::getStorageSize(const VkImageAspectFlags& flags) const
+VkDeviceSize Image::getStorageSize(VkImageAspectFlags aspectMask) const
 {
-	return arrayLayers * getLayerSize(flags);
+	if (aspectMask == (VK_IMAGE_ASPECT_DEPTH_BIT|VK_IMAGE_ASPECT_STENCIL_BIT))
+	{
+		return arrayLayers * (getLayerSize(VK_IMAGE_ASPECT_DEPTH_BIT) + getLayerSize(VK_IMAGE_ASPECT_STENCIL_BIT));
+	}
+	return arrayLayers * getLayerSize(static_cast<VkImageAspectFlagBits>(aspectMask));
 }
 
-sw::Surface* Image::asSurface(const VkImageAspectFlags& flags, uint32_t mipLevel, uint32_t layer) const
+sw::Surface* Image::asSurface(VkImageAspectFlagBits aspect, uint32_t mipLevel, uint32_t layer) const
 {
 	VkExtent3D mipLevelExtent = getMipLevelExtent(mipLevel);
-	return sw::Surface::create(mipLevelExtent.width, mipLevelExtent.height, mipLevelExtent.depth, getFormat(flags),
-	                           deviceMemory->getOffsetPointer(getMemoryOffset(flags, mipLevel, layer)),
-	                           rowPitchBytes(flags, mipLevel), slicePitchBytes(flags, mipLevel));
+	return sw::Surface::create(mipLevelExtent.width, mipLevelExtent.height, mipLevelExtent.depth, getFormat(aspect),
+	                           deviceMemory->getOffsetPointer(getMemoryOffset(aspect, mipLevel, layer)),
+	                           rowPitchBytes(aspect, mipLevel), slicePitchBytes(aspect, mipLevel));
 }
 
 void Image::blit(VkImage dstImage, const VkImageBlit& region, VkFilter filter)
 {
-	VkImageAspectFlags srcFlags = region.srcSubresource.aspectMask;
-	VkImageAspectFlags dstFlags = region.dstSubresource.aspectMask;
+	VkImageAspectFlagBits srcAspect = static_cast<VkImageAspectFlagBits>(region.srcSubresource.aspectMask);
+	VkImageAspectFlagBits dstAspect = static_cast<VkImageAspectFlagBits>(region.dstSubresource.aspectMask);
 	if((region.srcSubresource.baseArrayLayer != 0) ||
 	   (region.dstSubresource.baseArrayLayer != 0) ||
 	   (region.srcSubresource.layerCount != 1) ||
 	   (region.dstSubresource.layerCount != 1) ||
-	   (srcFlags != dstFlags))
+	   (srcAspect != dstAspect))
 	{
 		UNIMPLEMENTED();
 	}
@@ -465,8 +483,8 @@ void Image::blit(VkImage dstImage, const VkImageBlit& region, VkFilter filter)
 	int32_t numSlices = (region.srcOffsets[1].z - region.srcOffsets[0].z);
 	ASSERT(numSlices == (region.dstOffsets[1].z - region.dstOffsets[0].z));
 
-	sw::Surface* srcSurface = asSurface(srcFlags, region.srcSubresource.mipLevel, 0);
-	sw::Surface* dstSurface = Cast(dstImage)->asSurface(dstFlags, region.dstSubresource.mipLevel, 0);
+	sw::Surface* srcSurface = asSurface(srcAspect, region.srcSubresource.mipLevel, 0);
+	sw::Surface* dstSurface = Cast(dstImage)->asSurface(dstAspect, region.dstSubresource.mipLevel, 0);
 
 	sw::SliceRectF sRect(static_cast<float>(region.srcOffsets[0].x), static_cast<float>(region.srcOffsets[0].y),
 	                     static_cast<float>(region.srcOffsets[1].x), static_cast<float>(region.srcOffsets[1].y),
@@ -478,7 +496,7 @@ void Image::blit(VkImage dstImage, const VkImageBlit& region, VkFilter filter)
 	for(int i = 0; i < numSlices; i++)
 	{
 		blitter->blit(srcSurface, sRect, dstSurface, dRect,
-		              {filter != VK_FILTER_NEAREST, srcFlags == VK_IMAGE_ASPECT_STENCIL_BIT, false});
+		              {filter != VK_FILTER_NEAREST, srcAspect == VK_IMAGE_ASPECT_STENCIL_BIT, false});
 		sRect.slice++;
 		dRect.slice++;
 	}
@@ -515,7 +533,7 @@ uint32_t Image::getLastMipLevel(const VkImageSubresourceRange& subresourceRange)
 	        mipLevels : (subresourceRange.baseMipLevel + subresourceRange.levelCount)) - 1;
 }
 
-void Image::clear(void* pixelData, VkFormat format, const VkImageSubresourceRange& subresourceRange, VkImageAspectFlags aspectMask)
+void Image::clear(void* pixelData, VkFormat format, const VkImageSubresourceRange& subresourceRange, VkImageAspectFlagBits aspect)
 {
 	uint32_t firstLayer = subresourceRange.baseArrayLayer;
 	uint32_t lastLayer = getLastLayerIndex(subresourceRange);
@@ -528,7 +546,7 @@ void Image::clear(void* pixelData, VkFormat format, const VkImageSubresourceRang
 			for(uint32_t s = 0; s < mipLevelExtent.depth; ++s)
 			{
 				const sw::SliceRect dRect(0, 0, mipLevelExtent.width, mipLevelExtent.height, s);
-				sw::Surface* surface = asSurface(aspectMask, mipLevel, layer);
+				sw::Surface* surface = asSurface(aspect, mipLevel, layer);
 				blitter->clear(pixelData, format, surface, dRect, 0xF);
 				delete surface;
 			}
@@ -536,7 +554,7 @@ void Image::clear(void* pixelData, VkFormat format, const VkImageSubresourceRang
 	}
 }
 
-void Image::clear(void* pixelData, VkFormat format, const VkRect2D& renderArea, const VkImageSubresourceRange& subresourceRange, VkImageAspectFlags aspectMask)
+void Image::clear(void* pixelData, VkFormat format, const VkRect2D& renderArea, const VkImageSubresourceRange& subresourceRange, VkImageAspectFlagBits aspect)
 {
 	if((subresourceRange.baseMipLevel != 0) ||
 	   (subresourceRange.levelCount != 1))
@@ -555,7 +573,7 @@ void Image::clear(void* pixelData, VkFormat format, const VkRect2D& renderArea, 
 		for(uint32_t s = 0; s < extent.depth; ++s)
 		{
 			dRect.slice = s;
-			sw::Surface* surface = asSurface(aspectMask, 0, layer);
+			sw::Surface* surface = asSurface(aspect, 0, layer);
 			blitter->clear(pixelData, format, surface, dRect, 0xF);
 			delete surface;
 		}

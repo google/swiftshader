@@ -419,9 +419,9 @@ namespace sw
 				if(draw->renderTarget[index])
 				{
 					VkOffset3D offset = { 0, 0, static_cast<int32_t>(context->renderTargetLayer[index]) };
-					data->colorBuffer[index] = (unsigned int*)context->renderTarget[index]->getOffsetPointer(offset);
-					data->colorPitchB[index] = context->renderTarget[index]->rowPitchBytes();
-					data->colorSliceB[index] = context->renderTarget[index]->slicePitchBytes();
+					data->colorBuffer[index] = (unsigned int*)context->renderTarget[index]->getOffsetPointer(offset, VK_IMAGE_ASPECT_COLOR_BIT);
+					data->colorPitchB[index] = context->renderTarget[index]->rowPitchBytes(VK_IMAGE_ASPECT_COLOR_BIT);
+					data->colorSliceB[index] = context->renderTarget[index]->slicePitchBytes(VK_IMAGE_ASPECT_COLOR_BIT);
 				}
 			}
 
@@ -431,17 +431,17 @@ namespace sw
 			if(draw->depthBuffer)
 			{
 				VkOffset3D offset = { 0, 0, static_cast<int32_t>(context->depthBufferLayer) };
-				data->depthBuffer = (float*)context->depthBuffer->getOffsetPointer(offset);
-				data->depthPitchB = context->depthBuffer->rowPitchBytes();
-				data->depthSliceB = context->depthBuffer->slicePitchBytes();
+				data->depthBuffer = (float*)context->depthBuffer->getOffsetPointer(offset, VK_IMAGE_ASPECT_DEPTH_BIT);
+				data->depthPitchB = context->depthBuffer->rowPitchBytes(VK_IMAGE_ASPECT_DEPTH_BIT);
+				data->depthSliceB = context->depthBuffer->slicePitchBytes(VK_IMAGE_ASPECT_DEPTH_BIT);
 			}
 
 			if(draw->stencilBuffer)
 			{
 				VkOffset3D offset = { 0, 0, static_cast<int32_t>(context->stencilBufferLayer) };
-				data->stencilBuffer = (unsigned char*)context->stencilBuffer->getOffsetPointer(offset);
-				data->stencilPitchB = context->stencilBuffer->rowPitchBytes();
-				data->stencilSliceB = context->stencilBuffer->slicePitchBytes();
+				data->stencilBuffer = (unsigned char*)context->stencilBuffer->getOffsetPointer(offset, VK_IMAGE_ASPECT_STENCIL_BIT);
+				data->stencilPitchB = context->stencilBuffer->rowPitchBytes(VK_IMAGE_ASPECT_STENCIL_BIT);
+				data->stencilSliceB = context->stencilBuffer->slicePitchBytes(VK_IMAGE_ASPECT_STENCIL_BIT);
 			}
 		}
 
