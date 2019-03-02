@@ -206,6 +206,12 @@ namespace sw
 				UNIMPLEMENTED("These instructions should have already been lowered.");
 				break;
 
+			case spv::OpFConvert:
+			case spv::OpSConvert:
+			case spv::OpUConvert:
+				UNIMPLEMENTED("No valid uses for Op*Convert until we support multiple bit widths");
+				break;
+
 			case spv::OpLoad:
 			case spv::OpAccessChain:
 			case spv::OpCompositeConstruct:
@@ -236,6 +242,11 @@ namespace sw
 			case spv::OpUMulExtended:
 			case spv::OpSMulExtended:
 			case spv::OpDot:
+			case spv::OpConvertFToU:
+			case spv::OpConvertFToS:
+			case spv::OpConvertSToF:
+			case spv::OpConvertUToF:
+			case spv::OpBitcast:
 				// Instructions that yield an intermediate value
 			{
 				TypeID typeId = insn.word(1);
@@ -890,6 +901,11 @@ namespace sw
 			case spv::OpSNegate:
 			case spv::OpFNegate:
 			case spv::OpLogicalNot:
+			case spv::OpConvertFToU:
+			case spv::OpConvertFToS:
+			case spv::OpConvertSToF:
+			case spv::OpConvertUToF:
+			case spv::OpBitcast:
 				EmitUnaryOp(insn, routine);
 				break;
 
@@ -1198,6 +1214,21 @@ namespace sw
 				break;
 			case spv::OpFNegate:
 				dst.emplace(i, -val);
+				break;
+			case spv::OpConvertFToU:
+				dst.emplace(i, As<SIMD::Float>(SIMD::UInt(val)));
+				break;
+			case spv::OpConvertFToS:
+				dst.emplace(i, As<SIMD::Float>(SIMD::Int(val)));
+				break;
+			case spv::OpConvertSToF:
+				dst.emplace(i, SIMD::Float(As<SIMD::Int>(val)));
+				break;
+			case spv::OpConvertUToF:
+				dst.emplace(i, SIMD::Float(As<SIMD::UInt>(val)));
+				break;
+			case spv::OpBitcast:
+				dst.emplace(i, val);
 				break;
 			default:
 				UNIMPLEMENTED("Unhandled unary operator %s", OpcodeName(insn.opcode()).c_str());
