@@ -12,7 +12,7 @@ git submodule update --init
 mkdir -p build && cd build
 
 cmake ..
-make --jobs=$(nproc) VERBOSE=1
+make --jobs=$(nproc)
 
 # Run the GLES unit tests.
 ./unittests
