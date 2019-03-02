@@ -553,7 +553,12 @@ VkResult CommandBuffer::begin(VkCommandBufferUsageFlags flags, const VkCommandBu
 {
 	ASSERT((state != RECORDING) && (state != PENDING));
 
-	if(!((flags == 0) || (flags == VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT)) || pInheritanceInfo)
+	// Nothing interesting to do based on flags. We don't have any optimizations
+	// to apply for ONE_TIME_SUBMIT or (lack of) SIMULTANEOUS_USE. RENDER_PASS_CONTINUE
+	// must also provide a non-null pInheritanceInfo, which we don't implement yet, but is caught below.
+	(void) flags;
+
+	if(pInheritanceInfo)
 	{
 		UNIMPLEMENTED();
 	}
