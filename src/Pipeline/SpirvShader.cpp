@@ -231,6 +231,16 @@ namespace sw
 			case spv::OpFSub:
 			case spv::OpFDiv:
 			case spv::OpUMod:
+			case spv::OpIEqual:
+			case spv::OpINotEqual:
+			case spv::OpUGreaterThan:
+			case spv::OpSGreaterThan:
+			case spv::OpUGreaterThanEqual:
+			case spv::OpSGreaterThanEqual:
+			case spv::OpULessThan:
+			case spv::OpSLessThan:
+			case spv::OpULessThanEqual:
+			case spv::OpSLessThanEqual:
 			case spv::OpShiftRightLogical:
 			case spv::OpShiftRightArithmetic:
 			case spv::OpShiftLeftLogical:
@@ -918,6 +928,16 @@ namespace sw
 			case spv::OpFSub:
 			case spv::OpFDiv:
 			case spv::OpUMod:
+			case spv::OpIEqual:
+			case spv::OpINotEqual:
+			case spv::OpUGreaterThan:
+			case spv::OpSGreaterThan:
+			case spv::OpUGreaterThanEqual:
+			case spv::OpSGreaterThanEqual:
+			case spv::OpULessThan:
+			case spv::OpSLessThan:
+			case spv::OpULessThanEqual:
+			case spv::OpSLessThanEqual:
 			case spv::OpShiftRightLogical:
 			case spv::OpShiftRightArithmetic:
 			case spv::OpShiftLeftLogical:
@@ -1268,6 +1288,36 @@ namespace sw
 				break;
 			case spv::OpUMod:
 				dst.emplace(i, As<SIMD::Float>(As<SIMD::UInt>(lhs) % As<SIMD::UInt>(rhs)));
+				break;
+			case spv::OpIEqual:
+				dst.emplace(i, As<SIMD::Float>(CmpEQ(As<SIMD::Int>(lhs), As<SIMD::Int>(rhs))));
+				break;
+			case spv::OpINotEqual:
+				dst.emplace(i, As<SIMD::Float>(CmpNEQ(As<SIMD::Int>(lhs), As<SIMD::Int>(rhs))));
+				break;
+			case spv::OpUGreaterThan:
+				dst.emplace(i, As<SIMD::Float>(CmpGT(As<SIMD::UInt>(lhs), As<SIMD::UInt>(rhs))));
+				break;
+			case spv::OpSGreaterThan:
+				dst.emplace(i, As<SIMD::Float>(CmpGT(As<SIMD::Int>(lhs), As<SIMD::Int>(rhs))));
+				break;
+			case spv::OpUGreaterThanEqual:
+				dst.emplace(i, As<SIMD::Float>(CmpGE(As<SIMD::UInt>(lhs), As<SIMD::UInt>(rhs))));
+				break;
+			case spv::OpSGreaterThanEqual:
+				dst.emplace(i, As<SIMD::Float>(CmpGE(As<SIMD::Int>(lhs), As<SIMD::Int>(rhs))));
+				break;
+			case spv::OpULessThan:
+				dst.emplace(i, As<SIMD::Float>(CmpLT(As<SIMD::UInt>(lhs), As<SIMD::UInt>(rhs))));
+				break;
+			case spv::OpSLessThan:
+				dst.emplace(i, As<SIMD::Float>(CmpLT(As<SIMD::Int>(lhs), As<SIMD::Int>(rhs))));
+				break;
+			case spv::OpULessThanEqual:
+				dst.emplace(i, As<SIMD::Float>(CmpLE(As<SIMD::UInt>(lhs), As<SIMD::UInt>(rhs))));
+				break;
+			case spv::OpSLessThanEqual:
+				dst.emplace(i, As<SIMD::Float>(CmpLE(As<SIMD::Int>(lhs), As<SIMD::Int>(rhs))));
 				break;
 			case spv::OpFAdd:
 				dst.emplace(i, lhs + rhs);

@@ -1847,6 +1847,8 @@ namespace rr
 	RValue<Int4> CmpNEQ(RValue<Int4> x, RValue<Int4> y);
 	RValue<Int4> CmpNLT(RValue<Int4> x, RValue<Int4> y);
 	RValue<Int4> CmpNLE(RValue<Int4> x, RValue<Int4> y);
+	inline RValue<Int4> CmpGT(RValue<Int4> x, RValue<Int4> y) { return CmpNLE(x, y); }
+	inline RValue<Int4> CmpGE(RValue<Int4> x, RValue<Int4> y) { return CmpNLT(x, y); }
 	RValue<Int4> Max(RValue<Int4> x, RValue<Int4> y);
 	RValue<Int4> Min(RValue<Int4> x, RValue<Int4> y);
 	RValue<Int4> RoundInt(RValue<Float4> cast);
@@ -1929,6 +1931,8 @@ namespace rr
 	RValue<UInt4> CmpNEQ(RValue<UInt4> x, RValue<UInt4> y);
 	RValue<UInt4> CmpNLT(RValue<UInt4> x, RValue<UInt4> y);
 	RValue<UInt4> CmpNLE(RValue<UInt4> x, RValue<UInt4> y);
+	inline RValue<UInt4> CmpGT(RValue<UInt4> x, RValue<UInt4> y) { return CmpNLE(x, y); }
+	inline RValue<UInt4> CmpGE(RValue<UInt4> x, RValue<UInt4> y) { return CmpNLT(x, y); }
 	RValue<UInt4> Max(RValue<UInt4> x, RValue<UInt4> y);
 	RValue<UInt4> Min(RValue<UInt4> x, RValue<UInt4> y);
 	RValue<UInt4> MulHigh(RValue<UInt4> x, RValue<UInt4> y);
