@@ -2138,12 +2138,27 @@ namespace rr
 	RValue<Float4> UnpackHigh(RValue<Float4> x, RValue<Float4> y);
 	RValue<Float4> Mask(Float4 &lhs, RValue<Float4> rhs, unsigned char select);
 	RValue<Int> SignMask(RValue<Float4> x);
+
+	// Ordered comparison functions
 	RValue<Int4> CmpEQ(RValue<Float4> x, RValue<Float4> y);
 	RValue<Int4> CmpLT(RValue<Float4> x, RValue<Float4> y);
 	RValue<Int4> CmpLE(RValue<Float4> x, RValue<Float4> y);
 	RValue<Int4> CmpNEQ(RValue<Float4> x, RValue<Float4> y);
 	RValue<Int4> CmpNLT(RValue<Float4> x, RValue<Float4> y);
 	RValue<Int4> CmpNLE(RValue<Float4> x, RValue<Float4> y);
+	inline RValue<Int4> CmpGT(RValue<Float4> x, RValue<Float4> y) { return CmpNLE(x, y); }
+	inline RValue<Int4> CmpGE(RValue<Float4> x, RValue<Float4> y) { return CmpNLT(x, y); }
+
+	// Unordered comparison functions
+	RValue<Int4> CmpUEQ(RValue<Float4> x, RValue<Float4> y);
+	RValue<Int4> CmpULT(RValue<Float4> x, RValue<Float4> y);
+	RValue<Int4> CmpULE(RValue<Float4> x, RValue<Float4> y);
+	RValue<Int4> CmpUNEQ(RValue<Float4> x, RValue<Float4> y);
+	RValue<Int4> CmpUNLT(RValue<Float4> x, RValue<Float4> y);
+	RValue<Int4> CmpUNLE(RValue<Float4> x, RValue<Float4> y);
+	inline RValue<Int4> CmpUGT(RValue<Float4> x, RValue<Float4> y) { return CmpUNLE(x, y); }
+	inline RValue<Int4> CmpUGE(RValue<Float4> x, RValue<Float4> y) { return CmpUNLT(x, y); }
+
 	RValue<Int4> IsInf(RValue<Float4> x);
 	RValue<Int4> IsNan(RValue<Float4> x);
 	RValue<Float4> Round(RValue<Float4> x);

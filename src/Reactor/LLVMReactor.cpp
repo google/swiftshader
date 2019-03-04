@@ -6809,6 +6809,36 @@ namespace rr
 		return RValue<Int4>(Nucleus::createSExt(Nucleus::createFCmpOGT(x.value, y.value), Int4::getType()));
 	}
 
+	RValue<Int4> CmpUEQ(RValue<Float4> x, RValue<Float4> y)
+	{
+		return RValue<Int4>(Nucleus::createSExt(Nucleus::createFCmpUEQ(x.value, y.value), Int4::getType()));
+	}
+
+	RValue<Int4> CmpULT(RValue<Float4> x, RValue<Float4> y)
+	{
+		return RValue<Int4>(Nucleus::createSExt(Nucleus::createFCmpULT(x.value, y.value), Int4::getType()));
+	}
+
+	RValue<Int4> CmpULE(RValue<Float4> x, RValue<Float4> y)
+	{
+		return RValue<Int4>(Nucleus::createSExt(Nucleus::createFCmpULE(x.value, y.value), Int4::getType()));
+	}
+
+	RValue<Int4> CmpUNEQ(RValue<Float4> x, RValue<Float4> y)
+	{
+		return RValue<Int4>(Nucleus::createSExt(Nucleus::createFCmpUNE(x.value, y.value), Int4::getType()));
+	}
+
+	RValue<Int4> CmpUNLT(RValue<Float4> x, RValue<Float4> y)
+	{
+		return RValue<Int4>(Nucleus::createSExt(Nucleus::createFCmpUGE(x.value, y.value), Int4::getType()));
+	}
+
+	RValue<Int4> CmpUNLE(RValue<Float4> x, RValue<Float4> y)
+	{
+		return RValue<Int4>(Nucleus::createSExt(Nucleus::createFCmpUGT(x.value, y.value), Int4::getType()));
+	}
+
 	RValue<Int4> IsInf(RValue<Float4> x)
 	{
 		return CmpEQ(As<Int4>(x) & Int4(0x7FFFFFFF), Int4(0x7F800000));
