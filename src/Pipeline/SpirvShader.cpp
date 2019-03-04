@@ -31,6 +31,13 @@ namespace sw
 		// - There is exactly one entrypoint in the module, and it's the one we want
 		// - The only input/output OpVariables present are those used by the entrypoint
 
+		// TODO: Add real support for control flow. For now, track whether we've seen
+		// a label or a return already (if so, the shader does things we will mishandle).
+		// We expect there to be one of each in a simple shader -- the first and last instruction
+		// of the entrypoint function.
+		bool seenLabel = false;
+		bool seenReturn = false;
+
 		for (auto insn : *this)
 		{
 			switch (insn.opcode())
@@ -100,6 +107,18 @@ namespace sw
 				}
 				break;
 			}
+
+			case spv::OpLabel:
+				if (seenLabel)
+					UNIMPLEMENTED("Shader contains multiple labels, has control flow");
+				seenLabel = true;
+				break;
+
+			case spv::OpReturn:
+				if (seenReturn)
+					UNIMPLEMENTED("Shader contains multiple returns, has control flow");
+				seenReturn = true;
+				break;
 
 			case spv::OpTypeVoid:
 			case spv::OpTypeBool:
@@ -278,7 +297,6 @@ namespace sw
 			}
 
 			case spv::OpStore:
-			case spv::OpReturn:
 				// Don't need to do anything during analysis pass
 				break;
 
@@ -287,8 +305,7 @@ namespace sw
 				break;
 
 			default:
-				printf("Warning: ignored opcode %s\n", OpcodeName(insn.opcode()).c_str());
-				break;    // This is OK, these passes are intentionally partial
+				UNIMPLEMENTED(OpcodeName(insn.opcode()).c_str());
 			}
 		}
 	}
@@ -875,6 +892,14 @@ namespace sw
 				// or don't require any work at all.
 				break;
 
+			case spv::OpLabel:
+			case spv::OpReturn:
+				// TODO: when we do control flow, will need to do some work here.
+				// Until then, there is nothing to do -- we expect there to be an initial OpLabel
+				// in the entrypoint function, for which we do nothing; and a final OpReturn at the
+				// end of the entrypoint function, for which we do nothing.
+				break;
+
 			case spv::OpVariable:
 				EmitVariable(insn, routine);
 				break;
@@ -956,7 +981,7 @@ namespace sw
 				break;
 
 			default:
-				printf("emit: ignoring opcode %s\n", OpcodeName(insn.opcode()).c_str());
+				UNIMPLEMENTED(OpcodeName(insn.opcode()).c_str());
 				break;
 			}
 		}
