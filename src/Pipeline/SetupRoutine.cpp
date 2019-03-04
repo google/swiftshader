@@ -107,7 +107,7 @@ namespace sw
 					If(!frontFacing) Return(false);
 				}
 
-				d = IfThenElse(A < 0.0f, d, Int(0));
+				d = IfThenElse(A > 0.0f, d, Int(0));
 
 				if(state.twoSidedStencil)
 				{
