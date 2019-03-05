@@ -21,6 +21,8 @@
 namespace vk
 {
 
+const size_t Buffer::DataOffset = offsetof(Buffer, memory);
+
 Buffer::Buffer(const VkBufferCreateInfo* pCreateInfo, void* mem) :
 	flags(pCreateInfo->flags), size(pCreateInfo->size), usage(pCreateInfo->usage),
 	sharingMode(pCreateInfo->sharingMode), queueFamilyIndexCount(pCreateInfo->queueFamilyIndexCount),
