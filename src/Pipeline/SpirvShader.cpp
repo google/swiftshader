@@ -260,7 +260,7 @@ namespace sw
 						mainBlockId = Block::ID(it.word(1));
 						break;
 					default:
-						ERR("Unexpected opcode '%s' following OpFunction", OpcodeName(it.opcode()).c_str());
+						WARN("Unexpected opcode '%s' following OpFunction", OpcodeName(it.opcode()).c_str());
 					}
 				}
 				ASSERT(mainBlockId.value() != 0); // Function's OpLabel not found
@@ -399,7 +399,7 @@ namespace sw
 				break;
 
 			default:
-				UNIMPLEMENTED(OpcodeName(insn.opcode()).c_str());
+				UNIMPLEMENTED("%s", OpcodeName(insn.opcode()).c_str());
 			}
 		}
 	}
@@ -1190,7 +1190,7 @@ namespace sw
 			break;
 
 		default:
-			UNIMPLEMENTED(OpcodeName(insn.opcode()).c_str());
+			UNIMPLEMENTED("opcode: %s", OpcodeName(insn.opcode()).c_str());
 			break;
 		}
 	}
