@@ -289,6 +289,7 @@ namespace sw
 			case spv::OpConvertSToF:
 			case spv::OpConvertUToF:
 			case spv::OpBitcast:
+			case spv::OpSelect:
 				// Instructions that yield an intermediate value
 			{
 				TypeID typeId = insn.word(1);
@@ -1005,6 +1006,10 @@ namespace sw
 				EmitDot(insn, routine);
 				break;
 
+			case spv::OpSelect:
+				EmitSelect(insn, routine);
+				break;
+
 			default:
 				UNIMPLEMENTED(OpcodeName(insn.opcode()).c_str());
 				break;
@@ -1468,6 +1473,24 @@ namespace sw
 		}
 
 		dst.emplace(0, result);
+	}
+
+	void SpirvShader::EmitSelect(InsnIterator insn, SpirvRoutine *routine) const
+	{
+		auto &type = getType(insn.word(1));
+		auto &dst = routine->createIntermediate(insn.word(2), type.sizeInComponents);
+		auto srcCond = GenericValue(this, routine, insn.word(3));
+		auto srcLHS = GenericValue(this, routine, insn.word(4));
+		auto srcRHS = GenericValue(this, routine, insn.word(5));
+
+		for (auto i = 0u; i < type.sizeInComponents; i++)
+		{
+			auto cond = As<SIMD::Int>(srcCond[i]);
+			auto lhs = srcLHS[i];
+			auto rhs = srcRHS[i];
+			auto out = (cond & As<Int4>(lhs)) | (~cond & As<Int4>(rhs));   // FIXME: IfThenElse()
+			dst.emplace(i, As<SIMD::Float>(out));
+		}
 	}
 
 	void SpirvShader::emitEpilog(SpirvRoutine *routine) const
