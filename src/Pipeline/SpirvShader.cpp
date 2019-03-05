@@ -28,6 +28,8 @@ namespace sw
 			  outputs{MAX_INTERFACE_COMPONENTS},
 			  serialID{serialCounter++}, modes{}
 	{
+		ASSERT(insns.size() > 0);
+
 		// Simplifying assumptions (to be satisfied by earlier transformations)
 		// - There is exactly one entrypoint in the module, and it's the one we want
 		// - The only input/output OpVariables present are those used by the entrypoint

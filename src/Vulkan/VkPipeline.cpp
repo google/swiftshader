@@ -187,7 +187,56 @@ uint32_t getNumberOfChannels(VkFormat format)
 	return 0;
 }
 
+// preprocessSpirv applies and freezes specializations into constants, inlines
+// all functions and performs constant folding.
+std::vector<uint32_t> preprocessSpirv(
+		std::vector<uint32_t> const &code,
+		VkSpecializationInfo const *specializationInfo)
+{
+	spvtools::Optimizer opt{SPV_ENV_VULKAN_1_1};
+
+	opt.SetMessageConsumer([](spv_message_level_t level, const char*, const spv_position_t& p, const char* m) {
+		switch (level)
+		{
+		case SPV_MSG_FATAL:
+		case SPV_MSG_INTERNAL_ERROR:
+		case SPV_MSG_ERROR:
+			ERR("%d:%d %s", p.line, p.column, m);
+			break;
+		case SPV_MSG_WARNING:
+		case SPV_MSG_INFO:
+		case SPV_MSG_DEBUG:
+			TRACE("%d:%d %s", p.line, p.column, m);
+			break;
+		}
+	});
+
+	opt.RegisterPass(spvtools::CreateInlineExhaustivePass());
+
+	// If the pipeline uses specialization, apply the specializations before freezing
+	if (specializationInfo)
+	{
+		std::unordered_map<uint32_t, std::vector<uint32_t>> specializations;
+		for (auto i = 0u; i < specializationInfo->mapEntryCount; ++i)
+		{
+			auto const &e = specializationInfo->pMapEntries[i];
+			auto value_ptr =
+					static_cast<uint32_t const *>(specializationInfo->pData) + e.offset / sizeof(uint32_t);
+			specializations.emplace(e.constantID,
+									std::vector<uint32_t>{value_ptr, value_ptr + e.size / sizeof(uint32_t)});
+		}
+		opt.RegisterPass(spvtools::CreateSetSpecConstantDefaultValuePass(specializations));
+	}
+	// Freeze specialization constants into normal constants, and propagate through
+	opt.RegisterPass(spvtools::CreateFreezeSpecConstantValuePass());
+	opt.RegisterPass(spvtools::CreateFoldSpecConstantOpAndCompositePass());
+
+	std::vector<uint32_t> optimized;
+	opt.Run(code.data(), code.size(), &optimized);
+	return optimized;
 }
+
+} // anonymous namespace
 
 namespace vk
 {
@@ -418,33 +467,10 @@ void GraphicsPipeline::compileShaders(const VkAllocationCallbacks* pAllocator, c
 	{
 		auto module = Cast(pStage->module);
 
-		auto code = module->getCode();
-		spvtools::Optimizer opt{SPV_ENV_VULKAN_1_1};
-		opt.RegisterPass(spvtools::CreateInlineExhaustivePass());
-
-		// If the pipeline uses specialization, apply the specializations before freezing
-		if (pStage->pSpecializationInfo)
-		{
-			std::unordered_map<uint32_t, std::vector<uint32_t>> specializations;
-			for (auto i = 0u; i < pStage->pSpecializationInfo->mapEntryCount; ++i)
-			{
-				auto const &e = pStage->pSpecializationInfo->pMapEntries[i];
-				auto value_ptr =
-						static_cast<uint32_t const *>(pStage->pSpecializationInfo->pData) + e.offset / sizeof(uint32_t);
-				specializations.emplace(e.constantID,
-										std::vector<uint32_t>{value_ptr, value_ptr + e.size / sizeof(uint32_t)});
-			}
-			opt.RegisterPass(spvtools::CreateSetSpecConstantDefaultValuePass(specializations));
-		}
-		// Freeze specialization constants into normal constants, and propagate through
-		opt.RegisterPass(spvtools::CreateFreezeSpecConstantValuePass());
-		opt.RegisterPass(spvtools::CreateFoldSpecConstantOpAndCompositePass());
-
-		std::vector<uint32_t> postOptCode;
-		opt.Run(code.data(), code.size(), &postOptCode);
+		auto code = preprocessSpirv(module->getCode(), pStage->pSpecializationInfo);
 
 		// TODO: also pass in any pipeline state which will affect shader compilation
-		auto spirvShader = new sw::SpirvShader{postOptCode};
+		auto spirvShader = new sw::SpirvShader{code};
 
 		switch (pStage->stage)
 		{
