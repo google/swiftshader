@@ -1450,7 +1450,7 @@ namespace rr
 
 	Value *Nucleus::createFCmpUNE(Value *lhs, Value *rhs)
 	{
-		return V(::builder->CreateFCmpULE(V(lhs), V(rhs)));
+		return V(::builder->CreateFCmpUNE(V(lhs), V(rhs)));
 	}
 
 	Value *Nucleus::createExtractElement(Value *vector, Type *type, int index)
