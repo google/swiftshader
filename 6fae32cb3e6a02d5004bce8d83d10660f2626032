@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7496fa28_52bdb37b",
+        "filename": "src/Pipeline/SpirvShader.hpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2019-03-06T20:52:51Z",
+      "side": 1,
+      "message": "This doesn\u0027t compile on Windows. Could this be \"sizeof(ContentsType) * size\" instead?",
+      "range": {
+        "startLine": 64,
+        "startChar": 30,
+        "endLine": 64,
+        "endChar": 48
+      },
+      "revId": "6fae32cb3e6a02d5004bce8d83d10660f2626032",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
