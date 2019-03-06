@@ -350,10 +350,11 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 			UNIMPLEMENTED("Unsupported sample count");
 		}
 
+		if (multisampleState->pSampleMask)
+			context.sampleMask = multisampleState->pSampleMask[0];
+
 		if((multisampleState->flags != 0) ||
 			(multisampleState->sampleShadingEnable != 0) ||
-			!((multisampleState->pSampleMask == nullptr) ||
-			(*(multisampleState->pSampleMask) == 0xFFFFFFFFu)) ||
 				(multisampleState->alphaToCoverageEnable != 0) ||
 			(multisampleState->alphaToOneEnable != 0))
 		{
