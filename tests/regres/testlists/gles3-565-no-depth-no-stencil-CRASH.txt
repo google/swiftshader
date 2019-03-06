@@ -1,0 +1,12 @@
+dEQP-GLES3.functional.read_pixels.alignment.choose_1
+dEQP-GLES3.functional.read_pixels.alignment.choose_2
+dEQP-GLES3.functional.read_pixels.alignment.choose_4
+dEQP-GLES3.functional.read_pixels.alignment.choose_8
+dEQP-GLES3.functional.read_pixels.rowlength.choose_17
+dEQP-GLES3.functional.read_pixels.rowlength.choose_19
+dEQP-GLES3.functional.read_pixels.rowlength.choose_23
+dEQP-GLES3.functional.read_pixels.rowlength.choose_29
+dEQP-GLES3.functional.read_pixels.skip.choose_0_3
+dEQP-GLES3.functional.read_pixels.skip.choose_3_0
+dEQP-GLES3.functional.read_pixels.skip.choose_3_3
+dEQP-GLES3.functional.read_pixels.skip.choose_3_5

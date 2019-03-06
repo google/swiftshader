@@ -1,0 +1,2 @@
+dEQP-GLES3.functional.fragment_ops.scissor.clear_depth
+dEQP-GLES3.functional.fragment_ops.scissor.clear_stencil

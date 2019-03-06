@@ -1,0 +1,2 @@
+dEQP-VK.wsi.xlib.surface.create
+dEQP-VK.wsi.xlib.surface.query_support

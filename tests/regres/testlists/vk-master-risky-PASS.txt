@@ -1,0 +1,5 @@
+dEQP-VK.api.info.android.no_unknown_extensions
+dEQP-VK.api.info.image_format_properties.2d.optimal.b8g8r8g8_422_unorm
+dEQP-VK.api.info.image_format_properties.2d.optimal.g8_b8_r8_3plane_420_unorm
+dEQP-VK.api.info.image_format_properties.2d.optimal.g8_b8r8_2plane_420_unorm
+dEQP-VK.api.info.image_format_properties.2d.optimal.g8b8g8r8_422_unorm
