@@ -33,6 +33,11 @@ Image::Image(const VkImageCreateInfo* pCreateInfo, void* mem) :
 	tiling(pCreateInfo->tiling)
 {
 	blitter = new sw::Blitter();
+
+	if (samples != VK_SAMPLE_COUNT_1_BIT)
+	{
+		UNIMPLEMENTED("Multisample images not yet supported");
+	}
 }
 
 void Image::destroy(const VkAllocationCallbacks* pAllocator)
