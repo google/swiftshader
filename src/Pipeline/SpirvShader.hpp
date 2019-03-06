@@ -68,7 +68,7 @@ namespace sw
 
 		Intermediate(uint32_t size) : contents(new ContentsType[size]), size(size) {
 #if !defined(NDEBUG) || defined(DCHECK_ALWAYS_ON)
-			memset(contents, 0, sizeof(ContentsType[size]));
+			memset(contents, 0, sizeof(ContentsType) * size);
 #endif
 		}
 
