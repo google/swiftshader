@@ -36,6 +36,7 @@ void SwapchainKHR::destroy(const VkAllocationCallbacks *pAllocator)
 	{
 		if (currentImage.imageStatus != NONEXISTENT)
 		{
+			vk::Cast(createInfo.surface)->detachImage(&currentImage);
 			vk::destroy(currentImage.imageMemory, pAllocator);
 			vk::destroy(currentImage.image, pAllocator);
 
@@ -116,6 +117,8 @@ VkResult SwapchainKHR::createImages(VkDevice device)
 		vkBindImageMemory(device, currentImage.image, currentImage.imageMemory, 0);
 
 		currentImage.imageStatus = AVAILABLE;
+
+		vk::Cast(createInfo.surface)->attachImage(&currentImage);
 	}
 
 	return VK_SUCCESS;
@@ -177,7 +180,7 @@ void SwapchainKHR::present(uint32_t index)
 {
 	auto & image = images[index];
 	image.imageStatus = PRESENTING;
-	vk::Cast(createInfo.surface)->present(image.image, image.imageMemory);
+	vk::Cast(createInfo.surface)->present(&image);
 	image.imageStatus = AVAILABLE;
 }
 

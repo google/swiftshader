@@ -18,26 +18,12 @@
 
 #include "Vulkan/VkObject.hpp"
 #include "Vulkan/VkImage.hpp"
+#include "VkSurfaceKHR.hpp"
 
 #include <vector>
 
 namespace vk
 {
-
-enum PresentImageStatus
-{
-	NONEXISTENT, //  Image wasn't made
-	AVAILABLE,
-	DRAWING,
-	PRESENTING,
-};
-
-struct PresentImage
-{
-	VkImage image;
-	VkDeviceMemory imageMemory;
-	PresentImageStatus imageStatus;
-};
 
 class SwapchainKHR : public Object<SwapchainKHR, VkSwapchainKHR>
 {

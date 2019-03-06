@@ -27,24 +27,12 @@ XlibSurfaceKHR::XlibSurfaceKHR(const VkXlibSurfaceCreateInfoKHR *pCreateInfo, vo
 	XVisualInfo xVisual;
 	Status status = libX11->XMatchVisualInfo(pDisplay, screen, 32, TrueColor, &xVisual);
 	bool match = (status != 0 && xVisual.blue_mask ==0xFF);
-	Visual *visual = match ? xVisual.visual : libX11->XDefaultVisual(pDisplay, screen);
-
-	XWindowAttributes attr;
-	libX11->XGetWindowAttributes(pDisplay, window, &attr);
-
-	int bytes_per_line = attr.width * 4;
-	int bytes_per_image = attr.height * bytes_per_line;
-
-	xImage = libX11->XCreateImage(pDisplay, visual, attr.depth, ZPixmap, 0, nullptr, attr.width, attr.height, 32, bytes_per_line);
-
+	visual = match ? xVisual.visual : libX11->XDefaultVisual(pDisplay, screen);
 }
 
 void XlibSurfaceKHR::destroySurface(const VkAllocationCallbacks *pAllocator)
 {
-	if(xImage)
-	{
-		XDestroyImage(xImage);
-	}
+
 }
 
 size_t XlibSurfaceKHR::ComputeRequiredAllocationSize(const VkXlibSurfaceCreateInfoKHR *pCreateInfo)
@@ -65,16 +53,46 @@ void XlibSurfaceKHR::getSurfaceCapabilities(VkSurfaceCapabilitiesKHR *pSurfaceCa
 	pSurfaceCapabilities->maxImageExtent = extent;
 }
 
-void XlibSurfaceKHR::present(VkImage image, VkDeviceMemory imageData)
+void XlibSurfaceKHR::attachImage(PresentImage* image)
 {
-	xImage->data = static_cast<char*>(vk::Cast(imageData)->getOffsetPointer(0));
-
 	XWindowAttributes attr;
 	libX11->XGetWindowAttributes(pDisplay, window, &attr);
 
-	libX11->XPutImage(pDisplay, window, gc, xImage, 0, 0, 0, 0, attr.width, attr.height);
+	VkExtent3D extent = vk::Cast(image->image)->getMipLevelExtent(0);
 
-	xImage->data = nullptr;
+	int bytes_per_line = vk::Cast(image->image)->rowPitchBytes(VK_IMAGE_ASPECT_COLOR_BIT, 0);
+	char* buffer = static_cast<char*>(vk::Cast(image->imageMemory)->getOffsetPointer(0));
+
+	XImage* xImage = libX11->XCreateImage(pDisplay, visual, attr.depth, ZPixmap, 0, buffer, extent.width, extent.height, 32, bytes_per_line);
+
+	imageMap[image] = xImage;
+}
+
+void XlibSurfaceKHR::detachImage(PresentImage* image)
+{
+	auto it = imageMap.find(image);
+	if(it != imageMap.end())
+	{
+		XImage* xImage = it->second;
+		xImage->data = nullptr; // the XImage does not actually own the buffer
+		XDestroyImage(xImage);
+		imageMap.erase(image);
+	}
+}
+
+void XlibSurfaceKHR::present(PresentImage* image)
+{
+	auto it = imageMap.find(image);
+	if(it != imageMap.end())
+	{
+		XImage* xImage = it->second;
+
+		if(xImage->data)
+		{
+			VkExtent3D extent = vk::Cast(image->image)->getMipLevelExtent(0);
+			libX11->XPutImage(pDisplay, window, gc, xImage, 0, 0, 0, 0, extent.width, extent.height);
+		}
+	}
 }
 
 }

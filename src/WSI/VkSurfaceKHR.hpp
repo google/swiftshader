@@ -22,6 +22,21 @@
 namespace vk
 {
 
+enum PresentImageStatus
+{
+	NONEXISTENT, //  Image wasn't made
+	AVAILABLE,
+	DRAWING,
+	PRESENTING,
+};
+
+struct PresentImage
+{
+	VkImage image;
+	VkDeviceMemory imageMemory;
+	PresentImageStatus imageStatus;
+};
+
 class SurfaceKHR
 {
 public:
@@ -45,7 +60,9 @@ public:
 	uint32_t getPresentModeCount() const;
 	VkResult getPresentModes(uint32_t* pPresentModeCount, VkPresentModeKHR* pPresentModes) const;
 
-	virtual void present(VkImage image, VkDeviceMemory imageData) = 0;
+	virtual void attachImage(PresentImage* image) = 0;
+	virtual void detachImage(PresentImage* image) = 0;
+	virtual void present(PresentImage* image) = 0;
 
 private:
 	const std::vector<VkSurfaceFormatKHR> surfaceFormats =
