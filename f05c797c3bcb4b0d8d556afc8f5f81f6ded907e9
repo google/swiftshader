@@ -168,6 +168,30 @@
     },
     {
       "key": {
+        "uuid": "fbf01c83_0e46eb07",
+        "filename": "src/Pipeline/SpirvShader.hpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 227,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-03-07T21:25:53Z",
+      "side": 1,
+      "message": "Still happy to land this as-is and change later.\n\n(I think push constants should be the same as uniform buffers from the SPIR-V implementation perspective. So no need to discern between them here.)",
+      "parentUuid": "386324ec_95104446",
+      "range": {
+        "startLine": 227,
+        "startChar": 4,
+        "endLine": 227,
+        "endChar": 19
+      },
+      "revId": "f05c797c3bcb4b0d8d556afc8f5f81f6ded907e9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "997573e1_4c9162ac",
         "filename": "src/Pipeline/SpirvShader.hpp",
         "patchSetId": 11

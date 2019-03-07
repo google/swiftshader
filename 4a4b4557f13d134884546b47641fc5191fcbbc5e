@@ -99,6 +99,24 @@
       "revId": "4a4b4557f13d134884546b47641fc5191fcbbc5e",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "dbb46964_3703d297",
+        "filename": "src/Pipeline/SpirvShader.cpp",
+        "patchSetId": 14
+      },
+      "lineNbr": 550,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-03-07T21:25:53Z",
+      "side": 1,
+      "message": "No objections. We have three people aware of having to adjust this later.",
+      "parentUuid": "417c24e5_c2d818fa",
+      "revId": "4a4b4557f13d134884546b47641fc5191fcbbc5e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
