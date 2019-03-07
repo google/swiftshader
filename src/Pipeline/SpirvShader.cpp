@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include <spirv/unified1/spirv.hpp>
+#include <spirv/unified1/GLSL.std.450.h>
 #include "SpirvShader.hpp"
 #include "System/Math.hpp"
 #include "Vulkan/VkBuffer.hpp"
@@ -235,6 +236,11 @@ namespace sw
 			case spv::OpExtInstImport:
 				// We will only support the GLSL 450 extended instruction set, so no point in tracking the ID we assign it.
 				// Valid shaders will not attempt to import any other instruction sets.
+				if (0 != strcmp("GLSL.std.450", reinterpret_cast<char const *>(insn.wordPointer(2))))
+				{
+					UNIMPLEMENTED("Only GLSL extended instruction set is supported");
+				}
+				break;
 			case spv::OpName:
 			case spv::OpMemberName:
 			case spv::OpSource:
@@ -319,6 +325,7 @@ namespace sw
 			case spv::OpConvertUToF:
 			case spv::OpBitcast:
 			case spv::OpSelect:
+			case spv::OpExtInst:
 				// Instructions that yield an intermediate value
 			{
 				TypeID typeId = insn.word(1);
@@ -1051,6 +1058,10 @@ namespace sw
 				EmitSelect(insn, routine);
 				break;
 
+			case spv::OpExtInst:
+				EmitExtendedInstruction(insn, routine);
+				break;
+
 			default:
 				UNIMPLEMENTED(OpcodeName(insn.opcode()).c_str());
 				break;
@@ -1592,6 +1603,37 @@ namespace sw
 			auto rhs = srcRHS[i];
 			auto out = (cond & As<Int4>(lhs)) | (~cond & As<Int4>(rhs));   // FIXME: IfThenElse()
 			dst.emplace(i, As<SIMD::Float>(out));
+		}
+	}
+
+	void SpirvShader::EmitExtendedInstruction(InsnIterator insn, SpirvRoutine *routine) const
+	{
+		auto &type = getType(insn.word(1));
+		auto &dst = routine->createIntermediate(insn.word(2), type.sizeInComponents);
+		auto extInstIndex = static_cast<GLSLstd450>(insn.word(4));
+
+		switch (extInstIndex)
+		{
+		case GLSLstd450FAbs:
+		{
+			auto src = GenericValue(this, routine, insn.word(5));
+			for (auto i = 0u; i < type.sizeInComponents; i++)
+			{
+				dst.emplace(i, Abs(src[i]));
+			}
+			break;
+		}
+		case GLSLstd450SAbs:
+		{
+			auto src = GenericValue(this, routine, insn.word(5));
+			for (auto i = 0u; i < type.sizeInComponents; i++)
+			{
+				dst.emplace(i, As<SIMD::Float>(Abs(As<SIMD::Int>(src[i]))));
+			}
+			break;
+		}
+		default:
+			UNIMPLEMENTED("Unhandled ExtInst %d", extInstIndex);
 		}
 	}
 
