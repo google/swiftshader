@@ -1,3 +1,11 @@
+dEQP-GLES3.functional.attribute_location.bind.float
+dEQP-GLES3.functional.attribute_location.bind.ivec2
+dEQP-GLES3.functional.attribute_location.bind.mat2
+dEQP-GLES3.functional.attribute_location.bind.mat2x2
+dEQP-GLES3.functional.attribute_location.bind.mat2x3
+dEQP-GLES3.functional.attribute_location.bind.mat3
+dEQP-GLES3.functional.attribute_location.bind.mat4x4
+dEQP-GLES3.functional.attribute_location.bind.vec2
 dEQP-GLES3.functional.read_pixels.alignment.choose_1
 dEQP-GLES3.functional.read_pixels.alignment.choose_2
 dEQP-GLES3.functional.read_pixels.alignment.choose_4

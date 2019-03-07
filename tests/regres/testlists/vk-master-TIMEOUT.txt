@@ -10,4 +10,5 @@ dEQP-VK.pipeline.image.suballocation.sampling_type.combined.view_type.2d.format.
 dEQP-VK.pipeline.image.suballocation.sampling_type.combined.view_type.2d.format.etc2_r8g8b8a1_unorm_block.count_1.size.32x16
 dEQP-VK.pipeline.image.suballocation.sampling_type.combined.view_type.2d.format.etc2_r8g8b8a8_srgb_block.count_1.size.13x13
 dEQP-VK.pipeline.image.suballocation.sampling_type.combined.view_type.2d.format.etc2_r8g8b8a8_unorm_block.count_1.size.13x13
-dEQP-VK.pipeline.image_view.view_type.2d.format.eac_r11_unorm_block.component_swizzle.g_b_a_r
+dEQP-VK.pipeline.image_view.view_type.2d.format.eac_r11_unorm_block.component_swizzle.b_a_r_g
+dEQP-VK.pipeline.image_view.view_type.2d.format.eac_r11_unorm_block.subresource_range.array_layer_last
