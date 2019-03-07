@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "c5c561c4_400ed157",
+        "filename": "src/Pipeline/SpirvShader.cpp",
+        "patchSetId": 14
+      },
+      "lineNbr": 545,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-03-07T18:47:42Z",
+      "side": 1,
+      "message": "That\u0027s worse than Interleaved, to be frank. Replicated implies it\u0027s the same value that ends up in each lane.",
+      "range": {
+        "startLine": 545,
+        "startChar": 32,
+        "endLine": 545,
+        "endChar": 42
+      },
+      "revId": "4a4b4557f13d134884546b47641fc5191fcbbc5e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "97d285c0_c7169d16",
         "filename": "src/Pipeline/SpirvShader.cpp",
         "patchSetId": 14
@@ -16,6 +39,24 @@
       "revId": "4a4b4557f13d134884546b47641fc5191fcbbc5e",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e56a8ebd_dd6225bd",
+        "filename": "src/Pipeline/SpirvShader.cpp",
+        "patchSetId": 14
+      },
+      "lineNbr": 550,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-03-07T18:47:42Z",
+      "side": 1,
+      "message": "Ideally I think we should list all the enums that we expect this method to handle, with an UNREACHABLE for the default case. Also the Type::storageClass initialization by -1 should be given a symbolic name so we can use it here instead of a -1. That or we discern between intermediates and objects in memory differently.\n\nBut this works for now.",
+      "parentUuid": "97d285c0_c7169d16",
+      "revId": "4a4b4557f13d134884546b47641fc5191fcbbc5e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }

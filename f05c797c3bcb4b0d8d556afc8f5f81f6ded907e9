@@ -120,6 +120,30 @@
     },
     {
       "key": {
+        "uuid": "3e1a75ad_cd64f764",
+        "filename": "src/Pipeline/SpirvShader.hpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 227,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-03-07T18:47:42Z",
+      "side": 1,
+      "message": "BufferPointer works for me.\n\nBuffers are the only shader resources with a memory layout that isn\u0027t opaque, so pointer arithmetic is valid on them.",
+      "parentUuid": "0a4d7530_9ba25397",
+      "range": {
+        "startLine": 227,
+        "startChar": 4,
+        "endLine": 227,
+        "endChar": 19
+      },
+      "revId": "f05c797c3bcb4b0d8d556afc8f5f81f6ded907e9",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "997573e1_4c9162ac",
         "filename": "src/Pipeline/SpirvShader.hpp",
         "patchSetId": 11
