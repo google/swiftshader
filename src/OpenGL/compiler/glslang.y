@@ -1047,10 +1047,10 @@ layout_qualifier_id
         $$ = context->parseLayoutQualifier(*$1.string, @1);
     }
     | IDENTIFIER EQUAL INTCONSTANT {
-        $$ = context->parseLayoutQualifier(*$1.string, @1, *$3.string, $3.i, @3);
+        $$ = context->parseLayoutQualifier(*$1.string, @1, $3.i, @3);
     }
     | IDENTIFIER EQUAL UINTCONSTANT {
-        $$ = context->parseLayoutQualifier(*$1.string, @1, *$3.string, $3.i, @3);
+        $$ = context->parseLayoutQualifier(*$1.string, @1, $3.i, @3);
     }
     ;
 

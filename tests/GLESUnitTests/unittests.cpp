@@ -775,6 +775,98 @@ TEST_F(SwiftShaderTest, AttributeLocation)
 	Uninitialize();
 }
 
+// Test negative layout locations
+TEST_F(SwiftShaderTest, NegativeLocation)
+{
+	Initialize(3, false);
+
+	const std::string vs =
+		"#version 300 es\n"
+		"layout(location = 0x86868686u) in vec4 a0;\n"   // Explicitly bound in GLSL
+		"layout(location = 0x96969696u) in vec4 a2;\n"   // Explicitly bound in GLSL
+		"in vec4 a5;\n"                        // Bound to location 5 by API
+		"in mat2 a3;\n"                        // Implicit location
+		"in vec4 a1;\n"                        // Implicit location
+		"in vec4 a6;\n"                        // Implicit location
+		"out vec4 color;\n"
+		"void main()\n"
+		"{\n"
+		"   vec4 a34 = vec4(a3[0], a3[1]);\n"
+		"	gl_Position = a0;\n"
+		"   color = (a2 == vec4(1.0, 2.0, 3.0, 4.0) &&\n"
+		"            a34 == vec4(5.0, 6.0, 7.0, 8.0) &&\n"
+		"            a5 == vec4(9.0, 10.0, 11.0, 12.0) &&\n"
+		"            a1 == vec4(13.0, 14.0, 15.0, 16.0) &&\n"
+		"            a6 == vec4(17.0, 18.0, 19.0, 20.0)) ?\n"
+		"           vec4(0.0, 1.0, 0.0, 1.0) :\n"
+		"           vec4(1.0, 0.0, 0.0, 1.0);"
+		"}\n";
+
+	const std::string fs =
+		"#version 300 es\n"
+		"precision mediump float;\n"
+		"in vec4 color;\n"
+		"layout(location = 0xA6A6A6A6u) out vec4 fragColor;\n"
+		"void main()\n"
+		"{\n"
+		"	fragColor = color;\n"
+		"}\n";
+
+	{
+		GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
+		const char* vsSource[1] = { vs.c_str() };
+		glShaderSource(vertexShader, 1, vsSource, nullptr);
+		glCompileShader(vertexShader);
+		EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+		GLint vsCompileStatus = 0;
+		glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &vsCompileStatus);
+		EXPECT_EQ(vsCompileStatus, GL_FALSE);
+
+		// Expect the info log to contain "out of range: location must be non-negative". This is not a spec requirement.
+		GLsizei length = 0;
+		glGetShaderiv(vertexShader, GL_INFO_LOG_LENGTH, &length);
+		EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+		EXPECT_NE(length, 0);
+		char *log = new char[length];
+		GLsizei written = 0;
+		glGetShaderInfoLog(vertexShader, length, &written, log);
+		EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+		EXPECT_EQ(length, written + 1);
+		EXPECT_NE(strstr(log, "out of range: location must be non-negative"), nullptr);
+		delete[] log;
+
+		glDeleteShader(vertexShader);
+	}
+
+	{
+		GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+		const char* fsSource[1] = { fs.c_str() };
+		glShaderSource(fragmentShader, 1, fsSource, nullptr);
+		glCompileShader(fragmentShader);
+		EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+		GLint fsCompileStatus = 0;
+		glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &fsCompileStatus);
+		EXPECT_EQ(fsCompileStatus, GL_FALSE);
+
+		// Expect the info log to contain "out of range: location must be non-negative". This is not a spec requirement.
+		GLsizei length = 0;
+		glGetShaderiv(fragmentShader, GL_INFO_LOG_LENGTH, &length);
+		EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+		EXPECT_NE(length, 0);
+		char *log = new char[length];
+		GLsizei written = 0;
+		glGetShaderInfoLog(fragmentShader, length, &written, log);
+		EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+		EXPECT_EQ(length, written + 1);
+		EXPECT_NE(strstr(log, "out of range: location must be non-negative"), nullptr);
+		delete[] log;
+
+		glDeleteShader(fragmentShader);
+	}
+
+	Uninitialize();
+}
+
 // Tests clearing of a texture with 'dirty' content.
 TEST_F(SwiftShaderTest, ClearDirtyTexture)
 {
