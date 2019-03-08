@@ -1723,6 +1723,54 @@ namespace sw
 			}
 			break;
 		}
+		case GLSLstd450Trunc:
+		{
+			auto src = GenericValue(this, routine, insn.word(5));
+			for (auto i = 0u; i < type.sizeInComponents; i++)
+			{
+				dst.emplace(i, Trunc(src[i]));
+			}
+			break;
+		}
+		case GLSLstd450Ceil:
+		{
+			auto src = GenericValue(this, routine, insn.word(5));
+			for (auto i = 0u; i < type.sizeInComponents; i++)
+			{
+				dst.emplace(i, Ceil(src[i]));
+			}
+			break;
+		}
+		case GLSLstd450Fract:
+		{
+			auto src = GenericValue(this, routine, insn.word(5));
+			for (auto i = 0u; i < type.sizeInComponents; i++)
+			{
+				dst.emplace(i, Frac(src[i]));
+			}
+			break;
+		}
+		case GLSLstd450Round:
+		{
+			auto src = GenericValue(this, routine, insn.word(5));
+			for (auto i = 0u; i < type.sizeInComponents; i++)
+			{
+				dst.emplace(i, Round(src[i]));
+			}
+			break;
+		}
+		case GLSLstd450RoundEven:
+		{
+			auto src = GenericValue(this, routine, insn.word(5));
+			for (auto i = 0u; i < type.sizeInComponents; i++)
+			{
+				auto x = Round(src[i]);
+				// dst = round(src) + ((round(src) < src) * 2 - 1) * (fract(src) == 0.5) * isOdd(round(src));
+				dst.emplace(i, x + ((SIMD::Float(CmpLT(x, src[i]) & SIMD::Int(1)) * SIMD::Float(2.0f)) - SIMD::Float(1.0f)) *
+						SIMD::Float(CmpEQ(Frac(src[i]), SIMD::Float(0.5f)) & SIMD::Int(1)) * SIMD::Float(Int4(x) & SIMD::Int(1)));
+			}
+			break;
+		}
 		default:
 			UNIMPLEMENTED("Unhandled ExtInst %d", extInstIndex);
 		}
