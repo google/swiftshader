@@ -157,6 +157,9 @@
     <ClCompile Include="$(SolutionDir)src\Device\VertexProcessor.cpp">
       <Filter>src\Device</Filter>
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\Pipeline\ComputeProgram.cpp">
+      <Filter>src\Pipeline</Filter>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)src\Pipeline\Constants.cpp">
       <Filter>src\Pipeline</Filter>
     </ClCompile>
@@ -389,6 +392,9 @@
     </ClInclude>
     <ClInclude Include="$(SolutionDir)src\Device\VertexProcessor.hpp">
       <Filter>src\Device</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Pipeline\ComputeProgram.hpp">
+      <Filter>src\Pipeline</Filter>
     </ClInclude>
     <ClInclude Include="$(SolutionDir)src\Pipeline\Constants.hpp">
       <Filter>src\Pipeline</Filter>

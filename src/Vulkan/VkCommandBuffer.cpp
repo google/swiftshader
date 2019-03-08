@@ -19,6 +19,7 @@
 #include "VkImage.hpp"
 #include "VkImageView.hpp"
 #include "VkPipeline.hpp"
+#include "VkPipelineLayout.hpp"
 #include "VkRenderPass.hpp"
 #include "Device/Renderer.hpp"
 
@@ -121,6 +122,30 @@ protected:
 private:
 	VkPipelineBindPoint pipelineBindPoint;
 	VkPipeline pipeline;
+};
+
+class Dispatch : public CommandBuffer::Command
+{
+public:
+	Dispatch(uint32_t pGroupCountX, uint32_t pGroupCountY, uint32_t pGroupCountZ) :
+			groupCountX(pGroupCountX), groupCountY(pGroupCountY), groupCountZ(pGroupCountZ)
+	{
+	}
+
+protected:
+	void play(CommandBuffer::ExecutionState& executionState) override
+	{
+		ComputePipeline* pipeline = static_cast<ComputePipeline*>(
+			executionState.pipelines[VK_PIPELINE_BIND_POINT_COMPUTE]);
+		pipeline->run(groupCountX, groupCountY, groupCountZ,
+			MAX_BOUND_DESCRIPTOR_SETS,
+			executionState.boundDescriptorSets[VK_PIPELINE_BIND_POINT_COMPUTE]);
+	}
+
+private:
+	uint32_t groupCountX;
+	uint32_t groupCountY;
+	uint32_t groupCountZ;
 };
 
 struct VertexBufferBind : public CommandBuffer::Command
@@ -666,12 +691,15 @@ void CommandBuffer::pipelineBarrier(VkPipelineStageFlags srcStageMask, VkPipelin
 
 void CommandBuffer::bindPipeline(VkPipelineBindPoint pipelineBindPoint, VkPipeline pipeline)
 {
-	if(pipelineBindPoint != VK_PIPELINE_BIND_POINT_GRAPHICS)
+	switch(pipelineBindPoint)
 	{
-		UNIMPLEMENTED();
+		case VK_PIPELINE_BIND_POINT_COMPUTE:
+		case VK_PIPELINE_BIND_POINT_GRAPHICS:
+			addCommand<PipelineBind>(pipelineBindPoint, pipeline);
+			break;
+		default:
+			UNIMPLEMENTED();
 	}
-
-	addCommand<PipelineBind>(pipelineBindPoint, pipeline);
 }
 
 void CommandBuffer::bindVertexBuffers(uint32_t firstBinding, uint32_t bindingCount,
@@ -822,7 +850,7 @@ void CommandBuffer::bindIndexBuffer(VkBuffer buffer, VkDeviceSize offset, VkInde
 
 void CommandBuffer::dispatch(uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ)
 {
-	UNIMPLEMENTED();
+	addCommand<Dispatch>(groupCountX, groupCountY, groupCountZ);
 }
 
 void CommandBuffer::dispatchIndirect(VkBuffer buffer, VkDeviceSize offset)

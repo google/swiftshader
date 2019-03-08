@@ -15,6 +15,7 @@
 #include "VkPipeline.hpp"
 #include "VkPipelineLayout.hpp"
 #include "VkShaderModule.hpp"
+#include "Pipeline/ComputeProgram.hpp"
 #include "Pipeline/SpirvShader.hpp"
 
 #include "spirv-tools/optimizer.hpp"
@@ -538,11 +539,43 @@ ComputePipeline::ComputePipeline(const VkComputePipelineCreateInfo* pCreateInfo,
 
 void ComputePipeline::destroyPipeline(const VkAllocationCallbacks* pAllocator)
 {
+	delete shader;
 }
 
 size_t ComputePipeline::ComputeRequiredAllocationSize(const VkComputePipelineCreateInfo* pCreateInfo)
 {
 	return 0;
+}
+
+void ComputePipeline::compileShaders(const VkAllocationCallbacks* pAllocator, const VkComputePipelineCreateInfo* pCreateInfo)
+{
+	auto module = Cast(pCreateInfo->stage.module);
+
+	auto code = preprocessSpirv(module->getCode(), pCreateInfo->stage.pSpecializationInfo);
+
+	ASSERT_OR_RETURN(code.size() > 0);
+
+	ASSERT(shader == nullptr);
+
+	// FIXME (b/119409619): use allocator.
+	shader = new sw::SpirvShader(code);
+
+	sw::ComputeProgram program(shader, layout);
+
+	program.generate();
+
+	// TODO(bclayton): Cache program
+	routine = program("ComputeRoutine");
+}
+
+void ComputePipeline::run(uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ,
+	size_t numDescriptorSets, VkDescriptorSet *descriptorSets)
+{
+	ASSERT_OR_RETURN(routine != nullptr);
+	sw::ComputeProgram::run(
+		routine,
+		numDescriptorSets, reinterpret_cast<void**>(descriptorSets),
+		groupCountX, groupCountY, groupCountZ);
 }
 
 } // namespace vk

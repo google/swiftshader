@@ -300,6 +300,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)src\Device\Vector.hpp" />
     <ClInclude Include="$(SolutionDir)src\Device\Vertex.hpp" />
     <ClInclude Include="$(SolutionDir)src\Device\VertexProcessor.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Pipeline\ComputeProgram.cpp"  />
     <ClCompile Include="$(SolutionDir)src\Pipeline\Constants.cpp"  />
     <ClCompile Include="$(SolutionDir)src\Pipeline\PixelProgram.cpp"  />
     <ClCompile Include="$(SolutionDir)src\Pipeline\PixelRoutine.cpp"  />
@@ -309,6 +310,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClCompile Include="$(SolutionDir)src\Pipeline\SpirvShader.cpp"  />
     <ClCompile Include="$(SolutionDir)src\Pipeline\VertexProgram.cpp"  />
     <ClCompile Include="$(SolutionDir)src\Pipeline\VertexRoutine.cpp"  />
+    <ClInclude Include="$(SolutionDir)src\Pipeline\ComputeProgram.hpp" />
     <ClInclude Include="$(SolutionDir)src\Pipeline\Constants.hpp" />
     <ClInclude Include="$(SolutionDir)src\Pipeline\PixelProgram.hpp" />
     <ClInclude Include="$(SolutionDir)src\Pipeline\PixelRoutine.hpp" />
