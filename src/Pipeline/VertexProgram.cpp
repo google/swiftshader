@@ -84,23 +84,6 @@ namespace sw
 		spirvShader->emitEpilog(&routine);
 	}
 
-	RValue<Pointer<Byte>> VertexProgram::uniformAddress(int bufferIndex, unsigned int index)
-	{
-		if(bufferIndex == -1)
-		{
-			return data + OFFSET(DrawData, vs.c[index]);
-		}
-		else
-		{
-			return *Pointer<Pointer<Byte>>(data + OFFSET(DrawData, vs.u[bufferIndex])) + index;
-		}
-	}
-
-	RValue<Pointer<Byte>> VertexProgram::uniformAddress(int bufferIndex, unsigned int index, Int &offset)
-	{
-		return uniformAddress(bufferIndex, index) + offset * sizeof(float4);
-	}
-
 	Int4 VertexProgram::enableMask()
 	{
 		Int4 enable = true ? Int4(enableStack[enableIndex]) : Int4(0xFFFFFFFF);
