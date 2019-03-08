@@ -246,6 +246,10 @@ namespace sw
 			case spv::OpSource:
 			case spv::OpSourceContinued:
 			case spv::OpSourceExtension:
+			case spv::OpLine:
+			case spv::OpNoLine:
+			case spv::OpModuleProcessed:
+			case spv::OpString:
 				// No semantic impact
 				break;
 
@@ -952,6 +956,10 @@ namespace sw
 			case spv::OpSource:
 			case spv::OpSourceContinued:
 			case spv::OpSourceExtension:
+			case spv::OpLine:
+			case spv::OpNoLine:
+			case spv::OpModuleProcessed:
+			case spv::OpString:
 				// Nothing to do at emit time. These are either fully handled at analysis time,
 				// or don't require any work at all.
 				break;
