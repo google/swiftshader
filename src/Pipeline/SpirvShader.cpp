@@ -719,7 +719,9 @@ namespace sw
 			case spv::OpTypeVector:
 			case spv::OpTypeMatrix:
 			case spv::OpTypeArray:
+			case spv::OpTypeRuntimeArray:
 			{
+				// TODO: b/127950082: Check bounds.
 				auto stride = getType(type.element).sizeInComponents;
 				auto & obj = getObject(indexIds[i]);
 				if (obj.kind == Object::Kind::Constant)
