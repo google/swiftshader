@@ -1412,6 +1412,10 @@ namespace sw
 		auto &type = getType(insn.word(1));
 		auto &dst = routine->createIntermediate(insn.word(2), type.sizeInComponents);
 
+		// Note: number of components in result type, first half type, and second
+		// half type are all independent.
+		auto &firstHalfType = getType(getObject(insn.word(3)).type);
+
 		GenericValue firstHalfAccess(this, routine, insn.word(3));
 		GenericValue secondHalfAccess(this, routine, insn.word(4));
 
@@ -1424,13 +1428,13 @@ namespace sw
 				// a value as any
 				dst.emplace(i, RValue<SIMD::Float>(0.0f));
 			}
-			else if (selector < type.sizeInComponents)
+			else if (selector < firstHalfType.sizeInComponents)
 			{
 				dst.emplace(i, firstHalfAccess[selector]);
 			}
 			else
 			{
-				dst.emplace(i, secondHalfAccess[selector - type.sizeInComponents]);
+				dst.emplace(i, secondHalfAccess[selector - firstHalfType.sizeInComponents]);
 			}
 		}
 	}
