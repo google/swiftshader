@@ -499,30 +499,46 @@ namespace sw
 		void ApplyDecorationsForIdMember(Decorations *d, Type::ID id, uint32_t member) const;
 
 		// Returns true if data in the given storage class is word-interleaved
-		// by each SIMD vector lane, otherwise data is linerally stored.
+		// by each SIMD vector lane, otherwise data is stored linerally.
 		//
-		// A 'lane' is a component of a SIMD vector register.
-		// Given 4 consecutive loads/stores of 4 SIMD vector registers:
+		// Each lane addresses a single word, picked by a base pointer and an
+		// integer offset.
 		//
-		// "StorageInterleavedByLane":
+		// A word is currently 32 bits (single float, int32_t, uint32_t).
+		// A lane is a single element of a SIMD vector register.
 		//
-		//  Ptr+0:Reg0.x | Ptr+1:Reg0.y | Ptr+2:Reg0.z | Ptr+3:Reg0.w
-		// --------------+--------------+--------------+--------------
-		//  Ptr+4:Reg1.x | Ptr+5:Reg1.y | Ptr+6:Reg1.z | Ptr+7:Reg1.w
-		// --------------+--------------+--------------+--------------
-		//  Ptr+8:Reg2.x | Ptr+9:Reg2.y | Ptr+a:Reg2.z | Ptr+b:Reg2.w
-		// --------------+--------------+--------------+--------------
-		//  Ptr+c:Reg3.x | Ptr+d:Reg3.y | Ptr+e:Reg3.z | Ptr+f:Reg3.w
+		// Storage interleaved by lane - (IsStorageInterleavedByLane() == true):
+		// ---------------------------------------------------------------------
 		//
-		// Not "StorageInterleavedByLane":
+		// Address = PtrBase + sizeof(Word) * (SIMD::Width * LaneOffset + LaneIndex)
 		//
-		//  Ptr+0:Reg0.x | Ptr+0:Reg0.y | Ptr+0:Reg0.z | Ptr+0:Reg0.w
-		// --------------+--------------+--------------+--------------
-		//  Ptr+1:Reg1.x | Ptr+1:Reg1.y | Ptr+1:Reg1.z | Ptr+1:Reg1.w
-		// --------------+--------------+--------------+--------------
-		//  Ptr+2:Reg2.x | Ptr+2:Reg2.y | Ptr+2:Reg2.z | Ptr+2:Reg2.w
-		// --------------+--------------+--------------+--------------
-		//  Ptr+3:Reg3.x | Ptr+3:Reg3.y | Ptr+3:Reg3.z | Ptr+3:Reg3.w
+		// Assuming SIMD::Width == 4:
+		//
+		//                   Lane[0]  |  Lane[1]  |  Lane[2]  |  Lane[3]
+		//                 ===========+===========+===========+==========
+		//  LaneOffset=0: |  Word[0]  |  Word[1]  |  Word[2]  |  Word[3]
+		// ---------------+-----------+-----------+-----------+----------
+		//  LaneOffset=1: |  Word[4]  |  Word[5]  |  Word[6]  |  Word[7]
+		// ---------------+-----------+-----------+-----------+----------
+		//  LaneOffset=2: |  Word[8]  |  Word[9]  |  Word[a]  |  Word[b]
+		// ---------------+-----------+-----------+-----------+----------
+		//  LaneOffset=3: |  Word[c]  |  Word[d]  |  Word[e]  |  Word[f]
+		//
+		//
+		// Linear storage - (IsStorageInterleavedByLane() == false):
+		// ---------------------------------------------------------
+		//
+		// Address = PtrBase + sizeof(Word) * LaneOffset
+		//
+		//                   Lane[0]  |  Lane[1]  |  Lane[2]  |  Lane[3]
+		//                 ===========+===========+===========+==========
+		//  LaneOffset=0: |  Word[0]  |  Word[0]  |  Word[0]  |  Word[0]
+		// ---------------+-----------+-----------+-----------+----------
+		//  LaneOffset=1: |  Word[1]  |  Word[1]  |  Word[1]  |  Word[1]
+		// ---------------+-----------+-----------+-----------+----------
+		//  LaneOffset=2: |  Word[2]  |  Word[2]  |  Word[2]  |  Word[2]
+		// ---------------+-----------+-----------+-----------+----------
+		//  LaneOffset=3: |  Word[3]  |  Word[3]  |  Word[3]  |  Word[3]
 		//
 		static bool IsStorageInterleavedByLane(spv::StorageClass storageClass);
 
