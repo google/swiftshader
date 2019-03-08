@@ -444,6 +444,7 @@ namespace sw
 		void EmitCompositeInsert(InsnIterator insn, SpirvRoutine *routine) const;
 		void EmitCompositeExtract(InsnIterator insn, SpirvRoutine *routine) const;
 		void EmitVectorShuffle(InsnIterator insn, SpirvRoutine *routine) const;
+		void EmitVectorTimesScalar(InsnIterator insn, SpirvRoutine *routine) const;
 		void EmitUnaryOp(InsnIterator insn, SpirvRoutine *routine) const;
 		void EmitBinaryOp(InsnIterator insn, SpirvRoutine *routine) const;
 		void EmitDot(InsnIterator insn, SpirvRoutine *routine) const;

@@ -337,6 +337,7 @@ namespace sw
 			case spv::OpIsNan:
 			case spv::OpAny:
 			case spv::OpAll:
+			case spv::OpVectorTimesScalar:
 				// Instructions that yield an intermediate value
 			{
 				TypeID typeId = insn.word(1);
@@ -1039,6 +1040,10 @@ namespace sw
 				EmitVectorShuffle(insn, routine);
 				break;
 
+			case spv::OpVectorTimesScalar:
+				EmitVectorTimesScalar(insn, routine);
+				break;
+
 			case spv::OpNot:
 			case spv::OpSNegate:
 			case spv::OpFNegate:
@@ -1440,6 +1445,19 @@ namespace sw
 			{
 				dst.emplace(i, secondHalfAccess[selector - firstHalfType.sizeInComponents]);
 			}
+		}
+	}
+
+	void SpirvShader::EmitVectorTimesScalar(InsnIterator insn, SpirvRoutine *routine) const
+	{
+		auto &type = getType(insn.word(1));
+		auto &dst = routine->createIntermediate(insn.word(2), type.sizeInComponents);
+		auto srcLHS = GenericValue(this, routine, insn.word(3));
+		auto srcRHS = GenericValue(this, routine, insn.word(4));
+
+		for (auto i = 0u; i < type.sizeInComponents; i++)
+		{
+			dst.emplace(i, srcLHS[i] * srcRHS[0]);
 		}
 	}
 
