@@ -1699,6 +1699,15 @@ namespace sw
 			}
 			break;
 		}
+		case GLSLstd450Cross:
+		{
+			auto lhs = GenericValue(this, routine, insn.word(5));
+			auto rhs = GenericValue(this, routine, insn.word(6));
+			dst.emplace(0, lhs[1] * rhs[2] - rhs[1] * lhs[2]);
+			dst.emplace(1, lhs[2] * rhs[0] - rhs[2] * lhs[0]);
+			dst.emplace(2, lhs[0] * rhs[1] - rhs[0] * lhs[1]);
+			break;
+		}
 		default:
 			UNIMPLEMENTED("Unhandled ExtInst %d", extInstIndex);
 		}
