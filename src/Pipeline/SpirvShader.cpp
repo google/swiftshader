@@ -332,6 +332,8 @@ namespace sw
 			case spv::OpExtInst:
 			case spv::OpIsInf:
 			case spv::OpIsNan:
+			case spv::OpAny:
+			case spv::OpAll:
 				// Instructions that yield an intermediate value
 			{
 				TypeID typeId = insn.word(1);
@@ -1104,6 +1106,14 @@ namespace sw
 				EmitExtendedInstruction(insn, routine);
 				break;
 
+			case spv::OpAny:
+				EmitAny(insn, routine);
+				break;
+
+			case spv::OpAll:
+				EmitAll(insn, routine);
+				break;
+
 			default:
 				UNIMPLEMENTED(OpcodeName(insn.opcode()).c_str());
 				break;
@@ -1683,6 +1693,42 @@ namespace sw
 		default:
 			UNIMPLEMENTED("Unhandled ExtInst %d", extInstIndex);
 		}
+	}
+
+	void SpirvShader::EmitAny(InsnIterator insn, SpirvRoutine *routine) const
+	{
+		auto &type = getType(insn.word(1));
+		assert(type.sizeInComponents == 1);
+		auto &dst = routine->createIntermediate(insn.word(2), type.sizeInComponents);
+		auto &srcType = getType(getObject(insn.word(3)).type);
+		auto src = GenericValue(this, routine, insn.word(3));
+
+		SIMD::UInt result = As<SIMD::UInt>(src[0]);
+
+		for (auto i = 1u; i < srcType.sizeInComponents; i++)
+		{
+			result |= As<SIMD::UInt>(src[i]);
+		}
+
+		dst.emplace(0, As<SIMD::Float>(result));
+	}
+
+	void SpirvShader::EmitAll(InsnIterator insn, SpirvRoutine *routine) const
+	{
+		auto &type = getType(insn.word(1));
+		assert(type.sizeInComponents == 1);
+		auto &dst = routine->createIntermediate(insn.word(2), type.sizeInComponents);
+		auto &srcType = getType(getObject(insn.word(3)).type);
+		auto src = GenericValue(this, routine, insn.word(3));
+
+		SIMD::UInt result = As<SIMD::UInt>(src[0]);
+
+		for (auto i = 1u; i < srcType.sizeInComponents; i++)
+		{
+			result &= As<SIMD::UInt>(src[i]);
+		}
+
+		dst.emplace(0, As<SIMD::Float>(result));
 	}
 
 	void SpirvShader::emitEpilog(SpirvRoutine *routine) const

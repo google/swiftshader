@@ -449,6 +449,8 @@ namespace sw
 		void EmitDot(InsnIterator insn, SpirvRoutine *routine) const;
 		void EmitSelect(InsnIterator insn, SpirvRoutine *routine) const;
 		void EmitExtendedInstruction(InsnIterator insn, SpirvRoutine *routine) const;
+		void EmitAny(InsnIterator insn, SpirvRoutine *routine) const;
+		void EmitAll(InsnIterator insn, SpirvRoutine *routine) const;
 
 		// OpcodeName returns the name of the opcode op.
 		// If NDEBUG is defined, then OpcodeName will only return the numerical code.
