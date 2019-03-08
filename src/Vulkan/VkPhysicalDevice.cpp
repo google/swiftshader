@@ -137,11 +137,11 @@ const VkPhysicalDeviceLimits& PhysicalDevice::getLimits() const
 
 	static const VkPhysicalDeviceLimits limits =
 	{
-		(1 << vk::MAX_IMAGE_LEVELS_1D), // maxImageDimension1D
-		(1 << vk::MAX_IMAGE_LEVELS_2D), // maxImageDimension2D
-		(1 << vk::MAX_IMAGE_LEVELS_3D), // maxImageDimension3D
-		(1 << vk::MAX_IMAGE_LEVELS_CUBE), // maxImageDimensionCube
-		(1 << vk::MAX_IMAGE_ARRAY_LAYERS), // maxImageArrayLayers
+		1 << (vk::MAX_IMAGE_LEVELS_1D - 1), // maxImageDimension1D
+		1 << (vk::MAX_IMAGE_LEVELS_2D - 1), // maxImageDimension2D
+		1 << (vk::MAX_IMAGE_LEVELS_3D - 1), // maxImageDimension3D
+		1 << (vk::MAX_IMAGE_LEVELS_CUBE - 1), // maxImageDimensionCube
+		vk::MAX_IMAGE_ARRAY_LAYERS, // maxImageArrayLayers
 		65536, // maxTexelBufferElements
 		16384, // maxUniformBufferRange
 		(1ul << 27), // maxStorageBufferRange
@@ -607,13 +607,13 @@ void PhysicalDevice::getImageFormatProperties(VkFormat format, VkImageType type,
                                               VkImageUsageFlags usage, VkImageCreateFlags flags,
 	                                          VkImageFormatProperties* pImageFormatProperties) const
 {
-	pImageFormatProperties->maxArrayLayers = 1 << vk::MAX_IMAGE_ARRAY_LAYERS;
+	pImageFormatProperties->maxArrayLayers = vk::MAX_IMAGE_ARRAY_LAYERS;
 
 	switch(type)
 	{
 	case VK_IMAGE_TYPE_1D:
 		pImageFormatProperties->maxMipLevels = vk::MAX_IMAGE_LEVELS_1D;
-		pImageFormatProperties->maxExtent.width = 1 << vk::MAX_IMAGE_LEVELS_1D;
+		pImageFormatProperties->maxExtent.width = 1 << (vk::MAX_IMAGE_LEVELS_1D - 1);
 		pImageFormatProperties->maxExtent.height = 1;
 		pImageFormatProperties->maxExtent.depth = 1;
 		break;
@@ -621,23 +621,23 @@ void PhysicalDevice::getImageFormatProperties(VkFormat format, VkImageType type,
 		if(flags & VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT)
 		{
 			pImageFormatProperties->maxMipLevels = vk::MAX_IMAGE_LEVELS_CUBE;
-			pImageFormatProperties->maxExtent.width = 1 << vk::MAX_IMAGE_LEVELS_CUBE;
-			pImageFormatProperties->maxExtent.height = 1 << vk::MAX_IMAGE_LEVELS_CUBE;
+			pImageFormatProperties->maxExtent.width = 1 << (vk::MAX_IMAGE_LEVELS_CUBE - 1);
+			pImageFormatProperties->maxExtent.height = 1 << (vk::MAX_IMAGE_LEVELS_CUBE - 1);
 			pImageFormatProperties->maxExtent.depth = 1;
 		}
 		else
 		{
 			pImageFormatProperties->maxMipLevels = vk::MAX_IMAGE_LEVELS_2D;
-			pImageFormatProperties->maxExtent.width = 1 << vk::MAX_IMAGE_LEVELS_2D;
-			pImageFormatProperties->maxExtent.height = 1 << vk::MAX_IMAGE_LEVELS_2D;
+			pImageFormatProperties->maxExtent.width = 1 << (vk::MAX_IMAGE_LEVELS_2D - 1);
+			pImageFormatProperties->maxExtent.height = 1 << (vk::MAX_IMAGE_LEVELS_2D - 1);
 			pImageFormatProperties->maxExtent.depth = 1;
 		}
 		break;
 	case VK_IMAGE_TYPE_3D:
 		pImageFormatProperties->maxMipLevels = vk::MAX_IMAGE_LEVELS_3D;
-		pImageFormatProperties->maxExtent.width = 1 << vk::MAX_IMAGE_LEVELS_3D;
-		pImageFormatProperties->maxExtent.height = 1 << vk::MAX_IMAGE_LEVELS_3D;
-		pImageFormatProperties->maxExtent.depth = 1 << vk::MAX_IMAGE_LEVELS_3D;
+		pImageFormatProperties->maxExtent.width = 1 << (vk::MAX_IMAGE_LEVELS_3D - 1);
+		pImageFormatProperties->maxExtent.height = 1 << (vk::MAX_IMAGE_LEVELS_3D - 1);
+		pImageFormatProperties->maxExtent.depth = 1 << (vk::MAX_IMAGE_LEVELS_3D - 1);
 		break;
 	default:
 		UNREACHABLE(type);
