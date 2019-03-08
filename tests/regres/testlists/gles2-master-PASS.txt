@@ -4,6 +4,7 @@ dEQP-GLES2.functional.attribute_location.bind.mat3
 dEQP-GLES2.functional.attribute_location.bind.mat4
 dEQP-GLES2.functional.attribute_location.bind.vec2
 dEQP-GLES2.functional.attribute_location.bind.vec3
+dEQP-GLES2.functional.attribute_location.bind.vec4
 dEQP-GLES2.functional.attribute_location.bind_aliasing.max_inactive_float
 dEQP-GLES2.functional.attribute_location.bind_aliasing.max_inactive_mat2
 dEQP-GLES2.functional.attribute_location.bind_aliasing.max_inactive_mat3
@@ -53,6 +54,7 @@ dEQP-GLES2.functional.buffer.write.random.1
 dEQP-GLES2.functional.buffer.write.random.2
 dEQP-GLES2.functional.buffer.write.random.3
 dEQP-GLES2.functional.buffer.write.random.4
+dEQP-GLES2.functional.buffer.write.random.5
 dEQP-GLES2.functional.buffer.write.random.6
 dEQP-GLES2.functional.buffer.write.random.7
 dEQP-GLES2.functional.buffer.write.random.8

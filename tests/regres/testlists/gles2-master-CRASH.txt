@@ -1,5 +1,3 @@
-dEQP-GLES2.functional.attribute_location.bind.vec4
-dEQP-GLES2.functional.buffer.write.random.5
 dEQP-GLES2.functional.read_pixels.choose_align_1
 dEQP-GLES2.functional.read_pixels.choose_align_2
 dEQP-GLES2.functional.read_pixels.choose_align_4
