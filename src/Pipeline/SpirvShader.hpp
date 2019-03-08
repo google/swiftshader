@@ -94,6 +94,10 @@ namespace sw
 			new (&contents[n]) Scalar(value);
 		}
 
+		// Emplace with cast helpers.
+		void emplace(uint32_t n, const RValue<SIMD::Int>& value) { emplace(n, As<SIMD::Float>(value)); }
+		void emplace(uint32_t n, const RValue<SIMD::UInt>& value) { emplace(n, As<SIMD::Float>(value)); }
+
 		Scalar const & operator[](uint32_t n) const
 		{
 			ASSERT(n < size);
