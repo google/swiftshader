@@ -1250,10 +1250,9 @@ namespace sw
 		TypeID typeId = insn.word(1);
 		ObjectID objectId = insn.word(2);
 		ObjectID baseId = insn.word(3);
-		auto &object = getObject(objectId);
 		auto &type = getType(typeId);
 		ASSERT(type.sizeInComponents == 1);
-		ASSERT(getObject(baseId).pointerBase == object.pointerBase);
+		ASSERT(getObject(baseId).pointerBase == getObject(objectId).pointerBase);
 
 		auto &dst = routine->createIntermediate(objectId, type.sizeInComponents);
 		dst.emplace(0, As<SIMD::Float>(WalkAccessChain(baseId, insn.wordCount() - 4, insn.wordPointer(4), routine)));
