@@ -974,7 +974,7 @@ func (t *test) deqpTestRoutine(exe string, tests <-chan string, results chan<- T
 			case "CompatibilityWarning":
 				results <- TestResult{Test: name, Status: CompatibilityWarning}
 			case "QualityWarning":
-				results <- TestResult{Test: name, Status: CompatibilityWarning}
+				results <- TestResult{Test: name, Status: QualityWarning}
 			case "Fail":
 				var err string
 				if toks[2] != "Fail" {
