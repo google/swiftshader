@@ -881,14 +881,18 @@ func compare(old, new *CommitTestResults) string {
 
 	for test, new := range new.Tests {
 		old, found := old.Tests[test]
+		if !found {
+			log.Printf("Test result for '%s' not found on old change\n", test)
+			continue
+		}
 		switch {
-		case found && old.Status.Passing() && new.Status.Failing():
+		case old.Status.Passing() && new.Status.Failing():
 			broken = append(broken, test)
-		case found && old.Status.Failing() && new.Status.Passing():
+		case old.Status.Failing() && new.Status.Passing():
 			fixed = append(fixed, test)
-		case found && old.Status != new.Status:
+		case old.Status != new.Status:
 			changed = append(changed, test)
-		case found && old.Status.Failing() && new.Status.Failing():
+		case old.Status.Failing() && new.Status.Failing():
 			failing = append(failing, test) // Still broken
 		}
 		totalTests++
