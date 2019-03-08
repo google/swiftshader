@@ -710,36 +710,46 @@ namespace rr
 
 	Optimization optimization[10] = {InstructionCombining, Disabled};
 
-	enum EmulatedType
+	// The abstract Type* types are implemented as LLVM types, except that
+	// 64-bit vectors are emulated using 128-bit ones to avoid use of MMX in x86
+	// and VFP in ARM, and eliminate the overhead of converting them to explicit
+	// 128-bit ones. LLVM types are pointers, so we can represent emulated types
+	// as abstract pointers with small enum values.
+	enum InternalType : uintptr_t
 	{
+		// Emulated types:
 		Type_v2i32,
 		Type_v4i16,
 		Type_v2i16,
 		Type_v8i8,
 		Type_v4i8,
 		Type_v2f32,
-		EmulatedTypeCount
+		EmulatedTypeCount,
+		// Returned by asInternalType() to indicate that the abstract Type*
+		// should be interpreted as LLVM type pointer:
+		Type_LLVM
 	};
+
+	inline InternalType asInternalType(Type *type)
+	{
+		InternalType t = static_cast<InternalType>(reinterpret_cast<uintptr_t>(type));
+		return (t < EmulatedTypeCount) ? t : Type_LLVM;
+	}
 
 	llvm::Type *T(Type *t)
 	{
-		uintptr_t type = reinterpret_cast<uintptr_t>(t);
-		if(type < EmulatedTypeCount)
+		// Use 128-bit vectors to implement logically shorter ones.
+		switch(asInternalType(t))
 		{
-			// Use 128-bit vectors to implement logically shorter ones.
-			switch(type)
-			{
-			case Type_v2i32: return T(Int4::getType());
-			case Type_v4i16: return T(Short8::getType());
-			case Type_v2i16: return T(Short8::getType());
-			case Type_v8i8:  return T(Byte16::getType());
-			case Type_v4i8:  return T(Byte16::getType());
-			case Type_v2f32: return T(Float4::getType());
-			default: assert(false);
-			}
+		case Type_v2i32: return T(Int4::getType());
+		case Type_v4i16: return T(Short8::getType());
+		case Type_v2i16: return T(Short8::getType());
+		case Type_v8i8:  return T(Byte16::getType());
+		case Type_v4i8:  return T(Byte16::getType());
+		case Type_v2f32: return T(Float4::getType());
+		case Type_LLVM:  return reinterpret_cast<llvm::Type*>(t);
+		default: assert(false); return nullptr;
 		}
-
-		return reinterpret_cast<llvm::Type*>(t);
 	}
 
 	inline Type *T(llvm::Type *t)
@@ -747,7 +757,7 @@ namespace rr
 		return reinterpret_cast<Type*>(t);
 	}
 
-	Type *T(EmulatedType t)
+	Type *T(InternalType t)
 	{
 		return reinterpret_cast<Type*>(t);
 	}
@@ -779,42 +789,52 @@ namespace rr
 
 	static size_t typeSize(Type *type)
 	{
-		uintptr_t t = reinterpret_cast<uintptr_t>(type);
-		if(t < EmulatedTypeCount)
+		switch(asInternalType(type))
 		{
-			switch(t)
+		case Type_v2i32: return 8;
+		case Type_v4i16: return 8;
+		case Type_v2i16: return 4;
+		case Type_v8i8:  return 8;
+		case Type_v4i8:  return 4;
+		case Type_v2f32: return 8;
+		case Type_LLVM:
 			{
-			case Type_v2i32: return 8;
-			case Type_v4i16: return 8;
-			case Type_v2i16: return 4;
-			case Type_v8i8:  return 8;
-			case Type_v4i8:  return 4;
-			case Type_v2f32: return 8;
-			default: assert(false);
-			}
-		}
+				llvm::Type *t = T(type);
 
-		return T(type)->getPrimitiveSizeInBits() / 8;
+				if(t->isPointerTy())
+				{
+					return sizeof(void*);
+				}
+
+				// At this point we should only have LLVM 'primitive' types.
+				unsigned int bits = t->getPrimitiveSizeInBits();
+				assert(bits != 0);
+
+				// TODO(capn): Booleans are 1 bit integers in LLVM's SSA type system,
+				// but are typically stored as one byte. The DataLayout structure should
+				// be used here and many other places if this assumption fails.
+				return (bits + 7) / 8;
+			}
+			break;
+		default:
+			assert(false);
+			return 0;
+		}
 	}
 
 	static unsigned int elementCount(Type *type)
 	{
-		uintptr_t t = reinterpret_cast<uintptr_t>(type);
-		if(t < EmulatedTypeCount)
+		switch(asInternalType(type))
 		{
-			switch(t)
-			{
-			case Type_v2i32: return 2;
-			case Type_v4i16: return 4;
-			case Type_v2i16: return 2;
-			case Type_v8i8:  return 8;
-			case Type_v4i8:  return 4;
-			case Type_v2f32: return 2;
-			default: assert(false);
-			}
+		case Type_v2i32: return 2;
+		case Type_v4i16: return 4;
+		case Type_v2i16: return 2;
+		case Type_v8i8:  return 8;
+		case Type_v4i8:  return 4;
+		case Type_v2f32: return 2;
+		case Type_LLVM:  return llvm::cast<llvm::VectorType>(T(type))->getNumElements();
+		default: assert(false); return 0;
 		}
-
-		return llvm::cast<llvm::VectorType>(T(type))->getNumElements();
 	}
 
 	Nucleus::Nucleus()
@@ -1171,77 +1191,69 @@ namespace rr
 
 	Value *Nucleus::createLoad(Value *ptr, Type *type, bool isVolatile, unsigned int alignment)
 	{
-		uintptr_t t = reinterpret_cast<uintptr_t>(type);
-		if(t < EmulatedTypeCount)
+		switch(asInternalType(type))
 		{
-			switch(t)
+		case Type_v2i32:
+		case Type_v4i16:
+		case Type_v8i8:
+		case Type_v2f32:
+			return createBitCast(
+				createInsertElement(
+					V(llvm::UndefValue::get(llvm::VectorType::get(T(Long::getType()), 2))),
+					createLoad(createBitCast(ptr, Pointer<Long>::getType()), Long::getType(), isVolatile, alignment),
+					0),
+				type);
+		case Type_v2i16:
+		case Type_v4i8:
+			if(alignment != 0)   // Not a local variable (all vectors are 128-bit).
 			{
-			case Type_v2i32:
-			case Type_v4i16:
-			case Type_v8i8:
-			case Type_v2f32:
-				return createBitCast(
-					createInsertElement(
-						V(llvm::UndefValue::get(llvm::VectorType::get(T(Long::getType()), 2))),
-						createLoad(createBitCast(ptr, Pointer<Long>::getType()), Long::getType(), isVolatile, alignment),
-						0),
-					type);
-			case Type_v2i16:
-			case Type_v4i8:
-				if(alignment != 0)   // Not a local variable (all vectors are 128-bit).
-				{
-					Value *u = V(llvm::UndefValue::get(llvm::VectorType::get(T(Long::getType()), 2)));
-					Value *i = createLoad(createBitCast(ptr, Pointer<Int>::getType()), Int::getType(), isVolatile, alignment);
-					i = createZExt(i, Long::getType());
-					Value *v = createInsertElement(u, i, 0);
-					return createBitCast(v, type);
-				}
-				break;
-			default:
-				assert(false);
+				Value *u = V(llvm::UndefValue::get(llvm::VectorType::get(T(Long::getType()), 2)));
+				Value *i = createLoad(createBitCast(ptr, Pointer<Int>::getType()), Int::getType(), isVolatile, alignment);
+				i = createZExt(i, Long::getType());
+				Value *v = createInsertElement(u, i, 0);
+				return createBitCast(v, type);
 			}
+			// Fallthrough to non-emulated case.
+		case Type_LLVM:
+			assert(V(ptr)->getType()->getContainedType(0) == T(type));
+			return V(::builder->Insert(new llvm::LoadInst(V(ptr), "", isVolatile, alignment)));
+		default:
+			assert(false); return nullptr;
 		}
-
-		assert(V(ptr)->getType()->getContainedType(0) == T(type));
-		return V(::builder->Insert(new llvm::LoadInst(V(ptr), "", isVolatile, alignment)));
 	}
 
 	Value *Nucleus::createStore(Value *value, Value *ptr, Type *type, bool isVolatile, unsigned int alignment)
 	{
-		uintptr_t t = reinterpret_cast<uintptr_t>(type);
-		if(t < EmulatedTypeCount)
+		switch(asInternalType(type))
 		{
-			switch(t)
+		case Type_v2i32:
+		case Type_v4i16:
+		case Type_v8i8:
+		case Type_v2f32:
+			createStore(
+				createExtractElement(
+					createBitCast(value, T(llvm::VectorType::get(T(Long::getType()), 2))), Long::getType(), 0),
+				createBitCast(ptr, Pointer<Long>::getType()),
+				Long::getType(), isVolatile, alignment);
+			return value;
+		case Type_v2i16:
+		case Type_v4i8:
+			if(alignment != 0)   // Not a local variable (all vectors are 128-bit).
 			{
-			case Type_v2i32:
-			case Type_v4i16:
-			case Type_v8i8:
-			case Type_v2f32:
 				createStore(
-					createExtractElement(
-						createBitCast(value, T(llvm::VectorType::get(T(Long::getType()), 2))), Long::getType(), 0),
-					createBitCast(ptr, Pointer<Long>::getType()),
-					Long::getType(), isVolatile, alignment);
+					createExtractElement(createBitCast(value, Int4::getType()), Int::getType(), 0),
+					createBitCast(ptr, Pointer<Int>::getType()),
+					Int::getType(), isVolatile, alignment);
 				return value;
-			case Type_v2i16:
-			case Type_v4i8:
-				if(alignment != 0)   // Not a local variable (all vectors are 128-bit).
-				{
-					createStore(
-						createExtractElement(createBitCast(value, Int4::getType()), Int::getType(), 0),
-						createBitCast(ptr, Pointer<Int>::getType()),
-						Int::getType(), isVolatile, alignment);
-					return value;
-				}
-				break;
-			default:
-				assert(false);
 			}
+			// Fallthrough to non-emulated case.
+		case Type_LLVM:
+			assert(V(ptr)->getType()->getContainedType(0) == T(type));
+			::builder->Insert(new llvm::StoreInst(V(value), V(ptr), isVolatile, alignment));
+			return value;
+		default:
+			assert(false); return nullptr;
 		}
-
-		assert(V(ptr)->getType()->getContainedType(0) == T(type));
-		::builder->Insert(new llvm::StoreInst(V(value), V(ptr), isVolatile, alignment));
-		return value;
 	}
 
 	Value *Nucleus::createGEP(Value *ptr, Type *type, Value *index, bool unsignedIndex)
@@ -1268,15 +1280,21 @@ namespace rr
 				createSExt(index, Long::getType());
 		}
 
-		if (reinterpret_cast<uintptr_t>(type) >= EmulatedTypeCount)
+		// For non-emulated types we can rely on LLVM's GEP to calculate the
+		// effective address correctly.
+		if(asInternalType(type) == Type_LLVM)
 		{
 			return V(::builder->CreateGEP(V(ptr), V(index)));
 		}
 
+		// For emulated types we have to multiply the index by the intended
+		// type size ourselves to obain the byte offset.
 		index = (sizeof(void*) == 8) ?
 			createMul(index, createConstantLong((int64_t)typeSize(type))) :
 			createMul(index, createConstantInt((int)typeSize(type)));
 
+		// Cast to a byte pointer, apply the byte offset, and cast back to the
+		// original pointer type.
 		return createBitCast(
 			V(::builder->CreateGEP(V(createBitCast(ptr, T(llvm::PointerType::get(T(Byte::getType()), 0)))), V(index))),
 			T(llvm::PointerType::get(T(type), 0)));
