@@ -290,6 +290,8 @@ func (r *regres) test(change *changeInfo) (string, error) {
 	return msg, nil
 }
 
+var additionalTestsRE = regexp.MustCompile(`\n\s*Test[s]?:\s*([^\s]+)[^\n]*`)
+
 func (r *regres) testLatest(change *changeInfo) (*CommitTestResults, testlist.Lists, error) {
 	// Get the test results for the latest patchset in the change.
 	test := r.newTest(change.latest)
@@ -302,6 +304,29 @@ func (r *regres) testLatest(change *changeInfo) (*CommitTestResults, testlist.Li
 	testlists, err := test.loadTestLists(ciTestListRelPath)
 	if err != nil {
 		return nil, nil, cause.Wrap(err, "Failed to load '%s'", change.latest)
+	}
+
+	if matches := additionalTestsRE.FindAllStringSubmatch(change.commitMessage, -1); len(matches) > 0 {
+		log.Println("Change description contains additional test patterns")
+
+		// Change specifies additional tests to try. Load the full test list.
+		fullTestLists, err := test.loadTestLists(fullTestListRelPath)
+		if err != nil {
+			return nil, nil, cause.Wrap(err, "Failed to load '%s'", change.latest)
+		}
+
+		// Add any tests in the full list that match the pattern to the list to test.
+		for _, match := range matches {
+			if len(match) > 1 {
+				pattern := match[1]
+				log.Printf("Adding custom tests with pattern '%s'\n", pattern)
+				filtered := fullTestLists.Filter(func(name string) bool {
+					ok, _ := filepath.Match(pattern, name)
+					return ok
+				})
+				testlists = append(testlists, filtered...)
+			}
+		}
 	}
 
 	cachePath := test.resultsCachePath(testlists)

@@ -48,8 +48,35 @@ type Group struct {
 	Tests []string
 }
 
+// Filter returns a new Group that contains only tests that match the predicate.
+func (g Group) Filter(pred func(string) bool) Group {
+	out := Group{
+		Name: g.Name,
+		File: g.File,
+		API:  g.API,
+	}
+	for _, test := range g.Tests {
+		if pred(test) {
+			out.Tests = append(out.Tests, test)
+		}
+	}
+	return out
+}
+
 // Lists is the full list of tests to be run.
 type Lists []Group
+
+// Filter returns a new Lists that contains only tests that match the predicate.
+func (l Lists) Filter(pred func(string) bool) Lists {
+	out := Lists{}
+	for _, group := range l {
+		filtered := group.Filter(pred)
+		if len(filtered.Tests) > 0 {
+			out = append(out, filtered)
+		}
+	}
+	return out
+}
 
 // Hash returns a SHA1 hash of the set of tests.
 func (l Lists) Hash() string {
