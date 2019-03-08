@@ -98,13 +98,16 @@ namespace sw
 		void emplace(uint32_t n, const RValue<SIMD::Int>& value) { emplace(n, As<SIMD::Float>(value)); }
 		void emplace(uint32_t n, const RValue<SIMD::UInt>& value) { emplace(n, As<SIMD::Float>(value)); }
 
-		Scalar const & operator[](uint32_t n) const
+		// Value retrieval functions.
+		RValue<SIMD::Float> Float(uint32_t i) const
 		{
-			ASSERT(n < size);
-			auto scalar = reinterpret_cast<Scalar const *>(&contents[n]);
+			ASSERT(i < size);
+			auto scalar = reinterpret_cast<Scalar const *>(&contents[i]);
 			ASSERT(scalar->value != nullptr);
 			return *scalar;
 		}
+		RValue<SIMD::Int> Int(uint32_t i) const { return As<SIMD::Int>(Float(i)); }
+		RValue<SIMD::UInt> UInt(uint32_t i) const { return As<SIMD::UInt>(Float(i)); }
 
 		// No copy/move construction or assignment
 		Intermediate(Intermediate const &) = delete;
@@ -536,13 +539,24 @@ namespace sw
 				obj(shader->getObject(objId)),
 				intermediate(obj.kind == SpirvShader::Object::Kind::Value ? &routine->getIntermediate(objId) : nullptr) {}
 
-		RValue<SIMD::Float> operator[](uint32_t i) const
+		RValue<SIMD::Float> Float(uint32_t i) const
 		{
-			if (intermediate)
-				return (*intermediate)[i];
-
+			if (intermediate != nullptr)
+			{
+				return intermediate->Float(i);
+			}
 			auto constantValue = reinterpret_cast<float *>(obj.constantValue.get());
 			return RValue<SIMD::Float>(constantValue[i]);
+		}
+
+		RValue<SIMD::Int> Int(uint32_t i) const
+		{
+			return As<SIMD::Int>(Float(i));
+		}
+
+		RValue<SIMD::UInt> UInt(uint32_t i) const
+		{
+			return As<SIMD::UInt>(Float(i));
 		}
 	};
 
