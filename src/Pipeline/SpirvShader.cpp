@@ -812,6 +812,18 @@ namespace sw
 		case spv::DecorationBufferBlock:
 			BufferBlock = true;
 			break;
+		case spv::DecorationOffset:
+			HasOffset = true;
+			Offset = static_cast<int32_t>(arg);
+			break;
+		case spv::DecorationArrayStride:
+			HasArrayStride = true;
+			ArrayStride = static_cast<int32_t>(arg);
+			break;
+		case spv::DecorationMatrixStride:
+			HasMatrixStride = true;
+			MatrixStride = static_cast<int32_t>(arg);
+			break;
 		default:
 			// Intentionally partial, there are many decorations we just don't care about.
 			break;
@@ -849,6 +861,24 @@ namespace sw
 		{
 			HasBinding = true;
 			Binding = src.Binding;
+		}
+
+		if (src.HasOffset)
+		{
+			HasOffset = true;
+			Offset = src.Offset;
+		}
+
+		if (src.HasArrayStride)
+		{
+			HasArrayStride = true;
+			ArrayStride = src.ArrayStride;
+		}
+
+		if (src.HasMatrixStride)
+		{
+			HasMatrixStride = true;
+			MatrixStride = src.MatrixStride;
 		}
 
 		Flat |= src.Flat;

@@ -292,6 +292,9 @@ namespace sw
 			int32_t DescriptorSet;
 			int32_t Binding;
 			spv::BuiltIn BuiltIn;
+			int32_t Offset;
+			int32_t ArrayStride;
+			int32_t MatrixStride;
 			bool HasLocation : 1;
 			bool HasComponent : 1;
 			bool HasDescriptorSet : 1;
@@ -302,14 +305,19 @@ namespace sw
 			bool NoPerspective : 1;
 			bool Block : 1;
 			bool BufferBlock : 1;
+			bool HasOffset : 1;
+			bool HasArrayStride : 1;
+			bool HasMatrixStride : 1;
 
 			Decorations()
 					: Location{-1}, Component{0}, DescriptorSet{-1}, Binding{-1},
 					  BuiltIn{static_cast<spv::BuiltIn>(-1)},
+					  Offset{-1}, ArrayStride{-1}, MatrixStride{-1},
 					  HasLocation{false}, HasComponent{false},
 					  HasDescriptorSet{false}, HasBinding{false},
 					  HasBuiltIn{false}, Flat{false}, Centroid{false},
-					  NoPerspective{false}, Block{false}, BufferBlock{false}
+					  NoPerspective{false}, Block{false}, BufferBlock{false},
+					  HasOffset{false}, HasArrayStride{false}, HasMatrixStride{false}
 			{
 			}
 
