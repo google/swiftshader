@@ -123,7 +123,7 @@ void *ImageView::getOffsetPointer(const VkOffset3D& offset, VkImageAspectFlagBit
 {
 	VkImageSubresourceLayers imageSubresourceLayers =
 	{
-		aspect,
+		static_cast<VkImageAspectFlags>(aspect),
 		subresourceRange.baseMipLevel,
 		subresourceRange.baseArrayLayer,
 		subresourceRange.layerCount
