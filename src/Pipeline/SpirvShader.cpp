@@ -321,6 +321,8 @@ namespace sw
 			case spv::OpBitwiseAnd:
 			case spv::OpLogicalOr:
 			case spv::OpLogicalAnd:
+			case spv::OpLogicalEqual:
+			case spv::OpLogicalNotEqual:
 			case spv::OpUMulExtended:
 			case spv::OpSMulExtended:
 			case spv::OpDot:
@@ -1091,6 +1093,8 @@ namespace sw
 			case spv::OpBitwiseAnd:
 			case spv::OpLogicalOr:
 			case spv::OpLogicalAnd:
+			case spv::OpLogicalEqual:
+			case spv::OpLogicalNotEqual:
 			case spv::OpUMulExtended:
 			case spv::OpSMulExtended:
 				EmitBinaryOp(insn, routine);
@@ -1522,9 +1526,11 @@ namespace sw
 				dst.emplace(i, As<SIMD::Float>(As<SIMD::UInt>(lhs) % As<SIMD::UInt>(rhs)));
 				break;
 			case spv::OpIEqual:
+			case spv::OpLogicalEqual:
 				dst.emplace(i, As<SIMD::Float>(CmpEQ(As<SIMD::Int>(lhs), As<SIMD::Int>(rhs))));
 				break;
 			case spv::OpINotEqual:
+			case spv::OpLogicalNotEqual:
 				dst.emplace(i, As<SIMD::Float>(CmpNEQ(As<SIMD::Int>(lhs), As<SIMD::Int>(rhs))));
 				break;
 			case spv::OpUGreaterThan:
