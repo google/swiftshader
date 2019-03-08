@@ -1708,6 +1708,15 @@ namespace sw
 			dst.emplace(2, lhs[0] * rhs[1] - rhs[0] * lhs[1]);
 			break;
 		}
+		case GLSLstd450Floor:
+		{
+			auto src = GenericValue(this, routine, insn.word(5));
+			for (auto i = 0u; i < type.sizeInComponents; i++)
+			{
+				dst.emplace(i, Floor(src[i]));
+			}
+			break;
+		}
 		default:
 			UNIMPLEMENTED("Unhandled ExtInst %d", extInstIndex);
 		}
