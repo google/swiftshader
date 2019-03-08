@@ -1771,6 +1771,154 @@ namespace sw
 			}
 			break;
 		}
+		case GLSLstd450FMin:
+		{
+			auto lhs = GenericValue(this, routine, insn.word(5));
+			auto rhs = GenericValue(this, routine, insn.word(6));
+			for (auto i = 0u; i < type.sizeInComponents; i++)
+			{
+				dst.emplace(i, Min(lhs[i], rhs[i]));
+			}
+			break;
+		}
+		case GLSLstd450FMax:
+		{
+			auto lhs = GenericValue(this, routine, insn.word(5));
+			auto rhs = GenericValue(this, routine, insn.word(6));
+			for (auto i = 0u; i < type.sizeInComponents; i++)
+			{
+				dst.emplace(i, Max(lhs[i], rhs[i]));
+			}
+			break;
+		}
+		case GLSLstd450SMin:
+		{
+			auto lhs = GenericValue(this, routine, insn.word(5));
+			auto rhs = GenericValue(this, routine, insn.word(6));
+			for (auto i = 0u; i < type.sizeInComponents; i++)
+			{
+				dst.emplace(i, As<SIMD::Float>(Min(As<SIMD::Int>(lhs[i]), As<SIMD::Int>(rhs[i]))));
+			}
+			break;
+		}
+		case GLSLstd450SMax:
+		{
+			auto lhs = GenericValue(this, routine, insn.word(5));
+			auto rhs = GenericValue(this, routine, insn.word(6));
+			for (auto i = 0u; i < type.sizeInComponents; i++)
+			{
+				dst.emplace(i, As<SIMD::Float>(Max(As<SIMD::Int>(lhs[i]), As<SIMD::Int>(rhs[i]))));
+			}
+			break;
+		}
+		case GLSLstd450UMin:
+		{
+			auto lhs = GenericValue(this, routine, insn.word(5));
+			auto rhs = GenericValue(this, routine, insn.word(6));
+			for (auto i = 0u; i < type.sizeInComponents; i++)
+			{
+				dst.emplace(i, As<SIMD::Float>(Min(As<SIMD::UInt>(lhs[i]), As<SIMD::UInt>(rhs[i]))));
+			}
+			break;
+		}
+		case GLSLstd450UMax:
+		{
+			auto lhs = GenericValue(this, routine, insn.word(5));
+			auto rhs = GenericValue(this, routine, insn.word(6));
+			for (auto i = 0u; i < type.sizeInComponents; i++)
+			{
+				dst.emplace(i, As<SIMD::Float>(Max(As<SIMD::UInt>(lhs[i]), As<SIMD::UInt>(rhs[i]))));
+			}
+			break;
+		}
+		case GLSLstd450Step:
+		{
+			auto edge = GenericValue(this, routine, insn.word(5));
+			auto x = GenericValue(this, routine, insn.word(6));
+			for (auto i = 0u; i < type.sizeInComponents; i++)
+			{
+				dst.emplace(i, As<SIMD::Float>(CmpNLT(x[i], edge[i]) & As<SIMD::Int>(SIMD::Float(1.0f))));
+			}
+			break;
+		}
+		case GLSLstd450SmoothStep:
+		{
+			auto edge0 = GenericValue(this, routine, insn.word(5));
+			auto edge1 = GenericValue(this, routine, insn.word(6));
+			auto x = GenericValue(this, routine, insn.word(7));
+			for (auto i = 0u; i < type.sizeInComponents; i++)
+			{
+				auto tx = Min(Max((x[i] - edge0[i]) / (edge1[i] - edge0[i]), SIMD::Float(0.0f)), SIMD::Float(1.0f));
+				dst.emplace(i, tx * tx * (Float4(3.0f) - Float4(2.0f) * tx));
+			}
+			break;
+		}
+		case GLSLstd450FMix:
+		{
+			auto x = GenericValue(this, routine, insn.word(5));
+			auto y = GenericValue(this, routine, insn.word(6));
+			auto a = GenericValue(this, routine, insn.word(7));
+			for (auto i = 0u; i < type.sizeInComponents; i++)
+			{
+				dst.emplace(i, a[i] * (y[i] - x[i]) + x[i]);
+			}
+			break;
+		}
+		case GLSLstd450FClamp:
+		{
+			auto x = GenericValue(this, routine, insn.word(5));
+			auto minVal = GenericValue(this, routine, insn.word(6));
+			auto maxVal = GenericValue(this, routine, insn.word(7));
+			for (auto i = 0u; i < type.sizeInComponents; i++)
+			{
+				dst.emplace(i, Min(Max(x[i], minVal[i]), maxVal[i]));
+			}
+			break;
+		}
+		case GLSLstd450SClamp:
+		{
+			auto x = GenericValue(this, routine, insn.word(5));
+			auto minVal = GenericValue(this, routine, insn.word(6));
+			auto maxVal = GenericValue(this, routine, insn.word(7));
+			for (auto i = 0u; i < type.sizeInComponents; i++)
+			{
+				dst.emplace(i, As<SIMD::Float>(Min(Max(As<SIMD::Int>(x[i]), As<SIMD::Int>(minVal[i])), As<SIMD::Int>(maxVal[i]))));
+			}
+			break;
+		}
+		case GLSLstd450UClamp:
+		{
+			auto x = GenericValue(this, routine, insn.word(5));
+			auto minVal = GenericValue(this, routine, insn.word(6));
+			auto maxVal = GenericValue(this, routine, insn.word(7));
+			for (auto i = 0u; i < type.sizeInComponents; i++)
+			{
+				dst.emplace(i, As<SIMD::Float>(Min(Max(As<SIMD::UInt>(x[i]), As<SIMD::UInt>(minVal[i])), As<SIMD::UInt>(maxVal[i]))));
+			}
+			break;
+		}
+		case GLSLstd450FSign:
+		{
+			auto src = GenericValue(this, routine, insn.word(5));
+			for (auto i = 0u; i < type.sizeInComponents; i++)
+			{
+				auto neg = As<SIMD::Int>(CmpLT(src[i], SIMD::Float(-0.0f))) & As<SIMD::Int>(SIMD::Float(-1.0f));
+				auto pos = As<SIMD::Int>(CmpNLE(src[i], SIMD::Float(+0.0f))) & As<SIMD::Int>(SIMD::Float(1.0f));
+				dst.emplace(i, As<SIMD::Float>(neg | pos));
+			}
+			break;
+		}
+		case GLSLstd450SSign:
+		{
+			auto src = GenericValue(this, routine, insn.word(5));
+			for (auto i = 0u; i < type.sizeInComponents; i++)
+			{
+				auto neg = CmpLT(As<SIMD::Int>(src[i]), SIMD::Int(0)) & SIMD::Int(-1);
+				auto pos = CmpNLE(As<SIMD::Int>(src[i]), SIMD::Int(0)) & SIMD::Int(1);
+				dst.emplace(i, As<SIMD::Float>(neg | pos));
+			}
+			break;
+		}
 		default:
 			UNIMPLEMENTED("Unhandled ExtInst %d", extInstIndex);
 		}
