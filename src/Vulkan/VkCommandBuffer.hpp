@@ -140,7 +140,7 @@ public:
 		VkIndexType indexType;
 
 		void bindAttachments();
-		void bindVertexInputs(sw::Context& context, int firstVertex);
+		void bindVertexInputs(sw::Context& context, int firstVertex, int firstInstance);
 	};
 
 	void submit(CommandBuffer::ExecutionState& executionState);

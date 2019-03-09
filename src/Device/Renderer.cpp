@@ -314,7 +314,7 @@ namespace sw
 		for(int i = 0; i < MAX_VERTEX_INPUTS; i++)
 		{
 			data->input[i] = context->input[i].buffer;
-			data->stride[i] = context->input[i].stride;
+			data->stride[i] = context->input[i].vertexStride;
 		}
 
 		if(context->indexBuffer)
@@ -322,7 +322,7 @@ namespace sw
 			data->indices = context->indexBuffer;
 		}
 
-		if(context->vertexShader->hasBuiltinInput(spv::BuiltInInstanceId))
+		if(context->vertexShader->hasBuiltinInput(spv::BuiltInInstanceIndex))
 		{
 			data->instanceID = context->instanceID;
 		}
@@ -1548,6 +1548,19 @@ namespace sw
 	void Renderer::removeQuery(Query *query)
 	{
 		queries.remove(query);
+	}
+
+	void Renderer::advanceInstanceAttributes()
+	{
+		for(uint32_t i = 0; i < vk::MAX_VERTEX_INPUT_BINDINGS; i++)
+		{
+			auto &attrib = context->input[i];
+			if (attrib.count && attrib.instanceStride)
+			{
+				// Under the casts: attrib.buffer += attrib.instanceStride
+				attrib.buffer = (void const *)((uintptr_t)attrib.buffer + attrib.instanceStride);
+			}
+		}
 	}
 
 	#if PERF_HUD

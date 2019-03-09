@@ -206,7 +206,7 @@ struct IndexBufferBind : public CommandBuffer::Command
 	const VkIndexType indexType;
 };
 
-void CommandBuffer::ExecutionState::bindVertexInputs(sw::Context& context, int firstVertex)
+void CommandBuffer::ExecutionState::bindVertexInputs(sw::Context& context, int firstVertex, int firstInstance)
 {
 	for(uint32_t i = 0; i < MAX_VERTEX_INPUT_BINDINGS; i++)
 	{
@@ -216,7 +216,7 @@ void CommandBuffer::ExecutionState::bindVertexInputs(sw::Context& context, int f
 			const auto &vertexInput = vertexInputBindings[attrib.binding];
 			Buffer *buffer = Cast(vertexInput.buffer);
 			attrib.buffer = buffer ? buffer->getOffsetPointer(
-					attrib.offset + vertexInput.offset + attrib.stride * firstVertex) : nullptr;
+					attrib.offset + vertexInput.offset + attrib.vertexStride * firstVertex + attrib.instanceStride * firstInstance) : nullptr;
 		}
 	}
 }
@@ -266,7 +266,7 @@ struct Draw : public CommandBuffer::Command
 			executionState.pipelines[VK_PIPELINE_BIND_POINT_GRAPHICS]);
 
 		sw::Context context = pipeline->getContext();
-		executionState.bindVertexInputs(context, firstVertex);
+		executionState.bindVertexInputs(context, firstVertex, firstInstance);
 
 		const auto& boundDescriptorSets = executionState.boundDescriptorSets[VK_PIPELINE_BIND_POINT_GRAPHICS];
 		for(int i = 0; i < vk::MAX_BOUND_DESCRIPTOR_SETS; i++)
@@ -284,11 +284,11 @@ struct Draw : public CommandBuffer::Command
 		executionState.bindAttachments();
 
 		const uint32_t primitiveCount = pipeline->computePrimitiveCount(vertexCount);
-		const uint32_t lastInstance = firstInstance + instanceCount - 1;
-		for(uint32_t instance = firstInstance; instance <= lastInstance; instance++)
+		for(uint32_t instance = firstInstance; instance != firstInstance + instanceCount; instance++)
 		{
 			executionState.renderer->setInstanceID(instance);
 			executionState.renderer->draw(context.drawType, primitiveCount);
+			executionState.renderer->advanceInstanceAttributes();
 		}
 	}
 
@@ -311,7 +311,8 @@ struct DrawIndexed : public CommandBuffer::Command
 				executionState.pipelines[VK_PIPELINE_BIND_POINT_GRAPHICS]);
 
 		sw::Context context = pipeline->getContext();
-		executionState.bindVertexInputs(context, vertexOffset);
+
+		executionState.bindVertexInputs(context, vertexOffset, firstInstance);
 
 		const auto& boundDescriptorSets = executionState.boundDescriptorSets[VK_PIPELINE_BIND_POINT_GRAPHICS];
 		for(int i = 0; i < vk::MAX_BOUND_DESCRIPTOR_SETS; i++)
@@ -335,11 +336,11 @@ struct DrawIndexed : public CommandBuffer::Command
 				? (context.drawType | sw::DRAW_INDEXED16) : (context.drawType | sw::DRAW_INDEXED32);
 
 		const uint32_t primitiveCount = pipeline->computePrimitiveCount(indexCount);
-		const uint32_t lastInstance = firstInstance + instanceCount - 1;
-		for(uint32_t instance = firstInstance; instance <= lastInstance; instance++)
+		for(uint32_t instance = firstInstance; instance != firstInstance + instanceCount; instance++)
 		{
 			executionState.renderer->setInstanceID(instance);
 			executionState.renderer->draw(static_cast<sw::DrawType>(drawType), primitiveCount);
+			executionState.renderer->advanceInstanceAttributes();
 		}
 	}
 

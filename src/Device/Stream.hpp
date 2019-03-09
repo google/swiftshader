@@ -39,15 +39,17 @@ namespace sw
 	struct StreamResource
 	{
 		const void *buffer;
-		unsigned int stride;
+		unsigned int vertexStride;
+		unsigned int instanceStride;
 	};
 
 	struct Stream : public StreamResource
 	{
-		Stream(const void *buffer = nullptr, unsigned int stride = 0)
+		Stream(const void *buffer = nullptr, unsigned int vertexStride = 0)
 		{
 			this->buffer = buffer;
-			this->stride = stride;
+			this->vertexStride = vertexStride;
+			this->instanceStride = 0;
 		}
 
 		Stream &define(StreamType type, unsigned int count, bool normalized = false)
@@ -74,7 +76,8 @@ namespace sw
 			static const float4 null = {0, 0, 0, 1};
 
 			buffer = &null;
-			stride = 0;
+			vertexStride = 0;
+			instanceStride = 0;
 			type = STREAMTYPE_FLOAT;
 			count = 0;
 			normalized = false;
