@@ -23,6 +23,7 @@
 
 namespace sw
 {
+	class Context;
 	class Renderer;
 }
 
@@ -139,6 +140,7 @@ public:
 		VkIndexType indexType;
 
 		void bindAttachments();
+		void bindVertexInputs(sw::Context& context, int firstVertex);
 	};
 
 	void submit(CommandBuffer::ExecutionState& executionState);

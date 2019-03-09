@@ -185,6 +185,21 @@ struct IndexBufferBind : public CommandBuffer::Command
 	const VkIndexType indexType;
 };
 
+void CommandBuffer::ExecutionState::bindVertexInputs(sw::Context& context, int firstVertex)
+{
+	for(uint32_t i = 0; i < MAX_VERTEX_INPUT_BINDINGS; i++)
+	{
+		auto &attrib = context.input[i];
+		if (attrib.count)
+		{
+			const auto &vertexInput = vertexInputBindings[attrib.binding];
+			Buffer *buffer = Cast(vertexInput.buffer);
+			attrib.buffer = buffer ? buffer->getOffsetPointer(
+					attrib.offset + vertexInput.offset + attrib.stride * firstVertex) : nullptr;
+		}
+	}
+}
+
 void CommandBuffer::ExecutionState::bindAttachments()
 {
 	// Binds all the attachments for the current subpass
@@ -230,17 +245,7 @@ struct Draw : public CommandBuffer::Command
 			executionState.pipelines[VK_PIPELINE_BIND_POINT_GRAPHICS]);
 
 		sw::Context context = pipeline->getContext();
-		for(uint32_t i = 0; i < MAX_VERTEX_INPUT_BINDINGS; i++)
-		{
-			auto &attrib = context.input[i];
-			if (attrib.count)
-			{
-				const auto &vertexInput = executionState.vertexInputBindings[attrib.binding];
-				Buffer *buffer = Cast(vertexInput.buffer);
-				attrib.buffer = buffer ? buffer->getOffsetPointer(
-						attrib.offset + vertexInput.offset + attrib.stride * firstVertex) : nullptr;
-			}
-		}
+		executionState.bindVertexInputs(context, firstVertex);
 
 		context.pushConstants = executionState.pushConstants;
 
@@ -279,17 +284,7 @@ struct DrawIndexed : public CommandBuffer::Command
 				executionState.pipelines[VK_PIPELINE_BIND_POINT_GRAPHICS]);
 
 		sw::Context context = pipeline->getContext();
-		for(uint32_t i = 0; i < MAX_VERTEX_INPUT_BINDINGS; i++)
-		{
-			auto &attrib = context.input[i];
-			if (attrib.count)
-			{
-				const auto &vertexInput = executionState.vertexInputBindings[attrib.binding];
-				Buffer *buffer = Cast(vertexInput.buffer);
-				attrib.buffer = buffer ? buffer->getOffsetPointer(
-						attrib.offset + vertexInput.offset + attrib.stride * vertexOffset) : nullptr;
-			}
-		}
+		executionState.bindVertexInputs(context, vertexOffset);
 
 		context.pushConstants = executionState.pushConstants;
 
