@@ -35,6 +35,8 @@ public:
 
 	static size_t ComputeRequiredAllocationSize(const VkSwapchainCreateInfoKHR* pCreateInfo);
 
+	void retire();
+
 	VkResult createImages(VkDevice device);
 
 	uint32_t getImageCount() const;
@@ -47,6 +49,7 @@ public:
 private:
 	VkSwapchainCreateInfoKHR createInfo;
 	std::vector<PresentImage> images;
+	bool retired;
 
 	void resetImages();
 };

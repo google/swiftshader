@@ -64,7 +64,14 @@ public:
 	virtual void detachImage(PresentImage* image) = 0;
 	virtual void present(PresentImage* image) = 0;
 
+	void associateSwapchain(VkSwapchainKHR swapchain);
+	void disassociateSwapchain();
+	VkSwapchainKHR getAssociatedSwapchain();
+
+
 private:
+	VkSwapchainKHR associatedSwapchain;
+
 	const std::vector<VkSurfaceFormatKHR> surfaceFormats =
 	{
 		{VK_FORMAT_B8G8R8A8_UNORM, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR},

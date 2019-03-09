@@ -24,7 +24,8 @@ namespace vk
 {
 
 SwapchainKHR::SwapchainKHR(const VkSwapchainCreateInfoKHR *pCreateInfo, void *mem) :
-	createInfo(*pCreateInfo)
+	createInfo(*pCreateInfo),
+	retired(false)
 {
 	images.resize(pCreateInfo->minImageCount);
 	resetImages();
@@ -43,11 +44,37 @@ void SwapchainKHR::destroy(const VkAllocationCallbacks *pAllocator)
 			currentImage.imageStatus = NONEXISTENT;
 		}
 	}
+
+	if(!retired)
+	{
+		vk::Cast(createInfo.surface)->disassociateSwapchain();
+	}
 }
 
 size_t SwapchainKHR::ComputeRequiredAllocationSize(const VkSwapchainCreateInfoKHR *pCreateInfo)
 {
 	return 0;
+}
+
+void SwapchainKHR::retire()
+{
+	if(!retired)
+	{
+		retired = true;
+		vk::Cast(createInfo.surface)->disassociateSwapchain();
+
+		for(auto& currentImage : images)
+		{
+			if(currentImage.imageStatus == AVAILABLE)
+			{
+				vk::Cast(createInfo.surface)->detachImage(&currentImage);
+				vk::destroy(currentImage.imageMemory, nullptr);
+				vk::destroy(currentImage.image, nullptr);
+
+				currentImage.imageStatus = NONEXISTENT;
+			}
+		}
+	}
 }
 
 void SwapchainKHR::resetImages()
@@ -182,6 +209,15 @@ void SwapchainKHR::present(uint32_t index)
 	image.imageStatus = PRESENTING;
 	vk::Cast(createInfo.surface)->present(&image);
 	image.imageStatus = AVAILABLE;
+
+	if(retired)
+	{
+		vk::Cast(createInfo.surface)->detachImage(&image);
+		vk::destroy(image.imageMemory, nullptr);
+		vk::destroy(image.image, nullptr);
+
+		image.imageStatus = NONEXISTENT;
+	}
 }
 
 }

@@ -2172,6 +2172,16 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateSwapchainKHR(VkDevice device, const VkSwa
 	TRACE("(VkDevice device = 0x%X, const VkSwapchainCreateInfoKHR* pCreateInfo = 0x%X, const VkAllocationCallbacks* pAllocator = 0x%X, VkSwapchainKHR* pSwapchain = 0x%X)",
 			device, pCreateInfo, pAllocator, pSwapchain);
 
+	if(pCreateInfo->oldSwapchain)
+	{
+		vk::Cast(pCreateInfo->oldSwapchain)->retire();
+	}
+
+	if(vk::Cast(pCreateInfo->surface)->getAssociatedSwapchain() != VK_NULL_HANDLE)
+	{
+		return VK_ERROR_NATIVE_WINDOW_IN_USE_KHR;
+	}
+
 	VkResult status = vk::SwapchainKHR::Create(pAllocator, pCreateInfo, pSwapchain);
 
 	if(status != VK_SUCCESS)
@@ -2186,6 +2196,8 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateSwapchainKHR(VkDevice device, const VkSwa
 		vk::destroy(*pSwapchain, pAllocator);
 		return status;
 	}
+
+	vk::Cast(pCreateInfo->surface)->associateSwapchain(*pSwapchain);
 
 	return VK_SUCCESS;
 }
