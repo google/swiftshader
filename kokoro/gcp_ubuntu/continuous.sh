@@ -14,5 +14,7 @@ mkdir -p build && cd build
 cmake ..
 make --jobs=$(nproc)
 
-# Run the GLES unit tests.
+# Run the GLES unit tests. TODO(capn): rename.
 ./unittests
+
+./ReactorUnitTests
