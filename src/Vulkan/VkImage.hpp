@@ -16,6 +16,7 @@
 #define VK_IMAGE_HPP_
 
 #include "VkObject.hpp"
+#include "VkFormat.h"
 
 namespace vk
 {
@@ -51,8 +52,8 @@ public:
 	void clear(const VkClearDepthStencilValue& color, const VkImageSubresourceRange& subresourceRange);
 
 	VkImageType              getImageType() const { return imageType; }
-	VkFormat                 getFormat() const { return format; }
-	VkFormat                 getFormat(VkImageAspectFlagBits aspect) const;
+	const Format&            getFormat() const { return format; }
+	Format                   getFormat(VkImageAspectFlagBits aspect) const;
 	uint32_t                 getArrayLayers() const { return arrayLayers; }
 	uint32_t                 getMipLevels() const { return mipLevels; }
 	uint32_t                 getLastLayerIndex(const VkImageSubresourceRange& subresourceRange) const;
@@ -82,7 +83,7 @@ private:
 	VkDeviceSize             memoryOffset = 0;
 	VkImageCreateFlags       flags = 0;
 	VkImageType              imageType = VK_IMAGE_TYPE_2D;
-	VkFormat                 format = VK_FORMAT_UNDEFINED;
+	Format                   format = VK_FORMAT_UNDEFINED;
 	VkExtent3D               extent = {0, 0, 0};
 	uint32_t                 mipLevels = 0;
 	uint32_t                 arrayLayers = 0;
