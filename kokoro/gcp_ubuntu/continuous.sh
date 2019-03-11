@@ -14,7 +14,12 @@ mkdir -p build && cd build
 cmake ..
 make --jobs=$(nproc)
 
+# Run the reactor unit tests.
+./ReactorUnitTests
+
 # Run the GLES unit tests. TODO(capn): rename.
 ./unittests
 
-./ReactorUnitTests
+# Run the Vulkan unit tests.
+cd .. # Must be run from project root
+build/vk-unittests
