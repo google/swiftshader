@@ -109,13 +109,15 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 # Initialize submodules
 ###########################################################
 
-if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/googletest/.git)
-    message(WARNING "
-  third_party/googletest submodule missing.
-  Running 'git submodule update --init' to download it:
-    ")
+if (NOT TARGET gtest)
+    if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/googletest/.git)
+        message(WARNING "
+      third_party/googletest submodule missing.
+      Running 'git submodule update --init' to download it:
+        ")
 
-    execute_process(COMMAND git submodule update --init)
+        execute_process(COMMAND git submodule update --init)
+    endif()
 endif()
 
 ###########################################################
@@ -2234,11 +2236,13 @@ if(BUILD_GLES_CM)
 endif()
 
 if(BUILD_VULKAN)
-    # This variable is also used by SPIRV-Tools to locate SPIRV-Headers
-    set(SPIRV-Headers_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/third_party/SPIRV-Headers")
-    list(APPEND VULKAN_INCLUDE_DIR "${SPIRV-Headers_SOURCE_DIR}/include")
+    if (NOT TARGET SPIRV-Tools)
+        # This variable is also used by SPIRV-Tools to locate SPIRV-Headers
+        set(SPIRV-Headers_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/third_party/SPIRV-Headers")
+        list(APPEND VULKAN_INCLUDE_DIR "${SPIRV-Headers_SOURCE_DIR}/include")
 
-    add_subdirectory(third_party/SPIRV-Tools)
+        add_subdirectory(third_party/SPIRV-Tools)
+    endif()
 
     add_library(libvk_swiftshader SHARED ${VULKAN_LIST})
     set_target_properties(libvk_swiftshader PROPERTIES
