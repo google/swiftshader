@@ -145,3 +145,55 @@ func Load(root, jsonPath string) (Lists, error) {
 
 	return out, nil
 }
+
+// Status is an enumerator of test results.
+type Status string
+
+const (
+	// Pass is the status of a successful test.
+	Pass = Status("PASS")
+	// Fail is the status of a failed test.
+	Fail = Status("FAIL")
+	// Timeout is the status of a test that failed to complete in the alloted
+	// time.
+	Timeout = Status("TIMEOUT")
+	// Crash is the status of a test that crashed.
+	Crash = Status("CRASH")
+	// NotSupported is the status of a test feature not supported by the driver.
+	NotSupported = Status("NOT_SUPPORTED")
+	// CompatibilityWarning is the status passing test with a warning.
+	CompatibilityWarning = Status("COMPATIBILITY_WARNING")
+	// QualityWarning is the status passing test with a warning.
+	QualityWarning = Status("QUALITY_WARNING")
+)
+
+// Statuses is the full list of status types
+var Statuses = []Status{Pass, Fail, Timeout, Crash, NotSupported, CompatibilityWarning, QualityWarning}
+
+// Failing returns true if the task status requires fixing.
+func (s Status) Failing() bool {
+	switch s {
+	case Fail, Timeout, Crash:
+		return true
+	default:
+		return false
+	}
+}
+
+// Passing returns true if the task status is considered a pass.
+func (s Status) Passing() bool {
+	switch s {
+	case Pass, CompatibilityWarning, QualityWarning:
+		return true
+	default:
+		return false
+	}
+}
+
+// FilePathWithStatus returns the path to the test list file with the status
+// appended before the file extension.
+func FilePathWithStatus(listPath string, status Status) string {
+	ext := filepath.Ext(listPath)
+	name := listPath[:len(listPath)-len(ext)]
+	return name + "-" + string(status) + ext
+}

@@ -22,6 +22,7 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
+	"strings"
 	"time"
 
 	"../cause"
@@ -138,4 +139,84 @@ func FetchRefHash(ref, url string) (Hash, error) {
 		return Hash{}, err
 	}
 	return ParseHash(string(out)), nil
+}
+
+type ChangeList struct {
+	Hash        Hash
+	Date        time.Time
+	Author      string
+	Subject     string
+	Description string
+}
+
+// Log returns the top count ChangeLists at HEAD.
+func Log(path string, count int) ([]ChangeList, error) {
+	return LogFrom(path, "HEAD", count)
+}
+
+// LogFrom returns the top count ChangeList starting from at.
+func LogFrom(path, at string, count int) ([]ChangeList, error) {
+	if at == "" {
+		at = "HEAD"
+	}
+	out, err := shell.Exec(gitTimeout, exe, "", nil, "log", at, "--pretty=format:"+prettyFormat, fmt.Sprintf("-%d", count), path)
+	if err != nil {
+		return nil, err
+	}
+	return parseLog(string(out)), nil
+}
+
+// Parent returns the parent ChangeList for cl.
+func Parent(cl ChangeList) (ChangeList, error) {
+	out, err := shell.Exec(gitTimeout, exe, "", nil, "log", "--pretty=format:"+prettyFormat, fmt.Sprintf("%v^", cl.Hash))
+	if err != nil {
+		return ChangeList{}, err
+	}
+	cls := parseLog(string(out))
+	if len(cls) == 0 {
+		return ChangeList{}, fmt.Errorf("Unexpected output")
+	}
+	return cls[0], nil
+}
+
+// HeadCL returns the HEAD ChangeList at the given commit/tag/branch.
+func HeadCL(path string) (ChangeList, error) {
+	cls, err := LogFrom(path, "HEAD", 1)
+	if err != nil {
+		return ChangeList{}, err
+	}
+	if len(cls) == 0 {
+		return ChangeList{}, fmt.Errorf("No commits found")
+	}
+	return cls[0], nil
+}
+
+// Show content of the file at path for the given commit/tag/branch.
+func Show(path, at string) ([]byte, error) {
+	return shell.Exec(gitTimeout, exe, "", nil, "show", at+":"+path)
+}
+
+const prettyFormat = "ǁ%Hǀ%cIǀ%an <%ae>ǀ%sǀ%b"
+
+func parseLog(str string) []ChangeList {
+	msgs := strings.Split(str, "ǁ")
+	cls := make([]ChangeList, 0, len(msgs))
+	for _, s := range msgs {
+		if parts := strings.Split(s, "ǀ"); len(parts) == 5 {
+			cl := ChangeList{
+				Hash:        ParseHash(parts[0]),
+				Author:      strings.TrimSpace(parts[2]),
+				Subject:     strings.TrimSpace(parts[3]),
+				Description: strings.TrimSpace(parts[4]),
+			}
+			date, err := time.Parse(time.RFC3339, parts[1])
+			if err != nil {
+				panic(err)
+			}
+			cl.Date = date
+
+			cls = append(cls, cl)
+		}
+	}
+	return cls
 }

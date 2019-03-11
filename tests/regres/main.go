@@ -42,6 +42,7 @@ import (
 	"time"
 
 	"./cause"
+	"./consts"
 	"./git"
 	"./shell"
 	"./testlist"
@@ -444,7 +445,7 @@ func (r *regres) updateTestLists(client *gerrit.Client) error {
 	}
 
 	commitMsg := strings.Builder{}
-	commitMsg.WriteString("Regres: Update test lists @ " + headHash.String()[:8])
+	commitMsg.WriteString(consts.TestListUpdateCommitSubjectPrefix + headHash.String()[:8])
 	if results != nil && len(*changes) > 0 {
 		// Reuse gerrit change ID if there's already a change up for review.
 		id := (*changes)[0].ChangeID
@@ -739,11 +740,9 @@ func (t *test) writeTestListsByStatus(testLists testlist.Lists, results *CommitT
 	out := []string{}
 
 	for _, list := range testLists {
-		files := map[Status]*os.File{}
-		ext := filepath.Ext(list.File)
-		name := list.File[:len(list.File)-len(ext)]
-		for _, status := range Statuses {
-			path := filepath.Join(t.srcDir, name+"-"+string(status)+ext)
+		files := map[testlist.Status]*os.File{}
+		for _, status := range testlist.Statuses {
+			path := testlist.FilePathWithStatus(filepath.Join(t.srcDir, list.File), status)
 			dir := filepath.Dir(path)
 			os.MkdirAll(dir, 0777)
 			f, err := os.Create(path)
@@ -770,50 +769,6 @@ func (t *test) writeTestListsByStatus(testLists testlist.Lists, results *CommitT
 // test and testlists.
 func (t *test) resultsCachePath(testLists testlist.Lists) string {
 	return filepath.Join(t.resDir, testLists.Hash())
-}
-
-// Status is an enumerator of test results.
-type Status string
-
-const (
-	// Pass is the status of a successful test.
-	Pass = Status("PASS")
-	// Fail is the status of a failed test.
-	Fail = Status("FAIL")
-	// Timeout is the status of a test that failed to complete in the alloted
-	// time.
-	Timeout = Status("TIMEOUT")
-	// Crash is the status of a test that crashed.
-	Crash = Status("CRASH")
-	// NotSupported is the status of a test feature not supported by the driver.
-	NotSupported = Status("NOT_SUPPORTED")
-	// CompatibilityWarning is the status passing test with a warning.
-	CompatibilityWarning = Status("COMPATIBILITY_WARNING")
-	// QualityWarning is the status passing test with a warning.
-	QualityWarning = Status("QUALITY_WARNING")
-)
-
-// Statuses is the full list of status types
-var Statuses = []Status{Pass, Fail, Timeout, Crash, NotSupported, CompatibilityWarning, QualityWarning}
-
-// Failing returns true if the task status requires fixing.
-func (s Status) Failing() bool {
-	switch s {
-	case Fail, Timeout, Crash:
-		return true
-	default:
-		return false
-	}
-}
-
-// Passing returns true if the task status is considered a pass.
-func (s Status) Passing() bool {
-	switch s {
-	case Pass, CompatibilityWarning, QualityWarning:
-		return true
-	default:
-		return false
-	}
 }
 
 // CommitTestResults holds the results the tests across all APIs for a given
@@ -874,7 +829,7 @@ func compare(old, new *CommitTestResults) string {
 		return "Build now fixed. Cannot compare against broken parent."
 	}
 
-	oldStatusCounts, newStatusCounts := map[Status]int{}, map[Status]int{}
+	oldStatusCounts, newStatusCounts := map[testlist.Status]int{}, map[testlist.Status]int{}
 	totalTests := 0
 
 	broken, fixed, failing, removed, changed := []string{}, []string{}, []string{}, []string{}, []string{}
@@ -934,15 +889,15 @@ func compare(old, new *CommitTestResults) string {
 	sb.WriteString(fmt.Sprintf("          Total tests: %d\n", totalTests))
 	for _, s := range []struct {
 		label  string
-		status Status
+		status testlist.Status
 	}{
-		{"                 Pass", Pass},
-		{"                 Fail", Fail},
-		{"              Timeout", Timeout},
-		{"                Crash", Crash},
-		{"        Not Supported", NotSupported},
-		{"Compatibility Warning", CompatibilityWarning},
-		{"      Quality Warning", QualityWarning},
+		{"                 Pass", testlist.Pass},
+		{"                 Fail", testlist.Fail},
+		{"              Timeout", testlist.Timeout},
+		{"                Crash", testlist.Crash},
+		{"        Not Supported", testlist.NotSupported},
+		{"Compatibility Warning", testlist.CompatibilityWarning},
+		{"      Quality Warning", testlist.QualityWarning},
 	} {
 		old, new := oldStatusCounts[s.status], newStatusCounts[s.status]
 		if old == 0 && new == 0 {
@@ -1003,7 +958,7 @@ func compare(old, new *CommitTestResults) string {
 // TestResult holds the results of a single API test.
 type TestResult struct {
 	Test   string
-	Status Status
+	Status testlist.Status
 	Err    string `json:",omitempty"`
 }
 
@@ -1037,13 +992,13 @@ func (t *test) deqpTestRoutine(exe string, tests <-chan string, results chan<- T
 		default:
 			results <- TestResult{
 				Test:   name,
-				Status: Crash,
+				Status: testlist.Crash,
 				Err:    cause.Wrap(err, string(out)).Error(),
 			}
 		case shell.ErrTimeout:
 			results <- TestResult{
 				Test:   name,
-				Status: Timeout,
+				Status: testlist.Timeout,
 				Err:    cause.Wrap(err, string(out)).Error(),
 			}
 		case nil:
@@ -1051,28 +1006,28 @@ func (t *test) deqpTestRoutine(exe string, tests <-chan string, results chan<- T
 			if len(toks) < 3 {
 				err := fmt.Sprintf("Couldn't parse test '%v' output:\n%s", name, string(out))
 				log.Println("Warning: ", err)
-				results <- TestResult{Test: name, Status: Fail, Err: err}
+				results <- TestResult{Test: name, Status: testlist.Fail, Err: err}
 				continue
 			}
 			switch toks[1] {
 			case "Pass":
-				results <- TestResult{Test: name, Status: Pass}
+				results <- TestResult{Test: name, Status: testlist.Pass}
 			case "NotSupported":
-				results <- TestResult{Test: name, Status: NotSupported}
+				results <- TestResult{Test: name, Status: testlist.NotSupported}
 			case "CompatibilityWarning":
-				results <- TestResult{Test: name, Status: CompatibilityWarning}
+				results <- TestResult{Test: name, Status: testlist.CompatibilityWarning}
 			case "QualityWarning":
-				results <- TestResult{Test: name, Status: QualityWarning}
+				results <- TestResult{Test: name, Status: testlist.QualityWarning}
 			case "Fail":
 				var err string
 				if toks[2] != "Fail" {
 					err = toks[2]
 				}
-				results <- TestResult{Test: name, Status: Fail, Err: err}
+				results <- TestResult{Test: name, Status: testlist.Fail, Err: err}
 			default:
 				err := fmt.Sprintf("Couldn't parse test output:\n%s", string(out))
 				log.Println("Warning: ", err)
-				results <- TestResult{Test: name, Status: Fail, Err: err}
+				results <- TestResult{Test: name, Status: testlist.Fail, Err: err}
 			}
 		}
 	}
