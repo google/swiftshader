@@ -2977,6 +2977,11 @@ namespace rr
 	};
 
 	// PrintValue::Ty<T> specializations for standard Reactor types.
+	template <> struct PrintValue::Ty<Bool>
+	{
+		static constexpr const char* fmt = "%d";
+		static std::vector<Value*> val(const RValue<Bool>& v) { return {v.value}; }
+	};
 	template <> struct PrintValue::Ty<Byte>
 	{
 		static constexpr const char* fmt = "%d";
