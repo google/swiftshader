@@ -1960,7 +1960,6 @@ namespace sw
 		}
 
 		VkExtent3D srcExtent = src->getMipLevelExtent(region.srcSubresource.mipLevel);
-		VkExtent3D dstExtent = dst->getMipLevelExtent(region.dstSubresource.mipLevel);
 
 		int32_t numSlices = (region.srcOffsets[1].z - region.srcOffsets[0].z);
 		ASSERT(numSlices == (region.dstOffsets[1].z - region.dstOffsets[0].z));
