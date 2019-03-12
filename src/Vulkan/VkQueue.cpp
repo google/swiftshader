@@ -76,6 +76,11 @@ void Queue::waitIdle()
 
 void Queue::present(const VkPresentInfoKHR* presentInfo)
 {
+	for(uint32_t i = 0; i < presentInfo->waitSemaphoreCount; i++)
+	{
+		vk::Cast(presentInfo->pWaitSemaphores[i])->wait();
+	}
+
 	for(uint32_t i = 0; i < presentInfo->swapchainCount; i++)
 	{
 		vk::Cast(presentInfo->pSwapchains[i])->present(presentInfo->pImageIndices[i]);
