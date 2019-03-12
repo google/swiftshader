@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "dd318075_c2d1490f",
+        "filename": "src/Pipeline/ComputeProgram.cpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2019-03-12T15:47:22Z",
+      "side": 1,
+      "message": "Note: This is unused.",
+      "range": {
+        "startLine": 141,
+        "startChar": 2,
+        "endLine": 141,
+        "endChar": 28
+      },
+      "revId": "f2be26a1fa60641aac6859a0f35b004876493542",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
