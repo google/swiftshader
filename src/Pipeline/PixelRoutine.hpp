@@ -82,6 +82,12 @@ namespace sw
 		void linearToSRGB16_12_16(Vector4s &c);
 		Float4 sRGBtoLinear(const Float4 &x);
 
+		Bool depthTest32F(Pointer<Byte> &zBuffer, int q, Int &x, Float4 &z, Int &sMask, Int &zMask, Int &cMask);
+		Bool depthTest16(Pointer<Byte> &zBuffer, int q, Int &x, Float4 &z, Int &sMask, Int &zMask, Int &cMask);
+
+		void writeDepth32F(Pointer<Byte> &zBuffer, int q, Int &x, Float4 &z, Int &zMask);
+		void writeDepth16(Pointer<Byte> &zBuffer, int q, Int &x, Float4 &z, Int &zMask);
+
 		bool colorUsed();
 	};
 }

@@ -363,13 +363,8 @@ namespace sw
 		}
 	}
 
-	Bool PixelRoutine::depthTest(Pointer<Byte> &zBuffer, int q, Int &x, Float4 &z, Int &sMask, Int &zMask, Int &cMask)
+	Bool PixelRoutine::depthTest32F(Pointer<Byte> &zBuffer, int q, Int &x, Float4 &z, Int &sMask, Int &zMask, Int &cMask)
 	{
-		if(!state.depthTestActive)
-		{
-			return true;
-		}
-
 		Float4 Z = z;
 
 		if(spirvShader && spirvShader->getModes().DepthReplacing)
@@ -464,6 +459,119 @@ namespace sw
 		return zMask != 0;
 	}
 
+	Bool PixelRoutine::depthTest16(Pointer<Byte> &zBuffer, int q, Int &x, Float4 &z, Int &sMask, Int &zMask, Int &cMask)
+	{
+		Short4 Z = convertFixed16(z, true);
+
+		if(spirvShader && spirvShader->getModes().DepthReplacing)
+		{
+			Z = convertFixed16(oDepth, true);
+		}
+
+		Pointer<Byte> buffer;
+		Int pitch;
+
+		if(!state.quadLayoutDepthBuffer)
+		{
+			buffer = zBuffer + 2 * x;
+			pitch = *Pointer<Int>(data + OFFSET(DrawData,depthPitchB));
+		}
+		else
+		{
+			buffer = zBuffer + 4 * x;
+		}
+
+		if(q > 0)
+		{
+			buffer += q * *Pointer<Int>(data + OFFSET(DrawData,depthSliceB));
+		}
+
+		Short4 zValue;
+
+		if(state.depthCompareMode != VK_COMPARE_OP_NEVER || (state.depthCompareMode != VK_COMPARE_OP_ALWAYS && !state.depthWriteEnable))
+		{
+			if(!state.quadLayoutDepthBuffer)
+			{
+				// FIXME: Properly optimizes?
+				zValue = *Pointer<Short4>(buffer) & Short4(-1, -1, 0, 0);
+				zValue = zValue | (*Pointer<Short4>(buffer + pitch - 4) & Short4(0, 0, -1, -1));
+			}
+			else
+			{
+				zValue = *Pointer<Short4>(buffer, 8);
+			}
+		}
+
+		Int4 zTest;
+
+		// Bias values to make unsigned compares out of Reactor's (due SSE's) signed compares only
+		zValue = zValue - Short4(0x8000);
+		Z = Z - Short4(0x8000);
+
+		switch(state.depthCompareMode)
+		{
+		case VK_COMPARE_OP_ALWAYS:
+			// Optimized
+			break;
+		case VK_COMPARE_OP_NEVER:
+			// Optimized
+			break;
+		case VK_COMPARE_OP_EQUAL:
+			zTest = Int4(CmpEQ(zValue, Z));
+			break;
+		case VK_COMPARE_OP_NOT_EQUAL:
+			zTest = ~Int4(CmpEQ(zValue, Z));
+			break;
+		case VK_COMPARE_OP_LESS:
+			zTest = Int4(CmpGT(zValue, Z));
+			break;
+		case VK_COMPARE_OP_GREATER_OR_EQUAL:
+			zTest = ~Int4(CmpGT(zValue, Z));
+			break;
+		case VK_COMPARE_OP_LESS_OR_EQUAL:
+			zTest = ~Int4(CmpGT(Z, zValue));
+			break;
+		case VK_COMPARE_OP_GREATER:
+			zTest = Int4(CmpGT(Z, zValue));
+			break;
+		default:
+			ASSERT(false);
+		}
+
+		switch(state.depthCompareMode)
+		{
+		case VK_COMPARE_OP_ALWAYS:
+			zMask = cMask;
+			break;
+		case VK_COMPARE_OP_NEVER:
+			zMask = 0x0;
+			break;
+		default:
+			zMask = SignMask(zTest) & cMask;
+			break;
+		}
+
+		if(state.stencilActive)
+		{
+			zMask &= sMask;
+		}
+
+		return zMask != 0;
+	}
+
+	Bool PixelRoutine::depthTest(Pointer<Byte> &zBuffer, int q, Int &x, Float4 &z, Int &sMask, Int &zMask, Int &cMask)
+	{
+		if(!state.depthTestActive)
+		{
+			return true;
+		}
+
+		if (state.depthFormat == VK_FORMAT_D16_UNORM)
+			return depthTest16(zBuffer, q, x, z, sMask, zMask, cMask);
+		else
+			return depthTest32F(zBuffer, q, x, z, sMask, zMask, cMask);
+	}
+
 	void PixelRoutine::alphaToCoverage(Int cMask[4], Float4 &alpha)
 	{
 		Int4 coverage0 = CmpNLT(alpha, *Pointer<Float4>(data + OFFSET(DrawData,a2c0)));
@@ -482,13 +590,8 @@ namespace sw
 		cMask[3] &= aMask3;
 	}
 
-	void PixelRoutine::writeDepth(Pointer<Byte> &zBuffer, int q, Int &x, Float4 &z, Int &zMask)
+	void PixelRoutine::writeDepth32F(Pointer<Byte> &zBuffer, int q, Int &x, Float4 &z, Int &zMask)
 	{
-		if(!state.depthWriteEnable)
-		{
-			return;
-		}
-
 		Float4 Z = z;
 
 		if(spirvShader && spirvShader->getModes().DepthReplacing)
@@ -544,6 +647,80 @@ namespace sw
 		{
 			*Pointer<Float4>(buffer, 16) = Z;
 		}
+	}
+
+	void PixelRoutine::writeDepth16(Pointer<Byte> &zBuffer, int q, Int &x, Float4 &z, Int &zMask)
+	{
+		Short4 Z = As<Short4>(convertFixed16(z, true));
+
+		if(spirvShader && spirvShader->getModes().DepthReplacing)
+		{
+			Z = As<Short4>(convertFixed16(oDepth, true));
+		}
+
+		Pointer<Byte> buffer;
+		Int pitch;
+
+		if(!state.quadLayoutDepthBuffer)
+		{
+			buffer = zBuffer + 2 * x;
+			pitch = *Pointer<Int>(data + OFFSET(DrawData,depthPitchB));
+		}
+		else
+		{
+			buffer = zBuffer + 4 * x;
+		}
+
+		if(q > 0)
+		{
+			buffer += q * *Pointer<Int>(data + OFFSET(DrawData,depthSliceB));
+		}
+
+		Short4 zValue;
+
+		if(state.depthCompareMode != VK_COMPARE_OP_NEVER || (state.depthCompareMode != VK_COMPARE_OP_ALWAYS && !state.depthWriteEnable))
+		{
+			if(!state.quadLayoutDepthBuffer)
+			{
+				// FIXME: Properly optimizes?
+				zValue = *Pointer<Short4>(buffer) & Short4(-1, -1, 0, 0);
+				zValue = zValue | (*Pointer<Short4>(buffer + pitch - 4) & Short4(0, 0, -1, -1));
+			}
+			else
+			{
+				zValue = *Pointer<Short4>(buffer, 8);
+			}
+		}
+
+		Z = Z & *Pointer<Short4>(constants + OFFSET(Constants,maskW4Q) + zMask * 8, 8);
+		zValue = zValue & *Pointer<Short4>(constants + OFFSET(Constants,invMaskW4Q) + zMask * 8, 8);
+		Z = Z | zValue;
+
+		if(!state.quadLayoutDepthBuffer)
+		{
+			// FIXME: Properly optimizes?
+			*Pointer<Short>(buffer) = Extract(Z, 0);
+			*Pointer<Short>(buffer+2) = Extract(Z, 1);
+			*Pointer<Short>(buffer+pitch) = Extract(Z, 2);
+			*Pointer<Short>(buffer+pitch+2) = Extract(Z, 3);
+		}
+		else
+		{
+			*Pointer<Short4>(buffer, 8) = Z;
+		}
+	}
+
+	void PixelRoutine::writeDepth(Pointer<Byte> &zBuffer, int q, Int &x, Float4 &z, Int &zMask)
+	{
+		if(!state.depthWriteEnable)
+		{
+			return;
+		}
+
+		if (state.depthFormat == VK_FORMAT_D16_UNORM)
+			writeDepth16(zBuffer, q, x, z, zMask);
+		else
+			writeDepth32F(zBuffer, q, x, z, zMask);
 	}
 
 	void PixelRoutine::writeStencil(Pointer<Byte> &sBuffer, int q, Int &x, Int &sMask, Int &zMask, Int &cMask)
