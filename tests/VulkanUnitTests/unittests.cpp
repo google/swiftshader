@@ -405,6 +405,65 @@ TEST_P(SwiftShaderVulkanBufferToBufferComputeTest, Memcpy)
     test(src.str(), [](uint32_t i) { return i; }, [](uint32_t i) { return i; });
 }
 
+TEST_P(SwiftShaderVulkanBufferToBufferComputeTest, GlobalInvocationId)
+{
+    std::stringstream src;
+    src <<
+              "OpCapability Shader\n"
+              "OpMemoryModel Logical GLSL450\n"
+              "OpEntryPoint GLCompute %1 \"main\" %2\n"
+              "OpExecutionMode %1 LocalSize " <<
+                GetParam().localSizeX << " " <<
+                GetParam().localSizeY << " " <<
+                GetParam().localSizeZ << "\n" <<
+              "OpDecorate %3 ArrayStride 4\n"
+              "OpMemberDecorate %4 0 Offset 0\n"
+              "OpDecorate %4 BufferBlock\n"
+              "OpDecorate %5 DescriptorSet 0\n"
+              "OpDecorate %5 Binding 1\n"
+              "OpDecorate %2 BuiltIn GlobalInvocationId\n"
+              "OpDecorate %6 DescriptorSet 0\n"
+              "OpDecorate %6 Binding 0\n"
+         "%7 = OpTypeVoid\n"
+         "%8 = OpTypeFunction %7\n"             // void()
+         "%9 = OpTypeInt 32 1\n"                // int32
+        "%10 = OpTypeInt 32 0\n"                // uint32
+         "%3 = OpTypeRuntimeArray %9\n"         // int32[]
+         "%4 = OpTypeStruct %3\n"               // struct{ int32[] }
+        "%11 = OpTypePointer Uniform %4\n"      // struct{ int32[] }*
+         "%5 = OpVariable %11 Uniform\n"        // struct{ int32[] }* in
+        "%12 = OpConstant %9 0\n"               // int32(0)
+        "%13 = OpConstant %9 1\n"               // int32(1)
+        "%14 = OpConstant %10 0\n"              // uint32(0)
+        "%15 = OpConstant %10 1\n"              // uint32(1)
+        "%16 = OpConstant %10 2\n"              // uint32(2)
+        "%17 = OpTypeVector %10 3\n"            // vec4<int32>
+        "%18 = OpTypePointer Input %17\n"       // vec4<int32>*
+         "%2 = OpVariable %18 Input\n"          // gl_GlobalInvocationId
+        "%19 = OpTypePointer Input %10\n"       // uint32*
+         "%6 = OpVariable %11 Uniform\n"        // struct{ int32[] }* out
+        "%20 = OpTypePointer Uniform %9\n"      // int32*
+         "%1 = OpFunction %7 None %8\n"         // -- Function begin --
+        "%21 = OpLabel\n"
+        "%22 = OpAccessChain %19 %2 %14\n"      // &gl_GlobalInvocationId.x
+        "%23 = OpAccessChain %19 %2 %15\n"      // &gl_GlobalInvocationId.y
+        "%24 = OpAccessChain %19 %2 %16\n"      // &gl_GlobalInvocationId.z
+        "%25 = OpLoad %10 %22\n"                // gl_GlobalInvocationId.x
+        "%26 = OpLoad %10 %23\n"                // gl_GlobalInvocationId.y
+        "%27 = OpLoad %10 %24\n"                // gl_GlobalInvocationId.z
+        "%28 = OpAccessChain %20 %6 %12 %25\n"  // &in.arr[gl_GlobalInvocationId.x]
+        "%29 = OpLoad %9 %28\n"                 // out.arr[gl_GlobalInvocationId.x]
+        "%30 = OpIAdd %9 %29 %26\n"             // in[gl_GlobalInvocationId.x] + gl_GlobalInvocationId.y
+        "%31 = OpIAdd %9 %30 %27\n"             // in[gl_GlobalInvocationId.x] + gl_GlobalInvocationId.y + gl_GlobalInvocationId.z
+        "%32 = OpAccessChain %20 %5 %12 %25\n"  // &out.arr[gl_GlobalInvocationId.x]
+              "OpStore %32 %31\n"               // out.arr[gl_GlobalInvocationId.x] = in[gl_GlobalInvocationId.x] + gl_GlobalInvocationId.y + gl_GlobalInvocationId.z
+              "OpReturn\n"
+              "OpFunctionEnd\n";
+
+    // gl_GlobalInvocationId.y and gl_GlobalInvocationId.z should both be zero.
+    test(src.str(), [](uint32_t i) { return i; }, [](uint32_t i) { return i; });
+}
+
 TEST_P(SwiftShaderVulkanBufferToBufferComputeTest, BranchSimple)
 {
     std::stringstream src;

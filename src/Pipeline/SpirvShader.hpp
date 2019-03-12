@@ -23,6 +23,7 @@
 
 #include <array>
 #include <cstring>
+#include <functional>
 #include <string>
 #include <vector>
 #include <unordered_map>
@@ -517,6 +518,8 @@ namespace sw
 
 		Value inputs = Value{MAX_INTERFACE_COMPONENTS};
 		Value outputs = Value{MAX_INTERFACE_COMPONENTS};
+
+		SIMD::Int activeLaneMask = SIMD::Int(0xFFFFFFFF);
 
 		std::array<Pointer<Byte>, vk::MAX_BOUND_DESCRIPTOR_SETS> descriptorSets;
 

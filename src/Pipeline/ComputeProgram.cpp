@@ -80,6 +80,9 @@ namespace sw
 		{
 			Int4 localInvocationIndex = Int4(invocationIndex) + Int4(0, 1, 2, 3);
 
+			// Disable lanes where (invocationIDs >= numInvocations)
+			routine.activeLaneMask = CmpLT(localInvocationIndex, Int4(numInvocations));
+
 			Int4 localInvocationID[3];
 			{
 				Int4 idx = localInvocationIndex;
@@ -113,12 +116,9 @@ namespace sw
 						Int4(Extract(workgroupSize, component)) +
 						localInvocationID[component];
 					value[builtin.FirstComponent + component] = As<Float4>(globalInvocationID);
-					// RR_WATCH(component, globalInvocationID);
+					// RR_WATCH(component, globalInvocationID, routine.activeLaneMask);
 				}
 			});
-
-			// TODO(bclayton): Disable lanes where (invocationIDs >= numInvocations)
-			// Int4 enabledLanes = invocationIDs < Int4(numInvocations);
 
 			// Process numLanes of the workgroup.
 			shader->emit(&routine);
