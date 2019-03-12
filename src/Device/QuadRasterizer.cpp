@@ -22,7 +22,6 @@
 
 namespace sw
 {
-	extern bool veryEarlyDepthTest;
 	extern bool fullPixelPositionRegister;
 
 	extern int clusterCount;
@@ -155,69 +154,6 @@ namespace sw
 					}
 
 					Dz[q] = *Pointer<Float4>(primitive + OFFSET(Primitive,z.C), 16) + y * *Pointer<Float4>(primitive + OFFSET(Primitive,z.B), 16);
-				}
-			}
-
-			if(veryEarlyDepthTest && state.multiSample == 1 && !spirvShader->getModes().DepthReplacing)
-			{
-				if(!state.stencilActive && state.depthTestActive && (state.depthCompareMode == VK_COMPARE_OP_LESS_OR_EQUAL || state.depthCompareMode == VK_COMPARE_OP_LESS))   // FIXME: Both modes ok?
-				{
-					Float4 xxxx = Float4(Float(x0)) + *Pointer<Float4>(primitive + OFFSET(Primitive,xQuad), 16);
-
-					Pointer<Byte> buffer;
-					Int pitch;
-
-					if(!state.quadLayoutDepthBuffer)
-					{
-						buffer = zBuffer + 4 * x0;
-						pitch = *Pointer<Int>(data + OFFSET(DrawData,depthPitchB));
-					}
-					else
-					{
-						buffer = zBuffer + 8 * x0;
-					}
-
-					For(Int x = x0, x < x1, x += 2)
-					{
-						Float4 z = interpolate(xxxx, Dz[0], z, primitive + OFFSET(Primitive,z), false, false, state.depthClamp);
-
-						Float4 zValue;
-
-						if(!state.quadLayoutDepthBuffer)
-						{
-							// FIXME: Properly optimizes?
-							zValue.xy = *Pointer<Float4>(buffer);
-							zValue.zw = *Pointer<Float4>(buffer + pitch - 8);
-						}
-						else
-						{
-							zValue = *Pointer<Float4>(buffer, 16);
-						}
-
-						Int4 zTest = CmpNLT(zValue, z);
-
-						Int zMask = SignMask(zTest);
-
-						If(zMask == 0)
-						{
-							x0 += 2;
-						}
-						Else
-						{
-							x = x1;
-						}
-
-						xxxx += Float4(2);
-
-						if(!state.quadLayoutDepthBuffer)
-						{
-							buffer += 8;
-						}
-						else
-						{
-							buffer += 16;
-						}
-					}
 				}
 			}
 

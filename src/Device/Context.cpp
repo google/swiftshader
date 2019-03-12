@@ -35,7 +35,6 @@ namespace sw
 
 	bool forceWindowed = false;
 	bool quadLayoutEnabled = false;
-	bool veryEarlyDepthTest = true;
 	bool postBlendSRGB = false;
 	bool exactColorRounding = false;
 	TransparencyAntialiasing transparencyAntialiasing = TRANSPARENCY_NONE;
