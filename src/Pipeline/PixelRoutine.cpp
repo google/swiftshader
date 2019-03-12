@@ -24,7 +24,6 @@
 
 namespace sw
 {
-	extern bool complementaryDepthBuffer;
 	extern bool postBlendSRGB;
 	extern bool exactColorRounding;
 	extern bool forceClearRegisters;
@@ -375,14 +374,7 @@ namespace sw
 
 		if(spirvShader && spirvShader->getModes().DepthReplacing)
 		{
-			if(complementaryDepthBuffer)
-			{
-				Z = Float4(1.0f) - oDepth;
-			}
-			else
-			{
-				Z = oDepth;
-			}
+			Z = oDepth;
 		}
 
 		Pointer<Byte> buffer;
@@ -436,44 +428,16 @@ namespace sw
 			zTest = CmpNEQ(zValue, Z);
 			break;
 		case VK_COMPARE_OP_LESS:
-			if(complementaryDepthBuffer)
-			{
-				zTest = CmpLT(zValue, Z);
-			}
-			else
-			{
-				zTest = CmpNLE(zValue, Z);
-			}
+			zTest = CmpNLE(zValue, Z);
 			break;
 		case VK_COMPARE_OP_GREATER_OR_EQUAL:
-			if(complementaryDepthBuffer)
-			{
-				zTest = CmpNLT(zValue, Z);
-			}
-			else
-			{
-				zTest = CmpLE(zValue, Z);
-			}
+			zTest = CmpLE(zValue, Z);
 			break;
 		case VK_COMPARE_OP_LESS_OR_EQUAL:
-			if(complementaryDepthBuffer)
-			{
-				zTest = CmpLE(zValue, Z);
-			}
-			else
-			{
-				zTest = CmpNLT(zValue, Z);
-			}
+			zTest = CmpNLT(zValue, Z);
 			break;
 		case VK_COMPARE_OP_GREATER:
-			if(complementaryDepthBuffer)
-			{
-				zTest = CmpNLE(zValue, Z);
-			}
-			else
-			{
-				zTest = CmpLT(zValue, Z);
-			}
+			zTest = CmpLT(zValue, Z);
 			break;
 		default:
 			ASSERT(false);
@@ -529,14 +493,7 @@ namespace sw
 
 		if(spirvShader && spirvShader->getModes().DepthReplacing)
 		{
-			if(complementaryDepthBuffer)
-			{
-				Z = Float4(1.0f) - oDepth;
-			}
-			else
-			{
-				Z = oDepth;
-			}
+			Z = oDepth;
 		}
 
 		Pointer<Byte> buffer;

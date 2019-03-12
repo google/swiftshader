@@ -422,7 +422,6 @@ namespace sw
 		html += "<table>\n";
 		html += "<tr><td>Disable SwiftConfig server:</td><td><input name = 'disableServer' type='checkbox'" + (config.disableServer == true ? checked : empty) + " title='If checked disables the web browser based control panel.'></td></tr>";
 		html += "<tr><td>Force windowed mode:</td><td><input name = 'forceWindowed' type='checkbox'" + (config.forceWindowed == true ? checked : empty) + " title='If checked prevents the application from switching to full-screen mode.'></td></tr>";
-		html += "<tr><td>Complementary depth buffer:</td><td><input name = 'complementaryDepthBuffer' type='checkbox'" + (config.complementaryDepthBuffer == true ? checked : empty) + " title='If checked causes 1 - z to be stored in the depth buffer.'></td></tr>";
 		html += "<tr><td>Post alpha blend sRGB conversion:</td><td><input name = 'postBlendSRGB' type='checkbox'" + (config.postBlendSRGB == true ? checked : empty) + " title='If checked alpha blending is performed in linear color space.'></td></tr>";
 		html += "<tr><td>Exact color rounding:</td><td><input name = 'exactColorRounding' type='checkbox'" + (config.exactColorRounding == true ? checked : empty) + " title='If checked color rounding is done at high accuracy.'></td></tr>";
 		html += "<tr><td>Disable alpha display formats:</td><td><input name = 'disableAlphaMode' type='checkbox'" + (config.disableAlphaMode == true ? checked : empty) + " title='If checked the device does not advertise the A8R8G8B8 display mode.'></td></tr>";
@@ -541,7 +540,6 @@ namespace sw
 		config.enableSSE4_1 = false;
 		config.disableServer = false;
 		config.forceWindowed = false;
-		config.complementaryDepthBuffer = false;
 		config.postBlendSRGB = false;
 		config.exactColorRounding = false;
 		config.disableAlphaMode = false;
@@ -662,10 +660,6 @@ namespace sw
 			{
 				config.forceWindowed = true;
 			}
-			else if(strstr(post, "complementaryDepthBuffer=on"))
-			{
-				config.complementaryDepthBuffer = true;
-			}
 			else if(strstr(post, "postBlendSRGB=on"))
 			{
 				config.postBlendSRGB = true;
@@ -744,7 +738,6 @@ namespace sw
 
 		config.disableServer = ini.getBoolean("Testing", "DisableServer", false);
 		config.forceWindowed = ini.getBoolean("Testing", "ForceWindowed", false);
-		config.complementaryDepthBuffer = ini.getBoolean("Testing", "ComplementaryDepthBuffer", false);
 		config.postBlendSRGB = ini.getBoolean("Testing", "PostBlendSRGB", false);
 		config.exactColorRounding = ini.getBoolean("Testing", "ExactColorRounding", true);
 		config.disableAlphaMode = ini.getBoolean("Testing", "DisableAlphaMode", false);
@@ -802,7 +795,6 @@ namespace sw
 
 		ini.addValue("Testing", "DisableServer", itoa(config.disableServer));
 		ini.addValue("Testing", "ForceWindowed", itoa(config.forceWindowed));
-		ini.addValue("Testing", "ComplementaryDepthBuffer", itoa(config.complementaryDepthBuffer));
 		ini.addValue("Testing", "PostBlendSRGB", itoa(config.postBlendSRGB));
 		ini.addValue("Testing", "ExactColorRounding", itoa(config.exactColorRounding));
 		ini.addValue("Testing", "DisableAlphaMode", itoa(config.disableAlphaMode));

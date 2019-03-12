@@ -53,7 +53,6 @@ namespace sw
 	extern bool colorsDefaultToZero;
 
 	extern bool forceWindowed;
-	extern bool complementaryDepthBuffer;
 	extern bool postBlendSRGB;
 	extern bool exactColorRounding;
 	extern TransparencyAntialiasing transparencyAntialiasing;
@@ -390,12 +389,6 @@ namespace sw
 			if(context->isDrawTriangle())
 			{
 				N += context->depthBias;
-			}
-
-			if(complementaryDepthBuffer)
-			{
-				Z = -Z;
-				N = 1 - N;
 			}
 
 			data->Wx16 = replicate(W * 16);
@@ -1735,7 +1728,6 @@ namespace sw
 			}
 
 			forceWindowed = configuration.forceWindowed;
-			complementaryDepthBuffer = configuration.complementaryDepthBuffer;
 			postBlendSRGB = configuration.postBlendSRGB;
 			exactColorRounding = configuration.exactColorRounding;
 			forceClearRegisters = configuration.forceClearRegisters;

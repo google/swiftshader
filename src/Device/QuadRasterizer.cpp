@@ -23,7 +23,6 @@
 namespace sw
 {
 	extern bool veryEarlyDepthTest;
-	extern bool complementaryDepthBuffer;
 	extern bool fullPixelPositionRegister;
 
 	extern int clusterCount;
@@ -195,16 +194,7 @@ namespace sw
 							zValue = *Pointer<Float4>(buffer, 16);
 						}
 
-						Int4 zTest;
-
-						if(complementaryDepthBuffer)
-						{
-							zTest = CmpLE(zValue, z);
-						}
-						else
-						{
-							zTest = CmpNLT(zValue, z);
-						}
+						Int4 zTest = CmpNLT(zValue, z);
 
 						Int zMask = SignMask(zTest);
 

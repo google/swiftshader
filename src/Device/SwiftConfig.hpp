@@ -52,7 +52,6 @@ namespace sw
 			bool disableServer;
 			bool keepSystemCursor;
 			bool forceWindowed;
-			bool complementaryDepthBuffer;
 			bool postBlendSRGB;
 			bool exactColorRounding;
 			bool disableAlphaMode;

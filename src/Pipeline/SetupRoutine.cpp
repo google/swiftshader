@@ -23,7 +23,6 @@
 
 namespace sw
 {
-	extern bool complementaryDepthBuffer;
 	extern TranscendentalPrecision logPrecision;
 	extern bool leadingVertexFirst;
 
@@ -438,11 +437,6 @@ namespace sw
 				{
 					Float bias = Max(Abs(Float(A.x)), Abs(Float(B.x)));
 					bias *= *Pointer<Float>(data + OFFSET(DrawData,slopeDepthBias));
-
-					if(complementaryDepthBuffer)
-					{
-						bias = -bias;
-					}
 
 					c += bias;
 				}

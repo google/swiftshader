@@ -25,7 +25,6 @@
 
 namespace sw
 {
-	extern bool complementaryDepthBuffer;
 	extern bool fullPixelPositionRegister;
 
 	bool precacheSetup = false;

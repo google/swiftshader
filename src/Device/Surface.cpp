@@ -36,7 +36,6 @@
 namespace sw
 {
 	extern bool quadLayoutEnabled;
-	extern bool complementaryDepthBuffer;
 	extern TranscendentalPrecision logPrecision;
 
 	void Surface::Buffer::write(int x, int y, int z, const Color<float> &color)
@@ -2764,11 +2763,6 @@ namespace sw
 		}
 		else   // Quad layout
 		{
-			if(complementaryDepthBuffer)
-			{
-				depth = 1 - depth;
-			}
-
 			float *buffer = (float*)lockInternal(0, 0, 0, lock, PUBLIC);
 
 			int oddX0 = (x0 & ~1) * 2 + (x0 & 1);
