@@ -32,20 +32,7 @@ namespace sw
 		delete blitCache;
 	}
 
-	void Blitter::clear(void *pixel, VkFormat format, Surface *dest, const SliceRect &dRect, unsigned int rgbaMask)
-	{
-		if(fastClear(pixel, format, dest, dRect, rgbaMask))
-		{
-			return;
-		}
-
-		sw::Surface *color = sw::Surface::create(1, 1, 1, format, pixel, sw::Surface::bytes(format), sw::Surface::bytes(format));
-		SliceRectF sRect(0.5f, 0.5f, 0.5f, 0.5f, 0);   // Sample from the middle.
-		blit(color, sRect, dest, dRect, {rgbaMask});
-		delete color;
-	}
-
-	void Blitter::clear(void *pixel, VkFormat format, vk::Image *dest, const VkImageSubresourceRange& subresourceRange, const VkRect2D* renderArea)
+	void Blitter::clear(void *pixel, vk::Format format, vk::Image *dest, const VkImageSubresourceRange& subresourceRange, const VkRect2D* renderArea)
 	{
 		VkImageAspectFlagBits aspect = static_cast<VkImageAspectFlagBits>(subresourceRange.aspectMask);
 		if(dest->getFormat(aspect) == VK_FORMAT_UNDEFINED)
@@ -98,7 +85,7 @@ namespace sw
 			{
 				pixel, nullptr, // source, dest
 
-				sw::Surface::bytes(format),                           // sPitchB
+				format.bytes(),                                       // sPitchB
 				dest->rowPitchBytes(aspect, subresLayers.mipLevel),   // dPitchB
 				dest->slicePitchBytes(aspect, subresLayers.mipLevel), // dSliceB
 
@@ -122,7 +109,7 @@ namespace sw
 		}
 	}
 
-	bool Blitter::fastClear(void *pixel, VkFormat format, vk::Image *dest, const VkImageSubresourceRange& subresourceRange, const VkRect2D* renderArea)
+	bool Blitter::fastClear(void *pixel, vk::Format format, vk::Image *dest, const VkImageSubresourceRange& subresourceRange, const VkRect2D* renderArea)
 	{
 		if(format != VK_FORMAT_R32G32B32A32_SFLOAT)
 		{
@@ -213,7 +200,7 @@ namespace sw
 					{
 						uint8_t *d = slice;
 
-						switch(Surface::bytes(dest->getFormat(aspect)))
+						switch(dest->getFormat(aspect).bytes())
 						{
 						case 2:
 							for(uint32_t i = 0; i < area.extent.height; i++)
@@ -240,183 +227,6 @@ namespace sw
 		}
 
 		return true;
-	}
-
-	bool Blitter::fastClear(void *pixel, VkFormat format, Surface *dest, const SliceRect &dRect, unsigned int rgbaMask)
-	{
-		if(format != VK_FORMAT_R32G32B32A32_SFLOAT)
-		{
-			return false;
-		}
-
-		float *color = (float*)pixel;
-		float r = color[0];
-		float g = color[1];
-		float b = color[2];
-		float a = color[3];
-
-		uint32_t packed;
-
-		switch(dest->getFormat())
-		{
-		case VK_FORMAT_R5G6B5_UNORM_PACK16:
-			if((rgbaMask & 0x7) != 0x7) return false;
-			packed = ((uint16_t)(31 * b + 0.5f) << 0) |
-			         ((uint16_t)(63 * g + 0.5f) << 5) |
-			         ((uint16_t)(31 * r + 0.5f) << 11);
-			break;
-		case VK_FORMAT_B5G6R5_UNORM_PACK16:
-			if((rgbaMask & 0x7) != 0x7) return false;
-			packed = ((uint16_t)(31 * r + 0.5f) << 0) |
-			         ((uint16_t)(63 * g + 0.5f) << 5) |
-			         ((uint16_t)(31 * b + 0.5f) << 11);
-			break;
-		case VK_FORMAT_A8B8G8R8_UINT_PACK32:
-		case VK_FORMAT_A8B8G8R8_UNORM_PACK32:
-		case VK_FORMAT_R8G8B8A8_UNORM:
-			if((rgbaMask & 0xF) != 0xF) return false;
-			packed = ((uint32_t)(255 * a + 0.5f) << 24) |
-			         ((uint32_t)(255 * b + 0.5f) << 16) |
-			         ((uint32_t)(255 * g + 0.5f) << 8) |
-			         ((uint32_t)(255 * r + 0.5f) << 0);
-			break;
-		case VK_FORMAT_B8G8R8A8_UNORM:
-			if((rgbaMask & 0xF) != 0xF) return false;
-			packed = ((uint32_t)(255 * a + 0.5f) << 24) |
-			         ((uint32_t)(255 * r + 0.5f) << 16) |
-			         ((uint32_t)(255 * g + 0.5f) << 8) |
-			         ((uint32_t)(255 * b + 0.5f) << 0);
-			break;
-		case VK_FORMAT_B10G11R11_UFLOAT_PACK32:
-			if((rgbaMask & 0x7) != 0x7) return false;
-			packed = R11G11B10F(color);
-			break;
-		case VK_FORMAT_E5B9G9R9_UFLOAT_PACK32:
-			if((rgbaMask & 0x7) != 0x7) return false;
-			packed = RGB9E5(color);
-			break;
-		default:
-			return false;
-		}
-
-		bool useDestInternal = !dest->isExternalDirty();
-		uint8_t *slice = (uint8_t*)dest->lock(dRect.x0, dRect.y0, dRect.slice, sw::LOCK_WRITEONLY, sw::PUBLIC, useDestInternal);
-
-		for(int j = 0; j < dest->getSamples(); j++)
-		{
-			uint8_t *d = slice;
-
-			switch(Surface::bytes(dest->getFormat()))
-			{
-			case 2:
-				for(int i = dRect.y0; i < dRect.y1; i++)
-				{
-					sw::clear((uint16_t*)d, packed, dRect.x1 - dRect.x0);
-					d += dest->getPitchB(useDestInternal);
-				}
-				break;
-			case 4:
-				for(int i = dRect.y0; i < dRect.y1; i++)
-				{
-					sw::clear((uint32_t*)d, packed, dRect.x1 - dRect.x0);
-					d += dest->getPitchB(useDestInternal);
-				}
-				break;
-			default:
-				assert(false);
-			}
-
-			slice += dest->getSliceB(useDestInternal);
-		}
-
-		dest->unlock(useDestInternal);
-
-		return true;
-	}
-
-	void Blitter::blit(Surface *source, const SliceRectF &sourceRect, Surface *dest, const SliceRect &destRect, const Blitter::Options& options)
-	{
-		if(dest->getInternalFormat() == VK_FORMAT_UNDEFINED)
-		{
-			return;
-		}
-
-		if(blitReactor(source, sourceRect, dest, destRect, options))
-		{
-			return;
-		}
-
-		SliceRectF sRect = sourceRect;
-		SliceRect dRect = destRect;
-
-		bool flipX = destRect.x0 > destRect.x1;
-		bool flipY = destRect.y0 > destRect.y1;
-
-		if(flipX)
-		{
-			swap(dRect.x0, dRect.x1);
-			swap(sRect.x0, sRect.x1);
-		}
-		if(flipY)
-		{
-			swap(dRect.y0, dRect.y1);
-			swap(sRect.y0, sRect.y1);
-		}
-
-		source->lockInternal(0, 0, sRect.slice, sw::LOCK_READONLY, sw::PUBLIC);
-		dest->lockInternal(0, 0, dRect.slice, sw::LOCK_WRITEONLY, sw::PUBLIC);
-
-		float w = sRect.width() / dRect.width();
-		float h = sRect.height() / dRect.height();
-
-		float xStart = sRect.x0 + (0.5f - dRect.x0) * w;
-		float yStart = sRect.y0 + (0.5f - dRect.y0) * h;
-
-		for(int j = dRect.y0; j < dRect.y1; j++)
-		{
-			float y = yStart + j * h;
-
-			for(int i = dRect.x0; i < dRect.x1; i++)
-			{
-				float x = xStart + i * w;
-
-				// FIXME: Support RGBA mask
-				dest->copyInternal(source, i, j, x, y, options.filter);
-			}
-		}
-
-		source->unlockInternal();
-		dest->unlockInternal();
-	}
-
-	void Blitter::blit3D(Surface *source, Surface *dest)
-	{
-		source->lockInternal(0, 0, 0, sw::LOCK_READONLY, sw::PUBLIC);
-		dest->lockInternal(0, 0, 0, sw::LOCK_WRITEONLY, sw::PUBLIC);
-
-		float w = static_cast<float>(source->getWidth())  / static_cast<float>(dest->getWidth());
-		float h = static_cast<float>(source->getHeight()) / static_cast<float>(dest->getHeight());
-		float d = static_cast<float>(source->getDepth())  / static_cast<float>(dest->getDepth());
-
-		for(int k = 0; k < dest->getDepth(); k++)
-		{
-			float z = (k + 0.5f) * d;
-
-			for(int j = 0; j < dest->getHeight(); j++)
-			{
-				float y = (j + 0.5f) * h;
-
-				for(int i = 0; i < dest->getWidth(); i++)
-				{
-					float x = (i + 0.5f) * w;
-
-					dest->copyInternal(source, i, j, k, x, y, z, true);
-				}
-			}
-		}
-
-		source->unlockInternal();
-		dest->unlockInternal();
 	}
 
 	bool Blitter::read(Float4 &c, Pointer<Byte> element, const State &state)
@@ -1368,164 +1178,12 @@ namespace sw
 		return true;
 	}
 
-	bool Blitter::GetScale(float4 &scale, VkFormat format)
-	{
-		switch(format)
-		{
-		case VK_FORMAT_R4G4_UNORM_PACK8:
-		case VK_FORMAT_R4G4B4A4_UNORM_PACK16:
-		case VK_FORMAT_B4G4R4A4_UNORM_PACK16:
-			scale = vector(0xF, 0xF, 0xF, 0xF);
-			break;
-		case VK_FORMAT_R8_UNORM:
-		case VK_FORMAT_R8G8_UNORM:
-		case VK_FORMAT_R8G8B8_UNORM:
-		case VK_FORMAT_B8G8R8_UNORM:
-		case VK_FORMAT_A8B8G8R8_UNORM_PACK32:
-		case VK_FORMAT_R8G8B8A8_UNORM:
-		case VK_FORMAT_B8G8R8A8_UNORM:
-		case VK_FORMAT_R8_SRGB:
-		case VK_FORMAT_R8G8_SRGB:
-		case VK_FORMAT_R8G8B8_SRGB:
-		case VK_FORMAT_B8G8R8_SRGB:
-		case VK_FORMAT_A8B8G8R8_SRGB_PACK32:
-		case VK_FORMAT_R8G8B8A8_SRGB:
-		case VK_FORMAT_B8G8R8A8_SRGB:
-			scale = vector(0xFF, 0xFF, 0xFF, 0xFF);
-			break;
-		case VK_FORMAT_R8_SNORM:
-		case VK_FORMAT_R8G8_SNORM:
-		case VK_FORMAT_R8G8B8_SNORM:
-		case VK_FORMAT_B8G8R8_SNORM:
-		case VK_FORMAT_A8B8G8R8_SNORM_PACK32:
-		case VK_FORMAT_R8G8B8A8_SNORM:
-		case VK_FORMAT_B8G8R8A8_SNORM:
-			scale = vector(0x7F, 0x7F, 0x7F, 0x7F);
-			break;
-		case VK_FORMAT_R16_UNORM:
-		case VK_FORMAT_R16G16_UNORM:
-		case VK_FORMAT_R16G16B16_UNORM:
-		case VK_FORMAT_R16G16B16A16_UNORM:
-			scale = vector(0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF);
-			break;
-		case VK_FORMAT_R16_SNORM:
-		case VK_FORMAT_R16G16_SNORM:
-		case VK_FORMAT_R16G16B16_SNORM:
-		case VK_FORMAT_R16G16B16A16_SNORM:
-			scale = vector(0x7FFF, 0x7FFF, 0x7FFF, 0x7FFF);
-			break;
-		case VK_FORMAT_R8_SINT:
-		case VK_FORMAT_R8_UINT:
-		case VK_FORMAT_R8G8_SINT:
-		case VK_FORMAT_R8G8_UINT:
-		case VK_FORMAT_R8G8B8_SINT:
-		case VK_FORMAT_R8G8B8_UINT:
-		case VK_FORMAT_B8G8R8_SINT:
-		case VK_FORMAT_B8G8R8_UINT:
-		case VK_FORMAT_R8G8B8A8_SINT:
-		case VK_FORMAT_R8G8B8A8_UINT:
-		case VK_FORMAT_A8B8G8R8_SINT_PACK32:
-		case VK_FORMAT_A8B8G8R8_UINT_PACK32:
-		case VK_FORMAT_B8G8R8A8_SINT:
-		case VK_FORMAT_B8G8R8A8_UINT:
-		case VK_FORMAT_R8_USCALED:
-		case VK_FORMAT_R8G8_USCALED:
-		case VK_FORMAT_R8G8B8_USCALED:
-		case VK_FORMAT_B8G8R8_USCALED:
-		case VK_FORMAT_R8G8B8A8_USCALED:
-		case VK_FORMAT_B8G8R8A8_USCALED:
-		case VK_FORMAT_A8B8G8R8_USCALED_PACK32:
-		case VK_FORMAT_R8_SSCALED:
-		case VK_FORMAT_R8G8_SSCALED:
-		case VK_FORMAT_R8G8B8_SSCALED:
-		case VK_FORMAT_B8G8R8_SSCALED:
-		case VK_FORMAT_R8G8B8A8_SSCALED:
-		case VK_FORMAT_B8G8R8A8_SSCALED:
-		case VK_FORMAT_A8B8G8R8_SSCALED_PACK32:
-		case VK_FORMAT_R16_SINT:
-		case VK_FORMAT_R16_UINT:
-		case VK_FORMAT_R16G16_SINT:
-		case VK_FORMAT_R16G16_UINT:
-		case VK_FORMAT_R16G16B16A16_SINT:
-		case VK_FORMAT_R16G16B16A16_UINT:
-		case VK_FORMAT_R16_SSCALED:
-		case VK_FORMAT_R16G16_SSCALED:
-		case VK_FORMAT_R16G16B16_SSCALED:
-		case VK_FORMAT_R16G16B16A16_SSCALED:
-		case VK_FORMAT_R16_USCALED:
-		case VK_FORMAT_R16G16_USCALED:
-		case VK_FORMAT_R16G16B16_USCALED:
-		case VK_FORMAT_R16G16B16A16_USCALED:
-		case VK_FORMAT_R32_SINT:
-		case VK_FORMAT_R32_UINT:
-		case VK_FORMAT_R32G32_SINT:
-		case VK_FORMAT_R32G32_UINT:
-		case VK_FORMAT_R32G32B32_SINT:
-		case VK_FORMAT_R32G32B32_UINT:
-		case VK_FORMAT_R32G32B32A32_SINT:
-		case VK_FORMAT_R32G32B32A32_UINT:
-		case VK_FORMAT_R32G32B32A32_SFLOAT:
-		case VK_FORMAT_R32G32B32_SFLOAT:
-		case VK_FORMAT_R32G32_SFLOAT:
-		case VK_FORMAT_R32_SFLOAT:
-		case VK_FORMAT_R16G16B16A16_SFLOAT:
-		case VK_FORMAT_R16G16B16_SFLOAT:
-		case VK_FORMAT_R16G16_SFLOAT:
-		case VK_FORMAT_R16_SFLOAT:
-		case VK_FORMAT_B10G11R11_UFLOAT_PACK32:
-		case VK_FORMAT_E5B9G9R9_UFLOAT_PACK32:
-		case VK_FORMAT_A2R10G10B10_USCALED_PACK32:
-		case VK_FORMAT_A2R10G10B10_SSCALED_PACK32:
-		case VK_FORMAT_A2R10G10B10_UINT_PACK32:
-		case VK_FORMAT_A2R10G10B10_SINT_PACK32:
-		case VK_FORMAT_A2B10G10R10_USCALED_PACK32:
-		case VK_FORMAT_A2B10G10R10_SSCALED_PACK32:
-		case VK_FORMAT_A2B10G10R10_UINT_PACK32:
-		case VK_FORMAT_A2B10G10R10_SINT_PACK32:
-			scale = vector(1.0f, 1.0f, 1.0f, 1.0f);
-			break;
-		case VK_FORMAT_R5G5B5A1_UNORM_PACK16:
-		case VK_FORMAT_B5G5R5A1_UNORM_PACK16:
-		case VK_FORMAT_A1R5G5B5_UNORM_PACK16:
-			scale = vector(0x1F, 0x1F, 0x1F, 0x01);
-			break;
-		case VK_FORMAT_R5G6B5_UNORM_PACK16:
-		case VK_FORMAT_B5G6R5_UNORM_PACK16:
-			scale = vector(0x1F, 0x3F, 0x1F, 1.0f);
-			break;
-		case VK_FORMAT_A2R10G10B10_UNORM_PACK32:
-		case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
-			scale = vector(0x3FF, 0x3FF, 0x3FF, 0x03);
-			break;
-		case VK_FORMAT_A2R10G10B10_SNORM_PACK32:
-		case VK_FORMAT_A2B10G10R10_SNORM_PACK32:
-			scale = vector(0x1FF, 0x1FF, 0x1FF, 0x01);
-			break;
-		case VK_FORMAT_D16_UNORM:
-			scale = vector(0xFFFF, 0.0f, 0.0f, 0.0f);
-			break;
-		case VK_FORMAT_D24_UNORM_S8_UINT:
-		case VK_FORMAT_X8_D24_UNORM_PACK32:
-			scale = vector(0xFFFFFF, 0.0f, 0.0f, 0.0f);
-			break;
-		case VK_FORMAT_D32_SFLOAT:
-		case VK_FORMAT_D32_SFLOAT_S8_UINT:
-		case VK_FORMAT_S8_UINT:
-			scale = vector(1.0f, 1.0f, 1.0f, 1.0f);
-			break;
-		default:
-			return false;
-		}
-
-		return true;
-	}
-
 	bool Blitter::ApplyScaleAndClamp(Float4 &value, const State &state, bool preScaled)
 	{
 		float4 scale, unscale;
 		if(state.clearOperation &&
-		   Surface::isNonNormalizedInteger(state.sourceFormat) &&
-		   !Surface::isNonNormalizedInteger(state.destFormat))
+		   state.sourceFormat.isNonNormalizedInteger() &&
+		   !state.destFormat.isNonNormalizedInteger())
 		{
 			// If we're clearing a buffer from an int or uint color into a normalized color,
 			// then the whole range of the int or uint color must be scaled between 0 and 1.
@@ -1541,18 +1199,18 @@ namespace sw
 				return false;
 			}
 		}
-		else if(!GetScale(unscale, state.sourceFormat))
+		else if(!state.sourceFormat.getScale(unscale))
 		{
 			return false;
 		}
 
-		if(!GetScale(scale, state.destFormat))
+		if(!state.destFormat.getScale(scale))
 		{
 			return false;
 		}
 
-		bool srcSRGB = Surface::isSRGBformat(state.sourceFormat);
-		bool dstSRGB = Surface::isSRGBformat(state.destFormat);
+		bool srcSRGB = state.sourceFormat.isSRGBformat();
+		bool dstSRGB = state.destFormat.isSRGBformat();
 
 		if(state.convertSRGB && ((srcSRGB && !preScaled) || dstSRGB))   // One of the formats is sRGB encoded.
 		{
@@ -1566,14 +1224,14 @@ namespace sw
 			value *= Float4(scale.x / unscale.x, scale.y / unscale.y, scale.z / unscale.z, scale.w / unscale.w);
 		}
 
-		if(Surface::isFloatFormat(state.sourceFormat) && !Surface::isFloatFormat(state.destFormat))
+		if(state.sourceFormat.isFloatFormat() && !state.destFormat.isFloatFormat())
 		{
 			value = Min(value, Float4(scale.x, scale.y, scale.z, scale.w));
 
-			value = Max(value, Float4(Surface::isUnsignedComponent(state.destFormat, 0) ? 0.0f : -scale.x,
-			                          Surface::isUnsignedComponent(state.destFormat, 1) ? 0.0f : -scale.y,
-			                          Surface::isUnsignedComponent(state.destFormat, 2) ? 0.0f : -scale.z,
-			                          Surface::isUnsignedComponent(state.destFormat, 3) ? 0.0f : -scale.w));
+			value = Max(value, Float4(state.destFormat.isUnsignedComponent(0) ? 0.0f : -scale.x,
+			                          state.destFormat.isUnsignedComponent(1) ? 0.0f : -scale.y,
+			                          state.destFormat.isUnsignedComponent(2) ? 0.0f : -scale.z,
+			                          state.destFormat.isUnsignedComponent(3) ? 0.0f : -scale.w));
 		}
 
 		return true;
@@ -1641,13 +1299,13 @@ namespace sw
 			Int sWidth = *Pointer<Int>(blit + OFFSET(BlitData,sWidth));
 			Int sHeight = *Pointer<Int>(blit + OFFSET(BlitData,sHeight));
 
-			bool intSrc = Surface::isNonNormalizedInteger(state.sourceFormat);
-			bool intDst = Surface::isNonNormalizedInteger(state.destFormat);
+			bool intSrc = state.sourceFormat.isNonNormalizedInteger();
+			bool intDst = state.destFormat.isNonNormalizedInteger();
 			bool intBoth = intSrc && intDst;
-			bool srcQuadLayout = Surface::hasQuadLayout(state.sourceFormat);
-			bool dstQuadLayout = Surface::hasQuadLayout(state.destFormat);
-			int srcBytes = Surface::bytes(state.sourceFormat);
-			int dstBytes = Surface::bytes(state.destFormat);
+			bool srcQuadLayout = state.sourceFormat.hasQuadLayout();
+			bool dstQuadLayout = state.destFormat.hasQuadLayout();
+			int srcBytes = state.sourceFormat.bytes();
+			int dstBytes = state.destFormat.bytes();
 
 			bool hasConstantColorI = false;
 			Int4 constantColorI;
@@ -1786,7 +1444,7 @@ namespace sw
 							Float4 c10; if(!read(c10, s10, state)) return nullptr;
 							Float4 c11; if(!read(c11, s11, state)) return nullptr;
 
-							if(state.convertSRGB && Surface::isSRGBformat(state.sourceFormat)) // sRGB -> RGB
+							if(state.convertSRGB && state.sourceFormat.isSRGBformat()) // sRGB -> RGB
 							{
 								if(!ApplyScaleAndClamp(c00, state)) return nullptr;
 								if(!ApplyScaleAndClamp(c01, state)) return nullptr;
@@ -1848,87 +1506,6 @@ namespace sw
 		criticalSection.unlock();
 
 		return blitRoutine;
-	}
-
-	bool Blitter::blitReactor(Surface *source, const SliceRectF &sourceRect, Surface *dest, const SliceRect &destRect, const Blitter::Options &options)
-	{
-		ASSERT(!options.clearOperation || ((source->getWidth() == 1) && (source->getHeight() == 1) && (source->getDepth() == 1)));
-
-		Rect dRect = destRect;
-		RectF sRect = sourceRect;
-		if(destRect.x0 > destRect.x1)
-		{
-			swap(dRect.x0, dRect.x1);
-			swap(sRect.x0, sRect.x1);
-		}
-		if(destRect.y0 > destRect.y1)
-		{
-			swap(dRect.y0, dRect.y1);
-			swap(sRect.y0, sRect.y1);
-		}
-
-		State state(options);
-		state.clampToEdge = (sourceRect.x0 < 0.0f) ||
-		                    (sourceRect.y0 < 0.0f) ||
-		                    (sourceRect.x1 > (float)source->getWidth()) ||
-		                    (sourceRect.y1 > (float)source->getHeight());
-
-		bool useSourceInternal = !source->isExternalDirty();
-		bool useDestInternal = !dest->isExternalDirty();
-		bool isStencil = options.useStencil;
-
-		state.sourceFormat = isStencil ? source->getStencilFormat() : source->getFormat(useSourceInternal);
-		state.destFormat = isStencil ? dest->getStencilFormat() : dest->getFormat(useDestInternal);
-		state.destSamples = dest->getSamples();
-
-		Routine *blitRoutine = getRoutine(state);
-		if(!blitRoutine)
-		{
-			return false;
-		}
-
-		void (*blitFunction)(const BlitData *data) = (void(*)(const BlitData*))blitRoutine->getEntry();
-
-		BlitData data;
-
-		bool isRGBA = options.writeMask == 0xF;
-		bool isEntireDest = dest->isEntire(destRect);
-
-		data.source = isStencil ? source->lockStencil(0, 0, 0, sw::PUBLIC) :
-		                          source->lock(0, 0, sourceRect.slice, sw::LOCK_READONLY, sw::PUBLIC, useSourceInternal);
-		data.dest = isStencil ? dest->lockStencil(0, 0, 0, sw::PUBLIC) :
-		                        dest->lock(0, 0, destRect.slice, isRGBA ? (isEntireDest ? sw::LOCK_DISCARD : sw::LOCK_WRITEONLY) : sw::LOCK_READWRITE, sw::PUBLIC, useDestInternal);
-		data.sPitchB = isStencil ? source->getStencilPitchB() : source->getPitchB(useSourceInternal);
-		data.dPitchB = isStencil ? dest->getStencilPitchB() : dest->getPitchB(useDestInternal);
-		data.dSliceB = isStencil ? dest->getStencilSliceB() : dest->getSliceB(useDestInternal);
-
-		data.w = sRect.width() / dRect.width();
-		data.h = sRect.height() / dRect.height();
-		data.x0 = sRect.x0 + (0.5f - dRect.x0) * data.w;
-		data.y0 = sRect.y0 + (0.5f - dRect.y0) * data.h;
-
-		data.x0d = dRect.x0;
-		data.x1d = dRect.x1;
-		data.y0d = dRect.y0;
-		data.y1d = dRect.y1;
-
-		data.sWidth = source->getWidth();
-		data.sHeight = source->getHeight();
-
-		blitFunction(&data);
-
-		if(isStencil)
-		{
-			source->unlockStencil();
-			dest->unlockStencil();
-		}
-		else
-		{
-			source->unlock(useSourceInternal);
-			dest->unlock(useDestInternal);
-		}
-
-		return true;
 	}
 
 	void Blitter::blit(vk::Image *src, vk::Image *dst, VkImageBlit region, VkFilter filter)

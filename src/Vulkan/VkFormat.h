@@ -17,6 +17,11 @@
 
 #include <vulkan/vulkan_core.h>
 
+namespace sw
+{
+	struct float4;
+}
+
 namespace vk
 {
 
@@ -24,17 +29,26 @@ class Format
 {
 public:
 	Format(VkFormat format) : format(format) {}
-	operator VkFormat() const { return format; }
+	inline operator VkFormat() const { return format; }
 
 	bool isSignedNonNormalizedInteger() const;
 	bool isUnsignedNonNormalizedInteger() const;
+	bool isNonNormalizedInteger() const;
 
 	bool isStencil() const;
 	bool isDepth() const;
+	bool hasQuadLayout() const;
+
+	bool isSRGBformat() const;
+	bool isSRGBwritable() const;
+	bool isFloatFormat() const;
+	bool isUnsignedComponent(int component) const;
 
 	int bytes() const;
 	int pitchB(int width, int border, bool target) const;
 	int sliceB(int width, int height, int border, bool target) const;
+
+	bool getScale(sw::float4 &scale) const;
 private:
 	VkFormat format;
 };

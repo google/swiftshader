@@ -15,7 +15,6 @@
 #include "Context.hpp"
 
 #include "Primitive.hpp"
-#include "Surface.hpp"
 #include "System/Memory.hpp"
 #include "Vulkan/VkDebug.hpp"
 #include "Vulkan/VkImageView.hpp"

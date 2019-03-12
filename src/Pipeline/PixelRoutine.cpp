@@ -18,7 +18,6 @@
 #include "Constants.hpp"
 #include "Device/Renderer.hpp"
 #include "Device/QuadRasterizer.hpp"
-#include "Device/Surface.hpp"
 #include "Device/Primitive.hpp"
 #include "Vulkan/VkDebug.hpp"
 
@@ -988,7 +987,7 @@ namespace sw
 
 	bool PixelRoutine::isSRGB(int index) const
 	{
-		return Surface::isSRGBformat(state.targetFormat[index]);
+		return vk::Format(state.targetFormat[index]).isSRGBformat();
 	}
 
 	void PixelRoutine::readPixel(int index, Pointer<Byte> &cBuffer, Int &x, Vector4s &pixel)
@@ -1787,13 +1786,14 @@ namespace sw
 		Short4 c23;
 
 		Float4 one;
-		if(Surface::isFloatFormat(state.targetFormat[index]))
+		vk::Format format(state.targetFormat[index]);
+		if(format.isFloatFormat())
 		{
 			one = Float4(1.0f);
 		}
-		else if(Surface::isNonNormalizedInteger(state.targetFormat[index]))
+		else if(format.isNonNormalizedInteger())
 		{
-			one = As<Float4>(Surface::isUnsignedComponent(state.targetFormat[index], 0) ? Int4(0xFFFFFFFF) : Int4(0x7FFFFFFF));
+			one = As<Float4>(format.isUnsignedComponent(0) ? Int4(0xFFFFFFFF) : Int4(0x7FFFFFFF));
 		}
 
 		switch(state.targetFormat[index])

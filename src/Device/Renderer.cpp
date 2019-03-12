@@ -15,7 +15,6 @@
 #include "Renderer.hpp"
 
 #include "Clipper.hpp"
-#include "Surface.hpp"
 #include "Primitive.hpp"
 #include "Polygon.hpp"
 #include "WSI/FrameBuffer.hpp"
@@ -476,21 +475,6 @@ namespace sw
 				resume[0]->signal();
 			}
 		}
-	}
-
-	void Renderer::clear(void *value, VkFormat format, Surface *dest, const Rect &clearRect, unsigned int rgbaMask)
-	{
-		blitter->clear(value, format, dest, clearRect, rgbaMask);
-	}
-
-	void Renderer::blit(Surface *source, const SliceRectF &sRect, Surface *dest, const SliceRect &dRect, bool filter, bool isStencil, bool sRGBconversion)
-	{
-		blitter->blit(source, sRect, dest, dRect, {filter, isStencil, sRGBconversion});
-	}
-
-	void Renderer::blit3D(Surface *source, Surface *dest)
-	{
-		blitter->blit3D(source, dest);
 	}
 
 	void Renderer::threadFunction(void *parameters)

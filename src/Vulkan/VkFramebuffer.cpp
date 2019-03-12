@@ -15,7 +15,6 @@
 #include "VkFramebuffer.hpp"
 #include "VkImageView.hpp"
 #include "VkRenderPass.hpp"
-#include "Device/Surface.hpp"
 #include <algorithm>
 #include <memory.h>
 
@@ -46,8 +45,9 @@ void Framebuffer::clear(uint32_t clearValueCount, const VkClearValue* pClearValu
 	for(uint32_t i = 0; i < count; i++)
 	{
 		const VkAttachmentDescription attachment = renderPass->getAttachment(i);
-		bool isDepth = sw::Surface::isDepth(attachment.format);
-		bool isStencil = sw::Surface::isStencil(attachment.format);
+		const Format format(attachment.format);
+		bool isDepth = format.isDepth();
+		bool isStencil = format.isStencil();
 
 		if(isDepth || isStencil)
 		{

@@ -14,7 +14,6 @@
 
 #include "PixelProcessor.hpp"
 
-#include "Surface.hpp"
 #include "Primitive.hpp"
 #include "Pipeline/PixelProgram.hpp"
 #include "Pipeline/Constants.hpp"
@@ -401,7 +400,7 @@ namespace sw
 		{
 			state.depthTestActive = true;
 			state.depthCompareMode = context->depthCompareMode;
-			state.quadLayoutDepthBuffer = Surface::hasQuadLayout(context->depthBuffer->getFormat());
+			state.quadLayoutDepthBuffer = context->depthBuffer->getFormat().hasQuadLayout();
 			state.depthFormat = context->depthBuffer->getFormat();
 		}
 
@@ -427,7 +426,7 @@ namespace sw
 			state.targetFormat[i] = context->renderTargetInternalFormat(i);
 		}
 
-		state.writeSRGB	= context->writeSRGB && context->renderTarget[0] && Surface::isSRGBwritable(context->renderTarget[0]->getFormat());
+		state.writeSRGB	= context->writeSRGB && context->renderTarget[0] && context->renderTarget[0]->getFormat().isSRGBwritable();
 		state.multiSample = context->sampleCount;
 		state.multiSampleMask = context->multiSampleMask;
 
