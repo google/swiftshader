@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "feb8cab7_5a593bc7",
+        "filename": "src/Device/Blitter.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 1963,
+      "author": {
+        "id": 7183
+      },
+      "writtenOn": "2019-03-12T10:20:12Z",
+      "side": 1,
+      "message": "New warning: dstExtent is set but not used. Intentional?",
+      "range": {
+        "startLine": 1963,
+        "startChar": 2,
+        "endLine": 1963,
+        "endChar": 78
+      },
+      "revId": "3364227fa0d88a3681e03237461cf0d2e4c9b39e",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
