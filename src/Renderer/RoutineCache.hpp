@@ -24,28 +24,7 @@ namespace sw
 	using namespace rr;
 
 	template<class State>
-	class RoutineCache : public LRUCache<State, Routine>
-	{
-	public:
-		RoutineCache(int n, const char *precache = nullptr);
-		~RoutineCache();
-
-	private:
-		const char *precache;
-		#if defined(_WIN32)
-		HMODULE precacheDLL;
-		#endif
-	};
-
-	template<class State>
-	RoutineCache<State>::RoutineCache(int n, const char *precache) : LRUCache<State, Routine>(n), precache(precache)
-	{
-	}
-
-	template<class State>
-	RoutineCache<State>::~RoutineCache()
-	{
-	}
+	using RoutineCache = LRUCache<State, Routine>;
 }
 
 #endif   // sw_RoutineCache_hpp
