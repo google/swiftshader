@@ -358,7 +358,7 @@ VkResult Device::AllocateCommandBuffer(
 }
 
 VkResult Device::BeginCommandBuffer(
-		VkCommandBufferUsageFlagBits usage, VkCommandBuffer commandBuffer) const
+		VkCommandBufferUsageFlags usage, VkCommandBuffer commandBuffer) const
 {
     VkCommandBufferBeginInfo info = {
         VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,  // sType

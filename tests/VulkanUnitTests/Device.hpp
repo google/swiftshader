@@ -101,7 +101,7 @@ public:
 	VkResult AllocateCommandBuffer(VkCommandPool pool, VkCommandBuffer* out) const;
 
 	// BeginCommandBuffer begins writing to commandBuffer.
-	VkResult BeginCommandBuffer(VkCommandBufferUsageFlagBits usage, VkCommandBuffer commandBuffer) const;
+	VkResult BeginCommandBuffer(VkCommandBufferUsageFlags usage, VkCommandBuffer commandBuffer) const;
 
 	// QueueSubmitAndWait submits the given command buffer and waits for it to
 	// complete.
