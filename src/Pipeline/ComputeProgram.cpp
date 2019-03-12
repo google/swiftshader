@@ -137,8 +137,7 @@ namespace sw
 	}
 
 	void ComputeProgram::run(
-		Routine *routine,
-		uint32_t numDescriptorSets, void** descriptorSets,
+		Routine *routine, void** descriptorSets,
 		uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ)
 	{
 		auto runWorkgroup = (void(*)(void*))(routine->getEntry());

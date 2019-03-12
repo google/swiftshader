@@ -573,8 +573,7 @@ void ComputePipeline::run(uint32_t groupCountX, uint32_t groupCountY, uint32_t g
 {
 	ASSERT_OR_RETURN(routine != nullptr);
 	sw::ComputeProgram::run(
-		routine,
-		numDescriptorSets, reinterpret_cast<void**>(descriptorSets),
+		routine, reinterpret_cast<void**>(descriptorSets),
 		groupCountX, groupCountY, groupCountZ);
 }
 

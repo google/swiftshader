@@ -47,8 +47,7 @@ namespace sw
 		// run executes the compute shader routine for all workgroups.
 		// TODO(bclayton): This probably does not belong here. Consider moving.
 		static void run(
-			Routine *routine,
-			uint32_t numDescriptorSets, void** descriptorSets,
+			Routine *routine, void** descriptorSets,
 			uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ);
 
 	protected:
