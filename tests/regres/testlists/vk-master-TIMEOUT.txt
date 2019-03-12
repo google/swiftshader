@@ -20,4 +20,5 @@ dEQP-VK.pipeline.sampler.view_type.2d.format.etc2_r8g8b8_unorm_block.mipmap.near
 dEQP-VK.pipeline.sampler.view_type.2d.format.etc2_r8g8b8_unorm_block.mipmap.nearest.lod.select_bias_3_1
 dEQP-VK.pipeline.sampler.view_type.2d.format.etc2_r8g8b8_unorm_block.mipmap.nearest.lod.select_bias_3_7
 dEQP-VK.pipeline.sampler.view_type.2d.format.etc2_r8g8b8_unorm_block.mipmap.nearest.lod.select_max_4
-dEQP-VK.pipeline.sampler.view_type.2d_array.format.etc2_r8g8b8a1_srgb_block.mipmap.linear.lod.select_bias_3_1
+dEQP-VK.pipeline.sampler.view_type.2d_array.format.etc2_r8g8b8a1_unorm_block.mipmap.linear.lod.select_max_4
+dEQP-VK.pipeline.sampler.view_type.2d_array.format.etc2_r8g8b8a1_unorm_block.mipmap.nearest.lod.select_bias_3_7
