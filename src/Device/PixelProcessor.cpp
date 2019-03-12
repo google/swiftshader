@@ -403,6 +403,7 @@ namespace sw
 			state.depthTestActive = true;
 			state.depthCompareMode = context->depthCompareMode;
 			state.quadLayoutDepthBuffer = Surface::hasQuadLayout(context->depthBuffer->getFormat());
+			state.depthFormat = context->depthBuffer->getFormat();
 		}
 
 		state.occlusionEnabled = context->occlusionEnabled;

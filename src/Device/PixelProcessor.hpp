@@ -76,6 +76,7 @@ namespace sw
 			TransparencyAntialiasing transparencyAntialiasing;
 			bool centroid;
 			bool frontFaceCCW;
+			VkFormat depthFormat;
 
 			Sampler::State sampler[TEXTURE_IMAGE_UNITS];
 		};
