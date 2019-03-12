@@ -124,7 +124,7 @@ func run() error {
 
 		rowInsertionPoint := 1 + len(hashValues)
 
-		for i := len(changes) - 1; i > 0; i-- {
+		for i := len(changes) - 1; i >= 0; i-- {
 			change := changes[i]
 			if !strings.HasPrefix(change.Subject, consts.TestListUpdateCommitSubjectPrefix) {
 				continue
