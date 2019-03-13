@@ -267,7 +267,7 @@ namespace sw
 
 		// Viewport & Clipper
 		void setViewport(const VkViewport &viewport);
-		void setScissor(const Rect &scissor);
+		void setScissor(const VkRect2D &scissor);
 
 		void addQuery(Query *query);
 		void removeQuery(Query *query);
@@ -311,7 +311,7 @@ namespace sw
 		Clipper *clipper;
 		Blitter *blitter;
 		VkViewport viewport;
-		Rect scissor;
+		VkRect2D scissor;
 		int clipFlags;
 
 		Triangle *triangleBatch[16];

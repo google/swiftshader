@@ -71,7 +71,7 @@ public:
 
 	uint32_t computePrimitiveCount(uint32_t vertexCount) const;
 	const sw::Context& getContext() const;
-	const sw::Rect& getScissor() const;
+	const VkRect2D& getScissor() const;
 	const VkViewport& getViewport() const;
 	const sw::Color<float>& getBlendConstants() const;
 
@@ -80,7 +80,7 @@ private:
 	sw::SpirvShader *fragmentShader = nullptr;
 
 	sw::Context context;
-	sw::Rect scissor;
+	VkRect2D scissor;
 	VkViewport viewport;
 	sw::Color<float> blendConstants;
 };

@@ -438,10 +438,10 @@ namespace sw
 
 		// Scissor
 		{
-			data->scissorX0 = scissor.x0;
-			data->scissorX1 = scissor.x1;
-			data->scissorY0 = scissor.y0;
-			data->scissorY1 = scissor.y1;
+			data->scissorX0 = scissor.offset.x;
+			data->scissorX1 = scissor.offset.x + scissor.extent.width;
+			data->scissorY0 = scissor.offset.y;
+			data->scissorY1 = scissor.offset.y + scissor.extent.height;
 		}
 
 		draw->primitive = 0;
@@ -1604,7 +1604,7 @@ namespace sw
 		this->viewport = viewport;
 	}
 
-	void Renderer::setScissor(const Rect &scissor)
+	void Renderer::setScissor(const VkRect2D &scissor)
 	{
 		this->scissor = scissor;
 	}

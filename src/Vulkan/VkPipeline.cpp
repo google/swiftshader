@@ -57,11 +57,6 @@ sw::DrawType Convert(VkPrimitiveTopology topology)
 	return sw::DRAW_TRIANGLELIST;
 }
 
-sw::Rect Convert(const VkRect2D& rect)
-{
-	return sw::Rect(rect.offset.x, rect.offset.y, rect.offset.x + rect.extent.width, rect.offset.y + rect.extent.height);
-}
-
 sw::StreamType getStreamType(VkFormat format)
 {
 	switch(format)
@@ -331,7 +326,7 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 			UNIMPLEMENTED();
 		}
 
-		scissor = Convert(viewportState->pScissors[0]);
+		scissor = viewportState->pScissors[0];
 		viewport = viewportState->pViewports[0];
 	}
 
@@ -517,7 +512,7 @@ const sw::Context& GraphicsPipeline::getContext() const
 	return context;
 }
 
-const sw::Rect& GraphicsPipeline::getScissor() const
+const VkRect2D& GraphicsPipeline::getScissor() const
 {
 	return scissor;
 }
