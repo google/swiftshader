@@ -174,6 +174,7 @@ cc_defaults {
     defaults: [ "libswiftshader_common_defaults" ],
 
     srcs: [
+        "Reactor/Reactor.cpp",
         "Reactor/LLVMReactor.cpp",
         "Reactor/Routine.cpp",
         "Reactor/LLVMRoutine.cpp",
@@ -192,6 +193,7 @@ cc_defaults {
     device_supported: false,
 
     srcs: [
+        "Reactor/Reactor.cpp",
         "Reactor/SubzeroReactor.cpp",
         "Reactor/Routine.cpp",
         "Reactor/Optimizer.cpp",

@@ -1873,6 +1873,7 @@ if(${REACTOR_BACKEND} STREQUAL "Subzero")
     )
 
     set(SUBZERO_REACTOR_LIST
+        ${SOURCE_DIR}/Reactor/Reactor.cpp
         ${SOURCE_DIR}/Reactor/SubzeroReactor.cpp
         ${SOURCE_DIR}/Reactor/Routine.cpp
         ${SOURCE_DIR}/Reactor/Optimizer.cpp
@@ -1965,6 +1966,7 @@ list(REMOVE_ITEM SWIFTSHADER_LIST
 )
 
 set(REACTOR_LLVM_LIST
+    ${SOURCE_DIR}/Reactor/Reactor.cpp
     ${SOURCE_DIR}/Reactor/LLVMReactor.cpp
     ${SOURCE_DIR}/Reactor/Nucleus.hpp
     ${SOURCE_DIR}/Reactor/Routine.cpp

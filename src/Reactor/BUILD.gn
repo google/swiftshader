@@ -294,6 +294,7 @@ swiftshader_source_set("swiftshader_reactor") {
   ]
 
   sources = [
+    "Reactor.cpp",
     "Routine.cpp",
     "Debug.cpp",
     "ExecutableMemory.cpp",

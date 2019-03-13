@@ -224,6 +224,7 @@
     <ClCompile Include="Debug.cpp" />
     <ClCompile Include="ExecutableMemory.cpp" />
     <ClCompile Include="Optimizer.cpp" />
+    <ClCompile Include="Reactor.cpp" />
     <ClCompile Include="Routine.cpp" />
     <ClCompile Include="SubzeroReactor.cpp" />
   </ItemGroup>

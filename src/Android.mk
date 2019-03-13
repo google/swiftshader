@@ -61,6 +61,7 @@ COMMON_SRC_FILES += \
 	Main/SwiftConfig.cpp
 
 COMMON_SRC_FILES += \
+	Reactor/Reactor.cpp \
 	Reactor/Routine.cpp \
 	Reactor/Debug.cpp \
 	Reactor/DebugAndroid.cpp \
