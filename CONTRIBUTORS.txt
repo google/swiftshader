@@ -26,6 +26,11 @@ Google Inc.
  Meng-Lin Wu <marleymoo@google.com>
  Krzysztof Kosiński <krzysio@google.com>
  Chris Forbes <chrisforbes@google.com>
+ Ben Clayton <bclayton@google.com>
+ Hernan Liatis <hliatis@google.com>
+ Logan (Tzu-hsiang) Chien <loganchien@google.com>
+ Stephen White <senorblanco@google.com>
+ Raymond Chiu <chiur@google.com>
 
 TransGaming Inc.
  Nicolas Capens
