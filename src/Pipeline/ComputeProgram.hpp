@@ -53,7 +53,7 @@ namespace sw
 	protected:
 		void emit();
 
-		void setInputBuiltin(spv::BuiltIn id, std::function<void(const SpirvShader::BuiltinMapping& builtin, Array<Float4>& value)> cb);
+		void setInputBuiltin(spv::BuiltIn id, std::function<void(const SpirvShader::BuiltinMapping& builtin, Array<SIMD::Float>& value)> cb);
 
 		Pointer<Byte> data; // argument 0
 
