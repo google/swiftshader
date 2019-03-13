@@ -49,15 +49,17 @@ namespace sw
 
 		auto &modes = shader->getModes();
 
+		int localSize[3] = {modes.WorkgroupSizeX, modes.WorkgroupSizeY, modes.WorkgroupSizeZ};
+
+		const int subgroupSize = SIMD::Width;
 
 		// Total number of invocations required to execute this workgroup.
-		const int numInvocations = modes.LocalSizeX * modes.LocalSizeY * modes.LocalSizeZ;
+		int numInvocations = localSize[0] * localSize[1] * localSize[2];
 
 		Int4 numWorkgroups = *Pointer<Int4>(data + OFFSET(Data, numWorkgroups));
 		Int4 workgroupID = *Pointer<Int4>(data + OFFSET(Data, workgroupID));
-		Int4 workgroupSize = Int4(modes.LocalSizeX, modes.LocalSizeY, modes.LocalSizeZ, 0);
-		const int subgroupSize = SIMD::Width;
-		const int numSubgroups = (numInvocations + subgroupSize - 1) / subgroupSize;
+		Int4 workgroupSize = Int4(localSize[0], localSize[1], localSize[2], 0);
+		Int numSubgroups = (numInvocations + subgroupSize - 1) / subgroupSize;
 
 		setInputBuiltin(spv::BuiltInNumWorkgroups, [&](const SpirvShader::BuiltinMapping& builtin, Array<Float4>& value)
 		{
@@ -107,10 +109,10 @@ namespace sw
 			Int4 localInvocationID[3];
 			{
 				Int4 idx = localInvocationIndex;
-				localInvocationID[ZZZZ] = idx / Int4(modes.LocalSizeX * modes.LocalSizeY);
-				idx -= localInvocationID[ZZZZ] * Int4(modes.LocalSizeX * modes.LocalSizeY); // modulo
-				localInvocationID[YYYY] = idx / Int4(modes.LocalSizeX);
-				idx -= localInvocationID[YYYY] * Int4(modes.LocalSizeX); // modulo
+				localInvocationID[ZZZZ] = idx / Int4(localSize[0] * localSize[1]);
+				idx -= localInvocationID[ZZZZ] * Int4(localSize[0] * localSize[1]); // modulo
+				localInvocationID[YYYY] = idx / Int4(localSize[0]);
+				idx -= localInvocationID[YYYY] * Int4(localSize[0]); // modulo
 				localInvocationID[XXXX] = idx;
 			}
 

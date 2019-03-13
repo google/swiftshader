@@ -20,6 +20,8 @@
 
 #include "spirv-tools/optimizer.hpp"
 
+#include <iostream>
+
 namespace
 {
 
@@ -230,6 +232,17 @@ std::vector<uint32_t> preprocessSpirv(
 
 	std::vector<uint32_t> optimized;
 	opt.Run(code.data(), code.size(), &optimized);
+
+	if (false) {
+		spvtools::SpirvTools core(SPV_ENV_VULKAN_1_1);
+		std::string preOpt;
+		core.Disassemble(code, &preOpt);
+		std::string postOpt;
+		core.Disassemble(optimized, &postOpt);
+		std::cout << "PRE-OPT: " << preOpt << std::endl
+		 		<< "POST-OPT: " << postOpt << std::endl;
+	}
+
 	return optimized;
 }
 

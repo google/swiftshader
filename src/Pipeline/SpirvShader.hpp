@@ -289,7 +289,7 @@ namespace sw
 			bool NeedsCentroid : 1;
 
 			// Compute workgroup dimensions
-			int LocalSizeX, LocalSizeY, LocalSizeZ;
+			int WorkgroupSizeX = 1, WorkgroupSizeY = 1, WorkgroupSizeZ = 1;
 		};
 
 		Modes const &getModes() const
