@@ -17,7 +17,6 @@
 #include "Clipper.hpp"
 #include "Primitive.hpp"
 #include "Polygon.hpp"
-#include "WSI/FrameBuffer.hpp"
 #include "Device/SwiftConfig.hpp"
 #include "Reactor/Reactor.hpp"
 #include "Pipeline/Constants.hpp"

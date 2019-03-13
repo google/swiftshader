@@ -126,27 +126,6 @@
     <ClCompile Include="..\Pipeline\Constants.cpp">
       <Filter>Source Files\Pipeline</Filter>
     </ClCompile>
-    <ClCompile Include="..\WSI\FrameBuffer.cpp">
-      <Filter>Source Files\WSI</Filter>
-    </ClCompile>
-    <ClCompile Include="..\WSI\FrameBufferAndroid.cpp">
-      <Filter>Source Files\WSI</Filter>
-    </ClCompile>
-    <ClCompile Include="..\WSI\FrameBufferDD.cpp">
-      <Filter>Source Files\WSI</Filter>
-    </ClCompile>
-    <ClCompile Include="..\WSI\FrameBufferGDI.cpp">
-      <Filter>Source Files\WSI</Filter>
-    </ClCompile>
-    <ClCompile Include="..\WSI\FrameBufferOzone.cpp">
-      <Filter>Source Files\WSI</Filter>
-    </ClCompile>
-    <ClCompile Include="..\WSI\FrameBufferWin.cpp">
-      <Filter>Source Files\WSI</Filter>
-    </ClCompile>
-    <ClCompile Include="..\WSI\FrameBufferX11.cpp">
-      <Filter>Source Files\WSI</Filter>
-    </ClCompile>
     <ClCompile Include="..\WSI\libX11.cpp">
       <Filter>Source Files\WSI</Filter>
     </ClCompile>
@@ -446,30 +425,6 @@
     <ClInclude Include="..\Device\Blitter.hpp">
       <Filter>Header Files\Device</Filter>
     </ClInclude>
-    <ClInclude Include="..\WSI\FrameBuffer.hpp">
-      <Filter>Header Files\WSI</Filter>
-    </ClInclude>
-    <ClInclude Include="..\WSI\FrameBufferAndroid.hpp">
-      <Filter>Header Files\WSI</Filter>
-    </ClInclude>
-    <ClInclude Include="..\WSI\FrameBufferDD.hpp">
-      <Filter>Header Files\WSI</Filter>
-    </ClInclude>
-    <ClInclude Include="..\WSI\FrameBufferGDI.hpp">
-      <Filter>Header Files\WSI</Filter>
-    </ClInclude>
-    <ClInclude Include="..\WSI\FrameBufferOSX.hpp">
-      <Filter>Header Files\WSI</Filter>
-    </ClInclude>
-    <ClInclude Include="..\WSI\FrameBufferOzone.hpp">
-      <Filter>Header Files\WSI</Filter>
-    </ClInclude>
-    <ClInclude Include="..\WSI\FrameBufferWin.hpp">
-      <Filter>Header Files\WSI</Filter>
-    </ClInclude>
-    <ClInclude Include="..\WSI\FrameBufferX11.hpp">
-      <Filter>Header Files\WSI</Filter>
-    </ClInclude>
     <ClInclude Include="..\WSI\libX11.hpp">
       <Filter>Header Files\WSI</Filter>
     </ClInclude>
@@ -564,9 +519,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="swiftshader_icd.def" />
-    <None Include="..\WSI\FrameBufferOSX.mm">
-      <Filter>Source Files\WSI</Filter>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Vulkan.rc">

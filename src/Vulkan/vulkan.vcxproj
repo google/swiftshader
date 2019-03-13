@@ -173,22 +173,6 @@ copy "$(OutDir)vk_swiftshader.dll" "$(SolutionDir)out\$(Configuration)_$(Platfor
     <ClCompile Include="..\System\Timer.cpp" />
     <ClCompile Include="..\WSI\VkSurfaceKHR.cpp" />
     <ClCompile Include="..\WSI\VkSwapchainKHR.cpp" />
-    <ClCompile Include="..\WSI\FrameBuffer.cpp" />
-    <ClCompile Include="..\WSI\FrameBufferAndroid.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\WSI\FrameBufferDD.cpp" />
-    <ClCompile Include="..\WSI\FrameBufferGDI.cpp" />
-    <ClCompile Include="..\WSI\FrameBufferOzone.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\WSI\FrameBufferWin.cpp" />
-    <ClCompile Include="..\WSI\FrameBufferX11.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="..\WSI\libX11.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
@@ -289,36 +273,12 @@ copy "$(OutDir)vk_swiftshader.dll" "$(SolutionDir)out\$(Configuration)_$(Platfor
     <ClInclude Include="..\System\Types.hpp" />
     <ClInclude Include="..\WSI\VkSurfaceKHR.hpp" />
     <ClInclude Include="..\WSI\VkSwapchainKHR.hpp" />
-    <ClInclude Include="..\WSI\FrameBuffer.hpp" />
-    <ClInclude Include="..\WSI\FrameBufferAndroid.hpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="..\WSI\FrameBufferDD.hpp" />
-    <ClInclude Include="..\WSI\FrameBufferGDI.hpp" />
-    <ClInclude Include="..\WSI\FrameBufferOSX.hpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="..\WSI\FrameBufferOzone.hpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="..\WSI\FrameBufferWin.hpp" />
-    <ClInclude Include="..\WSI\FrameBufferX11.hpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClInclude>
     <ClInclude Include="..\WSI\libX11.hpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\WSI\FrameBufferOSX.mm">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </None>
     <None Include="swiftshader_icd.def" />
   </ItemGroup>
   <ItemGroup>
