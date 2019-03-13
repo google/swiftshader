@@ -4,12 +4,12 @@ dEQP-VK.draw.basic_draw.draw.triangle_strip.1
 dEQP-VK.draw.basic_draw.draw_indexed.line_strip.1
 dEQP-VK.draw.basic_draw.draw_indexed.triangle_fan.1
 dEQP-VK.draw.basic_draw.draw_indexed.triangle_strip.1
+dEQP-VK.pipeline.image.suballocation.sampling_type.combined.view_type.2d_array.format.etc2_r8g8b8a1_srgb_block.count_1.size.13x13_array_of_3
 dEQP-VK.pipeline.sampler.view_type.2d.format.etc2_r8g8b8_srgb_block.mipmap.linear.lod.select_bias_2_5
 dEQP-VK.pipeline.sampler.view_type.2d.format.etc2_r8g8b8_srgb_block.mipmap.linear.lod.select_bias_3_1
 dEQP-VK.pipeline.sampler.view_type.2d.format.etc2_r8g8b8_srgb_block.mipmap.linear.lod.select_bias_3_7
 dEQP-VK.pipeline.sampler.view_type.2d.format.etc2_r8g8b8_srgb_block.mipmap.linear.lod.select_max_4
 dEQP-VK.pipeline.sampler.view_type.2d.format.etc2_r8g8b8_srgb_block.mipmap.nearest.lod.select_bias_2_5
-dEQP-VK.pipeline.sampler.view_type.2d.format.etc2_r8g8b8_srgb_block.mipmap.nearest.lod.select_bias_3_1
 dEQP-VK.pipeline.sampler.view_type.2d.format.etc2_r8g8b8_srgb_block.mipmap.nearest.lod.select_bias_3_7
 dEQP-VK.pipeline.sampler.view_type.2d.format.etc2_r8g8b8_srgb_block.mipmap.nearest.lod.select_max_4
 dEQP-VK.pipeline.sampler.view_type.2d.format.etc2_r8g8b8_unorm_block.mipmap.linear.lod.select_bias_2_5
@@ -20,5 +20,5 @@ dEQP-VK.pipeline.sampler.view_type.2d.format.etc2_r8g8b8_unorm_block.mipmap.near
 dEQP-VK.pipeline.sampler.view_type.2d.format.etc2_r8g8b8_unorm_block.mipmap.nearest.lod.select_bias_3_1
 dEQP-VK.pipeline.sampler.view_type.2d.format.etc2_r8g8b8_unorm_block.mipmap.nearest.lod.select_bias_3_7
 dEQP-VK.pipeline.sampler.view_type.2d.format.etc2_r8g8b8_unorm_block.mipmap.nearest.lod.select_max_4
-dEQP-VK.pipeline.sampler.view_type.2d_array.format.etc2_r8g8b8a1_unorm_block.mipmap.linear.lod.select_max_4
-dEQP-VK.pipeline.sampler.view_type.2d_array.format.etc2_r8g8b8a1_unorm_block.mipmap.nearest.lod.select_bias_3_7
+dEQP-VK.pipeline.sampler.view_type.2d_array.format.etc2_r8g8b8a1_srgb_block.mipmap.linear.lod.select_bias_3_1
+dEQP-VK.pipeline.sampler.view_type.2d_array.format.etc2_r8g8b8a1_srgb_block.mipmap.nearest.lod.select_bias_3_7
