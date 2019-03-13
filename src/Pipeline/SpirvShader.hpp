@@ -199,30 +199,28 @@ namespace sw
 			return InsnIterator{insns.cend()};
 		}
 
-		class Type;
-		using TypeID = SpirvID<Type>;
-
 		class Type
 		{
 		public:
+			using ID = SpirvID<Type>;
+
 			InsnIterator definition;
 			spv::StorageClass storageClass = static_cast<spv::StorageClass>(-1);
 			uint32_t sizeInComponents = 0;
 			bool isBuiltInBlock = false;
 
 			// Inner element type for pointers, arrays, vectors and matrices.
-			TypeID element;
+			ID element;
 		};
-
-		class Object;
-		using ObjectID = SpirvID<Object>;
 
 		class Object
 		{
 		public:
+			using ID = SpirvID<Object>;
+
 			InsnIterator definition;
-			TypeID type;
-			ObjectID pointerBase;
+			Type::ID type;
+			ID pointerBase;
 			std::unique_ptr<uint32_t[]> constantValue = nullptr;
 
 			enum class Kind
@@ -239,17 +237,17 @@ namespace sw
 		struct TypeOrObject {}; // Dummy struct to represent a Type or Object.
 
 		// TypeOrObjectID is an identifier that represents a Type or an Object,
-		// and supports implicit casting to and from TypeID or ObjectID.
+		// and supports implicit casting to and from Type::ID or Object::ID.
 		class TypeOrObjectID : public SpirvID<TypeOrObject>
 		{
 		public:
 			using Hash = std::hash<SpirvID<TypeOrObject>>;
 
 			inline TypeOrObjectID(uint32_t id) : SpirvID(id) {}
-			inline TypeOrObjectID(TypeID id) : SpirvID(id.value()) {}
-			inline TypeOrObjectID(ObjectID id) : SpirvID(id.value()) {}
-			inline operator TypeID() const { return TypeID(value()); }
-			inline operator ObjectID() const { return ObjectID(value()); }
+			inline TypeOrObjectID(Type::ID id) : SpirvID(id.value()) {}
+			inline TypeOrObjectID(Object::ID id) : SpirvID(id.value()) {}
+			inline operator Type::ID() const { return Type::ID(value()); }
+			inline operator Object::ID() const { return Object::ID(value()); }
 		};
 
 		int getSerialID() const
@@ -337,7 +335,7 @@ namespace sw
 		};
 
 		std::unordered_map<TypeOrObjectID, Decorations, TypeOrObjectID::Hash> decorations;
-		std::unordered_map<TypeID, std::vector<Decorations>> memberDecorations;
+		std::unordered_map<Type::ID, std::vector<Decorations>> memberDecorations;
 
 		struct InterfaceComponent
 		{
@@ -354,7 +352,7 @@ namespace sw
 
 		struct BuiltinMapping
 		{
-			ObjectID Id;
+			Object::ID Id;
 			uint32_t FirstComponent;
 			uint32_t SizeInComponents;
 		};
@@ -370,14 +368,14 @@ namespace sw
 		std::unordered_map<spv::BuiltIn, BuiltinMapping, BuiltInHash> inputBuiltins;
 		std::unordered_map<spv::BuiltIn, BuiltinMapping, BuiltInHash> outputBuiltins;
 
-		Type const &getType(TypeID id) const
+		Type const &getType(Type::ID id) const
 		{
 			auto it = types.find(id);
 			ASSERT(it != types.end());
 			return it->second;
 		}
 
-		Object const &getObject(ObjectID id) const
+		Object const &getObject(Object::ID id) const
 		{
 			auto it = defs.find(id);
 			ASSERT(it != defs.end());
@@ -399,7 +397,7 @@ namespace sw
 
 		uint32_t ComputeTypeSize(InsnIterator insn);
 		void ApplyDecorationsForId(Decorations *d, TypeOrObjectID id) const;
-		void ApplyDecorationsForIdMember(Decorations *d, TypeID id, uint32_t member) const;
+		void ApplyDecorationsForIdMember(Decorations *d, Type::ID id, uint32_t member) const;
 
 		// Returns true if data in the given storage class is word-interleaved
 		// by each SIMD vector lane, otherwise data is linerally stored.
@@ -430,18 +428,18 @@ namespace sw
 		static bool IsStorageInterleavedByLane(spv::StorageClass storageClass);
 
 		template<typename F>
-		int VisitInterfaceInner(TypeID id, Decorations d, F f) const;
+		int VisitInterfaceInner(Type::ID id, Decorations d, F f) const;
 
 		template<typename F>
-		void VisitInterface(ObjectID id, F f) const;
+		void VisitInterface(Object::ID id, F f) const;
 
-		uint32_t GetConstantInt(ObjectID id) const;
+		uint32_t GetConstantInt(Object::ID id) const;
 		Object& CreateConstant(InsnIterator it);
 
 		void ProcessInterfaceVariable(Object &object);
 
-		SIMD::Int WalkAccessChain(ObjectID id, uint32_t numIndexes, uint32_t const *indexIds, SpirvRoutine *routine) const;
-		uint32_t WalkLiteralAccessChain(TypeID id, uint32_t numIndexes, uint32_t const *indexes) const;
+		SIMD::Int WalkAccessChain(Object::ID id, uint32_t numIndexes, uint32_t const *indexIds, SpirvRoutine *routine) const;
+		uint32_t WalkLiteralAccessChain(Type::ID id, uint32_t numIndexes, uint32_t const *indexes) const;
 
 		// Emit pass instructions:
 		void EmitVariable(InsnIterator insn, SpirvRoutine *routine) const;
@@ -478,23 +476,23 @@ namespace sw
 
 		vk::PipelineLayout const * const pipelineLayout;
 
-		std::unordered_map<SpirvShader::ObjectID, Value> lvalues;
+		std::unordered_map<SpirvShader::Object::ID, Value> lvalues;
 
-		std::unordered_map<SpirvShader::ObjectID, Intermediate> intermediates;
+		std::unordered_map<SpirvShader::Object::ID, Intermediate> intermediates;
 
-		std::unordered_map<SpirvShader::ObjectID, Pointer<Byte> > physicalPointers;
+		std::unordered_map<SpirvShader::Object::ID, Pointer<Byte> > physicalPointers;
 
 		Value inputs = Value{MAX_INTERFACE_COMPONENTS};
 		Value outputs = Value{MAX_INTERFACE_COMPONENTS};
 
 		std::array<Pointer<Byte>, vk::MAX_BOUND_DESCRIPTOR_SETS> descriptorSets;
 
-		void createLvalue(SpirvShader::ObjectID id, uint32_t size)
+		void createLvalue(SpirvShader::Object::ID id, uint32_t size)
 		{
 			lvalues.emplace(id, Value(size));
 		}
 
-		Intermediate& createIntermediate(SpirvShader::ObjectID id, uint32_t size)
+		Intermediate& createIntermediate(SpirvShader::Object::ID id, uint32_t size)
 		{
 			auto it = intermediates.emplace(std::piecewise_construct,
 					std::forward_as_tuple(id),
@@ -502,21 +500,21 @@ namespace sw
 			return it.first->second;
 		}
 
-		Value& getValue(SpirvShader::ObjectID id)
+		Value& getValue(SpirvShader::Object::ID id)
 		{
 			auto it = lvalues.find(id);
 			ASSERT(it != lvalues.end());
 			return it->second;
 		}
 
-		Intermediate const& getIntermediate(SpirvShader::ObjectID id) const
+		Intermediate const& getIntermediate(SpirvShader::Object::ID id) const
 		{
 			auto it = intermediates.find(id);
 			ASSERT(it != intermediates.end());
 			return it->second;
 		}
 
-		Pointer<Byte>& getPhysicalPointer(SpirvShader::ObjectID id)
+		Pointer<Byte>& getPhysicalPointer(SpirvShader::Object::ID id)
 		{
 			auto it = physicalPointers.find(id);
 			assert(it != physicalPointers.end());
@@ -535,7 +533,7 @@ namespace sw
 		Intermediate const *intermediate;
 
 	public:
-		GenericValue(SpirvShader const *shader, SpirvRoutine const *routine, SpirvShader::ObjectID objId) :
+		GenericValue(SpirvShader const *shader, SpirvRoutine const *routine, SpirvShader::Object::ID objId) :
 				obj(shader->getObject(objId)),
 				intermediate(obj.kind == SpirvShader::Object::Kind::Value ? &routine->getIntermediate(objId) : nullptr) {}
 

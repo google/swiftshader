@@ -66,7 +66,7 @@ namespace sw
 
 			case spv::OpMemberDecorate:
 			{
-				TypeID targetId = insn.word(1);
+				Type::ID targetId = insn.word(1);
 				auto memberIndex = insn.word(2);
 				auto &d = memberDecorations[targetId];
 				if (memberIndex >= d.size())
@@ -144,8 +144,8 @@ namespace sw
 
 			case spv::OpVariable:
 			{
-				TypeID typeId = insn.word(1);
-				ObjectID resultId = insn.word(2);
+				Type::ID typeId = insn.word(1);
+				Object::ID resultId = insn.word(2);
 				auto storageClass = static_cast<spv::StorageClass>(insn.word(3));
 				if (insn.wordCount() > 4)
 					UNIMPLEMENTED("Variable initializers not yet supported");
@@ -341,8 +341,8 @@ namespace sw
 			case spv::OpVectorTimesScalar:
 				// Instructions that yield an intermediate value
 			{
-				TypeID typeId = insn.word(1);
-				ObjectID resultId = insn.word(2);
+				Type::ID typeId = insn.word(1);
+				Object::ID resultId = insn.word(2);
 				auto &object = defs[resultId];
 				object.type = typeId;
 				object.kind = Object::Kind::Value;
@@ -353,7 +353,7 @@ namespace sw
 					// interior ptr has two parts:
 					// - logical base ptr, common across all lanes and known at compile time
 					// - per-lane offset
-					ObjectID baseId = insn.word(3);
+					Object::ID baseId = insn.word(3);
 					object.pointerBase = getObject(baseId).pointerBase;
 				}
 				break;
@@ -375,7 +375,7 @@ namespace sw
 
 	void SpirvShader::DeclareType(InsnIterator insn)
 	{
-		TypeID resultId = insn.word(1);
+		Type::ID resultId = insn.word(1);
 
 		auto &type = types[resultId];
 		type.definition = insn;
@@ -403,7 +403,7 @@ namespace sw
 		}
 		case spv::OpTypePointer:
 		{
-			TypeID elementTypeId = insn.word(3);
+			Type::ID elementTypeId = insn.word(3);
 			type.element = elementTypeId;
 			type.isBuiltInBlock = getType(elementTypeId).isBuiltInBlock;
 			type.storageClass = static_cast<spv::StorageClass>(insn.word(2));
@@ -414,7 +414,7 @@ namespace sw
 		case spv::OpTypeArray:
 		case spv::OpTypeRuntimeArray:
 		{
-			TypeID elementTypeId = insn.word(2);
+			Type::ID elementTypeId = insn.word(2);
 			type.element = elementTypeId;
 			break;
 		}
@@ -425,8 +425,8 @@ namespace sw
 
 	SpirvShader::Object& SpirvShader::CreateConstant(InsnIterator insn)
 	{
-		TypeID typeId = insn.word(1);
-		ObjectID resultId = insn.word(2);
+		Type::ID typeId = insn.word(1);
+		Object::ID resultId = insn.word(2);
 		auto &object = defs[resultId];
 		auto &objectTy = getType(typeId);
 		object.type = typeId;
@@ -448,7 +448,7 @@ namespace sw
 		auto &userDefinedInterface = (objectTy.storageClass == spv::StorageClassInput) ? inputs : outputs;
 
 		ASSERT(object.definition.opcode() == spv::OpVariable);
-		ObjectID resultId = object.definition.word(2);
+		Object::ID resultId = object.definition.word(2);
 
 		if (objectTy.isBuiltInBlock)
 		{
@@ -602,7 +602,7 @@ namespace sw
 	}
 
 	template<typename F>
-	int SpirvShader::VisitInterfaceInner(TypeID id, Decorations d, F f) const
+	int SpirvShader::VisitInterfaceInner(Type::ID id, Decorations d, F f) const
 	{
 		// Recursively walks variable definition and its type tree, taking into account
 		// any explicit Location or Component decorations encountered; where explicit
@@ -673,7 +673,7 @@ namespace sw
 	}
 
 	template<typename F>
-	void SpirvShader::VisitInterface(ObjectID id, F f) const
+	void SpirvShader::VisitInterface(Object::ID id, F f) const
 	{
 		// Walk a variable definition and call f for each component in it.
 		Decorations d{};
@@ -684,7 +684,7 @@ namespace sw
 		VisitInterfaceInner<F>(def.word(1), d, f);
 	}
 
-	SIMD::Int SpirvShader::WalkAccessChain(ObjectID id, uint32_t numIndexes, uint32_t const *indexIds, SpirvRoutine *routine) const
+	SIMD::Int SpirvShader::WalkAccessChain(Object::ID id, uint32_t numIndexes, uint32_t const *indexIds, SpirvRoutine *routine) const
 	{
 		// TODO: think about explicit layout (UBO/SSBO) storage classes
 		// TODO: avoid doing per-lane work in some cases if we can?
@@ -692,7 +692,7 @@ namespace sw
 		int constantOffset = 0;
 		SIMD::Int dynamicOffset = SIMD::Int(0);
 		auto &baseObject = getObject(id);
-		TypeID typeId = getType(baseObject.type).element;
+		Type::ID typeId = getType(baseObject.type).element;
 
 		// The <base> operand is an intermediate value itself, ie produced by a previous OpAccessChain.
 		// Start with its offset and build from there.
@@ -743,7 +743,7 @@ namespace sw
 		return dynamicOffset + SIMD::Int(constantOffset);
 	}
 
-	uint32_t SpirvShader::WalkLiteralAccessChain(TypeID typeId, uint32_t numIndexes, uint32_t const *indexes) const
+	uint32_t SpirvShader::WalkLiteralAccessChain(Type::ID typeId, uint32_t numIndexes, uint32_t const *indexes) const
 	{
 		uint32_t constantOffset = 0;
 
@@ -906,7 +906,7 @@ namespace sw
 			d->Apply(it->second);
 	}
 
-	void SpirvShader::ApplyDecorationsForIdMember(Decorations *d, TypeID id, uint32_t member) const
+	void SpirvShader::ApplyDecorationsForIdMember(Decorations *d, Type::ID id, uint32_t member) const
 	{
 		auto it = memberDecorations.find(id);
 		if (it != memberDecorations.end() && member < it->second.size())
@@ -915,7 +915,7 @@ namespace sw
 		}
 	}
 
-	uint32_t SpirvShader::GetConstantInt(ObjectID id) const
+	uint32_t SpirvShader::GetConstantInt(Object::ID id) const
 	{
 		// Slightly hackish access to constants very early in translation.
 		// General consumption of constants by other instructions should
@@ -939,7 +939,7 @@ namespace sw
 			{
 			case spv::OpVariable:
 			{
-				ObjectID resultId = insn.word(2);
+				Object::ID resultId = insn.word(2);
 				auto &object = getObject(resultId);
 				auto &objectTy = getType(object.type);
 				auto &pointeeTy = getType(objectTy.element);
@@ -1140,7 +1140,7 @@ namespace sw
 
 	void SpirvShader::EmitVariable(InsnIterator insn, SpirvRoutine *routine) const
 	{
-		ObjectID resultId = insn.word(2);
+		Object::ID resultId = insn.word(2);
 		auto &object = getObject(resultId);
 		auto &objectTy = getType(object.type);
 		switch (objectTy.storageClass)
@@ -1185,8 +1185,8 @@ namespace sw
 
 	void SpirvShader::EmitLoad(InsnIterator insn, SpirvRoutine *routine) const
 	{
-		ObjectID objectId = insn.word(2);
-		ObjectID pointerId = insn.word(3);
+		Object::ID objectId = insn.word(2);
+		Object::ID pointerId = insn.word(3);
 		auto &object = getObject(objectId);
 		auto &objectTy = getType(object.type);
 		auto &pointer = getObject(pointerId);
@@ -1194,7 +1194,7 @@ namespace sw
 		auto &pointerBaseTy = getType(pointerBase.type);
 
 		ASSERT(getType(pointer.type).element == object.type);
-		ASSERT(TypeID(insn.word(1)) == object.type);
+		ASSERT(Type::ID(insn.word(1)) == object.type);
 
 		if (pointerBaseTy.storageClass == spv::StorageClassImage)
 		{
@@ -1253,9 +1253,9 @@ namespace sw
 
 	void SpirvShader::EmitAccessChain(InsnIterator insn, SpirvRoutine *routine) const
 	{
-		TypeID typeId = insn.word(1);
-		ObjectID objectId = insn.word(2);
-		ObjectID baseId = insn.word(3);
+		Type::ID typeId = insn.word(1);
+		Object::ID objectId = insn.word(2);
+		Object::ID baseId = insn.word(3);
 		auto &type = getType(typeId);
 		ASSERT(type.sizeInComponents == 1);
 		ASSERT(getObject(baseId).pointerBase == getObject(objectId).pointerBase);
@@ -1266,8 +1266,8 @@ namespace sw
 
 	void SpirvShader::EmitStore(InsnIterator insn, SpirvRoutine *routine) const
 	{
-		ObjectID pointerId = insn.word(1);
-		ObjectID objectId = insn.word(2);
+		Object::ID pointerId = insn.word(1);
+		Object::ID objectId = insn.word(2);
 		auto &object = getObject(objectId);
 		auto &pointer = getObject(pointerId);
 		auto &pointerTy = getType(pointer.type);
@@ -1367,7 +1367,7 @@ namespace sw
 
 		for (auto i = 0u; i < insn.wordCount() - 3; i++)
 		{
-			ObjectID srcObjectId = insn.word(3u + i);
+			Object::ID srcObjectId = insn.word(3u + i);
 			auto & srcObject = getObject(srcObjectId);
 			auto & srcObjectTy = getType(srcObject.type);
 			GenericValue srcObjectAccess(this, routine, srcObjectId);
@@ -1381,7 +1381,7 @@ namespace sw
 
 	void SpirvShader::EmitCompositeInsert(InsnIterator insn, SpirvRoutine *routine) const
 	{
-		TypeID resultTypeId = insn.word(1);
+		Type::ID resultTypeId = insn.word(1);
 		auto &type = getType(resultTypeId);
 		auto &dst = routine->createIntermediate(insn.word(2), type.sizeInComponents);
 		auto &newPartObject = getObject(insn.word(3));
@@ -1413,7 +1413,7 @@ namespace sw
 		auto &type = getType(insn.word(1));
 		auto &dst = routine->createIntermediate(insn.word(2), type.sizeInComponents);
 		auto &compositeObject = getObject(insn.word(3));
-		TypeID compositeTypeId = compositeObject.definition.word(1);
+		Type::ID compositeTypeId = compositeObject.definition.word(1);
 		auto firstComponent = WalkLiteralAccessChain(compositeTypeId, insn.wordCount() - 4, insn.wordPointer(4));
 
 		GenericValue compositeObjectAccess(this, routine, insn.word(3));
@@ -2099,7 +2099,7 @@ namespace sw
 			{
 			case spv::OpVariable:
 			{
-				ObjectID resultId = insn.word(2);
+				Object::ID resultId = insn.word(2);
 				auto &object = getObject(resultId);
 				auto &objectTy = getType(object.type);
 				if (object.kind == Object::Kind::InterfaceVariable && objectTy.storageClass == spv::StorageClassOutput)
