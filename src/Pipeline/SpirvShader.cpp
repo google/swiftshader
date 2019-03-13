@@ -36,12 +36,8 @@ namespace sw
 		// - There is exactly one entrypoint in the module, and it's the one we want
 		// - The only input/output OpVariables present are those used by the entrypoint
 
-		// TODO: Add real support for control flow. For now, track whether we've seen
-		// a label or a return already (if so, the shader does things we will mishandle).
-		// We expect there to be one of each in a simple shader -- the first and last instruction
-		// of the entrypoint function.
-		bool seenLabel = false;
-		bool seenReturn = false;
+		Block::ID currentBlock;
+		InsnIterator blockStart;
 
 		for (auto insn : *this)
 		{
@@ -114,16 +110,35 @@ namespace sw
 			}
 
 			case spv::OpLabel:
-				if (seenLabel)
-					UNIMPLEMENTED("Shader contains multiple labels, has control flow");
-				seenLabel = true;
+			{
+				ASSERT(currentBlock.value() == 0);
+				currentBlock = Block::ID(insn.word(1));
+				blockStart = insn;
 				break;
+			}
 
+			// Branch Instructions (subset of Termination Instructions):
+			case spv::OpBranch:
+			case spv::OpBranchConditional:
+			case spv::OpSwitch:
 			case spv::OpReturn:
-				if (seenReturn)
-					UNIMPLEMENTED("Shader contains multiple returns, has control flow");
-				seenReturn = true;
+			// fallthrough
+
+			// Termination instruction:
+			case spv::OpKill:
+			case spv::OpUnreachable:
+			{
+				ASSERT(currentBlock.value() != 0);
+				auto blockEnd = insn; blockEnd++;
+				blocks[currentBlock] = Block(blockStart, blockEnd);
+				currentBlock = Block::ID(0);
+
+				if (insn.opcode() == spv::OpKill)
+				{
+					modes.ContainsKill = true;
+				}
 				break;
+			}
 
 			case spv::OpTypeVoid:
 			case spv::OpTypeBool:
@@ -225,11 +240,31 @@ namespace sw
 			}
 
 			case spv::OpCapability:
-				// Various capabilities will be declared, but none affect our code generation at this point.
+				break; // Various capabilities will be declared, but none affect our code generation at this point.
 			case spv::OpMemoryModel:
-				// Memory model does not affect our code generation until we decide to do Vulkan Memory Model support.
+				break; // Memory model does not affect our code generation until we decide to do Vulkan Memory Model support.
+
 			case spv::OpEntryPoint:
+				break;
 			case spv::OpFunction:
+				ASSERT(mainBlockId.value() == 0); // Multiple functions found
+				// Scan forward to find the function's label.
+				for (auto it = insn; it != end() && mainBlockId.value() == 0; it++)
+				{
+					switch (it.opcode())
+					{
+					case spv::OpFunction:
+					case spv::OpFunctionParameter:
+						break;
+					case spv::OpLabel:
+						mainBlockId = Block::ID(it.word(1));
+						break;
+					default:
+						ERR("Unexpected opcode '%s' following OpFunction", OpcodeName(it.opcode()).c_str());
+					}
+				}
+				ASSERT(mainBlockId.value() != 0); // Function's OpLabel not found
+				break;
 			case spv::OpFunctionEnd:
 				// Due to preprocessing, the entrypoint and its function provide no value.
 				break;
@@ -361,10 +396,6 @@ namespace sw
 
 			case spv::OpStore:
 				// Don't need to do anything during analysis pass
-				break;
-
-			case spv::OpKill:
-				modes.ContainsKill = true;
 				break;
 
 			default:
@@ -530,7 +561,7 @@ namespace sw
 		}
 	}
 
-	uint32_t SpirvShader::ComputeTypeSize(sw::SpirvShader::InsnIterator insn)
+	uint32_t SpirvShader::ComputeTypeSize(InsnIterator insn)
 	{
 		// Types are always built from the bottom up (with the exception of forward ptrs, which
 		// don't appear in Vulkan shaders. Therefore, we can always assume our component parts have
@@ -959,182 +990,204 @@ namespace sw
 
 	void SpirvShader::emit(SpirvRoutine *routine) const
 	{
+		// Emit everything up to the first label
+		// TODO: Separate out dispatch of block from non-block instructions?
 		for (auto insn : *this)
 		{
-			switch (insn.opcode())
+			if (insn.opcode() == spv::OpLabel)
 			{
-			case spv::OpTypeVoid:
-			case spv::OpTypeInt:
-			case spv::OpTypeFloat:
-			case spv::OpTypeBool:
-			case spv::OpTypeVector:
-			case spv::OpTypeArray:
-			case spv::OpTypeRuntimeArray:
-			case spv::OpTypeMatrix:
-			case spv::OpTypeStruct:
-			case spv::OpTypePointer:
-			case spv::OpTypeFunction:
-			case spv::OpExecutionMode:
-			case spv::OpMemoryModel:
-			case spv::OpFunction:
-			case spv::OpFunctionEnd:
-			case spv::OpConstant:
-			case spv::OpConstantNull:
-			case spv::OpConstantTrue:
-			case spv::OpConstantFalse:
-			case spv::OpConstantComposite:
-			case spv::OpExtension:
-			case spv::OpCapability:
-			case spv::OpEntryPoint:
-			case spv::OpExtInstImport:
-			case spv::OpDecorate:
-			case spv::OpMemberDecorate:
-			case spv::OpGroupDecorate:
-			case spv::OpGroupMemberDecorate:
-			case spv::OpDecorationGroup:
-			case spv::OpName:
-			case spv::OpMemberName:
-			case spv::OpSource:
-			case spv::OpSourceContinued:
-			case spv::OpSourceExtension:
-			case spv::OpLine:
-			case spv::OpNoLine:
-			case spv::OpModuleProcessed:
-			case spv::OpString:
-				// Nothing to do at emit time. These are either fully handled at analysis time,
-				// or don't require any work at all.
-				break;
-
-			case spv::OpLabel:
-			case spv::OpReturn:
-				// TODO: when we do control flow, will need to do some work here.
-				// Until then, there is nothing to do -- we expect there to be an initial OpLabel
-				// in the entrypoint function, for which we do nothing; and a final OpReturn at the
-				// end of the entrypoint function, for which we do nothing.
-				break;
-
-			case spv::OpVariable:
-				EmitVariable(insn, routine);
-				break;
-
-			case spv::OpLoad:
-				EmitLoad(insn, routine);
-				break;
-
-			case spv::OpStore:
-				EmitStore(insn, routine);
-				break;
-
-			case spv::OpAccessChain:
-				EmitAccessChain(insn, routine);
-				break;
-
-			case spv::OpCompositeConstruct:
-				EmitCompositeConstruct(insn, routine);
-				break;
-
-			case spv::OpCompositeInsert:
-				EmitCompositeInsert(insn, routine);
-				break;
-
-			case spv::OpCompositeExtract:
-				EmitCompositeExtract(insn, routine);
-				break;
-
-			case spv::OpVectorShuffle:
-				EmitVectorShuffle(insn, routine);
-				break;
-
-			case spv::OpVectorTimesScalar:
-				EmitVectorTimesScalar(insn, routine);
-				break;
-
-			case spv::OpNot:
-			case spv::OpSNegate:
-			case spv::OpFNegate:
-			case spv::OpLogicalNot:
-			case spv::OpConvertFToU:
-			case spv::OpConvertFToS:
-			case spv::OpConvertSToF:
-			case spv::OpConvertUToF:
-			case spv::OpBitcast:
-			case spv::OpIsInf:
-			case spv::OpIsNan:
-				EmitUnaryOp(insn, routine);
-				break;
-
-			case spv::OpIAdd:
-			case spv::OpISub:
-			case spv::OpIMul:
-			case spv::OpSDiv:
-			case spv::OpUDiv:
-			case spv::OpFAdd:
-			case spv::OpFSub:
-			case spv::OpFMul:
-			case spv::OpFDiv:
-			case spv::OpFOrdEqual:
-			case spv::OpFUnordEqual:
-			case spv::OpFOrdNotEqual:
-			case spv::OpFUnordNotEqual:
-			case spv::OpFOrdLessThan:
-			case spv::OpFUnordLessThan:
-			case spv::OpFOrdGreaterThan:
-			case spv::OpFUnordGreaterThan:
-			case spv::OpFOrdLessThanEqual:
-			case spv::OpFUnordLessThanEqual:
-			case spv::OpFOrdGreaterThanEqual:
-			case spv::OpFUnordGreaterThanEqual:
-			case spv::OpSMod:
-			case spv::OpUMod:
-			case spv::OpIEqual:
-			case spv::OpINotEqual:
-			case spv::OpUGreaterThan:
-			case spv::OpSGreaterThan:
-			case spv::OpUGreaterThanEqual:
-			case spv::OpSGreaterThanEqual:
-			case spv::OpULessThan:
-			case spv::OpSLessThan:
-			case spv::OpULessThanEqual:
-			case spv::OpSLessThanEqual:
-			case spv::OpShiftRightLogical:
-			case spv::OpShiftRightArithmetic:
-			case spv::OpShiftLeftLogical:
-			case spv::OpBitwiseOr:
-			case spv::OpBitwiseXor:
-			case spv::OpBitwiseAnd:
-			case spv::OpLogicalOr:
-			case spv::OpLogicalAnd:
-			case spv::OpLogicalEqual:
-			case spv::OpLogicalNotEqual:
-			case spv::OpUMulExtended:
-			case spv::OpSMulExtended:
-				EmitBinaryOp(insn, routine);
-				break;
-
-			case spv::OpDot:
-				EmitDot(insn, routine);
-				break;
-
-			case spv::OpSelect:
-				EmitSelect(insn, routine);
-				break;
-
-			case spv::OpExtInst:
-				EmitExtendedInstruction(insn, routine);
-				break;
-
-			case spv::OpAny:
-				EmitAny(insn, routine);
-				break;
-
-			case spv::OpAll:
-				EmitAll(insn, routine);
-				break;
-
-			default:
-				UNIMPLEMENTED(OpcodeName(insn.opcode()).c_str());
 				break;
 			}
+			EmitInstruction(routine, insn);
+		}
+
+		// Emit the main function block
+		EmitBlock(routine, getBlock(mainBlockId));
+	}
+
+	void SpirvShader::EmitBlock(SpirvRoutine *routine, Block const &block) const
+	{
+		for (auto insn : block)
+		{
+			EmitInstruction(routine, insn);
+		}
+	}
+
+	void SpirvShader::EmitInstruction(SpirvRoutine *routine, InsnIterator insn) const
+	{
+		switch (insn.opcode())
+		{
+		case spv::OpTypeVoid:
+		case spv::OpTypeInt:
+		case spv::OpTypeFloat:
+		case spv::OpTypeBool:
+		case spv::OpTypeVector:
+		case spv::OpTypeArray:
+		case spv::OpTypeRuntimeArray:
+		case spv::OpTypeMatrix:
+		case spv::OpTypeStruct:
+		case spv::OpTypePointer:
+		case spv::OpTypeFunction:
+		case spv::OpExecutionMode:
+		case spv::OpMemoryModel:
+		case spv::OpFunction:
+		case spv::OpFunctionEnd:
+		case spv::OpConstant:
+		case spv::OpConstantNull:
+		case spv::OpConstantTrue:
+		case spv::OpConstantFalse:
+		case spv::OpConstantComposite:
+		case spv::OpExtension:
+		case spv::OpCapability:
+		case spv::OpEntryPoint:
+		case spv::OpExtInstImport:
+		case spv::OpDecorate:
+		case spv::OpMemberDecorate:
+		case spv::OpGroupDecorate:
+		case spv::OpGroupMemberDecorate:
+		case spv::OpDecorationGroup:
+		case spv::OpName:
+		case spv::OpMemberName:
+		case spv::OpSource:
+		case spv::OpSourceContinued:
+		case spv::OpSourceExtension:
+		case spv::OpLine:
+		case spv::OpNoLine:
+		case spv::OpModuleProcessed:
+		case spv::OpString:
+			// Nothing to do at emit time. These are either fully handled at analysis time,
+			// or don't require any work at all.
+			break;
+
+		case spv::OpLabel:
+		case spv::OpReturn:
+			// TODO: when we do control flow, will need to do some work here.
+			// Until then, there is nothing to do -- we expect there to be an initial OpLabel
+			// in the entrypoint function, for which we do nothing; and a final OpReturn at the
+			// end of the entrypoint function, for which we do nothing.
+			break;
+
+		case spv::OpVariable:
+			EmitVariable(insn, routine);
+			break;
+
+		case spv::OpLoad:
+			EmitLoad(insn, routine);
+			break;
+
+		case spv::OpStore:
+			EmitStore(insn, routine);
+			break;
+
+		case spv::OpAccessChain:
+			EmitAccessChain(insn, routine);
+			break;
+
+		case spv::OpCompositeConstruct:
+			EmitCompositeConstruct(insn, routine);
+			break;
+
+		case spv::OpCompositeInsert:
+			EmitCompositeInsert(insn, routine);
+			break;
+
+		case spv::OpCompositeExtract:
+			EmitCompositeExtract(insn, routine);
+			break;
+
+		case spv::OpVectorShuffle:
+			EmitVectorShuffle(insn, routine);
+			break;
+
+		case spv::OpVectorTimesScalar:
+			EmitVectorTimesScalar(insn, routine);
+			break;
+
+		case spv::OpNot:
+		case spv::OpSNegate:
+		case spv::OpFNegate:
+		case spv::OpLogicalNot:
+		case spv::OpConvertFToU:
+		case spv::OpConvertFToS:
+		case spv::OpConvertSToF:
+		case spv::OpConvertUToF:
+		case spv::OpBitcast:
+		case spv::OpIsInf:
+		case spv::OpIsNan:
+			EmitUnaryOp(insn, routine);
+			break;
+
+		case spv::OpIAdd:
+		case spv::OpISub:
+		case spv::OpIMul:
+		case spv::OpSDiv:
+		case spv::OpUDiv:
+		case spv::OpFAdd:
+		case spv::OpFSub:
+		case spv::OpFMul:
+		case spv::OpFDiv:
+		case spv::OpFOrdEqual:
+		case spv::OpFUnordEqual:
+		case spv::OpFOrdNotEqual:
+		case spv::OpFUnordNotEqual:
+		case spv::OpFOrdLessThan:
+		case spv::OpFUnordLessThan:
+		case spv::OpFOrdGreaterThan:
+		case spv::OpFUnordGreaterThan:
+		case spv::OpFOrdLessThanEqual:
+		case spv::OpFUnordLessThanEqual:
+		case spv::OpFOrdGreaterThanEqual:
+		case spv::OpFUnordGreaterThanEqual:
+		case spv::OpSMod:
+		case spv::OpUMod:
+		case spv::OpIEqual:
+		case spv::OpINotEqual:
+		case spv::OpUGreaterThan:
+		case spv::OpSGreaterThan:
+		case spv::OpUGreaterThanEqual:
+		case spv::OpSGreaterThanEqual:
+		case spv::OpULessThan:
+		case spv::OpSLessThan:
+		case spv::OpULessThanEqual:
+		case spv::OpSLessThanEqual:
+		case spv::OpShiftRightLogical:
+		case spv::OpShiftRightArithmetic:
+		case spv::OpShiftLeftLogical:
+		case spv::OpBitwiseOr:
+		case spv::OpBitwiseXor:
+		case spv::OpBitwiseAnd:
+		case spv::OpLogicalOr:
+		case spv::OpLogicalAnd:
+		case spv::OpLogicalEqual:
+		case spv::OpLogicalNotEqual:
+		case spv::OpUMulExtended:
+		case spv::OpSMulExtended:
+			EmitBinaryOp(insn, routine);
+			break;
+
+		case spv::OpDot:
+			EmitDot(insn, routine);
+			break;
+
+		case spv::OpSelect:
+			EmitSelect(insn, routine);
+			break;
+
+		case spv::OpExtInst:
+			EmitExtendedInstruction(insn, routine);
+			break;
+
+		case spv::OpAny:
+			EmitAny(insn, routine);
+			break;
+
+		case spv::OpAll:
+			EmitAll(insn, routine);
+			break;
+
+		default:
+			UNIMPLEMENTED(OpcodeName(insn.opcode()).c_str());
+			break;
 		}
 	}
 

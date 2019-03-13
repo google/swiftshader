@@ -234,6 +234,26 @@ namespace sw
 			} kind = Kind::Unknown;
 		};
 
+		// Block is an interval of SPIR-V instructions, starting with the
+		// opening OpLabel, and ending with a termination instruction.
+		class Block
+		{
+		public:
+			using ID = SpirvID<Block>;
+
+			Block() = default;
+			Block(const Block& other) = default;
+			explicit Block(InsnIterator begin, InsnIterator end) : begin_(begin), end_(end) {}
+
+			/* range-based-for interface */
+			inline InsnIterator begin() const { return begin_; }
+			inline InsnIterator end() const { return end_; }
+
+		private:
+			InsnIterator begin_;
+			InsnIterator end_;
+		};
+
 		struct TypeOrObject {}; // Dummy struct to represent a Type or Object.
 
 		// TypeOrObjectID is an identifier that represents a Type or an Object,
@@ -382,12 +402,24 @@ namespace sw
 			return it->second;
 		}
 
+		Block const &getBlock(Block::ID id) const
+		{
+			auto it = blocks.find(id);
+			ASSERT(it != blocks.end());
+			return it->second;
+		}
+
 	private:
 		const int serialID;
 		static volatile int serialCounter;
 		Modes modes;
 		HandleMap<Type> types;
 		HandleMap<Object> defs;
+		HandleMap<Block> blocks;
+		Block::ID mainBlockId; // Block of the entry point function.
+
+		void EmitBlock(SpirvRoutine *routine, Block const &block) const;
+		void EmitInstruction(SpirvRoutine *routine, InsnIterator insn) const;
 
 		// DeclareType creates a Type for the given OpTypeX instruction, storing
 		// it into the types map. It is called from the analysis pass (constructor).
