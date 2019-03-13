@@ -3118,15 +3118,17 @@ namespace rr
 	#define RR_WATCH_CONCAT2(a, b) RR_WATCH_CONCAT(a, b)
 	#define RR_WATCH_FMT(...) RR_WATCH_CONCAT2(RR_WATCH_FMT_, RR_COUNT_ARGUMENTS(__VA_ARGS__))(__VA_ARGS__)
 	#define RR_WATCH_FMT_1(_1) "\n  " #_1 ": {0}"
-	#define RR_WATCH_FMT_2(_1, _2)                                   RR_WATCH_FMT_1(_1) "\n  " #_2 ": {1}"
-	#define RR_WATCH_FMT_3(_1, _2, _3)                               RR_WATCH_FMT_2(_1, _2) "\n  " #_3 ": {2}"
-	#define RR_WATCH_FMT_4(_1, _2, _3, _4)                           RR_WATCH_FMT_3(_1, _2, _3) "\n  " #_4 ": {3}"
-	#define RR_WATCH_FMT_5(_1, _2, _3, _4, _5)                       RR_WATCH_FMT_4(_1, _2, _3, _4) "\n  " #_5 ": {4}"
-	#define RR_WATCH_FMT_6(_1, _2, _3, _4, _5, _6)                   RR_WATCH_FMT_5(_1, _2, _3, _4, _5) "\n  " #_6 ": {5}"
-	#define RR_WATCH_FMT_7(_1, _2, _3, _4, _5, _6, _7)               RR_WATCH_FMT_6(_1, _2, _3, _4, _5, _6) "\n  " #_7 ": {6}"
-	#define RR_WATCH_FMT_8(_1, _2, _3, _4, _5, _6, _7, _8)           RR_WATCH_FMT_7(_1, _2, _3, _4, _5, _6, _7) "\n  " #_8 ": {7}"
-	#define RR_WATCH_FMT_9(_1, _2, _3, _4, _5, _6, _7, _8, _9)       RR_WATCH_FMT_8(_1, _2, _3, _4, _5, _6, _7, _8) "\n  " #_9 ": {8}"
-	#define RR_WATCH_FMT_10(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10) RR_WATCH_FMT_9(_1, _2, _3, _4, _5, _6, _7, _8, _9) "\n  " #_10 ": {9}"
+	#define RR_WATCH_FMT_2(_1, _2)                                             RR_WATCH_FMT_1(_1) "\n  " #_2 ": {1}"
+	#define RR_WATCH_FMT_3(_1, _2, _3)                                         RR_WATCH_FMT_2(_1, _2) "\n  " #_3 ": {2}"
+	#define RR_WATCH_FMT_4(_1, _2, _3, _4)                                     RR_WATCH_FMT_3(_1, _2, _3) "\n  " #_4 ": {3}"
+	#define RR_WATCH_FMT_5(_1, _2, _3, _4, _5)                                 RR_WATCH_FMT_4(_1, _2, _3, _4) "\n  " #_5 ": {4}"
+	#define RR_WATCH_FMT_6(_1, _2, _3, _4, _5, _6)                             RR_WATCH_FMT_5(_1, _2, _3, _4, _5) "\n  " #_6 ": {5}"
+	#define RR_WATCH_FMT_7(_1, _2, _3, _4, _5, _6, _7)                         RR_WATCH_FMT_6(_1, _2, _3, _4, _5, _6) "\n  " #_7 ": {6}"
+	#define RR_WATCH_FMT_8(_1, _2, _3, _4, _5, _6, _7, _8)                     RR_WATCH_FMT_7(_1, _2, _3, _4, _5, _6, _7) "\n  " #_8 ": {7}"
+	#define RR_WATCH_FMT_9(_1, _2, _3, _4, _5, _6, _7, _8, _9)                 RR_WATCH_FMT_8(_1, _2, _3, _4, _5, _6, _7, _8) "\n  " #_9 ": {8}"
+	#define RR_WATCH_FMT_10(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10)           RR_WATCH_FMT_9(_1, _2, _3, _4, _5, _6, _7, _8, _9) "\n  " #_10 ": {9}"
+	#define RR_WATCH_FMT_11(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11)      RR_WATCH_FMT_10(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10) "\n  " #_11 ": {10}"
+	#define RR_WATCH_FMT_12(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12) RR_WATCH_FMT_11(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11) "\n  " #_12 ": {11}"
 
 	// RR_WATCH() is a helper that prints the name and value of all the supplied
 	// arguments.
