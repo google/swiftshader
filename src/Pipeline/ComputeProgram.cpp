@@ -49,9 +49,15 @@ namespace sw
 
 		auto &modes = shader->getModes();
 
+
+		// Total number of invocations required to execute this workgroup.
+		const int numInvocations = modes.LocalSizeX * modes.LocalSizeY * modes.LocalSizeZ;
+
 		Int4 numWorkgroups = *Pointer<Int4>(data + OFFSET(Data, numWorkgroups));
 		Int4 workgroupID = *Pointer<Int4>(data + OFFSET(Data, workgroupID));
 		Int4 workgroupSize = Int4(modes.LocalSizeX, modes.LocalSizeY, modes.LocalSizeZ, 0);
+		const int subgroupSize = SIMD::Width;
+		const int numSubgroups = (numInvocations + subgroupSize - 1) / subgroupSize;
 
 		setInputBuiltin(spv::BuiltInNumWorkgroups, [&](const SpirvShader::BuiltinMapping& builtin, Array<Float4>& value)
 		{
@@ -71,14 +77,29 @@ namespace sw
 			}
 		});
 
-		// Total number of invocations required to execute this workgroup.
-		const int numInvocations = modes.LocalSizeX * modes.LocalSizeY * modes.LocalSizeZ;
+		setInputBuiltin(spv::BuiltInNumSubgroups, [&](const SpirvShader::BuiltinMapping& builtin, Array<Float4>& value)
+		{
+			ASSERT(builtin.SizeInComponents == 1);
+			value[builtin.FirstComponent] = As<Float4>(Int4(numSubgroups));
+		});
+
+		setInputBuiltin(spv::BuiltInSubgroupSize, [&](const SpirvShader::BuiltinMapping& builtin, Array<Float4>& value)
+		{
+			ASSERT(builtin.SizeInComponents == 1);
+			value[builtin.FirstComponent] = As<Float4>(Int4(subgroupSize));
+		});
+
+		setInputBuiltin(spv::BuiltInSubgroupLocalInvocationId, [&](const SpirvShader::BuiltinMapping& builtin, Array<Float4>& value)
+		{
+			ASSERT(builtin.SizeInComponents == 1);
+			value[builtin.FirstComponent] = As<Float4>(Int4(0, 1, 2, 3));
+		});
 
 		enum { XXXX, YYYY, ZZZZ };
 
-		For(Int invocationIndex = 0, invocationIndex < numInvocations, invocationIndex += SIMD::Width)
+		For(Int subgroupIndex = 0, subgroupIndex < numSubgroups, subgroupIndex++)
 		{
-			Int4 localInvocationIndex = Int4(invocationIndex) + Int4(0, 1, 2, 3);
+			Int4 localInvocationIndex = Int4(subgroupIndex * 4) + Int4(0, 1, 2, 3);
 
 			// Disable lanes where (invocationIDs >= numInvocations)
 			routine.activeLaneMask = CmpLT(localInvocationIndex, Int4(numInvocations));
@@ -99,6 +120,12 @@ namespace sw
 				value[builtin.FirstComponent] = As<Float4>(localInvocationIndex);
 			});
 
+			setInputBuiltin(spv::BuiltInSubgroupId, [&](const SpirvShader::BuiltinMapping& builtin, Array<Float4>& value)
+			{
+				ASSERT(builtin.SizeInComponents == 1);
+				value[builtin.FirstComponent] = As<Float4>(Int4(subgroupIndex));
+			});
+
 			setInputBuiltin(spv::BuiltInLocalInvocationId, [&](const SpirvShader::BuiltinMapping& builtin, Array<Float4>& value)
 			{
 				for (uint32_t component = 0; component < builtin.SizeInComponents; component++)
@@ -109,14 +136,11 @@ namespace sw
 
 			setInputBuiltin(spv::BuiltInGlobalInvocationId, [&](const SpirvShader::BuiltinMapping& builtin, Array<Float4>& value)
 			{
+				Int4 localBase = workgroupID * workgroupSize;
 				for (uint32_t component = 0; component < builtin.SizeInComponents; component++)
 				{
-					Int4 globalInvocationID =
-						Int4(Extract(workgroupID, component)) *
-						Int4(Extract(workgroupSize, component)) +
-						localInvocationID[component];
+					Int4 globalInvocationID = Int4(Extract(localBase, component)) + localInvocationID[component];
 					value[builtin.FirstComponent + component] = As<Float4>(globalInvocationID);
-					// RR_WATCH(component, globalInvocationID, routine.activeLaneMask);
 				}
 			});
 

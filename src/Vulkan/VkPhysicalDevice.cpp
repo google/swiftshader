@@ -15,6 +15,8 @@
 #include "VkPhysicalDevice.hpp"
 #include "VkConfig.h"
 
+#include "Pipeline/SpirvShader.hpp" // sw::SIMD::Width
+
 #include <cstring>
 
 namespace vk
@@ -303,7 +305,7 @@ void PhysicalDevice::getProperties(VkPhysicalDeviceProtectedMemoryProperties* pr
 
 void PhysicalDevice::getProperties(VkPhysicalDeviceSubgroupProperties* properties) const
 {
-	properties->subgroupSize = 1;
+	properties->subgroupSize = sw::SIMD::Width;
 	properties->supportedStages = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT;
 	properties->supportedOperations = VK_SUBGROUP_FEATURE_BASIC_BIT;
 	properties->quadOperationsInAllStages = VK_FALSE;
