@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "48a6746a_83c8f3dc",
+        "filename": "src/Vulkan/vk_swiftshader_icd.json.tmpl",
+        "patchSetId": 6
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 7183
+      },
+      "writtenOn": "2019-03-14T21:03:18Z",
+      "side": 1,
+      "message": "You dropped the comma here and that apparently breaks the icd file. Fixed for you.",
+      "range": {
+        "startLine": 4,
+        "startChar": 136,
+        "endLine": 4,
+        "endChar": 138
+      },
+      "revId": "c1e74e151c3174d16a641d5236671c060d48dce7",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
