@@ -1537,16 +1537,23 @@ namespace sw
 				dst.emplace(i, lhs.Int(i) * rhs.Int(i));
 				break;
 			case spv::OpSDiv:
-				dst.emplace(i, lhs.Int(i) / rhs.Int(i));
+			{
+				auto zeroMask = CmpEQ(rhs.Int(i), SIMD::Int(0));
+				dst.emplace(i, lhs.Int(i) / (rhs.Int(i) | zeroMask));
 				break;
+			}
 			case spv::OpUDiv:
-				dst.emplace(i, lhs.UInt(i) / rhs.UInt(i));
+			{
+				auto zeroMask = As<SIMD::UInt>(CmpEQ(rhs.Int(i), SIMD::Int(0)));
+				dst.emplace(i, lhs.UInt(i) / (rhs.UInt(i) | zeroMask));
 				break;
+			}
 			case spv::OpSMod:
 			{
 				auto a = lhs.Int(i);
 				auto b = rhs.Int(i);
-				auto mod = a % b;
+				auto zeroMask = CmpEQ(b, SIMD::Int(0));
+				auto mod = a % (b | zeroMask);
 				// If a and b have opposite signs, the remainder operation takes
 				// the sign from a but OpSMod is supposed to take the sign of b.
 				// Adding b will ensure that the result has the correct sign and
