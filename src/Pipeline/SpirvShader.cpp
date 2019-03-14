@@ -1566,8 +1566,11 @@ namespace sw
 				break;
 			}
 			case spv::OpUMod:
-				dst.emplace(i, lhs.UInt(i) % rhs.UInt(i));
+			{
+				auto zeroMask = As<SIMD::UInt>(CmpEQ(rhs.Int(i), SIMD::Int(0)));
+				dst.emplace(i, lhs.UInt(i) % (rhs.UInt(i) | zeroMask));
 				break;
+			}
 			case spv::OpIEqual:
 			case spv::OpLogicalEqual:
 				dst.emplace(i, CmpEQ(lhs.Int(i), rhs.Int(i)));
