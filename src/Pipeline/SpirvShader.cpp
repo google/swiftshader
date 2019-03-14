@@ -338,6 +338,7 @@ namespace sw
 			case spv::OpFOrdGreaterThanEqual:
 			case spv::OpFUnordGreaterThanEqual:
 			case spv::OpSMod:
+			case spv::OpSRem:
 			case spv::OpUMod:
 			case spv::OpIEqual:
 			case spv::OpINotEqual:
@@ -1139,6 +1140,7 @@ namespace sw
 		case spv::OpFOrdGreaterThanEqual:
 		case spv::OpFUnordGreaterThanEqual:
 		case spv::OpSMod:
+		case spv::OpSRem:
 		case spv::OpUMod:
 		case spv::OpIEqual:
 		case spv::OpINotEqual:
@@ -1636,6 +1638,15 @@ namespace sw
 			{
 				auto zeroMask = As<SIMD::UInt>(CmpEQ(rhs.Int(i), SIMD::Int(0)));
 				dst.emplace(i, lhs.UInt(i) / (rhs.UInt(i) | zeroMask));
+				break;
+			}
+			case spv::OpSRem:
+			{
+				SIMD::Int a = lhs.Int(i);
+				SIMD::Int b = rhs.Int(i);
+				b = b | CmpEQ(b, SIMD::Int(0)); // prevent divide-by-zero
+				a = a | (CmpEQ(a, SIMD::Int(0x80000000)) & CmpEQ(b, SIMD::Int(-1))); // prevent integer overflow
+				dst.emplace(i, a % b);
 				break;
 			}
 			case spv::OpSMod:
