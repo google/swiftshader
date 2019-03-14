@@ -1688,13 +1688,7 @@ namespace sw
 		auto srcLHS = GenericValue(this, routine, insn.word(3));
 		auto srcRHS = GenericValue(this, routine, insn.word(4));
 
-		SIMD::Float result = srcLHS[0] * srcRHS[0];
-
-		for (auto i = 1u; i < lhsType.sizeInComponents; i++)
-		{
-			result += srcLHS[i] * srcRHS[i];
-		}
-
+		SIMD::Float result = Dot(lhsType.sizeInComponents, srcLHS, srcRHS);
 		dst.emplace(0, result);
 	}
 
@@ -1956,9 +1950,103 @@ namespace sw
 			}
 			break;
 		}
+		case GLSLstd450Reflect:
+		{
+			auto I = GenericValue(this, routine, insn.word(5));
+			auto N = GenericValue(this, routine, insn.word(6));
+
+			SIMD::Float d = Dot(type.sizeInComponents, I, N);
+
+			for (auto i = 0u; i < type.sizeInComponents; i++)
+			{
+				dst.emplace(i, I[i] - SIMD::Float(2.0f) * d * N[i]);
+			}
+			break;
+		}
+		case GLSLstd450Refract:
+		{
+			auto I = GenericValue(this, routine, insn.word(5));
+			auto N = GenericValue(this, routine, insn.word(6));
+			auto eta = GenericValue(this, routine, insn.word(7));
+
+			SIMD::Float d = Dot(type.sizeInComponents, I, N);
+			SIMD::Float k = SIMD::Float(1.0f) - eta[0] * eta[0] * (SIMD::Float(1.0f) - d * d);
+			SIMD::Int pos = CmpNLT(k, SIMD::Float(0.0f));
+			SIMD::Float t = (eta[0] * d + Sqrt(k));
+
+			for (auto i = 0u; i < type.sizeInComponents; i++)
+			{
+				dst.emplace(i, As<SIMD::Float>(pos & As<SIMD::Int>(eta[0] * I[i] - t * N[i])));
+			}
+			break;
+		}
+		case GLSLstd450FaceForward:
+		{
+			auto N = GenericValue(this, routine, insn.word(5));
+			auto I = GenericValue(this, routine, insn.word(6));
+			auto Nref = GenericValue(this, routine, insn.word(7));
+
+			SIMD::Float d = Dot(type.sizeInComponents, I, Nref);
+			SIMD::Int neg = CmpLT(d, SIMD::Float(0.0f));
+
+			for (auto i = 0u; i < type.sizeInComponents; i++)
+			{
+				dst.emplace(i, As<SIMD::Float>((neg & As<SIMD::Int>(N[i])) | (~neg & As<SIMD::Int>(-N[i]))));
+			}
+			break;
+		}
+		case GLSLstd450Length:
+		{
+			auto x = GenericValue(this, routine, insn.word(5));
+			SIMD::Float d = Dot(getType(getObject(insn.word(5)).type).sizeInComponents, x, x);
+
+			dst.emplace(0, Sqrt(d));
+			break;
+		}
+		case GLSLstd450Normalize:
+		{
+			auto x = GenericValue(this, routine, insn.word(5));
+			SIMD::Float d = Dot(getType(getObject(insn.word(5)).type).sizeInComponents, x, x);
+			SIMD::Float invLength = SIMD::Float(1.0f) / Sqrt(d);
+
+			for (auto i = 0u; i < type.sizeInComponents; i++)
+			{
+				dst.emplace(i, invLength * x[i]);
+			}
+			break;
+		}
+		case GLSLstd450Distance:
+		{
+			auto p0 = GenericValue(this, routine, insn.word(5));
+			auto p1 = GenericValue(this, routine, insn.word(6));
+			auto p0Type = getType(getObject(insn.word(5)).type);
+
+			// sqrt(dot(p0-p1, p0-p1))
+			SIMD::Float d = (p0[0] - p1[0]) * (p0[0] - p1[0]);
+
+			for (auto i = 1u; i < p0Type.sizeInComponents; i++)
+			{
+				d += (p0[i] - p1[i]) * (p0[i] - p1[i]);
+			}
+
+			dst.emplace(0, Sqrt(d));
+			break;
+		}
 		default:
 			UNIMPLEMENTED("Unhandled ExtInst %d", extInstIndex);
 		}
+	}
+
+	SIMD::Float SpirvShader::Dot(unsigned numComponents, GenericValue const & x, GenericValue const & y) const
+	{
+		SIMD::Float d = x[0] * y[0];
+
+		for (auto i = 1u; i < numComponents; i++)
+		{
+			d += x[i] * y[i];
+		}
+
+		return d;
 	}
 
 	void SpirvShader::EmitAny(InsnIterator insn, SpirvRoutine *routine) const

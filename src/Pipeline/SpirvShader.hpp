@@ -41,6 +41,7 @@ namespace sw
 {
 	// Forward declarations.
 	class SpirvRoutine;
+	class GenericValue;
 
 	// SIMD contains types that represent multiple scalars packed into a single
 	// vector data type. Types in the SIMD namespace provide a semantic hint
@@ -456,6 +457,9 @@ namespace sw
 		// OpcodeName returns the name of the opcode op.
 		// If NDEBUG is defined, then OpcodeName will only return the numerical code.
 		static std::string OpcodeName(spv::Op op);
+
+		// Helper as we often need to take dot products as part of doing other things.
+		SIMD::Float Dot(unsigned numComponents, GenericValue const & x, GenericValue const & y) const;
 	};
 
 	class SpirvRoutine
