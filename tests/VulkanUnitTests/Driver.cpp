@@ -47,14 +47,14 @@ bool Driver::loadSwiftShader()
 {
 #if OS_WINDOWS
 #    if defined(NDEBUG)
-    return load("../../out/Release_x64/vk_swiftshader.dll");
+    return load("../../build/Release_x64/vk_swiftshader.dll");
 #    else
-    return load("../../out/Debug_x64/vk_swiftshader.dll");
+    return load("../../build/Debug_x64/vk_swiftshader.dll");
 #    endif
 #elif OS_MAC
-    return load("./out/Darwin/libvk_swiftshader.dylib");
+    return load("./build/Darwin/libvk_swiftshader.dylib");
 #elif OS_LINUX
-    return load("./out/Linux/libvk_swiftshader.so");
+    return load("./build/Linux/libvk_swiftshader.so");
 #else
 #    error Unimplemented platform
 #endif
