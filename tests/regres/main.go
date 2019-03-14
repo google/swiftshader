@@ -248,6 +248,7 @@ func (r *regres) run() error {
 		if err != nil {
 			log.Println(cause.Wrap(err, "Failed to test changelist '%s'", change.latest))
 			time.Sleep(time.Minute)
+			change.pending = false
 			continue
 		}
 
@@ -336,14 +337,8 @@ func (r *regres) testLatest(change *changeInfo) (*CommitTestResults, testlist.Li
 		return results, testlists, nil // Use cached results
 	}
 
-	if err := test.build(); err != nil {
-		return nil, nil, cause.Wrap(err, "Failed to build '%s'", change.latest)
-	}
-
-	results, err := test.run(testlists)
-	if err != nil {
-		return nil, nil, cause.Wrap(err, "Failed to test '%s'", change.latest)
-	}
+	// Build the change and test it.
+	results := test.buildAndRun(testlists)
 
 	// Cache the results for future tests
 	if err := results.save(cachePath); err != nil {
@@ -369,16 +364,8 @@ func (r *regres) testParent(change *changeInfo, testlists testlist.Lists) (*Comm
 		return nil, cause.Wrap(err, "Failed to checkout '%s'", change.parent)
 	}
 
-	// Build the parent change.
-	if err := test.build(); err != nil {
-		return nil, cause.Wrap(err, "Failed to build '%s'", change.parent)
-	}
-
-	// Run the tests on the parent change.
-	results, err := test.run(testlists)
-	if err != nil {
-		return nil, cause.Wrap(err, "Failed to test '%s'", change.parent)
-	}
+	// Build the parent change and test it.
+	results := test.buildAndRun(testlists)
 
 	// Store the results of the parent change to the cache.
 	if err := results.save(cachePath); err != nil {
@@ -624,6 +611,27 @@ func (t *test) checkout() error {
 	return nil
 }
 
+// buildAndRun calls t.build() followed by t.run(). Errors are logged and
+// reported in the returned CommitTestResults.Error field.
+func (t *test) buildAndRun(testLists testlist.Lists) *CommitTestResults {
+	// Build the parent change.
+	if err := t.build(); err != nil {
+		msg := fmt.Sprintf("Failed to build '%s'", t.commit)
+		log.Println(cause.Wrap(err, msg))
+		return &CommitTestResults{Error: msg}
+	}
+
+	// Run the tests on the parent change.
+	results, err := t.run(testLists)
+	if err != nil {
+		msg := fmt.Sprintf("Failed to test change '%s'", t.commit)
+		log.Println(cause.Wrap(err, msg))
+		return &CommitTestResults{Error: msg}
+	}
+
+	return results
+}
+
 // build builds the SwiftShader source into t.buildDir.
 func (t *test) build() error {
 	log.Printf("Building '%s'\n", t.commit)
@@ -704,7 +712,6 @@ func (t *test) run(testLists testlist.Lists) (*CommitTestResults, error) {
 
 	out := CommitTestResults{
 		Version: dataVersion,
-		Built:   true,
 		Tests:   map[string]TestResult{},
 	}
 
@@ -776,7 +783,7 @@ func (t *test) resultsCachePath(testLists testlist.Lists) string {
 // results.
 type CommitTestResults struct {
 	Version  int
-	Built    bool
+	Error    string
 	Tests    map[string]TestResult
 	Duration time.Duration
 }
@@ -820,13 +827,11 @@ func (r *CommitTestResults) save(path string) error {
 // CommitTestResults. This string is used as the report message posted to the
 // gerrit code review.
 func compare(old, new *CommitTestResults) string {
-	switch {
-	case !old.Built && !new.Built:
-		return "Build continues to be broken."
-	case old.Built && !new.Built:
-		return "Build broken."
-	case !old.Built && !new.Built:
-		return "Build now fixed. Cannot compare against broken parent."
+	if old.Error != "" {
+		return old.Error
+	}
+	if new.Error != "" {
+		return new.Error
 	}
 
 	oldStatusCounts, newStatusCounts := map[testlist.Status]int{}, map[testlist.Status]int{}
