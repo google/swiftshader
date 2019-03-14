@@ -252,26 +252,6 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 		UNIMPLEMENTED();
 	}
 
-	const VkPipelineShaderStageCreateInfo& vertexStage = pCreateInfo->pStages[0];
-	if((vertexStage.stage != VK_SHADER_STAGE_VERTEX_BIT) ||
-	   (vertexStage.flags != 0) ||
-	   !((vertexStage.pSpecializationInfo == nullptr) ||
-	     ((vertexStage.pSpecializationInfo->mapEntryCount == 0) &&
-	      (vertexStage.pSpecializationInfo->dataSize == 0))))
-	{
-		UNIMPLEMENTED();
-	}
-
-	const VkPipelineShaderStageCreateInfo& fragmentStage = pCreateInfo->pStages[1];
-	if((fragmentStage.stage != VK_SHADER_STAGE_FRAGMENT_BIT) ||
-	   (fragmentStage.flags != 0) ||
-	   !((fragmentStage.pSpecializationInfo == nullptr) ||
-	     ((fragmentStage.pSpecializationInfo->mapEntryCount == 0) &&
-	      (fragmentStage.pSpecializationInfo->dataSize == 0))))
-	{
-		UNIMPLEMENTED();
-	}
-
 	const VkPipelineVertexInputStateCreateInfo* vertexInputState = pCreateInfo->pVertexInputState;
 	if(vertexInputState->flags != 0)
 	{
@@ -460,8 +440,12 @@ void GraphicsPipeline::compileShaders(const VkAllocationCallbacks* pAllocator, c
 {
 	for (auto pStage = pCreateInfo->pStages; pStage != pCreateInfo->pStages + pCreateInfo->stageCount; pStage++)
 	{
-		auto module = Cast(pStage->module);
+		if (pStage->flags != 0)
+		{
+			UNIMPLEMENTED();
+		}
 
+		auto module = Cast(pStage->module);
 		auto code = preprocessSpirv(module->getCode(), pStage->pSpecializationInfo);
 
 		// TODO: also pass in any pipeline state which will affect shader compilation
