@@ -533,6 +533,7 @@ func (c *changeInfo) update(client *gerrit.Client) error {
 
 	kokoroPresubmit := change.Labels["Kokoro-Presubmit"].Approved.AccountID != 0
 	codeReviewScore := change.Labels["Code-Review"].Value
+	codeReviewApproved := change.Labels["Code-Review"].Approved.AccountID != 0
 	presubmitReady := change.Labels["Presubmit-Ready"].Approved.AccountID != 0
 
 	c.priority = 0
@@ -540,6 +541,9 @@ func (c *changeInfo) update(client *gerrit.Client) error {
 		c.priority += 10
 	}
 	c.priority += codeReviewScore
+	if codeReviewApproved {
+		c.priority += 2
+	}
 	if kokoroPresubmit {
 		c.priority++
 	}
