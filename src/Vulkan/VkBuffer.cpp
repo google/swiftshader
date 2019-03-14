@@ -107,7 +107,12 @@ void Buffer::update(VkDeviceSize dstOffset, VkDeviceSize dataSize, const void* p
 
 void* Buffer::getOffsetPointer(VkDeviceSize offset) const
 {
-	return reinterpret_cast<char*>(memory) + offset;
+	return reinterpret_cast<uint8_t*>(memory) + offset;
+}
+
+uint8_t* Buffer::end() const
+{
+	return reinterpret_cast<uint8_t*>(getOffsetPointer(size + 1));
 }
 
 } // namespace vk

@@ -64,6 +64,7 @@ public:
 	int                      slicePitchBytes(VkImageAspectFlagBits aspect, uint32_t mipLevel) const;
 	void*                    getTexelPointer(const VkOffset3D& offset, const VkImageSubresourceLayers& subresource) const;
 	bool                     isCube() const;
+	uint8_t*                 end() const;
 
 private:
 	void copy(VkBuffer buffer, const VkBufferImageCopy& region, bool bufferIsSource);

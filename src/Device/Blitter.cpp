@@ -1515,10 +1515,7 @@ namespace sw
 			return;
 		}
 
-		if((region.srcSubresource.baseArrayLayer != 0) ||
-		   (region.dstSubresource.baseArrayLayer != 0) ||
-		   (region.srcSubresource.layerCount != 1) ||
-		   (region.dstSubresource.layerCount != 1) ||
+		if((region.srcSubresource.layerCount != region.dstSubresource.layerCount) ||
 		   (region.srcSubresource.aspectMask != region.dstSubresource.aspectMask))
 		{
 			UNIMPLEMENTED();
@@ -1545,7 +1542,7 @@ namespace sw
 		VkImageAspectFlagBits dstAspect = static_cast<VkImageAspectFlagBits>(region.dstSubresource.aspectMask);
 
 		State state(src->getFormat(srcAspect), dst->getFormat(dstAspect), dst->getSampleCountFlagBits(),
-		            { filter != VK_FILTER_NEAREST, region.srcSubresource.aspectMask == VK_IMAGE_ASPECT_STENCIL_BIT, false });
+		            { filter != VK_FILTER_NEAREST, srcAspect == VK_IMAGE_ASPECT_STENCIL_BIT, false });
 		state.clampToEdge = (region.srcOffsets[0].x < 0) ||
 		                    (region.srcOffsets[0].y < 0) ||
 		                    (static_cast<uint32_t>(region.srcOffsets[1].x) > srcExtent.width) ||
@@ -1583,13 +1580,50 @@ namespace sw
 		VkOffset3D srcOffset = { 0, 0, region.srcOffsets[0].z };
 		VkOffset3D dstOffset = { 0, 0, region.dstOffsets[0].z };
 
-		for(int i = 0; i < numSlices; i++)
+		VkImageSubresourceLayers srcSubresLayers =
 		{
-			data.source = src->getTexelPointer(srcOffset, region.srcSubresource);
-			data.dest = dst->getTexelPointer(dstOffset, region.dstSubresource);
-			blitFunction(&data);
-			srcOffset.z++;
-			dstOffset.z++;
+			region.srcSubresource.aspectMask,
+			region.srcSubresource.mipLevel,
+			region.srcSubresource.baseArrayLayer,
+			1
+		};
+
+		VkImageSubresourceLayers dstSubresLayers =
+		{
+			region.dstSubresource.aspectMask,
+			region.dstSubresource.mipLevel,
+			region.dstSubresource.baseArrayLayer,
+			1
+		};
+
+		VkImageSubresourceRange srcSubresRange =
+		{
+			region.srcSubresource.aspectMask,
+			region.srcSubresource.mipLevel,
+			1,
+			region.srcSubresource.baseArrayLayer,
+			region.srcSubresource.layerCount
+		};
+
+		uint32_t lastLayer = src->getLastLayerIndex(srcSubresRange);
+
+		for(; srcSubresLayers.baseArrayLayer <= lastLayer; srcSubresLayers.baseArrayLayer++, dstSubresLayers.baseArrayLayer++)
+		{
+			srcOffset.z = region.srcOffsets[0].z;
+			dstOffset.z = region.dstOffsets[0].z;
+
+			for(int i = 0; i < numSlices; i++)
+			{
+				data.source = src->getTexelPointer(srcOffset, srcSubresLayers);
+				data.dest = dst->getTexelPointer(dstOffset, dstSubresLayers);
+
+				ASSERT(data.source < src->end());
+				ASSERT(data.dest < dst->end());
+
+				blitFunction(&data);
+				srcOffset.z++;
+				dstOffset.z++;
+			}
 		}
 	}
 }

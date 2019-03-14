@@ -129,8 +129,8 @@ void Image::copyTo(VkImage dstImage, const VkImageCopy& pRegion)
 	int srcBytesPerTexel = bytesPerTexel(srcAspect);
 	ASSERT(srcBytesPerTexel == dst->bytesPerTexel(dstAspect));
 
-	const char* srcMem = static_cast<const char*>(getTexelPointer(pRegion.srcOffset, pRegion.srcSubresource));
-	char* dstMem = static_cast<char*>(dst->getTexelPointer(pRegion.dstOffset, pRegion.dstSubresource));
+	const uint8_t* srcMem = static_cast<const uint8_t*>(getTexelPointer(pRegion.srcOffset, pRegion.srcSubresource));
+	uint8_t* dstMem = static_cast<uint8_t*>(dst->getTexelPointer(pRegion.dstOffset, pRegion.dstSubresource));
 
 	int srcRowPitchBytes = rowPitchBytes(srcAspect, pRegion.srcSubresource.mipLevel);
 	int srcSlicePitchBytes = slicePitchBytes(srcAspect, pRegion.srcSubresource.mipLevel);
@@ -158,36 +158,53 @@ void Image::copyTo(VkImage dstImage, const VkImageCopy& pRegion)
 
 	if(isSingleLine) // Copy one line
 	{
-		memcpy(dstMem, srcMem, pRegion.extent.width * srcBytesPerTexel);
+		size_t copySize = pRegion.extent.width * srcBytesPerTexel;
+		ASSERT((srcMem + copySize) < end());
+		ASSERT((dstMem + copySize) < dst->end());
+		memcpy(dstMem, srcMem, copySize);
 	}
 	else if(isEntireLine && isSinglePlane) // Copy one plane
 	{
-		memcpy(dstMem, srcMem, pRegion.extent.height * srcRowPitchBytes);
+		size_t copySize = pRegion.extent.height * srcRowPitchBytes;
+		ASSERT((srcMem + copySize) < end());
+		ASSERT((dstMem + copySize) < dst->end());
+		memcpy(dstMem, srcMem, copySize);
 	}
 	else if(isEntirePlane) // Copy multiple planes
 	{
-		memcpy(dstMem, srcMem, pRegion.extent.depth * srcSlicePitchBytes);
+		size_t copySize = pRegion.extent.depth * srcSlicePitchBytes;
+		ASSERT((srcMem + copySize) < end());
+		ASSERT((dstMem + copySize) < dst->end());
+		memcpy(dstMem, srcMem, copySize);
 	}
 	else if(isEntireLine) // Copy plane by plane
 	{
+		size_t copySize = pRegion.extent.height * srcRowPitchBytes;
+
 		for(uint32_t z = 0; z < pRegion.extent.depth; z++, dstMem += dstSlicePitchBytes, srcMem += srcSlicePitchBytes)
 		{
-			memcpy(dstMem, srcMem, pRegion.extent.height * srcRowPitchBytes);
+			ASSERT((srcMem + copySize) < end());
+			ASSERT((dstMem + copySize) < dst->end());
+			memcpy(dstMem, srcMem, copySize);
 		}
 	}
 	else // Copy line by line
 	{
+		size_t copySize = pRegion.extent.width * srcBytesPerTexel;
+
 		for(uint32_t z = 0; z < pRegion.extent.depth; z++)
 		{
 			for(uint32_t y = 0; y < pRegion.extent.height; y++, dstMem += dstRowPitchBytes, srcMem += srcRowPitchBytes)
 			{
-				memcpy(dstMem, srcMem, pRegion.extent.width * srcBytesPerTexel);
+				ASSERT((srcMem + copySize) < end());
+				ASSERT((dstMem + copySize) < dst->end());
+				memcpy(dstMem, srcMem, copySize);
 			}
 		}
 	}
 }
 
-void Image::copy(VkBuffer buffer, const VkBufferImageCopy& region, bool bufferIsSource)
+void Image::copy(VkBuffer buf, const VkBufferImageCopy& region, bool bufferIsSource)
 {
 	if(!((region.imageSubresource.aspectMask == VK_IMAGE_ASPECT_COLOR_BIT) ||
 	     (region.imageSubresource.aspectMask == VK_IMAGE_ASPECT_DEPTH_BIT) ||
@@ -220,67 +237,91 @@ void Image::copy(VkBuffer buffer, const VkBufferImageCopy& region, bool bufferIs
 	bool isEntirePlane = isEntireLine && (region.imageExtent.height == mipLevelExtent.height) &&
 	                     (imageSlicePitchBytes == bufferSlicePitchBytes);
 
-	VkDeviceSize layerSize = getLayerSize(aspect);
-	char* bufferMemory = static_cast<char*>(Cast(buffer)->getOffsetPointer(region.bufferOffset));
-	char* imageMemory = static_cast<char*>(deviceMemory->getOffsetPointer(
-	                    getMemoryOffset(aspect, region.imageSubresource.mipLevel,
-	                                    region.imageSubresource.baseArrayLayer) +
-	                    texelOffsetBytesInStorage(region.imageOffset, region.imageSubresource)));
-	char* srcMemory = bufferIsSource ? bufferMemory : imageMemory;
-	char* dstMemory = bufferIsSource ? imageMemory : bufferMemory;
+	Buffer* buffer = Cast(buf);
+	uint8_t* bufferMemory = static_cast<uint8_t*>(buffer->getOffsetPointer(region.bufferOffset));
+	uint8_t* imageMemory = static_cast<uint8_t*>(deviceMemory->getOffsetPointer(
+	                       getMemoryOffset(aspect, region.imageSubresource.mipLevel,
+	                                       region.imageSubresource.baseArrayLayer) +
+	                       texelOffsetBytesInStorage(region.imageOffset, region.imageSubresource)));
+	uint8_t* srcMemory = bufferIsSource ? bufferMemory : imageMemory;
+	uint8_t* dstMemory = bufferIsSource ? imageMemory : bufferMemory;
 
 	VkDeviceSize copySize = 0;
+	VkDeviceSize bufferLayerSize = 0;
 	if(isSingleLine)
 	{
 		copySize = region.imageExtent.width * imageBytesPerTexel;
+		bufferLayerSize = copySize;
 	}
 	else if(isEntireLine && isSinglePlane)
 	{
 		copySize = region.imageExtent.height * imageRowPitchBytes;
+		bufferLayerSize = copySize;
 	}
 	else if(isEntirePlane)
 	{
 		copySize = region.imageExtent.depth * imageSlicePitchBytes; // Copy multiple planes
+		bufferLayerSize = copySize;
 	}
 	else if(isEntireLine) // Copy plane by plane
 	{
 		copySize = region.imageExtent.height * imageRowPitchBytes;
+		bufferLayerSize = copySize * region.imageExtent.depth;
 	}
 	else // Copy line by line
 	{
 		copySize = region.imageExtent.width * imageBytesPerTexel;
+		bufferLayerSize = copySize * region.imageExtent.depth * region.imageExtent.height;
 	}
+
+	VkDeviceSize imageLayerSize = getLayerSize(aspect);
+	VkDeviceSize srcLayerSize = bufferIsSource ? bufferLayerSize : imageLayerSize;
+	VkDeviceSize dstLayerSize = bufferIsSource ? imageLayerSize : bufferLayerSize;
 
 	for(uint32_t i = 0; i < region.imageSubresource.layerCount; i++)
 	{
 		if(isSingleLine || (isEntireLine && isSinglePlane) || isEntirePlane)
 		{
+			ASSERT(((bufferIsSource ? dstMemory : srcMemory) + copySize) < end());
+			ASSERT(((bufferIsSource ? srcMemory : dstMemory) + copySize) < buffer->end());
 			memcpy(dstMemory, srcMemory, copySize);
 		}
 		else if(isEntireLine) // Copy plane by plane
 		{
+			uint8_t* srcPlaneMemory = srcMemory;
+			uint8_t* dstPlaneMemory = dstMemory;
 			for(uint32_t z = 0; z < region.imageExtent.depth; z++)
 			{
-				memcpy(dstMemory, srcMemory, copySize);
-				srcMemory += srcSlicePitchBytes;
-				dstMemory += dstSlicePitchBytes;
+				ASSERT(((bufferIsSource ? dstPlaneMemory : srcPlaneMemory) + copySize) < end());
+				ASSERT(((bufferIsSource ? srcPlaneMemory : dstPlaneMemory) + copySize) < buffer->end());
+				memcpy(dstPlaneMemory, srcPlaneMemory, copySize);
+				srcPlaneMemory += srcSlicePitchBytes;
+				dstPlaneMemory += dstSlicePitchBytes;
 			}
 		}
 		else // Copy line by line
 		{
+			uint8_t* srcLayerMemory = srcMemory;
+			uint8_t* dstLayerMemory = dstMemory;
 			for(uint32_t z = 0; z < region.imageExtent.depth; z++)
 			{
+				uint8_t* srcPlaneMemory = srcLayerMemory;
+				uint8_t* dstPlaneMemory = dstLayerMemory;
 				for(uint32_t y = 0; y < region.imageExtent.height; y++)
 				{
-					memcpy(dstMemory, srcMemory, copySize);
-					srcMemory += srcRowPitchBytes;
-					dstMemory += dstRowPitchBytes;
+					ASSERT(((bufferIsSource ? dstPlaneMemory : srcPlaneMemory) + copySize) < end());
+					ASSERT(((bufferIsSource ? srcPlaneMemory : dstPlaneMemory) + copySize) < buffer->end());
+					memcpy(dstPlaneMemory, srcPlaneMemory, copySize);
+					srcPlaneMemory += srcRowPitchBytes;
+					dstPlaneMemory += dstRowPitchBytes;
 				}
+				srcLayerMemory += srcSlicePitchBytes;
+				dstLayerMemory += dstSlicePitchBytes;
 			}
 		}
 
-		srcMemory += layerSize;
-		dstMemory += layerSize;
+		srcMemory += srcLayerSize;
+		dstMemory += dstLayerSize;
 	}
 }
 
@@ -305,8 +346,8 @@ VkDeviceSize Image::texelOffsetBytesInStorage(const VkOffset3D& offset, const Vk
 {
 	VkImageAspectFlagBits aspect = static_cast<VkImageAspectFlagBits>(subresource.aspectMask);
 	return offset.z * slicePitchBytes(aspect, subresource.mipLevel) +
-	       offset.y * rowPitchBytes(aspect, subresource.mipLevel) +
-	       offset.x * bytesPerTexel(aspect);
+	       (offset.y + (isCube() ? 1 : 0)) * rowPitchBytes(aspect, subresource.mipLevel) +
+	       (offset.x + (isCube() ? 1 : 0)) * bytesPerTexel(aspect);
 }
 
 VkExtent3D Image::getMipLevelExtent(uint32_t mipLevel) const
@@ -394,6 +435,11 @@ Format Image::getFormat(VkImageAspectFlagBits aspect) const
 bool Image::isCube() const
 {
 	return (flags & VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT) && (imageType == VK_IMAGE_TYPE_2D);
+}
+
+uint8_t* Image::end() const
+{
+	return reinterpret_cast<uint8_t*>(deviceMemory->getOffsetPointer(deviceMemory->getCommittedMemoryInBytes() + 1));
 }
 
 VkDeviceSize Image::getMemoryOffset(VkImageAspectFlagBits aspect) const
