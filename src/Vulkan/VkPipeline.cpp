@@ -356,9 +356,7 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 	if(depthStencilState)
 	{
 		if((depthStencilState->flags != 0) ||
-		   (depthStencilState->depthBoundsTestEnable != 0) ||
-		   (depthStencilState->minDepthBounds != 0.0f) ||
-		   (depthStencilState->maxDepthBounds != 1.0f))
+		   (depthStencilState->depthBoundsTestEnable != 0))
 		{
 			UNIMPLEMENTED();
 		}
