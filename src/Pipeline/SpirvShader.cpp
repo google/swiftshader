@@ -1538,8 +1538,11 @@ namespace sw
 				break;
 			case spv::OpSDiv:
 			{
-				auto zeroMask = CmpEQ(rhs.Int(i), SIMD::Int(0));
-				dst.emplace(i, lhs.Int(i) / (rhs.Int(i) | zeroMask));
+				SIMD::Int a = lhs.Int(i);
+				SIMD::Int b = rhs.Int(i);
+				b = b | CmpEQ(b, SIMD::Int(0)); // prevent divide-by-zero
+				a = a | (CmpEQ(a, SIMD::Int(0x80000000)) & CmpEQ(b, SIMD::Int(-1))); // prevent integer overflow
+				dst.emplace(i, a / b);
 				break;
 			}
 			case spv::OpUDiv:
@@ -1550,10 +1553,11 @@ namespace sw
 			}
 			case spv::OpSMod:
 			{
-				auto a = lhs.Int(i);
-				auto b = rhs.Int(i);
-				auto zeroMask = CmpEQ(b, SIMD::Int(0));
-				auto mod = a % (b | zeroMask);
+				SIMD::Int a = lhs.Int(i);
+				SIMD::Int b = rhs.Int(i);
+				b = b | CmpEQ(b, SIMD::Int(0)); // prevent divide-by-zero
+				a = a | (CmpEQ(a, SIMD::Int(0x80000000)) & CmpEQ(b, SIMD::Int(-1))); // prevent integer overflow
+				auto mod = a % b;
 				// If a and b have opposite signs, the remainder operation takes
 				// the sign from a but OpSMod is supposed to take the sign of b.
 				// Adding b will ensure that the result has the correct sign and
