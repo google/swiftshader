@@ -144,7 +144,8 @@ public:
 
 	static inline T* Cast(VkT vkObject)
 	{
-		return &(reinterpret_cast<DispatchableObject<T, VkT>*>(vkObject)->object);
+		return (vkObject == VK_NULL_HANDLE) ? nullptr :
+		       &(reinterpret_cast<DispatchableObject<T, VkT>*>(vkObject)->object);
 	}
 
 	operator VkT()
