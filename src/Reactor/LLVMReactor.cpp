@@ -553,6 +553,7 @@ namespace rr
 			func_.emplace("truncf", reinterpret_cast<void*>(truncf));
 			func_.emplace("printf", reinterpret_cast<void*>(printf));
 			func_.emplace("puts", reinterpret_cast<void*>(puts));
+			func_.emplace("fmodf", reinterpret_cast<void*>(fmodf));
 		}
 
 		void *findSymbol(const std::string &name) const

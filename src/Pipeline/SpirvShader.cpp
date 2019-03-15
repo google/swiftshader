@@ -330,6 +330,7 @@ namespace sw
 			case spv::OpFMul:
 			case spv::OpFDiv:
 			case spv::OpFMod:
+			case spv::OpFRem:
 			case spv::OpFOrdEqual:
 			case spv::OpFUnordEqual:
 			case spv::OpFOrdNotEqual:
@@ -1141,6 +1142,7 @@ namespace sw
 		case spv::OpFMul:
 		case spv::OpFDiv:
 		case spv::OpFMod:
+		case spv::OpFRem:
 		case spv::OpFOrdEqual:
 		case spv::OpFUnordEqual:
 		case spv::OpFOrdNotEqual:
@@ -1769,6 +1771,9 @@ namespace sw
 			case spv::OpFMod:
 				// TODO(b/126873455): inaccurate for values greater than 2^24
 				dst.emplace(i, lhs.Float(i) - rhs.Float(i) * Floor(lhs.Float(i) / rhs.Float(i)));
+				break;
+			case spv::OpFRem:
+				dst.emplace(i, lhs.Float(i) % rhs.Float(i));
 				break;
 			case spv::OpFOrdEqual:
 				dst.emplace(i, CmpEQ(lhs.Float(i), rhs.Float(i)));
