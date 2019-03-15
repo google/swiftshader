@@ -1542,7 +1542,7 @@ namespace sw
 		VkImageAspectFlagBits dstAspect = static_cast<VkImageAspectFlagBits>(region.dstSubresource.aspectMask);
 
 		State state(src->getFormat(srcAspect), dst->getFormat(dstAspect), dst->getSampleCountFlagBits(),
-		            { filter != VK_FILTER_NEAREST, srcAspect == VK_IMAGE_ASPECT_STENCIL_BIT, false });
+		            { filter != VK_FILTER_NEAREST, srcAspect == VK_IMAGE_ASPECT_STENCIL_BIT, filter != VK_FILTER_NEAREST });
 		state.clampToEdge = (region.srcOffsets[0].x < 0) ||
 		                    (region.srcOffsets[0].y < 0) ||
 		                    (static_cast<uint32_t>(region.srcOffsets[1].x) > srcExtent.width) ||
