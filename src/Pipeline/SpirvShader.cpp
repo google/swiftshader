@@ -312,6 +312,9 @@ namespace sw
 			case spv::OpCompositeInsert:
 			case spv::OpCompositeExtract:
 			case spv::OpVectorShuffle:
+			case spv::OpVectorTimesScalar:
+			case spv::OpVectorExtractDynamic:
+			case spv::OpVectorInsertDynamic:
 			case spv::OpNot: // Unary ops
 			case spv::OpSNegate:
 			case spv::OpFNegate:
@@ -374,7 +377,6 @@ namespace sw
 			case spv::OpIsNan:
 			case spv::OpAny:
 			case spv::OpAll:
-			case spv::OpVectorTimesScalar:
 				// Instructions that yield an intermediate value
 			{
 				Type::ID typeId = insn.word(1);
@@ -1100,6 +1102,14 @@ namespace sw
 			EmitVectorShuffle(insn, routine);
 			break;
 
+		case spv::OpVectorExtractDynamic:
+			EmitVectorExtractDynamic(insn, routine);
+			break;
+
+		case spv::OpVectorInsertDynamic:
+			EmitVectorInsertDynamic(insn, routine);
+			break;
+
 		case spv::OpVectorTimesScalar:
 			EmitVectorTimesScalar(insn, routine);
 			break;
@@ -1541,6 +1551,41 @@ namespace sw
 			{
 				dst.emplace(i, secondHalfAccess.Float(selector - firstHalfType.sizeInComponents));
 			}
+		}
+	}
+
+	void SpirvShader::EmitVectorExtractDynamic(sw::SpirvShader::InsnIterator insn, sw::SpirvRoutine *routine) const
+	{
+		auto &type = getType(insn.word(1));
+		auto &dst = routine->createIntermediate(insn.word(2), type.sizeInComponents);
+		auto &srcType = getType(getObject(insn.word(3)).type);
+
+		GenericValue src(this, routine, insn.word(3));
+		GenericValue index(this, routine, insn.word(4));
+
+		SIMD::UInt v = SIMD::UInt(0);
+
+		for (auto i = 0u; i < srcType.sizeInComponents; i++)
+		{
+			v |= CmpEQ(index.UInt(0), SIMD::UInt(i)) & src.UInt(i);
+		}
+
+		dst.emplace(0, v);
+	}
+
+	void SpirvShader::EmitVectorInsertDynamic(sw::SpirvShader::InsnIterator insn, sw::SpirvRoutine *routine) const
+	{
+		auto &type = getType(insn.word(1));
+		auto &dst = routine->createIntermediate(insn.word(2), type.sizeInComponents);
+
+		GenericValue src(this, routine, insn.word(3));
+		GenericValue component(this, routine, insn.word(4));
+		GenericValue index(this, routine, insn.word(5));
+
+		for (auto i = 0u; i < type.sizeInComponents; i++)
+		{
+			SIMD::UInt mask = CmpEQ(SIMD::UInt(i), index.UInt(0));
+			dst.emplace(i, (src.UInt(i) & ~mask) | (component.UInt(0) & mask));
 		}
 	}
 
