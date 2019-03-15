@@ -1787,9 +1787,29 @@ VKAPI_ATTR void VKAPI_CALL vkGetBufferMemoryRequirements2(VkDevice device, const
 	TRACE("(VkDevice device = 0x%X, const VkBufferMemoryRequirementsInfo2* pInfo = 0x%X, VkMemoryRequirements2* pMemoryRequirements = 0x%X)",
 	      device, pInfo, pMemoryRequirements);
 
-	if(pInfo->pNext || pMemoryRequirements->pNext)
+	if(pInfo->pNext)
 	{
 		UNIMPLEMENTED();
+	}
+
+	VkBaseOutStructure* extensionRequirements = reinterpret_cast<VkBaseOutStructure*>(pMemoryRequirements->pNext);
+	while(extensionRequirements)
+	{
+		switch(extensionRequirements->sType)
+		{
+		case VK_STRUCTURE_TYPE_MEMORY_DEDICATED_REQUIREMENTS:
+			{
+				auto& requirements = *reinterpret_cast<VkMemoryDedicatedRequirements*>(extensionRequirements);
+				requirements.prefersDedicatedAllocation = VK_FALSE;
+				requirements.requiresDedicatedAllocation = VK_FALSE;
+			}
+			break;
+		default:
+			UNIMPLEMENTED();
+			break;
+		}
+
+		extensionRequirements = extensionRequirements->pNext;
 	}
 
 	vkGetBufferMemoryRequirements(device, pInfo->buffer, &(pMemoryRequirements->memoryRequirements));
