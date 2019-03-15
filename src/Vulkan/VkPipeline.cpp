@@ -192,17 +192,19 @@ std::vector<uint32_t> preprocessSpirv(
 	spvtools::Optimizer opt{SPV_ENV_VULKAN_1_1};
 
 	opt.SetMessageConsumer([](spv_message_level_t level, const char*, const spv_position_t& p, const char* m) {
-		const char* category = "";
 		switch (level)
 		{
-		case SPV_MSG_FATAL:          category = "FATAL";          break;
-		case SPV_MSG_INTERNAL_ERROR: category = "INTERNAL_ERROR"; break;
-		case SPV_MSG_ERROR:          category = "ERROR";          break;
-		case SPV_MSG_WARNING:        category = "WARNING";        break;
-		case SPV_MSG_INFO:           category = "INFO";           break;
-		case SPV_MSG_DEBUG:          category = "DEBUG";          break;
+		case SPV_MSG_FATAL:
+		case SPV_MSG_INTERNAL_ERROR:
+		case SPV_MSG_ERROR:
+			ERR("%d:%d %s", p.line, p.column, m);
+			break;
+		case SPV_MSG_WARNING:
+		case SPV_MSG_INFO:
+		case SPV_MSG_DEBUG:
+			TRACE("%d:%d %s", p.line, p.column, m);
+			break;
 		}
-		vk::trace("%s: %d:%d %s", category, p.line, p.column, m);
 	});
 
 	opt.RegisterPass(spvtools::CreateInlineExhaustivePass());

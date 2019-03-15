@@ -14,61 +14,25 @@
 
 #include "VkDebug.hpp"
 
-#include <string>
 #include <stdarg.h>
 
 namespace vk
 {
-
-void tracev(const char *format, va_list args)
+void trace(const char *format, ...)
 {
-#ifndef SWIFTSHADER_DISABLE_TRACE
 	if(false)
 	{
-		FILE *file = fopen(TRACE_OUTPUT_FILE, "a");
+		FILE *file = fopen("debug.txt", "a");
 
 		if(file)
 		{
-			vfprintf(file, format, args);
+			va_list vararg;
+			va_start(vararg, format);
+			vfprintf(file, format, vararg);
+			va_end(vararg);
+
 			fclose(file);
 		}
 	}
-#endif
 }
-
-void trace(const char *format, ...)
-{
-	va_list vararg;
-	va_start(vararg, format);
-	tracev(format, vararg);
-	va_end(vararg);
-}
-
-void warn(const char *format, ...)
-{
-	va_list vararg;
-	va_start(vararg, format);
-	tracev(format, vararg);
-	va_end(vararg);
-
-	va_start(vararg, format);
-	vfprintf(stderr, format, vararg);
-	va_end(vararg);
-}
-
-void abort(const char *format, ...)
-{
-	va_list vararg;
-
-	va_start(vararg, format);
-	tracev(format, vararg);
-	va_end(vararg);
-
-	va_start(vararg, format);
-	vfprintf(stderr, format, vararg);
-	va_end(vararg);
-
-	::abort();
-}
-
 }

@@ -392,14 +392,14 @@ namespace sw
 		Type const &getType(Type::ID id) const
 		{
 			auto it = types.find(id);
-			ASSERT_MSG(it != types.end(), "Unknown type %d", id.value());
+			ASSERT(it != types.end());
 			return it->second;
 		}
 
 		Object const &getObject(Object::ID id) const
 		{
 			auto it = defs.find(id);
-			ASSERT_MSG(it != defs.end(), "Unknown object %d", id.value());
+			ASSERT(it != defs.end());
 			return it->second;
 		}
 
