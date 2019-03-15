@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3848e002_0e9120b2",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 7
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-03-15T05:35:22Z",
+      "side": 1,
+      "message": "The SPIR-V spec refers to \"active invocations\", so let\u0027s rename this to activeLaneMask?",
+      "range": {
+        "startLine": 7,
+        "startChar": 18,
+        "endLine": 7,
+        "endChar": 32
+      },
+      "revId": "917ea8de24f362dd18c5874a629bc439b29e7af0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4822ede8_e4b43847",
+        "filename": "src/Pipeline/SpirvShader.cpp",
+        "patchSetId": 7
+      },
+      "lineNbr": 1390,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-03-15T05:35:22Z",
+      "side": 1,
+      "message": "FYI b/128636131",
+      "range": {
+        "startLine": 1390,
+        "startChar": 35,
+        "endLine": 1390,
+        "endChar": 56
+      },
+      "revId": "917ea8de24f362dd18c5874a629bc439b29e7af0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0bb93737_a3100791",
+        "filename": "src/Pipeline/SpirvShader.hpp",
+        "patchSetId": 7
+      },
+      "lineNbr": 444,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-03-15T05:35:22Z",
+      "side": 1,
+      "message": "I don\u0027t think this is very clear / elegant. What we really want is just:\n\nIf(divergent || inactiveLanes)\n{\n   gather / scatter\n}\nElse\n{\n    load / store\n}\n\nLLVM folds constants known at JIT time, so this isn\u0027t a dynamic branch if \u0027divergent\u0027 is true. Subzero doesn\u0027t optimize it out, but this is straightforward to do at the Reactor level (b/128636885).",
+      "range": {
+        "startLine": 444,
+        "startChar": 14,
+        "endLine": 444,
+        "endChar": 29
+      },
+      "revId": "917ea8de24f362dd18c5874a629bc439b29e7af0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
