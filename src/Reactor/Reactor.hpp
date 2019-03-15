@@ -126,15 +126,21 @@ namespace rr
 	};
 
 	template<class T>
-	struct IntLiteral
+	struct BoolLiteral
 	{
 		struct type;
 	};
 
 	template<>
-	struct IntLiteral<Bool>
+	struct BoolLiteral<Bool>
 	{
 		typedef bool type;
+	};
+
+	template<class T>
+	struct IntLiteral
+	{
+		struct type;
 	};
 
 	template<>
@@ -174,6 +180,7 @@ namespace rr
 		explicit RValue(Value *rvalue);
 
 		RValue(const T &lvalue);
+		RValue(typename BoolLiteral<T>::type i);
 		RValue(typename IntLiteral<T>::type i);
 		RValue(typename FloatLiteral<T>::type f);
 		RValue(const Reference<T> &rhs);
@@ -2393,6 +2400,12 @@ namespace rr
 	RValue<T>::RValue(const T &lvalue)
 	{
 		value = lvalue.loadValue();
+	}
+
+	template<class T>
+	RValue<T>::RValue(typename BoolLiteral<T>::type i)
+	{
+		value = Nucleus::createConstantBool(i);
 	}
 
 	template<class T>
