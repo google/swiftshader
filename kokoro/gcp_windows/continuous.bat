@@ -1,5 +1,7 @@
 @echo on
 
+SET PATH=%PATH%;C:\python27
+
 cd git\SwiftShader
 
 git submodule update --init
