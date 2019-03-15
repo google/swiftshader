@@ -75,17 +75,7 @@ DescriptorSetLayout::DescriptorSetLayout(const VkDescriptorSetLayoutCreateInfo* 
 
 void DescriptorSetLayout::destroy(const VkAllocationCallbacks* pAllocator)
 {
-	for(uint32_t i = 0; i < bindingCount; i++)
-	{
-		if(UsesImmutableSamplers(bindings[i]))
-		{
-			// A single allocation is used for all immutable samplers, so only a single deallocation is needed.
-			vk::deallocate(const_cast<VkSampler*>(bindings[i].pImmutableSamplers), pAllocator);
-			break;
-		}
-	}
-
-	vk::deallocate(bindings, pAllocator);
+	vk::deallocate(bindings, pAllocator); // This allocation also contains pImmutableSamplers
 }
 
 size_t DescriptorSetLayout::ComputeRequiredAllocationSize(const VkDescriptorSetLayoutCreateInfo* pCreateInfo)
