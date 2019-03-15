@@ -114,6 +114,16 @@ namespace rr
 		return RValue<Bool>(Nucleus::createOr(lhs.value, rhs.value));
 	}
 
+	RValue<Bool> operator!=(RValue<Bool> lhs, RValue<Bool> rhs)
+	{
+		return RValue<Bool>(Nucleus::createICmpNE(lhs.value, rhs.value));
+	}
+
+	RValue<Bool> operator==(RValue<Bool> lhs, RValue<Bool> rhs)
+	{
+		return RValue<Bool>(Nucleus::createICmpEQ(lhs.value, rhs.value));
+	}
+
 	Byte::Byte(Argument<Byte> argument)
 	{
 		storeValue(argument.value);
@@ -3587,6 +3597,11 @@ namespace rr
 	{
 		Value *value = rhs.loadValue();
 		storeValue(value);
+	}
+
+	Float::Float(Argument<Float> argument)
+	{
+		storeValue(argument.value);
 	}
 
 	RValue<Float> Float::operator=(RValue<Float> rhs)

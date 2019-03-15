@@ -1118,6 +1118,56 @@ TEST(ReactorUnitTests, PreserveXMMRegisters)
 }
 
 template <typename T>
+class CToReactorCastTest : public ::testing::Test {
+public:
+	using CType = typename std::tuple_element<0, T>::type;
+	using ReactorType = typename std::tuple_element<1, T>::type;
+};
+
+using CToReactorCastTestTypes = ::testing::Types
+	< // Subset of types that can be used as arguments.
+		std::pair<bool,         Bool>,
+		std::pair<uint8_t,      Byte>,
+		std::pair<int8_t,       SByte>,
+		std::pair<int16_t,      Short>,
+		std::pair<uint16_t,     UShort>,
+		std::pair<int,          Int>,
+		std::pair<unsigned int, UInt>,
+		std::pair<float,        Float>
+	>;
+
+TYPED_TEST_CASE(CToReactorCastTest, CToReactorCastTestTypes);
+
+TYPED_TEST(CToReactorCastTest, Casts) {
+	using CType = typename TestFixture::CType;
+	using ReactorType = typename TestFixture::ReactorType;
+
+	Routine *routine = nullptr;
+
+	{
+		Function< Int(ReactorType) > function;
+		{
+			ReactorType a = function.template Arg<0>();
+			ReactorType b = CType{};
+			RValue<ReactorType> c = RValue<ReactorType>(CType{});
+			Bool same = (a == b) && (a == c);
+			Return(IfThenElse(same, Int(1), Int(0))); // TODO: Ability to use Bools as return values.
+		}
+
+		routine = function("one");
+
+		if(routine)
+		{
+			auto callable = (int(*)(CType))routine->getEntry();
+			CType in = {};
+			EXPECT_EQ(callable(in), 1);
+		}
+	}
+
+	delete routine;
+}
+
+template <typename T>
 class GEPTest : public ::testing::Test {
 public:
 	using CType = typename std::tuple_element<0, T>::type;
@@ -1126,7 +1176,7 @@ public:
 
 using GEPTestTypes = ::testing::Types
 	<
-		std::pair<int8_t,      Bool>,
+		std::pair<bool,        Bool>,
 		std::pair<int8_t,      Byte>,
 		std::pair<int8_t,      SByte>,
 		std::pair<int8_t[4],   Byte4>,

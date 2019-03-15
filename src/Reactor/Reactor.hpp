@@ -220,6 +220,8 @@ namespace rr
 	RValue<Bool> operator!(RValue<Bool> val);
 	RValue<Bool> operator&&(RValue<Bool> lhs, RValue<Bool> rhs);
 	RValue<Bool> operator||(RValue<Bool> lhs, RValue<Bool> rhs);
+	RValue<Bool> operator!=(RValue<Bool> lhs, RValue<Bool> rhs);
+	RValue<Bool> operator==(RValue<Bool> lhs, RValue<Bool> rhs);
 
 	class Byte : public LValue<Byte>
 	{
@@ -1966,6 +1968,7 @@ namespace rr
 		Float(RValue<Float> rhs);
 		Float(const Float &rhs);
 		Float(const Reference<Float> &rhs);
+		Float(Argument<Float> argument);
 
 		template<int T>
 		Float(const SwizzleMask1<Float4, T> &rhs);
@@ -2767,6 +2770,7 @@ namespace rr
 	{
 		Nucleus::createRet(Nucleus::createLoad(ret.address, Pointer<T>::getType()));
 		Nucleus::setInsertBlock(Nucleus::createBasicBlock());
+		Nucleus::createUnreachable();
 	}
 
 	template<class T>
@@ -2774,6 +2778,7 @@ namespace rr
 	{
 		Nucleus::createRet(ret.value);
 		Nucleus::setInsertBlock(Nucleus::createBasicBlock());
+		Nucleus::createUnreachable();
 	}
 
 	template<typename Return, typename... Arguments>
