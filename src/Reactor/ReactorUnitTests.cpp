@@ -1118,7 +1118,8 @@ TEST(ReactorUnitTests, PreserveXMMRegisters)
 }
 
 template <typename T>
-class CToReactorCastTest : public ::testing::Test {
+class CToReactorCastTest : public ::testing::Test
+{
 public:
 	using CType = typename std::tuple_element<0, T>::type;
 	using ReactorType = typename std::tuple_element<1, T>::type;
@@ -1126,11 +1127,11 @@ public:
 
 using CToReactorCastTestTypes = ::testing::Types
 	< // Subset of types that can be used as arguments.
-		std::pair<bool,         Bool>,
-		std::pair<uint8_t,      Byte>,
-		std::pair<int8_t,       SByte>,
-		std::pair<int16_t,      Short>,
-		std::pair<uint16_t,     UShort>,
+	//	std::pair<bool,         Bool>,    FIXME(capn): Not supported as argument type by Subzero.
+	//	std::pair<uint8_t,      Byte>,    FIXME(capn): Not supported as argument type by Subzero.
+	//	std::pair<int8_t,       SByte>,   FIXME(capn): Not supported as argument type by Subzero.
+	//	std::pair<int16_t,      Short>,   FIXME(capn): Not supported as argument type by Subzero.
+	//	std::pair<uint16_t,     UShort>,  FIXME(capn): Not supported as argument type by Subzero.
 		std::pair<int,          Int>,
 		std::pair<unsigned int, UInt>,
 		std::pair<float,        Float>
@@ -1138,7 +1139,8 @@ using CToReactorCastTestTypes = ::testing::Types
 
 TYPED_TEST_CASE(CToReactorCastTest, CToReactorCastTestTypes);
 
-TYPED_TEST(CToReactorCastTest, Casts) {
+TYPED_TEST(CToReactorCastTest, Casts)
+{
 	using CType = typename TestFixture::CType;
 	using ReactorType = typename TestFixture::ReactorType;
 
@@ -1168,7 +1170,8 @@ TYPED_TEST(CToReactorCastTest, Casts) {
 }
 
 template <typename T>
-class GEPTest : public ::testing::Test {
+class GEPTest : public ::testing::Test
+{
 public:
 	using CType = typename std::tuple_element<0, T>::type;
 	using ReactorType = typename std::tuple_element<1, T>::type;
@@ -1208,7 +1211,8 @@ using GEPTestTypes = ::testing::Types
 
 TYPED_TEST_CASE(GEPTest, GEPTestTypes);
 
-TYPED_TEST(GEPTest, PtrOffsets) {
+TYPED_TEST(GEPTest, PtrOffsets)
+{
 	using CType = typename TestFixture::CType;
 	using ReactorType = typename TestFixture::ReactorType;
 
