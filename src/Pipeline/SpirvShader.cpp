@@ -308,6 +308,7 @@ namespace sw
 
 			case spv::OpLoad:
 			case spv::OpAccessChain:
+			case spv::OpInBoundsAccessChain:
 			case spv::OpCompositeConstruct:
 			case spv::OpCompositeInsert:
 			case spv::OpCompositeExtract:
@@ -386,7 +387,7 @@ namespace sw
 				object.kind = Object::Kind::Value;
 				object.definition = insn;
 
-				if (insn.opcode() == spv::OpAccessChain)
+				if (insn.opcode() == spv::OpAccessChain || insn.opcode() == spv::OpInBoundsAccessChain)
 				{
 					// interior ptr has two parts:
 					// - logical base ptr, common across all lanes and known at compile time
@@ -1083,6 +1084,7 @@ namespace sw
 			break;
 
 		case spv::OpAccessChain:
+		case spv::OpInBoundsAccessChain:
 			EmitAccessChain(insn, routine);
 			break;
 
