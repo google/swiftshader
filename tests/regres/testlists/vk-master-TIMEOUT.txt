@@ -4,8 +4,6 @@ dEQP-VK.draw.basic_draw.draw.triangle_strip.1
 dEQP-VK.draw.basic_draw.draw_indexed.line_strip.1
 dEQP-VK.draw.basic_draw.draw_indexed.triangle_fan.1
 dEQP-VK.draw.basic_draw.draw_indexed.triangle_strip.1
-dEQP-VK.pipeline.image.suballocation.sampling_type.separate.view_type.2d.format.eac_r11g11_unorm_block.count_1.size.32x16
-dEQP-VK.pipeline.image.suballocation.sampling_type.separate.view_type.2d.format.etc2_r8g8b8a1_srgb_block.count_1.size.32x16
-dEQP-VK.pipeline.image.suballocation.sampling_type.separate.view_type.2d.format.etc2_r8g8b8a1_unorm_block.count_1.size.32x16
-dEQP-VK.pipeline.image.suballocation.sampling_type.separate.view_type.2d.format.etc2_r8g8b8a8_srgb_block.count_1.size.32x16
-dEQP-VK.pipeline.image.suballocation.sampling_type.separate.view_type.2d.format.etc2_r8g8b8a8_unorm_block.count_1.size.32x16
+dEQP-VK.ubo.random.all_out_of_order_offsets.11
+dEQP-VK.ubo.random.all_out_of_order_offsets.45
+dEQP-VK.ubo.random.all_per_block_buffers.28
