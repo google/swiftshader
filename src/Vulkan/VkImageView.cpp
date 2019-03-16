@@ -92,7 +92,9 @@ void ImageView::clear(const VkClearValue& clearValue, const VkImageAspectFlags a
 		UNIMPLEMENTED();
 	}
 
-	image->clear(clearValue, renderArea, subresourceRange);
+	VkImageSubresourceRange sr = subresourceRange;
+	sr.aspectMask = aspectMask;
+	image->clear(clearValue, renderArea, sr);
 }
 
 void ImageView::clear(const VkClearValue& clearValue, const VkImageAspectFlags aspectMask, const VkClearRect& renderArea)
