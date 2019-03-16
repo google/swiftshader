@@ -328,8 +328,8 @@ namespace sw
 
 		if(pixelState.stencilActive)
 		{
-			data->stencil[0] = stencil;
-			data->stencil[1] = stencilCCW;
+			data->stencil[0].set(context->stencilReference, context->stencilMask, context->stencilWriteMask);
+			data->stencil[1].set(context->stencilReferenceCCW, context->stencilMaskCCW, context->stencilWriteMaskCCW);
 		}
 
 		data->lineWidth = context->lineWidth;
