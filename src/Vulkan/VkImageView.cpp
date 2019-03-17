@@ -84,12 +84,12 @@ void ImageView::clear(const VkClearValue& clearValue, const VkImageAspectFlags a
 
 	if(!imageTypesMatch(image->getImageType()))
 	{
-		UNIMPLEMENTED();
+		UNIMPLEMENTED("imageTypesMatch");
 	}
 
 	if(image->getFormat() != format)
 	{
-		UNIMPLEMENTED();
+		UNIMPLEMENTED("format");
 	}
 
 	VkImageSubresourceRange sr = subresourceRange;
@@ -103,12 +103,12 @@ void ImageView::clear(const VkClearValue& clearValue, const VkImageAspectFlags a
 
 	if(!imageTypesMatch(image->getImageType()))
 	{
-		UNIMPLEMENTED();
+		UNIMPLEMENTED("imageTypesMatch");
 	}
 
 	if(image->getFormat() != format)
 	{
-		UNIMPLEMENTED();
+		UNIMPLEMENTED("format");
 	}
 
 	VkImageSubresourceRange sr;

@@ -601,7 +601,7 @@ VkResult CommandBuffer::begin(VkCommandBufferUsageFlags flags, const VkCommandBu
 
 	if(pInheritanceInfo)
 	{
-		UNIMPLEMENTED();
+		UNIMPLEMENTED("pInheritanceInfo");
 	}
 
 	if(state != INITIAL)
@@ -646,7 +646,7 @@ void CommandBuffer::beginRenderPass(VkRenderPass renderPass, VkFramebuffer frame
 
 	if(contents != VK_SUBPASS_CONTENTS_INLINE)
 	{
-		UNIMPLEMENTED();
+		UNIMPLEMENTED("VK_SUBPASS_CONTENTS_INLINE");
 	}
 
 	addCommand<BeginRenderPass>(renderPass, framebuffer, renderArea, clearValueCount, clearValues);
@@ -666,18 +666,18 @@ void CommandBuffer::endRenderPass()
 
 void CommandBuffer::executeCommands(uint32_t commandBufferCount, const VkCommandBuffer* pCommandBuffers)
 {
-	UNIMPLEMENTED();
+	UNIMPLEMENTED("executeCommands");
 }
 
 void CommandBuffer::setDeviceMask(uint32_t deviceMask)
 {
-	UNIMPLEMENTED();
+	UNIMPLEMENTED("setDeviceMask");
 }
 
 void CommandBuffer::dispatchBase(uint32_t baseGroupX, uint32_t baseGroupY, uint32_t baseGroupZ,
                                  uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ)
 {
-	UNIMPLEMENTED();
+	UNIMPLEMENTED("dispatchBase");
 }
 
 void CommandBuffer::pipelineBarrier(VkPipelineStageFlags srcStageMask, VkPipelineStageFlags dstStageMask,
@@ -698,7 +698,7 @@ void CommandBuffer::bindPipeline(VkPipelineBindPoint pipelineBindPoint, VkPipeli
 			addCommand<PipelineBind>(pipelineBindPoint, pipeline);
 			break;
 		default:
-			UNIMPLEMENTED();
+			UNIMPLEMENTED("pipelineBindPoint");
 	}
 }
 
@@ -713,46 +713,46 @@ void CommandBuffer::bindVertexBuffers(uint32_t firstBinding, uint32_t bindingCou
 
 void CommandBuffer::beginQuery(VkQueryPool queryPool, uint32_t query, VkQueryControlFlags flags)
 {
-	UNIMPLEMENTED();
+	UNIMPLEMENTED("beginQuery");
 }
 
 void CommandBuffer::endQuery(VkQueryPool queryPool, uint32_t query)
 {
-	UNIMPLEMENTED();
+	UNIMPLEMENTED("endQuery");
 }
 
 void CommandBuffer::resetQueryPool(VkQueryPool queryPool, uint32_t firstQuery, uint32_t queryCount)
 {
-	UNIMPLEMENTED();
+	UNIMPLEMENTED("resetQueryPool");
 }
 
 void CommandBuffer::writeTimestamp(VkPipelineStageFlagBits pipelineStage, VkQueryPool queryPool, uint32_t query)
 {
-	UNIMPLEMENTED();
+	UNIMPLEMENTED("writeTimestamp");
 }
 
 void CommandBuffer::copyQueryPoolResults(VkQueryPool queryPool, uint32_t firstQuery, uint32_t queryCount,
 	VkBuffer dstBuffer, VkDeviceSize dstOffset, VkDeviceSize stride, VkQueryResultFlags flags)
 {
-	UNIMPLEMENTED();
+	UNIMPLEMENTED("copyQueryPoolResults");
 }
 
 void CommandBuffer::pushConstants(VkPipelineLayout layout, VkShaderStageFlags stageFlags,
 	uint32_t offset, uint32_t size, const void* pValues)
 {
-	UNIMPLEMENTED();
+	UNIMPLEMENTED("pushConstants");
 }
 
 void CommandBuffer::setViewport(uint32_t firstViewport, uint32_t viewportCount, const VkViewport* pViewports)
 {
 	// Note: The bound graphics pipeline must have been created with the VK_DYNAMIC_STATE_VIEWPORT dynamic state enabled
-	UNIMPLEMENTED();
+	UNIMPLEMENTED("setViewport");
 }
 
 void CommandBuffer::setScissor(uint32_t firstScissor, uint32_t scissorCount, const VkRect2D* pScissors)
 {
 	// Note: The bound graphics pipeline must have been created with the VK_DYNAMIC_STATE_SCISSOR dynamic state enabled
-	UNIMPLEMENTED();
+	UNIMPLEMENTED("setScissor");
 }
 
 void CommandBuffer::setLineWidth(float lineWidth)
@@ -762,7 +762,7 @@ void CommandBuffer::setLineWidth(float lineWidth)
 	// If the wide lines feature is not enabled, lineWidth must be 1.0
 	ASSERT(lineWidth == 1.0f);
 
-	UNIMPLEMENTED();
+	UNIMPLEMENTED("setLineWidth");
 }
 
 void CommandBuffer::setDepthBias(float depthBiasConstantFactor, float depthBiasClamp, float depthBiasSlopeFactor)
@@ -772,7 +772,7 @@ void CommandBuffer::setDepthBias(float depthBiasConstantFactor, float depthBiasC
 	// If the depth bias clamping feature is not enabled, depthBiasClamp must be 0.0
 	ASSERT(depthBiasClamp == 0.0f);
 
-	UNIMPLEMENTED();
+	UNIMPLEMENTED("setDepthBias");
 }
 
 void CommandBuffer::setBlendConstants(const float blendConstants[4])
@@ -782,7 +782,7 @@ void CommandBuffer::setBlendConstants(const float blendConstants[4])
 	// blendConstants is an array of four values specifying the R, G, B, and A components
 	// of the blend constant color used in blending, depending on the blend factor.
 
-	UNIMPLEMENTED();
+	UNIMPLEMENTED("setBlendConstants");
 }
 
 void CommandBuffer::setDepthBounds(float minDepthBounds, float maxDepthBounds)
@@ -793,7 +793,7 @@ void CommandBuffer::setDepthBounds(float minDepthBounds, float maxDepthBounds)
 	ASSERT(minDepthBounds >= 0.0f && minDepthBounds <= 1.0f);
 	ASSERT(maxDepthBounds >= 0.0f && maxDepthBounds <= 1.0f);
 
-	UNIMPLEMENTED();
+	UNIMPLEMENTED("setDepthBounds");
 }
 
 void CommandBuffer::setStencilCompareMask(VkStencilFaceFlags faceMask, uint32_t compareMask)
@@ -803,7 +803,7 @@ void CommandBuffer::setStencilCompareMask(VkStencilFaceFlags faceMask, uint32_t 
 	// faceMask must not be 0
 	ASSERT(faceMask != 0);
 
-	UNIMPLEMENTED();
+	UNIMPLEMENTED("setStencilCompareMask");
 }
 
 void CommandBuffer::setStencilWriteMask(VkStencilFaceFlags faceMask, uint32_t writeMask)
@@ -813,7 +813,7 @@ void CommandBuffer::setStencilWriteMask(VkStencilFaceFlags faceMask, uint32_t wr
 	// faceMask must not be 0
 	ASSERT(faceMask != 0);
 
-	UNIMPLEMENTED();
+	UNIMPLEMENTED("setStencilWriteMask");
 }
 
 void CommandBuffer::setStencilReference(VkStencilFaceFlags faceMask, uint32_t reference)
@@ -823,7 +823,7 @@ void CommandBuffer::setStencilReference(VkStencilFaceFlags faceMask, uint32_t re
 	// faceMask must not be 0
 	ASSERT(faceMask != 0);
 
-	UNIMPLEMENTED();
+	UNIMPLEMENTED("setStencilReference");
 }
 
 void CommandBuffer::bindDescriptorSets(VkPipelineBindPoint pipelineBindPoint, VkPipelineLayout layout,
@@ -834,7 +834,7 @@ void CommandBuffer::bindDescriptorSets(VkPipelineBindPoint pipelineBindPoint, Vk
 
 	if(dynamicOffsetCount > 0)
 	{
-		UNIMPLEMENTED();
+		UNIMPLEMENTED("bindDescriptorSets");
 	}
 
 	for(uint32_t i = 0; i < descriptorSetCount; i++)
@@ -855,7 +855,7 @@ void CommandBuffer::dispatch(uint32_t groupCountX, uint32_t groupCountY, uint32_
 
 void CommandBuffer::dispatchIndirect(VkBuffer buffer, VkDeviceSize offset)
 {
-	UNIMPLEMENTED();
+	UNIMPLEMENTED("dispatchIndirect");
 }
 
 void CommandBuffer::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, uint32_t regionCount, const VkBufferCopy* pRegions)
@@ -974,7 +974,7 @@ void CommandBuffer::clearAttachments(uint32_t attachmentCount, const VkClearAtta
 void CommandBuffer::resolveImage(VkImage srcImage, VkImageLayout srcImageLayout, VkImage dstImage, VkImageLayout dstImageLayout,
 	uint32_t regionCount, const VkImageResolve* pRegions)
 {
-	UNIMPLEMENTED();
+	UNIMPLEMENTED("resolveImage");
 }
 
 void CommandBuffer::setEvent(VkEvent event, VkPipelineStageFlags stageMask)
@@ -996,7 +996,7 @@ void CommandBuffer::waitEvents(uint32_t eventCount, const VkEvent* pEvents, VkPi
 	uint32_t bufferMemoryBarrierCount, const VkBufferMemoryBarrier* pBufferMemoryBarriers,
 	uint32_t imageMemoryBarrierCount, const VkImageMemoryBarrier* pImageMemoryBarriers)
 {
-	UNIMPLEMENTED();
+	UNIMPLEMENTED("waitEvents");
 }
 
 void CommandBuffer::draw(uint32_t vertexCount, uint32_t instanceCount, uint32_t firstVertex, uint32_t firstInstance)
@@ -1011,12 +1011,12 @@ void CommandBuffer::drawIndexed(uint32_t indexCount, uint32_t instanceCount, uin
 
 void CommandBuffer::drawIndirect(VkBuffer buffer, VkDeviceSize offset, uint32_t drawCount, uint32_t stride)
 {
-	UNIMPLEMENTED();
+	UNIMPLEMENTED("drawIndirect");
 }
 
 void CommandBuffer::drawIndexedIndirect(VkBuffer buffer, VkDeviceSize offset, uint32_t drawCount, uint32_t stride)
 {
-	UNIMPLEMENTED();
+	UNIMPLEMENTED("drawIndexedIndirect");
 }
 
 void CommandBuffer::submit(CommandBuffer::ExecutionState& executionState)

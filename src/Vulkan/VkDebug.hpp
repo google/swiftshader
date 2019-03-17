@@ -27,77 +27,85 @@
 
 namespace vk
 {
-// Outputs text to the debugging log
-void trace(const char *format, ...);
-inline void trace() {}
+	// Outputs text to the debugging log
+	void trace(const char *format, ...);
+	inline void trace() {}
+
+	// Outputs text to the debugging log and prints to stderr.
+	void warn(const char *format, ...);
+	inline void warn() {}
+
+	// Outputs the message to the debugging log and stderr, and calls abort().
+	void abort(const char *format, ...);
 }
 
-// A macro to output a trace of a function call and its arguments to the debugging log
+// A macro to output a trace of a function call and its arguments to the
+// debugging log. Disabled if SWIFTSHADER_DISABLE_TRACE is defined.
 #if defined(SWIFTSHADER_DISABLE_TRACE)
 #define TRACE(message, ...) (void(0))
 #else
-#define TRACE(message, ...) vk::trace("trace: %s(%d): " message "\n", __FUNCTION__, __LINE__, ##__VA_ARGS__)
+#define TRACE(message, ...) vk::trace("%s:%d TRACE: " message "\n", __FILE__, __LINE__, ##__VA_ARGS__)
 #endif
 
-// A macro to output a function call and its arguments to the debugging log, to denote an item in need of fixing.
-#if defined(SWIFTSHADER_DISABLE_TRACE)
-#define FIXME(message, ...) (void(0))
-#else
-#define FIXME(message, ...) do {vk::trace("fixme: %s(%d): " message "\n", __FUNCTION__, __LINE__, ##__VA_ARGS__); assert(false); abort();} while(false)
-#endif
+// A macro to print a warning message to the debugging log and stderr to denote
+// an issue that needs fixing.
+#define FIXME(message, ...) vk::warn("%s:%d FIXME: " message "\n", __FILE__, __LINE__, ##__VA_ARGS__);
 
-// A macro to output a function call and its arguments to the debugging log, in case of error.
-#if defined(SWIFTSHADER_DISABLE_TRACE)
-#define ERR(message, ...) (void(0))
-#else
-#define ERR(message, ...) do {vk::trace("err: %s(%d): " message "\n", __FUNCTION__, __LINE__, ##__VA_ARGS__); assert(false); abort();} while(false)
-#endif
+// A macro to print a warning message to the debugging log and stderr.
+#define WARN(message, ...) vk::warn("%s:%d WARNING: " message "\n", __FILE__, __LINE__, ##__VA_ARGS__);
 
-// A macro asserting a condition and outputting failures to the debug log
-#undef ASSERT
+// A macro that prints the message to the debugging log and stderr and
+// immediately aborts execution of the application.
+//
+// Note: This will terminate the application regardless of build flags!
+//       Use with extreme caution!
+#undef ABORT
+#define ABORT(message, ...) vk::abort("%s:%d ABORT: " message "\n", __FILE__, __LINE__, ##__VA_ARGS__)
+
+// A macro that delegates to:
+//   ABORT() in debug builds (!NDEBUG || DCHECK_ALWAYS_ON)
+// or
+//   WARN() in release builds (NDEBUG && !DCHECK_ALWAYS_ON)
+#undef DABORT
 #if !defined(NDEBUG) || defined(DCHECK_ALWAYS_ON)
+#define DABORT(message, ...) ABORT(message, ##__VA_ARGS__)
+#else
+#define DABORT(message, ...) WARN(message, ##__VA_ARGS__)
+#endif
+
+// A macro asserting a condition.
+// If the condition fails, the condition and message is passed to DABORT().
+#undef ASSERT_MSG
+#define ASSERT_MSG(expression, format, ...) do { \
+	if(!(expression)) { \
+		DABORT("ASSERT(%s): " format "\n", #expression, ##__VA_ARGS__); \
+	} } while(0)
+
+// A macro asserting a condition.
+// If the condition fails, the condition is passed to DABORT().
+#undef ASSERT
 #define ASSERT(expression) do { \
 	if(!(expression)) { \
-		ERR("\t! Assert failed in %s(%d): "#expression"\n", __FUNCTION__, __LINE__); \
-		assert(expression); \
-		abort(); \
+		DABORT("ASSERT(%s)\n", #expression); \
 	} } while(0)
-#else
-#define ASSERT(expression) (void(0))
-#endif
 
-// A macro to indicate unimplemented functionality
+// A macro to indicate unimplemented functionality.
 #undef UNIMPLEMENTED
-#if !defined(NDEBUG) || defined(DCHECK_ALWAYS_ON)
-#define UNIMPLEMENTED(...) do { \
-	vk::trace("\t! Unimplemented: %s(%d): ", __FUNCTION__, __LINE__); \
-	vk::trace(__VA_ARGS__); \
-	vk::trace("\n"); \
-	assert(false); \
-	abort(); \
-	} while(0)
-#else
-	#define UNIMPLEMENTED(...) FIXME("\t! Unimplemented: %s(%d)\n", __FUNCTION__, __LINE__)
-#endif
+#define UNIMPLEMENTED(format, ...) DABORT("UNIMPLEMENTED: " format, ##__VA_ARGS__)
 
-// A macro for code which is not expected to be reached under valid assumptions
+// A macro for code which is not expected to be reached under valid assumptions.
 #undef UNREACHABLE
-#if !defined(NDEBUG) || defined(DCHECK_ALWAYS_ON)
-#define UNREACHABLE(value) do { \
-	ERR("\t! Unreachable case reached: %s(%d). %s: %d\n", __FUNCTION__, __LINE__, #value, value); \
-	assert(false); \
-	abort(); \
-	} while(0)
-#else
-	#define UNREACHABLE(value) ERR("\t! Unreachable reached: %s(%d). %s: %d\n", __FUNCTION__, __LINE__, #value, value)
-#endif
+#define UNREACHABLE(format, ...) DABORT("UNREACHABLE: " format, ##__VA_ARGS__)
 
-// A macro asserting a condition and outputting failures to the debug log, or return when in release mode.
+// A macro asserting a condition and performing a return.
 #undef ASSERT_OR_RETURN
+#if !defined(NDEBUG) || defined(DCHECK_ALWAYS_ON)
+#define ASSERT_OR_RETURN(expression) ASSERT(expression)
+#else
 #define ASSERT_OR_RETURN(expression) do { \
 	if(!(expression)) { \
-		ASSERT(expression); \
 		return; \
 	} } while(0)
+#endif
 
 #endif   // VK_DEBUG_H_

@@ -53,7 +53,7 @@ sw::DrawType Convert(VkPrimitiveTopology topology)
 		ASSERT(false);
 		break;
 	default:
-		UNIMPLEMENTED();
+		UNIMPLEMENTED("topology");
 	}
 
 	return sw::DRAW_TRIANGLELIST;
@@ -119,7 +119,7 @@ sw::StreamType getStreamType(VkFormat format)
 	case VK_FORMAT_R32G32B32A32_SFLOAT:
 		return sw::STREAMTYPE_FLOAT;
 	default:
-		UNIMPLEMENTED();
+		UNIMPLEMENTED("format");
 	}
 
 	return sw::STREAMTYPE_BYTE;
@@ -179,7 +179,7 @@ uint32_t getNumberOfChannels(VkFormat format)
 	case VK_FORMAT_R32G32B32A32_SFLOAT:
 		return 4;
 	default:
-		UNIMPLEMENTED();
+		UNIMPLEMENTED("format");
 	}
 
 	return 0;
@@ -194,19 +194,17 @@ std::vector<uint32_t> preprocessSpirv(
 	spvtools::Optimizer opt{SPV_ENV_VULKAN_1_1};
 
 	opt.SetMessageConsumer([](spv_message_level_t level, const char*, const spv_position_t& p, const char* m) {
+		const char* category = "";
 		switch (level)
 		{
-		case SPV_MSG_FATAL:
-		case SPV_MSG_INTERNAL_ERROR:
-		case SPV_MSG_ERROR:
-			ERR("%d:%d %s", p.line, p.column, m);
-			break;
-		case SPV_MSG_WARNING:
-		case SPV_MSG_INFO:
-		case SPV_MSG_DEBUG:
-			TRACE("%d:%d %s", p.line, p.column, m);
-			break;
+		case SPV_MSG_FATAL:          category = "FATAL";          break;
+		case SPV_MSG_INTERNAL_ERROR: category = "INTERNAL_ERROR"; break;
+		case SPV_MSG_ERROR:          category = "ERROR";          break;
+		case SPV_MSG_WARNING:        category = "WARNING";        break;
+		case SPV_MSG_INFO:           category = "INFO";           break;
+		case SPV_MSG_DEBUG:          category = "DEBUG";          break;
 		}
+		vk::trace("%s: %d:%d %s", category, p.line, p.column, m);
 	});
 
 	opt.RegisterPass(spvtools::CreateInlineExhaustivePass());
@@ -264,13 +262,13 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 	   (pCreateInfo->basePipelineHandle != VK_NULL_HANDLE) ||
 	   (pCreateInfo->basePipelineIndex != 0))
 	{
-		UNIMPLEMENTED();
+		UNIMPLEMENTED("pCreateInfo settings");
 	}
 
 	const VkPipelineVertexInputStateCreateInfo* vertexInputState = pCreateInfo->pVertexInputState;
 	if(vertexInputState->flags != 0)
 	{
-		UNIMPLEMENTED();
+		UNIMPLEMENTED("vertexInputState->flags");
 	}
 
 	// Context must always have a PipelineLayout set.
@@ -285,7 +283,7 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 		bufferStrides[desc.binding] = desc.stride;
 		if(desc.inputRate != VK_VERTEX_INPUT_RATE_VERTEX)
 		{
-			UNIMPLEMENTED();
+			UNIMPLEMENTED("vertexInputState->pVertexBindingDescriptions[%d]", i);
 		}
 	}
 
@@ -305,7 +303,7 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 	if((assemblyState->flags != 0) ||
 	   (assemblyState->primitiveRestartEnable != 0))
 	{
-		UNIMPLEMENTED();
+		UNIMPLEMENTED("pCreateInfo->pInputAssemblyState settings");
 	}
 
 	context.drawType = Convert(assemblyState->topology);
@@ -317,7 +315,7 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 			(viewportState->viewportCount != 1) ||
 			(viewportState->scissorCount != 1))
 		{
-			UNIMPLEMENTED();
+			UNIMPLEMENTED("pCreateInfo->pViewportState settings");
 		}
 
 		scissor = viewportState->pScissors[0];
@@ -329,7 +327,7 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 	   (rasterizationState->depthClampEnable != 0) ||
 	   (rasterizationState->polygonMode != VK_POLYGON_MODE_FILL))
 	{
-		UNIMPLEMENTED();
+		UNIMPLEMENTED("pCreateInfo->pRasterizationState settings");
 	}
 
 	context.rasterizerDiscard = rasterizationState->rasterizerDiscardEnable;
@@ -359,7 +357,7 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 				(multisampleState->alphaToCoverageEnable != 0) ||
 			(multisampleState->alphaToOneEnable != 0))
 		{
-			UNIMPLEMENTED();
+			UNIMPLEMENTED("multisampleState");
 		}
 	}
 	else
@@ -373,7 +371,7 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 		if((depthStencilState->flags != 0) ||
 		   (depthStencilState->depthBoundsTestEnable != 0))
 		{
-			UNIMPLEMENTED();
+			UNIMPLEMENTED("depthStencilState");
 		}
 
 		context.depthBufferEnable = depthStencilState->depthTestEnable;
@@ -408,7 +406,7 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 		   ((colorBlendState->logicOpEnable != 0) &&
 			(colorBlendState->attachmentCount > 1)))
 		{
-			UNIMPLEMENTED();
+			UNIMPLEMENTED("colorBlendState");
 		}
 
 		blendConstants.r = colorBlendState->blendConstants[0];
@@ -421,7 +419,7 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 			const VkPipelineColorBlendAttachmentState& attachment = colorBlendState->pAttachments[0];
 			if(attachment.colorWriteMask != (VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT))
 			{
-				UNIMPLEMENTED();
+				UNIMPLEMENTED("colorWriteMask");
 			}
 
 			context.alphaBlendEnable = attachment.blendEnable;
@@ -455,7 +453,7 @@ void GraphicsPipeline::compileShaders(const VkAllocationCallbacks* pAllocator, c
 	{
 		if (pStage->flags != 0)
 		{
-			UNIMPLEMENTED();
+			UNIMPLEMENTED("pStage->flags");
 		}
 
 		auto module = Cast(pStage->module);
@@ -497,7 +495,7 @@ uint32_t GraphicsPipeline::computePrimitiveCount(uint32_t vertexCount) const
 	case sw::DRAW_TRIANGLEFAN:
 		return vertexCount - 2;
 	default:
-		UNIMPLEMENTED();
+		UNIMPLEMENTED("drawType");
 	}
 
 	return 0;

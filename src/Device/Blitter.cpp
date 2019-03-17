@@ -161,7 +161,7 @@ namespace sw
 			return false;
 		}
 
-		VkImageSubresourceLayers subresLayers = 
+		VkImageSubresourceLayers subresLayers =
 		{
 			subresourceRange.aspectMask,
 			subresourceRange.baseMipLevel,
@@ -1496,7 +1496,7 @@ namespace sw
 			if(!blitRoutine)
 			{
 				criticalSection.unlock();
-				UNIMPLEMENTED();
+				UNIMPLEMENTED("blitRoutine");
 				return nullptr;
 			}
 
@@ -1518,7 +1518,7 @@ namespace sw
 		if((region.srcSubresource.layerCount != region.dstSubresource.layerCount) ||
 		   (region.srcSubresource.aspectMask != region.dstSubresource.aspectMask))
 		{
-			UNIMPLEMENTED();
+			UNIMPLEMENTED("region");
 		}
 
 		if(region.dstOffsets[0].x > region.dstOffsets[1].x)

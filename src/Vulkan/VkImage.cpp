@@ -89,7 +89,7 @@ void Image::getSubresourceLayout(const VkImageSubresource* pSubresource, VkSubre
 		  (pSubresource->aspectMask == VK_IMAGE_ASPECT_DEPTH_BIT) ||
 		  (pSubresource->aspectMask == VK_IMAGE_ASPECT_STENCIL_BIT)))
 	{
-		UNIMPLEMENTED();
+		UNIMPLEMENTED("aspectMask");
 	}
 	auto aspect = static_cast<VkImageAspectFlagBits>(pSubresource->aspectMask);
 	pLayout->offset = getMemoryOffset(aspect, pSubresource->mipLevel, pSubresource->arrayLayer);
@@ -111,7 +111,7 @@ void Image::copyTo(VkImage dstImage, const VkImageCopy& pRegion)
 		 (pRegion.srcSubresource.baseArrayLayer != 0) ||
 		 (pRegion.srcSubresource.layerCount != 1))
 	{
-		UNIMPLEMENTED();
+		UNIMPLEMENTED("srcSubresource");
 	}
 
 	if(!((pRegion.dstSubresource.aspectMask == VK_IMAGE_ASPECT_COLOR_BIT) ||
@@ -120,7 +120,7 @@ void Image::copyTo(VkImage dstImage, const VkImageCopy& pRegion)
 		 (pRegion.dstSubresource.baseArrayLayer != 0) ||
 		 (pRegion.dstSubresource.layerCount != 1))
 	{
-		UNIMPLEMENTED();
+		UNIMPLEMENTED("dstSubresource");
 	}
 
 	VkImageAspectFlagBits srcAspect = static_cast<VkImageAspectFlagBits>(pRegion.srcSubresource.aspectMask);
@@ -210,7 +210,7 @@ void Image::copy(VkBuffer buf, const VkBufferImageCopy& region, bool bufferIsSou
 	     (region.imageSubresource.aspectMask == VK_IMAGE_ASPECT_DEPTH_BIT) ||
 	     (region.imageSubresource.aspectMask == VK_IMAGE_ASPECT_STENCIL_BIT)))
 	{
-		UNIMPLEMENTED();
+		UNIMPLEMENTED("imageSubresource");
 	}
 
 	VkImageAspectFlagBits aspect = static_cast<VkImageAspectFlagBits>(region.imageSubresource.aspectMask);
@@ -541,7 +541,7 @@ void Image::clear(void* pixelData, VkFormat format, const VkImageSubresourceRang
 	if((subresourceRange.baseMipLevel != 0) ||
 	   (subresourceRange.levelCount != 1))
 	{
-		UNIMPLEMENTED();
+		UNIMPLEMENTED("subresourceRange");
 	}
 
 	device->getBlitter()->clear(pixelData, format, this, subresourceRange, &renderArea);
@@ -551,7 +551,7 @@ void Image::clear(const VkClearColorValue& color, const VkImageSubresourceRange&
 {
 	if(!(subresourceRange.aspectMask == VK_IMAGE_ASPECT_COLOR_BIT))
 	{
-		UNIMPLEMENTED();
+		UNIMPLEMENTED("aspectMask");
 	}
 
 	device->getBlitter()->clear((void*)color.float32, getClearFormat(), this, subresourceRange);
@@ -562,7 +562,7 @@ void Image::clear(const VkClearDepthStencilValue& color, const VkImageSubresourc
 	if((subresourceRange.aspectMask & ~(VK_IMAGE_ASPECT_DEPTH_BIT |
 	                                    VK_IMAGE_ASPECT_STENCIL_BIT)) != 0)
 	{
-		UNIMPLEMENTED();
+		UNIMPLEMENTED("aspectMask");
 	}
 
 	if(subresourceRange.aspectMask & VK_IMAGE_ASPECT_DEPTH_BIT)
@@ -588,7 +588,7 @@ void Image::clear(const VkClearValue& clearValue, const VkRect2D& renderArea, co
 	   (subresourceRange.baseMipLevel != 0) ||
 	   (subresourceRange.levelCount != 1))
 	{
-		UNIMPLEMENTED();
+		UNIMPLEMENTED("subresourceRange");
 	}
 
 	if(subresourceRange.aspectMask == VK_IMAGE_ASPECT_COLOR_BIT)

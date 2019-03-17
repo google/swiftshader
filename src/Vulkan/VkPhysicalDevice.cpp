@@ -655,7 +655,7 @@ void PhysicalDevice::getImageFormatProperties(VkFormat format, VkImageType type,
 		pImageFormatProperties->maxArrayLayers = 1;		// no 3D + layers
 		break;
 	default:
-		UNREACHABLE(type);
+		UNREACHABLE("VkImageType: %d", int(type));
 		break;
 	}
 

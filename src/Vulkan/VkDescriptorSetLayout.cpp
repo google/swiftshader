@@ -204,7 +204,7 @@ const uint8_t* DescriptorSetLayout::GetInputData(const VkWriteDescriptorSet& des
 		return reinterpret_cast<const uint8_t*>(descriptorWrites.pBufferInfo);
 		break;
 	default:
-		UNIMPLEMENTED();
+		UNIMPLEMENTED("descriptorType");
 		return nullptr;
 	}
 }

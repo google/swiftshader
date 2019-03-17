@@ -27,7 +27,7 @@ namespace vk
 		//  pipelineStatistics member of the VkQueryPoolCreateInfo structure."
 		if(pCreateInfo->queryType == VK_QUERY_TYPE_PIPELINE_STATISTICS)
 		{
-			UNIMPLEMENTED();
+			UNIMPLEMENTED("pCreateInfo->queryType");
 		}
 	}
 
@@ -48,7 +48,7 @@ namespace vk
 		char* data = static_cast<char*>(pData);
 		for(uint32_t i = 0; i < pQueryCount; i++, data += pStride)
 		{
-			UNIMPLEMENTED();
+			UNIMPLEMENTED("queries");
 		}
 	}
 } // namespace vk
