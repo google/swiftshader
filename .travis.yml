@@ -19,7 +19,7 @@ env:
 
 script:
   - $CXX --version
-  - mkdir build && cd build
+  - mkdir -p build && cd build
   - cmake -DREACTOR_BACKEND=$REACTOR_BACKEND ..
   - make -j2
   - ./unittests
