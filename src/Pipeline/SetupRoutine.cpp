@@ -24,7 +24,6 @@
 namespace sw
 {
 	extern TranscendentalPrecision logPrecision;
-	extern bool leadingVertexFirst;
 
 	SetupRoutine::SetupRoutine(const SetupProcessor::State &state) : state(state)
 	{
@@ -522,7 +521,7 @@ namespace sw
 		}
 		else
 		{
-			int leadingVertex = leadingVertexFirst ? OFFSET(Triangle,v0) : OFFSET(Triangle,v2);
+			int leadingVertex = OFFSET(Triangle,v0);
 			Float C = *Pointer<Float>(triangle + leadingVertex + attribute);
 
 			*Pointer<Float4>(primitive + planeEquation + 0, 16) = Float4(0, 0, 0, 0);

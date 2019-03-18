@@ -63,8 +63,6 @@ namespace sw
 		bool symmetricNormalizedDepth;
 		bool booleanFaceRegister;
 		bool fullPixelPositionRegister;
-		bool leadingVertexFirst;
-		bool secondaryColor;
 		bool colorsDefaultToZero;
 	};
 
@@ -74,8 +72,6 @@ namespace sw
 		true,    // symmetricNormalizedDepth
 		true,    // booleanFaceRegister
 		true,    // fullPixelPositionRegister
-		false,   // leadingVertexFirst
-		false,   // secondaryColor
 		true,    // colorsDefaultToZero
 	};
 
@@ -85,8 +81,6 @@ namespace sw
 		false,   // symmetricNormalizedDepth
 		false,   // booleanFaceRegister
 		false,   // fullPixelPositionRegister
-		true,    // leadingVertexFirst
-		true,    // secondardyColor
 		false,   // colorsDefaultToZero
 	};
 

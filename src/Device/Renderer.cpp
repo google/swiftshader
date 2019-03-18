@@ -46,8 +46,6 @@ namespace sw
 {
 	extern bool booleanFaceRegister;
 	extern bool fullPixelPositionRegister;
-	extern bool leadingVertexFirst;         // Flat shading uses first vertex, else last
-	extern bool secondaryColor;             // Specular lighting is applied after texturing
 	extern bool colorsDefaultToZero;
 
 	extern bool forceWindowed;
@@ -79,8 +77,6 @@ namespace sw
 		{
 			sw::booleanFaceRegister = conventions.booleanFaceRegister;
 			sw::fullPixelPositionRegister = conventions.fullPixelPositionRegister;
-			sw::leadingVertexFirst = conventions.leadingVertexFirst;
-			sw::secondaryColor = conventions.secondaryColor;
 			sw::colorsDefaultToZero = conventions.colorsDefaultToZero;
 			sw::exactColorRounding = exactColorRounding;
 			initialized = true;
@@ -886,18 +882,9 @@ namespace sw
 
 				for(unsigned int i = 0; i < triangleCount; i++)
 				{
-					if(leadingVertexFirst)
-					{
-						batch[i][0] = index + 0;
-						batch[i][1] = index + (index & 1) + 1;
-						batch[i][2] = index + (~index & 1) + 1;
-					}
-					else
-					{
-						batch[i][0] = index + (index & 1);
-						batch[i][1] = index + (~index & 1);
-						batch[i][2] = index + 2;
-					}
+					batch[i][0] = index + 0;
+					batch[i][1] = index + (index & 1) + 1;
+					batch[i][2] = index + (~index & 1) + 1;
 
 					index += 1;
 				}
@@ -909,18 +896,9 @@ namespace sw
 
 				for(unsigned int i = 0; i < triangleCount; i++)
 				{
-					if(leadingVertexFirst)
-					{
-						batch[i][0] = index + 1;
-						batch[i][1] = index + 2;
-						batch[i][2] = 0;
-					}
-					else
-					{
-						batch[i][0] = 0;
-						batch[i][1] = index + 1;
-						batch[i][2] = index + 2;
-					}
+					batch[i][0] = index + 1;
+					batch[i][1] = index + 2;
+					batch[i][2] = 0;
 
 					index += 1;
 				}
