@@ -652,7 +652,6 @@ func (r *regres) newTest(commit git.Hash) *test {
 		commit:   commit,
 		srcDir:   srcDir,
 		resDir:   resDir,
-		outDir:   filepath.Join(srcDir, "out"),
 		buildDir: filepath.Join(srcDir, "build"),
 	}
 }
@@ -662,7 +661,6 @@ type test struct {
 	commit        git.Hash // hash of the commit to test
 	srcDir        string   // directory for the SwiftShader checkout
 	resDir        string   // directory for the test results
-	outDir        string   // directory for SwiftShader output
 	buildDir      string   // directory for SwiftShader build
 	keepCheckouts bool     // don't delete source & build checkouts after testing
 }
@@ -735,6 +733,16 @@ func (t *test) build() error {
 // run runs all the tests.
 func (t *test) run(testLists testlist.Lists) (*CommitTestResults, error) {
 	log.Printf("Running tests for '%s'\n", t.commit)
+
+	outDir := filepath.Join(t.srcDir, "out")
+	if !isDir(outDir) { // https://swiftshader-review.googlesource.com/c/SwiftShader/+/27188
+		outDir = t.buildDir
+	}
+	if !isDir(outDir) {
+		return nil, fmt.Errorf("Couldn't find output directory")
+	}
+	log.Println("outDir:", outDir)
+
 	start := time.Now()
 
 	// Wait group that completes once all the tests have finished.
@@ -770,7 +778,7 @@ func (t *test) run(testLists testlist.Lists) (*CommitTestResults, error) {
 		wg.Add(numParallelTests)
 		for i := 0; i < numParallelTests; i++ {
 			go func() {
-				t.deqpTestRoutine(exe, tests, results)
+				t.deqpTestRoutine(exe, outDir, tests, results)
 				wg.Done()
 			}()
 		}
@@ -1108,13 +1116,13 @@ var (
 // is written to results.
 // deqpTestRoutine only returns once the tests chan has been closed.
 // deqpTestRoutine does not close the results chan.
-func (t *test) deqpTestRoutine(exe string, tests <-chan string, results chan<- TestResult) {
+func (t *test) deqpTestRoutine(exe, outDir string, tests <-chan string, results chan<- TestResult) {
 nextTest:
 	for name := range tests {
 		// log.Printf("Running test '%s'\n", name)
 		env := []string{
 			"LD_LIBRARY_PATH=" + t.buildDir + ":" + os.Getenv("LD_LIBRARY_PATH"),
-			"VK_ICD_FILENAMES=" + filepath.Join(t.outDir, "Linux", "vk_swiftshader_icd.json"),
+			"VK_ICD_FILENAMES=" + filepath.Join(outDir, "Linux", "vk_swiftshader_icd.json"),
 			"DISPLAY=" + os.Getenv("DISPLAY"),
 			"LIBC_FATAL_STDERR_=1", // Put libc explosions into logs.
 		}
