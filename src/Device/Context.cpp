@@ -170,22 +170,9 @@ namespace sw
 		stencilBuffer = nullptr;
 
 		stencilEnable = false;
-		stencilCompareMode = VK_COMPARE_OP_ALWAYS;
-		stencilReference = 0;
-		stencilMask = 0xFFFFFFFF;
-		stencilFailOperation = VK_STENCIL_OP_KEEP;
-		stencilPassOperation = VK_STENCIL_OP_KEEP;
-		stencilZFailOperation = VK_STENCIL_OP_KEEP;
-		stencilWriteMask = 0xFFFFFFFF;
-
 		twoSidedStencil = false;
-		stencilCompareModeCCW = VK_COMPARE_OP_ALWAYS;
-		stencilReferenceCCW = 0;
-		stencilMaskCCW = 0xFFFFFFFF;
-		stencilFailOperationCCW = VK_STENCIL_OP_KEEP;
-		stencilPassOperationCCW = VK_STENCIL_OP_KEEP;
-		stencilZFailOperationCCW = VK_STENCIL_OP_KEEP;
-		stencilWriteMaskCCW = 0xFFFFFFFF;
+		frontStencil = {};
+		backStencil = {};
 
 		rasterizerDiscard = false;
 

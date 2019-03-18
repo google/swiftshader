@@ -381,21 +381,8 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 		context.stencilEnable = context.twoSidedStencil = depthStencilState->stencilTestEnable;
 		if(context.stencilEnable)
 		{
-			context.stencilMask = depthStencilState->front.compareMask;
-			context.stencilCompareMode = depthStencilState->front.compareOp;
-			context.stencilZFailOperation = depthStencilState->front.depthFailOp;
-			context.stencilFailOperation = depthStencilState->front.failOp;
-			context.stencilPassOperation = depthStencilState->front.passOp;
-			context.stencilReference = depthStencilState->front.reference;
-			context.stencilWriteMask = depthStencilState->front.writeMask;
-
-			context.stencilMaskCCW = depthStencilState->back.compareMask;
-			context.stencilCompareModeCCW = depthStencilState->back.compareOp;
-			context.stencilZFailOperationCCW = depthStencilState->back.depthFailOp;
-			context.stencilFailOperationCCW = depthStencilState->back.failOp;
-			context.stencilPassOperationCCW = depthStencilState->back.passOp;
-			context.stencilReferenceCCW = depthStencilState->back.reference;
-			context.stencilWriteMaskCCW = depthStencilState->back.writeMask;
+			context.frontStencil = depthStencilState->front;
+			context.backStencil = depthStencilState->back;
 		}
 	}
 

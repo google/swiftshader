@@ -39,21 +39,9 @@ namespace sw
 			bool quadLayoutDepthBuffer;
 
 			bool stencilActive;
-			VkCompareOp stencilCompareMode;
-			VkStencilOp stencilFailOperation;
-			VkStencilOp stencilPassOperation;
-			VkStencilOp stencilZFailOperation;
-			bool noStencilMask;
-			bool noStencilWriteMask;
-			bool stencilWriteMasked;
 			bool twoSidedStencil;
-			VkCompareOp stencilCompareModeCCW;
-			VkStencilOp stencilFailOperationCCW;
-			VkStencilOp stencilPassOperationCCW;
-			VkStencilOp stencilZFailOperationCCW;
-			bool noStencilMaskCCW;
-			bool noStencilWriteMaskCCW;
-			bool stencilWriteMaskedCCW;
+			VkStencilOpState frontStencil;
+			VkStencilOpState backStencil;
 
 			bool depthTestActive;
 			bool occlusionEnabled;

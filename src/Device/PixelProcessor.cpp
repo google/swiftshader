@@ -292,22 +292,9 @@ namespace sw
 		if(context->stencilActive())
 		{
 			state.stencilActive = true;
-			state.stencilCompareMode = context->stencilCompareMode;
-			state.stencilFailOperation = context->stencilFailOperation;
-			state.stencilPassOperation = context->stencilPassOperation;
-			state.stencilZFailOperation = context->stencilZFailOperation;
-			state.noStencilMask = (context->stencilMask == 0xFF);
-			state.noStencilWriteMask = (context->stencilWriteMask == 0xFF);
-			state.stencilWriteMasked = (context->stencilWriteMask == 0x00);
-
 			state.twoSidedStencil = context->twoSidedStencil;
-			state.stencilCompareModeCCW = context->twoSidedStencil ? context->stencilCompareModeCCW : state.stencilCompareMode;
-			state.stencilFailOperationCCW = context->twoSidedStencil ? context->stencilFailOperationCCW : state.stencilFailOperation;
-			state.stencilPassOperationCCW = context->twoSidedStencil ? context->stencilPassOperationCCW : state.stencilPassOperation;
-			state.stencilZFailOperationCCW = context->twoSidedStencil ? context->stencilZFailOperationCCW : state.stencilZFailOperation;
-			state.noStencilMaskCCW = context->twoSidedStencil ? (context->stencilMaskCCW == 0xFF) : state.noStencilMask;
-			state.noStencilWriteMaskCCW = context->twoSidedStencil ? (context->stencilWriteMaskCCW == 0xFF) : state.noStencilWriteMask;
-			state.stencilWriteMaskedCCW = context->twoSidedStencil ? (context->stencilWriteMaskCCW == 0x00) : state.stencilWriteMasked;
+			state.frontStencil = context->frontStencil;
+			state.backStencil = context->backStencil;
 		}
 
 		if(context->depthBufferActive())

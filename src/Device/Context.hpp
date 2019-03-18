@@ -159,22 +159,9 @@ namespace sw
 		DrawType drawType;
 
 		bool stencilEnable;
-		VkCompareOp stencilCompareMode;
-		int stencilReference;
-		int stencilMask;
-		VkStencilOp stencilFailOperation;
-		VkStencilOp stencilPassOperation;
-		VkStencilOp stencilZFailOperation;
-		int stencilWriteMask;
-
 		bool twoSidedStencil;
-		VkCompareOp stencilCompareModeCCW;
-		int stencilReferenceCCW;
-		int stencilMaskCCW;
-		VkStencilOp stencilFailOperationCCW;
-		VkStencilOp stencilPassOperationCCW;
-		VkStencilOp stencilZFailOperationCCW;
-		int stencilWriteMaskCCW;
+		VkStencilOpState frontStencil;
+		VkStencilOpState backStencil;
 
 		// Pixel processor states
 		VkCullModeFlags cullMode;
