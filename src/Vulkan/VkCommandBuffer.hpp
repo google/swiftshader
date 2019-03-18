@@ -144,6 +144,7 @@ public:
 	};
 
 	void submit(CommandBuffer::ExecutionState& executionState);
+	void submitSecondary(CommandBuffer::ExecutionState& executionState) const;
 
 	class Command;
 private:
