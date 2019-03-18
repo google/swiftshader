@@ -54,9 +54,6 @@
     <ClCompile Include="..\Device\SwiftConfig.cpp">
       <Filter>Source Files\Device</Filter>
     </ClCompile>
-    <ClCompile Include="..\Device\Surface.cpp">
-      <Filter>Source Files\Device</Filter>
-    </ClCompile>
     <ClCompile Include="..\Device\SetupProcessor.cpp">
       <Filter>Source Files\Device</Filter>
     </ClCompile>
@@ -363,9 +360,6 @@
       <Filter>Header Files\Device</Filter>
     </ClInclude>
     <ClInclude Include="..\Device\SwiftConfig.hpp">
-      <Filter>Header Files\Device</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Device\Surface.hpp">
       <Filter>Header Files\Device</Filter>
     </ClInclude>
     <ClInclude Include="..\Device\Stream.hpp">
