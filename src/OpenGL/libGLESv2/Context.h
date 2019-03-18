@@ -640,6 +640,7 @@ public:
 	GLenum getPixels(const GLvoid **data, GLenum type, GLsizei imageSize) const;
 	bool getBuffer(GLenum target, es2::Buffer **buffer) const;
 	Program *getCurrentProgram() const;
+	Texture *getTargetTexture(GLenum target) const;
 	Texture2D *getTexture2D() const;
 	Texture2D *getTexture2D(GLenum target) const;
 	Texture3D *getTexture3D() const;

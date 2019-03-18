@@ -686,8 +686,7 @@ void Texture2D::setSharedImage(egl::Image *sharedImage)
 	image[0] = sharedImage;
 }
 
-// Tests for 2D texture sampling completeness. [OpenGL ES 3.0.5] section 3.8.13 page 160.
-bool Texture2D::isSamplerComplete(Sampler *sampler) const
+bool Texture2D::isBaseLevelDefined() const
 {
 	if(!image[mBaseLevel])
 	{
@@ -698,6 +697,17 @@ bool Texture2D::isSamplerComplete(Sampler *sampler) const
 	GLsizei height = image[mBaseLevel]->getHeight();
 
 	if(width <= 0 || height <= 0)
+	{
+		return false;
+	}
+
+	return true;
+}
+
+// Tests for 2D texture sampling completeness. [OpenGL ES 3.0.5] section 3.8.13 page 160.
+bool Texture2D::isSamplerComplete(Sampler *sampler) const
+{
+	if(!isBaseLevelDefined())
 	{
 		return false;
 	}
@@ -1042,8 +1052,7 @@ void TextureCubeMap::subImageCompressed(GLenum target, GLint level, GLint xoffse
 	Texture::subImageCompressed(xoffset, yoffset, 0, width, height, 1, format, imageSize, pixels, image[CubeFaceIndex(target)][level]);
 }
 
-// Tests for cube map sampling completeness. [OpenGL ES 3.0.5] section 3.8.13 page 161.
-bool TextureCubeMap::isSamplerComplete(Sampler *sampler) const
+bool TextureCubeMap::isBaseLevelDefined() const
 {
 	for(int face = 0; face < 6; face++)
 	{
@@ -1056,6 +1065,17 @@ bool TextureCubeMap::isSamplerComplete(Sampler *sampler) const
 	int size = image[0][mBaseLevel]->getWidth();
 
 	if(size <= 0)
+	{
+		return false;
+	}
+
+	return true;
+}
+
+// Tests for cube map sampling completeness. [OpenGL ES 3.0.5] section 3.8.13 page 161.
+bool TextureCubeMap::isSamplerComplete(Sampler *sampler) const
+{
+	if(!isBaseLevelDefined())
 	{
 		return false;
 	}
@@ -1081,6 +1101,11 @@ bool TextureCubeMap::isSamplerComplete(Sampler *sampler) const
 // Tests for cube texture completeness. [OpenGL ES 3.0.5] section 3.8.13 page 160.
 bool TextureCubeMap::isCubeComplete() const
 {
+	if(!isBaseLevelDefined())
+	{
+		return false;
+	}
+
 	if(image[0][mBaseLevel]->getWidth() <= 0 || image[0][mBaseLevel]->getHeight() != image[0][mBaseLevel]->getWidth())
 	{
 		return false;
@@ -1649,8 +1674,7 @@ void Texture3D::setSharedImage(egl::Image *sharedImage)
 	image[0] = sharedImage;
 }
 
-// Tests for 3D texture sampling completeness. [OpenGL ES 3.0.5] section 3.8.13 page 160.
-bool Texture3D::isSamplerComplete(Sampler *sampler) const
+bool Texture3D::isBaseLevelDefined() const
 {
 	if(!image[mBaseLevel])
 	{
@@ -1662,6 +1686,17 @@ bool Texture3D::isSamplerComplete(Sampler *sampler) const
 	GLsizei depth = image[mBaseLevel]->getDepth();
 
 	if(width <= 0 || height <= 0 || depth <= 0)
+	{
+		return false;
+	}
+
+	return true;
+}
+
+// Tests for 3D texture sampling completeness. [OpenGL ES 3.0.5] section 3.8.13 page 160.
+bool Texture3D::isSamplerComplete(Sampler *sampler) const
+{
+	if(!isBaseLevelDefined())
 	{
 		return false;
 	}
