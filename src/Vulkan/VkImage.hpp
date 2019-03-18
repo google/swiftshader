@@ -84,7 +84,7 @@ private:
 	VkDeviceSize             memoryOffset = 0;
 	VkImageCreateFlags       flags = 0;
 	VkImageType              imageType = VK_IMAGE_TYPE_2D;
-	Format                   format = VK_FORMAT_UNDEFINED;
+	Format                   format;
 	VkExtent3D               extent = {0, 0, 0};
 	uint32_t                 mipLevels = 0;
 	uint32_t                 arrayLayers = 0;

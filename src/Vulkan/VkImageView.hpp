@@ -49,7 +49,7 @@ private:
 
 	Image*                     image = nullptr;
 	VkImageViewType            viewType = VK_IMAGE_VIEW_TYPE_2D;
-	Format                     format = VK_FORMAT_UNDEFINED;
+	Format                     format;
 	VkComponentMapping         components = {};
 	VkImageSubresourceRange    subresourceRange = {};
 };

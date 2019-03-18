@@ -2057,7 +2057,7 @@ namespace sw
 
 			Vector4s cs = sampleTexel(index, buffer);
 
-			bool isInteger = Surface::isNonNormalizedInteger(state.textureFormat);
+			bool isInteger = state.textureFormat.isNonNormalizedInteger();
 			int componentCount = textureComponentCount();
 			for(int n = 0; n < componentCount; n++)
 			{
@@ -2426,22 +2426,22 @@ namespace sw
 
 	bool SamplerCore::hasFloatTexture() const
 	{
-		return Surface::isFloatFormat(state.textureFormat);
+		return state.textureFormat.isFloatFormat();
 	}
 
 	bool SamplerCore::hasUnnormalizedIntegerTexture() const
 	{
-		return Surface::isNonNormalizedInteger(state.textureFormat);
+		return state.textureFormat.isNonNormalizedInteger();
 	}
 
 	bool SamplerCore::hasUnsignedTextureComponent(int component) const
 	{
-		return Surface::isUnsignedComponent(state.textureFormat, component);
+		return state.textureFormat.isUnsignedComponent(component);
 	}
 
 	int SamplerCore::textureComponentCount() const
 	{
-		return Surface::componentCount(state.textureFormat);
+		return state.textureFormat.componentCount();
 	}
 
 	bool SamplerCore::hasThirdCoordinate() const
@@ -2451,275 +2451,31 @@ namespace sw
 
 	bool SamplerCore::has16bitTextureFormat() const
 	{
-		switch(state.textureFormat)
-		{
-		case VK_FORMAT_R5G6B5_UNORM_PACK16:
-			return true;
-		case VK_FORMAT_R8_SNORM:
-		case VK_FORMAT_R8G8_SNORM:
-		case VK_FORMAT_R8G8B8A8_SNORM:
-		case VK_FORMAT_R8_SINT:
-		case VK_FORMAT_R8_UINT:
-		case VK_FORMAT_R8G8_SINT:
-		case VK_FORMAT_R8G8_UINT:
-		case VK_FORMAT_R8G8B8A8_SINT:
-		case VK_FORMAT_R8G8B8A8_UINT:
-		case VK_FORMAT_R32_SINT:
-		case VK_FORMAT_R32_UINT:
-		case VK_FORMAT_R32G32_SINT:
-		case VK_FORMAT_R32G32_UINT:
-		case VK_FORMAT_R32G32B32A32_SINT:
-		case VK_FORMAT_R32G32B32A32_UINT:
-		case VK_FORMAT_R8G8_UNORM:
-		case VK_FORMAT_B8G8R8A8_UNORM:
-		case VK_FORMAT_R8G8B8A8_UNORM:
-		case VK_FORMAT_R8G8B8A8_SRGB:
-		case VK_FORMAT_R32_SFLOAT:
-		case VK_FORMAT_R32G32_SFLOAT:
-		case VK_FORMAT_R32G32B32A32_SFLOAT:
-		case VK_FORMAT_R8_UNORM:
-		case VK_FORMAT_R16G16_UNORM:
-		case VK_FORMAT_R16G16B16A16_UNORM:
-		case VK_FORMAT_R16_SINT:
-		case VK_FORMAT_R16_UINT:
-		case VK_FORMAT_R16G16_SINT:
-		case VK_FORMAT_R16G16_UINT:
-		case VK_FORMAT_R16G16B16A16_SINT:
-		case VK_FORMAT_R16G16B16A16_UINT:
-		case VK_FORMAT_G8_B8R8_2PLANE_420_UNORM:
-			return false;
-		default:
-			ASSERT(false);
-		}
-
-		return false;
+		return state.textureFormat.has16bitTextureFormat();
 	}
 
 	bool SamplerCore::has8bitTextureComponents() const
 	{
-		switch(state.textureFormat)
-		{
-		case VK_FORMAT_R8G8_UNORM:
-		case VK_FORMAT_B8G8R8A8_UNORM:
-		case VK_FORMAT_R8G8B8A8_UNORM:
-		case VK_FORMAT_R8G8B8A8_SRGB:
-		case VK_FORMAT_R8_UNORM:
-		case VK_FORMAT_R8_SNORM:
-		case VK_FORMAT_R8G8_SNORM:
-		case VK_FORMAT_R8G8B8A8_SNORM:
-		case VK_FORMAT_R8_SINT:
-		case VK_FORMAT_R8_UINT:
-		case VK_FORMAT_R8G8_SINT:
-		case VK_FORMAT_R8G8_UINT:
-		case VK_FORMAT_R8G8B8A8_SINT:
-		case VK_FORMAT_R8G8B8A8_UINT:
-			return true;
-		case VK_FORMAT_R5G6B5_UNORM_PACK16:
-		case VK_FORMAT_R32_SFLOAT:
-		case VK_FORMAT_R32G32_SFLOAT:
-		case VK_FORMAT_R32G32B32A32_SFLOAT:
-		case VK_FORMAT_R16G16_UNORM:
-		case VK_FORMAT_R16G16B16A16_UNORM:
-		case VK_FORMAT_R32_SINT:
-		case VK_FORMAT_R32_UINT:
-		case VK_FORMAT_R32G32_SINT:
-		case VK_FORMAT_R32G32_UINT:
-		case VK_FORMAT_R32G32B32A32_SINT:
-		case VK_FORMAT_R32G32B32A32_UINT:
-		case VK_FORMAT_R16_SINT:
-		case VK_FORMAT_R16_UINT:
-		case VK_FORMAT_R16G16_SINT:
-		case VK_FORMAT_R16G16_UINT:
-		case VK_FORMAT_R16G16B16A16_SINT:
-		case VK_FORMAT_R16G16B16A16_UINT:
-		case VK_FORMAT_G8_B8R8_2PLANE_420_UNORM:
-			return false;
-		default:
-			ASSERT(false);
-		}
-
-		return false;
+		return state.textureFormat.has8bitTextureComponents();
 	}
 
 	bool SamplerCore::has16bitTextureComponents() const
 	{
-		switch(state.textureFormat)
-		{
-		case VK_FORMAT_R5G6B5_UNORM_PACK16:
-		case VK_FORMAT_R8_SNORM:
-		case VK_FORMAT_R8G8_SNORM:
-		case VK_FORMAT_R8G8B8A8_SNORM:
-		case VK_FORMAT_R8_SINT:
-		case VK_FORMAT_R8_UINT:
-		case VK_FORMAT_R8G8_SINT:
-		case VK_FORMAT_R8G8_UINT:
-		case VK_FORMAT_R8G8B8A8_SINT:
-		case VK_FORMAT_R8G8B8A8_UINT:
-		case VK_FORMAT_R32_SINT:
-		case VK_FORMAT_R32_UINT:
-		case VK_FORMAT_R32G32_SINT:
-		case VK_FORMAT_R32G32_UINT:
-		case VK_FORMAT_R32G32B32A32_SINT:
-		case VK_FORMAT_R32G32B32A32_UINT:
-		case VK_FORMAT_R8G8_UNORM:
-		case VK_FORMAT_B8G8R8A8_UNORM:
-		case VK_FORMAT_R8G8B8A8_UNORM:
-		case VK_FORMAT_R8G8B8A8_SRGB:
-		case VK_FORMAT_R32_SFLOAT:
-		case VK_FORMAT_R32G32_SFLOAT:
-		case VK_FORMAT_R32G32B32A32_SFLOAT:
-		case VK_FORMAT_R8_UNORM:
-		case VK_FORMAT_G8_B8R8_2PLANE_420_UNORM:
-			return false;
-		case VK_FORMAT_R16G16_UNORM:
-		case VK_FORMAT_R16G16B16A16_UNORM:
-		case VK_FORMAT_R16_SINT:
-		case VK_FORMAT_R16_UINT:
-		case VK_FORMAT_R16G16_SINT:
-		case VK_FORMAT_R16G16_UINT:
-		case VK_FORMAT_R16G16B16A16_SINT:
-		case VK_FORMAT_R16G16B16A16_UINT:
-			return true;
-		default:
-			ASSERT(false);
-		}
-
-		return false;
+		return state.textureFormat.has16bitTextureComponents();
 	}
 
 	bool SamplerCore::has32bitIntegerTextureComponents() const
 	{
-		switch(state.textureFormat)
-		{
-		case VK_FORMAT_R5G6B5_UNORM_PACK16:
-		case VK_FORMAT_R8_SNORM:
-		case VK_FORMAT_R8G8_SNORM:
-		case VK_FORMAT_R8G8B8A8_SNORM:
-		case VK_FORMAT_R8_SINT:
-		case VK_FORMAT_R8_UINT:
-		case VK_FORMAT_R8G8_SINT:
-		case VK_FORMAT_R8G8_UINT:
-		case VK_FORMAT_R8G8B8A8_SINT:
-		case VK_FORMAT_R8G8B8A8_UINT:
-		case VK_FORMAT_R8G8_UNORM:
-		case VK_FORMAT_B8G8R8A8_UNORM:
-		case VK_FORMAT_R8G8B8A8_UNORM:
-		case VK_FORMAT_R8G8B8A8_SRGB:
-		case VK_FORMAT_R16G16_UNORM:
-		case VK_FORMAT_R16G16B16A16_UNORM:
-		case VK_FORMAT_R16_SINT:
-		case VK_FORMAT_R16_UINT:
-		case VK_FORMAT_R16G16_SINT:
-		case VK_FORMAT_R16G16_UINT:
-		case VK_FORMAT_R16G16B16A16_SINT:
-		case VK_FORMAT_R16G16B16A16_UINT:
-		case VK_FORMAT_R32_SFLOAT:
-		case VK_FORMAT_R32G32_SFLOAT:
-		case VK_FORMAT_R32G32B32A32_SFLOAT:
-		case VK_FORMAT_R8_UNORM:
-		case VK_FORMAT_G8_B8R8_2PLANE_420_UNORM:
-			return false;
-		case VK_FORMAT_R32_SINT:
-		case VK_FORMAT_R32_UINT:
-		case VK_FORMAT_R32G32_SINT:
-		case VK_FORMAT_R32G32_UINT:
-		case VK_FORMAT_R32G32B32A32_SINT:
-		case VK_FORMAT_R32G32B32A32_UINT:
-			return true;
-		default:
-			ASSERT(false);
-		}
-
-		return false;
+		return state.textureFormat.has32bitIntegerTextureComponents();
 	}
 
 	bool SamplerCore::hasYuvFormat() const
 	{
-		switch(state.textureFormat)
-		{
-		case VK_FORMAT_G8_B8R8_2PLANE_420_UNORM:
-			return true;
-		case VK_FORMAT_R5G6B5_UNORM_PACK16:
-		case VK_FORMAT_R8_SNORM:
-		case VK_FORMAT_R8G8_SNORM:
-		case VK_FORMAT_R8G8B8A8_SNORM:
-		case VK_FORMAT_R8_SINT:
-		case VK_FORMAT_R8_UINT:
-		case VK_FORMAT_R8G8_SINT:
-		case VK_FORMAT_R8G8_UINT:
-		case VK_FORMAT_R8G8B8A8_SINT:
-		case VK_FORMAT_R8G8B8A8_UINT:
-		case VK_FORMAT_R32_SINT:
-		case VK_FORMAT_R32_UINT:
-		case VK_FORMAT_R32G32_SINT:
-		case VK_FORMAT_R32G32_UINT:
-		case VK_FORMAT_R32G32B32A32_SINT:
-		case VK_FORMAT_R32G32B32A32_UINT:
-		case VK_FORMAT_R8G8_UNORM:
-		case VK_FORMAT_B8G8R8A8_UNORM:
-		case VK_FORMAT_R8G8B8A8_UNORM:
-		case VK_FORMAT_R8G8B8A8_SRGB:
-		case VK_FORMAT_R32_SFLOAT:
-		case VK_FORMAT_R32G32_SFLOAT:
-		case VK_FORMAT_R32G32B32A32_SFLOAT:
-		case VK_FORMAT_R8_UNORM:
-		case VK_FORMAT_R16G16_UNORM:
-		case VK_FORMAT_R16G16B16A16_UNORM:
-		case VK_FORMAT_R16_SINT:
-		case VK_FORMAT_R16_UINT:
-		case VK_FORMAT_R16G16_SINT:
-		case VK_FORMAT_R16G16_UINT:
-		case VK_FORMAT_R16G16B16A16_SINT:
-		case VK_FORMAT_R16G16B16A16_UINT:
-			return false;
-		default:
-			ASSERT(false);
-		}
-
-		return false;
+		return state.textureFormat.hasYuvFormat();
 	}
 
 	bool SamplerCore::isRGBComponent(int component) const
 	{
-		switch(state.textureFormat)
-		{
-		case VK_FORMAT_R5G6B5_UNORM_PACK16:      return component < 3;
-		case VK_FORMAT_R8_SNORM:                 return component < 1;
-		case VK_FORMAT_R8G8_SNORM:               return component < 2;
-		case VK_FORMAT_R8G8B8A8_SNORM:           return component < 3;
-		case VK_FORMAT_R8_SINT:                  return component < 1;
-		case VK_FORMAT_R8_UINT:                  return component < 1;
-		case VK_FORMAT_R8G8_SINT:                return component < 2;
-		case VK_FORMAT_R8G8_UINT:                return component < 2;
-		case VK_FORMAT_R8G8B8A8_SINT:            return component < 3;
-		case VK_FORMAT_R8G8B8A8_UINT:            return component < 3;
-		case VK_FORMAT_R32_SINT:                 return component < 1;
-		case VK_FORMAT_R32_UINT:                 return component < 1;
-		case VK_FORMAT_R32G32_SINT:              return component < 2;
-		case VK_FORMAT_R32G32_UINT:              return component < 2;
-		case VK_FORMAT_R32G32B32A32_SINT:        return component < 3;
-		case VK_FORMAT_R32G32B32A32_UINT:        return component < 3;
-		case VK_FORMAT_R8G8_UNORM:               return component < 2;
-		case VK_FORMAT_B8G8R8A8_UNORM:           return component < 3;
-		case VK_FORMAT_R8G8B8A8_UNORM:           return component < 3;
-		case VK_FORMAT_R8G8B8A8_SRGB:            return component < 3;
-		case VK_FORMAT_R32_SFLOAT:               return component < 1;
-		case VK_FORMAT_R32G32_SFLOAT:            return component < 2;
-		case VK_FORMAT_R32G32B32A32_SFLOAT:      return component < 3;
-		case VK_FORMAT_R8_UNORM:                 return component < 1;
-		case VK_FORMAT_R16G16_UNORM:             return component < 2;
-		case VK_FORMAT_R16G16B16A16_UNORM:       return component < 3;
-		case VK_FORMAT_R16_SINT:                 return component < 1;
-		case VK_FORMAT_R16_UINT:                 return component < 1;
-		case VK_FORMAT_R16G16_SINT:              return component < 2;
-		case VK_FORMAT_R16G16_UINT:              return component < 2;
-		case VK_FORMAT_R16G16B16A16_SINT:        return component < 3;
-		case VK_FORMAT_R16G16B16A16_UINT:        return component < 3;
-		case VK_FORMAT_G8_B8R8_2PLANE_420_UNORM: return component < 3;
-		default:
-			ASSERT(false);
-		}
-
-		return false;
+		return state.textureFormat.isRGBComponent(component);
 	}
 }

@@ -71,8 +71,8 @@ namespace sw
 				return memcmp(this, &state, sizeof(State)) == 0;
 			}
 
-			vk::Format sourceFormat = VK_FORMAT_UNDEFINED;
-			vk::Format destFormat = VK_FORMAT_UNDEFINED;
+			vk::Format sourceFormat;
+			vk::Format destFormat;
 			int destSamples = 0;
 		};
 

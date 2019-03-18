@@ -28,6 +28,7 @@ namespace vk
 class Format
 {
 public:
+	Format() {}
 	Format(VkFormat format) : format(format) {}
 	inline operator VkFormat() const { return format; }
 
@@ -40,8 +41,11 @@ public:
 	bool hasQuadLayout() const;
 
 	bool isSRGBformat() const;
+	bool isSRGBreadable() const;
 	bool isSRGBwritable() const;
 	bool isFloatFormat() const;
+
+	int componentCount() const;
 	bool isUnsignedComponent(int component) const;
 
 	int bytes() const;
@@ -49,8 +53,17 @@ public:
 	int sliceB(int width, int height, int border, bool target) const;
 
 	bool getScale(sw::float4 &scale) const;
+
+	// Texture sampling utilities
+	bool has16bitTextureFormat() const;
+	bool has8bitTextureComponents() const;
+	bool has16bitTextureComponents() const;
+	bool has32bitIntegerTextureComponents() const;
+	bool hasYuvFormat() const;
+	bool isRGBComponent(int component) const;
+
 private:
-	VkFormat format;
+	VkFormat format = VK_FORMAT_UNDEFINED;
 };
 
 } // namespace vk

@@ -15,9 +15,15 @@
 #ifndef sw_Sampler_hpp
 #define sw_Sampler_hpp
 
+#include "Device/Color.hpp"
 #include "Device/Config.hpp"
-#include "Device/Surface.hpp"
 #include "System/Types.hpp"
+#include "Vulkan/VkFormat.h"
+
+namespace vk
+{
+	class Image;
+}
 
 namespace sw
 {
@@ -147,7 +153,7 @@ namespace sw
 			State();
 
 			TextureType textureType;
-			VkFormat textureFormat;
+			vk::Format textureFormat;
 			FilterType textureFilter;
 			AddressingMode addressingModeU;
 			AddressingMode addressingModeV;
@@ -172,7 +178,7 @@ namespace sw
 
 		State samplerState() const;
 
-		void setTextureLevel(int face, int level, Surface *surface, TextureType type);
+		void setTextureLevel(int face, int level, vk::Image *image, TextureType type);
 
 		void setTextureFilter(FilterType textureFilter);
 		void setMipmapFilter(MipmapType mipmapFilter);
@@ -214,8 +220,7 @@ namespace sw
 		AddressingMode getAddressingModeW() const;
 		CompareFunc getCompareFunc() const;
 
-		VkFormat externalTextureFormat;
-		VkFormat internalTextureFormat;
+		vk::Format textureFormat;
 		TextureType textureType;
 
 		FilterType textureFilter;

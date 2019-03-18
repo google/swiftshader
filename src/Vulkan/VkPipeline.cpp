@@ -293,7 +293,7 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 		sw::Stream& input = context.input[desc.location];
 		input.count = getNumberOfChannels(desc.format);
 		input.type = getStreamType(desc.format);
-		input.normalized = !sw::Surface::isNonNormalizedInteger(desc.format);
+		input.normalized = !vk::Format(desc.format).isNonNormalizedInteger();
 		input.offset = desc.offset;
 		input.binding = desc.binding;
 		input.stride = bufferStrides[desc.binding];
