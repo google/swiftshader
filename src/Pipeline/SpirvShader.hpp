@@ -207,6 +207,8 @@ namespace sw
 		public:
 			using ID = SpirvID<Type>;
 
+			spv::Op opcode() const { return definition.opcode(); }
+
 			InsnIterator definition;
 			spv::StorageClass storageClass = static_cast<spv::StorageClass>(-1);
 			uint32_t sizeInComponents = 0;
@@ -220,6 +222,8 @@ namespace sw
 		{
 		public:
 			using ID = SpirvID<Object>;
+
+			spv::Op opcode() const { return definition.opcode(); }
 
 			InsnIterator definition;
 			Type::ID type;
