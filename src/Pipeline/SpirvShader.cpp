@@ -751,6 +751,8 @@ namespace sw
 		SIMD::Int dynamicOffset = SIMD::Int(0);
 		auto &baseObject = getObject(id);
 		Type::ID typeId = getType(baseObject.type).element;
+		Decorations d{};
+		ApplyDecorationsForId(&d, baseObject.type);
 
 		// The <base> operand is an intermediate value itself, ie produced by a previous OpAccessChain.
 		// Start with its offset and build from there.
@@ -767,7 +769,6 @@ namespace sw
 			case spv::OpTypeStruct:
 			{
 				int memberIndex = GetConstantInt(indexIds[i]);
-				Decorations d{};
 				ApplyDecorationsForIdMember(&d, typeId, memberIndex);
 				ASSERT(d.HasOffset);
 				constantOffset += d.Offset / sizeof(float);
@@ -778,7 +779,6 @@ namespace sw
 			case spv::OpTypeRuntimeArray:
 			{
 				// TODO: b/127950082: Check bounds.
-				Decorations d{};
 				ApplyDecorationsForId(&d, typeId);
 				ASSERT(d.HasArrayStride);
 				auto & obj = getObject(indexIds[i]);
@@ -792,7 +792,6 @@ namespace sw
 			case spv::OpTypeMatrix:
 			{
 				// TODO: b/127950082: Check bounds.
-				Decorations d{};
 				ApplyDecorationsForId(&d, typeId);
 				ASSERT(d.HasMatrixStride);
 				auto & obj = getObject(indexIds[i]);
