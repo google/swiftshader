@@ -156,6 +156,11 @@ namespace sw
 
 	void Context::init()
 	{
+		for(int i = 0; i < vk::MAX_BOUND_DESCRIPTOR_SETS; i++)
+		{
+			descriptorSets[i] = nullptr;
+		}
+
 		// Set vertex streams to null stream
 		for(int i = 0; i < MAX_VERTEX_INPUTS; i++)
 		{

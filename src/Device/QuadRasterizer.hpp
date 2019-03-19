@@ -28,7 +28,7 @@ namespace sw
 		QuadRasterizer(const PixelProcessor::State &state, SpirvShader const *spirvShader);
 		virtual ~QuadRasterizer();
 
-		void generate();
+		virtual void generate();
 
 	protected:
 		Pointer<Byte> constants;

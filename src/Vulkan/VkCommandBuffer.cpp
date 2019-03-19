@@ -247,6 +247,12 @@ struct Draw : public CommandBuffer::Command
 		sw::Context context = pipeline->getContext();
 		executionState.bindVertexInputs(context, firstVertex);
 
+		const auto& boundDescriptorSets = executionState.boundDescriptorSets[VK_PIPELINE_BIND_POINT_GRAPHICS];
+		for(int i = 0; i < vk::MAX_BOUND_DESCRIPTOR_SETS; i++)
+		{
+			context.descriptorSets[i] = reinterpret_cast<vk::DescriptorSet*>(boundDescriptorSets[i]);
+		}
+
 		context.pushConstants = executionState.pushConstants;
 
 		executionState.renderer->setContext(context);
@@ -285,6 +291,12 @@ struct DrawIndexed : public CommandBuffer::Command
 
 		sw::Context context = pipeline->getContext();
 		executionState.bindVertexInputs(context, vertexOffset);
+
+		const auto& boundDescriptorSets = executionState.boundDescriptorSets[VK_PIPELINE_BIND_POINT_GRAPHICS];
+		for(int i = 0; i < vk::MAX_BOUND_DESCRIPTOR_SETS; i++)
+		{
+			context.descriptorSets[i] = reinterpret_cast<vk::DescriptorSet*>(boundDescriptorSets[i]);
+		}
 
 		context.pushConstants = executionState.pushConstants;
 

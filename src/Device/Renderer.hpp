@@ -26,6 +26,11 @@
 
 #include <list>
 
+namespace vk
+{
+	class DescriptorSet;
+}
+
 namespace sw
 {
 	class Clipper;
@@ -114,6 +119,8 @@ namespace sw
 	struct DrawData
 	{
 		const Constants *constants;
+
+		vk::DescriptorSet *descriptorSets[vk::MAX_BOUND_DESCRIPTOR_SETS];
 
 		const void *input[MAX_VERTEX_INPUTS];
 		unsigned int stride[MAX_VERTEX_INPUTS];

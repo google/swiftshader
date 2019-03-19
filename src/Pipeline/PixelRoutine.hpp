@@ -31,6 +31,8 @@ namespace sw
 
 		virtual ~PixelRoutine();
 
+		void generate() override;
+
 	protected:
 		Float4 z[4]; // Multisampled z
 		Float4 w;    // Used as is

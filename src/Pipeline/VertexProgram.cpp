@@ -20,6 +20,8 @@
 #include "System/Half.hpp"
 #include "Vulkan/VkDebug.hpp"
 
+#include "Vulkan/VkPipelineLayout.hpp"
+
 namespace sw
 {
 	VertexProgram::VertexProgram(
@@ -45,6 +47,13 @@ namespace sw
 		}
 
 		routine.pushConstants = data + OFFSET(DrawData, pushConstants);
+
+		Pointer<Pointer<Byte>> descriptorSets = Pointer<Pointer<Byte>>(data + OFFSET(DrawData, descriptorSets));
+		auto numDescriptorSets = routine.pipelineLayout->getNumDescriptorSets();
+		for(unsigned int i = 0; i < numDescriptorSets; i++)
+		{
+			routine.descriptorSets[i] = descriptorSets[i];
+		}
 	}
 
 	VertexProgram::~VertexProgram()

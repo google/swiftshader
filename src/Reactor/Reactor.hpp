@@ -24,7 +24,7 @@
 
 #include <string>
 
-#undef Bool
+#undef Bool // b/127920555
 
 #if !defined(NDEBUG) && (REACTOR_LLVM_VERSION >= 7)
 #define ENABLE_RR_PRINT 1 // Enables RR_PRINT(), RR_WATCH()
