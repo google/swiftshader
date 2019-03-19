@@ -77,6 +77,15 @@ namespace sw
 			}
 		});
 
+		setInputBuiltin(spv::BuiltInWorkgroupId, [&](const SpirvShader::BuiltinMapping& builtin, Array<SIMD::Float>& value)
+		{
+			for (uint32_t component = 0; component < builtin.SizeInComponents; component++)
+			{
+				value[builtin.FirstComponent + component] =
+						As<SIMD::Float>(SIMD::Int(Extract(workgroupID, component)));
+			}
+		});
+
 		setInputBuiltin(spv::BuiltInWorkgroupSize, [&](const SpirvShader::BuiltinMapping& builtin, Array<SIMD::Float>& value)
 		{
 			for (uint32_t component = 0; component < builtin.SizeInComponents; component++)
