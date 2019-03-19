@@ -14399,6 +14399,7 @@ dEQP-VK.api.null_handle.destroy_render_pass
 dEQP-VK.api.null_handle.destroy_sampler
 dEQP-VK.api.null_handle.destroy_semaphore
 dEQP-VK.api.null_handle.destroy_shader_module
+dEQP-VK.api.null_handle.free_command_buffers
 dEQP-VK.api.null_handle.free_descriptor_sets
 dEQP-VK.api.null_handle.free_memory
 dEQP-VK.api.object_management.alloc_callback_fail.pipeline_cache
@@ -26793,6 +26794,10 @@ dEQP-VK.spirv_assembly.instruction.compute.localsize.literal_localsize
 dEQP-VK.spirv_assembly.instruction.compute.localsize.literal_localsize_x
 dEQP-VK.spirv_assembly.instruction.compute.localsize.literal_localsize_y
 dEQP-VK.spirv_assembly.instruction.compute.localsize.literal_localsize_z
+dEQP-VK.spirv_assembly.instruction.compute.localsize.specid_localsize
+dEQP-VK.spirv_assembly.instruction.compute.localsize.specid_localsize_x
+dEQP-VK.spirv_assembly.instruction.compute.localsize.specid_localsize_y
+dEQP-VK.spirv_assembly.instruction.compute.localsize.specid_localsize_z
 dEQP-VK.spirv_assembly.instruction.compute.nocontraction.addition
 dEQP-VK.spirv_assembly.instruction.compute.nocontraction.both
 dEQP-VK.spirv_assembly.instruction.compute.nocontraction.multiplication
@@ -27435,7 +27440,9 @@ dEQP-VK.spirv_assembly.instruction.graphics.srem.all_vert
 dEQP-VK.spirv_assembly.instruction.graphics.srem.positive_frag
 dEQP-VK.spirv_assembly.instruction.graphics.srem.positive_vert
 dEQP-VK.subgroups.builtin_var.compute.numsubgroups
+dEQP-VK.subgroups.builtin_var.compute.subgroupid
 dEQP-VK.subgroups.builtin_var.compute.subgroupinvocationid_compute
+dEQP-VK.subgroups.builtin_var.compute.subgroupsize_compute
 dEQP-VK.synchronization.basic.event.device_set_reset
 dEQP-VK.synchronization.basic.event.host_set_reset
 dEQP-VK.synchronization.basic.fence.empty_submit

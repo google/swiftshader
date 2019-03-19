@@ -1,6 +1,5 @@
 dEQP-VK.wsi.xlib.surface.create_simulate_oom
 dEQP-VK.wsi.xlib.surface.query_devgroup_present_capabilities
-dEQP-VK.wsi.xlib.swapchain.render.basic
 dEQP-VK.wsi.xlib.swapchain.simulate_oom.clipped
 dEQP-VK.wsi.xlib.swapchain.simulate_oom.composite_alpha
 dEQP-VK.wsi.xlib.swapchain.simulate_oom.image_array_layers
