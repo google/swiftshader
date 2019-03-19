@@ -139,7 +139,8 @@ protected:
 			executionState.pipelines[VK_PIPELINE_BIND_POINT_COMPUTE]);
 		pipeline->run(groupCountX, groupCountY, groupCountZ,
 			MAX_BOUND_DESCRIPTOR_SETS,
-			executionState.boundDescriptorSets[VK_PIPELINE_BIND_POINT_COMPUTE]);
+			executionState.boundDescriptorSets[VK_PIPELINE_BIND_POINT_COMPUTE],
+			executionState.pushConstants);
 	}
 
 private:
@@ -241,6 +242,8 @@ struct Draw : public CommandBuffer::Command
 			}
 		}
 
+		context.pushConstants = executionState.pushConstants;
+
 		executionState.renderer->setContext(context);
 		executionState.renderer->setScissor(pipeline->getScissor());
 		executionState.renderer->setViewport(pipeline->getViewport());
@@ -287,6 +290,8 @@ struct DrawIndexed : public CommandBuffer::Command
 						attrib.offset + vertexInput.offset + attrib.stride * vertexOffset) : nullptr;
 			}
 		}
+
+		context.pushConstants = executionState.pushConstants;
 
 		context.indexBuffer = Cast(executionState.indexBufferBinding.buffer)->getOffsetPointer(
 				executionState.indexBufferBinding.offset + firstIndex * (executionState.indexType == VK_INDEX_TYPE_UINT16 ? 2 : 4));
@@ -571,6 +576,28 @@ private:
 	const VkDescriptorSet descriptorSet;
 };
 
+struct SetPushConstants : public CommandBuffer::Command
+{
+	SetPushConstants(uint32_t offset, uint32_t size, void const *pValues)
+		: offset(offset), size(size)
+	{
+		ASSERT(offset < MAX_PUSH_CONSTANT_SIZE);
+		ASSERT(offset + size <= MAX_PUSH_CONSTANT_SIZE);
+
+		memcpy(data, pValues, size);
+	}
+
+	void play(CommandBuffer::ExecutionState& executionState)
+	{
+		memcpy(&executionState.pushConstants.data[offset], data, size);
+	}
+
+private:
+	uint32_t offset;
+	uint32_t size;
+	unsigned char data[MAX_PUSH_CONSTANT_SIZE];
+};
+
 CommandBuffer::CommandBuffer(VkCommandBufferLevel pLevel) : level(pLevel)
 {
 	// FIXME (b/119409619): replace this vector by an allocator so we can control all memory allocations
@@ -740,7 +767,7 @@ void CommandBuffer::copyQueryPoolResults(VkQueryPool queryPool, uint32_t firstQu
 void CommandBuffer::pushConstants(VkPipelineLayout layout, VkShaderStageFlags stageFlags,
 	uint32_t offset, uint32_t size, const void* pValues)
 {
-	UNIMPLEMENTED("pushConstants");
+	addCommand<SetPushConstants>(offset, size, pValues);
 }
 
 void CommandBuffer::setViewport(uint32_t firstViewport, uint32_t viewportCount, const VkViewport* pViewports)

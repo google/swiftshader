@@ -52,6 +52,8 @@ namespace sw
 			routine.descriptorSets[i] = descriptorSetsIn[i];
 		}
 
+		routine.pushConstants = Pointer<Byte>(data + OFFSET(Data, pushConstants));
+
 		auto &modes = shader->getModes();
 
 		int localSize[3] = {modes.WorkgroupSizeX, modes.WorkgroupSizeY, modes.WorkgroupSizeZ};
@@ -167,7 +169,7 @@ namespace sw
 	}
 
 	void ComputeProgram::run(
-		Routine *routine, void** descriptorSets,
+		Routine *routine, void** descriptorSets, PushConstantStorage const &pushConstants,
 		uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ)
 	{
 		auto runWorkgroup = (void(*)(void*))(routine->getEntry());
@@ -178,6 +180,7 @@ namespace sw
 		data.numWorkgroups[Y] = groupCountY;
 		data.numWorkgroups[Z] = groupCountZ;
 		data.numWorkgroups[3] = 0;
+		data.pushConstants = pushConstants;
 
 		// TODO(bclayton): Split work across threads.
 		for (uint32_t groupZ = 0; groupZ < groupCountZ; groupZ++)

@@ -15,6 +15,7 @@
 #ifndef sw_Context_hpp
 #define sw_Context_hpp
 
+#include "Vulkan/VkConfig.h"
 #include "Sampler.hpp"
 #include "Stream.hpp"
 #include "Point.hpp"
@@ -105,6 +106,11 @@ namespace sw
 		TRANSPARENCY_ALPHA_TO_COVERAGE,
 
 		TRANSPARENCY_LAST = TRANSPARENCY_ALPHA_TO_COVERAGE
+	};
+
+	struct PushConstantStorage
+	{
+		unsigned char data[vk::MAX_PUSH_CONSTANT_SIZE];
 	};
 
 	class Context
@@ -220,6 +226,8 @@ namespace sw
 		unsigned int sampleMask;
 		unsigned int multiSampleMask;
 		int sampleCount;
+
+		PushConstantStorage pushConstants;
 	};
 }
 

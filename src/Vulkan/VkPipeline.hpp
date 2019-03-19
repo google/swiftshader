@@ -104,7 +104,7 @@ public:
 	void compileShaders(const VkAllocationCallbacks* pAllocator, const VkComputePipelineCreateInfo* pCreateInfo);
 
 	void run(uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ,
-		size_t numDescriptorSets, VkDescriptorSet *descriptorSets);
+		size_t numDescriptorSets, VkDescriptorSet *descriptorSets, sw::PushConstantStorage const &pushConstants);
 
 protected:
 	sw::SpirvShader *shader = nullptr;

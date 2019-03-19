@@ -43,6 +43,8 @@ namespace sw
 			routine.getValue(it->second.Id)[it->second.FirstComponent] =
 					As<Float4>(Int4((*Pointer<Int>(data + OFFSET(DrawData, instanceID)))));
 		}
+
+		routine.pushConstants = data + OFFSET(DrawData, pushConstants);
 	}
 
 	VertexProgram::~VertexProgram()

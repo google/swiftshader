@@ -471,6 +471,7 @@ namespace sw
 
 		void ProcessInterfaceVariable(Object &object);
 
+		SIMD::Int WalkExplicitLayoutAccessChain(Object::ID id, uint32_t numIndexes, uint32_t const *indexIds, SpirvRoutine *routine) const;
 		SIMD::Int WalkAccessChain(Object::ID id, uint32_t numIndexes, uint32_t const *indexIds, SpirvRoutine *routine) const;
 		uint32_t WalkLiteralAccessChain(Type::ID id, uint32_t numIndexes, uint32_t const *indexes) const;
 
@@ -524,6 +525,7 @@ namespace sw
 		SIMD::Int activeLaneMask = SIMD::Int(0xFFFFFFFF);
 
 		std::array<Pointer<Byte>, vk::MAX_BOUND_DESCRIPTOR_SETS> descriptorSets;
+		Pointer<Byte> pushConstants;
 
 		void createLvalue(SpirvShader::Object::ID id, uint32_t size)
 		{

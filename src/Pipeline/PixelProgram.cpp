@@ -31,6 +31,8 @@ namespace sw
 	{
 		enableIndex = 0;
 
+		routine.pushConstants = data + OFFSET(DrawData, pushConstants);
+
 		spirvShader->emit(&routine);
 		spirvShader->emitEpilog(&routine);
 

@@ -444,6 +444,11 @@ namespace sw
 			data->scissorY1 = scissor.offset.y + scissor.extent.height;
 		}
 
+		// Push constants
+		{
+			data->pushConstants = context->pushConstants;
+		}
+
 		draw->primitive = 0;
 		draw->count = count;
 

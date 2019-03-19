@@ -187,6 +187,8 @@ namespace sw
 		float4 a2c1;
 		float4 a2c2;
 		float4 a2c3;
+
+		PushConstantStorage pushConstants;
 	};
 
 	class Renderer : public VertexProcessor, public PixelProcessor, public SetupProcessor

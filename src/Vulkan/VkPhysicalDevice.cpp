@@ -147,7 +147,7 @@ const VkPhysicalDeviceLimits& PhysicalDevice::getLimits() const
 		65536, // maxTexelBufferElements
 		16384, // maxUniformBufferRange
 		(1ul << 27), // maxStorageBufferRange
-		128, // maxPushConstantsSize
+		vk::MAX_PUSH_CONSTANT_SIZE, // maxPushConstantsSize
 		4096, // maxMemoryAllocationCount
 		4000, // maxSamplerAllocationCount
 		131072, // bufferImageGranularity

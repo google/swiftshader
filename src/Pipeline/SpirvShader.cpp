@@ -181,6 +181,7 @@ namespace sw
 					break;
 				case spv::StorageClassUniform:
 				case spv::StorageClassStorageBuffer:
+				case spv::StorageClassPushConstant:
 					object.kind = Object::Kind::PhysicalPointer;
 					break;
 
@@ -192,7 +193,6 @@ namespace sw
 				case spv::StorageClassWorkgroup:
 				case spv::StorageClassCrossWorkgroup:
 				case spv::StorageClassGeneric:
-				case spv::StorageClassPushConstant:
 				case spv::StorageClassAtomicCounter:
 				case spv::StorageClassImage:
 					UNIMPLEMENTED("StorageClass %d not yet implemented", (int)storageClass);
@@ -653,6 +653,7 @@ namespace sw
 		{
 		case spv::StorageClassUniform:
 		case spv::StorageClassStorageBuffer:
+		case spv::StorageClassPushConstant:
 			return false;
 		default:
 			return true;
@@ -742,10 +743,88 @@ namespace sw
 		VisitInterfaceInner<F>(def.word(1), d, f);
 	}
 
+	SIMD::Int SpirvShader::WalkExplicitLayoutAccessChain(Object::ID id, uint32_t numIndexes, uint32_t const *indexIds, SpirvRoutine *routine) const
+	{
+		// Produce a offset into external memory in sizeof(float) units
+
+		int constantOffset = 0;
+		SIMD::Int dynamicOffset = SIMD::Int(0);
+		auto &baseObject = getObject(id);
+		Type::ID typeId = getType(baseObject.type).element;
+
+		// The <base> operand is an intermediate value itself, ie produced by a previous OpAccessChain.
+		// Start with its offset and build from there.
+		if (baseObject.kind == Object::Kind::Value)
+		{
+			dynamicOffset += routine->getIntermediate(id).Int(0);
+		}
+
+		for (auto i = 0u; i < numIndexes; i++)
+		{
+			auto & type = getType(typeId);
+			switch (type.definition.opcode())
+			{
+			case spv::OpTypeStruct:
+			{
+				int memberIndex = GetConstantInt(indexIds[i]);
+				Decorations d{};
+				ApplyDecorationsForIdMember(&d, typeId, memberIndex);
+				ASSERT(d.HasOffset);
+				constantOffset += d.Offset / sizeof(float);
+				typeId = type.definition.word(2u + memberIndex);
+				break;
+			}
+			case spv::OpTypeArray:
+			case spv::OpTypeRuntimeArray:
+			{
+				// TODO: b/127950082: Check bounds.
+				Decorations d{};
+				ApplyDecorationsForId(&d, typeId);
+				ASSERT(d.HasArrayStride);
+				auto & obj = getObject(indexIds[i]);
+				if (obj.kind == Object::Kind::Constant)
+					constantOffset += d.ArrayStride/sizeof(float) * GetConstantInt(indexIds[i]);
+				else
+					dynamicOffset += SIMD::Int(d.ArrayStride / sizeof(float)) * routine->getIntermediate(indexIds[i]).Int(0);
+				typeId = type.element;
+				break;
+			}
+			case spv::OpTypeMatrix:
+			{
+				// TODO: b/127950082: Check bounds.
+				Decorations d{};
+				ApplyDecorationsForId(&d, typeId);
+				ASSERT(d.HasMatrixStride);
+				auto & obj = getObject(indexIds[i]);
+				if (obj.kind == Object::Kind::Constant)
+					constantOffset += d.MatrixStride/sizeof(float) * GetConstantInt(indexIds[i]);
+				else
+					dynamicOffset += SIMD::Int(d.MatrixStride / sizeof(float)) * routine->getIntermediate(indexIds[i]).Int(0);
+				typeId = type.element;
+				break;
+			}
+			case spv::OpTypeVector:
+			{
+				auto & obj = getObject(indexIds[i]);
+				if (obj.kind == Object::Kind::Constant)
+					constantOffset += GetConstantInt(indexIds[i]);
+				else
+					dynamicOffset += routine->getIntermediate(indexIds[i]).Int(0);
+				typeId = type.element;
+				break;
+			}
+			default:
+				UNIMPLEMENTED("Unexpected type '%s' in WalkExplicitLayoutAccessChain", OpcodeName(type.definition.opcode()).c_str());
+			}
+		}
+
+		return dynamicOffset + SIMD::Int(constantOffset);
+	}
+
 	SIMD::Int SpirvShader::WalkAccessChain(Object::ID id, uint32_t numIndexes, uint32_t const *indexIds, SpirvRoutine *routine) const
 	{
-		// TODO: think about explicit layout (UBO/SSBO) storage classes
 		// TODO: avoid doing per-lane work in some cases if we can?
+		// Produce a *component* offset into location-oriented memory
 
 		int constantOffset = 0;
 		SIMD::Int dynamicOffset = SIMD::Int(0);
@@ -1275,6 +1354,11 @@ namespace sw
 			routine->physicalPointers[resultId] = address;
 			break;
 		}
+		case spv::StorageClassPushConstant:
+		{
+			routine->physicalPointers[resultId] = routine->pushConstants;
+			break;
+		}
 		default:
 			break;
 		}
@@ -1372,7 +1456,17 @@ namespace sw
 		ASSERT(getObject(baseId).pointerBase == getObject(objectId).pointerBase);
 
 		auto &dst = routine->createIntermediate(objectId, type.sizeInComponents);
-		dst.emplace(0, WalkAccessChain(baseId, insn.wordCount() - 4, insn.wordPointer(4), routine));
+
+		if (type.storageClass == spv::StorageClassPushConstant ||
+			type.storageClass == spv::StorageClassUniform ||
+			type.storageClass == spv::StorageClassStorageBuffer)
+		{
+			dst.emplace(0, WalkExplicitLayoutAccessChain(baseId, insn.wordCount() - 4, insn.wordPointer(4), routine));
+		}
+		else
+		{
+			dst.emplace(0, WalkAccessChain(baseId, insn.wordCount() - 4, insn.wordPointer(4), routine));
+		}
 	}
 
 	void SpirvShader::EmitStore(InsnIterator insn, SpirvRoutine *routine) const
