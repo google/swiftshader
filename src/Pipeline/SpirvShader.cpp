@@ -215,7 +215,9 @@ namespace sw
 				CreateConstant(insn).constantValue[0] = ~0u;	// represent boolean true as all bits set
 				break;
 			case spv::OpConstantNull:
+			case spv::OpUndef:
 			{
+				// TODO: consider a real LLVM-level undef. For now, zero is a perfectly good value.
 				// OpConstantNull forms a constant of arbitrary type, all zeros.
 				auto &object = CreateConstant(insn);
 				auto &objectTy = getType(object.type);
@@ -1062,6 +1064,7 @@ namespace sw
 		case spv::OpConstantTrue:
 		case spv::OpConstantFalse:
 		case spv::OpConstantComposite:
+		case spv::OpUndef:
 		case spv::OpExtension:
 		case spv::OpCapability:
 		case spv::OpEntryPoint:
