@@ -66,49 +66,46 @@ namespace sw
 	class Intermediate
 	{
 	public:
-		using Scalar = RValue<SIMD::Float>;
-
-		Intermediate(uint32_t size) : contents(new ContentsType[size]), size(size) {
+		Intermediate(uint32_t size) : scalar(new rr::Value*[size]), size(size) {
 #if !defined(NDEBUG) || defined(DCHECK_ALWAYS_ON)
-			memset(contents, 0, sizeof(ContentsType) * size);
+			memset(scalar, 0, sizeof(rr::Value*) * size);
 #endif
 		}
 
 		~Intermediate()
 		{
-			for (auto i = 0u; i < size; i++)
-				reinterpret_cast<Scalar *>(&contents[i])->~Scalar();
-			delete [] contents;
+			delete[] scalar;
 		}
 
-		void emplace(uint32_t n, Scalar&& value)
-		{
-			ASSERT(n < size);
-			ASSERT(reinterpret_cast<Scalar const *>(&contents[n])->value == nullptr);
-			new (&contents[n]) Scalar(value);
-		}
+		void emplace(uint32_t i, RValue<SIMD::Float> &&scalar) { emplace(i, scalar.value); }
+		void emplace(uint32_t i, RValue<SIMD::Int> &&scalar)   { emplace(i, scalar.value); }
+		void emplace(uint32_t i, RValue<SIMD::UInt> &&scalar)  { emplace(i, scalar.value); }
 
-		void emplace(uint32_t n, const Scalar& value)
-		{
-			ASSERT(n < size);
-			ASSERT(reinterpret_cast<Scalar const *>(&contents[n])->value == nullptr);
-			new (&contents[n]) Scalar(value);
-		}
-
-		// Emplace with cast helpers.
-		void emplace(uint32_t n, const RValue<SIMD::Int>& value) { emplace(n, As<SIMD::Float>(value)); }
-		void emplace(uint32_t n, const RValue<SIMD::UInt>& value) { emplace(n, As<SIMD::Float>(value)); }
+		void emplace(uint32_t i, const RValue<SIMD::Float> &scalar) { emplace(i, scalar.value); }
+		void emplace(uint32_t i, const RValue<SIMD::Int> &scalar)   { emplace(i, scalar.value); }
+		void emplace(uint32_t i, const RValue<SIMD::UInt> &scalar)  { emplace(i, scalar.value); }
 
 		// Value retrieval functions.
 		RValue<SIMD::Float> Float(uint32_t i) const
 		{
 			ASSERT(i < size);
-			auto scalar = reinterpret_cast<Scalar const *>(&contents[i]);
-			ASSERT(scalar->value != nullptr);
-			return *scalar;
+			ASSERT(scalar[i] != nullptr);
+			return As<SIMD::Float>(scalar[i]);  // TODO(b/128539387): RValue<SIMD::Float>(scalar)
 		}
-		RValue<SIMD::Int> Int(uint32_t i) const { return As<SIMD::Int>(Float(i)); }
-		RValue<SIMD::UInt> UInt(uint32_t i) const { return As<SIMD::UInt>(Float(i)); }
+
+		RValue<SIMD::Int> Int(uint32_t i) const
+		{
+			ASSERT(i < size);
+			ASSERT(scalar[i] != nullptr);
+			return As<SIMD::Int>(scalar[i]);  // TODO(b/128539387): RValue<SIMD::Int>(scalar)
+		}
+
+		RValue<SIMD::UInt> UInt(uint32_t i) const
+		{
+			ASSERT(i < size);
+			ASSERT(scalar[i] != nullptr);
+			return As<SIMD::UInt>(scalar[i]);  // TODO(b/128539387): RValue<SIMD::UInt>(scalar)
+		}
 
 		// No copy/move construction or assignment
 		Intermediate(Intermediate const &) = delete;
@@ -117,9 +114,14 @@ namespace sw
 		Intermediate & operator=(Intermediate &&) = delete;
 
 	private:
-		using ContentsType = std::aligned_storage<sizeof(Scalar), alignof(Scalar)>::type;
+		void emplace(uint32_t i, rr::Value *value)
+		{
+			ASSERT(i < size);
+			ASSERT(scalar[i] == nullptr);
+			scalar[i] = value;
+		}
 
-		ContentsType *contents;
+		rr::Value **const scalar;
 		uint32_t size;
 	};
 
