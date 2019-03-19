@@ -66,14 +66,6 @@ namespace sw
 		return min(min(a, b), min(c, d));
 	}
 
-	template<class T>
-	inline void swap(T &a, T &b)
-	{
-		T t = a;
-		a = b;
-		b = t;
-	}
-
 	template <typename destType, typename sourceType>
 	destType bit_cast(const sourceType &source)
 	{

@@ -20,6 +20,8 @@
 #include "Vulkan/VkDebug.hpp"
 #include "Vulkan/VkImage.hpp"
 
+#include <utility>
+
 namespace sw
 {
 	Blitter::Blitter()
@@ -1523,14 +1525,14 @@ namespace sw
 
 		if(region.dstOffsets[0].x > region.dstOffsets[1].x)
 		{
-			swap(region.srcOffsets[0].x, region.srcOffsets[1].x);
-			swap(region.dstOffsets[0].x, region.dstOffsets[1].x);
+			std::swap(region.srcOffsets[0].x, region.srcOffsets[1].x);
+			std::swap(region.dstOffsets[0].x, region.dstOffsets[1].x);
 		}
 
 		if(region.dstOffsets[0].y > region.dstOffsets[1].y)
 		{
-			swap(region.srcOffsets[0].y, region.srcOffsets[1].y);
-			swap(region.dstOffsets[0].y, region.dstOffsets[1].y);
+			std::swap(region.srcOffsets[0].y, region.srcOffsets[1].y);
+			std::swap(region.dstOffsets[0].y, region.dstOffsets[1].y);
 		}
 
 		VkExtent3D srcExtent = src->getMipLevelExtent(region.srcSubresource.mipLevel);
