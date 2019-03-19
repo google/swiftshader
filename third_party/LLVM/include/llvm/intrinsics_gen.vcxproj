@@ -187,8 +187,8 @@
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\utils/TableGen/llvm-tblgen.vcxproj">
-      <Project>1F8587CB-0779-44BB-AFA4-03DD8A036D75</Project>
+    <ProjectReference Include="..\..\utils\TableGen\llvm-tblgen.vcxproj">
+      <Project>{1f8587cb-0779-44bb-afa4-03dd8a036d75}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

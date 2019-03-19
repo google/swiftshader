@@ -385,8 +385,8 @@ TEST_P(SwiftShaderVulkanBufferToBufferComputeTest, Memcpy)
          "%5 = OpVariable %11 Uniform\n"        // struct{ int32[] }* in
         "%12 = OpConstant %9 0\n"               // int32(0)
         "%13 = OpConstant %10 0\n"              // uint32(0)
-        "%14 = OpTypeVector %10 3\n"            // vec4<int32>
-        "%15 = OpTypePointer Input %14\n"       // vec4<int32>*
+        "%14 = OpTypeVector %10 3\n"            // vec3<int32>
+        "%15 = OpTypePointer Input %14\n"       // vec3<int32>*
          "%2 = OpVariable %15 Input\n"          // gl_GlobalInvocationId
         "%16 = OpTypePointer Input %10\n"       // uint32*
          "%6 = OpVariable %11 Uniform\n"        // struct{ int32[] }* out
@@ -437,8 +437,8 @@ TEST_P(SwiftShaderVulkanBufferToBufferComputeTest, GlobalInvocationId)
         "%14 = OpConstant %10 0\n"              // uint32(0)
         "%15 = OpConstant %10 1\n"              // uint32(1)
         "%16 = OpConstant %10 2\n"              // uint32(2)
-        "%17 = OpTypeVector %10 3\n"            // vec4<int32>
-        "%18 = OpTypePointer Input %17\n"       // vec4<int32>*
+        "%17 = OpTypeVector %10 3\n"            // vec3<int32>
+        "%18 = OpTypePointer Input %17\n"       // vec3<int32>*
          "%2 = OpVariable %18 Input\n"          // gl_GlobalInvocationId
         "%19 = OpTypePointer Input %10\n"       // uint32*
          "%6 = OpVariable %11 Uniform\n"        // struct{ int32[] }* out
@@ -493,8 +493,8 @@ TEST_P(SwiftShaderVulkanBufferToBufferComputeTest, BranchSimple)
          "%5 = OpVariable %11 Uniform\n"        // struct{ int32[] }* in
         "%12 = OpConstant %9 0\n"               // int32(0)
         "%13 = OpConstant %10 0\n"              // uint32(0)
-        "%14 = OpTypeVector %10 3\n"            // vec4<int32>
-        "%15 = OpTypePointer Input %14\n"       // vec4<int32>*
+        "%14 = OpTypeVector %10 3\n"            // vec3<int32>
+        "%15 = OpTypePointer Input %14\n"       // vec3<int32>*
          "%2 = OpVariable %15 Input\n"          // gl_GlobalInvocationId
         "%16 = OpTypePointer Input %10\n"       // uint32*
          "%6 = OpVariable %11 Uniform\n"        // struct{ int32[] }* out
@@ -552,8 +552,8 @@ TEST_P(SwiftShaderVulkanBufferToBufferComputeTest, BranchDeclareSSA)
          "%5 = OpVariable %11 Uniform\n"        // struct{ int32[] }* in
         "%12 = OpConstant %9 0\n"               // int32(0)
         "%13 = OpConstant %10 0\n"              // uint32(0)
-        "%14 = OpTypeVector %10 3\n"            // vec4<int32>
-        "%15 = OpTypePointer Input %14\n"       // vec4<int32>*
+        "%14 = OpTypeVector %10 3\n"            // vec3<int32>
+        "%15 = OpTypePointer Input %14\n"       // vec3<int32>*
          "%2 = OpVariable %15 Input\n"          // gl_GlobalInvocationId
         "%16 = OpTypePointer Input %10\n"       // uint32*
          "%6 = OpVariable %11 Uniform\n"        // struct{ int32[] }* out

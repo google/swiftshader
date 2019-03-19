@@ -74,7 +74,10 @@
     </Link>
     <PostBuildEvent>
       <Command>mkdir "$(SolutionDir)out\$(Configuration)_$(Platform)\"
-copy "$(OutDir)vk_swiftshader.dll" "$(SolutionDir)out\$(Configuration)_$(Platform)\"</Command>
+mkdir "$(SolutionDir)build\$(Configuration)_$(Platform)\"
+copy "$(OutDir)vk_swiftshader.dll" "$(SolutionDir)out\$(Configuration)_$(Platform)\"
+copy "$(OutDir)vk_swiftshader.dll" "$(SolutionDir)build\$(Configuration)_$(Platform)\"
+IF EXIST "$(SolutionDir)..\deqp" (copy "$(OutDir)vk_swiftshader.dll" "$(SolutionDir)..\deqp\build\external\vulkancts\modules\vulkan\vulkan-1.dll")</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -94,7 +97,10 @@ copy "$(OutDir)vk_swiftshader.dll" "$(SolutionDir)out\$(Configuration)_$(Platfor
     </Link>
     <PostBuildEvent>
       <Command>mkdir "$(SolutionDir)out\$(Configuration)_$(Platform)\"
-copy "$(OutDir)vk_swiftshader.dll" "$(SolutionDir)out\$(Configuration)_$(Platform)\"</Command>
+mkdir "$(SolutionDir)build\$(Configuration)_$(Platform)\"
+copy "$(OutDir)vk_swiftshader.dll" "$(SolutionDir)out\$(Configuration)_$(Platform)\"
+copy "$(OutDir)vk_swiftshader.dll" "$(SolutionDir)build\$(Configuration)_$(Platform)\"
+IF EXIST "$(SolutionDir)..\deqp" (copy "$(OutDir)vk_swiftshader.dll" "$(SolutionDir)..\deqp\build\external\vulkancts\modules\vulkan\vulkan-1.dll")</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
