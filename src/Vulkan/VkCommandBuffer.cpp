@@ -60,7 +60,7 @@ protected:
 		executionState.renderPass = renderPass;
 		executionState.renderPassFramebuffer = framebuffer;
 		renderPass->begin();
-		framebuffer->clear(clearValueCount, clearValues, renderArea);
+		framebuffer->clear(executionState.renderPass, clearValueCount, clearValues, renderArea);
 	}
 
 private:
@@ -81,6 +81,16 @@ public:
 protected:
 	void play(CommandBuffer::ExecutionState& executionState) override
 	{
+		bool hasResolveAttachments = (executionState.renderPass->getCurrentSubpass().pResolveAttachments != nullptr);
+		if(hasResolveAttachments)
+		{
+			// FIXME(sugoi): remove the following lines and resolve in Renderer::finishRendering()
+			//               for a Draw command or after the last command of the current subpass
+			//               which modifies pixels.
+			executionState.renderer->synchronize();
+			executionState.renderPassFramebuffer->resolve(executionState.renderPass);
+		}
+
 		executionState.renderPass->nextSubpass();
 	}
 
@@ -97,13 +107,18 @@ public:
 protected:
 	void play(CommandBuffer::ExecutionState& executionState) override
 	{
-		executionState.renderPass->end();
-		executionState.renderPass = nullptr;
-		executionState.renderPassFramebuffer = nullptr;
-
 		// Execute (implicit or explicit) VkSubpassDependency to VK_SUBPASS_EXTERNAL
 		// This is somewhat heavier than the actual ordering required.
 		executionState.renderer->synchronize();
+
+		// FIXME(sugoi): remove the following line and resolve in Renderer::finishRendering()
+		//               for a Draw command or after the last command of the current subpass
+		//               which modifies pixels.
+		executionState.renderPassFramebuffer->resolve(executionState.renderPass);
+
+		executionState.renderPass->end();
+		executionState.renderPass = nullptr;
+		executionState.renderPassFramebuffer = nullptr;
 	}
 
 private:
@@ -506,7 +521,7 @@ struct ClearAttachment : public CommandBuffer::Command
 
 	void play(CommandBuffer::ExecutionState& executionState) override
 	{
-		executionState.renderPassFramebuffer->clear(attachment, rect);
+		executionState.renderPassFramebuffer->clear(executionState.renderPass, attachment, rect);
 	}
 
 private:

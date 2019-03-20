@@ -22,7 +22,6 @@ namespace vk
 {
 
 Framebuffer::Framebuffer(const VkFramebufferCreateInfo* pCreateInfo, void* mem) :
-	renderPass(Cast(pCreateInfo->renderPass)),
 	attachmentCount(pCreateInfo->attachmentCount),
 	attachments(reinterpret_cast<ImageView**>(mem))
 {
@@ -37,7 +36,7 @@ void Framebuffer::destroy(const VkAllocationCallbacks* pAllocator)
 	vk::deallocate(attachments, pAllocator);
 }
 
-void Framebuffer::clear(uint32_t clearValueCount, const VkClearValue* pClearValues, const VkRect2D& renderArea)
+void Framebuffer::clear(const RenderPass* renderPass, uint32_t clearValueCount, const VkClearValue* pClearValues, const VkRect2D& renderArea)
 {
 	ASSERT(attachmentCount == renderPass->getAttachmentCount());
 
@@ -69,7 +68,7 @@ void Framebuffer::clear(uint32_t clearValueCount, const VkClearValue* pClearValu
 	}
 }
 
-void Framebuffer::clear(const VkClearAttachment& attachment, const VkClearRect& rect)
+void Framebuffer::clear(const RenderPass* renderPass, const VkClearAttachment& attachment, const VkClearRect& rect)
 {
 	if(attachment.aspectMask == VK_IMAGE_ASPECT_COLOR_BIT)
 	{
@@ -97,6 +96,22 @@ void Framebuffer::clear(const VkClearAttachment& attachment, const VkClearRect& 
 ImageView *Framebuffer::getAttachment(uint32_t index) const
 {
 	return attachments[index];
+}
+
+void Framebuffer::resolve(const RenderPass* renderPass)
+{
+	VkSubpassDescription subpass = renderPass->getCurrentSubpass();
+	if(subpass.pResolveAttachments)
+	{
+		for(uint32_t i = 0; i < subpass.colorAttachmentCount; i++)
+		{
+			uint32_t resolveAttachment = subpass.pResolveAttachments[i].attachment;
+			if(resolveAttachment != VK_ATTACHMENT_UNUSED)
+			{
+				attachments[subpass.pColorAttachments[i].attachment]->resolve(attachments[resolveAttachment]);
+			}
+		}
+	}
 }
 
 size_t Framebuffer::ComputeRequiredAllocationSize(const VkFramebufferCreateInfo* pCreateInfo)

@@ -121,6 +121,35 @@ void ImageView::clear(const VkClearValue& clearValue, const VkImageAspectFlags a
 	image->clear(clearValue, renderArea.rect, sr);
 }
 
+void ImageView::resolve(ImageView* resolveAttachment)
+{
+	if((subresourceRange.levelCount != 1) || (resolveAttachment->subresourceRange.levelCount != 1))
+	{
+		UNIMPLEMENTED("levelCount");
+	}
+
+	VkImageCopy region;
+	region.srcSubresource =
+	{
+		subresourceRange.aspectMask,
+		subresourceRange.baseMipLevel,
+		subresourceRange.baseArrayLayer,
+		subresourceRange.layerCount
+	};
+	region.srcOffset = { 0, 0, 0 };
+	region.dstSubresource =
+	{
+		resolveAttachment->subresourceRange.aspectMask,
+		resolveAttachment->subresourceRange.baseMipLevel,
+		resolveAttachment->subresourceRange.baseArrayLayer,
+		resolveAttachment->subresourceRange.layerCount
+	};
+	region.dstOffset = { 0, 0, 0 };
+	region.extent = image->getMipLevelExtent(subresourceRange.baseMipLevel);
+
+	image->copyTo(*(resolveAttachment->image), region);
+}
+
 void *ImageView::getOffsetPointer(const VkOffset3D& offset, VkImageAspectFlagBits aspect) const
 {
 	VkImageSubresourceLayers imageSubresourceLayers =

@@ -34,6 +34,7 @@ public:
 
 	void clear(const VkClearValue& clearValues, VkImageAspectFlags aspectMask, const VkRect2D& renderArea);
 	void clear(const VkClearValue& clearValue, VkImageAspectFlags aspectMask, const VkClearRect& renderArea);
+	void resolve(ImageView* resolveAttachment);
 
 	Format getFormat() const { return format; }
 	int getSampleCount() const { return image->getSampleCountFlagBits(); }

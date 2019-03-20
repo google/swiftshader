@@ -47,7 +47,7 @@ namespace sw
 			return;
 		}
 
-		State state(format, dest->getFormat(aspect), dest->getSampleCountFlagBits(), { 0xF });
+		State state(format, dest->getFormat(aspect), 1, dest->getSampleCountFlagBits(), { 0xF });
 		Routine *blitRoutine = getRoutine(state);
 		if(!blitRoutine)
 		{
@@ -89,6 +89,7 @@ namespace sw
 
 				format.bytes(),                                       // sPitchB
 				dest->rowPitchBytes(aspect, subresLayers.mipLevel),   // dPitchB
+				0,                                                    // sSliceB (unused in clear operations)
 				dest->slicePitchBytes(aspect, subresLayers.mipLevel), // dSliceB
 
 				0.5f, 0.5f, 0.0f, 0.0f, // x0, y0, w, h
@@ -1413,6 +1414,21 @@ namespace sw
 							{
 								return nullptr;
 							}
+
+							if(state.srcSamples > 1) // Resolve multisampled source
+							{
+								Float4 accum = color;
+								for(int i = 1; i < state.srcSamples; i++)
+								{
+									s += *Pointer<Int>(blit + OFFSET(BlitData, sSliceB));
+									if(!read(color, s, state))
+									{
+										return nullptr;
+									}
+									accum += color;
+								}
+								color = accum * Float4(1.0f / static_cast<float>(state.srcSamples));
+							}
 						}
 						else   // Bilinear filtering
 						{
@@ -1551,7 +1567,7 @@ namespace sw
 		float y0 = region.srcOffsets[0].y + (0.5f - region.dstOffsets[0].y) * heightRatio;
 
 		bool doFilter = (filter != VK_FILTER_NEAREST);
-		State state(src->getFormat(srcAspect), dst->getFormat(dstAspect), dst->getSampleCountFlagBits(),
+		State state(src->getFormat(srcAspect), dst->getFormat(dstAspect), src->getSampleCountFlagBits(), dst->getSampleCountFlagBits(),
 		            { doFilter, srcAspect == VK_IMAGE_ASPECT_STENCIL_BIT, doFilter });
 		state.clampToEdge = (region.srcOffsets[0].x < 0) ||
 		                    (region.srcOffsets[0].y < 0) ||
@@ -1573,6 +1589,7 @@ namespace sw
 			nullptr, // dest
 			src->rowPitchBytes(srcAspect, region.srcSubresource.mipLevel),   // sPitchB
 			dst->rowPitchBytes(dstAspect, region.dstSubresource.mipLevel),   // dPitchB
+			src->slicePitchBytes(srcAspect, region.srcSubresource.mipLevel), // sSliceB
 			dst->slicePitchBytes(dstAspect, region.dstSubresource.mipLevel), // dSliceB
 
 			x0,

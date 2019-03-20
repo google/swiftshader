@@ -52,10 +52,6 @@ Image::Image(const Image::CreateInfo* pCreateInfo, void* mem) :
 	samples(pCreateInfo->pCreateInfo->samples),
 	tiling(pCreateInfo->pCreateInfo->tiling)
 {
-	if (samples != VK_SAMPLE_COUNT_1_BIT)
-	{
-		UNIMPLEMENTED("Multisample images not yet supported");
-	}
 }
 
 void Image::destroy(const VkAllocationCallbacks* pAllocator)
@@ -93,7 +89,7 @@ void Image::getSubresourceLayout(const VkImageSubresource* pSubresource, VkSubre
 	}
 	auto aspect = static_cast<VkImageAspectFlagBits>(pSubresource->aspectMask);
 	pLayout->offset = getMemoryOffset(aspect, pSubresource->mipLevel, pSubresource->arrayLayer);
-	pLayout->size = getMipLevelSize(aspect, pSubresource->mipLevel);
+	pLayout->size = getMultiSampledLevelSize(aspect, pSubresource->mipLevel);
 	pLayout->rowPitch = rowPitchBytes(aspect, pSubresource->mipLevel);
 	pLayout->depthPitch = slicePitchBytes(aspect, pSubresource->mipLevel);
 	pLayout->arrayPitch = getLayerSize(aspect);
@@ -121,6 +117,25 @@ void Image::copyTo(VkImage dstImage, const VkImageCopy& pRegion)
 		 (pRegion.dstSubresource.layerCount != 1))
 	{
 		UNIMPLEMENTED("dstSubresource");
+	}
+
+	if((samples > VK_SAMPLE_COUNT_1_BIT) && (imageType == VK_IMAGE_TYPE_2D) && !format.isNonNormalizedInteger())
+	{
+		// Requires multisampling resolve
+		VkImageBlit region;
+		region.srcSubresource = pRegion.srcSubresource;
+		region.srcOffsets[0] = pRegion.srcOffset;
+		region.srcOffsets[1].x = region.srcOffsets[0].x + pRegion.extent.width;
+		region.srcOffsets[1].y = region.srcOffsets[0].y + pRegion.extent.height;
+		region.srcOffsets[1].z = region.srcOffsets[0].z + pRegion.extent.depth;
+
+		region.dstSubresource = pRegion.dstSubresource;
+		region.dstOffsets[0] = pRegion.dstOffset;
+		region.dstOffsets[1].x = region.dstOffsets[0].x + pRegion.extent.width;
+		region.dstOffsets[1].y = region.dstOffsets[0].y + pRegion.extent.height;
+		region.dstOffsets[1].z = region.dstOffsets[0].z + pRegion.extent.depth;
+
+		return device->getBlitter()->blit(this, dst, region, VK_FILTER_NEAREST);
 	}
 
 	VkImageAspectFlagBits srcAspect = static_cast<VkImageAspectFlagBits>(pRegion.srcSubresource.aspectMask);
@@ -239,10 +254,7 @@ void Image::copy(VkBuffer buf, const VkBufferImageCopy& region, bool bufferIsSou
 
 	Buffer* buffer = Cast(buf);
 	uint8_t* bufferMemory = static_cast<uint8_t*>(buffer->getOffsetPointer(region.bufferOffset));
-	uint8_t* imageMemory = static_cast<uint8_t*>(deviceMemory->getOffsetPointer(
-	                       getMemoryOffset(aspect, region.imageSubresource.mipLevel,
-	                                       region.imageSubresource.baseArrayLayer) +
-	                       texelOffsetBytesInStorage(region.imageOffset, region.imageSubresource)));
+	uint8_t* imageMemory = static_cast<uint8_t*>(getTexelPointer(region.imageOffset, region.imageSubresource));
 	uint8_t* srcMemory = bufferIsSource ? bufferMemory : imageMemory;
 	uint8_t* dstMemory = bufferIsSource ? imageMemory : bufferMemory;
 
@@ -467,7 +479,7 @@ VkDeviceSize Image::getMemoryOffset(VkImageAspectFlagBits aspect, uint32_t mipLe
 	VkDeviceSize offset = getMemoryOffset(aspect);
 	for(uint32_t i = 0; i < mipLevel; ++i)
 	{
-		offset += getMipLevelSize(aspect, i);
+		offset += getMultiSampledLevelSize(aspect, i);
 	}
 	return offset;
 }
@@ -482,13 +494,18 @@ VkDeviceSize Image::getMipLevelSize(VkImageAspectFlagBits aspect, uint32_t mipLe
 	return getMipLevelExtent(mipLevel).depth * slicePitchBytes(aspect, mipLevel);
 }
 
+VkDeviceSize Image::getMultiSampledLevelSize(VkImageAspectFlagBits aspect, uint32_t mipLevel) const
+{
+	return getMipLevelSize(aspect, mipLevel) * samples;
+}
+
 VkDeviceSize Image::getLayerSize(VkImageAspectFlagBits aspect) const
 {
 	VkDeviceSize layerSize = 0;
 
 	for(uint32_t mipLevel = 0; mipLevel < mipLevels; ++mipLevel)
 	{
-		layerSize += getMipLevelSize(aspect, mipLevel);
+		layerSize += getMultiSampledLevelSize(aspect, mipLevel);
 	}
 
 	return layerSize;

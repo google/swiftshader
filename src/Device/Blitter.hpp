@@ -63,8 +63,8 @@ namespace sw
 		{
 			State() = default;
 			State(const Options &options) : Options(options) {}
-			State(vk::Format sourceFormat, vk::Format destFormat, int destSamples, const Options &options) :
-				Options(options), sourceFormat(sourceFormat), destFormat(destFormat), destSamples(destSamples) {}
+			State(vk::Format sourceFormat, vk::Format destFormat, int srcSamples, int destSamples, const Options &options) :
+				Options(options), sourceFormat(sourceFormat), destFormat(destFormat), srcSamples(srcSamples), destSamples(destSamples) {}
 
 			bool operator==(const State &state) const
 			{
@@ -73,6 +73,7 @@ namespace sw
 
 			vk::Format sourceFormat;
 			vk::Format destFormat;
+			int srcSamples = 0;
 			int destSamples = 0;
 		};
 
@@ -82,6 +83,7 @@ namespace sw
 			void *dest;
 			int sPitchB;
 			int dPitchB;
+			int sSliceB;
 			int dSliceB;
 
 			float x0;
