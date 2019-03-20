@@ -4,6 +4,3 @@ dEQP-VK.draw.basic_draw.draw.triangle_strip.1
 dEQP-VK.draw.basic_draw.draw_indexed.line_strip.1
 dEQP-VK.draw.basic_draw.draw_indexed.triangle_fan.1
 dEQP-VK.draw.basic_draw.draw_indexed.triangle_strip.1
-dEQP-VK.ubo.random.all_out_of_order_offsets.11
-dEQP-VK.ubo.random.all_out_of_order_offsets.45
-dEQP-VK.ubo.random.all_per_block_buffers.28
