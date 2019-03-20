@@ -1459,7 +1459,7 @@ namespace sw
 		auto &dst = routine->createIntermediate(objectId, objectTy.sizeInComponents);
 		for (auto i = 0u; i < objectTy.sizeInComponents; i++)
 		{
-			dst.emplace(i, load[i]);
+			dst.move(i, load[i]);
 		}
 	}
 
@@ -1480,11 +1480,11 @@ namespace sw
 		   type.storageClass == spv::StorageClassUniform ||
 		   type.storageClass == spv::StorageClassStorageBuffer)
 		{
-			dst.emplace(0, WalkExplicitLayoutAccessChain(baseId, numIndexes, indexes, routine));
+			dst.move(0, WalkExplicitLayoutAccessChain(baseId, numIndexes, indexes, routine));
 		}
 		else
 		{
-			dst.emplace(0, WalkAccessChain(baseId, numIndexes, indexes, routine));
+			dst.move(0, WalkAccessChain(baseId, numIndexes, indexes, routine));
 		}
 	}
 
@@ -1614,7 +1614,7 @@ namespace sw
 
 			for (auto j = 0u; j < srcObjectTy.sizeInComponents; j++)
 			{
-				dst.emplace(offset++, srcObjectAccess.Float(j));
+				dst.move(offset++, srcObjectAccess.Float(j));
 			}
 		}
 	}
@@ -1634,17 +1634,17 @@ namespace sw
 		// old components before
 		for (auto i = 0u; i < firstNewComponent; i++)
 		{
-			dst.emplace(i, srcObjectAccess.Float(i));
+			dst.move(i, srcObjectAccess.Float(i));
 		}
 		// new part
 		for (auto i = 0u; i < newPartObjectTy.sizeInComponents; i++)
 		{
-			dst.emplace(firstNewComponent + i, newPartObjectAccess.Float(i));
+			dst.move(firstNewComponent + i, newPartObjectAccess.Float(i));
 		}
 		// old components after
 		for (auto i = firstNewComponent + newPartObjectTy.sizeInComponents; i < type.sizeInComponents; i++)
 		{
-			dst.emplace(i, srcObjectAccess.Float(i));
+			dst.move(i, srcObjectAccess.Float(i));
 		}
 	}
 
@@ -1659,7 +1659,7 @@ namespace sw
 		GenericValue compositeObjectAccess(this, routine, insn.word(3));
 		for (auto i = 0u; i < type.sizeInComponents; i++)
 		{
-			dst.emplace(i, compositeObjectAccess.Float(firstComponent + i));
+			dst.move(i, compositeObjectAccess.Float(firstComponent + i));
 		}
 	}
 
@@ -1682,15 +1682,15 @@ namespace sw
 			{
 				// Undefined value. Until we decide to do real undef values, zero is as good
 				// a value as any
-				dst.emplace(i, RValue<SIMD::Float>(0.0f));
+				dst.move(i, RValue<SIMD::Float>(0.0f));
 			}
 			else if (selector < firstHalfType.sizeInComponents)
 			{
-				dst.emplace(i, firstHalfAccess.Float(selector));
+				dst.move(i, firstHalfAccess.Float(selector));
 			}
 			else
 			{
-				dst.emplace(i, secondHalfAccess.Float(selector - firstHalfType.sizeInComponents));
+				dst.move(i, secondHalfAccess.Float(selector - firstHalfType.sizeInComponents));
 			}
 		}
 	}
@@ -1711,7 +1711,7 @@ namespace sw
 			v |= CmpEQ(index.UInt(0), SIMD::UInt(i)) & src.UInt(i);
 		}
 
-		dst.emplace(0, v);
+		dst.move(0, v);
 	}
 
 	void SpirvShader::EmitVectorInsertDynamic(sw::SpirvShader::InsnIterator insn, sw::SpirvRoutine *routine) const
@@ -1726,7 +1726,7 @@ namespace sw
 		for (auto i = 0u; i < type.sizeInComponents; i++)
 		{
 			SIMD::UInt mask = CmpEQ(SIMD::UInt(i), index.UInt(0));
-			dst.emplace(i, (src.UInt(i) & ~mask) | (component.UInt(0) & mask));
+			dst.move(i, (src.UInt(i) & ~mask) | (component.UInt(0) & mask));
 		}
 	}
 
@@ -1739,7 +1739,7 @@ namespace sw
 
 		for (auto i = 0u; i < type.sizeInComponents; i++)
 		{
-			dst.emplace(i, lhs.Float(i) * rhs.Float(0));
+			dst.move(i, lhs.Float(i) * rhs.Float(0));
 		}
 	}
 
@@ -1755,34 +1755,34 @@ namespace sw
 			{
 			case spv::OpNot:
 			case spv::OpLogicalNot:		// logical not == bitwise not due to all-bits boolean representation
-				dst.emplace(i, ~src.UInt(i));
+				dst.move(i, ~src.UInt(i));
 				break;
 			case spv::OpSNegate:
-				dst.emplace(i, -src.Int(i));
+				dst.move(i, -src.Int(i));
 				break;
 			case spv::OpFNegate:
-				dst.emplace(i, -src.Float(i));
+				dst.move(i, -src.Float(i));
 				break;
 			case spv::OpConvertFToU:
-				dst.emplace(i, SIMD::UInt(src.Float(i)));
+				dst.move(i, SIMD::UInt(src.Float(i)));
 				break;
 			case spv::OpConvertFToS:
-				dst.emplace(i, SIMD::Int(src.Float(i)));
+				dst.move(i, SIMD::Int(src.Float(i)));
 				break;
 			case spv::OpConvertSToF:
-				dst.emplace(i, SIMD::Float(src.Int(i)));
+				dst.move(i, SIMD::Float(src.Int(i)));
 				break;
 			case spv::OpConvertUToF:
-				dst.emplace(i, SIMD::Float(src.UInt(i)));
+				dst.move(i, SIMD::Float(src.UInt(i)));
 				break;
 			case spv::OpBitcast:
-				dst.emplace(i, src.Float(i));
+				dst.move(i, src.Float(i));
 				break;
 			case spv::OpIsInf:
-				dst.emplace(i, IsInf(src.Float(i)));
+				dst.move(i, IsInf(src.Float(i)));
 				break;
 			case spv::OpIsNan:
-				dst.emplace(i, IsNan(src.Float(i)));
+				dst.move(i, IsNan(src.Float(i)));
 				break;
 			case spv::OpDPdx:
 			case spv::OpDPdxCoarse:
@@ -1790,15 +1790,15 @@ namespace sw
 				//    0 1
 				//    2 3
 				static_assert(SIMD::Width == 4, "All cross-lane instructions will need care when using a different width");
-				dst.emplace(i, SIMD::Float(Extract(src.Float(i), 1) - Extract(src.Float(i), 0)));
+				dst.move(i, SIMD::Float(Extract(src.Float(i), 1) - Extract(src.Float(i), 0)));
 				break;
 			case spv::OpDPdy:
 			case spv::OpDPdyCoarse:
-				dst.emplace(i, SIMD::Float(Extract(src.Float(i), 2) - Extract(src.Float(i), 0)));
+				dst.move(i, SIMD::Float(Extract(src.Float(i), 2) - Extract(src.Float(i), 0)));
 				break;
 			case spv::OpFwidth:
 			case spv::OpFwidthCoarse:
-				dst.emplace(i, SIMD::Float(Abs(Extract(src.Float(i), 1) - Extract(src.Float(i), 0))
+				dst.move(i, SIMD::Float(Abs(Extract(src.Float(i), 1) - Extract(src.Float(i), 0))
 							+ Abs(Extract(src.Float(i), 2) - Extract(src.Float(i), 0))));
 				break;
 			case spv::OpDPdxFine:
@@ -1808,7 +1808,7 @@ namespace sw
 				SIMD::Float v = SIMD::Float(firstRow);
 				v = Insert(v, secondRow, 2);
 				v = Insert(v, secondRow, 3);
-				dst.emplace(i, v);
+				dst.move(i, v);
 				break;
 			}
 			case spv::OpDPdyFine:
@@ -1818,7 +1818,7 @@ namespace sw
 				SIMD::Float v = SIMD::Float(firstColumn);
 				v = Insert(v, secondColumn, 1);
 				v = Insert(v, secondColumn, 3);
-				dst.emplace(i, v);
+				dst.move(i, v);
 				break;
 			}
 			case spv::OpFwidthFine:
@@ -1833,7 +1833,7 @@ namespace sw
 				SIMD::Float dpdy = SIMD::Float(firstColumn);
 				dpdy = Insert(dpdy, secondColumn, 1);
 				dpdy = Insert(dpdy, secondColumn, 3);
-				dst.emplace(i, Abs(dpdx) + Abs(dpdy));
+				dst.move(i, Abs(dpdx) + Abs(dpdy));
 				break;
 			}
 			default:
@@ -1855,13 +1855,13 @@ namespace sw
 			switch (insn.opcode())
 			{
 			case spv::OpIAdd:
-				dst.emplace(i, lhs.Int(i) + rhs.Int(i));
+				dst.move(i, lhs.Int(i) + rhs.Int(i));
 				break;
 			case spv::OpISub:
-				dst.emplace(i, lhs.Int(i) - rhs.Int(i));
+				dst.move(i, lhs.Int(i) - rhs.Int(i));
 				break;
 			case spv::OpIMul:
-				dst.emplace(i, lhs.Int(i) * rhs.Int(i));
+				dst.move(i, lhs.Int(i) * rhs.Int(i));
 				break;
 			case spv::OpSDiv:
 			{
@@ -1869,13 +1869,13 @@ namespace sw
 				SIMD::Int b = rhs.Int(i);
 				b = b | CmpEQ(b, SIMD::Int(0)); // prevent divide-by-zero
 				a = a | (CmpEQ(a, SIMD::Int(0x80000000)) & CmpEQ(b, SIMD::Int(-1))); // prevent integer overflow
-				dst.emplace(i, a / b);
+				dst.move(i, a / b);
 				break;
 			}
 			case spv::OpUDiv:
 			{
 				auto zeroMask = As<SIMD::UInt>(CmpEQ(rhs.Int(i), SIMD::Int(0)));
-				dst.emplace(i, lhs.UInt(i) / (rhs.UInt(i) | zeroMask));
+				dst.move(i, lhs.UInt(i) / (rhs.UInt(i) | zeroMask));
 				break;
 			}
 			case spv::OpSRem:
@@ -1884,7 +1884,7 @@ namespace sw
 				SIMD::Int b = rhs.Int(i);
 				b = b | CmpEQ(b, SIMD::Int(0)); // prevent divide-by-zero
 				a = a | (CmpEQ(a, SIMD::Int(0x80000000)) & CmpEQ(b, SIMD::Int(-1))); // prevent integer overflow
-				dst.emplace(i, a % b);
+				dst.move(i, a % b);
 				break;
 			}
 			case spv::OpSMod:
@@ -1902,132 +1902,132 @@ namespace sw
 				// See also http://mathforum.org/library/drmath/view/52343.html
 				auto signDiff = CmpNEQ(CmpGE(a, SIMD::Int(0)), CmpGE(b, SIMD::Int(0)));
 				auto fixedMod = mod + (b & CmpNEQ(mod, SIMD::Int(0)) & signDiff);
-				dst.emplace(i, As<SIMD::Float>(fixedMod));
+				dst.move(i, As<SIMD::Float>(fixedMod));
 				break;
 			}
 			case spv::OpUMod:
 			{
 				auto zeroMask = As<SIMD::UInt>(CmpEQ(rhs.Int(i), SIMD::Int(0)));
-				dst.emplace(i, lhs.UInt(i) % (rhs.UInt(i) | zeroMask));
+				dst.move(i, lhs.UInt(i) % (rhs.UInt(i) | zeroMask));
 				break;
 			}
 			case spv::OpIEqual:
 			case spv::OpLogicalEqual:
-				dst.emplace(i, CmpEQ(lhs.Int(i), rhs.Int(i)));
+				dst.move(i, CmpEQ(lhs.Int(i), rhs.Int(i)));
 				break;
 			case spv::OpINotEqual:
 			case spv::OpLogicalNotEqual:
-				dst.emplace(i, CmpNEQ(lhs.Int(i), rhs.Int(i)));
+				dst.move(i, CmpNEQ(lhs.Int(i), rhs.Int(i)));
 				break;
 			case spv::OpUGreaterThan:
-				dst.emplace(i, CmpGT(lhs.UInt(i), rhs.UInt(i)));
+				dst.move(i, CmpGT(lhs.UInt(i), rhs.UInt(i)));
 				break;
 			case spv::OpSGreaterThan:
-				dst.emplace(i, CmpGT(lhs.Int(i), rhs.Int(i)));
+				dst.move(i, CmpGT(lhs.Int(i), rhs.Int(i)));
 				break;
 			case spv::OpUGreaterThanEqual:
-				dst.emplace(i, CmpGE(lhs.UInt(i), rhs.UInt(i)));
+				dst.move(i, CmpGE(lhs.UInt(i), rhs.UInt(i)));
 				break;
 			case spv::OpSGreaterThanEqual:
-				dst.emplace(i, CmpGE(lhs.Int(i), rhs.Int(i)));
+				dst.move(i, CmpGE(lhs.Int(i), rhs.Int(i)));
 				break;
 			case spv::OpULessThan:
-				dst.emplace(i, CmpLT(lhs.UInt(i), rhs.UInt(i)));
+				dst.move(i, CmpLT(lhs.UInt(i), rhs.UInt(i)));
 				break;
 			case spv::OpSLessThan:
-				dst.emplace(i, CmpLT(lhs.Int(i), rhs.Int(i)));
+				dst.move(i, CmpLT(lhs.Int(i), rhs.Int(i)));
 				break;
 			case spv::OpULessThanEqual:
-				dst.emplace(i, CmpLE(lhs.UInt(i), rhs.UInt(i)));
+				dst.move(i, CmpLE(lhs.UInt(i), rhs.UInt(i)));
 				break;
 			case spv::OpSLessThanEqual:
-				dst.emplace(i, CmpLE(lhs.Int(i), rhs.Int(i)));
+				dst.move(i, CmpLE(lhs.Int(i), rhs.Int(i)));
 				break;
 			case spv::OpFAdd:
-				dst.emplace(i, lhs.Float(i) + rhs.Float(i));
+				dst.move(i, lhs.Float(i) + rhs.Float(i));
 				break;
 			case spv::OpFSub:
-				dst.emplace(i, lhs.Float(i) - rhs.Float(i));
+				dst.move(i, lhs.Float(i) - rhs.Float(i));
 				break;
 			case spv::OpFMul:
-				dst.emplace(i, lhs.Float(i) * rhs.Float(i));
+				dst.move(i, lhs.Float(i) * rhs.Float(i));
 				break;
 			case spv::OpFDiv:
-				dst.emplace(i, lhs.Float(i) / rhs.Float(i));
+				dst.move(i, lhs.Float(i) / rhs.Float(i));
 				break;
 			case spv::OpFMod:
 				// TODO(b/126873455): inaccurate for values greater than 2^24
-				dst.emplace(i, lhs.Float(i) - rhs.Float(i) * Floor(lhs.Float(i) / rhs.Float(i)));
+				dst.move(i, lhs.Float(i) - rhs.Float(i) * Floor(lhs.Float(i) / rhs.Float(i)));
 				break;
 			case spv::OpFRem:
-				dst.emplace(i, lhs.Float(i) % rhs.Float(i));
+				dst.move(i, lhs.Float(i) % rhs.Float(i));
 				break;
 			case spv::OpFOrdEqual:
-				dst.emplace(i, CmpEQ(lhs.Float(i), rhs.Float(i)));
+				dst.move(i, CmpEQ(lhs.Float(i), rhs.Float(i)));
 				break;
 			case spv::OpFUnordEqual:
-				dst.emplace(i, CmpUEQ(lhs.Float(i), rhs.Float(i)));
+				dst.move(i, CmpUEQ(lhs.Float(i), rhs.Float(i)));
 				break;
 			case spv::OpFOrdNotEqual:
-				dst.emplace(i, CmpNEQ(lhs.Float(i), rhs.Float(i)));
+				dst.move(i, CmpNEQ(lhs.Float(i), rhs.Float(i)));
 				break;
 			case spv::OpFUnordNotEqual:
-				dst.emplace(i, CmpUNEQ(lhs.Float(i), rhs.Float(i)));
+				dst.move(i, CmpUNEQ(lhs.Float(i), rhs.Float(i)));
 				break;
 			case spv::OpFOrdLessThan:
-				dst.emplace(i, CmpLT(lhs.Float(i), rhs.Float(i)));
+				dst.move(i, CmpLT(lhs.Float(i), rhs.Float(i)));
 				break;
 			case spv::OpFUnordLessThan:
-				dst.emplace(i, CmpULT(lhs.Float(i), rhs.Float(i)));
+				dst.move(i, CmpULT(lhs.Float(i), rhs.Float(i)));
 				break;
 			case spv::OpFOrdGreaterThan:
-				dst.emplace(i, CmpGT(lhs.Float(i), rhs.Float(i)));
+				dst.move(i, CmpGT(lhs.Float(i), rhs.Float(i)));
 				break;
 			case spv::OpFUnordGreaterThan:
-				dst.emplace(i, CmpUGT(lhs.Float(i), rhs.Float(i)));
+				dst.move(i, CmpUGT(lhs.Float(i), rhs.Float(i)));
 				break;
 			case spv::OpFOrdLessThanEqual:
-				dst.emplace(i, CmpLE(lhs.Float(i), rhs.Float(i)));
+				dst.move(i, CmpLE(lhs.Float(i), rhs.Float(i)));
 				break;
 			case spv::OpFUnordLessThanEqual:
-				dst.emplace(i, CmpULE(lhs.Float(i), rhs.Float(i)));
+				dst.move(i, CmpULE(lhs.Float(i), rhs.Float(i)));
 				break;
 			case spv::OpFOrdGreaterThanEqual:
-				dst.emplace(i, CmpGE(lhs.Float(i), rhs.Float(i)));
+				dst.move(i, CmpGE(lhs.Float(i), rhs.Float(i)));
 				break;
 			case spv::OpFUnordGreaterThanEqual:
-				dst.emplace(i, CmpUGE(lhs.Float(i), rhs.Float(i)));
+				dst.move(i, CmpUGE(lhs.Float(i), rhs.Float(i)));
 				break;
 			case spv::OpShiftRightLogical:
-				dst.emplace(i, lhs.UInt(i) >> rhs.UInt(i));
+				dst.move(i, lhs.UInt(i) >> rhs.UInt(i));
 				break;
 			case spv::OpShiftRightArithmetic:
-				dst.emplace(i, lhs.Int(i) >> rhs.Int(i));
+				dst.move(i, lhs.Int(i) >> rhs.Int(i));
 				break;
 			case spv::OpShiftLeftLogical:
-				dst.emplace(i, lhs.UInt(i) << rhs.UInt(i));
+				dst.move(i, lhs.UInt(i) << rhs.UInt(i));
 				break;
 			case spv::OpBitwiseOr:
 			case spv::OpLogicalOr:
-				dst.emplace(i, lhs.UInt(i) | rhs.UInt(i));
+				dst.move(i, lhs.UInt(i) | rhs.UInt(i));
 				break;
 			case spv::OpBitwiseXor:
-				dst.emplace(i, lhs.UInt(i) ^ rhs.UInt(i));
+				dst.move(i, lhs.UInt(i) ^ rhs.UInt(i));
 				break;
 			case spv::OpBitwiseAnd:
 			case spv::OpLogicalAnd:
-				dst.emplace(i, lhs.UInt(i) & rhs.UInt(i));
+				dst.move(i, lhs.UInt(i) & rhs.UInt(i));
 				break;
 			case spv::OpSMulExtended:
 				// Extended ops: result is a structure containing two members of the same type as lhs & rhs.
 				// In our flat view then, component i is the i'th component of the first member;
 				// component i + N is the i'th component of the second member.
-				dst.emplace(i, lhs.Int(i) * rhs.Int(i));
-				dst.emplace(i + lhsType.sizeInComponents, MulHigh(lhs.Int(i), rhs.Int(i)));
+				dst.move(i, lhs.Int(i) * rhs.Int(i));
+				dst.move(i + lhsType.sizeInComponents, MulHigh(lhs.Int(i), rhs.Int(i)));
 				break;
 			case spv::OpUMulExtended:
-				dst.emplace(i, lhs.UInt(i) * rhs.UInt(i));
-				dst.emplace(i + lhsType.sizeInComponents, MulHigh(lhs.UInt(i), rhs.UInt(i)));
+				dst.move(i, lhs.UInt(i) * rhs.UInt(i));
+				dst.move(i + lhsType.sizeInComponents, MulHigh(lhs.UInt(i), rhs.UInt(i)));
 				break;
 			default:
 				UNIMPLEMENTED("Unhandled binary operator %s", OpcodeName(insn.opcode()).c_str());
@@ -2044,7 +2044,7 @@ namespace sw
 		auto lhs = GenericValue(this, routine, insn.word(3));
 		auto rhs = GenericValue(this, routine, insn.word(4));
 
-		dst.emplace(0, Dot(lhsType.sizeInComponents, lhs, rhs));
+		dst.move(0, Dot(lhsType.sizeInComponents, lhs, rhs));
 	}
 
 	void SpirvShader::EmitSelect(InsnIterator insn, SpirvRoutine *routine) const
@@ -2057,7 +2057,7 @@ namespace sw
 
 		for (auto i = 0u; i < type.sizeInComponents; i++)
 		{
-			dst.emplace(i, (cond.Int(i) & lhs.Int(i)) | (~cond.Int(i) & rhs.Int(i)));   // FIXME: IfThenElse()
+			dst.move(i, (cond.Int(i) & lhs.Int(i)) | (~cond.Int(i) & rhs.Int(i)));   // FIXME: IfThenElse()
 		}
 	}
 
@@ -2074,7 +2074,7 @@ namespace sw
 			auto src = GenericValue(this, routine, insn.word(5));
 			for (auto i = 0u; i < type.sizeInComponents; i++)
 			{
-				dst.emplace(i, Abs(src.Float(i)));
+				dst.move(i, Abs(src.Float(i)));
 			}
 			break;
 		}
@@ -2083,7 +2083,7 @@ namespace sw
 			auto src = GenericValue(this, routine, insn.word(5));
 			for (auto i = 0u; i < type.sizeInComponents; i++)
 			{
-				dst.emplace(i, Abs(src.Int(i)));
+				dst.move(i, Abs(src.Int(i)));
 			}
 			break;
 		}
@@ -2091,9 +2091,9 @@ namespace sw
 		{
 			auto lhs = GenericValue(this, routine, insn.word(5));
 			auto rhs = GenericValue(this, routine, insn.word(6));
-			dst.emplace(0, lhs.Float(1) * rhs.Float(2) - rhs.Float(1) * lhs.Float(2));
-			dst.emplace(1, lhs.Float(2) * rhs.Float(0) - rhs.Float(2) * lhs.Float(0));
-			dst.emplace(2, lhs.Float(0) * rhs.Float(1) - rhs.Float(0) * lhs.Float(1));
+			dst.move(0, lhs.Float(1) * rhs.Float(2) - rhs.Float(1) * lhs.Float(2));
+			dst.move(1, lhs.Float(2) * rhs.Float(0) - rhs.Float(2) * lhs.Float(0));
+			dst.move(2, lhs.Float(0) * rhs.Float(1) - rhs.Float(0) * lhs.Float(1));
 			break;
 		}
 		case GLSLstd450Floor:
@@ -2101,7 +2101,7 @@ namespace sw
 			auto src = GenericValue(this, routine, insn.word(5));
 			for (auto i = 0u; i < type.sizeInComponents; i++)
 			{
-				dst.emplace(i, Floor(src.Float(i)));
+				dst.move(i, Floor(src.Float(i)));
 			}
 			break;
 		}
@@ -2110,7 +2110,7 @@ namespace sw
 			auto src = GenericValue(this, routine, insn.word(5));
 			for (auto i = 0u; i < type.sizeInComponents; i++)
 			{
-				dst.emplace(i, Trunc(src.Float(i)));
+				dst.move(i, Trunc(src.Float(i)));
 			}
 			break;
 		}
@@ -2119,7 +2119,7 @@ namespace sw
 			auto src = GenericValue(this, routine, insn.word(5));
 			for (auto i = 0u; i < type.sizeInComponents; i++)
 			{
-				dst.emplace(i, Ceil(src.Float(i)));
+				dst.move(i, Ceil(src.Float(i)));
 			}
 			break;
 		}
@@ -2128,7 +2128,7 @@ namespace sw
 			auto src = GenericValue(this, routine, insn.word(5));
 			for (auto i = 0u; i < type.sizeInComponents; i++)
 			{
-				dst.emplace(i, Frac(src.Float(i)));
+				dst.move(i, Frac(src.Float(i)));
 			}
 			break;
 		}
@@ -2137,7 +2137,7 @@ namespace sw
 			auto src = GenericValue(this, routine, insn.word(5));
 			for (auto i = 0u; i < type.sizeInComponents; i++)
 			{
-				dst.emplace(i, Round(src.Float(i)));
+				dst.move(i, Round(src.Float(i)));
 			}
 			break;
 		}
@@ -2148,7 +2148,7 @@ namespace sw
 			{
 				auto x = Round(src.Float(i));
 				// dst = round(src) + ((round(src) < src) * 2 - 1) * (fract(src) == 0.5) * isOdd(round(src));
-				dst.emplace(i, x + ((SIMD::Float(CmpLT(x, src.Float(i)) & SIMD::Int(1)) * SIMD::Float(2.0f)) - SIMD::Float(1.0f)) *
+				dst.move(i, x + ((SIMD::Float(CmpLT(x, src.Float(i)) & SIMD::Int(1)) * SIMD::Float(2.0f)) - SIMD::Float(1.0f)) *
 						SIMD::Float(CmpEQ(Frac(src.Float(i)), SIMD::Float(0.5f)) & SIMD::Int(1)) * SIMD::Float(Int4(x) & SIMD::Int(1)));
 			}
 			break;
@@ -2159,7 +2159,7 @@ namespace sw
 			auto rhs = GenericValue(this, routine, insn.word(6));
 			for (auto i = 0u; i < type.sizeInComponents; i++)
 			{
-				dst.emplace(i, Min(lhs.Float(i), rhs.Float(i)));
+				dst.move(i, Min(lhs.Float(i), rhs.Float(i)));
 			}
 			break;
 		}
@@ -2169,7 +2169,7 @@ namespace sw
 			auto rhs = GenericValue(this, routine, insn.word(6));
 			for (auto i = 0u; i < type.sizeInComponents; i++)
 			{
-				dst.emplace(i, Max(lhs.Float(i), rhs.Float(i)));
+				dst.move(i, Max(lhs.Float(i), rhs.Float(i)));
 			}
 			break;
 		}
@@ -2179,7 +2179,7 @@ namespace sw
 			auto rhs = GenericValue(this, routine, insn.word(6));
 			for (auto i = 0u; i < type.sizeInComponents; i++)
 			{
-				dst.emplace(i, Min(lhs.Int(i), rhs.Int(i)));
+				dst.move(i, Min(lhs.Int(i), rhs.Int(i)));
 			}
 			break;
 		}
@@ -2189,7 +2189,7 @@ namespace sw
 			auto rhs = GenericValue(this, routine, insn.word(6));
 			for (auto i = 0u; i < type.sizeInComponents; i++)
 			{
-				dst.emplace(i, Max(lhs.Int(i), rhs.Int(i)));
+				dst.move(i, Max(lhs.Int(i), rhs.Int(i)));
 			}
 			break;
 		}
@@ -2199,7 +2199,7 @@ namespace sw
 			auto rhs = GenericValue(this, routine, insn.word(6));
 			for (auto i = 0u; i < type.sizeInComponents; i++)
 			{
-				dst.emplace(i, Min(lhs.UInt(i), rhs.UInt(i)));
+				dst.move(i, Min(lhs.UInt(i), rhs.UInt(i)));
 			}
 			break;
 		}
@@ -2209,7 +2209,7 @@ namespace sw
 			auto rhs = GenericValue(this, routine, insn.word(6));
 			for (auto i = 0u; i < type.sizeInComponents; i++)
 			{
-				dst.emplace(i, Max(lhs.UInt(i), rhs.UInt(i)));
+				dst.move(i, Max(lhs.UInt(i), rhs.UInt(i)));
 			}
 			break;
 		}
@@ -2219,7 +2219,7 @@ namespace sw
 			auto x = GenericValue(this, routine, insn.word(6));
 			for (auto i = 0u; i < type.sizeInComponents; i++)
 			{
-				dst.emplace(i, CmpNLT(x.Float(i), edge.Float(i)) & As<SIMD::Int>(SIMD::Float(1.0f)));
+				dst.move(i, CmpNLT(x.Float(i), edge.Float(i)) & As<SIMD::Int>(SIMD::Float(1.0f)));
 			}
 			break;
 		}
@@ -2232,7 +2232,7 @@ namespace sw
 			{
 				auto tx = Min(Max((x.Float(i) - edge0.Float(i)) /
 						(edge1.Float(i) - edge0.Float(i)), SIMD::Float(0.0f)), SIMD::Float(1.0f));
-				dst.emplace(i, tx * tx * (Float4(3.0f) - Float4(2.0f) * tx));
+				dst.move(i, tx * tx * (Float4(3.0f) - Float4(2.0f) * tx));
 			}
 			break;
 		}
@@ -2243,7 +2243,7 @@ namespace sw
 			auto a = GenericValue(this, routine, insn.word(7));
 			for (auto i = 0u; i < type.sizeInComponents; i++)
 			{
-				dst.emplace(i, a.Float(i) * (y.Float(i) - x.Float(i)) + x.Float(i));
+				dst.move(i, a.Float(i) * (y.Float(i) - x.Float(i)) + x.Float(i));
 			}
 			break;
 		}
@@ -2254,7 +2254,7 @@ namespace sw
 			auto maxVal = GenericValue(this, routine, insn.word(7));
 			for (auto i = 0u; i < type.sizeInComponents; i++)
 			{
-				dst.emplace(i, Min(Max(x.Float(i), minVal.Float(i)), maxVal.Float(i)));
+				dst.move(i, Min(Max(x.Float(i), minVal.Float(i)), maxVal.Float(i)));
 			}
 			break;
 		}
@@ -2265,7 +2265,7 @@ namespace sw
 			auto maxVal = GenericValue(this, routine, insn.word(7));
 			for (auto i = 0u; i < type.sizeInComponents; i++)
 			{
-				dst.emplace(i, Min(Max(x.Int(i), minVal.Int(i)), maxVal.Int(i)));
+				dst.move(i, Min(Max(x.Int(i), minVal.Int(i)), maxVal.Int(i)));
 			}
 			break;
 		}
@@ -2276,7 +2276,7 @@ namespace sw
 			auto maxVal = GenericValue(this, routine, insn.word(7));
 			for (auto i = 0u; i < type.sizeInComponents; i++)
 			{
-				dst.emplace(i, Min(Max(x.UInt(i), minVal.UInt(i)), maxVal.UInt(i)));
+				dst.move(i, Min(Max(x.UInt(i), minVal.UInt(i)), maxVal.UInt(i)));
 			}
 			break;
 		}
@@ -2287,7 +2287,7 @@ namespace sw
 			{
 				auto neg = As<SIMD::Int>(CmpLT(src.Float(i), SIMD::Float(-0.0f))) & As<SIMD::Int>(SIMD::Float(-1.0f));
 				auto pos = As<SIMD::Int>(CmpNLE(src.Float(i), SIMD::Float(+0.0f))) & As<SIMD::Int>(SIMD::Float(1.0f));
-				dst.emplace(i, neg | pos);
+				dst.move(i, neg | pos);
 			}
 			break;
 		}
@@ -2298,7 +2298,7 @@ namespace sw
 			{
 				auto neg = CmpLT(src.Int(i), SIMD::Int(0)) & SIMD::Int(-1);
 				auto pos = CmpNLE(src.Int(i), SIMD::Int(0)) & SIMD::Int(1);
-				dst.emplace(i, neg | pos);
+				dst.move(i, neg | pos);
 			}
 			break;
 		}
@@ -2311,7 +2311,7 @@ namespace sw
 
 			for (auto i = 0u; i < type.sizeInComponents; i++)
 			{
-				dst.emplace(i, I.Float(i) - SIMD::Float(2.0f) * d * N.Float(i));
+				dst.move(i, I.Float(i) - SIMD::Float(2.0f) * d * N.Float(i));
 			}
 			break;
 		}
@@ -2328,7 +2328,7 @@ namespace sw
 
 			for (auto i = 0u; i < type.sizeInComponents; i++)
 			{
-				dst.emplace(i, pos & As<SIMD::Int>(eta.Float(0) * I.Float(i) - t * N.Float(i)));
+				dst.move(i, pos & As<SIMD::Int>(eta.Float(0) * I.Float(i) - t * N.Float(i)));
 			}
 			break;
 		}
@@ -2344,7 +2344,7 @@ namespace sw
 			for (auto i = 0u; i < type.sizeInComponents; i++)
 			{
 				auto n = N.Float(i);
-				dst.emplace(i, (neg & As<SIMD::Int>(n)) | (~neg & As<SIMD::Int>(-n)));
+				dst.move(i, (neg & As<SIMD::Int>(n)) | (~neg & As<SIMD::Int>(-n)));
 			}
 			break;
 		}
@@ -2353,7 +2353,7 @@ namespace sw
 			auto x = GenericValue(this, routine, insn.word(5));
 			SIMD::Float d = Dot(getType(getObject(insn.word(5)).type).sizeInComponents, x, x);
 
-			dst.emplace(0, Sqrt(d));
+			dst.move(0, Sqrt(d));
 			break;
 		}
 		case GLSLstd450Normalize:
@@ -2364,7 +2364,7 @@ namespace sw
 
 			for (auto i = 0u; i < type.sizeInComponents; i++)
 			{
-				dst.emplace(i, invLength * x.Float(i));
+				dst.move(i, invLength * x.Float(i));
 			}
 			break;
 		}
@@ -2382,7 +2382,7 @@ namespace sw
 				d += (p0.Float(i) - p1.Float(i)) * (p0.Float(i) - p1.Float(i));
 			}
 
-			dst.emplace(0, Sqrt(d));
+			dst.move(0, Sqrt(d));
 			break;
 		}
 		default:
@@ -2417,7 +2417,7 @@ namespace sw
 			result |= src.UInt(i);
 		}
 
-		dst.emplace(0, result);
+		dst.move(0, result);
 	}
 
 	void SpirvShader::EmitAll(InsnIterator insn, SpirvRoutine *routine) const
@@ -2435,7 +2435,7 @@ namespace sw
 			result &= src.UInt(i);
 		}
 
-		dst.emplace(0, result);
+		dst.move(0, result);
 	}
 
 	void SpirvShader::EmitBranch(InsnIterator insn, SpirvRoutine *routine) const

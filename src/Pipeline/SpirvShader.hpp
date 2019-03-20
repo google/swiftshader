@@ -77,13 +77,13 @@ namespace sw
 			delete[] scalar;
 		}
 
-		void emplace(uint32_t i, RValue<SIMD::Float> &&scalar) { emplace(i, scalar.value); }
-		void emplace(uint32_t i, RValue<SIMD::Int> &&scalar)   { emplace(i, scalar.value); }
-		void emplace(uint32_t i, RValue<SIMD::UInt> &&scalar)  { emplace(i, scalar.value); }
+		void move(uint32_t i, RValue<SIMD::Float> &&scalar) { emplace(i, scalar.value); }
+		void move(uint32_t i, RValue<SIMD::Int> &&scalar)   { emplace(i, scalar.value); }
+		void move(uint32_t i, RValue<SIMD::UInt> &&scalar)  { emplace(i, scalar.value); }
 
-		void emplace(uint32_t i, const RValue<SIMD::Float> &scalar) { emplace(i, scalar.value); }
-		void emplace(uint32_t i, const RValue<SIMD::Int> &scalar)   { emplace(i, scalar.value); }
-		void emplace(uint32_t i, const RValue<SIMD::UInt> &scalar)  { emplace(i, scalar.value); }
+		void move(uint32_t i, const RValue<SIMD::Float> &scalar) { emplace(i, scalar.value); }
+		void move(uint32_t i, const RValue<SIMD::Int> &scalar)   { emplace(i, scalar.value); }
+		void move(uint32_t i, const RValue<SIMD::UInt> &scalar)  { emplace(i, scalar.value); }
 
 		// Value retrieval functions.
 		RValue<SIMD::Float> Float(uint32_t i) const
