@@ -401,6 +401,15 @@ namespace sw
 			case spv::OpIsNan:
 			case spv::OpAny:
 			case spv::OpAll:
+			case spv::OpDPdx:
+			case spv::OpDPdxCoarse:
+			case spv::OpDPdy:
+			case spv::OpDPdyCoarse:
+			case spv::OpFwidth:
+			case spv::OpFwidthCoarse:
+			case spv::OpDPdxFine:
+			case spv::OpDPdyFine:
+			case spv::OpFwidthFine:
 				// Instructions that yield an intermediate value
 			{
 				Type::ID typeId = insn.word(1);
@@ -1229,6 +1238,15 @@ namespace sw
 		case spv::OpBitcast:
 		case spv::OpIsInf:
 		case spv::OpIsNan:
+		case spv::OpDPdx:
+		case spv::OpDPdxCoarse:
+		case spv::OpDPdy:
+		case spv::OpDPdyCoarse:
+		case spv::OpFwidth:
+		case spv::OpFwidthCoarse:
+		case spv::OpDPdxFine:
+		case spv::OpDPdyFine:
+		case spv::OpFwidthFine:
 			EmitUnaryOp(insn, routine);
 			break;
 
@@ -1764,6 +1782,58 @@ namespace sw
 			case spv::OpIsNan:
 				dst.emplace(i, IsNan(src.Float(i)));
 				break;
+			case spv::OpDPdx:
+			case spv::OpDPdxCoarse:
+				// Derivative instructions: FS invocations are laid out like so:
+				//    0 1
+				//    2 3
+				static_assert(SIMD::Width == 4, "All cross-lane instructions will need care when using a different width");
+				dst.emplace(i, SIMD::Float(Extract(src.Float(i), 1) - Extract(src.Float(i), 0)));
+				break;
+			case spv::OpDPdy:
+			case spv::OpDPdyCoarse:
+				dst.emplace(i, SIMD::Float(Extract(src.Float(i), 2) - Extract(src.Float(i), 0)));
+				break;
+			case spv::OpFwidth:
+			case spv::OpFwidthCoarse:
+				dst.emplace(i, SIMD::Float(Abs(Extract(src.Float(i), 1) - Extract(src.Float(i), 0))
+							+ Abs(Extract(src.Float(i), 2) - Extract(src.Float(i), 0))));
+				break;
+			case spv::OpDPdxFine:
+			{
+				auto firstRow = Extract(src.Float(i), 1) - Extract(src.Float(i), 0);
+				auto secondRow = Extract(src.Float(i), 3) - Extract(src.Float(i), 2);
+				SIMD::Float v = SIMD::Float(firstRow);
+				v = Insert(v, secondRow, 2);
+				v = Insert(v, secondRow, 3);
+				dst.emplace(i, v);
+				break;
+			}
+			case spv::OpDPdyFine:
+			{
+				auto firstColumn = Extract(src.Float(i), 2) - Extract(src.Float(i), 0);
+				auto secondColumn = Extract(src.Float(i), 3) - Extract(src.Float(i), 1);
+				SIMD::Float v = SIMD::Float(firstColumn);
+				v = Insert(v, secondColumn, 1);
+				v = Insert(v, secondColumn, 3);
+				dst.emplace(i, v);
+				break;
+			}
+			case spv::OpFwidthFine:
+			{
+				auto firstRow = Extract(src.Float(i), 1) - Extract(src.Float(i), 0);
+				auto secondRow = Extract(src.Float(i), 3) - Extract(src.Float(i), 2);
+				SIMD::Float dpdx = SIMD::Float(firstRow);
+				dpdx = Insert(dpdx, secondRow, 2);
+				dpdx = Insert(dpdx, secondRow, 3);
+				auto firstColumn = Extract(src.Float(i), 2) - Extract(src.Float(i), 0);
+				auto secondColumn = Extract(src.Float(i), 3) - Extract(src.Float(i), 1);
+				SIMD::Float dpdy = SIMD::Float(firstColumn);
+				dpdy = Insert(dpdy, secondColumn, 1);
+				dpdy = Insert(dpdy, secondColumn, 3);
+				dst.emplace(i, Abs(dpdx) + Abs(dpdy));
+				break;
+			}
 			default:
 				UNIMPLEMENTED("Unhandled unary operator %s", OpcodeName(insn.opcode()).c_str());
 			}
