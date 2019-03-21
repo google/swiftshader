@@ -577,8 +577,13 @@ namespace sw
 			Terminator, // Reached a termination instruction.
 		};
 
+		// existsPath returns true if there's a direct or indirect flow from
+		// the 'from' block to the 'to' block.
+		bool existsPath(Block::ID from, Block::ID to) const;
+
 		void EmitBlock(Block::ID id, EmitState *state) const;
 		void EmitInstructions(InsnIterator begin, InsnIterator end, EmitState *state) const;
+		void EmitLoop(EmitState *state) const;
 		EmitResult EmitInstruction(InsnIterator insn, EmitState *state) const;
 
 		// Emit pass instructions:
