@@ -5,6 +5,7 @@
 /bin/
 /out/
 .vs
+.vscode/ipch
 CMakeFiles/
 
 # The /build/ directory is recommended for CMake build output and should be
