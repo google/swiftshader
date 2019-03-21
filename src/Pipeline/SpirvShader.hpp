@@ -85,6 +85,14 @@ namespace sw
 		void move(uint32_t i, const RValue<SIMD::Int> &scalar)   { emplace(i, scalar.value); }
 		void move(uint32_t i, const RValue<SIMD::UInt> &scalar)  { emplace(i, scalar.value); }
 
+		void replace(uint32_t i, RValue<SIMD::Float> &&scalar) { replace(i, scalar.value); }
+		void replace(uint32_t i, RValue<SIMD::Int> &&scalar)   { replace(i, scalar.value); }
+		void replace(uint32_t i, RValue<SIMD::UInt> &&scalar)  { replace(i, scalar.value); }
+
+		void replace(uint32_t i, const RValue<SIMD::Float> &scalar) { replace(i, scalar.value); }
+		void replace(uint32_t i, const RValue<SIMD::Int> &scalar)   { replace(i, scalar.value); }
+		void replace(uint32_t i, const RValue<SIMD::UInt> &scalar)  { replace(i, scalar.value); }
+
 		// Value retrieval functions.
 		RValue<SIMD::Float> Float(uint32_t i) const
 		{
@@ -118,6 +126,12 @@ namespace sw
 		{
 			ASSERT(i < size);
 			ASSERT(scalar[i] == nullptr);
+			scalar[i] = value;
+		}
+
+		void replace(uint32_t i, rr::Value *value)
+		{
+			ASSERT(i < size);
 			scalar[i] = value;
 		}
 
