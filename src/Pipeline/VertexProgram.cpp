@@ -74,7 +74,8 @@ namespace sw
 					As<Float4>(Int4(index) + Int4(0, 1, 2, 3));
 		}
 
-		spirvShader->emit(&routine);
+		auto activeLaneMask = SIMD::Int(0xFFFFFFFF); // TODO: Control this.
+		spirvShader->emit(&routine, activeLaneMask);
 
 		if(currentLabel != -1)
 		{

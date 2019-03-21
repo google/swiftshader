@@ -32,6 +32,7 @@ namespace sw
 		SpirvID() : id(0) {}
 		SpirvID(uint32_t id) : id(id) {}
 		bool operator == (const SpirvID<T>& rhs) const { return id == rhs.id; }
+		bool operator != (const SpirvID<T>& rhs) const { return id != rhs.id; }
 		bool operator < (const SpirvID<T>& rhs) const { return id < rhs.id; }
 
 		// value returns the numerical value of the identifier.

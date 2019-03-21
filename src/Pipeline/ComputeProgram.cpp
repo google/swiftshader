@@ -119,7 +119,7 @@ namespace sw
 			auto localInvocationIndex = SIMD::Int(subgroupIndex * SIMD::Width) + SIMD::Int(0, 1, 2, 3);
 
 			// Disable lanes where (invocationIDs >= numInvocations)
-			routine.activeLaneMask = CmpLT(localInvocationIndex, SIMD::Int(numInvocations));
+			auto activeLaneMask = CmpLT(localInvocationIndex, SIMD::Int(numInvocations));
 
 			SIMD::Int localInvocationID[3];
 			{
@@ -162,7 +162,7 @@ namespace sw
 			});
 
 			// Process numLanes of the workgroup.
-			shader->emit(&routine);
+			shader->emit(&routine, activeLaneMask);
 		}
 	}
 

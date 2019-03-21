@@ -438,7 +438,7 @@ namespace sw
 		std::vector<InterfaceComponent> outputs;
 
 		void emitProlog(SpirvRoutine *routine) const;
-		void emit(SpirvRoutine *routine) const;
+		void emit(SpirvRoutine *routine, RValue<SIMD::Int> const &activeLaneMask) const;
 		void emitEpilog(SpirvRoutine *routine) const;
 
 		using BuiltInHash = std::hash<std::underlying_type<spv::BuiltIn>::type>;
@@ -474,9 +474,6 @@ namespace sw
 		HandleMap<Object> defs;
 		HandleMap<Block> blocks;
 		Block::ID mainBlockId; // Block of the entry point function.
-
-		void EmitBlock(SpirvRoutine *routine, Block const &block) const;
-		void EmitInstruction(SpirvRoutine *routine, InsnIterator insn) const;
 
 		// DeclareType creates a Type for the given OpTypeX instruction, storing
 		// it into the types map. It is called from the analysis pass (constructor).
@@ -531,26 +528,74 @@ namespace sw
 		SIMD::Int WalkAccessChain(Object::ID id, uint32_t numIndexes, uint32_t const *indexIds, SpirvRoutine *routine) const;
 		uint32_t WalkLiteralAccessChain(Type::ID id, uint32_t numIndexes, uint32_t const *indexes) const;
 
+		// EmitState holds control-flow state for the emit() pass.
+		class EmitState
+		{
+		public:
+			RValue<SIMD::Int> activeLaneMask() const
+			{
+				ASSERT(activeLaneMaskValue != nullptr);
+				return RValue<SIMD::Int>(activeLaneMaskValue);
+			}
+
+			void setActiveLaneMask(RValue<SIMD::Int> mask)
+			{
+				activeLaneMaskValue = mask.value;
+			}
+
+			// Add a new active lane mask edge from the current block to out.
+			// The edge mask value will be (mask AND activeLaneMaskValue).
+			// If multiple active lane masks are added for the same edge, then
+			// they will be ORed together.
+			void addOutputActiveLaneMaskEdge(Block::ID out, RValue<SIMD::Int> mask);
+
+			// Add a new active lane mask for the edge from -> to.
+			// If multiple active lane masks are added for the same edge, then
+			// they will be ORed together.
+			void addActiveLaneMaskEdge(Block::ID from, Block::ID to, RValue<SIMD::Int> mask);
+
+			// Lookup the active lane mask for the edge from -> to.
+			// Asserts if the edge does not exist.
+			RValue<SIMD::Int> getActiveLaneMaskEdge(Block::ID from, Block::ID to);
+
+			SpirvRoutine *routine = nullptr; // The current routine being built.
+			rr::Value *activeLaneMaskValue = nullptr; // The current active lane mask.
+			Block::ID currentBlock; // The current block being built.
+			Block::Set visited; // Blocks already built.
+			std::unordered_map<Block::Edge, RValue<SIMD::Int>, Block::Edge::Hash> edgeActiveLaneMasks;
+		};
+
+		// EmitResult is an enumerator of result values from the Emit functions.
+		enum class EmitResult
+		{
+			Continue, // No termination instructions.
+			Terminator, // Reached a termination instruction.
+		};
+
+		void EmitBlock(Block::ID id, EmitState *state) const;
+		void EmitInstructions(InsnIterator begin, InsnIterator end, EmitState *state) const;
+		EmitResult EmitInstruction(InsnIterator insn, EmitState *state) const;
+
 		// Emit pass instructions:
-		void EmitVariable(InsnIterator insn, SpirvRoutine *routine) const;
-		void EmitLoad(InsnIterator insn, SpirvRoutine *routine) const;
-		void EmitStore(InsnIterator insn, SpirvRoutine *routine) const;
-		void EmitAccessChain(InsnIterator insn, SpirvRoutine *routine) const;
-		void EmitCompositeConstruct(InsnIterator insn, SpirvRoutine *routine) const;
-		void EmitCompositeInsert(InsnIterator insn, SpirvRoutine *routine) const;
-		void EmitCompositeExtract(InsnIterator insn, SpirvRoutine *routine) const;
-		void EmitVectorShuffle(InsnIterator insn, SpirvRoutine *routine) const;
-		void EmitVectorTimesScalar(InsnIterator insn, SpirvRoutine *routine) const;
-		void EmitVectorExtractDynamic(InsnIterator insn, SpirvRoutine *routine) const;
-		void EmitVectorInsertDynamic(InsnIterator insn, SpirvRoutine *routine) const;
-		void EmitUnaryOp(InsnIterator insn, SpirvRoutine *routine) const;
-		void EmitBinaryOp(InsnIterator insn, SpirvRoutine *routine) const;
-		void EmitDot(InsnIterator insn, SpirvRoutine *routine) const;
-		void EmitSelect(InsnIterator insn, SpirvRoutine *routine) const;
-		void EmitExtendedInstruction(InsnIterator insn, SpirvRoutine *routine) const;
-		void EmitAny(InsnIterator insn, SpirvRoutine *routine) const;
-		void EmitAll(InsnIterator insn, SpirvRoutine *routine) const;
-		void EmitBranch(InsnIterator insn, SpirvRoutine *routine) const;
+		EmitResult EmitVariable(InsnIterator insn, EmitState *state) const;
+		EmitResult EmitLoad(InsnIterator insn, EmitState *state) const;
+		EmitResult EmitStore(InsnIterator insn, EmitState *state) const;
+		EmitResult EmitAccessChain(InsnIterator insn, EmitState *state) const;
+		EmitResult EmitCompositeConstruct(InsnIterator insn, EmitState *state) const;
+		EmitResult EmitCompositeInsert(InsnIterator insn, EmitState *state) const;
+		EmitResult EmitCompositeExtract(InsnIterator insn, EmitState *state) const;
+		EmitResult EmitVectorShuffle(InsnIterator insn, EmitState *state) const;
+		EmitResult EmitVectorTimesScalar(InsnIterator insn, EmitState *state) const;
+		EmitResult EmitVectorExtractDynamic(InsnIterator insn, EmitState *state) const;
+		EmitResult EmitVectorInsertDynamic(InsnIterator insn, EmitState *state) const;
+		EmitResult EmitUnaryOp(InsnIterator insn, EmitState *state) const;
+		EmitResult EmitBinaryOp(InsnIterator insn, EmitState *state) const;
+		EmitResult EmitDot(InsnIterator insn, EmitState *state) const;
+		EmitResult EmitSelect(InsnIterator insn, EmitState *state) const;
+		EmitResult EmitExtendedInstruction(InsnIterator insn, EmitState *state) const;
+		EmitResult EmitAny(InsnIterator insn, EmitState *state) const;
+		EmitResult EmitAll(InsnIterator insn, EmitState *state) const;
+		EmitResult EmitBranch(InsnIterator insn, EmitState *state) const;
 
 		// OpcodeName() returns the name of the opcode op.
 		// If NDEBUG is defined, then OpcodeName() will only return the numerical code.
@@ -578,8 +623,6 @@ namespace sw
 
 		Value inputs = Value{MAX_INTERFACE_COMPONENTS};
 		Value outputs = Value{MAX_INTERFACE_COMPONENTS};
-
-		SIMD::Int activeLaneMask = SIMD::Int(0xFFFFFFFF);
 
 		std::array<Pointer<Byte>, vk::MAX_BOUND_DESCRIPTOR_SETS> descriptorSets;
 		Pointer<Byte> pushConstants;
