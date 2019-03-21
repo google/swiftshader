@@ -100,6 +100,10 @@ protected:
 		executionState.renderPass->end();
 		executionState.renderPass = nullptr;
 		executionState.renderPassFramebuffer = nullptr;
+
+		// Execute (implicit or explicit) VkSubpassDependency to VK_SUBPASS_EXTERNAL
+		// This is somewhat heavier than the actual ordering required.
+		executionState.renderer->synchronize();
 	}
 
 private:
