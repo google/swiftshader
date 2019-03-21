@@ -1387,16 +1387,16 @@ namespace sw
 
 	void SpirvShader::EmitLoad(InsnIterator insn, SpirvRoutine *routine) const
 	{
-		Object::ID objectId = insn.word(2);
+		Object::ID resultId = insn.word(2);
 		Object::ID pointerId = insn.word(3);
-		auto &object = getObject(objectId);
-		auto &objectTy = getType(object.type);
+		auto &result = getObject(resultId);
+		auto &resultTy = getType(result.type);
 		auto &pointer = getObject(pointerId);
 		auto &pointerBase = getObject(pointer.pointerBase);
 		auto &pointerBaseTy = getType(pointerBase.type);
 
-		ASSERT(getType(pointer.type).element == object.type);
-		ASSERT(Type::ID(insn.word(1)) == object.type);
+		ASSERT(getType(pointer.type).element == result.type);
+		ASSERT(Type::ID(insn.word(1)) == result.type);
 		ASSERT((insn.opcode() != spv::OpAtomicLoad) || getType(getType(pointer.type).element).opcode() == spv::OpTypeInt);  // Vulkan 1.1: "Atomic instructions must declare a scalar 32-bit integer type, for the value pointed to by Pointer."
 
 		if (pointerBaseTy.storageClass == spv::StorageClassImage)
@@ -1417,7 +1417,7 @@ namespace sw
 		bool interleavedByLane = IsStorageInterleavedByLane(pointerBaseTy.storageClass);
 		auto anyInactiveLanes = SignMask(~routine->activeLaneMask) != 0;
 
-		auto load = SpirvRoutine::Value(objectTy.sizeInComponents);
+		auto load = std::unique_ptr<SIMD::Float[]>(new SIMD::Float[resultTy.sizeInComponents]);
 
 		If(pointer.kind == Object::Kind::Value || anyInactiveLanes)
 		{
@@ -1425,7 +1425,7 @@ namespace sw
 			auto offsets = pointer.kind == Object::Kind::Value ?
 					As<SIMD::Int>(routine->getIntermediate(pointerId).Int(0)) :
 					RValue<SIMD::Int>(SIMD::Int(0));
-			for (auto i = 0u; i < objectTy.sizeInComponents; i++)
+			for (auto i = 0u; i < resultTy.sizeInComponents; i++)
 			{
 				// i wish i had a Float,Float,Float,Float constructor here..
 				for (int j = 0; j < SIMD::Width; j++)
@@ -1446,7 +1446,7 @@ namespace sw
 			{
 				// Lane-interleaved data.
 				Pointer<SIMD::Float> src = ptrBase;
-				for (auto i = 0u; i < objectTy.sizeInComponents; i++)
+				for (auto i = 0u; i < resultTy.sizeInComponents; i++)
 				{
 					load[i] = src[i];
 				}
@@ -1454,42 +1454,17 @@ namespace sw
 			else
 			{
 				// Non-interleaved data.
-				for (auto i = 0u; i < objectTy.sizeInComponents; i++)
+				for (auto i = 0u; i < resultTy.sizeInComponents; i++)
 				{
 					load[i] = RValue<SIMD::Float>(ptrBase[i]);
 				}
 			}
 		}
 
-		auto &dst = routine->createIntermediate(objectId, objectTy.sizeInComponents);
-		for (auto i = 0u; i < objectTy.sizeInComponents; i++)
+		auto &dst = routine->createIntermediate(resultId, resultTy.sizeInComponents);
+		for (auto i = 0u; i < resultTy.sizeInComponents; i++)
 		{
 			dst.move(i, load[i]);
-		}
-	}
-
-	void SpirvShader::EmitAccessChain(InsnIterator insn, SpirvRoutine *routine) const
-	{
-		Type::ID typeId = insn.word(1);
-		Object::ID resultId = insn.word(2);
-		Object::ID baseId = insn.word(3);
-		uint32_t numIndexes = insn.wordCount() - 4;
-		const uint32_t *indexes = insn.wordPointer(4);
-		auto &type = getType(typeId);
-		ASSERT(type.sizeInComponents == 1);
-		ASSERT(getObject(baseId).pointerBase == getObject(resultId).pointerBase);
-
-		auto &dst = routine->createIntermediate(resultId, type.sizeInComponents);
-
-		if(type.storageClass == spv::StorageClassPushConstant ||
-		   type.storageClass == spv::StorageClassUniform ||
-		   type.storageClass == spv::StorageClassStorageBuffer)
-		{
-			dst.move(0, WalkExplicitLayoutAccessChain(baseId, numIndexes, indexes, routine));
-		}
-		else
-		{
-			dst.move(0, WalkAccessChain(baseId, numIndexes, indexes, routine));
 		}
 	}
 
@@ -1604,6 +1579,31 @@ namespace sw
 					}
 				}
 			}
+		}
+	}
+
+	void SpirvShader::EmitAccessChain(InsnIterator insn, SpirvRoutine *routine) const
+	{
+		Type::ID typeId = insn.word(1);
+		Object::ID resultId = insn.word(2);
+		Object::ID baseId = insn.word(3);
+		uint32_t numIndexes = insn.wordCount() - 4;
+		const uint32_t *indexes = insn.wordPointer(4);
+		auto &type = getType(typeId);
+		ASSERT(type.sizeInComponents == 1);
+		ASSERT(getObject(baseId).pointerBase == getObject(resultId).pointerBase);
+
+		auto &dst = routine->createIntermediate(resultId, type.sizeInComponents);
+
+		if(type.storageClass == spv::StorageClassPushConstant ||
+		   type.storageClass == spv::StorageClassUniform ||
+		   type.storageClass == spv::StorageClassStorageBuffer)
+		{
+			dst.move(0, WalkExplicitLayoutAccessChain(baseId, numIndexes, indexes, routine));
+		}
+		else
+		{
+			dst.move(0, WalkAccessChain(baseId, numIndexes, indexes, routine));
 		}
 	}
 
