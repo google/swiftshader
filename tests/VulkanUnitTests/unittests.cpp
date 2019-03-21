@@ -200,9 +200,9 @@ void SwiftShaderVulkanBufferToBufferComputeTest::test(
 
     ASSERT_TRUE(driver.resolve(instance));
 
-    Device device;
-    VK_ASSERT(Device::CreateComputeDevice(&driver, instance, &device));
-    ASSERT_TRUE(device.IsValid());
+    std::unique_ptr<Device> device;
+    VK_ASSERT(Device::CreateComputeDevice(&driver, instance, device));
+    ASSERT_TRUE(device->IsValid());
 
     // struct Buffers
     // {
@@ -225,12 +225,12 @@ void SwiftShaderVulkanBufferToBufferComputeTest::test(
     size_t buffersSize = sizeof(uint32_t) * buffersTotalElements;
 
     VkDeviceMemory memory;
-    VK_ASSERT(device.AllocateMemory(buffersSize,
+    VK_ASSERT(device->AllocateMemory(buffersSize,
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
             &memory));
 
     uint32_t* buffers;
-    VK_ASSERT(device.MapMemory(memory, 0, buffersSize, 0, (void**)&buffers));
+    VK_ASSERT(device->MapMemory(memory, 0, buffersSize, 0, (void**)&buffers));
 
     buffers[magic0Offset] = magic0;
     buffers[magic1Offset] = magic1;
@@ -241,23 +241,23 @@ void SwiftShaderVulkanBufferToBufferComputeTest::test(
         buffers[inOffset + i] = input(i);
     }
 
-    device.UnmapMemory(memory);
+    device->UnmapMemory(memory);
     buffers = nullptr;
 
     VkBuffer bufferIn;
-    VK_ASSERT(device.CreateStorageBuffer(memory,
+    VK_ASSERT(device->CreateStorageBuffer(memory,
             sizeof(uint32_t) * numElements,
             sizeof(uint32_t) * inOffset,
             &bufferIn));
 
     VkBuffer bufferOut;
-    VK_ASSERT(device.CreateStorageBuffer(memory,
+    VK_ASSERT(device->CreateStorageBuffer(memory,
             sizeof(uint32_t) * numElements,
             sizeof(uint32_t) * outOffset,
             &bufferOut));
 
     VkShaderModule shaderModule;
-    VK_ASSERT(device.CreateShaderModule(code, &shaderModule));
+    VK_ASSERT(device->CreateShaderModule(code, &shaderModule));
 
     std::vector<VkDescriptorSetLayoutBinding> descriptorSetLayoutBindings =
     {
@@ -278,19 +278,19 @@ void SwiftShaderVulkanBufferToBufferComputeTest::test(
     };
 
     VkDescriptorSetLayout descriptorSetLayout;
-    VK_ASSERT(device.CreateDescriptorSetLayout(descriptorSetLayoutBindings, &descriptorSetLayout));
+    VK_ASSERT(device->CreateDescriptorSetLayout(descriptorSetLayoutBindings, &descriptorSetLayout));
 
     VkPipelineLayout pipelineLayout;
-    VK_ASSERT(device.CreatePipelineLayout(descriptorSetLayout, &pipelineLayout));
+    VK_ASSERT(device->CreatePipelineLayout(descriptorSetLayout, &pipelineLayout));
 
     VkPipeline pipeline;
-    VK_ASSERT(device.CreateComputePipeline(shaderModule, pipelineLayout, &pipeline));
+    VK_ASSERT(device->CreateComputePipeline(shaderModule, pipelineLayout, &pipeline));
 
     VkDescriptorPool descriptorPool;
-    VK_ASSERT(device.CreateStorageBufferDescriptorPool(2, &descriptorPool));
+    VK_ASSERT(device->CreateStorageBufferDescriptorPool(2, &descriptorPool));
 
     VkDescriptorSet descriptorSet;
-    VK_ASSERT(device.AllocateDescriptorSet(descriptorPool, descriptorSetLayout, &descriptorSet));
+    VK_ASSERT(device->AllocateDescriptorSet(descriptorPool, descriptorSetLayout, &descriptorSet));
 
     std::vector<VkDescriptorBufferInfo> descriptorBufferInfos =
     {
@@ -305,15 +305,15 @@ void SwiftShaderVulkanBufferToBufferComputeTest::test(
             VK_WHOLE_SIZE,  // range
         }
     };
-    device.UpdateStorageBufferDescriptorSets(descriptorSet, descriptorBufferInfos);
+    device->UpdateStorageBufferDescriptorSets(descriptorSet, descriptorBufferInfos);
 
     VkCommandPool commandPool;
-    VK_ASSERT(device.CreateCommandPool(&commandPool));
+    VK_ASSERT(device->CreateCommandPool(&commandPool));
 
     VkCommandBuffer commandBuffer;
-    VK_ASSERT(device.AllocateCommandBuffer(commandPool, &commandBuffer));
+    VK_ASSERT(device->AllocateCommandBuffer(commandPool, &commandBuffer));
 
-    VK_ASSERT(device.BeginCommandBuffer(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT, commandBuffer));
+    VK_ASSERT(device->BeginCommandBuffer(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT, commandBuffer));
 
     driver.vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipeline);
 
@@ -324,9 +324,9 @@ void SwiftShaderVulkanBufferToBufferComputeTest::test(
 
     VK_ASSERT(driver.vkEndCommandBuffer(commandBuffer));
 
-    VK_ASSERT(device.QueueSubmitAndWait(commandBuffer));
+    VK_ASSERT(device->QueueSubmitAndWait(commandBuffer));
 
-    VK_ASSERT(device.MapMemory(memory, 0, buffersSize, 0, (void**)&buffers));
+    VK_ASSERT(device->MapMemory(memory, 0, buffersSize, 0, (void**)&buffers));
 
     for (size_t i = 0; i < numElements; ++i)
     {
@@ -339,7 +339,7 @@ void SwiftShaderVulkanBufferToBufferComputeTest::test(
     EXPECT_EQ(buffers[magic1Offset], magic1);
     EXPECT_EQ(buffers[magic2Offset], magic2);
 
-    device.UnmapMemory(memory);
+    device->UnmapMemory(memory);
     buffers = nullptr;
 }
 

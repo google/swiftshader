@@ -14,6 +14,7 @@
 
 #include <vulkan/vulkan_core.h>
 
+#include <memory>
 #include <vector>
 
 class Driver;
@@ -24,6 +25,7 @@ class Device
 {
 public:
 	Device();
+	~Device();
 
 	// CreateComputeDevice enumerates the physical devices, looking for a device
 	// that supports compute.
@@ -33,7 +35,7 @@ public:
 	// returned (as there was no Vulkan error), but calling Device::IsValid()
 	// on this device will return false.
 	static VkResult CreateComputeDevice(
-			Driver const *driver, VkInstance instance, Device *out);
+			Driver const *driver, VkInstance instance, std::unique_ptr<Device>& out);
 
 	// IsValid returns true if the Device is initialized and can be used.
 	bool IsValid() const;

@@ -29,10 +29,19 @@ Device::Device(
 	  physicalDevice(physicalDevice),
 	  queueFamilyIndex(queueFamilyIndex) {}
 
+Device::~Device()
+{
+	if (device != nullptr)
+	{
+		driver->vkDeviceWaitIdle(device);
+		driver->vkDestroyDevice(device, nullptr);
+	}
+}
+
 bool Device::IsValid() const { return device != nullptr; }
 
 VkResult Device::CreateComputeDevice(
-		Driver const *driver, VkInstance instance, Device *out)
+		Driver const *driver, VkInstance instance, std::unique_ptr<Device> &out)
 {
     VkResult result;
 
@@ -77,13 +86,13 @@ VkResult Device::CreateComputeDevice(
         };
 
         VkDevice device;
-        result = driver->vkCreateDevice(physicalDevice, &deviceCreateInfo, 0, &device);
+        result = driver->vkCreateDevice(physicalDevice, &deviceCreateInfo, nullptr, &device);
         if (result != VK_SUCCESS)
         {
             return result;
         }
 
-		*out = Device(driver, device, physicalDevice, static_cast<uint32_t>(queueFamilyIndex));
+		out.reset(new Device(driver, device, physicalDevice, static_cast<uint32_t>(queueFamilyIndex)));
         return VK_SUCCESS;
     }
 
