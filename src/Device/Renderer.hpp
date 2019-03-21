@@ -125,7 +125,6 @@ namespace sw
 		float lineWidth;
 
 		PixelProcessor::Stencil stencil[2];   // clockwise, counterclockwise
-		PixelProcessor::Stencil stencilCCW;
 		PixelProcessor::Factor factor;
 		unsigned int occlusion[16];   // Number of pixels passing depth test
 
