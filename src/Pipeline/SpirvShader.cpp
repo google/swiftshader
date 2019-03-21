@@ -318,7 +318,7 @@ namespace sw
 			case spv::OpSpecConstantTrue:
 				// These should have all been removed by preprocessing passes. If we see them here,
 				// our assumptions are wrong and we will probably generate wrong code.
-				UNIMPLEMENTED("These instructions should have already been lowered.");
+				UNIMPLEMENTED("%s should have already been lowered.", OpcodeName(insn.opcode()).c_str());
 				break;
 
 			case spv::OpFConvert:
@@ -2038,7 +2038,7 @@ namespace sw
 	void SpirvShader::EmitDot(InsnIterator insn, SpirvRoutine *routine) const
 	{
 		auto &type = getType(insn.word(1));
-		assert(type.sizeInComponents == 1);
+		ASSERT(type.sizeInComponents == 1);
 		auto &dst = routine->createIntermediate(insn.word(2), type.sizeInComponents);
 		auto &lhsType = getType(getObject(insn.word(3)).type);
 		auto lhs = GenericValue(this, routine, insn.word(3));
@@ -2405,7 +2405,7 @@ namespace sw
 	void SpirvShader::EmitAny(InsnIterator insn, SpirvRoutine *routine) const
 	{
 		auto &type = getType(insn.word(1));
-		assert(type.sizeInComponents == 1);
+		ASSERT(type.sizeInComponents == 1);
 		auto &dst = routine->createIntermediate(insn.word(2), type.sizeInComponents);
 		auto &srcType = getType(getObject(insn.word(3)).type);
 		auto src = GenericValue(this, routine, insn.word(3));
@@ -2423,7 +2423,7 @@ namespace sw
 	void SpirvShader::EmitAll(InsnIterator insn, SpirvRoutine *routine) const
 	{
 		auto &type = getType(insn.word(1));
-		assert(type.sizeInComponents == 1);
+		ASSERT(type.sizeInComponents == 1);
 		auto &dst = routine->createIntermediate(insn.word(2), type.sizeInComponents);
 		auto &srcType = getType(getObject(insn.word(3)).type);
 		auto src = GenericValue(this, routine, insn.word(3));
