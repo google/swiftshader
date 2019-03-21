@@ -602,6 +602,7 @@ namespace sw
 		EmitResult EmitAll(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitBranch(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitBranchConditional(InsnIterator insn, EmitState *state) const;
+		EmitResult EmitSwitch(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitUnreachable(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitReturn(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitPhi(InsnIterator insn, EmitState *state) const;

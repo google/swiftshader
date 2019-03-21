@@ -1179,6 +1179,8 @@ namespace sw
 			case Block::Simple:
 			case Block::StructuredBranchConditional:
 			case Block::UnstructuredBranchConditional:
+			case Block::StructuredSwitch:
+			case Block::UnstructuredSwitch:
 				if (id != mainBlockId)
 				{
 					// Emit all preceeding blocks and set the activeLaneMask.
@@ -1403,6 +1405,9 @@ namespace sw
 
 		case spv::OpBranchConditional:
 			return EmitBranchConditional(insn, state);
+
+		case spv::OpSwitch:
+			return EmitSwitch(insn, state);
 
 		case spv::OpUnreachable:
 			return EmitUnreachable(insn, state);
@@ -2638,6 +2643,39 @@ namespace sw
 		return EmitResult::Terminator;
 	}
 
+	SpirvShader::EmitResult SpirvShader::EmitSwitch(InsnIterator insn, EmitState *state) const
+	{
+		auto block = getBlock(state->currentBlock);
+		ASSERT(block.branchInstruction == insn);
+
+		auto selId = Object::ID(block.branchInstruction.word(1));
+
+		auto sel = GenericValue(this, state->routine, selId);
+		ASSERT_MSG(getType(getObject(selId).type).sizeInComponents == 1, "Selector must be a scalar");
+
+		auto numCases = (block.branchInstruction.wordCount() - 3) / 2;
+
+		// TODO: Optimize for case where all lanes take same path.
+
+		SIMD::Int defaultLaneMask = state->activeLaneMask();
+
+		// Gather up the case label matches and calculate defaultLaneMask.
+		std::vector<RValue<SIMD::Int>> caseLabelMatches;
+		caseLabelMatches.reserve(numCases);
+		for (uint32_t i = 0; i < numCases; i++)
+		{
+			auto label = block.branchInstruction.word(i * 2 + 3);
+			auto caseBlockId = Block::ID(block.branchInstruction.word(i * 2 + 4));
+			auto caseLabelMatch = CmpEQ(sel.Int(0), SIMD::Int(label));
+			state->addOutputActiveLaneMaskEdge(caseBlockId, caseLabelMatch);
+			defaultLaneMask &= ~caseLabelMatch;
+		}
+
+		auto defaultBlockId = Block::ID(block.branchInstruction.word(2));
+		state->addOutputActiveLaneMaskEdge(defaultBlockId, defaultLaneMask);
+
+		return EmitResult::Terminator;
+	}
 
 	SpirvShader::EmitResult SpirvShader::EmitUnreachable(InsnIterator insn, EmitState *state) const
 	{
