@@ -26,6 +26,14 @@
 #include <sstream>
 #include <cstring>
 
+namespace
+{
+    size_t alignUp(size_t val, size_t alignment)
+    {
+        return alignment * ((val + alignment - 1) / alignment);
+    }
+} // anonymous namespace
+
 class SwiftShaderVulkanTest : public testing::Test
 {
 };
@@ -206,22 +214,28 @@ void SwiftShaderVulkanBufferToBufferComputeTest::test(
 
     // struct Buffers
     // {
+    //     uint32_t pad0[63];
     //     uint32_t magic0;
-    //     uint32_t in[NUM_ELEMENTS];
+    //     uint32_t in[NUM_ELEMENTS]; // Aligned to 0x100
     //     uint32_t magic1;
-    //     uint32_t out[NUM_ELEMENTS];
+    //     uint32_t pad1[N];
     //     uint32_t magic2;
+    //     uint32_t out[NUM_ELEMENTS]; // Aligned to 0x100
+    //     uint32_t magic3;
     // };
     static constexpr uint32_t magic0 = 0x01234567;
     static constexpr uint32_t magic1 = 0x89abcdef;
     static constexpr uint32_t magic2 = 0xfedcba99;
+    static constexpr uint32_t magic3 = 0x87654321;
     size_t numElements = GetParam().numElements;
-    size_t magic0Offset = 0;
+    size_t alignElements = 0x100 / sizeof(uint32_t);
+    size_t magic0Offset = alignElements - 1;
     size_t inOffset = 1 + magic0Offset;
     size_t magic1Offset = numElements + inOffset;
-    size_t outOffset = 1 + magic1Offset;
-    size_t magic2Offset = numElements + outOffset;
-    size_t buffersTotalElements = 1 + magic2Offset;
+    size_t magic2Offset = alignUp(magic1Offset+1, alignElements) - 1;
+    size_t outOffset = 1 + magic2Offset;
+    size_t magic3Offset = numElements + outOffset;
+    size_t buffersTotalElements = alignUp(1 + magic3Offset, alignElements);
     size_t buffersSize = sizeof(uint32_t) * buffersTotalElements;
 
     VkDeviceMemory memory;
@@ -235,6 +249,7 @@ void SwiftShaderVulkanBufferToBufferComputeTest::test(
     buffers[magic0Offset] = magic0;
     buffers[magic1Offset] = magic1;
     buffers[magic2Offset] = magic2;
+    buffers[magic3Offset] = magic3;
 
     for(size_t i = 0; i < numElements; i++)
     {
@@ -338,6 +353,7 @@ void SwiftShaderVulkanBufferToBufferComputeTest::test(
     EXPECT_EQ(buffers[magic0Offset], magic0);
     EXPECT_EQ(buffers[magic1Offset], magic1);
     EXPECT_EQ(buffers[magic2Offset], magic2);
+    EXPECT_EQ(buffers[magic3Offset], magic3);
 
     device->UnmapMemory(memory);
     buffers = nullptr;
