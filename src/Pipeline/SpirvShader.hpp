@@ -20,6 +20,9 @@
 #include "System/Types.hpp"
 #include "Vulkan/VkDebug.hpp"
 #include "Vulkan/VkConfig.h"
+#include "Device/Config.hpp"
+
+#include <spirv/unified1/spirv.hpp>
 
 #include <array>
 #include <cstring>
@@ -30,8 +33,6 @@
 #include <cstdint>
 #include <type_traits>
 #include <memory>
-#include <spirv/unified1/spirv.hpp>
-#include <Device/Config.hpp>
 
 namespace vk
 {
@@ -500,9 +501,10 @@ namespace sw
 		void EmitAll(InsnIterator insn, SpirvRoutine *routine) const;
 		void EmitBranch(InsnIterator insn, SpirvRoutine *routine) const;
 
-		// OpcodeName returns the name of the opcode op.
-		// If NDEBUG is defined, then OpcodeName will only return the numerical code.
+		// OpcodeName() returns the name of the opcode op.
+		// If NDEBUG is defined, then OpcodeName() will only return the numerical code.
 		static std::string OpcodeName(spv::Op op);
+		static std::memory_order MemoryOrder(spv::MemorySemanticsMask memorySemantics);
 
 		// Helper as we often need to take dot products as part of doing other things.
 		SIMD::Float Dot(unsigned numComponents, GenericValue const & x, GenericValue const & y) const;

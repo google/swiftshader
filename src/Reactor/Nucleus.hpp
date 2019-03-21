@@ -19,6 +19,7 @@
 #include <cstdarg>
 #include <cstdint>
 #include <vector>
+#include <atomic>
 
 namespace rr
 {
@@ -95,8 +96,8 @@ namespace rr
 		static Value *createNot(Value *V);
 
 		// Memory instructions
-		static Value *createLoad(Value *ptr, Type *type, bool isVolatile = false, unsigned int align = 0);
-		static Value *createStore(Value *value, Value *ptr, Type *type, bool isVolatile = false, unsigned int align = 0);
+		static Value *createLoad(Value *ptr, Type *type, bool isVolatile = false, unsigned int alignment = 0, bool atomic = false , std::memory_order memoryOrder = std::memory_order_relaxed);
+		static Value *createStore(Value *value, Value *ptr, Type *type, bool isVolatile = false, unsigned int aligment = 0, bool atomic = false, std::memory_order memoryOrder = std::memory_order_relaxed);
 		static Value *createGEP(Value *ptr, Type *type, Value *index, bool unsignedIndex);
 
 		// Atomic instructions

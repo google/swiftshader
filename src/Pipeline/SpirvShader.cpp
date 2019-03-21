@@ -1387,6 +1387,7 @@ namespace sw
 
 	void SpirvShader::EmitLoad(InsnIterator insn, SpirvRoutine *routine) const
 	{
+		bool atomic = (insn.opcode() == spv::OpAtomicLoad);
 		Object::ID resultId = insn.word(2);
 		Object::ID pointerId = insn.word(3);
 		auto &result = getObject(resultId);
@@ -1394,10 +1395,18 @@ namespace sw
 		auto &pointer = getObject(pointerId);
 		auto &pointerBase = getObject(pointer.pointerBase);
 		auto &pointerBaseTy = getType(pointerBase.type);
+		std::memory_order memoryOrder = std::memory_order_relaxed;
+
+		if(atomic)
+		{
+			Object::ID semanticsId = insn.word(5);
+			auto memorySemantics = static_cast<spv::MemorySemanticsMask>(getObject(semanticsId).constantValue[0]);
+			memoryOrder = MemoryOrder(memorySemantics);
+		}
 
 		ASSERT(getType(pointer.type).element == result.type);
 		ASSERT(Type::ID(insn.word(1)) == result.type);
-		ASSERT((insn.opcode() != spv::OpAtomicLoad) || getType(getType(pointer.type).element).opcode() == spv::OpTypeInt);  // Vulkan 1.1: "Atomic instructions must declare a scalar 32-bit integer type, for the value pointed to by Pointer."
+		ASSERT(!atomic || getType(getType(pointer.type).element).opcode() == spv::OpTypeInt);  // Vulkan 1.1: "Atomic instructions must declare a scalar 32-bit integer type, for the value pointed to by Pointer."
 
 		if (pointerBaseTy.storageClass == spv::StorageClassImage)
 		{
@@ -1434,7 +1443,7 @@ namespace sw
 					{
 						Int offset = Int(i) + Extract(offsets, j);
 						if (interleavedByLane) { offset = offset * SIMD::Width + j; }
-						load[i] = Insert(load[i], ptrBase[offset], j);
+						load[i] = Insert(load[i], Load(&ptrBase[offset], sizeof(float), atomic, memoryOrder), j);
 					}
 				}
 			}
@@ -1448,7 +1457,7 @@ namespace sw
 				Pointer<SIMD::Float> src = ptrBase;
 				for (auto i = 0u; i < resultTy.sizeInComponents; i++)
 				{
-					load[i] = src[i];
+					load[i] = Load(&src[i], sizeof(float), atomic, memoryOrder);  // TODO: optimize alignment
 				}
 			}
 			else
@@ -1456,7 +1465,7 @@ namespace sw
 				// Non-interleaved data.
 				for (auto i = 0u; i < resultTy.sizeInComponents; i++)
 				{
-					load[i] = RValue<SIMD::Float>(ptrBase[i]);
+					load[i] = RValue<SIMD::Float>(Load(&ptrBase[i], sizeof(float), atomic, memoryOrder));  // TODO: optimize alignment
 				}
 			}
 		}
@@ -1479,6 +1488,14 @@ namespace sw
 		auto &elementTy = getType(pointerTy.element);
 		auto &pointerBase = getObject(pointer.pointerBase);
 		auto &pointerBaseTy = getType(pointerBase.type);
+		std::memory_order memoryOrder = std::memory_order_relaxed;
+
+		if(atomic)
+		{
+			Object::ID semanticsId = insn.word(3);
+			auto memorySemantics = static_cast<spv::MemorySemanticsMask>(getObject(semanticsId).constantValue[0]);
+			memoryOrder = MemoryOrder(memorySemantics);
+		}
 
 		ASSERT(!atomic || elementTy.opcode() == spv::OpTypeInt);  // Vulkan 1.1: "Atomic instructions must declare a scalar 32-bit integer type, for the value pointed to by Pointer."
 
@@ -1518,7 +1535,7 @@ namespace sw
 						{
 							Int offset = Int(i) + Extract(offsets, j);
 							if (interleavedByLane) { offset = offset * SIMD::Width + j; }
-							ptrBase[offset] = RValue<Float>(src[i]);
+							Store(RValue<Float>(src[i]), &ptrBase[offset], sizeof(float), atomic, memoryOrder);
 						}
 					}
 				}
@@ -1530,7 +1547,7 @@ namespace sw
 				Pointer<SIMD::Float> dst = ptrBase;
 				for (auto i = 0u; i < elementTy.sizeInComponents; i++)
 				{
-					dst[i] = RValue<SIMD::Float>(src[i]);
+					Store(RValue<SIMD::Float>(src[i]), &dst[i], sizeof(float), atomic, memoryOrder);  // TODO: optimize alignment
 				}
 			}
 		}
@@ -1552,7 +1569,7 @@ namespace sw
 						{
 							Int offset = Int(i) + Extract(offsets, j);
 							if (interleavedByLane) { offset = offset * SIMD::Width + j; }
-							ptrBase[offset] = Extract(src.Float(i), j);
+							Store(Extract(src.Float(i), j), &ptrBase[offset], sizeof(float), atomic, memoryOrder);
 						}
 					}
 				}
@@ -1566,7 +1583,7 @@ namespace sw
 					Pointer<SIMD::Float> dst = ptrBase;
 					for (auto i = 0u; i < elementTy.sizeInComponents; i++)
 					{
-						dst[i] = src.Float(i);
+						Store(src.Float(i), &dst[i], sizeof(float), atomic, memoryOrder);  // TODO: optimize alignment
 					}
 				}
 				else
@@ -1575,7 +1592,7 @@ namespace sw
 					Pointer<SIMD::Float> dst = ptrBase;
 					for (auto i = 0u; i < elementTy.sizeInComponents; i++)
 					{
-						dst[i] = SIMD::Float(src.Float(i));
+						Store<SIMD::Float>(SIMD::Float(src.Float(i)), &dst[i], sizeof(float), atomic, memoryOrder);  // TODO: optimize alignment
 					}
 				}
 			}
@@ -2395,6 +2412,21 @@ namespace sw
 		}
 		default:
 			UNIMPLEMENTED("Unhandled ExtInst %d", extInstIndex);
+		}
+	}
+
+	std::memory_order SpirvShader::MemoryOrder(spv::MemorySemanticsMask memorySemantics)
+	{
+		switch(memorySemantics)
+		{
+		case spv::MemorySemanticsMaskNone:                   return std::memory_order_relaxed;
+		case spv::MemorySemanticsAcquireMask:                return std::memory_order_acquire;
+		case spv::MemorySemanticsReleaseMask:                return std::memory_order_release;
+		case spv::MemorySemanticsAcquireReleaseMask:         return std::memory_order_acq_rel;
+		case spv::MemorySemanticsSequentiallyConsistentMask: return std::memory_order_acq_rel;  // Vulkan 1.1: "SequentiallyConsistent is treated as AcquireRelease"
+		default:
+			UNREACHABLE("MemorySemanticsMask %x", memorySemantics);
+			return std::memory_order_acq_rel;
 		}
 	}
 

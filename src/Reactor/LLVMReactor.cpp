@@ -838,6 +838,29 @@ namespace rr
 		}
 	}
 
+	static llvm::AtomicOrdering atomicOrdering(bool atomic, std::memory_order memoryOrder)
+	{
+		#if REACTOR_LLVM_VERSION < 7
+			return llvm::AtomicOrdering::NotAtomic;
+		#endif
+
+		if(!atomic)
+		{
+			return llvm::AtomicOrdering::NotAtomic;
+		}
+
+		switch(memoryOrder)
+		{
+		case std::memory_order_relaxed: return llvm::AtomicOrdering::Monotonic;  // https://llvm.org/docs/Atomics.html#monotonic
+		case std::memory_order_consume: return llvm::AtomicOrdering::Acquire;    // https://llvm.org/docs/Atomics.html#acquire: "It should also be used for C++11/C11 memory_order_consume."
+		case std::memory_order_acquire: return llvm::AtomicOrdering::Acquire;
+		case std::memory_order_release: return llvm::AtomicOrdering::Release;
+		case std::memory_order_acq_rel: return llvm::AtomicOrdering::AcquireRelease;
+		case std::memory_order_seq_cst: return llvm::AtomicOrdering::SequentiallyConsistent;
+		default: assert(false);         return llvm::AtomicOrdering::AcquireRelease;
+		}
+	}
+
 	Nucleus::Nucleus()
 	{
 		::codegenMutex.lock();   // Reactor and LLVM are currently not thread safe
@@ -1190,7 +1213,7 @@ namespace rr
 		return V(::builder->CreateNot(V(v)));
 	}
 
-	Value *Nucleus::createLoad(Value *ptr, Type *type, bool isVolatile, unsigned int alignment)
+	Value *Nucleus::createLoad(Value *ptr, Type *type, bool isVolatile, unsigned int alignment, bool atomic, std::memory_order memoryOrder)
 	{
 		switch(asInternalType(type))
 		{
@@ -1201,7 +1224,7 @@ namespace rr
 			return createBitCast(
 				createInsertElement(
 					V(llvm::UndefValue::get(llvm::VectorType::get(T(Long::getType()), 2))),
-					createLoad(createBitCast(ptr, Pointer<Long>::getType()), Long::getType(), isVolatile, alignment),
+					createLoad(createBitCast(ptr, Pointer<Long>::getType()), Long::getType(), isVolatile, alignment, atomic, memoryOrder),
 					0),
 				type);
 		case Type_v2i16:
@@ -1209,21 +1232,26 @@ namespace rr
 			if(alignment != 0)   // Not a local variable (all vectors are 128-bit).
 			{
 				Value *u = V(llvm::UndefValue::get(llvm::VectorType::get(T(Long::getType()), 2)));
-				Value *i = createLoad(createBitCast(ptr, Pointer<Int>::getType()), Int::getType(), isVolatile, alignment);
+				Value *i = createLoad(createBitCast(ptr, Pointer<Int>::getType()), Int::getType(), isVolatile, alignment, atomic, memoryOrder);
 				i = createZExt(i, Long::getType());
 				Value *v = createInsertElement(u, i, 0);
 				return createBitCast(v, type);
 			}
 			// Fallthrough to non-emulated case.
 		case Type_LLVM:
-			assert(V(ptr)->getType()->getContainedType(0) == T(type));
-			return V(::builder->Insert(new llvm::LoadInst(V(ptr), "", isVolatile, alignment)));
+			{
+				assert(V(ptr)->getType()->getContainedType(0) == T(type));
+				auto load = new llvm::LoadInst(V(ptr), "", isVolatile, alignment);
+				load->setAtomic(atomicOrdering(atomic, memoryOrder));
+
+				return V(::builder->Insert(load));
+			}
 		default:
 			assert(false); return nullptr;
 		}
 	}
 
-	Value *Nucleus::createStore(Value *value, Value *ptr, Type *type, bool isVolatile, unsigned int alignment)
+	Value *Nucleus::createStore(Value *value, Value *ptr, Type *type, bool isVolatile, unsigned int alignment, bool atomic, std::memory_order memoryOrder)
 	{
 		switch(asInternalType(type))
 		{
@@ -1235,7 +1263,7 @@ namespace rr
 				createExtractElement(
 					createBitCast(value, T(llvm::VectorType::get(T(Long::getType()), 2))), Long::getType(), 0),
 				createBitCast(ptr, Pointer<Long>::getType()),
-				Long::getType(), isVolatile, alignment);
+				Long::getType(), isVolatile, alignment, atomic, memoryOrder);
 			return value;
 		case Type_v2i16:
 		case Type_v4i8:
@@ -1244,14 +1272,18 @@ namespace rr
 				createStore(
 					createExtractElement(createBitCast(value, Int4::getType()), Int::getType(), 0),
 					createBitCast(ptr, Pointer<Int>::getType()),
-					Int::getType(), isVolatile, alignment);
+					Int::getType(), isVolatile, alignment, atomic, memoryOrder);
 				return value;
 			}
 			// Fallthrough to non-emulated case.
 		case Type_LLVM:
-			assert(V(ptr)->getType()->getContainedType(0) == T(type));
-			::builder->Insert(new llvm::StoreInst(V(value), V(ptr), isVolatile, alignment));
-			return value;
+			{
+				assert(V(ptr)->getType()->getContainedType(0) == T(type));
+				auto store = ::builder->Insert(new llvm::StoreInst(V(value), V(ptr), isVolatile, alignment));
+				store->setAtomic(atomicOrdering(atomic, memoryOrder));
+
+				return value;
+			}
 		default:
 			assert(false); return nullptr;
 		}
