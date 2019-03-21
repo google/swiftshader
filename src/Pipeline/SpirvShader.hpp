@@ -29,6 +29,7 @@
 #include <functional>
 #include <string>
 #include <vector>
+#include <unordered_set>
 #include <unordered_map>
 #include <cstdint>
 #include <type_traits>
@@ -246,14 +247,50 @@ namespace sw
 		{
 		public:
 			using ID = SpirvID<Block>;
+			using Set = std::unordered_set<ID>;
+
+			// Edge represents the graph edge between two blocks.
+			struct Edge
+			{
+				ID from;
+				ID to;
+
+				bool operator == (const Edge& other) const { return from == other.from && to == other.to; }
+
+				struct Hash
+				{
+					std::size_t operator()(const Edge& edge) const noexcept
+					{
+						return std::hash<uint32_t>()(edge.from.value() * 31 + edge.to.value());
+					}
+				};
+			};
 
 			Block() = default;
 			Block(const Block& other) = default;
-			explicit Block(InsnIterator begin, InsnIterator end) : begin_(begin), end_(end) {}
+			explicit Block(InsnIterator begin, InsnIterator end);
 
 			/* range-based-for interface */
 			inline InsnIterator begin() const { return begin_; }
 			inline InsnIterator end() const { return end_; }
+
+			enum Kind
+			{
+				Simple, // OpBranch or other simple terminator.
+				StructuredBranchConditional, // OpSelectionMerge + OpBranchConditional
+				UnstructuredBranchConditional, // OpBranchConditional
+				StructuredSwitch, // OpSelectionMerge + OpSwitch
+				UnstructuredSwitch, // OpSwitch
+				Loop, // OpLoopMerge + [OpBranchConditional | OpBranch]
+			};
+
+			Kind kind;
+			InsnIterator mergeInstruction; // Merge instruction.
+			InsnIterator branchInstruction; //
+			ID mergeBlock; // Structured flow merge block.
+			ID continueTarget; // Loop continue block.
+			Set ins; // Blocks that branch into this block.
+			Set outs; // Blocks that this block branches to.
 
 		private:
 			InsnIterator begin_;

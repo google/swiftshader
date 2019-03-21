@@ -440,6 +440,20 @@ namespace sw
 				UNIMPLEMENTED("%s", OpcodeName(insn.opcode()).c_str());
 			}
 		}
+
+		// Assign all Block::ins
+		for (auto &it : blocks)
+		{
+			auto &blockId = it.first;
+			auto &block = it.second;
+			for (auto &outId : block.outs)
+			{
+				auto outIt = blocks.find(outId);
+				ASSERT_MSG(outIt != blocks.end(), "Block %d has a non-existent out %d", blockId.value(), outId.value());
+				auto &out = outIt->second;
+				out.ins.emplace(blockId);
+			}
+		}
 	}
 
 	void SpirvShader::DeclareType(InsnIterator insn)
@@ -2513,6 +2527,92 @@ namespace sw
 		}
 	}
 
+	SpirvShader::Block::Block(InsnIterator begin, InsnIterator end) : begin_(begin), end_(end)
+	{
+		// Default to a Simple, this may change later.
+		kind = Block::Simple;
+
+		// Walk the instructions to find the last two of the block.
+		InsnIterator insns[2];
+		for (auto insn : *this)
+		{
+			insns[0] = insns[1];
+			insns[1] = insn;
+		}
+
+		switch (insns[1].opcode())
+		{
+			case spv::OpBranch:
+				branchInstruction = insns[1];
+				outs.emplace(Block::ID(branchInstruction.word(1)));
+
+				switch (insns[0].opcode())
+				{
+					case spv::OpLoopMerge:
+						kind = Loop;
+						mergeInstruction = insns[0];
+						mergeBlock = Block::ID(mergeInstruction.word(1));
+						continueTarget = Block::ID(mergeInstruction.word(2));
+						break;
+
+					default:
+						kind = Block::Simple;
+						break;
+				}
+				break;
+
+			case spv::OpBranchConditional:
+				branchInstruction = insns[1];
+				outs.emplace(Block::ID(branchInstruction.word(2)));
+				outs.emplace(Block::ID(branchInstruction.word(3)));
+
+				switch (insns[0].opcode())
+				{
+					case spv::OpSelectionMerge:
+						kind = StructuredBranchConditional;
+						mergeInstruction = insns[0];
+						mergeBlock = Block::ID(mergeInstruction.word(1));
+						break;
+
+					case spv::OpLoopMerge:
+						kind = Loop;
+						mergeInstruction = insns[0];
+						mergeBlock = Block::ID(mergeInstruction.word(1));
+						continueTarget = Block::ID(mergeInstruction.word(2));
+						break;
+
+					default:
+						kind = UnstructuredBranchConditional;
+						break;
+				}
+				break;
+
+			case spv::OpSwitch:
+				branchInstruction = insns[1];
+				outs.emplace(Block::ID(branchInstruction.word(2)));
+				for (uint32_t w = 4; w < branchInstruction.wordCount(); w += 2)
+				{
+					outs.emplace(Block::ID(branchInstruction.word(w)));
+				}
+
+				switch (insns[0].opcode())
+				{
+					case spv::OpSelectionMerge:
+						kind = StructuredSwitch;
+						mergeInstruction = insns[0];
+						mergeBlock = Block::ID(mergeInstruction.word(1));
+						break;
+
+					default:
+						kind = UnstructuredSwitch;
+						break;
+				}
+				break;
+
+			default:
+				break;
+		}
+	}
 	SpirvRoutine::SpirvRoutine(vk::PipelineLayout const *pipelineLayout) :
 		pipelineLayout(pipelineLayout)
 	{
