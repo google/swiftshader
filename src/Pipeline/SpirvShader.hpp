@@ -173,6 +173,11 @@ namespace sw
 				return &iter[n];
 			}
 
+			bool operator==(InsnIterator const &other) const
+			{
+				return iter == other.iter;
+			}
+
 			bool operator!=(InsnIterator const &other) const
 			{
 				return iter != other.iter;
@@ -596,6 +601,10 @@ namespace sw
 		EmitResult EmitAny(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitAll(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitBranch(InsnIterator insn, EmitState *state) const;
+		EmitResult EmitBranchConditional(InsnIterator insn, EmitState *state) const;
+		EmitResult EmitUnreachable(InsnIterator insn, EmitState *state) const;
+		EmitResult EmitReturn(InsnIterator insn, EmitState *state) const;
+		EmitResult EmitPhi(InsnIterator insn, EmitState *state) const;
 
 		// OpcodeName() returns the name of the opcode op.
 		// If NDEBUG is defined, then OpcodeName() will only return the numerical code.

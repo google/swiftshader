@@ -146,6 +146,9 @@ namespace sw
 				break;
 			}
 
+			case spv::OpSelectionMerge:
+				break; // Nothing to do in analysis pass.
+
 			case spv::OpTypeVoid:
 			case spv::OpTypeBool:
 			case spv::OpTypeInt:
@@ -417,6 +420,7 @@ namespace sw
 			case spv::OpDPdyFine:
 			case spv::OpFwidthFine:
 			case spv::OpAtomicLoad:
+			case spv::OpPhi:
 				// Instructions that yield an intermediate value
 			{
 				Type::ID typeId = insn.word(1);
@@ -1173,6 +1177,8 @@ namespace sw
 		switch (block.kind)
 		{
 			case Block::Simple:
+			case Block::StructuredBranchConditional:
+			case Block::UnstructuredBranchConditional:
 				if (id != mainBlockId)
 				{
 					// Emit all preceeding blocks and set the activeLaneMask.
@@ -1261,11 +1267,6 @@ namespace sw
 			return EmitResult::Continue;
 
 		case spv::OpLabel:
-		case spv::OpReturn:
-			// TODO: when we do control flow, will need to do some work here.
-			// Until then, there is nothing to do -- we expect there to be an initial OpLabel
-			// in the entrypoint function, for which we do nothing; and a final OpReturn at the
-			// end of the entrypoint function, for which we do nothing.
 			return EmitResult::Continue;
 
 		case spv::OpVariable:
@@ -1393,6 +1394,21 @@ namespace sw
 
 		case spv::OpBranch:
 			return EmitBranch(insn, state);
+
+		case spv::OpPhi:
+			return EmitPhi(insn, state);
+
+		case spv::OpSelectionMerge:
+			return EmitResult::Continue;
+
+		case spv::OpBranchConditional:
+			return EmitBranchConditional(insn, state);
+
+		case spv::OpUnreachable:
+			return EmitUnreachable(insn, state);
+
+		case spv::OpReturn:
+			return EmitReturn(insn, state);
 
 		default:
 			UNIMPLEMENTED("opcode: %s", OpcodeName(insn.opcode()).c_str());
@@ -2600,6 +2616,69 @@ namespace sw
 		auto edge = Block::Edge{state->currentBlock, target};
 		state->edgeActiveLaneMasks.emplace(edge, state->activeLaneMask());
 		return EmitResult::Terminator;
+	}
+
+	SpirvShader::EmitResult SpirvShader::EmitBranchConditional(InsnIterator insn, EmitState *state) const
+	{
+		auto block = getBlock(state->currentBlock);
+		ASSERT(block.branchInstruction == insn);
+
+		auto condId = Object::ID(block.branchInstruction.word(1));
+		auto trueBlockId = Block::ID(block.branchInstruction.word(2));
+		auto falseBlockId = Block::ID(block.branchInstruction.word(3));
+
+		auto cond = GenericValue(this, state->routine, condId);
+		ASSERT_MSG(getType(getObject(condId).type).sizeInComponents == 1, "Condition must be a Boolean type scalar");
+
+		// TODO: Optimize for case where all lanes take same path.
+
+		state->addOutputActiveLaneMaskEdge(trueBlockId, cond.Int(0));
+		state->addOutputActiveLaneMaskEdge(falseBlockId, ~cond.Int(0));
+
+		return EmitResult::Terminator;
+	}
+
+
+	SpirvShader::EmitResult SpirvShader::EmitUnreachable(InsnIterator insn, EmitState *state) const
+	{
+		// TODO: Log something in this case?
+		state->setActiveLaneMask(SIMD::Int(0));
+		return EmitResult::Terminator;
+	}
+
+	SpirvShader::EmitResult SpirvShader::EmitReturn(InsnIterator insn, EmitState *state) const
+	{
+		state->setActiveLaneMask(SIMD::Int(0));
+		return EmitResult::Terminator;
+	}
+
+	SpirvShader::EmitResult SpirvShader::EmitPhi(InsnIterator insn, EmitState *state) const
+	{
+		auto routine = state->routine;
+		auto typeId = Type::ID(insn.word(1));
+		auto type = getType(typeId);
+		auto objectId = Object::ID(insn.word(2));
+
+		auto &dst = routine->createIntermediate(objectId, type.sizeInComponents);
+
+		bool first = true;
+		for (uint32_t w = 3; w < insn.wordCount(); w += 2)
+		{
+			auto varId = Object::ID(insn.word(w + 0));
+			auto blockId = Block::ID(insn.word(w + 1));
+
+			auto in = GenericValue(this, routine, varId);
+			auto mask = state->getActiveLaneMaskEdge(blockId, state->currentBlock);
+
+			for (uint32_t i = 0; i < type.sizeInComponents; i++)
+			{
+				auto inMasked = in.Int(i) & mask;
+				dst.replace(i, first ? inMasked : (dst.Int(i) | inMasked));
+			}
+			first = false;
+		}
+
+		return EmitResult::Continue;
 	}
 
 	void SpirvShader::emitEpilog(SpirvRoutine *routine) const
