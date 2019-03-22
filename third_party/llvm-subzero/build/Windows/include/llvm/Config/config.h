@@ -337,7 +337,7 @@
 #define LLVM_DEFAULT_TARGET_TRIPLE "i686-pc-win32"
 
 /* Define if threads enabled */
-#define LLVM_ENABLE_THREADS 1
+#define LLVM_ENABLE_THREADS 0
 
 /* Define if zlib compression is available */
 #define LLVM_ENABLE_ZLIB 0

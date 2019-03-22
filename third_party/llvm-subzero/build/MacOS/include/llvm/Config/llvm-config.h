@@ -21,7 +21,7 @@
 #define LLVM_DEFAULT_TARGET_TRIPLE "x86_64-apple-darwin16.3.0"
 
 /* Define if threads enabled */
-#define LLVM_ENABLE_THREADS 1
+#define LLVM_ENABLE_THREADS 0
 
 /* Has gcc/MSVC atomic intrinsics */
 #define LLVM_HAS_ATOMICS 1

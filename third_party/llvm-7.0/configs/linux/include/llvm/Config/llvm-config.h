@@ -38,7 +38,7 @@
 #endif
 
 /* Define if threads enabled */
-#define LLVM_ENABLE_THREADS 1
+#define LLVM_ENABLE_THREADS 0
 
 /* Has gcc/MSVC atomic intrinsics */
 #define LLVM_HAS_ATOMICS 1
