@@ -54,6 +54,14 @@ LLVM_TRIPLES = {
     'darwin': [
         ('__x86_64__', 'x86_64-apple-darwin'),
     ],
+    'windows': [
+        ('__x86_64__', 'x86_64-pc-win32'),
+        ('__i386__', 'i686-pc-win32'),
+        ('__arm__', 'armv7-pc-win32'),
+        ('__aarch64__', 'aarch64-pc-win32'),
+        ('__mips__', 'mipsel-pc-win32'),
+        ('__mips64', 'mips64el-pc-win32'),
+    ],
 }
 
 LLVM_OPTIONS = [
@@ -71,19 +79,23 @@ LLVM_OPTIONS = [
 def _parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('name', help='destination name',
-                        choices=['android', 'linux', 'darwin'])
+                        choices=['android', 'linux', 'darwin', 'windows'])
     parser.add_argument('-j', '--jobs', help='parallel compilation', type=int)
     return parser.parse_args()
 
 
-def build_llvm(num_jobs):
+def build_llvm(name, num_jobs):
     """Build LLVM and get all generated files."""
     if num_jobs is None:
         num_jobs = multiprocessing.cpu_count()
 
+    """On Windows we need to have CMake generate build files for the 64-bit
+    Visual Studio host toolchain."""
+    host = '-Thost=x64' if name is 'windows' else ''
+
     os.makedirs(LLVM_OBJS, exist_ok=True)
-    run(['cmake', LLVM_DIR] + LLVM_OPTIONS, cwd=LLVM_OBJS)
-    run(['make', '-j' + str(num_jobs)], cwd=LLVM_OBJS)
+    run(['cmake', host, LLVM_DIR] + LLVM_OPTIONS, cwd=LLVM_OBJS)
+    run(['cmake', '--build', '.', '-j', str(num_jobs)], cwd=LLVM_OBJS)
 
 
 def list_files(src_base, src, dst_base, suffixes):
@@ -155,6 +167,18 @@ def copy_platform_file(platform, src, dst):
         os.makedirs(os.path.dirname(dst), exist_ok=True)
         with open(dst, 'w') as dst_file:
             for line in src_file:
+                if line == '#define LLVM_CONFIG_H\n':
+                    print(line, file=dst_file, end='')
+                    print('', file=dst_file)
+                    print('#if !defined(__i386__) && defined(_M_IX86)', file=dst_file)
+                    print('#define __i386__ 1', file=dst_file)
+                    print('#endif', file=dst_file)
+                    print('', file=dst_file)
+                    print('#if !defined(__x86_64__) && (defined(_M_AMD64) || defined (_M_X64))', file=dst_file)
+                    print('#define __x86_64__ 1', file=dst_file)
+                    print('#endif', file=dst_file)
+                    print('', file=dst_file)
+
                 match = llvm_target_pattern.match(line)
                 if match:
                     arch = match.group(1)
@@ -215,7 +239,7 @@ def copy_platform_generated_files(platform, dst_base):
 
 def main():
     args = _parse_args()
-    build_llvm(args.jobs)
+    build_llvm(args.name, args.jobs)
     copy_common_generated_files(os.path.join(LLVM_CONFIGS, 'common'))
     copy_platform_generated_files(
         args.name, os.path.join(LLVM_CONFIGS, args.name))
