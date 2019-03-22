@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e27dc678_f69c1095",
+        "filename": "src/Vulkan/VkCommandBuffer.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2019-03-22T13:50:42Z",
+      "side": 1,
+      "message": "Since this is subpass related, shouldn\u0027t this also be the case when we go to the next subpass (NextSubpass command above)?",
+      "range": {
+        "startLine": 104,
+        "startChar": 36,
+        "endLine": 104,
+        "endChar": 56
+      },
+      "revId": "fc06fd13053801eabc6845e3431fabbd0bf981c0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
