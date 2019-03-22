@@ -254,13 +254,10 @@ Pipeline::Pipeline(PipelineLayout const *layout) : layout(layout) {}
 GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateInfo, void* mem)
 	: Pipeline(Cast(pCreateInfo->layout))
 {
-	if((pCreateInfo->flags != 0) ||
+	if(((pCreateInfo->flags & ~(VK_PIPELINE_CREATE_DERIVATIVE_BIT | VK_PIPELINE_CREATE_ALLOW_DERIVATIVES_BIT)) != 0) ||
 	   (pCreateInfo->stageCount != 2) ||
 	   (pCreateInfo->pTessellationState != nullptr) ||
-	   (pCreateInfo->pDynamicState != nullptr) ||
-	   (pCreateInfo->subpass != 0) ||
-	   (pCreateInfo->basePipelineHandle != VK_NULL_HANDLE) ||
-	   (pCreateInfo->basePipelineIndex != 0))
+	   (pCreateInfo->pDynamicState != nullptr))
 	{
 		UNIMPLEMENTED("pCreateInfo settings");
 	}
