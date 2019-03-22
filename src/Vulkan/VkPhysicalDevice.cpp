@@ -39,8 +39,8 @@ const VkPhysicalDeviceFeatures& PhysicalDevice::getFeatures() const
 		false, // sampleRateShading
 		false, // dualSrcBlend
 		false, // logicOp
-		false, // multiDrawIndirect
-		false, // drawIndirectFirstInstance
+		true, // multiDrawIndirect
+		true, // drawIndirectFirstInstance
 		false, // depthClamp
 		false, // depthBiasClamp
 		false, // fillModeNonSolid
