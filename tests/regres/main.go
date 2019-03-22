@@ -190,7 +190,7 @@ func (r *regres) run() error {
 	}
 
 	changes := map[string]*changeInfo{} // Change ID -> changeInfo
-	lastUpdatedTestLists := toDate(time.Now())
+	lastUpdatedTestLists := date{}      // toDate(time.Now())
 	lastQueriedChanges := time.Time{}
 
 	for {
@@ -483,18 +483,20 @@ func (r *regres) postMostCommonFailures(client *gerrit.Client, change *gerrit.Ch
 		if len(lines) == 1 {
 			line := lines[0]
 			if line != "" {
-				sb.WriteString(fmt.Sprintf("  %d occurrences: %v: %v\n", f.count, f.status, line))
+				sb.WriteString(fmt.Sprintf(" • %d occurrences: %v: %v\n", f.count, f.status, line))
 			} else {
-				sb.WriteString(fmt.Sprintf("  %d occurrences: %v\n", f.count, f.status))
+				sb.WriteString(fmt.Sprintf(" • %d occurrences: %v\n", f.count, f.status))
 			}
 		} else {
-			sb.WriteString(fmt.Sprintf("  %d occurrences: %v:\n", f.count, f.status))
+			sb.WriteString(fmt.Sprintf(" • %d occurrences: %v:\n", f.count, f.status))
 			for _, l := range lines {
 				sb.WriteString("    > ")
 				sb.WriteString(l)
 				sb.WriteString("\n")
 			}
 		}
+		sb.WriteString(fmt.Sprintf("    Example test: %v\n", f.exampleTest))
+
 	}
 	msg := sb.String()
 
@@ -907,20 +909,27 @@ type testStatusAndError struct {
 type commonFailure struct {
 	count int
 	testStatusAndError
+	exampleTest string
 }
 
 func (r *CommitTestResults) commonFailures() []commonFailure {
 	failures := map[testStatusAndError]int{}
-	for _, test := range r.Tests {
+	examples := map[testStatusAndError]string{}
+	for name, test := range r.Tests {
 		if !test.Status.Failing() {
 			continue
 		}
 		key := testStatusAndError{test.Status, test.Err}
-		failures[key] = failures[key] + 1
+		if count, ok := failures[key]; ok {
+			failures[key] = count + 1
+		} else {
+			failures[key] = 1
+			examples[key] = name
+		}
 	}
 	out := make([]commonFailure, 0, len(failures))
 	for failure, count := range failures {
-		out = append(out, commonFailure{count, failure})
+		out = append(out, commonFailure{count, failure, examples[failure]})
 	}
 	sort.Slice(out, func(i, j int) bool { return out[i].count > out[j].count })
 	return out
