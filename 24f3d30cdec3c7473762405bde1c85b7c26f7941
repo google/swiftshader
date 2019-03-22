@@ -88,6 +88,24 @@
       "revId": "24f3d30cdec3c7473762405bde1c85b7c26f7941",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "63e8e78e_2df080d1",
+        "filename": "third_party/llvm-7.0/BUILD.gn",
+        "patchSetId": 2
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2019-03-22T14:49:22Z",
+      "side": 1,
+      "message": "I created a cl for it:\nhttps://swiftshader-review.googlesource.com/c/SwiftShader/+/27868",
+      "parentUuid": "fdebb7bf_d3d1ab96",
+      "revId": "24f3d30cdec3c7473762405bde1c85b7c26f7941",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
