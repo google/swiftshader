@@ -268,59 +268,15 @@ void CommandBuffer::ExecutionState::bindAttachments()
 	}
 }
 
-struct Draw : public CommandBuffer::Command
+struct DrawBase : public CommandBuffer::Command
 {
-	Draw(uint32_t vertexCount, uint32_t instanceCount, uint32_t firstVertex, uint32_t firstInstance)
-		: vertexCount(vertexCount), instanceCount(instanceCount), firstVertex(firstVertex), firstInstance(firstInstance)
+	int bytesPerIndex(CommandBuffer::ExecutionState const& executionState)
 	{
+		return executionState.indexType == VK_INDEX_TYPE_UINT16 ? 2 : 4;
 	}
 
-	void play(CommandBuffer::ExecutionState& executionState) override
-	{
-		GraphicsPipeline* pipeline = static_cast<GraphicsPipeline*>(
-			executionState.pipelines[VK_PIPELINE_BIND_POINT_GRAPHICS]);
-
-		sw::Context context = pipeline->getContext();
-		executionState.bindVertexInputs(context, firstVertex, firstInstance);
-
-		const auto& boundDescriptorSets = executionState.boundDescriptorSets[VK_PIPELINE_BIND_POINT_GRAPHICS];
-		for(int i = 0; i < vk::MAX_BOUND_DESCRIPTOR_SETS; i++)
-		{
-			context.descriptorSets[i] = reinterpret_cast<vk::DescriptorSet*>(boundDescriptorSets[i]);
-		}
-
-		context.pushConstants = executionState.pushConstants;
-
-		executionState.renderer->setContext(context);
-		executionState.renderer->setScissor(pipeline->getScissor());
-		executionState.renderer->setViewport(pipeline->getViewport());
-		executionState.renderer->setBlendConstant(pipeline->getBlendConstants());
-
-		executionState.bindAttachments();
-
-		const uint32_t primitiveCount = pipeline->computePrimitiveCount(vertexCount);
-		for(uint32_t instance = firstInstance; instance != firstInstance + instanceCount; instance++)
-		{
-			executionState.renderer->setInstanceID(instance);
-			executionState.renderer->draw(context.drawType, primitiveCount);
-			executionState.renderer->advanceInstanceAttributes();
-		}
-	}
-
-	uint32_t vertexCount;
-	uint32_t instanceCount;
-	uint32_t firstVertex;
-	uint32_t firstInstance;
-};
-
-struct DrawIndexed : public CommandBuffer::Command
-{
-	DrawIndexed(uint32_t indexCount, uint32_t instanceCount, uint32_t firstIndex, int32_t vertexOffset, uint32_t firstInstance)
-			: indexCount(indexCount), instanceCount(instanceCount), firstIndex(firstIndex), vertexOffset(vertexOffset), firstInstance(firstInstance)
-	{
-	}
-
-	void play(CommandBuffer::ExecutionState& executionState) override
+	void draw(CommandBuffer::ExecutionState& executionState, bool indexed,
+			uint32_t count, uint32_t instanceCount, uint32_t first, int32_t vertexOffset, uint32_t firstInstance)
 	{
 		GraphicsPipeline* pipeline = static_cast<GraphicsPipeline*>(
 				executionState.pipelines[VK_PIPELINE_BIND_POINT_GRAPHICS]);
@@ -336,9 +292,16 @@ struct DrawIndexed : public CommandBuffer::Command
 		}
 
 		context.pushConstants = executionState.pushConstants;
+		auto drawType = context.drawType;
 
-		context.indexBuffer = Cast(executionState.indexBufferBinding.buffer)->getOffsetPointer(
-				executionState.indexBufferBinding.offset + firstIndex * (executionState.indexType == VK_INDEX_TYPE_UINT16 ? 2 : 4));
+		if (indexed)
+		{
+			context.indexBuffer = Cast(executionState.indexBufferBinding.buffer)->getOffsetPointer(
+					executionState.indexBufferBinding.offset + first * bytesPerIndex(executionState));
+
+			drawType = static_cast<sw::DrawType>(executionState.indexType == VK_INDEX_TYPE_UINT16
+					   ? (context.drawType | sw::DRAW_INDEXED16) : (context.drawType | sw::DRAW_INDEXED32));
+		}
 
 		executionState.renderer->setContext(context);
 		executionState.renderer->setScissor(pipeline->getScissor());
@@ -347,16 +310,44 @@ struct DrawIndexed : public CommandBuffer::Command
 
 		executionState.bindAttachments();
 
-		auto drawType = executionState.indexType == VK_INDEX_TYPE_UINT16
-				? (context.drawType | sw::DRAW_INDEXED16) : (context.drawType | sw::DRAW_INDEXED32);
-
-		const uint32_t primitiveCount = pipeline->computePrimitiveCount(indexCount);
+		const uint32_t primitiveCount = pipeline->computePrimitiveCount(count);
 		for(uint32_t instance = firstInstance; instance != firstInstance + instanceCount; instance++)
 		{
 			executionState.renderer->setInstanceID(instance);
-			executionState.renderer->draw(static_cast<sw::DrawType>(drawType), primitiveCount);
+			executionState.renderer->draw(drawType, primitiveCount);
 			executionState.renderer->advanceInstanceAttributes();
 		}
+	}
+};
+
+struct Draw : public DrawBase
+{
+	Draw(uint32_t vertexCount, uint32_t instanceCount, uint32_t firstVertex, uint32_t firstInstance)
+		: vertexCount(vertexCount), instanceCount(instanceCount), firstVertex(firstVertex), firstInstance(firstInstance)
+	{
+	}
+
+	void play(CommandBuffer::ExecutionState& executionState) override
+	{
+		draw(executionState, false, vertexCount, instanceCount, 0, firstVertex, firstInstance);
+	}
+
+	uint32_t vertexCount;
+	uint32_t instanceCount;
+	uint32_t firstVertex;
+	uint32_t firstInstance;
+};
+
+struct DrawIndexed : public DrawBase
+{
+	DrawIndexed(uint32_t indexCount, uint32_t instanceCount, uint32_t firstIndex, int32_t vertexOffset, uint32_t firstInstance)
+			: indexCount(indexCount), instanceCount(instanceCount), firstIndex(firstIndex), vertexOffset(vertexOffset), firstInstance(firstInstance)
+	{
+	}
+
+	void play(CommandBuffer::ExecutionState& executionState) override
+	{
+		draw(executionState, true, indexCount, instanceCount, firstIndex, vertexOffset, firstInstance);
 	}
 
 	uint32_t indexCount;
@@ -364,6 +355,50 @@ struct DrawIndexed : public CommandBuffer::Command
 	uint32_t firstIndex;
 	int32_t vertexOffset;
 	uint32_t firstInstance;
+};
+
+struct DrawIndirect : public DrawBase
+{
+	DrawIndirect(VkBuffer buffer, VkDeviceSize offset, uint32_t drawCount, uint32_t stride)
+			: buffer(buffer), offset(offset), drawCount(drawCount), stride(stride)
+	{
+	}
+
+	void play(CommandBuffer::ExecutionState& executionState) override
+	{
+		for (auto drawId = 0u; drawId < drawCount; drawId++)
+		{
+			auto cmd = reinterpret_cast<VkDrawIndirectCommand const *>(Cast(buffer)->getOffsetPointer(offset + drawId * stride));
+			draw(executionState, false, cmd->vertexCount, cmd->instanceCount, 0, cmd->firstVertex, cmd->firstInstance);
+		}
+	}
+
+	VkBuffer buffer;
+	VkDeviceSize offset;
+	uint32_t drawCount;
+	uint32_t stride;
+};
+
+struct DrawIndexedIndirect : public DrawBase
+{
+	DrawIndexedIndirect(VkBuffer buffer, VkDeviceSize offset, uint32_t drawCount, uint32_t stride)
+			: buffer(buffer), offset(offset), drawCount(drawCount), stride(stride)
+	{
+	}
+
+	void play(CommandBuffer::ExecutionState& executionState) override
+	{
+		for (auto drawId = 0u; drawId < drawCount; drawId++)
+		{
+			auto cmd = reinterpret_cast<VkDrawIndexedIndirectCommand const *>(Cast(buffer)->getOffsetPointer(offset + drawId * stride));
+			draw(executionState, true, cmd->indexCount, cmd->instanceCount, cmd->firstIndex, cmd->vertexOffset, cmd->firstInstance);
+		}
+	}
+
+	VkBuffer buffer;
+	VkDeviceSize offset;
+	uint32_t drawCount;
+	uint32_t stride;
 };
 
 struct ImageToImageCopy : public CommandBuffer::Command
@@ -1110,12 +1145,12 @@ void CommandBuffer::drawIndexed(uint32_t indexCount, uint32_t instanceCount, uin
 
 void CommandBuffer::drawIndirect(VkBuffer buffer, VkDeviceSize offset, uint32_t drawCount, uint32_t stride)
 {
-	UNIMPLEMENTED("drawIndirect");
+	addCommand<DrawIndirect>(buffer, offset, drawCount, stride);
 }
 
 void CommandBuffer::drawIndexedIndirect(VkBuffer buffer, VkDeviceSize offset, uint32_t drawCount, uint32_t stride)
 {
-	UNIMPLEMENTED("drawIndexedIndirect");
+	addCommand<DrawIndexedIndirect>(buffer, offset, drawCount, stride);
 }
 
 void CommandBuffer::submit(CommandBuffer::ExecutionState& executionState)
