@@ -52,6 +52,24 @@
       "revId": "24f3d30cdec3c7473762405bde1c85b7c26f7941",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f1c6d580_25d8d078",
+        "filename": "third_party/llvm-7.0/BUILD.gn",
+        "patchSetId": 2
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 6725
+      },
+      "writtenOn": "2019-03-22T13:58:00Z",
+      "side": 1,
+      "message": "I stumbled upon this line again today, looks like it\u0027s still there. Were there issues with removing it?",
+      "parentUuid": "673d6613_22e81c90",
+      "revId": "24f3d30cdec3c7473762405bde1c85b7c26f7941",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
