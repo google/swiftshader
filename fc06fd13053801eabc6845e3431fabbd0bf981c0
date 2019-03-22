@@ -22,6 +22,30 @@
       "revId": "fc06fd13053801eabc6845e3431fabbd0bf981c0",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8862893d_d4a025f3",
+        "filename": "src/Vulkan/VkCommandBuffer.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 6982
+      },
+      "writtenOn": "2019-03-22T16:18:16Z",
+      "side": 1,
+      "message": "The case I\u0027m interested in here is the (usually implicit) dependency from the last subpass which uses a particular attachment, to VK_SUBPASS_EXTERNAL.\n\nWithin the renderpass, we\u0027re ordered enough (except for resolves and clears) already.\n\nThis gets a whole lot more subtle if we enable stores \u0026 atomics in graphics shaders, but we\u0027re not doing that yet.",
+      "parentUuid": "e27dc678_f69c1095",
+      "range": {
+        "startLine": 104,
+        "startChar": 36,
+        "endLine": 104,
+        "endChar": 56
+      },
+      "revId": "fc06fd13053801eabc6845e3431fabbd0bf981c0",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
