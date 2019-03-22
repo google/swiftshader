@@ -185,6 +185,32 @@ private:
 	uint32_t groupCountZ;
 };
 
+class DispatchIndirect : public CommandBuffer::Command
+{
+public:
+	DispatchIndirect(VkBuffer buffer, VkDeviceSize offset) :
+			buffer(buffer), offset(offset)
+	{
+	}
+
+protected:
+	void play(CommandBuffer::ExecutionState& executionState) override
+	{
+		auto cmd = reinterpret_cast<VkDispatchIndirectCommand const *>(Cast(buffer)->getOffsetPointer(offset));
+
+		ComputePipeline* pipeline = static_cast<ComputePipeline*>(
+				executionState.pipelines[VK_PIPELINE_BIND_POINT_COMPUTE]);
+		pipeline->run(cmd->x, cmd->y, cmd->z,
+					  MAX_BOUND_DESCRIPTOR_SETS,
+					  executionState.boundDescriptorSets[VK_PIPELINE_BIND_POINT_COMPUTE],
+					  executionState.pushConstants);
+	}
+
+private:
+	VkBuffer buffer;
+	VkDeviceSize offset;
+};
+
 struct VertexBufferBind : public CommandBuffer::Command
 {
 	VertexBufferBind(uint32_t pBinding, const VkBuffer pBuffer, const VkDeviceSize pOffset) :
@@ -981,7 +1007,7 @@ void CommandBuffer::dispatch(uint32_t groupCountX, uint32_t groupCountY, uint32_
 
 void CommandBuffer::dispatchIndirect(VkBuffer buffer, VkDeviceSize offset)
 {
-	UNIMPLEMENTED("dispatchIndirect");
+	addCommand<DispatchIndirect>(buffer, offset);
 }
 
 void CommandBuffer::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, uint32_t regionCount, const VkBufferCopy* pRegions)
