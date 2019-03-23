@@ -23,20 +23,18 @@
 #  error Please define the macro LLVM_TARGET(TargetName)
 #endif
 
+#if defined(__aarch64__)
 LLVM_TARGET(AArch64)
-LLVM_TARGET(AMDGPU)
+#endif
+#if defined(__arm__)
 LLVM_TARGET(ARM)
-LLVM_TARGET(BPF)
-LLVM_TARGET(Hexagon)
-LLVM_TARGET(Lanai)
-LLVM_TARGET(Mips)
-LLVM_TARGET(MSP430)
-LLVM_TARGET(NVPTX)
-LLVM_TARGET(PowerPC)
-LLVM_TARGET(Sparc)
-LLVM_TARGET(SystemZ)
+#endif
+#if defined(__i386__) || defined(__x86_64__)
 LLVM_TARGET(X86)
-LLVM_TARGET(XCore)
+#endif
+#if defined(__mips__)
+LLVM_TARGET(Mips)
+#endif
 
 
 #undef LLVM_TARGET

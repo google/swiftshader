@@ -24,17 +24,18 @@
 #  error Please define the macro LLVM_ASM_PARSER(TargetName)
 #endif
 
+#if defined(__aarch64__)
 LLVM_ASM_PARSER(AArch64)
-LLVM_ASM_PARSER(AMDGPU)
+#endif
+#if defined(__arm__)
 LLVM_ASM_PARSER(ARM)
-LLVM_ASM_PARSER(BPF)
-LLVM_ASM_PARSER(Hexagon)
-LLVM_ASM_PARSER(Lanai)
-LLVM_ASM_PARSER(Mips)
-LLVM_ASM_PARSER(PowerPC)
-LLVM_ASM_PARSER(Sparc)
-LLVM_ASM_PARSER(SystemZ)
+#endif
+#if defined(__i386__) || defined(__x86_64__)
 LLVM_ASM_PARSER(X86)
+#endif
+#if defined(__mips__)
+LLVM_ASM_PARSER(Mips)
+#endif
 
 
 #undef LLVM_ASM_PARSER
