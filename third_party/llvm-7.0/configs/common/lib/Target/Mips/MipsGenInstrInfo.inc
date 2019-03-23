@@ -10336,6 +10336,8 @@ static const uint16_t Std2MicroMipsR6Table[][3] = {
   { Mips::LDC2, Mips::LDC2, Mips::LDC2_MMR6 },
   { Mips::LW, Mips::LW, Mips::LW_MMR6 },
   { Mips::LWC2, Mips::LWC2, Mips::LWC2_MMR6 },
+  { Mips::MFC1, Mips::MFC1, Mips::MFC1_MMR6 },
+  { Mips::MTC1, Mips::MTC1, Mips::MTC1_MMR6 },
   { Mips::MTHC1_D32, Mips::MTHC1_D32, (uint16_t)-1U },
   { Mips::NOR, Mips::NOR, Mips::NOR_MMR6 },
   { Mips::OR, Mips::OR, Mips::OR_MMR6 },
@@ -10363,7 +10365,7 @@ static const uint16_t Std2MicroMipsR6Table[][3] = {
 
   unsigned mid;
   unsigned start = 0;
-  unsigned end = 44;
+  unsigned end = 46;
   while (start < end) {
     mid = start + (end - start)/2;
     if (Opcode == Std2MicroMipsR6Table[mid][0]) {

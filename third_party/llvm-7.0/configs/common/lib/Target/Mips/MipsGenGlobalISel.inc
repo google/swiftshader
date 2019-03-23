@@ -596,7 +596,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
     GIM_Try, /*On fail goto*//*Label 50*/ 457,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_s32,
       GIM_CheckType, /*MI*/0, /*Op*/2, /*Type*/GILLT_s32,
-      GIM_Try, /*On fail goto*//*Label 51*/ 187, // Rule ID 2290 //
+      GIM_Try, /*On fail goto*//*Label 51*/ 187, // Rule ID 2291 //
         GIM_CheckFeatures, GIFBS_HasMSA_HasStdEnc,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::GPR32RegClassID,
         GIM_RecordInsn, /*DefineMI*/1, /*MI*/0, /*OpIdx*/1, // MIs[1]
@@ -620,7 +620,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_CopyConstantAsSImm, /*NewInsnID*/0, /*OldInsnID*/2, // sa
         GIR_EraseFromParent, /*InsnID*/0,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 2290,
+        // GIR_Coverage, 2291,
         GIR_Done,
       // Label 51: @187
       GIM_Try, /*On fail goto*//*Label 52*/ 255, // Rule ID 802 //
@@ -650,7 +650,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         // GIR_Coverage, 802,
         GIR_Done,
       // Label 52: @255
-      GIM_Try, /*On fail goto*//*Label 53*/ 298, // Rule ID 2066 //
+      GIM_Try, /*On fail goto*//*Label 53*/ 298, // Rule ID 2067 //
         GIM_CheckFeatures, GIFBS_InMicroMips,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::GPRMM16RegClassID,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/1, /*RC*/Mips::GPRMM16RegClassID,
@@ -667,10 +667,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_CopyConstantAsSImm, /*NewInsnID*/0, /*OldInsnID*/1, // imm
         GIR_EraseFromParent, /*InsnID*/0,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 2066,
+        // GIR_Coverage, 2067,
         GIR_Done,
       // Label 53: @298
-      GIM_Try, /*On fail goto*//*Label 54*/ 341, // Rule ID 2067 //
+      GIM_Try, /*On fail goto*//*Label 54*/ 341, // Rule ID 2068 //
         GIM_CheckFeatures, GIFBS_InMicroMips,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::GPR32RegClassID,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/1, /*RC*/Mips::GPR32RegClassID,
@@ -687,7 +687,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_CopyConstantAsSImm, /*NewInsnID*/0, /*OldInsnID*/1, // imm
         GIR_EraseFromParent, /*InsnID*/0,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 2067,
+        // GIR_Coverage, 2068,
         GIR_Done,
       // Label 54: @341
       GIM_Try, /*On fail goto*//*Label 55*/ 364, // Rule ID 1165 //
@@ -734,7 +734,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         // GIR_Coverage, 1040,
         GIR_Done,
       // Label 58: @433
-      GIM_Try, /*On fail goto*//*Label 59*/ 456, // Rule ID 1735 //
+      GIM_Try, /*On fail goto*//*Label 59*/ 456, // Rule ID 1736 //
         GIM_CheckFeatures, GIFBS_InMips16Mode,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::CPU16RegsRegClassID,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/1, /*RC*/Mips::CPU16RegsRegClassID,
@@ -742,7 +742,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         // (add:{ *:[i32] } CPU16Regs:{ *:[i32] }:$l, CPU16Regs:{ *:[i32] }:$r)  =>  (AdduRxRyRz16:{ *:[i32] } CPU16Regs:{ *:[i32] }:$l, CPU16Regs:{ *:[i32] }:$r)
         GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/Mips::AdduRxRyRz16,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 1735,
+        // GIR_Coverage, 1736,
         GIR_Done,
       // Label 59: @456
       GIM_Reject,
@@ -753,7 +753,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_s64,
       GIM_CheckType, /*MI*/0, /*Op*/2, /*Type*/GILLT_s64,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::GPR64RegClassID,
-      GIM_Try, /*On fail goto*//*Label 61*/ 536, // Rule ID 2291 //
+      GIM_Try, /*On fail goto*//*Label 61*/ 536, // Rule ID 2292 //
         GIM_CheckFeatures, GIFBS_HasMSA_HasMips64_HasStdEnc,
         GIM_RecordInsn, /*DefineMI*/1, /*MI*/0, /*OpIdx*/1, // MIs[1]
         GIM_CheckOpcode, /*MI*/1, TargetOpcode::G_SHL,
@@ -776,7 +776,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_CopyConstantAsSImm, /*NewInsnID*/0, /*OldInsnID*/2, // sa
         GIR_EraseFromParent, /*InsnID*/0,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 2291,
+        // GIR_Coverage, 2292,
         GIR_Done,
       // Label 61: @536
       GIM_Try, /*On fail goto*//*Label 62*/ 600, // Rule ID 803 //
@@ -819,7 +819,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
     // Label 60: @620
     GIM_Reject,
     // Label 43: @621
-    GIM_Try, /*On fail goto*//*Label 64*/ 647, // Rule ID 1834 //
+    GIM_Try, /*On fail goto*//*Label 64*/ 647, // Rule ID 1835 //
       GIM_CheckFeatures, GIFBS_HasDSP,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v2s16,
       GIM_CheckType, /*MI*/0, /*Op*/2, /*Type*/GILLT_v2s16,
@@ -828,7 +828,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/Mips::ADDQ_PH,
       GIR_AddImplicitDef, /*InsnID*/0, Mips::DSPOutFlag20,
       GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-      // GIR_Coverage, 1834,
+      // GIR_Coverage, 1835,
       GIR_Done,
     // Label 64: @647
     GIM_Reject,
@@ -837,7 +837,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v2s64,
       GIM_CheckType, /*MI*/0, /*Op*/2, /*Type*/GILLT_v2s64,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128DRegClassID,
-      GIM_Try, /*On fail goto*//*Label 66*/ 719, // Rule ID 2295 //
+      GIM_Try, /*On fail goto*//*Label 66*/ 719, // Rule ID 2296 //
         GIM_CheckFeatures, GIFBS_HasMSA_HasStdEnc,
         GIM_RecordInsn, /*DefineMI*/1, /*MI*/0, /*OpIdx*/1, // MIs[1]
         GIM_CheckOpcode, /*MI*/1, TargetOpcode::G_MUL,
@@ -855,7 +855,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_Copy, /*NewInsnID*/0, /*OldInsnID*/1, /*OpIdx*/2, // wt
         GIR_EraseFromParent, /*InsnID*/0,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 2295,
+        // GIR_Coverage, 2296,
         GIR_Done,
       // Label 66: @719
       GIM_Try, /*On fail goto*//*Label 67*/ 776, // Rule ID 811 //
@@ -893,7 +893,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
     // Label 65: @796
     GIM_Reject,
     // Label 45: @797
-    GIM_Try, /*On fail goto*//*Label 69*/ 823, // Rule ID 1840 //
+    GIM_Try, /*On fail goto*//*Label 69*/ 823, // Rule ID 1841 //
       GIM_CheckFeatures, GIFBS_HasDSP,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v4s8,
       GIM_CheckType, /*MI*/0, /*Op*/2, /*Type*/GILLT_v4s8,
@@ -902,7 +902,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/Mips::ADDU_QB,
       GIR_AddImplicitDef, /*InsnID*/0, Mips::DSPOutFlag20,
       GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-      // GIR_Coverage, 1840,
+      // GIR_Coverage, 1841,
       GIR_Done,
     // Label 69: @823
     GIM_Reject,
@@ -911,7 +911,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v4s32,
       GIM_CheckType, /*MI*/0, /*Op*/2, /*Type*/GILLT_v4s32,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128WRegClassID,
-      GIM_Try, /*On fail goto*//*Label 71*/ 895, // Rule ID 2294 //
+      GIM_Try, /*On fail goto*//*Label 71*/ 895, // Rule ID 2295 //
         GIM_CheckFeatures, GIFBS_HasMSA_HasStdEnc,
         GIM_RecordInsn, /*DefineMI*/1, /*MI*/0, /*OpIdx*/1, // MIs[1]
         GIM_CheckOpcode, /*MI*/1, TargetOpcode::G_MUL,
@@ -929,7 +929,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_Copy, /*NewInsnID*/0, /*OldInsnID*/1, /*OpIdx*/2, // wt
         GIR_EraseFromParent, /*InsnID*/0,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 2294,
+        // GIR_Coverage, 2295,
         GIR_Done,
       // Label 71: @895
       GIM_Try, /*On fail goto*//*Label 72*/ 952, // Rule ID 810 //
@@ -971,7 +971,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v8s16,
       GIM_CheckType, /*MI*/0, /*Op*/2, /*Type*/GILLT_v8s16,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128HRegClassID,
-      GIM_Try, /*On fail goto*//*Label 75*/ 1044, // Rule ID 2293 //
+      GIM_Try, /*On fail goto*//*Label 75*/ 1044, // Rule ID 2294 //
         GIM_CheckFeatures, GIFBS_HasMSA_HasStdEnc,
         GIM_RecordInsn, /*DefineMI*/1, /*MI*/0, /*OpIdx*/1, // MIs[1]
         GIM_CheckOpcode, /*MI*/1, TargetOpcode::G_MUL,
@@ -989,7 +989,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_Copy, /*NewInsnID*/0, /*OldInsnID*/1, /*OpIdx*/2, // wt
         GIR_EraseFromParent, /*InsnID*/0,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 2293,
+        // GIR_Coverage, 2294,
         GIR_Done,
       // Label 75: @1044
       GIM_Try, /*On fail goto*//*Label 76*/ 1101, // Rule ID 809 //
@@ -1031,7 +1031,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v16s8,
       GIM_CheckType, /*MI*/0, /*Op*/2, /*Type*/GILLT_v16s8,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128BRegClassID,
-      GIM_Try, /*On fail goto*//*Label 79*/ 1193, // Rule ID 2292 //
+      GIM_Try, /*On fail goto*//*Label 79*/ 1193, // Rule ID 2293 //
         GIM_CheckFeatures, GIFBS_HasMSA_HasStdEnc,
         GIM_RecordInsn, /*DefineMI*/1, /*MI*/0, /*OpIdx*/1, // MIs[1]
         GIM_CheckOpcode, /*MI*/1, TargetOpcode::G_MUL,
@@ -1049,7 +1049,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_Copy, /*NewInsnID*/0, /*OldInsnID*/1, /*OpIdx*/2, // wt
         GIR_EraseFromParent, /*InsnID*/0,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 2292,
+        // GIR_Coverage, 2293,
         GIR_Done,
       // Label 79: @1193
       GIM_Try, /*On fail goto*//*Label 80*/ 1250, // Rule ID 808 //
@@ -1102,7 +1102,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
     GIM_Try, /*On fail goto*//*Label 91*/ 1444,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_s32,
       GIM_CheckType, /*MI*/0, /*Op*/2, /*Type*/GILLT_s32,
-      GIM_Try, /*On fail goto*//*Label 92*/ 1328, // Rule ID 1734 //
+      GIM_Try, /*On fail goto*//*Label 92*/ 1328, // Rule ID 1735 //
         GIM_CheckFeatures, GIFBS_InMips16Mode,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::CPU16RegsRegClassID,
         GIM_CheckConstantInt, /*MI*/0, /*Op*/1, 0,
@@ -1113,7 +1113,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_Copy, /*NewInsnID*/0, /*OldInsnID*/0, /*OpIdx*/2, // r
         GIR_EraseFromParent, /*InsnID*/0,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 1734,
+        // GIR_Coverage, 1735,
         GIR_Done,
       // Label 92: @1328
       GIM_Try, /*On fail goto*//*Label 93*/ 1351, // Rule ID 1167 //
@@ -1160,7 +1160,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         // GIR_Coverage, 1041,
         GIR_Done,
       // Label 96: @1420
-      GIM_Try, /*On fail goto*//*Label 97*/ 1443, // Rule ID 1739 //
+      GIM_Try, /*On fail goto*//*Label 97*/ 1443, // Rule ID 1740 //
         GIM_CheckFeatures, GIFBS_InMips16Mode,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::CPU16RegsRegClassID,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/1, /*RC*/Mips::CPU16RegsRegClassID,
@@ -1168,7 +1168,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         // (sub:{ *:[i32] } CPU16Regs:{ *:[i32] }:$l, CPU16Regs:{ *:[i32] }:$r)  =>  (SubuRxRyRz16:{ *:[i32] } CPU16Regs:{ *:[i32] }:$l, CPU16Regs:{ *:[i32] }:$r)
         GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/Mips::SubuRxRyRz16,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 1739,
+        // GIR_Coverage, 1740,
         GIR_Done,
       // Label 97: @1443
       GIM_Reject,
@@ -1190,7 +1190,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
     // Label 98: @1476
     GIM_Reject,
     // Label 84: @1477
-    GIM_Try, /*On fail goto*//*Label 99*/ 1503, // Rule ID 1836 //
+    GIM_Try, /*On fail goto*//*Label 99*/ 1503, // Rule ID 1837 //
       GIM_CheckFeatures, GIFBS_HasDSP,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v2s16,
       GIM_CheckType, /*MI*/0, /*Op*/2, /*Type*/GILLT_v2s16,
@@ -1199,7 +1199,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/Mips::SUBQ_PH,
       GIR_AddImplicitDef, /*InsnID*/0, Mips::DSPOutFlag20,
       GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-      // GIR_Coverage, 1836,
+      // GIR_Coverage, 1837,
       GIR_Done,
     // Label 99: @1503
     GIM_Reject,
@@ -1242,7 +1242,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
     // Label 100: @1591
     GIM_Reject,
     // Label 86: @1592
-    GIM_Try, /*On fail goto*//*Label 103*/ 1618, // Rule ID 1842 //
+    GIM_Try, /*On fail goto*//*Label 103*/ 1618, // Rule ID 1843 //
       GIM_CheckFeatures, GIFBS_HasDSP,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v4s8,
       GIM_CheckType, /*MI*/0, /*Op*/2, /*Type*/GILLT_v4s8,
@@ -1251,7 +1251,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/Mips::SUBU_QB,
       GIR_AddImplicitDef, /*InsnID*/0, Mips::DSPOutFlag20,
       GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-      // GIR_Coverage, 1842,
+      // GIR_Coverage, 1843,
       GIR_Done,
     // Label 103: @1618
     GIM_Reject,
@@ -1432,7 +1432,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         // GIR_Coverage, 1136,
         GIR_Done,
       // Label 125: @2012
-      GIM_Try, /*On fail goto*//*Label 126*/ 2041, // Rule ID 1737 //
+      GIM_Try, /*On fail goto*//*Label 126*/ 2041, // Rule ID 1738 //
         GIM_CheckFeatures, GIFBS_InMips16Mode,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::CPU16RegsRegClassID,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/1, /*RC*/Mips::CPU16RegsRegClassID,
@@ -1442,7 +1442,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_AddImplicitDef, /*InsnID*/0, Mips::HI0,
         GIR_AddImplicitDef, /*InsnID*/0, Mips::LO0,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 1737,
+        // GIR_Coverage, 1738,
         GIR_Done,
       // Label 126: @2041
       GIM_Reject,
@@ -1480,7 +1480,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
     // Label 127: @2103
     GIM_Reject,
     // Label 115: @2104
-    GIM_Try, /*On fail goto*//*Label 130*/ 2130, // Rule ID 1838 //
+    GIM_Try, /*On fail goto*//*Label 130*/ 2130, // Rule ID 1839 //
       GIM_CheckFeatures, GIFBS_HasDSPR2,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v2s16,
       GIM_CheckType, /*MI*/0, /*Op*/2, /*Type*/GILLT_v2s16,
@@ -1489,7 +1489,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/Mips::MUL_PH,
       GIR_AddImplicitDef, /*InsnID*/0, Mips::DSPOutFlag21,
       GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-      // GIR_Coverage, 1838,
+      // GIR_Coverage, 1839,
       GIR_Done,
     // Label 130: @2130
     GIM_Reject,
@@ -2011,7 +2011,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
     GIM_Try, /*On fail goto*//*Label 202*/ 3370,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_s32,
       GIM_CheckType, /*MI*/0, /*Op*/2, /*Type*/GILLT_s32,
-      GIM_Try, /*On fail goto*//*Label 203*/ 3211, // Rule ID 2069 //
+      GIM_Try, /*On fail goto*//*Label 203*/ 3211, // Rule ID 2070 //
         GIM_CheckFeatures, GIFBS_InMicroMips,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::GPRMM16RegClassID,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/1, /*RC*/Mips::GPRMM16RegClassID,
@@ -2028,10 +2028,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_CopyConstantAsSImm, /*NewInsnID*/0, /*OldInsnID*/1, // imm
         GIR_EraseFromParent, /*InsnID*/0,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 2069,
+        // GIR_Coverage, 2070,
         GIR_Done,
       // Label 203: @3211
-      GIM_Try, /*On fail goto*//*Label 204*/ 3254, // Rule ID 2221 //
+      GIM_Try, /*On fail goto*//*Label 204*/ 3254, // Rule ID 2222 //
         GIM_CheckFeatures, GIFBS_HasMips32r6_InMicroMips,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::GPRMM16RegClassID,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/1, /*RC*/Mips::GPRMM16RegClassID,
@@ -2048,7 +2048,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_CopyConstantAsSImm, /*NewInsnID*/0, /*OldInsnID*/1, // imm
         GIR_EraseFromParent, /*InsnID*/0,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 2221,
+        // GIR_Coverage, 2222,
         GIR_Done,
       // Label 204: @3254
       GIM_Try, /*On fail goto*//*Label 205*/ 3277, // Rule ID 39 //
@@ -2095,7 +2095,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         // GIR_Coverage, 1127,
         GIR_Done,
       // Label 208: @3346
-      GIM_Try, /*On fail goto*//*Label 209*/ 3369, // Rule ID 1736 //
+      GIM_Try, /*On fail goto*//*Label 209*/ 3369, // Rule ID 1737 //
         GIM_CheckFeatures, GIFBS_InMips16Mode,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::CPU16RegsRegClassID,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/1, /*RC*/Mips::CPU16RegsRegClassID,
@@ -2103,7 +2103,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         // (and:{ *:[i32] } CPU16Regs:{ *:[i32] }:$l, CPU16Regs:{ *:[i32] }:$r)  =>  (AndRxRxRy16:{ *:[i32] } CPU16Regs:{ *:[i32] }:$l, CPU16Regs:{ *:[i32] }:$r)
         GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/Mips::AndRxRxRy16,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 1736,
+        // GIR_Coverage, 1737,
         GIR_Done,
       // Label 209: @3369
       GIM_Reject,
@@ -2265,7 +2265,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         // GIR_Coverage, 1140,
         GIR_Done,
       // Label 228: @3704
-      GIM_Try, /*On fail goto*//*Label 229*/ 3727, // Rule ID 1738 //
+      GIM_Try, /*On fail goto*//*Label 229*/ 3727, // Rule ID 1739 //
         GIM_CheckFeatures, GIFBS_InMips16Mode,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::CPU16RegsRegClassID,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/1, /*RC*/Mips::CPU16RegsRegClassID,
@@ -2273,7 +2273,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         // (or:{ *:[i32] } CPU16Regs:{ *:[i32] }:$l, CPU16Regs:{ *:[i32] }:$r)  =>  (OrRxRxRy16:{ *:[i32] } CPU16Regs:{ *:[i32] }:$l, CPU16Regs:{ *:[i32] }:$r)
         GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/Mips::OrRxRxRy16,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 1738,
+        // GIR_Coverage, 1739,
         GIR_Done,
       // Label 229: @3727
       GIM_Reject,
@@ -2474,7 +2474,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         // GIR_Coverage, 1353,
         GIR_Done,
       // Label 248: @4184
-      GIM_Try, /*On fail goto*//*Label 249*/ 4216, // Rule ID 1733 //
+      GIM_Try, /*On fail goto*//*Label 249*/ 4216, // Rule ID 1734 //
         GIM_CheckFeatures, GIFBS_InMips16Mode,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::CPU16RegsRegClassID,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/1, /*RC*/Mips::CPU16RegsRegClassID,
@@ -2485,10 +2485,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_Copy, /*NewInsnID*/0, /*OldInsnID*/0, /*OpIdx*/1, // r
         GIR_EraseFromParent, /*InsnID*/0,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 1733,
+        // GIR_Coverage, 1734,
         GIR_Done,
       // Label 249: @4216
-      GIM_Try, /*On fail goto*//*Label 250*/ 4248, // Rule ID 2064 //
+      GIM_Try, /*On fail goto*//*Label 250*/ 4248, // Rule ID 2065 //
         GIM_CheckFeatures, GIFBS_InMicroMips,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::GPRMM16RegClassID,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/1, /*RC*/Mips::GPRMM16RegClassID,
@@ -2499,10 +2499,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_Copy, /*NewInsnID*/0, /*OldInsnID*/0, /*OpIdx*/1, // in
         GIR_EraseFromParent, /*InsnID*/0,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 2064,
+        // GIR_Coverage, 2065,
         GIR_Done,
       // Label 250: @4248
-      GIM_Try, /*On fail goto*//*Label 251*/ 4283, // Rule ID 2065 //
+      GIM_Try, /*On fail goto*//*Label 251*/ 4283, // Rule ID 2066 //
         GIM_CheckFeatures, GIFBS_InMicroMips,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::GPR32RegClassID,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/1, /*RC*/Mips::GPR32RegClassID,
@@ -2514,10 +2514,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_AddRegister, /*InsnID*/0, Mips::ZERO,
         GIR_EraseFromParent, /*InsnID*/0,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 2065,
+        // GIR_Coverage, 2066,
         GIR_Done,
       // Label 251: @4283
-      GIM_Try, /*On fail goto*//*Label 252*/ 4315, // Rule ID 2224 //
+      GIM_Try, /*On fail goto*//*Label 252*/ 4315, // Rule ID 2225 //
         GIM_CheckFeatures, GIFBS_HasMips32r6_InMicroMips,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::GPRMM16RegClassID,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/1, /*RC*/Mips::GPRMM16RegClassID,
@@ -2528,10 +2528,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_Copy, /*NewInsnID*/0, /*OldInsnID*/0, /*OpIdx*/1, // in
         GIR_EraseFromParent, /*InsnID*/0,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 2224,
+        // GIR_Coverage, 2225,
         GIR_Done,
       // Label 252: @4315
-      GIM_Try, /*On fail goto*//*Label 253*/ 4350, // Rule ID 2225 //
+      GIM_Try, /*On fail goto*//*Label 253*/ 4350, // Rule ID 2226 //
         GIM_CheckFeatures, GIFBS_HasMips32r6_InMicroMips,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::GPR32RegClassID,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/1, /*RC*/Mips::GPR32RegClassID,
@@ -2543,7 +2543,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_AddRegister, /*InsnID*/0, Mips::ZERO,
         GIR_EraseFromParent, /*InsnID*/0,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 2225,
+        // GIR_Coverage, 2226,
         GIR_Done,
       // Label 253: @4350
       GIM_Try, /*On fail goto*//*Label 254*/ 4373, // Rule ID 41 //
@@ -2590,7 +2590,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         // GIR_Coverage, 1143,
         GIR_Done,
       // Label 257: @4442
-      GIM_Try, /*On fail goto*//*Label 258*/ 4465, // Rule ID 1740 //
+      GIM_Try, /*On fail goto*//*Label 258*/ 4465, // Rule ID 1741 //
         GIM_CheckFeatures, GIFBS_InMips16Mode,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::CPU16RegsRegClassID,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/1, /*RC*/Mips::CPU16RegsRegClassID,
@@ -2598,7 +2598,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         // (xor:{ *:[i32] } CPU16Regs:{ *:[i32] }:$l, CPU16Regs:{ *:[i32] }:$r)  =>  (XorRxRxRy16:{ *:[i32] } CPU16Regs:{ *:[i32] }:$l, CPU16Regs:{ *:[i32] }:$r)
         GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/Mips::XorRxRxRy16,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 1740,
+        // GIR_Coverage, 1741,
         GIR_Done,
       // Label 258: @4465
       GIM_Reject,
@@ -2781,7 +2781,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       // GIR_Coverage, 1133,
       GIR_Done,
     // Label 280: @4836
-    GIM_Try, /*On fail goto*//*Label 281*/ 4861, // Rule ID 1821 //
+    GIM_Try, /*On fail goto*//*Label 281*/ 4861, // Rule ID 1822 //
       GIM_CheckFeatures, GIFBS_HasDSP,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v2s16,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::GPR32RegClassID,
@@ -2789,10 +2789,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       // (bitconvert:{ *:[i32] } DSPR:{ *:[v2i16] }:$src)  =>  (COPY_TO_REGCLASS:{ *:[i32] } DSPR:{ *:[v2i16] }:$src, GPR32:{ *:[i32] })
       GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/TargetOpcode::COPY,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC GPR32*/11,
-      // GIR_Coverage, 1821,
+      // GIR_Coverage, 1822,
       GIR_Done,
     // Label 281: @4861
-    GIM_Try, /*On fail goto*//*Label 282*/ 4886, // Rule ID 1822 //
+    GIM_Try, /*On fail goto*//*Label 282*/ 4886, // Rule ID 1823 //
       GIM_CheckFeatures, GIFBS_HasDSP,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v4s8,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::GPR32RegClassID,
@@ -2800,10 +2800,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       // (bitconvert:{ *:[i32] } DSPR:{ *:[v4i8] }:$src)  =>  (COPY_TO_REGCLASS:{ *:[i32] } DSPR:{ *:[v4i8] }:$src, GPR32:{ *:[i32] })
       GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/TargetOpcode::COPY,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC GPR32*/11,
-      // GIR_Coverage, 1822,
+      // GIR_Coverage, 1823,
       GIR_Done,
     // Label 282: @4886
-    GIM_Try, /*On fail goto*//*Label 283*/ 4911, // Rule ID 1825 //
+    GIM_Try, /*On fail goto*//*Label 283*/ 4911, // Rule ID 1826 //
       GIM_CheckFeatures, GIFBS_HasDSP,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v2s16,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::FGR32RegClassID,
@@ -2811,10 +2811,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       // (bitconvert:{ *:[f32] } DSPR:{ *:[v2i16] }:$src)  =>  (COPY_TO_REGCLASS:{ *:[f32] } DSPR:{ *:[v2i16] }:$src, FGR32:{ *:[i32] })
       GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/TargetOpcode::COPY,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC FGR32*/8,
-      // GIR_Coverage, 1825,
+      // GIR_Coverage, 1826,
       GIR_Done,
     // Label 283: @4911
-    GIM_Try, /*On fail goto*//*Label 284*/ 4936, // Rule ID 1826 //
+    GIM_Try, /*On fail goto*//*Label 284*/ 4936, // Rule ID 1827 //
       GIM_CheckFeatures, GIFBS_HasDSP,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v4s8,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::FGR32RegClassID,
@@ -2822,7 +2822,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       // (bitconvert:{ *:[f32] } DSPR:{ *:[v4i8] }:$src)  =>  (COPY_TO_REGCLASS:{ *:[f32] } DSPR:{ *:[v4i8] }:$src, FGR32:{ *:[i32] })
       GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/TargetOpcode::COPY,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC FGR32*/8,
-      // GIR_Coverage, 1826,
+      // GIR_Coverage, 1827,
       GIR_Done,
     // Label 284: @4936
     GIM_Reject,
@@ -2856,149 +2856,149 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
     GIM_Try, /*On fail goto*//*Label 288*/ 5028,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_s32,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::DSPRRegClassID,
-      GIM_Try, /*On fail goto*//*Label 289*/ 5010, // Rule ID 1823 //
+      GIM_Try, /*On fail goto*//*Label 289*/ 5010, // Rule ID 1824 //
         GIM_CheckFeatures, GIFBS_HasDSP,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/1, /*RC*/Mips::GPR32RegClassID,
         // (bitconvert:{ *:[v2i16] } GPR32:{ *:[i32] }:$src)  =>  (COPY_TO_REGCLASS:{ *:[v2i16] } GPR32:{ *:[i32] }:$src, DSPR:{ *:[i32] })
         GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/TargetOpcode::COPY,
         GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC DSPR*/7,
-        // GIR_Coverage, 1823,
+        // GIR_Coverage, 1824,
         GIR_Done,
       // Label 289: @5010
-      GIM_Try, /*On fail goto*//*Label 290*/ 5027, // Rule ID 1827 //
+      GIM_Try, /*On fail goto*//*Label 290*/ 5027, // Rule ID 1828 //
         GIM_CheckFeatures, GIFBS_HasDSP,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/1, /*RC*/Mips::FGR32RegClassID,
         // (bitconvert:{ *:[v2i16] } FGR32:{ *:[f32] }:$src)  =>  (COPY_TO_REGCLASS:{ *:[v2i16] } FGR32:{ *:[f32] }:$src, DSPR:{ *:[i32] })
         GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/TargetOpcode::COPY,
         GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC DSPR*/7,
-        // GIR_Coverage, 1827,
+        // GIR_Coverage, 1828,
         GIR_Done,
       // Label 290: @5027
       GIM_Reject,
     // Label 288: @5028
     GIM_Reject,
     // Label 269: @5029
-    GIM_Try, /*On fail goto*//*Label 291*/ 5050, // Rule ID 1908 //
+    GIM_Try, /*On fail goto*//*Label 291*/ 5050, // Rule ID 1909 //
       GIM_CheckFeatures, GIFBS_HasMSA,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v2s64,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128DRegClassID,
       // (bitconvert:{ *:[v2i64] } v2f64:{ *:[v2f64] }:$src)  =>  (COPY_TO_REGCLASS:{ *:[v2i64] } v2f64:{ *:[v2f64] }:$src, MSA128D:{ *:[i32] })
       GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/TargetOpcode::COPY,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128D*/67,
-      // GIR_Coverage, 1908,
+      // GIR_Coverage, 1909,
       GIR_Done,
     // Label 291: @5050
-    GIM_Try, /*On fail goto*//*Label 292*/ 5071, // Rule ID 1911 //
+    GIM_Try, /*On fail goto*//*Label 292*/ 5071, // Rule ID 1912 //
       GIM_CheckFeatures, GIFBS_HasMSA,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v2s64,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128DRegClassID,
       // (bitconvert:{ *:[v2f64] } v2i64:{ *:[v2i64] }:$src)  =>  (COPY_TO_REGCLASS:{ *:[v2f64] } v2i64:{ *:[v2i64] }:$src, MSA128D:{ *:[i32] })
       GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/TargetOpcode::COPY,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128D*/67,
-      // GIR_Coverage, 1911,
+      // GIR_Coverage, 1912,
       GIR_Done,
     // Label 292: @5071
-    GIM_Try, /*On fail goto*//*Label 293*/ 5092, // Rule ID 1928 //
+    GIM_Try, /*On fail goto*//*Label 293*/ 5092, // Rule ID 1929 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsLE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v16s8,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128DRegClassID,
       // (bitconvert:{ *:[v2i64] } v16i8:{ *:[v16i8] }:$src)  =>  (COPY_TO_REGCLASS:{ *:[v2i64] } v16i8:{ *:[v16i8] }:$src, MSA128D:{ *:[i32] })
       GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/TargetOpcode::COPY,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128D*/67,
-      // GIR_Coverage, 1928,
+      // GIR_Coverage, 1929,
       GIR_Done,
     // Label 293: @5092
-    GIM_Try, /*On fail goto*//*Label 294*/ 5113, // Rule ID 1929 //
+    GIM_Try, /*On fail goto*//*Label 294*/ 5113, // Rule ID 1930 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsLE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v8s16,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128DRegClassID,
       // (bitconvert:{ *:[v2i64] } v8i16:{ *:[v8i16] }:$src)  =>  (COPY_TO_REGCLASS:{ *:[v2i64] } v8i16:{ *:[v8i16] }:$src, MSA128D:{ *:[i32] })
       GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/TargetOpcode::COPY,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128D*/67,
-      // GIR_Coverage, 1929,
+      // GIR_Coverage, 1930,
       GIR_Done,
     // Label 294: @5113
-    GIM_Try, /*On fail goto*//*Label 295*/ 5134, // Rule ID 1930 //
+    GIM_Try, /*On fail goto*//*Label 295*/ 5134, // Rule ID 1931 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsLE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v4s32,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128DRegClassID,
       // (bitconvert:{ *:[v2i64] } v4i32:{ *:[v4i32] }:$src)  =>  (COPY_TO_REGCLASS:{ *:[v2i64] } v4i32:{ *:[v4i32] }:$src, MSA128D:{ *:[i32] })
       GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/TargetOpcode::COPY,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128D*/67,
-      // GIR_Coverage, 1930,
+      // GIR_Coverage, 1931,
       GIR_Done,
     // Label 295: @5134
-    GIM_Try, /*On fail goto*//*Label 296*/ 5155, // Rule ID 1931 //
+    GIM_Try, /*On fail goto*//*Label 296*/ 5155, // Rule ID 1932 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsLE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v8s16,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128DRegClassID,
       // (bitconvert:{ *:[v2i64] } v8f16:{ *:[v8f16] }:$src)  =>  (COPY_TO_REGCLASS:{ *:[v2i64] } v8f16:{ *:[v8f16] }:$src, MSA128D:{ *:[i32] })
       GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/TargetOpcode::COPY,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128D*/67,
-      // GIR_Coverage, 1931,
+      // GIR_Coverage, 1932,
       GIR_Done,
     // Label 296: @5155
-    GIM_Try, /*On fail goto*//*Label 297*/ 5176, // Rule ID 1932 //
+    GIM_Try, /*On fail goto*//*Label 297*/ 5176, // Rule ID 1933 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsLE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v4s32,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128DRegClassID,
       // (bitconvert:{ *:[v2i64] } v4f32:{ *:[v4f32] }:$src)  =>  (COPY_TO_REGCLASS:{ *:[v2i64] } v4f32:{ *:[v4f32] }:$src, MSA128D:{ *:[i32] })
       GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/TargetOpcode::COPY,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128D*/67,
-      // GIR_Coverage, 1932,
+      // GIR_Coverage, 1933,
       GIR_Done,
     // Label 297: @5176
-    GIM_Try, /*On fail goto*//*Label 298*/ 5197, // Rule ID 1938 //
+    GIM_Try, /*On fail goto*//*Label 298*/ 5197, // Rule ID 1939 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsLE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v16s8,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128DRegClassID,
       // (bitconvert:{ *:[v2f64] } v16i8:{ *:[v16i8] }:$src)  =>  (COPY_TO_REGCLASS:{ *:[v2f64] } v16i8:{ *:[v16i8] }:$src, MSA128D:{ *:[i32] })
       GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/TargetOpcode::COPY,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128D*/67,
-      // GIR_Coverage, 1938,
+      // GIR_Coverage, 1939,
       GIR_Done,
     // Label 298: @5197
-    GIM_Try, /*On fail goto*//*Label 299*/ 5218, // Rule ID 1939 //
+    GIM_Try, /*On fail goto*//*Label 299*/ 5218, // Rule ID 1940 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsLE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v8s16,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128DRegClassID,
       // (bitconvert:{ *:[v2f64] } v8i16:{ *:[v8i16] }:$src)  =>  (COPY_TO_REGCLASS:{ *:[v2f64] } v8i16:{ *:[v8i16] }:$src, MSA128D:{ *:[i32] })
       GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/TargetOpcode::COPY,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128D*/67,
-      // GIR_Coverage, 1939,
+      // GIR_Coverage, 1940,
       GIR_Done,
     // Label 299: @5218
-    GIM_Try, /*On fail goto*//*Label 300*/ 5239, // Rule ID 1940 //
+    GIM_Try, /*On fail goto*//*Label 300*/ 5239, // Rule ID 1941 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsLE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v4s32,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128DRegClassID,
       // (bitconvert:{ *:[v2f64] } v4i32:{ *:[v4i32] }:$src)  =>  (COPY_TO_REGCLASS:{ *:[v2f64] } v4i32:{ *:[v4i32] }:$src, MSA128D:{ *:[i32] })
       GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/TargetOpcode::COPY,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128D*/67,
-      // GIR_Coverage, 1940,
+      // GIR_Coverage, 1941,
       GIR_Done,
     // Label 300: @5239
-    GIM_Try, /*On fail goto*//*Label 301*/ 5260, // Rule ID 1941 //
+    GIM_Try, /*On fail goto*//*Label 301*/ 5260, // Rule ID 1942 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsLE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v8s16,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128DRegClassID,
       // (bitconvert:{ *:[v2f64] } v8f16:{ *:[v8f16] }:$src)  =>  (COPY_TO_REGCLASS:{ *:[v2f64] } v8f16:{ *:[v8f16] }:$src, MSA128D:{ *:[i32] })
       GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/TargetOpcode::COPY,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128D*/67,
-      // GIR_Coverage, 1941,
+      // GIR_Coverage, 1942,
       GIR_Done,
     // Label 301: @5260
-    GIM_Try, /*On fail goto*//*Label 302*/ 5281, // Rule ID 1942 //
+    GIM_Try, /*On fail goto*//*Label 302*/ 5281, // Rule ID 1943 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsLE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v4s32,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128DRegClassID,
       // (bitconvert:{ *:[v2f64] } v4f32:{ *:[v4f32] }:$src)  =>  (COPY_TO_REGCLASS:{ *:[v2f64] } v4f32:{ *:[v4f32] }:$src, MSA128D:{ *:[i32] })
       GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/TargetOpcode::COPY,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128D*/67,
-      // GIR_Coverage, 1942,
+      // GIR_Coverage, 1943,
       GIR_Done,
     // Label 302: @5281
-    GIM_Try, /*On fail goto*//*Label 303*/ 5381, // Rule ID 1947 //
+    GIM_Try, /*On fail goto*//*Label 303*/ 5381, // Rule ID 1948 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsBE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v16s8,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128DRegClassID,
@@ -3030,10 +3030,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       GIR_AddTempRegister, /*InsnID*/0, /*TempRegID*/0, /*TempRegFlags*/0,
       GIR_EraseFromParent, /*InsnID*/0,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128D*/67,
-      // GIR_Coverage, 1947,
+      // GIR_Coverage, 1948,
       GIR_Done,
     // Label 303: @5381
-    GIM_Try, /*On fail goto*//*Label 304*/ 5481, // Rule ID 1948 //
+    GIM_Try, /*On fail goto*//*Label 304*/ 5481, // Rule ID 1949 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsBE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v16s8,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128DRegClassID,
@@ -3065,10 +3065,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       GIR_AddTempRegister, /*InsnID*/0, /*TempRegID*/0, /*TempRegFlags*/0,
       GIR_EraseFromParent, /*InsnID*/0,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128D*/67,
-      // GIR_Coverage, 1948,
+      // GIR_Coverage, 1949,
       GIR_Done,
     // Label 304: @5481
-    GIM_Try, /*On fail goto*//*Label 305*/ 5546, // Rule ID 1952 //
+    GIM_Try, /*On fail goto*//*Label 305*/ 5546, // Rule ID 1953 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsBE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v8s16,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128DRegClassID,
@@ -3089,10 +3089,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       GIR_AddTempRegister, /*InsnID*/0, /*TempRegID*/0, /*TempRegFlags*/0,
       GIR_EraseFromParent, /*InsnID*/0,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128D*/67,
-      // GIR_Coverage, 1952,
+      // GIR_Coverage, 1953,
       GIR_Done,
     // Label 305: @5546
-    GIM_Try, /*On fail goto*//*Label 306*/ 5611, // Rule ID 1953 //
+    GIM_Try, /*On fail goto*//*Label 306*/ 5611, // Rule ID 1954 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsBE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v8s16,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128DRegClassID,
@@ -3113,10 +3113,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       GIR_AddTempRegister, /*InsnID*/0, /*TempRegID*/0, /*TempRegFlags*/0,
       GIR_EraseFromParent, /*InsnID*/0,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128D*/67,
-      // GIR_Coverage, 1953,
+      // GIR_Coverage, 1954,
       GIR_Done,
     // Label 306: @5611
-    GIM_Try, /*On fail goto*//*Label 307*/ 5676, // Rule ID 1957 //
+    GIM_Try, /*On fail goto*//*Label 307*/ 5676, // Rule ID 1958 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsBE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v8s16,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128DRegClassID,
@@ -3137,10 +3137,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       GIR_AddTempRegister, /*InsnID*/0, /*TempRegID*/0, /*TempRegFlags*/0,
       GIR_EraseFromParent, /*InsnID*/0,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128D*/67,
-      // GIR_Coverage, 1957,
+      // GIR_Coverage, 1958,
       GIR_Done,
     // Label 307: @5676
-    GIM_Try, /*On fail goto*//*Label 308*/ 5741, // Rule ID 1958 //
+    GIM_Try, /*On fail goto*//*Label 308*/ 5741, // Rule ID 1959 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsBE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v8s16,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128DRegClassID,
@@ -3161,10 +3161,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       GIR_AddTempRegister, /*InsnID*/0, /*TempRegID*/0, /*TempRegFlags*/0,
       GIR_EraseFromParent, /*InsnID*/0,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128D*/67,
-      // GIR_Coverage, 1958,
+      // GIR_Coverage, 1959,
       GIR_Done,
     // Label 308: @5741
-    GIM_Try, /*On fail goto*//*Label 309*/ 5806, // Rule ID 1962 //
+    GIM_Try, /*On fail goto*//*Label 309*/ 5806, // Rule ID 1963 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsBE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v4s32,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128DRegClassID,
@@ -3185,10 +3185,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       GIR_AddTempRegister, /*InsnID*/0, /*TempRegID*/0, /*TempRegFlags*/0,
       GIR_EraseFromParent, /*InsnID*/0,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128D*/67,
-      // GIR_Coverage, 1962,
+      // GIR_Coverage, 1963,
       GIR_Done,
     // Label 309: @5806
-    GIM_Try, /*On fail goto*//*Label 310*/ 5871, // Rule ID 1963 //
+    GIM_Try, /*On fail goto*//*Label 310*/ 5871, // Rule ID 1964 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsBE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v4s32,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128DRegClassID,
@@ -3209,10 +3209,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       GIR_AddTempRegister, /*InsnID*/0, /*TempRegID*/0, /*TempRegFlags*/0,
       GIR_EraseFromParent, /*InsnID*/0,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128D*/67,
-      // GIR_Coverage, 1963,
+      // GIR_Coverage, 1964,
       GIR_Done,
     // Label 310: @5871
-    GIM_Try, /*On fail goto*//*Label 311*/ 5936, // Rule ID 1967 //
+    GIM_Try, /*On fail goto*//*Label 311*/ 5936, // Rule ID 1968 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsBE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v4s32,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128DRegClassID,
@@ -3233,10 +3233,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       GIR_AddTempRegister, /*InsnID*/0, /*TempRegID*/0, /*TempRegFlags*/0,
       GIR_EraseFromParent, /*InsnID*/0,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128D*/67,
-      // GIR_Coverage, 1967,
+      // GIR_Coverage, 1968,
       GIR_Done,
     // Label 311: @5936
-    GIM_Try, /*On fail goto*//*Label 312*/ 6001, // Rule ID 1968 //
+    GIM_Try, /*On fail goto*//*Label 312*/ 6001, // Rule ID 1969 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsBE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v4s32,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128DRegClassID,
@@ -3257,7 +3257,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       GIR_AddTempRegister, /*InsnID*/0, /*TempRegID*/0, /*TempRegFlags*/0,
       GIR_EraseFromParent, /*InsnID*/0,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128D*/67,
-      // GIR_Coverage, 1968,
+      // GIR_Coverage, 1969,
       GIR_Done,
     // Label 312: @6001
     GIM_Reject,
@@ -3265,149 +3265,149 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
     GIM_Try, /*On fail goto*//*Label 313*/ 6047,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_s32,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::DSPRRegClassID,
-      GIM_Try, /*On fail goto*//*Label 314*/ 6029, // Rule ID 1824 //
+      GIM_Try, /*On fail goto*//*Label 314*/ 6029, // Rule ID 1825 //
         GIM_CheckFeatures, GIFBS_HasDSP,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/1, /*RC*/Mips::GPR32RegClassID,
         // (bitconvert:{ *:[v4i8] } GPR32:{ *:[i32] }:$src)  =>  (COPY_TO_REGCLASS:{ *:[v4i8] } GPR32:{ *:[i32] }:$src, DSPR:{ *:[i32] })
         GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/TargetOpcode::COPY,
         GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC DSPR*/7,
-        // GIR_Coverage, 1824,
+        // GIR_Coverage, 1825,
         GIR_Done,
       // Label 314: @6029
-      GIM_Try, /*On fail goto*//*Label 315*/ 6046, // Rule ID 1828 //
+      GIM_Try, /*On fail goto*//*Label 315*/ 6046, // Rule ID 1829 //
         GIM_CheckFeatures, GIFBS_HasDSP,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/1, /*RC*/Mips::FGR32RegClassID,
         // (bitconvert:{ *:[v4i8] } FGR32:{ *:[f32] }:$src)  =>  (COPY_TO_REGCLASS:{ *:[v4i8] } FGR32:{ *:[f32] }:$src, DSPR:{ *:[i32] })
         GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/TargetOpcode::COPY,
         GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC DSPR*/7,
-        // GIR_Coverage, 1828,
+        // GIR_Coverage, 1829,
         GIR_Done,
       // Label 315: @6046
       GIM_Reject,
     // Label 313: @6047
     GIM_Reject,
     // Label 271: @6048
-    GIM_Try, /*On fail goto*//*Label 316*/ 6069, // Rule ID 1907 //
+    GIM_Try, /*On fail goto*//*Label 316*/ 6069, // Rule ID 1908 //
       GIM_CheckFeatures, GIFBS_HasMSA,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v4s32,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128WRegClassID,
       // (bitconvert:{ *:[v4i32] } v4f32:{ *:[v4f32] }:$src)  =>  (COPY_TO_REGCLASS:{ *:[v4i32] } v4f32:{ *:[v4f32] }:$src, MSA128W:{ *:[i32] })
       GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/TargetOpcode::COPY,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128W*/69,
-      // GIR_Coverage, 1907,
+      // GIR_Coverage, 1908,
       GIR_Done,
     // Label 316: @6069
-    GIM_Try, /*On fail goto*//*Label 317*/ 6090, // Rule ID 1910 //
+    GIM_Try, /*On fail goto*//*Label 317*/ 6090, // Rule ID 1911 //
       GIM_CheckFeatures, GIFBS_HasMSA,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v4s32,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128WRegClassID,
       // (bitconvert:{ *:[v4f32] } v4i32:{ *:[v4i32] }:$src)  =>  (COPY_TO_REGCLASS:{ *:[v4f32] } v4i32:{ *:[v4i32] }:$src, MSA128W:{ *:[i32] })
       GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/TargetOpcode::COPY,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128W*/69,
-      // GIR_Coverage, 1910,
+      // GIR_Coverage, 1911,
       GIR_Done,
     // Label 317: @6090
-    GIM_Try, /*On fail goto*//*Label 318*/ 6111, // Rule ID 1923 //
+    GIM_Try, /*On fail goto*//*Label 318*/ 6111, // Rule ID 1924 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsLE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v16s8,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128WRegClassID,
       // (bitconvert:{ *:[v4i32] } v16i8:{ *:[v16i8] }:$src)  =>  (COPY_TO_REGCLASS:{ *:[v4i32] } v16i8:{ *:[v16i8] }:$src, MSA128W:{ *:[i32] })
       GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/TargetOpcode::COPY,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128W*/69,
-      // GIR_Coverage, 1923,
+      // GIR_Coverage, 1924,
       GIR_Done,
     // Label 318: @6111
-    GIM_Try, /*On fail goto*//*Label 319*/ 6132, // Rule ID 1924 //
+    GIM_Try, /*On fail goto*//*Label 319*/ 6132, // Rule ID 1925 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsLE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v8s16,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128WRegClassID,
       // (bitconvert:{ *:[v4i32] } v8i16:{ *:[v8i16] }:$src)  =>  (COPY_TO_REGCLASS:{ *:[v4i32] } v8i16:{ *:[v8i16] }:$src, MSA128W:{ *:[i32] })
       GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/TargetOpcode::COPY,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128W*/69,
-      // GIR_Coverage, 1924,
+      // GIR_Coverage, 1925,
       GIR_Done,
     // Label 319: @6132
-    GIM_Try, /*On fail goto*//*Label 320*/ 6153, // Rule ID 1925 //
+    GIM_Try, /*On fail goto*//*Label 320*/ 6153, // Rule ID 1926 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsLE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v2s64,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128WRegClassID,
       // (bitconvert:{ *:[v4i32] } v2i64:{ *:[v2i64] }:$src)  =>  (COPY_TO_REGCLASS:{ *:[v4i32] } v2i64:{ *:[v2i64] }:$src, MSA128W:{ *:[i32] })
       GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/TargetOpcode::COPY,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128W*/69,
-      // GIR_Coverage, 1925,
+      // GIR_Coverage, 1926,
       GIR_Done,
     // Label 320: @6153
-    GIM_Try, /*On fail goto*//*Label 321*/ 6174, // Rule ID 1926 //
+    GIM_Try, /*On fail goto*//*Label 321*/ 6174, // Rule ID 1927 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsLE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v8s16,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128WRegClassID,
       // (bitconvert:{ *:[v4i32] } v8f16:{ *:[v8f16] }:$src)  =>  (COPY_TO_REGCLASS:{ *:[v4i32] } v8f16:{ *:[v8f16] }:$src, MSA128W:{ *:[i32] })
       GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/TargetOpcode::COPY,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128W*/69,
-      // GIR_Coverage, 1926,
+      // GIR_Coverage, 1927,
       GIR_Done,
     // Label 321: @6174
-    GIM_Try, /*On fail goto*//*Label 322*/ 6195, // Rule ID 1927 //
+    GIM_Try, /*On fail goto*//*Label 322*/ 6195, // Rule ID 1928 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsLE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v2s64,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128WRegClassID,
       // (bitconvert:{ *:[v4i32] } v2f64:{ *:[v2f64] }:$src)  =>  (COPY_TO_REGCLASS:{ *:[v4i32] } v2f64:{ *:[v2f64] }:$src, MSA128W:{ *:[i32] })
       GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/TargetOpcode::COPY,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128W*/69,
-      // GIR_Coverage, 1927,
+      // GIR_Coverage, 1928,
       GIR_Done,
     // Label 322: @6195
-    GIM_Try, /*On fail goto*//*Label 323*/ 6216, // Rule ID 1933 //
+    GIM_Try, /*On fail goto*//*Label 323*/ 6216, // Rule ID 1934 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsLE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v16s8,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128WRegClassID,
       // (bitconvert:{ *:[v4f32] } v16i8:{ *:[v16i8] }:$src)  =>  (COPY_TO_REGCLASS:{ *:[v4f32] } v16i8:{ *:[v16i8] }:$src, MSA128W:{ *:[i32] })
       GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/TargetOpcode::COPY,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128W*/69,
-      // GIR_Coverage, 1933,
+      // GIR_Coverage, 1934,
       GIR_Done,
     // Label 323: @6216
-    GIM_Try, /*On fail goto*//*Label 324*/ 6237, // Rule ID 1934 //
+    GIM_Try, /*On fail goto*//*Label 324*/ 6237, // Rule ID 1935 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsLE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v8s16,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128WRegClassID,
       // (bitconvert:{ *:[v4f32] } v8i16:{ *:[v8i16] }:$src)  =>  (COPY_TO_REGCLASS:{ *:[v4f32] } v8i16:{ *:[v8i16] }:$src, MSA128W:{ *:[i32] })
       GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/TargetOpcode::COPY,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128W*/69,
-      // GIR_Coverage, 1934,
+      // GIR_Coverage, 1935,
       GIR_Done,
     // Label 324: @6237
-    GIM_Try, /*On fail goto*//*Label 325*/ 6258, // Rule ID 1935 //
+    GIM_Try, /*On fail goto*//*Label 325*/ 6258, // Rule ID 1936 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsLE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v2s64,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128WRegClassID,
       // (bitconvert:{ *:[v4f32] } v2i64:{ *:[v2i64] }:$src)  =>  (COPY_TO_REGCLASS:{ *:[v4f32] } v2i64:{ *:[v2i64] }:$src, MSA128W:{ *:[i32] })
       GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/TargetOpcode::COPY,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128W*/69,
-      // GIR_Coverage, 1935,
+      // GIR_Coverage, 1936,
       GIR_Done,
     // Label 325: @6258
-    GIM_Try, /*On fail goto*//*Label 326*/ 6279, // Rule ID 1936 //
+    GIM_Try, /*On fail goto*//*Label 326*/ 6279, // Rule ID 1937 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsLE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v8s16,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128WRegClassID,
       // (bitconvert:{ *:[v4f32] } v8f16:{ *:[v8f16] }:$src)  =>  (COPY_TO_REGCLASS:{ *:[v4f32] } v8f16:{ *:[v8f16] }:$src, MSA128W:{ *:[i32] })
       GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/TargetOpcode::COPY,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128W*/69,
-      // GIR_Coverage, 1936,
+      // GIR_Coverage, 1937,
       GIR_Done,
     // Label 326: @6279
-    GIM_Try, /*On fail goto*//*Label 327*/ 6300, // Rule ID 1937 //
+    GIM_Try, /*On fail goto*//*Label 327*/ 6300, // Rule ID 1938 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsLE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v2s64,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128WRegClassID,
       // (bitconvert:{ *:[v4f32] } v2f64:{ *:[v2f64] }:$src)  =>  (COPY_TO_REGCLASS:{ *:[v4f32] } v2f64:{ *:[v2f64] }:$src, MSA128W:{ *:[i32] })
       GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/TargetOpcode::COPY,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128W*/69,
-      // GIR_Coverage, 1937,
+      // GIR_Coverage, 1938,
       GIR_Done,
     // Label 327: @6300
-    GIM_Try, /*On fail goto*//*Label 328*/ 6365, // Rule ID 1945 //
+    GIM_Try, /*On fail goto*//*Label 328*/ 6365, // Rule ID 1946 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsBE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v16s8,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128WRegClassID,
@@ -3428,10 +3428,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       GIR_AddTempRegister, /*InsnID*/0, /*TempRegID*/0, /*TempRegFlags*/0,
       GIR_EraseFromParent, /*InsnID*/0,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128W*/69,
-      // GIR_Coverage, 1945,
+      // GIR_Coverage, 1946,
       GIR_Done,
     // Label 328: @6365
-    GIM_Try, /*On fail goto*//*Label 329*/ 6430, // Rule ID 1946 //
+    GIM_Try, /*On fail goto*//*Label 329*/ 6430, // Rule ID 1947 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsBE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v16s8,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128WRegClassID,
@@ -3452,10 +3452,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       GIR_AddTempRegister, /*InsnID*/0, /*TempRegID*/0, /*TempRegFlags*/0,
       GIR_EraseFromParent, /*InsnID*/0,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128W*/69,
-      // GIR_Coverage, 1946,
+      // GIR_Coverage, 1947,
       GIR_Done,
     // Label 329: @6430
-    GIM_Try, /*On fail goto*//*Label 330*/ 6495, // Rule ID 1950 //
+    GIM_Try, /*On fail goto*//*Label 330*/ 6495, // Rule ID 1951 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsBE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v8s16,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128WRegClassID,
@@ -3476,10 +3476,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       GIR_AddTempRegister, /*InsnID*/0, /*TempRegID*/0, /*TempRegFlags*/0,
       GIR_EraseFromParent, /*InsnID*/0,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128W*/69,
-      // GIR_Coverage, 1950,
+      // GIR_Coverage, 1951,
       GIR_Done,
     // Label 330: @6495
-    GIM_Try, /*On fail goto*//*Label 331*/ 6560, // Rule ID 1951 //
+    GIM_Try, /*On fail goto*//*Label 331*/ 6560, // Rule ID 1952 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsBE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v8s16,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128WRegClassID,
@@ -3500,10 +3500,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       GIR_AddTempRegister, /*InsnID*/0, /*TempRegID*/0, /*TempRegFlags*/0,
       GIR_EraseFromParent, /*InsnID*/0,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128W*/69,
-      // GIR_Coverage, 1951,
+      // GIR_Coverage, 1952,
       GIR_Done,
     // Label 331: @6560
-    GIM_Try, /*On fail goto*//*Label 332*/ 6625, // Rule ID 1955 //
+    GIM_Try, /*On fail goto*//*Label 332*/ 6625, // Rule ID 1956 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsBE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v8s16,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128WRegClassID,
@@ -3524,10 +3524,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       GIR_AddTempRegister, /*InsnID*/0, /*TempRegID*/0, /*TempRegFlags*/0,
       GIR_EraseFromParent, /*InsnID*/0,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128W*/69,
-      // GIR_Coverage, 1955,
+      // GIR_Coverage, 1956,
       GIR_Done,
     // Label 332: @6625
-    GIM_Try, /*On fail goto*//*Label 333*/ 6690, // Rule ID 1956 //
+    GIM_Try, /*On fail goto*//*Label 333*/ 6690, // Rule ID 1957 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsBE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v8s16,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128WRegClassID,
@@ -3548,10 +3548,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       GIR_AddTempRegister, /*InsnID*/0, /*TempRegID*/0, /*TempRegFlags*/0,
       GIR_EraseFromParent, /*InsnID*/0,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128W*/69,
-      // GIR_Coverage, 1956,
+      // GIR_Coverage, 1957,
       GIR_Done,
     // Label 333: @6690
-    GIM_Try, /*On fail goto*//*Label 334*/ 6755, // Rule ID 1972 //
+    GIM_Try, /*On fail goto*//*Label 334*/ 6755, // Rule ID 1973 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsBE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v2s64,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128WRegClassID,
@@ -3572,10 +3572,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       GIR_AddTempRegister, /*InsnID*/0, /*TempRegID*/0, /*TempRegFlags*/0,
       GIR_EraseFromParent, /*InsnID*/0,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128W*/69,
-      // GIR_Coverage, 1972,
+      // GIR_Coverage, 1973,
       GIR_Done,
     // Label 334: @6755
-    GIM_Try, /*On fail goto*//*Label 335*/ 6820, // Rule ID 1973 //
+    GIM_Try, /*On fail goto*//*Label 335*/ 6820, // Rule ID 1974 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsBE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v2s64,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128WRegClassID,
@@ -3596,10 +3596,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       GIR_AddTempRegister, /*InsnID*/0, /*TempRegID*/0, /*TempRegFlags*/0,
       GIR_EraseFromParent, /*InsnID*/0,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128W*/69,
-      // GIR_Coverage, 1973,
+      // GIR_Coverage, 1974,
       GIR_Done,
     // Label 335: @6820
-    GIM_Try, /*On fail goto*//*Label 336*/ 6885, // Rule ID 1977 //
+    GIM_Try, /*On fail goto*//*Label 336*/ 6885, // Rule ID 1978 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsBE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v2s64,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128WRegClassID,
@@ -3620,10 +3620,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       GIR_AddTempRegister, /*InsnID*/0, /*TempRegID*/0, /*TempRegFlags*/0,
       GIR_EraseFromParent, /*InsnID*/0,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128W*/69,
-      // GIR_Coverage, 1977,
+      // GIR_Coverage, 1978,
       GIR_Done,
     // Label 336: @6885
-    GIM_Try, /*On fail goto*//*Label 337*/ 6950, // Rule ID 1978 //
+    GIM_Try, /*On fail goto*//*Label 337*/ 6950, // Rule ID 1979 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsBE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v2s64,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128WRegClassID,
@@ -3644,82 +3644,82 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       GIR_AddTempRegister, /*InsnID*/0, /*TempRegID*/0, /*TempRegFlags*/0,
       GIR_EraseFromParent, /*InsnID*/0,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128W*/69,
-      // GIR_Coverage, 1978,
+      // GIR_Coverage, 1979,
       GIR_Done,
     // Label 337: @6950
     GIM_Reject,
     // Label 272: @6951
-    GIM_Try, /*On fail goto*//*Label 338*/ 6972, // Rule ID 1906 //
+    GIM_Try, /*On fail goto*//*Label 338*/ 6972, // Rule ID 1907 //
       GIM_CheckFeatures, GIFBS_HasMSA,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v8s16,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128HRegClassID,
       // (bitconvert:{ *:[v8i16] } v8f16:{ *:[v8f16] }:$src)  =>  (COPY_TO_REGCLASS:{ *:[v8i16] } v8f16:{ *:[v8f16] }:$src, MSA128H:{ *:[i32] })
       GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/TargetOpcode::COPY,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128H*/68,
-      // GIR_Coverage, 1906,
+      // GIR_Coverage, 1907,
       GIR_Done,
     // Label 338: @6972
-    GIM_Try, /*On fail goto*//*Label 339*/ 6993, // Rule ID 1909 //
+    GIM_Try, /*On fail goto*//*Label 339*/ 6993, // Rule ID 1910 //
       GIM_CheckFeatures, GIFBS_HasMSA,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v8s16,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128HRegClassID,
       // (bitconvert:{ *:[v8f16] } v8i16:{ *:[v8i16] }:$src)  =>  (COPY_TO_REGCLASS:{ *:[v8f16] } v8i16:{ *:[v8i16] }:$src, MSA128H:{ *:[i32] })
       GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/TargetOpcode::COPY,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128H*/68,
-      // GIR_Coverage, 1909,
+      // GIR_Coverage, 1910,
       GIR_Done,
     // Label 339: @6993
-    GIM_Try, /*On fail goto*//*Label 340*/ 7014, // Rule ID 1918 //
+    GIM_Try, /*On fail goto*//*Label 340*/ 7014, // Rule ID 1919 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsLE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v16s8,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128HRegClassID,
       // (bitconvert:{ *:[v8i16] } v16i8:{ *:[v16i8] }:$src)  =>  (COPY_TO_REGCLASS:{ *:[v8i16] } v16i8:{ *:[v16i8] }:$src, MSA128H:{ *:[i32] })
       GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/TargetOpcode::COPY,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128H*/68,
-      // GIR_Coverage, 1918,
+      // GIR_Coverage, 1919,
       GIR_Done,
     // Label 340: @7014
-    GIM_Try, /*On fail goto*//*Label 341*/ 7035, // Rule ID 1919 //
+    GIM_Try, /*On fail goto*//*Label 341*/ 7035, // Rule ID 1920 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsLE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v4s32,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128HRegClassID,
       // (bitconvert:{ *:[v8i16] } v4i32:{ *:[v4i32] }:$src)  =>  (COPY_TO_REGCLASS:{ *:[v8i16] } v4i32:{ *:[v4i32] }:$src, MSA128H:{ *:[i32] })
       GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/TargetOpcode::COPY,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128H*/68,
-      // GIR_Coverage, 1919,
+      // GIR_Coverage, 1920,
       GIR_Done,
     // Label 341: @7035
-    GIM_Try, /*On fail goto*//*Label 342*/ 7056, // Rule ID 1920 //
+    GIM_Try, /*On fail goto*//*Label 342*/ 7056, // Rule ID 1921 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsLE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v2s64,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128HRegClassID,
       // (bitconvert:{ *:[v8i16] } v2i64:{ *:[v2i64] }:$src)  =>  (COPY_TO_REGCLASS:{ *:[v8i16] } v2i64:{ *:[v2i64] }:$src, MSA128H:{ *:[i32] })
       GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/TargetOpcode::COPY,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128H*/68,
-      // GIR_Coverage, 1920,
+      // GIR_Coverage, 1921,
       GIR_Done,
     // Label 342: @7056
-    GIM_Try, /*On fail goto*//*Label 343*/ 7077, // Rule ID 1921 //
+    GIM_Try, /*On fail goto*//*Label 343*/ 7077, // Rule ID 1922 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsLE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v4s32,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128HRegClassID,
       // (bitconvert:{ *:[v8i16] } v4f32:{ *:[v4f32] }:$src)  =>  (COPY_TO_REGCLASS:{ *:[v8i16] } v4f32:{ *:[v4f32] }:$src, MSA128H:{ *:[i32] })
       GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/TargetOpcode::COPY,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128H*/68,
-      // GIR_Coverage, 1921,
+      // GIR_Coverage, 1922,
       GIR_Done,
     // Label 343: @7077
-    GIM_Try, /*On fail goto*//*Label 344*/ 7098, // Rule ID 1922 //
+    GIM_Try, /*On fail goto*//*Label 344*/ 7098, // Rule ID 1923 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsLE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v2s64,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128HRegClassID,
       // (bitconvert:{ *:[v8i16] } v2f64:{ *:[v2f64] }:$src)  =>  (COPY_TO_REGCLASS:{ *:[v8i16] } v2f64:{ *:[v2f64] }:$src, MSA128H:{ *:[i32] })
       GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/TargetOpcode::COPY,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128H*/68,
-      // GIR_Coverage, 1922,
+      // GIR_Coverage, 1923,
       GIR_Done,
     // Label 344: @7098
-    GIM_Try, /*On fail goto*//*Label 345*/ 7163, // Rule ID 1943 //
+    GIM_Try, /*On fail goto*//*Label 345*/ 7163, // Rule ID 1944 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsBE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v16s8,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128HRegClassID,
@@ -3740,10 +3740,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       GIR_AddTempRegister, /*InsnID*/0, /*TempRegID*/0, /*TempRegFlags*/0,
       GIR_EraseFromParent, /*InsnID*/0,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128H*/68,
-      // GIR_Coverage, 1943,
+      // GIR_Coverage, 1944,
       GIR_Done,
     // Label 345: @7163
-    GIM_Try, /*On fail goto*//*Label 346*/ 7228, // Rule ID 1944 //
+    GIM_Try, /*On fail goto*//*Label 346*/ 7228, // Rule ID 1945 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsBE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v16s8,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128HRegClassID,
@@ -3764,10 +3764,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       GIR_AddTempRegister, /*InsnID*/0, /*TempRegID*/0, /*TempRegFlags*/0,
       GIR_EraseFromParent, /*InsnID*/0,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128H*/68,
-      // GIR_Coverage, 1944,
+      // GIR_Coverage, 1945,
       GIR_Done,
     // Label 346: @7228
-    GIM_Try, /*On fail goto*//*Label 347*/ 7293, // Rule ID 1960 //
+    GIM_Try, /*On fail goto*//*Label 347*/ 7293, // Rule ID 1961 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsBE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v4s32,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128HRegClassID,
@@ -3788,10 +3788,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       GIR_AddTempRegister, /*InsnID*/0, /*TempRegID*/0, /*TempRegFlags*/0,
       GIR_EraseFromParent, /*InsnID*/0,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128H*/68,
-      // GIR_Coverage, 1960,
+      // GIR_Coverage, 1961,
       GIR_Done,
     // Label 347: @7293
-    GIM_Try, /*On fail goto*//*Label 348*/ 7358, // Rule ID 1961 //
+    GIM_Try, /*On fail goto*//*Label 348*/ 7358, // Rule ID 1962 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsBE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v4s32,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128HRegClassID,
@@ -3812,10 +3812,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       GIR_AddTempRegister, /*InsnID*/0, /*TempRegID*/0, /*TempRegFlags*/0,
       GIR_EraseFromParent, /*InsnID*/0,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128H*/68,
-      // GIR_Coverage, 1961,
+      // GIR_Coverage, 1962,
       GIR_Done,
     // Label 348: @7358
-    GIM_Try, /*On fail goto*//*Label 349*/ 7423, // Rule ID 1965 //
+    GIM_Try, /*On fail goto*//*Label 349*/ 7423, // Rule ID 1966 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsBE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v4s32,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128HRegClassID,
@@ -3836,10 +3836,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       GIR_AddTempRegister, /*InsnID*/0, /*TempRegID*/0, /*TempRegFlags*/0,
       GIR_EraseFromParent, /*InsnID*/0,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128H*/68,
-      // GIR_Coverage, 1965,
+      // GIR_Coverage, 1966,
       GIR_Done,
     // Label 349: @7423
-    GIM_Try, /*On fail goto*//*Label 350*/ 7488, // Rule ID 1966 //
+    GIM_Try, /*On fail goto*//*Label 350*/ 7488, // Rule ID 1967 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsBE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v4s32,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128HRegClassID,
@@ -3860,10 +3860,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       GIR_AddTempRegister, /*InsnID*/0, /*TempRegID*/0, /*TempRegFlags*/0,
       GIR_EraseFromParent, /*InsnID*/0,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128H*/68,
-      // GIR_Coverage, 1966,
+      // GIR_Coverage, 1967,
       GIR_Done,
     // Label 350: @7488
-    GIM_Try, /*On fail goto*//*Label 351*/ 7553, // Rule ID 1970 //
+    GIM_Try, /*On fail goto*//*Label 351*/ 7553, // Rule ID 1971 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsBE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v2s64,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128HRegClassID,
@@ -3884,10 +3884,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       GIR_AddTempRegister, /*InsnID*/0, /*TempRegID*/0, /*TempRegFlags*/0,
       GIR_EraseFromParent, /*InsnID*/0,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128H*/68,
-      // GIR_Coverage, 1970,
+      // GIR_Coverage, 1971,
       GIR_Done,
     // Label 351: @7553
-    GIM_Try, /*On fail goto*//*Label 352*/ 7618, // Rule ID 1971 //
+    GIM_Try, /*On fail goto*//*Label 352*/ 7618, // Rule ID 1972 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsBE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v2s64,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128HRegClassID,
@@ -3908,10 +3908,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       GIR_AddTempRegister, /*InsnID*/0, /*TempRegID*/0, /*TempRegFlags*/0,
       GIR_EraseFromParent, /*InsnID*/0,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128H*/68,
-      // GIR_Coverage, 1971,
+      // GIR_Coverage, 1972,
       GIR_Done,
     // Label 352: @7618
-    GIM_Try, /*On fail goto*//*Label 353*/ 7683, // Rule ID 1975 //
+    GIM_Try, /*On fail goto*//*Label 353*/ 7683, // Rule ID 1976 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsBE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v2s64,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128HRegClassID,
@@ -3932,10 +3932,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       GIR_AddTempRegister, /*InsnID*/0, /*TempRegID*/0, /*TempRegFlags*/0,
       GIR_EraseFromParent, /*InsnID*/0,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128H*/68,
-      // GIR_Coverage, 1975,
+      // GIR_Coverage, 1976,
       GIR_Done,
     // Label 353: @7683
-    GIM_Try, /*On fail goto*//*Label 354*/ 7748, // Rule ID 1976 //
+    GIM_Try, /*On fail goto*//*Label 354*/ 7748, // Rule ID 1977 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsBE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v2s64,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128HRegClassID,
@@ -3956,72 +3956,72 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       GIR_AddTempRegister, /*InsnID*/0, /*TempRegID*/0, /*TempRegFlags*/0,
       GIR_EraseFromParent, /*InsnID*/0,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128H*/68,
-      // GIR_Coverage, 1976,
+      // GIR_Coverage, 1977,
       GIR_Done,
     // Label 354: @7748
     GIM_Reject,
     // Label 273: @7749
-    GIM_Try, /*On fail goto*//*Label 355*/ 7770, // Rule ID 1912 //
+    GIM_Try, /*On fail goto*//*Label 355*/ 7770, // Rule ID 1913 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsLE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v8s16,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128BRegClassID,
       // (bitconvert:{ *:[v16i8] } v8i16:{ *:[v8i16] }:$src)  =>  (COPY_TO_REGCLASS:{ *:[v16i8] } v8i16:{ *:[v8i16] }:$src, MSA128B:{ *:[i32] })
       GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/TargetOpcode::COPY,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128B*/66,
-      // GIR_Coverage, 1912,
+      // GIR_Coverage, 1913,
       GIR_Done,
     // Label 355: @7770
-    GIM_Try, /*On fail goto*//*Label 356*/ 7791, // Rule ID 1913 //
+    GIM_Try, /*On fail goto*//*Label 356*/ 7791, // Rule ID 1914 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsLE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v4s32,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128BRegClassID,
       // (bitconvert:{ *:[v16i8] } v4i32:{ *:[v4i32] }:$src)  =>  (COPY_TO_REGCLASS:{ *:[v16i8] } v4i32:{ *:[v4i32] }:$src, MSA128B:{ *:[i32] })
       GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/TargetOpcode::COPY,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128B*/66,
-      // GIR_Coverage, 1913,
+      // GIR_Coverage, 1914,
       GIR_Done,
     // Label 356: @7791
-    GIM_Try, /*On fail goto*//*Label 357*/ 7812, // Rule ID 1914 //
+    GIM_Try, /*On fail goto*//*Label 357*/ 7812, // Rule ID 1915 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsLE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v2s64,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128BRegClassID,
       // (bitconvert:{ *:[v16i8] } v2i64:{ *:[v2i64] }:$src)  =>  (COPY_TO_REGCLASS:{ *:[v16i8] } v2i64:{ *:[v2i64] }:$src, MSA128B:{ *:[i32] })
       GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/TargetOpcode::COPY,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128B*/66,
-      // GIR_Coverage, 1914,
+      // GIR_Coverage, 1915,
       GIR_Done,
     // Label 357: @7812
-    GIM_Try, /*On fail goto*//*Label 358*/ 7833, // Rule ID 1915 //
+    GIM_Try, /*On fail goto*//*Label 358*/ 7833, // Rule ID 1916 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsLE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v8s16,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128BRegClassID,
       // (bitconvert:{ *:[v16i8] } v8f16:{ *:[v8f16] }:$src)  =>  (COPY_TO_REGCLASS:{ *:[v16i8] } v8f16:{ *:[v8f16] }:$src, MSA128B:{ *:[i32] })
       GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/TargetOpcode::COPY,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128B*/66,
-      // GIR_Coverage, 1915,
+      // GIR_Coverage, 1916,
       GIR_Done,
     // Label 358: @7833
-    GIM_Try, /*On fail goto*//*Label 359*/ 7854, // Rule ID 1916 //
+    GIM_Try, /*On fail goto*//*Label 359*/ 7854, // Rule ID 1917 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsLE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v4s32,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128BRegClassID,
       // (bitconvert:{ *:[v16i8] } v4f32:{ *:[v4f32] }:$src)  =>  (COPY_TO_REGCLASS:{ *:[v16i8] } v4f32:{ *:[v4f32] }:$src, MSA128B:{ *:[i32] })
       GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/TargetOpcode::COPY,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128B*/66,
-      // GIR_Coverage, 1916,
+      // GIR_Coverage, 1917,
       GIR_Done,
     // Label 359: @7854
-    GIM_Try, /*On fail goto*//*Label 360*/ 7875, // Rule ID 1917 //
+    GIM_Try, /*On fail goto*//*Label 360*/ 7875, // Rule ID 1918 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsLE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v2s64,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128BRegClassID,
       // (bitconvert:{ *:[v16i8] } v2f64:{ *:[v2f64] }:$src)  =>  (COPY_TO_REGCLASS:{ *:[v16i8] } v2f64:{ *:[v2f64] }:$src, MSA128B:{ *:[i32] })
       GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/TargetOpcode::COPY,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128B*/66,
-      // GIR_Coverage, 1917,
+      // GIR_Coverage, 1918,
       GIR_Done,
     // Label 360: @7875
-    GIM_Try, /*On fail goto*//*Label 361*/ 7940, // Rule ID 1949 //
+    GIM_Try, /*On fail goto*//*Label 361*/ 7940, // Rule ID 1950 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsBE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v8s16,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128BRegClassID,
@@ -4042,10 +4042,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       GIR_AddTempRegister, /*InsnID*/0, /*TempRegID*/0, /*TempRegFlags*/0,
       GIR_EraseFromParent, /*InsnID*/0,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128B*/66,
-      // GIR_Coverage, 1949,
+      // GIR_Coverage, 1950,
       GIR_Done,
     // Label 361: @7940
-    GIM_Try, /*On fail goto*//*Label 362*/ 8005, // Rule ID 1954 //
+    GIM_Try, /*On fail goto*//*Label 362*/ 8005, // Rule ID 1955 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsBE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v8s16,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128BRegClassID,
@@ -4066,10 +4066,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       GIR_AddTempRegister, /*InsnID*/0, /*TempRegID*/0, /*TempRegFlags*/0,
       GIR_EraseFromParent, /*InsnID*/0,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128B*/66,
-      // GIR_Coverage, 1954,
+      // GIR_Coverage, 1955,
       GIR_Done,
     // Label 362: @8005
-    GIM_Try, /*On fail goto*//*Label 363*/ 8070, // Rule ID 1959 //
+    GIM_Try, /*On fail goto*//*Label 363*/ 8070, // Rule ID 1960 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsBE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v4s32,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128BRegClassID,
@@ -4090,10 +4090,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       GIR_AddTempRegister, /*InsnID*/0, /*TempRegID*/0, /*TempRegFlags*/0,
       GIR_EraseFromParent, /*InsnID*/0,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128B*/66,
-      // GIR_Coverage, 1959,
+      // GIR_Coverage, 1960,
       GIR_Done,
     // Label 363: @8070
-    GIM_Try, /*On fail goto*//*Label 364*/ 8135, // Rule ID 1964 //
+    GIM_Try, /*On fail goto*//*Label 364*/ 8135, // Rule ID 1965 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsBE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v4s32,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128BRegClassID,
@@ -4114,10 +4114,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       GIR_AddTempRegister, /*InsnID*/0, /*TempRegID*/0, /*TempRegFlags*/0,
       GIR_EraseFromParent, /*InsnID*/0,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128B*/66,
-      // GIR_Coverage, 1964,
+      // GIR_Coverage, 1965,
       GIR_Done,
     // Label 364: @8135
-    GIM_Try, /*On fail goto*//*Label 365*/ 8235, // Rule ID 1969 //
+    GIM_Try, /*On fail goto*//*Label 365*/ 8235, // Rule ID 1970 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsBE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v2s64,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128BRegClassID,
@@ -4149,10 +4149,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       GIR_AddTempRegister, /*InsnID*/0, /*TempRegID*/0, /*TempRegFlags*/0,
       GIR_EraseFromParent, /*InsnID*/0,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128B*/66,
-      // GIR_Coverage, 1969,
+      // GIR_Coverage, 1970,
       GIR_Done,
     // Label 365: @8235
-    GIM_Try, /*On fail goto*//*Label 366*/ 8335, // Rule ID 1974 //
+    GIM_Try, /*On fail goto*//*Label 366*/ 8335, // Rule ID 1975 //
       GIM_CheckFeatures, GIFBS_HasMSA_IsBE,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v2s64,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128BRegClassID,
@@ -4184,14 +4184,14 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       GIR_AddTempRegister, /*InsnID*/0, /*TempRegID*/0, /*TempRegFlags*/0,
       GIR_EraseFromParent, /*InsnID*/0,
       GIR_ConstrainOperandRC, /*InsnID*/0, /*Op*/0, /*RC MSA128B*/66,
-      // GIR_Coverage, 1974,
+      // GIR_Coverage, 1975,
       GIR_Done,
     // Label 366: @8335
     GIM_Reject,
     // Label 274: @8336
     GIM_Reject,
     // Label 11: @8337
-    GIM_Try, /*On fail goto*//*Label 367*/ 8402, // Rule ID 1897 //
+    GIM_Try, /*On fail goto*//*Label 367*/ 8402, // Rule ID 1898 //
       GIM_CheckFeatures, GIFBS_HasDSP,
       GIM_CheckType, /*MI*/0, /*Op*/0, /*Type*/GILLT_s32,
       GIM_CheckMemorySizeEqualToLLT, /*MI*/0, /*MMO*/0, /*OpIdx*/0,
@@ -4212,12 +4212,12 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       GIR_MergeMemOperands, /*InsnID*/0, /*MergeInsnID's*/0, 1, GIU_MergeMemOperands_EndOfList,
       GIR_EraseFromParent, /*InsnID*/0,
       GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-      // GIR_Coverage, 1897,
+      // GIR_Coverage, 1898,
       GIR_Done,
     // Label 367: @8402
     GIM_Reject,
     // Label 12: @8403
-    GIM_Try, /*On fail goto*//*Label 368*/ 8468, // Rule ID 1896 //
+    GIM_Try, /*On fail goto*//*Label 368*/ 8468, // Rule ID 1897 //
       GIM_CheckFeatures, GIFBS_HasDSP,
       GIM_CheckType, /*MI*/0, /*Op*/0, /*Type*/GILLT_s32,
       GIM_CheckMemorySizeEqualTo, /*MI*/0, /*MMO*/0, /*Size*/2,
@@ -4238,12 +4238,12 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       GIR_MergeMemOperands, /*InsnID*/0, /*MergeInsnID's*/0, 1, GIU_MergeMemOperands_EndOfList,
       GIR_EraseFromParent, /*InsnID*/0,
       GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-      // GIR_Coverage, 1896,
+      // GIR_Coverage, 1897,
       GIR_Done,
     // Label 368: @8468
     GIM_Reject,
     // Label 13: @8469
-    GIM_Try, /*On fail goto*//*Label 369*/ 8534, // Rule ID 1895 //
+    GIM_Try, /*On fail goto*//*Label 369*/ 8534, // Rule ID 1896 //
       GIM_CheckFeatures, GIFBS_HasDSP,
       GIM_CheckType, /*MI*/0, /*Op*/0, /*Type*/GILLT_s32,
       GIM_CheckMemorySizeEqualTo, /*MI*/0, /*MMO*/0, /*Size*/1,
@@ -4264,7 +4264,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       GIR_MergeMemOperands, /*InsnID*/0, /*MergeInsnID's*/0, 1, GIU_MergeMemOperands_EndOfList,
       GIR_EraseFromParent, /*InsnID*/0,
       GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-      // GIR_Coverage, 1895,
+      // GIR_Coverage, 1896,
       GIR_Done,
     // Label 369: @8534
     GIM_Reject,
@@ -5687,7 +5687,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         // GIR_Coverage, 1281,
         GIR_Done,
       // Label 447: @12032
-      GIM_Try, /*On fail goto*//*Label 448*/ 12087, // Rule ID 1851 //
+      GIM_Try, /*On fail goto*//*Label 448*/ 12087, // Rule ID 1852 //
         GIM_CheckFeatures, GIFBS_HasDSP,
         GIM_CheckIntrinsicID, /*MI*/0, /*Op*/1, Intrinsic::mips_shra_ph,
         GIM_CheckType, /*MI*/0, /*Op*/0, /*Type*/GILLT_v2s16,
@@ -5707,10 +5707,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_CopyConstantAsSImm, /*NewInsnID*/0, /*OldInsnID*/1, // shamt
         GIR_EraseFromParent, /*InsnID*/0,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 1851,
+        // GIR_Coverage, 1852,
         GIR_Done,
       // Label 448: @12087
-      GIM_Try, /*On fail goto*//*Label 449*/ 12142, // Rule ID 1852 //
+      GIM_Try, /*On fail goto*//*Label 449*/ 12142, // Rule ID 1853 //
         GIM_CheckFeatures, GIFBS_HasDSPR2,
         GIM_CheckIntrinsicID, /*MI*/0, /*Op*/1, Intrinsic::mips_shrl_ph,
         GIM_CheckType, /*MI*/0, /*Op*/0, /*Type*/GILLT_v2s16,
@@ -5730,10 +5730,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_CopyConstantAsSImm, /*NewInsnID*/0, /*OldInsnID*/1, // shamt
         GIR_EraseFromParent, /*InsnID*/0,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 1852,
+        // GIR_Coverage, 1853,
         GIR_Done,
       // Label 449: @12142
-      GIM_Try, /*On fail goto*//*Label 450*/ 12197, // Rule ID 1857 //
+      GIM_Try, /*On fail goto*//*Label 450*/ 12197, // Rule ID 1858 //
         GIM_CheckFeatures, GIFBS_HasDSPR2,
         GIM_CheckIntrinsicID, /*MI*/0, /*Op*/1, Intrinsic::mips_shra_qb,
         GIM_CheckType, /*MI*/0, /*Op*/0, /*Type*/GILLT_v4s8,
@@ -5753,10 +5753,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_CopyConstantAsSImm, /*NewInsnID*/0, /*OldInsnID*/1, // shamt
         GIR_EraseFromParent, /*InsnID*/0,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 1857,
+        // GIR_Coverage, 1858,
         GIR_Done,
       // Label 450: @12197
-      GIM_Try, /*On fail goto*//*Label 451*/ 12252, // Rule ID 1858 //
+      GIM_Try, /*On fail goto*//*Label 451*/ 12252, // Rule ID 1859 //
         GIM_CheckFeatures, GIFBS_HasDSP,
         GIM_CheckIntrinsicID, /*MI*/0, /*Op*/1, Intrinsic::mips_shrl_qb,
         GIM_CheckType, /*MI*/0, /*Op*/0, /*Type*/GILLT_v4s8,
@@ -5776,7 +5776,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_CopyConstantAsSImm, /*NewInsnID*/0, /*OldInsnID*/1, // shamt
         GIR_EraseFromParent, /*InsnID*/0,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 1858,
+        // GIR_Coverage, 1859,
         GIR_Done,
       // Label 451: @12252
       GIM_Try, /*On fail goto*//*Label 452*/ 12304, // Rule ID 327 //
@@ -9275,7 +9275,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         // GIR_Coverage, 1296,
         GIR_Done,
       // Label 635: @21820
-      GIM_Try, /*On fail goto*//*Label 636*/ 21864, // Rule ID 1833 //
+      GIM_Try, /*On fail goto*//*Label 636*/ 21864, // Rule ID 1834 //
         GIM_CheckFeatures, GIFBS_HasDSP,
         GIM_CheckIntrinsicID, /*MI*/0, /*Op*/1, Intrinsic::mips_addq_ph,
         GIM_CheckType, /*MI*/0, /*Op*/0, /*Type*/GILLT_v2s16,
@@ -9289,10 +9289,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_Copy, /*NewInsnID*/0, /*OldInsnID*/0, /*OpIdx*/3, // b
         GIR_EraseFromParent, /*InsnID*/0,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 1833,
+        // GIR_Coverage, 1834,
         GIR_Done,
       // Label 636: @21864
-      GIM_Try, /*On fail goto*//*Label 637*/ 21908, // Rule ID 1835 //
+      GIM_Try, /*On fail goto*//*Label 637*/ 21908, // Rule ID 1836 //
         GIM_CheckFeatures, GIFBS_HasDSP,
         GIM_CheckIntrinsicID, /*MI*/0, /*Op*/1, Intrinsic::mips_subq_ph,
         GIM_CheckType, /*MI*/0, /*Op*/0, /*Type*/GILLT_v2s16,
@@ -9306,10 +9306,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_Copy, /*NewInsnID*/0, /*OldInsnID*/0, /*OpIdx*/3, // b
         GIR_EraseFromParent, /*InsnID*/0,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 1835,
+        // GIR_Coverage, 1836,
         GIR_Done,
       // Label 637: @21908
-      GIM_Try, /*On fail goto*//*Label 638*/ 21952, // Rule ID 1839 //
+      GIM_Try, /*On fail goto*//*Label 638*/ 21952, // Rule ID 1840 //
         GIM_CheckFeatures, GIFBS_HasDSP,
         GIM_CheckIntrinsicID, /*MI*/0, /*Op*/1, Intrinsic::mips_addu_qb,
         GIM_CheckType, /*MI*/0, /*Op*/0, /*Type*/GILLT_v4s8,
@@ -9323,10 +9323,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_Copy, /*NewInsnID*/0, /*OldInsnID*/0, /*OpIdx*/3, // b
         GIR_EraseFromParent, /*InsnID*/0,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 1839,
+        // GIR_Coverage, 1840,
         GIR_Done,
       // Label 638: @21952
-      GIM_Try, /*On fail goto*//*Label 639*/ 21996, // Rule ID 1841 //
+      GIM_Try, /*On fail goto*//*Label 639*/ 21996, // Rule ID 1842 //
         GIM_CheckFeatures, GIFBS_HasDSP,
         GIM_CheckIntrinsicID, /*MI*/0, /*Op*/1, Intrinsic::mips_subu_qb,
         GIM_CheckType, /*MI*/0, /*Op*/0, /*Type*/GILLT_v4s8,
@@ -9340,7 +9340,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_Copy, /*NewInsnID*/0, /*OldInsnID*/0, /*OpIdx*/3, // b
         GIR_EraseFromParent, /*InsnID*/0,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 1841,
+        // GIR_Coverage, 1842,
         GIR_Done,
       // Label 639: @21996
       GIM_Reject,
@@ -10903,7 +10903,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         // GIR_Coverage, 1201,
         GIR_Done,
       // Label 713: @26242
-      GIM_Try, /*On fail goto*//*Label 714*/ 26297, // Rule ID 1850 //
+      GIM_Try, /*On fail goto*//*Label 714*/ 26297, // Rule ID 1851 //
         GIM_CheckFeatures, GIFBS_HasDSP,
         GIM_CheckIntrinsicID, /*MI*/0, /*Op*/1, Intrinsic::mips_shll_ph,
         GIM_CheckType, /*MI*/0, /*Op*/0, /*Type*/GILLT_v2s16,
@@ -10923,10 +10923,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_CopyConstantAsSImm, /*NewInsnID*/0, /*OldInsnID*/1, // shamt
         GIR_EraseFromParent, /*InsnID*/0,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 1850,
+        // GIR_Coverage, 1851,
         GIR_Done,
       // Label 714: @26297
-      GIM_Try, /*On fail goto*//*Label 715*/ 26352, // Rule ID 1856 //
+      GIM_Try, /*On fail goto*//*Label 715*/ 26352, // Rule ID 1857 //
         GIM_CheckFeatures, GIFBS_HasDSP,
         GIM_CheckIntrinsicID, /*MI*/0, /*Op*/1, Intrinsic::mips_shll_qb,
         GIM_CheckType, /*MI*/0, /*Op*/0, /*Type*/GILLT_v4s8,
@@ -10946,7 +10946,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_CopyConstantAsSImm, /*NewInsnID*/0, /*OldInsnID*/1, // shamt
         GIR_EraseFromParent, /*InsnID*/0,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 1856,
+        // GIR_Coverage, 1857,
         GIR_Done,
       // Label 715: @26352
       GIM_Try, /*On fail goto*//*Label 716*/ 26408, // Rule ID 331 //
@@ -12189,7 +12189,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         // GIR_Coverage, 1305,
         GIR_Done,
       // Label 777: @29824
-      GIM_Try, /*On fail goto*//*Label 778*/ 29872, // Rule ID 1837 //
+      GIM_Try, /*On fail goto*//*Label 778*/ 29872, // Rule ID 1838 //
         GIM_CheckFeatures, GIFBS_HasDSPR2,
         GIM_CheckIntrinsicID, /*MI*/0, /*Op*/1, Intrinsic::mips_mul_ph,
         GIM_CheckType, /*MI*/0, /*Op*/0, /*Type*/GILLT_v2s16,
@@ -12204,10 +12204,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_MergeMemOperands, /*InsnID*/0, /*MergeInsnID's*/0, GIU_MergeMemOperands_EndOfList,
         GIR_EraseFromParent, /*InsnID*/0,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 1837,
+        // GIR_Coverage, 1838,
         GIR_Done,
       // Label 778: @29872
-      GIM_Try, /*On fail goto*//*Label 779*/ 29920, // Rule ID 1843 //
+      GIM_Try, /*On fail goto*//*Label 779*/ 29920, // Rule ID 1844 //
         GIM_CheckFeatures, GIFBS_HasDSP,
         GIM_CheckIntrinsicID, /*MI*/0, /*Op*/1, Intrinsic::mips_addsc,
         GIM_CheckType, /*MI*/0, /*Op*/0, /*Type*/GILLT_s32,
@@ -12222,10 +12222,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_MergeMemOperands, /*InsnID*/0, /*MergeInsnID's*/0, GIU_MergeMemOperands_EndOfList,
         GIR_EraseFromParent, /*InsnID*/0,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 1843,
+        // GIR_Coverage, 1844,
         GIR_Done,
       // Label 779: @29920
-      GIM_Try, /*On fail goto*//*Label 780*/ 29968, // Rule ID 1845 //
+      GIM_Try, /*On fail goto*//*Label 780*/ 29968, // Rule ID 1846 //
         GIM_CheckFeatures, GIFBS_HasDSP,
         GIM_CheckIntrinsicID, /*MI*/0, /*Op*/1, Intrinsic::mips_addwc,
         GIM_CheckType, /*MI*/0, /*Op*/0, /*Type*/GILLT_s32,
@@ -12240,7 +12240,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_MergeMemOperands, /*InsnID*/0, /*MergeInsnID's*/0, GIU_MergeMemOperands_EndOfList,
         GIR_EraseFromParent, /*InsnID*/0,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 1845,
+        // GIR_Coverage, 1846,
         GIR_Done,
       // Label 780: @29968
       GIM_Reject,
@@ -12272,7 +12272,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
     // Label 17: @30027
     GIM_Try, /*On fail goto*//*Label 782*/ 30086,
       GIM_CheckType, /*MI*/0, /*Op*/0, /*Type*/GILLT_s32,
-      GIM_Try, /*On fail goto*//*Label 783*/ 30059, // Rule ID 2059 //
+      GIM_Try, /*On fail goto*//*Label 783*/ 30059, // Rule ID 2060 //
         GIM_CheckFeatures, GIFBS_InMicroMips,
         GIM_CheckI64ImmPredicate, /*MI*/0, /*Predicate*/GIPFP_I64_Predicate_immLi16,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::GPRMM16RegClassID,
@@ -12284,10 +12284,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_CopyConstantAsSImm, /*NewInsnID*/0, /*OldInsnID*/0, // imm
         GIR_EraseFromParent, /*InsnID*/0,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 2059,
+        // GIR_Coverage, 2060,
         GIR_Done,
       // Label 783: @30059
-      GIM_Try, /*On fail goto*//*Label 784*/ 30085, // Rule ID 1761 //
+      GIM_Try, /*On fail goto*//*Label 784*/ 30085, // Rule ID 1762 //
         GIM_CheckFeatures, GIFBS_InMips16Mode,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::CPU16RegsRegClassID,
         // MIs[0] Operand 1
@@ -12299,7 +12299,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_AddImm, /*InsnID*/0, /*Imm*/-1,
         GIR_EraseFromParent, /*InsnID*/0,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 1761,
+        // GIR_Coverage, 1762,
         GIR_Done,
       // Label 784: @30085
       GIM_Reject,
@@ -12390,7 +12390,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         // GIR_Coverage, 43,
         GIR_Done,
       // Label 797: @30267
-      GIM_Try, /*On fail goto*//*Label 798*/ 30310, // Rule ID 1743 //
+      GIM_Try, /*On fail goto*//*Label 798*/ 30310, // Rule ID 1744 //
         GIM_CheckFeatures, GIFBS_InMips16Mode,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::CPU16RegsRegClassID,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/1, /*RC*/Mips::CPU16RegsRegClassID,
@@ -12407,10 +12407,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_CopyConstantAsSImm, /*NewInsnID*/0, /*OldInsnID*/1, // imm
         GIR_EraseFromParent, /*InsnID*/0,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 1743,
+        // GIR_Coverage, 1744,
         GIR_Done,
       // Label 798: @30310
-      GIM_Try, /*On fail goto*//*Label 799*/ 30353, // Rule ID 2071 //
+      GIM_Try, /*On fail goto*//*Label 799*/ 30353, // Rule ID 2072 //
         GIM_CheckFeatures, GIFBS_InMicroMips,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::GPRMM16RegClassID,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/1, /*RC*/Mips::GPRMM16RegClassID,
@@ -12427,10 +12427,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_CopyConstantAsSImm, /*NewInsnID*/0, /*OldInsnID*/1, // imm
         GIR_EraseFromParent, /*InsnID*/0,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 2071,
+        // GIR_Coverage, 2072,
         GIR_Done,
       // Label 799: @30353
-      GIM_Try, /*On fail goto*//*Label 800*/ 30396, // Rule ID 2072 //
+      GIM_Try, /*On fail goto*//*Label 800*/ 30396, // Rule ID 2073 //
         GIM_CheckFeatures, GIFBS_InMicroMips,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::GPR32RegClassID,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/1, /*RC*/Mips::GPR32RegClassID,
@@ -12447,7 +12447,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_CopyConstantAsSImm, /*NewInsnID*/0, /*OldInsnID*/1, // imm
         GIR_EraseFromParent, /*InsnID*/0,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 2072,
+        // GIR_Coverage, 2073,
         GIR_Done,
       // Label 800: @30396
       GIM_Try, /*On fail goto*//*Label 801*/ 30419, // Rule ID 46 //
@@ -12461,7 +12461,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         // GIR_Coverage, 46,
         GIR_Done,
       // Label 801: @30419
-      GIM_Try, /*On fail goto*//*Label 802*/ 30442, // Rule ID 1746 //
+      GIM_Try, /*On fail goto*//*Label 802*/ 30442, // Rule ID 1747 //
         GIM_CheckFeatures, GIFBS_InMips16Mode,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::CPU16RegsRegClassID,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/1, /*RC*/Mips::CPU16RegsRegClassID,
@@ -12469,10 +12469,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         // (shl:{ *:[i32] } CPU16Regs:{ *:[i32] }:$r, CPU16Regs:{ *:[i32] }:$ra)  =>  (SllvRxRy16:{ *:[i32] } CPU16Regs:{ *:[i32] }:$r, CPU16Regs:{ *:[i32] }:$ra)
         GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/Mips::SllvRxRy16,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 1746,
+        // GIR_Coverage, 1747,
         GIR_Done,
       // Label 802: @30442
-      GIM_Try, /*On fail goto*//*Label 803*/ 30465, // Rule ID 2073 //
+      GIM_Try, /*On fail goto*//*Label 803*/ 30465, // Rule ID 2074 //
         GIM_CheckFeatures, GIFBS_InMicroMips,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::GPR32RegClassID,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/1, /*RC*/Mips::GPR32RegClassID,
@@ -12480,7 +12480,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         // (shl:{ *:[i32] } GPR32:{ *:[i32] }:$lhs, GPR32:{ *:[i32] }:$rhs)  =>  (SLLV_MM:{ *:[i32] } GPR32:{ *:[i32] }:$lhs, GPR32:{ *:[i32] }:$rhs)
         GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/Mips::SLLV_MM,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 2073,
+        // GIR_Coverage, 2074,
         GIR_Done,
       // Label 803: @30465
       GIM_Reject,
@@ -12638,7 +12638,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         // GIR_Coverage, 44,
         GIR_Done,
       // Label 820: @30791
-      GIM_Try, /*On fail goto*//*Label 821*/ 30834, // Rule ID 1744 //
+      GIM_Try, /*On fail goto*//*Label 821*/ 30834, // Rule ID 1745 //
         GIM_CheckFeatures, GIFBS_InMips16Mode,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::CPU16RegsRegClassID,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/1, /*RC*/Mips::CPU16RegsRegClassID,
@@ -12655,10 +12655,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_CopyConstantAsSImm, /*NewInsnID*/0, /*OldInsnID*/1, // imm
         GIR_EraseFromParent, /*InsnID*/0,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 1744,
+        // GIR_Coverage, 1745,
         GIR_Done,
       // Label 821: @30834
-      GIM_Try, /*On fail goto*//*Label 822*/ 30877, // Rule ID 2074 //
+      GIM_Try, /*On fail goto*//*Label 822*/ 30877, // Rule ID 2075 //
         GIM_CheckFeatures, GIFBS_InMicroMips,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::GPRMM16RegClassID,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/1, /*RC*/Mips::GPRMM16RegClassID,
@@ -12675,10 +12675,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_CopyConstantAsSImm, /*NewInsnID*/0, /*OldInsnID*/1, // imm
         GIR_EraseFromParent, /*InsnID*/0,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 2074,
+        // GIR_Coverage, 2075,
         GIR_Done,
       // Label 822: @30877
-      GIM_Try, /*On fail goto*//*Label 823*/ 30920, // Rule ID 2075 //
+      GIM_Try, /*On fail goto*//*Label 823*/ 30920, // Rule ID 2076 //
         GIM_CheckFeatures, GIFBS_InMicroMips,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::GPR32RegClassID,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/1, /*RC*/Mips::GPR32RegClassID,
@@ -12695,7 +12695,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_CopyConstantAsSImm, /*NewInsnID*/0, /*OldInsnID*/1, // imm
         GIR_EraseFromParent, /*InsnID*/0,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 2075,
+        // GIR_Coverage, 2076,
         GIR_Done,
       // Label 823: @30920
       GIM_Try, /*On fail goto*//*Label 824*/ 30943, // Rule ID 47 //
@@ -12709,7 +12709,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         // GIR_Coverage, 47,
         GIR_Done,
       // Label 824: @30943
-      GIM_Try, /*On fail goto*//*Label 825*/ 30966, // Rule ID 1748 //
+      GIM_Try, /*On fail goto*//*Label 825*/ 30966, // Rule ID 1749 //
         GIM_CheckFeatures, GIFBS_InMips16Mode,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::CPU16RegsRegClassID,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/1, /*RC*/Mips::CPU16RegsRegClassID,
@@ -12717,10 +12717,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         // (srl:{ *:[i32] } CPU16Regs:{ *:[i32] }:$r, CPU16Regs:{ *:[i32] }:$ra)  =>  (SrlvRxRy16:{ *:[i32] } CPU16Regs:{ *:[i32] }:$r, CPU16Regs:{ *:[i32] }:$ra)
         GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/Mips::SrlvRxRy16,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 1748,
+        // GIR_Coverage, 1749,
         GIR_Done,
       // Label 825: @30966
-      GIM_Try, /*On fail goto*//*Label 826*/ 30989, // Rule ID 2076 //
+      GIM_Try, /*On fail goto*//*Label 826*/ 30989, // Rule ID 2077 //
         GIM_CheckFeatures, GIFBS_InMicroMips,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::GPR32RegClassID,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/1, /*RC*/Mips::GPR32RegClassID,
@@ -12728,7 +12728,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         // (srl:{ *:[i32] } GPR32:{ *:[i32] }:$lhs, GPR32:{ *:[i32] }:$rhs)  =>  (SRLV_MM:{ *:[i32] } GPR32:{ *:[i32] }:$lhs, GPR32:{ *:[i32] }:$rhs)
         GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/Mips::SRLV_MM,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 2076,
+        // GIR_Coverage, 2077,
         GIR_Done,
       // Label 826: @30989
       GIM_Reject,
@@ -12886,7 +12886,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         // GIR_Coverage, 45,
         GIR_Done,
       // Label 843: @31315
-      GIM_Try, /*On fail goto*//*Label 844*/ 31358, // Rule ID 1745 //
+      GIM_Try, /*On fail goto*//*Label 844*/ 31358, // Rule ID 1746 //
         GIM_CheckFeatures, GIFBS_InMips16Mode,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::CPU16RegsRegClassID,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/1, /*RC*/Mips::CPU16RegsRegClassID,
@@ -12903,10 +12903,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_CopyConstantAsSImm, /*NewInsnID*/0, /*OldInsnID*/1, // imm
         GIR_EraseFromParent, /*InsnID*/0,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 1745,
+        // GIR_Coverage, 1746,
         GIR_Done,
       // Label 844: @31358
-      GIM_Try, /*On fail goto*//*Label 845*/ 31401, // Rule ID 2077 //
+      GIM_Try, /*On fail goto*//*Label 845*/ 31401, // Rule ID 2078 //
         GIM_CheckFeatures, GIFBS_InMicroMips,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::GPR32RegClassID,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/1, /*RC*/Mips::GPR32RegClassID,
@@ -12923,7 +12923,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_CopyConstantAsSImm, /*NewInsnID*/0, /*OldInsnID*/1, // imm
         GIR_EraseFromParent, /*InsnID*/0,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 2077,
+        // GIR_Coverage, 2078,
         GIR_Done,
       // Label 845: @31401
       GIM_Try, /*On fail goto*//*Label 846*/ 31424, // Rule ID 48 //
@@ -12937,7 +12937,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         // GIR_Coverage, 48,
         GIR_Done,
       // Label 846: @31424
-      GIM_Try, /*On fail goto*//*Label 847*/ 31447, // Rule ID 1747 //
+      GIM_Try, /*On fail goto*//*Label 847*/ 31447, // Rule ID 1748 //
         GIM_CheckFeatures, GIFBS_InMips16Mode,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::CPU16RegsRegClassID,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/1, /*RC*/Mips::CPU16RegsRegClassID,
@@ -12945,10 +12945,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         // (sra:{ *:[i32] } CPU16Regs:{ *:[i32] }:$r, CPU16Regs:{ *:[i32] }:$ra)  =>  (SravRxRy16:{ *:[i32] } CPU16Regs:{ *:[i32] }:$r, CPU16Regs:{ *:[i32] }:$ra)
         GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/Mips::SravRxRy16,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 1747,
+        // GIR_Coverage, 1748,
         GIR_Done,
       // Label 847: @31447
-      GIM_Try, /*On fail goto*//*Label 848*/ 31470, // Rule ID 2078 //
+      GIM_Try, /*On fail goto*//*Label 848*/ 31470, // Rule ID 2079 //
         GIM_CheckFeatures, GIFBS_InMicroMips,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::GPR32RegClassID,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/1, /*RC*/Mips::GPR32RegClassID,
@@ -12956,7 +12956,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         // (sra:{ *:[i32] } GPR32:{ *:[i32] }:$lhs, GPR32:{ *:[i32] }:$rhs)  =>  (SRAV_MM:{ *:[i32] } GPR32:{ *:[i32] }:$lhs, GPR32:{ *:[i32] }:$rhs)
         GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/Mips::SRAV_MM,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 2078,
+        // GIR_Coverage, 2079,
         GIR_Done,
       // Label 848: @31470
       GIM_Reject,
@@ -13237,7 +13237,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       // GIR_Coverage, 1635,
       GIR_Done,
     // Label 867: @32151
-    GIM_Try, /*On fail goto*//*Label 868*/ 32207, // Rule ID 1792 //
+    GIM_Try, /*On fail goto*//*Label 868*/ 32207, // Rule ID 1793 //
       GIM_CheckFeatures, GIFBS_InMips16Mode,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_s32,
       GIM_CheckType, /*MI*/0, /*Op*/2, /*Type*/GILLT_s32,
@@ -13254,10 +13254,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       GIR_Copy, /*NewInsnID*/0, /*OldInsnID*/0, /*OpIdx*/1, // a
       GIR_EraseFromParent, /*InsnID*/0,
       GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-      // GIR_Coverage, 1792,
+      // GIR_Coverage, 1793,
       GIR_Done,
     // Label 868: @32207
-    GIM_Try, /*On fail goto*//*Label 869*/ 32263, // Rule ID 2128 //
+    GIM_Try, /*On fail goto*//*Label 869*/ 32263, // Rule ID 2129 //
       GIM_CheckFeatures, GIFBS_HasMips4_32_HasStdEnc_NotMips32r6_NotMips64r6,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_s32,
       GIM_CheckType, /*MI*/0, /*Op*/2, /*Type*/GILLT_s32,
@@ -13274,10 +13274,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       GIR_Copy, /*NewInsnID*/0, /*OldInsnID*/0, /*OpIdx*/3, // F
       GIR_EraseFromParent, /*InsnID*/0,
       GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-      // GIR_Coverage, 2128,
+      // GIR_Coverage, 2129,
       GIR_Done,
     // Label 869: @32263
-    GIM_Try, /*On fail goto*//*Label 870*/ 32319, // Rule ID 2142 //
+    GIM_Try, /*On fail goto*//*Label 870*/ 32319, // Rule ID 2143 //
       GIM_CheckFeatures, GIFBS_InMicroMips_NotMips32r6,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_s32,
       GIM_CheckType, /*MI*/0, /*Op*/2, /*Type*/GILLT_s32,
@@ -13294,10 +13294,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       GIR_Copy, /*NewInsnID*/0, /*OldInsnID*/0, /*OpIdx*/3, // F
       GIR_EraseFromParent, /*InsnID*/0,
       GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-      // GIR_Coverage, 2142,
+      // GIR_Coverage, 2143,
       GIR_Done,
     // Label 870: @32319
-    GIM_Try, /*On fail goto*//*Label 871*/ 32375, // Rule ID 2170 //
+    GIM_Try, /*On fail goto*//*Label 871*/ 32375, // Rule ID 2171 //
       GIM_CheckFeatures, GIFBS_InMicroMips_NotMips32r6,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_s32,
       GIM_CheckType, /*MI*/0, /*Op*/2, /*Type*/GILLT_s32,
@@ -13314,7 +13314,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       GIR_Copy, /*NewInsnID*/0, /*OldInsnID*/0, /*OpIdx*/3, // F
       GIR_EraseFromParent, /*InsnID*/0,
       GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-      // GIR_Coverage, 2170,
+      // GIR_Coverage, 2171,
       GIR_Done,
     // Label 871: @32375
     GIM_Try, /*On fail goto*//*Label 872*/ 32455, // Rule ID 1704 //
@@ -13345,7 +13345,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       // GIR_Coverage, 1704,
       GIR_Done,
     // Label 872: @32455
-    GIM_Try, /*On fail goto*//*Label 873*/ 32535, // Rule ID 2187 //
+    GIM_Try, /*On fail goto*//*Label 873*/ 32535, // Rule ID 2188 //
       GIM_CheckFeatures, GIFBS_HasMips32r6_InMicroMips,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_s32,
       GIM_CheckType, /*MI*/0, /*Op*/2, /*Type*/GILLT_s32,
@@ -13370,7 +13370,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       GIR_AddTempRegister, /*InsnID*/0, /*TempRegID*/1, /*TempRegFlags*/0,
       GIR_EraseFromParent, /*InsnID*/0,
       GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-      // GIR_Coverage, 2187,
+      // GIR_Coverage, 2188,
       GIR_Done,
     // Label 873: @32535
     GIM_Reject,
@@ -13520,7 +13520,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       // GIR_Coverage, 1674,
       GIR_Done,
     // Label 881: @32933
-    GIM_Try, /*On fail goto*//*Label 882*/ 32989, // Rule ID 2183 //
+    GIM_Try, /*On fail goto*//*Label 882*/ 32989, // Rule ID 2184 //
       GIM_CheckFeatures, GIFBS_InMicroMips_NotFP64bit_NotMips32r6,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_s32,
       GIM_CheckType, /*MI*/0, /*Op*/2, /*Type*/GILLT_s64,
@@ -13537,7 +13537,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       GIR_Copy, /*NewInsnID*/0, /*OldInsnID*/0, /*OpIdx*/3, // F
       GIR_EraseFromParent, /*InsnID*/0,
       GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-      // GIR_Coverage, 2183,
+      // GIR_Coverage, 2184,
       GIR_Done,
     // Label 882: @32989
     GIM_Try, /*On fail goto*//*Label 883*/ 33069, // Rule ID 1707 //
@@ -13641,7 +13641,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         // GIR_Coverage, 145,
         GIR_Done,
       // Label 891: @33266
-      GIM_Try, /*On fail goto*//*Label 892*/ 33323, // Rule ID 2241 //
+      GIM_Try, /*On fail goto*//*Label 892*/ 33323, // Rule ID 2242 //
         GIM_CheckFeatures, GIFBS_HasMadd4_HasMips4_32r2_HasStdEnc_IsNotSoftFloat_NotInMicroMips_NotMips32r6_NotMips64r6,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/1, /*RC*/Mips::FGR32RegClassID,
         GIM_RecordInsn, /*DefineMI*/1, /*MI*/0, /*OpIdx*/2, // MIs[1]
@@ -13659,7 +13659,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_Copy, /*NewInsnID*/0, /*OldInsnID*/1, /*OpIdx*/2, // ft
         GIR_EraseFromParent, /*InsnID*/0,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 2241,
+        // GIR_Coverage, 2242,
         GIR_Done,
       // Label 892: @33323
       GIM_Try, /*On fail goto*//*Label 893*/ 33342, // Rule ID 133 //
@@ -13747,7 +13747,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         // GIR_Coverage, 149,
         GIR_Done,
       // Label 898: @33527
-      GIM_Try, /*On fail goto*//*Label 899*/ 33588, // Rule ID 2242 //
+      GIM_Try, /*On fail goto*//*Label 899*/ 33588, // Rule ID 2243 //
         GIM_CheckFeatures, GIFBS_HasMadd4_HasMips4_32r2_HasStdEnc_IsNotSoftFloat_NotFP64bit_NotInMicroMips_NotMips32r6_NotMips64r6,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::AFGR64RegClassID,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/1, /*RC*/Mips::AFGR64RegClassID,
@@ -13766,10 +13766,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_Copy, /*NewInsnID*/0, /*OldInsnID*/1, /*OpIdx*/2, // ft
         GIR_EraseFromParent, /*InsnID*/0,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 2242,
+        // GIR_Coverage, 2243,
         GIR_Done,
       // Label 899: @33588
-      GIM_Try, /*On fail goto*//*Label 900*/ 33649, // Rule ID 2243 //
+      GIM_Try, /*On fail goto*//*Label 900*/ 33649, // Rule ID 2244 //
         GIM_CheckFeatures, GIFBS_HasMadd4_HasMips4_32r2_HasStdEnc_IsFP64bit_IsNotSoftFloat_NotInMicroMips_NotMips32r6_NotMips64r6,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::FGR64RegClassID,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/1, /*RC*/Mips::FGR64RegClassID,
@@ -13788,7 +13788,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_Copy, /*NewInsnID*/0, /*OldInsnID*/1, /*OpIdx*/2, // ft
         GIR_EraseFromParent, /*InsnID*/0,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 2243,
+        // GIR_Coverage, 2244,
         GIR_Done,
       // Label 900: @33649
       GIM_Try, /*On fail goto*//*Label 901*/ 33672, // Rule ID 134 //
@@ -13842,7 +13842,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
     GIM_Try, /*On fail goto*//*Label 905*/ 33901,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v2s64,
       GIM_CheckType, /*MI*/0, /*Op*/2, /*Type*/GILLT_v2s64,
-      GIM_Try, /*On fail goto*//*Label 906*/ 33815, // Rule ID 2348 //
+      GIM_Try, /*On fail goto*//*Label 906*/ 33815, // Rule ID 2349 //
         GIM_CheckFeatures, GIFBS_AllowFPOpFusion_HasMSA_HasStdEnc,
         GIM_CheckIsSameOperand, /*MI*/0, /*OpIdx*/0, /*OtherMI*/0, /*OtherOpIdx*/2,
         GIM_RecordInsn, /*DefineMI*/1, /*MI*/0, /*OpIdx*/1, // MIs[1]
@@ -13861,10 +13861,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_Copy, /*NewInsnID*/0, /*OldInsnID*/1, /*OpIdx*/2, // wt
         GIR_EraseFromParent, /*InsnID*/0,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 2348,
+        // GIR_Coverage, 2349,
         GIR_Done,
       // Label 906: @33815
-      GIM_Try, /*On fail goto*//*Label 907*/ 33877, // Rule ID 1901 //
+      GIM_Try, /*On fail goto*//*Label 907*/ 33877, // Rule ID 1902 //
         GIM_CheckFeatures, GIFBS_AllowFPOpFusion_HasMSA_HasStdEnc,
         GIM_CheckIsSameOperand, /*MI*/0, /*OpIdx*/0, /*OtherMI*/0, /*OtherOpIdx*/1,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/1, /*RC*/Mips::MSA128DRegClassID,
@@ -13883,7 +13883,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_Copy, /*NewInsnID*/0, /*OldInsnID*/1, /*OpIdx*/2, // wt
         GIR_EraseFromParent, /*InsnID*/0,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 1901,
+        // GIR_Coverage, 1902,
         GIR_Done,
       // Label 907: @33877
       GIM_Try, /*On fail goto*//*Label 908*/ 33900, // Rule ID 639 //
@@ -13904,7 +13904,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
     GIM_Try, /*On fail goto*//*Label 909*/ 34060,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v4s32,
       GIM_CheckType, /*MI*/0, /*Op*/2, /*Type*/GILLT_v4s32,
-      GIM_Try, /*On fail goto*//*Label 910*/ 33974, // Rule ID 2347 //
+      GIM_Try, /*On fail goto*//*Label 910*/ 33974, // Rule ID 2348 //
         GIM_CheckFeatures, GIFBS_AllowFPOpFusion_HasMSA_HasStdEnc,
         GIM_CheckIsSameOperand, /*MI*/0, /*OpIdx*/0, /*OtherMI*/0, /*OtherOpIdx*/2,
         GIM_RecordInsn, /*DefineMI*/1, /*MI*/0, /*OpIdx*/1, // MIs[1]
@@ -13923,10 +13923,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_Copy, /*NewInsnID*/0, /*OldInsnID*/1, /*OpIdx*/2, // wt
         GIR_EraseFromParent, /*InsnID*/0,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 2347,
+        // GIR_Coverage, 2348,
         GIR_Done,
       // Label 910: @33974
-      GIM_Try, /*On fail goto*//*Label 911*/ 34036, // Rule ID 1900 //
+      GIM_Try, /*On fail goto*//*Label 911*/ 34036, // Rule ID 1901 //
         GIM_CheckFeatures, GIFBS_AllowFPOpFusion_HasMSA_HasStdEnc,
         GIM_CheckIsSameOperand, /*MI*/0, /*OpIdx*/0, /*OtherMI*/0, /*OtherOpIdx*/1,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/1, /*RC*/Mips::MSA128WRegClassID,
@@ -13945,7 +13945,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_Copy, /*NewInsnID*/0, /*OldInsnID*/1, /*OpIdx*/2, // wt
         GIR_EraseFromParent, /*InsnID*/0,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 1900,
+        // GIR_Coverage, 1901,
         GIR_Done,
       // Label 911: @34036
       GIM_Try, /*On fail goto*//*Label 912*/ 34059, // Rule ID 638 //
@@ -14132,7 +14132,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
     GIM_Try, /*On fail goto*//*Label 930*/ 34539,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v2s64,
       GIM_CheckType, /*MI*/0, /*Op*/2, /*Type*/GILLT_v2s64,
-      GIM_Try, /*On fail goto*//*Label 931*/ 34515, // Rule ID 1899 //
+      GIM_Try, /*On fail goto*//*Label 931*/ 34515, // Rule ID 1900 //
         GIM_CheckFeatures, GIFBS_AllowFPOpFusion_HasMSA_HasStdEnc,
         GIM_CheckIsSameOperand, /*MI*/0, /*OpIdx*/0, /*OtherMI*/0, /*OtherOpIdx*/1,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/1, /*RC*/Mips::MSA128DRegClassID,
@@ -14151,7 +14151,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_Copy, /*NewInsnID*/0, /*OldInsnID*/1, /*OpIdx*/2, // wt
         GIR_EraseFromParent, /*InsnID*/0,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 1899,
+        // GIR_Coverage, 1900,
         GIR_Done,
       // Label 931: @34515
       GIM_Try, /*On fail goto*//*Label 932*/ 34538, // Rule ID 727 //
@@ -14172,7 +14172,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
     GIM_Try, /*On fail goto*//*Label 933*/ 34636,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v4s32,
       GIM_CheckType, /*MI*/0, /*Op*/2, /*Type*/GILLT_v4s32,
-      GIM_Try, /*On fail goto*//*Label 934*/ 34612, // Rule ID 1898 //
+      GIM_Try, /*On fail goto*//*Label 934*/ 34612, // Rule ID 1899 //
         GIM_CheckFeatures, GIFBS_AllowFPOpFusion_HasMSA_HasStdEnc,
         GIM_CheckIsSameOperand, /*MI*/0, /*OpIdx*/0, /*OtherMI*/0, /*OtherOpIdx*/1,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/1, /*RC*/Mips::MSA128WRegClassID,
@@ -14191,7 +14191,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_Copy, /*NewInsnID*/0, /*OldInsnID*/1, /*OpIdx*/2, // wt
         GIR_EraseFromParent, /*InsnID*/0,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 1898,
+        // GIR_Coverage, 1899,
         GIR_Done,
       // Label 934: @34612
       GIM_Try, /*On fail goto*//*Label 935*/ 34635, // Rule ID 726 //
@@ -14310,7 +14310,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v2s64,
       GIM_CheckType, /*MI*/0, /*Op*/2, /*Type*/GILLT_v2s64,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128DRegClassID,
-      GIM_Try, /*On fail goto*//*Label 951*/ 34883, // Rule ID 2289 //
+      GIM_Try, /*On fail goto*//*Label 951*/ 34883, // Rule ID 2290 //
         GIM_CheckFeatures, GIFBS_HasMSA_HasStdEnc,
         GIM_RecordInsn, /*DefineMI*/1, /*MI*/0, /*OpIdx*/1, // MIs[1]
         GIM_CheckOpcode, /*MI*/1, TargetOpcode::G_FEXP2,
@@ -14325,7 +14325,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_Copy, /*NewInsnID*/0, /*OldInsnID*/1, /*OpIdx*/1, // wt
         GIR_EraseFromParent, /*InsnID*/0,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 2289,
+        // GIR_Coverage, 2290,
         GIR_Done,
       // Label 951: @34883
       GIM_Try, /*On fail goto*//*Label 952*/ 34928, // Rule ID 669 //
@@ -14364,7 +14364,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_v4s32,
       GIM_CheckType, /*MI*/0, /*Op*/2, /*Type*/GILLT_v4s32,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::MSA128WRegClassID,
-      GIM_Try, /*On fail goto*//*Label 955*/ 35008, // Rule ID 2288 //
+      GIM_Try, /*On fail goto*//*Label 955*/ 35008, // Rule ID 2289 //
         GIM_CheckFeatures, GIFBS_HasMSA_HasStdEnc,
         GIM_RecordInsn, /*DefineMI*/1, /*MI*/0, /*OpIdx*/1, // MIs[1]
         GIM_CheckOpcode, /*MI*/1, TargetOpcode::G_FEXP2,
@@ -14379,7 +14379,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_Copy, /*NewInsnID*/0, /*OldInsnID*/1, /*OpIdx*/1, // wt
         GIR_EraseFromParent, /*InsnID*/0,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 2288,
+        // GIR_Coverage, 2289,
         GIR_Done,
       // Label 955: @35008
       GIM_Try, /*On fail goto*//*Label 956*/ 35053, // Rule ID 668 //
@@ -14680,7 +14680,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         // GIR_Coverage, 1414,
         GIR_Done,
       // Label 993: @35624
-      GIM_Try, /*On fail goto*//*Label 994*/ 35698, // Rule ID 2144 //
+      GIM_Try, /*On fail goto*//*Label 994*/ 35698, // Rule ID 2145 //
         GIM_CheckFeatures, GIFBS_HasMadd4_InMicroMips_InMicroMips_NoNaNsFPMath_NotMips32r6_NotMips32r6,
         GIM_RecordInsn, /*DefineMI*/1, /*MI*/0, /*OpIdx*/1, // MIs[1]
         GIM_CheckOpcode, /*MI*/1, TargetOpcode::G_FADD,
@@ -14703,10 +14703,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_Copy, /*NewInsnID*/0, /*OldInsnID*/2, /*OpIdx*/2, // ft
         GIR_EraseFromParent, /*InsnID*/0,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 2144,
+        // GIR_Coverage, 2145,
         GIR_Done,
       // Label 994: @35698
-      GIM_Try, /*On fail goto*//*Label 995*/ 35772, // Rule ID 2323 //
+      GIM_Try, /*On fail goto*//*Label 995*/ 35772, // Rule ID 2324 //
         GIM_CheckFeatures, GIFBS_HasMadd4_HasMips4_32r2_HasStdEnc_NoNaNsFPMath_NotInMicroMips_NotMips32r6_NotMips64r6,
         GIM_RecordInsn, /*DefineMI*/1, /*MI*/0, /*OpIdx*/1, // MIs[1]
         GIM_CheckOpcode, /*MI*/1, TargetOpcode::G_FADD,
@@ -14729,10 +14729,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_Copy, /*NewInsnID*/0, /*OldInsnID*/2, /*OpIdx*/2, // ft
         GIR_EraseFromParent, /*InsnID*/0,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 2323,
+        // GIR_Coverage, 2324,
         GIR_Done,
       // Label 995: @35772
-      GIM_Try, /*On fail goto*//*Label 996*/ 35846, // Rule ID 2420 //
+      GIM_Try, /*On fail goto*//*Label 996*/ 35846, // Rule ID 2421 //
         GIM_CheckFeatures, GIFBS_HasMadd4_InMicroMips_InMicroMips_NoNaNsFPMath_NotMips32r6_NotMips32r6,
         GIM_RecordInsn, /*DefineMI*/1, /*MI*/0, /*OpIdx*/1, // MIs[1]
         GIM_CheckOpcode, /*MI*/1, TargetOpcode::G_FADD,
@@ -14755,7 +14755,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_Copy, /*NewInsnID*/0, /*OldInsnID*/2, /*OpIdx*/2, // ft
         GIR_EraseFromParent, /*InsnID*/0,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 2420,
+        // GIR_Coverage, 2421,
         GIR_Done,
       // Label 996: @35846
       GIM_Try, /*On fail goto*//*Label 997*/ 35920, // Rule ID 1415 //
@@ -14784,7 +14784,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         // GIR_Coverage, 1415,
         GIR_Done,
       // Label 997: @35920
-      GIM_Try, /*On fail goto*//*Label 998*/ 35994, // Rule ID 2145 //
+      GIM_Try, /*On fail goto*//*Label 998*/ 35994, // Rule ID 2146 //
         GIM_CheckFeatures, GIFBS_HasMadd4_InMicroMips_InMicroMips_NoNaNsFPMath_NotMips32r6_NotMips32r6,
         GIM_RecordInsn, /*DefineMI*/1, /*MI*/0, /*OpIdx*/1, // MIs[1]
         GIM_CheckOpcode, /*MI*/1, TargetOpcode::G_FSUB,
@@ -14807,7 +14807,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_Copy, /*NewInsnID*/0, /*OldInsnID*/2, /*OpIdx*/2, // ft
         GIR_EraseFromParent, /*InsnID*/0,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 2145,
+        // GIR_Coverage, 2146,
         GIR_Done,
       // Label 998: @35994
       GIM_Try, /*On fail goto*//*Label 999*/ 36009, // Rule ID 111 //
@@ -14897,7 +14897,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         // GIR_Coverage, 1418,
         GIR_Done,
       // Label 1004: @36203
-      GIM_Try, /*On fail goto*//*Label 1005*/ 36281, // Rule ID 2146 //
+      GIM_Try, /*On fail goto*//*Label 1005*/ 36281, // Rule ID 2147 //
         GIM_CheckFeatures, GIFBS_HasMadd4_InMicroMips_InMicroMips_NoNaNsFPMath_NotFP64bit_NotMips32r6_NotMips32r6,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::AFGR64RegClassID,
         GIM_RecordInsn, /*DefineMI*/1, /*MI*/0, /*OpIdx*/1, // MIs[1]
@@ -14921,10 +14921,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_Copy, /*NewInsnID*/0, /*OldInsnID*/2, /*OpIdx*/2, // ft
         GIR_EraseFromParent, /*InsnID*/0,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 2146,
+        // GIR_Coverage, 2147,
         GIR_Done,
       // Label 1005: @36281
-      GIM_Try, /*On fail goto*//*Label 1006*/ 36359, // Rule ID 2324 //
+      GIM_Try, /*On fail goto*//*Label 1006*/ 36359, // Rule ID 2325 //
         GIM_CheckFeatures, GIFBS_HasMadd4_HasMips4_32r2_HasStdEnc_NoNaNsFPMath_NotFP64bit_NotInMicroMips_NotMips32r6_NotMips64r6,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::AFGR64RegClassID,
         GIM_RecordInsn, /*DefineMI*/1, /*MI*/0, /*OpIdx*/1, // MIs[1]
@@ -14948,10 +14948,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_Copy, /*NewInsnID*/0, /*OldInsnID*/2, /*OpIdx*/2, // ft
         GIR_EraseFromParent, /*InsnID*/0,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 2324,
+        // GIR_Coverage, 2325,
         GIR_Done,
       // Label 1006: @36359
-      GIM_Try, /*On fail goto*//*Label 1007*/ 36437, // Rule ID 2325 //
+      GIM_Try, /*On fail goto*//*Label 1007*/ 36437, // Rule ID 2326 //
         GIM_CheckFeatures, GIFBS_HasMadd4_HasMips4_32r2_HasStdEnc_IsFP64bit_NoNaNsFPMath_NotInMicroMips_NotMips32r6_NotMips64r6,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::FGR64RegClassID,
         GIM_RecordInsn, /*DefineMI*/1, /*MI*/0, /*OpIdx*/1, // MIs[1]
@@ -14975,10 +14975,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_Copy, /*NewInsnID*/0, /*OldInsnID*/2, /*OpIdx*/2, // ft
         GIR_EraseFromParent, /*InsnID*/0,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 2325,
+        // GIR_Coverage, 2326,
         GIR_Done,
       // Label 1007: @36437
-      GIM_Try, /*On fail goto*//*Label 1008*/ 36515, // Rule ID 2421 //
+      GIM_Try, /*On fail goto*//*Label 1008*/ 36515, // Rule ID 2422 //
         GIM_CheckFeatures, GIFBS_HasMadd4_InMicroMips_InMicroMips_NoNaNsFPMath_NotFP64bit_NotMips32r6_NotMips32r6,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::AFGR64RegClassID,
         GIM_RecordInsn, /*DefineMI*/1, /*MI*/0, /*OpIdx*/1, // MIs[1]
@@ -15002,7 +15002,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_Copy, /*NewInsnID*/0, /*OldInsnID*/2, /*OpIdx*/2, // ft
         GIR_EraseFromParent, /*InsnID*/0,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 2421,
+        // GIR_Coverage, 2422,
         GIR_Done,
       // Label 1008: @36515
       GIM_Try, /*On fail goto*//*Label 1009*/ 36593, // Rule ID 1417 //
@@ -15059,7 +15059,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         // GIR_Coverage, 1419,
         GIR_Done,
       // Label 1010: @36671
-      GIM_Try, /*On fail goto*//*Label 1011*/ 36749, // Rule ID 2147 //
+      GIM_Try, /*On fail goto*//*Label 1011*/ 36749, // Rule ID 2148 //
         GIM_CheckFeatures, GIFBS_HasMadd4_InMicroMips_InMicroMips_NoNaNsFPMath_NotFP64bit_NotMips32r6_NotMips32r6,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::AFGR64RegClassID,
         GIM_RecordInsn, /*DefineMI*/1, /*MI*/0, /*OpIdx*/1, // MIs[1]
@@ -15083,7 +15083,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_Copy, /*NewInsnID*/0, /*OldInsnID*/2, /*OpIdx*/2, // ft
         GIR_EraseFromParent, /*InsnID*/0,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 2147,
+        // GIR_Coverage, 2148,
         GIR_Done,
       // Label 1011: @36749
       GIM_Try, /*On fail goto*//*Label 1012*/ 36768, // Rule ID 112 //
@@ -15182,7 +15182,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       // GIR_Coverage, 1413,
       GIR_Done,
     // Label 1022: @36929
-    GIM_Try, /*On fail goto*//*Label 1023*/ 36952, // Rule ID 2155 //
+    GIM_Try, /*On fail goto*//*Label 1023*/ 36952, // Rule ID 2156 //
       GIM_CheckFeatures, GIFBS_InMicroMips_IsFP64bit,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_s32,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::FGR64RegClassID,
@@ -15190,10 +15190,10 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       // (fpextend:{ *:[f64] } FGR32Opnd:{ *:[f32] }:$src)  =>  (CVT_D64_S_MM:{ *:[f64] } FGR32Opnd:{ *:[f32] }:$src)
       GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/Mips::CVT_D64_S_MM,
       GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-      // GIR_Coverage, 2155,
+      // GIR_Coverage, 2156,
       GIR_Done,
     // Label 1023: @36952
-    GIM_Try, /*On fail goto*//*Label 1024*/ 36975, // Rule ID 2157 //
+    GIM_Try, /*On fail goto*//*Label 1024*/ 36975, // Rule ID 2158 //
       GIM_CheckFeatures, GIFBS_InMicroMips_NotFP64bit,
       GIM_CheckType, /*MI*/0, /*Op*/1, /*Type*/GILLT_s32,
       GIM_CheckRegBankForClass, /*MI*/0, /*Op*/0, /*RC*/Mips::AFGR64RegClassID,
@@ -15201,7 +15201,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
       // (fpextend:{ *:[f64] } FGR32Opnd:{ *:[f32] }:$src)  =>  (CVT_D32_S_MM:{ *:[f64] } FGR32Opnd:{ *:[f32] }:$src)
       GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/Mips::CVT_D32_S_MM,
       GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-      // GIR_Coverage, 2157,
+      // GIR_Coverage, 2158,
       GIR_Done,
     // Label 1024: @36975
     GIM_Reject,
@@ -15257,22 +15257,22 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         // GIR_Coverage, 1412,
         GIR_Done,
       // Label 1032: @37072
-      GIM_Try, /*On fail goto*//*Label 1033*/ 37087, // Rule ID 2154 //
+      GIM_Try, /*On fail goto*//*Label 1033*/ 37087, // Rule ID 2155 //
         GIM_CheckFeatures, GIFBS_InMicroMips_IsFP64bit,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/1, /*RC*/Mips::FGR64RegClassID,
         // (fpround:{ *:[f32] } FGR64Opnd:{ *:[f64] }:$src)  =>  (CVT_S_D64_MM:{ *:[f32] } FGR64Opnd:{ *:[f64] }:$src)
         GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/Mips::CVT_S_D64_MM,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 2154,
+        // GIR_Coverage, 2155,
         GIR_Done,
       // Label 1033: @37087
-      GIM_Try, /*On fail goto*//*Label 1034*/ 37102, // Rule ID 2156 //
+      GIM_Try, /*On fail goto*//*Label 1034*/ 37102, // Rule ID 2157 //
         GIM_CheckFeatures, GIFBS_InMicroMips_NotFP64bit,
         GIM_CheckRegBankForClass, /*MI*/0, /*Op*/1, /*RC*/Mips::AFGR64RegClassID,
         // (fpround:{ *:[f32] } AFGR64Opnd:{ *:[f64] }:$src)  =>  (CVT_S_D32_MM:{ *:[f32] } AFGR64Opnd:{ *:[f64] }:$src)
         GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/Mips::CVT_S_D32_MM,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 2156,
+        // GIR_Coverage, 2157,
         GIR_Done,
       // Label 1034: @37102
       GIM_Reject,
@@ -15504,12 +15504,12 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         // GIR_Coverage, 1128,
         GIR_Done,
       // Label 1066: @37504
-      GIM_Try, /*On fail goto*//*Label 1067*/ 37515, // Rule ID 1775 //
+      GIM_Try, /*On fail goto*//*Label 1067*/ 37515, // Rule ID 1776 //
         GIM_CheckFeatures, GIFBS_InMips16Mode,
         // (br (bb:{ *:[Other] }):$imm16)  =>  (Bimm16 (bb:{ *:[Other] }):$imm16)
         GIR_MutateOpcode, /*InsnID*/0, /*RecycleInsnID*/0, /*Opcode*/Mips::Bimm16,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 1775,
+        // GIR_Coverage, 1776,
         GIR_Done,
       // Label 1067: @37515
       GIM_Reject,
@@ -15541,7 +15541,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         // GIR_Coverage, 1383,
         GIR_Done,
       // Label 1072: @37578
-      GIM_Try, /*On fail goto*//*Label 1073*/ 37617, // Rule ID 2088 //
+      GIM_Try, /*On fail goto*//*Label 1073*/ 37617, // Rule ID 2089 //
         GIM_CheckFeatures, GIFBS_InMicroMips,
         // (bswap:{ *:[i32] } GPR32:{ *:[i32] }:$rt)  =>  (ROTR_MM:{ *:[i32] } (WSBH_MM:{ *:[i32] } GPR32:{ *:[i32] }:$rt), 16:{ *:[i32] })
         GIR_MakeTempReg, /*TempRegID*/0, /*TypeID*/GILLT_s32,
@@ -15555,7 +15555,7 @@ const int64_t *MipsInstructionSelector::getMatchTable() const {
         GIR_AddImm, /*InsnID*/0, /*Imm*/16,
         GIR_EraseFromParent, /*InsnID*/0,
         GIR_ConstrainSelectedInstOperands, /*InsnID*/0,
-        // GIR_Coverage, 2088,
+        // GIR_Coverage, 2089,
         GIR_Done,
       // Label 1073: @37617
       GIM_Reject,

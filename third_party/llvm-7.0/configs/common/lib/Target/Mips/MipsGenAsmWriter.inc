@@ -9031,6 +9031,19 @@ bool MipsInstPrinter::printAliasInstr(const MCInst *MI, raw_ostream &OS) {
       break;
     }
     return false;
+  case Mips::RDHWR64:
+    if (MI->getNumOperands() == 3 &&
+        MI->getOperand(0).isReg() &&
+        MRI.getRegClass(Mips::GPR64RegClassID).contains(MI->getOperand(0).getReg()) &&
+        MI->getOperand(1).isReg() &&
+        MRI.getRegClass(Mips::HWRegsRegClassID).contains(MI->getOperand(1).getReg()) &&
+        MI->getOperand(2).isImm() &&
+        MI->getOperand(2).getImm() == 0) {
+      // (RDHWR64 GPR64Opnd:$rt, HWRegsOpnd:$rs, 0)
+      AsmString = "rdhwr $\x01, $\x02";
+      break;
+    }
+    return false;
   case Mips::RDHWR_MM:
     if (MI->getNumOperands() == 3 &&
         MI->getOperand(0).isReg() &&

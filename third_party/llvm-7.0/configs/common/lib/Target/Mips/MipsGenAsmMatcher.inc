@@ -586,6 +586,7 @@ enum InstructionConversionKind {
   Convert__GPR32AsmReg1_0__ConstantUImm7_01_1,
   Convert__GPR32AsmReg1_0__ConstantUImm10_01_1,
   Convert__GPR32AsmReg1_0__HWRegsAsmReg1_1__imm_95_0,
+  Convert__GPR64AsmReg1_0__HWRegsAsmReg1_1__imm_95_0,
   Convert__GPR32AsmReg1_0__HWRegsAsmReg1_1__ConstantUImm3_01_2,
   Convert__GPR32AsmReg1_0__HWRegsAsmReg1_1__ConstantUImm8_01_2,
   Convert__GPR32AsmReg1_0__ConstantSImm10_01_1,
@@ -1201,6 +1202,8 @@ static const uint8_t ConversionTable[CVT_NUM_SIGNATURES][11] = {
   { CVT_95_addGPR32AsmRegOperands, 1, CVT_95_addConstantUImmOperands_LT_10_44__32_0_GT_, 2, CVT_Done },
   // Convert__GPR32AsmReg1_0__HWRegsAsmReg1_1__imm_95_0
   { CVT_95_addGPR32AsmRegOperands, 1, CVT_95_addHWRegsAsmRegOperands, 2, CVT_imm_95_0, 0, CVT_Done },
+  // Convert__GPR64AsmReg1_0__HWRegsAsmReg1_1__imm_95_0
+  { CVT_95_addGPR64AsmRegOperands, 1, CVT_95_addHWRegsAsmRegOperands, 2, CVT_imm_95_0, 0, CVT_Done },
   // Convert__GPR32AsmReg1_0__HWRegsAsmReg1_1__ConstantUImm3_01_2
   { CVT_95_addGPR32AsmRegOperands, 1, CVT_95_addHWRegsAsmRegOperands, 2, CVT_95_addConstantUImmOperands_LT_3_44__32_0_GT_, 3, CVT_Done },
   // Convert__GPR32AsmReg1_0__HWRegsAsmReg1_1__ConstantUImm8_01_2
@@ -7046,6 +7049,7 @@ static const MatchEntry MatchTable0[] = {
   { 7634 /* rdhwr */, Mips::RDHWR, Convert__GPR32AsmReg1_0__HWRegsAsmReg1_1__imm_95_0, Feature_HasStdEnc|Feature_NotInMicroMips, { MCK_GPR32AsmReg, MCK_HWRegsAsmReg }, },
   { 7634 /* rdhwr */, Mips::RDHWR_MM, Convert__GPR32AsmReg1_0__HWRegsAsmReg1_1__imm_95_0, Feature_InMicroMips|Feature_NotMips32r6, { MCK_GPR32AsmReg, MCK_HWRegsAsmReg }, },
   { 7634 /* rdhwr */, Mips::RDHWR_MMR6, Convert__GPR32AsmReg1_0__HWRegsAsmReg1_1__imm_95_0, Feature_InMicroMips|Feature_HasMips32r6, { MCK_GPR32AsmReg, MCK_HWRegsAsmReg }, },
+  { 7634 /* rdhwr */, Mips::RDHWR64, Convert__GPR64AsmReg1_0__HWRegsAsmReg1_1__imm_95_0, Feature_IsGP64bit, { MCK_GPR64AsmReg, MCK_HWRegsAsmReg }, },
   { 7634 /* rdhwr */, Mips::RDHWR_MMR6, Convert__GPR32AsmReg1_0__HWRegsAsmReg1_1__ConstantUImm3_01_2, Feature_InMicroMips|Feature_HasMips32r6, { MCK_GPR32AsmReg, MCK_HWRegsAsmReg, MCK_ConstantUImm3_0 }, },
   { 7634 /* rdhwr */, Mips::RDHWR, Convert__GPR32AsmReg1_0__HWRegsAsmReg1_1__ConstantUImm8_01_2, Feature_HasStdEnc|Feature_NotInMicroMips, { MCK_GPR32AsmReg, MCK_HWRegsAsmReg, MCK_ConstantUImm8_0 }, },
   { 7634 /* rdhwr */, Mips::RDHWR_MM, Convert__GPR32AsmReg1_0__HWRegsAsmReg1_1__ConstantUImm8_01_2, Feature_InMicroMips|Feature_NotMips32r6, { MCK_GPR32AsmReg, MCK_HWRegsAsmReg, MCK_ConstantUImm8_0 }, },
@@ -7890,7 +7894,7 @@ namespace {
   };
 } // end anonymous namespace.
 
-static const OperandMatchEntry OperandMatchTable[3237] = {
+static const OperandMatchEntry OperandMatchTable[3239] = {
   /* Operand List Mask, Mnemonic, Operand Class, Features */
   { 0, 0 /* abs */, MCK_GPR32AsmReg, 3 /* 0, 1 */ },
   { Feature_HasStdEnc|Feature_NotFP64bit|Feature_IsNotSoftFloat|Feature_NotInMicroMips, 4 /* abs.d */, MCK_AFGR64AsmReg, 3 /* 0, 1 */ },
@@ -10466,6 +10470,8 @@ static const OperandMatchEntry OperandMatchTable[3237] = {
   { Feature_InMicroMips|Feature_NotMips32r6, 7634 /* rdhwr */, MCK_HWRegsAsmReg, 2 /* 1 */ },
   { Feature_InMicroMips|Feature_HasMips32r6, 7634 /* rdhwr */, MCK_GPR32AsmReg, 1 /* 0 */ },
   { Feature_InMicroMips|Feature_HasMips32r6, 7634 /* rdhwr */, MCK_HWRegsAsmReg, 2 /* 1 */ },
+  { Feature_IsGP64bit, 7634 /* rdhwr */, MCK_GPR64AsmReg, 1 /* 0 */ },
+  { Feature_IsGP64bit, 7634 /* rdhwr */, MCK_HWRegsAsmReg, 2 /* 1 */ },
   { Feature_InMicroMips|Feature_HasMips32r6, 7634 /* rdhwr */, MCK_GPR32AsmReg, 1 /* 0 */ },
   { Feature_InMicroMips|Feature_HasMips32r6, 7634 /* rdhwr */, MCK_HWRegsAsmReg, 2 /* 1 */ },
   { Feature_HasStdEnc|Feature_NotInMicroMips, 7634 /* rdhwr */, MCK_GPR32AsmReg, 1 /* 0 */ },
