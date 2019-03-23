@@ -123,6 +123,17 @@ if (NOT TARGET gtest)
     endif()
 endif()
 
+if (NOT TARGET libbacktrace)
+    if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/libbacktrace/src/.git)
+        message(WARNING "
+      third_party/libbacktrace/src submodule missing.
+      Running 'git submodule update --init' to download it:
+        ")
+
+        execute_process(COMMAND git submodule update --init)
+    endif()
+endif()
+
 ###########################################################
 # Convenience macros
 ###########################################################
