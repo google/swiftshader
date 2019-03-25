@@ -3132,7 +3132,11 @@ namespace rr
 	// See: https://renenyffenegger.ch/notes/development/languages/C-C-plus-plus/preprocessor/macros/__VA_ARGS__/count-arguments
 	// Note, this doesn't attempt to use the ##__VA_ARGS__ trick to handle 0
 	// args as this appears to still be broken on certain compilers.
-	#define RR_GET_NTH_ARG(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, N, ...) N
+	// MSVC also has issues with variadic macros which requires the RR_VA_MSVC_BUG() work-around.
+	// See: https://stackoverflow.com/a/48711060
+	#define RR_VA_MSVC_BUG(MACRO, ARGS) MACRO ARGS
+	#define RR_GET_NTH_ARG_EX(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, N, ...) N
+	#define RR_GET_NTH_ARG(...) RR_VA_MSVC_BUG(RR_GET_NTH_ARG_EX, (__VA_ARGS__))
 	#define RR_COUNT_ARGUMENTS(...) RR_GET_NTH_ARG(__VA_ARGS__, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0)
 	static_assert(1 == RR_COUNT_ARGUMENTS(a), "RR_COUNT_ARGUMENTS broken"); // Sanity checks.
 	static_assert(2 == RR_COUNT_ARGUMENTS(a, b), "RR_COUNT_ARGUMENTS broken");
