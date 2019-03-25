@@ -29461,6 +29461,8 @@ dEQP-VK.spirv_assembly.instruction.compute.localsize.specid_localsize_z
 dEQP-VK.spirv_assembly.instruction.compute.nocontraction.addition
 dEQP-VK.spirv_assembly.instruction.compute.nocontraction.both
 dEQP-VK.spirv_assembly.instruction.compute.nocontraction.multiplication
+dEQP-VK.spirv_assembly.instruction.compute.opatomic.load
+dEQP-VK.spirv_assembly.instruction.compute.opatomic.store
 dEQP-VK.spirv_assembly.instruction.compute.opcompositeinsert.float.array_10
 dEQP-VK.spirv_assembly.instruction.compute.opcompositeinsert.float.array_2
 dEQP-VK.spirv_assembly.instruction.compute.opcompositeinsert.float.array_3
@@ -30962,11 +30964,6 @@ dEQP-VK.ubo.3_level_array.std140.column_major_mat3x2.fragment
 dEQP-VK.ubo.3_level_array.std140.column_major_mat3x2.fragment_comp_access
 dEQP-VK.ubo.3_level_array.std140.column_major_mat3x2.vertex
 dEQP-VK.ubo.3_level_array.std140.column_major_mat3x2.vertex_comp_access
-dEQP-VK.ubo.3_level_array.std140.column_major_mat3x4.both
-dEQP-VK.ubo.3_level_array.std140.column_major_mat3x4.both_comp_access
-dEQP-VK.ubo.3_level_array.std140.column_major_mat3x4.fragment_comp_access
-dEQP-VK.ubo.3_level_array.std140.column_major_mat3x4.vertex
-dEQP-VK.ubo.3_level_array.std140.column_major_mat3x4.vertex_comp_access
 dEQP-VK.ubo.3_level_array.std140.column_major_mat4x2.both
 dEQP-VK.ubo.3_level_array.std140.column_major_mat4x2.both_comp_access
 dEQP-VK.ubo.3_level_array.std140.column_major_mat4x2.fragment
@@ -31021,6 +31018,8 @@ dEQP-VK.ubo.3_level_array.std140.mat2x4.fragment
 dEQP-VK.ubo.3_level_array.std140.mat2x4.fragment_comp_access
 dEQP-VK.ubo.3_level_array.std140.mat2x4.vertex
 dEQP-VK.ubo.3_level_array.std140.mat2x4.vertex_comp_access
+dEQP-VK.ubo.3_level_array.std140.mat3.both
+dEQP-VK.ubo.3_level_array.std140.mat3.both_comp_access
 dEQP-VK.ubo.3_level_array.std140.mat3.fragment
 dEQP-VK.ubo.3_level_array.std140.mat3.fragment_comp_access
 dEQP-VK.ubo.3_level_array.std140.mat3.vertex
@@ -31031,11 +31030,7 @@ dEQP-VK.ubo.3_level_array.std140.mat3x2.fragment
 dEQP-VK.ubo.3_level_array.std140.mat3x2.fragment_comp_access
 dEQP-VK.ubo.3_level_array.std140.mat3x2.vertex
 dEQP-VK.ubo.3_level_array.std140.mat3x2.vertex_comp_access
-dEQP-VK.ubo.3_level_array.std140.mat3x4.both
-dEQP-VK.ubo.3_level_array.std140.mat3x4.fragment
-dEQP-VK.ubo.3_level_array.std140.mat3x4.fragment_comp_access
-dEQP-VK.ubo.3_level_array.std140.mat3x4.vertex
-dEQP-VK.ubo.3_level_array.std140.mat3x4.vertex_comp_access
+dEQP-VK.ubo.3_level_array.std140.mat4x2.both
 dEQP-VK.ubo.3_level_array.std140.mat4x2.both_comp_access
 dEQP-VK.ubo.3_level_array.std140.mat4x2.fragment
 dEQP-VK.ubo.3_level_array.std140.mat4x2.fragment_comp_access
@@ -31053,6 +31048,7 @@ dEQP-VK.ubo.3_level_array.std140.row_major_mat2x3.fragment
 dEQP-VK.ubo.3_level_array.std140.row_major_mat2x3.fragment_comp_access
 dEQP-VK.ubo.3_level_array.std140.row_major_mat2x3.vertex
 dEQP-VK.ubo.3_level_array.std140.row_major_mat2x3.vertex_comp_access
+dEQP-VK.ubo.3_level_array.std140.row_major_mat2x4.both
 dEQP-VK.ubo.3_level_array.std140.row_major_mat2x4.both_comp_access
 dEQP-VK.ubo.3_level_array.std140.row_major_mat2x4.fragment
 dEQP-VK.ubo.3_level_array.std140.row_major_mat2x4.fragment_comp_access
@@ -31070,10 +31066,6 @@ dEQP-VK.ubo.3_level_array.std140.row_major_mat3x2.fragment
 dEQP-VK.ubo.3_level_array.std140.row_major_mat3x2.fragment_comp_access
 dEQP-VK.ubo.3_level_array.std140.row_major_mat3x2.vertex
 dEQP-VK.ubo.3_level_array.std140.row_major_mat3x2.vertex_comp_access
-dEQP-VK.ubo.3_level_array.std140.row_major_mat3x4.fragment
-dEQP-VK.ubo.3_level_array.std140.row_major_mat3x4.fragment_comp_access
-dEQP-VK.ubo.3_level_array.std140.row_major_mat3x4.vertex
-dEQP-VK.ubo.3_level_array.std140.row_major_mat3x4.vertex_comp_access
 dEQP-VK.ubo.3_level_array.std140.row_major_mat4x2.both
 dEQP-VK.ubo.3_level_array.std140.row_major_mat4x2.both_comp_access
 dEQP-VK.ubo.3_level_array.std140.row_major_mat4x2.fragment
@@ -32137,7 +32129,6 @@ dEQP-VK.ubo.single_basic_type.std140.lowp.row_major_mat4.fragment_comp_access
 dEQP-VK.ubo.single_basic_type.std140.lowp.row_major_mat4.vertex
 dEQP-VK.ubo.single_basic_type.std140.lowp.row_major_mat4.vertex_comp_access
 dEQP-VK.ubo.single_basic_type.std140.lowp.row_major_mat4x2.both
-dEQP-VK.ubo.single_basic_type.std140.lowp.row_major_mat4x2.both_comp_access
 dEQP-VK.ubo.single_basic_type.std140.lowp.row_major_mat4x2.fragment
 dEQP-VK.ubo.single_basic_type.std140.lowp.row_major_mat4x2.vertex
 dEQP-VK.ubo.single_basic_type.std140.lowp.row_major_mat4x3.both
