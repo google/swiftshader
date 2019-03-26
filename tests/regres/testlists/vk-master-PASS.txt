@@ -5413,8 +5413,11 @@ dEQP-VK.api.copy_and_blit.core.blit_image.simple_tests.scaling_whole1.linear
 dEQP-VK.api.copy_and_blit.core.blit_image.simple_tests.scaling_whole1.nearest
 dEQP-VK.api.copy_and_blit.core.blit_image.simple_tests.scaling_whole1.r32_sfloat_linear
 dEQP-VK.api.copy_and_blit.core.blit_image.simple_tests.scaling_whole1.r32_sfloat_nearest
+dEQP-VK.api.copy_and_blit.core.blit_image.simple_tests.scaling_whole2.b8g8r8a8_unorm_linear
 dEQP-VK.api.copy_and_blit.core.blit_image.simple_tests.scaling_whole2.b8g8r8a8_unorm_nearest
+dEQP-VK.api.copy_and_blit.core.blit_image.simple_tests.scaling_whole2.linear
 dEQP-VK.api.copy_and_blit.core.blit_image.simple_tests.scaling_whole2.nearest
+dEQP-VK.api.copy_and_blit.core.blit_image.simple_tests.scaling_whole2.r32_sfloat_linear
 dEQP-VK.api.copy_and_blit.core.blit_image.simple_tests.scaling_whole2.r32_sfloat_nearest
 dEQP-VK.api.copy_and_blit.core.blit_image.simple_tests.whole.b8g8r8a8_unorm_linear
 dEQP-VK.api.copy_and_blit.core.blit_image.simple_tests.whole.b8g8r8a8_unorm_nearest
@@ -8949,8 +8952,11 @@ dEQP-VK.api.copy_and_blit.dedicated_allocation.blit_image.simple_tests.scaling_w
 dEQP-VK.api.copy_and_blit.dedicated_allocation.blit_image.simple_tests.scaling_whole1.nearest
 dEQP-VK.api.copy_and_blit.dedicated_allocation.blit_image.simple_tests.scaling_whole1.r32_sfloat_linear
 dEQP-VK.api.copy_and_blit.dedicated_allocation.blit_image.simple_tests.scaling_whole1.r32_sfloat_nearest
+dEQP-VK.api.copy_and_blit.dedicated_allocation.blit_image.simple_tests.scaling_whole2.b8g8r8a8_unorm_linear
 dEQP-VK.api.copy_and_blit.dedicated_allocation.blit_image.simple_tests.scaling_whole2.b8g8r8a8_unorm_nearest
+dEQP-VK.api.copy_and_blit.dedicated_allocation.blit_image.simple_tests.scaling_whole2.linear
 dEQP-VK.api.copy_and_blit.dedicated_allocation.blit_image.simple_tests.scaling_whole2.nearest
+dEQP-VK.api.copy_and_blit.dedicated_allocation.blit_image.simple_tests.scaling_whole2.r32_sfloat_linear
 dEQP-VK.api.copy_and_blit.dedicated_allocation.blit_image.simple_tests.scaling_whole2.r32_sfloat_nearest
 dEQP-VK.api.copy_and_blit.dedicated_allocation.blit_image.simple_tests.whole.b8g8r8a8_unorm_linear
 dEQP-VK.api.copy_and_blit.dedicated_allocation.blit_image.simple_tests.whole.b8g8r8a8_unorm_nearest
@@ -32129,6 +32135,7 @@ dEQP-VK.ubo.single_basic_type.std140.lowp.row_major_mat4.fragment_comp_access
 dEQP-VK.ubo.single_basic_type.std140.lowp.row_major_mat4.vertex
 dEQP-VK.ubo.single_basic_type.std140.lowp.row_major_mat4.vertex_comp_access
 dEQP-VK.ubo.single_basic_type.std140.lowp.row_major_mat4x2.both
+dEQP-VK.ubo.single_basic_type.std140.lowp.row_major_mat4x2.both_comp_access
 dEQP-VK.ubo.single_basic_type.std140.lowp.row_major_mat4x2.fragment
 dEQP-VK.ubo.single_basic_type.std140.lowp.row_major_mat4x2.vertex
 dEQP-VK.ubo.single_basic_type.std140.lowp.row_major_mat4x3.both
