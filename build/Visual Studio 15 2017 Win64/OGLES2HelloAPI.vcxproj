@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <PreferredToolArchitecture>x64</PreferredToolArchitecture>
@@ -14,7 +14,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{14CBFE6C-4A95-3390-846D-C5B8E0B631CB}</ProjectGuid>
+    <ProjectGuid>{F5F127F5-2128-30AA-BCB8-935979A13F41}</ProjectGuid>
     <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
@@ -68,6 +68,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <UseFullPaths>false</UseFullPaths>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>WIN32;_WINDOWS;GL_GLEXT_PROTOTYPES;_CRT_SECURE_NO_WARNINGS;_SBCS;WINVER=0x501;NOMINMAX;STRICT;REACTOR_LLVM_VERSION=7;CMAKE_INTDIR="Debug";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
@@ -110,10 +111,12 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <UseFullPaths>false</UseFullPaths>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;GL_GLEXT_PROTOTYPES;_CRT_SECURE_NO_WARNINGS;_SBCS;WINVER=0x501;NOMINMAX;STRICT;REACTOR_LLVM_VERSION=7;CMAKE_INTDIR="Release";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
-      <DebugInformationFormat></DebugInformationFormat>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;GL_GLEXT_PROTOTYPES;_CRT_SECURE_NO_WARNINGS;_SBCS;WINVER=0x501;NOMINMAX;STRICT;REACTOR_LLVM_VERSION=7;CMAKE_INTDIR=\"Release\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -142,32 +145,44 @@
     </ProjectReference>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)third_party\PowerVR_SDK\Examples\Beginner\01_HelloAPI\OGLES2\OGLES2HelloAPI_Windows.cpp"  />
+    <ClCompile Include="$(SolutionDir)third_party\PowerVR_SDK\Examples\Beginner\01_HelloAPI\OGLES2\OGLES2HelloAPI_Windows.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\GLCompiler.vcxproj">
-      <Project>{74318028-369F-3EA0-8A99-A341020416D6}</Project>
+      <Project>{B81F13DD-ACFB-3AB7-A071-3AD849D68E5C}</Project>
       <Name>GLCompiler</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\ReactorLLVM.vcxproj">
-      <Project>{3E565C6C-4B64-3128-A009-4A91C77E00E5}</Project>
+      <Project>{2EA2C687-489E-32F2-8D89-B90620301359}</Project>
       <Name>ReactorLLVM</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\SwiftShader.vcxproj">
-      <Project>{996E1D94-926B-3585-9466-CDB769D7188C}</Project>
+      <Project>{BFECAAAF-ADE7-36E8-BA23-4ABDE5A1A8B6}</Project>
       <Name>SwiftShader</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\libEGL.vcxproj">
-      <Project>{B49D30BB-AC67-3799-8A4E-B5F883BB229B}</Project>
+      <Project>{956A3BCB-1113-3FD7-87CC-908C6073E1FB}</Project>
       <Name>libEGL</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\libGLESv2.vcxproj">
-      <Project>{E22D780F-96F6-3714-B708-4875F7F8F6FF}</Project>
+      <Project>{1F9E81A7-B091-3D9E-AFDD-0DF597ED1EEF}</Project>
       <Name>libGLESv2</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\llvm.vcxproj">
-      <Project>{9B24984C-F78C-3EF7-907B-2B0D2CDB5695}</Project>
+      <Project>{B9E0EFB7-8E1B-303D-9222-13F7A82B7858}</Project>
       <Name>llvm</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

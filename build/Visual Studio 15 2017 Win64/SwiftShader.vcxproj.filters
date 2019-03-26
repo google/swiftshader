@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)src\Common\CPUID.cpp">
@@ -144,9 +144,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="$(SolutionDir)src\Common\Version.h">
-      <Filter>src\Common</Filter>
-    </ClInclude>
     <ClInclude Include="$(SolutionDir)src\Common\CPUID.hpp">
       <Filter>src\Common</Filter>
     </ClInclude>
@@ -184,6 +181,9 @@
       <Filter>src\Common</Filter>
     </ClInclude>
     <ClInclude Include="$(SolutionDir)src\Common\Types.hpp">
+      <Filter>src\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Common\Version.h">
       <Filter>src\Common</Filter>
     </ClInclude>
     <ClInclude Include="$(SolutionDir)src\Renderer\Blitter.hpp">
@@ -320,20 +320,20 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <Filter Include="src">
+      <UniqueIdentifier>{1D32CFC4-3897-312A-881D-1722E268FA32}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\Common">
-      <UniqueIdentifier>{11C36704-F487-3E48-94BD-78A5C5D796BD}</UniqueIdentifier>
+      <UniqueIdentifier>{A5044873-798E-3043-A230-A04C929E232C}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\Main">
-      <UniqueIdentifier>{3C9F38B6-307F-3432-AF88-723555B88F6E}</UniqueIdentifier>
+      <UniqueIdentifier>{E932C17D-A7C0-39E3-825A-16AC820D5D5B}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\Renderer">
-      <UniqueIdentifier>{5717B640-0503-3C5F-9414-3077EBFAFCB8}</UniqueIdentifier>
+      <UniqueIdentifier>{3B1B7D30-F6FA-3C0B-BCD1-C45BB3DB9639}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\Shader">
-      <UniqueIdentifier>{2964277E-BF3D-3C43-9745-26D3BF41B62B}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src">
-      <UniqueIdentifier>{13574A07-B880-3431-8401-B66983F72A05}</UniqueIdentifier>
+      <UniqueIdentifier>{BDC888B5-165C-33B9-9D0A-B8FD19D37B60}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

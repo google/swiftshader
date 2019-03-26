@@ -1,6 +1,21 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)src\Common\SharedLibrary.cpp">
+      <Filter>src\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\OpenGL\common\Image.cpp">
+      <Filter>src\OpenGL\common</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\OpenGL\common\MatrixStack.cpp">
+      <Filter>src\OpenGL\common</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\OpenGL\common\Object.cpp">
+      <Filter>src\OpenGL\common</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\OpenGL\common\debug.cpp">
+      <Filter>src\OpenGL\common</Filter>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)src\OpenGL\libGLES_CM\Buffer.cpp">
       <Filter>src\OpenGL\libGLES_CM</Filter>
     </ClCompile>
@@ -37,27 +52,48 @@
     <ClCompile Include="$(SolutionDir)src\OpenGL\libGLES_CM\utilities.cpp">
       <Filter>src\OpenGL\libGLES_CM</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)src\OpenGL\common\Image.cpp">
-      <Filter>src\OpenGL\common</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)src\OpenGL\common\MatrixStack.cpp">
-      <Filter>src\OpenGL\common</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)src\OpenGL\common\Object.cpp">
-      <Filter>src\OpenGL\common</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)src\OpenGL\common\debug.cpp">
-      <Filter>src\OpenGL\common</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)src\Common\SharedLibrary.cpp">
-      <Filter>src\Common</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="$(SolutionDir)include\GLES\gl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)include\GLES\glext.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)include\GLES\glplatform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)include\KHR\khrplatform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\Common\SharedLibrary.hpp">
+      <Filter>src\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\OpenGL\common\Image.hpp">
+      <Filter>src\OpenGL\common</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\OpenGL\common\MatrixStack.hpp">
+      <Filter>src\OpenGL\common</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\OpenGL\common\NameSpace.hpp">
+      <Filter>src\OpenGL\common</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\OpenGL\common\Object.hpp">
+      <Filter>src\OpenGL\common</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\OpenGL\common\Surface.hpp">
+      <Filter>src\OpenGL\common</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\OpenGL\common\debug.h">
+      <Filter>src\OpenGL\common</Filter>
+    </ClInclude>
     <ClInclude Include="$(SolutionDir)src\OpenGL\libGLES_CM\Buffer.h">
       <Filter>src\OpenGL\libGLES_CM</Filter>
     </ClInclude>
     <ClInclude Include="$(SolutionDir)src\OpenGL\libGLES_CM\Context.h">
+      <Filter>src\OpenGL\libGLES_CM</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLES_CM\Device.hpp">
       <Filter>src\OpenGL\libGLES_CM</Filter>
     </ClInclude>
     <ClInclude Include="$(SolutionDir)src\OpenGL\libGLES_CM\Framebuffer.h">
@@ -78,6 +114,9 @@
     <ClInclude Include="$(SolutionDir)src\OpenGL\libGLES_CM\VertexDataManager.h">
       <Filter>src\OpenGL\libGLES_CM</Filter>
     </ClInclude>
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLES_CM\libGLES_CM.hpp">
+      <Filter>src\OpenGL\libGLES_CM</Filter>
+    </ClInclude>
     <ClInclude Include="$(SolutionDir)src\OpenGL\libGLES_CM\main.h">
       <Filter>src\OpenGL\libGLES_CM</Filter>
     </ClInclude>
@@ -90,45 +129,6 @@
     <ClInclude Include="$(SolutionDir)src\OpenGL\libGLES_CM\utilities.h">
       <Filter>src\OpenGL\libGLES_CM</Filter>
     </ClInclude>
-    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLES_CM\Device.hpp">
-      <Filter>src\OpenGL\libGLES_CM</Filter>
-    </ClInclude>
-    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLES_CM\libGLES_CM.hpp">
-      <Filter>src\OpenGL\libGLES_CM</Filter>
-    </ClInclude>
-    <ClInclude Include="$(SolutionDir)src\OpenGL\common\debug.h">
-      <Filter>src\OpenGL\common</Filter>
-    </ClInclude>
-    <ClInclude Include="$(SolutionDir)src\OpenGL\common\Image.hpp">
-      <Filter>src\OpenGL\common</Filter>
-    </ClInclude>
-    <ClInclude Include="$(SolutionDir)src\OpenGL\common\MatrixStack.hpp">
-      <Filter>src\OpenGL\common</Filter>
-    </ClInclude>
-    <ClInclude Include="$(SolutionDir)src\OpenGL\common\NameSpace.hpp">
-      <Filter>src\OpenGL\common</Filter>
-    </ClInclude>
-    <ClInclude Include="$(SolutionDir)src\OpenGL\common\Object.hpp">
-      <Filter>src\OpenGL\common</Filter>
-    </ClInclude>
-    <ClInclude Include="$(SolutionDir)src\OpenGL\common\Surface.hpp">
-      <Filter>src\OpenGL\common</Filter>
-    </ClInclude>
-    <ClInclude Include="$(SolutionDir)src\Common\SharedLibrary.hpp">
-      <Filter>src\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="$(SolutionDir)include\KHR\khrplatform.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="$(SolutionDir)include\GLES\gl.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="$(SolutionDir)include\GLES\glext.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="$(SolutionDir)include\GLES\glplatform.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="$(SolutionDir)src\OpenGL\libGLES_CM\libGLES_CM.rc">
@@ -136,23 +136,23 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <Filter Include="src\OpenGL\common">
-      <UniqueIdentifier>{004AF498-11B5-3CDE-B8E3-7CCE434B2929}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\OpenGL\libGLES_CM">
-      <UniqueIdentifier>{59A27B28-963D-3B21-9F87-062C74160C7D}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files">
-      <UniqueIdentifier>{06D2D69E-DE55-30BE-A8A1-FE6C66324860}</UniqueIdentifier>
+      <UniqueIdentifier>{BC4B8AD2-A096-36EC-A16A-CFEE34C3D52C}</UniqueIdentifier>
     </Filter>
     <Filter Include="src">
-      <UniqueIdentifier>{13574A07-B880-3431-8401-B66983F72A05}</UniqueIdentifier>
+      <UniqueIdentifier>{1D32CFC4-3897-312A-881D-1722E268FA32}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\Common">
-      <UniqueIdentifier>{11C36704-F487-3E48-94BD-78A5C5D796BD}</UniqueIdentifier>
+      <UniqueIdentifier>{A5044873-798E-3043-A230-A04C929E232C}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\OpenGL">
-      <UniqueIdentifier>{51160DCB-631F-348A-A69D-7F054A400827}</UniqueIdentifier>
+      <UniqueIdentifier>{290F2129-951C-3257-8777-9DC8BFFF50AF}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\OpenGL\common">
+      <UniqueIdentifier>{F51CD29B-086E-30A5-B7F8-70E7D3FCA481}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\OpenGL\libGLES_CM">
+      <UniqueIdentifier>{17987D8C-90EE-39D1-9D8D-9B8202A6F273}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <PreferredToolArchitecture>x64</PreferredToolArchitecture>
@@ -14,7 +14,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{F6702FDF-019F-3B2F-9CAD-15C15CD4F871}</ProjectGuid>
+    <ProjectGuid>{C672D2D1-E638-3565-87EC-11172BD73995}</ProjectGuid>
     <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
@@ -67,6 +67,7 @@
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <TreatWarningAsError>true</TreatWarningAsError>
+      <UseFullPaths>false</UseFullPaths>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>WIN32;_WINDOWS;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;_SBCS;WINVER=0x501;NOMINMAX;STRICT;REACTOR_LLVM_VERSION=7;SPIRV_WINDOWS;SPIRV_COLOR_TERMINAL;SPIRV_CHECK_CONTEXT;CMAKE_INTDIR="Debug";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
@@ -102,10 +103,12 @@
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <TreatWarningAsError>true</TreatWarningAsError>
+      <UseFullPaths>false</UseFullPaths>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;_SBCS;WINVER=0x501;NOMINMAX;STRICT;REACTOR_LLVM_VERSION=7;SPIRV_WINDOWS;SPIRV_COLOR_TERMINAL;SPIRV_CHECK_CONTEXT;CMAKE_INTDIR="Release";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
-      <DebugInformationFormat></DebugInformationFormat>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;_SBCS;WINVER=0x501;NOMINMAX;STRICT;REACTOR_LLVM_VERSION=7;SPIRV_WINDOWS;SPIRV_COLOR_TERMINAL;SPIRV_CHECK_CONTEXT;CMAKE_INTDIR=\"Release\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -138,7 +141,7 @@
     <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\remove_unreferenced_instruction_reduction_pass.h" />
     <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\structured_loop_to_selection_reduction_opportunity.h" />
     <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\structured_loop_to_selection_reduction_pass.h" />
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\change_operand_reduction_opportunity.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\change_operand_reduction_opportunity.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_reduce.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -150,7 +153,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_reduce.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_reduce.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\change_operand_to_undef_reduction_opportunity.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\change_operand_to_undef_reduction_opportunity.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_reduce.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -162,7 +165,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_reduce.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_reduce.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\operand_to_const_reduction_pass.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\operand_to_const_reduction_pass.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_reduce.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -174,7 +177,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_reduce.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_reduce.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\operand_to_undef_reduction_pass.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\operand_to_undef_reduction_pass.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_reduce.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -186,7 +189,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_reduce.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_reduce.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\operand_to_dominating_id_reduction_pass.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\operand_to_dominating_id_reduction_pass.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_reduce.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -198,7 +201,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_reduce.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_reduce.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\reducer.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\reducer.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_reduce.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -210,7 +213,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_reduce.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_reduce.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\reduction_opportunity.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\reduction_opportunity.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_reduce.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -222,7 +225,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_reduce.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_reduce.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\reduction_pass.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\reduction_pass.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_reduce.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -234,7 +237,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_reduce.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_reduce.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\reduction_util.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\reduction_util.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_reduce.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -246,7 +249,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_reduce.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_reduce.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\remove_instruction_reduction_opportunity.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\remove_instruction_reduction_opportunity.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_reduce.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -258,7 +261,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_reduce.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_reduce.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\remove_unreferenced_instruction_reduction_pass.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\remove_unreferenced_instruction_reduction_pass.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_reduce.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -270,7 +273,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_reduce.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_reduce.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\remove_opname_instruction_reduction_pass.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\remove_opname_instruction_reduction_pass.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_reduce.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -282,7 +285,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_reduce.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_reduce.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\structured_loop_to_selection_reduction_opportunity.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\structured_loop_to_selection_reduction_opportunity.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_reduce.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -294,7 +297,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_reduce.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_reduce.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\structured_loop_to_selection_reduction_pass.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\structured_loop_to_selection_reduction_pass.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_reduce.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -306,7 +309,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_reduce.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_reduce.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\pch_source_reduce.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\reduce\pch_source_reduce.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_reduce.h</PrecompiledHeaderFile>
@@ -319,12 +322,16 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\source\SPIRV-Tools.vcxproj">
-      <Project>{EF1AF598-E402-38F1-A74A-35F18A1EC1CC}</Project>
+      <Project>{2866BC19-5FA8-3D67-8D94-751A3803A3DF}</Project>
       <Name>SPIRV-Tools</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\source\opt\SPIRV-Tools-opt.vcxproj">
-      <Project>{6ABDA7CD-3BBA-3190-AE38-B0BBE6CB9327}</Project>
+      <Project>{2F8B8E0B-1B59-3671-91FE-A0E499B82D18}</Project>
       <Name>SPIRV-Tools-opt</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

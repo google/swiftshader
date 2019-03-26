@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <PreferredToolArchitecture>x64</PreferredToolArchitecture>
@@ -14,7 +14,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{3915EFF3-638D-330F-BD1B-9E8D85D2FB1F}</ProjectGuid>
+    <ProjectGuid>{88C96A70-4C80-3CAC-9EE4-7B95DB194D39}</ProjectGuid>
     <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
@@ -68,6 +68,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <UseFullPaths>false</UseFullPaths>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>WIN32;_WINDOWS;GL_GLEXT_PROTOTYPES; EGLAPI=; GL_API=; GL_APICALL=; GLAPI=;_CRT_SECURE_NO_WARNINGS;_SBCS;WINVER=0x501;NOMINMAX;STRICT;REACTOR_LLVM_VERSION=7;CMAKE_INTDIR="Debug";libGLES_CM_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
@@ -125,10 +126,12 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <UseFullPaths>false</UseFullPaths>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;GL_GLEXT_PROTOTYPES; EGLAPI=; GL_API=; GL_APICALL=; GLAPI=;_CRT_SECURE_NO_WARNINGS;_SBCS;WINVER=0x501;NOMINMAX;STRICT;REACTOR_LLVM_VERSION=7;CMAKE_INTDIR="Release";libGLES_CM_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
-      <DebugInformationFormat></DebugInformationFormat>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;GL_GLEXT_PROTOTYPES; EGLAPI=; GL_API=; GL_APICALL=; GLAPI=;_CRT_SECURE_NO_WARNINGS;_SBCS;WINVER=0x501;NOMINMAX;STRICT;REACTOR_LLVM_VERSION=7;CMAKE_INTDIR=\"Release\";libGLES_CM_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -172,66 +175,74 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLES_CM\Buffer.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLES_CM\Context.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLES_CM\Device.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLES_CM\Framebuffer.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLES_CM\IndexDataManager.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLES_CM\Renderbuffer.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLES_CM\ResourceManager.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLES_CM\Texture.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLES_CM\VertexDataManager.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLES_CM\libGLES_CM.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLES_CM\main.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLES_CM\utilities.cpp"  />
-    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLES_CM\Buffer.h" />
-    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLES_CM\Context.h" />
-    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLES_CM\Framebuffer.h" />
-    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLES_CM\IndexDataManager.h" />
-    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLES_CM\Renderbuffer.h" />
-    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLES_CM\ResourceManager.h" />
-    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLES_CM\Texture.h" />
-    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLES_CM\VertexDataManager.h" />
-    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLES_CM\main.h" />
-    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLES_CM\mathutil.h" />
-    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLES_CM\resource.h" />
-    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLES_CM\utilities.h" />
-    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLES_CM\Device.hpp" />
-    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLES_CM\libGLES_CM.hpp" />
-    <ClCompile Include="$(SolutionDir)src\OpenGL\common\Image.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\OpenGL\common\MatrixStack.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\OpenGL\common\Object.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\OpenGL\common\debug.cpp"  />
-    <ClInclude Include="$(SolutionDir)src\OpenGL\common\debug.h" />
-    <ClInclude Include="$(SolutionDir)src\OpenGL\common\Image.hpp" />
-    <ClInclude Include="$(SolutionDir)src\OpenGL\common\MatrixStack.hpp" />
-    <ClInclude Include="$(SolutionDir)src\OpenGL\common\NameSpace.hpp" />
-    <ClInclude Include="$(SolutionDir)src\OpenGL\common\Object.hpp" />
-    <ClInclude Include="$(SolutionDir)src\OpenGL\common\Surface.hpp" />
-    <ClCompile Include="$(SolutionDir)src\Common\SharedLibrary.cpp"  />
-    <ClInclude Include="$(SolutionDir)src\Common\SharedLibrary.hpp" />
-    <ClInclude Include="$(SolutionDir)include\KHR\khrplatform.h" />
     <ClInclude Include="$(SolutionDir)include\GLES\gl.h" />
     <ClInclude Include="$(SolutionDir)include\GLES\glext.h" />
     <ClInclude Include="$(SolutionDir)include\GLES\glplatform.h" />
-    <ResourceCompile Include="$(SolutionDir)src\OpenGL\libGLES_CM\libGLES_CM.rc"  />
+    <ClInclude Include="$(SolutionDir)include\KHR\khrplatform.h" />
+    <ClCompile Include="$(SolutionDir)src\Common\SharedLibrary.cpp" />
+    <ClInclude Include="$(SolutionDir)src\Common\SharedLibrary.hpp" />
+    <ClCompile Include="$(SolutionDir)src\OpenGL\common\Image.cpp" />
+    <ClInclude Include="$(SolutionDir)src\OpenGL\common\Image.hpp" />
+    <ClCompile Include="$(SolutionDir)src\OpenGL\common\MatrixStack.cpp" />
+    <ClInclude Include="$(SolutionDir)src\OpenGL\common\MatrixStack.hpp" />
+    <ClInclude Include="$(SolutionDir)src\OpenGL\common\NameSpace.hpp" />
+    <ClCompile Include="$(SolutionDir)src\OpenGL\common\Object.cpp" />
+    <ClInclude Include="$(SolutionDir)src\OpenGL\common\Object.hpp" />
+    <ClInclude Include="$(SolutionDir)src\OpenGL\common\Surface.hpp" />
+    <ClCompile Include="$(SolutionDir)src\OpenGL\common\debug.cpp" />
+    <ClInclude Include="$(SolutionDir)src\OpenGL\common\debug.h" />
+    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLES_CM\Buffer.cpp" />
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLES_CM\Buffer.h" />
+    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLES_CM\Context.cpp" />
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLES_CM\Context.h" />
+    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLES_CM\Device.cpp" />
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLES_CM\Device.hpp" />
+    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLES_CM\Framebuffer.cpp" />
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLES_CM\Framebuffer.h" />
+    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLES_CM\IndexDataManager.cpp" />
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLES_CM\IndexDataManager.h" />
+    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLES_CM\Renderbuffer.cpp" />
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLES_CM\Renderbuffer.h" />
+    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLES_CM\ResourceManager.cpp" />
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLES_CM\ResourceManager.h" />
+    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLES_CM\Texture.cpp" />
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLES_CM\Texture.h" />
+    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLES_CM\VertexDataManager.cpp" />
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLES_CM\VertexDataManager.h" />
+    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLES_CM\libGLES_CM.cpp" />
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLES_CM\libGLES_CM.hpp" />
+    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLES_CM\main.cpp" />
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLES_CM\main.h" />
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLES_CM\mathutil.h" />
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLES_CM\resource.h" />
+    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLES_CM\utilities.cpp" />
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLES_CM\utilities.h" />
+    <ResourceCompile Include="$(SolutionDir)src\OpenGL\libGLES_CM\libGLES_CM.rc" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\GLCompiler.vcxproj">
-      <Project>{74318028-369F-3EA0-8A99-A341020416D6}</Project>
+      <Project>{B81F13DD-ACFB-3AB7-A071-3AD849D68E5C}</Project>
       <Name>GLCompiler</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\ReactorLLVM.vcxproj">
-      <Project>{3E565C6C-4B64-3128-A009-4A91C77E00E5}</Project>
+      <Project>{2EA2C687-489E-32F2-8D89-B90620301359}</Project>
       <Name>ReactorLLVM</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\SwiftShader.vcxproj">
-      <Project>{996E1D94-926B-3585-9466-CDB769D7188C}</Project>
+      <Project>{BFECAAAF-ADE7-36E8-BA23-4ABDE5A1A8B6}</Project>
       <Name>SwiftShader</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\llvm.vcxproj">
-      <Project>{9B24984C-F78C-3EF7-907B-2B0D2CDB5695}</Project>
+      <Project>{B9E0EFB7-8E1B-303D-9222-13F7A82B7858}</Project>
       <Name>llvm</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

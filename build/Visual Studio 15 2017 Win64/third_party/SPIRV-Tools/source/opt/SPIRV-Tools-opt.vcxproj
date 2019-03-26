@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <PreferredToolArchitecture>x64</PreferredToolArchitecture>
@@ -14,7 +14,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{6ABDA7CD-3BBA-3190-AE38-B0BBE6CB9327}</ProjectGuid>
+    <ProjectGuid>{2F8B8E0B-1B59-3671-91FE-A0E499B82D18}</ProjectGuid>
     <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
@@ -67,6 +67,7 @@
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <TreatWarningAsError>true</TreatWarningAsError>
+      <UseFullPaths>false</UseFullPaths>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>WIN32;_WINDOWS;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;_SBCS;WINVER=0x501;NOMINMAX;STRICT;REACTOR_LLVM_VERSION=7;SPIRV_WINDOWS;SPIRV_COLOR_TERMINAL;SPIRV_CHECK_CONTEXT;CMAKE_INTDIR="Debug";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
@@ -102,10 +103,12 @@
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <TreatWarningAsError>true</TreatWarningAsError>
+      <UseFullPaths>false</UseFullPaths>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;_SBCS;WINVER=0x501;NOMINMAX;STRICT;REACTOR_LLVM_VERSION=7;SPIRV_WINDOWS;SPIRV_COLOR_TERMINAL;SPIRV_CHECK_CONTEXT;CMAKE_INTDIR="Release";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
-      <DebugInformationFormat></DebugInformationFormat>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;_SBCS;WINVER=0x501;NOMINMAX;STRICT;REACTOR_LLVM_VERSION=7;SPIRV_WINDOWS;SPIRV_COLOR_TERMINAL;SPIRV_CHECK_CONTEXT;CMAKE_INTDIR=\"Release\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -216,7 +219,7 @@
     <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\value_number_table.h" />
     <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\vector_dce.h" />
     <ClInclude Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\workaround1209.h" />
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\aggressive_dead_code_elim_pass.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\aggressive_dead_code_elim_pass.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -228,7 +231,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\basic_block.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\basic_block.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -240,7 +243,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\block_merge_pass.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\block_merge_pass.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -252,7 +255,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\build_module.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\build_module.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -264,7 +267,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\ccp_pass.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\ccp_pass.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -276,7 +279,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\cfg_cleanup_pass.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\cfg_cleanup_pass.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -288,7 +291,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\cfg.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\cfg.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -300,7 +303,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\code_sink.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\code_sink.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -312,7 +315,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\combine_access_chains.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\combine_access_chains.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -324,7 +327,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\common_uniform_elim_pass.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\common_uniform_elim_pass.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -336,7 +339,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\compact_ids_pass.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\compact_ids_pass.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -348,7 +351,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\composite.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\composite.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -360,7 +363,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\const_folding_rules.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\const_folding_rules.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -372,7 +375,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\constants.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\constants.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -384,7 +387,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\copy_prop_arrays.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\copy_prop_arrays.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -396,7 +399,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\dead_branch_elim_pass.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\dead_branch_elim_pass.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -408,7 +411,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\dead_insert_elim_pass.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\dead_insert_elim_pass.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -420,7 +423,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\dead_variable_elimination.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\dead_variable_elimination.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -432,7 +435,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\decoration_manager.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\decoration_manager.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -444,7 +447,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\def_use_manager.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\def_use_manager.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -456,7 +459,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\dominator_analysis.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\dominator_analysis.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -468,7 +471,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\dominator_tree.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\dominator_tree.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -480,7 +483,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\eliminate_dead_constant_pass.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\eliminate_dead_constant_pass.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -492,7 +495,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\eliminate_dead_functions_pass.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\eliminate_dead_functions_pass.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -504,7 +507,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\feature_manager.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\feature_manager.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -516,7 +519,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\flatten_decoration_pass.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\flatten_decoration_pass.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -528,7 +531,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\fold.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\fold.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -540,7 +543,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\folding_rules.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\folding_rules.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -552,7 +555,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\fold_spec_constant_op_and_composite_pass.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\fold_spec_constant_op_and_composite_pass.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -564,7 +567,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\freeze_spec_constant_value_pass.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\freeze_spec_constant_value_pass.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -576,7 +579,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\function.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\function.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -588,7 +591,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\if_conversion.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\if_conversion.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -600,7 +603,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\inline_exhaustive_pass.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\inline_exhaustive_pass.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -612,7 +615,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\inline_opaque_pass.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\inline_opaque_pass.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -624,7 +627,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\inline_pass.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\inline_pass.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -636,7 +639,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\inst_bindless_check_pass.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\inst_bindless_check_pass.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -648,7 +651,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\instruction.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\instruction.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -660,7 +663,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\instruction_list.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\instruction_list.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -672,7 +675,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\instrument_pass.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\instrument_pass.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -684,7 +687,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\ir_context.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\ir_context.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -696,7 +699,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\ir_loader.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\ir_loader.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -708,7 +711,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\licm_pass.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\licm_pass.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -720,7 +723,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\local_access_chain_convert_pass.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\local_access_chain_convert_pass.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -732,7 +735,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\local_redundancy_elimination.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\local_redundancy_elimination.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -744,7 +747,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\local_single_block_elim_pass.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\local_single_block_elim_pass.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -756,7 +759,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\local_single_store_elim_pass.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\local_single_store_elim_pass.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -768,7 +771,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\local_ssa_elim_pass.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\local_ssa_elim_pass.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -780,7 +783,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\loop_dependence.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\loop_dependence.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -792,7 +795,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\loop_dependence_helpers.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\loop_dependence_helpers.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -804,7 +807,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\loop_descriptor.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\loop_descriptor.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -816,7 +819,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\loop_fission.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\loop_fission.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -828,7 +831,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\loop_fusion.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\loop_fusion.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -840,7 +843,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\loop_fusion_pass.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\loop_fusion_pass.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -852,7 +855,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\loop_peeling.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\loop_peeling.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -864,7 +867,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\loop_utils.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\loop_utils.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -876,7 +879,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\loop_unroller.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\loop_unroller.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -888,7 +891,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\loop_unswitch_pass.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\loop_unswitch_pass.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -900,7 +903,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\mem_pass.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\mem_pass.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -912,7 +915,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\merge_return_pass.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\merge_return_pass.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -924,7 +927,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\module.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\module.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -936,7 +939,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\optimizer.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\optimizer.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -948,7 +951,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\pass.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\pass.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -960,7 +963,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\pass_manager.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\pass_manager.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -972,7 +975,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\private_to_local_pass.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\private_to_local_pass.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -984,7 +987,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\process_lines_pass.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\process_lines_pass.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -996,7 +999,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\propagator.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\propagator.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -1008,7 +1011,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\reduce_load_size.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\reduce_load_size.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -1020,7 +1023,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\redundancy_elimination.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\redundancy_elimination.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -1032,7 +1035,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\register_pressure.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\register_pressure.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -1044,7 +1047,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\remove_duplicates_pass.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\remove_duplicates_pass.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -1056,7 +1059,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\replace_invalid_opc.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\replace_invalid_opc.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -1068,7 +1071,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\scalar_analysis.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\scalar_analysis.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -1080,7 +1083,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\scalar_analysis_simplification.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\scalar_analysis_simplification.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -1092,7 +1095,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\scalar_replacement_pass.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\scalar_replacement_pass.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -1104,7 +1107,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\set_spec_constant_default_value_pass.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\set_spec_constant_default_value_pass.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -1116,7 +1119,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\simplification_pass.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\simplification_pass.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -1128,7 +1131,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\ssa_rewrite_pass.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\ssa_rewrite_pass.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -1140,7 +1143,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\strength_reduction_pass.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\strength_reduction_pass.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -1152,7 +1155,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\strip_debug_info_pass.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\strip_debug_info_pass.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -1164,7 +1167,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\strip_reflect_info_pass.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\strip_reflect_info_pass.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -1176,7 +1179,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\struct_cfg_analysis.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\struct_cfg_analysis.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -1188,7 +1191,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\type_manager.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\type_manager.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -1200,7 +1203,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\types.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\types.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -1212,7 +1215,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\unify_const_pass.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\unify_const_pass.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -1224,7 +1227,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\upgrade_memory_model.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\upgrade_memory_model.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -1236,7 +1239,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\value_number_table.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\value_number_table.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -1248,7 +1251,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\vector_dce.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\vector_dce.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -1260,7 +1263,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\workaround1209.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\workaround1209.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</ForcedIncludeFiles>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -1272,7 +1275,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch_source_opt.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)\pch_source_opt.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\pch_source_opt.cpp" >
+    <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\pch_source_opt.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalOptions) /Zm300</AdditionalOptions>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch_source_opt.h</PrecompiledHeaderFile>
@@ -1285,8 +1288,10 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\source\SPIRV-Tools.vcxproj">
-      <Project>{EF1AF598-E402-38F1-A74A-35F18A1EC1CC}</Project>
+      <Project>{2866BC19-5FA8-3D67-8D94-751A3803A3DF}</Project>
       <Name>SPIRV-Tools</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

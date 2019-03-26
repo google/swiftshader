@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <PreferredToolArchitecture>x64</PreferredToolArchitecture>
@@ -14,7 +14,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{32940355-6B50-33D6-BDC8-56E00F8D88BC}</ProjectGuid>
+    <ProjectGuid>{1B4D7DF7-FCDB-342F-9D20-F9E0262B6964}</ProjectGuid>
     <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
@@ -56,7 +56,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)src\Vulkan;$(SolutionDir)src;$(SolutionDir)include;$(SolutionDir)third_party\llvm-7.0\configs\windows\include;$(SolutionDir)third_party\llvm-7.0\llvm\include;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\include;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\IR;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Transforms\InstCombine;$(SolutionDir)third_party\SPIRV-Headers\include;$(SolutionDir)third_party\SPIRV-Tools\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)src;$(SolutionDir)include;$(SolutionDir)third_party\llvm-7.0\configs\windows\include;$(SolutionDir)third_party\llvm-7.0\llvm\include;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\include;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\IR;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Transforms\InstCombine;$(SolutionDir)third_party\SPIRV-Headers\include;$(SolutionDir)third_party\SPIRV-Tools\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>Debug/</AssemblerListingLocation>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <CompileAs>CompileAsCpp</CompileAs>
@@ -68,16 +68,17 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <UseFullPaths>false</UseFullPaths>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NO_SANITIZE_FUNCTION=;_CRT_SECURE_NO_WARNINGS;_SBCS;WINVER=0x501;NOMINMAX;STRICT;REACTOR_LLVM_VERSION=7;CMAKE_INTDIR="Debug";libvk_swiftshader_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;NO_SANITIZE_FUNCTION=;_CRT_SECURE_NO_WARNINGS;_SBCS;WINVER=0x501;NOMINMAX;STRICT;REACTOR_LLVM_VERSION=7;CMAKE_INTDIR=\"Debug\";libvk_swiftshader_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)src\Vulkan;$(SolutionDir)src;$(SolutionDir)include;$(SolutionDir)third_party\llvm-7.0\configs\windows\include;$(SolutionDir)third_party\llvm-7.0\llvm\include;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\include;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\IR;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Transforms\InstCombine;$(SolutionDir)third_party\SPIRV-Headers\include;$(SolutionDir)third_party\SPIRV-Tools\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)src;$(SolutionDir)include;$(SolutionDir)third_party\llvm-7.0\configs\windows\include;$(SolutionDir)third_party\llvm-7.0\llvm\include;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\include;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\IR;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Transforms\InstCombine;$(SolutionDir)third_party\SPIRV-Headers\include;$(SolutionDir)third_party\SPIRV-Tools\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>$(SolutionDir)src\Vulkan;$(SolutionDir)src;$(SolutionDir)include;$(SolutionDir)third_party\llvm-7.0\configs\windows\include;$(SolutionDir)third_party\llvm-7.0\llvm\include;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\include;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\IR;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Transforms\InstCombine;$(SolutionDir)third_party\SPIRV-Headers\include;$(SolutionDir)third_party\SPIRV-Tools\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)src;$(SolutionDir)include;$(SolutionDir)third_party\llvm-7.0\configs\windows\include;$(SolutionDir)third_party\llvm-7.0\llvm\include;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\include;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\IR;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Transforms\InstCombine;$(SolutionDir)third_party\SPIRV-Headers\include;$(SolutionDir)third_party\SPIRV-Tools\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -91,9 +92,9 @@
 if %errorlevel% neq 0 goto :cmEnd
 "cmake" -E copy "$(SolutionDir)build/Visual Studio 15 2017 Win64/Debug/libvk_swiftshader.dll" "$(SolutionDir)build/Visual Studio 15 2017 Win64/Debug/translator/lib64Vulkan_translator.dll"
 if %errorlevel% neq 0 goto :cmEnd
-"cmake" -E make_directory $(SolutionDir)out/Windows/
+"cmake" -E make_directory "$(SolutionDir)build/Visual Studio 15 2017 Win64/Windows/"
 if %errorlevel% neq 0 goto :cmEnd
-"cmake" -E copy "$(SolutionDir)build/Visual Studio 15 2017 Win64/Debug/libvk_swiftshader.dll" $(SolutionDir)out/Windows/
+"cmake" -E copy "$(SolutionDir)build/Visual Studio 15 2017 Win64/Debug/libvk_swiftshader.dll" "$(SolutionDir)build/Visual Studio 15 2017 Win64/Windows/"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -119,7 +120,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)src\Vulkan;$(SolutionDir)src;$(SolutionDir)include;$(SolutionDir)third_party\llvm-7.0\configs\windows\include;$(SolutionDir)third_party\llvm-7.0\llvm\include;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\include;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\IR;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Transforms\InstCombine;$(SolutionDir)third_party\SPIRV-Headers\include;$(SolutionDir)third_party\SPIRV-Tools\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)src;$(SolutionDir)include;$(SolutionDir)third_party\llvm-7.0\configs\windows\include;$(SolutionDir)third_party\llvm-7.0\llvm\include;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\include;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\IR;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Transforms\InstCombine;$(SolutionDir)third_party\SPIRV-Headers\include;$(SolutionDir)third_party\SPIRV-Tools\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>Release/</AssemblerListingLocation>
       <CompileAs>CompileAsCpp</CompileAs>
       <ExceptionHandling>Sync</ExceptionHandling>
@@ -129,17 +130,19 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <UseFullPaths>false</UseFullPaths>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;NO_SANITIZE_FUNCTION=;_CRT_SECURE_NO_WARNINGS;_SBCS;WINVER=0x501;NOMINMAX;STRICT;REACTOR_LLVM_VERSION=7;CMAKE_INTDIR="Release";libvk_swiftshader_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
-      <DebugInformationFormat></DebugInformationFormat>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;NO_SANITIZE_FUNCTION=;_CRT_SECURE_NO_WARNINGS;_SBCS;WINVER=0x501;NOMINMAX;STRICT;REACTOR_LLVM_VERSION=7;CMAKE_INTDIR=\"Release\";libvk_swiftshader_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)src\Vulkan;$(SolutionDir)src;$(SolutionDir)include;$(SolutionDir)third_party\llvm-7.0\configs\windows\include;$(SolutionDir)third_party\llvm-7.0\llvm\include;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\include;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\IR;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Transforms\InstCombine;$(SolutionDir)third_party\SPIRV-Headers\include;$(SolutionDir)third_party\SPIRV-Tools\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)src;$(SolutionDir)include;$(SolutionDir)third_party\llvm-7.0\configs\windows\include;$(SolutionDir)third_party\llvm-7.0\llvm\include;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\include;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\IR;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Transforms\InstCombine;$(SolutionDir)third_party\SPIRV-Headers\include;$(SolutionDir)third_party\SPIRV-Tools\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>$(SolutionDir)src\Vulkan;$(SolutionDir)src;$(SolutionDir)include;$(SolutionDir)third_party\llvm-7.0\configs\windows\include;$(SolutionDir)third_party\llvm-7.0\llvm\include;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\include;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\IR;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Transforms\InstCombine;$(SolutionDir)third_party\SPIRV-Headers\include;$(SolutionDir)third_party\SPIRV-Tools\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)src;$(SolutionDir)include;$(SolutionDir)third_party\llvm-7.0\configs\windows\include;$(SolutionDir)third_party\llvm-7.0\llvm\include;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\llvm\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\include;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\IR;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\AArch64;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\ARM;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\Mips;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Target\X86;$(SolutionDir)third_party\llvm-7.0\configs\common\lib\Transforms\InstCombine;$(SolutionDir)third_party\SPIRV-Headers\include;$(SolutionDir)third_party\SPIRV-Tools\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -153,9 +156,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
 if %errorlevel% neq 0 goto :cmEnd
 "cmake" -E copy "$(SolutionDir)build/Visual Studio 15 2017 Win64/Release/libvk_swiftshader.dll" "$(SolutionDir)build/Visual Studio 15 2017 Win64/Release/translator/lib64Vulkan_translator.dll"
 if %errorlevel% neq 0 goto :cmEnd
-"cmake" -E make_directory $(SolutionDir)out/Windows/
+"cmake" -E make_directory "$(SolutionDir)build/Visual Studio 15 2017 Win64/Windows/"
 if %errorlevel% neq 0 goto :cmEnd
-"cmake" -E copy "$(SolutionDir)build/Visual Studio 15 2017 Win64/Release/libvk_swiftshader.dll" $(SolutionDir)out/Windows/
+"cmake" -E copy "$(SolutionDir)build/Visual Studio 15 2017 Win64/Release/libvk_swiftshader.dll" "$(SolutionDir)build/Visual Studio 15 2017 Win64/Windows/"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -180,146 +183,150 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)src\Vulkan\VkBuffer.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Vulkan\VkCommandBuffer.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Vulkan\VkCommandPool.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Vulkan\VkDebug.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Vulkan\VkDescriptorPool.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Vulkan\VkDescriptorSetLayout.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Vulkan\VkDevice.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Vulkan\VkDeviceMemory.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Vulkan\VkFramebuffer.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Vulkan\VkGetProcAddress.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Vulkan\VkImage.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Vulkan\VkImageView.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Vulkan\VkInstance.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Vulkan\VkMemory.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Vulkan\VkPhysicalDevice.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Vulkan\VkPipeline.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Vulkan\VkPipelineLayout.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Vulkan\VkPromotedExtensions.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Vulkan\VkQueryPool.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Vulkan\VkQueue.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Vulkan\VkRenderPass.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Vulkan\VkShaderModule.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Vulkan\libVulkan.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Vulkan\main.cpp"  />
-    <ClInclude Include="$(SolutionDir)src\Vulkan\Version.h" />
-    <ClInclude Include="$(SolutionDir)src\Vulkan\VkConfig.h" />
-    <ClInclude Include="$(SolutionDir)src\Vulkan\VkDestroy.h" />
-    <ClInclude Include="$(SolutionDir)src\Vulkan\VkGetProcAddress.h" />
-    <ClInclude Include="$(SolutionDir)src\Vulkan\VkMemory.h" />
-    <ClInclude Include="$(SolutionDir)src\Vulkan\resource.h" />
-    <ClInclude Include="$(SolutionDir)src\Vulkan\VkBuffer.hpp" />
-    <ClInclude Include="$(SolutionDir)src\Vulkan\VkBufferView.hpp" />
-    <ClInclude Include="$(SolutionDir)src\Vulkan\VkCommandBuffer.hpp" />
-    <ClInclude Include="$(SolutionDir)src\Vulkan\VkCommandPool.hpp" />
-    <ClInclude Include="$(SolutionDir)src\Vulkan\VkDebug.hpp" />
-    <ClInclude Include="$(SolutionDir)src\Vulkan\VkDescriptorPool.hpp" />
-    <ClInclude Include="$(SolutionDir)src\Vulkan\VkDescriptorSetLayout.hpp" />
-    <ClInclude Include="$(SolutionDir)src\Vulkan\VkDevice.hpp" />
-    <ClInclude Include="$(SolutionDir)src\Vulkan\VkDeviceMemory.hpp" />
-    <ClInclude Include="$(SolutionDir)src\Vulkan\VkEvent.hpp" />
-    <ClInclude Include="$(SolutionDir)src\Vulkan\VkFence.hpp" />
-    <ClInclude Include="$(SolutionDir)src\Vulkan\VkFramebuffer.hpp" />
-    <ClInclude Include="$(SolutionDir)src\Vulkan\VkImage.hpp" />
-    <ClInclude Include="$(SolutionDir)src\Vulkan\VkImageView.hpp" />
-    <ClInclude Include="$(SolutionDir)src\Vulkan\VkInstance.hpp" />
-    <ClInclude Include="$(SolutionDir)src\Vulkan\VkObject.hpp" />
-    <ClInclude Include="$(SolutionDir)src\Vulkan\VkPhysicalDevice.hpp" />
-    <ClInclude Include="$(SolutionDir)src\Vulkan\VkPipeline.hpp" />
-    <ClInclude Include="$(SolutionDir)src\Vulkan\VkPipelineCache.hpp" />
-    <ClInclude Include="$(SolutionDir)src\Vulkan\VkPipelineLayout.hpp" />
-    <ClInclude Include="$(SolutionDir)src\Vulkan\VkQueryPool.hpp" />
-    <ClInclude Include="$(SolutionDir)src\Vulkan\VkQueue.hpp" />
-    <ClInclude Include="$(SolutionDir)src\Vulkan\VkRenderPass.hpp" />
-    <ClInclude Include="$(SolutionDir)src\Vulkan\VkSampler.hpp" />
-    <ClInclude Include="$(SolutionDir)src\Vulkan\VkSemaphore.hpp" />
-    <ClInclude Include="$(SolutionDir)src\Vulkan\VkShaderModule.hpp" />
-    <ClCompile Include="$(SolutionDir)src\System\CPUID.cpp"  />
-    <ClInclude Include="$(SolutionDir)src\System\CPUID.hpp" />
-    <ClCompile Include="$(SolutionDir)src\System\Configurator.cpp"  />
-    <ClInclude Include="$(SolutionDir)src\System\Configurator.hpp" />
-    <ClCompile Include="$(SolutionDir)src\System\Debug.cpp"  />
-    <ClInclude Include="$(SolutionDir)src\System\Debug.hpp" />
-    <ClCompile Include="$(SolutionDir)src\System\Half.cpp"  />
-    <ClInclude Include="$(SolutionDir)src\System\Half.hpp" />
-    <ClCompile Include="$(SolutionDir)src\System\Math.cpp"  />
-    <ClInclude Include="$(SolutionDir)src\System\Math.hpp" />
-    <ClCompile Include="$(SolutionDir)src\System\Memory.cpp"  />
-    <ClInclude Include="$(SolutionDir)src\System\Memory.hpp" />
-    <ClCompile Include="$(SolutionDir)src\System\Resource.cpp"  />
-    <ClInclude Include="$(SolutionDir)src\System\Resource.hpp" />
-    <ClCompile Include="$(SolutionDir)src\System\Socket.cpp"  />
-    <ClInclude Include="$(SolutionDir)src\System\Socket.hpp" />
-    <ClCompile Include="$(SolutionDir)src\System\Thread.cpp"  />
-    <ClInclude Include="$(SolutionDir)src\System\Thread.hpp" />
-    <ClCompile Include="$(SolutionDir)src\System\Timer.cpp"  />
-    <ClInclude Include="$(SolutionDir)src\System\Timer.hpp" />
-    <ClCompile Include="$(SolutionDir)src\Device\Blitter.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Device\Clipper.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Device\Color.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Device\Config.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Device\Context.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Device\ETC_Decoder.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Device\Matrix.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Device\PixelProcessor.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Device\Plane.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Device\Point.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Device\QuadRasterizer.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Device\Renderer.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Device\Sampler.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Device\SetupProcessor.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Device\Surface.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Device\SwiftConfig.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Device\Vector.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Device\VertexProcessor.cpp"  />
+    <ClCompile Include="$(SolutionDir)src\Device\Blitter.cpp" />
     <ClInclude Include="$(SolutionDir)src\Device\Blitter.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Device\Clipper.cpp" />
     <ClInclude Include="$(SolutionDir)src\Device\Clipper.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Device\Color.cpp" />
     <ClInclude Include="$(SolutionDir)src\Device\Color.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Device\Config.cpp" />
     <ClInclude Include="$(SolutionDir)src\Device\Config.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Device\Context.cpp" />
     <ClInclude Include="$(SolutionDir)src\Device\Context.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Device\ETC_Decoder.cpp" />
     <ClInclude Include="$(SolutionDir)src\Device\ETC_Decoder.hpp" />
     <ClInclude Include="$(SolutionDir)src\Device\LRUCache.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Device\Matrix.cpp" />
     <ClInclude Include="$(SolutionDir)src\Device\Matrix.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Device\PixelProcessor.cpp" />
     <ClInclude Include="$(SolutionDir)src\Device\PixelProcessor.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Device\Plane.cpp" />
     <ClInclude Include="$(SolutionDir)src\Device\Plane.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Device\Point.cpp" />
     <ClInclude Include="$(SolutionDir)src\Device\Point.hpp" />
     <ClInclude Include="$(SolutionDir)src\Device\Polygon.hpp" />
     <ClInclude Include="$(SolutionDir)src\Device\Primitive.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Device\QuadRasterizer.cpp" />
     <ClInclude Include="$(SolutionDir)src\Device\QuadRasterizer.hpp" />
     <ClInclude Include="$(SolutionDir)src\Device\Rasterizer.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Device\Renderer.cpp" />
     <ClInclude Include="$(SolutionDir)src\Device\Renderer.hpp" />
     <ClInclude Include="$(SolutionDir)src\Device\RoutineCache.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Device\Sampler.cpp" />
     <ClInclude Include="$(SolutionDir)src\Device\Sampler.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Device\SetupProcessor.cpp" />
     <ClInclude Include="$(SolutionDir)src\Device\SetupProcessor.hpp" />
     <ClInclude Include="$(SolutionDir)src\Device\Stream.hpp" />
-    <ClInclude Include="$(SolutionDir)src\Device\Surface.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Device\SwiftConfig.cpp" />
     <ClInclude Include="$(SolutionDir)src\Device\SwiftConfig.hpp" />
     <ClInclude Include="$(SolutionDir)src\Device\Triangle.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Device\Vector.cpp" />
     <ClInclude Include="$(SolutionDir)src\Device\Vector.hpp" />
     <ClInclude Include="$(SolutionDir)src\Device\Vertex.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Device\VertexProcessor.cpp" />
     <ClInclude Include="$(SolutionDir)src\Device\VertexProcessor.hpp" />
-    <ClCompile Include="$(SolutionDir)src\Pipeline\ComputeProgram.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Pipeline\Constants.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Pipeline\PixelProgram.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Pipeline\PixelRoutine.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Pipeline\SamplerCore.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Pipeline\SetupRoutine.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Pipeline\ShaderCore.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Pipeline\SpirvShader.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Pipeline\VertexProgram.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Pipeline\VertexRoutine.cpp"  />
+    <ClCompile Include="$(SolutionDir)src\Pipeline\ComputeProgram.cpp" />
     <ClInclude Include="$(SolutionDir)src\Pipeline\ComputeProgram.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Pipeline\Constants.cpp" />
     <ClInclude Include="$(SolutionDir)src\Pipeline\Constants.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Pipeline\PixelProgram.cpp" />
     <ClInclude Include="$(SolutionDir)src\Pipeline\PixelProgram.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Pipeline\PixelRoutine.cpp" />
     <ClInclude Include="$(SolutionDir)src\Pipeline\PixelRoutine.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Pipeline\SamplerCore.cpp" />
     <ClInclude Include="$(SolutionDir)src\Pipeline\SamplerCore.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Pipeline\SetupRoutine.cpp" />
     <ClInclude Include="$(SolutionDir)src\Pipeline\SetupRoutine.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Pipeline\ShaderCore.cpp" />
     <ClInclude Include="$(SolutionDir)src\Pipeline\ShaderCore.hpp" />
+    <ClInclude Include="$(SolutionDir)src\Pipeline\SpirvID.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Pipeline\SpirvShader.cpp" />
     <ClInclude Include="$(SolutionDir)src\Pipeline\SpirvShader.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Pipeline\SpirvShader_dbg.cpp" />
+    <ClCompile Include="$(SolutionDir)src\Pipeline\VertexProgram.cpp" />
     <ClInclude Include="$(SolutionDir)src\Pipeline\VertexProgram.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Pipeline\VertexRoutine.cpp" />
     <ClInclude Include="$(SolutionDir)src\Pipeline\VertexRoutine.hpp" />
+    <ClCompile Include="$(SolutionDir)src\System\CPUID.cpp" />
+    <ClInclude Include="$(SolutionDir)src\System\CPUID.hpp" />
+    <ClCompile Include="$(SolutionDir)src\System\Configurator.cpp" />
+    <ClInclude Include="$(SolutionDir)src\System\Configurator.hpp" />
+    <ClCompile Include="$(SolutionDir)src\System\Debug.cpp" />
+    <ClInclude Include="$(SolutionDir)src\System\Debug.hpp" />
+    <ClCompile Include="$(SolutionDir)src\System\Half.cpp" />
+    <ClInclude Include="$(SolutionDir)src\System\Half.hpp" />
+    <ClCompile Include="$(SolutionDir)src\System\Math.cpp" />
+    <ClInclude Include="$(SolutionDir)src\System\Math.hpp" />
+    <ClCompile Include="$(SolutionDir)src\System\Memory.cpp" />
+    <ClInclude Include="$(SolutionDir)src\System\Memory.hpp" />
+    <ClCompile Include="$(SolutionDir)src\System\Resource.cpp" />
+    <ClInclude Include="$(SolutionDir)src\System\Resource.hpp" />
+    <ClCompile Include="$(SolutionDir)src\System\Socket.cpp" />
+    <ClInclude Include="$(SolutionDir)src\System\Socket.hpp" />
+    <ClCompile Include="$(SolutionDir)src\System\Thread.cpp" />
+    <ClInclude Include="$(SolutionDir)src\System\Thread.hpp" />
+    <ClCompile Include="$(SolutionDir)src\System\Timer.cpp" />
+    <ClInclude Include="$(SolutionDir)src\System\Timer.hpp" />
+    <ClInclude Include="$(SolutionDir)src\Vulkan\Version.h" />
+    <ClCompile Include="$(SolutionDir)src\Vulkan\VkBuffer.cpp" />
+    <ClInclude Include="$(SolutionDir)src\Vulkan\VkBuffer.hpp" />
+    <ClInclude Include="$(SolutionDir)src\Vulkan\VkBufferView.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Vulkan\VkCommandBuffer.cpp" />
+    <ClInclude Include="$(SolutionDir)src\Vulkan\VkCommandBuffer.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Vulkan\VkCommandPool.cpp" />
+    <ClInclude Include="$(SolutionDir)src\Vulkan\VkCommandPool.hpp" />
+    <ClInclude Include="$(SolutionDir)src\Vulkan\VkConfig.h" />
+    <ClCompile Include="$(SolutionDir)src\Vulkan\VkDebug.cpp" />
+    <ClInclude Include="$(SolutionDir)src\Vulkan\VkDebug.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Vulkan\VkDescriptorPool.cpp" />
+    <ClInclude Include="$(SolutionDir)src\Vulkan\VkDescriptorPool.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Vulkan\VkDescriptorSetLayout.cpp" />
+    <ClInclude Include="$(SolutionDir)src\Vulkan\VkDescriptorSetLayout.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Vulkan\VkDescriptorUpdateTemplate.cpp" />
+    <ClInclude Include="$(SolutionDir)src\Vulkan\VkDescriptorUpdateTemplate.hpp" />
+    <ClInclude Include="$(SolutionDir)src\Vulkan\VkDestroy.h" />
+    <ClCompile Include="$(SolutionDir)src\Vulkan\VkDevice.cpp" />
+    <ClInclude Include="$(SolutionDir)src\Vulkan\VkDevice.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Vulkan\VkDeviceMemory.cpp" />
+    <ClInclude Include="$(SolutionDir)src\Vulkan\VkDeviceMemory.hpp" />
+    <ClInclude Include="$(SolutionDir)src\Vulkan\VkEvent.hpp" />
+    <ClInclude Include="$(SolutionDir)src\Vulkan\VkFence.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Vulkan\VkFormat.cpp" />
+    <ClInclude Include="$(SolutionDir)src\Vulkan\VkFormat.h" />
+    <ClCompile Include="$(SolutionDir)src\Vulkan\VkFramebuffer.cpp" />
+    <ClInclude Include="$(SolutionDir)src\Vulkan\VkFramebuffer.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Vulkan\VkGetProcAddress.cpp" />
+    <ClInclude Include="$(SolutionDir)src\Vulkan\VkGetProcAddress.h" />
+    <ClCompile Include="$(SolutionDir)src\Vulkan\VkImage.cpp" />
+    <ClInclude Include="$(SolutionDir)src\Vulkan\VkImage.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Vulkan\VkImageView.cpp" />
+    <ClInclude Include="$(SolutionDir)src\Vulkan\VkImageView.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Vulkan\VkInstance.cpp" />
+    <ClInclude Include="$(SolutionDir)src\Vulkan\VkInstance.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Vulkan\VkMemory.cpp" />
+    <ClInclude Include="$(SolutionDir)src\Vulkan\VkMemory.h" />
+    <ClInclude Include="$(SolutionDir)src\Vulkan\VkObject.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Vulkan\VkPhysicalDevice.cpp" />
+    <ClInclude Include="$(SolutionDir)src\Vulkan\VkPhysicalDevice.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Vulkan\VkPipeline.cpp" />
+    <ClInclude Include="$(SolutionDir)src\Vulkan\VkPipeline.hpp" />
+    <ClInclude Include="$(SolutionDir)src\Vulkan\VkPipelineCache.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Vulkan\VkPipelineLayout.cpp" />
+    <ClInclude Include="$(SolutionDir)src\Vulkan\VkPipelineLayout.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Vulkan\VkPromotedExtensions.cpp" />
+    <ClCompile Include="$(SolutionDir)src\Vulkan\VkQueryPool.cpp" />
+    <ClInclude Include="$(SolutionDir)src\Vulkan\VkQueryPool.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Vulkan\VkQueue.cpp" />
+    <ClInclude Include="$(SolutionDir)src\Vulkan\VkQueue.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Vulkan\VkRenderPass.cpp" />
+    <ClInclude Include="$(SolutionDir)src\Vulkan\VkRenderPass.hpp" />
+    <ClInclude Include="$(SolutionDir)src\Vulkan\VkSampler.hpp" />
+    <ClInclude Include="$(SolutionDir)src\Vulkan\VkSemaphore.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Vulkan\VkShaderModule.cpp" />
+    <ClInclude Include="$(SolutionDir)src\Vulkan\VkShaderModule.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Vulkan\libVulkan.cpp" />
+    <ClCompile Include="$(SolutionDir)src\Vulkan\main.cpp" />
+    <ClInclude Include="$(SolutionDir)src\Vulkan\resource.h" />
     <ClCompile Include="$(SolutionDir)src\WSI\VkSurfaceKHR.cpp" />
     <ClInclude Include="$(SolutionDir)src\WSI\VkSurfaceKHR.hpp" />
     <ClCompile Include="$(SolutionDir)src\WSI\VkSwapchainKHR.cpp" />
@@ -327,20 +334,28 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\ReactorLLVM.vcxproj">
-      <Project>{3E565C6C-4B64-3128-A009-4A91C77E00E5}</Project>
+      <Project>{2EA2C687-489E-32F2-8D89-B90620301359}</Project>
       <Name>ReactorLLVM</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\source\SPIRV-Tools.vcxproj">
-      <Project>{EF1AF598-E402-38F1-A74A-35F18A1EC1CC}</Project>
+      <Project>{2866BC19-5FA8-3D67-8D94-751A3803A3DF}</Project>
       <Name>SPIRV-Tools</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\third_party\SPIRV-Tools\source\opt\SPIRV-Tools-opt.vcxproj">
-      <Project>{6ABDA7CD-3BBA-3190-AE38-B0BBE6CB9327}</Project>
+      <Project>{2F8B8E0B-1B59-3671-91FE-A0E499B82D18}</Project>
       <Name>SPIRV-Tools-opt</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\llvm.vcxproj">
-      <Project>{9B24984C-F78C-3EF7-907B-2B0D2CDB5695}</Project>
+      <Project>{B9E0EFB7-8E1B-303D-9222-13F7A82B7858}</Project>
       <Name>llvm</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

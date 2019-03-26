@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <PreferredToolArchitecture>x64</PreferredToolArchitecture>
@@ -14,7 +14,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{E22D780F-96F6-3714-B708-4875F7F8F6FF}</ProjectGuid>
+    <ProjectGuid>{1F9E81A7-B091-3D9E-AFDD-0DF597ED1EEF}</ProjectGuid>
     <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
@@ -68,6 +68,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <UseFullPaths>false</UseFullPaths>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>WIN32;_WINDOWS;GL_GLEXT_PROTOTYPES; GL_API=; GL_APICALL=; GLAPI=; NO_SANITIZE_FUNCTION=;_CRT_SECURE_NO_WARNINGS;_SBCS;WINVER=0x501;NOMINMAX;STRICT;REACTOR_LLVM_VERSION=7;CMAKE_INTDIR="Debug";libGLESv2_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
@@ -91,9 +92,9 @@
 if %errorlevel% neq 0 goto :cmEnd
 "cmake" -E copy "$(SolutionDir)build/Visual Studio 15 2017 Win64/Debug/libGLESv2.dll" "$(SolutionDir)build/Visual Studio 15 2017 Win64/Debug/translator/lib64GLES_V2_translator.dll"
 if %errorlevel% neq 0 goto :cmEnd
-"cmake" -E make_directory $(SolutionDir)out/Windows/
+"cmake" -E make_directory "$(SolutionDir)build/Visual Studio 15 2017 Win64/Windows/"
 if %errorlevel% neq 0 goto :cmEnd
-"cmake" -E copy "$(SolutionDir)build/Visual Studio 15 2017 Win64/Debug/libGLESv2.dll" $(SolutionDir)out/Windows/
+"cmake" -E copy "$(SolutionDir)build/Visual Studio 15 2017 Win64/Debug/libGLESv2.dll" "$(SolutionDir)build/Visual Studio 15 2017 Win64/Windows/"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -129,10 +130,12 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <UseFullPaths>false</UseFullPaths>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;GL_GLEXT_PROTOTYPES; GL_API=; GL_APICALL=; GLAPI=; NO_SANITIZE_FUNCTION=;_CRT_SECURE_NO_WARNINGS;_SBCS;WINVER=0x501;NOMINMAX;STRICT;REACTOR_LLVM_VERSION=7;CMAKE_INTDIR="Release";libGLESv2_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
-      <DebugInformationFormat></DebugInformationFormat>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;GL_GLEXT_PROTOTYPES; GL_API=; GL_APICALL=; GLAPI=; NO_SANITIZE_FUNCTION=;_CRT_SECURE_NO_WARNINGS;_SBCS;WINVER=0x501;NOMINMAX;STRICT;REACTOR_LLVM_VERSION=7;CMAKE_INTDIR=\"Release\";libGLESv2_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -153,9 +156,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
 if %errorlevel% neq 0 goto :cmEnd
 "cmake" -E copy "$(SolutionDir)build/Visual Studio 15 2017 Win64/Release/libGLESv2.dll" "$(SolutionDir)build/Visual Studio 15 2017 Win64/Release/translator/lib64GLES_V2_translator.dll"
 if %errorlevel% neq 0 goto :cmEnd
-"cmake" -E make_directory $(SolutionDir)out/Windows/
+"cmake" -E make_directory "$(SolutionDir)build/Visual Studio 15 2017 Win64/Windows/"
 if %errorlevel% neq 0 goto :cmEnd
-"cmake" -E copy "$(SolutionDir)build/Visual Studio 15 2017 Win64/Release/libGLESv2.dll" $(SolutionDir)out/Windows/
+"cmake" -E copy "$(SolutionDir)build/Visual Studio 15 2017 Win64/Release/libGLESv2.dll" "$(SolutionDir)build/Visual Studio 15 2017 Win64/Windows/"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -180,84 +183,92 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLESv2\Buffer.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLESv2\Context.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLESv2\Device.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLESv2\Fence.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLESv2\Framebuffer.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLESv2\IndexDataManager.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLESv2\Program.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLESv2\Query.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLESv2\Renderbuffer.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLESv2\ResourceManager.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLESv2\Shader.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLESv2\Texture.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLESv2\TransformFeedback.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLESv2\VertexArray.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLESv2\VertexDataManager.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLESv2\entry_points.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLESv2\libGLESv2.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLESv2\libGLESv3.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLESv2\main.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLESv2\utilities.cpp"  />
-    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\Buffer.h" />
-    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\Context.h" />
-    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\Fence.h" />
-    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\Framebuffer.h" />
-    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\IndexDataManager.h" />
-    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\Program.h" />
-    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\Query.h" />
-    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\Renderbuffer.h" />
-    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\ResourceManager.h" />
-    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\Sampler.h" />
-    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\Shader.h" />
-    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\Texture.h" />
-    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\TransformFeedback.h" />
-    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\VertexArray.h" />
-    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\VertexDataManager.h" />
-    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\entry_points.h" />
-    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\main.h" />
-    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\mathutil.h" />
-    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\resource.h" />
-    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\utilities.h" />
-    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\Device.hpp" />
-    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\libGLESv2.hpp" />
-    <ClCompile Include="$(SolutionDir)src\OpenGL\common\Image.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\OpenGL\common\MatrixStack.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\OpenGL\common\Object.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\OpenGL\common\debug.cpp"  />
-    <ClInclude Include="$(SolutionDir)src\OpenGL\common\debug.h" />
-    <ClInclude Include="$(SolutionDir)src\OpenGL\common\Image.hpp" />
-    <ClInclude Include="$(SolutionDir)src\OpenGL\common\MatrixStack.hpp" />
-    <ClInclude Include="$(SolutionDir)src\OpenGL\common\NameSpace.hpp" />
-    <ClInclude Include="$(SolutionDir)src\OpenGL\common\Object.hpp" />
-    <ClInclude Include="$(SolutionDir)src\OpenGL\common\Surface.hpp" />
-    <ClCompile Include="$(SolutionDir)src\Common\SharedLibrary.cpp"  />
-    <ClInclude Include="$(SolutionDir)src\Common\SharedLibrary.hpp" />
-    <ClInclude Include="$(SolutionDir)include\KHR\khrplatform.h" />
     <ClInclude Include="$(SolutionDir)include\GLES2\gl2.h" />
     <ClInclude Include="$(SolutionDir)include\GLES2\gl2ext.h" />
     <ClInclude Include="$(SolutionDir)include\GLES2\gl2platform.h" />
     <ClInclude Include="$(SolutionDir)include\GLES3\gl3.h" />
     <ClInclude Include="$(SolutionDir)include\GLES3\gl3platform.h" />
-    <ResourceCompile Include="$(SolutionDir)src\OpenGL\libGLESv2\libGLESv2.rc"  />
+    <ClInclude Include="$(SolutionDir)include\KHR\khrplatform.h" />
+    <ClCompile Include="$(SolutionDir)src\Common\SharedLibrary.cpp" />
+    <ClInclude Include="$(SolutionDir)src\Common\SharedLibrary.hpp" />
+    <ClCompile Include="$(SolutionDir)src\OpenGL\common\Image.cpp" />
+    <ClInclude Include="$(SolutionDir)src\OpenGL\common\Image.hpp" />
+    <ClCompile Include="$(SolutionDir)src\OpenGL\common\MatrixStack.cpp" />
+    <ClInclude Include="$(SolutionDir)src\OpenGL\common\MatrixStack.hpp" />
+    <ClInclude Include="$(SolutionDir)src\OpenGL\common\NameSpace.hpp" />
+    <ClCompile Include="$(SolutionDir)src\OpenGL\common\Object.cpp" />
+    <ClInclude Include="$(SolutionDir)src\OpenGL\common\Object.hpp" />
+    <ClInclude Include="$(SolutionDir)src\OpenGL\common\Surface.hpp" />
+    <ClCompile Include="$(SolutionDir)src\OpenGL\common\debug.cpp" />
+    <ClInclude Include="$(SolutionDir)src\OpenGL\common\debug.h" />
+    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLESv2\Buffer.cpp" />
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\Buffer.h" />
+    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLESv2\Context.cpp" />
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\Context.h" />
+    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLESv2\Device.cpp" />
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\Device.hpp" />
+    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLESv2\Fence.cpp" />
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\Fence.h" />
+    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLESv2\Framebuffer.cpp" />
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\Framebuffer.h" />
+    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLESv2\IndexDataManager.cpp" />
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\IndexDataManager.h" />
+    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLESv2\Program.cpp" />
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\Program.h" />
+    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLESv2\Query.cpp" />
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\Query.h" />
+    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLESv2\Renderbuffer.cpp" />
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\Renderbuffer.h" />
+    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLESv2\ResourceManager.cpp" />
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\ResourceManager.h" />
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\Sampler.h" />
+    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLESv2\Shader.cpp" />
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\Shader.h" />
+    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLESv2\Texture.cpp" />
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\Texture.h" />
+    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLESv2\TransformFeedback.cpp" />
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\TransformFeedback.h" />
+    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLESv2\VertexArray.cpp" />
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\VertexArray.h" />
+    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLESv2\VertexDataManager.cpp" />
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\VertexDataManager.h" />
+    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLESv2\entry_points.cpp" />
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\entry_points.h" />
+    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLESv2\libGLESv2.cpp" />
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\libGLESv2.hpp" />
+    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLESv2\libGLESv3.cpp" />
+    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLESv2\main.cpp" />
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\main.h" />
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\mathutil.h" />
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\resource.h" />
+    <ClCompile Include="$(SolutionDir)src\OpenGL\libGLESv2\utilities.cpp" />
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libGLESv2\utilities.h" />
+    <ResourceCompile Include="$(SolutionDir)src\OpenGL\libGLESv2\libGLESv2.rc" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\GLCompiler.vcxproj">
-      <Project>{74318028-369F-3EA0-8A99-A341020416D6}</Project>
+      <Project>{B81F13DD-ACFB-3AB7-A071-3AD849D68E5C}</Project>
       <Name>GLCompiler</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\ReactorLLVM.vcxproj">
-      <Project>{3E565C6C-4B64-3128-A009-4A91C77E00E5}</Project>
+      <Project>{2EA2C687-489E-32F2-8D89-B90620301359}</Project>
       <Name>ReactorLLVM</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\SwiftShader.vcxproj">
-      <Project>{996E1D94-926B-3585-9466-CDB769D7188C}</Project>
+      <Project>{BFECAAAF-ADE7-36E8-BA23-4ABDE5A1A8B6}</Project>
       <Name>SwiftShader</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\llvm.vcxproj">
-      <Project>{9B24984C-F78C-3EF7-907B-2B0D2CDB5695}</Project>
+      <Project>{B9E0EFB7-8E1B-303D-9222-13F7A82B7858}</Project>
       <Name>llvm</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

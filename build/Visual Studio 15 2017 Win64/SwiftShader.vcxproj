@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <PreferredToolArchitecture>x64</PreferredToolArchitecture>
@@ -14,7 +14,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{996E1D94-926B-3585-9466-CDB769D7188C}</ProjectGuid>
+    <ProjectGuid>{BFECAAAF-ADE7-36E8-BA23-4ABDE5A1A8B6}</ProjectGuid>
     <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
@@ -64,6 +64,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <UseFullPaths>false</UseFullPaths>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NO_SANITIZE_FUNCTION=;_CRT_SECURE_NO_WARNINGS;_SBCS;WINVER=0x501;NOMINMAX;STRICT;REACTOR_LLVM_VERSION=7;CMAKE_INTDIR="Debug";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
@@ -96,10 +97,12 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <UseFullPaths>false</UseFullPaths>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;NO_SANITIZE_FUNCTION=;_CRT_SECURE_NO_WARNINGS;_SBCS;WINVER=0x501;NOMINMAX;STRICT;REACTOR_LLVM_VERSION=7;CMAKE_INTDIR="Release";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
-      <DebugInformationFormat></DebugInformationFormat>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;NO_SANITIZE_FUNCTION=;_CRT_SECURE_NO_WARNINGS;_SBCS;WINVER=0x501;NOMINMAX;STRICT;REACTOR_LLVM_VERSION=7;CMAKE_INTDIR=\"Release\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -118,110 +121,110 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)src\Common\CPUID.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Common\Configurator.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Common\Debug.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Common\Half.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Common\Math.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Common\Memory.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Common\Resource.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Common\SharedLibrary.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Common\Socket.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Common\Thread.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Common\Timer.cpp"  />
-    <ClInclude Include="$(SolutionDir)src\Common\Version.h" />
+    <ClCompile Include="$(SolutionDir)src\Common\CPUID.cpp" />
     <ClInclude Include="$(SolutionDir)src\Common\CPUID.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Common\Configurator.cpp" />
     <ClInclude Include="$(SolutionDir)src\Common\Configurator.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Common\Debug.cpp" />
     <ClInclude Include="$(SolutionDir)src\Common\Debug.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Common\Half.cpp" />
     <ClInclude Include="$(SolutionDir)src\Common\Half.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Common\Math.cpp" />
     <ClInclude Include="$(SolutionDir)src\Common\Math.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Common\Memory.cpp" />
     <ClInclude Include="$(SolutionDir)src\Common\Memory.hpp" />
     <ClInclude Include="$(SolutionDir)src\Common\MutexLock.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Common\Resource.cpp" />
     <ClInclude Include="$(SolutionDir)src\Common\Resource.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Common\SharedLibrary.cpp" />
     <ClInclude Include="$(SolutionDir)src\Common\SharedLibrary.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Common\Socket.cpp" />
     <ClInclude Include="$(SolutionDir)src\Common\Socket.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Common\Thread.cpp" />
     <ClInclude Include="$(SolutionDir)src\Common\Thread.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Common\Timer.cpp" />
     <ClInclude Include="$(SolutionDir)src\Common\Timer.hpp" />
     <ClInclude Include="$(SolutionDir)src\Common\Types.hpp" />
-    <ClCompile Include="$(SolutionDir)src\Renderer\Blitter.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Renderer\Clipper.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Renderer\Color.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Renderer\Context.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Renderer\ETC_Decoder.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Renderer\Matrix.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Renderer\PixelProcessor.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Renderer\Plane.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Renderer\Point.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Renderer\QuadRasterizer.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Renderer\Renderer.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Renderer\Sampler.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Renderer\SetupProcessor.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Renderer\Surface.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Renderer\TextureStage.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Renderer\Vector.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Renderer\VertexProcessor.cpp"  />
+    <ClInclude Include="$(SolutionDir)src\Common\Version.h" />
+    <ClCompile Include="$(SolutionDir)src\Renderer\Blitter.cpp" />
     <ClInclude Include="$(SolutionDir)src\Renderer\Blitter.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Renderer\Clipper.cpp" />
     <ClInclude Include="$(SolutionDir)src\Renderer\Clipper.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Renderer\Color.cpp" />
     <ClInclude Include="$(SolutionDir)src\Renderer\Color.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Renderer\Context.cpp" />
     <ClInclude Include="$(SolutionDir)src\Renderer\Context.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Renderer\ETC_Decoder.cpp" />
     <ClInclude Include="$(SolutionDir)src\Renderer\ETC_Decoder.hpp" />
     <ClInclude Include="$(SolutionDir)src\Renderer\LRUCache.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Renderer\Matrix.cpp" />
     <ClInclude Include="$(SolutionDir)src\Renderer\Matrix.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Renderer\PixelProcessor.cpp" />
     <ClInclude Include="$(SolutionDir)src\Renderer\PixelProcessor.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Renderer\Plane.cpp" />
     <ClInclude Include="$(SolutionDir)src\Renderer\Plane.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Renderer\Point.cpp" />
     <ClInclude Include="$(SolutionDir)src\Renderer\Point.hpp" />
     <ClInclude Include="$(SolutionDir)src\Renderer\Polygon.hpp" />
     <ClInclude Include="$(SolutionDir)src\Renderer\Primitive.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Renderer\QuadRasterizer.cpp" />
     <ClInclude Include="$(SolutionDir)src\Renderer\QuadRasterizer.hpp" />
     <ClInclude Include="$(SolutionDir)src\Renderer\Rasterizer.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Renderer\Renderer.cpp" />
     <ClInclude Include="$(SolutionDir)src\Renderer\Renderer.hpp" />
     <ClInclude Include="$(SolutionDir)src\Renderer\RoutineCache.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Renderer\Sampler.cpp" />
     <ClInclude Include="$(SolutionDir)src\Renderer\Sampler.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Renderer\SetupProcessor.cpp" />
     <ClInclude Include="$(SolutionDir)src\Renderer\SetupProcessor.hpp" />
     <ClInclude Include="$(SolutionDir)src\Renderer\Stream.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Renderer\Surface.cpp" />
     <ClInclude Include="$(SolutionDir)src\Renderer\Surface.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Renderer\TextureStage.cpp" />
     <ClInclude Include="$(SolutionDir)src\Renderer\TextureStage.hpp" />
     <ClInclude Include="$(SolutionDir)src\Renderer\Triangle.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Renderer\Vector.cpp" />
     <ClInclude Include="$(SolutionDir)src\Renderer\Vector.hpp" />
     <ClInclude Include="$(SolutionDir)src\Renderer\Vertex.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Renderer\VertexProcessor.cpp" />
     <ClInclude Include="$(SolutionDir)src\Renderer\VertexProcessor.hpp" />
-    <ClCompile Include="$(SolutionDir)src\Shader\Constants.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Shader\PixelPipeline.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Shader\PixelProgram.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Shader\PixelRoutine.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Shader\PixelShader.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Shader\SamplerCore.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Shader\SetupRoutine.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Shader\Shader.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Shader\ShaderCore.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Shader\VertexPipeline.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Shader\VertexProgram.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Shader\VertexRoutine.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\Shader\VertexShader.cpp"  />
+    <ClCompile Include="$(SolutionDir)src\Shader\Constants.cpp" />
     <ClInclude Include="$(SolutionDir)src\Shader\Constants.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Shader\PixelPipeline.cpp" />
     <ClInclude Include="$(SolutionDir)src\Shader\PixelPipeline.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Shader\PixelProgram.cpp" />
     <ClInclude Include="$(SolutionDir)src\Shader\PixelProgram.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Shader\PixelRoutine.cpp" />
     <ClInclude Include="$(SolutionDir)src\Shader\PixelRoutine.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Shader\PixelShader.cpp" />
     <ClInclude Include="$(SolutionDir)src\Shader\PixelShader.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Shader\SamplerCore.cpp" />
     <ClInclude Include="$(SolutionDir)src\Shader\SamplerCore.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Shader\SetupRoutine.cpp" />
     <ClInclude Include="$(SolutionDir)src\Shader\SetupRoutine.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Shader\Shader.cpp" />
     <ClInclude Include="$(SolutionDir)src\Shader\Shader.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Shader\ShaderCore.cpp" />
     <ClInclude Include="$(SolutionDir)src\Shader\ShaderCore.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Shader\VertexPipeline.cpp" />
     <ClInclude Include="$(SolutionDir)src\Shader\VertexPipeline.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Shader\VertexProgram.cpp" />
     <ClInclude Include="$(SolutionDir)src\Shader\VertexProgram.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Shader\VertexRoutine.cpp" />
     <ClInclude Include="$(SolutionDir)src\Shader\VertexRoutine.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Shader\VertexShader.cpp" />
     <ClInclude Include="$(SolutionDir)src\Shader\VertexShader.hpp" />
-    <ClCompile Include="$(SolutionDir)src\Main\Config.cpp"  />
+    <ClCompile Include="$(SolutionDir)src\Main\Config.cpp" />
     <ClInclude Include="$(SolutionDir)src\Main\Config.hpp" />
-    <ClCompile Include="$(SolutionDir)src\Main\FrameBuffer.cpp"  />
+    <ClCompile Include="$(SolutionDir)src\Main\FrameBuffer.cpp" />
     <ClInclude Include="$(SolutionDir)src\Main\FrameBuffer.hpp" />
-    <ClCompile Include="$(SolutionDir)src\Main\SwiftConfig.cpp"  />
+    <ClCompile Include="$(SolutionDir)src\Main\SwiftConfig.cpp" />
     <ClInclude Include="$(SolutionDir)src\Main\SwiftConfig.hpp" />
-    <ClCompile Include="$(SolutionDir)src\Main\FrameBufferDD.cpp"  />
+    <ClCompile Include="$(SolutionDir)src\Main\FrameBufferDD.cpp" />
     <ClInclude Include="$(SolutionDir)src\Main\FrameBufferDD.hpp" />
-    <ClCompile Include="$(SolutionDir)src\Main\FrameBufferGDI.cpp"  />
+    <ClCompile Include="$(SolutionDir)src\Main\FrameBufferGDI.cpp" />
     <ClInclude Include="$(SolutionDir)src\Main\FrameBufferGDI.hpp" />
-    <ClCompile Include="$(SolutionDir)src\Main\FrameBufferWin.cpp"  />
+    <ClCompile Include="$(SolutionDir)src\Main\FrameBufferWin.cpp" />
     <ClInclude Include="$(SolutionDir)src\Main\FrameBufferWin.hpp" />
   </ItemGroup>
   <ItemGroup>

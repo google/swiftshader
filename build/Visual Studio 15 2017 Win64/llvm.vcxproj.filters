@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Analysis\AliasAnalysis.cpp">
@@ -263,6 +263,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\Analysis\VectorUtils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\AsmParser\LLLexer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\AsmParser\LLParser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\AsmParser\Parser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)third_party\llvm-7.0\llvm\lib\BinaryFormat\Dwarf.cpp">
@@ -2608,7 +2617,7 @@
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Source Files">
-      <UniqueIdentifier>{2F259CF2-FDFE-365E-920F-2228D7410C8D}</UniqueIdentifier>
+      <UniqueIdentifier>{307AEBE6-F217-340D-9701-0167F1D37482}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

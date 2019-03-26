@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <PreferredToolArchitecture>x64</PreferredToolArchitecture>
@@ -14,7 +14,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{B49D30BB-AC67-3799-8A4E-B5F883BB229B}</ProjectGuid>
+    <ProjectGuid>{956A3BCB-1113-3FD7-87CC-908C6073E1FB}</ProjectGuid>
     <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
@@ -68,6 +68,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <UseFullPaths>false</UseFullPaths>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>WIN32;_WINDOWS;EGL_EGLEXT_PROTOTYPES; EGLAPI=; NO_SANITIZE_FUNCTION=;_CRT_SECURE_NO_WARNINGS;_SBCS;WINVER=0x501;NOMINMAX;STRICT;REACTOR_LLVM_VERSION=7;CMAKE_INTDIR="Debug";libEGL_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
@@ -91,9 +92,9 @@
 if %errorlevel% neq 0 goto :cmEnd
 "cmake" -E copy "$(SolutionDir)build/Visual Studio 15 2017 Win64/Debug/libEGL.dll" "$(SolutionDir)build/Visual Studio 15 2017 Win64/Debug/translator/lib64EGL_translator.dll"
 if %errorlevel% neq 0 goto :cmEnd
-"cmake" -E make_directory $(SolutionDir)out/Windows/
+"cmake" -E make_directory "$(SolutionDir)build/Visual Studio 15 2017 Win64/Windows/"
 if %errorlevel% neq 0 goto :cmEnd
-"cmake" -E copy "$(SolutionDir)build/Visual Studio 15 2017 Win64/Debug/libEGL.dll" $(SolutionDir)out/Windows/
+"cmake" -E copy "$(SolutionDir)build/Visual Studio 15 2017 Win64/Debug/libEGL.dll" "$(SolutionDir)build/Visual Studio 15 2017 Win64/Windows/"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -129,10 +130,12 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <UseFullPaths>false</UseFullPaths>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;EGL_EGLEXT_PROTOTYPES; EGLAPI=; NO_SANITIZE_FUNCTION=;_CRT_SECURE_NO_WARNINGS;_SBCS;WINVER=0x501;NOMINMAX;STRICT;REACTOR_LLVM_VERSION=7;CMAKE_INTDIR="Release";libEGL_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
-      <DebugInformationFormat></DebugInformationFormat>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;EGL_EGLEXT_PROTOTYPES; EGLAPI=; NO_SANITIZE_FUNCTION=;_CRT_SECURE_NO_WARNINGS;_SBCS;WINVER=0x501;NOMINMAX;STRICT;REACTOR_LLVM_VERSION=7;CMAKE_INTDIR=\"Release\";libEGL_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -153,9 +156,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
 if %errorlevel% neq 0 goto :cmEnd
 "cmake" -E copy "$(SolutionDir)build/Visual Studio 15 2017 Win64/Release/libEGL.dll" "$(SolutionDir)build/Visual Studio 15 2017 Win64/Release/translator/lib64EGL_translator.dll"
 if %errorlevel% neq 0 goto :cmEnd
-"cmake" -E make_directory $(SolutionDir)out/Windows/
+"cmake" -E make_directory "$(SolutionDir)build/Visual Studio 15 2017 Win64/Windows/"
 if %errorlevel% neq 0 goto :cmEnd
-"cmake" -E copy "$(SolutionDir)build/Visual Studio 15 2017 Win64/Release/libEGL.dll" $(SolutionDir)out/Windows/
+"cmake" -E copy "$(SolutionDir)build/Visual Studio 15 2017 Win64/Release/libEGL.dll" "$(SolutionDir)build/Visual Studio 15 2017 Win64/Windows/"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -180,27 +183,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)src\OpenGL\libEGL\Config.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\OpenGL\libEGL\Display.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\OpenGL\libEGL\Surface.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\OpenGL\libEGL\libEGL.cpp"  />
-    <ClCompile Include="$(SolutionDir)src\OpenGL\libEGL\main.cpp"  />
-    <ClInclude Include="$(SolutionDir)src\OpenGL\libEGL\Config.h" />
-    <ClInclude Include="$(SolutionDir)src\OpenGL\libEGL\Display.h" />
-    <ClInclude Include="$(SolutionDir)src\OpenGL\libEGL\main.h" />
-    <ClInclude Include="$(SolutionDir)src\OpenGL\libEGL\resource.h" />
-    <ClInclude Include="$(SolutionDir)src\OpenGL\libEGL\Context.hpp" />
-    <ClInclude Include="$(SolutionDir)src\OpenGL\libEGL\OSXUtils.hpp" />
-    <ClInclude Include="$(SolutionDir)src\OpenGL\libEGL\Surface.hpp" />
-    <ClInclude Include="$(SolutionDir)src\OpenGL\libEGL\Sync.hpp" />
-    <ClInclude Include="$(SolutionDir)src\OpenGL\libEGL\Texture.hpp" />
-    <ClInclude Include="$(SolutionDir)src\OpenGL\libEGL\libEGL.hpp" />
-    <ClCompile Include="$(SolutionDir)src\OpenGL\common\Object.cpp"  />
-    <ClInclude Include="$(SolutionDir)src\OpenGL\common\Object.hpp" />
-    <ClCompile Include="$(SolutionDir)src\OpenGL\common\debug.cpp"  />
-    <ClInclude Include="$(SolutionDir)src\OpenGL\common\debug.h" />
-    <ClCompile Include="$(SolutionDir)src\Common\SharedLibrary.cpp"  />
-    <ClInclude Include="$(SolutionDir)src\Common\SharedLibrary.hpp" />
     <ClInclude Include="$(SolutionDir)include\Android\android\api-level.h" />
     <ClInclude Include="$(SolutionDir)include\Android\android\sync.h" />
     <ClInclude Include="$(SolutionDir)include\Android\cutils\native_handle.h" />
@@ -247,7 +229,28 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)include\vulkan\vulkan_xcb.h" />
     <ClInclude Include="$(SolutionDir)include\vulkan\vulkan_xlib.h" />
     <ClInclude Include="$(SolutionDir)include\vulkan\vulkan_xlib_xrandr.h" />
-    <ResourceCompile Include="$(SolutionDir)src\OpenGL\libEGL\libEGL.rc"  />
+    <ClCompile Include="$(SolutionDir)src\Common\SharedLibrary.cpp" />
+    <ClInclude Include="$(SolutionDir)src\Common\SharedLibrary.hpp" />
+    <ClCompile Include="$(SolutionDir)src\OpenGL\common\Object.cpp" />
+    <ClInclude Include="$(SolutionDir)src\OpenGL\common\Object.hpp" />
+    <ClCompile Include="$(SolutionDir)src\OpenGL\common\debug.cpp" />
+    <ClInclude Include="$(SolutionDir)src\OpenGL\common\debug.h" />
+    <ClCompile Include="$(SolutionDir)src\OpenGL\libEGL\Config.cpp" />
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libEGL\Config.h" />
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libEGL\Context.hpp" />
+    <ClCompile Include="$(SolutionDir)src\OpenGL\libEGL\Display.cpp" />
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libEGL\Display.h" />
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libEGL\OSXUtils.hpp" />
+    <ClCompile Include="$(SolutionDir)src\OpenGL\libEGL\Surface.cpp" />
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libEGL\Surface.hpp" />
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libEGL\Sync.hpp" />
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libEGL\Texture.hpp" />
+    <ClCompile Include="$(SolutionDir)src\OpenGL\libEGL\libEGL.cpp" />
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libEGL\libEGL.hpp" />
+    <ClCompile Include="$(SolutionDir)src\OpenGL\libEGL\main.cpp" />
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libEGL\main.h" />
+    <ClInclude Include="$(SolutionDir)src\OpenGL\libEGL\resource.h" />
+    <ResourceCompile Include="$(SolutionDir)src\OpenGL\libEGL\libEGL.rc" />
   </ItemGroup>
   <ItemGroup>
   </ItemGroup>

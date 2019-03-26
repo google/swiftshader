@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\util\bit_vector.cpp">
@@ -326,70 +326,19 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\CMakeFiles\d839d777cdb37cdb07021ff3b0cf0243\extension_enum.inc.rule">
-      <Filter>CMake Rules</Filter>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\CMakeFiles\d839d777cdb37cdb07021ff3b0cf0243\core.insts-unified1.inc.rule">
-      <Filter>CMake Rules</Filter>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\CMakeFiles\d839d777cdb37cdb07021ff3b0cf0243\generators.inc.rule">
-      <Filter>CMake Rules</Filter>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\CMakeFiles\d839d777cdb37cdb07021ff3b0cf0243\opencl.std.insts.inc.rule">
-      <Filter>CMake Rules</Filter>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\CMakeFiles\d839d777cdb37cdb07021ff3b0cf0243\glsl.std.450.insts.inc.rule">
-      <Filter>CMake Rules</Filter>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\CMakeFiles\d839d777cdb37cdb07021ff3b0cf0243\spv-amd-shader-explicit-vertex-parameter.insts.inc.rule">
-      <Filter>CMake Rules</Filter>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\CMakeFiles\412e367eb8014dedeaefb6a88c64e3ed\spirv-tools-spv-amd-shader-explicit-vertex-parameter.rule">
-      <Filter>CMake Rules</Filter>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\CMakeFiles\d839d777cdb37cdb07021ff3b0cf0243\spv-amd-shader-trinary-minmax.insts.inc.rule">
-      <Filter>CMake Rules</Filter>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\CMakeFiles\412e367eb8014dedeaefb6a88c64e3ed\spirv-tools-spv-amd-shader-trinary-minmax.rule">
-      <Filter>CMake Rules</Filter>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\CMakeFiles\d839d777cdb37cdb07021ff3b0cf0243\spv-amd-gcn-shader.insts.inc.rule">
-      <Filter>CMake Rules</Filter>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\CMakeFiles\412e367eb8014dedeaefb6a88c64e3ed\spirv-tools-spv-amd-gcn-shader.rule">
-      <Filter>CMake Rules</Filter>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\CMakeFiles\d839d777cdb37cdb07021ff3b0cf0243\spv-amd-shader-ballot.insts.inc.rule">
-      <Filter>CMake Rules</Filter>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\CMakeFiles\412e367eb8014dedeaefb6a88c64e3ed\spirv-tools-spv-amd-shader-ballot.rule">
-      <Filter>CMake Rules</Filter>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\CMakeFiles\d839d777cdb37cdb07021ff3b0cf0243\debuginfo.insts.inc.rule">
-      <Filter>CMake Rules</Filter>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\CMakeFiles\412e367eb8014dedeaefb6a88c64e3ed\spirv-tools-debuginfo.rule">
-      <Filter>CMake Rules</Filter>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\CMakeFiles\d839d777cdb37cdb07021ff3b0cf0243\DebugInfo.h.rule">
-      <Filter>CMake Rules</Filter>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\CMakeFiles\412e367eb8014dedeaefb6a88c64e3ed\spirv-tools-header-DebugInfo.rule">
-      <Filter>CMake Rules</Filter>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\CMakeFiles\d839d777cdb37cdb07021ff3b0cf0243\build-version.inc.rule">
+    <CustomBuild Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\CMakeFiles\9dfff45db06cc5e650558716138bc064\build-version.inc.rule">
       <Filter>CMake Rules</Filter>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{2F259CF2-FDFE-365E-920F-2228D7410C8D}</UniqueIdentifier>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{F9C83099-B062-3CB2-AD40-CA4D4008C58C}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files">
-      <UniqueIdentifier>{06D2D69E-DE55-30BE-A8A1-FE6C66324860}</UniqueIdentifier>
+      <UniqueIdentifier>{BC4B8AD2-A096-36EC-A16A-CFEE34C3D52C}</UniqueIdentifier>
     </Filter>
-    <Filter Include="CMake Rules">
-      <UniqueIdentifier>{E7120DB7-422E-375E-9E9C-67A8C10F86DB}</UniqueIdentifier>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{307AEBE6-F217-340D-9701-0167F1D37482}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

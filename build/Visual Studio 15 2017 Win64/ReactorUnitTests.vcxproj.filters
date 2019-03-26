@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)src\Reactor\ReactorUnitTests.cpp">
@@ -9,14 +9,14 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Filter Include="src\Reactor">
-      <UniqueIdentifier>{01629916-7B58-386F-9C49-915800FE4A05}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files">
-      <UniqueIdentifier>{2F259CF2-FDFE-365E-920F-2228D7410C8D}</UniqueIdentifier>
+      <UniqueIdentifier>{307AEBE6-F217-340D-9701-0167F1D37482}</UniqueIdentifier>
     </Filter>
     <Filter Include="src">
-      <UniqueIdentifier>{13574A07-B880-3431-8401-B66983F72A05}</UniqueIdentifier>
+      <UniqueIdentifier>{1D32CFC4-3897-312A-881D-1722E268FA32}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Reactor">
+      <UniqueIdentifier>{F51AFC28-EF81-3443-9FD8-3EAA2D053082}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

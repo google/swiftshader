@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)src\OpenGL\compiler\AnalyzeCallDepth.cpp">
@@ -240,16 +240,16 @@
   </ItemGroup>
   <ItemGroup>
     <Filter Include="src">
-      <UniqueIdentifier>{13574A07-B880-3431-8401-B66983F72A05}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\OpenGL\compiler\preprocessor">
-      <UniqueIdentifier>{9DCCFE59-E55F-37D1-B9F1-AC419B68ABFD}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\OpenGL\compiler">
-      <UniqueIdentifier>{AEE5967E-F68B-3972-BDE5-AF7D77265A4C}</UniqueIdentifier>
+      <UniqueIdentifier>{1D32CFC4-3897-312A-881D-1722E268FA32}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\OpenGL">
-      <UniqueIdentifier>{51160DCB-631F-348A-A69D-7F054A400827}</UniqueIdentifier>
+      <UniqueIdentifier>{290F2129-951C-3257-8777-9DC8BFFF50AF}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\OpenGL\compiler">
+      <UniqueIdentifier>{A1DAC9E2-7F60-3CE0-81E0-780EFC1C467F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\OpenGL\compiler\preprocessor">
+      <UniqueIdentifier>{86B2E060-5745-3994-AC91-109FEEAA1A82}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

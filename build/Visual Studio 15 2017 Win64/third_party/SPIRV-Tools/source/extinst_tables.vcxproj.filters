@@ -1,13 +1,13 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <CustomBuild Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\CMakeFiles\d839d777cdb37cdb07021ff3b0cf0243\opencl.std.insts.inc.rule">
+    <CustomBuild Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\CMakeFiles\9dfff45db06cc5e650558716138bc064\opencl.std.insts.inc.rule">
       <Filter>CMake Rules</Filter>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\CMakeFiles\d839d777cdb37cdb07021ff3b0cf0243\glsl.std.450.insts.inc.rule">
+    <CustomBuild Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\CMakeFiles\9dfff45db06cc5e650558716138bc064\glsl.std.450.insts.inc.rule">
       <Filter>CMake Rules</Filter>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\CMakeFiles\412e367eb8014dedeaefb6a88c64e3ed\extinst_tables.rule">
+    <CustomBuild Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\CMakeFiles\18df793f4fb1c21db34fc298696ce393\extinst_tables.rule">
       <Filter>CMake Rules</Filter>
     </CustomBuild>
   </ItemGroup>
@@ -16,7 +16,7 @@
   </ItemGroup>
   <ItemGroup>
     <Filter Include="CMake Rules">
-      <UniqueIdentifier>{E7120DB7-422E-375E-9E9C-67A8C10F86DB}</UniqueIdentifier>
+      <UniqueIdentifier>{F9C83099-B062-3CB2-AD40-CA4D4008C58C}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

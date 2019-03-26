@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)third_party\SPIRV-Tools\source\opt\aggressive_dead_code_elim_pass.cpp">
@@ -548,11 +548,11 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{2F259CF2-FDFE-365E-920F-2228D7410C8D}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files">
-      <UniqueIdentifier>{06D2D69E-DE55-30BE-A8A1-FE6C66324860}</UniqueIdentifier>
+      <UniqueIdentifier>{BC4B8AD2-A096-36EC-A16A-CFEE34C3D52C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{307AEBE6-F217-340D-9701-0167F1D37482}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>
