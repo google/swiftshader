@@ -69,7 +69,7 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <ModuleDefinitionFile>swiftshader_icd.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>libvk_swiftshader.def</ModuleDefinitionFile>
       <AdditionalDependencies>dxguid.lib;WS2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
@@ -92,7 +92,7 @@ IF EXIST "$(SolutionDir)..\deqp\build\external\vulkancts\modules\vulkan\" (copy 
       <TreatSpecificWarningsAsErrors>4018;5038;4838</TreatSpecificWarningsAsErrors>
     </ClCompile>
     <Link>
-      <ModuleDefinitionFile>swiftshader_icd.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>libvk_swiftshader.def</ModuleDefinitionFile>
       <AdditionalDependencies>dxguid.lib;WS2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
@@ -283,7 +283,7 @@ IF EXIST "$(SolutionDir)..\deqp\build\external\vulkancts\modules\vulkan\" (copy 
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="swiftshader_icd.def" />
+    <None Include="libvk_swiftshader.def" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Vulkan.rc" />
