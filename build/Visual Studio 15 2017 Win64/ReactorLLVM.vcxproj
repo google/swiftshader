@@ -122,7 +122,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)src\Reactor\Reactor.cpp" />
-    <ClCompile Include="$(SolutionDir)src\Reactor\LLVMReactor.cpp" />
+    <ClCompile Include="$(SolutionDir)src\Reactor\LLVMReactor.cpp"  />
+    <ClInclude Include="$(SolutionDir)src\Reactor\LLVMReactor.hpp" />
+    <ClCompile Include="$(SolutionDir)src\Reactor\LLVMReactorDebugInfo.cpp"  />
+    <ClInclude Include="$(SolutionDir)src\Reactor\LLVMReactorDebugInfo.hpp" />
     <ClInclude Include="$(SolutionDir)src\Reactor\Nucleus.hpp" />
     <ClCompile Include="$(SolutionDir)src\Reactor\Routine.cpp" />
     <ClInclude Include="$(SolutionDir)src\Reactor\Routine.hpp" />

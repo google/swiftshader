@@ -289,6 +289,7 @@
     <ClCompile Include="LLVMRoutine.cpp" />
     <ClCompile Include="LLVMRoutineManager.cpp" />
     <ClCompile Include="LLVMReactor.cpp" />
+    <ClCompile Include="LLVMReactorDebugInfo.cpp" />
     <ClCompile Include="ExecutableMemory.cpp" />
     <ClCompile Include="Reactor.cpp" />
     <ClCompile Include="Routine.cpp" />
@@ -297,6 +298,8 @@
   <ItemGroup>
     <ClInclude Include="CPUID.hpp" />
     <ClInclude Include="Debug.hpp" />
+    <ClInclude Include="LLVMReactor.hpp" />
+    <ClInclude Include="LLVMReactorDebugInfo.hpp" />
     <ClInclude Include="LLVMRoutine.hpp" />
     <ClInclude Include="LLVMRoutineManager.hpp" />
     <ClInclude Include="ExecutableMemory.hpp" />

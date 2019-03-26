@@ -32,6 +32,27 @@
 #define ENABLE_RR_PRINT 1 // Enables RR_PRINT(), RR_WATCH()
 #endif // !defined(NDEBUG) && (REACTOR_LLVM_VERSION >= 7)
 
+#ifdef ENABLE_RR_DEBUG_INFO
+	// Functions used for generating JIT debug info.
+	// See docs/ReactorDebugInfo.md for more information.
+	namespace rr
+	{
+		// Update the current source location for debug.
+		void EmitDebugLocation();
+		// Bind value to its symbolic name taken from the backtrace.
+		void EmitDebugVariable(class Value* value);
+		// Flush any pending variable bindings before the line ends.
+		void FlushDebug();
+	}
+	#define RR_DEBUG_INFO_UPDATE_LOC()    rr::EmitDebugLocation()
+	#define RR_DEBUG_INFO_EMIT_VAR(value) rr::EmitDebugVariable(value)
+	#define RR_DEBUG_INFO_FLUSH()         rr::FlushDebug()
+#else
+	#define RR_DEBUG_INFO_UPDATE_LOC()
+	#define RR_DEBUG_INFO_EMIT_VAR(value)
+	#define RR_DEBUG_INFO_FLUSH()
+#endif // ENABLE_RR_DEBUG_INFO
+
 namespace rr
 {
 	struct Capabilities
@@ -210,6 +231,10 @@ namespace rr
 	{
 	public:
 		explicit RValue(Value *rvalue);
+
+#ifdef ENABLE_RR_DEBUG_INFO
+		RValue(const RValue<T> &rvalue);
+#endif // ENABLE_RR_DEBUG_INFO
 
 		RValue(const T &lvalue);
 		RValue(typename BoolLiteral<T>::type i);
@@ -2385,6 +2410,9 @@ namespace rr
 	template<class T>
 	LValue<T>::LValue(int arraySize) : Variable(T::getType(), arraySize)
 	{
+#ifdef ENABLE_RR_DEBUG_INFO
+		materialize();
+#endif // ENABLE_RR_DEBUG_INFO
 	}
 
 	inline void Variable::materialize() const
@@ -2392,6 +2420,7 @@ namespace rr
 		if(!address)
 		{
 			address = Nucleus::allocateStackVariable(type, arraySize);
+			RR_DEBUG_INFO_EMIT_VAR(address);
 
 			if(rvalue)
 			{
@@ -2488,47 +2517,62 @@ namespace rr
 		return alignment;
 	}
 
+#ifdef ENABLE_RR_DEBUG_INFO
+	template<class T>
+	RValue<T>::RValue(const RValue<T> &rvalue) : value(rvalue.value)
+	{
+		RR_DEBUG_INFO_EMIT_VAR(value);
+	}
+#endif // ENABLE_RR_DEBUG_INFO
+
 	template<class T>
 	RValue<T>::RValue(Value *rvalue)
 	{
 		assert(Nucleus::createBitCast(rvalue, T::getType()) == rvalue);   // Run-time type should match T, so bitcast is no-op.
 
 		value = rvalue;
+		RR_DEBUG_INFO_EMIT_VAR(value);
 	}
 
 	template<class T>
 	RValue<T>::RValue(const T &lvalue)
 	{
 		value = lvalue.loadValue();
+		RR_DEBUG_INFO_EMIT_VAR(value);
 	}
 
 	template<class T>
 	RValue<T>::RValue(typename BoolLiteral<T>::type i)
 	{
 		value = Nucleus::createConstantBool(i);
+		RR_DEBUG_INFO_EMIT_VAR(value);
 	}
 
 	template<class T>
 	RValue<T>::RValue(typename IntLiteral<T>::type i)
 	{
 		value = Nucleus::createConstantInt(i);
+		RR_DEBUG_INFO_EMIT_VAR(value);
 	}
 
 	template<class T>
 	RValue<T>::RValue(typename FloatLiteral<T>::type f)
 	{
 		value = Nucleus::createConstantFloat(f);
+		RR_DEBUG_INFO_EMIT_VAR(value);
 	}
 
 	template<class T>
 	RValue<T>::RValue(const Reference<T> &ref)
 	{
 		value = ref.loadValue();
+		RR_DEBUG_INFO_EMIT_VAR(value);
 	}
 
 	template<class Vector4, int T>
 	Swizzle2<Vector4, T>::operator RValue<Vector4>() const
 	{
+		RR_DEBUG_INFO_UPDATE_LOC();
 		Value *vector = parent->loadValue();
 
 		return Swizzle(RValue<Vector4>(vector), T);
@@ -2537,6 +2581,7 @@ namespace rr
 	template<class Vector4, int T>
 	Swizzle4<Vector4, T>::operator RValue<Vector4>() const
 	{
+		RR_DEBUG_INFO_UPDATE_LOC();
 		Value *vector = parent->loadValue();
 
 		return Swizzle(RValue<Vector4>(vector), T);
@@ -2545,6 +2590,7 @@ namespace rr
 	template<class Vector4, int T>
 	SwizzleMask4<Vector4, T>::operator RValue<Vector4>() const
 	{
+		RR_DEBUG_INFO_UPDATE_LOC();
 		Value *vector = parent->loadValue();
 
 		return Swizzle(RValue<Vector4>(vector), T);
@@ -2553,24 +2599,28 @@ namespace rr
 	template<class Vector4, int T>
 	RValue<Vector4> SwizzleMask4<Vector4, T>::operator=(RValue<Vector4> rhs)
 	{
+		RR_DEBUG_INFO_UPDATE_LOC();
 		return Mask(*parent, rhs, T);
 	}
 
 	template<class Vector4, int T>
 	RValue<Vector4> SwizzleMask4<Vector4, T>::operator=(RValue<typename Scalar<Vector4>::Type> rhs)
 	{
+		RR_DEBUG_INFO_UPDATE_LOC();
 		return Mask(*parent, Vector4(rhs), T);
 	}
 
 	template<class Vector4, int T>
 	SwizzleMask1<Vector4, T>::operator RValue<typename Scalar<Vector4>::Type>() const   // FIXME: Call a non-template function
 	{
+		RR_DEBUG_INFO_UPDATE_LOC();
 		return Extract(*parent, T & 0x3);
 	}
 
 	template<class Vector4, int T>
 	SwizzleMask1<Vector4, T>::operator RValue<Vector4>() const
 	{
+		RR_DEBUG_INFO_UPDATE_LOC();
 		Value *vector = parent->loadValue();
 
 		return Swizzle(RValue<Vector4>(vector), T);
@@ -2579,24 +2629,28 @@ namespace rr
 	template<class Vector4, int T>
 	RValue<Vector4> SwizzleMask1<Vector4, T>::operator=(float x)
 	{
+		RR_DEBUG_INFO_UPDATE_LOC();
 		return *parent = Insert(*parent, Float(x), T & 0x3);
 	}
 
 	template<class Vector4, int T>
 	RValue<Vector4> SwizzleMask1<Vector4, T>::operator=(RValue<Vector4> rhs)
 	{
+		RR_DEBUG_INFO_UPDATE_LOC();
 		return Mask(*parent, Float4(rhs), T);
 	}
 
 	template<class Vector4, int T>
 	RValue<Vector4> SwizzleMask1<Vector4, T>::operator=(RValue<typename Scalar<Vector4>::Type> rhs)   // FIXME: Call a non-template function
 	{
+		RR_DEBUG_INFO_UPDATE_LOC();
 		return *parent = Insert(*parent, rhs, T & 0x3);
 	}
 
 	template<class Vector4, int T>
 	SwizzleMask2<Vector4, T>::operator RValue<Vector4>() const
 	{
+		RR_DEBUG_INFO_UPDATE_LOC();
 		Value *vector = parent->loadValue();
 
 		return Swizzle(RValue<Float4>(vector), T);
@@ -2605,6 +2659,7 @@ namespace rr
 	template<class Vector4, int T>
 	RValue<Vector4> SwizzleMask2<Vector4, T>::operator=(RValue<Vector4> rhs)
 	{
+		RR_DEBUG_INFO_UPDATE_LOC();
 		return Mask(*parent, Float4(rhs), T);
 	}
 
@@ -2635,24 +2690,28 @@ namespace rr
 	template<int X, int Y>
 	Float4::Float4(const Swizzle2<Float4, X> &x, const Swizzle2<Float4, Y> &y) : XYZW(this)
 	{
+		RR_DEBUG_INFO_UPDATE_LOC();
 		*this = ShuffleLowHigh(*x.parent, *y.parent, (X & 0xF) | (Y & 0xF) << 4);
 	}
 
 	template<int X, int Y>
 	Float4::Float4(const SwizzleMask2<Float4, X> &x, const Swizzle2<Float4, Y> &y) : XYZW(this)
 	{
+		RR_DEBUG_INFO_UPDATE_LOC();
 		*this = ShuffleLowHigh(*x.parent, *y.parent, (X & 0xF) | (Y & 0xF) << 4);
 	}
 
 	template<int X, int Y>
 	Float4::Float4(const Swizzle2<Float4, X> &x, const SwizzleMask2<Float4, Y> &y) : XYZW(this)
 	{
+		RR_DEBUG_INFO_UPDATE_LOC();
 		*this = ShuffleLowHigh(*x.parent, *y.parent, (X & 0xF) | (Y & 0xF) << 4);
 	}
 
 	template<int X, int Y>
 	Float4::Float4(const SwizzleMask2<Float4, X> &x, const SwizzleMask2<Float4, Y> &y) : XYZW(this)
 	{
+		RR_DEBUG_INFO_UPDATE_LOC();
 		*this = ShuffleLowHigh(*x.parent, *y.parent, (X & 0xF) | (Y & 0xF) << 4);
 	}
 
@@ -2736,6 +2795,7 @@ namespace rr
 	template<class T>
 	Reference<T> Pointer<T>::operator[](int index)
 	{
+		RR_DEBUG_INFO_UPDATE_LOC();
 		Value *element = Nucleus::createGEP(LValue<Pointer<T>>::loadValue(), T::getType(), Nucleus::createConstantInt(index), false);
 
 		return Reference<T>(element, alignment);
@@ -2744,6 +2804,7 @@ namespace rr
 	template<class T>
 	Reference<T> Pointer<T>::operator[](unsigned int index)
 	{
+		RR_DEBUG_INFO_UPDATE_LOC();
 		Value *element = Nucleus::createGEP(LValue<Pointer<T>>::loadValue(), T::getType(), Nucleus::createConstantInt(index), true);
 
 		return Reference<T>(element, alignment);
@@ -2752,6 +2813,7 @@ namespace rr
 	template<class T>
 	Reference<T> Pointer<T>::operator[](RValue<Int> index)
 	{
+		RR_DEBUG_INFO_UPDATE_LOC();
 		Value *element = Nucleus::createGEP(LValue<Pointer<T>>::loadValue(), T::getType(), index.value, false);
 
 		return Reference<T>(element, alignment);
@@ -2760,6 +2822,7 @@ namespace rr
 	template<class T>
 	Reference<T> Pointer<T>::operator[](RValue<UInt> index)
 	{
+		RR_DEBUG_INFO_UPDATE_LOC();
 		Value *element = Nucleus::createGEP(LValue<Pointer<T>>::loadValue(), T::getType(), index.value, true);
 
 		return Reference<T>(element, alignment);
@@ -2835,12 +2898,14 @@ namespace rr
 	template<class T>
 	RValue<T> IfThenElse(RValue<Bool> condition, RValue<T> ifTrue, RValue<T> ifFalse)
 	{
+		RR_DEBUG_INFO_UPDATE_LOC();
 		return RValue<T>(Nucleus::createSelect(condition.value, ifTrue.value, ifFalse.value));
 	}
 
 	template<class T>
 	RValue<T> IfThenElse(RValue<Bool> condition, const T &ifTrue, RValue<T> ifFalse)
 	{
+		RR_DEBUG_INFO_UPDATE_LOC();
 		Value *trueValue = ifTrue.loadValue();
 
 		return RValue<T>(Nucleus::createSelect(condition.value, trueValue, ifFalse.value));
@@ -2849,6 +2914,7 @@ namespace rr
 	template<class T>
 	RValue<T> IfThenElse(RValue<Bool> condition, RValue<T> ifTrue, const T &ifFalse)
 	{
+		RR_DEBUG_INFO_UPDATE_LOC();
 		Value *falseValue = ifFalse.loadValue();
 
 		return RValue<T>(Nucleus::createSelect(condition.value, ifTrue.value, falseValue));
@@ -2857,6 +2923,7 @@ namespace rr
 	template<class T>
 	RValue<T> IfThenElse(RValue<Bool> condition, const T &ifTrue, const T &ifFalse)
 	{
+		RR_DEBUG_INFO_UPDATE_LOC();
 		Value *trueValue = ifTrue.loadValue();
 		Value *falseValue = ifFalse.loadValue();
 
@@ -2866,6 +2933,7 @@ namespace rr
 	template<class T>
 	void Return(const Pointer<T> &ret)
 	{
+		RR_DEBUG_INFO_UPDATE_LOC();
 		Nucleus::createRet(Nucleus::createLoad(ret.address, Pointer<T>::getType()));
 		Nucleus::setInsertBlock(Nucleus::createBasicBlock());
 		Nucleus::createUnreachable();
@@ -2874,6 +2942,7 @@ namespace rr
 	template<class T>
 	void Return(RValue<Pointer<T>> ret)
 	{
+		RR_DEBUG_INFO_UPDATE_LOC();
 		Nucleus::createRet(ret.value);
 		Nucleus::setInsertBlock(Nucleus::createBasicBlock());
 		Nucleus::createUnreachable();
@@ -2918,12 +2987,14 @@ namespace rr
 	template<class T, class S>
 	RValue<T> ReinterpretCast(RValue<S> val)
 	{
+		RR_DEBUG_INFO_UPDATE_LOC();
 		return RValue<T>(Nucleus::createBitCast(val.value, T::getType()));
 	}
 
 	template<class T, class S>
 	RValue<T> ReinterpretCast(const LValue<S> &var)
 	{
+		RR_DEBUG_INFO_UPDATE_LOC();
 		Value *val = var.loadValue();
 
 		return RValue<T>(Nucleus::createBitCast(val, T::getType()));
@@ -2938,6 +3009,7 @@ namespace rr
 	template<class T>
 	RValue<T> As(Value *val)
 	{
+		RR_DEBUG_INFO_UPDATE_LOC();
 		return RValue<T>(Nucleus::createBitCast(val, T::getType()));
 	}
 
@@ -3049,6 +3121,10 @@ namespace rr
 	{
 		CallHelper<FUNCTION_SIGNATURE>::Call(fptr, args...);
 	}
+
+	// Breakpoint emits an instruction that will cause the application to trap.
+	// This can be used to stop an attached debugger at the given call.
+	void Breakpoint();
 
 #ifdef ENABLE_RR_PRINT
 	// PrintValue holds the printf format and value(s) for a single argument
@@ -3387,6 +3463,7 @@ namespace rr
 
 		bool setup()
 		{
+			RR_DEBUG_INFO_FLUSH();
 			if(Nucleus::getInsertBlock() != endBB)
 			{
 				testBB = Nucleus::createBasicBlock();
