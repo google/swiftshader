@@ -304,12 +304,13 @@ namespace sw
 			};
 
 			Kind kind;
-			InsnIterator mergeInstruction; // Merge instruction.
-			InsnIterator branchInstruction; //
+			InsnIterator mergeInstruction; // Structured control flow merge instruction.
+			InsnIterator branchInstruction; // Branch instruction.
 			ID mergeBlock; // Structured flow merge block.
 			ID continueTarget; // Loop continue block.
 			Set ins; // Blocks that branch into this block.
 			Set outs; // Blocks that this block branches to.
+			bool reachable = false;
 
 		private:
 			InsnIterator begin_;
@@ -480,6 +481,13 @@ namespace sw
 		HandleMap<Block> blocks;
 		Block::ID mainBlockId; // Block of the entry point function.
 
+		// Walks all reachable the blocks starting from id, and sets
+		// Block::reachable to true.
+		void MarkReachableBlocks(Block::ID id);
+
+		// Assigns Block::ins from Block::outs for every block.
+		void AssignBlockIns();
+
 		// DeclareType creates a Type for the given OpTypeX instruction, storing
 		// it into the types map. It is called from the analysis pass (constructor).
 		void DeclareType(InsnIterator insn);
@@ -559,10 +567,6 @@ namespace sw
 			// they will be ORed together.
 			void addActiveLaneMaskEdge(Block::ID from, Block::ID to, RValue<SIMD::Int> mask);
 
-			// Lookup the active lane mask for the edge from -> to.
-			// Asserts if the edge does not exist.
-			RValue<SIMD::Int> getActiveLaneMaskEdge(Block::ID from, Block::ID to);
-
 			SpirvRoutine *routine = nullptr; // The current routine being built.
 			rr::Value *activeLaneMaskValue = nullptr; // The current active lane mask.
 			Block::ID currentBlock; // The current block being built.
@@ -580,6 +584,11 @@ namespace sw
 		// existsPath returns true if there's a direct or indirect flow from
 		// the 'from' block to the 'to' block.
 		bool existsPath(Block::ID from, Block::ID to) const;
+
+		// Lookup the active lane mask for the edge from -> to.
+		// If from is unreachable, then a mask of all zeros is returned.
+		// Asserts if from is reachable and the edge does not exist.
+		RValue<SIMD::Int> GetActiveLaneMaskEdge(EmitState *state, Block::ID from, Block::ID to) const;
 
 		void EmitBlock(Block::ID id, EmitState *state) const;
 		void EmitInstructions(InsnIterator begin, InsnIterator end, EmitState *state) const;

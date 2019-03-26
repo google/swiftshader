@@ -469,7 +469,27 @@ namespace sw
 			}
 		}
 
-		// Assign all Block::ins
+		MarkReachableBlocks(mainBlockId);
+		AssignBlockIns();
+	}
+
+	void SpirvShader::MarkReachableBlocks(Block::ID id)
+	{
+		auto it = blocks.find(id);
+		ASSERT_MSG(it != blocks.end(), "Unknown block %d", id.value());
+		auto &block = it->second;
+		if (!block.reachable)
+		{
+			block.reachable = true;
+			for (auto out : block.outs)
+			{
+				MarkReachableBlocks(out);
+			}
+		}
+	}
+
+	void SpirvShader::AssignBlockIns()
+	{
 		for (auto &it : blocks)
 		{
 			auto &blockId = it.first;
@@ -1183,14 +1203,19 @@ namespace sw
 
 	void SpirvShader::EmitBlock(Block::ID id, EmitState *state) const
 	{
+		auto &block = getBlock(id);
+
+		if (!block.reachable)
+		{
+			return;
+		}
+
 		if (state->visited.count(id) > 0)
 		{
 			return; // Already processed this block.
 		}
 
 		state->visited.emplace(id);
-
-		auto &block = getBlock(id);
 
 		switch (block.kind)
 		{
@@ -1207,7 +1232,7 @@ namespace sw
 					for (auto in : block.ins)
 					{
 						EmitBlock(in, state);
-						auto inMask = state->getActiveLaneMaskEdge(in, id);
+						auto inMask = GetActiveLaneMaskEdge(state, in, id);
 						activeLaneMask.replace(0, activeLaneMask.Int(0) | inMask);
 					}
 					state->setActiveLaneMask(activeLaneMask.Int(0));
@@ -1257,7 +1282,7 @@ namespace sw
 			if (!existsPath(blockId, in)) // if not a loop back edge
 			{
 				EmitBlock(in, state);
-				loopActiveLaneMask |= state->getActiveLaneMaskEdge(in, blockId);
+				loopActiveLaneMask |= GetActiveLaneMaskEdge(state, in, blockId);
 			}
 		}
 
@@ -1310,7 +1335,7 @@ namespace sw
 						for (uint32_t i = 0; i < type.sizeInComponents; i++)
 						{
 							auto in = GenericValue(this, state->routine, varId);
-							auto mask = state->getActiveLaneMaskEdge(blockId, state->currentBlock);
+							auto mask = GetActiveLaneMaskEdge(state, blockId, state->currentBlock);
 							phi.storage[i] = phi.storage[i] | (in.Int(i) & mask);
 						}
 					}
@@ -1360,7 +1385,7 @@ namespace sw
 			if (existsPath(blockId, in))
 			{
 				EmitBlock(in, state);
-				loopActiveLaneMask |= state->getActiveLaneMaskEdge(in, blockId);
+				loopActiveLaneMask |= GetActiveLaneMaskEdge(state, in, blockId);
 			}
 		}
 
@@ -2956,7 +2981,7 @@ namespace sw
 			auto blockId = Block::ID(insn.word(w + 1));
 
 			auto in = GenericValue(this, routine, varId);
-			auto mask = state->getActiveLaneMaskEdge(blockId, state->currentBlock);
+			auto mask = GetActiveLaneMaskEdge(state, blockId, state->currentBlock);
 
 			for (uint32_t i = 0; i < type.sizeInComponents; i++)
 			{
@@ -3130,11 +3155,16 @@ namespace sw
 		}
 	}
 
-	RValue<SIMD::Int> SpirvShader::EmitState::getActiveLaneMaskEdge(Block::ID from, Block::ID to)
+	RValue<SIMD::Int> SpirvShader::GetActiveLaneMaskEdge(EmitState *state, Block::ID from, Block::ID to) const
 	{
+		if (!getBlock(from).reachable)
+		{
+			return SIMD::Int(0);
+		}
+
 		auto edge = Block::Edge{from, to};
-		auto it = edgeActiveLaneMasks.find(edge);
-		ASSERT_MSG(it != edgeActiveLaneMasks.end(), "Could not find edge %d -> %d", from.value(), to.value());
+		auto it = state->edgeActiveLaneMasks.find(edge);
+		ASSERT_MSG(it != state->edgeActiveLaneMasks.end(), "Could not find edge %d -> %d", from.value(), to.value());
 		return it->second;
 	}
 
