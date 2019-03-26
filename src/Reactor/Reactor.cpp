@@ -1960,6 +1960,29 @@ namespace rr
 		storeValue(packed);
 	}
 
+	RValue<Short8> Short8::operator=(RValue<Short8> rhs)
+	{
+		storeValue(rhs.value);
+
+		return rhs;
+	}
+
+	RValue<Short8> Short8::operator=(const Short8 &rhs)
+	{
+		Value *value = rhs.loadValue();
+		storeValue(value);
+
+		return RValue<Short8>(value);
+	}
+
+	RValue<Short8> Short8::operator=(const Reference<Short8> &rhs)
+	{
+		Value *value = rhs.loadValue();
+		storeValue(value);
+
+		return RValue<Short8>(value);
+	}
+
 	RValue<Short8> operator+(RValue<Short8> lhs, RValue<Short8> rhs)
 	{
 		return RValue<Short8>(Nucleus::createAdd(lhs.value, rhs.value));

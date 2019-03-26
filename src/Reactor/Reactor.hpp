@@ -900,9 +900,9 @@ namespace rr
 		Short8(const Reference<Short8> &rhs);
 		Short8(RValue<Short4> lo, RValue<Short4> hi);
 
-	//	RValue<Short8> operator=(RValue<Short8> rhs);
-	//	RValue<Short8> operator=(const Short8 &rhs);
-	//	RValue<Short8> operator=(const Reference<Short8> &rhs);
+		RValue<Short8> operator=(RValue<Short8> rhs);
+		RValue<Short8> operator=(const Short8 &rhs);
+		RValue<Short8> operator=(const Reference<Short8> &rhs);
 
 		static Type *getType();
 	};
