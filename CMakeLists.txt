@@ -784,6 +784,9 @@ set(LLVM_LIST
     ${LLVM_DIR}/lib/Analysis/ValueLatticeUtils.cpp
     ${LLVM_DIR}/lib/Analysis/ValueTracking.cpp
     ${LLVM_DIR}/lib/Analysis/VectorUtils.cpp
+    ${LLVM_DIR}/lib/AsmParser/LLLexer.cpp
+    ${LLVM_DIR}/lib/AsmParser/LLParser.cpp
+    ${LLVM_DIR}/lib/AsmParser/Parser.cpp
     ${LLVM_DIR}/lib/BinaryFormat/Dwarf.cpp
     ${LLVM_DIR}/lib/BinaryFormat/Magic.cpp
     ${LLVM_DIR}/lib/BinaryFormat/Wasm.cpp
