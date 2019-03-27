@@ -1052,6 +1052,9 @@ namespace rr
 	void Nucleus::setInsertBlock(BasicBlock *basicBlock)
 	{
 	//	assert(::builder->GetInsertBlock()->back().isTerminator());
+
+		Variable::materializeAll();
+
 		::builder->SetInsertPoint(B(basicBlock));
 	}
 
@@ -1090,21 +1093,35 @@ namespace rr
 
 	void Nucleus::createRetVoid()
 	{
+		// Code generated after this point is unreachable, so any variables
+		// being read can safely return an undefined value. We have to avoid
+		// materializing variables after the terminator ret instruction.
+		Variable::killUnmaterialized();
+
 		::builder->CreateRetVoid();
 	}
 
 	void Nucleus::createRet(Value *v)
 	{
+		// Code generated after this point is unreachable, so any variables
+		// being read can safely return an undefined value. We have to avoid
+		// materializing variables after the terminator ret instruction.
+		Variable::killUnmaterialized();
+
 		::builder->CreateRet(V(v));
 	}
 
 	void Nucleus::createBr(BasicBlock *dest)
 	{
+		Variable::materializeAll();
+
 		::builder->CreateBr(B(dest));
 	}
 
 	void Nucleus::createCondBr(Value *cond, BasicBlock *ifTrue, BasicBlock *ifFalse)
 	{
+		Variable::materializeAll();
+
 		::builder->CreateCondBr(V(cond), B(ifTrue), B(ifFalse));
 	}
 

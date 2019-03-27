@@ -24,6 +24,7 @@
 
 #include <string>
 #include <tuple>
+#include <unordered_set>
 
 #undef Bool // b/127920555
 
@@ -81,16 +82,37 @@ namespace rr
 
 	class Variable
 	{
+		friend class Nucleus;
 		friend class PrintValue;
 
+		Variable() = delete;
 		Variable &operator=(const Variable&) = delete;
 
 	public:
-		Variable() = default;
-		Variable(const Variable&) = default;
+		void materialize() const;
+
+		Value *loadValue() const;
+		Value *storeValue(Value *value) const;
+
+		Value *getBaseAddress() const;
+		Value *getElementPointer(Value *index, bool unsignedIndex) const;
 
 	protected:
-		Value *address;
+		Variable(Type *type, int arraySize);
+		Variable(const Variable&) = default;
+
+		~Variable();
+
+	private:
+		static void materializeAll();
+		static void killUnmaterialized();
+
+		static std::unordered_set<Variable*> unmaterializedVariables;
+
+		Type *const type;
+		const int arraySize;
+		mutable Value *rvalue = nullptr;
+		mutable Value *address = nullptr;
 	};
 
 	template<class T>
@@ -105,10 +127,6 @@ namespace rr
 		{
 			return false;
 		}
-
-		Value *loadValue() const;
-		Value *storeValue(Value *value) const;
-		Value *getAddress(Value *index, bool unsignedIndex) const;
 	};
 
 	template<class T>
@@ -2320,33 +2338,68 @@ namespace rr
 namespace rr
 {
 	template<class T>
-	LValue<T>::LValue(int arraySize)
+	LValue<T>::LValue(int arraySize) : Variable(T::getType(), arraySize)
 	{
-		address = Nucleus::allocateStackVariable(T::getType(), arraySize);
 	}
 
-	template<class T>
-	Value *LValue<T>::loadValue() const
+	inline void Variable::materialize() const
 	{
-		return Nucleus::createLoad(address, T::getType(), false, 0);
+		if(!address)
+		{
+			address = Nucleus::allocateStackVariable(type, arraySize);
+
+			if(rvalue)
+			{
+				storeValue(rvalue);
+				rvalue = nullptr;
+			}
+		}
 	}
 
-	template<class T>
-	Value *LValue<T>::storeValue(Value *value) const
+	inline Value *Variable::loadValue() const
 	{
-		return Nucleus::createStore(value, address, T::getType(), false, 0);
+		if(rvalue)
+		{
+			return rvalue;
+		}
+
+		if(!address)
+		{
+			// TODO: Return undef instead.
+			materialize();
+		}
+
+		return Nucleus::createLoad(address, type, false, 0);
 	}
 
-	template<class T>
-	Value *LValue<T>::getAddress(Value *index, bool unsignedIndex) const
+	inline Value *Variable::storeValue(Value *value) const
 	{
-		return Nucleus::createGEP(address, T::getType(), index, unsignedIndex);
+		if(address)
+		{
+			return Nucleus::createStore(value, address, type, false, 0);
+		}
+
+		rvalue = value;
+
+		return value;
+	}
+
+	inline Value *Variable::getBaseAddress() const
+	{
+		materialize();
+
+		return address;
+	}
+
+	inline Value *Variable::getElementPointer(Value *index, bool unsignedIndex) const
+	{
+		return Nucleus::createGEP(getBaseAddress(), type, index, unsignedIndex);
 	}
 
 	template<class T>
 	RValue<Pointer<T>> LValue<T>::operator&()
 	{
-		return RValue<Pointer<T>>(address);
+		return RValue<Pointer<T>>(getBaseAddress());
 	}
 
 	template<class T>
@@ -2680,7 +2733,7 @@ namespace rr
 	template<class T, int S>
 	Reference<T> Array<T, S>::operator[](int index)
 	{
-		Value *element = LValue<T>::getAddress(Nucleus::createConstantInt(index), false);
+		Value *element = LValue<T>::getElementPointer(Nucleus::createConstantInt(index), false);
 
 		return Reference<T>(element);
 	}
@@ -2688,7 +2741,7 @@ namespace rr
 	template<class T, int S>
 	Reference<T> Array<T, S>::operator[](unsigned int index)
 	{
-		Value *element = LValue<T>::getAddress(Nucleus::createConstantInt(index), true);
+		Value *element = LValue<T>::getElementPointer(Nucleus::createConstantInt(index), true);
 
 		return Reference<T>(element);
 	}
@@ -2696,7 +2749,7 @@ namespace rr
 	template<class T, int S>
 	Reference<T> Array<T, S>::operator[](RValue<Int> index)
 	{
-		Value *element = LValue<T>::getAddress(index.value, false);
+		Value *element = LValue<T>::getElementPointer(index.value, false);
 
 		return Reference<T>(element);
 	}
@@ -2704,7 +2757,7 @@ namespace rr
 	template<class T, int S>
 	Reference<T> Array<T, S>::operator[](RValue<UInt> index)
 	{
-		Value *element = LValue<T>::getAddress(index.value, true);
+		Value *element = LValue<T>::getElementPointer(index.value, true);
 
 		return Reference<T>(element);
 	}

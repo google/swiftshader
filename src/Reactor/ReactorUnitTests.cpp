@@ -112,6 +112,65 @@ TEST(ReactorUnitTests, Uninitialized)
 	delete routine;
 }
 
+TEST(ReactorUnitTests, Unreachable)
+{
+	Routine *routine = nullptr;
+
+	{
+		Function<Int(Int)> function;
+		{
+			Int a = function.Arg<0>();
+			Int z = 4;
+
+			Return(a + z);
+
+			// Code beyond this point is unreachable but should not cause any
+			// compilation issues.
+
+			z += a;
+		}
+
+		routine = function("one");
+
+		if(routine)
+		{
+			int (*callable)(int) = (int(*)(int))routine->getEntry();
+			int result = callable(16);
+			EXPECT_EQ(result, 20);
+		}
+	}
+
+	delete routine;
+}
+
+TEST(ReactorUnitTests, VariableAddress)
+{
+	Routine *routine = nullptr;
+
+	{
+		Function<Int(Int)> function;
+		{
+			Int a = function.Arg<0>();
+			Int z = 0;
+			Pointer<Int> p = &z;
+			*p = 4;
+
+			Return(a + z);
+		}
+
+		routine = function("one");
+
+		if(routine)
+		{
+			int (*callable)(int) = (int(*)(int))routine->getEntry();
+			int result = callable(16);
+			EXPECT_EQ(result, 20);
+		}
+	}
+
+	delete routine;
+}
+
 TEST(ReactorUnitTests, SubVectorLoadStore)
 {
 	Routine *routine = nullptr;

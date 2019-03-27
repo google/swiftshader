@@ -14,8 +14,46 @@
 
 #include "Reactor.hpp"
 
+// Define REACTOR_MATERIALIZE_LVALUES_ON_DEFINITION to non-zero to ensure all
+// variables have a stack location obtained throuch alloca().
+#ifndef REACTOR_MATERIALIZE_LVALUES_ON_DEFINITION
+#define REACTOR_MATERIALIZE_LVALUES_ON_DEFINITION 0
+#endif
+
 namespace rr
 {
+	// Set of variables that do not have a stack location yet.
+	std::unordered_set<Variable*> Variable::unmaterializedVariables;
+
+	Variable::Variable(Type *type, int arraySize) : type(type), arraySize(arraySize)
+	{
+		#if REACTOR_MATERIALIZE_LVALUES_ON_DEFINITION
+			materialize();
+		#else
+			unmaterializedVariables.emplace(this);
+		#endif
+	}
+
+	Variable::~Variable()
+	{
+		unmaterializedVariables.erase(this);
+	}
+
+	void Variable::materializeAll()
+	{
+		for(auto *var : unmaterializedVariables)
+		{
+			var->materialize();
+		}
+
+		unmaterializedVariables.clear();
+	}
+
+	void Variable::killUnmaterialized()
+	{
+		unmaterializedVariables.clear();
+	}
+
 	static Value *createSwizzle4(Value *val, unsigned char select)
 	{
 		int swizzle[4] =
