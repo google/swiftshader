@@ -6,3 +6,7 @@ dEQP-VK.api.info.image_format_properties.2d.optimal.g8b8g8r8_422_unorm
 dEQP-VK.spirv_assembly.instruction.compute.opspecconstantop.inotequal
 dEQP-VK.spirv_assembly.instruction.graphics.opspecconstantop.inotequal_frag
 dEQP-VK.spirv_assembly.instruction.graphics.opspecconstantop.inotequal_vert
+dEQP-VK.spirv_assembly.type.scalar.i32.switch_frag
+dEQP-VK.spirv_assembly.type.scalar.i32.switch_vert
+dEQP-VK.spirv_assembly.type.scalar.u32.switch_frag
+dEQP-VK.spirv_assembly.type.scalar.u32.switch_vert
