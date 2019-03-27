@@ -1277,14 +1277,13 @@ namespace sw
 		if (blockId != mainBlockId)
 		{
 			// Set the activeLaneMask.
-			Intermediate activeLaneMask(1);
-			activeLaneMask.move(0, SIMD::Int(0));
+			SIMD::Int activeLaneMask(0);
 			for (auto in : block.ins)
 			{
 				auto inMask = GetActiveLaneMaskEdge(state, in, blockId);
-				activeLaneMask.replace(0, activeLaneMask.Int(0) | inMask);
+				activeLaneMask |= inMask;
 			}
-			state->setActiveLaneMask(activeLaneMask.Int(0));
+			state->setActiveLaneMask(activeLaneMask);
 		}
 
 		EmitInstructions(block.begin(), block.end(), state);
@@ -3030,7 +3029,7 @@ namespace sw
 		auto type = getType(typeId);
 		auto objectId = Object::ID(insn.word(2));
 
-		auto &dst = routine->createIntermediate(objectId, type.sizeInComponents);
+		auto tmp = std::unique_ptr<SIMD::Int[]>(new SIMD::Int[type.sizeInComponents]);
 
 		bool first = true;
 		for (uint32_t w = 3; w < insn.wordCount(); w += 2)
@@ -3044,9 +3043,15 @@ namespace sw
 			for (uint32_t i = 0; i < type.sizeInComponents; i++)
 			{
 				auto inMasked = in.Int(i) & mask;
-				dst.replace(i, first ? inMasked : (dst.Int(i) | inMasked));
+				tmp[i] = first ? inMasked : (tmp[i] | inMasked);
 			}
 			first = false;
+		}
+
+		auto &dst = routine->createIntermediate(objectId, type.sizeInComponents);
+		for(uint32_t i = 0; i < type.sizeInComponents; i++)
+		{
+			dst.move(i, tmp[i]);
 		}
 
 		return EmitResult::Continue;
