@@ -1,0 +1,56 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "defines": [
+                "REACTOR_LLVM_VERSION=7",
+                "ENABLE_RR_DEBUG_INFO=1"
+            ],
+            "includePath": [
+                "${workspaceFolder}/src",
+                "${workspaceFolder}/include",
+                "${workspaceFolder}/third_party/SPIRV-Headers/include",
+                "${workspaceFolder}/third_party/llvm-7.0/llvm/include",
+                "${workspaceFolder}/third_party/llvm-7.0/configs/common/include",
+                "${workspaceFolder}/third_party/llvm-7.0/configs/linux/include"
+            ],
+            "cStandard": "c11",
+            "cppStandard": "c++11"
+        },
+        {
+            "name": "Mac",
+            "defines": [
+                "REACTOR_LLVM_VERSION=7",
+                "ENABLE_RR_DEBUG_INFO=1"
+            ],
+            "includePath": [
+                "${workspaceFolder}/src",
+                "${workspaceFolder}/include",
+                "${workspaceFolder}/third_party/SPIRV-Headers/include",
+                "${workspaceFolder}/third_party/llvm-7.0/llvm/include",
+                "${workspaceFolder}/third_party/llvm-7.0/configs/common/include",
+                "${workspaceFolder}/third_party/llvm-7.0/configs/darwin/include"
+            ],
+            "cStandard": "c11",
+            "cppStandard": "c++11"
+        },
+        {
+            "name": "Win32",
+            "defines": [
+                "REACTOR_LLVM_VERSION=7",
+                "ENABLE_RR_DEBUG_INFO=1"
+            ],
+            "includePath": [
+                "${workspaceFolder}/src",
+                "${workspaceFolder}/include",
+                "${workspaceFolder}/third_party/SPIRV-Headers/include",
+                "${workspaceFolder}/third_party/llvm-7.0/llvm/include",
+                "${workspaceFolder}/third_party/llvm-7.0/configs/common/include",
+                "${workspaceFolder}/third_party/llvm-7.0/configs/windows/include"
+            ],
+            "cStandard": "c11",
+            "cppStandard": "c++11"
+        }
+    ],
+    "version": 4
+}
