@@ -358,6 +358,7 @@ namespace sw
 			case spv::OpCompositeExtract:
 			case spv::OpVectorShuffle:
 			case spv::OpVectorTimesScalar:
+			case spv::OpMatrixTimesScalar:
 			case spv::OpVectorExtractDynamic:
 			case spv::OpVectorInsertDynamic:
 			case spv::OpNot: // Unary ops
@@ -1468,6 +1469,7 @@ namespace sw
 			return EmitVectorInsertDynamic(insn, state);
 
 		case spv::OpVectorTimesScalar:
+		case spv::OpMatrixTimesScalar:
 			return EmitVectorTimesScalar(insn, state);
 
 		case spv::OpNot:
