@@ -375,10 +375,9 @@ VkExtent3D Image::imageExtentInBlocks(const VkExtent3D& extent, VkImageAspectFla
 		int blockWidth = usedFormat.blockWidth();
 		int blockHeight = usedFormat.blockHeight();
 
-		ASSERT(((extent.width % blockWidth) == 0) && ((extent.height % blockHeight) == 0)); // We can't offset within a block
-
-		adjustedExtent.width /= blockWidth;
-		adjustedExtent.height /= blockHeight;
+		// Mip level allocations will round up to the next block for compressed texture
+		adjustedExtent.width = ((adjustedExtent.width + blockWidth - 1) / blockWidth);
+		adjustedExtent.height = ((adjustedExtent.height + blockHeight - 1) / blockHeight);
 	}
 	return adjustedExtent;
 }
@@ -476,6 +475,12 @@ int Image::slicePitchBytes(VkImageAspectFlagBits aspect, uint32_t mipLevel) cons
 	ASSERT((aspect & (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT)) !=
 	                 (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT));
 	VkExtent3D mipLevelExtent = getMipLevelExtent(mipLevel);
+	Format usedFormat = getFormat(aspect);
+	if(usedFormat.isCompressed())
+	{
+		sw::align(mipLevelExtent.width, usedFormat.blockWidth());
+		sw::align(mipLevelExtent.height, usedFormat.blockHeight());
+	}
 	return getFormat(aspect).sliceB(mipLevelExtent.width, mipLevelExtent.height, isCube() ? 1 : 0, true);
 }
 
