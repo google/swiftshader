@@ -45,6 +45,11 @@ public:
 	bool isSRGBwritable() const;
 	bool isFloatFormat() const;
 
+	bool isCompressed() const;
+	int blockWidth() const;
+	int blockHeight() const;
+	int bytesPerBlock() const;
+
 	int componentCount() const;
 	bool isUnsignedComponent(int component) const;
 

@@ -76,6 +76,9 @@ private:
 	VkDeviceSize getMemoryOffset(VkImageAspectFlagBits aspect, uint32_t mipLevel, uint32_t layer) const;
 	VkDeviceSize texelOffsetBytesInStorage(const VkOffset3D& offset, const VkImageSubresourceLayers& subresource) const;
 	VkDeviceSize getMemoryOffset(VkImageAspectFlagBits aspect) const;
+	VkExtent3D imageExtentInBlocks(const VkExtent3D& extent, VkImageAspectFlagBits aspect) const;
+	VkOffset3D imageOffsetInBlocks(const VkOffset3D& offset, VkImageAspectFlagBits aspect) const;
+	VkExtent2D bufferExtentInBlocks(const VkExtent2D& extent, const VkBufferImageCopy& region) const;
 	int bytesPerTexel(VkImageAspectFlagBits flags) const;
 	VkFormat getClearFormat() const;
 	void clear(void* pixelData, VkFormat format, const VkImageSubresourceRange& subresourceRange, const VkRect2D& renderArea);
