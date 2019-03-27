@@ -1343,6 +1343,8 @@ namespace sw
 		// the block.
 		struct LoopPhi
 		{
+			LoopPhi(Object::ID id, uint32_t size) : phiId(id), storage(size) {}
+
 			Object::ID phiId; // The Phi identifier.
 			Object::ID continueValue; // The source merge value from the loop.
 			Array<SIMD::Int> storage; // The alloca.
@@ -1359,9 +1361,7 @@ namespace sw
 				auto &object = getObject(objectId);
 				auto &type = getType(object.type);
 
-				LoopPhi phi;
-				phi.phiId = Object::ID(insn.word(2));
-				phi.storage = Array<SIMD::Int>(type.sizeInComponents);
+				LoopPhi phi(insn.word(2), type.sizeInComponents);
 
 				// Start with the Phi set to 0.
 				for (uint32_t i = 0; i < type.sizeInComponents; i++)
