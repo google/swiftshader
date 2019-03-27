@@ -1417,6 +1417,11 @@ EGLBoolean GetSyncAttrib(EGLDisplay dpy, EGLSyncKHR sync, EGLint attribute, EGLA
 		return error(EGL_BAD_PARAMETER, EGL_FALSE);
 	}
 
+	if(!value)
+	{
+		return error(EGL_BAD_PARAMETER, EGL_FALSE);
+	}
+
 	switch(attribute)
 	{
 	case EGL_SYNC_TYPE_KHR:
