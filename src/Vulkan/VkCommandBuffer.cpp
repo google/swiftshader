@@ -735,11 +735,6 @@ void CommandBuffer::beginRenderPass(VkRenderPass renderPass, VkFramebuffer frame
 {
 	ASSERT(state == RECORDING);
 
-	if(contents != VK_SUBPASS_CONTENTS_INLINE)
-	{
-		UNIMPLEMENTED("VK_SUBPASS_CONTENTS_INLINE");
-	}
-
 	addCommand<BeginRenderPass>(renderPass, framebuffer, renderArea, clearValueCount, clearValues);
 }
 
