@@ -23,6 +23,7 @@
     <ProjectGuid>{FBDCFF88-0CE1-43C3-B694-8F45946FAFE3}</ProjectGuid>
     <RootNamespace>VertexRoutineFuzzer</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

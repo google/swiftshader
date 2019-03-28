@@ -22,6 +22,7 @@
     <ProjectGuid>{92940255-AB4B-42FB-A2C4-0FAB19C3C48A}</ProjectGuid>
     <RootNamespace>preprocessor</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

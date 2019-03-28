@@ -22,6 +22,7 @@
     <ProjectGuid>{AB1EB229-D86C-41B3-8E20-7A7E1FF5DDF5}</ProjectGuid>
     <RootNamespace>OGLESBasicTnL</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

@@ -22,6 +22,7 @@
     <ProjectGuid>{9CF4408B-9B08-481F-95DA-3DF0846DABE4}</ProjectGuid>
     <RootNamespace>OGLES2ChameleonMan</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
