@@ -21,8 +21,6 @@
 #include "Vulkan/VkPipelineLayout.hpp"
 #include "Device/Config.hpp"
 
-#include <queue>
-
 #ifdef Bool
 #undef Bool // b/127920555
 #endif
@@ -469,37 +467,38 @@ namespace sw
 			}
 		}
 
-		MarkReachableBlocks(mainBlockId);
 		AssignBlockIns();
 	}
 
-	void SpirvShader::MarkReachableBlocks(Block::ID id)
+	void SpirvShader::TraverseReachableBlocks(Block::ID id, SpirvShader::Block::Set& reachable)
 	{
-		auto it = blocks.find(id);
-		ASSERT_MSG(it != blocks.end(), "Unknown block %d", id.value());
-		auto &block = it->second;
-		if (!block.reachable)
+		if (reachable.count(id) == 0)
 		{
-			block.reachable = true;
-			for (auto out : block.outs)
+			reachable.emplace(id);
+			for (auto out : getBlock(id).outs)
 			{
-				MarkReachableBlocks(out);
+				TraverseReachableBlocks(out, reachable);
 			}
 		}
 	}
 
 	void SpirvShader::AssignBlockIns()
 	{
+		Block::Set reachable;
+		TraverseReachableBlocks(mainBlockId, reachable);
+
 		for (auto &it : blocks)
 		{
 			auto &blockId = it.first;
-			auto &block = it.second;
-			for (auto &outId : block.outs)
+			if (reachable.count(blockId) > 0)
 			{
-				auto outIt = blocks.find(outId);
-				ASSERT_MSG(outIt != blocks.end(), "Block %d has a non-existent out %d", blockId.value(), outId.value());
-				auto &out = outIt->second;
-				out.ins.emplace(blockId);
+				for (auto &outId : it.second.outs)
+				{
+					auto outIt = blocks.find(outId);
+					ASSERT_MSG(outIt != blocks.end(), "Block %d has a non-existent out %d", blockId.value(), outId.value());
+					auto &out = outIt->second;
+					out.ins.emplace(blockId);
+				}
 			}
 		}
 	}
@@ -1183,72 +1182,50 @@ namespace sw
 			EmitInstruction(insn, &state);
 		}
 
-		// Emit all the blocks in BFS order, starting with the main block.
+		// Emit all the blocks starting from mainBlockId.
+		EmitBlocks(mainBlockId, &state);
+	}
+
+	void SpirvShader::EmitBlocks(Block::ID id, EmitState *state, Block::ID ignore /* = 0 */) const
+	{
+		auto oldPending = state->pending;
+
 		std::queue<Block::ID> pending;
-		pending.push(mainBlockId);
+		state->pending = &pending;
+		pending.push(id);
 		while (pending.size() > 0)
 		{
 			auto id = pending.front();
 			pending.pop();
-			if (state.visited.count(id) == 0)
+
+			auto const &block = getBlock(id);
+			if (id == ignore)
 			{
-				EmitBlock(id, &state);
-				for (auto it : getBlock(id).outs)
-				{
-					pending.push(it);
-				}
+				continue;
+			}
+
+			state->currentBlock = id;
+
+			switch (block.kind)
+			{
+				case Block::Simple:
+				case Block::StructuredBranchConditional:
+				case Block::UnstructuredBranchConditional:
+				case Block::StructuredSwitch:
+				case Block::UnstructuredSwitch:
+					EmitNonLoop(state);
+					break;
+
+				case Block::Loop:
+					EmitLoop(state);
+					break;
+
+				default:
+					UNREACHABLE("Unexpected Block Kind: %d", int(block.kind));
 			}
 		}
-	}
 
-	void SpirvShader::EmitBlock(Block::ID id, EmitState *state) const
-	{
-		auto &block = getBlock(id);
-
-		if (!block.reachable)
-		{
-			return;
-		}
-
-		if (state->visited.count(id) > 0)
-		{
-			return; // Already processed this block.
-		}
-
-		state->visited.emplace(id);
-
-		switch (block.kind)
-		{
-			case Block::Simple:
-			case Block::StructuredBranchConditional:
-			case Block::UnstructuredBranchConditional:
-			case Block::StructuredSwitch:
-			case Block::UnstructuredSwitch:
-				if (id != mainBlockId)
-				{
-					// Emit all preceding blocks and set the activeLaneMask.
-					Intermediate activeLaneMask(1);
-					activeLaneMask.move(0, SIMD::Int(0));
-					for (auto in : block.ins)
-					{
-						EmitBlock(in, state);
-						auto inMask = GetActiveLaneMaskEdge(state, in, id);
-						activeLaneMask.replace(0, activeLaneMask.Int(0) | inMask);
-					}
-					state->setActiveLaneMask(activeLaneMask.Int(0));
-				}
-				state->currentBlock = id;
-				EmitInstructions(block.begin(), block.end(), state);
-				break;
-
-			case Block::Loop:
-				state->currentBlock = id;
-				EmitLoop(state);
-				break;
-
-			default:
-				UNREACHABLE("Unexpected Block Kind: %d", int(block.kind));
-		}
+		state->pending = oldPending;
 	}
 
 	void SpirvShader::EmitInstructions(InsnIterator begin, InsnIterator end, EmitState *state) const
@@ -1269,19 +1246,93 @@ namespace sw
 		}
 	}
 
+	void SpirvShader::EmitNonLoop(EmitState *state) const
+	{
+		auto blockId = state->currentBlock;
+		auto block = getBlock(blockId);
+
+		// Ensure all incoming blocks have been generated.
+		auto depsDone = true;
+		for (auto in : block.ins)
+		{
+			if (state->visited.count(in) == 0)
+			{
+				state->pending->emplace(in);
+				depsDone = false;
+			}
+		}
+
+		if (!depsDone)
+		{
+			// come back to this once the dependencies have been generated
+			state->pending->emplace(blockId);
+			return;
+		}
+
+		if (!state->visited.emplace(blockId).second)
+		{
+			return; // Already generated this block.
+		}
+
+		if (blockId != mainBlockId)
+		{
+			// Set the activeLaneMask.
+			Intermediate activeLaneMask(1);
+			activeLaneMask.move(0, SIMD::Int(0));
+			for (auto in : block.ins)
+			{
+				auto inMask = GetActiveLaneMaskEdge(state, in, blockId);
+				activeLaneMask.replace(0, activeLaneMask.Int(0) | inMask);
+			}
+			state->setActiveLaneMask(activeLaneMask.Int(0));
+		}
+
+		EmitInstructions(block.begin(), block.end(), state);
+
+		for (auto out : block.outs)
+		{
+			state->pending->emplace(out);
+		}
+	}
+
 	void SpirvShader::EmitLoop(EmitState *state) const
 	{
 		auto blockId = state->currentBlock;
 		auto block = getBlock(blockId);
+
+		// Ensure all incoming non-back edge blocks have been generated.
+		auto depsDone = true;
+		for (auto in : block.ins)
+		{
+			if (state->visited.count(in) == 0)
+			{
+				if (!existsPath(blockId, in, block.mergeBlock)) // if not a loop back edge
+				{
+					state->pending->emplace(in);
+					depsDone = false;
+				}
+			}
+		}
+
+		if (!depsDone)
+		{
+			// come back to this once the dependencies have been generated
+			state->pending->emplace(blockId);
+			return;
+		}
+
+		if (!state->visited.emplace(blockId).second)
+		{
+			return; // Already emitted this loop.
+		}
 
 		// loopActiveLaneMask is the mask of lanes that are continuing to loop.
 		// This is initialized with the incoming active lane masks.
 		SIMD::Int loopActiveLaneMask = SIMD::Int(0);
 		for (auto in : block.ins)
 		{
-			if (!existsPath(blockId, in)) // if not a loop back edge
+			if (!existsPath(blockId, in, block.mergeBlock)) // if not a loop back edge
 			{
-				EmitBlock(in, state);
 				loopActiveLaneMask |= GetActiveLaneMaskEdge(state, in, blockId);
 			}
 		}
@@ -1323,7 +1374,7 @@ namespace sw
 				{
 					auto varId = Object::ID(insn.word(w + 0));
 					auto blockId = Block::ID(insn.word(w + 1));
-					if (existsPath(state->currentBlock, blockId))
+					if (existsPath(state->currentBlock, blockId, block.mergeBlock))
 					{
 						// This source is from a loop back-edge.
 						ASSERT(phi.continueValue == 0 || phi.continueValue == varId);
@@ -1377,14 +1428,21 @@ namespace sw
 			}
 		}
 
-		// Emit all the back-edge blocks and use their active lane masks to
-		// rebuild the loopActiveLaneMask.
+		// Emit all loop blocks, but don't emit the merge block yet.
+		for (auto out : block.outs)
+		{
+			if (existsPath(out, blockId, block.mergeBlock))
+			{
+				EmitBlocks(out, state, block.mergeBlock);
+			}
+		}
+
+		// Rebuild the loopActiveLaneMask from the loop back edges.
 		loopActiveLaneMask = SIMD::Int(0);
 		for (auto in : block.ins)
 		{
-			if (existsPath(blockId, in))
+			if (existsPath(blockId, in, block.mergeBlock))
 			{
-				EmitBlock(in, state);
 				loopActiveLaneMask |= GetActiveLaneMaskEdge(state, in, blockId);
 			}
 		}
@@ -1408,9 +1466,9 @@ namespace sw
 		// otherwise jump to the merge block.
 		Nucleus::createCondBr(AnyTrue(loopActiveLaneMask).value, headerBasicBlock, mergeBasicBlock);
 
-		// Emit the merge block, and we're done.
+		// Continue emitting from the merge block.
 		Nucleus::setInsertBlock(mergeBasicBlock);
-		EmitBlock(block.mergeBlock, state);
+		state->pending->emplace(block.mergeBlock);
 	}
 
 	SpirvShader::EmitResult SpirvShader::EmitInstruction(InsnIterator insn, EmitState *state) const
@@ -3110,10 +3168,11 @@ namespace sw
 		}
 	}
 
-	bool SpirvShader::existsPath(Block::ID from, Block::ID to) const
+	bool SpirvShader::existsPath(Block::ID from, Block::ID to, Block::ID notPassingThrough) const
 	{
 		// TODO: Optimize: This can be cached on the block.
 		Block::Set seen;
+		seen.emplace(notPassingThrough);
 
 		std::queue<Block::ID> pending;
 		pending.emplace(from);
@@ -3157,11 +3216,6 @@ namespace sw
 
 	RValue<SIMD::Int> SpirvShader::GetActiveLaneMaskEdge(EmitState *state, Block::ID from, Block::ID to) const
 	{
-		if (!getBlock(from).reachable)
-		{
-			return SIMD::Int(0);
-		}
-
 		auto edge = Block::Edge{from, to};
 		auto it = state->edgeActiveLaneMasks.find(edge);
 		ASSERT_MSG(it != state->edgeActiveLaneMasks.end(), "Could not find edge %d -> %d", from.value(), to.value());

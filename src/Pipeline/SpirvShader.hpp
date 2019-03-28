@@ -34,6 +34,7 @@
 #include <cstdint>
 #include <type_traits>
 #include <memory>
+#include <queue>
 
 namespace vk
 {
@@ -310,7 +311,6 @@ namespace sw
 			ID continueTarget; // Loop continue block.
 			Set ins; // Blocks that branch into this block.
 			Set outs; // Blocks that this block branches to.
-			bool reachable = false;
 
 		private:
 			InsnIterator begin_;
@@ -481,9 +481,9 @@ namespace sw
 		HandleMap<Block> blocks;
 		Block::ID mainBlockId; // Block of the entry point function.
 
-		// Walks all reachable the blocks starting from id, and sets
-		// Block::reachable to true.
-		void MarkReachableBlocks(Block::ID id);
+		// Walks all reachable the blocks starting from id adding them to
+		// reachable.
+		void TraverseReachableBlocks(Block::ID id, Block::Set& reachable);
 
 		// Assigns Block::ins from Block::outs for every block.
 		void AssignBlockIns();
@@ -572,6 +572,7 @@ namespace sw
 			Block::ID currentBlock; // The current block being built.
 			Block::Set visited; // Blocks already built.
 			std::unordered_map<Block::Edge, RValue<SIMD::Int>, Block::Edge::Hash> edgeActiveLaneMasks;
+			std::queue<Block::ID> *pending;
 		};
 
 		// EmitResult is an enumerator of result values from the Emit functions.
@@ -582,17 +583,22 @@ namespace sw
 		};
 
 		// existsPath returns true if there's a direct or indirect flow from
-		// the 'from' block to the 'to' block.
-		bool existsPath(Block::ID from, Block::ID to) const;
+		// the 'from' block to the 'to' block that does not pass through
+		// notPassingThrough.
+		bool existsPath(Block::ID from, Block::ID to, Block::ID notPassingThrough) const;
 
 		// Lookup the active lane mask for the edge from -> to.
 		// If from is unreachable, then a mask of all zeros is returned.
 		// Asserts if from is reachable and the edge does not exist.
 		RValue<SIMD::Int> GetActiveLaneMaskEdge(EmitState *state, Block::ID from, Block::ID to) const;
 
-		void EmitBlock(Block::ID id, EmitState *state) const;
-		void EmitInstructions(InsnIterator begin, InsnIterator end, EmitState *state) const;
+		// Emit all the unvisited blocks (except for ignore) in BFS order,
+		// starting with id.
+		void EmitBlocks(Block::ID id, EmitState *state, Block::ID ignore = 0) const;
+		void EmitNonLoop(EmitState *state) const;
 		void EmitLoop(EmitState *state) const;
+
+		void EmitInstructions(InsnIterator begin, InsnIterator end, EmitState *state) const;
 		EmitResult EmitInstruction(InsnIterator insn, EmitState *state) const;
 
 		// Emit pass instructions:
