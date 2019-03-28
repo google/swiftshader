@@ -75,8 +75,10 @@ dEQP-VK.ssbo.layout.basic_unsized_array.std140.column_major_mat3x4
 dEQP-VK.ssbo.layout.basic_unsized_array.std140.column_major_mat3x4_comp_access
 dEQP-VK.ssbo.layout.basic_unsized_array.std140.column_major_mat4x3
 dEQP-VK.ssbo.layout.basic_unsized_array.std140.column_major_mat4x3_comp_access
+dEQP-VK.ssbo.layout.basic_unsized_array.std140.mat3
 dEQP-VK.ssbo.layout.basic_unsized_array.std140.mat3x4
 dEQP-VK.ssbo.layout.basic_unsized_array.std140.mat4x3
+dEQP-VK.ssbo.layout.basic_unsized_array.std140.row_major_mat3_comp_access
 dEQP-VK.ssbo.layout.basic_unsized_array.std140.row_major_mat3x4
 dEQP-VK.ssbo.layout.basic_unsized_array.std140.row_major_mat3x4_comp_access
 dEQP-VK.ssbo.layout.basic_unsized_array.std140.row_major_mat4x3
@@ -89,6 +91,7 @@ dEQP-VK.ssbo.layout.basic_unsized_array.std430.column_major_mat4x3_comp_access
 dEQP-VK.ssbo.layout.basic_unsized_array.std430.mat3
 dEQP-VK.ssbo.layout.basic_unsized_array.std430.mat3x4
 dEQP-VK.ssbo.layout.basic_unsized_array.std430.mat4x3
+dEQP-VK.ssbo.layout.basic_unsized_array.std430.row_major_mat3
 dEQP-VK.ssbo.layout.basic_unsized_array.std430.row_major_mat3x4
 dEQP-VK.ssbo.layout.basic_unsized_array.std430.row_major_mat4x3
 dEQP-VK.ssbo.layout.basic_unsized_array.std430.row_major_mat4x3_comp_access
@@ -101,3 +104,5 @@ dEQP-VK.ssbo.layout.random.nested_structs_arrays.20
 dEQP-VK.ssbo.layout.random.nested_structs_arrays.4
 dEQP-VK.ssbo.layout.unsized_nested_struct_array.per_block_buffer.std140
 dEQP-VK.ssbo.layout.unsized_nested_struct_array.per_block_buffer.std140_comp_access
+dEQP-VK.ssbo.layout.unsized_nested_struct_array.per_block_buffer.std430
+dEQP-VK.ssbo.layout.unsized_nested_struct_array.per_block_buffer.std430_comp_access
