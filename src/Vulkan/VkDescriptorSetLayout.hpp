@@ -20,6 +20,19 @@
 namespace vk
 {
 
+class DescriptorSetLayout;
+
+struct DescriptorSet
+{
+	vk::DescriptorSetLayout* layout;
+	uint8_t data[];
+};
+
+inline DescriptorSet* Cast(VkDescriptorSet object)
+{
+	return reinterpret_cast<DescriptorSet*>(object);
+}
+
 class DescriptorSetLayout : public Object<DescriptorSetLayout, VkDescriptorSetLayout>
 {
 public:
@@ -34,11 +47,13 @@ public:
 	static void CopyDescriptorSet(const VkCopyDescriptorSet& descriptorCopies);
 
 	void initialize(VkDescriptorSet descriptorSet);
-	size_t getSize() const;
+	size_t getDescriptorSetAllocationSize() const;
+
 	size_t getBindingOffset(uint32_t binding) const;
-	uint8_t* getOffsetPointer(VkDescriptorSet descriptorSet, uint32_t binding, uint32_t arrayElement, uint32_t count, size_t* typeSize) const;
+	uint8_t* getOffsetPointer(DescriptorSet *descriptorSet, uint32_t binding, uint32_t arrayElement, uint32_t count, size_t* typeSize) const;
 
 private:
+	size_t getDescriptorSetDataSize() const;
 	uint32_t getBindingIndex(uint32_t binding) const;
 	static const uint8_t* GetInputData(const VkWriteDescriptorSet& descriptorWrites);
 
