@@ -361,6 +361,7 @@ namespace sw
 			case spv::OpMatrixTimesScalar:
 			case spv::OpMatrixTimesVector:
 			case spv::OpVectorTimesMatrix:
+			case spv::OpMatrixTimesMatrix:
 			case spv::OpVectorExtractDynamic:
 			case spv::OpVectorInsertDynamic:
 			case spv::OpNot: // Unary ops
@@ -1480,6 +1481,9 @@ namespace sw
 		case spv::OpVectorTimesMatrix:
 			return EmitVectorTimesMatrix(insn, state);
 
+		case spv::OpMatrixTimesMatrix:
+			return EmitMatrixTimesMatrix(insn, state);
+
 		case spv::OpNot:
 		case spv::OpSNegate:
 		case spv::OpFNegate:
@@ -2100,6 +2104,34 @@ namespace sw
 				v += lhs.Float(j) * rhs.Float(i * lhsType.sizeInComponents + j);
 			}
 			dst.move(i, v);
+		}
+
+		return EmitResult::Continue;
+	}
+
+	SpirvShader::EmitResult SpirvShader::EmitMatrixTimesMatrix(InsnIterator insn, EmitState *state) const
+	{
+		auto routine = state->routine;
+		auto &type = getType(insn.word(1));
+		auto &dst = routine->createIntermediate(insn.word(2), type.sizeInComponents);
+		auto lhs = GenericValue(this, routine, insn.word(3));
+		auto rhs = GenericValue(this, routine, insn.word(4));
+
+		auto numColumns = type.definition.word(3);
+		auto numRows = getType(type.definition.word(2)).definition.word(3);
+		auto numAdds = getType(getObject(insn.word(3)).type).definition.word(3);
+
+		for (auto row = 0u; row < numRows; row++)
+		{
+			for (auto col = 0u; col < numColumns; col++)
+			{
+				SIMD::Float v = SIMD::Float(0);
+				for (auto i = 0u; i < numAdds; i++)
+				{
+					v += lhs.Float(i * numRows + row) * rhs.Float(col * numAdds + i);
+				}
+				dst.move(numRows * col + row, v);
+			}
 		}
 
 		return EmitResult::Continue;
