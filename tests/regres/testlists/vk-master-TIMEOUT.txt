@@ -4,6 +4,15 @@ dEQP-VK.draw.basic_draw.draw.triangle_strip.1
 dEQP-VK.draw.basic_draw.draw_indexed.line_strip.1
 dEQP-VK.draw.basic_draw.draw_indexed.triangle_fan.1
 dEQP-VK.draw.basic_draw.draw_indexed.triangle_strip.1
+dEQP-VK.draw.basic_draw.draw_indexed_indirect.line_strip.1_multi_command
+dEQP-VK.draw.basic_draw.draw_indexed_indirect.line_strip.1_single_command
+dEQP-VK.draw.basic_draw.draw_indexed_indirect.triangle_fan.1_single_command
+dEQP-VK.draw.basic_draw.draw_indexed_indirect.triangle_strip.1_single_command
+dEQP-VK.draw.basic_draw.draw_indirect.line_strip.1_multi_command
+dEQP-VK.draw.basic_draw.draw_indirect.line_strip.1_single_command
+dEQP-VK.draw.basic_draw.draw_indirect.triangle_fan.1_multi_command
+dEQP-VK.draw.basic_draw.draw_indirect.triangle_fan.1_single_command
+dEQP-VK.draw.basic_draw.draw_indirect.triangle_strip.1_single_command
 dEQP-VK.ssbo.layout.2_level_array.std140.column_major_mat4
 dEQP-VK.ssbo.layout.2_level_array.std140.column_major_mat4_comp_access
 dEQP-VK.ssbo.layout.2_level_array.std140.row_major_mat4
@@ -70,7 +79,6 @@ dEQP-VK.ssbo.layout.3_level_unsized_array.std430.row_major_mat3
 dEQP-VK.ssbo.layout.3_level_unsized_array.std430.row_major_mat3_comp_access
 dEQP-VK.ssbo.layout.3_level_unsized_array.std430.row_major_mat4x2
 dEQP-VK.ssbo.layout.3_level_unsized_array.std430.row_major_mat4x2_comp_access
-dEQP-VK.ssbo.layout.basic_unsized_array.std140.column_major_mat3_comp_access
 dEQP-VK.ssbo.layout.basic_unsized_array.std140.column_major_mat3x4
 dEQP-VK.ssbo.layout.basic_unsized_array.std140.column_major_mat3x4_comp_access
 dEQP-VK.ssbo.layout.basic_unsized_array.std140.column_major_mat4x3
@@ -104,5 +112,3 @@ dEQP-VK.ssbo.layout.random.nested_structs_arrays.20
 dEQP-VK.ssbo.layout.random.nested_structs_arrays.4
 dEQP-VK.ssbo.layout.unsized_nested_struct_array.per_block_buffer.std140
 dEQP-VK.ssbo.layout.unsized_nested_struct_array.per_block_buffer.std140_comp_access
-dEQP-VK.ssbo.layout.unsized_nested_struct_array.per_block_buffer.std430
-dEQP-VK.ssbo.layout.unsized_nested_struct_array.per_block_buffer.std430_comp_access
