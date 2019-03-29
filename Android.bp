@@ -101,6 +101,13 @@ cc_library_headers {
     export_include_dirs: ["include/Android"],
 }
 
+cc_library_headers {
+    name: "swiftshadervk_platform_headers",
+    vendor: true,
+    device_supported: true,
+    export_include_dirs: ["include"],
+}
+
 subdirs = [
     "src",
     "third_party/llvm-subzero",

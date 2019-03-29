@@ -533,3 +533,166 @@ cc_library_shared {
 
     static_libs: [ "libswiftshader_compiler_debug" ],
 }
+
+
+
+// Vulkan
+
+cc_defaults {
+    name: "libvk_swiftshader",
+
+    device_supported: true,
+    host_supported: true,
+    vendor: true,
+
+    defaults: [ "swiftshader_common" ],
+
+    cflags: [
+        "-D_GNU_SOURCE",
+        "-D__STDC_LIMIT_MACROS",
+        "-D__STDC_CONSTANT_MACROS",
+        "-D__STDC_FORMAT_MACROS",
+        "-DHAVE_GRALLOC1",
+        "-DNO_SANITIZE_FUNCTION=",
+        // FIXME: Use <android/api-level.h> instead?
+        "-DANDROID_PLATFORM_SDK_VERSION=10000",
+        "-Wno-implicit-fallthrough",
+        "-Wno-unused-parameter",
+        "-Wno-unused-local-typedef",
+    ],
+
+    cppflags: [
+        "-Wno-sign-promo",
+        "-Wno-non-virtual-dtor",
+    ],
+
+    local_include_dirs: [ "Vulkan" ],
+
+    target: {
+        android: {
+            relative_install_path: "hw",
+            header_libs: [
+                "swiftshadervk_platform_headers",
+            ],
+            shared_libs: [
+                "libnativewindow",
+                "libhardware",
+                "libcutils",
+                "libsync",
+                "liblog",
+            ],
+        },
+        android_arm64: {
+            enabled: false,
+        }
+    },
+}
+
+cc_defaults {
+    name: "libvk_swiftshader_common_defaults",
+
+    cflags: [
+        "-DLOG_TAG=\"swiftshader\"",
+    ],
+
+    srcs: [
+        "Common/CPUID.cpp",
+        "Common/Configurator.cpp",
+        "Common/Half.cpp",
+        "Common/Math.cpp",
+        "Common/Memory.cpp",
+        "Common/Resource.cpp",
+        "Common/Socket.cpp",
+        "Common/Thread.cpp",
+        "Common/Timer.cpp",
+        "Device/Blitter.cpp",
+        "Device/Clipper.cpp",
+        "Device/Color.cpp",
+        "Device/Config.cpp",
+        "Device/Context.cpp",
+        "Device/ETC_Decoder.cpp",
+        "Device/Matrix.cpp",
+        "Device/PixelProcessor.cpp",
+        "Device/Plane.cpp",
+        "Device/Point.cpp",
+        "Device/QuadRasterizer.cpp",
+        "Device/Renderer.cpp",
+        "Device/Sampler.cpp",
+        "Device/SetupProcessor.cpp",
+        "Device/SwiftConfig.cpp",
+        "Device/Vector.cpp",
+        "Device/VertexProcessor.cpp",
+        "Pipeline/ComputeProgram.cpp",
+        "Pipeline/Constants.cpp",
+        "Pipeline/PixelProgram.cpp",
+        "Pipeline/PixelRoutine.cpp",
+        "Pipeline/SamplerCore.cpp",
+        "Pipeline/SetupRoutine.cpp",
+        "Pipeline/ShaderCore.cpp",
+        "Pipeline/SpirvShader.cpp",
+        "Pipeline/SpirvShader_dbg.cpp",
+        "Pipeline/VertexProgram.cpp",
+        "Pipeline/VertexRoutine.cpp",
+    ],
+
+    include_dirs: [
+        "external/swiftshader/third_party/SPIRV-Headers/include",
+        "external/swiftshader/include"
+    ],
+}
+
+cc_defaults {
+    name: "libvk_swiftshader_debug_default",
+
+    defaults: [ "libvk_swiftshader" ],
+
+    cflags: [
+        "-UNDEBUG",
+        "-g",
+        "-O0",
+        "-DDEFAULT_THREAD_COUNT=1",
+    ],
+}
+
+cc_defaults {
+    name: "swiftshadervk_client_libraries_subzero_or_llvm_debug",
+
+    defaults: [ "libvk_swiftshader_debug_default" ],
+
+    target: {
+        android_arm: {
+            static_libs: [
+                "libswiftshader_subzero_debug",
+                "libsubzero",
+                "libLLVMSupport_subzero",
+            ],
+        },
+
+        android: {
+            static_libs: [
+                "libswiftshader_llvm_debug",
+                "libLLVM_swiftshader",
+            ],
+        },
+
+        host: {
+            static_libs: [
+                "libswiftshader_llvm_debug",
+                "libLLVM_swiftshader",
+            ],
+        },
+    },
+}
+
+cc_library_shared {
+    name: "libvk_swiftshader_debug",
+
+    device_supported: true,
+
+
+    defaults: [
+        "swiftshadervk_client_libraries_subzero_or_llvm_debug",
+        "libvk_swiftshader_common_defaults",
+        "libvk_swiftshader"
+    ],
+}

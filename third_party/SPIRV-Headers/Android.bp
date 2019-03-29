@@ -1,0 +1,34 @@
+filegroup {
+    name: "swiftshader_spirv.core.grammar.json-1.0",
+    srcs: ["include/spirv/1.0/spirv.core.grammar.json"],
+}
+
+filegroup {
+    name: "swiftshader_spirv.core.grammar.json-1.1",
+    srcs: ["include/spirv/1.1/spirv.core.grammar.json"],
+}
+
+filegroup {
+    name: "swiftshader_spirv.core.grammar.json-1.2",
+    srcs: ["include/spirv/1.2/spirv.core.grammar.json"],
+}
+
+filegroup {
+    name: "swiftshader_spirv.core.grammar.json-unified1",
+    srcs: ["include/spirv/unified1/spirv.core.grammar.json"],
+}
+
+filegroup {
+    name: "swiftshader_spirv.glsl.grammar.json",
+    srcs: ["include/spirv/1.2/extinst.glsl.std.450.grammar.json"],
+}
+
+filegroup {
+    name: "swiftshader_spirv.opencl.grammar.json",
+    srcs: ["include/spirv/1.2/extinst.opencl.std.100.grammar.json"],
+}
+
+filegroup {
+    name: "swiftshader_spirv.registry.xml",
+    srcs: ["include/spirv/spir-v.xml"],
+}
