@@ -23,7 +23,7 @@
 #include "libEGL/Context.hpp"
 #include "common/Image.hpp"
 #include "common/debug.h"
-#include "Common/RecursiveLock.hpp"
+#include "Common/MutexLock.hpp"
 
 #ifdef __ANDROID__
 #include <system/window.h>

@@ -340,7 +340,7 @@ void error(EGLint errorCode)
 	}
 }
 
-sw::RecursiveLock *getDisplayLock(EGLDisplay dpy)
+sw::MutexLock *getDisplayLock(EGLDisplay dpy)
 {
 	auto display = Display::get(dpy);
 	if (!display) return nullptr;
@@ -415,67 +415,67 @@ EGLAPI EGLDisplay EGLAPIENTRY eglGetDisplay(EGLNativeDisplayType display_id)
 
 EGLAPI EGLBoolean EGLAPIENTRY eglInitialize(EGLDisplay dpy, EGLint *major, EGLint *minor)
 {
-	RecursiveLockGuard lock(egl::getDisplayLock(dpy));
+	LockGuard lock(egl::getDisplayLock(dpy));
 	return egl::Initialize(dpy, major, minor);
 }
 
 EGLAPI EGLBoolean EGLAPIENTRY eglTerminate(EGLDisplay dpy)
 {
-	RecursiveLockGuard lock(egl::getDisplayLock(dpy));
+	LockGuard lock(egl::getDisplayLock(dpy));
 	return egl::Terminate(dpy);
 }
 
 EGLAPI const char *EGLAPIENTRY eglQueryString(EGLDisplay dpy, EGLint name)
 {
-	RecursiveLockGuard lock(egl::getDisplayLock(dpy));
+	LockGuard lock(egl::getDisplayLock(dpy));
 	return egl::QueryString(dpy, name);
 }
 
 EGLAPI EGLBoolean EGLAPIENTRY eglGetConfigs(EGLDisplay dpy, EGLConfig *configs, EGLint config_size, EGLint *num_config)
 {
-	RecursiveLockGuard lock(egl::getDisplayLock(dpy));
+	LockGuard lock(egl::getDisplayLock(dpy));
 	return egl::GetConfigs(dpy, configs, config_size, num_config);
 }
 
 EGLAPI EGLBoolean EGLAPIENTRY eglChooseConfig(EGLDisplay dpy, const EGLint *attrib_list, EGLConfig *configs, EGLint config_size, EGLint *num_config)
 {
-	RecursiveLockGuard lock(egl::getDisplayLock(dpy));
+	LockGuard lock(egl::getDisplayLock(dpy));
 	return egl::ChooseConfig(dpy, attrib_list, configs, config_size, num_config);
 }
 
 EGLAPI EGLBoolean EGLAPIENTRY eglGetConfigAttrib(EGLDisplay dpy, EGLConfig config, EGLint attribute, EGLint *value)
 {
-	RecursiveLockGuard lock(egl::getDisplayLock(dpy));
+	LockGuard lock(egl::getDisplayLock(dpy));
 	return egl::GetConfigAttrib(dpy, config, attribute, value);
 }
 
 EGLAPI EGLSurface EGLAPIENTRY eglCreateWindowSurface(EGLDisplay dpy, EGLConfig config, EGLNativeWindowType window, const EGLint *attrib_list)
 {
-	RecursiveLockGuard lock(egl::getDisplayLock(dpy));
+	LockGuard lock(egl::getDisplayLock(dpy));
 	return egl::CreateWindowSurface(dpy, config, window, attrib_list);
 }
 
 EGLAPI EGLSurface EGLAPIENTRY eglCreatePbufferSurface(EGLDisplay dpy, EGLConfig config, const EGLint *attrib_list)
 {
-	RecursiveLockGuard lock(egl::getDisplayLock(dpy));
+	LockGuard lock(egl::getDisplayLock(dpy));
 	return egl::CreatePbufferSurface(dpy, config, attrib_list);
 }
 
 EGLAPI EGLSurface EGLAPIENTRY eglCreatePixmapSurface(EGLDisplay dpy, EGLConfig config, EGLNativePixmapType pixmap, const EGLint *attrib_list)
 {
-	RecursiveLockGuard lock(egl::getDisplayLock(dpy));
+	LockGuard lock(egl::getDisplayLock(dpy));
 	return egl::CreatePixmapSurface(dpy, config, pixmap, attrib_list);
 }
 
 EGLAPI EGLBoolean EGLAPIENTRY eglDestroySurface(EGLDisplay dpy, EGLSurface surface)
 {
-	RecursiveLockGuard lock(egl::getDisplayLock(dpy));
+	LockGuard lock(egl::getDisplayLock(dpy));
 	return egl::DestroySurface(dpy, surface);
 }
 
 EGLAPI EGLBoolean EGLAPIENTRY eglQuerySurface(EGLDisplay dpy, EGLSurface surface, EGLint attribute, EGLint *value)
 {
-	RecursiveLockGuard lock(egl::getDisplayLock(dpy));
+	LockGuard lock(egl::getDisplayLock(dpy));
 	return egl::QuerySurface(dpy, surface, attribute, value);
 }
 
@@ -501,49 +501,49 @@ EGLAPI EGLBoolean EGLAPIENTRY eglReleaseThread(void)
 
 EGLAPI EGLSurface EGLAPIENTRY eglCreatePbufferFromClientBuffer(EGLDisplay dpy, EGLenum buftype, EGLClientBuffer buffer, EGLConfig config, const EGLint *attrib_list)
 {
-	RecursiveLockGuard lock(egl::getDisplayLock(dpy));
+	LockGuard lock(egl::getDisplayLock(dpy));
 	return egl::CreatePbufferFromClientBuffer(dpy, buftype, buffer, config, attrib_list);
 }
 
 EGLAPI EGLBoolean EGLAPIENTRY eglSurfaceAttrib(EGLDisplay dpy, EGLSurface surface, EGLint attribute, EGLint value)
 {
-	RecursiveLockGuard lock(egl::getDisplayLock(dpy));
+	LockGuard lock(egl::getDisplayLock(dpy));
 	return egl::SurfaceAttrib(dpy, surface, attribute, value);
 }
 
 EGLAPI EGLBoolean EGLAPIENTRY eglBindTexImage(EGLDisplay dpy, EGLSurface surface, EGLint buffer)
 {
-	RecursiveLockGuard lock(egl::getDisplayLock(dpy));
+	LockGuard lock(egl::getDisplayLock(dpy));
 	return egl::BindTexImage(dpy, surface, buffer);
 }
 
 EGLAPI EGLBoolean EGLAPIENTRY eglReleaseTexImage(EGLDisplay dpy, EGLSurface surface, EGLint buffer)
 {
-	RecursiveLockGuard lock(egl::getDisplayLock(dpy));
+	LockGuard lock(egl::getDisplayLock(dpy));
 	return egl::ReleaseTexImage(dpy, surface, buffer);
 }
 
 EGLAPI EGLBoolean EGLAPIENTRY eglSwapInterval(EGLDisplay dpy, EGLint interval)
 {
-	RecursiveLockGuard lock(egl::getDisplayLock(dpy));
+	LockGuard lock(egl::getDisplayLock(dpy));
 	return egl::SwapInterval(dpy, interval);
 }
 
 EGLAPI EGLContext EGLAPIENTRY eglCreateContext(EGLDisplay dpy, EGLConfig config, EGLContext share_context, const EGLint *attrib_list)
 {
-	RecursiveLockGuard lock(egl::getDisplayLock(dpy));
+	LockGuard lock(egl::getDisplayLock(dpy));
 	return egl::CreateContext(dpy, config, share_context, attrib_list);
 }
 
 EGLAPI EGLBoolean EGLAPIENTRY eglDestroyContext(EGLDisplay dpy, EGLContext ctx)
 {
-	RecursiveLockGuard lock(egl::getDisplayLock(dpy));
+	LockGuard lock(egl::getDisplayLock(dpy));
 	return egl::DestroyContext(dpy, ctx);
 }
 
 EGLAPI EGLBoolean EGLAPIENTRY eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLContext ctx)
 {
-	RecursiveLockGuard lock(egl::getDisplayLock(dpy));
+	LockGuard lock(egl::getDisplayLock(dpy));
 	return egl::MakeCurrent(dpy, draw, read, ctx);
 }
 
@@ -564,7 +564,7 @@ EGLAPI EGLDisplay EGLAPIENTRY eglGetCurrentDisplay(void)
 
 EGLAPI EGLBoolean EGLAPIENTRY eglQueryContext(EGLDisplay dpy, EGLContext ctx, EGLint attribute, EGLint *value)
 {
-	RecursiveLockGuard lock(egl::getDisplayLock(dpy));
+	LockGuard lock(egl::getDisplayLock(dpy));
 	return egl::QueryContext(dpy, ctx, attribute, value);
 }
 
@@ -580,37 +580,37 @@ EGLAPI EGLBoolean EGLAPIENTRY eglWaitNative(EGLint engine)
 
 EGLAPI EGLBoolean EGLAPIENTRY eglSwapBuffers(EGLDisplay dpy, EGLSurface surface)
 {
-	RecursiveLockGuard lock(egl::getDisplayLock(dpy));
+	LockGuard lock(egl::getDisplayLock(dpy));
 	return egl::SwapBuffers(dpy, surface);
 }
 
 EGLAPI EGLBoolean EGLAPIENTRY eglCopyBuffers(EGLDisplay dpy, EGLSurface surface, EGLNativePixmapType target)
 {
-	RecursiveLockGuard lock(egl::getDisplayLock(dpy));
+	LockGuard lock(egl::getDisplayLock(dpy));
 	return egl::CopyBuffers(dpy, surface, target);
 }
 
 EGLAPI EGLImageKHR EGLAPIENTRY eglCreateImageKHR(EGLDisplay dpy, EGLContext ctx, EGLenum target, EGLClientBuffer buffer, const EGLint *attrib_list)
 {
-	RecursiveLockGuard lock(egl::getDisplayLock(dpy));
+	LockGuard lock(egl::getDisplayLock(dpy));
 	return egl::CreateImageKHR(dpy, ctx, target, buffer, attrib_list);
 }
 
 EGLAPI EGLImageKHR EGLAPIENTRY eglCreateImage(EGLDisplay dpy, EGLContext ctx, EGLenum target, EGLClientBuffer buffer, const EGLAttrib *attrib_list)
 {
-	RecursiveLockGuard lock(egl::getDisplayLock(dpy));
+	LockGuard lock(egl::getDisplayLock(dpy));
 	return egl::CreateImage(dpy, ctx, target, buffer, attrib_list);
 }
 
 EGLAPI EGLBoolean EGLAPIENTRY eglDestroyImageKHR(EGLDisplay dpy, EGLImageKHR image)
 {
-	RecursiveLockGuard lock(egl::getDisplayLock(dpy));
+	LockGuard lock(egl::getDisplayLock(dpy));
 	return egl::DestroyImageKHR(dpy, image);
 }
 
 EGLAPI EGLBoolean EGLAPIENTRY eglDestroyImage(EGLDisplay dpy, EGLImageKHR image)
 {
-	RecursiveLockGuard lock(egl::getDisplayLock(dpy));
+	LockGuard lock(egl::getDisplayLock(dpy));
 	return egl::DestroyImageKHR(dpy, image);
 }
 
@@ -626,85 +626,85 @@ EGLAPI EGLDisplay EGLAPIENTRY eglGetPlatformDisplay(EGLenum platform, void *nati
 
 EGLAPI EGLSurface EGLAPIENTRY eglCreatePlatformWindowSurfaceEXT(EGLDisplay dpy, EGLConfig config, void *native_window, const EGLint *attrib_list)
 {
-	RecursiveLockGuard lock(egl::getDisplayLock(dpy));
+	LockGuard lock(egl::getDisplayLock(dpy));
 	return egl::CreatePlatformWindowSurfaceEXT(dpy, config, native_window, attrib_list);
 }
 
 EGLAPI EGLSurface EGLAPIENTRY eglCreatePlatformWindowSurface(EGLDisplay dpy, EGLConfig config, void *native_window, const EGLAttrib *attrib_list)
 {
-	RecursiveLockGuard lock(egl::getDisplayLock(dpy));
+	LockGuard lock(egl::getDisplayLock(dpy));
 	return egl::CreatePlatformWindowSurface(dpy, config, native_window, attrib_list);
 }
 
 EGLAPI EGLSurface EGLAPIENTRY eglCreatePlatformPixmapSurfaceEXT(EGLDisplay dpy, EGLConfig config, void *native_pixmap, const EGLint *attrib_list)
 {
-	RecursiveLockGuard lock(egl::getDisplayLock(dpy));
+	LockGuard lock(egl::getDisplayLock(dpy));
 	return egl::CreatePlatformPixmapSurfaceEXT(dpy, config, native_pixmap, attrib_list);
 }
 
 EGLAPI EGLSurface EGLAPIENTRY eglCreatePlatformPixmapSurface(EGLDisplay dpy, EGLConfig config, void *native_pixmap, const EGLAttrib *attrib_list)
 {
-	RecursiveLockGuard lock(egl::getDisplayLock(dpy));
+	LockGuard lock(egl::getDisplayLock(dpy));
 	return egl::CreatePlatformPixmapSurface(dpy, config, native_pixmap, attrib_list);
 }
 
 EGLAPI EGLSyncKHR EGLAPIENTRY eglCreateSyncKHR(EGLDisplay dpy, EGLenum type, const EGLint *attrib_list)
 {
-	RecursiveLockGuard lock(egl::getDisplayLock(dpy));
+	LockGuard lock(egl::getDisplayLock(dpy));
 	return egl::CreateSyncKHR(dpy, type, attrib_list);
 }
 
 EGLAPI EGLSyncKHR EGLAPIENTRY eglCreateSync(EGLDisplay dpy, EGLenum type, const EGLAttrib *attrib_list)
 {
-	RecursiveLockGuard lock(egl::getDisplayLock(dpy));
+	LockGuard lock(egl::getDisplayLock(dpy));
 	return egl::CreateSync(dpy, type, attrib_list);
 }
 
 EGLAPI EGLBoolean EGLAPIENTRY eglDestroySyncKHR(EGLDisplay dpy, EGLSyncKHR sync)
 {
-	RecursiveLockGuard lock(egl::getDisplayLock(dpy));
+	LockGuard lock(egl::getDisplayLock(dpy));
 	return egl::DestroySyncKHR(dpy, sync);
 }
 
 EGLAPI EGLBoolean EGLAPIENTRY eglDestroySync(EGLDisplay dpy, EGLSyncKHR sync)
 {
-	RecursiveLockGuard lock(egl::getDisplayLock(dpy));
+	LockGuard lock(egl::getDisplayLock(dpy));
 	return egl::DestroySyncKHR(dpy, sync);
 }
 
 EGLAPI EGLint EGLAPIENTRY eglClientWaitSyncKHR(EGLDisplay dpy, EGLSyncKHR sync, EGLint flags, EGLTimeKHR timeout)
 {
-	RecursiveLockGuard lock(egl::getDisplayLock(dpy));
+	LockGuard lock(egl::getDisplayLock(dpy));
 	return egl::ClientWaitSyncKHR(dpy, sync, flags, timeout);
 }
 
 EGLAPI EGLint EGLAPIENTRY eglClientWaitSync(EGLDisplay dpy, EGLSyncKHR sync, EGLint flags, EGLTimeKHR timeout)
 {
-	RecursiveLockGuard lock(egl::getDisplayLock(dpy));
+	LockGuard lock(egl::getDisplayLock(dpy));
 	return egl::ClientWaitSyncKHR(dpy, sync, flags, timeout);
 }
 
 EGLAPI EGLBoolean EGLAPIENTRY eglGetSyncAttribKHR(EGLDisplay dpy, EGLSyncKHR sync, EGLint attribute, EGLint *value)
 {
-	RecursiveLockGuard lock(egl::getDisplayLock(dpy));
+	LockGuard lock(egl::getDisplayLock(dpy));
 	return egl::GetSyncAttribKHR(dpy, sync, attribute, value);
 }
 
 EGLAPI EGLBoolean EGLAPIENTRY eglGetSyncAttrib(EGLDisplay dpy, EGLSyncKHR sync, EGLint attribute, EGLAttrib *value)
 {
-	RecursiveLockGuard lock(egl::getDisplayLock(dpy));
+	LockGuard lock(egl::getDisplayLock(dpy));
 	return egl::GetSyncAttrib(dpy, sync, attribute, value);
 }
 
 EGLAPI EGLint EGLAPIENTRY eglWaitSyncKHR(EGLDisplay dpy, EGLSyncKHR sync, EGLint flags)
 {
-	RecursiveLockGuard lock(egl::getDisplayLock(dpy));
+	LockGuard lock(egl::getDisplayLock(dpy));
 	return egl::ClientWaitSyncKHR(dpy, sync, flags, EGL_FOREVER_KHR);
 }
 
 EGLAPI EGLBoolean EGLAPIENTRY eglWaitSync(EGLDisplay dpy, EGLSync sync, EGLint flags)
 {
-	RecursiveLockGuard lock(egl::getDisplayLock(dpy));
+	LockGuard lock(egl::getDisplayLock(dpy));
 	return egl::ClientWaitSyncKHR(dpy, sync, flags, EGL_FOREVER_KHR);
 }
 
