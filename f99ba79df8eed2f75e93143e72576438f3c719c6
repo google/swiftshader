@@ -16,6 +16,24 @@
       "revId": "f99ba79df8eed2f75e93143e72576438f3c719c6",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "97c5c047_2e7e4a82",
+        "filename": "src/Device/Renderer.hpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 6982
+      },
+      "writtenOn": "2019-04-01T21:00:07Z",
+      "side": 1,
+      "message": "Possibly worth noting that the number of dynamic descriptors typically used is *very* low, below this limit. I don\u0027t anticipate much in the way of pressure to increase the limit even post-1.0.",
+      "parentUuid": "d8e8c4b5_c0add47f",
+      "revId": "f99ba79df8eed2f75e93143e72576438f3c719c6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
