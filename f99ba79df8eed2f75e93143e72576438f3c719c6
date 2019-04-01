@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d8e8c4b5_c0add47f",
+        "filename": "src/Device/Renderer.hpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-04-01T18:55:38Z",
+      "side": 1,
+      "message": "I think we need a fixed-size array here of buffer offsets. The minimum requirement for maxDescriptorSetUniformBuffersDynamic is only 8. We have all the information needed during pipeline creation time from the pipeline layout, for mapping specific dynamic buffer descriptors to their offset entries. At vkCmdBindDescriptorSets we use that same mapping to update a corresponding array in the command buffer\u0027s ExecutionState. At draws we merely copy that over into the DrawData\u0027s buffer offset array.",
+      "revId": "f99ba79df8eed2f75e93143e72576438f3c719c6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
