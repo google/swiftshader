@@ -16,23 +16,53 @@
 #define VK_QUERY_POOL_HPP_
 
 #include "VkObject.hpp"
+#include <atomic>
+#include <condition_variable>
+#include <mutex>
 
 namespace vk
 {
+
+struct Query
+{
+	enum State
+	{
+		UNAVAILABLE,
+		ACTIVE,
+		FINISHED
+	};
+
+	std::mutex mutex;
+	std::condition_variable condition;
+	State state;  // guarded by mutex
+	int64_t data; // guarded by mutex
+	std::atomic<int> reference;
+	VkQueryType type;
+};
 
 class QueryPool : public Object<QueryPool, VkQueryPool>
 {
 public:
 	QueryPool(const VkQueryPoolCreateInfo* pCreateInfo, void* mem);
 	~QueryPool() = delete;
+	void destroy(const VkAllocationCallbacks* pAllocator);
 
 	static size_t ComputeRequiredAllocationSize(const VkQueryPoolCreateInfo* pCreateInfo);
 
-	void getResults(uint32_t pFirstQuery, uint32_t pQueryCount, size_t pDataSize,
-		            void* pData, VkDeviceSize pStride, VkQueryResultFlags pFlags) const;
+	VkResult getResults(uint32_t firstQuery, uint32_t queryCount, size_t dataSize,
+		                void* pData, VkDeviceSize stride, VkQueryResultFlags flags) const;
+	void begin(uint32_t query, VkQueryControlFlags flags);
+	void end(uint32_t query);
+	void reset(uint32_t firstQuery, uint32_t queryCount);
+	
+	void writeTimestamp(uint32_t query);
+
+	inline Query* getQuery(uint32_t query) const { return &(pool[query]); }
 
 private:
-	uint32_t queryCount;
+	Query* pool;
+	VkQueryType type;
+	uint32_t count;
 };
 
 static inline QueryPool* Cast(VkQueryPool object)

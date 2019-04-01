@@ -20,6 +20,7 @@
 #include "VkImageView.hpp"
 #include "VkPipeline.hpp"
 #include "VkPipelineLayout.hpp"
+#include "VkQueryPool.hpp"
 #include "VkRenderPass.hpp"
 #include "Device/Renderer.hpp"
 
@@ -738,6 +739,104 @@ private:
 	unsigned char data[MAX_PUSH_CONSTANT_SIZE];
 };
 
+struct BeginQuery : public CommandBuffer::Command
+{
+	BeginQuery(VkQueryPool queryPool, uint32_t query, VkQueryControlFlags flags)
+		: queryPool(queryPool), query(query), flags(flags)
+	{
+	}
+
+	void play(CommandBuffer::ExecutionState& executionState)
+	{
+		executionState.renderer->addQuery(Cast(queryPool)->getQuery(query));
+		Cast(queryPool)->begin(query, flags);
+	}
+
+private:
+	VkQueryPool queryPool;
+	uint32_t query;
+	VkQueryControlFlags flags;
+};
+
+struct EndQuery : public CommandBuffer::Command
+{
+	EndQuery(VkQueryPool queryPool, uint32_t query)
+		: queryPool(queryPool), query(query)
+	{
+	}
+
+	void play(CommandBuffer::ExecutionState& executionState)
+	{
+		executionState.renderer->removeQuery(Cast(queryPool)->getQuery(query));
+		Cast(queryPool)->end(query);
+	}
+
+private:
+	VkQueryPool queryPool;
+	uint32_t query;
+};
+
+struct ResetQueryPool : public CommandBuffer::Command
+{
+	ResetQueryPool(VkQueryPool queryPool, uint32_t firstQuery, uint32_t queryCount)
+		: queryPool(queryPool), firstQuery(firstQuery), queryCount(queryCount)
+	{
+	}
+
+	void play(CommandBuffer::ExecutionState& executionState)
+	{
+		Cast(queryPool)->reset(firstQuery, queryCount);
+	}
+
+private:
+	VkQueryPool queryPool;
+	uint32_t firstQuery;
+	uint32_t queryCount;
+};
+
+struct WriteTimeStamp : public CommandBuffer::Command
+{
+	WriteTimeStamp(VkQueryPool queryPool, uint32_t query)
+		: queryPool(queryPool), query(query)
+	{
+	}
+
+	void play(CommandBuffer::ExecutionState& executionState)
+	{
+		Cast(queryPool)->writeTimestamp(query);
+	}
+
+private:
+	VkQueryPool queryPool;
+	uint32_t query;
+};
+
+struct CopyQueryPoolResults : public CommandBuffer::Command
+{
+	CopyQueryPoolResults(VkQueryPool queryPool, uint32_t firstQuery, uint32_t queryCount,
+		VkBuffer dstBuffer, VkDeviceSize dstOffset, VkDeviceSize stride, VkQueryResultFlags flags)
+		: queryPool(queryPool), firstQuery(firstQuery), queryCount(queryCount), dstBuffer(dstBuffer),
+		  dstOffset(dstOffset), stride(stride), flags(flags)
+	{
+	}
+
+	void play(CommandBuffer::ExecutionState& executionState)
+	{
+		vk::Buffer* buffer = Cast(dstBuffer);
+		Cast(queryPool)->getResults(firstQuery, queryCount, buffer->getSize() - dstOffset,
+		                            buffer->getOffsetPointer(dstOffset), stride, flags);
+	}
+
+private:
+	VkQueryPool queryPool;
+	uint32_t firstQuery;
+	uint32_t queryCount;
+	VkBuffer dstBuffer;
+	VkDeviceSize dstOffset;
+	VkDeviceSize stride;
+	VkQueryResultFlags flags;
+};
+
 CommandBuffer::CommandBuffer(VkCommandBufferLevel pLevel) : level(pLevel)
 {
 	// FIXME (b/119409619): replace this vector by an allocator so we can control all memory allocations
@@ -877,28 +976,28 @@ void CommandBuffer::bindVertexBuffers(uint32_t firstBinding, uint32_t bindingCou
 
 void CommandBuffer::beginQuery(VkQueryPool queryPool, uint32_t query, VkQueryControlFlags flags)
 {
-	UNIMPLEMENTED("beginQuery");
+	addCommand<BeginQuery>(queryPool, query, flags);
 }
 
 void CommandBuffer::endQuery(VkQueryPool queryPool, uint32_t query)
 {
-	UNIMPLEMENTED("endQuery");
+	addCommand<EndQuery>(queryPool, query);
 }
 
 void CommandBuffer::resetQueryPool(VkQueryPool queryPool, uint32_t firstQuery, uint32_t queryCount)
 {
-	UNIMPLEMENTED("resetQueryPool");
+	addCommand<ResetQueryPool>(queryPool, firstQuery, queryCount);
 }
 
 void CommandBuffer::writeTimestamp(VkPipelineStageFlagBits pipelineStage, VkQueryPool queryPool, uint32_t query)
 {
-	UNIMPLEMENTED("writeTimestamp");
+	addCommand<WriteTimeStamp>(queryPool, query);
 }
 
 void CommandBuffer::copyQueryPoolResults(VkQueryPool queryPool, uint32_t firstQuery, uint32_t queryCount,
 	VkBuffer dstBuffer, VkDeviceSize dstOffset, VkDeviceSize stride, VkQueryResultFlags flags)
 {
-	UNIMPLEMENTED("copyQueryPoolResults");
+	addCommand<CopyQueryPoolResults>(queryPool, firstQuery, queryCount, dstBuffer, dstOffset, stride, flags);
 }
 
 void CommandBuffer::pushConstants(VkPipelineLayout layout, VkShaderStageFlags stageFlags,

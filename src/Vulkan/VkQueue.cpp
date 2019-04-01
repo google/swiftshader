@@ -72,6 +72,8 @@ void Queue::waitIdle()
 	// with an infinite timeout for that fence to signal
 
 	// FIXME (b/117835459): implement once we have working fences
+
+	renderer->synchronize();
 }
 
 #ifndef __ANDROID__
