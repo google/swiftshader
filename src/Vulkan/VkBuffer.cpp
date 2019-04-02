@@ -25,11 +25,14 @@ const size_t Buffer::DataOffset = offsetof(Buffer, memory);
 
 Buffer::Buffer(const VkBufferCreateInfo* pCreateInfo, void* mem) :
 	flags(pCreateInfo->flags), size(pCreateInfo->size), usage(pCreateInfo->usage),
-	sharingMode(pCreateInfo->sharingMode), queueFamilyIndexCount(pCreateInfo->queueFamilyIndexCount),
-	queueFamilyIndices(reinterpret_cast<uint32_t*>(mem))
+	sharingMode(pCreateInfo->sharingMode)
 {
-	size_t queueFamilyIndicesSize = sizeof(uint32_t) * queueFamilyIndexCount;
-	memcpy(queueFamilyIndices, pCreateInfo->pQueueFamilyIndices, queueFamilyIndicesSize);
+	if(pCreateInfo->sharingMode == VK_SHARING_MODE_CONCURRENT)
+	{
+		queueFamilyIndexCount = pCreateInfo->queueFamilyIndexCount;
+		queueFamilyIndices = reinterpret_cast<uint32_t*>(mem);
+		memcpy(queueFamilyIndices, pCreateInfo->pQueueFamilyIndices, sizeof(uint32_t) * queueFamilyIndexCount);
+	}
 }
 
 void Buffer::destroy(const VkAllocationCallbacks* pAllocator)
@@ -39,7 +42,7 @@ void Buffer::destroy(const VkAllocationCallbacks* pAllocator)
 
 size_t Buffer::ComputeRequiredAllocationSize(const VkBufferCreateInfo* pCreateInfo)
 {
-	return sizeof(uint32_t) * pCreateInfo->queueFamilyIndexCount;
+	return (pCreateInfo->sharingMode == VK_SHARING_MODE_CONCURRENT) ? sizeof(uint32_t) * pCreateInfo->queueFamilyIndexCount : 0;
 }
 
 const VkMemoryRequirements Buffer::getMemoryRequirements() const
