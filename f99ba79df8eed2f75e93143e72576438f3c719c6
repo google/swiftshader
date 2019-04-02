@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "f1e68bd8_0abebc53",
+        "filename": "src/Device/Renderer.hpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 7184
+      },
+      "writtenOn": "2019-04-02T11:29:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "97c5c047_2e7e4a82",
+      "revId": "f99ba79df8eed2f75e93143e72576438f3c719c6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ba86624a_b9cce9eb",
         "filename": "src/Vulkan/VkDescriptorSetLayout.hpp",
         "patchSetId": 8
@@ -48,6 +66,24 @@
       "writtenOn": "2019-04-01T21:01:29Z",
       "side": 1,
       "message": "We should be considering the number of *descriptors* that are dynamic, not bindings.\n\nCareful with bindings which contain 0 descriptors.",
+      "revId": "f99ba79df8eed2f75e93143e72576438f3c719c6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5fe9d367_1c046ee2",
+        "filename": "src/Vulkan/VkDescriptorSetLayout.hpp",
+        "patchSetId": 8
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 7184
+      },
+      "writtenOn": "2019-04-02T11:29:30Z",
+      "side": 1,
+      "message": "Good spot. Done.",
+      "parentUuid": "ba86624a_b9cce9eb",
       "revId": "f99ba79df8eed2f75e93143e72576438f3c719c6",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
