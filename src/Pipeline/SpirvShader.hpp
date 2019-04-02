@@ -630,6 +630,7 @@ namespace sw
 		EmitResult EmitSwitch(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitUnreachable(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitReturn(InsnIterator insn, EmitState *state) const;
+		EmitResult EmitKill(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitPhi(InsnIterator insn, EmitState *state) const;
 
 		// OpcodeName() returns the name of the opcode op.
@@ -661,6 +662,7 @@ namespace sw
 
 		std::array<Pointer<Byte>, vk::MAX_BOUND_DESCRIPTOR_SETS> descriptorSets;
 		Pointer<Byte> pushConstants;
+		Int killMask = Int{0};
 
 		void createLvalue(SpirvShader::Object::ID id, uint32_t size)
 		{

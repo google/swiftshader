@@ -47,6 +47,14 @@ namespace sw
 
 		clampColor(c);
 
+		if(spirvShader->getModes().ContainsKill)
+		{
+			for (auto i = 0u; i < state.multiSample; i++)
+			{
+				cMask[i] &= ~routine.killMask;
+			}
+		}
+
 		if(spirvShader->getModes().DepthReplacing)
 		{
 			oDepth = Min(Max(oDepth, Float4(0.0f)), Float4(1.0f));

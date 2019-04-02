@@ -1681,6 +1681,9 @@ namespace sw
 		case spv::OpReturn:
 			return EmitReturn(insn, state);
 
+		case spv::OpKill:
+			return EmitKill(insn, state);
+
 		default:
 			UNIMPLEMENTED("opcode: %s", OpcodeName(insn.opcode()).c_str());
 			break;
@@ -3024,6 +3027,13 @@ namespace sw
 
 	SpirvShader::EmitResult SpirvShader::EmitReturn(InsnIterator insn, EmitState *state) const
 	{
+		state->setActiveLaneMask(SIMD::Int(0));
+		return EmitResult::Terminator;
+	}
+
+	SpirvShader::EmitResult SpirvShader::EmitKill(InsnIterator insn, EmitState *state) const
+	{
+		state->routine->killMask |= SignMask(state->activeLaneMask());
 		state->setActiveLaneMask(SIMD::Int(0));
 		return EmitResult::Terminator;
 	}
