@@ -20,18 +20,7 @@
 namespace vk
 {
 
-class DescriptorSetLayout;
-
-struct DescriptorSet
-{
-	vk::DescriptorSetLayout* layout;
-	uint8_t data[];
-};
-
-inline DescriptorSet* Cast(VkDescriptorSet object)
-{
-	return reinterpret_cast<DescriptorSet*>(object);
-}
+class DescriptorSet;
 
 class DescriptorSetLayout : public Object<DescriptorSetLayout, VkDescriptorSetLayout>
 {
@@ -47,15 +36,43 @@ public:
 	static void CopyDescriptorSet(const VkCopyDescriptorSet& descriptorCopies);
 
 	void initialize(VkDescriptorSet descriptorSet);
+
+	// Returns the total size of the descriptor set in bytes.
 	size_t getDescriptorSetAllocationSize() const;
 
-	size_t getBindingOffset(uint32_t binding) const;
+	// Returns the number of bindings in the descriptor set.
+	size_t getBindingCount() const;
+
+	// Returns the byte offset from the base address of the descriptor set for
+	// the given binding and array element within that binding.
+	size_t getBindingOffset(uint32_t binding, uint32_t arrayElement) const;
+
+	// Returns the number of descriptors across all bindings that are dynamic
+	// (see isBindingDynamic).
+	size_t getDynamicDescriptorCount() const;
+
+	// Returns the relative offset into the pipeline's dynamic offsets array for
+	// the given binding. This offset should be added to the base offset
+	// returned by PipelineLayout::getDynamicOffsetBase() to produce the
+	// starting index for dynamic descriptors.
+	size_t getDynamicDescriptorOffset(uint32_t binding) const;
+
+	// Returns true if the given binding is of type:
+	//  VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC or
+	//  VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC
+	bool isBindingDynamic(uint32_t binding) const;
+
+	// Returns the VkDescriptorSetLayoutBinding for the binding with the given
+	// index.
+	VkDescriptorSetLayoutBinding const & getBindingLayout(uint32_t binding) const;
+
 	uint8_t* getOffsetPointer(DescriptorSet *descriptorSet, uint32_t binding, uint32_t arrayElement, uint32_t count, size_t* typeSize) const;
 
 private:
 	size_t getDescriptorSetDataSize() const;
 	uint32_t getBindingIndex(uint32_t binding) const;
 	static const uint8_t* GetInputData(const VkWriteDescriptorSet& descriptorWrites);
+	static bool isDynamic(VkDescriptorType type);
 
 	VkDescriptorSetLayoutCreateFlags flags;
 	uint32_t                         bindingCount;

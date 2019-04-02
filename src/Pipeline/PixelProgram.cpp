@@ -31,6 +31,8 @@ namespace sw
 	{
 		enableIndex = 0;
 
+		routine.descriptorSets = data + OFFSET(DrawData, descriptorSets);
+		routine.descriptorDynamicOffsets = data + OFFSET(DrawData, descriptorDynamicOffsets);
 		routine.pushConstants = data + OFFSET(DrawData, pushConstants);
 
 		auto activeLaneMask = SIMD::Int(0xFFFFFFFF); // TODO: Control this.

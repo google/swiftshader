@@ -23,6 +23,7 @@
 #include "System/MutexLock.hpp"
 #include "System/Thread.hpp"
 #include "Device/Config.hpp"
+#include "Vulkan/VkDescriptorSet.hpp"
 
 #include <list>
 
@@ -114,7 +115,8 @@ namespace sw
 	{
 		const Constants *constants;
 
-		vk::DescriptorSet *descriptorSets[vk::MAX_BOUND_DESCRIPTOR_SETS];
+		vk::DescriptorSet::Bindings descriptorSets = {};
+		vk::DescriptorSet::DynamicOffsets descriptorDynamicOffsets = {};
 
 		const void *input[MAX_VERTEX_INPUTS];
 		unsigned int stride[MAX_VERTEX_INPUTS];

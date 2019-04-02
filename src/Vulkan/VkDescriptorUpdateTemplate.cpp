@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "VkDescriptorUpdateTemplate.hpp"
+#include "VkDescriptorSet.hpp"
 #include "VkDescriptorSetLayout.hpp"
 #include <cstring>
 

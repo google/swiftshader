@@ -152,7 +152,7 @@ public:
 protected:
 	void play(CommandBuffer::ExecutionState& executionState) override
 	{
-		executionState.pipelines[pipelineBindPoint] = Cast(pipeline);
+		executionState.pipelineState[pipelineBindPoint].pipeline = Cast(pipeline);
 	}
 
 private:
@@ -171,11 +171,12 @@ public:
 protected:
 	void play(CommandBuffer::ExecutionState& executionState) override
 	{
-		ComputePipeline* pipeline = static_cast<ComputePipeline*>(
-			executionState.pipelines[VK_PIPELINE_BIND_POINT_COMPUTE]);
+		auto const &pipelineState = executionState.pipelineState[VK_PIPELINE_BIND_POINT_COMPUTE];
+
+		ComputePipeline* pipeline = static_cast<ComputePipeline*>(pipelineState.pipeline);
 		pipeline->run(groupCountX, groupCountY, groupCountZ,
-			MAX_BOUND_DESCRIPTOR_SETS,
-			executionState.boundDescriptorSets[VK_PIPELINE_BIND_POINT_COMPUTE],
+			pipelineState.descriptorSets,
+			pipelineState.descriptorDynamicOffsets,
 			executionState.pushConstants);
 	}
 
@@ -198,12 +199,13 @@ protected:
 	{
 		auto cmd = reinterpret_cast<VkDispatchIndirectCommand const *>(Cast(buffer)->getOffsetPointer(offset));
 
-		ComputePipeline* pipeline = static_cast<ComputePipeline*>(
-				executionState.pipelines[VK_PIPELINE_BIND_POINT_COMPUTE]);
+		auto const &pipelineState = executionState.pipelineState[VK_PIPELINE_BIND_POINT_COMPUTE];
+
+		ComputePipeline* pipeline = static_cast<ComputePipeline*>(pipelineState.pipeline);
 		pipeline->run(cmd->x, cmd->y, cmd->z,
-					  MAX_BOUND_DESCRIPTOR_SETS,
-					  executionState.boundDescriptorSets[VK_PIPELINE_BIND_POINT_COMPUTE],
-					  executionState.pushConstants);
+			pipelineState.descriptorSets,
+			pipelineState.descriptorDynamicOffsets,
+			executionState.pushConstants);
 	}
 
 private:
@@ -304,19 +306,16 @@ struct DrawBase : public CommandBuffer::Command
 	void draw(CommandBuffer::ExecutionState& executionState, bool indexed,
 			uint32_t count, uint32_t instanceCount, uint32_t first, int32_t vertexOffset, uint32_t firstInstance)
 	{
-		GraphicsPipeline* pipeline = static_cast<GraphicsPipeline*>(
-				executionState.pipelines[VK_PIPELINE_BIND_POINT_GRAPHICS]);
+		auto const &pipelineState = executionState.pipelineState[VK_PIPELINE_BIND_POINT_GRAPHICS];
+
+		GraphicsPipeline* pipeline = static_cast<GraphicsPipeline*>(pipelineState.pipeline);
 
 		sw::Context context = pipeline->getContext();
 
 		executionState.bindVertexInputs(context, vertexOffset, firstInstance);
 
-		const auto& boundDescriptorSets = executionState.boundDescriptorSets[VK_PIPELINE_BIND_POINT_GRAPHICS];
-		for(int i = 0; i < vk::MAX_BOUND_DESCRIPTOR_SETS; i++)
-		{
-			context.descriptorSets[i] = reinterpret_cast<vk::DescriptorSet*>(boundDescriptorSets[i]);
-		}
-
+		context.descriptorSets = pipelineState.descriptorSets;
+		context.descriptorDynamicOffsets = pipelineState.descriptorDynamicOffsets;
 		context.pushConstants = executionState.pushConstants;
 
 		if (indexed)
@@ -683,21 +682,38 @@ private:
 
 struct BindDescriptorSet : public CommandBuffer::Command
 {
-	BindDescriptorSet(VkPipelineBindPoint pipelineBindPoint, uint32_t set, const VkDescriptorSet& descriptorSet)
-		: pipelineBindPoint(pipelineBindPoint), set(set), descriptorSet(descriptorSet)
+	BindDescriptorSet(VkPipelineBindPoint pipelineBindPoint, uint32_t set, const VkDescriptorSet& descriptorSet,
+		uint32_t dynamicOffsetCount, uint32_t const *dynamicOffsets)
+		: pipelineBindPoint(pipelineBindPoint), set(set), descriptorSet(descriptorSet),
+		  dynamicOffsetCount(dynamicOffsetCount)
 	{
+		for (uint32_t i = 0; i < dynamicOffsetCount; i++)
+		{
+			this->dynamicOffsets[i] = dynamicOffsets[i];
+		}
 	}
 
 	void play(CommandBuffer::ExecutionState& executionState)
 	{
-		ASSERT((pipelineBindPoint < VK_PIPELINE_BIND_POINT_RANGE_SIZE) && (set < MAX_BOUND_DESCRIPTOR_SETS));
-		executionState.boundDescriptorSets[pipelineBindPoint][set] = descriptorSet;
+		ASSERT_OR_RETURN((pipelineBindPoint < VK_PIPELINE_BIND_POINT_RANGE_SIZE) && (set < MAX_BOUND_DESCRIPTOR_SETS));
+		auto &pipelineState = executionState.pipelineState[pipelineBindPoint];
+		auto pipelineLayout = pipelineState.pipeline->getLayout();
+		auto dynamicOffsetBase = pipelineLayout->getDynamicOffsetBase(set);
+		ASSERT_OR_RETURN(dynamicOffsetBase + dynamicOffsetCount <= MAX_DESCRIPTOR_SET_COMBINED_BUFFERS_DYNAMIC);
+
+		pipelineState.descriptorSets[set] = vk::Cast(descriptorSet);
+		for (uint32_t i = 0; i < dynamicOffsetCount; i++)
+		{
+			pipelineState.descriptorDynamicOffsets[dynamicOffsetBase + i] = dynamicOffsets[i];
+		}
 	}
 
 private:
 	VkPipelineBindPoint pipelineBindPoint;
 	uint32_t set;
 	const VkDescriptorSet descriptorSet;
+	uint32_t dynamicOffsetCount;
+	vk::DescriptorSet::DynamicOffsets dynamicOffsets;
 };
 
 struct SetPushConstants : public CommandBuffer::Command
@@ -974,20 +990,28 @@ void CommandBuffer::setStencilReference(VkStencilFaceFlags faceMask, uint32_t re
 	UNIMPLEMENTED("setStencilReference");
 }
 
-void CommandBuffer::bindDescriptorSets(VkPipelineBindPoint pipelineBindPoint, VkPipelineLayout layout,
+void CommandBuffer::bindDescriptorSets(VkPipelineBindPoint pipelineBindPoint, VkPipelineLayout vkLayout,
 	uint32_t firstSet, uint32_t descriptorSetCount, const VkDescriptorSet* pDescriptorSets,
 	uint32_t dynamicOffsetCount, const uint32_t* pDynamicOffsets)
 {
 	ASSERT(state == RECORDING);
 
-	if(dynamicOffsetCount > 0)
-	{
-		UNIMPLEMENTED("bindDescriptorSets");
-	}
-
 	for(uint32_t i = 0; i < descriptorSetCount; i++)
 	{
-		addCommand<BindDescriptorSet>(pipelineBindPoint, firstSet + i, pDescriptorSets[i]);
+		auto descriptorSetIndex = firstSet + i;
+		auto layout = vk::Cast(vkLayout);
+		auto setLayout = layout->getDescriptorSetLayout(descriptorSetIndex);
+
+		auto numDynamicDescriptors = setLayout->getDynamicDescriptorCount();
+		ASSERT(numDynamicDescriptors == 0 || pDynamicOffsets != nullptr);
+		ASSERT(dynamicOffsetCount >= numDynamicDescriptors);
+
+		addCommand<BindDescriptorSet>(
+				pipelineBindPoint, descriptorSetIndex, pDescriptorSets[i],
+				dynamicOffsetCount, pDynamicOffsets);
+
+		pDynamicOffsets += numDynamicDescriptors;
+		dynamicOffsetCount -= numDynamicDescriptors;
 	}
 }
 

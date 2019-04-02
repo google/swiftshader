@@ -30,13 +30,18 @@ public:
 	static size_t ComputeRequiredAllocationSize(const VkPipelineLayoutCreateInfo* pCreateInfo);
 
 	size_t getNumDescriptorSets() const;
-	size_t getBindingOffset(size_t descriptorSet, size_t binding) const;
+	DescriptorSetLayout const* getDescriptorSetLayout(size_t descriptorSet) const;
+
+	// Returns the starting index into the pipeline's dynamic offsets array for
+	// the given descriptor set.
+	uint32_t getDynamicOffsetBase(size_t descriptorSet) const;
 
 private:
 	uint32_t              setLayoutCount = 0;
 	DescriptorSetLayout** setLayouts = nullptr;
 	uint32_t              pushConstantRangeCount = 0;
 	VkPushConstantRange*  pushConstantRanges = nullptr;
+	uint32_t*             dynamicOffsetBases = nullptr; // Base offset per set layout.
 };
 
 static inline PipelineLayout* Cast(VkPipelineLayout object)

@@ -16,6 +16,7 @@
 #define sw_Context_hpp
 
 #include "Vulkan/VkConfig.h"
+#include "Vulkan/VkDescriptorSet.hpp"
 #include "Sampler.hpp"
 #include "Stream.hpp"
 #include "Point.hpp"
@@ -153,7 +154,8 @@ namespace sw
 		int colorWriteActive(int index);
 		bool colorUsed();
 
-		vk::DescriptorSet *descriptorSets[vk::MAX_BOUND_DESCRIPTOR_SETS];
+		vk::DescriptorSet::Bindings descriptorSets = {};
+		vk::DescriptorSet::DynamicOffsets descriptorDynamicOffsets = {};
 		Stream input[MAX_VERTEX_INPUTS];
 		void *indexBuffer;
 

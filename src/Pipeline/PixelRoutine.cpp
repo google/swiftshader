@@ -54,18 +54,6 @@ namespace sw
 	{
 	}
 
-	void PixelRoutine::generate()
-	{
-		Pointer<Pointer<Byte>> descriptorSets = Pointer<Pointer<Byte>>(data + OFFSET(DrawData, descriptorSets));
-		auto numDescriptorSets = routine.pipelineLayout->getNumDescriptorSets();
-		for(unsigned int i = 0; i < numDescriptorSets; i++)
-		{
-			routine.descriptorSets[i] = descriptorSets[i];
-		}
-
-		QuadRasterizer::generate();
-	}
-
 	void PixelRoutine::quad(Pointer<Byte> cBuffer[RENDERTARGETS], Pointer<Byte> &zBuffer, Pointer<Byte> &sBuffer, Int cMask[4], Int &x, Int &y)
 	{
 		#if PERF_PROFILE

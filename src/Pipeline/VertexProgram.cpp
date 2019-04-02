@@ -46,14 +46,9 @@ namespace sw
 					As<Float4>(Int4((*Pointer<Int>(data + OFFSET(DrawData, instanceID)))));
 		}
 
+		routine.descriptorSets = data + OFFSET(DrawData, descriptorSets);
+		routine.descriptorDynamicOffsets = data + OFFSET(DrawData, descriptorDynamicOffsets);
 		routine.pushConstants = data + OFFSET(DrawData, pushConstants);
-
-		Pointer<Pointer<Byte>> descriptorSets = Pointer<Pointer<Byte>>(data + OFFSET(DrawData, descriptorSets));
-		auto numDescriptorSets = routine.pipelineLayout->getNumDescriptorSets();
-		for(unsigned int i = 0; i < numDescriptorSets; i++)
-		{
-			routine.descriptorSets[i] = descriptorSets[i];
-		}
 	}
 
 	VertexProgram::~VertexProgram()

@@ -18,6 +18,7 @@
 #include "System/Math.hpp"
 #include "Vulkan/VkBuffer.hpp"
 #include "Vulkan/VkDebug.hpp"
+#include "Vulkan/VkDescriptorSet.hpp"
 #include "Vulkan/VkPipelineLayout.hpp"
 #include "Device/Config.hpp"
 
@@ -1722,15 +1723,25 @@ namespace sw
 			ASSERT(d.DescriptorSet >= 0);
 			ASSERT(d.Binding >= 0);
 
-			size_t bindingOffset = routine->pipelineLayout->getBindingOffset(d.DescriptorSet, d.Binding);
+			auto set = routine->descriptorSets[d.DescriptorSet]; // DescriptorSet*
+			auto setLayout = routine->pipelineLayout->getDescriptorSetLayout(d.DescriptorSet);
+			size_t arrayIndex = 0; // TODO: descriptor arrays
+			size_t bindingOffset = setLayout->getBindingOffset(d.Binding, arrayIndex);
 
-			Pointer<Byte> set = routine->descriptorSets[d.DescriptorSet]; // DescriptorSet*
-			Pointer<Byte> binding = Pointer<Byte>(set + bindingOffset); // VkDescriptorBufferInfo*
-			Pointer<Byte> buffer = *Pointer<Pointer<Byte>>(binding + OFFSET(VkDescriptorBufferInfo, buffer)); // vk::Buffer*
+			Pointer<Byte> bufferInfo = Pointer<Byte>(set + bindingOffset); // VkDescriptorBufferInfo*
+			Pointer<Byte> buffer = *Pointer<Pointer<Byte>>(bufferInfo + OFFSET(VkDescriptorBufferInfo, buffer)); // vk::Buffer*
 			Pointer<Byte> data = *Pointer<Pointer<Byte>>(buffer + vk::Buffer::DataOffset); // void*
-			Int offset = *Pointer<Int>(binding + OFFSET(VkDescriptorBufferInfo, offset));
-			Pointer<Byte> address = data + offset;
-			routine->physicalPointers[resultId] = address;
+			Int offset = *Pointer<Int>(bufferInfo + OFFSET(VkDescriptorBufferInfo, offset));
+			if (setLayout->isBindingDynamic(d.Binding))
+			{
+				uint32_t dynamicBindingIndex =
+					routine->pipelineLayout->getDynamicOffsetBase(d.DescriptorSet) +
+					setLayout->getDynamicDescriptorOffset(d.Binding) +
+					arrayIndex;
+				offset += routine->descriptorDynamicOffsets[dynamicBindingIndex];
+			}
+
+			routine->physicalPointers[resultId] = data + offset;
 			break;
 		}
 		case spv::StorageClassPushConstant:

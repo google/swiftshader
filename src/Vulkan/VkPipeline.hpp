@@ -16,6 +16,7 @@
 #define VK_PIPELINE_HPP_
 
 #include "VkObject.hpp"
+#include "Vulkan/VkDescriptorSet.hpp"
 #include "Device/Renderer.hpp"
 
 namespace sw { class SpirvShader; }
@@ -104,7 +105,9 @@ public:
 	void compileShaders(const VkAllocationCallbacks* pAllocator, const VkComputePipelineCreateInfo* pCreateInfo);
 
 	void run(uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ,
-		size_t numDescriptorSets, VkDescriptorSet *descriptorSets, sw::PushConstantStorage const &pushConstants);
+		vk::DescriptorSet::Bindings const &descriptorSets,
+		vk::DescriptorSet::DynamicOffsets const &descriptorDynamicOffsets,
+		sw::PushConstantStorage const &pushConstants);
 
 protected:
 	sw::SpirvShader *shader = nullptr;

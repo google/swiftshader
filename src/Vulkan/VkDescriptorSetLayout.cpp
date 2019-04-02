@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "VkDescriptorSetLayout.hpp"
+#include "VkDescriptorSet.hpp"
 #include "System/Types.hpp"
 
 #include <algorithm>
@@ -134,7 +135,7 @@ uint32_t DescriptorSetLayout::getBindingIndex(uint32_t binding) const
 		}
 	}
 
-	ASSERT(false); // Bindings should always be found
+	DABORT("Invalid DescriptorSetLayout binding: %d", int(binding));
 	return 0;
 }
 
@@ -164,10 +165,63 @@ void DescriptorSetLayout::initialize(VkDescriptorSet vkDescriptorSet)
 	}
 }
 
-size_t DescriptorSetLayout::getBindingOffset(uint32_t binding) const
+size_t DescriptorSetLayout::getBindingCount() const
+{
+	return bindingCount;
+}
+
+size_t DescriptorSetLayout::getBindingOffset(uint32_t binding, uint32_t arrayElement) const
 {
 	uint32_t index = getBindingIndex(binding);
-	return bindingOffsets[index] + OFFSET(DescriptorSet, data[0]);
+	auto typeSize = GetDescriptorSize(bindings[index].descriptorType);
+	return bindingOffsets[index] + OFFSET(DescriptorSet, data[0]) + (typeSize * arrayElement);
+}
+
+bool DescriptorSetLayout::isDynamic(VkDescriptorType type)
+{
+	return type == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC ||
+		   type == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC;
+}
+
+bool DescriptorSetLayout::isBindingDynamic(uint32_t binding) const
+{
+	uint32_t index = getBindingIndex(binding);
+	return isDynamic(bindings[index].descriptorType);
+}
+
+size_t DescriptorSetLayout::getDynamicDescriptorCount() const
+{
+	size_t count = 0;
+	for (size_t i = 0; i < bindingCount; i++)
+	{
+		if (isDynamic(bindings[i].descriptorType))
+		{
+			count += bindings[i].descriptorCount;
+		}
+	}
+	return count;
+}
+
+size_t DescriptorSetLayout::getDynamicDescriptorOffset(uint32_t binding) const
+{
+	uint32_t n = getBindingIndex(binding);
+	ASSERT(isDynamic(bindings[n].descriptorType));
+
+	size_t index = 0;
+	for (uint32_t i = 0; i < n; i++)
+	{
+		if (isDynamic(bindings[i].descriptorType))
+		{
+			index += bindings[i].descriptorCount;
+		}
+	}
+	return index;
+}
+
+VkDescriptorSetLayoutBinding const & DescriptorSetLayout::getBindingLayout(uint32_t binding) const
+{
+	ASSERT(binding < bindingCount);
+	return bindings[binding];
 }
 
 uint8_t* DescriptorSetLayout::getOffsetPointer(DescriptorSet *descriptorSet, uint32_t binding, uint32_t arrayElement, uint32_t count, size_t* typeSize) const
