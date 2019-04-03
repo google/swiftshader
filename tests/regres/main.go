@@ -31,6 +31,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"math/rand"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -57,7 +58,7 @@ const (
 	dataVersion             = 1
 	changeUpdateFrequency   = time.Minute * 5
 	changeQueryFrequency    = time.Minute * 5
-	testTimeout             = time.Minute * 5  // timeout for a single test
+	testTimeout             = time.Minute * 10 // timeout for a single test
 	buildTimeout            = time.Minute * 10 // timeout for a build
 	dailyUpdateTestListHour = 5                // 5am
 	fullTestListRelPath     = "tests/regres/full-tests.json"
@@ -783,8 +784,15 @@ func (t *test) run(testLists testlist.Lists) (*CommitTestResults, error) {
 			}()
 		}
 
+		// Shuffle the test list.
+		// This attempts to mix heavy-load tests with lighter ones.
+		shuffled := make([]string, len(list.Tests))
+		for i, j := range rand.New(rand.NewSource(42)).Perm(len(list.Tests)) {
+			shuffled[i] = list.Tests[j]
+		}
+
 		// Hand the tests to the deqpTestRoutines.
-		for _, t := range list.Tests {
+		for _, t := range shuffled {
 			tests <- t
 		}
 
