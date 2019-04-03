@@ -84,78 +84,88 @@ namespace sw
 	}
 
 	template<typename T>
-	inline bool setBatchIndices(unsigned int batch[128][3], VkPrimitiveTopology topology, const T* indices, unsigned int start, unsigned int triangleCount)
+	inline bool setBatchIndices(unsigned int batch[128][3], VkPrimitiveTopology topology, T indices, unsigned int start, unsigned int triangleCount)
 	{
-		const T *index = indices + start;
-
 		switch(topology)
 		{
 		case VK_PRIMITIVE_TOPOLOGY_POINT_LIST:
+		{
+			auto index = start;
 			for(unsigned int i = 0; i < triangleCount; i++)
 			{
-				batch[i][0] = *index;
-				batch[i][1] = *index;
-				batch[i][2] = *index;
+				batch[i][0] = indices[index];
+				batch[i][1] = indices[index];
+				batch[i][2] = indices[index];
 
 				index += 1;
 			}
 			break;
+		}
 		case VK_PRIMITIVE_TOPOLOGY_LINE_LIST:
-			index += start;
-
+		{
+			auto index = 2 * start;
 			for(unsigned int i = 0; i < triangleCount; i++)
 			{
-				batch[i][0] = index[0];
-				batch[i][1] = index[1];
-				batch[i][2] = index[1];
+				batch[i][0] = indices[index + 0];
+				batch[i][1] = indices[index + 1];
+				batch[i][2] = indices[index + 1];
 
 				index += 2;
 			}
 			break;
+		}
 		case VK_PRIMITIVE_TOPOLOGY_LINE_STRIP:
+		{
+			auto index = start;
 			for(unsigned int i = 0; i < triangleCount; i++)
 			{
-				batch[i][0] = index[0];
-				batch[i][1] = index[1];
-				batch[i][2] = index[1];
+				batch[i][0] = indices[index + 0];
+				batch[i][1] = indices[index + 1];
+				batch[i][2] = indices[index + 1];
 
 				index += 1;
 			}
 			break;
+		}
 		case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST:
-			index += start + start;
-
+		{
+			auto index = 3 * start;
 			for(unsigned int i = 0; i < triangleCount; i++)
 			{
-				batch[i][0] = index[0];
-				batch[i][1] = index[1];
-				batch[i][2] = index[2];
+				batch[i][0] = indices[index + 0];
+				batch[i][1] = indices[index + 1];
+				batch[i][2] = indices[index + 2];
 
 				index += 3;
 			}
 			break;
+		}
 		case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP:
+		{
+			auto index = start;
 			for(unsigned int i = 0; i < triangleCount; i++)
 			{
-				batch[i][0] = index[0];
-				batch[i][1] = index[((start + i) & 1) + 1];
-				batch[i][2] = index[(~(start + i) & 1) + 1];
+				batch[i][0] = indices[index + 0];
+				batch[i][1] = indices[index + ((start + i) & 1) + 1];
+				batch[i][2] = indices[index + (~(start + i) & 1) + 1];
 
 				index += 1;
 			}
 			break;
+		}
 		case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN:
-			index += 1;
-
+		{
+			auto index = start + 1;
 			for(unsigned int i = 0; i < triangleCount; i++)
 			{
-				batch[i][0] = index[0];
-				batch[i][1] = index[1];
+				batch[i][0] = indices[index + 0];
+				batch[i][1] = indices[index + 1];
 				batch[i][2] = indices[0];
 
 				index += 1;
 			}
 			break;
+		}
 		default:
 			ASSERT(false);
 			return false;
@@ -898,76 +908,13 @@ namespace sw
 
 		if(!indices)
 		{
-			unsigned int index = start;
-
-			switch(topology)
+			struct LinearIndex
 			{
-			case VK_PRIMITIVE_TOPOLOGY_POINT_LIST:
-				for(unsigned int i = 0; i < triangleCount; i++)
-				{
-					batch[i][0] = index;
-					batch[i][1] = index;
-					batch[i][2] = index;
+				unsigned int operator[](unsigned int i) { return i; }
+			};
 
-					index += 1;
-				}
-				break;
-			case VK_PRIMITIVE_TOPOLOGY_LINE_LIST:
-				index = 2 * start;
-
-				for(unsigned int i = 0; i < triangleCount; i++)
-				{
-					batch[i][0] = index + 0;
-					batch[i][1] = index + 1;
-					batch[i][2] = index + 1;
-
-					index += 2;
-				}
-				break;
-			case VK_PRIMITIVE_TOPOLOGY_LINE_STRIP:
-				for(unsigned int i = 0; i < triangleCount; i++)
-				{
-					batch[i][0] = index + 0;
-					batch[i][1] = index + 1;
-					batch[i][2] = index + 1;
-
-					index += 1;
-				}
-				break;
-			case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST:
-				index = 3 * start;
-
-				for(unsigned int i = 0; i < triangleCount; i++)
-				{
-					batch[i][0] = index + 0;
-					batch[i][1] = index + 1;
-					batch[i][2] = index + 2;
-
-					index += 3;
-				}
-				break;
-			case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP:
-				for(unsigned int i = 0; i < triangleCount; i++)
-				{
-					batch[i][0] = index + 0;
-					batch[i][1] = index + (index & 1) + 1;
-					batch[i][2] = index + (~index & 1) + 1;
-
-					index += 1;
-				}
-				break;
-			case VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN:
-				for(unsigned int i = 0; i < triangleCount; i++)
-				{
-					batch[i][0] = index + 1;
-					batch[i][1] = index + 2;
-					batch[i][2] = 0;
-
-					index += 1;
-				}
-				break;
-			default:
-				ASSERT(false);
+			if(!setBatchIndices(batch, topology, LinearIndex(), start, triangleCount))
+			{
 				return;
 			}
 		}
