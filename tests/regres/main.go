@@ -1142,7 +1142,13 @@ nextTest:
 			"LIBC_FATAL_STDERR_=1", // Put libc explosions into logs.
 		}
 
-		outRaw, err := shell.Exec(testTimeout, exe, filepath.Dir(exe), env, "--deqp-surface-type=pbuffer", "-n="+name)
+		outRaw, err := shell.Exec(testTimeout, exe, filepath.Dir(exe), env,
+			"--deqp-surface-type=pbuffer",
+			"--deqp-shadercache=disable",
+			"--deqp-log-images=disable",
+			"--deqp-log-shader-sources=disable",
+			"--deqp-log-flush=disable",
+			"-n="+name)
 		out := string(outRaw)
 		out = strings.ReplaceAll(out, t.srcDir, "<SwiftShader>")
 		out = strings.ReplaceAll(out, exe, "<dEQP>")
