@@ -1014,8 +1014,15 @@ func compare(old, new *CommitTestResults) string {
 				} else {
 					sb.WriteString(fmt.Sprintf(" - [%s]", n.Status))
 				}
+				sb.WriteString("\n")
+				for _, line := range strings.Split(n.Err, "\n") {
+					if line != "" {
+						sb.WriteString(fmt.Sprintf("     %v\n", line))
+					}
+				}
+			} else {
+				sb.WriteString("\n")
 			}
-			sb.WriteString("\n")
 		}
 	}
 
