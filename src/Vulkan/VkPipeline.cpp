@@ -228,6 +228,15 @@ std::vector<uint32_t> preprocessSpirv(
 	opt.RegisterPass(spvtools::CreateFreezeSpecConstantValuePass());
 	opt.RegisterPass(spvtools::CreateFoldSpecConstantOpAndCompositePass());
 
+	// Basic optimization passes to primarily address glslang's love of loads &
+	// stores. Significantly reduces time spent in LLVM passes and codegen.
+	opt.RegisterPass(spvtools::CreateLocalAccessChainConvertPass());
+	opt.RegisterPass(spvtools::CreateLocalSingleBlockLoadStoreElimPass());
+	opt.RegisterPass(spvtools::CreateLocalSingleStoreElimPass());
+	opt.RegisterPass(spvtools::CreateBlockMergePass());
+	opt.RegisterPass(spvtools::CreateLocalMultiStoreElimPass());
+	opt.RegisterPass(spvtools::CreateSSARewritePass());
+
 	std::vector<uint32_t> optimized;
 	opt.Run(code.data(), code.size(), &optimized);
 
