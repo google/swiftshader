@@ -1373,6 +1373,12 @@ namespace sw
 				{
 					auto varId = Object::ID(insn.word(w + 0));
 					auto blockId = Block::ID(insn.word(w + 1));
+
+					if (block.ins.count(blockId) == 0)
+					{
+						continue; // In is unreachable. Ignore.
+					}
+
 					if (existsPath(state->currentBlock, blockId, block.mergeBlock))
 					{
 						// This source is from a loop back-edge.
@@ -3028,6 +3034,7 @@ namespace sw
 		auto typeId = Type::ID(insn.word(1));
 		auto type = getType(typeId);
 		auto objectId = Object::ID(insn.word(2));
+		auto currentBlock = getBlock(state->currentBlock);
 
 		auto tmp = std::unique_ptr<SIMD::Int[]>(new SIMD::Int[type.sizeInComponents]);
 
@@ -3036,6 +3043,11 @@ namespace sw
 		{
 			auto varId = Object::ID(insn.word(w + 0));
 			auto blockId = Block::ID(insn.word(w + 1));
+
+			if (currentBlock.ins.count(blockId) == 0)
+			{
+				continue; // In is unreachable. Ignore.
+			}
 
 			auto in = GenericValue(this, routine, varId);
 			auto mask = GetActiveLaneMaskEdge(state, blockId, state->currentBlock);
