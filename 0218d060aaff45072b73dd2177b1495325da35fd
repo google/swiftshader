@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9c127b51_671192b9",
+        "filename": "src/Pipeline/SpirvShader.cpp",
+        "patchSetId": 12
+      },
+      "lineNbr": 1731,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-04-03T21:15:00Z",
+      "side": 1,
+      "message": "nit: This could probably be rolled into a single method on PipelineLayout which takes set, binding, and index. Anyway, no need to do that now.",
+      "range": {
+        "startLine": 1729,
+        "startChar": 5,
+        "endLine": 1731,
+        "endChar": 16
+      },
+      "revId": "0218d060aaff45072b73dd2177b1495325da35fd",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2005fd92_197999ea",
+        "filename": "src/Vulkan/VkCommandBuffer.cpp",
+        "patchSetId": 12
+      },
+      "lineNbr": 702,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-04-03T21:15:00Z",
+      "side": 1,
+      "message": "I don\u0027t think we need that here (or possibly anywhere in Vulkan). ASSERT_OR_RETURN() was really added to do certain OpenGL validation more compactly while also getting alerted in debug builds. Vulkan doesn\u0027t validate much beyond the validation layers. Note that while in this case it would likely prevent a crash if the condition isn\u0027t met, there will most likely be a crash somewhere else if the descriptors weren\u0027t bound. So I think we\u0027d rather just crash here instead so it\u0027s easier to root cause things in release builds.",
+      "range": {
+        "startLine": 702,
+        "startChar": 2,
+        "endLine": 702,
+        "endChar": 18
+      },
+      "revId": "0218d060aaff45072b73dd2177b1495325da35fd",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
