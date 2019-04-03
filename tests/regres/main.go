@@ -191,7 +191,7 @@ func (r *regres) run() error {
 	}
 
 	changes := map[string]*changeInfo{} // Change ID -> changeInfo
-	lastUpdatedTestLists := date{}      // toDate(time.Now())
+	lastUpdatedTestLists := toDate(time.Now())
 	lastQueriedChanges := time.Time{}
 
 	for {
