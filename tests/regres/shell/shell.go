@@ -21,6 +21,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"os/signal"
 	"strconv"
 	"syscall"
 	"time"
@@ -60,12 +61,25 @@ func init() {
 				log.Fatalln(cause.Wrap(err, "Setrlimit").Error())
 			}
 		}
-		c := exec.Command(exe, os.Args[4:]...)
-		c.Stdin = os.Stdin
-		c.Stdout = os.Stdout
-		c.Stderr = os.Stderr
-		c.Run()
-		os.Exit(c.ProcessState.ExitCode())
+		cmd := exec.Command(exe, os.Args[4:]...)
+		cmd.Stdin = os.Stdin
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		if err := cmd.Start(); err != nil {
+			os.Stderr.WriteString(err.Error())
+			os.Exit(1)
+		}
+		// Forward signals to the child process
+		c := make(chan os.Signal, 1)
+		signal.Notify(c, os.Interrupt)
+		go func() {
+			for sig := range c {
+				cmd.Process.Signal(sig)
+			}
+		}()
+		cmd.Wait()
+		close(c)
+		os.Exit(cmd.ProcessState.ExitCode())
 	}
 }
 
@@ -102,10 +116,12 @@ func Exec(timeout time.Duration, exe, wd string, env []string, args ...string) (
 
 	select {
 	case <-time.NewTimer(timeout).C:
+		log.Printf("Timeout for process %v\n", c.Process.Pid)
 		c.Process.Signal(syscall.SIGINT)
 		time.Sleep(time.Second * 5)
 		if !c.ProcessState.Exited() {
-			c.Process.Kill()
+			log.Printf("Process %v still has not exited, killing\n", c.Process.Pid)
+			syscall.Kill(-c.Process.Pid, syscall.SIGKILL)
 		}
 		return b.Bytes(), ErrTimeout{exe, timeout}
 	case err := <-res:
