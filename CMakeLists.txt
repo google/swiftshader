@@ -2130,9 +2130,11 @@ if(SWIFTSHADER_BUILD_VULKAN)
     )
 
     if(WIN32)
+        set(VULKAN_API_LIBRARY_NAME "vulkan-1.dll")
         set_property(TARGET vk_swiftshader APPEND
                      PROPERTY COMPILE_DEFINITIONS "VK_USE_PLATFORM_WIN32_KHR")
     elseif(LINUX)
+        set(VULKAN_API_LIBRARY_NAME "libvulkan.so.1")
         if(X11)
             set_property(TARGET vk_swiftshader APPEND
                         PROPERTY COMPILE_DEFINITIONS "VK_USE_PLATFORM_XLIB_KHR")
@@ -2142,8 +2144,11 @@ if(SWIFTSHADER_BUILD_VULKAN)
                         PROPERTY COMPILE_DEFINITIONS "VK_USE_PLATFORM_XCB_KHR")
         endif()
     elseif(APPLE)
+        set(VULKAN_API_LIBRARY_NAME "libvulkan.dylib")
         set_property(TARGET vk_swiftshader APPEND
                      PROPERTY COMPILE_DEFINITIONS "VK_USE_PLATFORM_MACOS_MVK")
+    else()
+        message(FATAL_ERROR "Platform does not support Vulkan yet")
     endif()
 
     set_shared_library_export_map(vk_swiftshader ${SOURCE_DIR}/Vulkan)
@@ -2157,10 +2162,9 @@ if(SWIFTSHADER_BUILD_VULKAN)
     add_custom_command(
         TARGET vk_swiftshader
         POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:vk_swiftshader>/translator
-        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:vk_swiftshader> $<TARGET_FILE_DIR:vk_swiftshader>/translator/${LIB_PREFIX}Vulkan_translator${CMAKE_SHARED_LIBRARY_SUFFIX}
         COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/${CMAKE_SYSTEM_NAME}/
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:vk_swiftshader> ${CMAKE_BINARY_DIR}/${CMAKE_SYSTEM_NAME}/
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:vk_swiftshader> ${CMAKE_BINARY_DIR}/${CMAKE_SYSTEM_NAME}/${VULKAN_API_LIBRARY_NAME}
     )
 
     # The vk_swiftshader_icd.json manifest file will point to ICD_LIBRARY_PATH.
@@ -2175,11 +2179,12 @@ if(SWIFTSHADER_BUILD_VULKAN)
     endif()
     configure_file(
         "${VULKAN_DIR}/vk_swiftshader_icd.json.tmpl"
-        "${CMAKE_BINARY_DIR}/${CMAKE_SYSTEM_NAME}/vk_swiftshader_icd.json")
-endif(SWIFTSHADER_BUILD_VULKAN)
+        "${CMAKE_BINARY_DIR}/${CMAKE_SYSTEM_NAME}/vk_swiftshader_icd.json"
+    )
+endif()
 
 ###########################################################
-# Sample programs
+# Sample programs and tests
 ###########################################################
 
 if(SWIFTSHADER_BUILD_SAMPLES)
