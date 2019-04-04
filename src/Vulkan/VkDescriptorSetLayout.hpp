@@ -62,8 +62,7 @@ public:
 	//  VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC
 	bool isBindingDynamic(uint32_t binding) const;
 
-	// Returns the VkDescriptorSetLayoutBinding for the binding with the given
-	// index.
+	// Returns the VkDescriptorSetLayoutBinding for the given binding.
 	VkDescriptorSetLayoutBinding const & getBindingLayout(uint32_t binding) const;
 
 	uint8_t* getOffsetPointer(DescriptorSet *descriptorSet, uint32_t binding, uint32_t arrayElement, uint32_t count, size_t* typeSize) const;
