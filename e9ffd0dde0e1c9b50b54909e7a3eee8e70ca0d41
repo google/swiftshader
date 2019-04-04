@@ -46,6 +46,30 @@
       "revId": "e9ffd0dde0e1c9b50b54909e7a3eee8e70ca0d41",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "023ab99a_29f57eca",
+        "filename": "src/Vulkan/VkDescriptorUpdateTemplate.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5050
+      },
+      "writtenOn": "2019-04-04T17:15:16Z",
+      "side": 1,
+      "message": "Ok, a question then: shouldn\u0027t we use \"binding\" at line 64 instead of entry.dstBinding?",
+      "parentUuid": "384f350a_2e3793a6",
+      "range": {
+        "startLine": 49,
+        "startChar": 24,
+        "endLine": 49,
+        "endChar": 26
+      },
+      "revId": "e9ffd0dde0e1c9b50b54909e7a3eee8e70ca0d41",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
