@@ -667,7 +667,8 @@ namespace sw
 
 		void createLvalue(SpirvShader::Object::ID id, uint32_t size)
 		{
-			lvalues.emplace(id, Value(size));
+			bool added = lvalues.emplace(id, Value(size)).second;
+			ASSERT_MSG(added, "Value %d created twice", id.value());
 		}
 
 		Intermediate& createIntermediate(SpirvShader::Object::ID id, uint32_t size)
@@ -675,6 +676,7 @@ namespace sw
 			auto it = intermediates.emplace(std::piecewise_construct,
 					std::forward_as_tuple(id),
 					std::forward_as_tuple(size));
+			ASSERT_MSG(it.second, "Intermediate %d created twice", id.value());
 			return it.first->second;
 		}
 
