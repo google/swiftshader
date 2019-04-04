@@ -70,6 +70,30 @@
       "revId": "e9ffd0dde0e1c9b50b54909e7a3eee8e70ca0d41",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "acc65927_0be84961",
+        "filename": "src/Vulkan/VkDescriptorUpdateTemplate.cpp",
+        "patchSetId": 4
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 7183
+      },
+      "writtenOn": "2019-04-04T17:17:47Z",
+      "side": 1,
+      "message": "Erm... yes, we should! Good spot - I\u0027m certain that this was correct, it must have got broken in code shuffling.",
+      "parentUuid": "023ab99a_29f57eca",
+      "range": {
+        "startLine": 49,
+        "startChar": 24,
+        "endLine": 49,
+        "endChar": 26
+      },
+      "revId": "e9ffd0dde0e1c9b50b54909e7a3eee8e70ca0d41",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
     }
   ]
 }
