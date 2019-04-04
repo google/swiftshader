@@ -2977,6 +2977,13 @@ namespace rr
 			return out + "]";
 		}
 
+		static std::string addr(const void* ptr)
+		{
+			char buf[32];
+			snprintf(buf, sizeof(buf), "%p", ptr);
+			return buf;
+		}
+
 	public:
 		const std::string format;
 		const std::vector<Value*> values;
@@ -2994,7 +3001,6 @@ namespace rr
 		template <typename T>
 		PrintValue(const T* arr, int len) : format(fmt(Ty<T>::fmt, len)), values(val(arr, len)) {}
 
-
 		// PrintValue constructors for plain-old-data values.
 		PrintValue(bool v) : format(v ? "true" : "false") {}
 		PrintValue(int8_t v) : format(std::to_string(v)) {}
@@ -3005,10 +3011,15 @@ namespace rr
 		PrintValue(uint32_t v) : format(std::to_string(v)) {}
 		PrintValue(int64_t v) : format(std::to_string(v)) {}
 		PrintValue(uint64_t v) : format(std::to_string(v)) {}
+		PrintValue(long v) : format(std::to_string(v)) {}
+		PrintValue(unsigned long v) : format(std::to_string(v)) {}
 		PrintValue(float v) : format(std::to_string(v)) {}
 		PrintValue(double v) : format(std::to_string(v)) {}
 		PrintValue(const char* v) : format(v) {}
 		PrintValue(const std::string& v) : format(v) {}
+
+		template <typename T>
+		PrintValue(const T* v) : format(addr(v)) {}
 
 		// vals is a helper to build composite value lists.
 		// vals returns the full, sequential list of printf argument values used
