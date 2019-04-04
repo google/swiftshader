@@ -21,7 +21,7 @@
 #include "common/debug.h"
 
 #include <EGL/eglext.h>
-#ifdef __ANDROID__
+#if defined(__ANDROID__) && !defined(ANDROID_NDK_BUILD)
 #include <system/graphics.h>
 #endif
 
@@ -65,7 +65,7 @@ Config::Config(sw::Format displayFormat, EGLint minInterval, EGLint maxInterval,
 		mBlueSize = 8;
 		mAlphaSize = 8;
 		mBindToTextureRGBA = EGL_TRUE;
-		#ifdef __ANDROID__
+		#if defined(__ANDROID__) && !defined(ANDROID_NDK_BUILD)
 			mNativeVisualID = HAL_PIXEL_FORMAT_BGRA_8888;
 		#else
 			mNativeVisualID = 2;   // Arbitrary; prefer over ABGR
@@ -77,7 +77,7 @@ Config::Config(sw::Format displayFormat, EGLint minInterval, EGLint maxInterval,
 		mBlueSize = 8;
 		mAlphaSize = 8;
 		mBindToTextureRGBA = EGL_TRUE;
-		#ifdef __ANDROID__
+		#if defined(__ANDROID__) && !defined(ANDROID_NDK_BUILD)
 			mNativeVisualID = HAL_PIXEL_FORMAT_RGBA_8888;
 		#endif
 		break;
@@ -86,7 +86,7 @@ Config::Config(sw::Format displayFormat, EGLint minInterval, EGLint maxInterval,
 		mGreenSize = 6;
 		mBlueSize = 5;
 		mAlphaSize = 0;
-		#ifdef __ANDROID__
+		#if defined(__ANDROID__) && !defined(ANDROID_NDK_BUILD)
 			mNativeVisualID = HAL_PIXEL_FORMAT_RGB_565;
 		#endif
 		break;
@@ -96,7 +96,7 @@ Config::Config(sw::Format displayFormat, EGLint minInterval, EGLint maxInterval,
 		mBlueSize = 8;
 		mAlphaSize = 0;
 		mBindToTextureRGB = EGL_TRUE;
-		#ifdef __ANDROID__
+		#if defined(__ANDROID__) && !defined(ANDROID_NDK_BUILD)
 			mNativeVisualID = 0x1FF;   // HAL_PIXEL_FORMAT_BGRX_8888
 		#else
 			mNativeVisualID = 1;   // Arbitrary; prefer over XBGR
@@ -108,7 +108,7 @@ Config::Config(sw::Format displayFormat, EGLint minInterval, EGLint maxInterval,
 		mBlueSize = 8;
 		mAlphaSize = 0;
 		mBindToTextureRGB = EGL_TRUE;
-		#ifdef __ANDROID__
+		#if defined(__ANDROID__) && !defined(ANDROID_NDK_BUILD)
 			mNativeVisualID = HAL_PIXEL_FORMAT_RGBX_8888;
 		#endif
 		break;

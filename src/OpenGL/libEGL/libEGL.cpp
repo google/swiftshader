@@ -23,7 +23,7 @@
 #include "common/debug.h"
 #include "Common/Version.h"
 
-#if defined(__ANDROID__)
+#if defined(__ANDROID__) && !defined(ANDROID_NDK_BUILD)
 #include <system/window.h>
 #elif defined(USE_X11)
 #include "Main/libX11.hpp"
@@ -1170,7 +1170,7 @@ EGLImage CreateImage(EGLDisplay dpy, EGLContext ctx, EGLenum target, EGLClientBu
 		}
 	}
 
-	#if defined(__ANDROID__)
+	#if defined(__ANDROID__) && !defined(ANDROID_NDK_BUILD)
 		if(target == EGL_NATIVE_BUFFER_ANDROID)
 		{
 			ANativeWindowBuffer *nativeBuffer = reinterpret_cast<ANativeWindowBuffer*>(buffer);

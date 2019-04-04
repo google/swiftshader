@@ -20,6 +20,9 @@
 #elif defined(__APPLE__)
 #    include "dlfcn.h"
 #    define OS_MAC 1
+#elif defined(__ANDROID__)
+#    include "dlfcn.h"
+#    define OS_ANDROID 1
 #elif defined(__linux__)
 #    include "dlfcn.h"
 #    define OS_LINUX 1
@@ -55,6 +58,8 @@ bool Driver::loadSwiftShader()
     return load("./build/Darwin/libvk_swiftshader.dylib");
 #elif OS_LINUX
     return load("./build/Linux/libvk_swiftshader.so");
+#elif OS_ANDROID
+    return load("libvk_swiftshader.so");
 #else
 #    error Unimplemented platform
 #endif
@@ -73,7 +78,7 @@ bool Driver::load(const char* path)
 {
 #if OS_WINDOWS
     dll = LoadLibraryA(path);
-#elif(OS_MAC || OS_LINUX)
+#elif(OS_MAC || OS_LINUX || OS_ANDROID)
     dll = dlopen(path, RTLD_LAZY | RTLD_LOCAL);
 #else
     return false;
@@ -157,7 +162,7 @@ void* Driver::lookup(const char* name)
 {
 #if OS_WINDOWS
     return GetProcAddress((HMODULE)dll, name);
-#elif(OS_MAC || OS_LINUX)
+#elif(OS_MAC || OS_LINUX || OS_ANDROID)
     return dlsym(dll, name);
 #else
     return nullptr;

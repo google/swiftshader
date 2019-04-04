@@ -18,6 +18,9 @@ endif()
 
 if(CMAKE_SYSTEM_NAME MATCHES "Linux")
     set(LINUX ON)
+elseif(CMAKE_SYSTEM_NAME MATCHES "Android")
+    set(ANDROID ON)
+    set(CMAKE_CXX_FLAGS "-DANDROID_NDK_BUILD")
 elseif(WIN32)
 elseif(APPLE)
 else()
@@ -686,6 +689,8 @@ elseif(LINUX)
     set(LLVM_INCLUDE_DIR ${LLVM_DIR}/include-linux)
 elseif(APPLE)
     set(LLVM_INCLUDE_DIR ${LLVM_DIR}/include-osx)
+elseif(ANDROID)
+    set(LLVM_INCLUDE_DIR ${LLVM_DIR}/include-android)
 endif()
 
 list(APPEND LLVM_INCLUDE_DIR
@@ -1752,6 +1757,8 @@ elseif(LINUX)
     list(APPEND LLVM_INCLUDE_DIR ${LLVM_CONFIG_DIR}/linux/include)
 elseif(APPLE)
     list(APPEND LLVM_INCLUDE_DIR ${LLVM_CONFIG_DIR}/darwin/include)
+elseif(ANDROID)
+    list(APPEND LLVM_INCLUDE_DIR ${LLVM_CONFIG_DIR}/android/include)
 endif()
 
 list(APPEND LLVM_INCLUDE_DIR
@@ -2125,6 +2132,14 @@ elseif(APPLE)
     list(APPEND OPENGL_COMPILER_LIST
         ${OPENGL_COMPILER_DIR}/ossource_posix.cpp
     )
+elseif(ANDROID)
+    list(APPEND SWIFTSHADER_LIST
+        ${SOURCE_DIR}/Main/FrameBufferAndroid.cpp
+        ${SOURCE_DIR}/Main/FrameBufferAndroid.hpp
+    )
+    list(APPEND OPENGL_COMPILER_LIST
+        ${OPENGL_COMPILER_DIR}/ossource_posix.cpp
+    )
 endif()
 
 if(WIN32)
@@ -2190,6 +2205,9 @@ if(BUILD_EGL)
         COMPILE_DEFINITIONS "EGL_EGLEXT_PROTOTYPES; EGLAPI=; NO_SANITIZE_FUNCTION=;"
         PREFIX ""
     )
+    if (ANDROID)
+        set_target_properties(libEGL PROPERTIES SUFFIX "_swiftshader.so")
+    endif ()
     set_shared_library_export_map(libEGL ${SOURCE_DIR}/OpenGL/libEGL)
     target_link_libraries(libEGL ${OS_LIBS})
     add_custom_command(
@@ -2210,6 +2228,9 @@ if(BUILD_GLESv2)
         COMPILE_DEFINITIONS "GL_GLEXT_PROTOTYPES; GL_API=; GL_APICALL=; GLAPI=; NO_SANITIZE_FUNCTION=;"
         PREFIX ""
     )
+    if (ANDROID)
+        set_target_properties(libGLESv2 PROPERTIES SUFFIX "_swiftshader.so")
+    endif ()
     set_shared_library_export_map(libGLESv2 ${SOURCE_DIR}/OpenGL/libGLESv2)
     target_link_libraries(libGLESv2 SwiftShader ${Reactor} GLCompiler ${OS_LIBS})
     add_custom_command(
@@ -2230,6 +2251,9 @@ if(BUILD_GLES_CM)
         COMPILE_DEFINITIONS "GL_GLEXT_PROTOTYPES; EGLAPI=; GL_API=; GL_APICALL=; GLAPI=;"
         PREFIX ""
     )
+    if (ANDROID)
+        set_target_properties(libGLES_CM PROPERTIES SUFFIX "_swiftshader.so")
+    endif ()
     set_shared_library_export_map(libGLES_CM ${SOURCE_DIR}/OpenGL/libGLES_CM)
     target_link_libraries(libGLES_CM SwiftShader ${Reactor} GLCompiler ${OS_LIBS})
     add_custom_command(
@@ -2358,6 +2382,9 @@ if(BUILD_TESTS)
     )
 
     target_link_libraries(unittests libEGL libGLESv2 ${OS_LIBS})
+    if(ANDROID)
+        target_link_libraries(unittests -landroid)
+    endif()
 endif()
 
 if(BUILD_TESTS AND BUILD_VULKAN)
