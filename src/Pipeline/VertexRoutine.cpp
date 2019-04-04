@@ -109,7 +109,7 @@ namespace sw
 		auto it = spirvShader->outputBuiltins.find(spv::BuiltInPosition);
 		assert(it != spirvShader->outputBuiltins.end());
 		assert(it->second.SizeInComponents == 4);
-		auto &pos = routine.getValue(it->second.Id);
+		auto &pos = routine.getVariable(it->second.Id);
 		auto posX = pos[it->second.FirstComponent];
 		auto posY = pos[it->second.FirstComponent + 1];
 		auto posZ = pos[it->second.FirstComponent + 2];
@@ -525,7 +525,7 @@ namespace sw
 		auto it = spirvShader->outputBuiltins.find(spv::BuiltInPosition);
 		assert(it != spirvShader->outputBuiltins.end());
 		assert(it->second.SizeInComponents == 4);
-		auto &pos = routine.getValue(it->second.Id);
+		auto &pos = routine.getVariable(it->second.Id);
 		auto posX = pos[it->second.FirstComponent];
 		auto posY = pos[it->second.FirstComponent + 1];
 		auto posZ = pos[it->second.FirstComponent + 2];
@@ -564,7 +564,7 @@ namespace sw
 		if (it != spirvShader->outputBuiltins.end())
 		{
 			assert(it->second.SizeInComponents == 1);
-			auto psize = routine.getValue(it->second.Id)[it->second.FirstComponent];
+			auto psize = routine.getVariable(it->second.Id)[it->second.FirstComponent];
 			*Pointer<Float>(cacheLine + OFFSET(Vertex,builtins.pointSize) + sizeof(Vertex) * 0) = Extract(psize, 0);
 			*Pointer<Float>(cacheLine + OFFSET(Vertex,builtins.pointSize) + sizeof(Vertex) * 1) = Extract(psize, 1);
 			*Pointer<Float>(cacheLine + OFFSET(Vertex,builtins.pointSize) + sizeof(Vertex) * 2) = Extract(psize, 2);

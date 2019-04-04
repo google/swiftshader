@@ -167,8 +167,7 @@ namespace sw
 		if (it != shader->inputBuiltins.end())
 		{
 			const auto& builtin = it->second;
-			auto &value = routine.getValue(builtin.Id);
-			cb(builtin, value);
+			cb(builtin, routine.getVariable(builtin.Id));
 		}
 	}
 

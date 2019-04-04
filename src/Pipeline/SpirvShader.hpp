@@ -242,7 +242,7 @@ namespace sw
 				Variable,          // TODO: Document
 				InterfaceVariable, // TODO: Document
 				Constant,          // Values held by Object::constantValue
-				Value,             // Values held by SpirvRoutine::intermediates
+				Intermediate,      // Values held by SpirvRoutine::intermediates
 				PhysicalPointer,   // Pointer held by SpirvRoutine::physicalPointers
 			} kind = Kind::Unknown;
 		};
@@ -647,28 +647,28 @@ namespace sw
 	public:
 		SpirvRoutine(vk::PipelineLayout const *pipelineLayout);
 
-		using Value = Array<SIMD::Float>;
+		using Variable = Array<SIMD::Float>;
 
 		vk::PipelineLayout const * const pipelineLayout;
 
-		std::unordered_map<SpirvShader::Object::ID, Value> lvalues;
+		std::unordered_map<SpirvShader::Object::ID, Variable> variables;
 
 		std::unordered_map<SpirvShader::Object::ID, Intermediate> intermediates;
 
 		std::unordered_map<SpirvShader::Object::ID, Pointer<Byte> > physicalPointers;
 
-		Value inputs = Value{MAX_INTERFACE_COMPONENTS};
-		Value outputs = Value{MAX_INTERFACE_COMPONENTS};
+		Variable inputs = Variable{MAX_INTERFACE_COMPONENTS};
+		Variable outputs = Variable{MAX_INTERFACE_COMPONENTS};
 
 		Pointer<Pointer<Byte>> descriptorSets;
 		Pointer<Int> descriptorDynamicOffsets;
 		Pointer<Byte> pushConstants;
 		Int killMask = Int{0};
 
-		void createLvalue(SpirvShader::Object::ID id, uint32_t size)
+		void createVariable(SpirvShader::Object::ID id, uint32_t size)
 		{
-			bool added = lvalues.emplace(id, Value(size)).second;
-			ASSERT_MSG(added, "Value %d created twice", id.value());
+			bool added = variables.emplace(id, Variable(size)).second;
+			ASSERT_MSG(added, "Variable %d created twice", id.value());
 		}
 
 		Intermediate& createIntermediate(SpirvShader::Object::ID id, uint32_t size)
@@ -680,10 +680,10 @@ namespace sw
 			return it.first->second;
 		}
 
-		Value& getValue(SpirvShader::Object::ID id)
+		Variable& getVariable(SpirvShader::Object::ID id)
 		{
-			auto it = lvalues.find(id);
-			ASSERT_MSG(it != lvalues.end(), "Unknown value %d", id.value());
+			auto it = variables.find(id);
+			ASSERT_MSG(it != variables.end(), "Unknown variables %d", id.value());
 			return it->second;
 		}
 
@@ -715,7 +715,7 @@ namespace sw
 	public:
 		GenericValue(SpirvShader const *shader, SpirvRoutine const *routine, SpirvShader::Object::ID objId) :
 				obj(shader->getObject(objId)),
-				intermediate(obj.kind == SpirvShader::Object::Kind::Value ? &routine->getIntermediate(objId) : nullptr) {}
+				intermediate(obj.kind == SpirvShader::Object::Kind::Intermediate ? &routine->getIntermediate(objId) : nullptr) {}
 
 		RValue<SIMD::Float> Float(uint32_t i) const
 		{
