@@ -74,6 +74,7 @@ void Queue::waitIdle()
 	// FIXME (b/117835459): implement once we have working fences
 }
 
+#ifndef __ANDROID__
 void Queue::present(const VkPresentInfoKHR* presentInfo)
 {
 	for(uint32_t i = 0; i < presentInfo->waitSemaphoreCount; i++)
@@ -86,5 +87,6 @@ void Queue::present(const VkPresentInfoKHR* presentInfo)
 		vk::Cast(presentInfo->pSwapchains[i])->present(presentInfo->pImageIndices[i]);
 	}
 }
+#endif
 
 } // namespace vk

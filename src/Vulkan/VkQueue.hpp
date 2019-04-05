@@ -43,7 +43,9 @@ public:
 	void destroy();
 	void submit(uint32_t submitCount, const VkSubmitInfo* pSubmits, VkFence fence);
 	void waitIdle();
+#ifndef __ANDROID__
 	void present(const VkPresentInfoKHR* presentInfo);
+#endif
 
 private:
 	sw::Context* context = nullptr;
