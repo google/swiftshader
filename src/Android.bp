@@ -620,6 +620,7 @@ cc_defaults {
             relative_install_path: "hw",
             header_libs: [
                 "swiftshader_platform_headers",
+				"vulkan_headers",
             ],
             shared_libs: [
                 "libnativewindow",

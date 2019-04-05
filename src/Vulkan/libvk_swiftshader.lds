@@ -8,6 +8,9 @@ global:
 	_ZTS*;
 	_ZTI*;
 
+	# Android HAL module info object
+	HMI;
+
 local:
 	*;
 };

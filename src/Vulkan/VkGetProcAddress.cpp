@@ -19,6 +19,11 @@
 
 #include <vulkan/vulkan.h>
 
+#ifdef __ANDROID__
+#include <cerrno>
+#include <hardware/hwvulkan.h>
+#endif
+
 namespace vk
 {
 
@@ -301,3 +306,50 @@ PFN_vkVoidFunction GetDeviceProcAddr(VkDevice device, const char* pName)
 }
 
 }
+
+#ifdef __ANDROID__
+
+extern "C" hwvulkan_module_t HAL_MODULE_INFO_SYM;
+
+namespace {
+
+	int CloseDevice(struct hw_device_t *) { return 0; }
+
+	hwvulkan_device_t hal_device = {
+		.common = {
+			.tag = HARDWARE_DEVICE_TAG,
+			.version = HWVULKAN_DEVICE_API_VERSION_0_1,
+			.module = &HAL_MODULE_INFO_SYM.common,
+			.close = CloseDevice,
+		},
+		.EnumerateInstanceExtensionProperties = vkEnumerateInstanceExtensionProperties,
+		.CreateInstance = vkCreateInstance,
+		.GetInstanceProcAddr = vk::GetInstanceProcAddr,
+	};
+
+	int OpenDevice(const hw_module_t *module, const char *id, hw_device_t **device)
+	{
+		if (strcmp(id, HWVULKAN_DEVICE_0) != 0) return -ENOENT;
+		*device = &hal_device.common;
+		return 0;
+	}
+
+	hw_module_methods_t module_methods = { .open = OpenDevice };
+
+}
+
+extern "C" hwvulkan_module_t HAL_MODULE_INFO_SYM =
+{
+	.common =
+	{
+		.tag = HARDWARE_MODULE_TAG,
+		.module_api_version = HWVULKAN_MODULE_API_VERSION_0_1,
+		.hal_api_version = HARDWARE_HAL_API_VERSION,
+		.id = HWVULKAN_HARDWARE_MODULE_ID,
+		.name = "Swiftshader Pastel",
+		.author = "Google",
+		.methods = &module_methods,
+	}
+};
+
+#endif
