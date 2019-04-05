@@ -318,7 +318,6 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDevice(VkPhysicalDevice physicalDevice, c
 		}
 	}
 
-
 	const VkBaseInStructure* extensionCreateInfo = reinterpret_cast<const VkBaseInStructure*>(pCreateInfo->pNext);
 
 	while(extensionCreateInfo)
@@ -1236,9 +1235,91 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateRenderPass(VkDevice device, const VkRende
 	TRACE("(VkDevice device = 0x%X, const VkRenderPassCreateInfo* pCreateInfo = 0x%X, const VkAllocationCallbacks* pAllocator = 0x%X, VkRenderPass* pRenderPass = 0x%X)",
 		    device, pCreateInfo, pAllocator, pRenderPass);
 
-	if(pCreateInfo->pNext || pCreateInfo->flags)
+	if(pCreateInfo->flags)
 	{
-		UNIMPLEMENTED("pCreateInfo->pNext || pCreateInfo->flags");
+		UNIMPLEMENTED("pCreateInfo->flags");
+	}
+
+	const VkBaseInStructure* extensionCreateInfo = reinterpret_cast<const VkBaseInStructure*>(pCreateInfo->pNext);
+
+	while(extensionCreateInfo)
+	{
+		switch(extensionCreateInfo->sType)
+		{
+		case VK_STRUCTURE_TYPE_RENDER_PASS_INPUT_ATTACHMENT_ASPECT_CREATE_INFO:
+		{
+			const VkRenderPassInputAttachmentAspectCreateInfo* inputAttachmentAspectCreateInfo = reinterpret_cast<const VkRenderPassInputAttachmentAspectCreateInfo*>(extensionCreateInfo);
+
+			for(uint32_t i = 0; i < inputAttachmentAspectCreateInfo->aspectReferenceCount; i++)
+			{
+				const VkInputAttachmentAspectReference& aspectReference = inputAttachmentAspectCreateInfo->pAspectReferences[i];
+				ASSERT(aspectReference.subpass < pCreateInfo->subpassCount);
+				const VkSubpassDescription& subpassDescription = pCreateInfo->pSubpasses[aspectReference.subpass];
+				ASSERT(aspectReference.inputAttachmentIndex < subpassDescription.inputAttachmentCount);
+				const VkAttachmentReference& attachmentReference = subpassDescription.pInputAttachments[aspectReference.inputAttachmentIndex];
+				if(attachmentReference.attachment != VK_ATTACHMENT_UNUSED)
+				{
+					// If the pNext chain includes an instance of VkRenderPassInputAttachmentAspectCreateInfo, for any
+					// element of the pInputAttachments member of any element of pSubpasses where the attachment member
+					// is not VK_ATTACHMENT_UNUSED, the aspectMask member of the corresponding element of
+					// VkRenderPassInputAttachmentAspectCreateInfo::pAspectReferences must only include aspects that are
+					// present in images of the format specified by the element of pAttachments at attachment
+					vk::Format format(pCreateInfo->pAttachments[attachmentReference.attachment].format);
+					bool isDepth = format.isDepth();
+					bool isStencil = format.isStencil();
+					ASSERT(!(aspectReference.aspectMask & VK_IMAGE_ASPECT_COLOR_BIT) || (!isDepth && !isStencil));
+					ASSERT(!(aspectReference.aspectMask & VK_IMAGE_ASPECT_DEPTH_BIT) || isDepth);
+					ASSERT(!(aspectReference.aspectMask & VK_IMAGE_ASPECT_STENCIL_BIT) || isStencil);
+				}
+			}
+		}
+		break;
+		case VK_STRUCTURE_TYPE_RENDER_PASS_MULTIVIEW_CREATE_INFO:
+		{
+			const VkRenderPassMultiviewCreateInfo* multiviewCreateInfo = reinterpret_cast<const VkRenderPassMultiviewCreateInfo*>(extensionCreateInfo);
+			ASSERT((multiviewCreateInfo->subpassCount == 0) || (multiviewCreateInfo->subpassCount == pCreateInfo->subpassCount));
+			ASSERT((multiviewCreateInfo->dependencyCount == 0) || (multiviewCreateInfo->dependencyCount == pCreateInfo->dependencyCount));
+
+			bool zeroMask = (multiviewCreateInfo->pViewMasks[0] == 0);
+			for(uint32_t i = 1; i < multiviewCreateInfo->subpassCount; i++)
+			{
+				ASSERT((multiviewCreateInfo->pViewMasks[i] == 0) == zeroMask);
+			}
+
+			if(zeroMask)
+			{
+				ASSERT(multiviewCreateInfo->correlationMaskCount == 0);
+			}
+
+			for(uint32_t i = 0; i < multiviewCreateInfo->dependencyCount; i++)
+			{
+				const VkSubpassDependency &dependency = pCreateInfo->pDependencies[i];
+				if(multiviewCreateInfo->pViewOffsets[i] != 0)
+				{
+					ASSERT(dependency.srcSubpass != dependency.dstSubpass);
+					ASSERT(dependency.dependencyFlags & VK_DEPENDENCY_VIEW_LOCAL_BIT);
+				}
+				if(zeroMask)
+				{
+					ASSERT(!(dependency.dependencyFlags & VK_DEPENDENCY_VIEW_LOCAL_BIT));
+				}
+			}
+
+			// If the pNext chain includes an instance of VkRenderPassMultiviewCreateInfo,
+			// each element of its pViewMask member must not include a bit at a position
+			// greater than the value of VkPhysicalDeviceLimits::maxFramebufferLayers
+			// pViewMask is a 32 bit value. If maxFramebufferLayers > 32, it's impossible
+			// for pViewMask to contain a bit at an illegal position
+			// Note: Verify pViewMask values instead if we hit this assert
+			ASSERT(vk::Cast(vk::Cast(device)->getPhysicalDevice())->getProperties().limits.maxFramebufferLayers >= 32);
+		}
+		break;
+		default:
+			UNIMPLEMENTED("extensionCreateInfo->sType");
+			break;
+		}
+
+		extensionCreateInfo = extensionCreateInfo->pNext;
 	}
 
 	return vk::RenderPass::Create(pAllocator, pCreateInfo, pRenderPass);
