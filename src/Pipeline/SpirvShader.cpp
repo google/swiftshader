@@ -203,6 +203,9 @@ namespace sw
 
 				case spv::StorageClassUniform:
 				case spv::StorageClassStorageBuffer:
+					object.kind = Object::Kind::DescriptorSet;
+					break;
+
 				case spv::StorageClassPushConstant:
 				case spv::StorageClassPrivate:
 				case spv::StorageClassFunction:
@@ -818,6 +821,33 @@ namespace sw
 			case Object::Kind::DivergentPointer:
 				return std::make_pair(routine->getPointer(id), routine->getIntermediate(id).Int(0));
 
+			case Object::Kind::DescriptorSet:
+			{
+				Decorations d = {};
+				ApplyDecorationsForId(&d, id);
+
+				ASSERT(d.DescriptorSet >= 0);
+				ASSERT(d.Binding >= 0);
+
+				auto set = routine->getPointer(id);
+				auto setLayout = routine->pipelineLayout->getDescriptorSetLayout(d.DescriptorSet);
+				size_t bindingOffset = setLayout->getBindingOffset(d.Binding, arrayIndex);
+
+				Pointer<Byte> bufferInfo = Pointer<Byte>(set + bindingOffset); // VkDescriptorBufferInfo*
+				Pointer<Byte> buffer = *Pointer<Pointer<Byte>>(bufferInfo + OFFSET(VkDescriptorBufferInfo, buffer)); // vk::Buffer*
+				Pointer<Byte> data = *Pointer<Pointer<Byte>>(buffer + vk::Buffer::DataOffset); // void*
+				Int offset = *Pointer<Int>(bufferInfo + OFFSET(VkDescriptorBufferInfo, offset));
+				if (setLayout->isBindingDynamic(d.Binding))
+				{
+					uint32_t dynamicBindingIndex =
+						routine->pipelineLayout->getDynamicOffsetBase(d.DescriptorSet) +
+						setLayout->getDynamicDescriptorOffset(d.Binding) +
+						arrayIndex;
+					offset += routine->descriptorDynamicOffsets[dynamicBindingIndex];
+				}
+				return std::make_pair(data + offset, SIMD::Int(0));
+			}
+
 			default:
 				UNREACHABLE("Invalid pointer kind %d", int(object.kind));
 				return std::make_pair(Pointer<Byte>(), SIMD::Int(0));
@@ -833,9 +863,24 @@ namespace sw
 		Decorations d = {};
 		ApplyDecorationsForId(&d, baseObject.type);
 
+		size_t arrayIndex = 0;
+		if (baseObject.kind == Object::Kind::DescriptorSet)
+		{
+			auto type = getType(typeId).definition.opcode();
+			if (type == spv::OpTypeArray || type == spv::OpTypeRuntimeArray)
+			{
+				ASSERT(getObject(indexIds[0]).kind == Object::Kind::Constant);
+				arrayIndex = GetConstantInt(indexIds[0]);
+
+				numIndexes--;
+				indexIds++;
+				typeId = getType(typeId).element;
+			}
+		}
+
 		SIMD::Int dynamicOffset;
 		Pointer<Byte> pointerBase;
-		std::tie(pointerBase, dynamicOffset) = GetPointerToData(id, 0, routine);
+		std::tie(pointerBase, dynamicOffset) = GetPointerToData(id, arrayIndex, routine);
 
 		int constantOffset = 0;
 
@@ -1735,27 +1780,7 @@ namespace sw
 			Decorations d{};
 			ApplyDecorationsForId(&d, resultId);
 			ASSERT(d.DescriptorSet >= 0);
-			ASSERT(d.Binding >= 0);
-
-			auto set = routine->descriptorSets[d.DescriptorSet]; // DescriptorSet*
-			auto setLayout = routine->pipelineLayout->getDescriptorSetLayout(d.DescriptorSet);
-			size_t arrayIndex = 0; // TODO: descriptor arrays
-			size_t bindingOffset = setLayout->getBindingOffset(d.Binding, arrayIndex);
-
-			Pointer<Byte> bufferInfo = Pointer<Byte>(set + bindingOffset); // VkDescriptorBufferInfo*
-			Pointer<Byte> buffer = *Pointer<Pointer<Byte>>(bufferInfo + OFFSET(VkDescriptorBufferInfo, buffer)); // vk::Buffer*
-			Pointer<Byte> data = *Pointer<Pointer<Byte>>(buffer + vk::Buffer::DataOffset); // void*
-			Int offset = *Pointer<Int>(bufferInfo + OFFSET(VkDescriptorBufferInfo, offset));
-			if (setLayout->isBindingDynamic(d.Binding))
-			{
-				uint32_t dynamicBindingIndex =
-					routine->pipelineLayout->getDynamicOffsetBase(d.DescriptorSet) +
-					setLayout->getDynamicDescriptorOffset(d.Binding) +
-					arrayIndex;
-				offset += routine->descriptorDynamicOffsets[dynamicBindingIndex];
-			}
-
-			routine->createPointer(resultId, data + offset);
+			routine->createPointer(resultId, routine->descriptorSets[d.DescriptorSet]);
 			break;
 		}
 		case spv::StorageClassPushConstant:

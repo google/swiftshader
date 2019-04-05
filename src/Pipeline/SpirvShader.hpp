@@ -263,6 +263,10 @@ namespace sw
 				// Pointer held by SpirvRoutine::pointers
 				NonDivergentPointer,
 
+				// A pointer to a vk::DescriptorSet*.
+				// Pointer held by SpirvRoutine::pointers.
+				DescriptorSet,
+
 			} kind = Kind::Unknown;
 		};
 
@@ -560,6 +564,7 @@ namespace sw
 
 		// Returns a base pointer and per-lane offset to the underlying data for
 		// the given pointer object. Handles objects of the following kinds:
+		//  • DescriptorSet
 		//  • DivergentPointer
 		//  • InterfaceVariable
 		//  • NonDivergentPointer
