@@ -56,6 +56,7 @@ public:
 	Format                   getFormat(VkImageAspectFlagBits aspect) const;
 	uint32_t                 getArrayLayers() const { return arrayLayers; }
 	uint32_t                 getMipLevels() const { return mipLevels; }
+	VkImageUsageFlags        getUsage() const { return usage; }
 	uint32_t                 getLastLayerIndex(const VkImageSubresourceRange& subresourceRange) const;
 	uint32_t                 getLastMipLevel(const VkImageSubresourceRange& subresourceRange) const;
 	VkSampleCountFlagBits    getSampleCountFlagBits() const { return samples; }
@@ -94,6 +95,7 @@ private:
 	uint32_t                 arrayLayers = 0;
 	VkSampleCountFlagBits    samples = VK_SAMPLE_COUNT_1_BIT;
 	VkImageTiling            tiling = VK_IMAGE_TILING_OPTIMAL;
+	VkImageUsageFlags        usage = (VkImageUsageFlags)0;
 };
 
 static inline Image* Cast(VkImage object)

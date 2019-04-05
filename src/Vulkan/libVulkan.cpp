@@ -928,9 +928,41 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateImageView(VkDevice device, const VkImageV
 	TRACE("(VkDevice device = 0x%X, const VkImageViewCreateInfo* pCreateInfo = 0x%X, const VkAllocationCallbacks* pAllocator = 0x%X, VkImageView* pView = 0x%X)",
 		    device, pCreateInfo, pAllocator, pView);
 
-	if(pCreateInfo->pNext || pCreateInfo->flags)
+	if(pCreateInfo->flags)
 	{
-		UNIMPLEMENTED("pCreateInfo->pNext || pCreateInfo->flags");
+		UNIMPLEMENTED("pCreateInfo->flags");
+	}
+
+	const VkBaseInStructure* extensionCreateInfo = reinterpret_cast<const VkBaseInStructure*>(pCreateInfo->pNext);
+
+	while(extensionCreateInfo)
+	{
+		switch(extensionCreateInfo->sType)
+		{
+		case VK_STRUCTURE_TYPE_IMAGE_VIEW_USAGE_CREATE_INFO_KHR:
+		{
+			const VkImageViewUsageCreateInfo* multiviewCreateInfo = reinterpret_cast<const VkImageViewUsageCreateInfo*>(extensionCreateInfo);
+			ASSERT(!(~vk::Cast(pCreateInfo->image)->getUsage() & multiviewCreateInfo->usage));
+		}
+		break;
+		case VK_STRUCTURE_TYPE_SAMPLER_YCBCR_CONVERSION_INFO:
+		{
+			const VkSamplerYcbcrConversionInfo* ycbcrConversionInfo = reinterpret_cast<const VkSamplerYcbcrConversionInfo*>(extensionCreateInfo);
+			if(ycbcrConversionInfo->conversion != VK_NULL_HANDLE)
+			{
+				ASSERT((pCreateInfo->components.r == VK_COMPONENT_SWIZZLE_IDENTITY) &&
+				       (pCreateInfo->components.g == VK_COMPONENT_SWIZZLE_IDENTITY) &&
+				       (pCreateInfo->components.b == VK_COMPONENT_SWIZZLE_IDENTITY) &&
+				       (pCreateInfo->components.a == VK_COMPONENT_SWIZZLE_IDENTITY));
+			}
+		}
+		break;
+		default:
+			UNIMPLEMENTED("extensionCreateInfo->sType");
+			break;
+		}
+
+		extensionCreateInfo = extensionCreateInfo->pNext;
 	}
 
 	return vk::ImageView::Create(pAllocator, pCreateInfo, pView);

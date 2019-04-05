@@ -50,7 +50,8 @@ Image::Image(const Image::CreateInfo* pCreateInfo, void* mem) :
 	mipLevels(pCreateInfo->pCreateInfo->mipLevels),
 	arrayLayers(pCreateInfo->pCreateInfo->arrayLayers),
 	samples(pCreateInfo->pCreateInfo->samples),
-	tiling(pCreateInfo->pCreateInfo->tiling)
+	tiling(pCreateInfo->pCreateInfo->tiling),
+	usage(pCreateInfo->pCreateInfo->usage)
 {
 }
 
