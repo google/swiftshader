@@ -52,6 +52,24 @@
 #include <cstring>
 #include <string>
 
+namespace
+{
+
+bool HasExtensionProperty(const char* extensionName, const VkExtensionProperties* extensionProperties, uint32_t extensionPropertiesCount)
+{
+	for(uint32_t j = 0; j < extensionPropertiesCount; ++j)
+	{
+		if(strcmp(extensionName, extensionProperties[j].extensionName) == 0)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+}
+
 extern "C"
 {
 VKAPI_ATTR PFN_vkVoidFunction VKAPI_CALL vk_icdGetInstanceProcAddr(VkInstance instance, const char* pName)
@@ -113,22 +131,10 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateInstance(const VkInstanceCreateInfo* pCre
 		UNIMPLEMENTED("pCreateInfo->enabledLayerCount");
 	}
 
+	uint32_t extensionPropertiesCount = sizeof(instanceExtensionProperties) / sizeof(instanceExtensionProperties[0]);
 	for (uint32_t i = 0; i < pCreateInfo->enabledExtensionCount; ++i)
 	{
-		const char* currentExtensionName = pCreateInfo->ppEnabledExtensionNames[i];
-		uint32_t extensionPropertiesCount = sizeof(instanceExtensionProperties) / sizeof(instanceExtensionProperties[0]);
-		bool foundExtension = false;
-
-		for (uint32_t j = 0; j < extensionPropertiesCount; ++j)
-		{
-			if (strcmp(currentExtensionName, instanceExtensionProperties[j].extensionName) == 0)
-			{
-				foundExtension = true;
-				break;
-			}
-		}
-
-		if (!foundExtension)
+		if (!HasExtensionProperty(pCreateInfo->ppEnabledExtensionNames[i], instanceExtensionProperties, extensionPropertiesCount))
 		{
 			return VK_ERROR_EXTENSION_NOT_PRESENT;
 		}
@@ -296,23 +302,10 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateDevice(VkPhysicalDevice physicalDevice, c
 		UNIMPLEMENTED("pCreateInfo->enabledLayerCount");   // TODO(b/119321052): UNIMPLEMENTED() should be used only for features that must still be implemented. Use a more informational macro here.
 	}
 
-
+	uint32_t extensionPropertiesCount = sizeof(deviceExtensionProperties) / sizeof(deviceExtensionProperties[0]);
 	for (uint32_t i = 0; i < pCreateInfo->enabledExtensionCount; ++i)
 	{
-		const char* currentExtensionName = pCreateInfo->ppEnabledExtensionNames[i];
-		uint32_t extensionPropertiesCount = sizeof(deviceExtensionProperties) / sizeof(deviceExtensionProperties[0]);
-		bool foundExtension = false;
-
-		for (uint32_t j = 0; j < extensionPropertiesCount; ++j)
-		{
-			if (strcmp(currentExtensionName, deviceExtensionProperties[j].extensionName) == 0)
-			{
-				foundExtension = true;
-				break;
-			}
-		}
-
-		if (!foundExtension)
+		if (!HasExtensionProperty(pCreateInfo->ppEnabledExtensionNames[i], deviceExtensionProperties, extensionPropertiesCount))
 		{
 			return VK_ERROR_EXTENSION_NOT_PRESENT;
 		}
@@ -2010,6 +2003,11 @@ VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceProperties2(VkPhysicalDevice physi
 				auto& properties = *reinterpret_cast<VkPhysicalDeviceSubgroupProperties*>(extensionProperties);
 				vk::Cast(physicalDevice)->getProperties(&properties);
 			}
+			break;
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SAMPLE_LOCATIONS_PROPERTIES_EXT:
+			// Explicitly ignored, since VK_EXT_sample_locations is not supported
+			ASSERT(!HasExtensionProperty(VK_EXT_SAMPLE_LOCATIONS_EXTENSION_NAME, deviceExtensionProperties,
+			                             sizeof(deviceExtensionProperties) / sizeof(deviceExtensionProperties[0])));
 			break;
 		default:
 			// "the [driver] must skip over, without processing (other than reading the sType and pNext members) any structures in the chain with sType values not defined by [supported extenions]"
