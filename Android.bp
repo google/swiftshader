@@ -91,6 +91,8 @@ cc_defaults {
 cc_library_headers {
     name: "swiftshader_platform_headers",
     host_supported: true,
+    device_supported: true,
+    vendor_available: true,
     export_include_dirs: ["include"],
 }
 
@@ -99,13 +101,6 @@ cc_library_headers {
     device_supported: false,
     host_supported: true,
     export_include_dirs: ["include/Android"],
-}
-
-cc_library_headers {
-    name: "swiftshadervk_platform_headers",
-    vendor: true,
-    device_supported: true,
-    export_include_dirs: ["include"],
 }
 
 subdirs = [
