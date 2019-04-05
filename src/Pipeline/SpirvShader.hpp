@@ -233,17 +233,36 @@ namespace sw
 
 			InsnIterator definition;
 			Type::ID type;
-			ID pointerBase;
 			std::unique_ptr<uint32_t[]> constantValue = nullptr;
 
 			enum class Kind
 			{
-				Unknown,        /* for paranoia -- if we get left with an object in this state, the module was broken */
-				Variable,          // TODO: Document
-				InterfaceVariable, // TODO: Document
-				Constant,          // Values held by Object::constantValue
-				Intermediate,      // Values held by SpirvRoutine::intermediates
-				PhysicalPointer,   // Pointer held by SpirvRoutine::physicalPointers
+				// Invalid default kind.
+				// If we get left with an object in this state, the module was
+				// broken.
+				Unknown,
+
+				// TODO: Better document this kind.
+				// A shader interface variable pointer.
+				// Pointer with uniform address across all lanes.
+				// Pointer held by SpirvRoutine::pointers
+				InterfaceVariable,
+
+				// Constant value held by Object::constantValue.
+				Constant,
+
+				// Value held by SpirvRoutine::intermediates.
+				Intermediate,
+
+				// DivergentPointer formed from a base pointer and per-lane offset.
+				// Base pointer held by SpirvRoutine::pointers
+				// Per-lane offset held by SpirvRoutine::intermediates.
+				DivergentPointer,
+
+				// Pointer with uniform address across all lanes.
+				// Pointer held by SpirvRoutine::pointers
+				NonDivergentPointer,
+
 			} kind = Kind::Unknown;
 		};
 
@@ -539,7 +558,15 @@ namespace sw
 
 		void ProcessInterfaceVariable(Object &object);
 
-		SIMD::Int WalkExplicitLayoutAccessChain(Object::ID id, uint32_t numIndexes, uint32_t const *indexIds, SpirvRoutine *routine) const;
+		// Returns a base pointer and per-lane offset to the underlying data for
+		// the given pointer object. Handles objects of the following kinds:
+		//  • DivergentPointer
+		//  • InterfaceVariable
+		//  • NonDivergentPointer
+		// Calling GetPointerToData with objects of any other kind will assert.
+		std::pair<Pointer<Byte>, SIMD::Int> GetPointerToData(Object::ID id, int arrayIndex, SpirvRoutine *routine) const;
+
+		std::pair<Pointer<Byte>, SIMD::Int> WalkExplicitLayoutAccessChain(Object::ID id, uint32_t numIndexes, uint32_t const *indexIds, SpirvRoutine *routine) const;
 		SIMD::Int WalkAccessChain(Object::ID id, uint32_t numIndexes, uint32_t const *indexIds, SpirvRoutine *routine) const;
 		uint32_t WalkLiteralAccessChain(Type::ID id, uint32_t numIndexes, uint32_t const *indexes) const;
 
@@ -655,7 +682,7 @@ namespace sw
 
 		std::unordered_map<SpirvShader::Object::ID, Intermediate> intermediates;
 
-		std::unordered_map<SpirvShader::Object::ID, Pointer<Byte> > physicalPointers;
+		std::unordered_map<SpirvShader::Object::ID, Pointer<Byte> > pointers;
 
 		Variable inputs = Variable{MAX_INTERFACE_COMPONENTS};
 		Variable outputs = Variable{MAX_INTERFACE_COMPONENTS};
@@ -669,6 +696,25 @@ namespace sw
 		{
 			bool added = variables.emplace(id, Variable(size)).second;
 			ASSERT_MSG(added, "Variable %d created twice", id.value());
+		}
+
+		template <typename T>
+		void createPointer(SpirvShader::Object::ID id, Pointer<T> ptrBase)
+		{
+			bool added = pointers.emplace(id, ptrBase).second;
+			ASSERT_MSG(added, "Pointer %d created twice", id.value());
+		}
+
+		template <typename T>
+		void createPointer(SpirvShader::Object::ID id, RValue<Pointer<T>> ptrBase)
+		{
+			createPointer(id, Pointer<T>(ptrBase));
+		}
+
+		template <typename T>
+		void createPointer(SpirvShader::Object::ID id, Reference<Pointer<T>> ptrBase)
+		{
+			createPointer(id, Pointer<T>(ptrBase));
 		}
 
 		Intermediate& createIntermediate(SpirvShader::Object::ID id, uint32_t size)
@@ -694,10 +740,10 @@ namespace sw
 			return it->second;
 		}
 
-		Pointer<Byte>& getPhysicalPointer(SpirvShader::Object::ID id)
+		Pointer<Byte>& getPointer(SpirvShader::Object::ID id)
 		{
-			auto it = physicalPointers.find(id);
-			ASSERT_MSG(it != physicalPointers.end(), "Unknown physical pointer %d", id.value());
+			auto it = pointers.find(id);
+			ASSERT_MSG(it != pointers.end(), "Unknown pointer %d", id.value());
 			return it->second;
 		}
 	};
