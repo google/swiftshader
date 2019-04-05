@@ -676,8 +676,8 @@ VKAPI_ATTR void VKAPI_CALL vkGetImageMemoryRequirements(VkDevice device, VkImage
 
 VKAPI_ATTR void VKAPI_CALL vkGetImageSparseMemoryRequirements(VkDevice device, VkImage image, uint32_t* pSparseMemoryRequirementCount, VkSparseImageMemoryRequirements* pSparseMemoryRequirements)
 {
-	TRACE("(VkDevice device, VkImage image, uint32_t* pSparseMemoryRequirementCount, VkSparseImageMemoryRequirements* pSparseMemoryRequirements)",
-	      device, image, pSparseMemoryRequirementCount, pSparseMemoryRequirements);
+	TRACE("(VkDevice device = 0x%X, VkImage image = 0x%X, uint32_t* pSparseMemoryRequirementCount = 0x%X, VkSparseImageMemoryRequirements* pSparseMemoryRequirements = 0x%X)",
+	        device, image, pSparseMemoryRequirementCount, pSparseMemoryRequirements);
 
 	// The 'sparseBinding' feature is not supported, so images can not be created with the VK_IMAGE_CREATE_SPARSE_RESIDENCY_BIT flag.
 	// "If the image was not created with VK_IMAGE_CREATE_SPARSE_RESIDENCY_BIT then pSparseMemoryRequirementCount will be set to zero and pSparseMemoryRequirements will not be written to."
@@ -686,7 +686,7 @@ VKAPI_ATTR void VKAPI_CALL vkGetImageSparseMemoryRequirements(VkDevice device, V
 
 VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceSparseImageFormatProperties(VkPhysicalDevice physicalDevice, VkFormat format, VkImageType type, VkSampleCountFlagBits samples, VkImageUsageFlags usage, VkImageTiling tiling, uint32_t* pPropertyCount, VkSparseImageFormatProperties* pProperties)
 {
-	TRACE("(VkPhysicalDevice physicalDevice, VkFormat format, VkImageType type, VkSampleCountFlagBits samples, VkImageUsageFlags usage, VkImageTiling tiling, uint32_t* pPropertyCount, VkSparseImageFormatProperties* pProperties)",
+	TRACE("(VkPhysicalDevice physicalDevice = 0x%X, VkFormat format = %d, VkImageType type = %d, VkSampleCountFlagBits samples = %d, VkImageUsageFlags usage = %d, VkImageTiling tiling = %d, uint32_t* pPropertyCount = 0x%X, VkSparseImageFormatProperties* pProperties = 0x%X)",
 			physicalDevice, format, type, samples, usage, tiling, pPropertyCount, pProperties);
 
 	// We do not support sparse images.
@@ -873,8 +873,8 @@ VKAPI_ATTR void VKAPI_CALL vkDestroyBuffer(VkDevice device, VkBuffer buffer, con
 
 VKAPI_ATTR VkResult VKAPI_CALL vkCreateBufferView(VkDevice device, const VkBufferViewCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkBufferView* pView)
 {
-	TRACE("(VkDevice device, const VkBufferViewCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkBufferView* pView)",
-		device, pCreateInfo, pAllocator, pView);
+	TRACE("(VkDevice device = 0x%X, const VkBufferViewCreateInfo* pCreateInfo = 0x%X, const VkAllocationCallbacks* pAllocator = 0x%X, VkBufferView* pView = 0x%X)",
+	        device, pCreateInfo, pAllocator, pView);
 
 	if(pCreateInfo->pNext || pCreateInfo->flags)
 	{
@@ -886,8 +886,8 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreateBufferView(VkDevice device, const VkBuffe
 
 VKAPI_ATTR void VKAPI_CALL vkDestroyBufferView(VkDevice device, VkBufferView bufferView, const VkAllocationCallbacks* pAllocator)
 {
-	TRACE("(VkDevice device, VkBufferView bufferView, const VkAllocationCallbacks* pAllocator)",
-	      device, bufferView, pAllocator);
+	TRACE("(VkDevice device = 0x%X, VkBufferView bufferView = 0x%X, const VkAllocationCallbacks* pAllocator = 0x%X)",
+	        device, bufferView, pAllocator);
 
 	vk::destroy(bufferView, pAllocator);
 }
@@ -921,8 +921,8 @@ VKAPI_ATTR void VKAPI_CALL vkDestroyImage(VkDevice device, VkImage image, const 
 
 VKAPI_ATTR void VKAPI_CALL vkGetImageSubresourceLayout(VkDevice device, VkImage image, const VkImageSubresource* pSubresource, VkSubresourceLayout* pLayout)
 {
-	TRACE("(VkDevice device, VkImage image, const VkImageSubresource* pSubresource, VkSubresourceLayout* pLayout)",
-		device, image, pSubresource, pLayout);
+	TRACE("(VkDevice device = 0x%X, VkImage image = 0x%X, const VkImageSubresource* pSubresource = 0x%X, VkSubresourceLayout* pLayout = 0x%X)",
+	        device, image, pSubresource, pLayout);
 
 	vk::Cast(image)->getSubresourceLayout(pSubresource, pLayout);
 }
@@ -1003,8 +1003,8 @@ VKAPI_ATTR void VKAPI_CALL vkDestroyShaderModule(VkDevice device, VkShaderModule
 
 VKAPI_ATTR VkResult VKAPI_CALL vkCreatePipelineCache(VkDevice device, const VkPipelineCacheCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkPipelineCache* pPipelineCache)
 {
-	TRACE("(VkDevice device, const VkPipelineCacheCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkPipelineCache* pPipelineCache)",
-	      device, pCreateInfo, pAllocator, pPipelineCache);
+	TRACE("(VkDevice device = 0x%X, const VkPipelineCacheCreateInfo* pCreateInfo = 0x%X, const VkAllocationCallbacks* pAllocator = 0x%X, VkPipelineCache* pPipelineCache = 0x%X)",
+	        device, pCreateInfo, pAllocator, pPipelineCache);
 
 	if(pCreateInfo->pNext || pCreateInfo->flags)
 	{
@@ -1016,24 +1016,26 @@ VKAPI_ATTR VkResult VKAPI_CALL vkCreatePipelineCache(VkDevice device, const VkPi
 
 VKAPI_ATTR void VKAPI_CALL vkDestroyPipelineCache(VkDevice device, VkPipelineCache pipelineCache, const VkAllocationCallbacks* pAllocator)
 {
-	TRACE("(VkDevice device, VkPipelineCache pipelineCache, const VkAllocationCallbacks* pAllocator)",
-	      device, pipelineCache, pAllocator);
+	TRACE("(VkDevice device = 0x%X, VkPipelineCache pipelineCache = 0x%X, const VkAllocationCallbacks* pAllocator = 0x%X)",
+	        device, pipelineCache, pAllocator);
 
 	vk::destroy(pipelineCache, pAllocator);
 }
 
 VKAPI_ATTR VkResult VKAPI_CALL vkGetPipelineCacheData(VkDevice device, VkPipelineCache pipelineCache, size_t* pDataSize, void* pData)
 {
-	TRACE("()");
-	UNIMPLEMENTED("vkGetPipelineCacheData");
-	return VK_SUCCESS;
+	TRACE("(VkDevice device = 0x%X, VkPipelineCache pipelineCache = 0x%X, size_t* pDataSize = 0x%X, void* pData = 0x%X)",
+	        device, pipelineCache, pDataSize, pData);
+
+	return vk::Cast(pipelineCache)->getData(pDataSize, pData);
 }
 
 VKAPI_ATTR VkResult VKAPI_CALL vkMergePipelineCaches(VkDevice device, VkPipelineCache dstCache, uint32_t srcCacheCount, const VkPipelineCache* pSrcCaches)
 {
-	TRACE("()");
-	UNIMPLEMENTED("vkMergePipelineCaches");
-	return VK_SUCCESS;
+	TRACE("(VkDevice device = 0x%X, VkPipelineCache dstCache = 0x%X, uint32_t srcCacheCount = %d, const VkPipelineCache* pSrcCaches = 0x%X)",
+	        device, dstCache, srcCacheCount, pSrcCaches);
+
+	return vk::Cast(dstCache)->merge(srcCacheCount, pSrcCaches);
 }
 
 VKAPI_ATTR VkResult VKAPI_CALL vkCreateGraphicsPipelines(VkDevice device, VkPipelineCache pipelineCache, uint32_t createInfoCount, const VkGraphicsPipelineCreateInfo* pCreateInfos, const VkAllocationCallbacks* pAllocator, VkPipeline* pPipelines)
@@ -2251,8 +2253,8 @@ VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceExternalSemaphoreProperties(VkPhys
 
 VKAPI_ATTR void VKAPI_CALL vkGetDescriptorSetLayoutSupport(VkDevice device, const VkDescriptorSetLayoutCreateInfo* pCreateInfo, VkDescriptorSetLayoutSupport* pSupport)
 {
-	TRACE("(VkDevice device, const VkDescriptorSetLayoutCreateInfo* pCreateInfo, VkDescriptorSetLayoutSupport* pSupport)",
-	      device, pCreateInfo, pSupport);
+	TRACE("(VkDevice device = 0x%X, const VkDescriptorSetLayoutCreateInfo* pCreateInfo = 0x%X, VkDescriptorSetLayoutSupport* pSupport = 0x%X)",
+	        device, pCreateInfo, pSupport);
 
 	vk::Cast(device)->getDescriptorSetLayoutSupport(pCreateInfo, pSupport);
 }

@@ -23,18 +23,27 @@ namespace vk
 class PipelineCache : public Object<PipelineCache, VkPipelineCache>
 {
 public:
-	PipelineCache(const VkPipelineCacheCreateInfo* pCreateInfo, void* mem)
-	{
-	}
-
+	PipelineCache(const VkPipelineCacheCreateInfo* pCreateInfo, void* mem);
 	~PipelineCache() = delete;
+	void destroy(const VkAllocationCallbacks* pAllocator);
 
-	static size_t ComputeRequiredAllocationSize(const VkPipelineCacheCreateInfo* pCreateInfo)
-	{
-		return 0;
-	}
+	static size_t ComputeRequiredAllocationSize(const VkPipelineCacheCreateInfo* pCreateInfo);
+
+	VkResult getData(size_t* pDataSize, void* pData);
+	VkResult merge(uint32_t srcCacheCount, const VkPipelineCache* pSrcCaches);
 
 private:
+	struct CacheHeader
+	{
+		uint32_t headerLength;
+		uint32_t headerVersion;
+		uint32_t vendorID;
+		uint32_t deviceID;
+		uint8_t  pipelineCacheUUID[VK_UUID_SIZE];
+	};
+
+	size_t dataSize = 0;
+	uint8_t* data   = nullptr;
 };
 
 static inline PipelineCache* Cast(VkPipelineCache object)

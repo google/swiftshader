@@ -225,6 +225,9 @@
     <ClCompile Include="VkPipeline.cpp">
       <Filter>Source Files\Vulkan</Filter>
     </ClCompile>
+    <ClCompile Include="VkPipelineCache.cpp">
+      <Filter>Source Files\Vulkan</Filter>
+    </ClCompile>
     <ClCompile Include="VkPipelineLayout.cpp">
       <Filter>Source Files\Vulkan</Filter>
     </ClCompile>

@@ -125,6 +125,7 @@ IF EXIST "$(SolutionDir)..\deqp\build\external\vulkancts\modules\vulkan\" (copy 
     <ClCompile Include="VkMemory.cpp" />
     <ClCompile Include="VkPhysicalDevice.cpp" />
     <ClCompile Include="VkPipeline.cpp" />
+    <ClCompile Include="VkPipelineCache.cpp" />
     <ClCompile Include="VkPipelineLayout.cpp" />
     <ClCompile Include="VkPromotedExtensions.cpp" />
     <ClCompile Include="VkQueryPool.cpp" />
