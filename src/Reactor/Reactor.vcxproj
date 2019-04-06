@@ -113,7 +113,6 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <AdditionalIncludeDirectories>..\;..\..\third_party\llvm-7.0\configs\windows\include;..\..\third_party\llvm-7.0\llvm\include;..\..\third_party\llvm-7.0\llvm\lib\Target\X86;..\..\third_party\llvm-7.0\configs\common\include;..\..\third_party\llvm-7.0\configs\common\lib\IR;..\..\third_party\llvm-7.0\configs\common\lib\Transforms\InstCombine;..\..\third_party\llvm-7.0\configs\common\lib\Target\X86;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;REACTOR_LLVM_VERSION=7;_DEBUG;_LIB;_HAS_EXCEPTIONS=0;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <PrecompiledHeader>
@@ -139,7 +138,6 @@
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>..\;..\..\third_party\llvm-7.0\configs\windows\include;..\..\third_party\llvm-7.0\llvm\include;..\..\third_party\llvm-7.0\llvm\lib\Target\X86;..\..\third_party\llvm-7.0\configs\common\include;..\..\third_party\llvm-7.0\configs\common\lib\IR;..\..\third_party\llvm-7.0\configs\common\lib\Transforms\InstCombine;..\..\third_party\llvm-7.0\configs\common\lib\Target\X86;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;REACTOR_LLVM_VERSION=7;_DEBUG;_LIB;_HAS_EXCEPTIONS=0;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <MinimalRebuild>true</MinimalRebuild>
       <ExceptionHandling>false</ExceptionHandling>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -213,6 +211,7 @@
       <TreatWarningAsError>true</TreatWarningAsError>
       <TreatSpecificWarningsAsErrors>4018;5038;4838</TreatSpecificWarningsAsErrors>
       <AdditionalOptions>/permissive- %(AdditionalOptions)</AdditionalOptions>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <ProjectReference>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
@@ -278,6 +277,7 @@
       <TreatWarningAsError>true</TreatWarningAsError>
       <TreatSpecificWarningsAsErrors>4018;5038;4838</TreatSpecificWarningsAsErrors>
       <AdditionalOptions>/permissive- %(AdditionalOptions)</AdditionalOptions>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <ProjectReference>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
