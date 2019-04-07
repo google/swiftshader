@@ -39,7 +39,8 @@ dEQP-VK.api.object_management.alloc_callback_fail.sampler
 dEQP-VK.api.object_management.alloc_callback_fail.shader_module
 dEQP-VK.api.object_management.alloc_callback_fail_multiple.compute_pipeline
 dEQP-VK.api.object_management.alloc_callback_fail_multiple.graphics_pipeline
-dEQP-VK.draw.basic_draw.draw_indexed_indirect.triangle_strip.1_multi_command
+dEQP-VK.draw.basic_draw.draw_indexed_indirect.triangle_fan.1_multi_command
+dEQP-VK.draw.basic_draw.draw_indirect.line_strip.1_multi_command
 dEQP-VK.robustness.buffer_access.compute.mat4_copy.out_of_alloc.oob_storage_read
 dEQP-VK.robustness.buffer_access.compute.mat4_copy.out_of_alloc.oob_storage_write
 dEQP-VK.robustness.buffer_access.compute.mat4_copy.out_of_alloc.oob_uniform_read
@@ -143,3 +144,4 @@ dEQP-VK.robustness.buffer_access.compute.vec4_copy.r32_uint.oob_uniform_read.ran
 dEQP-VK.robustness.buffer_access.compute.vec4_copy.r32_uint.oob_uniform_read.range_3_bytes
 dEQP-VK.robustness.buffer_access.compute.vec4_copy.r32_uint.oob_uniform_read.range_4_bytes
 dEQP-VK.synchronization.internally_synchronized_objects.pipeline_cache_compute
+dEQP-VK.ubo.random.all_out_of_order_offsets.45
