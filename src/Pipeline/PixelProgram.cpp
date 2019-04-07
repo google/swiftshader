@@ -173,7 +173,7 @@ namespace sw
 				}
 				break;
 			default:
-				ASSERT(false);
+				UNIMPLEMENTED("VkFormat: %d", int(state.targetFormat[index]));
 			}
 		}
 	}
@@ -227,7 +227,7 @@ namespace sw
 			case VK_FORMAT_R8G8B8A8_UINT:
 				break;
 			default:
-				ASSERT(false);
+				UNIMPLEMENTED("VkFormat: %d", int(state.targetFormat[index]));
 			}
 		}
 	}
