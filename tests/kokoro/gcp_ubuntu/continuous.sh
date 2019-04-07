@@ -17,9 +17,8 @@ make --jobs=$(nproc)
 # Run the reactor unit tests.
 ./ReactorUnitTests
 
-# Run the GLES unit tests. TODO(capn): rename.
-./unittests
+cd .. # Tests must be run from project root
 
-# Run the Vulkan unit tests.
-cd .. # Must be run from project root
+# Run the OpenGL ES and Vulkan unit tests.
+build/gles-unittests
 build/vk-unittests

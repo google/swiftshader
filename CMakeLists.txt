@@ -2359,36 +2359,35 @@ if(BUILD_TESTS)
     endif()
 endif()
 
-# GLES unit tests. TODO: Rename 'unittests' to 'gles-unittests'?
 if(BUILD_TESTS)
-    set(UNITTESTS_LIST
+    set(GLES_UNITTESTS_LIST
         ${CMAKE_CURRENT_SOURCE_DIR}/tests/GLESUnitTests/main.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/tests/GLESUnitTests/unittests.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/third_party/googletest/googletest/src/gtest-all.cc
     )
 
-    set(UNITTESTS_INCLUDE_DIR
+    set(GLES_UNITTESTS_INCLUDE_DIR
         ${CMAKE_CURRENT_SOURCE_DIR}/third_party/googletest/googletest/include/
         ${CMAKE_CURRENT_SOURCE_DIR}/third_party/googletest/googlemock/include/
         ${CMAKE_CURRENT_SOURCE_DIR}/third_party/googletest/googletest/
         ${CMAKE_CURRENT_SOURCE_DIR}/include/
     )
 
-    add_executable(unittests ${UNITTESTS_LIST})
-    set_target_properties(unittests PROPERTIES
-        INCLUDE_DIRECTORIES "${UNITTESTS_INCLUDE_DIR}"
+    add_executable(gles-unittests ${GLES_UNITTESTS_LIST})
+    set_target_properties(gles-unittests PROPERTIES
+        INCLUDE_DIRECTORIES "${GLES_UNITTESTS_INCLUDE_DIR}"
         FOLDER "Tests"
         COMPILE_DEFINITIONS "STANDALONE"
     )
 
-    target_link_libraries(unittests libEGL libGLESv2 ${OS_LIBS})
+    target_link_libraries(gles-unittests libEGL libGLESv2 ${OS_LIBS})
     if(ANDROID)
-        target_link_libraries(unittests -landroid)
+        target_link_libraries(gles-unittests -landroid)
     endif()
 endif()
 
 if(BUILD_TESTS AND BUILD_VULKAN)
-    set(UNITTESTS_LIST
+    set(VK_UNITTESTS_LIST
         ${CMAKE_CURRENT_SOURCE_DIR}/tests/VulkanUnitTests/Device.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/tests/VulkanUnitTests/Driver.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/tests/VulkanUnitTests/main.cpp
@@ -2396,7 +2395,7 @@ if(BUILD_TESTS AND BUILD_VULKAN)
         ${CMAKE_CURRENT_SOURCE_DIR}/third_party/googletest/googletest/src/gtest-all.cc
     )
 
-    set(UNITTESTS_INCLUDE_DIR
+    set(VK_UNITTESTS_INCLUDE_DIR
         ${CMAKE_CURRENT_SOURCE_DIR}/third_party/googletest/googletest/include/
         ${CMAKE_CURRENT_SOURCE_DIR}/third_party/googletest/googlemock/include/
         ${CMAKE_CURRENT_SOURCE_DIR}/third_party/googletest/googletest/
@@ -2404,9 +2403,9 @@ if(BUILD_TESTS AND BUILD_VULKAN)
         ${CMAKE_CURRENT_SOURCE_DIR}/include/
     )
 
-    add_executable(vk-unittests ${UNITTESTS_LIST})
+    add_executable(vk-unittests ${VK_UNITTESTS_LIST})
     set_target_properties(vk-unittests PROPERTIES
-        INCLUDE_DIRECTORIES "${UNITTESTS_INCLUDE_DIR}"
+        INCLUDE_DIRECTORIES "${VK_UNITTESTS_INCLUDE_DIR}"
         FOLDER "Tests"
         COMPILE_DEFINITIONS "STANDALONE"
     )

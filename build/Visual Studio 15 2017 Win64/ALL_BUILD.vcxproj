@@ -169,9 +169,9 @@
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\unittests.vcxproj">
+    <ProjectReference Include="$(SolutionDir)build\Visual Studio 15 2017 Win64\gles-unittests.vcxproj">
       <Project>{BC5A59A0-B151-32E5-9090-B06A8D88F902}</Project>
-      <Name>unittests</Name>
+      <Name>gles-unittests</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>

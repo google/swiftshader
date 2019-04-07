@@ -25,7 +25,7 @@ Android and Chrome (OS) build environments are also supported.
       cmake ..
       make --jobs=8
 
-      ./unittests
+      ./gles-unittests
       ./OGLES2HelloAPI
 
 Usage
