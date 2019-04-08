@@ -83,6 +83,7 @@ private:
 	int bytesPerTexel(VkImageAspectFlagBits flags) const;
 	VkFormat getClearFormat() const;
 	void clear(void* pixelData, VkFormat format, const VkImageSubresourceRange& subresourceRange, const VkRect2D& renderArea);
+	int borderSize(VkImageAspectFlagBits aspect) const;
 
 	const Device *const      device = nullptr;
 	DeviceMemory*            deviceMemory = nullptr;
