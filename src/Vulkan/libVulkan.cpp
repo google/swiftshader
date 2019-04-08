@@ -1884,9 +1884,29 @@ VKAPI_ATTR void VKAPI_CALL vkGetImageMemoryRequirements2(VkDevice device, const 
 	TRACE("(VkDevice device = 0x%X, const VkImageMemoryRequirementsInfo2* pInfo = 0x%X, VkMemoryRequirements2* pMemoryRequirements = 0x%X)",
 	      device, pInfo, pMemoryRequirements);
 
-	if(pInfo->pNext || pMemoryRequirements->pNext)
+	if(pInfo->pNext)
 	{
-		UNIMPLEMENTED("pInfo->pNext || pMemoryRequirements->pNext");
+		UNIMPLEMENTED("pInfo->pNext");
+	}
+
+	VkBaseOutStructure* extensionRequirements = reinterpret_cast<VkBaseOutStructure*>(pMemoryRequirements->pNext);
+	while(extensionRequirements)
+	{
+		switch(extensionRequirements->sType)
+		{
+		case VK_STRUCTURE_TYPE_MEMORY_DEDICATED_REQUIREMENTS:
+		{
+			auto& requirements = *reinterpret_cast<VkMemoryDedicatedRequirements*>(extensionRequirements);
+			requirements.prefersDedicatedAllocation = VK_FALSE;
+			requirements.requiresDedicatedAllocation = VK_FALSE;
+		}
+		break;
+		default:
+			UNIMPLEMENTED("extensionRequirements->sType");
+			break;
+		}
+
+		extensionRequirements = extensionRequirements->pNext;
 	}
 
 	vkGetImageMemoryRequirements(device, pInfo->image, &(pMemoryRequirements->memoryRequirements));
