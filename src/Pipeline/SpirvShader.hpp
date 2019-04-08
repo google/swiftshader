@@ -649,6 +649,7 @@ namespace sw
 		EmitResult EmitVectorTimesMatrix(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitMatrixTimesMatrix(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitOuterProduct(InsnIterator insn, EmitState *state) const;
+		EmitResult EmitTranspose(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitVectorExtractDynamic(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitVectorInsertDynamic(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitUnaryOp(InsnIterator insn, EmitState *state) const;

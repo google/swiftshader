@@ -362,6 +362,7 @@ namespace sw
 			case spv::OpVectorTimesMatrix:
 			case spv::OpMatrixTimesMatrix:
 			case spv::OpOuterProduct:
+			case spv::OpTranspose:
 			case spv::OpVectorExtractDynamic:
 			case spv::OpVectorInsertDynamic:
 			case spv::OpNot: // Unary ops
@@ -1627,6 +1628,9 @@ namespace sw
 		case spv::OpOuterProduct:
 			return EmitOuterProduct(insn, state);
 
+		case spv::OpTranspose:
+			return EmitTranspose(insn, state);
+
 		case spv::OpNot:
 		case spv::OpSNegate:
 		case spv::OpFNegate:
@@ -2285,6 +2289,27 @@ namespace sw
 			for (auto row = 0u; row < numRows; row++)
 			{
 				dst.move(col * numRows + row, lhs.Float(row) * rhs.Float(col));
+			}
+		}
+
+		return EmitResult::Continue;
+	}
+
+	SpirvShader::EmitResult SpirvShader::EmitTranspose(InsnIterator insn, EmitState *state) const
+	{
+		auto routine = state->routine;
+		auto &type = getType(insn.word(1));
+		auto &dst = routine->createIntermediate(insn.word(2), type.sizeInComponents);
+		auto mat = GenericValue(this, routine, insn.word(3));
+
+		auto numCols = type.definition.word(3);
+		auto numRows = getType(type.definition.word(2)).sizeInComponents;
+
+		for (auto col = 0u; col < numCols; col++)
+		{
+			for (auto row = 0u; row < numRows; row++)
+			{
+				dst.move(col * numRows + row, mat.Float(row * numCols + col));
 			}
 		}
 
