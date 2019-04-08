@@ -2192,7 +2192,7 @@ namespace sw
 		auto &dst = routine->createIntermediate(insn.word(2), type.sizeInComponents);
 		auto lhs = GenericValue(this, routine, insn.word(3));
 		auto rhs = GenericValue(this, routine, insn.word(4));
-		auto rhsType = getType(getObject(insn.word(4)).type);
+		auto rhsType = getType(rhs.type);
 
 		for (auto i = 0u; i < type.sizeInComponents; i++)
 		{
@@ -2214,7 +2214,7 @@ namespace sw
 		auto &dst = routine->createIntermediate(insn.word(2), type.sizeInComponents);
 		auto lhs = GenericValue(this, routine, insn.word(3));
 		auto rhs = GenericValue(this, routine, insn.word(4));
-		auto lhsType = getType(getObject(insn.word(3)).type);
+		auto lhsType = getType(lhs.type);
 
 		for (auto i = 0u; i < type.sizeInComponents; i++)
 		{
@@ -3003,7 +3003,7 @@ namespace sw
 		auto falseBlockId = Block::ID(block.branchInstruction.word(3));
 
 		auto cond = GenericValue(this, state->routine, condId);
-		ASSERT_MSG(getType(getObject(condId).type).sizeInComponents == 1, "Condition must be a Boolean type scalar");
+		ASSERT_MSG(getType(cond.type).sizeInComponents == 1, "Condition must be a Boolean type scalar");
 
 		// TODO: Optimize for case where all lanes take same path.
 
@@ -3021,7 +3021,7 @@ namespace sw
 		auto selId = Object::ID(block.branchInstruction.word(1));
 
 		auto sel = GenericValue(this, state->routine, selId);
-		ASSERT_MSG(getType(getObject(selId).type).sizeInComponents == 1, "Selector must be a scalar");
+		ASSERT_MSG(getType(sel.type).sizeInComponents == 1, "Selector must be a scalar");
 
 		auto numCases = (block.branchInstruction.wordCount() - 3) / 2;
 

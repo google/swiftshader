@@ -766,7 +766,8 @@ namespace sw
 	public:
 		GenericValue(SpirvShader const *shader, SpirvRoutine const *routine, SpirvShader::Object::ID objId) :
 				obj(shader->getObject(objId)),
-				intermediate(obj.kind == SpirvShader::Object::Kind::Intermediate ? &routine->getIntermediate(objId) : nullptr) {}
+				intermediate(obj.kind == SpirvShader::Object::Kind::Intermediate ? &routine->getIntermediate(objId) : nullptr),
+				type(obj.type) {}
 
 		RValue<SIMD::Float> Float(uint32_t i) const
 		{
@@ -787,6 +788,8 @@ namespace sw
 		{
 			return As<SIMD::UInt>(Float(i));
 		}
+
+		SpirvShader::Type::ID const type;
 	};
 
 }
