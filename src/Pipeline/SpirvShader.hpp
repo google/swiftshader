@@ -59,6 +59,22 @@ namespace sw
 		using Float = rr::Float4;
 		using Int = rr::Int4;
 		using UInt = rr::UInt4;
+
+		struct Pointer
+		{
+			Pointer(rr::Pointer<Byte> base) : base(base), offset(0), uniform(true) {}
+			Pointer(rr::Pointer<Byte> base, SIMD::Int offset) : base(base), offset(offset), uniform(false) {}
+
+			// Base address for the pointer, common across all lanes.
+			rr::Pointer<rr::Float> base;
+
+			// Per lane offsets from base.
+			// If uniform is false, all offsets are considered zero.
+			Int offset;
+
+			// True if all offsets are zero.
+			bool uniform;
+		};
 	}
 
 	// Incrementally constructed complex bundle of rvalues
@@ -562,16 +578,17 @@ namespace sw
 
 		void ProcessInterfaceVariable(Object &object);
 
-		// Returns a base pointer and per-lane offset to the underlying data for
-		// the given pointer object. Handles objects of the following kinds:
+		// Returns a SIMD::Pointer to the underlying data for the given pointer
+		// object.
+		// Handles objects of the following kinds:
 		//  • DescriptorSet
 		//  • DivergentPointer
 		//  • InterfaceVariable
 		//  • NonDivergentPointer
 		// Calling GetPointerToData with objects of any other kind will assert.
-		std::pair<Pointer<Byte>, SIMD::Int> GetPointerToData(Object::ID id, int arrayIndex, SpirvRoutine *routine) const;
+		SIMD::Pointer GetPointerToData(Object::ID id, int arrayIndex, SpirvRoutine *routine) const;
 
-		std::pair<Pointer<Byte>, SIMD::Int> WalkExplicitLayoutAccessChain(Object::ID id, uint32_t numIndexes, uint32_t const *indexIds, SpirvRoutine *routine) const;
+		SIMD::Pointer WalkExplicitLayoutAccessChain(Object::ID id, uint32_t numIndexes, uint32_t const *indexIds, SpirvRoutine *routine) const;
 		SIMD::Int WalkAccessChain(Object::ID id, uint32_t numIndexes, uint32_t const *indexIds, SpirvRoutine *routine) const;
 		uint32_t WalkLiteralAccessChain(Type::ID id, uint32_t numIndexes, uint32_t const *indexes) const;
 

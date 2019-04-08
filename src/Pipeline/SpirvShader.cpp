@@ -829,17 +829,17 @@ namespace sw
 		VisitInterfaceInner<F>(def.word(1), d, f);
 	}
 
-	std::pair<Pointer<Byte>, SIMD::Int> SpirvShader::GetPointerToData(Object::ID id, int arrayIndex, SpirvRoutine *routine) const
+	SIMD::Pointer SpirvShader::GetPointerToData(Object::ID id, int arrayIndex, SpirvRoutine *routine) const
 	{
 		auto &object = getObject(id);
 		switch (object.kind)
 		{
 			case Object::Kind::NonDivergentPointer:
 			case Object::Kind::InterfaceVariable:
-				return std::make_pair(routine->getPointer(id), SIMD::Int(0));
+				return SIMD::Pointer(routine->getPointer(id));
 
 			case Object::Kind::DivergentPointer:
-				return std::make_pair(routine->getPointer(id), routine->getIntermediate(id).Int(0));
+				return SIMD::Pointer(routine->getPointer(id), routine->getIntermediate(id).Int(0));
 
 			case Object::Kind::DescriptorSet:
 			{
@@ -865,16 +865,16 @@ namespace sw
 						arrayIndex;
 					offset += routine->descriptorDynamicOffsets[dynamicBindingIndex];
 				}
-				return std::make_pair(data + offset, SIMD::Int(0));
+				return SIMD::Pointer(data + offset);
 			}
 
 			default:
 				UNREACHABLE("Invalid pointer kind %d", int(object.kind));
-				return std::make_pair(Pointer<Byte>(), SIMD::Int(0));
+				return SIMD::Pointer(Pointer<Byte>());
 		}
 	}
 
-	std::pair<Pointer<Byte>, SIMD::Int> SpirvShader::WalkExplicitLayoutAccessChain(Object::ID id, uint32_t numIndexes, uint32_t const *indexIds, SpirvRoutine *routine) const
+	SIMD::Pointer SpirvShader::WalkExplicitLayoutAccessChain(Object::ID id, uint32_t numIndexes, uint32_t const *indexIds, SpirvRoutine *routine) const
 	{
 		// Produce a offset into external memory in sizeof(float) units
 
@@ -898,9 +898,7 @@ namespace sw
 			}
 		}
 
-		SIMD::Int dynamicOffset;
-		Pointer<Byte> pointerBase;
-		std::tie(pointerBase, dynamicOffset) = GetPointerToData(id, arrayIndex, routine);
+		auto ptr = GetPointerToData(id, arrayIndex, routine);
 
 		int constantOffset = 0;
 
@@ -928,7 +926,7 @@ namespace sw
 				if (obj.kind == Object::Kind::Constant)
 					constantOffset += d.ArrayStride/sizeof(float) * GetConstantInt(indexIds[i]);
 				else
-					dynamicOffset += SIMD::Int(d.ArrayStride / sizeof(float)) * routine->getIntermediate(indexIds[i]).Int(0);
+					ptr.offset += SIMD::Int(d.ArrayStride / sizeof(float)) * routine->getIntermediate(indexIds[i]).Int(0);
 				typeId = type.element;
 				break;
 			}
@@ -941,7 +939,7 @@ namespace sw
 				if (obj.kind == Object::Kind::Constant)
 					constantOffset += d.MatrixStride/sizeof(float) * GetConstantInt(indexIds[i]);
 				else
-					dynamicOffset += SIMD::Int(d.MatrixStride / sizeof(float)) * routine->getIntermediate(indexIds[i]).Int(0);
+					ptr.offset += SIMD::Int(d.MatrixStride / sizeof(float)) * routine->getIntermediate(indexIds[i]).Int(0);
 				typeId = type.element;
 				break;
 			}
@@ -951,7 +949,7 @@ namespace sw
 				if (obj.kind == Object::Kind::Constant)
 					constantOffset += GetConstantInt(indexIds[i]);
 				else
-					dynamicOffset += routine->getIntermediate(indexIds[i]).Int(0);
+					ptr.offset += routine->getIntermediate(indexIds[i]).Int(0);
 				typeId = type.element;
 				break;
 			}
@@ -960,7 +958,9 @@ namespace sw
 			}
 		}
 
-		return std::make_pair(pointerBase, dynamicOffset + SIMD::Int(constantOffset));
+		ptr.offset += SIMD::Int(constantOffset);
+
+		return ptr;
 	}
 
 	SIMD::Int SpirvShader::WalkAccessChain(Object::ID id, uint32_t numIndexes, uint32_t const *indexIds, SpirvRoutine *routine) const
@@ -1854,16 +1854,14 @@ namespace sw
 			UNIMPLEMENTED("StorageClassImage load not yet implemented");
 		}
 
-		SIMD::Int offsets;
-		Pointer<Float> ptrBase;
-		std::tie(ptrBase, offsets) = GetPointerToData(pointerId, 0, routine);
+		auto ptr = GetPointerToData(pointerId, 0, routine);
 
 		bool interleavedByLane = IsStorageInterleavedByLane(pointerTy.storageClass);
 		auto anyInactiveLanes = AnyFalse(state->activeLaneMask());
 
 		auto load = std::unique_ptr<SIMD::Float[]>(new SIMD::Float[resultTy.sizeInComponents]);
 
-		If(pointer.kind == Object::Kind::DivergentPointer || anyInactiveLanes)
+		If(!ptr.uniform || anyInactiveLanes)
 		{
 			// Divergent offsets or masked lanes.
 			for (auto i = 0u; i < resultTy.sizeInComponents; i++)
@@ -1873,9 +1871,9 @@ namespace sw
 				{
 					If(Extract(state->activeLaneMask(), j) != 0)
 					{
-						Int offset = Int(i) + Extract(offsets, j);
+						Int offset = Int(i) + Extract(ptr.offset, j);
 						if (interleavedByLane) { offset = offset * SIMD::Width + j; }
-						load[i] = Insert(load[i], Load(&ptrBase[offset], sizeof(float), atomic, memoryOrder), j);
+						load[i] = Insert(load[i], Load(&ptr.base[offset], sizeof(float), atomic, memoryOrder), j);
 					}
 				}
 			}
@@ -1886,7 +1884,7 @@ namespace sw
 			if (interleavedByLane)
 			{
 				// Lane-interleaved data.
-				Pointer<SIMD::Float> src = ptrBase;
+				Pointer<SIMD::Float> src = ptr.base;
 				for (auto i = 0u; i < resultTy.sizeInComponents; i++)
 				{
 					load[i] = Load(&src[i], sizeof(float), atomic, memoryOrder);  // TODO: optimize alignment
@@ -1897,7 +1895,7 @@ namespace sw
 				// Non-interleaved data.
 				for (auto i = 0u; i < resultTy.sizeInComponents; i++)
 				{
-					load[i] = RValue<SIMD::Float>(Load(&ptrBase[i], sizeof(float), atomic, memoryOrder));  // TODO: optimize alignment
+					load[i] = RValue<SIMD::Float>(Load(&ptr.base[i], sizeof(float), atomic, memoryOrder));  // TODO: optimize alignment
 				}
 			}
 		}
@@ -1937,9 +1935,7 @@ namespace sw
 			UNIMPLEMENTED("StorageClassImage store not yet implemented");
 		}
 
-		SIMD::Int offsets;
-		Pointer<Float> ptrBase;
-		std::tie(ptrBase, offsets) = GetPointerToData(pointerId, 0, routine);
+		auto ptr = GetPointerToData(pointerId, 0, routine);
 
 		bool interleavedByLane = IsStorageInterleavedByLane(pointerTy.storageClass);
 		auto anyInactiveLanes = AnyFalse(state->activeLaneMask());
@@ -1948,7 +1944,7 @@ namespace sw
 		{
 			// Constant source data.
 			auto src = reinterpret_cast<float *>(object.constantValue.get());
-			If(pointer.kind == Object::Kind::DivergentPointer || anyInactiveLanes)
+			If(!ptr.uniform || anyInactiveLanes)
 			{
 				// Divergent offsets or masked lanes.
 
@@ -1958,9 +1954,9 @@ namespace sw
 					{
 						If(Extract(state->activeLaneMask(), j) != 0)
 						{
-							Int offset = Int(i) + Extract(offsets, j);
+							Int offset = Int(i) + Extract(ptr.offset, j);
 							if (interleavedByLane) { offset = offset * SIMD::Width + j; }
-							Store(RValue<Float>(src[i]), &ptrBase[offset], sizeof(float), atomic, memoryOrder);
+							Store(RValue<Float>(src[i]), &ptr.base[offset], sizeof(float), atomic, memoryOrder);
 						}
 					}
 				}
@@ -1969,7 +1965,7 @@ namespace sw
 			{
 				// Constant source data.
 				// No divergent offsets or masked lanes.
-				Pointer<SIMD::Float> dst = ptrBase;
+				Pointer<SIMD::Float> dst = ptr.base;
 				for (auto i = 0u; i < elementTy.sizeInComponents; i++)
 				{
 					Store(RValue<SIMD::Float>(src[i]), &dst[i], sizeof(float), atomic, memoryOrder);  // TODO: optimize alignment
@@ -1980,7 +1976,7 @@ namespace sw
 		{
 			// Intermediate source data.
 			auto &src = routine->getIntermediate(objectId);
-			If(pointer.kind == Object::Kind::DivergentPointer || anyInactiveLanes)
+			If(!ptr.uniform || anyInactiveLanes)
 			{
 				// Divergent offsets or masked lanes.
 				for (auto i = 0u; i < elementTy.sizeInComponents; i++)
@@ -1989,9 +1985,9 @@ namespace sw
 					{
 						If(Extract(state->activeLaneMask(), j) != 0)
 						{
-							Int offset = Int(i) + Extract(offsets, j);
+							Int offset = Int(i) + Extract(ptr.offset, j);
 							if (interleavedByLane) { offset = offset * SIMD::Width + j; }
-							Store(Extract(src.Float(i), j), &ptrBase[offset], sizeof(float), atomic, memoryOrder);
+							Store(Extract(src.Float(i), j), &ptr.base[offset], sizeof(float), atomic, memoryOrder);
 						}
 					}
 				}
@@ -2002,7 +1998,7 @@ namespace sw
 				if (interleavedByLane)
 				{
 					// Lane-interleaved data.
-					Pointer<SIMD::Float> dst = ptrBase;
+					Pointer<SIMD::Float> dst = ptr.base;
 					for (auto i = 0u; i < elementTy.sizeInComponents; i++)
 					{
 						Store(src.Float(i), &dst[i], sizeof(float), atomic, memoryOrder);  // TODO: optimize alignment
@@ -2011,7 +2007,7 @@ namespace sw
 				else
 				{
 					// Intermediate source data. Non-interleaved data.
-					Pointer<SIMD::Float> dst = ptrBase;
+					Pointer<SIMD::Float> dst = ptr.base;
 					for (auto i = 0u; i < elementTy.sizeInComponents; i++)
 					{
 						Store<SIMD::Float>(SIMD::Float(src.Float(i)), &dst[i], sizeof(float), atomic, memoryOrder);  // TODO: optimize alignment
@@ -2039,9 +2035,9 @@ namespace sw
 		   type.storageClass == spv::StorageClassUniform ||
 		   type.storageClass == spv::StorageClassStorageBuffer)
 		{
-			auto baseAndOffset = WalkExplicitLayoutAccessChain(baseId, numIndexes, indexes, routine);
-			routine->createPointer(resultId, baseAndOffset.first);
-			routine->createIntermediate(resultId, type.sizeInComponents).move(0, baseAndOffset.second);
+			auto ptr = WalkExplicitLayoutAccessChain(baseId, numIndexes, indexes, routine);
+			routine->createPointer(resultId, ptr.base);
+			routine->createIntermediate(resultId, type.sizeInComponents).move(0, ptr.offset);
 		}
 		else
 		{
