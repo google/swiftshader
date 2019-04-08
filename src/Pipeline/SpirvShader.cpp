@@ -3034,7 +3034,7 @@ namespace sw
 		{
 			auto p0 = GenericValue(this, routine, insn.word(5));
 			auto p1 = GenericValue(this, routine, insn.word(6));
-			auto p0Type = getType(getObject(insn.word(5)).type);
+			auto p0Type = getType(p0.type);
 
 			// sqrt(dot(p0-p1, p0-p1))
 			SIMD::Float d = (p0.Float(0) - p1.Float(0)) * (p0.Float(0) - p1.Float(0));
@@ -3045,6 +3045,34 @@ namespace sw
 			}
 
 			dst.move(0, Sqrt(d));
+			break;
+		}
+		case GLSLstd450Modf:
+		{
+			auto val = GenericValue(this, routine, insn.word(5));
+			auto ptrId = Object::ID(insn.word(6));
+			auto ptrTy = getType(getObject(ptrId).type);
+			auto ptr = GetPointerToData(ptrId, 0, routine);
+			bool interleavedByLane = IsStorageInterleavedByLane(ptrTy.storageClass);
+
+			for (auto i = 0u; i < type.sizeInComponents; i++)
+			{
+				auto whole = Floor(val.Float(i));
+				auto frac = Frac(val.Float(i));
+
+				dst.move(i, frac);
+
+				// TODO: Refactor and consolidate with EmitStore.
+				for (int j = 0; j < SIMD::Width; j++)
+				{
+					If(Extract(state->activeLaneMask(), j) != 0)
+					{
+						Int offset = Int(i) + Extract(ptr.offset, j);
+						if (interleavedByLane) { offset = offset * SIMD::Width + j; }
+						Store(Extract(whole, j), &ptr.base[offset], sizeof(float), false, std::memory_order_relaxed);
+					}
+				}
+			}
 			break;
 		}
 		default:
