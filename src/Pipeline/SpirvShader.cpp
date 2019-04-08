@@ -3075,6 +3075,21 @@ namespace sw
 			}
 			break;
 		}
+		case GLSLstd450ModfStruct:
+		{
+			auto val = GenericValue(this, routine, insn.word(5));
+			auto valTy = getType(val.type);
+
+			for (auto i = 0u; i < valTy.sizeInComponents; i++)
+			{
+				auto whole = Floor(val.Float(i));
+				auto frac = Frac(val.Float(i));
+
+				dst.move(i, frac);
+				dst.move(i + valTy.sizeInComponents, whole);
+			}
+			break;
+		}
 		default:
 			UNIMPLEMENTED("Unhandled ExtInst %d", extInstIndex);
 		}
