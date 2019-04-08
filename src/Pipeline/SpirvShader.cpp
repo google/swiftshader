@@ -37,6 +37,19 @@ namespace
 	{
 		return rr::SignMask(~ints) != 0;
 	}
+
+	// Returns 1 << bits.
+	// If the resulting bit overflows a 32 bit integer, 0 is returned.
+	rr::RValue<sw::SIMD::UInt> NthBit32(rr::RValue<sw::SIMD::UInt> const &bits)
+	{
+		return ((sw::SIMD::UInt(1) << bits) & rr::CmpLT(bits, sw::SIMD::UInt(32)));
+	}
+
+	// Returns bitCount number of of 1's starting from the LSB.
+	rr::RValue<sw::SIMD::UInt> Bitmask32(rr::RValue<sw::SIMD::UInt> const &bitCount)
+	{
+		return NthBit32(bitCount) - sw::SIMD::UInt(1);
+	}
 }
 
 namespace sw
@@ -366,6 +379,8 @@ namespace sw
 			case spv::OpVectorExtractDynamic:
 			case spv::OpVectorInsertDynamic:
 			case spv::OpNot: // Unary ops
+			case spv::OpBitFieldSExtract:
+			case spv::OpBitFieldUExtract:
 			case spv::OpBitReverse:
 			case spv::OpBitCount:
 			case spv::OpSNegate:
@@ -1634,6 +1649,8 @@ namespace sw
 			return EmitTranspose(insn, state);
 
 		case spv::OpNot:
+    	case spv::OpBitFieldSExtract:
+    	case spv::OpBitFieldUExtract:
     	case spv::OpBitReverse:
     	case spv::OpBitCount:
 		case spv::OpSNegate:
@@ -2335,6 +2352,23 @@ namespace sw
 			case spv::OpLogicalNot:		// logical not == bitwise not due to all-bits boolean representation
 				dst.move(i, ~src.UInt(i));
 				break;
+			case spv::OpBitFieldSExtract:
+			case spv::OpBitFieldUExtract:
+			{
+				auto offset = GenericValue(this, routine, insn.word(4)).UInt(0);
+				auto count = GenericValue(this, routine, insn.word(5)).UInt(0);
+				auto one = SIMD::UInt(1);
+				auto v = src.UInt(i);
+				SIMD::UInt out = (v >> offset) & Bitmask32(count);
+				if (insn.opcode() == spv::OpBitFieldSExtract)
+				{
+					auto sign = out & NthBit32(count - one);
+					auto sext = ~(sign - one);
+					out |= sext;
+				}
+				dst.move(i, out);
+				break;
+			}
 			case spv::OpBitReverse:
 			{
 				// TODO: Add an intrinsic to reactor. Even if there isn't a
