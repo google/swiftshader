@@ -21,31 +21,19 @@ namespace es2
 
 TransformFeedback::TransformFeedback(GLuint name) : NamedObject(name), mActive(false), mPaused(false), mVertexOffset(0)
 {
-	mGenericBuffer = nullptr;
 }
 
 TransformFeedback::~TransformFeedback()
 {
-	mGenericBuffer = nullptr;
 	for(int i = 0; i < MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS; ++i)
 	{
 		mBuffer[i].set(nullptr);
 	}
 }
 
-Buffer* TransformFeedback::getGenericBuffer() const
-{
-	return mGenericBuffer;
-}
-
 Buffer* TransformFeedback::getBuffer(GLuint index) const
 {
 	return mBuffer[index].get();
-}
-
-GLuint TransformFeedback::getGenericBufferName() const
-{
-	return mGenericBuffer.name();
 }
 
 GLuint TransformFeedback::getBufferName(GLuint index) const
@@ -108,11 +96,6 @@ void TransformFeedback::setPaused(bool paused)
 	mPaused = paused;
 }
 
-void TransformFeedback::setGenericBuffer(Buffer* buffer)
-{
-	mGenericBuffer = buffer;
-}
-
 void TransformFeedback::setBuffer(GLuint index, Buffer* buffer)
 {
 	mBuffer[index].set(buffer);
@@ -125,11 +108,6 @@ void TransformFeedback::setBuffer(GLuint index, Buffer* buffer, GLintptr offset,
 
 void TransformFeedback::detachBuffer(GLuint buffer)
 {
-	if(mGenericBuffer.name() == buffer)
-	{
-		mGenericBuffer = nullptr;
-	}
-
 	for(int i = 0; i < MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS; ++i)
 	{
 		if(mBuffer[i].get().name() == buffer)

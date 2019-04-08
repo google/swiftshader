@@ -35,9 +35,7 @@ public:
 
 	BufferBinding* getBuffers() { return mBuffer; }
 
-	Buffer* getGenericBuffer() const;
 	Buffer* getBuffer(GLuint index) const;
-	GLuint getGenericBufferName() const;
 	GLuint getBufferName(GLuint index) const;
 	int getOffset(GLuint index) const;
 	int getSize(GLuint index) const;
@@ -46,7 +44,6 @@ public:
 	GLenum primitiveMode() const;
 	int vertexOffset() const;
 
-	void setGenericBuffer(Buffer* buffer);
 	void setBuffer(GLuint index, Buffer* buffer);
 	void setBuffer(GLuint index, Buffer* buffer, GLintptr offset, GLsizeiptr size);
 	void detachBuffer(GLuint buffer);
@@ -56,7 +53,6 @@ public:
 	void addVertexOffset(int count);
 
 private:
-	gl::BindingPointer<Buffer> mGenericBuffer;
 	BufferBinding mBuffer[MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS];
 
 	bool mActive;
