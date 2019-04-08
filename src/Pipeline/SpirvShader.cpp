@@ -366,6 +366,7 @@ namespace sw
 			case spv::OpVectorExtractDynamic:
 			case spv::OpVectorInsertDynamic:
 			case spv::OpNot: // Unary ops
+			case spv::OpBitCount:
 			case spv::OpSNegate:
 			case spv::OpFNegate:
 			case spv::OpLogicalNot:
@@ -1632,6 +1633,7 @@ namespace sw
 			return EmitTranspose(insn, state);
 
 		case spv::OpNot:
+    	case spv::OpBitCount:
 		case spv::OpSNegate:
 		case spv::OpFNegate:
 		case spv::OpLogicalNot:
@@ -2331,6 +2333,21 @@ namespace sw
 			case spv::OpLogicalNot:		// logical not == bitwise not due to all-bits boolean representation
 				dst.move(i, ~src.UInt(i));
 				break;
+			case spv::OpBitCount:
+			{
+				// TODO: Add an intrinsic to reactor. Even if there isn't a
+				// single vector instruction, there may be target-dependent
+				// ways to make this faster.
+				// https://graphics.stanford.edu/~seander/bithacks.html#CountBitsSetParallel
+				auto v = src.UInt(i);
+				SIMD::UInt c = v - ((v >> 1) & SIMD::UInt(0x55555555));
+				c = ((c >> 2) & SIMD::UInt(0x33333333)) + (c & SIMD::UInt(0x33333333));
+				c = ((c >> 4) + c) & SIMD::UInt(0x0F0F0F0F);
+				c = ((c >> 8) + c) & SIMD::UInt(0x00FF00FF);
+				c = ((c >> 16) + c) & SIMD::UInt(0x0000FFFF);
+				dst.move(i, c);
+				break;
+			}
 			case spv::OpSNegate:
 				dst.move(i, -src.Int(i));
 				break;
