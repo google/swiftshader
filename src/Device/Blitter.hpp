@@ -104,12 +104,12 @@ namespace sw
 		Blitter();
 		virtual ~Blitter();
 
-		void clear(void *pixel, vk::Format format, vk::Image *dest, const VkImageSubresourceRange& subresourceRange, const VkRect2D* renderArea = nullptr);
+		void clear(void *pixel, vk::Format format, vk::Image *dest, const vk::Format& viewFormat, const VkImageSubresourceRange& subresourceRange, const VkRect2D* renderArea = nullptr);
 
 		void blit(vk::Image *src, vk::Image *dst, VkImageBlit region, VkFilter filter);
 
 	private:
-		bool fastClear(void *pixel, vk::Format format, vk::Image *dest, const VkImageSubresourceRange& subresourceRange, const VkRect2D* renderArea);
+		bool fastClear(void *pixel, vk::Format format, vk::Image *dest, const vk::Format& viewFormat, const VkImageSubresourceRange& subresourceRange, const VkRect2D* renderArea);
 
 		bool read(Float4 &color, Pointer<Byte> element, const State &state);
 		bool write(Float4 &color, Pointer<Byte> element, const State &state);

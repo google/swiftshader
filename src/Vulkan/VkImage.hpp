@@ -47,7 +47,7 @@ public:
 	void copyFrom(VkBuffer srcBuffer, const VkBufferImageCopy& region);
 
 	void blit(VkImage dstImage, const VkImageBlit& region, VkFilter filter);
-	void clear(const VkClearValue& clearValue, const VkRect2D& renderArea, const VkImageSubresourceRange& subresourceRange);
+	void clear(const VkClearValue& clearValue, const vk::Format& viewFormat, const VkRect2D& renderArea, const VkImageSubresourceRange& subresourceRange);
 	void clear(const VkClearColorValue& color, const VkImageSubresourceRange& subresourceRange);
 	void clear(const VkClearDepthStencilValue& color, const VkImageSubresourceRange& subresourceRange);
 
@@ -67,6 +67,8 @@ public:
 	bool                     isCube() const;
 	uint8_t*                 end() const;
 
+	static Format            GetFormat(const vk::Format& format, VkImageAspectFlagBits aspect);
+
 private:
 	void copy(VkBuffer buffer, const VkBufferImageCopy& region, bool bufferIsSource);
 	VkDeviceSize getStorageSize(VkImageAspectFlags flags) const;
@@ -82,7 +84,7 @@ private:
 	VkExtent2D bufferExtentInBlocks(const VkExtent2D& extent, const VkBufferImageCopy& region) const;
 	int bytesPerTexel(VkImageAspectFlagBits flags) const;
 	VkFormat getClearFormat() const;
-	void clear(void* pixelData, VkFormat format, const VkImageSubresourceRange& subresourceRange, const VkRect2D& renderArea);
+	void clear(void* pixelData, VkFormat pixelFormat, const vk::Format& viewFormat, const VkImageSubresourceRange& subresourceRange, const VkRect2D& renderArea);
 	int borderSize(VkImageAspectFlagBits aspect) const;
 
 	const Device *const      device = nullptr;

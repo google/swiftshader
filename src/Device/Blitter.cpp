@@ -34,20 +34,21 @@ namespace sw
 		delete blitCache;
 	}
 
-	void Blitter::clear(void *pixel, vk::Format format, vk::Image *dest, const VkImageSubresourceRange& subresourceRange, const VkRect2D* renderArea)
+	void Blitter::clear(void *pixel, vk::Format format, vk::Image *dest, const vk::Format& viewFormat, const VkImageSubresourceRange& subresourceRange, const VkRect2D* renderArea)
 	{
 		VkImageAspectFlagBits aspect = static_cast<VkImageAspectFlagBits>(subresourceRange.aspectMask);
-		if(dest->getFormat(aspect) == VK_FORMAT_UNDEFINED)
+		vk::Format dstFormat = vk::Image::GetFormat(viewFormat, aspect);
+		if(dstFormat == VK_FORMAT_UNDEFINED)
 		{
 			return;
 		}
 
-		if(fastClear(pixel, format, dest, subresourceRange, renderArea))
+		if(fastClear(pixel, format, dest, dstFormat, subresourceRange, renderArea))
 		{
 			return;
 		}
 
-		State state(format, dest->getFormat(aspect), 1, dest->getSampleCountFlagBits(), { 0xF });
+		State state(format, dstFormat, 1, dest->getSampleCountFlagBits(), { 0xF });
 		Routine *blitRoutine = getRoutine(state);
 		if(!blitRoutine)
 		{
@@ -112,7 +113,7 @@ namespace sw
 		}
 	}
 
-	bool Blitter::fastClear(void *pixel, vk::Format format, vk::Image *dest, const VkImageSubresourceRange& subresourceRange, const VkRect2D* renderArea)
+	bool Blitter::fastClear(void *pixel, vk::Format format, vk::Image *dest, const vk::Format& viewFormat, const VkImageSubresourceRange& subresourceRange, const VkRect2D* renderArea)
 	{
 		if(format != VK_FORMAT_R32G32B32A32_SFLOAT)
 		{
@@ -128,7 +129,7 @@ namespace sw
 		uint32_t packed;
 
 		VkImageAspectFlagBits aspect = static_cast<VkImageAspectFlagBits>(subresourceRange.aspectMask);
-		switch(dest->getFormat(aspect))
+		switch(viewFormat)
 		{
 		case VK_FORMAT_R5G6B5_UNORM_PACK16:
 			packed = ((uint16_t)(31 * b + 0.5f) << 0) |
@@ -203,7 +204,7 @@ namespace sw
 					{
 						uint8_t *d = slice;
 
-						switch(dest->getFormat(aspect).bytes())
+						switch(viewFormat.bytes())
 						{
 						case 2:
 							for(uint32_t i = 0; i < area.extent.height; i++)

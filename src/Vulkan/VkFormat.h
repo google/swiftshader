@@ -45,6 +45,7 @@ public:
 	bool isSRGBwritable() const;
 	bool isFloatFormat() const;
 
+	bool isCompatible(const Format& other) const;
 	bool isCompressed() const;
 	int blockWidth() const;
 	int blockHeight() const;
@@ -68,6 +69,8 @@ public:
 	bool isRGBComponent(int component) const;
 
 private:
+	VkFormat compatibleFormat() const;
+
 	VkFormat format = VK_FORMAT_UNDEFINED;
 };
 
