@@ -379,6 +379,7 @@ namespace sw
 			case spv::OpVectorExtractDynamic:
 			case spv::OpVectorInsertDynamic:
 			case spv::OpNot: // Unary ops
+			case spv::OpBitFieldInsert:
 			case spv::OpBitFieldSExtract:
 			case spv::OpBitFieldUExtract:
 			case spv::OpBitReverse:
@@ -1649,6 +1650,7 @@ namespace sw
 			return EmitTranspose(insn, state);
 
 		case spv::OpNot:
+    	case spv::OpBitFieldInsert:
     	case spv::OpBitFieldSExtract:
     	case spv::OpBitFieldUExtract:
     	case spv::OpBitReverse:
@@ -2352,6 +2354,17 @@ namespace sw
 			case spv::OpLogicalNot:		// logical not == bitwise not due to all-bits boolean representation
 				dst.move(i, ~src.UInt(i));
 				break;
+			case spv::OpBitFieldInsert:
+			{
+				auto insert = GenericValue(this, routine, insn.word(4)).UInt(i);
+				auto offset = GenericValue(this, routine, insn.word(5)).UInt(0);
+				auto count = GenericValue(this, routine, insn.word(6)).UInt(0);
+				auto one = SIMD::UInt(1);
+				auto v = src.UInt(i);
+				auto mask = Bitmask32(offset + count) ^ Bitmask32(offset);
+				dst.move(i, (v & ~mask) | ((insert << offset) & mask));
+				break;
+			}
 			case spv::OpBitFieldSExtract:
 			case spv::OpBitFieldUExtract:
 			{
