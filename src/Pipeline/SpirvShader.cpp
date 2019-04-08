@@ -361,6 +361,7 @@ namespace sw
 			case spv::OpMatrixTimesVector:
 			case spv::OpVectorTimesMatrix:
 			case spv::OpMatrixTimesMatrix:
+			case spv::OpOuterProduct:
 			case spv::OpVectorExtractDynamic:
 			case spv::OpVectorInsertDynamic:
 			case spv::OpNot: // Unary ops
@@ -1623,6 +1624,9 @@ namespace sw
 		case spv::OpMatrixTimesMatrix:
 			return EmitMatrixTimesMatrix(insn, state);
 
+		case spv::OpOuterProduct:
+			return EmitOuterProduct(insn, state);
+
 		case spv::OpNot:
 		case spv::OpSNegate:
 		case spv::OpFNegate:
@@ -2251,6 +2255,36 @@ namespace sw
 					v += lhs.Float(i * numRows + row) * rhs.Float(col * numAdds + i);
 				}
 				dst.move(numRows * col + row, v);
+			}
+		}
+
+		return EmitResult::Continue;
+	}
+
+	SpirvShader::EmitResult SpirvShader::EmitOuterProduct(InsnIterator insn, EmitState *state) const
+	{
+		auto routine = state->routine;
+		auto &type = getType(insn.word(1));
+		auto &dst = routine->createIntermediate(insn.word(2), type.sizeInComponents);
+		auto lhs = GenericValue(this, routine, insn.word(3));
+		auto rhs = GenericValue(this, routine, insn.word(4));
+		auto &lhsType = getType(lhs.type);
+		auto &rhsType = getType(rhs.type);
+
+		ASSERT(type.definition.opcode() == spv::OpTypeMatrix);
+		ASSERT(lhsType.definition.opcode() == spv::OpTypeVector);
+		ASSERT(rhsType.definition.opcode() == spv::OpTypeVector);
+		ASSERT(getType(lhsType.element).opcode() == spv::OpTypeFloat);
+		ASSERT(getType(rhsType.element).opcode() == spv::OpTypeFloat);
+
+		auto numRows = lhsType.definition.word(3);
+		auto numCols = rhsType.definition.word(3);
+
+		for (auto col = 0u; col < numCols; col++)
+		{
+			for (auto row = 0u; row < numRows; row++)
+			{
+				dst.move(col * numRows + row, lhs.Float(row) * rhs.Float(col));
 			}
 		}
 
