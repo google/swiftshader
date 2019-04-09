@@ -556,6 +556,7 @@ namespace rr
 			func_.emplace("fmodf", reinterpret_cast<void*>(fmodf));
 			func_.emplace("sinf", reinterpret_cast<void*>(sinf));
 			func_.emplace("cosf", reinterpret_cast<void*>(cosf));
+			func_.emplace("asinf", reinterpret_cast<void*>(asinf));
 
 #ifdef __APPLE__
 			// LLVM uses this function on macOS for tan.
@@ -3087,6 +3088,19 @@ namespace rr
 	RValue<Float4> Tan(RValue<Float4> v)
 	{
 		return Sin(v) / Cos(v);
+	}
+
+	RValue<Float4> Asin(RValue<Float4> v)
+	{
+		auto funcTy = ::llvm::FunctionType::get(T(Float::getType()), {T(Float::getType())}, false);
+		auto func = ::module->getOrInsertFunction("asinf", funcTy);
+		llvm::Value *out = ::llvm::UndefValue::get(T(Float4::getType()));
+		for (uint64_t i = 0; i < 4; i++)
+		{
+			auto el = ::builder->CreateCall(func, ::builder->CreateExtractElement(V(v.value), i));
+			out = ::builder->CreateInsertElement(out, el, i);
+		}
+		return RValue<Float4>(V(out));
 	}
 
 	Type *Float4::getType()
