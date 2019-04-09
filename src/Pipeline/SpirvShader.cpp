@@ -3394,7 +3394,12 @@ namespace sw
 		}
 		case GLSLstd450Atan2:
 		{
-			UNIMPLEMENTED("GLSLstd450Atan2");
+			auto x = GenericValue(this, routine, insn.word(5));
+			auto y = GenericValue(this, routine, insn.word(6));
+			for (auto i = 0u; i < type.sizeInComponents; i++)
+			{
+				dst.move(i, Atan2(x.Float(i), y.Float(i)));
+			}
 			break;
 		}
 		case GLSLstd450Pow:

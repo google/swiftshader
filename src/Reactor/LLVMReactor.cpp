@@ -565,6 +565,7 @@ namespace rr
 			func_.emplace("asinhf", reinterpret_cast<void*>(asinhf));
 			func_.emplace("acoshf", reinterpret_cast<void*>(acoshf));
 			func_.emplace("atanhf", reinterpret_cast<void*>(atanhf));
+			func_.emplace("atan2f", reinterpret_cast<void*>(atan2f));
 
 #ifdef __APPLE__
 			// LLVM uses this function on macOS for tan.
@@ -3154,6 +3155,23 @@ namespace rr
 	RValue<Float4> Atanh(RValue<Float4> v)
 	{
 		return TransformFloat4PerElement(v, "atanhf");
+	}
+
+	RValue<Float4> Atan2(RValue<Float4> x, RValue<Float4> y)
+	{
+		auto funcTy = ::llvm::FunctionType::get(T(Float::getType()),
+				{T(Float::getType()), T(Float::getType())}, false);
+		auto func = ::module->getOrInsertFunction("atan2f", funcTy);
+		llvm::Value *out = ::llvm::UndefValue::get(T(Float4::getType()));
+		for (uint64_t i = 0; i < 4; i++)
+		{
+			auto el = ::builder->CreateCall(func, {
+					::builder->CreateExtractElement(V(x.value), i),
+					::builder->CreateExtractElement(V(y.value), i),
+				});
+			out = ::builder->CreateInsertElement(out, el, i);
+		}
+		return RValue<Float4>(V(out));
 	}
 
 	Type *Float4::getType()
