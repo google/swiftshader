@@ -59,6 +59,14 @@ namespace
 	{
 		return a * b + c;
 	}
+
+	// Returns the exponent of the floating point number f.
+	// Assumes IEEE 754
+	rr::RValue<sw::SIMD::Int> Exponent(rr::RValue<sw::SIMD::Float> f)
+	{
+		auto v = rr::As<sw::SIMD::UInt>(f);
+		return (sw::SIMD::Int((v >> sw::SIMD::UInt(23)) & sw::SIMD::UInt(0xFF)) - sw::SIMD::Int(126));
+	}
 }
 
 namespace sw
@@ -3241,6 +3249,21 @@ namespace sw
 			}
 			break;
 		}
+		case GLSLstd450Ldexp:
+		{
+			auto significand = GenericValue(this, routine, insn.word(5));
+			auto exponent = GenericValue(this, routine, insn.word(6));
+			for (auto i = 0u; i < type.sizeInComponents; i++)
+			{
+				// Assumes IEEE 754
+				auto significandExponent = Exponent(significand.Float(i));
+				auto combinedExponent = exponent.Int(i) + significandExponent;
+				SIMD::UInt v = (significand.UInt(i) & SIMD::UInt(0x807FFFFF)) |
+						(SIMD::UInt(combinedExponent + SIMD::Int(126)) << SIMD::UInt(23));
+				dst.move(i, As<SIMD::Float>(v));
+			}
+			break;
+		}
 		default:
 			UNIMPLEMENTED("Unhandled ExtInst %d", extInstIndex);
 		}
@@ -3319,7 +3342,7 @@ namespace sw
 		auto isNotZero = CmpNEQ(v & SIMD::UInt(0x7FFFFFFF), SIMD::UInt(0));
 		auto zeroSign = v & SIMD::UInt(0x80000000) & ~isNotZero;
 		auto significand = As<SIMD::Float>((v & SIMD::UInt(0x807FFFFF) | SIMD::UInt(0x3F000000)) & isNotZero | zeroSign);
-		auto exponent = (SIMD::Int((v >> SIMD::UInt(23)) & SIMD::UInt(0xFF)) - SIMD::Int(126)) & SIMD::Int(isNotZero);
+		auto exponent = Exponent(val) & SIMD::Int(isNotZero);
 		return std::make_pair(significand, exponent);
 	}
 
