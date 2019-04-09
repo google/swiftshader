@@ -3414,7 +3414,11 @@ namespace sw
 		}
 		case GLSLstd450Exp:
 		{
-			UNIMPLEMENTED("GLSLstd450Exp");
+			auto val = GenericValue(this, routine, insn.word(5));
+			for (auto i = 0u; i < type.sizeInComponents; i++)
+			{
+				dst.move(i, Exp(val.Float(i)));
+			}
 			break;
 		}
 		case GLSLstd450Log:
