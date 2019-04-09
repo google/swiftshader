@@ -564,6 +564,7 @@ namespace rr
 			func_.emplace("tanhf", reinterpret_cast<void*>(tanhf));
 			func_.emplace("asinhf", reinterpret_cast<void*>(asinhf));
 			func_.emplace("acoshf", reinterpret_cast<void*>(acoshf));
+			func_.emplace("atanhf", reinterpret_cast<void*>(atanhf));
 
 #ifdef __APPLE__
 			// LLVM uses this function on macOS for tan.
@@ -3148,6 +3149,11 @@ namespace rr
 	RValue<Float4> Acosh(RValue<Float4> v)
 	{
 		return TransformFloat4PerElement(v, "acoshf");
+	}
+
+	RValue<Float4> Atanh(RValue<Float4> v)
+	{
+		return TransformFloat4PerElement(v, "atanhf");
 	}
 
 	Type *Float4::getType()
