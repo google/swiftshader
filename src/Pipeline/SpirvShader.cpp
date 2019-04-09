@@ -103,6 +103,44 @@ namespace
 			((~xIsNan &  yIsNan) & As<sw::SIMD::Int>(x)) |
 			(( xIsNan          ) & As<sw::SIMD::Int>(y)));
 	}
+
+	// Returns the determinant of a 2x2 matrix.
+	rr::RValue<sw::SIMD::Float> Determinant(
+		rr::RValue<sw::SIMD::Float> const &a, rr::RValue<sw::SIMD::Float> const &b,
+		rr::RValue<sw::SIMD::Float> const &c, rr::RValue<sw::SIMD::Float> const &d)
+	{
+		return a*d - b*c;
+	}
+
+	// Returns the determinant of a 3x3 matrix.
+	rr::RValue<sw::SIMD::Float> Determinant(
+		rr::RValue<sw::SIMD::Float> const &a, rr::RValue<sw::SIMD::Float> const &b, rr::RValue<sw::SIMD::Float> const &c,
+		rr::RValue<sw::SIMD::Float> const &d, rr::RValue<sw::SIMD::Float> const &e, rr::RValue<sw::SIMD::Float> const &f,
+		rr::RValue<sw::SIMD::Float> const &g, rr::RValue<sw::SIMD::Float> const &h, rr::RValue<sw::SIMD::Float> const &i)
+	{
+		return a*e*i + b*f*g + c*d*h - c*e*g - b*d*i - a*f*h;
+	}
+
+	// Returns the determinant of a 4x4 matrix.
+	rr::RValue<sw::SIMD::Float> Determinant(
+		rr::RValue<sw::SIMD::Float> const &a, rr::RValue<sw::SIMD::Float> const &b, rr::RValue<sw::SIMD::Float> const &c, rr::RValue<sw::SIMD::Float> const &d,
+		rr::RValue<sw::SIMD::Float> const &e, rr::RValue<sw::SIMD::Float> const &f, rr::RValue<sw::SIMD::Float> const &g, rr::RValue<sw::SIMD::Float> const &h,
+		rr::RValue<sw::SIMD::Float> const &i, rr::RValue<sw::SIMD::Float> const &j, rr::RValue<sw::SIMD::Float> const &k, rr::RValue<sw::SIMD::Float> const &l,
+		rr::RValue<sw::SIMD::Float> const &m, rr::RValue<sw::SIMD::Float> const &n, rr::RValue<sw::SIMD::Float> const &o, rr::RValue<sw::SIMD::Float> const &p)
+	{
+		return a * Determinant(f, g, h,
+		                       j, k, l,
+		                       n, o, p) -
+		       b * Determinant(e, g, h,
+		                       i, k, l,
+		                       m, o, p) +
+		       c * Determinant(e, f, h,
+		                       i, j, l,
+		                       m, n, p) -
+		       d * Determinant(e, f, g,
+		                       i, j, k,
+		                       m, n, o);
+	}
 }
 
 namespace sw
@@ -3518,7 +3556,31 @@ namespace sw
 		}
 		case GLSLstd450Determinant:
 		{
-			UNIMPLEMENTED("GLSLstd450Determinant");
+			auto mat = GenericValue(this, routine, insn.word(5));
+			auto numComponents = getType(mat.type).sizeInComponents;
+			switch (numComponents)
+			{
+			case 4: // 2x2
+				dst.move(0, Determinant(
+					mat.Float(0), mat.Float(1),
+					mat.Float(2), mat.Float(3)));
+				break;
+			case 9: // 3x3
+				dst.move(0, Determinant(
+					mat.Float(0), mat.Float(1), mat.Float(2),
+					mat.Float(3), mat.Float(4), mat.Float(5),
+					mat.Float(6), mat.Float(7), mat.Float(8)));
+				break;
+			case 16: // 4x4
+				dst.move(0, Determinant(
+					mat.Float(0),  mat.Float(1),  mat.Float(2),  mat.Float(3),
+					mat.Float(4),  mat.Float(5),  mat.Float(6),  mat.Float(7),
+					mat.Float(8),  mat.Float(9),  mat.Float(10), mat.Float(11),
+					mat.Float(12), mat.Float(13), mat.Float(14), mat.Float(15)));
+				break;
+			default:
+				UNREACHABLE("GLSLstd450Determinant can only operate with square matrices. Got %d elements", int(numComponents));
+			}
 			break;
 		}
 		case GLSLstd450MatrixInverse:
