@@ -3090,6 +3090,95 @@ namespace sw
 			}
 			break;
 		}
+		case GLSLstd450PackSnorm4x8:
+		{
+			auto val = GenericValue(this, routine, insn.word(5));
+			dst.move(0, (SIMD::Int(Round(Min(Max(val.Float(0), SIMD::Float(-1.0f)), SIMD::Float(1.0f)) * SIMD::Float(127.0f))) &
+						 SIMD::Int(0xFF)) |
+						((SIMD::Int(Round(Min(Max(val.Float(1), SIMD::Float(-1.0f)), SIMD::Float(1.0f)) * SIMD::Float(127.0f))) &
+						  SIMD::Int(0xFF)) << 8) |
+						((SIMD::Int(Round(Min(Max(val.Float(2), SIMD::Float(-1.0f)), SIMD::Float(1.0f)) * SIMD::Float(127.0f))) &
+						  SIMD::Int(0xFF)) << 16) |
+						((SIMD::Int(Round(Min(Max(val.Float(3), SIMD::Float(-1.0f)), SIMD::Float(1.0f)) * SIMD::Float(127.0f))) &
+						  SIMD::Int(0xFF)) << 24));
+			break;
+		}
+		case GLSLstd450PackUnorm4x8:
+		{
+			auto val = GenericValue(this, routine, insn.word(5));
+			dst.move(0, (SIMD::UInt(Round(Min(Max(val.Float(0), SIMD::Float(0.0f)), SIMD::Float(1.0f)) * SIMD::Float(255.0f)))) |
+						((SIMD::UInt(Round(Min(Max(val.Float(1), SIMD::Float(0.0f)), SIMD::Float(1.0f)) * SIMD::Float(255.0f)))) << 8) |
+						((SIMD::UInt(Round(Min(Max(val.Float(2), SIMD::Float(0.0f)), SIMD::Float(1.0f)) * SIMD::Float(255.0f)))) << 16) |
+						((SIMD::UInt(Round(Min(Max(val.Float(3), SIMD::Float(0.0f)), SIMD::Float(1.0f)) * SIMD::Float(255.0f)))) << 24));
+			break;
+		}
+		case GLSLstd450PackSnorm2x16:
+		{
+			auto val = GenericValue(this, routine, insn.word(5));
+			dst.move(0, (SIMD::Int(Round(Min(Max(val.Float(0), SIMD::Float(-1.0f)), SIMD::Float(1.0f)) * SIMD::Float(32767.0f))) &
+						 SIMD::Int(0xFFFF)) |
+						((SIMD::Int(Round(Min(Max(val.Float(1), SIMD::Float(-1.0f)), SIMD::Float(1.0f)) * SIMD::Float(32767.0f))) &
+						  SIMD::Int(0xFFFF)) << 16));
+			break;
+		}
+		case GLSLstd450PackUnorm2x16:
+		{
+			auto val = GenericValue(this, routine, insn.word(5));
+			dst.move(0, (SIMD::UInt(Round(Min(Max(val.Float(0), SIMD::Float(0.0f)), SIMD::Float(1.0f)) * SIMD::Float(65535.0f))) &
+						 SIMD::UInt(0xFFFF)) |
+						((SIMD::UInt(Round(Min(Max(val.Float(1), SIMD::Float(0.0f)), SIMD::Float(1.0f)) * SIMD::Float(65535.0f))) &
+						  SIMD::UInt(0xFFFF)) << 16));
+			break;
+		}
+		case GLSLstd450PackHalf2x16:
+		{
+			auto val = GenericValue(this, routine, insn.word(5));
+			dst.move(0, FloatToHalfBits(val.UInt(0), false) | FloatToHalfBits(val.UInt(1), true));
+			break;
+		}
+		case GLSLstd450UnpackSnorm4x8:
+		{
+			auto val = GenericValue(this, routine, insn.word(5));
+			dst.move(0, Min(Max(SIMD::Float(((val.Int(0)<<24) & SIMD::Int(0xFF000000))) * SIMD::Float(1.0f / float(0x7f000000)), SIMD::Float(-1.0f)), SIMD::Float(1.0f)));
+			dst.move(1, Min(Max(SIMD::Float(((val.Int(0)<<16) & SIMD::Int(0xFF000000))) * SIMD::Float(1.0f / float(0x7f000000)), SIMD::Float(-1.0f)), SIMD::Float(1.0f)));
+			dst.move(2, Min(Max(SIMD::Float(((val.Int(0)<<8) & SIMD::Int(0xFF000000))) * SIMD::Float(1.0f / float(0x7f000000)), SIMD::Float(-1.0f)), SIMD::Float(1.0f)));
+			dst.move(3, Min(Max(SIMD::Float(((val.Int(0)) & SIMD::Int(0xFF000000))) * SIMD::Float(1.0f / float(0x7f000000)), SIMD::Float(-1.0f)), SIMD::Float(1.0f)));
+			break;
+		}
+		case GLSLstd450UnpackUnorm4x8:
+		{
+			auto val = GenericValue(this, routine, insn.word(5));
+			dst.move(0, SIMD::Float((val.UInt(0) & SIMD::UInt(0xFF))) * SIMD::Float(1.0f / 255.f));
+			dst.move(1, SIMD::Float(((val.UInt(0)>>8) & SIMD::UInt(0xFF))) * SIMD::Float(1.0f / 255.f));
+			dst.move(2, SIMD::Float(((val.UInt(0)>>16) & SIMD::UInt(0xFF))) * SIMD::Float(1.0f / 255.f));
+			dst.move(3, SIMD::Float(((val.UInt(0)>>24) & SIMD::UInt(0xFF))) * SIMD::Float(1.0f / 255.f));
+			break;
+		}
+		case GLSLstd450UnpackSnorm2x16:
+		{
+			auto val = GenericValue(this, routine, insn.word(5));
+			// clamp(f / 32767.0, -1.0, 1.0)
+			dst.move(0, Min(Max(SIMD::Float(As<SIMD::Int>((val.UInt(0) & SIMD::UInt(0x0000FFFF)) << 16)) *
+								SIMD::Float(1.0f / float(0x7FFF0000)), SIMD::Float(-1.0f)), SIMD::Float(1.0f)));
+			dst.move(1, Min(Max(SIMD::Float(As<SIMD::Int>(val.UInt(0) & SIMD::UInt(0xFFFF0000))) * SIMD::Float(1.0f / float(0x7FFF0000)),
+								SIMD::Float(-1.0f)), SIMD::Float(1.0f)));
+			break;
+		}
+		case GLSLstd450UnpackUnorm2x16:
+		{
+			auto val = GenericValue(this, routine, insn.word(5));
+			// f / 65535.0
+			dst.move(0, SIMD::Float((val.UInt(0) & SIMD::UInt(0x0000FFFF)) << 16) * SIMD::Float(1.0f / float(0xFFFF0000)));
+			dst.move(1, SIMD::Float(val.UInt(0) & SIMD::UInt(0xFFFF0000)) * SIMD::Float(1.0f / float(0xFFFF0000)));
+			break;
+		}
+		case GLSLstd450UnpackHalf2x16:
+		{
+			auto val = GenericValue(this, routine, insn.word(5));
+			dst.move(0, HalfToFloatBits(val.UInt(0) & SIMD::UInt(0x0000FFFF)));
+			dst.move(1, HalfToFloatBits((val.UInt(0) & SIMD::UInt(0xFFFF0000)) >> 16));
+			break;
+		}
 		default:
 			UNIMPLEMENTED("Unhandled ExtInst %d", extInstIndex);
 		}
@@ -3122,6 +3211,43 @@ namespace sw
 		}
 
 		return d;
+	}
+
+	SIMD::UInt SpirvShader::FloatToHalfBits(SIMD::UInt floatBits, bool storeInUpperBits) const
+	{
+		static const uint32_t mask_sign = 0x80000000u;
+		static const uint32_t mask_round = ~0xfffu;
+		static const uint32_t c_f32infty = 255 << 23;
+		static const uint32_t c_magic = 15 << 23;
+		static const uint32_t c_nanbit = 0x200;
+		static const uint32_t c_infty_as_fp16 = 0x7c00;
+		static const uint32_t c_clamp = (31 << 23) - 0x1000;
+
+		SIMD::UInt justsign = SIMD::UInt(mask_sign) & floatBits;
+		SIMD::UInt absf = floatBits ^ justsign;
+		SIMD::UInt b_isnormal = CmpNLE(SIMD::UInt(c_f32infty), absf);
+
+		// Note: this version doesn't round to the nearest even in case of a tie as defined by IEEE 754-2008, it rounds to +inf
+		//       instead of nearest even, since that's fine for GLSL ES 3.0's needs (see section 2.1.1 Floating-Point Computation)
+		SIMD::UInt joined = ((((As<SIMD::UInt>(Min(As<SIMD::Float>(absf & SIMD::UInt(mask_round)) * As<SIMD::Float>(SIMD::UInt(c_magic)),
+										 As<SIMD::Float>(SIMD::UInt(c_clamp))))) - SIMD::UInt(mask_round)) >> 13) & b_isnormal) |
+					   ((b_isnormal ^ SIMD::UInt(0xFFFFFFFF)) & ((CmpNLE(absf, SIMD::UInt(c_f32infty)) & SIMD::UInt(c_nanbit)) |
+															SIMD::UInt(c_infty_as_fp16)));
+
+		return storeInUpperBits ? ((joined << 16) | justsign) : joined | (justsign >> 16);
+	}
+
+	SIMD::UInt SpirvShader::HalfToFloatBits(SIMD::UInt halfBits) const
+	{
+		static const uint32_t mask_nosign = 0x7FFF;
+		static const uint32_t magic = (254 - 15) << 23;
+		static const uint32_t was_infnan = 0x7BFF;
+		static const uint32_t exp_infnan = 255 << 23;
+
+		SIMD::UInt expmant = halfBits & SIMD::UInt(mask_nosign);
+		return As<SIMD::UInt>(As<SIMD::Float>(expmant << 13) * As<SIMD::Float>(SIMD::UInt(magic))) |
+						 ((halfBits ^ SIMD::UInt(expmant)) << 16) |
+						 (CmpNLE(As<SIMD::UInt>(expmant), SIMD::UInt(was_infnan)) & SIMD::UInt(exp_infnan));
 	}
 
 	SpirvShader::EmitResult SpirvShader::EmitAny(InsnIterator insn, EmitState *state) const
