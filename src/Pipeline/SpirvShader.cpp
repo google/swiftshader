@@ -1133,6 +1133,9 @@ namespace sw
 			HasMatrixStride = true;
 			MatrixStride = static_cast<int32_t>(arg);
 			break;
+		case spv::DecorationRelaxedPrecision:
+			RelaxedPrecision = true;
+			break;
 		default:
 			// Intentionally partial, there are many decorations we just don't care about.
 			break;
@@ -1195,6 +1198,7 @@ namespace sw
 		Centroid |= src.Centroid;
 		Block |= src.Block;
 		BufferBlock |= src.BufferBlock;
+		RelaxedPrecision |= src.RelaxedPrecision;
 	}
 
 	void SpirvShader::ApplyDecorationsForId(Decorations *d, TypeOrObjectID id) const

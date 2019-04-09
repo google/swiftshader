@@ -422,6 +422,7 @@ namespace sw
 			bool HasOffset : 1;
 			bool HasArrayStride : 1;
 			bool HasMatrixStride : 1;
+			bool RelaxedPrecision : 1;
 
 			Decorations()
 					: Location{-1}, Component{0}, DescriptorSet{-1}, Binding{-1},
@@ -431,7 +432,8 @@ namespace sw
 					  HasDescriptorSet{false}, HasBinding{false},
 					  HasBuiltIn{false}, Flat{false}, Centroid{false},
 					  NoPerspective{false}, Block{false}, BufferBlock{false},
-					  HasOffset{false}, HasArrayStride{false}, HasMatrixStride{false}
+					  HasOffset{false}, HasArrayStride{false}, HasMatrixStride{false},
+					  RelaxedPrecision{false}
 			{
 			}
 
