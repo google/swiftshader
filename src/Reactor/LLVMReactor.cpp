@@ -554,6 +554,7 @@ namespace rr
 			func_.emplace("printf", reinterpret_cast<void*>(printf));
 			func_.emplace("puts", reinterpret_cast<void*>(puts));
 			func_.emplace("fmodf", reinterpret_cast<void*>(fmodf));
+			func_.emplace("sinf", reinterpret_cast<void*>(sinf));
 		}
 
 		void *findSymbol(const std::string &name) const
@@ -3061,6 +3062,12 @@ namespace rr
 		{
 			return -Floor(-x);
 		}
+	}
+
+	RValue<Float4> Sin(RValue<Float4> v)
+	{
+		auto func = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::sin, { V(v.value)->getType() } );
+		return RValue<Float4>(V(::builder->CreateCall(func, V(v.value))));
 	}
 
 	Type *Float4::getType()
