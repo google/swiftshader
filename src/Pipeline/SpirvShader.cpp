@@ -3404,7 +3404,12 @@ namespace sw
 		}
 		case GLSLstd450Pow:
 		{
-			UNIMPLEMENTED("GLSLstd450Pow");
+			auto x = GenericValue(this, routine, insn.word(5));
+			auto y = GenericValue(this, routine, insn.word(6));
+			for (auto i = 0u; i < type.sizeInComponents; i++)
+			{
+				dst.move(i, Pow(x.Float(i), y.Float(i)));
+			}
 			break;
 		}
 		case GLSLstd450Exp:
