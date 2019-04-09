@@ -1972,6 +1972,8 @@ namespace rr
 	RValue<UInt4> Max(RValue<UInt4> x, RValue<UInt4> y);
 	RValue<UInt4> Min(RValue<UInt4> x, RValue<UInt4> y);
 	RValue<UInt4> MulHigh(RValue<UInt4> x, RValue<UInt4> y);
+	RValue<UInt> Extract(RValue<UInt4> val, int i);
+	RValue<UInt4> Insert(RValue<UInt4> val, RValue<UInt> element, int i);
 //	RValue<UInt4> RoundInt(RValue<Float4> cast);
 
 	class Half : public LValue<Half>

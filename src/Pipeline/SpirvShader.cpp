@@ -3179,6 +3179,48 @@ namespace sw
 			dst.move(1, HalfToFloatBits((val.UInt(0) & SIMD::UInt(0xFFFF0000)) >> 16));
 			break;
 		}
+		case GLSLstd450Frexp:
+		{
+			auto val = GenericValue(this, routine, insn.word(5));
+			auto ptrId = Object::ID(insn.word(6));
+			auto ptrTy = getType(getObject(ptrId).type);
+			auto ptr = GetPointerToData(ptrId, 0, routine);
+			bool interleavedByLane = IsStorageInterleavedByLane(ptrTy.storageClass);
+
+			for (auto i = 0u; i < type.sizeInComponents; i++)
+			{
+				SIMD::Float significand;
+				SIMD::Int exponent;
+				std::tie(significand, exponent) = Frexp(val.Float(i));
+
+				dst.move(i, significand);
+
+				// TODO: Refactor and consolidate with EmitStore.
+				for (int j = 0; j < SIMD::Width; j++)
+				{
+					auto ptrBase = Pointer<Int>(ptr.base);
+					If(Extract(state->activeLaneMask(), j) != 0)
+					{
+						Int offset = Int(i) + Extract(ptr.offset, j);
+						if (interleavedByLane) { offset = offset * SIMD::Width + j; }
+						Store(Extract(exponent, j), &ptrBase[offset], sizeof(uint32_t), false, std::memory_order_relaxed);
+					}
+				}
+			}
+			break;
+		}
+		case GLSLstd450FrexpStruct:
+		{
+			auto val = GenericValue(this, routine, insn.word(5));
+			auto numComponents = getType(val.type).sizeInComponents;
+			for (auto i = 0u; i < numComponents; i++)
+			{
+				auto significandAndExponent = Frexp(val.Float(i));
+				dst.move(i, significandAndExponent.first);
+				dst.move(i + numComponents, significandAndExponent.second);
+			}
+			break;
+		}
 		default:
 			UNIMPLEMENTED("Unhandled ExtInst %d", extInstIndex);
 		}
@@ -3248,6 +3290,17 @@ namespace sw
 		return As<SIMD::UInt>(As<SIMD::Float>(expmant << 13) * As<SIMD::Float>(SIMD::UInt(magic))) |
 						 ((halfBits ^ SIMD::UInt(expmant)) << 16) |
 						 (CmpNLE(As<SIMD::UInt>(expmant), SIMD::UInt(was_infnan)) & SIMD::UInt(exp_infnan));
+	}
+
+	std::pair<SIMD::Float, SIMD::Int> SpirvShader::Frexp(RValue<SIMD::Float> val) const
+	{
+		// Assumes IEEE 754
+		auto v = As<SIMD::UInt>(val);
+		auto isNotZero = CmpNEQ(v & SIMD::UInt(0x7FFFFFFF), SIMD::UInt(0));
+		auto zeroSign = v & SIMD::UInt(0x80000000) & ~isNotZero;
+		auto significand = As<SIMD::Float>((v & SIMD::UInt(0x807FFFFF) | SIMD::UInt(0x3F000000)) & isNotZero | zeroSign);
+		auto exponent = (SIMD::Int((v >> SIMD::UInt(23)) & SIMD::UInt(0xFF)) - SIMD::Int(126)) & SIMD::Int(isNotZero);
+		return std::make_pair(significand, exponent);
 	}
 
 	SpirvShader::EmitResult SpirvShader::EmitAny(InsnIterator insn, EmitState *state) const

@@ -3572,6 +3572,16 @@ namespace rr
 		return RValue<UInt4>(Nucleus::createNot(val.value));
 	}
 
+	RValue<UInt> Extract(RValue<UInt4> x, int i)
+	{
+		return RValue<UInt>(Nucleus::createExtractElement(x.value, Int::getType(), i));
+	}
+
+	RValue<UInt4> Insert(RValue<UInt4> x, RValue<UInt> element, int i)
+	{
+		return RValue<UInt4>(Nucleus::createInsertElement(x.value, element.value, i));
+	}
+
 	Half::Half(RValue<Float> cast)
 	{
 		UInt fp32i = As<UInt>(cast);
