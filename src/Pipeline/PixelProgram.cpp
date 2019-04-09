@@ -29,14 +29,12 @@ namespace sw
 
 	void PixelProgram::applyShader(Int cMask[4])
 	{
-		enableIndex = 0;
-
 		routine.descriptorSets = data + OFFSET(DrawData, descriptorSets);
 		routine.descriptorDynamicOffsets = data + OFFSET(DrawData, descriptorDynamicOffsets);
 		routine.pushConstants = data + OFFSET(DrawData, pushConstants);
 
 		auto activeLaneMask = SIMD::Int(0xFFFFFFFF); // TODO: Control this.
-		spirvShader->emit(&routine, activeLaneMask);
+		spirvShader->emit(&routine, activeLaneMask, descriptorSets);
 		spirvShader->emitEpilog(&routine);
 
 		for(int i = 0; i < RENDERTARGETS; i++)
@@ -230,12 +228,6 @@ namespace sw
 				UNIMPLEMENTED("VkFormat: %d", int(state.targetFormat[index]));
 			}
 		}
-	}
-
-	Int4 PixelProgram::enableMask()
-	{
-		Int4 enable = true ? Int4(enableStack[enableIndex]) : Int4(0xFFFFFFFF);
-		return enable;
 	}
 
 	Float4 PixelProgram::linearToSRGB(const Float4 &x)   // Approximates x^(1.0/2.2)

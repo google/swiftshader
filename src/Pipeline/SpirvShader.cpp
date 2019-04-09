@@ -19,6 +19,7 @@
 #include "Vulkan/VkDebug.hpp"
 #include "Vulkan/VkDescriptorSet.hpp"
 #include "Vulkan/VkPipelineLayout.hpp"
+#include "Vulkan/VkDescriptorSetLayout.hpp"
 #include "Device/Config.hpp"
 
 #include <spirv/unified1/spirv.hpp>
@@ -1371,11 +1372,9 @@ namespace sw
 		}
 	}
 
-	void SpirvShader::emit(SpirvRoutine *routine, RValue<SIMD::Int> const &activeLaneMask) const
+	void SpirvShader::emit(SpirvRoutine *routine, RValue<SIMD::Int> const &activeLaneMask, const vk::DescriptorSet::Bindings &descriptorSets) const
 	{
-		EmitState state;
-		state.setActiveLaneMask(activeLaneMask);
-		state.routine = routine;
+		EmitState state(routine, activeLaneMask, descriptorSets);
 
 		// Emit everything up to the first label
 		// TODO: Separate out dispatch of block from non-block instructions?

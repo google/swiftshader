@@ -30,7 +30,7 @@ namespace vk
 	class DescriptorSet;
 	class ImageView;
 	class PipelineLayout;
-} // namespace vk
+}
 
 namespace sw
 {

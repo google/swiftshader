@@ -26,8 +26,9 @@ namespace sw
 		PixelProgram(
 				const PixelProcessor::State &state,
 				vk::PipelineLayout const *pipelineLayout,
-				SpirvShader const *spirvShader) :
-			PixelRoutine(state, pipelineLayout, spirvShader)
+				SpirvShader const *spirvShader,
+				const vk::DescriptorSet::Bindings &descriptorSets) :
+			PixelRoutine(state, pipelineLayout, spirvShader, descriptorSets)
 		{
 		}
 
@@ -43,14 +44,8 @@ namespace sw
 		// Color outputs
 		Vector4f c[RENDERTARGETS];
 
-		// Per pixel based on conditions reached
-		Int enableIndex;
-		Array<Int4, 1 + 24> enableStack;
-
 		// Raster operations
 		void clampColor(Vector4f oC[RENDERTARGETS]);
-
-		Int4 enableMask();
 
 		Float4 linearToSRGB(const Float4 &x);
 	};

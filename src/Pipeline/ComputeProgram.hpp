@@ -39,7 +39,7 @@ namespace sw
 	class ComputeProgram : public Function<Void(Pointer<Byte>)>
 	{
 	public:
-		ComputeProgram(SpirvShader const *spirvShader, vk::PipelineLayout const *pipelineLayout);
+		ComputeProgram(SpirvShader const *spirvShader, vk::PipelineLayout const *pipelineLayout, const vk::DescriptorSet::Bindings &descriptorSets);
 
 		virtual ~ComputeProgram();
 
@@ -74,6 +74,7 @@ namespace sw
 		SpirvRoutine routine;
 		SpirvShader const * const shader;
 		vk::PipelineLayout const * const pipelineLayout;
+		const vk::DescriptorSet::Bindings &descriptorSets;
 	};
 
 } // namespace sw

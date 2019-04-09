@@ -27,16 +27,11 @@ namespace sw
 	VertexProgram::VertexProgram(
 			const VertexProcessor::State &state,
 			vk::PipelineLayout const *pipelineLayout,
-			SpirvShader const *spirvShader)
-		: VertexRoutine(state, pipelineLayout, spirvShader)
+			SpirvShader const *spirvShader,
+			const vk::DescriptorSet::Bindings &descriptorSets)
+		: VertexRoutine(state, pipelineLayout, spirvShader),
+		  descriptorSets(descriptorSets)
 	{
-		ifDepth = 0;
-		loopRepDepth = 0;
-		currentLabel = -1;
-		whileTest = false;
-
-		enableStack[0] = Int4(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF);
-
 		auto it = spirvShader->inputBuiltins.find(spv::BuiltInInstanceIndex);
 		if (it != spirvShader->inputBuiltins.end())
 		{
@@ -57,10 +52,6 @@ namespace sw
 
 	void VertexProgram::program(UInt &index)
 	{
-		//	shader->print("VertexShader-%0.8X.txt", state.shaderID);
-
-		enableIndex = 0;
-
 		auto it = spirvShader->inputBuiltins.find(spv::BuiltInVertexIndex);
 		if (it != spirvShader->inputBuiltins.end())
 		{
@@ -70,20 +61,8 @@ namespace sw
 		}
 
 		auto activeLaneMask = SIMD::Int(0xFFFFFFFF); // TODO: Control this.
-		spirvShader->emit(&routine, activeLaneMask);
-
-		if(currentLabel != -1)
-		{
-			Nucleus::setInsertBlock(returnBlock);
-		}
+		spirvShader->emit(&routine, activeLaneMask, descriptorSets);
 
 		spirvShader->emitEpilog(&routine);
 	}
-
-	Int4 VertexProgram::enableMask()
-	{
-		Int4 enable = true ? Int4(enableStack[enableIndex]) : Int4(0xFFFFFFFF);
-		return enable;
-	}
-
 }

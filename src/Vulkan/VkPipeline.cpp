@@ -505,10 +505,10 @@ void ComputePipeline::compileShaders(const VkAllocationCallbacks* pAllocator, co
 
 	ASSERT(shader == nullptr);
 
-	// FIXME (b/119409619): use allocator.
+	// FIXME(b/119409619): use allocator.
 	shader = new sw::SpirvShader(code);
-
-	sw::ComputeProgram program(shader, layout);
+	vk::DescriptorSet::Bindings descriptorSets;  // FIXME(b/129523279): Delay code generation until invoke time.
+	sw::ComputeProgram program(shader, layout, descriptorSets);
 
 	program.generate();
 
