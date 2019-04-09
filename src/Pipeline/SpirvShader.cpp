@@ -3432,7 +3432,11 @@ namespace sw
 		}
 		case GLSLstd450Exp2:
 		{
-			UNIMPLEMENTED("GLSLstd450Exp2");
+			auto val = GenericValue(this, routine, insn.word(5));
+			for (auto i = 0u; i < type.sizeInComponents; i++)
+			{
+				dst.move(i, Exp2(val.Float(i)));
+			}
 			break;
 		}
 		case GLSLstd450Log2:
