@@ -50,6 +50,15 @@ namespace
 	{
 		return NthBit32(bitCount) - sw::SIMD::UInt(1);
 	}
+
+	// Performs a fused-multiply add, returning a * b + c.
+	rr::RValue<sw::SIMD::Float> FMA(
+			rr::RValue<sw::SIMD::Float> const &a,
+			rr::RValue<sw::SIMD::Float> const &b,
+			rr::RValue<sw::SIMD::Float> const &c)
+	{
+		return a * b + c;
+	}
 }
 
 namespace sw
@@ -3177,6 +3186,17 @@ namespace sw
 			auto val = GenericValue(this, routine, insn.word(5));
 			dst.move(0, HalfToFloatBits(val.UInt(0) & SIMD::UInt(0x0000FFFF)));
 			dst.move(1, HalfToFloatBits((val.UInt(0) & SIMD::UInt(0xFFFF0000)) >> 16));
+			break;
+		}
+		case GLSLstd450Fma:
+		{
+			auto a = GenericValue(this, routine, insn.word(5));
+			auto b = GenericValue(this, routine, insn.word(6));
+			auto c = GenericValue(this, routine, insn.word(7));
+			for (auto i = 0u; i < type.sizeInComponents; i++)
+			{
+				dst.move(i, FMA(a.Float(i), b.Float(i), c.Float(i)));
+			}
 			break;
 		}
 		case GLSLstd450Frexp:
