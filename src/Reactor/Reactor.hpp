@@ -2215,6 +2215,7 @@ namespace rr
 	RValue<Float4> Acos(RValue<Float4> x);
 	RValue<Float4> Atan(RValue<Float4> x);
 	RValue<Float4> Sinh(RValue<Float4> x);
+	RValue<Float4> Cosh(RValue<Float4> x);
 
 	template<class T>
 	class Pointer : public LValue<Pointer<T>>
