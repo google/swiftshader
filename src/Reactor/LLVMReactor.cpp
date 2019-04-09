@@ -557,6 +557,7 @@ namespace rr
 			func_.emplace("sinf", reinterpret_cast<void*>(sinf));
 			func_.emplace("cosf", reinterpret_cast<void*>(cosf));
 			func_.emplace("asinf", reinterpret_cast<void*>(asinf));
+			func_.emplace("acosf", reinterpret_cast<void*>(acosf));
 
 #ifdef __APPLE__
 			// LLVM uses this function on macOS for tan.
@@ -3090,10 +3091,10 @@ namespace rr
 		return Sin(v) / Cos(v);
 	}
 
-	RValue<Float4> Asin(RValue<Float4> v)
+	static RValue<Float4> TransformFloat4PerElement(RValue<Float4> v, const char* name)
 	{
 		auto funcTy = ::llvm::FunctionType::get(T(Float::getType()), {T(Float::getType())}, false);
-		auto func = ::module->getOrInsertFunction("asinf", funcTy);
+		auto func = ::module->getOrInsertFunction(name, funcTy);
 		llvm::Value *out = ::llvm::UndefValue::get(T(Float4::getType()));
 		for (uint64_t i = 0; i < 4; i++)
 		{
@@ -3101,6 +3102,16 @@ namespace rr
 			out = ::builder->CreateInsertElement(out, el, i);
 		}
 		return RValue<Float4>(V(out));
+	}
+
+	RValue<Float4> Asin(RValue<Float4> v)
+	{
+		return TransformFloat4PerElement(v, "asinf");
+	}
+
+	RValue<Float4> Acos(RValue<Float4> v)
+	{
+		return TransformFloat4PerElement(v, "acosf");
 	}
 
 	Type *Float4::getType()

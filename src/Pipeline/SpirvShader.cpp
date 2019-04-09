@@ -3320,6 +3320,15 @@ namespace sw
 			}
 			break;
 		}
+		case GLSLstd450Acos:
+		{
+			auto val = GenericValue(this, routine, insn.word(5));
+			for (auto i = 0u; i < type.sizeInComponents; i++)
+			{
+				dst.move(i, Acos(val.Float(i)));
+			}
+			break;
+		}
 		default:
 			UNIMPLEMENTED("Unhandled ExtInst %d", extInstIndex);
 		}
