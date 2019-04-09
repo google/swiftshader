@@ -1,4 +1,4 @@
-// Copyright 2018 The SwiftShader Authors. All Rights Reserved.
+﻿// Copyright 2018 The SwiftShader Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -35,44 +35,38 @@ void ImageView::destroy(const VkAllocationCallbacks* pAllocator)
 
 bool ImageView::imageTypesMatch(VkImageType imageType) const
 {
-	bool isCube = image->isCube();
+	uint32_t imageArrayLayers = image->getArrayLayers();
 
-	switch(imageType)
+	switch(viewType)
 	{
-	case VK_IMAGE_TYPE_1D:
-		switch(viewType)
-		{
-		case VK_IMAGE_VIEW_TYPE_1D:
-		case VK_IMAGE_VIEW_TYPE_1D_ARRAY:
-			return true;
-		default:
-			break;
-		}
-		break;
-	case VK_IMAGE_TYPE_2D:
-		switch(viewType)
-		{
-		case VK_IMAGE_VIEW_TYPE_2D:
-		case VK_IMAGE_VIEW_TYPE_2D_ARRAY:
-			return !isCube;
-		case VK_IMAGE_VIEW_TYPE_CUBE:
-		case VK_IMAGE_VIEW_TYPE_CUBE_ARRAY:
-			return isCube;
-		default:
-			break;
-		}
-		break;
-	case VK_IMAGE_TYPE_3D:
-		switch(viewType)
-		{
-		case VK_IMAGE_VIEW_TYPE_3D:
-			return true;
-		default:
-			break;
-		}
-		break;
+	case VK_IMAGE_VIEW_TYPE_1D:
+		return (imageType == VK_IMAGE_TYPE_1D) &&
+		       (subresourceRange.layerCount == 1);
+	case VK_IMAGE_VIEW_TYPE_1D_ARRAY:
+		return imageType == VK_IMAGE_TYPE_1D;
+	case VK_IMAGE_VIEW_TYPE_2D:
+		return ((imageType == VK_IMAGE_TYPE_2D) ||
+		        ((imageType == VK_IMAGE_TYPE_3D) &&
+		         (imageArrayLayers == 1))) &&
+		       (subresourceRange.layerCount == 1);
+	case VK_IMAGE_VIEW_TYPE_2D_ARRAY:
+		return (imageType == VK_IMAGE_TYPE_2D) ||
+		       ((imageType == VK_IMAGE_TYPE_3D) &&
+		        (imageArrayLayers == 1));
+	case VK_IMAGE_VIEW_TYPE_CUBE:
+		return image->isCube() &&
+		       (imageArrayLayers >= subresourceRange.layerCount) &&
+		       (subresourceRange.layerCount == 6);
+	case VK_IMAGE_VIEW_TYPE_CUBE_ARRAY:
+		return image->isCube() &&
+		       (imageArrayLayers >= subresourceRange.layerCount) &&
+		       (subresourceRange.layerCount >= 6);
+	case VK_IMAGE_VIEW_TYPE_3D:
+		return (imageType == VK_IMAGE_TYPE_3D) &&
+		       (imageArrayLayers == 1) &&
+		       (subresourceRange.layerCount == 1);
 	default:
-		break;
+		UNREACHABLE("Unexpected viewType %d", (int)viewType);
 	}
 
 	return false;
