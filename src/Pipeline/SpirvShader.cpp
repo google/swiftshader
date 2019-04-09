@@ -86,6 +86,23 @@ namespace
 			((~xIsNan &  yIsNan) & As<sw::SIMD::Int>(x)) |
 			(( xIsNan          ) & As<sw::SIMD::Int>(y)));
 	}
+
+	// Returns y if y > x; otherwise result is x.
+	// If one operand is a NaN, the other operand is the result.
+	// If both operands are NaN, the result is a NaN.
+	rr::RValue<sw::SIMD::Float> NMax(rr::RValue<sw::SIMD::Float> const &x, rr::RValue<sw::SIMD::Float> const &y)
+	{
+		using namespace rr;
+		auto xIsNan = IsNan(x);
+		auto yIsNan = IsNan(y);
+		return As<sw::SIMD::Float>(
+			// If neither are NaN, return max
+			((~xIsNan & ~yIsNan) & As<sw::SIMD::Int>(Max(x, y))) |
+			// If one operand is a NaN, the other operand is the result
+			// If both operands are NaN, the result is a NaN.
+			((~xIsNan &  yIsNan) & As<sw::SIMD::Int>(x)) |
+			(( xIsNan          ) & As<sw::SIMD::Int>(y)));
+	}
 }
 
 namespace sw
@@ -3566,7 +3583,12 @@ namespace sw
 		}
 		case GLSLstd450NMax:
 		{
-			UNIMPLEMENTED("GLSLstd450NMax");
+			auto x = GenericValue(this, routine, insn.word(5));
+			auto y = GenericValue(this, routine, insn.word(6));
+			for (auto i = 0u; i < type.sizeInComponents; i++)
+			{
+				dst.move(i, NMax(x.Float(i), y.Float(i)));
+			}
 			break;
 		}
 		case GLSLstd450NClamp:
