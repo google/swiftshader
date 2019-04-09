@@ -2218,6 +2218,7 @@ namespace rr
 	RValue<Float4> Cosh(RValue<Float4> x);
 	RValue<Float4> Tanh(RValue<Float4> x);
 	RValue<Float4> Asinh(RValue<Float4> x);
+	RValue<Float4> Acosh(RValue<Float4> x);
 
 	template<class T>
 	class Pointer : public LValue<Pointer<T>>
