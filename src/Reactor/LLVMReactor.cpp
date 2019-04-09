@@ -570,6 +570,7 @@ namespace rr
 			func_.emplace("expf", reinterpret_cast<void*>(expf));
 			func_.emplace("logf", reinterpret_cast<void*>(logf));
 			func_.emplace("exp2f", reinterpret_cast<void*>(exp2f));
+			func_.emplace("log2f", reinterpret_cast<void*>(log2f));
 
 #ifdef __APPLE__
 			// LLVM uses this function on macOS for tan.
@@ -3200,6 +3201,12 @@ namespace rr
 	RValue<Float4> Exp2(RValue<Float4> v)
 	{
 		auto func = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::exp2, { T(Float4::getType()) } );
+		return RValue<Float4>(V(::builder->CreateCall(func, { V(v.value) })));
+	}
+
+	RValue<Float4> Log2(RValue<Float4> v)
+	{
+		auto func = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::log2, { T(Float4::getType()) } );
 		return RValue<Float4>(V(::builder->CreateCall(func, { V(v.value) })));
 	}
 

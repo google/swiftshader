@@ -2228,6 +2228,7 @@ namespace rr
 	RValue<Float4> Exp(RValue<Float4> x);
 	RValue<Float4> Log(RValue<Float4> x);
 	RValue<Float4> Exp2(RValue<Float4> x);
+	RValue<Float4> Log2(RValue<Float4> x);
 
 	template<class T>
 	class Pointer : public LValue<Pointer<T>>

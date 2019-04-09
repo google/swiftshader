@@ -3441,7 +3441,11 @@ namespace sw
 		}
 		case GLSLstd450Log2:
 		{
-			UNIMPLEMENTED("GLSLstd450Log2");
+			auto val = GenericValue(this, routine, insn.word(5));
+			for (auto i = 0u; i < type.sizeInComponents; i++)
+			{
+				dst.move(i, Log2(val.Float(i)));
+			}
 			break;
 		}
 		case GLSLstd450Sqrt:
