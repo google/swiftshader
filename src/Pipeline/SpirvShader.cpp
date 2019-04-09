@@ -3593,7 +3593,14 @@ namespace sw
 		}
 		case GLSLstd450NClamp:
 		{
-			UNIMPLEMENTED("GLSLstd450NClamp");
+			auto x = GenericValue(this, routine, insn.word(5));
+			auto minVal = GenericValue(this, routine, insn.word(6));
+			auto maxVal = GenericValue(this, routine, insn.word(7));
+			for (auto i = 0u; i < type.sizeInComponents; i++)
+			{
+				auto clamp = NMin(NMax(x.Float(i), minVal.Float(i)), maxVal.Float(i));
+				dst.move(i, clamp);
+			}
 			break;
 		}
 		default:
