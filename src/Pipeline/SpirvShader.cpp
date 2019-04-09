@@ -3347,9 +3347,144 @@ namespace sw
 			}
 			break;
 		}
-
+		case GLSLstd450Cosh:
+		{
+			UNIMPLEMENTED("GLSLstd450Cosh");
+			break;
+		}
+		case GLSLstd450Tanh:
+		{
+			UNIMPLEMENTED("GLSLstd450Tanh");
+			break;
+		}
+		case GLSLstd450Asinh:
+		{
+			UNIMPLEMENTED("GLSLstd450Asinh");
+			break;
+		}
+		case GLSLstd450Acosh:
+		{
+			UNIMPLEMENTED("GLSLstd450Acosh");
+			break;
+		}
+		case GLSLstd450Atanh:
+		{
+			UNIMPLEMENTED("GLSLstd450Atanh");
+			break;
+		}
+		case GLSLstd450Atan2:
+		{
+			UNIMPLEMENTED("GLSLstd450Atan2");
+			break;
+		}
+		case GLSLstd450Pow:
+		{
+			UNIMPLEMENTED("GLSLstd450Pow");
+			break;
+		}
+		case GLSLstd450Exp:
+		{
+			UNIMPLEMENTED("GLSLstd450Exp");
+			break;
+		}
+		case GLSLstd450Log:
+		{
+			UNIMPLEMENTED("GLSLstd450Log");
+			break;
+		}
+		case GLSLstd450Exp2:
+		{
+			UNIMPLEMENTED("GLSLstd450Exp2");
+			break;
+		}
+		case GLSLstd450Log2:
+		{
+			UNIMPLEMENTED("GLSLstd450Log2");
+			break;
+		}
+		case GLSLstd450Sqrt:
+		{
+			UNIMPLEMENTED("GLSLstd450Sqrt");
+			break;
+		}
+		case GLSLstd450InverseSqrt:
+		{
+			UNIMPLEMENTED("GLSLstd450InverseSqrt");
+			break;
+		}
+		case GLSLstd450Determinant:
+		{
+			UNIMPLEMENTED("GLSLstd450Determinant");
+			break;
+		}
+		case GLSLstd450MatrixInverse:
+		{
+			UNIMPLEMENTED("GLSLstd450MatrixInverse");
+			break;
+		}
+		case GLSLstd450IMix:
+		{
+			UNIMPLEMENTED("GLSLstd450IMix");
+			break;
+		}
+		case GLSLstd450PackDouble2x32:
+		{
+			UNIMPLEMENTED("GLSLstd450PackDouble2x32");
+			break;
+		}
+		case GLSLstd450UnpackDouble2x32:
+		{
+			UNIMPLEMENTED("GLSLstd450UnpackDouble2x32");
+			break;
+		}
+		case GLSLstd450FindILsb:
+		{
+			UNIMPLEMENTED("GLSLstd450FindILsb");
+			break;
+		}
+		case GLSLstd450FindSMsb:
+		{
+			UNIMPLEMENTED("GLSLstd450FindSMsb");
+			break;
+		}
+		case GLSLstd450FindUMsb:
+		{
+			UNIMPLEMENTED("GLSLstd450FindUMsb");
+			break;
+		}
+		case GLSLstd450InterpolateAtCentroid:
+		{
+			UNIMPLEMENTED("GLSLstd450InterpolateAtCentroid");
+			break;
+		}
+		case GLSLstd450InterpolateAtSample:
+		{
+			UNIMPLEMENTED("GLSLstd450InterpolateAtSample");
+			break;
+		}
+		case GLSLstd450InterpolateAtOffset:
+		{
+			UNIMPLEMENTED("GLSLstd450InterpolateAtOffset");
+			break;
+		}
+		case GLSLstd450NMin:
+		{
+			UNIMPLEMENTED("GLSLstd450NMin");
+			break;
+		}
+		case GLSLstd450NMax:
+		{
+			UNIMPLEMENTED("GLSLstd450NMax");
+			break;
+		}
+		case GLSLstd450NClamp:
+		{
+			UNIMPLEMENTED("GLSLstd450NClamp");
+			break;
+		}
 		default:
 			UNIMPLEMENTED("Unhandled ExtInst %d", extInstIndex);
+			break;
 		}
 
 		return EmitResult::Continue;
