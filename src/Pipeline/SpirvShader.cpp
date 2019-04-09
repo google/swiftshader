@@ -3293,6 +3293,15 @@ namespace sw
 			}
 			break;
 		}
+		case GLSLstd450Cos:
+		{
+			auto radians = GenericValue(this, routine, insn.word(5));
+			for (auto i = 0u; i < type.sizeInComponents; i++)
+			{
+				dst.move(i, Cos(radians.Float(i)));
+			}
+			break;
+		}
 		default:
 			UNIMPLEMENTED("Unhandled ExtInst %d", extInstIndex);
 		}
