@@ -3494,7 +3494,7 @@ namespace sw
 		}
 		case GLSLstd450IMix:
 		{
-			UNIMPLEMENTED("GLSLstd450IMix");
+			UNREACHABLE("GLSLstd450IMix has been removed from the specification");
 			break;
 		}
 		case GLSLstd450PackDouble2x32:
