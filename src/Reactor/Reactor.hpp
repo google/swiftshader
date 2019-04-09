@@ -2210,6 +2210,7 @@ namespace rr
 	// TODO: Currentlhy unimplemented for Subzero.
 	RValue<Float4> Sin(RValue<Float4> x);
 	RValue<Float4> Cos(RValue<Float4> x);
+	RValue<Float4> Tan(RValue<Float4> x);
 
 	template<class T>
 	class Pointer : public LValue<Pointer<T>>
