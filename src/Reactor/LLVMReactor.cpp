@@ -568,6 +568,7 @@ namespace rr
 			func_.emplace("atan2f", reinterpret_cast<void*>(atan2f));
 			func_.emplace("powf", reinterpret_cast<void*>(powf));
 			func_.emplace("expf", reinterpret_cast<void*>(expf));
+			func_.emplace("logf", reinterpret_cast<void*>(logf));
 
 #ifdef __APPLE__
 			// LLVM uses this function on macOS for tan.
@@ -3186,6 +3187,12 @@ namespace rr
 	RValue<Float4> Exp(RValue<Float4> v)
 	{
 		auto func = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::exp, { T(Float4::getType()) } );
+		return RValue<Float4>(V(::builder->CreateCall(func, { V(v.value) })));
+	}
+
+	RValue<Float4> Log(RValue<Float4> v)
+	{
+		auto func = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::log, { T(Float4::getType()) } );
 		return RValue<Float4>(V(::builder->CreateCall(func, { V(v.value) })));
 	}
 
