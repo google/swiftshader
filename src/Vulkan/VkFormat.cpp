@@ -144,7 +144,6 @@ bool Format::isSRGBformat() const
 
 bool Format::isSRGBreadable() const
 {
-	// Keep in sync with Capabilities::isSRGBreadable
 	switch(format)
 	{
 	case VK_FORMAT_B8G8R8A8_UNORM:
@@ -160,7 +159,6 @@ bool Format::isSRGBreadable() const
 
 bool Format::isSRGBwritable() const
 {
-	// Keep in sync with Capabilities::isSRGBwritable
 	switch(format)
 	{
 	case VK_FORMAT_UNDEFINED:

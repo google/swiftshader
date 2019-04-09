@@ -14,6 +14,7 @@
 
 #include "SpirvShader.hpp"
 
+#include "SamplerCore.hpp"
 #include "System/Math.hpp"
 #include "Vulkan/VkBuffer.hpp"
 #include "Vulkan/VkDebug.hpp"
@@ -27,6 +28,7 @@
 
 #ifdef Bool
 #undef Bool // b/127920555
+#undef None
 #endif
 
 namespace
@@ -338,6 +340,12 @@ namespace sw
 					break; // Correctly handled.
 
 				case spv::StorageClassUniformConstant:
+					// This storage class is for data stored within the descriptor itself,
+					// unlike StorageClassUniform which contains handles to buffers.
+					// For Vulkan it corresponds with samplers, images, or combined image samplers.
+					object.kind = Object::Kind::SampledImage;
+					break;
+
 				case spv::StorageClassWorkgroup:
 				case spv::StorageClassCrossWorkgroup:
 				case spv::StorageClassGeneric:
@@ -470,9 +478,12 @@ namespace sw
 				break;
 
 			case spv::OpFConvert:
+				UNIMPLEMENTED("No valid uses for OpFConvert until we support multiple bit widths enabled by features such as Float16/Float64 etc.");
+				break;
+
 			case spv::OpSConvert:
 			case spv::OpUConvert:
-				UNIMPLEMENTED("No valid uses for Op*Convert until we support multiple bit widths");
+				UNIMPLEMENTED("No valid uses for Op*Convert until we support multiple bit widths enabled by features such as Int16/Int64 etc.");
 				break;
 
 			case spv::OpLoad:
@@ -597,18 +608,10 @@ namespace sw
 			case spv::OpFwidthFine:
 			case spv::OpAtomicLoad:
 			case spv::OpPhi:
-				// Instructions that yield an intermediate value or divergent
-				// pointer
-			{
-				Type::ID typeId = insn.word(1);
-				Object::ID resultId = insn.word(2);
-				auto &object = defs[resultId];
-				object.type = typeId;
-				object.kind = (getType(typeId).opcode() == spv::OpTypePointer)
-					? Object::Kind::DivergentPointer : Object::Kind::Intermediate;
-				object.definition = insn;
+			case spv::OpImageSampleImplicitLod:
+				// Instructions that yield an intermediate value or divergent pointer
+				DefineResult(insn);
 				break;
-			}
 
 			case spv::OpStore:
 			case spv::OpAtomicStore:
@@ -1852,6 +1855,8 @@ namespace sw
 		case spv::OpTypeStruct:
 		case spv::OpTypePointer:
 		case spv::OpTypeFunction:
+		case spv::OpTypeImage:
+		case spv::OpTypeSampledImage:
 		case spv::OpExecutionMode:
 		case spv::OpMemoryModel:
 		case spv::OpFunction:
@@ -2056,6 +2061,9 @@ namespace sw
 		case spv::OpKill:
 			return EmitKill(insn, state);
 
+		case spv::OpImageSampleImplicitLod:
+			return EmitImageSampleImplicitLod(insn, state);
+			
 		default:
 			UNIMPLEMENTED("opcode: %s", OpcodeName(opcode).c_str());
 			break;
@@ -2095,6 +2103,20 @@ namespace sw
 			routine->createPointer(resultId, &routine->getVariable(resultId)[0]);
 			break;
 		}
+		case spv::StorageClassUniformConstant:
+		{
+			const auto &d = descriptorDecorations.at(resultId);
+			ASSERT(d.DescriptorSet >= 0);
+			ASSERT(d.Binding >= 0);
+
+			uint32_t arrayIndex = 0;  // TODO(b/129523279)
+			auto setLayout = routine->pipelineLayout->getDescriptorSetLayout(d.DescriptorSet);
+			size_t bindingOffset = setLayout->getBindingOffset(d.Binding, arrayIndex);
+			Pointer<Byte> set = routine->descriptorSets[d.DescriptorSet];  // DescriptorSet*
+			Pointer<Byte> binding = Pointer<Byte>(set + bindingOffset);    // SampledImageDescriptor*
+			routine->createPointer(resultId, binding);
+			break;
+		}
 		case spv::StorageClassUniform:
 		case spv::StorageClassStorageBuffer:
 		{
@@ -2132,6 +2154,16 @@ namespace sw
 		ASSERT(getType(pointer.type).element == result.type);
 		ASSERT(Type::ID(insn.word(1)) == result.type);
 		ASSERT(!atomic || getType(getType(pointer.type).element).opcode() == spv::OpTypeInt);  // Vulkan 1.1: "Atomic instructions must declare a scalar 32-bit integer type, for the value pointed to by Pointer."
+
+		if(pointer.kind == Object::Kind::SampledImage)
+		{
+			// Just propagate the pointer.
+			// TODO(b/129523279)
+			auto &ptr = routine->getPointer(pointerId);
+			routine->createPointer(resultId, ptr);
+
+			return EmitResult::Continue;
+		}
 
 		if(atomic)
 		{
@@ -4120,6 +4152,86 @@ namespace sw
 		for(uint32_t i = 0; i < type.sizeInComponents; i++)
 		{
 			dst.move(i, tmp[i]);
+		}
+
+		return EmitResult::Continue;
+	}
+
+	SpirvShader::EmitResult SpirvShader::EmitImageSampleImplicitLod(InsnIterator insn, EmitState *state) const
+	{
+		Type::ID resultTypeId = insn.word(1);
+		Object::ID resultId = insn.word(2);
+		Object::ID sampledImageId = insn.word(3);
+		Object::ID coordinateId = insn.word(4);
+		auto &resultType = getType(resultTypeId);
+
+		auto &result = state->routine->createIntermediate(resultId, resultType.sizeInComponents);
+		auto &sampledImage = state->routine->getPointer(sampledImageId);
+		auto coordinate = GenericValue(this, state->routine, coordinateId);
+
+		Pointer<Byte> constants;  // FIXME(b/129523279)
+
+		const DescriptorDecorations &d = descriptorDecorations.at(sampledImageId);
+		uint32_t arrayIndex = 0;  // TODO(b/129523279)
+		auto setLayout = state->routine->pipelineLayout->getDescriptorSetLayout(d.DescriptorSet);
+		size_t bindingOffset = setLayout->getBindingOffset(d.Binding, arrayIndex);
+
+		const uint8_t *p = reinterpret_cast<const uint8_t*>(state->descriptorSets[d.DescriptorSet]) + bindingOffset;
+		const auto *t = reinterpret_cast<const vk::SampledImageDescriptor*>(p);
+
+		Sampler::State samplerState;
+		samplerState.textureType = TEXTURE_2D;                  ASSERT(t->imageView->getType() == VK_IMAGE_VIEW_TYPE_2D);  // TODO(b/129523279)
+		samplerState.textureFormat = t->imageView->getFormat();
+		samplerState.textureFilter = FILTER_POINT;              ASSERT(t->sampler->magFilter == VK_FILTER_NEAREST); ASSERT(t->sampler->minFilter == VK_FILTER_NEAREST);  // TODO(b/129523279)
+
+		samplerState.addressingModeU = ADDRESSING_WRAP;         ASSERT(t->sampler->addressModeU == VK_SAMPLER_ADDRESS_MODE_REPEAT);  // TODO(b/129523279)
+		samplerState.addressingModeV = ADDRESSING_WRAP;         ASSERT(t->sampler->addressModeV == VK_SAMPLER_ADDRESS_MODE_REPEAT);  // TODO(b/129523279)
+		samplerState.addressingModeW = ADDRESSING_WRAP;         ASSERT(t->sampler->addressModeW == VK_SAMPLER_ADDRESS_MODE_REPEAT);  // TODO(b/129523279)
+		samplerState.mipmapFilter = MIPMAP_POINT;               ASSERT(t->sampler->mipmapMode == VK_SAMPLER_MIPMAP_MODE_NEAREST);  // TODO(b/129523279)
+		samplerState.sRGB = false;                              ASSERT(t->imageView->getFormat().isSRGBformat() == false);  // TODO(b/129523279)
+		samplerState.swizzleR = SWIZZLE_RED;                    ASSERT(t->imageView->getComponentMapping().r == VK_COMPONENT_SWIZZLE_R);  // TODO(b/129523279)
+		samplerState.swizzleG = SWIZZLE_GREEN;                  ASSERT(t->imageView->getComponentMapping().g == VK_COMPONENT_SWIZZLE_G);  // TODO(b/129523279)
+		samplerState.swizzleB = SWIZZLE_BLUE;                   ASSERT(t->imageView->getComponentMapping().b == VK_COMPONENT_SWIZZLE_B);  // TODO(b/129523279)
+		samplerState.swizzleA = SWIZZLE_ALPHA;                  ASSERT(t->imageView->getComponentMapping().a == VK_COMPONENT_SWIZZLE_A);  // TODO(b/129523279)
+		samplerState.highPrecisionFiltering = false;
+		samplerState.compare = COMPARE_BYPASS;                  ASSERT(t->sampler->compareEnable == VK_FALSE);  // TODO(b/129523279)
+
+	//	minLod  // TODO(b/129523279)
+	//	maxLod  // TODO(b/129523279)
+	//	borderColor  // TODO(b/129523279)
+		ASSERT(t->sampler->mipLodBias == 0.0f);  // TODO(b/129523279)
+		ASSERT(t->sampler->anisotropyEnable == VK_FALSE);  // TODO(b/129523279)
+		ASSERT(t->sampler->unnormalizedCoordinates == VK_FALSE);  // TODO(b/129523279)
+
+		SamplerCore sampler(constants, samplerState);
+
+		Pointer<Byte> texture = sampledImage + OFFSET(vk::SampledImageDescriptor, texture); // sw::Texture*
+		SIMD::Float u = coordinate.Float(0);
+		SIMD::Float v = coordinate.Float(1);
+		SIMD::Float w(0);     // TODO(b/129523279)
+		SIMD::Float q(0);     // TODO(b/129523279)
+		SIMD::Float bias(0);  // TODO(b/129523279)
+		Vector4f dsx;         // TODO(b/129523279)
+		Vector4f dsy;         // TODO(b/129523279)
+		Vector4f offset;      // TODO(b/129523279)
+		SamplerFunction samplerFunction = { Implicit, None };   ASSERT(insn.wordCount() == 5);  // TODO(b/129523279)
+
+		Vector4f sample = sampler.sampleTextureF(texture, u, v, w, q, bias, dsx, dsy, offset, samplerFunction);
+
+		if(getType(resultType.element).opcode() == spv::OpTypeFloat)
+		{
+			result.move(0, sample.x);
+			result.move(1, sample.y);
+			result.move(2, sample.z);
+			result.move(3, sample.w);
+		}
+		else
+		{
+			// TODO(b/129523279): Add a Sampler::sampleTextureI() method.
+			result.move(0, As<SIMD::Int>(sample.x * SIMD::Float(0xFF)));
+			result.move(1, As<SIMD::Int>(sample.y * SIMD::Float(0xFF)));
+			result.move(2, As<SIMD::Int>(sample.z * SIMD::Float(0xFF)));
+			result.move(3, As<SIMD::Int>(sample.w * SIMD::Float(0xFF)));
 		}
 
 		return EmitResult::Continue;

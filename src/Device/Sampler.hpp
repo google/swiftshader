@@ -56,13 +56,13 @@ namespace sw
 		float4 heightLOD;
 		float4 depthLOD;
 
-		word4 borderColor4[4];
-		float4 borderColorF[4];
-		float maxAnisotropy;
+		word4 borderColor4[4];   // FIXME(b/129523279): Part of Vulkan sampler.
+		float4 borderColorF[4];  // FIXME(b/129523279): Part of Vulkan sampler.
+		float maxAnisotropy;     // FIXME(b/129523279): Part of Vulkan sampler.
 		int baseLevel;
 		int maxLevel;
-		float minLod;
-		float maxLod;
+		float minLod;  // FIXME(b/129523279): Part of Vulkan sampler.
+		float maxLod;  // FIXME(b/129523279): Part of Vulkan sampler.
 	};
 
 	enum SamplerType

@@ -283,6 +283,9 @@ namespace sw
 				// A pointer to a vk::DescriptorSet*.
 				// Pointer held by SpirvRoutine::pointers.
 				DescriptorSet,
+
+				// Pointer to an image/sampler descriptor.
+				SampledImage,
 			};
 
 			Kind kind = Kind::Unknown;
@@ -719,6 +722,7 @@ namespace sw
 		EmitResult EmitReturn(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitKill(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitPhi(InsnIterator insn, EmitState *state) const;
+		EmitResult EmitImageSampleImplicitLod(InsnIterator insn, EmitState *state) const;
 
 		// OpcodeName() returns the name of the opcode op.
 		// If NDEBUG is defined, then OpcodeName() will only return the numerical code.

@@ -13,7 +13,10 @@
 // limitations under the License.
 
 #include "VkDescriptorSetLayout.hpp"
+
 #include "VkDescriptorSet.hpp"
+#include "VkSampler.hpp"
+#include "VkImageView.hpp"
 #include "System/Types.hpp"
 
 #include <algorithm>
@@ -90,6 +93,7 @@ size_t DescriptorSetLayout::GetDescriptorSize(VkDescriptorType type)
 	case VK_DESCRIPTOR_TYPE_SAMPLER:
 	case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
 	case VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE:
+		return sizeof(SampledImageDescriptor);
 	case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
 	case VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT:
 		return sizeof(VkDescriptorImageInfo);
@@ -153,8 +157,8 @@ void DescriptorSetLayout::initialize(VkDescriptorSet vkDescriptorSet)
 		{
 			for(uint32_t j = 0; j < bindings[i].descriptorCount; j++)
 			{
-				VkDescriptorImageInfo* imageInfo = reinterpret_cast<VkDescriptorImageInfo*>(mem);
-				imageInfo->sampler = bindings[i].pImmutableSamplers[j];
+				SampledImageDescriptor* imageSamplerDescriptor = reinterpret_cast<SampledImageDescriptor*>(mem);
+				imageSamplerDescriptor->sampler = vk::Cast(bindings[i].pImmutableSamplers[j]);
 				mem += typeSize;
 			}
 		}
@@ -233,25 +237,25 @@ uint8_t* DescriptorSetLayout::getOffsetPointer(DescriptorSet *descriptorSet, uin
 	return &descriptorSet->data[byteOffset];
 }
 
-const uint8_t* DescriptorSetLayout::GetInputData(const VkWriteDescriptorSet& descriptorWrites)
+const uint8_t* DescriptorSetLayout::GetInputData(const VkWriteDescriptorSet& writeDescriptorSet)
 {
-	switch(descriptorWrites.descriptorType)
+	switch(writeDescriptorSet.descriptorType)
 	{
 	case VK_DESCRIPTOR_TYPE_SAMPLER:
 	case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
 	case VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE:
 	case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
 	case VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT:
-		return reinterpret_cast<const uint8_t*>(descriptorWrites.pImageInfo);
+		return reinterpret_cast<const uint8_t*>(writeDescriptorSet.pImageInfo);
 	case VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER:
 	case VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER:
-		return reinterpret_cast<const uint8_t*>(descriptorWrites.pTexelBufferView);
+		return reinterpret_cast<const uint8_t*>(writeDescriptorSet.pTexelBufferView);
 		break;
 	case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
 	case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER:
 	case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:
 	case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC:
-		return reinterpret_cast<const uint8_t*>(descriptorWrites.pBufferInfo);
+		return reinterpret_cast<const uint8_t*>(writeDescriptorSet.pBufferInfo);
 		break;
 	default:
 		UNIMPLEMENTED("descriptorType");
@@ -259,24 +263,186 @@ const uint8_t* DescriptorSetLayout::GetInputData(const VkWriteDescriptorSet& des
 	}
 }
 
-void DescriptorSetLayout::WriteDescriptorSet(const VkWriteDescriptorSet& descriptorWrites)
+void DescriptorSetLayout::WriteDescriptorSet(const VkWriteDescriptorSet& writeDescriptorSet)
 {
-	DescriptorSet* dstSet = vk::Cast(descriptorWrites.dstSet);
+	DescriptorSet* dstSet = vk::Cast(writeDescriptorSet.dstSet);
 	DescriptorSetLayout* dstLayout = dstSet->layout;
 	ASSERT(dstLayout);
-	ASSERT(dstLayout->bindings[dstLayout->getBindingIndex(descriptorWrites.dstBinding)].descriptorType == descriptorWrites.descriptorType);
+	ASSERT(dstLayout->bindings[dstLayout->getBindingIndex(writeDescriptorSet.dstBinding)].descriptorType == writeDescriptorSet.descriptorType);
 
 	size_t typeSize = 0;
-	uint8_t* memToWrite = dstLayout->getOffsetPointer(dstSet, descriptorWrites.dstBinding, descriptorWrites.dstArrayElement, descriptorWrites.descriptorCount, &typeSize);
+	uint8_t* memToWrite = dstLayout->getOffsetPointer(dstSet, writeDescriptorSet.dstBinding, writeDescriptorSet.dstArrayElement, writeDescriptorSet.descriptorCount, &typeSize);
 
-	// If the dstBinding has fewer than descriptorCount array elements remaining
-	// starting from dstArrayElement, then the remainder will be used to update
-	// the subsequent binding - dstBinding+1 starting at array element zero. If
-	// a binding has a descriptorCount of zero, it is skipped. This behavior
-	// applies recursively, with the update affecting consecutive bindings as
-	// needed to update all descriptorCount descriptors.
-	size_t writeSize = typeSize * descriptorWrites.descriptorCount;
-	memcpy(memToWrite, DescriptorSetLayout::GetInputData(descriptorWrites), writeSize);
+	if(writeDescriptorSet.descriptorType == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
+	{
+		SampledImageDescriptor *imageSampler = reinterpret_cast<SampledImageDescriptor*>(memToWrite);
+
+		for(uint32_t i = 0; i < writeDescriptorSet.descriptorCount; i++)
+		{
+			vk::Sampler *sampler = vk::Cast(writeDescriptorSet.pImageInfo[i].sampler);
+			vk::ImageView *imageView = vk::Cast(writeDescriptorSet.pImageInfo[i].imageView);
+
+			imageSampler[i].sampler = sampler;
+			imageSampler[i].imageView = imageView;
+
+			sw::Texture *texture = &imageSampler[i].texture;
+			memset(texture, 0, sizeof(sw::Texture));  // TODO(b/129523279): eliminate
+
+			auto &subresourceRange = imageView->getSubresourceRange();
+			int baseLevel = subresourceRange.baseMipLevel;
+
+			for(int mipmapLevel = 0; mipmapLevel < sw::MIPMAP_LEVELS; mipmapLevel++)
+			{
+				int level = mipmapLevel - baseLevel;  // Level within the image view
+				level = sw::clamp(level, 0, (int)subresourceRange.levelCount);
+
+				VkOffset3D offset = {0, 0, 0};
+				VkImageAspectFlagBits aspect = VK_IMAGE_ASPECT_COLOR_BIT;
+				void *buffer = imageView->getOffsetPointer(offset, aspect);
+
+				sw::Mipmap &mipmap = texture->mipmap[mipmapLevel];
+				mipmap.buffer[0] = buffer;
+
+				VkExtent3D extent = imageView->getMipLevelExtent(level);
+				Format format = imageView->getFormat();
+				int width = extent.width;
+				int height = extent.height;
+				int depth = extent.depth;
+				int pitchP = imageView->rowPitchBytes(aspect, level) / format.bytes();
+				int sliceP = imageView->slicePitchBytes(aspect, level) / format.bytes();
+
+				float exp2LOD = 1.0f;
+
+				if(mipmapLevel == 0)
+				{
+					texture->widthHeightLOD[0] = width * exp2LOD;
+					texture->widthHeightLOD[1] = width * exp2LOD;
+					texture->widthHeightLOD[2] = height * exp2LOD;
+					texture->widthHeightLOD[3] = height * exp2LOD;
+
+					texture->widthLOD[0] = width * exp2LOD;
+					texture->widthLOD[1] = width * exp2LOD;
+					texture->widthLOD[2] = width * exp2LOD;
+					texture->widthLOD[3] = width * exp2LOD;
+
+					texture->heightLOD[0] = height * exp2LOD;
+					texture->heightLOD[1] = height * exp2LOD;
+					texture->heightLOD[2] = height * exp2LOD;
+					texture->heightLOD[3] = height * exp2LOD;
+
+					texture->depthLOD[0] = depth * exp2LOD;
+					texture->depthLOD[1] = depth * exp2LOD;
+					texture->depthLOD[2] = depth * exp2LOD;
+					texture->depthLOD[3] = depth * exp2LOD;
+				}
+
+				if(format.isFloatFormat())
+				{
+					mipmap.fWidth[0] = (float)width / 65536.0f;
+					mipmap.fWidth[1] = (float)width / 65536.0f;
+					mipmap.fWidth[2] = (float)width / 65536.0f;
+					mipmap.fWidth[3] = (float)width / 65536.0f;
+
+					mipmap.fHeight[0] = (float)height / 65536.0f;
+					mipmap.fHeight[1] = (float)height / 65536.0f;
+					mipmap.fHeight[2] = (float)height / 65536.0f;
+					mipmap.fHeight[3] = (float)height / 65536.0f;
+
+					mipmap.fDepth[0] = (float)depth / 65536.0f;
+					mipmap.fDepth[1] = (float)depth / 65536.0f;
+					mipmap.fDepth[2] = (float)depth / 65536.0f;
+					mipmap.fDepth[3] = (float)depth / 65536.0f;
+				}
+
+				short halfTexelU = 0x8000 / width;
+				short halfTexelV = 0x8000 / height;
+				short halfTexelW = 0x8000 / depth;
+
+				mipmap.uHalf[0] = halfTexelU;
+				mipmap.uHalf[1] = halfTexelU;
+				mipmap.uHalf[2] = halfTexelU;
+				mipmap.uHalf[3] = halfTexelU;
+
+				mipmap.vHalf[0] = halfTexelV;
+				mipmap.vHalf[1] = halfTexelV;
+				mipmap.vHalf[2] = halfTexelV;
+				mipmap.vHalf[3] = halfTexelV;
+
+				mipmap.wHalf[0] = halfTexelW;
+				mipmap.wHalf[1] = halfTexelW;
+				mipmap.wHalf[2] = halfTexelW;
+				mipmap.wHalf[3] = halfTexelW;
+
+				mipmap.width[0] = width;
+				mipmap.width[1] = width;
+				mipmap.width[2] = width;
+				mipmap.width[3] = width;
+
+				mipmap.height[0] = height;
+				mipmap.height[1] = height;
+				mipmap.height[2] = height;
+				mipmap.height[3] = height;
+
+				mipmap.depth[0] = depth;
+				mipmap.depth[1] = depth;
+				mipmap.depth[2] = depth;
+				mipmap.depth[3] = depth;
+
+				mipmap.onePitchP[0] = 1;
+				mipmap.onePitchP[1] = pitchP;
+				mipmap.onePitchP[2] = 1;
+				mipmap.onePitchP[3] = pitchP;
+
+				mipmap.pitchP[0] = pitchP;
+				mipmap.pitchP[1] = pitchP;
+				mipmap.pitchP[2] = pitchP;
+				mipmap.pitchP[3] = pitchP;
+
+				mipmap.sliceP[0] = sliceP;
+				mipmap.sliceP[1] = sliceP;
+				mipmap.sliceP[2] = sliceP;
+				mipmap.sliceP[3] = sliceP;
+
+				// TODO(b/129523279)
+				if(false/*format == FORMAT_YV12_BT601 ||
+				   format == FORMAT_YV12_BT709 ||
+				   format == FORMAT_YV12_JFIF*/)
+				{
+					unsigned int YStride = pitchP;
+					unsigned int YSize = YStride * height;
+					unsigned int CStride = sw::align<16>(YStride / 2);
+					unsigned int CSize = CStride * height / 2;
+
+					mipmap.buffer[1] = (sw::byte*)mipmap.buffer[0] + YSize;
+					mipmap.buffer[2] = (sw::byte*)mipmap.buffer[1] + CSize;
+
+					texture->mipmap[1].width[0] = width / 2;
+					texture->mipmap[1].width[1] = width / 2;
+					texture->mipmap[1].width[2] = width / 2;
+					texture->mipmap[1].width[3] = width / 2;
+					texture->mipmap[1].height[0] = height / 2;
+					texture->mipmap[1].height[1] = height / 2;
+					texture->mipmap[1].height[2] = height / 2;
+					texture->mipmap[1].height[3] = height / 2;
+					texture->mipmap[1].onePitchP[0] = 1;
+					texture->mipmap[1].onePitchP[1] = CStride;
+					texture->mipmap[1].onePitchP[2] = 1;
+					texture->mipmap[1].onePitchP[3] = CStride;
+				}
+			}
+		}
+	}
+	else
+	{
+		// If the dstBinding has fewer than descriptorCount array elements remaining
+		// starting from dstArrayElement, then the remainder will be used to update
+		// the subsequent binding - dstBinding+1 starting at array element zero. If
+		// a binding has a descriptorCount of zero, it is skipped. This behavior
+		// applies recursively, with the update affecting consecutive bindings as
+		// needed to update all descriptorCount descriptors.
+		size_t writeSize = typeSize * writeDescriptorSet.descriptorCount;
+		memcpy(memToWrite, DescriptorSetLayout::GetInputData(writeDescriptorSet), writeSize);
+	}
 }
 
 void DescriptorSetLayout::CopyDescriptorSet(const VkCopyDescriptorSet& descriptorCopies)

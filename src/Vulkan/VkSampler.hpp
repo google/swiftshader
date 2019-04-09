@@ -49,22 +49,21 @@ public:
 		return 0;
 	}
 
-private:
-	VkFilter                magFilter = VK_FILTER_NEAREST;
-	VkFilter                minFilter = VK_FILTER_NEAREST;
-	VkSamplerMipmapMode     mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST;
-	VkSamplerAddressMode    addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-	VkSamplerAddressMode    addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-	VkSamplerAddressMode    addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-	float                   mipLodBias = 0.0f;
-	VkBool32                anisotropyEnable = VK_FALSE;
-	float                   maxAnisotropy = 0.0f;
-	VkBool32                compareEnable = VK_FALSE;
-	VkCompareOp             compareOp = VK_COMPARE_OP_NEVER;
-	float                   minLod = 0.0f;
-	float                   maxLod = 0.0f;
-	VkBorderColor           borderColor = VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK;
-	VkBool32                unnormalizedCoordinates = VK_FALSE;
+	const VkFilter             magFilter = VK_FILTER_NEAREST;
+	const VkFilter             minFilter = VK_FILTER_NEAREST;
+	const VkSamplerMipmapMode  mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST;
+	const VkSamplerAddressMode addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	const VkSamplerAddressMode addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	const VkSamplerAddressMode addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	const float                mipLodBias = 0.0f;
+	const VkBool32             anisotropyEnable = VK_FALSE;
+	const float                maxAnisotropy = 0.0f;
+	const VkBool32             compareEnable = VK_FALSE;
+	const VkCompareOp          compareOp = VK_COMPARE_OP_NEVER;
+	const float                minLod = 0.0f;
+	const float                maxLod = 0.0f;
+	const VkBorderColor        borderColor = VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK;
+	const VkBool32             unnormalizedCoordinates = VK_FALSE;
 };
 
 static inline Sampler* Cast(VkSampler object)
