@@ -3358,7 +3358,11 @@ namespace sw
 		}
 		case GLSLstd450Tanh:
 		{
-			UNIMPLEMENTED("GLSLstd450Tanh");
+			auto val = GenericValue(this, routine, insn.word(5));
+			for (auto i = 0u; i < type.sizeInComponents; i++)
+			{
+				dst.move(i, Tanh(val.Float(i)));
+			}
 			break;
 		}
 		case GLSLstd450Asinh:
