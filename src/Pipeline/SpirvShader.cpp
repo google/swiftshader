@@ -28,6 +28,8 @@
 
 namespace
 {
+	constexpr float PI = 3.141592653589793f;
+
 	rr::RValue<rr::Bool> AnyTrue(rr::RValue<sw::SIMD::Int> const &ints)
 	{
 		return rr::SignMask(ints) != 0;
@@ -3261,6 +3263,15 @@ namespace sw
 				SIMD::UInt v = (significand.UInt(i) & SIMD::UInt(0x807FFFFF)) |
 						(SIMD::UInt(combinedExponent + SIMD::Int(126)) << SIMD::UInt(23));
 				dst.move(i, As<SIMD::Float>(v));
+			}
+			break;
+		}
+		case GLSLstd450Radians:
+		{
+			auto degrees = GenericValue(this, routine, insn.word(5));
+			for (auto i = 0u; i < type.sizeInComponents; i++)
+			{
+				dst.move(i, degrees.Float(i) * SIMD::Float(PI / 180.0f));
 			}
 			break;
 		}
