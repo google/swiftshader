@@ -146,6 +146,76 @@ namespace
 		                       i, j, k,
 		                       m, n, o);
 	}
+
+	// Returns the inverse of a 2x2 matrix.
+	std::array<rr::RValue<sw::SIMD::Float>, 4> MatrixInverse(
+		rr::RValue<sw::SIMD::Float> const &a, rr::RValue<sw::SIMD::Float> const &b,
+		rr::RValue<sw::SIMD::Float> const &c, rr::RValue<sw::SIMD::Float> const &d)
+	{
+		auto s = sw::SIMD::Float(1.0f) / Determinant(a, b, c, d);
+		return {{s*d, -s*b, -s*c, s*a}};
+	}
+
+	// Returns the inverse of a 3x3 matrix.
+	std::array<rr::RValue<sw::SIMD::Float>, 9> MatrixInverse(
+		rr::RValue<sw::SIMD::Float> const &a, rr::RValue<sw::SIMD::Float> const &b, rr::RValue<sw::SIMD::Float> const &c,
+		rr::RValue<sw::SIMD::Float> const &d, rr::RValue<sw::SIMD::Float> const &e, rr::RValue<sw::SIMD::Float> const &f,
+		rr::RValue<sw::SIMD::Float> const &g, rr::RValue<sw::SIMD::Float> const &h, rr::RValue<sw::SIMD::Float> const &i)
+	{
+		auto s = sw::SIMD::Float(1.0f) / Determinant(
+				a, b, c,
+				d, e, f,
+				g, h, i); // TODO: duplicate arithmetic calculating the det and below.
+
+		return {{
+			s * (e*i - f*h), s * (c*h - b*i), s * (b*f - c*e),
+			s * (f*g - d*i), s * (a*i - c*g), s * (c*d - a*f),
+			s * (d*h - e*g), s * (b*g - a*h), s * (a*e - b*d),
+		}};
+	}
+
+	// Returns the inverse of a 4x4 matrix.
+	std::array<rr::RValue<sw::SIMD::Float>, 16> MatrixInverse(
+		rr::RValue<sw::SIMD::Float> const &a, rr::RValue<sw::SIMD::Float> const &b, rr::RValue<sw::SIMD::Float> const &c, rr::RValue<sw::SIMD::Float> const &d,
+		rr::RValue<sw::SIMD::Float> const &e, rr::RValue<sw::SIMD::Float> const &f, rr::RValue<sw::SIMD::Float> const &g, rr::RValue<sw::SIMD::Float> const &h,
+		rr::RValue<sw::SIMD::Float> const &i, rr::RValue<sw::SIMD::Float> const &j, rr::RValue<sw::SIMD::Float> const &k, rr::RValue<sw::SIMD::Float> const &l,
+		rr::RValue<sw::SIMD::Float> const &m, rr::RValue<sw::SIMD::Float> const &n, rr::RValue<sw::SIMD::Float> const &o, rr::RValue<sw::SIMD::Float> const &p)
+	{
+		auto s = sw::SIMD::Float(1.0f) / Determinant(
+				a, b, c, d,
+				e, f, g, h,
+				i, j, k, l,
+				m, n, o, p); // TODO: duplicate arithmetic calculating the det and below.
+
+		auto kplo = k*p - l*o, jpln = j*p - l*n, jokn = j*o - k*n;
+		auto gpho = g*p - h*o, fphn = f*p - h*n, fogn = f*o - g*n;
+		auto glhk = g*l - h*k, flhj = f*l - h*j, fkgj = f*k - g*j;
+		auto iplm = i*p - l*m, iokm = i*o - k*m, ephm = e*p - h*m;
+		auto eogm = e*o - g*m, elhi = e*l - h*i, ekgi = e*k - g*i;
+		auto injm = i*n - j*m, enfm = e*n - f*m, ejfi = e*j - f*i;
+
+		return {{
+			s * ( f * kplo - g * jpln + h * jokn),
+			s * (-b * kplo + c * jpln - d * jokn),
+			s * ( b * gpho - c * fphn + d * fogn),
+			s * (-b * glhk + c * flhj - d * fkgj),
+
+			s * (-e * kplo + g * iplm - h * iokm),
+			s * ( a * kplo - c * iplm + d * iokm),
+			s * (-a * gpho + c * ephm - d * eogm),
+			s * ( a * glhk - c * elhi + d * ekgi),
+
+			s * ( e * jpln - f * iplm + h * injm),
+			s * (-a * jpln + b * iplm - d * injm),
+			s * ( a * fphn - b * ephm + d * enfm),
+			s * (-a * flhj + b * elhi - d * ejfi),
+
+			s * (-e * jokn + f * iokm - g * injm),
+			s * ( a * jokn - b * iokm + c * injm),
+			s * (-a * fogn + b * eogm - c * enfm),
+			s * ( a * fkgj - b * ekgi + c * ejfi),
+		}};
+	}
 }
 
 namespace sw
@@ -3812,7 +3882,49 @@ namespace sw
 		}
 		case GLSLstd450MatrixInverse:
 		{
-			UNIMPLEMENTED("GLSLstd450MatrixInverse");
+			auto mat = GenericValue(this, routine, insn.word(5));
+			auto numComponents = getType(mat.type).sizeInComponents;
+			switch (numComponents)
+			{
+			case 4: // 2x2
+			{
+				auto inv = MatrixInverse(
+					mat.Float(0), mat.Float(1),
+					mat.Float(2), mat.Float(3));
+				for (uint32_t i = 0; i < inv.size(); i++)
+				{
+					dst.move(i, inv[i]);
+				}
+				break;
+			}
+			case 9: // 3x3
+			{
+				auto inv = MatrixInverse(
+					mat.Float(0), mat.Float(1), mat.Float(2),
+					mat.Float(3), mat.Float(4), mat.Float(5),
+					mat.Float(6), mat.Float(7), mat.Float(8));
+				for (uint32_t i = 0; i < inv.size(); i++)
+				{
+					dst.move(i, inv[i]);
+				}
+				break;
+			}
+			case 16: // 4x4
+			{
+				auto inv = MatrixInverse(
+					mat.Float(0),  mat.Float(1),  mat.Float(2),  mat.Float(3),
+					mat.Float(4),  mat.Float(5),  mat.Float(6),  mat.Float(7),
+					mat.Float(8),  mat.Float(9),  mat.Float(10), mat.Float(11),
+					mat.Float(12), mat.Float(13), mat.Float(14), mat.Float(15));
+				for (uint32_t i = 0; i < inv.size(); i++)
+				{
+					dst.move(i, inv[i]);
+				}
+				break;
+			}
+			default:
+				UNREACHABLE("GLSLstd450MatrixInverse can only operate with square matrices. Got %d elements", int(numComponents));
+			}
 			break;
 		}
 		case GLSLstd450IMix:
