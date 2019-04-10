@@ -2238,6 +2238,11 @@ namespace rr
 	// Returns an undefined value when: !isZeroUndef && x == 0.
 	RValue<UInt4> Ctlz(RValue<UInt4> x, bool isZeroUndef);
 
+	// Count trailing zeros.
+	// Returns 32 when: isZeroUndef && x == 0.
+	// Returns an undefined value when: !isZeroUndef && x == 0.
+	RValue<UInt4> Cttz(RValue<UInt4> x, bool isZeroUndef);
+
 	template<class T>
 	class Pointer : public LValue<Pointer<T>>
 	{

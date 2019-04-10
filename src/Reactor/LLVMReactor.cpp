@@ -3219,6 +3219,15 @@ namespace rr
 		})));
 	}
 
+	RValue<UInt4> Cttz(RValue<UInt4> v, bool isZeroUndef)
+	{
+		auto func = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::cttz, { T(UInt4::getType()), T(Bool::getType()) } );
+		return RValue<UInt4>(V(::builder->CreateCall(func, {
+			V(v.value),
+			isZeroUndef ? ::llvm::ConstantInt::getTrue(*::context) : ::llvm::ConstantInt::getFalse(*::context)
+		})));
+	}
+
 	Type *Float4::getType()
 	{
 		return T(llvm::VectorType::get(T(Float::getType()), 4));

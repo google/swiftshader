@@ -3605,7 +3605,12 @@ namespace sw
 		}
 		case GLSLstd450FindILsb:
 		{
-			UNIMPLEMENTED("GLSLstd450FindILsb");
+			auto val = GenericValue(this, routine, insn.word(5));
+			for (auto i = 0u; i < type.sizeInComponents; i++)
+			{
+				auto v = val.UInt(i);
+				dst.move(i, Cttz(v, true) | CmpEQ(v, SIMD::UInt(0)));
+			}
 			break;
 		}
 		case GLSLstd450FindSMsb:
