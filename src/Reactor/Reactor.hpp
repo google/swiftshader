@@ -2232,6 +2232,7 @@ namespace rr
 
 	// Bit Manipulation functions.
 	// TODO: Currentlhy unimplemented for Subzero.
+	RValue<UInt4> BitReverse(RValue<UInt4> x);
 
 	// Count leading zeros.
 	// Returns 32 when: isZeroUndef && x == 0.

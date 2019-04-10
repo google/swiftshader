@@ -3214,6 +3214,12 @@ namespace rr
 		return RValue<Float4>(V(::builder->CreateCall(func, V(v.value))));
 	}
 
+	RValue<UInt4> BitReverse(RValue<UInt4> v)
+	{
+		auto func = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::bitreverse, { T(UInt4::getType()) } );
+		return RValue<UInt4>(V(::builder->CreateCall(func, { V(v.value) })));
+	}
+
 	RValue<UInt4> Ctlz(RValue<UInt4> v, bool isZeroUndef)
 	{
 #if REACTOR_LLVM_VERSION < 7
