@@ -3595,11 +3595,13 @@ namespace sw
 		}
 		case GLSLstd450PackDouble2x32:
 		{
+			// Requires Float64 capability.
 			UNIMPLEMENTED("GLSLstd450PackDouble2x32");
 			break;
 		}
 		case GLSLstd450UnpackDouble2x32:
 		{
+			// Requires Float64 capability.
 			UNIMPLEMENTED("GLSLstd450UnpackDouble2x32");
 			break;
 		}
@@ -3634,16 +3636,19 @@ namespace sw
 		}
 		case GLSLstd450InterpolateAtCentroid:
 		{
+			// Requires sampleRateShading / InterpolationFunction capability.
 			UNIMPLEMENTED("GLSLstd450InterpolateAtCentroid");
 			break;
 		}
 		case GLSLstd450InterpolateAtSample:
 		{
+			// Requires sampleRateShading / InterpolationFunction capability.
 			UNIMPLEMENTED("GLSLstd450InterpolateAtSample");
 			break;
 		}
 		case GLSLstd450InterpolateAtOffset:
 		{
+			// Requires sampleRateShading / InterpolationFunction capability.
 			UNIMPLEMENTED("GLSLstd450InterpolateAtOffset");
 			break;
 		}
