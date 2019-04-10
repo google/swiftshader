@@ -3220,6 +3220,12 @@ namespace rr
 		return RValue<UInt4>(V(::builder->CreateCall(func, { V(v.value) })));
 	}
 
+	RValue<UInt4> BitCount(RValue<UInt4> v)
+	{
+		auto func = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::ctpop, { T(UInt4::getType()) } );
+		return RValue<UInt4>(V(::builder->CreateCall(func, { V(v.value) })));
+	}
+
 	RValue<UInt4> Ctlz(RValue<UInt4> v, bool isZeroUndef)
 	{
 #if REACTOR_LLVM_VERSION < 7
