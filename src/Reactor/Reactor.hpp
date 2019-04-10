@@ -3011,8 +3011,6 @@ namespace rr
 		PrintValue(uint32_t v) : format(std::to_string(v)) {}
 		PrintValue(int64_t v) : format(std::to_string(v)) {}
 		PrintValue(uint64_t v) : format(std::to_string(v)) {}
-		PrintValue(long v) : format(std::to_string(v)) {}
-		PrintValue(unsigned long v) : format(std::to_string(v)) {}
 		PrintValue(float v) : format(std::to_string(v)) {}
 		PrintValue(double v) : format(std::to_string(v)) {}
 		PrintValue(const char* v) : format(v) {}
