@@ -543,7 +543,7 @@ VKAPI_ATTR VkResult VKAPI_CALL vkAllocateMemory(VkDevice device, const VkMemoryA
 	TRACE("(VkDevice device = 0x%X, const VkMemoryAllocateInfo* pAllocateInfo = 0x%X, const VkAllocationCallbacks* pAllocator = 0x%X, VkDeviceMemory* pMemory = 0x%X)",
 		    device, pAllocateInfo, pAllocator, pMemory);
 
-	const VkBaseOutStructure* allocationInfo = reinterpret_cast<const VkBaseOutStructure*>(pAllocateInfo->pNext);
+	const VkBaseInStructure* allocationInfo = reinterpret_cast<const VkBaseInStructure*>(pAllocateInfo->pNext);
 	while(allocationInfo)
 	{
 		switch(allocationInfo->sType)
@@ -2095,9 +2095,79 @@ VKAPI_ATTR VkResult VKAPI_CALL vkGetPhysicalDeviceImageFormatProperties2(VkPhysi
 	TRACE("(VkPhysicalDevice physicalDevice = 0x%X, const VkPhysicalDeviceImageFormatInfo2* pImageFormatInfo = 0x%X, VkImageFormatProperties2* pImageFormatProperties = 0x%X)",
 		    physicalDevice, pImageFormatInfo, pImageFormatProperties);
 
-	if(pImageFormatInfo->pNext || pImageFormatProperties->pNext)
+	const VkBaseInStructure* extensionFormatInfo = reinterpret_cast<const VkBaseInStructure*>(pImageFormatInfo->pNext);
+
+	const VkExternalMemoryHandleTypeFlagBits* handleType = nullptr;
+	while(extensionFormatInfo)
 	{
-		UNIMPLEMENTED("pImageFormatInfo->pNext || pImageFormatProperties->pNext");
+		switch(extensionFormatInfo->sType)
+		{
+		case VK_STRUCTURE_TYPE_IMAGE_FORMAT_LIST_CREATE_INFO_KHR:
+		{
+			// Explicitly ignored, since VK_KHR_image_format_list is not supported
+			ASSERT(!HasExtensionProperty(VK_KHR_IMAGE_FORMAT_LIST_EXTENSION_NAME, deviceExtensionProperties,
+			                             sizeof(deviceExtensionProperties) / sizeof(deviceExtensionProperties[0])));
+		}
+		break;
+		case VK_STRUCTURE_TYPE_IMAGE_STENCIL_USAGE_CREATE_INFO_EXT:
+		{
+			// Explicitly ignored, since VK_EXT_separate_stencil_usage is not supported
+			ASSERT(!HasExtensionProperty(VK_EXT_SEPARATE_STENCIL_USAGE_EXTENSION_NAME, deviceExtensionProperties,
+			                             sizeof(deviceExtensionProperties) / sizeof(deviceExtensionProperties[0])));
+		}
+		break;
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_IMAGE_FORMAT_INFO:
+		{
+			const VkPhysicalDeviceExternalImageFormatInfo* imageFormatInfo = reinterpret_cast<const VkPhysicalDeviceExternalImageFormatInfo*>(extensionFormatInfo);
+			handleType = &(imageFormatInfo->handleType);
+		}
+		break;
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_DRM_FORMAT_MODIFIER_INFO_EXT:
+		{
+			// Explicitly ignored, since VK_EXT_image_drm_format_modifier is not supported
+			ASSERT(!HasExtensionProperty(VK_EXT_IMAGE_DRM_FORMAT_MODIFIER_EXTENSION_NAME, deviceExtensionProperties,
+			                             sizeof(deviceExtensionProperties) / sizeof(deviceExtensionProperties[0])));
+		}
+		break;
+		default:
+			UNIMPLEMENTED("extensionFormatInfo->sType");
+			break;
+		}
+
+		extensionFormatInfo = extensionFormatInfo->pNext;
+	}
+
+	VkBaseOutStructure* extensionProperties = reinterpret_cast<VkBaseOutStructure*>(pImageFormatProperties->pNext);
+
+	while(extensionProperties)
+	{
+		switch(extensionProperties->sType)
+		{
+		case VK_STRUCTURE_TYPE_EXTERNAL_IMAGE_FORMAT_PROPERTIES:
+		{
+			auto& properties = *reinterpret_cast<VkExternalImageFormatProperties*>(extensionProperties);
+			vk::Cast(physicalDevice)->getProperties(handleType, &properties);
+		}
+		break;
+		case VK_STRUCTURE_TYPE_SAMPLER_YCBCR_CONVERSION_IMAGE_FORMAT_PROPERTIES:
+		{
+			auto& properties = *reinterpret_cast<VkSamplerYcbcrConversionImageFormatProperties*>(extensionProperties);
+			vk::Cast(physicalDevice)->getProperties(&properties);
+		}
+		break;
+		case VK_STRUCTURE_TYPE_TEXTURE_LOD_GATHER_FORMAT_PROPERTIES_AMD:
+		{
+			// Explicitly ignored, since VK_AMD_texture_gather_bias_lod is not supported
+			ASSERT(!HasExtensionProperty(VK_AMD_TEXTURE_GATHER_BIAS_LOD_EXTENSION_NAME, deviceExtensionProperties,
+			                             sizeof(deviceExtensionProperties) / sizeof(deviceExtensionProperties[0])));
+		}
+		break;
+		default:
+			UNIMPLEMENTED("extensionProperties->sType");
+			break;
+		}
+
+		extensionProperties = extensionProperties->pNext;
 	}
 
 	return vkGetPhysicalDeviceImageFormatProperties(physicalDevice,
@@ -2230,7 +2300,7 @@ VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceExternalBufferProperties(VkPhysica
 	TRACE("(VkPhysicalDevice physicalDevice = 0x%X, const VkPhysicalDeviceExternalBufferInfo* pExternalBufferInfo = 0x%X, VkExternalBufferProperties* pExternalBufferProperties = 0x%X)",
 	      physicalDevice, pExternalBufferInfo, pExternalBufferProperties);
 
-	UNIMPLEMENTED("vkGetPhysicalDeviceExternalBufferProperties");
+	vk::Cast(physicalDevice)->getProperties(pExternalBufferInfo, pExternalBufferProperties);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceExternalFenceProperties(VkPhysicalDevice physicalDevice, const VkPhysicalDeviceExternalFenceInfo* pExternalFenceInfo, VkExternalFenceProperties* pExternalFenceProperties)
@@ -2238,7 +2308,7 @@ VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceExternalFenceProperties(VkPhysical
 	TRACE("(VkPhysicalDevice physicalDevice = 0x%X, const VkPhysicalDeviceExternalFenceInfo* pExternalFenceInfo = 0x%X, VkExternalFenceProperties* pExternalFenceProperties = 0x%X)",
 	      physicalDevice, pExternalFenceInfo, pExternalFenceProperties);
 
-	UNIMPLEMENTED("vkGetPhysicalDeviceExternalFenceProperties");
+	vk::Cast(physicalDevice)->getProperties(pExternalFenceInfo, pExternalFenceProperties);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceExternalSemaphoreProperties(VkPhysicalDevice physicalDevice, const VkPhysicalDeviceExternalSemaphoreInfo* pExternalSemaphoreInfo, VkExternalSemaphoreProperties* pExternalSemaphoreProperties)
@@ -2246,7 +2316,7 @@ VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceExternalSemaphoreProperties(VkPhys
 	TRACE("(VkPhysicalDevice physicalDevice = 0x%X, const VkPhysicalDeviceExternalSemaphoreInfo* pExternalSemaphoreInfo = 0x%X, VkExternalSemaphoreProperties* pExternalSemaphoreProperties = 0x%X)",
 	      physicalDevice, pExternalSemaphoreInfo, pExternalSemaphoreProperties);
 
-	UNIMPLEMENTED("vkGetPhysicalDeviceExternalSemaphoreProperties");
+	vk::Cast(physicalDevice)->getProperties(pExternalSemaphoreInfo, pExternalSemaphoreProperties);
 }
 
 VKAPI_ATTR void VKAPI_CALL vkGetDescriptorSetLayoutSupport(VkDevice device, const VkDescriptorSetLayoutCreateInfo* pCreateInfo, VkDescriptorSetLayoutSupport* pSupport)

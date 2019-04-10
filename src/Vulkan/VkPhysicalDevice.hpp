@@ -46,6 +46,11 @@ public:
 	void getProperties(VkPhysicalDevicePointClippingProperties* properties) const;
 	void getProperties(VkPhysicalDeviceProtectedMemoryProperties* properties) const;
 	void getProperties(VkPhysicalDeviceSubgroupProperties* properties) const;
+	void getProperties(const VkExternalMemoryHandleTypeFlagBits* handleType, VkExternalImageFormatProperties* properties) const;
+	void getProperties(VkSamplerYcbcrConversionImageFormatProperties* properties) const;
+	void getProperties(const VkPhysicalDeviceExternalBufferInfo* pExternalBufferInfo, VkExternalBufferProperties* pExternalBufferProperties) const;
+	void getProperties(const VkPhysicalDeviceExternalFenceInfo* pExternalFenceInfo, VkExternalFenceProperties* pExternalFenceProperties) const;
+	void getProperties(const VkPhysicalDeviceExternalSemaphoreInfo* pExternalSemaphoreInfo, VkExternalSemaphoreProperties* pExternalSemaphoreProperties) const;
 
 	void getFormatProperties(VkFormat format, VkFormatProperties* pFormatProperties) const;
 	void getImageFormatProperties(VkFormat format, VkImageType type, VkImageTiling tiling,

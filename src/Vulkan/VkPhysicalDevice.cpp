@@ -311,6 +311,39 @@ void PhysicalDevice::getProperties(VkPhysicalDeviceSubgroupProperties* propertie
 	properties->quadOperationsInAllStages = VK_FALSE;
 }
 
+void PhysicalDevice::getProperties(const VkExternalMemoryHandleTypeFlagBits* handleType, VkExternalImageFormatProperties* properties) const
+{
+	properties->externalMemoryProperties.compatibleHandleTypes = 0;
+	properties->externalMemoryProperties.exportFromImportedHandleTypes = 0;
+	properties->externalMemoryProperties.externalMemoryFeatures = 0;
+}
+
+void PhysicalDevice::getProperties(VkSamplerYcbcrConversionImageFormatProperties* properties) const
+{
+	properties->combinedImageSamplerDescriptorCount = 0;
+}
+
+void PhysicalDevice::getProperties(const VkPhysicalDeviceExternalBufferInfo* pExternalBufferInfo, VkExternalBufferProperties* pExternalBufferProperties) const
+{
+	pExternalBufferProperties->externalMemoryProperties.compatibleHandleTypes = 0;
+	pExternalBufferProperties->externalMemoryProperties.exportFromImportedHandleTypes = 0;
+	pExternalBufferProperties->externalMemoryProperties.externalMemoryFeatures = 0;
+}
+
+void PhysicalDevice::getProperties(const VkPhysicalDeviceExternalFenceInfo* pExternalFenceInfo, VkExternalFenceProperties* pExternalFenceProperties) const
+{
+	pExternalFenceProperties->compatibleHandleTypes = 0;
+	pExternalFenceProperties->exportFromImportedHandleTypes = 0;
+	pExternalFenceProperties->externalFenceFeatures = 0;
+}
+
+void PhysicalDevice::getProperties(const VkPhysicalDeviceExternalSemaphoreInfo* pExternalSemaphoreInfo, VkExternalSemaphoreProperties* pExternalSemaphoreProperties) const
+{
+	pExternalSemaphoreProperties->compatibleHandleTypes = 0;
+	pExternalSemaphoreProperties->exportFromImportedHandleTypes = 0;
+	pExternalSemaphoreProperties->externalSemaphoreFeatures = 0;
+}
+
 bool PhysicalDevice::hasFeatures(const VkPhysicalDeviceFeatures& requestedFeatures) const
 {
 	const VkPhysicalDeviceFeatures& supportedFeatures = getFeatures();
