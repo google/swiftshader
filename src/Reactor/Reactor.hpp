@@ -2230,6 +2230,14 @@ namespace rr
 	RValue<Float4> Exp2(RValue<Float4> x);
 	RValue<Float4> Log2(RValue<Float4> x);
 
+	// Bit Manipulation functions.
+	// TODO: Currentlhy unimplemented for Subzero.
+
+	// Count leading zeros.
+	// Returns 32 when: isZeroUndef && x == 0.
+	// Returns an undefined value when: !isZeroUndef && x == 0.
+	RValue<UInt4> Ctlz(RValue<UInt4> x, bool isZeroUndef);
+
 	template<class T>
 	class Pointer : public LValue<Pointer<T>>
 	{

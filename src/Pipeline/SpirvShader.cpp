@@ -3610,12 +3610,21 @@ namespace sw
 		}
 		case GLSLstd450FindSMsb:
 		{
-			UNIMPLEMENTED("GLSLstd450FindSMsb");
+			auto val = GenericValue(this, routine, insn.word(5));
+			for (auto i = 0u; i < type.sizeInComponents; i++)
+			{
+				auto v = val.UInt(i) ^ As<SIMD::UInt>(CmpLT(val.Int(i), SIMD::Int(0)));
+				dst.move(i, SIMD::UInt(31) - Ctlz(v, false));
+			}
 			break;
 		}
 		case GLSLstd450FindUMsb:
 		{
-			UNIMPLEMENTED("GLSLstd450FindUMsb");
+			auto val = GenericValue(this, routine, insn.word(5));
+			for (auto i = 0u; i < type.sizeInComponents; i++)
+			{
+				dst.move(i, SIMD::UInt(31) - Ctlz(val.UInt(i), false));
+			}
 			break;
 		}
 		case GLSLstd450InterpolateAtCentroid:
