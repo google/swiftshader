@@ -21,8 +21,8 @@ namespace sw
 {
 	std::string SpirvShader::OpcodeName(spv::Op op)
 	{
-		switch(op){
 #ifndef NDEBUG
+		switch(op){
 		case spv::OpNop: return "Nop";
 		case spv::OpUndef: return "Undef";
 		case spv::OpSourceContinued: return "SourceContinued";
@@ -399,10 +399,12 @@ namespace sw
 		case spv::OpDecorateStringGOOGLE: return "DecorateStringGOOGLE";
 		case spv::OpMemberDecorateStringGOOGLE: return "MemberDecorateStringGOOGLE";
 		case spv::OpMax: return "Max";
-#endif // NDEBUG
 		default:
-			return "Opcode<" + std::to_string(static_cast<int>(op)) + ">";
+			break;
 		}
+#endif // NDEBUG
+
+		return "Opcode<" + std::to_string(static_cast<int>(op)) + ">";
 	}
 
 } // namespace sw

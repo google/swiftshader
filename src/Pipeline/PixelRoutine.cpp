@@ -509,8 +509,8 @@ namespace sw
 		Int4 zTest;
 
 		// Bias values to make unsigned compares out of Reactor's (due SSE's) signed compares only
-		zValue = zValue - Short4(0x8000);
-		Z = Z - Short4(0x8000);
+		zValue = zValue - Short4(0x8000u);
+		Z = Z - Short4(0x8000u);
 
 		switch(state.depthCompareMode)
 		{

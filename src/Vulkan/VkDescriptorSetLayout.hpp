@@ -45,17 +45,17 @@ public:
 
 	// Returns the byte offset from the base address of the descriptor set for
 	// the given binding and array element within that binding.
-	size_t getBindingOffset(uint32_t binding, uint32_t arrayElement) const;
+	size_t getBindingOffset(uint32_t binding, size_t arrayElement) const;
 
 	// Returns the number of descriptors across all bindings that are dynamic
 	// (see isBindingDynamic).
-	size_t getDynamicDescriptorCount() const;
+	uint32_t getDynamicDescriptorCount() const;
 
 	// Returns the relative offset into the pipeline's dynamic offsets array for
 	// the given binding. This offset should be added to the base offset
 	// returned by PipelineLayout::getDynamicOffsetBase() to produce the
 	// starting index for dynamic descriptors.
-	size_t getDynamicDescriptorOffset(uint32_t binding) const;
+	uint32_t getDynamicDescriptorOffset(uint32_t binding) const;
 
 	// Returns true if the given binding is of type:
 	//  VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC or

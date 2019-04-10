@@ -31,7 +31,7 @@ namespace vk
 		using DynamicOffsets = std::array<uint32_t, vk::MAX_DESCRIPTOR_SET_COMBINED_BUFFERS_DYNAMIC>;
 
 		DescriptorSetLayout* layout;
-		uint8_t data[];
+		uint8_t data[1];
 	};
 
 	inline DescriptorSet* Cast(VkDescriptorSet object)

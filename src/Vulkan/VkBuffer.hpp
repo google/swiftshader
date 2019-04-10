@@ -42,7 +42,7 @@ public:
 
 	// DataOffset is the offset in bytes from the Buffer to the pointer to the
 	// buffer's data memory.
-	static const size_t DataOffset;
+	static const int DataOffset;
 
 private:
 	void*                 memory = nullptr;

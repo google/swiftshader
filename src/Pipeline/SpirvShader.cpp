@@ -942,7 +942,7 @@ namespace sw
 
 				auto set = routine->getPointer(id);
 				auto setLayout = routine->pipelineLayout->getDescriptorSetLayout(d.DescriptorSet);
-				size_t bindingOffset = setLayout->getBindingOffset(d.Binding, arrayIndex);
+				int bindingOffset = static_cast<int>(setLayout->getBindingOffset(d.Binding, arrayIndex));
 
 				Pointer<Byte> bufferInfo = Pointer<Byte>(set + bindingOffset); // VkDescriptorBufferInfo*
 				Pointer<Byte> buffer = *Pointer<Pointer<Byte>>(bufferInfo + OFFSET(VkDescriptorBufferInfo, buffer)); // vk::Buffer*
@@ -974,7 +974,7 @@ namespace sw
 		Decorations d = {};
 		ApplyDecorationsForId(&d, baseObject.type);
 
-		size_t arrayIndex = 0;
+		uint32_t arrayIndex = 0;
 		if (baseObject.kind == Object::Kind::DescriptorSet)
 		{
 			auto type = getType(typeId).definition.opcode();

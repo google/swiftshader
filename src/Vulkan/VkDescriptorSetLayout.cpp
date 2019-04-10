@@ -170,7 +170,7 @@ size_t DescriptorSetLayout::getBindingCount() const
 	return bindingCount;
 }
 
-size_t DescriptorSetLayout::getBindingOffset(uint32_t binding, uint32_t arrayElement) const
+size_t DescriptorSetLayout::getBindingOffset(uint32_t binding, size_t arrayElement) const
 {
 	uint32_t index = getBindingIndex(binding);
 	auto typeSize = GetDescriptorSize(bindings[index].descriptorType);
@@ -189,9 +189,9 @@ bool DescriptorSetLayout::isBindingDynamic(uint32_t binding) const
 	return isDynamic(bindings[index].descriptorType);
 }
 
-size_t DescriptorSetLayout::getDynamicDescriptorCount() const
+uint32_t DescriptorSetLayout::getDynamicDescriptorCount() const
 {
-	size_t count = 0;
+	uint32_t count = 0;
 	for (size_t i = 0; i < bindingCount; i++)
 	{
 		if (isDynamic(bindings[i].descriptorType))
@@ -202,12 +202,12 @@ size_t DescriptorSetLayout::getDynamicDescriptorCount() const
 	return count;
 }
 
-size_t DescriptorSetLayout::getDynamicDescriptorOffset(uint32_t binding) const
+uint32_t DescriptorSetLayout::getDynamicDescriptorOffset(uint32_t binding) const
 {
 	uint32_t n = getBindingIndex(binding);
 	ASSERT(isDynamic(bindings[n].descriptorType));
 
-	size_t index = 0;
+	uint32_t index = 0;
 	for (uint32_t i = 0; i < n; i++)
 	{
 		if (isDynamic(bindings[i].descriptorType))
