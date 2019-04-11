@@ -105,7 +105,6 @@ void Image::copyTo(VkImage dstImage, const VkImageCopy& pRegion)
 	if(!((pRegion.srcSubresource.aspectMask == VK_IMAGE_ASPECT_COLOR_BIT) ||
 		 (pRegion.srcSubresource.aspectMask == VK_IMAGE_ASPECT_DEPTH_BIT) ||
 		 (pRegion.srcSubresource.aspectMask == VK_IMAGE_ASPECT_STENCIL_BIT)) ||
-		 (pRegion.srcSubresource.baseArrayLayer != 0) ||
 		 (pRegion.srcSubresource.layerCount != 1))
 	{
 		UNIMPLEMENTED("srcSubresource");
@@ -114,7 +113,6 @@ void Image::copyTo(VkImage dstImage, const VkImageCopy& pRegion)
 	if(!((pRegion.dstSubresource.aspectMask == VK_IMAGE_ASPECT_COLOR_BIT) ||
 		 (pRegion.dstSubresource.aspectMask == VK_IMAGE_ASPECT_DEPTH_BIT) ||
 		 (pRegion.dstSubresource.aspectMask == VK_IMAGE_ASPECT_STENCIL_BIT)) ||
-		 (pRegion.dstSubresource.baseArrayLayer != 0) ||
 		 (pRegion.dstSubresource.layerCount != 1))
 	{
 		UNIMPLEMENTED("dstSubresource");
@@ -619,6 +617,26 @@ VkDeviceSize Image::getStorageSize(VkImageAspectFlags aspectMask) const
 void Image::blit(VkImage dstImage, const VkImageBlit& region, VkFilter filter)
 {
 	device->getBlitter()->blit(this, Cast(dstImage), region, filter);
+}
+
+void Image::resolve(VkImage dstImage, const VkImageResolve& region)
+{
+	VkImageBlit blitRegion;
+
+	blitRegion.srcOffsets[0] = blitRegion.srcOffsets[1] = region.srcOffset;
+	blitRegion.srcOffsets[1].x += region.extent.width;
+	blitRegion.srcOffsets[1].y += region.extent.height;
+	blitRegion.srcOffsets[1].z += region.extent.depth;
+
+	blitRegion.dstOffsets[0] = blitRegion.dstOffsets[1] = region.dstOffset;
+	blitRegion.dstOffsets[1].x += region.extent.width;
+	blitRegion.dstOffsets[1].y += region.extent.height;
+	blitRegion.dstOffsets[1].z += region.extent.depth;
+
+	blitRegion.srcSubresource = region.srcSubresource;
+	blitRegion.dstSubresource = region.dstSubresource;
+
+	device->getBlitter()->blit(this, Cast(dstImage), blitRegion, VK_FILTER_NEAREST);
 }
 
 VkFormat Image::getClearFormat() const

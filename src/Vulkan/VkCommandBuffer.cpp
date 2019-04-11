@@ -792,6 +792,24 @@ private:
 	VkFilter filter;
 };
 
+struct ResolveImage : public CommandBuffer::Command
+{
+	ResolveImage(VkImage srcImage, VkImage dstImage, const VkImageResolve& region) :
+		srcImage(srcImage), dstImage(dstImage), region(region)
+	{
+	}
+
+	void play(CommandBuffer::ExecutionState& executionState) override
+	{
+		Cast(srcImage)->resolve(dstImage, region);
+	}
+
+private:
+	VkImage srcImage;
+	VkImage dstImage;
+	VkImageResolve region;
+};
+
 struct PipelineBarrier : public CommandBuffer::Command
 {
 	PipelineBarrier()
@@ -1420,7 +1438,16 @@ void CommandBuffer::clearAttachments(uint32_t attachmentCount, const VkClearAtta
 void CommandBuffer::resolveImage(VkImage srcImage, VkImageLayout srcImageLayout, VkImage dstImage, VkImageLayout dstImageLayout,
 	uint32_t regionCount, const VkImageResolve* pRegions)
 {
-	UNIMPLEMENTED("resolveImage");
+	ASSERT(state == RECORDING);
+	ASSERT(srcImageLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL ||
+	       srcImageLayout == VK_IMAGE_LAYOUT_GENERAL);
+	ASSERT(dstImageLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL ||
+	       dstImageLayout == VK_IMAGE_LAYOUT_GENERAL);
+
+	for(uint32_t i = 0; i < regionCount; i++)
+	{
+		addCommand<ResolveImage>(srcImage, dstImage, pRegions[i]);
+	}
 }
 
 void CommandBuffer::setEvent(VkEvent event, VkPipelineStageFlags stageMask)
