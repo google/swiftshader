@@ -490,6 +490,15 @@ namespace sw
 					}
 
 					DefineResult(insn);
+
+					if (insn.opcode() == spv::OpAccessChain || insn.opcode() == spv::OpInBoundsAccessChain)
+					{
+						Decorations dd{};
+						ApplyDecorationsForAccessChain(&dd, pointerId, insn.wordCount() - 4, insn.wordPointer(4));
+						// Note: offset is the one thing that does *not* propagate, as the access chain accounts for it.
+						dd.HasOffset = false;
+						decorations[resultId].Apply(dd);
+					}
 				}
 				break;
 
@@ -959,6 +968,91 @@ namespace sw
 		VisitInterfaceInner<F>(def.word(1), d, f);
 	}
 
+	template<typename F>
+	void SpirvShader::VisitMemoryObjectInner(sw::SpirvShader::Type::ID id, sw::SpirvShader::Decorations d, uint32_t& index, uint32_t offset, F f) const
+	{
+		// Walk a type tree in an explicitly laid out storage class, calling
+		// a functor for each scalar element within the object.
+
+		// The functor's first parameter is the index of the scalar element;
+		// the second parameter is the offset (in sizeof(float) units) from
+		// the base of the object.
+
+		ApplyDecorationsForId(&d, id);
+		auto const &type = getType(id);
+
+		if (d.HasOffset)
+		{
+			offset += d.Offset / sizeof(float);
+			d.HasOffset = false;
+		}
+
+		switch (type.opcode())
+		{
+		case spv::OpTypePointer:
+			VisitMemoryObjectInner<F>(type.definition.word(3), d, index, offset, f);
+			break;
+		case spv::OpTypeInt:
+		case spv::OpTypeFloat:
+			f(index++, offset);
+			break;
+		case spv::OpTypeVector:
+			for (auto i = 0u; i < type.definition.word(3); i++)
+			{
+				VisitMemoryObjectInner(type.definition.word(2), d, index, offset + i, f);
+			}
+			break;
+		case spv::OpTypeMatrix:
+			for (auto i = 0u; i < type.definition.word(3); i++)
+			{
+				ASSERT(d.HasMatrixStride);
+				VisitMemoryObjectInner(type.definition.word(2), d, index, offset + i * d.MatrixStride / sizeof(float), f);
+			}
+			break;
+		case spv::OpTypeStruct:
+			for (auto i = 0u; i < type.definition.wordCount() - 2; i++)
+			{
+				ApplyDecorationsForIdMember(&d, id, i);
+				VisitMemoryObjectInner<F>(type.definition.word(i + 2), d, index, offset, f);
+			}
+			break;
+		case spv::OpTypeArray:
+		{
+			auto arraySize = GetConstantInt(type.definition.word(3));
+			for (auto i = 0u; i < arraySize; i++)
+			{
+				ASSERT(d.HasArrayStride);
+				VisitMemoryObjectInner<F>(type.definition.word(2), d, index, offset + i * d.ArrayStride / sizeof(float), f);
+			}
+			break;
+		}
+		default:
+			UNIMPLEMENTED("%s", OpcodeName(type.opcode()).c_str());
+		}
+	}
+
+	template<typename F>
+	void SpirvShader::VisitMemoryObject(sw::SpirvShader::Object::ID id, F f) const
+	{
+		auto typeId = getObject(id).type;
+		auto const & type = getType(typeId);
+		if (!IsStorageInterleavedByLane(type.storageClass))	// TODO: really "is explicit layout"
+		{
+			Decorations d{};
+			ApplyDecorationsForId(&d, id);
+			uint32_t index = 0;
+			VisitMemoryObjectInner<F>(typeId, d, index, 0, f);
+		}
+		else
+		{
+			// Objects without explicit layout are tightly packed.
+			for (auto i = 0u; i < getType(type.element).sizeInComponents; i++)
+			{
+				f(i, i);
+			}
+		}
+	}
+
 	SIMD::Pointer SpirvShader::GetPointerToData(Object::ID id, int arrayIndex, SpirvRoutine *routine) const
 	{
 		auto &object = getObject(id);
@@ -1002,6 +1096,39 @@ namespace sw
 		}
 	}
 
+	void SpirvShader::ApplyDecorationsForAccessChain(Decorations *d, Object::ID baseId, uint32_t numIndexes, uint32_t const *indexIds) const
+	{
+		ApplyDecorationsForId(d, baseId);
+		auto &baseObject = getObject(baseId);
+		ApplyDecorationsForId(d, baseObject.type);
+		auto typeId = getType(baseObject.type).element;
+
+		for (auto i = 0u; i < numIndexes; i++)
+		{
+			ApplyDecorationsForId(d, typeId);
+			auto & type = getType(typeId);
+			switch (type.opcode())
+			{
+			case spv::OpTypeStruct:
+			{
+				int memberIndex = GetConstantInt(indexIds[i]);
+				ApplyDecorationsForIdMember(d, typeId, memberIndex);
+				typeId = type.definition.word(2u + memberIndex);
+				break;
+			}
+			case spv::OpTypeArray:
+			case spv::OpTypeRuntimeArray:
+			case spv::OpTypeMatrix:
+			case spv::OpTypeVector:
+				typeId = type.element;
+				break;
+			default:
+				UNIMPLEMENTED("Unexpected type '%s' in ApplyDecorationsForAccessChain",
+							  OpcodeName(type.definition.opcode()).c_str());
+			}
+		}
+	}
+
 	SIMD::Pointer SpirvShader::WalkExplicitLayoutAccessChain(Object::ID baseId, uint32_t numIndexes, uint32_t const *indexIds, SpirvRoutine *routine) const
 	{
 		// Produce a offset into external memory in sizeof(float) units
@@ -1033,6 +1160,8 @@ namespace sw
 		for (auto i = 0u; i < numIndexes; i++)
 		{
 			auto & type = getType(typeId);
+			ApplyDecorationsForId(&d, typeId);
+
 			switch (type.definition.opcode())
 			{
 			case spv::OpTypeStruct:
@@ -1048,7 +1177,6 @@ namespace sw
 			case spv::OpTypeRuntimeArray:
 			{
 				// TODO: b/127950082: Check bounds.
-				ApplyDecorationsForId(&d, typeId);
 				ASSERT(d.HasArrayStride);
 				auto & obj = getObject(indexIds[i]);
 				if (obj.kind == Object::Kind::Constant)
@@ -1061,7 +1189,6 @@ namespace sw
 			case spv::OpTypeMatrix:
 			{
 				// TODO: b/127950082: Check bounds.
-				ApplyDecorationsForId(&d, typeId);
 				ASSERT(d.HasMatrixStride);
 				auto & obj = getObject(indexIds[i]);
 				if (obj.kind == Object::Kind::Constant)
@@ -2001,19 +2128,19 @@ namespace sw
 		If(!ptr.uniform || anyInactiveLanes)
 		{
 			// Divergent offsets or masked lanes.
-			for (auto i = 0u; i < resultTy.sizeInComponents; i++)
+			VisitMemoryObject(pointerId, [&](uint32_t i, uint32_t o)
 			{
 				// i wish i had a Float,Float,Float,Float constructor here..
 				for (int j = 0; j < SIMD::Width; j++)
 				{
 					If(Extract(state->activeLaneMask(), j) != 0)
 					{
-						Int offset = Int(i) + Extract(ptr.offset, j);
+						Int offset = Int(o) + Extract(ptr.offset, j);
 						if (interleavedByLane) { offset = offset * SIMD::Width + j; }
 						load[i] = Insert(load[i], Load(&ptr.base[offset], sizeof(float), atomic, memoryOrder), j);
 					}
 				}
-			}
+			});
 		}
 		Else
 		{
@@ -2022,18 +2149,18 @@ namespace sw
 			{
 				// Lane-interleaved data.
 				Pointer<SIMD::Float> src = ptr.base;
-				for (auto i = 0u; i < resultTy.sizeInComponents; i++)
+				VisitMemoryObject(pointerId, [&](uint32_t i, uint32_t o)
 				{
-					load[i] = Load(&src[i], sizeof(float), atomic, memoryOrder);  // TODO: optimize alignment
-				}
+					load[i] = Load(&src[o], sizeof(float), atomic, memoryOrder);  // TODO: optimize alignment
+				});
 			}
 			else
 			{
 				// Non-interleaved data.
-				for (auto i = 0u; i < resultTy.sizeInComponents; i++)
+				VisitMemoryObject(pointerId, [&](uint32_t i, uint32_t o)
 				{
-					load[i] = RValue<SIMD::Float>(Load(&ptr.base[i], sizeof(float), atomic, memoryOrder));  // TODO: optimize alignment
-				}
+					load[i] = RValue<SIMD::Float>(Load(&ptr.base[o], sizeof(float), atomic, memoryOrder));  // TODO: optimize alignment
+				});
 			}
 		}
 
@@ -2084,29 +2211,28 @@ namespace sw
 			If(!ptr.uniform || anyInactiveLanes)
 			{
 				// Divergent offsets or masked lanes.
-
-				for (auto i = 0u; i < elementTy.sizeInComponents; i++)
+				VisitMemoryObject(pointerId, [&](uint32_t i, uint32_t o)
 				{
 					for (int j = 0; j < SIMD::Width; j++)
 					{
 						If(Extract(state->activeLaneMask(), j) != 0)
 						{
-							Int offset = Int(i) + Extract(ptr.offset, j);
+							Int offset = Int(o) + Extract(ptr.offset, j);
 							if (interleavedByLane) { offset = offset * SIMD::Width + j; }
 							Store(RValue<Float>(src[i]), &ptr.base[offset], sizeof(float), atomic, memoryOrder);
 						}
 					}
-				}
+				});
 			}
 			Else
 			{
 				// Constant source data.
 				// No divergent offsets or masked lanes.
 				Pointer<SIMD::Float> dst = ptr.base;
-				for (auto i = 0u; i < elementTy.sizeInComponents; i++)
+				VisitMemoryObject(pointerId, [&](uint32_t i, uint32_t o)
 				{
-					Store(RValue<SIMD::Float>(src[i]), &dst[i], sizeof(float), atomic, memoryOrder);  // TODO: optimize alignment
-				}
+					Store(RValue<SIMD::Float>(src[i]), &dst[o], sizeof(float), atomic, memoryOrder);  // TODO: optimize alignment
+				});
 			}
 		}
 		else
@@ -2116,18 +2242,18 @@ namespace sw
 			If(!ptr.uniform || anyInactiveLanes)
 			{
 				// Divergent offsets or masked lanes.
-				for (auto i = 0u; i < elementTy.sizeInComponents; i++)
+				VisitMemoryObject(pointerId, [&](uint32_t i, uint32_t o)
 				{
 					for (int j = 0; j < SIMD::Width; j++)
 					{
 						If(Extract(state->activeLaneMask(), j) != 0)
 						{
-							Int offset = Int(i) + Extract(ptr.offset, j);
+							Int offset = Int(o) + Extract(ptr.offset, j);
 							if (interleavedByLane) { offset = offset * SIMD::Width + j; }
 							Store(Extract(src.Float(i), j), &ptr.base[offset], sizeof(float), atomic, memoryOrder);
 						}
 					}
-				}
+				});
 			}
 			Else
 			{
@@ -2136,19 +2262,19 @@ namespace sw
 				{
 					// Lane-interleaved data.
 					Pointer<SIMD::Float> dst = ptr.base;
-					for (auto i = 0u; i < elementTy.sizeInComponents; i++)
+					VisitMemoryObject(pointerId, [&](uint32_t i, uint32_t o)
 					{
-						Store(src.Float(i), &dst[i], sizeof(float), atomic, memoryOrder);  // TODO: optimize alignment
-					}
+						Store(src.Float(i), &dst[o], sizeof(float), atomic, memoryOrder);  // TODO: optimize alignment
+					});
 				}
 				else
 				{
 					// Intermediate source data. Non-interleaved data.
 					Pointer<SIMD::Float> dst = ptr.base;
-					for (auto i = 0u; i < elementTy.sizeInComponents; i++)
+					VisitMemoryObject(pointerId, [&](uint32_t i, uint32_t o)
 					{
-						Store<SIMD::Float>(SIMD::Float(src.Float(i)), &dst[i], sizeof(float), atomic, memoryOrder);  // TODO: optimize alignment
-					}
+						Store<SIMD::Float>(SIMD::Float(src.Float(i)), &dst[o], sizeof(float), atomic, memoryOrder);  // TODO: optimize alignment
+					});
 				}
 			}
 		}

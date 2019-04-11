@@ -534,6 +534,7 @@ namespace sw
 		uint32_t ComputeTypeSize(InsnIterator insn);
 		void ApplyDecorationsForId(Decorations *d, TypeOrObjectID id) const;
 		void ApplyDecorationsForIdMember(Decorations *d, Type::ID id, uint32_t member) const;
+		void ApplyDecorationsForAccessChain(Decorations *d, Object::ID baseId, uint32_t numIndexes, uint32_t const *indexIds) const;
 
 		// Creates an Object for the instruction's result in 'defs'.
 		void DefineResult(const InsnIterator &insn);
@@ -587,6 +588,12 @@ namespace sw
 
 		template<typename F>
 		void VisitInterface(Object::ID id, F f) const;
+
+		template<typename F>
+		void VisitMemoryObject(Object::ID id, F f) const;
+
+		template<typename F>
+		void VisitMemoryObjectInner(Type::ID id, Decorations d, uint32_t &index, uint32_t offset, F f) const;
 
 		uint32_t GetConstantInt(Object::ID id) const;
 		Object& CreateConstant(InsnIterator it);
