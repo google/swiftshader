@@ -179,6 +179,7 @@ namespace sw
 
 		// Pixel processor states
 		bool rasterizerDiscard;
+		bool depthBoundsTestEnable;
 		bool depthBufferEnable;
 		VkCompareOp depthCompareMode;
 		bool depthWriteEnable;

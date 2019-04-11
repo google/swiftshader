@@ -135,6 +135,24 @@ public:
 		RenderPass* renderPass = nullptr;
 		Framebuffer* renderPassFramebuffer = nullptr;
 		std::array<PipelineState, VK_PIPELINE_BIND_POINT_RANGE_SIZE> pipelineState;
+
+		struct DynamicState
+		{
+			VkViewport viewport;
+			VkRect2D scissor;
+			sw::Color<float> blendConstants;
+			float depthBiasConstantFactor = 0.0f;
+			float depthBiasClamp = 0.0f;
+			float depthBiasSlopeFactor = 0.0f;
+			float minDepthBounds = 0.0f;
+			float maxDepthBounds = 0.0f;
+
+			uint32_t compareMask[2] = { 0 };
+			uint32_t writeMask[2] = { 0 };
+			uint32_t reference[2] = { 0 };
+		};
+		DynamicState dynamicState;
+
 		sw::PushConstantStorage pushConstants;
 
 		struct VertexInputBinding

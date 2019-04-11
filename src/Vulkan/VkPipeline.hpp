@@ -75,11 +75,13 @@ public:
 	const VkRect2D& getScissor() const;
 	const VkViewport& getViewport() const;
 	const sw::Color<float>& getBlendConstants() const;
+	bool hasDynamicState(VkDynamicState dynamicState) const;
 
 private:
 	sw::SpirvShader *vertexShader = nullptr;
 	sw::SpirvShader *fragmentShader = nullptr;
 
+	uint32_t dynamicStateFlags = 0;
 	sw::Context context;
 	VkRect2D scissor;
 	VkViewport viewport;

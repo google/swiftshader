@@ -133,6 +133,7 @@ namespace sw
 		rasterizerDiscard = false;
 
 		depthCompareMode = VK_COMPARE_OP_LESS;
+		depthBoundsTestEnable = false;
 		depthBufferEnable = false;
 		depthWriteEnable = false;
 

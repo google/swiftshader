@@ -231,10 +231,34 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 {
 	if(((pCreateInfo->flags & ~(VK_PIPELINE_CREATE_DERIVATIVE_BIT | VK_PIPELINE_CREATE_ALLOW_DERIVATIVES_BIT)) != 0) ||
 	   (pCreateInfo->stageCount != 2) ||
-	   (pCreateInfo->pTessellationState != nullptr) ||
-	   (pCreateInfo->pDynamicState != nullptr))
+	   (pCreateInfo->pTessellationState != nullptr))
 	{
 		UNIMPLEMENTED("pCreateInfo settings");
+	}
+
+	if(pCreateInfo->pDynamicState)
+	{
+		for(uint32_t i = 0; i < pCreateInfo->pDynamicState->dynamicStateCount; i++)
+		{
+			VkDynamicState dynamicState = pCreateInfo->pDynamicState->pDynamicStates[i];
+			switch(dynamicState)
+			{
+			case VK_DYNAMIC_STATE_VIEWPORT:
+			case VK_DYNAMIC_STATE_SCISSOR:
+			case VK_DYNAMIC_STATE_LINE_WIDTH:
+			case VK_DYNAMIC_STATE_DEPTH_BIAS:
+			case VK_DYNAMIC_STATE_BLEND_CONSTANTS:
+			case VK_DYNAMIC_STATE_DEPTH_BOUNDS:
+			case VK_DYNAMIC_STATE_STENCIL_COMPARE_MASK:
+			case VK_DYNAMIC_STATE_STENCIL_WRITE_MASK:
+			case VK_DYNAMIC_STATE_STENCIL_REFERENCE:
+				ASSERT(dynamicState < (sizeof(dynamicStateFlags) * 8));
+				dynamicStateFlags |= (1 << dynamicState);
+				break;
+			default:
+				UNIMPLEMENTED("dynamic state");
+			}
+		}
 	}
 
 	const VkPipelineVertexInputStateCreateInfo* vertexInputState = pCreateInfo->pVertexInputState;
@@ -346,6 +370,7 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 			UNIMPLEMENTED("depthStencilState");
 		}
 
+		context.depthBoundsTestEnable = depthStencilState->depthBoundsTestEnable;
 		context.depthBufferEnable = depthStencilState->depthTestEnable;
 		context.depthWriteEnable = depthStencilState->depthWriteEnable;
 		context.depthCompareMode = depthStencilState->depthCompareOp;
@@ -478,6 +503,11 @@ const VkViewport& GraphicsPipeline::getViewport() const
 const sw::Color<float>& GraphicsPipeline::getBlendConstants() const
 {
 	return blendConstants;
+}
+
+bool GraphicsPipeline::hasDynamicState(VkDynamicState dynamicState) const
+{
+	return (dynamicStateFlags & (1 << dynamicState)) != 0;
 }
 
 ComputePipeline::ComputePipeline(const VkComputePipelineCreateInfo* pCreateInfo, void* mem)

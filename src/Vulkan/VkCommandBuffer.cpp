@@ -250,6 +250,157 @@ struct IndexBufferBind : public CommandBuffer::Command
 	const VkIndexType indexType;
 };
 
+struct SetViewport : public CommandBuffer::Command
+{
+	SetViewport(const VkViewport& viewport, uint32_t viewportID) :
+		viewport(viewport), viewportID(viewportID)
+	{
+	}
+
+	void play(CommandBuffer::ExecutionState& executionState) override
+	{
+		executionState.dynamicState.viewport = viewport;
+	}
+
+	const VkViewport viewport;
+	uint32_t viewportID;
+};
+
+struct SetScissor : public CommandBuffer::Command
+{
+	SetScissor(const VkRect2D& scissor, uint32_t scissorID) :
+		scissor(scissor), scissorID(scissorID)
+	{
+	}
+
+	void play(CommandBuffer::ExecutionState& executionState) override
+	{
+		executionState.dynamicState.scissor = scissor;
+	}
+
+	const VkRect2D scissor;
+	uint32_t scissorID;
+};
+
+struct SetDepthBias : public CommandBuffer::Command
+{
+	SetDepthBias(float depthBiasConstantFactor, float depthBiasClamp, float depthBiasSlopeFactor) :
+		depthBiasConstantFactor(depthBiasConstantFactor), depthBiasClamp(depthBiasClamp), depthBiasSlopeFactor(depthBiasSlopeFactor)
+	{
+	}
+
+	void play(CommandBuffer::ExecutionState& executionState) override
+	{
+		executionState.dynamicState.depthBiasConstantFactor = depthBiasConstantFactor;
+		executionState.dynamicState.depthBiasClamp = depthBiasClamp;
+		executionState.dynamicState.depthBiasSlopeFactor = depthBiasSlopeFactor;
+	}
+
+	float depthBiasConstantFactor;
+	float depthBiasClamp;
+	float depthBiasSlopeFactor;
+};
+
+struct SetBlendConstants : public CommandBuffer::Command
+{
+	SetBlendConstants(const float blendConstants[4])
+	{
+		memcpy(this->blendConstants, blendConstants, sizeof(this->blendConstants));
+	}
+
+	void play(CommandBuffer::ExecutionState& executionState) override
+	{
+		memcpy(&(executionState.dynamicState.blendConstants[0]), blendConstants, sizeof(blendConstants));
+	}
+
+	float blendConstants[4];
+};
+
+struct SetDepthBounds : public CommandBuffer::Command
+{
+	SetDepthBounds(float minDepthBounds, float maxDepthBounds) :
+		minDepthBounds(minDepthBounds), maxDepthBounds(maxDepthBounds)
+	{
+	}
+
+	void play(CommandBuffer::ExecutionState& executionState) override
+	{
+		executionState.dynamicState.minDepthBounds = minDepthBounds;
+		executionState.dynamicState.maxDepthBounds = maxDepthBounds;
+	}
+
+	float minDepthBounds;
+	float maxDepthBounds;
+};
+struct SetStencilCompareMask : public CommandBuffer::Command
+{
+	SetStencilCompareMask(VkStencilFaceFlags faceMask, uint32_t compareMask) :
+		faceMask(faceMask), compareMask(compareMask)
+	{
+	}
+
+	void play(CommandBuffer::ExecutionState& executionState) override
+	{
+		if(faceMask & VK_STENCIL_FACE_FRONT_BIT)
+		{
+			executionState.dynamicState.compareMask[0] = compareMask;
+		}
+		if(faceMask & VK_STENCIL_FACE_BACK_BIT)
+		{
+			executionState.dynamicState.compareMask[1] = compareMask;
+		}
+	}
+
+	VkStencilFaceFlags faceMask;
+	uint32_t compareMask;
+};
+
+struct SetStencilWriteMask : public CommandBuffer::Command
+{
+	SetStencilWriteMask(VkStencilFaceFlags faceMask, uint32_t writeMask) :
+		faceMask(faceMask), writeMask(writeMask)
+	{
+	}
+
+	void play(CommandBuffer::ExecutionState& executionState) override
+	{
+		if(faceMask & VK_STENCIL_FACE_FRONT_BIT)
+		{
+			executionState.dynamicState.writeMask[0] = writeMask;
+		}
+		if(faceMask & VK_STENCIL_FACE_BACK_BIT)
+		{
+			executionState.dynamicState.writeMask[1] = writeMask;
+		}
+	}
+
+	VkStencilFaceFlags faceMask;
+	uint32_t writeMask;
+};
+
+struct SetStencilReference : public CommandBuffer::Command
+{
+	SetStencilReference(VkStencilFaceFlags faceMask, uint32_t reference) :
+		faceMask(faceMask), reference(reference)
+	{
+	}
+
+	void play(CommandBuffer::ExecutionState& executionState) override
+	{
+		if(faceMask & VK_STENCIL_FACE_FRONT_BIT)
+		{
+			executionState.dynamicState.reference[0] = reference;
+		}
+		if(faceMask & VK_STENCIL_FACE_BACK_BIT)
+		{
+			executionState.dynamicState.reference[1] = reference;
+		}
+	}
+
+	VkStencilFaceFlags faceMask;
+	uint32_t reference;
+};
+
 void CommandBuffer::ExecutionState::bindVertexInputs(sw::Context& context, int firstVertex, int firstInstance)
 {
 	for(uint32_t i = 0; i < MAX_VERTEX_INPUT_BINDINGS; i++)
@@ -319,16 +470,52 @@ struct DrawBase : public CommandBuffer::Command
 		context.descriptorDynamicOffsets = pipelineState.descriptorDynamicOffsets;
 		context.pushConstants = executionState.pushConstants;
 
-		if (indexed)
+		if(indexed)
 		{
 			context.indexBuffer = Cast(executionState.indexBufferBinding.buffer)->getOffsetPointer(
 					executionState.indexBufferBinding.offset + first * bytesPerIndex(executionState));
 		}
 
+		// Apply either pipeline state or dynamic state
+		executionState.renderer->setScissor(pipeline->hasDynamicState(VK_DYNAMIC_STATE_SCISSOR) ?
+		                                    executionState.dynamicState.scissor : pipeline->getScissor());
+		executionState.renderer->setViewport(pipeline->hasDynamicState(VK_DYNAMIC_STATE_VIEWPORT) ?
+		                                     executionState.dynamicState.viewport : pipeline->getViewport());
+		executionState.renderer->setBlendConstant(pipeline->hasDynamicState(VK_DYNAMIC_STATE_BLEND_CONSTANTS) ?
+		                                          executionState.dynamicState.blendConstants : pipeline->getBlendConstants());
+		if(pipeline->hasDynamicState(VK_DYNAMIC_STATE_DEPTH_BIAS))
+		{
+			// If the depth bias clamping feature is not enabled, depthBiasClamp must be 0.0
+			ASSERT(executionState.dynamicState.depthBiasClamp == 0.0f);
+
+			context.depthBias = executionState.dynamicState.depthBiasConstantFactor;
+			context.slopeDepthBias = executionState.dynamicState.depthBiasSlopeFactor;
+		}
+		if(pipeline->hasDynamicState(VK_DYNAMIC_STATE_DEPTH_BOUNDS) && context.depthBoundsTestEnable)
+		{
+			// Unless the VK_EXT_depth_range_unrestricted extension is enabled minDepthBounds and maxDepthBounds must be between 0.0 and 1.0, inclusive
+			ASSERT(executionState.dynamicState.minDepthBounds >= 0.0f && executionState.dynamicState.minDepthBounds <= 1.0f);
+			ASSERT(executionState.dynamicState.maxDepthBounds >= 0.0f && executionState.dynamicState.maxDepthBounds <= 1.0f);
+
+			UNIMPLEMENTED("depthBoundsTestEnable");
+		}
+		if(pipeline->hasDynamicState(VK_DYNAMIC_STATE_STENCIL_COMPARE_MASK) && context.stencilEnable)
+		{
+			context.frontStencil.compareMask = executionState.dynamicState.compareMask[0];
+			context.backStencil.compareMask = executionState.dynamicState.compareMask[1];
+		}
+		if(pipeline->hasDynamicState(VK_DYNAMIC_STATE_STENCIL_WRITE_MASK) && context.stencilEnable)
+		{
+			context.frontStencil.writeMask = executionState.dynamicState.writeMask[0];
+			context.backStencil.writeMask = executionState.dynamicState.writeMask[1];
+		}
+		if(pipeline->hasDynamicState(VK_DYNAMIC_STATE_STENCIL_REFERENCE) && context.stencilEnable)
+		{
+			context.frontStencil.reference = executionState.dynamicState.reference[0];
+			context.backStencil.reference = executionState.dynamicState.reference[1];
+		}
+
 		executionState.renderer->setContext(context);
-		executionState.renderer->setScissor(pipeline->getScissor());
-		executionState.renderer->setViewport(pipeline->getViewport());
-		executionState.renderer->setBlendConstant(pipeline->getBlendConstants());
 
 		executionState.bindAttachments();
 
@@ -1008,85 +1195,73 @@ void CommandBuffer::pushConstants(VkPipelineLayout layout, VkShaderStageFlags st
 
 void CommandBuffer::setViewport(uint32_t firstViewport, uint32_t viewportCount, const VkViewport* pViewports)
 {
-	// Note: The bound graphics pipeline must have been created with the VK_DYNAMIC_STATE_VIEWPORT dynamic state enabled
-	UNIMPLEMENTED("setViewport");
+	if(firstViewport != 0 || viewportCount > 1)
+	{
+		UNIMPLEMENTED("viewport");
+	}
+
+	for(uint32_t i = 0; i < viewportCount; i++)
+	{
+		addCommand<SetViewport>(pViewports[i], i + firstViewport);
+	}
 }
 
 void CommandBuffer::setScissor(uint32_t firstScissor, uint32_t scissorCount, const VkRect2D* pScissors)
 {
-	// Note: The bound graphics pipeline must have been created with the VK_DYNAMIC_STATE_SCISSOR dynamic state enabled
-	UNIMPLEMENTED("setScissor");
+	if(firstScissor != 0 || scissorCount > 1)
+	{
+		UNIMPLEMENTED("scissor");
+	}
+
+	for(uint32_t i = 0; i < scissorCount; i++)
+	{
+		addCommand<SetScissor>(pScissors[i], i + firstScissor);
+	}
 }
 
 void CommandBuffer::setLineWidth(float lineWidth)
 {
-	// Note: The bound graphics pipeline must have been created with the VK_DYNAMIC_STATE_LINE_WIDTH dynamic state enabled
-
 	// If the wide lines feature is not enabled, lineWidth must be 1.0
 	ASSERT(lineWidth == 1.0f);
-
-	UNIMPLEMENTED("setLineWidth");
 }
 
 void CommandBuffer::setDepthBias(float depthBiasConstantFactor, float depthBiasClamp, float depthBiasSlopeFactor)
 {
-	// Note: The bound graphics pipeline must have been created with the VK_DYNAMIC_STATE_DEPTH_BIAS dynamic state enabled
-
-	// If the depth bias clamping feature is not enabled, depthBiasClamp must be 0.0
-	ASSERT(depthBiasClamp == 0.0f);
-
-	UNIMPLEMENTED("setDepthBias");
+	addCommand<SetDepthBias>(depthBiasConstantFactor, depthBiasClamp, depthBiasSlopeFactor);
 }
 
 void CommandBuffer::setBlendConstants(const float blendConstants[4])
 {
-	// Note: The bound graphics pipeline must have been created with the VK_DYNAMIC_STATE_BLEND_CONSTANTS dynamic state enabled
-
-	// blendConstants is an array of four values specifying the R, G, B, and A components
-	// of the blend constant color used in blending, depending on the blend factor.
-
-	UNIMPLEMENTED("setBlendConstants");
+	addCommand<SetBlendConstants>(blendConstants);
 }
 
 void CommandBuffer::setDepthBounds(float minDepthBounds, float maxDepthBounds)
 {
-	// Note: The bound graphics pipeline must have been created with the VK_DYNAMIC_STATE_DEPTH_BOUNDS dynamic state enabled
-
-	// Unless the VK_EXT_depth_range_unrestricted extension is enabled minDepthBounds and maxDepthBounds must be between 0.0 and 1.0, inclusive
-	ASSERT(minDepthBounds >= 0.0f && minDepthBounds <= 1.0f);
-	ASSERT(maxDepthBounds >= 0.0f && maxDepthBounds <= 1.0f);
-
-	UNIMPLEMENTED("setDepthBounds");
+	addCommand<SetDepthBounds>(minDepthBounds, maxDepthBounds);
 }
 
 void CommandBuffer::setStencilCompareMask(VkStencilFaceFlags faceMask, uint32_t compareMask)
 {
-	// Note: The bound graphics pipeline must have been created with the VK_DYNAMIC_STATE_STENCIL_COMPARE_MASK dynamic state enabled
-
 	// faceMask must not be 0
 	ASSERT(faceMask != 0);
 
-	UNIMPLEMENTED("setStencilCompareMask");
+	addCommand<SetStencilCompareMask>(faceMask, compareMask);
 }
 
 void CommandBuffer::setStencilWriteMask(VkStencilFaceFlags faceMask, uint32_t writeMask)
 {
-	// Note: The bound graphics pipeline must have been created with the VK_DYNAMIC_STATE_STENCIL_WRITE_MASK dynamic state enabled
-
 	// faceMask must not be 0
 	ASSERT(faceMask != 0);
 
-	UNIMPLEMENTED("setStencilWriteMask");
+	addCommand<SetStencilWriteMask>(faceMask, writeMask);
 }
 
 void CommandBuffer::setStencilReference(VkStencilFaceFlags faceMask, uint32_t reference)
 {
-	// Note: The bound graphics pipeline must have been created with the VK_DYNAMIC_STATE_STENCIL_REFERENCE dynamic state enabled
-
 	// faceMask must not be 0
 	ASSERT(faceMask != 0);
 
-	UNIMPLEMENTED("setStencilReference");
+	addCommand<SetStencilReference>(faceMask, reference);
 }
 
 void CommandBuffer::bindDescriptorSets(VkPipelineBindPoint pipelineBindPoint, VkPipelineLayout vkLayout,
