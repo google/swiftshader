@@ -3368,4 +3368,32 @@ namespace rr
 	{
 		assert(false && "UNIMPLEMENTED"); return RValue<Long>(V(nullptr));
 	}
+
+	// Below are functions currently unimplemented for the Subzero backend.
+	// They are stubbed to satisfy the linker.
+	#ifdef UNIMPLEMENTED
+	#undef UNIMPLEMENTED
+	#endif
+	#define UNIMPLEMENTED(msg) assert(!msg)
+
+	RValue<Float4> Sin(RValue<Float4> x) { UNIMPLEMENTED("Subzero Sin()"); return Float4(0); }
+	RValue<Float4> Cos(RValue<Float4> x) { UNIMPLEMENTED("Subzero Cos()"); return Float4(0); }
+	RValue<Float4> Tan(RValue<Float4> x) { UNIMPLEMENTED("Subzero Tan()"); return Float4(0); }
+	RValue<Float4> Asin(RValue<Float4> x) { UNIMPLEMENTED("Subzero Asin()"); return Float4(0); }
+	RValue<Float4> Acos(RValue<Float4> x) { UNIMPLEMENTED("Subzero Acos()"); return Float4(0); }
+	RValue<Float4> Atan(RValue<Float4> x) { UNIMPLEMENTED("Subzero Atan()"); return Float4(0); }
+	RValue<Float4> Sinh(RValue<Float4> x) { UNIMPLEMENTED("Subzero Sinh()"); return Float4(0); }
+	RValue<Float4> Cosh(RValue<Float4> x) { UNIMPLEMENTED("Subzero Cosh()"); return Float4(0); }
+	RValue<Float4> Tanh(RValue<Float4> x) { UNIMPLEMENTED("Subzero Tanh()"); return Float4(0); }
+	RValue<Float4> Asinh(RValue<Float4> x) { UNIMPLEMENTED("Subzero Asinh()"); return Float4(0); }
+	RValue<Float4> Acosh(RValue<Float4> x) { UNIMPLEMENTED("Subzero Acosh()"); return Float4(0); }
+	RValue<Float4> Atanh(RValue<Float4> x) { UNIMPLEMENTED("Subzero Atanh()"); return Float4(0); }
+	RValue<Float4> Atan2(RValue<Float4> x, RValue<Float4> y) { UNIMPLEMENTED("Subzero Atan2()"); return Float4(0); }
+	RValue<Float4> Pow(RValue<Float4> x, RValue<Float4> y) { UNIMPLEMENTED("Subzero Pow()"); return Float4(0); }
+	RValue<Float4> Exp(RValue<Float4> x) { UNIMPLEMENTED("Subzero Exp()"); return Float4(0); }
+	RValue<Float4> Log(RValue<Float4> x) { UNIMPLEMENTED("Subzero Log()"); return Float4(0); }
+	RValue<Float4> Exp2(RValue<Float4> x) { UNIMPLEMENTED("Subzero Exp2()"); return Float4(0); }
+	RValue<Float4> Log2(RValue<Float4> x) { UNIMPLEMENTED("Subzero Log2()"); return Float4(0); }
+	RValue<UInt4> Ctlz(RValue<UInt4> x, bool isZeroUndef) { UNIMPLEMENTED("Subzero Ctlz()"); return UInt4(0); }
+	RValue<UInt4> Cttz(RValue<UInt4> x, bool isZeroUndef) { UNIMPLEMENTED("Subzero Cttz()"); return UInt4(0); }
 }
