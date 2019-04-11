@@ -178,11 +178,9 @@ cc_defaults {
         "Reactor/LLVMReactor.cpp",
         "Reactor/Routine.cpp",
         "Reactor/LLVMRoutine.cpp",
-        "Reactor/LLVMRoutineManager.cpp",
     ],
 
     cflags: [
-        "-DREACTOR_LLVM_VERSION=7",
         "-Wno-unused-parameter",
         "-Wno-implicit-fallthrough",
     ],
@@ -200,11 +198,9 @@ cc_defaults {
         "Reactor/LLVMReactor.cpp",
         "Reactor/Routine.cpp",
         "Reactor/LLVMRoutine.cpp",
-        "Reactor/LLVMRoutineManager.cpp",
     ],
 
     cflags: [
-    	"-DREACTOR_LLVM_VERSION=7",
         "-Wno-unused-parameter",
         "-Wno-implicit-fallthrough",
     ],

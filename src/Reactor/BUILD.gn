@@ -320,12 +320,9 @@ swiftshader_source_set("swiftshader_reactor") {
 
     deps += [ "$llvm7_dir:swiftshader_llvm" ]
 
-    defines = [ "REACTOR_LLVM_VERSION=7" ]
-
     sources += [
       "LLVMReactor.cpp",
       "LLVMRoutine.cpp",
-      "LLVMRoutineManager.cpp",
       "CPUID.cpp",
     ]
 

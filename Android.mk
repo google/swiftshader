@@ -17,9 +17,6 @@
 LOCAL_PATH := $(call my-dir)
 swiftshader_root := $(LOCAL_PATH)
 
-# LLVM version for SwiftShader's JIT compiler (Reactor).
-REACTOR_LLVM_VERSION := 7
-
 # Subzero is an alternative JIT compiler. It is smaller and generally slower.
 REACTOR_USE_SUBZERO := false
 

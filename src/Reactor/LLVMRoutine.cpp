@@ -19,34 +19,8 @@
 
 namespace rr
 {
-#if REACTOR_LLVM_VERSION < 7
-	LLVMRoutine::LLVMRoutine(int bufferSize) : bufferSize(bufferSize)
-	{
-		void *memory = allocateExecutable(bufferSize);
-
-		buffer = memory;
-		entry = memory;
-		functionSize = bufferSize;   // Updated by LLVMRoutineManager::endFunctionBody
-	}
-
-	LLVMRoutine::~LLVMRoutine()
-	{
-		deallocateExecutable(buffer, bufferSize);
-	}
-
-	const void *LLVMRoutine::getEntry()
-	{
-		return entry;
-	}
-
-	int LLVMRoutine::getCodeSize()
-	{
-		return functionSize - static_cast<int>((uintptr_t)entry - (uintptr_t)buffer);
-	}
-#else
 	LLVMRoutine::~LLVMRoutine()
 	{
 		dtor(reactorJIT, moduleKey);
 	}
-#endif
 }

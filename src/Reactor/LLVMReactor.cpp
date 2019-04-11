@@ -26,63 +26,39 @@
 #undef min
 #undef max
 
-#if REACTOR_LLVM_VERSION < 7
-#error "LLVM 3 backend is deprecated, and will be removed shortly"
+#include "llvm/Analysis/LoopPass.h"
+#include "llvm/ExecutionEngine/ExecutionEngine.h"
+#include "llvm/ExecutionEngine/JITSymbol.h"
+#include "llvm/ExecutionEngine/Orc/CompileUtils.h"
+#include "llvm/ExecutionEngine/Orc/IRCompileLayer.h"
+#include "llvm/ExecutionEngine/Orc/LambdaResolver.h"
+#include "llvm/ExecutionEngine/Orc/RTDyldObjectLinkingLayer.h"
+#include "llvm/ExecutionEngine/RTDyldMemoryManager.h"
+#include "llvm/ExecutionEngine/SectionMemoryManager.h"
+#include "llvm/IR/Constants.h"
+#include "llvm/IR/DataLayout.h"
+#include "llvm/IR/Function.h"
+#include "llvm/IR/GlobalVariable.h"
+#include "llvm/IR/IRBuilder.h"
+#include "llvm/IR/Intrinsics.h"
+#include "llvm/IR/LLVMContext.h"
+#include "llvm/IR/LegacyPassManager.h"
+#include "llvm/IR/Mangler.h"
+#include "llvm/IR/Module.h"
+#include "llvm/Support/Error.h"
+#include "llvm/Support/TargetSelect.h"
+#include "llvm/Target/TargetOptions.h"
+#include "llvm/Transforms/InstCombine/InstCombine.h"
+#include "llvm/Transforms/Scalar.h"
+#include "llvm/Transforms/Scalar/GVN.h"
 
-	#include "llvm/Analysis/LoopPass.h"
-	#include "llvm/Constants.h"
-	#include "llvm/Function.h"
-	#include "llvm/GlobalVariable.h"
-	#include "llvm/Intrinsics.h"
-	#include "llvm/LLVMContext.h"
-	#include "llvm/Module.h"
-	#include "llvm/PassManager.h"
-	#include "llvm/Support/IRBuilder.h"
-	#include "llvm/Support/TargetSelect.h"
-	#include "llvm/Target/TargetData.h"
-	#include "llvm/Target/TargetOptions.h"
-	#include "llvm/Transforms/Scalar.h"
-	#include "../lib/ExecutionEngine/JIT/JIT.h"
+#include "LLVMRoutine.hpp"
 
-	#include "LLVMRoutine.hpp"
-	#include "LLVMRoutineManager.hpp"
+#define ARGS(...) {__VA_ARGS__}
+#define CreateCall2 CreateCall
+#define CreateCall3 CreateCall
 
-	#define ARGS(...) __VA_ARGS__
-#else
-	#include "llvm/Analysis/LoopPass.h"
-	#include "llvm/ExecutionEngine/ExecutionEngine.h"
-	#include "llvm/ExecutionEngine/JITSymbol.h"
-	#include "llvm/ExecutionEngine/Orc/CompileUtils.h"
-	#include "llvm/ExecutionEngine/Orc/IRCompileLayer.h"
-	#include "llvm/ExecutionEngine/Orc/LambdaResolver.h"
-	#include "llvm/ExecutionEngine/Orc/RTDyldObjectLinkingLayer.h"
-	#include "llvm/ExecutionEngine/RTDyldMemoryManager.h"
-	#include "llvm/ExecutionEngine/SectionMemoryManager.h"
-	#include "llvm/IR/Constants.h"
-	#include "llvm/IR/DataLayout.h"
-	#include "llvm/IR/Function.h"
-	#include "llvm/IR/GlobalVariable.h"
-	#include "llvm/IR/IRBuilder.h"
-	#include "llvm/IR/Intrinsics.h"
-	#include "llvm/IR/LLVMContext.h"
-	#include "llvm/IR/LegacyPassManager.h"
-	#include "llvm/IR/Mangler.h"
-	#include "llvm/IR/Module.h"
-	#include "llvm/Support/Error.h"
-	#include "llvm/Support/TargetSelect.h"
-	#include "llvm/Target/TargetOptions.h"
-	#include "llvm/Transforms/InstCombine/InstCombine.h"
-	#include "llvm/Transforms/Scalar.h"
-	#include "llvm/Transforms/Scalar/GVN.h"
-
-	#include "LLVMRoutine.hpp"
-
-	#define ARGS(...) {__VA_ARGS__}
-	#define CreateCall2 CreateCall
-	#define CreateCall3 CreateCall
-
-	#include <unordered_map>
-#endif
+#include <unordered_map>
 
 #include <fstream>
 #include <numeric>
@@ -98,13 +74,6 @@
 extern "C" void X86CompilationCallback()
 {
 	UNIMPLEMENTED("X86CompilationCallback");
-}
-#endif
-
-#if REACTOR_LLVM_VERSION < 7
-namespace llvm
-{
-	extern bool JITEmitDebugInfo;
 }
 #endif
 
@@ -139,7 +108,6 @@ namespace
 	}
 #endif // ENABLE_RR_PRINT
 
-#if REACTOR_LLVM_VERSION >= 7
 	llvm::Value *lowerPAVG(llvm::Value *x, llvm::Value *y)
 	{
 		llvm::VectorType *ty = llvm::cast<llvm::VectorType>(x->getType());
@@ -431,7 +399,6 @@ namespace
 		return ret;
 	}
 #endif  // !defined(__i386__) && !defined(__x86_64__)
-#endif  // REACTOR_LLVM_VERSION >= 7
 
 	llvm::Value *lowerMulHigh(llvm::Value *x, llvm::Value *y, bool sext)
 	{
@@ -465,95 +432,6 @@ namespace rr
 		true, // CallSupported
 	};
 
-
-#if REACTOR_LLVM_VERSION < 7
-	class LLVMReactorJIT
-	{
-	private:
-		std::string arch;
-		llvm::SmallVector<std::string, 16> mattrs;
-		llvm::ExecutionEngine *executionEngine;
-		LLVMRoutineManager *routineManager;
-
-	public:
-		LLVMReactorJIT(const std::string &arch_,
-		               const llvm::SmallVectorImpl<std::string> &mattrs_) :
-			arch(arch_),
-			mattrs(mattrs_.begin(), mattrs_.end()),
-			executionEngine(nullptr),
-			routineManager(nullptr)
-		{
-		}
-
-		void startSession()
-		{
-			std::string error;
-
-			::module = new llvm::Module("", *::context);
-
-			routineManager = new LLVMRoutineManager();
-
-			llvm::TargetMachine *targetMachine =
-				llvm::EngineBuilder::selectTarget(
-					::module, arch, "", mattrs, llvm::Reloc::Default,
-					llvm::CodeModel::JITDefault, &error);
-
-			executionEngine = llvm::JIT::createJIT(
-				::module, &error, routineManager, llvm::CodeGenOpt::Aggressive,
-				true, targetMachine);
-		}
-
-		void endSession()
-		{
-			delete executionEngine;
-			executionEngine = nullptr;
-			routineManager = nullptr;
-
-			::function = nullptr;
-			::module = nullptr;
-		}
-
-		LLVMRoutine *acquireRoutine(llvm::Function *func)
-		{
-			void *entry = executionEngine->getPointerToFunction(::function);
-			return routineManager->acquireRoutine(entry);
-		}
-
-		void optimize(llvm::Module *module)
-		{
-			static llvm::PassManager *passManager = nullptr;
-
-			if(!passManager)
-			{
-				passManager = new llvm::PassManager();
-
-				passManager->add(new llvm::TargetData(*executionEngine->getTargetData()));
-				passManager->add(llvm::createScalarReplAggregatesPass());
-
-				for(int pass = 0; pass < 10 && optimization[pass] != Disabled; pass++)
-				{
-					switch(optimization[pass])
-					{
-					case Disabled:                                                                       break;
-					case CFGSimplification:    passManager->add(llvm::createCFGSimplificationPass());    break;
-					case LICM:                 passManager->add(llvm::createLICMPass());                 break;
-					case AggressiveDCE:        passManager->add(llvm::createAggressiveDCEPass());        break;
-					case GVN:                  passManager->add(llvm::createGVNPass());                  break;
-					case InstructionCombining: passManager->add(llvm::createInstructionCombiningPass()); break;
-					case Reassociate:          passManager->add(llvm::createReassociatePass());          break;
-					case DeadStoreElimination: passManager->add(llvm::createDeadStoreEliminationPass()); break;
-					case SCCP:                 passManager->add(llvm::createSCCPPass());                 break;
-					case ScalarReplAggregates: passManager->add(llvm::createScalarReplAggregatesPass()); break;
-					default:
-						UNREACHABLE("optimization[pass]: %d, pass: %d", int(optimization[pass]), int(pass));
-					}
-				}
-			}
-
-			passManager->run(*::module);
-		}
-	};
-#else
 	class ExternalFunctionSymbolResolver
 	{
 	private:
@@ -778,7 +656,6 @@ namespace rr
 			jit->releaseRoutineModule(moduleKey);
 		}
 	};
-#endif
 
 	Optimization optimization[10] = {InstructionCombining, Disabled};
 
@@ -900,10 +777,6 @@ namespace rr
 
 	static llvm::AtomicOrdering atomicOrdering(bool atomic, std::memory_order memoryOrder)
 	{
-		#if REACTOR_LLVM_VERSION < 7
-			return llvm::AtomicOrdering::NotAtomic;
-		#endif
-
 		if(!atomic)
 		{
 			return llvm::AtomicOrdering::NotAtomic;
@@ -928,11 +801,8 @@ namespace rr
 		::codegenMutex.lock();   // Reactor and LLVM are currently not thread safe
 
 		llvm::InitializeNativeTarget();
-
-#if REACTOR_LLVM_VERSION >= 7
 		llvm::InitializeNativeTargetAsmPrinter();
 		llvm::InitializeNativeTargetAsmParser();
-#endif
 
 		if(!::context)
 		{
@@ -965,11 +835,7 @@ namespace rr
 		mattrs.push_back(CPUID::supportsSSE2()   ? "+sse2"   : "-sse2");
 		mattrs.push_back(CPUID::supportsSSE3()   ? "+sse3"   : "-sse3");
 		mattrs.push_back(CPUID::supportsSSSE3()  ? "+ssse3"  : "-ssse3");
-#if REACTOR_LLVM_VERSION < 7
-		mattrs.push_back(CPUID::supportsSSE4_1() ? "+sse41"  : "-sse41");
-#else
 		mattrs.push_back(CPUID::supportsSSE4_1() ? "+sse4.1" : "-sse4.1");
-#endif
 #elif defined(__arm__)
 #if __ARM_ARCH >= 8
 		mattrs.push_back("+armv8-a");
@@ -979,25 +845,14 @@ namespace rr
 #endif
 #endif
 
-#if REACTOR_LLVM_VERSION < 7
-		llvm::JITEmitDebugInfo = false;
-		llvm::UnsafeFPMath = true;
-		// llvm::NoInfsFPMath = true;
-		// llvm::NoNaNsFPMath = true;
-#else
 		llvm::TargetOptions targetOpts;
 		targetOpts.UnsafeFPMath = false;
 		// targetOpts.NoInfsFPMath = true;
 		// targetOpts.NoNaNsFPMath = true;
-#endif
 
 		if(!::reactorJIT)
 		{
-#if REACTOR_LLVM_VERSION < 7
-			::reactorJIT = new LLVMReactorJIT(arch, mattrs);
-#else
 			::reactorJIT = new LLVMReactorJIT(arch, mattrs, targetOpts);
-#endif
 		}
 
 		::reactorJIT->startSession();
@@ -1033,14 +888,8 @@ namespace rr
 
 		if(false)
 		{
-			#if REACTOR_LLVM_VERSION < 7
-				std::string error;
-				llvm::raw_fd_ostream file((std::string(name) + "-llvm-dump-unopt.txt").c_str(), error);
-			#else
-				std::error_code error;
-				llvm::raw_fd_ostream file(std::string(name) + "-llvm-dump-unopt.txt", error);
-			#endif
-
+			std::error_code error;
+			llvm::raw_fd_ostream file(std::string(name) + "-llvm-dump-unopt.txt", error);
 			::module->print(file, 0);
 		}
 
@@ -1051,14 +900,8 @@ namespace rr
 
 		if(false)
 		{
-			#if REACTOR_LLVM_VERSION < 7
-				std::string error;
-				llvm::raw_fd_ostream file((std::string(name) + "-llvm-dump-opt.txt").c_str(), error);
-			#else
-				std::error_code error;
-				llvm::raw_fd_ostream file(std::string(name) + "-llvm-dump-opt.txt", error);
-			#endif
-
+			std::error_code error;
+			llvm::raw_fd_ostream file(std::string(name) + "-llvm-dump-opt.txt", error);
 			::module->print(file, 0);
 		}
 
@@ -1088,19 +931,11 @@ namespace rr
 
 		if(arraySize)
 		{
-#if REACTOR_LLVM_VERSION < 7
-			declaration = new llvm::AllocaInst(T(type), V(Nucleus::createConstantInt(arraySize)));
-#else
 			declaration = new llvm::AllocaInst(T(type), 0, V(Nucleus::createConstantInt(arraySize)));
-#endif
 		}
 		else
 		{
-#if REACTOR_LLVM_VERSION < 7
-			declaration = new llvm::AllocaInst(T(type), (llvm::Value*)nullptr);
-#else
 			declaration = new llvm::AllocaInst(T(type), 0, (llvm::Value*)nullptr);
-#endif
 		}
 
 		entryBlock.getInstList().push_front(declaration);
@@ -1133,7 +968,7 @@ namespace rr
 		::function = llvm::Function::Create(functionType, llvm::GlobalValue::InternalLinkage, "", ::module);
 		::function->setCallingConv(llvm::CallingConv::C);
 
-		#if defined(_WIN32) && REACTOR_LLVM_VERSION >= 7
+		#if defined(_WIN32)
 			// FIXME(capn):
 			// On Windows, stack memory is committed in increments of 4 kB pages, with the last page
 			// having a trap which allows the OS to grow the stack. For functions with a stack frame
@@ -3510,9 +3345,6 @@ namespace rr
 
 	RValue<UInt4> Ctlz(RValue<UInt4> v, bool isZeroUndef)
 	{
-#if REACTOR_LLVM_VERSION < 7
-		UNIMPLEMENTED("LLVM 3 does not support ctlz in a vector form");
-#endif
 		::llvm::SmallVector<::llvm::Type*, 2> paramTys;
 		paramTys.push_back(T(UInt4::getType()));
 		paramTys.push_back(T(Bool::getType()));
@@ -3525,9 +3357,6 @@ namespace rr
 
 	RValue<UInt4> Cttz(RValue<UInt4> v, bool isZeroUndef)
 	{
-#if REACTOR_LLVM_VERSION < 7
-		UNIMPLEMENTED("LLVM 3 does not support cttz in a vector form");
-#endif
 		::llvm::SmallVector<::llvm::Type*, 2> paramTys;
 		paramTys.push_back(T(UInt4::getType()));
 		paramTys.push_back(T(Bool::getType()));
@@ -3607,15 +3436,8 @@ namespace rr
 
 		RValue<Float> sqrtss(RValue<Float> val)
 		{
-#if REACTOR_LLVM_VERSION < 7
-			llvm::Function *sqrtss = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse_sqrt_ss);
-			Value *vector = Nucleus::createInsertElement(V(llvm::UndefValue::get(T(Float4::getType()))), val.value, 0);
-
-			return RValue<Float>(Nucleus::createExtractElement(V(::builder->CreateCall(sqrtss, ARGS(V(vector)))), Float::getType(), 0));
-#else
 			llvm::Function *sqrt = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::sqrt, {V(val.value)->getType()});
 			return RValue<Float>(V(::builder->CreateCall(sqrt, ARGS(V(val.value)))));
-#endif
 		}
 
 		RValue<Float> rsqrtss(RValue<Float> val)
@@ -3636,11 +3458,7 @@ namespace rr
 
 		RValue<Float4> sqrtps(RValue<Float4> val)
 		{
-#if REACTOR_LLVM_VERSION < 7
-			llvm::Function *sqrtps = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse_sqrt_ps);
-#else
 			llvm::Function *sqrtps = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::sqrt, {V(val.value)->getType()});
-#endif
 
 			return RValue<Float4>(V(::builder->CreateCall(sqrtps, ARGS(V(val.value)))));
 		}
@@ -3705,13 +3523,7 @@ namespace rr
 
 		RValue<Int4> pabsd(RValue<Int4> x)
 		{
-#if REACTOR_LLVM_VERSION < 7
-			llvm::Function *pabsd = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_ssse3_pabs_d_128);
-
-			return RValue<Int4>(V(::builder->CreateCall(pabsd, ARGS(V(x.value)))));
-#else
 			return RValue<Int4>(V(lowerPABS(V(x.value))));
-#endif
 		}
 
 		RValue<Short4> paddsw(RValue<Short4> x, RValue<Short4> y)
@@ -3772,79 +3584,37 @@ namespace rr
 
 		RValue<UShort4> pavgw(RValue<UShort4> x, RValue<UShort4> y)
 		{
-#if REACTOR_LLVM_VERSION < 7
-			llvm::Function *pavgw = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse2_pavg_w);
-
-			return As<UShort4>(V(::builder->CreateCall2(pavgw, ARGS(V(x.value), V(y.value)))));
-#else
 			return As<UShort4>(V(lowerPAVG(V(x.value), V(y.value))));
-#endif
 		}
 
 		RValue<Short4> pmaxsw(RValue<Short4> x, RValue<Short4> y)
 		{
-#if REACTOR_LLVM_VERSION < 7
-			llvm::Function *pmaxsw = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse2_pmaxs_w);
-
-			return As<Short4>(V(::builder->CreateCall2(pmaxsw, ARGS(V(x.value), V(y.value)))));
-#else
 			return As<Short4>(V(lowerPMINMAX(V(x.value), V(y.value), llvm::ICmpInst::ICMP_SGT)));
-#endif
 		}
 
 		RValue<Short4> pminsw(RValue<Short4> x, RValue<Short4> y)
 		{
-#if REACTOR_LLVM_VERSION < 7
-			llvm::Function *pminsw = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse2_pmins_w);
-
-			return As<Short4>(V(::builder->CreateCall2(pminsw, ARGS(V(x.value), V(y.value)))));
-#else
 			return As<Short4>(V(lowerPMINMAX(V(x.value), V(y.value), llvm::ICmpInst::ICMP_SLT)));
-#endif
 		}
 
 		RValue<Short4> pcmpgtw(RValue<Short4> x, RValue<Short4> y)
 		{
-#if REACTOR_LLVM_VERSION < 7
-			llvm::Function *pcmpgtw = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse2_pcmpgt_w);
-
-			return As<Short4>(V(::builder->CreateCall2(pcmpgtw, ARGS(V(x.value), V(y.value)))));
-#else
 			return As<Short4>(V(lowerPCMP(llvm::ICmpInst::ICMP_SGT, V(x.value), V(y.value), T(Short4::getType()))));
-#endif
 		}
 
 		RValue<Short4> pcmpeqw(RValue<Short4> x, RValue<Short4> y)
 		{
-#if REACTOR_LLVM_VERSION < 7
-			llvm::Function *pcmpeqw = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse2_pcmpeq_w);
-
-			return As<Short4>(V(::builder->CreateCall2(pcmpeqw, ARGS(V(x.value), V(y.value)))));
-#else
 			return As<Short4>(V(lowerPCMP(llvm::ICmpInst::ICMP_EQ, V(x.value), V(y.value), T(Short4::getType()))));
-#endif
 		}
 
 		RValue<Byte8> pcmpgtb(RValue<SByte8> x, RValue<SByte8> y)
 		{
-#if REACTOR_LLVM_VERSION < 7
-			llvm::Function *pcmpgtb = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse2_pcmpgt_b);
-
-			return As<Byte8>(V(::builder->CreateCall2(pcmpgtb, ARGS(V(x.value), V(y.value)))));
-#else
 			return As<Byte8>(V(lowerPCMP(llvm::ICmpInst::ICMP_SGT, V(x.value), V(y.value), T(Byte8::getType()))));
-#endif
 		}
 
 		RValue<Byte8> pcmpeqb(RValue<Byte8> x, RValue<Byte8> y)
 		{
-#if REACTOR_LLVM_VERSION < 7
-			llvm::Function *pcmpeqb = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse2_pcmpeq_b);
-
-			return As<Byte8>(V(::builder->CreateCall2(pcmpeqb, ARGS(V(x.value), V(y.value)))));
-#else
 			return As<Byte8>(V(lowerPCMP(llvm::ICmpInst::ICMP_EQ, V(x.value), V(y.value), T(Byte8::getType()))));
-#endif
 		}
 
 		RValue<Short4> packssdw(RValue<Int2> x, RValue<Int2> y)
@@ -3978,46 +3748,22 @@ namespace rr
 
 		RValue<Int4> pmaxsd(RValue<Int4> x, RValue<Int4> y)
 		{
-#if REACTOR_LLVM_VERSION < 7
-			llvm::Function *pmaxsd = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse41_pmaxsd);
-
-			return RValue<Int4>(V(::builder->CreateCall2(pmaxsd, ARGS(V(x.value), V(y.value)))));
-#else
 			return RValue<Int4>(V(lowerPMINMAX(V(x.value), V(y.value), llvm::ICmpInst::ICMP_SGT)));
-#endif
 		}
 
 		RValue<Int4> pminsd(RValue<Int4> x, RValue<Int4> y)
 		{
-#if REACTOR_LLVM_VERSION < 7
-			llvm::Function *pminsd = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse41_pminsd);
-
-			return RValue<Int4>(V(::builder->CreateCall2(pminsd, ARGS(V(x.value), V(y.value)))));
-#else
 			return RValue<Int4>(V(lowerPMINMAX(V(x.value), V(y.value), llvm::ICmpInst::ICMP_SLT)));
-#endif
 		}
 
 		RValue<UInt4> pmaxud(RValue<UInt4> x, RValue<UInt4> y)
 		{
-#if REACTOR_LLVM_VERSION < 7
-			llvm::Function *pmaxud = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse41_pmaxud);
-
-			return RValue<UInt4>(V(::builder->CreateCall2(pmaxud, ARGS(V(x.value), V(y.value)))));
-#else
 			return RValue<UInt4>(V(lowerPMINMAX(V(x.value), V(y.value), llvm::ICmpInst::ICMP_UGT)));
-#endif
 		}
 
 		RValue<UInt4> pminud(RValue<UInt4> x, RValue<UInt4> y)
 		{
-#if REACTOR_LLVM_VERSION < 7
-			llvm::Function *pminud = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse41_pminud);
-
-			return RValue<UInt4>(V(::builder->CreateCall2(pminud, ARGS(V(x.value), V(y.value)))));
-#else
 			return RValue<UInt4>(V(lowerPMINMAX(V(x.value), V(y.value), llvm::ICmpInst::ICMP_ULT)));
-#endif
 		}
 
 		RValue<Short4> pmulhw(RValue<Short4> x, RValue<Short4> y)
@@ -4078,46 +3824,22 @@ namespace rr
 
 		RValue<Int4> pmovzxbd(RValue<Byte16> x)
 		{
-#if REACTOR_LLVM_VERSION < 7
-			llvm::Function *pmovzxbd = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse41_pmovzxbd);
-
-			return RValue<Int4>(V(::builder->CreateCall(pmovzxbd, ARGS(V(x.value)))));
-#else
 			return RValue<Int4>(V(lowerPMOV(V(x.value), T(Int4::getType()), false)));
-#endif
 		}
 
 		RValue<Int4> pmovsxbd(RValue<SByte16> x)
 		{
-#if REACTOR_LLVM_VERSION < 7
-			llvm::Function *pmovsxbd = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse41_pmovsxbd);
-
-			return RValue<Int4>(V(::builder->CreateCall(pmovsxbd, ARGS(V(x.value)))));
-#else
 			return RValue<Int4>(V(lowerPMOV(V(x.value), T(Int4::getType()), true)));
-#endif
 		}
 
 		RValue<Int4> pmovzxwd(RValue<UShort8> x)
 		{
-#if REACTOR_LLVM_VERSION < 7
-			llvm::Function *pmovzxwd = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse41_pmovzxwd);
-
-			return RValue<Int4>(V(::builder->CreateCall(pmovzxwd, ARGS(V(x.value)))));
-#else
 			return RValue<Int4>(V(lowerPMOV(V(x.value), T(Int4::getType()), false)));
-#endif
 		}
 
 		RValue<Int4> pmovsxwd(RValue<Short8> x)
 		{
-#if REACTOR_LLVM_VERSION < 7
-			llvm::Function *pmovsxwd = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::x86_sse41_pmovsxwd);
-
-			return RValue<Int4>(V(::builder->CreateCall(pmovsxwd, ARGS(V(x.value)))));
-#else
 			return RValue<Int4>(V(lowerPMOV(V(x.value), T(Int4::getType()), true)));
-#endif
 		}
 	}
 #endif  // defined(__i386__) || defined(__x86_64__)

@@ -3,7 +3,6 @@
         {
             "name": "Linux",
             "defines": [
-                "REACTOR_LLVM_VERSION=7",
                 "ENABLE_RR_DEBUG_INFO=1"
             ],
             "includePath": [
@@ -20,7 +19,6 @@
         {
             "name": "Mac",
             "defines": [
-                "REACTOR_LLVM_VERSION=7",
                 "ENABLE_RR_DEBUG_INFO=1"
             ],
             "includePath": [
@@ -37,7 +35,6 @@
         {
             "name": "Win32",
             "defines": [
-                "REACTOR_LLVM_VERSION=7",
                 "ENABLE_RR_DEBUG_INFO=1"
             ],
             "includePath": [

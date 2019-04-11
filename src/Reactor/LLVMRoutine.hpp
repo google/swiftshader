@@ -21,37 +21,6 @@
 
 namespace rr
 {
-#if REACTOR_LLVM_VERSION < 7
-	class LLVMRoutineManager;
-
-	class LLVMRoutine : public Routine
-	{
-		friend class LLVMRoutineManager;
-
-	public:
-		LLVMRoutine(int bufferSize);
-		//LLVMRoutine(void *memory, int bufferSize, int offset);
-
-		virtual ~LLVMRoutine();
-
-		//void setFunctionSize(int functionSize);
-
-		//const void *getBuffer();
-		const void *getEntry();
-		//int getBufferSize();
-		//int getFunctionSize();   // Includes constants before the entry point
-		int getCodeSize();       // Executable code only
-		//bool isDynamic();
-
-	private:
-		void *buffer;
-		const void *entry;
-		int bufferSize;
-		int functionSize;
-
-		//const bool dynamic;   // Generated or precompiled
-	};
-#else
 	class LLVMReactorJIT;
 
 	class LLVMRoutine : public Routine
@@ -76,7 +45,6 @@ namespace rr
 		LLVMReactorJIT *reactorJIT;
 		uint64_t moduleKey;
 	};
-#endif  // REACTOR_LLVM_VERSION < 7
 }
 
 #endif   // rr_LLVMRoutine_hpp

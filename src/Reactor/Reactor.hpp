@@ -28,9 +28,9 @@
 
 #undef Bool // b/127920555
 
-#if !defined(NDEBUG) && (REACTOR_LLVM_VERSION >= 7)
+#if !defined(NDEBUG)
 #define ENABLE_RR_PRINT 1 // Enables RR_PRINT(), RR_WATCH()
-#endif // !defined(NDEBUG) && (REACTOR_LLVM_VERSION >= 7)
+#endif // !defined(NDEBUG)
 
 #ifdef ENABLE_RR_DEBUG_INFO
 	// Functions used for generating JIT debug info.
