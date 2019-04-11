@@ -226,6 +226,7 @@ else()
     if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND
        CLANG_VERSION_STRING VERSION_GREATER_EQUAL 5)
         set_cpp_flag("-Werror=unused-lambda-capture")
+        set_cpp_flag("-Werror=string-conversion")
     endif()
 
     # Remove xor, and, or and friends from the list of keywords, they are used

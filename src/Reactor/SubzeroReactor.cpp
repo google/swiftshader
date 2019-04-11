@@ -3374,7 +3374,7 @@ namespace rr
 	#ifdef UNIMPLEMENTED
 	#undef UNIMPLEMENTED
 	#endif
-	#define UNIMPLEMENTED(msg) assert(!msg)
+	#define UNIMPLEMENTED(msg) assert(((void)(msg), false))
 
 	RValue<Float4> Sin(RValue<Float4> x) { UNIMPLEMENTED("Subzero Sin()"); return Float4(0); }
 	RValue<Float4> Cos(RValue<Float4> x) { UNIMPLEMENTED("Subzero Cos()"); return Float4(0); }
