@@ -11,7 +11,11 @@ git submodule update --init
 
 mkdir -p build && cd build
 
-cmake ..
+if [[ -z "${REACTOR_BACKEND}" ]]; then
+  REACTOR_BACKEND="LLVM"
+fi
+
+cmake .. "-DREACTOR_BACKEND=${REACTOR_BACKEND}"
 make --jobs=$(nproc)
 
 # Run the reactor unit tests.
