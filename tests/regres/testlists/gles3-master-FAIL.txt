@@ -37,4 +37,3 @@ dEQP-GLES3.functional.shaders.loops.short_circuit.while_sequence_vertex
 dEQP-GLES3.functional.shaders.loops.short_circuit.while_vertex
 dEQP-GLES3.functional.shaders.metamorphic.bubblesort_flag.variant_1
 dEQP-GLES3.functional.shaders.metamorphic.bubblesort_flag.variant_2
-dEQP-GLES3.functional.state_query.indexed.transform_feedback_switching_buffer

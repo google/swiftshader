@@ -29987,6 +29987,7 @@ dEQP-GLES3.functional.state_query.floats.sample_coverage_value_getinteger
 dEQP-GLES3.functional.state_query.floats.sample_coverage_value_getinteger64
 dEQP-GLES3.functional.state_query.indexed.transform_feedback_buffer_binding
 dEQP-GLES3.functional.state_query.indexed.transform_feedback_buffer_start_size
+dEQP-GLES3.functional.state_query.indexed.transform_feedback_switching_buffer
 dEQP-GLES3.functional.state_query.indexed.uniform_buffer_binding
 dEQP-GLES3.functional.state_query.indexed.uniform_buffer_start_size
 dEQP-GLES3.functional.state_query.integers.active_texture_getboolean
