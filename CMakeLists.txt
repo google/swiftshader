@@ -79,7 +79,7 @@ option (MSAN "Build with memory sanitizer" 0)
 option (ASAN "Build with address sanitizer" 0)
 option (TSAN "Build with thread sanitizer" 0)
 option (UBSAN "Build with undefined behavior sanitizer" 0)
-option (WARNINGS_AS_ERRORS "Treat all warnings as errors" 0)
+option (WARNINGS_AS_ERRORS "Treat all warnings as errors" 1)
 option (DCHECK_ALWAYS_ON "Check validation macros even in release builds" 0)
 
 if(ARCH STREQUAL "arm")
