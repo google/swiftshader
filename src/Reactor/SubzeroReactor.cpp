@@ -2944,16 +2944,6 @@ namespace rr
 		storeValue((~(As<Int4>(cast) >> 31) & uiValue).value);
 	}
 
-	RValue<UInt> Extract(RValue<UInt4> x, int i)
-	{
-		return RValue<UInt>(Nucleus::createExtractElement(x.value, UInt::getType(), i));
-	}
-
-	RValue<UInt4> Insert(RValue<UInt4> x, RValue<UInt> element, int i)
-	{
-		return RValue<UInt4>(Nucleus::createInsertElement(x.value, element.value, i));
-	}
-
 	RValue<UInt4> operator<<(RValue<UInt4> lhs, unsigned char rhs)
 	{
 		if(emulateIntrinsics)
