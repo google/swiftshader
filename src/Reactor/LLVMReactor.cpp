@@ -3106,13 +3106,13 @@ namespace rr
 
 	static RValue<Float4> TransformFloat4PerElement(RValue<Float4> v, const char* name)
 	{
-		auto funcTy = ::llvm::FunctionType::get(T(Float::getType()), {T(Float::getType())}, false);
+		auto funcTy = ::llvm::FunctionType::get(T(Float::getType()), ::llvm::ArrayRef<llvm::Type*>(T(Float::getType())), false);
 		auto func = ::module->getOrInsertFunction(name, funcTy);
 		llvm::Value *out = ::llvm::UndefValue::get(T(Float4::getType()));
 		for (uint64_t i = 0; i < 4; i++)
 		{
-			auto el = ::builder->CreateCall(func, ::builder->CreateExtractElement(V(v.value), i));
-			out = ::builder->CreateInsertElement(out, el, i);
+			auto el = ::builder->CreateCall(func, V(Nucleus::createExtractElement(v.value, Float::getType(), i)));
+			out = V(Nucleus::createInsertElement(V(out), V(el), i));
 		}
 		return RValue<Float4>(V(out));
 	}
@@ -3164,68 +3164,84 @@ namespace rr
 
 	RValue<Float4> Atan2(RValue<Float4> x, RValue<Float4> y)
 	{
-		auto funcTy = ::llvm::FunctionType::get(T(Float::getType()),
-				{T(Float::getType()), T(Float::getType())}, false);
+		::llvm::SmallVector<::llvm::Type*, 2> paramTys;
+		paramTys.push_back(T(Float::getType()));
+		paramTys.push_back(T(Float::getType()));
+		auto funcTy = ::llvm::FunctionType::get(T(Float::getType()), paramTys, false);
 		auto func = ::module->getOrInsertFunction("atan2f", funcTy);
 		llvm::Value *out = ::llvm::UndefValue::get(T(Float4::getType()));
 		for (uint64_t i = 0; i < 4; i++)
 		{
-			auto el = ::builder->CreateCall(func, {
-					::builder->CreateExtractElement(V(x.value), i),
-					::builder->CreateExtractElement(V(y.value), i),
-				});
-			out = ::builder->CreateInsertElement(out, el, i);
+			auto el = ::builder->CreateCall2(func, ARGS(
+					V(Nucleus::createExtractElement(x.value, Float::getType(), i)),
+					V(Nucleus::createExtractElement(y.value, Float::getType(), i))
+				));
+			out = V(Nucleus::createInsertElement(V(out), V(el), i));
 		}
 		return RValue<Float4>(V(out));
 	}
 
 	RValue<Float4> Pow(RValue<Float4> x, RValue<Float4> y)
 	{
-		auto func = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::pow,
-			{ T(Float4::getType()), T(Float4::getType()) } );
-		return RValue<Float4>(V(::builder->CreateCall(func, { V(x.value), V(y.value) })));
+		::llvm::SmallVector<::llvm::Type*, 2> paramTys;
+		paramTys.push_back(T(Float4::getType()));
+		paramTys.push_back(T(Float4::getType()));
+		auto func = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::pow, paramTys);
+		return RValue<Float4>(V(::builder->CreateCall2(func, ARGS(V(x.value), V(y.value)))));
 	}
 
 	RValue<Float4> Exp(RValue<Float4> v)
 	{
 		auto func = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::exp, { T(Float4::getType()) } );
-		return RValue<Float4>(V(::builder->CreateCall(func, { V(v.value) })));
+		return RValue<Float4>(V(::builder->CreateCall(func, V(v.value))));
 	}
 
 	RValue<Float4> Log(RValue<Float4> v)
 	{
 		auto func = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::log, { T(Float4::getType()) } );
-		return RValue<Float4>(V(::builder->CreateCall(func, { V(v.value) })));
+		return RValue<Float4>(V(::builder->CreateCall(func, V(v.value))));
 	}
 
 	RValue<Float4> Exp2(RValue<Float4> v)
 	{
 		auto func = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::exp2, { T(Float4::getType()) } );
-		return RValue<Float4>(V(::builder->CreateCall(func, { V(v.value) })));
+		return RValue<Float4>(V(::builder->CreateCall(func, V(v.value))));
 	}
 
 	RValue<Float4> Log2(RValue<Float4> v)
 	{
 		auto func = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::log2, { T(Float4::getType()) } );
-		return RValue<Float4>(V(::builder->CreateCall(func, { V(v.value) })));
+		return RValue<Float4>(V(::builder->CreateCall(func, V(v.value))));
 	}
 
 	RValue<UInt4> Ctlz(RValue<UInt4> v, bool isZeroUndef)
 	{
-		auto func = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::ctlz, { T(UInt4::getType()), T(Bool::getType()) } );
-		return RValue<UInt4>(V(::builder->CreateCall(func, {
+#if REACTOR_LLVM_VERSION < 7
+		assert(false); // TODO: LLVM 3 does not support ctlz in a vector form.
+#endif
+		::llvm::SmallVector<::llvm::Type*, 2> paramTys;
+		paramTys.push_back(T(UInt4::getType()));
+		paramTys.push_back(T(Bool::getType()));
+		auto func = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::ctlz, paramTys);
+		return RValue<UInt4>(V(::builder->CreateCall2(func, ARGS(
 			V(v.value),
 			isZeroUndef ? ::llvm::ConstantInt::getTrue(*::context) : ::llvm::ConstantInt::getFalse(*::context)
-		})));
+		))));
 	}
 
 	RValue<UInt4> Cttz(RValue<UInt4> v, bool isZeroUndef)
 	{
-		auto func = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::cttz, { T(UInt4::getType()), T(Bool::getType()) } );
-		return RValue<UInt4>(V(::builder->CreateCall(func, {
+#if REACTOR_LLVM_VERSION < 7
+		assert(false); // TODO: LLVM 3 does not support cttz in a vector form.
+#endif
+		::llvm::SmallVector<::llvm::Type*, 2> paramTys;
+		paramTys.push_back(T(UInt4::getType()));
+		paramTys.push_back(T(Bool::getType()));
+		auto func = llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::cttz, paramTys);
+		return RValue<UInt4>(V(::builder->CreateCall2(func, ARGS(
 			V(v.value),
 			isZeroUndef ? ::llvm::ConstantInt::getTrue(*::context) : ::llvm::ConstantInt::getFalse(*::context)
-		})));
+		))));
 	}
 
 	Type *Float4::getType()
