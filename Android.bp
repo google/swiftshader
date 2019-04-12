@@ -106,6 +106,6 @@ cc_library_headers {
 subdirs = [
     "src",
     "third_party/llvm-subzero",
-    "third_party/LLVM",
+    "third_party/llvm-7.0",
     "third_party/subzero",
 ]

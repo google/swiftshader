@@ -3,6 +3,7 @@
 cc_library_static {
     name: "libLLVM7_swiftshader",
     device_supported: true,
+    host_supported: true,
     vendor: true,
 
     srcs: [

@@ -17,15 +17,10 @@ COMMON_C_INCLUDES += \
 
 else
 
-ifeq ($(REACTOR_LLVM_VERSION),3)
-COMMON_C_INCLUDES += \
-	$(LOCAL_PATH)/../third_party/LLVM/include
-else
 COMMON_C_INCLUDES += \
 	$(LOCAL_PATH)/../third_party/llvm-7.0/llvm/include \
 	$(LOCAL_PATH)/../third_party/llvm-7.0/configs/android/include \
 	$(LOCAL_PATH)/../third_party/llvm-7.0/configs/common/include
-endif
 
 endif
 

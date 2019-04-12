@@ -181,8 +181,14 @@ cc_defaults {
         "Reactor/LLVMRoutineManager.cpp",
     ],
 
+    cflags: [
+        "-DREACTOR_LLVM_VERSION=7",
+        "-Wno-unused-parameter",
+        "-Wno-implicit-fallthrough",
+    ],
+
     static_libs: [
-        "libLLVM_swiftshader",
+        "libLLVM7_swiftshader",
     ],
 }
 
@@ -371,14 +377,14 @@ cc_defaults {
         android: {
             static_libs: [
                 "libswiftshader_llvm",
-                "libLLVM_swiftshader",
+                "libLLVM7_swiftshader",
             ],
         },
 
         host: {
             static_libs: [
                 "libswiftshader_llvm",
-                "libLLVM_swiftshader",
+                "libLLVM7_swiftshader",
             ],
         },
     },
@@ -401,14 +407,14 @@ cc_defaults {
         android: {
             static_libs: [
                 "libswiftshader_llvm_debug",
-                "libLLVM_swiftshader",
+                "libLLVM7_swiftshader",
             ],
         },
 
         host: {
             static_libs: [
                 "libswiftshader_llvm_debug",
-                "libLLVM_swiftshader",
+                "libLLVM7_swiftshader",
             ],
         },
     },
