@@ -52,6 +52,7 @@ Device::Device(const Device::CreateInfo* info, void* mem)
 		UNIMPLEMENTED("enabledLayerCount");   // TODO(b/119321052): UNIMPLEMENTED() should be used only for features that must still be implemented. Use a more informational macro here.
 	}
 
+	// FIXME (b/119409619): use an allocator here so we can control all memory allocations
 	blitter = new sw::Blitter();
 }
 

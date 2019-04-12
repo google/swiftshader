@@ -24,6 +24,7 @@ namespace vk
 
 Queue::Queue(uint32_t pFamilyIndex, float pPriority) : familyIndex(pFamilyIndex), priority(pPriority)
 {
+	// FIXME (b/119409619): use an allocator here so we can control all memory allocations
 	context = new sw::Context();
 	renderer = new sw::Renderer(context, sw::OpenGL, true);
 }

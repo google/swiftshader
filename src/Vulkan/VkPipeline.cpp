@@ -453,6 +453,7 @@ void GraphicsPipeline::compileShaders(const VkAllocationCallbacks* pAllocator, c
 		auto module = Cast(pStage->module);
 		auto code = preprocessSpirv(module->getCode(), pStage->pSpecializationInfo);
 
+		// FIXME (b/119409619): use an allocator here so we can control all memory allocations
 		// TODO: also pass in any pipeline state which will affect shader compilation
 		auto spirvShader = new sw::SpirvShader{code};
 

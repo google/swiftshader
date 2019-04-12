@@ -47,6 +47,7 @@ size_t DescriptorPool::ComputeRequiredAllocationSize(const VkDescriptorPoolCreat
 
 VkResult DescriptorPool::allocateSets(uint32_t descriptorSetCount, const VkDescriptorSetLayout* pSetLayouts, VkDescriptorSet* pDescriptorSets)
 {
+	// FIXME (b/119409619): use an allocator here so we can control all memory allocations
 	std::unique_ptr<size_t[]> layoutSizes(new size_t[descriptorSetCount]);
 	for(uint32_t i = 0; i < descriptorSetCount; i++)
 	{
