@@ -997,18 +997,25 @@ namespace sw
 			f(index++, offset);
 			break;
 		case spv::OpTypeVector:
+		{
+			auto elemStride = (d.InsideMatrix && d.HasRowMajor && d.RowMajor) ? d.MatrixStride / sizeof(float) : 1;
 			for (auto i = 0u; i < type.definition.word(3); i++)
 			{
-				VisitMemoryObjectInner(type.definition.word(2), d, index, offset + i, f);
+				VisitMemoryObjectInner(type.definition.word(2), d, index, offset + elemStride * i, f);
 			}
 			break;
+		}
 		case spv::OpTypeMatrix:
+		{
+			auto columnStride = (d.HasRowMajor && d.RowMajor) ? 1 : d.MatrixStride / sizeof(float);
+			d.InsideMatrix = true;
 			for (auto i = 0u; i < type.definition.word(3); i++)
 			{
 				ASSERT(d.HasMatrixStride);
-				VisitMemoryObjectInner(type.definition.word(2), d, index, offset + i * d.MatrixStride / sizeof(float), f);
+				VisitMemoryObjectInner(type.definition.word(2), d, index, offset + columnStride * i, f);
 			}
 			break;
+		}
 		case spv::OpTypeStruct:
 			for (auto i = 0u; i < type.definition.wordCount() - 2; i++)
 			{
@@ -1118,9 +1125,12 @@ namespace sw
 			}
 			case spv::OpTypeArray:
 			case spv::OpTypeRuntimeArray:
-			case spv::OpTypeMatrix:
 			case spv::OpTypeVector:
 				typeId = type.element;
+				break;
+			case spv::OpTypeMatrix:
+				typeId = type.element;
+				d->InsideMatrix = true;
 				break;
 			default:
 				UNIMPLEMENTED("Unexpected type '%s' in ApplyDecorationsForAccessChain",
@@ -1190,21 +1200,24 @@ namespace sw
 			{
 				// TODO: b/127950082: Check bounds.
 				ASSERT(d.HasMatrixStride);
+				d.InsideMatrix = true;
+				auto columnStride = (d.HasRowMajor && d.RowMajor) ? 1 : d.MatrixStride/sizeof(float);
 				auto & obj = getObject(indexIds[i]);
 				if (obj.kind == Object::Kind::Constant)
-					constantOffset += d.MatrixStride/sizeof(float) * GetConstantInt(indexIds[i]);
+					constantOffset += columnStride * GetConstantInt(indexIds[i]);
 				else
-					ptr.offset += SIMD::Int(d.MatrixStride / sizeof(float)) * routine->getIntermediate(indexIds[i]).Int(0);
+					ptr.offset += SIMD::Int(columnStride) * routine->getIntermediate(indexIds[i]).Int(0);
 				typeId = type.element;
 				break;
 			}
 			case spv::OpTypeVector:
 			{
+				auto elemStride = (d.InsideMatrix && d.HasRowMajor && d.RowMajor) ? d.MatrixStride / sizeof(float) : 1;
 				auto & obj = getObject(indexIds[i]);
 				if (obj.kind == Object::Kind::Constant)
-					constantOffset += GetConstantInt(indexIds[i]);
+					constantOffset += elemStride * GetConstantInt(indexIds[i]);
 				else
-					ptr.offset += routine->getIntermediate(indexIds[i]).Int(0);
+					ptr.offset += SIMD::Int(elemStride) * routine->getIntermediate(indexIds[i]).Int(0);
 				typeId = type.element;
 				break;
 			}
@@ -1428,6 +1441,7 @@ namespace sw
 		Block |= src.Block;
 		BufferBlock |= src.BufferBlock;
 		RelaxedPrecision |= src.RelaxedPrecision;
+		InsideMatrix |= src.InsideMatrix;
 	}
 
 	void SpirvShader::DescriptorDecorations::Apply(const sw::SpirvShader::DescriptorDecorations &src)

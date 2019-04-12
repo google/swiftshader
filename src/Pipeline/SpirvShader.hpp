@@ -425,6 +425,7 @@ namespace sw
 			bool BufferBlock : 1;
 			bool RelaxedPrecision : 1;
 			bool RowMajor : 1;			// RowMajor if true; ColMajor if false
+			bool InsideMatrix : 1;		// pseudo-decoration for whether we're inside a matrix.
 
 			Decorations()
 					: Location{-1}, Component{0},
@@ -436,7 +437,8 @@ namespace sw
 					  HasRowMajor{false},
 					  Flat{false}, Centroid{false}, NoPerspective{false},
 					  Block{false}, BufferBlock{false},
-					  RelaxedPrecision{false}, RowMajor{false}
+					  RelaxedPrecision{false}, RowMajor{false},
+					  InsideMatrix{false}
 			{
 			}
 
