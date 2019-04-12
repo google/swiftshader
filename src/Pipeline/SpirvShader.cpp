@@ -1364,6 +1364,13 @@ namespace sw
 		case spv::DecorationRelaxedPrecision:
 			RelaxedPrecision = true;
 			break;
+		case spv::DecorationRowMajor:
+			HasRowMajor = true;
+			RowMajor = true;
+			break;
+		case spv::DecorationColMajor:
+			HasRowMajor = true;
+			RowMajor = false;
 		default:
 			// Intentionally partial, there are many decorations we just don't care about.
 			break;
@@ -1407,6 +1414,12 @@ namespace sw
 		{
 			HasMatrixStride = true;
 			MatrixStride = src.MatrixStride;
+		}
+
+		if (src.HasRowMajor)
+		{
+			HasRowMajor = true;
+			RowMajor = src.RowMajor;
 		}
 
 		Flat |= src.Flat;

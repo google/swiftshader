@@ -416,6 +416,7 @@ namespace sw
 			bool HasOffset : 1;
 			bool HasArrayStride : 1;
 			bool HasMatrixStride : 1;
+			bool HasRowMajor : 1;		// whether RowMajor bit is valid.
 
 			bool Flat : 1;
 			bool Centroid : 1;
@@ -423,6 +424,7 @@ namespace sw
 			bool Block : 1;
 			bool BufferBlock : 1;
 			bool RelaxedPrecision : 1;
+			bool RowMajor : 1;			// RowMajor if true; ColMajor if false
 
 			Decorations()
 					: Location{-1}, Component{0},
@@ -431,9 +433,10 @@ namespace sw
 					  HasLocation{false}, HasComponent{false},
 					  HasBuiltIn{false}, HasOffset{false},
 					  HasArrayStride{false}, HasMatrixStride{false},
+					  HasRowMajor{false},
 					  Flat{false}, Centroid{false}, NoPerspective{false},
 					  Block{false}, BufferBlock{false},
-					  RelaxedPrecision{false}
+					  RelaxedPrecision{false}, RowMajor{false}
 			{
 			}
 
