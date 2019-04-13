@@ -3371,17 +3371,6 @@ namespace rr
 		return v;
 	}
 
-	RValue<UInt4> BitCount(RValue<UInt4> x)
-	{
-		// https://graphics.stanford.edu/~seander/bithacks.html#CountBitsSetParallel
-		UInt4 v = x - ((x >> 1) & UInt4(0x55555555));
-		v = ((v >> 2) & UInt4(0x33333333)) + (v & UInt4(0x33333333));
-		v = ((v >> 4) + v) & UInt4(0x0F0F0F0F);
-		v = ((v >> 8) + v) & UInt4(0x00FF00FF);
-		v = ((v >> 16) + v) & UInt4(0x0000FFFF);
-		return v;
-	}
-
 	Type *Float4::getType()
 	{
 		return T(Ice::IceType_v4f32);
