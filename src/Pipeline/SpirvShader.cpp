@@ -2772,7 +2772,17 @@ namespace sw
 			}
 			case spv::OpBitReverse:
 			{
-				dst.move(i, BitReverse(src.UInt(i)));
+				// TODO: Add an intrinsic to reactor. Even if there isn't a
+				// single vector instruction, there may be target-dependent
+				// ways to make this faster.
+				// https://graphics.stanford.edu/~seander/bithacks.html#ReverseParallel
+				SIMD::UInt v = src.UInt(i);
+				v = ((v >> 1) & SIMD::UInt(0x55555555)) | ((v & SIMD::UInt(0x55555555)) << 1);
+				v = ((v >> 2) & SIMD::UInt(0x33333333)) | ((v & SIMD::UInt(0x33333333)) << 2);
+				v = ((v >> 4) & SIMD::UInt(0x0F0F0F0F)) | ((v & SIMD::UInt(0x0F0F0F0F)) << 4);
+				v = ((v >> 8) & SIMD::UInt(0x00FF00FF)) | ((v & SIMD::UInt(0x00FF00FF)) << 8);
+				v = (v >> 16) | (v << 16);
+				dst.move(i, v);
 				break;
 			}
 			case spv::OpBitCount:

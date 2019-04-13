@@ -3359,18 +3359,6 @@ namespace rr
 		}
 	}
 
-	RValue<UInt4> BitReverse(RValue<UInt4> x)
-	{
-		// https://graphics.stanford.edu/~seander/bithacks.html#ReverseParallel
-		UInt4 v = x;
-		v = ((v >> 1) & UInt4(0x55555555)) | ((v & UInt4(0x55555555)) << 1);
-		v = ((v >> 2) & UInt4(0x33333333)) | ((v & UInt4(0x33333333)) << 2);
-		v = ((v >> 4) & UInt4(0x0F0F0F0F)) | ((v & UInt4(0x0F0F0F0F)) << 4);
-		v = ((v >> 8) & UInt4(0x00FF00FF)) | ((v & UInt4(0x00FF00FF)) << 8);
-		v = (v >> 16) | (v << 16);
-		return v;
-	}
-
 	Type *Float4::getType()
 	{
 		return T(Ice::IceType_v4f32);
