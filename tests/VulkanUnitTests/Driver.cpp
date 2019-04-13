@@ -50,9 +50,9 @@ bool Driver::loadSwiftShader()
 {
 #if OS_WINDOWS
 #    if defined(NDEBUG)
-    return load("../../build/Release_x64/vk_swiftshader.dll");
+    return load("./build/Release/libvk_swiftshader.dll");
 #    else
-    return load("../../build/Debug_x64/vk_swiftshader.dll");
+    return load("./build/Debug/libvk_swiftshader.dll");
 #    endif
 #elif OS_MAC
     return load("./build/Darwin/libvk_swiftshader.dylib");

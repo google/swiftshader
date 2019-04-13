@@ -1,19 +1,38 @@
 @echo on
 
-SET PATH=%PATH%;C:\python27
+SETLOCAL ENABLEDELAYEDEXPANSION
 
-cd git\SwiftShader
+SET PATH=%PATH%;C:\python27;C:\Program Files\cmake\bin
+set SRC=%cd%\git\SwiftShader
+
+cd %SRC%
+if !ERRORLEVEL! neq 0 exit /b !ERRORLEVEL!
 
 git submodule update --init
+if !ERRORLEVEL! neq 0 exit /b !ERRORLEVEL!
 
 SET MSBUILD="C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\MSBuild\15.0\Bin\MSBuild"
 SET CONFIG=Debug
 
-REM TODO: Switch between reactor backends with the REACTOR_BACKEND env var.
-%MSBUILD% /p:Configuration=%CONFIG% SwiftShader.sln
+cd %SRC%\build
+if !ERRORLEVEL! neq 0 exit /b !ERRORLEVEL!
 
-SET PATH=%PATH%;T:\src\git\SwiftShader\out\Debug_x64
+cmake .. -G "Visual Studio 15 2017 Win64" -Thost=x64 "-DREACTOR_BACKEND=%REACTOR_BACKEND%"
+if !ERRORLEVEL! neq 0 exit /b !ERRORLEVEL!
+
+%MSBUILD% /p:Configuration=%CONFIG% SwiftShader.sln
+if !ERRORLEVEL! neq 0 exit /b !ERRORLEVEL!
+
+REM Run the unit tests. They must be run from project root
+cd %SRC%
+if !ERRORLEVEL! neq 0 exit /b !ERRORLEVEL!
 SET SWIFTSHADER_DISABLE_DEBUGGER_WAIT_DIALOG=1
 
-REM Run the GLES unit tests. TODO(capn): move to different directory (build?).
-bin\GLESUnitTests\x64\Debug\GLESUnitTests.exe
+build\Debug\gles-unittests.exe
+if !ERRORLEVEL! neq 0 exit /b !ERRORLEVEL!
+
+IF NOT "%REACTOR_BACKEND%"=="Subzero" (
+    REM Currently vulkan does not work with Subzero.
+    build\Debug\vk-unittests.exe
+    if !ERRORLEVEL! neq 0 exit /b !ERRORLEVEL!
+)
