@@ -740,7 +740,7 @@ static void getAMDProcessorTypeAndSubtype(unsigned int Family,
 static unsigned getAvailableFeatures(unsigned int ECX, unsigned int EDX,
                                      unsigned MaxLeaf) {
   unsigned Features = 0;
-  unsigned int EAX, EBX;
+  unsigned int EAX = 0, EBX = 0;
   Features |= (((EDX >> 23) & 1) << FEATURE_MMX);
   Features |= (((EDX >> 25) & 1) << FEATURE_SSE);
   Features |= (((EDX >> 26) & 1) << FEATURE_SSE2);
@@ -796,8 +796,8 @@ StringRef sys::getHostCPUName() {
   detectX86FamilyModel(EAX, &Family, &Model);
   Features = getAvailableFeatures(ECX, EDX, MaxLeaf);
 
-  unsigned Type;
-  unsigned Subtype;
+  unsigned Type = 0;
+  unsigned Subtype = 0;
 
   if (Vendor == SIG_INTEL) {
     getIntelProcessorTypeAndSubtype(Family, Model, Brand_id, Features, &Type,
