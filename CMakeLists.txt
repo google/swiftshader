@@ -287,9 +287,11 @@ else()
         set_cpp_flag("-Wno-ignored-attributes")  # ignoring attributes on template argument 'X'
         set_cpp_flag("-Wno-attributes")          # 'X' attribute ignored
         set_cpp_flag("-Wno-strict-aliasing")     # dereferencing type-punned pointer will break strict-aliasing rules
+        set_cpp_flag("-Wno-comment")             # multi-line comment
     elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
         set_cpp_flag("-Wno-unneeded-internal-declaration") # function 'X' is not needed and will not be emitted
         set_cpp_flag("-Wno-unused-private-field")          # private field 'offset' is not used - TODO: Consider enabling this once Vulkan is further implemented.
+        set_cpp_flag("-Wno-comment")                       # multi-line comment
     endif()
 
     # For distribution it is more important to be slim than super optimized
@@ -1783,7 +1785,6 @@ endif()  # REACTOR_LLVM_VERSION
 set(LLVM_COMPILE_FLAGS)
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
     list(APPEND LLVM_COMPILE_FLAGS
-        "-Wno-comment"                 # multi-line comment
         "-Wno-noexcept-type"           # mangled name for ‘X’ will change in C++17 because the exception specification is part of a function type
         "-Wno-maybe-uninitialized"     # ‘X’ may be used uninitialized in this function
         "-Wno-unused-but-set-variable" # variable ‘X’ set but not used
