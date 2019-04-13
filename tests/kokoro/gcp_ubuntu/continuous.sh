@@ -25,4 +25,8 @@ cd .. # Tests must be run from project root
 
 # Run the OpenGL ES and Vulkan unit tests.
 build/gles-unittests
-build/vk-unittests
+
+if [ "${REACTOR_BACKEND}" != "Subzero" ]; then
+  # Currently vulkan does not work with Subzero.
+  build/vk-unittests
+fi
