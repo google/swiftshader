@@ -58,7 +58,7 @@ public:
 static sys::Mutex gCrashRecoveryContexMutex;
 static bool gCrashRecoveryEnabled = false;
 
-static sys::ThreadLocal<const CrashRecoveryContextCleanup> 
+static sys::ThreadLocal<const CrashRecoveryContextCleanup>
        tlIsRecoveringFromCrash;
 
 CrashRecoveryContextCleanup::~CrashRecoveryContextCleanup() {}
@@ -75,7 +75,7 @@ CrashRecoveryContext::~CrashRecoveryContext() {
     delete tmp;
   }
   tlIsRecoveringFromCrash.erase();
-  
+
   CrashRecoveryContextImpl *CRCI = (CrashRecoveryContextImpl *) Impl;
   delete CRCI;
 }
@@ -224,10 +224,10 @@ void CrashRecoveryContext::Disable() {
 
 #include <signal.h>
 
+#ifdef ENABLE_SIGNAL_OVERRIDES
 static int Signals[] = { SIGABRT, SIGBUS, SIGFPE, SIGILL, SIGSEGV, SIGTRAP };
 static const unsigned NumSignals = sizeof(Signals) / sizeof(Signals[0]);
 static struct sigaction PrevActions[NumSignals];
-
 static void CrashRecoverySignalHandler(int Signal) {
   // Lookup the current thread local recovery object.
   const CrashRecoveryContextImpl *CRCI = CurrentContext.get();
@@ -259,6 +259,7 @@ static void CrashRecoverySignalHandler(int Signal) {
   if (CRCI)
     const_cast<CrashRecoveryContextImpl*>(CRCI)->HandleCrash();
 }
+#endif // ENABLE_SIGNAL_OVERRIDES
 
 void CrashRecoveryContext::Enable() {
   sys::ScopedLock L(gCrashRecoveryContexMutex);

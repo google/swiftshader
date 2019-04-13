@@ -32,7 +32,9 @@
 #endif
 using namespace llvm;
 
+#ifdef ENABLE_SIGNAL_OVERRIDES
 static RETSIGTYPE SignalHandler(int Sig);  // defined below.
+#endif // ENABLE_SIGNAL_OVERRIDES
 
 static SmartMutex<true> SignalsMutex;
 
@@ -76,6 +78,7 @@ static struct {
 } RegisteredSignalInfo[(sizeof(IntSigs)+sizeof(KillSigs))/sizeof(KillSigs[0])];
 
 
+#ifdef ENABLE_SIGNAL_OVERRIDES
 static void RegisterHandler(int Signal) {
   assert(NumRegisteredSignals <
          sizeof(RegisteredSignalInfo)/sizeof(RegisteredSignalInfo[0]) &&
@@ -93,6 +96,7 @@ static void RegisterHandler(int Signal) {
   RegisteredSignalInfo[NumRegisteredSignals].SigNo = Signal;
   ++NumRegisteredSignals;
 }
+#endif // ENABLE_SIGNAL_OVERRIDES
 
 static void RegisterHandlers() {
 #ifdef ENABLE_SIGNAL_OVERRIDES
@@ -104,6 +108,7 @@ static void RegisterHandlers() {
 #endif
 }
 
+#ifdef ENABLE_SIGNAL_OVERRIDES
 static void UnregisterHandlers() {
   // Restore all of the signal handlers to how they were before we showed up.
   for (unsigned i = 0, e = NumRegisteredSignals; i != e; ++i)
@@ -111,6 +116,7 @@ static void UnregisterHandlers() {
               &RegisteredSignalInfo[i].SA, 0);
   NumRegisteredSignals = 0;
 }
+#endif // ENABLE_SIGNAL_OVERRIDES
 
 
 /// RemoveFilesToRemove - Process the FilesToRemove list. This function
@@ -122,6 +128,7 @@ static void RemoveFilesToRemove() {
   }
 }
 
+#ifdef ENABLE_SIGNAL_OVERRIDES
 // SignalHandler - The signal handler that runs.
 static RETSIGTYPE SignalHandler(int Sig) {
   // Restore the signal behavior to default, so that the program actually
@@ -158,6 +165,7 @@ static RETSIGTYPE SignalHandler(int Sig) {
   for (unsigned i = 0, e = CallBacksToRun.size(); i != e; ++i)
     CallBacksToRun[i].first(CallBacksToRun[i].second);
 }
+#endif // ENABLE_SIGNAL_OVERRIDES
 
 void llvm::sys::RunInterruptHandlers() {
   SignalsMutex.acquire();

@@ -149,8 +149,10 @@ static bool RedirectIO_PS(const Path *Path, int FD, std::string *ErrMsg,
 }
 #endif
 
+#ifdef ENABLE_SIGNAL_OVERRIDES
 static void TimeOutHandler(int Sig) {
 }
+#endif
 
 static void SetMemoryLimits (unsigned size)
 {
@@ -302,6 +304,7 @@ Program::Wait(const sys::Path &path,
 {
 #ifdef HAVE_SYS_WAIT_H
   struct sigaction Act, Old;
+  (void)Act; (void)Old;
 
   if (Data_ == 0) {
     MakeErrMsg(ErrMsg, "Process not started!");

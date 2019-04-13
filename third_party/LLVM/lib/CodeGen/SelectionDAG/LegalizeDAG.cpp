@@ -1441,7 +1441,7 @@ SDValue SelectionDAGLegalize::LegalizeOp(SDValue Op) {
             &LoadChains[0], LoadChains.size());
           EVT TempWideVector = EVT::getVectorVT(*DAG.getContext(),
             SrcVT.getScalarType(), NumElem*SizeRatio);
-          SDValue ValRes = DAG.getNode(ISD::BUILD_VECTOR, dl, 
+          SDValue ValRes = DAG.getNode(ISD::BUILD_VECTOR, dl,
             TempWideVector, &LoadVals[0], LoadVals.size());
 
           // Cast to the correct type
@@ -1629,7 +1629,6 @@ SDValue SelectionDAGLegalize::LegalizeOp(SDValue Op) {
           break;
         case TargetLowering::Expand:
 
-          EVT WideScalarVT = Tmp3.getValueType().getScalarType();
           EVT NarrowScalarVT = StVT.getScalarType();
 
           if (StVT.isVector()) {
@@ -1649,7 +1648,6 @@ SDValue SelectionDAGLegalize::LegalizeOp(SDValue Op) {
             if (RegScalarLegal) {
               // Cast floats into integers
               unsigned ScalarSize = MemSclVT.getSizeInBits();
-              EVT EltVT = EVT::getIntegerVT(*DAG.getContext(), ScalarSize);
 
               // Round odd types to the next pow of two.
               if (!isPowerOf2_32(ScalarSize))

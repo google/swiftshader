@@ -292,6 +292,7 @@ else()
         set_cpp_flag("-Wno-unneeded-internal-declaration") # function 'X' is not needed and will not be emitted
         set_cpp_flag("-Wno-unused-private-field")          # private field 'offset' is not used - TODO: Consider enabling this once Vulkan is further implemented.
         set_cpp_flag("-Wno-comment")                       # multi-line comment
+        set_cpp_flag("-Wno-undefined-var-template")        # instantiation of variable 'X' required here, but no definition is available
     endif()
 
     # For distribution it is more important to be slim than super optimized
