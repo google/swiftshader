@@ -1790,6 +1790,19 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
         "-Wno-maybe-uninitialized"     # ‘X’ may be used uninitialized in this function
         "-Wno-unused-but-set-variable" # variable ‘X’ set but not used
     )
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+    set(LLVM_DISABLE_WARNINGS
+        "/wd4141" # 'inline': used more than once
+        "/wd4146" # unary minus operator applied to unsigned type, result still unsigned
+        "/wd4244" # 'X': conversion from 'uint64_t' to 'const unsigned int', possible loss of data
+        "/wd4267" # 'X': conversion from 'size_t' to 'unsigned int', possible loss of data
+        "/wd4291" # 'void X new(size_t,unsigned int,unsigned int)': no matching operator delete found; memory will not be freed if initialization throws an exception
+        "/wd4319" # 'X': zero extending 'unsigned int' to 'uint64_t' of greater size
+        "/wd4624" # 'X': destructor was implicitly defined as deleted
+        "/wd4805" # 'X': unsafe mix of type 'unsigned int' and type 'bool' in operation
+        "/wd4996" # 'X': Call to 'Y' with parameters that may be unsafe - this call relies on the caller to check that the passed values are correct.
+    )
+    set(LLVM_COMPILE_FLAGS "/D \"_SCL_SECURE_NO_WARNINGS\" ${LLVM_DISABLE_WARNINGS}")
 endif()
 string (REPLACE ";" " " LLVM_COMPILE_FLAGS "${LLVM_COMPILE_FLAGS}")
 
