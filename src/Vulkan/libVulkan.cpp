@@ -2467,6 +2467,33 @@ VKAPI_ATTR VkResult VKAPI_CALL vkQueuePresentKHR(VkQueue queue, const VkPresentI
 
 	return VK_SUCCESS;
 }
+
+VKAPI_ATTR VkResult VKAPI_CALL vkGetDeviceGroupPresentCapabilitiesKHR(VkDevice device, VkDeviceGroupPresentCapabilitiesKHR *pDeviceGroupPresentCapabilities)
+{
+	TRACE("(VkDevice device = 0x%X, VkDeviceGroupPresentCapabilitiesKHR* pDeviceGroupPresentCapabilities = 0x%X)",
+			device, pDeviceGroupPresentCapabilities);
+
+	for (int i = 0; i < VK_MAX_DEVICE_GROUP_SIZE; i++)
+	{
+		// The only real physical device in the presentation group is device 0,
+		// and it can present to itself.
+		pDeviceGroupPresentCapabilities->presentMask[i] = (i == 0) ? 1 : 0;
+	}
+
+	pDeviceGroupPresentCapabilities->modes = VK_DEVICE_GROUP_PRESENT_MODE_LOCAL_BIT_KHR;
+
+	return VK_SUCCESS;
+}
+
+VKAPI_ATTR VkResult VKAPI_CALL vkGetDeviceGroupSurfacePresentModesKHR(VkDevice device, VkSurfaceKHR surface, VkDeviceGroupPresentModeFlagsKHR *pModes)
+{
+	TRACE("(VkDevice device = 0x%X, VkSurfaceKHR surface = 0x%X, VkDeviceGroupPresentModeFlagsKHR *pModes = 0x%X)",
+			device, surface, pModes);
+
+	*pModes = VK_DEVICE_GROUP_PRESENT_MODE_LOCAL_BIT_KHR;
+	return VK_SUCCESS;
+}
+
 #endif    // ! __ANDROID__
 
 }

@@ -264,6 +264,8 @@ static const std::unordered_map<std::string, PFN_vkVoidFunction> deviceFunctionP
 	MAKE_VULKAN_DEVICE_ENTRY(vkGetSwapchainImagesKHR),
 	MAKE_VULKAN_DEVICE_ENTRY(vkAcquireNextImageKHR),
 	MAKE_VULKAN_DEVICE_ENTRY(vkQueuePresentKHR),
+	MAKE_VULKAN_DEVICE_ENTRY(vkGetDeviceGroupPresentCapabilitiesKHR),
+	MAKE_VULKAN_DEVICE_ENTRY(vkGetDeviceGroupSurfacePresentModesKHR),
 #endif
 };
 #undef MAKE_VULKAN_DEVICE_ENTRY
