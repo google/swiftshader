@@ -99,6 +99,7 @@ namespace sw
 		const void *indices;
 
 		int instanceID;
+		int baseVertex;
 		float lineWidth;
 
 		PixelProcessor::Stencil stencil[2];   // clockwise, counterclockwise
@@ -202,7 +203,7 @@ namespace sw
 		void *operator new(size_t size);
 		void operator delete(void * mem);
 
-		void draw(VkPrimitiveTopology topology, VkIndexType indexType, unsigned int count, bool update = true);
+		void draw(VkPrimitiveTopology topology, VkIndexType indexType, unsigned int count, int baseVertex, bool update = true);
 
 		void setContext(const sw::Context& context);
 

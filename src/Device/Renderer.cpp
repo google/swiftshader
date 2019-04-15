@@ -296,7 +296,7 @@ namespace sw
 		sw::deallocate(mem);
 	}
 
-	void Renderer::draw(VkPrimitiveTopology topology, VkIndexType indexType, unsigned int count, bool update)
+	void Renderer::draw(VkPrimitiveTopology topology, VkIndexType indexType, unsigned int count, int baseVertex, bool update)
 	{
 		#ifndef NDEBUG
 			if(count < minPrimitives || count > maxPrimitives)
@@ -424,6 +424,8 @@ namespace sw
 		{
 			data->instanceID = context->instanceID;
 		}
+
+		data->baseVertex = baseVertex;
 
 		if(pixelState.stencilActive)
 		{

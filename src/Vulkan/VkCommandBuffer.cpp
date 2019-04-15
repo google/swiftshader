@@ -523,7 +523,7 @@ struct DrawBase : public CommandBuffer::Command
 		for(uint32_t instance = firstInstance; instance != firstInstance + instanceCount; instance++)
 		{
 			executionState.renderer->setInstanceID(instance);
-			executionState.renderer->draw(context.topology, executionState.indexType, primitiveCount);
+			executionState.renderer->draw(context.topology, executionState.indexType, primitiveCount, vertexOffset);
 			executionState.renderer->advanceInstanceAttributes();
 		}
 	}

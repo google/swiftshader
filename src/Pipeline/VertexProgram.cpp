@@ -57,7 +57,7 @@ namespace sw
 		{
 			assert(it->second.SizeInComponents == 1);
 			routine.getVariable(it->second.Id)[it->second.FirstComponent] =
-					As<Float4>(Int4(index) + Int4(0, 1, 2, 3));
+					As<Float4>(Int4(As<Int>(index) + *Pointer<Int>(data + OFFSET(DrawData, baseVertex))) + Int4(0, 1, 2, 3));
 		}
 
 		auto activeLaneMask = SIMD::Int(0xFFFFFFFF); // TODO: Control this.
