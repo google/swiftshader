@@ -313,8 +313,15 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 			UNIMPLEMENTED("pCreateInfo->pViewportState settings");
 		}
 
-		scissor = viewportState->pScissors[0];
-		viewport = viewportState->pViewports[0];
+		if(!hasDynamicState(VK_DYNAMIC_STATE_SCISSOR))
+		{
+			scissor = viewportState->pScissors[0];
+		}
+
+		if(!hasDynamicState(VK_DYNAMIC_STATE_VIEWPORT))
+		{
+			viewport = viewportState->pViewports[0];
+		}
 	}
 
 	const VkPipelineRasterizationStateCreateInfo* rasterizationState = pCreateInfo->pRasterizationState;
@@ -393,10 +400,13 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 			UNIMPLEMENTED("colorBlendState");
 		}
 
-		blendConstants.r = colorBlendState->blendConstants[0];
-		blendConstants.g = colorBlendState->blendConstants[1];
-		blendConstants.b = colorBlendState->blendConstants[2];
-		blendConstants.a = colorBlendState->blendConstants[3];
+		if(!hasDynamicState(VK_DYNAMIC_STATE_BLEND_CONSTANTS))
+		{
+			blendConstants.r = colorBlendState->blendConstants[0];
+			blendConstants.g = colorBlendState->blendConstants[1];
+			blendConstants.b = colorBlendState->blendConstants[2];
+			blendConstants.a = colorBlendState->blendConstants[3];
+		}
 
 		if(colorBlendState->attachmentCount == 1)
 		{
