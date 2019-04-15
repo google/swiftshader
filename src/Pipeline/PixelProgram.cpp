@@ -33,6 +33,14 @@ namespace sw
 		routine.descriptorDynamicOffsets = data + OFFSET(DrawData, descriptorDynamicOffsets);
 		routine.pushConstants = data + OFFSET(DrawData, pushConstants);
 
+		auto it = spirvShader->inputBuiltins.find(spv::BuiltInFrontFacing);
+		if (it != spirvShader->inputBuiltins.end())
+		{
+			ASSERT(it->second.SizeInComponents == 1);
+			auto frontFacing = Int4(*Pointer<Int>(primitive + OFFSET(Primitive, clockwiseMask)));
+			routine.getVariable(it->second.Id)[it->second.FirstComponent] = As<Float4>(frontFacing);
+		}
+
 		auto activeLaneMask = SIMD::Int(0xFFFFFFFF); // TODO: Control this.
 		spirvShader->emit(&routine, activeLaneMask, descriptorSets);
 		spirvShader->emitEpilog(&routine);
