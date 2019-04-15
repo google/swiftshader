@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "Reactor.hpp"
+#include "Debug.hpp"
 
 #include "x86.hpp"
 #include "CPUID.hpp"
@@ -92,7 +93,7 @@
 #if defined(__x86_64__) && defined(_WIN32)
 extern "C" void X86CompilationCallback()
 {
-	assert(false);   // UNIMPLEMENTED
+	UNIMPLEMENTED("X86CompilationCallback");
 }
 #endif
 
@@ -235,7 +236,7 @@ namespace
 		}
 		else
 		{
-			assert(numBits <= 64);
+			ASSERT_MSG(numBits <= 64, "numBits: %d", int(numBits));
 			uint64_t maxVal = (numBits == 64) ? ~0ULL : (1ULL << numBits) - 1;
 			max = llvm::ConstantInt::get(extTy, maxVal, false);
 			min = llvm::ConstantInt::get(extTy, 0, false);
@@ -361,7 +362,7 @@ namespace
 			llvm::cast<llvm::IntegerType>(dstTy->getElementType());
 
 		uint64_t truncNumBits = dstElemTy->getIntegerBitWidth();
-		assert(truncNumBits < 64 && "shift 64 must be handled separately");
+		ASSERT_MSG(truncNumBits < 64, "shift 64 must be handled separately. truncNumBits: %d", int(truncNumBits));
 		llvm::Constant *max, *min;
 		if (isSigned)
 		{
@@ -530,7 +531,7 @@ namespace rr
 					case SCCP:                 passManager->add(llvm::createSCCPPass());                 break;
 					case ScalarReplAggregates: passManager->add(llvm::createScalarReplAggregatesPass()); break;
 					default:
-						assert(false);
+						UNREACHABLE("optimization[pass]: %d, pass: %d", int(optimization[pass]), int(pass));
 					}
 				}
 			}
@@ -588,7 +589,8 @@ namespace rr
 			while (trimmed[0] == '_') { trimmed++; }
 
 			FunctionMap::const_iterator it = func_.find(trimmed);
-			assert(it != func_.end()); // Missing functions will likely make the module fail in exciting non-obvious ways.
+			// Missing functions will likely make the module fail in exciting non-obvious ways.
+			ASSERT_MSG(it != func_.end(), "Missing external function: '%s'", name.c_str());
 			return it->second;
 		}
 	};
@@ -713,7 +715,7 @@ namespace rr
 				case SCCP:                 passManager->add(llvm::createSCCPPass());                 break;
 				case ScalarReplAggregates: passManager->add(llvm::createSROAPass());                 break;
 				default:
-				                           assert(false);
+					UNREACHABLE("optimization[pass]: %d, pass: %d", int(optimization[pass]), int(pass));
 				}
 			}
 
@@ -773,7 +775,9 @@ namespace rr
 		case Type_v4i8:  return T(Byte16::getType());
 		case Type_v2f32: return T(Float4::getType());
 		case Type_LLVM:  return reinterpret_cast<llvm::Type*>(t);
-		default: assert(false); return nullptr;
+		default:
+			UNREACHABLE("asInternalType(t): %d", int(asInternalType(t)));
+			return nullptr;
 		}
 	}
 
@@ -833,7 +837,7 @@ namespace rr
 
 				// At this point we should only have LLVM 'primitive' types.
 				unsigned int bits = t->getPrimitiveSizeInBits();
-				assert(bits != 0);
+				ASSERT_MSG(bits != 0, "bits: %d", int(bits));
 
 				// TODO(capn): Booleans are 1 bit integers in LLVM's SSA type system,
 				// but are typically stored as one byte. The DataLayout structure should
@@ -842,7 +846,7 @@ namespace rr
 			}
 			break;
 		default:
-			assert(false);
+			UNREACHABLE("asInternalType(type): %d", int(asInternalType(type)));
 			return 0;
 		}
 	}
@@ -858,7 +862,9 @@ namespace rr
 		case Type_v4i8:  return 4;
 		case Type_v2f32: return 2;
 		case Type_LLVM:  return llvm::cast<llvm::VectorType>(T(type))->getNumElements();
-		default: assert(false); return 0;
+		default:
+			UNREACHABLE("asInternalType(type): %d", int(asInternalType(type)));
+			return 0;
 		}
 	}
 
@@ -881,7 +887,9 @@ namespace rr
 		case std::memory_order_release: return llvm::AtomicOrdering::Release;
 		case std::memory_order_acq_rel: return llvm::AtomicOrdering::AcquireRelease;
 		case std::memory_order_seq_cst: return llvm::AtomicOrdering::SequentiallyConsistent;
-		default: assert(false);         return llvm::AtomicOrdering::AcquireRelease;
+		default:
+			UNREACHABLE("memoryOrder: %d", int(memoryOrder));
+			return llvm::AtomicOrdering::AcquireRelease;
 		}
 	}
 
@@ -1281,14 +1289,15 @@ namespace rr
 			// Fallthrough to non-emulated case.
 		case Type_LLVM:
 			{
-				assert(V(ptr)->getType()->getContainedType(0) == T(type));
+				ASSERT(V(ptr)->getType()->getContainedType(0) == T(type));
 				auto load = new llvm::LoadInst(V(ptr), "", isVolatile, alignment);
 				load->setAtomic(atomicOrdering(atomic, memoryOrder));
 
 				return V(::builder->Insert(load));
 			}
 		default:
-			assert(false); return nullptr;
+			UNREACHABLE("asInternalType(type): %d", int(asInternalType(type)));
+			return nullptr;
 		}
 	}
 
@@ -1319,20 +1328,21 @@ namespace rr
 			// Fallthrough to non-emulated case.
 		case Type_LLVM:
 			{
-				assert(V(ptr)->getType()->getContainedType(0) == T(type));
+				ASSERT(V(ptr)->getType()->getContainedType(0) == T(type));
 				auto store = ::builder->Insert(new llvm::StoreInst(V(value), V(ptr), isVolatile, alignment));
 				store->setAtomic(atomicOrdering(atomic, memoryOrder));
 
 				return value;
 			}
 		default:
-			assert(false); return nullptr;
+			UNREACHABLE("asInternalType(type): %d", int(asInternalType(type)));
+			return nullptr;
 		}
 	}
 
 	Value *Nucleus::createGEP(Value *ptr, Type *type, Value *index, bool unsignedIndex)
 	{
-		assert(V(ptr)->getType()->getContainedType(0) == T(type));
+		ASSERT(V(ptr)->getType()->getContainedType(0) == T(type));
 
 		if(sizeof(void*) == 8)
 		{
@@ -1559,7 +1569,7 @@ namespace rr
 
 	Value *Nucleus::createExtractElement(Value *vector, Type *type, int index)
 	{
-		assert(V(vector)->getType()->getContainedType(0) == T(type));
+		ASSERT(V(vector)->getType()->getContainedType(0) == T(type));
 		return V(::builder->CreateExtractElement(V(vector), V(createConstantInt(index))));
 	}
 
@@ -1573,7 +1583,7 @@ namespace rr
 		int size = llvm::cast<llvm::VectorType>(V(v1)->getType())->getNumElements();
 		const int maxSize = 16;
 		llvm::Constant *swizzle[maxSize];
-		assert(size <= maxSize);
+		ASSERT(size <= maxSize);
 
 		for(int i = 0; i < size; i++)
 		{
@@ -1668,10 +1678,10 @@ namespace rr
 
 	Value *Nucleus::createConstantVector(const int64_t *constants, Type *type)
 	{
-		assert(llvm::isa<llvm::VectorType>(T(type)));
+		ASSERT(llvm::isa<llvm::VectorType>(T(type)));
 		const int numConstants = elementCount(type);                                       // Number of provided constants for the (emulated) type.
 		const int numElements = llvm::cast<llvm::VectorType>(T(type))->getNumElements();   // Number of elements of the underlying vector type.
-		assert(numElements <= 16 && numConstants <= numElements);
+		ASSERT(numElements <= 16 && numConstants <= numElements);
 		llvm::Constant *constantVector[16];
 
 		for(int i = 0; i < numElements; i++)
@@ -1684,10 +1694,10 @@ namespace rr
 
 	Value *Nucleus::createConstantVector(const double *constants, Type *type)
 	{
-		assert(llvm::isa<llvm::VectorType>(T(type)));
+		ASSERT(llvm::isa<llvm::VectorType>(T(type)));
 		const int numConstants = elementCount(type);                                       // Number of provided constants for the (emulated) type.
 		const int numElements = llvm::cast<llvm::VectorType>(T(type))->getNumElements();   // Number of elements of the underlying vector type.
-		assert(numElements <= 8 && numConstants <= numElements);
+		ASSERT(numElements <= 8 && numConstants <= numElements);
 		llvm::Constant *constantVector[8];
 
 		for(int i = 0; i < numElements; i++)
@@ -3217,7 +3227,7 @@ namespace rr
 	RValue<UInt4> Ctlz(RValue<UInt4> v, bool isZeroUndef)
 	{
 #if REACTOR_LLVM_VERSION < 7
-		assert(false); // TODO: LLVM 3 does not support ctlz in a vector form.
+		UNIMPLEMENTED("LLVM 3 does not support ctlz in a vector form");
 #endif
 		::llvm::SmallVector<::llvm::Type*, 2> paramTys;
 		paramTys.push_back(T(UInt4::getType()));
@@ -3232,7 +3242,7 @@ namespace rr
 	RValue<UInt4> Cttz(RValue<UInt4> v, bool isZeroUndef)
 	{
 #if REACTOR_LLVM_VERSION < 7
-		assert(false); // TODO: LLVM 3 does not support cttz in a vector form.
+		UNIMPLEMENTED("LLVM 3 does not support cttz in a vector form");
 #endif
 		::llvm::SmallVector<::llvm::Type*, 2> paramTys;
 		paramTys.push_back(T(UInt4::getType()));

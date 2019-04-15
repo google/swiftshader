@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "Reactor.hpp"
+#include "Debug.hpp"
 
 #include "Optimizer.hpp"
 #include "ExecutableMemory.hpp"
@@ -51,7 +52,6 @@
 #include <mutex>
 #include <limits>
 #include <iostream>
-#include <cassert>
 
 namespace
 {
@@ -191,7 +191,7 @@ namespace rr
 			case Type_v8i8:  return 8;
 			case Type_v4i8:  return 4;
 			case Type_v2f32: return 8;
-			default: assert(false);
+			default: ASSERT(false);
 			}
 		}
 
@@ -229,7 +229,7 @@ namespace rr
 			uint32_t symtab_entries = symbolTable->sh_size / symbolTable->sh_entsize;
 			if(index >= symtab_entries)
 			{
-				assert(index < symtab_entries && "Symbol Index out of range");
+				ASSERT(index < symtab_entries && "Symbol Index out of range");
 				return nullptr;
 			}
 
@@ -272,7 +272,7 @@ namespace rr
 				}
 				break;
 			default:
-				assert(false && "Unsupported relocation type");
+				ASSERT(false && "Unsupported relocation type");
 				return nullptr;
 			}
 		}
@@ -290,7 +290,7 @@ namespace rr
 		//		*patchSite = (int32_t)((intptr_t)symbolValue + *patchSite - (intptr_t)patchSite);
 		//		break;
 			default:
-				assert(false && "Unsupported relocation type");
+				ASSERT(false && "Unsupported relocation type");
 				return nullptr;
 			}
 		}
@@ -314,7 +314,7 @@ namespace rr
 			uint32_t symtab_entries = symbolTable->sh_size / symbolTable->sh_entsize;
 			if(index >= symtab_entries)
 			{
-				assert(index < symtab_entries && "Symbol Index out of range");
+				ASSERT(index < symtab_entries && "Symbol Index out of range");
 				return nullptr;
 			}
 
@@ -352,7 +352,7 @@ namespace rr
 			*patchSite32 = (int32_t)((intptr_t)symbolValue + *patchSite32 + relocation.r_addend);
 			break;
 		default:
-			assert(false && "Unsupported relocation type");
+			ASSERT(false && "Unsupported relocation type");
 			return nullptr;
 		}
 
@@ -369,17 +369,17 @@ namespace rr
 		}
 
 		// Expect ELF bitness to match platform
-		assert(sizeof(void*) == 8 ? elfHeader->getFileClass() == ELFCLASS64 : elfHeader->getFileClass() == ELFCLASS32);
+		ASSERT(sizeof(void*) == 8 ? elfHeader->getFileClass() == ELFCLASS64 : elfHeader->getFileClass() == ELFCLASS32);
 		#if defined(__i386__)
-			assert(sizeof(void*) == 4 && elfHeader->e_machine == EM_386);
+			ASSERT(sizeof(void*) == 4 && elfHeader->e_machine == EM_386);
 		#elif defined(__x86_64__)
-			assert(sizeof(void*) == 8 && elfHeader->e_machine == EM_X86_64);
+			ASSERT(sizeof(void*) == 8 && elfHeader->e_machine == EM_X86_64);
 		#elif defined(__arm__)
-			assert(sizeof(void*) == 4 && elfHeader->e_machine == EM_ARM);
+			ASSERT(sizeof(void*) == 4 && elfHeader->e_machine == EM_ARM);
 		#elif defined(__aarch64__)
-			assert(sizeof(void*) == 8 && elfHeader->e_machine == EM_AARCH64);
+			ASSERT(sizeof(void*) == 8 && elfHeader->e_machine == EM_AARCH64);
 		#elif defined(__mips__)
-			assert(sizeof(void*) == 4 && elfHeader->e_machine == EM_MIPS);
+			ASSERT(sizeof(void*) == 4 && elfHeader->e_machine == EM_MIPS);
 		#else
 			#error "Unsupported platform"
 		#endif
@@ -399,7 +399,7 @@ namespace rr
 			}
 			else if(sectionHeader[i].sh_type == SHT_REL)
 			{
-				assert(sizeof(void*) == 4 && "UNIMPLEMENTED");   // Only expected/implemented for 32-bit code
+				ASSERT(sizeof(void*) == 4 && "UNIMPLEMENTED");   // Only expected/implemented for 32-bit code
 
 				for(Elf32_Word index = 0; index < sectionHeader[i].sh_size / sectionHeader[i].sh_entsize; index++)
 				{
@@ -409,7 +409,7 @@ namespace rr
 			}
 			else if(sectionHeader[i].sh_type == SHT_RELA)
 			{
-				assert(sizeof(void*) == 8 && "UNIMPLEMENTED");   // Only expected/implemented for 64-bit code
+				ASSERT(sizeof(void*) == 8 && "UNIMPLEMENTED");   // Only expected/implemented for 64-bit code
 
 				for(Elf32_Word index = 0; index < sectionHeader[i].sh_size / sectionHeader[i].sh_entsize; index++)
 				{
@@ -477,7 +477,7 @@ namespace rr
 				buffer[position] = Value;
 				position++;
 			}
-			else assert(false && "UNIMPLEMENTED");
+			else ASSERT(false && "UNIMPLEMENTED");
 		}
 
 		void writeBytes(llvm::StringRef Bytes) override
@@ -590,7 +590,7 @@ namespace rr
 		optimize();
 
 		::function->translate();
-		assert(!::function->hasError());
+		ASSERT(!::function->hasError());
 
 		auto globals = ::function->getGlobalInits();
 
@@ -648,7 +648,7 @@ namespace rr
 
 	void Nucleus::setInsertBlock(BasicBlock *basicBlock)
 	{
-	//	assert(::basicBlock->getInsts().back().getTerminatorEdges().size() >= 0 && "Previous basic block must have a terminator");
+	//	ASSERT(::basicBlock->getInsts().back().getTerminatorEdges().size() >= 0 && "Previous basic block must have a terminator");
 
 		Variable::materializeAll();
 
@@ -734,7 +734,7 @@ namespace rr
 
 	static Value *createArithmetic(Ice::InstArithmetic::OpKind op, Value *lhs, Value *rhs)
 	{
-		assert(lhs->getType() == rhs->getType() || llvm::isa<Ice::Constant>(rhs));
+		ASSERT(lhs->getType() == rhs->getType() || llvm::isa<Ice::Constant>(rhs));
 
 		bool swapOperands = llvm::isa<Ice::Constant>(lhs) && isCommutative(op);
 
@@ -865,8 +865,8 @@ namespace rr
 
 	Value *Nucleus::createLoad(Value *ptr, Type *type, bool isVolatile, unsigned int align, bool atomic, std::memory_order memoryOrder)
 	{
-		assert(!atomic);  // Unimplemented
-		assert(memoryOrder == std::memory_order_relaxed);  // Unimplemented
+		ASSERT(!atomic);  // Unimplemented
+		ASSERT(memoryOrder == std::memory_order_relaxed);  // Unimplemented
 
 		int valueType = (int)reinterpret_cast<intptr_t>(type);
 		Ice::Variable *result = ::function->makeVariable(T(type));
@@ -899,7 +899,7 @@ namespace rr
 					auto bitcast = Ice::InstCast::create(::function, Ice::InstCast::Bitcast, result, vector.loadValue());
 					::basicBlock->appendInst(bitcast);
 				}
-				else assert(false);
+				else UNREACHABLE("typeSize(type): %d", int(typeSize(type)));
 			}
 			else
 			{
@@ -922,8 +922,8 @@ namespace rr
 
 	Value *Nucleus::createStore(Value *value, Value *ptr, Type *type, bool isVolatile, unsigned int align, bool atomic, std::memory_order memoryOrder)
 	{
-		assert(!atomic);  // Unimplemented
-		assert(memoryOrder == std::memory_order_relaxed);  // Unimplemented
+		ASSERT(!atomic);  // Unimplemented
+		ASSERT(memoryOrder == std::memory_order_relaxed);  // Unimplemented
 
 		#if __has_feature(memory_sanitizer)
 			// Mark all (non-stack) memory writes as initialized by calling __msan_unpoison
@@ -968,7 +968,7 @@ namespace rr
 					Int y = Extract(v, 1);
 					*Pointer<Int>(pointer + 4) = y;
 				}
-				else assert(false);
+				else UNREACHABLE("typeSize(type): %d", int(typeSize(type)));
 			}
 			else
 			{
@@ -983,7 +983,7 @@ namespace rr
 		}
 		else
 		{
-			assert(value->getType() == T(type));
+			ASSERT(value->getType() == T(type));
 
 			auto store = Ice::InstStore::create(::function, value, ptr, align);
 			::basicBlock->appendInst(store);
@@ -994,7 +994,7 @@ namespace rr
 
 	Value *Nucleus::createGEP(Value *ptr, Type *type, Value *index, bool unsignedIndex)
 	{
-		assert(index->getType() == Ice::IceType_i32);
+		ASSERT(index->getType() == Ice::IceType_i32);
 
 		if(auto *constant = llvm::dyn_cast<Ice::ConstantInteger32>(index))
 		{
@@ -1030,7 +1030,8 @@ namespace rr
 
 	Value *Nucleus::createAtomicAdd(Value *ptr, Value *value)
 	{
-		assert(false && "UNIMPLEMENTED"); return nullptr;
+		UNIMPLEMENTED("createAtomicAdd");
+		return nullptr;
 	}
 
 	static Value *createCast(Ice::InstCast::OpKind op, Value *v, Type *destType)
@@ -1108,7 +1109,7 @@ namespace rr
 
 	static Value *createIntCompare(Ice::InstIcmp::ICond condition, Value *lhs, Value *rhs)
 	{
-		assert(lhs->getType() == rhs->getType());
+		ASSERT(lhs->getType() == rhs->getType());
 
 		auto result = ::function->makeVariable(Ice::isScalarIntegerType(lhs->getType()) ? Ice::IceType_i1 : lhs->getType());
 		auto cmp = Ice::InstIcmp::create(::function, condition, result, lhs, rhs);
@@ -1169,8 +1170,8 @@ namespace rr
 
 	static Value *createFloatCompare(Ice::InstFcmp::FCond condition, Value *lhs, Value *rhs)
 	{
-		assert(lhs->getType() == rhs->getType());
-		assert(Ice::isScalarFloatingType(lhs->getType()) || lhs->getType() == Ice::IceType_v4f32);
+		ASSERT(lhs->getType() == rhs->getType());
+		ASSERT(Ice::isScalarFloatingType(lhs->getType()) || lhs->getType() == Ice::IceType_v4f32);
 
 		auto result = ::function->makeVariable(Ice::isScalarFloatingType(lhs->getType()) ? Ice::IceType_i1 : Ice::IceType_v4i32);
 		auto cmp = Ice::InstFcmp::create(::function, condition, result, lhs, rhs);
@@ -1269,7 +1270,7 @@ namespace rr
 
 	Value *Nucleus::createShuffleVector(Value *V1, Value *V2, const int *select)
 	{
-		assert(V1->getType() == V2->getType());
+		ASSERT(V1->getType() == V2->getType());
 
 		int size = Ice::typeNumElements(V1->getType());
 		auto result = ::function->makeVariable(V1->getType());
@@ -1287,7 +1288,7 @@ namespace rr
 
 	Value *Nucleus::createSelect(Value *C, Value *ifTrue, Value *ifFalse)
 	{
-		assert(ifTrue->getType() == ifFalse->getType());
+		ASSERT(ifTrue->getType() == ifFalse->getType());
 
 		auto result = ::function->makeVariable(ifTrue->getType());
 		auto *select = Ice::InstSelect::create(::function, result, C, ifTrue, ifFalse);
@@ -1331,7 +1332,7 @@ namespace rr
 	{
 		if(Ice::isVectorType(T(Ty)))
 		{
-			assert(Ice::typeNumElements(T(Ty)) <= 16);
+			ASSERT(Ice::typeNumElements(T(Ty)) <= 16);
 			int64_t c[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 			return createConstantVector(c, Ty);
 		}
@@ -1394,7 +1395,7 @@ namespace rr
 	Value *Nucleus::createConstantVector(const int64_t *constants, Type *type)
 	{
 		const int vectorSize = 16;
-		assert(Ice::typeWidthInBytes(T(type)) == vectorSize);
+		ASSERT(Ice::typeWidthInBytes(T(type)) == vectorSize);
 		const int alignment = vectorSize;
 		auto globalPool = ::function->getGlobalPool();
 
@@ -1471,7 +1472,7 @@ namespace rr
 			}
 			break;
 		default:
-			assert(false && "Unknown constant vector type" && type);
+			UNREACHABLE("Unknown constant vector type: %d", (int)reinterpret_cast<intptr_t>(type));
 		}
 
 		auto name = Ice::GlobalString::createWithoutString(::context);
@@ -1839,7 +1840,7 @@ namespace rr
 
 	Short4::Short4(RValue<Float4> cast)
 	{
-		assert(false && "UNIMPLEMENTED");
+		UNIMPLEMENTED("Short4::Short4(RValue<Float4> cast)");
 	}
 
 	RValue<Short4> operator<<(RValue<Short4> lhs, unsigned char rhs)
@@ -2317,7 +2318,8 @@ namespace rr
 
 	RValue<UShort4> Average(RValue<UShort4> x, RValue<UShort4> y)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<UShort4>(V(nullptr));
+		UNIMPLEMENTED("RValue<UShort4> Average(RValue<UShort4> x, RValue<UShort4> y)");
+		return UShort4(0);
 	}
 
 	Type *UShort4::getType()
@@ -2381,12 +2383,14 @@ namespace rr
 
 	RValue<Int4> MulAdd(RValue<Short8> x, RValue<Short8> y)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<Int4>(V(nullptr));
+		UNIMPLEMENTED("RValue<Int4> MulAdd(RValue<Short8> x, RValue<Short8> y)");
+		return Int4(0);
 	}
 
 	RValue<Short8> MulHigh(RValue<Short8> x, RValue<Short8> y)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<Short8>(V(nullptr));
+		UNIMPLEMENTED("RValue<Short8> MulHigh(RValue<Short8> x, RValue<Short8> y)");
+		return Short8(0);
 	}
 
 	Type *Short8::getType()
@@ -2450,18 +2454,20 @@ namespace rr
 
 	RValue<UShort8> Swizzle(RValue<UShort8> x, char select0, char select1, char select2, char select3, char select4, char select5, char select6, char select7)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<UShort8>(V(nullptr));
+		UNIMPLEMENTED("RValue<UShort8> Swizzle(RValue<UShort8> x, char select0, char select1, char select2, char select3, char select4, char select5, char select6, char select7)");
+		return UShort8(0);
 	}
 
 	RValue<UShort8> MulHigh(RValue<UShort8> x, RValue<UShort8> y)
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<UShort8>(V(nullptr));
+		UNIMPLEMENTED("RValue<UShort8> MulHigh(RValue<UShort8> x, RValue<UShort8> y)");
+		return UShort8(0);
 	}
 
 	// FIXME: Implement as Shuffle(x, y, Select(i0, ..., i16)) and Shuffle(x, y, SELECT_PACK_REPEAT(element))
 //	RValue<UShort8> PackRepeat(RValue<Byte16> x, RValue<Byte16> y, int element)
 //	{
-//		assert(false && "UNIMPLEMENTED"); return RValue<UShort8>(V(nullptr));
+//		ASSERT(false && "UNIMPLEMENTED"); return RValue<UShort8>(V(nullptr));
 //	}
 
 	Type *UShort8::getType()
@@ -2569,7 +2575,7 @@ namespace rr
 
 //	RValue<UInt> RoundUInt(RValue<Float> cast)
 //	{
-//		assert(false && "UNIMPLEMENTED"); return RValue<UInt>(V(nullptr));
+//		ASSERT(false && "UNIMPLEMENTED"); return RValue<UInt>(V(nullptr));
 //	}
 
 	Type *UInt::getType()
@@ -3366,16 +3372,12 @@ namespace rr
 
 	RValue<Long> Ticks()
 	{
-		assert(false && "UNIMPLEMENTED"); return RValue<Long>(V(nullptr));
+		UNIMPLEMENTED("RValue<Long> Ticks()");
+		return Long(Int(0));
 	}
 
 	// Below are functions currently unimplemented for the Subzero backend.
 	// They are stubbed to satisfy the linker.
-	#ifdef UNIMPLEMENTED
-	#undef UNIMPLEMENTED
-	#endif
-	#define UNIMPLEMENTED(msg) assert(((void)(msg), false))
-
 	RValue<Float4> Sin(RValue<Float4> x) { UNIMPLEMENTED("Subzero Sin()"); return Float4(0); }
 	RValue<Float4> Cos(RValue<Float4> x) { UNIMPLEMENTED("Subzero Cos()"); return Float4(0); }
 	RValue<Float4> Tan(RValue<Float4> x) { UNIMPLEMENTED("Subzero Tan()"); return Float4(0); }

@@ -12,41 +12,100 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef Debug_hpp
-#define Debug_hpp
+// debug.h: Debugging utilities.
 
-#if defined(__ANDROID__) && !defined(ANDROID_NDK_BUILD)
-#include "DebugAndroid.hpp"
-#else
+#ifndef rr_DEBUG_H_
+#define rr_DEBUG_H_
 
+#include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
 
-#undef min
-#undef max
+#if !defined(TRACE_OUTPUT_FILE)
+#define TRACE_OUTPUT_FILE "debug.txt"
+#endif
 
 namespace rr
 {
-void trace(const char *format, ...);
+	// Outputs text to the debugging log
+	void trace(const char *format, ...);
+	inline void trace() {}
 
-#if !defined(NDEBUG) || defined(DCHECK_ALWAYS_ON)
-	#define TRACE(format, ...) trace("[0x%0.8X]%s(" format ")\n", this, __FUNCTION__, ##__VA_ARGS__)
-#else
-	#define TRACE(...) ((void)0)
-#endif
+	// Outputs text to the debugging log and prints to stderr.
+	void warn(const char *format, ...);
+	inline void warn() {}
 
-#if !defined(NDEBUG) || defined(DCHECK_ALWAYS_ON)
-	#define UNIMPLEMENTED() {trace("\t! Unimplemented: %s(%d)\n", __FUNCTION__, __LINE__); ASSERT(false);}
-#else
-	#define UNIMPLEMENTED() ((void)0)
-#endif
-
-#if !defined(NDEBUG) || defined(DCHECK_ALWAYS_ON)
-	#define ASSERT(expression) {if(!(expression)) trace("\t! Assert failed in %s(%d): " #expression "\n", __FUNCTION__, __LINE__); assert(expression);}
-#else
-	#define ASSERT assert
-#endif
+	// Outputs the message to the debugging log and stderr, and calls abort().
+	void abort(const char *format, ...);
 }
 
-#endif   // __ANDROID__
-#endif   // Debug_hpp
+// A macro to output a trace of a function call and its arguments to the
+// debugging log. Disabled if RR_DISABLE_TRACE is defined.
+#if defined(RR_DISABLE_TRACE)
+#define TRACE(message, ...) (void(0))
+#else
+#define TRACE(message, ...) rr::trace("%s:%d TRACE: " message "\n", __FILE__, __LINE__, ##__VA_ARGS__)
+#endif
+
+// A macro to print a warning message to the debugging log and stderr to denote
+// an issue that needs fixing.
+#define FIXME(message, ...) rr::warn("%s:%d FIXME: " message "\n", __FILE__, __LINE__, ##__VA_ARGS__);
+
+// A macro to print a warning message to the debugging log and stderr.
+#define WARN(message, ...) rr::warn("%s:%d WARNING: " message "\n", __FILE__, __LINE__, ##__VA_ARGS__);
+
+// A macro that prints the message to the debugging log and stderr and
+// immediately aborts execution of the application.
+//
+// Note: This will terminate the application regardless of build flags!
+//       Use with extreme caution!
+#undef ABORT
+#define ABORT(message, ...) rr::abort("%s:%d ABORT: " message "\n", __FILE__, __LINE__, ##__VA_ARGS__)
+
+// A macro that delegates to:
+//   ABORT() in debug builds (!NDEBUG || DCHECK_ALWAYS_ON)
+// or
+//   WARN() in release builds (NDEBUG && !DCHECK_ALWAYS_ON)
+#undef DABORT
+#if !defined(NDEBUG) || defined(DCHECK_ALWAYS_ON)
+#define DABORT(message, ...) ABORT(message, ##__VA_ARGS__)
+#else
+#define DABORT(message, ...) WARN(message, ##__VA_ARGS__)
+#endif
+
+// A macro asserting a condition.
+// If the condition fails, the condition and message is passed to DABORT().
+#undef ASSERT_MSG
+#define ASSERT_MSG(expression, format, ...) do { \
+	if(!(expression)) { \
+		DABORT("ASSERT(%s): " format "\n", #expression, ##__VA_ARGS__); \
+	} } while(0)
+
+// A macro asserting a condition.
+// If the condition fails, the condition is passed to DABORT().
+#undef ASSERT
+#define ASSERT(expression) do { \
+	if(!(expression)) { \
+		DABORT("ASSERT(%s)\n", #expression); \
+	} } while(0)
+
+// A macro to indicate unimplemented functionality.
+#undef UNIMPLEMENTED
+#define UNIMPLEMENTED(format, ...) DABORT("UNIMPLEMENTED: " format, ##__VA_ARGS__)
+
+// A macro for code which is not expected to be reached under valid assumptions.
+#undef UNREACHABLE
+#define UNREACHABLE(format, ...) DABORT("UNREACHABLE: " format, ##__VA_ARGS__)
+
+// A macro asserting a condition and performing a return.
+#undef ASSERT_OR_RETURN
+#if !defined(NDEBUG) || defined(DCHECK_ALWAYS_ON)
+#define ASSERT_OR_RETURN(expression) ASSERT(expression)
+#else
+#define ASSERT_OR_RETURN(expression) do { \
+	if(!(expression)) { \
+		return; \
+	} } while(0)
+#endif
+
+#endif   // rr_DEBUG_H_
