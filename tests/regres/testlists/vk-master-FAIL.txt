@@ -15,6 +15,12 @@ dEQP-VK.draw.indirect_draw.sequential.indirect_draw_instanced.first_instance.tri
 dEQP-VK.draw.indirect_draw.sequential.indirect_draw_instanced.first_instance.triangle_strip
 dEQP-VK.draw.indirect_draw.sequential.indirect_draw_instanced.no_first_instance.triangle_list
 dEQP-VK.draw.indirect_draw.sequential.indirect_draw_instanced.no_first_instance.triangle_strip
+dEQP-VK.draw.inverted_depth_ranges.nodepthclamp_deltaone
+dEQP-VK.draw.inverted_depth_ranges.nodepthclamp_deltasmall
+dEQP-VK.draw.negative_viewport_height.front_ccw_cull_back
+dEQP-VK.draw.negative_viewport_height.front_ccw_cull_none
+dEQP-VK.draw.negative_viewport_height.front_cw_cull_back
+dEQP-VK.draw.negative_viewport_height.front_cw_cull_none
 dEQP-VK.draw.simple_draw.simple_draw_instanced_triangle_list
 dEQP-VK.draw.simple_draw.simple_draw_instanced_triangle_strip
 dEQP-VK.draw.simple_draw.simple_draw_triangle_list

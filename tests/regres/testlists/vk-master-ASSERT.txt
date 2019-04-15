@@ -1,3 +1,4 @@
+dEQP-VK.dynamic_state.rs_state.depth_bias_clamp
 dEQP-VK.glsl.derivate.dfdx.texture.basic.float_highp
 dEQP-VK.glsl.derivate.dfdx.texture.basic.float_mediump
 dEQP-VK.glsl.derivate.dfdx.texture.basic.vec2_highp
