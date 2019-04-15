@@ -580,7 +580,7 @@ VkDeviceSize Image::getMemoryOffset(VkImageAspectFlagBits aspect, uint32_t mipLe
 
 VkDeviceSize Image::getMemoryOffset(VkImageAspectFlagBits aspect, uint32_t mipLevel, uint32_t layer) const
 {
-	return layer * getLayerSize(aspect) + getMemoryOffset(aspect, mipLevel);
+	return layer * getLayerOffset(aspect, mipLevel) + getMemoryOffset(aspect, mipLevel);
 }
 
 VkDeviceSize Image::getMipLevelSize(VkImageAspectFlagBits aspect, uint32_t mipLevel) const
@@ -591,6 +591,28 @@ VkDeviceSize Image::getMipLevelSize(VkImageAspectFlagBits aspect, uint32_t mipLe
 VkDeviceSize Image::getMultiSampledLevelSize(VkImageAspectFlagBits aspect, uint32_t mipLevel) const
 {
 	return getMipLevelSize(aspect, mipLevel) * samples;
+}
+
+bool Image::is3DSlice() const
+{
+	return ((imageType == VK_IMAGE_TYPE_3D) && (flags & VK_IMAGE_CREATE_2D_ARRAY_COMPATIBLE_BIT));
+}
+
+VkDeviceSize Image::getLayerOffset(VkImageAspectFlagBits aspect, uint32_t mipLevel) const
+{
+	if(is3DSlice())
+	{
+		// When the VkImageSubresourceRange structure is used to select a subset of the slices of a 3D
+		// image’s mip level in order to create a 2D or 2D array image view of a 3D image created with
+		// VK_IMAGE_CREATE_2D_ARRAY_COMPATIBLE_BIT, baseArrayLayer and layerCount specify the first
+		// slice index and the number of slices to include in the created image view.
+		ASSERT(samples == VK_SAMPLE_COUNT_1_BIT);
+
+		// Offset to the proper slice of the 3D image's mip level
+		return slicePitchBytes(aspect, mipLevel);
+	}
+
+	return getLayerSize(aspect);
 }
 
 VkDeviceSize Image::getLayerSize(VkImageAspectFlagBits aspect) const

@@ -192,6 +192,10 @@ namespace sw
 				area.extent.width = extent.width;
 				area.extent.height = extent.height;
 			}
+			if(dest->is3DSlice())
+			{
+				extent.depth = 1; // The 3D image is instead interpreted as a 2D image with layers
+			}
 
 			for(subresLayers.baseArrayLayer = subresourceRange.baseArrayLayer; subresLayers.baseArrayLayer <= lastLayer; subresLayers.baseArrayLayer++)
 			{
@@ -209,6 +213,7 @@ namespace sw
 						case 2:
 							for(uint32_t i = 0; i < area.extent.height; i++)
 							{
+								ASSERT(d < dest->end());
 								sw::clear((uint16_t*)d, packed, area.extent.width);
 								d += rowPitchBytes;
 							}
@@ -216,6 +221,7 @@ namespace sw
 						case 4:
 							for(uint32_t i = 0; i < area.extent.height; i++)
 							{
+								ASSERT(d < dest->end());
 								sw::clear((uint32_t*)d, packed, area.extent.width);
 								d += rowPitchBytes;
 							}
