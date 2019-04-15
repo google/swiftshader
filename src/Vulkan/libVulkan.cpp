@@ -2003,6 +2003,12 @@ VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceFeatures2(VkPhysicalDevice physica
 				vk::Cast(physicalDevice)->getFeatures(&features);
 			}
 			break;
+		case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DRAW_PARAMETER_FEATURES:
+			{
+				auto& features = *reinterpret_cast<VkPhysicalDeviceShaderDrawParameterFeatures*>(extensionFeatures);
+				vk::Cast(physicalDevice)->getFeatures(&features);
+			}
+			break;
 		default:
 			// "the [driver] must skip over, without processing (other than reading the sType and pNext members) any structures in the chain with sType values not defined by [supported extenions]"
 			UNIMPLEMENTED("extensionFeatures->sType");   // TODO(b/119321052): UNIMPLEMENTED() should be used only for features that must still be implemented. Use a more informational macro here.

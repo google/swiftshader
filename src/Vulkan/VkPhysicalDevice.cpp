@@ -128,6 +128,11 @@ void PhysicalDevice::getFeatures(VkPhysicalDeviceProtectedMemoryFeatures* featur
 	features->protectedMemory = VK_FALSE;
 }
 
+void PhysicalDevice::getFeatures(VkPhysicalDeviceShaderDrawParameterFeatures* features) const
+{
+	features->shaderDrawParameters = VK_FALSE;
+}
+
 VkSampleCountFlags PhysicalDevice::getSampleCounts() const
 {
 	return VK_SAMPLE_COUNT_1_BIT | VK_SAMPLE_COUNT_4_BIT;
