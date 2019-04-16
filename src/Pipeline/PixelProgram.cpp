@@ -24,7 +24,15 @@ namespace sw
 
 	void PixelProgram::setBuiltins(Int &x, Int &y, Float4(&z)[4], Float4 &w)
 	{
-		// TODO: wire up builtins correctly
+		auto it = spirvShader->inputBuiltins.find(spv::BuiltInFragCoord);
+		if (it != spirvShader->inputBuiltins.end())
+		{
+			auto &var = routine.getVariable(it->second.Id);
+			var[it->second.FirstComponent] = SIMD::Float(Float(x)) + SIMD::Float(0.5f, 1.5f, 0.5f, 1.5f);
+			var[it->second.FirstComponent+1] = SIMD::Float(Float(y)) + SIMD::Float(0.5f, 0.5f, 1.5f, 1.5f);
+			var[it->second.FirstComponent+2] = z[0];	// sample 0
+			var[it->second.FirstComponent+3] = w;
+		}
 	}
 
 	void PixelProgram::applyShader(Int cMask[4])
