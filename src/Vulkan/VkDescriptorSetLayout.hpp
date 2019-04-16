@@ -43,6 +43,7 @@ struct StorageImageDescriptor
 	int rowPitchBytes;
 	int slicePitchBytes;
 	int arrayLayers;
+	int sizeInBytes;
 };
 
 class DescriptorSetLayout : public Object<DescriptorSetLayout, VkDescriptorSetLayout>

@@ -28,7 +28,7 @@ BufferView::BufferView(const VkBufferViewCreateInfo* pCreateInfo, void* mem) :
     }
     else
     {
-        range = pCreateInfo->range - offset;
+        range = pCreateInfo->range;
     }
 }
 

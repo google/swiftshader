@@ -50,6 +50,7 @@ public:
 
 	const VkComponentMapping &getComponentMapping() const { return components; }
 	const VkImageSubresourceRange &getSubresourceRange() const { return subresourceRange; }
+	const size_t getImageSizeInBytes() const { return image->getMemoryRequirements().size; }
 
 private:
 	bool                          imageTypesMatch(VkImageType imageType) const;

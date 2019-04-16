@@ -22,6 +22,7 @@ namespace vk
 {
 
 const int Buffer::DataOffset = static_cast<int>(offsetof(Buffer, memory));
+const int Buffer::DataSize = static_cast<int>(offsetof(Buffer, size));
 
 Buffer::Buffer(const VkBufferCreateInfo* pCreateInfo, void* mem) :
 	flags(pCreateInfo->flags), size(pCreateInfo->size), usage(pCreateInfo->usage),

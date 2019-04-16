@@ -21,6 +21,7 @@
 #include "Vulkan/VkDebug.hpp"
 #include "Vulkan/VkConfig.h"
 #include "Vulkan/VkDescriptorSet.hpp"
+#include "Common/Types.hpp"
 #include "Device/Config.hpp"
 
 #include <spirv/unified1/spirv.hpp>
@@ -65,21 +66,122 @@ namespace sw
 
 		struct Pointer
 		{
-			Pointer(rr::Pointer<Byte> base) : base(base), offset(0), uniform(true) {}
-			Pointer(rr::Pointer<Byte> base, SIMD::Int offset) : base(base), offset(offset), uniform(false) {}
+			Pointer(rr::Pointer<Byte> base, rr::Int limit)
+				: base(base), limit(limit), dynamicOffsets(0), staticOffsets{}, hasDynamicOffsets(false) {}
+			Pointer(rr::Pointer<Byte> base, rr::Int limit, SIMD::Int offset)
+				: base(base), limit(limit), dynamicOffsets(offset), staticOffsets{}, hasDynamicOffsets(false) {}
 
-			inline void addOffset(Int delta) { offset += delta; uniform = false; }
+			inline Pointer& operator += (Int i)
+			{
+				dynamicOffsets += i;
+				hasDynamicOffsets = true;
+				return *this;
+			}
+
+			inline Pointer& operator *= (Int i)
+			{
+				dynamicOffsets = offsets() * i;
+				staticOffsets = {};
+				hasDynamicOffsets = true;
+				return *this;
+			}
+
+			inline Pointer operator + (SIMD::Int i) { Pointer p = *this; p += i; return p; }
+			inline Pointer operator * (SIMD::Int i) { Pointer p = *this; p *= i; return p; }
+
+			inline Pointer& operator += (int i)
+			{
+				for (int el = 0; el < SIMD::Width; el++) { staticOffsets[el] += i; }
+				return *this;
+			}
+
+			inline Pointer& operator *= (int i)
+			{
+				for (int el = 0; el < SIMD::Width; el++) { staticOffsets[el] *= i; }
+				if (hasDynamicOffsets)
+				{
+					dynamicOffsets *= SIMD::Int(i);
+				}
+				return *this;
+			}
+
+			inline Pointer operator + (int i) { Pointer p = *this; p += i; return p; }
+			inline Pointer operator * (int i) { Pointer p = *this; p *= i; return p; }
+
+			inline SIMD::Int offsets() const
+			{
+				static_assert(SIMD::Width == 4, "Expects SIMD::Width to be 4");
+				return dynamicOffsets + SIMD::Int(staticOffsets[0], staticOffsets[1], staticOffsets[2], staticOffsets[3]);
+			}
+
+			// Returns true if all offsets are sequential (N+0, N+1, N+2, N+3)
+			inline rr::Bool hasSequentialOffsets() const
+			{
+				if (hasDynamicOffsets)
+				{
+					auto o = offsets();
+					static_assert(SIMD::Width == 4, "Expects SIMD::Width to be 4");
+					return rr::SignMask(~CmpEQ(o.yzww, o + SIMD::Int(1, 2, 3, 0))) == 0;
+				}
+				else
+				{
+					for (int i = 1; i < SIMD::Width; i++)
+					{
+						if (staticOffsets[i-1] + 1 != staticOffsets[i]) { return false; }
+					}
+					return true;
+				}
+			}
+
+			// Returns true if all offsets are equal (N, N, N, N)
+			inline rr::Bool hasEqualOffsets() const
+			{
+				if (hasDynamicOffsets)
+				{
+					auto o = offsets();
+					static_assert(SIMD::Width == 4, "Expects SIMD::Width to be 4");
+					return rr::SignMask(~CmpEQ(o, o.yzwx)) == 0;
+				}
+				else
+				{
+					for (int i = 1; i < SIMD::Width; i++)
+					{
+						if (staticOffsets[i-1] != staticOffsets[i]) { return false; }
+					}
+					return true;
+				}
+			}
 
 			// Base address for the pointer, common across all lanes.
 			rr::Pointer<rr::Byte> base;
 
-			// Per lane offsets from base in bytes.
-			// If uniform is true, all offsets are considered zero.
-			Int offset;
+			// Upper (non-inclusive) limit for offsets from base.
+			rr::Int limit;
 
-			// True if all offsets are zero.
-			bool uniform;
+			// Per lane offsets from base.
+			SIMD::Int dynamicOffsets; // If hasDynamicOffsets is false, all dynamicOffsets are zero.
+			std::array<int32_t, SIMD::Width> staticOffsets;
+
+			// True if all dynamicOffsets are zero.
+			bool hasDynamicOffsets;
 		};
+
+		template <typename T> struct Element {};
+		template <> struct Element<Float> { using type = rr::Float; };
+		template <> struct Element<Int>   { using type = rr::Int; };
+		template <> struct Element<UInt>  { using type = rr::UInt; };
+
+		template<typename T>
+		void Store(Pointer ptr, T val, Int mask, bool atomic = false, std::memory_order order = std::memory_order_relaxed);
+
+		template<typename T>
+		void Store(Pointer ptr, RValue<T> val, Int mask, bool atomic = false, std::memory_order order = std::memory_order_relaxed)
+		{
+			Store(ptr, T(val), mask, atomic, order);
+		}
+
+		template<typename T>
+		T Load(Pointer ptr, Int mask, bool atomic = false, std::memory_order order = std::memory_order_relaxed);
 	}
 
 	// Incrementally constructed complex bundle of rvalues
@@ -736,7 +838,7 @@ namespace sw
 		EmitResult EmitAtomicOp(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitAtomicCompareExchange(InsnIterator insn, EmitState *state) const;
 
-		SIMD::Int GetTexelOffset(GenericValue const & coordinate, Type const & imageType, Pointer<Byte> descriptor, int texelSize) const;
+		SIMD::Pointer GetTexelAddress(SIMD::Pointer base, GenericValue const & coordinate, Type const & imageType, Pointer<Byte> descriptor, int texelSize) const;
 
 		// OpcodeName() returns the name of the opcode op.
 		// If NDEBUG is defined, then OpcodeName() will only return the numerical code.
