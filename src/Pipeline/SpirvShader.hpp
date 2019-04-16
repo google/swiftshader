@@ -71,9 +71,9 @@ namespace sw
 			inline void addOffset(Int delta) { offset += delta; uniform = false; }
 
 			// Base address for the pointer, common across all lanes.
-			rr::Pointer<rr::Float> base;
+			rr::Pointer<rr::Byte> base;
 
-			// Per lane offsets from base.
+			// Per lane offsets from base in bytes.
 			// If uniform is true, all offsets are considered zero.
 			Int offset;
 
@@ -624,6 +624,8 @@ namespace sw
 
 		SIMD::Pointer WalkExplicitLayoutAccessChain(Object::ID id, uint32_t numIndexes, uint32_t const *indexIds, SpirvRoutine *routine) const;
 		SIMD::Pointer WalkAccessChain(Object::ID id, uint32_t numIndexes, uint32_t const *indexIds, SpirvRoutine *routine) const;
+
+		// Returns the *component* offset in the literal for the given access chain.
 		uint32_t WalkLiteralAccessChain(Type::ID id, uint32_t numIndexes, uint32_t const *indexes) const;
 
 		// EmitState holds control-flow state for the emit() pass.

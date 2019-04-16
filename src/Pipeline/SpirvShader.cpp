@@ -1063,15 +1063,15 @@ namespace sw
 		// a functor for each scalar element within the object.
 
 		// The functor's first parameter is the index of the scalar element;
-		// the second parameter is the offset (in sizeof(float) units) from
-		// the base of the object.
+		// the second parameter is the offset (in bytes) from the base of the
+		// object.
 
 		ApplyDecorationsForId(&d, id);
 		auto const &type = getType(id);
 
 		if (d.HasOffset)
 		{
-			offset += d.Offset / sizeof(float);
+			offset += d.Offset;
 			d.HasOffset = false;
 		}
 
@@ -1086,7 +1086,7 @@ namespace sw
 			break;
 		case spv::OpTypeVector:
 		{
-			auto elemStride = (d.InsideMatrix && d.HasRowMajor && d.RowMajor) ? d.MatrixStride / sizeof(float) : 1;
+			auto elemStride = (d.InsideMatrix && d.HasRowMajor && d.RowMajor) ? d.MatrixStride : sizeof(float);
 			for (auto i = 0u; i < type.definition.word(3); i++)
 			{
 				VisitMemoryObjectInner(type.definition.word(2), d, index, offset + elemStride * i, f);
@@ -1095,7 +1095,7 @@ namespace sw
 		}
 		case spv::OpTypeMatrix:
 		{
-			auto columnStride = (d.HasRowMajor && d.RowMajor) ? 1 : d.MatrixStride / sizeof(float);
+			auto columnStride = (d.HasRowMajor && d.RowMajor) ? sizeof(float) : d.MatrixStride;
 			d.InsideMatrix = true;
 			for (auto i = 0u; i < type.definition.word(3); i++)
 			{
@@ -1117,7 +1117,7 @@ namespace sw
 			for (auto i = 0u; i < arraySize; i++)
 			{
 				ASSERT(d.HasArrayStride);
-				VisitMemoryObjectInner<F>(type.definition.word(2), d, index, offset + i * d.ArrayStride / sizeof(float), f);
+				VisitMemoryObjectInner<F>(type.definition.word(2), d, index, offset + i * d.ArrayStride, f);
 			}
 			break;
 		}
@@ -1143,7 +1143,7 @@ namespace sw
 			// Objects without explicit layout are tightly packed.
 			for (auto i = 0u; i < getType(type.element).sizeInComponents; i++)
 			{
-				f(i, i);
+				f(i, i * sizeof(float));
 			}
 		}
 	}
@@ -1172,7 +1172,7 @@ namespace sw
 				auto setLayout = routine->pipelineLayout->getDescriptorSetLayout(d.DescriptorSet);
 				int bindingOffset = static_cast<int>(setLayout->getBindingOffset(d.Binding, arrayIndex));
 
-				Pointer<Byte> bufferInfo = Pointer<Byte>(set.base) + bindingOffset; // VkDescriptorBufferInfo*
+				Pointer<Byte> bufferInfo = set.base + bindingOffset; // VkDescriptorBufferInfo*
 				Pointer<Byte> buffer = *Pointer<Pointer<Byte>>(bufferInfo + OFFSET(VkDescriptorBufferInfo, buffer)); // vk::Buffer*
 				Pointer<Byte> data = *Pointer<Pointer<Byte>>(buffer + vk::Buffer::DataOffset); // void*
 				Int offset = *Pointer<Int>(bufferInfo + OFFSET(VkDescriptorBufferInfo, offset));
@@ -1269,7 +1269,7 @@ namespace sw
 				int memberIndex = GetConstantInt(indexIds[i]);
 				ApplyDecorationsForIdMember(&d, typeId, memberIndex);
 				ASSERT(d.HasOffset);
-				constantOffset += d.Offset / sizeof(float);
+				constantOffset += d.Offset;
 				typeId = type.definition.word(2u + memberIndex);
 				break;
 			}
@@ -1281,11 +1281,11 @@ namespace sw
 				auto & obj = getObject(indexIds[i]);
 				if (obj.kind == Object::Kind::Constant)
 				{
-					constantOffset += d.ArrayStride/sizeof(float) * GetConstantInt(indexIds[i]);
+					constantOffset += d.ArrayStride * GetConstantInt(indexIds[i]);
 				}
 				else
 				{
-					ptr.addOffset(SIMD::Int(d.ArrayStride / sizeof(float)) * routine->getIntermediate(indexIds[i]).Int(0));
+					ptr.addOffset(SIMD::Int(d.ArrayStride) * routine->getIntermediate(indexIds[i]).Int(0));
 				}
 				typeId = type.element;
 				break;
@@ -1295,7 +1295,7 @@ namespace sw
 				// TODO: b/127950082: Check bounds.
 				ASSERT(d.HasMatrixStride);
 				d.InsideMatrix = true;
-				auto columnStride = (d.HasRowMajor && d.RowMajor) ? 1 : d.MatrixStride/sizeof(float);
+				auto columnStride = (d.HasRowMajor && d.RowMajor) ? sizeof(float) : d.MatrixStride;
 				auto & obj = getObject(indexIds[i]);
 				if (obj.kind == Object::Kind::Constant)
 				{
@@ -1310,7 +1310,7 @@ namespace sw
 			}
 			case spv::OpTypeVector:
 			{
-				auto elemStride = (d.InsideMatrix && d.HasRowMajor && d.RowMajor) ? d.MatrixStride / sizeof(float) : 1;
+				auto elemStride = (d.InsideMatrix && d.HasRowMajor && d.RowMajor) ? d.MatrixStride : sizeof(float);
 				auto & obj = getObject(indexIds[i]);
 				if (obj.kind == Object::Kind::Constant)
 				{
@@ -1357,7 +1357,7 @@ namespace sw
 				int offsetIntoStruct = 0;
 				for (auto j = 0; j < memberIndex; j++) {
 					auto memberType = type.definition.word(2u + j);
-					offsetIntoStruct += getType(memberType).sizeInComponents;
+					offsetIntoStruct += getType(memberType).sizeInComponents * sizeof(float);
 				}
 				constantOffset += offsetIntoStruct;
 				typeId = type.definition.word(2u + memberIndex);
@@ -1370,7 +1370,7 @@ namespace sw
 			case spv::OpTypeRuntimeArray:
 			{
 				// TODO: b/127950082: Check bounds.
-				auto stride = getType(type.element).sizeInComponents;
+				auto stride = getType(type.element).sizeInComponents * sizeof(float);
 				auto & obj = getObject(indexIds[i]);
 				if (obj.kind == Object::Kind::Constant)
 				{
@@ -1398,7 +1398,7 @@ namespace sw
 
 	uint32_t SpirvShader::WalkLiteralAccessChain(Type::ID typeId, uint32_t numIndexes, uint32_t const *indexes) const
 	{
-		uint32_t constantOffset = 0;
+		uint32_t componentOffset = 0;
 
 		for (auto i = 0u; i < numIndexes; i++)
 		{
@@ -1413,7 +1413,7 @@ namespace sw
 					auto memberType = type.definition.word(2u + j);
 					offsetIntoStruct += getType(memberType).sizeInComponents;
 				}
-				constantOffset += offsetIntoStruct;
+				componentOffset += offsetIntoStruct;
 				typeId = type.definition.word(2u + memberIndex);
 				break;
 			}
@@ -1424,7 +1424,7 @@ namespace sw
 			{
 				auto elementType = type.definition.word(2);
 				auto stride = getType(elementType).sizeInComponents;
-				constantOffset += stride * indexes[i];
+				componentOffset += stride * indexes[i];
 				typeId = elementType;
 				break;
 			}
@@ -1434,7 +1434,7 @@ namespace sw
 			}
 		}
 
-		return constantOffset;
+		return componentOffset;
 	}
 
 	void SpirvShader::Decorations::Apply(spv::Decoration decoration, uint32_t arg)
@@ -2326,8 +2326,8 @@ namespace sw
 					If(Extract(state->activeLaneMask(), j) != 0)
 					{
 						Int offset = Int(o) + Extract(ptr.offset, j);
-						if (interleavedByLane) { offset = offset * SIMD::Width + j; }
-						load[i] = Insert(load[i], Load(&ptr.base[offset], sizeof(float), atomic, memoryOrder), j);
+						if (interleavedByLane) { offset = offset * SIMD::Width + (j * sizeof(float)); }
+						load[i] = Insert(load[i], Load(Pointer<Float>(&ptr.base[offset]), sizeof(float), atomic, memoryOrder), j);
 					}
 				}
 			});
@@ -2338,18 +2338,19 @@ namespace sw
 			if (interleavedByLane)
 			{
 				// Lane-interleaved data.
-				Pointer<SIMD::Float> src = ptr.base;
-				VisitMemoryObject(pointerId, [&](uint32_t i, uint32_t o)
+				VisitMemoryObject(pointerId, [&](uint32_t i, uint32_t offset)
 				{
-					load[i] = Load(&src[o], sizeof(float), atomic, memoryOrder);  // TODO: optimize alignment
+					Pointer<SIMD::Float> src = &ptr.base[offset * SIMD::Width];
+					load[i] = Load(src, sizeof(float), atomic, memoryOrder);  // TODO: optimize alignment
 				});
 			}
 			else
 			{
 				// Non-interleaved data.
-				VisitMemoryObject(pointerId, [&](uint32_t i, uint32_t o)
+				VisitMemoryObject(pointerId, [&](uint32_t i, uint32_t offset)
 				{
-					load[i] = RValue<SIMD::Float>(Load(&ptr.base[o], sizeof(float), atomic, memoryOrder));  // TODO: optimize alignment
+					Pointer<Float> src = &ptr.base[offset];
+					load[i] = RValue<SIMD::Float>(Load(src, sizeof(float), atomic, memoryOrder));  // TODO: optimize alignment
 				});
 			}
 		}
@@ -2408,8 +2409,8 @@ namespace sw
 						If(Extract(state->activeLaneMask(), j) != 0)
 						{
 							Int offset = Int(o) + Extract(ptr.offset, j);
-							if (interleavedByLane) { offset = offset * SIMD::Width + j; }
-							Store(RValue<Float>(src[i]), &ptr.base[offset], sizeof(float), atomic, memoryOrder);
+							if (interleavedByLane) { offset = offset * SIMD::Width + (j * sizeof(float)); }
+							Store(Float(src[i]), Pointer<Float>(&ptr.base[offset]), sizeof(float), atomic, memoryOrder);
 						}
 					}
 				});
@@ -2418,10 +2419,10 @@ namespace sw
 			{
 				// Constant source data.
 				// No divergent offsets or masked lanes.
-				Pointer<SIMD::Float> dst = ptr.base;
-				VisitMemoryObject(pointerId, [&](uint32_t i, uint32_t o)
+				VisitMemoryObject(pointerId, [&](uint32_t i, uint32_t offset)
 				{
-					Store(RValue<SIMD::Float>(src[i]), &dst[o], sizeof(float), atomic, memoryOrder);  // TODO: optimize alignment
+					Pointer<SIMD::Float> dst = &ptr.base[offset * SIMD::Width];
+					Store(SIMD::Float(src[i]), dst, sizeof(float), atomic, memoryOrder);  // TODO: optimize alignment
 				});
 			}
 		}
@@ -2439,8 +2440,8 @@ namespace sw
 						If(Extract(state->activeLaneMask(), j) != 0)
 						{
 							Int offset = Int(o) + Extract(ptr.offset, j);
-							if (interleavedByLane) { offset = offset * SIMD::Width + j; }
-							Store(Extract(src.Float(i), j), &ptr.base[offset], sizeof(float), atomic, memoryOrder);
+							if (interleavedByLane) { offset = offset * SIMD::Width + (j * sizeof(float)); }
+							Store(Extract(src.Float(i), j), Pointer<Float>(&ptr.base[offset]), sizeof(float), atomic, memoryOrder);
 						}
 					}
 				});
@@ -2451,19 +2452,19 @@ namespace sw
 				if (interleavedByLane)
 				{
 					// Lane-interleaved data.
-					Pointer<SIMD::Float> dst = ptr.base;
-					VisitMemoryObject(pointerId, [&](uint32_t i, uint32_t o)
+					VisitMemoryObject(pointerId, [&](uint32_t i, uint32_t offset)
 					{
-						Store(src.Float(i), &dst[o], sizeof(float), atomic, memoryOrder);  // TODO: optimize alignment
+						Pointer<SIMD::Float> dst = &ptr.base[offset * SIMD::Width];
+						Store(src.Float(i), dst, sizeof(float), atomic, memoryOrder);  // TODO: optimize alignment
 					});
 				}
 				else
 				{
 					// Intermediate source data. Non-interleaved data.
-					Pointer<SIMD::Float> dst = ptr.base;
-					VisitMemoryObject(pointerId, [&](uint32_t i, uint32_t o)
+					VisitMemoryObject(pointerId, [&](uint32_t i, uint32_t offset)
 					{
-						Store<SIMD::Float>(SIMD::Float(src.Float(i)), &dst[o], sizeof(float), atomic, memoryOrder);  // TODO: optimize alignment
+						Pointer<SIMD::Float> dst = &ptr.base[offset];
+						Store(SIMD::Float(src.Float(i)), dst, sizeof(float), atomic, memoryOrder);  // TODO: optimize alignment
 					});
 				}
 			}
@@ -3518,9 +3519,9 @@ namespace sw
 				{
 					If(Extract(state->activeLaneMask(), j) != 0)
 					{
-						Int offset = Int(i) + Extract(ptr.offset, j);
-						if (interleavedByLane) { offset = offset * SIMD::Width + j; }
-						Store(Extract(whole, j), &ptr.base[offset], sizeof(float), false, std::memory_order_relaxed);
+						Int offset = Int(i * sizeof(float)) + Extract(ptr.offset, j);
+						if (interleavedByLane) { offset = offset * SIMD::Width + (j * sizeof(float)); }
+						Store(Extract(whole, j), Pointer<Float>(&ptr.base[offset]), sizeof(float), false, std::memory_order_relaxed);
 					}
 				}
 			}
@@ -3660,12 +3661,11 @@ namespace sw
 				// TODO: Refactor and consolidate with EmitStore.
 				for (int j = 0; j < SIMD::Width; j++)
 				{
-					auto ptrBase = Pointer<Int>(ptr.base);
 					If(Extract(state->activeLaneMask(), j) != 0)
 					{
-						Int offset = Int(i) + Extract(ptr.offset, j);
-						if (interleavedByLane) { offset = offset * SIMD::Width + j; }
-						Store(Extract(exponent, j), &ptrBase[offset], sizeof(uint32_t), false, std::memory_order_relaxed);
+						Int offset = Int(i * sizeof(float)) + Extract(ptr.offset, j);
+						if (interleavedByLane) { offset = offset * SIMD::Width + (j * sizeof(uint32_t)); }
+						Store(Extract(exponent, j), Pointer<Int>(&ptr.base[offset]), sizeof(uint32_t), false, std::memory_order_relaxed);
 					}
 				}
 			}
@@ -4735,8 +4735,7 @@ namespace sw
 		Pointer<Byte> binding = Pointer<Byte>(set + bindingOffset);
 		Pointer<Byte> imageBase = *Pointer<Pointer<Byte>>(binding + OFFSET(vk::StorageImageDescriptor, ptr));
 
-		// TODO: texelOffset is in bytes - remove shift when SIMD::Pointer is offset by bytes.
-		SIMD::Int texelOffset = GetTexelOffset(coordinate, imageType, binding, sizeof(uint32_t)) >> 2;
+		SIMD::Int texelOffset = GetTexelOffset(coordinate, imageType, binding, sizeof(uint32_t));
 
 		state->routine->createPointer(resultId, SIMD::Pointer(imageBase, texelOffset));
 

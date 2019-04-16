@@ -2349,10 +2349,29 @@ namespace rr
 	}
 
 	template<typename T>
+	RValue<T> Load(Pointer<T> pointer, unsigned int alignment, bool atomic, std::memory_order memoryOrder)
+	{
+		return Load(RValue<Pointer<T>>(pointer), alignment, atomic, memoryOrder);
+	}
+
+	template<typename T>
 	void Store(RValue<T> value, RValue<Pointer<T>> pointer, unsigned int alignment, bool atomic, std::memory_order memoryOrder)
 	{
 		Nucleus::createStore(value.value, pointer.value, T::getType(), false, alignment, atomic, memoryOrder);
 	}
+
+	template<typename T>
+	void Store(RValue<T> value, Pointer<T> pointer, unsigned int alignment, bool atomic, std::memory_order memoryOrder)
+	{
+		Store(value, RValue<Pointer<T>>(pointer), alignment, atomic, memoryOrder);
+	}
+
+	template<typename T>
+	void Store(T value, Pointer<T> pointer, unsigned int alignment, bool atomic, std::memory_order memoryOrder)
+	{
+		Store(RValue<T>(value), RValue<Pointer<T>>(pointer), alignment, atomic, memoryOrder);
+	}
+
 
 	template<class T, int S = 1>
 	class Array : public LValue<T>
