@@ -36,8 +36,6 @@ namespace
 
 namespace sw
 {
-	extern bool colorsDefaultToZero;
-
 	SamplerCore::SamplerCore(Pointer<Byte> &constants, const Sampler::State &state) : constants(constants), state(state)
 	{
 	}
@@ -188,7 +186,6 @@ namespace sw
 		}
 
 		int componentCount = textureComponentCount();
-		float defaultColorValue = colorsDefaultToZero ? 0.0f : 1.0f;
 
 		if(state.textureFilter != FILTER_GATHER)
 		{
@@ -227,14 +224,14 @@ namespace sw
 			case VK_FORMAT_R8G8B8A8_UNORM:
 			case VK_FORMAT_R8G8B8A8_SRGB:
 			case VK_FORMAT_G8_B8R8_2PLANE_420_UNORM:
-				if(componentCount < 2) c.y = Float4(defaultColorValue);
-				if(componentCount < 3) c.z = Float4(defaultColorValue);
+				if(componentCount < 2) c.y = Float4(0.0f);
+				if(componentCount < 3) c.z = Float4(0.0f);
 				if(componentCount < 4) c.w = Float4(1.0f);
 				break;
 			case VK_FORMAT_R32_SFLOAT:
-				c.y = Float4(defaultColorValue);
+				c.y = Float4(0.0f);
 			case VK_FORMAT_R32G32_SFLOAT:
-				c.z = Float4(defaultColorValue);
+				c.z = Float4(0.0f);
 				c.w = Float4(1.0f);
 			case VK_FORMAT_R32G32B32A32_SFLOAT:
 				break;

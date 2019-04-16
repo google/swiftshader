@@ -28,7 +28,6 @@ namespace sw
 
 	bool booleanFaceRegister = false;
 	bool fullPixelPositionRegister = false;
-	bool colorsDefaultToZero = false;
 
 	bool forceWindowed = false;
 	bool quadLayoutEnabled = false;

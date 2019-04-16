@@ -47,7 +47,6 @@ namespace sw
 {
 	extern bool booleanFaceRegister;
 	extern bool fullPixelPositionRegister;
-	extern bool colorsDefaultToZero;
 
 	extern bool forceWindowed;
 	extern bool postBlendSRGB;
@@ -78,7 +77,6 @@ namespace sw
 		{
 			sw::booleanFaceRegister = conventions.booleanFaceRegister;
 			sw::fullPixelPositionRegister = conventions.fullPixelPositionRegister;
-			sw::colorsDefaultToZero = conventions.colorsDefaultToZero;
 			sw::exactColorRounding = exactColorRounding;
 			initialized = true;
 		}

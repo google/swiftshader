@@ -59,13 +59,12 @@ namespace sw
 	extern TranscendentalPrecision rsqPrecision;
 	extern bool perspectiveCorrection;
 
-	struct Conventions
+	struct Conventions  // FIXME(capn): Eliminate. Only support Vulkan 1.1 conventions.
 	{
 		bool halfIntegerCoordinates;
 		bool symmetricNormalizedDepth;
 		bool booleanFaceRegister;
 		bool fullPixelPositionRegister;
-		bool colorsDefaultToZero;
 	};
 
 	static const Conventions OpenGL =
@@ -74,7 +73,6 @@ namespace sw
 		true,    // symmetricNormalizedDepth
 		true,    // booleanFaceRegister
 		true,    // fullPixelPositionRegister
-		true,    // colorsDefaultToZero
 	};
 
 	static const Conventions Direct3D =
@@ -83,7 +81,6 @@ namespace sw
 		false,   // symmetricNormalizedDepth
 		false,   // booleanFaceRegister
 		false,   // fullPixelPositionRegister
-		false,   // colorsDefaultToZero
 	};
 
 	struct DrawData
