@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "a322eecd_d5f5ad77",
+        "filename": "src/Pipeline/PixelProgram.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-04-16T04:05:54Z",
+      "side": 1,
+      "message": "Thanks for pointing that out. It was really just a minor suggestion to improve readability. I don\u0027t think lambda\u0027s would improve it.\n\nInstead we could write something like:\n\nif(spirvShader-\u003ehasBuiltIn(spv::BuiltInFrontFacing))\n{\n    auto frontFacing \u003d ...\n    routine.getBuiltIn(spv::BuiltInFrontFacing) \u003d frontFacing;\n}\n\nWhere the assignment automatically takes FirstComponent into account. Yes it\u0027s a double lookup, but it would be more elegant and better encapsulated. Anyway, let\u0027s revisit this after we\u0027ve reached the 1.0 milestone.",
+      "parentUuid": "99e32cc2_a262a746",
+      "range": {
+        "startLine": 36,
+        "startChar": 2,
+        "endLine": 37,
+        "endChar": 45
+      },
+      "revId": "cbb113285782c2225a240c1b6ffda437827752e6",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "61967727_5d68fee0",
         "filename": "src/Pipeline/SetupRoutine.cpp",
         "patchSetId": 1
