@@ -50,12 +50,11 @@ namespace sw
 	public:
 		SamplerCore(Pointer<Byte> &constants, const Sampler::State &state);
 
-		Vector4s sampleTexture(Pointer<Byte> &texture, Float4 &u, Float4 &v, Float4 &w, Float4 &q, Float4 &bias, Vector4f &dsx, Vector4f &dsy);
 		Vector4f sampleTextureF(Pointer<Byte> &texture, Float4 &u, Float4 &v, Float4 &w, Float4 &q, Float4 &bias, Vector4f &dsx, Vector4f &dsy, Vector4f &offset, SamplerFunction function);
 		static Vector4f textureSize(Pointer<Byte> &mipmap, Float4 &lod);
 
 	private:
-		Vector4s sampleTexture(Pointer<Byte> &texture, Float4 &u, Float4 &v, Float4 &w, Float4 &q, Float4 &bias, Vector4f &dsx, Vector4f &dsy, Vector4f &offset, SamplerFunction function, bool fixed12);
+		Vector4s sampleTexture(Pointer<Byte> &texture, Float4 &u, Float4 &v, Float4 &w, Float4 &q, Float4 &bias, Vector4f &dsx, Vector4f &dsy, Vector4f &offset, SamplerFunction function);
 
 		void border(Short4 &mask, Float4 &coordinates);
 		void border(Int4 &mask, Float4 &coordinates);
@@ -87,9 +86,6 @@ namespace sw
 		void address(Float4 &uw, Int4& xyz0, Int4& xyz1, Float4& f, Pointer<Byte>& mipmap, Float4 &texOffset, Int4 &filter, int whd, AddressingMode addressingMode, SamplerFunction function);
 		Int4 computeFilterOffset(Float &lod);
 
-		void convertFixed12(Short4 &ci, Float4 &cf);
-		void convertFixed12(Vector4s &cs, Vector4f &cf);
-		void convertSigned12(Float4 &cf, Short4 &ci);
 		void convertSigned15(Float4 &cf, Short4 &ci);
 		void convertUnsigned16(Float4 &cf, Short4 &ci);
 		void sRGBtoLinear16_8_16(Short4 &c);
