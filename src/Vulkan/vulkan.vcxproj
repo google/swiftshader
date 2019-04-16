@@ -160,6 +160,7 @@ IF EXIST "$(SolutionDir)..\deqp\build\external\vulkancts\modules\vulkan\" (copy 
     <ClCompile Include="..\Pipeline\SetupRoutine.cpp" />
     <ClCompile Include="..\Pipeline\ShaderCore.cpp" />
     <ClCompile Include="..\Pipeline\SpirvShader.cpp" />
+    <ClCompile Include="..\Pipeline\SpirvShaderSampling.cpp" />
     <ClCompile Include="..\Pipeline\SpirvShader_dbg.cpp" />
     <ClCompile Include="..\Pipeline\VertexProgram.cpp" />
     <ClCompile Include="..\Pipeline\VertexRoutine.cpp" />

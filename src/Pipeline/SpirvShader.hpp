@@ -40,6 +40,8 @@
 namespace vk
 {
 	class PipelineLayout;
+	class ImageView;
+	class Sampler;
 } // namespace vk
 
 namespace sw
@@ -745,6 +747,13 @@ namespace sw
 		//   x = significand * 2^exponent
 		// Returns the pair <significand, exponent>
 		std::pair<SIMD::Float, SIMD::Int> Frexp(RValue<SIMD::Float> val) const;
+
+		using ImageSampler = void(void* image, void* uvsIn, void* texelOut);
+
+		static ImageSampler *getImageSampler(vk::ImageView *imageView, vk::Sampler *sampler);
+		static void emitSamplerFunction(
+			vk::ImageView *imageView, vk::Sampler *sampler,
+			Pointer<Byte> image, Pointer<SIMD::Float> in, Pointer<Byte> out);
 	};
 
 	class SpirvRoutine

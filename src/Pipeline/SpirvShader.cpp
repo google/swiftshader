@@ -4301,63 +4301,20 @@ namespace sw
 		auto setLayout = state->routine->pipelineLayout->getDescriptorSetLayout(d.DescriptorSet);
 		size_t bindingOffset = setLayout->getBindingOffset(d.Binding, arrayIndex);
 
-		const uint8_t *p = reinterpret_cast<const uint8_t*>(state->descriptorSets[d.DescriptorSet]) + bindingOffset;
-		const auto *t = reinterpret_cast<const vk::SampledImageDescriptor*>(p);
+		auto descriptor = state->routine->descriptorSets[d.DescriptorSet] + bindingOffset; // vk::SampledImageDescriptor*
+		auto sampler = *Pointer<Pointer<Byte>>(descriptor + OFFSET(vk::SampledImageDescriptor, sampler)); // vk::Sampler*
+		auto imageView = *Pointer<Pointer<Byte>>(descriptor + OFFSET(vk::SampledImageDescriptor, imageView)); // vk::ImageView*
 
-		Sampler::State samplerState;
-		samplerState.textureType = TEXTURE_2D;                  ASSERT(t->imageView->getType() == VK_IMAGE_VIEW_TYPE_2D);  // TODO(b/129523279)
-		samplerState.textureFormat = t->imageView->getFormat();
-		samplerState.textureFilter = FILTER_POINT;              ASSERT(t->sampler->magFilter == VK_FILTER_NEAREST); ASSERT(t->sampler->minFilter == VK_FILTER_NEAREST);  // TODO(b/129523279)
+		auto samplerFunc = Call(getImageSampler, imageView, sampler);
 
-		samplerState.addressingModeU = ADDRESSING_WRAP;         ASSERT(t->sampler->addressModeU == VK_SAMPLER_ADDRESS_MODE_REPEAT);  // TODO(b/129523279)
-		samplerState.addressingModeV = ADDRESSING_WRAP;         ASSERT(t->sampler->addressModeV == VK_SAMPLER_ADDRESS_MODE_REPEAT);  // TODO(b/129523279)
-		samplerState.addressingModeW = ADDRESSING_WRAP;         ASSERT(t->sampler->addressModeW == VK_SAMPLER_ADDRESS_MODE_REPEAT);  // TODO(b/129523279)
-		samplerState.mipmapFilter = MIPMAP_POINT;               ASSERT(t->sampler->mipmapMode == VK_SAMPLER_MIPMAP_MODE_NEAREST);  // TODO(b/129523279)
-		samplerState.sRGB = false;                              ASSERT(t->imageView->getFormat().isSRGBformat() == false);  // TODO(b/129523279)
-		samplerState.swizzleR = SWIZZLE_RED;                    ASSERT(t->imageView->getComponentMapping().r == VK_COMPONENT_SWIZZLE_R);  // TODO(b/129523279)
-		samplerState.swizzleG = SWIZZLE_GREEN;                  ASSERT(t->imageView->getComponentMapping().g == VK_COMPONENT_SWIZZLE_G);  // TODO(b/129523279)
-		samplerState.swizzleB = SWIZZLE_BLUE;                   ASSERT(t->imageView->getComponentMapping().b == VK_COMPONENT_SWIZZLE_B);  // TODO(b/129523279)
-		samplerState.swizzleA = SWIZZLE_ALPHA;                  ASSERT(t->imageView->getComponentMapping().a == VK_COMPONENT_SWIZZLE_A);  // TODO(b/129523279)
-		samplerState.highPrecisionFiltering = false;
-		samplerState.compare = COMPARE_BYPASS;                  ASSERT(t->sampler->compareEnable == VK_FALSE);  // TODO(b/129523279)
+		Array<SIMD::Float> in(2);
+		in[0] = coordinate.Float(0);
+		in[1] = coordinate.Float(1);
 
-	//	minLod  // TODO(b/129523279)
-	//	maxLod  // TODO(b/129523279)
-	//	borderColor  // TODO(b/129523279)
-		ASSERT(t->sampler->mipLodBias == 0.0f);  // TODO(b/129523279)
-		ASSERT(t->sampler->anisotropyEnable == VK_FALSE);  // TODO(b/129523279)
-		ASSERT(t->sampler->unnormalizedCoordinates == VK_FALSE);  // TODO(b/129523279)
+		Array<SIMD::Float> out(4);
+		Call<ImageSampler>(samplerFunc, sampledImage, &in[0], &out[0]);
 
-		SamplerCore sampler(constants, samplerState);
-
-		Pointer<Byte> texture = sampledImage + OFFSET(vk::SampledImageDescriptor, texture); // sw::Texture*
-		SIMD::Float u = coordinate.Float(0);
-		SIMD::Float v = coordinate.Float(1);
-		SIMD::Float w(0);     // TODO(b/129523279)
-		SIMD::Float q(0);     // TODO(b/129523279)
-		SIMD::Float bias(0);  // TODO(b/129523279)
-		Vector4f dsx;         // TODO(b/129523279)
-		Vector4f dsy;         // TODO(b/129523279)
-		Vector4f offset;      // TODO(b/129523279)
-		SamplerFunction samplerFunction = { Implicit, None };   ASSERT(insn.wordCount() == 5);  // TODO(b/129523279)
-
-		Vector4f sample = sampler.sampleTextureF(texture, u, v, w, q, bias, dsx, dsy, offset, samplerFunction);
-
-		if(getType(resultType.element).opcode() == spv::OpTypeFloat)
-		{
-			result.move(0, sample.x);
-			result.move(1, sample.y);
-			result.move(2, sample.z);
-			result.move(3, sample.w);
-		}
-		else
-		{
-			// TODO(b/129523279): Add a Sampler::sampleTextureI() method.
-			result.move(0, As<SIMD::Int>(sample.x * SIMD::Float(0xFF)));
-			result.move(1, As<SIMD::Int>(sample.y * SIMD::Float(0xFF)));
-			result.move(2, As<SIMD::Int>(sample.z * SIMD::Float(0xFF)));
-			result.move(3, As<SIMD::Int>(sample.w * SIMD::Float(0xFF)));
-		}
+		for (int i = 0; i < 4; i++) { result.move(i, out[i]); }
 
 		return EmitResult::Continue;
 	}

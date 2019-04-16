@@ -79,6 +79,9 @@
     <ClCompile Include="$(SolutionDir)src\Pipeline\SpirvShader_dbg.cpp">
       <Filter>src\Pipeline</Filter>
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\Pipeline\SpirvShaderSampling.cpp">
+      <Filter>src\Pipeline</Filter>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)src\Pipeline\VertexProgram.cpp">
       <Filter>src\Pipeline</Filter>
     </ClCompile>
