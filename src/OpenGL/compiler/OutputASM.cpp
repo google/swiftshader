@@ -3124,6 +3124,10 @@ namespace glsl
 		if(var == -1)
 		{
 			var = allocate(varyings, varying);
+			if (var == -1)
+			{
+				return 0;
+			}
 			int registerCount = varying->totalRegisterCount();
 
 			if(pixelShader)
@@ -3300,6 +3304,10 @@ namespace glsl
 				if(index == -1)
 				{
 					index = allocate(uniforms, uniform);
+					if (index == -1)
+					{
+						return 0;
+					}
 				}
 
 				// Verify if the current uniform is a member of an already declared block
@@ -3335,6 +3343,10 @@ namespace glsl
 			if(symbol)
 			{
 				index = allocate(attributes, attribute);
+				if (index == -1)
+				{
+					return -1;
+				}
 				const TType &type = attribute->getType();
 				int registerCount = attribute->totalRegisterCount();
 				sw::VertexShader::AttribType attribType = sw::VertexShader::ATTRIBTYPE_FLOAT;
@@ -3453,6 +3465,10 @@ namespace glsl
 		if(index == -1)
 		{
 			index = allocate(samplers, sampler, true);
+			if (index == -1)
+			{
+				return 0;
+			}
 
 			if(sampler->getQualifier() == EvqUniform)
 			{
@@ -3467,6 +3483,33 @@ namespace glsl
 	bool OutputASM::isSamplerRegister(TIntermTyped *operand)
 	{
 		return operand && IsSampler(operand->getBasicType()) && samplerRegister(operand) >= 0;
+	}
+
+	bool OutputASM::arrayExceedsLimits(TIntermTyped *operand)
+	{
+		const TVariable *maxUniformVectors = nullptr;
+		TString builtinName = "";
+		if (vertexShader)
+		{
+			builtinName = "gl_MaxVertexUniformVectors";
+		}
+		else if (pixelShader)
+		{
+			builtinName = "gl_MaxFragmentUniformVectors";
+		}
+		maxUniformVectors = static_cast<const TVariable *>(mContext.symbolTable.findBuiltIn(builtinName.c_str(), mContext.getShaderVersion()));
+		if (operand->getArraySize() > maxUniformVectors->getConstPointer()->getIConst())
+		{
+			std::stringstream extraInfoStream;
+			extraInfoStream << "Array size (" << operand->getArraySize() << ") "
+			                << "exceeds limit of " << builtinName
+			                << " (" << maxUniformVectors->getConstPointer()->getIConst() << ")";
+			std::string errorStr = extraInfoStream.str();
+			mContext.error(operand->getLine(), errorStr.c_str(),
+			               operand->getBasicString());
+			return true;
+		}
+		return false;
 	}
 
 	int OutputASM::lookup(VariableArray &list, TIntermTyped *variable)
@@ -3549,6 +3592,10 @@ namespace glsl
 
 		if(index == -1)
 		{
+			if (arrayExceedsLimits(variable))
+			{
+				return -1;
+			}
 			unsigned int registerCount = variable->blockRegisterCount(samplersOnly);
 
 			for(unsigned int i = 0; i < list.size(); i++)
