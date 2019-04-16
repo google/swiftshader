@@ -71,6 +71,12 @@ namespace sw
 			}
 		}
 
+		it = spirvShader->outputBuiltins.find(spv::BuiltInFragDepth);
+		if (it != spirvShader->outputBuiltins.end())
+		{
+			oDepth = routine.getVariable(it->second.Id)[it->second.FirstComponent];
+		}
+
 		if(spirvShader->getModes().DepthReplacing)
 		{
 			oDepth = Min(Max(oDepth, Float4(0.0f)), Float4(1.0f));
