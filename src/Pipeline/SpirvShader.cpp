@@ -1155,10 +1155,10 @@ namespace sw
 		{
 			case Object::Kind::NonDivergentPointer:
 			case Object::Kind::InterfaceVariable:
-				return SIMD::Pointer(routine->getPointer(id));
+				return routine->getPointer(id);
 
 			case Object::Kind::DivergentPointer:
-				return SIMD::Pointer(routine->getPointer(id), routine->getIntermediate(id).Int(0));
+				return routine->getPointer(id);
 
 			case Object::Kind::DescriptorSet:
 			{
@@ -1167,10 +1167,12 @@ namespace sw
 				ASSERT(d.Binding >= 0);
 
 				auto set = routine->getPointer(id);
+				ASSERT(set.uniform);
+
 				auto setLayout = routine->pipelineLayout->getDescriptorSetLayout(d.DescriptorSet);
 				int bindingOffset = static_cast<int>(setLayout->getBindingOffset(d.Binding, arrayIndex));
 
-				Pointer<Byte> bufferInfo = Pointer<Byte>(set + bindingOffset); // VkDescriptorBufferInfo*
+				Pointer<Byte> bufferInfo = Pointer<Byte>(set.base) + bindingOffset; // VkDescriptorBufferInfo*
 				Pointer<Byte> buffer = *Pointer<Pointer<Byte>>(bufferInfo + OFFSET(VkDescriptorBufferInfo, buffer)); // vk::Buffer*
 				Pointer<Byte> data = *Pointer<Pointer<Byte>>(buffer + vk::Buffer::DataOffset); // void*
 				Int offset = *Pointer<Int>(bufferInfo + OFFSET(VkDescriptorBufferInfo, offset));
@@ -1278,9 +1280,13 @@ namespace sw
 				ASSERT(d.HasArrayStride);
 				auto & obj = getObject(indexIds[i]);
 				if (obj.kind == Object::Kind::Constant)
+				{
 					constantOffset += d.ArrayStride/sizeof(float) * GetConstantInt(indexIds[i]);
+				}
 				else
-					ptr.offset += SIMD::Int(d.ArrayStride / sizeof(float)) * routine->getIntermediate(indexIds[i]).Int(0);
+				{
+					ptr.addOffset(SIMD::Int(d.ArrayStride / sizeof(float)) * routine->getIntermediate(indexIds[i]).Int(0));
+				}
 				typeId = type.element;
 				break;
 			}
@@ -1292,9 +1298,13 @@ namespace sw
 				auto columnStride = (d.HasRowMajor && d.RowMajor) ? 1 : d.MatrixStride/sizeof(float);
 				auto & obj = getObject(indexIds[i]);
 				if (obj.kind == Object::Kind::Constant)
+				{
 					constantOffset += columnStride * GetConstantInt(indexIds[i]);
+				}
 				else
-					ptr.offset += SIMD::Int(columnStride) * routine->getIntermediate(indexIds[i]).Int(0);
+				{
+					ptr.addOffset(SIMD::Int(columnStride) * routine->getIntermediate(indexIds[i]).Int(0));
+				}
 				typeId = type.element;
 				break;
 			}
@@ -1303,9 +1313,13 @@ namespace sw
 				auto elemStride = (d.InsideMatrix && d.HasRowMajor && d.RowMajor) ? d.MatrixStride / sizeof(float) : 1;
 				auto & obj = getObject(indexIds[i]);
 				if (obj.kind == Object::Kind::Constant)
+				{
 					constantOffset += elemStride * GetConstantInt(indexIds[i]);
+				}
 				else
-					ptr.offset += SIMD::Int(elemStride) * routine->getIntermediate(indexIds[i]).Int(0);
+				{
+					ptr.addOffset(SIMD::Int(elemStride) * routine->getIntermediate(indexIds[i]).Int(0));
+				}
 				typeId = type.element;
 				break;
 			}
@@ -1314,27 +1328,23 @@ namespace sw
 			}
 		}
 
-		ptr.offset += SIMD::Int(constantOffset);
-
+		if (constantOffset != 0)
+		{
+			ptr.addOffset(constantOffset);
+		}
 		return ptr;
 	}
 
-	SIMD::Int SpirvShader::WalkAccessChain(Object::ID baseId, uint32_t numIndexes, uint32_t const *indexIds, SpirvRoutine *routine) const
+	SIMD::Pointer SpirvShader::WalkAccessChain(Object::ID baseId, uint32_t numIndexes, uint32_t const *indexIds, SpirvRoutine *routine) const
 	{
 		// TODO: avoid doing per-lane work in some cases if we can?
-		// Produce a *component* offset into location-oriented memory
 
-		int constantOffset = 0;
-		SIMD::Int dynamicOffset = SIMD::Int(0);
 		auto &baseObject = getObject(baseId);
 		Type::ID typeId = getType(baseObject.type).element;
 
-		// The <base> operand is a divergent pointer itself.
-		// Start with its offset and build from there.
-		if (baseObject.kind == Object::Kind::DivergentPointer)
-		{
-			dynamicOffset += routine->getIntermediate(baseId).Int(0);
-		}
+		auto ptr = routine->getPointer(baseId);
+
+		int constantOffset = 0;
 
 		for (auto i = 0u; i < numIndexes; i++)
 		{
@@ -1363,9 +1373,13 @@ namespace sw
 				auto stride = getType(type.element).sizeInComponents;
 				auto & obj = getObject(indexIds[i]);
 				if (obj.kind == Object::Kind::Constant)
+				{
 					constantOffset += stride * GetConstantInt(indexIds[i]);
+				}
 				else
-					dynamicOffset += SIMD::Int(stride) * routine->getIntermediate(indexIds[i]).Int(0);
+				{
+					ptr.addOffset(SIMD::Int(stride) * routine->getIntermediate(indexIds[i]).Int(0));
+				}
 				typeId = type.element;
 				break;
 			}
@@ -1375,7 +1389,11 @@ namespace sw
 			}
 		}
 
-		return dynamicOffset + SIMD::Int(constantOffset);
+		if (constantOffset != 0)
+		{
+			ptr.addOffset(SIMD::Int(constantOffset));
+		}
+		return ptr;
 	}
 
 	uint32_t SpirvShader::WalkLiteralAccessChain(Type::ID typeId, uint32_t numIndexes, uint32_t const *indexes) const
@@ -2196,7 +2214,8 @@ namespace sw
 		case spv::StorageClassPrivate:
 		case spv::StorageClassFunction:
 		{
-			routine->createPointer(resultId, &routine->getVariable(resultId)[0]);
+			auto base = &routine->getVariable(resultId)[0];
+			routine->createPointer(resultId, SIMD::Pointer(base));
 			break;
 		}
 		case spv::StorageClassInput:
@@ -2211,7 +2230,8 @@ namespace sw
 									dst[offset++] = routine->inputs[scalarSlot];
 								});
 			}
-			routine->createPointer(resultId, &routine->getVariable(resultId)[0]);
+			auto base = &routine->getVariable(resultId)[0];
+			routine->createPointer(resultId, SIMD::Pointer(base));
 			break;
 		}
 		case spv::StorageClassUniformConstant:
@@ -2224,8 +2244,8 @@ namespace sw
 			auto setLayout = routine->pipelineLayout->getDescriptorSetLayout(d.DescriptorSet);
 			size_t bindingOffset = setLayout->getBindingOffset(d.Binding, arrayIndex);
 			Pointer<Byte> set = routine->descriptorSets[d.DescriptorSet];  // DescriptorSet*
-			Pointer<Byte> binding = Pointer<Byte>(set + bindingOffset);    // SampledImageDescriptor*
-			routine->createPointer(resultId, binding);
+			Pointer<Byte> binding = Pointer<Byte>(set + bindingOffset);    // vk::SampledImageDescriptor*
+			routine->createPointer(resultId, SIMD::Pointer(binding));
 			break;
 		}
 		case spv::StorageClassUniform:
@@ -2234,12 +2254,12 @@ namespace sw
 			const auto &d = descriptorDecorations.at(resultId);
 			ASSERT(d.DescriptorSet >= 0 && d.DescriptorSet < vk::MAX_BOUND_DESCRIPTOR_SETS);
 
-			routine->createPointer(resultId, routine->descriptorSets[d.DescriptorSet]);
+			routine->createPointer(resultId, SIMD::Pointer(routine->descriptorSets[d.DescriptorSet]));
 			break;
 		}
 		case spv::StorageClassPushConstant:
 		{
-			routine->createPointer(resultId, routine->pushConstants);
+			routine->createPointer(resultId, SIMD::Pointer(routine->pushConstants));
 			break;
 		}
 		default:
@@ -2469,14 +2489,12 @@ namespace sw
 		   type.storageClass == spv::StorageClassStorageBuffer)
 		{
 			auto ptr = WalkExplicitLayoutAccessChain(baseId, numIndexes, indexes, routine);
-			routine->createPointer(resultId, ptr.base);
-			routine->createIntermediate(resultId, type.sizeInComponents).move(0, ptr.offset);
+			routine->createPointer(resultId, ptr);
 		}
 		else
 		{
-			auto offset = WalkAccessChain(baseId, numIndexes, indexes, routine);
-			routine->createPointer(resultId, routine->getPointer(baseId));
-			routine->createIntermediate(resultId, type.sizeInComponents).move(0, offset);
+			auto ptr = WalkAccessChain(baseId, numIndexes, indexes, routine);
+			routine->createPointer(resultId, ptr);
 		}
 
 		return EmitResult::Continue;
@@ -4340,7 +4358,7 @@ namespace sw
 		in[1] = coordinate.Float(1);
 
 		Array<SIMD::Float> out(4);
-		Call<ImageSampler>(samplerFunc, sampledImage, &in[0], &out[0]);
+		Call<ImageSampler>(samplerFunc, sampledImage.base, &in[0], &out[0]);
 
 		for (int i = 0; i < 4; i++) { result.move(i, out[i]); }
 
@@ -4717,12 +4735,10 @@ namespace sw
 		Pointer<Byte> binding = Pointer<Byte>(set + bindingOffset);
 		Pointer<Byte> imageBase = *Pointer<Pointer<Byte>>(binding + OFFSET(vk::StorageImageDescriptor, ptr));
 
-		state->routine->createPointer(resultId, imageBase);
-
-		// TODO: texelOffset is in bytes. get rid of shift once Ben's changes for DivergentPointer land
+		// TODO: texelOffset is in bytes - remove shift when SIMD::Pointer is offset by bytes.
 		SIMD::Int texelOffset = GetTexelOffset(coordinate, imageType, binding, sizeof(uint32_t)) >> 2;
-		auto &dst = state->routine->createIntermediate(resultId, resultType.sizeInComponents);
-		dst.move(0, texelOffset);
+
+		state->routine->createPointer(resultId, SIMD::Pointer(imageBase, texelOffset));
 
 		return EmitResult::Continue;
 	}
@@ -4736,45 +4752,44 @@ namespace sw
 		auto memoryOrder = MemoryOrder(memorySemantics);
 		auto value = GenericValue(this, state->routine, insn.word(6));
 		auto &dst = state->routine->createIntermediate(resultId, resultType.sizeInComponents);
-		auto ptr = Pointer<UInt>(state->routine->getPointer(insn.word(3)));
-		auto offsets = state->routine->getIntermediate(insn.word(3)).UInt(0);
+		auto ptr = state->routine->getPointer(insn.word(3));
 
 		SIMD::UInt x;
 		for (int j = 0; j < SIMD::Width; j++)
 		{
 			If(Extract(state->activeLaneMask(), j) != 0)
 			{
-				auto offset = Extract(offsets, j);
+				auto offset = Extract(ptr.offset, j);
 				auto laneValue = Extract(value.UInt(0), j);
 				UInt v;
 				switch (insn.opcode())
 				{
 				case spv::OpAtomicIAdd:
-					v = AddAtomic(&ptr[offset], laneValue, memoryOrder);
+					v = AddAtomic(Pointer<UInt>(&ptr.base[offset]), laneValue, memoryOrder);
 					break;
 				case spv::OpAtomicAnd:
-					v = AndAtomic(&ptr[offset], laneValue, memoryOrder);
+					v = AndAtomic(Pointer<UInt>(&ptr.base[offset]), laneValue, memoryOrder);
 					break;
 				case spv::OpAtomicOr:
-					v = OrAtomic(&ptr[offset], laneValue, memoryOrder);
+					v = OrAtomic(Pointer<UInt>(&ptr.base[offset]), laneValue, memoryOrder);
 					break;
 				case spv::OpAtomicXor:
-					v = XorAtomic(&ptr[offset], laneValue, memoryOrder);
+					v = XorAtomic(Pointer<UInt>(&ptr.base[offset]), laneValue, memoryOrder);
 					break;
 				case spv::OpAtomicSMin:
-					v = As<UInt>(MinAtomic(As<Pointer<Int>>(&ptr[offset]), As<Int>(laneValue), memoryOrder));
+					v = As<UInt>(MinAtomic(Pointer<Int>(&ptr.base[offset]), As<Int>(laneValue), memoryOrder));
 					break;
 				case spv::OpAtomicSMax:
-					v = As<UInt>(MaxAtomic(As<Pointer<Int>>(&ptr[offset]), As<Int>(laneValue), memoryOrder));
+					v = As<UInt>(MaxAtomic(Pointer<Int>(&ptr.base[offset]), As<Int>(laneValue), memoryOrder));
 					break;
 				case spv::OpAtomicUMin:
-					v = MinAtomic(&ptr[offset], laneValue, memoryOrder);
+					v = MinAtomic(Pointer<UInt>(&ptr.base[offset]), laneValue, memoryOrder);
 					break;
 				case spv::OpAtomicUMax:
-					v = MaxAtomic(&ptr[offset], laneValue, memoryOrder);
+					v = MaxAtomic(Pointer<UInt>(&ptr.base[offset]), laneValue, memoryOrder);
 					break;
 				case spv::OpAtomicExchange:
-					v = ExchangeAtomic(&ptr[offset], laneValue, memoryOrder);
+					v = ExchangeAtomic(Pointer<UInt>(&ptr.base[offset]), laneValue, memoryOrder);
 					break;
 				default:
 					UNIMPLEMENTED("Atomic op", OpcodeName(insn.opcode()).c_str());
@@ -4802,18 +4817,17 @@ namespace sw
 		auto value = GenericValue(this, state->routine, insn.word(7));
 		auto comparator = GenericValue(this, state->routine, insn.word(8));
 		auto &dst = state->routine->createIntermediate(resultId, resultType.sizeInComponents);
-		auto ptr = Pointer<UInt>(state->routine->getPointer(insn.word(3)));
-		auto offsets = state->routine->getIntermediate(insn.word(3)).UInt(0);
+		auto ptr = state->routine->getPointer(insn.word(3));
 
 		SIMD::UInt x;
 		for (int j = 0; j < SIMD::Width; j++)
 		{
 			If(Extract(state->activeLaneMask(), j) != 0)
 			{
-				auto offset = Extract(offsets, j);
+				auto offset = Extract(ptr.offset, j);
 				auto laneValue = Extract(value.UInt(0), j);
 				auto laneComparator = Extract(comparator.UInt(0), j);
-				UInt v = CompareExchangeAtomic(&ptr[offset], laneValue, laneComparator, memoryOrderEqual, memoryOrderUnequal);
+				UInt v = CompareExchangeAtomic(Pointer<UInt>(&ptr.base[offset]), laneValue, laneComparator, memoryOrderEqual, memoryOrderUnequal);
 				x = Insert(x, v, j);
 			}
 		}
