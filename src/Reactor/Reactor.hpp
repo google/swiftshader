@@ -3161,6 +3161,11 @@ namespace rr
 		static constexpr const char* fmt = "[%f, %f, %f, %f]";
 		static std::vector<Value*> val(const RValue<Float4>& v);
 	};
+	template <> struct PrintValue::Ty<Long>
+	{
+		static constexpr const char* fmt = "%lld";
+		static std::vector<Value*> val(const RValue<Long>& v) { return {v.value}; }
+	};
 	template <typename T> struct PrintValue::Ty< Pointer<T> >
 	{
 		static constexpr const char* fmt = "%p";
