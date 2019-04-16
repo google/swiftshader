@@ -33,6 +33,20 @@ namespace sw
 			var[it->second.FirstComponent+2] = z[0];	// sample 0
 			var[it->second.FirstComponent+3] = w;
 		}
+
+		it = spirvShader->inputBuiltins.find(spv::BuiltInSubgroupSize);
+		if (it != spirvShader->inputBuiltins.end())
+		{
+			ASSERT(it->second.SizeInComponents == 1);
+			routine.getVariable(it->second.Id)[it->second.FirstComponent] = As<SIMD::Float>(Int(SIMD::Width));
+		}
+
+		it = spirvShader->inputBuiltins.find(spv::BuiltInSubgroupLocalInvocationId);
+		if (it != spirvShader->inputBuiltins.end())
+		{
+			ASSERT(it->second.SizeInComponents == 1);
+			routine.getVariable(it->second.Id)[it->second.FirstComponent] = As<SIMD::Float>(SIMD::Int(0, 1, 2, 3));
+		}
 	}
 
 	void PixelProgram::applyShader(Int cMask[4])
