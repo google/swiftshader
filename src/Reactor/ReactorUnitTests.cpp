@@ -1088,6 +1088,57 @@ TEST(ReactorUnitTests, MulAdd)
 	delete routine;
 }
 
+TEST(ReactorUnitTests, Call)
+{
+	if (!rr::Caps.CallSupported)
+	{
+		SUCCEED() << "rr::Call() not supported";
+		return;
+	}
+
+	Routine *routine = nullptr;
+
+	struct Class
+	{
+		static int Callback(uint8_t *p, int i, float f)
+		{
+			auto c = reinterpret_cast<Class*>(p);
+			c->i = i;
+			c->f = f;
+			return i + int(f);
+		}
+
+		int i = 0;
+		float f = 0.0f;
+	};
+
+	{
+		Function<Int(Pointer<Byte>)> function;
+		{
+			Pointer<Byte> c = function.Arg<0>();
+			auto res = Call(Class::Callback, c, 10, 20.0f);
+			Return(res);
+		}
+
+		routine = function("one");
+
+		if(routine)
+		{
+			int(*callable)(void*) = (int(*)(void*))routine->getEntry();
+
+			Class c;
+
+			int res = callable(&c);
+
+			EXPECT_EQ(res, 30);
+			EXPECT_EQ(c.i, 10);
+			EXPECT_EQ(c.f, 20.0f);
+		}
+	}
+
+	delete routine;
+}
+
 // Check that a complex generated function which utilizes all 8 or 16 XMM
 // registers computes the correct result.
 // (Note that due to MSC's lack of support for inline assembly in x64,

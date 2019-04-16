@@ -3381,6 +3381,28 @@ namespace rr
 		return Long(Int(0));
 	}
 
+	RValue<Pointer<Byte>> ConstantPointer(void const * ptr)
+	{
+		return RValue<Pointer<Byte>>(V(::context->getConstantInt64(reinterpret_cast<intptr_t>(ptr))));
+	}
+
+	Value* Call(RValue<Pointer<Byte>> fptr, Type* retTy, std::initializer_list<Value*> args, std::initializer_list<Type*> argTys)
+	{
+		// FIXME: This does not currently work on Windows.
+		Ice::Variable *ret = nullptr;
+		if (retTy != nullptr)
+		{
+			ret = ::function->makeVariable(T(retTy));
+		}
+		auto call = Ice::InstCall::create(::function, args.size(), ret, V(fptr.value), false);
+		for (auto arg : args)
+		{
+			call->addArg(V(arg));
+		}
+		::basicBlock->appendInst(call);
+		return V(ret);
+	}
+
 	// Below are functions currently unimplemented for the Subzero backend.
 	// They are stubbed to satisfy the linker.
 	RValue<Float4> Sin(RValue<Float4> x) { UNIMPLEMENTED("Subzero Sin()"); return Float4(0); }

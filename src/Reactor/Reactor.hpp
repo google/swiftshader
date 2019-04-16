@@ -2959,6 +2959,97 @@ namespace rr
 		return ReinterpretCast<T>(val);
 	}
 
+	template <typename T>
+	inline Value* valueOf(RValue<T> v) { return v.value; }
+
+	template <typename T>
+	inline Value* valueOf(LValue<T> v) { return valueOf(RValue<T>(v.loadValue())); }
+
+	template<typename T>
+	struct CToReactor;
+
+	template<> struct CToReactor<void>    { using type = Void; };
+	template<> struct CToReactor<int>     { using type = Int; };
+	template<> struct CToReactor<float>   { using type = Float; };
+	template<> struct CToReactor<int*>     { using type = Pointer<Int>; };
+	template<> struct CToReactor<float*>   { using type = Pointer<Float>; };
+
+	// Pointers to non-reactor types are treated as uint8_t*.
+	template<typename T>
+	struct CToReactor<T*> { using type = Pointer<Byte>; };
+
+	// Returns a reactor pointer to the fixed-address ptr.
+	RValue<Pointer<Byte>> ConstantPointer(void const * ptr);
+
+	// Calls the function pointer fptr with the given arguments, return type
+	// and parameter types. Returns the call's return value if the function has
+	// a non-void return type.
+	Value* Call(RValue<Pointer<Byte>> fptr, Type* retTy, std::initializer_list<Value*> args, std::initializer_list<Type*> paramTys);
+
+	template <typename F>
+	class CallHelper {};
+
+	template<typename Return, typename ... Arguments>
+	class CallHelper<Return(Arguments...)>
+	{
+	public:
+		using RReturn = typename CToReactor<Return>::type;
+
+		static inline RReturn Call(Return(fptr)(Arguments...), typename CToReactor<Arguments>::type... args)
+		{
+			return RValue<RReturn>(rr::Call(
+				ConstantPointer(reinterpret_cast<void*>(fptr)),
+				RReturn::getType(),
+				{ valueOf(args) ... },
+				{ CToReactor<Arguments>::type::getType() ... }));
+		}
+
+		static inline RReturn Call(Pointer<Byte> fptr, typename CToReactor<Arguments>::type... args)
+		{
+			return RValue<RReturn>(rr::Call(
+				fptr,
+				RReturn::getType(),
+				{ valueOf(args) ... },
+				{ CToReactor<Arguments>::type::getType() ... }));
+		}
+	};
+
+	template<typename ... Arguments>
+	class CallHelper<void(Arguments...)>
+	{
+	public:
+		static inline void Call(void(fptr)(Arguments...), typename CToReactor<Arguments>::type... args)
+		{
+			rr::Call(ConstantPointer(reinterpret_cast<void*>(fptr)),
+				Void::getType(),
+				{ valueOf(args) ... },
+				{ CToReactor<Arguments>::type::getType() ... });
+		}
+
+		static inline void Call(Pointer<Byte> fptr, typename CToReactor<Arguments>::type... args)
+		{
+			rr::Call(fptr,
+				Void::getType(),
+				{ valueOf(args) ... },
+				{ CToReactor<Arguments>::type::getType() ... });
+		}
+	};
+
+	// Calls the function pointer fptr with the given arguments args.
+	template<typename Return, typename ... Arguments>
+	inline typename CToReactor<Return>::type Call(Return(fptr)(Arguments...), typename CToReactor<Arguments>::type... args)
+	{
+		return CallHelper<Return(Arguments...)>::Call(fptr, args...);
+	}
+
+	// Calls the function pointer fptr with the signature FUNCTION_SIGNATURE and
+	// arguments.
+	template<typename FUNCTION_SIGNATURE, typename ... Arguments>
+	inline void Call(Pointer<Byte> fptr, Arguments ... args)
+	{
+		CallHelper<FUNCTION_SIGNATURE>::Call(fptr, args...);
+	}
+
 #ifdef ENABLE_RR_PRINT
 	// PrintValue holds the printf format and value(s) for a single argument
 	// to Print(). A single argument can be expanded into multiple printf

@@ -3271,6 +3271,28 @@ namespace rr
 
 		return RValue<Long>(V(::builder->CreateCall(rdtsc)));
 	}
+
+	RValue<Pointer<Byte>> ConstantPointer(void const * ptr)
+	{
+		// Note: this should work for 32-bit pointers as well because 'inttoptr'
+		// is defined to truncate (and zero extend) if necessary.
+		auto ptrAsInt = ::llvm::ConstantInt::get(::llvm::Type::getInt64Ty(*::context), reinterpret_cast<uintptr_t>(ptr));
+		return RValue<Pointer<Byte>>(V(::builder->CreateIntToPtr(ptrAsInt, T(Pointer<Byte>::getType()))));
+	}
+
+	Value* Call(RValue<Pointer<Byte>> fptr, Type* retTy, std::initializer_list<Value*> args, std::initializer_list<Type*> argTys)
+	{
+		::llvm::SmallVector<::llvm::Type*, 8> paramTys;
+		for (auto ty : argTys) { paramTys.push_back(T(ty)); }
+		auto funcTy = ::llvm::FunctionType::get(T(retTy), paramTys, false);
+
+		auto funcPtrTy = funcTy->getPointerTo();
+		auto funcPtr = ::builder->CreatePointerCast(V(fptr.value), funcPtrTy);
+
+		::llvm::SmallVector<::llvm::Value*, 8> arguments;
+		for (auto arg : args) { arguments.push_back(V(arg)); }
+		return V(::builder->CreateCall(funcPtr, arguments));
+	}
 }
 
 namespace rr
