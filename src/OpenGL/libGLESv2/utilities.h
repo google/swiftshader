@@ -56,6 +56,7 @@ namespace es2
 	bool IsStencilTexture(GLint format);
 	bool IsCubemapTextureTarget(GLenum target);
 	int CubeFaceIndex(GLenum cubeTarget);
+	bool IsTexImageTarget(GLenum target);
 	bool IsTextureTarget(GLenum target);
 	GLenum ValidateTextureFormatType(GLenum format, GLenum type, GLint internalformat, GLenum target);
 	size_t GetTypeSize(GLenum type);

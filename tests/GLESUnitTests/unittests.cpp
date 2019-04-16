@@ -1583,6 +1583,35 @@ TEST_F(SwiftShaderTest, TextureRectangle_CopyTexSubImage)
 	Uninitialize();
 }
 
+TEST_F(SwiftShaderTest, InvalidEnum_TexImage2D)
+{
+	Initialize(3, false);
+
+	const GLenum invalidTarget = GL_TEXTURE_3D;
+
+	glTexImage2D(invalidTarget, 0, GL_R11F_G11F_B10F, 256, 256, 0, GL_RGB, GL_UNSIGNED_INT_10F_11F_11F_REV, nullptr);
+	EXPECT_GLENUM_EQ(GL_INVALID_ENUM, glGetError());
+
+	float pixels[3] = { 0.0f, 0.0f, 0.0f };
+	glTexSubImage2D(invalidTarget, 0, 0, 0, 1, 1, GL_RGB, GL_FLOAT, pixels);
+	EXPECT_GLENUM_EQ(GL_INVALID_ENUM, glGetError());
+
+	glCopyTexImage2D(invalidTarget, 0, GL_RGB, 2, 6, 8, 8, 0);
+	EXPECT_GLENUM_EQ(GL_INVALID_ENUM, glGetError());
+
+	glCopyTexSubImage2D(invalidTarget, 0, 0, 0, 0, 0, 1, 1);
+	EXPECT_GLENUM_EQ(GL_INVALID_ENUM, glGetError());
+
+	const char data[128] = { 0 };
+	glCompressedTexImage2D(invalidTarget, 0, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT, 16, 16, 0, 128, data);
+	EXPECT_GLENUM_EQ(GL_INVALID_ENUM, glGetError());
+
+	glCompressedTexSubImage2D(invalidTarget, 0, 0, 0, 0, 0, GL_COMPRESSED_RGB_S3TC_DXT1_EXT, 0, 0);
+	EXPECT_GLENUM_EQ(GL_INVALID_ENUM, glGetError());
+
+	Uninitialize();
+}
+
 TEST_F(SwiftShaderTest, CompilerLimits_DeepNestedIfs)
 {
 	std::string body = "return 1.0;";

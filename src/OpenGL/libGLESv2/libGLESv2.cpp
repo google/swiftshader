@@ -794,7 +794,7 @@ void CompressedTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yo
 	      "GLsizei imageSize = %d, const GLvoid* data = %p)",
 	      target, level, xoffset, yoffset, width, height, format, imageSize, data);
 
-	if(!es2::IsTextureTarget(target))
+	if(!es2::IsTexImageTarget(target))
 	{
 		return error(GL_INVALID_ENUM);
 	}
@@ -1017,7 +1017,7 @@ void CopyTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset,
 	      "GLint x = %d, GLint y = %d, GLsizei width = %d, GLsizei height = %d)",
 	      target, level, xoffset, yoffset, x, y, width, height);
 
-	if(!es2::IsTextureTarget(target))
+	if(!es2::IsTexImageTarget(target))
 	{
 		return error(GL_INVALID_ENUM);
 	}
@@ -4886,7 +4886,7 @@ void TexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLs
 	      "const GLvoid* data = %p)",
 	      target, level, xoffset, yoffset, width, height, format, type, data);
 
-	if(!es2::IsTextureTarget(target))
+	if(!es2::IsTexImageTarget(target))
 	{
 		return error(GL_INVALID_ENUM);
 	}

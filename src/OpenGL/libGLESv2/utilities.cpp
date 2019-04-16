@@ -869,9 +869,14 @@ namespace es2
 		}
 	}
 
+	bool IsTexImageTarget(GLenum target)
+	{
+		return target == GL_TEXTURE_2D || IsCubemapTextureTarget(target) || target == GL_TEXTURE_2D_ARRAY || target == GL_TEXTURE_RECTANGLE_ARB;
+	}
+
 	bool IsTextureTarget(GLenum target)
 	{
-		return target == GL_TEXTURE_2D || IsCubemapTextureTarget(target) || target == GL_TEXTURE_3D || target == GL_TEXTURE_2D_ARRAY || target == GL_TEXTURE_RECTANGLE_ARB;
+		return IsTexImageTarget(target) || target == GL_TEXTURE_3D;
 	}
 
 	GLenum ValidateTextureFormatType(GLenum format, GLenum type, GLint internalformat, GLenum target)
