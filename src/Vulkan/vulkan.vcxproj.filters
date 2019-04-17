@@ -174,6 +174,9 @@
     <ClCompile Include="VkBuffer.cpp">
       <Filter>Source Files\Vulkan</Filter>
     </ClCompile>
+    <ClCompile Include="VkBufferView.cpp">
+      <Filter>Source Files\Vulkan</Filter>
+    </ClCompile>
     <ClCompile Include="VkCommandBuffer.cpp">
       <Filter>Source Files\Vulkan</Filter>
     </ClCompile>

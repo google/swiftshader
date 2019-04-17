@@ -16,6 +16,7 @@
 #define VK_BUFFER_VIEW_HPP_
 
 #include "VkObject.hpp"
+#include "VkFormat.h"
 
 namespace vk
 {
@@ -23,17 +24,16 @@ namespace vk
 class BufferView : public Object<BufferView, VkBufferView>
 {
 public:
-	BufferView(const VkBufferViewCreateInfo* pCreateInfo, void* mem) :
-		buffer(pCreateInfo->buffer), format(pCreateInfo->format), offset(pCreateInfo->offset), range(pCreateInfo->range)
-	{
-	}
-
+	BufferView(const VkBufferViewCreateInfo* pCreateInfo, void* mem);
 	~BufferView() = delete;
 
 	static size_t ComputeRequiredAllocationSize(const VkBufferViewCreateInfo* pCreateInfo)
 	{
 		return 0;
 	}
+
+	void *getPointer() const;
+	uint32_t getElementCount() const { return range / Format(format).bytes(); }
 
 private:
 	VkBuffer     buffer;

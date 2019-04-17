@@ -270,6 +270,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)src\Vulkan\Version.h" />
     <ClCompile Include="$(SolutionDir)src\Vulkan\VkBuffer.cpp" />
     <ClInclude Include="$(SolutionDir)src\Vulkan\VkBuffer.hpp" />
+    <ClInclude Include="$(SolutionDir)src\Vulkan\VkBufferView.cpp" />
     <ClInclude Include="$(SolutionDir)src\Vulkan\VkBufferView.hpp" />
     <ClCompile Include="$(SolutionDir)src\Vulkan\VkCommandBuffer.cpp" />
     <ClInclude Include="$(SolutionDir)src\Vulkan\VkCommandBuffer.hpp" />

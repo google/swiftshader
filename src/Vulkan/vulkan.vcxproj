@@ -110,6 +110,7 @@ IF EXIST "$(SolutionDir)..\deqp\build\external\vulkancts\modules\vulkan\" (copy 
     <ClCompile Include="libVulkan.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="VkBuffer.cpp" />
+    <ClCompile Include="VkBufferView.cpp" />
     <ClCompile Include="VkCommandBuffer.cpp" />
     <ClCompile Include="VkCommandPool.cpp" />
     <ClCompile Include="VkDebug.cpp" />

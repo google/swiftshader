@@ -118,6 +118,9 @@
     <ClCompile Include="$(SolutionDir)src\Vulkan\VkBuffer.cpp">
       <Filter>src\Vulkan</Filter>
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\Vulkan\VkBufferView.cpp">
+      <Filter>src\Vulkan</Filter>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)src\Vulkan\VkCommandBuffer.cpp">
       <Filter>src\Vulkan</Filter>
     </ClCompile>

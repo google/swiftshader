@@ -17,6 +17,7 @@
 #include "SamplerCore.hpp"
 #include "System/Math.hpp"
 #include "Vulkan/VkBuffer.hpp"
+#include "Vulkan/VkBufferView.hpp"
 #include "Vulkan/VkDebug.hpp"
 #include "Vulkan/VkDescriptorSet.hpp"
 #include "Vulkan/VkPipelineLayout.hpp"
@@ -280,7 +281,7 @@ namespace sw
 				auto &d = memberDecorations[targetId];
 				if (memberIndex >= d.size())
 					d.resize(memberIndex + 1);    // on demand; exact size would require another pass...
-				
+
 				d[memberIndex].Apply(decoration, value);
 
 				if (decoration == spv::DecorationCentroid)
