@@ -341,24 +341,24 @@ void DescriptorSetLayout::WriteDescriptorSet(DescriptorSet *dstSet, VkDescriptor
 						VkOffset3D offset = {-1, -1, 0};
 
 						// TODO(b/129523279): Implement as 6 consecutive layers instead of separate pointers.
-						mipmap.buffer[face] = imageView->getOffsetPointer(offset, aspect, level, face);
+						mipmap.buffer[face] = imageView->getOffsetPointer(offset, aspect, level, face, ImageView::SAMPLING);
 					}
 				}
 				else
 				{
 					VkOffset3D offset = {0, 0, 0};
-					mipmap.buffer[0] = imageView->getOffsetPointer(offset, aspect, level, 0);
+					mipmap.buffer[0] = imageView->getOffsetPointer(offset, aspect, level, 0, ImageView::SAMPLING);
 				}
 
 				VkExtent3D extent = imageView->getMipLevelExtent(level);
-				Format format = imageView->getFormat();
+				Format format = imageView->getFormat(ImageView::SAMPLING);
 				int layers = imageView->getSubresourceRange().layerCount;
 				// TODO(b/129523279): Untangle depth vs layers throughout the sampler
 				int width = extent.width;
 				int height = extent.height;
 				int depth = layers > 1 ? layers : extent.depth;
-				int pitchP = imageView->rowPitchBytes(aspect, level) / format.bytes();
-				int sliceP = (layers > 1 ? imageView->layerPitchBytes(aspect) : imageView->slicePitchBytes(aspect, level)) / format.bytes();
+				int pitchP = imageView->rowPitchBytes(aspect, level, ImageView::SAMPLING) / format.bytes();
+				int sliceP = (layers > 1 ? imageView->layerPitchBytes(aspect, ImageView::SAMPLING) : imageView->slicePitchBytes(aspect, level, ImageView::SAMPLING)) / format.bytes();
 
 				if(mipmapLevel == 0)
 				{

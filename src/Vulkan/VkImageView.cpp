@@ -171,7 +171,46 @@ void ImageView::resolve(ImageView* resolveAttachment)
 	image->copyTo(*(resolveAttachment->image), region);
 }
 
-void *ImageView::getOffsetPointer(const VkOffset3D& offset, VkImageAspectFlagBits aspect, uint32_t mipLevel, uint32_t layer) const
+const Image* ImageView::getImage(Usage usage) const
+{
+	switch(usage)
+	{
+	case RAW:
+		return image;
+	case SAMPLING:
+		return image->getSampledImage();
+	default:
+		UNIMPLEMENTED("usage %d", int(usage));
+		return nullptr;
+	}
+}
+
+Format ImageView::getFormat(Usage usage) const
+{
+	return ((usage == RAW) || (getImage(usage) == image)) ? format : getImage(usage)->getFormat();
+}
+
+int ImageView::rowPitchBytes(VkImageAspectFlagBits aspect, uint32_t mipLevel, Usage usage) const
+{
+	return getImage(usage)->rowPitchBytes(aspect, subresourceRange.baseMipLevel + mipLevel);
+}
+
+int ImageView::slicePitchBytes(VkImageAspectFlagBits aspect, uint32_t mipLevel, Usage usage) const
+{
+	return getImage(usage)->slicePitchBytes(aspect, subresourceRange.baseMipLevel + mipLevel);
+}
+
+int ImageView::layerPitchBytes(VkImageAspectFlagBits aspect, Usage usage) const
+{
+	return static_cast<int>(getImage(usage)->getLayerSize(aspect));
+}
+
+VkExtent3D ImageView::getMipLevelExtent(uint32_t mipLevel) const
+{
+	return image->getMipLevelExtent(subresourceRange.baseMipLevel + mipLevel);
+}
+
+void *ImageView::getOffsetPointer(const VkOffset3D& offset, VkImageAspectFlagBits aspect, uint32_t mipLevel, uint32_t layer, Usage usage) const
 {
 	ASSERT(mipLevel < subresourceRange.levelCount);
 
@@ -182,7 +221,7 @@ void *ImageView::getOffsetPointer(const VkOffset3D& offset, VkImageAspectFlagBit
 		subresourceRange.baseArrayLayer + layer,
 		subresourceRange.layerCount
 	};
-	return image->getTexelPointer(offset, imageSubresourceLayers);
+	return getImage(usage)->getTexelPointer(offset, imageSubresourceLayers);
 }
 
 }

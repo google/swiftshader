@@ -26,11 +26,11 @@ namespace
 		return (value < -128) ? -128 : ((value > 127) ? 127 : value);
 	}
 
-	inline int clampEAC(int value, bool isSigned)
+	inline short clampEAC(short value, bool isSigned)
 	{
-		int min = isSigned ? -1023 : 0;
-		int max = isSigned ? 1023 : 2047;
-		return (value < min) ? min : ((value > max) ? max : value);
+		short min = isSigned ? -1023 : 0;
+		short max = isSigned ? 1023 : 2047;
+		return (value < min) ? min : ((value > max) ? max : value) << 5;
 	}
 
 	struct bgra8
@@ -95,7 +95,7 @@ namespace
 			{
 				for(int j = 0; j < 4 && (y + j) < h; j++)
 				{
-					int* sDst = reinterpret_cast<int*>(dest);
+					short* sDst = reinterpret_cast<short*>(dest);
 					for(int i = 0; i < 4 && (x + i) < w; i++)
 					{
 						for(int c = nbChannels - 1; c >= 0; c--)

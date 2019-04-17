@@ -55,7 +55,7 @@ SpirvShader::ImageSampler *SpirvShader::getImageSampler(uint32_t inst, const vk:
 
 	Sampler samplerState = {};
 	samplerState.textureType = convertTextureType(imageView->getType());
-	samplerState.textureFormat = imageView->getFormat();
+	samplerState.textureFormat = imageView->getFormat(vk::ImageView::SAMPLING);
 	samplerState.textureFilter = convertFilterMode(sampler);
 	samplerState.border = sampler->borderColor;
 

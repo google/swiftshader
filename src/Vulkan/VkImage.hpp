@@ -70,6 +70,9 @@ public:
 	uint8_t*                 end() const;
 	VkDeviceSize             getLayerSize(VkImageAspectFlagBits aspect) const;
 
+	void                     prepareForSampling(const VkImageSubresourceRange& subresourceRange) const;
+	const Image*             getSampledImage() const { return decompressedImage ? decompressedImage : this; }
+
 	static Format            GetFormat(const vk::Format& format, VkImageAspectFlagBits aspect);
 
 private:
@@ -89,6 +92,7 @@ private:
 	VkFormat getClearFormat() const;
 	void clear(void* pixelData, VkFormat pixelFormat, const vk::Format& viewFormat, const VkImageSubresourceRange& subresourceRange, const VkRect2D& renderArea);
 	int borderSize(VkImageAspectFlagBits aspect) const;
+	void decodeETC2(const VkImageSubresourceRange& subresourceRange) const;
 
 	const Device *const      device = nullptr;
 	DeviceMemory*            deviceMemory = nullptr;
@@ -102,6 +106,7 @@ private:
 	VkSampleCountFlagBits    samples = VK_SAMPLE_COUNT_1_BIT;
 	VkImageTiling            tiling = VK_IMAGE_TILING_OPTIMAL;
 	VkImageUsageFlags        usage = (VkImageUsageFlags)0;
+	Image*                   decompressedImage = nullptr;
 };
 
 static inline Image* Cast(VkImage object)

@@ -17,6 +17,7 @@
 #include "VkDevice.hpp"
 #include "VkImage.hpp"
 #include "Device/Blitter.hpp"
+#include "Device/ETC_Decoder.hpp"
 #include <cstring>
 
 namespace
@@ -36,6 +37,33 @@ namespace
 		if (!aspects) aspects |= VK_IMAGE_ASPECT_COLOR_BIT;
 		return aspects;
 	}
+
+	ETC_Decoder::InputType GetInputType(const vk::Format& format)
+	{
+		switch(format)
+		{
+		case VK_FORMAT_EAC_R11_UNORM_BLOCK:
+			return ETC_Decoder::ETC_R_UNSIGNED;
+		case VK_FORMAT_EAC_R11_SNORM_BLOCK:
+			return ETC_Decoder::ETC_R_SIGNED;
+		case VK_FORMAT_EAC_R11G11_UNORM_BLOCK:
+			return ETC_Decoder::ETC_RG_UNSIGNED;
+		case VK_FORMAT_EAC_R11G11_SNORM_BLOCK:
+			return ETC_Decoder::ETC_RG_SIGNED;
+		case VK_FORMAT_ETC2_R8G8B8_UNORM_BLOCK:
+		case VK_FORMAT_ETC2_R8G8B8_SRGB_BLOCK:
+			return ETC_Decoder::ETC_RGB;
+		case VK_FORMAT_ETC2_R8G8B8A1_UNORM_BLOCK:
+		case VK_FORMAT_ETC2_R8G8B8A1_SRGB_BLOCK:
+			return ETC_Decoder::ETC_RGB_PUNCHTHROUGH_ALPHA;
+		case VK_FORMAT_ETC2_R8G8B8A8_UNORM_BLOCK:
+		case VK_FORMAT_ETC2_R8G8B8A8_SRGB_BLOCK:
+			return ETC_Decoder::ETC_RGBA;
+		default:
+			UNIMPLEMENTED("format: %d", int(format));
+			return ETC_Decoder::ETC_RGBA;
+		}
+	}
 }
 
 namespace vk
@@ -53,15 +81,26 @@ Image::Image(const Image::CreateInfo* pCreateInfo, void* mem) :
 	tiling(pCreateInfo->pCreateInfo->tiling),
 	usage(pCreateInfo->pCreateInfo->usage)
 {
+	if(format.isCompressed())
+	{
+		VkImageCreateInfo imageCreateInfo = *(pCreateInfo->pCreateInfo);
+		imageCreateInfo.format = format.getDecompressedFormat();
+		Image::CreateInfo createInfo = { &imageCreateInfo, pCreateInfo->device };
+		decompressedImage = new (mem) Image(&createInfo, nullptr);
+	}
 }
 
 void Image::destroy(const VkAllocationCallbacks* pAllocator)
 {
+	if(decompressedImage)
+	{
+		vk::deallocate(decompressedImage, pAllocator);
+	}
 }
 
 size_t Image::ComputeRequiredAllocationSize(const Image::CreateInfo* pCreateInfo)
 {
-	return 0;
+	return Format(pCreateInfo->pCreateInfo->format).isCompressed() ? sizeof(Image) : 0;
 }
 
 const VkMemoryRequirements Image::getMemoryRequirements() const
@@ -69,7 +108,8 @@ const VkMemoryRequirements Image::getMemoryRequirements() const
 	VkMemoryRequirements memoryRequirements;
 	memoryRequirements.alignment = vk::REQUIRED_MEMORY_ALIGNMENT;
 	memoryRequirements.memoryTypeBits = vk::MEMORY_TYPE_GENERIC_BIT;
-	memoryRequirements.size = getStorageSize(GetAspects(format));
+	memoryRequirements.size = getStorageSize(GetAspects(format)) +
+	                          (decompressedImage ? decompressedImage->getStorageSize(GetAspects(decompressedImage->format)) : 0);
 	return memoryRequirements;
 }
 
@@ -77,6 +117,11 @@ void Image::bind(VkDeviceMemory pDeviceMemory, VkDeviceSize pMemoryOffset)
 {
 	deviceMemory = Cast(pDeviceMemory);
 	memoryOffset = pMemoryOffset;
+	if(decompressedImage)
+	{
+		decompressedImage->deviceMemory = deviceMemory;
+		decompressedImage->memoryOffset = memoryOffset + getStorageSize(GetAspects(format));
+	}
 }
 
 void Image::getSubresourceLayout(const VkImageSubresource* pSubresource, VkSubresourceLayout* pLayout) const
@@ -344,6 +389,12 @@ void Image::copy(VkBuffer buf, const VkBufferImageCopy& region, bool bufferIsSou
 
 		srcMemory += srcLayerSize;
 		dstMemory += dstLayerSize;
+	}
+
+	if(bufferIsSource && decompressedImage)
+	{
+		prepareForSampling({ region.imageSubresource.aspectMask, region.imageSubresource.mipLevel, 1,
+		                     region.imageSubresource.baseArrayLayer, region.imageSubresource.layerCount });
 	}
 }
 
@@ -631,6 +682,7 @@ VkDeviceSize Image::getStorageSize(VkImageAspectFlags aspectMask) const
 {
 	if (aspectMask == (VK_IMAGE_ASPECT_DEPTH_BIT|VK_IMAGE_ASPECT_STENCIL_BIT))
 	{
+		ASSERT(!format.isCompressed());
 		return arrayLayers * (getLayerSize(VK_IMAGE_ASPECT_DEPTH_BIT) + getLayerSize(VK_IMAGE_ASPECT_STENCIL_BIT));
 	}
 	return arrayLayers * getLayerSize(static_cast<VkImageAspectFlagBits>(aspectMask));
@@ -754,6 +806,55 @@ void Image::clear(const VkClearValue& clearValue, const vk::Format& viewFormat, 
 			VkImageSubresourceRange stencilSubresourceRange = subresourceRange;
 			stencilSubresourceRange.aspectMask = VK_IMAGE_ASPECT_STENCIL_BIT;
 			clear((void*)(&clearValue.depthStencil.stencil), VK_FORMAT_S8_UINT, viewFormat, stencilSubresourceRange, renderArea);
+		}
+	}
+}
+
+void Image::prepareForSampling(const VkImageSubresourceRange& subresourceRange) const
+{
+	switch(format)
+	{
+	case VK_FORMAT_EAC_R11_UNORM_BLOCK:
+	case VK_FORMAT_EAC_R11_SNORM_BLOCK:
+	case VK_FORMAT_EAC_R11G11_UNORM_BLOCK:
+	case VK_FORMAT_EAC_R11G11_SNORM_BLOCK:
+	case VK_FORMAT_ETC2_R8G8B8_UNORM_BLOCK:
+	case VK_FORMAT_ETC2_R8G8B8_SRGB_BLOCK:
+	case VK_FORMAT_ETC2_R8G8B8A1_UNORM_BLOCK:
+	case VK_FORMAT_ETC2_R8G8B8A1_SRGB_BLOCK:
+	case VK_FORMAT_ETC2_R8G8B8A8_UNORM_BLOCK:
+	case VK_FORMAT_ETC2_R8G8B8A8_SRGB_BLOCK:
+		decodeETC2(subresourceRange);
+		break;
+	default:
+		break;
+	}
+}
+
+void Image::decodeETC2(const VkImageSubresourceRange& subresourceRange) const
+{
+	ASSERT(decompressedImage);
+
+	ETC_Decoder::InputType inputType = GetInputType(format);
+
+	uint32_t lastLayer = getLastLayerIndex(subresourceRange);
+	uint32_t lastMipLevel = getLastMipLevel(subresourceRange);
+
+	VkImageSubresourceLayers subresourceLayers = { subresourceRange.aspectMask, subresourceRange.baseMipLevel, subresourceRange.baseArrayLayer, 1 };
+	for(; subresourceLayers.baseArrayLayer <= lastLayer; subresourceLayers.baseArrayLayer++)
+	{
+		for(; subresourceLayers.mipLevel <= lastMipLevel; subresourceLayers.mipLevel++)
+		{
+			uint8_t* source = static_cast<uint8_t*>(getTexelPointer({ 0, 0, 0 }, subresourceLayers));
+			uint8_t* dest = static_cast<uint8_t*>(decompressedImage->getTexelPointer({ 0, 0, 0 }, subresourceLayers));
+
+			VkExtent3D mipLevelExtent = getMipLevelExtent(subresourceLayers.mipLevel);
+
+			int bytes = decompressedImage->format.bytes();
+			int pitchB = decompressedImage->rowPitchBytes(VK_IMAGE_ASPECT_COLOR_BIT, subresourceLayers.mipLevel);
+
+			ETC_Decoder::Decode(source, dest, mipLevelExtent.width, mipLevelExtent.height,
+			                    mipLevelExtent.width, mipLevelExtent.height, pitchB, bytes, inputType);
 		}
 	}
 }

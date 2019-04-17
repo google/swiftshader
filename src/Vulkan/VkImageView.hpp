@@ -28,6 +28,11 @@ namespace vk
 class ImageView : public Object<ImageView, VkImageView>
 {
 public:
+	// Image usage:
+	// RAW: Use the base image as is
+	// SAMPLING: Image used for texture sampling
+	enum Usage { RAW, SAMPLING };
+
 	ImageView(const VkImageViewCreateInfo* pCreateInfo, void* mem);
 	~ImageView() = delete;
 	void destroy(const VkAllocationCallbacks* pAllocator);
@@ -39,16 +44,18 @@ public:
 	void resolve(ImageView* resolveAttachment);
 
 	VkImageViewType getType() const { return viewType; }
-	Format getFormat() const { return format; }
+	Format getFormat(Usage usage = RAW) const;
 	int getSampleCount() const { return image->getSampleCountFlagBits(); }
-	int rowPitchBytes(VkImageAspectFlagBits aspect, uint32_t mipLevel) const { return image->rowPitchBytes(aspect, subresourceRange.baseMipLevel + mipLevel); }
-	int slicePitchBytes(VkImageAspectFlagBits aspect, uint32_t mipLevel) const { return image->slicePitchBytes(aspect, subresourceRange.baseMipLevel + mipLevel); }
-	int layerPitchBytes(VkImageAspectFlagBits aspect) const { return static_cast<int>(image->getLayerSize(aspect)); }
-	VkExtent3D getMipLevelExtent(uint32_t mipLevel) const { return image->getMipLevelExtent(subresourceRange.baseMipLevel + mipLevel); }
+	int rowPitchBytes(VkImageAspectFlagBits aspect, uint32_t mipLevel, Usage usage = RAW) const;
+	int slicePitchBytes(VkImageAspectFlagBits aspect, uint32_t mipLevel, Usage usage = RAW) const;
+	int layerPitchBytes(VkImageAspectFlagBits aspect, Usage usage = RAW) const;
+	VkExtent3D getMipLevelExtent(uint32_t mipLevel) const;
 
-	void *getOffsetPointer(const VkOffset3D& offset, VkImageAspectFlagBits aspect, uint32_t mipLevel, uint32_t layer) const;
+	void *getOffsetPointer(const VkOffset3D& offset, VkImageAspectFlagBits aspect, uint32_t mipLevel, uint32_t layer, Usage usage = RAW) const;
 	bool hasDepthAspect() const { return (subresourceRange.aspectMask & VK_IMAGE_ASPECT_DEPTH_BIT) != 0; }
 	bool hasStencilAspect() const { return (subresourceRange.aspectMask & VK_IMAGE_ASPECT_STENCIL_BIT) != 0; }
+
+	void prepareForSampling() const { image->prepareForSampling(subresourceRange); }
 
 	const VkComponentMapping &getComponentMapping() const { return components; }
 	const VkImageSubresourceRange &getSubresourceRange() const { return subresourceRange; }
@@ -59,6 +66,7 @@ private:
 	static std::atomic<uint32_t> nextID;
 
 	bool                          imageTypesMatch(VkImageType imageType) const;
+	const Image*                  getImage(Usage usage) const;
 
 	Image *const                  image = nullptr;
 	const VkImageViewType         viewType = VK_IMAGE_VIEW_TYPE_2D;

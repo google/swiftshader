@@ -106,7 +106,7 @@ namespace sw
 
 		void clear(void *pixel, vk::Format format, vk::Image *dest, const vk::Format& viewFormat, const VkImageSubresourceRange& subresourceRange, const VkRect2D* renderArea = nullptr);
 
-		void blit(vk::Image *src, vk::Image *dst, VkImageBlit region, VkFilter filter);
+		void blit(const vk::Image *src, vk::Image *dst, VkImageBlit region, VkFilter filter);
 
 	private:
 		bool fastClear(void *pixel, vk::Format format, vk::Image *dest, const vk::Format& viewFormat, const VkImageSubresourceRange& subresourceRange, const VkRect2D* renderArea);
