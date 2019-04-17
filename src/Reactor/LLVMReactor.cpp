@@ -452,6 +452,12 @@ namespace
 
 namespace rr
 {
+	const Capabilities Caps =
+	{
+		true, // CallSupported
+	};
+
+
 #if REACTOR_LLVM_VERSION < 7
 	class LLVMReactorJIT
 	{

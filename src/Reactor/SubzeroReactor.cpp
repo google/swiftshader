@@ -133,6 +133,11 @@ namespace
 
 namespace rr
 {
+	const Capabilities Caps =
+	{
+		false, // CallSupported
+	};
+
 	enum EmulatedType
 	{
 		EmulatedShift = 16,

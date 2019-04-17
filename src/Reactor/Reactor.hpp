@@ -34,6 +34,12 @@
 
 namespace rr
 {
+	struct Capabilities
+	{
+		bool CallSupported; // Support for rr::Call()
+	};
+	extern const Capabilities Caps;
+
 	class Bool;
 	class Byte;
 	class SByte;
