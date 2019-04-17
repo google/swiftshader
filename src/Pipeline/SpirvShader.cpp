@@ -681,6 +681,7 @@ namespace sw
 			case spv::OpPhi:
 			case spv::OpImageSampleImplicitLod:
 			case spv::OpImageQuerySize:
+			case spv::OpImageRead:
 				// Instructions that yield an intermediate value or divergent pointer
 				DefineResult(insn);
 				break;
@@ -2139,6 +2140,9 @@ namespace sw
 
 		case spv::OpImageQuerySize:
 			return EmitImageQuerySize(insn, state);
+
+		case spv::OpImageRead:
+			return EmitImageRead(insn, state);
 
 		case spv::OpImageWrite:
 			return EmitImageWrite(insn, state);
@@ -4403,6 +4407,176 @@ namespace sw
 		}
 		default:
 			UNIMPLEMENTED("EmitImageQuerySize image descriptorType: %d", int(bindingLayout.descriptorType));
+		}
+
+		return EmitResult::Continue;
+	}
+
+	SpirvShader::EmitResult SpirvShader::EmitImageRead(InsnIterator insn, EmitState *state) const
+	{
+		auto &resultType = getType(Type::ID(insn.word(1)));
+		auto imageId = Object::ID(insn.word(3));
+		auto &image = getObject(imageId);
+		auto &imageType = getType(image.type);
+		Object::ID resultId = insn.word(2);
+
+		// Not handling any image operands yet.
+		ASSERT(insn.wordCount() == 5);
+
+		ASSERT(imageType.definition.opcode() == spv::OpTypeImage);
+
+		const DescriptorDecorations &d = descriptorDecorations.at(imageId);
+		uint32_t arrayIndex = 0;  // TODO(b/129523279)
+		auto setLayout = state->routine->pipelineLayout->getDescriptorSetLayout(d.DescriptorSet);
+		size_t bindingOffset = setLayout->getBindingOffset(d.Binding, arrayIndex);
+
+		auto coordinate = GenericValue(this, state->routine, insn.word(4));
+
+		Pointer<Byte> set = state->routine->descriptorSets[d.DescriptorSet];  // DescriptorSet*
+		Pointer<Byte> binding = Pointer<Byte>(set + bindingOffset);
+		Pointer<Byte> imageBase = *Pointer<Pointer<Byte>>(binding + OFFSET(vk::StorageImageDescriptor, ptr));
+
+		auto &dst = state->routine->createIntermediate(resultId, resultType.sizeInComponents);
+
+
+		SIMD::Int packed[4];
+		auto numPackedElements = 0u;
+		int texelSize = 0;
+		auto format = static_cast<spv::ImageFormat>(imageType.definition.word(8));
+		switch (format)
+		{
+		case spv::ImageFormatRgba32f:
+		case spv::ImageFormatRgba32i:
+		case spv::ImageFormatRgba32ui:
+			texelSize = 16;
+			numPackedElements = 4;
+			break;
+		case spv::ImageFormatR32f:
+		case spv::ImageFormatR32i:
+		case spv::ImageFormatR32ui:
+			texelSize = 4;
+			numPackedElements = 1;
+			break;
+		case spv::ImageFormatRgba8:
+			texelSize = 4;
+			numPackedElements = 1;
+			break;
+		case spv::ImageFormatRgba8Snorm:
+			texelSize = 4;
+			numPackedElements = 1;
+			break;
+		case spv::ImageFormatRgba8i:
+		case spv::ImageFormatRgba8ui:
+			texelSize = 4;
+			numPackedElements = 1;
+			break;
+		case spv::ImageFormatRgba16f:
+			texelSize = 8;
+			numPackedElements = 2;
+			break;
+		case spv::ImageFormatRgba16i:
+		case spv::ImageFormatRgba16ui:
+			texelSize = 8;
+			numPackedElements = 2;
+			break;
+		default:
+			UNIMPLEMENTED("spv::ImageFormat %u", format);
+		}
+
+		SIMD::Int texelOffset = coordinate.Int(0) * SIMD::Int(texelSize);
+		if (getType(coordinate.type).sizeInComponents > 1)
+		{
+			texelOffset += coordinate.Int(1) * SIMD::Int(
+					*Pointer<Int>(binding + OFFSET(vk::StorageImageDescriptor, rowPitchBytes)));
+		}
+		if (getType(coordinate.type).sizeInComponents > 2)
+		{
+			texelOffset += coordinate.Int(2) * SIMD::Int(
+					*Pointer<Int>(binding + OFFSET(vk::StorageImageDescriptor, slicePitchBytes)));
+		}
+
+		for (auto i = 0u; i < numPackedElements; i++)
+		{
+			for (int j = 0; j < 4; j++)
+			{
+				If(Extract(state->activeLaneMask(), j) != 0)
+				{
+					Int offset = Int(sizeof(float) * i) + Extract(texelOffset, j);
+					packed[i] = Insert(packed[i], Load(RValue<Pointer<Int>>(&imageBase[offset]), sizeof(uint32_t), false,
+						  std::memory_order_relaxed), j);
+				}
+			}
+		}
+
+		switch(format)
+		{
+		case spv::ImageFormatRgba32f:
+		case spv::ImageFormatRgba32i:
+		case spv::ImageFormatRgba32ui:
+			dst.move(0, packed[0]);
+			dst.move(1, packed[1]);
+			dst.move(2, packed[2]);
+			dst.move(3, packed[3]);
+			break;
+		case spv::ImageFormatR32i:
+		case spv::ImageFormatR32ui:
+			dst.move(0, packed[0]);
+			// Fill remaining channels with 0,0,1 (of the correct type)
+			dst.move(1, SIMD::Int(0));
+			dst.move(2, SIMD::Int(0));
+			dst.move(3, SIMD::Int(1));
+			break;
+		case spv::ImageFormatR32f:
+			dst.move(0, packed[0]);
+			// Fill remaining channels with 0,0,1 (of the correct type)
+			dst.move(1, SIMD::Float(0));
+			dst.move(2, SIMD::Float(0));
+			dst.move(3, SIMD::Float(1));
+			break;
+		case spv::ImageFormatRgba16i:
+			dst.move(0, (packed[0] << 16) >> 16);
+			dst.move(1, (packed[0]) >> 16);
+			dst.move(2, (packed[1] << 16) >> 16);
+			dst.move(3, (packed[1]) >> 16);
+			break;
+		case spv::ImageFormatRgba16ui:
+			dst.move(0, packed[0] & SIMD::Int(0xffff));
+			dst.move(1, (packed[0] >> 16) & SIMD::Int(0xffff));
+			dst.move(2, packed[1] & SIMD::Int(0xffff));
+			dst.move(3, (packed[1] >> 16) & SIMD::Int(0xffff));
+			break;
+		case spv::ImageFormatRgba16f:
+			dst.move(0, HalfToFloatBits(As<SIMD::UInt>(packed[0]) & SIMD::UInt(0x0000FFFF)));
+			dst.move(1, HalfToFloatBits((As<SIMD::UInt>(packed[0]) & SIMD::UInt(0xFFFF0000)) >> 16));
+			dst.move(2, HalfToFloatBits(As<SIMD::UInt>(packed[1]) & SIMD::UInt(0x0000FFFF)));
+			dst.move(3, HalfToFloatBits((As<SIMD::UInt>(packed[1]) & SIMD::UInt(0xFFFF0000)) >> 16));
+			break;
+		case spv::ImageFormatRgba8Snorm:
+			dst.move(0, Min(Max(SIMD::Float(((packed[0]<<24) & SIMD::Int(0xFF000000))) * SIMD::Float(1.0f / float(0x7f000000)), SIMD::Float(-1.0f)), SIMD::Float(1.0f)));
+			dst.move(1, Min(Max(SIMD::Float(((packed[0]<<16) & SIMD::Int(0xFF000000))) * SIMD::Float(1.0f / float(0x7f000000)), SIMD::Float(-1.0f)), SIMD::Float(1.0f)));
+			dst.move(2, Min(Max(SIMD::Float(((packed[0]<<8) & SIMD::Int(0xFF000000))) * SIMD::Float(1.0f / float(0x7f000000)), SIMD::Float(-1.0f)), SIMD::Float(1.0f)));
+			dst.move(3, Min(Max(SIMD::Float(((packed[0]) & SIMD::Int(0xFF000000))) * SIMD::Float(1.0f / float(0x7f000000)), SIMD::Float(-1.0f)), SIMD::Float(1.0f)));
+			break;
+		case spv::ImageFormatRgba8:
+			dst.move(0, SIMD::Float((packed[0] & SIMD::Int(0xFF))) * SIMD::Float(1.0f / 255.f));
+			dst.move(1, SIMD::Float(((packed[0]>>8) & SIMD::Int(0xFF))) * SIMD::Float(1.0f / 255.f));
+			dst.move(2, SIMD::Float(((packed[0]>>16) & SIMD::Int(0xFF))) * SIMD::Float(1.0f / 255.f));
+			dst.move(3, SIMD::Float(((packed[0]>>24) & SIMD::Int(0xFF))) * SIMD::Float(1.0f / 255.f));
+			break;
+		case spv::ImageFormatRgba8ui:
+			dst.move(0, (As<SIMD::UInt>(packed[0]) & SIMD::UInt(0xFF)));
+			dst.move(1, ((As<SIMD::UInt>(packed[0])>>8) & SIMD::UInt(0xFF)));
+			dst.move(2, ((As<SIMD::UInt>(packed[0])>>16) & SIMD::UInt(0xFF)));
+			dst.move(3, ((As<SIMD::UInt>(packed[0])>>24) & SIMD::UInt(0xFF)));
+			break;
+		case spv::ImageFormatRgba8i:
+			dst.move(0, (packed[0] << 24) >> 24);
+			dst.move(1, (packed[0] << 16) >> 24);
+			dst.move(2, (packed[0] << 8) >> 24);
+			dst.move(3, (packed[0]) >> 24);
+			break;
+		default:
+			UNIMPLEMENTED("");
 		}
 
 		return EmitResult::Continue;
