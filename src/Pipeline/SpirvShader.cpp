@@ -682,6 +682,7 @@ namespace sw
 			case spv::OpImageSampleImplicitLod:
 			case spv::OpImageQuerySize:
 			case spv::OpImageRead:
+			case spv::OpImageTexelPointer:
 				// Instructions that yield an intermediate value or divergent pointer
 				DefineResult(insn);
 				break;
@@ -2146,6 +2147,9 @@ namespace sw
 
 		case spv::OpImageWrite:
 			return EmitImageWrite(insn, state);
+
+		case spv::OpImageTexelPointer:
+			return EmitImageTexelPointer(insn, state);
 
 		default:
 			UNIMPLEMENTED("opcode: %s", OpcodeName(opcode).c_str());
@@ -4660,6 +4664,40 @@ namespace sw
 				}
 			}
 		}
+
+		return EmitResult::Continue;
+	}
+
+	SpirvShader::EmitResult SpirvShader::EmitImageTexelPointer(InsnIterator insn, EmitState *state) const
+	{
+		auto &resultType = getType(Type::ID(insn.word(1)));
+		auto imageId = Object::ID(insn.word(3));
+		auto &image = getObject(imageId);
+		// Note: OpImageTexelPointer is unusual in that the image is passed by pointer.
+		// Look through to get the actual image type.
+		auto &imageType = getType(getType(image.type).element);
+		Object::ID resultId = insn.word(2);
+
+		ASSERT(imageType.opcode() == spv::OpTypeImage);
+		ASSERT(resultType.storageClass == spv::StorageClassImage);
+		ASSERT(getType(resultType.element).opcode() == spv::OpTypeInt);
+
+		const DescriptorDecorations &d = descriptorDecorations.at(imageId);
+		uint32_t arrayIndex = 0;  // TODO(b/129523279)
+		auto setLayout = state->routine->pipelineLayout->getDescriptorSetLayout(d.DescriptorSet);
+		size_t bindingOffset = setLayout->getBindingOffset(d.Binding, arrayIndex);
+
+		auto coordinate = GenericValue(this, state->routine, insn.word(4));
+
+		Pointer<Byte> set = state->routine->descriptorSets[d.DescriptorSet];  // DescriptorSet*
+		Pointer<Byte> binding = Pointer<Byte>(set + bindingOffset);
+		Pointer<Byte> imageBase = *Pointer<Pointer<Byte>>(binding + OFFSET(vk::StorageImageDescriptor, ptr));
+
+		state->routine->createPointer(resultId, imageBase);
+
+		SIMD::Int texelOffset = GetTexelOffset(coordinate, imageType, binding, sizeof(uint32_t));
+		auto &dst = state->routine->createIntermediate(resultId, resultType.sizeInComponents);
+		dst.move(0, texelOffset);
 
 		return EmitResult::Continue;
 	}
