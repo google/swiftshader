@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "18870a97_1b719744",
+        "filename": "CMakeLists.txt",
+        "patchSetId": 41
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 7183
+      },
+      "writtenOn": "2019-04-18T15:44:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8b2f1566_90114d4b",
+      "range": {
+        "startLine": 84,
+        "startChar": 8,
+        "endLine": 84,
+        "endChar": 23
+      },
+      "revId": "be3c8b1fc8a9518d6b2b3e3ada45b645ecbd581b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a27d8b97_dd49d4c7",
         "filename": "CMakeLists.txt",
         "patchSetId": 41
@@ -36,6 +60,30 @@
       "writtenOn": "2019-04-18T15:19:09Z",
       "side": 1,
       "message": "Add conditionally",
+      "range": {
+        "startLine": 2057,
+        "startChar": 0,
+        "endLine": 2058,
+        "endChar": 50
+      },
+      "revId": "be3c8b1fc8a9518d6b2b3e3ada45b645ecbd581b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0d1f565d_1a7c22b5",
+        "filename": "CMakeLists.txt",
+        "patchSetId": 41
+      },
+      "lineNbr": 2058,
+      "author": {
+        "id": 7183
+      },
+      "writtenOn": "2019-04-18T15:44:46Z",
+      "side": 1,
+      "message": "Again, the body of these files is no-oped out with #ifdef ENABLE_RR_DEBUG_INFO.\nPersonally, I\u0027d prefer to keep complexity out of the build files when possible.",
+      "parentUuid": "a27d8b97_dd49d4c7",
       "range": {
         "startLine": 2057,
         "startChar": 0,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "5f08e112_7111cbc9",
+        "filename": "build/Visual Studio 15 2017 Win64/ReactorLLVM.vcxproj.filters",
+        "patchSetId": 41
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 7183
+      },
+      "writtenOn": "2019-04-18T15:44:46Z",
+      "side": 1,
+      "message": "The entire content of this file is in a #ifdef ENABLE_RR_DEBUG_INFO block.\nI can remove these lines, if you like? Just thought it would be helpful for IDE jump-to smarts.",
+      "parentUuid": "ece725e1_6e662463",
+      "range": {
+        "startLine": 10,
+        "startChar": 50,
+        "endLine": 10,
+        "endChar": 74
+      },
+      "revId": "be3c8b1fc8a9518d6b2b3e3ada45b645ecbd581b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "2f56e6c2_6c1ceca5",
         "filename": "src/Reactor/LLVMReactor.cpp",
         "patchSetId": 41
@@ -91,6 +163,30 @@
       "revId": "be3c8b1fc8a9518d6b2b3e3ada45b645ecbd581b",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "64642450_24e031f7",
+        "filename": "src/Reactor/LLVMReactor.cpp",
+        "patchSetId": 41
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 7183
+      },
+      "writtenOn": "2019-04-18T15:44:46Z",
+      "side": 1,
+      "message": "di is an LLVM-ism. But okay.",
+      "parentUuid": "2f56e6c2_6c1ceca5",
+      "range": {
+        "startLine": 122,
+        "startChar": 32,
+        "endLine": 122,
+        "endChar": 34
+      },
+      "revId": "be3c8b1fc8a9518d6b2b3e3ada45b645ecbd581b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     },
     {
       "key": {
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "8fa9d051_62823286",
+        "filename": "src/Reactor/LLVMReactor.cpp",
+        "patchSetId": 41
+      },
+      "lineNbr": 727,
+      "author": {
+        "id": 7183
+      },
+      "writtenOn": "2019-04-18T15:44:46Z",
+      "side": 1,
+      "message": "argh. Implicit casts are evil. Done anyway.",
+      "parentUuid": "59a138d3_d3819a2e",
+      "range": {
+        "startLine": 727,
+        "startChar": 3,
+        "endLine": 727,
+        "endChar": 21
+      },
+      "revId": "be3c8b1fc8a9518d6b2b3e3ada45b645ecbd581b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c9704b28_41c4038f",
         "filename": "src/Reactor/LLVMReactor.cpp",
         "patchSetId": 41
@@ -140,6 +260,30 @@
     },
     {
       "key": {
+        "uuid": "e3ecd409_bf347fff",
+        "filename": "src/Reactor/LLVMReactor.cpp",
+        "patchSetId": 41
+      },
+      "lineNbr": 1183,
+      "author": {
+        "id": 7183
+      },
+      "writtenOn": "2019-04-18T15:44:46Z",
+      "side": 1,
+      "message": "Nope. Probably laziness/mistake on my behalf from the 20 odd rebases I\u0027ve done. Fixed up the other lines.",
+      "parentUuid": "c9704b28_41c4038f",
+      "range": {
+        "startLine": 1183,
+        "startChar": 2,
+        "endLine": 1183,
+        "endChar": 29
+      },
+      "revId": "be3c8b1fc8a9518d6b2b3e3ada45b645ecbd581b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8cfef65f_5b114a76",
         "filename": "src/Reactor/Reactor.hpp",
         "patchSetId": 41
@@ -157,6 +301,24 @@
     },
     {
       "key": {
+        "uuid": "2332ec7b_a8599f78",
+        "filename": "src/Reactor/Reactor.hpp",
+        "patchSetId": 41
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 7183
+      },
+      "writtenOn": "2019-04-18T15:44:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8cfef65f_5b114a76",
+      "revId": "be3c8b1fc8a9518d6b2b3e3ada45b645ecbd581b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "400bdf90_67651161",
         "filename": "src/Reactor/Reactor.hpp",
         "patchSetId": 41
@@ -168,6 +330,30 @@
       "writtenOn": "2019-04-18T15:19:09Z",
       "side": 1,
       "message": "Would be nice to be able to do this more centrally so we don\u0027t miss ones when adding future types. Same for location updates.\n\nAnyway, definitely something for after 1.0 milestone since it would be a major refactoring with pros and cons that have to be discussed. This works for now for all intents and purposes.",
+      "range": {
+        "startLine": 2526,
+        "startChar": 2,
+        "endLine": 2526,
+        "endChar": 24
+      },
+      "revId": "be3c8b1fc8a9518d6b2b3e3ada45b645ecbd581b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d00fc497_2b2bc7a5",
+        "filename": "src/Reactor/Reactor.hpp",
+        "patchSetId": 41
+      },
+      "lineNbr": 2526,
+      "author": {
+        "id": 7183
+      },
+      "writtenOn": "2019-04-18T15:44:46Z",
+      "side": 1,
+      "message": "Any idea how to make this more \u0027central\u0027? I couldn\u0027t think of anything nice.",
+      "parentUuid": "400bdf90_67651161",
       "range": {
         "startLine": 2526,
         "startChar": 2,
@@ -200,6 +386,30 @@
       "revId": "be3c8b1fc8a9518d6b2b3e3ada45b645ecbd581b",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "47b3bf9a_d12ccaf7",
+        "filename": "src/Reactor/Reactor.hpp",
+        "patchSetId": 41
+      },
+      "lineNbr": 3026,
+      "author": {
+        "id": 7183
+      },
+      "writtenOn": "2019-04-18T15:44:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ac5f52ff_bf0a7671",
+      "range": {
+        "startLine": 3026,
+        "startChar": 6,
+        "endLine": 3026,
+        "endChar": 11
+      },
+      "revId": "be3c8b1fc8a9518d6b2b3e3ada45b645ecbd581b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
