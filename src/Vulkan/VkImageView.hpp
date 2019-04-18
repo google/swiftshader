@@ -44,7 +44,7 @@ public:
 	int layerPitchBytes(VkImageAspectFlagBits aspect) const { return static_cast<int>(image->getLayerSize(aspect)); }
 	VkExtent3D getMipLevelExtent(uint32_t mipLevel) const { return image->getMipLevelExtent(subresourceRange.baseMipLevel + mipLevel); }
 
-	void *getOffsetPointer(const VkOffset3D& offset, VkImageAspectFlagBits aspect) const;
+	void *getOffsetPointer(const VkOffset3D& offset, VkImageAspectFlagBits aspect, uint32_t mipLevel) const;
 	bool hasDepthAspect() const { return (subresourceRange.aspectMask & VK_IMAGE_ASPECT_DEPTH_BIT) != 0; }
 	bool hasStencilAspect() const { return (subresourceRange.aspectMask & VK_IMAGE_ASPECT_STENCIL_BIT) != 0; }
 

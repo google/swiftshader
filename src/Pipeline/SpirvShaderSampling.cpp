@@ -39,94 +39,151 @@
 
 namespace sw {
 
-SpirvShader::ImageSampler *SpirvShader::getImageSampler(vk::ImageView *imageView, vk::Sampler *sampler)
+SpirvShader::ImageSampler *SpirvShader::getImageSampler(const vk::ImageView *imageView, const vk::Sampler *sampler)
 {
-    // TODO: Move somewhere sensible.
-    static std::unordered_map<uintptr_t, ImageSampler*> cache;
-    static std::mutex mutex;
+	// TODO: Move somewhere sensible.
+	static std::unordered_map<uintptr_t, ImageSampler*> cache;
+	static std::mutex mutex;
 
-    // TODO: Don't use pointers they can be deleted and reused, combine some two
-    // unique ids.
-    auto key = reinterpret_cast<uintptr_t>(imageView) ^ reinterpret_cast<uintptr_t>(sampler);
+	// TODO: Don't use pointers they can be deleted and reused, combine some two
+	// unique ids.
+	auto key = reinterpret_cast<uintptr_t>(imageView) ^ reinterpret_cast<uintptr_t>(sampler);
 
-    std::unique_lock<std::mutex> lock(mutex);
-    auto it = cache.find(key);
-    if (it != cache.end()) { return it->second; }
+	std::unique_lock<std::mutex> lock(mutex);
+	auto it = cache.find(key);
+	if (it != cache.end()) { return it->second; }
 
-    // TODO: Hold a separate mutex lock for the sampler being built.
-    auto function = rr::Function<Void(Pointer<Byte> image, Pointer<SIMD::Float>, Pointer<SIMD::Float>)>();
-    Pointer<Byte> image = function.Arg<0>();
-    Pointer<SIMD::Float> in = function.Arg<1>();
-    Pointer<SIMD::Float> out = function.Arg<2>();
-    emitSamplerFunction(imageView, sampler, image, in, out);
-    auto fptr = reinterpret_cast<ImageSampler*>((void *)function("sampler")->getEntry());
-    cache.emplace(key, fptr);
-    return fptr;
+	// TODO: Hold a separate mutex lock for the sampler being built.
+	auto function = rr::Function<Void(Pointer<Byte> image, Pointer<SIMD::Float>, Pointer<SIMD::Float>)>();
+	Pointer<Byte> image = function.Arg<0>();
+	Pointer<SIMD::Float> in = function.Arg<1>();
+	Pointer<SIMD::Float> out = function.Arg<2>();
+	emitSamplerFunction(imageView, sampler, image, in, out);
+	auto fptr = reinterpret_cast<ImageSampler*>((void *)function("sampler")->getEntry());
+	cache.emplace(key, fptr);
+	return fptr;
 }
 
 void SpirvShader::emitSamplerFunction(
-        vk::ImageView *imageView, vk::Sampler *sampler,
+        const vk::ImageView *imageView, const vk::Sampler *sampler,
         Pointer<Byte> image, Pointer<SIMD::Float> in, Pointer<Byte> out)
 {
-    SIMD::Float u = in[0];
-    SIMD::Float v = in[1];
+	SIMD::Float u = in[0];
+	SIMD::Float v = in[1];
 
-    Pointer<Byte> constants;  // FIXME(b/129523279)
+	Pointer<Byte> constants;  // FIXME(b/129523279)
 
-    Sampler::State samplerState;
-    samplerState.textureType = TEXTURE_2D;                  ASSERT(imageView->getType() == VK_IMAGE_VIEW_TYPE_2D);  // TODO(b/129523279)
-    samplerState.textureFormat = imageView->getFormat();
-    samplerState.textureFilter = FILTER_POINT;              ASSERT(sampler->magFilter == VK_FILTER_NEAREST); ASSERT(sampler->minFilter == VK_FILTER_NEAREST);  // TODO(b/129523279)
+	Sampler::State samplerState;
+	samplerState.textureType = TEXTURE_2D;                  ASSERT(imageView->getType() == VK_IMAGE_VIEW_TYPE_2D);  // TODO(b/129523279)
+	samplerState.textureFormat = imageView->getFormat();
+	samplerState.textureFilter = convertFilterMode(sampler);
 
-    samplerState.addressingModeU = ADDRESSING_WRAP;         ASSERT(sampler->addressModeU == VK_SAMPLER_ADDRESS_MODE_REPEAT);  // TODO(b/129523279)
-    samplerState.addressingModeV = ADDRESSING_WRAP;         ASSERT(sampler->addressModeV == VK_SAMPLER_ADDRESS_MODE_REPEAT);  // TODO(b/129523279)
-    samplerState.addressingModeW = ADDRESSING_WRAP;         ASSERT(sampler->addressModeW == VK_SAMPLER_ADDRESS_MODE_REPEAT);  // TODO(b/129523279)
-    samplerState.mipmapFilter = MIPMAP_POINT;               ASSERT(sampler->mipmapMode == VK_SAMPLER_MIPMAP_MODE_NEAREST);  // TODO(b/129523279)
-    samplerState.sRGB = false;                              ASSERT(imageView->getFormat().isSRGBformat() == false);  // TODO(b/129523279)
-    samplerState.swizzleR = SWIZZLE_RED;                    ASSERT(imageView->getComponentMapping().r == VK_COMPONENT_SWIZZLE_R);  // TODO(b/129523279)
-    samplerState.swizzleG = SWIZZLE_GREEN;                  ASSERT(imageView->getComponentMapping().g == VK_COMPONENT_SWIZZLE_G);  // TODO(b/129523279)
-    samplerState.swizzleB = SWIZZLE_BLUE;                   ASSERT(imageView->getComponentMapping().b == VK_COMPONENT_SWIZZLE_B);  // TODO(b/129523279)
-    samplerState.swizzleA = SWIZZLE_ALPHA;                  ASSERT(imageView->getComponentMapping().a == VK_COMPONENT_SWIZZLE_A);  // TODO(b/129523279)
-    samplerState.highPrecisionFiltering = false;
-    samplerState.compare = COMPARE_BYPASS;                  ASSERT(sampler->compareEnable == VK_FALSE);  // TODO(b/129523279)
+	samplerState.addressingModeU = convertAddressingMode(sampler->addressModeU);
+	samplerState.addressingModeV = convertAddressingMode(sampler->addressModeV);
+	samplerState.addressingModeW = convertAddressingMode(sampler->addressModeW);
+	samplerState.mipmapFilter = convertMipmapMode(sampler);
+	samplerState.sRGB = false;                              ASSERT(imageView->getFormat().isSRGBformat() == false);  // TODO(b/129523279)
+	samplerState.swizzleR = SWIZZLE_RED;                    ASSERT(imageView->getComponentMapping().r == VK_COMPONENT_SWIZZLE_R);  // TODO(b/129523279)
+	samplerState.swizzleG = SWIZZLE_GREEN;                  ASSERT(imageView->getComponentMapping().g == VK_COMPONENT_SWIZZLE_G);  // TODO(b/129523279)
+	samplerState.swizzleB = SWIZZLE_BLUE;                   ASSERT(imageView->getComponentMapping().b == VK_COMPONENT_SWIZZLE_B);  // TODO(b/129523279)
+	samplerState.swizzleA = SWIZZLE_ALPHA;                  ASSERT(imageView->getComponentMapping().a == VK_COMPONENT_SWIZZLE_A);  // TODO(b/129523279)
+	samplerState.highPrecisionFiltering = false;
+	samplerState.compare = COMPARE_BYPASS;                  ASSERT(sampler->compareEnable == VK_FALSE);  // TODO(b/129523279)
 
 //	minLod  // TODO(b/129523279)
 //	maxLod  // TODO(b/129523279)
 //	borderColor  // TODO(b/129523279)
-    ASSERT(sampler->mipLodBias == 0.0f);  // TODO(b/129523279)
-    ASSERT(sampler->anisotropyEnable == VK_FALSE);  // TODO(b/129523279)
-    ASSERT(sampler->unnormalizedCoordinates == VK_FALSE);  // TODO(b/129523279)
+	ASSERT(sampler->mipLodBias == 0.0f);  // TODO(b/129523279)
+	ASSERT(sampler->anisotropyEnable == VK_FALSE);  // TODO(b/129523279)
+	ASSERT(sampler->unnormalizedCoordinates == VK_FALSE);  // TODO(b/129523279)
 
-    SamplerCore s(constants, samplerState);
+	SamplerCore s(constants, samplerState);
 
-    Pointer<Byte> texture = image + OFFSET(vk::SampledImageDescriptor, texture); // sw::Texture*
-    SIMD::Float w(0);     // TODO(b/129523279)
-    SIMD::Float q(0);     // TODO(b/129523279)
-    SIMD::Float bias(0);  // TODO(b/129523279)
-    Vector4f dsx;         // TODO(b/129523279)
-    Vector4f dsy;         // TODO(b/129523279)
-    Vector4f offset;      // TODO(b/129523279)
-    SamplerFunction samplerFunction = { Implicit, None };   // ASSERT(insn.wordCount() == 5);  // TODO(b/129523279)
+	Pointer<Byte> texture = image + OFFSET(vk::SampledImageDescriptor, texture);  // sw::Texture*
+	SIMD::Float w(0);     // TODO(b/129523279)
+	SIMD::Float q(0);     // TODO(b/129523279)
+	SIMD::Float bias(0);  // TODO(b/129523279)
+	Vector4f dsx;         // TODO(b/129523279)
+	Vector4f dsy;         // TODO(b/129523279)
+	Vector4f offset;      // TODO(b/129523279)
+	SamplerFunction samplerFunction = { Implicit, None };  // ASSERT(insn.wordCount() == 5);  // TODO(b/129523279)
 
-    Vector4f sample = s.sampleTextureF(texture, u, v, w, q, bias, dsx, dsy, offset, samplerFunction);
+	Vector4f sample = s.sampleTextureF(texture, u, v, w, q, bias, dsx, dsy, offset, samplerFunction);
 
-    if(!vk::Format(imageView->getFormat()).isNonNormalizedInteger())
-    {
-        Pointer<SIMD::Float> rgba = out;
-        rgba[0] = sample.x;
-        rgba[1] = sample.y;
-        rgba[2] = sample.z;
-        rgba[3] = sample.w;
-    }
-    else
-    {
-        // TODO(b/129523279): Add a Sampler::sampleTextureI() method.
-        Pointer<SIMD::Int> rgba = out;
-        rgba[0] = As<SIMD::Int>(sample.x * SIMD::Float(0xFF));
-        rgba[1] = As<SIMD::Int>(sample.y * SIMD::Float(0xFF));
-        rgba[2] = As<SIMD::Int>(sample.z * SIMD::Float(0xFF));
-        rgba[3] = As<SIMD::Int>(sample.w * SIMD::Float(0xFF));
-    }
+	if(!vk::Format(imageView->getFormat()).isNonNormalizedInteger())
+	{
+		Pointer<SIMD::Float> rgba = out;
+		rgba[0] = sample.x;
+		rgba[1] = sample.y;
+		rgba[2] = sample.z;
+		rgba[3] = sample.w;
+	}
+	else
+	{
+		// TODO(b/129523279): Add a Sampler::sampleTextureI() method.
+		Pointer<SIMD::Int> rgba = out;
+		rgba[0] = As<SIMD::Int>(sample.x * SIMD::Float(0xFF));
+		rgba[1] = As<SIMD::Int>(sample.y * SIMD::Float(0xFF));
+		rgba[2] = As<SIMD::Int>(sample.z * SIMD::Float(0xFF));
+		rgba[3] = As<SIMD::Int>(sample.w * SIMD::Float(0xFF));
+	}
+}
+
+sw::FilterType SpirvShader::convertFilterMode(const vk::Sampler *sampler)
+{
+	switch(sampler->magFilter)
+	{
+	case VK_FILTER_NEAREST:
+		switch(sampler->minFilter)
+		{
+		case VK_FILTER_NEAREST: return FILTER_POINT;
+		case VK_FILTER_LINEAR:  return FILTER_MIN_LINEAR_MAG_POINT;
+		default:
+			UNIMPLEMENTED("minFilter %d", sampler->minFilter);
+			return FILTER_POINT;
+		}
+		break;
+	case VK_FILTER_LINEAR:
+		switch(sampler->minFilter)
+		{
+		case VK_FILTER_NEAREST: return FILTER_MIN_POINT_MAG_LINEAR;
+		case VK_FILTER_LINEAR:  return FILTER_LINEAR;
+		default:
+			UNIMPLEMENTED("minFilter %d", sampler->minFilter);
+			return FILTER_POINT;
+		}
+		break;
+	default:
+		UNIMPLEMENTED("magFilter %d", sampler->magFilter);
+		return FILTER_POINT;
+	}
+}
+
+sw::MipmapType SpirvShader::convertMipmapMode(const vk::Sampler *sampler)
+{
+	switch(sampler->mipmapMode)
+	{
+	case VK_SAMPLER_MIPMAP_MODE_NEAREST: return MIPMAP_POINT;
+	case VK_SAMPLER_MIPMAP_MODE_LINEAR:  return MIPMAP_LINEAR;
+	default:
+		UNIMPLEMENTED("mipmapMode %d", sampler->mipmapMode);
+		return MIPMAP_POINT;
+	}
+}
+
+sw::AddressingMode SpirvShader::convertAddressingMode(VkSamplerAddressMode addressMode)
+{
+	switch(addressMode)
+	{
+	case VK_SAMPLER_ADDRESS_MODE_REPEAT:               return ADDRESSING_WRAP;
+	case VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT:      return ADDRESSING_MIRROR;
+	case VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE:        return ADDRESSING_CLAMP;
+	case VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER:      return ADDRESSING_BORDER;
+	case VK_SAMPLER_ADDRESS_MODE_MIRROR_CLAMP_TO_EDGE: return ADDRESSING_MIRRORONCE;
+	default:
+		UNIMPLEMENTED("addressMode %d", addressMode);
+		return ADDRESSING_WRAP;
+	}
 }
 
 } // namespace sw

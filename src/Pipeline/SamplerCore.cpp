@@ -255,22 +255,6 @@ namespace sw
 		return c;
 	}
 
-	Vector4f SamplerCore::textureSize(Pointer<Byte> &texture, Float4 &lod)
-	{
-		Vector4f size;
-
-		for(int i = 0; i < 4; ++i)
-		{
-			Int baseLevel = *Pointer<Int>(texture + OFFSET(Texture, baseLevel));
-			Pointer<Byte> mipmap = texture + OFFSET(Texture, mipmap) + (As<Int>(Extract(lod, i)) + baseLevel) * sizeof(Mipmap);
-			size.x = Insert(size.x, As<Float>(Int(*Pointer<Short>(mipmap + OFFSET(Mipmap, width)))), i);
-			size.y = Insert(size.y, As<Float>(Int(*Pointer<Short>(mipmap + OFFSET(Mipmap, height)))), i);
-			size.z = Insert(size.z, As<Float>(Int(*Pointer<Short>(mipmap + OFFSET(Mipmap, depth)))), i);
-		}
-
-		return size;
-	}
-
 	void SamplerCore::border(Short4 &mask, Float4 &coordinates)
 	{
 		Int4 border = As<Int4>(CmpLT(Abs(coordinates - Float4(0.5f)), Float4(0.5f)));
@@ -1152,7 +1136,7 @@ namespace sw
 				duvdxy = Float4(dudxy.xz, dvdxy.xz);
 			}
 
-			// Scale by texture dimensions and global LOD.
+			// Scale by texture dimensions and sampler LOD bias.
 			Float4 dUVdxy = duvdxy * *Pointer<Float4>(texture + OFFSET(Texture,widthHeightLOD));
 
 			Float4 dUV2dxy = dUVdxy * dUVdxy;
@@ -1948,6 +1932,7 @@ namespace sw
 
 			if(state.mipmapFilter == MIPMAP_POINT)
 			{
+				// TODO: Preferred formula is ceil(lod + 0.5) - 1
 				ilod = RoundInt(lod);
 			}
 			else   // MIPMAP_LINEAR

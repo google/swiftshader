@@ -504,7 +504,7 @@ namespace sw
 
 				if(draw->renderTarget[index])
 				{
-					data->colorBuffer[index] = (unsigned int*)context->renderTarget[index]->getOffsetPointer({0, 0, 0}, VK_IMAGE_ASPECT_COLOR_BIT);
+					data->colorBuffer[index] = (unsigned int*)context->renderTarget[index]->getOffsetPointer({0, 0, 0}, VK_IMAGE_ASPECT_COLOR_BIT, 0);
 					data->colorPitchB[index] = context->renderTarget[index]->rowPitchBytes(VK_IMAGE_ASPECT_COLOR_BIT, 0);
 					data->colorSliceB[index] = context->renderTarget[index]->slicePitchBytes(VK_IMAGE_ASPECT_COLOR_BIT, 0);
 				}
@@ -515,14 +515,14 @@ namespace sw
 
 			if(draw->depthBuffer)
 			{
-				data->depthBuffer = (float*)context->depthBuffer->getOffsetPointer({0, 0, 0}, VK_IMAGE_ASPECT_DEPTH_BIT);
+				data->depthBuffer = (float*)context->depthBuffer->getOffsetPointer({0, 0, 0}, VK_IMAGE_ASPECT_DEPTH_BIT, 0);
 				data->depthPitchB = context->depthBuffer->rowPitchBytes(VK_IMAGE_ASPECT_DEPTH_BIT, 0);
 				data->depthSliceB = context->depthBuffer->slicePitchBytes(VK_IMAGE_ASPECT_DEPTH_BIT, 0);
 			}
 
 			if(draw->stencilBuffer)
 			{
-				data->stencilBuffer = (unsigned char*)context->stencilBuffer->getOffsetPointer({0, 0, 0}, VK_IMAGE_ASPECT_STENCIL_BIT);
+				data->stencilBuffer = (unsigned char*)context->stencilBuffer->getOffsetPointer({0, 0, 0}, VK_IMAGE_ASPECT_STENCIL_BIT, 0);
 				data->stencilPitchB = context->stencilBuffer->rowPitchBytes(VK_IMAGE_ASPECT_STENCIL_BIT, 0);
 				data->stencilSliceB = context->stencilBuffer->slicePitchBytes(VK_IMAGE_ASPECT_STENCIL_BIT, 0);
 			}

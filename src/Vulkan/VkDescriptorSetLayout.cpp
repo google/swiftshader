@@ -248,8 +248,9 @@ uint8_t* DescriptorSetLayout::getOffsetPointer(DescriptorSet *descriptorSet, uin
 void DescriptorSetLayout::WriteDescriptorSet(DescriptorSet *dstSet, VkDescriptorUpdateTemplateEntry const &entry, char const *src)
 {
 	DescriptorSetLayout* dstLayout = dstSet->layout;
+	auto &binding = dstLayout->bindings[dstLayout->getBindingIndex(entry.dstBinding)];
 	ASSERT(dstLayout);
-	ASSERT(dstLayout->bindings[dstLayout->getBindingIndex(entry.dstBinding)].descriptorType == entry.descriptorType);
+	ASSERT(binding.descriptorType == entry.descriptorType);
 
 	size_t typeSize = 0;
 	uint8_t* memToWrite = dstLayout->getOffsetPointer(dstSet, entry.dstBinding, entry.dstArrayElement, entry.descriptorCount, &typeSize);
@@ -261,14 +262,24 @@ void DescriptorSetLayout::WriteDescriptorSet(DescriptorSet *dstSet, VkDescriptor
 		for(uint32_t i = 0; i < entry.descriptorCount; i++)
 		{
 			auto update = reinterpret_cast<VkDescriptorImageInfo const *>(src + entry.offset + entry.stride * i);
-			vk::Sampler *sampler = vk::Cast(update->sampler);
 			vk::ImageView *imageView = vk::Cast(update->imageView);
-
-			imageSampler[i].sampler = sampler;
-			imageSampler[i].imageView = imageView;
-
 			sw::Texture *texture = &imageSampler[i].texture;
+
+			// "All consecutive bindings updated via a single VkWriteDescriptorSet structure, except those with a
+			//  descriptorCount of zero, must all either use immutable samplers or must all not use immutable samplers."
+			if(!binding.pImmutableSamplers)
+			{
+				vk::Sampler *sampler = vk::Cast(update->sampler);
+
+				imageSampler[i].sampler = sampler;
+
+				texture->minLod = sw::clamp(sampler->minLod, 0.0f, (float)(sw::MAX_TEXTURE_LOD));
+				texture->maxLod = sw::clamp(sampler->maxLod, 0.0f, (float)(sw::MAX_TEXTURE_LOD));
+			}
+
 			memset(texture, 0, sizeof(sw::Texture));  // TODO(b/129523279): eliminate
+
+			imageSampler[i].imageView = imageView;
 
 			auto &subresourceRange = imageView->getSubresourceRange();
 			int baseLevel = subresourceRange.baseMipLevel;
@@ -276,11 +287,11 @@ void DescriptorSetLayout::WriteDescriptorSet(DescriptorSet *dstSet, VkDescriptor
 			for(int mipmapLevel = 0; mipmapLevel < sw::MIPMAP_LEVELS; mipmapLevel++)
 			{
 				int level = mipmapLevel - baseLevel;  // Level within the image view
-				level = sw::clamp(level, 0, (int)subresourceRange.levelCount);
+				level = sw::clamp(level, 0, (int)subresourceRange.levelCount - 1);
 
 				VkOffset3D offset = {0, 0, 0};
 				VkImageAspectFlagBits aspect = VK_IMAGE_ASPECT_COLOR_BIT;
-				void *buffer = imageView->getOffsetPointer(offset, aspect);
+				void *buffer = imageView->getOffsetPointer(offset, aspect, level);
 
 				sw::Mipmap &mipmap = texture->mipmap[mipmapLevel];
 				mipmap.buffer[0] = buffer;
@@ -422,7 +433,7 @@ void DescriptorSetLayout::WriteDescriptorSet(DescriptorSet *dstSet, VkDescriptor
 		{
 			auto update = reinterpret_cast<VkDescriptorImageInfo const *>(src + entry.offset + entry.stride * i);
 			auto imageView = Cast(update->imageView);
-			descriptor[i].ptr = imageView->getOffsetPointer({0, 0, 0}, VK_IMAGE_ASPECT_COLOR_BIT);
+			descriptor[i].ptr = imageView->getOffsetPointer({0, 0, 0}, VK_IMAGE_ASPECT_COLOR_BIT, 0);
 			descriptor[i].extent = imageView->getMipLevelExtent(0);
 			descriptor[i].rowPitchBytes = imageView->rowPitchBytes(VK_IMAGE_ASPECT_COLOR_BIT, 0);
 			descriptor[i].slicePitchBytes = imageView->getSubresourceRange().layerCount > 1

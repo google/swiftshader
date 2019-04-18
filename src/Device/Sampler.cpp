@@ -68,11 +68,8 @@ namespace sw
 
 		compare = COMPARE_BYPASS;
 
-		texture.LOD = 0.0f;
 		exp2LOD = 1.0f;
 
-		texture.baseLevel = 0;
-		texture.maxLevel = 1000;
 		texture.maxLod = MAX_TEXTURE_LOD;
 		texture.minLod = 0;
 	}
@@ -346,16 +343,6 @@ namespace sw
 		this->compare = compare;
 	}
 
-	void Sampler::setBaseLevel(int baseLevel)
-	{
-		texture.baseLevel = baseLevel;
-	}
-
-	void Sampler::setMaxLevel(int maxLevel)
-	{
-		texture.maxLevel = maxLevel;
-	}
-
 	void Sampler::setMinLod(float minLod)
 	{
 		texture.minLod = clamp(minLod, 0.0f, (float)(MAX_TEXTURE_LOD));
@@ -378,7 +365,6 @@ namespace sw
 
 	void Sampler::setMipmapLOD(float LOD)
 	{
-		texture.LOD = LOD;
 		exp2LOD = exp2(LOD);
 	}
 

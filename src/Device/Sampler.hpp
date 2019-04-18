@@ -50,7 +50,6 @@ namespace sw
 	{
 		Mipmap mipmap[MIPMAP_LEVELS];
 
-		float LOD;
 		float4 widthHeightLOD;
 		float4 widthLOD;
 		float4 heightLOD;
@@ -59,8 +58,6 @@ namespace sw
 		word4 borderColor4[4];   // FIXME(b/129523279): Part of Vulkan sampler.
 		float4 borderColorF[4];  // FIXME(b/129523279): Part of Vulkan sampler.
 		float maxAnisotropy;     // FIXME(b/129523279): Part of Vulkan sampler.
-		int baseLevel;
-		int maxLevel;
 		float minLod;  // FIXME(b/129523279): Part of Vulkan sampler.
 		float maxLod;  // FIXME(b/129523279): Part of Vulkan sampler.
 	};
@@ -195,8 +192,6 @@ namespace sw
 		void setSwizzleB(SwizzleType swizzleB);
 		void setSwizzleA(SwizzleType swizzleA);
 		void setCompareFunc(CompareFunc compare);
-		void setBaseLevel(int baseLevel);
-		void setMaxLevel(int maxLevel);
 		void setMinLod(float minLod);
 		void setMaxLod(float maxLod);
 
