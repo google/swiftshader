@@ -882,7 +882,17 @@ namespace rr
 		#error "unknown architecture"
 		#endif
 
-		llvm::SmallVector<std::string, 1> mattrs;
+		llvm::SmallVector<std::string, 8> mattrs;
+
+		llvm::StringMap<bool> features;
+		bool ok = llvm::sys::getHostCPUFeatures(features);
+		ASSERT_MSG(ok, "llvm::sys::getHostCPUFeatures returned false");
+		for (auto &feature : features)
+		{
+			if (feature.second) { mattrs.push_back(feature.first()); }
+		}
+
+#if 0
 #if defined(__i386__) || defined(__x86_64__)
 		mattrs.push_back(CPUID::supportsMMX()    ? "+mmx"    : "-mmx");
 		mattrs.push_back(CPUID::supportsCMOV()   ? "+cmov"   : "-cmov");
@@ -897,6 +907,7 @@ namespace rr
 #else
 		// armv7-a requires compiler-rt routines; otherwise, compiled kernel
 		// might fail to link.
+#endif
 #endif
 #endif
 
@@ -1297,6 +1308,55 @@ namespace rr
 			UNREACHABLE("asInternalType(type): %d", int(asInternalType(type)));
 			return nullptr;
 		}
+	}
+
+	Value *Nucleus::createGather(Value *base, Type *elTy, Value *offsets, Value *mask, unsigned int alignment)
+	{
+		ASSERT(V(base)->getType()->isPointerTy());
+		ASSERT(V(offsets)->getType()->isVectorTy());
+		ASSERT(V(mask)->getType()->isVectorTy());
+
+		auto numEls = V(mask)->getType()->getVectorNumElements();
+		auto i1Ty = ::llvm::Type::getInt1Ty(*::context);
+		auto i32Ty = ::llvm::Type::getInt32Ty(*::context);
+		auto i8Ty = ::llvm::Type::getInt8Ty(*::context);
+		auto i8PtrTy = i8Ty->getPointerTo();
+		auto elPtrTy = T(elTy)->getPointerTo();
+		auto elVecTy = ::llvm::VectorType::get(T(elTy), numEls);
+		auto elPtrVecTy = ::llvm::VectorType::get(elPtrTy, numEls);
+		auto i8Base = ::builder->CreatePointerCast(V(base), i8PtrTy);
+		auto i8Ptrs = ::builder->CreateGEP(i8Base, V(offsets));
+		auto elPtrs = ::builder->CreatePointerCast(i8Ptrs, elPtrVecTy);
+		auto i8Mask = ::builder->CreateIntCast(V(mask), ::llvm::VectorType::get(i1Ty, numEls), false); // vec<int, int, ...> -> vec<bool, bool, ...>
+		auto passthrough = ::llvm::Constant::getNullValue(elVecTy);
+		auto align = ::llvm::ConstantInt::get(i32Ty, alignment);
+		auto func = ::llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::masked_gather, { elVecTy, elPtrVecTy } );
+		return V(::builder->CreateCall(func, { elPtrs, align, i8Mask, passthrough }));
+	}
+
+	void Nucleus::createScatter(Value *base, Value *val, Value *offsets, Value *mask, unsigned int alignment)
+	{
+		ASSERT(V(base)->getType()->isPointerTy());
+		ASSERT(V(val)->getType()->isVectorTy());
+		ASSERT(V(offsets)->getType()->isVectorTy());
+		ASSERT(V(mask)->getType()->isVectorTy());
+
+		auto numEls = V(mask)->getType()->getVectorNumElements();
+		auto i1Ty = ::llvm::Type::getInt1Ty(*::context);
+		auto i32Ty = ::llvm::Type::getInt32Ty(*::context);
+		auto i8Ty = ::llvm::Type::getInt8Ty(*::context);
+		auto i8PtrTy = i8Ty->getPointerTo();
+		auto elVecTy = V(val)->getType();
+		auto elTy = elVecTy->getVectorElementType();
+		auto elPtrTy = elTy->getPointerTo();
+		auto elPtrVecTy = ::llvm::VectorType::get(elPtrTy, numEls);
+		auto i8Base = ::builder->CreatePointerCast(V(base), i8PtrTy);
+		auto i8Ptrs = ::builder->CreateGEP(i8Base, V(offsets));
+		auto elPtrs = ::builder->CreatePointerCast(i8Ptrs, elPtrVecTy);
+		auto i8Mask = ::builder->CreateIntCast(V(mask), ::llvm::VectorType::get(i1Ty, numEls), false); // vec<int, int, ...> -> vec<bool, bool, ...>
+		auto align = ::llvm::ConstantInt::get(i32Ty, alignment);
+		auto func = ::llvm::Intrinsic::getDeclaration(::module, llvm::Intrinsic::masked_scatter, { elVecTy, elPtrVecTy } );
+		::builder->CreateCall(func, { V(val), elPtrs, align, i8Mask });
 	}
 
 	Value *Nucleus::createGEP(Value *ptr, Type *type, Value *index, bool unsignedIndex)

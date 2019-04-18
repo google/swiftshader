@@ -100,6 +100,10 @@ namespace rr
 		static Value *createStore(Value *value, Value *ptr, Type *type, bool isVolatile = false, unsigned int aligment = 0, bool atomic = false, std::memory_order memoryOrder = std::memory_order_relaxed);
 		static Value *createGEP(Value *ptr, Type *type, Value *index, bool unsignedIndex);
 
+		// Scatter / Gather instructions
+		static Value *createGather(Value *base, Type *elementType, Value *offsets, Value *mask, unsigned int alignment);
+		static void createScatter(Value *base, Value *value, Value *offsets, Value *mask, unsigned int alignment);
+
 		// Atomic instructions
 		static Value *createAtomicAdd(Value *ptr, Value *value, std::memory_order memoryOrder = std::memory_order_relaxed);
 		static Value *createAtomicSub(Value *ptr, Value *value, std::memory_order memoryOrder = std::memory_order_relaxed);

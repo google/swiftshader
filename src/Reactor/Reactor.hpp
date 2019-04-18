@@ -2355,6 +2355,12 @@ namespace rr
 		return Load(RValue<Pointer<T>>(pointer), alignment, atomic, memoryOrder);
 	}
 
+	// TODO: Use SIMD to template these.
+	RValue<Float4> Gather(RValue<Pointer<Float>> base, RValue<Int4> offsets, RValue<Int4> mask, unsigned int alignment);
+	RValue<Int4> Gather(RValue<Pointer<Int>> base, RValue<Int4> offsets, RValue<Int4> mask, unsigned int alignment);
+	void Scatter(RValue<Pointer<Float>> base, RValue<Float4> val, RValue<Int4> offsets, RValue<Int4> mask, unsigned int alignment);
+	void Scatter(RValue<Pointer<Int>> base, RValue<Int4> val, RValue<Int4> offsets, RValue<Int4> mask, unsigned int alignment);
+
 	template<typename T>
 	void Store(RValue<T> value, RValue<Pointer<T>> pointer, unsigned int alignment, bool atomic, std::memory_order memoryOrder)
 	{

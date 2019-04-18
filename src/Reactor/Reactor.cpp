@@ -4212,4 +4212,25 @@ namespace rr
 		Nucleus::createCondBr(cmp.value, bodyBB, endBB);
 		Nucleus::setInsertBlock(bodyBB);
 	}
+
+	RValue<Float4> Gather(RValue<Pointer<Float>> base, RValue<Int4> offsets, RValue<Int4> mask, unsigned int alignment)
+	{
+		return RValue<Float4>(Nucleus::createGather(base.value, Float::getType(), offsets.value, mask.value, alignment));
+	}
+
+	RValue<Int4> Gather(RValue<Pointer<Int>> base, RValue<Int4> offsets, RValue<Int4> mask, unsigned int alignment)
+	{
+		return RValue<Int4>(Nucleus::createGather(base.value, Int::getType(), offsets.value, mask.value, alignment));
+	}
+
+	void Scatter(RValue<Pointer<Float>> base, RValue<Float4> val, RValue<Int4> offsets, RValue<Int4> mask, unsigned int alignment)
+	{
+		Nucleus::createScatter(base.value, val.value, offsets.value, mask.value, alignment);
+	}
+
+	void Scatter(RValue<Pointer<Int>> base, RValue<Int4> val, RValue<Int4> offsets, RValue<Int4> mask, unsigned int alignment)
+	{
+		Nucleus::createScatter(base.value, val.value, offsets.value, mask.value, alignment);
+	}
+
 }

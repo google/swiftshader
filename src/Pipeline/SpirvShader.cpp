@@ -239,37 +239,44 @@ namespace sw
 		T Load(Pointer ptr, Int mask, bool atomic /* = false */, std::memory_order order /* = std::memory_order_relaxed */)
 		{
 			using EL = typename Element<T>::type;
-			T out;
 			auto offsets = ptr.offsets();
 			mask &= CmpLT(offsets + SIMD::Int(sizeof(float) - 1), SIMD::Int(ptr.limit)); // Disable OOB reads.
-			auto anyLanesDisabled = AnyFalse(mask);
-			If(ptr.hasEqualOffsets() && !anyLanesDisabled)
+			if (!atomic && order == std::memory_order_relaxed)
 			{
-				// Load one, replicate.
-				auto offset = Extract(offsets, 0);
-				out = T(Load(rr::Pointer<EL>(&ptr.base[offset]), sizeof(float), atomic, order));
+				return rr::Gather(rr::Pointer<EL>(ptr.base), offsets, mask, sizeof(float));
 			}
-			Else If(ptr.hasSequentialOffsets() && !anyLanesDisabled)
+			else
 			{
-				// Load all elements in a single SIMD instruction.
-				auto offset = Extract(offsets, 0);
-				out = Load(rr::Pointer<T>(&ptr.base[offset]), sizeof(float), atomic, order);
-			}
-			Else
-			{
-				// Divergent offsets or masked lanes - load each element individually.
-				out = T(0);
-				for (int i = 0; i < SIMD::Width; i++)
+				T out;
+				auto anyLanesDisabled = AnyFalse(mask);
+				If(ptr.hasEqualOffsets() && !anyLanesDisabled)
 				{
-					If(Extract(mask, i) != 0)
+					// Load one, replicate.
+					auto offset = Extract(offsets, 0);
+					out = T(rr::Load(rr::Pointer<EL>(&ptr.base[offset]), sizeof(float), atomic, order));
+				}
+				Else If(ptr.hasSequentialOffsets() && !anyLanesDisabled)
+				{
+					// Load all elements in a single SIMD instruction.
+					auto offset = Extract(offsets, 0);
+					out = rr::Load(rr::Pointer<T>(&ptr.base[offset]), sizeof(float), atomic, order);
+				}
+				Else
+				{
+					// Divergent offsets or masked lanes.
+					out = T(0);
+					for (int i = 0; i < SIMD::Width; i++)
 					{
-						auto offset = Extract(offsets, i);
-						auto el = rr::Load(rr::Pointer<EL>(&ptr.base[offset]), sizeof(float), atomic, order);
-						out = Insert(out, el, i);
+						If(Extract(mask, i) != 0)
+						{
+							auto offset = Extract(offsets, i);
+							auto el = rr::Load(rr::Pointer<EL>(&ptr.base[offset]), sizeof(float), atomic, order);
+							out = Insert(out, el, i);
+						}
 					}
 				}
+				return out;
 			}
-			return out;
 		}
 
 		template<typename T>
@@ -278,22 +285,29 @@ namespace sw
 			using EL = typename Element<T>::type;
 			auto offsets = ptr.offsets();
 			mask &= CmpLT(offsets + SIMD::Int(sizeof(float) - 1), SIMD::Int(ptr.limit)); // Disable OOB reads.
-			auto anyLanesDisabled = AnyFalse(mask);
-			If(ptr.hasSequentialOffsets() && !anyLanesDisabled)
+			if (!atomic && order == std::memory_order_relaxed)
 			{
-				// Store all elements in a single SIMD instruction.
-				auto offset = Extract(offsets, 0);
-				Store(val, rr::Pointer<T>(&ptr.base[offset]), sizeof(float), atomic, order);
+				return rr::Scatter(rr::Pointer<EL>(ptr.base), val, offsets, mask, sizeof(float));
 			}
-			Else
+			else
 			{
-				// Divergent offsets or masked lanes.
-				for (int i = 0; i < SIMD::Width; i++)
+				auto anyLanesDisabled = AnyFalse(mask);
+				If(ptr.hasSequentialOffsets() && !anyLanesDisabled)
 				{
-					If(Extract(mask, i) != 0)
+					// Store all elements in a single SIMD instruction.
+					auto offset = Extract(offsets, 0);
+					Store(val, rr::Pointer<T>(&ptr.base[offset]), sizeof(float), atomic, order);
+				}
+				Else
+				{
+					// Divergent offsets or masked lanes.
+					for (int i = 0; i < SIMD::Width; i++)
 					{
-						auto offset = Extract(offsets, i);
-						rr::Store(Extract(val, i), rr::Pointer<EL>(&ptr.base[offset]), sizeof(float), atomic, order);
+						If(Extract(mask, i) != 0)
+						{
+							auto offset = Extract(offsets, i);
+							rr::Store(Extract(val, i), rr::Pointer<EL>(&ptr.base[offset]), sizeof(float), atomic, order);
+						}
 					}
 				}
 			}
