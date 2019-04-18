@@ -1,3 +1,4 @@
+dEQP-VK.draw.basic_draw.draw_indexed_indirect.triangle_strip.1_multi_command
 dEQP-VK.glsl.texture_functions.texture.isampler2d_fragment
 dEQP-VK.glsl.texture_functions.texture.usampler2d_fragment
 dEQP-VK.pipeline.render_to_image.core.3d.huge.depth.r8g8b8a8_unorm

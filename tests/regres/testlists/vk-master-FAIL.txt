@@ -172,6 +172,7 @@ dEQP-VK.pipeline.render_to_image.dedicated_allocation.cube.small.r8g8b8a8_unorm_
 dEQP-VK.renderpass.dedicated_allocation.attachment.1.51
 dEQP-VK.renderpass.dedicated_allocation.attachment.1.77
 dEQP-VK.renderpass.dedicated_allocation.attachment.4.519
+dEQP-VK.renderpass.dedicated_allocation.attachment_allocation.grow.10
 dEQP-VK.renderpass.dedicated_allocation.attachment_allocation.grow.11
 dEQP-VK.renderpass.dedicated_allocation.attachment_allocation.grow.22
 dEQP-VK.renderpass.dedicated_allocation.attachment_allocation.grow.42
