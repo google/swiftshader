@@ -1,0 +1,205 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8b2f1566_90114d4b",
+        "filename": "CMakeLists.txt",
+        "patchSetId": 41
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-04-18T15:19:09Z",
+      "side": 1,
+      "message": "nit: REACTOR_EMIT_DEBUG_INFO\n\nCould otherwise be confused for something else debug info related.",
+      "range": {
+        "startLine": 84,
+        "startChar": 8,
+        "endLine": 84,
+        "endChar": 23
+      },
+      "revId": "be3c8b1fc8a9518d6b2b3e3ada45b645ecbd581b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a27d8b97_dd49d4c7",
+        "filename": "CMakeLists.txt",
+        "patchSetId": 41
+      },
+      "lineNbr": 2058,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-04-18T15:19:09Z",
+      "side": 1,
+      "message": "Add conditionally",
+      "range": {
+        "startLine": 2057,
+        "startChar": 0,
+        "endLine": 2058,
+        "endChar": 50
+      },
+      "revId": "be3c8b1fc8a9518d6b2b3e3ada45b645ecbd581b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ece725e1_6e662463",
+        "filename": "build/Visual Studio 15 2017 Win64/ReactorLLVM.vcxproj.filters",
+        "patchSetId": 41
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-04-18T15:19:09Z",
+      "side": 1,
+      "message": "Do we want to build it in VS if PDB not supported? Seems like a potential maintenance burden. Also, not building it would help ensure there\u0027s no unintended dependency on it.",
+      "range": {
+        "startLine": 10,
+        "startChar": 50,
+        "endLine": 10,
+        "endChar": 74
+      },
+      "revId": "be3c8b1fc8a9518d6b2b3e3ada45b645ecbd581b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2f56e6c2_6c1ceca5",
+        "filename": "src/Reactor/LLVMReactor.cpp",
+        "patchSetId": 41
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-04-18T15:19:09Z",
+      "side": 1,
+      "message": "nit: debugInfo",
+      "range": {
+        "startLine": 122,
+        "startChar": 32,
+        "endLine": 122,
+        "endChar": 34
+      },
+      "revId": "be3c8b1fc8a9518d6b2b3e3ada45b645ecbd581b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "59a138d3_d3819a2e",
+        "filename": "src/Reactor/LLVMReactor.cpp",
+        "patchSetId": 41
+      },
+      "lineNbr": 727,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-04-18T15:19:09Z",
+      "side": 1,
+      "message": "nit: if(debugInfo)",
+      "range": {
+        "startLine": 727,
+        "startChar": 3,
+        "endLine": 727,
+        "endChar": 21
+      },
+      "revId": "be3c8b1fc8a9518d6b2b3e3ada45b645ecbd581b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c9704b28_41c4038f",
+        "filename": "src/Reactor/LLVMReactor.cpp",
+        "patchSetId": 41
+      },
+      "lineNbr": 1183,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-04-18T15:19:09Z",
+      "side": 1,
+      "message": "Any reason why this is done before the materializeAll() while above they\u0027re right before the builder-\u003eCreate calls?",
+      "range": {
+        "startLine": 1183,
+        "startChar": 2,
+        "endLine": 1183,
+        "endChar": 29
+      },
+      "revId": "be3c8b1fc8a9518d6b2b3e3ada45b645ecbd581b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8cfef65f_5b114a76",
+        "filename": "src/Reactor/Reactor.hpp",
+        "patchSetId": 41
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-04-18T15:19:09Z",
+      "side": 1,
+      "message": "Could use another reference to the doc here",
+      "revId": "be3c8b1fc8a9518d6b2b3e3ada45b645ecbd581b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "400bdf90_67651161",
+        "filename": "src/Reactor/Reactor.hpp",
+        "patchSetId": 41
+      },
+      "lineNbr": 2526,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-04-18T15:19:09Z",
+      "side": 1,
+      "message": "Would be nice to be able to do this more centrally so we don\u0027t miss ones when adding future types. Same for location updates.\n\nAnyway, definitely something for after 1.0 milestone since it would be a major refactoring with pros and cons that have to be discussed. This works for now for all intents and purposes.",
+      "range": {
+        "startLine": 2526,
+        "startChar": 2,
+        "endLine": 2526,
+        "endChar": 24
+      },
+      "revId": "be3c8b1fc8a9518d6b2b3e3ada45b645ecbd581b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ac5f52ff_bf0a7671",
+        "filename": "src/Reactor/Reactor.hpp",
+        "patchSetId": 41
+      },
+      "lineNbr": 3026,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-04-18T15:19:09Z",
+      "side": 1,
+      "message": "Breakpoint()",
+      "range": {
+        "startLine": 3026,
+        "startChar": 6,
+        "endLine": 3026,
+        "endChar": 11
+      },
+      "revId": "be3c8b1fc8a9518d6b2b3e3ada45b645ecbd581b",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": true
+    }
+  ]
+}
