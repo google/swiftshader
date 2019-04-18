@@ -680,6 +680,7 @@ namespace sw
 			case spv::OpAtomicLoad:
 			case spv::OpPhi:
 			case spv::OpImageSampleImplicitLod:
+			case spv::OpImageQuerySize:
 				// Instructions that yield an intermediate value or divergent pointer
 				DefineResult(insn);
 				break;
@@ -2134,7 +2135,10 @@ namespace sw
 
 		case spv::OpImageSampleImplicitLod:
 			return EmitImageSampleImplicitLod(insn, state);
-			
+
+		case spv::OpImageQuerySize:
+			return EmitImageQuerySize(insn, state);
+
 		default:
 			UNIMPLEMENTED("opcode: %s", OpcodeName(opcode).c_str());
 			break;
@@ -4345,6 +4349,56 @@ namespace sw
 			result.move(1, As<SIMD::Int>(sample.y * SIMD::Float(0xFF)));
 			result.move(2, As<SIMD::Int>(sample.z * SIMD::Float(0xFF)));
 			result.move(3, As<SIMD::Int>(sample.w * SIMD::Float(0xFF)));
+		}
+
+		return EmitResult::Continue;
+	}
+
+	SpirvShader::EmitResult SpirvShader::EmitImageQuerySize(InsnIterator insn, EmitState *state) const
+	{
+		auto &resultType = getType(Type::ID(insn.word(1)));
+		auto imageId = Object::ID(insn.word(3));
+		auto &image = getObject(imageId);
+		auto &imageType = getType(image.type);
+		Object::ID resultId = insn.word(2);
+
+		ASSERT(imageType.definition.opcode() == spv::OpTypeImage);
+		bool isArrayed = imageType.definition.word(5) != 0;
+		bool isCubeMap = imageType.definition.word(3) == spv::DimCube;
+
+		const DescriptorDecorations &d = descriptorDecorations.at(imageId);
+		uint32_t arrayIndex = 0;  // TODO(b/129523279)
+		auto setLayout = state->routine->pipelineLayout->getDescriptorSetLayout(d.DescriptorSet);
+		size_t bindingOffset = setLayout->getBindingOffset(d.Binding, arrayIndex);
+		auto &bindingLayout = setLayout->getBindingLayout(d.Binding);
+
+		Pointer<Byte> set = state->routine->descriptorSets[d.DescriptorSet];  // DescriptorSet*
+		Pointer<Byte> binding = Pointer<Byte>(set + bindingOffset);
+
+		auto &dst = state->routine->createIntermediate(resultId, resultType.sizeInComponents);
+
+		switch (bindingLayout.descriptorType)
+		{
+		case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
+		case VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER:
+		{
+			Pointer<Byte> desc = binding; // StorageImageDescriptor*
+			Pointer<Int> extent = desc + OFFSET(vk::StorageImageDescriptor, extent); // int[3]*
+			auto dimensions = resultType.sizeInComponents - (isArrayed ? 1 : 0);
+			for (uint32_t i = 0; i < dimensions; i++)
+			{
+				dst.move(i, SIMD::Int(extent[i]));
+			}
+			if (isArrayed)
+			{
+				auto arrayLayers = *Pointer<Int>(desc + OFFSET(vk::StorageImageDescriptor, arrayLayers)); // uint32_t
+				auto numElements = isCubeMap ? arrayLayers / 6 : arrayLayers;
+				dst.move(dimensions, SIMD::Int(numElements));
+			}
+			break;
+		}
+		default:
+			UNIMPLEMENTED("EmitImageQuerySize image descriptorType: %d", int(bindingLayout.descriptorType));
 		}
 
 		return EmitResult::Continue;

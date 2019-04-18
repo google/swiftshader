@@ -460,7 +460,7 @@ namespace sw
 			int32_t DescriptorSet = -1;
 			int32_t Binding = -1;
 
-			void Apply(DescriptorDecorations const &src); 
+			void Apply(DescriptorDecorations const &src);
 		};
 
 		std::unordered_map<Object::ID, DescriptorDecorations> descriptorDecorations;
@@ -723,6 +723,7 @@ namespace sw
 		EmitResult EmitKill(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitPhi(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitImageSampleImplicitLod(InsnIterator insn, EmitState *state) const;
+		EmitResult EmitImageQuerySize(InsnIterator insn, EmitState *state) const;
 
 		// OpcodeName() returns the name of the opcode op.
 		// If NDEBUG is defined, then OpcodeName() will only return the numerical code.
