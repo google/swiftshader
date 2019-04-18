@@ -1493,6 +1493,15 @@ namespace rr
 		return V(::builder->CreateAtomicRMW(llvm::AtomicRMWInst::Xchg, V(ptr), V(value), atomicOrdering(true, memoryOrder)));
 	}
 
+	Value *Nucleus::createAtomicCompareExchange(Value *ptr, Value *value, Value *compare, std::memory_order memoryOrderEqual, std::memory_order memoryOrderUnequal)
+	{
+		RR_DEBUG_INFO_UPDATE_LOC();
+		// Note: AtomicCmpXchgInstruction returns a 1-member struct containing the result, not the result directly.
+		return V(::builder->CreateExtractValue(
+				::builder->CreateAtomicCmpXchg(V(ptr), V(compare), V(value), atomicOrdering(true, memoryOrderEqual), atomicOrdering(true, memoryOrderUnequal)),
+				llvm::ArrayRef<unsigned>(0u)));
+	}
+
 	Value *Nucleus::createTrunc(Value *v, Type *destType)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();

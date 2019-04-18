@@ -108,6 +108,7 @@ namespace rr
 		static Value *createAtomicMin(Value *ptr, Value *value, std::memory_order memoryOrder = std::memory_order_relaxed);
 		static Value *createAtomicMax(Value *ptr, Value *value, std::memory_order memoryOrder = std::memory_order_relaxed);
 		static Value *createAtomicExchange(Value *ptr, Value *value, std::memory_order memoryOrder = std::memory_order_relaxed);
+		static Value *createAtomicCompareExchange(Value *ptr, Value *value, Value *compare, std::memory_order memoryOrderEqual, std::memory_order memoryOrderUnequal);
 
 		// Cast/Conversion Operators
 		static Value *createTrunc(Value *V, Type *destType);

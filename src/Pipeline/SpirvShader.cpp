@@ -687,6 +687,7 @@ namespace sw
 			case spv::OpAtomicOr:
 			case spv::OpAtomicXor:
 			case spv::OpAtomicExchange:
+			case spv::OpAtomicCompareExchange:
 			case spv::OpPhi:
 			case spv::OpImageSampleImplicitLod:
 			case spv::OpImageQuerySize:
@@ -1997,6 +1998,9 @@ namespace sw
 		case spv::OpAtomicXor:
 		case spv::OpAtomicExchange:
 			return EmitAtomicOp(insn, state);
+
+		case spv::OpAtomicCompareExchange:
+			return EmitAtomicCompareExchange(insn, state);
 
 		case spv::OpAccessChain:
 		case spv::OpInBoundsAccessChain:
@@ -4776,6 +4780,40 @@ namespace sw
 					UNIMPLEMENTED("Atomic op", OpcodeName(insn.opcode()).c_str());
 					break;
 				}
+				x = Insert(x, v, j);
+			}
+		}
+
+		dst.move(0, x);
+		return EmitResult::Continue;
+	}
+
+	SpirvShader::EmitResult SpirvShader::EmitAtomicCompareExchange(InsnIterator insn, EmitState *state) const
+	{
+		// Separate from EmitAtomicOp due to different instruction encoding
+		auto &resultType = getType(Type::ID(insn.word(1)));
+		Object::ID resultId = insn.word(2);
+
+		auto memorySemanticsEqual = static_cast<spv::MemorySemanticsMask>(getObject(insn.word(5)).constantValue[0]);
+		auto memoryOrderEqual = MemoryOrder(memorySemanticsEqual);
+		auto memorySemanticsUnequal = static_cast<spv::MemorySemanticsMask>(getObject(insn.word(6)).constantValue[0]);
+		auto memoryOrderUnequal = MemoryOrder(memorySemanticsUnequal);
+
+		auto value = GenericValue(this, state->routine, insn.word(7));
+		auto comparator = GenericValue(this, state->routine, insn.word(8));
+		auto &dst = state->routine->createIntermediate(resultId, resultType.sizeInComponents);
+		auto ptr = Pointer<UInt>(state->routine->getPointer(insn.word(3)));
+		auto offsets = state->routine->getIntermediate(insn.word(3)).UInt(0);
+
+		SIMD::UInt x;
+		for (int j = 0; j < SIMD::Width; j++)
+		{
+			If(Extract(state->activeLaneMask(), j) != 0)
+			{
+				auto offset = Extract(offsets, j);
+				auto laneValue = Extract(value.UInt(0), j);
+				auto laneComparator = Extract(comparator.UInt(0), j);
+				UInt v = CompareExchangeAtomic(&ptr[offset], laneValue, laneComparator, memoryOrderEqual, memoryOrderUnequal);
 				x = Insert(x, v, j);
 			}
 		}

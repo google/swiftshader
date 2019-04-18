@@ -2552,6 +2552,11 @@ namespace rr
 		return RValue<UInt>(Nucleus::createAtomicExchange(x.value, y.value, memoryOrder));
 	}
 
+	RValue<UInt> CompareExchangeAtomic(RValue<Pointer<UInt> > x, RValue<UInt> y, RValue<UInt> compare, std::memory_order memoryOrderEqual, std::memory_order memoryOrderUnequal)
+	{
+		return RValue<UInt>(Nucleus::createAtomicCompareExchange(x.value, y.value, compare.value, memoryOrderEqual, memoryOrderUnequal));
+	}
+
 	UInt::UInt(Argument<UInt> argument)
 	{
 		materialize();  // FIXME(b/129757459)

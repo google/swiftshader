@@ -1075,6 +1075,12 @@ namespace rr
 		return nullptr;
 	}
 
+	Value *Nucleus::createAtomicCompareExchange(Value *ptr, Value *value, Value *compare, std::memory_order memoryOrderEqual, std::memory_order memoryOrderUnequal)
+	{
+		UNIMPLEMENTED("createAtomicCompareExchange");
+		return nullptr;
+	}
+
 	static Value *createCast(Ice::InstCast::OpKind op, Value *v, Type *destType)
 	{
 		if(v->getType() == T(destType))

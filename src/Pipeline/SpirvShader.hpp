@@ -730,6 +730,7 @@ namespace sw
 		EmitResult EmitImageWrite(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitImageTexelPointer(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitAtomicOp(InsnIterator insn, EmitState *state) const;
+		EmitResult EmitAtomicCompareExchange(InsnIterator insn, EmitState *state) const;
 
 		SIMD::Int GetTexelOffset(GenericValue const & coordinate, Type const & imageType, Pointer<Byte> descriptor, int texelSize) const;
 
