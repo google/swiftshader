@@ -727,6 +727,8 @@ namespace sw
 		EmitResult EmitImageRead(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitImageWrite(InsnIterator insn, EmitState *state) const;
 
+		SIMD::Int GetTexelOffset(GenericValue const & coordinate, Type const & imageType, Pointer<Byte> descriptor, int texelSize) const;
+
 		// OpcodeName() returns the name of the opcode op.
 		// If NDEBUG is defined, then OpcodeName() will only return the numerical code.
 		static std::string OpcodeName(spv::Op op);
