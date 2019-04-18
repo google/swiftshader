@@ -432,6 +432,54 @@ namespace rr
 		true, // CallSupported
 	};
 
+	static std::memory_order atomicOrdering(llvm::AtomicOrdering memoryOrder)
+	{
+		switch(memoryOrder)
+		{
+		case llvm::AtomicOrdering::Monotonic: return std::memory_order_relaxed;  // https://llvm.org/docs/Atomics.html#monotonic
+		case llvm::AtomicOrdering::Acquire: return std::memory_order_acquire;
+		case llvm::AtomicOrdering::Release: return std::memory_order_release;
+		case llvm::AtomicOrdering::AcquireRelease: return std::memory_order_acq_rel;
+		case llvm::AtomicOrdering::SequentiallyConsistent: return std::memory_order_seq_cst;
+		default:
+			UNREACHABLE("memoryOrder: %d", memoryOrder);
+			return std::memory_order_acq_rel;
+		}
+	}
+
+	static llvm::AtomicOrdering atomicOrdering(bool atomic, std::memory_order memoryOrder)
+	{
+		if(!atomic)
+		{
+			return llvm::AtomicOrdering::NotAtomic;
+		}
+
+		switch(memoryOrder)
+		{
+		case std::memory_order_relaxed: return llvm::AtomicOrdering::Monotonic;  // https://llvm.org/docs/Atomics.html#monotonic
+		case std::memory_order_consume: return llvm::AtomicOrdering::Acquire;    // https://llvm.org/docs/Atomics.html#acquire: "It should also be used for C++11/C11 memory_order_consume."
+		case std::memory_order_acquire: return llvm::AtomicOrdering::Acquire;
+		case std::memory_order_release: return llvm::AtomicOrdering::Release;
+		case std::memory_order_acq_rel: return llvm::AtomicOrdering::AcquireRelease;
+		case std::memory_order_seq_cst: return llvm::AtomicOrdering::SequentiallyConsistent;
+		default:
+			UNREACHABLE("memoryOrder: %d", int(memoryOrder));
+			return llvm::AtomicOrdering::AcquireRelease;
+		}
+	}
+
+	template <typename T>
+	static void atomicLoad(void *ptr, void *ret, llvm::AtomicOrdering ordering)
+	{
+		*reinterpret_cast<T*>(ret) = std::atomic_load_explicit<T>(reinterpret_cast<std::atomic<T>*>(ptr), atomicOrdering(ordering));
+	}
+
+	template <typename T>
+	static void atomicStore(void *ptr, void *val, llvm::AtomicOrdering ordering)
+	{
+		std::atomic_store_explicit<T>(reinterpret_cast<std::atomic<T>*>(ptr), *reinterpret_cast<T*>(val), atomicOrdering(ordering));
+	}
+
 	class ExternalFunctionSymbolResolver
 	{
 	private:
@@ -441,9 +489,36 @@ namespace rr
 	public:
 		ExternalFunctionSymbolResolver()
 		{
+			struct Atomic
+			{
+				static void load(size_t size, void *ptr, void *ret, llvm::AtomicOrdering ordering)
+				{
+					switch (size)
+					{
+						case 1: atomicLoad<uint8_t>(ptr, ret, ordering); break;
+						case 2: atomicLoad<uint16_t>(ptr, ret, ordering); break;
+						case 4: atomicLoad<uint32_t>(ptr, ret, ordering); break;
+						case 8: atomicLoad<uint64_t>(ptr, ret, ordering); break;
+						default:
+							UNIMPLEMENTED("Atomic::load(size: %d)", int(size));
+					}
+				}
+				static void store(size_t size, void *ptr, void *ret, llvm::AtomicOrdering ordering)
+				{
+					switch (size)
+					{
+						case 1: atomicStore<uint8_t>(ptr, ret, ordering); break;
+						case 2: atomicStore<uint16_t>(ptr, ret, ordering); break;
+						case 4: atomicStore<uint32_t>(ptr, ret, ordering); break;
+						case 8: atomicStore<uint64_t>(ptr, ret, ordering); break;
+						default:
+							UNIMPLEMENTED("Atomic::store(size: %d)", int(size));
+					}
+				}
+			};
 			struct F { static void nop() {} };
-			func_.emplace("nop", reinterpret_cast<void*>(F::nop));
 
+			func_.emplace("nop", reinterpret_cast<void*>(F::nop));
 			func_.emplace("floorf", reinterpret_cast<void*>(floorf));
 			func_.emplace("nearbyintf", reinterpret_cast<void*>(nearbyintf));
 			func_.emplace("truncf", reinterpret_cast<void*>(truncf));
@@ -467,9 +542,10 @@ namespace rr
 			func_.emplace("logf", reinterpret_cast<void*>(logf));
 			func_.emplace("exp2f", reinterpret_cast<void*>(exp2f));
 			func_.emplace("log2f", reinterpret_cast<void*>(log2f));
+			func_.emplace("atomic_load", reinterpret_cast<void*>(Atomic::load));
+			func_.emplace("atomic_store", reinterpret_cast<void*>(Atomic::store));
 
 #ifdef __APPLE__
-			// LLVM uses this function on macOS for tan.
 			func_.emplace("sincosf_stret", reinterpret_cast<void*>(__sincosf_stret));
 #elif defined(__linux__)
 			func_.emplace("sincosf", reinterpret_cast<void*>(sincosf));
@@ -772,27 +848,6 @@ namespace rr
 		default:
 			UNREACHABLE("asInternalType(type): %d", int(asInternalType(type)));
 			return 0;
-		}
-	}
-
-	static llvm::AtomicOrdering atomicOrdering(bool atomic, std::memory_order memoryOrder)
-	{
-		if(!atomic)
-		{
-			return llvm::AtomicOrdering::NotAtomic;
-		}
-
-		switch(memoryOrder)
-		{
-		case std::memory_order_relaxed: return llvm::AtomicOrdering::Monotonic;  // https://llvm.org/docs/Atomics.html#monotonic
-		case std::memory_order_consume: return llvm::AtomicOrdering::Acquire;    // https://llvm.org/docs/Atomics.html#acquire: "It should also be used for C++11/C11 memory_order_consume."
-		case std::memory_order_acquire: return llvm::AtomicOrdering::Acquire;
-		case std::memory_order_release: return llvm::AtomicOrdering::Release;
-		case std::memory_order_acq_rel: return llvm::AtomicOrdering::AcquireRelease;
-		case std::memory_order_seq_cst: return llvm::AtomicOrdering::SequentiallyConsistent;
-		default:
-			UNREACHABLE("memoryOrder: %d", int(memoryOrder));
-			return llvm::AtomicOrdering::AcquireRelease;
 		}
 	}
 
