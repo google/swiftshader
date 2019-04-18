@@ -101,7 +101,13 @@ namespace rr
 		static Value *createGEP(Value *ptr, Type *type, Value *index, bool unsignedIndex);
 
 		// Atomic instructions
-		static Value *createAtomicAdd(Value *ptr, Value *value);
+		static Value *createAtomicAdd(Value *ptr, Value *value, std::memory_order memoryOrder = std::memory_order_relaxed);
+		static Value *createAtomicAnd(Value *ptr, Value *value, std::memory_order memoryOrder = std::memory_order_relaxed);
+		static Value *createAtomicOr(Value *ptr, Value *value, std::memory_order memoryOrder = std::memory_order_relaxed);
+		static Value *createAtomicXor(Value *ptr, Value *value, std::memory_order memoryOrder = std::memory_order_relaxed);
+		static Value *createAtomicMin(Value *ptr, Value *value, std::memory_order memoryOrder = std::memory_order_relaxed);
+		static Value *createAtomicMax(Value *ptr, Value *value, std::memory_order memoryOrder = std::memory_order_relaxed);
+		static Value *createAtomicExchange(Value *ptr, Value *value, std::memory_order memoryOrder = std::memory_order_relaxed);
 
 		// Cast/Conversion Operators
 		static Value *createTrunc(Value *V, Type *destType);

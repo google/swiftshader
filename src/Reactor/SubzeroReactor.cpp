@@ -1033,9 +1033,45 @@ namespace rr
 		return createAdd(ptr, index);
 	}
 
-	Value *Nucleus::createAtomicAdd(Value *ptr, Value *value)
+	Value *Nucleus::createAtomicAdd(Value *ptr, Value *value, std::memory_order memoryOrder)
 	{
 		UNIMPLEMENTED("createAtomicAdd");
+		return nullptr;
+	}
+
+	Value *Nucleus::createAtomicAnd(Value *ptr, Value *value, std::memory_order memoryOrder)
+	{
+		UNIMPLEMENTED("createAtomicAnd");
+		return nullptr;
+	}
+
+	Value *Nucleus::createAtomicOr(Value *ptr, Value *value, std::memory_order memoryOrder)
+	{
+		UNIMPLEMENTED("createAtomicOr");
+		return nullptr;
+	}
+
+	Value *Nucleus::createAtomicXor(Value *ptr, Value *value, std::memory_order memoryOrder)
+	{
+		UNIMPLEMENTED("createAtomicXor");
+		return nullptr;
+	}
+
+	Value *Nucleus::createAtomicMin(Value *ptr, Value *value, std::memory_order memoryOrder)
+	{
+		UNIMPLEMENTED("createAtomicMin");
+		return nullptr;
+	}
+
+	Value *Nucleus::createAtomicMax(Value *ptr, Value *value, std::memory_order memoryOrder)
+	{
+		UNIMPLEMENTED("createAtomicMax");
+		return nullptr;
+	}
+
+	Value *Nucleus::createAtomicExchange(Value *ptr, Value *value, std::memory_order memoryOrder)
+	{
+		UNIMPLEMENTED("createAtomicExchange");
 		return nullptr;
 	}
 

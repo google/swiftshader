@@ -678,6 +678,15 @@ namespace sw
 			case spv::OpDPdyFine:
 			case spv::OpFwidthFine:
 			case spv::OpAtomicLoad:
+			case spv::OpAtomicIAdd:
+			case spv::OpAtomicSMin:
+			case spv::OpAtomicSMax:
+			case spv::OpAtomicUMin:
+			case spv::OpAtomicUMax:
+			case spv::OpAtomicAnd:
+			case spv::OpAtomicOr:
+			case spv::OpAtomicXor:
+			case spv::OpAtomicExchange:
 			case spv::OpPhi:
 			case spv::OpImageSampleImplicitLod:
 			case spv::OpImageQuerySize:
@@ -1977,6 +1986,17 @@ namespace sw
 		case spv::OpStore:
 		case spv::OpAtomicStore:
 			return EmitStore(insn, state);
+
+		case spv::OpAtomicIAdd:
+		case spv::OpAtomicSMin:
+		case spv::OpAtomicSMax:
+		case spv::OpAtomicUMin:
+		case spv::OpAtomicUMax:
+		case spv::OpAtomicAnd:
+		case spv::OpAtomicOr:
+		case spv::OpAtomicXor:
+		case spv::OpAtomicExchange:
+			return EmitAtomicOp(insn, state);
 
 		case spv::OpAccessChain:
 		case spv::OpInBoundsAccessChain:
@@ -4695,10 +4715,72 @@ namespace sw
 
 		state->routine->createPointer(resultId, imageBase);
 
-		SIMD::Int texelOffset = GetTexelOffset(coordinate, imageType, binding, sizeof(uint32_t));
+		// TODO: texelOffset is in bytes. get rid of shift once Ben's changes for DivergentPointer land
+		SIMD::Int texelOffset = GetTexelOffset(coordinate, imageType, binding, sizeof(uint32_t)) >> 2;
 		auto &dst = state->routine->createIntermediate(resultId, resultType.sizeInComponents);
 		dst.move(0, texelOffset);
 
+		return EmitResult::Continue;
+	}
+
+	SpirvShader::EmitResult SpirvShader::EmitAtomicOp(InsnIterator insn, EmitState *state) const
+	{
+		auto &resultType = getType(Type::ID(insn.word(1)));
+		Object::ID resultId = insn.word(2);
+		Object::ID semanticsId = insn.word(5);
+		auto memorySemantics = static_cast<spv::MemorySemanticsMask>(getObject(semanticsId).constantValue[0]);
+		auto memoryOrder = MemoryOrder(memorySemantics);
+		auto value = GenericValue(this, state->routine, insn.word(6));
+		auto &dst = state->routine->createIntermediate(resultId, resultType.sizeInComponents);
+		auto ptr = Pointer<UInt>(state->routine->getPointer(insn.word(3)));
+		auto offsets = state->routine->getIntermediate(insn.word(3)).UInt(0);
+
+		SIMD::UInt x;
+		for (int j = 0; j < SIMD::Width; j++)
+		{
+			If(Extract(state->activeLaneMask(), j) != 0)
+			{
+				auto offset = Extract(offsets, j);
+				auto laneValue = Extract(value.UInt(0), j);
+				UInt v;
+				switch (insn.opcode())
+				{
+				case spv::OpAtomicIAdd:
+					v = AddAtomic(&ptr[offset], laneValue, memoryOrder);
+					break;
+				case spv::OpAtomicAnd:
+					v = AndAtomic(&ptr[offset], laneValue, memoryOrder);
+					break;
+				case spv::OpAtomicOr:
+					v = OrAtomic(&ptr[offset], laneValue, memoryOrder);
+					break;
+				case spv::OpAtomicXor:
+					v = XorAtomic(&ptr[offset], laneValue, memoryOrder);
+					break;
+				case spv::OpAtomicSMin:
+					v = As<UInt>(MinAtomic(As<Pointer<Int>>(&ptr[offset]), As<Int>(laneValue), memoryOrder));
+					break;
+				case spv::OpAtomicSMax:
+					v = As<UInt>(MaxAtomic(As<Pointer<Int>>(&ptr[offset]), As<Int>(laneValue), memoryOrder));
+					break;
+				case spv::OpAtomicUMin:
+					v = MinAtomic(&ptr[offset], laneValue, memoryOrder);
+					break;
+				case spv::OpAtomicUMax:
+					v = MaxAtomic(&ptr[offset], laneValue, memoryOrder);
+					break;
+				case spv::OpAtomicExchange:
+					v = ExchangeAtomic(&ptr[offset], laneValue, memoryOrder);
+					break;
+				default:
+					UNIMPLEMENTED("Atomic op", OpcodeName(insn.opcode()).c_str());
+					break;
+				}
+				x = Insert(x, v, j);
+			}
+		}
+
+		dst.move(0, x);
 		return EmitResult::Continue;
 	}
 

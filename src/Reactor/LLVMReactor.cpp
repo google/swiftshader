@@ -1451,10 +1451,46 @@ namespace rr
 			T(llvm::PointerType::get(T(type), 0)));
 	}
 
-	Value *Nucleus::createAtomicAdd(Value *ptr, Value *value)
+	Value *Nucleus::createAtomicAdd(Value *ptr, Value *value, std::memory_order memoryOrder)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		return V(::builder->CreateAtomicRMW(llvm::AtomicRMWInst::Add, V(ptr), V(value), llvm::AtomicOrdering::SequentiallyConsistent));
+		return V(::builder->CreateAtomicRMW(llvm::AtomicRMWInst::Add, V(ptr), V(value), atomicOrdering(true, memoryOrder)));
+	}
+
+	Value *Nucleus::createAtomicAnd(Value *ptr, Value *value, std::memory_order memoryOrder)
+	{
+		RR_DEBUG_INFO_UPDATE_LOC();
+		return V(::builder->CreateAtomicRMW(llvm::AtomicRMWInst::And, V(ptr), V(value), atomicOrdering(true, memoryOrder)));
+	}
+
+	Value *Nucleus::createAtomicOr(Value *ptr, Value *value, std::memory_order memoryOrder)
+	{
+		RR_DEBUG_INFO_UPDATE_LOC();
+		return V(::builder->CreateAtomicRMW(llvm::AtomicRMWInst::Or, V(ptr), V(value), atomicOrdering(true, memoryOrder)));
+	}
+
+	Value *Nucleus::createAtomicXor(Value *ptr, Value *value, std::memory_order memoryOrder)
+	{
+		RR_DEBUG_INFO_UPDATE_LOC();
+		return V(::builder->CreateAtomicRMW(llvm::AtomicRMWInst::Xor, V(ptr), V(value), atomicOrdering(true, memoryOrder)));
+	}
+
+	Value *Nucleus::createAtomicMin(Value *ptr, Value *value, std::memory_order memoryOrder)
+	{
+		RR_DEBUG_INFO_UPDATE_LOC();
+		return V(::builder->CreateAtomicRMW(llvm::AtomicRMWInst::Min, V(ptr), V(value), atomicOrdering(true, memoryOrder)));
+	}
+
+	Value *Nucleus::createAtomicMax(Value *ptr, Value *value, std::memory_order memoryOrder)
+	{
+		RR_DEBUG_INFO_UPDATE_LOC();
+		return V(::builder->CreateAtomicRMW(llvm::AtomicRMWInst::Max, V(ptr), V(value), atomicOrdering(true, memoryOrder)));
+	}
+
+	Value *Nucleus::createAtomicExchange(Value *ptr, Value *value, std::memory_order memoryOrder)
+	{
+		RR_DEBUG_INFO_UPDATE_LOC();
+		return V(::builder->CreateAtomicRMW(llvm::AtomicRMWInst::Xchg, V(ptr), V(value), atomicOrdering(true, memoryOrder)));
 	}
 
 	Value *Nucleus::createTrunc(Value *v, Type *destType)

@@ -2507,6 +2507,51 @@ namespace rr
 		return RValue<Long>(Nucleus::createAtomicAdd(x.value, y.value));
 	}
 
+	RValue<UInt> AddAtomic(RValue<Pointer<UInt> > x, RValue<UInt> y, std::memory_order memoryOrder)
+	{
+		return RValue<UInt>(Nucleus::createAtomicAdd(x.value, y.value, memoryOrder));
+	}
+
+	RValue<UInt> AndAtomic(RValue<Pointer<UInt> > x, RValue<UInt> y, std::memory_order memoryOrder)
+	{
+		return RValue<UInt>(Nucleus::createAtomicAnd(x.value, y.value, memoryOrder));
+	}
+
+	RValue<UInt> OrAtomic(RValue<Pointer<UInt> > x, RValue<UInt> y, std::memory_order memoryOrder)
+	{
+		return RValue<UInt>(Nucleus::createAtomicOr(x.value, y.value, memoryOrder));
+	}
+
+	RValue<UInt> XorAtomic(RValue<Pointer<UInt> > x, RValue<UInt> y, std::memory_order memoryOrder)
+	{
+		return RValue<UInt>(Nucleus::createAtomicXor(x.value, y.value, memoryOrder));
+	}
+
+	RValue<Int> MinAtomic(RValue<Pointer<Int> > x, RValue<Int> y, std::memory_order memoryOrder)
+	{
+		return RValue<Int>(Nucleus::createAtomicMin(x.value, y.value, memoryOrder));
+	}
+
+	RValue<UInt> MinAtomic(RValue<Pointer<UInt> > x, RValue<UInt> y, std::memory_order memoryOrder)
+	{
+		return RValue<UInt>(Nucleus::createAtomicMin(x.value, y.value, memoryOrder));
+	}
+
+	RValue<Int> MaxAtomic(RValue<Pointer<Int> > x, RValue<Int> y, std::memory_order memoryOrder)
+	{
+		return RValue<Int>(Nucleus::createAtomicMax(x.value, y.value, memoryOrder));
+	}
+
+	RValue<UInt> MaxAtomic(RValue<Pointer<UInt> > x, RValue<UInt> y, std::memory_order memoryOrder)
+	{
+		return RValue<UInt>(Nucleus::createAtomicMax(x.value, y.value, memoryOrder));
+	}
+
+	RValue<UInt> ExchangeAtomic(RValue<Pointer<UInt> > x, RValue<UInt> y, std::memory_order memoryOrder)
+	{
+		return RValue<UInt>(Nucleus::createAtomicExchange(x.value, y.value, memoryOrder));
+	}
+
 	UInt::UInt(Argument<UInt> argument)
 	{
 		materialize();  // FIXME(b/129757459)
