@@ -687,6 +687,7 @@ namespace sw
 
 			case spv::OpStore:
 			case spv::OpAtomicStore:
+			case spv::OpImageWrite:
 				// Don't need to do anything during analysis pass
 				break;
 
@@ -2138,6 +2139,9 @@ namespace sw
 
 		case spv::OpImageQuerySize:
 			return EmitImageQuerySize(insn, state);
+
+		case spv::OpImageWrite:
+			return EmitImageWrite(insn, state);
 
 		default:
 			UNIMPLEMENTED("opcode: %s", OpcodeName(opcode).c_str());
@@ -4399,6 +4403,126 @@ namespace sw
 		}
 		default:
 			UNIMPLEMENTED("EmitImageQuerySize image descriptorType: %d", int(bindingLayout.descriptorType));
+		}
+
+		return EmitResult::Continue;
+	}
+
+	SpirvShader::EmitResult SpirvShader::EmitImageWrite(InsnIterator insn, EmitState *state) const
+	{
+		auto imageId = Object::ID(insn.word(1));
+		auto &image = getObject(imageId);
+		auto &imageType = getType(image.type);
+
+		ASSERT(imageType.definition.opcode() == spv::OpTypeImage);
+
+		// Not handling any image operands yet.
+		ASSERT(insn.wordCount() == 4);
+
+		const DescriptorDecorations &d = descriptorDecorations.at(imageId);
+		uint32_t arrayIndex = 0;  // TODO(b/129523279)
+		auto setLayout = state->routine->pipelineLayout->getDescriptorSetLayout(d.DescriptorSet);
+		size_t bindingOffset = setLayout->getBindingOffset(d.Binding, arrayIndex);
+
+		auto coordinate = GenericValue(this, state->routine, insn.word(2));
+		auto texel = GenericValue(this, state->routine, insn.word(3));
+
+		Pointer<Byte> set = state->routine->descriptorSets[d.DescriptorSet];  // DescriptorSet*
+		Pointer<Byte> binding = Pointer<Byte>(set + bindingOffset);	// StorageImageDescriptor*
+		Pointer<Byte> imageBase = *Pointer<Pointer<Byte>>(binding + OFFSET(vk::StorageImageDescriptor, ptr));
+
+		SIMD::Int packed[4];
+		auto numPackedElements = 0u;
+		int texelSize = 0;
+		auto format = static_cast<spv::ImageFormat>(imageType.definition.word(8));
+		switch (format)
+		{
+		case spv::ImageFormatRgba32f:
+		case spv::ImageFormatRgba32i:
+		case spv::ImageFormatRgba32ui:
+			texelSize = 16;
+			packed[0] = texel.Int(0);
+			packed[1] = texel.Int(1);
+			packed[2] = texel.Int(2);
+			packed[3] = texel.Int(3);
+			numPackedElements = 4;
+			break;
+		case spv::ImageFormatR32f:
+		case spv::ImageFormatR32i:
+		case spv::ImageFormatR32ui:
+			texelSize = 4;
+			packed[0] = texel.Int(0);
+			numPackedElements = 1;
+			break;
+		case spv::ImageFormatRgba8:
+			texelSize = 4;
+			packed[0] = (SIMD::UInt(Round(Min(Max(texel.Float(0), SIMD::Float(0.0f)), SIMD::Float(1.0f)) * SIMD::Float(255.0f)))) |
+				((SIMD::UInt(Round(Min(Max(texel.Float(1), SIMD::Float(0.0f)), SIMD::Float(1.0f)) * SIMD::Float(255.0f)))) << 8) |
+				((SIMD::UInt(Round(Min(Max(texel.Float(2), SIMD::Float(0.0f)), SIMD::Float(1.0f)) * SIMD::Float(255.0f)))) << 16) |
+				((SIMD::UInt(Round(Min(Max(texel.Float(3), SIMD::Float(0.0f)), SIMD::Float(1.0f)) * SIMD::Float(255.0f)))) << 24);
+			numPackedElements = 1;
+			break;
+		case spv::ImageFormatRgba8Snorm:
+			texelSize = 4;
+			packed[0] = (SIMD::Int(Round(Min(Max(texel.Float(0), SIMD::Float(-1.0f)), SIMD::Float(1.0f)) * SIMD::Float(127.0f))) &
+						 SIMD::Int(0xFF)) |
+						((SIMD::Int(Round(Min(Max(texel.Float(1), SIMD::Float(-1.0f)), SIMD::Float(1.0f)) * SIMD::Float(127.0f))) &
+						  SIMD::Int(0xFF)) << 8) |
+						((SIMD::Int(Round(Min(Max(texel.Float(2), SIMD::Float(-1.0f)), SIMD::Float(1.0f)) * SIMD::Float(127.0f))) &
+						  SIMD::Int(0xFF)) << 16) |
+						((SIMD::Int(Round(Min(Max(texel.Float(3), SIMD::Float(-1.0f)), SIMD::Float(1.0f)) * SIMD::Float(127.0f))) &
+						  SIMD::Int(0xFF)) << 24);
+			numPackedElements = 1;
+			break;
+		case spv::ImageFormatRgba8i:
+		case spv::ImageFormatRgba8ui:
+			texelSize = 4;
+			packed[0] = (SIMD::UInt(texel.UInt(0) & SIMD::UInt(0xff))) |
+						(SIMD::UInt(texel.UInt(1) & SIMD::UInt(0xff)) << 8) |
+						(SIMD::UInt(texel.UInt(2) & SIMD::UInt(0xff)) << 16) |
+						(SIMD::UInt(texel.UInt(3) & SIMD::UInt(0xff)) << 24);
+			numPackedElements = 1;
+			break;
+		case spv::ImageFormatRgba16f:
+			texelSize = 8;
+			packed[0] = FloatToHalfBits(texel.UInt(0), false) | FloatToHalfBits(texel.UInt(1), true);
+			packed[1] = FloatToHalfBits(texel.UInt(2), false) | FloatToHalfBits(texel.UInt(3), true);
+			numPackedElements = 2;
+			break;
+		case spv::ImageFormatRgba16i:
+		case spv::ImageFormatRgba16ui:
+			texelSize = 8;
+			packed[0] = SIMD::UInt(texel.UInt(0) & SIMD::UInt(0xffff)) | (SIMD::UInt(texel.UInt(1) & SIMD::UInt(0xffff)) << 16);
+			packed[1] = SIMD::UInt(texel.UInt(2) & SIMD::UInt(0xffff)) | (SIMD::UInt(texel.UInt(3) & SIMD::UInt(0xffff)) << 16);
+			numPackedElements = 2;
+			break;
+		default:
+			UNIMPLEMENTED("spv::ImageFormat %u", format);
+		}
+
+		SIMD::Int texelOffset = coordinate.Int(0) * SIMD::Int(texelSize);
+		if (getType(coordinate.type).sizeInComponents > 1)
+		{
+			texelOffset += coordinate.Int(1) * SIMD::Int(
+					*Pointer<Int>(binding + OFFSET(vk::StorageImageDescriptor, rowPitchBytes)));
+		}
+		if (getType(coordinate.type).sizeInComponents > 2)
+		{
+			texelOffset += coordinate.Int(2) * SIMD::Int(
+					*Pointer<Int>(binding + OFFSET(vk::StorageImageDescriptor, slicePitchBytes)));
+		}
+
+		for (auto i = 0u; i < numPackedElements; i++)
+		{
+			for (int j = 0; j < 4; j++)
+			{
+				If(Extract(state->activeLaneMask(), j) != 0)
+				{
+					Int offset = Int(sizeof(float) * i) + Extract(texelOffset, j);
+					Store(Extract(packed[i], j), RValue<Pointer<Int>>(&imageBase[offset]), sizeof(uint32_t), false,
+						  std::memory_order_relaxed);
+				}
+			}
 		}
 
 		return EmitResult::Continue;
