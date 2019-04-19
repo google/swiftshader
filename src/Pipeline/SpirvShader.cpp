@@ -745,6 +745,7 @@ namespace sw
 			case spv::OpSNegate:
 			case spv::OpFNegate:
 			case spv::OpLogicalNot:
+			case spv::OpQuantizeToF16:
 			// Binary ops
 			case spv::OpIAdd:
 			case spv::OpISub:
@@ -2271,6 +2272,7 @@ namespace sw
 		case spv::OpDPdxFine:
 		case spv::OpDPdyFine:
 		case spv::OpFwidthFine:
+		case spv::OpQuantizeToF16:
 			return EmitUnaryOp(insn, state);
 
 		case spv::OpIAdd:
@@ -3038,6 +3040,21 @@ namespace sw
 				dpdy = Insert(dpdy, secondColumn, 1);
 				dpdy = Insert(dpdy, secondColumn, 3);
 				dst.move(i, Abs(dpdx) + Abs(dpdy));
+				break;
+			}
+			case spv::OpQuantizeToF16:
+			{
+				auto abs = Abs(src.Float(i));
+				auto sign = src.Int(i) & SIMD::Int(0x80000000);
+				auto isZero = CmpLT(abs, SIMD::Float(0.000061035));
+				auto isInf  = CmpGT(abs, SIMD::Float(65504.0f));
+				auto isNaN  = IsNan(abs);
+				auto isInfOrNan = isInf | isNaN;
+				SIMD::Int v = src.Int(i) & SIMD::Int(0xFFFFE000);
+				v &= ~isZero | SIMD::Int(0x80000000);
+				v = sign | (isInfOrNan & SIMD::Int(0x7F800000)) | (~isInfOrNan & v);
+				v |= isNaN & SIMD::Int(0x400000);
+				dst.move(i, v);
 				break;
 			}
 			default:
