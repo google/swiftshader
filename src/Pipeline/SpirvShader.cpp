@@ -4394,13 +4394,10 @@ namespace sw
 		bool isCubeMap = imageType.definition.word(3) == spv::DimCube;
 
 		const DescriptorDecorations &d = descriptorDecorations.at(imageId);
-		uint32_t arrayIndex = 0;  // TODO(b/129523279)
 		auto setLayout = state->routine->pipelineLayout->getDescriptorSetLayout(d.DescriptorSet);
-		size_t bindingOffset = setLayout->getBindingOffset(d.Binding, arrayIndex);
 		auto &bindingLayout = setLayout->getBindingLayout(d.Binding);
 
-		Pointer<Byte> set = state->routine->descriptorSets[d.DescriptorSet];  // DescriptorSet*
-		Pointer<Byte> binding = Pointer<Byte>(set + bindingOffset);
+		Pointer<Byte> binding = state->routine->getPointer(imageId).base;
 
 		auto &dst = state->routine->createIntermediate(resultId, resultType.sizeInComponents);
 
@@ -4470,15 +4467,9 @@ namespace sw
 
 		ASSERT(imageType.definition.opcode() == spv::OpTypeImage);
 
-		const DescriptorDecorations &d = descriptorDecorations.at(imageId);
-		uint32_t arrayIndex = 0;  // TODO(b/129523279)
-		auto setLayout = state->routine->pipelineLayout->getDescriptorSetLayout(d.DescriptorSet);
-		size_t bindingOffset = setLayout->getBindingOffset(d.Binding, arrayIndex);
-
 		auto coordinate = GenericValue(this, state->routine, insn.word(4));
 
-		Pointer<Byte> set = state->routine->descriptorSets[d.DescriptorSet];  // DescriptorSet*
-		Pointer<Byte> binding = Pointer<Byte>(set + bindingOffset);
+		Pointer<Byte> binding = state->routine->getPointer(imageId).base;
 		Pointer<Byte> imageBase = *Pointer<Pointer<Byte>>(binding + OFFSET(vk::StorageImageDescriptor, ptr));
 
 		auto &dst = state->routine->createIntermediate(resultId, resultType.sizeInComponents);
@@ -4627,16 +4618,10 @@ namespace sw
 		// Not handling any image operands yet.
 		ASSERT(insn.wordCount() == 4);
 
-		const DescriptorDecorations &d = descriptorDecorations.at(imageId);
-		uint32_t arrayIndex = 0;  // TODO(b/129523279)
-		auto setLayout = state->routine->pipelineLayout->getDescriptorSetLayout(d.DescriptorSet);
-		size_t bindingOffset = setLayout->getBindingOffset(d.Binding, arrayIndex);
-
 		auto coordinate = GenericValue(this, state->routine, insn.word(2));
 		auto texel = GenericValue(this, state->routine, insn.word(3));
 
-		Pointer<Byte> set = state->routine->descriptorSets[d.DescriptorSet];  // DescriptorSet*
-		Pointer<Byte> binding = Pointer<Byte>(set + bindingOffset);	// StorageImageDescriptor*
+		Pointer<Byte> binding = state->routine->getPointer(imageId).base;
 		Pointer<Byte> imageBase = *Pointer<Pointer<Byte>>(binding + OFFSET(vk::StorageImageDescriptor, ptr));
 
 		SIMD::Int packed[4];
@@ -4740,15 +4725,9 @@ namespace sw
 		ASSERT(resultType.storageClass == spv::StorageClassImage);
 		ASSERT(getType(resultType.element).opcode() == spv::OpTypeInt);
 
-		const DescriptorDecorations &d = descriptorDecorations.at(imageId);
-		uint32_t arrayIndex = 0;  // TODO(b/129523279)
-		auto setLayout = state->routine->pipelineLayout->getDescriptorSetLayout(d.DescriptorSet);
-		size_t bindingOffset = setLayout->getBindingOffset(d.Binding, arrayIndex);
-
 		auto coordinate = GenericValue(this, state->routine, insn.word(4));
 
-		Pointer<Byte> set = state->routine->descriptorSets[d.DescriptorSet];  // DescriptorSet*
-		Pointer<Byte> binding = Pointer<Byte>(set + bindingOffset);
+		Pointer<Byte> binding = state->routine->getPointer(imageId).base;
 		Pointer<Byte> imageBase = *Pointer<Pointer<Byte>>(binding + OFFSET(vk::StorageImageDescriptor, ptr));
 
 		SIMD::Int texelOffset = GetTexelOffset(coordinate, imageType, binding, sizeof(uint32_t));
