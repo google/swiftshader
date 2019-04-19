@@ -51,6 +51,7 @@ namespace sw
 		routine.descriptorDynamicOffsets = data + OFFSET(Data, descriptorDynamicOffsets);
 		routine.pushConstants = data + OFFSET(Data, pushConstants);
 		routine.constants = *Pointer<Pointer<Byte>>(data + OFFSET(Data, constants));
+		routine.workgroupMemory = *Pointer<Pointer<Byte>>(data + OFFSET(Data, workgroupMemory));
 
 		auto &modes = shader->getModes();
 
@@ -175,13 +176,18 @@ namespace sw
 	}
 
 	void ComputeProgram::run(
-		Routine *routine,
+		Routine *routine, SpirvShader const *shader,
 		vk::DescriptorSet::Bindings const &descriptorSets,
 		vk::DescriptorSet::DynamicOffsets const &descriptorDynamicOffsets,
 		PushConstantStorage const &pushConstants,
 		uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ)
 	{
 		auto runWorkgroup = (void(*)(void*))(routine->getEntry());
+
+		// We're sharing a buffer here across all workgroups.
+		// We can only do this because we know workgroups are executed
+		// serially.
+		std::vector<uint8_t> workgroupMemory(shader->workgroupMemory.size());
 
 		Data data;
 		data.descriptorSets = descriptorSets;
@@ -192,6 +198,7 @@ namespace sw
 		data.numWorkgroups[3] = 0;
 		data.pushConstants = pushConstants;
 		data.constants = &sw::constants;
+		data.workgroupMemory = workgroupMemory.data();
 
 		// TODO(bclayton): Split work across threads.
 		for (uint32_t groupZ = 0; groupZ < groupCountZ; groupZ++)

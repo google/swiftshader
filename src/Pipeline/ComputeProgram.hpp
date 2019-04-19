@@ -50,7 +50,7 @@ namespace sw
 		// run executes the compute shader routine for all workgroups.
 		// TODO(bclayton): This probably does not belong here. Consider moving.
 		static void run(
-			Routine *routine,
+			Routine *routine, SpirvShader const *shader,
 			vk::DescriptorSet::Bindings const &descriptorSetBindings,
 			vk::DescriptorSet::DynamicOffsets const &descriptorDynamicOffsets,
 			PushConstantStorage const &pushConstants,
@@ -71,6 +71,7 @@ namespace sw
 			uint4 workgroupID;
 			PushConstantStorage pushConstants;
 			const Constants *constants;
+			uint8_t* workgroupMemory;
 		};
 
 		SpirvRoutine routine;

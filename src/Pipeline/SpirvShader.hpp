@@ -656,6 +656,30 @@ namespace sw
 			uint32_t SizeInComponents;
 		};
 
+		struct WorkgroupMemory
+		{
+			// allocates a new variable of size bytes with the given identifier.
+			inline void allocate(Object::ID id, uint32_t size)
+			{
+				uint32_t offset = totalSize;
+				auto it = offsets.emplace(id, offset);
+				ASSERT_MSG(it.second, "WorkgroupMemory already has an allocation for object %d", int(id.value()));
+				totalSize += size;
+			}
+			// returns the byte offset of the variable with the given identifier.
+			inline uint32_t offsetOf(Object::ID id) const
+			{
+				auto it = offsets.find(id);
+				ASSERT_MSG(it != offsets.end(), "WorkgroupMemory has no allocation for object %d", int(id.value()));
+				return it->second;
+			}
+			// returns the total allocated size in bytes.
+			inline uint32_t size() const { return totalSize; }
+		private:
+			uint32_t totalSize = 0; // in bytes
+			std::unordered_map<Object::ID, uint32_t> offsets; // in bytes
+		};
+
 		std::vector<InterfaceComponent> inputs;
 		std::vector<InterfaceComponent> outputs;
 
@@ -666,6 +690,7 @@ namespace sw
 		using BuiltInHash = std::hash<std::underlying_type<spv::BuiltIn>::type>;
 		std::unordered_map<spv::BuiltIn, BuiltinMapping, BuiltInHash> inputBuiltins;
 		std::unordered_map<spv::BuiltIn, BuiltinMapping, BuiltInHash> outputBuiltins;
+		WorkgroupMemory workgroupMemory;
 
 		Type const &getType(Type::ID id) const
 		{
@@ -956,6 +981,7 @@ namespace sw
 		Variable inputs = Variable{MAX_INTERFACE_COMPONENTS};
 		Variable outputs = Variable{MAX_INTERFACE_COMPONENTS};
 
+		Pointer<Byte> workgroupMemory;
 		Pointer<Pointer<Byte>> descriptorSets;
 		Pointer<Int> descriptorDynamicOffsets;
 		Pointer<Byte> pushConstants;

@@ -540,6 +540,7 @@ namespace sw
 				object.definition = insn;
 				object.type = typeId;
 
+				ASSERT(getType(typeId).definition.opcode() == spv::OpTypePointer);
 				ASSERT(getType(typeId).storageClass == storageClass);
 
 				switch (storageClass)
@@ -561,6 +562,13 @@ namespace sw
 					break; // Correctly handled.
 
 				case spv::StorageClassWorkgroup:
+				{
+					auto &elTy = getType(getType(typeId).element);
+					auto sizeInBytes = elTy.sizeInComponents * sizeof(float);
+					workgroupMemory.allocate(resultId, sizeInBytes);
+					object.kind = Object::Kind::Pointer;
+					break;
+				}
 				case spv::StorageClassAtomicCounter:
 				case spv::StorageClassImage:
 					UNIMPLEMENTED("StorageClass %d not yet implemented", (int)storageClass);
@@ -1147,6 +1155,7 @@ namespace sw
 		case spv::StorageClassUniform:
 		case spv::StorageClassStorageBuffer:
 		case spv::StorageClassPushConstant:
+		case spv::StorageClassWorkgroup:
 			return false;
 		default:
 			return true;
@@ -2477,6 +2486,14 @@ namespace sw
 			auto elementTy = getType(objectTy.element);
 			auto size = elementTy.sizeInComponents * sizeof(float) * SIMD::Width;
 			routine->createPointer(resultId, SIMD::Pointer(base, size));
+			break;
+		}
+		case spv::StorageClassWorkgroup:
+		{
+			ASSERT(objectTy.opcode() == spv::OpTypePointer);
+			auto base = &routine->workgroupMemory[0];
+			auto size = workgroupMemory.size();
+			routine->createPointer(resultId, SIMD::Pointer(base, size, workgroupMemory.offsetOf(resultId)));
 			break;
 		}
 		case spv::StorageClassInput:
