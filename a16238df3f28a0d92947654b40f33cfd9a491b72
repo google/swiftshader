@@ -22,6 +22,30 @@
       "revId": "a16238df3f28a0d92947654b40f33cfd9a491b72",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d87a5384_3719a7d5",
+        "filename": "src/Reactor/LLVMReactor.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 1499,
+      "author": {
+        "id": 6982
+      },
+      "writtenOn": "2019-04-19T14:44:44Z",
+      "side": 1,
+      "message": "I will adjust the comment.\n\nWe shouldn\u0027t spin -- that\u0027s the shader\u0027s problem.",
+      "parentUuid": "22154711_bd7c2f8d",
+      "range": {
+        "startLine": 1499,
+        "startChar": 2,
+        "endLine": 1499,
+        "endChar": 109
+      },
+      "revId": "a16238df3f28a0d92947654b40f33cfd9a491b72",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
