@@ -70,6 +70,9 @@ public:
 	// the given binding and array element within that binding.
 	size_t getBindingOffset(uint32_t binding, size_t arrayElement) const;
 
+	// Returns the stride of an array of descriptors
+	size_t getBindingStride(uint32_t binding) const;
+
 	// Returns the number of descriptors across all bindings that are dynamic
 	// (see isBindingDynamic).
 	uint32_t getDynamicDescriptorCount() const;

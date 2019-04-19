@@ -1383,15 +1383,34 @@ namespace sw
 			case spv::OpTypeRuntimeArray:
 			{
 				// TODO: b/127950082: Check bounds.
-				auto stride = getType(type.element).sizeInComponents * sizeof(float);
-				auto & obj = getObject(indexIds[i]);
-				if (obj.kind == Object::Kind::Constant)
+				if (getType(baseObject.type).storageClass == spv::StorageClassUniformConstant)
 				{
-					constantOffset += stride * GetConstantInt(indexIds[i]);
+					// indexing into an array of descriptors.
+					auto &obj = getObject(indexIds[i]);
+					if (obj.kind != Object::Kind::Constant)
+					{
+						UNIMPLEMENTED("Nonconstant indexing of descriptor arrays is not supported");
+					}
+
+					auto d = descriptorDecorations.at(baseId);
+					ASSERT(d.DescriptorSet >= 0);
+					ASSERT(d.Binding >= 0);
+					auto setLayout = routine->pipelineLayout->getDescriptorSetLayout(d.DescriptorSet);
+					auto stride = setLayout->getBindingStride(d.Binding);
+					ptr.base += stride * GetConstantInt(indexIds[i]);
 				}
 				else
 				{
-					ptr.addOffset(SIMD::Int(stride) * routine->getIntermediate(indexIds[i]).Int(0));
+					auto stride = getType(type.element).sizeInComponents * sizeof(float);
+					auto & obj = getObject(indexIds[i]);
+					if (obj.kind == Object::Kind::Constant)
+					{
+						constantOffset += stride * GetConstantInt(indexIds[i]);
+					}
+					else
+					{
+						ptr.addOffset(SIMD::Int(stride) * routine->getIntermediate(indexIds[i]).Int(0));
+					}
 				}
 				typeId = type.element;
 				break;
@@ -1404,7 +1423,7 @@ namespace sw
 
 		if (constantOffset != 0)
 		{
-			ptr.addOffset(SIMD::Int(constantOffset));
+			ptr.addOffset(constantOffset);
 		}
 		return ptr;
 	}
@@ -1598,8 +1617,20 @@ namespace sw
 		Object::ID resultId = insn.word(2);
 		auto &object = defs[resultId];
 		object.type = typeId;
-		object.kind = (getType(typeId).opcode() == spv::OpTypePointer)
-			? Object::Kind::DivergentPointer : Object::Kind::Intermediate;
+
+		switch (getType(typeId).opcode())
+		{
+		case spv::OpTypePointer:
+		case spv::OpTypeImage:
+		case spv::OpTypeSampledImage:
+		case spv::OpTypeSampler:
+			object.kind = Object::Kind::DivergentPointer;
+			break;
+
+		default:
+			object.kind = Object::Kind::Intermediate;
+		}
+
 		object.definition = insn;
 	}
 
@@ -2302,7 +2333,7 @@ namespace sw
 		ASSERT(Type::ID(insn.word(1)) == result.type);
 		ASSERT(!atomic || getType(getType(pointer.type).element).opcode() == spv::OpTypeInt);  // Vulkan 1.1: "Atomic instructions must declare a scalar 32-bit integer type, for the value pointed to by Pointer."
 
-		if(pointer.kind == Object::Kind::SampledImage)
+		if(pointerTy.storageClass == spv::StorageClassUniformConstant)
 		{
 			// Just propagate the pointer.
 			// TODO(b/129523279)
@@ -4358,12 +4389,7 @@ namespace sw
 
 		Pointer<Byte> constants;  // FIXME(b/129523279)
 
-		const DescriptorDecorations &d = descriptorDecorations.at(sampledImageId);
-		uint32_t arrayIndex = 0;  // TODO(b/129523279)
-		auto setLayout = state->routine->pipelineLayout->getDescriptorSetLayout(d.DescriptorSet);
-		size_t bindingOffset = setLayout->getBindingOffset(d.Binding, arrayIndex);
-
-		auto descriptor = state->routine->descriptorSets[d.DescriptorSet] + bindingOffset; // vk::SampledImageDescriptor*
+		auto descriptor = sampledImage.base; // vk::SampledImageDescriptor*
 		auto sampler = *Pointer<Pointer<Byte>>(descriptor + OFFSET(vk::SampledImageDescriptor, sampler)); // vk::Sampler*
 		auto imageView = *Pointer<Pointer<Byte>>(descriptor + OFFSET(vk::SampledImageDescriptor, imageView)); // vk::ImageView*
 
@@ -4469,7 +4495,9 @@ namespace sw
 
 		auto coordinate = GenericValue(this, state->routine, insn.word(4));
 
-		Pointer<Byte> binding = state->routine->getPointer(imageId).base;
+		auto pointer = state->routine->getPointer(imageId);
+		ASSERT(pointer.uniform);
+		Pointer<Byte> binding = pointer.base;
 		Pointer<Byte> imageBase = *Pointer<Pointer<Byte>>(binding + OFFSET(vk::StorageImageDescriptor, ptr));
 
 		auto &dst = state->routine->createIntermediate(resultId, resultType.sizeInComponents);

@@ -176,6 +176,12 @@ size_t DescriptorSetLayout::getBindingCount() const
 	return bindingCount;
 }
 
+size_t DescriptorSetLayout::getBindingStride(uint32_t binding) const
+{
+	uint32_t index = getBindingIndex(binding);
+	return GetDescriptorSize(bindings[index].descriptorType);
+}
+
 size_t DescriptorSetLayout::getBindingOffset(uint32_t binding, size_t arrayElement) const
 {
 	uint32_t index = getBindingIndex(binding);
@@ -442,7 +448,9 @@ void DescriptorSetLayout::WriteDescriptorSet(const VkWriteDescriptorSet& writeDe
 			descriptor[i].ptr = imageView->getOffsetPointer({0, 0, 0}, VK_IMAGE_ASPECT_COLOR_BIT);
 			descriptor[i].extent = imageView->getMipLevelExtent(0);
 			descriptor[i].rowPitchBytes = imageView->rowPitchBytes(VK_IMAGE_ASPECT_COLOR_BIT, 0);
-			descriptor[i].slicePitchBytes = imageView->slicePitchBytes(VK_IMAGE_ASPECT_COLOR_BIT, 0);
+			descriptor[i].slicePitchBytes = imageView->getSubresourceRange().layerCount > 1
+					? imageView->layerPitchBytes(VK_IMAGE_ASPECT_COLOR_BIT)
+					: imageView->slicePitchBytes(VK_IMAGE_ASPECT_COLOR_BIT, 0);
 			descriptor[i].arrayLayers = imageView->getSubresourceRange().layerCount;
 		}
 	}

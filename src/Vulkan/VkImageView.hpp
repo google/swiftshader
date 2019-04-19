@@ -41,6 +41,7 @@ public:
 	int getSampleCount() const { return image->getSampleCountFlagBits(); }
 	int rowPitchBytes(VkImageAspectFlagBits aspect, uint32_t mipLevel) const { return image->rowPitchBytes(aspect, subresourceRange.baseMipLevel + mipLevel); }
 	int slicePitchBytes(VkImageAspectFlagBits aspect, uint32_t mipLevel) const { return image->slicePitchBytes(aspect, subresourceRange.baseMipLevel + mipLevel); }
+	int layerPitchBytes(VkImageAspectFlagBits aspect) const { return static_cast<int>(image->getLayerSize(aspect)); }
 	VkExtent3D getMipLevelExtent(uint32_t mipLevel) const { return image->getMipLevelExtent(subresourceRange.baseMipLevel + mipLevel); }
 
 	void *getOffsetPointer(const VkOffset3D& offset, VkImageAspectFlagBits aspect) const;
