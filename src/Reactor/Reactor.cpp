@@ -2512,6 +2512,11 @@ namespace rr
 		return RValue<UInt>(Nucleus::createAtomicAdd(x.value, y.value, memoryOrder));
 	}
 
+	RValue<UInt> SubAtomic(RValue<Pointer<UInt> > x, RValue<UInt> y, std::memory_order memoryOrder)
+	{
+		return RValue<UInt>(Nucleus::createAtomicSub(x.value, y.value, memoryOrder));
+	}
+
 	RValue<UInt> AndAtomic(RValue<Pointer<UInt> > x, RValue<UInt> y, std::memory_order memoryOrder)
 	{
 		return RValue<UInt>(Nucleus::createAtomicAnd(x.value, y.value, memoryOrder));

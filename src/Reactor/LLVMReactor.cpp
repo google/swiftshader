@@ -1294,6 +1294,12 @@ namespace rr
 		return V(::builder->CreateAtomicRMW(llvm::AtomicRMWInst::Add, V(ptr), V(value), atomicOrdering(true, memoryOrder)));
 	}
 
+	Value *Nucleus::createAtomicSub(Value *ptr, Value *value, std::memory_order memoryOrder)
+	{
+		RR_DEBUG_INFO_UPDATE_LOC();
+		return V(::builder->CreateAtomicRMW(llvm::AtomicRMWInst::Sub, V(ptr), V(value), atomicOrdering(true, memoryOrder)));
+	}
+
 	Value *Nucleus::createAtomicAnd(Value *ptr, Value *value, std::memory_order memoryOrder)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();

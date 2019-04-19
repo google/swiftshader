@@ -1039,6 +1039,12 @@ namespace rr
 		return nullptr;
 	}
 
+	Value *Nucleus::createAtomicSub(Value *ptr, Value *value, std::memory_order memoryOrder)
+	{
+		UNIMPLEMENTED("createAtomicSub");
+		return nullptr;
+	}
+
 	Value *Nucleus::createAtomicAnd(Value *ptr, Value *value, std::memory_order memoryOrder)
 	{
 		UNIMPLEMENTED("createAtomicAnd");

@@ -102,6 +102,7 @@ namespace rr
 
 		// Atomic instructions
 		static Value *createAtomicAdd(Value *ptr, Value *value, std::memory_order memoryOrder = std::memory_order_relaxed);
+		static Value *createAtomicSub(Value *ptr, Value *value, std::memory_order memoryOrder = std::memory_order_relaxed);
 		static Value *createAtomicAnd(Value *ptr, Value *value, std::memory_order memoryOrder = std::memory_order_relaxed);
 		static Value *createAtomicOr(Value *ptr, Value *value, std::memory_order memoryOrder = std::memory_order_relaxed);
 		static Value *createAtomicXor(Value *ptr, Value *value, std::memory_order memoryOrder = std::memory_order_relaxed);
