@@ -862,6 +862,7 @@ namespace sw
 			case spv::OpImageQuerySize:
 			case spv::OpImageRead:
 			case spv::OpImageTexelPointer:
+			case spv::OpGroupNonUniformElect:
 				// Instructions that yield an intermediate value or divergent pointer
 				DefineResult(insn);
 				break;
@@ -2446,6 +2447,9 @@ namespace sw
 
 		case spv::OpCopyMemory:
 			return EmitCopyMemory(insn, state);
+
+		case spv::OpGroupNonUniformElect:
+			return EmitGroupNonUniform(insn, state);
 
 		default:
 			UNREACHABLE("%s", OpcodeName(opcode).c_str());
@@ -5319,6 +5323,43 @@ namespace sw
 			SIMD::Store(dst, SIMD::Load<SIMD::Float>(src, state->activeLaneMask()), state->activeLaneMask());
 		});
 		return EmitResult::Continue;
+	}
+
+	SpirvShader::EmitResult SpirvShader::EmitGroupNonUniform(InsnIterator insn, EmitState *state) const
+	{
+		auto &type = getType(Type::ID(insn.word(1)));
+		Object::ID resultId = insn.word(2);
+		auto scope = GetScope(insn.word(3));
+		ASSERT_MSG(scope == spv::ScopeSubgroup, "Scope for Non Uniform Group Operations must be Subgroup for Vulkan 1.1");
+
+		auto &dst = state->routine->createIntermediate(resultId, type.sizeInComponents);
+
+		switch (insn.opcode())
+		{
+		case spv::OpGroupNonUniformElect:
+		{
+			// Result is true only in the active invocation with the lowest id
+			// in the group, otherwise result is false.
+			SIMD::Int active = state->activeLaneMask();
+			// TODO: Would be nice if we could write this as:
+			//   elect = active & ~(active.Oxyz | active.OOxy | active.OOOx)
+			auto v0111 = SIMD::Int(0, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF);
+			auto elect = active & ~(v0111 & (active.xxyz | active.xxxy | active.xxxx));
+			dst.move(0, elect);
+			break;
+		}
+		default:
+			UNIMPLEMENTED("EmitGroupNonUniform op: %s", OpcodeName(type.opcode()).c_str());
+		}
+		return EmitResult::Continue;
+	}
+
+	spv::Scope SpirvShader::GetScope(Object::ID id) const
+	{
+		auto &scopeObj = getObject(id);
+		ASSERT(scopeObj.kind == Object::Kind::Constant);
+		ASSERT(getType(scopeObj.type).sizeInComponents == 1);
+		return spv::Scope(scopeObj.constantValue[0]);
 	}
 
 	void SpirvShader::emitEpilog(SpirvRoutine *routine) const

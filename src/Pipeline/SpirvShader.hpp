@@ -906,8 +906,10 @@ namespace sw
 		EmitResult EmitAtomicCompareExchange(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitSampledImageCombineOrSplit(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitCopyMemory(InsnIterator insn, EmitState *state) const;
+		EmitResult EmitGroupNonUniform(InsnIterator insn, EmitState *state) const;
 
 		SIMD::Pointer GetTexelAddress(SpirvRoutine const * routine, SIMD::Pointer base, GenericValue const & coordinate, Type const & imageType, Pointer<Byte> descriptor, int texelSize) const;
+		spv::Scope GetScope(Object::ID id) const;
 
 		// OpcodeName() returns the name of the opcode op.
 		// If NDEBUG is defined, then OpcodeName() will only return the numerical code.
