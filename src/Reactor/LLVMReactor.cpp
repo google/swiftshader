@@ -1496,7 +1496,7 @@ namespace rr
 	Value *Nucleus::createAtomicCompareExchange(Value *ptr, Value *value, Value *compare, std::memory_order memoryOrderEqual, std::memory_order memoryOrderUnequal)
 	{
 		RR_DEBUG_INFO_UPDATE_LOC();
-		// Note: AtomicCmpXchgInstruction returns a 1-member struct containing the result, not the result directly.
+		// Note: AtomicCmpXchgInstruction returns a 2-member struct containing {result, success-flag}, not the result directly.
 		return V(::builder->CreateExtractValue(
 				::builder->CreateAtomicCmpXchg(V(ptr), V(compare), V(value), atomicOrdering(true, memoryOrderEqual), atomicOrdering(true, memoryOrderUnequal)),
 				llvm::ArrayRef<unsigned>(0u)));
