@@ -58,6 +58,8 @@ public:
 	static void WriteDescriptorSet(const VkWriteDescriptorSet& descriptorWrites);
 	static void CopyDescriptorSet(const VkCopyDescriptorSet& descriptorCopies);
 
+	static void WriteDescriptorSet(DescriptorSet *dstSet, VkDescriptorUpdateTemplateEntry const &entry, char const *src);
+
 	void initialize(VkDescriptorSet descriptorSet);
 
 	// Returns the total size of the descriptor set in bytes.

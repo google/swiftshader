@@ -270,24 +270,24 @@ const uint8_t* DescriptorSetLayout::GetInputData(const VkWriteDescriptorSet& wri
 	}
 }
 
-void DescriptorSetLayout::WriteDescriptorSet(const VkWriteDescriptorSet& writeDescriptorSet)
+void DescriptorSetLayout::WriteDescriptorSet(DescriptorSet *dstSet, VkDescriptorUpdateTemplateEntry const &entry, char const *src)
 {
-	DescriptorSet* dstSet = vk::Cast(writeDescriptorSet.dstSet);
 	DescriptorSetLayout* dstLayout = dstSet->layout;
 	ASSERT(dstLayout);
-	ASSERT(dstLayout->bindings[dstLayout->getBindingIndex(writeDescriptorSet.dstBinding)].descriptorType == writeDescriptorSet.descriptorType);
+	ASSERT(dstLayout->bindings[dstLayout->getBindingIndex(entry.dstBinding)].descriptorType == entry.descriptorType);
 
 	size_t typeSize = 0;
-	uint8_t* memToWrite = dstLayout->getOffsetPointer(dstSet, writeDescriptorSet.dstBinding, writeDescriptorSet.dstArrayElement, writeDescriptorSet.descriptorCount, &typeSize);
+	uint8_t* memToWrite = dstLayout->getOffsetPointer(dstSet, entry.dstBinding, entry.dstArrayElement, entry.descriptorCount, &typeSize);
 
-	if(writeDescriptorSet.descriptorType == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
+	if(entry.descriptorType == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
 	{
 		SampledImageDescriptor *imageSampler = reinterpret_cast<SampledImageDescriptor*>(memToWrite);
 
-		for(uint32_t i = 0; i < writeDescriptorSet.descriptorCount; i++)
+		for(uint32_t i = 0; i < entry.descriptorCount; i++)
 		{
-			vk::Sampler *sampler = vk::Cast(writeDescriptorSet.pImageInfo[i].sampler);
-			vk::ImageView *imageView = vk::Cast(writeDescriptorSet.pImageInfo[i].imageView);
+			auto update = reinterpret_cast<VkDescriptorImageInfo const *>(src + entry.offset + entry.stride * i);
+			vk::Sampler *sampler = vk::Cast(update->sampler);
+			vk::ImageView *imageView = vk::Cast(update->imageView);
 
 			imageSampler[i].sampler = sampler;
 			imageSampler[i].imageView = imageView;
@@ -439,27 +439,29 @@ void DescriptorSetLayout::WriteDescriptorSet(const VkWriteDescriptorSet& writeDe
 			}
 		}
 	}
-	else if (writeDescriptorSet.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_IMAGE)
+	else if (entry.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_IMAGE)
 	{
 		auto descriptor = reinterpret_cast<StorageImageDescriptor *>(memToWrite);
-		for(uint32_t i = 0; i < writeDescriptorSet.descriptorCount; i++)
+		for(uint32_t i = 0; i < entry.descriptorCount; i++)
 		{
-			auto imageView = vk::Cast(writeDescriptorSet.pImageInfo[i].imageView);
+			auto update = reinterpret_cast<VkDescriptorImageInfo const *>(src + entry.offset + entry.stride * i);
+			auto imageView = Cast(update->imageView);
 			descriptor[i].ptr = imageView->getOffsetPointer({0, 0, 0}, VK_IMAGE_ASPECT_COLOR_BIT);
 			descriptor[i].extent = imageView->getMipLevelExtent(0);
 			descriptor[i].rowPitchBytes = imageView->rowPitchBytes(VK_IMAGE_ASPECT_COLOR_BIT, 0);
 			descriptor[i].slicePitchBytes = imageView->getSubresourceRange().layerCount > 1
-					? imageView->layerPitchBytes(VK_IMAGE_ASPECT_COLOR_BIT)
-					: imageView->slicePitchBytes(VK_IMAGE_ASPECT_COLOR_BIT, 0);
+											? imageView->layerPitchBytes(VK_IMAGE_ASPECT_COLOR_BIT)
+											: imageView->slicePitchBytes(VK_IMAGE_ASPECT_COLOR_BIT, 0);
 			descriptor[i].arrayLayers = imageView->getSubresourceRange().layerCount;
 		}
 	}
-	else if (writeDescriptorSet.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER)
+	else if (entry.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER)
 	{
 		auto descriptor = reinterpret_cast<StorageImageDescriptor *>(memToWrite);
-		for (uint32_t i = 0; i < writeDescriptorSet.descriptorCount; i++)
+		for (uint32_t i = 0; i < entry.descriptorCount; i++)
 		{
-			auto bufferView = vk::Cast(writeDescriptorSet.pTexelBufferView[i]);
+			auto update = reinterpret_cast<VkBufferView const *>(src + entry.offset + entry.stride * i);
+			auto bufferView = Cast(*update);
 			descriptor[i].ptr = bufferView->getPointer();
 			descriptor[i].extent = {bufferView->getElementCount(), 1, 1};
 			descriptor[i].rowPitchBytes = 0;
@@ -475,9 +477,51 @@ void DescriptorSetLayout::WriteDescriptorSet(const VkWriteDescriptorSet& writeDe
 		// a binding has a descriptorCount of zero, it is skipped. This behavior
 		// applies recursively, with the update affecting consecutive bindings as
 		// needed to update all descriptorCount descriptors.
-		size_t writeSize = typeSize * writeDescriptorSet.descriptorCount;
-		memcpy(memToWrite, DescriptorSetLayout::GetInputData(writeDescriptorSet), writeSize);
+		for (auto i = 0u; i < entry.descriptorCount; i++)
+			memcpy(memToWrite + typeSize * i, src + entry.offset + entry.stride * i, typeSize);
 	}
+}
+
+void DescriptorSetLayout::WriteDescriptorSet(const VkWriteDescriptorSet& writeDescriptorSet)
+{
+	DescriptorSet* dstSet = vk::Cast(writeDescriptorSet.dstSet);
+	VkDescriptorUpdateTemplateEntry e;
+	e.descriptorType = writeDescriptorSet.descriptorType;
+	e.dstBinding = writeDescriptorSet.dstBinding;
+	e.dstArrayElement = writeDescriptorSet.dstArrayElement;
+	e.descriptorCount = writeDescriptorSet.descriptorCount;
+	e.offset = 0;
+	void const *ptr = nullptr;
+	switch (writeDescriptorSet.descriptorType)
+	{
+	case VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER:
+	case VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER:
+		ptr = writeDescriptorSet.pTexelBufferView;
+		e.stride = sizeof(*VkWriteDescriptorSet::pTexelBufferView);
+		break;
+
+	case VK_DESCRIPTOR_TYPE_SAMPLER:
+	case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
+	case VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE:
+	case VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT:
+	case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
+		ptr = writeDescriptorSet.pImageInfo;
+		e.stride = sizeof(VkDescriptorImageInfo);
+		break;
+
+	case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
+	case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER:
+	case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:
+	case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC:
+		ptr = writeDescriptorSet.pBufferInfo;
+		e.stride = sizeof(VkDescriptorBufferInfo);
+		break;
+
+	default:
+		UNIMPLEMENTED("descriptor type %u", writeDescriptorSet.descriptorType);
+	}
+
+	WriteDescriptorSet(dstSet, e, reinterpret_cast<char const *>(ptr));
 }
 
 void DescriptorSetLayout::CopyDescriptorSet(const VkCopyDescriptorSet& descriptorCopies)
