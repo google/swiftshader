@@ -377,13 +377,8 @@ namespace sw
 				// Value held by SpirvRoutine::intermediates.
 				Intermediate,
 
-				// DivergentPointer formed from a base pointer and per-lane offset.
 				// Pointer held by SpirvRoutine::pointers
-				DivergentPointer,
-
-				// Pointer with uniform address across all lanes.
-				// Pointer held by SpirvRoutine::pointers
-				NonDivergentPointer,
+				Pointer,
 
 				// A pointer to a vk::DescriptorSet*.
 				// Pointer held by SpirvRoutine::pointers.

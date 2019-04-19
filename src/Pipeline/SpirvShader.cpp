@@ -481,7 +481,7 @@ namespace sw
 					UNIMPLEMENTED("Variable initializers not yet supported");
 
 				auto &object = defs[resultId];
-				object.kind = Object::Kind::NonDivergentPointer;
+				object.kind = Object::Kind::Pointer;
 				object.definition = insn;
 				object.type = typeId;
 
@@ -1260,11 +1260,8 @@ namespace sw
 		auto &object = getObject(id);
 		switch (object.kind)
 		{
-			case Object::Kind::NonDivergentPointer:
+			case Object::Kind::Pointer:
 			case Object::Kind::InterfaceVariable:
-				return routine->getPointer(id);
-
-			case Object::Kind::DivergentPointer:
 				return routine->getPointer(id);
 
 			case Object::Kind::DescriptorSet:
@@ -1715,7 +1712,7 @@ namespace sw
 		case spv::OpTypeImage:
 		case spv::OpTypeSampledImage:
 		case spv::OpTypeSampler:
-			object.kind = Object::Kind::DivergentPointer;
+			object.kind = Object::Kind::Pointer;
 			break;
 
 		default:
@@ -2534,7 +2531,7 @@ namespace sw
 		const uint32_t *indexes = insn.wordPointer(4);
 		auto &type = getType(typeId);
 		ASSERT(type.sizeInComponents == 1);
-		ASSERT(getObject(resultId).kind == Object::Kind::DivergentPointer);
+		ASSERT(getObject(resultId).kind == Object::Kind::Pointer);
 
 		if(type.storageClass == spv::StorageClassPushConstant ||
 		   type.storageClass == spv::StorageClassUniform ||
