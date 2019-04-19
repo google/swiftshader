@@ -703,6 +703,16 @@ namespace sw
 				// Don't need to do anything during analysis pass
 				break;
 
+			case spv::OpExtension:
+			{
+				auto p = reinterpret_cast<char const *>(insn.wordPointer(1));
+				// Part of core SPIR-V 1.3. Vulkan 1.1 implementations must also accept the pre-1.3
+				// extension per Appendix A, `Vulkan Environment for SPIR-V`.
+				if (!strcmp(p, "SPV_KHR_storage_buffer_storage_class")) break;
+				UNIMPLEMENTED("Unknown extension %s", p);
+				break;
+			}
+
 			default:
 				UNIMPLEMENTED("%s", OpcodeName(insn.opcode()).c_str());
 			}
