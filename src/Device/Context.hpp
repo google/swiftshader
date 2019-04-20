@@ -201,6 +201,7 @@ namespace sw
 		unsigned int sampleMask;
 		unsigned int multiSampleMask;
 		int sampleCount;
+		bool alphaToCoverage;
 
 		PushConstantStorage pushConstants;
 	};

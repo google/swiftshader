@@ -172,6 +172,7 @@ namespace sw
 
 		writeSRGB = false;
 		sampleMask = 0xFFFFFFFF;
+		alphaToCoverage = false;
 	}
 
 	bool Context::setDepthBufferEnable(bool depthBufferEnable)

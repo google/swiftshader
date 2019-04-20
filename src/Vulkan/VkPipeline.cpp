@@ -355,9 +355,10 @@ GraphicsPipeline::GraphicsPipeline(const VkGraphicsPipelineCreateInfo* pCreateIn
 		if (multisampleState->pSampleMask)
 			context.sampleMask = multisampleState->pSampleMask[0];
 
+		context.alphaToCoverage = (multisampleState->alphaToCoverageEnable == VK_TRUE);
+
 		if((multisampleState->flags != 0) ||
 			(multisampleState->sampleShadingEnable != 0) ||
-				(multisampleState->alphaToCoverageEnable != 0) ||
 			(multisampleState->alphaToOneEnable != 0))
 		{
 			UNIMPLEMENTED("multisampleState");

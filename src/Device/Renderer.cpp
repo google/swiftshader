@@ -437,22 +437,19 @@ namespace sw
 
 		data->factor = factor;
 
-		if(pixelState.transparencyAntialiasing == TRANSPARENCY_ALPHA_TO_COVERAGE)
+		if(pixelState.alphaToCoverage)
 		{
-			float ref = context->alphaReference * (1.0f / 255.0f);
-			float margin = sw::min(ref, 1.0f - ref);
-
 			if(ms == 4)
 			{
-				data->a2c0 = replicate(ref - margin * 0.6f);
-				data->a2c1 = replicate(ref - margin * 0.2f);
-				data->a2c2 = replicate(ref + margin * 0.2f);
-				data->a2c3 = replicate(ref + margin * 0.6f);
+				data->a2c0 = replicate(0.2f);
+				data->a2c1 = replicate(0.4f);
+				data->a2c2 = replicate(0.6f);
+				data->a2c3 = replicate(0.8f);
 			}
 			else if(ms == 2)
 			{
-				data->a2c0 = replicate(ref - margin * 0.3f);
-				data->a2c1 = replicate(ref + margin * 0.3f);
+				data->a2c0 = replicate(0.25f);
+				data->a2c1 = replicate(0.75f);
 			}
 			else ASSERT(false);
 		}

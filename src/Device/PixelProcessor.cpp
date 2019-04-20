@@ -282,11 +282,7 @@ namespace sw
 			state.shaderID = 0;
 		}
 
-		if(context->alphaTestActive())
-		{
-			state.transparencyAntialiasing = context->sampleCount > 1 ? transparencyAntialiasing : TRANSPARENCY_NONE;
-		}
-
+		state.alphaToCoverage = context->alphaToCoverage;
 		state.depthWriteEnable = context->depthWriteActive();
 
 		if(context->stencilActive())

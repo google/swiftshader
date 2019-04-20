@@ -61,7 +61,7 @@ namespace sw
 			bool writeSRGB;
 			unsigned int multiSample;
 			unsigned int multiSampleMask;
-			TransparencyAntialiasing transparencyAntialiasing;
+			bool alphaToCoverage;
 			bool centroid;
 			bool frontFaceCCW;
 			VkFormat depthFormat;
@@ -78,11 +78,6 @@ namespace sw
 			int colorWriteActive(int index) const
 			{
 				return (colorWriteMask >> (index * 4)) & 0xF;
-			}
-
-			bool alphaTestActive() const
-			{
-				return transparencyAntialiasing != TRANSPARENCY_NONE;
 			}
 
 			unsigned int hash;

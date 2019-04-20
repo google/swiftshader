@@ -62,7 +62,8 @@ namespace sw
 			Long pipeTime = Ticks();
 		#endif
 
-		const bool earlyDepthTest = !spirvShader->getModes().DepthReplacing && !state.alphaTestActive();
+		// TODO: consider shader which modifies sample mask in general
+		const bool earlyDepthTest = !spirvShader->getModes().DepthReplacing && !state.alphaToCoverage;
 
 		Int zMask[4];   // Depth mask
 		Int sMask[4];   // Stencil mask
@@ -194,7 +195,7 @@ namespace sw
 
 				alphaPass = alphaTest(cMask);
 
-				if((spirvShader && spirvShader->getModes().ContainsKill) || state.alphaTestActive())
+				if((spirvShader && spirvShader->getModes().ContainsKill) || state.alphaToCoverage)
 				{
 					for(unsigned int q = 0; q < state.multiSample; q++)
 					{
@@ -2476,6 +2477,6 @@ namespace sw
 
 	bool PixelRoutine::colorUsed()
 	{
-		return state.colorWriteMask || state.alphaTestActive() || (spirvShader && spirvShader->getModes().ContainsKill);
+		return state.colorWriteMask || state.alphaToCoverage || (spirvShader && spirvShader->getModes().ContainsKill);
 	}
 }

@@ -99,16 +99,12 @@ namespace sw
 
 	Bool PixelProgram::alphaTest(Int cMask[4])
 	{
-		if(!state.alphaTestActive())
+		if(!state.alphaToCoverage)
 		{
 			return true;
 		}
 
-		if(state.transparencyAntialiasing == TRANSPARENCY_ALPHA_TO_COVERAGE)
-		{
-			alphaToCoverage(cMask, c[0].w);
-		}
-		else ASSERT(false);
+		alphaToCoverage(cMask, c[0].w);
 
 		Int pass = cMask[0];
 
@@ -221,7 +217,7 @@ namespace sw
 	{
 		for(int index = 0; index < RENDERTARGETS; index++)
 		{
-			if(!state.colorWriteActive(index) && !(index == 0 && state.alphaTestActive()))
+			if(!state.colorWriteActive(index) && !(index == 0 && state.alphaToCoverage))
 			{
 				continue;
 			}
