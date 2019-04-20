@@ -27,6 +27,8 @@
 #undef max
 
 #if REACTOR_LLVM_VERSION < 7
+#error "LLVM 3 backend is deprecated, and will be removed shortly"
+
 	#include "llvm/Analysis/LoopPass.h"
 	#include "llvm/Constants.h"
 	#include "llvm/Function.h"
