@@ -125,13 +125,6 @@ namespace sw
 				continue;
 			}
 
-			if(!postBlendSRGB && state.writeSRGB && !isSRGB(index))
-			{
-				c[index].x = linearToSRGB(c[index].x);
-				c[index].y = linearToSRGB(c[index].y);
-				c[index].z = linearToSRGB(c[index].z);
-			}
-
 			switch(state.targetFormat[index])
 			{
 			case VK_FORMAT_R5G6B5_UNORM_PACK16:

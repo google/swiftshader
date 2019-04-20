@@ -149,7 +149,6 @@ namespace sw
 
 		cullMode = CULL_CLOCKWISE;
 		frontFacingCCW = true;
-		alphaReference = 0.0f;
 
 		depthBias = 0.0f;
 		slopeDepthBias = 0.0f;
@@ -170,7 +169,6 @@ namespace sw
 
 		lineWidth = 1.0f;
 
-		writeSRGB = false;
 		sampleMask = 0xFFFFFFFF;
 		alphaToCoverage = false;
 	}
@@ -242,13 +240,6 @@ namespace sw
 	{
 		bool modified = (Context::colorWriteMask[index] != colorWriteMask);
 		Context::colorWriteMask[index] = colorWriteMask;
-		return modified;
-	}
-
-	bool Context::setWriteSRGB(bool sRGB)
-	{
-		bool modified = (Context::writeSRGB != sRGB);
-		Context::writeSRGB = sRGB;
 		return modified;
 	}
 

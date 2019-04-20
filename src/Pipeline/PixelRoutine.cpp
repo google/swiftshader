@@ -1104,7 +1104,7 @@ namespace sw
 			UNIMPLEMENTED("VkFormat %d", state.targetFormat[index]);
 		}
 
-		if((postBlendSRGB && state.writeSRGB) || isSRGB(index))
+		if(postBlendSRGB || isSRGB(index))
 		{
 			sRGBtoLinear16_12_16(pixel);
 		}
@@ -1231,7 +1231,7 @@ namespace sw
 
 	void PixelRoutine::writeColor(int index, Pointer<Byte> &cBuffer, Int &x, Vector4s &current, Int &sMask, Int &zMask, Int &cMask)
 	{
-		if((postBlendSRGB && state.writeSRGB) || isSRGB(index))
+		if(postBlendSRGB || isSRGB(index))
 		{
 			linearToSRGB16_12_16(current);
 		}
@@ -1857,7 +1857,7 @@ namespace sw
 			UNIMPLEMENTED("VkFormat: %d", int(state.targetFormat[index]));
 		}
 
-		if((postBlendSRGB && state.writeSRGB) || isSRGB(index))
+		if(postBlendSRGB || isSRGB(index))
 		{
 			sRGBtoLinear(pixel.x);
 			sRGBtoLinear(pixel.y);

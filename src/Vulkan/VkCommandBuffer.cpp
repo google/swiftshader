@@ -429,7 +429,7 @@ void CommandBuffer::ExecutionState::bindAttachments()
 		if (attachmentReference.attachment != VK_ATTACHMENT_UNUSED)
 		{
 			auto attachment = renderPassFramebuffer->getAttachment(attachmentReference.attachment);
-			renderer->setRenderTarget(i, attachment, 0);
+			renderer->setRenderTarget(i, attachment);
 		}
 	}
 
@@ -439,11 +439,11 @@ void CommandBuffer::ExecutionState::bindAttachments()
 		auto attachment = renderPassFramebuffer->getAttachment(attachmentReference->attachment);
 		if (attachment->hasDepthAspect())
 		{
-			renderer->setDepthBuffer(attachment, 0);
+			renderer->setDepthBuffer(attachment);
 		}
 		if (attachment->hasStencilAspect())
 		{
-			renderer->setStencilBuffer(attachment, 0);
+			renderer->setStencilBuffer(attachment);
 		}
 	}
 }

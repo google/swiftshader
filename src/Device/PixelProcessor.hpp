@@ -58,7 +58,6 @@ namespace sw
 
 			unsigned int colorWriteMask;
 			VkFormat targetFormat[RENDERTARGETS];
-			bool writeSRGB;
 			unsigned int multiSample;
 			unsigned int multiSampleMask;
 			bool alphaToCoverage;
@@ -127,19 +126,15 @@ namespace sw
 
 		virtual ~PixelProcessor();
 
-		void setRenderTarget(int index, vk::ImageView *renderTarget, unsigned int layer = 0);
-		void setDepthBuffer(vk::ImageView *depthBuffer, unsigned int layer = 0);
-		void setStencilBuffer(vk::ImageView *stencilBuffer, unsigned int layer = 0);
+		void setRenderTarget(int index, vk::ImageView *renderTarget);
+		void setDepthBuffer(vk::ImageView *depthBuffer);
+		void setStencilBuffer(vk::ImageView *stencilBuffer);
 
-		void setWriteSRGB(bool sRGB);
 		void setDepthBufferEnable(bool depthBufferEnable);
 		void setDepthCompare(VkCompareOp depthCompareMode);
 		void setDepthWriteEnable(bool depthWriteEnable);
 		void setCullMode(CullMode cullMode, bool frontFacingCCW);
 		void setColorWriteMask(int index, int rgbaMask);
-
-		void setColorLogicOpEnabled(bool colorLogicOpEnabled);
-		void setLogicalOperation(VkLogicOp logicalOperation);
 
 		void setBlendConstant(const Color<float> &blendConstant);
 

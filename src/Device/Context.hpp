@@ -132,8 +132,6 @@ namespace sw
 		VkBlendFactor destBlendFactorAlpha();
 		VkBlendOp blendOperationAlpha();
 
-		VkLogicOp colorLogicOp();
-
 		VkPrimitiveTopology topology;
 
 		bool stencilEnable;
@@ -144,7 +142,6 @@ namespace sw
 		// Pixel processor states
 		VkCullModeFlags cullMode;
 		bool frontFacingCCW;
-		float alphaReference;
 
 		float depthBias;
 		float slopeDepthBias;
@@ -160,11 +157,8 @@ namespace sw
 		void *indexBuffer;
 
 		vk::ImageView *renderTarget[RENDERTARGETS];
-		unsigned int renderTargetLayer[RENDERTARGETS];
 		vk::ImageView *depthBuffer;
-		unsigned int depthBufferLayer;
 		vk::ImageView *stencilBuffer;
-		unsigned int stencilBufferLayer;
 
 		vk::PipelineLayout const *pipelineLayout;
 
@@ -197,7 +191,6 @@ namespace sw
 		float lineWidth;
 
 		int colorWriteMask[RENDERTARGETS];   // RGBA
-		bool writeSRGB;
 		unsigned int sampleMask;
 		unsigned int multiSampleMask;
 		int sampleCount;

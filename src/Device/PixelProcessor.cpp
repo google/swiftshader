@@ -69,27 +69,19 @@ namespace sw
 		routineCache = nullptr;
 	}
 
-	void PixelProcessor::setRenderTarget(int index, vk::ImageView* renderTarget, unsigned int layer)
+	void PixelProcessor::setRenderTarget(int index, vk::ImageView* renderTarget)
 	{
 		context->renderTarget[index] = renderTarget;
-		context->renderTargetLayer[index] = layer;
 	}
 
-	void PixelProcessor::setDepthBuffer(vk::ImageView *depthBuffer, unsigned int layer)
+	void PixelProcessor::setDepthBuffer(vk::ImageView *depthBuffer)
 	{
 		context->depthBuffer = depthBuffer;
-		context->depthBufferLayer = layer;
 	}
 
-	void PixelProcessor::setStencilBuffer(vk::ImageView *stencilBuffer, unsigned int layer)
+	void PixelProcessor::setStencilBuffer(vk::ImageView *stencilBuffer)
 	{
 		context->stencilBuffer = stencilBuffer;
-		context->stencilBufferLayer = layer;
-	}
-
-	void PixelProcessor::setWriteSRGB(bool sRGB)
-	{
-		context->setWriteSRGB(sRGB);
 	}
 
 	void PixelProcessor::setDepthBufferEnable(bool depthBufferEnable)
@@ -323,8 +315,7 @@ namespace sw
 			state.targetFormat[i] = context->renderTargetInternalFormat(i);
 		}
 
-		state.writeSRGB	= context->writeSRGB && context->renderTarget[0] && context->renderTarget[0]->getFormat().isSRGBwritable();
-		state.multiSample = context->sampleCount;
+		state.multiSample = static_cast<unsigned int>(context->sampleCount);
 		state.multiSampleMask = context->multiSampleMask;
 
 		if(state.multiSample > 1 && context->pixelShader)
