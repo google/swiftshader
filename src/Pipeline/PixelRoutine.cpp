@@ -156,7 +156,7 @@ namespace sw
 				auto const & input = spirvShader->inputs[interpolant];
 				if (input.Type != SpirvShader::ATTRIBTYPE_UNUSED)
 				{
-					if (input.Centroid)
+					if (input.Centroid && state.multiSample > 1)
 					{
 						routine.inputs[interpolant] =
 								interpolateCentroid(XXXX, YYYY, rhwCentroid,
