@@ -3183,16 +3183,16 @@ namespace rr
 
 		// returns the printf value(s) for the given LValue.
 		template <typename T>
-		static std::vector<Value*> val(const LValue<T>& v) { return val(RValue<T>(v.loadValue())); };
+		static std::vector<Value*> val(const LValue<T>& v) { return val(RValue<T>(v.loadValue())); }
 
 		// returns the printf value(s) for the given RValue.
 		template <typename T>
-		static std::vector<Value*> val(const RValue<T>& v) { return Ty<T>::val(v); };
+		static std::vector<Value*> val(const RValue<T>& v) { return Ty<T>::val(v); }
 
 		// returns the printf value from for the given type with a
 		// PrintValue::Ty<T> specialization.
 		template <typename T>
-		static std::vector<Value*> val(const T& v) { return Ty<T>::val(v); };
+		static std::vector<Value*> val(const T& v) { return Ty<T>::val(v); }
 
 		// returns the printf values for all the values in the given array.
 		template <typename T>
@@ -3205,7 +3205,7 @@ namespace rr
 				values.insert(values.end(), v.begin(), v.end());
 			}
 			return values;
-		};
+		}
 
 		// fmt returns a comma-delimited list of the string el repeated count
 		// times enclosed in square brackets.
