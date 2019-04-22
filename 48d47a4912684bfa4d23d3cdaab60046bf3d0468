@@ -57,6 +57,30 @@
       "revId": "48d47a4912684bfa4d23d3cdaab60046bf3d0468",
       "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2ab6464d_3049be63",
+        "filename": "src/Shader/VertexProgram.cpp",
+        "patchSetId": 3
+      },
+      "lineNbr": 982,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-04-22T21:19:57Z",
+      "side": 1,
+      "message": "Thanks for the suggestion. However, please note that this code is part of our OpenGL ES stack, which is in maintenance mode. We\u0027re concentrating on implementing Vulkan, and will use ANGLE to provide legacy OpenGL ES support. Hence we won\u0027t be making changes to this code any more unless really necessary.",
+      "parentUuid": "64b7bfb8_ad20b36f",
+      "range": {
+        "startLine": 982,
+        "startChar": 84,
+        "endLine": 982,
+        "endChar": 112
+      },
+      "revId": "48d47a4912684bfa4d23d3cdaab60046bf3d0468",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
     }
   ]
 }
