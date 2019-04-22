@@ -245,31 +245,6 @@ uint8_t* DescriptorSetLayout::getOffsetPointer(DescriptorSet *descriptorSet, uin
 	return &descriptorSet->data[byteOffset];
 }
 
-const uint8_t* DescriptorSetLayout::GetInputData(const VkWriteDescriptorSet& writeDescriptorSet)
-{
-	switch(writeDescriptorSet.descriptorType)
-	{
-	case VK_DESCRIPTOR_TYPE_SAMPLER:
-	case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
-	case VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE:
-	case VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT:
-		return reinterpret_cast<const uint8_t*>(writeDescriptorSet.pImageInfo);
-	case VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER:
-		return reinterpret_cast<const uint8_t*>(writeDescriptorSet.pTexelBufferView);
-	case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
-	case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER:
-	case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:
-	case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC:
-		return reinterpret_cast<const uint8_t*>(writeDescriptorSet.pBufferInfo);
-	case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
-	case VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER:
-		ASSERT("descriptorType has custom handling");
-	default:
-		UNIMPLEMENTED("descriptorType");
-		return nullptr;
-	}
-}
-
 void DescriptorSetLayout::WriteDescriptorSet(DescriptorSet *dstSet, VkDescriptorUpdateTemplateEntry const &entry, char const *src)
 {
 	DescriptorSetLayout* dstLayout = dstSet->layout;
@@ -439,7 +414,8 @@ void DescriptorSetLayout::WriteDescriptorSet(DescriptorSet *dstSet, VkDescriptor
 			}
 		}
 	}
-	else if (entry.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_IMAGE)
+	else if (entry.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_IMAGE ||
+			 entry.descriptorType == VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT)
 	{
 		auto descriptor = reinterpret_cast<StorageImageDescriptor *>(memToWrite);
 		for(uint32_t i = 0; i < entry.descriptorCount; i++)

@@ -98,7 +98,6 @@ public:
 private:
 	size_t getDescriptorSetDataSize() const;
 	uint32_t getBindingIndex(uint32_t binding) const;
-	static const uint8_t* GetInputData(const VkWriteDescriptorSet& descriptorWrites);
 	static bool isDynamic(VkDescriptorType type);
 
 	VkDescriptorSetLayoutCreateFlags flags;
