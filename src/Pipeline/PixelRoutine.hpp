@@ -89,8 +89,6 @@ namespace sw
 
 		void writeDepth32F(Pointer<Byte> &zBuffer, int q, Int &x, Float4 &z, Int &zMask);
 		void writeDepth16(Pointer<Byte> &zBuffer, int q, Int &x, Float4 &z, Int &zMask);
-
-		bool colorUsed();
 	};
 }
 

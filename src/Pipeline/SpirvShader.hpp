@@ -511,6 +511,11 @@ namespace sw
 			return inputBuiltins.find(b) != inputBuiltins.end();
 		}
 
+		bool hasBuiltinOutput(spv::BuiltIn b) const
+		{
+			return outputBuiltins.find(b) != outputBuiltins.end();
+		}
+
 		struct Decorations
 		{
 			int32_t Location = -1;

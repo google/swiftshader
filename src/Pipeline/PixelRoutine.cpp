@@ -181,27 +181,27 @@ namespace sw
 
 			Bool alphaPass = true;
 
-			if(colorUsed())
+			#if PERF_PROFILE
+				Long shaderTime = Ticks();
+			#endif
+
+			if (spirvShader)
 			{
-				#if PERF_PROFILE
-					Long shaderTime = Ticks();
-				#endif
-
 				applyShader(cMask);
+			}
 
-				#if PERF_PROFILE
-					cycles[PERF_SHADER] += Ticks() - shaderTime;
-				#endif
+			#if PERF_PROFILE
+				cycles[PERF_SHADER] += Ticks() - shaderTime;
+			#endif
 
-				alphaPass = alphaTest(cMask);
+			alphaPass = alphaTest(cMask);
 
-				if((spirvShader && spirvShader->getModes().ContainsKill) || state.alphaToCoverage)
+			if((spirvShader && spirvShader->getModes().ContainsKill) || state.alphaToCoverage)
+			{
+				for(unsigned int q = 0; q < state.multiSample; q++)
 				{
-					for(unsigned int q = 0; q < state.multiSample; q++)
-					{
-						zMask[q] &= cMask[q];
-						sMask[q] &= cMask[q];
-					}
+					zMask[q] &= cMask[q];
+					sMask[q] &= cMask[q];
 				}
 			}
 
@@ -234,14 +234,11 @@ namespace sw
 						}
 					}
 
-					if(colorUsed())
-					{
-						#if PERF_PROFILE
-							AddAtomic(Pointer<Long>(&profiler.ropOperations), 4);
-						#endif
+					#if PERF_PROFILE
+						AddAtomic(Pointer<Long>(&profiler.ropOperations), 4);
+					#endif
 
-						rasterOperation(cBuffer, x, sMask, zMask, cMask);
-					}
+					rasterOperation(cBuffer, x, sMask, zMask, cMask);
 				}
 
 				#if PERF_PROFILE
@@ -2473,10 +2470,5 @@ namespace sw
 		linear = linear * Float4(0.73f) + linear * x * Float4(0.27f);
 
 		return Min(Max(linear, Float4(0.0f)), Float4(1.0f));
-	}
-
-	bool PixelRoutine::colorUsed()
-	{
-		return state.colorWriteMask || state.alphaToCoverage || (spirvShader && spirvShader->getModes().ContainsKill);
 	}
 }
