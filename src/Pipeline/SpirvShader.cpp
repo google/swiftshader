@@ -22,6 +22,7 @@
 #include "Vulkan/VkDescriptorSet.hpp"
 #include "Vulkan/VkPipelineLayout.hpp"
 #include "Vulkan/VkDescriptorSetLayout.hpp"
+#include "Vulkan/VkRenderPass.hpp"
 #include "Device/Config.hpp"
 
 #include <spirv/unified1/spirv.hpp>
@@ -218,6 +219,7 @@ namespace
 		}};
 	}
 
+
 	sw::SIMD::Pointer interleaveByLane(sw::SIMD::Pointer p)
 	{
 		p *= sw::SIMD::Width;
@@ -226,6 +228,30 @@ namespace
 		p.staticOffsets[2] += 2 * sizeof(float);
 		p.staticOffsets[3] += 3 * sizeof(float);
 		return p;
+	}
+
+	VkFormat SpirvFormatToVulkanFormat(spv::ImageFormat format)
+	{
+		switch (format)
+		{
+		case spv::ImageFormatRgba32f: return VK_FORMAT_R32G32B32A32_SFLOAT;
+		case spv::ImageFormatRgba32i: return VK_FORMAT_R32G32B32A32_SINT;
+		case spv::ImageFormatRgba32ui: return VK_FORMAT_R32G32B32A32_UINT;
+		case spv::ImageFormatR32f: return VK_FORMAT_R32_SFLOAT;
+		case spv::ImageFormatR32i: return VK_FORMAT_R32_SINT;
+		case spv::ImageFormatR32ui: return VK_FORMAT_R32_UINT;
+		case spv::ImageFormatRgba8: return VK_FORMAT_R8G8B8A8_UNORM;
+		case spv::ImageFormatRgba8Snorm: return VK_FORMAT_R8G8B8A8_SNORM;
+		case spv::ImageFormatRgba8i: return VK_FORMAT_R8G8B8A8_SINT;
+		case spv::ImageFormatRgba8ui: return VK_FORMAT_R8G8B8A8_UINT;
+		case spv::ImageFormatRgba16f: return VK_FORMAT_R16G16B16A16_SFLOAT;
+		case spv::ImageFormatRgba16i: return VK_FORMAT_R16G16B16A16_SINT;
+		case spv::ImageFormatRgba16ui: return VK_FORMAT_R16G16B16A16_UINT;
+
+		default:
+			UNIMPLEMENTED("SPIR-V ImageFormat %u", format);
+			return VK_FORMAT_UNDEFINED;
+		}
 	}
 
 } // anonymous namespace
@@ -317,12 +343,25 @@ namespace sw
 
 	volatile int SpirvShader::serialCounter = 1;    // Start at 1, 0 is invalid shader.
 
-	SpirvShader::SpirvShader(InsnStore const &insns)
+	SpirvShader::SpirvShader(InsnStore const &insns, vk::RenderPass *renderPass, uint32_t subpassIndex)
 			: insns{insns}, inputs{MAX_INTERFACE_COMPONENTS},
 			  outputs{MAX_INTERFACE_COMPONENTS},
 			  serialID{serialCounter++}, modes{}
 	{
 		ASSERT(insns.size() > 0);
+
+		if (renderPass != VK_NULL_HANDLE)
+		{
+			// capture formats of any input attachments present
+			auto subpass = renderPass->getSubpass(subpassIndex);
+			inputAttachmentFormats.reserve(subpass.inputAttachmentCount);
+			for (auto i = 0u; i < subpass.inputAttachmentCount; i++)
+			{
+				auto attachmentIndex = subpass.pInputAttachments[i].attachment;
+				inputAttachmentFormats.push_back(attachmentIndex != VK_ATTACHMENT_UNUSED
+												 ? renderPass->getAttachment(attachmentIndex).format : VK_FORMAT_UNDEFINED);
+			}
+		}
 
 		// Simplifying assumptions (to be satisfied by earlier transformations)
 		// - There is exactly one entrypoint in the module, and it's the one we want
@@ -356,6 +395,9 @@ namespace sw
 					break;
 				case spv::DecorationBinding:
 					descriptorDecorations[targetId].Binding = value;
+					break;
+				case spv::DecorationInputAttachmentIndex:
+					descriptorDecorations[targetId].InputAttachmentIndex = value;
 					break;
 				default:
 					// Only handling descriptor decorations here.
@@ -1683,6 +1725,11 @@ namespace sw
 		if(src.Binding >= 0)
 		{
 			Binding = src.Binding;
+		}
+
+		if (src.InputAttachmentIndex >= 0)
+		{
+			InputAttachmentIndex = src.InputAttachmentIndex;
 		}
 	}
 
@@ -4524,15 +4571,24 @@ namespace sw
 		return EmitResult::Continue;
 	}
 
-	SIMD::Pointer SpirvShader::GetTexelAddress(SIMD::Pointer ptr, GenericValue const & coordinate, Type const & imageType, Pointer<Byte> descriptor, int texelSize) const
+	SIMD::Pointer SpirvShader::GetTexelAddress(SpirvRoutine const *routine, SIMD::Pointer ptr, GenericValue const & coordinate, Type const & imageType, Pointer<Byte> descriptor, int texelSize) const
 	{
 		bool isArrayed = imageType.definition.word(5) != 0;
+		auto dim = static_cast<spv::Dim>(imageType.definition.word(3));
 		int dims = getType(coordinate.type).sizeInComponents - (isArrayed ? 1 : 0);
 
-		ptr += coordinate.Int(0) * SIMD::Int(texelSize);
+		SIMD::Int u = coordinate.Int(0);
+		SIMD::Int v = (getType(coordinate.type).sizeInComponents > 1) ? coordinate.Int(1) : RValue<SIMD::Int>(0);
+		if (dim == spv::DimSubpassData)
+		{
+			u += routine->windowSpacePosition[0];
+			v += routine->windowSpacePosition[1];
+		}
+
+		ptr += u * SIMD::Int(texelSize);
 		if (dims > 1)
 		{
-			ptr += coordinate.Int(1) * SIMD::Int(
+			ptr += v * SIMD::Int(
 					*Pointer<Int>(descriptor + OFFSET(vk::StorageImageDescriptor, rowPitchBytes)));
 		}
 		if (dims > 2)
@@ -4561,131 +4617,96 @@ namespace sw
 		ASSERT(insn.wordCount() == 5);
 
 		ASSERT(imageType.definition.opcode() == spv::OpTypeImage);
+		auto dim = static_cast<spv::Dim>(imageType.definition.word(3));
 
 		auto coordinate = GenericValue(this, state->routine, insn.word(4));
 
 		auto pointer = state->routine->getPointer(imageId);
 		Pointer<Byte> binding = pointer.base;
 		Pointer<Byte> imageBase = *Pointer<Pointer<Byte>>(binding + OFFSET(vk::StorageImageDescriptor, ptr));
+		const DescriptorDecorations &d = descriptorDecorations.at(imageId);
 		auto imageSizeInBytes = *Pointer<Int>(binding + OFFSET(vk::StorageImageDescriptor, sizeInBytes));
 
 		auto &dst = state->routine->createIntermediate(resultId, resultType.sizeInComponents);
 
-		SIMD::Int packed[4];
-		auto numPackedElements = 0u;
-		int texelSize = 0;
-		auto format = static_cast<spv::ImageFormat>(imageType.definition.word(8));
-		switch (format)
-		{
-		case spv::ImageFormatRgba32f:
-		case spv::ImageFormatRgba32i:
-		case spv::ImageFormatRgba32ui:
-			texelSize = 16;
-			numPackedElements = 4;
-			break;
-		case spv::ImageFormatR32f:
-		case spv::ImageFormatR32i:
-		case spv::ImageFormatR32ui:
-			texelSize = 4;
-			numPackedElements = 1;
-			break;
-		case spv::ImageFormatRgba8:
-			texelSize = 4;
-			numPackedElements = 1;
-			break;
-		case spv::ImageFormatRgba8Snorm:
-			texelSize = 4;
-			numPackedElements = 1;
-			break;
-		case spv::ImageFormatRgba8i:
-		case spv::ImageFormatRgba8ui:
-			texelSize = 4;
-			numPackedElements = 1;
-			break;
-		case spv::ImageFormatRgba16f:
-			texelSize = 8;
-			numPackedElements = 2;
-			break;
-		case spv::ImageFormatRgba16i:
-		case spv::ImageFormatRgba16ui:
-			texelSize = 8;
-			numPackedElements = 2;
-			break;
-		default:
-			UNIMPLEMENTED("spv::ImageFormat %u", format);
-		}
-
+		// For subpass data, format in the instruction is spv::ImageFormatUnknown. Get it from
+		// the renderpass data instead. In all other cases, we can use the format in the instruction.
+		auto vkFormat = (dim == spv::DimSubpassData)
+						? inputAttachmentFormats[d.InputAttachmentIndex]
+						: SpirvFormatToVulkanFormat(static_cast<spv::ImageFormat>(imageType.definition.word(8)));
+		auto texelSize = vk::Format(vkFormat).bytes();
 		auto basePtr = SIMD::Pointer(imageBase, imageSizeInBytes);
-		auto texelPtr = GetTexelAddress(basePtr, coordinate, imageType, binding, texelSize);
+		auto texelPtr = GetTexelAddress(state->routine, basePtr, coordinate, imageType, binding, texelSize);
 
-		for (auto i = 0u; i < numPackedElements; i++)
+		SIMD::Int packed[4];
+		for (auto i = 0; i < texelSize/4; i++)
 		{
 			packed[i] = SIMD::Load<SIMD::Int>(texelPtr, state->activeLaneMask());
 			texelPtr += sizeof(float);
 		}
 
-		switch(format)
+		switch(vkFormat)
 		{
-		case spv::ImageFormatRgba32f:
-		case spv::ImageFormatRgba32i:
-		case spv::ImageFormatRgba32ui:
+		case VK_FORMAT_R32G32B32A32_SFLOAT:
+		case VK_FORMAT_R32G32B32A32_SINT:
+		case VK_FORMAT_R32G32B32A32_UINT:
 			dst.move(0, packed[0]);
 			dst.move(1, packed[1]);
 			dst.move(2, packed[2]);
 			dst.move(3, packed[3]);
 			break;
-		case spv::ImageFormatR32i:
-		case spv::ImageFormatR32ui:
+		case VK_FORMAT_R32_SINT:
+		case VK_FORMAT_R32_UINT:
 			dst.move(0, packed[0]);
 			// Fill remaining channels with 0,0,1 (of the correct type)
 			dst.move(1, SIMD::Int(0));
 			dst.move(2, SIMD::Int(0));
 			dst.move(3, SIMD::Int(1));
 			break;
-		case spv::ImageFormatR32f:
+		case VK_FORMAT_R32_SFLOAT:
 			dst.move(0, packed[0]);
 			// Fill remaining channels with 0,0,1 (of the correct type)
 			dst.move(1, SIMD::Float(0));
 			dst.move(2, SIMD::Float(0));
 			dst.move(3, SIMD::Float(1));
 			break;
-		case spv::ImageFormatRgba16i:
+		case VK_FORMAT_R16G16B16A16_SINT:
 			dst.move(0, (packed[0] << 16) >> 16);
 			dst.move(1, (packed[0]) >> 16);
 			dst.move(2, (packed[1] << 16) >> 16);
 			dst.move(3, (packed[1]) >> 16);
 			break;
-		case spv::ImageFormatRgba16ui:
+		case VK_FORMAT_R16G16B16A16_UINT:
 			dst.move(0, packed[0] & SIMD::Int(0xffff));
 			dst.move(1, (packed[0] >> 16) & SIMD::Int(0xffff));
 			dst.move(2, packed[1] & SIMD::Int(0xffff));
 			dst.move(3, (packed[1] >> 16) & SIMD::Int(0xffff));
 			break;
-		case spv::ImageFormatRgba16f:
+		case VK_FORMAT_R16G16B16A16_SFLOAT:
 			dst.move(0, HalfToFloatBits(As<SIMD::UInt>(packed[0]) & SIMD::UInt(0x0000FFFF)));
 			dst.move(1, HalfToFloatBits((As<SIMD::UInt>(packed[0]) & SIMD::UInt(0xFFFF0000)) >> 16));
 			dst.move(2, HalfToFloatBits(As<SIMD::UInt>(packed[1]) & SIMD::UInt(0x0000FFFF)));
 			dst.move(3, HalfToFloatBits((As<SIMD::UInt>(packed[1]) & SIMD::UInt(0xFFFF0000)) >> 16));
 			break;
-		case spv::ImageFormatRgba8Snorm:
+		case VK_FORMAT_R8G8B8A8_SNORM:
 			dst.move(0, Min(Max(SIMD::Float(((packed[0]<<24) & SIMD::Int(0xFF000000))) * SIMD::Float(1.0f / float(0x7f000000)), SIMD::Float(-1.0f)), SIMD::Float(1.0f)));
 			dst.move(1, Min(Max(SIMD::Float(((packed[0]<<16) & SIMD::Int(0xFF000000))) * SIMD::Float(1.0f / float(0x7f000000)), SIMD::Float(-1.0f)), SIMD::Float(1.0f)));
 			dst.move(2, Min(Max(SIMD::Float(((packed[0]<<8) & SIMD::Int(0xFF000000))) * SIMD::Float(1.0f / float(0x7f000000)), SIMD::Float(-1.0f)), SIMD::Float(1.0f)));
 			dst.move(3, Min(Max(SIMD::Float(((packed[0]) & SIMD::Int(0xFF000000))) * SIMD::Float(1.0f / float(0x7f000000)), SIMD::Float(-1.0f)), SIMD::Float(1.0f)));
 			break;
-		case spv::ImageFormatRgba8:
+		case VK_FORMAT_R8G8B8A8_UNORM:
 			dst.move(0, SIMD::Float((packed[0] & SIMD::Int(0xFF))) * SIMD::Float(1.0f / 255.f));
 			dst.move(1, SIMD::Float(((packed[0]>>8) & SIMD::Int(0xFF))) * SIMD::Float(1.0f / 255.f));
 			dst.move(2, SIMD::Float(((packed[0]>>16) & SIMD::Int(0xFF))) * SIMD::Float(1.0f / 255.f));
 			dst.move(3, SIMD::Float(((packed[0]>>24) & SIMD::Int(0xFF))) * SIMD::Float(1.0f / 255.f));
 			break;
-		case spv::ImageFormatRgba8ui:
+		case VK_FORMAT_R8G8B8A8_UINT:
 			dst.move(0, (As<SIMD::UInt>(packed[0]) & SIMD::UInt(0xFF)));
 			dst.move(1, ((As<SIMD::UInt>(packed[0])>>8) & SIMD::UInt(0xFF)));
 			dst.move(2, ((As<SIMD::UInt>(packed[0])>>16) & SIMD::UInt(0xFF)));
 			dst.move(3, ((As<SIMD::UInt>(packed[0])>>24) & SIMD::UInt(0xFF)));
 			break;
-		case spv::ImageFormatRgba8i:
+		case VK_FORMAT_R8G8B8A8_SINT:
 			dst.move(0, (packed[0] << 24) >> 24);
 			dst.move(1, (packed[0] << 16) >> 24);
 			dst.move(2, (packed[0] << 8) >> 24);
@@ -4786,7 +4807,7 @@ namespace sw
 		}
 
 		auto basePtr = SIMD::Pointer(imageBase, imageSizeInBytes);
-		auto texelPtr = GetTexelAddress(basePtr, coordinate, imageType, binding, texelSize);
+		auto texelPtr = GetTexelAddress(state->routine, basePtr, coordinate, imageType, binding, texelSize);
 
 		for (auto i = 0u; i < numPackedElements; i++)
 		{
@@ -4818,7 +4839,7 @@ namespace sw
 		auto imageSizeInBytes = *Pointer<Int>(binding + OFFSET(vk::StorageImageDescriptor, sizeInBytes));
 
 		auto basePtr = SIMD::Pointer(imageBase, imageSizeInBytes);
-		auto ptr = GetTexelAddress(basePtr, coordinate, imageType, binding, sizeof(uint32_t));
+		auto ptr = GetTexelAddress(state->routine, basePtr, coordinate, imageType, binding, sizeof(uint32_t));
 
 		state->routine->createPointer(resultId, ptr);
 
