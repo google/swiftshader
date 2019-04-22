@@ -765,6 +765,10 @@ struct ClearAttachment : public CommandBuffer::Command
 
 	void play(CommandBuffer::ExecutionState& executionState) override
 	{
+		// attachment clears are drawing operations, and so have rasterization-order guarantees.
+		// however, we don't do the clear through the rasterizer, so need to ensure prior drawing
+		// has completed first.
+		executionState.renderer->synchronize();
 		executionState.renderPassFramebuffer->clear(executionState.renderPass, attachment, rect);
 	}
 
