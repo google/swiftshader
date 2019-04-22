@@ -145,8 +145,6 @@ dEQP-VK.binding_model.shader_access.primary_cmd_buf.with_template.storage_image.
 dEQP-VK.binding_model.shader_access.primary_cmd_buf.with_template.storage_image.compute.single_descriptor.cube_array_base_slice
 dEQP-VK.binding_model.shader_access.primary_cmd_buf.with_template.storage_image.compute.single_descriptor.cube_base_mip
 dEQP-VK.binding_model.shader_access.primary_cmd_buf.with_template.storage_image.compute.single_descriptor.cube_base_slice
-dEQP-VK.draw.basic_draw.draw_indexed_indirect.line_strip.1_multi_command
-dEQP-VK.draw.basic_draw.draw_indirect.triangle_strip.1_multi_command
 dEQP-VK.glsl.texture_functions.texture.isampler2d_bias_fragment
 dEQP-VK.glsl.texture_functions.texture.isampler2d_fragment
 dEQP-VK.glsl.texture_functions.texture.usampler2d_bias_fragment
