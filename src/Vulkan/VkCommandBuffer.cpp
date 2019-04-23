@@ -15,6 +15,7 @@
 #include "VkCommandBuffer.hpp"
 #include "VkBuffer.hpp"
 #include "VkEvent.hpp"
+#include "VkFence.hpp"
 #include "VkFramebuffer.hpp"
 #include "VkImage.hpp"
 #include "VkImageView.hpp"
@@ -523,7 +524,8 @@ struct DrawBase : public CommandBuffer::Command
 		for(uint32_t instance = firstInstance; instance != firstInstance + instanceCount; instance++)
 		{
 			executionState.renderer->setInstanceID(instance);
-			executionState.renderer->draw(context.topology, executionState.indexType, primitiveCount, vertexOffset);
+			executionState.renderer->draw(context.topology, executionState.indexType, primitiveCount, vertexOffset,
+			                              executionState.fence);
 			executionState.renderer->advanceInstanceAttributes();
 		}
 	}
@@ -843,11 +845,8 @@ struct SignalEvent : public CommandBuffer::Command
 
 	void play(CommandBuffer::ExecutionState& executionState) override
 	{
-		if(Cast(ev)->signal())
-		{
-			// Was waiting for signal on this event, sync now
-			executionState.renderer->synchronize();
-		}
+		executionState.renderer->synchronize();
+		Cast(ev)->signal();
 	}
 
 private:
@@ -879,11 +878,8 @@ struct WaitEvent : public CommandBuffer::Command
 
 	void play(CommandBuffer::ExecutionState& executionState) override
 	{
-		if(!Cast(ev)->wait())
-		{
-			// Already signaled, sync now
-			executionState.renderer->synchronize();
-		}
+		executionState.renderer->synchronize();
+		Cast(ev)->wait();
 	}
 
 private:

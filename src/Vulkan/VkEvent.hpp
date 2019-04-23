@@ -16,6 +16,8 @@
 #define VK_EVENT_HPP_
 
 #include "VkObject.hpp"
+#include <condition_variable>
+#include <mutex>
 
 namespace vk
 {
@@ -34,37 +36,38 @@ public:
 		return 0;
 	}
 
-	bool signal()
+	void signal()
 	{
+		std::unique_lock<std::mutex> lock(mutex);
 		status = VK_EVENT_SET;
-		bool wasWaiting = waiting;
-		waiting = false;
-		return wasWaiting;
+		lock.unlock();
+		condition.notify_all();
 	}
 
 	void reset()
 	{
+		std::unique_lock<std::mutex> lock(mutex);
 		status = VK_EVENT_RESET;
 	}
 
-	VkResult getStatus() const
+	VkResult getStatus()
 	{
-		return status;
+		std::unique_lock<std::mutex> lock(mutex);
+		auto result = status;
+		lock.unlock();
+		return result;
 	}
 
-	bool wait()
+	void wait()
 	{
-		if(status != VK_EVENT_SET)
-		{
-			waiting = true;
-		}
-
-		return waiting;
+		std::unique_lock<std::mutex> lock(mutex);
+		condition.wait(lock, [this] { return status == VK_EVENT_SET; });
 	}
 
 private:
-	VkResult status = VK_EVENT_RESET;
-	bool waiting = false;
+	VkResult status = VK_EVENT_RESET; // guarded by mutex
+	std::mutex mutex;
+	std::condition_variable condition;
 };
 
 static inline Event* Cast(VkEvent object)

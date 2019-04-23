@@ -17,10 +17,21 @@
 #include "VkConfig.h"
 #include "VkDebug.hpp"
 #include "VkDescriptorSetLayout.hpp"
+#include "VkFence.hpp"
 #include "VkQueue.hpp"
 #include "Device/Blitter.hpp"
 
+#include <chrono>
+#include <climits>
 #include <new> // Must #include this to use "placement new"
+
+namespace
+{
+	std::chrono::time_point<std::chrono::system_clock, std::chrono::nanoseconds> now()
+	{
+		return std::chrono::time_point_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now());
+	}
+}
 
 namespace vk
 {
@@ -42,7 +53,7 @@ Device::Device(const Device::CreateInfo* info, void* mem)
 
 		for(uint32_t j = 0; j < queueCreateInfo.queueCount; j++, queueID++)
 		{
-			new (&queues[queueID]) Queue(queueCreateInfo.queueFamilyIndex, queueCreateInfo.pQueuePriorities[j]);
+			new (&queues[queueID]) Queue();
 		}
 	}
 
@@ -86,17 +97,85 @@ VkQueue Device::getQueue(uint32_t queueFamilyIndex, uint32_t queueIndex) const
 	return queues[queueIndex];
 }
 
-void Device::waitForFences(uint32_t fenceCount, const VkFence* pFences, VkBool32 waitAll, uint64_t timeout)
+VkResult Device::waitForFences(uint32_t fenceCount, const VkFence* pFences, VkBool32 waitAll, uint64_t timeout)
 {
-	// FIXME(b/117835459) : noop
+	const time_point start = now();
+	const uint64_t max_timeout = (LLONG_MAX - start.time_since_epoch().count());
+	bool infiniteTimeout = (timeout > max_timeout);
+	const time_point end_ns = start + std::chrono::nanoseconds(std::min(max_timeout, timeout));
+	if(waitAll) // All fences must be signaled
+	{
+		for(uint32_t i = 0; i < fenceCount; i++)
+		{
+			if(timeout == 0)
+			{
+				if(Cast(pFences[i])->getStatus() != VK_SUCCESS) // At least one fence is not signaled
+				{
+					return VK_TIMEOUT;
+				}
+			}
+			else if(infiniteTimeout)
+			{
+				if(Cast(pFences[i])->wait() != VK_SUCCESS) // At least one fence is not signaled
+				{
+					return VK_TIMEOUT;
+				}
+			}
+			else
+			{
+				if(Cast(pFences[i])->waitUntil(end_ns) != VK_SUCCESS) // At least one fence is not signaled
+				{
+					return VK_TIMEOUT;
+				}
+			}
+		}
+
+		return VK_SUCCESS;
+	}
+	else // At least one fence must be signaled
+	{
+		// Start by quickly checking the status of all fences, as only one is required
+		for(uint32_t i = 0; i < fenceCount; i++)
+		{
+			if(Cast(pFences[i])->getStatus() == VK_SUCCESS) // At least one fence is signaled
+			{
+				return VK_SUCCESS;
+			}
+		}
+
+		if(timeout > 0)
+		{
+			for(uint32_t i = 0; i < fenceCount; i++)
+			{
+				if(infiniteTimeout)
+				{
+					if(Cast(pFences[i])->wait() == VK_SUCCESS) // At least one fence is signaled
+					{
+						return VK_SUCCESS;
+					}
+				}
+				else
+				{
+					if(Cast(pFences[i])->waitUntil(end_ns) == VK_SUCCESS) // At least one fence is signaled
+					{
+						return VK_SUCCESS;
+					}
+				}
+			}
+		}
+
+		return VK_TIMEOUT;
+	}
 }
 
-void Device::waitIdle()
+VkResult Device::waitIdle()
 {
 	for(uint32_t i = 0; i < queueCount; i++)
 	{
 		queues[i].waitIdle();
 	}
+
+	return VK_SUCCESS;
 }
 
 void Device::getDescriptorSetLayoutSupport(const VkDescriptorSetLayoutCreateInfo* pCreateInfo,
