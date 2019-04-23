@@ -1,3 +1,4 @@
+dEQP-VK.api.info.android.no_layers
 dEQP-VK.api.version_check.entry_points
 dEQP-VK.binding_model.shader_access.primary_cmd_buf.storage_image.compute.descriptor_array.1d
 dEQP-VK.binding_model.shader_access.primary_cmd_buf.storage_image.compute.descriptor_array.1d_array
