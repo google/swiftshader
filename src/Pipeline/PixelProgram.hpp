@@ -16,7 +16,6 @@
 #define sw_PixelProgram_hpp
 
 #include "PixelRoutine.hpp"
-#include "SamplerCore.hpp"
 
 namespace sw
 {

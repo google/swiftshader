@@ -14,6 +14,7 @@
 
 #include "SamplerCore.hpp"
 
+#include "PixelRoutine.hpp"
 #include "Constants.hpp"
 #include "Vulkan/VkDebug.hpp"
 

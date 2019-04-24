@@ -333,7 +333,9 @@ namespace sw
 
 		for (auto insn : *this)
 		{
-			switch (insn.opcode())
+			spv::Op opcode = insn.opcode();
+
+			switch (opcode)
 			{
 			case spv::OpExecutionMode:
 				ProcessExecutionMode(insn);
@@ -444,7 +446,7 @@ namespace sw
 				blocks[currentBlock] = Block(blockStart, blockEnd);
 				currentBlock = Block::ID(0);
 
-				if (insn.opcode() == spv::OpKill)
+				if (opcode == spv::OpKill)
 				{
 					modes.ContainsKill = true;
 				}
@@ -639,7 +641,7 @@ namespace sw
 			case spv::OpSpecConstantTrue:
 				// These should have all been removed by preprocessing passes. If we see them here,
 				// our assumptions are wrong and we will probably generate wrong code.
-				UNIMPLEMENTED("%s should have already been lowered.", OpcodeName(insn.opcode()).c_str());
+				UNIMPLEMENTED("%s should have already been lowered.", OpcodeName(opcode).c_str());
 				break;
 
 			case spv::OpFConvert:
@@ -667,7 +669,7 @@ namespace sw
 
 					DefineResult(insn);
 
-					if (insn.opcode() == spv::OpAccessChain || insn.opcode() == spv::OpInBoundsAccessChain)
+					if (opcode == spv::OpAccessChain || opcode == spv::OpInBoundsAccessChain)
 					{
 						Decorations dd{};
 						ApplyDecorationsForAccessChain(&dd, pointerId, insn.wordCount() - 4, insn.wordPointer(4));
@@ -787,6 +789,7 @@ namespace sw
 			case spv::OpAtomicCompareExchange:
 			case spv::OpPhi:
 			case spv::OpImageSampleImplicitLod:
+			case spv::OpImageSampleExplicitLod:
 			case spv::OpImageQuerySize:
 			case spv::OpImageRead:
 			case spv::OpImageTexelPointer:
@@ -811,7 +814,7 @@ namespace sw
 			}
 
 			default:
-				UNIMPLEMENTED("%s", OpcodeName(insn.opcode()).c_str());
+				UNIMPLEMENTED("%s", OpcodeName(opcode).c_str());
 			}
 		}
 
@@ -2315,6 +2318,9 @@ namespace sw
 
 		case spv::OpImageSampleImplicitLod:
 			return EmitImageSampleImplicitLod(insn, state);
+
+		case spv::OpImageSampleExplicitLod:
+			return EmitImageSampleExplicitLod(insn, state);
 
 		case spv::OpImageQuerySize:
 			return EmitImageQuerySize(insn, state);
@@ -4364,6 +4370,16 @@ namespace sw
 
 	SpirvShader::EmitResult SpirvShader::EmitImageSampleImplicitLod(InsnIterator insn, EmitState *state) const
 	{
+		return EmitImageSample(getImageSamplerImplicitLod, insn, state);
+	}
+
+	SpirvShader::EmitResult SpirvShader::EmitImageSampleExplicitLod(InsnIterator insn, EmitState *state) const
+	{
+		return EmitImageSample(getImageSamplerExplicitLod, insn, state);
+	}
+
+	SpirvShader::EmitResult SpirvShader::EmitImageSample(GetImageSampler getImageSampler, InsnIterator insn, EmitState *state) const
+	{
 		Type::ID resultTypeId = insn.word(1);
 		Object::ID resultId = insn.word(2);
 		Object::ID sampledImageId = insn.word(3);
@@ -4373,6 +4389,7 @@ namespace sw
 		auto &result = state->routine->createIntermediate(resultId, resultType.sizeInComponents);
 		auto &sampledImage = state->routine->getPointer(sampledImageId);
 		auto coordinate = GenericValue(this, state->routine, coordinateId);
+		auto &coordinateType = getType(coordinate.type);
 
 		Pointer<Byte> constants;  // FIXME(b/129523279)
 
@@ -4382,9 +4399,75 @@ namespace sw
 
 		auto samplerFunc = Call(getImageSampler, imageView, sampler);
 
-		Array<SIMD::Float> in(2);
-		in[0] = coordinate.Float(0);
-		in[1] = coordinate.Float(1);
+		uint32_t imageOperands = spv::ImageOperandsMaskNone;
+		bool bias = false;
+		bool lod = false;
+		Object::ID lodId = 0;
+		bool grad = false;
+		bool constOffset = false;
+		bool sample = false;
+
+		if(insn.wordCount() > 5)
+		{
+			imageOperands = static_cast<spv::ImageOperandsMask>(insn.word(5));
+			uint32_t operand = 6;
+
+			if(imageOperands & spv::ImageOperandsBiasMask)
+			{
+				UNIMPLEMENTED("Image operand %x", spv::ImageOperandsBiasMask); (void)bias;
+				bias = true;
+				imageOperands &= ~spv::ImageOperandsBiasMask;
+			}
+
+			if(imageOperands & spv::ImageOperandsLodMask)
+			{
+				lod = true;
+				lodId = insn.word(operand);
+				operand++;
+				imageOperands &= ~spv::ImageOperandsLodMask;
+			}
+
+			if(imageOperands & spv::ImageOperandsGradMask)
+			{
+				UNIMPLEMENTED("Image operand %x", spv::ImageOperandsGradMask); (void)grad;
+				grad = true;
+				imageOperands &= ~spv::ImageOperandsGradMask;
+			}
+
+			if(imageOperands & spv::ImageOperandsConstOffsetMask)
+			{
+				UNIMPLEMENTED("Image operand %x", spv::ImageOperandsConstOffsetMask); (void)constOffset;
+				constOffset = true;
+				imageOperands &= ~spv::ImageOperandsConstOffsetMask;
+			}
+
+			if(imageOperands & spv::ImageOperandsSampleMask)
+			{
+				UNIMPLEMENTED("Image operand %x", spv::ImageOperandsSampleMask); (void)sample;
+				sample = true;
+				imageOperands &= ~spv::ImageOperandsSampleMask;
+			}
+
+			if(imageOperands != 0)
+			{
+				UNIMPLEMENTED("Image operand %x", imageOperands);
+			}
+		}
+
+		Array<SIMD::Float> in(coordinateType.sizeInComponents + lod);
+
+		uint32_t i = 0;
+		for( ; i < coordinateType.sizeInComponents; i++)
+		{
+			in[i] = coordinate.Float(i);
+		}
+
+		if(lod)
+		{
+			auto lodValue = GenericValue(this, state->routine, lodId);
+			in[i] = lodValue.Float(0);
+			i++;
+		}
 
 		Array<SIMD::Float> out(4);
 		Call<ImageSampler>(samplerFunc, sampledImage.base, &in[0], &out[0]);

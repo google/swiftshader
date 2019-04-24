@@ -39,14 +39,23 @@
 
 namespace sw {
 
-SpirvShader::ImageSampler *SpirvShader::getImageSampler(const vk::ImageView *imageView, const vk::Sampler *sampler)
+SpirvShader::ImageSampler *SpirvShader::getImageSamplerImplicitLod(const vk::ImageView *imageView, const vk::Sampler *sampler)
 {
-	// TODO: Move somewhere sensible.
+	return getImageSampler(Implicit, imageView, sampler);
+}
+SpirvShader::ImageSampler *SpirvShader::getImageSamplerExplicitLod(const vk::ImageView *imageView, const vk::Sampler *sampler)
+{
+	return getImageSampler(Lod, imageView, sampler);
+}
+
+SpirvShader::ImageSampler *SpirvShader::getImageSampler(SamplerMethod samplerMethod, const vk::ImageView *imageView, const vk::Sampler *sampler)
+{
+	// TODO(b/129523279): Move somewhere sensible.
 	static std::unordered_map<uintptr_t, ImageSampler*> cache;
 	static std::mutex mutex;
 
-	// TODO: Don't use pointers they can be deleted and reused, combine some two
-	// unique ids.
+	// FIXME(b/129523279): Don't use pointers: they can be deleted and reused. Instead combine some two unique ids.
+	// FIXME(b/129523279): Take instruction opcode and optional parameters into acount (SamplerMethod / SamplerOption).
 	auto key = reinterpret_cast<uintptr_t>(imageView) ^ reinterpret_cast<uintptr_t>(sampler);
 
 	std::unique_lock<std::mutex> lock(mutex);
@@ -58,13 +67,14 @@ SpirvShader::ImageSampler *SpirvShader::getImageSampler(const vk::ImageView *ima
 	Pointer<Byte> image = function.Arg<0>();
 	Pointer<SIMD::Float> in = function.Arg<1>();
 	Pointer<SIMD::Float> out = function.Arg<2>();
-	emitSamplerFunction(imageView, sampler, image, in, out);
+	emitSamplerFunction(samplerMethod, imageView, sampler, image, in, out);
 	auto fptr = reinterpret_cast<ImageSampler*>((void *)function("sampler")->getEntry());
 	cache.emplace(key, fptr);
 	return fptr;
 }
 
 void SpirvShader::emitSamplerFunction(
+        SamplerMethod samplerMethod,
         const vk::ImageView *imageView, const vk::Sampler *sampler,
         Pointer<Byte> image, Pointer<SIMD::Float> in, Pointer<Byte> out)
 {
@@ -102,11 +112,16 @@ void SpirvShader::emitSamplerFunction(
 	Pointer<Byte> texture = image + OFFSET(vk::SampledImageDescriptor, texture);  // sw::Texture*
 	SIMD::Float w(0);     // TODO(b/129523279)
 	SIMD::Float q(0);     // TODO(b/129523279)
-	SIMD::Float bias(0);  // TODO(b/129523279)
+	SIMD::Float bias(0);
 	Vector4f dsx;         // TODO(b/129523279)
 	Vector4f dsy;         // TODO(b/129523279)
 	Vector4f offset;      // TODO(b/129523279)
-	SamplerFunction samplerFunction = { Implicit, None };  // ASSERT(insn.wordCount() == 5);  // TODO(b/129523279)
+	SamplerFunction samplerFunction = { samplerMethod, None };  // TODO(b/129523279)
+
+	if(samplerMethod == Lod)
+	{
+		bias = in[2];  // TODO(b/129523279): Index depends on view dimensions and other optional operands.
+	}
 
 	Vector4f sample = s.sampleTexture(texture, u, v, w, q, bias, dsx, dsy, offset, samplerFunction);
 

@@ -18,10 +18,6 @@
 #include "VertexRoutine.hpp"
 #include "ShaderCore.hpp"
 
-#include "SamplerCore.hpp"
-#include "Device/Stream.hpp"
-#include "System/Types.hpp"
-
 namespace sw
 {
 	struct Stream;
