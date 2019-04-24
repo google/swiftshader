@@ -41,7 +41,7 @@ class RenderbufferInterface
 public:
 	RenderbufferInterface();
 
-	virtual ~RenderbufferInterface() {};
+	virtual ~RenderbufferInterface() {}
 
 	virtual void addProxyRef(const Renderbuffer *proxy);
     virtual void releaseProxy(const Renderbuffer *proxy);

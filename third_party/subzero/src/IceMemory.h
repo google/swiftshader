@@ -139,7 +139,7 @@ public:
   using manager_type = Cfg;
   static constexpr bool cache_allocator = false;
 
-  static void init() { ICE_TLS_INIT_FIELD(CfgAllocator); };
+  static void init() { ICE_TLS_INIT_FIELD(CfgAllocator); }
 
   static allocator_type current();
   static void set_current(const manager_type *Manager);
@@ -166,7 +166,7 @@ public:
   using manager_type = Liveness;
   static constexpr bool cache_allocator = true;
 
-  static void init() { ICE_TLS_INIT_FIELD(LivenessAllocator); };
+  static void init() { ICE_TLS_INIT_FIELD(LivenessAllocator); }
 
   static allocator_type current();
   static void set_current(const manager_type *Manager);

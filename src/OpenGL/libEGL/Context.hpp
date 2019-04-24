@@ -44,7 +44,7 @@ public:
 
 protected:
 	Context(egl::Display *display) : display(display) {}
-	virtual ~Context() {};
+	virtual ~Context() {}
 
 	egl::Display *const display;
 };

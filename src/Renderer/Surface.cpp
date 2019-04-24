@@ -1230,7 +1230,7 @@ namespace sw
 			: Surface(width, height, depth, format, pixels, pitch, slice) {}
 		SurfaceImplementation(Resource *texture, int width, int height, int depth, int border, int samples, Format format, bool lockable, bool renderTarget, int pitchP = 0)
 			: Surface(texture, width, height, depth, border, samples, format, lockable, renderTarget, pitchP) {}
-		~SurfaceImplementation() override {};
+		~SurfaceImplementation() override {}
 
 		void *lockInternal(int x, int y, int z, Lock lock, Accessor client) override
 		{

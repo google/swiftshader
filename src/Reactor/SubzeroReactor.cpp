@@ -430,8 +430,8 @@ namespace rr
 	template<typename T>
 	struct ExecutableAllocator
 	{
-		ExecutableAllocator() {};
-		template<class U> ExecutableAllocator(const ExecutableAllocator<U> &other) {};
+		ExecutableAllocator() {}
+		template<class U> ExecutableAllocator(const ExecutableAllocator<U> &other) {}
 
 		using value_type = T;
 		using size_type = std::size_t;

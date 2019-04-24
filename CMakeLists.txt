@@ -241,6 +241,7 @@ else()
         list(APPEND SWIFTSHADER_COMPILE_OPTIONS
             "-Werror=unused-lambda-capture"
             "-Werror=string-conversion"
+            "-Werror=extra-semi"
         )
     endif()
 
