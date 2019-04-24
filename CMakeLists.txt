@@ -237,7 +237,7 @@ else()
         "-Werror=missing-braces"
     )
 
-    if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
         list(APPEND SWIFTSHADER_COMPILE_OPTIONS
             "-Werror=unused-lambda-capture"
             "-Werror=string-conversion"
