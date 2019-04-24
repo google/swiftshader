@@ -78,13 +78,10 @@ void SpirvShader::emitSamplerFunction(
         const vk::ImageView *imageView, const vk::Sampler *sampler,
         Pointer<Byte> image, Pointer<SIMD::Float> in, Pointer<Byte> out)
 {
-	SIMD::Float u = in[0];
-	SIMD::Float v = in[1];
-
 	Pointer<Byte> constants;  // FIXME(b/129523279)
 
 	Sampler::State samplerState;
-	samplerState.textureType = TEXTURE_2D;                  ASSERT(imageView->getType() == VK_IMAGE_VIEW_TYPE_2D);  // TODO(b/129523279)
+	samplerState.textureType = convertTextureType(imageView->getType());
 	samplerState.textureFormat = imageView->getFormat();
 	samplerState.textureFilter = convertFilterMode(sampler);
 
@@ -110,6 +107,7 @@ void SpirvShader::emitSamplerFunction(
 	SamplerCore s(constants, samplerState);
 
 	Pointer<Byte> texture = image + OFFSET(vk::SampledImageDescriptor, texture);  // sw::Texture*
+	SIMD::Float uv[2];
 	SIMD::Float w(0);     // TODO(b/129523279)
 	SIMD::Float q(0);     // TODO(b/129523279)
 	SIMD::Float bias(0);
@@ -118,18 +116,55 @@ void SpirvShader::emitSamplerFunction(
 	Vector4f offset;      // TODO(b/129523279)
 	SamplerFunction samplerFunction = { samplerMethod, None };  // TODO(b/129523279)
 
-	if(samplerMethod == Lod)
+	// TODO(b/129523279): Currently 1D textures are treated as 2D by setting the second coordinate to 0.
+	// Implement optimized 1D sampling.
+	uv[1] = SIMD::Float(0);
+
+	int coordinateCount = 0;
+	switch(imageView->getType())
 	{
-		bias = in[2];  // TODO(b/129523279): Index depends on view dimensions and other optional operands.
+	case VK_IMAGE_VIEW_TYPE_1D: coordinateCount = 1; break;
+	case VK_IMAGE_VIEW_TYPE_2D: coordinateCount = 2; break;
+	default:
+		UNIMPLEMENTED("imageView type %d", imageView->getType());
 	}
 
-	Vector4f sample = s.sampleTexture(texture, u, v, w, q, bias, dsx, dsy, offset, samplerFunction);
+	for(int i = 0; i < coordinateCount; i++)
+	{
+		uv[i] = in[i];
+	}
+
+	if(samplerMethod == Lod)
+	{
+		// Lod is the second optional image operand, and is incompatible with the first one (Bias),
+		// so it always comes after the coordinates.
+		bias = in[coordinateCount];
+	}
+
+	Vector4f sample = s.sampleTexture(texture, uv[0], uv[1], w, q, bias, dsx, dsy, offset, samplerFunction);
 
 	Pointer<SIMD::Float> rgba = out;
 	rgba[0] = sample.x;
 	rgba[1] = sample.y;
 	rgba[2] = sample.z;
 	rgba[3] = sample.w;
+}
+
+sw::TextureType SpirvShader::convertTextureType(VkImageViewType imageViewType)
+{
+	switch(imageViewType)
+	{
+	case VK_IMAGE_VIEW_TYPE_1D:         return TEXTURE_1D;
+	case VK_IMAGE_VIEW_TYPE_2D:         return TEXTURE_2D;
+//	case VK_IMAGE_VIEW_TYPE_3D:         return TEXTURE_3D;
+//	case VK_IMAGE_VIEW_TYPE_CUBE:       return TEXTURE_CUBE;
+//	case VK_IMAGE_VIEW_TYPE_1D_ARRAY:   return TEXTURE_1D_ARRAY;
+//	case VK_IMAGE_VIEW_TYPE_2D_ARRAY:   return TEXTURE_2D_ARRAY;
+//	case VK_IMAGE_VIEW_TYPE_CUBE_ARRAY: return TEXTURE_CUBE_ARRAY;
+	default:
+		UNIMPLEMENTED("imageViewType %d", imageViewType);
+		return TEXTURE_2D;
+	}
 }
 
 sw::FilterType SpirvShader::convertFilterMode(const vk::Sampler *sampler)
