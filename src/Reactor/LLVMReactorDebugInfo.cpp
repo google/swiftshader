@@ -19,10 +19,6 @@
 #include "Reactor.hpp"
 #include "LLVMReactor.hpp"
 
-#if REACTOR_LLVM_VERSION < 7
-#error "ENABLE_RR_DEBUG_INFO can currently only be used with LLVM 7+"
-#endif
-
 #include "backtrace.h"
 
 #include "llvm/Demangle/Demangle.h"
