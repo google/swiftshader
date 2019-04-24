@@ -42,5 +42,8 @@ struct gralloc_module_t {
     int (*unlockAsync)(gralloc_module_t const*, buffer_handle_t, int*);
     int (*lockAsync_ycbcr)(gralloc_module_t const*, buffer_handle_t, int, int, int, int, int,
                            android_ycbcr*, int);
-    void* reserved_proc[3];
+    int32_t (*getTransportSize)(gralloc_module_t const*, buffer_handle_t, uint32_t, uint32_t);
+    int32_t (*validateBufferSize)(gralloc_module_t const*, buffer_handle_t, uint32_t, uint32_t, int32_t, int, uint32_t);
+
+    void* reserved_proc[1];
 };
