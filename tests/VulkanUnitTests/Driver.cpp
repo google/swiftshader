@@ -32,11 +32,11 @@
 
 Driver::Driver() : vk_icdGetInstanceProcAddr(nullptr), dll(nullptr)
 {
-#define VK_GLOBAL(N, R, ...) N = nullptr;
+#define VK_GLOBAL(N, R, ...) N = nullptr
 #include "VkGlobalFuncs.hpp"
 #undef VK_GLOBAL
 
-#define VK_INSTANCE(N, R, ...) N = nullptr;
+#define VK_INSTANCE(N, R, ...) N = nullptr
 #include "VkInstanceFuncs.hpp"
 #undef VK_INSTANCE
 }
@@ -122,11 +122,11 @@ void Driver::unload()
     dlclose(dll);
 #endif
 
-#define VK_GLOBAL(N, R, ...) N = nullptr;
+#define VK_GLOBAL(N, R, ...) N = nullptr
 #include "VkGlobalFuncs.hpp"
 #undef VK_GLOBAL
 
-#define VK_INSTANCE(N, R, ...) N = nullptr;
+#define VK_INSTANCE(N, R, ...) N = nullptr
 #include "VkInstanceFuncs.hpp"
 #undef VK_INSTANCE
 }
