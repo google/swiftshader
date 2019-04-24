@@ -178,6 +178,7 @@ cc_defaults {
         "Reactor/LLVMReactor.cpp",
         "Reactor/Routine.cpp",
         "Reactor/LLVMRoutine.cpp",
+        "Reactor/Debug.cpp",
     ],
 
     cflags: [
@@ -198,6 +199,7 @@ cc_defaults {
         "Reactor/LLVMReactor.cpp",
         "Reactor/Routine.cpp",
         "Reactor/LLVMRoutine.cpp",
+        "Reactor/Debug.cpp",
     ],
 
     cflags: [
@@ -225,6 +227,7 @@ cc_defaults {
         "Reactor/SubzeroReactor.cpp",
         "Reactor/Routine.cpp",
         "Reactor/Optimizer.cpp",
+        "Reactor/Debug.cpp",
     ],
 
     static_libs: [
