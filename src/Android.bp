@@ -626,6 +626,7 @@ cc_defaults {
             header_libs: [
                 "swiftshader_platform_headers",
 				"vulkan_headers",
+                "hwvulkan_headers",
             ],
             shared_libs: [
                 "libnativewindow",
