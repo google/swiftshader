@@ -242,6 +242,7 @@ else()
             "-Werror=unused-lambda-capture"
             "-Werror=string-conversion"
             "-Werror=extra-semi"
+            "-Werror=ignored-qualifiers"
         )
     endif()
 
