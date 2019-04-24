@@ -160,7 +160,7 @@ void DescriptorSetLayout::initialize(VkDescriptorSet vkDescriptorSet)
 			for(uint32_t j = 0; j < bindings[i].descriptorCount; j++)
 			{
 				SampledImageDescriptor* imageSamplerDescriptor = reinterpret_cast<SampledImageDescriptor*>(mem);
-				imageSamplerDescriptor->sampler = vk::Cast(bindings[i].pImmutableSamplers[j]);
+				imageSamplerDescriptor->updateSampler(vk::Cast(bindings[i].pImmutableSamplers[j]));
 				mem += typeSize;
 			}
 		}
@@ -245,6 +245,14 @@ uint8_t* DescriptorSetLayout::getOffsetPointer(DescriptorSet *descriptorSet, uin
 	return &descriptorSet->data[byteOffset];
 }
 
+void SampledImageDescriptor::updateSampler(const vk::Sampler *sampler)
+{
+	this->sampler = sampler;
+
+	texture.minLod = sw::clamp(sampler->minLod, 0.0f, (float)(sw::MAX_TEXTURE_LOD));
+	texture.maxLod = sw::clamp(sampler->maxLod, 0.0f, (float)(sw::MAX_TEXTURE_LOD));
+}
+
 void DescriptorSetLayout::WriteDescriptorSet(DescriptorSet *dstSet, VkDescriptorUpdateTemplateEntry const &entry, char const *src)
 {
 	DescriptorSetLayout* dstLayout = dstSet->layout;
@@ -269,15 +277,8 @@ void DescriptorSetLayout::WriteDescriptorSet(DescriptorSet *dstSet, VkDescriptor
 			//  descriptorCount of zero, must all either use immutable samplers or must all not use immutable samplers."
 			if(!binding.pImmutableSamplers)
 			{
-				vk::Sampler *sampler = vk::Cast(update->sampler);
-
-				imageSampler[i].sampler = sampler;
-
-				texture->minLod = sw::clamp(sampler->minLod, 0.0f, (float)(sw::MAX_TEXTURE_LOD));
-				texture->maxLod = sw::clamp(sampler->maxLod, 0.0f, (float)(sw::MAX_TEXTURE_LOD));
+				imageSampler[i].updateSampler(vk::Cast(update->sampler));
 			}
-
-			memset(texture, 0, sizeof(sw::Texture));  // TODO(b/129523279): eliminate
 
 			imageSampler[i].imageView = imageView;
 

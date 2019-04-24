@@ -29,9 +29,11 @@ class DescriptorSet;
 // TODO(b/129523279): Move to the Device or Pipeline layer.
 struct SampledImageDescriptor
 {
+	void updateSampler(const vk::Sampler *sampler);
+
 	// TODO(b/129523279): Minimize to the data actually needed.
-	vk::Sampler *sampler;
-	vk::ImageView *imageView;
+	const vk::Sampler *sampler;
+	const vk::ImageView *imageView;
 
 	sw::Texture texture;
 };
