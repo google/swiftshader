@@ -50,11 +50,9 @@ namespace sw
 	public:
 		SamplerCore(Pointer<Byte> &constants, const Sampler::State &state);
 
-		Vector4f sampleTextureF(Pointer<Byte> &texture, Float4 &u, Float4 &v, Float4 &w, Float4 &q, Float4 &bias, Vector4f &dsx, Vector4f &dsy, Vector4f &offset, SamplerFunction function);
+		Vector4f sampleTexture(Pointer<Byte> &texture, Float4 &u, Float4 &v, Float4 &w, Float4 &q, Float4 &bias, Vector4f &dsx, Vector4f &dsy, Vector4f &offset, SamplerFunction function);
 
 	private:
-		Vector4s sampleTexture(Pointer<Byte> &texture, Float4 &u, Float4 &v, Float4 &w, Float4 &q, Float4 &bias, Vector4f &dsx, Vector4f &dsy, Vector4f &offset, SamplerFunction function);
-
 		void border(Short4 &mask, Float4 &coordinates);
 		void border(Int4 &mask, Float4 &coordinates);
 		Short4 offsetSample(Short4 &uvw, Pointer<Byte> &mipmap, int halfOffset, bool wrap, int count, Float &lod);

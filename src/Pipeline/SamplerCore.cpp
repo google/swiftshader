@@ -40,9 +40,9 @@ namespace sw
 	{
 	}
 
-	Vector4s SamplerCore::sampleTexture(Pointer<Byte> &texture, Float4 &u, Float4 &v, Float4 &w, Float4 &q, Float4 &bias, Vector4f &dsx, Vector4f &dsy, Vector4f &offset, SamplerFunction function)
+	Vector4f SamplerCore::sampleTexture(Pointer<Byte> &texture, Float4 &u, Float4 &v, Float4 &w, Float4 &q, Float4 &bias, Vector4f &dsx, Vector4f &dsy, Vector4f &offset, SamplerFunction function)
 	{
-		Vector4s c;
+		Vector4f c;
 
 		#if PERF_PROFILE
 			AddAtomic(Pointer<Long>(&profiler.texOperations), 4);
@@ -82,57 +82,12 @@ namespace sw
 			computeLod3D(texture, lod, uuuu, vvvv, wwww, bias.x, dsx, dsy, function);
 		}
 
-		return sampleFilter(texture, uuuu, vvvv, wwww, offset, lod, anisotropy, uDelta, vDelta, face, function);
-	}
-
-	Vector4f SamplerCore::sampleTextureF(Pointer<Byte> &texture, Float4 &u, Float4 &v, Float4 &w, Float4 &q, Float4 &bias, Vector4f &dsx, Vector4f &dsy, Vector4f &offset, SamplerFunction function)
-	{
-		Vector4f c;
-
-		#if PERF_PROFILE
-			AddAtomic(Pointer<Long>(&profiler.texOperations), 4);
-
-			if(state.compressedFormat)
-			{
-				AddAtomic(Pointer<Long>(&profiler.compressedTex), 4);
-			}
-		#endif
-
 		// FIXME: YUV is not supported by the floating point path
 		bool forceFloatFiltering = state.highPrecisionFiltering && !hasYuvFormat() && (state.textureFilter != FILTER_POINT);
 		bool seamlessCube = (state.addressingModeU == ADDRESSING_SEAMLESS);
 		bool rectangleTexture = (state.textureType == TEXTURE_RECTANGLE);
 		if(hasFloatTexture() || hasUnnormalizedIntegerTexture() || forceFloatFiltering || seamlessCube || rectangleTexture)   // FIXME: Mostly identical to integer sampling
 		{
-			Float4 uuuu = u;
-			Float4 vvvv = v;
-			Float4 wwww = w;
-			Float4 qqqq = q;
-
-			Int face[4];
-			Float lod;
-			Float anisotropy;
-			Float4 uDelta;
-			Float4 vDelta;
-
-			if(state.textureType != TEXTURE_3D)
-			{
-				if(state.textureType != TEXTURE_CUBE)
-				{
-					computeLod(texture, lod, anisotropy, uDelta, vDelta, uuuu, vvvv, bias.x, dsx, dsy, function);
-				}
-				else
-				{
-					Float4 M;
-					cubeFace(face, uuuu, vvvv, u, v, w, M);
-					computeLodCube(texture, lod, u, v, w, bias.x, dsx, dsy, M, function);
-				}
-			}
-			else
-			{
-				computeLod3D(texture, lod, uuuu, vvvv, wwww, bias.x, dsx, dsy, function);
-			}
-
 			c = sampleFloatFilter(texture, uuuu, vvvv, wwww, qqqq, offset, lod, anisotropy, uDelta, vDelta, face, function);
 
 			if(!hasFloatTexture() && !hasUnnormalizedIntegerTexture())
@@ -161,7 +116,7 @@ namespace sw
 		}
 		else
 		{
-			Vector4s cs = sampleTexture(texture, u, v, w, q, bias, dsx, dsy, offset, function);
+			Vector4s cs = sampleFilter(texture, uuuu, vvvv, wwww, offset, lod, anisotropy, uDelta, vDelta, face, function);
 
 			if(state.textureFormat ==  VK_FORMAT_R5G6B5_UNORM_PACK16)
 			{

@@ -108,25 +108,13 @@ void SpirvShader::emitSamplerFunction(
 	Vector4f offset;      // TODO(b/129523279)
 	SamplerFunction samplerFunction = { Implicit, None };  // ASSERT(insn.wordCount() == 5);  // TODO(b/129523279)
 
-	Vector4f sample = s.sampleTextureF(texture, u, v, w, q, bias, dsx, dsy, offset, samplerFunction);
+	Vector4f sample = s.sampleTexture(texture, u, v, w, q, bias, dsx, dsy, offset, samplerFunction);
 
-	if(!vk::Format(imageView->getFormat()).isNonNormalizedInteger())
-	{
-		Pointer<SIMD::Float> rgba = out;
-		rgba[0] = sample.x;
-		rgba[1] = sample.y;
-		rgba[2] = sample.z;
-		rgba[3] = sample.w;
-	}
-	else
-	{
-		// TODO(b/129523279): Add a Sampler::sampleTextureI() method.
-		Pointer<SIMD::Int> rgba = out;
-		rgba[0] = As<SIMD::Int>(sample.x * SIMD::Float(0xFF));
-		rgba[1] = As<SIMD::Int>(sample.y * SIMD::Float(0xFF));
-		rgba[2] = As<SIMD::Int>(sample.z * SIMD::Float(0xFF));
-		rgba[3] = As<SIMD::Int>(sample.w * SIMD::Float(0xFF));
-	}
+	Pointer<SIMD::Float> rgba = out;
+	rgba[0] = sample.x;
+	rgba[1] = sample.y;
+	rgba[2] = sample.z;
+	rgba[3] = sample.w;
 }
 
 sw::FilterType SpirvShader::convertFilterMode(const vk::Sampler *sampler)
