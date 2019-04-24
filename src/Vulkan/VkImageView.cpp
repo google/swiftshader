@@ -15,12 +15,25 @@
 #include "VkImageView.hpp"
 #include "VkImage.hpp"
 
+namespace
+{
+	VkComponentMapping ResolveIdentityMapping(VkComponentMapping m)
+	{
+		return {
+			(m.r == VK_COMPONENT_SWIZZLE_IDENTITY) ? VK_COMPONENT_SWIZZLE_R : m.r,
+			(m.g == VK_COMPONENT_SWIZZLE_IDENTITY) ? VK_COMPONENT_SWIZZLE_G : m.g,
+			(m.b == VK_COMPONENT_SWIZZLE_IDENTITY) ? VK_COMPONENT_SWIZZLE_B : m.b,
+			(m.a == VK_COMPONENT_SWIZZLE_IDENTITY) ? VK_COMPONENT_SWIZZLE_A : m.a,
+		};
+	}
+}
+
 namespace vk
 {
 
 ImageView::ImageView(const VkImageViewCreateInfo* pCreateInfo, void* mem) :
 	image(Cast(pCreateInfo->image)), viewType(pCreateInfo->viewType), format(pCreateInfo->format),
-	components(pCreateInfo->components), subresourceRange(pCreateInfo->subresourceRange)
+	components(ResolveIdentityMapping(pCreateInfo->components)), subresourceRange(pCreateInfo->subresourceRange)
 {
 }
 
