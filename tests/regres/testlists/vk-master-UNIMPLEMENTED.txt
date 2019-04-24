@@ -16647,9 +16647,6 @@ dEQP-VK.pipeline.input_assembly.primitive_restart.index_type_uint16.triangle_str
 dEQP-VK.pipeline.input_assembly.primitive_restart.index_type_uint32.line_strip
 dEQP-VK.pipeline.input_assembly.primitive_restart.index_type_uint32.triangle_fan
 dEQP-VK.pipeline.input_assembly.primitive_restart.index_type_uint32.triangle_strip
-dEQP-VK.pipeline.multisample.alpha_to_coverage.samples_4.alpha_invisible
-dEQP-VK.pipeline.multisample.alpha_to_coverage.samples_4.alpha_opaque
-dEQP-VK.pipeline.multisample.alpha_to_coverage.samples_4.alpha_translucent
 dEQP-VK.pipeline.multisample.sampled_image.64x64_1.r16g16_sint.samples_4
 dEQP-VK.pipeline.multisample.sampled_image.64x64_1.r32_uint.samples_4
 dEQP-VK.pipeline.multisample.sampled_image.64x64_1.r32g32b32a32_sfloat.samples_4
