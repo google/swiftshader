@@ -212,6 +212,9 @@ set(HELLO2_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/PowerVR_SDK/Examples/Begi
 # Compile flags
 ###########################################################
 
+# Flags for project code (non 3rd party)
+set(SWIFTSHADER_COMPILE_OPTIONS "")
+
 macro(set_cpp_flag FLAG)
     if(${ARGC} GREATER 1)
         set(CMAKE_CXX_FLAGS_${ARGV1} "${CMAKE_CXX_FLAGS_${ARGV1}} ${FLAG}")
@@ -226,20 +229,26 @@ if(MSVC)
     add_definitions(-D_SBCS)  # Single Byte Character Set (ASCII)
 else()
     set_cpp_flag("--std=c++11")
-    set_cpp_flag("-Wall")
-    set_cpp_flag("-Werror=reorder")
-    set_cpp_flag("-Werror=sign-compare")
-    set_cpp_flag("-Werror=missing-braces")
-    set_cpp_flag("-fno-exceptions")
+    list(APPEND SWIFTSHADER_COMPILE_OPTIONS
+        "-fno-exceptions"
+        "-Wall"
+        "-Werror=reorder"
+        "-Werror=sign-compare"
+        "-Werror=missing-braces"
+    )
 
     if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-        set_cpp_flag("-Werror=unused-lambda-capture")
-        set_cpp_flag("-Werror=string-conversion")
+        list(APPEND SWIFTSHADER_COMPILE_OPTIONS
+            "-Werror=unused-lambda-capture"
+            "-Werror=string-conversion"
+        )
     endif()
 
     # Remove xor, and, or and friends from the list of keywords, they are used
     # by Reactor
-    set_cpp_flag("-fno-operator-names")
+    list(APPEND SWIFTSHADER_COMPILE_OPTIONS
+        "-fno-operator-names"
+    )
 
     # LLVM headers requires these flags to be set
     set_cpp_flag("-D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS")
@@ -287,24 +296,28 @@ else()
     endif()
 
     if(DCHECK_ALWAYS_ON)
-        set_cpp_flag("-DDCHECK_ALWAYS_ON")
+        list(APPEND SWIFTSHADER_COMPILE_OPTIONS "-DDCHECK_ALWAYS_ON")
     endif()
 
     if(REACTOR_EMIT_DEBUG_INFO)
-        set_cpp_flag("-DENABLE_RR_DEBUG_INFO")
+        list(APPEND SWIFTSHADER_COMPILE_OPTIONS "-DENABLE_RR_DEBUG_INFO")
     endif()
 
     # Disable pedanitc warnings
     if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-        set_cpp_flag("-Wno-ignored-attributes")  # ignoring attributes on template argument 'X'
-        set_cpp_flag("-Wno-attributes")          # 'X' attribute ignored
-        set_cpp_flag("-Wno-strict-aliasing")     # dereferencing type-punned pointer will break strict-aliasing rules
-        set_cpp_flag("-Wno-comment")             # multi-line comment
+        list(APPEND SWIFTSHADER_COMPILE_OPTIONS
+            "-Wno-ignored-attributes"   # ignoring attributes on template argument 'X'
+            "-Wno-attributes"           # 'X' attribute ignored
+            "-Wno-strict-aliasing"      # dereferencing type-punned pointer will break strict-aliasing rules
+            "-Wno-comment"              # multi-line comment
+        )
     elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-        set_cpp_flag("-Wno-unneeded-internal-declaration") # function 'X' is not needed and will not be emitted
-        set_cpp_flag("-Wno-unused-private-field")          # private field 'offset' is not used - TODO: Consider enabling this once Vulkan is further implemented.
-        set_cpp_flag("-Wno-comment")                       # multi-line comment
-        set_cpp_flag("-Wno-undefined-var-template")        # instantiation of variable 'X' required here, but no definition is available
+        list(APPEND SWIFTSHADER_COMPILE_OPTIONS
+            "-Wno-unneeded-internal-declaration"  # function 'X' is not needed and will not be emitted
+            "-Wno-unused-private-field"           # private field 'offset' is not used - TODO: Consider enabling this once Vulkan is further implemented.
+            "-Wno-comment"                        # multi-line comment
+            "-Wno-undefined-var-template"         # instantiation of variable 'X' required here, but no definition is available
+        )
     endif()
 
     # For distribution it is more important to be slim than super optimized
@@ -1431,9 +1444,9 @@ list(APPEND LLVM_INCLUDE_DIR
 )
 
 # Suppress known LLVM warnings
-set(LLVM_COMPILE_FLAGS)
+set(LLVM_COMPILE_OPTIONS)
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-    list(APPEND LLVM_COMPILE_FLAGS
+    list(APPEND LLVM_COMPILE_OPTIONS
         "-Wno-noexcept-type"           # mangled name for ‘X’ will change in C++17 because the exception specification is part of a function type
         "-Wno-maybe-uninitialized"     # ‘X’ may be used uninitialized in this function
         "-Wno-unused-but-set-variable" # variable ‘X’ set but not used
@@ -1450,15 +1463,14 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
         "/wd4805" # 'X': unsafe mix of type 'unsigned int' and type 'bool' in operation
         "/wd4996" # 'X': Call to 'Y' with parameters that may be unsafe - this call relies on the caller to check that the passed values are correct.
     )
-    set(LLVM_COMPILE_FLAGS "/D \"_SCL_SECURE_NO_WARNINGS\" ${LLVM_DISABLE_WARNINGS}")
+    set(LLVM_COMPILE_OPTIONS "/D \"_SCL_SECURE_NO_WARNINGS\" ${LLVM_DISABLE_WARNINGS}")
 endif()
-string (REPLACE ";" " " LLVM_COMPILE_FLAGS "${LLVM_COMPILE_FLAGS}")
 
 add_library(llvm STATIC ${LLVM_LIST})
 set_target_properties(llvm PROPERTIES
     POSITION_INDEPENDENT_CODE 1
     INCLUDE_DIRECTORIES "${LLVM_INCLUDE_DIR}"
-    COMPILE_FLAGS "${LLVM_COMPILE_FLAGS}"
+    COMPILE_OPTIONS "${LLVM_COMPILE_OPTIONS}"
     COMPILE_DEFINITIONS "__STDC_CONSTANT_MACROS; __STDC_LIMIT_MACROS;"
     FOLDER "LLVM"
 )
@@ -1578,10 +1590,10 @@ if(${REACTOR_BACKEND} STREQUAL "Subzero")
         ${SUBZERO_DEPENDENCIES_LIST}
         ${SUBZERO_REACTOR_LIST}
     )
-
     set_target_properties(ReactorSubzero PROPERTIES
         POSITION_INDEPENDENT_CODE 1
         INCLUDE_DIRECTORIES "${SUBZERO_INCLUDE_DIR}"
+        COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS}"
         COMPILE_DEFINITIONS "SZTARGET=${SUBZERO_TARGET}; ALLOW_DUMP=0; ALLOW_TIMERS=0; ALLOW_LLVM_CL=0; ALLOW_LLVM_IR=0; ALLOW_LLVM_IR_AS_INPUT=0; ALLOW_MINIMAL_BUILD=0; ALLOW_WASM=0; ICE_THREAD_LOCAL_HACK=0;"
         FOLDER "Subzero"
     )
@@ -1858,6 +1870,7 @@ set_target_properties(SwiftShader PROPERTIES
     INCLUDE_DIRECTORIES "${COMMON_INCLUDE_DIR}"
     POSITION_INDEPENDENT_CODE 1
     FOLDER "Core"
+    COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS}"
     COMPILE_DEFINITIONS "NO_SANITIZE_FUNCTION=;"
 )
 target_link_libraries(SwiftShader ${OS_LIBS})
@@ -1894,6 +1907,7 @@ set_target_properties(GLCompiler PROPERTIES
     INCLUDE_DIRECTORIES "${OPENGL_INCLUDE_DIR}"
     POSITION_INDEPENDENT_CODE 1
     FOLDER "OpenGL"
+    COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS}"
 )
 target_link_libraries(GLCompiler ${OS_LIBS})
 
@@ -1908,6 +1922,7 @@ if(BUILD_EGL)
     set_target_properties(libEGL PROPERTIES
         INCLUDE_DIRECTORIES "${OPENGL_INCLUDE_DIR}"
         FOLDER "OpenGL"
+        COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS}"
         COMPILE_DEFINITIONS "EGL_EGLEXT_PROTOTYPES; EGLAPI=; NO_SANITIZE_FUNCTION=;"
         PREFIX ""
     )
@@ -1931,6 +1946,7 @@ if(BUILD_GLESv2)
     set_target_properties(libGLESv2 PROPERTIES
         INCLUDE_DIRECTORIES "${OPENGL_INCLUDE_DIR}"
         FOLDER "OpenGL"
+        COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS}"
         COMPILE_DEFINITIONS "GL_GLEXT_PROTOTYPES; GL_API=; GL_APICALL=; GLAPI=; NO_SANITIZE_FUNCTION=;"
         PREFIX ""
     )
@@ -1954,6 +1970,7 @@ if(BUILD_GLES_CM)
     set_target_properties(libGLES_CM PROPERTIES
         INCLUDE_DIRECTORIES "${OPENGL_INCLUDE_DIR}"
         FOLDER "OpenGL"
+        COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS}"
         COMPILE_DEFINITIONS "GL_GLEXT_PROTOTYPES; EGLAPI=; GL_API=; GL_APICALL=; GLAPI=;"
         PREFIX ""
     )
@@ -1983,6 +2000,7 @@ if(BUILD_VULKAN)
     set_target_properties(libvk_swiftshader PROPERTIES
         INCLUDE_DIRECTORIES "${VULKAN_INCLUDE_DIR}"
         FOLDER "Vulkan"
+        COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS}"
         COMPILE_DEFINITIONS "NO_SANITIZE_FUNCTION=;"
         PREFIX ""
     )
@@ -2010,6 +2028,7 @@ if(BUILD_SAMPLES)
         add_executable(OGLES2HelloAPI ${HELLO2_DIR}/OGLES2HelloAPI_Windows.cpp)
         set_target_properties(OGLES2HelloAPI PROPERTIES
             INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/include"
+            COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS}"
             COMPILE_DEFINITIONS "GL_GLEXT_PROTOTYPES"
             FOLDER "Samples"
         )
@@ -2020,6 +2039,7 @@ if(BUILD_SAMPLES)
         add_executable(OGLES2HelloAPI ${HELLO2_DIR}/OGLES2HelloAPI_LinuxX11.cpp)
         set_target_properties(OGLES2HelloAPI PROPERTIES
             INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/include"
+            COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS}"
             COMPILE_DEFINITIONS "GL_GLEXT_PROTOTYPES"
         )
         target_link_libraries(OGLES2HelloAPI dl X11 libEGL libGLESv2)   # Explicitly link our "lib*" targets, not the platform provided "EGL" and "GLESv2"
@@ -2030,8 +2050,8 @@ if(BUILD_SAMPLES)
         )
         set_target_properties(OGLES2HelloAPI PROPERTIES
             INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/include"
+            COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS};-Wno-deprecated-declarations" # 'NSTitledWindowMask', 'NSClosableWindowMask' is deprecated
             COMPILE_DEFINITIONS "GL_GLEXT_PROTOTYPES"
-            COMPILE_FLAGS "-Wno-deprecated-declarations" # 'NSTitledWindowMask', 'NSClosableWindowMask' is deprecated
             MACOSX_BUNDLE_INFO_PLIST "${HELLO2_DIR}/Build/OSX/Info.plist"
         )
         target_link_libraries(OGLES2HelloAPI libEGL libGLESv2 ${OS_LIBS})
@@ -2055,6 +2075,7 @@ if(BUILD_TESTS)
     add_executable(ReactorUnitTests ${REACTOR_UNIT_TESTS_LIST})
     set_target_properties(ReactorUnitTests PROPERTIES
         INCLUDE_DIRECTORIES "${REACTOR_UNIT_TESTS_INCLUDE_DIR}"
+        COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS}"
         FOLDER "Tests"
     )
 
@@ -2083,6 +2104,7 @@ if(BUILD_TESTS)
     set_target_properties(gles-unittests PROPERTIES
         INCLUDE_DIRECTORIES "${GLES_UNITTESTS_INCLUDE_DIR}"
         FOLDER "Tests"
+        COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS}"
         COMPILE_DEFINITIONS "STANDALONE"
     )
 
@@ -2113,6 +2135,7 @@ if(BUILD_TESTS AND BUILD_VULKAN)
     set_target_properties(vk-unittests PROPERTIES
         INCLUDE_DIRECTORIES "${VK_UNITTESTS_INCLUDE_DIR}"
         FOLDER "Tests"
+        COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS}"
         COMPILE_DEFINITIONS "STANDALONE"
     )
 
