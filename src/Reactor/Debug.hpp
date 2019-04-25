@@ -25,18 +25,24 @@
 #define TRACE_OUTPUT_FILE "debug.txt"
 #endif
 
+#if defined(__GNUC__) || defined(__clang__)
+#define CHECK_PRINTF_ARGS __attribute__((format(printf, 1, 2)))
+#else
+#define CHECK_PRINTF_ARGS
+#endif
+
 namespace rr
 {
 	// Outputs text to the debugging log
-	void trace(const char *format, ...);
+	void trace(const char *format, ...) CHECK_PRINTF_ARGS;
 	inline void trace() {}
 
 	// Outputs text to the debugging log and prints to stderr.
-	void warn(const char *format, ...);
+	void warn(const char *format, ...) CHECK_PRINTF_ARGS;
 	inline void warn() {}
 
 	// Outputs the message to the debugging log and stderr, and calls abort().
-	void abort(const char *format, ...);
+	void abort(const char *format, ...) CHECK_PRINTF_ARGS;
 }
 
 // A macro to output a trace of a function call and its arguments to the
