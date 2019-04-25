@@ -78,6 +78,9 @@ public:
 	// Returns the number of bindings in the descriptor set.
 	size_t getBindingCount() const;
 
+	// Returns true iff the given binding exists.
+	bool hasBinding(uint32_t binding) const;
+
 	// Returns the byte offset from the base address of the descriptor set for
 	// the given binding and array element within that binding.
 	size_t getBindingOffset(uint32_t binding, size_t arrayElement) const;

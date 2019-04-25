@@ -1345,6 +1345,7 @@ namespace sw
 				auto set = routine->getPointer(id);
 
 				auto setLayout = routine->pipelineLayout->getDescriptorSetLayout(d.DescriptorSet);
+				ASSERT_MSG(setLayout->hasBinding(d.Binding), "Descriptor set %d does not contain binding %d", int(d.DescriptorSet), int(d.Binding));
 				int bindingOffset = static_cast<int>(setLayout->getBindingOffset(d.Binding, arrayIndex));
 
 				Pointer<Byte> descriptor = set.base + bindingOffset; // BufferDescriptor*
@@ -2501,11 +2502,20 @@ namespace sw
 
 			uint32_t arrayIndex = 0;  // TODO(b/129523279)
 			auto setLayout = routine->pipelineLayout->getDescriptorSetLayout(d.DescriptorSet);
-			size_t bindingOffset = setLayout->getBindingOffset(d.Binding, arrayIndex);
-			Pointer<Byte> set = routine->descriptorSets[d.DescriptorSet];  // DescriptorSet*
-			Pointer<Byte> binding = Pointer<Byte>(set + bindingOffset);    // vk::SampledImageDescriptor*
-			auto size = 0; // Not required as this pointer is not directly used by SIMD::Read or SIMD::Write.
-			routine->createPointer(resultId, SIMD::Pointer(binding, size));
+			if (setLayout->hasBinding(d.Binding))
+			{
+				size_t bindingOffset = setLayout->getBindingOffset(d.Binding, arrayIndex);
+				Pointer<Byte> set = routine->descriptorSets[d.DescriptorSet];  // DescriptorSet*
+				Pointer<Byte> binding = Pointer<Byte>(set + bindingOffset);    // vk::SampledImageDescriptor*
+				auto size = 0; // Not required as this pointer is not directly used by SIMD::Read or SIMD::Write.
+				routine->createPointer(resultId, SIMD::Pointer(binding, size));
+			}
+			else
+			{
+				// TODO: Error if the variable with the non-existant binding is
+				// used? Or perhaps strip these unused variable declarations as
+				// a preprocess on the SPIR-V?
+			}
 			break;
 		}
 		case spv::StorageClassUniform:

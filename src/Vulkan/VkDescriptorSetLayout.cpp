@@ -175,6 +175,18 @@ size_t DescriptorSetLayout::getBindingCount() const
 	return bindingCount;
 }
 
+bool DescriptorSetLayout::hasBinding(uint32_t binding) const
+{
+	for(uint32_t i = 0; i < bindingCount; i++)
+	{
+		if(binding == bindings[i].binding)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
 size_t DescriptorSetLayout::getBindingStride(uint32_t binding) const
 {
 	uint32_t index = getBindingIndex(binding);
