@@ -171,7 +171,7 @@ std::vector<uint32_t> preprocessSpirv(
 		case SPV_MSG_INFO:           category = "INFO";           break;
 		case SPV_MSG_DEBUG:          category = "DEBUG";          break;
 		}
-		vk::trace("%s: %d:%d %s", category, p.line, p.column, m);
+		vk::trace("%s: %d:%d %s", category, int(p.line), int(p.column), m);
 	});
 
 	opt.RegisterPass(spvtools::CreateInlineExhaustivePass());

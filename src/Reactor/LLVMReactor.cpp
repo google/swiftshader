@@ -453,7 +453,7 @@ namespace rr
 		case llvm::AtomicOrdering::AcquireRelease: return std::memory_order_acq_rel;
 		case llvm::AtomicOrdering::SequentiallyConsistent: return std::memory_order_seq_cst;
 		default:
-			UNREACHABLE("memoryOrder: %d", memoryOrder);
+			UNREACHABLE("memoryOrder: %d", int(memoryOrder));
 			return std::memory_order_acq_rel;
 		}
 	}

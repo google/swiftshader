@@ -2406,7 +2406,7 @@ namespace sw
 			return EmitImageTexelPointer(insn, state);
 
 		default:
-			UNIMPLEMENTED("opcode: %s", OpcodeName(opcode).c_str());
+			UNIMPLEMENTED("%s", OpcodeName(opcode).c_str());
 			break;
 		}
 
@@ -3080,7 +3080,7 @@ namespace sw
 				break;
 			}
 			default:
-				UNIMPLEMENTED("Unhandled unary operator %s", OpcodeName(insn.opcode()).c_str());
+				UNIMPLEMENTED("%s", OpcodeName(insn.opcode()).c_str());
 			}
 		}
 
@@ -3276,7 +3276,7 @@ namespace sw
 				dst.move(i + lhsType.sizeInComponents, MulHigh(lhs.UInt(i), rhs.UInt(i)));
 				break;
 			default:
-				UNIMPLEMENTED("Unhandled binary operator %s", OpcodeName(insn.opcode()).c_str());
+				UNIMPLEMENTED("%s", OpcodeName(insn.opcode()).c_str());
 			}
 		}
 
@@ -5099,7 +5099,7 @@ namespace sw
 					v = ExchangeAtomic(Pointer<UInt>(&ptr.base[offset]), laneValue, memoryOrder);
 					break;
 				default:
-					UNIMPLEMENTED("Atomic op", OpcodeName(insn.opcode()).c_str());
+					UNIMPLEMENTED("%s", OpcodeName(insn.opcode()).c_str());
 					break;
 				}
 				x = Insert(x, v, j);
