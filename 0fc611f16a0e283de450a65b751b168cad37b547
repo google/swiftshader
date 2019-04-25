@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1d6521b3_092a40be",
+        "filename": "src/Reactor/LLVMReactor.cpp",
+        "patchSetId": 12
+      },
+      "lineNbr": 895,
+      "author": {
+        "id": 5005
+      },
+      "writtenOn": "2019-04-25T13:04:11Z",
+      "side": 1,
+      "message": "Ideally would have been in a separate change. Lost my comment in between switching workstations. No big deal, but ideally we retain control over the CPU extensions used so we can assess their impact on conformance and performance. Something for after 1.0 milestone.",
+      "range": {
+        "startLine": 885,
+        "startChar": 2,
+        "endLine": 895,
+        "endChar": 5
+      },
+      "revId": "0fc611f16a0e283de450a65b751b168cad37b547",
+      "serverId": "aea13c4a-0b89-3eca-aee9-e193b1b77aa4",
+      "unresolved": false
+    }
+  ]
+}
