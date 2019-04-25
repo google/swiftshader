@@ -20,7 +20,7 @@
 
 namespace
 {
-	void applySwizzle(VkComponentSwizzle swizzle, sw::Float4& f, const sw::Vector4f& c)
+	void applySwizzle(VkComponentSwizzle swizzle, sw::Float4& f, const sw::Vector4f& c, bool integer)
 	{
 		switch(swizzle)
 		{
@@ -29,7 +29,15 @@ namespace
 		case VK_COMPONENT_SWIZZLE_B:  f = c.z; break;
 		case VK_COMPONENT_SWIZZLE_A: f = c.w; break;
 		case VK_COMPONENT_SWIZZLE_ZERO:  f = sw::Float4(0.0f, 0.0f, 0.0f, 0.0f); break;
-		case VK_COMPONENT_SWIZZLE_ONE:   f = sw::Float4(1.0f, 1.0f, 1.0f, 1.0f); break;
+		case VK_COMPONENT_SWIZZLE_ONE:
+			if (integer)
+			{
+				f = rr::As<sw::Float4>(sw::Int4(1.0f, 1.0f, 1.0f, 1.0f));
+			} else
+			{
+				f = sw::Float4(1.0f, 1.0f, 1.0f, 1.0f);
+			}
+			break;
 		default: ASSERT(false);
 		}
 	}
@@ -202,10 +210,11 @@ namespace sw
 			(state.swizzle.a != VK_COMPONENT_SWIZZLE_A))
 		{
 			const Vector4f col(c);
-			applySwizzle(state.swizzle.r, c.x, col);
-			applySwizzle(state.swizzle.g, c.y, col);
-			applySwizzle(state.swizzle.b, c.z, col);
-			applySwizzle(state.swizzle.a, c.w, col);
+			auto integer = hasUnnormalizedIntegerTexture();
+			applySwizzle(state.swizzle.r, c.x, col, integer);
+			applySwizzle(state.swizzle.g, c.y, col, integer);
+			applySwizzle(state.swizzle.b, c.z, col, integer);
+			applySwizzle(state.swizzle.a, c.w, col, integer);
 		}
 
 		return c;
