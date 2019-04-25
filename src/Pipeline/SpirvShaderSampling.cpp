@@ -63,11 +63,12 @@ SpirvShader::ImageSampler *SpirvShader::getImageSampler(SamplerMethod samplerMet
 	if (it != cache.end()) { return it->second; }
 
 	// TODO: Hold a separate mutex lock for the sampler being built.
-	auto function = rr::Function<Void(Pointer<Byte> image, Pointer<SIMD::Float>, Pointer<SIMD::Float>)>();
+	auto function = rr::Function<Void(Pointer<Byte> image, Pointer<SIMD::Float>, Pointer<SIMD::Float>, Pointer<Byte>)>();
 	Pointer<Byte> image = function.Arg<0>();
 	Pointer<SIMD::Float> in = function.Arg<1>();
 	Pointer<SIMD::Float> out = function.Arg<2>();
-	emitSamplerFunction(samplerMethod, imageView, sampler, image, in, out);
+	Pointer<Byte> constants = function.Arg<3>();
+	emitSamplerFunction(samplerMethod, imageView, sampler, image, in, out, constants);
 	auto fptr = reinterpret_cast<ImageSampler*>((void *)function("sampler")->getEntry());
 	cache.emplace(key, fptr);
 	return fptr;
@@ -76,10 +77,8 @@ SpirvShader::ImageSampler *SpirvShader::getImageSampler(SamplerMethod samplerMet
 void SpirvShader::emitSamplerFunction(
         SamplerMethod samplerMethod,
         const vk::ImageView *imageView, const vk::Sampler *sampler,
-        Pointer<Byte> image, Pointer<SIMD::Float> in, Pointer<Byte> out)
+        Pointer<Byte> image, Pointer<SIMD::Float> in, Pointer<Byte> out, Pointer<Byte> constants)
 {
-	Pointer<Byte> constants;  // FIXME(b/129523279)
-
 	Sampler::State samplerState;
 	samplerState.textureType = convertTextureType(imageView->getType());
 	samplerState.textureFormat = imageView->getFormat();
@@ -89,7 +88,7 @@ void SpirvShader::emitSamplerFunction(
 	samplerState.addressingModeV = convertAddressingMode(sampler->addressModeV);
 	samplerState.addressingModeW = convertAddressingMode(sampler->addressModeW);
 	samplerState.mipmapFilter = convertMipmapMode(sampler);
-	samplerState.sRGB = false;                              ASSERT(imageView->getFormat().isSRGBformat() == false);  // TODO(b/129523279)
+	samplerState.sRGB = imageView->getFormat().isSRGBformat();
 	samplerState.swizzle = imageView->getComponentMapping();
 	samplerState.highPrecisionFiltering = false;
 	samplerState.compare = COMPARE_BYPASS;                  ASSERT(sampler->compareEnable == VK_FALSE);  // TODO(b/129523279)

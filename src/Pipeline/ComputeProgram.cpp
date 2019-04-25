@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "ComputeProgram.hpp"
+#include "Constants.hpp"
 
 #include "Vulkan/VkDebug.hpp"
 #include "Vulkan/VkPipelineLayout.hpp"
@@ -49,6 +50,7 @@ namespace sw
 		routine.descriptorSets = data + OFFSET(Data, descriptorSets);
 		routine.descriptorDynamicOffsets = data + OFFSET(Data, descriptorDynamicOffsets);
 		routine.pushConstants = data + OFFSET(Data, pushConstants);
+		routine.constants = *Pointer<Pointer<Byte>>(data + OFFSET(Data, constants));
 
 		auto &modes = shader->getModes();
 
@@ -189,6 +191,7 @@ namespace sw
 		data.numWorkgroups[Z] = groupCountZ;
 		data.numWorkgroups[3] = 0;
 		data.pushConstants = pushConstants;
+		data.constants = &sw::constants;
 
 		// TODO(bclayton): Split work across threads.
 		for (uint32_t groupZ = 0; groupZ < groupCountZ; groupZ++)

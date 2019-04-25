@@ -34,6 +34,7 @@ namespace sw
 	using namespace rr;
 
 	class DescriptorSetsLayout;
+	struct Constants;
 
 	// ComputeProgram builds a SPIR-V compute shader.
 	class ComputeProgram : public Function<Void(Pointer<Byte>)>
@@ -69,6 +70,7 @@ namespace sw
 			uint4 numWorkgroups;
 			uint4 workgroupID;
 			PushConstantStorage pushConstants;
+			const Constants *constants;
 		};
 
 		SpirvRoutine routine;

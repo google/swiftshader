@@ -4517,7 +4517,7 @@ namespace sw
 		}
 
 		Array<SIMD::Float> out(4);
-		Call<ImageSampler>(samplerFunc, sampledImage.base, &in[0], &out[0]);
+		Call<ImageSampler>(samplerFunc, sampledImage.base, &in[0], &out[0], state->routine->constants);
 
 		for (int i = 0; i < 4; i++) { result.move(i, out[i]); }
 
