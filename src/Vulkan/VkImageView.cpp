@@ -26,6 +26,17 @@ namespace
 			(m.a == VK_COMPONENT_SWIZZLE_IDENTITY) ? VK_COMPONENT_SWIZZLE_A : m.a,
 		};
 	}
+
+	VkImageSubresourceRange ResolveRemainingLevelsLayers(VkImageSubresourceRange range, const vk::Image *image)
+	{
+		return {
+			range.aspectMask,
+			range.baseMipLevel,
+			(range.levelCount == VK_REMAINING_MIP_LEVELS) ? (image->getMipLevels() - range.baseMipLevel) : range.levelCount,
+			range.baseArrayLayer,
+			(range.layerCount == VK_REMAINING_ARRAY_LAYERS) ? (image->getArrayLayers() - range.baseArrayLayer) : range.layerCount,
+		};
+	}
 }
 
 namespace vk
@@ -33,7 +44,8 @@ namespace vk
 
 ImageView::ImageView(const VkImageViewCreateInfo* pCreateInfo, void* mem) :
 	image(Cast(pCreateInfo->image)), viewType(pCreateInfo->viewType), format(pCreateInfo->format),
-	components(ResolveIdentityMapping(pCreateInfo->components)), subresourceRange(pCreateInfo->subresourceRange)
+	components(ResolveIdentityMapping(pCreateInfo->components)),
+	subresourceRange(ResolveRemainingLevelsLayers(pCreateInfo->subresourceRange, image))
 {
 }
 

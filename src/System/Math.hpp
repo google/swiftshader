@@ -18,6 +18,8 @@
 #include "Types.hpp"
 #include "Half.hpp"
 
+#include "Vulkan/VkDebug.hpp"
+
 #include <cmath>
 #if defined(_MSC_VER)
 	#include <intrin.h>
@@ -177,6 +179,7 @@ namespace sw
 	template<class T>
 	inline T clamp(T x, T a, T b)
 	{
+		ASSERT(a <= b);
 		if(x < a) x = a;
 		if(x > b) x = b;
 
