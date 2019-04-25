@@ -229,8 +229,9 @@ if(MSVC)
     add_definitions(-D_SBCS)  # Single Byte Character Set (ASCII)
 else()
     set_cpp_flag("--std=c++11")
+    set_cpp_flag("-fno-exceptions")
+
     list(APPEND SWIFTSHADER_COMPILE_OPTIONS
-        "-fno-exceptions"
         "-Wall"
         "-Werror=reorder"
         "-Werror=sign-compare"
@@ -1883,6 +1884,7 @@ if(${REACTOR_BACKEND} STREQUAL "LLVM")
         INCLUDE_DIRECTORIES "${COMMON_INCLUDE_DIR}"
         POSITION_INDEPENDENT_CODE 1
         FOLDER "Core"
+        COMPILE_OPTIONS "${SWIFTSHADER_COMPILE_OPTIONS}"
     )
     target_link_libraries(ReactorLLVM llvm ${OS_LIBS})
 

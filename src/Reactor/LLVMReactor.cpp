@@ -26,6 +26,13 @@
 #undef min
 #undef max
 
+#if defined(__clang__)
+// LLVM has occurances of the extra-semi warning in its headers, which will be
+// treated as an error in SwiftShader targets.
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wextra-semi"
+#endif  // defined(__clang__)
+
 #include "llvm/Analysis/LoopPass.h"
 #include "llvm/ExecutionEngine/ExecutionEngine.h"
 #include "llvm/ExecutionEngine/JITSymbol.h"
@@ -51,6 +58,10 @@
 #include "llvm/Transforms/InstCombine/InstCombine.h"
 #include "llvm/Transforms/Scalar.h"
 #include "llvm/Transforms/Scalar/GVN.h"
+
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif // defined(__clang__)
 
 #include "LLVMRoutine.hpp"
 
