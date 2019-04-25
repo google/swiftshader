@@ -61,10 +61,7 @@ namespace sw
 		highPrecisionFiltering = false;
 		border = 0;
 
-		swizzleR = SWIZZLE_RED;
-		swizzleG = SWIZZLE_GREEN;
-		swizzleB = SWIZZLE_BLUE;
-		swizzleA = SWIZZLE_ALPHA;
+		swizzle = { VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A };
 
 		compare = COMPARE_BYPASS;
 
@@ -92,10 +89,7 @@ namespace sw
 			state.addressingModeW = getAddressingModeW();
 			state.mipmapFilter = mipmapFilter();
 			state.sRGB = (sRGB && textureFormat.isSRGBreadable()) || textureFormat.isSRGBformat();
-			state.swizzleR = swizzleR;
-			state.swizzleG = swizzleG;
-			state.swizzleB = swizzleB;
-			state.swizzleA = swizzleA;
+			state.swizzle = swizzle;
 			state.highPrecisionFiltering = highPrecisionFiltering;
 			state.compare = getCompareFunc();
 
@@ -316,26 +310,6 @@ namespace sw
 	void Sampler::setHighPrecisionFiltering(bool highPrecisionFiltering)
 	{
 		this->highPrecisionFiltering = highPrecisionFiltering;
-	}
-
-	void Sampler::setSwizzleR(SwizzleType swizzleR)
-	{
-		this->swizzleR = swizzleR;
-	}
-
-	void Sampler::setSwizzleG(SwizzleType swizzleG)
-	{
-		this->swizzleG = swizzleG;
-	}
-
-	void Sampler::setSwizzleB(SwizzleType swizzleB)
-	{
-		this->swizzleB = swizzleB;
-	}
-
-	void Sampler::setSwizzleA(SwizzleType swizzleA)
-	{
-		this->swizzleA = swizzleA;
 	}
 
 	void Sampler::setCompareFunc(CompareFunc compare)

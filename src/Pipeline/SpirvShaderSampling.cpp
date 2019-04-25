@@ -90,10 +90,7 @@ void SpirvShader::emitSamplerFunction(
 	samplerState.addressingModeW = convertAddressingMode(sampler->addressModeW);
 	samplerState.mipmapFilter = convertMipmapMode(sampler);
 	samplerState.sRGB = false;                              ASSERT(imageView->getFormat().isSRGBformat() == false);  // TODO(b/129523279)
-	samplerState.swizzleR = SWIZZLE_RED;                    ASSERT(imageView->getComponentMapping().r == VK_COMPONENT_SWIZZLE_R);  // TODO(b/129523279)
-	samplerState.swizzleG = SWIZZLE_GREEN;                  ASSERT(imageView->getComponentMapping().g == VK_COMPONENT_SWIZZLE_G);  // TODO(b/129523279)
-	samplerState.swizzleB = SWIZZLE_BLUE;                   ASSERT(imageView->getComponentMapping().b == VK_COMPONENT_SWIZZLE_B);  // TODO(b/129523279)
-	samplerState.swizzleA = SWIZZLE_ALPHA;                  ASSERT(imageView->getComponentMapping().a == VK_COMPONENT_SWIZZLE_A);  // TODO(b/129523279)
+	samplerState.swizzle = imageView->getComponentMapping();
 	samplerState.highPrecisionFiltering = false;
 	samplerState.compare = COMPARE_BYPASS;                  ASSERT(sampler->compareEnable == VK_FALSE);  // TODO(b/129523279)
 

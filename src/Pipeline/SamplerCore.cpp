@@ -20,16 +20,16 @@
 
 namespace
 {
-	void applySwizzle(sw::SwizzleType swizzle, sw::Float4& f, const sw::Vector4f& c)
+	void applySwizzle(VkComponentSwizzle swizzle, sw::Float4& f, const sw::Vector4f& c)
 	{
 		switch(swizzle)
 		{
-		case sw::SWIZZLE_RED:	f = c.x; break;
-		case sw::SWIZZLE_GREEN: f = c.y; break;
-		case sw::SWIZZLE_BLUE:  f = c.z; break;
-		case sw::SWIZZLE_ALPHA: f = c.w; break;
-		case sw::SWIZZLE_ZERO:  f = sw::Float4(0.0f, 0.0f, 0.0f, 0.0f); break;
-		case sw::SWIZZLE_ONE:   f = sw::Float4(1.0f, 1.0f, 1.0f, 1.0f); break;
+		case VK_COMPONENT_SWIZZLE_R:	f = c.x; break;
+		case VK_COMPONENT_SWIZZLE_G: f = c.y; break;
+		case VK_COMPONENT_SWIZZLE_B:  f = c.z; break;
+		case VK_COMPONENT_SWIZZLE_A: f = c.w; break;
+		case VK_COMPONENT_SWIZZLE_ZERO:  f = sw::Float4(0.0f, 0.0f, 0.0f, 0.0f); break;
+		case VK_COMPONENT_SWIZZLE_ONE:   f = sw::Float4(1.0f, 1.0f, 1.0f, 1.0f); break;
 		default: ASSERT(false);
 		}
 	}
@@ -196,16 +196,16 @@ namespace sw
 			}
 		}
 
-		if((state.swizzleR != SWIZZLE_RED) ||
-			(state.swizzleG != SWIZZLE_GREEN) ||
-			(state.swizzleB != SWIZZLE_BLUE) ||
-			(state.swizzleA != SWIZZLE_ALPHA))
+		if((state.swizzle.r != VK_COMPONENT_SWIZZLE_R) ||
+			(state.swizzle.g != VK_COMPONENT_SWIZZLE_G) ||
+			(state.swizzle.b != VK_COMPONENT_SWIZZLE_B) ||
+			(state.swizzle.a != VK_COMPONENT_SWIZZLE_A))
 		{
 			const Vector4f col(c);
-			applySwizzle(state.swizzleR, c.x, col);
-			applySwizzle(state.swizzleG, c.y, col);
-			applySwizzle(state.swizzleB, c.z, col);
-			applySwizzle(state.swizzleA, c.w, col);
+			applySwizzle(state.swizzle.r, c.x, col);
+			applySwizzle(state.swizzle.g, c.y, col);
+			applySwizzle(state.swizzle.b, c.z, col);
+			applySwizzle(state.swizzle.a, c.w, col);
 		}
 
 		return c;

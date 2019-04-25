@@ -160,10 +160,7 @@ namespace sw
 			AddressingMode addressingModeW;
 			MipmapType mipmapFilter;
 			bool sRGB;
-			SwizzleType swizzleR;
-			SwizzleType swizzleG;
-			SwizzleType swizzleB;
-			SwizzleType swizzleA;
+			VkComponentMapping swizzle;
 			bool highPrecisionFiltering;
 			CompareFunc compare;
 
@@ -190,10 +187,6 @@ namespace sw
 		void setBorderColor(const Color<float> &borderColor);
 		void setMaxAnisotropy(float maxAnisotropy);
 		void setHighPrecisionFiltering(bool highPrecisionFiltering);
-		void setSwizzleR(SwizzleType swizzleR);
-		void setSwizzleG(SwizzleType swizzleG);
-		void setSwizzleB(SwizzleType swizzleB);
-		void setSwizzleA(SwizzleType swizzleA);
 		void setCompareFunc(CompareFunc compare);
 		void setMinLod(float minLod);
 		void setMaxLod(float maxLod);
@@ -231,10 +224,7 @@ namespace sw
 		bool highPrecisionFiltering;
 		int border;
 
-		SwizzleType swizzleR;
-		SwizzleType swizzleG;
-		SwizzleType swizzleB;
-		SwizzleType swizzleA;
+		VkComponentMapping swizzle;
 		CompareFunc compare;
 
 		Texture texture;
