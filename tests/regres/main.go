@@ -1035,6 +1035,7 @@ func compare(old, new *CommitTestResults) string {
 		{"                 Fail", testlist.Fail},
 		{"              Timeout", testlist.Timeout},
 		{"      UNIMPLEMENTED()", testlist.Unimplemented},
+		{"        UNSUPPORTED()", testlist.Unsupported},
 		{"        UNREACHABLE()", testlist.Unreachable},
 		{"             ASSERT()", testlist.Assert},
 		{"              ABORT()", testlist.Abort},
@@ -1118,6 +1119,8 @@ var (
 	deqpRE = regexp.MustCompile(`(Fail|Pass|NotSupported|CompatibilityWarning|QualityWarning) \(([^\)]*)\)`)
 	// Regular expression to parse a test that failed due to UNIMPLEMENTED()
 	unimplementedRE = regexp.MustCompile(`[^\n]*UNIMPLEMENTED:[^\n]*`)
+	// Regular expression to parse a test that failed due to UNSUPPORTED()
+	unsupportedRE = regexp.MustCompile(`[^\n]*UNSUPPORTED\([^\)]*\):[^\n]*`)
 	// Regular expression to parse a test that failed due to UNREACHABLE()
 	unreachableRE = regexp.MustCompile(`[^\n]*UNREACHABLE:[^\n]*`)
 	// Regular expression to parse a test that failed due to ASSERT()
@@ -1159,6 +1162,7 @@ nextTest:
 				s  testlist.Status
 			}{
 				{unimplementedRE, testlist.Unimplemented},
+				{unsupportedRE, testlist.Unsupported},
 				{unreachableRE, testlist.Unreachable},
 				{assertRE, testlist.Assert},
 				{abortRE, testlist.Abort},

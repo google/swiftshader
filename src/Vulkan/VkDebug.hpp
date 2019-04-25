@@ -89,11 +89,22 @@ namespace vk
 		DABORT("ASSERT(%s)\n", #expression); \
 	} } while(0)
 
-// A macro to indicate unimplemented functionality.
+// A macro to indicate functionality currently unimplemented for a feature
+// advertised as supported. For unsupported features not advertised as supported
+// use UNSUPPORTED().
 #undef UNIMPLEMENTED
 #define UNIMPLEMENTED(format, ...) DABORT("UNIMPLEMENTED: " format, ##__VA_ARGS__)
 
-// A macro for code which is not expected to be reached under valid assumptions.
+// A macro to indicate unsupported functionality.
+// This should be called when a Vulkan / SPIR-V feature is attempted to be used,
+// but is not currently implemented by SwiftShader.
+// Note that in a well-behaved application these should not be reached as the
+// application should be respecting the advertised features / limits.
+#undef UNSUPPORTED
+#define UNSUPPORTED(format, ...) DABORT("UNSUPPORTED: " format, ##__VA_ARGS__)
+
+// A macro for code which should never be reached, even with misbehaving
+// applications.
 #undef UNREACHABLE
 #define UNREACHABLE(format, ...) DABORT("UNREACHABLE: " format, ##__VA_ARGS__)
 
