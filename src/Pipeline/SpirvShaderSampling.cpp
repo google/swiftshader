@@ -43,6 +43,7 @@ SpirvShader::ImageSampler *SpirvShader::getImageSamplerImplicitLod(const vk::Ima
 {
 	return getImageSampler(Implicit, imageView, sampler);
 }
+
 SpirvShader::ImageSampler *SpirvShader::getImageSamplerExplicitLod(const vk::ImageView *imageView, const vk::Sampler *sampler)
 {
 	return getImageSampler(Lod, imageView, sampler);
@@ -83,9 +84,9 @@ void SpirvShader::emitSamplerFunction(
 	samplerState.textureFormat = imageView->getFormat();
 	samplerState.textureFilter = convertFilterMode(sampler);
 
-	samplerState.addressingModeU = convertAddressingMode(sampler->addressModeU);
-	samplerState.addressingModeV = convertAddressingMode(sampler->addressModeV);
-	samplerState.addressingModeW = convertAddressingMode(sampler->addressModeW);
+	samplerState.addressingModeU = convertAddressingMode(sampler->addressModeU, imageView->getType());
+	samplerState.addressingModeV = convertAddressingMode(sampler->addressModeV, imageView->getType());
+	samplerState.addressingModeW = convertAddressingMode(sampler->addressModeW, imageView->getType());
 	samplerState.mipmapFilter = convertMipmapMode(sampler);
 	samplerState.sRGB = imageView->getFormat().isSRGBformat();
 	samplerState.swizzle = imageView->getComponentMapping();
@@ -102,8 +103,7 @@ void SpirvShader::emitSamplerFunction(
 	SamplerCore s(constants, samplerState);
 
 	Pointer<Byte> texture = image + OFFSET(vk::SampledImageDescriptor, texture);  // sw::Texture*
-	SIMD::Float uv[2];
-	SIMD::Float w(0);     // TODO(b/129523279)
+	SIMD::Float uvw[3];
 	SIMD::Float q(0);     // TODO(b/129523279)
 	SIMD::Float bias(0);
 	Vector4f dsx;         // TODO(b/129523279)
@@ -111,22 +111,31 @@ void SpirvShader::emitSamplerFunction(
 	Vector4f offset;      // TODO(b/129523279)
 	SamplerFunction samplerFunction = { samplerMethod, None };  // TODO(b/129523279)
 
-	// TODO(b/129523279): Currently 1D textures are treated as 2D by setting the second coordinate to 0.
-	// Implement optimized 1D sampling.
-	uv[1] = SIMD::Float(0);
-
 	int coordinateCount = 0;
 	switch(imageView->getType())
 	{
-	case VK_IMAGE_VIEW_TYPE_1D: coordinateCount = 1; break;
-	case VK_IMAGE_VIEW_TYPE_2D: coordinateCount = 2; break;
+	case VK_IMAGE_VIEW_TYPE_1D:         coordinateCount = 1; break;
+	case VK_IMAGE_VIEW_TYPE_2D:         coordinateCount = 2; break;
+//	case VK_IMAGE_VIEW_TYPE_3D:         coordinateCount = 3; break;
+	case VK_IMAGE_VIEW_TYPE_CUBE:       coordinateCount = 3; break;
+//	case VK_IMAGE_VIEW_TYPE_1D_ARRAY:   coordinateCount = 2; break;
+//	case VK_IMAGE_VIEW_TYPE_2D_ARRAY:   coordinateCount = 3; break;
+//	case VK_IMAGE_VIEW_TYPE_CUBE_ARRAY: coordinateCount = 4; break;
 	default:
 		UNIMPLEMENTED("imageView type %d", imageView->getType());
 	}
 
 	for(int i = 0; i < coordinateCount; i++)
 	{
-		uv[i] = in[i];
+		uvw[i] = in[i];
+	}
+
+	// TODO(b/129523279): Currently 1D textures are treated as 2D by setting the second coordinate to 0.
+	// Implement optimized 1D sampling.
+	If(imageView->getType() == VK_IMAGE_VIEW_TYPE_1D ||
+	   imageView->getType() == VK_IMAGE_VIEW_TYPE_1D_ARRAY)
+	{
+		uvw[1] = SIMD::Float(0);
 	}
 
 	if(samplerMethod == Lod)
@@ -136,7 +145,7 @@ void SpirvShader::emitSamplerFunction(
 		bias = in[coordinateCount];
 	}
 
-	Vector4f sample = s.sampleTexture(texture, uv[0], uv[1], w, q, bias, dsx, dsy, offset, samplerFunction);
+	Vector4f sample = s.sampleTexture(texture, uvw[0], uvw[1], uvw[2], q, bias, dsx, dsy, offset, samplerFunction);
 
 	Pointer<SIMD::Float> rgba = out;
 	rgba[0] = sample.x;
@@ -152,7 +161,7 @@ sw::TextureType SpirvShader::convertTextureType(VkImageViewType imageViewType)
 	case VK_IMAGE_VIEW_TYPE_1D:         return TEXTURE_1D;
 	case VK_IMAGE_VIEW_TYPE_2D:         return TEXTURE_2D;
 //	case VK_IMAGE_VIEW_TYPE_3D:         return TEXTURE_3D;
-//	case VK_IMAGE_VIEW_TYPE_CUBE:       return TEXTURE_CUBE;
+	case VK_IMAGE_VIEW_TYPE_CUBE:       return TEXTURE_CUBE;
 //	case VK_IMAGE_VIEW_TYPE_1D_ARRAY:   return TEXTURE_1D_ARRAY;
 //	case VK_IMAGE_VIEW_TYPE_2D_ARRAY:   return TEXTURE_2D_ARRAY;
 //	case VK_IMAGE_VIEW_TYPE_CUBE_ARRAY: return TEXTURE_CUBE_ARRAY;
@@ -204,8 +213,29 @@ sw::MipmapType SpirvShader::convertMipmapMode(const vk::Sampler *sampler)
 	}
 }
 
-sw::AddressingMode SpirvShader::convertAddressingMode(VkSamplerAddressMode addressMode)
+sw::AddressingMode SpirvShader::convertAddressingMode(VkSamplerAddressMode addressMode, VkImageViewType imageViewType)
 {
+	// Vulkan 1.1 spec:
+	// "Cube images ignore the wrap modes specified in the sampler. Instead, if VK_FILTER_NEAREST is used within a mip level then
+	//  VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE is used, and if VK_FILTER_LINEAR is used within a mip level then sampling at the edges
+	//  is performed as described earlier in the Cube map edge handling section."
+	// This corresponds with our 'seamless' addressing mode.
+	switch(imageViewType)
+	{
+	case VK_IMAGE_VIEW_TYPE_CUBE:
+	case VK_IMAGE_VIEW_TYPE_CUBE_ARRAY:
+		return ADDRESSING_SEAMLESS;
+	case VK_IMAGE_VIEW_TYPE_1D:
+	case VK_IMAGE_VIEW_TYPE_2D:
+//	case VK_IMAGE_VIEW_TYPE_3D:
+//	case VK_IMAGE_VIEW_TYPE_1D_ARRAY:
+//	case VK_IMAGE_VIEW_TYPE_2D_ARRAY:
+		break;
+	default:
+		UNIMPLEMENTED("imageViewType %d", imageViewType);
+		return ADDRESSING_WRAP;
+	}
+
 	switch(addressMode)
 	{
 	case VK_SAMPLER_ADDRESS_MODE_REPEAT:               return ADDRESSING_WRAP;

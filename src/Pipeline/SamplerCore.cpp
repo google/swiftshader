@@ -24,16 +24,17 @@ namespace
 	{
 		switch(swizzle)
 		{
-		case VK_COMPONENT_SWIZZLE_R:	f = c.x; break;
-		case VK_COMPONENT_SWIZZLE_G: f = c.y; break;
-		case VK_COMPONENT_SWIZZLE_B:  f = c.z; break;
-		case VK_COMPONENT_SWIZZLE_A: f = c.w; break;
-		case VK_COMPONENT_SWIZZLE_ZERO:  f = sw::Float4(0.0f, 0.0f, 0.0f, 0.0f); break;
+		case VK_COMPONENT_SWIZZLE_R:    f = c.x; break;
+		case VK_COMPONENT_SWIZZLE_G:    f = c.y; break;
+		case VK_COMPONENT_SWIZZLE_B:    f = c.z; break;
+		case VK_COMPONENT_SWIZZLE_A:    f = c.w; break;
+		case VK_COMPONENT_SWIZZLE_ZERO: f = sw::Float4(0.0f, 0.0f, 0.0f, 0.0f); break;
 		case VK_COMPONENT_SWIZZLE_ONE:
 			if (integer)
 			{
-				f = rr::As<sw::Float4>(sw::Int4(1.0f, 1.0f, 1.0f, 1.0f));
-			} else
+				f = rr::As<sw::Float4>(sw::Int4(1, 1, 1, 1));
+			}
+			else
 			{
 				f = sw::Float4(1.0f, 1.0f, 1.0f, 1.0f);
 			}
@@ -127,7 +128,7 @@ namespace sw
 		{
 			Vector4s cs = sampleFilter(texture, uuuu, vvvv, wwww, offset, lod, anisotropy, uDelta, vDelta, face, function);
 
-			if(state.textureFormat ==  VK_FORMAT_R5G6B5_UNORM_PACK16)
+			if(state.textureFormat == VK_FORMAT_R5G6B5_UNORM_PACK16)
 			{
 				c.x = Float4(As<UShort4>(cs.x)) * Float4(1.0f / 0xF800);
 				c.y = Float4(As<UShort4>(cs.y)) * Float4(1.0f / 0xFC00);
