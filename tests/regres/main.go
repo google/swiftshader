@@ -1120,7 +1120,7 @@ var (
 	// Regular expression to parse a test that failed due to UNIMPLEMENTED()
 	unimplementedRE = regexp.MustCompile(`[^\n]*UNIMPLEMENTED:[^\n]*`)
 	// Regular expression to parse a test that failed due to UNSUPPORTED()
-	unsupportedRE = regexp.MustCompile(`[^\n]*UNSUPPORTED\([^\)]*\):[^\n]*`)
+	unsupportedRE = regexp.MustCompile(`[^\n]*UNSUPPORTED:[^\n]*`)
 	// Regular expression to parse a test that failed due to UNREACHABLE()
 	unreachableRE = regexp.MustCompile(`[^\n]*UNREACHABLE:[^\n]*`)
 	// Regular expression to parse a test that failed due to ASSERT()

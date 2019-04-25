@@ -218,7 +218,7 @@ sw::AddressingMode SpirvShader::convertAddressingMode(int coordinateIndex, VkSam
 	case VK_IMAGE_VIEW_TYPE_CUBE:
 		break;
 	case VK_IMAGE_VIEW_TYPE_CUBE_ARRAY:
-		UNSUPPORTED("ImageCubeArray");
+		UNSUPPORTED("SPIR-V ImageCubeArray Capability (imageViewType: %d)", int(imageViewType));
 		if(coordinateIndex == 3)
 		{
 			return ADDRESSING_LAYER;
@@ -251,7 +251,7 @@ sw::AddressingMode SpirvShader::convertAddressingMode(int coordinateIndex, VkSam
 	case VK_IMAGE_VIEW_TYPE_CUBE:
 		return ADDRESSING_SEAMLESS;
 //	case VK_IMAGE_VIEW_TYPE_CUBE_ARRAY:
-		UNSUPPORTED("ImageCubeArray");
+		UNSUPPORTED("SPIR-V ImageCubeArray Capability (imageViewType: %d)", int(imageViewType));
 		return ADDRESSING_SEAMLESS;
 	case VK_IMAGE_VIEW_TYPE_1D:
 	case VK_IMAGE_VIEW_TYPE_2D:
