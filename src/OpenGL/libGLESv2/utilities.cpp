@@ -2210,7 +2210,7 @@ namespace es2sw
 		else UNREACHABLE(compareMode);
 
 		return sw::COMPARE_BYPASS;
-	};
+	}
 
 	sw::SwizzleType ConvertSwizzleType(GLenum swizzleType)
 	{
@@ -2226,7 +2226,7 @@ namespace es2sw
 		}
 
 		return sw::SWIZZLE_RED;
-	};
+	}
 
 	sw::CullMode ConvertCullMode(GLenum cullFace, GLenum frontFace)
 	{

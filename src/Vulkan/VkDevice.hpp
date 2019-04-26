@@ -20,7 +20,7 @@
 namespace sw
 {
 	class Blitter;
-};
+}
 
 namespace vk
 {

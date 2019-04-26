@@ -50,7 +50,7 @@ namespace sw
 			compressedTexTotal = 0;
 			compressedTexFrame = 0;
 		#endif
-	};
+	}
 
 	void Profiler::nextFrame()
 	{

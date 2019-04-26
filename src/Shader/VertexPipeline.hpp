@@ -40,6 +40,6 @@ namespace sw
 		Vector4f normalize(Vector4f &src);
 		Float4 power(Float4 &src0, Float4 &src1);
 	};
-};
+}
 
 #endif   // sw_VertexPipeline_hpp
