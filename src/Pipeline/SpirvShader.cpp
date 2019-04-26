@@ -254,6 +254,19 @@ namespace
 		}
 	}
 
+	sw::SIMD::Float sRGBtoLinear(sw::SIMD::Float c)
+	{
+		sw::SIMD::Float lc = c * sw::SIMD::Float(1.0f / 12.92f);
+		sw::SIMD::Float ec = sw::power((c + sw::SIMD::Float(0.055f)) * sw::SIMD::Float(1.0f / 1.055f), sw::SIMD::Float(2.4f));
+
+		sw::SIMD::Int linear = CmpLT(c, sw::SIMD::Float(0.04045f));
+
+		sw::SIMD::Float s = c;
+		s.xyz = rr::As<sw::SIMD::Float>((linear & rr::As<sw::SIMD::Int>(lc)) | (~linear & rr::As<sw::SIMD::Int>(ec)));   // FIXME: IfThenElse()
+
+		return s;
+	}
+
 } // anonymous namespace
 
 namespace sw
@@ -4671,6 +4684,9 @@ namespace sw
 			texelPtr += sizeof(float);
 		}
 
+		// Format support requirements here come from two sources:
+		// - Minimum required set of formats for loads from storage images
+		// - Any format supported as a color or depth/stencil attachment, for input attachments
 		switch(vkFormat)
 		{
 		case VK_FORMAT_R32G32B32A32_SFLOAT:
@@ -4729,18 +4745,40 @@ namespace sw
 			dst.move(3, Min(Max(SIMD::Float(((packed[0]) & SIMD::Int(0xFF000000))) * SIMD::Float(1.0f / float(0x7f000000)), SIMD::Float(-1.0f)), SIMD::Float(1.0f)));
 			break;
 		case VK_FORMAT_R8G8B8A8_UNORM:
+		case VK_FORMAT_A8B8G8R8_UNORM_PACK32:
 			dst.move(0, SIMD::Float((packed[0] & SIMD::Int(0xFF))) * SIMD::Float(1.0f / 255.f));
 			dst.move(1, SIMD::Float(((packed[0]>>8) & SIMD::Int(0xFF))) * SIMD::Float(1.0f / 255.f));
 			dst.move(2, SIMD::Float(((packed[0]>>16) & SIMD::Int(0xFF))) * SIMD::Float(1.0f / 255.f));
 			dst.move(3, SIMD::Float(((packed[0]>>24) & SIMD::Int(0xFF))) * SIMD::Float(1.0f / 255.f));
 			break;
+		case VK_FORMAT_R8G8B8A8_SRGB:
+		case VK_FORMAT_A8B8G8R8_SRGB_PACK32:
+			dst.move(0, ::sRGBtoLinear(SIMD::Float((packed[0] & SIMD::Int(0xFF))) * SIMD::Float(1.0f / 255.f)));
+			dst.move(1, ::sRGBtoLinear(SIMD::Float(((packed[0]>>8) & SIMD::Int(0xFF))) * SIMD::Float(1.0f / 255.f)));
+			dst.move(2, ::sRGBtoLinear(SIMD::Float(((packed[0]>>16) & SIMD::Int(0xFF))) * SIMD::Float(1.0f / 255.f)));
+			dst.move(3, ::sRGBtoLinear(SIMD::Float(((packed[0]>>24) & SIMD::Int(0xFF))) * SIMD::Float(1.0f / 255.f)));
+			break;
+		case VK_FORMAT_B8G8R8A8_UNORM:
+			dst.move(0, SIMD::Float(((packed[0]>>16) & SIMD::Int(0xFF))) * SIMD::Float(1.0f / 255.f));
+			dst.move(1, SIMD::Float(((packed[0]>>8) & SIMD::Int(0xFF))) * SIMD::Float(1.0f / 255.f));
+			dst.move(2, SIMD::Float((packed[0] & SIMD::Int(0xFF))) * SIMD::Float(1.0f / 255.f));
+			dst.move(3, SIMD::Float(((packed[0]>>24) & SIMD::Int(0xFF))) * SIMD::Float(1.0f / 255.f));
+			break;
+		case VK_FORMAT_B8G8R8A8_SRGB:
+			dst.move(0, ::sRGBtoLinear(SIMD::Float(((packed[0]>>16) & SIMD::Int(0xFF))) * SIMD::Float(1.0f / 255.f)));
+			dst.move(1, ::sRGBtoLinear(SIMD::Float(((packed[0]>>8) & SIMD::Int(0xFF))) * SIMD::Float(1.0f / 255.f)));
+			dst.move(2, ::sRGBtoLinear(SIMD::Float((packed[0] & SIMD::Int(0xFF))) * SIMD::Float(1.0f / 255.f)));
+			dst.move(3, ::sRGBtoLinear(SIMD::Float(((packed[0]>>24) & SIMD::Int(0xFF))) * SIMD::Float(1.0f / 255.f)));
+			break;
 		case VK_FORMAT_R8G8B8A8_UINT:
+		case VK_FORMAT_A8B8G8R8_UINT_PACK32:
 			dst.move(0, (As<SIMD::UInt>(packed[0]) & SIMD::UInt(0xFF)));
 			dst.move(1, ((As<SIMD::UInt>(packed[0])>>8) & SIMD::UInt(0xFF)));
 			dst.move(2, ((As<SIMD::UInt>(packed[0])>>16) & SIMD::UInt(0xFF)));
 			dst.move(3, ((As<SIMD::UInt>(packed[0])>>24) & SIMD::UInt(0xFF)));
 			break;
 		case VK_FORMAT_R8G8B8A8_SINT:
+		case VK_FORMAT_A8B8G8R8_SINT_PACK32:
 			dst.move(0, (packed[0] << 24) >> 24);
 			dst.move(1, (packed[0] << 16) >> 24);
 			dst.move(2, (packed[0] << 8) >> 24);
@@ -4781,6 +4819,55 @@ namespace sw
 			dst.move(1, (packed[0] << 16) >> 24);
 			dst.move(2, SIMD::Int(0));
 			dst.move(3, SIMD::Int(1));
+			break;
+		case VK_FORMAT_R16_SFLOAT:
+			dst.move(0, HalfToFloatBits(As<SIMD::UInt>(packed[0]) & SIMD::UInt(0x0000FFFF)));
+			dst.move(1, SIMD::Float(0));
+			dst.move(2, SIMD::Float(0));
+			dst.move(3, SIMD::Float(1));
+			break;
+		case VK_FORMAT_R16_UINT:
+			dst.move(0, packed[0] & SIMD::Int(0xffff));
+			dst.move(1, SIMD::UInt(0));
+			dst.move(2, SIMD::UInt(0));
+			dst.move(3, SIMD::UInt(1));
+			break;
+		case VK_FORMAT_R16_SINT:
+			dst.move(0, (packed[0] << 16) >> 16);
+			dst.move(1, SIMD::Int(0));
+			dst.move(2, SIMD::Int(0));
+			dst.move(3, SIMD::Int(1));
+			break;
+		case VK_FORMAT_R16G16_SFLOAT:
+			dst.move(0, HalfToFloatBits(As<SIMD::UInt>(packed[0]) & SIMD::UInt(0x0000FFFF)));
+			dst.move(1, HalfToFloatBits((As<SIMD::UInt>(packed[0]) & SIMD::UInt(0xFFFF0000)) >> 16));
+			dst.move(2, SIMD::Float(0));
+			dst.move(3, SIMD::Float(1));
+			break;
+		case VK_FORMAT_R16G16_UINT:
+			dst.move(0, packed[0] & SIMD::Int(0xffff));
+			dst.move(1, (packed[0] >> 16) & SIMD::Int(0xffff));
+			dst.move(2, SIMD::UInt(0));
+			dst.move(3, SIMD::UInt(1));
+			break;
+		case VK_FORMAT_R16G16_SINT:
+			dst.move(0, (packed[0] << 16) >> 16);
+			dst.move(1, (packed[0]) >> 16);
+			dst.move(2, SIMD::Int(0));
+			dst.move(3, SIMD::Int(1));
+			break;
+		case VK_FORMAT_R32G32_SINT:
+		case VK_FORMAT_R32G32_UINT:
+			dst.move(0, packed[0]);
+			dst.move(1, packed[1]);
+			dst.move(2, SIMD::Int(0));
+			dst.move(3, SIMD::Int(1));
+			break;
+		case VK_FORMAT_R32G32_SFLOAT:
+			dst.move(0, packed[0]);
+			dst.move(1, packed[1]);
+			dst.move(2, SIMD::Float(0));
+			dst.move(3, SIMD::Float(1));
 			break;
 		default:
 			UNIMPLEMENTED("");
