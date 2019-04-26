@@ -4456,16 +4456,23 @@ namespace sw
 
 	SpirvShader::EmitResult SpirvShader::EmitImageSampleImplicitLod(InsnIterator insn, EmitState *state) const
 	{
-		ImageInstruction imageInstruction(Implicit);
-
-		return EmitImageSample(imageInstruction, insn, state);
+		return EmitImageSample({Implicit}, insn, state);
 	}
 
 	SpirvShader::EmitResult SpirvShader::EmitImageSampleExplicitLod(InsnIterator insn, EmitState *state) const
 	{
-		ImageInstruction imageInstruction(Lod);
+		uint32_t imageOperands = static_cast<spv::ImageOperandsMask>(insn.word(5));
 
-		return EmitImageSample(imageInstruction, insn, state);
+		if((imageOperands & spv::ImageOperandsLodMask) == imageOperands)
+		{
+			return EmitImageSample({Lod}, insn, state);
+		}
+		else if((imageOperands & spv::ImageOperandsGradMask) == imageOperands)
+		{
+			return EmitImageSample({Grad}, insn, state);
+		}
+		else UNIMPLEMENTED("Image Operands %x", imageOperands);
+		return EmitResult::Continue;
 	}
 
 	SpirvShader::EmitResult SpirvShader::EmitImageSample(ImageInstruction instruction, InsnIterator insn, EmitState *state) const
@@ -4485,14 +4492,13 @@ namespace sw
 		auto sampler = *Pointer<Pointer<Byte>>(descriptor + OFFSET(vk::SampledImageDescriptor, sampler)); // vk::Sampler*
 		auto imageView = *Pointer<Pointer<Byte>>(descriptor + OFFSET(vk::SampledImageDescriptor, imageView)); // vk::ImageView*
 
-		instruction.coordinates = coordinateType.sizeInComponents;
-		auto samplerFunc = Call(getImageSampler, instruction.parameters, imageView, sampler);
-
 		uint32_t imageOperands = spv::ImageOperandsMaskNone;
 		bool bias = false;
 		bool lod = false;
 		Object::ID lodId = 0;
 		bool grad = false;
+		Object::ID gradDxId = 0;
+		Object::ID gradDyId = 0;
 		bool constOffset = false;
 		bool sample = false;
 
@@ -4518,8 +4524,11 @@ namespace sw
 
 			if(imageOperands & spv::ImageOperandsGradMask)
 			{
-				UNIMPLEMENTED("Image operand %x", spv::ImageOperandsGradMask); (void)grad;
+				ASSERT(!lod);  // SPIR-V 1.3: "It is invalid to set both the Lod and Grad bits."
 				grad = true;
+				gradDxId = insn.word(operand + 0);
+				gradDyId = insn.word(operand + 1);
+				operand += 2;
 				imageOperands &= ~spv::ImageOperandsGradMask;
 			}
 
@@ -4543,7 +4552,7 @@ namespace sw
 			}
 		}
 
-		Array<SIMD::Float> in(coordinateType.sizeInComponents + lod);
+		Array<SIMD::Float> in(16);  // Maximum 16 input parameter components.
 
 		uint32_t i = 0;
 		for( ; i < coordinateType.sizeInComponents; i++)
@@ -4557,6 +4566,31 @@ namespace sw
 			in[i] = lodValue.Float(0);
 			i++;
 		}
+		else if(grad)
+		{
+			auto dxValue = GenericValue(this, state->routine, gradDxId);
+			auto dyValue = GenericValue(this, state->routine, gradDyId);
+			auto &dxyType = getType(dxValue.type);
+			ASSERT(dxyType.sizeInComponents == getType(dyValue.type).sizeInComponents);
+
+			instruction.gradComponents = dxyType.sizeInComponents;
+
+			for(uint32_t j = 0; j < dxyType.sizeInComponents; j++)
+			{
+				in[i] = dxValue.Float(j);
+				i++;
+			}
+
+			for(uint32_t j = 0; j < dxyType.sizeInComponents; j++)
+			{
+				in[i] = dyValue.Float(j);
+				i++;
+			}
+		}
+
+		instruction.coordinates = coordinateType.sizeInComponents;
+
+		auto samplerFunc = Call(getImageSampler, instruction.parameters, imageView, sampler);
 
 		Array<SIMD::Float> out(4);
 		Call<ImageSampler>(samplerFunc, sampledImage.base, &in[0], &out[0], state->routine->constants);

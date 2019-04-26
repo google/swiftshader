@@ -119,11 +119,22 @@ void SpirvShader::emitSamplerFunction(
 		uvw[1] = SIMD::Float(0);
 	}
 
+	// Lod and Grad are explicit-lod image operands, and always come after the coordinates.
 	if(instruction.samplerMethod == Lod)
 	{
-		// Lod is the second optional image operand, and is incompatible with the first one (Bias),
-		// so it always comes after the coordinates.
 		bias = in[instruction.coordinates];
+	}
+	else if(instruction.samplerMethod == Grad)
+	{
+		for(uint32_t i = 0; i < instruction.gradComponents; i++)
+		{
+			dsx[i] = in[instruction.coordinates + i];
+		}
+
+		for(uint32_t i = 0; i < instruction.gradComponents; i++)
+		{
+			dsy[i] = in[instruction.coordinates + instruction.gradComponents + i];
+		}
 	}
 
 	Vector4f sample = s.sampleTexture(texture, uvw[0], uvw[1], uvw[2], q, bias, dsx, dsy, offset, samplerFunction);
