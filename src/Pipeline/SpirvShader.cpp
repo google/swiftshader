@@ -4740,6 +4740,42 @@ namespace sw
 			dst.move(2, (packed[0] << 8) >> 24);
 			dst.move(3, (packed[0]) >> 24);
 			break;
+		case VK_FORMAT_R8_UNORM:
+			dst.move(0, SIMD::Float((packed[0] & SIMD::Int(0xFF))) * SIMD::Float(1.0f / 255.f));
+			dst.move(1, SIMD::Float(0));
+			dst.move(2, SIMD::Float(0));
+			dst.move(3, SIMD::Float(1));
+			break;
+		case VK_FORMAT_R8_UINT:
+			dst.move(0, (As<SIMD::UInt>(packed[0]) & SIMD::UInt(0xFF)));
+			dst.move(1, SIMD::UInt(0));
+			dst.move(2, SIMD::UInt(0));
+			dst.move(3, SIMD::UInt(1));
+			break;
+		case VK_FORMAT_R8_SINT:
+			dst.move(0, (packed[0] << 24) >> 24);
+			dst.move(1, SIMD::Int(0));
+			dst.move(2, SIMD::Int(0));
+			dst.move(3, SIMD::Int(1));
+			break;
+		case VK_FORMAT_R8G8_UNORM:
+			dst.move(0, SIMD::Float((packed[0] & SIMD::Int(0xFF))) * SIMD::Float(1.0f / 255.f));
+			dst.move(1, SIMD::Float(((packed[0]>>8) & SIMD::Int(0xFF))) * SIMD::Float(1.0f / 255.f));
+			dst.move(2, SIMD::Float(0));
+			dst.move(3, SIMD::Float(1));
+			break;
+		case VK_FORMAT_R8G8_UINT:
+			dst.move(0, (As<SIMD::UInt>(packed[0]) & SIMD::UInt(0xFF)));
+			dst.move(1, ((As<SIMD::UInt>(packed[0])>>8) & SIMD::UInt(0xFF)));
+			dst.move(2, SIMD::UInt(0));
+			dst.move(3, SIMD::UInt(1));
+			break;
+		case VK_FORMAT_R8G8_SINT:
+			dst.move(0, (packed[0] << 24) >> 24);
+			dst.move(1, (packed[0] << 16) >> 24);
+			dst.move(2, SIMD::Int(0));
+			dst.move(3, SIMD::Int(1));
+			break;
 		default:
 			UNIMPLEMENTED("");
 		}
