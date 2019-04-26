@@ -1174,6 +1174,58 @@ TEST_F(SwiftShaderTest, OutOfMemory)
 	}
 }
 
+TEST_F(SwiftShaderTest, ViewportBounds)
+{
+	auto doRenderWithViewportSettings = [&](GLint x, GLint y, GLsizei w, GLsizei h)
+	{
+		Initialize(3, false);
+
+		std::string vs =
+			"#version 300 es\n"
+			"in vec4 position;\n"
+			"out float unfoldable;\n"
+			"void main()\n"
+			"{\n"
+			"    unfoldable = position.x;\n"
+			"    gl_Position = vec4(position.xy, 0.0, 1.0);\n"
+			"}\n";
+
+		std::string fs =
+			"#version 300 es\n"
+			"precision mediump float;\n"
+			"in float unfoldable;\n"
+			"out vec4 fragColor;\n"
+			"void main()\n"
+			"{\n"
+			"    fragColor = vec4(1.0, 1.0, 1.0, 1.0);\n"
+			"}\n";
+
+		const ProgramHandles ph = createProgram(vs, fs);
+
+		glUseProgram(ph.program);
+
+		glViewport(x, y, w, h);
+
+		drawQuad(ph.program);
+		EXPECT_GLENUM_EQ(GL_NONE, glGetError());
+
+		deleteProgram(ph);
+		Uninitialize();
+	};
+
+	GLsizei w = 100;
+	GLsizei h = 100;
+	GLint minPos = -2000;
+
+	doRenderWithViewportSettings(0, 0, 0, 0);
+	doRenderWithViewportSettings(0, 0, w, h);
+
+	// Negative positions
+	doRenderWithViewportSettings(minPos, 0, w, h);
+	doRenderWithViewportSettings(0, minPos, w, h);
+	doRenderWithViewportSettings(minPos, minPos, w, h);
+}
+
 // Test using TexImage2D to define a rectangle texture
 
 TEST_F(SwiftShaderTest, TextureRectangle_TexImage2D)

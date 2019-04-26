@@ -175,13 +175,16 @@ namespace sw
 				yMax = (yMax + 0x0F) >> 4;
 			}
 
-			If(yMin == yMax)
+			yMin = Max(yMin, *Pointer<Int>(data + OFFSET(DrawData,scissorY0)));
+			yMax = Min(yMax, *Pointer<Int>(data + OFFSET(DrawData,scissorY1)));
+
+			// If yMin and yMax are initially negative, the scissor clamping above will typically result
+			// in yMin == 0 and yMax unchanged. We bail as we don't need to rasterize this primitive, and
+			// code below assumes yMin < yMax.
+			If(yMin >= yMax)
 			{
 				Return(false);
 			}
-
-			yMin = Max(yMin, *Pointer<Int>(data + OFFSET(DrawData,scissorY0)));
-			yMax = Min(yMax, *Pointer<Int>(data + OFFSET(DrawData,scissorY1)));
 
 			For(Int q = 0, q < state.multiSample, q++)
 			{

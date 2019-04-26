@@ -817,6 +817,12 @@ namespace es2
 				scissor.y1 = min(scissor.y1, stencilBuffer->getHeight());
 			}
 
+			// Ensure scissor range is positive
+			scissor.x0 = max(scissor.x0, 0);
+			scissor.x1 = max(scissor.x1, 0);
+			scissor.y0 = max(scissor.y0, 0);
+			scissor.y1 = max(scissor.y1, 0);
+
 			setScissor(scissor);
 		}
 
