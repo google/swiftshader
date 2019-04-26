@@ -3420,7 +3420,11 @@ namespace rr
 	//
 	// RR_LOG() is intended to be used for debugging JIT compiled code, and is
 	// not intended for production use.
-	#define RR_LOG(msg, ...) Print(__PRETTY_FUNCTION__, __FILE__, __LINE__, msg "\n", ##__VA_ARGS__)
+	#if defined(_WIN32)
+		#define RR_LOG(msg, ...) Print(__FUNCSIG__, __FILE__, __LINE__, msg "\n", ##__VA_ARGS__)
+	#else
+		#define RR_LOG(msg, ...) Print(__PRETTY_FUNCTION__, __FILE__, __LINE__, msg "\n", ##__VA_ARGS__)
+	#endif
 
 	// Macro magic to perform variadic dispatch.
 	// See: https://renenyffenegger.ch/notes/development/languages/C-C-plus-plus/preprocessor/macros/__VA_ARGS__/count-arguments
