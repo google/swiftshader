@@ -27,7 +27,7 @@ namespace vk
 class DescriptorSet;
 
 // TODO(b/129523279): Move to the Device or Pipeline layer.
-struct SampledImageDescriptor
+struct alignas(16) SampledImageDescriptor
 {
 	void updateSampler(const vk::Sampler *sampler);
 
@@ -35,10 +35,10 @@ struct SampledImageDescriptor
 	const vk::Sampler *sampler;
 	const vk::ImageView *imageView;
 
-	sw::Texture texture;
+	alignas(16) sw::Texture texture;
 };
 
-struct StorageImageDescriptor
+struct alignas(16) StorageImageDescriptor
 {
 	void *ptr;
 	VkExtent3D extent;

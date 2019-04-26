@@ -13,7 +13,10 @@
 // limitations under the License.
 
 #include "VkDescriptorPool.hpp"
+
+#include "VkDescriptorSet.hpp"
 #include "VkDescriptorSetLayout.hpp"
+
 #include <algorithm>
 #include <memory>
 
@@ -38,7 +41,7 @@ size_t DescriptorPool::ComputeRequiredAllocationSize(const VkDescriptorPoolCreat
 	for(uint32_t i = 0; i < pCreateInfo->poolSizeCount; i++)
 	{
 		size += pCreateInfo->pPoolSizes[i].descriptorCount *
-		        (sizeof(DescriptorSetLayout*) +
+		        (sizeof(DescriptorSetHeader) +
 		         DescriptorSetLayout::GetDescriptorSize(pCreateInfo->pPoolSizes[i].type));
 	}
 

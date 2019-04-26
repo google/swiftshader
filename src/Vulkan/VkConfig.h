@@ -37,10 +37,13 @@ enum
 
 enum
 {
-	REQUIRED_MEMORY_ALIGNMENT = 16, // ARM64 will want 8 bytes for 64b formats; x86 wants 16 bytes for 128b formats
+	// Alignment of all Vulkan objects, pools, device memory, images, buffers, descriptors.
+	REQUIRED_MEMORY_ALIGNMENT = 16,  // 16 bytes for 128-bit vector types.
+	
 	MIN_TEXEL_BUFFER_OFFSET_ALIGNMENT = 256,
 	MIN_UNIFORM_BUFFER_OFFSET_ALIGNMENT = 256,
 	MIN_STORAGE_BUFFER_OFFSET_ALIGNMENT = 256,
+
 	MEMORY_TYPE_GENERIC_BIT = 0x1, // Generic system memory.
 };
 
