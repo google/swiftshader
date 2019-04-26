@@ -20,6 +20,8 @@
 #include "VkObject.hpp"
 #include "VkImage.hpp"
 
+#include <atomic>
+
 namespace vk
 {
 
@@ -52,7 +54,10 @@ public:
 	const VkImageSubresourceRange &getSubresourceRange() const { return subresourceRange; }
 	size_t getImageSizeInBytes() const { return image->getMemoryRequirements().size; }
 
+	const uint32_t id = nextID++;
 private:
+	static std::atomic<uint32_t> nextID;
+
 	bool                          imageTypesMatch(VkImageType imageType) const;
 
 	Image *const                  image = nullptr;

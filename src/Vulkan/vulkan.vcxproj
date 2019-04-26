@@ -134,6 +134,7 @@ IF EXIST "$(SolutionDir)..\deqp\build\external\vulkancts\modules\vulkan\" (copy 
     <ClCompile Include="VkQueryPool.cpp" />
     <ClCompile Include="VkQueue.cpp" />
     <ClCompile Include="VkRenderPass.cpp" />
+    <ClCompile Include="VkSampler.cpp" />
     <ClCompile Include="VkShaderModule.cpp" />
     <ClCompile Include="..\Device\Blitter.cpp" />
     <ClCompile Include="..\Device\Clipper.cpp" />

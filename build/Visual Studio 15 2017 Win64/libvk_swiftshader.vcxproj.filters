@@ -190,6 +190,9 @@
     <ClCompile Include="$(SolutionDir)src\Vulkan\VkRenderPass.cpp">
       <Filter>src\Vulkan</Filter>
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)src\Vulkan\VkSampler.cpp">
+      <Filter>src\Vulkan</Filter>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)src\Vulkan\VkShaderModule.cpp">
       <Filter>src\Vulkan</Filter>
     </ClCompile>

@@ -17,6 +17,8 @@
 
 #include "VkDevice.hpp"
 
+#include <atomic>
+
 namespace vk
 {
 
@@ -49,6 +51,7 @@ public:
 		return 0;
 	}
 
+	const uint32_t             id = nextID++;
 	const VkFilter             magFilter = VK_FILTER_NEAREST;
 	const VkFilter             minFilter = VK_FILTER_NEAREST;
 	const VkSamplerMipmapMode  mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST;
@@ -64,6 +67,9 @@ public:
 	const float                maxLod = 0.0f;
 	const VkBorderColor        borderColor = VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK;
 	const VkBool32             unnormalizedCoordinates = VK_FALSE;
+
+private:
+	static std::atomic<uint32_t> nextID;
 };
 
 static inline Sampler* Cast(VkSampler object)

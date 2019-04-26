@@ -322,6 +322,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)src\Vulkan\VkQueue.hpp" />
     <ClCompile Include="$(SolutionDir)src\Vulkan\VkRenderPass.cpp" />
     <ClInclude Include="$(SolutionDir)src\Vulkan\VkRenderPass.hpp" />
+    <ClInclude Include="$(SolutionDir)src\Vulkan\VkSampler.cpp" />
     <ClInclude Include="$(SolutionDir)src\Vulkan\VkSampler.hpp" />
     <ClInclude Include="$(SolutionDir)src\Vulkan\VkSemaphore.hpp" />
     <ClCompile Include="$(SolutionDir)src\Vulkan\VkShaderModule.cpp" />

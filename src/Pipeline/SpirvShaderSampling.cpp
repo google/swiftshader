@@ -51,12 +51,11 @@ SpirvShader::ImageSampler *SpirvShader::getImageSamplerExplicitLod(const vk::Ima
 SpirvShader::ImageSampler *SpirvShader::getImageSampler(SamplerMethod samplerMethod, const vk::ImageView *imageView, const vk::Sampler *sampler)
 {
 	// TODO(b/129523279): Move somewhere sensible.
-	static std::unordered_map<uintptr_t, ImageSampler*> cache;
+	static std::unordered_map<uint64_t, ImageSampler*> cache;
 	static std::mutex mutex;
 
-	// FIXME(b/129523279): Don't use pointers: they can be deleted and reused. Instead combine some two unique ids.
 	// FIXME(b/129523279): Take instruction opcode and optional parameters into acount (SamplerMethod / SamplerOption).
-	auto key = reinterpret_cast<uintptr_t>(imageView) ^ reinterpret_cast<uintptr_t>(sampler);
+	auto key = (static_cast<uint64_t>(imageView->id) << 32) | static_cast<uint64_t>(sampler->id);
 
 	std::unique_lock<std::mutex> lock(mutex);
 	auto it = cache.find(key);
@@ -79,7 +78,7 @@ void SpirvShader::emitSamplerFunction(
         const vk::ImageView *imageView, const vk::Sampler *sampler,
         Pointer<Byte> image, Pointer<SIMD::Float> in, Pointer<Byte> out, Pointer<Byte> constants)
 {
-	Sampler::State samplerState;
+	Sampler::State samplerState = {};
 	samplerState.textureType = convertTextureType(imageView->getType());
 	samplerState.textureFormat = imageView->getFormat();
 	samplerState.textureFilter = convertFilterMode(sampler);

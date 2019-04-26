@@ -42,6 +42,8 @@ namespace
 namespace vk
 {
 
+std::atomic<uint32_t> ImageView::nextID(1);
+
 ImageView::ImageView(const VkImageViewCreateInfo* pCreateInfo, void* mem) :
 	image(Cast(pCreateInfo->image)), viewType(pCreateInfo->viewType), format(pCreateInfo->format),
 	components(ResolveIdentityMapping(pCreateInfo->components)),

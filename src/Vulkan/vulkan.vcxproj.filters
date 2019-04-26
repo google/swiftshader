@@ -246,6 +246,9 @@
     <ClCompile Include="VkRenderPass.cpp">
       <Filter>Source Files\Vulkan</Filter>
     </ClCompile>
+    <ClCompile Include="VkSampler.cpp">
+      <Filter>Source Files\Vulkan</Filter>
+    </ClCompile>
     <ClCompile Include="VkShaderModule.cpp">
       <Filter>Source Files\Vulkan</Filter>
     </ClCompile>
