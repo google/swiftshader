@@ -15,7 +15,7 @@ if [[ -z "${REACTOR_BACKEND}" ]]; then
   REACTOR_BACKEND="LLVM"
 fi
 
-cmake .. "-DREACTOR_BACKEND=${REACTOR_BACKEND}"
+cmake .. "-DASAN=ON -DREACTOR_BACKEND=${REACTOR_BACKEND}"
 make -j$(sysctl -n hw.logicalcpu)
 
 # Run the reactor unit tests.
