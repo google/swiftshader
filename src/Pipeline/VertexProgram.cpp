@@ -50,7 +50,7 @@ namespace sw
 		if (it != spirvShader->inputBuiltins.end())
 		{
 			ASSERT(it->second.SizeInComponents == 1);
-			routine.getVariable(it->second.Id)[it->second.FirstComponent] = As<SIMD::Float>(Int(SIMD::Width));
+			routine.getVariable(it->second.Id)[it->second.FirstComponent] = As<SIMD::Float>(SIMD::Int(SIMD::Width));
 		}
 
 		it = spirvShader->inputBuiltins.find(spv::BuiltInSubgroupLocalInvocationId);
