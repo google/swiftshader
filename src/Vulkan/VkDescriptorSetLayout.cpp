@@ -324,11 +324,13 @@ void DescriptorSetLayout::WriteDescriptorSet(DescriptorSet *dstSet, VkDescriptor
 
 				VkExtent3D extent = imageView->getMipLevelExtent(level);
 				Format format = imageView->getFormat();
+				int layers = imageView->getSubresourceRange().layerCount;
+				// TODO(b/129523279): Untangle depth vs layers throughout the sampler
 				int width = extent.width;
 				int height = extent.height;
-				int depth = extent.depth;
+				int depth = layers > 1 ? layers : extent.depth;
 				int pitchP = imageView->rowPitchBytes(aspect, level) / format.bytes();
-				int sliceP = imageView->slicePitchBytes(aspect, level) / format.bytes();
+				int sliceP = (layers > 1 ? imageView->layerPitchBytes(aspect) : imageView->slicePitchBytes(aspect, level)) / format.bytes();
 
 				float exp2LOD = 1.0f;
 

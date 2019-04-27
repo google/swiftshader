@@ -88,6 +88,10 @@ void SpirvShader::emitSamplerFunction(
 	samplerState.addressingModeU = convertAddressingMode(sampler->addressModeU, imageView->getType());
 	samplerState.addressingModeV = convertAddressingMode(sampler->addressModeV, imageView->getType());
 	samplerState.addressingModeW = convertAddressingMode(sampler->addressModeW, imageView->getType());
+
+	if (imageView->getType() == VK_IMAGE_VIEW_TYPE_2D_ARRAY)
+		samplerState.addressingModeW = ADDRESSING_LAYER;
+
 	samplerState.mipmapFilter = convertMipmapMode(sampler);
 	samplerState.sRGB = imageView->getFormat().isSRGBformat();
 	samplerState.swizzle = imageView->getComponentMapping();
@@ -120,7 +124,7 @@ void SpirvShader::emitSamplerFunction(
 //	case VK_IMAGE_VIEW_TYPE_3D:         coordinateCount = 3; break;
 	case VK_IMAGE_VIEW_TYPE_CUBE:       coordinateCount = 3; break;
 //	case VK_IMAGE_VIEW_TYPE_1D_ARRAY:   coordinateCount = 2; break;
-//	case VK_IMAGE_VIEW_TYPE_2D_ARRAY:   coordinateCount = 3; break;
+	case VK_IMAGE_VIEW_TYPE_2D_ARRAY:   coordinateCount = 3; break;
 //	case VK_IMAGE_VIEW_TYPE_CUBE_ARRAY: coordinateCount = 4; break;
 	default:
 		UNIMPLEMENTED("imageView type %d", imageView->getType());
@@ -164,7 +168,7 @@ sw::TextureType SpirvShader::convertTextureType(VkImageViewType imageViewType)
 //	case VK_IMAGE_VIEW_TYPE_3D:         return TEXTURE_3D;
 	case VK_IMAGE_VIEW_TYPE_CUBE:       return TEXTURE_CUBE;
 //	case VK_IMAGE_VIEW_TYPE_1D_ARRAY:   return TEXTURE_1D_ARRAY;
-//	case VK_IMAGE_VIEW_TYPE_2D_ARRAY:   return TEXTURE_2D_ARRAY;
+	case VK_IMAGE_VIEW_TYPE_2D_ARRAY:   return TEXTURE_2D_ARRAY;
 //	case VK_IMAGE_VIEW_TYPE_CUBE_ARRAY: return TEXTURE_CUBE_ARRAY;
 	default:
 		UNIMPLEMENTED("imageViewType %d", imageViewType);
@@ -230,7 +234,7 @@ sw::AddressingMode SpirvShader::convertAddressingMode(VkSamplerAddressMode addre
 	case VK_IMAGE_VIEW_TYPE_2D:
 //	case VK_IMAGE_VIEW_TYPE_3D:
 //	case VK_IMAGE_VIEW_TYPE_1D_ARRAY:
-//	case VK_IMAGE_VIEW_TYPE_2D_ARRAY:
+	case VK_IMAGE_VIEW_TYPE_2D_ARRAY:
 		break;
 	default:
 		UNIMPLEMENTED("imageViewType %d", imageViewType);
