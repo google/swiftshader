@@ -842,6 +842,7 @@ namespace sw
 			case spv::OpPhi:
 			case spv::OpImageSampleImplicitLod:
 			case spv::OpImageSampleExplicitLod:
+			case spv::OpImageFetch:
 			case spv::OpImageQuerySize:
 			case spv::OpImageRead:
 			case spv::OpImageTexelPointer:
@@ -2389,6 +2390,9 @@ namespace sw
 
 		case spv::OpImageSampleExplicitLod:
 			return EmitImageSampleExplicitLod(insn, state);
+
+		case spv::OpImageFetch:
+			return EmitImageFetch(insn, state);
 
 		case spv::OpImageQuerySize:
 			return EmitImageQuerySize(insn, state);
@@ -4472,6 +4476,11 @@ namespace sw
 		}
 		else UNIMPLEMENTED("Image Operands %x", imageOperands);
 		return EmitResult::Continue;
+	}
+
+	SpirvShader::EmitResult SpirvShader::EmitImageFetch(InsnIterator insn, EmitState *state) const
+	{
+		return EmitImageSample({Fetch}, insn, state);
 	}
 
 	SpirvShader::EmitResult SpirvShader::EmitImageSample(ImageInstruction instruction, InsnIterator insn, EmitState *state) const

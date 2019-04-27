@@ -869,6 +869,7 @@ namespace sw
 		EmitResult EmitPhi(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitImageSampleImplicitLod(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitImageSampleExplicitLod(InsnIterator insn, EmitState *state) const;
+		EmitResult EmitImageFetch(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitImageSample(ImageInstruction instruction, InsnIterator insn, EmitState *state) const;
 		EmitResult EmitImageQuerySize(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitImageRead(InsnIterator insn, EmitState *state) const;
