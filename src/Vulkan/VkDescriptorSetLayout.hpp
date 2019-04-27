@@ -48,6 +48,13 @@ struct alignas(16) StorageImageDescriptor
 	int sizeInBytes;
 };
 
+struct alignas(16) BufferDescriptor
+{
+	void *ptr;
+	int sizeInBytes;		// intended size of the bound region -- slides along with dynamic offsets
+	int robustnessSize;		// total accessible size from static offset -- does not move with dynamic offset
+};
+
 class DescriptorSetLayout : public Object<DescriptorSetLayout, VkDescriptorSetLayout>
 {
 public:

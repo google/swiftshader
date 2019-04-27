@@ -40,11 +40,6 @@ public:
 	inline VkDeviceSize getSize() const { return size; }
 	uint8_t* end() const;
 
-	// DataOffset is the offset in bytes from the Buffer to the pointer to the
-	// buffer's data memory.
-	static const int DataOffset;
-	static const int DataSize;
-
 private:
 	void*                 memory = nullptr;
 	VkBufferCreateFlags   flags = 0;

@@ -1334,20 +1334,23 @@ namespace sw
 				auto setLayout = routine->pipelineLayout->getDescriptorSetLayout(d.DescriptorSet);
 				int bindingOffset = static_cast<int>(setLayout->getBindingOffset(d.Binding, arrayIndex));
 
-				Pointer<Byte> bufferInfo = set.base + bindingOffset; // VkDescriptorBufferInfo*
-				Pointer<Byte> buffer = *Pointer<Pointer<Byte>>(bufferInfo + OFFSET(VkDescriptorBufferInfo, buffer)); // vk::Buffer*
-				Pointer<Byte> data = *Pointer<Pointer<Byte>>(buffer + vk::Buffer::DataOffset); // void*
-				Int offset = *Pointer<Int>(bufferInfo + OFFSET(VkDescriptorBufferInfo, offset));
-				Int size = *Pointer<Int>(buffer + vk::Buffer::DataSize); // void*
+				Pointer<Byte> descriptor = set.base + bindingOffset; // BufferDescriptor*
+				Pointer<Byte> data = *Pointer<Pointer<Byte>>(descriptor + OFFSET(vk::BufferDescriptor, ptr)); // void*
+				Int size = *Pointer<Int>(descriptor + OFFSET(vk::BufferDescriptor, sizeInBytes));
 				if (setLayout->isBindingDynamic(d.Binding))
 				{
 					uint32_t dynamicBindingIndex =
 						routine->pipelineLayout->getDynamicOffsetBase(d.DescriptorSet) +
 						setLayout->getDynamicDescriptorOffset(d.Binding) +
 						arrayIndex;
-					offset += routine->descriptorDynamicOffsets[dynamicBindingIndex];
+					Int offset = routine->descriptorDynamicOffsets[dynamicBindingIndex];
+					Int robustnessSize = *Pointer<Int>(descriptor + OFFSET(vk::BufferDescriptor, robustnessSize));
+					return SIMD::Pointer(data + offset, Min(size, robustnessSize - offset));
 				}
-				return SIMD::Pointer(data + offset, size - offset);
+				else
+				{
+					return SIMD::Pointer(data, size);
+				}
 			}
 
 			default:
