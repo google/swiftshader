@@ -170,6 +170,7 @@ namespace sw
 			case VK_FORMAT_R32G32_SINT:
 			case VK_FORMAT_R32G32_UINT:
 				c.z = As<Float4>(UInt4(0));
+				c.w = As<Float4>(UInt4(1));
 			case VK_FORMAT_R8G8B8A8_SINT:
 			case VK_FORMAT_R8G8B8A8_UINT:
 			case VK_FORMAT_R16G16B16A16_SINT:
@@ -359,12 +360,30 @@ namespace sw
 		   state.addressingModeV == ADDRESSING_BORDER ||
 		   (state.addressingModeW == ADDRESSING_BORDER && state.textureType == TEXTURE_3D))
 		{
-			Short4 b;
+			Short4 borderRgb;
+			Short4 borderA;
+			switch (state.border)
+			{
+			case VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK:
+				borderRgb = Short4(0);
+				borderA = Short4(0);
+				break;
+			case VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK:
+				borderRgb = Short4(0);
+				borderA = hasUnsignedTextureComponent(0) ? Short4(0xffff) : Short4(0x7fff);
+				break;
+			case VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE:
+				borderRgb = hasUnsignedTextureComponent(0) ? Short4(0xffff) : Short4(0x7fff);
+				borderA = hasUnsignedTextureComponent(0) ? Short4(0xffff) : Short4(0x7fff);
+				break;
+			default:
+				UNIMPLEMENTED("snorm/unorm border %u", state.border);
+			}
 
-			c.x = (borderMask & c.x) | (~borderMask & (*Pointer<Short4>(texture + OFFSET(Texture,borderColor4[0])) >> (hasUnsignedTextureComponent(0) ? 0 : 1)));
-			c.y = (borderMask & c.y) | (~borderMask & (*Pointer<Short4>(texture + OFFSET(Texture,borderColor4[1])) >> (hasUnsignedTextureComponent(1) ? 0 : 1)));
-			c.z = (borderMask & c.z) | (~borderMask & (*Pointer<Short4>(texture + OFFSET(Texture,borderColor4[2])) >> (hasUnsignedTextureComponent(2) ? 0 : 1)));
-			c.w = (borderMask & c.w) | (~borderMask & (*Pointer<Short4>(texture + OFFSET(Texture,borderColor4[3])) >> (hasUnsignedTextureComponent(3) ? 0 : 1)));
+			c.x = (borderMask & c.x) | (~borderMask & borderRgb);
+			c.y = (borderMask & c.y) | (~borderMask & borderRgb);
+			c.z = (borderMask & c.z) | (~borderMask & borderRgb);
+			c.w = (borderMask & c.w) | (~borderMask & borderA);
 		}
 
 		return c;
@@ -831,12 +850,43 @@ namespace sw
 		   state.addressingModeV == ADDRESSING_BORDER ||
 		   (state.addressingModeW == ADDRESSING_BORDER && state.textureType == TEXTURE_3D))
 		{
-			Int4 b;
+			Int4 borderRgb;
+			Int4 borderA;
 
-			c.x = As<Float4>((borderMask & As<Int4>(c.x)) | (~borderMask & *Pointer<Int4>(texture + OFFSET(Texture,borderColorF[0]))));
-			c.y = As<Float4>((borderMask & As<Int4>(c.y)) | (~borderMask & *Pointer<Int4>(texture + OFFSET(Texture,borderColorF[1]))));
-			c.z = As<Float4>((borderMask & As<Int4>(c.z)) | (~borderMask & *Pointer<Int4>(texture + OFFSET(Texture,borderColorF[2]))));
-			c.w = As<Float4>((borderMask & As<Int4>(c.w)) | (~borderMask & *Pointer<Int4>(texture + OFFSET(Texture,borderColorF[3]))));
+			switch (state.border)
+			{
+			case VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK:
+				borderRgb = As<Int4>(Float4(0));
+				borderA = As<Int4>(Float4(0));
+				break;
+			case VK_BORDER_COLOR_INT_TRANSPARENT_BLACK:
+				borderRgb = Int4(0);
+				borderA = Int4(0);
+				break;
+			case VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK:
+				borderRgb = As<Int4>(Float4(0));
+				borderA = As<Int4>(Float4(1));
+				break;
+			case VK_BORDER_COLOR_INT_OPAQUE_BLACK:
+				borderRgb = Int4(0);
+				borderA = Int4(1);
+				break;
+			case VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE:
+				borderRgb = As<Int4>(Float4(1));
+				borderA = As<Int4>(Float4(1));
+				break;
+			case VK_BORDER_COLOR_INT_OPAQUE_WHITE:
+				borderRgb = Int4(1);
+				borderA = Int4(1);
+				break;
+			default:
+				UNIMPLEMENTED("sint/uint/sfloat border: %u", state.border);
+			}
+
+			c.x = As<Float4>((borderMask & As<Int4>(c.x)) | (~borderMask & borderRgb));
+			c.y = As<Float4>((borderMask & As<Int4>(c.y)) | (~borderMask & borderRgb));
+			c.z = As<Float4>((borderMask & As<Int4>(c.z)) | (~borderMask & borderRgb));
+			c.w = As<Float4>((borderMask & As<Int4>(c.w)) | (~borderMask & borderA));
 		}
 
 		return c;

@@ -283,25 +283,6 @@ namespace sw
 		this->sRGB = sRGB;
 	}
 
-	void Sampler::setBorderColor(const Color<float> &borderColor)
-	{
-		// FIXME: Compact into generic function   // FIXME: Clamp
-		short r = iround(0xFFFF * borderColor.r);
-		short g = iround(0xFFFF * borderColor.g);
-		short b = iround(0xFFFF * borderColor.b);
-		short a = iround(0xFFFF * borderColor.a);
-
-		texture.borderColor4[0][0] = texture.borderColor4[0][1] = texture.borderColor4[0][2] = texture.borderColor4[0][3] = r;
-		texture.borderColor4[1][0] = texture.borderColor4[1][1] = texture.borderColor4[1][2] = texture.borderColor4[1][3] = g;
-		texture.borderColor4[2][0] = texture.borderColor4[2][1] = texture.borderColor4[2][2] = texture.borderColor4[2][3] = b;
-		texture.borderColor4[3][0] = texture.borderColor4[3][1] = texture.borderColor4[3][2] = texture.borderColor4[3][3] = a;
-
-		texture.borderColorF[0][0] = texture.borderColorF[0][1] = texture.borderColorF[0][2] = texture.borderColorF[0][3] = borderColor.r;
-		texture.borderColorF[1][0] = texture.borderColorF[1][1] = texture.borderColorF[1][2] = texture.borderColorF[1][3] = borderColor.g;
-		texture.borderColorF[2][0] = texture.borderColorF[2][1] = texture.borderColorF[2][2] = texture.borderColorF[2][3] = borderColor.b;
-		texture.borderColorF[3][0] = texture.borderColorF[3][1] = texture.borderColorF[3][2] = texture.borderColorF[3][3] = borderColor.a;
-	}
-
 	void Sampler::setMaxAnisotropy(float maxAnisotropy)
 	{
 		texture.maxAnisotropy = maxAnisotropy;

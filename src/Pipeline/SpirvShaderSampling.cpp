@@ -83,6 +83,7 @@ void SpirvShader::emitSamplerFunction(
 	samplerState.textureType = convertTextureType(imageView->getType());
 	samplerState.textureFormat = imageView->getFormat();
 	samplerState.textureFilter = convertFilterMode(sampler);
+	samplerState.border = sampler->borderColor;
 
 	samplerState.addressingModeU = convertAddressingMode(sampler->addressModeU, imageView->getType());
 	samplerState.addressingModeV = convertAddressingMode(sampler->addressModeV, imageView->getType());

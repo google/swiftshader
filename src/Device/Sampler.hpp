@@ -55,8 +55,6 @@ namespace sw
 		float4 heightLOD;
 		float4 depthLOD;
 
-		word4 borderColor4[4];   // FIXME(b/129523279): Part of Vulkan sampler.
-		float4 borderColorF[4];  // FIXME(b/129523279): Part of Vulkan sampler.
 		float maxAnisotropy;     // FIXME(b/129523279): Part of Vulkan sampler.
 		float minLod;  // FIXME(b/129523279): Part of Vulkan sampler.
 		float maxLod;  // FIXME(b/129523279): Part of Vulkan sampler.
@@ -163,6 +161,7 @@ namespace sw
 			VkComponentMapping swizzle;
 			bool highPrecisionFiltering;
 			CompareFunc compare;
+			VkBorderColor border;
 
 			#if PERF_PROFILE
 			bool compressedFormat;
@@ -184,7 +183,6 @@ namespace sw
 		void setAddressingModeV(AddressingMode addressingMode);
 		void setAddressingModeW(AddressingMode addressingMode);
 		void setReadSRGB(bool sRGB);
-		void setBorderColor(const Color<float> &borderColor);
 		void setMaxAnisotropy(float maxAnisotropy);
 		void setHighPrecisionFiltering(bool highPrecisionFiltering);
 		void setCompareFunc(CompareFunc compare);
