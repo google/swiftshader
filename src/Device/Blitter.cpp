@@ -27,11 +27,13 @@ namespace sw
 	Blitter::Blitter()
 	{
 		blitCache = new RoutineCache<State>(1024);
+		cornerUpdateCache = new RoutineCache<State>(64); // We only need one of these per format
 	}
 
 	Blitter::~Blitter()
 	{
 		delete blitCache;
+		delete cornerUpdateCache;
 	}
 
 	void Blitter::clear(void *pixel, vk::Format format, vk::Image *dest, const vk::Format& viewFormat, const VkImageSubresourceRange& subresourceRange, const VkRect2D* renderArea)
@@ -1674,6 +1676,222 @@ namespace sw
 				srcOffset.z++;
 				dstOffset.z++;
 			}
+		}
+	}
+
+	void Blitter::computeCubeCorner(Pointer<Byte>& layer, Int& x0, Int& x1, Int& y0, Int& y1, Int& pitchB, const State& state)
+	{
+		int bytes = state.sourceFormat.bytes();
+		bool quadLayout = state.sourceFormat.hasQuadLayout();
+
+		Float4 c0;
+		read(c0, layer + ComputeOffset(x0, y1, pitchB, bytes, quadLayout), state);
+		Float4 c1;
+		read(c1, layer + ComputeOffset(x1, y0, pitchB, bytes, quadLayout), state);
+		c0 += c1;
+		read(c1, layer + ComputeOffset(x1, y1, pitchB, bytes, quadLayout), state);
+		c0 += c1;
+		c0 *= Float4(1.0f / 3.0f);
+		write(c0, layer + ComputeOffset(x0, y0, pitchB, bytes, quadLayout), state);
+	}
+
+	Routine *Blitter::generateCornerUpdate(const State& state)
+	{
+		// Reading and writing from/to the same image
+		ASSERT(state.sourceFormat == state.destFormat);
+		ASSERT(state.srcSamples == state.destSamples);
+
+		if(state.srcSamples != 1)
+		{
+			UNIMPLEMENTED("state.srcSamples %d", state.srcSamples);
+		}
+
+		Function<Void(Pointer<Byte>)> function;
+		{
+			Pointer<Byte> blit(function.Arg<0>());
+
+			Pointer<Byte> layers = *Pointer<Pointer<Byte>>(blit + OFFSET(CubeBorderData, layers));
+			Int pitchB = *Pointer<Int>(blit + OFFSET(CubeBorderData, pitchB));
+			UInt layerSize = *Pointer<Int>(blit + OFFSET(CubeBorderData, layerSize));
+			UInt dim = *Pointer<Int>(blit + OFFSET(CubeBorderData, dim));
+
+			// Low Border, Low Pixel, High Border, High Pixel
+			Int LB(-1), LP(0), HB(dim), HP(dim-1);
+
+			for(int i = 0; i < 6; ++i)
+			{
+				computeCubeCorner(layers, LB, LP, LB, LP, pitchB, state);
+				computeCubeCorner(layers, LB, LP, HB, HP, pitchB, state);
+				computeCubeCorner(layers, HB, HP, LB, LP, pitchB, state);
+				computeCubeCorner(layers, HB, HP, HB, HP, pitchB, state);
+				layers = layers + layerSize;
+			}
+		}
+
+		return function("BlitRoutine");
+	}
+
+	void Blitter::updateBorders(vk::Image* image, const VkImageSubresourceLayers& subresourceLayers)
+	{
+		if(image->getArrayLayers() < (subresourceLayers.baseArrayLayer + 6))
+		{
+			UNIMPLEMENTED("image->getArrayLayers() %d, baseArrayLayer %d",
+			              image->getArrayLayers(), subresourceLayers.baseArrayLayer);
+		}
+
+		// From Vulkan 1.1 spec, section 11.5. Image Views:
+		// "For cube and cube array image views, the layers of the image view starting
+		//  at baseArrayLayer correspond to faces in the order +X, -X, +Y, -Y, +Z, -Z."
+		VkImageSubresourceLayers posX = subresourceLayers;
+		posX.layerCount = 1;
+		VkImageSubresourceLayers negX = posX;
+		negX.baseArrayLayer++;
+		VkImageSubresourceLayers posY = negX;
+		posY.baseArrayLayer++;
+		VkImageSubresourceLayers negY = posY;
+		negY.baseArrayLayer++;
+		VkImageSubresourceLayers posZ = negY;
+		posZ.baseArrayLayer++;
+		VkImageSubresourceLayers negZ = posZ;
+		negZ.baseArrayLayer++;
+
+		// Copy top / bottom
+		copyCubeEdge(image, posX, BOTTOM, negY, RIGHT);
+		copyCubeEdge(image, posY, BOTTOM, posZ, TOP);
+		copyCubeEdge(image, posZ, BOTTOM, negY, TOP);
+		copyCubeEdge(image, negX, BOTTOM, negY, LEFT);
+		copyCubeEdge(image, negY, BOTTOM, negZ, BOTTOM);
+		copyCubeEdge(image, negZ, BOTTOM, negY, BOTTOM);
+
+		copyCubeEdge(image, posX, TOP, posY, RIGHT);
+		copyCubeEdge(image, posY, TOP, negZ, TOP);
+		copyCubeEdge(image, posZ, TOP, posY, BOTTOM);
+		copyCubeEdge(image, negX, TOP, posY, LEFT);
+		copyCubeEdge(image, negY, TOP, posZ, BOTTOM);
+		copyCubeEdge(image, negZ, TOP, posY, TOP);
+
+		// Copy left / right
+		copyCubeEdge(image, posX, RIGHT, negZ, LEFT);
+		copyCubeEdge(image, posY, RIGHT, posX, TOP);
+		copyCubeEdge(image, posZ, RIGHT, posX, LEFT);
+		copyCubeEdge(image, negX, RIGHT, posZ, LEFT);
+		copyCubeEdge(image, negY, RIGHT, posX, BOTTOM);
+		copyCubeEdge(image, negZ, RIGHT, negX, LEFT);
+
+		copyCubeEdge(image, posX, LEFT, posZ, RIGHT);
+		copyCubeEdge(image, posY, LEFT, negX, TOP);
+		copyCubeEdge(image, posZ, LEFT, negX, RIGHT);
+		copyCubeEdge(image, negX, LEFT, negZ, RIGHT);
+		copyCubeEdge(image, negY, LEFT, negX, BOTTOM);
+		copyCubeEdge(image, negZ, LEFT, posX, RIGHT);
+
+		// Compute corner colors
+		VkImageAspectFlagBits aspect = static_cast<VkImageAspectFlagBits>(subresourceLayers.aspectMask);
+		vk::Format format = image->getFormat(aspect);
+		VkSampleCountFlagBits samples = image->getSampleCountFlagBits();
+		State state(format, format, samples, samples, { 0xF });
+
+		if(samples != VK_SAMPLE_COUNT_1_BIT)
+		{
+			UNIMPLEMENTED("Multi-sampled cube: %d samples", static_cast<int>(samples));
+		}
+
+		criticalSection.lock();
+		Routine *cornerUpdateRoutine = cornerUpdateCache->query(state);
+
+		if(!cornerUpdateRoutine)
+		{
+			cornerUpdateRoutine = generateCornerUpdate(state);
+
+			if(!cornerUpdateRoutine)
+			{
+				criticalSection.unlock();
+				UNIMPLEMENTED("cornerUpdateRoutine");
+				return;
+			}
+
+			cornerUpdateCache->add(state, cornerUpdateRoutine);
+		}
+
+		criticalSection.unlock();
+
+		void(*cornerUpdateFunction)(const CubeBorderData *data) = (void(*)(const CubeBorderData*))cornerUpdateRoutine->getEntry();
+
+		VkExtent3D extent = image->getMipLevelExtent(subresourceLayers.mipLevel);
+		CubeBorderData data =
+		{
+			image->getTexelPointer({ 0, 0, 0 }, posX),
+			image->rowPitchBytes(aspect, subresourceLayers.mipLevel),
+			static_cast<uint32_t>(image->getLayerSize(aspect)),
+			extent.width
+		};
+		cornerUpdateFunction(&data);
+	}
+
+	void Blitter::copyCubeEdge(vk::Image* image,
+	                           const VkImageSubresourceLayers& dstSubresourceLayers, Edge dstEdge,
+	                           const VkImageSubresourceLayers& srcSubresourceLayers, Edge srcEdge)
+	{
+		ASSERT(srcSubresourceLayers.aspectMask == dstSubresourceLayers.aspectMask);
+		ASSERT(srcSubresourceLayers.mipLevel == dstSubresourceLayers.mipLevel);
+		ASSERT(srcSubresourceLayers.baseArrayLayer != dstSubresourceLayers.baseArrayLayer);
+		ASSERT(srcSubresourceLayers.layerCount == 1);
+		ASSERT(dstSubresourceLayers.layerCount == 1);
+
+		// Figure out if the edges to be copied in reverse order respectively from one another
+		// The copy should be reversed whenever the same edges are contiguous or if we're
+		// copying top <-> right or bottom <-> left. This is explained by the layout, which is:
+		//
+		//      | +y |
+		// | -x | +z | +x | -z |
+		//      | -y |
+
+		bool reverse = (srcEdge == dstEdge) ||
+		               ((srcEdge == TOP) && (dstEdge == RIGHT)) ||
+		               ((srcEdge == RIGHT) && (dstEdge == TOP)) ||
+		               ((srcEdge == BOTTOM) && (dstEdge == LEFT)) ||
+		               ((srcEdge == LEFT) && (dstEdge == BOTTOM));
+
+		VkImageAspectFlagBits aspect = static_cast<VkImageAspectFlagBits>(srcSubresourceLayers.aspectMask);
+		int bytes = image->getFormat(aspect).bytes();
+		int pitchB = image->rowPitchBytes(aspect, srcSubresourceLayers.mipLevel);
+
+		VkExtent3D extent = image->getMipLevelExtent(srcSubresourceLayers.mipLevel);
+		int w = extent.width;
+		int h = extent.height;
+		if(w != h)
+		{
+			UNIMPLEMENTED("Cube doesn't have square faces : (%d, %d)", w, h);
+		}
+
+		// Src is expressed in the regular [0, width-1], [0, height-1] space
+		bool srcHorizontal = ((srcEdge == TOP) || (srcEdge == BOTTOM));
+		int srcDelta = srcHorizontal ? bytes : pitchB;
+		VkOffset3D srcOffset = { (srcEdge == RIGHT) ? (w - 1) : 0, (srcEdge == BOTTOM) ? (h - 1) : 0, 0 };
+
+		// Dst contains borders, so it is expressed in the [-1, width], [-1, height] space
+		bool dstHorizontal = ((dstEdge == TOP) || (dstEdge == BOTTOM));
+		int dstDelta = (dstHorizontal ? bytes : pitchB) * (reverse ? -1 : 1);
+		VkOffset3D dstOffset = { (dstEdge == RIGHT) ? w : -1, (dstEdge == BOTTOM) ? h : -1, 0 };
+
+		// Don't write in the corners
+		if(dstHorizontal)
+		{
+			dstOffset.x += reverse ? w : 1;
+		}
+		else
+		{
+			dstOffset.y += reverse ? h : 1;
+		}
+
+		const uint8_t* src = static_cast<const uint8_t*>(image->getTexelPointer(srcOffset, srcSubresourceLayers));
+		uint8_t *dst = static_cast<uint8_t*>(image->getTexelPointer(dstOffset, dstSubresourceLayers));
+		ASSERT((src < image->end()) && ((src + (w * srcDelta)) < image->end()));
+		ASSERT((dst < image->end()) && ((dst + (w * dstDelta)) < image->end()));
+
+		for(int i = 0; i < w; ++i, dst += dstDelta, src += srcDelta)
+		{
+			memcpy(dst, src, bytes);
 		}
 	}
 }

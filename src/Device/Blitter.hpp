@@ -100,6 +100,14 @@ namespace sw
 			int sHeight;
 		};
 
+		struct CubeBorderData
+		{
+			void *layers;
+			int pitchB;
+			uint32_t layerSize;
+			uint32_t dim;
+		};
+
 	public:
 		Blitter();
 		virtual ~Blitter();
@@ -108,7 +116,11 @@ namespace sw
 
 		void blit(const vk::Image *src, vk::Image *dst, VkImageBlit region, VkFilter filter);
 
+		void updateBorders(vk::Image* image, const VkImageSubresourceLayers& subresourceLayers);
+
 	private:
+		enum Edge { TOP, BOTTOM, RIGHT, LEFT };
+
 		bool fastClear(void *pixel, vk::Format format, vk::Image *dest, const vk::Format& viewFormat, const VkImageSubresourceRange& subresourceRange, const VkRect2D* renderArea);
 
 		bool read(Float4 &color, Pointer<Byte> element, const State &state);
@@ -121,8 +133,15 @@ namespace sw
 		static Float4 sRGBtoLinear(Float4 &color);
 		Routine *getRoutine(const State &state);
 		Routine *generate(const State &state);
+		Routine *generateCornerUpdate(const State& state);
+		void computeCubeCorner(Pointer<Byte>& layer, Int& x0, Int& x1, Int& y0, Int& y1, Int& pitchB, const State& state);
+
+		void copyCubeEdge(vk::Image* image,
+	                      const VkImageSubresourceLayers& dstSubresourceLayers, Edge dstEdge,
+	                      const VkImageSubresourceLayers& srcSubresourceLayers, Edge srcEdge);
 
 		RoutineCache<State> *blitCache;
+		RoutineCache<State> *cornerUpdateCache;
 		MutexLock criticalSection;
 	};
 }

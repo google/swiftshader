@@ -70,7 +70,7 @@ public:
 	uint8_t*                 end() const;
 	VkDeviceSize             getLayerSize(VkImageAspectFlagBits aspect) const;
 
-	void                     prepareForSampling(const VkImageSubresourceRange& subresourceRange) const;
+	void                     prepareForSampling(const VkImageSubresourceRange& subresourceRange);
 	const Image*             getSampledImage() const { return decompressedImage ? decompressedImage : this; }
 
 	static Format            GetFormat(const vk::Format& format, VkImageAspectFlagBits aspect);
