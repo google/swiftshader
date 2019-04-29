@@ -3078,11 +3078,12 @@ namespace rr
 	template<typename T>
 	struct CToReactor;
 
-	template<> struct CToReactor<void>    { using type = Void; };
-	template<> struct CToReactor<int>     { using type = Int; };
-	template<> struct CToReactor<float>   { using type = Float; };
-	template<> struct CToReactor<int*>     { using type = Pointer<Int>; };
-	template<> struct CToReactor<float*>   { using type = Pointer<Float>; };
+	template<> struct CToReactor<void>         { using type = Void; };
+	template<> struct CToReactor<int>          { using type = Int; };
+	template<> struct CToReactor<unsigned int> { using type = UInt; };
+	template<> struct CToReactor<float>        { using type = Float; };
+	template<> struct CToReactor<int*>         { using type = Pointer<Int>; };
+	template<> struct CToReactor<float*>       { using type = Pointer<Float>; };
 
 	// Pointers to non-reactor types are treated as uint8_t*.
 	template<typename T>

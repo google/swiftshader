@@ -4456,15 +4456,19 @@ namespace sw
 
 	SpirvShader::EmitResult SpirvShader::EmitImageSampleImplicitLod(InsnIterator insn, EmitState *state) const
 	{
-		return EmitImageSample(getImageSamplerImplicitLod, insn, state);
+		ImageInstruction imageInstruction(Implicit);
+
+		return EmitImageSample(imageInstruction, insn, state);
 	}
 
 	SpirvShader::EmitResult SpirvShader::EmitImageSampleExplicitLod(InsnIterator insn, EmitState *state) const
 	{
-		return EmitImageSample(getImageSamplerExplicitLod, insn, state);
+		ImageInstruction imageInstruction(Lod);
+
+		return EmitImageSample(imageInstruction, insn, state);
 	}
 
-	SpirvShader::EmitResult SpirvShader::EmitImageSample(GetImageSampler getImageSampler, InsnIterator insn, EmitState *state) const
+	SpirvShader::EmitResult SpirvShader::EmitImageSample(ImageInstruction instruction, InsnIterator insn, EmitState *state) const
 	{
 		Type::ID resultTypeId = insn.word(1);
 		Object::ID resultId = insn.word(2);
@@ -4477,13 +4481,12 @@ namespace sw
 		auto coordinate = GenericValue(this, state->routine, coordinateId);
 		auto &coordinateType = getType(coordinate.type);
 
-		Pointer<Byte> constants;  // FIXME(b/129523279)
-
 		auto descriptor = sampledImage.base; // vk::SampledImageDescriptor*
 		auto sampler = *Pointer<Pointer<Byte>>(descriptor + OFFSET(vk::SampledImageDescriptor, sampler)); // vk::Sampler*
 		auto imageView = *Pointer<Pointer<Byte>>(descriptor + OFFSET(vk::SampledImageDescriptor, imageView)); // vk::ImageView*
 
-		auto samplerFunc = Call(getImageSampler, imageView, sampler);
+		instruction.coordinates = coordinateType.sizeInComponents;
+		auto samplerFunc = Call(getImageSampler, instruction.parameters, imageView, sampler);
 
 		uint32_t imageOperands = spv::ImageOperandsMaskNone;
 		bool bias = false;

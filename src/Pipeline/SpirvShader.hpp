@@ -470,6 +470,36 @@ namespace sw
 			inline operator Object::ID() const { return Object::ID(value()); }
 		};
 
+		// Compact representation of image instruction parameters that is passed to the
+		// trampoline function for retrieving/generating the corresponding sampling routine.
+		struct ImageInstruction
+		{
+			ImageInstruction(SamplerMethod samplerMethod) : samplerMethod(samplerMethod)
+			{
+			}
+
+			// Unmarshal from raw 32-bit data
+			ImageInstruction(uint32_t parameters) : parameters(parameters) {}
+
+			SamplerMethod getSamplerMethod() const
+			{
+				return static_cast<SamplerMethod>(samplerMethod);
+			}
+
+			union
+			{
+				struct
+				{
+					uint32_t samplerMethod : BITS(SAMPLER_METHOD_LAST);
+					uint32_t coordinates : 3;
+				};
+
+				uint32_t parameters = 0;
+			};
+		};
+
+		static_assert(sizeof(ImageInstruction) == 4, "ImageInstruction must be 32-bit");
+
 		int getSerialID() const
 		{
 			return serialID;
@@ -840,7 +870,7 @@ namespace sw
 		EmitResult EmitPhi(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitImageSampleImplicitLod(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitImageSampleExplicitLod(InsnIterator insn, EmitState *state) const;
-		EmitResult EmitImageSample(GetImageSampler getImageSampler, InsnIterator insn, EmitState *state) const;
+		EmitResult EmitImageSample(ImageInstruction instruction, InsnIterator insn, EmitState *state) const;
 		EmitResult EmitImageQuerySize(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitImageRead(InsnIterator insn, EmitState *state) const;
 		EmitResult EmitImageWrite(InsnIterator insn, EmitState *state) const;
@@ -867,11 +897,9 @@ namespace sw
 		// Returns the pair <significand, exponent>
 		std::pair<SIMD::Float, SIMD::Int> Frexp(RValue<SIMD::Float> val) const;
 
-		static ImageSampler *getImageSamplerImplicitLod(const vk::ImageView *imageView, const vk::Sampler *sampler);
-		static ImageSampler *getImageSamplerExplicitLod(const vk::ImageView *imageView, const vk::Sampler *sampler);
-		static ImageSampler *getImageSampler(SamplerMethod samplerMethod, const vk::ImageView *imageView, const vk::Sampler *sampler);
+		static ImageSampler *getImageSampler(uint32_t instruction, const vk::ImageView *imageView, const vk::Sampler *sampler);
 		static void emitSamplerFunction(
-			SamplerMethod samplerMethod,
+			ImageInstruction instruction,
 			const vk::ImageView *imageView, const vk::Sampler *sampler,
 			Pointer<Byte> image, Pointer<SIMD::Float> in, Pointer<Byte> out, Pointer<Byte> constants);
 

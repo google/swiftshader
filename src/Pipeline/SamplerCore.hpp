@@ -27,14 +27,15 @@ namespace sw
 {
 	using namespace rr;
 
-	enum SamplerMethod
+	enum SamplerMethod : uint32_t
 	{
 		Implicit,  // Compute gradients (pixel shader only).
 		Bias,      // Compute gradients and add provided bias.
 		Lod,       // Use provided LOD.
 		Grad,      // Use provided gradients.
 		Fetch,     // Use provided integer coordinates.
-		Base       // Sample base level.
+		Base,      // Sample base level.
+		SAMPLER_METHOD_LAST = Base,
 	};
 
 	enum SamplerOption
@@ -43,6 +44,7 @@ namespace sw
 		Offset   // Offset sample location by provided integer coordinates.
 	};
 
+	// TODO(b/129523279): Eliminate and use SpirvShader::ImageInstruction instead.
 	struct SamplerFunction
 	{
 		SamplerFunction(SamplerMethod method, SamplerOption option = None) : method(method), option(option) {}
